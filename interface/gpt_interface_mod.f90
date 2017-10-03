@@ -166,7 +166,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, end_ele
-type (char_indexx_struct) :: fieldgrid_names
+type (str_indexx_struct) :: fieldgrid_names
 type (gpt_lat_param_struct), target :: gpt_lat_param
 type (gpt_lat_param_struct), pointer :: param
 type (ele_pointer_struct), allocatable :: eles(:)
@@ -246,8 +246,6 @@ do ie = ix_start, end_ele%ix_ele
   if (ele%slave_status == super_slave$) n = n + ele%n_lord
 enddo
 
-allocate (fieldgrid_names%names(n)) 
-allocate (fieldgrid_names%indexx(n))
 fieldgrid_names%n_max = 0
 
 ! Write element info to GPT file.
@@ -343,7 +341,7 @@ use geometry_mod
 
 type (ele_struct) :: ele
 type (floor_position_struct) :: floor1, floor2
-type (char_indexx_struct), optional :: fieldgrid_names
+type (str_indexx_struct), optional :: fieldgrid_names
 
 real(rp) :: w_mat(3,3)
 real(rp) :: s, x(3), dx(3), d(3), d1(2), d2(2), d3(2), d4(2), w1, e_angle, ds_slice
@@ -436,7 +434,7 @@ case (lcavity$, rfcavity$, e_gun$)
     return
   endif
 
-  call get_gpt_fieldgrid_name_and_scaling( ele, fieldgrid_names, fieldgrid_output_name, max_field, ref_time, dimensions)
+  call get_gpt_fieldgrid_name_and_scaling(ele, fieldgrid_names, fieldgrid_output_name, max_field, ref_time, dimensions)
   call write_property('frequency', freq)
   call write_property('field_scale', max_field, 'Maximum on-axis Ez in V/m')
   call write_property('phase', ref_time*twopi*freq)
@@ -648,7 +646,7 @@ end subroutine write_gpt_ele
 !
 ! Input:
 !   ele              -- ele_struct: element to make map
-!   name_indexx      -- char_indexx_struct: contains field grid filenames
+!   name_indexx      -- str_indexx_struct: contains field grid filenames
 !   dimensions       -- integer: 1, 2, or 3 dimensions.
 !
 ! Output:   
@@ -661,7 +659,7 @@ end subroutine write_gpt_ele
 subroutine get_gpt_fieldgrid_name_and_scaling(ele, name_indexx, output_name, field_scale, ref_time, dimensions)
 
 type (ele_struct) :: ele
-type (char_indexx_struct) :: name_indexx
+type (str_indexx_struct) :: name_indexx
 character(*)  :: output_name
 real(rp)      :: field_scale
 real(rp)      :: ref_time

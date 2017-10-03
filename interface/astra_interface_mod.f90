@@ -33,7 +33,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
-type (char_indexx_struct) :: fieldgrid_names
+type (str_indexx_struct) :: fieldgrid_names
 type (astra_lattice_param_struct) :: astra_lattice_param
 
 integer :: n, ie, ix_start, ix_end, iu, id
@@ -55,8 +55,6 @@ ix_end = lat%n_ele_max ! Include lords
 
 ! Initialize fieldgrid filename list
 n = ix_end - ix_start + 1
-allocate ( fieldgrid_names%names(n) ) 
-allocate ( fieldgrid_names%indexx(n) )
 fieldgrid_names%n_max = 0
 
 ! Loop over bends
@@ -151,7 +149,7 @@ use geometry_mod
 implicit none
 type (ele_struct) :: ele
 type (floor_position_struct) :: floor1, floor2
-type (char_indexx_struct), optional :: fieldgrid_names
+type (str_indexx_struct), optional :: fieldgrid_names
 real(rp) :: s, x(3), dx(3), d(3), d1(2), d2(2), d3(2), d4(2), w1, e_angle, ds_slice
 real(rp) :: gap, strength, x_center, y_center, z_center, theta_center
 real(rp) :: absmax_Ez, absmax_Bz, freq, phase_lag
@@ -385,11 +383,11 @@ end function
 !
 ! Input:
 !   ele              -- ele_struct: element to make map
-!   name_indexx      -- char_indexx_struct: contains field grid filenames
+!   name_indexx      -- str_indexx_struct: contains field grid filenames
 !   dimensions       -- integer, optional: 1 or 3 dimensions. Default: 1
 !
 ! Output:   
-!   name_indexx      -- char_indexx_struct: updated if new name is added
+!   name_indexx      -- str_indexx_struct: updated if new name is added
 !   output_name      -- Real(rp): output filename. 
 !   field_scale      -- Real(rp): the scaling of the field grid
 !
@@ -401,7 +399,7 @@ subroutine get_astra_fieldgrid_name_and_scaling(&
 implicit none
 
 type (ele_struct) :: ele
-type (char_indexx_struct) :: name_indexx
+type (str_indexx_struct) :: name_indexx
 character(*)  :: output_name
 real(rp)      :: field_scale
 character(200) :: unique_grid_file

@@ -83,6 +83,8 @@ type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
 type (bmad_common_struct), parameter :: bmad_com_default = bmad_common_struct()
 type (ac_kicker_struct), pointer :: ac
+type (expression_atom_struct), pointer :: stack(:)
+type (str_indexx_struct) str_index
 
 real(rp) s0, x_lim, y_lim, val
 
@@ -110,7 +112,7 @@ integer, allocatable :: an_indexx(:)
 
 logical, optional :: err
 logical unit_found, write_term, found, in_multi_region, expand_branch_out
-logical x_lim_good, y_lim_good, is_default, need_new_region, err_flag
+logical x_lim_good, y_lim_good, is_default, need_new_region, err_flag, has_been_added
 
 ! Init...
 ! Init default parameters
@@ -241,6 +243,23 @@ if (lat%beam_start%spin(1) /= 0) write (iu, '(2a)') 'beam_start[spin_x] = ', tri
 if (lat%beam_start%spin(2) /= 0) write (iu, '(2a)') 'beam_start[spin_y] = ', trim(re_str(lat%beam_start%spin(2)))
 if (lat%beam_start%spin(3) /= 1) write (iu, '(2a)') 'beam_start[spin_z] = ', trim(re_str(lat%beam_start%spin(3)))
 
+! Named constants
+
+write (iu, '(a)')
+
+do i = 1, lat%n_control_max
+  if (.not. allocated(lat%control(i)%stack)) cycle
+  stack => lat%control(i)%stack
+  do j = 1, size(stack)
+    if (stack(i)%type == end_stack$) exit
+    if (stack(i)%type /= variable$) cycle
+    if (stack(i)%name == '') cycle
+    if (any(stack(i)%name == physical_const_list%name)) cycle
+    call find_indexx(stack(i)%name, str_index, ix, add_to_list = .true., has_been_added = has_been_added)
+    if (.not. (has_been_added)) cycle  ! Avoid duuplicates
+    write (iu, '(3a)') trim(stack(i)%name), ' = ', trim(re_str(stack(i)%value))
+  enddo
+enddo
 
 ! Element stuff
 
@@ -396,10 +415,10 @@ do ib = 0, ubound(lat%branch, 1)
 
       do j = 1, size(ele%control_var)
         if (ele%control_var(j)%value /= 0) then
-          line = trim(line) // ', ' // ele%control_var(j)%name // ' = ' // trim(re_str(ele%control_var(j)%value))
+          line = trim(line) // ', ' // trim(ele%control_var(j)%name) // ' = ' // trim(re_str(ele%control_var(j)%value))
         endif
         if (ele%control_var(j)%old_value /= 0) then
-          line = trim(line) // ', old_' // ele%control_var(j)%name // ' = ' // trim(re_str(ele%control_var(j)%value))
+          line = trim(line) // ', old_' // trim(ele%control_var(j)%name) // ' = ' // trim(re_str(ele%control_var(j)%value))
         endif
       enddo
 

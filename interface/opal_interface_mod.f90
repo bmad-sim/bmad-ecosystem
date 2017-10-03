@@ -36,18 +36,18 @@ implicit none
 type (ele_struct), pointer :: ele
 type (lat_struct), target :: lat
 
-integer      :: opal_file_unit
+integer :: opal_file_unit
 character(200)  :: file_name
 character(40)  :: r_name = 'write_opal_lattice_file', name
 character(2)   :: continue_char, eol_char, comment_char
 character(24)  :: rfmt
 character(4000)  :: line
 
-integer      :: iu,  ios, ix_match, ie, ix_start, ix_end, iu_fieldgrid
-integer      :: n_names, n
-integer     :: q_sign
+integer :: iu,  ios, ix_match, ie, ix_start, ix_end, iu_fieldgrid
+integer :: n_names, n
+integer :: q_sign
 
-type (char_indexx_struct) :: fieldgrid_names, ele_names
+type (str_indexx_struct) :: fieldgrid_names, ele_names
 integer, allocatable      :: ele_name_occurrences(:)
 
 real(rp), pointer :: val(:)
@@ -91,8 +91,6 @@ endif
 
 ! Initialize unique name list
 n = ix_end - ix_start + 1
-allocate ( ele_names%names(n) ) 
-allocate ( ele_names%indexx(n) )
 allocate ( ele_name_occurrences(n) )
 ele_names%n_max = 0
 ele_name_occurrences = 0
@@ -100,8 +98,6 @@ ele_name_occurrences = 0
 
 ! Initialize fieldgrid filename list
 n = ix_end - ix_start + 1
-allocate ( fieldgrid_names%names(n) ) 
-allocate ( fieldgrid_names%indexx(n) )
 fieldgrid_names%n_max = 0
 
 !-------------------------------------------
@@ -314,7 +310,6 @@ ele_loop: do ie = ix_start, ix_end
   !----------------------------------------------------------
   !----------------------------------------------------------
 
-
   ! Finally write out line
   call write_lat_line (line, iu, .true., continue_char = continue_char )  
 enddo ele_loop
@@ -341,16 +336,6 @@ enddo lat_loop
 line = line(:len_trim(line)-1) // ')' // eol_char
 call write_lat_line (line, iu, .true., continue_char = continue_char)
 
-
-
-! Cleanup
-deallocate ( ele_names%names ) 
-deallocate ( ele_names%indexx )
-deallocate ( ele_name_occurrences )
-
-deallocate ( fieldgrid_names%names ) 
-deallocate ( fieldgrid_names%indexx )
-
 if (present(err)) err = .false.
 
 end subroutine write_opal_lattice_file
@@ -368,10 +353,10 @@ end subroutine write_opal_lattice_file
 ! Input:
 !   ele              -- ele_struct: element to make map
 !   param            -- lat_param_struct: Contains lattice information
-!   name_indexx      -- char_indexx_struct: contains field grid filenames
+!   name_indexx      -- str_indexx_struct: contains field grid filenames
 !
 ! Output:   
-!   name_indexx      -- char_indexx_struct: updated if new name is added
+!   name_indexx      -- str_indexx_struct: updated if new name is added
 !   output_name      -- Real(rp): output filename. 
 !   field_scale      -- Real(rp): the scaling of the field grid
 !
@@ -384,7 +369,7 @@ implicit none
 
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
-type (char_indexx_struct) :: name_indexx
+type (str_indexx_struct) :: name_indexx
 character(*)  :: output_name
 real(rp)      :: field_scale
 

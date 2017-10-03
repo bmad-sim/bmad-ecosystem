@@ -53,6 +53,7 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, &
 use multipole_mod, except_dummy => type_ele
 use geometry_mod, only: coords_relative_to_floor, ele_geometry
 use expression_mod
+use indexx_mod
 
 implicit none
 
@@ -81,6 +82,7 @@ type (lat_param_struct) param
 type (control_struct), pointer :: ctl
 type (all_pointer_struct) a_ptr
 type (ac_kicker_struct), pointer :: ac
+type (str_indexx_struct) str_index
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, optional, intent(out) :: n_lines
@@ -108,7 +110,7 @@ character(*), parameter :: r_name = 'type_ele'
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_control, type_zero_attrib
 logical, optional :: type_floor_coords, type_field, type_wall
-logical type_zero, err_flag, print_it, is_default, has_it
+logical type_zero, err_flag, print_it, is_default, has_it, has_been_added
 
 ! init
 
@@ -829,6 +831,28 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
                       ele%control_var(i)%name, '  =', ele%control_var(i)%value
       enddo
     endif
+
+    ! Print named constants if present
+
+    print_it = .true.
+    do ix = 1, ele%n_slave
+      slave => pointer_to_slave (ele, ix, ctl)
+      if (allocated(ctl%stack)) then
+        do i = 1, size(ctl%stack)
+          if (ctl%stack(i)%type == end_stack$) exit
+          if (ctl%stack(i)%type /= variable$) cycle
+          if (ctl%stack(i)%name == '') cycle
+          if (any(ctl%stack(i)%name == physical_const_list%name)) cycle
+          call find_indexx(ctl%stack(i)%name, str_index, ix, add_to_list = .true., has_been_added = has_been_added)
+          if (.not. (has_been_added)) cycle  ! Avoid duuplicates
+          if (print_it) then
+            nl=nl+1; li(nl) = 'Named Constants:'
+            print_it = .false.
+          endif
+          nl=nl+1; write (li(nl), '(8x, 2a, es15.7)') trim(ctl%stack(i)%name), ' = ', ctl%stack(i)%value
+        enddo
+      endif
+    enddo
   endif
 
   !
