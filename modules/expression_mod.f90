@@ -6,7 +6,8 @@ implicit none
 
 ! The numeric$ category is for numeric constants [EG: "1.3d-5"].
 ! The variable$ category includes symbolic constants defined in a lattice file, lattice parameters, etc.
-! The species$ category is for the species() function. The species_const$ category is for particle species ('He3', etc).
+! The species$ category is for the species() function. 
+! The species_const$ category is for particle species ('He3', etc).
 
 integer, parameter :: end_stack$ = 0, plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
 integer, parameter :: l_parens$ = 5, r_parens$ = 6, power$ = 7
@@ -62,8 +63,7 @@ subroutine expression_string_to_stack (string, stack, n_stack, err_flag, err_str
 
 type (expression_atom_struct), allocatable :: stack(:)
 
-integer i_op, i
-
+integer i_op, i, var_type
 integer op(200), ix_word, i_delim, i2, ix_word2, n_stack, op0
 
 real(rp) value
@@ -105,10 +105,12 @@ parsing_loop: do
 
   old_delim = delim
   op0 = 0
-  if (i_op > 0) op0 = op(i_op)
+  var_type = variable$
+  if (i_op > 1) op0 = op(i_op-1) ! If parsed "mass_of(" then op(i_op) corresponds to "("
   select case (op0)
   case (mass_of$, charge_of$, anomalous_moment_of$, species$) 
-    call get_next_chunk (word, ix_word, ')', delim, delim_found)
+    call get_next_chunk (word, ix_word, '()', delim, delim_found)
+    var_type = species_const$
   case default
     call get_next_chunk (word, ix_word, '+-*/()^,:} ', delim, delim_found)
   end select
@@ -383,7 +385,7 @@ end subroutine get_next_chunk
 subroutine push_numeric_or_var (err)
 
 logical err
-integer ios, var_type
+integer ios, ix
 
 !
 
@@ -407,16 +409,13 @@ if (is_real(word)) then
   endif
 
 else
-  var_type = variable$
-  if (n_stack > 0) then
-    select case (stack(n_stack)%type)
-    case (mass_of$, charge_of$, anomalous_moment_of$, species$) 
-      var_type = species_const$
-    end select
-  endif
-
   call pushit_stack (stack, n_stack, var_type)
   stack(n_stack)%name = word
+  ! "my_species" in "mass_of(my_species)" is considered a variable and not a species_const
+  if (var_type == species_const$) then
+    stack(n_stack)%value = species_id(word)
+    if (species_id(word) == invalid$) stack(n_stack)%type = variable$
+  endif
 endif
 
 err = .false.
@@ -650,6 +649,13 @@ do i = 1, size(stack)
     i2 = i2 + 1
     call ran_gauss(stack2(i2)%value)
 
+  case (species_const$)
+    i2 = i2 + 1
+    stack2(i2)%value = stack(i)%value
+
+  case (species$)
+    ! Nothing to do
+
   case default
 
     if (is_attribute(stack(i)%type, control_var$)) then
@@ -777,7 +783,7 @@ else
       s2(i2-1)%type = atom%type
       i2 = i2 - 1
 
-    case (numeric$, variable$)
+    case (numeric$, variable$, species_const$)
       i2 = i2 + 1
       s2(i2)%type = atom%type
       if (atom%name == '') then
