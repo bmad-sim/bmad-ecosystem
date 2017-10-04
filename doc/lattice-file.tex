@@ -758,9 +758,9 @@ Example:
   chg2 = charge_of(He++)           ! Same as previous line
   chg3 = charge_of(species(He++))  ! Same as previous line
 \end{example}
-The \vn{species} function turns a string (``He++'' in the above example) into a particle
-ID (internally to \bmad, this is an integer). The use of \vn{species} is only needed when
-setting a variable to a species ID (as the set of \vn{my_particle} in the above example).
+The \vn{species} function is needed in the definition of \vn{my_particle} so that \bmad knows that
+the string ``He++'' represents a type of particle. Inside functions like \vn{mass_of}, the use of
+\vn{species} is optional since, in this case, \bmad can correctly parse the argument.
 
 %-----------------------------------------------------------------------------
 \section{Statement Order}

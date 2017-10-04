@@ -251,13 +251,13 @@ do i = 1, lat%n_control_max
   if (.not. allocated(lat%control(i)%stack)) cycle
   stack => lat%control(i)%stack
   do j = 1, size(stack)
-    if (stack(i)%type == end_stack$) exit
-    if (stack(i)%type /= variable$) cycle
-    if (stack(i)%name == '') cycle
-    if (any(stack(i)%name == physical_const_list%name)) cycle
-    call find_indexx(stack(i)%name, str_index, ix, add_to_list = .true., has_been_added = has_been_added)
+    if (stack(j)%type == end_stack$) exit
+    if (stack(j)%type /= variable$) cycle
+    if (stack(j)%name == '') cycle
+    if (any(stack(j)%name == physical_const_list%name)) cycle
+    call find_indexx(stack(j)%name, str_index, ix, add_to_list = .true., has_been_added = has_been_added)
     if (.not. (has_been_added)) cycle  ! Avoid duuplicates
-    write (iu, '(3a)') trim(stack(i)%name), ' = ', trim(re_str(stack(i)%value))
+    write (iu, '(3a)') trim(stack(j)%name), ' = ', trim(re_str(stack(j)%value))
   enddo
 enddo
 
