@@ -1283,8 +1283,8 @@ function coords_local_curvilinear_to_floor (local_position, ele, &
                               in_ele_frame, w_mat, calculate_angles) result (global_position)
 
 type (floor_position_struct) :: local_position, global_position, p, floor0
-type (ele_struct)  ele
-type (ele_struct), pointer :: ele0
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: ele0, ele1
 real(rp) :: L_save
 real(rp) :: w_mat_local(3,3), L_vec(3), S_mat(3,3), z
 real(rp), optional :: w_mat(3,3)
@@ -1292,35 +1292,43 @@ logical, optional :: in_ele_frame
 logical, optional :: calculate_angles
 character(*), parameter :: r_name = 'coords_local_curvilinear_to_floor'
 
+! If a overlay, group or multipass then just use the first slave
+
+if (ele%key == overlay$ .or. ele%key == group$ .or. ele%lord_status == multipass_lord$) then
+  ele1 => pointer_to_slave(ele, 1)
+else
+  ele1 => ele
+endif
+
 ! Set x and y for floor offset 
 
 p = local_position
  
-if (ele%key == patch$) then
+if (ele1%key == patch$) then
   call mat_make_unit(S_mat)
 
 ! General geometry with possible misalignments
 elseif (logic_option(.false., in_ele_frame)) then
-   p = coords_element_frame_to_local(p, ele, w_mat = S_mat)
+   p = coords_element_frame_to_local(p, ele1, w_mat = S_mat)
    
 ! Curved geometry, no misalignments. Get relative to ele's exit end.
-elseif (ele%key == sbend$) then
+elseif (ele1%key == sbend$) then
   z = p%r(3)
   p%r(3) = 0
-  p = bend_shift(p, ele%value(g$), ele%value(L$) - z, w_mat = S_mat, tilt = ele%value(ref_tilt_tot$) )
+  p = bend_shift(p, ele1%value(g$), ele1%value(L$) - z, w_mat = S_mat, tilt = ele1%value(ref_tilt_tot$) )
 
 ! Element has Cartesian geometry, no misalignments. 
 ! Shift position to be relative to ele's exit: 
 else
-  p%r(3) = p%r(3) - ele%value(L$)
+  p%r(3) = p%r(3) - ele1%value(L$)
   call mat_make_unit(S_mat)
 endif 
 
 ! Get global floor coordinates
-if (ele%orientation == 1) then
-  floor0 = ele%floor
+if (ele1%orientation == 1) then
+  floor0 = ele1%floor
 else
-  ele0 => pointer_to_next_ele (ele, -1)
+  ele0 => pointer_to_next_ele (ele1, -1)
   floor0 = ele0%floor
 endif
 
@@ -1329,8 +1337,8 @@ global_position%w = matmul(floor0%w, p%w)
 
 ! If angles are not needed, just return zeros; 
 if (logic_option(.true., calculate_angles)) then
-  floor0 = ele%floor
-  ele0 => pointer_to_next_ele (ele, -1)
+  floor0 = ele1%floor
+  ele0 => pointer_to_next_ele (ele1, -1)
   floor0%theta = (floor0%theta + ele0%floor%theta) / 2  ! only angle needed
   call update_floor_angles(global_position, floor0)
 else
