@@ -1,6 +1,6 @@
 module sim_utils_interface
 
-use precision_def
+use sim_utils_struct
 
 interface
 
@@ -428,6 +428,14 @@ function real_to_string (num, fmt) result (str)
   implicit none
   real(rp) num
   character(*), optional :: fmt
+  character(24) str
+end function
+
+function all_pointer_to_string (a_ptr, err) result (str)
+  import
+  implicit none
+  type (all_pointer_struct) a_ptr
+  logical, optional :: err
   character(24) str
 end function
 
