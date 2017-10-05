@@ -29,10 +29,11 @@ complex(rp), parameter :: i_imag = (0.0d0, 1.0d0)
   
 ! real_garbage$ and int_garbage$ can be used, for example, to identify
 ! variable that have not been set.
+! For string garbage use null_name$.
 
 integer, parameter :: int_garbage$ = -987654
 real(rp), parameter :: real_garbage$ = -987654.3
-character(*), parameter :: str_garbage$ = 'GARBAGE!'
+character(*), parameter :: null_name$ = '!NULL' 
 
 ! lf$ (the line feed or LF character) can be used to encode a multiline string.
 ! EG: string = 'First Line' // lf$ // 'Second Line'
