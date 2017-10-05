@@ -2753,7 +2753,7 @@ character(100) err_str2
 character(200) word
 
 logical delim_found, ran_function_pending
-logical err_flag, call_check
+logical err_flag, err, call_check
 
 ! Get string
 
@@ -2813,8 +2813,8 @@ endif
 
 ! Make a stack
 
-call expression_string_to_stack(str, stk, n_stk,  err_flag, err_str2)
-if (err_flag) then
+call expression_string_to_stack(str, stk, n_stk,  err, err_str2)
+if (err) then
   call parser_error (err_str2, 'FOR: ' // err_str)
   if (err_str2 == 'MALFORMED EXPRESSION') bp_com%parse_line = ''
   return
@@ -2825,7 +2825,8 @@ do i = 1, n_stk
   case (ran$, ran_gauss$)
     call bp_set_ran_status
   case (variable$)
-    call word_to_value (stk(i)%name, lat, stk(i)%value)
+    call word_to_value (stk(i)%name, lat, stk(i)%value, err)
+    if (err) return
   case (species_const$)
     stk(i)%value = species_id(stk(i)%name)
     if (stk(i)%value == invalid$) then
@@ -2837,10 +2838,12 @@ enddo
 
 ! Evaluate
 
-call evaluate_expression_stack (stk, value, err_flag, err_str2)
-if (err_flag) then
+call evaluate_expression_stack (stk, value, err, err_str2)
+if (err) then
   call parser_error (err_str2, 'FOR: ' // err_str)
 endif
+
+err_flag = .false.
 
 end subroutine evaluate_value
 
@@ -2852,7 +2855,7 @@ end subroutine evaluate_value
 ! This subroutine is not intended for general use.
 !-
 
-subroutine word_to_value (word, lat, value)
+subroutine word_to_value (word, lat, value, err_flag)
 
 implicit none
 
@@ -2869,7 +2872,11 @@ real(rp), pointer :: v(:)
 character(*) word
 character(40) attrib_name, ele_name
 character(80) var_name
-logical err_flag
+logical err_flag, err
+
+!
+
+err_flag = .true.
 
 ! see if this is numeric
 
@@ -2905,7 +2912,9 @@ if (ix1 == 0) then
 
   else
     value = bp_com%var(i)%value
+    err_flag = .false.
   endif
+
   return
 endif
 
@@ -2918,6 +2927,7 @@ attrib_name = var_name(ix1+1:ix2-1)
 
 if (attrib_name == 'S' .and. bp_com%parser_name == 'bmad_parser') then
   call parser_error ('"S" ATTRIBUTE CAN ONLY BE USED WITH BMAD_PARSER2')
+  return
 endif
 
 ! Apertures, etc.
@@ -2951,21 +2961,25 @@ case ('APERTURE', 'X_LIMIT', 'Y_LIMIT')
 
   ! If size(eles) > 1 then there must be more than one element of the same name.
 
-  if (size(eles) > 1) then
+  if (.not. err_flag .and. size(eles) > 1) then
     do i = 2, size(eles)
       if (eles(i)%ele%value(x1_limit$) == eles(1)%ele%value(x1_limit$) .and. &
           eles(i)%ele%value(y1_limit$) == eles(1)%ele%value(y1_limit$)) cycle
       call parser_error (&
             'MULTIPLE ELEMENTS OF THE SAME NAME BUT WITH DIFFERENT ATTRIBUTE VALUES REFERENCED IN: ' // word)
+      err_flag = .true.
       exit
     enddo
   endif
 
+  return
+
 ! Everything else
 
 case default
-  call pointers_to_attribute (lat, ele_name, attrib_name, .false., ptr, err_flag, .false., eles, ix_attrib)
-  if (err_flag .or. size(ptr) == 0) then
+  call pointers_to_attribute (lat, ele_name, attrib_name, .false., ptr, err, .false., eles, ix_attrib)
+
+  if (err .or. size(ptr) == 0) then
     call parser_error('BAD ATTRIBUTE: ' // word)
     return
   elseif (associated(ptr(1)%r)) then
@@ -2985,6 +2999,7 @@ case default
     if (attrib_info%type == dependent$) then
       call parser_error ('DEPENDENT ATTRIBUTE IS NOT CALCULATED BEFORE LATTICE EXPANSION AND', &
                          'THEREFORE CANNOT BE USED BEFORE ANY EXPAND_LATTICE COMMAND: ' // word)
+      return
     endif
   endif
 
@@ -2995,12 +3010,14 @@ case default
       if (ptr(i)%r /= ptr(1)%r) then
         call parser_error (&
               'MULTIPLE ELEMENTS OF THE SAME NAME BUT WITH DIFFERENT ATTRIBUTE VALUES REFERENCED IN: ' // word)
-        exit
+        return
       endif
     enddo
   endif
 
 end select
+
+err_flag = .false.
 
 end subroutine word_to_value
 
@@ -8236,7 +8253,7 @@ if (ixp == 0) then
   if (this_switch < 1) then
     line = trim(name_list(1))
     do  i = 2, size(name_list)
-      if (name_list(i) == str_garbage$) cycle
+      if (name_list(i) == null_name$) cycle
       line = line // ', ' // trim(name_list(i))
     enddo
     call parser_error ('BAD "' // trim(name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word, &

@@ -2252,7 +2252,7 @@ case ('VELOCITY_DISTRIBUTION')
 
 case default
   call out_io (s_fatal$, r_name, 'BAD ATTRIBUTE NAME: ' // attrib_name)
-  attrib_val_name = str_garbage$
+  attrib_val_name = null_name$
 end select
 
 !---------------------------------------
@@ -2267,7 +2267,7 @@ character(*) name_array(min_arr:)
 !
 
 if (ix_attrib_val < lbound(name_array, 1) .or. ix_attrib_val > ubound(name_array, 1)) then
-  val_name = str_garbage$
+  val_name = null_name$
 else
   val_name = name_array(ix_attrib_val)
 endif

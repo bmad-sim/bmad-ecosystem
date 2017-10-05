@@ -274,7 +274,7 @@ else
   else
     key = key_name_to_key_index (name(:ix-1), .true.)
     if (key < 1) then
-      call out_io (s_error$, r_name, 'BAD ELEMENT KEY: ', name(:ix-1))
+      call out_io (s_error$, r_name, 'BAD ELEMENT KEY: ' // name(:ix-1))
       return
     endif
   endif

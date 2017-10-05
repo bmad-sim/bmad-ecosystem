@@ -1407,7 +1407,6 @@ integer, parameter :: b0_elec$ = 212, b21_elec$ = 233
 
 integer, parameter :: num_ele_attrib_extended$ = b21_elec$
 
-character(40), parameter :: null_name$ = '!NULL' 
 character(40), parameter :: blank_name$ = ' '
 
 ! lattice logical names

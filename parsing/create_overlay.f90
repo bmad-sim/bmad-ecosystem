@@ -40,7 +40,7 @@ integer ix_slave, n_slave, ix_attrib, ix_branch
 
 character(40) at_name
 character(16), parameter :: r_name = 'create_overlay'
-logical err, free, var_found
+logical err, err2, free, var_found
 logical, optional :: err_print_flag
 
 ! Error check
@@ -108,7 +108,7 @@ do j = 1, n_slave
   !
 
   free = attribute_free (slave, attribute_name(slave, ix_attrib), err_print_flag, .true.)
-  err = err .or. .not. free
+  err = (err .or. .not. free)
   c => lat%control(nc2+1)
   do is = 1, size(contrl(j)%stack)
     if (contrl(j)%stack(is)%type == end_stack$) exit
@@ -162,7 +162,8 @@ do j = 1, n_slave
       call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH AN OVERLAY OR GROUP', &
                          'FOR ELEMENT: ' // lord%name)
     case (variable$)
-      call word_to_value (c%stack(is)%name, lat, c%stack(is)%value)
+      call word_to_value (c%stack(is)%name, lat, c%stack(is)%value, err2)
+      err = (err .or. err2)
       ! Variables in the arithmetic expression are immediately evaluated and never reevaluated.
       ! If the variable is an element attribute (looks like: "ele_name[attrib_name]") then this may
       ! be confusing if the attribute value changes later. To avoid some (but not all) confusion, 
