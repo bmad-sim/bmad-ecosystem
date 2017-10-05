@@ -17,9 +17,10 @@ use tao_interface
 !   tao_pick_universe
 !
 ! Input:
-!   ix_uni -- Integer: Index to the s%u(:) array
-!               If ix_uni is -1 then u(s%com%default_universe) will be used.
-!   string -- character(*): String in the form "<ix_uni>@..." or just "<ix_uni>".
+!   ix_uni      -- Integer: Index to the s%u(:) array
+!                    If ix_uni is -1 then u(s%com%default_universe) will be used.
+!   string      -- character(*): String in the form "<ix_uni>@..." or, if 
+!                    no "@" is present, u will point to the default universe.
 !
 ! Output:
 !   string -- character(*): String with universe prefix stripped off.
@@ -91,20 +92,18 @@ nullify(u)
 
 ix = index(string, '@')
 if (ix == 0) then
-  if (.not. is_integer(string)) then
-    call out_io (s_fatal$, r_name, 'MALFORMED UNIVERSE STRING')
-    return
-  endif
-  read (string, *) ix_u
-  string = ''
-else
-  if (.not. is_integer(string(1:ix-1))) then
-    call out_io (s_fatal$, r_name, 'MALFORMED UNIVERSE STRING')
-    return
-  endif
-  read (string(1:ix-1), *) ix_u
-  string = string(ix+1:)
+  u => s%u(tao_universe_number(-1))
+  return
 endif
+
+!
+
+if (.not. is_integer(string(1:ix-1))) then
+  call out_io (s_fatal$, r_name, 'MALFORMED UNIVERSE STRING')
+  return
+endif
+read (string(1:ix-1), *) ix_u
+string = string(ix+1:)
 
 ix_u = tao_universe_number(ix_u)
 
