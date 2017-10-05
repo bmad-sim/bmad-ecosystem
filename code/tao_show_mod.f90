@@ -1337,6 +1337,8 @@ case ('element')
 
 case ('field')
 
+  lat_type = model$
+
   call  str_upcase(ele_name, word1)
   call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
   if (err) return
@@ -1347,28 +1349,34 @@ case ('field')
   call init_coord (orb, ele = ele, element_end = downstream_end$)
 
   call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
-  if (ix_word == 0 .or. .not. is_real(stuff2, .true.)) then
-    nl = 1; lines(1) = 'Bad or missing X value'
-    result_id = 'field:bad-x'
-    return
+  if (ix_word /= 0) then
+    if (.not. is_real(stuff2, .true.)) then
+      nl = 1; lines(1) = 'Bad X value'
+      result_id = 'field:bad-x'
+      return
+    endif
+    read(stuff2, *) orb%vec(1)
   endif
-  read(stuff2, *) orb%vec(1)
 
   call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
-  if (ix_word == 0 .or. .not. is_real(stuff2, .true.)) then
-    nl = 1; lines(1) = 'Bad or missing Y value'
-    result_id = 'field:bad-y'
-    return
+  if (ix_word /= 0) then
+    if (.not. is_real(stuff2, .true.)) then
+      nl = 1; lines(1) = 'Bad Y value'
+      result_id = 'field:bad-y'
+      return
+    endif
+    read(stuff2, *) orb%vec(3)
   endif
-  read(stuff2, *) orb%vec(3)
 
   call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
-  if (ix_word == 0 .or. .not. is_real(stuff2, .true.)) then
-    nl = 1; lines(1) = 'Bad or missing Z value'
-    result_id = 'field:bad-z'
-    return
+  if (ix_word /= 0) then
+    if (.not. is_real(stuff2, .true.)) then
+      nl = 1; lines(1) = 'Bad Z value'
+      result_id = 'field:bad-z'
+      return
+    endif
+    read(stuff2, *) z
   endif
-  read(stuff2, *) z
 
   call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
   if (ix_word == 0) then
