@@ -74,6 +74,11 @@ logical :: edge_kick_applied, track_spin, stop_time_limited
 character(*), parameter :: r_name = 'odeint_bmad_time'
 
 ! init
+! Note: 
+!   orb%s = s-position independent of element orientation.
+!   orb%direction = direction of travel independent of element orientation.
+!   orb%vec(5) = z-position in element body frame.
+
 s_stop_fwd = ele%value(l$)
 if (ele%key == patch$) s_stop_fwd = 0  ! By convention.
 

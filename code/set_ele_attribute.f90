@@ -76,6 +76,7 @@ if (.not. allocated(bp_com%var)) call init_bmad_parser_common
 print_save = bp_com%print_err
 file_input_save = bp_com%input_from_file
 
+call init_bmad_parser_common  ! init variable list
 bp_com%input_from_file = .false.
 bp_com%parser_name = r_name
 bp_com%parse_line = string

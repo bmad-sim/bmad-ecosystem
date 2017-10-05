@@ -44,7 +44,7 @@ type (control_struct), pointer :: c
 integer i, j, ix_attrib, n_control, n_con, is, iv, n
 integer ix1, ix2, ix_min, ix_max, ix_slave, ix_branch
 
-logical err, free, var_found
+logical err, err2, free, var_found
 logical, optional :: err_print_flag
 
 character(16) :: r_name = 'create_group'
@@ -131,6 +131,7 @@ do i = 1, n_control
     if (logic_option(.true., err_print_flag)) call out_io (s_error$, r_name, &
           'SLAVE ATTRIBUTE NOT FREE TO VARY FOR GROUP LORD: ' // lord%name)
     err = .true.
+    return
   endif
 
   !
@@ -193,7 +194,7 @@ do i = 1, n_control
       call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH A GROUP', &
                          'FOR ELEMENT: ' // lord%name)
     case (variable$)
-      call word_to_value (c%stack(is)%name, lat, c%stack(is)%value)
+      call word_to_value (c%stack(is)%name, lat, c%stack(is)%value, err); if (err) return
       ! Variables in the arithmetic expression are immediately evaluated and never reevaluated.
       ! If the variable is an element attribute (looks like: "ele_name[attrib_name]") then this may
       ! be confusing if the attribute value changes later. To avoid some (but not all) confusion, 
