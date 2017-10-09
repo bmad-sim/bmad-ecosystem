@@ -76,11 +76,11 @@ integer d_sign, p_sign
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  if (branch%param%particle == photon$ .and. p_sign /= 1) cycle
+  if (branch%param%particle == photon$ .and. p_sign == -1) cycle
 
   do i = 1, branch%n_ele_max - 1
     ele => branch%ele(i)
-    if (p_sign /= 1 .and. (ele%key == sbend$ .or. ele%key == e_gun$)) cycle
+    if (p_sign == -1 .and. ele%key == e_gun$) cycle
     ele%spin_tracking_method = tracking$
 
     isn = 0
@@ -90,7 +90,7 @@ do ib = 0, ubound(lat%branch, 1)
       if (j == symp_map$ .or. j == custom$) cycle
       if (j == mad$) cycle   ! Ignore MAD
       if (j == taylor$ .and. lat%beam_start%direction == -1) cycle
-      if (p_sign /= 1 .and. (j == taylor$ .or. j == linear$)) cycle
+      if (p_sign == -1 .and. (j == taylor$ .or. j == linear$)) cycle
       ele%tracking_method = j
 
       if (ele%key /= taylor$) call kill_taylor(ele%taylor)
@@ -111,7 +111,10 @@ do ib = 0, ubound(lat%branch, 1)
       start_orb = lat%beam_start
       call init_coord (start_orb, start_orb, ele, upstream_end$, &
                                     default_tracking_species(branch%param), E_photon = ele%value(p0c$) * 1.006)
-      if (p_sign == -1) start_orb%species = antiparticle(start_orb%species)
+      if (p_sign == -1) then
+        start_orb%species = antiparticle(start_orb%species)
+        start_orb%direction = -1
+      endif
       start_orb%field = [1, 2]
 
       if (print_extra) then
