@@ -114,15 +114,15 @@ do ib = 0, ubound(lat%branch, 1)
 
       start_orb = lat%beam_start
 
-      if (p_sign == -1) start_orb%direction = -1
-
-      call init_coord (start_orb, start_orb, ele, start_end$, &
-                                    default_tracking_species(branch%param), start_orb%direction, E_photon = ele%value(p0c$) * 1.006)
-
       if (p_sign == -1) then
-        start_orb%species = antiparticle(start_orb%species)
         start_orb%direction = -1
+        start_orb%species = antiparticle(start_orb%species)
+        lat%absolute_time_tracking = .true.
+      else
+        start_orb%species = default_tracking_species(branch%param)
       endif
+
+      call init_coord (start_orb, start_orb, ele, start_end$, start_orb%species, start_orb%direction, E_photon = ele%value(p0c$) * 1.006)
 
       start_orb%field = [1, 2]
 
