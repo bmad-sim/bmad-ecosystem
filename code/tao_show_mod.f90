@@ -1396,6 +1396,8 @@ case ('field')
   nl=nl+1; write (lines(nl), '(a, 3f15.6)') 'B:', field%B
   nl=nl+1; write (lines(nl), '(a, 3f15.6)') 'E:', field%E
 
+  result_id = show_what
+
 !----------------------------------------------------------------------
 ! global
 
