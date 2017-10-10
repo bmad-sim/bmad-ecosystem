@@ -310,10 +310,12 @@ if (use_cache .or. init_cache) then
     if (key2 == wiggler$ .and. ele2%sub_key == periodic_type$ .and. ele2%tracking_method /= custom$) then
       ! bmad_standard and taylor will not properly do partial track through a periodic_type wiggler so
       ! switch to symp_lie_bmad type tracking.
+      ! ...NOTE: Not sure this is still true so no switching is being done now (10/17).
+      ! If this is still a problem, should revamp periodic_type wiggler tracking instead of switching tracking methods.
       n_step = max(nint(10 * ele2%value(l$) / ele2%value(l_pole$)), 1)
       del_z = ele2%value(l$) / n_step
-      ele2%tracking_method = symp_lie_bmad$  
-      ele2%mat6_calc_method = symp_lie_bmad$  
+      !ele2%tracking_method = symp_lie_bmad$  
+      !ele2%mat6_calc_method = symp_lie_bmad$  
     else
       beta_min = min(ele2%a%beta, ele2%b%beta, branch%ele(i-1)%a%beta, branch%ele(i-1)%b%beta)
       ds_step = min(ele2%value(ds_step$), beta_min / 10)
