@@ -104,17 +104,26 @@ do ib = 0, ubound(lat%branch, 1)
       if (j == linear$) then
         ele%tracking_method = symp_lie_ptc$
         if(ele%key == beambeam$ .or. ele%key == ac_kicker$) ele%tracking_method = bmad_standard$
-        call make_mat6 (ele, branch%param, lat%beam_start)
+        if (lat%beam_start%direction == 1) then
+          call make_mat6 (ele, branch%param, lat%beam_start)
+        else  ! Can happen with a test lattice file
+          call make_mat6 (ele, branch%param)
+        endif
         ele%tracking_method = j
       endif
 
       start_orb = lat%beam_start
-      call init_coord (start_orb, start_orb, ele, upstream_end$, &
-                                    default_tracking_species(branch%param), E_photon = ele%value(p0c$) * 1.006)
+
+      if (p_sign == -1) start_orb%direction = -1
+
+      call init_coord (start_orb, start_orb, ele, start_end$, &
+                                    default_tracking_species(branch%param), start_orb%direction, E_photon = ele%value(p0c$) * 1.006)
+
       if (p_sign == -1) then
         start_orb%species = antiparticle(start_orb%species)
         start_orb%direction = -1
       endif
+
       start_orb%field = [1, 2]
 
       if (print_extra) then
