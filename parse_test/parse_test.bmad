@@ -101,17 +101,19 @@ use, l2
 
 parameter[lattice] =  L9A18A000-_MOVEREC
 parameter[geometry] = open 
-
+parameter[particle] = proton
 aa: quadrupole, l = 1, my_custom = 123, qqq = 3
 bb: aa, l = 2
 
 b2: sextupole
 cc: sextupole
 
+xxx = mass_of(parameter[particle])/mass_of(proton)
 ov1: overlay = {aa}, hkick
 ov2: overlay = {aa:-2}, hkick
-gr1: group = {aa:-vkick^2/c_light}, var = {vkick}
+gr1: group = {aa:-vkick^2/c_light*xxx/mass_of(proton)}, var = {vkick}, vkick = 1e-10
 gr2: group = {aa[k1]:k1, aa[tilt]:tilt}, var = {k1, tilt}
+gr3: group = {aa:-vkick^2*mass_of(proton)}, var = {vkick}, vkick = 1e-6
 
 b*[k1] = 1
 *[tracking_method] = runge_kutta

@@ -14,7 +14,7 @@ type (track_struct) track
 
 character(200) :: line(10)
 character(40) :: lat_file  = 'tracking_method_test.bmad'
-character(38) :: out_str, fmt, tol_str, track_method
+character(46) :: out_str, fmt, tol_str, track_method
 integer :: i, j, ib, nargs, isn
 
 logical print_extra
@@ -23,7 +23,7 @@ logical print_extra
 
 global_com%exit_on_error = .false.
 
-fmt = '(a,t47, a, 7es18.10)'
+fmt = '(a, t49, a, 7es18.10)'
 track_method = ''
 
 print_extra = .false.
@@ -34,7 +34,7 @@ if (nargs > 0) then
   call cesr_getarg(2, track_method)
   print *, 'Using ', trim(lat_file)
   print_extra = .true.
-  fmt = '(a, t47, a, 7es14.6)'
+  fmt = '(a, t49, a, 7es14.6)'
 endif
 
 call bmad_parser (lat_file, lat)
@@ -157,12 +157,12 @@ do ib = 0, ubound(lat%branch, 1)
       if (j == bmad_standard$ .or. j == runge_kutta$ .or. j == symp_lie_ptc$ .or. j == time_runge_kutta$ .or. j == taylor$) then
         isn = isn + 1
         out_str = trim(out_str) // ' dSpin'
-        write (line(isn), '(a, t47, a,  4f14.9, 4x, f14.9)') '"' // trim(out_str) // '"', tolerance_spin(tol_str), &
+        write (line(isn), '(a, t49, a,  4f14.9, 4x, f14.9)') '"' // trim(out_str) // '"', tolerance_spin(tol_str), &
               end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
       endif
 
       if (branch%param%particle == photon$) then
-        write (1, '(3a, t47, a, 2es18.10)') '"', trim(ele%name), ':E_Field"', 'REL 5E-08', end_orb%field
+        write (1, '(3a, t49, a, 2es18.10)') '"', trim(ele%name), ':E_Field"', 'REL 5E-08', end_orb%field
       endif
     end do
 
