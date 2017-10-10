@@ -17,7 +17,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 199
+integer, parameter :: bmad_inc_version$ = 200
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -381,6 +381,7 @@ integer, parameter :: lost_pz_aperture$ = 7  ! Particle "turned around" when not
 type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz)
   real(rp) :: s = 0               ! Longitudinal position 
+  real(rp) :: s_body = 0          ! S-position in element body coords.
   real(rp) :: t = 0               ! Absolute time (not relative to reference).
   real(rp) :: spin(3) = 0         ! Spin.
   real(rp) :: field(2) = 0        ! Photon E-field intensity (x,y).
@@ -392,6 +393,7 @@ type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: beta = -1           ! Velocity / c_light.
   integer :: ix_ele = -1          ! Index of element particle was tracked through.
                                   !   May be -1 if element is not associated with a lattice.
+  integer :: ix_user = -1         ! For general use, not used by Bmad.
   integer :: state = not_set$     ! alive$, lost$, lost_neg_x_aperture$, etc.
   integer :: direction = 1        ! Sign of longitudinal direction of motion (ds/dt). = +/- 1.
                                   !  This is independent of the element orientation. See manual.

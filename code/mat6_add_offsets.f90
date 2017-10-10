@@ -50,7 +50,7 @@ ele%vec0 = orb%vec
 ! transform the ref_orb
 
 map_orb = ele%map_ref_orb_in
-call offset_particle (ele, param, unset$, map_orb, set_hvkicks = .false., ds_pos = 0.0_rp)
+call offset_particle (ele, param, unset$, map_orb, set_hvkicks = .false., s_pos = 0.0_rp)
 ele%map_ref_orb_in = map_orb
 
 

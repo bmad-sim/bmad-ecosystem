@@ -11,8 +11,9 @@
 !   ele        -- ele_struct: Element being tracked through.
 !   param      -- lat_param_struct: Lattice parameters.
 !   local_ref_frame -- Logical: If True then coordinates are wrt the frame of ref of the element.
-!   orb        -- Coord_struct: trajectory at s with respect to element coordinates.
-!   s_rel      -- Real(rp), optional: Position with respect to start of element. Only used for calculating the field.
+!   orb        -- coord_struct: trajectory at s with respect to element coordinates.
+!   s_rel      -- real(rp): Longitudinal position wrt the element. Lab coords if local_ref_frame = F
+!                   and body coords if local_ref_fram = T
 !   save_field -- logical, optional: Save electric and magnetic field values? Default is False.
 !   rf_time    -- real(rp), optional: RF clock time used for calculating the field.. 
 !                   If not present then the time will be calculated using the standard algorithm.
@@ -34,7 +35,9 @@ type (ele_struct), target :: ele
 type (lat_param_struct), intent(in) :: param
 type (coord_struct) orb, orb2
 integer n_pt, n, n_old
-real(rp), optional :: rf_time, s_rel
+real(rp) s_rel
+real(rp), optional :: rf_time
+real(rp) s_lab
 logical local_ref_frame
 logical, optional :: save_field
 
@@ -72,15 +75,20 @@ end if
 !
 
 orb2 = orb
-if (local_ref_frame) call offset_particle (ele, param, unset$, orb2, &
-                                                  drift_to_edge = .false., set_hvkicks = .false., ds_pos = s_rel)
+
+if (local_ref_frame) then
+  call offset_particle (ele, param, unset$, &
+            orb2, drift_to_edge = .false., set_hvkicks = .false., s_pos = s_rel, s_out = s_lab)
+else
+  s_lab = s_rel
+endif
 
 track%orb(n_pt) = orb2
 track%orb(n_pt)%ix_ele = ele%ix_ele
 track%map(n_pt)%mat6 = 0
 
 if (logic_option(.false., save_field)) then
-  call em_field_calc (ele, param, s_rel, orb, local_ref_frame, track%field(n_pt), .false., rf_time = rf_time)
+  call em_field_calc (ele, param, s_lab, orb, local_ref_frame, track%field(n_pt), .false., rf_time = rf_time)
 endif
 
 end subroutine save_a_step

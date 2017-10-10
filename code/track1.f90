@@ -292,8 +292,13 @@ contains
 ! Add the the track. 
 
 subroutine add_to_track()
-call save_a_step(track, ele, param, .false., start_orb)
-call save_a_step(track, ele, param, .false., end_orb)
+if (start_orb%direction == 1) then
+  call save_a_step(track, ele, param, .false., start_orb, 0.0_rp)
+  call save_a_step(track, ele, param, .false., end_orb, ele%value(l$))
+else
+  call save_a_step(track, ele, param, .false., start_orb, ele%value(l$))
+  call save_a_step(track, ele, param, .false., end_orb, 0.0_rp)
+endif
 end subroutine add_to_track
 
 end subroutine

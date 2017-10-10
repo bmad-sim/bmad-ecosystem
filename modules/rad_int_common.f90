@@ -129,7 +129,7 @@ gamma = ele%value(e_tot$) / mass_of(param%particle)
 ! Go to the local element frame if there has been caching.
 if (associated(info%cache_ele)) then
   call offset_particle (ele, param, set$, start, set_hvkicks = .false.)
-  call offset_particle (ele, param, set$, end, set_hvkicks = .false., ds_pos = ll)
+  call offset_particle (ele, param, set$, end, set_hvkicks = .false., s_pos = ll)
 endif
 
   ! For j >= 3 we test if the integral calculation has converged.

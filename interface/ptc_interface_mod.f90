@@ -4077,7 +4077,7 @@ if (ele%key == taylor$ .or. ele%key == match$) then
     arbre => ptc_fibre%mag%backward
   endif
 
-  arbre => ptc_fibre%mag%forward
+  !! arbre => ptc_fibre%mag%forward
   call mat_make_unit(arbre(1)%rad)    ! Radiation damping matrix. Unit matrix  => radiation off
   arbre(1)%fix0(1:6) = ref0
   arbre(1)%fixr(1:6) = ref1

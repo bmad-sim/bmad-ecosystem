@@ -58,9 +58,6 @@ end function g_bend_from_em_field
 !
 ! Routine to calculate the E and B fields at a particular place in an element.
 !
-! s_pos is measured from the upstream edge of the element. For elements with ele%orientation = -1, s_pos
-! is measured from the element's exit end. However, the field is always referenced to the element coordinates.
-!
 ! Note: Zero field will be returned if an element is turned off.
 !
 ! Note: The fields due to any kicks will be present. It therefore important in tracking to make sure that 
@@ -69,7 +66,9 @@ end function g_bend_from_em_field
 ! Input:
 !   ele             -- Ele_struct: Lattice element.
 !   param           -- lat_param_struct: Lattice parameters.
-!   s_pos           -- Real(rp): Longitudinal position relative to the actual upstream edge of the element.
+!   s_pos           -- Real(rp): Longitudinal position.
+!                        If local_ref_frame = T: In Body coords relative to the entrance edge of the element.
+!                        If local_ref_frame = F: In Lab coords relative to the upstream edge of the element.
 !   orbit           -- Coord_struct: Transverse coordinates.
 !     %vec(1), %vec(3) -- Transverse coords.
 !     %t               -- Used with absolute time tracking.
@@ -119,7 +118,7 @@ type (floor_position_struct) lab_position, global_position, lord_position
 type (spline_struct) spline
 
 real(rp), optional :: rf_time
-real(rp) :: x, y, s, time, s_pos, s_rel, z, ff, dk(3,3), ref_charge, f_p0c
+real(rp) :: x, y, time, s_pos, s_body, s_lab, s_lab2, z, ff, dk(3,3), ref_charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), s0, Ex, Ey, amp
 real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, sgn_z, kx, ky, dkm(2,2), cos_ks, sin_ks
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, a_amp
@@ -154,13 +153,7 @@ dfield_computed = .false.
 if (present(err_flag)) err_flag = .false.
 if (.not. ele%is_on) return
 
-if (ele%orientation == 1) then
-  s_rel = s_pos
-else
-  s_rel = ele%value(l$) - s_pos
-endif
-
-! Hs this element been used before?
+! Has this element been used before?
 
 if (present(used_eles)) then
   do j = 1, size(used_eles)
@@ -191,9 +184,13 @@ if (ele%field_calc == refer_to_lords$) then
   ! So use an orbit that is not in the slave's reference frame.
 
   lab_orb = orbit
+
   if (local_ref_frame) then
-    call offset_particle (ele, param, unset$, lab_orb, set_hvkicks = .false., ds_pos = s_rel)
+    call offset_particle (ele, param, unset$, lab_orb, set_hvkicks = .false., s_pos = s_pos, s_out = s_lab)
+  else
+    s_lab = s_pos
   endif
+
   z = lab_orb%vec(5)
 
   !
@@ -204,7 +201,7 @@ if (ele%field_calc == refer_to_lords$) then
     if (lord%field_calc == no_field$) cycle   ! Group, overlay and girder elements do not have fields.
 
     ds = ele%s_start - lord%s_start
-    s = s_pos + ds
+    s_lab2 = s_lab + ds
     beta_ref = lord%value(p0c$) / lord%value(e_tot$)
     lab_orb%vec(5) = z - c_light * orbit%beta * &
         ((ele%value(ref_time_start$) - lord%value(ref_time_start$)) - ds / (beta_ref * c_light))
@@ -214,10 +211,10 @@ if (ele%field_calc == refer_to_lords$) then
         if (.not. associated(used_eles(j)%ele)) exit
         if (associated(used_eles(j)%ele, lord)) cycle lord_loop
       enddo
-      call em_field_calc (lord, param, s, lab_orb, .false., field2, calc_dfield, err, potential, &
+      call em_field_calc (lord, param, s_lab2, lab_orb, .false., field2, calc_dfield, err, potential, &
                                                use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
     else
-      call em_field_calc (lord, param, s, lab_orb, .false., field2, calc_dfield, err, potential, &
+      call em_field_calc (lord, param, s_lab2, lab_orb, .false., field2, calc_dfield, err, potential, &
                                                use_overlap, grid_allow_s_out_of_bounds, rf_time, use_list)
     endif
 
@@ -235,7 +232,7 @@ if (ele%field_calc == refer_to_lords$) then
 
   enddo lord_loop
 
-  if (.not. local_ref_frame) call convert_field_ele_to_lab(ele, s_rel, .true., field)
+  if (local_ref_frame) call convert_field_ele_to_lab(ele, s_lab, .false., field)
   return
 endif
 
@@ -278,8 +275,10 @@ endif
 ! convert to local coords
 
 local_orb = orbit
-if (.not. local_ref_frame) then
-  call offset_particle (ele, param, set$, local_orb, set_hvkicks = .false., ds_pos = s_rel)
+if (local_ref_frame) then
+  s_body = s_pos
+else
+  call offset_particle (ele, param, set$, local_orb, set_hvkicks = .false., s_pos = s_pos, s_out = s_body)
 endif
 
 !----------------------------------------------------------------------------
@@ -310,7 +309,7 @@ select case (field_calc)
 
 case (bmad_standard$)
 
-  if (s_pos < 0 .or. s_pos > ele%value(l$)) return
+  if (s_body < 0 .or. s_body > ele%value(l$)) return
 
   select case (ele%key)
 
@@ -329,7 +328,7 @@ case (bmad_standard$)
       if (present(rf_time)) then
         time = rf_time
       else
-        time = particle_rf_time(orbit, ele, .true., s_rel)
+        time = particle_rf_time(orbit, ele, .true., s_body)
       endif
       phase = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$))
       field%e(3) = e_accel_field (ele, gradient$) * cos(twopi * (time * ele%value(rf_frequency$) + phase)) / ref_charge
@@ -396,7 +395,7 @@ case (bmad_standard$)
     k_wave = omega / c_light
 
     s_hard_offset = (ele%value(l$) - hard_edge_model_length(ele)) / 2  ! Relative to entrance end of the cavity
-    s_eff = s_rel - s_hard_offset
+    s_eff = s_body - s_hard_offset
     if (s_eff < 0 .or. s_eff > hard_edge_model_length(ele)) goto 8000  ! Zero field outside
 
     beta_start = ele%value(p0c_start$) / ele%value(e_tot_start$)
@@ -404,7 +403,7 @@ case (bmad_standard$)
     if (present(rf_time)) then
       time = rf_time
     else
-      time = particle_rf_time(orbit, ele, .true., s_rel)
+      time = particle_rf_time(orbit, ele, .true., s_body)
     endif
 
     if (nint(ele%value(cavity_type$)) == traveling_wave$) then
@@ -633,7 +632,7 @@ case(fieldmap$)
   if (present(rf_time)) then
     time = rf_time
   else
-    time = particle_rf_time(orbit, ele, .false., s_rel)
+    time = particle_rf_time(orbit, ele, .false., s_body)
   endif
 
   if (.not. associated(ele%cylindrical_map) .and. .not. associated(ele%cartesian_map) .and. &
@@ -662,7 +661,7 @@ case(fieldmap$)
 
       fld = 0; dfld = 0
 
-      call to_field_map_coords (local_orb, s_rel, ct_map%ele_anchor_pt, ct_map%r0, .false., x, y, z)
+      call to_field_map_coords (local_orb, s_body, ct_map%ele_anchor_pt, ct_map%r0, .false., x, y, z)
 
       n = size(ct_map%ptr%term)
       do i = 1, n
@@ -944,7 +943,7 @@ case(fieldmap$)
 
       if (cl_map%harmonic /= 0) k_t = twopi * freq / c_light
 
-      call to_field_map_coords (local_orb, s_rel, cl_map%ele_anchor_pt, cl_map%r0, .false., x, y, z)
+      call to_field_map_coords (local_orb, s_body, cl_map%ele_anchor_pt, cl_map%r0, .false., x, y, z)
 
       radius = sqrt(x**2 + y**2)
       phi = atan2(y, x)
@@ -1111,7 +1110,7 @@ case(fieldmap$)
         if (ele%key == rfcavity$) t_ref = 0.25/freq0 - t_ref
       endif
 
-      call to_field_map_coords (local_orb, s_rel, g_field%ele_anchor_pt, g_field%r0, g_field%curved_ref_frame, x, y, z)
+      call to_field_map_coords (local_orb, s_body, g_field%ele_anchor_pt, g_field%r0, g_field%curved_ref_frame, x, y, z)
 
       ! DC modes should have g_field%harmonic = 0
 
@@ -1199,7 +1198,7 @@ case(fieldmap$)
 
       fld = 0
 
-      call to_field_map_coords (local_orb, s_rel, t_field%ele_anchor_pt, t_field%r0, t_field%curved_ref_frame, x, y, z)
+      call to_field_map_coords (local_orb, s_body, t_field%ele_anchor_pt, t_field%r0, t_field%curved_ref_frame, x, y, z)
 
       iz0 = lbound(t_field%ptr%plane, 1)
       iz1 = ubound(t_field%ptr%plane, 1)
@@ -1207,7 +1206,7 @@ case(fieldmap$)
       if (abs(z - z_center) > (iz1 - iz0) * t_field%dz .and. &
                         .not. logic_option(.false., grid_allow_s_out_of_bounds)) then
         call out_io (s_error$, r_name, 'PARTICLE Z  \F10.3\ POSITION OUT OF BOUNDS.', &
-                                       'FOR TAYLOR_FIELD IN ELEMENT: ' // ele%name, r_array = [s_pos])
+                                       'FOR TAYLOR_FIELD IN ELEMENT: ' // ele%name, r_array = [s_body])
         return
       endif
 
@@ -1280,7 +1279,7 @@ if (ele%key == ac_kicker$) then
   if (present(rf_time)) then
     a_amp = ac_kicker_amp (ele, rf_time)
   else
-    a_amp = ac_kicker_amp (ele, particle_rf_time(orbit, ele, .true., s_rel))
+    a_amp = ac_kicker_amp (ele, particle_rf_time(orbit, ele, .true., s_body))
   endif
 
   field%E = a_amp * field%E
@@ -1297,10 +1296,10 @@ endif
 if (ele%n_lord_field /= 0 .and. logic_option(.true., use_overlap)) then
   lab_orb = orbit
   if (local_ref_frame) then
-    call offset_particle (ele, param, unset$, lab_orb, set_hvkicks = .false., ds_pos = s_rel)
+    call offset_particle (ele, param, unset$, lab_orb, set_hvkicks = .false., s_pos = s_body, s_out = s_lab)
   endif
 
-  lab_position%r = [lab_orb%vec(1), lab_orb%vec(3), s_rel]
+  lab_position%r = [lab_orb%vec(1), lab_orb%vec(3), s_lab]
   global_position = coords_local_curvilinear_to_floor (lab_position, ele, w_mat = w_ele_mat, calculate_angles = .false.)
 
   lord_orb = lab_orb
@@ -1330,10 +1329,10 @@ if (ele%n_lord_field /= 0 .and. logic_option(.true., use_overlap)) then
   call rotate_em_field (lord_field, transpose(w_ele_mat), transpose(w_ele_mat))
 
   if (local_ref_frame) then
-    call convert_field_ele_to_lab (ele, s_rel, .false., lord_field)  ! lab -> ele
+    call convert_field_ele_to_lab (ele, s_lab, .false., lord_field)  ! lab -> ele
     field = field + lord_field
   else
-    call convert_field_ele_to_lab (ele, s_rel, .true., field)
+    call convert_field_ele_to_lab (ele, s_body, .true., field)
     field = field + lord_field
   endif
 
@@ -1342,7 +1341,7 @@ endif
 
 ! Final
 
-if (.not. local_ref_frame) call convert_field_ele_to_lab (ele, s_rel, .true., field)
+if (.not. local_ref_frame) call convert_field_ele_to_lab (ele, s_body, .true., field)
 
 if (do_df_calc .and. .not. dfield_computed) then
   call em_field_derivatives (ele, param, s_pos, orbit, local_ref_frame, field, rf_time)
@@ -1354,12 +1353,12 @@ endif
 
 contains
 
-subroutine convert_field_ele_to_lab (ele, s_rel, forward_transform, field)
+subroutine convert_field_ele_to_lab (ele, s_here, forward_transform, field)
 
 type (ele_struct) ele
 type (em_field_struct) field
 
-real(rp) s_rel, w_mat(3,3), w_inv(3,3), w_s(3,3), w_rt(3,3), w_rt_inv(3,3)
+real(rp) s_here, w_mat(3,3), w_inv(3,3), w_s(3,3), w_rt(3,3), w_rt_inv(3,3)
 real(rp) theta
 logical forward_transform
 
@@ -1367,7 +1366,7 @@ logical forward_transform
 
 if (ele%key == sbend$) then
   call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(roll$), w_mat)
-  theta = ele%value(g$) * s_rel - ele%value(angle$)/2
+  theta = ele%value(g$) * s_here - ele%value(angle$)/2
   w_s = w_mat_for_x_pitch (theta)
   if (ele%value(ref_tilt_tot$) == 0) then
     w_mat = matmul(matmul(w_s, w_mat), transpose(w_s))
@@ -1393,11 +1392,11 @@ end subroutine convert_field_ele_to_lab
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine to_field_map_coords (local_orb, s_rel, ele_anchor_pt, r0, curved_ref_frame, x, y, z)
+subroutine to_field_map_coords (local_orb, s_body, ele_anchor_pt, r0, curved_ref_frame, x, y, z)
 
 type (coord_struct) local_orb
 
-real(rp) :: s_rel, r0(3), x, y, z, x_save
+real(rp) :: s_body, r0(3), x, y, z, x_save
 integer ele_anchor_pt
 logical curved_ref_frame
 
@@ -1418,10 +1417,10 @@ end select
 !
 
 x = local_orb%vec(1)
-z = s_rel - s0
+z = s_body - s0
 
 !
-         
+
 if (ele%key == sbend$ .and. ele%value(g$) /= 0 .and. .not. curved_ref_frame) then
   cos_ang = cos(z*ele%value(g$))
   sin_ang = sin(z*ele%value(g$))
@@ -1450,7 +1449,7 @@ subroutine restore_curvilinear_field(field_a, field_b)
 real(rp) temp, field_a(3)
 real(rp), optional :: field_b(3)
 
-! For sbend with Grid calculation Restores x and s_rel, and rotates output fields.
+! For sbend with Grid calculation Restores x and s_body, and rotates output fields.
 
 if (ele%value(g$) == 0) return
 
