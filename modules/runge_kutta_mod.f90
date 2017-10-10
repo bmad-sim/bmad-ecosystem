@@ -364,7 +364,6 @@ ds_did = ds
 s = s + ds
 
 orb_new%s = orb%s + ds * ele%orientation
-orb_new%s_body = orb_new%s_body + ds 
 
 orb = orb_new
 err_flag = .false.

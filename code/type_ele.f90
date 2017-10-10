@@ -86,7 +86,7 @@ type (str_indexx_struct) str_index
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, optional, intent(out) :: n_lines
-integer i, i1, j, n, ix, iw, ix_tot, iv, ic, nl2, l_status, a_type, default_val
+integer i, i1, j, n, is, ix, iw, ix_tot, iv, ic, nl2, l_status, a_type, default_val
 integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle, ix_pole_max
 
 real(rp) coef, val
@@ -835,8 +835,8 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     ! Print named constants if present
 
     print_it = .true.
-    do ix = 1, ele%n_slave
-      slave => pointer_to_slave (ele, ix, ctl)
+    do is = 1, ele%n_slave
+      slave => pointer_to_slave (ele, is, ctl)
       if (allocated(ctl%stack)) then
         do i = 1, size(ctl%stack)
           if (ctl%stack(i)%type == end_stack$) exit
