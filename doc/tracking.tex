@@ -42,7 +42,8 @@ longitudinal position in the lattice. The definition of the
 \begin{example}
   type coord_struct
     real(rp) vec(6)     ! (x, px, y, py, z, pz)
-    real(rp) s          ! Longitudinal position
+    real(rp) s          ! Longitudinal position.
+    real(rp) s_body     ! Element body longitudinal position.
     real(rp) t          ! Absolute time (not relative to reference).
     real(rp) spin(3)    ! (x, y, z) Spin vector
     real(rp) field(2)   ! Photon (x, y) field intensity.
@@ -54,6 +55,7 @@ longitudinal position in the lattice. The definition of the
     real(rp) beta       ! Velocity / c_light. 
     integer ix_ele      ! Index of element particle was tracked through.
                         !   May be -1 or -2 if element is not associated with a lattice.
+    integer ix_user     ! Not used by \bmad
     integer state       ! alive\$, lost\$, lost_neg_x_aperture\$, etc.
     integer direction   ! Longitudinal direction of motion = +/- 1
     integer species     ! Positron\$, proton\$, etc.
@@ -89,6 +91,10 @@ element tracked through is not associated with a lattice, \vn{%ix_ele}
 is set to -1. When initializing a \vn{coord_struct} (see below),
 \vn{%ix_ele} will be initialized to \vn{not_set\$}.
 
+\item{\%ix_user} \Newline
+The \vn{%ix_user} component is for use by code outside of the \bmad library.
+\bmad does not use this component.
+
 \item{\%location} \Newline
 The \vn{%location} component indicates where a particle is
 longitudinally with respect to the element being
@@ -120,6 +126,12 @@ an element (say with Runge-Kutta tracking), and when the particle coordinates is
 element body coordinates (\sref{s:lab.body.transform}), the $s$-position at any point within 
 the element, by definition, is independent of any misalignments the element has as long as 
 the element is not reversed. If the element is reversed, the $s$-position is reversed as well.
+
+\item{\%s_body} \Newline
+The \vn{%s_body} component is used to record the longitudinal position of a particle, in element
+body coordinates, as it travels through an element. \vn{%s_body} is basically a ``private'' variable
+used by some tracking methods. In general, you should not rely on \vn{%s_body} to be set in any
+meaningful way.
 
 \item{\%spin(3)} \Newline
 The \vn{%spin(3)} component gives a particle's $(x, y, z)$ spin vector (\sref{s:spin.dyn}).

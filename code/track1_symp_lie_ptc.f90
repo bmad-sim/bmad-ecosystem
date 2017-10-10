@@ -149,7 +149,7 @@ re(5) = 1e9 * ptc_probe%E / end_orb%p0c       ! ptc_probe%E = Delta E in Gev
 call vec_ptc_to_bmad (re, beta1, orbit%vec)
 orbit%s = ptc_track%s(1) + ele%s_start
 orbit%spin = ptc_probe%s(1)%x
-call save_a_step (track, ele, param, .false., orbit)
+call save_a_step (track, ele, param, .false., orbit, ptc_track%s(1))
 
 end subroutine save_this_step
 

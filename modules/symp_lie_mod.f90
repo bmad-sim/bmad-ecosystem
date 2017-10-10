@@ -452,7 +452,7 @@ integer ix
 
 !
 
-call save_a_step (track, ele, param, .true., end_orb)
+call save_a_step (track, ele, param, .true., end_orb, s)
 
 if (calculate_mat6) then
   ix = track%n_pt

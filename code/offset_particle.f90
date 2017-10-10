@@ -1,5 +1,5 @@
 !+
-! Subroutine offset_particle (ele, param, set, orbit, set_tilt, set_hvkicks, drift_to_edge, ds_pos, set_spin, mat6, make_matrix)
+! Subroutine offset_particle (ele, param, set, orbit, set_tilt, set_hvkicks, drift_to_edge, s_pos, s_out, set_spin, mat6, make_matrix)
 !
 ! Routine to transform a particles's coordinates between laboratory and element coordinates
 ! at the ends of the element. Additionally, this routine will:
@@ -8,13 +8,13 @@
 !
 ! set = set$:
 !    Transforms from lab to element coords. 
-!    If ds_pos is not present:
+!    If s_pos is not present:
 !      If coord%direction = +1 -> Assume the particle is at the upstream (-S) end.
 !      If coord%direction = -1 -> Assume the particle is at the downstream (+S) end.
 !
 ! set = unset$:
 !    Transforms from element to lab coords.
-!    If ds_pos is not present:
+!    If s_pos is not present:
 !      If coord%direction = +1 -> Assume the particle is at the downstream (+S) end.
 !      If coord%direction = -1 -> Assume the particle is at the upstream (-S) end.
 !
@@ -51,20 +51,25 @@
 !                    T -> Particle will be propagated from where the particle is (at the
 !                           nominal edge of the element) and the true physical edge of the element.
 !                    F -> Do no propagate. Used by save_a_step routine.
-!   ds_pos         -- Real(rp), optional: Longitudinal particle position relative to upstream end.
-!                    If not present then, for orbit%direction = 1,  ds_pos = 0 is assumed when set = T and 
-!                    ds_pos = ele%value(l$) when set = F. And vice versa when orbit%direction = -1.
+!   s_pos         -- Real(rp), optional: Longitudinal particle position:
+!                     If set = set$: Relative to upstream end (That is, in lab coords).
+!                     If set = unset$: Relative to entrance end (Thant is, in body coords).
+!                    If not present then, for orbit%direction = 1,  s_pos = 0 is assumed when set = T and 
+!                    s_pos = ele%value(l$) when set = F. And vice versa when orbit%direction = -1.
 !   set_spin       -- Logical, optional: Default if False.
 !                    Rotate spin coordinates? Also bmad_com%spin_tracking_on must be T to rotate.
 !   mat6(6,6)      -- Real(rp), optional: Transfer matrix before off setting.
 !   make_matrix    -- logical, optional: Propagate the transfer matrix? Default is false.
 !                                               
 ! Output:
-!     orbit -- Coord_struct: Coordinates of particle.
-!     mat6(6,6)  -- Real(rp), optional: Transfer matrix transfer matrix after offsets applied.
+!     orbit      -- coord_struct: Coordinates of particle.
+!                     If set = set$: In body coords.
+!                     If set = unset$: In lab coords.
+!     s_out      -- real(rp), optional: Longitudinal particle position. 
+!     mat6(6,6)  -- real(rp), optional: Transfer matrix transfer matrix after offsets applied.
 !-
 
-subroutine offset_particle (ele, param, set, orbit, set_tilt, set_hvkicks, drift_to_edge, ds_pos, set_spin, mat6, make_matrix)
+subroutine offset_particle (ele, param, set, orbit, set_tilt, set_hvkicks, drift_to_edge, s_pos, s_out, set_spin, mat6, make_matrix)
 
 use geometry_mod, except_dummy => offset_particle
 use spin_mod, only: rotate_spin, rotate_spin_given_field 
@@ -78,7 +83,7 @@ type (coord_struct), intent(inout) :: orbit
 type (em_field_struct) field
 type (floor_position_struct) position
 
-real(rp), optional :: ds_pos, mat6(6,6)
+real(rp), optional :: s_pos, s_out, mat6(6,6)
 real(rp) rel_p, knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dx, f, B_factor, ds_center
 real(rp) angle, xp, yp, x_off, y_off, z_off, off(3), m_trans(3,3), pz
 real(rp) beta_ref, charge_dir, dz, rel_tracking_charge, rtc, Ex, Ey, kx, ky, length
@@ -102,7 +107,7 @@ rel_p = (1 + orbit%vec(6))
 set_hv     = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
                    (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
 set_t      = logic_option (.true., set_tilt) .and. has_orientation_attributes(ele)
-do_drift  = logic_option (.true., drift_to_edge) .and. has_orientation_attributes(ele)
+do_drift   = logic_option (.true., drift_to_edge) .and. has_orientation_attributes(ele)
 set_spn    = logic_option (.false., set_spin) .and. bmad_com%spin_tracking_on
 
 sign_z_vel = ele%orientation * orbit%direction
@@ -131,16 +136,23 @@ if (set_spn) B_factor = ele%value(p0c$) / (charge_of(param%particle) * c_light)
 
 if (set) then
 
+  ! ds_center is distance to the center of the element from the particle position
+
+  if (present(s_pos)) then
+    ds_center = ele%orientation * (length/2 - s_pos)   ! S_pos is in lab coords
+    if (present(s_out)) then
+      if (ele%orientation == 1) then;  s_out = s_pos
+      else;                            s_out = length - s_pos
+      endif
+    endif
+  else
+    ds_center = sign_z_vel * length / 2
+    if (present(s_out)) s_out = (1 - sign_z_vel) * length / 2
+  endif
+
   ! Set: Offset and pitch
 
   if (has_orientation_attributes(ele)) then
-
-    ! ds_center is distance to the center of the element from the particle position
-    if (present(ds_pos)) then
-      ds_center = ele%orientation * (length/2 - ds_pos)   
-    else
-      ds_center = sign_z_vel * length / 2
-    endif
 
     x_off = ele%value(x_offset_tot$)
     y_off = ele%value(y_offset_tot$)
@@ -295,16 +307,23 @@ else
     if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp])
   endif
 
+  ! ds_center is distance to the center of the element from the particle position
+
+  if (present(s_pos)) then
+    ds_center = length/2 - s_pos    ! s_pos is in body coords 
+    if (present(s_out)) then
+      if (ele%orientation == 1) then;  s_out = s_pos
+      else;                            s_out = length - s_pos
+      endif
+    endif
+  else
+    ds_center = -sign_z_vel * length / 2
+    if (present(s_out)) s_out = (1 + sign_z_vel) * length / 2
+  endif
+
   ! Unset: Offset and pitch
 
   if (has_orientation_attributes(ele)) then
-
-    ! ds_center is distance to the center of the element from the particle position
-    if (present(ds_pos)) then
-      ds_center = ele%orientation * (length/2 - ds_pos)   
-    else
-      ds_center = -sign_z_vel * length / 2
-    endif
 
     x_off = ele%value(x_offset_tot$)
     y_off = ele%value(y_offset_tot$)

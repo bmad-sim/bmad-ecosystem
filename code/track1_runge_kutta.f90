@@ -36,7 +36,7 @@ type (lat_param_struct), target, intent(inout) :: param
 type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
 
-real(rp) rel_tol, abs_tol, beta_ref, s0, s1, ds_ref, dref_time
+real(rp) rel_tol, abs_tol, beta_ref, s0_body, s1_body, ds_ref, dref_time
 
 logical err_flag, set_spin
 
@@ -51,44 +51,46 @@ endif
 
 ! Convert to element coords.
 ! For a patch, convert to the downstream coords so that the downstream face 
-! can be simply described as being at s = s1. Additionally, with a patch, s 
-! is the distance before the downstream face so the s0 starting position is 
-! negative and the s1 stopping position is 0.
+! can be simply described as being at s = s1_body. Additionally, with a patch, s 
+! is the distance before the downstream face so the s0_body starting position is 
+! negative and the s1_body stopping position is 0.
 
 end_orb = start_orb
 beta_ref = ele%value(p0c$) / ele%value(e_tot$)
 set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)
 
 if (ele%key == patch$) then
-  call track_a_patch (ele, end_orb, .false., s0, ds_ref)
+  call track_a_patch (ele, end_orb, .false., s0_body, ds_ref)
   if (end_orb%direction == 1) then
-    s0 = s0 * end_orb%direction * ele%orientation
-    s1 = 0
-    end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s0) * end_orb%beta / beta_ref 
+    s0_body = s0_body * end_orb%direction * ele%orientation
+    s1_body = 0
+    end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s0_body) * end_orb%beta / beta_ref 
   else
-    s1 = s0 * end_orb%direction * ele%orientation
-    s0 = 0
-    end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s1) * end_orb%beta / beta_ref 
+    s1_body = s0_body * end_orb%direction * ele%orientation
+    s0_body = 0
+    end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s1_body) * end_orb%beta / beta_ref 
   endif
 else
   call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., set_spin = set_spin)
-  if (end_orb%direction == 1) then
-    s0 = 0; s1 = ele%value(l$)
+  if (ele%orientation*end_orb%direction == 1) then
+    s0_body = 0; s1_body = ele%value(l$)
   else
-    s0 = ele%value(l$); s1 = 0
+    s0_body = ele%value(l$); s1_body = 0
   endif
 endif
+
+end_orb%s_body = s0_body
 
 ! Track.
 ! Note that if ele is a slave, ele%field_calc = refer_to_lords$ and no error message is printed. 
 
-if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. ele%field_calc == bmad_standard$ .and. &
-                                                         ele%value(l$) < ele%value(l_hard_edge$)) then
+if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. bmad_com%use_hard_edge_drifts .and. &
+                ele%field_calc == bmad_standard$ .and. & ele%value(l$) < ele%value(l_hard_edge$)) then
   call out_io (s_error$, r_name, 'RUNGE-KUTTA TRACKING THROUGH RF CAVITY: ' // ele%name, &
                           'WILL NOT BE ACCURATE SINCE THE LENGTH IS LESS THAN THE HARD EDGE MODEL LENGTH.')
 endif
 
-call odeint_bmad (end_orb, ele, param, s0, s1, .true., err_flag, track)
+call odeint_bmad (end_orb, ele, param, s0_body, s1_body, err_flag, track)
 if (err_flag) return
 
 ! convert to lab coords.

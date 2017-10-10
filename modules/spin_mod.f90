@@ -427,7 +427,7 @@ end subroutine rotate_spin
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function spin_omega (field, coord, sign_z_vel, phase_space_coords), result (omega)
+! Function spin_omega (field, orbit, sign_z_vel, phase_space_coords), result (omega)
 !
 ! Return the modified T-BMT spin omega vector:
 !   dOmega/d|s|   With phase space coords.
@@ -445,10 +445,10 @@ end subroutine rotate_spin
 !
 ! Input:
 !   field              -- em_field_struct: E and B fields.
-!   coord              -- coord_struct: particle momentum.
-!   sign_z_vel         -- integer: Direction of the z-velocity. 
-!                           With phase space coords: sign_z_vel = coord%direciton * ele%orientation.
-!                           With time RK coords:     sign_z_vel = ele%orientation
+!   orbit              -- coord_struct: Particle position in element body coords.
+!   sign_z_vel         -- integer: Direction of the z-velocity wrt the element body coords. 
+!                           With phase space coords: sign_z_vel = orbit%direciton * ele%orientation.
+!                           With time RK coords:     sign_z_vel is not used (orbit%vec(6) has the correct sign.)
 !   phase_space_coords -- logical, optional: Is coord in standard phase space coordinates or
 !                           is it time Runge Kutta coords?
 !
@@ -457,12 +457,12 @@ end subroutine rotate_spin
 !                           If not: Omega_TBMT
 !-
 
-function spin_omega (field, coord, sign_z_vel, phase_space_coords) result (omega)
+function spin_omega (field, orbit, sign_z_vel, phase_space_coords) result (omega)
 
 implicit none
 
 type (em_field_struct) :: field
-type (coord_struct) :: coord
+type (coord_struct) :: orbit
 
 real(rp) omega(3),  beta_vec(3), pc
 real(rp) anomalous_moment, gamma, rel_p, e_particle, mc2, bz2
@@ -473,24 +473,24 @@ logical, optional :: phase_space_coords
 
 ! Want everything in units of eV
 
-anomalous_moment = anomalous_moment_of(coord%species)
+anomalous_moment = anomalous_moment_of(orbit%species)
 
 if (logic_option(.true., phase_space_coords)) then
-  rel_p = 1 + coord%vec(6)
-  e_particle = coord%p0c * rel_p / coord%beta
-  mc2 = mass_of(coord%species)
+  rel_p = 1 + orbit%vec(6)
+  e_particle = orbit%p0c * rel_p / orbit%beta
+  mc2 = mass_of(orbit%species)
   gamma = e_particle / mc2
-  bz2 = rel_p**2 - coord%vec(2)**2 - coord%vec(4)**2
+  bz2 = rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2
   if (bz2 < 0) then  ! Particle has unphysical velocity
     omega = 0
     return
   endif
-  beta_vec = (coord%beta / rel_p) * [coord%vec(2), coord%vec(4), sign_z_vel * sqrt(bz2)]
+  beta_vec = (orbit%beta / rel_p) * [orbit%vec(2), orbit%vec(4), sign_z_vel * sqrt(bz2)]
 
 else
-  e_particle = sqrt(coord%vec(2)**2 + coord%vec(4)**2 + coord%vec(6)**2) / coord%beta
-  beta_vec = [coord%vec(2), coord%vec(4), sign_z_vel * coord%vec(6)] / e_particle
-  mc2 = mass_of(coord%species)
+  e_particle = sqrt(orbit%vec(2)**2 + orbit%vec(4)**2 + orbit%vec(6)**2) / orbit%beta
+  beta_vec = [orbit%vec(2), orbit%vec(4), orbit%vec(6)] / e_particle
+  mc2 = mass_of(orbit%species)
   gamma = e_particle / mc2
 endif
 
@@ -505,9 +505,9 @@ if (bmad_com%electric_dipole_moment /= 0) then
 endif
 
 if (logic_option(.true., phase_space_coords)) then
-  omega = -(charge_of(coord%species) / (mc2 * abs(beta_vec(3)))) * omega
+  omega = -(charge_of(orbit%species) / (mc2 * abs(beta_vec(3)))) * omega
 else
-  omega = -(charge_of(coord%species) * c_light / mc2) * omega
+  omega = -(charge_of(orbit%species) * c_light / mc2) * omega
 endif
 
 end function spin_omega
@@ -681,7 +681,7 @@ type (ele_struct) :: ele
 type (lat_param_struct) :: param
 type (fringe_edge_info_struct) fringe_info
 
-real(rp) spline_x(0:3), spline_y(0:3), omega(3), s_edge_track, s_start, s_end
+real(rp) spline_x(0:3), spline_y(0:3), omega(3), s_edge_track, s_end_lab
 
 integer key
 
@@ -694,17 +694,15 @@ if (ele%key == patch$) return
 ! A slice_slave may or may not span a fringe. calc_next_fringe_edge will figure this out.
 
 if (start_orb%direction == 1) then
-  s_start = 0
-  s_end = ele%value(l$)
+  s_end_lab = ele%value(l$)
 else
-  s_start = ele%value(l$)
-  s_end = 0
+  s_end_lab = 0
 endif
 
 temp_start = start_orb
 call calc_next_fringe_edge (ele, s_edge_track, fringe_info, temp_start, .true.)
 
-call offset_particle (ele, param, set$, temp_start, set_hvkicks = .false., set_spin = .true., ds_pos = s_start)
+call offset_particle (ele, param, set$, temp_start, set_hvkicks = .false., set_spin = .true.)
 
 if (fringe_info%particle_at == first_track_edge$) then
   if (fringe_info%ds_edge /= 0) call track_a_drift (temp_start, fringe_info%ds_edge)
@@ -714,7 +712,7 @@ endif
 
 temp_end  = end_orb
 
-call offset_particle (ele, param, set$, temp_end, set_hvkicks = .false., ds_pos = s_end)
+call offset_particle (ele, param, set$, temp_end, set_hvkicks = .false., s_pos = s_end_lab)
 
 if (fringe_info%particle_at == second_track_edge$) then 
   if (fringe_info%ds_edge /= 0) call track_a_drift (temp_end, fringe_info%ds_edge)
@@ -743,7 +741,7 @@ if (fringe_info%particle_at == second_track_edge$) then
   call apply_element_edge_kick (temp_end, fringe_info, ele, param, .true.)
 endif
 
-call offset_particle (ele, param, unset$, temp_end, set_hvkicks = .false., set_spin = .true., ds_pos = s_end)
+call offset_particle (ele, param, unset$, temp_end, set_hvkicks = .false., set_spin = .true.)
 
 end_orb%spin = temp_end%spin
 
