@@ -175,6 +175,8 @@ case ('"ELSEPARATOR1:Tracking:MatrixRow5"')       ; tolerance = 'ABS 2e-10'
 case ('"ELSEPARATOR2:Tracking:MatrixRow5"')       ; tolerance = 'ABS 1e-10'
 case ('"ELSEPARATOR2:Tracking:Symp_Err"')         ; tolerance = 'ABS 5e-11'
 
+case ('"MATCH1:Tracking:MatrixRow5"')             ; tolerance = 'ABS 5E-12'
+
 case ('"WIGGLER_MAP1:Tracking:MatrixRow2"')       ; tolerance = 'ABS 1e-11'
 case ('"WIGGLER_MAP1:Tracking:MatrixRow3"')       ; tolerance = 'ABS 1e-11'
 case ('"WIGGLER_MAP1:Tracking:Symp_Err"')         ; tolerance = 'ABS 1e-11'

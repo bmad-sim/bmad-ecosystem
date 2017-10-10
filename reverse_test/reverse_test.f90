@@ -32,7 +32,7 @@ type (branch_struct), pointer :: branch
 
 real(rp) max_diff_vec_r, max_diff_vec_b, max_diff_mat, max_diff_spin
 integer nargs, ie, ib, im
-logical :: verbosity = .false., backwards = .true.
+logical :: verbosity = .false., backwards = .false.
 
 character(40) :: lat_file  = 'reverse.bmad', tracking_method = ''
 character(100) :: str
@@ -45,7 +45,7 @@ namelist / params / tracking_method, backwards, bmad_com
 nargs = cesr_iargc()
 
 if (nargs > 2) then
-  print *, 'Only one command line arg permitted.'
+  print *, 'Max two command line args permitted.'
   call err_exit
 endif
 

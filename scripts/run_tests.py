@@ -27,7 +27,7 @@ def print_all(str, terminate = False, color = False):
     print(str)
 
   if terminate: 
-    str2 = '     Stopping here for this regression.'
+    str2 = '     Flow Failure. Stopping here for this regression.'
     results.write(str2 + '\n')
     print(str2)
     global num_flow_failures

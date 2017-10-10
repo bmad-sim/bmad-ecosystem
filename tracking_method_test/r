@@ -1,4 +1,3 @@
 rm output.now
-$ACC_DEBUG/tracking_method_test lat.bmad
-#../../debug/bin/tracking_method_test lat.bmad
+../../debug/bin/tracking_method_test lat.bmad #1
 cat output.now
