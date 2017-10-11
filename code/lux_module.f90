@@ -640,7 +640,7 @@ else
 
     call transfer_ele (twiss_ele, sl(i)%ele)
     sl(i)%orbit   = orb
-    call em_field_calc (physical_source_ele, lat%param, s_now, 0.0_rp, orb, .false., sl(i)%field)
+    call em_field_calc (physical_source_ele, lat%param, s_now, orb, .false., sl(i)%field)
 
     g_bend = g_bend_from_em_field (sl(i)%field%b, sl(i)%field%e, orb)
     g_abs = norm2(g_bend)
@@ -1210,9 +1210,9 @@ endif
 call run_timer ('READ', dtime)
 
 if (lux_com%verbose) then
-  print '(a, t35, i, 5x, es10.2)', 'Photons Tracked:', lux_data%n_track_tot, float(lux_data%n_track_tot)
-  print '(a, t35, i)',      'Photons at detector:', lux_data%n_live
-  print '(a, t35, i)',      'Photons hitting pix:', int(sum(detec_grid%pt%n_photon), 8)
+  print '(a, t35, i0, 5x, es10.2)', 'Photons Tracked:', lux_data%n_track_tot, float(lux_data%n_track_tot)
+  print '(a, t35, i0)',      'Photons at detector:', lux_data%n_live
+  print '(a, t35, i0)',      'Photons hitting pix:', int(sum(detec_grid%pt%n_photon), 8)
   print '(a, t45, es12.4)', 'Normalization factor:', normalization
   print '(a, t45, es12.4)', 'Total intensity on pix (unnormalized):', intens_tot
   print '(a, t45, es12.4)', 'Total intensity on pix (normalized):', intens_tot * normalization
