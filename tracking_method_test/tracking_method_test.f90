@@ -14,7 +14,7 @@ type (track_struct) track
 
 character(200) :: line(10)
 character(40) :: lat_file  = 'tracking_method_test.bmad'
-character(46) :: out_str, fmt, tol_str, track_method
+character(46) :: out_str, fmt, track_method
 integer :: i, j, ib, nargs, isn
 
 logical print_extra
@@ -133,7 +133,6 @@ do ib = 0, ubound(lat%branch, 1)
         call track1 (start_orb, ele, branch%param, end_orb)
       endif
 
-      tol_str = trim(ele%name) // ':' // trim(tracking_method_name(j))
       if (p_sign == 1) then
         out_str = trim(ele%name) // ':' // trim(tracking_method_name(j))
       else
@@ -141,9 +140,9 @@ do ib = 0, ubound(lat%branch, 1)
       endif
 
       if (ele%key == e_gun$) then
-        write (1,fmt) '"' // trim(out_str) // '"' , tolerance(tol_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
+        write (1,fmt) '"' // trim(out_str) // '"' , tolerance(out_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
       else
-        write (1,fmt) '"' // trim(out_str) // '"' , tolerance(tol_str), end_orb%vec, (end_orb%vec(5) - start_orb%vec(5)) - &
+        write (1,fmt) '"' // trim(out_str) // '"' , tolerance(out_str), end_orb%vec, (end_orb%vec(5) - start_orb%vec(5)) - &
                 c_light * (end_orb%beta * (ele%ref_time - end_orb%t) - start_orb%beta * (ele%ref_time - ele%value(delta_ref_time$) - start_orb%t))
       endif
 
@@ -157,7 +156,7 @@ do ib = 0, ubound(lat%branch, 1)
       if (j == bmad_standard$ .or. j == runge_kutta$ .or. j == symp_lie_ptc$ .or. j == time_runge_kutta$ .or. j == taylor$) then
         isn = isn + 1
         out_str = trim(out_str) // ' dSpin'
-        write (line(isn), '(a, t49, a,  4f14.9, 4x, f14.9)') '"' // trim(out_str) // '"', tolerance_spin(tol_str), &
+        write (line(isn), '(a, t49, a,  4f14.9, 4x, f14.9)') '"' // trim(out_str) // '"', tolerance_spin(out_str), &
               end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
       endif
 
@@ -185,43 +184,56 @@ end subroutine track_it
 ! contains
   
 character(10) function tolerance(instr)
-character(38) :: instr
+character(*) :: instr
 
   select case (instr)
-    case('AC_KICKER2:Time_Runge_Kutta')          ; tolerance = 'ABS 1e-11'
-    case('QUADRUPOLE1:Time_Runge_Kutta')         ; tolerance = 'ABS 5e-12'
-    case('QUADRUPOLE2:Time_Runge_Kutta')         ; tolerance = 'ABS 2e-11'
-    case('QUADRUPOLE4:Time_Runge_Kutta')         ; tolerance = 'ABS 2e-11'
-    case('QUADRUPOLE5:Time_Runge_Kutta')         ; tolerance = 'ABS 1e-11'
-    case('RFCAVITY1:Runge_Kutta')                ; tolerance = 'ABS 1e-13'
-    case('RFCAVITY1:Time_Runge_Kutta')           ; tolerance = 'ABS 2e-11'
-    case('RFCAVITY2:Runge_Kutta')                ; tolerance = 'ABS 1e-13'
-    case('RFCAVITY2:Time_Runge_Kutta')           ; tolerance = 'ABS 2e-11'
-    case('SBEND2:Time_Runge_Kutta')              ; tolerance = 'ABS 1e-11'
-    case('SBEND4:Bmad_Standard')                 ; tolerance = 'ABS 1e-11'
-    case('SBEND4:Linear')                        ; tolerance = 'ABS 1e-11'
-    case('SBEND4:Time_Runge_Kutta')              ; tolerance = 'ABS 4e-13'
-    case('SBEND5:Bmad_Standard')                 ; tolerance = 'ABS 5e-13'
-    case('SBEND5:Linear')                        ; tolerance = 'ABS 5e-13'
-    case('SBEND6:Taylor')                        ; tolerance = 'ABS 2e-11'
-    case('SBEND7:Bmad_Standard')                 ; tolerance = 'ABS 2e-13'
-    case('SBEND7:Linear')                        ; tolerance = 'ABS 2e-13'
-    case('SOLENOID1:Time_Runge_Kutta')           ; tolerance = 'ABS 1e-11'
-    case('SOLENOID2:Symp_Lie_Bmad')              ; tolerance = 'ABS 2e-14'
-    case('SOL_QUAD1:Time_Runge_Kutta')           ; tolerance = 'ABS 1e-11'
-    case('SOL_QUAD2:Time_Runge_Kutta')           ; tolerance = 'ABS 2e-10'
-    case('LCAVITY1:Bmad_Standard')               ; tolerance = 'ABS 2e-12'
-    case('LCAVITY1:Time_Runge_Kutta')            ; tolerance = 'ABS 3e-11'
-    case('LCAVITY1:Runge_Kutta')                 ; tolerance = 'ABS 1e-13'
-    case('LCAVITY2:Time_Runge_Kutta')            ; tolerance = 'ABS 2e-13'
-    case('LCAVITY2:Runge_Kutta')                 ; tolerance = 'ABS 1e-13'
-    case('LCAVITY3:Runge_Kutta')                 ; tolerance = 'ABS 1e-13'
-    case('LCAVITY3:Time_Runge_Kutta')            ; tolerance = 'ABS 2e-11'
-    case('WIGGLER_MAP1:Time_Runge_Kutta')        ; tolerance = 'ABS 2e-13'
-    case('WIGGLER_MAP1:Runge_Kutta')             ; tolerance = 'ABS 1e-13'
-    case('WIGGLER_PERIODIC1:Runge_Kutta')        ; tolerance = 'ABS 5e-13'
-    case('WIGGLER_PERIODIC1:Time_Runge_Kutta')   ; tolerance = 'ABS 2e-13'
-    case default                                 ; tolerance = 'ABS 1e-14'
+    case('AC_KICKER2:Time_Runge_Kutta')                ; tolerance = 'ABS 1e-11'
+    case('QUADRUPOLE1:Time_Runge_Kutta')               ; tolerance = 'ABS 5e-12'
+    case('QUADRUPOLE2:Time_Runge_Kutta')               ; tolerance = 'ABS 2e-11'
+    case('QUADRUPOLE4:Time_Runge_Kutta')               ; tolerance = 'ABS 2e-11'
+    case('QUADRUPOLE5:Time_Runge_Kutta')               ; tolerance = 'ABS 1e-11'
+    case('RFCAVITY1:Runge_Kutta')                      ; tolerance = 'ABS 1e-13'
+    case('RFCAVITY1:Time_Runge_Kutta')                 ; tolerance = 'ABS 2e-11'
+    case('RFCAVITY2:Runge_Kutta')                      ; tolerance = 'ABS 1e-13'
+    case('RFCAVITY2:Time_Runge_Kutta')                 ; tolerance = 'ABS 2e-11'
+    case('SBEND2:Time_Runge_Kutta')                    ; tolerance = 'ABS 1e-11'
+    case('SBEND4:Bmad_Standard')                       ; tolerance = 'ABS 1e-11'
+    case('SBEND4:Linear')                              ; tolerance = 'ABS 1e-11'
+    case('SBEND4:Time_Runge_Kutta')                    ; tolerance = 'ABS 4e-13'
+    case('SBEND5:Bmad_Standard')                       ; tolerance = 'ABS 5e-13'
+    case('SBEND5:Linear')                              ; tolerance = 'ABS 5e-13'
+    case('SBEND6:Taylor')                              ; tolerance = 'ABS 2e-11'
+    case('SBEND7:Bmad_Standard')                       ; tolerance = 'ABS 2e-13'
+    case('SBEND7:Linear')                              ; tolerance = 'ABS 2e-13'
+    case('SOLENOID1:Time_Runge_Kutta')                 ; tolerance = 'ABS 1e-11'
+    case('SOLENOID2:Symp_Lie_Bmad')                    ; tolerance = 'ABS 2e-14'
+    case('SOL_QUAD1:Time_Runge_Kutta')                 ; tolerance = 'ABS 1e-11'
+    case('SOL_QUAD2:Time_Runge_Kutta')                 ; tolerance = 'ABS 2e-10'
+    case('LCAVITY1:Bmad_Standard')                     ; tolerance = 'ABS 2e-12'
+    case('LCAVITY1:Time_Runge_Kutta')                  ; tolerance = 'ABS 3e-11'
+    case('LCAVITY1:Runge_Kutta')                       ; tolerance = 'ABS 1e-13'
+    case('LCAVITY2:Time_Runge_Kutta')                  ; tolerance = 'ABS 2e-13'
+    case('LCAVITY2:Runge_Kutta')                       ; tolerance = 'ABS 1e-13'
+    case('LCAVITY3:Runge_Kutta')                       ; tolerance = 'ABS 1e-13'
+    case('LCAVITY3:Time_Runge_Kutta')                  ; tolerance = 'ABS 2e-11'
+    case('WIGGLER_MAP1:Time_Runge_Kutta')              ; tolerance = 'ABS 2e-13'
+    case('WIGGLER_MAP1:Runge_Kutta')                   ; tolerance = 'ABS 1e-13'
+    case('WIGGLER_PERIODIC1:Runge_Kutta')              ; tolerance = 'ABS 5e-13'
+    case('WIGGLER_PERIODIC1:Time_Runge_Kutta')         ; tolerance = 'ABS 2e-12'
+
+    case("OCTUPOLE1-Anti:Runge_Kutta")                 ; tolerance = 'ABS 1e-13'
+    case("RFCAVITY1-Anti:Runge_Kutta")                 ; tolerance = 'ABS 4E-10'
+    case("RFCAVITY2-Anti:Runge_Kutta")                 ; tolerance = 'ABS 2E-10'
+    case("RFCAVITY2-Anti:Time_Runge_Kutta")            ; tolerance = 'ABS 2E-10'
+    case("SOL_QUAD1-Anti:Symp_Lie_Bmad")               ; tolerance = 'ABS 1E-13'
+    case("SOL_QUAD1-Anti:Time_Runge_Kutta")           ; tolerance = 'ABS 2e-12'
+    case("RFCAVITY1-Anti:Time_Runge_Kutta")           ; tolerance = 'ABS 2e-11'
+    case("SBEND4-Anti:Bmad_Standard")                 ; tolerance = 'ABS 2e-13'
+    case("WIGGLER_MAP1-Anti:Runge_Kutta")             ; tolerance = 'ABS 1e-13'
+    case("WIGGLER_PERIODIC1-Anti:Runge_Kutta")        ; tolerance = 'ABS 2e-13'
+    case("WIGGLER_PERIODIC1-Anti:Time_Runge_Kutta")   ; tolerance = 'ABS 2e-13'                  
+
+    case default                                       ; tolerance = 'ABS 1e-14'
   end select
 
 end function tolerance
