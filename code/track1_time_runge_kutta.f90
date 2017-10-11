@@ -38,7 +38,7 @@ type (track_struct), optional :: track
 type (em_field_struct) :: saved_field
 
 real(rp) vec(6), d_radius
-real(rp) s_lab, s0, s1, s2, ds_ref, del_s, p0c_save
+real(rp) s_lab, s0, s1, s2, ds_ref, del_s, p0c_save, s_body, z_phase
 real(rp) s_edge_track, s_edge_hard, rf_time, beta_ref, r, dref_time
 
 integer :: i, hard_end, t_dir
@@ -97,7 +97,7 @@ endif
 
 ! Interior start, reference momentum is at the end.
 if (end_orb%location == inside$) then
-  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., s_pos =s_lab, s_out = end_orb%s_body, set_spin = set_spin)
+  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., s_pos =s_lab, s_out = s_body, set_spin = set_spin)
   if (ele%value(l$) < 0) t_dir = -1
 
 elseif (ele%key == patch$) then
@@ -108,17 +108,17 @@ elseif (ele%key == patch$) then
   call track_a_patch (ele, end_orb, .false., s0, ds_ref)
   end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s0 * end_orb%direction * ele%orientation) * end_orb%beta / beta_ref 
   if (s0*ele%orientation > 0) t_dir = -1
-  end_orb%s_body = s0
+  s_body = s0
 
 ! Particle is at an end.
 else
-  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., s_out = end_orb%s_body, set_spin = set_spin)
+  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., s_out = s_body, set_spin = set_spin)
   if (ele%value(l$) < 0) t_dir = -1
 endif
 
 ! Convert orbit coords to time based.
 
-call convert_particle_coordinates_s_to_t (end_orb, ele%orientation)
+call convert_particle_coordinates_s_to_t (end_orb, s_body, ele%orientation, z_phase)
 
 !
 
@@ -134,7 +134,7 @@ if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. bmad_com%use_hard_edge
                           'WILL NOT BE ACCURATE SINCE THE LENGTH IS LESS THAN THE HARD EDGE MODEL LENGTH.')
 endif
 
-call odeint_bmad_time(end_orb, ele, param, t_dir, rf_time, err, track)
+call odeint_bmad_time(end_orb, z_phase, ele, param, t_dir, rf_time, err, track)
 
 if (err) return
 
@@ -144,15 +144,15 @@ if (err) return
 
 if (end_orb%location == upstream_end$) then
   end_orb%p0c = ele%value(p0c_start$)
-  call convert_particle_coordinates_t_to_s(end_orb, ele)
+  call convert_particle_coordinates_t_to_s(end_orb, z_phase, ele, s_body)
   end_orb%direction = -1  ! In case t_to_s conversion confused by roundoff error.
-  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., s_pos = end_orb%s_body, set_spin = set_spin)
+  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin)
 
 elseif (end_orb%location == downstream_end$) then
   end_orb%p0c = ele%value(p0c$)
-  call convert_particle_coordinates_t_to_s(end_orb, ele)
+  call convert_particle_coordinates_t_to_s(end_orb, z_phase, ele, s_body)
   end_orb%direction = 1  ! In case t_to_s conversion confused by roundoff error
-  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., s_pos = end_orb%s_body, set_spin = set_spin)
+  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin)
 
 elseif (end_orb%state /= alive$) then
   ! Particle is lost in the interior of the element.
@@ -165,8 +165,8 @@ elseif (end_orb%state /= alive$) then
     end_orb%direction = 1
   end if
 
-  call convert_particle_coordinates_t_to_s(end_orb, ele)
-  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., s_pos = end_orb%s_body, set_spin = set_spin)
+  call convert_particle_coordinates_t_to_s(end_orb, z_phase, ele, s_body)
+  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin)
 
 else
   call out_io (s_fatal$, r_name, 'CONFUSED PARTICE LEAVING ELEMENT: ' // ele%name)
