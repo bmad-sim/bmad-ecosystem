@@ -204,12 +204,12 @@ do
   beam_init%renorm_sigma  = .true.
   beam_init%n_bunch       = 1
   beam_init%n_particle    = -1
-  beam0_file = s%com%beam0_file        ! From the command line
-  beam_all_file = s%com%beam_all_file  ! From the command line
   beam_saved_at = ''
   save_beam_at  = ''
   track_start = ''
   track_end = ''
+  beam0_file = ''
+  beam_all_file = ''
 
   ! Read beam parameters
 
@@ -221,7 +221,12 @@ do
       read (iu, nml = tao_beam_init)  ! generate an error message
     enddo
   endif
+
+  if (s%com%beam0_file /= '')    beam0_file = s%com%beam0_file        ! From the command line
+  if (s%com%beam_all_file /= '') beam_all_file = s%com%beam_all_file  ! From the command line
+
   ! transfer info from old style save_beam_at(:) to beam_saved_at
+
   do i = 1, size(save_beam_at)
     if (save_beam_at(i) == '') cycle
     beam_saved_at = trim(beam_saved_at) // ', ' // trim(save_beam_at(i))

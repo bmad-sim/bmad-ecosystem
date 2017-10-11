@@ -650,7 +650,7 @@ type tao_common_struct
   character(200) :: init_tao_file_path = ''    ! Path part of init_tao_file
   character(100) :: beam_file = ''             ! '-beam'          command line argument.
   character(100) :: beam_all_file = ''         ! '-beam_all'      command line argument.
-  character(100) :: beam0_file    = ''         ! '-beam0'         command line argument.
+  character(100) :: beam0_file  = ''           ! '-beam0'         command line argument.
   character(100) :: data_file = ''             ! '-data'          command line argument.
   character(100) :: plot_file = ''             ! '-plot'          command line argument.
   character(100) :: startup_file = ''          ! '-startup'       command line argument.
