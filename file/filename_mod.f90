@@ -57,15 +57,15 @@ character(*) filename
 character(*) outfile
 logical, optional :: valid
 
-character(16) :: r_name = 'FullFileName'
+character(*), parameter :: r_name = 'FullFileName'
 character(len(outfile)) ExpandName        ! Expanded Name
 
-Integer InLen, iDollar, iColon, iSlash, iLeftB, iRightB
-
-Integer i
-!!External GetEnv ! Removed because it caused a mac link problem. DCS.
+integer InLen, iDollar, iColon, iSlash, iLeftB, iRightB
+integer i
 integer explen
+
 logical, save :: rcsini = .true.
+
 
 ! Assign input to output by default
 
@@ -74,18 +74,16 @@ outfile = FileName
 
 if (FileName == '') return  ! Blank is invalid
 
-!     Get length of input file name
+! Get length of input file name
 
 InLen = Len_Trim(FileName)
 
 !     
 
-If (InLen .gt. len(outfile)) then
-  Write(6, '(a12, a, i4, a)') r_name, &
-      '[Warning]:  Filename too large (', len(outfile), ' char. limit):'
-  Write(6, '(a)') FileName
-  Return
-Endif
+if (InLen .gt. len(outfile)) then
+  call out_io (s_error$, r_name, 'Outfile argument string length too small: \i0\ ', len(outfile))
+  return
+endif
 
 ! Locate special characters (first dollar-sign, first colon, first slash)
 
