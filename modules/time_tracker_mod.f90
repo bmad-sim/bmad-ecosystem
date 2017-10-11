@@ -11,7 +11,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine odeint_bmad_time (orb, ele, param, t_dir, rf_time, err_flag, track)
+! Subroutine odeint_bmad_time (orb, z_phase, ele, param, t_dir, rf_time, err_flag, track)
 ! 
 ! Subroutine to do Runge Kutta tracking in time. This routine is adapted from Numerical
 ! Recipes.  See the NR book for more details.
@@ -20,6 +20,7 @@ contains
 !
 ! Input: 
 !   orb             -- Coord_struct: Starting coords: (x, px, y, py, s, ps) [t-based]
+!   z_phase         -- real(rp): Inital z phase space coordinate.
 !   ele             -- Ele_struct: Element to track through.
 !     %tracking_method -- Determines which subroutine to use to calculate the 
 !                         field. Note: BMAD does no supply em_field_custom.
@@ -34,13 +35,14 @@ contains
 !     %save_track     -- Logical: Set True if track is to be saved.
 !
 ! Output:
-!   orb            -- Coord_struct: Ending coords: (x, px, y, py, s, ps) [t-based]
-!   err_flag       -- Logical: Set True if there is an error. False otherwise.
-!   track          -- Track_struct: Structure holding the track information.
+!   orb             -- Coord_struct: Ending coords: (x, px, y, py, s, ps) [t-based]
+!   z_phase         -- real(rp): Final z phase space coordinate.
+!   err_flag        -- Logical: Set True if there is an error. False otherwise.
+!   track           -- Track_struct: Structure holding the track information.
 !
 !-
 
-subroutine odeint_bmad_time (orb, ele, param, t_dir, rf_time, err_flag, track)
+subroutine odeint_bmad_time (orb, z_phase, ele, param, t_dir, rf_time, err_flag, track)
 
 use nr, only: zbrent
 
@@ -54,10 +56,12 @@ type (em_field_struct) :: saved_field
 type (track_struct), optional :: track
 type (fringe_edge_info_struct) fringe_info
 
-real(rp), target :: t_old, dt_tol
+real(rp) z_phase
+real(rp), target :: old_t, dt_tol
 real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save, s_save, dummy, rf_time
 real(rp), target  :: dvec_dt(10), vec_err(10), s_target, dt_next_save
-real(rp) :: s_fringe_edge, stop_time, s_stop_fwd
+real(rp) :: s_fringe_edge, stop_time, s_stop_fwd, old_z_phase
+real(rp), pointer :: s_body
 
 integer :: t_dir, n_step, n_pt, old_direction
 
@@ -67,6 +71,8 @@ logical :: edge_kick_applied, track_spin, stop_time_limited
 character(*), parameter :: r_name = 'odeint_bmad_time'
 
 ! init
+
+s_body => orb%vec(5)
 
 if (ele%key == patch$) then
   s_stop_fwd = 0  ! By convention.
@@ -78,7 +84,7 @@ endif
 
 ds_safe = bmad_com%significant_length / 100
 dt_next = t_dir * bmad_com%init_ds_adaptive_tracking / c_light  ! Init time step.
-call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, true_int$)
+call time_runge_kutta_periodic_kick_hook (orb, z_phase, ele, param, stop_time, true_int$)
 
 call calc_next_fringe_edge (ele, s_fringe_edge, fringe_info, orb, .true., time_tracking = .true.)
 old_direction = orb%direction
@@ -102,10 +108,10 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   ! edge?
 
-  if ((orb%s_body - s_fringe_edge)*sign_of(orb%vec(6))*t_dir > -ds_safe) then
+  if ((s_body - s_fringe_edge)*sign_of(orb%vec(6))*t_dir > -ds_safe) then
   
     zbrent_needed = .true.
-    if ((orb%s_body-s_fringe_edge)*sign_of(orb%vec(6))*t_dir < ds_safe) zbrent_needed = .false.
+    if ((s_body-s_fringe_edge)*sign_of(orb%vec(6))*t_dir < ds_safe) zbrent_needed = .false.
     if (n_step == 1) zbrent_needed = .false.
 
     add_ds_safe = .true.
@@ -134,19 +140,18 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
     edge_kick_applied = .false. 
     do 
       if (.not. associated(fringe_info%hard_ele)) exit
-      if ((orb%s_body-s_fringe_edge)*sign_of(orb%vec(6)) < -ds_safe) exit
+      if ((s_body-s_fringe_edge)*sign_of(orb%vec(6)) < -ds_safe) exit
       ! Get radius before first edge kick
       if (.not. edge_kick_applied) edge_kick_applied = .true. 
-      s_save = orb%s_body
-      call convert_particle_coordinates_t_to_s(orb, ele)
+      call convert_particle_coordinates_t_to_s(orb, z_phase, ele, s_save)
       track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad_standard$)
       call apply_element_edge_kick (orb, fringe_info, ele, param, track_spin, rf_time = rf_time)
-      call convert_particle_coordinates_s_to_t(orb, ele%orientation)
+      call convert_particle_coordinates_s_to_t(orb, s_save, ele%orientation, z_phase)
       call calc_next_fringe_edge (ele, s_fringe_edge, fringe_info, orb, time_tracking = .true.)
       ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
       ! So offset s a very tiny amount to avoid this
       if (add_ds_safe) then
-        orb%s_body = orb%s_body + sign_of(orb%vec(6)) * ds_safe
+        s_body = s_body + sign_of(orb%vec(6)) * ds_safe
         orb%s = orb%s + orb%direction * ds_safe
       endif
     enddo      
@@ -174,10 +179,10 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       orb%location = inside$
       orb%state = lost$
       ! Convert for wall handler
-      call convert_particle_coordinates_t_to_s(orb, ele)
+      call convert_particle_coordinates_t_to_s(orb, z_phase, ele, s_save)
       call wall_hit_handler_custom (orb, ele, orb%s)
       ! Restore s_body to relative s 
-      call convert_particle_coordinates_s_to_t(orb, ele%orientation)
+      call convert_particle_coordinates_s_to_t(orb, s_save, ele%orientation, z_phase)
       if (orb%state /= alive$) exit_flag = .true.
     endif
   end select
@@ -186,9 +191,9 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   if ( present(track) ) then
     !Check if we are past a save time, or if exited
     if ((rf_time - t_save) * t_dir >= 0 .or. exit_flag) then
-      call save_a_step (track, ele, param, .true., orb, orb%s_body)
+      call save_a_step (track, ele, param, .true., orb, s_body)
       ! Query the local field to save
-      call em_field_calc (ele, param, orb%s_body, orb, .true., saved_field, .false., err_flag, rf_time = rf_time)
+      call em_field_calc (ele, param, s_body, orb, .true., saved_field, .false., err_flag, rf_time = rf_time)
       if (err_flag) return
       track%field(track%n_pt) = saved_field
       ! Set next save time 
@@ -220,15 +225,16 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   endif
 
   old_orb = orb
-  t_old = rf_time
+  old_t = rf_time
+  old_z_phase = z_phase
 
-  call rk_adaptive_time_step (ele, param, orb, t_dir, rf_time, dt, dt_did, dt_next, err)
+  call rk_adaptive_time_step (ele, param, orb, z_phase, t_dir, rf_time, dt, dt_did, dt_next, err)
   edge_kick_applied = .false.
 
   if (stop_time_limited) then
     dt_next = dt_next_save
     if (abs(orb%t - stop_time) < bmad_com%significant_length / c_light) then
-      call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, false_int$)
+      call time_runge_kutta_periodic_kick_hook (orb, z_phase, ele, param, stop_time, false_int$)
     endif
   endif
 
@@ -260,9 +266,9 @@ real(rp), intent(in)  :: this_dt
 real(rp) :: delta_s_target
 logical err_flag
 !
-call rk_time_step1 (ele, param, t_old, old_orb, this_dt, orb, vec_err, err_flag = err_flag)
-delta_s_target = orb%s_body - s_fringe_edge
-rf_time = t_old + this_dt
+call rk_time_step1 (ele, param, old_t, old_orb, old_z_phase, this_dt, orb, z_phase, vec_err, err_flag = err_flag)
+delta_s_target = s_body - s_fringe_edge
+rf_time = old_t + this_dt
 	
 end function delta_s_target
 
@@ -277,10 +283,10 @@ real(rp) d_radius
 logical err_flag, no_aperture_here
 
 !
-call rk_time_step1 (ele, param, t_old, old_orb, this_dt, orb, vec_err, err_flag = err_flag)
+call rk_time_step1 (ele, param, old_t, old_orb, old_z_phase, this_dt, orb, z_phase, vec_err, err_flag = err_flag)
 
 test_orb = orb
-call offset_particle (ele, param, unset$, test_orb, s_pos=test_orb%s_body, set_hvkicks = .false.)
+call offset_particle (ele, param, unset$, test_orb, s_pos=s_body, set_hvkicks = .false.)
 d_radius =  distance_to_aperture (test_orb, in_between$, ele, no_aperture_here)
 rf_time = rf_time + this_dt
 
@@ -309,18 +315,18 @@ end subroutine odeint_bmad_time
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine rk_adaptive_time_step (ele, param, orb, t_dir, rf_time, dt_try, dt_did, dt_next, err_flag)
+subroutine rk_adaptive_time_step (ele, param, orb, z_phase, t_dir, rf_time, dt_try, dt_did, dt_next, err_flag)
 
 implicit none
 
 type (ele_struct) ele
 type (lat_param_struct) param
-type (coord_struct) orb, orb_new
+type (coord_struct) orb, new_orb
 
 real(rp) :: rf_time, dt_try
 real(rp) :: dt_did, dt_next
 
-real(rp) :: sqrt_n, err_max, dt, dt_temp, t_new, p2, rel_pc
+real(rp) :: sqrt_n, err_max, dt, dt_temp, t_new, p2, rel_pc, z_phase, new_z_phase
 real(rp) :: r_err(10), r_temp(10), dr_dt(10)
 real(rp) :: r_scal(10), rel_tol, abs_tol
 real(rp), parameter :: safety = 0.9_rp, p_grow = -0.2_rp
@@ -335,7 +341,7 @@ character(24), parameter :: r_name = 'rk_adaptive_time_step'
 ! Calc tolerances
 ! Note that s is in the element frame
 
-call em_field_kick_vector_time (ele, param, rf_time, orb, dr_dt, err_flag) 
+call em_field_kick_vector_time (ele, param, rf_time, orb, z_phase, dr_dt, err_flag) 
 if (err_flag) return
 
 sqrt_N = sqrt(abs(1/(c_light*dt_try)))  ! number of steps we would take to cover 1 meter
@@ -345,11 +351,12 @@ abs_tol = bmad_com%abs_tol_adaptive_tracking / sqrt_N
 !
 
 dt = dt_try
-orb_new = orb
+new_orb = orb
+new_z_phase = z_phase
 
 do
 
-  call rk_time_step1 (ele, param, rf_time,  orb, dt, orb_new, r_err, dr_dt, err_flag)
+  call rk_time_step1 (ele, param, rf_time,  orb, z_phase, dt, new_orb, new_z_phase, r_err, dr_dt, err_flag)
   ! Can get errors due to step size too large 
   if (err_flag) then
     if (dt * t_dir < 1d-3/c_light) then
@@ -360,10 +367,11 @@ do
     dt_temp = dt / 10
   else
     ! r_scal(7:9) is for spin
-    r_scal(:) = [abs(orb%vec) + abs(orb_new%vec), c_light, c_light, c_light, ele%value(L$)]  + TINY
+    ! Note that cp is in eV, so 1.0_rp is 1 eV
+    r_scal(:) = [abs(orb%vec) + abs(new_orb%vec), c_light, c_light, c_light, abs(z_phase) + abs(new_z_phase)]  + TINY
     r_scal(1:5:2) = r_scal(1:5:2) + [0.01_rp, 0.01_rp, 0.01_rp]
-    !Note that cp is in eV, so 1.0_rp is 1 eV
     r_scal(2:6:2) = r_scal(2:6:2) + 1.0_rp + 1d-4* (abs(orb%vec(2))+abs(orb%vec(4))+abs(orb%vec(6)))
+    r_scal(10) = r_scal(10) + 1d-6
     err_max = maxval(abs(r_err(:)/(r_scal(:)*rel_tol + abs_tol)))
     if (err_max <=  1.0) exit
     dt_temp = safety * dt * (err_max**p_shrink)
@@ -388,8 +396,8 @@ end if
 
 ! Increase step size, limited by an estimated next step ds = L/4
 
-if (abs(dr_dt(10)*dt_next) > ele%value(L$)/4.0_rp) then
-  dt_next = t_dir * abs(ele%value(L$) / (8.0_rp * dr_dt(10)))
+if (abs(dr_dt(5)*dt_next) > ele%value(L$)/4.0_rp) then
+  dt_next = t_dir * abs(ele%value(L$) / (8.0_rp * dr_dt(5)))
 endif
 
 ! finish
@@ -397,7 +405,8 @@ endif
 dt_did = dt
 rf_time = rf_time + dt
 
-orb = orb_new
+orb = new_orb
+z_phase = new_z_phase
 
 end subroutine rk_adaptive_time_step
 
@@ -405,19 +414,20 @@ end subroutine rk_adaptive_time_step
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 ! Very similar to rk_step1_bmad, except that em_field_kick_vector_time is called
-!  and orb_new%s and %t are updated to the global values
+!  and new_orb%s and %t are updated to the global values
 
-subroutine rk_time_step1 (ele, param, rf_time, orb, dt, orb_new, r_err, dr_dt, err_flag)
+subroutine rk_time_step1 (ele, param, rf_time, orb, z_phase, dt, new_orb, new_z_phase, r_err, dr_dt, err_flag)
 
 implicit none
 
 type (ele_struct) ele
 type (lat_param_struct) param
-type (coord_struct) orb, orb_new, orb_temp
+type (coord_struct) orb, new_orb, temp_orb
 
 real(rp), optional, intent(in) :: dr_dt(10)
 real(rp), intent(in) :: rf_time, dt
 real(rp), intent(out) :: r_err(10)
+real(rp) z_phase, new_z_phase, temp_z_phase
 real(rp) :: dr_dt1(10), dr_dt2(10), dr_dt3(10), dr_dt4(10), dr_dt5(10), dr_dt6(10), r_temp(10), pc
 real(rp), parameter :: a2=0.2_rp, a3=0.3_rp, a4=0.6_rp, &
     a5=1.0_rp, a6=0.875_rp, b21=0.2_rp, b31=3.0_rp/40.0_rp, &
@@ -440,51 +450,52 @@ logical err_flag
 if (present(dr_dt)) then
   dr_dt1 = dr_dt
 else
-  call em_field_kick_vector_time(ele, param, rf_time, orb, dr_dt1, err_flag)
+  call em_field_kick_vector_time(ele, param, rf_time, orb, z_phase, dr_dt1, err_flag)
   if (err_flag) return
 endif
 
-orb_temp = orb
+temp_orb = orb
+temp_z_phase = z_phase
 
-call transfer_this_orbit (orb_temp, orb, b21*dt*dr_dt1)
-call em_field_kick_vector_time(ele, param, rf_time+a2*dt, orb_temp, dr_dt2, err_flag)
+call transfer_this_orbit (temp_orb, temp_z_phase, orb, z_phase, b21*dt*dr_dt1)
+call em_field_kick_vector_time(ele, param, rf_time+a2*dt, temp_orb, temp_z_phase, dr_dt2, err_flag)
 if (err_flag) return
 
-call transfer_this_orbit (orb_temp, orb, dt*(b31*dr_dt1+b32*dr_dt2))
-call em_field_kick_vector_time(ele, param, rf_time+a3*dt, orb_temp, dr_dt3, err_flag) 
+call transfer_this_orbit (temp_orb, temp_z_phase, orb, z_phase, dt*(b31*dr_dt1+b32*dr_dt2))
+call em_field_kick_vector_time(ele, param, rf_time+a3*dt, temp_orb, temp_z_phase, dr_dt3, err_flag) 
 if (err_flag) return
 
-call transfer_this_orbit (orb_temp, orb, dt*(b41*dr_dt1+b42*dr_dt2+b43*dr_dt3))
-call em_field_kick_vector_time(ele, param, rf_time+a4*dt, orb_temp, dr_dt4, err_flag)
+call transfer_this_orbit (temp_orb, temp_z_phase, orb, z_phase, dt*(b41*dr_dt1+b42*dr_dt2+b43*dr_dt3))
+call em_field_kick_vector_time(ele, param, rf_time+a4*dt, temp_orb, temp_z_phase, dr_dt4, err_flag)
 if (err_flag) return
 
-call transfer_this_orbit (orb_temp, orb, dt*(b51*dr_dt1+b52*dr_dt2+b53*dr_dt3+b54*dr_dt4))
-call em_field_kick_vector_time(ele, param, rf_time+a5*dt, orb_temp, dr_dt5, err_flag)
+call transfer_this_orbit (temp_orb, temp_z_phase, orb, z_phase, dt*(b51*dr_dt1+b52*dr_dt2+b53*dr_dt3+b54*dr_dt4))
+call em_field_kick_vector_time(ele, param, rf_time+a5*dt, temp_orb, temp_z_phase, dr_dt5, err_flag)
 if (err_flag) return
 
-call transfer_this_orbit (orb_temp, orb, dt*(b61*dr_dt1+b62*dr_dt2+b63*dr_dt3+b64*dr_dt4+b65*dr_dt5))
-call em_field_kick_vector_time(ele, param, rf_time+a6*dt, orb_temp, dr_dt6, err_flag)
+call transfer_this_orbit (temp_orb, temp_z_phase, orb, z_phase, dt*(b61*dr_dt1+b62*dr_dt2+b63*dr_dt3+b64*dr_dt4+b65*dr_dt5))
+call em_field_kick_vector_time(ele, param, rf_time+a6*dt, temp_orb, temp_z_phase, dr_dt6, err_flag)
 if (err_flag) return
 
 ! Output new orb and error vector
 
-call transfer_this_orbit (orb_new, orb, dt*(c1*dr_dt1+c3*dr_dt3+c4*dr_dt4+c6*dr_dt6)) 
+call transfer_this_orbit (new_orb, new_z_phase, orb, z_phase, dt*(c1*dr_dt1+c3*dr_dt3+c4*dr_dt4+c6*dr_dt6)) 
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   quat =          omega_to_quat(dt*c1*dr_dt1(7:9))
   quat = quat_mul(omega_to_quat(dt*c3*dr_dt3(7:9)), quat)
   quat = quat_mul(omega_to_quat(dt*c4*dr_dt4(7:9)), quat)
   quat = quat_mul(omega_to_quat(dt*c6*dr_dt6(7:9)), quat)
-  orb_new%spin = rotate_vec_given_quat(orb%spin, quat)
+  new_orb%spin = rotate_vec_given_quat(orb%spin, quat)
 endif
 
-orb_new%t = orb%t + dt
-orb_new%s = orb%s + ele%orientation * (orb_new%s_body - orb%s_body)
+new_orb%t = orb%t + dt
+new_orb%s = orb%s + ele%orientation * (new_orb%vec(5) - orb%vec(5))
 
-if (orb_new%vec(6) > 0) then
-  orb_new%direction = ele%orientation
+if (new_orb%vec(6) > 0) then
+  new_orb%direction = ele%orientation
 else
-  orb_new%direction = -ele%orientation
+  new_orb%direction = -ele%orientation
 endif
 
 r_err = dt*(dc1*dr_dt1+dc3*dr_dt3+dc4*dr_dt4+dc5*dr_dt5+dc6*dr_dt6)
@@ -492,18 +503,18 @@ r_err = dt*(dc1*dr_dt1+dc3*dr_dt3+dc4*dr_dt4+dc5*dr_dt5+dc6*dr_dt6)
 !------------------------------------------------------------------------------------------------
 contains
 
-subroutine transfer_this_orbit (orb_out, orb_in, dvec)
+subroutine transfer_this_orbit (out_orb, out_z_phase, in_orb, in_z_phase, dvec)
 
-type (coord_struct) orb_in, orb_out
-real(rp) dvec(10)
+type (coord_struct) in_orb, out_orb
+real(rp) dvec(10), out_z_phase, in_z_phase
 
 !
 
-orb_out%vec = orb_in%vec + dvec(1:6)
-orb_out%s_body = orb_in%s_body + dvec(10)
+out_orb%vec = in_orb%vec + dvec(1:6)
+out_z_phase = in_z_phase + dvec(10)
 
-pc = sqrt(orb_out%vec(2)**2 + orb_out%vec(4)**2 + orb_out%vec(6)**2)
-call convert_pc_to (pc, orb%species, beta = orb_out%beta)
+pc = sqrt(out_orb%vec(2)**2 + out_orb%vec(4)**2 + out_orb%vec(6)**2)
+call convert_pc_to (pc, orb%species, beta = out_orb%beta)
 
 end subroutine transfer_this_orbit
 
@@ -513,7 +524,7 @@ end subroutine rk_time_step1
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
 !+
-! Subroutine em_field_kick_vector_time (ele, param, rf_time, orbit, dvec_dt, err_flag)
+! Subroutine em_field_kick_vector_time (ele, param, rf_time, orbit, z_phase, dvec_dt, err_flag)
 !
 ! Subroutine to convert particle coordinates from t-based to s-based system. 
 !
@@ -525,13 +536,14 @@ end subroutine rk_time_step1
 !   param           -- real(rp): Reference momentum. The sign indicates direction of p_s. 
 !   rf_time         -- real(rp): RF time.
 !   orbit           -- coord_struct: in t-based system
+!   z_phase         -- real(rp): z phase space coord.
 !   err_flag        -- logical: Set True if there is an error. False otherwise.
 !
 ! Output:
 !    dvec_dt(10)  -- real(rp): Derivatives.
 !-
 
-subroutine em_field_kick_vector_time (ele, param, rf_time, orbit, dvec_dt, err_flag)
+subroutine em_field_kick_vector_time (ele, param, rf_time, orbit, z_phase, dvec_dt, err_flag)
 
 implicit none
 
@@ -541,7 +553,7 @@ type (em_field_struct) field
 type (coord_struct), intent(in) :: orbit
 
 real(rp), intent(out) :: dvec_dt(10)
-real(rp) rf_time
+real(rp) rf_time, z_phase
 real(rp) vel(3), force(3)
 real(rp) :: pc, e_tot, mc2, gamma, charge, beta, p0, h, beta0, dp_dt, dbeta_dt
 
@@ -554,9 +566,9 @@ character(28), parameter :: r_name = 'em_field_kick_vector_time'
 !	and they coincide in both coordinate systems, so we can use the 'normal' routine.
 
 if (ele%key == patch$ .and. orbit%direction*ele%orientation == -1) then
-  call em_field_calc (ele, param, orbit%s_body, orbit, .true., field, .false., err_flag, rf_time = rf_time)
+  call em_field_calc (ele, param, orbit%vec(5), orbit, .true., field, .false., err_flag, rf_time = rf_time)
 else
-  call em_field_calc (ele, param, orbit%s_body, orbit, .true., field, .false., err_flag, rf_time = rf_time)
+  call em_field_calc (ele, param, orbit%vec(5), orbit, .true., field, .false., err_flag, rf_time = rf_time)
 endif
 if (err_flag) return
 
@@ -595,16 +607,16 @@ dvec_dt(1) = vel(1)
 dvec_dt(2) = c_light*force(1)
 dvec_dt(3) = vel(2)
 dvec_dt(4) = c_light*force(2)
+dvec_dt(5) = vel(3)  ! s_body
 dvec_dt(6) = c_light*force(3)
-dvec_dt(10) = vel(3)  ! s_body
 
 ! Curvilinear coordinates have added terms
 
 if (ele%key == sbend$) then
   h = 1 + ele%value(g$) * orbit%vec(1)
   dvec_dt(2) = dvec_dt(2) + orbit%vec(6) * vel(3) * ele%value(g$) / h
+  dvec_dt(5) = vel(3) / h
   dvec_dt(6) = dvec_dt(6) - orbit%vec(6) * vel(1) * ele%value(g$) / h
-  dvec_dt(10) = vel(3) / h
 else
   h = 1
 endif
@@ -613,7 +625,7 @@ beta0 = ele%value(p0c$) / ele%value(e_tot$)
 dp_dt = dot_product(force, vel) / (orbit%beta * c_light)
 dbeta_dt = mass_of(orbit%species)**2 * dp_dt * c_light / e_tot**3
 
-dvec_dt(5) = orbit%beta * c_light * (vel(3) / (h * c_light * beta0) - 1) + dbeta_dt * orbit%vec(5) / orbit%beta
+dvec_dt(10) = orbit%beta * c_light * (vel(3) / (h * c_light * beta0) - 1) + dbeta_dt * z_phase / orbit%beta
 
 ! Spin
 
@@ -644,7 +656,6 @@ end subroutine em_field_kick_vector_time
 !
 ! Result:
 !   particle            -- Coord_struct: particle in global time coordinates
-!
 !-
 
 function particle_in_global_frame (orb, branch, in_time_coordinates, in_ele_frame, w_mat_out) result (particle)
@@ -655,19 +666,20 @@ type (coord_struct) :: orb, particle
 type (branch_struct) :: branch
 type (floor_position_struct) :: floor_at_particle, global_position
 type (ele_struct), pointer :: ele
-real(rp) :: w_mat(3,3)
+real(rp) :: w_mat(3,3), s_body
 real(rp), optional :: w_mat_out(3,3)
 logical, optional :: in_time_coordinates, in_ele_frame
 character(28), parameter :: r_name = 'particle_in_global_frame'
 
 !Get last tracked element  
 ele =>  branch%ele(orb%ix_ele)
+s_body = particle%s - ele%s_start
 
 !Convert to time coordinates
 particle = orb;
 if (.not. logic_option(.false., in_time_coordinates)) then
   ! Set s_body to be relative to entrance of ele 
-  call convert_particle_coordinates_s_to_t (particle, ele%orientation)
+  call convert_particle_coordinates_s_to_t (particle, s_body, ele%orientation)
 endif
 
 !Set for coords_local_curvilinear_to_floor
@@ -693,26 +705,29 @@ end function particle_in_global_frame
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine convert_particle_coordinates_t_to_s (particle, ele)
+! Subroutine convert_particle_coordinates_t_to_s (particle, z_phase, ele, s_body)
 !
 ! Subroutine to convert particle coordinates from t-based to s-based system. 
 !
 ! Input:
 !   particle    -- coord_struct: Particle with %vec(:) in t-coords.
+!   z_phase     -- real(rp): z phase space coordinate
 !   ele         -- ele_sturct: Element particle is going through.
 !
 ! Output:
 !   particle    -- coord_struct: Particle with %vec(:) in s-coords.
+!   s_body      -- real(rp), optional: s-position in element body coords.
 !-
 
-subroutine convert_particle_coordinates_t_to_s (particle, ele)
+subroutine convert_particle_coordinates_t_to_s (particle, z_phase, ele, s_body)
 
 implicit none
 
 type (coord_struct), intent(inout), target :: particle
 type (ele_struct) ele
-real(rp) :: p0c
-real(rp) :: pctot, tr, r
+real(rp) :: z_phase
+real(rp), optional :: s_body
+real(rp) :: p0c, pctot
 real(rp), pointer :: vec(:)
 
 !
@@ -720,6 +735,8 @@ real(rp), pointer :: vec(:)
 vec => particle%vec
 p0c = particle%p0c
 pctot = sqrt (vec(2)**2 + vec(4)**2 + vec(6)**2)
+
+if (present(s_body)) s_body = vec(5)
 
 ! If vec(6) = 0 then leave %direction as is.
 
@@ -733,6 +750,7 @@ endif
 
 vec(2) = vec(2)/p0c
 vec(4) = vec(4)/p0c
+vec(5) = z_phase
 vec(6) = pctot/p0c - 1.0_rp
 
 end subroutine convert_particle_coordinates_t_to_s
@@ -741,7 +759,7 @@ end subroutine convert_particle_coordinates_t_to_s
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine convert_particle_coordinates_s_to_t  (particle, orientation)
+! Subroutine convert_particle_coordinates_s_to_t  (particle, s_body, orientation, z_phase)
 !
 ! Subroutine to convert particle coordinates from s-based to t-based system. 
 !
@@ -755,18 +773,22 @@ end subroutine convert_particle_coordinates_t_to_s
 !
 ! Input:
 !   particle    -- coord_struct: Particle with %vec(:) in s-coords.
-!   orientation -- integer, optional: ele%orientation for vec(6). Default: 1
+!   s_body      -- real(rp): s-position in element body coords.
+!   orientation -- integer: ele%orientation for vec(6).
 !
 ! Output:
-!    particle   -- coord_struct: Particle with %vec(:) in t-coords.
+!   particle    -- coord_struct: Particle with %vec(:) in t-coords.
+!   z_phase     -- real(rp), optional: z phase space coordinate
 !-
 
-subroutine convert_particle_coordinates_s_to_t (particle, orientation)
+subroutine convert_particle_coordinates_s_to_t (particle, s_body, orientation, z_phase)
 
 implicit none
 
 type (coord_struct), intent(inout), target :: particle
 type (ele_struct) ele
+real(rp) s_body
+real(rp), optional :: z_phase
 real(rp), pointer :: vec(:)
 integer :: orientation
 
@@ -774,9 +796,12 @@ integer :: orientation
 
 vec => particle%vec
 
-vec(6) = particle%direction * integer_option(1, orientation) * particle%p0c * sqrt(((1+vec(6)))**2 - vec(2)**2 -vec(4)**2)
+if (present(z_phase)) z_phase = vec(5)
+
+vec(6) = particle%direction * orientation * particle%p0c * sqrt(((1+vec(6)))**2 - vec(2)**2 -vec(4)**2)
 vec(2) = vec(2) * particle%p0c
 vec(4) = vec(4) * particle%p0c
+vec(5) = s_body
 
 end subroutine convert_particle_coordinates_s_to_t
 
@@ -796,20 +821,24 @@ end subroutine convert_particle_coordinates_s_to_t
 !
 ! Input:
 !   orbit      -- coord_struct: particle orbit in time-based coordinates.
+!   z_phase    -- real(rp): z phase space coordinate.
 !   beta0      -- real(rp): reference velocity.
 !   delta_s    -- real(rp), optional: s-coordinate distance to drift particle.
 !   delta_t    -- real(rp), optional: -coordinate distancet to drift particle.
 !
 ! Output:
 !   orbit      -- coord_struct: particle orbit in time-based coordinates
-!                                     
+!   z_phase    -- real(rp): z phase space coordinate.
 !-
-subroutine drift_orbit_time (orbit, beta0, delta_s, delta_t)
+
+subroutine drift_orbit_time (orbit, z_phase, beta0, delta_s, delta_t)
+
 use bmad_struct
   
 implicit none
   
 type (coord_struct) :: orbit
+real(rp) z_phase
 real(rp), optional :: delta_s, delta_t
 real(rp) :: v_s, e_tot, vel(3), beta0
 
@@ -832,17 +861,17 @@ if (present(delta_s)) then
   endif 
   delta_t = delta_s / vel(3)
 else
-  delta_s = vel(3) *delta_t
+  delta_s = vel(3) * delta_t
 endif
 
 ! Drift x, y, s
 
 orbit%vec(1) = orbit%vec(1) + vel(1)*delta_t  !x
 orbit%vec(3) = orbit%vec(3) + vel(2)*delta_t  !y
-orbit%vec(5) = orbit%vec(5) + orbit%beta * (delta_s / beta0 - c_light * delta_t)
-orbit%s_body = orbit%s_body + vel(3)*delta_t  !s
+orbit%vec(5) = orbit%vec(5) + delta_s  !s
 orbit%s =  orbit%s + delta_s
 orbit%t =  orbit%t + delta_t 
+z_phase = z_phase + orbit%beta * (delta_s / beta0 - c_light * delta_t)
 
 end subroutine drift_orbit_time
 
@@ -972,7 +1001,7 @@ do i = 1, size(bunch%particle)
   pc = (1+orb%vec(6)) * orb%p0c 
   
   ! convert to time coordinates
-  call convert_particle_coordinates_s_to_t (orb, ele%orientation)
+  call convert_particle_coordinates_s_to_t (orb, orb%s-ele%s_start, ele%orientation)
   
   ! get \gamma m c
   gmc = sqrt(pc**2 + mass_of(orb%species)**2) / c_light
@@ -981,7 +1010,7 @@ do i = 1, size(bunch%particle)
   ! (x, y, s) - dt mc2 \beta_x \gamma / \gamma m c
   orb%vec(1) = orb%vec(1) - dt*orb%vec(2)/gmc
   orb%vec(3) = orb%vec(3) - dt*orb%vec(4)/gmc
-  orb%s_body = orb%s_body - dt*orb%vec(6)/gmc
+  orb%vec(5) = orb%vec(5) - dt*orb%vec(6)/gmc
   orb%t = orb%t - dt
   
   ! 
@@ -995,14 +1024,14 @@ do i = 1, size(bunch%particle)
     if ( gammabeta(3) == 0 ) gammabeta(3) = 1d-30 
     write(time_file_unit, '(6'//rfmt//')')  orb%vec(1), gammabeta(1), &
 										    orb%vec(3), gammabeta(2), &
-											orb%s_body, gammabeta(3)
+											orb%vec(5), gammabeta(3)
   case (astra$)
     orb = particle_in_global_frame (orb,  branch, in_time_coordinates = .true.)
     a_species_id = astra_species_id(orb_ref%species)
     ! The reference particle is used for z, pz, and t
     write(time_file_unit, '(8'//rfmt//', 2i8)')  orb%vec(1), &
 	    	 									 orb%vec(3), &
-	    	 									 orb%s_body - orb_ref%s_body, &
+	    	 									 orb%vec(5) - orb_ref%vec(5), &
 	    	 									 orb%vec(2), &
 	    	 									 orb%vec(4), &
 	    	 									 orb%vec(6) - orb_ref%vec(6), &
@@ -1013,7 +1042,7 @@ do i = 1, size(bunch%particle)
   case (gpt$)
     orb = particle_in_global_frame (orb,  branch, in_time_coordinates = .true.)
     gammabeta =  orb%vec(2:6:2) / mass_of(orb%species) 
-    write(time_file_unit, '(9'//rfmt//')')  orb%vec(1), orb%vec(3), orb%s_body, &
+    write(time_file_unit, '(9'//rfmt//')')  orb%vec(1), orb%vec(3), orb%vec(5), &
                                             gammabeta(1), gammabeta(2), gammabeta(3), &
 										    orb%t, &
 											charge_of(orb%species)*e_charge, &

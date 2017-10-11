@@ -99,12 +99,12 @@ subroutine make_mat6_custom (ele, param, start_orb, end_orb, err_flag)
   logical err_flag, finished
 end subroutine
 
-subroutine time_runge_kutta_periodic_kick_hook (orbit, ele, param, stop_time, init_needed)
+subroutine time_runge_kutta_periodic_kick_hook (orbit, z_phase_space, ele, param, stop_time, init_needed)
   import
   type (coord_struct) orbit
   type (ele_struct) ele
   type (lat_param_struct) param
-  real(rp) stop_time
+  real(rp) z_phase_space, stop_time
   integer :: init_needed
 end subroutine
 

@@ -17,7 +17,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 200
+integer, parameter :: bmad_inc_version$ = 201
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -381,7 +381,6 @@ integer, parameter :: lost_pz_aperture$ = 7  ! Particle "turned around" when not
 type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz)
   real(rp) :: s = 0               ! Longitudinal position 
-  real(rp) :: s_body = 0          ! S-position in element body coords.
   real(rp) :: t = 0               ! Absolute time (not relative to reference).
   real(rp) :: spin(3) = 0         ! Spin.
   real(rp) :: field(2) = 0        ! Photon E-field intensity (x,y).

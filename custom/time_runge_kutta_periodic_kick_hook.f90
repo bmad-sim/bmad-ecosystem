@@ -20,17 +20,19 @@
 ! Input:
 !   orbit       -- coord_struct: Particle orbit.
 !     %vec(6)       -- "time" units: See convert_particle_coordinates_s_to_t for more details.
+!   z_phase     -- real(rp): z phase space coordinate.
 !   ele         -- ele_struct: Element to propagate the geometry through.
 !   param       -- lat_param_struct: Branch parameters.
 !   init_needed -- integer: Initialization needed? See above for details.
 !
 ! Output:
 !   orbit       -- coord_struct: Possibly modified particle orbit.
+!   z_phase     -- real(rp): Possibly modified z phase space coordinate.
 !   stop_time   -- real(rp): Set to time when time_runge_kutta should next call this routine.
 !                    Set to real_garbage$ to prevent time_runge_kutta from stopping and calling this routine.
 !-
 
-subroutine time_runge_kutta_periodic_kick_hook (orbit, ele, param, stop_time, init_needed)
+subroutine time_runge_kutta_periodic_kick_hook (orbit, z_phase, ele, param, stop_time, init_needed)
 
 use bmad, except_dummy => time_runge_kutta_periodic_kick_hook
 
@@ -40,7 +42,7 @@ type (coord_struct) orbit
 type (ele_struct) ele
 type (lat_param_struct) param
 
-real(rp) stop_time
+real(rp) z_phase, stop_time
 integer init_needed
 
 ! Init needed?
