@@ -1784,9 +1784,11 @@ case ('s')
       i = i + 1
       scratch%eles(i)%ele => branch%ele(j)
     enddo
+
     ! If there is a wrap-around then reorder the data
+
+    ix1 = 0
     if (branch%param%geometry == closed$ .and. graph%allow_wrap_around) then
-      ix1 = 0
       do i = 1, n_dat
         if (ix1 == 0 .and. branch%ele(scratch%eles(i)%ele%ix_ele)%s - l_tot > graph%x%min) ix1 = i
         if (branch%ele(scratch%eles(i)%ele%ix_ele)%s < graph%x%max+eps) ix2 = i
