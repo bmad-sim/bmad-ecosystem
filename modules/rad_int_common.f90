@@ -288,6 +288,8 @@ integer i0, i1, tm_saved, m6cm_saved
 integer i, ix, ip, j_loop, n_pt, n, n1, n2, ix_pole_max
 integer, save :: ix_ele = -1
 
+logical is_special_wiggler
+
 ! Init
 
 ele0 => info%branch%ele(info%ele%ix_ele-1)
@@ -320,27 +322,20 @@ if (associated(info%cache_ele)) then
 
   ! Interpolate information
 
-  if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%sub_key == map_type$) then 
-    orb = orb_start
-    orb%vec = f0 * orb0%vec + f1 * orb1%vec
-    call calc_wiggler_g_params (ele, z_here, orb, pt, info)
+  pt%dgx_dx = f0 * pt0%dgx_dx + f1 * pt1%dgx_dx
+  pt%dgx_dy = f0 * pt0%dgx_dy + f1 * pt1%dgx_dy
+  pt%dgy_dx = f0 * pt0%dgy_dx + f1 * pt1%dgy_dx
+  pt%dgy_dy = f0 * pt0%dgy_dy + f1 * pt1%dgy_dy
 
-  else
-    pt%dgx_dx = f0 * pt0%dgx_dx + f1 * pt1%dgx_dx
-    pt%dgx_dy = f0 * pt0%dgx_dy + f1 * pt1%dgx_dy
-    pt%dgy_dx = f0 * pt0%dgy_dx + f1 * pt1%dgy_dx
-    pt%dgy_dy = f0 * pt0%dgy_dy + f1 * pt1%dgy_dy
-
-    info%g_x   = f0 * (pt0%g_x0 + pt0%dgx_dx * (orb0%vec(1) - pt0%ref_orb_out%vec(1)) + &
-                                  pt0%dgx_dy * (orb0%vec(3) - pt0%ref_orb_out%vec(3))) + &
-                 f1 * (pt1%g_x0 + pt1%dgx_dx * (orb1%vec(1) - pt1%ref_orb_out%vec(1)) + &
-                                  pt1%dgx_dy * (orb1%vec(3) - pt1%ref_orb_out%vec(3)))
-    info%g_y   = f0 * (pt0%g_y0 + pt0%dgy_dx * (orb0%vec(1) - pt0%ref_orb_out%vec(1)) + &
-                                  pt0%dgy_dy * (orb0%vec(3) - pt0%ref_orb_out%vec(3))) + &
-                 f1 * (pt1%g_y0 + pt1%dgy_dx * (orb1%vec(1) - pt1%ref_orb_out%vec(1)) + &
-                                  pt1%dgy_dy * (orb1%vec(3) - pt1%ref_orb_out%vec(3)))
-  endif
-                 
+  info%g_x  = f0 * (pt0%g_x0 + pt0%dgx_dx * (orb0%vec(1) - pt0%ref_orb_out%vec(1)) + &
+                               pt0%dgx_dy * (orb0%vec(3) - pt0%ref_orb_out%vec(3))) + &
+              f1 * (pt1%g_x0 + pt1%dgx_dx * (orb1%vec(1) - pt1%ref_orb_out%vec(1)) + &
+                               pt1%dgx_dy * (orb1%vec(3) - pt1%ref_orb_out%vec(3)))
+  info%g_y  = f0 * (pt0%g_y0 + pt0%dgy_dx * (orb0%vec(1) - pt0%ref_orb_out%vec(1)) + &
+                               pt0%dgy_dy * (orb0%vec(3) - pt0%ref_orb_out%vec(3))) + &
+              f1 * (pt1%g_y0 + pt1%dgy_dx * (orb1%vec(1) - pt1%ref_orb_out%vec(1)) + &
+                               pt1%dgy_dy * (orb1%vec(3) - pt1%ref_orb_out%vec(3)))
+               
   info%dg2_x = 2 * (info%g_x * pt%dgx_dx + info%g_y * pt%dgy_dx)
   info%dg2_y = 2 * (info%g_x * pt%dgx_dy + info%g_y * pt%dgy_dy) 
   info%g2 = info%g_x**2 + info%g_y**2
@@ -423,8 +418,10 @@ endif
 ! bmad_standard will not properly do partial tracking through a periodic_type wiggler so
 ! switch to symp_lie_bmad type tracking.
 
-if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. &
-                    ele%sub_key == periodic_type$ .and. ele%tracking_method /= custom$) then
+is_special_wiggler = ((ele%key == wiggler$ .or. ele%key == undulator$) .and. &
+                                    ele%sub_key == periodic_type$ .and. ele%tracking_method == taylor$)
+
+if (is_special_wiggler) then
   tm_saved = ele%tracking_method  
   m6cm_saved = ele%mat6_calc_method  
   ele%tracking_method = symp_lie_bmad$
@@ -436,7 +433,7 @@ call twiss_and_track_intra_ele (ele, info%branch%param, 0.0_rp, z_here, .true., 
 info%a = ele_end%a
 info%b = ele_end%b
 
-if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%sub_key == periodic_type$) then
+if (is_special_wiggler) then
   ele%tracking_method  = tm_saved 
   ele%mat6_calc_method = m6cm_saved 
 endif
@@ -448,10 +445,12 @@ call make_v_mats (ele_end, v, v_inv)
 info%eta_a = matmul(v, [info%a%eta, info%a%etap, 0.0_rp,   0.0_rp ])
 info%eta_b = matmul(v, [0.0_rp,   0.0_rp,    info%b%eta, info%b%etap ])
 
-if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%sub_key == map_type$) then 
-  call calc_wiggler_g_params (ele, z_here, orb_end, pt, info)
+is_special_wiggler = ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%tracking_method /= custom$)
+
+if (is_special_wiggler) then
+  call calc_wiggler_g_params (ele, info%branch%param, z_here, orb_end, pt, info)
 else
-  call twiss_and_track_intra_ele (ele, info%branch%param, z_here, z1,     .false., .false., orb_end, orb_end1)
+  call twiss_and_track_intra_ele (ele, info%branch%param, z_here, z1, .false., .false., orb_end, orb_end1)
   info%g_x = pt%g_x0 - (orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_here)
   info%g_y = pt%g_y0 - (orb_end1%vec(4) - orb_end%vec(4)) / (z1 - z_here)
 endif
@@ -464,7 +463,7 @@ info%g = sqrt(info%g2)
 
 ! Add in multipole gradient
 
-if ((ele%key /= wiggler$ .and. ele%key /= undulator$) .or. ele%sub_key /= map_type$) then 
+if (.not. is_special_wiggler) then
   call multipole_ele_to_ab (ele, .true., ix_pole_max, a_pole, b_pole)
   do ip = 0, ix_pole_max
     if (a_pole(ip) == 0 .and. b_pole(ip) == 0) cycle
@@ -480,30 +479,60 @@ end subroutine propagate_part_way
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine calc_wiggler_g_params (ele, s_rel, orb, pt, info)
+subroutine calc_wiggler_g_params (ele, param, s_rel, orb, pt, info)
 
 implicit none
 
 type (coord_struct) orb
+type (lat_param_struct) param
 type (rad_int_track_point_struct) pt
-type (rad_int_info_struct) info
+type (rad_int_info_struct), optional :: info
 type (ele_struct) ele
 
 real(rp) s_rel, g(3), dg(3,3)
+real(rp) f0, k_z, sinh_y, cosh_y, sin_z, cos_z
 
-! Note: em_field_g_bend assumes orb is lab (not element) coords.
+!
 
-call em_field_g_bend (ele, info%branch%param, s_rel, 0.0_rp, orb, g, dg)
+if (ele%sub_key == periodic_type$ .and. ele%tracking_method == bmad_standard$) then
+  f0 = ele%value(B_max$) * c_light / (orb%p0c * (1 + orb%vec(6)))
+  k_z = pi / ele%value(l_pole$)
+  sinh_y = sinh(k_z * orb%vec(3))
+  cosh_y = cosh(k_z * orb%vec(3))
+  sin_z  = sin(k_z * s_rel)
+  cos_z  = cos(k_z * s_rel)
 
-pt%g_x0 = g(1)
-pt%g_y0 = g(2)
-pt%dgx_dx = dg(1,1)
-pt%dgx_dy = dg(1,2)
-pt%dgy_dx = dg(2,1)
-pt%dgy_dy = dg(2,2)
+  pt%g_x0 = f0 * cosh_y * cos_z
+  pt%g_y0 = 0
+  pt%dgx_dx =  f0 * k_z * sinh_y * cos_z
+  pt%dgx_dy = -f0 * k_z * cosh_y * sin_z
+  pt%dgy_dx =  0
+  pt%dgy_dy =  0
 
-info%g_x = g(1)
-info%g_y = g(2)
+  if (present(info)) then
+    info%g_x  =  f0 * cosh_y * cos_z
+    info%g_y  =  0
+  endif
+
+!
+
+else
+  ! Note: em_field_g_bend assumes orb is lab (not element) coords.
+
+  call em_field_g_bend (ele, param, s_rel, 0.0_rp, orb, g, dg)
+
+  pt%g_x0 = g(1)
+  pt%g_y0 = g(2)
+  pt%dgx_dx = dg(1,1)
+  pt%dgx_dy = dg(1,2)
+  pt%dgy_dx = dg(2,1)
+  pt%dgy_dy = dg(2,2)
+
+  if (present(info)) then
+    info%g_x = g(1)
+    info%g_y = g(2)
+  endif
+endif
 
 end subroutine calc_wiggler_g_params
 
