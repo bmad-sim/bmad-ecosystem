@@ -314,7 +314,7 @@ dz_particle = csr_param%particle_bin_span * bin%dz_bin
 ! allocate memeory for the bins
 
 if (allocated(bin%bin1)) then
-  if (size(bin%bin1, 1) < csr_param%n_bin) deallocate (bin%bin1)
+  if (size(bin%bin1, 1) < csr_param%n_bin) deallocate (bin%bin1, bin%kick1)
 endif
 
 if (.not. allocated(bin%bin1)) allocate (bin%bin1(csr_param%n_bin), bin%kick1(-csr_param%n_bin:csr_param%n_bin))
