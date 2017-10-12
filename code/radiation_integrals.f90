@@ -307,13 +307,15 @@ if (use_cache .or. init_cache) then
     orb_start = orbit(i-1)
     call offset_particle (branch%ele(i), branch%param, set$, orb_start, set_hvkicks = .false.)
 
-    if (key2 == wiggler$ .and. ele2%sub_key == periodic_type$ .and. ele2%tracking_method /= custom$) then
-      ! bmad_standard and taylor will not properly do partial track through a periodic_type wiggler so
-      ! switch to symp_lie_bmad type tracking.
+    if (key2 == wiggler$ .and. ele2%sub_key == periodic_type$) then
       n_step = max(nint(10 * ele2%value(l$) / ele2%value(l_pole$)), 1)
       del_z = ele2%value(l$) / n_step
-      ele2%tracking_method = symp_lie_bmad$  
-      ele2%mat6_calc_method = symp_lie_bmad$  
+      ! taylor will not properly do partial track through a periodic_type wiggler so
+      ! switch to symp_lie_bmad type tracking.
+      if (ele2%tracking_method == taylor$) then
+        ele2%tracking_method = symp_lie_bmad$  
+        ele2%mat6_calc_method = symp_lie_bmad$  
+      endif
     else
       beta_min = min(ele2%a%beta, ele2%b%beta, branch%ele(i-1)%a%beta, branch%ele(i-1)%b%beta)
       ds_step = min(ele2%value(ds_step$), beta_min / 10)
@@ -326,6 +328,7 @@ if (use_cache .or. init_cache) then
     endif
     if (.not. allocated (cache_ele%pt)) allocate (cache_ele%pt(0:n_step))
 
+    !------------------------------------
     ! map_type wiggler
 
     if (key2 == wiggler$ .and. ele2%sub_key == map_type$ .and. ele2%tracking_method /= custom$) then
@@ -335,15 +338,14 @@ if (use_cache .or. init_cache) then
         c_pt => cache_ele%pt(k)
         z_here = track%orb(k)%s - ele2%s_start
         orb_end = track%orb(k)
-        call calc_wiggler_g_params (ele2, z_here, orb_end, c_pt, ri_info)
+        call calc_wiggler_g_params (ele2, branch%param, z_here, orb_end, c_pt)
         c_pt%mat6 = track%map(k)%mat6
         c_pt%vec0 = track%map(k)%vec0
         c_pt%ref_orb_in  = orb_start
         c_pt%ref_orb_out = orb_end
       enddo
 
-    ! non-wiggler element
-
+    ! All else...
     else  
 
       z_start = 0
@@ -371,23 +373,28 @@ if (use_cache .or. init_cache) then
         call concat_transfer_mat (ele_end%mat6, ele_end%vec0, mat6, vec0, mat6, vec0)
         c_pt%mat6 = mat6
         c_pt%vec0 = vec0
-
         c_pt%ref_orb_out = orb_end
-        c_pt%g_x0 = -(orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_here)
-        c_pt%g_y0 = -(orb_end1%vec(4) - orb_end%vec(4)) / (z1 - z_here)
-        c_pt%dgx_dx = 0
-        c_pt%dgx_dy = 0
-        c_pt%dgy_dx = 0
-        c_pt%dgy_dy = 0
 
-        if (key2 == quadrupole$ .or. key2 == sol_quad$ .or. key2 == bend_sol_quad$) then
-          c_pt%dgx_dx =  ele2%value(k1$)
-          c_pt%dgy_dy = -ele2%value(k1$)
+        if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$ .and. ele%tracking_method == bmad_standard$) then
+          call calc_wiggler_g_params (ele_end, branch%param, z_here, orb_end, c_pt)
 
-        elseif (key2 == sbend$) then
-          c_pt%g_x0   =  c_pt%g_x0 + ele2%value(g$)
-          c_pt%dgx_dx =  ele2%value(k1$)
-          c_pt%dgy_dy = -ele2%value(k1$)
+        else
+          c_pt%g_x0 = -(orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_here)
+          c_pt%g_y0 = -(orb_end1%vec(4) - orb_end%vec(4)) / (z1 - z_here)
+          c_pt%dgx_dx = 0
+          c_pt%dgx_dy = 0
+          c_pt%dgy_dx = 0
+          c_pt%dgy_dy = 0
+
+          if (key2 == quadrupole$ .or. key2 == sol_quad$ .or. key2 == bend_sol_quad$) then
+            c_pt%dgx_dx =  ele2%value(k1$)
+            c_pt%dgy_dy = -ele2%value(k1$)
+
+          elseif (key2 == sbend$) then
+            c_pt%g_x0   =  c_pt%g_x0 + ele2%value(g$)
+            c_pt%dgx_dx =  ele2%value(k1$)
+            c_pt%dgy_dy = -ele2%value(k1$)
+          endif
         endif
 
         call multipole_ele_to_ab (ele2, .false., ix_pole_max, a_pole, b_pole)
@@ -457,7 +464,7 @@ do ir = 1, branch%n_ele_track
   ! for an periodic type wiggler we make the approximation that the variation of G is
   ! fast compaired to the variation in eta.
 
-  if (key == wiggler$ .and. ele%sub_key == periodic_type$ .and. ele%tracking_method /= custom$) then
+  if (key == wiggler$ .and. ele%sub_key == periodic_type$ .and. ele%tracking_method == bmad_standard$) then
     if (ele%value(l_pole$) == 0) cycle        ! Cannot do calculation
     G_max = sqrt(2*abs(ele%value(k1$)))       ! 1/rho at max B
     g3_ave = 4 * G_max**3 / (3 * pi)

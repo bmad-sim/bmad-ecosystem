@@ -68,10 +68,7 @@ endif
 call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks = include_kicks)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
-n_step = 1
-if (ix_pole_max > -1 .or. ix_elec_max > -1) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
 n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
-
 r_step = 1.0_rp / n_step
 step_len = ele%value(l$) * r_step
 
