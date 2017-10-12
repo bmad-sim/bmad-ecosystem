@@ -1111,14 +1111,15 @@ type (spline_struct), pointer :: spl
 real(rp) g_bend, z, zz, Ls, L, dtheta_L, dL, s_chord_kick
 integer i_bin, ix_ele_kick
 
+!
+
+kick1%I_int_csr = 0
+kick1%I_csr = 0
+
 ! No kick when source particle is ahead of the kicked particle
 
 z = kick1%dz_particles
-if (z <= 0) then
-  kick1%I_int_csr = 0
-  kick1%I_csr = 0
-  return
-endif
+if (z <= 0) return
 
 !
 
