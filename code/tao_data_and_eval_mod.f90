@@ -3706,6 +3706,11 @@ parsing_loop: do
       return
   case default
     if (delim_found) then
+      if (delim == ' ') then
+        call out_io (s_error$, r_name, 'MALFORMED EXPRESSION: ' // expression)
+        return
+      endif
+
       call out_io (s_error$, r_name, 'INTERNAL ERROR')
       call err_exit
     endif
