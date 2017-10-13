@@ -1144,7 +1144,8 @@ if (attrib_info%type == does_not_exist$) then
   ! Note: Something like beginning element beta_a do have an entry in the attribute table. 
   ! Note: This information should be pushed to the attribute_info function.
   select case (attrib_name)
-  case ('ALPHA_A', 'ALPHA_B', 'BETA_A', 'BETA_B', 'PHI_A', 'PHI_B', 'DPHI_A', 'DPHI_B')
+  case ('ALPHA_A', 'ALPHA_B', 'BETA_A', 'BETA_B', 'PHI_A', 'PHI_B', 'DPHI_A', 'DPHI_B', &
+        'ETA_A', 'ETAP_A', 'ETA_B', 'ETAP_B')
     call it_is_not_free (ele, ix_attrib, 'THIS ATTRIBUTE IS NOT FREE TO VARY.')
   case default
     ! Something like 'cartesian_map(1)%field_scale' does not have an attribute index
