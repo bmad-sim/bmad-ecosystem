@@ -283,7 +283,7 @@ do i_step = 0, n_step
   csr%gamma2 = csr%gamma**2
   csr%rel_mass = mass_of(branch%param%particle) / m_electron 
 
-  call csr_bin_particles (bunch_end%particle, csr)
+  call csr_bin_particles (bunch_end%particle, csr, err_flag); if (err_flag) return
 
   csr%s_kick = s0_step
   csr%s_chord_kick = s_ref_to_s_chord (s0_step, csr%eleinfo(ele%ix_ele))
@@ -374,7 +374,7 @@ end subroutine track1_bunch_csr
 !     %slice(1:) -- Array of bins.
 !-
 
-subroutine csr_bin_particles (particle, csr)
+subroutine csr_bin_particles (particle, csr, err_flag)
 
 implicit none
 
@@ -393,27 +393,48 @@ type (csr_bunch_slice_struct), pointer :: slice
 real(rp) z_center, z_min, z_max, dz_particle, dz, z_maxval, z_minval, c_tot
 real(rp) zp_center, zp0, zp1, zb0, zb1, charge, overlap_fraction, f, last_sig_x, last_sig_y
 
-integer i, j, n, ix0, ib, ib2, ic, ib_center
+integer i, j, n, ix0, ib, ib2, ic, ib_center, n_bin_eff
 
-character(20) :: r_name = 'csr_bin_particles'
+logical err_flag
+
+character(*), parameter :: r_name = 'csr_bin_particles'
 
 ! Init bins...
 ! The left edge of csr%slice(1) is at z_min
 ! The right edge of csr%slice(n_bin) is at z_max
 ! The first and last bins are empty.
 
+err_flag = .false.
+
 if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on .and. &
     .not. csr_param%tsc_component_on .and. csr_param%n_shield_images == 0) return
+
+n_bin_eff = csr_param%n_bin - 2 - (csr_param%particle_bin_span + 1)
+if (n_bin_eff < 1) then
+  call out_io (s_abort$, r_name, 'NUMBER OF CSR BINS TOO SMALL: \i0\ ', &
+              'MUST BE GREATER THAN 3 + PARTICLE_BIN_SPAN.', i_array = [csr_param%n_bin])
+  if (global_com%exit_on_error) call err_exit
+  particle%state = lost$
+  err_flag = .true.
+  return
+endif
 
 z_maxval = maxval(particle(:)%vec(5), mask = (particle(:)%state == alive$))
 z_minval = minval(particle(:)%vec(5), mask = (particle(:)%state == alive$))
 dz = z_maxval - z_minval
-csr%dz_slice = dz / (csr_param%n_bin - 2 - (csr_param%particle_bin_span + 1))
+csr%dz_slice = dz / n_bin_eff
 csr%dz_slice = 1.0000001 * csr%dz_slice     ! to prevent round off problems
 z_center = (z_maxval + z_minval) / 2
 z_min = z_center - csr_param%n_bin * csr%dz_slice / 2
 z_max = z_center + csr_param%n_bin * csr%dz_slice / 2
 dz_particle = csr_param%particle_bin_span * csr%dz_slice
+
+if (dz == 0) then
+  call out_io (s_fatal$, r_name, 'LONGITUDINAL WIDTH OF BEAM IS ZERO!')
+  if (global_com%exit_on_error) call err_exit
+  err_flag = .true.
+  return
+endif
 
 ! allocate memeory for the bins
 
@@ -721,7 +742,7 @@ type (csr_ele_info_struct), pointer :: einfo_s, einfo_k
 type (floor_position_struct), pointer :: fk, f0, fs
 type (ele_struct), pointer :: ele
 
-real(rp) a, b, c, dz, s_source, beta2, L0, Lz
+real(rp) a, b, c, dz, s_source, beta2, L0, Lz, ds_source
 real(rp) z0, z1, sz_kick, sz0, Lsz0, ddz0, ddz1
 
 integer i, last_step
@@ -761,13 +782,14 @@ do
     a = 1/csr%gamma2
     b = 2 * (Lsz0 - dz - beta2 * Lz)
     c = (Lsz0 - dz)**2 - beta2 * L0**2
-    s_source = einfo_s%ele%s - (-b + sqrt(b**2 - 4 * a * c)) / (2 * a)
+    ds_source = -(-b + sqrt(b**2 - 4 * a * c)) / (2 * a)
+    s_source = einfo_s%ele%s + ds_source
 
-    fs%r = [f0%r(1) + s_source * sin(f0%theta), csr%y_source, f0%r(3) + s_source * cos(f0%theta)]
+    fs%r = [f0%r(1) + ds_source * sin(f0%theta), csr%y_source, f0%r(3) + ds_source * cos(f0%theta)]
     fs%theta = f0%theta
     kick1%L_vec = fk%r - fs%r
     kick1%L = sqrt(dot_product(kick1%L_vec, kick1%L_vec))
-    kick1%dL = lsz0 - s_source - kick1%L  ! Remember s_source is negative
+    kick1%dL = lsz0 - ds_source - kick1%L  ! Remember s_source is negative
     kick1%theta_L = atan2(kick1%L_vec(1), kick1%L_vec(3))
     kick1%theta_sl = f0%theta - kick1%theta_L
     einfo_k => csr%eleinfo(csr%ix_ele_kick)
