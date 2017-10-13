@@ -1350,7 +1350,7 @@ case ('field')
 
   call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
   if (ix_word /= 0) then
-    call tao_evaluate_expression(stuff2, 1, .false., value, info, err)
+    call tao_evaluate_expression(stuff2(1:ix_word), 1, .false., value, info, err)
     if (err) then
       nl = 1; lines(1) = 'Bad X value'
       result_id = 'field:bad-x'
@@ -1360,7 +1360,7 @@ case ('field')
 
   call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
   if (ix_word /= 0) then
-    call tao_evaluate_expression(stuff2, 1, .false., value, info, err)
+    call tao_evaluate_expression(stuff2(1:ix_word), 1, .false., value, info, err)
     if (err) then
       nl = 1; lines(1) = 'Bad Y value'
       result_id = 'field:bad-y'
@@ -1370,7 +1370,7 @@ case ('field')
 
   call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
   if (ix_word /= 0) then
-    call tao_evaluate_expression(stuff2, 1, .false., value, info, err)
+    call tao_evaluate_expression(stuff2(1:ix_word), 1, .false., value, info, err)
     if (err) then
       nl = 1; lines(1) = 'Bad Z value'
       result_id = 'field:bad-z'
@@ -1382,7 +1382,7 @@ case ('field')
   if (ix_word == 0) then
     orb%t = 0
   else
-    call tao_evaluate_expression(stuff2, 1, .false., value, info, err)
+    call tao_evaluate_expression(stuff2(1:ix_word), 1, .false., value, info, err)
     if (err) then
       nl = 1; lines(1) = 'Bad T value'
       result_id = 'field:bad-t'
