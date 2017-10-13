@@ -33,6 +33,8 @@ type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: lord, slave, ele
 
+real(rp) v_inv_mat(4,4), eta_vec(4)
+
 integer n, n_track, i_start, i_end
 integer, optional :: ix_branch, ie_start, ie_end
 
@@ -55,6 +57,14 @@ i_end = integer_option(n_track, ie_end)
 ele => branch%ele(i_start)
 if (ele%a%beta /= 0) ele%a%gamma = (1 + ele%a%alpha**2) / ele%a%beta
 if (ele%b%beta /= 0) ele%b%gamma = (1 + ele%b%alpha**2) / ele%b%beta
+
+call make_v_mats (ele, v_inv_mat = v_inv_mat)
+eta_vec = [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap]
+eta_vec = matmul (v_inv_mat, eta_vec)
+ele%a%eta  = eta_vec(1)
+ele%a%etap = eta_vec(2)
+ele%b%eta  = eta_vec(3)
+ele%b%etap = eta_vec(4)
 
 ! Propagate twiss
 
