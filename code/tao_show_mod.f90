@@ -1350,44 +1350,44 @@ case ('field')
 
   call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
   if (ix_word /= 0) then
-    if (.not. is_real(stuff2, .true.)) then
+    call tao_evaluate_expression(stuff2, 1, .false., value, info, err)
+    if (err) then
       nl = 1; lines(1) = 'Bad X value'
       result_id = 'field:bad-x'
       return
     endif
-    read(stuff2, *) orb%vec(1)
   endif
 
   call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
   if (ix_word /= 0) then
-    if (.not. is_real(stuff2, .true.)) then
+    call tao_evaluate_expression(stuff2, 1, .false., value, info, err)
+    if (err) then
       nl = 1; lines(1) = 'Bad Y value'
       result_id = 'field:bad-y'
       return
     endif
-    read(stuff2, *) orb%vec(3)
   endif
 
   call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
   if (ix_word /= 0) then
-    if (.not. is_real(stuff2, .true.)) then
+    call tao_evaluate_expression(stuff2, 1, .false., value, info, err)
+    if (err) then
       nl = 1; lines(1) = 'Bad Z value'
       result_id = 'field:bad-z'
       return
     endif
-    read(stuff2, *) z
   endif
 
   call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
   if (ix_word == 0) then
     orb%t = 0
   else
-    if (.not. is_real(stuff2, .true.)) then
+    call tao_evaluate_expression(stuff2, 1, .false., value, info, err)
+    if (err) then
       nl = 1; lines(1) = 'Bad T value'
       result_id = 'field:bad-t'
       return
     endif
-    read(stuff2, *) orb%t
   endif
 
   call em_field_calc (ele, ele%branch%param, z, orb, .false., field, err_flag = err)
