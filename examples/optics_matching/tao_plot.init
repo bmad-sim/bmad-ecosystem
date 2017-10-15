@@ -38,7 +38,7 @@ the plot page) is broken up.
 !shape(i) = "<key>", "<name>", "<shape>", "<color>", "<v_size>", "<print_Label>" 
 !&element_shapes_lat_layout
 &lat_layout_drawing
-  ele_shape(1)  = "Quadrupole::*"      "asym_var_box"  "Blue"   . 1     'none'
+  ele_shape(1)  = "Quadrupole::*"      "asym_var_box"  "Blue"     1     'none'
   ele_shape(2)  = "SBend::*"           "Box"           "Red"      1     'none'
   ele_shape(3)  = "lcavity::*"         "XBox"          "Green"    0.5   'none'
   ele_shape(4)  = "wiggler::*"         "XBox"          "Orange"   0.5   'none'
