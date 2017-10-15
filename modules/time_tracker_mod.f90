@@ -809,7 +809,7 @@ end subroutine convert_particle_coordinates_s_to_t
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine drift_orbit_time(orbit, beta0, delta_s, delta_t)
+! Subroutine drift_orbit_time(orbit, z_phase, beta0, delta_s, delta_t)
 !
 ! Simple routine to drift a particle orbit in time-based coordinates by a distance delta_s
 !   or a time delta_t
