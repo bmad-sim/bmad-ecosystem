@@ -88,6 +88,7 @@ call time_runge_kutta_periodic_kick_hook (orb, z_phase, ele, param, stop_time, t
 
 call calc_next_fringe_edge (ele, s_fringe_edge, fringe_info, orb, .true., time_tracking = .true.)
 old_direction = orb%direction
+old_orb = orb
 
 if (present(track)) then
   dt_save = t_dir * track%ds_save/c_light
@@ -379,9 +380,10 @@ do
   dt = t_dir * sign(max(abs(dt_temp), 0.1_rp*abs(dt)), dt)
   t_new = rf_time + dt
 
-  if (t_new == rf_time) then
+  if (t_new == rf_time) then ! Can only happen if dt is very small
     err_flag = .true.
-    call out_io (s_fatal$, r_name, 'STEPSIZE UNDERFLOW IN ELEMENT: ' // ele%name)
+    call out_io (s_fatal$, r_name, 'STEPSIZE UNDERFLOW IN ELEMENT: ' // ele%name, &
+                  'CURRENT POSITION (TIME UNITS): \6es16.8\, \es16.8\ ', r_array = [orb%vec, orb%t])
     if (global_com%exit_on_error) call err_exit
     return
   endif
@@ -553,7 +555,7 @@ type (em_field_struct) field
 type (coord_struct), intent(in) :: orbit
 
 real(rp), intent(out) :: dvec_dt(10)
-real(rp) rf_time, z_phase
+real(rp) rf_time, z_phase, s_pos, s_tiny
 real(rp) vel(3), force(3)
 real(rp) :: pc, e_tot, mc2, gamma, charge, beta, p0, h, beta0, dp_dt, dbeta_dt
 
@@ -561,15 +563,30 @@ logical :: err_flag
 
 character(28), parameter :: r_name = 'em_field_kick_vector_time'
 
-! calculate the field. 
+! Calculate the field. ...
+!
 ! Note that only orbit%vec(1) = x and orbit%vec(3) = y are used in em_field_calc,
 !	and they coincide in both coordinate systems, so we can use the 'normal' routine.
+!
+! Also the hard edge to the field for field_calc = bmad_standard can drive the integrator nuts.
+! The solution is to pretend that the particle is inside the element. 
+! This will not affect any results since the integrator will always appropriately interpolate to the edge.
+
+s_pos = orbit%vec(5)
+s_tiny = bmad_com%significant_length / 100
+
+if (ele%key == patch$) then
+else
+  if (s_pos < min(0.0_rp, ele%value(l$)) + s_tiny) s_pos = min(0.0_rp, ele%value(l$)) + s_tiny
+  if (s_pos > max(0.0_rp, ele%value(l$)) - s_tiny) s_pos = max(0.0_rp, ele%value(l$)) - s_tiny
+endif
 
 if (ele%key == patch$ .and. orbit%direction*ele%orientation == -1) then
-  call em_field_calc (ele, param, orbit%vec(5), orbit, .true., field, .false., err_flag, rf_time = rf_time)
+  call em_field_calc (ele, param, s_pos, orbit, .true., field, .false., err_flag, rf_time = rf_time)
 else
-  call em_field_calc (ele, param, orbit%vec(5), orbit, .true., field, .false., err_flag, rf_time = rf_time)
+  call em_field_calc (ele, param, s_pos, orbit, .true., field, .false., err_flag, rf_time = rf_time)
 endif
+
 if (err_flag) return
 
 ! Get e_tot from momentum
