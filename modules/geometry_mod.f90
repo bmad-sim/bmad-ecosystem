@@ -580,11 +580,18 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
       if (ix_pass > 1) doit = .false.
 
       if (doit) then
+        ! In the case that the next element has zero length (and so does not affect the floor position),
+        ! and does not yet have a well defined position, look at the element after.
         ele2 => pointer_to_next_ele(ele, 1)
-        call multipass_chain (ele2, ix_pass, n_links, chain_ele)
-        if (ix_pass > 0) then
-          ele2 => chain_ele(1)%ele
-        endif
+        do
+          call multipass_chain (ele2, ix_pass, n_links, chain_ele)
+          if (ix_pass > 0) then
+            ele2 => chain_ele(1)%ele
+          endif
+          if (ele2%bookkeeping_state%floor_position /= stale$) exit
+          if (ele2%value(l$) /= 0 .or. ele2%key == patch$) exit
+          ele2 => pointer_to_next_ele(ele2, 1)        
+        enddo
 
         if (ele2%bookkeeping_state%floor_position == stale$) then
           call out_io (s_fatal$, r_name, 'ELEMENT AFTER FLEXIBLE PATCH: ' // trim(ele%name) // &
