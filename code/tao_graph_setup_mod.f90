@@ -1901,22 +1901,6 @@ if (curve%data_source == 'lat') then
     good = .false.
     return
   end select 
-
-  ! Only cache plot data if the number of points is equal to s%plot_page%n_curve_pts
-  if (size(curve%x_line) == s%plot_page%n_curve_pts) then
-    if (tao_branch%plot_cache_valid) then
-      cache_status = using_cache$
-    else
-      cache_status = loading_cache$
-      if (allocated(tao_branch%plot_cache)) then
-        if (size(tao_branch%plot_cache) /= s%plot_page%n_curve_pts) deallocate(tao_branch%plot_cache)
-      endif
-      if (.not. allocated(tao_branch%plot_cache)) allocate (tao_branch%plot_cache(s%plot_page%n_curve_pts))
-    endif
-    tao_branch%plot_cache_valid = .true.
-  else
-    cache_status = cache_off$
-  endif
 endif
 
 ! x1 and x2 are the longitudinal end points of the plot
@@ -1946,6 +1930,26 @@ if (ix == 0) then
   data_type_select = data_type
 else
   data_type_select = data_type(:ix)
+endif
+
+! Only cache plot data if the number of points is equal to s%plot_page%n_curve_pts
+
+if (curve%data_source == 'lat') then
+  if (tao_branch%plot_cache_valid .and. tao_branch%cache_x_min == x1 .and. &
+            tao_branch%cache_x_max == x2 .and. tao_branch%cache_n_pts == size(curve%x_line)) then
+    cache_status = using_cache$
+
+  else
+    cache_status = loading_cache$
+    if (allocated(tao_branch%plot_cache)) then
+      if (size(tao_branch%plot_cache) /= s%plot_page%n_curve_pts) deallocate(tao_branch%plot_cache)
+    endif
+    if (.not. allocated(tao_branch%plot_cache)) allocate (tao_branch%plot_cache(s%plot_page%n_curve_pts))
+    tao_branch%cache_x_min = x1
+    tao_branch%cache_x_max = x2 
+    tao_branch%cache_n_pts = size(curve%x_line)
+    tao_branch%plot_cache_valid = .true.
+  endif
 endif
 
 !

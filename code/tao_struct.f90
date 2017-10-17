@@ -712,7 +712,8 @@ type tao_sigma_mat_struct
 end type
 
 ! For caching lattice calculations associated with plotting.
-type tao_lattice_branch_plot_struct   
+
+type tao_lattice_branch_plot_struct
   type (ele_struct) ele
   type (coord_struct) orbit
 end type
@@ -729,6 +730,8 @@ type tao_lattice_branch_struct
   integer track_state
   logical has_open_match_element
   logical :: plot_cache_valid = .false.        ! Valid plotting data cache?
+  real(rp) :: cache_x_min = 0, cache_x_max = 0
+  integer :: cache_n_pts = 0
   type (normal_modes_struct) modes             ! Synchrotron integrals stuff
   type (rad_int_all_ele_struct) rad_int
   type (tao_lat_mode_struct) a, b
