@@ -112,7 +112,7 @@ $\vcenter{\hbox{\includegraphics[width=2in]{lhc-cross-section.pdf}}}$
 {\LARGE\bfseries Gerry Dugan and David Sagan}
 
 \vspace{0.4in}
-{\large\bfseries August 16, 2017}
+{\large\bfseries October 18, 2017}
 
 \end{center}
 \end{titlepage}
@@ -1997,7 +1997,7 @@ in from the master input file specified on the command line
 reflection test is called \vn{diffuse_reflection_test}.  Example:
 \begin{example}
   &diffuse_reflection_test
-    graze_angle_in              = 2.3      ! Incident grazing angle in degrees
+    graze_angle_in              = 0.12     ! Incident grazing angle in radians.
     energy                      = 100      ! eV
     surface_roughness_rms       = -1       ! Surface roughness for diffuse scattering.
     roughness_correlation_len   = -1       ! Surface roughness correlation length.
@@ -2007,7 +2007,7 @@ reflection test is called \vn{diffuse_reflection_test}.  Example:
     output_file                 = ""       ! Default is "test_diffuse_reflection.dat"
   /
 \end{example}
-The \vn{graze_angle_in} is the incident grazing angle in degrees and
+The \vn{graze_angle_in} is the incident grazing angle in radians and
 \vn{energy} in the photon energy in eV. \vn{n_photons} are the number
 of reflections to simulate, and \vn{output_file} is the name of the
 output data file. The default data file name is
@@ -2023,9 +2023,9 @@ The output contains a header with the input parameters a then
 \begin{example}
   theta_out  phi_out
 \end{example}
-where \vn{theta_out} is the polar angle of the reflected photon in
+where \vn{theta_out} is the grazing angle of the reflected photon in
 radians. That is, \vn{theta_out} = 0 means the photon is traveling
-perpendicular to the surface. The \vn{phi_out} angle is the azimuthal
+parallel to the surface. The \vn{phi_out} angle is the azimuthal
 angle in radians. That is, \vn{phi_out} is zero when the incident and
 reflected rays are in the same plane.
 

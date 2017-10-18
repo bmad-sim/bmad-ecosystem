@@ -24,7 +24,7 @@ implicit none
 
 type (photon_reflect_surface_struct) surface
 
-real(rp) graze_angle_in, energy, angle_radians
+real(rp) graze_angle_in, energy
 real(rp) p_reflect_rough, p_reflect_smooth, theta_out, phi_out
 real(rp) surface_roughness_rms, roughness_correlation_len
 
@@ -67,14 +67,13 @@ endif
 if (surface_roughness_rms > 0) surface%surface_roughness_rms = surface_roughness_rms
 if (roughness_correlation_len > 0) surface%roughness_correlation_len = roughness_correlation_len
 
-angle_radians = graze_angle_in * pi / 180
-call photon_reflectivity (angle_radians, energy, surface, p_reflect_rough, p_reflect_smooth)
+call photon_reflectivity (graze_angle_in, energy, surface, p_reflect_rough, p_reflect_smooth)
 
 !
 
 open (2, file = output_file)
 
-write (2, *) 'Grazing angle in (deg):    ', graze_angle_in
+write (2, *) 'Grazing angle in (rad):    ', graze_angle_in
 write (2, *) 'Energy (eV):               ', energy
 write (2, *) 'surface_roughness_rms:     ', surface_roughness_rms
 write (2, *) 'roughness_correlation_len: ', roughness_correlation_len
@@ -85,8 +84,8 @@ write (2, *) 'random_seed:                 "', random_seed
 
 write (2, *) '          #          theta_out                     phi_out'
 do i = 1, n_photons
-  call photon_diffuse_scattering (angle_radians, energy, surface, theta_out, phi_out)
-  write (2, *) i, theta_out, phi_out
+  call photon_diffuse_scattering (graze_angle_in, energy, surface, theta_out, phi_out)
+  write (2, *) i, pi/2-theta_out, phi_out
 enddo
 
 close (2)
