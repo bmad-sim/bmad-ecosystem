@@ -22,10 +22,6 @@ set(SRC_DIRS
   geodesic_lm
 )
 
-set(TEST_EXE_SPECS
-  cmake.test
-)
-
 # set (FFLAGS "-pg")  # For profiling
 # set (CFLAGS "-pg")
 
