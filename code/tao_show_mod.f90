@@ -1338,6 +1338,9 @@ case ('element')
 case ('field')
 
   lat_type = model$
+  orb%vec = 0
+  orb%t = 0
+  z = 0
 
   call  str_upcase(ele_name, word1)
   call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
@@ -1356,6 +1359,7 @@ case ('field')
       result_id = 'field:bad-x'
       return
     endif
+    orb%vec(1) = value(1)
   endif
 
   call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
@@ -1366,6 +1370,7 @@ case ('field')
       result_id = 'field:bad-y'
       return
     endif
+    orb%vec(3) = value(1)
   endif
 
   call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
@@ -1376,12 +1381,11 @@ case ('field')
       result_id = 'field:bad-z'
       return
     endif
+    z = value(1)
   endif
 
   call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
-  if (ix_word == 0) then
-    orb%t = 0
-  else
+  if (ix_word /= 0) then
     call tao_evaluate_expression(stuff2(1:ix_word), 1, .false., value, info, err)
     if (err) then
       nl = 1; lines(1) = 'Bad T value'
