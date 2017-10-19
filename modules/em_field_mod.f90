@@ -309,7 +309,8 @@ select case (field_calc)
 
 case (bmad_standard$)
 
-  if (s_body < 0 .or. s_body > ele%value(l$)) return
+  ! Field outside of element is zero
+  if (s_body < 0 .or. s_body > ele%value(l$)) goto 8000   ! Goto field overlap code.
 
   select case (ele%key)
 
@@ -1297,6 +1298,8 @@ if (ele%n_lord_field /= 0 .and. logic_option(.true., use_overlap)) then
   lab_orb = orbit
   if (local_ref_frame) then
     call offset_particle (ele, param, unset$, lab_orb, set_hvkicks = .false., s_pos = s_body, s_out = s_lab)
+  else
+    s_lab = s_body
   endif
 
   lab_position%r = [lab_orb%vec(1), lab_orb%vec(3), s_lab]
