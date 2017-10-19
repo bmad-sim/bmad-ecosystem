@@ -775,7 +775,8 @@ may be defined before the slave elements whose parameters they control are defin
 The exceptions to this rule are:
 \begin{itemize}
 \item 
-If there is an \vn{expand_lattice} statement (\sref{s:expand.lat}), all \vn{line}s
+If there is an \vn{expand_lattice} statement (\sref{s:expand.lat}), everything necessary for
+lattice expansion must come before. In particular, all \vn{line}s
 (\sref{s:lines.wo.arg}), \vn{list}s (\sref{s:replace.list}), and \vn{use} (\sref{s:use}) statements
 necessary for lattice expansion must come before.
 \item
@@ -788,8 +789,8 @@ A lattice element must be defined before any of its parameters are set. Example:
   pp: patch             ! Here PP is defined
 \end{example}
 In this example, the \vn{z_offset} of the element \vn{pp} is set before \vn{pp} has been
-defined. This is an error. As an extension of this rule notice that the set of element parameters
-using wild card characters will only set those parameters that have been already defined. For
+defined. This is an error. As a corollary to this rule, element parameters that are set 
+using wild card characters will only affect those parameters that have been already defined. For
 example:
 \begin{example}
   crystal::*[b_param] = 0.2

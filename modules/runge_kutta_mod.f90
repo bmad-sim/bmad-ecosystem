@@ -94,7 +94,11 @@ ds_tiny  = bmad_com%significant_length/100
 track_spin = (ele%spin_tracking_method == tracking$ .and. &
                                 (ele%field_calc == bmad_standard$ .or. ele%field_calc == fieldmap$))
 
-orbit%s = s1_body + ele%s_start
+if (ele%orientation == 1) then
+  orbit%s = s1_body + ele%s_start
+else
+  orbit%s = ele%s - s1_body
+endif
 
 ! For elements where the reference energy is changing the reference energy in the body is 
 ! taken, by convention, to be the reference energy at the exit end.
@@ -552,7 +556,7 @@ character(24), parameter :: r_name = 'kick_vector_calc'
 
 err = .true.
 beta0 = ele%value(p0c$) / ele%value(e_tot$) 
-dt_ds_ref = orbit%direction / (beta0 * c_light)
+dt_ds_ref = ele%orientation * orbit%direction / (beta0 * c_light)
 p0 = ele%value(p0c$) / c_light
 e_tot = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
 rel_dir = ele%orientation * orbit%direction
@@ -563,7 +567,7 @@ rel_dir = ele%orientation * orbit%direction
 if (ele%key == patch$) then
   ! Particle going towards an end uses the coordinate of that end.
   ! But the field is specified in the exit end coords so must transform if particle is traveling towards the entrance end.
-  if (ele%orientation * orbit%direction == 1) then
+  if (rel_dir == 1) then
     call em_field_calc (ele, param, s_body, orbit, .true., field, .false., err)
   else
 !    call patch_transform_coords (orbit, orbit2, w_mat)
@@ -594,10 +598,10 @@ if (ele%key == sbend$) then
   h_bend = 1 + orbit%vec(1) * g_bend
 endif
 
-dt_ds = orbit%direction * h_bend / abs(vel(3))
+dt_ds = rel_dir * h_bend / abs(vel(3))
 dp_ds = dot_product(E_force, vel) * dt_ds / (orbit%beta * c_light)
 dbeta_ds = mass_of(orbit%species)**2 * dp_ds * c_light / e_tot**3
-pz_p0 = (1 + orbit%vec(6)) * orbit%direction * abs(vel(3)) / (orbit%beta * c_light)  ! Pz / P0
+pz_p0 = (1 + orbit%vec(6)) * rel_dir * abs(vel(3)) / (orbit%beta * c_light)  ! Pz / P0
 
 dr_ds(1) = vel(1) * dt_ds
 dr_ds(2) = (E_force(1) + B_force(1)) * dt_ds / p0 + g_bend * pz_p0
@@ -609,8 +613,8 @@ dr_ds(7) = dt_ds
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   ! dr_ds(8:10) = Omega/v_z
-  sign_z_vel = orbit%direction * ele%orientation
-  dr_ds(8:10) = orbit%direction * h_bend * spin_omega (field, orbit, sign_z_vel)
+  sign_z_vel = rel_dir * ele%orientation
+  dr_ds(8:10) = rel_dir * h_bend * spin_omega (field, orbit, sign_z_vel)
   if (ele%key == sbend$) dr_ds(8:10) = dr_ds(8:10) + ele%orientation * [0.0_rp, g_bend, 0.0_rp]
 else
   dr_ds(8:10) = 0

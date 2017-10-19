@@ -799,11 +799,11 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
 
   if (ele%n_lord_field /= 0) then
     nl=nl+1; li(nl) = 'Elements whose fields overlap this one:'
-    nl=nl+1; li(nl) = '   Index   Name                                Type             S'
+    nl=nl+1; li(nl) = '   Index   Name                               Type                   S'
     do i = 1, ele%n_lord_field
       lord => pointer_to_lord(ele, ele%n_lord+i)
-      nl=nl+1; write (li(nl), '(a8, t12, a30, a16, f10.3)') &
-                    trim(ele_loc_to_string(lord)), lord%name, trim(key_name(lord%key)), lord%s
+      nl=nl+1; write (li(nl), '(a8, t12, a35, a16, f10.3)') &
+                    trim(ele_loc_to_string(lord)), lord%name, key_name(lord%key), lord%s
     enddo
   endif
 
