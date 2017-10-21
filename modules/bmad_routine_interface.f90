@@ -874,6 +874,13 @@ function relative_mode_flip (ele1, ele2)
   type (ele_struct) ele2
 end function
 
+subroutine reverse_lat (lat_in, lat_rev, track_antiparticle)
+  import
+  implicit none
+  type (lat_struct), target :: lat_in, lat_rev
+  logical, optional :: track_antiparticle
+end subroutine
+
 subroutine rf_coupler_kick (ele, param, particle_at, phase, orbit, mat6, make_matrix)
   import
   implicit none

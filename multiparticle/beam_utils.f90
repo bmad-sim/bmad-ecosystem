@@ -212,6 +212,7 @@ end subroutine track1_sr_wake
 ! Subroutine init_beam_distribution (ele, param, beam_init, beam, err_flag)
 !
 ! Subroutine to initialize a beam of particles. 
+! Initialization uses the downstream parameters of ele.
 ! 
 ! Note: This routine sets the random number generator according to the settings
 ! in beam_int and at the end resets things to their initial state.
@@ -223,7 +224,7 @@ end subroutine track1_sr_wake
 !   use beam_mod
 !
 ! Input:
-!   ele         -- Ele_struct: element to initialize distribution at
+!   ele         -- Ele_struct: element to initialize distribution at (downstream end).
 !   param       -- Lat_param_struct: Lattice parameters
 !     %particle      -- Type of particle.
 !   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
@@ -303,6 +304,7 @@ end subroutine init_beam_distribution
 ! Subroutine init_bunch_distribution (ele, param, beam_init, ix_bunch, bunch, err_flag)
 !
 ! Subroutine to initialize a distribution of particles of a bunch.
+! Initialization uses the downstream parameters of ele.
 !
 ! There are four distributions available: 
 !   '', or 'ran_gauss' -- Random gaussian distribution.
@@ -330,7 +332,7 @@ end subroutine init_beam_distribution
 !   use beam_mod
 !
 ! Input:
-!   ele         -- Ele_struct: element to initialize distribution at
+!   ele         -- Ele_struct: element to initialize distribution at (downstream end).
 !   param       -- Lat_param_struct: Lattice parameters
 !   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
 !   ix_bunch    -- integer: Bunch index. 0 = bunch generated at time = 0.
@@ -530,7 +532,6 @@ endif
 if(beam_init%use_t_coords) then
   ! Time coordinates 
   do i = 1, size(bunch%particle)
-    
     p => bunch%particle(i)
     
     if (beam_init%use_z_as_t) then
@@ -554,8 +555,8 @@ if(beam_init%use_t_coords) then
     ! beta calc
     call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), species, beta = p%beta)  
     p%state = alive$
-    
   enddo
+
 else
   ! Usual s-coordinates
   do i = 1, size(bunch%particle)

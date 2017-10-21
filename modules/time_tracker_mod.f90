@@ -642,7 +642,7 @@ beta0 = ele%value(p0c$) / ele%value(e_tot$)
 dp_dt = dot_product(force, vel) / (orbit%beta * c_light)
 dbeta_dt = mass_of(orbit%species)**2 * dp_dt * c_light / e_tot**3
 
-dvec_dt(10) = orbit%beta * c_light * (vel(3) / (h * c_light * beta0) - 1) + dbeta_dt * z_phase / orbit%beta
+dvec_dt(10) = orbit%beta * c_light * (ele%orientation * vel(3) / (h * c_light * beta0) - 1) + dbeta_dt * z_phase / orbit%beta
 
 ! Spin
 

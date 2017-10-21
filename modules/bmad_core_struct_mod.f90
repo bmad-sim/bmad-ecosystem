@@ -19,7 +19,7 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine transfer_twiss (ele_in, ele_out)
+! Subroutine transfer_twiss (ele_in, ele_out, reverse)
 !
 ! Routine to transfer the twiss parameters from one element to another.
 !
@@ -27,17 +27,20 @@ contains
 !   use bmad
 !
 ! Input:
-!   ele_in   -- Ele_struct: Element with existing Twiss parameters.
+!   ele_in   -- ele_struct: Element with existing Twiss parameters.
+!   reverse  -- logical, optional: Reverse alpha and coupling as if particle is going in 
+!                 the reversed direction? Default is False.
 !
 ! Output:
-!   ele_out  -- Ele_struct: Element receiving the Twiss parameters.
+!   ele_out  -- ele_struct: Element receiving the Twiss parameters.
 !-
 
-subroutine transfer_twiss (ele_in, ele_out)
+subroutine transfer_twiss (ele_in, ele_out, reverse)
 
 implicit none
 
 type (ele_struct) ele_in, ele_out
+logical, optional :: reverse
 
 !
 
@@ -49,6 +52,18 @@ ele_out%z         = ele_in%z
 ele_out%c_mat     = ele_in%c_mat
 ele_out%gamma_c   = ele_in%gamma_c
 ele_out%mode_flip = ele_in%mode_flip
+
+if (logic_option(.false., reverse)) then
+  ele_out%x%etap    = ele_in%x%etap
+  ele_out%y%etap    = ele_in%y%etap
+  ele_out%a%alpha   = ele_in%a%alpha
+  ele_out%a%etap    = ele_in%a%etap
+  ele_out%b%alpha   = ele_in%b%alpha
+  ele_out%b%etap    = ele_in%b%etap
+  ele_out%z%alpha   = ele_in%z%alpha
+  ele_out%z%etap    = ele_in%z%etap
+  ele_out%c_mat     = -mat_symp_conj(ele_in%c_mat)
+endif
 
 end subroutine transfer_twiss
 
@@ -103,6 +118,48 @@ lat_out%ptc_uses_hard_edge_drifts = lat_in%ptc_uses_hard_edge_drifts
 lat_out%surface                   => lat_in%surface  
 
 end subroutine transfer_lat_parameters
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine transfer_branch_parameters (branch_in, branch_out)
+!
+! Subroutine to transfer the branch parameters (such as branch%name, branch%param, etc.)
+! from one branch to another. The only stuff that is not transfered are things
+! that are (or have) pointers or arrays
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   branch_in -- branch_struct: Input branch.
+!
+! Output:
+!   branch_out -- branch_struct: Output branch with parameters set.
+!-
+
+subroutine transfer_branch_parameters (branch_in, branch_out)
+
+implicit none
+
+type (branch_struct), intent(in) :: branch_in
+type (branch_struct) :: branch_out
+
+branch_out%name           = branch_in%name
+branch_out%ix_branch      = branch_in%ix_branch
+branch_out%ix_from_branch = branch_in%ix_from_branch
+branch_out%ix_from_ele    = branch_in%ix_from_ele
+branch_out%n_ele_track    = branch_in%n_ele_track
+branch_out%n_ele_max      = branch_in%n_ele_max
+branch_out%param          = branch_in%param
+branch_out%a              = branch_in%a
+branch_out%b              = branch_in%b
+branch_out%z              = branch_in%z
+branch_out%ele%ix_branch  = branch_in%ix_branch
+branch_out%wall3d         => branch_in%wall3d
+
+end subroutine transfer_branch_parameters
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1179,7 +1236,7 @@ end subroutine allocate_element_array
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine allocate_branch_array (lat, upper_bound, lat)
+! Subroutine allocate_branch_array (lat, upper_bound)
 !
 ! Subroutine to allocate or re-allocate an branch array.
 ! The old information is saved.
