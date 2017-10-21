@@ -523,24 +523,12 @@ integer i
 
 !
 
-branch1%name           = branch2%name
-branch1%ix_branch      = branch2%ix_branch
-branch1%ix_from_branch = branch2%ix_from_branch
-branch1%ix_from_ele    = branch2%ix_from_ele
-branch1%n_ele_track    = branch2%n_ele_track
-branch1%n_ele_max      = branch2%n_ele_max
-
 call allocate_element_array (branch1%ele, ubound(branch2%ele, 1))
 do i = 0, ubound(branch2%ele, 1)
   branch1%ele(i)  = branch2%ele(i)
 enddo
 
-branch1%param          = branch2%param
-branch1%a              = branch2%a
-branch1%b              = branch2%b
-branch1%z              = branch2%z
-branch1%ele%ix_branch  = branch2%ix_branch
-branch1%wall3d         => branch2%wall3d   
+call transfer_branch_parameters(branch2, branch1)
 
 end subroutine branch_equal_branch
 

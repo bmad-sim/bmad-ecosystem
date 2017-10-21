@@ -700,9 +700,9 @@ if (bp_com%fatal_error_flag) then
   return
 endif
 
+!===========================================================================
 !---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-! we now have read in everything. 
+! We now have read in everything. 
 
 bp_com%input_line_meaningful = .false.
 mad_beam_ele => in_lat%ele(ix_mad_beam_ele)

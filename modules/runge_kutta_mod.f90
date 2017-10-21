@@ -546,7 +546,7 @@ real(rp) h_bend, g_bend, dt_ds, dp_ds, dbeta_ds
 real(rp) vel(3), E_force(3), B_force(3), w_mat(3,3)
 real(rp) e_tot, dt_ds_ref, p0, beta0, v2, pz_p0
 
-integer rel_dir, sign_z_vel
+integer rel_dir
 
 logical :: err
 
@@ -613,9 +613,8 @@ dr_ds(7) = dt_ds
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   ! dr_ds(8:10) = Omega/v_z
-  sign_z_vel = rel_dir * ele%orientation
-  dr_ds(8:10) = rel_dir * h_bend * spin_omega (field, orbit, sign_z_vel)
-  if (ele%key == sbend$) dr_ds(8:10) = dr_ds(8:10) + ele%orientation * [0.0_rp, g_bend, 0.0_rp]
+  dr_ds(8:10) = rel_dir * h_bend * spin_omega (field, orbit, rel_dir)
+  if (ele%key == sbend$) dr_ds(8:10) = dr_ds(8:10) + [0.0_rp, g_bend, 0.0_rp]
 else
   dr_ds(8:10) = 0
 endif
