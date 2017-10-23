@@ -19,7 +19,7 @@
 
 subroutine reverse_lat (lat_in, lat_rev, track_antiparticle)
 
-use bmad
+use bmad, dummy => reverse_lat
 
 implicit none
 
