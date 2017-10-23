@@ -826,6 +826,16 @@ do
   ddz0 = ddz_calc_csr(0.0_rp)
   ddz1 = ddz_calc_csr(einfo_s%L_chord)
 
+  if (last_step == -1 .and. ddz1 > 0) then  ! Roundoff error is causing ddz1 to be positive.
+    s_source = ddz_calc_csr(einfo_s%L_chord)
+    return
+  endif
+
+  if (last_step == 1 .and. ddz0 < 0) then  ! Roundoff error is causing ddz0 to be negative.
+    s_source = ddz_calc_csr(0.0_rp)
+    return
+  endif
+
   if (ddz0 < 0 .and. ddz1 < 0) then
     if (last_step == 1) exit       ! Round off error can cause problems
     last_step = -1
@@ -848,21 +858,8 @@ do
     
 enddo
 
-! Roundoff errors can cause the search for the source point to not converge.
-! If we are close enough, use the appropriate point.
-
-if (abs(ddz0) < 1d-7) then
-  s_source = ddz_calc_csr(0.0_rp)
-  return
-endif
-
-if (abs(ddz1) < 1d-7) then
-  s_source = ddz_calc_csr(einfo_s%L_chord)
-  return
-endif
-
 call out_io (s_fatal$, r_name, &
-    'CSR CALCCULATION ERROR. PLEASE REPORT THIS...', &
+    'CSR CALCULATION ERROR. PLEASE REPORT THIS...', &
     'WHILE TRACKING THROUGH ELEMENT: ', csr%kick_ele%name)
 if (global_com%exit_on_error) call err_exit
 err_flag = .true.
