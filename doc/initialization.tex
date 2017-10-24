@@ -531,7 +531,6 @@ The \vn{bmad_com_struct} holds bmad global variables.
     logical rf_auto_scale_phase_default = T     ! Default for lat%rf_auto_scale_phase
     logical rf_auto_scale_amp_default = T       ! Default for lat%rf_auto_scale_amp
     logical use_ptc_layout_default = F          ! Default for lat%use_ptc_layout
-
   end type
 \end{example}
 See the \bmad manual for more details.
@@ -555,8 +554,19 @@ synchrotron radiation calculations.
     logical small_angle_approx = T      ! Use lcsr small angle approximation?
   end type
 \end{example}
-the \vn{global%track_type} must be set to \vn{"beam"} for the CSR computation.
-See the \bmad manual for more details.
+See the \bmad manual on the \vn{csr_parameter_struct} for more details. In \tao,
+Besides setting the \vn{csr_parameter_struct} components, the following must
+be done to enable CSR computations:
+\begin{Itemize}
+\item 
+The \vn{global%track_type} (see above this section) must be set to \vn{"beam"} and the appropriate
+beam initialization parameters (\sref{s:beam.init}) must be set.
+\item 
+The parameter \vn{bmad_com%coherent_synch_radiation} (see above this section) must be set to \vn{True}.
+\item
+In the \bmad lattice file, \vn{csr_calc_on} must be set for the elements where CSR tracking is to be
+done (see the \bmad manual).
+\end{Itemize}
 
 The \vn{opti_de_param_struct} holds parameters that influence the behavior
 of the \vn{de} optimizer (\sref{s:tao.opti})

@@ -188,7 +188,7 @@ do i = 1, s%n_var_used
                 '       VARIABLE:  ' // tao_var1_name(var), &
                 '       ELEMENT:   ' // var%ele_name, &
                 '       ATTRIBUTE: ' // var%attrib_name)
-      call err_exit
+      if (s%global%stop_on_error) call err_exit
     endif
   enddo
 enddo
@@ -320,7 +320,7 @@ call tao_draw_plots ()     ! Update the plotting window
 do i = lbound(s%u, 1), ubound(s%u, 1)
   do j = 1, size(s%u(i)%data)
     data => s%u(i)%data(j)
-    if (data%exists .and. .not. data%good_model) then
+    if (data%exists .and. data%data_type /= 'null' .and. .not. data%good_model) then
       call tao_evaluate_a_datum (data, s%u(i), s%u(i)%model, value, valid_value, why_invalid)
       call out_io(s_warn$, r_name, &
                   'DATUM EXISTS BUT CANNOT COMPUTE A MODEL VALUE: ' // tao_datum_name(data), &
