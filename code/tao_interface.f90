@@ -217,8 +217,9 @@ subroutine tao_hook_init_beam ()
   implicit none
 end subroutine
 
-subroutine tao_hook_init_data () 
+subroutine tao_hook_init_data (do_standard_setup) 
   implicit none
+  logical do_standard_setup
 end subroutine
 
 subroutine tao_hook_init_global (init_file, global)
@@ -248,8 +249,9 @@ subroutine tao_hook_init2 ()
   implicit none
 end subroutine
 
-subroutine tao_hook_init_var() 
+subroutine tao_hook_init_var(do_standard_setup) 
   implicit none
+  logical do_standard_setup
 end subroutine
 
 subroutine tao_hook_lattice_calc (calc_ok)

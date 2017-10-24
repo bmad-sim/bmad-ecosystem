@@ -451,6 +451,12 @@ data_source = datum%data_source
 head_data_type = datum%data_type
 lat => tao_lat%lat
 
+if (head_data_type == 'null') then
+  datum_value = 0
+  valid_value = .false.
+  return
+endif
+
 ele => tao_pointer_to_datum_ele (lat, datum%ele_name, datum%ix_ele, datum, valid_value, why_invalid)
 if (.not. valid_value) return
 ix_ele = -1

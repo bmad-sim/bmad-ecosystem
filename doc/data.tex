@@ -856,11 +856,28 @@ map. All of the nonlinearities are therefore in the complex vector field $F$. Th
 imaginary parts of $L$ and $F$ can be accessed through \vn{normal.ReF}, \vn{normal.ImF},
 \vn{normal.ReL}, and \vn{normal.ImL}.
 
+  \item[null] \Newline
+A \vn{null} data type is used for data where \tao is not able to calculate a model value. Such data
+cannot be used in an optimization. For example, in a linac where the beam intensity is measured at
+the BPMs, \tao has no model for calculating the current variation down the linac. Nevertheless, it
+could be useful to read in the measured values and plot them.
+
   \item[orbit.amp_a, .amp_b] \Newline
 ``Invariant'' amplitude of the orbital motion.
 
   \item[orbit.norm_amp_a, .norm_amp_b] Newline
 Energy normalized ``invariant'' amplitude of the orbital motion.
+
+  \item[orbit.e_tot] \Newline
+The \vn{orbit.e_tot} data type gives the total energy of a tracked particle (with
+\vn{data_source} = \vn{lat}) or the average energy of a beam (with \vn{data_source} =
+\vn{beam}).
+
+Notice that this is different from the \vn{E_tot} attribute of a lattice element which
+is the reference energy at that element.
+
+  \item[orbit.x, .y, .z, .px, .py, .pz] \Newline
+Orbit position and momenta
 
   \item[periodic.tt.$ijklm\ldots$] \Newline
 This is like the \vn{tt.} datum except here the terms are from the
@@ -892,17 +909,6 @@ the transfer map from the reference element to the evaluation element.
 Note: If the reference element is not specified, or if the reference
 element is the same as the evaluation element, this data type cannot
 be used with a linear lattice.
-
-  \item[orbit.e_tot] \Newline
-The \vn{orbit.e_tot} data type gives the total energy of a tracked particle (with
-\vn{data_source} = \vn{lat}) or the average energy of a beam (with \vn{data_source} =
-\vn{beam}).
-
-Notice that this is different from the \vn{E_tot} attribute of a lattice element which
-is the reference energy at that element.
-
-  \item[orbit.x, .y, .z, .px, .py, .pz] \Newline
-Orbit position and momenta
 
   \item[phase.a, .b] \Newline
 Betatron phase.  If a \vn{d1_data} array has a set of
@@ -1276,6 +1282,8 @@ squared.
   norm_emit.a, .b, .c                 & Normalized beam emittance                 & beam, lat   & No  \\ \hline 
   norm_emit.x, .y, .z                 & Normalized projected emittance            & beam, lat   & No  \\ \hline 
   normal.<type>.$i$.<monomial>        & Normal Form map component                 & lat         & No  \\ \hline
+
+  null                                & Data without model evaluation             & lat, beam   & No  \\ \hline
   
   orbit.e_tot                         & Beam energy (eV)                          & beam, lat   & Yes \\ \hline
 

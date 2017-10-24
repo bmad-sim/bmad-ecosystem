@@ -53,7 +53,7 @@ logical, allocatable, save :: default_key_b(:)
 character(100) line, search_for_lat_eles
 
 logical err, free, gang
-logical searching, limited
+logical searching, limited, do_standard_setup
 logical, allocatable, save :: dflt_good_unis(:), good_unis(:)
 
 namelist / tao_var / v1_var, var, default_weight, default_step, default_key_delta, &
@@ -71,8 +71,12 @@ s%n_v1_var_used = 0
 
 ! Call the hook routine and then return if the standard init is not wanted.
 
-call tao_hook_init_var() 
-if (.not. s%com%init_var .or. var_file == '') then
+call tao_hook_init_var(do_standard_setup) 
+if (.not. do_standard_setup) return
+
+! No var file then just setup the key table if needed.
+
+if (var_file == '') then
   call tao_setup_key_table ()
   return
 endif

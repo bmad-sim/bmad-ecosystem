@@ -52,7 +52,7 @@ character(40) default_merit_type, default_data_source, def_merit_type, def_data_
 character(100) search_for_lat_eles
 character(200) line, default_data_type, def_data_type
 
-logical err, free, gang
+logical err, free, gang, do_standard_setup
 logical :: good_unis(lbound(s%u, 1) : ubound(s%u, 1))
 logical :: mask(lbound(s%u, 1) : ubound(s%u, 1))
 
@@ -64,10 +64,14 @@ namelist / tao_d1_data / d1_data, datum, ix_d1_data, &
                use_same_lat_eles_as, search_for_lat_eles, ix_min_data, ix_max_data
 
 !-----------------------------------------------------------------------
+! Custom data setup?
+
+call tao_hook_init_data(do_standard_setup)
+if (.not. do_standard_setup) return
+
 ! Find out how many d2_data structures we need for each universe
 
-call tao_hook_init_data() 
-if (.not. s%com%init_data .or. data_file == '') then
+if (data_file == '') then
   do i = lbound(s%u, 1), ubound(s%u, 1)
     call tao_init_data_in_universe (s%u(i), 0)
   enddo

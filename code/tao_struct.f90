@@ -635,7 +635,6 @@ type tao_common_struct
   logical :: init_beam             = .true.   ! Used by custom programs to control Tao init
   logical :: init_var              = .true.   ! Used by custom programs to control Tao init
   logical :: init_read_lat_info    = .true.   ! Used by custom programs to control Tao init
-  logical :: init_data             = .true.   ! Used by custom programs to control Tao init
   logical :: parse_cmd_args        = .true.   ! Used by custom programs to control Tao init
   logical :: optimizer_running     = .false. 
   logical :: have_datums_using_expressions = .false.
