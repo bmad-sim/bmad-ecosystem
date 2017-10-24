@@ -1888,6 +1888,7 @@ bunch1%z_center    = bunch2%z_center
 bunch1%t_center    = bunch2%t_center
 bunch1%ix_ele      = bunch2%ix_ele
 bunch1%ix_bunch    = bunch2%ix_bunch
+bunch1%n_live      = bunch2%n_live
 
 end subroutine bunch_equal_bunch
 
