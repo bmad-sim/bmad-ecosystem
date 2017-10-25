@@ -756,15 +756,57 @@ end subroutine photon_reflectivity
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
+! Subroutine photon_reflection (angle_in, energy, surface, theta_out, phi_out)
+!
+! Routine to reflect a photon from a surface including both diffuse and specular reflections.
+!
+! Input:
+!   angle_in  -- Real(rp): Incident grazing (not polar) angle in radians.
+!   energy    -- Real(rp): Photon energy in eV.
+!   surface   -- photon_reflect_surface_struct: surface info
+!
+! Output:
+!   theta_out -- Real(rp): Polar angle in radians. 0 -> perpendicular to surface.
+!   phi_out   -- Real(rp): Azimuthal angle in radians.
+!-
+
+subroutine photon_reflection (angle_in, energy, surface, theta_out, phi_out)
+
+implicit none
+
+type (photon_reflect_surface_struct), target :: surface
+
+real(rp) angle_in, energy, theta_out,  phi_out
+real(rp) p_spec, r, lambda
+
+! If the photon energy is lower than 1eV then use 1eV in the calculation.
+! Decide if reflection is specular.
+
+lambda = h_planck * c_light / max(1.0_rp, energy)
+P_spec = exp(-(fourpi * surface%surface_roughness_rms * sin(angle_in) / lambda)**2)
+call ran_uniform(r)
+
+if (r < P_spec) then   ! Is specular
+  theta_out = pi/2 - angle_in
+  phi_out = 0
+
+else
+  call photon_diffuse_scattering (angle_in, energy, surface, theta_out, phi_out)
+endif
+
+end subroutine photon_reflection
+
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!+
 ! Subroutine photon_diffuse_scattering (angle_in, energy, surface, theta_out, phi_out)
 !
 ! Routine to simulate the diffuse scattering of photons. The outgoing angles are
 ! choosen using the Dugan distribution.
 !
+! Also see: photon_reflection.
 ! Use photon_reflection_std_surface_init or read_surface_reflection_file to get surface info.
-!
-! Modules needed:
-!  use photon_reflection_mod
 !
 ! Input:
 !   angle_in  -- Real(rp): Incident grazing (not polar) angle in radians.
@@ -807,20 +849,7 @@ T = surface%roughness_correlation_len
 diffuse_param%y = sin(angle_in)
 diffuse_param%lambda = h_planck * c_light / max(1.0_rp, energy)
 
-! Decide if reflection is specular
-
-P_spec = exp(-(4*pi*sigma*sin(angle_in)/diffuse_param%lambda)**2)
-call ran_uniform(r)
-if (r < P_spec) then   ! Is specular
-  theta_out = pi/2 - angle_in
-  phi_out = 0
-  return
-endif
-
-!-----------------------
-! Not specular...
-
-! pick a random numbers
+! Pick random numbers
 
 call ran_uniform(ran1)
 
