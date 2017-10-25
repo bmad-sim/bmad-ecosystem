@@ -997,7 +997,7 @@ wall_hit(n_wall_hit)%reflectivity = reflectivity
 ! absorption or reflection...
 ! For specular reflection the perpendicular component gets reflected and the parallel component is invarient.
 
-! If the photon is traveling essentially parallel to the wall (cos_perp < 1d-10) then considered it absorbed.
+! If the photon is traveling essentially parallel to the wall (cos_perp < 1d-10) then consider it absorbed.
 ! This is done to to prevent a singular situation when trying to reflect the photon.
 
 call ran_uniform(r)

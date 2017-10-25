@@ -142,7 +142,7 @@ do i = 0, roughness_rms_nsteps
       do l = 0, energy_nsteps
         energy = energy_min + l * de
 
-        call photon_diffuse_scattering ( angle_in, energy, surface, theta_out, phi_out )
+        call photon_reflection ( angle_in, energy, surface, theta_out, phi_out )
 
 !        write (*,'(a,f6.2,2x,e10.5,a,f6.2,2x,f6.2)') &
 !              ' Incident angle (deg), energy (eV): ', 180*angle_in/pi, 1e9*energy, &
