@@ -112,7 +112,7 @@ $\vcenter{\hbox{\includegraphics[width=2in]{lhc-cross-section.pdf}}}$
 {\LARGE\bfseries Gerry Dugan and David Sagan}
 
 \vspace{0.4in}
-{\large\bfseries October 18, 2017}
+{\large\bfseries October 25, 2017}
 
 \end{center}
 \end{titlepage}
@@ -214,23 +214,24 @@ cross-section.
 The \vn{-test <what>} option is for generating diagnostic
 files:
 \begin{example}
+  -test reflection             ! \sref{s:test.diffuse}
   -test diffuse_reflection     ! \sref{s:test.diffuse}
   -test specular_reflection    ! \sref{s:test.specular}
 \end{example}
 
-In \vn{-test diffuse_reflection} mode, \srthree simulates a set of photons
-reflected at a wall with all photons having the same incoming angle
-and energy. See \sref{s:test.diffuse} for more details.
+With \vn{-test diffuse_reflection} and \vn{-test reflection} modes, \srthree simulates a set of
+photons reflected at a wall with all photons having the same incoming angle and energy. See
+\sref{s:test.diffuse} for more details.
 
-In \vn{-test specular_reflection} mode, specular reflection is tested
-by simulating a single specular reflection from given photon
-starting positions. See \sref{s:test.specular} for more details.
+In \vn{-test specular_reflection} mode, specular reflection is tested by simulating a single
+specular reflection from given photon starting positions. See \sref{s:test.specular} for more
+details.
 
 %------------------------------------------------------------------------
 \chapter{Simulation Technique and Physics Models}
 \section{Overview} 
 
-The diffuse scattering theory used in \srthree is discused by 
+The diffuse scattering theory used in \srthree is discussed by 
 Dugan and Sagan\cite{b:prab} modified as discussed in \sref{c:spline}.
 
 The \srthree program uses the Monte Carlo method for photon
@@ -1975,6 +1976,7 @@ Test modes are used to generate diagnostic data files. Test modes are
 specified using the \vn{-test <what>} option on the command line
 (\sref{s:run}). 
 \begin{example}
+  -test reflection             ! \sref{s:test.diffuse}
   -test diffuse_reflection     ! \sref{s:test.diffuse}
   -test specular_reflection    ! \sref{s:test.specular}
 \end{example}
@@ -1982,21 +1984,20 @@ specified using the \vn{-test <what>} option on the command line
 These test modes are explained below
 
 %------------------------------------------------------------------
-\section{Diffuse Reflection Test Mode}
+\section{Reflection and Diffuse Reflection Test Modes}
 \label{s:test.diffuse}
 
-Diffuse reflection test mode (\sref{s:run}), invoked using the
-\vn{-test diffuse_reflection} option on the command line, is used for
-studying the diffuse scattering distribution.  The simulation involves
-scattering photons at a given incident angle and energy and recording
-the output angles in a file. 
+The \vn{reflection} and \vn{diffuse reflection} test modes, invoked respectively by using the
+\vn{-test refleciton} and \vn{-test diffuse_reflection} options on the command line (\sref{s:run}),
+is used for studying the scattering distribution at fixed incident angle and energy. 
+The \vn{reflection} test includes both diffuse and specular reflections while the \vn{diffuse refleciton}
+only includes specular reflections.
 
-The parameters used for the test are read
-in from the master input file specified on the command line
-(\sref{s:run}). The namelist used for the input parameters for the
-reflection test is called \vn{diffuse_reflection_test}.  Example:
+The parameters used for the test are read in from the master input file specified on the command
+line (\sref{s:run}). The namelist used for the input parameters for the reflection test is called
+\vn{reflection_test}.  Example:
 \begin{example}
-  &diffuse_reflection_test
+  &reflection_test
     graze_angle_in              = 0.12     ! Incident grazing angle in radians.
     energy                      = 100      ! eV
     surface_roughness_rms       = -1       ! Surface roughness for diffuse scattering.
@@ -2004,30 +2005,27 @@ reflection test is called \vn{diffuse_reflection_test}.  Example:
     n_photons                   = 1000     ! Number of reflections simulated
     surface_reflection_file     = ""       ! File for specifying reflection probabilities.
     random_seed                 = 0        ! Random number seed.
-    output_file                 = ""       ! Default is "test_diffuse_reflection.dat"
+    output_file                 = ""       ! Blank => Use default name.
   /
 \end{example}
-The \vn{graze_angle_in} is the incident grazing angle in radians and
-\vn{energy} in the photon energy in eV. \vn{n_photons} are the number
-of reflections to simulate, and \vn{output_file} is the name of the
-output data file. The default data file name is
-"test_diffuse_reflection.dat". The other parameters are explained in
-\sref{s:master}.
+The \vn{graze_angle_in} is the incident grazing angle in radians and \vn{energy} in the photon
+energy in eV. \vn{n_photons} are the number of reflections to simulate, and \vn{output_file} is the
+name of the output data file. The default data file name is "test_reflection.dat" for the
+\vn{reflection} test and "test_diffuse_reflection.dat" for the \vn{diffuse reflection} test. The
+other parameters are explained in \sref{s:master}.
 
-\vn{random_seed} is the random number seed used in by the random
-number generator. If set to 0, the system clock will be used. That is,
-if set to 0, the output results will vary from run to run.
+\vn{random_seed} is the random number seed used in by the random number generator. If set to 0, the
+system clock will be used. That is, if set to 0, the output results will vary from run to run.
 
 The output contains a header with the input parameters a then
 \vn{n_photon} lines. Each line is of the form:
 \begin{example}
   theta_out  phi_out
 \end{example}
-where \vn{theta_out} is the grazing angle of the reflected photon in
-radians. That is, \vn{theta_out} = 0 means the photon is traveling
-parallel to the surface. The \vn{phi_out} angle is the azimuthal
-angle in radians. That is, \vn{phi_out} is zero when the incident and
-reflected rays are in the same plane.
+where \vn{theta_out} is the grazing angle of the reflected photon in radians. That is,
+\vn{theta_out} = 0 means the photon is traveling parallel to the surface. The \vn{phi_out} angle is
+the azimuthal angle in radians. That is, \vn{phi_out} is zero when the incident and reflected rays
+are in the same plane.
 
 %------------------------------------------------------------------
 \section{Specular Reflection Test Mode}
