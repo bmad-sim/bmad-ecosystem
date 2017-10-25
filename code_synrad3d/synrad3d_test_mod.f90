@@ -53,11 +53,11 @@ random_seed = 0
 open (1, file = param_file)
 read (1, nml = reflection_test, iostat = ios)
 if (ios > 0) then
-  print *, 'ERROR READING DIFFUSE_REFLECTION_TEST NAMELIST IN FILE: ' // trim(param_file)
+  print *, 'ERROR READING REFLECTION_TEST NAMELIST IN FILE: ' // trim(param_file)
   stop
 endif
 if (ios < 0) then
-  print *, 'CANNOT FIND DIFFUSE_REFLECTION_TEST NAMELIST IN FILE: ' // trim(param_file)
+  print *, 'CANNOT FIND REFLECTION_TEST NAMELIST IN FILE: ' // trim(param_file)
   stop
 endif
 close (1)
