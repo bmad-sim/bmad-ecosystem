@@ -10,15 +10,16 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_diffuse_reflection_test (param_file)
+! Subroutine sr3d_reflection_test (param_file, who)
 ! 
 ! Routine to proform the reflection test.
 !
 ! Input:
-!   param_file    -- Character(*): Input parameter file.
+!   param_file    -- character(*): Input parameter file.
+!   who           -- character(*): "reflection" or "diffuse_reflection"
 !-
 
-subroutine sr3d_diffuse_reflection_test (param_file)
+subroutine sr3d_reflection_test (param_file, who)
 
 implicit none
 
@@ -31,19 +32,26 @@ real(rp) surface_roughness_rms, roughness_correlation_len
 integer n_photons
 integer i, ix, ios, random_seed
 
-character(*) param_file
+character(*) param_file, who
 character(200) output_file, surface_reflection_file
 
-namelist / diffuse_reflection_test / graze_angle_in, energy, n_photons, surface_roughness_rms, &
+namelist / reflection_test / graze_angle_in, energy, n_photons, surface_roughness_rms, &
             roughness_correlation_len, surface_reflection_file, output_file, random_seed
 
-!
+! Set defaults
 
-open (1, file = param_file)
-output_file = 'test_diffuse_reflection.dat'
+select case (who)
+case ('reflection');          output_file = 'test_reflection.dat'
+case ('diffuse_reflection');  output_file = 'test_diffuse_reflection.dat'
+case default;                 call err_exit
+end select
 
 random_seed = 0
-read (1, nml = diffuse_reflection_test, iostat = ios)
+
+! Read parameters
+
+open (1, file = param_file)
+read (1, nml = reflection_test, iostat = ios)
 if (ios > 0) then
   print *, 'ERROR READING DIFFUSE_REFLECTION_TEST NAMELIST IN FILE: ' // trim(param_file)
   stop
@@ -84,14 +92,19 @@ write (2, *) 'random_seed:                 "', random_seed
 
 write (2, *) '          #          theta_out                     phi_out'
 do i = 1, n_photons
-  call photon_diffuse_scattering (graze_angle_in, energy, surface, theta_out, phi_out)
+  select case (who)
+  case ('reflection')
+    call photon_reflection (graze_angle_in, energy, surface, theta_out, phi_out)
+  case ('diffuse_reflection')
+    call photon_diffuse_scattering (graze_angle_in, energy, surface, theta_out, phi_out)
+  end select
   write (2, *) i, pi/2-theta_out, phi_out
 enddo
 
 close (2)
 print *, 'Output file: ' // trim(output_file)
 
-end subroutine sr3d_diffuse_reflection_test
+end subroutine sr3d_reflection_test
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------

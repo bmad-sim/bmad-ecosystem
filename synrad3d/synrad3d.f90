@@ -118,7 +118,7 @@ if (.not. ok) then
   print '(a)', '  <init_file> = synrad3d.init'
   print '(a)', 'Options: [Note: Standard photon tracking not done with -plot nor -test]'
   print '(a)', '  -plot <type>  ! <type> = "reflect", "xy", "xs", or "ys".'
-  print '(a)', '  -test <who>   ! <who> = "diffuse_reflection" .or "specular_reflection".'
+  print '(a)', '  -test <who>   ! <who> = "diffuse_reflection", "specular_reflection" or "reflection".'
   print '(a)', '  -in <file>    ! Use <file> to initialize photon(s). '
   print '(a)', '                !   This option is used for debugging synrad3d.'
   print '(a)', '  -out <n>      ! Create error_photon_start file using the n^th generated photon.'
@@ -129,10 +129,11 @@ endif
 ! test 
 
 if (test /= '') then
-  call match_word (trim(test), ['diffuse_reflection ', 'specular_reflection'], i, .true., .true., who)
+  call match_word (trim(test), [character(20):: 'diffuse_reflection', &
+                                  'specular_reflection', 'reflection'], i, .true., .true., who)
   select case (who)
-  case ('diffuse_reflection ')
-    call sr3d_diffuse_reflection_test (param_file)
+  case ('diffuse_reflection', 'reflection')
+    call sr3d_reflection_test (param_file, who)
   case ('specular_reflection')
     call sr3d_specular_reflection_test (param_file)
   case default
