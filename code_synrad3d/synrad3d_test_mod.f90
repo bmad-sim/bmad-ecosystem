@@ -25,7 +25,7 @@ implicit none
 type (photon_reflect_surface_struct) surface
 
 real(rp) graze_angle_in, energy
-real(rp) p_reflect_rough, p_reflect_smooth, theta_out, phi_out
+real(rp) p_reflect, rel_p_specular, theta_out, phi_out
 real(rp) surface_roughness_rms, roughness_correlation_len
 
 integer n_photons
@@ -67,7 +67,7 @@ endif
 if (surface_roughness_rms > 0) surface%surface_roughness_rms = surface_roughness_rms
 if (roughness_correlation_len > 0) surface%roughness_correlation_len = roughness_correlation_len
 
-call photon_reflectivity (graze_angle_in, energy, surface, p_reflect_rough, p_reflect_smooth)
+call photon_reflectivity (graze_angle_in, energy, surface, p_reflect, rel_p_specular)
 
 !
 
@@ -77,8 +77,8 @@ write (2, *) 'Grazing angle in (rad):    ', graze_angle_in
 write (2, *) 'Energy (eV):               ', energy
 write (2, *) 'surface_roughness_rms:     ', surface_roughness_rms
 write (2, *) 'roughness_correlation_len: ', roughness_correlation_len
-write (2, *) 'Rough surface reflection probability: ', p_reflect_rough
-write (2, *) 'Smooth surface reflection probability:', p_reflect_smooth
+write (2, *) 'Reflection probability:    ', p_reflect
+write (2, *) 'Specular Reflection / Reflection probability ratio:', rel_p_specular
 write (2, *) 'surface_reflection_file: "', trim(surface_reflection_file), '"'
 write (2, *) 'random_seed:                 "', random_seed
 
