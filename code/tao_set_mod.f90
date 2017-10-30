@@ -1284,7 +1284,7 @@ case ('floor_plan_view')
     call out_io(s_info$, r_name, "Valid floor_plan_view settings are: 'xy', 'zx', etc.")
     return
   end select
-  this_graph%floor_plan_view = upcase(value)
+  this_graph%floor_plan_view = value
 
 case default
   call out_io (s_error$, r_name, "BAD GRAPH COMPONENT: " // component)

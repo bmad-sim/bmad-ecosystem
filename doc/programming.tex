@@ -50,13 +50,14 @@ The definition of this structure is:
     type (tao_wave_struct) :: wave 
     integer n_var_used
     integer n_v1_var_used
+    type (tao_cmd_history_struct) :: history(1000)        ! command history
   end type
 \end{example}
 An instance of this structure called \vn{s} is defined in \vn{tao_struct.f90}:
 \begin{example}
   type (tao_super_universe_struct), save, target :: s
 \end{example}
-Thus \vn{s} is common to all of \tao's routines.
+This \vn{s} variable is common to all of \tao's routines and serves as a giant common block for \tao.
 
 The components of the \vn{tao_super_universe_struct} are:
   \begin{description}
