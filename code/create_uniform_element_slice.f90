@@ -4,17 +4,19 @@
 !
 ! Routine to create an element that represents a slice of another element.
 ! This routine can be used for detailed tracking through an element.
-! Slices are of uniform length. For a general element slice maker see:
+! The default, if s_start and s_end are not specified, is to create slices of uniform length. 
+! For a general element slice maker see:
 !   create_element_slice
 !
-! i_slice should range from 1 to n_slice_tot.
+! When tracking through an element, this routine should be repeatedly called with
+! i_slice starting at 1 and ending at n_slice_tot.
 ! The longitudinal position from the beginning of the element of 
 ! the entrance face of the i^th slice is at:
-!     s_enter = s_start + ds * (i_slice-1) / n_slice_tot 
+!     s_enter = s_start + ds * (i_slice-1)
 ! The exit face of the i^th slice is at: 
-!     s_exit = s_start + ds * i_slice / n_slice_tot 
+!     s_exit = s_start + ds * i_slice
 ! where
-!     ds = s_end - s_start
+!     ds = (s_end - s_start) / n_slice_tot 
 !
 ! It is assumed that this routine will be called in a loop so the set:
 !     sliced_ele = ele
