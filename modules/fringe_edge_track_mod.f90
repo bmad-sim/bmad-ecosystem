@@ -205,10 +205,11 @@ integer this_end, ix_loc, dir, rel_dir
 
 ! Remamber: element length can be less than zero.
 
+leng = this_ele%value(l$)
 rel_dir = dir * orbit%direction
 s_off = this_ele%s_start - track_ele%s_start
-s1 = s_off + (this_ele%value(l$) - hard_edge_model_length(this_ele)) / 2 
-s2 = s_off + (this_ele%value(l$) + hard_edge_model_length(this_ele)) / 2 
+s1 = s_off + (leng - hard_edge_model_length(this_ele)) / 2 
+s2 = s_off + (leng + hard_edge_model_length(this_ele)) / 2 
 
 if (dir > 0) then
   s_hard_upstream   = min(s1, s2)
@@ -235,6 +236,7 @@ if (orbit%direction == 1) then
     s_this_edge = s_hard_downstream
     this_end = second_track_edge$
   case (downstream_end$)
+    if (track_ele%orientation == -1) s_edge_body = leng - s_edge_body
     return
   case default
     call err_exit
@@ -247,6 +249,7 @@ if (orbit%direction == 1) then
 else
   select case (fringe_info%location(ix_loc))
   case (upstream_end$)
+    if (track_ele%orientation == -1) s_edge_body = leng - s_edge_body
     return
   case (inside$)
     s_this_edge = s_hard_upstream
@@ -272,7 +275,6 @@ fringe_info%s_edge_hard = s_edge_body - s_off
 fringe_info%ds_edge = s_edge_body + s_off - s_orb
 
 if (track_ele%orientation == -1) then
-  leng = this_ele%value(l$)
   s_edge_body = leng - s_edge_body
   fringe_info%s_edge_hard = leng - fringe_info%s_edge_hard
   fringe_info%ds_edge = -fringe_info%ds_edge
