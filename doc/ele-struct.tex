@@ -32,6 +32,7 @@ type ele_struct
   character(200), pointer :: descrip       ! Description string.
   type (twiss_struct)  a, b, z             ! Twiss parameters at end of element \sref{c:normal.modes}.
   type (xy_disp_struct) x, y               ! Projected dispersions \sref{c:normal.modes}.
+  type (ac_kicker_struct), pointer :: ac_kick  ! ac_kicker element parameters.
   type (bookkeeping_state_struct) bookkeeping_state ! Element attribute bookkeeping
   type (branch_struct), pointer :: branch      ! Pointer to branch containing element.
   type (controller_var_struct), pointer :: control_var(:) 
@@ -50,7 +51,6 @@ type ele_struct
   type (space_charge_struct), pointer :: space_charge 
   type (taylor_struct) :: taylor(6)            ! Orbital Taylor map.
   type (taylor_struct) :: spin_taylor(3,3)     ! Spin Taylor map.
-  type (taylor_struct) :: spin_taylor(3,3)     ! Spin Taylor map.
   type (wake_struct), pointer :: wake    ! Wakes
     ele_struct definition continued on next figure...
 \end{verbatim}
@@ -67,16 +67,17 @@ The complete structure is shown in this and the following figure.}
 \begin{verbatim}
     ... ele_struct definition continued from previous figure.
   type (wall3d_struct) :: wall3d               ! Chamber or capillary wall
-  type(coord_struct) map_ref_orb_in(6)         ! Transfer map ref orbit at upstream end of element.
-  type(coord_struct) map_ref_orb_out(6)        ! Transfer map ref orbit at downstream end of element.
-  type(coord_struct) time_ref_orb_in(6)        ! Reference orbit at upstream end for ref_time calc.
-  type(coord_struct) time_ref_orb_out(6)       ! Reference orbit at downstream end for ref_time calc.
+  type(coord_struct) map_ref_orb_in            ! Transfer map ref orbit at upstream end of element.
+  type(coord_struct) map_ref_orb_out           ! Transfer map ref orbit at downstream end of element.
+  type(coord_struct) time_ref_orb_in           ! Reference orbit at upstream end for ref_time calc.
+  type(coord_struct) time_ref_orb_out          ! Reference orbit at downstream end for ref_time calc.
   real(rp) value(num_ele_attrib$)              ! attribute values.
   real(rp) old_value(num_ele_attrib$)          ! Used to see if %value(:) array has changed.
   real(rp) vec0(6)                             ! 0th order transport vector.
   real(rp) mat6(6,6)                           ! 1st order transport matrix.
   real(rp) c_mat(2,2)                          ! 2x2 C coupling matrix
   real(rp) gamma_c                             ! gamma associated with C matrix
+  real(rp) :: s_start = 0                                      ! longitudinal ref position at entrance_end
   real(rp) s                                   ! longitudinal position at the downstream end.
   real(rp) ref_time                            ! Time ref particle passes downstream end.
   real(rp), pointer :: r(:,:,:)                ! For general use. Not used by Bmad.

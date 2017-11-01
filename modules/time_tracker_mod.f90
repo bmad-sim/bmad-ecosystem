@@ -691,22 +691,26 @@ real(rp), optional :: w_mat_out(3,3)
 logical, optional :: in_time_coordinates, in_ele_frame
 character(28), parameter :: r_name = 'particle_in_global_frame'
 
-!Get last tracked element  
-ele =>  branch%ele(orb%ix_ele)
-s_body = particle%s - ele%s_start
+! Get last tracked element  
 
-!Convert to time coordinates
+ele =>  branch%ele(orb%ix_ele)
 particle = orb;
+
+! Convert to time coordinates
+
 if (.not. logic_option(.false., in_time_coordinates)) then
   ! Set s_body to be relative to entrance of ele 
+  s_body = particle%s - ele%s_start
   call convert_particle_coordinates_s_to_t (particle, s_body, ele%orientation)
 endif
 
-!Set for coords_local_curvilinear_to_floor
+! Set for coords_local_curvilinear_to_floor
+
 floor_at_particle%r = particle%vec(1:5:2)
 floor_at_particle%theta = 0.0_rp
 floor_at_particle%phi = 0.0_rp
 floor_at_particle%psi = 0.0_rp
+
 ! Get [X,Y,Z] and w_mat for momenta rotation below
 global_position = coords_local_curvilinear_to_floor (floor_at_particle, ele, &
   in_ele_frame = logic_option(.true., in_ele_frame) , w_mat = w_mat)
