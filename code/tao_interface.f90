@@ -291,9 +291,9 @@ subroutine tao_hook_post_process_data ()
   implicit none
 end subroutine
  
-subroutine tao_hook_show_cmd (what, stuff, result_id, lines, nl)
+subroutine tao_hook_show_cmd (what, result_id, lines, nl)
   implicit none
-  character(*) what, stuff, result_id
+  character(*) what, result_id
   character(*), allocatable :: lines(:)
   integer nl
 end subroutine

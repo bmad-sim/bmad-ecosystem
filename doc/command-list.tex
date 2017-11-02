@@ -1475,22 +1475,22 @@ Format:
 
 \vn{<what_to_show>} may be one of:
 \begin{example}
-  show alias                                                          ! \sref{s:show.alias}
-  show beam \{<element_name_or_index>\}                                 ! \sref{s:show.beam}
-  show branch \{-universe <universe>\}                                  ! \sref{s:show.branch}
-  show building_wall                                                  ! \sref{s:show.building}
-  show constraints                                                    ! \sref{s:show.constraints}
-  show curve \{-line\} \{-no_header\} \{-symbol\} <curve_name>              ! \sref{s:show.curve}
-  show data \{<data_name>\}                                             ! \sref{s:show.data}
-  show derivative <data_name(s)> <var_name(s)>                        ! \sref{s:show.derivative}
-  show dynamic_aperture                                               ! \sref{s:show.dynamic}
+  show alias                                                            ! \sref{s:show.alias}
+  show beam \{<element_name_or_index>\}                                   ! \sref{s:show.beam}
+  show branch \{-universe <universe>\}                                    ! \sref{s:show.branch}
+  show building_wall                                                    ! \sref{s:show.building}
+  show constraints                                                      ! \sref{s:show.constraints}
+  show curve \{-line\} \{-no_header\} \{-symbol\} <curve_name>                ! \sref{s:show.curve}
+  show data \{<data_name>\}                                               ! \sref{s:show.data}
+  show derivative <data_name(s)> <var_name(s)>                          ! \sref{s:show.derivative}
+  show dynamic_aperture                                                 ! \sref{s:show.dynamic}
   show element \{-attributes\} \{-base\} \{-data\} \{-design\} \{-all\} \{-field\} 
         \{-floor_coords\} \{-no_slaves\} \{-ptc\} \{-taylor\} \{-wall\} 
-        \{-xfer_mat\} <ele_name>                                        ! \sref{s:show.element}
+        \{-xfer_mat\} <ele_name>                                          ! \sref{s:show.element}
   show field <ele> <x> <y> <z> \{<t>\}                                    ! \sref{s:show.field}
-  show global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\}   ! \sref{s:show.global}
+  show global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\}     ! \sref{s:show.global}
   show graph <graph_name>                                             ! \sref{s:show.graph}
-  show history \{-no_num\} \{<num_to_display>\}                         ! \sref{s:show.history}
+  show history \{-no_num\} \{<num_to_display>\}                           ! \sref{s:show.history}
   show hom                                                            ! \sref{s:show.hom}
   show key_bindings                                                   ! \sref{s:show.key}
   show lattice \{-0undef\} \{-all\} \{-attribute <attrib>\} \{-base\} 
@@ -1500,25 +1500,25 @@ Format:
         \{-radiation_integrals\} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} 
         \{-spin\} \{-tracking_elements\} \{<elements>\}                     ! \sref{s:show.lattice}
   show matrix \{-s\} \{loc1 \{loc2\}\}                                      ! \sref{s:show.matrix}
-  show normal_form \{-order <n_order>\} <type>                        ! \sref{s:show.normal}
-  show optimizer \{-geodesic_lm\}                                     ! \sref{s:show.optimizer}
+  show normal_form \{-order <n_order>\} <type>                          ! \sref{s:show.normal}
+  show optimizer \{-geodesic_lm\}                                       ! \sref{s:show.optimizer}
   show particle \{-bunch <bunch_name_or_index>\} \{-particle <particle_index> 
-        \{-element <element_name_or_index>\} \{-lost\} \{-all\}           ! \sref{s:show.particle}
+        \{-element <element_name_or_index>\} \{-lost\} \{-all\}             ! \sref{s:show.particle}
   show plot \{-floor_plan\} \{-lat_layout \} \{<plot_region_name>\} 
-        \{<template_plot_name>\}                                      ! \sref{s:show.plot}
-  show taylor_map \{-order <n_order>\} \{-s\} \{loc1 \{loc2\}\}             ! \sref{s:show.taylor}
-  show top10 \{-derivative\}                                          ! \sref{s:show.top10}
+        \{<template_plot_name>\}                                        ! \sref{s:show.plot}
+  show taylor_map \{-order <n_order>\} \{-s\} \{loc1 \{loc2\}\}               ! \sref{s:show.taylor}
+  show top10 \{-derivative\}                                            ! \sref{s:show.top10}
   show twiss_and_orbit \{-base\} \{-branch <name_or_index>\} \{-design\} 
-        \{-universe <ix_uni>\} <s_position>                           ! \sref{s:show.twiss}
-  show universe \{universe_number\}                                   ! \sref{s:show.universe}
-  show use                                                          ! \sref{s:show.use}
-  show value <expression>                                           ! \sref{s:show.value}
+        \{-universe <ix_uni>\} <s_position>                             ! \sref{s:show.twiss}
+  show universe \{universe_number\}                                     ! \sref{s:show.universe}
+  show use                                                            ! \sref{s:show.use}
+  show value <expression>                                             ! \sref{s:show.value}
   show variable \{-no_label_lines\} \{-universe <universes>\}            
-         \{-good_opt_only\} \{-bmad_format\} \{<var_name>\}                ! \sref{s:show.variable}
-  show wakes                                                        ! \sref{s:show.wakes}
+         \{-good_opt_only\} \{-bmad_format\} \{<var_name>\}                 ! \sref{s:show.variable}
+  show wakes                                                          ! \sref{s:show.wakes}
   show wall \{-branch <name_or_index>\} \{-section <index>\} \{-angle <angle>\} 
-        \{-s <s1>:<s2>\} \{<n1>:<n2>\}                                  ! \sref{s:show.wall}
-  show wave                                                         ! \sref{s:show.wave}
+        \{-s <s1>:<s2>\} \{<n1>:<n2>\}                                    ! \sref{s:show.wall}
+  show wave                                                           ! \sref{s:show.wave}
 \end{example}
 
 \vskip 0.2in 
