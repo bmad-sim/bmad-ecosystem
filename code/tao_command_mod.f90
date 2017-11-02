@@ -257,6 +257,9 @@ end subroutine tao_cmd_split
 ! Subroutine look at the next word on the command line and match this word to a list of "switches"
 ! given by the switch_list argument.
 ! 
+! Switches are assumed to start with a "-" character except if switch_list(1) does not start with
+! a "-" character in which case everything is considered to be a switch.
+!
 ! Switch abbreviations are permitted.
 !
 ! If return_next_word = True then, when a non-switch word is encountered, the switch argument 
@@ -288,16 +291,17 @@ character(20) :: r_name = 'tao_next_switch'
 logical err
 
 integer ix, n, ix_word
-logical return_next_word
+logical return_next_word, switch_starts_with_hyphon
 
 !
 
 err = .false.
 switch = ''
+switch_starts_with_hyphon = (switch_list(1)(1:1) == '-')
 
 call string_trim(line, line, ix_word)
 if (ix_word == 0) return
-if (line(1:1) /= '-') then
+if (line(1:1) /= '-' .and. switch_starts_with_hyphon) then
   if (return_next_word) then
     switch = line(1:ix_word)
     call string_trim(line(ix_word+1:), line, ix_word)
