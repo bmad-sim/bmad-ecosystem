@@ -311,6 +311,7 @@ do i = 1, n_bunch
         if (.not. remove_first_number (line, ix_word, '', in_parens)) return
       enddo
 
+      if (ix_word == 0) goto 8000
       read (line, *, iostat = ios) p(j)%charge
       if (ios /= 0 .or. ix_word == 0) then
         call this_error_out ('ERROR READING PARTICLE CHARGE', 'IN LINE: ' // trim(line_in))
@@ -361,6 +362,7 @@ do i = 1, n_bunch
 
     enddo
 
+    if (all (p%charge == 0)) p%charge = bunch%charge_tot / size(p)
 
   !------------------------------------------------------------------------------------
   ! Binary file
