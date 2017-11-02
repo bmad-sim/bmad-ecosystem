@@ -336,6 +336,7 @@ type tao_data_struct
   character(40) :: ele_ref_name = ''    ! Name of reference lattice element
   character(300) :: data_type = ''      ! Type of data: 'orbit.x', etc.
   character(40) :: merit_type = ''      ! Type of constraint: 'target', 'max', 'min', etc.
+  character(40) :: id = ''              ! Used by Tao extension code. Not used by Tao directly.
   character(20) :: data_source = ''     ! 'lat', or 'beam'
   integer :: ix_bunch = 0               ! Bunch number to get the data from.
   integer :: ix_branch = 0              ! Index of the lattice branch of the element
@@ -455,6 +456,7 @@ end type
 type tao_var_struct
   character(40) ele_name    ! Associated lattice element name.
   character(40) attrib_name ! Name of the attribute to vary.
+  character(40) :: id = ''  ! Used by Tao extension code. Not used by Tao directly.
   type (tao_var_slave_struct), allocatable :: slave(:)
   type (tao_var_slave_struct) :: common_slave
   integer ix_v1             ! Index of this var in the s%v1_var(i)%v(:) array.

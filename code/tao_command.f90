@@ -551,7 +551,7 @@ case ('set')
     call tao_set_wave_cmd (cmd_word(1), cmd_word(3), err)
     if (err) return
     call tao_cmd_end_calc
-    call tao_show_cmd ('wave', '')
+    call tao_show_cmd ('wave')
   end select
 
 !--------------------------------
@@ -559,21 +559,7 @@ case ('set')
 
 case ('show')
 
-  call tao_cmd_split (cmd_line, 2, cmd_word, .false., err); if (err) return
-  if (cmd_word(1) == '-file') then
-    cmd_line = cmd_word(2)
-    call tao_cmd_split (cmd_line, 3, cmd_word, .false., err); if (err) return
-    iu = lunget()
-    open (iu, file = cmd_word(1))
-    call output_direct (iu)
-    call tao_show_cmd (cmd_word(2), cmd_word(3))
-    call output_direct(-1)
-    close (iu)
-    call out_io (s_blank$, r_name, 'Output written to file: ' // cmd_word(1))
-    return
-  endif
-
-  call tao_show_cmd (cmd_word(1), cmd_word(2))
+  call tao_show_cmd (cmd_line)
   return
 
 !--------------------------------
@@ -609,7 +595,7 @@ case ('wave')
   call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
   call tao_wave_cmd (cmd_word(1), cmd_word(2), err); if (err) return
   call tao_cmd_end_calc
-  call tao_show_cmd ('wave', '')
+  call tao_show_cmd ('wave')
   return
 
 !--------------------------------
