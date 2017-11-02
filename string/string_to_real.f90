@@ -5,12 +5,12 @@
 !
 ! Input:
 !   line            -- character*(*): String to decode
-!   default         -- real: Default value to use for a blank string.
+!   default         -- real: Default value to use for a blank string or if there is an error.
 !   err_print_flag  -- logical, optional: If present and False then suppress error message printing.
 !
 ! Output:
 !   value    -- real: Variable to hold value
-!   err_flag -- logical: Set .true. if there is a decoding error
+!   err_flag -- logical: Set .true. if there is a decoding error. A blank string is not an error.
 !-
 
 function string_to_real (line, default, err_flag, err_print_flag) result (value)
@@ -29,16 +29,15 @@ character(*), parameter :: r_name = 'string_to_real'
 !
 
 err_flag = .false.
+value = default
 
 call string_trim (line, line, ix)
-if (ix .eq. 0) then 
-  value = default
-else
-  read (line, *, iostat = ios) value
-  if (ios /= 0) then
-    err_flag = .true.
-    if (logic_option(.true., err_print_flag)) call out_io (s_error$, r_name, 'ERROR DECODING NUMBER: ' // trim(line))
-  endif
+if (ix == 0) return
+
+read (line, *, iostat = ios) value
+if (ios /= 0) then
+  err_flag = .true.
+  if (logic_option(.true., err_print_flag)) call out_io (s_error$, r_name, 'ERROR DECODING NUMBER: ' // trim(line))
 endif
 
 end function
