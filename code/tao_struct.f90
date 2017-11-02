@@ -396,8 +396,8 @@ type tao_d2_data_struct
   character(40) :: name = ''             ! Name to be used with commands.
   character(200) :: data_file_name = ''  ! Data file name .
   character(200) :: ref_file_name = ''   ! Reference file name.
-  character(20) :: data_date = ''        ! Data measurement date.
-  character(20) :: ref_date = ''         ! Reference data measurement date.
+  character(24) :: data_date = ''        ! Data measurement date.
+  character(24) :: ref_date = ''         ! Reference data measurement date.
   character(80) :: descrip(10) = ''      ! Array for descriptive information.
   type (tao_d1_data_struct), allocatable :: d1(:) ! Points to children 
   integer ix_uni                         ! Index of universe this is in.

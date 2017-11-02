@@ -1145,7 +1145,7 @@ case ('species_to_int')
 
 case ('species_to_str')
 
-  call string_to_int (line, 0, n, err)
+  n = string_to_int (line, 0, err)
   name = species_name(n)
 
   if (err .or. line == '' .or. name == invalid_name) then
@@ -1618,7 +1618,7 @@ function parse_real (err) result (a_real)
 real(rp) a_real
 logical err
 
-call string_to_real (line, real_garbage$, a_real, err)
+a_real = string_to_real (line, real_garbage$, err)
 if (err .or. a_real == real_garbage$) then
   nl=incr(nl); li(nl) = 'INVALID'
   call out_io (s_error$, r_name, '"python ' // trim(input_str) // '" Bad real number')
