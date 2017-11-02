@@ -62,10 +62,8 @@ do
   select case (switch)
   case ('-noprint')
     doprint = .false.
-    call string_trim(what2(ix+1:), what2, ix)
 
   case ('-append', '-write')
-    call string_trim(what2(ix+1:), what2, ix)
     file_name = what2(:ix)
     call string_trim(what2(ix+1:), what2, ix)
 
