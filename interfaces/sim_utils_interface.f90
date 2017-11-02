@@ -508,22 +508,24 @@ function str_find_last_not_in_set(line, set) result (ix_match)
   integer ix_match
 end function
 
-subroutine string_to_int (line, default, value, err_flag)
+function string_to_int (line, default, err_flag, err_print_flag) result (value)
   implicit none
   integer default
   integer value
   character(*) line
   logical err_flag
-end subroutine
+  logical, optional :: err_print_flag
+end function
 
-subroutine string_to_real (line, default, value, err_flag)
+function string_to_real (line, default, err_flag, err_print_flag) result (value)
   import
   implicit none
   real(rp) default
   real(rp) value
   character(*) line
   logical err_flag
-end subroutine
+  logical, optional :: err_print_flag
+end function
 
 subroutine string_trim2 (in_str, delimitors, out_str, ix_word, delim, ix_next)
   implicit none
