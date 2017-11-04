@@ -235,6 +235,11 @@ subroutine tao_hook_init_lattice_post_parse (u)
   type (tao_universe_struct) u
 end subroutine
 
+subroutine tao_hook_init_plotting ()
+  import
+  implicit none
+end subroutine
+
 subroutine tao_hook_init_read_lattice_info (lat_file)
   implicit none
   character(*) lat_file
