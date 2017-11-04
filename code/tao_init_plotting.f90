@@ -768,6 +768,10 @@ enddo  ! file
 
 close (iu)
 
+! Hook
+
+call tao_hook_init_plotting()
+
 ! If no plots have been defined or default plots wanted then use default
 
 if (ip == 0 .or. include_default_plots) then
