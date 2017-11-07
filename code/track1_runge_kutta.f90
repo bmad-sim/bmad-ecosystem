@@ -2,12 +2,8 @@
 ! Subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)
 !
 ! Subroutine to do tracking using Runge-Kutta integration. 
-! The core Runge-Kutta routine used here is odeint_bmad which is
-! a modified version of odeint from Numerical Recipes.
+! The core Runge-Kutta routine used here is odeint_bmad which is a modified version of odeint from Numerical Recipes.
 ! See the "Numerical Recipes in F90" book.
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   start_orb  -- Coord_struct: Starting coords.
@@ -95,16 +91,6 @@ if (err_flag) return
 
 if (ele%key /= patch$) then
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_spin = set_spin)
-endif
-
-! The z value computed in odeint_bmad is off for elements where the particle changes energy is not 
-! constant (see odeint_bmad for more details) and when the ref time is not calcuated via the length
-! of the reference orbit (as with a wiggler). In this case, make the needed correction.
-! odeint_bmad uses a reference time assuming that the reference velocity is constant and equal to the velocity at the final energy.
-
-if (ele%key /= patch$) then
-  dref_time = ele%value(l$) / (beta_ref * c_light)
-  end_orb%vec(5) = end_orb%vec(5) + (ele%value(delta_ref_time$) - dref_time) * end_orb%beta * c_light
 endif
 
 end subroutine

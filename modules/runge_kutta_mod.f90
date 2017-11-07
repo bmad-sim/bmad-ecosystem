@@ -35,14 +35,8 @@ contains
 !     absolute error in tracking < abs_tol
 !
 ! Note: For elements where the reference energy is not constant (lcavity, etc.), and 
-! with particles where the velocity is energy dependent (ie non ultra-relativistic), 
-! the calculation of z is off since the reference velocity is unknown in the body of 
-! the element. In this case, the reference velocity is simply taken to be a 
-! constant equal to the reference velocity at the exit end. 
-! It is up to the calling routine to handle the correction for this.
-!
-! Modules needed:
-!   use bmad
+! with elements where the reference particle does not follow the reference trajectory (wigglers for example),
+! the calculation of z is "off" while the particle is inside the element. At the ends there is no problem.
 !
 ! Input: 
 !   orbit      -- Coord_struct: Starting coords: (x, px, y, py, z, delta) in element body coords.
@@ -553,9 +547,16 @@ logical :: err
 character(24), parameter :: r_name = 'kick_vector_calc'
 
 ! Init
+! The effective reference velocity is different from the velocity of the reference particle for wigglers where the reference particle
+! is not traveling along the reference line and in elements where the reference velocity is not constant.
+
+if (ele%value(delta_ref_time$) == 0 .or. ele%key == patch$) then
+  beta0 = ele%value(p0c$) / ele%value(e_tot$) ! Singular case. 
+else
+  beta0 = ele%value(l$) / (c_light * ele%value(delta_ref_time$))
+endif
 
 err = .true.
-beta0 = ele%value(p0c$) / ele%value(e_tot$) 
 dt_ds_ref = ele%orientation * orbit%direction / (beta0 * c_light)
 p0 = ele%value(p0c$) / c_light
 e_tot = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
