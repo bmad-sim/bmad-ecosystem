@@ -638,12 +638,19 @@ else
   h = 1
 endif
 
+! The effective reference velocity is different from the velocity of the reference particle for wigglers where the reference particle
+! is not traveling along the reference line and in elements where the reference velocity is not constant.
+
 if (orbit%beta == 0) then
   dvec_dt(10) = 0
 else
   dp_dt = dot_product(force, vel) / (orbit%beta * c_light)
   dbeta_dt = mass_of(orbit%species)**2 * dp_dt * c_light / e_tot**3
-  beta0 = ele%value(p0c$) / ele%value(e_tot$)
+  if (ele%value(delta_ref_time$) == 0 .or. ele%key == patch$) then
+    beta0 = ele%value(p0c$) / ele%value(e_tot$) ! Singular case. 
+  else
+    beta0 = ele%value(l$) / (c_light * ele%value(delta_ref_time$))
+  endif
   dvec_dt(10) = orbit%beta * c_light * (ele%orientation * vel(3) / (h * c_light * beta0) - 1) + dbeta_dt * z_phase / orbit%beta
 endif
 

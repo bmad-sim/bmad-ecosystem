@@ -177,20 +177,6 @@ endif
 
 call convert_pc_to (end_orb%p0c * (1 + end_orb%vec(6)), end_orb%species, beta = end_orb%beta)
 
-! The z value computed in odeint_bmad_time is off for elements where the particle changes energy is not 
-! constant and when the ref time is not calcuated via the length of the reference orbit (as with a wiggler). 
-! In this case, make the needed correction. Odeint_bmad_time uses a reference time
-! assuming that the reference velocity is constant and equal to the velocity at the final energy.
-! If the particle has started inside the element then just assume that the reference time is linear in s.
-! This is not a great approximation but absolute time tracking should be used here which makes the
-! tracking independent of z.
-
-if (ele%key /= patch$) then
-  r = abs(end_orb%s - start_orb_saved%s) / ele%value(l$)
-  dref_time = ele%value(l$) / (beta_ref * c_light)
-  end_orb%vec(5) = end_orb%vec(5) + r * (ele%value(delta_ref_time$) - dref_time) * end_orb%beta * c_light
-endif
-
 err_flag = .false.
 
 end subroutine
