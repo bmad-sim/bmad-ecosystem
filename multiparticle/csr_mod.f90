@@ -166,7 +166,8 @@ bunch_end = bunch_start
 
 if (csr_param%n_bin <= csr_param%particle_bin_span + 1) then
   call out_io (s_fatal$, r_name, &
-            'CSR_PARAM%N_BIN MUST BE GREATER THAN CSR_PARAM%PARTICLE_BIN_SPAN+1!')
+            'CSR_PARAM%N_BIN (\i0\) MUST BE GREATER THAN CSR_PARAM%PARTICLE_BIN_SPAN+1 (\i0\+1)!', &
+              i_array = [csr_param%n_bin, csr_param%particle_bin_span])
   if (global_com%exit_on_error) call err_exit
   return
 endif
