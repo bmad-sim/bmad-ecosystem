@@ -331,46 +331,46 @@ end type
 ! A datum is used in the optimization if both %useit_opt & %good_meas are true.
 
 type tao_data_struct
-  character(40) :: ele_name = ''        ! Name of the lattice element where datum is evaluated.
-  character(40) :: ele_start_name = ''  ! Name of starting lattice element when there is a range 
-  character(40) :: ele_ref_name = ''    ! Name of reference lattice element
-  character(300) :: data_type = ''      ! Type of data: 'orbit.x', etc.
-  character(40) :: merit_type = ''      ! Type of constraint: 'target', 'max', 'min', etc.
-  character(40) :: id = ''              ! Used by Tao extension code. Not used by Tao directly.
-  character(20) :: data_source = ''     ! 'lat', or 'beam'
-  integer :: ix_bunch = 0               ! Bunch number to get the data from.
-  integer :: ix_branch = 0              ! Index of the lattice branch of the element
-  integer :: ix_ele = -1                ! Index of the lattice element corresponding to ele_name
-  integer :: ix_ele_start = -1          ! Index of lattice elment when there is a range 
-  integer :: ix_ele_ref = -1            ! Index of lattice elment when there is a reference.
-  integer :: ix_ele_merit               ! Index of lattice elment where merit is evaluated.
-  integer :: ix_d1                      ! Index number in u%d2_data(i)%d1_data(j)%d(:) array.
-  integer :: ix_data = -1               ! Index of this datum in the u%data(:) array of data_structs.
-  integer :: ix_dModel = -1             ! Row number in the dModel_dVar derivative matrix.
-  integer :: eval_point = anchor_end$   ! Where to evaluate the data relative to the lattice element.
-  real(rp) :: meas_value                ! Measured datum value. 
-  real(rp) :: ref_value                 ! Measured datum value from the reference data set.
-  real(rp) :: model_value               ! Datum value as calculated from the model.
-  real(rp) :: design_value              ! What the datum value is in the design lattice.
-  real(rp) :: old_value                 ! The model_value at some previous time.
-  real(rp) :: base_value                ! The value as calculated from the base model.
-  real(rp) :: delta_merit               ! Diff used to calculate the merit function term 
-  real(rp) :: weight = 0                ! Weight for the merit function term
-  real(rp) :: invalid_value             ! Value used in merit calc if good_model = False.
-  real(rp) :: merit                     ! Merit function term value: weight * delta^2
-  real(rp) :: s                         ! longitudinal position of ele.
-  real(rp) :: s_offset = 0              ! Offset of the evaluation point.
-  logical :: exists = .false.           ! See above
-  logical :: good_model = .false.       ! See above
-  logical :: good_base = .false.        ! See above
-  logical :: good_design = .false.      ! See above
-  logical :: good_meas = .false.        ! See above
-  logical :: good_ref = .false.         ! See above
-  logical :: good_user = .true.         ! See above
-  logical :: good_opt = .true.          ! See above
-  logical :: good_plot                  ! See above
-  logical :: useit_plot                 ! See above
-  logical :: useit_opt                  ! See above
+  character(40) :: ele_name = ''          ! Name of the lattice element where datum is evaluated.
+  character(40) :: ele_start_name = ''    ! Name of starting lattice element when there is a range 
+  character(40) :: ele_ref_name = ''      ! Name of reference lattice element
+  character(300) :: data_type = ''        ! Type of data: 'orbit.x', etc.
+  character(40) :: merit_type = ''        ! Type of constraint: 'target', 'max', 'min', etc.
+  character(40) :: id = ''                ! Used by Tao extension code. Not used by Tao directly.
+  character(20) :: data_source = ''       ! 'lat', or 'beam'
+  integer :: ix_bunch = 0                 ! Bunch number to get the data from.
+  integer :: ix_branch = 0                ! Index of the lattice branch of the element
+  integer :: ix_ele = -1                  ! Index of the lattice element corresponding to ele_name
+  integer :: ix_ele_start = -1            ! Index of lattice elment when there is a range 
+  integer :: ix_ele_ref = -1              ! Index of lattice elment when there is a reference.
+  integer :: ix_ele_merit                 ! Index of lattice elment where merit is evaluated.
+  integer :: ix_d1 = -1                   ! Index number in u%d2_data(i)%d1_data(j)%d(:) array.
+  integer :: ix_data = -1                 ! Index of this datum in the u%data(:) array of data_structs.
+  integer :: ix_dModel = -1               ! Row number in the dModel_dVar derivative matrix.
+  integer :: eval_point = anchor_end$     ! Where to evaluate the data relative to the lattice element.
+  real(rp) :: meas_value = 0              ! Measured datum value. 
+  real(rp) :: ref_value = 0               ! Measured datum value from the reference data set.
+  real(rp) :: model_value = 0             ! Datum value as calculated from the model.
+  real(rp) :: design_value = 0            ! What the datum value is in the design lattice.
+  real(rp) :: old_value = 0               ! The model_value at some previous time.
+  real(rp) :: base_value = 0              ! The value as calculated from the base model.
+  real(rp) :: delta_merit = 0             ! Diff used to calculate the merit function term 
+  real(rp) :: weight = 0                  ! Weight for the merit function term
+  real(rp) :: invalid_value = 0           ! Value used in merit calc if good_model = False.
+  real(rp) :: merit = 0                   ! Merit function term value: weight * delta^2
+  real(rp) :: s = 0                       ! longitudinal position of ele.
+  real(rp) :: s_offset = 0                ! Offset of the evaluation point.
+  logical :: exists = .false.             ! See above
+  logical :: good_model = .false.         ! See above
+  logical :: good_base = .false.          ! See above
+  logical :: good_design = .false.        ! See above
+  logical :: good_meas = .false.          ! See above
+  logical :: good_ref = .false.           ! See above
+  logical :: good_user = .true.           ! See above
+  logical :: good_opt = .true.            ! See above
+  logical :: good_plot = .true.           ! See above
+  logical :: useit_plot = .false.         ! See above
+  logical :: useit_opt = .false.          ! See above
   type (tao_d1_data_struct), pointer :: d1 => null() 
                              ! Pointer to the parent d1_data_struct 
   type (tao_eval_stack1_struct), allocatable :: stack(:)
@@ -454,43 +454,43 @@ end type
 ! With common_lattice = True => var%slave(:)%model_value will point to the working universe.
 
 type tao_var_struct
-  character(40) ele_name    ! Associated lattice element name.
-  character(40) attrib_name ! Name of the attribute to vary.
-  character(40) :: id = ''  ! Used by Tao extension code. Not used by Tao directly.
+  character(40) :: ele_name = ''    ! Associated lattice element name.
+  character(40) :: attrib_name = '' ! Name of the attribute to vary.
+  character(40) :: id = ''          ! Used by Tao extension code. Not used by Tao directly.
   type (tao_var_slave_struct), allocatable :: slave(:)
   type (tao_var_slave_struct) :: common_slave
-  integer ix_v1             ! Index of this var in the s%v1_var(i)%v(:) array.
-  integer ix_var            ! Index number of this var in the s%var(:) array.
-  integer :: ix_dvar = -1   ! Column in the dData_dVar derivative matrix.
-  integer ix_attrib         ! Index in ele%value(:) array if appropriate.
-  integer ix_key_table      ! Has a key binding?
-  real(rp), pointer :: model_value      ! Model value.
-  real(rp), pointer :: base_value       ! Base value.
-  real(rp) design_value     ! Design value from the design lattice.
-  real(rp) scratch_value    ! Scratch space to be used within a routine.
-  real(rp) old_value        ! Scratch space to be used within a routine.
-  real(rp) meas_value       ! The value when the data measurement was taken.
-  real(rp) ref_value        ! Value when the reference measurement was taken.
-  real(rp) correction_value ! Value determined by a fit to correct the lattice.
-  real(rp) high_lim         ! High limit for the model_value.
-  real(rp) low_lim          ! Low limit for the model_value.
-  real(rp) step             ! Sets what is a small step for varying this var.
-  real(rp) weight           ! Weight for the merit function term.
-  real(rp) delta_merit      ! Diff used to calculate the merit function term.
-  real(rp) merit            ! merit_term = weight * delta^2.
-  real(rp) dMerit_dVar      ! Merit derivative.     
-  real(rp) key_val0         ! Key base value
-  real(rp) key_delta        ! Change in value when a key is pressed.
-  real(rp) s                ! longitudinal position of ele.
-  character(40) merit_type  ! 'target' or 'limit'
-  logical exists            ! See above
-  logical good_var          ! See above
-  logical good_user         ! See above
-  logical good_opt          ! See above
-  logical good_plot         ! See above
-  logical useit_opt         ! See above
-  logical useit_plot        ! See above
-  logical key_bound         ! Variable bound to keyboard key?
+  integer :: ix_v1 = 0              ! Index of this var in the s%v1_var(i)%v(:) array.
+  integer :: ix_var = 0             ! Index number of this var in the s%var(:) array.
+  integer :: ix_dvar = -1           ! Column in the dData_dVar derivative matrix.
+  integer :: ix_attrib = 0          ! Index in ele%value(:) array if appropriate.
+  integer :: ix_key_table = 0       ! Has a key binding?
+  real(rp), pointer :: model_value => null()     ! Model value.
+  real(rp), pointer :: base_value => null()      ! Base value.
+  real(rp) :: design_value = 0      ! Design value from the design lattice.
+  real(rp) :: scratch_value = 0     ! Scratch space to be used within a routine.
+  real(rp) :: old_value = 0         ! Scratch space to be used within a routine.
+  real(rp) :: meas_value = 0        ! The value when the data measurement was taken.
+  real(rp) :: ref_value = 0         ! Value when the reference measurement was taken.
+  real(rp) :: correction_value = 0  ! Value determined by a fit to correct the lattice.
+  real(rp) :: high_lim = -1d30      ! High limit for the model_value.
+  real(rp) :: low_lim = 1d30        ! Low limit for the model_value.
+  real(rp) :: step = 0              ! Sets what is a small step for varying this var.
+  real(rp) :: weight = 0            ! Weight for the merit function term.
+  real(rp) :: delta_merit = 0       ! Diff used to calculate the merit function term.
+  real(rp) :: merit = 0             ! merit_term = weight * delta^2.
+  real(rp) :: dMerit_dVar = 0       ! Merit derivative.     
+  real(rp) :: key_val0 = 0          ! Key base value
+  real(rp) :: key_delta = 0         ! Change in value when a key is pressed.
+  real(rp) :: s = 0                 ! longitudinal position of ele.
+  character(40) :: merit_type = ''  ! 'target' or 'limit'
+  logical :: exists = .false.       ! See above
+  logical :: good_var = .false.     ! See above
+  logical :: good_user = .true.     ! See above
+  logical :: good_opt = .false.     ! See above
+  logical :: good_plot = .false.    ! See above
+  logical :: useit_opt = .false.    ! See above
+  logical :: useit_plot = .false.   ! See above
+  logical :: key_bound = .false.    ! Variable bound to keyboard key?
   type (tao_v1_var_struct), pointer :: v1 => null() ! Pointer to the parent.
 end type tao_var_struct  
 
@@ -498,10 +498,10 @@ end type tao_var_struct
 ! The v1_var_struct has a pointer to a section in the s%var array. 
 
 type tao_v1_var_struct
-  character(40) :: name = ' '  ! Eg: 'quad_k1'
+  character(40) :: name = ''       ! Eg: 'quad_k1'
   integer ix_v1_var                ! Index to s%v1_var(:) array
   type (tao_var_struct), pointer :: v(:) => null() 
-                               ! Pointer to the appropriate section in s%var.
+                                   ! Pointer to the appropriate section in s%var.
 end type
 
 ! A tao_var_array_struct is just a pointer to a tao_var_struct.
