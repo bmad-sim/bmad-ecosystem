@@ -913,7 +913,7 @@ endif
 
 !---------------------------------
 
-n_plots = 75
+n_plots = 76
 
 if (allocated(s%plot_page%template)) then
   n = size(s%plot_page%template)
@@ -2770,6 +2770,34 @@ if (all(s%plot_page%template%name /= 'time')) then
   crv%g => grph
   crv%data_type     = 'time'
   crv%units        = 'sec'
+endif
+
+!---------------
+! velocity
+
+if (all(s%plot_page%template%name /= 'velocity')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(1))
+
+  plt = default_plot_g1c1 
+  plt%name                 = 'velocity'
+  plt%description          = 'Velocity/c_light'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Particle Velocity/c'
+  grph%y%label       = 'v/c [mm]'
+
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'velocity'
+  crv%y_axis_scale_factor = 1
+  crv%units        = ''
 endif
 
 !---------------

@@ -1154,6 +1154,9 @@ centerline of a machine and the walls of the containment building.}
   \label{f:wall.constraint}
 \end{figure}
 
+  \item[velocity, velocity.x, .y, .z] \Newline
+The velocity normalized by the speed of light $c$.
+
   \item[wall.left_side, .right_side] \Newline
 The \vn{wall} data data type is used to constrain the shape of a machine to fit
 inside a building's walls (\sref{s:building.wall}). The general layout is shown in
@@ -1354,6 +1357,7 @@ squared.
                                           lost in tracking
                                         \end{tabular}                             & lat         & No  \\ \hline
   unstable.ring                       & Nonzero if a ring is unstable             & lat         & No  \\ \hline
+  velocity, velocity.x, .y, .z        & Velocity normalized by $c$                & beam, lat   & Yes \\ \hline
   wall.left_side, .right_side         & Building wall constraint                  & lat         & No  \\ \hline
   wire.<angle>                        & Wire scanner at <angle>                   & beam        & No  \\ \hline
 \end{longtable}
