@@ -2719,6 +2719,54 @@ case ('unstable.')
 
 !-----------
 
+case ('velocity', 'velocity.')
+
+  if (tao_branch%track_state /= moving_forward$ .and. ix_ele > tao_branch%track_state) then
+    valid_value = .false.
+    call tao_set_invalid (datum, 'Particle lost.', why_invalid)
+    return
+  endif
+
+  select case (datum%data_type)
+
+  case ('velocity')
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params%centroid%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    else
+      call tao_load_this_datum (orbit(:)%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    endif
+
+  case ('velocity.x')
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params%centroid%vec(2)*(1+bunch_params%centroid%vec(6))*bunch_params%centroid%beta, &
+                        ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    else
+      call tao_load_this_datum (orbit(:)%vec(2)*(1+orbit(:)%vec(6))*orbit(:)%beta, &
+                        ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    endif
+
+  case ('velocity.y')
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params%centroid%vec(4)*(1+bunch_params%centroid%vec(6))*bunch_params%centroid%beta, &
+                        ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    else
+      call tao_load_this_datum (orbit(:)%vec(4)*(1+orbit(:)%vec(6))*orbit(:)%beta, &
+                        ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    endif
+
+  case ('velocity.z')
+    if (data_source == 'beam') then
+      call tao_load_this_datum (sqrt(1 - (bunch_params%centroid%vec(2)*(1+bunch_params%centroid%vec(6)))**2 - (bunch_params%centroid%vec(4)*(1+bunch_params%centroid%vec(6)))**2)*(1+bunch_params%centroid%vec(6))*bunch_params%centroid%beta, &
+                        ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    else
+      call tao_load_this_datum (sqrt(1 - (orbit(:)%vec(2)*(1+orbit(:)%vec(6)))**2 - (orbit(:)%vec(4)*(1+orbit(:)%vec(6)))**2)*(1+orbit(:)%vec(6))*orbit(:)%beta, &
+                        ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    endif
+
+  end select
+
+!-----------
+
 case ('wall.')
   if (data_source == 'beam') return
 

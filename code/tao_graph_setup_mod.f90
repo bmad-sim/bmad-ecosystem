@@ -2495,6 +2495,19 @@ do ii = 1, size(curve%x_line)
     call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch = ix_branch, unit_start = .false.)
     value = taylor_coef (t_map(i), expnt)
   
+  case ('velocity', 'velocity.')
+
+    select case (data_type)
+    case ('velocity')
+      value = orbit%beta
+    case ('velocity.x')
+      value = orbit%vec(2) * (1 + orbit%vec(6)) * orbit%beta
+    case ('velocity.y')
+      value = orbit%vec(4) * (1 + orbit%vec(6)) * orbit%beta
+    case ('velocity.z')
+      value = sqrt(1 - (orbit%vec(2) * (1 + orbit%vec(6)))**2 - (orbit%vec(4) * (1 + orbit%vec(6)))**2) * orbit%beta
+    end select
+
   case default
     goto 9000  ! Error message & Return
   end select
