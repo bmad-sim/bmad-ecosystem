@@ -219,7 +219,6 @@ contains
 
 subroutine electric_longitudinal_fringe()
 
-type (em_potential_struct) potential
 type (em_field_struct) field
 type (cartesian_map_struct), pointer :: ct
 type (cylindrical_map_struct), pointer :: cy
@@ -236,9 +235,9 @@ if (hard_ele%field_calc == bmad_standard$) then
     f = at_sign * charge_of(orb%species) 
 
     if (hard_ele%key == sbend$ .and. nint(hard_ele%value(exact_multipoles$)) /= off$) then
-      call bend_exact_multipole_field (hard_ele, param, orb, .true., field, .false., potential)
-      call apply_energy_kick (-f * potential%phi, orb, [-f * field%E(1), -f * field%E(2)], mat6, make_matrix)
-      if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -f * potential%phi])
+      call bend_exact_multipole_field (hard_ele, param, orb, .true., field, .false., .true.)
+      call apply_energy_kick (-f * field%phi, orb, [-f * field%E(1), -f * field%E(2)], mat6, make_matrix)
+      if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -f * field%phi])
 
     else
       xiy = 1
@@ -263,9 +262,9 @@ endif
 
 if (hard_ele%field_calc == fieldmap$ .and. hard_ele%tracking_method /= bmad_standard$) then
   f = at_sign * charge_of(orb%species) 
-  call em_field_calc(hard_ele, param, s_edge, orb, .true., field, .false., err_flag, potential)
-  call apply_energy_kick (-f * potential%phi, orb, f * field%E(1:2), mat6, make_matrix)
-  if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -f * potential%phi])
+  call em_field_calc(hard_ele, param, s_edge, orb, .true., field, .false., err_flag, .true.)
+  call apply_energy_kick (-f * field%phi, orb, f * field%E(1:2), mat6, make_matrix)
+  if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -f * field%phi])
 endif  
 
 

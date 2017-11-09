@@ -54,7 +54,7 @@ end function g_bend_from_em_field
 !-----------------------------------------------------------
 !+
 ! Subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, &
-!                             err_flag, potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
+!                             err_flag, calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
 !
 ! Routine to calculate the E and B fields at a particular place in an element.
 !
@@ -77,6 +77,8 @@ end function g_bend_from_em_field
 !                         as being with respect to the frame of referene of the element (ignore misalignments). 
 !   calc_dfield      -- Logical, optional: If present and True then calculate the field derivatives.
 !   use_overlap      -- logical, optional: Add in overlap fields from other elements? Default is True.
+!   calc_potential   -- logical, optional: Calc electric and magnetic potentials? Default is false. 
+!                         This is experimental and only implemented for wigglers at present.
 !   grid_allow_s_out_of_bounds 
 !                    -- logical, optional: For grids, allow s-coordinate to be grossly out of bounds 
 !                          and return zero instead of an error? Default: False. Used internally for overlapping fields.
@@ -89,12 +91,10 @@ end function g_bend_from_em_field
 ! Output:
 !   field       -- em_field_struct: E and B fields and derivatives.
 !   err_flag    -- logical, optional: Set True if there is an error. False otherwise.
-!   potential   -- em_potential_struct, optional: The electric and magnetic potentials.
-!                   This is experimental and only implemented for wigglers at present.
 !-
 
 recursive subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, &
-                           err_flag, potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
+                           err_flag, calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
 
 use geometry_mod
 
@@ -104,7 +104,6 @@ type (ele_pointer_struct), allocatable :: use_list(:)
 type (ele_struct), pointer :: lord
 type (lat_param_struct) param
 type (coord_struct) :: orbit, local_orb, lab_orb, lord_orb, this_orb
-type (em_potential_struct), optional :: potential
 type (em_field_struct) :: field, field1, field2, lord_field, l1_field, mode_field
 type (cartesian_map_struct), pointer :: ct_map
 type (cartesian_map_term1_struct), pointer :: ct_term
@@ -136,16 +135,15 @@ complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm, q
 integer i, j, m, n, ix, trig_x, trig_y, status, im, iz0, iz1, izp, field_calc, ix_pole_max
 
 logical :: local_ref_frame
-logical, optional :: calc_dfield, err_flag, use_overlap, grid_allow_s_out_of_bounds
+logical, optional :: calc_dfield, calc_potential, err_flag, use_overlap, grid_allow_s_out_of_bounds
 logical do_df_calc, err, dfield_computed, add_kicks
 
-character(20) :: r_name = 'em_field_calc'
+character(*), parameter :: r_name = 'em_field_calc'
 
 ! Initialize field
 ! If element is turned off then return zero
 
 field = em_field_struct()
-if (present(potential)) potential = em_potential_struct()
 
 do_df_calc = logic_option (.false., calc_dfield)
 dfield_computed = .false.
@@ -211,10 +209,10 @@ if (ele%field_calc == refer_to_lords$) then
         if (.not. associated(used_eles(j)%ele)) exit
         if (associated(used_eles(j)%ele, lord)) cycle lord_loop
       enddo
-      call em_field_calc (lord, param, s_lab2, lab_orb, .false., field2, calc_dfield, err, potential, &
+      call em_field_calc (lord, param, s_lab2, lab_orb, .false., field2, calc_dfield, err, calc_potential, &
                                                use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
     else
-      call em_field_calc (lord, param, s_lab2, lab_orb, .false., field2, calc_dfield, err, potential, &
+      call em_field_calc (lord, param, s_lab2, lab_orb, .false., field2, calc_dfield, err, calc_potential, &
                                                use_overlap, grid_allow_s_out_of_bounds, rf_time, use_list)
     endif
 
@@ -254,7 +252,7 @@ if (ele%key == sad_mult$ .and. ele%value(sad_flag$) == 0) then
   ! Solenoid calc. Ignore multipoles
   nullify(ele2%a_pole)
   nullify(ele2%b_pole)
-  call em_field_calc (ele2, param, s_pos, orbit, local_ref_frame, field1, calc_dfield, err_flag, potential, &
+  call em_field_calc (ele2, param, s_pos, orbit, local_ref_frame, field1, calc_dfield, err_flag, calc_potential, &
                                                      use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
   ! multipole calc
   ele2%value(ks$) = 0
@@ -263,7 +261,7 @@ if (ele%key == sad_mult$ .and. ele%value(sad_flag$) == 0) then
   ele2%value(y_pitch_tot$) = ele%value(y_pitch_tot$) + ele%value(y_pitch_mult$)
   ele2%value(x_offset_tot$) = ele%value(x_offset_tot$) + ele%value(x_offset_mult$)
   ele2%value(y_offset_tot$) = ele%value(y_offset_tot$) + ele%value(y_offset_mult$)
-  call em_field_calc (ele2, param, s_pos, orbit, local_ref_frame, field2, calc_dfield, err_flag, potential, &
+  call em_field_calc (ele2, param, s_pos, orbit, local_ref_frame, field2, calc_dfield, err_flag, calc_potential, &
                                                      use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
 
   field%b  = field1%b + field2%b
@@ -538,7 +536,7 @@ case (bmad_standard$)
   ! Add multipoles
 
   if (ele%key == sbend$ .and. nint(ele%value(exact_multipoles$)) /= off$) then
-    call bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field2, do_df_calc, potential)
+    call bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field2, do_df_calc, calc_potential)
     field%e = field%e + field2%e
     field%b = field%b + field2%b
     if (do_df_calc) then
@@ -781,7 +779,7 @@ case(fieldmap$)
           end select
         endif
 
-        if (present(potential)) then
+        if (logic_option(.false., calc_potential)) then
           coef = ct_term%coef 
           select case (ct_term%type)
           case (hyper_y_family_x$, hyper_xy_family_x$, hyper_x_family_x$)
@@ -811,63 +809,63 @@ case(fieldmap$)
           if (ct_map%field_type == magnetic$) then
             select case (ct_term%type)
             case (hyper_y_family_x$)
-              potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z * ct_term%kz / ct_term%ky
-              potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z * ct_term%kx / ct_term%ky
+              field%a(1) = field%a(1) + coef * s_x * sy_over_ky * s_z * ct_term%kz / ct_term%ky
+              field%a(3) = field%a(3) + coef * c_x * sy_over_ky * c_z * ct_term%kx / ct_term%ky
             case (hyper_xy_family_x$)
-              potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z
-              potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z * ct_term%kx / ct_term%kz
+              field%a(1) = field%a(1) + coef * s_x * sy_over_ky * s_z
+              field%a(3) = field%a(3) + coef * c_x * sy_over_ky * c_z * ct_term%kx / ct_term%kz
             case (hyper_x_family_x$)
-              potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z * ct_term%kz / ct_term%kx
-              potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z
+              field%a(1) = field%a(1) + coef * s_x * sy_over_ky * s_z * ct_term%kz / ct_term%kx
+              field%a(3) = field%a(3) + coef * c_x * sy_over_ky * c_z
 
             case (hyper_y_family_y$)
-              potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z * ct_term%kz / ct_term%ky
-              potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z
+              field%a(2) = field%a(2) - coef * sx_over_kx * s_y * s_z * ct_term%kz / ct_term%ky
+              field%a(3) = field%a(3) - coef * sx_over_kx * c_y * c_z
             case (hyper_xy_family_y$)
-              potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z
-              potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z * ct_term%ky / ct_term%kz
+              field%a(2) = field%a(2) - coef * sx_over_kx * s_y * s_z
+              field%a(3) = field%a(3) - coef * sx_over_kx * c_y * c_z * ct_term%ky / ct_term%kz
             case (hyper_x_family_y$)
-              potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z * ct_term%kz / ct_term%kx
-              potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z * ct_term%ky / ct_term%kx
+              field%a(2) = field%a(2) - coef * sx_over_kx * s_y * s_z * ct_term%kz / ct_term%kx
+              field%a(3) = field%a(3) - coef * sx_over_kx * c_y * c_z * ct_term%ky / ct_term%kx
 
             case (hyper_y_family_qu$)
-              potential%a(1) = potential%a(1) + coef * s_x * c_y * sz_over_kz
-              potential%a(2) = potential%a(2) - coef * c_x * s_y * sz_over_kz * ct_term%kx / ct_term%ky
+              field%a(1) = field%a(1) + coef * s_x * c_y * sz_over_kz
+              field%a(2) = field%a(2) - coef * c_x * s_y * sz_over_kz * ct_term%kx / ct_term%ky
             case (hyper_xy_family_qu$)
-              potential%a(1) = potential%a(1) + coef * s_x * c_y * sz_over_kz * ct_term%ky / ct_term%kz
-              potential%a(2) = potential%a(2) - coef * c_x * s_y * sz_over_kz * ct_term%kx / ct_term%kz
+              field%a(1) = field%a(1) + coef * s_x * c_y * sz_over_kz * ct_term%ky / ct_term%kz
+              field%a(2) = field%a(2) - coef * c_x * s_y * sz_over_kz * ct_term%kx / ct_term%kz
             case (hyper_x_family_qu$)
-              potential%a(1) = potential%a(1) + coef * s_x * c_y * sz_over_kz * ct_term%ky / ct_term%kx
-              potential%a(2) = potential%a(2) - coef * c_x * s_y * sz_over_kz
+              field%a(1) = field%a(1) + coef * s_x * c_y * sz_over_kz * ct_term%ky / ct_term%kx
+              field%a(2) = field%a(2) - coef * c_x * s_y * sz_over_kz
 
             case (hyper_y_family_sq$)
-              potential%a(1) = potential%a(1) + coef * c_x * s_y * sz_over_kz
-              potential%a(2) = potential%a(2) + coef * s_x * c_y * sz_over_kz * ct_term%kx / ct_term%ky
+              field%a(1) = field%a(1) + coef * c_x * s_y * sz_over_kz
+              field%a(2) = field%a(2) + coef * s_x * c_y * sz_over_kz * ct_term%kx / ct_term%ky
             case (hyper_xy_family_sq$)
-              potential%a(1) = potential%a(1) + coef * c_x * s_y * sz_over_kz * ct_term%ky / ct_term%kz
-              potential%a(2) = potential%a(2) - coef * s_x * c_y * sz_over_kz * ct_term%kx / ct_term%kz
+              field%a(1) = field%a(1) + coef * c_x * s_y * sz_over_kz * ct_term%ky / ct_term%kz
+              field%a(2) = field%a(2) - coef * s_x * c_y * sz_over_kz * ct_term%kx / ct_term%kz
             case (hyper_x_family_sq$)
-              potential%a(1) = potential%a(1) + coef * c_x * s_y * sz_over_kz * ct_term%ky / ct_term%kx
-              potential%a(2) = potential%a(2) + coef * s_x * c_y * sz_over_kz
+              field%a(1) = field%a(1) + coef * c_x * s_y * sz_over_kz * ct_term%ky / ct_term%kx
+              field%a(2) = field%a(2) + coef * s_x * c_y * sz_over_kz
             end select
 
           else  ! electric$
             select case (ct_term%type)
-            case (hyper_y_family_x$);   potential%phi = potential%phi + coef * s_x * c_y * c_z / ct_term%ky
-            case (hyper_xy_family_x$);  potential%phi = potential%phi + coef * s_y * c_y * c_z / ct_term%kz
-            case (hyper_x_family_x$);   potential%phi = potential%phi + coef * s_x * c_y * c_z / ct_term%kx
+            case (hyper_y_family_x$);   field%phi = field%phi + coef * s_x * c_y * c_z / ct_term%ky
+            case (hyper_xy_family_x$);  field%phi = field%phi + coef * s_y * c_y * c_z / ct_term%kz
+            case (hyper_x_family_x$);   field%phi = field%phi + coef * s_x * c_y * c_z / ct_term%kx
 
-            case (hyper_y_family_y$);   potential%phi = potential%phi + coef * c_x * s_y * c_z / ct_term%ky
-            case (hyper_xy_family_y$);  potential%phi = potential%phi + coef * c_x * s_y * c_z / ct_term%kz
-            case (hyper_x_family_y$);   potential%phi = potential%phi + coef * c_x * s_y * c_z / ct_term%kx
+            case (hyper_y_family_y$);   field%phi = field%phi + coef * c_x * s_y * c_z / ct_term%ky
+            case (hyper_xy_family_y$);  field%phi = field%phi + coef * c_x * s_y * c_z / ct_term%kz
+            case (hyper_x_family_y$);   field%phi = field%phi + coef * c_x * s_y * c_z / ct_term%kx
 
-            case (hyper_y_family_qu$);   potential%phi = potential%phi + coef * s_x * s_y * c_z / ct_term%ky
-            case (hyper_xy_family_qu$);  potential%phi = potential%phi + coef * s_x * s_y * c_z / ct_term%kz
-            case (hyper_x_family_qu$);   potential%phi = potential%phi + coef * s_x * s_y * c_z / ct_term%kx
+            case (hyper_y_family_qu$);   field%phi = field%phi + coef * s_x * s_y * c_z / ct_term%ky
+            case (hyper_xy_family_qu$);  field%phi = field%phi + coef * s_x * s_y * c_z / ct_term%kz
+            case (hyper_x_family_qu$);   field%phi = field%phi + coef * s_x * s_y * c_z / ct_term%kx
 
-            case (hyper_y_family_sq$);   potential%phi = potential%phi + coef * c_x * c_y * c_z / ct_term%ky
-            case (hyper_xy_family_sq$);  potential%phi = potential%phi + coef * c_x * c_y * c_z / ct_term%kz
-            case (hyper_x_family_sq$);   potential%phi = potential%phi - coef * c_x * c_y * c_z / ct_term%kx
+            case (hyper_y_family_sq$);   field%phi = field%phi + coef * c_x * c_y * c_z / ct_term%ky
+            case (hyper_xy_family_sq$);  field%phi = field%phi + coef * c_x * c_y * c_z / ct_term%kz
+            case (hyper_x_family_sq$);   field%phi = field%phi - coef * c_x * c_y * c_z / ct_term%kx
             end select
           endif
 
@@ -993,17 +991,17 @@ case(fieldmap$)
             B_z = B_z + real(cl_term%b_coef * q)
           endif
 
-          if (present(potential)) then
+          if (logic_option(.false., calc_potential)) then
             if (k_zn == 0) then
               if (m == 0) then
-                potential%phi = potential%phi - coef * real(cl_term%e_coef * z * i_imaginary)
+                field%phi = field%phi - coef * real(cl_term%e_coef * z * i_imaginary)
               elseif (m == 1) then
-                potential%phi = potential%phi - coef * real(cl_term%e_coef * cm * radius / 2)
+                field%phi = field%phi - coef * real(cl_term%e_coef * cm * radius / 2)
               endif
             elseif (m == 0) then
-              potential%phi = potential%phi - coef * real(cl_term%e_coef * exp_kz * Im_0 / k_zn)
+              field%phi = field%phi - coef * real(cl_term%e_coef * exp_kz * Im_0 / k_zn)
             else
-              potential%phi = potential%phi - coef * real(cl_term%e_coef * cm * Im_0 / k_zn)
+              field%phi = field%phi - coef * real(cl_term%e_coef * cm * Im_0 / k_zn)
             endif
           endif
 
@@ -1079,7 +1077,7 @@ case(fieldmap$)
       field%E = field%E + mode_field%E
       field%B = field%B + mode_field%B
 
-      if (present(potential)) then
+      if (logic_option(.false., calc_potential)) then
       endif
 
     enddo
@@ -1384,9 +1382,9 @@ else
 endif
 
 if (forward_transform) then
-  call rotate_em_field (field, w_mat, w_inv, calc_dfield, potential)
+  call rotate_em_field (field, w_mat, w_inv, calc_dfield, calc_potential)
 else
-  call rotate_em_field (field, w_inv, w_mat, calc_dfield, potential)
+  call rotate_em_field (field, w_inv, w_mat, calc_dfield, calc_potential)
 endif
 
 end subroutine convert_field_ele_to_lab
@@ -1474,36 +1472,35 @@ end subroutine em_field_calc
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine rotate_em_field (field, w_mat, w_inv, calc_dfield, potential)
+! Subroutine rotate_em_field (field, w_mat, w_inv, calc_dfield, calc_potential)
 !
 ! Routine to transform the fields using the given rotation matrices.
 !
 ! Input:
-!   field       -- em_field_struct: E and B fields and derivatives.
-!   w_mat(3,3)  -- real(rp): rotation matrix.
-!   w_inv(3,3)  -- real(rp): rotation matrix inverse = transpose(w_mat)
-!   calc_dfield -- Logical, optional: If present and True then calculate the field derivatives.
-!   potential   -- em_potential_struct, optional: The electric and magnetic potentials.
+!   field           -- em_field_struct: E and B fields and derivatives.
+!   w_mat(3,3)      -- real(rp): rotation matrix.
+!   w_inv(3,3)      -- real(rp): rotation matrix inverse = transpose(w_mat)
+!   calc_dfield     -- Logical, optional: If present and True then rotate the field derivatives.
+!   calc_potential  -- logical, optional: Rotate the magnetic vector potential? Default is false. 
 !
 ! Output:
-!   field       -- em_field_struct: E and B fields and derivatives.
+!   field           -- em_field_struct: E and B fields and derivatives.
 !-
 
-subroutine rotate_em_field (field, w_mat, w_inv, calc_dfield, potential)
+subroutine rotate_em_field (field, w_mat, w_inv, calc_dfield, calc_potential)
 
 type (em_field_struct) field
-type (em_potential_struct), optional :: potential
 
 real(rp) w_mat(3,3), w_inv(3,3)
-logical, optional :: calc_dfield
+logical, optional :: calc_dfield, calc_potential
 
 !
 
 field%B = matmul(w_mat, field%B)
 field%E = matmul(w_mat, field%E)
 
-if (present(potential)) then
-  potential%A = matmul(w_mat, potential%A)
+if (logic_option(.false., calc_potential)) then
+  field%A = matmul(w_mat, field%A)
 endif
 
 if (logic_option (.false., calc_dfield)) then
