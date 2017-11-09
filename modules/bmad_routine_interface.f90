@@ -76,7 +76,7 @@ subroutine bbi_kick (x, y, r, kx, ky)
   real(rp) x, y, r, kx, ky
 end subroutine
 
-subroutine bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field, calc_dfield, potential)
+subroutine bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field, calc_dfield, calc_potential)
   import
   implicit none
   type (ele_struct), target :: ele
@@ -84,8 +84,7 @@ subroutine bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field
   type (coord_struct) orbit
   type (em_field_struct) field
   logical local_ref_frame
-  logical, optional :: calc_dfield
-  type (em_potential_struct), optional :: potential
+  logical, optional :: calc_dfield, calc_potential
 end subroutine
 
 subroutine bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)

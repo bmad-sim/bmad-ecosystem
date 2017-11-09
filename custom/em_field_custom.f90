@@ -1,5 +1,5 @@
 !+
-! Subroutine em_field_custom (ele, param, s_rel, here, local_ref_frame, field, calc_dfield, err_flag)
+! Subroutine em_field_custom (ele, param, s_rel, here, local_ref_frame, field, calc_dfield, err_flag, calc_potential)
 !
 ! Routine for handling custom (user supplied) EM fields.
 ! This routine is called when ele%field_calc = custom$ or when ele is a custom element (ele%key = custom$)
@@ -18,23 +18,23 @@
 ! an output agument below.
 !
 ! Input:
-!   ele         -- Ele_struct: Custom element.
-!   param       -- lat_param_struct: Lattice parameters.
-!   s_rel       -- Real(rp): Longitudinal position relative to the start of the element.
-!   here        -- Coord_struct: Coords with respect to the reference particle.
-!   local_ref_frame 
-!               -- Logical, If True then take the 
-!                     input coordinates and output fields as being with 
-!                     respect to the frame of referene of the element. 
-!   calc_dfield -- Logical, optional: If present and True then the field 
-!                     derivative matrix is wanted by the calling program.
+!   ele             -- Ele_struct: Custom element.
+!   param           -- lat_param_struct: Lattice parameters.
+!   s_rel           -- Real(rp): Longitudinal position relative to the start of the element.
+!   here            -- Coord_struct: Coords with respect to the reference particle.
+!   local_ref_frame -- Logical, If True then take the 
+!                         input coordinates and output fields as being with 
+!                         respect to the frame of referene of the element. 
+!   calc_dfield     -- Logical, optional: If present and True then the field 
+!                         derivative matrix is wanted by the calling program.
+!   calc_potential  -- logical, optional: Calc electric and magnetic potentials? Default is false. 
 !
 ! Output:
 !   field    -- Em_field_struct: Structure hoding the field values.
 !   err_flag -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
-subroutine em_field_custom (ele, param, s_rel, orb, local_ref_frame, field, calc_dfield, err_flag)
+subroutine em_field_custom (ele, param, s_rel, orb, local_ref_frame, field, calc_dfield, err_flag, calc_potential)
 
 use bmad_struct
 use bmad_interface, except_dummy => em_field_custom
@@ -47,8 +47,8 @@ type (coord_struct), intent(in) :: orb
 real(rp), intent(in) :: s_rel
 logical local_ref_frame
 type (em_field_struct) :: field
-logical, optional :: calc_dfield, err_flag
-character(32) :: r_name = 'em_field_custom'
+logical, optional :: calc_dfield, err_flag, calc_potential
+character(*), parameter :: r_name = 'em_field_custom'
 
 !
 
