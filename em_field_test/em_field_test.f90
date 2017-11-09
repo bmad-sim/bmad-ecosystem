@@ -16,7 +16,6 @@ type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 type (coord_struct) :: orb, dorb, orb2
 type (em_field_struct) field0, fp, fm, ff
-type (em_potential_struct) p0, pp, pm
 
 real(rp) del, ds, dr_ds_kick(11), dr_ds_track(11) 
 integer i, ib, ie, j, nargs
@@ -68,7 +67,7 @@ do ib = 0, ubound(lat%branch, 1)
     orb%vec(4) = 0
     orb%vec(6) = 0
 
-    call em_field_calc (ele, branch%param, orb%vec(5), orb, .false., field0, .true., err, p0)
+    call em_field_calc (ele, branch%param, orb%vec(5), orb, .false., field0, .true., err, .true.)
 
     ff = em_field_struct()
 
@@ -76,21 +75,21 @@ do ib = 0, ubound(lat%branch, 1)
       j = 2*i - 1
       dorb = orb
       dorb%vec(j) = orb%vec(j) + del
-      call em_field_calc (ele, lat%param, dorb%vec(5), dorb, .false., fp, .false., err, pp, rf_time = 1.0_rp)
+      call em_field_calc (ele, lat%param, dorb%vec(5), dorb, .false., fp, .false., err, .true., rf_time = 1.0_rp)
       dorb%vec(j) = orb%vec(j) - del
-      call em_field_calc (ele, lat%param, dorb%vec(5), dorb, .false., fm, .false., err, pm, rf_time = 1.0_rp)
+      call em_field_calc (ele, lat%param, dorb%vec(5), dorb, .false., fm, .false., err, .true., rf_time = 1.0_rp)
       ff%dE(:,i) = (fp%e - fm%e) / (2 * del)
       ff%dB(:,i) = (fp%b - fm%b) / (2 * del)
       select case (i)
       case (1)
-        ff%B(2) = ff%B(2) - (pp%A(3) - pm%A(3)) / (2 * del)
-        ff%B(3) = ff%B(3) + (pp%A(2) - pm%A(2)) / (2 * del)
+        ff%B(2) = ff%B(2) - (fp%A(3) - fm%A(3)) / (2 * del)
+        ff%B(3) = ff%B(3) + (fp%A(2) - fm%A(2)) / (2 * del)
       case (2)
-        ff%B(3) = ff%B(3) - (pp%A(1) - pm%A(1)) / (2 * del)
-        ff%B(1) = ff%B(1) + (pp%A(3) - pm%A(3)) / (2 * del)
+        ff%B(3) = ff%B(3) - (fp%A(1) - fm%A(1)) / (2 * del)
+        ff%B(1) = ff%B(1) + (fp%A(3) - fm%A(3)) / (2 * del)
       case (3)
-        ff%B(1) = ff%B(1) - (pp%A(2) - pm%A(2)) / (2 * del)
-        ff%B(2) = ff%B(2) + (pp%A(1) - pm%A(1)) / (2 * del)
+        ff%B(1) = ff%B(1) - (fp%A(2) - fm%A(2)) / (2 * del)
+        ff%B(2) = ff%B(2) + (fp%A(1) - fm%A(1)) / (2 * del)
       end select
     enddo
 
@@ -134,7 +133,7 @@ do ib = 0, ubound(lat%branch, 1)
     endif
 
     write (1, '(3a, 3es16.8)') '"', trim(ele%name), ':B" REL 1E-6', field0%B
-    if (any(pp%a /= 0)) write (1, '(3a, 3es16.8)') '"', trim(ele%name), ':B-diff" REL 1E-6', field0%B-ff%B
+    if (any(fp%a /= 0)) write (1, '(3a, 3es16.8)') '"', trim(ele%name), ':B-diff" REL 1E-6', field0%B-ff%B
 
     write (1, '(3a, 2es16.8)') '"', trim(ele%name), ':Kick" REL 1E-6', dr_ds_kick(2:4:2)
     write (1, '(3a, 2es16.8)') '"', trim(ele%name), ':dKick" REL 1E-6', dr_ds_kick(2:4:2) - dr_ds_track(2:4:2)
