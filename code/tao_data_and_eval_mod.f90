@@ -4187,7 +4187,7 @@ do i = 1, size(stack)
   if (.not. allocated(stack(i)%info)) cycle
 
   if (size(stack(i)%info) == 1) then
-    info%good = info%good .and. stack(i)%info(1:1)%good
+    info%good = info%good .and. stack(i)%info(1)%good
   else
    info%good = info%good .and. stack(i)%info%good
   endif
