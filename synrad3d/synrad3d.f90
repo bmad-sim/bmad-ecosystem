@@ -672,9 +672,10 @@ wall_name = branch%wall3d(photon%now%ix_wall3d)%name
 if (wall_name == '') wall_name = '<default_subchamber>'
 
 iu = sr3d_params%iu_dat_file
-write (iu, '(i8, i6, es14.6, (4f12.6, f12.3, f12.6), i4, (4f12.6, f12.3, f12.6), 2f12.6, i4, i7, 3x, a16, 3x, a)') &
+write (iu, '(i8, i6, es14.6, (4f12.6, f12.4, f12.6), i4, (4f12.6, f12.4, f12.6), f11.6, 2f12.6, i4, i7, 3x, a16, 3x, a)') &
         n_photon, photon%n_wall_hit, photon%start%orb%p0c, start_vec, photon%start%ix_branch, now_vec, &
-        photon%now%orb%path_len, dtrack, branch%ix_branch, j, key_name(branch%ele(j)%key), trim(wall_name)
+        wall_hit(photon%n_wall_hit)%cos_perp_in,  photon%now%orb%path_len, dtrack, branch%ix_branch, j, &
+        key_name(branch%ele(j)%key), trim(wall_name)
 
 end subroutine write_photon_data
 
@@ -832,9 +833,9 @@ write (iu, '(a, es10.3)')    '# roughness_correlation_len (input)     = ', rough
 write (iu, '(a, es10.3)')    '# roughness_correlation_len (set value) = ', lat%surface(1)%roughness_correlation_len
 write (iu, '(a, l1)')        '# sr3d_params%allow_reflections         = ', sr3d_params%allow_reflections
 write (iu, '(a, l1)')        '# sr3d_params%specular_reflection_only  = ', sr3d_params%specular_reflection_only
-write (iu, '(a)') '#                                                                                                                                                                                                         Ix_Branch'
-write (iu, '(a)') '# Photon   Num               |                        Init Postion                                   Ix_   |                        Final Position                                 |   Path     ds_photon    Ix_Ele   Ele Type'
-write (iu, '(a)') '#  index   Hit   E_photon    |    x           Vx          y           Vy          s           Vz    Branch |    x           Vx          y          Vy          s           Vz      |   Length   - ds_beam     @ Hit   @ Hit              Chamber_name'
+write (iu, '(a)') '#                                                                                                                                                                                                                    Ix_Branch'
+write (iu, '(a)') '# Photon   Num               |                        Init Postion                                   Ix_   |                        Final Position                                sin(Graze  |  Path     ds_photon     Ix_Ele   Ele Type'
+write (iu, '(a)') '#  index   Hit   E_photon    |    x           Vx          y           Vy          s           Vz    Branch |    x           Vx          y          Vy          s           Vz      Angle)    |  Length   - ds_beam      @ Hit   @ Hit              Chamber_name'
 
 end subroutine
 

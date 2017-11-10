@@ -112,7 +112,7 @@ $\vcenter{\hbox{\includegraphics[width=2in]{lhc-cross-section.pdf}}}$
 {\LARGE\bfseries Gerry Dugan and David Sagan}
 
 \vspace{0.4in}
-{\large\bfseries October 25, 2017}
+{\large\bfseries November 10 2017}
 
 \end{center}
 \end{titlepage}
@@ -1825,13 +1825,14 @@ The columns of the file are:
   4-9:    Initial photon position $x$, $V_x/c$, $y$, $V_y/c$, $s$, $V_s/c$.
   10      Index of the lattice branch where the photon was created
   11-16:  Final photon position
-  17:     Photon travel length
-  18:     Photon longitudinal travel length - beam travel length 
+  17:     sin(graze_angle). 0 = Grazing incidence, 1 = perpendicular incidence.
+  18:     Photon travel length
+  19:     Photon longitudinal travel length - beam travel length 
                                                        in the same time period.
-  19:     Index of the lattice branch where the photon is absorbed.
-  20:     Lattice element index where photon is absorbed.
-  21:     Lattice element type (Eg: quadrupole, etc.) where photon is absorbed.
-  22:     sub-chamber name where photon is absorbed.
+  20:     Index of the lattice branch where the photon is absorbed.
+  21:     Lattice element index where photon is absorbed.
+  22:     Lattice element type (Eg: quadrupole, etc.) where photon is absorbed.
+  23:     sub-chamber name where photon is absorbed.
 \end{example}  
 
 $x$ is the horizontal position (direction along the
@@ -1895,7 +1896,8 @@ Columns 14 through 16 give the perpendicular vector to the wall at the point of 
 impact.
 
 Columns 17 and 18 give the cosine of the angle between the wall perpendicular and the
-photon velocity just before and just after the bounce.
+photon velocity just before and just after the bounce. 0 = photon velocity parallel to wall,
+$\pm 1$ = photon velocity perpendicular to wall.
 
 Column 18 gives reflectivity which is a function of the type of surface and the photon
 orientation with respect to the wall.

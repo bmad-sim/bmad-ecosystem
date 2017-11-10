@@ -10,8 +10,8 @@ type sr3d_photon_wall_hit_struct
   type (coord_struct) before_reflect    ! Coords before reflection.
   type (coord_struct) after_reflect     ! Coords after reflection.
   real(rp) dw_perp(3)                   ! Wall perpendicular vector
-  real(rp) cos_perp_in                  ! Cosine of incoming ray and hit angle
-  real(rp) cos_perp_out                 ! Cosine of hit angle
+  real(rp) cos_perp_in                  ! Incomming velocity component perpendicular to the wall.
+  real(rp) cos_perp_out                 ! Outgoing velocity component perpendicular to the wall.
   real(rp) reflectivity                 ! Reflectivity probability
   integer ix_wall3d                     ! Index of wall hit.
   integer ix_branch                     ! Lattice branch photon in in.
