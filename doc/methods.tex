@@ -466,12 +466,11 @@ more details.
 \index{tracking!mat6_calc_method}
 \item[\vn{Tracking}] \Newline
 How spin is tracked here will depend also on the setting of \vn{tracking_method}. If
-\vn{tracking_method} is set to \vn{boris}, \vn{runge_kutta}, or \vn{time_runge_kutta} the
-spin will be tracked along with the phase space particle coordinates using the local
-fields. For \vn{tracking_method} set to \vn{symp_lie_ptc}, the spin tracking will use
-\vn{PTC}.  For all other \vn{tracking_method}s, the spin will be tracked using the
-``\vn{bmad_standard}'' spin tracking method which involves thick element formulas which generally
-will be faster but less accurate than the other methods.
+\vn{tracking_method} is set to \vn{boris}, \vn{runge_kutta}, or \vn{time_runge_kutta} the spin will
+be tracked along with the phase space particle coordinates using the local fields. For
+\vn{tracking_method} set to \vn{symp_lie_ptc}, the spin tracking will use \vn{PTC}.  For all other
+\vn{tracking_method}s, the spin will be tracked using the ``\vn{bmad_standard}'' spin tracking
+method which involves Romberg integration of the spin rotation matrix.
 
 \index{symp_lie_ptc!spin_tracking_method}
 \item[\vn{Symp_Lie_PTC}] \Newline
