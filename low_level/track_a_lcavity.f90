@@ -36,9 +36,9 @@ type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
 real(rp) length, pc_start, pc_end, gradient_ref, gradient_max, dz_factor, rel_p, coef, k2
-real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref, alpha, sin_a, cos_a, r_mat(2,2), volt_ref
+real(rp) E_start_ref, E_end_ref, pc_end_ref, alpha, sin_a, cos_a, r_mat(2,2), volt_ref
 real(rp) phase, cos_phi, sin_phi, gradient_net, e_start, e_end, e_ratio, voltage_max, dp_dg, sqrt_8, f, k1
-real(rp) dE_start, dE_end, dE, beta_start, beta_end, beta_start_ref, beta_end_ref
+real(rp) dE_start, dE_end, dE, beta_start, beta_end
 real(rp) pxy2, xp1, xp2, yp1, yp2, mc2, om, om_g, m2(2,2), kmat(6,6)
 real(rp) dbeta1_dE1, dbeta2_dE2, dalpha_dt1, dalpha_dE1, dcoef_dt1, dcoef_dE1, z21, z22
 real(rp) c_min, c_plu, dc_min, dc_plu, cos_term, dcos_phi, drp1_dr0, drp1_drp0, drp2_dr0, drp2_drp0
@@ -78,13 +78,10 @@ rel_p = 1 + orbit%vec(6)
 E_start_ref  = ele%value(E_tot_start$)
 E_end_ref    = ele%value(E_tot$)
 gradient_ref = (E_end_ref - E_start_ref) / length
-pc_start_ref = ele%value(p0c_start$)
 pc_end_ref   = ele%value(p0c$)
-beta_start_ref = pc_start_ref / E_start_ref
-beta_end_ref   = pc_end_ref / E_end_ref
 mc2 = mass_of(orbit%species)
 
-pc_start = pc_start_ref * rel_p
+pc_start = ele%value(p0c_start$) * rel_p
 beta_start = orbit%beta
 E_start = pc_start / beta_start 
 
