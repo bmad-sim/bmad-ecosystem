@@ -32,16 +32,18 @@ case (lcavity$, custom$, hybrid$, wiggler$, undulator$, rfcavity$, e_gun$)
   is_const = .false.
 
 case (em_field$)
-  if (ele%slave_status == super_slave$) then
+  if (ele%slave_status == slice_slave$) then
+    is_const = ele_has_constant_ds_dt_ref(ele%lord)
+
+  elseif (ele%slave_status == super_slave$) then
     do ie = 1, ele%n_lord
       lord => pointer_to_lord(ele, ie)
       is_const = ele_has_constant_ds_dt_ref(lord)
       if (.not. is_const) return
     enddo
-  elseif (is_true(ele%value(constant_ref_energy$))) then
-    is_const = .true.
+
   else
-    is_const = .false.
+    is_const = is_true(ele%value(constant_ref_energy$))
   endif
 
 case default
