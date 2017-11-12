@@ -139,6 +139,13 @@ subroutine c_to_cbar (ele, cbar_mat)
   real(rp) cbar_mat(2,2)
 end subroutine
 
+subroutine calc_super_slave_key (lord1, lord2, slave, create_jumbo_slave)
+  import
+  implicit none
+  type (ele_struct), target :: lord1, lord2, slave
+  logical, optional :: create_jumbo_slave
+end subroutine
+
 subroutine calc_z_tune (lat, ix_branch)
   import
   implicit none
