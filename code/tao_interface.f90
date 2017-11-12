@@ -288,8 +288,10 @@ subroutine tao_hook_parse_command_args()
   implicit none
 end subroutine
 
-subroutine tao_hook_plot_setup()
+subroutine tao_hook_plot_setup(place)
+  use tao_input_struct
   implicit none
+  type (tao_place_input) place(:)
 end subroutine
 
 subroutine tao_hook_post_process_data ()

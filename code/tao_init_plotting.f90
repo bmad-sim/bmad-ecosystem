@@ -770,7 +770,7 @@ close (iu)
 
 ! Hook
 
-call tao_hook_init_plotting()
+call tao_hook_init_plotting(place)
 
 ! If no plots have been defined or default plots wanted then use default
 
