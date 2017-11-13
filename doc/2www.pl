@@ -46,6 +46,3 @@ close (F_OUT);
 `chmod g+w  ~/public_html/bmad/bmad-manual-$rev.pdf`;
 
 `cp bmad.pdf ~/public_html/bmad/bmad-manual.pdf`;   # For Chris
-
-# For Attilio
-
