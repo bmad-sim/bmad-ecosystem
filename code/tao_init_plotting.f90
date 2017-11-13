@@ -768,10 +768,6 @@ enddo  ! file
 
 close (iu)
 
-! Hook
-
-call tao_hook_init_plotting(place)
-
 ! If no plots have been defined or default plots wanted then use default
 
 if (ip == 0 .or. include_default_plots) then
@@ -781,11 +777,15 @@ if (ip == 0 .or. include_default_plots) then
   call tao_setup_default_plotting()
 endif
 
+! Hook
+
+call tao_hook_init_plotting(place)
+
 ! initial placement of plots
 
 if (s%global%plot_on) then
   do i = 1, size(place)
-    if (place(i)%region == ' ') cycle
+    if (place(i)%region == '') cycle
     call tao_place_cmd (place(i)%region, place(i)%plot)
   enddo
 endif
