@@ -777,11 +777,7 @@ if (ip == 0 .or. include_default_plots) then
   call tao_setup_default_plotting()
 endif
 
-! Hook
-
-call tao_hook_init_plotting(place)
-
-! initial placement of plots
+! Initial placement of plots
 
 if (s%global%plot_on) then
   do i = 1, size(place)
@@ -789,6 +785,12 @@ if (s%global%plot_on) then
     call tao_place_cmd (place(i)%region, place(i)%plot)
   enddo
 endif
+
+! Hook
+
+call tao_hook_init_plotting()
+
+! And finish
 
 call tao_create_plot_window
 
