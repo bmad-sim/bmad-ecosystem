@@ -136,7 +136,12 @@ do k = 1, size(graph%curve)
                   trim(graph%title_suffix) // '[At: ' // trim(curve%ele_ref_name) // ']'
 enddo
 
-if (graph%component /= '') graph%title_suffix = trim(graph%title_suffix) // ' [' // trim(graph%component) // ']'
+if (all(graph%curve%component == '')) then
+  if (graph%component /= '') graph%title_suffix = trim(graph%title_suffix) // ' [' // trim(graph%component) // ']'
+else
+  if (all(graph%curve%component == graph%curve(1)%component)) graph%title_suffix = trim(graph%title_suffix) // &
+                                                                              ' [' // trim(graph%curve(1)%component) // ']'
+endif
 
 ! loop over all curves
 
@@ -321,11 +326,10 @@ do k = 1, size(graph%curve)
   name = curve%ele_ref_name
   if (name == '') name = ele%name
   if (same_uni) then
-    write (graph%title_suffix, '(2a, i0, 3a)') trim(graph%title_suffix), &
-                                '[', curve%ix_ele_ref, ': ', trim(name), ']'
+    write (graph%title_suffix, '(2a, i0, 3a)') trim(graph%title_suffix), '[', curve%ix_ele_ref, ': ', trim(name), ']'
   else
     write (graph%title_suffix, '(2a, i0, a, i0, 3a)') trim(graph%title_suffix), &
-            '[', u%ix_uni, '@', curve%ix_ele_ref, ': ', trim(name), ']'
+                                                          '[', u%ix_uni, '@', curve%ix_ele_ref, ': ', trim(name), ']'
   endif
 enddo
 
@@ -1057,7 +1061,12 @@ logical err
 !
 
 graph%title_suffix = ''
-if (graph%component /= '') graph%title_suffix = '[' // trim(graph%component) // ']'
+if (all(graph%curve%component == '')) then
+  if (graph%component /= '') graph%title_suffix = trim(graph%title_suffix) // ' [' // trim(graph%component) // ']'
+else
+  if (all(graph%curve%component == graph%curve(1)%component)) graph%title_suffix = trim(graph%title_suffix) // &
+                                                                              ' [' // trim(graph%curve(1)%component) // ']'
+endif
 
 ! Attach x-axis type to title suffix if needed.
 ! Needed %label is blank and %draw_label = F.
