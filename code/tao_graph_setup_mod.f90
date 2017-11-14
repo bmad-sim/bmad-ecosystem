@@ -1061,11 +1061,15 @@ logical err
 !
 
 graph%title_suffix = ''
-if (all(graph%curve%component == '')) then
-  if (graph%component /= '') graph%title_suffix = trim(graph%title_suffix) // ' [' // trim(graph%component) // ']'
+if (allocated(graph%curve)) then
+  if (all(graph%curve%component == '')) then
+    if (graph%component /= '') graph%title_suffix = trim(graph%title_suffix) // ' [' // trim(graph%component) // ']'
+  else
+    if (all(graph%curve%component == graph%curve(1)%component)) graph%title_suffix = trim(graph%title_suffix) // &
+                                                                                ' [' // trim(graph%curve(1)%component) // ']'
+  endif
 else
-  if (all(graph%curve%component == graph%curve(1)%component)) graph%title_suffix = trim(graph%title_suffix) // &
-                                                                              ' [' // trim(graph%curve(1)%component) // ']'
+  if (graph%component /= '') graph%title_suffix = trim(graph%title_suffix) // ' [' // trim(graph%component) // ']'
 endif
 
 ! Attach x-axis type to title suffix if needed.

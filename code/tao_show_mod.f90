@@ -3107,7 +3107,7 @@ case ('taylor_map', 'matrix')
 
 case ('top10')
 
-  if (ix == 0) then
+  if (what2 == '') then
     call tao_show_constraints (0, 'TOP10')
     call tao_top10_merit_categories_print (0)
   elseif (index('-derivative', trim(what2)) == 1) then 
