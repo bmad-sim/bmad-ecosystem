@@ -144,6 +144,7 @@ type bp_common_struct
   integer num_lat_files               ! Number of files opened
   integer ivar_tot, ivar_init
   character(200), allocatable :: lat_file_names(:) ! List of all files used to create lat
+  ! Note: use %line2_file_name to ID line. %line1_file_name may be blank!
   character(200) line1_file_name           ! Name of file from which %input_line1 was read
   character(200) line2_file_name           ! Name of file from which %input_line2 was read
   character(n_parse_line) parse_line
@@ -6805,7 +6806,7 @@ do
       allocate (ct_map%ptr%term(1))
       tm => ct_map%ptr%term(1)
       ! Set %file to be the last called file:<line_number>. 
-      ct_map%ptr%file = bp_com%line1_file_name
+      ct_map%ptr%file = bp_com%line2_file_name
     else
       n = size(ct_map%ptr%term) + 1
       call move_alloc(ct_map%ptr%term, term)
@@ -7021,7 +7022,7 @@ do
 
     if (.not. file_name_set) then
       ! Set %file to be the last called file:<line_number>. 
-      cl_map%ptr%file = bp_com%line1_file_name
+      cl_map%ptr%file = bp_com%line2_file_name
       file_name_set = .true.
     endif
 
@@ -7248,7 +7249,7 @@ do
 
     if (pt_counter == 0) then
       ! Set %file to be the last called file:<line_number>.
-      g_field%ptr%file = bp_com%line1_file_name
+      g_field%ptr%file = bp_com%line2_file_name
     endif
 
     ! Increment 
@@ -7583,7 +7584,7 @@ do
       deallocate(plane)
     else
       ! Set %file to be the last called file:<line_number>. 
-      t_field%ptr%file = bp_com%line1_file_name
+      t_field%ptr%file = bp_com%line2_file_name
       allocate(t_field%ptr%plane(ix:ix))
     endif
 
