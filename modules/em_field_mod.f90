@@ -298,7 +298,7 @@ endif
 ! field_calc methods
 
 field_calc = ele%field_calc
-if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$) field_calc = fieldmap$
+if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%sub_key == periodic_type$) field_calc = fieldmap$
 
 select case (field_calc)
   
@@ -520,6 +520,11 @@ case (bmad_standard$)
 
   case(wiggler$, undulator$)
 
+    ! Should not be here. Field_calc switched to field_map$ above.
+    call out_io (s_fatal$, r_name, 'BOOKKEEPING ERROR. PLEASE GET HELP. FOR: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    if (present(err_flag)) err_flag = .true.
+    return
 
   !------------------------------------------
   ! Error
