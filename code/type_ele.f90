@@ -398,10 +398,6 @@ if (attribute_index(ele, 'FIELD_MASTER') /= 0) then
   nl=nl+1; write (li(nl), fmt_l) 'FIELD_MASTER', '=', ele%field_master
 endif
 
-if (attribute_index(ele, 'HARMON_MASTER') /= 0) then
-  nl=nl+1; write (li(nl), fmt_l) 'HARMON_MASTER', '=', ele%field_master
-endif
-
 if (attribute_index(ele, 'CSR_CALC_ON') /= 0) then
   nl=nl+1; write (li(nl), fmt_l) 'CSR_CALC_ON', '=', ele%csr_calc_on
 endif
@@ -660,6 +656,7 @@ if (associated(p)) then
   nl=nl+1; write (li(nl), *) 'Surface:'
  
   if (s%has_curvature) then
+    nl=nl+1; write (li(nl), '(a, f11.6)') 'SPHERICAL_CURVATURE = ', s%spherical_curvature
     do ix = 0, ubound(s%curvature_xy, 1)
     do iy = 0, ubound(s%curvature_xy, 2)
       if (s%curvature_xy(ix,iy) == 0) cycle

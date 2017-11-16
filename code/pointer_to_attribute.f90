@@ -352,13 +352,15 @@ case ('LR_FREQ_SPREAD')
     if (.not. do_allocation) goto 9100
     call init_wake (ele%wake, 0, 0, 0, 0, .true.)
   endif
-  a_pTr%r => ele%wake%lr_freq_spread
+  a_ptr%r => ele%wake%lr_freq_spread
 case ('LR_SELF_WAKE_ON')
   if (.not. associated(ele%wake)) then
     if (.not. do_allocation) goto 9100
     call init_wake (ele%wake, 0, 0, 0, 0, .true.)
   endif
   a_ptr%l => ele%wake%lr_self_wake_on
+case ('SPHERICAL_CURVATURE')
+  a_ptr%r => ele%photon%surface%spherical_curvature
 end select
 
 if (a_name(1:11) == 'CURVATURE_X' .and. a_name(13:14) == '_Y' .and. a_name(16:) == '') then
@@ -442,6 +444,7 @@ case ('OFFSET_MOVES_APERTURE');          a_ptr%l => ele%offset_moves_aperture
 case ('FIELD_MASTER');                   a_ptr%l => ele%field_master
 case ('SCALE_MULTIPOLES');               a_ptr%l => ele%scale_multipoles
 case ('MULTIPOLES_ON');                  a_ptr%l => ele%multipoles_on
+case ('IS_ON');                          a_ptr%l => ele%is_on
 !  attrib_type = is_integer$
 case ('N_SLICE');                        a_ptr%r => ele%value(n_slice$)
 case ('N_REF_PASS');                     a_ptr%r => ele%value(n_ref_pass$)
@@ -474,11 +477,10 @@ case ('REF_COORDINATES');                a_ptr%r => ele%value(ref_coordinates$)
 case ('SPIN_TRACKING_METHOD');           a_ptr%i => ele%spin_tracking_method
 case ('TRACKING_METHOD');                a_ptr%i => ele%tracking_method
 case ('KEY');                            a_ptr%i => ele%key
-! No corresponding attribute
+! No corresponding attribute in element.
 case ('TAYLOR_ORDER')
 case ('PTC_EXACT_MODEL')
 case ('PTC_EXACT_MISALIGN')
-case ('HARMON_MASTER')
 case ('PTC_MAX_FRINGE_ORDER')
 case ('UPSTREAM_ELE_DIR')
 case ('DOWNSTREAM_ELE_DIR')

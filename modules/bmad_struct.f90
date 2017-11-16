@@ -17,7 +17,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 201
+integer, parameter :: bmad_inc_version$ = 202
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -764,6 +764,7 @@ type photon_surface_struct
   type (surface_grid_struct) :: grid = surface_grid_struct('', off$, 0, 0, null())
   type (segmented_surface_struct) :: segment = segmented_surface_struct()
   real(rp) :: curvature_xy(0:6,0:6) = 0
+  real(rp) :: spherical_curvature = 0
   logical :: has_curvature = .false.     ! Dependent var. Will be set by Bmad
 end type
 
@@ -1338,6 +1339,7 @@ integer, parameter :: min_ds_adaptive_tracking$ = 89
 integer, parameter :: fatal_ds_adaptive_tracking$ = 90
 integer, parameter :: max_num_runge_kutta_step$ = 91
 
+integer, parameter :: spherical_curvature$ = 81
 integer, parameter :: alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81, tt$ = 81, lr_wake_spline$ = 81
 integer, parameter :: alias$  = 82, eta_x$ = 82, ptc_max_fringe_order$ = 82
 integer, parameter :: eta_y$ = 83, electric_dipole_moment$ = 83, lr_self_wake_on$ = 83, x_ref$ = 83
@@ -1372,7 +1374,7 @@ integer, parameter :: ran_seed$ = 109, beta_b_begin$ = 109, origin_ele$ = 109
 
 ! Make sure that lat%control(i)%ix_attrib /= field_overlaps$ for all girders, superposition, overlays, and groups.
 integer, parameter :: to_line$ = 110, field_overlaps$ = 110 
-integer, parameter :: field_master$ = 111, harmon_master$ = 111, to_element$ = 111
+integer, parameter :: field_master$ = 111, to_element$ = 111
 integer, parameter :: descrip$ = 112
 integer, parameter :: scale_multipoles$ = 113
 integer, parameter :: ref_orbit$ = 115

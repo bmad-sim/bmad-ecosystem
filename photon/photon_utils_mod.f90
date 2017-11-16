@@ -54,7 +54,7 @@ function z_at_surface (ele, x, y) result (z)
 type (ele_struct), target :: ele
 type (photon_surface_struct), pointer :: surf
 
-real(rp) x, y, z
+real(rp) x, y, z, g
 integer ix, iy
 
 !
@@ -75,6 +75,9 @@ else
     z = z - surf%curvature_xy(ix, iy) * x**ix * y**iy
   enddo
   enddo
+
+  g = surf%spherical_curvature
+  if (g /= 0) z = z + sqrt_one(-g**2 * (x**2 + y**2)) / g
 endif
 
 end function z_at_surface
@@ -102,7 +105,7 @@ type (ele_struct), target :: ele
 type (photon_surface_struct), pointer :: s
 type (segmented_surface_struct), pointer :: seg
 
-real(rp) x, y, x0, y0, dx, dy, coef_xx, coef_xy, coef_yy, coef_diag
+real(rp) x, y, x0, y0, dx, dy, coef_xx, coef_xy, coef_yy, coef_diag, r, g, dg
 integer ix, iy
 
 ! Only redo the cacluation if needed
@@ -142,6 +145,18 @@ do iy = 0, ubound(s%curvature_xy, 2) - ix
   if (ix > 0 .and. iy > 0) coef_xy = coef_xy - ix * iy * s%curvature_xy(ix, iy) * x0**(ix-1) * y0**(iy-1)
 enddo
 enddo
+
+g = s%spherical_curvature
+if (g /= 0) then
+  r = 1 / g
+  dg = 1 / sqrt(r**2 - (x**2 + y**2))
+  seg%z0 = seg%z0 + r * sqrt_one(-g**2 * (x**2 + y**2))
+  seg%slope_x = seg%slope_x - x0 * dg
+  seg%slope_y = seg%slope_y - y0 * dg
+  coef_xx = coef_xx - (r**2 - y**2) * dg**3
+  coef_yy = coef_yy - (r**2 - x**2) * dg**3
+  coef_xy = coef_xy - x * y * dg**3
+endif
 
 ! Correct for fact that segment is supported at the corners of the segment
 ! This correction only affects z0 and not the slopes

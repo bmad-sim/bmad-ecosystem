@@ -640,6 +640,7 @@ do i = 1, n_key$
   select case (i)
   case (crystal$, multilayer_mirror$, mirror$, sample$, diffraction_plate$, detector$)
     call init_attribute_name1 (i, surface_attrib$, 'SURFACE')
+    call init_attribute_name1 (i, spherical_curvature$, 'SPHERICAL_CURVATURE')
     num = a0$ - 1
     do ix = 0, ubound(surface%curvature_xy, 1)
     do iy = 0, ubound(surface%curvature_xy, 2)
@@ -1228,7 +1229,6 @@ call init_attribute_name1 (rfcavity$, rf_frequency$,                'RF_FREQUENC
 call init_attribute_name1 (rfcavity$, phi0_multipass$,              'PHI0_MULTIPASS')
 call init_attribute_name1 (rfcavity$, phi0$,                        'PHI0')
 call init_attribute_name1 (rfcavity$, harmon$,                      'HARMON', quasi_free$)
-call init_attribute_name1 (rfcavity$, harmon_master$,               'HARMON_MASTER')
 call init_attribute_name1 (rfcavity$, coupler_strength$,            'COUPLER_STRENGTH')
 call init_attribute_name1 (rfcavity$, coupler_angle$,               'COUPLER_ANGLE')
 call init_attribute_name1 (rfcavity$, coupler_phase$,               'COUPLER_PHASE')
@@ -1641,7 +1641,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', '
       'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'AUTOSCALE_PHASE', 'GANG', &
       'AUTOSCALE_AMPLITUDE', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
-      'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'HARMON_MASTER', 'SPIN_FRINGE_ON', &
+      'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'SPIN_FRINGE_ON', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'DIFFRACTION_LIMITED', &
       'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'MATCH_END_INPUT', 'MATCH_END_ORBIT_INPUT', 'GEO', &
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE')
@@ -1753,6 +1753,9 @@ case ('COUPLER_PHASE', 'PHI0', 'PHI0_AUTOSCALE', 'PHI0_ERR', 'PHI0_MULTIPASS')
 
 case ('CRITICAL_ANGLE_FACTOR')
   attrib_units = 'rad*eV'
+
+case ('SPHERICAL_CURVATURE')
+  attrib_units = '1/m'
 
 case ('CURVATURE_X0_Y2', 'CURVATURE_X1_Y1', 'CURVATURE_X2_Y0', 'G', 'G_ERR', 'H1', 'H2')
   attrib_units = '1/m'

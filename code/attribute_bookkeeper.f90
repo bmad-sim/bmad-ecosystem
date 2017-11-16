@@ -396,7 +396,8 @@ case (crystal$, multilayer_mirror$)
     call multilayer_type_to_multilayer_params (ele, err_flag)
   endif
 
-  ele%photon%surface%has_curvature = (any(ele%photon%surface%curvature_xy /= 0))
+  ele%photon%surface%has_curvature = (any(ele%photon%surface%curvature_xy /= 0) .or. &
+                                                            ele%photon%surface%spherical_curvature /= 0)
 
 ! E_Gun
 
