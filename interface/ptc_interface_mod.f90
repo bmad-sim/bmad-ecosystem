@@ -3978,7 +3978,7 @@ if ((associated(ele2%cartesian_map) .and. ele%field_calc == fieldmap$) .or. ele%
   end select
 
   n_term = size(cm%ptr%term)
-  call init_sagan_pointers (ptc_fibre%mag%wi%w, n_term)   
+  call POINTERS_W (ptc_fibre%mag%wi%w, n_term,0)  ! n_term_electric needed   
 
   ptc_fibre%mag%wi%w%k(1,1:n_term)   = cm%ptr%term%kx
   ptc_fibre%mag%wi%w%k(2,1:n_term)   = cm%ptr%term%ky
