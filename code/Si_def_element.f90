@@ -3,7 +3,7 @@
 
 
 MODULE S_DEF_ELEMENT
-  USE S_DEF_KIND
+ ! USE S_DEF_KIND
   !  USE USER_kind1
   !  USE USER_kind2
   USE sagan_WIGGLER

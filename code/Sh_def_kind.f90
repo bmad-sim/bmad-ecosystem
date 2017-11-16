@@ -2211,7 +2211,8 @@ CALL FRINGECAV(EL,X,k,2)
     TYPE(CAV4),  INTENT(INOUT) :: D
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
-
+    a=0
+    ad=0
     CALL Abmad_TRANS(D,Z0,X,k,A,AD)
 
     X(2)=X(2)-A(1)

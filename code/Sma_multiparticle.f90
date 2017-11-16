@@ -1042,7 +1042,23 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
           CALL FRINGE_CAV_TRAV(EL%CAV21,X=X,k=k,J=T%CAS)
           CALL ADJUST_TIME_CAV_TRAV_OUT(EL%CAV21,X,k,T%CAS)   ! ONLY DOES SOMETHING IF J==2
        case(KINDWIGGLER)
-          CALL ADJUST_WI(EL%WI,X,k,T%CAS)   ! ONLY DOES SOMETHING IF J==2
+
+          IF(T%CAS==CASE1) THEN
+          if(el%p%dir) then
+            call ADJUST_LIKE_ABELL(EL%wi,X,k,1)
+          else
+            call ADJUST_LIKE_ABELL(EL%wi,X,k,2)
+          endif
+          ELSE
+          if(el%p%dir) then
+            call ADJUST_LIKE_ABELL(EL%wi,X,k,2)
+          else
+            call ADJUST_LIKE_ABELL(EL%wi,X,k,1)
+          endif
+          CALL ADJUST_WI(EL%WI,X,k,T%CAS) 
+          ENDIF
+
+  ! ONLY DOES SOMETHING IF J==2
        case(KINDPA)
           CALL ADJUST_PANCAKE(EL%PA,X,k,T%CAS)
        case(KINDabell)
@@ -1262,7 +1278,22 @@ TA=T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==1.OR.T%PARENT_F
           CALL FRINGE_CAV_TRAV(EL%CAV21,X=X,k=k,J=T%CAS)
           CALL ADJUST_TIME_CAV_TRAV_OUT(EL%CAV21,X,k,T%CAS)   ! ONLY DOES SOMETHING IF J==2
        case(KINDWIGGLER)
-          CALL ADJUST_WI(EL%WI,X,k,T%CAS)   ! ONLY DOES SOMETHING IF J==2
+
+          IF(T%CAS==CASE1) THEN
+          if(el%p%dir) then
+            call ADJUST_LIKE_ABELL(EL%wi,X,k,1)
+          else
+            call ADJUST_LIKE_ABELL(EL%wi,X,k,2)
+          endif
+          ELSE
+          if(el%p%dir) then
+            call ADJUST_LIKE_ABELL(EL%wi,X,k,2)
+          else
+            call ADJUST_LIKE_ABELL(EL%wi,X,k,1)
+          endif
+          CALL ADJUST_WI(EL%WI,X,k,T%CAS) 
+          ENDIF
+
        case(KINDPA)
           CALL ADJUST_PANCAKE(EL%PA,X,k,T%CAS)    
        case(KINDabell)

@@ -142,14 +142,19 @@ namelist / siamname / siam0
   integer, private, parameter :: mode_max=200  
 
   TYPE wig_list
-   integer n
    real(dp) offset
    real(dp) internal(6)
+   real(dp) ex(wiggler_suntao),ey(wiggler_suntao)
+   integer n
    real(dp) a(mode_max)
    real(dp) f(mode_max)   
    integer form(mode_max)
    real(dp) k(3,mode_max)
-   real(dp) ex(wiggler_suntao),ey(wiggler_suntao)
+   integer ne
+   real(dp) ae(mode_max)
+   real(dp) fe(mode_max)   
+   integer forme(mode_max)
+   real(dp) ke(3,mode_max)
   END TYPE wig_list
 type(wig_list) wig0
 namelist / wigname / wig0

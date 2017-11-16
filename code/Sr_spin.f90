@@ -1301,6 +1301,8 @@ contains
 
     B=0.0_dp
     E=0.0_dp
+    a=0
+    ad=0
     phi=0.0_dp
     SELECT CASE(EL%KIND)
     case(KIND2,kind3,kind5:kind7,KIND16:kind17,KIND20) ! Straight for all practical purposes
@@ -2121,10 +2123,16 @@ call kill(vm,phi,z)
           XP(2)=XPA(2)/N
        ELSEif(el%kind==kindwiggler) then
           CALL get_z_wi(EL%wi,POS,z)
+
+          if(el%wi%xprime) then
+           Xpa(1)=X(2) 
+           Xpa(2)=X(4) 
+          else
           CALL COMPX(EL%wi,Z,X,A,AP)
-          Xpa(1)=X(2)-A
           CALL COMPY(EL%wi,Z,X,B,BP)
-          Xpa(2)=X(4)-B
+           Xpa(1)=X(2)-A
+           Xpa(2)=X(4)-B
+          endif
           N=root(DP1**2-Xpa(1)**2-Xpa(2)**2)
 
           E(1)=Xpa(1)/DP1
@@ -2257,10 +2265,15 @@ call kill(vm,phi,z)
           XP(2)=XPA(2)/N
        ELSEif(el%kind==kindwiggler) then
           CALL get_z_wi(EL%wi,POS,z)
+          if(el%wi%xprime) then
+           Xpa(1)=X(2) 
+           Xpa(2)=X(4) 
+          else
           CALL COMPX(EL%wi,Z,X,A,AP)
-          Xpa(1)=X(2)-A
           CALL COMPY(EL%wi,Z,X,B,BP)
-          Xpa(2)=X(4)-B
+           Xpa(1)=X(2)-A
+           Xpa(2)=X(4)-B
+          endif
           N=SQRT(DP1**2-Xpa(1)**2-Xpa(2)**2)
 
           E(1)=Xpa(1)/DP1

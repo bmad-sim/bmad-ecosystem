@@ -1026,13 +1026,14 @@ M%B_L=M%B_T
   subroutine read_undu_R(el,mf)
     implicit none
     type(undu_R), pointer :: el
-    integer mf,n,i
+    integer mf,n,i,ne
     character*255 line
     real(dp) offset
 
     read(mf,'(a255)') line
     read(mf,*) n,offset
-    call INIT_SAGAN_POINTERS(EL,N)
+    ne=n
+    call POINTERS_W(EL,N,ne)
     el%offset=offset
     do i=1,n
        read(mf,*) el%a(i),el%f(i),EL%FORM(i),EL%K(1:3,i)
@@ -3226,25 +3227,51 @@ implicit none
 type(element), target :: f
 logical(lp),optional ::  dir
 integer,optional :: mf
-integer n
-
+integer n,ne
+n=0
+ne=0
 if(present(dir)) then
 if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
 
- wig0%n=size(f%wi%w%a)
- n=wig0%n
+
  wig0%internal=F%wi%internal
  wig0%offset=F%wi%w%offset
+ wig0%ex=f%wi%w%ex
+ wig0%ey=f%wi%w%ey
+wig0%n=0
+ if(associated(f%wi%w%a)) wig0%n=size(f%wi%w%a)
+ n=wig0%n
 wig0%a=0.0_dp
 wig0%f=0.0_dp
 wig0%form=0.0_dp
 wig0%k=0.0_dp
-wig0%a(1:n)=f%wi%w%a(1:n)
-wig0%f(1:n)=f%wi%w%f(1:n)
-wig0%form(1:n)=f%wi%w%form(1:n)
-wig0%k(1:3,1:n)=f%wi%w%k(1:3,1:n)
-wig0%ex=f%wi%w%ex
-wig0%ey=f%wi%w%ey
+if(n>0) then
+ wig0%a(1:n)=f%wi%w%a(1:n)
+ wig0%f(1:n)=f%wi%w%f(1:n)
+ wig0%form(1:n)=f%wi%w%form(1:n)
+ wig0%k(1:3,1:n)=f%wi%w%k(1:3,1:n)
+else
+ wig0%a(1:n)=0
+ wig0%f(1:n)=0
+ wig0%form(1:n)=0
+ wig0%k(1:3,1:n)=0
+endif
+
+wig0%ne=0
+ if(associated(f%wi%w%ae)) wig0%ne=size(f%wi%w%ae)
+ ne=wig0%ne
+if(ne>0) then
+ wig0%ae(1:ne)=f%wi%w%ae(1:ne)
+ wig0%fe(1:ne)=f%wi%w%fe(1:ne)
+ wig0%forme(1:ne)=f%wi%w%forme(1:ne)
+ wig0%ke(1:3,1:ne)=f%wi%w%ke(1:3,1:ne)
+else
+ wig0%ae(1:ne)=0
+ wig0%fe(1:ne)=0
+ wig0%forme(1:ne)=0
+ wig0%ke(1:3,1:ne)=0
+endif
+
     if(present(mf)) then
      write(mf,NML=wigname)
     endif   
@@ -3256,15 +3283,27 @@ wig0%ey=f%wi%w%ey
     if(.not.associated(f%wi%internal)) allocate(f%wi%internal(6))
   F%wi%internal=wig0%internal 
   N=wig0%N
-    call INIT_SAGAN_POINTERS(f%wi%w,N)
+  ne=wig0%Ne
+
+    call pointers_w(f%wi%w,N,ne)
 
  F%wi%w%offset=wig0%offset
+ F%wi%w%ex=wig0%ex
+ F%wi%w%ey=wig0%ey
+
+if(n>0) then
  F%wi%w%a(1:N)=wig0%a(1:N)
  F%wi%w%f(1:N)=wig0%f(1:N)
  F%wi%w%form(1:N)=wig0%form(1:N)
  F%wi%w%k(1:3,1:N)=wig0%k(1:3,1:N)
- F%wi%w%ex=wig0%ex
- F%wi%w%ey=wig0%ey
+endif
+
+if(ne>0) then
+ F%wi%w%ae(1:Ne)=wig0%ae(1:Ne)
+ F%wi%w%fe(1:Ne)=wig0%fe(1:Ne)
+ F%wi%w%forme(1:Ne)=wig0%forme(1:Ne)
+ F%wi%w%ke(1:3,1:Ne)=wig0%ke(1:3,1:Ne)
+endif
 
 endif
 endif
