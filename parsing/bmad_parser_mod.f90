@@ -358,13 +358,10 @@ if (ele%key == overlay$ .or. ele%key == group$) then
 
   is_attrib = (attribute_index(0, word) > 0 .or. (ele%key == group$ .and. word == 'COMMAND'))
   if (how == def$ .and. .not. associated(ele%control_var) .and. (i < 1 .or. i > num_ele_attrib$) .and. is_attrib) then 
-    allocate (ele%control_var(1))
-    if (ele%key == group$) then
-      ele%control_var(1)%name = 'COMMAND'
-    else
-      ele%control_var(1)%name = word
-    endif
     pele%default_attrib = word
+    allocate (ele%control_var(1))
+    if (ele%key == group$) word = 'COMMAND'
+    ele%control_var(1)%name = word
     i = 1 + var_offset$
   endif
 
@@ -385,11 +382,16 @@ if (ele%key == overlay$ .or. ele%key == group$) then
     if (err_flag) return
   endif
 
-  call pointer_to_indexed_attribute (ele, i, .true., a_ptr, err_flag, .true.)
+  call pointer_to_attribute (ele, word, .true., a_ptr, err_flag, .true.)
+  if (err_flag) then
+    call parser_error ('')
+    return
+  endif
+
   a_ptr%r = value
 
   if (attrib_free_problem(word)) return
-
+  
   err_flag = .false.
   return
 endif
@@ -1611,7 +1613,7 @@ case ('PTC_EXACT_MISALIGN')
 case ('OFFSET_MOVES_APERTURE')
   call get_logical (attrib_word, ele%offset_moves_aperture, err_flag); if (err_flag) return
 
-case ('FIELD_MASTER', 'HARMON_MASTER')
+case ('FIELD_MASTER')
   call get_logical (attrib_word, ele%field_master, err_flag); if (err_flag) return
 
 case ('SCALE_MULTIPOLES')
