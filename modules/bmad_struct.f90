@@ -1014,6 +1014,7 @@ type control_struct
   type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
   type (lat_ele_loc_struct) :: slave = lat_ele_loc_struct()
   type (lat_ele_loc_struct) :: lord = lat_ele_loc_struct()
+  character(40) :: attribute     ! Name of attribute controlled.
   integer :: ix_attrib = 0       ! Index of attribute controlled
 end type
 
@@ -1248,8 +1249,8 @@ integer, parameter :: fringe_at$ = 11, gang$ = 11
 integer, parameter :: higher_order_fringe_type$ = 12
 integer, parameter :: spin_fringe_on$ = 13
 integer, parameter :: fb1$ = 14, sig_x$ = 14, exact_multipoles$ = 14
-integer, parameter :: fb2$ = 15, sig_y$ = 15
-integer, parameter :: fq1$ = 16, sig_z$ = 16
+integer, parameter :: fb2$ = 15, sig_y$ = 15, graze_angle_in$ = 15
+integer, parameter :: fq1$ = 16, sig_z$ = 16, graze_angle_out$ = 16 
 integer, parameter :: fq2$ = 17, sig_vx$ = 17
 integer, parameter :: sig_vy$ = 18, autoscale_amplitude$ = 18
 integer, parameter :: sig_e$ = 19, autoscale_phase$ = 19

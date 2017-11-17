@@ -143,7 +143,7 @@ do i = 1, lat%n_control_max
   c => lat%control(i)
   n = 0
   if (allocated(c%stack)) n = size(c%stack)
-  write (d_unit) n, c%lord, c%slave, c%ix_attrib
+  write (d_unit) n, c%lord, c%slave, c%ix_attrib, c%attribute
   do j = 1, n
     write (d_unit) c%stack(j)
   enddo

@@ -574,8 +574,9 @@ origin $\calO_{out}$.
 
 In all cases, the total bending angle is
 \begin{align}
-  \alpha_b &= \text{bragg_angle_in} + \text{bragg_angle_out} &\text{! Crystal} \CRNO
-  \alpha_b &= 2 \, \text{graze_angle}                        &\text{! Mirror}
+  \alpha_b &= \text{bragg_angle_in} + \text{bragg_angle_out} &&\text{! Crystal, graze_angle_in} = 0 \CRNO
+  \alpha_b &= \text{graze_angle_in} + \text{graze_angle_out} &&\text{! Crystal, graze_angle_in} \ne 0 \CRNO
+  \alpha_b &= 2 \, \text{graze_angle}                        &&\text{! Mirror}
   \label{agg}
 \end{align}
 With a mirror or Bragg diffraction, the bend angles are measured with
