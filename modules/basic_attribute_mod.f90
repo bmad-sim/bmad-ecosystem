@@ -780,6 +780,8 @@ call init_attribute_name1 (capillary$, p0c_start$,                  'p0c_start',
 call init_attribute_name1 (crystal$, l$,                            'L', dependent$)
 call init_attribute_name1 (crystal$, bragg_angle_in$,               'BRAGG_ANGLE_IN', dependent$)
 call init_attribute_name1 (crystal$, bragg_angle_out$,              'BRAGG_ANGLE_OUT', dependent$)
+call init_attribute_name1 (crystal$, graze_angle_in$,               'GRAZE_ANGLE_IN')
+call init_attribute_name1 (crystal$, graze_angle_out$,              'GRAZE_ANGLE_OUT')
 call init_attribute_name1 (crystal$, psi_angle$,                    'PSI_ANGLE')
 call init_attribute_name1 (crystal$, alpha_angle$,                  'ALPHA_ANGLE', dependent$)
 call init_attribute_name1 (crystal$, ref_tilt$,                     'REF_TILT')
@@ -1743,7 +1745,7 @@ case ('ANGLE', 'BEND_TILT', 'BRAGG_ANGLE', 'BRAGG_ANGLE_IN', 'BRAGG_ANGLE_OUT', 
       'DPHI_A', 'DPHI_B', 'DPHI_ORIGIN', 'DPSI_ORIGIN', 'DTHETA_ORIGIN', 'E1', 'E2', 'GRAZE_ANGLE', & 
       'PHASE_X', 'PHASE_Y', 'PHI_A', 'PHI_B', 'PHI_POSITION', 'PSI_ANGLE', 'PSI_POSITION', 'QUAD_TILT', &
       'REF_TILT', 'REF_TILT_TOT', 'ROLL', 'ROLL_TOT', 'SPINOR_PHI', 'SPINOR_THETA', 'SPINOR_XI', 'THETA_POSITION', &
-      'TILT', 'TILT_CALIB', 'TILT_CORR', 'TILT_TOT', &
+      'TILT', 'TILT_CALIB', 'TILT_CORR', 'TILT_TOT', 'GRAZE_ANGLE_IN', 'GRAZE_ANGLE_OUT', &
       'T0', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', &
       'T12', 'T13', 'T14', 'T15', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21')
   attrib_units = 'rad'

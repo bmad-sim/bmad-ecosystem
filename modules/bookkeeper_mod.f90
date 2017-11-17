@@ -2771,7 +2771,7 @@ end subroutine set_flags_for_changed_real_attribute
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch, saved_values, ix_attrib)
+! Subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch, saved_values, attribute)
 !
 ! Routine to turn on or off a set of elements (quadrupoles, rfcavities, etc.) in a lattice. 
 ! An element that is turned off acts like a drift.
@@ -2804,8 +2804,8 @@ end subroutine set_flags_for_changed_real_attribute
 !                        this lattice branch.
 !   saved_values(:) -- real(rp), allocatable, optional: Saved values of the component.
 !                       Must be present if needed (EG if switch = restore_state$, etc.).
-!   ix_attrib       -- integer, optional: Attribute to turn on/off. Eg: k2$, multipoles_on$, etc.
-!                       Default is is_on$.
+!   attribute       -- character(*), optional: Attribute to turn on/off. Eg: 'K2', 'MULTIPOLE_ON', etc.
+!                       Default is 'IS_ON'. Must be upper case.
 !                   
 !
 ! Output:
@@ -2814,7 +2814,7 @@ end subroutine set_flags_for_changed_real_attribute
 !                       Must be present if needed (EG if switch = off_and_save$, etc.).
 !-
 
-subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch, saved_values, ix_attrib)
+subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch, saved_values, attribute)
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
@@ -2826,17 +2826,17 @@ real(rp), optional, allocatable :: saved_values(:)
 real(rp) old_state
 
 integer :: key, switch
-integer, optional :: ix_branch, ix_attrib
-integer i, ib, ixa, n_set, n_save_old
+integer, optional :: ix_branch
+integer i, ib, n_set, n_save_old
 
 logical, optional :: use_ref_orb
 logical err_flag
 
+character(*), optional :: attribute
 character(20) :: r_name = 'set_on_off'
 
 !
 
-ixa = integer_option(is_on$, ix_attrib)
 n_save_old = 0
 if (present(saved_values)) n_save_old = size(saved_values)
 
@@ -2869,8 +2869,12 @@ do ib = 0, ubound(lat%branch, 1)
 
     n_set = n_set + 1
 
-    call pointer_to_indexed_attribute (ele, ixa, .true., a_ptr, err_flag)
-    if (err_flag) return
+    if (present(attribute)) then
+      call pointer_to_attribute (ele, attribute, .true., a_ptr, err_flag)
+      if (err_flag) return
+    else
+      a_ptr%l => ele%is_on
+    endif
 
     if (present(saved_values)) then
       if (n_set > size(saved_values)) call re_allocate(saved_values, 2*n_set, .false.)

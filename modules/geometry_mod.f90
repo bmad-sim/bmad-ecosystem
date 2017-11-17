@@ -294,7 +294,7 @@ type (lat_param_struct) param
 
 real(rp), optional :: len_scale
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dtheta
-real(rp) r0(3), w0_mat(3,3), rot_angle
+real(rp) r0(3), w0_mat(3,3), rot_angle, graze_angle_in, graze_angle_out
 real(rp) chord_len, angle, ang, leng, rho, len_factor
 real(rp) theta, phi, psi, tlt, dz(3), z0(3), z_cross(3)
 real(rp) :: s_ang, c_ang, w_mat(3,3), w_mat_inv(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
@@ -320,6 +320,17 @@ len_factor = ele%orientation * real_option(1.0_rp, len_scale)
 if (ele%key /= girder$) then
   floor   = floor0
 endif
+
+if (ele%key == crystal$) then
+  if (ele%value(graze_angle_in$) /= 0) then
+    graze_angle_in  = ele%value(graze_angle_in$) 
+    graze_angle_out = ele%value(graze_angle_out$) 
+  else
+    graze_angle_in  = ele%value(bragg_angle_in$) 
+    graze_angle_out = ele%value(bragg_angle_out$) 
+  endif
+endif
+
 
 theta   = floor0%theta
 phi     = floor0%phi
@@ -378,7 +389,8 @@ if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
             t_mat = w_mat_for_tilt(ele0%value(tilt_corr$))
             w_mat = matmul(w_mat, t_mat)
           endif
-          rot_angle = ele0%value(bragg_angle_in$) 
+          rot_angle = ele0%value(bragg_angle_in$)
+          if (ele0%value(graze_angle_in$) /= 0) rot_angle = ele0%value(graze_angle_in$)
           if (ele0%value(b_param$) < 0) rot_angle = rot_angle - pi/2  ! Bragg
         case (mirror$, multilayer_mirror$)
           rot_angle = ele0%value(graze_angle$) - pi/2
@@ -526,7 +538,7 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
     if (ele%key == crystal$) then   ! Laue
       select case (nint(ele%value(ref_orbit_follows$)))
       case (bragg_diffracted$)
-        angle = len_factor * (ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
+        angle = len_factor * (graze_angle_in + graze_angle_out)
       case (forward_diffracted$, undiffracted$)
         angle = 0
       end select
@@ -534,10 +546,10 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
         ! %l_ref is with respect to the body coords
         r_vec = len_factor * ele%photon%material%l_ref
         if (len_factor > 0) then  ! Forward propagation -> Express r_vec in entrance coords.
-          ang = len_factor * ele%value(bragg_angle_in$)
+          ang = len_factor * graze_angle_in
           r_vec = [cos(ang) * r_vec(1) - sin(ang) * r_vec(3), r_vec(2), sin(ang) * r_vec(1) + cos(ang) * r_vec(3)]
         else                      ! Express r_vec in exit coords
-          ang = angle - len_factor * ele%value(bragg_angle_in$)
+          ang = angle - len_factor * graze_angle_in
           r_vec = [cos(ang) * r_vec(1) - sin(ang) * r_vec(3), r_vec(2), sin(ang) * r_vec(1) + cos(ang) * r_vec(3)]
         endif
       else  ! Bragg

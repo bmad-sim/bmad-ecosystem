@@ -886,6 +886,8 @@ Attributes specific to a \vn{crystal} element are:
   psi_angle          = <Real>       ! Rotation of H-vector about the surface normal.
   thickness          = <Real>       ! Thickness of crystal for Laue diffraction.
   ref_orbit_follows  = <which_beam> ! Reference orbit aligned with what outgoing beam?
+  graze_angle_in     = <Real>       ! Angle between incoming ref orbit and surface.
+  graze_angle_out    = <Real>       ! Angle between outgoing ref orbit and surface.
 \end{example}
 
 \index{bragg_angle_in}\index{bragg_angle_out}\index{alpha_angle}
@@ -896,8 +898,8 @@ Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
 \begin{example}
   alpha_angle                ! Angle of H-vector with respect to the surface normal.
   bragg_angle                ! Nominal Bragg angle at the reference wave length. 
-  bragg_angle_in             ! Angle between incoming beam and surface.
-  bragg_angle_out            ! Angle between outgoing beam and surface.
+  bragg_angle_in             ! Incoming grazing angle for Bragg diffraction.
+  bragg_angle_out            ! Outgoing grazing angle for Bragg diffraction.
   d_spacing                  ! Lattice plane spacing. 
   darwin_width_pi            ! Darwin width for pi polarized light (radians).
   darwin_width_sigma         ! Darwin width for sigma polarized light (radians).
@@ -925,7 +927,7 @@ lattice planes (\vn{d_spacing}), the unit cell volume
 (\vn{v_unitcell}), and the structure factor\cite{b:batterman} values
 can be computed.
 
-The \vn{b_param} is the standard asymmetry factor
+The \vn{b_param} is the standard $b$ asymmetry factor
 \Begineq
   b = \frac{\sin(\alpha_H + \theta_B)}{\sin(\alpha_H - \theta_B)} 
   \label{batat}
@@ -983,16 +985,17 @@ appropriate ``tilt correction'' \vn{tilt_corr}. The calculation of
 \vn{tilt_corr} is outlined in \sref{s:crystal.trans}. \vn{tilt_corr}
 will be zero if \vn{psi_angle} is zero.
 
-The reference trajectory for a Bragg \vn{crystal} is that of a zero
-length bend (\sref{s:mirror.coords}) and hence the length (\vn{l})
-parameter of a crystal is fixed at zero. The orientation of the
-reference trajectory with respect to the crystal surface is specified
-by the incoming Bragg angle \vn{bragg_angle_in} ($\theta_{g,in}$) and
-outgoing Bragg angle \vn{bragg_angle_out} ($\theta_{g,out}$) as shown
-in \fig{f:crystal}A. These angles are computed from the photon
-reference energy and the other crystal parameters such that a photon
-with the reference energy traveling along the reference trajectory
-will be in the center of the Darwin curve (\sref{s:crystal.tracking}).
+The reference trajectory for a Bragg \vn{crystal} is that of a zero length bend
+(\sref{s:mirror.coords}) and hence the length (\vn{l}) parameter of a crystal is fixed at zero. If
+the \vn{graze_angle_in} and \vn{graze_angle_out} angles are zero (the default), the orientation of
+the reference trajectory with respect to the crystal surface is specified by the incoming Bragg
+angle \vn{bragg_angle_in} ($\theta_{g,in}$) and outgoing Bragg angle \vn{bragg_angle_out}
+($\theta_{g,out}$) as shown in \fig{f:crystal}A. These angles are computed from the photon reference
+energy and the other crystal parameters such that a photon with the reference energy traveling along
+the reference trajectory will be in the center of the Darwin curve (\sref{s:crystal.tracking}). It
+is sometimes convenient to be able to specify the angles that the reference trajectory makes with
+respect to the crystal independent of the Bragg angles. To do this, set \vn{graze_angle_in} and
+\vn{graze_angle_out} to the desired angles.
 
 Notice that due to refraction at the surface, the computed
 \vn{bragg_angle} from \Eq{tsl2d} will deviate slightly from the

@@ -5566,6 +5566,7 @@ do i = 1, size(pele%control)
       if (ix <= num_ele_attrib$) ix = 0  ! Mark as not valid
     endif
     cs(n_slave)%ix_attrib = ix
+    cs(n_slave)%attribute = attrib_name
     if (ix < 1) then
       call parser_error ('IN OVERLAY OR GROUP ELEMENT: ' // lord%name, &
                     'ATTRIBUTE: ' // attrib_name, &

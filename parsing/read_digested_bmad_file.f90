@@ -223,7 +223,7 @@ enddo
 
 do i = 1, lat%n_control_max
   c => lat%control(i)
-  read (d_unit, err = 9040) n, c%lord, c%slave, c%ix_attrib
+  read (d_unit, err = 9040) n, c%lord, c%slave, c%ix_attrib, c%attribute
   if (n > 0) then
     allocate (c%stack(n))
     do j = 1, n

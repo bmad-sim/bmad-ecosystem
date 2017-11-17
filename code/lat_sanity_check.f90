@@ -490,6 +490,25 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       enddo
     endif
 
+    ! If crystal graze_angle_in is set so must graze_angle_out
+
+    if (ele%key == crystal$) then
+      if (ele%value(graze_angle_in$) < 0 .or. ele%value(graze_angle_out$) < 0) then
+        call out_io (s_fatal$, r_name, &
+                  'BOTH GRAZE_ANGLE_IN AND GRAZE_ANGLE_OUT MUST BE NON-NEGATIVE.', &
+                  'FOR ELEMENT: ' // ele%name)
+        err_flag = .true.
+      endif
+
+      if (ele%value(graze_angle_in$) > 0 .neqv. ele%value(graze_angle_out$) > 0) then
+        call out_io (s_fatal$, r_name, &
+                  'IF GRAZE_ANGLE_IN IS SET SO MUST GRAZE_ANGLE_OUT BE SET AND VICE VERSA.', &
+                  'FOR ELEMENT: ' // ele%name)
+        err_flag = .true.
+      endif
+    endif
+
+
     ! photon elements with a surface must have ele%photon associated.
 
     if (ele%key == crystal$ .or. ele%key == mirror$ .or. ele%key == multilayer_mirror$) then

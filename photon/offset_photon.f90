@@ -109,7 +109,8 @@ if (set) then
 
   select case (ele%key)
   case (crystal$)
-    rot_angle = p(bragg_angle_in$) 
+    rot_angle = p(bragg_angle_in$)
+    if (p(graze_angle_in$) /= 0) rot_angle = p(graze_angle_in$) 
     if (p(b_param$) < 0) rot_angle = rot_angle - pi/2  ! Bragg
   case (mirror$, multilayer_mirror$)
     rot_angle = p(graze_angle$) - pi/2
@@ -164,6 +165,7 @@ else
     select case (ele%key)
     case (crystal$)
       rot_angle = p(bragg_angle_out$)
+      if (p(graze_angle_out$) /= 0) rot_angle = p(graze_angle_out$)
       if (p(b_param$) < 0) rot_angle = rot_angle + pi/2  ! Bragg
     case (mirror$, multilayer_mirror$)
       rot_angle = p(graze_angle$) + pi/2
@@ -207,6 +209,7 @@ else
       tilt = p(tilt_tot$)
     case (crystal$)
       graze2 = p(bragg_angle_in$)+p(bragg_angle_out$)
+      if (p(graze_angle_in$) /= 0) graze2 = p(graze_angle_in$)+p(graze_angle_out$)
       tilt = p(tilt_tot$) + p(tilt_corr$)
     end select
 

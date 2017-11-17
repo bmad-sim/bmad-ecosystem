@@ -398,6 +398,14 @@ ix_a = attribute_index (ele, a_name)
 if (present(ix_attrib)) ix_attrib = ix_a
 if (ix_a < 1 .and. a_name /= 'KEY') goto 9000 ! Error message and return
 
+! "Normal" indexed attribute
+
+if (ix_a > 0 .and. ix_a <= num_ele_attrib$) then
+  a_ptr%r => ele%value(ix_a)
+  err_flag = .false.
+  return
+endif
+
 ! Taylor term?
 
 if (a_name(1:2) == 'TT') then
@@ -423,6 +431,51 @@ if (a_name(1:2) == 'TT') then
   return
 endif
 
+! Magnetic Multipole
+
+if (ix_a >= a0$ .and. ix_a <= b21$) then
+  if (.not. associated(ele%a_pole)) then
+    if (do_allocation) then
+      call multipole_init (ele, magnetic$)
+    else
+      if (do_print) call out_io (s_error$, r_name, 'MULTIPOLE NOT ALLOCATED FOR ELEMENT: ' // ele%name)
+      return
+    endif
+  endif
+
+  if (ix_a >= b0$) then
+    a_ptr%r => ele%b_pole(ix_a-b0$)
+  else
+    a_ptr%r => ele%a_pole(ix_a-a0$)
+  endif
+
+  err_flag = .false.
+  return
+endif
+
+! Electric Multipole 
+
+if (ix_a >= a0_elec$ .and. ix_a <= b21_elec$) then   
+  if (.not. associated(ele%a_pole_elec)) then
+    if (do_allocation) then
+      call multipole_init (ele, electric$)
+    else
+      if (do_print) call out_io (s_error$, r_name, 'MULTIPOLE NOT ALLOCATED FOR ELEMENT: ' // ele%name)
+      return
+    endif
+  endif
+
+  if (ix_a >= b0_elec$) then
+    a_ptr%r => ele%b_pole_elec(ix_a-b0_elec$)
+  else
+    a_ptr%r => ele%a_pole_elec(ix_a-a0_elec$)
+  endif
+
+  err_flag = .false.
+  return
+endif
+
+! Special cases.
 
 select case (a_name)
 ! attrib_type = is_real$
@@ -484,10 +537,6 @@ case ('PTC_EXACT_MISALIGN')
 case ('PTC_MAX_FRINGE_ORDER')
 case ('UPSTREAM_ELE_DIR')
 case ('DOWNSTREAM_ELE_DIR')
-! Indexed attribute
-case default
-  call pointer_to_indexed_attribute (ele, ix_a, do_allocation, a_ptr, err_flag, err_print_flag)
-  return
 end select
 
 if (associated(a_ptr%r) .or. associated(a_ptr%i) .or. associated(a_ptr%l)) then
