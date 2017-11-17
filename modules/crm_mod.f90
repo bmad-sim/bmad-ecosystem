@@ -69,7 +69,7 @@ contains
 
     call set_on_off(sextupole$, ring_working, off_and_save$, saved_values=sextupole_state)
     call set_on_off(multipole$, ring_working, off_and_save$, saved_values=multipole_state)
-    call set_on_off(sbend$,     ring_working, off_and_save$, saved_values=sbend_k2_state, ix_attrib=k2$)
+    call set_on_off(sbend$,     ring_working, off_and_save$, saved_values=sbend_k2_state, attribute='K2')
 
     call twiss_and_track(ring_working,co,status)
     if(status /= ok$) then
@@ -87,7 +87,7 @@ contains
 
     call set_on_off(sextupole$, ring_working, restore_state$, saved_values=sextupole_state)
     call set_on_off(multipole$, ring_working, restore_state$, saved_values=multipole_state)
-    call set_on_off(sbend$,     ring_working, restore_state$, saved_values=sbend_k2_state, ix_attrib=k2$)
+    call set_on_off(sbend$,     ring_working, restore_state$, saved_values=sbend_k2_state, attribute='K2')
 
     deallocate(sextupole_state)
     deallocate(multipole_state)
