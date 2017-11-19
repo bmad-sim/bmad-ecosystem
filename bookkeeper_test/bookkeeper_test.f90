@@ -65,7 +65,7 @@ call bmad_parser (lat_file, lat, make_mats6 = .false.)
 
 !
 
-call set_on_off (quadrupole$, lat, off_and_save$, saved_values = save, ix_attrib = y_offset$)
+call set_on_off (quadrupole$, lat, off_and_save$, saved_values = save, attribute = 'Y_OFFSET')
 write (1, '(a, 6f10.3)') '"ON_OFF_SAVE"  ABS 0', save(1:4)
 
 do i = 1, lat%n_ele_max

@@ -43,10 +43,11 @@ do i = 1, lat%n_ele_track
   if (ele%key == taylor$) cycle
   if (ele%key == marker$) cycle
   call em_field_calc (ele, lat%param, 0.1_rp, orb, .false., field, .true., rf_time = 1.0_rp)
-  write (1, '(a, i0, a, 6es16.8)') '"Field:', i, '" REL 1e-7', field%E, field%B
+  write (1, '(3a, 6es17.8)') '"Field:', trim(ele%name), '"    REL 1e-7', field%E, field%B
   do j = 1, 3
-    write (1, '(2(a, i0), a, 6es16.8)') '"dField:', i, '-', j, '" REL 1e-7', field%dE(j,:), field%dB(j,:)
+    write (1, '(3a, i0, a, 6es17.8)') '"dField:', trim(ele%name), '-', j, '" REL 1e-7', field%dE(j,:), field%dB(j,:)
   enddo
+  write (1, *)
 enddo
 
 call write_bmad_lattice_file ('z.bmad', lat)
@@ -60,10 +61,11 @@ do i = 1, lat%n_ele_track
   if (ele%key == taylor$) cycle
   if (ele%key == marker$) cycle
   call em_field_calc (ele, lat%param, 0.1_rp, orb, .false., field, .true., rf_time = 1.0_rp)
-  write (1, '(a, i0, a, 6es16.8)') '"Field2:', i, '" REL 1e-7', field%E, field%B
+  write (1, '(3a, 6es16.8)') '"Field2:', trim(ele%name), '"    REL 1e-7', field%E, field%B
   do j = 1, 3
-    write (1, '(2(a, i0), a, 6es16.8)') '"dField2:', i, '-', j, '" REL 1e-7', field%dE(j,:), field%dB(j,:)
+    write (1, '(3a, i0, a, 6es16.8)') '"dField2:', trim(ele%name), '-', j, '" REL 1e-7', field%dE(j,:), field%dB(j,:)
   enddo
+  write (1, *)
 enddo
 
 !!! Test: curved coords...
