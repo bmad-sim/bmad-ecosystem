@@ -7,26 +7,27 @@ use utilities_mod
 
 ! Message levels: Status level flags for messages.
 
-integer, parameter :: s_blank$   = -1 ! Information message. The routine name is not printed.
-integer, parameter :: s_info$    = 0  ! Informational message.
-integer, parameter :: s_dinfo$   = 1  ! Info message (w/timestamp).
-integer, parameter :: s_success$ = 2  ! Successful completion.
-integer, parameter :: s_warn$    = 3  ! Warning of a possible problem.
-integer, parameter :: s_dwarn$   = 5  ! Warning of a possible problem (w/timestamp).
-integer, parameter :: s_error$   = 7  ! An error as occurred [EG: bad user input] (w/ timestamp).
-integer, parameter :: s_fatal$   = 8  ! A fatal error has occurred so that computations
-                                      ! cannot be continued but the program will try to
-                                      ! reset itself and keep running (w/timestamp).
-integer, parameter :: s_abort$   = 9  ! A severe error has occurred and
-                                      ! the program is being aborted (w/timestamp).
+integer, parameter :: s_blank$     = -1 ! Information message. The routine name is not printed.
+integer, parameter :: s_info$      = 0  ! Informational message.
+integer, parameter :: s_dinfo$     = 1  ! Info message (w/timestamp).
+integer, parameter :: s_success$   = 2  ! Successful completion.
+integer, parameter :: s_warn$      = 3  ! Warning of a possible problem.
+integer, parameter :: s_dwarn$     = 5  ! Warning of a possible problem (w/timestamp).
+integer, parameter :: s_error$     = 7  ! An error as occurred [EG: bad user input] (w/ timestamp).
+integer, parameter :: s_fatal$     = 8  ! A fatal error has occurred so that computations
+                                        ! cannot be continued but the program will try to
+                                        ! reset itself and keep running (w/timestamp).
+integer, parameter :: s_abort$     = 9  ! A severe error has occurred and
+                                        ! the program is being aborted (w/timestamp).
+integer, parameter :: s_important$ = 10 ! An important message.
 
 ! Where to direct output as a function of message status flag index.
 
 type output_mod_com_struct
-  logical :: do_print(-1:9) = .true.
-  integer :: file_unit(-1:9) = -1
-  integer :: post_process(-1:9) = 0
-  integer :: indent_num(-1:9) = [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 ]
+  logical :: do_print(-1:10) = .true.
+  integer :: file_unit(-1:10) = -1
+  integer :: post_process(-1:10) = 0
+  integer :: indent_num(-1:10) = [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
 end type
 
 type (output_mod_com_struct), save, private :: output_com
@@ -76,30 +77,31 @@ private header_io, find_format, output_lines, insert_numbers, out_io_line_out
 !
 ! Input:
 !   level -- Integer: Status level flags for messages.
-!       s_blank$   -   Information message. No tag line is inserted.
-!       s_info$    -   Informational message. (no timestamp)
-!       s_dinfo$   -   Info message (w/timestamp).
-!       s_success$ -   Successful completion. (no timestamp)
-!       s_warn$    -   Warning of a possible problem. (no timestamp)
-!       s_dwarn$   -   Warning of a possible problem (w/timestamp).
-!       s_error$   -   An error as occurred [EG: bad user input] (w/ timestamp).
-!       s_fatal$   -   A fatal error has occurred so that computations
-!                        cannot be continued but the program will try to
-!                        reset itself and keep running (w/timestamp).
-!       s_abort$   -   A severe error has occurred and
-!                        the program is being aborted (w/timestamp).
-!   routine_name -- Character(*): Name of the calling routine.
-!   line         -- Character(*), Line to print.
-!   lines(:)     -- Character(*), Lines to print.
-!   line1        -- Character(*): First line to print.
-!   line2, ..., line6 
-!                -- Character(*), optional: Second through sixth lines to print.
-!   r_num        -- Real(rp): Real Number to print.
-!   i_num        -- Integer: Integer to print.
-!   l_num        -- Logical: Logical to print.
-!   r_array(:)   -- Real(rp), optional: Real numbers to print.
-!   i_array(:)   -- Integer, optional: Integer numbers to print.
-!   l_array(:)   -- Logical, optional: Logicals to print.
+!       s_blank$     -  Information message. No tag line is inserted.
+!       s_info$      -  Informational message. (no timestamp)
+!       s_dinfo$     -  Info message (w/timestamp).
+!       s_success$   -  Successful completion. (no timestamp)
+!       s_warn$      -  Warning of a possible problem. (no timestamp)
+!       s_dwarn$     -  Warning of a possible problem (w/timestamp).
+!       s_error$     -  An error as occurred [EG: bad user input] (w/ timestamp).
+!       s_fatal$     -  A fatal error has occurred so that computations
+!                         cannot be continued but the program will try to
+!                         reset itself and keep running (w/timestamp).
+!       s_abort$     -  A severe error has occurred and
+!                         the program is being aborted (w/timestamp).
+!       s_important  -  An important message (w/timestamp).
+!   routine_name      -- Character(*): Name of the calling routine.
+!   line              -- Character(*), Line to print.
+!   lines(:)          -- Character(*), Lines to print.
+!   line1             -- Character(*): First line to print.
+!   line2, ..., line6 -- Character(*), optional: Second through sixth lines to print.
+!   r_num             -- Real(rp): Real Number to print.
+!   i_num             -- Integer: Integer to print.
+!   l_num             -- Logical: Logical to print.
+!   r_array(:)        -- Real(rp), optional: Real numbers to print.
+!   i_array(:)        -- Integer, optional: Integer numbers to print.
+!   l_array(:)        -- Logical, optional: Logicals to print.
+!   insert_tag_line   -- logical, optional: Include the taga line in the output?
 !-
 
 interface out_io
@@ -149,7 +151,7 @@ contains
 !   min_level     -- Integer, optional: Minimum message status level to apply to. 
 !                      Default is s_blank$
 !   max_level     -- Integer, optional: Maximum message status level to apply to. 
-!                      Default is s_abort$
+!                      Default is s_important$
 !-
 
 subroutine output_direct (file_unit, do_print, post_process, min_level, max_level)
@@ -169,7 +171,7 @@ if (present(post_process)) then
   endif
 endif
 
-do i = integer_option(s_blank$, min_level), integer_option(s_abort$, max_level)
+do i = integer_option(s_blank$, min_level), integer_option(s_important$, max_level)
   if (present(post_process)) output_com%post_process(i) = post_process
   if (present(do_print))   output_com%do_print(i)   = do_print
   if (present(file_unit))  output_com%file_unit(i)  = file_unit
@@ -675,6 +677,9 @@ case (s_fatal$)
   call out_io_line_out('[FATAL | ' // trim(date_time) // '] ' // trim(routine_name) // ':', level, .false.)
 
 case (s_abort$)
+  call out_io_line_out('[ABORT | ' // trim(date_time) // '] ' // trim(routine_name) // ':', level, .false.)
+
+case (s_important$)
   call out_io_line_out('[ABORT | ' // trim(date_time) // '] ' // trim(routine_name) // ':', level, .false.)
 
 end select
