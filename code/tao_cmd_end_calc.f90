@@ -33,6 +33,7 @@ this_merit =  tao_merit()
 
 call tao_plot_setup()       ! transfer data to the plotting structures
 call tao_hook_plot_setup()
+
 do i = 1, size(s%plot_page%region)
   r => s%plot_page%region(i)
   if (.not. r%visible) cycle
@@ -41,7 +42,6 @@ do i = 1, size(s%plot_page%region)
 enddo
 
 call tao_draw_plots()              ! Update the plotting window
-
 
 end subroutine tao_cmd_end_calc
 

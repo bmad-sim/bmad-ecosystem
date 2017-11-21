@@ -279,10 +279,22 @@ type (tao_universe_struct), pointer :: u
 character(*) who, set_value
 character(20) :: r_name = 'tao_set_global_cmd'
 
-integer iu, ios, iuni, i
+integer iu, ios, iuni, i, ix
 logical err, needs_quotes
 
 namelist / params / global
+
+! Special cases
+
+if (who == 'phase_units') then
+  call match_word (set_value, angle_units_name, ix)
+  if (ix  == 0) then
+    call out_io (s_error$, r_name, 'BAD COMPONENT')
+    return
+  endif
+  s%global%phase_units = ix
+  return
+endif
 
 ! open a scratch file for a namelist read
 
