@@ -1751,7 +1751,7 @@ case ('ANGLE', 'BEND_TILT', 'BRAGG_ANGLE', 'BRAGG_ANGLE_IN', 'BRAGG_ANGLE_OUT', 
   attrib_units = 'rad'
 
 case ('COUPLER_PHASE', 'PHI0', 'PHI0_AUTOSCALE', 'PHI0_ERR', 'PHI0_MULTIPASS')
-  attrib_units = 'rad/2Pi'
+  attrib_units = 'rad/2pi'
 
 case ('CRITICAL_ANGLE_FACTOR')
   attrib_units = 'rad*eV'

@@ -1015,7 +1015,8 @@ type control_struct
   type (lat_ele_loc_struct) :: slave = lat_ele_loc_struct()
   type (lat_ele_loc_struct) :: lord = lat_ele_loc_struct()
   character(40) :: attribute     ! Name of attribute controlled.
-  integer :: ix_attrib = 0       ! Index of attribute controlled
+  ! DO NOT USE %IX_ATTRIB. WILL BE EVENTUALLY DELETED IN FAVOR OF %ATTRIBUTE.
+  integer :: ix_attrib = 0       ! Index of attribute controlled. 
 end type
 
 ! lat_param_struct should be called branch_param_struct [Present name is an historical artifact.]
@@ -1462,8 +1463,10 @@ integer, parameter :: all$ = 203
 !---------------------------------------------------------------------------
 ! Units
 
-integer, parameter :: radians$ = 1, degrees$ = 2, cycles$ = 3, kHz$ = 4
-character(8), parameter :: frequency_units_name(4) = ['Radians ', 'Degrees ', 'Cycles  ', 'kHz     ']
+integer, parameter :: radians$ = 1, degrees$ = 2, cycles$ = 3, radians_over_2pi$ = 3
+character(8), parameter :: angle_units_name(4) = [character(8):: 'radians', 'degrees', 'cycles', 'radians_over_2pi']
+character(8), parameter :: short_angle_units_name(4) = [character(8):: 'rad', 'deg', 'rad/2pi', 'rad/2pi']
+real(rp) :: radians_to_angle_units(4) = [1.0_rp, 180/pi, 1/twopi, 1/twopi]
 
 ! Electric and magnetic fields.
 
