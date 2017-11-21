@@ -13,7 +13,7 @@
 !     %stack         -- Arithmetic expression stack for evaluating the controlled parameter value.
 !     slave%ix_ele      -- Index of element to control
 !     %ix_branch     -- Index of branch element belongs to.
-!     %ix_attrib     -- Index of attribute controlled
+!     %attribute     -- name of attribute to be controlled
 !   err            -- Logical: Set True if an attribute is not free to be controlled.
 !   err_print_flag -- Logical, optional: If present and False then suppress
 !                       printing of an error message if attribute is not free.  
