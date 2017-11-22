@@ -75,7 +75,8 @@ build_requests['local-packages_gfortran'] = gfortran_local_packages_build_reques
 #-----------------------------------------------------
 offline_base_dir = '/nfs/acc/libs'
 offline_util_dir = offline_base_dir + '/util'
-offline_host = 'acc101.classe.cornell.edu'
+#offline_host = 'acc101.classe.cornell.edu'
+offline_host = '$HOSTNAME'
 
 online_base_dir = '/nfs/cesr/online/lib'
 online_util_dir = online_base_dir + '/util'
