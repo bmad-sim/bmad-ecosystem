@@ -37,7 +37,7 @@ type lux_param_struct
   character(40) :: photon1_element = ''           ! element name
   character(20) :: plotting = ''
   character(16) :: random_engine = 'pseudo'
-  character(16) :: histogram_variable = 'energy'
+  character(16) :: histogram_variable = ''
   real(rp) :: histogram_bin_width = 0
   real(rp) :: intensity_min_det_pixel_cutoff = 1e-6
   real(rp) :: intensity_min_photon1_cutoff = 1e-6
@@ -892,7 +892,7 @@ call photon_add_to_detector_statistics (start_orb, det_orb, detec_ele)
 
 ! Histogram
 
-if (lux_param%det_pix_out_file /= '') then
+if (lux_param%det_pix_out_file /= '' .and. lux_param%histogram_variable /= '') then
   orb  = to_photon_angle_coords (det_orb, detec_ele, .true.)
   orb0 = to_photon_angle_coords (start_orb, detec_ele, .false.)
 
@@ -1009,6 +1009,16 @@ integer nx_active_min, nx_active_max, ny_active_min, ny_active_max
 detec_grid => lux_com%detec_ele%photon%surface%grid
 lat => lux_com%lat
 
+!
+
+do n = 1, 6
+  intens_tot = sum(detec_grid%pt%intensity)
+  p%orbit(n) = sum(detec_grid%pt%orbit(n)) / intens_tot
+  p%orbit_rms(n) = sqrt(max(0.0_rp, sum(detec_grid%pt%orbit_rms(n)) / intens_tot - p%orbit(n)**2))
+enddo
+
+!
+
 do nx = lux_data%nx_min, lux_data%nx_max; do ny = lux_data%ny_min, lux_data%ny_max
   pix => detec_grid%pt(nx,ny)
 
@@ -1051,24 +1061,28 @@ if (lux_param%det_pix_out_file /= '') then
   enddo
   enddo
 
-  write (3, '(3a)')        'master_input_file   = "', trim(lux_param%param_file), '"'
-  write (3, '(3a)')        'lattice_file        = "', trim(lux_param%lattice_file), '"'
-  write (3, '(a, es14.6)') 'normalization       =', normalization
-  write (3, '(a, es16.5)') 'intensity_x_unnorm  =', sum(detec_grid%pt(:,:)%intensity_x)
-  write (3, '(a, es16.5)') 'intensity_x_norm    =', sum(detec_grid%pt(:,:)%intensity_x) * normalization
-  write (3, '(a, es16.5)') 'intensity_y_unnorm  =', sum(detec_grid%pt(:,:)%intensity_y)
-  write (3, '(a, es16.5)') 'intensity_y_norm    =', sum(detec_grid%pt(:,:)%intensity_y) * normalization
-  write (3, '(a, es16.5)') 'intensity_unnorm    =', sum(detec_grid%pt(:,:)%intensity)
-  write (3, '(a, es16.5)') 'intensity_norm      =', sum(detec_grid%pt(:,:)%intensity) * normalization
-  write (3, '(a, f10.6)')  'dx_pixel            =', detec_grid%dr(1)
-  write (3, '(a, f10.6)')  'dy_pixel            =', detec_grid%dr(2)
-  write (3, '(a, i8)')     'nx_active_min       =', nx_active_min
-  write (3, '(a, i8)')     'nx_active_max       =', nx_active_max
-  write (3, '(a, i8)')     'ny_active_min       =', ny_active_min
-  write (3, '(a, i8)')     'ny_active_max       =', ny_active_max
-  write (3, '(a)')         '#-----------------------------------------------------'
-  write (3, '(a)')         '#                                                                                                                                                                    |                                          Init'
-  write (3, '(a)')         '#   ix    iy      x_pix      y_pix   Intens_x    Phase_x   Intens_y    Phase_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms|     X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
+  write (3, '(3a)')                 'master_input_file   = "', trim(lux_param%param_file), '"'
+  write (3, '(3a)')                 'lattice_file        = "', trim(lux_param%lattice_file), '"'
+  write (3, '(a, es14.6)')          'normalization       =', normalization
+  write (3, '(a, es16.5)')          'intensity_x_unnorm  =', sum(detec_grid%pt(:,:)%intensity_x)
+  write (3, '(a, es16.5)')          'intensity_x_norm    =', sum(detec_grid%pt(:,:)%intensity_x) * normalization
+  write (3, '(a, es16.5)')          'intensity_y_unnorm  =', sum(detec_grid%pt(:,:)%intensity_y)
+  write (3, '(a, es16.5)')          'intensity_y_norm    =', sum(detec_grid%pt(:,:)%intensity_y) * normalization
+  write (3, '(a, es16.5)')          'intensity_unnorm    =', sum(detec_grid%pt(:,:)%intensity)
+  write (3, '(a, es16.5)')          'intensity_norm      =', sum(detec_grid%pt(:,:)%intensity) * normalization
+  write (3, '(a, f10.6)')           'dx_pixel            =', detec_grid%dr(1)
+  write (3, '(a, f10.6)')           'dy_pixel            =', detec_grid%dr(2)
+  write (3, '(a, i8)')              'nx_active_min       =', nx_active_min
+  write (3, '(a, i8)')              'nx_active_max       =', nx_active_max
+  write (3, '(a, i8)')              'ny_active_min       =', ny_active_min
+  write (3, '(a, i8)')              'ny_active_max       =', ny_active_max
+  write (3, '(a, es16.5, a, f8.2, a)') 'x_center_det        =', p%orbit(1), '  # ', p%orbit(1) / detec_grid%dr(1), ' pixels'
+  write (3, '(a, es16.5, a, f8.2, a)') 'y_center_det        =', p%orbit(3), '  # ', p%orbit(3) / detec_grid%dr(2), ' pixels'
+  write (3, '(a, es16.5, a, f8.2, a)') 'x_rms_det           =', p%orbit_rms(1), '  # ', p%orbit_rms(1) / detec_grid%dr(1), ' pixels'
+  write (3, '(a, es16.5, a, f8.2, a)') 'y_rms_det           =', p%orbit_rms(3), '  # ', p%orbit_rms(3) / detec_grid%dr(2), ' pixels'
+  write (3, '(a)')                  '#-----------------------------------------------------'
+  write (3, '(a)')                  '#                                                                                                                                                                    |                                          Init'
+  write (3, '(a)')                  '#   ix    iy      x_pix      y_pix   Intens_x    Phase_x   Intens_y    Phase_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms|     X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
 
   do i = lux_data%nx_min, lux_data%nx_max
   do j = lux_data%ny_min, lux_data%ny_max

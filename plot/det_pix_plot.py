@@ -91,6 +91,8 @@ dat_file.close()
 
 pix_dat = np.loadtxt(dat_file_name, usecols=(0,1,p_col), skiprows = n_header)
 
+## print(str(pix_dat))
+
 # Create density matrix
 
 nx_min = nx_active_min - x_margin  # For border
@@ -98,11 +100,13 @@ nx_max = nx_active_max + x_margin
 ny_min = ny_active_min - y_margin  # For border
 ny_max = ny_active_max + y_margin
 
+print ('nx min/max: ' + str(nx_min) + ', ' + str(nx_max))
+print ('ny min/max: ' + str(ny_min) + ', ' + str(ny_max))
+
 pix_mat = np.zeros((nx_max+1-nx_min, ny_max+1-ny_min))
 
 for pix in pix_dat:
-  pix_mat[pix[0]-nx_min, pix[1]-ny_min] = pix[2]
-  ## print (str(pix[0]) + ' ' + str(pix[1]) + ': ' + str(pix[2]))
+  pix_mat[int(round(pix[0]))-nx_min, int(round(pix[1]))-ny_min] = pix[2]
 
 # And plot
 

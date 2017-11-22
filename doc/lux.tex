@@ -60,7 +60,7 @@
 
 \title{Lux Program}
 \author{D. Sagan, K. Finkelstein}
-\date{Revision 1.3 \\ July, 24 2015}
+\date{Revision 1.4 \\ November, 21 2017}
 
 %---------------------------------------------------------------------------------
 
@@ -231,10 +231,10 @@ blank file name will prevent a file being generated.
 Name of the lattice detector element where the photon are absorbed.
 
   \item[\vn{lux_param\%histogram_bin_width}] \Newline
-Bin width of histogram. (\sref{s:det.pix.file}).
+Bin width of histogram. See \sref{s:histo.file} for more details.
 
   \item[\vn{lux_param\%histogram_variable}] \Newline
-Variable used in constructing the histogram (\sref{s:det.pix.file}).
+Variable used in constructing the histogram (\sref{s:histo.file}).
 Possibilities are:
 \begin{example}
   "init_x"        ! Initial photon x-position.
@@ -245,7 +245,7 @@ Possibilities are:
   "y_angle"       ! Angle of photon velocity in the (z,y) plane at the detector.
   "energy"        ! photon energy relative to the reference (default).
 \end{example}
-Default is \vn{"energy"}
+If not given then no histogram file is produced.
 
   \item[\vn{lux_param\%intensity_min_det_pixel_cutoff}] \Newline
 Sets the threshold absorbed photon intensity such that all pixels
@@ -696,6 +696,10 @@ intensity weighted averages. \vn{E_ave} is the photon energy deviation
 from the reference energy. \vn{E_rms} is the RMS variation
 of the photon energy with respect to \vn{E_ave}.
 
+%-------------------------------------------
+\subsection{Pixel-By-Pixel File}
+\label{s:pbp.file}
+
 The first data file has the \vn{det_pix_out_file} parameter as the
 file name. This file contains pixel-by-pixel information.  The
 intensity of a pixel is the accumulated intensity of the photons
@@ -716,12 +720,13 @@ file are:
   ... and 14 common columns ..
 \end{example}
 
-The second and third data files
-contain data projected on the
-$x$ and $y$ detector axes. The name of these two files will be the same as
-\vn{det_pix_out_file} with ``.x'' and ``.y'' suffixes indicating
-projected data on the $x$ and $y$ axes respectively. The columns for
-the $x$-axis projected data is:
+%-------------------------------------------
+\subsection{X and Y Projection Files}
+\label{s:xy.file}
+
+The second and third data files contain data projected on the $x$ and $y$ detector axes. The name of
+these two files will be the same as \vn{det_pix_out_file} with ``.x'' and ``.y'' suffixes indicating
+projected data on the $x$ and $y$ axes respectively. The columns for the $x$-axis projected data is:
 \begin{example}
   ix_pix            ! x-axis index
   x_pix             ! x coordinate of pixel center
@@ -734,6 +739,10 @@ recorded in the pixel-by-pixel file (due to a non-zero
 \vn{lux_param%intensity_min_det_pixel_cutoff} setting), quantities
 like the total number of photon need not match between the
 pixel-by-pixel file and the projected files.
+
+%-------------------------------------------
+\subsection{Histogram File}
+\label{s:histo.file}
 
 The fourth data file will have the same name as 
 \vn{det_pix_out_file} with a ``.histogram'' suffix. This file contains 
@@ -782,12 +791,6 @@ Example:
 import subprocess
 import glob
 
-# Read in template lattice file
-
-t_file = open ('template.bmad', 'r')
-template = t_file.readlines()
-t_file.close()
-
 # open output file
 
 out_file = open('output.dat', 'w')
@@ -802,14 +805,10 @@ for ix in range(-n_max, n_max+1):
   # Create file with var_to_change set to correct value
 
   var = ix * dvar
-  print ('Run with var_to_change set to: ' + str(var))
+  print ('Run with my_var set to: ' + str(var))
 
-  b_file = open ('lat.bmad', 'w')
-
-  for line in template:
-    if (line[:8] == 'var_to_change'): line = 'var_to_change = ' + str(var) + '\n'
-    b_file.write(line)
-
+  b_file = open ('var.bmad', 'w')
+  b_file.write('my_var = ' + str(var))
   b_file.close()
 
   # Run lux
@@ -845,37 +844,21 @@ for ix in range(-n_max, n_max+1):
 out_file.close()
 \end{listing}
 
-The heart of the script is the loop that begins on line 21 and ends on
-line 64. Each iteration of this loop changes one variable in the
-lattice file (lines 28 to 34), runs \lux (line 39), and then extracts
-the pertinent data (lines 44 to 48). Finally at the end of the loop
-the data is appended to the output file in lines 52 through 64.
-
+The heart of the script is the loop that begins on line 15. Each iteration of this loop creates a
+file called \vn{var.bmad} (lines 22 through 24) with one line setting the variable \vn{my_var} to a
+value from \vn{-n_max * dvar} to \vn{n_max * dvar} which in this case is from -10e-5 to 10e-5. The
+script then runs \lux (line 30), and then extracts the pertinent data (lines 34 to 38). Finally at
+the end of the loop the data is appended to the output file in lines 42 through 54.
 
 The lattice file that \lux uses is called \vn{lat.bmad} (this is set
 by the \vn{lattice_file} parameter in the \vn{lux.init} file which is
-not shown). The python script constructs this \vn{lat.bmad} file by
-first reading in a lattice file called \vn{template.bmad} (lines (8
-to 10). In lines 30 to 32 the script transfers, line-by-line, the lines
-from \vn{template.bmad} to \vn{lat.bmad}. It has been arranged that
-the \vn{template.bmad} file contains the following:
+not shown). This file contains the following:
 \begin{example}
-  var_to_change = 0
-  cryst1: crystal, ..., x_pitch = var_to_change
+  call, file = var.bmad   ! Read in my_var variable
+  cryst1: crystal, ..., x_pitch = my_var
 \end{example}
-The \vn{var_to_change} variable sets the \vn{x_pitch} attribute of the
-crystal named \vn{cryst1}. The Python script will take the line
-\begin{example}
-  var_to_change = 0
-\end{example} 
-and modify this (in line 31) to read:
-\begin{example}
-  var_to_change = <var>
-\end{example}
-where \vn{<var>} is the value of the \vn{var} variable in the
-script. The value of \vn{var} is set in line 25 and ranges from
-\vn{-n_max * dvar} to \vn{n_max * dvar} which in this case is from
--10e-5 to 10e-5.
+The \vn{my_var} variable sets the \vn{x_pitch} attribute of the
+crystal named \vn{cryst1}.
 
 To get the data after \lux is run, the script opens up a file
 \vn{det.pix}. This name has been set in the \vn{lux.init} file as the
