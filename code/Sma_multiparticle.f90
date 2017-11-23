@@ -1044,13 +1044,13 @@ TA=T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos==1.OR.T%PARENT_FIB
        case(KINDWIGGLER)
 
           IF(T%CAS==CASE1) THEN
-          if(el%p%dir) then
+          if(el%p%dir == 1) then
             call ADJUST_LIKE_ABELL(EL%wi,X,k,1)
           else
             call ADJUST_LIKE_ABELL(EL%wi,X,k,2)
           endif
           ELSE
-          if(el%p%dir) then
+          if(el%p%dir == 1) then
             call ADJUST_LIKE_ABELL(EL%wi,X,k,2)
           else
             call ADJUST_LIKE_ABELL(EL%wi,X,k,1)
@@ -1280,13 +1280,13 @@ TA=T%PARENT_FIBRE%MAGP%p%dir*T%PARENT_FIBRE%MAGP%p%aperture%pos==1.OR.T%PARENT_F
        case(KINDWIGGLER)
 
           IF(T%CAS==CASE1) THEN
-          if(el%p%dir) then
+          if(el%p%dir == 1) then
             call ADJUST_LIKE_ABELL(EL%wi,X,k,1)
           else
             call ADJUST_LIKE_ABELL(EL%wi,X,k,2)
           endif
           ELSE
-          if(el%p%dir) then
+          if(el%p%dir == 1) then
             call ADJUST_LIKE_ABELL(EL%wi,X,k,2)
           else
             call ADJUST_LIKE_ABELL(EL%wi,X,k,1)
