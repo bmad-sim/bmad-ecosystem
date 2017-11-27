@@ -120,7 +120,7 @@ def build_directory( dir, statlist, target ):
     else:
         use_gcc482 = ''
 
-    ACC_SET_GMAKE_JOBS = '2'
+    ACC_SET_GMAKE_JOBS = '4'
 
     ACC_ENABLE_FPIC = 'N'
 
