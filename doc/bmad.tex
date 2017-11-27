@@ -20,12 +20,24 @@
 \usepackage{multirow}
 \usepackage{booktabs}   % For table layouts
 \usepackage{yhmath}     % For widehat
+\usepackage{eso-pic}
 
 \usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
 \usepackage[strings]{underscore}    % to use "_" in text
 \usepackage[pdftex,colorlinks=true]{hyperref}   % Must be last package!
 
 %----------------------------------------------------------------
+
+\newcommand\BackgroundPic{%
+\put(0,0){%
+\parbox[b][\paperheight]{\paperwidth}{%
+\vfill
+\centering
+\includegraphics[width=\paperwidth,height=\paperheight,%
+keepaspectratio]{success-kid-image.jpg}%
+\vfill
+}}}
+
 
 \input{macros.tex}
 
@@ -44,6 +56,8 @@
 \newindex{routine}{rdx}{rnd}{Routine Index}
 
 \begin{document}
+
+\AddToShipoutPicture*{\BackgroundPic}
 
 \index{coordinates!reference|see{reference orbit}}
 \index{coordinates!global|see{global coordinates}}
