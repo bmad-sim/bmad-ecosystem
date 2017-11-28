@@ -1072,7 +1072,7 @@ type (tao_var_struct), pointer :: var
 real(rp) x1, x2, y1, y2, y, s_pos, x0, y0
 real(rp) lat_len, height, dx, dy, key_number_height, dummy, l2
 
-integer i, j, k, n, kk, ix, ix1, isu
+integer i, j, k, n, kk, ix, ix1, isu, ixe
 integer ix_var, ixv
 
 logical shape_has_box, err, have_data
@@ -1163,7 +1163,9 @@ if (s%global%label_keys) then
     var => s%var(ix_var)
     do ixv = 1, size(var%slave)
       if (var%slave(ixv)%ix_uni /= isu) cycle
-      ele => pointer_to_ele(lat, var%slave(ixv)%ix_ele, var%slave(ixv)%ix_branch)
+      ixe = var%slave(ixv)%ix_ele
+      if (var%ele_name == 'BEAM_START') ixe = 0
+      ele => pointer_to_ele(lat, ixe, var%slave(ixv)%ix_branch)
       if (ele%n_slave /= 0 .and. ele%lord_status /= super_lord$) then
         do j = 1, ele%n_slave
           ele1 => pointer_to_slave(ele, j)
