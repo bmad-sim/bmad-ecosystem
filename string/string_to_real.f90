@@ -1,7 +1,7 @@
 !+
 ! Function string_to_real (line, default, err_flag, err_print_flag) result (value)
 !
-! Function to convert a string to an real.
+! Function to return the real value of the first word in a string.
 !
 ! Input:
 !   line            -- character*(*): String to decode
@@ -9,7 +9,7 @@
 !   err_print_flag  -- logical, optional: If present and False then suppress error message printing.
 !
 ! Output:
-!   value    -- real: Variable to hold value
+!   value    -- real: Real value.
 !   err_flag -- logical: Set .true. if there is a decoding error. A blank string is not an error.
 !-
 
@@ -31,8 +31,7 @@ character(*), parameter :: r_name = 'string_to_real'
 err_flag = .false.
 value = default
 
-call string_trim (line, line, ix)
-if (ix == 0) return
+if (line == '') return
 
 read (line, *, iostat = ios) value
 if (ios /= 0) then

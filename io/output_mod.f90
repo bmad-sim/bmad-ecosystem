@@ -258,9 +258,9 @@ call find_format (line, n_prefix, fmt, ix1, ix2, found)
 if (found) then
   fmt = '(a, ' // trim(fmt) // ', a)'
   write (this_line, fmt) line(:ix1), r_num, trim(line(ix2:))
-  call out_io_line_out (this_line, level)
+  call out_io_line_out (this_line, level, logic_option(.true., insert_tag_line))
 else
-  call out_io_line_out (line, level)
+  call out_io_line_out (line, level, logic_option(.true., insert_tag_line))
 endif
 
 if (output_com%post_process(level) /= 0) call out_io_end()
@@ -300,9 +300,9 @@ call find_format (line, n_prefix, fmt, ix1, ix2, found)
 if (found) then
   fmt = '(a, ' // trim(fmt) // ', a)'
   write (this_line, fmt) line(:ix1), i_num, trim(line(ix2:))
-  call out_io_line_out(this_line, level)
+  call out_io_line_out(this_line, level, logic_option(.true., insert_tag_line))
 else
-  call out_io_line_out(line, level)
+  call out_io_line_out(line, level, logic_option(.true., insert_tag_line))
 endif
 
 if (output_com%post_process(level) /= 0) call out_io_end()
@@ -342,9 +342,9 @@ call find_format (line, n_prefix, fmt, ix1, ix2, found)
 if (found) then
   fmt = '(a, ' // trim(fmt) // ', a)'
   write (this_line, fmt) line(:ix1), l_num, trim(line(ix2:))
-  call out_io_line_out(this_line, level)
+  call out_io_line_out(this_line, level, logic_option(.true., insert_tag_line))
 else
-  call out_io_line_out(line, level)
+  call out_io_line_out(line, level, logic_option(.true., insert_tag_line))
 endif
 
 if (output_com%post_process(level) /= 0) call out_io_end()
@@ -385,12 +385,12 @@ call header_io (level, routine_name, insert_tag_line)
 
 nr = 0; ni = 0; nl = 0  ! number of numbers used.
 
-call insert_numbers (level, fmt, nr, ni, nl, line1, r_array, i_array, l_array)
-if (present(line2)) call insert_numbers (level, fmt, nr, ni, nl, line2, r_array, i_array, l_array)
-if (present(line3)) call insert_numbers (level, fmt, nr, ni, nl, line3, r_array, i_array, l_array)
-if (present(line4)) call insert_numbers (level, fmt, nr, ni, nl, line4, r_array, i_array, l_array)
-if (present(line5)) call insert_numbers (level, fmt, nr, ni, nl, line5, r_array, i_array, l_array)
-if (present(line6)) call insert_numbers (level, fmt, nr, ni, nl, line6, r_array, i_array, l_array)
+call insert_numbers (level, fmt, nr, ni, nl, line1, r_array, i_array, l_array, insert_tag_line)
+if (present(line2)) call insert_numbers (level, fmt, nr, ni, nl, line2, r_array, i_array, l_array, insert_tag_line)
+if (present(line3)) call insert_numbers (level, fmt, nr, ni, nl, line3, r_array, i_array, l_array, insert_tag_line)
+if (present(line4)) call insert_numbers (level, fmt, nr, ni, nl, line4, r_array, i_array, l_array, insert_tag_line)
+if (present(line5)) call insert_numbers (level, fmt, nr, ni, nl, line5, r_array, i_array, l_array, insert_tag_line)
+if (present(line6)) call insert_numbers (level, fmt, nr, ni, nl, line6, r_array, i_array, l_array, insert_tag_line)
 
 if (output_com%post_process(level) /= 0) call out_io_end()
 
@@ -428,7 +428,7 @@ call header_io (level, routine_name, insert_tag_line)
 nr = 0; ni = 0; nl = 0  ! number of numbers used.
 
 do i = 1, size(lines)
-  call insert_numbers (level, fmt, nr, ni, nl, lines(i), r_array, i_array, l_array)
+  call insert_numbers (level, fmt, nr, ni, nl, lines(i), r_array, i_array, l_array, insert_tag_line)
 enddo
 
 if (output_com%post_process(level) /= 0) call out_io_end()
@@ -439,7 +439,7 @@ end subroutine output_lines
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine insert_numbers (level, fmt, nr, ni, nl, line_in, r_array, i_array, l_array)
+! Subroutine insert_numbers (level, fmt, nr, ni, nl, line_in, r_array, i_array, l_array, insert_tag_line)
 !
 ! Subroutine to insert numbers into a string and print it.
 ! This is an internal subroutine not meant for general use.
@@ -451,15 +451,16 @@ end subroutine output_lines
 ! To use a literal "\" in line use the syntax "\\"
 !
 ! Input:
-!   level        -- Integer: Message status level.
-!   fmt          -- Character(*): Format for line.
-!   nr           -- Integer: Index to next available element in r_array.
-!   ni           -- Integer: Index to next available element in i_array.
-!   nl           -- Integer: Index to next available element in l_array.
-!   line_in      -- Character(*): Input line.
-!   r_array(:)   -- Real(rp), optional: Real numbers to print.
-!   i_array(:)   -- Integer, optional: Integer numbers to print.
-!   l_array(:)   -- Logical, optional: Logicals to print.
+!   level            -- Integer: Message status level.
+!   fmt              -- Character(*): Format for line.
+!   nr               -- Integer: Index to next available element in r_array.
+!   ni               -- Integer: Index to next available element in i_array.
+!   nl               -- Integer: Index to next available element in l_array.
+!   line_in          -- Character(*): Input line.
+!   r_array(:)       -- Real(rp), optional: Real numbers to print.
+!   i_array(:)       -- Integer, optional: Integer numbers to print.
+!   l_array(:)       -- Logical, optional: Logicals to print.
+!   insert_tag_line  -- logical, optional: Include the taga line in the output?
 !
 ! Output:
 !   nr           -- Integer: Index of last used element in r_array.
@@ -467,7 +468,7 @@ end subroutine output_lines
 !   nl           -- Integer: Index of last used element in l_array.
 !-
 
-subroutine insert_numbers (level, fmt, nr, ni, nl, line_in, r_array, i_array, l_array)
+subroutine insert_numbers (level, fmt, nr, ni, nl, line_in, r_array, i_array, l_array, insert_tag_line)
 
 implicit none
 
@@ -479,7 +480,7 @@ character(len(line_in)+100) this_line, this_line2
 
 real(rp), optional :: r_array(:)
 integer, optional :: i_array(:)
-logical, optional :: l_array(:)
+logical, optional :: l_array(:), insert_tag_line
 
 integer level
 integer nr, ni, nl
@@ -526,7 +527,7 @@ if (any ( [present(r_array), present(i_array), present(l_array) ])) then
 
 endif
 
-call out_io_line_out (this_line, level)
+call out_io_line_out (this_line, level, logic_option(.true., insert_tag_line))
 
 end subroutine insert_numbers
 
