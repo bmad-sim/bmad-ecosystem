@@ -660,7 +660,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
                   'WHICH IS A: MATCH ELEMENT', &
-                  'HAS THE MATCH_END ATTRIBUTE SET BUT THIS IS NOT A LINEAR LATTICE!')
+                  'HAS THE MATCH_END ATTRIBUTE SET BUT THIS IS NOT AN OPEN LATTICE!')
         err_flag = .true.
       endif
     endif

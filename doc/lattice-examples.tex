@@ -60,7 +60,7 @@ with the marker \vn{M} in \vn{RING_L}.
   \includegraphics[width=6in]{erl.pdf}
   \caption[Example Energy Recovery Linac.]{
 Example Energy Recovery Linac. A) The ERL consists of an injection
-line, accelerating linac, return arc, decellerating linac, and finally
+line, accelerating linac, return arc, deceleration linac, and finally
 a beam dump. B) Close up of the section where the end of the injector
 and the end of the arc inject into the beginning of the linac. C)
 Close up of the end of the linac which injects into the dump and the
@@ -72,8 +72,8 @@ An Energy Recovery Linac (ERL) is illustrated in \fig{f:erl}A. The ERL
 starts with an injection line that feeds a linac which accelerates the
 beam to some energy. The beam then transverses a return \vn{arc} which
 reinjects the bunches into the linac. The length of the return arc is
-such that, on the second pass, the beam is decelleratied giving its
-energy back to the RF cavities. Finally, the decelleratied beam is
+such that, on the second pass, the beam is decelerated giving its
+energy back to the RF cavities. Finally, the decelerated beam is
 steered through a dump line where, at the end, an absorber stops the
 beam.
 
@@ -86,7 +86,7 @@ beam.
   BEND_L2: BEND_L1
 
   A_PATCH: patch, flexible = T
-  D_PATCH: patch, x_offset = 0.034, x_ptich = asin(0.32) 
+  D_PATCH: patch, x_offset = 0.034, x_pitch = asin(0.32) 
   INJECT: line = (...)
   LINAC: line[multipass] = (BEND_L1, ..., BEND_L2)
   ARC: line = (..., BEND_A7)
@@ -107,8 +107,8 @@ of \vn{A_PATCH} will automatically be aligned with the entrance edge
 of the next element which is \vn{BEND_L1}. 
 
 Note that this use of a flexible patch works since the orientation of
-\vn{BEND_L1} has been determined before the orientaiton of
-\vn{A_PATCH} is determined. The orientaiton of elements is determined
+\vn{BEND_L1} has been determined before the orientation of
+\vn{A_PATCH} is determined. The orientation of elements is determined
 in order starting from the first element in the line (the exception to
 this rule is if there is a \vn{floor_position} element) and the
 orientation of \vn{BEND_L1} is thus determined right after the
@@ -232,21 +232,141 @@ representing the physical IR elements will be in the ``lord section''
 of branch 0.
 
 
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{rowland-circle.pdf}
+  \caption[Rowland circle spectrometer]
+  {
+Rowland circle spectrometer: A) X-rays scattered from a sample (labeled source in the figure)
+illuminates a crystal with X-rays. Some of the X-rays are reflected from the crystal onto the
+detector. B) The detector image when the radius of curvature of the bent crystal is
+``perfect''. That is, twice the radius of the Rowland circle. C) The detector image when the radius
+of curvature of the crystal is shifted 1\% from perfect.
+  }
+  \label{f:rowland}
+\end{figure}
+
 %-----------------------------------------------------------------------------
-\subsection{Example: Backward Tracking Through a Lattice}
+\section{Example: Rowland Circle X-Ray Spectrometer}
+\label{s:rowland}
+
+This example shows how \bmad can be used to simulate X-rays. In this case, the present example is
+taken from a case study where simulations were done in order to understand how imperfections in a Rowland
+circle spectrometer would affect measurements.
+
+A Rowland circle spectrometer is illustrated in \fig{f:rowland}A. The \vn{source} was
+a sample that is illuminated with X-rays. Some of the X-rays scatter from the \vn{sample} and are
+reflected from the \vn{crystal} to the \vn{detector}. To properly focus the X-rays onto the
+\vn{detector}, the \vn{source}, \vn{crystal} and \vn{detector} lie on a circle, called the Rowland
+circle. The \vn{crystal} is bent and the radius of curvature of the crystal is
+$2R$ where $R$ is the radius of the Rowland circle.
+
+The angle from the \vn{source} to the Rowland circle center to the crystal is
+$2\theta_\text{B,in}-\phi$ where $\theta_\text{B,in}$ is the entrance Bragg angle for photons whose
+energy matches the given reference energy and $\phi$ is an angle that will be varied when doing an energy
+scan of the scattered X-ray spectrum. Similarly, the angle from the \vn{crystal} to the Rowland
+circle center to the \vn{detector} is $2\theta_\text{B,out}-\phi$ where $\theta_\text{B,out}$ is the
+exit Bragg angle at the given reference energy.
+
+The lattice for this simulation is:
+\begin{example}
+  beginning[e_tot] = 8.955e3    ! Reference photon energy
+  parameter[particle] = photon
+
+  phi = 0
+  err = 0
+  r_rowland = 0.5               ! Rowland circle radius
+
+  source: photon_init, sig_x = 5e-5, sig_y = 5e-5, spatial_distribution = uniform,
+          E_center_relative_to_ref = T, sig_E = 2, energy_distribution = gaussian,
+          velocity_distribution = spherical
+
+  drift1: drift
+
+  cryst: crystal, crystal_type = 'Si(553)', b_param = -1, aperture = 0.050,
+  	spherical_curvature = (1+err) / (2 * r_rowland), aperture_type = elliptical
+
+  drift2: drift
+
+  det: detector, surface = \{grid = \{ix_bounds = (-97, 97), 
+                                    iy_bounds = (-243, 243), dr = (172e-6, 172e-6)\}\}
+
+  daves_line: line = (source, drift1, cryst, drift2, det)
+  use, daves_line
+
+  !------------------
+
+  expand_lattice ! Calculates the Bragg angles needed below.
+
+  theta_in  = cryst[bragg_angle_in]  ! 78.2759 * pi / 180
+  theta_out = cryst[bragg_angle_out] ! 78.2759 * pi / 180
+
+  cryst[graze_angle_in]  = theta_in - phi
+  cryst[graze_angle_out] = theta_out - phi
+  drift1[l] = 2 * r_rowland * sin(theta_in-phi/2)
+  drift2[l] = 2 * r_rowland * sin(theta_out-phi/2)
+
+  beginning[theta] = theta_in - phi
+\end{example}
+
+The reference photon energy is 8.995~KeV and the Rowland circle radius is 0.5~m. The simulation uses
+a \vn{photon_init} element (\sref{s:photon.init}) for the \vn{source} having a Gaussian energy
+spread with a sigma of 2~eV.  The initial velocity distribution of the photons, set by the
+\vn{velocity_distribution} parameter, is taken to be uniform in all directions (``\vn{spherical}''
+distribution). Since the element that is downstream from the source (which is the crystal element)
+has a defined aperture, \bmad is able to use this to not generate photons that will be lost at the
+crystal. This reduces the simulation time.
+
+The crystal is \vn{Silicon} 553 crystal which is symmetrically cut (\vn{b_param} = -1) so that in
+this example the entrance Bragg angle is equal to the exit Bragg angle.  The detector has a
+segmented surface with pixels spaced 172$\mu$m apart. Along the $x$-axis, which is the coordinate
+along the detector surface in the plane of \fig{f:rowland}A, the pixel index is in the range $[-97,
+97]$. Along the $y$-axis, which is the out of plane coordinate, the pixel index is in the range
+$[-243,243]$.
+
+The \vn{expand_lattice} command (\sref{s:expand.lat}) is used to command \bmad to construct the
+lattice which includes calculating the Bragg angles. After lattice expansion, the variables
+\vn{theta_in} and \vn{theta_out} are set to the Bragg angle entrance and exit Bragg angles
+respectively. The entrance and exit graze angles of the crystal, which are used to determine the
+reference trajectory (\sref{s:mirror.coords}, can be set to \vn{theta_in - phi} and \vn{theta_out -
+phi} respectively. Note that if these graze angles had not been explicitly set, the graze angles
+would be automatically set to the Bragg angles which
+is not what is wanted when doing an energy scan with finite \vn{phi}.
+
+Besides using the Bragg angles to set the crystal grazing angles, the entrance Bragg angle is used
+to set the initial orientation of the reference trajectory within the global coordinate system
+(\sref{s:global}) by setting \vn{beginning[theta]}. This does not affect photon tracking since
+changing the initial orientation of the reference trajectory just shifts all the lattice element as
+one rigid body. The purpose of setting \vn{beginning[theta]} is to keep the orientation of the
+global coordinates as shown in \fig{f:rowland}A which mimics the actual experimental setup that this
+example is based on. That is, in the actual experimental setup, the source and Rowland circle were
+fixed in the global coordinate system.
+
+The effect of varying the \vn{crystal} curvature is shown in \fig{f:rowland}B and
+\fig{f:rowland}C. A \bmad based program called \vn{Lux} was used for the simulation. The \vn{Lux}
+program generates a set of photons and records the statistics at the detector. In \fig{f:rowland}B
+the \vn{crystal} is correctly bent with the parameter \vn{err} in the lattice set to zero. This
+produces a well focused spot on the \vn{detector}. In \fig{f:rowland}C the \vn{crystal} curvature
+is shifted by 1\% by setting \vn{err} equal to 0.01. This error degrades the focusing and leads to a
+spot that is enlarged along the $x$-axis.
+
+
+%-----------------------------------------------------------------------------
+\section{Example: Backward Tracking Through a Lattice}
 \label{s:reverse}
 
 By creating a reversed lattice, one can essentially track particles backwards. For example,
 assume that you have a lattice file called \vn{original_lattice.bmad} which defines a line
 called \vn{original_line}. To create a reversed lattice, create a new file with the following:
 \begin{example}
-  call, file = orginal_lattice.bmad
+  call, file = original_lattice.bmad
   reversed_line: line = (--original_line)
   parameter[particle] = antiparticle(parameter[particle])
   use, reversed_line
 \end{example}
 The ``\vn{--}'' reverses the line and reverses the elements (\sref{s:ele.reverse}). Tracking through
-\vn{reversed_line} is equivalent to tracking backwards through \vn{orginal_line}.  
+\vn{reversed_line} is equivalent to tracking backwards through \vn{original_line}.  
 
 If the \vn{original_line} lattice had just static magnetic fields and no electric fields, then
 by tracking with the anti-particle in the reversed lattice, the anti-particle will follow the same

@@ -49,7 +49,7 @@ real(rp) v1, v2
 
 integer ix_word, i, j, n, ix, ix1, ix2, n_plat_ele, ixx, ele_num, ix_word_1
 integer key, n_max_old, n_loc, n_def_ele, is, is2, ib, ie
-integer, pointer :: n_max, n_ptr
+integer, pointer :: n_max
 integer, allocatable :: lat_indexx(:)
 
 character(*) lat_file
@@ -207,14 +207,7 @@ parsing_loop: do
   ! PRINT
 
   if (word_1(:ix_word) == 'PRINT') then
-    call string_trim (bp_com%input_line2, parse_line_save, ix) ! so can strip off initial "print"
-    n_ptr => bp_com%num_lat_files
-    if (size(bp_com%lat_file_names) < n_ptr + 1) call re_allocate(bp_com%lat_file_names, n_ptr+100)
-    n_ptr = n_ptr + 1
-    bp_com%lat_file_names(n_ptr) = '!PRINT:' // trim(parse_line_save(ix+2:)) ! To save in digested
-    call out_io (s_dwarn$, r_name, 'Print Message in Lattice File: ' // parse_line_save(ix+2:))
-    ! This prevents bmad_parser from thinking print string is a command.
-    call load_parse_line ('init', 1, end_of_file)
+    call parser_print_line(lat, end_of_file)
     cycle parsing_loop
   endif
 
@@ -648,15 +641,24 @@ do i = 1, ele_num
   enddo
 enddo
 
-! make matrices for entire lat
+! Remove elements as needed
 
 do i = 1, lat%n_ele_max
   if (lat%ele(i)%key == null_ele$) lat%ele(i)%key = -1 ! mark for deletion
 enddo
 call remove_eles_from_lat (lat)  ! remove all null_ele elements.
 
+! Some bookkeeping
+
+do ib = 0, ubound(lat%branch, 1)
+  ele => lat%branch(ib)%ele(0)
+  call floor_angles_to_w_mat(ele%floor%theta, ele%floor%phi, ele%floor%psi, ele%floor%w)
+enddo
+
 call set_flags_for_changed_attribute(lat)
 call lattice_bookkeeper (lat)
+
+! make matrices for entire lat
 
 if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, -1, orbit) 
 

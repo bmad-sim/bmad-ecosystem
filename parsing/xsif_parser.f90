@@ -149,8 +149,7 @@ if (ierr_lcl /= 0) then
   return
 endif
 
-! Init the lattice and look for an LCavity which means this is 
-! a linear lattice.
+! Init the lattice and look for an LCavity which means this is an open lattice.
 
 call init_lat (lat, npos2-npos1+100)
 lat%param%geometry = closed$
@@ -158,7 +157,7 @@ lat%param%geometry = closed$
 do ie = 1, maxelm
   if (ietyp(ie) == mad_lcav) then
     lat%param%geometry = open$
-    call xsif_warning ('LCavity is present. Assuming a Linear Lattice')
+    call xsif_warning ('LCavity is present. Assuming an Open Lattice')
     exit
   endif
 enddo

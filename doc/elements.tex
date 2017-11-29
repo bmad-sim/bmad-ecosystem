@@ -1047,6 +1047,9 @@ with respect to the photon energy and is given by the formula
   \frac{d\theta_B}{dE} = -\frac{\lambda}{2 \, d \, E \, \cos( \theta_B )}
 \Endeq
 
+See Section~\sref{s:rowland} for an example lattice that can be used to simulate
+a Rowland circle spectrometer.
+
 %-----------------------------------------------------------------
 \section{Custom}
 \label{s:custom}
@@ -3485,9 +3488,13 @@ $\sigma$ where $sigma$ is
   sig_vx     for vx/c distribution
   sig_vy     for vy/c distribution
 \end{example2}
-The \vn{uniform} setting gives a flat distribution in the range:
-$[-\sigma, \sigma]$.
-The \vn{spherical} setting gives flat distribution in all directions.
+The \vn{uniform} setting gives a flat distribution in the range: $[-\sigma, \sigma]$. The
+\vn{spherical} setting gives flat distribution in all directions. With the \vn{spherical}
+setting is used, and the next downstream element excluding drifts and markers is an element
+with aperture limits (\sref{s:limit}), \bmad can optimize photon emission to only emitting 
+photons that are very likely to be within the aperture when they hit the downstream element.
+This cuts down on computation time.
+
   \end{description}
 
 For the purposes of positioning the elements in the lattice around it,
@@ -3529,6 +3536,9 @@ It is important to note that in the above example, with the
 \vn{photon_init} element having an associated physical source, the
 setting of things like the spatial shape \vn{sig_z}, etc. in the
 \vn{photon_init} element will be ignored.
+
+See Section~\sref{s:rowland} for an example lattice that can be used to simulate
+a Rowland circle spectrometer using a \vn{photon_init} element.
 
 %-----------------------------------------------------------------
 \section{Quadrupole}

@@ -1385,6 +1385,8 @@ integer, parameter :: type$ = 117
 integer, parameter :: ref_origin$ = 118
 integer, parameter :: ele_origin$ = 119
 
+character(20), parameter :: field_overlaps_name$ = 'FIELD OVERLAPS'
+
 ! superimpose$ through create_jumbo_slave$ assumed unique (or need to modify bmad_parser_mod.f90).
 
 integer, parameter :: superimpose$     = 120   

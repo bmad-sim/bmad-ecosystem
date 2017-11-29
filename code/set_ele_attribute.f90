@@ -45,16 +45,16 @@ type (all_pointer_struct) a_ptr
 
 integer ix
 
+logical, optional :: err_print_flag
+logical err_flag, delim_found, print_save, file_input_save, is_slaved_field_attribute
+
 character(*) set_string
 character(100) string
 character(1) delim
 character(20) :: r_name = 'set_ele_attribute'
 character(40) a_name
 
-logical, optional :: err_print_flag
-logical err_flag, delim_found, print_save, file_input_save
-
-! Check if free
+! Check if free. Except if we know how to handle the attribute.
 
 err_flag = .true.
 
@@ -66,7 +66,17 @@ if (ix == 0) then
 endif
 
 a_name = string(1:ix-1)
-if (.not. attribute_free (ele, a_name, err_print_flag)) return
+
+select case (a_name)
+case ('VOLTAGE', 'GRADIENT')
+case default
+  is_slaved_field_attribute = (.not. field_attribute_free(ele, a_name)) 
+  if (is_slaved_field_attribute) then
+    ele%field_master = .not. ele%field_master
+  else
+    if (.not. attribute_free (ele, a_name, err_print_flag)) return
+  endif
+end select
 
 ! Evaluate and set.
 ! This essentially is a wrapper for the bmad_parser routine parser_set_attribute.
@@ -91,7 +101,21 @@ bp_com%print_err       = print_save
 
 if (err_flag) return
 
+select case (a_name)
+case ('VOLTAGE')
+  if (ele%value(l$) /= 0) then
+    ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
+  endif
+case ('GRADIENT')
+    ele%value(voltage$) = ele%value(gradient$) * ele%value(l$)
+end select
+
 ! Bookkeeping
+
+if (is_slaved_field_attribute) then
+  call attribute_bookkeeper(ele, ele%branch%param, force_bookkeeping = .true.)
+  ele%field_master = .not. ele%field_master
+endif
 
 call pointer_to_attribute (ele, a_name, .true., a_ptr, err_flag)
 call set_flags_for_changed_attribute (ele, a_ptr)

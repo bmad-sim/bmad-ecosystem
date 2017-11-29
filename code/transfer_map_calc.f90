@@ -64,13 +64,12 @@ integer, intent(in), optional :: ix1, ix2, ix_branch
 integer i, i1, i2
 
 logical, optional :: one_turn, unit_start
-logical one_turn_this, unit_start_this, err_flag
+logical unit_start_this, err_flag
 
 character(*), parameter :: r_name = 'transfer_map_calc'
 
 !
 
-one_turn_this   = logic_option (.false., one_turn) .and. lat%param%geometry == closed$
 unit_start_this = logic_option(.true., unit_start)
 
 branch => lat%branch(integer_option(0, ix_branch))
@@ -85,7 +84,7 @@ if (unit_start_this) then
   if (present(ref_orb)) t_map%ref = ref_orb%vec
 endif
 
-if (i1 == i2 .and. .not. one_turn_this) return
+if (i1 == i2 .and. (lat%param%geometry == open$ .or. .not. logic_option (.false., one_turn))) return
 
 if (present(ref_orb)) then
   orb0 = ref_orb
@@ -120,7 +119,7 @@ elseif (branch%param%geometry == closed$) then
     if (err_flag) return
   enddo
 
-! Linear lattice with i1 > i2: Track backwards.
+! Open lattice with i1 > i2: Track backwards.
 
 else
 

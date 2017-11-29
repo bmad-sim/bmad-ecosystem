@@ -135,13 +135,13 @@ s2 = s2_in
 
 if (s1 < s1_lat_fudge) then
   if (branch%param%geometry == open$) call out_io (s_warn$, &
-         r_name, 'Superimpose is being wrapped around linear lattice for: ' // super_saved%name)
+         r_name, 'Superimpose is being wrapped around an open lattice for: ' // super_saved%name)
   s1 = s1 + branch%param%total_length
 endif
 
 if (s2 > s2_lat_fudge) then
   if (branch%param%geometry == open$) call out_io (s_warn$, &
-         r_name, 'Superimpose is being wrapped around linear lattice for: ' // super_saved%name)
+         r_name, 'Superimpose is being wrapped around an open lattice for: ' // super_saved%name)
   s2 = s2 - branch%param%total_length
 endif
 
