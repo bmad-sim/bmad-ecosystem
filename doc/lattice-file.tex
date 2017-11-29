@@ -808,12 +808,20 @@ In this example, the \vn{b_param} of all \vn{crystal} elements is set to \vn{0.2
 The \vn{print} statement prints a message at the terminal when the 
 lattice file is parsed by a program. Syntax:
 \begin{example}
-  print <String>
+  print <string>
 \end{example}
-For example
+Where \vn{<string>} is the string to be printed. Variable values can be printed by including the
+variable in backquotes. For example
 \begin{example}
-  print Remember! Q01 quad strength not yet optimized!
+  print Remember! Q01 quad strength of `q01[k1]` not yet optimized!
+  print Optimization is as easy as 2 + 2 = `2+2`.
 \end{example}
+will result in the following being printed:
+\begin{example}
+  Message in Lattice File: Remember! Q01 quad strength of 0.4526 not yet optimized!
+  Message in Lattice File: Optimization is as easy as 2 + 2 = 4.
+\end{example}
+
 The \vn{print} statement is useful to remind someone using the lattice of important details.
 
 %-----------------------------------------------------------------------------

@@ -14,16 +14,14 @@ contains
 ! Subroutine transfer_map_from_s_to_s (lat, t_map, s1, s2, ref_orb, ix_branch, 
 !                                                     one_turn, unit_start, err_flag)
 !
-! Subroutine to calculate the transfer map between longitudinal positions
-! s1 to s2.
+! Subroutine to calculate the transfer map between longitudinal positions s1 to s2.
 !
 ! If s2 < s1 and lat%param%geometry is closed$ then the
 ! calculation will 'wrap around' the lattice end.
 ! For example, if s1 = 900 and s2 = 10 then the t_map is the map from
 ! element 900 to the lattice end plus from 0 through 10.
 !
-! If s2 < s1 and lat%param%geometry is open$ then the backwards
-! transfer map is computed.
+! If s2 < s1 and lat%param%geometry is open$ then the inverse of the forward map of s2 -> s1 is computed.
 !
 ! If s2 = s1 then you get the unit map except if one_turn = True and the lattice is circular.
 !
@@ -115,7 +113,7 @@ elseif (branch%param%geometry == closed$) then
   call transfer_this_map (t_map, branch, 0.0_rp, ss2, error_flag, ref_orb)
   if (error_flag) return
 
-! For a linear (not closed) lattice compute the backwards map
+! For an open lattice compute the backwards map
 
 else
   if (unit_start_this) then
@@ -285,8 +283,7 @@ end subroutine transfer_this_map
 ! For example, if s1 = 900 and s2 = 10 then the xfer_mat is the matrix from
 ! element 900 to the lattice end plus from 0 through 10.
 !
-! If s2 < s1 and lat%param%geometry is open$ then the backwards
-! transfer matrix is computed.
+! If s2 < s1 and lat%param%geometry is open$ then the inverse matrix to the s2 -> s1 matrix is computed.
 !
 ! If s2 = s1 then you get the unit matrix except if one_turn = True and the lattice is circular.
 !
@@ -383,7 +380,7 @@ elseif (branch%param%geometry == closed$) then
   call transfer_this_mat (mat6, vec0, branch, 0.0_rp, ss2, error_flag, orbit, ele_save)
   if (error_flag) return
 
-! For a linear lattice compute the backwards matrix
+! For an open lattice compute the backwards matrix
 
 else
   call transfer_this_mat (mat6, vec0, branch, ss2, ss1, error_flag, orbit, ele_save)

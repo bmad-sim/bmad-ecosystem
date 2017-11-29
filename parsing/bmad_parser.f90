@@ -62,7 +62,7 @@ integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_track
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
 integer  iseq_tot, iyy, n_ele_max, n_multi, n0, n_ele, ixc, n_slave
 integer ib, ie, ib2, ie2, flip, n_branch, n_branch_ele, i_loop, n_branch_max
-integer, pointer :: n_max, n_ptr
+integer, pointer :: n_max
 
 character(*) lat_file
 character(*), optional :: use_line
@@ -253,14 +253,7 @@ parsing_loop: do
   ! PRINT
 
   if (word_1(:ix_word) == 'PRINT') then
-    call string_trim (bp_com%input_line2, parse_line_save, ix) ! so can strip off initial "print"
-    n_ptr => bp_com%num_lat_files
-    if (size(bp_com%lat_file_names) < n_ptr + 1) call re_allocate(bp_com%lat_file_names, n_ptr+100)
-    n_ptr = n_ptr + 1
-    bp_com%lat_file_names(n_ptr) = '!PRINT:' // trim(parse_line_save(ix+2:)) ! To save in digested
-    call out_io (s_info$, r_name, 'Print Message in Lattice File: ' // parse_line_save(ix+2:))
-    ! This prevents bmad_parser from thinking print string is a command.
-    call load_parse_line ('init', 1, end_of_file)
+    call parser_print_line(in_lat, end_of_file)
     cycle parsing_loop
   endif
 

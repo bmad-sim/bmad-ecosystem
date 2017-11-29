@@ -57,7 +57,7 @@ if (s_start == s_end .and. branch%param%geometry == open$) then
 endif
 
 if (s_end < s_start .and. branch%param%geometry == open$) then
-  call out_io (s_abort$, r_name, 'S_END < S_START WITH A LINEAR LATTICE.')
+  call out_io (s_abort$, r_name, 'S_END < S_START WITH AN OPEN LATTICE.')
   if (global_com%exit_on_error) call err_exit
 endif
 

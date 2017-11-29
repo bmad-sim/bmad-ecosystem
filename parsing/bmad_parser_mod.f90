@@ -2713,7 +2713,7 @@ end function evaluate_logical
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------      
 !+
-! Subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims, string_out)
+! Subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims, string_out, string_in)
 !
 ! This routine evaluates as a real number the characters at the beginning of bp_com%parse_line.
 !
@@ -2723,18 +2723,19 @@ end function evaluate_logical
 ! Input:
 !   err_str     -- character(*): String to print as part of error message if there is an error.
 !   lat         -- lat_struct: 
-!   end_delims  -- character(*): List of delimiters that should be present after section of line used for evaluation.
+!   end_delims  -- character(*), optional: List of delimiters that should be present after section of line used for evaluation.
+!   string_in   -- character(*), optional: If present then use this string as input instead of reading from the lattice file.
 !
 ! Output:
 !   value       -- real(rp):
 !   delim       -- character(1): Actual delimiter found. Set to blank is no delim found
 !   delim_found -- logical: Set False if end-of-line found instead of a delimiter.
-!   err_flag    -- logical:
+!   err_flag    -- logical: Set True if there is an error. False otherwise.
 !   string_out  -- character(*), optional: If present then parsed expression is returned but not evaluated.
 !                   Useful for group and overlay control expressions.
 !-
 
-subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims, string_out)
+subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims, string_out, string_in)
 
 use expression_mod
 
@@ -2749,17 +2750,18 @@ integer i, ix_word, ix_str, n_parens, n_stk
 
 character(*) err_str
 character(*), optional :: end_delims
-character(*), optional :: string_out
+character(*), optional :: string_out, string_in
 character(1) delim
 character(200) str
 character(100) err_str2
-character(200) word
+character(200) word, str_in
 
 logical delim_found, ran_function_pending
 logical err_flag, err, call_check
 
 ! Get string
 
+if (present(string_in)) str_in = string_in
 call_check = .true.
 str = ''
 ix_str = 0
@@ -2768,7 +2770,11 @@ err_flag = .true.
 
 do
   ! Include "+-" as delims to avoid error with sub-expression exceeding 90 characters and with ending "&" continuation char.
-  call get_next_word (word, ix_word, '(),:}+-|', delim, delim_found, upper_case_word = .false., call_check = call_check)
+  if (present(string_in)) then
+    call word_read (str_in, '(),:}+-|', word, ix_word, delim, delim_found, str_in)
+  else
+    call get_next_word (word, ix_word, '(),:}+-|', delim, delim_found, upper_case_word = .false., call_check = call_check)
+  endif
   call_check = .false.
   str = str(1:ix_str) // word
   ix_str = ix_str + ix_word
@@ -8359,5 +8365,60 @@ endif
 is_here = .true.
 
 end function equal_sign_here
+
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!+
+! Subroutine parser_print_line(end_of_file)
+!
+! This routine is called when a print statement is found in the lattice file.
+!-
+
+subroutine parser_print_line(lat, end_of_file)
+
+implicit none
+
+type (lat_struct) lat
+integer ix, ix2
+integer, pointer :: n_ptr
+real(rp) value
+logical end_of_file, err_flag, delim_found
+character(1) delim
+character(280) print_line
+character(*), parameter :: r_name = 'parser_print_line'
+
+!
+
+call string_trim (bp_com%input_line2, print_line, ix) ! To strip off initial "print"
+print_line = print_line(ix+2:)
+
+do
+  ix = index(print_line, '`')
+  if (ix == 0) exit
+  ix2 = index(print_line(ix+1:), '`')
+  if (ix2 == 0) exit
+  ix2 = ix + ix2
+  call evaluate_value ('PRINT STATEMENT EVALUATION', value, lat, delim, delim_found, err_flag, string_in = print_line(ix+1:ix2-1))
+  if (err_flag) then
+    print_line = print_line(:ix-1) // '???' // print_line(ix2+1:)
+  else
+    print_line = print_line(:ix-1) // trim(real_to_string(value)) // print_line(ix2+1:)
+  endif
+enddo
+
+! Save the print line to be stored in the digested file. 
+! It would be cleaner to use a different array than %lat_file_names for this but it works.
+n_ptr => bp_com%num_lat_files
+if (size(bp_com%lat_file_names) < n_ptr + 1) call re_allocate(bp_com%lat_file_names, n_ptr+100)
+n_ptr = n_ptr + 1
+bp_com%lat_file_names(n_ptr) = '!PRINT:' // trim(print_line) ! To save in digested
+call out_io (s_important$, r_name, 'Message in Lattice File: ' // print_line, insert_tag_line = .false.)
+
+! This prevents bmad_parser from thinking print string is a command.
+call load_parse_line ('init', 1, end_of_file)
+
+
+end subroutine parser_print_line
 
 end module

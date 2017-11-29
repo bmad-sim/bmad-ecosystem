@@ -20,7 +20,7 @@
 \usepackage{multirow}
 \usepackage{booktabs}   % For table layouts
 \usepackage{yhmath}     % For widehat
-\usepackage{eso-pic}
+\usepackage{eso-pic}    % For cover graphics
 
 \usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
 \usepackage[strings]{underscore}    % to use "_" in text
@@ -28,16 +28,15 @@
 
 %----------------------------------------------------------------
 
-\newcommand\BackgroundPic{%
-\put(0,0){%
-\parbox[b][\paperheight]{\paperwidth}{%
-\vfill
-\centering
-\includegraphics[width=\paperwidth,height=\paperheight,%
-keepaspectratio]{success-kid-image.jpg}%
-\vfill
-}}}
-
+%\newcommand\BackgroundPic{%
+%\put(0,0){%
+%\parbox[b][\paperheight]{\paperwidth}{%
+%\vfill
+%\centering
+%\includegraphics[width=\paperwidth,height=\paperheight,%
+%keepaspectratio]{success-kid-image.jpg}%
+%\vfill
+%}}}
 
 \input{macros.tex}
 
@@ -57,7 +56,7 @@ keepaspectratio]{success-kid-image.jpg}%
 
 \begin{document}
 
-\AddToShipoutPicture*{\BackgroundPic}
+%\AddToShipoutPicture*{\BackgroundPic}
 
 \index{coordinates!reference|see{reference orbit}}
 \index{coordinates!global|see{global coordinates}}

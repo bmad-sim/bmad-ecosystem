@@ -12,13 +12,13 @@
 ! For example, if ix1 = 900 and ix2 = 10 then the xfer_mat is the matrix from
 ! element 900 to the lattice end plus from 0 through 10.
 !
-! If ix2 < ix1 and lat%param%geometry is open$ then the backwards
-! transfer matrix is computed.
+! If ix2 < ix1 and lat%param%geometry is open$ then the inverse matrix to the 
+! forward ix2 -> ix1 matrix is computed.
 !
 ! If ix1 = ix2 then xfr_mat is the unit matrix except if one_turn = True and 
-! the lattice is circular.
+! the lattice is closed.
 !
-! To get the one-turn matrix for a circular lattice, omit ix2 from the argument list.
+! To get the one-turn matrix for a closed lattice, omit ix2 from the argument list.
 !
 ! Modules Needed:
 !   use bmad
@@ -31,11 +31,11 @@
 !   ix2   -- Integer, optional: Element end index for the calculation.
 !              Defaults:
 !                If ix1 is not present: ix2 = lat%n_ele_track
-!                If ix1 is present and lattice is circular: Calculate the 
+!                If ix1 is present and lattice is closed: Calculate the 
 !                  one-turn matrix from ix1 back to ix1.
 !   ix_branch -- Integer, optional: Branch index. Default is 0.
 !   one_turn   -- Logical, optional: If present and True, and ix1 = ix2, and the lattice
-!                   is circular: Construct the one-turn matrix from ix1 back to ix1.
+!                   is closed: Construct the one-turn matrix from ix1 back to ix1.
 !                   Otherwise mat6 is unchanged or the unit map if unit_start = T.
 !                   Default = False.
 !
@@ -61,7 +61,7 @@ real(rp) rf_mat(6,6)
 integer, optional :: ix1, ix2, ix_branch
 integer i, i1, i2
 
-logical vec_present, one_turn_this
+logical vec_present
 logical, optional :: one_turn
 
 character(*), parameter :: r_name = 'transfer_matrix_calc'
@@ -76,7 +76,6 @@ call mat_make_unit (xfer_mat)
 branch => lat%branch(integer_option(0, ix_branch))  
 i1 = integer_option(0, ix1) 
 i2 = integer_option(branch%n_ele_track, ix2) 
-one_turn_this = logic_option (.false., one_turn)
 
 if (i1 < 0 .or. i1 > branch%n_ele_track .or. i2 < 0 .or. i2 > branch%n_ele_track) then
   call out_io (s_fatal$, r_name, 'ELEMENT INDEXES OUT OF BOUNDS: \i0\, \i0\ ', &
@@ -90,7 +89,7 @@ if (branch%param%geometry == closed$ .and. present(ix1) .and. .not. present(ix2)
   i2 = i1
 endif
 
-if (i1 == i2 .and. .not. one_turn_this) return
+if (i1 == i2 .and. .not. logic_option (.false., one_turn)) return
 
 ! Normal case with i1 < i2
 
@@ -100,9 +99,9 @@ if (i1 < i2) then
   enddo
 
 ! Here when i2 < i1 ...
-! For a circular lattice push through the origin.
+! For a closed lattice push through the origin.
 
-elseif (branch%param%geometry == closed$ .or. one_turn_this) then
+elseif (branch%param%geometry == closed$) then
   do i = i1+1, branch%n_ele_track
     call add_on_to_xfer_mat
   enddo
@@ -110,7 +109,7 @@ elseif (branch%param%geometry == closed$ .or. one_turn_this) then
     call add_on_to_xfer_mat
   enddo
 
-! For a linear lattice compute the backwards matrix
+! For an open lattice compute the backwards matrix
 
 else
   do i = i2+1, i1 

@@ -1273,65 +1273,9 @@ if (.not.free) then
   return
 endif
 
-! field_master on means that the b_field and bn_gradient values control
-! the strength.
+! field_master on means that the b_field and bn_gradient values control the strength.
 
-if (ele%field_master) then
-  select case (ele%key)
-  case (quadrupole$)
-    if (ix_attrib == k1$) free = .false.
-  case (sextupole$)
-    if (ix_attrib == k2$) free = .false.
-  case (octupole$)
-    if (ix_attrib == k3$) free = .false.
-  case (solenoid$)
-    if (ix_attrib == ks$) free = .false.
-  case (sol_quad$)
-    if (ix_attrib == ks$) free = .false.
-    if (ix_attrib == k1$) free = .false.
-    if (ix_attrib == k2$) free = .false.
-  case (sbend$)
-    if (ix_attrib == g$) free = .false.
-    if (ix_attrib == g_err$) free = .false.
-  case (hkicker$, vkicker$)
-    if (ix_attrib == kick$) free = .false.
-  end select
-
-  if (has_hkick_attributes(ele%key)) then
-    if (ix_attrib == hkick$) free = .false.
-    if (ix_attrib == vkick$) free = .false.
-  endif
-
-else
-  select case (ele%key)
-  case (elseparator$)
-    if (ix_attrib == e_field$) free = .false.
-  case (quadrupole$)
-    if (ix_attrib == b1_gradient$) free = .false.
-  case (sextupole$)
-    if (ix_attrib == b2_gradient$) free = .false.
-  case (octupole$)
-    if (ix_attrib == b3_gradient$) free = .false.
-  case (solenoid$)
-    if (ix_attrib == bs_field$) free = .false.
-  case (sol_quad$)
-    if (ix_attrib == bs_field$) free = .false.
-    if (ix_attrib == b1_gradient$) free = .false.
-  case (sbend$)
-    if (ix_attrib == b_field$) free = .false.
-    if (ix_attrib == b_field_err$) free = .false.
-    if (ix_attrib == b1_gradient$) free = .false.
-    if (ix_attrib == b2_gradient$) free = .false.
-  case (hkicker$, vkicker$)
-    if (ix_attrib == bl_kick$) free = .false.
-  end select
-
-  if (has_hkick_attributes(ele%key)) then
-    if (ix_attrib == bl_hkick$) free = .false.
-    if (ix_attrib == bl_vkick$) free = .false.
-  endif
-endif
-
+free = field_attribute_free (ele, a_name)
 if (.not. free) then
   call it_is_not_free (ele, ix_attrib, &
        "THE ATTRIBUTE IS A DEPENDENT VARIABLE SINCE", &
@@ -1383,5 +1327,97 @@ call out_io (s_error$, r_name, li(1:nl))
 end subroutine it_is_not_free
 
 end subroutine check_this_attribute_free
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function field_attribute_free (ele, attrib_name) result (free)
+!
+! Routine to check if a field attribute is free to vary.
+!
+! Field attributes are either normalized (EG K2 of a sextupole) or unnormalized (EG B2_GRADIENT of a sextupole).
+! Whether normalized or unnormalized attributes are free to vary will depend on the setting  of ele%field_master.
+!
+! Generally, this routine should not be called directly. Use the routine attribute_free instead.
+!
+! Input:
+!   ele           -- ele_struct: Element containing the attribute
+!   attrib_name   -- character(*): Name of the field attribute. Assumed upper case.
+!
+! Output:
+!   free          -- logical: Is the attribute free to vary? 
+!                     If the attribute is not recognized, free = True will be returned.
+!-
+
+function field_attribute_free (ele, attrib_name) result (free)
+
+implicit none
+
+type (ele_struct) ele
+character(*) attrib_name
+logical free
+
+!
+
+free = .true.
+
+if (ele%field_master) then
+  select case (ele%key)
+  case (quadrupole$)
+    if (attrib_name == 'K1') free = .false.
+  case (sextupole$)
+    if (attrib_name == 'K2') free = .false.
+  case (octupole$)
+    if (attrib_name == 'K3') free = .false.
+  case (solenoid$)
+    if (attrib_name == 'KS') free = .false.
+  case (sol_quad$)
+    if (attrib_name == 'KS') free = .false.
+    if (attrib_name == 'K1') free = .false.
+    if (attrib_name == 'K2') free = .false.
+  case (sbend$)
+    if (attrib_name == 'G') free = .false.
+    if (attrib_name == 'G_ERR') free = .false.
+  case (hkicker$, vkicker$)
+    if (attrib_name == 'KICK') free = .false.
+  end select
+
+  if (has_hkick_attributes(ele%key)) then
+    if (attrib_name == 'HKICK') free = .false.
+    if (attrib_name == 'VKICK') free = .false.
+  endif
+
+else
+  select case (ele%key)
+  case (elseparator$)
+    if (attrib_name == 'E_FIELD') free = .false.
+  case (quadrupole$)
+    if (attrib_name == 'B1_GRADIENT') free = .false.
+  case (sextupole$)
+    if (attrib_name == 'B2_GRADIENT') free = .false.
+  case (octupole$)
+    if (attrib_name == 'B3_GRADIENT') free = .false.
+  case (solenoid$)
+    if (attrib_name == 'BS_FIELD') free = .false.
+  case (sol_quad$)
+    if (attrib_name == 'BS_FIELD') free = .false.
+    if (attrib_name == 'B1_GRADIENT') free = .false.
+  case (sbend$)
+    if (attrib_name == 'B_FIELD') free = .false.
+    if (attrib_name == 'B_FIELD_ERR') free = .false.
+    if (attrib_name == 'B1_GRADIENT') free = .false.
+    if (attrib_name == 'B2_GRADIENT') free = .false.
+  case (hkicker$, vkicker$)
+    if (attrib_name == 'BL_KICK') free = .false.
+  end select
+
+  if (has_hkick_attributes(ele%key)) then
+    if (attrib_name == 'BL_HKICK') free = .false.
+    if (attrib_name == 'BL_VKICK') free = .false.
+  endif
+endif
+
+end function field_attribute_free
 
 end module

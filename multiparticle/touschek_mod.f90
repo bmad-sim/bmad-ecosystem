@@ -408,8 +408,8 @@ END FUNCTION integrand_zap
 !
 ! IMPORTANT NOTE: If the lattice type is a circular lattice, then 
 !                 mode%a%emittance and mode%b%emittance are assumed to
-!                 contain the normalized emittences.  If lattice type is
-!                 linear lattice, then the emittances are assumed to be
+!                 contain the normalized emittences.  If lattice geometry is
+!                 open, the emittances are assumed to be
 !                 unnormalized.
 !
 ! IMPORTANT NOTE: The output of this subroutine is the loss rate assuming

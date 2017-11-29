@@ -41,7 +41,7 @@ use geometry_mod
 !     orb(0)            -- Initial conditions to be used for an open geometry lattices.
 !     orb(0)%vec(6)     -- For a closed lat: Energy at which the closed orbit is computed.
 !   orb_array(0:)       -- Coord_array_struct, allocatable: Array of orbit arrays.
-!     orb_array(0)%orbit(0) -- Used as the starting point for a linear lattice.
+!     orb_array(0)%orbit(0) -- Used as the starting point for an open lattice.
 !   ix_branch           -- Integer, optional: Branch to track.
 !   use_beam_start      -- logical, optional: If True, use lat%beam_start instead of orb(0)
 !                            as the initial coords for open geometry lattices. Default is False.
@@ -181,7 +181,7 @@ character(20) :: r_name = 'twiss_and_track1'
 branch => lat%branch(ix_branch)
 
 ! A match with match_end$ complicates things since in order to track correctly we
-! need to know the Twiss parameters. This situation is only allowed for linear lattices.
+! need to know the Twiss parameters. This situation is only allowed for open lattices.
 
 if (branch%param%geometry == closed$) then
   call lat_make_mat6 (lat, -1, ix_branch = ix_branch)
