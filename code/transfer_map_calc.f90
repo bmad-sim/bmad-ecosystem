@@ -1,7 +1,9 @@
 !+         
-! Subroutine transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ref_orb, ix_branch, one_turn, unit_start)
+! Subroutine transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ref_orb, ix_branch, one_turn, 
+!                                                                          unit_start, concat_if_possible)
 !
 ! Subroutine to calculate the transfer map between two elements.
+!
 ! To calculate just the first order transfer matrices see the routine: 
 !   transfer_matrix_calc
 !
@@ -18,8 +20,11 @@
 !
 ! If ix2 = ix1 then you get the unit map except if one_turn = True and the lattice is circular.
 !
-! Modules Needed:
-!   use bmad
+! The default calculation uses tracking to propagate the map through the lattice elements.
+! This, while accurate, can be slow. If the concat_if_possible argument is set to True, and if a
+! lattice element has a Taylor map, map concatenation rather than tracking will be used. Care must
+! be taken with concatination since if the reference orbits about which the two maps to be concatenated
+! are different, the resulting concatenated map may be off.
 !
 ! Input:
 !   lat        -- lat_struct: Lattice used in the calculation.
@@ -38,13 +43,17 @@
 !   unit_start -- logical, optional: If present and False then t_map will be
 !                   used as the starting map instead of the unit map.
 !                   Default = True
+!   concat_if_possible
+!              -- logical, optional: If present and True then use map concatenation rather than tracking 
+!                   if a map is present for a given lattice element. See above. Default is False.
 !
 ! Output:
 !   t_map(6)   -- Taylor_struct: Transfer map.
 !   err_flag   -- logical: Set True if problem like number overflow, etc.
 !-
 
-subroutine transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ref_orb, ix_branch, one_turn, unit_start)
+subroutine transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ref_orb, ix_branch, one_turn, &
+                                                                        unit_start, concat_if_possible)
 
 use bmad_interface, except_dummy => transfer_map_calc
 use ptc_interface_mod, only: concat_ele_taylor, ele_to_taylor, &
@@ -63,7 +72,7 @@ real(rp) :: ex_factor(0:ptc_com%taylor_order_ptc)
 integer, intent(in), optional :: ix1, ix2, ix_branch
 integer i, i1, i2
 
-logical, optional :: one_turn, unit_start
+logical, optional :: one_turn, unit_start, concat_if_possible
 logical unit_start_this, err_flag
 
 character(*), parameter :: r_name = 'transfer_map_calc'
@@ -154,7 +163,11 @@ integer i, k
 
 !
 
-call taylor_propagate1 (map, ele, branch%param, ref_orb)
+if (logic_option(.false., concat_if_possible) .and. associated(ele%taylor(1)%term)) then
+  call concat_ele_taylor(map, ele, map)
+else
+  call taylor_propagate1 (map, ele, branch%param, ref_orb)
+endif
 
 ! Check for overflow
 ! Map term overflow defined by |term| > 10^(20*n) where n = sum(term_exponents)
