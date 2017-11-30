@@ -1675,6 +1675,8 @@ contains
 
 subroutine get_this_index (x, ix_x, i0, rel_x0, err_flag, allow_out_of_bounds)
 
+type (coord_struct) orb2
+type (lat_param_struct) param
 real(rp) x, rel_x0, x_norm, x_diff, x_ave
 integer ix_x, i0, ig0, ig1, allow_out_of_bounds
 logical err_flag
@@ -1721,11 +1723,22 @@ if (i0 < ig0 .or. i0 >= ig1) then
   end select
 
   err_flag = .true.
-  call out_io (s_error$, r_name, '\i0\D GRID_FIELD INTERPOLATION INDEX OUT OF BOUNDS: I\i0\ = \i0\ (POSITION = \f12.6\)', &
+
+  ! Avoid nedless error messages if the particle is outside the aperture.
+
+  orb2%state = alive$
+  if (ele%aperture_at == continuous$) then
+    orb2 = orbit
+    call check_aperture_limit(orb2, ele, in_between$, param)
+  endif
+
+  if (orb2%state == alive$) then
+    call out_io (s_error$, r_name, '\i0\D GRID_FIELD INTERPOLATION INDEX OUT OF BOUNDS: I\i0\ = \i0\ (POSITION = \f12.6\)', &
                                  'FOR ELEMENT: ' // ele%name // '  (' // trim(ele_loc_to_string(ele)) // ')', &
                                  'PARTICLE POSITION: \3F12.6\ ', &
                                  'SETTING FIELD TO ZERO', i_array = [grid_dim, ix_x, i0], &
                                  r_array = [x, orbit%vec(1), orbit%vec(3), orbit%s-ele%s_start])
+  endif
 endif
 
 end subroutine get_this_index 

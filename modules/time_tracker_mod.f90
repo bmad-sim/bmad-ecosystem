@@ -358,7 +358,9 @@ new_z_phase = z_phase
 do
 
   call rk_time_step1 (ele, param, rf_time,  orb, z_phase, dt, new_orb, new_z_phase, r_err, dr_dt, err_flag)
-  ! Can get errors due to step size too large 
+  ! Can get errors due to step size too large. For example, for a field map that is only slightly larger than
+  ! the aperture, a particle that is outside the aperture and outside of the fieldmap will generate an error.
+  ! The solution is to just take a smaller step.
   if (err_flag) then
     if (dt * t_dir < 1d-3/c_light) then
       call out_io (s_fatal$, r_name, 'CANNOT COMPLETE TIME STEP. ABORTING.')
@@ -366,6 +368,7 @@ do
       return
     endif
     dt_temp = dt / 10
+
   else
     ! r_scal(7:9) is for spin
     ! Note that cp is in eV, so 1.0_rp is 1 eV
