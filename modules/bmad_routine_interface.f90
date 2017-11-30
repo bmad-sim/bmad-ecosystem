@@ -1341,7 +1341,7 @@ subroutine transfer_ac_kick (ac_kick_in, ac_kick_out)
   type (ac_kicker_struct), pointer :: ac_kick_in, ac_kick_out
 end subroutine transfer_ac_kick
 
-subroutine transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ref_orb, ix_branch, one_turn, unit_start)
+subroutine transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ref_orb, ix_branch, one_turn, unit_start, concat_if_possible)
   import
   implicit none
   type (lat_struct) lat
@@ -1349,7 +1349,7 @@ subroutine transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ref_orb, ix_branch
   type (coord_struct), optional :: ref_orb
   integer, intent(in), optional :: ix1, ix2, ix_branch
   logical err_flag
-  logical, optional :: one_turn, unit_start
+  logical, optional :: one_turn, unit_start, concat_if_possible
 end subroutine
 
 subroutine transfer_mat_from_twiss (ele1, ele2, orb1, orb2, m)
