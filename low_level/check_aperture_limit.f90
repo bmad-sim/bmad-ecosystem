@@ -15,7 +15,7 @@
 !   orb            -- Coord_struct: coordinates of a particle.
 !   ele            -- Ele_struct: Element holding the aperture
 !   particle_at    -- Integer: first_track_edge$, second_track_edge$, surface$, in_between$
-!   param          -- lat_param_struct: Parameter structure
+!   param          -- lat_param_struct: Lattice global parameter structure.
 !   old_orb        -- Coord_struct, optional: Old coordinates at last check. 
 !                       Needed if ele%aperture_at = wall_transition$. 
 !                       If not present then wall transitions will be ignored.
@@ -23,8 +23,11 @@
 !                       p_x and p_y will be disabled.
 !
 ! Output:
-!   orb   -- Coord_struct: coordinates of a particle.
-!     %state -- State of the particle. Not set if particle is not past an aperture.
+!   orb      -- Coord_struct: coordinates of a particle.
+!     %state           -- State of the particle. Not set if particle is not past an aperture.
+!   param    -- lat_param_struct: Lattice global parameter structure.
+!     %unstable_factor -- Value indicates how much the parcticle is outside the aperture.
+!                           This can be used in optimizations to keep particles within the aperture.
 !-
 
 recursive subroutine check_aperture_limit (orb, ele, particle_at, param, old_orb, check_momentum)

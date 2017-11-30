@@ -321,7 +321,9 @@ orb_new = orb
 
 do
   call rk_step1 (ele, param, orb, dr_ds, s, ds, orb_new, r_err, err_flag)
-  ! Can get errors due to step size too large 
+  ! Can get errors due to step size too large. For example, for a field map that is only slightly larger than
+  ! the aperture, a particle that is outside the aperture and outside of the fieldmap will generate an error.
+  ! The solution is to just take a smaller step.
   if (err_flag) then
     if (ds < 1d-3) then
       call out_io (s_error$, r_name, 'Problem with field calc. Tracked particle will be marked as dead.')
