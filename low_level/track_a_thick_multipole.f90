@@ -43,6 +43,7 @@ orientation = ele%orientation * start_orb%direction
 rel_tracking_charge = rel_tracking_charge_to_mass(start_orb, param)
 charge_dir = rel_tracking_charge * orientation
 include_kicks = .true.
+kick = 0
 
 if (ele%key == elseparator$) then
   include_kicks = .false.
@@ -68,7 +69,11 @@ endif
 call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks = include_kicks)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
-n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
+if (kick == 0 .and. ix_pole_max == -1 .and. ix_elec_max == -1) then
+  n_step = 1
+else
+  n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
+endif
 r_step = 1.0_rp / n_step
 step_len = ele%value(l$) * r_step
 
