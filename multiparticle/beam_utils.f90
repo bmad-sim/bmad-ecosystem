@@ -1234,15 +1234,10 @@ end subroutine combine_bunch_distributions
 ! Subroutine init_spin_distribution (beam_init, bunch)
 !
 ! Initializes a spin distribution according to beam_init%spin.
-! Note: For non 100% polarizations this routine uses a crude model where
-! (1+p)/2 of the spins are pointing in the (theta, phi) direction and the rest
-! are pointing in the opposite direction.
 !
 ! Input:
 !   beam_init -- beam_init_struct: Initialization parameters 
-!     %spin%theta         -- Theta orientation angle.
-!     %spin%phi           -- Phi orientation angle.
-!     %spin%polarization  -- Polarization percentage in (theta, phi) direction.
+!     %spin(3)  -- (x, y, z) spin coordinates
 !
 ! Output:
 !  bunch    -- bunch_struct: Bunch of particles.
@@ -1255,31 +1250,12 @@ implicit none
 
 type (beam_init_struct) beam_init
 type (bunch_struct) bunch
-type (spin_polar_struct) :: polar
+integer i
 
-real(rp) pol
-integer i, n_diff
-
-! This is a crude way to get the desired polarization.
-
-polar%xi = 0.0 ! spinor phase is zero
-n_diff = 0
-pol = beam_init%spin%polarization 
+!
 
 do i = 1, size(bunch%particle)
-  ! Create spin up if creating one will get us nearer to the desired polarization.
-  if (abs(n_diff + 1 - pol * i) < abs(n_diff - 1 - pol * i)) then
-    polar%theta = beam_init%spin%theta
-    polar%phi = beam_init%spin%phi
-    n_diff = n_diff + 1
-  ! Else create spin down.
-  else
-    polar%theta = beam_init%spin%theta + pi
-    polar%phi = beam_init%spin%phi
-    n_diff = n_diff - 1
-  endif
-
-  bunch%particle(i)%spin = polar_to_vec (polar)
+  bunch%particle(i)%spin = beam_init%spin
 enddo
 
 end subroutine init_spin_distribution

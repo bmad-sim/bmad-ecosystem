@@ -344,6 +344,8 @@ is_eq = is_eq .and. (f1%beta == f2%beta)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
 !! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_user == f2%ix_user)
+!! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%state == f2%state)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%direction == f2%direction)
@@ -1421,6 +1423,8 @@ is_eq = is_eq .and. (f1%grid == f2%grid)
 is_eq = is_eq .and. (f1%segment == f2%segment)
 !! f_side.equality_test[real, 2, NOT]
 is_eq = is_eq .and. all(f1%curvature_xy == f2%curvature_xy)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%spherical_curvature == f2%spherical_curvature)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%has_curvature .eqv. f2%has_curvature)
 
@@ -1672,6 +1676,8 @@ if (allocated(f1%stack)) is_eq = all(f1%stack == f2%stack)
 is_eq = is_eq .and. (f1%slave == f2%slave)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%lord == f2%lord)
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%attribute == f2%attribute)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_attrib == f2%ix_attrib)
 
@@ -1766,8 +1772,8 @@ is_eq = .true.
 is_eq = is_eq .and. (f1%file_name == f2%file_name)
 !! f_side.equality_test[character, 1, NOT]
 is_eq = is_eq .and. all(f1%distribution_type == f2%distribution_type)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%spin == f2%spin)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%spin == f2%spin)
 !! f_side.equality_test[type, 1, NOT]
 is_eq = is_eq .and. all(f1%ellipse == f2%ellipse)
 !! f_side.equality_test[type, 0, NOT]
@@ -2042,6 +2048,12 @@ is_eq = is_eq .and. all(f1%b == f2%b)
 is_eq = is_eq .and. all(f1%de == f2%de)
 !! f_side.equality_test[real, 2, NOT]
 is_eq = is_eq .and. all(f1%db == f2%db)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%phi == f2%phi)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%phi_b == f2%phi_b)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%a == f2%a)
 
 end function eq_em_field
 
