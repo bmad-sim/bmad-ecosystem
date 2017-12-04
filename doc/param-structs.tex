@@ -305,7 +305,7 @@ are:
     logical renorm_center = T            ! Renormalize centroid?
     logical renorm_sigma = T             ! Renormalize sigma?
     !!! The following are used  by all distribution types
-    type(beam_spin_struct) spin          ! Spin
+    real(rp) spin(3)                 ! Spin (x, y, z)
     real a_norm_emit                 ! a-mode normalized emittance (= \(\gamma\,\epsilon\))
     real b_norm_emit                 ! b-mode normalized emittance (= \(\gamma\,\epsilon\))
     real a_emit                      ! a-mode emittance (= \(\gamma\,\epsilon\))
@@ -318,7 +318,6 @@ are:
     real bunch_charge                ! Charge in a bunch.
     integer n_bunch = 1                  ! Number of bunches.
     character species                    ! Species. Default is reference particle.
-    logical init_spin = F                ! initialize beam spinors?
     logical full_6D_coupling_calc = F    ! Use 6x6 1-turn matrix to match distribution?  
     logical use_t_coords = F        ! If true, the distributions will be 
                                     !   calculated using time coordinates  
@@ -426,7 +425,6 @@ are:
     real(rp) px_max    ! Upper px limit.
   end type
 \end{example}
-  \item[\%init_spin] \Newline
   \item[\%KV] \Newline
 The \vn{%kv} component of the \vn{beam_init_struct} sets the parameters for the 
 Kapchinsky-Vladimirsky distribution (\sref{s:kv.init}). The components of \vn{%KV}
@@ -467,15 +465,7 @@ This, along with \vn{%dPz_dz} determine the longitudinal profile.
   \item[\%species] \Newline
 Name of the species tracked. If not set then the default tracking particle type is used.
   \item[\%spin] \Newline
-Particle spin in polar coordinates. The components of this structure are:
-\begin{example}
-type spin_polar_struct
-  real polarization = 1
-  real theta = 0
-  real phi   = 0
-  real xi    = 0
-end type
-\end{example}
+Particle spin in Cartesian $(x, y, z)$ coordinates.
   \item[\%use_lattice_center] \Newline
 If \vn{%use_lattice_center} is set to \vn{True} (default is \vn{False}), 
 the center of the bunch is determined by the 

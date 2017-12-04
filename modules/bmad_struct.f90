@@ -847,7 +847,7 @@ type beam_init_struct
   character(200) :: file_name = ''           ! For distribution_type(1) = 'FILE'
   character(16) :: distribution_type(3) = '' ! distribution type (in x-px, y-py, and z-pz planes)
                                              ! "ELLIPSE", "KV", "GRID", "FILE", "", or "RAN_GAUSS" 
-  type(spin_polar_struct) :: spin = spin_polar_struct()                      ! Initialize the spin
+  real(rp) :: spin(3) = 0                    ! Spin (x, y, z)
   type (ellipse_beam_init_struct) :: ellipse(3) = ellipse_beam_init_struct() ! Ellipse beam distribution
   type (kv_beam_init_struct) :: KV = kv_beam_init_struct()                   ! KV beam distribution
   type (grid_beam_init_struct) :: grid(3) = grid_beam_init_struct()          ! Grid beam distribution
