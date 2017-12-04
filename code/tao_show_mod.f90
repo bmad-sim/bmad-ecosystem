@@ -351,9 +351,7 @@ case ('beam')
       nl=nl+1; write(lines(nl), rmt) '  %emit_jitter            = ', beam_init%emit_jitter
       nl=nl+1; write(lines(nl), rmt) '  %sig_z_jitter           = ', beam_init%sig_z_jitter
       nl=nl+1; write(lines(nl), rmt) '  %sig_e_jitter           = ', beam_init%sig_e_jitter
-      nl=nl+1; write(lines(nl), rmt) '  %spin%polarization      = ', beam_init%spin%polarization
-      nl=nl+1; write(lines(nl), rmt) '  %spin%theta             = ', beam_init%spin%theta
-      nl=nl+1; write(lines(nl), rmt) '  %spin%phi               = ', beam_init%spin%phi
+      nl=nl+1; write(lines(nl), rmt) '  %spin%spin              = ', beam_init%spin
       nl=nl+1; write(lines(nl), lmt) '  %renorm_center          = ', beam_init%renorm_center
       nl=nl+1; write(lines(nl), lmt) '  %renorm_sigma           = ', beam_init%renorm_sigma
       nl=nl+1; write(lines(nl), amt) '  %random_engine          = ', beam_init%random_engine
@@ -1432,7 +1430,7 @@ case ('global')
   enddo
 
   if (print_global) then
-    nl=nl+1; lines(nl) = 'Global parameters:'
+    nl=nl+1; lines(nl) = 'Global parameters [Note: To print optimizer globals use: "show optimizer"]'
     nl=nl+1; write(lines(nl), imt) '  %bunch_to_plot                 = ', s%global%bunch_to_plot
     nl=nl+1; write(lines(nl), lmt) '  %label_lattice_elements        = ', s%global%label_lattice_elements
     nl=nl+1; write(lines(nl), lmt) '  %label_keys                    = ', s%global%label_keys

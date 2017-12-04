@@ -743,7 +743,6 @@ type (ele_struct), save :: extract_ele
 type (ele_struct), pointer :: from_ele, ele0
 type (coord_struct) pos
 type (coord_struct), pointer :: orb_out, orb_in
-type (spin_polar_struct) :: polar
 type (branch_struct), pointer :: branch
 
 integer ix_branch, i_ele_from, i_br_from
@@ -781,9 +780,7 @@ orb_out => model%tao_branch(ix_branch)%orbit(0)
 
 call init_coord (orb_out, orb_in, branch%ele(0), downstream_end$, default_tracking_species(branch%param), 1, orb_in%p0c)
 
-polar%theta = u%beam%beam_init%spin%theta
-polar%phi = u%beam%beam_init%spin%phi
-orb_out%spin = polar_to_vec (polar)
+orb_out%spin = u%beam%beam_init%spin
 
 end subroutine tao_inject_particle
 

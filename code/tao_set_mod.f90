@@ -1119,10 +1119,11 @@ type (tao_plot_array_struct), allocatable, save :: plot(:)
 type (tao_universe_struct), pointer :: u
 
 character(*) plot_name, component, set_value
-character(20) :: r_name = 'tao_set_plot_cmd'
+character(40) comp, sub_comp
+character(*), parameter :: r_name = 'tao_set_plot_cmd'
 
-integer iset, iw, ix
-integer i, j, ios
+integer iset, iw, iu
+integer i, j, ix, ios
 logical err
 logical logic, error
 
@@ -1138,9 +1139,16 @@ endif
 
 ! And set
 
+comp = component
+ix = index(component, '%')
+if (ix /= 0) then
+  comp = component(:ix-1)
+  sub_comp = component(ix+1:)
+endif
+
 do i = 1, size(plot)
 
-  select case (component)
+  select case (comp)
 
     case ('n_curve_pts')
       call tao_set_integer_value (plot(i)%p%n_curve_pts, component, set_value, error)
@@ -1160,6 +1168,11 @@ do i = 1, size(plot)
         plot(i)%p%graph(j)%component = remove_quotes(set_value)
       enddo
 
+    case ('x')
+      call tao_set_qp_axis_struct('x', sub_comp, plot(i)%p%x, set_value, error)
+      call out_io (s_warn$, r_name, 'Note: graph%x components may override settings of plot%x components.', &
+                                    'If you do not get the results you want, try setting the graph%x component.')
+
     case default
       call out_io (s_error$, r_name, "BAD PLOT COMPONENT: " // component)
       return
@@ -1168,7 +1181,7 @@ do i = 1, size(plot)
 
 enddo
 
-end subroutine
+end subroutine tao_set_plot_cmd
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -1187,8 +1200,6 @@ end subroutine
 !-
 
 subroutine tao_set_graph_cmd (graph_name, component, set_value)
-
-use quick_plot, only: qp_translate_to_color_index
 
 implicit none
 
@@ -1260,21 +1271,21 @@ case ('draw_only_good_user_data_or_vars')
 case ('ix_universe')
   call tao_set_integer_value (this_graph%ix_universe, component, value, error, 1, ubound(s%u, 1))
 case ('margin')
-  call set_this_qp_rect_struct (this_graph, this_graph%margin, sub_comp, value, error)
+  call tao_set_qp_rect_struct (comp, sub_comp, this_graph%margin, value, error, this_graph%ix_universe)
 case ('scale_margin')
-  call set_this_qp_rect_struct (this_graph, this_graph%margin, sub_comp, value, error)
+  call tao_set_qp_rect_struct (comp, sub_comp, this_graph%scale_margin, value, error, this_graph%ix_universe)
 case ('x')
-  call set_this_qp_axis_struct (this_graph, this_graph%x, sub_comp, value, error)
+  call tao_set_qp_axis_struct (comp, sub_comp, this_graph%x, value, error, this_graph%ix_universe)
 case ('y')
-  call set_this_qp_axis_struct (this_graph, this_graph%y, sub_comp, value, error)
+  call tao_set_qp_axis_struct (comp, sub_comp, this_graph%y, value, error, this_graph%ix_universe)
 case ('y2')
-  call set_this_qp_axis_struct (this_graph, this_graph%y2, sub_comp, value, error)
+  call tao_set_qp_axis_struct (comp, sub_comp, this_graph%y2, value, error, this_graph%ix_universe)
 case ('x_axis_scale_factor')
   call tao_set_real_value(this_graph%x_axis_scale_factor, component, value, error, dflt_uni = this_graph%ix_universe)
 case ('text_legend_origin')
-  call set_this_qp_point_struct (this_graph, this_graph%text_legend_origin, sub_comp, value, error)
+  call tao_set_qp_point_struct (comp, sub_comp, this_graph%text_legend_origin, value, error, this_graph%ix_universe)
 case ('curve_legend_origin')
-  call set_this_qp_point_struct (this_graph, this_graph%curve_legend_origin, sub_comp, value, error)
+  call tao_set_qp_point_struct (comp, sub_comp, this_graph%curve_legend_origin, value, error, this_graph%ix_universe)
 case ('floor_plan_size_is_absolute')
   call tao_set_logical_value(this_graph%floor_plan_size_is_absolute, component, value, error)
 case ('floor_plan_draw_only_first_pass')
@@ -1307,122 +1318,6 @@ u => tao_pointer_to_universe(this_graph%ix_universe)
 u%calc%lattice = .true.
 
 end subroutine set_this_graph
-
-!---------------------------------------------
-! contains
-
-subroutine set_this_qp_rect_struct (this_graph, qp_rect, sub_comp, value, error)
-
-type (tao_graph_struct) this_graph
-type (qp_rect_struct) qp_rect
-character(*) sub_comp, value
-logical error
-
-select case (sub_comp)
-case ('x1')
-  call tao_set_real_value(qp_rect%x1, sub_comp, value, error, dflt_uni = this_graph%ix_universe)
-case ('x2')
-  call tao_set_real_value(qp_rect%x2, sub_comp, value, error, dflt_uni = this_graph%ix_universe)
-case ('y1')
-  call tao_set_real_value(qp_rect%y1, sub_comp, value, error, dflt_uni = this_graph%ix_universe)
-case ('y2')
-  call tao_set_real_value(qp_rect%y2, sub_comp, value, error, dflt_uni = this_graph%ix_universe)
-case default
-  call out_io (s_error$, r_name, "BAD GRAPH COMPONENT: " // component)
-  return
-end select
-
-end subroutine set_this_qp_rect_struct
-
-!---------------------------------------------
-! contains
-
-subroutine set_this_qp_axis_struct (this_graph, qp_axis, sub_comp, value, error)
-
-type (tao_graph_struct) this_graph
-type (qp_axis_struct) qp_axis
-character(*) sub_comp, value
-integer indx
-logical error
-
-select case (sub_comp)
-case ('min')
-  call tao_set_real_value (qp_axis%min, component, value, error, dflt_uni = this_graph%ix_universe)
-case ('max')
-  call tao_set_real_value (qp_axis%max, component, value, error, dflt_uni = this_graph%ix_universe)
-case ('number_offset')
-  call tao_set_real_value (qp_axis%number_offset, component, value, error, dflt_uni = this_graph%ix_universe)
-case ('label_offset')
-  call tao_set_real_value (qp_axis%label_offset, component, value, error, dflt_uni = this_graph%ix_universe)
-case ('major_tick_len')
-  call tao_set_real_value (qp_axis%major_tick_len, component, value, error, dflt_uni = this_graph%ix_universe)
-case ('minor_tick_len')
-  call tao_set_real_value (qp_axis%minor_tick_len, component, value, error, dflt_uni = this_graph%ix_universe)
-
-case ('label_color')
-  indx = qp_translate_to_color_index(value)
-  if (indx < 1) then
-    call out_io (s_error$, r_name, 'BAD COLOR NAME: ' // value)
-  else
-    qp_axis%label_color = indx
-  endif
-case ('major_div')
-  call tao_set_integer_value (qp_axis%major_div, component, value, error, 1)
-case ('major_div_nominal')
-  call tao_set_integer_value (qp_axis%major_div_nominal, component, value, error, 1)
-case ('minor_div')
-  call tao_set_integer_value (qp_axis%minor_div, component, value, error, 0)
-case ('minor_div_max')
-  call tao_set_integer_value (qp_axis%minor_div_max, component, value, error, 1)
-case ('places')
-  call tao_set_integer_value (qp_axis%places, component, value, error)
-case ('tick_side')
-  call tao_set_integer_value (qp_axis%tick_side, component, value, error, -1, 1)
-case ('number_side')
-  call tao_set_integer_value (qp_axis%number_side, component, value, error, -1, 1)
-
-case ('label')
-  qp_axis%label = sub_comp
-case ('type')
-  qp_axis%type = sub_comp
-case ('bounds')
-  qp_axis%bounds = sub_comp
-
-case ('draw_label')
-  call tao_set_logical_value (qp_axis%draw_label, component, value, error)
-case ('draw_numbers')
-  call tao_set_logical_value (qp_axis%draw_numbers, component, value, error)
-
-case default
-  call out_io (s_error$, r_name, "BAD GRAPH COMPONENT: " // component)
-  return
-end select
-
-end subroutine set_this_qp_axis_struct
-
-!---------------------------------------------
-! contains
-
-subroutine set_this_qp_point_struct (this_graph, qp_point, sub_comp, value, error)
-
-type (tao_graph_struct) this_graph
-type (qp_point_struct) qp_point
-character(*) sub_comp, value
-logical error
-
-select case (sub_comp)
-case ('x')
-  call tao_set_real_value(qp_point%x, component, value, error, dflt_uni = this_graph%ix_universe)
-case ('y')
-  call tao_set_real_value(qp_point%y, component, value, error, dflt_uni = this_graph%ix_universe)
-case ('units')
-  qp_point%units = sub_comp
-case default
-  call out_io (s_error$, r_name, "BAD GRAPH COMPONENT: " // component)
-  return
-end select
-
-end subroutine set_this_qp_point_struct
 
 end subroutine tao_set_graph_cmd
 
@@ -2502,5 +2397,198 @@ n = size(drawing%ele_shape)
 drawing%ele_shape(1:n) = shape
 
 end subroutine tao_set_drawing_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_set_qp_rect_struct (qp_rect_name, component, qp_rect, value, error, ix_uni)
+!
+! Routine to set qp_rect_names of a qp_rect_struct.
+!
+! Input:
+!   qp_rect_name    -- character(*): qp_rect name. Used for error messages.
+!   component       -- character(*): qp_rect component name.
+!   qp_rect         -- qp_rect_struct: qp_rect_struct with component to modify
+!   value           -- character(*): Component value.
+!
+! Output:
+!   qp_rect         -- qp_rect_struct: qp_rect_struct with changed component value.
+!   error           -- logical: Set true if there is an error. False otherwise.
+!   ix_uni          -- integer, optional: Tao universe number in case the value depends upon
+!                       a parameter of a particular universe.
+!-
+
+subroutine tao_set_qp_rect_struct (qp_rect_name, component, qp_rect, value, error, ix_uni)
+
+type (qp_rect_struct) qp_rect
+integer, optional :: ix_uni
+character(*) qp_rect_name, component, value
+character(*), parameter :: r_name = 'tao_set_qp_rect_struct '
+logical error
+
+!
+
+select case (component)
+case ('x1')
+  call tao_set_real_value(qp_rect%x1, component, value, error, dflt_uni = ix_uni)
+case ('x2')
+  call tao_set_real_value(qp_rect%x2, component, value, error, dflt_uni = ix_uni)
+case ('y1')
+  call tao_set_real_value(qp_rect%y1, component, value, error, dflt_uni = ix_uni)
+case ('y2')
+  call tao_set_real_value(qp_rect%y2, component, value, error, dflt_uni = ix_uni)
+case default
+  call out_io (s_error$, r_name, "BAD QP_RECT COMPONENT: " // component)
+  error = .true.
+  return
+end select
+
+end subroutine tao_set_qp_rect_struct
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_set_qp_axis_struct (qp_axis_name, component, qp_axis, value, error, ix_uni)
+!
+! Routine to set qp_axis_names of a qp_axis_struct.
+!
+! Input:
+!   qp_axis_name    -- character(*): qp_axis name. Used for error messages.
+!   component       -- character(*): qp_axis component name.
+!   qp_axis         -- qp_axis_struct: qp_axis_struct with component to modify
+!   value           -- character(*): Component value.
+!
+! Output:
+!   qp_axis         -- qp_axis_struct: qp_axis_struct with changed component value.
+!   error           -- logical: Set true if there is an error. False otherwise.
+!   ix_uni          -- integer, optional: Tao universe number in case the value depends upon
+!                       a parameter of a particular universe.
+!-
+
+subroutine tao_set_qp_axis_struct (qp_axis_name, component, qp_axis, value, error, ix_uni)
+
+use quick_plot, only: qp_translate_to_color_index
+
+type (qp_axis_struct) qp_axis
+character(*) component, value, qp_axis_name
+character(*), parameter :: r_name = 'tao_set_qp_axis_struct '
+integer, optional :: ix_uni
+integer indx
+logical error
+
+!
+
+select case (component)
+case ('min')
+  call tao_set_real_value (qp_axis%min, qp_axis_name, value, error, dflt_uni = ix_uni)
+case ('max')
+  call tao_set_real_value (qp_axis%max, qp_axis_name, value, error, dflt_uni = ix_uni)
+case ('number_offset')
+  call tao_set_real_value (qp_axis%number_offset, qp_axis_name, value, error, dflt_uni = ix_uni)
+case ('label_offset')
+  call tao_set_real_value (qp_axis%label_offset, qp_axis_name, value, error, dflt_uni = ix_uni)
+case ('major_tick_len')
+  call tao_set_real_value (qp_axis%major_tick_len, qp_axis_name, value, error, dflt_uni = ix_uni)
+case ('minor_tick_len')
+  call tao_set_real_value (qp_axis%minor_tick_len, qp_axis_name, value, error, dflt_uni = ix_uni)
+
+case ('label_color')
+  indx = qp_translate_to_color_index(value)
+  if (indx < 1) then
+    call out_io (s_error$, r_name, 'BAD COLOR NAME: ' // value)
+    error = .true.
+  else
+    qp_axis%label_color = indx
+    error = .false.
+  endif
+
+case ('major_div')
+  call tao_set_integer_value (qp_axis%major_div, qp_axis_name, value, error, 1)
+  if (.not. error) qp_axis%major_div_nominal = qp_axis%major_div
+
+case ('major_div_nominal')
+  call tao_set_integer_value (qp_axis%major_div_nominal, qp_axis_name, value, error, 1)
+case ('minor_div')
+  call tao_set_integer_value (qp_axis%minor_div, qp_axis_name, value, error, 0)
+case ('minor_div_max')
+  call tao_set_integer_value (qp_axis%minor_div_max, qp_axis_name, value, error, 1)
+case ('places')
+  call tao_set_integer_value (qp_axis%places, qp_axis_name, value, error)
+case ('tick_side')
+  call tao_set_integer_value (qp_axis%tick_side, qp_axis_name, value, error, -1, 1)
+case ('number_side')
+  call tao_set_integer_value (qp_axis%number_side, qp_axis_name, value, error, -1, 1)
+
+case ('label')
+  qp_axis%label = component
+  error = .false.
+case ('type')
+  qp_axis%type = component
+  error = .false.
+case ('bounds')
+  qp_axis%bounds = component
+  error = .false.
+
+case ('draw_label')
+  call tao_set_logical_value (qp_axis%draw_label, qp_axis_name, value, error)
+case ('draw_numbers')
+  call tao_set_logical_value (qp_axis%draw_numbers, qp_axis_name, value, error)
+
+case default
+  call out_io (s_error$, r_name, "BAD QP_AXIS COMPONENT " // component)
+  error = .true.
+  return
+end select
+
+end subroutine tao_set_qp_axis_struct
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_set_qp_point_struct (qp_point_name, component, qp_point, value, error, ix_uni)
+!
+! Routine to set qp_point_names of a qp_point_struct.
+!
+! Input:
+!   qp_point_name   -- character(*): qp_point name. Used for error messages.
+!   component       -- character(*): qp_point component name.
+!   qp_point        -- qp_point_struct: qp_point_struct with component to modify
+!   value           -- character(*): Component value.
+!
+! Output:
+!   qp_point        -- qp_point_struct: qp_point_struct with changed component value.
+!   error           -- logical: Set true if there is an error. False otherwise.
+!   ix_uni          -- integer, optional: Tao universe number in case the value depends upon
+!                       a parameter of a particular universe.
+!-
+
+subroutine tao_set_qp_point_struct (qp_point_name, component, qp_point, value, error, ix_uni)
+
+type (qp_point_struct) qp_point
+character(*) component, value, qp_point_name
+character(*), parameter :: r_name = 'tao_set_qp_point_struct '
+integer, optional :: ix_uni
+logical error
+
+!
+
+select case (component)
+case ('x')
+  call tao_set_real_value(qp_point%x, qp_point_name, value, error, dflt_uni = ix_uni)
+case ('y')
+  call tao_set_real_value(qp_point%y, qp_point_name, value, error, dflt_uni = ix_uni)
+case ('units')
+  qp_point%units = component
+  error = .false.
+case default
+  call out_io (s_error$, r_name, "BAD GRAPH QP_POINT COMPONENT " // component)
+  error = .true.
+  return
+end select
+
+end subroutine tao_set_qp_point_struct
 
 end module tao_set_mod
