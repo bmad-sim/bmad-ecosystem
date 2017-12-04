@@ -1124,13 +1124,15 @@ rhs = 10 + offset; F%beta = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 11 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 12 + offset; F%state = rhs
+rhs = 12 + offset; F%ix_user = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 13 + offset; F%direction = rhs
+rhs = 13 + offset; F%state = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 14 + offset; F%species = rhs
+rhs = 14 + offset; F%direction = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 15 + offset; F%location = rhs
+rhs = 15 + offset; F%species = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 16 + offset; F%location = rhs
 
 end subroutine set_coord_test_pattern
 
@@ -4948,8 +4950,10 @@ do jd2 = 1, size(F%curvature_xy,2); lb2 = lbound(F%curvature_xy,2) - 1
   rhs = 100 + jd1 + 10*jd2 + 3 + offset
   F%curvature_xy(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
+!! f_side.test_pat[real, 0, NOT]
+rhs = 4 + offset; F%spherical_curvature = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 4 + offset; F%has_curvature = (modulo(rhs, 2) == 0)
+rhs = 5 + offset; F%has_curvature = (modulo(rhs, 2) == 0)
 
 end subroutine set_photon_surface_test_pattern
 
@@ -5724,8 +5728,12 @@ endif
 call set_lat_ele_loc_test_pattern (F%slave, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
 call set_lat_ele_loc_test_pattern (F%lord, ix_patt)
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%attribute)
+  F%attribute(jd1:jd1) = char(ichar("a") + modulo(100+5+offset+jd1, 26))
+enddo
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 5 + offset; F%ix_attrib = rhs
+rhs = 6 + offset; F%ix_attrib = rhs
 
 end subroutine set_control_test_pattern
 
@@ -6099,8 +6107,11 @@ do jd1 = lbound(F%distribution_type, 1), ubound(F%distribution_type, 1)
     F%distribution_type(jd1)(jd:jd) = char(ichar("a") + modulo(100+2+offset+10*jd+jd1, 26))
   enddo
 enddo
-!! f_side.test_pat[type, 0, NOT]
-call set_spin_polar_test_pattern (F%spin, ix_patt)
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%spin,1); lb1 = lbound(F%spin,1) - 1
+  rhs = 100 + jd1 + 3 + offset
+  F%spin(jd1+lb1) = rhs
+enddo
 !! f_side.test_pat[type, 1, NOT]
 do jd1 = 1, size(F%ellipse,1); lb1 = lbound(F%ellipse,1) - 1
   rhs = 100 + jd1 + 4 + offset
@@ -6902,6 +6913,15 @@ do jd2 = 1, size(F%db,2); lb2 = lbound(F%db,2) - 1
   rhs = 100 + jd1 + 10*jd2 + 4 + offset
   F%db(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
+!! f_side.test_pat[real, 0, NOT]
+rhs = 5 + offset; F%phi = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%phi_b = rhs
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%a,1); lb1 = lbound(F%a,1) - 1
+  rhs = 100 + jd1 + 7 + offset
+  F%a(jd1+lb1) = rhs
+enddo
 
 end subroutine set_em_field_test_pattern
 

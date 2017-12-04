@@ -764,6 +764,7 @@ public:
   Real p0c;
   Real beta;
   Int ix_ele;
+  Int ix_user;
   Int state;
   Int direction;
   Int species;
@@ -781,6 +782,7 @@ public:
     p0c(0.0),
     beta(-1),
     ix_ele(-1),
+    ix_user(-1),
     state(Bmad::NOT_SET),
     direction(1),
     species(Bmad::NOT_SET),
@@ -2018,12 +2020,14 @@ public:
   CPP_surface_grid grid;
   CPP_segmented_surface segment;
   Real_MATRIX curvature_xy;
+  Real spherical_curvature;
   Bool has_curvature;
 
   CPP_photon_surface() :
     grid(),
     segment(),
     curvature_xy(Real_ARRAY(0.0, 7), 7),
+    spherical_curvature(0.0),
     has_curvature(false)
     {}
 
@@ -2297,12 +2301,14 @@ public:
   CPP_expression_atom_ARRAY stack;
   CPP_lat_ele_loc slave;
   CPP_lat_ele_loc lord;
+  string attribute;
   Int ix_attrib;
 
   CPP_control() :
     stack(CPP_expression_atom_ARRAY(CPP_expression_atom(), 0)),
     slave(),
     lord(),
+    attribute(),
     ix_attrib(0)
     {}
 
@@ -2416,7 +2422,7 @@ class CPP_beam_init {
 public:
   string file_name;
   String_ARRAY distribution_type;
-  CPP_spin_polar spin;
+  Real_ARRAY spin;
   CPP_ellipse_beam_init_ARRAY ellipse;
   CPP_kv_beam_init kv;
   CPP_grid_beam_init_ARRAY grid;
@@ -2451,7 +2457,7 @@ public:
   CPP_beam_init() :
     file_name(),
     distribution_type(String_ARRAY(string(), 3)),
-    spin(),
+    spin(0.0, 3),
     ellipse(CPP_ellipse_beam_init_ARRAY(CPP_ellipse_beam_init(), 3)),
     kv(),
     grid(CPP_grid_beam_init_ARRAY(CPP_grid_beam_init(), 3)),
@@ -2732,12 +2738,18 @@ public:
   Real_ARRAY b;
   Real_MATRIX de;
   Real_MATRIX db;
+  Real phi;
+  Real phi_b;
+  Real_ARRAY a;
 
   CPP_em_field() :
     e(0.0, 3),
     b(0.0, 3),
     de(Real_ARRAY(0.0, 3), 3),
-    db(Real_ARRAY(0.0, 3), 3)
+    db(Real_ARRAY(0.0, 3), 3),
+    phi(0.0),
+    phi_b(0.0),
+    a(0.0, 3)
     {}
 
   ~CPP_em_field() {

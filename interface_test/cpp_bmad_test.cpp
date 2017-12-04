@@ -703,16 +703,19 @@ void set_CPP_coord_test_pattern (CPP_coord& C, int ix_patt) {
   rhs = 11 + offset; C.ix_ele = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 12 + offset; C.state = rhs;
+  rhs = 12 + offset; C.ix_user = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 13 + offset; C.direction = rhs;
+  rhs = 13 + offset; C.state = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 14 + offset; C.species = rhs;
+  rhs = 14 + offset; C.direction = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 15 + offset; C.location = rhs;
+  rhs = 15 + offset; C.species = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 16 + offset; C.location = rhs;
 
 
 }
@@ -3240,8 +3243,11 @@ void set_CPP_photon_surface_test_pattern (CPP_photon_surface& C, int ix_patt) {
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.curvature_xy.size(); i++)  for (unsigned int j = 0; j < C.curvature_xy[0].size(); j++) 
     {int rhs = 101 + i + 10*(j+1) + 3 + offset; C.curvature_xy[i][j] = rhs;}
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 4 + offset; C.spherical_curvature = rhs;
+
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 4 + offset; C.has_curvature = (rhs % 2 == 0);
+  rhs = 5 + offset; C.has_curvature = (rhs % 2 == 0);
 
 
 }
@@ -3787,8 +3793,12 @@ void set_CPP_control_test_pattern (CPP_control& C, int ix_patt) {
   // c_side.test_pat[type, 0, NOT]
   set_CPP_lat_ele_loc_test_pattern(C.lord, ix_patt);
 
+  // c_side.test_pat[character, 0, NOT]
+  C.attribute.resize(40);
+  for (unsigned int i = 0; i < C.attribute.size(); i++)
+    {int rhs = 101 + i + 5 + offset; C.attribute[i] = 'a' + rhs % 26;}
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 5 + offset; C.ix_attrib = rhs;
+  rhs = 6 + offset; C.ix_attrib = rhs;
 
 
 }
@@ -4029,9 +4039,9 @@ void set_CPP_beam_init_test_pattern (CPP_beam_init& C, int ix_patt) {
       {C.distribution_type[i][j] = 'a' + (101 + i + 10*(j+1) + 2 + offset) % 26;}
   }
 
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_spin_polar_test_pattern(C.spin, ix_patt);
-
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.spin.size(); i++)
+    {int rhs = 101 + i + 3 + offset; C.spin[i] = rhs;}
   // c_side.test_pat[type, 1, NOT]
   for (unsigned int i = 0; i < C.ellipse.size(); i++)
     {int rhs = 101 + i + 4 + offset; set_CPP_ellipse_beam_init_test_pattern(C.ellipse[i], ix_patt+i+1);}
@@ -4615,6 +4625,15 @@ void set_CPP_em_field_test_pattern (CPP_em_field& C, int ix_patt) {
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.db.size(); i++)  for (unsigned int j = 0; j < C.db[0].size(); j++) 
     {int rhs = 101 + i + 10*(j+1) + 4 + offset; C.db[i][j] = rhs;}
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 5 + offset; C.phi = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 6 + offset; C.phi_b = rhs;
+
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.a.size(); i++)
+    {int rhs = 101 + i + 7 + offset; C.a[i] = rhs;}
 
 }
 

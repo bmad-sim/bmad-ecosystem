@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 198;
+  const int BMAD_INC_VERSION = 202;
   const int N_POLE_MAXX = 21;
   const int OLD_CONTROL_VAR_OFFSET = 1000;
   const int VAR_OFFSET = 2000;
@@ -155,8 +155,8 @@ namespace Bmad {
   const int HIGHER_ORDER_FRINGE_TYPE = 12;
   const int SPIN_FRINGE_ON = 13;
   const int FB1 = 14, SIG_X = 14, EXACT_MULTIPOLES = 14;
-  const int FB2 = 15, SIG_Y = 15;
-  const int FQ1 = 16, SIG_Z = 16;
+  const int FB2 = 15, SIG_Y = 15, GRAZE_ANGLE_IN = 15;
+  const int FQ1 = 16, SIG_Z = 16, GRAZE_ANGLE_OUT = 16;
   const int FQ2 = 17, SIG_VX = 17;
   const int SIG_VY = 18, AUTOSCALE_AMPLITUDE = 18;
   const int SIG_E = 19, AUTOSCALE_PHASE = 19;
@@ -242,6 +242,7 @@ namespace Bmad {
   const int MIN_DS_ADAPTIVE_TRACKING = 89;
   const int FATAL_DS_ADAPTIVE_TRACKING = 90;
   const int MAX_NUM_RUNGE_KUTTA_STEP = 91;
+  const int SPHERICAL_CURVATURE = 81;
   const int ALPHA_B_BEGIN = 81, USE_HARD_EDGE_DRIFTS = 81, TT = 81, LR_WAKE_SPLINE = 81;
   const int ALIAS  = 82, ETA_X = 82, PTC_MAX_FRINGE_ORDER = 82;
   const int ETA_Y = 83, ELECTRIC_DIPOLE_MOMENT = 83, LR_SELF_WAKE_ON = 83, X_REF = 83;
@@ -273,7 +274,7 @@ namespace Bmad {
   const int APERTURE_AT = 108, BETA_A_BEGIN = 108;
   const int RAN_SEED = 109, BETA_B_BEGIN = 109, ORIGIN_ELE = 109;
   const int TO_LINE = 110, FIELD_OVERLAPS = 110;
-  const int FIELD_MASTER = 111, HARMON_MASTER = 111, TO_ELEMENT = 111;
+  const int FIELD_MASTER = 111, TO_ELEMENT = 111;
   const int DESCRIP = 112;
   const int SCALE_MULTIPOLES = 113;
   const int REF_ORBIT = 115;
@@ -304,22 +305,23 @@ namespace Bmad {
   const int BENDS = 201;
   const int WIGGLERS = 202;
   const int ALL = 203;
-  const int RADIANS = 1, DEGREES = 2, CYCLES = 3, KHZ = 4;
+  const int RADIANS = 1, DEGREES = 2, CYCLES = 3, RADIANS_OVER_2PI = 3;
   const int ROTATIONALLY_SYMMETRIC_RZ = 1, XYZ = 2;
   const int UNKNOWN = 0, IS_LOGICAL = 1, IS_INTEGER = 2, IS_REAL = 3, IS_SWITCH = 4, IS_STRING = 5;
   const int IS_STRUCT = 6;
   const int PATCH_PROBLEM = 2, OUTSIDE = 3, CANNOT_FIND = 4;
   const int SECTOR = 1, STRAIGHT = 2, TRUE_RBEND = 3;
   const double SMALL_REL_CHANGE = 1E-14;
-  const int S_BLANK   = -1;
-  const int S_INFO    = 0;
-  const int S_DINFO   = 1;
-  const int S_SUCCESS = 2;
-  const int S_WARN    = 3;
-  const int S_DWARN   = 5;
-  const int S_ERROR   = 7;
-  const int S_FATAL   = 8;
-  const int S_ABORT   = 9;
+  const int S_BLANK     = -1;
+  const int S_INFO      = 0;
+  const int S_DINFO     = 1;
+  const int S_SUCCESS   = 2;
+  const int S_WARN      = 3;
+  const int S_DWARN     = 5;
+  const int S_ERROR     = 7;
+  const int S_FATAL     = 8;
+  const int S_ABORT     = 9;
+  const int S_IMPORTANT = 10;
   const double PI = 3.141592653589793238462643383279E0;
   const double TWOPI = 2 * PI;
   const double FOURPI = 4 * PI;

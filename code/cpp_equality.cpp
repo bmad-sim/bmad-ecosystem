@@ -225,6 +225,7 @@ bool operator== (const CPP_coord& x, const CPP_coord& y) {
   is_eq = is_eq && (x.p0c == y.p0c);
   is_eq = is_eq && (x.beta == y.beta);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
+  is_eq = is_eq && (x.ix_user == y.ix_user);
   is_eq = is_eq && (x.state == y.state);
   is_eq = is_eq && (x.direction == y.direction);
   is_eq = is_eq && (x.species == y.species);
@@ -816,6 +817,7 @@ bool operator== (const CPP_photon_surface& x, const CPP_photon_surface& y) {
   is_eq = is_eq && (x.grid == y.grid);
   is_eq = is_eq && (x.segment == y.segment);
   is_eq = is_eq && is_all_equal(x.curvature_xy, y.curvature_xy);
+  is_eq = is_eq && (x.spherical_curvature == y.spherical_curvature);
   is_eq = is_eq && (x.has_curvature == y.has_curvature);
   return is_eq;
 };
@@ -950,6 +952,7 @@ bool operator== (const CPP_control& x, const CPP_control& y) {
   is_eq = is_eq && is_all_equal(x.stack, y.stack);
   is_eq = is_eq && (x.slave == y.slave);
   is_eq = is_eq && (x.lord == y.lord);
+  is_eq = is_eq && (x.attribute == y.attribute);
   is_eq = is_eq && (x.ix_attrib == y.ix_attrib);
   return is_eq;
 };
@@ -1005,7 +1008,7 @@ bool operator== (const CPP_beam_init& x, const CPP_beam_init& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.file_name == y.file_name);
   is_eq = is_eq && is_all_equal(x.distribution_type, y.distribution_type);
-  is_eq = is_eq && (x.spin == y.spin);
+  is_eq = is_eq && is_all_equal(x.spin, y.spin);
   is_eq = is_eq && is_all_equal(x.ellipse, y.ellipse);
   is_eq = is_eq && (x.kv == y.kv);
   is_eq = is_eq && is_all_equal(x.grid, y.grid);
@@ -1157,6 +1160,9 @@ bool operator== (const CPP_em_field& x, const CPP_em_field& y) {
   is_eq = is_eq && is_all_equal(x.b, y.b);
   is_eq = is_eq && is_all_equal(x.de, y.de);
   is_eq = is_eq && is_all_equal(x.db, y.db);
+  is_eq = is_eq && (x.phi == y.phi);
+  is_eq = is_eq && (x.phi_b == y.phi_b);
+  is_eq = is_eq && is_all_equal(x.a, y.a);
   return is_eq;
 };
 
