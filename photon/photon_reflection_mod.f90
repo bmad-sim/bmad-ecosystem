@@ -12,7 +12,7 @@ integer, parameter, private :: n_cheb_term$ = 30
 
 type :: diffuse_param_struct
   real(rp) x, y
-  real(rp) lambda, cnorm, chx_norm
+  real(rp) lambda, c_norm, chx_norm
   type (spline_struct) prob_spline(0:50)
   integer n_pt_spline
 end type
@@ -34,7 +34,7 @@ end type
 type (diffuse_common_struct), save :: diffuse_com
 
 private output_specular_reflection_input_params
-private ptwo, zmmax, cos_phi, zzfi, zzfp, hzz, zbessi
+private zmmax, cos_phi, zzfi, zzfp, hzz, zbessi
 private zbessi1, zbessi0, zzexp
 
 contains
@@ -632,8 +632,6 @@ end subroutine read_surface_reflection_file
 
 subroutine photon_reflectivity (angle, energy, surface, p_reflect, rel_p_specular)
 
-use spline_mod
-
 implicit none
 
 type (photon_reflect_surface_struct), target :: surface
@@ -934,7 +932,7 @@ endif
 
 theta_out = acos(ctheta2)
 d_param%x = ctheta2
-d_param%cnorm = cos_phi(sigma, T, twopi/2, d_param)
+d_param%c_norm = cos_phi(sigma, T, twopi/2, d_param)
 
 ! find the value of phi for which the cumulative probability equals ran2
 
@@ -1049,8 +1047,8 @@ real(rp) sigma, T
 sigma = surface%surface_roughness_rms
 T = surface%roughness_correlation_len
 
-fn = cos_phi(sigma, T, phi, d_param) / d_param%cnorm - ran2
-df = ptwo(sigma, T, phi, d_param) / d_param%cnorm
+fn = cos_phi(sigma, T, phi, d_param) / d_param%c_norm - ran2
+df = ptwo(sigma, T, phi, d_param) / d_param%c_norm
 
 end subroutine cumulr
 
