@@ -112,7 +112,7 @@ $\vcenter{\hbox{\includegraphics[width=2in]{lhc-cross-section.pdf}}}$
 {\LARGE\bfseries Gerry Dugan and David Sagan}
 
 \vspace{0.4in}
-{\large\bfseries December 4, 2017}
+{\large\bfseries December 5, 2017}
 
 \end{center}
 \end{titlepage}
@@ -211,22 +211,14 @@ When plotting $x$-$y$ cross-sections, symbols
 will be drawn at the vertex points \vn{v(i)} that define the
 cross-section.
 
-The \vn{-test <what>} option is for generating diagnostic
-files:
+The \vn{-test <what>} option is for generating diagnostic data. Tests are also useful for generating
+data for plotting reflection statistics. Possible tests are:
 \begin{example}
-  -test reflection             ! \sref{s:test.diffuse}
-  -test diffuse_reflection     ! \sref{s:test.diffuse}
+  -test monte_carlo_reflection ! \sref{s:test.monte}
   -test specular_reflection    ! \sref{s:test.specular}
-  -test roughness_scan         ! \sref{s:test.rough}
+  -test diffuse_probability    ! \sref{s:test.diffuse}
 \end{example}
-
-With \vn{-test diffuse_reflection} and \vn{-test reflection} modes, \srthree simulates a set of
-photons reflected at a wall with all photons having the same incoming angle and energy. See
-\sref{s:test.diffuse} for more details.
-
-In \vn{-test specular_reflection} mode, specular reflection is tested by simulating a single
-specular reflection from given photon starting positions. See \sref{s:test.specular} for more
-details.
+See Chapter \sref{s:test} for more details.
 
 %------------------------------------------------------------------------
 \chapter{Simulation Technique and Physics Models}
@@ -1760,15 +1752,15 @@ divided into two parts. the top part essentially echos the information provided 
 the main input file. It looks like:
 \begin{example}
   # photon_number_factor    =  8.155E-01
-  # num_photons_generated   = 123    ! ! Total including filtered photons.
-  # I0_tot                  = 0.34   ! I0 radiation integral for the entire ring
+  # num_photons_generated   = 123    ! Total including filtered photons.
+  # I0_tot                  = 0.34   ! I0 radiation integral for the ring
   # ix_ele_track_start      = 103
   # ix_ele_track_end        = 104
   # photon_direction        = 1
   # num_photons             = 10
   # num_photons_per_pass    = -1
   # random_seed             = 123456
-  # lattice_file            = "../tao/examples/cesr/bmad_L9A18A000-_MOVEREC.lat"
+  # lattice_file            = "../tao/examples/cesr/lat.bmad"
   # photon_start_input_file = ""
   # wall_file               = "synrad3d.wall"
   # dat_file                = "synrad3d.dat"
@@ -1876,8 +1868,8 @@ The columns of this file are:
   8-10:  (vx, vy, vs)              ! Velocity before bounce.
   11-13: (vx, vy, vs)              ! Velocity after bounce.
   14-16: (perp_x, perp_y, perp_z)  ! Wall perpendicular.
-  17:    cos_perp_in               ! Cosine of photon incoming direction wrt wall.
-  18:    cos_perp_out              ! Cosine of photon outgoing direction wrt wall.
+  17:    cos_perp_in               ! Cos of photon incoming direction wrt wall.
+  18:    cos_perp_out              ! Cos of photon outgoing direction wrt wall.
   19:    reflectivity              ! Reflectivity coef.
   20:    sub-chamber               ! Subchamber name where photon hits.
 \end{example}
@@ -1934,19 +1926,19 @@ file can be very large.
 
 Example track file output:
 \begin{example}
-  1   1  -0.000823    0.000054    67.785765   0      0.000000    0.000000    0.000000
-  1   1   0.045000   -0.000229    70.515079   0      0.032303   -0.000104    0.999478
-  1   1  -0.039304   -0.013811    71.216813   0     -0.115289   -0.019212    0.993146
-  2   4  -0.000740    0.000054    67.851507   0      0.000000    0.000000    0.000000
-  2   4   0.045000    0.000128    70.578267   0      0.032274    0.000027    0.999479
-  3   5  -0.000658    0.000054    67.917250   0      0.000000    0.000000    0.000000
-  3   5   0.045000    0.000465    70.641452   0      0.032245    0.000151    0.999480
-  3   5  -0.045000   -0.002062    71.036893   0     -0.219720   -0.006232    0.975543
-  4   7  -0.000575    0.000053    67.982992   0      0.000000    0.000000    0.000000
-  4   7   0.045000   -0.000370    70.704636   0      0.032216   -0.000155    0.999481
-  4   7  -0.045000   -0.001490    71.234797   0     -0.164390   -0.002083    0.986393
-  5   9  -0.000493    0.000053    68.048735   0      0.000000    0.000000    0.000000
-  5   9   0.045000    0.000393    70.767817   0      0.032187    0.000125    0.999482
+  1   1  -0.00082    0.00005    67.78576   0      0.00000    0.00000    0.00000
+  1   1   0.04500   -0.00022    70.51507   0      0.03230   -0.00010    0.99947
+  1   1  -0.03930   -0.01381    71.21681   0     -0.11528   -0.01921    0.99314
+  2   4  -0.00074    0.00005    67.85150   0      0.00000    0.00000    0.00000
+  2   4   0.04500    0.00012    70.57826   0      0.03227    0.00002    0.99947
+  3   5  -0.00065    0.00005    67.91725   0      0.00000    0.00000    0.00000
+  3   5   0.04500    0.00046    70.64145   0      0.03224    0.00015    0.99948
+  3   5  -0.04500   -0.00206    71.03689   0     -0.21972   -0.00623    0.97554
+  4   7  -0.00057    0.00005    67.98299   0      0.00000    0.00000    0.00000
+  4   7   0.04500   -0.00037    70.70463   0      0.03221   -0.00015    0.99948
+  4   7  -0.04500   -0.00149    71.23479   0     -0.16439   -0.00208    0.98639
+  5   9  -0.00049    0.00005    68.04873   0      0.00000    0.00000    0.00000
+  5   9   0.04500    0.00039    70.76781   0      0.03218    0.00012    0.99948
 \end{example}
 The columns of this file are
 \begin{example}
@@ -1975,77 +1967,88 @@ Columns 7 through 9 gives the velocity of the photon.
 \chapter{Test Modes}
 \label{s:test}
 
-Test modes are used to generate diagnostic data files. Test modes are
-specified using the \vn{-test <what>} option on the command line
-(\sref{s:run}). 
+Test modes are used to generate diagnostic data files. tests are also useful for generating data for
+plotting reflection statistics.Test modes are specified using the \vn{-test <what>} option on the
+command line (\sref{s:run}).
 \begin{example}
-  -test reflection             ! \sref{s:test.diffuse}
-  -test diffuse_reflection     ! \sref{s:test.diffuse}
+  -test monte_carlo_reflection ! \sref{s:test.monte}
   -test specular_reflection    ! \sref{s:test.specular}
-  -test roughness_scan         ! \sref{s:test.rough}
+  -test diffuse_probability    ! \sref{s:test.diffuse}
 \end{example}
 
-These test modes are explained below
+These test modes are explained below. In all cases, the \vn{synrad3d_parameters} namelist in the
+master input file (\sref{s:master.example}) is ignored and instead another namelist is read in from
+the master input file as specified in the documentation below.
 
 %------------------------------------------------------------------
-\section{Reflection and Diffuse Reflection Test}
-\label{s:test.diffuse}
+\section{Monte Carlo Reflection Test}
+\label{s:test.monte_carlo}
 
-The \vn{reflection} and \vn{diffuse reflection} test modes, invoked respectively by using the
-\vn{-test refleciton} and \vn{-test diffuse_reflection} options on the command line (\sref{s:run}),
-is used for studying the scattering distribution at fixed incident angle and energy. 
-The \vn{reflection} test includes both diffuse and specular reflections while the \vn{diffuse refleciton}
-only includes diffuse reflections.
+The \vn{monte_carlo_reflection} test mode, invoked by using the \vn{-test mone_carlo_refleciton} on
+the command line (\sref{s:run}). The output of this test are a number of lines recording the
+direction of the outgoing scattered photon under the conditions where the photon energy and incoming
+graze angle are fixed.
 
 The parameters used for the test are read in from the master input file specified on the command
 line (\sref{s:run}). The namelist used for the input parameters for the reflection test is called
 \vn{reflection_test}.  Example:
 \begin{example}
   &reflection_test
-    graze_angle_in              = 0.12     ! Incident grazing angle in radians.
-    energy                      = 100      ! eV
-    surface_roughness_rms       = -1       ! Surface roughness for diffuse scattering.
-    roughness_correlation_len   = -1       ! Surface roughness correlation length.
-    n_photons                   = 1000     ! Number of reflections simulated
-    surface_reflection_file     = ""       ! File for specifying reflection probabilities.
-    random_seed                 = 0        ! Random number seed.
-    output_file                 = ""       ! Blank => Use default name.
+    surface_reflection_file      = ""      ! Reflection probability file
+    graze_angle_in               = 0.12    ! Incident grazing angle in radians.
+    energy                       = 100     ! Photon energy in eV
+    surface_roughness_rms        = -1      ! Roughness for diffuse scattering.
+    roughness_correlation_len    = -1      ! Roughness correlation length.
+    n_photons                    = 1000    ! Number of reflections simulated
+    random_seed                  = 0       ! Random number seed.
+    include_specular_reflections = F       ! Diffuse reflections only?
+    output_file                  = ""      ! Blank => Use default name.
   /
 \end{example}
+
+The \vn{surface_reflection_file} specifies the reflection probability file to be used. If no file is
+specified then the default surface is used (\sref{s:dflt.reflect}).
+
 The \vn{graze_angle_in} is the incident grazing angle in radians and \vn{energy} in the photon
 energy in eV. \vn{n_photons} are the number of reflections to simulate, and \vn{output_file} is the
-name of the output data file. The default data file name is "test_reflection.dat" for the
-\vn{reflection} test and "test_diffuse_reflection.dat" for the \vn{diffuse reflection} test. The
+name of the output data file. The default data file name is "test_monte_carlo_reflection.dat". The
 other parameters are explained in \sref{s:master}.
+
+If the \vn{include_specular_reflections} parameter is set to \vn{True}, specular reflection is
+allowed. Otherwise only diffuse reflections are simulated. The default is \vn{False}.
+
+The \vn{surface_roughness_rms} parameter sets the surface roughness. If negative then the roughness
+specified by the surface is used.
+
+The \vn{roughness_correlation_len} parameter sets the surface roughness correlation. If negative
+then the correlation specified by the surface is used.
 
 \vn{random_seed} is the random number seed used in by the random number generator. If set to 0, the
 system clock will be used. That is, if set to 0, the output results will vary from run to run.
 
-The output contains a header with the input parameters a then
+The output contains a header with the input parameters followed by
 \vn{n_photon} lines. Each line is of the form:
 \begin{example}
   theta_out  phi_out
 \end{example}
-where \vn{theta_out} is the grazing angle of the reflected photon in radians. That is,
-\vn{theta_out} = 0 means the photon is traveling parallel to the surface. The \vn{phi_out} angle is
-the azimuthal angle in radians. That is, \vn{phi_out} is zero when the incident and reflected rays
-are in the same plane.
+where \vn{theta_out} is the grazing angle of the reflected photon in radians.  \vn{theta_out} = 0
+means the photon is traveling parallel to the surface. The \vn{phi_out} angle is the azimuthal angle
+in radians with zero \vn{phi_out} indicating that the incident ray, the surface normal, and
+reflected rays are in the same plane.
 
 %------------------------------------------------------------------
 \section{Specular Reflection Test}
 \label{s:test.specular}
 
-Specular reflection test mode (\sref{s:run}), invoked using the
-\vn{-test specular_reflection} option on the command line, is used for
-studying specular (angle in = angle out) reflections. The simulation
-here is done by simulating a single specular reflection from a set of
-given photon starting positions. The initial and final photon position
-and velocity are recorded in an output file.
+Specular reflection test mode (\sref{s:run}), invoked using the \vn{-test specular_reflection}
+option on the command line, is used for studying specular (angle in = angle out) reflections from a
+given set of photon initial conditions using the chamber wall specified by the \vn{wall_file}
+parameter in the Master Input file.  Each photon is allowed a single specular reflection and the
+initial and final photon position and velocity are recorded in the output file.
 
-The parameters used for the test are read
-in from the master input file specified on the command line
-(\sref{s:run}). The namelist used for the input parameters for the
-reflection test is called \vn{specular_reflection_test}.  Example:
+The parameters used for the test are read in from the master input file specified on the command
+line (\sref{s:run}). The namelist used for the input parameters for the reflection test is called
+\vn{specular_reflection_test}.  Example:
 \begin{example}
   &specular_reflection_test
     photon_start_input_file = "photon.start"  ! Photon starting positions
@@ -2055,71 +2058,128 @@ reflection test is called \vn{specular_reflection_test}.  Example:
   /
 \end{example}
 
-The \vn{photon_start_input_file} is the file of initial photon
-positions. The format of this file is given in \vn{s:photon.start}.
-Note that for the specular test, the photon energy and the random
-number generator state do not affect the results and do not have to be
-set. Also: The if the magnitude of the velocity
-$\sqrt{v_x^2+v_y^2+v_z^2}/c$ is not too far off from 1 then \srthree
-will renormalize so that $\sqrt{v_x^2+v_y^2+v_z^2}/c$ will be 1.
+The \vn{photon_start_input_file} is the file of initial photon positions. The format of this file is
+given in \vn{s:photon.start}.  Note that for the specular test, values for the photon energy and the
+random number generator state in the initial photon position file do not affect the results and do
+not have to be set. Also: The if the magnitude of the velocity $\sqrt{v_x^2+v_y^2+v_z^2}/c$ is not
+too far off from 1 then \srthree will renormalize so that $\sqrt{v_x^2+v_y^2+v_z^2}/c$ will be 1.
 
-\vn{lattice_file} give the name of the lattice.  The lattice file
-format may be the Bmad format or, if the \vn{lattice_file} string is
-prefixed by \vn{``xsif::''}, may be in xsif format. See the Bmad
+\vn{lattice_file} give the name of the lattice.  The lattice file format may be the Bmad format or,
+if the \vn{lattice_file} string is prefixed by \vn{``xsif::''}, may be in xsif format. See the Bmad
 manual for more details.
 
-The \vn{wall_file} gives the name of the vacuum chamber will
-definition file. See \sref{s:wall.file} for more details.
+The \vn{wall_file} gives the name of the vacuum chamber will definition file. See \sref{s:wall.file}
+for more details.
 
-The \vn{output_file} gives the name of the output data file.
-See \sref{s:wall.hit.file} for details of the syntax for this file.
+The \vn{output_file} gives the name of the output data file.  See \sref{s:wall.hit.file} for details
+of the syntax for this file.
 
 %------------------------------------------------------------------
-\section{Surface Roughness Scan Test}
-\label{s:test.rough}
+\section{Diffuse Probability Test}
+\label{s:test.diffuse}
 
-The \vn{roughness_scan} test mode creates a table of diffuse reflection probability, for fixed
-incoming angle, as a function of surface roughness for a given set of reflection angles.
+The \vn{diffuse_probability} test mode, invoked using the \vn{-test diffuse_probability}
+option on the command line, creates a table of diffuse reflection probabilities.
 
 The parameters used for the test are read in from the master input file specified on the command
 line (\sref{s:run}). The namelist used for the input parameters for the reflection test is called
-\vn{roughness_scan_test}.  Example:
+\vn{diffuse_probability_test}.  Example:
 \begin{example}
-  &roughness_scan_test
-    graze_angle_in              = 0.12     ! Incident grazing angle in radians.
-    energy                      = 100      ! eV
-    surface_roughness_min       = 50       ! Surface roughness minimal value.
-    surface_roughness_max       = 100      ! Surface roughness maximal value.
-    surface_roughness_n_pts     = 51       ! Number of data points (including end points).
-    roughness_correlation_len   = -1       ! Surface roughness correlation length.
-    graze_angle_out_min         = 0.001    ! Minimal value in radians
-    graze_angle_out_max         = 0.010    ! Maximal value
-    graze_angle_out_n_pts       = 10       ! Number of graze angle columns.
-    graze_angles_out            = 0.001, 0.003, 0.01
-                                           ! Alternative way to specifying graze angle columns.
-    surface_reflection_file     = ""       ! File for specifying reflection probabilities.
-    random_seed                 = 0        ! Random number seed.
-    output_file                 = ""       ! Data file. Blank => Use default name.
+  &diffuse_probability_test
+    surface_reflection_file   = ""      ! Reflection probability file
+    graze_angle_in            = 0.12    ! Incident grazing angle in radians.
+    energy                    = 100     ! eV
+    surface_roughness_rms     = -1      ! Roughness for diffuse scattering.
+    roughness_correlation_len = -1      ! Roughness correlation length.
+    prob_normalization        = "1"     ! Probability normalizaton.
+    output_file               = ""      ! Blank => Use default name.
+
+    row_type                 = "energy" ! Table row type.
+    row_min                  = 10       ! Min row value
+    row_max                  = 1000     ! Max row value
+    row_n_pts                = 101      ! Number of row lines.
+    row_log_scale            = T        ! Use log scale?
+    row_values               = 0.001, 0.003, 0.01 ! Alternative way to
+                                        ! specify row values.
+
+    graze_angle_out_min      = 0.001    ! Minimal value in radians
+    graze_angle_out_max      = 0.010    ! Maximal value
+    graze_angle_out_n_pts    = 10       ! Number of graze angle columns.
+    graze_angles_out         = 0.001, 0.003, 0.01 ! Alternative way to
+                                        ! specify outgoing graze angles.
   /
 \end{example}
 
-The output is a table. Each row shows the results of setting the surface roughness to a specific
-value. The number of rows is set by \vn{surface_roughness_n_pts}. The surface roughness values range
-from \vn{surface_roughness_min} to \vn{surface_roughness_max} and are evenly spaced on a logarithmic
-scale.
+The output is a table. Each row shows the reflection probability for different values of the parameter
+specified by \vn{row_type}. Possible \vn{row_type} settings are:
+\begin{example}
+  "azimuth_angle_out" ! Outgoing azimuth angle of the photon.
+  "energy"            ! Photon energy rows.
+  "roughness"         ! Surface roughness.
+  "correlation"       ! Surface correlation length.
+  "graze_angle_in"    ! Incoming photon graze angle.
+\end{example}
 
-The output table has a number of columns. The first column is an index number from 1 to
-\vn{surface_roughness_n_pts}. The second column is the surface_roughness correlation length. The
-other columns will be diffuse reflection probability values for various outgoing graze angles (this
-probability is integrated over all outgoing azimuthal angles $\phi$).  The set of outgoing graze
-angles used for the table is set in one of two ways. One way to set the values of
-\vn{graze_angle_out_min}, \vn{graze_angle_out_max}, and \vn{graze_angle_out_n_pts}. This will give
-\vn{graze_angle_out_n_pts} columns (besides the first two columns) of equally spaced graze angles.
-If a non-uniform set of graze angle is desired. This set can be specified by \vn{graze_angles_out}
-as a list of graze angle numbers. One or the other way of specifying outgoing graze angles can be
-used but not both.
+The output table has a number of columns. The first column is an index number from 1 to the number
+of rows in the table.  The second column is the value of what \vn{row_type} is being used. The other
+columns will be the diffuse reflection probability for a certain value of outgoing graze angle. 
 
-The default file name for the output data file is \vn{
+If the \vn{row_type} is set to \vn{"azimuth_angle_out"}, the rows will be the outgoing azimuth angle
+$\phi$ of the photon. In this case, the probabilities shown in the table will be the probability
+$P(x, \phi)$ of scattering a photon with outgoing orientation $x$ and $\phi$ where $x =
+\sin(\theta_{\text{g,out})$ with $\theta_{\text{g,out}$ is the outgoing graze angle (see Equation
+A138 of \cite{b:prab}). 
+
+If \vn{row_type} is set to anothing else but \vn{"azimuth_angle_out"}, the probabilities shown in
+the table will be the probability $P_x(x)$ which is the scattering probability integrated over
+$\phi$ (see Equation A140 of \cite{b:prab}).
+
+The values used for the parameter specified by \vn{row_type} can be set in one of two ways.
+One way is to specify an explicit list of values using the \vn{row_values} parameter. Example:
+\begin{example}
+  row_values = 0.001, 0.003, 0.01
+\end{example}
+The alternative way is to set \vn{row_min}, \vn{row_max}, \vn{row_n_pts} and \vn{row_log_scale}. This
+will create \vn{row_n_pts} number of rows with the \vn{row_type} parameter ranging from \vn{row_min} 
+to \vn{row_max}. The points will be evenly spaced if \vn{row_log_scale} is set to \vn{False} and will
+be evenly spaced on a log scale if \vn{row_log_scale} is set to \vn{True}. Note: If \vn{row_n_pts} is
+positive then this alternative is used. Otherwise the values from \vn{row_values} are used.
+
+Similar to specifying row values, the column values for the outgoing graze angle can be set either
+by setting \vn{graze_angles_out} to a list of values or by setting \vn{graze_angle_out_min},
+\vn{graze_angle_out_max}, and \vn{graze_angle_out_n_pts}.
+
+The \vn{surface_reflection_file} specifies the reflection probability file to be used. If no file is
+specified then the default surface is used (\sref{s:dflt.reflect}).
+
+The \vn{graze_angle_in} parameter sets the incoming graze angle but is ignored if \vn{row_type} is
+set to "graze_angle_in".
+
+The \vn{energy} parameter sets the photon energy but is ignored if \vn{row_type} is set to "energy".
+
+The \vn{surface_roughness_rms} parameter sets the surface roughness. If negative then the roughness
+specified by the surface is used. This parameter is ignored if \vn{row_type} is set to "roughness".
+
+The \vn{roughness_correlation_len} parameter sets the surface roughness correlation. If negative
+then the correlation specified by the surface is used. This parameter is ignored if \vn{row_type} is
+set to "correlation".
+
+The \vn{prob_normalization} parameter sets how the displayed probabilities are normalized. Possible
+settings are:
+\begin{example}
+  "1" 
+  "reflect"
+  "all"
+\end{example}
+A setting of "1" means that the displayed probability integrated over all outgoing angles (and
+keeping everything else fixed) is 1. That is, absorption and specular reflection probabilities are
+ignored. A setting of "relect" means that the integrated probability will be the probability of
+being diffusely reflected relative to the probability of being reflected and not absorbed. That is,
+abosrbtion is ignored.  Finally, a setting of "all" means that the integrated probability will be
+the probability of being diffusely reflected taking into account both absorbtion and specular
+reflection probabilities.
+
+The default file name for the output data file is \vn{test_diffuse_probability.dat}.
 
 
 %------------------------------------------------------------------
