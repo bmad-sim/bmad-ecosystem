@@ -9,7 +9,7 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_track_photon (photon, lat, wall_hit, err)
+! Subroutine sr3d_track_photon (photon, lat, wall_hit, err, one_reflection_only)
 !
 ! Routine to propagate a synch radiation photon until it gets absorbed by a wall.
 !
@@ -21,7 +21,8 @@ contains
 !     %start       -- Starting coords.
 !   branch      -- branch_struct: Lattice branch with twiss propagated and mat6s made
 !   one_reflection_only
-!               -- Logical, optional: If present and True then only one reflection is allowed
+!               -- Logical, optional: If present and True then only one reflection is allowed.
+!                   This is for testing purposes.
 !
 ! Output:
 !   photon      -- sr3d_photon_track_struct: synch radiation photon propagated until absorption.

@@ -3,6 +3,7 @@ module synrad3d_test_mod
 use synrad3d_track_mod
 use synrad3d_output_mod
 use synrad3d_parse_wall
+use photon_reflection_mod
 
 contains
 
@@ -10,7 +11,7 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_roughness_scan_test (param_file)
+! Subroutine sr3d_diffuse_probability_test (param_file)
 ! 
 ! Routine to proform the reflection test.
 !
@@ -18,56 +19,59 @@ contains
 !   param_file    -- character(*): Input parameter file.
 !-
 
-subroutine sr3d_roughness_scan_test (param_file)
+subroutine sr3d_diffuse_probability_test (param_file)
 
 implicit none
 
 type (photon_reflect_surface_struct) surface
 type (diffuse_param_struct) d_param
 
-real(rp) graze_angle_in, energy, surface_roughness_min, surface_roughness_max
+real(rp) surface_roughness_rms, graze_angle_in, energy, row_min, row_max, row_values(400)
 real(rp) roughness_correlation_len, graze_angle_out_min, graze_angle_out_max, graze_angles_out(100)
-real(rp) roughness, theta_out, phi_out, prob, graze_angle
+real(rp) row_value, theta_out, phi_out, prob, graze_angle_out, p_reflect, rel_p_specular
 
-integer i, j, surface_roughness_n_pts, graze_angle_out_n_pts, random_seed, ios, n_angle
+integer i, j, row_n_pts, graze_angle_out_n_pts, ios, n_angle
 
-logical ok
+logical ok, row_log_scale
 
 character(*) param_file
+character(20) row_type, prob_normalization
 character(200) output_file, surface_reflection_file
 character(1000) :: line
+character(*), parameter :: r_name = 'sr3d_diffuse_probability_test'
 
-namelist / roughness_scan_test / &
-    graze_angle_in, energy, surface_roughness_min, surface_roughness_max, surface_roughness_n_pts, &
+namelist / diffuse_probability_test / &
+    graze_angle_in, energy, surface_roughness_rms, row_min, row_max, row_n_pts, row_log_scale, &
     roughness_correlation_len, graze_angle_out_min, graze_angle_out_max, graze_angle_out_n_pts, graze_angles_out, &
-    random_seed, output_file, surface_reflection_file
+    output_file, surface_reflection_file, row_type, prob_normalization
 
 !
 
-graze_angles_out = -1
-graze_angle_out_min = -1 
-graze_angle_out_max = -1 
-graze_angle_out_n_pts = -1 
+row_values = real_garbage$
+row_n_pts = -1
+row_log_scale = .false.
+graze_angles_out = real_garbage$
+graze_angle_out_n_pts = -1
+prob_normalization = ''
+surface_roughness_rms = -1
+roughness_correlation_len = -1
 output_file = ''
-random_seed = 0
 surface_reflection_file = ''
-output_file = 'roughness_scan.dat'
+output_file = 'diffuse_probability.dat'
 
 open (1, file = param_file, status = 'old')
-read (1, nml = roughness_scan_test, iostat = ios)
+read (1, nml = diffuse_probability_test, iostat = ios)
 if (ios > 0) then
-  print *, 'ERROR READING REFLECTION_TEST NAMELIST IN FILE: ' // trim(param_file)
+  print *, 'ERROR READING DIFFUSE_PROBABILITY_TEST NAMELIST IN FILE: ' // trim(param_file)
   stop
 endif
 if (ios < 0) then
-  print *, 'CANNOT FIND REFLECTION_TEST NAMELIST IN FILE: ' // trim(param_file)
+  print *, 'CANNOT FIND DIFFUSE_PROBABILITY_TEST NAMELIST IN FILE: ' // trim(param_file)
   stop
 endif
 close (1)
 
 !
-
-call ran_seed_put (random_seed)
 
 if (surface_reflection_file == '') then
   call photon_reflection_std_surface_init (surface)
@@ -76,51 +80,82 @@ else
 endif
 
 if (roughness_correlation_len > 0) surface%roughness_correlation_len = roughness_correlation_len
+if (surface_roughness_rms > 0)     surface%surface_roughness_rms = surface_roughness_rms
 
-if (graze_angles_out(1) > 0) then
+if (graze_angle_out_n_pts > 0) then
+  n_angle = graze_angle_out_n_pts
+else
   do j = 1, size(graze_angles_out)
-    if (graze_angles_out(j) > 0) cycle
+    if (graze_angles_out(j) /= real_garbage$) cycle
     n_angle = j
     exit
   enddo
-else
-  n_angle = graze_angle_out_n_pts
 endif
 
 !
 
 open (2, file = output_file, recl = 1000)
 
-write (2, '(a)')    '#                     |               Graze_Angle_Out'
-line =              '# Index     Roughness |'
+write (2, '(a)')    '#                         |               Graze_Angle_Out'
+line =              '# Index ' // row_type // ' |'
 
 do j = 1, n_angle
-  if (graze_angles_out(1) > 0) then
-    graze_angle = graze_angles_out(i)
+  if (graze_angle_out_n_pts > 0) then
+    graze_angle_out = graze_angle_out_min + (j - 1) * (graze_angle_out_max - graze_angle_out_min) / max(graze_angle_out_n_pts - 1, 1)
   else
-    graze_angle = graze_angle_out_min + (j - 1) * (graze_angle_out_max - graze_angle_out_min) / max(graze_angle_out_n_pts - 1, 1)
+    graze_angle_out = graze_angles_out(i)
   endif
-  write (line(16+j*10:), '(f10.6)') graze_angle
+  write (line(20+j*10:), '(f10.6)') graze_angle_out
 enddo
 
 write (2, '(a)') trim(line)
 
-do i = 1, surface_roughness_n_pts
-  roughness = exp(log(surface_roughness_min) + (i - 1) * &
-          (log(surface_roughness_max) - log(surface_roughness_min)) / max(surface_roughness_n_pts - 1, 1))
-  surface%surface_roughness_rms = roughness
+do i = 1, row_n_pts
+  if (row_log_scale) then
+    row_value = exp(log(row_min) + (i - 1) * (log(row_max) - log(row_min)) / max(row_n_pts - 1, 1))
+  else
+    row_value = row_min + (i - 1) * (row_max - row_min) / max(row_n_pts - 1, 1)
+  endif
+
+  select case (row_type)
+  case ('energy');            energy = row_value
+  case ('roughness');         surface%surface_roughness_rms = row_value
+  case ('correlation');       surface%roughness_correlation_len = row_value
+  case ('graze_angle_in');    graze_angle_in = row_value
+  case ('azimuth_angle_out'); phi_out = row_value
+  case default
+    call out_io (s_fatal$, r_name, 'BAD ROW_TYPE PARAMETER: ' // row_type)
+    stop
+  end select
+
+  call photon_reflectivity (graze_angle_in, energy, surface, p_reflect, rel_p_specular)
   call photon_diffuse_scattering (graze_angle_in, energy, surface, theta_out, phi_out, d_param)
 
-  write (line, '(i7, es14.6)') i, roughness
+  write (line, '(i7, es14.6)') i, row_value
 
   do j = 1, n_angle
-    if (graze_angles_out(1) > 0) then
-      graze_angle = graze_angles_out(i)
+    if (graze_angle_out_n_pts > 0) then
+      graze_angle_out = graze_angle_out_min + (j - 1) * (graze_angle_out_max - graze_angle_out_min) / max(graze_angle_out_n_pts - 1, 1)
     else
-      graze_angle = graze_angle_out_min + (j - 1) * (graze_angle_out_max - graze_angle_out_min) / max(graze_angle_out_n_pts - 1, 1)
+      graze_angle_out = graze_angles_out(i)
     endif
-    call spline_evaluate(d_param%prob_spline(0:d_param%n_pt_spline), graze_angle, ok, prob)
-    write (line(16+j*10:), '(f10.6)') prob / d_param%chx_norm
+    call spline_evaluate(d_param%prob_spline(0:d_param%n_pt_spline), sin(graze_angle_out), ok, prob)
+    prob = prob / d_param%chx_norm
+
+    if (row_type == 'azimuth_angle_out') then
+      prob = prob * ptwo(surface%surface_roughness_rms, surface%roughness_correlation_len, phi_out, d_param) / d_param%c_norm
+    endif
+
+    select case (prob_normalization)
+    case ('1');               ! Nothing to do
+    case ('reflect');         prob = prob * (1 - rel_p_specular)
+    case ('all');             prob = prob * (1 - rel_p_specular) * p_reflect
+    case default
+    call out_io (s_fatal$, r_name, 'BAD PROB_NORMALIZATION PARAMETER: ' // prob_normalization)
+    stop
+  end select
+
+    write (line(20+j*10:), '(f10.6)') prob
   enddo
 
   write (2, '(a)') trim(line)
@@ -130,22 +165,21 @@ enddo
 close (2)
 print *, 'Output file: ', trim(output_file)
 
-end subroutine sr3d_roughness_scan_test
+end subroutine sr3d_diffuse_probability_test
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_reflection_test (param_file, who)
+! Subroutine sr3d_monte_carlo_reflection_test (param_file)
 ! 
 ! Routine to proform the reflection test.
 !
 ! Input:
 !   param_file    -- character(*): Input parameter file.
-!   who           -- character(*): "reflection" or "diffuse_reflection"
 !-
 
-subroutine sr3d_reflection_test (param_file, who)
+subroutine sr3d_monte_carlo_reflection_test (param_file)
 
 implicit none
 
@@ -158,32 +192,28 @@ real(rp) surface_roughness_rms, roughness_correlation_len
 integer n_photons
 integer i, ix, ios, random_seed
 
-character(*) param_file, who
+logical include_specular_reflections
+
+character(*) param_file
 character(200) output_file, surface_reflection_file
 
 namelist / reflection_test / graze_angle_in, energy, n_photons, surface_roughness_rms, &
-            roughness_correlation_len, surface_reflection_file, output_file, random_seed
-
-! Set defaults
-
-select case (who)
-case ('reflection');          output_file = 'test_reflection.dat'
-case ('diffuse_reflection');  output_file = 'test_diffuse_reflection.dat'
-case default;                 call err_exit
-end select
-
-random_seed = 0
+            roughness_correlation_len, surface_reflection_file, output_file, random_seed, include_specular_reflections
 
 ! Read parameters
+
+random_seed = 0
+include_specular_reflections = .true.
+output_file = 'test_monte_carlo_reflection.dat'
 
 open (1, file = param_file, status = 'old')
 read (1, nml = reflection_test, iostat = ios)
 if (ios > 0) then
-  print *, 'ERROR READING REFLECTION_TEST NAMELIST IN FILE: ' // trim(param_file)
+  print *, 'ERROR READING MONTE_CARLO_REFLECTION_TEST NAMELIST IN FILE: ' // trim(param_file)
   stop
 endif
 if (ios < 0) then
-  print *, 'CANNOT FIND REFLECTION_TEST NAMELIST IN FILE: ' // trim(param_file)
+  print *, 'CANNOT FIND MONTE_CARLO_REFLECTION_TEST NAMELIST IN FILE: ' // trim(param_file)
   stop
 endif
 close (1)
@@ -218,19 +248,18 @@ write (2, *) 'random_seed:                 "', random_seed
 
 write (2, *) '          #          theta_out                     phi_out'
 do i = 1, n_photons
-  select case (who)
-  case ('reflection')
+  if (include_specular_reflections) then
     call photon_reflection (graze_angle_in, energy, surface, theta_out, phi_out)
-  case ('diffuse_reflection')
+  else
     call photon_diffuse_scattering (graze_angle_in, energy, surface, theta_out, phi_out)
-  end select
+  endif
   write (2, *) i, pi/2-theta_out, phi_out
 enddo
 
 close (2)
 print *, 'Output file: ' // trim(output_file)
 
-end subroutine sr3d_reflection_test
+end subroutine sr3d_monte_carlo_reflection_test
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -336,7 +365,7 @@ do
   photon%ix_photon_generated = n_photon
   photon%ix_photon = n_photon
 
-  call sr3d_track_photon (photon, lat, wall_hit, err, .true.)
+  call sr3d_track_photon (photon, lat, wall_hit, err, one_reflection_only = .true.)
   call sr3d_print_hit_points (2, photon, wall_hit, branch)
 
 enddo
