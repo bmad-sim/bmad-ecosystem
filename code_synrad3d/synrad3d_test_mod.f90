@@ -10,6 +10,132 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
+! Subroutine sr3d_roughness_scan_test (param_file)
+! 
+! Routine to proform the reflection test.
+!
+! Input:
+!   param_file    -- character(*): Input parameter file.
+!-
+
+subroutine sr3d_roughness_scan_test (param_file)
+
+implicit none
+
+type (photon_reflect_surface_struct) surface
+type (diffuse_param_struct) d_param
+
+real(rp) graze_angle_in, energy, surface_roughness_min, surface_roughness_max
+real(rp) roughness_correlation_len, graze_angle_out_min, graze_angle_out_max, graze_angles_out(100)
+real(rp) roughness, theta_out, phi_out, prob, graze_angle
+
+integer i, j, surface_roughness_n_pts, graze_angle_out_n_pts, random_seed, ios, n_angle
+
+logical ok
+
+character(*) param_file
+character(200) output_file, surface_reflection_file
+character(1000) :: line
+
+namelist / roughness_scan_test / &
+    graze_angle_in, energy, surface_roughness_min, surface_roughness_max, surface_roughness_n_pts, &
+    roughness_correlation_len, graze_angle_out_min, graze_angle_out_max, graze_angle_out_n_pts, graze_angles_out, &
+    random_seed, output_file, surface_reflection_file
+
+!
+
+graze_angles_out = -1
+graze_angle_out_min = -1 
+graze_angle_out_max = -1 
+graze_angle_out_n_pts = -1 
+output_file = ''
+random_seed = 0
+surface_reflection_file = ''
+output_file = 'roughness_scan.dat'
+
+open (1, file = param_file, status = 'old')
+read (1, nml = roughness_scan_test, iostat = ios)
+if (ios > 0) then
+  print *, 'ERROR READING REFLECTION_TEST NAMELIST IN FILE: ' // trim(param_file)
+  stop
+endif
+if (ios < 0) then
+  print *, 'CANNOT FIND REFLECTION_TEST NAMELIST IN FILE: ' // trim(param_file)
+  stop
+endif
+close (1)
+
+!
+
+call ran_seed_put (random_seed)
+
+if (surface_reflection_file == '') then
+  call photon_reflection_std_surface_init (surface)
+else
+  call read_surface_reflection_file (surface_reflection_file, surface)
+endif
+
+if (roughness_correlation_len > 0) surface%roughness_correlation_len = roughness_correlation_len
+
+if (graze_angles_out(1) > 0) then
+  do j = 1, size(graze_angles_out)
+    if (graze_angles_out(j) > 0) cycle
+    n_angle = j
+    exit
+  enddo
+else
+  n_angle = graze_angle_out_n_pts
+endif
+
+!
+
+open (2, file = output_file, recl = 1000)
+
+write (2, '(a)')    '#                     |               Graze_Angle_Out'
+line =              '# Index     Roughness |'
+
+do j = 1, n_angle
+  if (graze_angles_out(1) > 0) then
+    graze_angle = graze_angles_out(i)
+  else
+    graze_angle = graze_angle_out_min + (j - 1) * (graze_angle_out_max - graze_angle_out_min) / max(graze_angle_out_n_pts - 1, 1)
+  endif
+  write (line(16+j*10:), '(f10.6)') graze_angle
+enddo
+
+write (2, '(a)') trim(line)
+
+do i = 1, surface_roughness_n_pts
+  roughness = exp(log(surface_roughness_min) + (i - 1) * &
+          (log(surface_roughness_max) - log(surface_roughness_min)) / max(surface_roughness_n_pts - 1, 1))
+  surface%surface_roughness_rms = roughness
+  call photon_diffuse_scattering (graze_angle_in, energy, surface, theta_out, phi_out, d_param)
+
+  write (line, '(i7, es14.6)') i, roughness
+
+  do j = 1, n_angle
+    if (graze_angles_out(1) > 0) then
+      graze_angle = graze_angles_out(i)
+    else
+      graze_angle = graze_angle_out_min + (j - 1) * (graze_angle_out_max - graze_angle_out_min) / max(graze_angle_out_n_pts - 1, 1)
+    endif
+    call spline_evaluate(d_param%prob_spline(0:d_param%n_pt_spline), graze_angle, ok, prob)
+    write (line(16+j*10:), '(f10.6)') prob / d_param%chx_norm
+  enddo
+
+  write (2, '(a)') trim(line)
+enddo
+  
+
+close (2)
+print *, 'Output file: ', trim(output_file)
+
+end subroutine sr3d_roughness_scan_test
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
 ! Subroutine sr3d_reflection_test (param_file, who)
 ! 
 ! Routine to proform the reflection test.
@@ -50,7 +176,7 @@ random_seed = 0
 
 ! Read parameters
 
-open (1, file = param_file)
+open (1, file = param_file, status = 'old')
 read (1, nml = reflection_test, iostat = ios)
 if (ios > 0) then
   print *, 'ERROR READING REFLECTION_TEST NAMELIST IN FILE: ' // trim(param_file)

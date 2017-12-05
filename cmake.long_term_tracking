@@ -1,0 +1,23 @@
+set (EXENAME long_term_tracking)
+
+FILE (GLOB SRC_FILES long_term_tracking/*.f90)
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bmad
+  xsif
+  xrlf03
+  xrl
+  sim_utils
+  recipes_f-90_LEPP
+  forest
+  xsif
+  lapack95
+  lapack
+  blas
+  fgsl
+  gsl
+  gslcblas
+)

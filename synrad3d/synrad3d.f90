@@ -130,12 +130,14 @@ endif
 
 if (test /= '') then
   call match_word (trim(test), [character(20):: 'diffuse_reflection', &
-                                  'specular_reflection', 'reflection'], i, .true., .true., who)
+                                  'specular_reflection', 'reflection', 'roughness_scan'], i, .true., .true., who)
   select case (who)
   case ('diffuse_reflection', 'reflection')
     call sr3d_reflection_test (param_file, who)
   case ('specular_reflection')
     call sr3d_specular_reflection_test (param_file)
+  case ('roughness_scan')
+    call sr3d_roughness_scan_test (param_file)
   case default
     print '(a)', 'I DO NOT UNDERSTAND THIS TEST: ' // trim(test)
   end select

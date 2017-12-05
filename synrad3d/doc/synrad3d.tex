@@ -112,7 +112,7 @@ $\vcenter{\hbox{\includegraphics[width=2in]{lhc-cross-section.pdf}}}$
 {\LARGE\bfseries Gerry Dugan and David Sagan}
 
 \vspace{0.4in}
-{\large\bfseries November 10 2017}
+{\large\bfseries December 4, 2017}
 
 \end{center}
 \end{titlepage}
@@ -217,6 +217,7 @@ files:
   -test reflection             ! \sref{s:test.diffuse}
   -test diffuse_reflection     ! \sref{s:test.diffuse}
   -test specular_reflection    ! \sref{s:test.specular}
+  -test roughness_scan         ! \sref{s:test.rough}
 \end{example}
 
 With \vn{-test diffuse_reflection} and \vn{-test reflection} modes, \srthree simulates a set of
@@ -1186,8 +1187,8 @@ The wall file for this example is:
   /
 
   &subchamber_branch
-    subchamber_name = 'x_wall'
-    branch_name = 'b1'
+    subchamber_name = "x_wall"
+    branch_name = "b1"
   /
 \end{example}
 There are two subchambers. One subchamber named \vn{main} is, by default, associated with
@@ -1981,12 +1982,13 @@ specified using the \vn{-test <what>} option on the command line
   -test reflection             ! \sref{s:test.diffuse}
   -test diffuse_reflection     ! \sref{s:test.diffuse}
   -test specular_reflection    ! \sref{s:test.specular}
+  -test roughness_scan         ! \sref{s:test.rough}
 \end{example}
 
 These test modes are explained below
 
 %------------------------------------------------------------------
-\section{Reflection and Diffuse Reflection Test Modes}
+\section{Reflection and Diffuse Reflection Test}
 \label{s:test.diffuse}
 
 The \vn{reflection} and \vn{diffuse reflection} test modes, invoked respectively by using the
@@ -2030,7 +2032,7 @@ the azimuthal angle in radians. That is, \vn{phi_out} is zero when the incident 
 are in the same plane.
 
 %------------------------------------------------------------------
-\section{Specular Reflection Test Mode}
+\section{Specular Reflection Test}
 \label{s:test.specular}
 
 Specular reflection test mode (\sref{s:run}), invoked using the
@@ -2073,11 +2075,59 @@ The \vn{output_file} gives the name of the output data file.
 See \sref{s:wall.hit.file} for details of the syntax for this file.
 
 %------------------------------------------------------------------
+\section{Surface Roughness Scan Test}
+\label{s:test.rough}
+
+The \vn{roughness_scan} test mode creates a table of diffuse reflection probability, for fixed
+incoming angle, as a function of surface roughness for a given set of reflection angles.
+
+The parameters used for the test are read in from the master input file specified on the command
+line (\sref{s:run}). The namelist used for the input parameters for the reflection test is called
+\vn{roughness_scan_test}.  Example:
+\begin{example}
+  &roughness_scan_test
+    graze_angle_in              = 0.12     ! Incident grazing angle in radians.
+    energy                      = 100      ! eV
+    surface_roughness_min       = 50       ! Surface roughness minimal value.
+    surface_roughness_max       = 100      ! Surface roughness maximal value.
+    surface_roughness_n_pts     = 51       ! Number of data points (including end points).
+    roughness_correlation_len   = -1       ! Surface roughness correlation length.
+    graze_angle_out_min         = 0.001    ! Minimal value in radians
+    graze_angle_out_max         = 0.010    ! Maximal value
+    graze_angle_out_n_pts       = 10       ! Number of graze angle columns.
+    graze_angles_out            = 0.001, 0.003, 0.01
+                                           ! Alternative way to specifying graze angle columns.
+    surface_reflection_file     = ""       ! File for specifying reflection probabilities.
+    random_seed                 = 0        ! Random number seed.
+    output_file                 = ""       ! Data file. Blank => Use default name.
+  /
+\end{example}
+
+The output is a table. Each row shows the results of setting the surface roughness to a specific
+value. The number of rows is set by \vn{surface_roughness_n_pts}. The surface roughness values range
+from \vn{surface_roughness_min} to \vn{surface_roughness_max} and are evenly spaced on a logarithmic
+scale.
+
+The output table has a number of columns. The first column is an index number from 1 to
+\vn{surface_roughness_n_pts}. The second column is the surface_roughness correlation length. The
+other columns will be diffuse reflection probability values for various outgoing graze angles (this
+probability is integrated over all outgoing azimuthal angles $\phi$).  The set of outgoing graze
+angles used for the table is set in one of two ways. One way to set the values of
+\vn{graze_angle_out_min}, \vn{graze_angle_out_max}, and \vn{graze_angle_out_n_pts}. This will give
+\vn{graze_angle_out_n_pts} columns (besides the first two columns) of equally spaced graze angles.
+If a non-uniform set of graze angle is desired. This set can be specified by \vn{graze_angles_out}
+as a list of graze angle numbers. One or the other way of specifying outgoing graze angles can be
+used but not both.
+
+The default file name for the output data file is \vn{
+
+
+%------------------------------------------------------------------
 \appendix
 \chapter{Spline Fit of the Diffuse Probability Function}
 \label{c:spline}
 
-The diffuse scattering theory used in \srthree is discused by Dugan and Sagan\cite{b:prab} (D\&S)
+The diffuse scattering theory used in \srthree is discussed by Dugan and Sagan\cite{b:prab} (D\&S)
 with one change pertaining to how the integrated diffuse probability function $C_x(x)$ (D\&S
 Eq.~A144) is evaluated. 
 
@@ -2095,7 +2145,7 @@ affected by the local knot points around it) and the ability to better handle la
 since an Akima spline does not try to maintain a continuous second derivative. The adaptive point
 selection is used to better fit peaked functions. The basic idea here is to find at what knot point
 the estimated integrated area error is largest and then to add knot points to either side of this
-knot point. The integrated area error at a given knot point is estimated by the differnece between
+knot point. The integrated area error at a given knot point is estimated by the difference between
 the integrated area from the previous knot point to the next knot point using the spline fit and the
 integrated area as calculated from a cubic fit to the three knot points (previous point, point under
 consideration and the next point). Adding points is stopped when the estimated error for the total
