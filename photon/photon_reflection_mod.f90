@@ -1,6 +1,7 @@
 module photon_reflection_mod
 
 use bmad_utils_mod
+use spline_mod
 
 ! For a custom reflection calc: 
 !   See the photon_reflection_init routine for an example of how to set up the reflection tables.
@@ -12,6 +13,8 @@ integer, parameter, private :: n_cheb_term$ = 30
 type :: diffuse_param_struct
   real(rp) x, y
   real(rp) lambda, cnorm, chx_norm
+  type (spline_struct) prob_spline(0:50)
+  integer n_pt_spline
 end type
 
 type cheb_diffuse_struct
@@ -761,13 +764,13 @@ end subroutine photon_reflectivity
 ! Routine to reflect a photon from a surface including both diffuse and specular reflections.
 !
 ! Input:
-!   angle_in  -- Real(rp): Incident grazing (not polar) angle in radians.
-!   energy    -- Real(rp): Photon energy in eV.
-!   surface   -- photon_reflect_surface_struct: surface info
+!   angle_in        -- Real(rp): Incident grazing (not polar) angle in radians.
+!   energy          -- Real(rp): Photon energy in eV.
+!   surface         -- photon_reflect_surface_struct: surface info
 !
 ! Output:
-!   theta_out -- Real(rp): Polar angle in radians. 0 -> perpendicular to surface.
-!   phi_out   -- Real(rp): Azimuthal angle in radians.
+!   theta_out       -- Real(rp): Polar angle in radians. 0 -> perpendicular to surface.
+!   phi_out         -- Real(rp): Azimuthal angle in radians.
 !-
 
 subroutine photon_reflection (angle_in, energy, surface, theta_out, phi_out)
@@ -800,7 +803,7 @@ end subroutine photon_reflection
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Subroutine photon_diffuse_scattering (angle_in, energy, surface, theta_out, phi_out)
+! Subroutine photon_diffuse_scattering (angle_in, energy, surface, theta_out, phi_out, diffuse_param)
 !
 ! Routine to simulate the diffuse scattering of photons. The outgoing angles are
 ! choosen using the Dugan distribution.
@@ -809,28 +812,28 @@ end subroutine photon_reflection
 ! Use photon_reflection_std_surface_init or read_surface_reflection_file to get surface info.
 !
 ! Input:
-!   angle_in  -- Real(rp): Incident grazing (not polar) angle in radians.
-!   energy    -- Real(rp): Photon energy in eV.
-!   surface   -- photon_reflect_surface_struct: surface info
+!   angle_in        -- Real(rp): Incident grazing (not polar) angle in radians.
+!   energy          -- Real(rp): Photon energy in eV.
+!   surface         -- photon_reflect_surface_struct: surface info
 !
 ! Output:
-!   theta_out -- Real(rp): Polar angle in radians. 0 -> perpendicular to surface.
-!   phi_out   -- Real(rp): Azimuthal angle in radians.
+!   theta_out       -- Real(rp): Polar angle in radians. 0 -> perpendicular to surface.
+!   phi_out         -- Real(rp): Azimuthal angle in radians.
+!   diffuse_param   -- diffuse_param_struct, optional: Internal parameters used in the calculation.
+!                        This is used for diagnostics and is not used in standard simulations.
 !-
 
-subroutine photon_diffuse_scattering (angle_in, energy, surface, theta_out, phi_out)
+subroutine photon_diffuse_scattering (angle_in, energy, surface, theta_out, phi_out, diffuse_param)
 
-use spline_mod
-use nr, only: rtsafe, chebft, chint, chebev
 use random_mod
-use spline_mod
+use nr, only: rtsafe, chebft, chint, chebev
 
 implicit none
 
 type (photon_reflect_surface_struct), target :: surface
-type (diffuse_param_struct) diffuse_param
+type (diffuse_param_struct) d_param
 type (cheb_diffuse_struct) cheb_param
-type (spline_struct) prob_spline(0:50)
+type (diffuse_param_struct), optional :: diffuse_param
 
 real(rp) angle_in, energy, theta_out,  phi_out
 real(rp) sigma, t, ctheta2, sign_phi, tot_integral, rel_integral_err, integral, old_integral
@@ -846,8 +849,8 @@ logical ok
 
 sigma = surface%surface_roughness_rms
 T = surface%roughness_correlation_len
-diffuse_param%y = sin(angle_in)
-diffuse_param%lambda = h_planck * c_light / max(1.0_rp, energy)
+d_param%y = sin(angle_in)
+d_param%lambda = h_planck * c_light / max(1.0_rp, energy)
 
 ! Pick random numbers
 
@@ -866,21 +869,24 @@ endif
 ! Also compute the coefficients fo the cumulative distribution in x
 
 if (diffuse_com%use_spline_fit) then
+
+  ! First construct the spline fit for the probability function
+
   n_pt = -1
 
-  call eval_prob_x (prob_spline(0), 0.0_rp)
-  call eval_prob_x (prob_spline(1), diffuse_param%y)
-  call eval_prob_x (prob_spline(2), 1.0_rp)
+  call eval_prob_x (d_param%prob_spline(0), 0.0_rp)
+  call eval_prob_x (d_param%prob_spline(1), d_param%y)
+  call eval_prob_x (d_param%prob_spline(2), 1.0_rp)
 
   call insert_spline_point (1)
   call insert_spline_point (0)
 
   do i = 1, 20
-    call spline_akima(prob_spline(0:n_pt), ok)
+    call spline_akima(d_param%prob_spline(0:n_pt), ok)
     tot_integral = 0
     do j = 0, n_pt-1
       ! Use abs so not to be confused when the fit is bad
-      tot_integral = tot_integral + abs(spline1(prob_spline(j), prob_spline(j+1)%x0, -1))  
+      tot_integral = tot_integral + abs(spline1(d_param%prob_spline(j), d_param%prob_spline(j+1)%x0, -1))  
     enddo
 
     do j = 1, n_pt-1
@@ -890,7 +896,6 @@ if (diffuse_com%use_spline_fit) then
     rel_integral_err = sum(integral_err(1:n_pt-1)) / tot_integral
 
     ix = maxloc(integral_err(1:n_pt-1), 1)
-    !! print '(i4, 2es10.2, 4x, 2es10.2)', i, integral_err(ix), tot_integral, integral_err(ix) / tot_integral, rel_integral_err
 
     if (i < 4) cycle
     if (rel_integral_err < diffuse_com%area_err_tol) exit
@@ -899,16 +904,19 @@ if (diffuse_com%use_spline_fit) then
     call insert_spline_point (ix-1)
   enddo
 
-  diffuse_param%chx_norm = tot_integral
+  d_param%chx_norm = tot_integral
+
+  ! Integrate the probability function and find where probability integral from 0 to cos(theta2) equals ran1.
+  ! First integrate over the spline intervals to bracket cos(theta2) and then use rtsafe to interpolate.
 
   integral = 0
   do j = 0, n_pt-1
     old_integral = integral
-    integral = integral + spline1(prob_spline(j), prob_spline(j+1)%x0, -1)
-    if (integral < ran1 * tot_integral) cycle
-    ctheta2 = rtsafe (d_integral, prob_spline(j)%x0, prob_spline(j+1)%x0, 1.0D-5)
-    exit
+    integral = integral + spline1(d_param%prob_spline(j), d_param%prob_spline(j+1)%x0, -1)
+    if (integral >= ran1 * tot_integral) exit
   enddo
+
+  ctheta2 = rtsafe (d_integral, d_param%prob_spline(j)%x0, d_param%prob_spline(j+1)%x0, 1.0D-5)
 
 ! Fit the probability distribution to Chebyshev polynomials.
 ! This is known to produce bad results for smoother surfaces so eventually this
@@ -917,7 +925,7 @@ else
   cheb_param%cch = chebft(0.0_rp, 1.0_rp, n_cheb_term$, prob_x_diffuse_vec)
   cheb_param%cch_int = chint (0.0_rp, 1.0_rp, cheb_param%cch)
   !  evaluate the normalization constant
-  diffuse_param%chx_norm = chebev(0.0D0, 1.0D0, cheb_param%cch_int, 1.0D0)
+  d_param%chx_norm = chebev(0.0D0, 1.0D0, cheb_param%cch_int, 1.0D0)
   ! find the value of x for which the cumulative probability equals the random number
   ctheta2 = rtsafe(cumulx, 0.0D0, 1.0D0, 1.0D-5)
 endif
@@ -925,8 +933,8 @@ endif
 ! Evaluate the normalization constant for the cumulative probability in phi, for this x
 
 theta_out = acos(ctheta2)
-diffuse_param%x = ctheta2
-diffuse_param%cnorm = cos_phi(sigma, T, twopi/2, diffuse_param)
+d_param%x = ctheta2
+d_param%cnorm = cos_phi(sigma, T, twopi/2, d_param)
 
 ! find the value of phi for which the cumulative probability equals ran2
 
@@ -934,19 +942,24 @@ call cumulr(0.0_rp, fl, df)
 call cumulr(pi, fh, df)
 if ((fl > 0 .and. fh > 0) .or. (fl < 0 .and. fh < 0)) then 
   call out_io (s_fatal$, r_name, 'ROOT NOT BRACKETED FOR PHI CALC!', 'fl, fh: \2es14.5\ ', r_array = [fl, fh])
-  call output_specular_reflection_input_params(diffuse_param, surface)
+  call output_specular_reflection_input_params(d_param, surface)
 endif
 
 phi_out = sign_phi * rtsafe(cumulr, 0.0D0, pi, 1.0D-5)
 
+if (present(diffuse_param)) then
+  diffuse_param = d_param
+  diffuse_param%n_pt_spline = n_pt
+endif
+
 !---------------------
 contains
 
-subroutine eval_prob_x(prob_spline, x)
-type (spline_struct) prob_spline
+subroutine eval_prob_x(spline, x)
+type (spline_struct) spline
 real(rp) x
-prob_spline%x0  = x
-prob_spline%y0 = prob_x_diffuse(prob_spline%x0, diffuse_param, surface)
+spline%x0  = x
+spline%y0 = prob_x_diffuse(spline%x0, d_param, surface)
 n_pt = n_pt + 1
 end subroutine eval_prob_x
 
@@ -955,8 +968,8 @@ end subroutine eval_prob_x
 
 subroutine insert_spline_point(ix)
 integer ix
-prob_spline(ix+2:n_pt+1) = prob_spline(ix+1:n_pt)
-call eval_prob_x(prob_spline(ix+1), (prob_spline(ix)%x0 + prob_spline(ix+2)%x0) / 2)
+d_param%prob_spline(ix+2:n_pt+1) = d_param%prob_spline(ix+1:n_pt)
+call eval_prob_x(d_param%prob_spline(ix+1), (d_param%prob_spline(ix)%x0 + d_param%prob_spline(ix+2)%x0) / 2)
 end subroutine insert_spline_point
 
 !---------------------
@@ -971,17 +984,17 @@ real(rp) x1, y1, x2, y2, a, b, a_spline, a_parab
 
 if (ix == 0 .or. ix == n_pt) return
 
-x1 = prob_spline(ix)%x0 - prob_spline(ix-1)%x0
-y1 = prob_spline(ix)%y0 - prob_spline(ix-1)%y0
+x1 = d_param%prob_spline(ix)%x0 - d_param%prob_spline(ix-1)%x0
+y1 = d_param%prob_spline(ix)%y0 - d_param%prob_spline(ix-1)%y0
 
-x2 = prob_spline(ix+1)%x0 - prob_spline(ix-1)%x0
-y2 = prob_spline(ix+1)%y0 - prob_spline(ix-1)%y0
+x2 = d_param%prob_spline(ix+1)%x0 - d_param%prob_spline(ix-1)%x0
+y2 = d_param%prob_spline(ix+1)%y0 - d_param%prob_spline(ix-1)%y0
 
 a = (y2 * x1 - y1 * x2) / (x1 * x2**2 - x2 * x1**2)
 b = (y2 * x1**2 - y1 * x2**2) / (x1**2 * x2 - x2**2 * x1)
 
-a_parab = a * x2**3 / 3 + b * x2**2 / 2 + prob_spline(ix-1)%y0 * (prob_spline(ix+1)%x0 - prob_spline(ix-1)%x0)
-a_spline = spline1(prob_spline(ix-1), prob_spline(ix)%x0, -1) + spline1(prob_spline(ix), prob_spline(ix+1)%x0, -1)
+a_parab = a * x2**3 / 3 + b * x2**2 / 2 + d_param%prob_spline(ix-1)%y0 * (d_param%prob_spline(ix+1)%x0 - d_param%prob_spline(ix-1)%x0)
+a_spline = spline1(d_param%prob_spline(ix-1), d_param%prob_spline(ix)%x0, -1) + spline1(d_param%prob_spline(ix), d_param%prob_spline(ix+1)%x0, -1)
 
 integral_err(ix) = abs(a_parab - a_spline)
 
@@ -1008,8 +1021,8 @@ real(rp), intent(out) :: fn, df
 
 !
 
-fn = (old_integral + spline1(prob_spline(j), x, -1)) / tot_integral - ran1
-df = spline1(prob_spline(j), x, 0) / tot_integral
+fn = (old_integral + spline1(d_param%prob_spline(j), x, -1)) / tot_integral - ran1
+df = spline1(d_param%prob_spline(j), x, 0) / tot_integral
 
 end subroutine d_integral
 
@@ -1036,8 +1049,8 @@ real(rp) sigma, T
 sigma = surface%surface_roughness_rms
 T = surface%roughness_correlation_len
 
-fn = cos_phi(sigma, T, phi, diffuse_param) / diffuse_param%cnorm - ran2
-df = ptwo(sigma, T, phi, diffuse_param) / diffuse_param%cnorm
+fn = cos_phi(sigma, T, phi, d_param) / d_param%cnorm - ran2
+df = ptwo(sigma, T, phi, d_param) / d_param%cnorm
 
 end subroutine cumulr
 
@@ -1062,8 +1075,8 @@ real(rp), intent(out) :: fn, df
 
 !
 
-fn = chebev(0.0D0, 1.0D0, cheb_param%cch_int, x) / diffuse_param%chx_norm - ran1
-df = chebev(0.0D0, 1.0D0, cheb_param%cch, x) / diffuse_param%chx_norm
+fn = chebev(0.0D0, 1.0D0, cheb_param%cch_int, x) / d_param%chx_norm - ran1
+df = chebev(0.0D0, 1.0D0, cheb_param%cch, x) / d_param%chx_norm
 
 end subroutine cumulx
 
@@ -1094,7 +1107,7 @@ integer itt
 !
 
 do itt = 1, size(x)
-  prob_x(itt) = prob_x_diffuse(x(itt), diffuse_param, surface)
+  prob_x(itt) = prob_x_diffuse(x(itt), d_param, surface)
 enddo
 
 end function prob_x_diffuse_vec
@@ -1105,7 +1118,7 @@ end subroutine photon_diffuse_scattering
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Function prob_x_diffuse (x, diffuse_param, surface) result (prob_x)
+! Function prob_x_diffuse (x, d_param, surface) result (prob_x)
 !
 ! Contained routine to calculate integrated probability distribution in x = cos(theta_out).
 ! 
@@ -1116,11 +1129,11 @@ end subroutine photon_diffuse_scattering
 !   prob -- Real(rp): Integrated probability.
 !-
 
-function prob_x_diffuse (x, diffuse_param, surface) result (prob_x)
+function prob_x_diffuse (x, d_param, surface) result (prob_x)
 
 implicit none
 
-type (diffuse_param_struct) diffuse_param
+type (diffuse_param_struct) d_param
 type (photon_reflect_surface_struct), target :: surface
 
 real(rp), intent(in) :: x
@@ -1136,10 +1149,10 @@ logical :: xyzero
 character(*), parameter :: r_name = 'prob_x_diffuse'
 !
 
-y = diffuse_param%y
+y = d_param%y
 sigma = surface%surface_roughness_rms
 T = surface%roughness_correlation_len
-lambda = diffuse_param%lambda
+lambda = d_param%lambda
 
 !
 
@@ -1208,7 +1221,7 @@ prob_x = pxs*g0
 if (i > maxsum) then
   call out_io (s_error$, r_name, 'Convergence failed!', &
         'pxs, g0: \2es14.5\ ', r_array = [pxs, g0])
-  call output_specular_reflection_input_params(diffuse_param, surface)
+  call output_specular_reflection_input_params(d_param, surface)
 endif
 
 end function prob_x_diffuse
@@ -1217,7 +1230,7 @@ end function prob_x_diffuse
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! function ptwo(sigma, T, phi, diffuse_param) result (p_two)
+! function ptwo(sigma, T, phi, d_param) result (p_two)
 !
 ! unnormalized two-dimensional probability distribution in x and phi
 ! polar angles relative to surface normal
@@ -1227,11 +1240,11 @@ end function prob_x_diffuse
 ! Private routine.
 !-
 
-function ptwo(sigma, T, phi, diffuse_param) result (p_two)
+function ptwo(sigma, T, phi, d_param) result (p_two)
 
 implicit none
 
-type (diffuse_param_struct) diffuse_param
+type (diffuse_param_struct) d_param
 
 real(rp) p_two, sigma, t, lambda, y, x, phi, k, factor, p_twoa, r, tau, s, cp, xpy
 real(rp) xysq, g, h, a, qexp, b, g0, pxa, pxs, xmmax, xtest, fexp, term, ri, xlogi, xlogg
@@ -1243,9 +1256,9 @@ character(*), parameter :: r_name = 'ptwo'
 
 !
 
-lambda = diffuse_param%lambda
-y      = diffuse_param%y
-x      = diffuse_param%x
+lambda = d_param%lambda
+y      = d_param%y
+x      = d_param%x
 
 p_twoa = 0.0
 p_two = 0.0
@@ -1300,7 +1313,7 @@ else
   if (i > maxsum) then
     call out_io (s_error$, r_name, 'Convergence failed!', &
             'phi, pxs, g0: \3es14.5\ ', r_array = [phi, pxs, g0])
-    call output_specular_reflection_input_params(diffuse_param)
+    call output_specular_reflection_input_params(d_param)
   endif
 
 end if
@@ -1343,7 +1356,7 @@ end function zmmax
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Function cos_phi (sigma, t, phi, diffuse_param) result (cphi)
+! Function cos_phi (sigma, t, phi, d_param) result (cphi)
 !
 !  computes  unnormalized cumulative distribution function in phi for a given x
 !  polar angles relative to surface normal
@@ -1353,11 +1366,11 @@ end function zmmax
 ! Private routine to calculate integrated probability distribution in x = cos(theta_out).
 !-
 
-function cos_phi (sigma, T, phi, diffuse_param) result (cphi)
+function cos_phi (sigma, T, phi, d_param) result (cphi)
 
 implicit none
 
-type (diffuse_param_struct) diffuse_param
+type (diffuse_param_struct) d_param
 
 real(rp) cphi, sigma, t, x, y, phi
 real(rp) k, lambda, cphia, xpy, xysq, r, tau, s, g, h, cphis, bi, fexpi
@@ -1371,9 +1384,9 @@ character(*), parameter :: r_name = 'cos_phi'
 
 !
 
-lambda = diffuse_param%lambda
-y      = diffuse_param%y
-x      = diffuse_param%x
+lambda = d_param%lambda
+y      = d_param%y
+x      = d_param%x
 
 cphia = 0.0
 cphi = 0.0
@@ -1394,7 +1407,7 @@ if (x == 1.0 .or. y == 1.0) xyzero = .true.
 if (g < gmin) then
   qexp = (2-xysq-2*h)*s**2/4
   bs = s**2*h/2
-  fz = zzfp(a,bs,phi,xyzero, diffuse_param)
+  fz = zzfp(a,bs,phi,xyzero, d_param)
   cphi = 0.5/twopi*(1+x*y)**2*r**2*s**2*exp(-qexp-g)*fz
   return
 end if
@@ -1405,7 +1418,7 @@ qexp = (2-xysq)*tau**2/4/xpy**2-b*cos(phi)
 if (g > gmax .and. appsw) then
   g0 = tau**2/2/twopi/xpy**4*(1+x*y)**2
   fexp = -(2-xysq-2*h)*tau**2/4/xpy**2
-  fz = zzfp(a,b,phi,xyzero, diffuse_param)
+  fz = zzfp(a,b,phi,xyzero, d_param)
   cphia = g0*exp(fexp)*fz
   cphi = cphia
 else
@@ -1416,7 +1429,7 @@ else
   do i = 1,maxsum
     bi = b*g/i
     fexpi = -g-(2-xysq-2*h)*tau**2*g/4/i/xpy**2
-    fzi = zzfp(a,bi,phi,xyzero, diffuse_param)
+    fzi = zzfp(a,bi,phi,xyzero, d_param)
     if (i < 20) then
       factor = factor*i
       term = exp(fexpi)*g**i/factor/i
@@ -1436,7 +1449,7 @@ else
   if (i > maxsum) then
     call out_io (s_error$, r_name, 'Convergence failed.', &
               'phi, cphis, g0: \3es14.5\ ', r_array = [phi, cphis, g0])
-    call output_specular_reflection_input_params(diffuse_param)
+    call output_specular_reflection_input_params(d_param)
   endif
 
 end if
@@ -1475,16 +1488,16 @@ end function zzfi
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Function zzfp (a, b, phi, xyzero, diffuse_param) result (fp)
+! Function zzfp (a, b, phi, xyzero, d_param) result (fp)
 !
 ! Private function used in calculating diffuse scattering distribution.
 !-
 
-function zzfp (a, b, phi, xyzero, diffuse_param) result (fp)
+function zzfp (a, b, phi, xyzero, d_param) result (fp)
 
 implicit none
 
-type (diffuse_param_struct) :: diffuse_param
+type (diffuse_param_struct) :: d_param
 
 real(rp) a, b, phi, fp
 real(rp) sp, sp2
@@ -1499,7 +1512,7 @@ if(xyzero) then
   return
 end if
 if(b < bmax) then
-  fp = zzexp(a,b,phi, diffuse_param)
+  fp = zzexp(a,b,phi, d_param)
 else
   fp = hzz(a,b,phi)
 end if
@@ -1663,18 +1676,18 @@ end function zbessi0
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Function zzexp (a, b, phi, diffuse_param) result (zexp)
+! Function zzexp (a, b, phi, d_param) result (zexp)
 !
 ! This routine computes the phi integral used in the cumulative distribution function.
 ! Series does not converge well for b>100.
 ! Private function used in calculating diffuse scattering distribution.
 !-
 
-function zzexp (a, b, phi, diffuse_param) result (zexp)
+function zzexp (a, b, phi, d_param) result (zexp)
 
 implicit none 
 
-type (diffuse_param_struct) :: diffuse_param
+type (diffuse_param_struct) :: d_param
 
 real(rp) a, b, phi, zexp
 real(rp) sp, cp, sp2, cp2, sp3, sp4, r0, r1, r2, spk, cpk, rk, zterm
@@ -1714,7 +1727,7 @@ zexp = zexp/sqrt(twopi*b)
 if (k > maxsum) then
   call out_io (s_error$, r_name, 'Convergence failed!', &
           'a, b, phi, zzexp: \4es14.4\ ', r_array = [a, b, phi, zexp])
-  call output_specular_reflection_input_params(diffuse_param)
+  call output_specular_reflection_input_params(d_param)
 endif
 
 end function zzexp
@@ -1723,16 +1736,16 @@ end function zzexp
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Subroutine output_specular_reflection_input_params(cc, surface)
+! Subroutine output_specular_reflection_input_params(d_param, surface)
 !
 ! Private function used in calculating diffuse scattering distribution.
 !-
 
-subroutine output_specular_reflection_input_params (cc, surface)
+subroutine output_specular_reflection_input_params (d_param, surface)
 
 implicit none
 
-type (diffuse_param_struct) :: cc
+type (diffuse_param_struct) :: d_param
 type (photon_reflect_surface_struct), optional :: surface
 
 real(rp) sigma, t
@@ -1750,7 +1763,7 @@ if (present(surface)) then
 endif
 
 call out_io (s_blank$, r_name, 'sigma, T, lambda, x, y: \4es14.5\ ', &
-          r_array = [sigma, T, cc%lambda, cc%x, cc%y])
+          r_array = [sigma, T, d_param%lambda, d_param%x, d_param%y])
 
 end subroutine output_specular_reflection_input_params
 
