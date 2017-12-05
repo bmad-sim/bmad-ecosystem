@@ -12,6 +12,7 @@ set (SRC_DIRS
 )
 
 set (EXE_SPECS
+  cmake.long_term_tracking
   cmake.frequency_map
   cmake.s3drefl
   cmake.bbu
