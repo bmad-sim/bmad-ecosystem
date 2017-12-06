@@ -883,7 +883,8 @@ if (diffuse_com%use_spline_fit) then
     call spline_akima(d_param%prob_spline(0:n_pt), ok)
     tot_integral = 0
     do j = 0, n_pt-1
-      ! Use abs so not to be confused when the fit is bad
+      ! Use abs so not to be confused when the integral is negative due to fitting errors.
+      ! This should not affect the results significantly.
       tot_integral = tot_integral + abs(spline1(d_param%prob_spline(j), d_param%prob_spline(j+1)%x0, -1))  
     enddo
 
@@ -910,7 +911,8 @@ if (diffuse_com%use_spline_fit) then
   integral = 0
   do j = 0, n_pt-1
     old_integral = integral
-    integral = integral + spline1(d_param%prob_spline(j), d_param%prob_spline(j+1)%x0, -1)
+    ! Use abs so not to be confused when the integral is negative due to fitting errors.
+    integral = integral + abs(spline1(d_param%prob_spline(j), d_param%prob_spline(j+1)%x0, -1))
     if (integral >= ran1 * tot_integral) exit
   enddo
 
@@ -1019,8 +1021,8 @@ real(rp), intent(out) :: fn, df
 
 !
 
-fn = (old_integral + spline1(d_param%prob_spline(j), x, -1)) / tot_integral - ran1
-df = spline1(d_param%prob_spline(j), x, 0) / tot_integral
+fn = (old_integral + abs(spline1(d_param%prob_spline(j), x, -1))) / tot_integral - ran1
+df = abs(spline1(d_param%prob_spline(j), x, 0)) / tot_integral
 
 end subroutine d_integral
 
