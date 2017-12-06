@@ -364,7 +364,7 @@ n_photon_array = 0
 allocate (wall_hit(0:10))
 print *, 'Initialization done. Tracking beginning...'
 call run_timer ('START')
-old_time = -1d3
+old_time = 0
 
 !--------------------------------------------------------------------------
 ! If the photon_start input file exists then use that
@@ -529,7 +529,7 @@ else
     do
 
       call run_timer ('READ', timer_time)
-      if (old_time > old_time + 60) then
+      if (timer_time > old_time + 60) then
         print '(a, f9.1)', 'Time from start (min):', timer_time/60
         print *, '    Num photons generated:          ', n_photon_generated
         print *, '    Num photons passed filter tests:', n_photon_array
