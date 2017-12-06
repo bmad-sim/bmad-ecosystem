@@ -422,7 +422,7 @@ real(rp) dl_step, dl_left, s_stop, denom, v_x, v_s, sin_t, cos_t, sl
 real(rp) g, new_x, radius, theta, tan_t, dl, dl2, ct, st, s_ent, s0, ds
 real(rp), pointer :: vec(:)
 
-integer ixw, stop_location, end_geometry
+integer ix_wall_next, stop_location, end_geometry
 
 logical stop_at_check_pt, check_section_here
 
@@ -462,6 +462,21 @@ if (ele%key /= patch$ .and. now%location /= inside$) then
   if (abs(now%s - s0) > sl .and. abs(now%s - ele%s) > sl) then
     print *, 'PHOTON LOCATION BOOKKEEPING ERROR IN SR3D_PROPAGATING_PHOTON_A_STEP!'
     call err_exit
+  endif
+endif
+
+! Find next wall section to stop at
+
+if (stop_at_check_pt) then
+  call bracket_index2 (wall3d%section%s, 1, ubound(wall3d%section, 1), now%s, photon%now%ix_wall_section, ix_wall_next)
+  photon%now%ix_wall_section = ix_wall_next
+
+  if (now%direction == -1) then
+    do
+      if (ix_wall_next == 1) exit
+      if (wall3d%section(ix_wall_next)%s /= now%s) exit
+      ix_wall_next = ix_wall_next - 1
+    enddo
   endif
 endif
 
@@ -512,14 +527,9 @@ propagation_loop: do
     s_stop = branch%ele(now%ix_ele)%s
     stop_location = downstream_end$
 
-    if (stop_at_check_pt) then
-      call bracket_index2 (wall3d%section%s, 1, ubound(wall3d%section, 1), now%s, photon%now%ix_wall_section, ixw)
-      photon%now%ix_wall_section = ixw
-    endif
-
-    if (stop_at_check_pt .and. ixw < ubound(wall3d%section, 1)) then
-      if (wall3d%section(ixw+1)%s < s_stop) then
-        s_stop = wall3d%section(ixw+1)%s
+    if (stop_at_check_pt .and. ix_wall_next < ubound(wall3d%section, 1)) then
+      if (wall3d%section(ix_wall_next+1)%s < s_stop) then
+        s_stop = wall3d%section(ix_wall_next+1)%s
         stop_location = inside$
         check_section_here = .true.
       endif
@@ -550,19 +560,8 @@ propagation_loop: do
     s_stop = branch%ele(now%ix_ele-1)%s
 
     if (stop_at_check_pt) then
-      call bracket_index2 (wall3d%section%s, 1, ubound(wall3d%section, 1), now%s, photon%now%ix_wall_section, ixw)
-      photon%now%ix_wall_section = ixw
-    endif
-
-    if (stop_at_check_pt) then
-      do
-        if (ixw == 1) exit
-        if (wall3d%section(ixw)%s /= now%s) exit
-        ixw = ixw - 1
-      enddo
-
-      if (wall3d%section(ixw)%s > s_stop) then
-        s_stop = wall3d%section(ixw)%s
+      if (wall3d%section(ix_wall_next)%s > s_stop) then
+        s_stop = wall3d%section(ix_wall_next)%s
         stop_location = inside$
         check_section_here = .true.
       endif

@@ -63,16 +63,17 @@ if (iu_hit_file == -1) then
 endif
 
 if (iu_hit_file == -1) then
-  open (iu, file = 'error_photon_start')
+  open (iu, file = 'error_photon_start', recl = 200)
   write (iu, *) '&start'
   write (iu, *) '  ran_state%ix            =', sr3d_params%ran_state%ix
   write (iu, *) '  ran_state%iy            =', sr3d_params%ran_state%iy
   write (iu, *) '  ran_state%number_stored =', sr3d_params%ran_state%number_stored
   write (iu, *) '  ran_state%engine        =', sr3d_params%ran_state%engine
   write (iu, *)
-  write (iu, *) '  p%vec  =', photon%start%orb%vec
-  write (iu, *) '  p%p0c  =', photon%start%orb%p0c
-  write (iu, *) '  p%direction =', photon%start%orb%direction
+  write (iu, *) '  orbit%vec  =', photon%start%orb%vec
+  write (iu, *) '  orbit%p0c  =', photon%start%orb%p0c
+  write (iu, *) '  orbit%direction =', photon%start%orb%direction
+  write (iu, *) '  orbit%s =', photon%start%orb%s
   write (iu, *) '  ix_branch   =', photon%start%ix_branch
   write (iu, *) '/'
   close (iu)
