@@ -677,7 +677,7 @@ type (ele_struct), target :: ele
 type (wall3d_section_struct), pointer :: sec1, sec2
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_vertex_struct), allocatable :: v(:)
-type (ele_struct), pointer :: ele1, ele2
+type (ele_struct), pointer :: ele1, ele2, ele_ptr
 type (floor_position_struct) floor_particle, floor1_0, floor2_0
 type (floor_position_struct) floor1_w, floor2_w, floor1_dw, floor2_dw, floor1_p, floor2_p
 type (floor_position_struct) loc_p, loc_1_0, loc_2_0, floor
@@ -688,7 +688,7 @@ real(rp), optional :: perp(3), origin(3), radius_wall
 real(rp), pointer :: vec(:), value(:)
 real(rp) d_radius, r_particle, r_norm, s_rel, spline, cos_theta, sin_theta
 real(rp) r1_wall, r2_wall, dr1_dtheta, dr2_dtheta, f_eff, ds, disp, r_wall
-real(rp) p1, p2, dp1, dp2, s_particle, ds_offset, x, y, x0, y0, f
+real(rp) p1, p2, dp1, dp2, s_particle, ds_offset, x, y, x0, y0, f, d_rad1, d_rad2
 real(rp) r(3), r0(3), rw(3), drw(3), dr0(3), dr(3), drp(3)
 real(rp) dtheta_dphi, alpha, dalpha, beta, dx, dy, w_mat(3,3)
 real(rp) s1, s2, r_p(3)
@@ -712,7 +712,6 @@ wall3d => pointer_to_wall3d (ele, ix_wall, ds_offset, is_branch_wall)
 if (.not. associated(wall3d)) return
 if (present(err_flag)) err_flag = .false.
 
-!------------------
 ! Init
 
 s_particle = position(5) + ds_offset
@@ -742,8 +741,6 @@ if (s_particle < wall3d%section(1)%s .or. (s_particle == wall3d%section(1)%s .an
     sec1 => wall3d%section(n_sec);  s1 = sec1%s - ele%branch%param%total_length
     sec2 => wall3d%section(1);      s2 = sec2%s
     if (present(ix_section)) ix_section = n_sec
-    ! If there are only two sections then sec1 will be on top of sec2 so s1 needs to be offset again.
-    if (n_sec == 2 .and. abs(s1-s2) < bmad_com%significant_length) s1 = s1 - ele%branch%param%total_length
 
   else
     call d_radius_at_section(wall3d%section(1))
@@ -763,8 +760,6 @@ elseif (s_particle > wall3d%section(n_sec)%s .or. (s_particle == wall3d%section(
     sec1 => wall3d%section(n_sec);  s1 = sec1%s
     sec2 => wall3d%section(1);      s2 = sec2%s + ele%branch%param%total_length
     if (present(ix_section)) ix_section = n_sec
-    ! If there are only two sections then sec2 will be on top of sec1 so s2 needs to be offset again.
-    if (n_sec == 2 .and. abs(s1-s2) < bmad_com%significant_length) s2 = s2 + ele%branch%param%total_length
 
   else
     call d_radius_at_section(wall3d%section(n_sec))
@@ -799,43 +794,36 @@ if (sec1%type == wall_end$ .or. sec2%type == wall_start$) then
   return
 endif
 
-! Crotch
-
-if (sec1%type /= normal$ .and. sec2%type /= normal$) then
-
-  if (sec1%type == leg1$ .and. sec2%type /= trunk1$) then
-    sec2 => wall3d%section(ix_w+2)
-    s2 = sec2%s
-  elseif (sec1%type == leg2$ .and. sec2%type /= trunk2$) then
-    sec2 => wall3d%section(ix_w+2)
-    s2 = sec2%s
-  endif
-
-  if (sec2%type == leg1$ .and. sec1%type /= trunk1$) then
-    sec1 => wall3d%section(ix_w-1)
-    s1 = sec1%s
-  elseif (sec2%type == leg2$ .and. sec1%type /= trunk2$) then
-    sec1 => wall3d%section(ix_w-1)
-    s1 = sec1%s
-  endif
-
-endif
-
-! At a section
+! At a section cases
 
 ds = s2 - s1
 
-if (s_particle == sec1%s .and. (ds /= 0 .or. position(6) > 0)) then
-  call d_radius_at_section(sec1)
-  if (present(origin)) origin = [sec1%r0, position(5)]
+if (s_particle == s1 .and. ds == 0) then
+  ! Choose the greater d_radius. That is, the particle is considered outside if it is outside either section.
+  call d_radius_at_section(sec1, d_rad1)
+  call d_radius_at_section(sec2, d_rad2)
+  if (d_rad1 > d_rad2) call d_radius_at_section(sec1)
+
+  if (position(6) > 0) then
+    if (present(perp)) perp = [0.0_rp, 0.0_rp, 1.0_rp]    
+  else
+    if (present(perp)) perp = [0.0_rp, 0.0_rp, -1.0_rp]    
+  endif
+
   return
 endif
 
-if (s_particle == sec2%s .and. (ds /= 0 .or. position(6) < 0)) then
-  call d_radius_at_section(sec2)
-  if (present(origin)) origin = [sec2%r0, position(5)]
+if (s_particle == s1) then
+  call d_radius_at_section(sec1)
   return
 endif
+
+if (s_particle == s2) then
+  call d_radius_at_section(sec2)
+  return
+endif
+
+! If 
 
 !----------------------------
 ! If we are in a region with a patch then the geometry is more complicated since the section planes
@@ -1061,10 +1049,11 @@ if (present(err_flag)) err_flag = .false.
 !---------------------------------------------------------------------------
 contains
 
-subroutine d_radius_at_section (this_sec)
+subroutine d_radius_at_section (this_sec, d_rad)
 
 type (wall3d_section_struct) this_sec
 real(rp) r_wall, dr_dtheta
+real(rp), optional :: d_rad
 integer ixv
 
 !
@@ -1081,6 +1070,8 @@ endif
 
 call calc_wall_radius (this_sec%v, cos_theta, sin_theta, r_wall, dr_dtheta, ixv)
 d_radius = r_particle - r_wall
+if (present(d_rad)) d_rad = d_radius
+
 if (present(perp)) perp = [cos_theta, sin_theta, 0.0_rp] - &
                           [-sin_theta, cos_theta, 0.0_rp] * dr_dtheta / r_wall
 if (present(origin)) origin = [this_sec%r0, position(5)]
