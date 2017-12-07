@@ -13,11 +13,7 @@ contains
 !   the responsibility of the calling routine to provide a large enough
 !   string to hold a fully expanded file name on return.
 !
-! Acknowledgments:
-!   This routine draws on the routine trnfnm.F in the CLEO libraries.
-!
-! Modules needed:
-!   use sim_utils
+! Also see: SplitFileName
 !
 ! Input:
 !   filename -- Character(*): Name requiring expansion of an environment
@@ -43,8 +39,6 @@ contains
 !      $DUMMY/foo.bar'            '/home/cesr/dummy/foo.bar'
 !      /home/cesr/dummy/foo.bar'  '/home/cesr/dummy/foo.bar'
 !      [cesr.dummy]foo.bar'        NOT a valid Unix file name.
-! 
-! Author     :  M. Palmer   9/20/01
 !-
 
 subroutine FullFileName (filename, outfile, valid)
@@ -263,8 +257,7 @@ end subroutine
 ! value, ix_char, is the length of the path variable. If the 
 ! specified file is local, the return value is 0.
 !
-! Module needed:
-!   use sim_utils
+! Also see: FullFileName
 !
 ! Input:  
 !   FileName    -- Character(*): Filename to be split.
@@ -274,10 +267,6 @@ end subroutine
 !   BaseName    -- Character(*): Base filename, no path.
 !   is_relative -- Logical, optional: True if pathname is relative. False otherwise.
 !   ix_char     -- Integer: Number of characters in path string.
-!
-! Authors:  
-!   M. Palmer   2001/9/23
-!   D. Sagan    2006/8/23     Added is_relative      
 !-
 
 function SplitFileName(FileName, Path, BaseName, is_relative) result (ix_char)
