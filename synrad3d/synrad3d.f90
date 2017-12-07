@@ -437,16 +437,19 @@ if (photon_start_input_file /= '') then
     call check_filter_restrictions(ok, .true.)
     if (.not. ok) cycle
 
-    if (sr3d_params%iu_photon_track > 0) call sr3d_record_photon_position('START_RECORDING')
-    call sr3d_track_photon (photon, lat, wall_hit, err)
-
     ! ix_photon_out is used for generating a file of the photon starting position.
     ! This is used for diagnostic purposes.
 
     if (photon%ix_photon_generated == ix_photon_out) then
       call sr3d_print_hit_points (-1, photon, wall_hit, branch)
+      print *, 'Recording starting position.'
       stop
-     endif
+    endif
+
+    !
+
+    if (sr3d_params%iu_photon_track > 0) call sr3d_record_photon_position('START_RECORDING')
+    call sr3d_track_photon (photon, lat, wall_hit, err)
 
     !
 
@@ -579,9 +582,6 @@ else
         call check_filter_restrictions(ok, .true.)
         if (.not. ok) cycle
 
-        if (sr3d_params%iu_photon_track > 0) call sr3d_record_photon_position('START_RECORDING')
-        call sr3d_track_photon (photon, lat, wall_hit, err)
-
         ! ix_photon_out is used for generating a file of the photon starting position.
         ! This is used for diagnostic purposes.
 
@@ -589,6 +589,11 @@ else
           call sr3d_print_hit_points (-1, photon, wall_hit, branch)
           stop
         endif
+
+        ! Track photon.
+
+        if (sr3d_params%iu_photon_track > 0) call sr3d_record_photon_position('START_RECORDING')
+        call sr3d_track_photon (photon, lat, wall_hit, err)
 
         !
 

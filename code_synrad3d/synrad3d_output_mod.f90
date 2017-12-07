@@ -39,7 +39,7 @@ if (iu == 0) return
 
 !
 
-if (iu == -1) then
+if (iu_hit_file == -1) then
   iu = lunget()
   open (iu, file = 'track_of_photon_that_generated_an_error')
 endif
@@ -65,15 +65,20 @@ endif
 if (iu_hit_file == -1) then
   open (iu, file = 'error_photon_start', recl = 200)
   write (iu, *) '&start'
-  write (iu, *) '  ran_state%ix            =', sr3d_params%ran_state%ix
-  write (iu, *) '  ran_state%iy            =', sr3d_params%ran_state%iy
-  write (iu, *) '  ran_state%number_stored =', sr3d_params%ran_state%number_stored
-  write (iu, *) '  ran_state%engine        =', sr3d_params%ran_state%engine
+  write (iu, *) '  ran_state%ix                =', sr3d_params%ran_state%ix
+  write (iu, *) '  ran_state%iy                =', sr3d_params%ran_state%iy
+  write (iu, *) '  ran_state%am                =', sr3d_params%ran_state%am
+  write (iu, *) '  ran_state%h_saved           =', sr3d_params%ran_state%h_saved
+  write (iu, *) '  ran_state%gauss_converter   =', sr3d_params%ran_state%gauss_converter
+  write (iu, *) '  ran_state%gauss_sigma_cut   =', sr3d_params%ran_state%gauss_sigma_cut
+  write (iu, *) '  ran_state%seed              =', sr3d_params%ran_state%seed
+  write (iu, *) '  ran_state%number_stored     =', sr3d_params%ran_state%number_stored
+  write (iu, *) '  ran_state%engine            =', sr3d_params%ran_state%engine
   write (iu, *)
-  write (iu, *) '  orbit%vec  =', photon%start%orb%vec
-  write (iu, *) '  orbit%p0c  =', photon%start%orb%p0c
+  write (iu, *) '  orbit%vec       =', photon%start%orb%vec
+  write (iu, *) '  orbit%p0c       =', photon%start%orb%p0c
+  write (iu, *) '  orbit%s         =', photon%start%orb%s
   write (iu, *) '  orbit%direction =', photon%start%orb%direction
-  write (iu, *) '  orbit%s =', photon%start%orb%s
   write (iu, *) '  ix_branch   =', photon%start%ix_branch
   write (iu, *) '/'
   close (iu)
