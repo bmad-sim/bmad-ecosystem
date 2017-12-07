@@ -292,11 +292,10 @@ character(16), parameter :: location_name(0:3) = [ &
 ! For v(1), the radius and tilt values are for the arc between v(n) and v(1) where
 !   n = upper bound of v(:) array.
 
-integer, parameter :: normal$ = 1, clear$ = 2, opaque$ = 3, trunk$ = 4, trunk1$ = 5, trunk2$ = 6
-integer, parameter :: leg1$ = 7, leg2$ = 8, wall_start$ = 9, wall_end$ = 10
+integer, parameter :: normal$ = 1, clear$ = 2, opaque$ = 3, wall_start$ = 9, wall_end$ = 10
 character(16), parameter :: wall3d_section_type_name(10) = [ &
-                     'Normal     ', 'Clear      ', 'Opaque     ', 'Trunk      ', &
-                     'Trunk1     ', 'Trunk2     ', 'Leg1       ', 'Leg2       ', &
+                     'Normal     ', 'Clear      ', 'Opaque     ', 'Garbage!   ', &
+                     'Garbage!   ', 'Garbage!   ', 'Garbage!   ', 'Garbage!   ', &
                      'Wall_Start ', 'Wall_End   ']
 
 ! Note: Component order in wall3d_vertex_struct is important since sr3d_read_wall_file uses
@@ -322,7 +321,7 @@ type wall3d_section_struct
   type (wall3d_vertex_struct), allocatable :: v(:)  ! Array of vertices. Always stored relative.
   type (photon_reflect_surface_struct), pointer :: surface => null()
                                             ! Surface reflectivity tables.
-  integer :: type = normal$                 ! normal$, clear$, opaque$, trunk$, trunk1$, leg2$, ...
+  integer :: type = normal$                 ! normal$, clear$, opaque$, wall_start$, wall_end$
   integer :: n_vertex_input = 0             ! Number of vertices specified by the user.
   integer :: ix_ele = 0                     ! index of lattice element containing section
   integer :: ix_branch = 0                  ! Index of branch lattice element is in.
