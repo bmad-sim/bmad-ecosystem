@@ -414,7 +414,7 @@ implicit none
 type (branch_struct), target :: branch
 type (sr3d_photon_track_struct), target :: photon
 type (wall3d_struct), pointer :: wall3d
-type (coord_struct), pointer :: now
+type (coord_struct), pointer :: now_orb
 type (coord_struct) orb
 type (ele_struct), pointer :: ele
 
@@ -422,19 +422,19 @@ real(rp) dl_step, dl_left, s_stop, denom, v_x, v_s, sin_t, cos_t, sl
 real(rp) g, new_x, radius, theta, tan_t, dl, dl2, ct, st, s_ent, s0, ds
 real(rp), pointer :: vec(:)
 
-integer ix_wall_next, stop_location, end_geometry
+integer ixs, stop_location, end_geometry, n_section
 
 logical stop_at_check_pt, check_section_here
 
 ! update old 
 
 photon%old = photon%now  ! Save for hit spot calc
-now => photon%now%orb
+now_orb => photon%now%orb
 dl_left = dl_step
 
 wall3d => branch%wall3d(photon%now%ix_wall3d)
 
-ele => branch%ele(now%ix_ele)
+ele => branch%ele(now_orb%ix_ele)
 s0 = ele%s - ele%value(l$)
 sl = sr3d_params%significant_length 
 
@@ -446,7 +446,7 @@ call sr3d_get_section_index(photon%now, branch, photon%now%ix_wall3d)
 ! Since patch elements have a complicated geometry, the photon s-position may not be
 ! within the interval from the s-position at the ends of the patch
 
-if (ele%key /= patch$ .and. (now%s < min(s0, ele%s) - sl .or. now%s > max(s0, ele%s) + sl)) then
+if (ele%key /= patch$ .and. (now_orb%s < min(s0, ele%s) - sl .or. now_orb%s > max(s0, ele%s) + sl)) then
   print *, '%IX_ELE BOOKKEEPING ERROR IN SR3D_PROPAGATING_PHOTON_A_STEP!'
   call sr3d_print_photon_info (photon)
   call err_exit
@@ -458,26 +458,36 @@ if (dl_step < 0) then
   call err_exit
 endif
 
-if (ele%key /= patch$ .and. now%location /= inside$) then
-  if (abs(now%s - s0) > sl .and. abs(now%s - ele%s) > sl) then
+if (ele%key /= patch$ .and. now_orb%location /= inside$) then
+  if (abs(now_orb%s - s0) > sl .and. abs(now_orb%s - ele%s) > sl) then
     print *, 'PHOTON LOCATION BOOKKEEPING ERROR IN SR3D_PROPAGATING_PHOTON_A_STEP!'
     call err_exit
   endif
 endif
 
-! Find next wall section to stop at
+! Find wall section index such that when the photon stops it will be between ix_wall_section and ix_wall_section+1
 
 if (stop_at_check_pt) then
-  call bracket_index2 (wall3d%section%s, 1, ubound(wall3d%section, 1), now%s, photon%now%ix_wall_section, ix_wall_next)
-  photon%now%ix_wall_section = ix_wall_next
+  n_section = ubound(wall3d%section, 1)
+  call bracket_index2 (wall3d%section%s, 1, n_section, now_orb%s, photon%now%ix_wall_section, ixs)
 
-  if (now%direction == -1) then
+  if (now_orb%direction == 1) then
+    if (ixs > n_section - 1) ixs = n_section - 1
     do
-      if (ix_wall_next == 1) exit
-      if (wall3d%section(ix_wall_next)%s /= now%s) exit
-      ix_wall_next = ix_wall_next - 1
+      if (ixs == n_section - 1) exit
+      if (wall3d%section(ixs+1)%s /= now_orb%s) exit
+      ixs = ixs + 1
+    enddo
+
+  else
+    do
+      if (ixs == 1) exit
+      if (wall3d%section(ixs)%s /= now_orb%s) exit
+      ixs = ixs - 1
     enddo
   endif
+
+  photon%now%ix_wall_section = ixs
 endif
 
 ! propagate the photon a number of sub-steps until we have gone a distance dl_step
@@ -488,22 +498,31 @@ propagation_loop: do
 
   check_section_here = .false.
 
-  if (now%direction == 1) then
+  if (now_orb%direction == 1) then
 
     ! Move to next element if at downstream end.
 
-    if (now%location == downstream_end$) then
-      if (now%ix_ele == branch%n_ele_track) then
+    if (now_orb%location == downstream_end$) then
+      if (now_orb%ix_ele == branch%n_ele_track) then
         if (end_geometry == open$) return
-        now%ix_ele = 1
-        now%s = now%s - branch%param%total_length
+        now_orb%ix_ele = 1
+        now_orb%s = now_orb%s - branch%param%total_length
         photon%crossed_lat_end = .not. photon%crossed_lat_end
+        if (stop_at_check_pt) then
+          ixs = 1
+          do
+            if (wall3d%section(ixs+1)%s > now_orb%s) exit
+            ixs = ixs + 1
+          enddo
+          photon%now%ix_wall_section = ixs
+        endif
+
       else
-        now%ix_ele = now%ix_ele + 1
+        now_orb%ix_ele = now_orb%ix_ele + 1
       endif
 
-      now%location = upstream_end$
-      ele => branch%ele(now%ix_ele)
+      now_orb%location = upstream_end$
+      ele => branch%ele(now_orb%ix_ele)
 
       ! Entering a patch: Transform coordinates to be with respect to the downstream end.
 
@@ -512,25 +531,26 @@ propagation_loop: do
           print *, 'CODE FOR PATCH WITH ORIENTATION = -1 NOT YET IMPLEMENTED!'
           call err_exit
         endif
-        call track_a_patch_photon (ele, now, .false.)
+        call track_a_patch_photon (ele, now_orb, .false.)
         ! Due to finite pitches, it is possible that now the photon is in some element after the patch.
-        if (now%s > ele%s) then 
-          now%ix_ele = element_at_s(branch, now%s, .false.)
-          ele => branch%ele(now%ix_ele)
-          now%location = inside$
+        if (now_orb%s > ele%s) then 
+          now_orb%ix_ele = element_at_s(branch, now_orb%s, .false.)
+          ele => branch%ele(now_orb%ix_ele)
+          now_orb%location = inside$
         endif
       endif
     endif
 
     ! Set stop position for this step
 
-    s_stop = branch%ele(now%ix_ele)%s
+    s_stop = branch%ele(now_orb%ix_ele)%s
     stop_location = downstream_end$
 
-    if (stop_at_check_pt .and. ix_wall_next < ubound(wall3d%section, 1)) then
-      if (wall3d%section(ix_wall_next+1)%s < s_stop) then
-        s_stop = wall3d%section(ix_wall_next+1)%s
-        stop_location = inside$
+    ixs = photon%now%ix_wall_section
+    if (stop_at_check_pt) then
+      if (wall3d%section(ixs+1)%s <= s_stop) then
+        s_stop = wall3d%section(ixs+1)%s
+        if (s_stop /= ele%s) stop_location = inside$
         check_section_here = .true.
       endif
     endif
@@ -541,28 +561,37 @@ propagation_loop: do
 
     ! Move to next element if at upstream end.
 
-    if (now%location == upstream_end$) then
-      if (now%ix_ele == 1) then
+    if (now_orb%location == upstream_end$) then
+      if (now_orb%ix_ele == 1) then
         if (end_geometry == open$) return
-        now%s = now%s + branch%param%total_length
-        now%ix_ele = branch%n_ele_track 
+        now_orb%s = now_orb%s + branch%param%total_length
+        now_orb%ix_ele = branch%n_ele_track 
         photon%crossed_lat_end = .not. photon%crossed_lat_end
+        if (stop_at_check_pt) then
+          ixs = ubound(wall3d%section, 1) - 1
+          do
+            if (wall3d%section(ixs)%s < now_orb%s) exit
+            ixs = ixs - 1
+          enddo
+          photon%now%ix_wall_section = ixs
+        endif
       else
-        now%ix_ele = now%ix_ele - 1
+        now_orb%ix_ele = now_orb%ix_ele - 1
       endif
 
-      ele => branch%ele(now%ix_ele)
+      ele => branch%ele(now_orb%ix_ele)
     endif
 
     ! Set stop position for this step
 
     stop_location = upstream_end$
-    s_stop = branch%ele(now%ix_ele-1)%s
+    s_stop = branch%ele(now_orb%ix_ele-1)%s
 
     if (stop_at_check_pt) then
-      if (wall3d%section(ix_wall_next)%s > s_stop) then
-        s_stop = wall3d%section(ix_wall_next)%s
-        stop_location = inside$
+      ixs = photon%now%ix_wall_section
+      if (wall3d%section(ixs)%s >= s_stop) then
+        s_stop = wall3d%section(ixs)%s
+        if (s_stop /= ele%s_start) stop_location = inside$
         check_section_here = .true.
       endif
     endif
@@ -574,7 +603,7 @@ propagation_loop: do
 
   ! In a bend...
 
-  ele => branch%ele(now%ix_ele)
+  ele => branch%ele(now_orb%ix_ele)
   if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
 
     if (ele%orientation == -1) then
@@ -584,36 +613,36 @@ propagation_loop: do
 
     ! Rotate to element reference frame (bend in x-plane) if bend is tilted.
 
-    if (ele%value(ref_tilt_tot$) /= 0) call tilt_coords(ele%value(ref_tilt_tot$), now%vec)
+    if (ele%value(ref_tilt_tot$) /= 0) call tilt_coords(ele%value(ref_tilt_tot$), now_orb%vec)
 
     ! Next position is determined by whether the distance to the element edge is 
     ! shorter than the distance left to travel.
 
     g = ele%value(g$)
     radius = 1 / g
-    theta = (s_stop - now%s) * g * ele%orientation
+    theta = (s_stop - now_orb%s) * g * ele%orientation
     tan_t = tan(theta)
 
-    if (abs(tan_t * (radius + now%vec(1))) > dl_left * abs(now%vec(6) - tan_t * now%vec(2))) then
+    if (abs(tan_t * (radius + now_orb%vec(1))) > dl_left * abs(now_orb%vec(6) - tan_t * now_orb%vec(2))) then
       dl = dl_left
-      tan_t = (dl * now%vec(6)) / (radius + now%vec(1) + dl * now%vec(2))
+      tan_t = (dl * now_orb%vec(6)) / (radius + now_orb%vec(1) + dl * now_orb%vec(2))
       theta = atan(tan_t)
-      s_stop = now%s + radius * theta * ele%orientation
+      s_stop = now_orb%s + radius * theta * ele%orientation
       stop_location = inside$
       check_section_here = .false.
     else
-      dl = tan_t * (radius + now%vec(1)) / (now%vec(6) - tan_t * now%vec(2))
+      dl = tan_t * (radius + now_orb%vec(1)) / (now_orb%vec(6) - tan_t * now_orb%vec(2))
     endif
 
     ! Check if we should actually be stopping at the extremum (minimal x)
 
-    if (stop_at_check_pt .and. now%vec(2) * g < 0) then 
-      dl2 = -now%vec(2) * (radius + now%vec(1)) / (now%vec(2)**2 + now%vec(6)**2)
+    if (stop_at_check_pt .and. now_orb%vec(2) * g < 0) then 
+      dl2 = -now_orb%vec(2) * (radius + now_orb%vec(1)) / (now_orb%vec(2)**2 + now_orb%vec(6)**2)
       if (dl2 < dl) then
         dl = dl2 * (1 + sr3d_params%significant_length) ! Add extra to make sure we are not short due to roundoff.
-        tan_t = (dl * now%vec(6)) / (radius + now%vec(1) + dl * now%vec(2))
+        tan_t = (dl * now_orb%vec(6)) / (radius + now_orb%vec(1) + dl * now_orb%vec(2))
         theta = atan(tan_t)
-        s_stop = now%s + radius * theta * ele%orientation
+        s_stop = now_orb%s + radius * theta * ele%orientation
         stop_location = inside$
         check_section_here = .true.
       endif
@@ -622,21 +651,21 @@ propagation_loop: do
     ! Move to the stop point. 
     ! Need to remember that radius can be negative.
 
-    st = dl * now%vec(6)
-    ct = radius + now%vec(1) + dl * now%vec(2)
+    st = dl * now_orb%vec(6)
+    ct = radius + now_orb%vec(1) + dl * now_orb%vec(2)
     denom = sign (sqrt(st**2 + ct**2), radius)
     sin_t = st / denom
     cos_t = ct / denom
 
-    v_x = now%vec(2); v_s = now%vec(6)
+    v_x = now_orb%vec(2); v_s = now_orb%vec(6)
 
-    now%vec(1) = denom - radius
-    now%vec(2) = v_s * sin_t + v_x * cos_t
-    now%vec(3) = now%vec(3) + dl * now%vec(4)
-    now%s = s_stop
-    now%vec(6) = v_s * cos_t - v_x * sin_t
+    now_orb%vec(1) = denom - radius
+    now_orb%vec(2) = v_s * sin_t + v_x * cos_t
+    now_orb%vec(3) = now_orb%vec(3) + dl * now_orb%vec(4)
+    now_orb%s = s_stop
+    now_orb%vec(6) = v_s * cos_t - v_x * sin_t
 
-    if (ele%value(ref_tilt_tot$) /= 0) call tilt_coords(-ele%value(ref_tilt_tot$), now%vec)
+    if (ele%value(ref_tilt_tot$) /= 0) call tilt_coords(-ele%value(ref_tilt_tot$), now_orb%vec)
 
   !----
   ! Else we are not in a bend
@@ -646,46 +675,46 @@ propagation_loop: do
     ! Next position...
     ! In a patch going backwards: Compute distance to travel by rotating to the upstream coords.
 
-    ds = s_stop - now%s
-    if (ele%key == patch$ .and. now%direction == -1) then
-      orb = now
+    ds = s_stop - now_orb%s
+    if (ele%key == patch$ .and. now_orb%direction == -1) then
+      orb = now_orb
       call track_a_patch_photon (ele, orb, .false., .true.)
       ds = s_stop - orb%s
     endif
 
-    if (abs(now%vec(6)) * dl_left > abs(ds)) then
-      dl = ds / now%vec(6)
+    if (abs(now_orb%vec(6)) * dl_left > abs(ds)) then
+      dl = ds / now_orb%vec(6)
     else
       dl = dl_left * sign_of(ele%value(l$))
       check_section_here = .false.
-      s_stop = now%s + dl * now%vec(6)
+      s_stop = now_orb%s + dl * now_orb%vec(6)
       stop_location = inside$
     endif
 
     ! And move to the next position
 
-    now%vec(1) = now%vec(1) + dl * now%vec(2)
-    now%vec(3) = now%vec(3) + dl * now%vec(4)
-    now%s = s_stop
+    now_orb%vec(1) = now_orb%vec(1) + dl * now_orb%vec(2)
+    now_orb%vec(3) = now_orb%vec(3) + dl * now_orb%vec(4)
+    now_orb%s = s_stop
 
   endif
 
   ! Adjust photon coords when exiting a patch with direction == -1
 
-  if (ele%key == patch$ .and. now%direction == -1 .and. stop_location == upstream_end$) then
+  if (ele%key == patch$ .and. now_orb%direction == -1 .and. stop_location == upstream_end$) then
     if (ele%orientation == -1) then
       print *, 'CODE FOR PATCH WITH ORIENTATION = -1 NOT YET IMPLEMENTED!'
       call err_exit
     endif
-    call track_a_patch_photon (ele, now, .false., .true.)
+    call track_a_patch_photon (ele, now_orb, .false., .true.)
   endif
 
   ! Path length increases even when moving though an element with negative length.
   ! This is important when zbrent is called to find the hit spot.
 
-  now%path_len = now%path_len + abs(dl)
+  now_orb%path_len = now_orb%path_len + abs(dl)
   dl_left = dl_left - abs(dl)
-  now%location = stop_location
+  now_orb%location = stop_location
 
   if (dl_left == 0) exit
   if (stop_at_check_pt .and. check_section_here) exit

@@ -549,7 +549,10 @@ do ib = 0, ubound(lat%branch, 1)
     sec3d%name      = sec%name
     if (sec3d%name == '') sec3d%name = sec%shape_name
 
-    ! Check s ordering
+    ! Check s ordering...
+    ! The problem with two sections at the same s-value is that the sr3d_photon_hit_spot_calc routine
+    ! cannot handle a photon hitting a wall perpendicular to the longitudinal azis. To avoid this 
+    ! situation, move a section by a tiny amount longitudinally if two sections have the same s.
 
     if (ns > 1) then
       if (sec3d%s == wall3d%section(ns-1)%s) sec3d%s = sec3d%s + 1000*sr3d_params%significant_length
@@ -562,6 +565,21 @@ do ib = 0, ubound(lat%branch, 1)
         call err_exit
       endif
     endif
+
+    ! This check is currently not needed since the above code shifts sections longitudanally.
+
+    if (ns > 2) then
+      if (sec3d%s < wall3d%section(ns-2)%s) then
+        call out_io (s_fatal$, r_name, &
+                  'THREE WALL SECTIONS WITH THE SAME LONGITUDINAL S VALUE NOT ALLOWED.', &
+                  'AT S = \f0.4\ ', &
+                  'FOR I = \i0\ ', &
+                  r_array = [sec3d%s], i_array = [i])
+        call err_exit
+      endif
+    endif
+
+
   enddo
 
   ! Start and End sections must come in non-overlapping pairs
