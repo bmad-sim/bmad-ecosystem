@@ -716,8 +716,8 @@ call offset_particle (ele, param, set$, temp_end, set_hvkicks = .false., s_pos =
 
 if (fringe_info%particle_at == second_track_edge$) then 
   if (fringe_info%ds_edge /= 0) call track_a_drift (temp_end, fringe_info%ds_edge)
-  temp_end%species = antiparticle(temp_end%species)  ! To reverse element edge kick
-  call apply_element_edge_kick (temp_end, fringe_info, ele, param, .true.)
+  ! reverse_the_charge = True is used to reverse element the edge kick.
+  call apply_element_edge_kick (temp_end, fringe_info, ele, param, .true., reverse_the_charge = .true.)
   temp_end%species = end_orb%species
 endif
 

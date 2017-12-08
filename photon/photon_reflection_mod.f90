@@ -767,7 +767,7 @@ end subroutine photon_reflectivity
 !   surface         -- photon_reflect_surface_struct: surface info
 !
 ! Output:
-!   theta_out       -- Real(rp): Polar angle in radians. 0 -> perpendicular to surface.
+!   theta_out       -- Real(rp): Outgoing graze angle in radians. 
 !   phi_out         -- Real(rp): Azimuthal angle in radians.
 !-
 
@@ -788,7 +788,7 @@ P_spec = exp(-(fourpi * surface%surface_roughness_rms * sin(angle_in) / lambda)*
 call ran_uniform(r)
 
 if (r < P_spec) then   ! Is specular
-  theta_out = pi/2 - angle_in
+  theta_out = angle_in
   phi_out = 0
 
 else
@@ -815,7 +815,7 @@ end subroutine photon_reflection
 !   surface         -- photon_reflect_surface_struct: surface info
 !
 ! Output:
-!   theta_out       -- Real(rp): Polar angle in radians. 0 -> perpendicular to surface.
+!   theta_out       -- Real(rp): Outgoing graze angle in radians. 
 !   phi_out         -- Real(rp): Azimuthal angle in radians.
 !   diffuse_param   -- diffuse_param_struct, optional: Internal parameters used in the calculation.
 !                        This is used for diagnostics and is not used in standard simulations.
@@ -863,7 +863,7 @@ else
   ran2 = 2 * ran2 
 endif
 
-! Fit the probability distribution in x = cos(theta_out)
+! Fit the probability distribution in x = sin(theta_out)
 ! Also compute the coefficients fo the cumulative distribution in x
 
 if (diffuse_com%use_spline_fit) then
@@ -932,9 +932,9 @@ endif
 
 ! Evaluate the normalization constant for the cumulative probability in phi, for this x
 
-theta_out = acos(ctheta2)
+theta_out = asin(ctheta2)
 d_param%x = ctheta2
-d_param%c_norm = cos_phi(sigma, T, twopi/2, d_param)
+d_param%c_norm = cos_phi(sigma, T, pi, d_param)
 
 ! find the value of phi for which the cumulative probability equals ran2
 
@@ -1007,7 +1007,7 @@ end subroutine integral_err_calc
 ! Subroutine d_integral (x, fn, df)
 !
 ! Wrapper function passed to rtsafe.
-! Contained routine to calculate integrated probability distribution in x = cos(theta_out).
+! Contained routine to calculate integrated probability distribution in x = sin(theta_out).
 !-
 
 subroutine d_integral (x, fn, df)
@@ -1033,7 +1033,7 @@ end subroutine d_integral
 ! Subroutine cumulr (phi, fn, df)
 !
 ! Wrapper function passed to rtsafe.
-! Contained routine to calculate integrated probability distribution in x = cos(theta_out).
+! Contained routine to calculate integrated probability distribution in x = sin(theta_out).
 !-
 
 subroutine cumulr (phi, fn, df)
@@ -1061,7 +1061,7 @@ end subroutine cumulr
 ! Subroutine cumulx (x, fn, df)
 !
 ! Wrapper function passed to rtsafe.
-! Contained routine to calculate integrated probability distribution in x = cos(theta_out).
+! Contained routine to calculate integrated probability distribution in x = sin(theta_out).
 !-
 
 subroutine cumulx (x, fn, df)
@@ -1086,10 +1086,10 @@ end subroutine cumulx
 !+
 ! Function prob_x_diffuse_vec (x) result (prob_x)
 !
-! Contained routine to calculate integrated probability distribution in x = cos(theta_out).
+! Contained routine to calculate integrated probability distribution in x = sin(theta_out).
 ! 
 ! Input:
-!   x(:)    -- Real(rp): cos(theta_out) array
+!   x(:)    -- Real(rp): sin(theta_out) array
 !
 ! Output:
 !   prob(:) -- Real(rp): Integrated probability array.
@@ -1120,10 +1120,10 @@ end subroutine photon_diffuse_scattering
 !+
 ! Function prob_x_diffuse (x, d_param, surface) result (prob_x)
 !
-! Contained routine to calculate integrated probability distribution in x = cos(theta_out).
+! Contained routine to calculate integrated probability distribution in x = sin(theta_out).
 ! 
 ! Input:
-!   x    -- Real(rp): cos(theta_out)
+!   x    -- Real(rp): sin(theta_out)
 !
 ! Output:
 !   prob -- Real(rp): Integrated probability.
@@ -1363,7 +1363,7 @@ end function zmmax
 !  azimuthal angle relative to plane of incidence (plane of incoming ray and surface normal)
 !  1/y suppressed
 !
-! Private routine to calculate integrated probability distribution in x = cos(theta_out).
+! Private routine to calculate integrated probability distribution in x = sin(theta_out).
 !-
 
 function cos_phi (sigma, T, phi, d_param) result (cphi)

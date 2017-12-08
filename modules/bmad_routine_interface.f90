@@ -34,7 +34,7 @@ subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, er
   character(*), optional :: use_line
 end subroutine
 
-subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_spin, mat6, make_matrix, rf_time, apply_sol_fringe)
+subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_spin, mat6, make_matrix, rf_time, apply_sol_fringe, reverse_the_charge)
   import
   implicit none
   type (coord_struct) orb
@@ -42,7 +42,7 @@ subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_sp
   type (ele_struct) hard_ele, track_ele
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6), rf_time
-  logical, optional :: make_matrix, apply_sol_fringe
+  logical, optional :: make_matrix, apply_sol_fringe, reverse_the_charge
   logical track_spin
 end subroutine
 
