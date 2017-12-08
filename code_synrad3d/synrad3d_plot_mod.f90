@@ -39,8 +39,6 @@ energy = 34.0
 angle = 1.45
 surface => lat%surface(1)
 
-!! call photon_diffuse_scattering (angle, energy, surface, theta_out, phi_out, cheb_param)
-
 do i = 1, 100
   x(i) = i / 100.0_rp
   y1(i) = 0
