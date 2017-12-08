@@ -28,9 +28,115 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function super_zbrent (func, x1, x2, tol, err_flag) result (x_min)
+! Function super_rtsafe (funcs, x1, x2, tol, status) result (x_zero)
 !
 ! Routine find the root of a function.
+! This routine is essentially rtsafe from Numerical Recipes with the feature that it returns
+! a status.
+!
+! Modules needed:
+!   use super_recipes_mod
+!
+! Input:
+!   func(x)  -- Function whose root is to be found. See rtsafe for more details.
+!   x1, x2   -- Real(rp): Bracket values.
+!   tol      -- Real(rp): Tolerance for root.
+!
+! Output:
+!   x_zero   -- Real(rp): Root found.
+!   status      -- Integer: Calculation status:
+!                      -2    => Max iterations exceeded.
+!                      -1    => Root not bracketed.
+!                       0    => Normal.
+!                       Other => Set by funcs. 
+!-
+
+function super_rtsafe (funcs, x1, x2, tol, status) result (x_zero)
+
+use nrtype
+
+implicit none
+
+interface
+  subroutine funcs(x, fval, fderiv, status)
+  import
+  implicit none
+  real(rp), intent(in) :: x
+  real(rp), intent(out) :: fval, fderiv
+  integer status
+  end subroutine funcs
+end interface
+
+real(rp), intent(in) :: x1, x2, tol
+real(rp) :: x_zero
+real(rp) :: df, dx, dxold, f, fh, fl, temp, xh, xl
+integer, parameter :: maxit = 100
+integer :: status, j
+
+!
+
+status = 0
+
+call funcs(x1, fl, df, status); if (status /= 0) return
+call funcs(x2, fh, df, status); if (status /= 0) return
+if ((fl > 0.0 .and. fh > 0.0) .or. (fl < 0.0 .and. fh < 0.0)) then
+  status = -1
+  return
+endif
+
+if (fl == 0.0) then
+  x_zero=x1
+  return
+else if (fh == 0.0) then
+  x_zero = x2
+  return
+else if (fl < 0.0) then
+  xl = x1
+  xh = x2
+else
+  xh = x1
+  xl = x2
+end if
+
+x_zero = 0.5_rp*(x1+x2)
+dxold = abs(x2-x1)
+dx = dxold
+
+call funcs(x_zero, f, df, status); if (status /= 0) return
+
+do j = 1, maxit
+  if (((x_zero-xh)*df-f)*((x_zero-xl)*df-f) > 0.0 .or. abs(2.0_rp*f) > abs(dxold*df) ) then
+    dxold = dx
+    dx = 0.5_rp*(xh-xl)
+    x_zero = xl+dx
+    if (xl == x_zero) return
+  else
+    dxold = dx
+    dx = f/df
+    temp = x_zero
+    x_zero = x_zero-dx
+    if (temp == x_zero) return
+  end if
+  if (abs(dx) < tol) return
+  call funcs(x_zero, f, df, status); if (status /= 0) return
+  if (f < 0.0) then
+    xl = x_zero
+  else
+    xh = x_zero
+  end if
+end do
+
+status = -2
+
+end function super_rtsafe
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function super_zbrent (func, x1, x2, tol, err_flag) result (x_zero)
+!
+! Routine to find the root of a function.
 ! This routine is essentially zbrent from Numerical Recipes with the feature that it returns
 ! an error flag if something goes wrong instead of bombing.
 !
@@ -43,18 +149,18 @@ contains
 !   tol      -- Real(rp): Tolerance for root.
 !
 ! Output:
-!   x_min    -- Real(rp): Root found.
+!   x_zero    -- Real(rp): Root found.
 !   err_flag -- Logical: Set True if there is a problem. False otherwise.
 !-
 
-function super_zbrent (func, x1, x2, tol, err_flag) result (x_min)
+function super_zbrent (func, x1, x2, tol, err_flag) result (x_zero)
 
 use nrtype
 
 implicit none
 
 real(rp), intent(in) :: x1,x2,tol
-real(rp) :: x_min
+real(rp) :: x_zero
 
 interface
   function func(x)
@@ -65,9 +171,9 @@ interface
   end function func
 end interface
 
-integer(i4b), parameter :: itmax = 100
+integer, parameter :: itmax = 100
 real(rp), parameter :: eps = epsilon(x1)
-integer(i4b) :: iter
+integer :: iter
 real(rp) :: a,b,c,d,e,fa,fb,fc,p,q,r,s,tol1,xm
 
 logical err_flag
@@ -85,7 +191,7 @@ fb = func(b)
 
 if ((fa > 0.0 .and. fb > 0.0) .or. (fa < 0.0 .and. fb < 0.0)) then
   call out_io (s_fatal$, r_name, 'ROOT NOT BRACKETED!')
-  x_min = 1d100
+  x_zero = 1d100
   return
 endif
 
@@ -113,11 +219,11 @@ do iter = 1,ITMAX
   xm = 0.5_rp*(c-b)
 
   if (abs(xm) <= tol1 .or. fb == 0.0) then
-    !! x_min = b
+    !! x_zero = b
     if (fb == 0) then
-      x_min = b
+      x_zero = b
     else
-      x_min = (b * fc - c * fb) / (fc - fb)   ! Linear interpolation.
+      x_zero = (b * fc - c * fb) / (fc - fb)   ! Linear interpolation.
     endif
     err_flag = .false.
     RETURN
@@ -156,7 +262,7 @@ do iter = 1,ITMAX
 end do
 
 call out_io (s_fatal$, r_name, 'EXCEEDED MAXIMUM ITERATIONS!')
-x_min = b
+x_zero = b
 
 end function super_zbrent 
 
@@ -223,7 +329,7 @@ real(rp) :: y(:), weight(:)
 real(rp) :: a(:)
 real(rp) :: chisq
 real(rp) :: alamda
-integer(i4b) :: ma, ndata
+integer :: ma, ndata
 integer status, mfit
 
 logical, intent(in), optional :: maska(:)
@@ -338,7 +444,7 @@ real(rp) :: da_beta(:)
 real(rp) :: co_alpha(:, :)
 real(rp) chisq
 
-integer(i4b) :: j, k, l, m, nv, nd
+integer :: j, k, l, m, nv, nd
 integer status
 
 interface
@@ -412,13 +518,13 @@ real(rp), dimension(:, :), intent(inout) :: a, b
 real(rp) :: pivinv
 
 real(rp), dimension(size(a, 1)) :: dumc
-integer(i4b), dimension(size(a, 1)) :: ipiv, indxr, indxc
+integer, dimension(size(a, 1)) :: ipiv, indxr, indxc
 logical(lgt), dimension(size(a, 1)) :: lpiv
 
 integer status
-integer(i4b), target :: irc(2)
-integer(i4b) :: i, l, n
-integer(i4b), pointer :: irow, icol
+integer, target :: irc(2)
+integer :: i, l, n
+integer, pointer :: irow, icol
 
 character(16) :: r_name = 'super_gaussj'
 
@@ -571,9 +677,9 @@ interface
   end function func
 end interface
 
-integer(i4b), parameter :: itmax = 100
+integer, parameter :: itmax = 100
 real(rp), parameter :: cgold = 0.3819660_rp
-integer(i4b) :: iter
+integer :: iter
 real(rp) :: a,b,d,e,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm
 
 character(16) :: r_name = 'super_brent'
