@@ -253,7 +253,7 @@ do i = 1, n_photons
   else
     call photon_diffuse_scattering (graze_angle_in, energy, surface, theta_out, phi_out)
   endif
-  write (2, *) i, pi/2-theta_out, phi_out
+  write (2, *) i, theta_out, phi_out
 enddo
 
 close (2)

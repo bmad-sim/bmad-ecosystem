@@ -1044,7 +1044,7 @@ if (r <= reflectivity .and. cos_perp > 1d-10) then
     vec_in_plane = photon%now%orb%vec(2:6:2) - dw_perp * cos_perp  
     vec_in_plane = vec_in_plane / sqrt(dot_product(vec_in_plane, vec_in_plane))  ! Normalize to 1.
     vec_out_plane = cross_product(dw_perp, vec_in_plane)
-    photon%now%orb%vec(2:6:2) = -cos(theta_diffuse) * dw_perp + sin(theta_diffuse) * &
+    photon%now%orb%vec(2:6:2) = -sin(theta_diffuse) * dw_perp + cos(theta_diffuse) * &
                             (vec_in_plane * cos(phi_diffuse) + vec_out_plane * sin(phi_diffuse))
   endif
 endif
