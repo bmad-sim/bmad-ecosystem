@@ -418,7 +418,7 @@ type (coord_struct), pointer :: now_orb
 type (coord_struct) orb
 type (ele_struct), pointer :: ele
 
-real(rp) dl_step, dl_left, s_stop, denom, v_x, v_s, sin_t, cos_t, sl
+real(rp) dl_step, dl_left, s_stop, denom, v_x, v_s, sin_t, cos_t, sl, v_xs
 real(rp) g, new_x, radius, theta, tan_t, dl, dl2, ct, st, s_ent, s0, ds
 real(rp), pointer :: vec(:)
 
@@ -658,10 +658,11 @@ propagation_loop: do
     cos_t = ct / denom
 
     v_x = now_orb%vec(2); v_s = now_orb%vec(6)
+    v_xs = sqrt(v_x**2 + v_s**2)
 
     now_orb%vec(1) = denom - radius
     now_orb%vec(2) = v_s * sin_t + v_x * cos_t
-    now_orb%vec(3) = now_orb%vec(3) + dl * now_orb%vec(4)
+    now_orb%vec(3) = now_orb%vec(3) + dl * now_orb%vec(4) !! / v_xs
     now_orb%s = s_stop
     now_orb%vec(6) = v_s * cos_t - v_x * sin_t
 
@@ -993,6 +994,8 @@ if (cos_perp > 1) then
   endif
 endif
 
+if (cos_perp < 0 .and. cos_perp > -sr3d_params%min_graze_angle) cos_perp = 0  ! Will be absorbed but no error message
+
 if (cos_perp < 0) then
   call out_io (s_error$, r_name, &
   'ERROR: PHOTON AT WALL HAS VELOCITY DIRECTED INWARD! \f10.5\ ', & 
@@ -1007,7 +1010,7 @@ endif
 
 !
 
-graze_angle = pi/2 - acos(cos_perp)
+graze_angle = asin(cos_perp)
 dvec = -2 * cos_perp * dw_perp
 
 call sr3d_get_section_index(photon%now, branch, photon%now%ix_wall3d)
@@ -1026,13 +1029,13 @@ wall_hit(n_wall_hit)%reflectivity = reflectivity
 ! absorption or reflection...
 ! For specular reflection the perpendicular component gets reflected and the parallel component is invarient.
 
-! If the photon is traveling essentially parallel to the wall (cos_perp < 1d-10) then consider it absorbed.
+! If the photon is traveling essentially parallel to the wall then consider it absorbed.
 ! This is done to to prevent a singular situation when trying to reflect the photon.
 
 call ran_uniform(r)
 if (.not. sr3d_params%allow_absorption) reflectivity = 1
 
-if (r <= reflectivity .and. cos_perp > 1d-10) then
+if (r <= reflectivity .and. graze_angle > sr3d_params%min_graze_angle) then
   absorbed = .false.
 
   if (sr3d_params%specular_reflection_only .or. r < reflectivity * rel_reflect_specular) then
@@ -1040,12 +1043,16 @@ if (r <= reflectivity .and. cos_perp > 1d-10) then
 
   else
     call photon_diffuse_scattering (graze_angle, photon%now%orb%p0c, surface, theta_diffuse, phi_diffuse)
-    ! vec_in_plane is normalized vector perpendicular to dw_perp and in plane of photon & dw_perp.
-    vec_in_plane = photon%now%orb%vec(2:6:2) - dw_perp * cos_perp  
-    vec_in_plane = vec_in_plane / sqrt(dot_product(vec_in_plane, vec_in_plane))  ! Normalize to 1.
-    vec_out_plane = cross_product(dw_perp, vec_in_plane)
-    photon%now%orb%vec(2:6:2) = -sin(theta_diffuse) * dw_perp + cos(theta_diffuse) * &
-                            (vec_in_plane * cos(phi_diffuse) + vec_out_plane * sin(phi_diffuse))
+    if (theta_diffuse < sr3d_params%min_graze_angle) then
+      absorbed = .true.
+    else
+      ! vec_in_plane is normalized vector perpendicular to dw_perp and in plane of photon & dw_perp.
+      vec_in_plane = photon%now%orb%vec(2:6:2) - dw_perp * cos_perp  
+      vec_in_plane = vec_in_plane / sqrt(dot_product(vec_in_plane, vec_in_plane))  ! Normalize to 1.
+      vec_out_plane = cross_product(dw_perp, vec_in_plane)
+      photon%now%orb%vec(2:6:2) = -sin(theta_diffuse) * dw_perp + cos(theta_diffuse) * &
+                              (vec_in_plane * cos(phi_diffuse) + vec_out_plane * sin(phi_diffuse))
+    endif
   endif
 endif
 

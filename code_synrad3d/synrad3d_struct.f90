@@ -58,6 +58,7 @@ type sr3d_params_struct
   real(rp) :: ds_track_step_max = 3     ! Maximum longitudinal distance in one photon "step".
   real(rp) :: dr_track_step_max = 0.1   ! Maximum tranverse distance in one photon "step".
   real(rp) :: significant_length = 1d-10
+  real(rp) :: min_graze_angle = 1d-10   ! If grazing angle below this then particle is absorbed.
   logical :: allow_reflections = .true. ! If False, terminate tracking when photon hits the wall.
   logical :: allow_absorption = .true.  ! If False, do not allow photon to be adsorbed.
   logical :: specular_reflection_only = .false.
