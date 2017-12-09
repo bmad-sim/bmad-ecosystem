@@ -342,7 +342,14 @@ now = photon%now
 call sr3d_get_section_index(now, branch, ix_wall3d)
 call sr3d_photon_d_radius (now, branch, no_wall_here, d_radius, ix_wall3d = ix_wall3d)
 
-if (abs(d_radius) < sr3d_params%significant_length .and. .not. no_wall_here) then
+! Test for at_transverse_wall is if d_radius is in the range [0, significant_length].
+! This is better than using a range [-significant_leng, significant_length] since, for near grazing angle
+! photons traveling towards the wall that stop short of the wall, there is a very small but finite 
+! possibility that the computed velocity component perpendicular to the wall will point away from the
+! wall. This will confuse sr3d_reflect_photon. The basic problem is that the computation of the wall
+! normal vector only makes physical sense when a particle is exactly at the wall.
+
+if (d_radius > 0 .and. d_radius < sr3d_params%significant_length .and. .not. no_wall_here) then
   status = at_transverse_wall$
   return
 endif
@@ -757,7 +764,7 @@ type (wall3d_struct), pointer :: wall3d
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 type (sr3d_photon_track_struct) :: photon1
 
-real(rp) r0, r1, path_len
+real(rp) r0, r1, path_len, dl
 real(rp) path_len0, path_len1, d_rad0, d_rad1
 
 integer i
@@ -829,7 +836,8 @@ endif
 ! Cleanup
 
 photon%now = photon%old
-call sr3d_propagate_photon_a_step (photon, branch, path_len-photon%now%orb%path_len, .false.)
+dl = path_len-photon%now%orb%path_len
+if (abs(dl) > sr3d_params%significant_length/2) call sr3d_propagate_photon_a_step (photon, branch, dl, .false.)
 call sr3d_photon_d_radius (photon%now, branch, no_wall_here, d_rad0)
 
 !---------------------------------------------------------------------------
@@ -998,7 +1006,7 @@ if (cos_perp < 0 .and. cos_perp > -sr3d_params%min_graze_angle) cos_perp = 0  ! 
 
 if (cos_perp < 0) then
   call out_io (s_error$, r_name, &
-  'ERROR: PHOTON AT WALL HAS VELOCITY DIRECTED INWARD! \f10.5\ ', & 
+  'ERROR: PHOTON AT WALL HAS VELOCITY DIRECTED INWARD! \es12.4\ ', & 
   'WILL IGNORE THIS PHOTON...', &
   'dw_perp: \3f10.5\ ', & 
   r_array = [cos_perp, dw_perp])
