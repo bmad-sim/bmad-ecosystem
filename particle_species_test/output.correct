@@ -16,6 +16,8 @@
 "Electron:mass" ABS  1E-10      0.000548580
 "Electron:charge" ABS  0     -1
  
+"Anti_Deuteron:mass" ABS  1E-10     1.8756129280E+09
+"Anti_Deuteron:charge" ABS  0     -1
 "Pion-:mass" ABS  1E-10     1.3957018000E+08
 "Pion-:charge" ABS  0     -1
 "Muon:mass" ABS  1E-10     1.0565837150E+08

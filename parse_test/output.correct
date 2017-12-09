@@ -128,6 +128,7 @@
 "TM5"     STR "Runge_Kutta"
 "N3"     ABS 0  4
 "Custom"  STR "MY_CUSTOM"
+"Anti_Deuteron"  REL 1e-12  1.875612928000E+09    -1
 "Pion-"  REL 1e-12  1.395701800000E+08    -1
 "Muon"  REL 1e-12  1.056583715000E+08    -1
 "Antiproton"  REL 1e-12  9.382720813000E+08    -1
