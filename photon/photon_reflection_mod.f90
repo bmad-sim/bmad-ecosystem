@@ -34,7 +34,7 @@ end type
 type (diffuse_common_struct), save :: diffuse_com
 
 private output_specular_reflection_input_params
-private zmmax, cos_phi, zzfi, zzfp, hzz, zbessi
+private zmmax, zzfi, zzfp, hzz, zbessi
 private zbessi1, zbessi0, zzexp
 
 contains
@@ -757,42 +757,42 @@ end subroutine photon_reflectivity
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Subroutine photon_reflection (angle_in, energy, surface, theta_out, phi_out)
+! Subroutine photon_reflection (graze_angle_in, energy, surface, graze_angle_out, phi_out)
 !
 ! Routine to reflect a photon from a surface including both diffuse and specular reflections.
 !
 ! Input:
-!   angle_in        -- Real(rp): Incident grazing (not polar) angle in radians.
+!   graze_angle_in  -- Real(rp): Incident grazing (not polar) angle in radians.
 !   energy          -- Real(rp): Photon energy in eV.
 !   surface         -- photon_reflect_surface_struct: surface info
 !
 ! Output:
-!   theta_out       -- Real(rp): Outgoing graze angle in radians. 
+!   graze_angle_out -- Real(rp): graze_angle in radians. 
 !   phi_out         -- Real(rp): Azimuthal angle in radians.
 !-
 
-subroutine photon_reflection (angle_in, energy, surface, theta_out, phi_out)
+subroutine photon_reflection (graze_angle_in, energy, surface, graze_angle_out, phi_out)
 
 implicit none
 
 type (photon_reflect_surface_struct), target :: surface
 
-real(rp) angle_in, energy, theta_out,  phi_out
+real(rp) graze_angle_in, energy, graze_angle_out,  phi_out
 real(rp) p_spec, r, lambda
 
 ! If the photon energy is lower than 1eV then use 1eV in the calculation.
 ! Decide if reflection is specular.
 
 lambda = h_planck * c_light / max(1.0_rp, energy)
-P_spec = exp(-(fourpi * surface%surface_roughness_rms * sin(angle_in) / lambda)**2)
+P_spec = exp(-(fourpi * surface%surface_roughness_rms * sin(graze_angle_in) / lambda)**2)
 call ran_uniform(r)
 
 if (r < P_spec) then   ! Is specular
-  theta_out = angle_in
+  graze_angle_out = graze_angle_in
   phi_out = 0
 
 else
-  call photon_diffuse_scattering (angle_in, energy, surface, theta_out, phi_out)
+  call photon_diffuse_scattering (graze_angle_in, energy, surface, graze_angle_out, phi_out)
 endif
 
 end subroutine photon_reflection
@@ -801,7 +801,7 @@ end subroutine photon_reflection
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Subroutine photon_diffuse_scattering (angle_in, energy, surface, theta_out, phi_out, diffuse_param)
+! Subroutine photon_diffuse_scattering (graze_angle_in, energy, surface, graze_angle_out, phi_out, diffuse_param)
 !
 ! Routine to simulate the diffuse scattering of photons. The outgoing angles are
 ! choosen using the Dugan distribution.
@@ -810,18 +810,18 @@ end subroutine photon_reflection
 ! Use photon_reflection_std_surface_init or read_surface_reflection_file to get surface info.
 !
 ! Input:
-!   angle_in        -- Real(rp): Incident grazing (not polar) angle in radians.
+!   graze_angle_in  -- Real(rp): Incident grazing (not polar) angle in radians.
 !   energy          -- Real(rp): Photon energy in eV.
 !   surface         -- photon_reflect_surface_struct: surface info
 !
 ! Output:
-!   theta_out       -- Real(rp): Outgoing graze angle in radians. 
+!   graze_angle_out -- Real(rp): graze_angle in radians. 
 !   phi_out         -- Real(rp): Azimuthal angle in radians.
 !   diffuse_param   -- diffuse_param_struct, optional: Internal parameters used in the calculation.
 !                        This is used for diagnostics and is not used in standard simulations.
 !-
 
-subroutine photon_diffuse_scattering (angle_in, energy, surface, theta_out, phi_out, diffuse_param)
+subroutine photon_diffuse_scattering (graze_angle_in, energy, surface, graze_angle_out, phi_out, diffuse_param)
 
 use random_mod
 use nr, only: rtsafe, chebft, chint, chebev
@@ -833,7 +833,7 @@ type (diffuse_param_struct) d_param
 type (cheb_diffuse_struct) cheb_param
 type (diffuse_param_struct), optional :: diffuse_param
 
-real(rp) angle_in, energy, theta_out,  phi_out
+real(rp) graze_angle_in, energy, graze_angle_out,  phi_out
 real(rp) sigma, t, ctheta2, sign_phi, tot_integral, rel_integral_err, integral, old_integral
 real(rp) fl, fh, df, r, p_spec, ran1, ran2, integral_err(0:50)
 
@@ -847,7 +847,7 @@ logical ok
 
 sigma = surface%surface_roughness_rms
 T = surface%roughness_correlation_len
-d_param%y = sin(angle_in)
+d_param%y = sin(graze_angle_in)
 d_param%lambda = h_planck * c_light / max(1.0_rp, energy)
 
 ! Pick random numbers
@@ -863,7 +863,7 @@ else
   ran2 = 2 * ran2 
 endif
 
-! Fit the probability distribution in x = sin(theta_out)
+! Fit the probability distribution in x = sin(graze_angle_out)
 ! Also compute the coefficients fo the cumulative distribution in x
 
 if (diffuse_com%use_spline_fit) then
@@ -932,7 +932,7 @@ endif
 
 ! Evaluate the normalization constant for the cumulative probability in phi, for this x
 
-theta_out = asin(ctheta2)
+graze_angle_out = asin(ctheta2)
 d_param%x = ctheta2
 d_param%c_norm = cos_phi(sigma, T, pi, d_param)
 
@@ -1007,7 +1007,7 @@ end subroutine integral_err_calc
 ! Subroutine d_integral (x, fn, df)
 !
 ! Wrapper function passed to rtsafe.
-! Contained routine to calculate integrated probability distribution in x = sin(theta_out).
+! Contained routine to calculate integrated probability distribution in x = sin(graze_angle_out).
 !-
 
 subroutine d_integral (x, fn, df)
@@ -1033,7 +1033,7 @@ end subroutine d_integral
 ! Subroutine cumulr (phi, fn, df)
 !
 ! Wrapper function passed to rtsafe.
-! Contained routine to calculate integrated probability distribution in x = sin(theta_out).
+! Contained routine to calculate integrated probability distribution in x = sin(graze_angle_out).
 !-
 
 subroutine cumulr (phi, fn, df)
@@ -1061,7 +1061,7 @@ end subroutine cumulr
 ! Subroutine cumulx (x, fn, df)
 !
 ! Wrapper function passed to rtsafe.
-! Contained routine to calculate integrated probability distribution in x = sin(theta_out).
+! Contained routine to calculate integrated probability distribution in x = sin(graze_angle_out).
 !-
 
 subroutine cumulx (x, fn, df)
@@ -1086,10 +1086,10 @@ end subroutine cumulx
 !+
 ! Function prob_x_diffuse_vec (x) result (prob_x)
 !
-! Contained routine to calculate integrated probability distribution in x = sin(theta_out).
+! Contained routine to calculate integrated probability distribution in x = sin(graze_angle_out).
 ! 
 ! Input:
-!   x(:)    -- Real(rp): sin(theta_out) array
+!   x(:)    -- Real(rp): sin(graze_angle_out) array
 !
 ! Output:
 !   prob(:) -- Real(rp): Integrated probability array.
@@ -1120,10 +1120,10 @@ end subroutine photon_diffuse_scattering
 !+
 ! Function prob_x_diffuse (x, d_param, surface) result (prob_x)
 !
-! Contained routine to calculate integrated probability distribution in x = sin(theta_out).
+! Contained routine to calculate integrated probability distribution in x = sin(graze_angle_out).
 ! 
 ! Input:
-!   x    -- Real(rp): sin(theta_out)
+!   x    -- Real(rp): sin(graze_angle_out)
 !
 ! Output:
 !   prob -- Real(rp): Integrated probability.
@@ -1140,7 +1140,7 @@ real(rp), intent(in) :: x
 real(rp) prob_x
 real(rp) pxa, xpy, k, r, sigma, T, xysq, tau, s, g, h, a, y, lambda
 real(rp) qexp, bs, fz, b, g0, fexp, factor, pxs, bi, term, ri, xlogi
-real(rp) fexpi, fzi, xlogg
+real(rp) fexpi, fzi, xlogg, a_minus_1
 
 integer i, itt
 
@@ -1157,15 +1157,16 @@ lambda = d_param%lambda
 !
 
 pxa = 0.0
-xpy = x+y
-xysq = x**2+y**2
+xpy = x + y
+xysq = x**2 + y**2
 k = twopi/lambda
 r = sigma*k
 tau = T/sigma
 s = k*T
 g = (r*xpy)**2
-h = sqrt(1-x**2)*sqrt(1-y**2)
-a = h/(1+x*y)
+h = sqrt((1-x**2)*(1-y**2))
+a = h/(1 + x*y)
+a_minus_1 = -0.5_rp * xpy*xpy  ! Valid when x and y small
 xyzero = .false.
 
 if (x == 1.0 .or. y == 1.0) xyzero = .true.
@@ -1173,17 +1174,17 @@ if (x == 1.0 .or. y == 1.0) xyzero = .true.
 if (g < gmin) then
   qexp = (2-xysq-2*h)*s**2/4
   bs = s**2*h/2
-  fz = zzfi(a,bs,xyzero)
-  prob_x = 0.5*(1+x*y)**2*r**2*s**2*exp(-qexp-g)*fz
+  fz = zzfi(a, a_minus_1, bs, xyzero)
+  prob_x = 0.5*(1 + x*y)**2*r**2*s**2*exp(-qexp-g)*fz
   return
 end if
 
 b = h*tau**2/2/xpy**2
 
 if (g > gmax .and. appsw) then
-  g0 = tau**2/2/xpy**4*(1+x*y)**2
+  g0 = tau**2/2/xpy**4*(1 + x*y)**2
   fexp = -(2-xysq-2*h)*tau**2/4/xpy**2
-  fz = zzfi(a,b,xyzero)
+  fz = zzfi(a, a_minus_1, b, xyzero)
   pxa = g0*exp(fexp)*fz
   prob_x = pxa
   return
@@ -1191,27 +1192,27 @@ endif
 
 !
 
-g0 = tau**2*g/2/xpy**4*(1+x*y)**2
+g0 = tau**2*g/2/xpy**4*(1 + x*y)**2
 factor = 1.0
 pxs = 0.0
 
-do i = 1,maxsum
+do i = 1, maxsum
   bi = b*g/i
   fexpi = -g-(2-xysq-2*h)*tau**2*g/4/i/xpy**2
-  fzi = zzfi(a,bi,xyzero)
+  fzi = zzfi(a, a_minus_1, bi, xyzero)
 
   if (i < ismax) then
     factor = factor*i
     term = exp(fexpi)*g**i/factor/i
   else
     ri = i
-    xlogi = ri*log(ri)-ri+0.5*log(twopi*ri)
-    xlogg = ri*log(g)-xlogi+fexpi
+    xlogi = ri*log(ri)-ri + 0.5*log(twopi*ri)
+    xlogg = ri*log(g)-xlogi + fexpi
     term = exp(xlogg)/i
   end if
 
   term = term*fzi
-  pxs = pxs+term
+  pxs = pxs + term
 
   if (term <= converge * pxs) exit
 enddo
@@ -1246,7 +1247,7 @@ implicit none
 
 type (diffuse_param_struct) d_param
 
-real(rp) p_two, sigma, t, lambda, y, x, phi, k, factor, p_twoa, r, tau, s, cp, xpy
+real(rp) p_two, sigma, t, lambda, y, x, phi, k, factor, p_twoa, r, tau, s, cp, xpy, a_minus_1
 real(rp) xysq, g, h, a, qexp, b, g0, pxa, pxs, xmmax, xtest, fexp, term, ri, xlogi, xlogg
 real(rp) :: qlim1 = 2.0D3, qlim2 = -2.0D2
 
@@ -1270,13 +1271,16 @@ cp = cos(phi)
 xpy = x+y
 xysq = x**2+y**2
 g = (r*xpy)**2
-h = sqrt(1-x**2)*sqrt(1-y**2)
+h = sqrt((1-x**2)*(1-y**2))
 a = h/(1+x*y)
+a_minus_1 = -0.5_rp * xpy*xpy  ! Valid when x and y small
+
 if (g < gmin) then
   qexp = (2-xysq-2*h*cp)*s**2/4
   p_two = 0.5/twopi*(1+x*y)**2*(1-a*cp)**2*r**2*s**2*exp(-qexp-g)
   return
 end if
+
 b = h*tau**2/2/xpy**2
 qexp = (2-xysq)*tau**2/4/xpy**2-b*cp
 if(g > gmax.and.appsw) then
@@ -1363,7 +1367,7 @@ end function zmmax
 !  azimuthal angle relative to plane of incidence (plane of incoming ray and surface normal)
 !  1/y suppressed
 !
-! Private routine to calculate integrated probability distribution in x = sin(theta_out).
+! Private routine to calculate integrated probability distribution in x = sin(graze_angle_out).
 !-
 
 function cos_phi (sigma, T, phi, d_param) result (cphi)
@@ -1372,7 +1376,7 @@ implicit none
 
 type (diffuse_param_struct) d_param
 
-real(rp) cphi, sigma, t, x, y, phi
+real(rp) cphi, sigma, t, x, y, phi, a_minus_1
 real(rp) k, lambda, cphia, xpy, xysq, r, tau, s, g, h, cphis, bi, fexpi
 real(rp) factor, a, fexp, qexp, bs, fz, b, g0, fzi, term, ri, xlogi, xlogg
 
@@ -1398,8 +1402,9 @@ r = sigma*k
 tau = T/sigma
 s = k*T
 g = (r*xpy)**2
-h = sqrt(1-x**2)*sqrt(1-y**2)
+h = sqrt((1-x**2)*(1-y**2))
 a = h/(1+x*y)
+a_minus_1 = -0.5_rp * xpy*xpy  ! Valid when x and y small
 xyzero = .false.
 
 if (x == 1.0 .or. y == 1.0) xyzero = .true.
@@ -1407,7 +1412,7 @@ if (x == 1.0 .or. y == 1.0) xyzero = .true.
 if (g < gmin) then
   qexp = (2-xysq-2*h)*s**2/4
   bs = s**2*h/2
-  fz = zzfp(a,bs,phi,xyzero, d_param)
+  fz = zzfp(a, a_minus_1, b, phi, xyzero, d_param)
   cphi = 0.5/twopi*(1+x*y)**2*r**2*s**2*exp(-qexp-g)*fz
   return
 end if
@@ -1418,7 +1423,7 @@ qexp = (2-xysq)*tau**2/4/xpy**2-b*cos(phi)
 if (g > gmax .and. appsw) then
   g0 = tau**2/2/twopi/xpy**4*(1+x*y)**2
   fexp = -(2-xysq-2*h)*tau**2/4/xpy**2
-  fz = zzfp(a,b,phi,xyzero, d_param)
+  fz = zzfp(a, a_minus_1, b, phi, xyzero, d_param)
   cphia = g0*exp(fexp)*fz
   cphi = cphia
 else
@@ -1426,10 +1431,10 @@ else
   factor = 1.0
   cphis = 0.0
 
-  do i = 1,maxsum
+  do i = 1, maxsum
     bi = b*g/i
     fexpi = -g-(2-xysq-2*h)*tau**2*g/4/i/xpy**2
-    fzi = zzfp(a,bi,phi,xyzero, d_param)
+    fzi = zzfp(a, a_minus_1, bi, phi, xyzero, d_param)
     if (i < 20) then
       factor = factor*i
       term = exp(fexpi)*g**i/factor/i
@@ -1460,16 +1465,16 @@ end function cos_phi
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Function zzfi (a, b, xyzero) result (fi)
+! Function zzfi (a, a_minus_1, b, xyzero) result (fi)
 !
 ! Private function used in calculating diffuse scattering distribution.
 !-
 
-function zzfi (a, b, xyzero) result (fi)
+function zzfi (a, a_minus_1, b, xyzero) result (fi)
 
 implicit none
 
-real(rp) a, b, fi
+real(rp) a, a_minus_1, b, fi
 logical xyzero
 
 !
@@ -1479,7 +1484,7 @@ if (xyzero) then
 elseif (b < bmax) then
   fi = ((1+a**2)*zbessi0(b)-a*(a+2*b)*zbessi1(b)/b)/sqrt(twopi*b)
 else
-  fi = 2*hzz(a,b,twopi)/twopi
+  fi = 2*hzz(a, a_minus_1, b, twopi)/twopi
 end if
 
 end function zzfi
@@ -1488,18 +1493,18 @@ end function zzfi
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Function zzfp (a, b, phi, xyzero, d_param) result (fp)
+! Function zzfp (a, a_minus_1, b, phi, xyzero, d_param) result (fp)
 !
 ! Private function used in calculating diffuse scattering distribution.
 !-
 
-function zzfp (a, b, phi, xyzero, d_param) result (fp)
+function zzfp (a, a_minus_1, b, phi, xyzero, d_param) result (fp)
 
 implicit none
 
 type (diffuse_param_struct) :: d_param
 
-real(rp) a, b, phi, fp
+real(rp) a, a_minus_1, b, phi, fp
 real(rp) sp, sp2
 logical xyzero
 
@@ -1514,7 +1519,7 @@ end if
 if(b < bmax) then
   fp = zzexp(a,b,phi, d_param)
 else
-  fp = hzz(a,b,phi)
+  fp = hzz(a,a_minus_1,b, phi)
 end if
 
 end function zzfp
@@ -1522,17 +1527,18 @@ end function zzfp
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Function hzz(a, b, phi) result (h)
+! Function hzz(a, a_minus_1, b, phi) result (h)
 !
 ! Private function used in calculating diffuse scattering distribution.
 !-
 
-function hzz(a, b, phi) result (h)
+function hzz(a, a_minus_1, b, phi) result (h)
 
 implicit none
 
-real(rp) a, b, phi, h
+real(rp) a, a_minus_1, b, phi, h
 real(rp) arg, hzz1, h2zz
+real(rp), parameter :: pi_root = sqrt(pi/2)
 
 ! This routine computes the phi integral used in the cumulative distribution function. 
 ! Good for all b, but makes a small phi approximation. Use for b>100.
@@ -1540,9 +1546,14 @@ real(rp) arg, hzz1, h2zz
 arg = phi*sqrt(b/2)
 hzz1 = -a*phi*exp(-arg**2)*(4*b+a*(3+b*(phi**2-4)))
 hzz1 = hzz1/4/b**2
-h2zz = 4*a*(1-2*b)*b+4*b**2+a**2*(3-4*b+4*b**2)
+!!h2zz = 4*a*(1-2*b)*b + 4*b**2 + a**2*(3-4*b+4*b**2)
+if (abs(a_minus_1) < 1d-6) then
+  h2zz = 4 * (a_minus_1 * b)**2 - 4 * a_minus_1 * b + 3*a*a
+else
+  h2zz =4 * ((a - 1) * b)**2 - 4 * (a - 1) * b + 3*a*a
+endif
 h2zz = h2zz/4/b**2.5
-h2zz = h2zz*sqrt(twopi/4)*erf(arg)
+h2zz = h2zz*pi_root*erf(arg)
 h = hzz1+h2zz
 
 end function hzz
