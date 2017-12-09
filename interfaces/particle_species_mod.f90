@@ -44,7 +44,8 @@ integer, parameter :: not_set$ = -999
 character(*), parameter :: invalid_name = 'INVALID!'
 
 !----------------------
-! Fundamental particles
+! Fundamental particles.
+! Note: It is convenient to always define an "antiparticle" with reversed sign even though it does not exit in practice. Example: anti_deuteron$.
 
 integer, parameter :: deuteron$   = 8     
 integer, parameter :: ref_particle$ = 6, anti_ref_particle$ = 7
@@ -58,26 +59,27 @@ integer, parameter :: electron$   = -1
 integer, parameter :: antiproton$ = -2
 integer, parameter :: muon$       = -3
 integer, parameter :: pion_minus$ = -4
+integer, parameter :: anti_deuteron$ = -5
 
-character(20), parameter:: fundamental_species_name(-4:8) = [&
+character(20), parameter:: fundamental_species_name(-5:8) = [character(20):: 'Anti_Deuteron', &
                 'Pion-            ', 'Muon             ', 'Antiproton       ', 'Electron         ', &
                 'Photon           ', 'Positron         ', 'Proton           ', 'Antimuon         ', &
                 'Pion+            ', 'Pion0            ', 'Ref_Particle     ', 'Anti_Ref_Particle', &
                 'Deuteron         ']
 
 
-integer, parameter :: charge_of_fundamental(-4:8) = [-1, -1, -1, -1, 0, 1, 1, 1, 1, 0, 0, 0, 1]
+integer, parameter :: charge_of_fundamental(-5:8) = [-1, -1, -1, -1, -1, 0, 1, 1, 1, 1, 0, 0, 0, 1]
 
-real(rp), parameter :: mass_of_fundamental(-4:8) = [m_pion_charged, m_muon, m_proton, m_electron, 0.0_rp, &
+real(rp), parameter :: mass_of_fundamental(-5:8) = [m_deuteron, m_pion_charged, m_muon, m_proton, m_electron, 0.0_rp, &
                                 m_electron, m_proton, m_muon, m_pion_charged, m_pion_0, 0.0_rp, 0.0_rp, &
                                 m_deuteron]
 
-real(rp), parameter :: anomalous_moment_of_fundamental(-4:8) = [0.0_rp, anomalous_mag_moment_muon, &
+real(rp), parameter :: anomalous_moment_of_fundamental(-5:8) = [anomalous_mag_moment_deuteron, 0.0_rp, anomalous_mag_moment_muon, &
                         anomalous_mag_moment_proton, anomalous_mag_moment_electron, 0.0_rp, &
                         anomalous_mag_moment_electron, anomalous_mag_moment_proton, &
                         anomalous_mag_moment_muon, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, anomalous_mag_moment_deuteron]
 
-integer, parameter :: antiparticle(-4:8) = [4, 3, 2, 1, 0, -1, -2, -3, -4, 5, 7, 6, invalid$]
+integer, parameter :: antiparticle(-5:8) = [8, 4, 3, 2, 1, 0, -1, -2, -3, -4, 5, 7, 6, -5]
 
 !----------------------
 ! Atoms
