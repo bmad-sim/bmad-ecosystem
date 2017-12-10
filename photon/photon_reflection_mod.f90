@@ -1412,7 +1412,7 @@ if (x == 1.0 .or. y == 1.0) xyzero = .true.
 if (g < gmin) then
   qexp = (2-xysq-2*h)*s**2/4
   bs = s**2*h/2
-  fz = zzfp(a, a_minus_1, b, phi, xyzero, d_param)
+  fz = zzfp(a, a_minus_1, bs, phi, xyzero, d_param)
   cphi = 0.5/twopi*(1+x*y)**2*r**2*s**2*exp(-qexp-g)*fz
   return
 end if
