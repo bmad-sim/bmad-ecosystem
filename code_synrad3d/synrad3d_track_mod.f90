@@ -426,7 +426,7 @@ type (coord_struct) orb
 type (ele_struct), pointer :: ele
 
 real(rp) dl_step, dl_left, s_stop, denom, v_x, v_s, sin_t, cos_t, sl, v_xs
-real(rp) g, new_x, radius, theta, tan_t, dl, dl2, ct, st, s_ent, s0, ds
+real(rp) g, radius, theta, tan_t, dl, dl2, ct, st, s_ent, s0, ds, xdx
 real(rp), pointer :: vec(:)
 
 integer ixs, stop_location, end_geometry, n_section
@@ -659,7 +659,8 @@ propagation_loop: do
     ! Need to remember that radius can be negative.
 
     st = dl * now_orb%vec(6)
-    ct = radius + now_orb%vec(1) + dl * now_orb%vec(2)
+    xdx = now_orb%vec(1) + dl * now_orb%vec(2)
+    ct = radius + xdx
     denom = sign (sqrt(st**2 + ct**2), radius)
     sin_t = st / denom
     cos_t = ct / denom
@@ -667,7 +668,7 @@ propagation_loop: do
     v_x = now_orb%vec(2); v_s = now_orb%vec(6)
     v_xs = sqrt(v_x**2 + v_s**2)
 
-    now_orb%vec(1) = denom - radius
+    now_orb%vec(1) = radius * sqrt_one(2 * xdx / radius + (xdx**2 + st**2) / radius**2)
     now_orb%vec(2) = v_s * sin_t + v_x * cos_t
     now_orb%vec(3) = now_orb%vec(3) + dl * now_orb%vec(4) !! / v_xs
     now_orb%s = s_stop
