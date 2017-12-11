@@ -44,7 +44,7 @@ type (sr3d_branch_overlap_struct), pointer :: bo
 type (floor_position_struct) floor
 
 real(rp) dw_perp(3), d_radius
-integer iw, status, ij, ie_start, ie_end
+integer n, iw, status, ij, ie_start, ie_end
 
 logical absorbed, err, no_wall_here
 logical, optional :: one_reflection_only
@@ -346,8 +346,9 @@ call sr3d_photon_d_radius (now, branch, no_wall_here, d_radius, ix_wall3d = ix_w
 ! This is better than using a range [-significant_leng, significant_length] since, for near grazing angle
 ! photons traveling towards the wall that stop short of the wall, there is a very small but finite 
 ! possibility that the computed velocity component perpendicular to the wall will point away from the
-! wall. This will confuse sr3d_reflect_photon. The basic problem is that the computation of the wall
-! normal vector only makes physical sense when a particle is exactly at the wall.
+! wall. This will confuse sr3d_reflect_photon. This can happen when the line segment from the cross-section
+! origin to a point on the wall is not co-linear with the surface normal at that point. The basic problem is that 
+! the computation of the wall normal vector only makes physical sense when a particle is exactly at the wall.
 
 if (d_radius > 0 .and. d_radius < sr3d_params%significant_length .and. .not. no_wall_here) then
   status = at_transverse_wall$
@@ -425,8 +426,8 @@ type (coord_struct), pointer :: now_orb
 type (coord_struct) orb
 type (ele_struct), pointer :: ele
 
-real(rp) dl_step, dl_left, s_stop, denom, v_x, v_s, sin_t, cos_t, sl, v_xs
-real(rp) g, radius, theta, tan_t, dl, dl2, ct, st, s_ent, s0, ds, xdx
+real(rp) dl_step, dl_left, dl_left_xs, dl_xs, s_stop, denom, v_x, v_s, sin_t, cos_t, sl, v_xs
+real(rp) g, radius, theta, tan_t, dl_1hop, dl2_xs, ct, st, s_ent, s0, ds, xdx
 real(rp), pointer :: vec(:)
 
 integer ixs, stop_location, end_geometry, n_section
@@ -629,25 +630,28 @@ propagation_loop: do
     radius = 1 / g
     theta = (s_stop - now_orb%s) * g * ele%orientation
     tan_t = tan(theta)
+    v_x = now_orb%vec(2); v_s = now_orb%vec(6)
+    v_xs = sqrt(v_x**2 + v_s**2)
+    dl_left_xs = dl_left * v_xs
 
-    if (abs(tan_t * (radius + now_orb%vec(1))) > dl_left * abs(now_orb%vec(6) - tan_t * now_orb%vec(2))) then
-      dl = dl_left
-      tan_t = (dl * now_orb%vec(6)) / (radius + now_orb%vec(1) + dl * now_orb%vec(2))
+    if (abs(tan_t * (radius + now_orb%vec(1))) > dl_left_xs * abs(now_orb%vec(6) - tan_t * now_orb%vec(2))) then
+      dl_xs = dl_left_xs
+      tan_t = (dl_xs * now_orb%vec(6)) / (radius + now_orb%vec(1) + dl_xs * now_orb%vec(2))
       theta = atan(tan_t)
       s_stop = now_orb%s + radius * theta * ele%orientation
       stop_location = inside$
       check_section_here = .false.
     else
-      dl = tan_t * (radius + now_orb%vec(1)) / (now_orb%vec(6) - tan_t * now_orb%vec(2))
+      dl_xs = tan_t * (radius + now_orb%vec(1)) / (now_orb%vec(6) - tan_t * now_orb%vec(2))
     endif
 
     ! Check if we should actually be stopping at the extremum (minimal x)
 
     if (stop_at_check_pt .and. now_orb%vec(2) * g < 0) then 
-      dl2 = -now_orb%vec(2) * (radius + now_orb%vec(1)) / (now_orb%vec(2)**2 + now_orb%vec(6)**2)
-      if (dl2 < dl) then
-        dl = dl2 * (1 + sr3d_params%significant_length) ! Add extra to make sure we are not short due to roundoff.
-        tan_t = (dl * now_orb%vec(6)) / (radius + now_orb%vec(1) + dl * now_orb%vec(2))
+      dl2_xs = -now_orb%vec(2) * (radius + now_orb%vec(1)) / (now_orb%vec(2)**2 + now_orb%vec(6)**2)
+      if (dl2_xs < dl_xs) then
+        dl_xs = dl2_xs * (1 + 0.1 * sr3d_params%significant_length) ! Add extra to make sure we are not short due to roundoff.
+        tan_t = (dl_xs * now_orb%vec(6)) / (radius + now_orb%vec(1) + dl_xs * now_orb%vec(2))
         theta = atan(tan_t)
         s_stop = now_orb%s + radius * theta * ele%orientation
         stop_location = inside$
@@ -658,19 +662,17 @@ propagation_loop: do
     ! Move to the stop point. 
     ! Need to remember that radius can be negative.
 
-    st = dl * now_orb%vec(6)
-    xdx = now_orb%vec(1) + dl * now_orb%vec(2)
+    st = dl_xs * now_orb%vec(6)
+    xdx = now_orb%vec(1) + dl_xs * now_orb%vec(2)
     ct = radius + xdx
     denom = sign (sqrt(st**2 + ct**2), radius)
     sin_t = st / denom
     cos_t = ct / denom
-
-    v_x = now_orb%vec(2); v_s = now_orb%vec(6)
-    v_xs = sqrt(v_x**2 + v_s**2)
+    dl_1hop = dl_xs / v_xs
 
     now_orb%vec(1) = radius * sqrt_one(2 * xdx / radius + (xdx**2 + st**2) / radius**2)
     now_orb%vec(2) = v_s * sin_t + v_x * cos_t
-    now_orb%vec(3) = now_orb%vec(3) + dl * now_orb%vec(4) !! / v_xs
+    now_orb%vec(3) = now_orb%vec(3) + dl_1hop * now_orb%vec(4)
     now_orb%s = s_stop
     now_orb%vec(6) = v_s * cos_t - v_x * sin_t
 
@@ -692,18 +694,18 @@ propagation_loop: do
     endif
 
     if (abs(now_orb%vec(6)) * dl_left > abs(ds)) then
-      dl = ds / now_orb%vec(6)
+      dl_1hop = ds / now_orb%vec(6)
     else
-      dl = dl_left * sign_of(ele%value(l$))
+      dl_1hop = dl_left * sign_of(ele%value(l$))
       check_section_here = .false.
-      s_stop = now_orb%s + dl * now_orb%vec(6)
+      s_stop = now_orb%s + dl_1hop * now_orb%vec(6)
       stop_location = inside$
     endif
 
     ! And move to the next position
 
-    now_orb%vec(1) = now_orb%vec(1) + dl * now_orb%vec(2)
-    now_orb%vec(3) = now_orb%vec(3) + dl * now_orb%vec(4)
+    now_orb%vec(1) = now_orb%vec(1) + dl_1hop * now_orb%vec(2)
+    now_orb%vec(3) = now_orb%vec(3) + dl_1hop * now_orb%vec(4)
     now_orb%s = s_stop
 
   endif
@@ -721,11 +723,11 @@ propagation_loop: do
   ! Path length increases even when moving though an element with negative length.
   ! This is important when zbrent is called to find the hit spot.
 
-  now_orb%path_len = now_orb%path_len + abs(dl)
-  dl_left = dl_left - abs(dl)
+  now_orb%path_len = now_orb%path_len + abs(dl_1hop)
+  dl_left = dl_left - abs(dl_1hop)
   now_orb%location = stop_location
 
-  if (dl_left == 0) exit
+  if (abs(dl_left) < 0.01_rp * sr3d_params%significant_length) exit
   if (stop_at_check_pt .and. check_section_here) exit
 
 enddo propagation_loop
@@ -826,7 +828,7 @@ endif
 ! Find where the photon hits.
 
 in_zbrent = .true.
-path_len = super_zbrent (sr3d_photon_hit_func, path_len0, path_len1, sr3d_params%significant_length, err)
+path_len = super_zbrent (sr3d_photon_hit_func, path_len0, path_len1, 0.1 * sr3d_params%significant_length, err)
 if (err) then
   print *, 'WILL IGNORE THIS PHOTON.'
   call sr3d_print_photon_info (photon)
@@ -838,7 +840,7 @@ endif
 
 photon%now = photon%old
 dl = path_len-photon%now%orb%path_len
-if (abs(dl) > sr3d_params%significant_length/2) call sr3d_propagate_photon_a_step (photon, branch, dl, .false.)
+if (abs(dl) > 0.1 * sr3d_params%significant_length) call sr3d_propagate_photon_a_step (photon, branch, dl, .false.)
 call sr3d_photon_d_radius (photon%now, branch, no_wall_here, d_rad0)
 
 !---------------------------------------------------------------------------
@@ -935,10 +937,9 @@ type (photon_reflect_surface_struct), pointer :: surface
 
 real(rp) cos_perp, dw_perp(3), denom, f, r, d_rad, theta_diffuse, phi_diffuse
 real(rp) graze_angle, reflectivity, rel_reflect_specular, dvec(3), a, b
-real(rp) vec_in_plane(3), vec_out_plane(3)
+real(rp) vec_in_plane(3), vec_out_plane(3), dlen
 
-integer ix, iu
-integer n_old, n_wall_hit
+integer ix, iu, n, n_old, n_wall_hit
 
 logical absorbed, err_flag, no_wall_here
 
@@ -1003,7 +1004,7 @@ if (cos_perp > 1) then
   endif
 endif
 
-if (cos_perp < 0 .and. cos_perp > -sr3d_params%min_graze_angle) cos_perp = 0  ! Will be absorbed but no error message
+!! if (cos_perp < 0 .and. cos_perp > -sr3d_params%min_graze_angle) cos_perp = 0  ! Will be absorbed but no error message
 
 if (cos_perp < 0) then
   call out_io (s_error$, r_name, &
@@ -1077,6 +1078,19 @@ wall_hit(n_wall_hit)%dw_perp = dw_perp
 wall_hit(n_wall_hit)%cos_perp_in = cos_perp
 wall_hit(n_wall_hit)%after_reflect = photon%now%orb
 wall_hit(n_wall_hit)%cos_perp_out = dot_product (photon%now%orb%vec(2:6:2), dw_perp)
+
+! If the photon will not travel a significant length (if it is skimming a wall)
+! then it is considered to be absorbed. This prevents "the spiral of death" error messages where, in
+! a bend, a particle at near grazing incidence can, with a series of specular reflections, take shorter
+! and shorter steps until roundoff error causes Synrad3D to generate an error message.
+! Note: If you want to visualize the spiral of death, start with a circular cross-section chamber in a
+! bend with the particle in the midplane (y = 0) next to the outside portion of the wall and with Vx 
+! positive and small, Vy small but finite, and Vs ~ 1.
+
+n = n_wall_hit
+dlen = wall_hit(n)%before_reflect%path_len - wall_hit(n-1)%before_reflect%path_len
+cos_perp = abs(wall_hit(n_wall_hit)%cos_perp_out)
+if (dlen*cos_perp < 1d-7 .and. cos_perp < 1d-4) absorbed = .true.
 
 end subroutine sr3d_reflect_photon
 
