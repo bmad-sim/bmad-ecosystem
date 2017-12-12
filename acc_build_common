@@ -447,6 +447,11 @@ func_set_fortran_flags () {
 	export BASE_OPTS="-u -traceback"
     fi
 
+    # For ifort, move STACK memory to the HEAP, see RT#45710
+    if [ "${FC}" != "gfortran" ] ; then
+	export BASE_OPTS="${BASE_OPTS} -heap-arrays 32"
+    fi
+
     if [ "${BUILD_TYPE}" == "debug" ] ; then
 	if [ "${FC}" == "gfortran" ] ; then
 	    export FCFLAGS="-O0 -fno-range-check -fbounds-check -Wuninitialized -fimplicit-none -Wall -Wextra -Bstatic -g ${FCFLAGS}" 

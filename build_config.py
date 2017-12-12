@@ -84,7 +84,8 @@ online_host = 'cesr109.classe.cornell.edu'
 
 local_base_dir = '/mnt/acc/libs'
 local_util_dir = local_base_dir + '/util'
-local_host = 'lnx7179.classe.cornell.edu'
+#local_host = 'lnx7179.classe.cornell.edu'
+local_host = '$HOSTNAME'
 
 makefile_dir = '/usr/bin'
 
@@ -235,8 +236,6 @@ packages_build_list = [
                 '/packages/fftw',
                 '/packages/root',
                 '/packages/xraylib',
-                '/packages/hdf5',
-                '/packages/h5hut',
                 '/packages/openmpi',
 ]
 

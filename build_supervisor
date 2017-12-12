@@ -402,8 +402,8 @@ class BuildController(threading.Thread):
                         " 'export ACC_SET_GMAKE_JOBS=" + ACC_SET_GMAKE_JOBS + \
                         " ; export ACC_SET_F_COMPILER=" + ACC_SET_F_COMPILER + \
                         " ; export ACC_ENABLE_FPIC=" + ACC_ENABLE_FPIC + \
-                        " ; . /opt/rh/python27/enable" \
-                        " ; /opt/rh/python27/root/usr/bin/python " + self.util_dir + "/builder " + self.full_logname + "'")
+                        " ; [ -e /opt/rh/python27/enable ] && . /opt/rh/python27/enable" \
+                        " ; [ -e /opt/rh/python27/enable ] && /opt/rh/python27/root/usr/bin/python || python " + self.util_dir + "/builder " + self.full_logname + "'")
         print build_command
         p = sub.Popen(build_command, bufsize=-1, shell=True)
         p_out = p.communicate()[0]

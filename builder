@@ -116,7 +116,7 @@ def build_directory( dir, statlist, target ):
         ACC_SET_F_COMPILER = 'ifort'
  
     if 'XbsmAnalysis' in dir:
-        use_gcc482 = ' ; source /opt/rh/devtoolset-2/enable '
+        use_gcc482 = ' ; [ -e /opt/rh/devtoolset-2/enable ] && source /opt/rh/devtoolset-2/enable '
     else:
         use_gcc482 = ''
 
