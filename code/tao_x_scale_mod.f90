@@ -202,8 +202,7 @@ if (do_gang .and. all(plot%graph%valid)) then
     enddo
   endif
 
-  !! Don't want this since this will over ride any "set plot x" command.
-  !! plot%x = plot%graph(1)%x
+   plot%x = plot%graph(1)%x
 
 endif
 

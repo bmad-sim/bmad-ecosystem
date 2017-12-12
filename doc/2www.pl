@@ -34,6 +34,6 @@ while (<F_IN>) {
 close (F_IN);
 close (F_OUT);
 
-`mv basic_tao.html  /home/dcs/public_html/bmad`;
-`cp tao.pdf   /home/dcs/public_html/bmad/tao-manual-$rev.pdf`;
+`mv basic_tao.html /nfs/classe/www/html/bmad/`;
+`cp tao.pdf /nfs/classe/www/html/bmad/tao-manual-$rev.pdf`;
 
