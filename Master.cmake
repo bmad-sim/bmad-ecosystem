@@ -270,6 +270,11 @@ enable_language( Fortran )
 
 SET (BASE_Fortran_FLAGS "-Df2cFortran ${CESR_FLAGS} -u -traceback ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG} ${MPI_COMPILE_FLAGS}")
 
+# For ifort, move STACK memory to the HEAP, see RT#45710
+IF (${FORTRAN_COMPILER} MATCHES "ifort")
+  SET (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -heap-arrays 32")
+ENDIF ()
+
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${FORTRAN_COMPILER} MATCHES "ifort" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
   SET (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -mcmodel=medium")
 ENDIF ()
