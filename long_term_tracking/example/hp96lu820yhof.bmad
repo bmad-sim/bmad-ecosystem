@@ -1,5 +1,6 @@
 use, hp96lu820yhof
 parameter[p0c] = 805e9
+parameter[particle] = proton
 bmad_com[spin_tracking_on] = T
 
 spin_x_rotator: taylor, {xx 1 |}, {yy -1 |}, {zz -1 |}
