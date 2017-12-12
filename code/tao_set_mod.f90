@@ -1170,8 +1170,11 @@ do i = 1, size(plot)
 
     case ('x')
       call tao_set_qp_axis_struct('x', sub_comp, plot(i)%p%x, set_value, error)
-      call out_io (s_warn$, r_name, 'Note: graph%x components may override settings of plot%x components.', &
-                                    'If you do not get the results you want, try setting the graph%x component.')
+      if (allocated(plot(i)%p%graph)) then
+        do j = 1, size(plot(i)%p%graph)
+          plot(i)%p%graph(i)%x = plot(i)%p%x
+        enddo
+      endif
 
     case default
       call out_io (s_error$, r_name, "BAD PLOT COMPONENT: " // component)
