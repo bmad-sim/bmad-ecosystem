@@ -1,0 +1,20 @@
+Long Term Tracking Program
+==========================
+
+Input
+-----
+
+There are two input files. A "Master" input file and a lattice file. The Master input file will
+specify the lattice file to use. There is optionally a third input file specifying the inital beam
+particle coordinates.
+
+For an example see the directory bsim/long_term_tracking/example
+
+In the Master input file two structures called "bmad_com" and "beam_init" may be set. For
+documentation on these structures see the Bmad manual.
+
+
+Output
+------
+
+The output file records the initial and final positions of all particles tracked.
