@@ -10,6 +10,8 @@ type (beam_init_struct) beam_init
 type (bunch_struct) bunch, bunch_init
 type (coord_struct), allocatable :: closed_orb(:)
 
+real(rp) time0, time
+
 integer ix_ele_start, n_turns
 integer i, n, ie
 logical err_flag, rfcavity_on
@@ -61,6 +63,9 @@ bunch_init%particle = bunch%particle
 
 ! Track
 
+call run_timer('START')
+call run_timer('READ', time0)
+
 do n = 1, n_turns
   do ie = ix_ele_start+1, lat%n_ele_track
     call track1_bunch(bunch, lat, lat%ele(ie), bunch, err_flag)
@@ -68,18 +73,24 @@ do n = 1, n_turns
   do ie = 1, ix_ele_start
     call track1_bunch(bunch, lat, lat%ele(ie), bunch, err_flag)
   enddo
+  call run_timer('READ', time)
+
+  if (time-time0 > 60) then
+    print '(a, f10.2)', 'Ellapsed time (min): ', time/60
+    time0 = time
+  endif
 enddo
 
 ! Output results
 
 open (1, file = dat_file, recl = 300)
-write (1, '(a)') '                                                     Start                                                        !', &
-                 '                                                     End                                                          '
-write (1, '(a)') '#  Ix    x           px            y           py           z          pz       spin_x       spin_y        spin_z |', &
-                      '    x           px            y           py           z          pz       spin_x       spin_y        spin_z'
+write (1, '(2a)') '                                                     Start                                                                        |', &
+                      '                                                 End'
+write (1, '(2a)') '#  Ix          x           px            y           py            z           pz             spin_x       spin_y       spin_z    |', &
+                      '           x           px            y           py            z           pz             spin_x       spin_y       spin_z'
 
 do i = 1, size(bunch%particle)
-  write (1, '(i6, 6f13.8, 4x, f13.8, 6x, 6f13.8, 4x, f13.8)'), i, &
+  write (1, '(i6, 6f13.8, 4x, 3f13.8, 6x, 6f13.8, 4x, 3f13.8)'), i, &
                     bunch_init%particle(i)%vec, bunch_init%particle(i)%spin, &
                     bunch%particle(i)%vec, bunch%particle(i)%spin
 enddo
