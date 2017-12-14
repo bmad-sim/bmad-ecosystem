@@ -7,10 +7,16 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (coord_struct), allocatable :: orbit(:)
+logical exist
 
 !
 
-call system_command ('python ../../util_programs/sad_to_bmad/sad_to_bmad.py')
+inquire (file = '../../util_programs/sad_to_bmad/sad_to_bmad.py', exist = exist)
+if (exist) then
+  call system_command ('python ../../util_programs/sad_to_bmad/sad_to_bmad.py')
+else
+  call system_command ('python $ACC_ROOT_DIR/util_programs/sad_to_bmad/sad_to_bmad.py')
+endif
 
 call bmad_parser('sler_1689.bmad', lat)
 call twiss_and_track(lat, orbit)
