@@ -2049,20 +2049,6 @@ do ii = 1, size(curve%x_line)
         orbit = orbit_end
       endif
 
-      if (err) then
-        good(ii:) = .false.
-        bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
-        return
-      endif
-
-      if (orbit_end%state /= alive$) then
-        write (curve%message_text, '(f10.3)') s_now
-        curve%message_text = trim(curve%data_type) // ': Particle lost at s = ' // &
-                             trim(adjustl(curve%message_text))
-        bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
-        return
-      endif
-
       if (data_type == 'momentum_compaction' .or. data_type == 'r56_compaction') then
         if (first_time) then
           call mat6_from_s_to_s (lat, mat6, vec0, ele_ref%s, s_now, orb_ref, ix_branch, err_flag = err)
@@ -2079,6 +2065,23 @@ do ii = 1, size(curve%x_line)
         tao_branch%plot_cache(ii)%ele%mat6  = mat6
         tao_branch%plot_cache(ii)%ele%vec0 = vec0
       endif
+
+      if (err) then
+        tao_branch%plot_cache(ii)%orbit%state = lost$
+        good(ii:) = .false.
+        bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
+        return
+      endif
+
+    endif
+
+    if (orbit%state /= alive$) then
+      good(ii:) = .false.
+      write (curve%message_text, '(f10.3)') s_now
+      curve%message_text = trim(curve%data_type) // ': Particle lost at s = ' // &
+                           trim(adjustl(curve%message_text))
+      bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
+      return
     endif
 
   case default
