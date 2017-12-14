@@ -17,7 +17,13 @@ patch_for_fshift = None    # None => Insert patches only if fshift is defined an
 # to take into account small variations in tracking between Bmad/PTC and SAD. In this case, the
 # program sad_to_bmad_postprocess needs to be run. 
 
-sad_to_bmad_postprocess_exe = "../../production/bin/sad_to_bmad_postprocess"
+import os.path
+
+if os.path.isfile("../../production/bin/sad_to_bmad_postprocess"):
+  sad_to_bmad_postprocess_exe = "../../production/bin/sad_to_bmad_postprocess"
+else:
+  sad_to_bmad_postprocess_exe = "$ACC_ROOT_DIR/production/bin/sad_to_bmad_postprocess"
+
 
 # What the time shifts are needed depend upon whether PTC or Bmad will be used for
 # any simulations. 
