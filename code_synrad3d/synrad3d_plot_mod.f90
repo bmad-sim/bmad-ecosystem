@@ -667,9 +667,9 @@ type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch, branch2
 
 real(rp), allocatable :: x(:), y(:)
-real(rp) s_pos, x_max, y_max, theta, r, x_max_user, r_max, s_pos_old, rr(2)
 real(rp), allocatable :: x_norm(:), y_norm(:)
-real(rp) minn, maxx
+real(rp) s_pos, x_min, x_max, y_min, y_max, x_min_user, x_max_user, y_min_user, y_max_user
+real(rp) theta, r, r1, r2, r_max, s_pos_old, rr(2), minn, maxx
 
 integer i, n, j, iw, ix, ix_section, i_in, ios, i_chan, iu, ie_max
 integer ix0, iw_wall, n_sec_max
@@ -677,7 +677,7 @@ integer ix0, iw_wall, n_sec_max
 character(100) :: ans, label, label2, sub_label
 character(8) v_str
 
-logical at_section, draw_norm, reverse_x_axis, no_wall_here, write_cross_section
+logical at_section, draw_norm, reverse_x_axis, no_wall_here, write_cross_section, set_x, set_y
 
 ! Open plotting window
 
@@ -690,7 +690,10 @@ call qp_set_page_border (0.05_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
 write_cross_section = .false.
 draw_norm = .false.
 reverse_x_axis = .false.
-x_max_user = -1
+x_min_user = real_garbage$
+x_max_user = real_garbage$
+y_min_user = real_garbage$
+y_max_user = real_garbage$
 r_max = 100
 n = plot_param%n_pt
 ie_max = branch%n_ele_track
@@ -739,28 +742,37 @@ do
 
   call qp_clear_page
 
-  x_max = 0
-  y_max = 0
-
+  x_min = 0;   x_max = 0
+  y_min = 0;   y_max = 0
   do iw = 1, size(branch%wall3d)
     wall3d => branch%wall3d(iw)
     photon%now%ix_wall3d = iw
     call calc_this_outline (wall3d, x, y, no_wall_here)
     if (no_wall_here) cycle
-    x_max = max (x_max, 1.01*maxval(abs(x)))
-    y_max = max (y_max, 1.01*maxval(abs(y)))
+    x_min = min (x_min, 1.01*minval(x))
+    y_min = min (y_min, 1.01*minval(y))
+    x_max = max (x_max, 1.01*maxval(x))
+    y_max = max (y_max, 1.01*maxval(y))
   enddo
 
-  if (x_max_user > 0) x_max = x_max_user
+  if (x_min_user /= real_garbage$) x_min = x_min_user
+  if (x_max_user /= real_garbage$) x_max = x_max_user
+  if (y_min_user /= real_garbage$) y_min = y_min_user
+  if (y_max_user /= real_garbage$) y_max = y_max_user
 
-  call qp_calc_and_set_axis ('X', -x_max, x_max, 10, 16, 'ZERO_SYMMETRIC')
-  call qp_calc_and_set_axis ('Y', -y_max, y_max, 6, 10, 'ZERO_SYMMETRIC')
+  call qp_calc_and_set_axis ('X', x_min, x_max, 10, 16, 'GENERAL')
+  call qp_calc_and_set_axis ('Y', y_min, y_max, 6, 10, 'GENERAL')
 
   call qp_set_margin (0.07_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
 
-  if (x_max_user > 0) then
+  set_x = (x_min_user /= real_garbage$ .or. x_max_user /= real_garbage$)
+  set_y = (y_min_user /= real_garbage$ .or. y_max_user /= real_garbage$)
+
+  if (set_x .and. .not. set_y) then
     call qp_eliminate_xy_distortion('Y')
-  else
+  elseif (.not. set_x .and. set_y) then
+    call qp_eliminate_xy_distortion('X')
+  elseif (.not. set_x .and. .not. set_y) then
     call qp_eliminate_xy_distortion()
   endif
 
@@ -817,18 +829,20 @@ do
 
   print *
   print '(a)',     'Commands:'
-  print '(a)',     '   iw <sub-ch>      ! Select sub-chamber to use with other commands'
-  print '(a)',     '   <CR>             ! Next section of selected sub-chamber (increment viewed section index by 1).'
-  print '(a)',     '   b                ! Back section of selected sub-chamber (decrement viewed section index by 1).'
-  print '(a)',     '   <Section #>      ! Index of section to view'
-  print '(a)',     '   s <s-value>      ! Plot section at <s-value>.'
-  print '(a)',     '   x <x-max>        ! Set horizontal plot scale. Vertical will be scaled to match.'
-  print '(a)',     '   x auto           ! Auto scale plot.'
-  print '(a)',     '   write            ! Write (x,y) points to a file.'
-  print '(a, i0)', '   branch <name>    ! Name or index of branch. Branch indexes for this lattice range from 0 to ', ubound(lat%branch, 1)
-  print '(a)',     '   normal           ! Toggle drawing of a set of vectors normal to the wall'
-  print '(a)',     '   reverse          ! Toggle reversing the x-axis to point left for +x'
-  print '(a)',     '   list             ! List sections for current lattice branch.'
+  print '(a)',     '   iw <sub-ch>        ! Select sub-chamber to use with other commands'
+  print '(a)',     '   <CR>               ! Next section of selected sub-chamber (increment viewed section index by 1).'
+  print '(a)',     '   b                  ! Back section of selected sub-chamber (decrement viewed section index by 1).'
+  print '(a)',     '   <Section #>        ! Index of section to view'
+  print '(a)',     '   s <s-value>        ! Plot section at <s-value>.'
+  print '(a)',     '   x  <x-min> <x-max> ! Set horizontal plot scale. If only one number given, set min = -number, max = number.'
+  print '(a)',     '   x auto             ! Auto scale plot.'
+  print '(a)',     '   y  <y-min> <y-max> ! Set horizontal plot scale. If only one number given, set min = -number, max = number.'
+  print '(a)',     '   y auto             ! Auto scale plot.'
+  print '(a)',     '   write              ! Write (x,y) points to a file.'
+  print '(a, i0)', '   branch <name>      ! Name or index of branch. Branch indexes for this lattice range from 0 to ', ubound(lat%branch, 1)
+  print '(a)',     '   normal             ! Toggle drawing of a set of vectors normal to the wall'
+  print '(a)',     '   reverse            ! Toggle reversing the x-axis to point left for +x'
+  print '(a)',     '   list               ! List sections for current lattice branch.'
 
   if (write_cross_section) then
     close (iu)
@@ -864,14 +878,53 @@ do
   elseif (ans(1:1) == 'x') then
     call string_trim(ans(2:), ans, ix)
     if (ans == 'auto') then
-      x_max_user = -1
+      x_min_user = real_garbage$
+      x_max_user = real_garbage$
     else
-      read (ans, *, iostat = ios) r
+      read (ans, *, iostat = ios) r1
       if (ios /= 0) then
         print *, 'Cannot read x-scale'
         cycle
       endif
-      x_max_user = r
+      call string_trim(ans(ix+1:), ans, ix)
+      if (ix == 0) then
+        x_min_user = -r1
+        x_max_user = r1
+      else
+        read (ans, *, iostat = ios) r2
+        if (ios /= 0) then
+          print *, 'Cannot read x-scale'
+          cycle
+        endif
+        x_min_user = r1
+        x_max_user = r2
+      endif
+    endif
+
+  elseif (ans(1:1) == 'y') then
+    call string_trim(ans(2:), ans, ix)
+    if (ans == 'auto') then
+      y_min_user = real_garbage$
+      y_max_user = real_garbage$
+    else
+      read (ans, *, iostat = ios) r1
+      if (ios /= 0) then
+        print *, 'Cannot read y-scale'
+        cycle
+      endif
+      call string_trim(ans(ix+1:), ans, ix)
+      if (ix == 0) then
+        y_min_user = -r1
+        y_max_user = r1
+      else
+        read (ans, *, iostat = ios) r2
+        if (ios /= 0) then
+          print *, 'Cannot read x-scale'
+          cycle
+        endif
+        y_min_user = r1
+        y_max_user = r2
+      endif
     endif
 
   elseif (ans == '') then
@@ -961,14 +1014,14 @@ real(rp) theta, dw_perp(3)
 integer i, j
 logical no_wall_here
 
-! Idea is to see where photon path from photon%old (at the origin) to %now intersects the wall.
+! Idea is to see where photon path from photon%old (at the wall origin) to %now intersects the wall.
 ! photon%now is at 1 meter radius which is assumed to be outside the wall.
 
 do i = 1, size(x)
 
   theta = (i-1) * twopi / (size(x) - 1)
-  photon%now%orb%vec(1) = r_max * cos(theta)  
-  photon%now%orb%vec(3) = r_max * sin(theta)
+  photon%now%orb%vec(1) = r_max * cos(theta)  ! Relative to wall origin.
+  photon%now%orb%vec(3) = r_max * sin(theta)  ! Relative to wall origin.
 
   call sr3d_find_wall_point (photon, branch, x(i), y(i), no_wall_here, dw_perp)
   x_norm(i) = dw_perp(1)
@@ -983,5 +1036,65 @@ x = x * 100; y = y * 100
 end subroutine calc_this_outline
 
 end subroutine sr3d_plot_wall_cross_sections
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine sr3d_find_wall_point (photon, branch, x_wall, y_wall, no_wall_here, dw_perp)
+!
+! Routine to find the point on the specified sub-chamber wall where the half-line
+! drawn from the sub-chamber origin point through the (x, y) photon point intersects
+! the wall.
+!
+! Input:
+!   photon    -- sr3d_photon_track_struct
+!     %now%vec(1)     -- x-position relative to wall origin
+!     %now%vec(3)     -- y-position relative to wall origin
+!     %now%s          -- s-position
+!     %now%ix_wall3d  -- sub-chamber wall index.
+!     %now%ix_wall_section -- Section of wall index.
+!
+! Output:
+!   x_wall        -- real(rp): x wall point. Not relative to wall origin. Return zero if no wall here..
+!   y_wall        -- real(rp): y wall point. Not relative to wall origin. Return zero if no wall here.
+!   no_wall_here  -- logical: Set True if the subchamber does not extend longitudinally to the given s-position.
+!   dw_perp(3)    -- real(rp), optional: Vector which is outward perpendicular to the wall.
+!-
+
+subroutine sr3d_find_wall_point (photon, branch, x_wall, y_wall, no_wall_here, dw_perp)
+
+implicit none
+
+type (sr3d_photon_track_struct) photon
+type (branch_struct) branch
+
+real(rp) x_wall, y_wall
+real(rp), optional :: dw_perp(3)
+real(rp) d_radius, r_wall, r_part, origin(3)
+
+logical no_wall_here ! No wall at this s-position?
+
+!
+
+x_wall = 0
+y_wall = 0
+
+photon%now%orb%ix_ele = element_at_s (branch%lat, photon%now%orb%s, .true., branch%ix_branch)
+call sr3d_photon_d_radius (photon%now, branch, no_wall_here, d_radius, dw_perp, origin)
+if (no_wall_here) return
+
+if (d_radius < 0) then
+  print *, 'INTERNAL COMPUTATION ERROR!'
+  call err_exit
+endif
+
+r_part = sqrt((photon%now%orb%vec(1) - origin(1))**2 + (photon%now%orb%vec(3) - origin(2))**2)
+r_wall = r_part - d_radius
+
+x_wall = origin(1) + (photon%now%orb%vec(1) - origin(1)) * r_wall / r_part
+y_wall = origin(2) + (photon%now%orb%vec(3) - origin(2)) * r_wall / r_part
+
+end subroutine sr3d_find_wall_point
 
 end module
