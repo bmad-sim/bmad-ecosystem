@@ -642,6 +642,7 @@ type tao_common_struct
   logical :: init_tao_file_arg_set = .false.
   logical :: log_startup = .false.             ! '-log_startup' command line argument.
   logical :: print_to_terminal = .true.        ! Print command prompt to the terminal?
+  logical :: quiet = .false.                      ! Print commands on terminal when running a command file?
   character(100) :: cmd                        ! Used for the cmd history
   character(16) :: init_name = 'Tao'           ! label for initialization          
   character(200) :: lat_file = ''              ! '-lat'         command line argument.

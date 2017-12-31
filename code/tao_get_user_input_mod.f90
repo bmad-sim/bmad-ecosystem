@@ -134,7 +134,7 @@ endif
 ! If a command file is open then read a line from the file.
 
 n_level = s%com%cmd_file_level
-if (n_level == 0) s%global%quiet = .false.  ! Disable if not running from a command file
+if (n_level == 0) s%com%quiet = .false.  ! Disable if not running from a command file
 
 if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
 
@@ -157,7 +157,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
     ! nothing more to do if an alias definition
 
     if (cmd_out(1:5) == 'alias') then
-      if (.not. s%global%quiet) call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
+      if (.not. s%com%quiet) call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
       return
     endif
 
@@ -197,7 +197,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
       
     enddo loop1
 
-    if (.not. s%global%quiet) call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
+    if (.not. s%com%quiet) call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
     
     ! Check if in a do loop
     call do_loop(cmd_out)

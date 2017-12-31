@@ -1440,7 +1440,6 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %disable_smooth_line_calc      = ', s%global%disable_smooth_line_calc
     nl=nl+1; write(lines(nl), lmt) '  %lattice_calc_on               = ', s%global%lattice_calc_on
     nl=nl+1; write(lines(nl), lmt) '  %plot_on                       = ', s%global%plot_on
-    nl=nl+1; write(lines(nl), lmt) '  %quiet                         = ', s%global%quiet
     nl=nl+1; write(lines(nl), lmt) '  %rf_on                         = ', s%global%rf_on
     nl=nl+1; write(lines(nl), lmt) '  %wait_for_CR_in_single_mode    = ', s%global%wait_for_CR_in_single_mode
     nl=nl+1; write(lines(nl), amt) '  %prompt_string                 = ', s%global%prompt_string
