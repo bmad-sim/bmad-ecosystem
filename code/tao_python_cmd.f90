@@ -585,7 +585,6 @@ case ('enum')
 
 case ('global')
 
-  nl=incr(nl); write (li(nl), rmt) 'y_axis_plot_dmin;REAL;T;',                s%global%y_axis_plot_dmin
   nl=incr(nl); write (li(nl), rmt) 'lm_opt_deriv_reinit;REAL;T;',             s%global%lm_opt_deriv_reinit
   nl=incr(nl); write (li(nl), rmt) 'de_lm_step_ratio;REAL;T;',                s%global%de_lm_step_ratio
   nl=incr(nl); write (li(nl), rmt) 'de_var_to_population_factor;REAL;T;',     s%global%de_var_to_population_factor
@@ -609,14 +608,12 @@ case ('global')
   nl=incr(nl); write (li(nl), amt) 'optimizer;STR;T;',                        s%global%optimizer
   nl=incr(nl); write (li(nl), amt) 'print_command;STR;T;',                    s%global%print_command
   nl=incr(nl); write (li(nl), amt) 'var_out_file;STR;T;',                     s%global%var_out_file
-  nl=incr(nl); write (li(nl), lmt) 'initialized;LOGIC;T;',                    s%global%initialized
   nl=incr(nl); write (li(nl), lmt) 'opt_with_ref;LOGIC;T;',                   s%global%opt_with_ref
   nl=incr(nl); write (li(nl), lmt) 'opt_with_base;LOGIC;T;',                  s%global%opt_with_base
   nl=incr(nl); write (li(nl), lmt) 'label_lattice_elements;LOGIC;T;',         s%global%label_lattice_elements
   nl=incr(nl); write (li(nl), lmt) 'label_keys;LOGIC;T;',                     s%global%label_keys
   nl=incr(nl); write (li(nl), lmt) 'derivative_recalc;LOGIC;T;',              s%global%derivative_recalc
   nl=incr(nl); write (li(nl), lmt) 'derivative_uses_design;LOGIC;T;',         s%global%derivative_uses_design
-  nl=incr(nl); write (li(nl), lmt) 'init_plot_needed;LOGIC;T;',               s%global%init_plot_needed
   nl=incr(nl); write (li(nl), lmt) 'orm_analysis;LOGIC;T;',                   s%global%orm_analysis
   nl=incr(nl); write (li(nl), lmt) 'plot_on;LOGIC;T;',                        s%global%plot_on
   nl=incr(nl); write (li(nl), lmt) 'lattice_calc_on;LOGIC;T;',                s%global%lattice_calc_on
