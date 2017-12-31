@@ -339,7 +339,7 @@ case ('quiet')
 if (s%com%cmd_file_level == 0) then 
   call out_io (s_error$, r_name, 'The "quiet" command may only be used in command files.')
 else
-  s%global%quiet = .true.
+  s%com%quiet = .true.
 endif
 
 !--------------------------------
