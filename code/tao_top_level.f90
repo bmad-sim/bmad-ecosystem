@@ -58,13 +58,13 @@ endif
 
 ! And init everything.
 
-if (.not. s%global%initialized) then
+if (.not. s%com%initialized) then
   call tao_init (err)
   if (err) then
     call out_io (s_fatal$, r_name, 'TAO INIT FILE NOT FOUND. STOPPING.')
     stop
   endif
-  s%global%initialized = .true. 
+  s%com%initialized = .true. 
 endif
 
 u => s%u(1)  ! Used for debugging

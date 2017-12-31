@@ -539,7 +539,6 @@ end type
 ! Also see: tao_common_struct.
 
 type tao_global_struct
-  real(rp) :: y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
   real(rp) :: lm_opt_deriv_reinit = -1   ! Reinit derivative matrix cutoff
   real(rp) :: de_lm_step_ratio = 1       ! Scaling for step sizes between DE and LM optimizers.
   real(rp) :: de_var_to_population_factor = 5.0_rp ! DE population = max(n_var*factor, 20)
@@ -563,14 +562,12 @@ type tao_global_struct
   character(16) :: optimizer     = 'de'             ! optimizer to use.
   character(40) :: print_command = 'lpr'
   character(80) :: var_out_file  = 'var#.out'
-  logical :: initialized = .false.                ! Does tao_init() need to be called?
   logical :: opt_with_ref = .false.               ! use reference data in optimization?
   logical :: opt_with_base = .false.              ! use base data in optimization?
   logical :: label_lattice_elements = .true.      ! For lat_layout plots
   logical :: label_keys = .true.                  ! For lat_layout plots
   logical :: derivative_recalc = .true.           ! Recalc before each optimizer run?
   logical :: derivative_uses_design = .false.     ! Derivative calc uses design lattice instead of model?
-  logical :: init_plot_needed = .true.            ! reinitialize plotting?
   logical :: orm_analysis = .false.               ! orm using mdsa? 
   logical :: plot_on = .true.                     ! Do plotting?
   logical :: lattice_calc_on = .true.             ! Turn on/off calculations.
@@ -589,7 +586,6 @@ type tao_global_struct
   logical :: debug_on = .false.                   ! For debugging.
   logical :: single_step = .false.                ! For debugging. Single step through a command file?
   logical :: optimizer_allow_user_abort = .true.  ! See Tao manual for more details.
-  logical :: quiet = .false.                      ! Print commands on terminal when running a command file?
 end type
 
 !
@@ -626,14 +622,16 @@ type tao_common_struct
   integer :: default_branch = 0          ! Default lattice branch to work with.
   integer :: ix_history = 0 ! present index to command history array
   integer :: n_history      ! present history index
+  logical :: initialized = .false.                  ! Does tao_init() need to be called?
   logical :: cmd_file_paused
-  logical :: use_cmd_here  = .false.                   ! Used for the cmd history stack
+  logical :: use_cmd_here  = .false.                ! Used for the cmd history stack
   logical :: multi_commands_here = .false.
-  logical :: cmd_from_cmd_file = .false.               ! was command from a command file?
+  logical :: cmd_from_cmd_file = .false.            ! was command from a command file?
   logical :: use_saved_beam_in_tracking = .false.
   logical :: single_mode = .false.
   logical :: combine_consecutive_elements_of_like_name
   logical :: common_lattice = .false.      
+  logical :: init_plot_needed      = .true.   ! reinitialize plotting?
   logical :: init_beam             = .true.   ! Used by custom programs to control Tao init
   logical :: init_var              = .true.   ! Used by custom programs to control Tao init
   logical :: init_read_lat_info    = .true.   ! Used by custom programs to control Tao init
