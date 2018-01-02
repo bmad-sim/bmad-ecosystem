@@ -75,7 +75,7 @@ subroutine ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
   type(normal_modes_struct) :: ibsmode
   real(rp) :: granularity
   real(rp) :: ratio
-  real(rp) :: initial_blow_up
+  real(rp) :: initial_blow_up(3)
   type(ibs_struct) rates
 
   real(rp) time_for_one_turn
@@ -86,6 +86,8 @@ subroutine ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
   real(rp) emit_a0, emit_b0
   real(rp) advance, threshold
   real(rp) sigE_E, sigE_E0, sigma_z0, L_ratio
+  real(rp) ratio_a, ratio_b, ratio_z
+  real(rp) emit_a_prev, emit_b_prev, sigE_E_prev
   real(rp) running_emit_x(1:40), running_emit_y(1:40), running_sigE_E(1:40)
   integer half
   real(rp) runavg_emit_x_A, runavg_emit_y_A, runavg_sigE_E_A
@@ -93,6 +95,7 @@ subroutine ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
   real(rp) energy, gamma, KE, rbeta
   logical converged
   integer counter, i
+  integer ibs_mod_lun
 
   character(20) :: r_name = 'ibs_equib_rlx'
 
@@ -119,10 +122,10 @@ subroutine ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
 
   ibsmode = inmode
   L_ratio = inmode%sig_z / inmode%sigE_E
-  ibsmode%a%emittance = inmode%a%emittance * initial_blow_up
-  ibsmode%b%emittance = inmode%b%emittance * initial_blow_up
-  ibsmode%sigE_E = inmode%sigE_E * sqrt(initial_blow_up)
-  ibsmode%sig_z = inmode%sig_z * sqrt(initial_blow_up)
+  ibsmode%a%emittance = inmode%a%emittance * initial_blow_up(1)
+  ibsmode%b%emittance = inmode%b%emittance * initial_blow_up(2)
+  ibsmode%sigE_E = inmode%sigE_E * sqrt(initial_blow_up(3))
+  ibsmode%sig_z = inmode%sig_z * sqrt(initial_blow_up(3))
   ibsmode%z%emittance = ibsmode%sig_z * ibsmode%sigE_E
 
   do i=1, SIZE(running_emit_x)
@@ -132,7 +135,10 @@ subroutine ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
   enddo
   half = SIZE(running_emit_x) / 2
 
+  ibs_mod_lun = lunget()
+  open(ibs_mod_lun,file="ibs_mod.progress")
   do WHILE(.not.converged)
+    counter = counter + 1
     do i=1, lat%n_ele_track
       lat%ele(i)%a%emit = ibsmode%a%emittance
       lat%ele(i)%b%emit = ibsmode%b%emittance
@@ -143,83 +149,72 @@ subroutine ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
 
     call ibs_rates1turn(lat,ibs_sim_params,rates,granularity)
 
-    counter = counter + 1
-    !It is possible that this method can give negative emittances
-    !at some point in the iterative process, in which case the case
-    !structure below will terminate the program.  If this happens, try
-    !using different values for initial_blow_up.
-    if( rates%inv_Ta .eq. 0.0 ) then
-      afactor = 1.0
-    else
-      Ta = 1.0/rates%inv_Ta
-      afactor = 1.0/(1.0-(tau_a/Ta))
-      if( afactor .lt. 0.0 ) then
-        call out_io(s_abort$, r_name, &
-             'FATAL ERROR: Negative emittance encountered: ', &
-             'Try adjusting initial_blow_up or switch to derivatives method "der".')
-        stop
-      endif
-    endif
-    if( rates%inv_Tb .eq. 0.0 ) then
-      bfactor = 1.0
-    else
-      Tb = 1.0/rates%inv_Tb
-      bfactor = 1.0/(1.0-(tau_b/Tb))
-      if( bfactor .lt. 0.0 ) then
-        call out_io(s_abort$, r_name, &
-             'FATAL ERROR: Negative emittance encountered: ', &
-             'Try adjusting initial_blow_up or switch to derivatives method "der".')
-        stop
-      endif
-    endif
-    if( rates%inv_Tz .eq. 0.0 ) then
-      zfactor = 1.0
-    else
-      Tz = 1.0/rates%inv_Tz
-      zfactor = 1.0/(1.0-(tau_z/Tz))
-      if( zfactor .lt. 0.0 ) then
-        call out_io(s_abort$, r_name, &
-             'FATAL ERROR: Negative emittance encountered: ', &
-             'Try adjusting initial_blow_up or switch to derivatives method "der".')
-        stop
-      endif
-    endif
+    ratio_a = tau_a*rates%inv_Ta
+    ratio_b = tau_b*rates%inv_Tb
+    ratio_z = tau_z*rates%inv_Tz
 
-    emit_a = ibsmode%a%emittance + advance*( afactor*emit_a0 - ibsmode%a%emittance ) 
-    emit_b = ibsmode%b%emittance + advance*( ((1.0-ratio)*bfactor+ratio*afactor)*emit_b0 - ibsmode%b%emittance )
-    sigE_E = ibsmode%sigE_E      + advance*( zfactor*sigE_E0 - ibsmode%sigE_E )
+    !Initial blow up must be such that the first time through this loop, the following conditional
+    !will be false (i.e. the else will be taken).
 
-    running_emit_x = CSHIFT(running_emit_x, -1)
-    running_emit_y = CSHIFT(running_emit_y, -1)
-    running_sigE_E = CSHIFT(running_sigE_E, -1)
-    running_emit_x(1) = emit_a
-    running_emit_y(1) = emit_b
-    running_sigE_E(1) = sigE_E
-    runavg_emit_x_A = SUM(running_emit_x(1:half))/(half)
-    runavg_emit_y_A = SUM(running_emit_y(1:half))/(half)
-    runavg_sigE_E_A = SUM(running_sigE_E(1:half))/(half)
-    runavg_emit_x_B = SUM(running_emit_x(half+1:))/(half)
-    runavg_emit_y_B = SUM(running_emit_y(half+1:))/(half)
-    runavg_sigE_E_B = SUM(running_sigE_E(half+1:))/(half)
+    if( (ratio_a .ge. 1) .or. (ratio_b .ge. 1) .or. (ratio_z .ge. 1) ) then
+      write(*,*) "Negative emittance encountered.  Reducing step size by half."
+      advance = advance / 2.0d0
+      ibsmode%a%emittance = emit_a_prev + advance*( afactor*emit_a0 - emit_a_prev ) 
+      ibsmode%b%emittance = emit_b_prev + advance*( ((1.0-ratio)*bfactor+ratio*afactor)*emit_b0 - emit_b_prev )
+      ibsmode%sigE_E      = sigE_E_prev + advance*( zfactor*sigE_E0 - sigE_E_prev )
+    else
+      !advance = advance + (advance0-advance)*0.1
+      if(mod(counter,500)==0) then
+        write(*,'(a,i10)') "Still working.  See ibs_mod.progress to monitor progress.  Steps: ", counter 
+      endif
 
-    if(counter .gt. SIZE(running_emit_x)) then
-      if( abs(runavg_emit_x_A/runavg_emit_x_B - 1.) .lt. threshold ) then
-        if( abs(runavg_emit_y_A/runavg_emit_y_B - 1.) .lt. threshold ) then
-          if( abs(runavg_sigE_E_A/runavg_sigE_E_B - 1.) .lt. threshold ) then
-            converged = .true.
+      emit_a_prev = ibsmode%a%emittance
+      emit_b_prev = ibsmode%b%emittance
+      sigE_E_prev = ibsmode%sigE_E
+
+      afactor = 1.0/(1.0-ratio_a)
+      bfactor = 1.0/(1.0-ratio_b)
+      zfactor = 1.0/(1.0-ratio_z)
+
+      emit_a = ibsmode%a%emittance + advance*( afactor*emit_a0 - ibsmode%a%emittance ) 
+      emit_b = ibsmode%b%emittance + advance*( ((1.0-ratio)*bfactor+ratio*afactor)*emit_b0 - ibsmode%b%emittance )
+      sigE_E = ibsmode%sigE_E      + advance*( zfactor*sigE_E0 - ibsmode%sigE_E )
+
+      write(ibs_mod_lun,'(3es14.5,es14.5)') emit_a, emit_b, sigE_E
+
+      running_emit_x = CSHIFT(running_emit_x, -1)
+      running_emit_y = CSHIFT(running_emit_y, -1)
+      running_sigE_E = CSHIFT(running_sigE_E, -1)
+      running_emit_x(1) = emit_a
+      running_emit_y(1) = emit_b
+      running_sigE_E(1) = sigE_E
+      runavg_emit_x_A = SUM(running_emit_x(1:half))/(half)
+      runavg_emit_y_A = SUM(running_emit_y(1:half))/(half)
+      runavg_sigE_E_A = SUM(running_sigE_E(1:half))/(half)
+      runavg_emit_x_B = SUM(running_emit_x(half+1:))/(half)
+      runavg_emit_y_B = SUM(running_emit_y(half+1:))/(half)
+      runavg_sigE_E_B = SUM(running_sigE_E(half+1:))/(half)
+
+      if(counter .gt. SIZE(running_emit_x)) then
+        if( abs(runavg_emit_x_A/runavg_emit_x_B - 1.) .lt. threshold ) then
+          if( abs(runavg_emit_y_A/runavg_emit_y_B - 1.) .lt. threshold ) then
+            if( abs(runavg_sigE_E_A/runavg_sigE_E_B - 1.) .lt. threshold ) then
+              converged = .true.
+            endif
           endif
-        endif
+        endif        
       endif        
-    endif        
 
-    if(.not.converged) then
-      ibsmode%a%emittance = emit_a
-      ibsmode%b%emittance = emit_b
-      ibsmode%sigE_E = sigE_E 
-      ibsmode%sig_z = L_ratio * ibsmode%sigE_E
-      ibsmode%z%emittance = ibsmode%sig_z * ibsmode%sigE_E 
+      if(.not.converged) then
+        ibsmode%a%emittance = emit_a
+        ibsmode%b%emittance = emit_b
+        ibsmode%sigE_E = sigE_E 
+        ibsmode%sig_z = L_ratio * ibsmode%sigE_E
+        ibsmode%z%emittance = ibsmode%sig_z * ibsmode%sigE_E 
+      endif
     endif
   enddo
+  close(ibs_mod_lun)
 end subroutine ibs_equib_rlx
 
 !-------------------------------------------------------------------------------------------------------------------
@@ -285,7 +280,7 @@ subroutine ibs_equib_der(lat,ibs_sim_params,inmode,ibsmode,granularity)
   emit_b0 = inmode%b%emittance
   L_ratio = sigma_z0 / sigE_E0
 
-  threshold = .00001 !fractional changes in emittance smaller than this
+  threshold = .0000001 !fractional changes in emittance smaller than this
                      !indicate convergence
   converged = .false.
   dT = tau_a / 10.0 !Time to advance per iteration
@@ -320,9 +315,9 @@ subroutine ibs_equib_der(lat,ibs_sim_params,inmode,ibsmode,granularity)
     dbdt = -(emit_b-emit_b0)*2./tau_b + emit_b*2./Tb 
     dsEdt= -(sigE_E-sigE_E0)/tau_z + sigE_E/Tz
 
-    if( (dadt*dT)/emit_a .lt. threshold ) then
-      if( (dbdt*dT)/emit_b .lt. threshold ) then
-        if( (dsEdt*dT)/ibsmode%sigE_E .lt. threshold ) then
+    if( abs(dadt*dT)/emit_a .lt. threshold ) then
+      if( abs(dbdt*dT)/emit_b .lt. threshold ) then
+        if( abs(dsEdt*dT)/ibsmode%sigE_E .lt. threshold ) then
           converged = .true.
         endif
       endif
@@ -333,6 +328,8 @@ subroutine ibs_equib_der(lat,ibs_sim_params,inmode,ibsmode,granularity)
     ibsmode%sigE_E = ibsmode%sigE_E + dsEdt*dT
     ibsmode%sig_z = L_ratio * ibsmode%sigE_E
     ibsmode%z%emittance = ibsmode%sig_z * ibsmode%sigE_E 
+
+    !write(*,'(3es15.6)') ibsmode%a%emittance, ibsmode%b%emittance, ibsmode%z%emittance
   enddo
 end subroutine ibs_equib_der
 
