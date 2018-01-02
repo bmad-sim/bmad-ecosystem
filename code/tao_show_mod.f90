@@ -179,9 +179,9 @@ type (aperture_scan_struct), pointer :: aperture_scan
 
 type show_lat_column_struct
   character(80) :: name = ''
-  character(16) :: format = ''
+  character(40) :: format = ''
   integer :: width = 0
-  character(32) :: label = ''
+  character(40) :: label = ''
   logical :: remove_line_if_zero = .false.
   real(rp) :: scale_factor = 1
 end type
@@ -2319,20 +2319,22 @@ case ('lattice')
 
       ix = index(name, '|')
       if (ix == 0) then
-        if (column(i)%format(2:2) == 'a') then
+        if (index(column(i)%format, 'a') /= 0) then
           line2(ix1:) = name
         else
           j = len_trim(name)
           line2(ix2-j:) = name(1:j)
         endif
       else
-        if (column(i)%format(2:2) == 'a') then
+        if (index(column(i)%format, 'a') /= 0) then
           line2(ix1:) = name(1:ix-1)
           line3(ix1:) = trim(name(ix+1:))
         else
-          j = max(ix-1, len_trim(name(ix+1:)))
-          line2(ix2-j:) = name(1:ix-1)
-          line3(ix2-j:) = trim(name(ix+1:))
+          j = ix-1
+          line2(ix2-j:) = name(1:j)
+          name = name(ix+1:)
+          j = len_trim(name)
+          line3(ix2-j:) = name(1:j)
         endif
       endif
     endif
