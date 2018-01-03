@@ -26,7 +26,7 @@ type(ibs_data_struct), allocatable :: ibs_data(:)
 type(ele_struct) ele_at_s
 type(ele_struct) pwd_ele
 
-integer, parameter :: N_MAX_CURRENTS = 1000
+integer, parameter :: N_MAX_CURRENTS = 100000
 real(rp) currents(N_MAX_CURRENTS)
 
 real(rp) :: high_current
@@ -45,6 +45,7 @@ real(rp) s, delta_s
 real(rp) Ha, Hb
 real(rp) L_ratio
 real(rp) :: fake_3HC
+real(rp) initial_blow_up(3)
 
 logical error, do_pwd
 logical :: ptc_calc
@@ -62,7 +63,9 @@ integer stdoutlun, dotinlun, scalinglun
 integer emitlun
 integer rateslun
 integer int_rateslun
-integer :: clog_to_use
+integer clog_to_use
+integer status
+integer ix_cache
 
 type(ibs_struct) rates
 type(normal_modes_struct) mode
@@ -89,6 +92,7 @@ namelist /parameters/ lat_file, &        ! Lattice file in BMAD format.
                       clog_to_use, &     ! 1=classic, no tail cut.  2=Raubenheimer.  3=Oide, 4=Bane.  See multi_coulomb_log in ibs_mod.f90
 
                       eqb_method, &      ! 'der' for derivatives.  'rlx' for relaxation approach.  Use 'der'.
+                      initial_blow_up, & ! initial starting point for 'rlx' method.
                       ratio, &           ! "Coupling parameter r" hack for including coupling.
 
                       x_view, &          ! index of element where projection is taken for horizontal beam size calculation.
@@ -133,14 +137,13 @@ if(do_pwd) then
   pwd_ele%taylor(6)%term(2)%expn(5) = 1
   call insert_element(lat,pwd_ele,1)
 endif
-bmad_com%radiation_damping_on = .true.
+bmad_com%radiation_damping_on = .false.
+bmad_com%radiation_fluctuations_on = .false.
 IF(ptc_calc)  call lat_to_ptc_layout(lat)
-call closed_orbit_calc(lat,orb,6)
-call lat_make_mat6(lat, -1, orb)
-call twiss_at_start(lat)
-call twiss_propagate_all(lat)
+call twiss_and_track(lat,orb,status)
 
-call radiation_integrals(lat, orb, mode)
+ix_cache = -1
+call radiation_integrals(lat, orb, mode, ix_cache)
 if( allocated(orb) ) deallocate(orb)  ! no longer needed
 
 if( ptc_calc ) then
@@ -232,7 +235,7 @@ ibs_sim_params%formula = ibs_formula
 ibs_sim_params%tau_a = lat%param%total_length / c_light / mode%a%alpha_damp  !needed for tail cut calculation
 
 if(eqb_method == 'rlx') then
-  call ibs_equib_rlx(lat,ibs_sim_params,mode0,mode,ratio,8.0d0,granularity)  !relaxation method
+  call ibs_equib_rlx(lat,ibs_sim_params,mode0,mode,ratio,initial_blow_up,granularity)  !relaxation method
 elseif(eqb_method == 'der') then
   call ibs_equib_der(lat,ibs_sim_params,mode0,mode,granularity)  !derivatives method
 else
@@ -293,7 +296,7 @@ do i=1,n_steps
   lat%param%n_part = currents(i) * lat%param%total_length / e_charge / c_light
 
   if(eqb_method == 'rlx') then
-    call ibs_equib_rlx(lat,ibs_sim_params,mode0,mode,ratio,8.0d0,granularity)  !relaxation method
+    call ibs_equib_rlx(lat,ibs_sim_params,mode0,mode,ratio,initial_blow_up,granularity)  !relaxation method
   elseif(eqb_method == 'der') then
     call ibs_equib_der(lat,ibs_sim_params,mode0,mode,granularity)  !derivatives method
   else
@@ -425,6 +428,7 @@ contains
     inductance    = -99.0
     clog_to_use   = -99
     eqb_method    = ''
+    initial_blow_up = (/-1.0d0,-1.0d0,-1.0d0/)
 
     eta_set = -99.0
     etap_set = -99.0
@@ -457,6 +461,7 @@ contains
     if( inductance .lt. -90 ) call param_bomb('inductance')
     if( clog_to_use .lt. -90 ) call param_bomb('clog_to_use')
     if( eqb_method == '' ) call param_bomb('eqb_method')
+    if( any(initial_blow_up .lt. 0) ) call param_bomb('initial_blow_up')
   end subroutine
 end program ibs_ring
 
