@@ -1,8 +1,7 @@
 !+
 ! Function pointer_to_next_ele (this_ele, offset, skip_beginning, follow_fork) result (next_ele)
 !
-! Function to return a pointer to the N^th element relative to this_ele
-! in the array of elements in a lattice branch.
+! Function to return a pointer to the next (if offset = 1) tracking element relative to this_ele.
 ! 
 ! If the this_ele is a super_lord element, the appropriate element in the tracking 
 ! part of the lattice is returned.
@@ -15,6 +14,9 @@
 ! calling routine to check this if important.
 !
 ! Notice that the first element in a lattice is the beginning element with index 0.
+!
+! Also see:
+!   iterator_to_ele_in_branch
 !
 ! Input:
 !   this_ele       -- ele_struct: Starting element.

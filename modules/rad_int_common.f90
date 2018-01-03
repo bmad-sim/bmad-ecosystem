@@ -84,6 +84,7 @@ use nr, only: polint
 implicit none
 
 integer, parameter :: num_int = 9
+
 type ri_array_struct
   real(rp) h
   real(rp) sum(num_int)
@@ -100,7 +101,7 @@ type (lat_param_struct) param
 integer n,  j, j1, j_min_test, j_max, n_pts
 
 real(rp) :: eps_int, eps_sum, gamma
-real(rp) :: ll, del_z, l_ref, z_pos, dint, d0, d_max
+real(rp) :: ll, del_z, l_ref, z_pos, dint(num_int), d0(num_int), d_max
 real(rp) i_sum(num_int), rad_int_vec(num_int), int_tot_vec(num_int)
 
 logical do_int(num_int), converged
@@ -213,10 +214,10 @@ do j = 1, j_max
 
   do n = 1, num_int
     if (.not. do_int(n)) cycle
-    call polint (ri_array(1:j1)%h, ri_array(1:j1)%sum(n), 0.0_rp, rad_int_vec(n), dint)
-    d0 = eps_int * abs(rad_int_vec(n)) + eps_sum * abs(int_tot_vec(n))
-    if (abs(dint) > d0)  converged = .false.
-    if (d0 /= 0) d_max = max(d_max, abs(dint) / d0)
+    call polint (ri_array(1:j1)%h, ri_array(1:j1)%sum(n), 0.0_rp, rad_int_vec(n), dint(n))
+    d0(n) = eps_int * abs(rad_int_vec(n)) + eps_sum * abs(int_tot_vec(n))
+    if (abs(dint(n)) > d0(n))  converged = .false.
+    if (d0(n) /= 0) d_max = max(d_max, abs(dint(n)) / d0(n))
   enddo
 
   ! If we have convergance or we are giving up (when j = j_max) then 

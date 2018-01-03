@@ -40,9 +40,9 @@ while (<F_IN>) {
 close (F_IN);
 close (F_OUT);
 
-`mv basic_manual.html  ~/public_html/bmad/basic_manual.html`;
+`mv basic_manual.html  /nfs/classe/www/html/bmad/basic_manual.html`;
 
-`cp bmad.pdf ~/public_html/bmad/bmad-manual-$rev.pdf`;
-`chmod g+w  ~/public_html/bmad/bmad-manual-$rev.pdf`;
+`cp bmad.pdf /nfs/classe/www/html/bmad/bmad-manual-$rev.pdf`;
+`chmod g+w  /nfs/classe/www/html/bmad/bmad-manual-$rev.pdf`;
 
-`cp bmad.pdf ~/public_html/bmad/bmad-manual.pdf`;   # For Chris
+`cp bmad.pdf /nfs/classe/www/html/bmad/bmad-manual.pdf`;   # For Chris

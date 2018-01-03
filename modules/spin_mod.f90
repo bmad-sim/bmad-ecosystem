@@ -560,7 +560,7 @@ if (start_orb%species == photon$) return
 method = ele%spin_tracking_method
 if (method == tracking$) then
   select case (ele%tracking_method)
-  case (boris$, runge_kutta$, time_runge_kutta$, symp_lie_ptc$)
+  case (boris$, runge_kutta$, time_runge_kutta$, symp_lie_ptc$, custom$)
     return ! Spin tracking is done at the same time orbital tracking is done
   case (taylor$)
     method = taylor$

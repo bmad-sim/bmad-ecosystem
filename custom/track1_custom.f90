@@ -14,11 +14,13 @@
 ! constructed to set its radiation_included argument to True.
 ! If not, the track1 routine will use track1_radiation to include the radiation effects.
 ! Note: If this routine calles symp_lie_bmad, the symp_lie_bmad routine does take into account radiation effects.
-! 
-! General rule: Your code may NOT modify any argument that is not listed as an output agument below.
 !
-! Modules Needed:
-!   use bmad
+! Note: If ele%spin_tracking_method = tracking$, then it is expected that this routine will also handle
+! spin tracking. The alternative is when ele%spin_tracking_method = custom$ in which case track1_spin_custom will
+! be called after this routine. If doing spin tracking here, bmad_com%spin_tracking_on should be checked
+! to see if spin tracking is actually wanted.
+!
+! General rule: Your code may NOT modify any argument that is not listed as an output agument below.
 !
 ! Input:
 !   start_orb  -- coord_struct: Starting position.

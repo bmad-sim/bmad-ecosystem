@@ -83,10 +83,12 @@ do n = 1, branch%n_ele_track
       write (iu, '(a)') trim(lines(i))
     enddo
     write (iu, *) 'Symplectic Check:', mat_symp_error(t0_4)
-    call mat_type (t0_4, iu)
     do i = 1, 4
-      write (iu, '(es20.12, 2x, es20.12)') eta_vec(i), map0(i)
+      write (iu, '(5x, 4f14.8, 6x, 4f14.8)') t0_4(i,:), ele%mat6(i,1:4)
     enddo
+    write (iu, '(a, 6es18.10)') 'Map_ref_orb:', ele%map_ref_orb_in%vec
+    write (iu, '(a, 4es20.12)') 'Eta: ', eta_vec
+    write (iu, '(a, 4es20.12)') 'Map0:', map0
   endif
 enddo
 
