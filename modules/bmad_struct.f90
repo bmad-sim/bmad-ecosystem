@@ -11,6 +11,8 @@ use spline_mod
 
 use definition, only: genfield, fibre, layout
 
+private next_in_branch
+
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -1005,6 +1007,8 @@ type ele_struct
   logical :: select = .false.                ! For element selection. Used by make_hybrid_ring, etc.
   logical :: csr_calc_on = .true.            ! Coherent synchrotron radiation calculation
   logical :: offset_moves_aperture = .false. ! element offsets affects aperture?
+contains
+  procedure next_in_branch
 end type
 
 ! struct for element to element control
@@ -1758,6 +1762,110 @@ contains
 !-------------------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------------------
 !+
+! Function next_in_branch (ix_branch) result (ele, next_ele)
+!
+! Routine to return a pointer to the next element in a given lattice branch.
+! This routine is a type procedure of ele_struct. That is, call looks like:
+!     type (ele_struct) ele
+!     ...
+!     ele%next_in_branch(0)
+!
+! This routine is meant as an iterator over all elements in a lattice branch including lord elements.
+! See: pointer_to_next_ele for a routine that iterates over the tracking elements.
+!
+! Note: Elements with field overlap are not considered.
+! 
+! Note: The ix_branch argument is needed since some lord elements are shared by multiple branches.
+!
+! Input:
+!   ix_branch     -- integer: Branch index.
+!
+! Output:
+!   next_ele      -- ele_struct, pointer: Pointer to next element. Will be null after last element.
+!-
+
+function next_in_branch (ele, ix_branch) result (next_ele)
+
+implicit none
+
+class (ele_struct), target :: ele
+type (ele_struct), pointer :: next_ele
+type (branch_struct), pointer :: branch
+
+integer ix_branch
+
+! If the next element is in the tracking part of the lattice
+
+branch => ele%branch
+if (ele%ix_ele < branch%n_ele_track) then
+  next_ele => branch%ele(ele%ix_ele+1)
+  return
+endif
+
+! Point to next element which will be in the lord section
+
+nullify(next_ele)
+
+if (ele%ix_ele == branch%n_ele_track) then
+  branch => branch%lat%branch(0)
+  if (branch%n_ele_max == branch%n_ele_track) return
+  next_ele => branch%ele(branch%n_ele_track+1)
+
+elseif (ele%ix_ele == branch%n_ele_max) then
+  return
+
+else
+  next_ele => branch%ele(ele%ix_ele+1)
+endif
+
+! Now iterate until we find an element associated with the branch
+
+do
+  if (check_this_lord_in_branch(next_ele)) return
+
+  if (next_ele%ix_ele == branch%n_ele_max) then
+    nullify(next_ele)
+    return
+  else
+    next_ele => branch%ele(next_ele%ix_ele+1)
+  endif
+enddo
+
+!---------------------------------------
+contains
+
+recursive function check_this_lord_in_branch(lord) result (is_in_branch)
+
+type (ele_struct) lord
+type (ele_struct), pointer :: slave
+type (branch_struct), pointer :: branch
+
+integer i
+logical is_in_branch
+
+!
+
+is_in_branch = .true.
+
+do i = 1, lord%n_slave
+  slave => pointer_to_slave(lord, i)
+  if (slave%ix_ele <= slave%branch%n_ele_track) then
+    if (slave%ix_branch == ix_branch) return
+  else
+    if (check_this_lord_in_branch(slave)) return
+  endif
+enddo
+
+is_in_branch = .false.
+
+end function check_this_lord_in_branch
+
+end function next_in_branch
+
+!-------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------
+!+
 ! Function coord_state_name (coord_state) result (state_str)
 !
 ! Routine to return the string representation of a coord%state state.
@@ -1835,5 +1943,73 @@ case (elec_multipole$)
 end select
 
 end function is_attribute
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Function pointer_to_slave (lord, ix_slave, control, field_overlap_ptr) result (slave_ptr)
+!
+! Function to point to a slave of a lord.
+!
+! If field_overlap_ptr = False (default), the range for ix_slave is:
+!   1 to lord%n_slave                                 for "regular" slaves.
+!   lord%n_slave+1 to lord%n_slave+lord%n_slave_field for field overlap slaves.
+!
+! If field_overlap_ptr = True, only the field overlap slaves may be accessed and the range for ix_slave is:
+!   1 to lord%n_slave_field  
+!
+! Also see:
+!   pointer_to_lord
+!   pointer_to_ele
+!   num_lords
+!
+! Input:
+!   lord               -- Ele_struct: Lord element
+!   ix_slave           -- Integer: Index of the slave. 
+!   field_overlap_ptr  -- logical, optional: Slave pointed to restricted to be a field overlap slave?
+!                           Default is False.
+!
+! Output:
+!   slave_ptr  -- Ele_struct, pointer: Pointer to the slave.
+!                   Nullified if there is an error.
+!   control    -- control_struct, pointer, optional: Pointer to control info for this lord/slave relationship.
+!                   Nullified if there is an error.
+!-
+
+function pointer_to_slave (lord, ix_slave, control, field_overlap_ptr) result (slave_ptr)
+
+implicit none
+
+type (ele_struct), target :: lord
+type (control_struct), pointer, optional :: control
+type (ele_struct), pointer :: slave_ptr
+type (control_struct), pointer :: con
+type (lat_struct), pointer :: lat
+
+integer ix_slave, icon, ixs
+logical, optional :: field_overlap_ptr
+
+!
+
+ixs = ix_slave
+if (logic_option(.false., field_overlap_ptr)) ixs = ixs + lord%n_slave
+
+if (ixs > lord%n_slave+lord%n_slave_field .or. ix_slave < 1) then
+  nullify(slave_ptr)
+  if (present(control)) nullify(control)
+  return
+endif
+
+lat => lord%branch%lat
+icon = lord%ix1_slave + ixs - 1
+con => lat%control(icon)
+slave_ptr => lat%branch(con%slave%ix_branch)%ele(con%slave%ix_ele)
+if (present(control)) control => con
+
+end function pointer_to_slave
+
+
+
 
 end module

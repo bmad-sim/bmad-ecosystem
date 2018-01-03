@@ -1217,8 +1217,10 @@ do i = 0, ubound(lat%branch, 1)
   s_max = branch%ele(branch%n_ele_track)%s
 
   n_sec = 0
-  do j = 0, branch%n_ele_max
-    ele => branch%ele(j)
+  ele => branch%ele(0)
+  do 
+    ele => ele%next_in_branch(i)
+    if (.not. associated(ele)) exit
     if (.not. associated(ele%wall3d)) cycle
     if (ele%key == capillary$) cycle
     if (ele%key == diffraction_plate$) cycle
@@ -1239,8 +1241,10 @@ do i = 0, ubound(lat%branch, 1)
   allocate (sp(n_sec))
 
   n_sec = 0
-  do j = 0, branch%n_ele_max
-    ele => branch%ele(j)
+  ele => branch%ele(0)
+  do 
+    ele => ele%next_in_branch(i)
+    if (.not. associated(ele)) exit
     if (.not. associated(ele%wall3d)) cycle
     if (ele%key == capillary$) cycle
     if (ele%key == diffraction_plate$) cycle
@@ -1252,8 +1256,10 @@ do i = 0, ubound(lat%branch, 1)
 
   ! Add superposition sections
 
-  do j = 0, branch%n_ele_max
-    ele => branch%ele(j)
+  ele => branch%ele(0)
+  do
+    ele => ele%next_in_branch(i)
+    if (.not. associated(ele)) exit
     if (.not. associated(ele%wall3d)) cycle
     if (ele%key == capillary$) cycle
     if (ele%key == diffraction_plate$) cycle
@@ -1518,7 +1524,7 @@ subroutine mark_patch_regions (branch)
 type (branch_struct), target :: branch
 type (wall3d_struct), pointer :: wall
 
-integer i, j, iw
+integer i, j, iw, ie1, ie2
 
 !
 
@@ -1528,7 +1534,9 @@ do iw = 1, size(branch%wall3d)
   wall%section%patch_in_region = .false.
 
   do i = 2, size(wall%section)
-    do j = wall%section(i-1)%ix_ele, wall%section(i)%ix_ele
+    ie1 = element_at_s(branch, wall%section(i-1)%s, .false.)
+    ie2 = element_at_s(branch, wall%section(i)%s, .true.)
+    do j = ie1, ie2
       if (branch%ele(j)%key /= patch$) cycle
       wall%section(i)%patch_in_region = .true.
       exit
