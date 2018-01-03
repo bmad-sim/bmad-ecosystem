@@ -3,6 +3,9 @@
 !
 ! Routine to calculate Sqrt[1+eps] - 1 to machine precision.
 !
+! This is usful if eps can be near zero where the direct evaluation of
+! sqrt[1+eps] - 1 is inaccurate.
+!
 ! Input:
 !   eps -- real(rp):
 !
@@ -17,6 +20,8 @@ implicit none
 
 real(rp), intent(in) :: eps
 real(rp) ds1
+
+!
 
 ds1 = eps / (sqrt(1 + eps) + 1)
 
