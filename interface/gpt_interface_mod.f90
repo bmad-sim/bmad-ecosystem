@@ -342,6 +342,7 @@ use geometry_mod
 type (ele_struct) :: ele
 type (floor_position_struct) :: floor1, floor2
 type (str_indexx_struct), optional :: fieldgrid_names
+type (branch_struct), pointer :: branch
 
 real(rp) :: w_mat(3,3)
 real(rp) :: s, x(3), dx(3), d(3), d1(2), d2(2), d3(2), d4(2), w1, e_angle, ds_slice
@@ -359,7 +360,8 @@ logical, optional :: only_phasing
 
 !
 
-q_sign = sign(1,  charge_of(ele%branch%param%particle) ) 
+branch => pointer_to_branch(ele)
+q_sign = sign(1,  charge_of(branch%param%particle) ) 
 
 ! Get global position and rotation of origin of the field map, at the center of the element
 
@@ -799,6 +801,7 @@ type (grid_field_pt1_struct), allocatable :: pt(:)
 type (grid_field_pt1_struct) :: ref_field
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
+type (branch_struct), pointer :: branch
 
 real(rp) :: maxfield
 real(rp) :: z_step, z_min, z_max, z0
@@ -824,7 +827,8 @@ if (present(err)) err = .true.
 
 loc_ref_frame = .true. 
 
-param = ele%branch%param
+branch => pointer_to_branch(ele)
+param = branch%param
 
 ! Format for numbers
 rfmt = 'es13.5'
@@ -1008,6 +1012,7 @@ type (grid_field_pt1_struct), allocatable :: pt(:,:,:)
 type (grid_field_pt1_struct) :: ref_field
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
+type (branch_struct), pointer :: branch
 
 real(rp) :: maxfield, ref_time
 real(rp), optional :: dr, dz, r_max
@@ -1034,7 +1039,8 @@ if (present(err)) err = .true.
 
 loc_ref_frame = .true. 
 
-param = ele%branch%param
+branch => pointer_to_branch(ele)
+param = branch%param
 
 ! Output will be relative to z0
 z0 = ele%value(L$)/2
@@ -1272,6 +1278,8 @@ type (coord_struct) :: orb
 type(em_field_struct) :: field_re, field_im
 type (grid_field_pt1_struct), allocatable :: pt(:,:,:)
 type (grid_field_pt1_struct) :: ref_field
+type (branch_struct), pointer :: branch
+
 real(rp)        :: maxfield, ref_time
 real(rp) :: x_step, x_min, x_max
 real(rp) :: y_step, y_min, y_max
@@ -1297,7 +1305,8 @@ endif
 
 loc_ref_frame = .true. 
 
-param = ele%branch%param
+branch => pointer_to_branch(ele)
+param = branch%param
 
 ! Format for numbers
 rfmt = 'es13.5'

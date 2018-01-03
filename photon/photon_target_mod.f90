@@ -28,6 +28,8 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: ap_ele
 type (photon_target_struct), pointer :: target
 type (surface_grid_struct), pointer :: gr
+type (branch_struct), pointer :: branch
+
 real(rp), pointer :: val(:)
 real(rp) z
 logical :: is_bending_element, follow_fork, grid_defined
@@ -41,9 +43,11 @@ else
   ap_ele => ele
 endif
 
+branch => pointer_to_branch(ap_ele)
+
 is_bending_element = .false.
 
-if (ap_ele%branch%param%particle == photon$) then
+if (branch%param%particle == photon$) then
   follow_fork = .false.
 else
   follow_fork = .true.
@@ -62,7 +66,7 @@ do
     is_bending_element = .true.
   end select
 
-  if (is_bending_element .or. ap_ele%ix_ele == ap_ele%branch%n_ele_track) then
+  if (is_bending_element .or. ap_ele%ix_ele == branch%n_ele_track) then
     call out_io (s_fatal$, r_name, 'NO ELEMENT WITH APERTURE FOUND DOWNSTREAM FROM: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
     return
@@ -225,6 +229,7 @@ type (ele_struct), target :: ele
 type (surface_grid_pt_struct), optional, target :: grid_pt
 type (surface_grid_struct), pointer :: grid
 type (surface_grid_pt_struct), pointer :: pix
+type (branch_struct), pointer :: branch
 
 real(rp) phase, intens_x, intens_y, intens, dE
 integer, optional :: ix_pt, iy_pt
@@ -260,8 +265,9 @@ endif
 
 ! Add to det stat
 
+branch => pointer_to_branch(ele)
 pix%n_photon  = pix%n_photon + 1
-if (ele%branch%lat%photon_type == coherent$) then
+if (branch%lat%photon_type == coherent$) then
   phase = orb%phase(1) 
   pix%E_x = pix%E_x + orb%field(1) * cmplx(cos(phase), sin(phase), rp)
   phase = orb%phase(2) 

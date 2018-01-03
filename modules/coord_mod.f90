@@ -290,6 +290,7 @@ implicit none
 
 type (coord_struct) orb_out, orb_in, orb
 type (ele_struct), optional, target :: ele
+type (branch_struct), pointer :: branch
 
 real(rp), optional :: E_photon, t_offset, spin(3)
 real(rp) p0c, e_tot, ref_time
@@ -304,6 +305,11 @@ character(16), parameter :: r_name = 'init_coord1'
 !
 
 orb = orb_in
+if (present(ele)) then
+  branch => pointer_to_branch(ele)
+else
+  branch => null()
+endif
 
 species = orb_in%species
 if (present(particle)) then
@@ -312,8 +318,8 @@ endif
 
 if (present(particle)) orb%species = particle
 
-if (orb%species == not_set$ .and. present(ele) .and. associated (ele%branch)) then
-  orb%species = default_tracking_species(ele%branch%param)
+if (orb%species == not_set$ .and. present(ele) .and. associated (branch)) then
+  orb%species = default_tracking_species(branch%param)
 endif
 
 if (orb%species == not_set$) then
@@ -375,7 +381,7 @@ if (orb%species == photon$) then
   if (present(ele)) then
     if (present(ele)) orb%p0c = p0c
     if (ele%key == photon_init$) then
-      call init_a_photon_from_a_photon_init_ele (ele, ele%branch%param, orb)
+      call init_a_photon_from_a_photon_init_ele (ele, branch%param, orb)
     endif
   endif
 

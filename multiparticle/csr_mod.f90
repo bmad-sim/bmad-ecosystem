@@ -141,7 +141,7 @@ logical err, auto_bookkeeper, err_flag, parallel0, parallel1
 
 err = .true.
 csr%kick_ele => ele    ! Element where the kick pt is == ele tracked through.
-branch => ele%branch
+branch => pointer_to_branch(ele)
 
 ! No CSR for a zero length element.
 ! And taylor elements get ignored.

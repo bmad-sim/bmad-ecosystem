@@ -42,6 +42,7 @@ type (lat_struct) lat
 type (stack_file_struct), target :: current_file
 type (bp_common_struct) bp_save
 type (all_pointer_struct) a_ptr
+type (branch_struct), pointer :: branch
 
 integer ix
 
@@ -113,7 +114,8 @@ end select
 ! Bookkeeping
 
 if (is_slaved_field_attribute) then
-  call attribute_bookkeeper(ele, ele%branch%param, force_bookkeeping = .true.)
+  branch => pointer_to_branch(ele)
+  call attribute_bookkeeper(ele, branch%param, force_bookkeeping = .true.)
   ele%field_master = .not. ele%field_master
 endif
 

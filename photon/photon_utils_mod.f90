@@ -24,12 +24,17 @@ contains
 function photon_type (ele) result (e_type)
 
 type (ele_struct) ele
+type (branch_struct), pointer :: branch
 integer e_type
 
 ! Use
 
 e_type = incoherent$   ! Default
-if (associated(ele%branch)) e_type = ele%branch%lat%photon_type
+
+if (associated(ele%branch)) then
+  branch => pointer_to_branch(ele)
+  e_type = branch%lat%photon_type
+endif
 
 end function photon_type
 

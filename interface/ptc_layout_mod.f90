@@ -197,7 +197,7 @@ else
   this_fib%dir = ele%orientation
 endif
 
-this_fib%charge = charge_of(default_tracking_species(ele%branch%param)) / charge_of(ele%branch%param%particle)
+this_fib%charge = charge_of(default_tracking_species(branch%param)) / charge_of(branch%param%particle)
 
 if (logic_option(.false., do_point)) ele%ptc_fibre => this_fib
 
@@ -530,13 +530,16 @@ type (ele_struct) ele
 type (normal_modes_struct) norm_mode
 type (coord_struct) closed_orb
 type (fibre), pointer :: ptc_fibre
+type (branch_struct), pointer :: branch
 
 real(rp) sigma_mat(6,6), emit(3), ptc_sigma_mat(6,6), tune(3), damp(3)
 complex(rp) cmplx_sigma_mat(6,6)
 
+!
 
+branch => pointer_to_branch(ele)
 ptc_fibre => ptc_reference_fibre(ele)
-call radia_new (ele%branch%ptc%m_t_layout, ptc_fibre%pos, DEFAULT, fix = closed_orb%vec, em = emit, &
+call radia_new (branch%ptc%m_t_layout, ptc_fibre%pos, DEFAULT, fix = closed_orb%vec, em = emit, &
                 sij = ptc_sigma_mat, sijr = cmplx_sigma_mat, tune = tune, damping = damp)
 
 call init_coord(closed_orb, closed_orb, ele, downstream_end$)
@@ -588,10 +591,11 @@ function ptc_reference_fibre (ele) result (ref_fibre)
 
 type (ele_struct), target :: ele
 type (fibre), pointer :: ref_fibre
-
+type (branch_struct), pointer :: branch
 !
 
-if (tracking_uses_end_drifts(ele, ele%branch%lat%ptc_uses_hard_edge_drifts)) then
+branch => pointer_to_branch(ele)
+if (tracking_uses_end_drifts(ele, branch%lat%ptc_uses_hard_edge_drifts)) then
   ref_fibre => ele%ptc_fibre%next%next
 else
   ref_fibre => ele%ptc_fibre%next

@@ -96,6 +96,7 @@ logical :: dval_change(num_ele_attrib$)
 ! Some init
 
 val => ele%value
+branch => pointer_to_branch(ele)
 
 ! Overlay and group and hybrid elements do not have any dependent attributes
 
@@ -468,8 +469,7 @@ case (quadrupole$)
 ! RFcavity
 
 case (rfcavity$)
-  if (param%geometry == closed$ .and. associated(ele%branch) .and. val(p0c$) /= 0) then
-    branch => ele%branch
+  if (param%geometry == closed$ .and. associated(branch) .and. val(p0c$) /= 0) then
     time = branch%ele(branch%n_ele_track)%ref_time
     if (time /= 0) then
       if (ele%field_master) then
@@ -676,7 +676,7 @@ if (associated(ele%taylor(1)%term) .and. ele%taylor_map_includes_offsets .and. &
         offset_nonzero .and. offset_changed .and. .not. non_offset_changed .and. &
         bmad_com%conserve_taylor_maps .and. ele%key /= patch$) then
   ele%taylor_map_includes_offsets = .false.
-  if (associated(ele%branch) .and. ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
+  if (associated(branch) .and. ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
     do i = 1, ele%n_lord
       lord => pointer_to_lord(ele, i)
       if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)

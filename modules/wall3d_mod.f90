@@ -681,6 +681,7 @@ type (ele_struct), pointer :: ele1, ele2, ele_ptr
 type (floor_position_struct) floor_particle, floor1_0, floor2_0
 type (floor_position_struct) floor1_w, floor2_w, floor1_dw, floor2_dw, floor1_p, floor2_p
 type (floor_position_struct) loc_p, loc_1_0, loc_2_0, floor
+type (branch_struct), pointer :: branch
 
 real(rp), intent(in) :: position(:)
 real(rp), optional :: perp(3), origin(3), radius_wall
@@ -716,6 +717,7 @@ if (present(err_flag)) err_flag = .false.
 
 s_particle = position(5) + ds_offset
 n_sec = size(wall3d%section)
+branch => pointer_to_branch(ele)
 
 ! The outward normal vector is discontinuous at the wall sections.
 ! If the particle is at a wall section, use the correct interval.
@@ -738,7 +740,7 @@ if (s_particle < wall3d%section(1)%s .or. (s_particle == wall3d%section(1)%s .an
     return
 
   elseif (wrap_wall()) then
-    sec1 => wall3d%section(n_sec);  s1 = sec1%s - ele%branch%param%total_length
+    sec1 => wall3d%section(n_sec);  s1 = sec1%s - branch%param%total_length
     sec2 => wall3d%section(1);      s2 = sec2%s
     if (present(ix_section)) ix_section = n_sec
 
@@ -758,7 +760,7 @@ elseif (s_particle > wall3d%section(n_sec)%s .or. (s_particle == wall3d%section(
 
   elseif (wrap_wall()) then
     sec1 => wall3d%section(n_sec);  s1 = sec1%s
-    sec2 => wall3d%section(1);      s2 = sec2%s + ele%branch%param%total_length
+    sec2 => wall3d%section(1);      s2 = sec2%s + branch%param%total_length
     if (present(ix_section)) ix_section = n_sec
 
   else
@@ -834,8 +836,8 @@ sin_theta = 0
 
 if (sec2%patch_in_region) then
   ! ele1 and ele2 are lattice elements of sec1 and sec2
-  ele1 => pointer_to_ele (ele%branch%lat, sec1%ix_ele, sec1%ix_branch)
-  ele2 => pointer_to_ele (ele%branch%lat, sec2%ix_ele, sec2%ix_branch)
+  ele1 => pointer_to_ele (branch%lat, sec1%ix_ele, sec1%ix_branch)
+  ele2 => pointer_to_ele (branch%lat, sec2%ix_ele, sec2%ix_branch)
 
   ! floor_particle is coordinates of particle in global reference frame
   ! floor1_0 is sec1 origin in global ref frame
@@ -1091,7 +1093,7 @@ logical yes_wrap
 
 yes_wrap = .false.
 if (.not. is_branch_wall) return
-if (ele%branch%param%geometry == open$) return
+if (branch%param%geometry == open$) return
 yes_wrap = .true.
 
 end function wrap_wall
@@ -1126,6 +1128,7 @@ character(32), parameter :: r_name = 'pointer_to_wall3d'
 
 type (ele_struct), target :: ele
 type (wall3d_struct), pointer :: wall3d
+type (branch_struct), pointer :: branch
 
 integer, optional :: ix_wall
 integer iw
@@ -1139,11 +1142,12 @@ nullify(wall3d)
 
 iw = integer_option(1, ix_wall)
 
+branch => pointer_to_branch(ele)
 if (ele%key /= capillary$ .and. ele%key /= diffraction_plate$ .and. &
-                                ele%key /= mask$ .and. associated (ele%branch)) then
-  if (.not. associated(ele%branch%wall3d)) return
-  wall3d => ele%branch%wall3d(iw)
-  if (present(ds_offset)) ds_offset = ele%s_start - ele%branch%ele(0)%s
+                                ele%key /= mask$ .and. associated (branch)) then
+  if (.not. associated(branch%wall3d)) return
+  wall3d => branch%wall3d(iw)
+  if (present(ds_offset)) ds_offset = ele%s_start - branch%ele(0)%s
   if (present(is_branch_wall)) is_branch_wall = .true.
   return
 endif
