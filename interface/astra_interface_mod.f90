@@ -146,15 +146,21 @@ end subroutine write_astra_lattice_file
 !+ 
 subroutine write_astra_ele(iu, ele, id, fieldgrid_names, dimensions)
 use geometry_mod
+
 implicit none
+
 type (ele_struct) :: ele
 type (floor_position_struct) :: floor1, floor2
 type (str_indexx_struct), optional :: fieldgrid_names
+type (branch_struct), pointer :: branch
+
 real(rp) :: s, x(3), dx(3), d(3), d1(2), d2(2), d3(2), d4(2), w1, e_angle, ds_slice
 real(rp) :: gap, strength, x_center, y_center, z_center, theta_center
 real(rp) :: absmax_Ez, absmax_Bz, freq, phase_lag
+
 integer :: iu, id, n_slice, i_slice, q_sign, i_dim
 integer, optional :: dimensions
+
 character(40)   :: fieldgrid_output_name
 character(24), parameter :: rfmt = 'es15.7'
 character(40)  :: r_name = 'write_astra_ele'
@@ -162,8 +168,8 @@ character(40)  :: r_name = 'write_astra_ele'
 !
 
 i_dim = integer_option(1, dimensions)
-
-q_sign = sign(1,  charge_of(ele%branch%param%particle) ) 
+branch => pointer_to_branch(ele)
+q_sign = sign(1,  charge_of(branch%param%particle) ) 
 
 ! Get global position and rotation of the center of the element
 floor1%r = [0.0_rp, 0.0_rp, ele%value(L$)/2]
@@ -515,6 +521,8 @@ type (coord_struct) :: orb
 type(em_field_struct) :: field_re, field_im
 type (grid_field_pt1_struct), allocatable :: pt(:)
 type (grid_field_pt1_struct) :: ref_field
+type (branch_struct), pointer :: branch
+
 real(rp) :: z_step, z_min, z_max
 real(rp) :: freq,  z, phase_ref
 real(rp) :: gap, edge_range
@@ -532,8 +540,8 @@ if (present(err)) err = .true.
 
 
 loc_ref_frame = .true. 
-
-param = ele%branch%param
+branch => pointer_to_branch(ele)
+param = branch%param
 
 ! Format for numbers
 rfmt = 'es13.5'
@@ -728,6 +736,8 @@ type (coord_struct) :: orb
 type(em_field_struct) :: field_re, field_im
 type (grid_field_pt1_struct), allocatable :: pt(:,:,:)
 type (grid_field_pt1_struct) :: ref_field
+type (branch_struct), pointer :: branch
+
 real(rp)        :: maxfield, test_field_value
 real(rp) :: x_step, x_min, x_max
 real(rp) :: y_step, y_min, y_max
@@ -735,6 +745,7 @@ real(rp) :: z_step, z_min, z_max
 real(rp) :: freq, x, y, z, phase_ref
 real(rp) :: gap, edge_range
 real(rp), optional :: dz
+
 complex ::  phasor_rotation
 
 integer :: nx, ny, nz, iz, ix, iy, ifield, ix_center, iy_center
@@ -752,7 +763,8 @@ endif
 
 loc_ref_frame = .true. 
 
-param = ele%branch%param
+branch => pointer_to_branch(ele)
+param = branch%param
 
 ! Format for numbers
 rfmt = 'es13.5'

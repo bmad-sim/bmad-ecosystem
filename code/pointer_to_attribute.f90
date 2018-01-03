@@ -49,6 +49,7 @@ type (cylindrical_map_struct), pointer :: cl_map
 type (grid_field_struct), pointer :: g_field
 type (taylor_field_struct), pointer :: t_field
 type (all_pointer_struct) a_ptr
+type (branch_struct), pointer :: branch
 
 real(rp), pointer :: ptr_attrib, r(:,:,:)
 
@@ -68,6 +69,7 @@ logical, optional :: err_print_flag
 
 err_flag = .true.
 out_of_bounds = .false.
+branch => pointer_to_branch(ele)
 
 nullify (a_ptr%r, a_ptr%i, a_ptr%l)
 
@@ -490,7 +492,7 @@ case ('PY_REF');                         a_ptr%r => ele%taylor(4)%ref
 case ('Z_REF');                          a_ptr%r => ele%taylor(5)%ref
 case ('PZ_REF');                         a_ptr%r => ele%taylor(6)%ref
 case ('SYMPLECTIFY');                    a_ptr%l => ele%symplectify
-case ('ABSOLUTE_TIME_TRACKING');         a_ptr%l => ele%branch%lat%absolute_time_tracking
+case ('ABSOLUTE_TIME_TRACKING');         a_ptr%l => branch%lat%absolute_time_tracking
 case ('CSR_CALC_ON');                    a_ptr%l => ele%csr_calc_on
 case ('TAYLOR_MAP_INCLUDES_OFFSETS');    a_ptr%l => ele%taylor_map_includes_offsets
 case ('OFFSET_MOVES_APERTURE');          a_ptr%l => ele%offset_moves_aperture
@@ -511,7 +513,7 @@ case ('INTEGRATOR_ORDER');               a_ptr%r => ele%value(integrator_order$)
 case ('APERTURE_AT');                    a_ptr%i => ele%aperture_at
 case ('APERTURE_TYPE');                  a_ptr%i => ele%aperture_type
 case ('COUPLER_AT');                     a_ptr%r => ele%value(coupler_at$)
-case ('DEFAULT_TRACKING_SPECIES');       a_ptr%i => ele%branch%param%default_tracking_species
+case ('DEFAULT_TRACKING_SPECIES');       a_ptr%i => branch%param%default_tracking_species
 case ('FIELD_CALC');                     a_ptr%i => ele%field_calc
 case ('FRINGE_TYPE');                    a_ptr%r => ele%value(fringe_type$)
 case ('GEOMETRY');                       a_ptr%r => ele%value(geometry$)
@@ -521,7 +523,7 @@ case ('HIGHER_ORDER_FRINGE_TYPE');       a_ptr%r => ele%value(higher_order_fring
 case ('MAT6_CALC_METHOD');               a_ptr%i => ele%mat6_calc_method
 case ('MODE');                           a_ptr%r => ele%value(mode$)
 case ('ORIGIN_ELE_REF_PT');              a_ptr%r => ele%value(origin_ele_ref_pt$)
-case ('PARTICLE');                       a_ptr%i => ele%branch%param%particle
+case ('PARTICLE');                       a_ptr%i => branch%param%particle
 case ('PTC_FIELD_GEOMETRY');             a_ptr%r => ele%value(ptc_field_geometry$)
 case ('PTC_INTEGRATION_TYPE');           a_ptr%i => ele%ptc_integration_type
 case ('PTC_FRINGE_GEOMETRY');            a_ptr%r => ele%value(ptc_fringe_geometry$)

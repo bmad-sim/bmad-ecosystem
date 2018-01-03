@@ -117,13 +117,12 @@ logical type_zero, err_flag, print_it, is_default, has_it, has_been_added
 allocate (li(300))
 
 type_zero = logic_option(.false., type_zero_attrib)
+branch => pointer_to_branch(ele)
 
-if (associated(ele%branch)) call lat_sanity_check(ele%branch%lat, err_flag)
-
-if (associated(ele%branch)) then
-  branch => ele%branch
+if (associated(branch)) then
   lat => branch%lat
   particle = branch%param%particle
+  call lat_sanity_check(branch%lat, err_flag)
 else
   nullify(lat)
   particle = electron$
@@ -334,8 +333,8 @@ endif
 
 nl=nl+1; write (li(nl), *) ' '
 
-if (ele%key == beambeam$ .and. associated(ele%branch)) then
-  nl=nl+1; write (li(nl), fmt_r) 'PARAMETER[N_PART]', '=', ele%branch%param%n_part
+if (ele%key == beambeam$ .and. associated(branch)) then
+  nl=nl+1; write (li(nl), fmt_r) 'PARAMETER[N_PART]', '=', branch%param%n_part
 endif
 
 if (attribute_name(ele, crystal_type$) == 'CRYSTAL_TYPE') then
@@ -1097,7 +1096,7 @@ if (logic_option(.false., type_floor_coords)) then
   nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi, '! Position with offset/pitch/tilt misalignments'
   ele0 => pointer_to_next_ele(ele, -1)
   if (associated(ele0)) then
-    if (ele%ix_ele /= 0 .or. ele%branch%param%geometry == closed$) then
+    if (ele%ix_ele /= 0 .or. branch%param%geometry == closed$) then
       f0 = ele0%floor
       nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'delta Ref', floor%r-f0%r, floor%theta-f0%theta, floor%phi-f0%phi, floor%psi-f0%psi, &
                                                                                                          '! Delta with respect to last element'  

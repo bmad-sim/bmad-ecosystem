@@ -2521,7 +2521,7 @@ logical, optional :: set_dependent
 !-------------------
 ! For a particular elemement...
 
-branch => ele%branch
+branch => pointer_to_branch(ele)
 dep_set = logic_option(.true., set_dependent)
 
 ! If a lord then set the control flag stale
