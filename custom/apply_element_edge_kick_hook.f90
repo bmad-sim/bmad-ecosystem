@@ -3,7 +3,10 @@
 !
 ! Routine that can be customized to track through the edge field of an element.
 ! This routine is always called by apply_element_edge_kick.
-! 
+!
+! Note: apply element_edge_kick and this routine may or may not be called depending upon the setting of
+! ele%tracking_method. In particular, this routine is *not* called if ele%tracking_method = custom$.
+!
 ! Input:
 !   orb         -- Coord_struct: Starting coords in element reference frame.
 !   track_ele   -- ele_struct: Element being tracked through. 

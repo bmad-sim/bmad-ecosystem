@@ -4,11 +4,13 @@
 ! Dummy routine for custom spin tracking. 
 ! This routine needs to be replaced for a custom calculation.
 !
+! This routine is called if ele%spin_tracking_method = custom$
+!
+! Note: If ele%spin_tracking_method = tracking$, this routine is not called and
+! spin tracking must be done with the phase space tracking in track1_custom.
+! 
 ! General rule: Your code may NOT modify any argument that is not listed as
 ! an output agument below."
-!
-! Modules Needed:
-!   use bmad
 !
 ! Input:
 !   start  -- Coord_struct: Starting position.

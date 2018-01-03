@@ -121,7 +121,7 @@ if (a_name(1:9) == 'R_CUSTOM(') THEN
   ub = max(ub0, ivec)
   if (associated(ele%r)) then
     if (.not. all(lb == lb0) .or. .not. all (ub == ub0)) then
-      if (.not. do_allocation) goto 9100
+      if (.not. do_allocation) goto 9110
       r => ele%r
       allocate(ele%r(lb(1):ub(1), lb(2):ub(2), lb(3):ub(3)))
       ele%r = 0
@@ -129,7 +129,7 @@ if (a_name(1:9) == 'R_CUSTOM(') THEN
       deallocate(r)
     endif
   else
-    if (.not. do_allocation) goto 9100
+    if (.not. do_allocation) goto 9110
     allocate(ele%r(lb(1):ub(1), lb(2):ub(2), lb(3):ub(3)))
     ele%r = 0
   endif
@@ -559,6 +559,13 @@ return
 9100 continue
 if (do_print) call out_io (s_error$, r_name, &
                  'WAKE ATTRIBUTE NOT ALLOCATED: ' // a_name, &
+                 'FOR THIS ELEMENT: ' // ele%name)
+return
+
+!----------------------------------------
+9110 continue
+if (do_print) call out_io (s_error$, r_name, &
+                 'R_CUSTOM ATTRIBUTE NOT ALLOCATED: ' // a_name, &
                  'FOR THIS ELEMENT: ' // ele%name)
 return
 

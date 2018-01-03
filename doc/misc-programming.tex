@@ -102,51 +102,40 @@ structure. Besides the \vn{ele%value} array, parameters may be stored
 in the general use components given in \sref{s:ele.gen}.
 
 The \Hyperref{r:make.mat6.custom}{make_mat6_custom} routine is called by the
-\Hyperref{r:track1}{track1} routine when calculating the transfer
-matrix through an element. 
+\Hyperref{r:track1}{track1} routine when calculating the transfer matrix through an element.
 
-The \Hyperref{r:track1.custom}{track1_custom} routine is called by the
-\Hyperref{r:track1}{track1} routine when the \vn{tracking_method} for
-the element is set to \vn{custom}. Further customization can be set by
-the routines \Hyperref{r:track1.preprocess}{track1_preprocess} and \Hyperref{r:track1.postprocess}{track1_postprocess}. See
-Section~\sref{s:hook} for more details.
+The \Hyperref{r:track1.custom}{track1_custom} routine is called by the \Hyperref{r:track1}{track1}
+routine when the \vn{tracking_method} for the element is set to \vn{custom}. Further customization
+can be set by the routines \Hyperref{r:track1.preprocess}{track1_preprocess} and
+\Hyperref{r:track1.postprocess}{track1_postprocess}. See Section~\sref{s:hook} for more details.
 
-A potential problem with \vn{track1_custom} is that the calling routine, that is
-\vn{track1}, does some work like checking aperture, etc. (see the \vn{track1} code for
-more details). If this is not desired, the \vn{track1_preprocess} routine (\sref{s:hook})
-can be used to do custom tracking and to make sure that \vn{track1} does not do any extra
-calculations. This is accomplished by putting the custom tracking code in
-\vn{track1_preprocess} and by setting the \vn{finished} argument of \vn{track1_preprocess}
-to True.
+A potential problem with \vn{track1_custom} is that the calling routine, that is \vn{track1}, does
+some work like checking aperture, etc. (see the \vn{track1} code for more details). If this is not
+desired, the \vn{track1_preprocess} routine (\sref{s:hook}) can be used to do custom tracking and to
+make sure that \vn{track1} does not do any extra calculations. This is accomplished by putting the
+custom tracking code in \vn{track1_preprocess} and by setting the \vn{finished} argument of
+\vn{track1_preprocess} to True.
 
-The
-\Hyperref{r:check.aperture.limit.custom}{check_aperture_limit_custom}
-routine is used to check if a particle has hit an aperture in
-tracking. It is called by the standard \bmad routine
-\Hyperref{r:check.aperture.limit}{check_aperture_limit} when
-\vn{ele%aperture_type} is set to \vn{custom\$}. A \vn{custom} element
-has the standard limit attributes (\sref{s:limit}) so a \vn{custom}
-element does not have to implement custom aperture checking code.
+The \Hyperref{r:check.aperture.limit.custom}{check_aperture_limit_custom} routine is used to check
+if a particle has hit an aperture in tracking. It is called by the standard \bmad routine
+\Hyperref{r:check.aperture.limit}{check_aperture_limit} when \vn{ele%aperture_type} is set to
+\vn{custom\$}. A \vn{custom} element has the standard limit attributes (\sref{s:limit}) so a
+\vn{custom} element does not have to implement custom aperture checking code.
 
-The \Hyperref{r:em.field.custom}{em_field_custom} routine is called by the
-electro-magnetic field calculating routine \Hyperref{r:em.field.calc}{em_field_calc} when
-\vn{ele%field_calc} is set to \vn{custom\$}. As an alternative to \vn{em_field_custom}, a
-\vn{custom} element can use a field map (\sref{s:fieldmap}) to characterize the
-element's electromagnetic fields.
+The \Hyperref{r:em.field.custom}{em_field_custom} routine is called by the electro-magnetic field
+calculating routine \Hyperref{r:em.field.calc}{em_field_calc} when \vn{ele%field_calc} is set to
+\vn{custom\$}. As an alternative to \vn{em_field_custom}, a \vn{custom} element can use a field map
+(\sref{s:fieldmap}) to characterize the element's electromagnetic fields.
 
-Note: When tracking through a \vn{patch} element, the first step is to
-transform the particle's coordinates from the entrance frame to the
-exit frame. This is done since it simplifies the tracking. [The
-criterion for stopping the propagation of a particle through a
-\vn{patch} is that the particle has reached the exit face and the
-calculation to determine if a particle has reached the exit face is
-simplified if the particle's coordinates are expressed in the
-coordinate frame of the exit face.] Thus for \vn{patch} elements,
-unlike all other elements, the particle coordinates passed to
-\Hyperref{r:em.field.custom}{em_field_custom} are the coordinates with
-respect to the exit coordinate frame and not the entrance coordinate
-frame. If field must be calculated in the entrance coordinate frame, 
-a transformation between entrance and exit frames must be done:
+Note: When tracking through a \vn{patch} element, the first step is to transform the particle's
+coordinates from the entrance frame to the exit frame. This is done since it simplifies the
+tracking. [The criterion for stopping the propagation of a particle through a \vn{patch} is that the
+particle has reached the exit face and the calculation to determine if a particle has reached the
+exit face is simplified if the particle's coordinates are expressed in the coordinate frame of the
+exit face.] Thus for \vn{patch} elements, unlike all other elements, the particle coordinates passed
+to \Hyperref{r:em.field.custom}{em_field_custom} are the coordinates with respect to the exit
+coordinate frame and not the entrance coordinate frame. If field must be calculated in the entrance
+coordinate frame, a transformation between entrance and exit frames must be done:
 \begin{example}
   subroutine em_field_custom (ele, param, s_rel, time, orb, &
                                   local_ref_frame, field, calc_dfield, err_flag)
