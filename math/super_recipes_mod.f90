@@ -283,7 +283,7 @@ end function super_zbrent
 !   y(:)        -- Real(rp): Data to fit to. See mrqmin in NR for more details.
 !   weight(:)   -- Real(rp): This is equivalent to the 1/sig^2 of mrqmin in NR.
 !   a(:)        -- Real(rp): Variables to vary. See mrqmin in NR for more details.
-!   funcs       -- Function: User supplied function. See mrqmin in NR for more details.
+!   funcs       -- Function: User supplied subroutine. See mrqmin in NR for more details.
 !                   The interface is:
 !                        subroutine funcs(a, yfit, dyda, status)
 !                          use precision_def
