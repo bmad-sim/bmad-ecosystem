@@ -128,7 +128,7 @@ real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt
 
 
 integer, optional :: ix_cache, ix_branch
-integer i, j, k, n, ip, ir, key, key2, n_step, ix_pole_max
+integer i, j, k, n, ip, ir, key2, n_step, ix_pole_max
 
 character(*), parameter :: r_name = 'radiation_integrals'
 
@@ -415,9 +415,9 @@ if (use_cache .or. init_cache) then
 endif ! (init_cache)
 
 !---------------------------------------------------------------------
-! Loop over all elements
-! We do the elements that can be integrated quickly to establish a baseline for setting 
-! the error tolerance for the elements that take more time to integrate through.
+! Loop over all elements...
+! We do the elements that can be integrated quickly to establish a baseline 
+! for setting the error tolerance for the elements that take more time to integrate through.
 
 do ir = 1, branch%n_ele_track
 
@@ -439,10 +439,7 @@ do ir = 1, branch%n_ele_track
   pt%dgy_dx = 0
   pt%dgy_dy = 0
 
-  key = ele%key
-  if (key == undulator$) key = wiggler$
-
-  if (key == rfcavity$) then
+  if (ele%key == rfcavity$) then
     m65 = m65 + ele%mat6(6,5)
     mode%rf_voltage = mode%rf_voltage + ele%value(voltage$)
   endif
@@ -452,40 +449,22 @@ do ir = 1, branch%n_ele_track
 
   ! custom
 
-  if (key == custom$) then
+  if (ele%key == custom$) then
     call radiation_integrals_custom (lat, ir, orbit, err)
     cycle
   endif
 
-  ! map type wigglers get handled later.
+  ! Wigglers and undulators get handled later.
 
-  if (key == wiggler$ .and. ele%sub_key == map_type$) cycle
-
-  ! for an periodic type wiggler we make the approximation that the variation of G is
-  ! fast compaired to the variation in eta.
-
-  if (key == wiggler$ .and. ele%sub_key == periodic_type$ .and. ele%tracking_method == bmad_standard$) then
-    if (ele%value(l_pole$) == 0) cycle        ! Cannot do calculation
-    G_max = sqrt(2*abs(ele%value(k1$)))       ! 1/rho at max B
-    g3_ave = 4 * G_max**3 / (3 * pi)
-    rad_int1%i0 = (ele%value(e_tot$) / mass_of(branch%param%particle)) * 2 * G_max / 3
-    rad_int1%i1 = -ele%value(k1$) * (ele%value(l_pole$) / pi)**2
-    rad_int1%i2 = ll * G_max**2 / 2
-    rad_int1%i3 = ll * g3_ave
-
-    call qromb_rad_int (branch%param, [F, F, F, T, T, T, T, F, T], pt, ri_info, int_tot, rad_int1)
-    cycle
-  endif
-
-  ! Only possibilities left are quad, sol_quad and sbend elements, or there
-  ! is a non-zero bend angle.
-
+  if (ele%key == wiggler$ .or. ele%key == undulator$) cycle
   if (ele%key == patch$) cycle
   if (ele%value(hkick$) == 0 .and. ele%value(vkick$) == 0 .and. &
-          key /= quadrupole$ .and. key /= sol_quad$ .and. key /= sbend$ .and. &
-          key /= hkicker$ .and. key /= vkicker$) cycle
+          ele%key /= quadrupole$ .and. ele%key /= sol_quad$ .and. ele%key /= sbend$ .and. &
+          ele%key /= hkicker$ .and. ele%key /= vkicker$) cycle
 
-  if (key == sbend$) then
+  ! All other elements
+
+  if (ele%key == sbend$) then
     theta = ele%value(ref_tilt_tot$) + ele%value(roll_tot$)
     pt%g_x0 =  cos(theta) * ele%value(g$)
     pt%g_y0 = -sin(theta) * ele%value(g$)
@@ -503,7 +482,7 @@ do ir = 1, branch%n_ele_track
     rad_int1%i4b = rad_int1%i4a - ri_info%eta_b(1) * g2 * tan(ele%value(e2$))
   endif
 
-  if (key == quadrupole$ .or. key == sol_quad$) then
+  if (ele%key == quadrupole$ .or. ele%key == sol_quad$) then
     theta = ele%value(tilt_tot$)
     pt%dgx_dx = ele%value(k1$) * cos(2*theta)
     pt%dgy_dx = ele%value(k1$) * sin(2*theta)
@@ -518,7 +497,7 @@ do ir = 1, branch%n_ele_track
 enddo
 
 !----------------------------------------------------------
-! For elements that take more time to integrate through.
+! Integrate wigglers, undulators, etc.
 
 do ir = 1, branch%n_ele_track
 
@@ -527,12 +506,28 @@ do ir = 1, branch%n_ele_track
   if (.not. ele%is_on) cycle
 
   select case (ele%key)
-  case (wiggler$, undulator$) 
-    if (ele%sub_key /= map_type$) cycle
-  case (sad_mult$, em_field$)
+  case (wiggler$, undulator$)
+    ! For an periodic type wiggler we make the approximation that the variation of G is
+    ! fast compaired to the variation in eta.
+    if (ele%sub_key == periodic_type$ .and. ele%tracking_method == bmad_standard$) then
+      if (ele%value(l_pole$) == 0) cycle        ! Cannot do calculation
+      G_max = sqrt(2*abs(ele%value(k1$)))       ! 1/rho at max B
+      g3_ave = 4 * G_max**3 / (3 * pi)
+      rad_int1%i0 = (ele%value(e_tot$) / mass_of(branch%param%particle)) * 2 * G_max / 3
+      rad_int1%i1 = -ele%value(k1$) * (ele%value(l_pole$) / pi)**2
+      rad_int1%i2 = ll * G_max**2 / 2
+      rad_int1%i3 = ll * g3_ave
+
+      call qromb_rad_int (branch%param, [F, F, F, T, T, T, T, F, T], pt, ri_info, int_tot, rad_int1)
+      cycle
+    endif
+
+  case (sad_mult$, em_field$) 
   case default
     cycle
   end select
+
+  !
 
   ri_info%ele => ele
   rad_int1 => rad_int_all%ele(ir)
