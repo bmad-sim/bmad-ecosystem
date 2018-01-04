@@ -460,8 +460,10 @@ allocate (sub_name(10), ix_sort(10))
 n_sub = 0
 
 do i = 1, wall_in%n_place
-  if (n_sub == size(sub_name)) call re_allocate(sub_name, n_sub+10)
-  if (n_sub == size(sub_name)) call re_allocate(ix_sort, n_sub+10)
+  if (n_sub == size(sub_name)) then
+    call re_allocate(sub_name, 2*n_sub)
+    call re_allocate(ix_sort, 2*n_sub)
+  endif
   sec => wall_in%section(i)
   write(name, '(2a, i0)') trim(sec%sub_chamber_name), ':', sec%ix_branch
   call find_indexx(name, sub_name, ix_sort, n_sub, ix, add_to_list = .true.)
