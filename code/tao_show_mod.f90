@@ -3736,9 +3736,10 @@ case ('wall')
   sub_name = ''
   attrib0 = ''
 
+
   do
-    call tao_next_switch (what2, ['-section  ', '-element  ', &
-                                   '-angle    ', '-s        '], .true., switch, err, ix_s2)
+    call tao_next_switch (what2, [character(16):: '-section', '-element', &
+                                   '-angle', '-s', '-branch'], .true., switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
     select case (switch)
@@ -3851,18 +3852,18 @@ case ('wall')
     ix1 = 1; ix2 = min(200, size(wall%section))
   endif
 
-  nl=nl+1; lines(nl) = '    Ix             S    ix_ele                 Ele      Type   Radius (mm)'
+  nl=nl+1; lines(nl) = '    Ix             S    ix_ele                 Ele          Type   Radius (mm)'
 
   do i = ix1, ix2
     wall_sec => wall%section(i)
     ele => pointer_to_ele (lat, wall_sec%ix_ele, wall_sec%ix_branch)
     
     call calc_wall_radius (wall%section(i)%v, cos(angle), sin(angle), r, z)
-    nl=nl+1; write(lines(nl), '(i6, f14.6, a10, a20, a10, f14.3)') i, wall_sec%s, &
+    nl=nl+1; write(lines(nl), '(i6, f14.6, a10, a20, a14, f14.3)') i, wall_sec%s, &
                 trim(ele_loc_to_string(ele)), trim(ele%name), trim(wall3d_section_type_name(wall_sec%type)), 1000*r
   enddo
 
-  nl=nl+1; lines(nl) = '    Ix             S    ix_ele                 Ele      Type   Radius (mm)'
+  nl=nl+1; lines(nl) = '    Ix             S    ix_ele                 Ele          Type   Radius (mm)'
 
   result_id = show_what
 
