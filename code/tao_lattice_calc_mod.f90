@@ -80,7 +80,17 @@ call tao_hook_lattice_calc (calc_ok)
 uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   u => s%u(iuni)
-  if (.not. u%is_on .or. .not. u%calc%lattice) cycle
+
+  if (.not. u%is_on) cycle
+
+  if (.not. u%calc%lattice) then
+    ! Datum expressions can refer to other universes so always reevaluate.
+    do id = 1, size(u%data)
+      if (u%data(id)%data_type(1:11) /= 'expression:') cycle
+      call tao_evaluate_a_datum (u%data(id), u, u%model, u%data(id)%model_value, u%data(id)%good_model)
+    enddo
+    cycle
+  endif
 
   ! Pointer to appropriate lattice and zero data array
 
