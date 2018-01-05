@@ -432,12 +432,7 @@ do ir = 1, branch%n_ele_track
     if (cache%c_ele(ir)%cache_type /= no_cache$) ri_info%cache_ele => cache%c_ele(ir)
   endif
 
-  pt%g_x0 = 0
-  pt%g_y0 = 0
-  pt%dgx_dx = 0
-  pt%dgx_dy = 0
-  pt%dgy_dx = 0
-  pt%dgy_dy = 0
+  pt = rad_int_track_point_struct()  ! zero components
 
   if (ele%key == rfcavity$) then
     m65 = m65 + ele%mat6(6,5)
@@ -502,8 +497,17 @@ enddo
 do ir = 1, branch%n_ele_track
 
   ele => branch%ele(ir)
-
   if (.not. ele%is_on) cycle
+
+  ri_info%ele => ele
+  rad_int1 => rad_int_all%ele(ir)
+
+  nullify (ri_info%cache_ele)
+  if (use_cache) then
+    if (cache%c_ele(ir)%cache_type /= no_cache$) ri_info%cache_ele => cache%c_ele(ir)
+  endif
+
+  pt = rad_int_track_point_struct()  ! zero components
 
   select case (ele%key)
   case (wiggler$, undulator$)
@@ -515,8 +519,8 @@ do ir = 1, branch%n_ele_track
       g3_ave = 4 * G_max**3 / (3 * pi)
       rad_int1%i0 = (ele%value(e_tot$) / mass_of(branch%param%particle)) * 2 * G_max / 3
       rad_int1%i1 = -ele%value(k1$) * (ele%value(l_pole$) / pi)**2
-      rad_int1%i2 = ll * G_max**2 / 2
-      rad_int1%i3 = ll * g3_ave
+      rad_int1%i2 = ele%value(l$) * G_max**2 / 2
+      rad_int1%i3 = ele%value(l$) * g3_ave
 
       call qromb_rad_int (branch%param, [F, F, F, T, T, T, T, F, T], pt, ri_info, int_tot, rad_int1)
       cycle
@@ -528,14 +532,6 @@ do ir = 1, branch%n_ele_track
   end select
 
   !
-
-  ri_info%ele => ele
-  rad_int1 => rad_int_all%ele(ir)
-
-  nullify (ri_info%cache_ele)
-  if (use_cache) then
-    if (cache%c_ele(ir)%cache_type /= no_cache$) ri_info%cache_ele => cache%c_ele(ir)
-  endif
 
   ll = ele%value(l$)
   if (ll == 0) cycle
