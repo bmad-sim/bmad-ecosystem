@@ -80,22 +80,14 @@ main_loop: do
 
   do iw = 1, size(branch%wall3d)
     if (iw == photon%now%ix_wall3d) cycle
-    status = sr3d_photon_status_calc (photon, branch, iw)
+    status = sr3d_photon_status_calc (photon, branch, iw, dw_perp)
 
-    if (status == inside_the_wall$) then
+    if (status == inside_the_wall$ .or. (status == at_transverse_wall$ .and. &
+                                           dot_product (photon%now%orb%vec(2:6:2), dw_perp) < 0)) then
       photon%now%ix_wall3d = iw
       photon%status = status
       cycle main_loop
     endif
-
-    if (photon%status == at_transverse_wall$) then
-      call sr3d_photon_d_radius (photon%now, branch, no_wall_here, d_radius, dw_perp, ix_wall3d = iw)
-      if (dot_product (photon%now%orb%vec(2:6:2), dw_perp) < 0) then   ! Traveling into sub-chamber
-        photon%now%ix_wall3d = iw
-        photon%status = status
-        cycle main_loop
-      endif
-    endif  
   enddo
 
   ! Switch to a subchamber in a different branch?
@@ -303,7 +295,7 @@ end subroutine sr3d_check_if_photon_init_coords_outside_wall
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Function sr3d_photon_status_calc (photon, branch, ix_wall3d) result (status)
+! Function sr3d_photon_status_calc (photon, branch, ix_wall3d, dw_perp) result (status)
 !
 ! Routine to determine if a photon has crossed through the wall or
 ! is at the end of a linear lattice
@@ -317,7 +309,7 @@ end subroutine sr3d_check_if_photon_init_coords_outside_wall
 !   status -- Integer: is_through_wall$, at_wall_end$, at_transverse_wall$, or inside_the_wall$
 !-
 
-function sr3d_photon_status_calc (photon, branch, ix_wall3d) result (status)
+function sr3d_photon_status_calc (photon, branch, ix_wall3d, dw_perp) result (status)
 
 implicit none
 
@@ -327,6 +319,7 @@ type (branch_struct), target :: branch
 type (wall3d_struct), pointer :: wall3d
 
 real(rp) d_radius, s
+real(rp), optional :: dw_perp(3)
 
 integer status
 integer, optional :: ix_wall3d
@@ -340,7 +333,7 @@ status = inside_the_wall$
 
 now = photon%now
 call sr3d_get_section_index(now, branch, ix_wall3d)
-call sr3d_photon_d_radius (now, branch, no_wall_here, d_radius, ix_wall3d = ix_wall3d)
+call sr3d_photon_d_radius (now, branch, no_wall_here, d_radius, dw_perp = dw_perp, ix_wall3d = ix_wall3d)
 
 ! Test for at_transverse_wall is if d_radius is in the range [0, significant_length].
 ! This is better than using a range [-significant_leng, significant_length] since, for near grazing angle
