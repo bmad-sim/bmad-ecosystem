@@ -102,22 +102,26 @@ bp_com%print_err       = print_save
 
 if (err_flag) return
 
+! Attribute bookkeeping
+
 select case (a_name)
 case ('VOLTAGE')
   if (ele%value(l$) /= 0) then
     ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
   endif
+
 case ('GRADIENT')
     ele%value(voltage$) = ele%value(gradient$) * ele%value(l$)
+
+case default
+  if (is_slaved_field_attribute) then
+    branch => pointer_to_branch(ele)
+    call attribute_bookkeeper(ele, branch%param, force_bookkeeping = .true.)
+    ele%field_master = .not. ele%field_master
+  endif
 end select
 
-! Bookkeeping
-
-if (is_slaved_field_attribute) then
-  branch => pointer_to_branch(ele)
-  call attribute_bookkeeper(ele, branch%param, force_bookkeeping = .true.)
-  ele%field_master = .not. ele%field_master
-endif
+! Set bookkeeping flags
 
 call pointer_to_attribute (ele, a_name, .true., a_ptr, err_flag)
 call set_flags_for_changed_attribute (ele, a_ptr)
