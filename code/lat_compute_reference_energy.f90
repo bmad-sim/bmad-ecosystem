@@ -159,7 +159,9 @@ do ib = 0, ubound(lat%branch, 1)
     endif
 
     ! e_gun exit energy gets put into init_elem exit energy
-    init_elem%value(p0c$) = (1 + end_orb%vec(6)) * gun_ele%value(p0c$)
+    pc = (1 + end_orb%vec(6)) * gun_ele%value(p0c$)
+    if (init_elem%value(p0c$) /= pc) stale = .true.
+    init_elem%value(p0c$) = pc
     call convert_pc_to (init_elem%value(p0c$), branch%param%particle, e_tot = init_elem%value(e_tot$))
 
     ! Now propagate this energy to the e_gun, and any markers in between.
@@ -436,7 +438,7 @@ case (lcavity$)
   endif
 
   ! Track. With runge_kutta, a shift in the end energy can cause small changes in the tracking.
-  ! So if there has been a shift in end energy, track again.
+  ! So if there has been a shift in the end energy, track again.
 
   do i = 1, 2
     call track_this_ele (.false., err); if (err) return
