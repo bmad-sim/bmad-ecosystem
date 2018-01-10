@@ -67,4 +67,6 @@ do i = 1, size(wall%section)
                                 wall%section(i)%ix_ele, wall%section(i)%s
 enddo
 
+write (1, '(a, i0)') '"N_section" ABS 0  ', size(lat%branch(2)%wall3d(1)%section) 
+
 end program
