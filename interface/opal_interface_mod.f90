@@ -1,9 +1,7 @@
 module opal_interface_mod
 
-use bmad_struct
 use bmad_interface
 use write_lat_file_mod
-use time_tracker_mod
 
 
 contains
