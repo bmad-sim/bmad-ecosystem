@@ -1,0 +1,4 @@
+&params
+  tracking_method = 'runge_kutta'
+  backwards = T
+/ 
