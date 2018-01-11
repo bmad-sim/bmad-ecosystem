@@ -1542,6 +1542,8 @@ do iw = 1, size(branch%wall3d)
     ie2 = element_at_s(branch, wall%section(i)%s, .true.)
     do j = ie1, ie2
       if (branch%ele(j)%key /= patch$) cycle
+      if (wall%section(i-1)%s >= max(branch%ele(j)%s_start, branch%ele(j)%s)) cycle
+      if (wall%section(i)%s <= min(branch%ele(j)%s_start, branch%ele(j)%s)) cycle
       wall%section(i)%patch_in_region = .true.
       exit
     enddo
