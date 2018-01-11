@@ -1,6 +1,5 @@
 module autoscale_mod
 
-use runge_kutta_mod
 use bookkeeper_mod
 
 integer, private, save :: n_call ! Used for debugging.

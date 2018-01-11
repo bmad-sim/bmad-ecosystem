@@ -532,6 +532,7 @@ subroutine kick_vector_calc (ele, param, s_body, orbit, dr_ds, err)
 implicit none
 
 type (ele_struct) ele
+type (ele_struct), pointer :: lord
 type (lat_param_struct) param
 type (em_field_struct) field
 type (coord_struct) orbit, orbit2
@@ -549,11 +550,16 @@ logical :: err
 character(24), parameter :: r_name = 'kick_vector_calc'
 
 ! Init
-! The effective reference velocity is different from the velocity of the reference particle for wigglers where the reference particle
-! is not traveling along the reference line and in elements where the reference velocity is not constant.
+! The effective reference velocity is different from the velocity of the reference particle for wigglers where the 
+! reference particle is not traveling along the reference line and in elements where the reference velocity is not constant.
 
 if (ele%value(delta_ref_time$) == 0 .or. ele%key == patch$) then
   beta0 = ele%value(p0c$) / ele%value(e_tot$) ! Singular case. 
+elseif (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
+  ! Note: There is a potential problem with RF elements when calculating beta0 when there is slicing and where
+  ! the particle is non-relativistic. To avoid z-shifts with slicing, use the lord delta_ref_time.
+  lord => pointer_to_lord(ele, 1)
+  beta0 = lord%value(l$) / (c_light * lord%value(delta_ref_time$))
 else
   beta0 = ele%value(l$) / (c_light * ele%value(delta_ref_time$))
 endif

@@ -180,6 +180,24 @@ subroutine compute_even_steps (ds_in, length, ds_default, ds_out, n_step)
   integer n_step
 end subroutine
 
+subroutine convert_particle_coordinates_s_to_t (particle, s_body, orientation, z_phase)
+  import
+  implicit none
+  type (coord_struct), intent(inout), target :: particle
+  real(rp) s_body
+  real(rp), optional :: z_phase
+  integer :: orientation
+end subroutine
+
+subroutine convert_particle_coordinates_t_to_s (particle, z_phase, ele, s_body)
+  import
+  implicit none
+  type (coord_struct), intent(inout), target :: particle
+  type (ele_struct) ele
+  real(rp) :: z_phase
+  real(rp), optional :: s_body
+end subroutine
+
 subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, beta1, err_flag)
   import
   implicit none
