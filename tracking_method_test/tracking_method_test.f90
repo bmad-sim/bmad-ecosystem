@@ -218,7 +218,7 @@ character(*) :: instr
     case('LCAVITY3:Time_Runge_Kutta')                  ; tolerance = 'ABS 2e-11'
     case('WIGGLER_MAP1:Time_Runge_Kutta')              ; tolerance = 'ABS 2e-13'
     case('WIGGLER_MAP1:Runge_Kutta')                   ; tolerance = 'ABS 1e-13'
-    case('WIGGLER_PERIODIC1:Runge_Kutta')              ; tolerance = 'ABS 5e-13'
+    case('WIGGLER_PERIODIC1:Runge_Kutta')              ; tolerance = 'ABS 1e-12'
     case('WIGGLER_PERIODIC1:Time_Runge_Kutta')         ; tolerance = 'ABS 2e-12'
 
     case("OCTUPOLE1-Anti:Runge_Kutta")                 ; tolerance = 'ABS 1e-13'
