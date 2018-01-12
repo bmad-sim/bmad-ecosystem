@@ -12,7 +12,7 @@ type (ele_struct), pointer :: ele0, ele, zele
 type (ele_struct) ele1, ele2a, ele2b, end_ele, ele2
 type (coord_struct), allocatable :: ref_orb(:)
 type (coord_struct) orb1, orb2a, orb2b, orb2c, orb2d
-type (coord_struct) start_orb, end_orb, end_orb2, orbit
+type (coord_struct) start_orb, end_orb, end_orb2, orbit, split_orb, orb_out
 type (taylor_struct) t_map(6)
 type (em_field_struct) field
 
@@ -104,7 +104,7 @@ print *, determinant(zele%mat6)
 ! Test branch 0
 
 branch => lat%branch(0)
-call init_coord (start_orb, ele = branch%ele(1), element_end = upstream_end$)
+call init_coord (start_orb, start_orb, ele = branch%ele(1), element_end = upstream_end$)
 ! Track through split rfcav
 call track1 (start_orb, branch%ele(1), branch%param, end_orb)
 call track1 (end_orb, branch%ele(3), branch%param, end_orb)
@@ -137,13 +137,15 @@ do i = 1, branch%n_ele_max
 enddo
 
 ! Track through split rfcav
-call track1 (start_orb, branch%ele(1), branch%param, end_orb)
-call track1 (end_orb, branch%ele(3), branch%param, end_orb)
+call track1 (start_orb, branch%ele(1), branch%param, split_orb)
+call track1 (split_orb, branch%ele(3), branch%param, end_orb)
 
 ! Track through unsplit rfcav
 call track1 (start_orb, branch%ele(4), branch%param, end_orb2)
 
-call lat_make_mat6 (lat, ix_branch = branch%ix_branch)
+call make_mat6 (branch%ele(1), branch%param, start_orb, orb_out)
+call make_mat6 (branch%ele(3), branch%param, split_orb, orb_out)
+call make_mat6 (branch%ele(4), branch%param, start_orb, orb_out)
 xmat = matmul(branch%ele(3)%mat6, branch%ele(1)%mat6)
 
 write (1, '(a, 6es18.9)') '"rfcav-rk:dvec" ABS 1e-14', end_orb2%vec - end_orb%vec
