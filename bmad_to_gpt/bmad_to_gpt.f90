@@ -3,6 +3,7 @@ program bmad_to_gpt
 use gpt_interface_mod
 use bmad_struct
 use beam_mod
+use time_tracker_mod
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
