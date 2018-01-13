@@ -458,6 +458,10 @@ do i = 1, size(contrl)
       call out_io (s_error$, r_name, 'DUPLICATE SLAVE CONTROL FOR LORD: ' // name)
       return
     endif
+    if (c1%slave == c2%slave .and. c1%attribute == c2%attribute) then
+      call out_io (s_error$, r_name, 'DUPLICATE SLAVE CONTROL FOR LORD: ' // name)
+      return
+    endif
   enddo
 enddo
 

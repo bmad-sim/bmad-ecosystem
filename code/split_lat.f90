@@ -211,7 +211,7 @@ if (ele%slave_status == super_slave$) then
   do j = 1, ele2%n_lord
     lord => pointer_to_lord(ele2, j, ctl)
     if (has_overlap(ele2, lord)) cycle
-    ctl%ix_attrib = int_garbage$  ! Mark for deletion
+    ctl%attribute = 'REMOVE'  ! Mark for deletion
     lord%value(lord_pad2$) = lord%value(lord_pad2$) - ele2%value(l$)
     controls_need_removing = .true.
   enddo

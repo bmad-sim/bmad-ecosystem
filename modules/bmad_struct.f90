@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 202
+integer, parameter :: bmad_inc_version$ = 203
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1377,7 +1377,8 @@ integer, parameter :: psi_position$ = 107, wall$ = 107
 integer, parameter :: aperture_at$ = 108, beta_a_begin$ = 108
 integer, parameter :: ran_seed$ = 109, beta_b_begin$ = 109, origin_ele$ = 109
 
-! Make sure that lat%control(i)%ix_attrib /= field_overlaps$ for all girders, superposition, overlays, and groups.
+! 
+
 integer, parameter :: to_line$ = 110, field_overlaps$ = 110 
 integer, parameter :: field_master$ = 111, to_element$ = 111
 integer, parameter :: descrip$ = 112
@@ -1387,10 +1388,6 @@ integer, parameter :: phi_b$ = 116, crystal_type$ = 116, material_type$ = 116
 integer, parameter :: type$ = 117
 integer, parameter :: ref_origin$ = 118
 integer, parameter :: ele_origin$ = 119
-
-character(20), parameter :: field_overlaps_name$ = 'FIELD OVERLAPS'
-
-! superimpose$ through create_jumbo_slave$ assumed unique (or need to modify bmad_parser_mod.f90).
 
 integer, parameter :: superimpose$     = 120   
 integer, parameter :: offset$          = 121

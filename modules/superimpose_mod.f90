@@ -475,6 +475,7 @@ do
   sup_con(ix_super_con)%slave = lat_ele_loc_struct(ix_slave, ix_branch)
   sup_con(ix_super_con)%lord%ix_ele = ix_super
   sup_con(ix_super_con)%ix_attrib = 0
+  sup_con(ix_super_con)%attribute = ''
 
   ! change the element key
 
