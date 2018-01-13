@@ -8,15 +8,19 @@
 !
 ! Individual lat%control(i) elements, along with the corresponding lat%ic(j), can 
 ! be removed by setting:
-!     lat%control(i)%ix_attrib = int_garbage$
+!     lat%control(i)%attribute = 'REMOVE'
 ! In this case, the appropriate lord%n_slave value must have been adjusted for 
 ! the appropriate lord element.
 !
-! Note: Lattice_bookkeeper is not called by this routine.
+! Note: Currently there is a deprecated way to remove lat%control(i) elements via setting:
+!     lat%control(i)%ix_attrib = int_garbage$    ! DO NOT DO THIS!
+!
+! Note: To save computation time, lattice_bookkeeper is not called by this routine.
+! If you use this routine you should call lattice_bookkeeper after all lattice adjustments have been made.
 !
 ! Input:
 !   lat            -- lat_struct: Lattice to compress.
-!   check_sanity   -- Logical, optional: If True (default) then call lat_sanity_check
+!   check_sanity   -- logical, optional: If True (default) then call lat_sanity_check
 !                       after the remove to make sure everything is ok.
 !
 ! Output:
@@ -90,7 +94,7 @@ do i = 1, lat%n_control_max
   if (slave%key == -1) control(i) = -1
   lord => pointer_to_ele(lat, ctl%lord)
   if (lord%key == -1) control(i) = -1
-  if (ctl%ix_attrib == int_garbage$) control(i) = -1
+  if (ctl%ix_attrib == int_garbage$ .or. ctl%attribute == 'REMOVE') control(i) = -1
   if (control(i) == -1 .and. control_to_ic(i) /= -1) ic(control_to_ic(i)) = -1
 enddo
 
@@ -175,7 +179,7 @@ do ib = 0, ubound(lat%branch, 1)
       if (control(j) == -1) cycle
       if (ele%ix1_slave == 0) ele%ix1_slave = control(j)
       ctl => lat%control(control(j))
-      if (ctl%ix_attrib == field_overlaps$) then
+      if (ctl%attribute == 'FIELD_OVERLAPS') then
         ele%n_slave_field = ele%n_slave_field + 1
       else
         ele%n_slave = ele%n_slave + 1
@@ -215,7 +219,7 @@ do ib = 0, ubound(lat%branch, 1)
       if (ic(j) == -1) cycle
       if (ele%ic1_lord == 0) ele%ic1_lord = ic(j)
       ctl => lat%control(ic(j))
-      if (ctl%ix_attrib == field_overlaps$) then
+      if (ctl%attribute == 'FIELD_OVERLAPS') then
         ele%n_lord_field = ele%n_lord_field + 1
       else
         ele%n_lord = ele%n_lord + 1

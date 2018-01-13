@@ -38,8 +38,9 @@ type (control_struct), pointer :: c
 integer i, j, nc0, nc2, is, n, iv
 integer ix_slave, n_slave, ix_attrib, ix_branch
 
-character(40) at_name
-character(16), parameter :: r_name = 'create_overlay'
+character(40) attrib_name
+character(*), parameter :: r_name = 'create_overlay'
+
 logical err, err2, free, var_found
 logical, optional :: err_print_flag
 
@@ -91,6 +92,7 @@ nc2 = nc0
 do j = 1, n_slave
   ix_attrib = contrl(j)%ix_attrib
   ix_slave = contrl(j)%slave%ix_ele
+  attrib_name = contrl(j)%attribute
   slave => lat%branch(contrl(j)%slave%ix_branch)%ele(ix_slave)
 
   if (nc2+4 > size(lat%control)) call reallocate_control (lat, nc2+100)
@@ -107,7 +109,7 @@ do j = 1, n_slave
 
   !
 
-  free = attribute_free (slave, attribute_name(slave, ix_attrib), err_print_flag, .true.)
+  free = attribute_free (slave, attrib_name, err_print_flag, .true.)
   err = (err .or. .not. free)
   c => lat%control(nc2+1)
   do is = 1, size(contrl(j)%stack)
@@ -118,6 +120,7 @@ do j = 1, n_slave
   c%stack     = contrl(j)%stack(1:is-1)
   c%ix_attrib = contrl(j)%ix_attrib
   c%slave     = contrl(j)%slave
+  c%attribute = contrl(j)%attribute
   c%lord      = lat_ele_loc_struct(lord%ix_ele, 0)
 
   nc2 = nc2 + 1

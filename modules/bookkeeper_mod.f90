@@ -410,10 +410,11 @@ type (control_struct), pointer :: control
 
 real(rp), pointer :: r_ptr
 
-integer ix_attrib, i, j
+integer i, j
 
 logical moved, err_flag
 
+character(40) :: attrib_name
 character(20) :: r_name = 'makeup_group_lord'
 
 !
@@ -423,15 +424,15 @@ moved = .false.   ! have we longitudinally moved an element?
 
 do i = 1, lord%n_slave
   slave => pointer_to_slave(lord, i, control)
-  ix_attrib = control%ix_attrib
-  if (ix_attrib == l$) moved = .true.
+  attrib_name = control%attribute
+  if (attrib_name == 'L') moved = .true.
 
-  select case (ix_attrib)
+  select case (attrib_name)
 
   !---------
   ! Edge: Varying lengths takes special code.
 
-  case (start_edge$, end_edge$, s_position$, accordion_edge$, l$)
+  case ('START_EDGE', 'END_EDGE', 'S_POSITION', 'ACCORDION_EDGE', 'L')
 
     if (slave%lord_status == multipass_lord$) then
       do j = 1, slave%n_slave
@@ -445,26 +446,26 @@ do i = 1, lord%n_slave
   !---------
   ! x_limit, y_limit, aperture
 
-  case (x_limit$)
-    call group_change_this (slave, x1_limit$, control, 1);  if (err_flag) return
-    call group_change_this (slave, x2_limit$, control, 1);  if (err_flag) return
+  case ('X_LIMIT')
+    call group_change_this (slave, 'X1_LIMIT', control, 1);  if (err_flag) return
+    call group_change_this (slave, 'X2_LIMIT', control, 1);  if (err_flag) return
 
-  case (y_limit$)
-    call group_change_this (slave, y1_limit$, control, 1);  if (err_flag) return
-    call group_change_this (slave, y2_limit$, control, 1);  if (err_flag) return
+  case ('Y_LIMIT')
+    call group_change_this (slave, 'Y1_LIMIT', control, 1);  if (err_flag) return
+    call group_change_this (slave, 'Y2_LIMIT', control, 1);  if (err_flag) return
 
-  case (aperture$) 
-    call group_change_this (slave, x1_limit$, control, 1);  if (err_flag) return
-    call group_change_this (slave, x2_limit$, control, 1);  if (err_flag) return
-    call group_change_this (slave, y1_limit$, control, 1);  if (err_flag) return
-    call group_change_this (slave, y2_limit$, control, 1);  if (err_flag) return
+  case ('APERTURE') 
+    call group_change_this (slave, 'X1_LIMIT', control, 1);  if (err_flag) return
+    call group_change_this (slave, 'X2_LIMIT', control, 1);  if (err_flag) return
+    call group_change_this (slave, 'Y1_LIMIT', control, 1);  if (err_flag) return
+    call group_change_this (slave, 'Y2_LIMIT', control, 1);  if (err_flag) return
 
   !---------
   ! All else
 
   case default
 
-    call group_change_this (slave, ix_attrib, control, 1);  if (err_flag) return
+    call group_change_this (slave, attrib_name, control, 1);  if (err_flag) return
 
   end select
 
@@ -519,7 +520,7 @@ endif
 ! now that we have the ends we find the elements to either side whose length
 ! the group can adjust
 
-if (ix_attrib /= end_edge$ .and. ix_attrib /= l$) then
+if (attrib_name /= 'END_EDGE' .and. attrib_name /= 'L') then
   ix1 = ix_min - 1
   do
     if (attribute_name(branch%ele(ix1), l$) == 'L') exit  ! If has length attribute
@@ -535,7 +536,7 @@ if (ix_attrib /= end_edge$ .and. ix_attrib /= l$) then
   enddo
 endif
 
-if (ix_attrib /= start_edge$ .and. ix_attrib /= l$) then
+if (attrib_name /= 'START_EDGE' .and. attrib_name /= 'L') then
   ix2 = ix_max + 1 
   do
     if (attribute_name(branch%ele(ix2), l$) == 'L') exit  ! If has length attribute
@@ -553,34 +554,34 @@ endif
 
 ! put in changes
 
-select case (ix_attrib)
+select case (attrib_name)
 
-case (l$)
-  call group_change_this (branch%ele(ix_max), l$, ctl, 1);  if (err_flag) return
+case ('L')
+  call group_change_this (branch%ele(ix_max), 'L', ctl, 1);  if (err_flag) return
 
-case (start_edge$)
-  call group_change_this (branch%ele(ix_min), l$, ctl, -1);  if (err_flag) return
-  call group_change_this (branch%ele(ix1), l$, ctl, 1);  if (err_flag) return
+case ('START_EDGE')
+  call group_change_this (branch%ele(ix_min), 'L', ctl, -1);  if (err_flag) return
+  call group_change_this (branch%ele(ix1), 'L', ctl, 1);  if (err_flag) return
 
-case (end_edge$)
-  call group_change_this (branch%ele(ix_max), l$, ctl, 1);  if (err_flag) return
-  call group_change_this (branch%ele(ix2), l$, ctl, -1);  if (err_flag) return
+case ('END_EDGE')
+  call group_change_this (branch%ele(ix_max), 'L', ctl, 1);  if (err_flag) return
+  call group_change_this (branch%ele(ix2), 'L', ctl, -1);  if (err_flag) return
 
-case (accordion_edge$)
-  call group_change_this (branch%ele(ix_min), l$, ctl, 1);  if (err_flag) return
-  call group_change_this (branch%ele(ix1), l$, ctl, -1);  if (err_flag) return
+case ('ACCORDION_EDGE')
+  call group_change_this (branch%ele(ix_min), 'L', ctl, 1);  if (err_flag) return
+  call group_change_this (branch%ele(ix1), 'L', ctl, -1);  if (err_flag) return
 
-  call group_change_this (branch%ele(ix_max), l$, ctl, 1);  if (err_flag) return
-  call group_change_this (branch%ele(ix2), l$, ctl, -1);  if (err_flag) return
+  call group_change_this (branch%ele(ix_max), 'L', ctl, 1);  if (err_flag) return
+  call group_change_this (branch%ele(ix2), 'L', ctl, -1);  if (err_flag) return
 
-case (s_position$)
-  call group_change_this (branch%ele(ix1), l$, ctl, 1);  if (err_flag) return
-  call group_change_this (branch%ele(ix2), l$, ctl, -1);  if (err_flag) return
-case (lord_pad1$)
-  call group_change_this (branch%ele(ix1), l$, ctl, 1, this_slave, lord_pad1$);  if (err_flag) return
+case ('S_POSITION')
+  call group_change_this (branch%ele(ix1), 'L', ctl, 1);  if (err_flag) return
+  call group_change_this (branch%ele(ix2), 'L', ctl, -1);  if (err_flag) return
+case ('LORD_PAD1')
+  call group_change_this (branch%ele(ix1), 'L', ctl, 1, this_slave, 'LORD_PAD1');  if (err_flag) return
 
-case (lord_pad2$)
-  call group_change_this (branch%ele(ix2), l$, ctl, 1, this_slave, lord_pad1$);  if (err_flag) return
+case ('LORD_PAD2')
+  call group_change_this (branch%ele(ix2), 'L', ctl, 1, this_slave, 'LORD_PAD1');  if (err_flag) return
 
 end select
 
@@ -593,7 +594,7 @@ end subroutine change_this_edge
 ! any one of them is present.
 !-
 
-recursive subroutine group_change_this (ele, ix_attrib, ctl, dir, this_lord, this_pad)
+recursive subroutine group_change_this (ele, attrib_name, ctl, dir, this_lord, this_pad)
 
 type (ele_struct) ele
 type (ele_struct), optional :: this_lord
@@ -601,17 +602,17 @@ type (ele_struct), pointer :: my_lord
 type (control_struct) ctl
 type (all_pointer_struct) :: a_ptr
 
-integer dir
-integer ix_attrib, il, ix_slave
-integer, optional :: this_pad
+integer dir, il, ix_slave
 
 real(rp) coef, new_val, val, val_old, delta
 
+character(*) attrib_name
+character(*), optional :: this_pad
 character(100) err_str
 
 !
 
-call pointer_to_indexed_attribute (ele, ix_attrib, .false., a_ptr, err_flag)
+call pointer_to_attribute (ele, attrib_name, .false., a_ptr, err_flag)
 if (err_flag) then
   if (global_com%exit_on_error) call err_exit
   return
@@ -628,8 +629,8 @@ a_ptr%r = a_ptr%r + delta * dir
 
 call set_flags_for_changed_attribute (ele, a_ptr%r)
 ! super_slave length can be varied by a group so don't check this.
-if ((ele%slave_status /= super_slave$ .and. ele%slave_status /= multipass_slave$) .or. ix_attrib /= l$) then
-  err_flag = .not. attribute_free (ele, attribute_name(ele, ix_attrib), .true.)
+if ((ele%slave_status /= super_slave$ .and. ele%slave_status /= multipass_slave$) .or. attrib_name /= 'L') then
+  err_flag = .not. attribute_free (ele, attrib_name, .true.)
   if (err_flag) then
     call out_io (s_blank$, r_name, 'GROUP_LORD TRYING TO CONTROL THIS ATTRIBUTE IS:' // lord%name)
     return
@@ -639,12 +640,12 @@ endif
 ! Pad check
 
 if (ele%lord_status == super_lord$ .and. a_ptr%r < 0) then
-  if (ix_attrib == lord_pad1$) then
+  if (attrib_name == 'LORD_PAD1') then
     call out_io (s_error$, r_name, 'GROUP ELEMENT: ' // lord%name, &
                                    'CONTROLS SUPER_LORD: ' // ele%name, &
                                    'AND LORD_PAD1 IS NOW NEGATIVE: \f8.3\ ', r_array = [a_ptr%r])
     err_flag = .true.
-  elseif (ix_attrib == lord_pad2$) then
+  elseif (attrib_name == 'LORD_PAD2') then
     call out_io (s_error$, r_name, 'GROUP ELEMENT: ' // lord%name, &
                                    'CONTROLS SUPER_LORD: ' // ele%name, &
                                    'AND LORD_PAD2 IS NOW NEGATIVE: \f8.3\ ', r_array = [a_ptr%r])
@@ -655,9 +656,9 @@ endif
 ! ele is a super_slave...
 
 if (ele%slave_status == super_slave$) then
-  if (ix_attrib /= l$) then
+  if (attrib_name /= 'L') then
     call out_io (s_error$, r_name, &
-                  'CONFUSED GROUP IS TRYING TO VARY SUPER_SLAVE ATTRIBUTE: ' // attribute_name(ele, ix_attrib))
+                  'CONFUSED GROUP IS TRYING TO VARY SUPER_SLAVE ATTRIBUTE: ' // attrib_name)
     if (global_com%exit_on_error) call err_exit
     err_flag = .true.
     return
@@ -666,11 +667,11 @@ if (ele%slave_status == super_slave$) then
   do il = 1, ele%n_lord
     my_lord => pointer_to_lord(ele, il)
     if (my_lord%lord_status /= super_lord$) cycle
-    call group_change_this (my_lord, ix_attrib, ctl, dir);  if (err_flag) return
+    call group_change_this (my_lord, attrib_name, ctl, dir);  if (err_flag) return
   enddo
 
   if (present(this_lord)) then
-    call group_change_this (my_lord, ix_attrib, ctl, -dir);  if (err_flag) return  ! Take out length change.
+    call group_change_this (my_lord, attrib_name, ctl, -dir);  if (err_flag) return  ! Take out length change.
     call group_change_this (my_lord, this_pad, ctl, dir);  if (err_flag) return    ! And change pad length instead.
   endif
 
@@ -681,7 +682,7 @@ endif
 
 if (ele%slave_status == multipass_slave$) then
   my_lord => pointer_to_lord(ele, 1, ix_slave = ix_slave)
-  if (ix_slave == 1) call group_change_this (my_lord, ix_attrib, ctl, 1);  if (err_flag) return
+  if (ix_slave == 1) call group_change_this (my_lord, attrib_name, ctl, 1);  if (err_flag) return
 endif
 
 end subroutine group_change_this
@@ -695,7 +696,7 @@ end subroutine makeup_group_lord
 ! Subroutine makeup_multipass_slave (lat, slave, err_flag)
 !
 ! Subroutine to calcualte the attributes of multipass slave elements.
-! This routine is not meant for general use.
+! This routine is not meant for guse.
 !-
 
 subroutine makeup_multipass_slave (lat, slave, err_flag)
@@ -2110,7 +2111,7 @@ do i = 1, slave%n_lord
       return
     endif
 
-    call pointer_to_indexed_attribute (slave, iv, .true., a_ptr, err_flag)
+    call pointer_to_attribute (slave, a_name, .true., a_ptr, err_flag)
     if (err_flag) then
       if (global_com%exit_on_error) call err_exit
       return

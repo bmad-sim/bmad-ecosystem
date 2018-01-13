@@ -1379,6 +1379,7 @@ do i = 1, n_old
   lat%control(i)%lord      = control(i)%lord
   lat%control(i)%slave     = control(i)%slave
   lat%control(i)%ix_attrib = control(i)%ix_attrib
+  lat%control(i)%attribute = control(i)%attribute
 enddo
 
 call re_allocate(lat%ic, max(n, size(lat%ic) + n - n_old))

@@ -81,6 +81,7 @@ if (n_add_field > 0) then
       lat%control(i2_field+1:i2_field+n_add_field)%lord  = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
       lat%control(i2_field+1:i2_field+n_add_field)%slave = lat_ele_loc_struct()
       lat%control(i2_field+1:i2_field+n_add_field)%ix_attrib = 0
+      lat%control(i2_field+1:i2_field+n_add_field)%attribute = ''
       where (lat%ic > i2_field) lat%ic = lat%ic + n_add_field
 
     else
@@ -88,6 +89,7 @@ if (n_add_field > 0) then
       lat%control(i1_field:i1_field+n_add_field-1)%lord  = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
       lat%control(i1_field:i1_field+n_add_field-1)%slave = lat_ele_loc_struct()
       lat%control(i1_field:i1_field+n_add_field-1)%ix_attrib = 0
+      lat%control(i1_field:i1_field+n_add_field-1)%attribute = ''
       where (lat%ic >= i1_field) lat%ic = lat%ic + n_add_field
     endif
 
@@ -131,6 +133,7 @@ if (n_add > 0) then
       lat%control(i2+1:i2+n_add)%lord = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
       lat%control(i2+1:i2+n_add)%slave = lat_ele_loc_struct()
       lat%control(i2+1:i2+n_add)%ix_attrib = 0
+      lat%control(i2+1:i2+n_add)%attribute = ''
       where (lat%ic > i2) lat%ic = lat%ic + n_add
 
     else
@@ -139,6 +142,7 @@ if (n_add > 0) then
       lat%control(i1:i1+n_add-1)%lord = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
       lat%control(i1:i1+n_add-1)%slave = lat_ele_loc_struct()
       lat%control(i1:i1+n_add-1)%ix_attrib = 0
+      lat%control(i1:i1+n_add-1)%attribute = ''
       where (lat%ic >= i1) lat%ic = lat%ic + n_add
     endif
 

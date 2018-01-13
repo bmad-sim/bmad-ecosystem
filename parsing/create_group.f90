@@ -18,7 +18,7 @@
 !   contrl(:)      -- Control_struct: control info. 1 element for each slave.
 !     %stack         -- Arithmetic expression stack for evaluating the controlled parameter value.
 !     %slave         -- Integer: Index to lat%branch()%ele() of element controlled.
-!     %ix_attrib     -- Integer: Index in %value() array of attribute controlled.
+!     %attribute     -- character(40): Attribute name.
 !   err            -- Logical: Set True if an attribute is not free to be controlled.
 !   err_print_flag -- Logical, optional: If present and False then suppress.
 !                       printing of an error message if attribute is not free.  
@@ -41,13 +41,14 @@ type (control_struct)  contrl(:)
 type (branch_struct), pointer :: branch
 type (control_struct), pointer :: c
 
-integer i, j, ix_attrib, n_control, n_con, is, iv, n
+integer i, j, n_control, n_con, is, iv, n, ix_attrib
 integer ix1, ix2, ix_min, ix_max, ix_slave, ix_branch
 
 logical err, err2, free, var_found
 logical, optional :: err_print_flag
 
-character(16) :: r_name = 'create_group'
+character(40) attrib_name
+character(*), parameter :: r_name = 'create_group'
 
 ! Error check
 
@@ -102,7 +103,7 @@ do i = 1, n_control
 
   ix_slave = contrl(i)%slave%ix_ele
   ix_branch = contrl(i)%slave%ix_branch
-  ix_attrib = contrl(i)%ix_attrib
+  attrib_name = contrl(i)%attribute
   branch => lat%branch(ix_branch)
 
   slave => branch%ele(ix_slave)
@@ -120,11 +121,11 @@ do i = 1, n_control
 
   ! Varying the length of a super_slave is permitted so do not check in this case.
 
-  select case (ix_attrib)
-  case (start_edge$, end_edge$, accordion_edge$, s_position$)
+  select case (attrib_name)
+  case ('START_EDGE', 'END_EDGE', 'ACCORDION_EDGE', 'S_POSITION')
     free = attribute_free (slave, 'L', err_print_flag)
   case default
-    free = attribute_free (slave, attribute_name(slave, ix_attrib), err_print_flag)
+    free = attribute_free (slave, attrib_name, err_print_flag)
   end select
 
   if (.not. free) then
@@ -148,6 +149,7 @@ do i = 1, n_control
   c%stack     = contrl(i)%stack(1:is-1)
   c%ix_attrib = contrl(i)%ix_attrib
   c%slave     = contrl(i)%slave
+  c%attribute = contrl(i)%attribute
   c%lord      = lat_ele_loc_struct(lord%ix_ele, 0)
 
   ! Convert variable$ type to group variable index if name matches a group variable name
