@@ -935,7 +935,7 @@ case ('data')
 
     ! if a range is specified, show the data range   
 
-    call re_allocate (lines, nl+100+size(d_array), .false.)
+    call re_allocate (lines, nl+100+2*size(d_array), .false.)
 
     fmt  = '(i4, 4(2x, a), 3es16.7, 2l6)'
     fmt2 = '(4x, 4(2x, a), 3es16.7, 2l6)'
