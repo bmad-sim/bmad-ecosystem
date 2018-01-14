@@ -260,6 +260,10 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u%model = u%design
   u%base  = u%design
 
+  u%design%name = 'design'
+  u%model%name  = 'model'
+  u%base%name   = 'base'
+
   u%model%tao_branch(0)%orb0  = u%model%lat%beam_start
   u%design%tao_branch(0)%orb0 = u%design%lat%beam_start
   u%base%tao_branch(0)%orb0   = u%base%lat%beam_start
@@ -315,7 +319,7 @@ if (s%com%common_lattice) then
     u%common     => s%u(ix_common_uni$)
     u%uni_branch => s%u(ix_common_uni$)%uni_branch
     u%design => s%u(ix_common_uni$)%design
-    u%base   => s%u(ix_common_uni$)%model  ! Base is identical to common model
+    u%base   => s%u(ix_common_uni$)%base
     u%model  => s%com%u_working%model
   enddo
 

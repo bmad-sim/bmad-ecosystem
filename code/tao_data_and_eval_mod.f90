@@ -33,7 +33,7 @@ contains
 !   dflt_ele_ref   -- ele_struct, pointer, optional: Default reference element.
 !   dflt_ele_start -- ele_struct, pointer, optional: Default start element.
 !   dflt_ele       -- ele_struct, pointer, optional: Default element to evaluate at.
-!   dflt_component -- character(*), optional: Default component: 'model', 'base', or 'design'.
+!   dflt_component -- character(*), optional: Default component: 'model' (default), 'base', or 'design'.
 !   dflt_uni       -- integer, optional: Default universe to use
 !
 ! Output:
@@ -354,10 +354,10 @@ end subroutine
 ! Subroutine to put the proper data in the specified datum
 !
 ! Input:
-!   datum         -- Tao_data_struct: What type of datum
-!   u             -- Tao_universe_struct: Which universe to use.
-!   tao_lat       -- Tao_lattice_struct: Lattice to use.
-!     
+!   datum          -- Tao_data_struct: What type of datum
+!   u              -- Tao_universe_struct: Which universe to use.
+!   tao_lat        -- Tao_lattice_struct: Lattice to use.
+!
 ! Output:
 !   datum          -- Tao_data_struct: 
 !     %ix_ele_merit   -- For max/min type constraints: Place where value is max/min. 
@@ -1429,7 +1429,7 @@ case ('expression:')
     enddo
 
     call tao_evaluate_expression (str, 0, .false., expression_value_vec, info, err, .true., &
-               datum%stack, 'model', datum%data_source, ele_ref, ele_start, ele, dflt_dat_index, u%ix_uni)
+               datum%stack, tao_lat%name, datum%data_source, ele_ref, ele_start, ele, dflt_dat_index, u%ix_uni)
     if (err) then
       call tao_set_invalid (datum, 'CANNOT EVALUATE EXPRESSION: ' // datum%data_type(12:))
       return
@@ -3382,7 +3382,8 @@ end subroutine
 !   use_good_user  -- Logical: Use the good_user logical in evaluating good(:)
 !   print_err      -- Logical, optional: If False then supress evaluation error messages.
 !                      This does not affect syntax error messages. Default is True.
-!   dflt_component -- Character(*), optional: Component to use if not specified in the expression. 'model', 'base', or 'design'.
+!   dflt_component -- Character(*), optional: Component to use if not specified in the expression. 
+!                       'model' (default), 'base', or 'design'.
 !   dflt_source    -- Character(*), optional: Default source ('lat', 'data', etc.). Default is ''.
 !   dflt_ele_ref   -- Ele_struct, pointer, optional: Default reference element.
 !   dflt_ele_start -- Ele_struct, pointer, optional: Default start element for ranges.

@@ -1546,7 +1546,7 @@ character(40) :: merit_type_names(5) = &
 character(200) :: tmpstr, why_invalid
 character, allocatable :: s_save(:)
 
-logical err, l1, old_exists
+logical err, l1
 
 
 ! Decode data component to set.
@@ -1761,24 +1761,26 @@ else
 endif
 
 !----------------------
+! If the "exists" component has been set (used by gui interface) check if the datum is truely valid.
+
+if (component == 'exists') then
+  do i = 1, size(d_dat)
+    d => d_dat(i)%d
+    if (.not. d%exists) cycle
+
+    d%exists = tao_data_sanity_check(d, .true.)
+    if (.not. d%exists) cycle
+
+    u => s%u(d%d1%d2%ix_uni) 
+    call tao_evaluate_a_datum (d, u, u%model, d%model_value, d%good_model, why_invalid)
+    if (.not. d%good_model) then
+      call out_io (s_error$, r_name, 'Datum is not valid since: ' // why_invalid)
+    endif
+    if (d%good_model) call tao_evaluate_a_datum (d, u, u%design, d%design_value, d%good_design, why_invalid)
+  enddo
+endif
+
 ! End stuff
-! See if the set has made a valid datum.
-! Only print an error message if the datum used to exist but now is not valid
-
-do i = 1, size(d_dat)
-  d => d_dat(i)%d
-
-  old_exists = d%exists
-  d%exists = tao_data_sanity_check(d, old_exists)
-  if (.not. d%exists) cycle
-
-  u => s%u(d%d1%d2%ix_uni) 
-  call tao_evaluate_a_datum (d, u, u%model, d%model_value, d%good_model, why_invalid)
-  if (old_exists .and. .not. d%good_model) then
-    call out_io (s_error$, r_name, 'Datum is not valid since: ' // why_invalid)
-  endif
-  if (d%good_model) call tao_evaluate_a_datum (d, u, u%design, d%design_value, d%good_design, why_invalid)
-enddo
 
 call tao_set_data_useit_opt()
 
