@@ -744,6 +744,7 @@ end type
 ! a universe along with stuff like radiation integrals, etc.
 
 type tao_lattice_struct
+  character(8) :: name                         ! "model", "base", or "design".
   type (lat_struct) lat                        ! lattice structures
   type (tao_lattice_branch_struct), allocatable :: tao_branch(:)
 end type

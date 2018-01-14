@@ -294,6 +294,11 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
   u%design = u%model
   u%base = u%design
+
+  u%design%name = 'design'
+  u%model%name  = 'model'
+  u%base%name   = 'base'
+
   u%design%tao_branch = u%model%tao_branch
   u%base%tao_branch   = u%design%tao_branch
   u%data%design_value = u%data%model_value
