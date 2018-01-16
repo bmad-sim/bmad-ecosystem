@@ -54,7 +54,7 @@ type sr3d_params_struct
   integer :: iu_photon_track = 0
   integer :: iu_wall_hit = 0
   integer :: iu_dat_file = 0
-  type (random_state_struct) ran_state
+  type (random_state_struct) :: ran_state = random_state_struct()
   real(rp) :: ds_track_step_max = 3     ! Maximum longitudinal distance in one photon "step".
   real(rp) :: dr_track_step_max = 0.1   ! Maximum tranverse distance in one photon "step".
   real(rp) :: significant_length = 1d-10
@@ -64,7 +64,8 @@ type sr3d_params_struct
   logical :: specular_reflection_only = .false.
   logical :: debug_on = .false.
   integer :: chamber_end_geometry = -1  ! Will be set to: open$ or closed$
-  integer ix_generated_warn             ! For debug use
+  integer :: ix_generated_warn = -1            ! For debug use
+  integer :: max_reflection = 10000
 end type
 
 type (sr3d_params_struct), save :: sr3d_params

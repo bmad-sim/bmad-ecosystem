@@ -178,9 +178,7 @@ surface_roughness_rms = -1; roughness_correlation_len = -1
 chamber_end_geometry = ''
 ix_branch = 0
 
-sr3d_params%debug_on = .false.
-sr3d_params%ix_generated_warn = -1
-sr3d_params%iu_wall_hit = 0
+sr3d_params = sr3d_params_struct()
 
 print *, 'Input parameter file: ', trim(param_file)
 open (1, file = param_file, status = 'old')
