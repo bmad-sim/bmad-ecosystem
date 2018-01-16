@@ -9,7 +9,7 @@
 
 # Set Plotting package directory 
 [ "${ACC_PLOT_PACKAGE}" == "pgplot" ] && export ACC_PLOT_PACKAGE_DIR="PGPLOT" 
-[ "${ACC_PLOT_PACKAGE}" == "pgplot" ] && export ACC_PLOT_PACKAGE_DIR="plplot"
+[ "${ACC_PLOT_PACKAGE}" == "plplot" ] && export ACC_PLOT_PACKAGE_DIR="plplot"
 
 # List of Project Directories - Order here matters!
 DIRLIST=( ${ACC_PLOT_PACKAGE_DIR} xsif lapack gsl fgsl forest recipes_f-90_LEPP sim_utils xraylib bmad tao cpp_bmad_interface examples bsim util_programs regression_tests )
