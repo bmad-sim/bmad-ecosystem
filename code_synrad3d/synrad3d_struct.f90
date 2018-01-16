@@ -65,7 +65,7 @@ type sr3d_params_struct
   logical :: debug_on = .false.
   integer :: chamber_end_geometry = -1  ! Will be set to: open$ or closed$
   integer :: ix_generated_warn = -1            ! For debug use
-  integer :: max_reflection = 10000
+  integer :: max_reflections = 10000
 end type
 
 type (sr3d_params_struct), save :: sr3d_params

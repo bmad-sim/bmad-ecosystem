@@ -139,10 +139,10 @@ main_loop: do
   call sr3d_reflect_photon (photon, branch, wall_hit, absorbed, err)
   if (absorbed .or. err .or. logic_option(.false., one_reflection_only)) return
 
-  if (photon%n_wall_hit > sr3d_params%max_reflection) then
+  if (photon%n_wall_hit > sr3d_params%max_reflections) then
     call out_io (s_error$, r_name, &
-      'NUMBER OF REFLECTIONS IS GREATER THAN THE LIMIT SET BY SR3D_PARAMS%MAX_REFLECTION WHICH IS \i0\.', &
-      'WILL IGNORE THIS PHOTON...', i_array = [sr3d_params%max_reflection])
+      'NUMBER OF REFLECTIONS IS GREATER THAN THE LIMIT SET BY SR3D_PARAMS%MAX_REFLECTIONS WHICH IS \i0\.', &
+      'WILL IGNORE THIS PHOTON...', i_array = [sr3d_params%max_reflections])
     call sr3d_print_photon_info (photon)
     err = .true.
     return
