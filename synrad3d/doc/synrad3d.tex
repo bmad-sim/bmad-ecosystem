@@ -112,7 +112,7 @@ $\vcenter{\hbox{\includegraphics[width=2in]{lhc-cross-section.pdf}}}$
 {\LARGE\bfseries David Sagan and Gerry Dugan}
 
 \vspace{0.4in}
-{\large\bfseries December 22, 2017}
+{\large\bfseries January 16, 2018}
 
 \end{center}
 \end{titlepage}
@@ -563,9 +563,10 @@ Fortran namelist syntax is used (\sref{s:namelist}). Example master input file:
     sr3d_params%specular_reflection_only = F    ! For testing diffuse scattering.
     sr3d_params%allow_reflections        = T    ! For testing purposes.
     sr3d_params%allow_absorption         = T    ! For testing purposes.
-    plot_param%n_pt          = 1000             ! Num points used for plot curves.
-    plot_param%window_width  =  800             ! Plot window width in pixels.
-    plot_param%window_height =  400             ! Plot window height in pixels.
+    sr3d_params%max_reflections  = 10000        ! For avoiding endless loop problems.
+    plot_param%n_pt              = 1000         ! Num points used for plot curves.
+    plot_param%window_width      =  800         ! Plot window width in pixels.
+    plot_param%window_height     =  400         ! Plot window height in pixels.
   /
 \end{example}
 
@@ -752,6 +753,15 @@ it hits the chamber wall. This can be used to generate data on where the primary
   \item[\vn{sr3d_params\%ds_track_step_max}, \vn{sr3d_params\%dr_track_step_max}] \Newline
 These parameters determine the maximum distance a photon is tracked in
 a given ``step'' see \sref{s:track} for more details.
+
+  \item[\vn{sr3d_params\%max_reflections}] \Newline
+This parameter sets the maximum number of reflections that a photon can have. If a photon is
+reflected more times than this parameter, \srthree will stop tracking the photon, print an error
+message, and then go on to the next photon. The offending photon will not be included in the output
+data file statistics. The default value for \vn{sr3d_params%max_reflections} is 10000. Normally no
+photon will ever have so many reflections. \vn{sr3d_params%max_reflections} serves as a ``sanity
+checker'' just in case, for example, some inaccuracy in the tracking causes photons not to be
+absorbed.
 
   \item[\vn{sr3d_params\%specular_reflection_only}] \Newline
 This parameter can be used to test whether diffuse scattering is important. If set to \vn{True},
@@ -2147,7 +2157,7 @@ line (\sref{s:run}). The namelist used for the input parameters for the reflecti
     energy                    = 100     ! eV
     surface_roughness_rms     = -1      ! Roughness for diffuse scattering.
     roughness_correlation_len = -1      ! Roughness correlation length.
-    prob_normalization        = "1"     ! Probability normalizaton.
+    prob_normalization        = "1"     ! Probability normalization.
     output_file               = ""      ! Blank => Use default name.
 
     row_type                 = "energy" ! Table row type.
@@ -2186,7 +2196,7 @@ $P(x, \phi)$ of scattering a photon with outgoing orientation $x$ and $\phi$ whe
 \sin(\theta_{\text{g,out}})$ with $\theta_{\text{g,out}}$ is the outgoing graze angle (see Equation
 A138 of \cite{b:prab}). 
 
-If \vn{row_type} is set to anothing else but \vn{"azimuth_angle_out"}, the probabilities shown in
+If \vn{row_type} is set to anything else but \vn{"azimuth_angle_out"}, the probabilities shown in
 the table will be the probability $P_x(x)$ which is the scattering probability integrated over
 $\phi$ (see Equation A140 of \cite{b:prab}).
 
@@ -2229,10 +2239,10 @@ settings are:
 \end{example}
 A setting of "1" means that the displayed probability integrated over all outgoing angles (and
 keeping everything else fixed) is 1. That is, absorption and specular reflection probabilities are
-ignored. A setting of "relect" means that the integrated probability will be the probability of
+ignored. A setting of "reflect" means that the integrated probability will be the probability of
 being diffusely reflected relative to the probability of being reflected and not absorbed. That is,
-abosrbtion is ignored.  Finally, a setting of "all" means that the integrated probability will be
-the probability of being diffusely reflected taking into account both absorbtion and specular
+absorption is ignored.  Finally, a setting of "all" means that the integrated probability will be
+the probability of being diffusely reflected taking into account both absorption and specular
 reflection probabilities.
 
 The default file name for the output data file is \vn{test_diffuse_probability.dat}.

@@ -49,7 +49,7 @@ integer n, iw, status, ij, ie_start, ie_end
 logical absorbed, err, no_wall_here
 logical, optional :: one_reflection_only
 
-character(*), parameter :: r_name = 's43d_track_photon'
+character(*), parameter :: r_name = 'sr3d_track_photon'
 
 !
 
@@ -138,6 +138,15 @@ main_loop: do
   if (sr3d_params%iu_photon_track > 0) call sr3d_record_photon_position('RECORD_TRACK_POINT', photon)
   call sr3d_reflect_photon (photon, branch, wall_hit, absorbed, err)
   if (absorbed .or. err .or. logic_option(.false., one_reflection_only)) return
+
+  if (photon%n_wall_hit > sr3d_params%max_reflection) then
+    call out_io (s_error$, r_name, &
+      'NUMBER OF REFLECTIONS IS GREATER THAN THE LIMIT SET BY SR3D_PARAMS%MAX_REFLECTION WHICH IS \i0\.', &
+      'WILL IGNORE THIS PHOTON...', i_array = [sr3d_params%max_reflection])
+    call sr3d_print_photon_info (photon)
+    err = .true.
+    return
+  endif  
 enddo main_loop
 
 end subroutine sr3d_track_photon
@@ -1001,7 +1010,7 @@ endif
 
 if (cos_perp < 0) then
   call out_io (s_error$, r_name, &
-  'ERROR: PHOTON AT WALL HAS VELOCITY DIRECTED INWARD! \es12.4\ ', & 
+  'PHOTON AT WALL HAS VELOCITY DIRECTED INWARD! \es12.4\ ', & 
   'WILL IGNORE THIS PHOTON...', &
   'dw_perp: \3f10.5\ ', & 
   r_array = [cos_perp, dw_perp])
