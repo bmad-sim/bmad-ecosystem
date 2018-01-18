@@ -317,8 +317,8 @@ end type
 ! %good_ref     -- Like good_meas this is set for a reference data set.
 ! %good_user    -- What the user has selected using the use, veto, and restore 
 !                    commands.
-! %good_opt     -- Not modified by Tao proper and reserved for use by extension code.
-! %good_plot    -- Not modified by Tao proper and reserved for use by extension code.
+! %good_opt     -- Not modified by Tao. Setting is reserved to be done by extension code.
+! %good_plot    -- Not modified by Tao. Setting is reserved to be done by extension code.
 ! %useit_plot   -- Datum is valid for plotting:
 !                    = %exists & %good_plot (w/o measured & reference data)
 !                    = %exists & %good_plot & %good_user & %good_meas (w/ meas data)
@@ -355,7 +355,7 @@ type tao_data_struct
   real(rp) :: old_value = 0               ! The model_value at some previous time.
   real(rp) :: base_value = 0              ! The value as calculated from the base model.
   real(rp) :: delta_merit = 0             ! Diff used to calculate the merit function term 
-  real(rp) :: weight = 0                  ! Weight for the merit function term
+  real(rp) :: weight = 0                  ! Weight for the merit function term.
   real(rp) :: invalid_value = 0           ! Value used in merit calc if good_model = False.
   real(rp) :: merit = 0                   ! Merit function term value: weight * delta^2
   real(rp) :: s = 0                       ! longitudinal position of ele.
@@ -444,8 +444,8 @@ end type
 !                  veto variables that do not change the merit function.
 ! %good_user  -- What the user has selected using the use, veto, and restore 
 !                  commands.
-! %good_opt   -- Not modified by Tao proper and reserved for use by extension code.
-! %good_plot  -- Not modified by Tao proper and reserved for use by extension code.
+! %good_opt   -- Not modified by Tao. Setting is reserved to be done by extension code.
+! %good_plot  -- Not modified by Tao. Setting is reserved to be done by extension code.
 ! %useit_opt  -- Variable is to be used for optimizing:
 !                  %useit_opt = %exists & %good_user & %good_opt & %good_var
 ! %useit_plot -- If True variable is used in plotting variable values.
