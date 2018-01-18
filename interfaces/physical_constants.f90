@@ -7,11 +7,6 @@ module physical_constants
 
 use precision_def
 
-type physical_const_struct
-  character(40) name
-  real(rp) value
-end type
-
 real(rp), parameter :: pi = 3.141592653589793238462643383279d0
 real(rp), parameter :: twopi = 2 * pi
 real(rp), parameter :: fourpi = 4 * pi
@@ -62,39 +57,39 @@ real(rp), parameter :: anomalous_mag_moment_deuteron = -0.14298727047d0
 ! Should make physical_const_list "parameter" but there is a gcc bug (in Version 7.1 at least)
 ! where if you pass physical_const_list%name to a routine there will be a crash.
 
-type (physical_const_struct) :: physical_const_list(32) = [ &
-                 physical_const_struct('pi', pi), &
-                 physical_const_struct('twopi', twopi), &
-                 physical_const_struct('fourpi', fourpi), &
-                 physical_const_struct('e_log', 2.718281828459_rp), &
-                 physical_const_struct('sqrt_2', sqrt_2), &
-                 physical_const_struct('degrad', 180 / pi), &
-                 physical_const_struct('degrees', pi / 180), & ! From degrees to radians.
-                 physical_const_struct('raddeg', pi / 180), &
-                 physical_const_struct('m_electron', m_electron), &
-                 physical_const_struct('m_muon', m_muon), &
-                 physical_const_struct('m_pion_0', m_pion_0), &
-                 physical_const_struct('m_pion_charged', m_pion_charged), &
-                 physical_const_struct('m_proton', m_proton), &
-                 physical_const_struct('m_deuteron', m_deuteron), &
-                 physical_const_struct('c_light', c_light), &
-                 physical_const_struct('r_e', r_e), &
-                 physical_const_struct('r_p', r_p), &
-                 physical_const_struct('e_charge', e_charge), &
-                 physical_const_struct('h_planck', h_planck), &
-                 physical_const_struct('h_bar_planck', h_bar_planck), &
-                 physical_const_struct('pmass', p_mass), &
-                 physical_const_struct('emass', e_mass), &
-                 physical_const_struct('clight', c_light), &
-                 physical_const_struct('fine_struct_const', fine_structure_constant), &
-                 physical_const_struct('anom_mag_electron', anomalous_mag_moment_electron), &  ! Old style. Deprecated.
-                 physical_const_struct('anom_mag_proton', anomalous_mag_moment_proton), &      ! Old style. Deprecated.
-                 physical_const_struct('anom_mag_muon', anomalous_mag_moment_muon), &          ! Old style. Deprecated.
-                 physical_const_struct('anom_mag_deuteron', anomalous_mag_moment_deuteron), &  ! Old style. Deprecated.
-                 physical_const_struct('anom_moment_electron', anomalous_mag_moment_electron), &
-                 physical_const_struct('anom_moment_proton', anomalous_mag_moment_proton), &
-                 physical_const_struct('anom_moment_muon', anomalous_mag_moment_muon), &
-                 physical_const_struct('anom_moment_deuteron', anomalous_mag_moment_deuteron)]
+type (named_number_struct) :: physical_const_list(32) = [ &
+                 named_number_struct('pi', pi), &
+                 named_number_struct('twopi', twopi), &
+                 named_number_struct('fourpi', fourpi), &
+                 named_number_struct('e_log', 2.718281828459_rp), &
+                 named_number_struct('sqrt_2', sqrt_2), &
+                 named_number_struct('degrad', 180 / pi), &
+                 named_number_struct('degrees', pi / 180), & ! From degrees to radians.
+                 named_number_struct('raddeg', pi / 180), &
+                 named_number_struct('m_electron', m_electron), &
+                 named_number_struct('m_muon', m_muon), &
+                 named_number_struct('m_pion_0', m_pion_0), &
+                 named_number_struct('m_pion_charged', m_pion_charged), &
+                 named_number_struct('m_proton', m_proton), &
+                 named_number_struct('m_deuteron', m_deuteron), &
+                 named_number_struct('c_light', c_light), &
+                 named_number_struct('r_e', r_e), &
+                 named_number_struct('r_p', r_p), &
+                 named_number_struct('e_charge', e_charge), &
+                 named_number_struct('h_planck', h_planck), &
+                 named_number_struct('h_bar_planck', h_bar_planck), &
+                 named_number_struct('pmass', p_mass), &
+                 named_number_struct('emass', e_mass), &
+                 named_number_struct('clight', c_light), &
+                 named_number_struct('fine_struct_const', fine_structure_constant), &
+                 named_number_struct('anom_mag_electron', anomalous_mag_moment_electron), &  ! Old style. Deprecated.
+                 named_number_struct('anom_mag_proton', anomalous_mag_moment_proton), &      ! Old style. Deprecated.
+                 named_number_struct('anom_mag_muon', anomalous_mag_moment_muon), &          ! Old style. Deprecated.
+                 named_number_struct('anom_mag_deuteron', anomalous_mag_moment_deuteron), &  ! Old style. Deprecated.
+                 named_number_struct('anom_moment_electron', anomalous_mag_moment_electron), &
+                 named_number_struct('anom_moment_proton', anomalous_mag_moment_proton), &
+                 named_number_struct('anom_moment_muon', anomalous_mag_moment_muon), &
+                 named_number_struct('anom_moment_deuteron', anomalous_mag_moment_deuteron)]
 
 
 ! This is to suppress the ranlib "has no symbols" message
