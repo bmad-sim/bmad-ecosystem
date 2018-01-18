@@ -44,7 +44,9 @@ type (sr3d_branch_overlap_struct), pointer :: bo
 type (floor_position_struct) floor
 
 real(rp) dw_perp(3), d_radius
-integer n, iw, status, ij, ie_start, ie_end
+
+integer n, iw, status, ij, ie_start, ie_end, n_subchamber_switch
+integer :: max_subchamber_switch = 100
 
 logical absorbed, err, no_wall_here
 logical, optional :: one_reflection_only
@@ -66,15 +68,29 @@ wall_hit(0)%after_reflect = photon%start%orb
 
 call ran_default_state (get_state = sr3d_params%ran_state)  ! Save 
 
+if (sr3d_params%debug_on) call sr3d_write_photon_start_file ('photon.start', photon, .false.)
+
 !
 
 branch => lat%branch(photon%now%ix_branch)
 
 err = .false.
+n_subchamber_switch = 0
 
 main_loop: do
   call sr3d_track_photon_to_wall (photon, lat, wall_hit, err)
   if (err) return
+
+  if (n_subchamber_switch > max_subchamber_switch) then
+    call out_io (s_error$, r_name, &
+          'SOMETHING WRONG. PHOTON IS STUCK SWITCHING BETWEEN SUBCHAMBERS!', & 
+          'WILL IGNORE THIS PHOTON...')
+    call sr3d_print_photon_info (photon)
+    call sr3d_write_hit_points ('subchamber_switch_problem_photon.hit_points', photon, wall_hit, branch%lat, .true.)
+    call sr3d_write_photon_start_file ('subchamber_switch_problem_photon.start', photon)
+    err = .true.
+    return
+  endif
 
   ! Switch to another sub-chamber within same branch?
 
@@ -86,6 +102,7 @@ main_loop: do
                                            dot_product (photon%now%orb%vec(2:6:2), dw_perp) < 0)) then
       photon%now%ix_wall3d = iw
       photon%status = status
+      n_subchamber_switch = n_subchamber_switch + 1
       cycle main_loop
     endif
   enddo
@@ -128,12 +145,15 @@ main_loop: do
         photon%now%ix_wall3d = iw
         photon%status = status
         branch => branch2
+        n_subchamber_switch = n_subchamber_switch + 1
         cycle main_loop
       enddo
     enddo
   endif
 
   ! Reflect photon
+
+  n_subchamber_switch = 0
 
   if (sr3d_params%iu_photon_track > 0) call sr3d_record_photon_position('RECORD_TRACK_POINT', photon)
   call sr3d_reflect_photon (photon, branch, wall_hit, absorbed, err)
@@ -817,7 +837,8 @@ if (wall_hit(photon%n_wall_hit)%after_reflect%path_len == photon%old%orb%path_le
       print *, 'ERROR: CANNOT FIND HIT SPOT REGION LOWER BOUND!'
       print '(8x, a)', 'WILL IGNORE THIS PHOTON.'
       call sr3d_print_photon_info (photon)
-      call sr3d_print_hit_points (-1, photon, wall_hit, branch, .true.)
+      call sr3d_write_hit_points ('hit_spot_problem_photon.hit_points', photon, wall_hit, branch%lat, .true.)
+      call sr3d_write_photon_start_file ('hit_spot_problem_photon.start', photon)
       err = .true.
       return
     endif
@@ -834,7 +855,8 @@ path_len = super_zbrent (sr3d_photon_hit_func, path_len0, path_len1, 0.1 * sr3d_
 if (err) then
   print *, 'WILL IGNORE THIS PHOTON.'
   call sr3d_print_photon_info (photon)
-  call sr3d_print_hit_points (-1, photon, wall_hit, branch, .true.)
+  call sr3d_write_hit_points ('zbrent_problem_photon.hit_points', photon, wall_hit, branch%lat, .true.)
+  call sr3d_write_photon_start_file ('zbrent_problem_photon.start', photon)
   return
 endif
 
@@ -1015,7 +1037,8 @@ if (cos_perp < 0) then
   'dw_perp: \3f10.5\ ', & 
   r_array = [cos_perp, dw_perp])
   call sr3d_print_photon_info (photon)
-  call sr3d_print_hit_points (-1, photon, wall_hit, branch, .true.)
+  call sr3d_write_hit_points ('reflection_problem_photon.hit_points', photon, wall_hit, branch%lat, .true.)
+  call sr3d_write_photon_start_file ('reflection_problem_photon.start', photon)
   err_flag = .true.
   return
 endif

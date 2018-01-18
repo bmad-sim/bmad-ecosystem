@@ -9,19 +9,40 @@ contains
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
+!+
+! Subroutine sr3d_write_hit_points (file_name, photon, wall_hit, lat, lots_of_digits)
+!
+! Routine to record the points at which a photon has been reflected.
+!
+! Input:
+!   file_name       -- character(*): Name of the data file.
+!   photon          -- sr3d_photon_track_struct: Photon 
+!   wall_hit(0:)    -- sr3d_photon_wall_hit_struct: Array of hit point information.
+!   lat             -- lat_struct: Lattice.
+!   lots_of_digits  -- logical, optional: If true then print using more digits than what is
+!                       printed if this argument is False (which is the default).
+!-
 
-subroutine sr3d_print_hit_points (iu_hit_file, photon, wall_hit, branch, lots_of_digits)
+subroutine sr3d_write_hit_points (file_name, photon, wall_hit, lat, lots_of_digits)
 
 type (sr3d_photon_track_struct), target :: photon
 type (sr3d_photon_wall_hit_struct), pointer :: hit
 type (sr3d_photon_wall_hit_struct), target :: wall_hit(0:)
-type (branch_struct) branch
+type (lat_struct) lat
 
 integer iu, n, iu_hit_file
 
 logical, optional :: lots_of_digits
+character(*) file_name
 character(100) fm, fm2
 character(40) wall_name
+
+! Open file
+
+if (file_name == '') return
+
+iu = lunget()
+open (iu, file = file_name, recl = 500)
 
 !
 
@@ -33,59 +54,84 @@ else
   fm2 = '(i7, i4, f10.2, 5x, 2f10.6, f14.6, i4, 2(5x, 3f10.6), 10x, 3f10.6, 5x, 3f10.6, 3x, a)'
 endif
 
-
-iu = iu_hit_file 
-if (iu == 0) return
-
 !
-
-if (iu_hit_file == -1) then
-  iu = lunget()
-  open (iu, file = 'track_of_photon_that_generated_an_error')
-endif
 
 do n = 0, photon%n_wall_hit
   hit => wall_hit(n)
   if (n == 0) then
     wall_name = '<inside chamber>'
   else
-    wall_name = branch%wall3d(hit%ix_wall3d)%name
+    wall_name = lat%branch(hit%ix_branch)%wall3d(hit%ix_wall3d)%name
     if (wall_name == '') wall_name = '<default_subchamber>'
   endif
+  write (iu, fm2) photon%ix_photon, n, hit%before_reflect%p0c, hit%after_reflect%vec(1:3:2), hit%after_reflect%s, &
+          hit%ix_branch, hit%before_reflect%vec(2:6:2), hit%after_reflect%vec(2:6:2), &
+          hit%dw_perp, hit%cos_perp_in, hit%cos_perp_out, hit%reflectivity
+
   write (iu, fm2) photon%ix_photon, n, hit%before_reflect%p0c, hit%after_reflect%vec(1:3:2), hit%after_reflect%s, &
           hit%ix_branch, hit%before_reflect%vec(2:6:2), hit%after_reflect%vec(2:6:2), &
           hit%dw_perp, hit%cos_perp_in, hit%cos_perp_out, hit%reflectivity, trim(wall_name)
 enddo
 
-if (iu_hit_file == -1) then
-  close (iu)
-  print *, 'Written file: track_of_photon_that_generated_an_error'
-endif
+close (iu)
+print *, 'Written file of hit points: ', trim(file_name)
 
-if (iu_hit_file == -1) then
-  open (iu, file = 'error_photon_start', recl = 200)
-  write (iu, *) '&start'
-  write (iu, *) '  ran_state%ix                =', sr3d_params%ran_state%ix
-  write (iu, *) '  ran_state%iy                =', sr3d_params%ran_state%iy
-  write (iu, *) '  ran_state%am                =', sr3d_params%ran_state%am
-  write (iu, *) '  ran_state%h_saved           =', sr3d_params%ran_state%h_saved
-  write (iu, *) '  ran_state%gauss_converter   =', sr3d_params%ran_state%gauss_converter
-  write (iu, *) '  ran_state%gauss_sigma_cut   =', sr3d_params%ran_state%gauss_sigma_cut
-  write (iu, *) '  ran_state%seed              =', sr3d_params%ran_state%seed
-  write (iu, *) '  ran_state%number_stored     =', sr3d_params%ran_state%number_stored
-  write (iu, *) '  ran_state%engine            =', sr3d_params%ran_state%engine
-  write (iu, *)
-  write (iu, *) '  orbit%vec       =', photon%start%orb%vec
-  write (iu, *) '  orbit%p0c       =', photon%start%orb%p0c
-  write (iu, *) '  orbit%s         =', photon%start%orb%s
-  write (iu, *) '  orbit%direction =', photon%start%orb%direction
-  write (iu, *) '  ix_branch   =', photon%start%ix_branch
-  write (iu, *) '/'
-  close (iu)
-  print *, 'Written file: error_photon_start'
-endif
+end subroutine sr3d_write_hit_points
 
-end subroutine sr3d_print_hit_points
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!+
+! Subroutine sr3d_write_photon_start_file (file_name, photon, print_message)
+!
+! Routine to write a namelist file of a photon's starting position that can be used to reinit
+! the photon. This is useful for debugging purposes.
+!
+! Input:
+!   file_name       -- character(*): Name of the data file to create.
+!   photon          -- sr3d_photon_track_struct: Photon whose initial coords are to be written.
+!   print_message   -- logical, optional: Print file creation message? Default is True.
+!-
+
+subroutine sr3d_write_photon_start_file (file_name, photon, print_message)
+
+type (sr3d_photon_track_struct) photon
+
+integer iu
+logical, optional :: print_message
+character(*) file_name
+
+!
+
+iu = lunget()
+open (iu, file = file_name, recl = 200)
+
+write (iu, *) 'ix_photon           =', photon%ix_photon
+write (iu, *) 'ix_photon_generated =', photon%ix_photon_generated
+write (iu, *) 
+
+write (iu, *) '&start'
+write (iu, *) '  ran_state%ix                =', sr3d_params%ran_state%ix
+write (iu, *) '  ran_state%iy                =', sr3d_params%ran_state%iy
+write (iu, *) '  ran_state%am                =', sr3d_params%ran_state%am
+write (iu, *) '  ran_state%h_saved           =', sr3d_params%ran_state%h_saved
+write (iu, *) '  ran_state%gauss_converter   =', sr3d_params%ran_state%gauss_converter
+write (iu, *) '  ran_state%gauss_sigma_cut   =', sr3d_params%ran_state%gauss_sigma_cut
+write (iu, *) '  ran_state%seed              =', sr3d_params%ran_state%seed
+write (iu, *) '  ran_state%number_stored     =', sr3d_params%ran_state%number_stored
+write (iu, *) '  ran_state%engine            =', sr3d_params%ran_state%engine
+write (iu, *)
+write (iu, *) '  orbit%vec       =', photon%start%orb%vec
+write (iu, *) '  orbit%p0c       =', photon%start%orb%p0c
+write (iu, *) '  orbit%s         =', photon%start%orb%s
+write (iu, *) '  orbit%direction =', photon%start%orb%direction
+write (iu, *) '  ix_branch       =', photon%start%ix_branch
+write (iu, *) '/'
+
+close (iu)
+if (logic_option(.true., print_message)) print *, 'Written photon init file: ', trim(file_name)
+
+end subroutine sr3d_write_photon_start_file
 
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------

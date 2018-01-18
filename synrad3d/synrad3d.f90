@@ -48,6 +48,7 @@ character(200) photon_start_input_file, photon_start_output_file, surface_reflec
 character(300) line3
 character(100) dat_file, dat2_file, wall_file, param_file, arg, line
 character(40) plotting, test, who
+character(20) date_str
 character(16) chamber_end_geometry
 character(16) :: r_name = 'synrad3d'
 
@@ -321,12 +322,6 @@ endif
 
 ! Open data files.
 
-if (sr3d_params%wall_hit_file /= '') then
-  sr3d_params%iu_wall_hit = lunget()
-  open (sr3d_params%iu_wall_hit, file = sr3d_params%wall_hit_file, recl = 300)
-  print *, 'Creating photon hit point output file: ', trim(sr3d_params%wall_hit_file)
-endif
-
 if (lat_ele_file /= '') then
   iu_lat_file = lunget()
   open (iu_lat_file, file = lat_ele_file, recl = 120)
@@ -439,8 +434,10 @@ if (photon_start_input_file /= '') then
     ! This is used for diagnostic purposes.
 
     if (photon%ix_photon_generated == ix_photon_out) then
-      call sr3d_print_hit_points (-1, photon, wall_hit, branch)
       print *, 'Recording starting position.'
+      write (who, '(a, i0)') 'photon_', ix_photon_out
+      call sr3d_write_hit_points (trim(who) // '.hit_points', photon, wall_hit, lat)
+      call sr3d_write_photon_start_file (trim(who) // '.start', photon)
       stop
     endif
 
@@ -464,7 +461,7 @@ if (photon_start_input_file /= '') then
       cycle
     endif
 
-    call sr3d_print_hit_points (sr3d_params%iu_wall_hit, photon, wall_hit, branch)
+    call sr3d_write_hit_points (sr3d_params%wall_hit_file, photon, wall_hit, lat)
     call write_photon_data (n_photon_array, photon)
 
   enddo photon_loop
@@ -531,9 +528,9 @@ else
 
       call run_timer ('READ', timer_time)
       if (timer_time > old_time + 60) then
-        print '(a, f9.1)', 'Time from start (min):', timer_time/60
-        print *, '    Num photons generated:          ', n_photon_generated
-        print *, '    Num photons passed filter tests:', n_photon_array
+        call date_and_time_stamp(date_str, .true.)
+        print '(a, f9.1, 10x, a)', 'Time from start (min):', timer_time/60, date_str
+        print *, '    Num photons passed filter tests, Num generated: ', n_photon_array, n_photon_generated
         old_time = timer_time
       endif
 
@@ -584,7 +581,10 @@ else
         ! This is used for diagnostic purposes.
 
         if (photon%ix_photon_generated == ix_photon_out) then
-          call sr3d_print_hit_points (-1, photon, wall_hit, branch)
+          print *, 'Recording starting position.'
+          write (who, '(a, i0)') 'photon_', ix_photon_out
+          call sr3d_write_hit_points (trim(who) // '.hit_points', photon, wall_hit, lat)
+          call sr3d_write_photon_start_file (trim(who) // '.start', photon)
           stop
         endif
 
@@ -608,7 +608,7 @@ else
           cycle
         endif
 
-        call sr3d_print_hit_points (sr3d_params%iu_wall_hit, photon, wall_hit, branch)
+        call sr3d_write_hit_points (sr3d_params%wall_hit_file, photon, wall_hit, lat)
         call write_photon_data (n_photon_array, photon)
 
       enddo
