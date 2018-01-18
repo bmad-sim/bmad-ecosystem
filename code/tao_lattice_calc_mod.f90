@@ -252,11 +252,14 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       ! Get one-turn-map
       call ptc_one_turn_map_at_ele (normal_form%ele_origin, normal_form%m, rf_on, pz = 0.0_rp )
 
-      ! Get A, A_inv, dhdj
-      call normal_form_taylors(normal_form%m, rf_on, dhdj = normal_form%dhdj, &
-                                       A = normal_form%A, A_inverse = normal_form%A_inv)
-      ! Get complex L and F
-      call normal_form_complex_taylors(normal_form%m, rf_on, F = normal_form%F, L = normal_form%L)
+      ! ! Get A, A_inv, dhdj
+      ! call normal_form_taylors(normal_form%m, rf_on, dhdj = normal_form%dhdj, &
+      !                                  A = normal_form%A, A_inverse = normal_form%A_inv)
+      ! ! Get complex L and F
+      ! call normal_form_complex_taylors(normal_form%m, rf_on, F = normal_form%F, L = normal_form%L)
+
+      ! Get resonant driving terms
+      call normal_form_rd_terms(normal_form, rf_on)
     endif
 
     !

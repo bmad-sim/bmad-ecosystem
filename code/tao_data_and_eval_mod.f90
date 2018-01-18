@@ -404,6 +404,8 @@ real(rp), allocatable, save :: value_vec(:)
 real(rp), allocatable, save :: expression_value_vec(:)
 real(rp) theta, phi, psi
 
+complex(rp) temp_cplx
+
 ! Cf: Sands Eq 5.46 pg 124.
 real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) 
 
@@ -417,7 +419,7 @@ character(20) :: r_name = 'tao_evaluate_a_datum'
 character(40) head_data_type, sub_data_type, data_source, name, dflt_dat_index
 character(300) str
 
-logical found, valid_value, err, taylor_is_complex, use_real_part, compute_floor
+logical found, valid_value, err, taylor_is_complex, use_real_part, compute_floor, term_found
 logical, allocatable, save :: good(:)
 
 ! If does not exist
@@ -1597,63 +1599,92 @@ case ('normal.')
   iz = index(sub_data_type, '.') + 1
   
   ! Component i
-  i = tao_read_this_index (sub_data_type, iz)
 
-  ! Point to taylor
-  taylor_is_complex = .false.
-  if (sub_data_type(1:5) == 'dhdj.') then
-    taylor_ptr => normal_form%dhdj(i)
-  else if (sub_data_type(1:2) == 'A.') then
-    taylor_ptr => normal_form%A(i)
-  else if (sub_data_type(1:2) == 'A_inv.') then
-    taylor_ptr => normal_form%A_inv(i)
-  else if (sub_data_type(1:2) == 'M.') then
-    taylor_ptr => normal_form%M(i)
-  else if (sub_data_type(1:4) == 'ReF.') then
-    taylor_is_complex = .true.
-    use_real_part = .true.
-    complex_taylor_ptr => normal_form%f(i)   
-  else if (sub_data_type(1:4) == 'ImF.') then
-    taylor_is_complex = .true.
-    use_real_part = .false.
-    complex_taylor_ptr => normal_form%F(i)      
-  else if (sub_data_type(1:4) == 'ReL.') then
-    taylor_is_complex = .true.
-    use_real_part = .true.
-    complex_taylor_ptr => normal_form%L(i)   
-  else if (sub_data_type(1:4) == 'ImL.') then
-    taylor_is_complex = .true.
-    use_real_part = .false.
-    complex_taylor_ptr => normal_form%L(i)       
-    
-  endif
- 
-  ! Check for second dot
-  if (sub_data_type(iz+1:iz+1) /= '.') then
-   call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID', why_invalid)
-   call out_io (s_error$, r_name, 'datum%data_type: '//trim(datum%data_type) )
-   call out_io (s_error$, r_name, 'expect dot: ', sub_data_type(1:iz)//'.######' )
-  endif
- 
-  ! Get exponent
-  expn_str = sub_data_type(iz+2:iz+7)
-  expnt = 0
-  do j = 1, 6
-    if (expn_str(j:j) == ' ') exit
-    expnt(j) = index('0123456789', expn_str(j:j)) - 1
-  enddo
-  
-  ! Coefficient
-  if (taylor_is_complex) then
-    if (use_real_part) then
-      datum_value = real(complex_taylor_coef(complex_taylor_ptr, expnt))
+  if(sub_data_type(1:4) == 'rdt.') then
+    !datum%data_type is similar to normal.rdt.0.210000.r
+    valid_value = .true.
+    term_found = .false.
+    do i=1, size(normal_form%rd_term)
+      !see bmad_struct.90 for dictionary of terms.
+      if(sub_data_type(5:12) == rd_term_name(i)) then
+        temp_cplx = normal_form%rd_term(i)%c_val
+        term_found = .true.
+      endif
+    enddo
+    if(term_found) then
+      select case (sub_data_type(14:14))
+        case('r')
+          datum_value = real(temp_cplx)
+        case('i')
+          datum_value = aimag(temp_cplx)
+        case('a')
+          datum_value = abs(temp_cplx)
+        case default
+          call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID', 'data_type not ending in .r, .i, or .a.')
+          valid_value = .false.
+      end select
     else
-      datum_value = aimag(complex_taylor_coef(complex_taylor_ptr, expnt))
+      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID', 'data_type not found in normal_form_struct')
+      valid_value = .false.
     endif
   else
-    datum_value = taylor_coef(taylor_ptr, expnt)
+    i = tao_read_this_index (sub_data_type, iz)
+    ! Point to taylor
+    taylor_is_complex = .false.
+    if (sub_data_type(1:5) == 'dhdj.') then
+      taylor_ptr => normal_form%dhdj(i)
+    else if (sub_data_type(1:2) == 'A.') then
+      taylor_ptr => normal_form%A(i)
+    else if (sub_data_type(1:6) == 'A_inv.') then
+      taylor_ptr => normal_form%A_inv(i)
+    else if (sub_data_type(1:2) == 'M.') then
+      taylor_ptr => normal_form%M(i)
+    else if (sub_data_type(1:4) == 'ReF.') then
+      taylor_is_complex = .true.
+      use_real_part = .true.
+      complex_taylor_ptr => normal_form%f(i)   
+    else if (sub_data_type(1:4) == 'ImF.') then
+      taylor_is_complex = .true.
+      use_real_part = .false.
+      complex_taylor_ptr => normal_form%F(i)      
+    else if (sub_data_type(1:4) == 'ReL.') then
+      taylor_is_complex = .true.
+      use_real_part = .true.
+      complex_taylor_ptr => normal_form%L(i)   
+    else if (sub_data_type(1:4) == 'ImL.') then
+      taylor_is_complex = .true.
+      use_real_part = .false.
+      complex_taylor_ptr => normal_form%L(i)       
+      
+    endif
+   
+    ! Check for second dot
+    if (sub_data_type(iz+1:iz+1) /= '.') then
+     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID', why_invalid)
+     call out_io (s_error$, r_name, 'datum%data_type: '//trim(datum%data_type) )
+     call out_io (s_error$, r_name, 'expect dot: ', sub_data_type(1:iz)//'.######' )
+    endif
+   
+    ! Get exponent
+    expn_str = sub_data_type(iz+2:iz+7)
+    expnt = 0
+    do j = 1, 6
+      if (expn_str(j:j) == ' ') exit
+      expnt(j) = index('0123456789', expn_str(j:j)) - 1
+    enddo
+    
+    ! Coefficient
+    if (taylor_is_complex) then
+      if (use_real_part) then
+        datum_value = real(complex_taylor_coef(complex_taylor_ptr, expnt))
+      else
+        datum_value = aimag(complex_taylor_coef(complex_taylor_ptr, expnt))
+      endif
+    else
+      datum_value = taylor_coef(taylor_ptr, expnt)
+    endif
+    valid_value = .true.  
   endif
-  valid_value = .true.  
 
 
 !-----------
