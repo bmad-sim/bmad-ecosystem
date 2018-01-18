@@ -328,7 +328,6 @@ call sr3d_read_wall_file (wall_file, lat)
 
 print *, 'Opening photon starting position input file: ', trim(photon_start_input_file)
 open (1, file = photon_start_input_file, status = 'old')
-open (2, file = output_file)
 
 allocate (wall_hit(0:10))
 sr3d_params%specular_reflection_only = .true.
@@ -366,7 +365,7 @@ do
   photon%ix_photon = n_photon
 
   call sr3d_track_photon (photon, lat, wall_hit, err, one_reflection_only = .true.)
-  call sr3d_print_hit_points (2, photon, wall_hit, branch)
+  call sr3d_write_hit_points (output_file, photon, wall_hit, lat)
 
 enddo
 
