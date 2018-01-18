@@ -453,6 +453,7 @@ lat => tao_lat%lat
 
 if (head_data_type == 'null') then
   datum_value = 0
+  why_invalid = 'Datum data_type is set to "null".'
   valid_value = .false.
   return
 endif
