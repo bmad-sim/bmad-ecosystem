@@ -1025,9 +1025,27 @@ end subroutine normal_form_complex_taylors
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine normal_form_rd_terms
+! Subroutine normal_form_rd_terms(normal_form, rf_on, order)
 !
-! UNDER DEVELOPMENT
+! Calculate resonance driving terms using PTC.  The contents of
+! normal_form%rd_term(:)%c_val are directly comparable to equations
+! 97 of "The Sextupole Scheme for the Swiss Light Source (SLS): An
+! An Analytic Approach" SLS Note 9/97, Johan Bengtsson.
+!
+! See bmad/modules/bmad_struct.f90 contents rd_term_struct, normal_form_struct
+! rd_term_name, and rd_term_descrip for description of contents of
+! normal_form%rd_term(:)
+!
+! Module Needed:
+!   use ptc_layout_mod
+!
+! Input:
+!   normal_form%m  -- type(taylor_struct): one-turn taylor map
+!   rf_on          -- logical: perform calculation with RF on.
+!   order          -- integer, optional: order for normal_form_calculation.
+!
+! Output:
+!   normal_form%term(:)%c_val -- complex values for one-turn driving terms.
 !-
 subroutine normal_form_rd_terms(normal_form, rf_on, order)
 
