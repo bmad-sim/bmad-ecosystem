@@ -793,12 +793,12 @@ if (rf_on) then
   ptc_state = default - nocavity0
 else
   ptc_state = default + nocavity0
+  ndpt_bmad = 1  ! Indicates that delta is in position 6 and not 5
 endif
 
 call init(ptc_state, map_order, 0) ! The third argument is the number of parametric variables
 
 ! Find closed orbit
-
 x = 0
 if (present(pz)) x(5) = pz
 fib => ele%ptc_fibre%next
@@ -955,7 +955,7 @@ endif
 !no longer needed: use_complex_in_ptc=my_true
 c_verbose_save = c_verbose
 c_verbose = .false.
-call init_all (state, ptc_com%taylor_order_ptc, 0) 
+call init_all (state, ptc_com%taylor_order_ptc, 0)
 call alloc(map8)
 call alloc(da)
 call alloc(cda)
@@ -971,18 +971,18 @@ cda = da
 ! Complex normal form in phasor basis
 ! See: fpp-ptc-read-only/build_book_example_g95/the_fpp_on_line_glossary/complex_normal.htm
 ! M = A o N o A_inverse.
-call c_normal(cda, complex_normal_form, dospin=my_false, no_used=order_for_normal_form) 
+call c_normal(cda, complex_normal_form, dospin=my_false, no_used=order_for_normal_form)
 
 if (present(F) .or. present(L)) then
   cda = complex_normal_form%N
-  
+
   ! Move to the phasor basis
   cda=from_phasor(-1)*cda*from_phasor(1)
 
-  !   N = L exp(F.grad), where L is the linear (rotation) map. 
+  !   N = L exp(F.grad), where L is the linear (rotation) map.
   call c_factor_map(cda, cdaLinear, fvecfield, 1) ! 1 => Dragt-Finn direction
 
-  ! Zero out small coefficients 
+  ! Zero out small coefficients
   call c_clean_vector_field(fvecfield, fvecfield, 1.d-8 )
   ! Output
 endif
@@ -1020,6 +1020,125 @@ ndpt_bmad = 0
 call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
 end subroutine normal_form_complex_taylors
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine normal_form_rd_terms
+!
+! UNDER DEVELOPMENT
+!-
+subroutine normal_form_rd_terms(normal_form, rf_on, order)
+
+use madx_ptc_module
+
+type(normal_form_struct) normal_form
+integer i, order_for_normal_form
+integer, optional :: order
+logical :: rf_on, c_verbose_save
+integer nj, j_temp(6)
+complex(dp) res_c
+
+!PTC types need alloc
+type(c_vector_field) F
+type (c_taylor) tunes_atob(3), t_local
+type (c_damap) cda
+type (damap) da
+type (real_8) map8(6)
+type (probe_8) ray8
+type (c_normal_form) complex_normal_form
+type(c_damap) a0, a1, a2
+type(c_damap) acs_full, acs1_a, acs1_b
+
+!PTC types no alloc
+type (internal_state) :: state
+type(fibre), pointer :: fib
+type (probe) co_pr
+
+order_for_normal_form = integer_option(1, order)
+
+if (rf_on) then
+  state = default - nocavity0
+else
+  state = default + nocavity0
+  ndpt_bmad = 1  ! Indicates that delta is in position 6 and not 5
+endif
+
+! Set PTC state
+!no longer needed: use_complex_in_ptc=my_true
+c_verbose_save = c_verbose
+c_verbose = .false.
+call init_all (state, ptc_com%taylor_order_ptc, 0) 
+
+call alloc(F)
+call alloc(map8)
+call alloc(ray8)
+call alloc(da)
+call alloc(cda)
+call alloc(complex_normal_form)
+call alloc(a0,a1,a2,acs_full)
+call alloc(acs1_a,acs1_b)
+call alloc(tunes_atob)
+call alloc(t_local)
+
+co_pr = normal_form%m%ref
+
+! Convert to real_8, then a da map, then complex da map
+map8 = normal_form%m
+da = map8
+cda = da
+
+! Complex normal form in phasor basis
+! See: fpp-ptc-read-only/build_book_example_g95/the_fpp_on_line_glossary/complex_normal.htm
+! M = A o N o A_inverse.
+call c_normal(cda, complex_normal_form, dospin=my_false, no_used=order_for_normal_form) 
+
+call c_canonise(complex_normal_form%a_t,acs_full,a0=a0,a1=a1, a2=a2)
+acs1_a = a0*a1  ! acs1_a is first order of normalizing map.
+ray8 = co_pr + acs1_a
+
+fib => normal_form%ele_origin%ptc_fibre%next
+
+call track_probe(ray8,state,fibre1=fib) !Track acs1_a from point a to point b.
+acs1_b = ray8  !c_damap <- probe_8
+call c_canonise(acs1_b, acs1_b, a0=a0, a1=a1, a2=a2, phase=tunes_atob)
+
+F=log(a2) ! c_vector_field <- c_damap
+F=c_phasor()*F
+
+do i=1, size(normal_form%rd_term)
+  if(normal_form%rd_term(i)%F_index .gt. 0) then
+    t_local = tunes_atob(normal_form%rd_term(i)%F_index)
+    t_local = t_local.par.normal_form%rd_term(i)%j
+    normal_form%rd_term(i)%c_val = t_local.sub.'0'
+  else
+    j_temp = normal_form%rd_term(i)%j
+    call c_identify_resonance(j_temp,nj,res_c) !c_identify_resonance modifies j_temp
+    normal_form%rd_term(i)%c_val = (F%v(nj).par.j_temp)*res_c
+  endif
+enddo
+
+! Cleanup
+call kill(F)
+call kill(map8)
+call kill(ray8)
+call kill(da)
+call kill(cda)
+call kill(complex_normal_form)
+call kill(a0,a1,a2,acs_full)
+call kill(acs1_a,acs1_b)
+call kill(tunes_atob)
+call kill(t_local)
+
+
+! Reset PTC state
+use_complex_in_ptc=my_false
+c_verbose = c_verbose_save
+ndpt_bmad = 0
+call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
+
+end subroutine normal_form_rd_terms
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
