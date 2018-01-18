@@ -17,6 +17,11 @@ end type
 
 type (global_common_struct), save :: global_com
 
+type named_number_struct
+  character(40) :: name = ''
+  real(rp) :: value = 0
+end type
+
 ! This is to suppress the ranlib "has no symbols" message
 integer, private :: private_dummy
 
