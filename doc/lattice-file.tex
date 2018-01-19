@@ -42,84 +42,6 @@ discussed in Chapter~\sref{c:lat.convert}.
 
 \newpage
 
-%-----------------------------------------------------------------
-\section{Units and Constants}
-\label{s:constants}
-\index{constants|hyperbf}
-
-\bmad defines commonly used physical and mathematical constants
-shown in Table~\ref{t:constants}.  All symbols use straight SI units
-except for \vn{emass} and \vn{pmass} which are provided for
-compatibility with \mad and should be avoided.
-
-\begin{table}[h]
-\centering
-\begin{tabular}{llll} \toprule
-  {\em Symbol}          & {\em Value}              & {\em Units} &  {\em Name}           \\ \midrule
-  pi                    & 3.14159265359            &             &                       \\
-  twopi                 & 2 * pi                   &             &                       \\
-  fourpi                & 4 * pi                   &             &                       \\
-  e_log                 & 2.718281828              &             &                       \\
-  sqrt_2                & 1.4142135623731          &             &                       \\
-  degrad                & 180 / pi                 &             & From rad to deg       \\
-  degrees               & pi / 180                 &             & From deg to rad       \\
-  raddeg                & pi / 180                 &             & From deg to rad       \\
-  anom_moment_deuteron  & $-0.14298727047$         &             & Deuteron anomalous magnetic moment \\
-  anom_moment_electron  & $0.001159652193$         &             & Electron anomalous magnetic moment \\
-  anom_moment_muon      & $0.0011659208$           &             & muon anomalous magnetic moment     \\
-  anom_moment_proton    & $1.79285$                &             & proton anomalous magnetic moment   \\
-  fine_struct_const     & $0.00729735257$          &             & Fine structure constant            \\
-  m_deuteron            & $1.875612928 \pow{9}$    & eV          & Deuteron mass         \\  
-  m_electron            & $0.5109989461 \pow{6}$   & eV          & Electron mass         \\
-  m_muon                & $105.6583715 \pow{6}$    & eV          & Muon mass             \\
-  m_pion_0              & $134.9766 \pow{6}$       & eV          & $\pi^0$ mass          \\
-  m_pion_charged        & $139.57018 \pow{6}$      & eV          & $\pi^+$, $\pi^-$ mass \\
-  m_proton              & $0.9382720813 \pow{9}$   & eV          & Proton mass           \\
-  c_light               & $2.99792458 \pow{8}$     & m/sec       & Speed of light        \\
-  r_e                   & $2.8179403227 \pow{-15}$ & m           & Electron radius       \\
-  r_p                   & $1.5346980 \pow{-18}$    & m           & Proton radius         \\
-  e_charge              & $1.6021766208 \pow{-19}$ & Coul        & Electron charge       \\
-  h_planck              & $4.13566733 \pow{-15}$   & eV*sec      & Planck's constant     \\
-  h_bar_planck          & $6.58211899 \pow{-16}$   & eV*sec      & Planck / $2\pi$       \\
-  emass                 & $0.5109989461 \pow{-3}$  & GeV         & Electron mass         \\
-  pmass                 & $0.9382720813$           & GeV         & Proton mass           \\ \bottomrule
-\end{tabular}
-\caption{Physical and mathematical constants recognized by \bmad.}
-\label{t:constants}
-\end{table}
-
-\index{mass_of}\index{anomalous_moment_of}
-As an alternative, the \vn{mass_of}, and \vn{anomalous_moment_of} functions
-(\sref{s:functions}) may be used in place of the defined constants for mass and anomalous
-magnetic moment.
-
-\newpage
-
-\index{MAD!units}
-\index{units!with MAD}
-\bmad uses SI (Syst\`eme International) units as shown in
-Table~\ref{t:units}.  Note that \mad uses different units. For example,
-\mad's unit of Particle Energy is GeV not eV.
-
-\begin{table}[ht]
-\centering
-\begin{tabular}{ll} \toprule
-  {\em Quantity}     & {\em Units}       \\ \midrule
-  Angles             &    radians        \\ 
-  Betatron Phase     &    radians        \\
-  Current            &    Amps           \\ 
-  Frequency          &    Hz             \\ 
-  Kick               &    radians        \\ 
-  Length             &    meters         \\ 
-  Magnetic Field     &    Tesla          \\ 
-  Particle Energy    &    eV             \\ 
-  RF Phase Angles    &    radians/2$\pi$ \\ 
-  Voltage            &    Volts          \\ \bottomrule
-\end{tabular}
-\caption{Physical units used by \bmad.}
-\label{t:units}
-\end{table}
-
 %---------------------------------------------------------------------------
 \section{File Example and Syntax}
 \index{Bmad!statement syntax}
@@ -561,6 +483,84 @@ Switches are variables that take discrete values. For example:
 The name ``switch'' can refer to the variable (for example,
 \vn{tracking_method}) or to a value that it can take (for example,
 \vn{bmad_standard}). The name ``method'' is used interchangeably with switch.
+
+%-----------------------------------------------------------------
+\section{Units and Constants}
+\label{s:constants}
+\index{constants|hyperbf}
+
+\index{MAD!units}
+\index{units!with MAD}
+\bmad uses SI (Syst\`eme International) units as shown in
+Table~\ref{t:units}.  Note that \mad uses different units. For example,
+\mad's unit of Particle Energy is GeV not eV.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{ll} \toprule
+  {\em Quantity}     & {\em Units}       \\ \midrule
+  Angles             &    radians        \\ 
+  Betatron Phase     &    radians        \\
+  Current            &    Amps           \\ 
+  Frequency          &    Hz             \\ 
+  Kick               &    radians        \\ 
+  Length             &    meters         \\ 
+  Magnetic Field     &    Tesla          \\ 
+  Particle Energy    &    eV             \\ 
+  RF Phase Angles    &    radians/2$\pi$ \\ 
+  Voltage            &    Volts          \\ \bottomrule
+\end{tabular}
+\caption{Physical units used by \bmad.}
+\label{t:units}
+\end{table}
+
+\newpage
+
+\bmad defines commonly used physical and mathematical constants
+shown in Table~\ref{t:constants}.  All symbols use straight SI units
+except for \vn{emass} and \vn{pmass} which are provided for
+compatibility with \mad and {\large\em should be avoided}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llll} \toprule
+  {\em Symbol}          & {\em Value}              & {\em Units} &  {\em Name}           \\ \midrule
+  pi                    & 3.14159265359            &             &                       \\
+  twopi                 & 2 * pi                   &             &                       \\
+  fourpi                & 4 * pi                   &             &                       \\
+  e_log                 & 2.718281828              &             &                       \\
+  sqrt_2                & 1.4142135623731          &             &                       \\
+  degrad                & 180 / pi                 &             & From rad to deg       \\
+  degrees               & pi / 180                 &             & From deg to rad       \\
+  raddeg                & pi / 180                 &             & From deg to rad       \\
+  anom_moment_deuteron  & $-0.14298727047$         &             & Deuteron anomalous magnetic moment   \\
+  anom_moment_electron  & $0.001159652193$         &             & Electron anomalous magnetic moment   \\
+  anom_moment_muon      & $0.0011659208$           &             & muon anomalous magnetic moment       \\
+  anom_moment_proton    & $1.79285$                &             & proton anomalous magnetic moment     \\
+  fine_struct_const     & $0.00729735257$          &             & Fine structure constant              \\
+  m_deuteron            & $1.875612928 \pow{9}$    & eV          & Deuteron mass         \\  
+  m_electron            & $0.5109989461 \pow{6}$   & eV          & Electron mass         \\
+  m_muon                & $105.6583715 \pow{6}$    & eV          & Muon mass             \\
+  m_pion_0              & $134.9766 \pow{6}$       & eV          & $\pi^0$ mass          \\
+  m_pion_charged        & $139.57018 \pow{6}$      & eV          & $\pi^+$, $\pi^-$ mass \\
+  m_proton              & $0.9382720813 \pow{9}$   & eV          & Proton mass           \\
+  c_light               & $2.99792458 \pow{8}$     & m/sec       & Speed of light        \\
+  r_e                   & $2.8179403227 \pow{-15}$ & m           & Electron radius       \\
+  r_p                   & $1.5346980 \pow{-18}$    & m           & Proton radius         \\
+  e_charge              & $1.6021766208 \pow{-19}$ & Coul        & Electron charge       \\
+  h_planck              & $4.13566733 \pow{-15}$   & eV*sec      & Planck's constant     \\
+  h_bar_planck          & $6.58211899 \pow{-16}$   & eV*sec      & Planck / $2\pi$       \\
+  emass                 & $0.5109989461 \pow{-3}$  & GeV         & Electron mass (please avoid using)   \\
+  pmass                 & $0.9382720813$           & GeV         & Proton mass (please avoid using)     \\ \bottomrule
+\end{tabular}
+\caption{Physical and mathematical constants recognized by \bmad.}
+\label{t:constants}
+\end{table}
+
+\index{mass_of}\index{anomalous_moment_of}
+As an alternative, the \vn{mass_of}, and \vn{anomalous_moment_of} functions
+(\sref{s:functions}) may be used in place of the defined constants for mass and anomalous
+magnetic moment.
 
 %---------------------------------------------------------------------------
 \section{Arithmetic Expressions}
