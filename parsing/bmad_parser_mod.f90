@@ -2904,9 +2904,19 @@ if (.not. verify_valid_name (var_name, ix_word)) return
 ! If word does not have a "[...]" then it must be a variable
 
 ix1 = index(var_name, '[')
-if (ix1 == 0) then   
+if (ix1 == 0) then
   call find_indexx (var_name, bp_com%var%name, bp_com%var%indexx, bp_com%ivar_tot, i)
   if (i == 0) then
+    do i = 1, size(old_style_physical_const_list)
+      if (var_name == upcase(old_style_physical_const_list(i)%name)) then
+        call parser_error ('DEPRECATED OLD STYLE PHYSICAL CONSTANT: ' // old_style_physical_const_list(i)%name, &
+                           'PLEASE REPLACE WITH: '// physical_const_list(i+24)%name, level = s_warn$)
+        value = old_style_physical_const_list(i)%value
+        err_flag = .false.
+        return
+      endif
+    enddo
+
     call parser_error ('VARIABLE USED BUT NOT YET DEFINED: ' // word, 'WILL TREAT AS ZERO.', level = s_warn$)
     value = 0
     ! To prevent multiple error messages define this variable.
@@ -4258,7 +4268,6 @@ allocate (bp_com%var(n))
 
 n = size(var_temp)
 bp_com%var(1:n) = var_temp
-
 
 end subroutine reallocate_bp_com_var
 
