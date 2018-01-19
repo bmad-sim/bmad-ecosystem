@@ -57,7 +57,7 @@ real(rp), parameter :: anomalous_mag_moment_deuteron = -0.14298727047d0
 ! Should make physical_const_list "parameter" but there is a gcc bug (in Version 7.1 at least)
 ! where if you pass physical_const_list%name to a routine there will be a crash.
 
-type (named_number_struct) :: physical_const_list(32) = [ &
+type (named_number_struct) :: physical_const_list(28) = [ &
                  named_number_struct('pi', pi), &
                  named_number_struct('twopi', twopi), &
                  named_number_struct('fourpi', fourpi), &
@@ -82,15 +82,16 @@ type (named_number_struct) :: physical_const_list(32) = [ &
                  named_number_struct('emass', e_mass), &
                  named_number_struct('clight', c_light), &
                  named_number_struct('fine_struct_const', fine_structure_constant), &
-                 named_number_struct('anom_mag_electron', anomalous_mag_moment_electron), &  ! Old style. Deprecated.
-                 named_number_struct('anom_mag_proton', anomalous_mag_moment_proton), &      ! Old style. Deprecated.
-                 named_number_struct('anom_mag_muon', anomalous_mag_moment_muon), &          ! Old style. Deprecated.
-                 named_number_struct('anom_mag_deuteron', anomalous_mag_moment_deuteron), &  ! Old style. Deprecated.
                  named_number_struct('anom_moment_electron', anomalous_mag_moment_electron), &
                  named_number_struct('anom_moment_proton', anomalous_mag_moment_proton), &
                  named_number_struct('anom_moment_muon', anomalous_mag_moment_muon), &
                  named_number_struct('anom_moment_deuteron', anomalous_mag_moment_deuteron)]
 
+type (named_number_struct) :: old_style_physical_const_list(4) = [ &
+                 named_number_struct('anom_mag_electron', anomalous_mag_moment_electron), &  ! Old style. Deprecated.
+                 named_number_struct('anom_mag_proton', anomalous_mag_moment_proton), &      ! Old style. Deprecated.
+                 named_number_struct('anom_mag_muon', anomalous_mag_moment_muon), &          ! Old style. Deprecated.
+                 named_number_struct('anom_mag_deuteron', anomalous_mag_moment_deuteron)]    ! Old style. Deprecated.
 
 ! This is to suppress the ranlib "has no symbols" message
 
