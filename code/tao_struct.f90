@@ -249,7 +249,7 @@ end type
 ! Eg: %location = (0.0, 1.0, 0.5, 1.0) gives the top half of the page inside the border.
 
 type tao_plot_region_struct
-  character(40) :: name = ''     ! Eg: 'top', 'bottom'.
+  character(40) :: name = ''     ! Region name. Eg: 'r13', etc.
   type (tao_plot_struct) plot    ! Plot associated with this region
   real(rp) location(4)           ! [x1, x2, y1, y2] location on page.
   logical :: visible = .false.   ! To draw or not to draw.
@@ -270,7 +270,7 @@ type tao_plot_page_struct
   type (tao_plot_region_struct), allocatable :: region(:)
   character(8) :: plot_display_type = 'X'   ! 'X' or 'TK'
   character(80) ps_scale                    ! scaling when creating PS files.
-  real(rp) size(2)                          ! width and height of window in pixels.
+  real(rp) size(2)                          ! width and height of plot window in pixels.
   real(rp) :: text_height = 12              ! In points. Scales the height of all text
   real(rp) :: main_title_text_scale  = 1.3  ! Relative to text_height
   real(rp) :: graph_title_text_scale = 1.1  ! Relative to text_height
@@ -498,7 +498,7 @@ end type tao_var_struct
 ! The v1_var_struct has a pointer to a section in the s%var array. 
 
 type tao_v1_var_struct
-  character(40) :: name = ''       ! Eg: 'quad_k1'
+  character(40) :: name = ''       ! V1 variable name. Eg: 'quad_k1'.
   integer ix_v1_var                ! Index to s%v1_var(:) array
   type (tao_var_struct), pointer :: v(:) => null() 
                                    ! Pointer to the appropriate section in s%var.
@@ -553,7 +553,7 @@ type tao_global_struct
   integer :: phase_units = radians$      ! Phase units on output.
   integer :: bunch_to_plot = 1           ! Which bunch to plot
   integer :: random_seed = 0             ! Use system clock by default
-  integer :: n_top10 = 10                ! Number of top constraints to print.
+  integer :: n_top10_merit = 10          ! Number of top merit constraints to print.
   character(16) :: random_engine = 'pseudo'         ! Non-beam random number engine
   character(16) :: random_gauss_converter = 'exact' ! Non-beam
   character(16) :: track_type    = 'single'         ! or 'beam'  
@@ -611,6 +611,7 @@ type tao_common_struct
   type (tao_alias_struct) key(100)
   type (tao_universe_struct), pointer :: u_working          ! Index of working universe.
   type (tao_command_file_struct), allocatable :: cmd_file(:)
+  type (named_number_struct), allocatable :: symbolic_num(:)    ! Named numbers
   real(rp), allocatable :: covar(:,:), alpha(:,:)
   real(rp) :: dummy_target = 0           ! Dummy varaible
   integer ix_ref_taylor, ix_ele_taylor   ! Taylor map end points

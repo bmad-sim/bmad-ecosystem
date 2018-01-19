@@ -55,7 +55,7 @@ The lattice is now sufficiently screwed up.
 
 Now specify what variables and data to use in the optimization. First type
 \begin{example}
-  show top10
+  show merit
 \end{example}
 to see what data is effecting the merit function the most. The merit
 function is defined by
@@ -68,7 +68,7 @@ function is defined by
 \Endeq
 where $w_{i}$ and $w_{j}$ are the weights given to each component.
 The optimizer tries to minimize the merit function by changing the
-model to look like the measured data. From the \vn{top10} output we
+model to look like the measured data. From the \vn{merit} output we
 see that the beta function is effecting the merit function the
 most. Since we are looking at beta and phase let's only use that data
 in the optimization.
@@ -113,17 +113,13 @@ quadrupoles by typing
 \begin{example}
   sho var quad\_k1
 \end{example}
-The optimizer came very close to finding the ``design''
-lattice. However, it changed more quadrupoles than just 10, 21 and
-67. This isn't surprising. The optimizer finds the minimum of the
-merit function and there are potentially many minima, or
-degeneracies.  It does it's best not to get stuck in a local minimum
-and as we can see by the plotted data, the minimum found is very close
--- virtually identical -- to the design lattice optics.  A good hint
-as to what variables will be adjusted is the output of \cmd{show
-top10}.  The top 3 derivatives were not the quadrupoles we
-adjusted. Nevertheless, the final result was a darn near perfect
-match!
+The optimizer came very close to finding the ``design'' lattice. However, it changed more
+quadrupoles than just 10, 21 and 67. This isn't surprising. The optimizer finds the minimum of the
+merit function and there are potentially many minima, or degeneracies.  It does it's best not to get
+stuck in a local minimum and as we can see by the plotted data, the minimum found is very close --
+virtually identical -- to the design lattice optics.  A good hint as to what variables will be
+adjusted is the output of \cmd{show merit}.  The top 3 derivatives were not the quadrupoles we
+adjusted. Nevertheless, the final result was a darn near perfect match!
 
 %----------------------------------------------------------------
 \section{Now Not Using all of the Variables}

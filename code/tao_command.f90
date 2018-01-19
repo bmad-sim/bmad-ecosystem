@@ -479,9 +479,10 @@ case ('set')
 
   call tao_cmd_split (cmd_line, 2, cmd_word, .false., err, '=')
 
-  call match_word (cmd_word(1), [character(16) :: 'data', 'var', 'lattice', 'global', 'plot_page', 'beam_start', &
-    'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', 'ran_state', &
-    'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key'], ix, .true., matched_name = set_word)
+  call match_word (cmd_word(1), [character(16) :: 'data', 'var', 'lattice', 'global', 'plot_page', &
+    'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
+    'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'beam_start', &
+    'ran_state', 'symbolic_number'], ix, .true., matched_name = set_word)
   if (ix < 1) then
     call out_io (s_error$, r_name, 'NOT RECOGNIZED OR AMBIGUOUS: ' // cmd_word(1))
     return
@@ -490,8 +491,8 @@ case ('set')
   cmd_line = cmd_word(2)
   select case (set_word)
   case ('ran_state'); n_word = 2; n_eq = 1
-  case ('beam_init', 'bmad_com', 'csr_param', 'data', 'global', 'lattice', 'default', 'beam_start', &
-        'opti_de_param', 'var', 'wave', 'floor_plan', 'lat_layout', 'geodesic_lm', 'key'); n_word = 3; n_eq = 2
+  case ('beam_init', 'bmad_com', 'csr_param', 'data', 'global', 'lattice', 'default', 'beam_start', 'var', &
+        'opti_de_param', 'wave', 'floor_plan', 'lat_layout', 'geodesic_lm', 'key', 'symbolic_number'); n_word = 3; n_eq = 2
   case ('universe'); n_word = 3; n_eq = 10
   case ('plot_page'); n_word = 4; n_eq = 2
   case ('curve', 'element', 'graph', 'plot'); n_word = 4; n_eq = 3
@@ -539,6 +540,8 @@ case ('set')
     call tao_set_plot_page_cmd (cmd_word(1), cmd_word(3), cmd_word(4))
   case ('ran_state')
     call tao_set_ran_state_cmd (cmd_word(2))
+  case ('symbolic_number')
+    call tao_set_symbolic_number_cmd(cmd_word(1), cmd_word(3))
   case ('floor_plan')
     call tao_set_drawing_cmd (s%plot_page%floor_plan, cmd_word(1), cmd_word(3))
   case ('lat_layout')

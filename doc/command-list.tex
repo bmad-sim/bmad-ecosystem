@@ -83,7 +83,7 @@ The \vn{alias} command defines command shortcuts. Format:
   alias \{<alias_name> <string>\}
 \end{example}
 
-\vskip 0.1in
+\vskip 7pt
 
 \vn{Alias} is like Unix aliases. Using the \vn{alias} command without any arguments
 results in a printout of the aliases that have been defined. When using an alias up to 9
@@ -116,7 +116,7 @@ commands in it.  Format:
   call -ptc <filename>
 \end{example}
 
-\vskip 0.2in 
+\vskip 10pt 
 \tao first looks in the current directory for the command file.
 
 The \vn{call} command without \vn{-ptc} is for running a set of \tao commands.  Up to 9
@@ -159,7 +159,7 @@ The \vn{change} command changes element attribute values or variable values in t
   change  \{n@\}beam_start <coordinate> \{prefix>\} <number>
 \end{example}
 
-\vskip 0.2in 
+\vskip 10pt 
 
 The \vn{change} is used for changing real (as opposed to integer or logical)
 parameters. Also see the \vn{set} command (\sref{s:set}) which is more general.
@@ -231,7 +231,7 @@ to False.  Format:
   clip \{-gang\} \{<where> \{<limit1> \{<limit2>\}\}\}
 \end{example}
 
-\vskip 0.2in 
+\vskip 10pt 
 
 Which graphs are clipped is determined by the \vn{<where>} switch. If \vn{<where>} is not
 present, all graphs are clipped. If \vn{where} is a plot name, then all the graphs of that
@@ -341,7 +341,7 @@ details.  Format:
   flatten \{<optimizer>\}
 \end{example}
 
-\vskip 0.2in
+\vskip 10pt
 
 %% help --------------------------------------------------------------
 \section{help}\index{commands!help}
@@ -352,7 +352,7 @@ The \vn{help} command gives help on \tao commands. Format:
   help \{<command> \{<subcommand>\}\}
 \end{example}
 
-\vskip 0.2in
+\vskip 10pt
 
 The \vn{help} command without any arguments gives a list of all commands.  Some commands,
 like \vn{show}, are so large that help on these commands is divided up by their
@@ -382,7 +382,7 @@ The \vn{misalign} command misaligns a set of lattice elements. Format:
    misalign <wrt> <ele_type> <range> <ele_attrib> <misalign_value>
 \end{example}
 
-\vskip 0.2in 
+\vskip 10pt 
 
 \vn{<ele_type>} is the type of element to misalign.  Only elements of type \vn{<ele_type>}
 will be misaligned within the range.  If \vn{<ele_type>} begins with "*@" then choose all
@@ -430,7 +430,7 @@ The \vn{pause} command is used to pause \tao when executing a command file
 \begin{example}
   pause \{<time>\} ! Pause time in seconds.
 \end{example}
-\vskip 0.2in
+\vskip 10pt
 
 If \vn{<time>} is not present or zero, \tao will pause until the \vn{CR} key is
 pressed. Once the \vn{CR} key is pressed, the command file will be resumed. If \vn{<time>}
@@ -462,7 +462,7 @@ and thus create a visible plot in that region. Format:
   place * none
 \end{example}
 
-\vskip 0.2in 
+\vskip 10pt 
 
 To erase a plot from a region use \vn{none} in place of a template name. Notice that by
 using multiple \vn{place} commands a \vn{template} can be associated with more than one
@@ -484,7 +484,7 @@ plotted in the specified graphs or plots. Format:
   plot <plot_or_graph> <component>
 \end{example}
 
-\vskip 0.2in 
+\vskip 10pt 
 
 components are a property of a graph (or curve) so when <plot_or_graph> specifies a plot,
 all the graphs associated with the plot are assigned the \vn{<component>}.
@@ -514,7 +514,7 @@ lattices. Format:
   ptc init            ! Init associated PTC layout.
 \end{example}
 
-\vskip 0.2in 
+\vskip 10pt 
 
 The \vn{ptc init} command must be run before running any other \vn{ptc} command is used.
 
@@ -607,7 +607,7 @@ The \vn{re_execute} command reruns prior commands.  Format:
   re_execute <string>  ! Re-execute last command that begins with <string>.
 \end{example}
 
-\vskip 0.2in 
+\vskip 10pt 
 Every \tao command entered is recorded in a ``history stack''. These
 commands can be viewed using the \vn{show history} command. The \vn{show_history}
 command will also display the index number associated with each command.
@@ -629,7 +629,7 @@ The \vn{read} command is used to modify the (\bmad) \vn{model} lattice or the as
   read ptc \{-old\} <file_name>
 \end{example}
 
-\vskip 0.2in 
+\vskip 10pt 
 
 With the \vn{read lattice} command, the \vn{model} lattice contained in the default
 universe (\sref{s:universe}) is modified using a ``secondary'' lattice file.  [See the
@@ -656,7 +656,7 @@ vetoes. Format:
   restore var <var_name> <locations>
 \end{example}
 
-\vskip 0.2in 
+\vskip 10pt 
 
 See also the \vn{use} and \vn{veto} commands.
 
@@ -680,7 +680,7 @@ The \vn{reinitialize} command reinitializes various things. Format:
   reinitialize tao \{command line optional arguments\}
 \end{example}
 
-\vskip 0.2in 
+\vskip 10pt 
 
 The \vn{reinitialize beam} command reinitializes the beam at the start of the
 lattice. That is, a new random distribution is generated.  Note: This also reinitializes
@@ -714,7 +714,7 @@ The \vn{run_optimizer} command runs an optimizer. Format:
   run_optimizer \{<optimizer>\}
 \end{example}
 
-\vskip 0.2in 
+\vskip 10pt 
 
 \index{de!optimizer}\index{lm!optimizer}
 If \vn{<optimizer>} is not given then the default optimizer is used. 
@@ -751,7 +751,7 @@ Which graphs are scaled is determined by the \vn{<where>} switch. If \vn{<where>
 present or \vn{<where>} is \vn{all} then all graphs are scaled. \vn{<where>} can be a plot
 name or the name of an individual graph withing a plot.
 
-\vskip 0.2in 
+\vskip 10pt 
 
 \vn{scale} adjusts the vertical scale of graphs. If neither \vn{<value1>} nor
 \vn{<value2>} is present then an \vn{autoscale} is performed and the scale is adjusted so
@@ -805,6 +805,7 @@ variables, etc. Format:
   set plot <plot> <parameter> = <value>                     ! \sref{s:set.plot}
   set plot_page <parameter> = <value1> \{<value2>\}           ! \sref{s:set.plot.page}
   set ran_state = <random_number_generator_state>           ! \sref{s:set.ran.state}
+  set symbolic_number <name> = <value>                      ! \sref{s:set.symbolic}
   set universe <what_universe> <on/off>                     ! \sref{s:set.universe}
   set universe <what_universe> recalculate                  ! \sref{s:set.universe}
   set universe <what_universe> mat6_recalc <on/off>         ! \sref{s:set.universe}
@@ -813,7 +814,7 @@ variables, etc. Format:
   set wave <component> = <value>                            ! \sref{s:set.wave}
 \end{example}
 
-\vskip 0.2in 
+\vskip 10pt 
 
 Also see the \vn{change} command (\sref{s:change}). The \vn{change} command is specialized
 for varying real parameters while the \vn{set} command is more general.
@@ -1343,6 +1344,25 @@ Format:
 Sets the state of the random number generator to a specific state. Use \vn{show global
 -ran_state} to show the random number generator state.
 
+%% set symbolic_number --------------------------------------------------------------
+
+\subsection{set symbolic_number}
+\label{s:set.symbolic}
+
+Format:
+\begin{example}
+  set symbolic_number <name> = <value>
+\end{example}
+
+Create a symbolic number that can be used in expressions. Use the \vn{show symbolic_number} command
+to show a list of symbols that have been defined. Repeated \vn{set} commands may be used to modify
+the value of a symbol if desired.
+
+Example:
+\begin{example}
+  set sym aa = 23.4 * pi  ! Define the symbol "aa"
+\end{example}
+
 %% set universe --------------------------------------------------------------
 
 \subsection{set universe}
@@ -1350,12 +1370,12 @@ Sets the state of the random number generator to a specific state. Use \vn{show 
 
 Format:
 \begin{example}
-        set universe <what_universe> <on/off> 
-        set universe <what_universe> recalculate
-        set universe <what_universe> mat6_recalc <on/off>
-        set universe <what_universe> dynamic_aperture_calc <on/off>
-        set universe <what_universe> one_turn_map_calc <on/off>
-        set universe <what_universe> track_recalc <on/off>
+  set universe <what_universe> <on/off> 
+  set universe <what_universe> recalculate
+  set universe <what_universe> mat6_recalc <on/off>
+  set universe <what_universe> dynamic_aperture_calc <on/off>
+  set universe <what_universe> one_turn_map_calc <on/off>
+  set universe <what_universe> track_recalc <on/off>
 \end{example}
 
 The \vn{set universe <what_universe> <on/off>} command will turn the specified universe(s)
@@ -1490,9 +1510,9 @@ Format:
   show field <ele> <x> <y> <z> \{<t>\}                                    ! \sref{s:show.field}
   show global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\}     ! \sref{s:show.global}
   show graph <graph_name>                                             ! \sref{s:show.graph}
-  show history \{-no_num\} \{<num_to_display>\}                           ! \sref{s:show.history}
-  show hom                                                            ! \sref{s:show.hom}
-  show key_bindings                                                   ! \sref{s:show.key}
+  show history \{-no_num\} \{<num_to_display>\}                             ! \sref{s:show.history}
+  show hom                                                              ! \sref{s:show.hom}
+  show key_bindings                                                     ! \sref{s:show.key}
   show lattice \{-0undef\} \{-all\} \{-attribute <attrib>\} \{-base\} 
         \{-blank_replacement <string>\} \{-branch <name_or_index>\} 
         \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\} 
@@ -1500,14 +1520,15 @@ Format:
         \{-radiation_integrals\} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} 
         \{-spin\} \{-tracking_elements\} \{<elements>\}                     ! \sref{s:show.lattice}
   show matrix \{-s\} \{loc1 \{loc2\}\}                                      ! \sref{s:show.matrix}
+  show merit \{-derivative\} \{-merit_only\}                              ! \sref{s:show.merit}
   show normal_form \{-order <n_order>\} <type>                          ! \sref{s:show.normal}
   show optimizer \{-geodesic_lm\}                                       ! \sref{s:show.optimizer}
   show particle \{-bunch <bunch_name_or_index>\} \{-particle <particle_index> 
         \{-element <element_name_or_index>\} \{-lost\} \{-all\}             ! \sref{s:show.particle}
   show plot \{-floor_plan\} \{-lat_layout \} \{<plot_region_name>\} 
         \{<template_plot_name>\}                                        ! \sref{s:show.plot}
+  show symbolic_numbers \{-fundamental_constants\}                      ! \sref{s:show.symbolic}
   show taylor_map \{-order <n_order>\} \{-s\} \{loc1 \{loc2\}\}               ! \sref{s:show.taylor}
-  show top10 \{-derivative\}                                            ! \sref{s:show.top10}
   show twiss_and_orbit \{-base\} \{-branch <name_or_index>\} \{-design\} 
         \{-universe <ix_uni>\} <s_position>                             ! \sref{s:show.twiss}
   show universe \{universe_number\}                                     ! \sref{s:show.universe}
@@ -1521,7 +1542,7 @@ Format:
   show wave                                                           ! \sref{s:show.wave}
 \end{example}
 
-\vskip 0.2in 
+\vskip 10pt 
 
 The \vn{show} command has \vn{-append} and \vn{-write} optional arguments which can be
 used to write the results to a file.  The \vn{show -append} command will appended to the
@@ -2116,6 +2137,34 @@ Shows the transfer matrix for the \vn{model} lattice of the default universe (se
 \vn{set default universe}).  This command is equivalent to \vn{show taylor_map -order
 1}. See \vn{show taylor_map} for documentation on the \vn{show matrix} arguments.
 
+%% show merit --------------------------------------------------------------
+
+\subsection{show merit}
+\label{s:show.merit}
+
+Syntax:
+\begin{example}
+  show merit \{-derivative\} \{-merit_only\}
+\end{example}
+
+If the \vn{-derivative} switch is present, this command shows top dMerit/dVariable
+derivatives, and Largest changes in variable value.  If not present, this command shows
+top contributors to the merit function.
+
+If the \vn{-merit_only\} switch is present, only the value of the merit function is printed
+and nothing else.
+
+Note: To set the number of top contributors shown, use the command \vn{set global n_top10_merit}
+= nnn} where \vn{nnn} is the desired number to be shown.
+
+Note: The \vn{show merit} command was once called the \vn{show top10} command.
+
+
+Example:
+\begin{example}
+  show merit -der     ! Show merit derivative info
+\end{example}
+
 %% show normal_form --------------------------------------------------------------
 
 \subsection{show normal_form}
@@ -2222,22 +2271,26 @@ Examples:
   show plot r13
 \end{example}
 
-%% show top10 --------------------------------------------------------------
+%% show symbolic_numbers --------------------------------------------------------------
 
-\subsection{show top10}
-\label{s:show.top10}
+\subsection{show symbolic_numbers}
+\label{s:show.symbolic}
 
 Syntax:
 \begin{example}
-  show top10 \{-derivative\}
+  show symbolic_numbers \{-fundamental_constants\}
 \end{example}
 
-If the \vn{-derivative} switch is present, this command shows top dMerit/dVariable
-derivatives, and Largest changes in variable value.  If not present, this command shows
-top contributors to the merit function.
+Show the symbolic constants created using the \vn{set symbolic_number} command. If the
+\vn{-fundamental_constants} switch is present, the predefined fundamental constants (like \vn{pi}
+and \vn{c_light} are displayed instead.
 
-Note: To set the number of top contributors shown, use the command \vn{set global n_top10
-= nnn} where \vn{nnn} is the desired number to be shown.
+Examples:
+\begin{example}
+  set sym aaa = 23  ! Set a symbol.
+  show sym          ! Show all user defined symbols.
+  show sym -fund    ! Show fundamental constants.
+\end{example}
 
 %% show taylor_map --------------------------------------------------------------
 
@@ -2418,7 +2471,6 @@ Syntax:
   \{-s <s1>:<s2>\} \{<n1>:<n2>\}
 \end{example}
 
-
 The \vn{show wall} command shows the vacuum chamber wall associated with a lattice branch.
 
 For the building wall, use the ``show building_wall'' command.
@@ -2520,7 +2572,7 @@ data. Format:
   use var <var_name>
 \end{example}
 
-\vskip 0.1 in 
+\vskip 7pt 
 
 See also the \vn{restore} and \vn{veto} commands.
 
@@ -2550,7 +2602,7 @@ The \vn{veto} command vetoes data or variables. Format:
   veto var <var_name> <locations>
 \end{example}
 
-\vskip 0.1in 
+\vskip 7pt 
 
 See also the \vn{restore} and \vn{use} commands.
 
@@ -2579,7 +2631,7 @@ Format:
   wave <curve> \{<plot_location>\}
 \end{example}
 
-\vskip 0.1 in
+\vskip 7pt
 
 The \vn{<curve>} argument specifies what plot curve is to be used in the analysis. The specified
 curve must be visible in the plot window. Possible \vn{<curve>}s that can be analyzed are:
@@ -2640,7 +2692,7 @@ Format:
                                    ! Create a Bmad file of variable values.
 \end{example}
 
-\vskip 0.1 in 
+\vskip 7pt 
 
 If \vn{<file_name>} is not given then the defaults are:
 \begin{example}
@@ -2745,7 +2797,7 @@ The \vn{x_axis} command sets the data type used for the x-axis coordinate. Forma
   x_axis <where> <axis_type>
 \end{example}
 
-\vskip 0.1in 
+\vskip 7pt 
 
 The \vn{x_axis} command sets the \vn{plot%x_axis_type}. This determines what data is used
 for the horizontal axis. Possibilities for \vn{<axis_type>} are:
@@ -2777,7 +2829,7 @@ name or the name of an individual graph withing a plot.  If \vn{<where>} is \vn{
 the scaling is done only for the plots where the x-axis scale is the longitudinal
 s-position.
 
-\vskip 0.1in 
+\vskip 7pt 
 
 \vn{x_scale} sets the lower and upper bounds for the horizontal axis.  If both
 \vn{<bound1>} and \vn{<bound2>} are present then \vn{<bound1>} is taken to be the lower
@@ -2816,7 +2868,7 @@ Which graphs are scaled is determined by the \vn{<where>} switch. If \vn{<where>
 present or \vn{<where>} is \vn{*} then all graphs are scaled. \vn{<where>} can be a plot
 name or the name of an individual graph withing a plot.
 
-\vskip 0.1in 
+\vskip 7pt 
 
 \vn{xy_scale} sets the lower and upper bounds for both the horizontal and vertical axes.
 This is just a shortcut for doing an \vn{x_scale} followed by a \vn{scale}.  If both

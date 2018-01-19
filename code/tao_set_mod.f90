@@ -257,26 +257,26 @@ end subroutine tao_set_lattice_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_global_cmd (who, set_value)
+! Subroutine tao_set_global_cmd (who, value_str)
 !
 ! Routine to set global variables
 ! 
 ! Input:
 !   who       -- Character(*): which global variable to set
-!   set_value -- Character(*): Value to set to.
+!   value_str -- Character(*): Value to set to.
 !
 ! Output:
 !    s%global  -- Global variables structure.
 !-
 
-subroutine tao_set_global_cmd (who, set_value)
+subroutine tao_set_global_cmd (who, value_str)
 
 implicit none
 
 type (tao_global_struct) global, old_global
 type (tao_universe_struct), pointer :: u
 
-character(*) who, set_value
+character(*) who, value_str
 character(20) :: r_name = 'tao_set_global_cmd'
 
 integer iu, ios, iuni, i, ix
@@ -287,7 +287,7 @@ namelist / params / global
 ! Special cases
 
 if (who == 'phase_units') then
-  call match_word (set_value, angle_units_name, ix)
+  call match_word (value_str, angle_units_name, ix)
   if (ix  == 0) then
     call out_io (s_error$, r_name, 'BAD COMPONENT')
     return
@@ -311,13 +311,13 @@ case ('random_engine', 'random_gauss_converter', 'track_type', &
       'prompt_string', 'optimizer', 'print_command', 'var_out_file')
   needs_quotes = .true.
 end select
-if (set_value(1:1) == "'" .or. set_value(1:1) == '"') needs_quotes = .false.
+if (value_str(1:1) == "'" .or. value_str(1:1) == '"') needs_quotes = .false.
 
 write (iu, *) '&params'
 if (needs_quotes) then
-  write (iu, *) ' global%' // trim(who) // ' = "' // trim(set_value) // '"'
+  write (iu, *) ' global%' // trim(who) // ' = "' // trim(value_str) // '"'
 else
-  write (iu, *) ' global%' // trim(who) // ' = ' // trim(set_value)
+  write (iu, *) ' global%' // trim(who) // ' = ' // trim(value_str)
 endif
 write (iu, *) '/'
 write (iu, *)
@@ -360,7 +360,7 @@ case ('rf_on')
   enddo
   s%u%calc%lattice = .true.
 case ('track_type')
-  if (set_value /= 'single' .and. set_value /= 'beam') then
+  if (value_str /= 'single' .and. value_str /= 'beam') then
     call out_io (s_error$, r_name, 'BAD VALUE. MUST BE "single" OR "beam".')
     return
   endif
@@ -375,25 +375,25 @@ end subroutine tao_set_global_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_csr_param_cmd (who, set_value)
+! Subroutine tao_set_csr_param_cmd (who, value_str)
 !
 ! Routine to set csr_param variables
 ! 
 ! Input:
 !   who       -- Character(*): which csr_param variable to set
-!   set_value -- Character(*): Value to set to.
+!   value_str -- Character(*): Value to set to.
 !
 ! Output:
 !    csr_param  -- Csr_param variables structure.
 !-
 
-subroutine tao_set_csr_param_cmd (who, set_value)
+subroutine tao_set_csr_param_cmd (who, value_str)
 
 implicit none
 
 type (csr_parameter_struct) local_csr_param
 
-character(*) who, set_value
+character(*) who, value_str
 character(20) :: r_name = 'tao_set_csr_param_cmd'
 
 integer iu, ios
@@ -411,7 +411,7 @@ if (ios /= 0) then
 endif
 
 write (iu, *) '&params'
-write (iu, *) ' local_csr_param%' // trim(who) // ' = ' // trim(set_value)
+write (iu, *) ' local_csr_param%' // trim(who) // ' = ' // trim(value_str)
 write (iu, *) '/'
 rewind (iu)
 local_csr_param = csr_param  ! set defaults
@@ -432,22 +432,22 @@ end subroutine tao_set_csr_param_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_bmad_com_cmd (who, set_value)
+! Subroutine tao_set_bmad_com_cmd (who, value_str)
 !
 ! Routine to set bmad_com variables
 ! 
 ! Input:
 !   who       -- Character(*): which bmad_com variable to set
-!   set_value -- Character(*): Value to set to.
+!   value_str -- Character(*): Value to set to.
 !-
 
-subroutine tao_set_bmad_com_cmd (who, set_value)
+subroutine tao_set_bmad_com_cmd (who, value_str)
 
 implicit none
 
 type (bmad_common_struct) this_bmad_com
 
-character(*) who, set_value
+character(*) who, value_str
 character(20) :: r_name = 'tao_set_bmad_com_cmd'
 
 integer iu, ios
@@ -465,7 +465,7 @@ if (ios /= 0) then
 endif
 
 write (iu, *) '&params'
-write (iu, *) ' this_bmad_com%' // trim(who) // ' = ' // trim(set_value)
+write (iu, *) ' this_bmad_com%' // trim(who) // ' = ' // trim(value_str)
 write (iu, *) '/'
 rewind (iu)
 this_bmad_com = bmad_com  ! set defaults
@@ -488,22 +488,22 @@ end subroutine tao_set_bmad_com_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_geodesic_lm_cmd (who, set_value)
+! Subroutine tao_set_geodesic_lm_cmd (who, value_str)
 !
 ! Routine to set geodesic_lm variables
 ! 
 ! Input:
 !   who       -- Character(*): which geodesic_lm variable to set
-!   set_value -- Character(*): Value to set to.
+!   value_str -- Character(*): Value to set to.
 !-
 
-subroutine tao_set_geodesic_lm_cmd (who, set_value)
+subroutine tao_set_geodesic_lm_cmd (who, value_str)
 
 implicit none
 
 type (geodesic_lm_param_struct) this_geodesic_lm
 
-character(*) who, set_value
+character(*) who, value_str
 character(20) :: r_name = 'tao_set_geodesic_lm_cmd'
 
 integer iu, ios
@@ -521,7 +521,7 @@ if (ios /= 0) then
 endif
 
 write (iu, *) '&params'
-write (iu, *) ' this_geodesic_lm%' // trim(who) // ' = ' // trim(set_value)
+write (iu, *) ' this_geodesic_lm%' // trim(who) // ' = ' // trim(value_str)
 write (iu, *) '/'
 rewind (iu)
 this_geodesic_lm = geodesic_lm_param  ! set defaults
@@ -543,22 +543,22 @@ end subroutine tao_set_geodesic_lm_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_opti_de_param_cmd (who, set_value)
+! Subroutine tao_set_opti_de_param_cmd (who, value_str)
 !
 ! Routine to set opti_de_param variables
 ! 
 ! Input:
 !   who       -- Character(*): which opti_de_param variable to set
-!   set_value -- Character(*): Value to set to.
+!   value_str -- Character(*): Value to set to.
 !-
 
-subroutine tao_set_opti_de_param_cmd (who, set_value)
+subroutine tao_set_opti_de_param_cmd (who, value_str)
 
 use opti_de_mod, only: opti_de_param
 
 implicit none
 
-character(*) who, set_value
+character(*) who, value_str
 character(20) :: r_name = 'tao_set_opti_de_param_cmd'
 
 integer iu, ios
@@ -576,7 +576,7 @@ if (ios /= 0) then
 endif
 
 write (iu, *) '&params'
-write (iu, *) ' opti_de_param%' // trim(who) // ' = ' // trim(set_value)
+write (iu, *) ' opti_de_param%' // trim(who) // ' = ' // trim(value_str)
 write (iu, *) '/'
 rewind (iu)
 read (iu, nml = params, iostat = ios)
@@ -592,25 +592,25 @@ end subroutine tao_set_opti_de_param_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_wave_cmd (who, set_value, err)
+! Subroutine tao_set_wave_cmd (who, value_str, err)
 !
 ! Routine to set wave variables
 ! 
 ! Input:
 !   who       -- Character(*): which wave variable to set
-!   set_value -- Character(*): Value to set to.
+!   value_str -- Character(*): Value to set to.
 !
 ! Output:
 !    s%wave  -- Wave variables structure.
 !-
 
-subroutine tao_set_wave_cmd (who, set_value, err)
+subroutine tao_set_wave_cmd (who, value_str, err)
 
 implicit none
 
 type (tao_wave_struct) wave
 
-character(*) who, set_value
+character(*) who, value_str
 character(20) :: r_name = 'tao_set_wave_cmd'
 
 real(rp) ix_a(2), ix_b(2)
@@ -635,7 +635,7 @@ ix_a = [s%wave%ix_a1, s%wave%ix_a2]
 ix_b = [s%wave%ix_b1, s%wave%ix_b2]
 
 write (iu, *) '&params'
-write (iu, *) trim(who) // ' = ' // trim(set_value)
+write (iu, *) trim(who) // ' = ' // trim(value_str)
 write (iu, *) '/'
 rewind (iu)
 wave = s%wave  ! set defaults
@@ -660,19 +660,19 @@ end subroutine tao_set_wave_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_beam_start_cmd (who, set_value)
+! Subroutine tao_set_beam_start_cmd (who, value_str)
 !
 ! Routine to set beam_start variables
 ! 
 ! Input:
 !   who       -- Character(*): which beam_start variable to set
-!   set_value -- Character(*): Value to set to.
+!   value_str -- Character(*): Value to set to.
 !
 ! Output:
 !    s%beam_start  -- Beam_start variables structure.
 !-
 
-subroutine tao_set_beam_start_cmd (who, set_value)
+subroutine tao_set_beam_start_cmd (who, value_str)
 
 type (tao_universe_struct), pointer :: u
 type (all_pointer_struct), allocatable :: a_ptr(:)
@@ -683,7 +683,7 @@ real(rp), allocatable :: set_val(:)
 
 integer ix, iu
 
-character(*) who, set_value
+character(*) who, value_str
 character(40) who2, name
 
 character(*), parameter :: r_name = 'tao_set_beam_start_cmd'
@@ -693,7 +693,7 @@ logical err, free
 
 ! Find set_val
 
-call tao_evaluate_expression (set_value, 1, .false., set_val, info, err); if (err) return
+call tao_evaluate_expression (value_str, 1, .false., set_val, info, err); if (err) return
 
 !
 
@@ -731,25 +731,25 @@ end subroutine tao_set_beam_start_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_beam_init_cmd (who, set_value)
+! Subroutine tao_set_beam_init_cmd (who, value_str)
 !
 ! Routine to set beam_init variables
 ! 
 ! Input:
 !   who       -- Character(*): which beam_init variable to set
-!   set_value -- Character(*): Value to set to.
+!   value_str -- Character(*): Value to set to.
 !
 ! Output:
 !    s%beam_init  -- Beam_init variables structure.
 !-
 
-subroutine tao_set_beam_init_cmd (who, set_value)
+subroutine tao_set_beam_init_cmd (who, value_str)
 
 implicit none
 
 type (beam_init_struct) beam_init
 type (tao_universe_struct), pointer :: u
-character(*) who, set_value
+character(*) who, value_str
 character(40) who2
 character(*), parameter :: r_name = 'tao_set_beam_init_cmd'
 
@@ -773,7 +773,7 @@ if (ios /= 0) then
 endif
 
 write (iu, *) '&params'
-write (iu, *) ' beam_init%' // trim(who2) // ' = ' // trim(set_value)
+write (iu, *) ' beam_init%' // trim(who2) // ' = ' // trim(value_str)
 write (iu, *) '/'
 
 !
@@ -809,27 +809,27 @@ end subroutine tao_set_beam_init_cmd
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
-! Subroutine tao_set_plot_page_cmd (component, set_value, set_value2)
+! Subroutine tao_set_plot_page_cmd (component, value_str, value_str2)
 !
 !  Set various aspects of the plotting window
 !
 ! Input:
 !   component     -- Character(*): Which component to set.
-!   set_value     -- Character(*): What value to set to.
-!   set_value2    -- Character(*): 2nd value if component is an array.
+!   value_str     -- Character(*): What value to set to.
+!   value_str2    -- Character(*): 2nd value if component is an array.
 !
 !  Output:
 !    s%plot       -- tao_plotting_struct:
 !-
 
-subroutine tao_set_plot_page_cmd (component, set_value, set_value2)
+subroutine tao_set_plot_page_cmd (component, value_str, value_str2)
 
 implicit none
 
 type (tao_plot_page_input) plot_page
 
-character(*) component, set_value
-character(*), optional :: set_value2
+character(*) component, value_str
+character(*), optional :: value_str2
 character(24) :: r_name = 'tao_set_plot_page_cmd'
 
 real(rp) x, y
@@ -844,23 +844,23 @@ namelist / params / plot_page
 select case (component)
 
 case ('title')
-  s%plot_page%title(1)%string = trim(set_value)
+  s%plot_page%title(1)%string = trim(value_str)
   return
 
 case ('subtitle')
-  s%plot_page%title(2)%string = trim(set_value)
+  s%plot_page%title(2)%string = trim(value_str)
   s%plot_page%title(2)%draw_it = .true.
   return
 
 case ('subtitle_loc')
 
-  if (.not. present(set_value2)) then
+  if (.not. present(value_str2)) then
     call out_io(s_info$, r_name, "subtitle_loc requires two numbers.")
     return
   endif
 
-  read(set_value, '(f15.10)') x
-  read(set_value2, '(f15.10)') y
+  read(value_str, '(f15.10)') x
+  read(value_str2, '(f15.10)') y
   s%plot_page%title(2)%x = x
   s%plot_page%title(2)%y = y
   return
@@ -878,7 +878,7 @@ if (ios /= 0) then
 endif
 
 write (iu, *) '&params'
-write (iu, *) ' plot_page%' // trim(component) // ' = ' // trim(set_value)
+write (iu, *) ' plot_page%' // trim(component) // ' = ' // trim(value_str)
 write (iu, *) '/'
 rewind (iu)
 
@@ -900,17 +900,17 @@ end subroutine tao_set_plot_page_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_curve_cmd (curve_name, component, set_value)
+! Subroutine tao_set_curve_cmd (curve_name, component, value_str)
 !
 ! Routine to set var values.
 !
 ! Input:
 !   curve_name -- Character(*): Which curve to set.
 !   component  -- Character(*): Which component to set.
-!   set_value  -- Character(*): What value to set it to.
+!   value_str  -- Character(*): What value to set it to.
 !-
 
-subroutine tao_set_curve_cmd (curve_name, component, set_value)
+subroutine tao_set_curve_cmd (curve_name, component, value_str)
 
 implicit none
 
@@ -921,7 +921,7 @@ type (lat_struct), pointer :: lat
 integer i, j, ios, i_uni
 integer, allocatable, save :: ix_ele(:)
 
-character(*) curve_name, component, set_value
+character(*) curve_name, component, value_str
 character(20) :: r_name = 'tao_set_curve_cmd'
 
 logical err
@@ -966,7 +966,7 @@ this_graph => this_curve%g
 select case (component)
 
 case ('ele_ref_name')
-  this_curve%ele_ref_name = set_value
+  this_curve%ele_ref_name = value_str
   call tao_locate_elements (this_curve%ele_ref_name, i_uni, eles, error, ignore_blank = .true.)
   if (size(eles) == 0) return
   this_curve%ix_ele_ref = eles(1)%ele%ix_ele
@@ -975,14 +975,14 @@ case ('ele_ref_name')
   
 case ('ix_ele_ref')
   call tao_set_integer_value (this_curve%ix_ele_ref, component, &
-                    set_value, error, 0, s%u(i_uni)%model%lat%branch(i_branch)%n_ele_max)
+                    value_str, error, 0, s%u(i_uni)%model%lat%branch(i_branch)%n_ele_max)
   this_curve%ele_ref_name = s%u(i_uni)%model%lat%ele(this_curve%ix_ele_ref)%name
   call tao_ele_to_ele_track (tao_curve_ix_uni(this_curve), i_branch, &
                                 this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
 
 case ('ix_universe')
   call tao_set_integer_value (this_curve%ix_universe, component, &
-                                            set_value, error, 0, ubound(s%u, 1))
+                                            value_str, error, 0, ubound(s%u, 1))
   if (error) return
   call tao_locate_elements (this_curve%ele_ref_name, tao_curve_ix_uni(this_curve), eles, error, ignore_blank = .true.)
   if (size(eles) == 0) return
@@ -992,81 +992,81 @@ case ('ix_universe')
                                      this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
 
 case ('ix_branch') 
-  call tao_set_integer_value (this_curve%ix_branch, component, set_value, error)
+  call tao_set_integer_value (this_curve%ix_branch, component, value_str, error)
 
 case ('ix_bunch')
   u => tao_pointer_to_universe (tao_curve_ix_uni(this_curve))
   if (.not. associated(u)) return
   call tao_set_integer_value (this_curve%ix_bunch, component, &
-                        set_value, error, -1, u%beam%beam_init%n_bunch)
+                        value_str, error, -1, u%beam%beam_init%n_bunch)
 
 case ('symbol_every')
-  call tao_set_integer_value (this_curve%symbol_every, component, set_value, error, 0, 1000000)
+  call tao_set_integer_value (this_curve%symbol_every, component, value_str, error, 0, 1000000)
 
 case ('component')
-  this_curve%component = remove_quotes(set_value)
+  this_curve%component = remove_quotes(value_str)
 
 case ('draw_line')
-  call tao_set_logical_value (this_curve%draw_line, component, set_value, error)
+  call tao_set_logical_value (this_curve%draw_line, component, value_str, error)
 
 case ('draw_symbols')
-  call tao_set_logical_value (this_curve%draw_symbols, component, set_value, error)
+  call tao_set_logical_value (this_curve%draw_symbols, component, value_str, error)
 
 case ('draw_symbol_index')
-  call tao_set_logical_value (this_curve%draw_symbol_index, component, set_value, error)
+  call tao_set_logical_value (this_curve%draw_symbol_index, component, value_str, error)
 
 case ('smooth_line_calc')
-  call tao_set_logical_value (this_curve%smooth_line_calc, component, set_value, error)
+  call tao_set_logical_value (this_curve%smooth_line_calc, component, value_str, error)
 
 case ('use_y2')
-  call tao_set_logical_value (this_curve%use_y2, component, set_value, error)
+  call tao_set_logical_value (this_curve%use_y2, component, value_str, error)
 
 case ('use_z_color')
-  call tao_set_logical_value (this_curve%use_z_color, component, set_value, error)
+  call tao_set_logical_value (this_curve%use_z_color, component, value_str, error)
   
 case ('autoscale_z_color')
-  call tao_set_logical_value (this_curve%autoscale_z_color, component, set_value, error)  
+  call tao_set_logical_value (this_curve%autoscale_z_color, component, value_str, error)  
 
 case ('data_source')
-  this_curve%data_source = set_value
+  this_curve%data_source = value_str
 
 case ('data_index')
-  this_curve%data_index = set_value
+  this_curve%data_index = value_str
 
 case ('data_type')
-  this_curve%data_type = set_value
+  this_curve%data_type = value_str
 
 case ('data_type_x')
-  this_curve%data_type_x = set_value
+  this_curve%data_type_x = value_str
 
 case ('data_type_z')
-  this_curve%data_type_z = set_value
+  this_curve%data_type_z = value_str
 
 case ('z_color0')
-  call tao_set_real_value (this_curve%z_color0, component, set_value, error, dflt_uni = i_uni)
+  call tao_set_real_value (this_curve%z_color0, component, value_str, error, dflt_uni = i_uni)
 
 case ('z_color1')
-  call tao_set_real_value (this_curve%z_color1, component, set_value, error, dflt_uni = i_uni) 
+  call tao_set_real_value (this_curve%z_color1, component, value_str, error, dflt_uni = i_uni) 
 
 case ('hist%number')
   this_curve%hist%width = 0
-  call tao_set_integer_value (this_curve%hist%number, component, set_value, error, min_val = 0)
+  call tao_set_integer_value (this_curve%hist%number, component, value_str, error, min_val = 0)
 
 case ('hist%density_normalized')
-  call tao_set_logical_value (this_curve%hist%density_normalized, component, set_value, error)
+  call tao_set_logical_value (this_curve%hist%density_normalized, component, value_str, error)
   
 case ('hist%weight_by_charge')
-  call tao_set_logical_value (this_curve%hist%weight_by_charge, component, set_value, error)
+  call tao_set_logical_value (this_curve%hist%weight_by_charge, component, value_str, error)
   
 case ('hist%center')  
-  call tao_set_real_value (this_curve%hist%center, component, set_value, error, dflt_uni = i_uni)
+  call tao_set_real_value (this_curve%hist%center, component, value_str, error, dflt_uni = i_uni)
   
 case ('hist%width')  
   this_curve%hist%number = 0
-  call tao_set_real_value (this_curve%hist%width, component, set_value, error, dflt_uni = i_uni)  
+  call tao_set_real_value (this_curve%hist%width, component, value_str, error, dflt_uni = i_uni)  
   
 case ('y_axis_scale_factor')
-  call tao_set_real_value (this_curve%y_axis_scale_factor, component, set_value, error, dflt_uni = i_uni)
+  call tao_set_real_value (this_curve%y_axis_scale_factor, component, value_str, error, dflt_uni = i_uni)
 
 case default
   call out_io (s_error$, r_name, "BAD CURVE COMPONENT")
@@ -1099,26 +1099,26 @@ end subroutine tao_set_curve_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_plot_cmd (plot_name, component, set_value)
+! Subroutine tao_set_plot_cmd (plot_name, component, value_str)
 !
 ! Routine to set var values.
 !
 ! Input:
 !   plot_name --  Character(*): Which plot to set.
 !   component  -- Character(*): Which component to set.
-!   set_value  -- Character(*): What value to set it to.
+!   value_str  -- Character(*): What value to set it to.
 !
 !  Output:
 !-
 
-subroutine tao_set_plot_cmd (plot_name, component, set_value)
+subroutine tao_set_plot_cmd (plot_name, component, value_str)
 
 implicit none
 
 type (tao_plot_array_struct), allocatable, save :: plot(:)
 type (tao_universe_struct), pointer :: u
 
-character(*) plot_name, component, set_value
+character(*) plot_name, component, value_str
 character(40) comp, sub_comp
 character(*), parameter :: r_name = 'tao_set_plot_cmd'
 
@@ -1151,25 +1151,25 @@ do i = 1, size(plot)
   select case (comp)
 
     case ('n_curve_pts')
-      call tao_set_integer_value (plot(i)%p%n_curve_pts, component, set_value, error)
+      call tao_set_integer_value (plot(i)%p%n_curve_pts, component, value_str, error)
 
     case ('autoscale_x')
-      call tao_set_logical_value (plot(i)%p%autoscale_x, component, set_value, error)
+      call tao_set_logical_value (plot(i)%p%autoscale_x, component, value_str, error)
 
     case ('autoscale_y')
-      call tao_set_logical_value (plot(i)%p%autoscale_y, component, set_value, error)
+      call tao_set_logical_value (plot(i)%p%autoscale_y, component, value_str, error)
 
     case ('visible')
-      call tao_set_logical_value (plot(i)%p%r%visible, component, set_value, error)
+      call tao_set_logical_value (plot(i)%p%r%visible, component, value_str, error)
       call tao_turn_on_special_calcs_if_needed_for_plotting()
 
     case ('component')
       do j = 1, size(plot(i)%p%graph)
-        plot(i)%p%graph(j)%component = remove_quotes(set_value)
+        plot(i)%p%graph(j)%component = remove_quotes(value_str)
       enddo
 
     case ('x')
-      call tao_set_qp_axis_struct('x', sub_comp, plot(i)%p%x, set_value, error)
+      call tao_set_qp_axis_struct('x', sub_comp, plot(i)%p%x, value_str, error)
       if (allocated(plot(i)%p%graph)) then
         do j = 1, size(plot(i)%p%graph)
           plot(i)%p%graph(i)%x = plot(i)%p%x
@@ -1190,26 +1190,26 @@ end subroutine tao_set_plot_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_graph_cmd (graph_name, component, set_value)
+! Subroutine tao_set_graph_cmd (graph_name, component, value_str)
 !
 ! Routine to set var values.
 !
 ! Input:
 !   graph_name -- Character(*): Which graph to set.
 !   component  -- Character(*): Which component to set.
-!   set_value  -- Character(*): What value to set it to.
+!   value_str  -- Character(*): What value to set it to.
 !
 !  Output:
 !-
 
-subroutine tao_set_graph_cmd (graph_name, component, set_value)
+subroutine tao_set_graph_cmd (graph_name, component, value_str)
 
 implicit none
 
 type (tao_plot_array_struct), allocatable, save :: plot(:)
 type (tao_graph_array_struct), allocatable, save :: graph(:)
 
-character(*) graph_name, component, set_value
+character(*) graph_name, component, value_str
 character(20) :: r_name = 'tao_set_graph_cmd'
 
 integer i, j, ios
@@ -1249,7 +1249,7 @@ logical logic, error
 
 !
 
-value = remove_quotes(set_value)
+value = remove_quotes(value_str)
 
 comp = component
 ix = index(comp, '%')
@@ -1262,7 +1262,7 @@ endif
 select case (comp)
 
 case ('component')
-  this_graph%component = set_value
+  this_graph%component = value_str
 case ('clip')
   call tao_set_logical_value (this_graph%clip, component, value, error)
 case ('draw_axes')
@@ -2310,26 +2310,26 @@ end subroutine tao_set_real_value
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_drawing_cmd (drawing, component, set_value)
+! Subroutine tao_set_drawing_cmd (drawing, component, value_str)
 !
 ! Routine to set floor_plan and lat_layout parameters.
 ! 
 ! Input:
 !   component -- Character(*): Which drawing component to set.
-!   set_value -- Character(*): Value to set to.
+!   value_str -- Character(*): Value to set to.
 !
 ! Output:
 !    s%shape  -- Shape variables structure.
 !-
 
-subroutine tao_set_drawing_cmd (drawing, component, set_value)
+subroutine tao_set_drawing_cmd (drawing, component, value_str)
 
 implicit none
 
 type (tao_drawing_struct) drawing
 type (tao_ele_shape_struct) shape(50)
 
-character(*) component, set_value
+character(*) component, value_str
 character(60) str
 character(20) :: r_name = 'tao_set_drawing_cmd'
 
@@ -2355,7 +2355,7 @@ if (ix /= 0) then
   case ('shape', 'color', 'label', 'ele_name')
     needs_quotes = .true.
   end select
-  if (set_value(1:1) == "'" .or. set_value(1:1) == '"') needs_quotes = .false.
+  if (value_str(1:1) == "'" .or. value_str(1:1) == '"') needs_quotes = .false.
 
 else
   str = component
@@ -2372,9 +2372,9 @@ endif
 
 write (iu, *) '&params'
 if (needs_quotes) then
-  write (iu, *) trim(str) // ' = "' // trim(set_value) // '"'
+  write (iu, *) trim(str) // ' = "' // trim(value_str) // '"'
 else
-  write (iu, *) trim(str) // ' = ' // trim(set_value)
+  write (iu, *) trim(str) // ' = ' // trim(value_str)
 endif
 write (iu, *) '/'
 write (iu, *)
@@ -2402,6 +2402,67 @@ n = size(drawing%ele_shape)
 drawing%ele_shape(1:n) = shape
 
 end subroutine tao_set_drawing_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_set_symbolic_number_cmd (sym_str, num_str)
+!
+! Associates a given symbol with a given number.
+!
+! Input:
+!   sym_str     -- character(*): Symbol.
+!   num_str     -- character(*): Number.
+!-
+
+subroutine tao_set_symbolic_number_cmd (sym_str, num_str)
+
+type (tao_expression_info_struct), allocatable :: info(:)
+type (named_number_struct), allocatable :: sym_temp(:)
+
+integer i, n
+real(rp), allocatable :: value(:)
+logical err
+
+character(*) sym_str, num_str
+character(*), parameter :: r_name = 'tao_set_symbolic_number_cmd'
+
+!
+
+do i = 1, size(physical_const_list)
+  if (sym_str == physical_const_list(i)%name) then
+    call out_io (s_error$, r_name, 'NAME MATCHES NAME OF A PHYSICAL CONSTANT. SET IGNORED.')
+    return
+  endif
+enddo
+
+call tao_evaluate_expression (num_str, 1, .false., value, info, err); if (err) return
+
+!
+
+if (allocated(s%com%symbolic_num)) then
+  n = size(s%com%symbolic_num)
+  do i = 1, n
+    if (sym_str == s%com%symbolic_num(i)%name) exit
+  enddo
+
+  if (i == n + 1) then
+    call move_alloc (s%com%symbolic_num, sym_temp)
+    allocate (s%com%symbolic_num(n+1))
+    s%com%symbolic_num(1:n) = sym_temp
+  endif
+
+  s%com%symbolic_num(i)%name = sym_str
+  s%com%symbolic_num(i)%value = value(1)
+
+else
+  allocate (s%com%symbolic_num(1)) 
+  s%com%symbolic_num(1)%name = sym_str
+  s%com%symbolic_num(1)%value = value(1)
+endif
+
+end subroutine tao_set_symbolic_number_cmd
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------

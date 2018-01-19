@@ -132,8 +132,8 @@ subroutine tao_top10_derivative_print ()
 
 implicit none
 
-type (tao_top10_struct) top_dmerit(s%global%n_top10)
-type (tao_top10_struct) top_delta(s%global%n_top10)
+type (tao_top10_struct) top_dmerit(s%global%n_top10_merit)
+type (tao_top10_struct) top_delta(s%global%n_top10_merit)
 type (tao_data_struct), pointer :: data
 
 real(rp) delta, a_max, merit
@@ -178,7 +178,7 @@ nl=nl+1; lines(nl) = ' '
 nl=nl+1; lines(nl) = '      Top10 derivative       |       Top10 delta'
 nl=nl+1; lines(nl) = ' Name         ix  Derivative | Name         ix     delta'
 
-do i = 1, s%global%n_top10
+do i = 1, s%global%n_top10_merit
   if (.not. top_dmerit(i)%valid .and. .not. top_delta(i)%valid) exit
   nl=nl+1; write (lines(nl), fmt) &
         top_dmerit(i)%name, top_dmerit(i)%index, top_dmerit(i)%value,  &
@@ -270,7 +270,7 @@ use nr
 
 implicit none
 
-type (tao_top10_struct) top_merit(s%global%n_top10)
+type (tao_top10_struct) top_merit(s%global%n_top10_merit)
 type (tao_var_struct), pointer :: var
 type (tao_data_struct), pointer :: data
 type (tao_universe_struct), pointer :: u
@@ -395,7 +395,7 @@ enddo
 
 !
 
-if (form == 'TOP10') then
+if (form == 'MERIT') then
   call indexx(con(1:nc)%merit, ixm(1:nc))
   n_max = min(nc, 10)
   ixm(1:n_max) = ixm(nc:nc-n_max+1:-1)
@@ -543,7 +543,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   call tao_print_vars_bmad_format (iu, i, show_good_opt_only)
   call tao_write_out (iu, ['        ', 'end_file', '        '])
-  call tao_show_constraints (iu, 'TOP10')
+  call tao_show_constraints (iu, 'MERIT')
   if (size(s%u) == 1) call tao_show_constraints (iu, '*')
 
   close (iu)

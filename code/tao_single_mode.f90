@@ -97,7 +97,7 @@ case ('c')
   write (*, *) 's%global%optimizer:       ', trim(s%global%optimizer)
   write (*, *)
   call tao_show_constraints (0, '*')
-  call tao_show_constraints (0, 'TOP10')
+  call tao_show_constraints (0, 'MERIT')
 
 case ('g')
 

@@ -599,7 +599,7 @@ case ('global')
   nl=incr(nl); write (li(nl), imt) 'phase_units;INT;T;',                      s%global%phase_units
   nl=incr(nl); write (li(nl), imt) 'bunch_to_plot;INT;T;',                    s%global%bunch_to_plot
   nl=incr(nl); write (li(nl), imt) 'random_seed;INT;T;',                      s%global%random_seed
-  nl=incr(nl); write (li(nl), imt) 'n_top10;INT;T;',                          s%global%n_top10
+  nl=incr(nl); write (li(nl), imt) 'n_top10_merit;INT;T;',                    s%global%n_top10_merit
   nl=incr(nl); write (li(nl), amt) 'random_engine;STR;T;',                    s%global%random_engine
   nl=incr(nl); write (li(nl), amt) 'random_gauss_converter;STR;T;',           s%global%random_gauss_converter
   nl=incr(nl); write (li(nl), amt) 'track_type;STR;T;',                       s%global%track_type

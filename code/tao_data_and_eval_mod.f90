@@ -3942,11 +3942,22 @@ logical err_flag, print_err, print_error, delim_found
 
 err_flag = .false.
 
-call match_word(str, physical_const_list%name, ix, .false., .false.)
+call match_word(str, physical_const_list%name, ix, .true., .false.)
 if (ix > 0) then
   call re_allocate(stack%value, 1)
   stack%value(1) = physical_const_list(ix)%value
   return
+endif
+
+! Named constants
+
+if (allocated(s%com%symbolic_num)) then
+  call match_word(str, s%com%symbolic_num%name, ix, .true., .false.)
+  if (ix > 0) then
+    call re_allocate(stack%value, 1)
+    stack%value(1) = s%com%symbolic_num(ix)%value
+    return
+  endif
 endif
 
 ! An array "[...]"
