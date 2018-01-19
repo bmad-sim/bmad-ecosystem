@@ -214,14 +214,15 @@ character(100) file_name, name, why_invalid, attrib0
 character(120) header, str
 character(200), allocatable :: alloc_lines(:)
 
-character(16) :: show_what, show_names(34) = [ &
+character(16) :: show_what, show_names(36) = [ &
    'data            ', 'variable        ', 'global          ', 'alias           ', 'top10           ', &
    'optimizer       ', 'element         ', 'lattice         ', 'constraints     ', 'plot            ', &
    'beam            ', 'tune            ', 'graph           ', 'curve           ', 'particle        ', &
    'hom             ', 'key_bindings    ', 'universe        ', 'orbit           ', 'derivative      ', &
    'branch          ', 'use             ', 'taylor_map      ', 'value           ', 'wave            ', &
    'twiss_and_orbit ', 'building_wall   ', 'wall            ', 'normal_form     ', 'dynamic_aperture', &
-   'matrix          ', 'field           ', 'wake_elements   ', 'history         ']
+   'matrix          ', 'field           ', 'wake_elements   ', 'history         ', 'symbolic_numbers', &
+   'merit           ']
 
 integer :: data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
@@ -584,7 +585,7 @@ case ('building_wall')
 case ('constraints')
 
   call tao_show_constraints (0, '*')
-  call tao_show_constraints (0, 'TOP10')
+  call tao_show_constraints (0, 'MERIT')
   result_id = show_what
 
 !----------------------------------------------------------------------
@@ -2510,6 +2511,25 @@ case ('lattice')
   result_id = show_what
 
 !----------------------------------------------------------------------
+! merit (old style: top10)
+
+case ('merit', 'top10')
+
+  if (what2 == '') then
+    call tao_show_constraints (0, 'MERIT')
+    call tao_top10_merit_categories_print (0)
+  elseif (index('-derivative', trim(what2)) == 1) then 
+    call tao_top10_derivative_print ()
+  elseif (index('-merit_only', trim(what2)) == 1) then
+    nl=nl+1; write (lines(nl), '(a, es14.6)') 'Merit = ', tao_merit()
+  else
+    nl=1; lines(1) = 'UNKNOWN SWITCH: ' // what2
+    return
+  endif
+
+  result_id = show_what
+
+!----------------------------------------------------------------------
 ! normal_form
 
 case ('normal_form')
@@ -2927,6 +2947,44 @@ case ('plot')
   result_id = show_what
 
 !----------------------------------------------------------------------
+! symbolic_numbers
+
+case ('symbolic_numbers')
+
+  show_sym = .true.
+
+  do
+    call tao_next_switch (what2, ['-physical_constants'], .true., switch, err, ix)
+    if (err) return
+    select case (switch)
+    case ('');           exit
+    case ('-physical_constants');    show_sym = .false.
+    end select
+  enddo
+
+  if (show_sym) then
+    if (allocated(s%com%symbolic_num)) then
+      do i = 1, size(s%com%symbolic_num)
+        nl=nl+1; write (lines(nl), '(2x, 2a, es22.15)') s%com%symbolic_num(i)%name, '=', s%com%symbolic_num(i)%value
+      enddo
+    else
+      nl=nl+1; lines(nl) = 'No symbolic numbers yet defined.'
+    endif
+
+  else
+    do i = 1, size(physical_const_list)
+      if (physical_const_list(i)%name == 'emass' .or. physical_const_list(i)%name == 'pmass') then
+        nl=nl+1; write (lines(nl), '(2x, 2a, es22.15, a)') physical_const_list(i)%name, '=', physical_const_list(i)%value, &
+                            '  ! For compatibility with MAD. Please avoid using this constant.'
+      else
+        nl=nl+1; write (lines(nl), '(2x, 2a, es22.15)') physical_const_list(i)%name, '=', physical_const_list(i)%value
+      endif
+    enddo
+  endif
+
+  result_id = show_what
+
+!----------------------------------------------------------------------
 ! taylor_map
 
 case ('taylor_map', 'matrix')
@@ -3110,23 +3168,6 @@ case ('taylor_map', 'matrix')
         nl=nl+1; write(lines(nl), fmt) mat6(i,:), '   : ', vec0(i)
       enddo
     endif
-  endif
-
-  result_id = show_what
-
-!----------------------------------------------------------------------
-! top10
-
-case ('top10')
-
-  if (what2 == '') then
-    call tao_show_constraints (0, 'TOP10')
-    call tao_top10_merit_categories_print (0)
-  elseif (index('-derivative', trim(what2)) == 1) then 
-    call tao_top10_derivative_print ()
-  else
-    nl=1; lines(1) = 'UNKNOWN SWITCH: ' // what2
-    return
   endif
 
   result_id = show_what
@@ -4013,7 +4054,7 @@ nl=nl+1; write(lines(nl), rmt) '  %lm_opt_deriv_reinit           = ', s%global%l
 nl=nl+1; write(lines(nl), rmt) '  %lmdif_eps                     = ', s%global%lmdif_eps
 nl=nl+1; write(lines(nl), rmt) '  %merit_stop_value              = ', s%global%merit_stop_value
 nl=nl+1; write(lines(nl), rmt) '  %svd_cutoff                    = ', s%global%svd_cutoff
-nl=nl+1; write(lines(nl), imt) '  %n_top10                       = ', s%global%n_top10
+nl=nl+1; write(lines(nl), imt) '  %n_top10_merit                 = ', s%global%n_top10_merit
 nl=nl+1; write(lines(nl), imt) '  %n_opti_loops                  = ', s%global%n_opti_loops
 nl=nl+1; write(lines(nl), imt) '  %n_opti_cycles                 = ', s%global%n_opti_cycles
 nl=nl+1; write(lines(nl), lmt) '  %derivative_recalc             = ', s%global%derivative_recalc
