@@ -53,17 +53,18 @@ subroutine wall_hit_handler_custom (orb, ele, s)
   real(rp) s
 end subroutine
 
-subroutine em_field_custom (ele, param, s_rel, orb, local_ref_frame, field, calc_dfield, err_flag, calc_potentials)
+subroutine em_field_custom (ele, param, s_rel, orbit, local_ref_frame, field, calc_dfield, err_flag, calc_potential, grid_allow_s_out_of_bounds, rf_time)
   import
   implicit none
   type (ele_struct) :: ele
   type (lat_param_struct) param
-  type (coord_struct), intent(in) :: orb
+  type (coord_struct), intent(in) :: orbit
   real(rp), intent(in) :: s_rel
+  real(rp), optional :: rf_time
   logical local_ref_frame
   type (em_field_struct) :: field
-  logical, optional :: err_flag
-  logical, optional :: calc_dfield, calc_potentials
+  logical, optional :: err_flag, grid_allow_s_out_of_bounds
+  logical, optional :: calc_dfield, calc_potential
 end subroutine
 
 subroutine ele_to_fibre_hook (ele, ptc_fibre, param)
