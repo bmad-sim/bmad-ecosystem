@@ -149,7 +149,9 @@ def routine_here (line2, routine_name):
 
 re_blank_interface_begin = re.compile('interface\s*$')
 re_interface_end         = re.compile('end +interface')
-re_type                  = re.compile(r'type *\(')
+re_type_var              = re.compile(r'type *\(')
+re_type_def              = re.compile(r'type +\w')
+re_type_def_end          = re.compile('end +type')
 re_module_begin          = re.compile('module')
 re_module_header_end     = re.compile('contains')
 re_parameter             = re.compile(' parameter\s*::')
@@ -166,6 +168,7 @@ def search_f90 (file_name, search_com):
   found_one_in_this_file = False
   have_printed_file_name = False
   in_module_header = False
+  in_type_def = False
   routine_name = ['']
   blank_line_found = False
 
@@ -195,7 +198,7 @@ def search_f90 (file_name, search_com):
 
     # Skip "type (" constructs and separator comments.
 
-    if re_type.match(line2): continue
+    if re_type_var.match(line2): continue
     if line2[0] == '#': continue
     if line2[0:10] == '!---------': continue   # ignore separator comment
 
@@ -221,7 +224,7 @@ def search_f90 (file_name, search_com):
             print ('\nFile: ' + file_name)
             print ('    ' + line.rstrip())
 
-    if re_module_header_end.match(line2): in_module_header = False
+    if not in_type_def and re_module_header_end.match(line2): in_module_header = False
     
     # Search for parameters
 
@@ -262,6 +265,9 @@ def search_f90 (file_name, search_com):
     # Match to type or interface statement
     # These we type the whole definition
 
+    if in_type_def and re_type_def_end.match(line2): in_type_def = False
+    if not in_type_def and re_type_def.match(line2): in_type_def = True
+
     match = re_type_interface_match.match(line2)
     if match and 'struct'.startswith(search_com.search_only_for):
       search_com.found_one = True
@@ -282,6 +288,7 @@ def search_f90 (file_name, search_com):
           line2 = line.lstrip().lower()
           print (line.rstrip())
           if re_type_interface_end.match(line2): break
+          in_type_def = False
       elif search_com.doc_type == 'SHORT':
         print ('\nFile: ' + file_name)
         print ('    ' + line.rstrip())
@@ -292,6 +299,7 @@ def search_f90 (file_name, search_com):
           line2 = line.lstrip().lower()
           if re_type_interface_end.match(line2): break
           print (line.rstrip())
+          in_type_def = False
 
       comments = []
       continue
