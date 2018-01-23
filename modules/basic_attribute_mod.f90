@@ -466,11 +466,6 @@ do i = 1, n_key$
   if (i == line_ele$)       cycle
   if (i == def_parameter$)  cycle
 
-  call init_attribute_name1 (i, custom_attribute1$,  'CUSTOM_ATTRIBUTE1', private$)
-  call init_attribute_name1 (i, custom_attribute2$,  'CUSTOM_ATTRIBUTE2', private$)
-  call init_attribute_name1 (i, custom_attribute3$,  'CUSTOM_ATTRIBUTE3', private$)
-  call init_attribute_name1 (i, custom_attribute4$,  'CUSTOM_ATTRIBUTE4', private$)
-  call init_attribute_name1 (i, custom_attribute5$,  'CUSTOM_ATTRIBUTE5', private$)
   call init_attribute_name1 (i, check_sum$, 'check_sum', private$)
 
   if (i == beginning_ele$)  cycle
@@ -2383,7 +2378,7 @@ end function has_attribute
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine set_attribute_alias (attrib_name, alias_name, err_flag, lat)
+! Subroutine set_custom_attribute_name (attrib_name, alias_name, err_flag)
 !
 ! Routine to setup an alias for element attributes like custom_attribute1$, etc. in
 ! the attribute name table.
@@ -2396,21 +2391,16 @@ end function has_attribute
 !
 ! Output:
 !   err_flag    -- Logical: Set True if an error. False otherwise.
-!   lat         -- lat_struct, optional: If present then the alias information will
-!                     be added to the lat%attribute_alias(:) array. This is only 
-!                     needed if the lattice is to be written to a file using 
-!                     write_bmad_lattice_file
 !-
 
-subroutine set_attribute_alias (attrib_name, alias_name, err_flag, lat)
+subroutine set_custom_attribute_name (attrib_name, alias_name, err_flag)
 
 implicit none
 
-type (lat_struct), optional :: lat
 integer n
 character(*) attrib_name, alias_name
 character(40) attrib_str, alias_str 
-character(20) :: r_name = 'set_attribute_alias'
+character(20) :: r_name = 'set_custom_attribute_name'
 logical err_flag
 
 !
@@ -2433,19 +2423,6 @@ case default
   call out_io (s_error$, r_name, 'ATTRIBUTE NAME NOT VALID FOR ALIAS SETUP: ' // attrib_str)
 end select
 
-! Add to the lat%attribute_alias
-
-if (present(lat)) then
-  if (allocated(lat%attribute_alias)) then
-    n = size(lat%attribute_alias) + 1
-    call re_allocate(lat%attribute_alias, n)
-  else
-    n = 1
-    allocate(lat%attribute_alias(1))
-  endif
-  lat%attribute_alias(n) = trim(attrib_str) // '=' // alias_str
-endif
-
 !---------------------------------------------------------------
 contains
 
@@ -2453,7 +2430,6 @@ subroutine set_it (ix_attrib)
 
 integer ix_attrib, ix, i, key
 character(40) old_attrib, a_str
-logical warning_given
 
 ! If alias_str is of the form "ele_class::alias_name" then need to split string
 
@@ -2478,34 +2454,138 @@ if (str_find_first_not_in_set(trim(a_str), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
   return
 endif
 
-! Set
+! Set common
 
-warning_given = .false.
-
-do i = 1, n_key$
-  if (key /= 0 .and. key /= i) cycle
-  if (i == def_parameter$ .or. i == def_mad_beam$) cycle
-  old_attrib = attribute_name(i, ix_attrib)
-  if (old_attrib /= null_name$ .and. old_attrib /= a_str .and. .not. warning_given) then
-    if (key == 0) then
-      call out_io (s_warn$, r_name, &
-        'A CUSTOM_ATTRIBUTE IS BEING REDENFINED: ' // attrib_str, &
-        'FROM: ' // old_attrib, &
-        'TO:   ' // a_str)
-    else
-      call out_io (s_warn$, r_name, &
-        'A CUSTOM_ATTRIBUTE IS BEING REDENFINED: ' // attrib_str, &
-        'FOR ELEMENT CLASS: ' // key_name(i), &
-        'FROM: ' // old_attrib, &
-        'TO:   ' // a_str)
-    endif
+if (key == 0) then
+  old_attrib = attribute_name(null_ele$, ix_attrib)
+  if (old_attrib /= null_name$ .and. old_attrib /= a_str) then
+    call out_io (s_warn$, r_name, &
+      'A CUSTOM_ATTRIBUTE IS BEING REDEFINED: ' // attrib_str, &
+      'FROM: ' // attribute_name(null_ele$, ix_attrib), &
+      'TO:   ' // a_str)
   endif
 
-  call init_attribute_name1 (i, ix_attrib, a_str, override = .true.)
-enddo
+  do i = 1, n_key$
+    select case (i)
+    case (def_parameter$, def_mad_beam$, def_bmad_com$, def_beam_start$, line_ele$); cycle
+    end select
+    call init_attribute_name1 (i, ix_attrib, a_str, override = .true.)
+  enddo
+
+! Set one
+
+else
+
+  old_attrib = attribute_name(key, ix_attrib)
+  if (old_attrib /= null_name$ .and. old_attrib /= attribute_name(null_ele$, ix_attrib) .and. old_attrib /= a_str) then
+    call out_io (s_warn$, r_name, &
+      'A CUSTOM_ATTRIBUTE IS BEING REDEFINED: ' // attrib_str, &
+      'FOR ELEMENT CLASS: ' // key_name(key), &
+      'FROM: ' // old_attrib, &
+      'TO:   ' // a_str)
+  endif
+
+  call init_attribute_name1 (key, ix_attrib, a_str, override = .true.)
+endif
 
 end subroutine set_it
 
-end subroutine set_attribute_alias
+end subroutine set_custom_attribute_name
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine custom_ele_attrib_name_list (list)
+!
+! Routine to create a list of custom element attribute names.
+! Each element in the list is a string of the form:
+!   "custom_attribute<N>={<class>::}<attribute_name>"
+! where:
+!   <N> is an integer.
+!   <class>:: is an optional class prefix.
+!   <attribute_name> is the name of the attribute.
+!
+! Output:
+!   list(:)   -- character(100), allocatable: List of custom attributes.
+!-
+
+subroutine custom_ele_attrib_name_list (list)
+
+implicit none
+
+integer n, j, ic, icc, is, n_name(n_key$)
+
+character(*), allocatable :: list(:)
+character(40) common_name
+
+!
+
+if (.not. allocated(list)) allocate(list(40))
+n = 0  ! Number of elements in the list
+
+!
+
+do ic = 1, 5
+  icc = ic + custom_attribute1$ - 1
+
+  ! Common attribute is stored in null_ele's slot
+
+  common_name = ''
+  if (attribute_name(null_ele$, icc) /= null_name$) then
+    common_name = attribute_name(null_ele$, icc)
+    n = n + 1
+    if (n > size(list)) call re_allocate(list, n+20)
+    write (list(n), '(a, i0, 2a)') 'custom_attribute', ic, '=', common_name
+  endif
+
+  ! For not common attributes
+
+  do is = 1, n_key$
+    select case (is)
+    case (def_parameter$, def_mad_beam$, def_bmad_com$, def_beam_start$, line_ele$); cycle
+    end select
+    if (attribute_name(is, icc) == null_name$) cycle
+    if (attribute_name(is, icc) == common_name) cycle
+    n = n + 1
+    if (n > size(list)) call re_allocate(list, n+20)
+    write (list(n), '(a, i0, 4a)') 'custom_attribute', ic, '=', trim(key_name(is)), '::', attribute_name(is, icc)
+  enddo
+enddo
+
+!
+
+do ic = 1, custom_attribute_num$
+  icc = ic + custom_attribute0$
+
+  ! Common attribute is stored in null_ele's slot
+
+  common_name = ''
+  if (attribute_name(null_ele$, icc) /= null_name$) then
+    common_name = attribute_name(null_ele$, icc)
+    n = n + 1
+    if (n > size(list)) call re_allocate(list, n+20)
+    write (list(n), '(a, i0, 2a)') 'custom_attribute', ic, '=', common_name
+  endif
+
+  ! For not common attributes
+
+  do is = 1, n_key$
+    select case (is)
+    case (def_parameter$, def_mad_beam$, def_bmad_com$, def_beam_start$, line_ele$); cycle
+    end select
+    if (attribute_name(is, icc) == null_name$) cycle
+    if (attribute_name(is, icc) == common_name) cycle
+    n = n + 1
+    if (n > size(list)) call re_allocate(list, n+20)
+    write (list(n), '(a, i0, 4a)') 'custom_attribute', ic, '=', trim(key_name(is)), '::', attribute_name(is, icc)
+  enddo
+enddo
+
+!
+
+call re_allocate(list, n)
+
+end subroutine custom_ele_attrib_name_list
 
 end module

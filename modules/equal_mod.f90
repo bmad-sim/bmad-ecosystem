@@ -280,6 +280,24 @@ else
   if (associated (ele_save%a_pole_elec)) deallocate (ele_save%a_pole_elec, ele_save%b_pole_elec)
 endif
 
+! %custom
+
+if (associated(ele_in%custom)) then
+  if (associated (ele_save%custom)) then
+    if (size(ele_save%custom) == size(ele_in%custom)) then
+      ele_out%custom => ele_save%custom
+    else
+      deallocate (ele_save%custom)
+      allocate (ele_out%custom(size(ele_in%custom)))
+    endif
+  else
+    allocate (ele_out%custom(size(ele_in%custom)))
+  endif
+  ele_out%custom = ele_in%custom
+else
+  if (associated (ele_save%custom)) deallocate (ele_save%custom)
+endif
+
 ! %descrip
 
 if (associated(ele_in%descrip)) then
@@ -430,20 +448,6 @@ if (allocated(lat_in%ic)) then
   lat_out%ic = lat_in%ic
 else
   if (allocated(lat_out%ic)) deallocate (lat_out%ic)
-endif
-
-! lat%attribute_alias
-
-if (allocated(lat_in%attribute_alias)) then
-  n = size(lat_in%attribute_alias)
-  if (.not. allocated(lat_out%attribute_alias)) allocate (lat_out%attribute_alias(n))
-  if (size(lat_out%attribute_alias) /= n) then
-    deallocate(lat_out%attribute_alias)
-    allocate (lat_out%attribute_alias(n))
-  endif
-  lat_out%attribute_alias = lat_in%attribute_alias
-else
-  if (allocated(lat_out%attribute_alias)) deallocate(lat_out%attribute_alias)
 endif
 
 ! non-pointer transfer

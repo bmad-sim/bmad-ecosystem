@@ -261,6 +261,17 @@ do i = 1, num_ele_attrib$
   endif
 enddo
 
+! Custom attributes
+
+if (allocated(ele%custom)) then
+  do i = 1, size(ele%custom)
+    attrib = attribute_info(ele, i+custom_attribute0$)
+    a_name = attrib%name
+    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 3x, a)') &
+                      i, a_name(1:n_att), '=', ele%custom(i), '! Custom attribute'
+  enddo
+endif
+
 ! Multipoles
 
 if (associated(ele%a_pole) .or. associated(ele%a_pole_elec)) then

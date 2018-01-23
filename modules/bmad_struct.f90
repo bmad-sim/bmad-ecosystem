@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 203
+integer, parameter :: bmad_inc_version$ = 204
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -967,11 +967,12 @@ type ele_struct
   real(rp) :: s_start = 0                                      ! longitudinal ref position at entrance_end
   real(rp) :: s = 0                                            ! longitudinal ref position at the exit end.
   real(rp) :: ref_time = 0                                     ! Time ref particle passes exit end.
-  real(rp), pointer :: r(:,:,:) => null()                      ! For general use. Not used by Bmad.
   real(rp), pointer :: a_pole(:) => null()                     ! knl for multipole elements.
   real(rp), pointer :: b_pole(:) => null()                     ! tilt for multipole elements.
   real(rp), pointer :: a_pole_elec(:) => null()                ! Electrostatic multipoles.
   real(rp), pointer :: b_pole_elec(:) => null()                ! Electrostatic multipoles.
+  real(rp), pointer :: custom(:) => null()                     ! Custom attributes.
+  real(rp), pointer :: r(:,:,:) => null()                      ! For general use. Not used by Bmad.
   integer :: key = 0                              ! key value 
   integer :: sub_key = 0                          ! For wigglers: map_type$, periodic_type$
   integer :: ix_ele = -1                          ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
@@ -1165,7 +1166,6 @@ type lat_struct
   character(40) :: lattice = ''                    ! Lattice
   character(200) :: input_file_name = ''           ! Name of the lattice input file
   character(80) :: title = ''                      ! General title
-  character(60), allocatable :: attribute_alias(:) ! Aliases for custom1$, etc.
   type (mode_info_struct) a, b, z                  ! Tunes, etc. Note: Tunes are the fractional part.
   type (lat_param_struct) param                    ! Parameters
   type (bookkeeping_state_struct) lord_state       ! lord bookkeeping status.
@@ -1453,7 +1453,9 @@ integer, parameter :: t0$  = 162, t21$  = 183
 integer, parameter :: a0_elec$ = 190, a21_elec$ = 211
 integer, parameter :: b0_elec$ = 212, b21_elec$ = 233
 
-integer, parameter :: num_ele_attrib_extended$ = b21_elec$
+integer, parameter :: custom_attribute0$ = b21_elec$
+integer, parameter :: custom_attribute_num$ = 20
+integer, parameter :: num_ele_attrib_extended$ = custom_attribute0$ + custom_attribute_num$
 
 character(40), parameter :: blank_name$ = ' '
 

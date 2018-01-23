@@ -46,6 +46,7 @@ character(*) digested_file
 character(200) fname_read, fname_versionless, fname_full
 character(200) input_file_name, full_digested_file, digested_prefix_in, digested_prefix_out
 character(200), allocatable :: file_names(:)
+character(100), allocatable :: list(:)
 character(60) p_name
 character(25) :: r_name = 'read_digested_bmad_file'
 
@@ -175,12 +176,10 @@ read (d_unit, err = 9070) n_branch, lat%pre_tracker
 ! custom attribute names
 
 read (d_unit, err = 9035) n
-if (n > 0) then
-  allocate (lat%attribute_alias(n))
-  do i = 1, n
-    read (d_unit, err = 9035) lat%attribute_alias(i)
-  enddo
-endif
+allocate(list(n))
+do i = 1, n
+  read (d_unit, err = 9035) list(i)
+enddo
 
 ! Allocate lat%ele, lat%control and lat%ic arrays
 
@@ -303,11 +302,11 @@ endif
 ! This is done last in read_digested bmad_file so as to not to pollute the name table if 
 ! there is an error.
 
-if (.not. err_found .and. allocated(lat%attribute_alias)) then
-  do i = 1, size(lat%attribute_alias)
-    p_name = lat%attribute_alias(i)
-    ix = index(lat%attribute_alias(i), '=')
-    call set_attribute_alias(p_name(1:ix-1), p_name(ix+1:), err)
+if (.not. err_found) then
+  do i = 1, size(list)
+    p_name = list(i)
+    ix = index(p_name, '=')
+    call set_custom_attribute_name(p_name(1:ix-1), p_name(ix+1:), err)
     if (err) err_found = .true.
   enddo
 endif
@@ -432,7 +431,7 @@ type (ac_kicker_struct), pointer :: ac
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_tay, n_grid, ix_ele, ix_branch, ix_wall3d
 integer i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e
-integer ix_r, ix_s, n_var, ix_d, ix_m, ix_lr_spline, idum
+integer ix_r, ix_s, n_var, ix_d, ix_m, ix_lr_spline, idum, n_cus
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ix_wall3d_branch, ix_st(3,3)
 integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2
 
@@ -445,7 +444,7 @@ error = .true.
 read (d_unit, err = 9100, end = 9100) &
         mode3, ix_r, ix_s, ix_wall3d_branch, ac_kicker_alloc, &
         ix_lr_spline, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
-        ix_lr_mode, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay
+        ix_lr_mode, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay, n_cus
 
 read (d_unit, err = 9100, end = 9100) &
         ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -626,6 +625,11 @@ if (ix_r /= 0) then
   enddo
 endif
 
+if (n_cus /= 0) then
+  allocate (ele%custom(n_cus))
+  read (d_unit, err = 9410) ele%custom(:)
+endif
+
 if (ix_s /= 0) then
   allocate (ele%photon)
   surf => ele%photon%surface
@@ -794,19 +798,25 @@ return
 
 9400  continue
 call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING R TERM FOR ELEMENT: ' // ele%name)
+          'ERROR READING R COMPONENT FOR ELEMENT: ' // ele%name)
+close (d_unit)
+return
+
+9410  continue
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING CUSTOM COMPONENT FOR ELEMENT: ' // ele%name)
 close (d_unit)
 return
 
 9500  continue
 call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING DESCRIP TERM FOR ELEMENT: ' // ele%name)
+          'ERROR READING DESCRIP COMPONENT FOR ELEMENT: ' // ele%name)
 close (d_unit)
 return
 
 9600  continue
 call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING AN,BN TERMS FOR ELEMENT: ' // ele%name)
+          'ERROR READING AN,BN COMPONENTS FOR ELEMENT: ' // ele%name)
 close (d_unit)
 return
 
@@ -818,7 +828,7 @@ return
 
 9700  continue
 call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING TAYLOR TERMS FOR ELEMENT: ' // ele%name)
+          'ERROR READING TAYLOR COMPONENTS FOR ELEMENT: ' // ele%name)
 close (d_unit)
 return
 

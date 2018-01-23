@@ -29,9 +29,8 @@ interface operator (==)
   module procedure eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode
   module procedure eq_normal_modes, eq_em_field, eq_track_map, eq_track, eq_synch_rad_common
   module procedure eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele, eq_ele
-  module procedure eq_complex_taylor_term, eq_complex_taylor, eq_normal_form, eq_branch, eq_lat
-  module procedure eq_bunch, eq_bunch_params, eq_beam, eq_aperture_data, eq_aperture_param
-  module procedure eq_aperture_scan
+  module procedure eq_complex_taylor_term, eq_complex_taylor, eq_branch, eq_lat, eq_bunch
+  module procedure eq_bunch_params, eq_beam, eq_aperture_data, eq_aperture_param, eq_aperture_scan
 end interface
 
 contains
@@ -2493,12 +2492,6 @@ is_eq = is_eq .and. (f1%s_start == f2%s_start)
 is_eq = is_eq .and. (f1%s == f2%s)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%ref_time == f2%ref_time)
-!! f_side.equality_test[real, 3, PTR]
-is_eq = is_eq .and. (associated(f1%r) .eqv. associated(f2%r))
-if (.not. is_eq) return
-if (associated(f1%r)) is_eq = all(shape(f1%r) == shape(f2%r))
-if (.not. is_eq) return
-if (associated(f1%r)) is_eq = all(f1%r == f2%r)
 !! f_side.equality_test[real, 1, PTR]
 is_eq = is_eq .and. (associated(f1%a_pole) .eqv. associated(f2%a_pole))
 if (.not. is_eq) return
@@ -2523,6 +2516,18 @@ if (.not. is_eq) return
 if (associated(f1%b_pole_elec)) is_eq = all(shape(f1%b_pole_elec) == shape(f2%b_pole_elec))
 if (.not. is_eq) return
 if (associated(f1%b_pole_elec)) is_eq = all(f1%b_pole_elec == f2%b_pole_elec)
+!! f_side.equality_test[real, 1, PTR]
+is_eq = is_eq .and. (associated(f1%custom) .eqv. associated(f2%custom))
+if (.not. is_eq) return
+if (associated(f1%custom)) is_eq = all(shape(f1%custom) == shape(f2%custom))
+if (.not. is_eq) return
+if (associated(f1%custom)) is_eq = all(f1%custom == f2%custom)
+!! f_side.equality_test[real, 3, PTR]
+is_eq = is_eq .and. (associated(f1%r) .eqv. associated(f2%r))
+if (.not. is_eq) return
+if (associated(f1%r)) is_eq = all(shape(f1%r) == shape(f2%r))
+if (.not. is_eq) return
+if (associated(f1%r)) is_eq = all(f1%r == f2%r)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%key == f2%key)
 !! f_side.equality_test[integer, 0, NOT]
@@ -2643,39 +2648,6 @@ end function eq_complex_taylor
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_normal_form (f1, f2) result (is_eq)
-
-implicit none
-
-type(normal_form_struct), intent(in) :: f1, f2
-logical is_eq
-
-!
-
-is_eq = .true.
-!! f_side.equality_test[type, 1, NOT]
-is_eq = is_eq .and. all(f1%m == f2%m)
-!! f_side.equality_test[type, 1, NOT]
-is_eq = is_eq .and. all(f1%a == f2%a)
-!! f_side.equality_test[type, 1, NOT]
-is_eq = is_eq .and. all(f1%a_inv == f2%a_inv)
-!! f_side.equality_test[type, 1, NOT]
-is_eq = is_eq .and. all(f1%dhdj == f2%dhdj)
-!! f_side.equality_test[type, 1, NOT]
-is_eq = is_eq .and. all(f1%f == f2%f)
-!! f_side.equality_test[type, 1, NOT]
-is_eq = is_eq .and. all(f1%l == f2%l)
-!! f_side.equality_test[type, 0, PTR]
-
-is_eq = is_eq .and. (associated(f1%ele_origin) .eqv. associated(f2%ele_origin))
-if (.not. is_eq) return
-if (associated(f1%ele_origin)) is_eq = (f1%ele_origin == f2%ele_origin)
-
-end function eq_normal_form
-
-!--------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------
-
 elemental function eq_branch (f1, f2) result (is_eq)
 
 implicit none
@@ -2736,10 +2708,6 @@ if (.not. is_eq) return
 if (associated(f1%wall3d)) is_eq = all(shape(f1%wall3d) == shape(f2%wall3d))
 if (.not. is_eq) return
 if (associated(f1%wall3d)) is_eq = all(f1%wall3d == f2%wall3d)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%normal_form_with_rf == f2%normal_form_with_rf)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%normal_form_no_rf == f2%normal_form_no_rf)
 
 end function eq_branch
 
@@ -2764,12 +2732,6 @@ is_eq = is_eq .and. (f1%lattice == f2%lattice)
 is_eq = is_eq .and. (f1%input_file_name == f2%input_file_name)
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%title == f2%title)
-!! f_side.equality_test[character, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%attribute_alias) .eqv. allocated(f2%attribute_alias))
-if (.not. is_eq) return
-if (allocated(f1%attribute_alias)) is_eq = all(shape(f1%attribute_alias) == shape(f2%attribute_alias))
-if (.not. is_eq) return
-if (allocated(f1%attribute_alias)) is_eq = all(f1%attribute_alias == f2%attribute_alias)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%a == f2%a)
 !! f_side.equality_test[type, 0, NOT]

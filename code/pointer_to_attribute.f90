@@ -408,6 +408,21 @@ if (ix_a > 0 .and. ix_a <= num_ele_attrib$) then
   return
 endif
 
+! Custom attribute
+
+if (ix_a > custom_attribute0$ .and. ix_a <= custom_attribute0$+custom_attribute_num$) then
+  n = ix_a - custom_attribute0$
+  if (.not. associated(ele%custom)) then
+    if (.not. do_allocation) return
+  else
+    if (size(ele%custom) < n .and. .not. do_allocation) return
+  endif
+  if (size(ele%custom) < n) call re_associate(ele%custom, n, .true., 0.0_rp)
+  a_ptr%r => ele%custom(n)
+  err_flag = .false.
+  return
+endif
+
 ! Taylor term?
 
 if (a_name(1:2) == 'TT') then
