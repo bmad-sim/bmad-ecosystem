@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 202;
+  const int BMAD_INC_VERSION = 204;
   const int N_POLE_MAXX = 21;
   const int OLD_CONTROL_VAR_OFFSET = 1000;
   const int VAR_OFFSET = 2000;
@@ -70,8 +70,7 @@ namespace Bmad {
   const int FIRST_TRACK_EDGE = 11, SECOND_TRACK_EDGE = 12, IN_BETWEEN = 13;
   const int UPSTREAM_END = 1, DOWNSTREAM_END = 2;
   const int INSIDE = 3, CENTER_PT = 3, START_END = 99;
-  const int NORMAL = 1, CLEAR = 2, OPAQUE = 3, TRUNK = 4, TRUNK1 = 5, TRUNK2 = 6;
-  const int LEG1 = 7, LEG2 = 8, WALL_START = 9, WALL_END = 10;
+  const int NORMAL = 1, CLEAR = 2, OPAQUE = 3, WALL_START = 9, WALL_END = 10;
   const int CHAMBER_WALL = 1, MASK_PLATE = 2;
   const int X_PLANE = 1, Y_PLANE = 2;
   const int Z_PLANE = 3, N_PLANE = 4, S_PLANE = 5;
@@ -362,6 +361,7 @@ namespace Bmad {
   const int ANTIPROTON = -2;
   const int MUON       = -3;
   const int PION_MINUS = -4;
+  const int ANTI_DEUTERON = -5;
   const int INT_GARBAGE = -987654;
   const double REAL_GARBAGE = -987654.3;
   const int X_AXIS = 1, Y_AXIS = 2, Z_AXIS = 3;

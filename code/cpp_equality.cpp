@@ -1382,11 +1382,12 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && (x.s_start == y.s_start);
   is_eq = is_eq && (x.s == y.s);
   is_eq = is_eq && (x.ref_time == y.ref_time);
-  is_eq = is_eq && is_all_equal(x.r, y.r);
   is_eq = is_eq && is_all_equal(x.a_pole, y.a_pole);
   is_eq = is_eq && is_all_equal(x.b_pole, y.b_pole);
   is_eq = is_eq && is_all_equal(x.a_pole_elec, y.a_pole_elec);
   is_eq = is_eq && is_all_equal(x.b_pole_elec, y.b_pole_elec);
+  is_eq = is_eq && is_all_equal(x.custom, y.custom);
+  is_eq = is_eq && is_all_equal(x.r, y.r);
   is_eq = is_eq && (x.key == y.key);
   is_eq = is_eq && (x.sub_key == y.sub_key);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
@@ -1454,25 +1455,6 @@ template bool is_all_equal (const CPP_complex_taylor_MATRIX&, const CPP_complex_
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_normal_form& x, const CPP_normal_form& y) {
-  bool is_eq = true;
-  is_eq = is_eq && is_all_equal(x.m, y.m);
-  is_eq = is_eq && is_all_equal(x.a, y.a);
-  is_eq = is_eq && is_all_equal(x.a_inv, y.a_inv);
-  is_eq = is_eq && is_all_equal(x.dhdj, y.dhdj);
-  is_eq = is_eq && is_all_equal(x.f, y.f);
-  is_eq = is_eq && is_all_equal(x.l, y.l);
-  is_eq = is_eq && ((x.ele_origin == NULL) == (y.ele_origin == NULL));
-  if (!is_eq) return false;
-  if (x.ele_origin != NULL) is_eq = (*x.ele_origin == *y.ele_origin);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_normal_form_ARRAY&, const CPP_normal_form_ARRAY&);
-template bool is_all_equal (const CPP_normal_form_MATRIX&, const CPP_normal_form_MATRIX&);
-
-//--------------------------------------------------------------
-
 bool operator== (const CPP_branch& x, const CPP_branch& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.name == y.name);
@@ -1499,8 +1481,6 @@ bool operator== (const CPP_branch& x, const CPP_branch& y) {
   if (!is_eq) return false;
   if (x.param != NULL) is_eq = (*x.param == *y.param);
   is_eq = is_eq && is_all_equal(x.wall3d, y.wall3d);
-  is_eq = is_eq && (x.normal_form_with_rf == y.normal_form_with_rf);
-  is_eq = is_eq && (x.normal_form_no_rf == y.normal_form_no_rf);
   return is_eq;
 };
 
@@ -1515,7 +1495,6 @@ bool operator== (const CPP_lat& x, const CPP_lat& y) {
   is_eq = is_eq && (x.lattice == y.lattice);
   is_eq = is_eq && (x.input_file_name == y.input_file_name);
   is_eq = is_eq && (x.title == y.title);
-  is_eq = is_eq && is_all_equal(x.attribute_alias, y.attribute_alias);
   is_eq = is_eq && (x.a == y.a);
   is_eq = is_eq && (x.b == y.b);
   is_eq = is_eq && (x.z == y.z);

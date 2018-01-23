@@ -8009,18 +8009,6 @@ rhs = 50 + offset; F%s_start = rhs
 rhs = 51 + offset; F%s = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 52 + offset; F%ref_time = rhs
-!! f_side.test_pat[real, 3, PTR]
-if (ix_patt < 3) then
-  if (associated(F%r)) deallocate (F%r)
-else
-  if (.not. associated(F%r)) allocate (F%r(-1:1, 2, 1))
-  do jd1 = 1, size(F%r,1); lb1 = lbound(F%r,1) - 1
-  do jd2 = 1, size(F%r,2); lb2 = lbound(F%r,2) - 1
-  do jd3 = 1, size(F%r,3); lb3 = lbound(F%r,3) - 1
-    rhs = 100 + jd1 + 10*jd2 + 100*jd3 + 53 + offset
-    F%r(jd1+lb1,jd2+lb2,jd3+lb3) = rhs
-  enddo; enddo; enddo
-endif
 !! f_side.test_pat[real, 1, PTR]
 
 if (ix_patt < 3) then
@@ -8028,7 +8016,7 @@ if (ix_patt < 3) then
 else
   if (.not. associated(F%a_pole)) allocate (F%a_pole(-1:1))
   do jd1 = 1, size(F%a_pole,1); lb1 = lbound(F%a_pole,1) - 1
-    rhs = 100 + jd1 + 57 + offset
+    rhs = 100 + jd1 + 53 + offset
     F%a_pole(jd1+lb1) = rhs
   enddo
 endif
@@ -8039,7 +8027,7 @@ if (ix_patt < 3) then
 else
   if (.not. associated(F%b_pole)) allocate (F%b_pole(-1:1))
   do jd1 = 1, size(F%b_pole,1); lb1 = lbound(F%b_pole,1) - 1
-    rhs = 100 + jd1 + 59 + offset
+    rhs = 100 + jd1 + 55 + offset
     F%b_pole(jd1+lb1) = rhs
   enddo
 endif
@@ -8050,7 +8038,7 @@ if (ix_patt < 3) then
 else
   if (.not. associated(F%a_pole_elec)) allocate (F%a_pole_elec(-1:1))
   do jd1 = 1, size(F%a_pole_elec,1); lb1 = lbound(F%a_pole_elec,1) - 1
-    rhs = 100 + jd1 + 61 + offset
+    rhs = 100 + jd1 + 57 + offset
     F%a_pole_elec(jd1+lb1) = rhs
   enddo
 endif
@@ -8061,80 +8049,103 @@ if (ix_patt < 3) then
 else
   if (.not. associated(F%b_pole_elec)) allocate (F%b_pole_elec(-1:1))
   do jd1 = 1, size(F%b_pole_elec,1); lb1 = lbound(F%b_pole_elec,1) - 1
-    rhs = 100 + jd1 + 63 + offset
+    rhs = 100 + jd1 + 59 + offset
     F%b_pole_elec(jd1+lb1) = rhs
   enddo
 endif
+!! f_side.test_pat[real, 1, PTR]
+
+if (ix_patt < 3) then
+  if (associated(F%custom)) deallocate (F%custom)
+else
+  if (.not. associated(F%custom)) allocate (F%custom(-1:1))
+  do jd1 = 1, size(F%custom,1); lb1 = lbound(F%custom,1) - 1
+    rhs = 100 + jd1 + 61 + offset
+    F%custom(jd1+lb1) = rhs
+  enddo
+endif
+!! f_side.test_pat[real, 3, PTR]
+if (ix_patt < 3) then
+  if (associated(F%r)) deallocate (F%r)
+else
+  if (.not. associated(F%r)) allocate (F%r(-1:1, 2, 1))
+  do jd1 = 1, size(F%r,1); lb1 = lbound(F%r,1) - 1
+  do jd2 = 1, size(F%r,2); lb2 = lbound(F%r,2) - 1
+  do jd3 = 1, size(F%r,3); lb3 = lbound(F%r,3) - 1
+    rhs = 100 + jd1 + 10*jd2 + 100*jd3 + 63 + offset
+    F%r(jd1+lb1,jd2+lb2,jd3+lb3) = rhs
+  enddo; enddo; enddo
+endif
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 65 + offset; F%key = rhs
+rhs = 67 + offset; F%key = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 66 + offset; F%sub_key = rhs
+rhs = 68 + offset; F%sub_key = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 67 + offset; F%ix_ele = rhs
+rhs = 69 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 68 + offset; F%ix_branch = rhs
+rhs = 70 + offset; F%ix_branch = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 69 + offset; F%lord_status = rhs
+rhs = 71 + offset; F%lord_status = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 70 + offset; F%n_slave = rhs
+rhs = 72 + offset; F%n_slave = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 71 + offset; F%n_slave_field = rhs
+rhs = 73 + offset; F%n_slave_field = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 72 + offset; F%ix1_slave = rhs
+rhs = 74 + offset; F%ix1_slave = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 73 + offset; F%slave_status = rhs
+rhs = 75 + offset; F%slave_status = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 74 + offset; F%n_lord = rhs
+rhs = 76 + offset; F%n_lord = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 75 + offset; F%n_lord_field = rhs
+rhs = 77 + offset; F%n_lord_field = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 76 + offset; F%ic1_lord = rhs
+rhs = 78 + offset; F%ic1_lord = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 77 + offset; F%ix_pointer = rhs
+rhs = 79 + offset; F%ix_pointer = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 78 + offset; F%ixx = rhs
+rhs = 80 + offset; F%ixx = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 79 + offset; F%iyy = rhs
+rhs = 81 + offset; F%iyy = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 80 + offset; F%mat6_calc_method = rhs
+rhs = 82 + offset; F%mat6_calc_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 81 + offset; F%tracking_method = rhs
+rhs = 83 + offset; F%tracking_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 82 + offset; F%spin_tracking_method = rhs
+rhs = 84 + offset; F%spin_tracking_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 83 + offset; F%ptc_integration_type = rhs
+rhs = 85 + offset; F%ptc_integration_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 84 + offset; F%field_calc = rhs
+rhs = 86 + offset; F%field_calc = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 85 + offset; F%aperture_at = rhs
+rhs = 87 + offset; F%aperture_at = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 86 + offset; F%aperture_type = rhs
+rhs = 88 + offset; F%aperture_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 87 + offset; F%orientation = rhs
+rhs = 89 + offset; F%orientation = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 88 + offset; F%symplectify = (modulo(rhs, 2) == 0)
+rhs = 90 + offset; F%symplectify = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 89 + offset; F%mode_flip = (modulo(rhs, 2) == 0)
+rhs = 91 + offset; F%mode_flip = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 90 + offset; F%multipoles_on = (modulo(rhs, 2) == 0)
+rhs = 92 + offset; F%multipoles_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 91 + offset; F%scale_multipoles = (modulo(rhs, 2) == 0)
+rhs = 93 + offset; F%scale_multipoles = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 92 + offset; F%taylor_map_includes_offsets = (modulo(rhs, 2) == 0)
+rhs = 94 + offset; F%taylor_map_includes_offsets = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 93 + offset; F%field_master = (modulo(rhs, 2) == 0)
+rhs = 95 + offset; F%field_master = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 94 + offset; F%is_on = (modulo(rhs, 2) == 0)
+rhs = 96 + offset; F%is_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 95 + offset; F%logic = (modulo(rhs, 2) == 0)
+rhs = 97 + offset; F%logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 96 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
+rhs = 98 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 97 + offset; F%select = (modulo(rhs, 2) == 0)
+rhs = 99 + offset; F%select = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 98 + offset; F%csr_calc_on = (modulo(rhs, 2) == 0)
+rhs = 100 + offset; F%csr_calc_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 99 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
+rhs = 101 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
 
 end subroutine set_ele_test_pattern
 
@@ -8329,128 +8340,6 @@ end subroutine set_complex_taylor_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_normal_form (ok)
-
-implicit none
-
-type(normal_form_struct), target :: f_normal_form, f2_normal_form
-logical(c_bool) c_ok
-logical ok
-
-interface
-  subroutine test_c_normal_form (c_normal_form, c_ok) bind(c)
-    import c_ptr, c_bool
-    type(c_ptr), value :: c_normal_form
-    logical(c_bool) c_ok
-  end subroutine
-end interface
-
-!
-
-ok = .true.
-call set_normal_form_test_pattern (f2_normal_form, 1)
-
-call test_c_normal_form(c_loc(f2_normal_form), c_ok)
-if (.not. f_logic(c_ok)) ok = .false.
-
-call set_normal_form_test_pattern (f_normal_form, 4)
-if (f_normal_form == f2_normal_form) then
-  print *, 'normal_form: C side convert C->F: Good'
-else
-  print *, 'normal_form: C SIDE CONVERT C->F: FAILED!'
-  ok = .false.
-endif
-
-end subroutine test1_f_normal_form
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test2_f_normal_form (c_normal_form, c_ok) bind(c)
-
-implicit  none
-
-type(c_ptr), value ::  c_normal_form
-type(normal_form_struct), target :: f_normal_form, f2_normal_form
-logical(c_bool) c_ok
-
-!
-
-c_ok = c_logic(.true.)
-call normal_form_to_f (c_normal_form, c_loc(f_normal_form))
-
-call set_normal_form_test_pattern (f2_normal_form, 2)
-if (f_normal_form == f2_normal_form) then
-  print *, 'normal_form: F side convert C->F: Good'
-else
-  print *, 'normal_form: F SIDE CONVERT C->F: FAILED!'
-  c_ok = c_logic(.false.)
-endif
-
-call set_normal_form_test_pattern (f2_normal_form, 3)
-call normal_form_to_c (c_loc(f2_normal_form), c_normal_form)
-
-end subroutine test2_f_normal_form
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine set_normal_form_test_pattern (F, ix_patt)
-
-implicit none
-
-type(normal_form_struct) F
-integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
-
-!
-
-offset = 100 * ix_patt
-
-!! f_side.test_pat[type, 1, NOT]
-do jd1 = 1, size(F%m,1); lb1 = lbound(F%m,1) - 1
-  rhs = 100 + jd1 + 1 + offset
-  call set_taylor_test_pattern (F%m(jd1+lb1), ix_patt+jd1)
-enddo
-!! f_side.test_pat[type, 1, NOT]
-do jd1 = 1, size(F%a,1); lb1 = lbound(F%a,1) - 1
-  rhs = 100 + jd1 + 2 + offset
-  call set_taylor_test_pattern (F%a(jd1+lb1), ix_patt+jd1)
-enddo
-!! f_side.test_pat[type, 1, NOT]
-do jd1 = 1, size(F%a_inv,1); lb1 = lbound(F%a_inv,1) - 1
-  rhs = 100 + jd1 + 3 + offset
-  call set_taylor_test_pattern (F%a_inv(jd1+lb1), ix_patt+jd1)
-enddo
-!! f_side.test_pat[type, 1, NOT]
-do jd1 = 1, size(F%dhdj,1); lb1 = lbound(F%dhdj,1) - 1
-  rhs = 100 + jd1 + 4 + offset
-  call set_taylor_test_pattern (F%dhdj(jd1+lb1), ix_patt+jd1)
-enddo
-!! f_side.test_pat[type, 1, NOT]
-do jd1 = 1, size(F%f,1); lb1 = lbound(F%f,1) - 1
-  rhs = 100 + jd1 + 5 + offset
-  call set_complex_taylor_test_pattern (F%f(jd1+lb1), ix_patt+jd1)
-enddo
-!! f_side.test_pat[type, 1, NOT]
-do jd1 = 1, size(F%l,1); lb1 = lbound(F%l,1) - 1
-  rhs = 100 + jd1 + 6 + offset
-  call set_complex_taylor_test_pattern (F%l(jd1+lb1), ix_patt+jd1)
-enddo
-!! f_side.test_pat[type, 0, PTR]
-if (ix_patt < 3) then
-  if (associated(F%ele_origin)) deallocate (F%ele_origin)
-else
-  if (.not. associated(F%ele_origin)) allocate (F%ele_origin)
-  rhs = 7 + offset
-  call set_ele_test_pattern (F%ele_origin, ix_patt)
-endif
-
-end subroutine set_normal_form_test_pattern
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
 subroutine test1_f_branch (ok)
 
 implicit none
@@ -8606,10 +8495,6 @@ else
     call set_wall3d_test_pattern (F%wall3d(jd1+lb1), ix_patt+jd1)
   enddo
 endif
-!! f_side.test_pat[type, 0, NOT]
-call set_normal_form_test_pattern (F%normal_form_with_rf, ix_patt)
-!! f_side.test_pat[type, 0, NOT]
-call set_normal_form_test_pattern (F%normal_form_no_rf, ix_patt)
 
 end subroutine set_branch_test_pattern
 
@@ -8710,16 +8595,6 @@ enddo
 do jd1 = 1, len(F%title)
   F%title(jd1:jd1) = char(ichar("a") + modulo(100+4+offset+jd1, 26))
 enddo
-!! f_side.test_pat[character, 1, ALLOC]
-if (ix_patt < 3) then
-  if (allocated(F%attribute_alias)) deallocate (F%attribute_alias)
-else
-  if (.not. allocated(F%attribute_alias)) allocate (F%attribute_alias(3))
-  do jd1 = 1, 3
-  do jd = 1, len(F%attribute_alias)
-    F%attribute_alias(jd1)(jd:jd) = char(ichar("a") + modulo(100+5+offset+10*jd+jd1, 26))
-  enddo; enddo
-endif
 !! f_side.test_pat[type, 0, NOT]
 call set_mode_info_test_pattern (F%a, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
@@ -8777,17 +8652,17 @@ call set_coord_test_pattern (F%beam_start, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
 call set_pre_tracker_test_pattern (F%pre_tracker, ix_patt)
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 23 + offset; F%version = rhs
+rhs = 21 + offset; F%version = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 24 + offset; F%n_ele_track = rhs
+rhs = 22 + offset; F%n_ele_track = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 25 + offset; F%n_ele_max = rhs
+rhs = 23 + offset; F%n_ele_max = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 26 + offset; F%n_control_max = rhs
+rhs = 24 + offset; F%n_control_max = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 27 + offset; F%n_ic_max = rhs
+rhs = 25 + offset; F%n_ic_max = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 28 + offset; F%input_taylor_order = rhs
+rhs = 26 + offset; F%input_taylor_order = rhs
 !! f_side.test_pat[integer, 1, ALLOC]
 
 if (ix_patt < 3) then
@@ -8795,16 +8670,16 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%ic)) allocate (F%ic(-1:1))
   do jd1 = 1, size(F%ic,1); lb1 = lbound(F%ic,1) - 1
-    rhs = 100 + jd1 + 29 + offset
+    rhs = 100 + jd1 + 27 + offset
     F%ic(jd1+lb1) = rhs
   enddo
 endif
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 31 + offset; F%photon_type = rhs
+rhs = 29 + offset; F%photon_type = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 32 + offset; F%absolute_time_tracking = (modulo(rhs, 2) == 0)
+rhs = 30 + offset; F%absolute_time_tracking = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 33 + offset; F%ptc_uses_hard_edge_drifts = (modulo(rhs, 2) == 0)
+rhs = 31 + offset; F%ptc_uses_hard_edge_drifts = (modulo(rhs, 2) == 0)
 
 end subroutine set_lat_test_pattern
 

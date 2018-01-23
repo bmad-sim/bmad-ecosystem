@@ -401,11 +401,6 @@ typedef valarray<CPP_complex_taylor>          CPP_complex_taylor_ARRAY;
 typedef valarray<CPP_complex_taylor_ARRAY>    CPP_complex_taylor_MATRIX;
 typedef valarray<CPP_complex_taylor_MATRIX>   CPP_complex_taylor_TENSOR;
 
-class CPP_normal_form;
-typedef valarray<CPP_normal_form>          CPP_normal_form_ARRAY;
-typedef valarray<CPP_normal_form_ARRAY>    CPP_normal_form_MATRIX;
-typedef valarray<CPP_normal_form_MATRIX>   CPP_normal_form_TENSOR;
-
 class CPP_branch;
 typedef valarray<CPP_branch>          CPP_branch_ARRAY;
 typedef valarray<CPP_branch_ARRAY>    CPP_branch_MATRIX;
@@ -3135,11 +3130,12 @@ public:
   Real s_start;
   Real s;
   Real ref_time;
-  Real_TENSOR r;
   Real_ARRAY a_pole;
   Real_ARRAY b_pole;
   Real_ARRAY a_pole_elec;
   Real_ARRAY b_pole_elec;
+  Real_ARRAY custom;
+  Real_TENSOR r;
   Int key;
   Int sub_key;
   Int ix_ele;
@@ -3238,11 +3234,12 @@ public:
     s_start(0.0),
     s(0.0),
     ref_time(0.0),
-    r(Real_MATRIX(Real_ARRAY(0.0, 0), 0), 0),
     a_pole(0.0, 0),
     b_pole(0.0, 0),
     a_pole_elec(0.0, 0),
     b_pole_elec(0.0, 0),
+    custom(0.0, 0),
+    r(Real_MATRIX(Real_ARRAY(0.0, 0), 0), 0),
     key(key_),
     sub_key(0),
     ix_ele(-1),
@@ -3354,43 +3351,6 @@ bool operator== (const CPP_complex_taylor&, const CPP_complex_taylor&);
 
 
 //--------------------------------------------------------------------
-// CPP_normal_form
-
-class Opaque_normal_form_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_normal_form {
-public:
-  CPP_taylor_ARRAY m;
-  CPP_taylor_ARRAY a;
-  CPP_taylor_ARRAY a_inv;
-  CPP_taylor_ARRAY dhdj;
-  CPP_complex_taylor_ARRAY f;
-  CPP_complex_taylor_ARRAY l;
-  CPP_ele* ele_origin;
-
-  CPP_normal_form() :
-    m(CPP_taylor_ARRAY(CPP_taylor(), 6)),
-    a(CPP_taylor_ARRAY(CPP_taylor(), 6)),
-    a_inv(CPP_taylor_ARRAY(CPP_taylor(), 6)),
-    dhdj(CPP_taylor_ARRAY(CPP_taylor(), 6)),
-    f(CPP_complex_taylor_ARRAY(CPP_complex_taylor(), 6)),
-    l(CPP_complex_taylor_ARRAY(CPP_complex_taylor(), 6)),
-    ele_origin(NULL)
-    {}
-
-  ~CPP_normal_form() {
-    delete ele_origin;
-  }
-
-};   // End Class
-
-extern "C" void normal_form_to_c (const Opaque_normal_form_class*, CPP_normal_form&);
-extern "C" void normal_form_to_f (const CPP_normal_form&, Opaque_normal_form_class*);
-
-bool operator== (const CPP_normal_form&, const CPP_normal_form&);
-
-
-//--------------------------------------------------------------------
 // CPP_branch
 
 class Opaque_branch_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -3409,8 +3369,6 @@ public:
   CPP_ele_ARRAY ele;
   CPP_lat_param* param;
   CPP_wall3d_ARRAY wall3d;
-  CPP_normal_form normal_form_with_rf;
-  CPP_normal_form normal_form_no_rf;
 
   CPP_branch() :
     name(),
@@ -3424,9 +3382,7 @@ public:
     z(NULL),
     ele(CPP_ele_ARRAY(CPP_ele(), 0)),
     param(NULL),
-    wall3d(CPP_wall3d_ARRAY(CPP_wall3d(), 0)),
-    normal_form_with_rf(),
-    normal_form_no_rf()
+    wall3d(CPP_wall3d_ARRAY(CPP_wall3d(), 0))
     {}
 
   ~CPP_branch() {
@@ -3457,7 +3413,6 @@ public:
   string lattice;
   string input_file_name;
   string title;
-  String_ARRAY attribute_alias;
   CPP_mode_info a;
   CPP_mode_info b;
   CPP_mode_info z;
@@ -3486,7 +3441,6 @@ public:
     lattice(),
     input_file_name(),
     title(),
-    attribute_alias(String_ARRAY(string(), 0)),
     a(),
     b(),
     z(),

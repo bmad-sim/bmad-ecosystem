@@ -1310,6 +1310,7 @@ for name in params.struct_list:
 re_end_type = re.compile('^\s*end\s*type')  # Match to: 'end type'
 re_match1 = re.compile('([,(]|::|\s+)')     # Match to: ',', '::', '(', ' '
 re_match2 = re.compile('([=[,(]|::)')       # Match to: ',', '::', '(', '[', '='
+re_contains = re.compile('^\s*contains')    # Match to: 'contains' (indicating type procedures are defined.)
 
 for file_name in params.struct_def_files:
   f_module_file = open(file_name)
@@ -1320,6 +1321,7 @@ for file_name in params.struct_def_files:
     if split_line[0] != 'type': continue
 
     found = False
+
     for struct in struct_definitions:
       if struct.f_name != split_line[1]: continue
       found = True
@@ -1332,8 +1334,13 @@ for file_name in params.struct_def_files:
 
     # Now collect the struct components
 
+    found_contains_statement = False
+
     for line in f_module_file:
       if re_end_type.match(line): break
+      if re_contains.match(line): found_contains_statement = True
+      if found_contains_statement: continue
+
       print_debug('\nStart: ' + line.strip())
       base_arg = arg_class()
 

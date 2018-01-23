@@ -97,7 +97,6 @@ struct_list = [
     'ele_struct',
     'complex_taylor_term_struct',
     'complex_taylor_struct',
-    'normal_form_struct',
     'branch_struct',
     'lat_struct',
     'bunch_struct',
@@ -122,6 +121,7 @@ component_no_translate_list = set([
     'ele_struct%lord',
     'ele_struct%branch',
     'branch_struct%lat',
+    'normal_form_struct',
 ])
 
 # List of structure components links:
