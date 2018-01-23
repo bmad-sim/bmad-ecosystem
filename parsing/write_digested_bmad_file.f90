@@ -45,6 +45,7 @@ integer, allocatable :: ix_wake(:)
 character(*) digested_name
 character(*), optional :: file_names(:)
 character(200) fname, full_digested_name
+character(100), allocatable :: list(:)
 character(*), parameter :: r_name = 'write_digested_bmad_file'
 character(30) time_stamp
 
@@ -102,15 +103,11 @@ write (d_unit) ubound(lat%branch, 1), lat%pre_tracker
 
 ! custom attribute names
 
-if (allocated(lat%attribute_alias)) then
-  n = size(lat%attribute_alias)
-  write (d_unit) n
-  do i = 1, n
-    write (d_unit)lat%attribute_alias(i)
-  enddo
-else
-  write (d_unit) 0
-endif
+call custom_ele_attrib_name_list(list)
+write (d_unit) size(list)
+do i = 1, size(list)
+  write (d_unit) list(i)
+enddo
 
 ! Branches
 
@@ -209,6 +206,7 @@ type (ac_kicker_struct), pointer :: ac
 integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(3,3), ie, ib, ix_wall3d_branch
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
 integer i, j, k, n, n_grid, n_cart, n_cyl, n_tay, ix_ele, ix_branch, ix_lr_spline
+integer n_cus
 
 logical write_wake, mode3
 
@@ -217,13 +215,14 @@ logical write_wake, mode3
 ix_d = 0; ix_m = 0; ix_e = 0; ix_t = -1; ix_r = 0; ix_s = 0
 ix_sr_long = 0; ix_sr_trans = 0; ix_lr_mode = 0; n_var = 0; ix_st = -1
 mode3 = .false.; ix_wall3d = 0; ix_lr_spline = 0
-n_cart = 0; n_grid = 0; n_cyl = 0; n_tay = 0
+n_cart = 0; n_grid = 0; n_cyl = 0; n_tay = 0; n_cus = 0
 
 if (associated(ele%mode3))             mode3 = .true.
 if (associated(ele%cartesian_map))     n_cart = size(ele%cartesian_map)
 if (associated(ele%cylindrical_map))   n_cyl = size(ele%cylindrical_map)
 if (associated(ele%grid_field))        n_grid = size(ele%grid_field)
 if (associated(ele%taylor_field))      n_tay = size(ele%taylor_field)
+if (associated(ele%custom))            n_cus = size(ele%custom)
 if (associated(ele%r))                 ix_r = 1
 if (associated(ele%photon))            ix_s = 1
 if (associated(ele%descrip))           ix_d = 1
@@ -291,7 +290,7 @@ endif
 
 write (d_unit) mode3, ix_r, ix_s, ix_wall3d_branch, associated(ele%ac_kick), &
           ix_lr_spline, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
-          ix_lr_mode, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay
+          ix_lr_mode, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay, n_cus
 
 write (d_unit) &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -473,6 +472,10 @@ if (associated(ele%r)) then
   do i = lbound(ele%r, 3), ubound(ele%r, 3)
     write (d_unit) ele%r(:,:,i)
   enddo
+endif
+
+if (associated(ele%custom)) then
+  write (d_unit) ele%custom
 endif
 
 if (associated (ele%photon)) then

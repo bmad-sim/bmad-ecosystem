@@ -677,6 +677,7 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%wake)
   nullify (ele%wall3d)
   nullify (ele%r)
+  nullify (ele%custom)
   nullify (ele%a_pole, ele%b_pole)
   nullify (ele%a_pole_elec, ele%b_pole_elec)
   forall (i = 1:size(ele%taylor)) ele%taylor(i)%term => null()
@@ -698,6 +699,7 @@ if (associated (ele%descrip))        deallocate (ele%descrip)
 if (associated (ele%control_var))    deallocate (ele%control_var)
 if (associated (ele%rad_int_cache))  deallocate (ele%rad_int_cache)
 if (associated (ele%r))              deallocate (ele%r)
+if (associated (ele%custom))         deallocate (ele%custom)
 if (associated (ele%photon))         deallocate (ele%photon)
 if (associated (ele%mode3))          deallocate (ele%mode3)
 if (associated (ele%wake))           deallocate (ele%wake)
@@ -804,8 +806,6 @@ endif
 
 if (allocated(lat%control))  deallocate (lat%control)
 if (allocated(lat%ic))       deallocate (lat%ic)
-
-if (allocated(lat%attribute_alias)) deallocate(lat%attribute_alias)
 
 ! Do not need to deallocate stuff in lat%branch(0) since
 ! these pointers have been deallocated above.

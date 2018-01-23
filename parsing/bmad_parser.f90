@@ -804,9 +804,6 @@ branch_loop: do i_loop = 1, n_branch_max
     lat%absolute_time_tracking  = in_lat%absolute_time_tracking
     lat%input_taylor_order      = in_lat%input_taylor_order
 
-    if (allocated(lat%attribute_alias)) deallocate(lat%attribute_alias)
-    call move_alloc (in_lat%attribute_alias, lat%attribute_alias)
-
     call mat_make_unit (lat%ele(0)%mat6)
     call clear_lat_1turn_mats (lat)
 

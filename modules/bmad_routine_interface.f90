@@ -173,54 +173,6 @@ recursive subroutine check_aperture_limit (orb, ele, particle_at, param, old_orb
   logical, optional :: check_momentum
 end subroutine
 
-subroutine compute_even_steps (ds_in, length, ds_default, ds_out, n_step)
-  import
-  implicit none
-  real(rp) ds_in, length, ds_default, ds_out
-  integer n_step
-end subroutine
-
-subroutine convert_particle_coordinates_s_to_t (particle, s_body, orientation, z_phase)
-  import
-  implicit none
-  type (coord_struct), intent(inout), target :: particle
-  real(rp) s_body
-  real(rp), optional :: z_phase
-  integer :: orientation
-end subroutine
-
-subroutine convert_particle_coordinates_t_to_s (particle, z_phase, ele, s_body)
-  import
-  implicit none
-  type (coord_struct), intent(inout), target :: particle
-  type (ele_struct) ele
-  real(rp) :: z_phase
-  real(rp), optional :: s_body
-end subroutine
-
-subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, beta1, err_flag)
-  import
-  implicit none
-  real(rp), intent(in) :: E_tot
-  real(rp), intent(out), optional :: pc, kinetic, beta, brho, gamma, beta1
-  integer, intent(in) :: particle
-  logical, optional :: err_flag
-end subroutine
-
-subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho, beta1, err_flag)
-  import
-  implicit none
-  real(rp), intent(in) :: pc
-  real(rp), intent(out), optional :: E_tot, kinetic, beta, brho, gamma, beta1
-  integer, intent(in) :: particle
-  logical, optional :: err_flag
-end subroutine
-
-subroutine crystal_attribute_bookkeeper (ele)
-  import
-  type (ele_struct) ele
-end subroutine
-
 subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, &
                        pz, low_E_lat, high_E_lat, low_E_orb, high_E_orb, ix_branch)
   import
@@ -271,6 +223,49 @@ end subroutine
 subroutine combine_consecutive_elements (lat)
   import
   type (lat_struct), target :: lat
+end subroutine
+
+subroutine compute_even_steps (ds_in, length, ds_default, ds_out, n_step)
+  import
+  implicit none
+  real(rp) ds_in, length, ds_default, ds_out
+  integer n_step
+end subroutine
+
+subroutine convert_particle_coordinates_s_to_t (particle, s_body, orientation, z_phase)
+  import
+  implicit none
+  type (coord_struct), intent(inout), target :: particle
+  real(rp) s_body
+  real(rp), optional :: z_phase
+  integer :: orientation
+end subroutine
+
+subroutine convert_particle_coordinates_t_to_s (particle, z_phase, ele, s_body)
+  import
+  implicit none
+  type (coord_struct), intent(inout), target :: particle
+  type (ele_struct) ele
+  real(rp) :: z_phase
+  real(rp), optional :: s_body
+end subroutine
+
+subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, beta1, err_flag)
+  import
+  implicit none
+  real(rp), intent(in) :: E_tot
+  real(rp), intent(out), optional :: pc, kinetic, beta, brho, gamma, beta1
+  integer, intent(in) :: particle
+  logical, optional :: err_flag
+end subroutine
+
+subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho, beta1, err_flag)
+  import
+  implicit none
+  real(rp), intent(in) :: pc
+  real(rp), intent(out), optional :: E_tot, kinetic, beta, brho, gamma, beta1
+  integer, intent(in) :: particle
+  logical, optional :: err_flag
 end subroutine
 
 subroutine convert_bend_exact_multipole (bend_in, bend_out, out_type)
@@ -330,6 +325,11 @@ subroutine create_unique_ele_names (lat, key, suffix)
   type (lat_struct), target :: lat
   integer key
   character(*) suffix
+end subroutine
+
+subroutine crystal_attribute_bookkeeper (ele)
+  import
+  type (ele_struct) ele
 end subroutine
 
 subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out, err_flag)

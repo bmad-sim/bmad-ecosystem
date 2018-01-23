@@ -1465,7 +1465,7 @@ endif
 
 if (attrib_word(1:16) == 'CUSTOM_ATTRIBUTE') then
   call bmad_parser_type_get (ele, attrib_word, delim, delim_found, str)
-  call set_attribute_alias(attrib_word, str, err_flag, lat)
+  call set_custom_attribute_name(attrib_word, str, err_flag)
   if (err_flag) call parser_error ('CANNOT SET PARAMETER[' // trim(attrib_word) // ']')
   return
 endif

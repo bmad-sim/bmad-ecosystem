@@ -93,6 +93,7 @@ character(4000) line
 character(2000) line2
 character(200) wake_name, file_name, path, basename
 character(200), allocatable :: sr_wake_name(:), lr_wake_name(:)
+character(100), allocatable :: list(:)
 character(100) string
 character(60) alias
 character(40) name, look_for, attrib_name
@@ -153,15 +154,14 @@ endif
 ix = splitfilename(file_name, path, basename)
 if (path == '') path = '.'
 
-! Attribute aliases
+! Custom attribute names
 
-if (allocated(lat%attribute_alias)) then
-  do i = 1, size(lat%attribute_alias)
-    alias = lat%attribute_alias(i)
-    ix = index(alias, '=')
-    write (iu, '(4a)') 'parameter[', alias(1:ix-1), '] = ', alias(ix+1:) 
-  enddo
-endif
+call custom_ele_attrib_name_list(list)
+do i = 1, size(list)
+  alias = list(i)
+  ix = index(alias, '=')
+  write (iu, '(4a)') 'parameter[', alias(1:ix-1), '] = ', trim(alias(ix+1:))
+enddo
 
 ! Non-elemental stuff
 
