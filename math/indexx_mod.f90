@@ -6,6 +6,8 @@ use re_allocate_mod
 
 implicit none
 
+! Note: To initialize use the routine init_str_index_struct
+
 type str_indexx_struct
   type (var_length_string_struct), allocatable :: name(:)  !  Array of names.
   integer, allocatable :: indexx(:)        !  Sorted index for names(:) array.
@@ -24,7 +26,7 @@ end interface
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine find_indexx
+! Subroutine find_indexx(...)
 !
 ! This routine is an overloaded name for: 
 !   Subroutine find_indexx0 (name, str_index, ix_match, ix2_match, add_to_list, n_match, has_been_added)
@@ -84,6 +86,33 @@ interface find_indexx
 end interface
 
 contains
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine init_str_indexx_struct(str_indexx_var, n_min)
+! 
+! Routine to initialize a str_indexx_struct instance.
+!
+! Input:
+!   n_min   -- integer, optional: Lower bound of array to be indexed. Default is 1.
+!
+! Output:
+!   str_indexx_var -- str_indexx_struct: Variable to be initialized.
+!-
+
+subroutine init_str_indexx_struct (str_indexx_var, n_min)
+
+type (str_indexx_struct) str_indexx_var
+integer, optional :: n_min
+
+!
+
+str_indexx_var%n_min = integer_option(1, n_min)
+str_indexx_var%n_max = str_indexx_var%n_min - 1
+
+end subroutine init_str_indexx_struct
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
