@@ -2018,6 +2018,7 @@ CONTAINS
     if(EL%KIND==kind1) return
 
     if(associated(EL%ramp)) then
+    
       if(EL%KIND/=kind15) then
           do n=1,EL%P%NMUL
              EL%BN(N)= EL%ramp%table(0)%bn(n)
@@ -2030,27 +2031,28 @@ CONTAINS
            ELP%VOLT=EL%ramp%table(0)%bn(1)*COS(twopi*EL%ramp%table(0)%an(1)*T/clight+EL%ramp%table(0)%bn(2))+EL%ramp%table(0)%an(2)
          write(6,*) " volt ",el%volt,EL%ramp%table(0)%bn(1)
       endif
-          if(EL%ramp%table(0)%b_t/=0.0_dp) then
-              if(EL%parent_fibre%PATCH%TIME==0) EL%parent_fibre%PATCH%TIME=2
-              if(EL%parent_fibre%PATCH%TIME==1) EL%parent_fibre%PATCH%TIME=3
-              EL%parent_fibre%PATCH%b_T=EL%ramp%table(0)%b_t
-            else
-              if(EL%parent_fibre%PATCH%TIME==2) EL%parent_fibre%PATCH%TIME=0
-              if(EL%parent_fibre%PATCH%TIME==3) EL%parent_fibre%PATCH%TIME=1
-            EL%parent_fibre%PATCH%b_T=0.0_dp
-        endif
+      
+      if(EL%ramp%table(0)%b_t/=0.0_dp) then
+          if(EL%parent_fibre%PATCH%TIME==0) EL%parent_fibre%PATCH%TIME=2
+          if(EL%parent_fibre%PATCH%TIME==1) EL%parent_fibre%PATCH%TIME=3
+          EL%parent_fibre%PATCH%b_T=EL%ramp%table(0)%b_t
+        else
+          if(EL%parent_fibre%PATCH%TIME==2) EL%parent_fibre%PATCH%TIME=0
+          if(EL%parent_fibre%PATCH%TIME==3) EL%parent_fibre%PATCH%TIME=1
+        EL%parent_fibre%PATCH%b_T=0.0_dp
+      endif
           
     else
 
-    IF(EL%P%NMUL>=1) THEN
-       if(present(VR))then
+      IF(EL%P%NMUL>=1) THEN
+        if(present(VR))then
           do n=1,EL%P%NMUL
              EL%BN(N)= vR*EL%D0_BN(N)+DVR*EL%D_BN(N) 
              EL%AN(N)= vR*EL%D0_AN(N)+DVR*EL%D_AN(N)
              ELP%BN(N)= vR*EL%D0_BN(N)+DVR*EL%D_BN(N)
              ELP%AN(N)= vR*EL%D0_AN(N)+DVR*EL%D_AN(N)
           enddo
-       else
+        else
           do n=1,EL%P%NMUL
              EL%BN(N)= vp*EL%D0_BN(N)+DVp*EL%D_BN(N)
              EL%AN(N)= vp*EL%D0_AN(N)+DVp*EL%D_AN(N)
@@ -2083,7 +2085,7 @@ CONTAINS
     p=>r%start
 
     do N=1,R%N
-       IF(P%MAG%SLOW_AC) THEN
+       IF(P%MAG%SLOW_AC/=0) THEN
           CALL restore_ANBN_SINGLE(P%MAG,P%MAGP)
        ELSE
           CYCLE
@@ -2150,7 +2152,7 @@ CONTAINS
     p=>r%start
 
     do N=1,R%N
-       IF(P%MAG%SLOW_AC) CALL force_restore_ANBN_SINGLE(P%MAG,P%MAGP)
+       IF(P%MAG%SLOW_AC/=0) CALL force_restore_ANBN_SINGLE(P%MAG,P%MAGP)
        P=>P%NEXT
     ENDDO
 
@@ -2758,7 +2760,7 @@ nullify(EL%filef,el%fileb);
        ALLOCATE(EL%even);EL%even=MY_false;
        ALLOCATE(EL%NAME);ALLOCATE(EL%VORNAME);ALLOCATE(EL%electric);
        ALLOCATE(EL%filef,el%fileb);
-       ALLOCATE(EL%skip_ptc_f);   EL%skip_ptc_f=.false. ;   ALLOCATE(EL%skip_ptc_b);EL%skip_ptc_b=.false.  ;
+       ALLOCATE(EL%skip_ptc_f);   EL%skip_ptc_f=0;   ALLOCATE(EL%skip_ptc_b);EL%skip_ptc_b=0  ;
        ALLOCATE(el%do1mapf);   el%do1mapf=.false. ;   ALLOCATE(el%do1mapb);el%do1mapb=.false.  ;
   ALLOCATE(el%usef);   el%usef=.false. ;   ALLOCATE(el%useb);el%useb=.false.  ;
 
@@ -2778,8 +2780,8 @@ nullify(EL%filef,el%fileb);
        !       EL=DEFAULT;
        !   ANBN
        CALL ZERO_ANBN(EL,I)
-       ALLOCATE(EL%FINT);EL%FINT=0.5_dp;
-       ALLOCATE(EL%HGAP);EL%HGAP=0.0_dp;
+       ALLOCATE(EL%FINT(2));EL%FINT(1)=0.5_dp;EL%FINT(2)=0.5_dp;
+       ALLOCATE(EL%HGAP(2));EL%HGAP(1)=0.0_dp;EL%HGAP(2)=0.0_dp;
        ALLOCATE(EL%H1);EL%H1=0.0_dp;
        ALLOCATE(EL%H2);EL%H2=0.0_dp;
        ALLOCATE(EL%VA);EL%VA=0.0_dp;
@@ -2788,7 +2790,7 @@ nullify(EL%filef,el%fileb);
        !       ALLOCATE(EL%theta_ac); EL%theta_ac= zero ;
        !       ALLOCATE(EL%a_ac);  EL%a_ac = zero;
        !       ALLOCATE(EL%DC_ac); EL%DC_ac= zero ;
-       ALLOCATE(EL%slow_ac); EL%slow_ac=.false. ;
+       ALLOCATE(EL%slow_ac); EL%slow_ac=0 ;
     ENDIF
 
   END SUBROUTINE ZERO_EL
@@ -3030,7 +3032,7 @@ nullify(EL%filef,el%fileb);
 
        ALLOCATE(EL%KIND);EL%KIND=0;ALLOCATE(EL%KNOB);EL%KNOB=.FALSE.;
        ALLOCATE(EL%NAME);ALLOCATE(EL%VORNAME);ALLOCATE(EL%electric);
-       ALLOCATE(EL%skip_ptc_f);   EL%skip_ptc_f=.false. ;   ALLOCATE(EL%skip_ptc_b);EL%skip_ptc_b=.false.  ;
+       ALLOCATE(EL%skip_ptc_f);   EL%skip_ptc_f=0 ;   ALLOCATE(EL%skip_ptc_b);EL%skip_ptc_b=0  ;
        ALLOCATE(el%do1mapb);   el%do1mapb=.false. ;   ALLOCATE(el%do1mapf);el%do1mapf=.false.  ;
   ALLOCATE(el%usef);   el%usef=.false. ;   ALLOCATE(el%useb);el%useb=.false.  ;
 
@@ -3048,8 +3050,8 @@ nullify(EL%filef,el%fileb);
        !      EL=DEFAULT;
        !   ANBN
        CALL ZERO_ANBN(EL,I)
-       ALLOCATE(EL%FINT);CALL ALLOC(EL%FINT);EL%FINT=0.5_dp;
-       ALLOCATE(EL%HGAP);CALL ALLOC(EL%HGAP);EL%HGAP=0.0_dp;
+       ALLOCATE(EL%FINT(2));CALL ALLOC(EL%FINT);EL%FINT(1)=0.5_dp;EL%FINT(2)=0.5_dp;
+       ALLOCATE(EL%HGAP(2));CALL ALLOC(EL%HGAP);EL%HGAP(1)=0.0_dp;EL%HGAP(2)=0.0_dp;
        ALLOCATE(EL%H1);CALL ALLOC(EL%H1);EL%H1=0.0_dp;
        ALLOCATE(EL%H2);CALL ALLOC(EL%H2);EL%H2=0.0_dp;
        ALLOCATE(EL%VA);CALL ALLOC(EL%VA);EL%VA=0.0_dp;
@@ -3057,7 +3059,7 @@ nullify(EL%filef,el%fileb);
        !       ALLOCATE(EL%theta_ac);CALL ALLOC(EL%theta_ac); EL%theta_ac= zero ;
        !       ALLOCATE(EL%a_ac);CALL ALLOC(EL%a_ac);  EL%a_ac = zero;
        !       ALLOCATE(EL%DC_ac); EL%DC_ac= zero ;
-       ALLOCATE(EL%slow_ac); EL%slow_ac=.false. ;
+       ALLOCATE(EL%slow_ac); EL%slow_ac=0 ;
     ENDIF
 
   END SUBROUTINE ZERO_ELP
@@ -3097,8 +3099,10 @@ nullify(EL%filef,el%fileb);
     ELP%vorname=EL%vorname
     ELP%KIND=EL%KIND
     ELP%L=EL%L
-    ELP%FINT=EL%FINT
-    ELP%HGAP=EL%HGAP
+    ELP%FINT(1)=EL%FINT(1)
+    ELP%FINT(2)=EL%FINT(2)
+    ELP%HGAP(1)=EL%HGAP(1)
+    ELP%HGAP(2)=EL%HGAP(2)
     ELP%H1=EL%H1
     ELP%H2=EL%H2
     ELP%VA=EL%VA
@@ -3480,8 +3484,10 @@ nullify(EL%filef,el%fileb);
     ELP%vorname=EL%vorname
     ELP%KIND=EL%KIND
     ELP%L=EL%L
-    ELP%FINT=EL%FINT
-    ELP%HGAP=EL%HGAP
+    ELP%FINT(1)=EL%FINT(1)
+    ELP%FINT(2)=EL%FINT(2)
+    ELP%HGAP(1)=EL%HGAP(1)
+    ELP%HGAP(2)=EL%HGAP(2)
     ELP%H1=EL%H1
     ELP%H2=EL%H2
     ELP%VA=EL%VA
@@ -3862,8 +3868,10 @@ nullify(EL%filef,el%fileb);
     ELP%KIND=EL%KIND
     ELP%PLOT=EL%PLOT
     ELP%L=EL%L
-    ELP%FINT=EL%FINT
-    ELP%HGAP=EL%HGAP
+    ELP%FINT(1)=EL%FINT(1)
+    ELP%FINT(2)=EL%FINT(2)
+    ELP%HGAP(1)=EL%HGAP(1)
+    ELP%HGAP(2)=EL%HGAP(2)
     ELP%H1=EL%H1
     ELP%H2=EL%H2
     ELP%VA=EL%VA
@@ -4239,8 +4247,10 @@ nullify(EL%filef,el%fileb);
     ELP%knob=.FALSE.
 
     CALL resetpoly_R31(ELP%L)         ! SHARED BY EVERYONE
-    CALL resetpoly_R31(ELP%FINT)         ! SHARED BY EVERYONE
-    CALL resetpoly_R31(ELP%HGAP)         ! SHARED BY EVERYONE
+    CALL resetpoly_R31(ELP%FINT(1))         ! SHARED BY EVERYONE
+    CALL resetpoly_R31(ELP%FINT(2))         ! SHARED BY EVERYONE
+    CALL resetpoly_R31(ELP%HGAP(1))         ! SHARED BY EVERYONE
+    CALL resetpoly_R31(ELP%HGAP(2))         ! SHARED BY EVERYONE
     CALL resetpoly_R31(ELP%H1)         ! SHARED BY EVERYONE
     CALL resetpoly_R31(ELP%H2)         ! SHARED BY EVERYONE
     CALL resetpoly_R31(ELP%VA)         ! SHARED BY EVERYONE

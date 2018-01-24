@@ -2653,7 +2653,7 @@ contains
        dasintt%i=0
        check_stable=.false.
        stable_da=.false.
-       messagelost= " Not defined in dasintt of complex_taylor "
+       messagelost= "l_complex_taylor.f90 dasintt : abs(x)>1 Not defined in dasintt of complex_taylor "
     endif
 
     temp=asin(temp)
@@ -2706,7 +2706,7 @@ contains
        dacostt%i=0
        check_stable=.false.
        stable_da=.false.
-       messagelost= " Not defined in dacostt of complex_taylor "
+       messagelost= "l_complex_taylor.f90 dacostt : abs(x)>1 Not defined in dacostt of complex_taylor "
     endif
 
     !   if(debug_flag) then
