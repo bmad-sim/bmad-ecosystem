@@ -512,8 +512,8 @@ if (associated(mag)) then
   call write_real ('%phas                ',  mag%phas,    'es13.5')
   call write_real ('%lag                 ',  mag%lag,     'es13.5')
   call write_real ('%delta_e             ',  mag%delta_e, 'es13.5')
-  call write_real ('%fint                ',  mag%fint,    'es13.5')
-  call write_real ('%hgap                ',  mag%hgap,    'es13.5')
+  call write_reals('%fint                ',  mag%fint,    '2es13.5')
+  call write_reals('%hgap                ',  mag%hgap,    '2es13.5')
   call write_real ('%h1                  ',  mag%h1,      'es13.5')
   call write_real ('%h2                  ',  mag%h2,      'es13.5')
   call write_real ('%b_sol               ',  mag%b_sol,   'es13.5')
@@ -3249,9 +3249,9 @@ type(taylor), allocatable :: pancake_field(:,:)
 type (taylor) ptc_taylor
 
 real(rp), allocatable :: dz_offset(:)
-real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx, norm, rel_charge, k1l, t1
+real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, norm, rel_charge, k1l, t1
 real(rp) dx, dy, cos_t, sin_t, coef, coef_e, coef_b, kick_magnitude, ap_lim(2), ap_dxy(2), e1, e2
-real(rp) beta0, beta1, ref0(6), ref1(6)
+real(rp) beta0, beta1, ref0(6), ref1(6), fh
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
@@ -3412,27 +3412,10 @@ case (sbend$)
   ptc_key%list%t1   = e1
   ptc_key%list%t2   = e2
 
-  select case (nint(ele%value(fringe_at$)))
-  case (both_ends$)
-    ptc_key%list%hgap = ele%value(hgap$)
-    ptc_key%list%fint = ele%value(fint$)
-    fh  = ele%value(fint$) * ele%value(hgap$) 
-    fhx = ele%value(fintx$) * ele%value(hgapx$)
-    if (abs(fh - fhx) > 1d-10 * (abs(fh) + abs(fhx))) then
-      call out_io (s_error$, r_name, &
-          'FINT*HGAP AND FINTX*HGAPX ARE NOT THE SAME FOR BEND: ' // ele%name, &
-          'PTC CANNOT HANDLE THIS!')
-    endif
-  case (entrance_end$)
-    ptc_key%list%hgap = ele%value(hgap$)
-    ptc_key%list%fint = ele%value(fint$)
-  case (exit_end$)
-    ptc_key%list%hgap = ele%value(hgapx$)
-    ptc_key%list%fint = ele%value(fintx$)
-  case (no_end$)
-    ptc_key%list%hgap = ele%value(hgap$)
-    ptc_key%list%fint = ele%value(fint$)
-  end select
+  ptc_key%list%hgap = ele%value(hgap$)
+  ptc_key%list%fint = ele%value(fint$)
+  ptc_key%list%hgap2 = ele%value(hgapx$)
+  ptc_key%list%fint2 = ele%value(fintx$)
 
   ix = nint(ele%value(ptc_field_geometry$))
   if (ix == straight$) then
