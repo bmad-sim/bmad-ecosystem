@@ -169,8 +169,10 @@ if (mag%p%b0 /= 0) then
     ele%value(e1$) = fib%mag%p%edge(1)
     ele%value(e2$) = fib%mag%p%edge(2)
   endif
-  ele%value(hgap$) = fib%mag%hgap
-  ele%value(fint$) = fib%mag%fint
+  ele%value(hgap$) = fib%mag%hgap(1)
+  ele%value(fint$) = fib%mag%fint(1)
+  ele%value(hgapx$) = fib%mag%hgap(2)
+  ele%value(fintx$) = fib%mag%fint(2)
   ele%value(ref_tilt$) = fib%mag%p%tiltd
   if (np >= 2) ele%value(k1$) = mag%bn(2)
   if (np >= 3) ele%value(k2$) = 2 * mag%bn(3)
