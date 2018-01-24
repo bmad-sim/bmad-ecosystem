@@ -415,17 +415,15 @@ case ('hard', 'hard-l')
 
 case ('mad_lattice', 'mad8_lattice', 'madx_lattice', 'opal_latice', 'sad_lattice')
 
-  if (word(1) == '') then
-    select case (action)
-    case ('mad_lattice');   file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
-    case ('mad8_lattice');  file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
-    case ('madx_lattice');  file_name0 = 'lat_#.madX'; lat_type = 'MAD-X'
-    case ('opal_latice');   file_name0 = 'lat_#.opal'; lat_type = 'OPAL-T'
-    case ('sad_lattice');   file_name0 = 'lat_#.sad';  lat_type = 'SAD'
-    end select
-  else
-    file_name0 = word(1)
-  endif
+  select case (action)
+  case ('mad_lattice');   file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
+  case ('mad8_lattice');  file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
+  case ('madx_lattice');  file_name0 = 'lat_#.madX'; lat_type = 'MAD-X'
+  case ('opal_latice');   file_name0 = 'lat_#.opal'; lat_type = 'OPAL-T'
+  case ('sad_lattice');   file_name0 = 'lat_#.sad';  lat_type = 'SAD'
+  end select
+
+  if (word(1) /= '') file_name0 = word(1)
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
