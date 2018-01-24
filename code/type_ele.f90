@@ -263,7 +263,7 @@ enddo
 
 ! Custom attributes
 
-if (allocated(ele%custom)) then
+if (associated(ele%custom)) then
   do i = 1, size(ele%custom)
     attrib = attribute_info(ele, i+custom_attribute0$)
     a_name = attrib%name
