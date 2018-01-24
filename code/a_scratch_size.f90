@@ -454,11 +454,13 @@ contains
     IF((ABS(X)>1.0_dp).AND.c_%ROOT_CHECK) THEN
        ARCCOS_lielib=0.0_dp
        c_%CHECK_STABLE=.FALSE.
+       messagelost="a_scratch_size.f90 ARCCOS_lielib: abs(x)>1"
     ELSEIF(ABS(X)<=1.0_dp) THEN
        ARCCOS_lielib=ACOS(X)
     ELSE      !  IF X IS NOT A NUMBER
        ARCCOS_lielib=0.0_dp
        c_%CHECK_STABLE=.FALSE.
+       messagelost="a_scratch_size.f90 ARCCOS_lielib: x is NaN"
     ENDIF
 
   END FUNCTION ARCCOS_lielib
@@ -474,6 +476,7 @@ contains
     IF(X<=0.0_dp.AND.c_%ROOT_CHECK) THEN
        LOGE_lielib=0.0_dp
        c_%CHECK_STABLE=.FALSE.
+       messagelost="a_scratch_size.f90 LOGE_lielib: x<0"
     ELSE
        LOGE_lielib=LOG(X)
     ENDIF

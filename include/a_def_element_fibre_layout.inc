@@ -182,14 +182,15 @@ TYPE ELEMENT
    real(dp), POINTER ::  L  => null()                              ! Length of integration often same as LD
    !
    real(dp),   DIMENSION(:), POINTER:: AN => null(),BN => null()         !Multipole component
-   real(dp),   POINTER:: FINT => null(),HGAP => null()         !FRINGE FUDGE FOR MAD
+   real(dp), DIMENSION(:),   POINTER:: FINT => null(),HGAP => null()         !FRINGE FUDGE FOR MAD
    real(dp),   POINTER:: H1 => null(),H2 => null()         !FRINGE FUDGE FOR MAD
    real(dp),   POINTER:: VA => null(),VS => null()         ! use in quad fringe from sad
    !
    real(dp), POINTER :: VOLT => null(), FREQ => null(),PHAS => null(),DELTA_E => null(),LAG => null()       ! Cavity information
    real(dp), POINTER :: DC_ac => null(),A_ac => null(),theta_ac => null(),D_AC => null()      ! slow RF: amplitude and phase
    real(dp),   DIMENSION(:), POINTER:: D_AN => null(),D_BN => null(),D0_AN => null(),D0_BN => null()  !Multipole component
-   logical(lp), POINTER :: THIN => null(),slow_ac => null(),slow_ac2 => null()
+   logical(lp), POINTER :: THIN => null()
+   integer(2), pointer :: slow_ac => null()
    real(dp), POINTER ::  B_SOL  => null()
    !  misalignements and rotation
    logical(lp), POINTER ::  MIS => null()
@@ -230,7 +231,7 @@ TYPE ELEMENT
    type(ramping), pointer :: ramp => null()
    type(tree_element), pointer :: forward(:)=> null(),backward(:)=> null()
    logical, pointer :: usef=> null(),useb=> null()
-   logical, pointer :: skip_ptc_f=> null(),skip_ptc_b=> null()
+   integer, pointer :: skip_ptc_f=> null(),skip_ptc_b=> null()
    logical, pointer :: do1mapf=> null(),do1mapb=> null()
    real(dp), pointer :: ene   ! for tapering
 END TYPE  ELEMENT
@@ -247,7 +248,7 @@ TYPE ELEMENTP
    !
    TYPE(REAL_8), POINTER ::  L    => null() ! LENGTH OF INTEGRATION OFTEN SAME AS LD, CAN BE ZERO
    TYPE(REAL_8),  DIMENSION(:), POINTER :: AN => null(),BN   => null()       !MULTIPOLE COMPONENT
-   TYPE(REAL_8),   POINTER:: FINT => null(),HGAP  => null()        !FRINGE FUDGE FOR MAD
+   TYPE(REAL_8), DIMENSION(:),   POINTER:: FINT => null(),HGAP  => null()        !FRINGE FUDGE FOR MAD
    TYPE(REAL_8),   POINTER:: H1 => null(),H2 => null()         !FRINGE FUDGE FOR MAD
    TYPE(REAL_8),    POINTER:: VA => null(),VS => null()         !valishev-like multipole
    !
@@ -257,8 +258,8 @@ TYPE ELEMENTP
    TYPE(REAL_8),   DIMENSION(:), POINTER:: D_AN => null(),D_BN => null(),D0_AN => null(),D0_BN => null()         !Multipole component
    !
    TYPE(REAL_8), POINTER :: B_SOL => null()
-   logical(lp), POINTER :: THIN => null(),slow_ac => null(),slow_ac2 => null()
-
+   logical(lp), POINTER :: THIN => null() 
+   integer(2), pointer :: slow_ac => null()
    !  MISALIGNEMENTS AND ROTATION
    logical(lp), POINTER ::  MIS => null()
    !   real(dp),  DIMENSION(:), POINTER :: D,R
@@ -293,7 +294,7 @@ TYPE ELEMENTP
    type(ramping), pointer :: ramp => null()
    type(tree_element), pointer :: forward(:)=> null(),backward(:)=> null()
    logical, pointer :: usef=> null(),useb=> null()
-   logical, pointer :: skip_ptc_f=> null(),skip_ptc_b=> null()
+   integer, pointer :: skip_ptc_f=> null(),skip_ptc_b=> null()
    logical, pointer :: do1mapf=> null(),do1mapb=> null()
 END TYPE  ELEMENTP
 
@@ -325,8 +326,7 @@ TYPE FIBRE
    !  POINTING TO PARENT LAYOUT AND PARENT FIBRE DATA
    TYPE (LAYOUT),POINTER :: PARENT_LAYOUT => null()
    type(info),pointer ::i => null()
-   TYPE(INTEGRATION_NODE),POINTER :: T1 => null()  ! FIRST AND LAST INTEGRATION_NODE CHILDREN CORRESPOUNDING TO PATCHES
-   TYPE(INTEGRATION_NODE),POINTER :: T2 => null()  ! 
+   TYPE(INTEGRATION_NODE),POINTER :: T1 => null(),T2 => null()  ! FIRST AND LAST INTEGRATION_NODE CHILDREN CORRESPOUNDING TO PATCHES
    TYPE(INTEGRATION_NODE),POINTER :: TM  => null()     ! MIDDLE INTEGRATION_NODE
    INTEGER,POINTER ::pos  => null()             ! POSITION IN LAYOUT
    ! NEW STUFF....

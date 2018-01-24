@@ -1141,8 +1141,8 @@ endif
                    P%MAGP%DC_ac=DC_ac
                    P%MAGP%A_ac=A_ac
                    P%MAGP%theta_ac=theta_ac*twopi
-                   P%MAG%slow_ac=.true.
-                   P%MAGP%slow_ac=.true.
+                   P%MAG%slow_ac=1
+                   P%MAGP%slow_ac=1
 
                    if(i2>p%mag%p%nmul) then
                       CALL ADD(P,i2,0,0.0_dp)
@@ -1200,7 +1200,7 @@ endif
            P=>P%NEXT
           ENDDO
        case('MODULATE','ACMAGNET')
-          READ(MF,*) NAME
+          READ(MF,*) NAME , posr
 
           CALL CONTEXT(NAME)
           N_NAME=0
@@ -1266,8 +1266,12 @@ endif
                    P%MAGP%DC_ac=DC_ac
                    P%MAGP%A_ac=A_ac
                    P%MAGP%theta_ac=theta_ac*twopi
-                   P%MAG%slow_ac=.true.
-                   P%MAGP%slow_ac=.true.
+                 if(P%MAG%slow_ac/=0) then
+                  write(6,*) P%MAG%name, " already modulated "
+                  stop 180
+                 endif
+                   P%MAG%slow_ac=posr
+                   P%MAGP%slow_ac=posr
 
                    if(i2>p%mag%p%nmul) then
                       CALL ADD(P,i2,0,0.0_dp)
@@ -1340,7 +1344,7 @@ endif
 
 
        case('MAPFORZHE')
-          READ(MF,*) i1,I2  ! position
+          READ(MF,*) i1,I2,hgap  ! position  i1=i2 one turn map,  fact is precision of stochastic kick
           READ(MF,*) MY_A_NO  ! ORDER OF THE MAP
           READ(MF,*) filename
           if(.not.associated(my_ering%t)) call make_node_layout(my_ering)
@@ -1351,22 +1355,29 @@ endif
             p=>p%next
              f1=>p
            enddo
-
-           p=>my_ering%start
-           f2=>p 
-           do ii=2,i2
-             p=>p%next
-             f2=>p
-           enddo
- 
+           if(I2==i1) then
+            f2=>f1
+           else
+            p=>my_ering%start
+            f2=>p 
+            do ii=2,i2
+              p=>p%next
+              f2=>p
+            enddo
+            endif
              x_ref=0.0_dp
 
 
 
              call FIND_ORBIT_x(x_ref,my_estate,1.d-7,fibre1=f1)
-              call fill_tree_element_line_zhe(my_estate,f1,f2,MY_A_NO,x_ref,filename) 
+              call fill_tree_element_line_zhe(my_estate,f1,f2,MY_A_NO,x_ref,filename,stochprec=hgap) 
 
-
+write(6,*) " State used "
+          call print(my_estate,6)
+write(6,*) " closed orbit at position ",i1
+           write(6,*) x_ref(1:3)
+           write(6,*) x_ref(4:6)
+ 
 
        case('MAKEMAPITOJ')
           READ(MF,*) i1,I2,i3  ! position
@@ -1375,7 +1386,6 @@ endif
     !      READ(MF,*) filename
           if(.not.associated(my_ering%t)) call make_node_layout(my_ering)
           
-           p=>my_ering%start
            
            p=>my_ering%start
            f1=>p          
@@ -1412,8 +1422,8 @@ endif
                 p=>f1%next
                do i1=1,my_ering%n
                 if(associated(f2,p)) exit
-                 p%mag%skip_ptc_f=.true.
-                 p%magp%skip_ptc_f=.true.
+                 p%mag%skip_ptc_f=1
+                 p%magp%skip_ptc_f=1
                 p=>p%next 
                enddo
                 
@@ -1460,8 +1470,8 @@ endif
                 f2=>f1%next
                do i1=1,my_ering%n
                 if(associated(f2,f1)) exit
-                 f2%mag%skip_ptc_f=.true.
-                 f2%magp%skip_ptc_f=.true.
+                 f2%mag%skip_ptc_f=1
+                 f2%magp%skip_ptc_f=1
                 f2=>f2%next 
                enddo
                 
@@ -1569,7 +1579,16 @@ endif
          write(6,*) icnmax, " changed into Taylor maps "
          write(6,*) icnmin, " markers "
          write(6,*) my_ering%N, " total number of fibres "
-       case('REMOVEALLMAP')
+       case('REMOVEALLMAPS')
+       READ(MF,*) I1,I2  ! ORDER OF THE MAP
+
+          p=>my_ering%start
+          do ii=i1,i2-1
+             p%MAG%skip_ptc_f=-p%MAG%skip_ptc_f
+             p%MAGp%skip_ptc_f=-p%MAGp%skip_ptc_f
+             p=>p%next
+          enddo
+
 
           p=>my_ering%start
           do ii=1,my_ering%N
@@ -1586,6 +1605,16 @@ endif
           enddo
     
        case('PUTBACKALLMAP')
+
+       READ(MF,*) I1,I2  ! ORDER OF THE MAP
+
+          p=>my_ering%start
+          do ii=i1,i2-1
+             p%MAG%skip_ptc_f=-p%MAG%skip_ptc_f
+             p%MAGp%skip_ptc_f=-p%MAGp%skip_ptc_f
+             p=>p%next
+          enddo
+
 
           p=>my_ering%start
           do ii=1,my_ering%N
