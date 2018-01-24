@@ -1527,7 +1527,7 @@ Format:
         \{-element <element_name_or_index>\} \{-lost\} \{-all\}             ! \sref{s:show.particle}
   show plot \{-floor_plan\} \{-lat_layout \} \{<plot_region_name>\} 
         \{<template_plot_name>\}                                        ! \sref{s:show.plot}
-  show symbolic_numbers \{-fundamental_constants\}                      ! \sref{s:show.symbolic}
+  show symbolic_numbers \{-physical_constants\}                      ! \sref{s:show.symbolic}
   show taylor_map \{-order <n_order>\} \{-s\} \{loc1 \{loc2\}\}               ! \sref{s:show.taylor}
   show twiss_and_orbit \{-base\} \{-branch <name_or_index>\} \{-design\} 
         \{-universe <ix_uni>\} <s_position>                             ! \sref{s:show.twiss}
@@ -2151,14 +2151,17 @@ If the \vn{-derivative} switch is present, this command shows top dMerit/dVariab
 derivatives, and Largest changes in variable value.  If not present, this command shows
 top contributors to the merit function.
 
-If the \vn{-merit_only\} switch is present, only the value of the merit function is printed
-and nothing else.
+If the \vn{-merit_only} switch is present, only the value of the merit function is printed
+and nothing else. That is, it makes the output compact if only the value of the merit function
+is desired.
 
-Note: To set the number of top contributors shown, use the command \vn{set global n_top10_merit}
-= nnn} where \vn{nnn} is the desired number to be shown.
+Note: To set the number of top contributors shown, use the command 
+\begin{example}
+  set global n_top10_merit = <number>
+\end{example}
+where \vn{<number>} is the desired number of top contributors to the merit function to be shown.
 
 Note: The \vn{show merit} command was once called the \vn{show top10} command.
-
 
 Example:
 \begin{example}
@@ -2177,9 +2180,7 @@ Syntax:
 
 
 Shows normal form taylor maps (optionally truncated to <n\_order>) from Eq.~\ref{normalform1}
- and Eq.~\ref{normalform2}. <type> can be: \vn{M}, \vn{A}, \vn{A_inv}, \vn{dhdj}, \vn{F}, \vn{L}. 
-
-
+ and Eq.~\ref{normalform2}. <type> can be: \vn{M}, \vn{A}, \vn{A_inv}, \vn{dhdj}, \vn{F}, \vn{L}.
 
 %% show optimizer --------------------------------------------------------------
 
@@ -2278,18 +2279,19 @@ Examples:
 
 Syntax:
 \begin{example}
-  show symbolic_numbers \{-fundamental_constants\}
+  show symbolic_numbers \{-physical_constants\}
 \end{example}
 
 Show the symbolic constants created using the \vn{set symbolic_number} command. If the
-\vn{-fundamental_constants} switch is present, the predefined fundamental constants (like \vn{pi}
-and \vn{c_light} are displayed instead.
+\vn{-physical_constants} switch is present, the predefined physical constants (like \vn{c_light})
+along with predefined mathematical constants (like \vn{pi}) are displayed instead (Also see the \bmad
+manual for this list). 
 
 Examples:
 \begin{example}
   set sym aaa = 23  ! Set a symbol.
   show sym          ! Show all user defined symbols.
-  show sym -fund    ! Show fundamental constants.
+  show sym -phys    ! Show predifined physical and mathematical constants.
 \end{example}
 
 %% show taylor_map --------------------------------------------------------------
