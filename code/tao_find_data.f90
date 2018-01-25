@@ -444,9 +444,9 @@ if (name == '*') then
   list = .true.
 
 else
-  call location_decode (name, list, i1, num)
+  call location_decode (name, list, i1, num, print_err = print_err)
   if (num <  0) then
-    call out_io (s_error$, r_name, "BAD DATA INDEX NUMBER(S): " // name)
+    if (logic_option(.true., print_err)) call out_io (s_error$, r_name, "BAD DATA INDEX NUMBER(S): " // name)
     this_err = .true.
     return  
   endif
