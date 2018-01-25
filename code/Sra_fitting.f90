@@ -3435,7 +3435,7 @@ call kill(yy); call kill(id);
 
     real(dp)  DIX(6),xdix,xdix0,tiny,beta1,t6,freqmin
     real(dp) X(6),Y(6),MX(6,6),sxi(6,6),SX(6,6),dt,dl,fix(6)
-    integer NO1,ND2,I,IU,ITE,ier,j,ITEM,try
+    integer NO1,ND2,I,IU,ITE,ier,j,ITEM !,try
     TYPE (fibre), POINTER :: C
     TYPE (integration_node), POINTER :: t
     logical(lp) APERTURE,use_bmad_units_temp
@@ -3597,7 +3597,7 @@ call kill(yy); call kill(id);
        if(.not.check_stable) then
           messagelost(len_trim(messagelost)+1:255)=" -> Unstable tracking guessed orbit "
           c_%APERTURE_FLAG=APERTURE
-                 if(try>0) goto 1111
+ !                if(try>0) goto 1111
           return
        endif
  
@@ -3619,7 +3619,7 @@ call kill(yy); call kill(id);
              messagelost(len_trim(messagelost)+1:255)=" -> Unstable while tracking small rays around the guessed orbit "
              !   fixed_found=my_false
              c_%APERTURE_FLAG=APERTURE
-                    if(try>0) goto 1111
+ !                   if(try>0) goto 1111
              return
           endif
 
@@ -3647,7 +3647,7 @@ call kill(yy); call kill(id);
              messagelost(len_trim(messagelost)+1:255)=" -> Unstable while tracking small rays around the guessed orbit "
              !   fixed_found=my_false
              c_%APERTURE_FLAG=APERTURE
-                    if(try>0) goto 1111
+ !                   if(try>0) goto 1111
              return
           endif
  
@@ -3722,7 +3722,8 @@ call kill(yy); call kill(id);
        check_stable=my_false
        !     ENDIF
        ITE=0
-              if(try>0) goto 1111
+   !           if(try>0) goto 1111
+      return
     endif
     !   write(6,*) item,xdix,xdix0,tiny
 
