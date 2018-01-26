@@ -325,10 +325,17 @@ case ('beam')
     nl=nl+1; write(lines(nl), '(a, i0, a, i0)') 'Universe: ', u%ix_uni, '  of: ', ubound(s%u, 1)
     nl=nl+1; write(lines(nl), '(a, i3)') 'Branch:   ', ix_branch
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), amt) 's%com%beam_file           = ', s%com%beam_file
+    nl=nl+1; write(lines(nl), amt) 's%com%beam_file             = ', s%com%beam_file
     nl=nl+1; write(lines(nl), amt) 'beam0_file                  = ', u%beam%beam0_file
     nl=nl+1; write(lines(nl), amt) 'beam_all_file               = ', u%beam%beam_all_file
-    beam => uni_branch%ele(uni_branch%ix_track_start)%beam
+    nl=nl+1; write(lines(nl), amt) 'global%track_type           = ', s%global%track_type
+    nl=nl+1; write(lines(nl), lmt) 'global%beam_timer_on        = ', s%global%beam_timer_on
+    nl=nl+1; write(lines(nl), amt) 'beam_track_start            = ', trim(uni_branch%beam_track_start)
+    nl=nl+1; write(lines(nl), amt) 'beam_track_end              = ', trim(uni_branch%beam_track_end)
+    nl=nl+1; write(lines(nl), imt) 'ix_beam_track_start         = ', uni_branch%ix_beam_track_start 
+    nl=nl+1; write(lines(nl), imt) 'ix_beam_track_end           = ', uni_branch%ix_beam_track_end
+    nl=nl+1; write(lines(nl), amt) 'u%beam%saved_at:            = ', trim(u%beam%saved_at)
+    beam => uni_branch%ele(uni_branch%ix_beam_track_start)%beam
     if (allocated(beam%bunch)) then
       nl=nl+1; write(lines(nl), imt) 'n_particle                  = ', size(beam%bunch(1)%particle)
       nl=nl+1; write(lines(nl), imt) 'n_bunch                     = ', size(beam%bunch)
@@ -402,14 +409,6 @@ case ('beam')
     nl=nl+1; write(lines(nl), lmt) '  %lsc_component_on     = ', csr_param%lsc_component_on
     nl=nl+1; write(lines(nl), lmt) '  %tsc_component_on     = ', csr_param%tsc_component_on
     nl=nl+1; write(lines(nl), lmt) '  %small_angle_approx   = ', csr_param%small_angle_approx
-    nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), amt) 'global%track_type          = ', s%global%track_type
-    nl=nl+1; write(lines(nl), lmt) 'global%beam_timer_on       = ', s%global%beam_timer_on
-    nl=nl+1; write(lines(nl), amt) 'track_start                = ', trim(uni_branch%track_start)
-    nl=nl+1; write(lines(nl), amt) 'track_end                  = ', trim(uni_branch%track_end)
-    nl=nl+1; write(lines(nl), imt) 'ix_track_start             = ', uni_branch%ix_track_start 
-    nl=nl+1; write(lines(nl), imt) 'ix_track_end               = ', uni_branch%ix_track_end
-    nl=nl+1; write(lines(nl), amt) 'u%beam%saved_at:           = ', trim(u%beam%saved_at)
 
   ! have element index
 

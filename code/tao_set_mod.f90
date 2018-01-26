@@ -2100,7 +2100,7 @@ endif
 n_set = 0
 do i = 1, size(eles)
   u => s%u(eles(i)%id)
-  call set_ele_attribute (eles(i)%ele, trim(attribute) // '=' // trim(val_str), u%model%lat, err, .false.)
+  call set_ele_attribute (eles(i)%ele, trim(attribute) // '=' // trim(val_str), err, .false.)
   u%calc%lattice = .true.
   if (.not. err) n_set = n_set + 1
 enddo
@@ -2109,7 +2109,7 @@ enddo
 
 if (n_set == 0) then
   u => s%u(eles(1)%id)
-  call set_ele_attribute (eles(1)%ele, trim(attribute) // '=' // trim(val_str),  u%model%lat, err)
+  call set_ele_attribute (eles(1)%ele, trim(attribute) // '=' // trim(val_str),  err)
   u%calc%lattice = .true.
   return
 endif

@@ -148,15 +148,15 @@ integer n, iostat, ix_universe, to_universe
 
 character(*) init_file
 character(40) :: r_name = 'tao_init_beams'
-character(40) track_start, track_end
+character(40) track_start, track_end, beam_track_start, beam_track_end
 character(160) beam_saved_at
 character(200) file_name, beam0_file, beam_all_file
 character(60), target :: save_beam_at(100)   ! old style syntax
 
 logical err
 
-namelist / tao_beam_init / ix_universe, beam0_file, &
-          beam_all_file, beam_init, beam_saved_at, beam_saved_at, track_start, track_end
+namelist / tao_beam_init / ix_universe, beam0_file, beam_all_file, beam_init, beam_saved_at, &
+          beam_saved_at, track_start, track_end, beam_track_start, beam_track_end
          
 !-----------------------------------------------------------------------
 ! Init Beams
@@ -178,10 +178,10 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%beam%beam0_file = s%com%beam0_file
   s%u(i)%beam%beam_all_file = s%com%beam_all_file
   do ib = 0, ubound(s%u(i)%uni_branch, 1)
-    s%u(i)%uni_branch(ib)%track_start    = ''
-    s%u(i)%uni_branch(ib)%track_end      = ''
-    s%u(i)%uni_branch(ib)%ix_track_start = 0
-    s%u(i)%uni_branch(ib)%ix_track_end   = -1
+    s%u(i)%uni_branch(ib)%beam_track_start    = ''
+    s%u(i)%uni_branch(ib)%beam_track_end      = ''
+    s%u(i)%uni_branch(ib)%ix_beam_track_start = 0
+    s%u(i)%uni_branch(ib)%ix_beam_track_end   = -1
   enddo
 enddo
 
@@ -206,8 +206,10 @@ do
   beam_init%n_particle    = -1
   beam_saved_at = ''
   save_beam_at  = ''
-  track_start = ''
-  track_end = ''
+  track_start = ''        ! Old style
+  track_end = ''          ! Old style
+  beam_track_start = ''
+  beam_track_end = ''
   beam0_file = ''
   beam_all_file = ''
 
@@ -224,6 +226,8 @@ do
 
   if (s%com%beam0_file /= '')    beam0_file = s%com%beam0_file        ! From the command line
   if (s%com%beam_all_file /= '') beam_all_file = s%com%beam_all_file  ! From the command line
+  if (track_start /= '') beam_track_start = track_start   ! For backwards compatibility
+  if (track_end /= '')   beam_track_end   = track_end     ! For backwards compatibility
 
   ! transfer info from old style save_beam_at(:) to beam_saved_at
 
@@ -286,33 +290,33 @@ character(60) at, class, ele_name, line
 
 uni_branch0 => u%uni_branch(0)
 
-uni_branch0%track_start = track_start
-uni_branch0%track_end   = track_end
+uni_branch0%beam_track_start = beam_track_start
+uni_branch0%beam_track_end   = beam_track_end
 
-if (track_start /= '') then
-  call lat_ele_locator (track_start, u%design%lat, eles, n_loc, err)
+if (beam_track_start /= '') then
+  call lat_ele_locator (beam_track_start, u%design%lat, eles, n_loc, err)
   if (err .or. n_loc == 0) then
-    call out_io (s_fatal$, r_name, 'TRACK_START ELEMENT NOT FOUND: ' // track_start)
+    call out_io (s_fatal$, r_name, 'BEAM_TRACK_START ELEMENT NOT FOUND: ' // beam_track_start)
     call err_exit
   endif
   if (n_loc > 1) then
-    call out_io (s_fatal$, r_name, 'MULTIPLE TRACK_START ELEMENTS FOUND: ' // track_start)
+    call out_io (s_fatal$, r_name, 'MULTIPLE BEAM_TRACK_START ELEMENTS FOUND: ' // beam_track_start)
     call err_exit
   endif
-  uni_branch0%ix_track_start = eles(1)%ele%ix_ele
+  uni_branch0%ix_beam_track_start = eles(1)%ele%ix_ele
 endif
 
-if (track_end /= '') then
-  call lat_ele_locator (track_end, u%design%lat, eles, n_loc, err)
+if (beam_track_end /= '') then
+  call lat_ele_locator (beam_track_end, u%design%lat, eles, n_loc, err)
   if (err .or. n_loc == 0) then
-    call out_io (s_fatal$, r_name, 'TRACK_END ELEMENT NOT FOUND: ' // track_end)
+    call out_io (s_fatal$, r_name, 'BEAM_TRACK_END ELEMENT NOT FOUND: ' // beam_track_end)
     call err_exit
   endif
   if (n_loc > 1) then
-    call out_io (s_fatal$, r_name, 'MULTIPLE TRACK_END ELEMENTS FOUND: ' // track_end)
+    call out_io (s_fatal$, r_name, 'MULTIPLE BEAM_TRACK_END ELEMENTS FOUND: ' // beam_track_end)
     call err_exit
   endif
-  uni_branch0%ix_track_end = eles(1)%ele%ix_ele
+  uni_branch0%ix_beam_track_end = eles(1)%ele%ix_ele
 endif
 
 u%beam%beam_init = beam_init
