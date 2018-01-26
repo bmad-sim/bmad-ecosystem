@@ -239,7 +239,7 @@ program make_a_matching_knob
       set_str = 'k1='//trim(adjustl(var_str))
 
       do j=1, n_loc
-        call set_ele_attribute (eles(j)%ele, set_str, ring, err)
+        call set_ele_attribute (eles(j)%ele, set_str, err)
         if(err) then
           write(*,*) "Set ele attribute error.  Terminating.", set_str
           !error stop
