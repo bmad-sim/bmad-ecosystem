@@ -991,11 +991,10 @@ subroutine set_on (key, lat, on_switch, orb)
   logical on_switch
 end subroutine
 
-subroutine set_ele_attribute (ele, set_string, lat, err_flag, err_print_flag)
+subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag)
   import
   implicit none
   type (ele_struct) ele
-  type (lat_struct) lat
   character(*) set_string
   logical err_flag
   logical, optional :: err_print_flag
@@ -1513,12 +1512,13 @@ subroutine type_twiss (ele, frequency_units, compact_format, lines, n_lines)
   logical, optional :: compact_format
 end subroutine
 
-function value_of_attribute (ele, attrib_name, err_flag, err_print_flag) result (value)
+function value_of_attribute (ele, attrib_name, err_flag, err_print_flag, err_value) result (value)
   import
   implicit none
   type (ele_struct), target :: ele
   type (all_pointer_struct) a_ptr
   real(rp) value
+  real(rp), optional :: err_value
   character(*) attrib_name
   logical, optional :: err_print_flag, err_flag
 end function

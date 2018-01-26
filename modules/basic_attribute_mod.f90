@@ -2380,8 +2380,7 @@ end function has_attribute
 !+
 ! Subroutine set_custom_attribute_name (attrib_name, alias_name, err_flag)
 !
-! Routine to setup an alias for element attributes like custom_attribute1$, etc. in
-! the attribute name table.
+! Routine to add custom element attributes to the element attribute name table.
 !
 ! Input:
 !   attrib_name -- Character(*): Name of attribute to define an alias for.
