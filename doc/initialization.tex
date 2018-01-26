@@ -613,15 +613,15 @@ The syntax is as follows:
 \index{beam_init!renorm_center}\index{beam_init!renorm_sigma}
 \index{beam_init!center_jitter}\index{beam_init!emit_jitter}
 \index{beam_init!sig_z_jitter}\index{beam_init!sig_e_jitter}
-\index{beam_init!polarization}\index{track_start}\index{track_end}
+\index{beam_init!polarization}\index{beam_track_start}\index{beam_track_end}
 \begin{example}
   &tao_beam_init
     ix_universe                 = <integer>    ! Universe to apply to.
     beam0_file                  = <string>     ! File used in place of beam_init.
     beam_all_file               = <string>     ! File used in place of beam tracking.
     beam_saved_at               = "<ele_list>" ! Where to save the beam info.
-    track_start                 = "<ele_name>" ! Element start tracking name or index.
-    track_end                   = "<ele_name>" ! Element end tracking name or index.
+    beam_track_start            = "<ele_name>" ! Beam tracking start element name or index.
+    beam_track_end              = "<ele_name>" ! Beam tracking end element name or index.
     beam_init%distribution_type(3) = "<type>"  ! "ELLIPSE", "KV", "GRID", "" (default)
     beam_init%ellipse(3)%...    = ...          ! Parameters for an ellipse type distribution.
     beam_init%KV%...            = ...          ! Parameters for a KV distribution
@@ -785,14 +785,15 @@ circular lattices the Twiss parameters will be found from the closed
 orbit, and the emittance will be calculated using the \bmad routine
 \vn{radiation_integrals}.
 
-\vn{track_start} and \vn{track_end} are used when it is desired to only track the beam
-through part of the root lattice branch.  \vn{track_start} gives the starting element name
+\vn{beam_track_start} and \vn{beam_track_end} are used when it is desired to only track the beam
+through part of the root lattice branch.  \vn{beam_track_start} gives the starting element name
 or index. Tracking will start at the exit end of this element so the beam {\em will not}
 be tracked through this element. The tracking will end at the exit end of the lattice
-element with name or index \vn{track_end}. The default, if \vn{track_start} and
-\vn{track_end} are not present, is to track through the entire root lattice branch.
-\vn{track_start} and \vn{track_end} is ignored for lattice branches other than the root
-branch (branch 0).
+element with name or index \vn{beam_track_end}. The default, if \vn{beam_track_start} and
+\vn{beam_track_end} are not present, is to track through the entire root lattice branch.
+\vn{beam_track_start} and \vn{beam_track_end} is ignored for lattice branches other than the root
+branch (branch 0). Note: Deprecated names for \vn{beam_track_start} and \vn{beam_track_end} are
+\vn{track_start} and \vn{track_end} respectively.
 
 If spin tracking is desired then \vn{beam_init%init_spin} must be set
 to true.  If it is desired to use the exact same distribution of

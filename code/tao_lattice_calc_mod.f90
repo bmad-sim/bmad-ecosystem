@@ -606,7 +606,7 @@ endif
 
 ie1 = ix_ele0
 ie2 = branch%n_ele_track
-if (uni_branch%ix_track_end > -1 .and. ix_branch == 0) ie2 = uni_branch%ix_track_end
+if (uni_branch%ix_beam_track_end > -1 .and. ix_branch == 0) ie2 = uni_branch%ix_beam_track_end
 
 print_err = .true.
 
@@ -866,7 +866,7 @@ endif
 ! Init for main branch...
 ! If there is an init file then read from the file
 
-ix_ele0 = uni_branch%ix_track_start
+ix_ele0 = uni_branch%ix_beam_track_start
 beam_init => u%beam%beam_init
 beam => u%beam%start
 
