@@ -1,7 +1,5 @@
 module symp_lie_mod
 
-use bmad_struct
-use bmad_interface
 use make_mat6_mod
 use em_field_mod
 use random_mod

@@ -1,6 +1,5 @@
 module measurement_mod
 
-use bmad_struct
 use bmad_interface
 
 type measurement_common_struct

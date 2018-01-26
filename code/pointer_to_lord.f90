@@ -15,9 +15,6 @@
 !   pointer_to_ele
 !   num_lords
 !
-! Modules Needed:
-!   use bmad_utils_mod
-!
 ! Input:
 !   slave              -- Ele_struct: Slave element.
 !   ix_lord            -- Integer: Index of the lord.

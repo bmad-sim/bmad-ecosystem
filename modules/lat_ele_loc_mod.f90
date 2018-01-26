@@ -1,6 +1,6 @@
 module lat_ele_loc_mod
 
-use bmad_utils_mod
+use bmad_routine_interface
 
 private lat_ele1_locator
 

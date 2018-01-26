@@ -1,6 +1,6 @@
 module make_mat6_mod
 
-use bmad_utils_mod
+use bmad_routine_interface
 
 contains
 

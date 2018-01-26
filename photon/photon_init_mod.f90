@@ -1,8 +1,6 @@
 module photon_init_mod
 
-use bmad_struct
 use bmad_interface
-use random_mod
 use rotation_3d_mod
 
 ! An init_spectrum_struct holds an array of spline fits of E_rel of gamma_phi vs 

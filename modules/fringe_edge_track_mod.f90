@@ -1,6 +1,6 @@
 module fringe_edge_track_mod
 
-use bmad_utils_mod
+use bmad_routine_interface
 
 implicit none
 

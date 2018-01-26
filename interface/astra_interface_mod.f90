@@ -1,6 +1,5 @@
 module astra_interface_mod
 
-use bmad_struct
 use em_field_mod
 
 implicit none

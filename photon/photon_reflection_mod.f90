@@ -1,6 +1,6 @@
 module photon_reflection_mod
 
-use bmad_utils_mod
+use bmad_struct
 use spline_mod
 
 ! For a custom reflection calc: 

@@ -1,8 +1,8 @@
 module envelope_mod
 
 use twiss_and_track_mod
-use, intrinsic :: iso_c_binding
 use fgsl
+use, intrinsic :: iso_c_binding
 
 implicit none
 

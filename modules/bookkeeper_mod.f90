@@ -1,12 +1,10 @@
 module bookkeeper_mod
 
 use wall3d_mod
-use bmad_utils_mod
 use multipole_mod
 use geometry_mod
 use equality_mod
 use em_field_mod
-use xraylib_interface
 use expression_mod
 
 implicit none

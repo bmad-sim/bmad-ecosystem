@@ -1,7 +1,6 @@
 module attribute_mod
 
-use bmad_struct
-use bmad_routine_interface
+use basic_attribute_mod
 use multipole_mod
 use lat_ele_loc_mod
 

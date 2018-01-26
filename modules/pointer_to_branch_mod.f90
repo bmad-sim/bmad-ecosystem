@@ -25,9 +25,6 @@ private pointer_to_branch_given_name, pointer_to_branch_given_ele
 ! Note: Result is ambiguous if ele argument is associated with multiple branches 
 ! which can happen, for example, with overlay elements.
 !
-! Modules Needed:
-!   use bmad_utils_mod
-!
 ! Input:
 !   ele         -- Ele_struct: Element contained in the branch.
 !   branch_name -- Character(*): May be a branch name or a branch index.
@@ -57,9 +54,6 @@ contains
 ! This routine is overloaded by the routine: pointer_to_branch.
 ! See pointer_to_branch for more details.
 ! 
-! Modules Needed:
-!   use bmad_utils_mod
-!
 ! Input:
 !   branch_name -- Character(*): May be a branch name or a branch index.
 !   lat         -- Lat_struct: Lattice to search.
@@ -133,9 +127,6 @@ end function pointer_to_branch_given_name
 !
 ! Note: Result is ambiguous if the element is associated with multiple branches which
 ! can happen, for example, with overlay lord elements.
-!
-! Modules Needed:
-!   use bmad_utils_mod
 !
 ! Input:
 !   ele      -- Ele_struct: Element.

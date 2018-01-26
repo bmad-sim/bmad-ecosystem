@@ -991,7 +991,7 @@ type ele_struct
   integer :: tracking_method = bmad_standard$     ! taylor$, linear$, etc.
   integer :: spin_tracking_method = tracking$     ! symp_lie_ptc$, etc.
   integer :: ptc_integration_type = matrix_kick$  ! drift_kick$, matrix_kick$, or ripken_kick$
-  integer :: field_calc = bmad_standard$          ! no_field$, map$, grid$, refer_to_lords$, or custom$
+  integer :: field_calc = bmad_standard$          ! no_field$, fieldmap$, refer_to_lords$, or custom$
   integer :: aperture_at = exit_end$              ! Aperture location: entrance_end$, ...
   integer :: aperture_type = rectangular$         ! rectangular$, elliptical$, auto_aperture$, ...
   integer :: orientation = 1                 ! -1 -> Element is longitudinally reversed. +1 -> Normal.

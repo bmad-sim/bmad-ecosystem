@@ -8,6 +8,9 @@ use attribute_mod
 use element_at_s_mod
 use twiss_mod
 use coord_mod
+use equality_mod
+
+implicit none
 
 ! This is to suppress the ranlib "has no symbols" message
 integer, private :: private_dummy

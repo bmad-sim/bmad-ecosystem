@@ -6,7 +6,6 @@
 
 module em_field_mod
 
-use bmad_struct
 use bmad_interface
 use spline_mod
 
