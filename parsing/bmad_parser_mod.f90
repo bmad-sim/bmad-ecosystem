@@ -176,7 +176,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_set_attribute (how, ele, lat, delim, delim_found, err_flag, pele, check_free, wild_and_key0)
+! Subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, wild_and_key0)
 !
 ! Subroutine used by bmad_parser and bmad_parser2 to get the value of
 ! an attribute from the input file and set the appropriate value in an element.
@@ -187,8 +187,6 @@ contains
 !   how           -- Integer: Either def$ if the element is being construct from scratch or
 !                      redef$ if the element has already been formed and this is part of a
 !                      "ele_name[attrib_name] = value" construct.
-!   lat           -- lat_struct: Lattice. Needed if the attribute value is an expression
-!                      that uses values of other elements.
 !   check_free    -- Logical, optional: If present and True then an error will be generated
 !                       if the attribute is not free to vary. Used by bmad_parser2.
 !   wild_and_key0 -- Logical, optional: If True (default = False), calling routine is working on
@@ -204,14 +202,14 @@ contains
 !                     information that cannot be stored in the ele argument.
 !-
 
-subroutine parser_set_attribute (how, ele, lat, delim, delim_found, err_flag, pele, check_free, wild_and_key0)
+subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, wild_and_key0)
 
 use random_mod
 use wall3d_mod
        
 implicit none
 
-type (lat_struct), target :: lat
+type (lat_struct), pointer :: lat
 type (parser_ele_struct), optional :: pele
 type (ele_struct), target ::  ele
 type (ele_pointer_struct), allocatable :: eles(:)
@@ -257,6 +255,7 @@ logical, optional :: check_free, wild_and_key0
 
 err_flag = .true.  ! assume the worst
 call get_next_word (word, ix_word, ':, =(){', delim, delim_found, call_check = .true.)
+lat => ele%branch%lat
 
 ! Taylor
 

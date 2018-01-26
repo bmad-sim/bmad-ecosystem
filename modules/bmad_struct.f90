@@ -1454,7 +1454,7 @@ integer, parameter :: a0_elec$ = 190, a21_elec$ = 211
 integer, parameter :: b0_elec$ = 212, b21_elec$ = 233
 
 integer, parameter :: custom_attribute0$ = b21_elec$
-integer, parameter :: custom_attribute_num$ = 20
+integer, parameter :: custom_attribute_num$ = 40
 integer, parameter :: num_ele_attrib_extended$ = custom_attribute0$ + custom_attribute_num$
 
 character(40), parameter :: blank_name$ = ' '

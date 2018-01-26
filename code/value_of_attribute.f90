@@ -1,5 +1,5 @@
 !+
-! Function value_of_attribute (ele, attrib_name, err_flag, err_print_flag) result (value)
+! Function value_of_attribute (ele, attrib_name, err_flag, err_print_flag, err_value) result (value)
 !
 ! Returns the value of an element attribute.
 !
@@ -18,13 +18,14 @@
 !   attrib_name     -- Character(40): Name of attribute. Must be uppercase.
 !                       For example: "HKICK".
 !   err_print_flag  -- Logical, optional: If present and True then print an error message if there is an  error.
+!   err_value       -- real(rp), optional: Value to set value argument if there is an error. Default is real_garbage$.
 !
 ! Output:
-!   value      -- real(rp): Value of the attribute. Set to real_garbage$ if not found.
+!   value      -- real(rp): Value of the attribute. Set to err_value if not found.
 !   err_flag   -- Logical: Set True if attribtute not found. False otherwise.
 !-
 
-function value_of_attribute (ele, attrib_name, err_flag, err_print_flag) result (value)
+function value_of_attribute (ele, attrib_name, err_flag, err_print_flag, err_value) result (value)
 
 use bmad_interface, except_dummy => value_of_attribute
 
@@ -34,6 +35,7 @@ type (ele_struct), target :: ele
 type (all_pointer_struct) a_ptr
 
 real(rp) value
+real(rp), optional :: err_value
 
 character(*) attrib_name
 character(24) :: r_name = 'value_of_attribute'
@@ -47,7 +49,7 @@ call pointer_to_attribute (ele, attrib_name, .true., a_ptr, err, logic_option(.f
 if (present(err_flag)) err_flag = err
 
 if (err) then
-  value = real_garbage$
+  value = real_option(real_garbage$, err_value)
 else
   value = value_of_all_ptr(a_ptr)
 endif

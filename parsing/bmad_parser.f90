@@ -360,7 +360,7 @@ parsing_loop: do
         call parser_error ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
         exit
       endif
-      call parser_set_attribute (def$, in_lat%ele(ix_mad_beam_ele), in_lat, delim, delim_found, err)
+      call parser_set_attribute (def$, in_lat%ele(ix_mad_beam_ele), delim, delim_found, err)
       if (bp_com%fatal_error_flag) exit parsing_loop
     enddo
     cycle parsing_loop
@@ -433,7 +433,7 @@ parsing_loop: do
       else
         ele => in_lat%ele(ix)
         bp_com%parse_line = parse_line_save
-        call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, err, plat%ele(ele%ixx))
+        call parser_set_attribute (redef$, ele, delim, delim_found, err, plat%ele(ele%ixx))
         if (bp_com%fatal_error_flag) exit parsing_loop
         if (.not. err .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim)
       endif
@@ -487,7 +487,7 @@ parsing_loop: do
       if (wild_and_key0 .and. attribute_index(ele, word_2) < 1) cycle
       bp_com%parse_line = parse_line_save
       ele_found = .true.
-      call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, err, plat%ele(ele%ixx), wild_and_key0 = wild_and_key0)
+      call parser_set_attribute (redef$, ele, delim, delim_found, err, plat%ele(ele%ixx), wild_and_key0 = wild_and_key0)
       if (bp_com%fatal_error_flag) exit parsing_loop
       if (err .or. delim_found) then
         if (.not. err .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim)
@@ -681,7 +681,7 @@ parsing_loop: do
       call parser_error ('EXPECTING: "," BUT GOT: ' // delim,  'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
       exit
     endif
-    call parser_set_attribute (def$, in_lat%ele(n_max), in_lat, delim, delim_found, err, plat%ele(n_max))
+    call parser_set_attribute (def$, in_lat%ele(n_max), delim, delim_found, err, plat%ele(n_max))
     if (bp_com%fatal_error_flag) exit parsing_loop
     if (err) cycle parsing_loop
   enddo

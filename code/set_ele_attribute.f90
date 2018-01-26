@@ -1,8 +1,8 @@
 !+
-! Subroutine set_ele_attribute (ele, set_string, lat, err_flag, err_print_flag)
+! Subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag)
 !
 ! Routine to set an element's attribute.
-! This is a general routine that will set almost any element attribute.
+! This routine is useful for parsing user input.
 !
 ! The set_string argument is in the form:
 !   <attribute_name> = <value>
@@ -20,8 +20,6 @@
 ! Input:
 !   ele            -- ele_struct: Element with attribute to set.
 !   set_string     -- Character(*): attribute and value for set.
-!   lat            -- lat_struct: Lattice containing the element. 
-!                       Used if an evaluation is needed.
 !   err_print_flag -- Logical, optional: If present and False then suppress
 !                       printing of an error message if attribute is, for
 !                       example, not free.
@@ -31,7 +29,7 @@
 !   err_flag -- Logical: Set True if there is an error, False otherwise.
 !-
 
-subroutine set_ele_attribute (ele, set_string, lat, err_flag, err_print_flag)
+subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag)
 
 use bmad_parser_mod, dummy => set_ele_attribute
 
@@ -95,7 +93,7 @@ bp_com%current_file => current_file
 bp_com%print_err = logic_option(.true., err_print_flag)
 current_file%full_name = ''
 
-call parser_set_attribute (redef$, ele, lat, delim, delim_found, err_flag)
+call parser_set_attribute (redef$, ele, delim, delim_found, err_flag)
 
 bp_com%input_from_file = file_input_save
 bp_com%print_err       = print_save

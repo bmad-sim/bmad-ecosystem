@@ -40,6 +40,7 @@ implicit none
 type (lat_struct), target :: lat   ! This structure holds the lattice info
 type (ele_struct), pointer :: ele, cleo
 type (ele_pointer_struct), allocatable :: eles(:)
+type (all_pointer_struct) a_ptr
 integer i, ix, n_loc
 logical err
 
@@ -52,8 +53,9 @@ call bmad_parser ("lat.bmad", lat)  ! Read in a lattice.
 
 call lat_ele_locator ('CLEO_SOL', lat, eles, n_loc, err)  ! Find element
 cleo => eles(1)%ele                        ! Point to cleo_sol element.
-cleo%value(ks$) = cleo%value(ks$) + 0.001  ! Modify ks component.
-call set_flags_for_changed_attribute (cleo, cleo%value(ks$))
+call pointer_to_attribute (cleo, 'KS', .true., a_ptr, err) ! Point to KS attribute.
+a_ptr%r = a_ptr%r + 0.001         ! Modify KS component.
+call set_flags_for_changed_attribute (cleo, a_ptr%r)
 call lattice_bookkeeper (lat)
 call lat_make_mat6 (lat, cleo%ix_ele)      ! Remake transfer matrix
 
@@ -97,57 +99,54 @@ interfaces (argument lists) for the \bmad subroutines. In particular,
 the \vn{lat} variable (line 5), which is of type \vn{lat_struct}
 (\sref{s:lat.struct}), holds all of the lattice information: The list
 of elements, their attributes, etc.  The setting of
-\vn{bmad_com%auto_bookkeeper} to \vn{False} in line 12 enables the
+\vn{bmad_com%auto_bookkeeper} to \vn{False} in line 13 enables the
 ``intelligent'' bookkeeping of lattice attributes as discussed in
 \sref{s:lat.bookkeeping}). The call to
-\Hyperref{r:bmad.parser}{bmad_parser} (line 16) causes the lattice
+\Hyperref{r:bmad.parser}{bmad_parser} (line 17) causes the lattice
 file \vn{lat.bmad} to be parsed and the lattice information is stored
 the \vn{lat} variable. Note: To get a listing of the \vn{lat_struct}
 components or to find out more about \vn{bmad_parser} use the
 \vn{getf} command as discussed in \sref{s:getf}.
 
-The routine \Hyperref{r:lat.ele.locator}{lat_ele_locator}
-(\sref{s:lat.ele.change}) is used in line 18 to find the element in
-the lattice with the name \vn{CLEO_SOL}. Line 19 defines a pointer
-variable named \vn{cleo} which is used here as shortcut notation
-rather than having to write \vn{eles(1)%ele} when refering to this
-element. Line 20 changes the \vn{ks} solenoid strength of this
-element. Since an element attribute has been changed, the call to
-\Hyperref{r:set.flags.for.changed.attribute}{set_flags_for_changed_attribute}
-in line 21 is needed for \bmad to inform \bmad that this attribute has
-changed and the call to
-\Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper} does the necessary
-lattice bookkeeping (\sref{s:lat.bookkeeping}).
+The routine \Hyperref{r:lat.ele.locator}{lat_ele_locator} (\sref{s:lat.ele.find}) is used in line
+19 to find the element in the lattice with the name \vn{CLEO_SOL}. Line 20 defines a pointer
+variable named \vn{cleo} which is used here as shortcut notation rather than having to write
+\vn{eles(1)%ele} when refering to this element. The call to \vn{pointer_to_attribute} in line 21
+sets up a pointer structure \vn{a_ptr%r} to point to the \vn{KS} solenoid strength component of
+\vn{cleo}. [\vn{a_ptr} also has components \vn{a_ptr%i} and \vn{a_ptr%l} to point to integrer
+or logical components if needed. See \sref{s:lat.ele.attribute}.]
 
-The call to
-\Hyperref{r:lat.make.mat6}{lat_make_mat6} in line 23 recalculates the
-linear transfer matrix for the \vn{CLEO_SOL} element.
+Line 22 changes the \vn{ks} solenoid strength of \vn{cleo}. Since an element attribute has been
+changed, the call to \Hyperref{r:set.flags.for.changed.attribute}{set_flags_for_changed_attribute}
+in line 23 is needed for \bmad to inform \bmad that this attribute has changed and the call to
+\Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper} does the necessary lattice bookkeeping
+(\sref{s:lat.bookkeeping}).
 
-In line 28, the program checks if the lattice 
-is circular (\sref{s:param}) and, if so, uses the
-routine \Hyperref{r:twiss.at.start}{twiss_at_start} to multiply the transfer
-matrices of the individual elements together to form the 1--turn
-matrix from the start of the lat back to the start. From this matrix
-\vn{twiss_at_start} calculates the Twiss parameters at the start of
-the lattice and puts the information into \vn{lat%ele(0)} (\sref{s:twiss}). 
-The next call, to \Hyperref{r:twiss.propagate.all}{twiss_propagate_all}, takes the starting
-Twiss parameters and, using the transfer matrices of the individual
-elements, calculates the Twiss parameters at all the elements. Notice that
-if the lattice is not circular, The starting Twiss parameters will need
-to have been defined in the lattice file.
+The call to \Hyperref{r:lat.make.mat6}{lat_make_mat6} in line 25 recalculates the linear transfer
+matrix for the \vn{CLEO_SOL} element.
+
+In line 30, the program checks if the lattice is circular (\sref{s:param}) and, if so, uses the
+routine \Hyperref{r:twiss.at.start}{twiss_at_start} to multiply the transfer matrices of the
+individual elements together to form the 1--turn matrix from the start of the lat back to the
+start. From this matrix \vn{twiss_at_start} calculates the Twiss parameters at the start of the
+lattice and puts the information into \vn{lat%ele(0)} (\sref{s:twiss}).  The next call, to
+\Hyperref{r:twiss.propagate.all}{twiss_propagate_all}, takes the starting Twiss parameters and,
+using the transfer matrices of the individual elements, calculates the Twiss parameters at all the
+elements. Notice that if the lattice is not circular, The starting Twiss parameters will need to
+have been defined in the lattice file.
 
 \index{ele_struct!\%x}
 \index{ele_struct!\%key}
 \index{ele_struct!\%s}
 \index{lat_struct!\%ele(:)}
-The program is now ready output some information. Lines 22 through 26
+The program is now ready output some information. Lines 24 through 28
 of the program print information on the first 11 elements in the
 lattice.  The do-loop is over the array \vn{lat%ele(:)}.  Each element
 of the array holds the information about an individual lattice element
 as explained in Chapter~\ref{c:lat.struct}. The \vn{lat%ele(0)}
 element is basically a marker element to denote the beginning of the
 array (\sref{c:sequence}). Using the pointer \vn{ele} to point to the
-individual elements (line 35) makes for a cleaner syntax and reduces
+individual elements (line 37) makes for a cleaner syntax and reduces
 typing. The table that is produced is shown in lines 1 through 12 of
 \fig{f:output}.  The first column is the element index $i$. The
 second column, \vn{ele%name}, is the name of the element. The third
@@ -159,10 +158,9 @@ fourth column, \vn{ele%s}, is the longitudinal position at the exit
 end of the element. Finally, the last column, \vn{ele%x%beta}, is the
 $a$--mode (nearly horizontal mode) beta function.
 
-The \Hyperref{r:type.ele}{type_ele} routine on line 45 of the program
-is used to type out the \vn{CLEO_SOL}'s attributes and other
-information as shown on lines 14 through 41 of the output (more on
-this later).
+The \Hyperref{r:type.ele}{type_ele} routine on line 47 of the program is used to type out the
+\vn{CLEO_SOL}'s attributes and other information as shown on lines 14 through 41 of the output (more
+on this later).
 
 This brings us to the lattice file used for the input to the program.
 The call to \vn{bmad_parser} shows that this file is called 

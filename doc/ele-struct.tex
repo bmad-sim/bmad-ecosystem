@@ -85,6 +85,7 @@ The complete structure is shown in this and the following figure.}
   real(rp), pointer :: b_pole(:)               ! multipoles
   real(rp), pointer :: a_pole_elec(:)          ! Electrostatic multipoles.
   real(rp), pointer :: b_pole_elec(:)          ! Electrostatic multipoles.
+  real(rp), pointer :: custom(:)               ! Custom attributes
   integer key                    ! key value
   integer sub_key                ! EG for wigglers: map_type$, periodic_type$
   integer ix_ele                 ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
@@ -817,65 +818,46 @@ See Chapter~\sref{c:tracking} for more details.
 \index{ele_struct!\%r}
 \index{ele_struct!\%ix_pointer}
 \index{ele_struct!\%logic}
-There are three components of an \vn{ele_struct} that are guaranteed
-to never be used by any \bmad routine and so are available for use by
-someone writing a program. These components are \vn{ele%r(:,:,:)},
-\vn{ele%ix_pointer} and \vn{ele%logic} 
+There are four components of an \vn{ele_struct} that are guaranteed to never be used by any \bmad
+routine and so are available for use by someone writing a program. These components are
+\vn{ele%r(:,:,:)}, \vn{ele%custom(:)}, \vn{ele%ix_pointer} and \vn{ele%logic}
 \begin{example}
   type ele_struct
     ...
     real(rp), pointer :: r(:,:,:) => null()  
+    real(rp), pointer :: custom(:) => null()  
     integer ix_pointer                 
     logical logic                      
     ...
   end type
 \end{example}
-Values for \vn{ele%r} can be set in the lattice file (\sref{s:cust.att}).  If values are
-set for \vn{ele%r}, \vn{ele%r} will be expanded in size if needed. If \vn{ele%r} is
-expanded, values in the newly created part of \vn{ele%r} will be set to zero.
+Values for \vn{ele%r} and \vn{ele%custom} can be set in the lattice file (\sref{s:cust.att}).  If
+values are set for \vn{ele%r} or \vn{ele%custom}, these arrays will be expanded in size if needed.
 
-Besides the above, there are 5 slots in the \vn{%value(:)} array for
-general use.  they have indexes labeled \vn{custom_attribute1\$}
-through \vn{custom_attribute5\$}. The index names can be
-redefined to fit a particular need. For example, suppose a program
-needs to store a time stamp number. The code to do this could look
-like:
+Accessing the \vn{ele%custom} array should be done using the standard accessor routines
+(\sref{s:lat.ele.attribute}). For example, if the lattice file being used defines a custom
+attribute called \vn{rise_time} (\sref{s:cust.att}):
 \begin{example}
-  integer, parameter :: time_stamp\$ = custom_attribute1\$
-  ...
-  lat%ele(i)%value(time_stamp$) = ...
+  parameter[custom_attribute1] = "rise_time"
 \end{example}
-
-In the lattice file, a string can be associated with
-\vn{custom_attribueN\$} (\sref{s:cust.att}. Thus, in the lattice
-file, to associate \vn{"time_stamp"} with \vn{custom_attribute1}:
+then a program can access the \vn{rise_time} attribute via:
 \begin{example}
-  parameter[custom_attribute1] = "time_stamp"
-\end{example}
-Defining the custom attribute in the lattice file allows the
-\Hyperref{r:type.ele}{type_ele} routine to print the custom
-information. To setup the association between a string and a custom
-attribute from within a program
-\begin{example}
-  type (lat_struct), target :: lat
-  type (ele_struct), pointer :: ele
-  integer, parameter :: time_stamp$ = custom_attribute1$
+  type (ele_struct), poiner :: ele
+  type (all_pointer_struct) a_ptr
   ...
-  ele => lat%branch(1)%ele(2)   ! Point to some element
-  print *, attribute_name(ele, time_stamp$), ' Has value:' ele%value(time_stamp$)
+  ele => ...            ! Point ele to some element in the lattice
+  call pointer_to_attribute (ele, 'RISE_TIME', .true., a_ptr, err_flag)
+  print *, 'RISE_TIME Attribute has value:', a_ptr%r
 \end{example}
 
 If not defined through a lattice file, custom attributes can also be
 defined directly from within a program using the 
-\Hyperref{r:set.attribute.alias}{set_attribute_alias} routine
+\Hyperref{r:set.custom.attribute.name}{set_custom_attribute_name} routine
 \begin{example}
-  type (lat_struct) lat
   logical err_flag
   ...
-  call set_attribute_alias ('CUSTOM_ATTRIBUTE2', 'QUADRUPOLE::ERROR', err_flag, lat) 
+  call set_custom_attribute_name ('CUSTOM_ATTRIBUTE2', 'QUADRUPOLE::ERROR', err_flag) 
 \end{example}
-The \vn{lat} argument is only needed if the lattice is to be written to a file using
-\Hyperref{r:write.bmad.lattice.file}{write_bmad_lattice_file}.
 
 %--------------------------------------------------------------------------
 \section{Bmad Reserved Variables}

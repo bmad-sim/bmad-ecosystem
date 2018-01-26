@@ -246,7 +246,7 @@ parsing_loop: do
       else
         call lat_ele_locator ('BEAM', lat, eles, n_loc, err)
         if (n_loc /= 1 .or. err) call err_exit
-        call parser_set_attribute (def$, eles(1)%ele, lat, delim, delim_found, err, check_free = .true.)
+        call parser_set_attribute (def$, eles(1)%ele, delim, delim_found, err, check_free = .true.)
         if (err) cycle parsing_loop
       endif
     enddo
@@ -353,7 +353,7 @@ parsing_loop: do
 
       bp_com%parse_line = parse_line_save
       found = .true.
-      call parser_set_attribute (redef$, ele, lat, delim, delim_found, err, check_free = .true., wild_and_key0 = wild_and_key0)
+      call parser_set_attribute (redef$, ele, delim, delim_found, err, check_free = .true., wild_and_key0 = wild_and_key0)
       if (.not. err .and. delim_found) then
         call parser_error ('BAD DELIMITER: ' // delim)
         exit
@@ -504,7 +504,7 @@ parsing_loop: do
       n_max = n_max - 1
       cycle parsing_loop
     else
-      call parser_set_attribute (def$, ele, lat, delim, delim_found, err, pele)
+      call parser_set_attribute (def$, ele, delim, delim_found, err, pele)
       call set_flags_for_changed_attribute (ele)
       if (err) then
         n_max = n_max - 1
