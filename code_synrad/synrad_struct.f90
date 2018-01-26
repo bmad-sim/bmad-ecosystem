@@ -1,6 +1,6 @@
 module synrad_struct
 
-use bmad_utils_mod
+use bmad_interface
 
 ! The wall is specified by an array of points with straight lines (faces)
 ! between the points. the face between point i-1 and the point i is
