@@ -104,7 +104,7 @@ contains
 
         call lat_ele_locator(crm%c_mags(i)%name, ring_working, eles, n_loc, err_flag)
         do j=1, n_loc
-          call set_ele_attribute (eles(j)%ele, set_str, ring_working, err_flag)
+          call set_ele_attribute (eles(j)%ele, set_str, err_flag)
           if(err_flag) then
             write(*,*) "Set ele attribute error.  Terminating."
             error stop
