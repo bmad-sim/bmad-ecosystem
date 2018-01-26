@@ -16,7 +16,7 @@
 
 function lord_edge_aligned (slave, slave_edge, lord) result (is_aligned)
 
-use bmad_routine_interface
+use bmad_routine_interface, dummy => lord_edge_aligned
 
 implicit none
 
