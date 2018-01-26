@@ -1,6 +1,5 @@
 module multipass_mod
 
-use bmad_struct
 use bmad_interface
 
 ! Multipass_lord_info_struct gives complete information about a single 
@@ -173,9 +172,6 @@ end subroutine multipass_all_info
 !
 ! Routine to deallocate the allocatable arrays in an multipass_all_info_struct.
 !
-! Modules needed:
-!   use multipass_mod
-!
 ! Input:
 !   info -- Multipass_all_info_struct: Variable to deallocate
 !
@@ -207,9 +203,6 @@ end subroutine deallocate_multipass_all_info_struct
 !   multipass_slaves
 !   super_lords that are slaves of a multipass_lord
 !   super_slaves whose super_lord is a slave of a multipass_lord
-!
-! Modules needed:
-!   use multipass_mod
 !
 ! Input:
 !   ele   -- Ele_struct: Lattice element.
@@ -262,9 +255,6 @@ end function pointer_to_multipass_lord
 !
 ! Routine to return the chain of elements that represent the same physical element
 ! when there is multipass.
-!
-! Modules needed:
-!   use multipass_mod
 !
 ! Input:
 !   ele  -- Ele_pointer_struct: Element in a multipass chain.

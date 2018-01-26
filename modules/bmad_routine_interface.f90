@@ -10,6 +10,13 @@ use pointer_to_ele_mod
 
 interface
 
+function absolute_time_tracking (ele) result (is_abs_time)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  logical is_abs_time
+end function
+
 function ac_kicker_amp(ele, time) result (ac_amp)
   import
   implicit none
@@ -34,6 +41,12 @@ subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, er
   logical, optional :: make_mats6
   logical, optional :: digested_read_ok, err_flag
   character(*), optional :: use_line
+end subroutine
+
+subroutine angle_to_canonical_coords (orbit)
+  import
+  implicit none
+  type (coord_struct) orbit
 end subroutine
 
 subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_spin, mat6, make_matrix, rf_time, apply_sol_fringe)
@@ -155,6 +168,12 @@ subroutine calc_z_tune (lat, ix_branch)
   integer, optional :: ix_branch
 end subroutine
 
+subroutine canonical_to_angle_coords (orbit)
+  import
+  implicit none
+  type (coord_struct) orbit
+end subroutine
+
 subroutine cbar_to_c (cbar_mat, a, b, c_mat)
   import
   implicit none
@@ -171,6 +190,23 @@ recursive subroutine check_aperture_limit (orb, ele, particle_at, param, old_orb
   integer particle_at
   type (coord_struct), optional :: old_orb
   logical, optional :: check_momentum
+end subroutine
+
+subroutine check_controller_controls (contrl, name, err)
+  import
+  implicit none
+  type (control_struct), target :: contrl(:)
+  logical err
+  character(*) name
+end subroutine
+
+subroutine check_if_s_in_bounds (branch, s, err_flag, translated_s)
+  import
+  implicit none
+  type (branch_struct) branch
+  real(rp) s
+  real(rp), optional :: translated_s
+  logical err_flag
 end subroutine
 
 subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, &
@@ -199,6 +235,12 @@ subroutine chrom_tune (lat, delta_e, chrom_x, chrom_y, err_tol, err_flag)
   logical err_flag
 end subroutine
 
+subroutine clear_lat_1turn_mats (lat)
+  import
+  implicit none
+  type (lat_struct) lat
+end subroutine
+
 subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag, print_err)
   import
   implicit none
@@ -209,9 +251,9 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_
   logical, optional, intent(in) :: print_err
 end subroutine
 
-subroutine closed_orbit_from_tracking (lat, closed_orb, i_dim, &
-                                     eps_rel, eps_abs, init_guess, err_flag)
+subroutine closed_orbit_from_tracking (lat, closed_orb, i_dim, eps_rel, eps_abs, init_guess, err_flag)
   import
+  implicit none
   type (lat_struct) lat
   type (coord_struct), allocatable :: closed_orb(:)
   type (coord_struct), optional :: init_guess
@@ -222,6 +264,7 @@ end subroutine
 
 subroutine combine_consecutive_elements (lat)
   import
+  implicit none
   type (lat_struct), target :: lat
 end subroutine
 
@@ -302,6 +345,13 @@ subroutine create_group (lord, con, err, err_print_flag)
   logical, optional :: err_print_flag
 end subroutine
 
+subroutine create_hard_edge_drift (ele_in, which_end, drift_ele)
+  import
+  implicit none
+  type (ele_struct) ele_in, drift_ele
+  integer which_end
+end subroutine
+
 subroutine create_overlay (lord, contl, err, err_print_flag)
   import
   implicit none
@@ -322,6 +372,7 @@ end subroutine
 
 subroutine create_unique_ele_names (lat, key, suffix)
   import
+  implicit none
   type (lat_struct), target :: lat
   integer key
   character(*) suffix
@@ -329,6 +380,7 @@ end subroutine
 
 subroutine crystal_attribute_bookkeeper (ele)
   import
+  implicit none
   type (ele_struct) ele
 end subroutine
 
@@ -385,6 +437,7 @@ end function
 
 recursive subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
   import
+  implicit none
   type (ele_struct) ele0, ele
   type (lat_param_struct) param
   real(rp) e_tot_start, p0c_start, ref_time_start
@@ -396,6 +449,44 @@ function ele_has_constant_ds_dt_ref (ele) result (is_const)
   implicit none
   type (ele_struct) ele
   logical is_const
+end function
+
+function ele_has_nonzero_kick (ele) result (has_kick)
+  import
+  implicit none
+  type (ele_struct) ele
+  logical has_kick
+end function
+
+function ele_has_offset (ele) result (has_offset)
+  import
+  implicit none
+  type (ele_struct) ele
+  logical has_offset
+end function
+
+function ele_loc_to_string (ele, show_branch0) result (str)
+  import
+  implicit none
+  type (ele_struct) ele
+  logical, optional :: show_branch0
+  character(10) str
+end function
+
+function ele_value_has_changed (ele, list, abs_tol, set_old) result (has_changed)
+  import
+  implicit none
+  type (ele_struct) ele
+  integer list(:)
+  real(rp) abs_tol(:)
+  logical set_old, has_changed
+end function
+
+function equivalent_taylor_attributes (ele_taylor, ele2) result (equiv)
+  import
+  implicit none
+  type (ele_struct) :: ele_taylor, ele2
+  logical equiv
 end function
 
 subroutine fibre_to_ele (ptc_fibre, branch, ix_ele, err_flag, from_mad)
@@ -424,6 +515,14 @@ subroutine find_matching_fieldmap (file_name, ele, t_type, match_ele, ix_field)
   integer t_type, ix_field
   character(*) file_name
 end subroutine
+
+function gradient_shift_sr_wake (ele, param) result (grad_shift)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  real(rp) grad_shift
+end function
 
 function hard_edge_model_length (ele) result (l_hard)
   import
@@ -482,6 +581,7 @@ end subroutine
 
 subroutine lat_compute_ref_energy_and_time (lat, err_flag)
   import
+  implicit none
   type (lat_struct) lat
   logical err_flag
 end subroutine
@@ -501,6 +601,14 @@ subroutine lat_sanity_check (lat, err_flag)
   type (lat_struct), target :: lat
   logical, intent(out) :: err_flag
 end subroutine
+
+function lord_edge_aligned (slave, slave_edge, lord) result (is_aligned)
+  import
+  implicit none
+  type (ele_struct), target :: slave, lord
+  integer slave_edge
+  logical is_aligned
+end function
 
 function low_energy_z_correction (orbit, ele, ds, mat6, make_matrix) result (dz)
   import
@@ -599,6 +707,7 @@ end subroutine
 
 subroutine mat6_add_offsets (ele, param)
   import
+  implicit none
   type (ele_struct) ele
   type (lat_param_struct) param
 end subroutine
@@ -694,8 +803,16 @@ subroutine offset_photon (ele, coord, set, offset_position_only, rot_mat)
   real(rp), optional :: rot_mat(3,3)
 end subroutine
 
+function on_a_girder(ele) result (is_on_girder)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  logical is_on_girder
+end function
+
 subroutine one_turn_mat_at_ele (ele, phi_a, phi_b, mat4)
   import
+  implicit none
   type (ele_struct) ele
   real(rp) phi_a
   real(rp) phi_b
@@ -726,8 +843,23 @@ subroutine order_super_lord_slaves (lat, ix_lord)
   integer ix_lord
 end subroutine
 
+function particle_is_moving_backwards (orbit) result (is_moving_backwards)
+  import
+  implicit none
+  type (coord_struct) orbit
+  logical is_moving_backwards
+end function
+
+function particle_is_moving_forward (orbit) result (is_moving_forward)
+  import
+  implicit none
+  type (coord_struct) orbit
+  logical is_moving_forward
+end function
+
 function particle_rf_time (orbit, ele, apply_hard_edge_offset, s_rel) result (time)
   import
+  implicit none
   type (coord_struct) orbit
   type (ele_struct) ele
   real(rp), optional :: s_rel
@@ -747,6 +879,7 @@ end subroutine
 
 function physical_ele_end (track_end, track_direction, ele_orientation, return_stream_end) result (physical_end)
   import
+  implicit none
   integer track_end, track_direction, ele_orientation, physical_end
   logical, optional :: return_stream_end
 end function
@@ -864,11 +997,25 @@ subroutine reference_energy_correction (ele, orbit, particle_at)
   integer particle_at
 end subroutine
 
+function rel_tracking_charge_to_mass (orbit, param) result (rel_charge)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (lat_param_struct) param
+  real(rp) rel_charge
+end function
+
 subroutine remove_eles_from_lat (lat, check_sanity)
   import
   implicit none
   type (lat_struct) lat
   logical, optional :: check_sanity
+end subroutine
+
+subroutine remove_lord_slave_link (lord, slave)
+  import
+  implicit none
+  type (ele_struct), target :: lord, slave
 end subroutine
 
 subroutine read_digested_bmad_file (in_file_name, lat, version, err_flag)
@@ -882,12 +1029,14 @@ end subroutine
 
 subroutine reallocate_beam (beam, n_bunch, n_particle)
   import
+  implicit none
   type (beam_struct) beam
   integer n_bunch, n_particle
 end subroutine
 
 subroutine reallocate_bunch (bunch, n_particle)
   import
+  implicit none
   type (bunch_struct) bunch
   integer n_particle
 end subroutine
@@ -919,6 +1068,20 @@ subroutine rf_coupler_kick (ele, param, particle_at, phase, orbit, mat6, make_ma
   logical, optional :: make_matrix
 end subroutine
 
+function rf_is_on (branch) result (is_on)
+  import
+  implicit none
+  type (branch_struct), target :: branch
+  logical is_on
+end function
+
+function rf_ref_time_offset (ele) result (time)
+  import
+  implicit none
+  type (ele_struct) ele
+  real(rp) time
+end function
+
 subroutine s_calc (lat)
   import
   implicit none
@@ -938,6 +1101,21 @@ subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_fie
   logical, optional :: save_field
 end subroutine
 
+recursive subroutine set_ele_status_stale (ele, status_group, set_slaves)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  integer status_group
+  logical, optional :: set_slaves
+end subroutine
+
+subroutine set_fringe_on_off (fringe_at, ele_end, on_or_off) 
+  import
+  implicit none
+  integer ele_end, on_or_off
+  real(rp) fringe_at
+end subroutine
+
 recursive subroutine set_lords_status_stale (ele, stat_group, control_bookkeeping, flag)
   import
   implicit none
@@ -945,6 +1123,14 @@ recursive subroutine set_lords_status_stale (ele, stat_group, control_bookkeepin
   integer stat_group
   logical, optional :: control_bookkeeping
   integer, optional :: flag
+end subroutine
+
+subroutine set_orbit_to_zero (orbit, n1, n2, ix_noset)
+  import
+  implicit none
+  type (coord_struct) orbit(0:)
+  integer n1, n2
+  integer, optional :: ix_noset
 end subroutine
 
 subroutine set_particle_from_rf_time (rf_time, ele, apply_hard_edge_offset, orbit)
@@ -1048,6 +1234,12 @@ subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix,
   logical split_done
   logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag, choose_max
 end subroutine
+
+function stream_ele_end (physical_end, ele_orientation) result (stream_end)
+  import
+  implicit none
+  integer stream_end, ele_orientation, physical_end
+end function
 
 subroutine tilt_coords (tilt_val, coord, mat6, make_matrix)
   import
@@ -1354,6 +1546,14 @@ subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, tr
   type (track_struct), optional :: track
 end subroutine
 
+function tracking_uses_end_drifts (ele, use_hard_edge_model) result (has_drifts)
+  import
+  implicit none
+  type (ele_struct) ele
+  logical has_drifts
+  logical, optional :: use_hard_edge_model
+end function
+
 subroutine transfer_ac_kick (ac_kick_in, ac_kick_out)
   import
   implicit none
@@ -1459,6 +1659,7 @@ end subroutine
 
 subroutine twiss_from_tracking (lat, ref_orb0, symp_err, err_flag, d_orb) 
   import
+  implicit none
   type (lat_struct), intent(inout) :: lat
   type (coord_struct), intent(in) :: ref_orb0
   real(rp), intent(in), optional :: d_orb(:)   
@@ -1543,6 +1744,18 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line, 
   logical, optional :: make_mats6
   logical, optional :: digested_read_ok, err_flag
   end subroutine
+
+subroutine zero_ele_kicks (ele)
+  import
+  implicit none
+  type (ele_struct) ele
+end subroutine
+
+subroutine zero_ele_offsets (ele)
+  import
+  implicit none
+  type (ele_struct) ele
+end subroutine
 
 end interface
 

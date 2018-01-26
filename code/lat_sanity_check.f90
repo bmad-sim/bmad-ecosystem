@@ -15,8 +15,7 @@
 
 subroutine lat_sanity_check (lat, err_flag)
 
-use lat_ele_loc_mod, except_dummy => lat_sanity_check
-use custom_bmad_interface
+use bmad_interface, except_dummy => lat_sanity_check
 
 implicit none
      

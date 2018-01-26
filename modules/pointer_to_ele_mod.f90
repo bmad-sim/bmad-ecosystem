@@ -21,9 +21,6 @@ private pointer_to_ele1, pointer_to_ele2
 !   pointer_to_slave
 !   pointer_to_lord
 !
-! Module needed:
-!   use bmad_utils_mod
-!
 ! Input:
 !   lat       -- lat_struct: Lattice.
 !   ix_ele    -- Integer: Index of element in lat%branch(ix_branch)

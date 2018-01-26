@@ -63,6 +63,7 @@ subroutine attribute_bookkeeper (ele, param, force_bookkeeping)
 
 use s_fitting, only: check_bend
 use bookkeeper_mod, except_dummy => attribute_bookkeeper
+use xraylib_interface, except_dummy2 => attribute_bookkeeper
 
 implicit none
 

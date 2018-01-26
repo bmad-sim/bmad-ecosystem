@@ -7,16 +7,18 @@
 
 module bmad
 
-  use track1_mod
-  use boris_mod
-  use dynamic_aperture_mod
-  use bookkeeper_mod
-  use radiation_mod
-  use symp_lie_mod
-  use lat_ele_loc_mod
-  use twiss_and_track_mod
+use track1_mod
+use boris_mod
+use dynamic_aperture_mod
+use bookkeeper_mod
+use radiation_mod
+use symp_lie_mod
+use lat_ele_loc_mod
+use twiss_and_track_mod
 
-  ! This is to suppress the ranlib "has no symbols" message
-  integer, private :: private_dummy
+implicit none
+
+! This is to suppress the ranlib "has no symbols" message
+integer, private :: private_dummy
 
 end module
