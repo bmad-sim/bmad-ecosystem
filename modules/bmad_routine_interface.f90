@@ -1177,15 +1177,6 @@ subroutine set_on (key, lat, on_switch, orb)
   logical on_switch
 end subroutine
 
-subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag)
-  import
-  implicit none
-  type (ele_struct) ele
-  character(*) set_string
-  logical err_flag
-  logical, optional :: err_print_flag
-end subroutine
-
 subroutine set_ele_defaults (ele, do_allocate)
   import
   implicit none

@@ -15,6 +15,7 @@ use radiation_mod
 use symp_lie_mod
 use lat_ele_loc_mod
 use twiss_and_track_mod
+use set_ele_attribute_mod
 
 implicit none
 
