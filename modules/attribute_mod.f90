@@ -17,9 +17,9 @@ private check_this_attribute_free
 !
 ! Overloaded function for:
 !   Function attribute_free1 (ix_ele, attrib_name, lat,
-!                                err_print_flag, except_overlay) result (free)
+!                                err_print_flag, except_overlay, ignore_field_master) result (free)
 !   Function attribute_free2 (ele, attrib_name, 
-!                                err_print_flag, except_overlay) result (free)
+!                                err_print_flag, except_overlay, ignore_field_master) result (free)
 !   Function attribute_free3 (ix_ele, ix_branch, attrib_name, lat, 
 !                                err_print_flag, except_overlay) result (free)
 !
@@ -36,16 +36,18 @@ private check_this_attribute_free
 !   use bmad
 !
 ! Input:
-!   ix_ele          -- Integer: Index of element in element array.
-!   ix_branch       -- Integer: Branch index of element. 
-!   ele             -- Ele_struct: Element containing the attribute
-!   attrib_name     -- Character(*): Name of the attribute. Assumed upper case.
-!   lat             -- lat_struct: Lattice structure.
-!   err_print_flag  -- Logical, optional: If present and False then suppress
-!                       printing of an error message if attribute is not free.
-!   except_overlay  -- Logical, optional: If present and True then an attribute that
-!                       is controlled by an overlay will be treated as free. 
-!                       This is used by, for example, the create_overlay routine.
+!   ix_ele                  -- integer: Index of element in element array.
+!   ix_branch               -- integer: Branch index of element. 
+!   ele                     -- ele_struct: Element containing the attribute
+!   attrib_name             -- character(*): Name of the attribute. Assumed upper case.
+!   lat                     -- lat_struct: Lattice structure.
+!   err_print_flag          -- logical, optional: If present and False then suppress
+!                               printing of an error message if attribute is not free.
+!   except_overlay          -- logical, optional: If present and True then an attribute that
+!                               is controlled by an overlay will be treated as free. 
+!                               This is used by, for example, the create_overlay routine.
+!   ignore_fielde_master    -- logical, optional: If present and True then do not mark as not free 
+!                               attributes that are slaved due to the setting of ele%field_master.
 !
 ! Output:
 !   free   -- Logical: Set True if attribtute not found or attriubte
@@ -990,12 +992,12 @@ end subroutine pointer_to_indexed_attribute
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function attribute_free1 (ix_ele, attrib_name, lat, err_print_flag, except_overlay) result (free)
+! Function attribute_free1 (ix_ele, attrib_name, lat, err_print_flag, except_overlay, ignore_field_master) result (free)
 !
 ! This function overloaded by attribute_free. See attribute_free for more details.
 !-
 
-function attribute_free1 (ix_ele, attrib_name, lat, err_print_flag, except_overlay) result (free)
+function attribute_free1 (ix_ele, attrib_name, lat, err_print_flag, except_overlay, ignore_field_master) result (free)
 
 implicit none
 
@@ -1006,15 +1008,14 @@ integer ix_ele
 character(*) attrib_name
 
 logical free, do_print, do_except_overlay
-logical, optional :: err_print_flag, except_overlay
+logical, optional :: err_print_flag, except_overlay, ignore_field_master
 
 !
 
 do_print = logic_option (.true., err_print_flag)
 do_except_overlay = logic_option(.false., except_overlay)
 
-call check_this_attribute_free (lat%ele(ix_ele), attrib_name, lat, &
-                                             do_print, do_except_overlay, free, 0)
+call check_this_attribute_free (lat%ele(ix_ele), attrib_name, lat, do_print, do_except_overlay, ignore_field_master, free, 0)
 
 end function attribute_free1
 
@@ -1022,12 +1023,12 @@ end function attribute_free1
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function attribute_free2 (ele, attrib_name, err_print_flag, except_overlay) result (free)
+! Function attribute_free2 (ele, attrib_name, err_print_flag, except_overlay, ignore_field_master) result (free)
 !
 ! This function overloaded by attribute_free. See attribute_free for more details.
 !-
 
-function attribute_free2 (ele, attrib_name, err_print_flag, except_overlay) result (free)
+function attribute_free2 (ele, attrib_name, err_print_flag, except_overlay, ignore_field_master) result (free)
 
 implicit none
 
@@ -1037,7 +1038,7 @@ type (ele_struct) ele
 character(*) attrib_name
 
 logical free, do_print, do_except_overlay
-logical, optional :: err_print_flag, except_overlay
+logical, optional :: err_print_flag, except_overlay, ignore_field_master
 
 character(16) :: r_name = 'attribute_free'
 
@@ -1053,7 +1054,7 @@ endif
 do_print = logic_option (.true., err_print_flag)
 do_except_overlay = logic_option(.false., except_overlay)
 
-call check_this_attribute_free (ele, attrib_name, ele%branch%lat, do_print, do_except_overlay, free, 0)
+call check_this_attribute_free (ele, attrib_name, ele%branch%lat, do_print, do_except_overlay, ignore_field_master, free, 0)
 
 end function attribute_free2
 
@@ -1062,13 +1063,13 @@ end function attribute_free2
 !--------------------------------------------------------------------------
 !+
 ! Function attribute_free3 (ix_ele, ix_branch, attrib_name, lat, 
-!                                                 err_print_flag, except_overlay) result (free)
+!                                         err_print_flag, except_overlay, ignore_field_master) result (free)
 !
 ! This function overloaded by attribute_free. See attribute_free for more details.
 !-
 
 function attribute_free3 (ix_ele, ix_branch, attrib_name, lat, &
-                                                  err_print_flag, except_overlay) result (free)
+                                            err_print_flag, except_overlay, ignore_field_master) result (free)
 
 implicit none
 
@@ -1078,7 +1079,7 @@ integer ix_ele, ix_branch
 character(*) attrib_name
 
 logical free, do_print, do_except_overlay
-logical, optional :: err_print_flag, except_overlay
+logical, optional :: err_print_flag, except_overlay, ignore_field_master
 
 !
 
@@ -1086,7 +1087,7 @@ do_print = logic_option (.true., err_print_flag)
 do_except_overlay = logic_option(.false., except_overlay)
 
 call check_this_attribute_free (lat%branch(ix_branch)%ele(ix_ele), attrib_name, &
-                                             lat, do_print, do_except_overlay, free, 0)
+                                             lat, do_print, do_except_overlay, ignore_field_master, free, 0)
 
 end function attribute_free3
 
@@ -1094,7 +1095,8 @@ end function attribute_free3
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 
-subroutine check_this_attribute_free (ele, attrib_name, lat, do_print, do_except_overlay, free, ix_recursion, ix_lord)
+subroutine check_this_attribute_free (ele, attrib_name, lat, do_print, do_except_overlay, &
+                                                                      ignore_field_master, free, ix_recursion, ix_lord)
 
 implicit none
 
@@ -1112,7 +1114,7 @@ integer, optional :: ix_lord
 character(*) attrib_name
 character(40) a_name
 
-logical free, do_print, do_except_overlay, err_flag
+logical free, do_print, do_except_overlay, ignore_field_master, err_flag
 
 !
 
@@ -1234,7 +1236,8 @@ case ('FIELD_SCALE', 'PHI0_FIELDMAP', 'CSR_CALC_ON')
 case ('E_TOT', 'P0C')
   if (ele%key == beginning_ele$) return
 
-  if (ele%lord_status == multipass_lord$ .and. .not. ele%field_master .and. ele%value(n_ref_pass$) == 0) then
+  if (.not. logic_option(.false., ignore_field_master) .and. ele%lord_status == multipass_lord$ .and. &
+                                                     .not. ele%field_master .and. ele%value(n_ref_pass$) == 0) then
     select case (ele%key)
     case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
           hkicker$, vkicker$, kicker$, ac_kicker$, elseparator$, bend_sol_quad$, lcavity$, rfcavity$)
@@ -1254,8 +1257,10 @@ select case (ele%key)
 case (sbend$)
   if (any(ix_attrib == [angle$, l_chord$, rho$])) free = .false.
 case (rfcavity$)
-  if (ix_attrib == rf_frequency$ .and. ele%field_master) free = .false.
-  if (ix_attrib == harmon$ .and. .not. ele%field_master) free = .false.
+  if (.not. logic_option(.false., ignore_field_master)) then
+    if (ix_attrib == rf_frequency$ .and. ele%field_master) free = .false.
+    if (ix_attrib == harmon$ .and. .not. ele%field_master) free = .false.
+  endif
   if (ix_attrib == gradient$) free = .false.
 case (lcavity$)
   if (ix_attrib == voltage$ .and. ele%value(l$) /= 0) free = .false.
@@ -1267,19 +1272,21 @@ end select
 if (ele%key == sbend$ .and. ele%lord_status == multipass_lord$ .and. &
     ele%value(n_ref_pass$) == 0 .and. ix_attrib == p0c$) free = .true.
 
-if (.not.free) then
+if (.not. free) then
   call it_is_not_free (ele, ix_attrib, 'THE ATTRIBUTE IS A DEPENDENT VARIABLE.')
   return
 endif
 
 ! field_master on means that the b_field and bn_gradient values control the strength.
 
-free = field_attribute_free (ele, a_name)
-if (.not. free) then
-  call it_is_not_free (ele, ix_attrib, &
-       "THE ATTRIBUTE IS A DEPENDENT VARIABLE SINCE", &
-       "THE ELEMENT'S FIELD_MASTER IS " // on_off_logic (ele%field_master))
-  return
+if (.not. logic_option(.false., ignore_field_master)) then
+  free = field_attribute_free (ele, a_name)
+  if (.not. free) then
+    call it_is_not_free (ele, ix_attrib, &
+         "THE ATTRIBUTE IS A DEPENDENT VARIABLE SINCE", &
+         "THE ELEMENT'S FIELD_MASTER IS " // on_off_logic (ele%field_master))
+    return
+  endif
 endif
 
 !-------------------------------------------------------
