@@ -250,7 +250,13 @@ end do
 
 ! Did not get to end
 
-call out_io (s_warn$, r_name, 'STEPS EXCEEDED MAX_STEP FOR ELE: '//ele%name )
+call out_io (s_error$, r_name, 'STEP SIZE IS TOO SMALL OR TOO MANY STEPS WHILE TRACKING THROUGH: ' // ele%name, &
+                               'AT (X,Y,Z,T) POSITION FROM ENTRANCE: \4F12.7\ ', &
+                               'TYPICALLY THIS IS DUE TO THE FIELD NOT OBEYING MAXWELL''S EQUATIONS.', &
+                               'OFTEN TIMES THE FIELD IS NOT EVEN CONTINUOUS!', &
+                               'THE PARTICLE WILL BE MARKED AS LOST.', &
+                               r_array = [orb%vec(1), orb%vec(3), s_body, orb%t])
+
 orb%location = inside$
 orb%state = lost$
 
@@ -384,10 +390,15 @@ do
   t_new = rf_time + dt
 
   if (t_new == rf_time) then ! Can only happen if dt is very small
+    call out_io (s_error$, r_name, 'STEPSIZE UNDERFLOW IN ELEMENT: ' // ele%name, &
+                                   'AT (X,Y,Z,T) POSITION FROM ENTRANCE: \4F12.7\ ', &
+                                   'TYPICALLY THIS IS DUE TO THE FIELD NOT OBEYING MAXWELL''S EQUATIONS.', &
+                                   'OFTEN TIMES THE FIELD IS NOT EVEN CONTINUOUS!', &
+                                   'THE PARTICLE WILL BE MARKED AS LOST.', &
+                                   r_array = [orb%vec(1), orb%vec(3), orb%vec(5), orb%t])
     err_flag = .true.
-    call out_io (s_fatal$, r_name, 'STEPSIZE UNDERFLOW IN ELEMENT: ' // ele%name, &
-                  'CURRENT POSITION (TIME UNITS): \6es16.8\, \es16.8\ ', r_array = [orb%vec, orb%t])
-    if (global_com%exit_on_error) call err_exit
+    orb%location = inside$
+    orb%state = lost$
     return
   endif
 
