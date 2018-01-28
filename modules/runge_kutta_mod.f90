@@ -242,9 +242,11 @@ if (sqrt(orbit%vec(2)**2 + orbit%vec(4)**2) / (1 + orbit%vec(6)) > 0.9) then
   orbit%state = lost_pz_aperture$
 else
   call out_io (s_error$, r_name, 'STEP SIZE IS TOO SMALL OR TOO MANY STEPS WHILE TRACKING THROUGH: ' // ele%name, &
-                                 'AT S-POSITION FROM ENTRANCE: \F10.5\ ', &
-                                 'COULD BE DUE TO A DISCONTINUITY IN THE FIELD ', &
-                                 r_array = [s_body])
+                                 'AT (X,Y,Z) POSITION FROM ENTRANCE: \3F12.7\ ', &
+                                 'TYPICALLY THIS IS DUE TO THE FIELD NOT OBEYING MAXWELL''S EQUATIONS.', &
+                                 'OFTEN TIMES THE FIELD IS NOT EVEN CONTINUOUS!', &
+                                 'THE PARTICLE WILL BE MARKED AS LOST.', &
+                                 r_array = [orbit%vec(1), orbit%vec(3), s_body])
   orbit%state = lost$
 endif
 
@@ -346,8 +348,13 @@ do
 
   if (s + ds == s) then
     err_flag = .true.
-    call out_io (s_fatal$, r_name, 'STEPSIZE UNDERFLOW IN ELEMENT: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
+    call out_io (s_error$, r_name, 'STEPSIZE UNDERFLOW IN ELEMENT: ' // ele%name, &
+                                   'AT (X,Y,Z) POSITION FROM ENTRANCE: \3F12.7\ ', &
+                                   'TYPICALLY THIS IS DUE TO THE FIELD NOT OBEYING MAXWELL''S EQUATIONS.', &
+                                   'OFTEN TIMES THE FIELD IS NOT EVEN CONTINUOUS!', &
+                                   'THE PARTICLE WILL BE MARKED AS LOST.', &
+                                   r_array = [orb%vec(1), orb%vec(3), s])
+    orb%state = lost$
     return
   endif
 end do
