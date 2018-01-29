@@ -2,4 +2,4 @@ initial_population_size 300
 parent_set_size 150
 offspring_set_size 150
 objectives 3
-constraints 5
+constraints 7
