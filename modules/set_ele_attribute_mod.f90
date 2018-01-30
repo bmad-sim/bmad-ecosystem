@@ -143,7 +143,7 @@ character(40) a_name
 !
 
 err_flag = .true.
-call str_upcase (attrib_name, a_name)
+call str_upcase (a_name, attrib_name)
 if (.not. attribute_free (ele, a_name, err_print_flag, ignore_field_master = .true.)) return
 
 call pointer_to_attribute (ele, attrib_name, .true., a_ptr, err_flag)

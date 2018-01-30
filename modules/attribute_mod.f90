@@ -4,9 +4,6 @@ use basic_attribute_mod
 use multipole_mod
 use lat_ele_loc_mod
 
-type(ele_struct), private, pointer, save :: ele0 ! For Error message purposes
-character(40), private, save :: attrib_name0     ! For Error message purposes
-
 private check_this_attribute_free
 
 !--------------------------------------------------------------------------
@@ -1015,7 +1012,7 @@ logical, optional :: err_print_flag, except_overlay, ignore_field_master
 do_print = logic_option (.true., err_print_flag)
 do_except_overlay = logic_option(.false., except_overlay)
 
-call check_this_attribute_free (lat%ele(ix_ele), attrib_name, lat, do_print, do_except_overlay, ignore_field_master, free, 0)
+call check_this_attribute_free (lat%ele(ix_ele), attrib_name, lat, do_print, do_except_overlay, ignore_field_master, free)
 
 end function attribute_free1
 
@@ -1054,7 +1051,7 @@ endif
 do_print = logic_option (.true., err_print_flag)
 do_except_overlay = logic_option(.false., except_overlay)
 
-call check_this_attribute_free (ele, attrib_name, ele%branch%lat, do_print, do_except_overlay, ignore_field_master, free, 0)
+call check_this_attribute_free (ele, attrib_name, ele%branch%lat, do_print, do_except_overlay, ignore_field_master, free)
 
 end function attribute_free2
 
@@ -1087,7 +1084,7 @@ do_print = logic_option (.true., err_print_flag)
 do_except_overlay = logic_option(.false., except_overlay)
 
 call check_this_attribute_free (lat%branch(ix_branch)%ele(ix_ele), attrib_name, &
-                                             lat, do_print, do_except_overlay, ignore_field_master, free, 0)
+                                             lat, do_print, do_except_overlay, ignore_field_master, free)
 
 end function attribute_free3
 
@@ -1096,7 +1093,7 @@ end function attribute_free3
 !--------------------------------------------------------------------------
 
 subroutine check_this_attribute_free (ele, attrib_name, lat, do_print, do_except_overlay, &
-                                                                      ignore_field_master, free, ix_recursion, ix_lord)
+                                                                      ignore_field_master, free, ix_lord)
 
 implicit none
 
@@ -1108,7 +1105,7 @@ type (ele_attribute_struct) attrib_info
 type (control_struct), pointer :: control
 type (all_pointer_struct) a_ptr
 
-integer ix_branch, ix_recursion, i, ir, ix_attrib, ix, ic
+integer ix_branch, i, ir, ix_attrib, ix, ic
 integer, optional :: ix_lord
 
 character(*) attrib_name
@@ -1121,11 +1118,6 @@ logical free, do_print, do_except_overlay, ignore_field_master, err_flag
 free = .true.
 
 branch => lat%branch(ele%ix_branch)
-
-if (ix_recursion == 0) then
-  ele0 => branch%ele(ele%ix_ele)
-  attrib_name0 = attrib_name
-endif
 
 ! Init & check that the name corresponds to an attribute
 
@@ -1143,11 +1135,10 @@ if (attrib_info%type == does_not_exist$) then
   ! Calculated quantities like the Twiss function do not have an entry in the attribute table but
   ! pointer_to_attribute will return a pointer.
   ! Note: Something like beginning element beta_a do have an entry in the attribute table. 
-  ! Note: This information should be pushed to the attribute_info function.
   select case (attrib_name)
   case ('ALPHA_A', 'ALPHA_B', 'BETA_A', 'BETA_B', 'PHI_A', 'PHI_B', 'DPHI_A', 'DPHI_B', &
         'ETA_A', 'ETAP_A', 'ETA_B', 'ETAP_B')
-    call it_is_not_free (ele, ix_attrib, 'THIS ATTRIBUTE IS NOT FREE TO VARY.')
+    call it_is_not_free (ele, ix_attrib, 'THIS ATTRIBUTE IS A COMPUTED PARAMETER.')
   case default
     ! Something like 'cartesian_map(1)%field_scale' does not have an attribute index
     call pointer_to_attribute (ele, attrib_name, .true., a_ptr, err_flag, .false.)
@@ -1161,8 +1152,7 @@ endif
 
 if (ele%key == overlay$ .or. ele%key == group$) then
   if (all(attrib_name /= ele%control_var%name)) then
-    call it_is_not_free (ele, ix_attrib, &
-                     'FOR THIS OVERLAY ELEMENT THE ATTRIBUTE TO VARY IS: ' // ele%component_name)
+    call it_is_not_free (ele, ix_attrib, 'IT IS NOT A VALID CONTROL VARIABLE')
   endif
   return
 endif
@@ -1170,7 +1160,7 @@ endif
 ! Here if checking something that is not an overlay or group lord... 
 
 if (attrib_info%type == dependent$) then
-  call it_is_not_free (ele, ix_attrib, 'THIS ATTRIBUTE CANNOT BE VARIED.')
+  call it_is_not_free (ele, ix_attrib, 'THIS IS A DEPENDENT ATTRIBUTE.')
   return
 endif
 
@@ -1202,7 +1192,8 @@ if (ele%slave_status == super_slave$) then
   select case (a_name)
   case ('L', 'CSR_CALC_ON')
   case default
-    call it_is_not_free (ele, ix_attrib, 'THIS ELEMENT IS A SUPER_SLAVE.')
+    call it_is_not_free (ele, ix_attrib, 'THIS ELEMENT IS A SUPER_SLAVE.', &
+                                         '[ATTRIBUTES OF SUPER_SLAVE ELEMENTS ARE GENERALLY NOT FREE TO VARY.]')
   end select
   return
 endif
@@ -1219,7 +1210,9 @@ if (ele%slave_status == multipass_slave$) then
     lord => pointer_to_lord(ele, 1)
   end select
 
-  call it_is_not_free (ele, ix_attrib, 'THIS ELEMENT IS A MULTIPASS_SLAVE.')
+  call it_is_not_free (ele, ix_attrib, 'THIS ELEMENT IS A MULTIPASS_SLAVE.', &
+                                       '[ATTRIBUTES OF MULTIPASS_SLAVE ELEMENTS ARE GENERALLY NOT FREE TO VARY.]')
+
   return
 endif
 
@@ -1245,7 +1238,7 @@ case ('E_TOT', 'P0C')
     end select
   endif
 
-  call it_is_not_free (ele, ix_attrib, 'THIS ATTRIBUTE CANNOT BE VARIED.')
+  call it_is_not_free (ele, ix_attrib, 'THIS IS A DEPENDENT ATTRIBUTE.')
   return
 end select
 
@@ -1273,7 +1266,7 @@ if (ele%key == sbend$ .and. ele%lord_status == multipass_lord$ .and. &
     ele%value(n_ref_pass$) == 0 .and. ix_attrib == p0c$) free = .true.
 
 if (.not. free) then
-  call it_is_not_free (ele, ix_attrib, 'THE ATTRIBUTE IS A DEPENDENT VARIABLE.')
+  call it_is_not_free (ele, ix_attrib, 'THIS IS A DEPENDENT ATTRIBUTE.')
   return
 endif
 
@@ -1283,8 +1276,8 @@ if (.not. logic_option(.false., ignore_field_master)) then
   free = field_attribute_free (ele, a_name)
   if (.not. free) then
     call it_is_not_free (ele, ix_attrib, &
-         "THE ATTRIBUTE IS A DEPENDENT VARIABLE SINCE", &
-         "THE ELEMENT'S FIELD_MASTER IS " // on_off_logic (ele%field_master))
+         "THIS IS A DEPENDENT ATTRIBUTE SINCE", &
+         "THE ELEMENT'S FIELD_MASTER IS SET TO: " // on_off_logic (ele%field_master))
     return
   endif
 endif
@@ -1301,7 +1294,7 @@ integer ix_attrib, nl
 character(*) l1
 character(*), optional :: l2
 character(100) li(8)
-character (20) :: r_name = 'attribute_free'
+character(*), parameter :: r_name = 'attribute_free'
 
 !
 
@@ -1311,17 +1304,9 @@ if (.not. do_print) return
 
 nl = 0
 
-nl=nl+1; li(nl) =   'THE ATTRIBUTE: ' // attrib_name0
-nl=nl+1; li(nl) =   'OF THE ELEMENT: ' // ele0%name
-
-if (ele%ix_branch == 0 .and. ele%ix_ele == ele0%ix_ele) then
-  nl=nl+1; li(nl) = 'IS NOT FREE TO VARY SINCE:'
-else 
-  nl=nl+1; li(nl) = 'IS NOT FREE TO VARY SINCE IT IS TRYING TO CONTROL:'
-  nl=nl+1; li(nl) = 'THE ATTRIBUTE: ' // attrib_name0
-  nl=nl+1; li(nl) = 'OF THE ELEMENT: ' // ele%name
-  nl=nl+1; li(nl) = 'AND THIS IS NOT FREE TO VARY SINCE'
-endif
+nl=nl+1; li(nl) =   'THE ATTRIBUTE: ' // attrib_name
+nl=nl+1; li(nl) =   'OF THE ELEMENT: ' // ele%name
+nl=nl+1; li(nl) = 'IS NOT FREE TO VARY SINCE:'
 
 nl=nl+1; li(nl) = l1
 if (present(l2)) then
