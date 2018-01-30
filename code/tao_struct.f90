@@ -570,7 +570,8 @@ type tao_global_struct
   logical :: derivative_uses_design = .false.     ! Derivative calc uses design lattice instead of model?
   logical :: orm_analysis = .false.               ! orm using mdsa? 
   logical :: plot_on = .true.                     ! Do plotting?
-  logical :: lattice_calc_on = .true.             ! Turn on/off calculations.
+  logical :: lattice_calc_on = .true.             ! Turn on/off beam and single particle calculations.
+  logical :: twiss_calc_on = .true.               ! Turn on/off Twiss calculations.
   logical :: svd_retreat_on_merit_increase = .true.
   logical :: stop_on_error = .true.               ! For debugging: True prevents tao from exiting on an error.
   logical :: command_file_print_on = .true.       ! print to terminal when using a cmd file?

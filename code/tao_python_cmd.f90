@@ -617,6 +617,7 @@ case ('global')
   nl=incr(nl); write (li(nl), lmt) 'orm_analysis;LOGIC;T;',                   s%global%orm_analysis
   nl=incr(nl); write (li(nl), lmt) 'plot_on;LOGIC;T;',                        s%global%plot_on
   nl=incr(nl); write (li(nl), lmt) 'lattice_calc_on;LOGIC;T;',                s%global%lattice_calc_on
+  nl=incr(nl); write (li(nl), lmt) 'twiss_calc_on;LOGIC;T;',                  s%global%twiss_calc_on
   nl=incr(nl); write (li(nl), lmt) 'svd_retreat_on_merit_increase;LOGIC;T;',  s%global%svd_retreat_on_merit_increase
   nl=incr(nl); write (li(nl), lmt) 'stop_on_error;LOGIC;T;',                  s%global%stop_on_error
   nl=incr(nl); write (li(nl), lmt) 'command_file_print_on;LOGIC;T;',          s%global%command_file_print_on

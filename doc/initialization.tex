@@ -343,7 +343,7 @@ The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{plot_on}\index{opt_with_ref}\index{opt_with_base}
 \index{single_mode}\index{lm_opt_deriv_reinit}
 \index{label_lattice_elements}\index{label_keys}\index{derivative_recalc}
-\index{lattice_calc_on}\index{command_file_print_on}
+\index{lattice_calc_on}\index{command_file_print_on}\index{twiss_calc_on}
 \index{print_command}\index{default_init_file}\index{derivative_uses_design}
 \index{current_init_file}\index{var_out_file}\index{draw_curve_off_scale_warn}
 \begin{example}
@@ -381,7 +381,8 @@ type tao_global_struct
                                         !   curve is out-of-bounds
   logical label_lattice_elements = T    ! For lat_layout plots
   logical label_keys = T                ! For lat_layout plots
-  logical lattice_calc_on = T           ! Master switch.
+  logical lattice_calc_on = T           ! Turn on/off beam and single particle calculations.
+  logical twiss_calc_on = T             ! Turn on/off Twiss calculations.
   logical opt_with_ref = F              ! use reference data in optimization?
   logical opt_with_base = F             ! use base data in optimization?
   logical optimizer_var_limit_warn = T  ! Warn when vars reach a limit when optimizing?
@@ -417,13 +418,14 @@ curves'' used in plotting.  This can be used to speed up \tao as discussed in
 \sref{s:plot.data}.
 
   \item{\vn{global%lattice_calc_on}} \Newline
-\vn{global%lattice_calc_on} controls whether lattice calculations are done. This switch is
-useful in controlling unnecessary calculational overhead.  A typical scenario where this
-switch is used involves first setting \vn{%lattice_calc_on} to \vn{False} (using the
-\vn{set} command (\sref{s:set})), then executing a set of commands, and finally setting
-\vn{%lattice_calc_on} back to \vn{True}. This saves some of the calculational overhead
-that each command generates. Similarly, \vn{global%plot_on} can be toggled to save even
-more time.
+\vn{global%lattice_calc_on} controls whether lattice calculations are done when there are changes in
+the lattice. Lattice calculations include the calculation of orbits, Twiss parameters, beam
+tracking, etc. This switch is useful in controlling unnecessary calculational overhead.  A typical
+scenario where this switch is used involves first setting \vn{%lattice_calc_on} to \vn{False} (using
+the \vn{set} command (\sref{s:set})), then executing a set of commands, and finally setting
+\vn{%lattice_calc_on} back to \vn{True}. This saves some of the calculational overhead that each
+command generates. Similarly, \vn{global%plot_on} can be toggled to save even more time. Also see
+\vn{global%twiss_calc_on}.
 
   \item{\vn{global%merit_stop_value}} \Newline
 The \vn{global%merit_stop_value} establishes a point such that, during optimization, if
@@ -486,6 +488,13 @@ The setting of the \vn{global%track_type} parameter can be
 The \vn{"single"} setting is used when single particle tracking is desired and \vn{"beam"}
 is used when tracking with a beam of particles. Note that with \vn{"single"} tracking,
 synchrotron radiation fluctuations (but not damping) is always turned off.
+
+  \item{\vn{global%twiss_calc_on}} \Newline
+\vn{global%twiss_calc_on} controls whether the calculation of the Twiss parameters is done when
+there are changes in the lattice. The default is \vn{True}. Setting this parameter to \vn{False} is
+useful in speeding up calculations if only recalculation of the orbit is needed. Note that if
+\vn{global%lattice_calc_on} is set to \vn{False} then no Twiss (or other lattice) calculations are
+done irregardless of the setting of \vn{global%twiss_calc_on}.
 
   \item{\vn{global%var_limits_on}} \Newline
 The \vn{global%var_limits_on} switch controls whether a variable's model value is limited
