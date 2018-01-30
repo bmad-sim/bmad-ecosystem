@@ -115,6 +115,7 @@ do
   if (line(1:10) == '\centering')  cycle
   if (line(1:8)  == '\caption')    cycle
   if (line(1:6)  == '\vskip')      cycle
+  if (index(line, '\index{') /= 0)  cycle
 
   if (left_over_eliminate /= '') then
     ix = index(line, trim(left_over_eliminate))

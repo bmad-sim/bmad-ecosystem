@@ -29,7 +29,11 @@ case ('start')
 
 case ('read')
   call run_timer ('READ', dtime)
-  call out_io (s_info$, r_name, 'Time (sec): \f10.0\ ', dtime)
+  if (dtime > 1000) then
+    call out_io (s_info$, r_name, 'Time (min): \f11.2\ ', dtime/60)
+  else
+    call out_io (s_info$, r_name, 'Time (sec): \f11.1\ ', dtime)
+  endif
 
 case ('beam')
   s%global%beam_timer_on = .not. s%global%beam_timer_on
