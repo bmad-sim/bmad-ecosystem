@@ -34,7 +34,7 @@
 !   err_flag -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
-subroutine em_field_custom (ele, param, s_rel, orb, local_ref_frame, field, calc_dfield, err_flag)
+recursive subroutine em_field_custom (ele, param, s_rel, orb, local_ref_frame, field, calc_dfield, err_flag)
 
 use geometry_mod, except_dummy => em_field_custom
 use em_field_mod, except_dummy2 => em_field_custom
