@@ -139,7 +139,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
         else
           call out_io (s_error$, r_name, &
               'CANNOT INJECT BEAM. WILL NOT TRACK BEAM FOR BRANCH \i0\ ', i_array = [ib])
-        endif      
+        endif
         tao_branch%bunch_params(:)%n_particle_lost_in_ele = 0
         tao_branch%bunch_params(:)%n_particle_live = 0
         exit
@@ -423,6 +423,8 @@ if (u%calc%track) then
 endif
 
 ! Twiss
+
+if (.not. s%global%twiss_calc_on) return
 
 if (u%calc%mat6 .and. branch%param%particle /= photon$) then
   do i = 1, ix_lost - 1

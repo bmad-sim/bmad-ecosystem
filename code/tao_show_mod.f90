@@ -1439,6 +1439,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %command_file_print_on         = ', s%global%command_file_print_on
     nl=nl+1; write(lines(nl), lmt) '  %disable_smooth_line_calc      = ', s%global%disable_smooth_line_calc
     nl=nl+1; write(lines(nl), lmt) '  %lattice_calc_on               = ', s%global%lattice_calc_on
+    nl=nl+1; write(lines(nl), lmt) '  %twiss_calc_on                 = ', s%global%twiss_calc_on
     nl=nl+1; write(lines(nl), lmt) '  %plot_on                       = ', s%global%plot_on
     nl=nl+1; write(lines(nl), lmt) '  %rf_on                         = ', s%global%rf_on
     nl=nl+1; write(lines(nl), lmt) '  %wait_for_CR_in_single_mode    = ', s%global%wait_for_CR_in_single_mode
