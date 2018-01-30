@@ -1,5 +1,6 @@
 !+
-! Subroutine em_field_custom (ele, param, s_rel, orbit, local_ref_frame, field, calc_dfield, err_flag, calc_potential, grid_allow_s_out_of_bounds, rf_time)
+! Subroutine em_field_custom (ele, param, s_rel, orbit, local_ref_frame, field, calc_dfield, err_flag, &
+!                                     calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
 !
 ! Routine for handling custom (user supplied) EM fields.
 ! This routine is called when ele%field_calc = custom$ or when ele is a custom element (ele%key = custom$)
@@ -27,6 +28,7 @@
 !                          respect to the frame of referene of the element. 
 !   calc_dfield      -- Logical, optional: If present and True then the field 
 !                          derivative matrix is wanted by the calling program.
+!   use_overlap      -- logical, optional: Add in overlap fields from other elements? Default is True.
 !   calc_potential   -- logical, optional: Calc electric and magnetic potentials? Default is false. 
 !   grid_allow_s_out_of_bounds 
 !                    -- logical, optional: For grids, allow s-coordinate to be grossly out of bounds 
@@ -34,13 +36,16 @@
 !   rf_time          -- real(rp), optional: Set the time relative to the RF clock. Normally this time is calculated using
 !                          orbit%t or orbit%vec(5) but sometimes it is convenient to be able to override this.
 !                          For example, time_runge_kutta uses this.
+!   used_eles(:)     -- ele_pointer_struct, allocatable, optional: For use if this routine is called recursively. 
+!                          This argument should be passed back to em_field_calc if em_field calc is called by this routine.
 !
 ! Output:
 !   field    -- Em_field_struct: Structure hoding the field values.
 !   err_flag -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
-subroutine em_field_custom (ele, param, s_rel, orbit, local_ref_frame, field, calc_dfield, err_flag, calc_potential, grid_allow_s_out_of_bounds, rf_time)
+recursive subroutine em_field_custom (ele, param, s_rel, orbit, local_ref_frame, field, calc_dfield, err_flag, &
+                                         calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
 
 use bmad_struct
 use bmad_interface, except_dummy => em_field_custom
@@ -51,12 +56,13 @@ type (ele_struct) :: ele
 type (lat_param_struct) param
 type (coord_struct), intent(in) :: orbit
 type (em_field_struct) :: field
+type (ele_pointer_struct), allocatable, optional :: used_eles(:)
 
 real(rp), intent(in) :: s_rel
 real(rp), optional :: rf_time
 
 logical local_ref_frame
-logical, optional :: calc_dfield, err_flag, calc_potential, grid_allow_s_out_of_bounds
+logical, optional :: calc_dfield, err_flag, calc_potential, grid_allow_s_out_of_bounds, use_overlap
 
 character(*), parameter :: r_name = 'em_field_custom'
 

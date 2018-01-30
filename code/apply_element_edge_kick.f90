@@ -45,7 +45,7 @@ type (coord_struct) orb
 type (lat_param_struct) param
 type (em_field_struct) field
 type (fringe_edge_info_struct) fringe_info
-type (ele_struct), pointer :: hard_ele
+type (ele_struct), pointer :: hard_ele, lord
 
 real(rp), optional :: mat6(6,6), rf_time
 real(rp) f, l_drift, ks4, s_edge, s, phi, omega(3), pc, z_saved, beta_ref, ds
@@ -53,6 +53,7 @@ real(rp) a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
 complex(rp) xiy, c_vec
 
 integer physical_end, dir, i, fringe_at, at_sign, sign_z_vel, particle_at, ix_elec_max
+integer hard_ele_field_calc
 
 logical, optional :: make_matrix, apply_sol_fringe
 logical finished, track_spin, track_spn
@@ -86,6 +87,12 @@ else
   endif
 endif
 
+hard_ele_field_calc = hard_ele%field_calc
+if (hard_ele_field_calc == refer_to_lords$) then
+  lord => pointer_to_lord(hard_ele, 1)
+  hard_ele_field_calc = lord%field_calc
+endif
+
 ! Custom edge kick?
 
 call apply_element_edge_kick_hook (orb, fringe_info, track_ele, param, finished, mat6, make_matrix, rf_time)
@@ -108,7 +115,7 @@ sign_z_vel = orb%direction * track_ele%orientation
 
 ! Edge field when %field_calc = fieldmap$
 
-if (track_ele%field_calc == fieldmap$ .and. track_ele%tracking_method /= bmad_standard$) then
+if (hard_ele_field_calc /= bmad_standard$ .and. hard_ele%tracking_method /= bmad_standard$) then
   call electric_longitudinal_fringe()
   return
 endif
@@ -118,7 +125,6 @@ endif
 ! Only need this section when the field_calc or tracking is bmad_standard.
 ! Note: track_ele, if a slave, will have track_ele%field_calc = refer_to_lords$.
 
-if (hard_ele%field_calc /= bmad_standard$ .and. hard_ele%tracking_method /= bmad_standard$) return
 if (hard_ele%key == e_gun$ .and. physical_end == entrance_end$) return ! E_gun does not have an entrance kick
 
 ! Static electric longitudinal field
@@ -230,7 +236,7 @@ logical err_flag
 
 ! Multipole fringe
 
-if (hard_ele%field_calc == bmad_standard$) then
+if (hard_ele_field_calc == bmad_standard$) then
   if (ix_elec_max > -1) then
     f = at_sign * charge_of(orb%species) 
 
@@ -260,7 +266,7 @@ endif
 
 ! DC fieldmap fringe. 
 
-if (hard_ele%field_calc == fieldmap$ .and. hard_ele%tracking_method /= bmad_standard$) then
+if (hard_ele_field_calc /= bmad_standard$ .and. hard_ele%tracking_method /= bmad_standard$) then
   f = at_sign * charge_of(orb%species) 
   call em_field_calc(hard_ele, param, s_edge, orb, .true., field, .false., err_flag, .true.)
   call apply_energy_kick (-f * field%phi, orb, f * field%E(1:2), mat6, make_matrix)

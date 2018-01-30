@@ -237,7 +237,8 @@ endif
 ! Custom field calc 
 
 if (ele%field_calc == custom$) then
-  call em_field_custom (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag, calc_potential, grid_allow_s_out_of_bounds, rf_time)
+  call em_field_custom (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag, &
+                                      calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
   return
 end if
 
