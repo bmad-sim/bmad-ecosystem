@@ -18,7 +18,7 @@
 !   attrib_name     -- Character(40): Name of attribute. Must be uppercase.
 !                       For example: "HKICK".
 !   err_print_flag  -- Logical, optional: If present and True then print an error message if there is an  error.
-!   err_value       -- real(rp), optional: Value to set value argument if there is an error. Default is real_garbage$.
+!   err_value       -- real(rp), optional: Value to set value argument if there is an error. Default is 0.
 !
 ! Output:
 !   value      -- real(rp): Value of the attribute. Set to err_value if not found.
@@ -49,7 +49,7 @@ call pointer_to_attribute (ele, attrib_name, .true., a_ptr, err, logic_option(.f
 if (present(err_flag)) err_flag = err
 
 if (err) then
-  value = real_option(real_garbage$, err_value)
+  value = real_option(0.0_rp, err_value)
 else
   value = value_of_all_ptr(a_ptr)
 endif

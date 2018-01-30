@@ -306,7 +306,15 @@ if (.not. err_found) then
   do i = 1, size(list)
     p_name = list(i)
     ix = index(p_name, '=')
-    call set_custom_attribute_name(p_name(1:ix-1), p_name(ix+1:), err)
+
+    read(p_name(17:ix-1), *, iostat = ios) k
+    if (ios /= 0) then
+      call out_io(s_error$, r_name, 'ERROR PARSING CUSTOM_ATTRIBUTE: ' // p_name)
+      close (d_unit)
+      return
+    endif
+
+    call set_custom_attribute_name(p_name(ix+1:), err, k)
     if (err) err_found = .true.
   enddo
 endif
@@ -404,13 +412,6 @@ return
 
 9070  continue
 call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE BRANCH DATA.')
-close (d_unit)
-return
-
-!--------------------------------------------------------------
-
-9080  continue
-call out_io(s_error$, r_name, 'ERROR READING DIGESTED RANDOM NUMBER STATE.')
 close (d_unit)
 return
 

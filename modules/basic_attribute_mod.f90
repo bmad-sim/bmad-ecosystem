@@ -2378,28 +2378,29 @@ end function has_attribute
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine set_custom_attribute_name (attrib_name, alias_name, err_flag)
+! Subroutine set_custom_attribute_name (custom_name, err_flag, custom_index)
 !
 ! Routine to add custom element attributes to the element attribute name table.
 !
 ! Input:
-!   attrib_name -- Character(*): Name of attribute to define an alias for.
-!   alias_name  -- Character(*): Name of alias. If prefixed by "<class>::" then
-!                    the alias will be set only for that element class. Example:
-!                    "quadrupole::error" will set the alias only for quadrupoles.
+!   custom_name  -- Character(*): Name of the custom attribute. If prefixed by "<class>::" then
+!                    the custom name will be set only for that element class. Example:
+!                    "quadrupole::error" will set the alias custom namefor quadrupoles.
+!   custom_index -- Integer, optional: Index used in assigning where in the ele_struct the custom
+!                     attribute is put. If not present or 0 then the next unused slot is used.
 !
 ! Output:
 !   err_flag    -- Logical: Set True if an error. False otherwise.
 !-
 
-subroutine set_custom_attribute_name (attrib_name, alias_name, err_flag)
+subroutine set_custom_attribute_name (custom_name, err_flag, custom_index)
 
 implicit none
 
-integer n
-character(*) attrib_name, alias_name
-character(40) attrib_str, alias_str 
-character(20) :: r_name = 'set_custom_attribute_name'
+integer, optional :: custom_index
+character(*) custom_name
+character(40) custom_str 
+character(*), parameter :: r_name = 'set_custom_attribute_name'
 logical err_flag
 
 !
@@ -2408,18 +2409,17 @@ if (attribute_array_init_needed) call init_attribute_name_array
 
 err_flag = .false.
 
-attrib_str = upcase(attrib_name)
-alias_str = upcase(alias_name)
+custom_str = upcase(custom_name)
 
-select case(attrib_str)
-case ('CUSTOM_ATTRIBUTE1'); call set_it (custom_attribute1$)
-case ('CUSTOM_ATTRIBUTE2'); call set_it (custom_attribute2$)
-case ('CUSTOM_ATTRIBUTE3'); call set_it (custom_attribute3$)
-case ('CUSTOM_ATTRIBUTE4'); call set_it (custom_attribute4$)
-case ('CUSTOM_ATTRIBUTE5'); call set_it (custom_attribute5$)
+select case(integer_option(0, custom_index))
+case (1); call set_it (custom_attribute1$)
+case (2); call set_it (custom_attribute2$)
+case (3); call set_it (custom_attribute3$)
+case (4); call set_it (custom_attribute4$)
+case (5); call set_it (custom_attribute5$)
 case default
   err_flag = .true.
-  call out_io (s_error$, r_name, 'ATTRIBUTE NAME NOT VALID FOR ALIAS SETUP: ' // attrib_str)
+  call out_io (s_error$, r_name, 'ATTRIBUTE NAME NOT VALID FOR CUSTOM_ATTRIBUTE: ' // custom_name)
 end select
 
 !---------------------------------------------------------------
@@ -2430,25 +2430,25 @@ subroutine set_it (ix_attrib)
 integer ix_attrib, ix, i, key
 character(40) old_attrib, a_str
 
-! If alias_str is of the form "ele_class::alias_name" then need to split string
+! If custom_str is of the form "ele_class::custom_name" then need to split string
 
-a_str = alias_str
+a_str = custom_str
 key = 0
-ix = index(alias_str, '::')
+ix = index(custom_str, '::')
 if (ix /= 0) then
-  a_str = alias_str(ix+2:)
-  key = key_name_to_key_index(alias_str(1:ix-1), .true.)
+  a_str = custom_str(ix+2:)
+  key = key_name_to_key_index(custom_str(1:ix-1), .true.)
   if (key < 1) then
-    call out_io (s_error$, r_name, 'ELEMENT CLASS NOT RECOGNIZED: ' // alias_str)
+    call out_io (s_error$, r_name, 'ELEMENT CLASS NOT RECOGNIZED: ' // custom_name)
     err_flag = .true.
     return
   endif
 endif
 
-! Check alias name for invalid characters
+! Check custom name for invalid characters
 
 if (str_find_first_not_in_set(trim(a_str), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_') > 0) then
-  call out_io (s_error$, r_name, 'ALIAS NAME HAS INVALID CHARACTERS: ' // a_str)
+  call out_io (s_error$, r_name, 'CUSTOM NAME HAS INVALID CHARACTERS: ' // a_str)
   err_flag = .true.
   return
 endif
@@ -2459,7 +2459,7 @@ if (key == 0) then
   old_attrib = attribute_name(null_ele$, ix_attrib)
   if (old_attrib /= null_name$ .and. old_attrib /= a_str) then
     call out_io (s_warn$, r_name, &
-      'A CUSTOM_ATTRIBUTE IS BEING REDEFINED: ' // attrib_str, &
+      'A CUSTOM_ATTRIBUTE IS BEING REDEFINED: ' // custom_name, &
       'FROM: ' // attribute_name(null_ele$, ix_attrib), &
       'TO:   ' // a_str)
   endif
@@ -2478,7 +2478,7 @@ else
   old_attrib = attribute_name(key, ix_attrib)
   if (old_attrib /= null_name$ .and. old_attrib /= attribute_name(null_ele$, ix_attrib) .and. old_attrib /= a_str) then
     call out_io (s_warn$, r_name, &
-      'A CUSTOM_ATTRIBUTE IS BEING REDEFINED: ' // attrib_str, &
+      'A CUSTOM_ATTRIBUTE IS BEING REDEFINED: ' // custom_name, &
       'FOR ELEMENT CLASS: ' // key_name(key), &
       'FROM: ' // old_attrib, &
       'TO:   ' // a_str)
