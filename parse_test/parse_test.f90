@@ -95,7 +95,7 @@ call bmad_parser ('write_parser_test.bmad', lat)
 call pointer_to_attribute (lat%ele(1), 'QQQ', .false., a_ptr, err)
 write (1, '(a, f8.4)')  '"zzz"                                   ABS 0', a_ptr%r
 
-call set_custom_attribute_name('CUSTOM_ATTRIBUTE4', 'CALIB', err)
+call set_custom_attribute_name('CALIB', err, 4)
 ele2%key = overlay$
 call pointer_to_attribute (ele2, 'CALIB', .false., a_ptr, err)
 a_ptr%r = 7
