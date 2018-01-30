@@ -4,7 +4,7 @@ use utilities_mod
 use sim_utils_struct
 
 !+
-! Subroutine re_allocate
+! Subroutine re_allocate (...)
 !
 ! Subroutine to reallocate a 1-dim allocatable array.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -17,7 +17,7 @@ use sim_utils_struct
 ! Note: using exact = False can increase computation speed by
 ! preventing unneccessary deallocations/reallocations.
 !
-! This routine is an overloaded name for: 
+! Note: re_allocate is an overloaded name for: 
 !   Subroutine re_allocate_string (str, n, exact, init_val)
 !   Subroutine re_allocate_var_string (var_str, n, exact, init_val)
 !   Subroutine re_allocate_integer (inte, n, exact, init_val)
@@ -62,7 +62,7 @@ interface re_allocate
 end interface
 
 !+
-! Subroutine re_allocate2
+! Subroutine re_allocate2 (...)
 !
 ! Subroutine to reallocate a 1-dim allocatable array.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -75,7 +75,7 @@ end interface
 ! Note: using exact = False can increase computation speed by
 ! preventing unneccessary deallocations/reallocations.
 !
-! This routine is an overloaded name for: 
+! Note: re_allocate2 is an overloaded name for: 
 !   Subroutine re_allocate2_string (str, n_min, n_max, exact, init_val)
 !   Subroutine re_allocate2_var_string (var_str, n_min, n_max, exact, init_val)
 !   Subroutine re_allocate2_integer (inte, n_min, n_max, exact, init_val)
@@ -124,7 +124,7 @@ interface re_allocate2
 end interface
 
 !+
-! Subroutine re_allocate2d
+! Subroutine re_allocate2d (...)
 !
 ! Subroutine to reallocate a 2-dim allocatable array.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -136,7 +136,7 @@ end interface
 ! Note: using exact = False can increase computation speed by
 ! preventing unneccessary deallocations/reallocations.
 !
-! This routine is an overloaded name for:
+! Note: re_allocate2s is an overloaded name for:
 !   Subroutine re_allocate_string2d (str2, n1, n2, exact, init_val)
 !   Subroutine re_allocate_var_string2d (var_str2, n1, n2, exact, init_val)
 !   Subroutine re_allocate_integer2d (inte2, n1, n2, exact, init_val)
@@ -174,7 +174,7 @@ end interface
 
 !-----------------------------------------
 !+
-! Subroutine re_associate
+! Subroutine re_associate (...)
 !
 ! Subroutine to reassociate a 1-dim allocatable array.
 ! This is modeled after the reassociate functions in Numerical Recipes.
@@ -186,7 +186,7 @@ end interface
 ! Note: using exact = False can increase computation speed by
 ! preventing unneccessary deallocations/reallocations.
 !
-! This routine is an overloaded name for: 
+! Note: re_associate is an overloaded name for: 
 !   Subroutine re_associate_string (str, n, exact, init_val)
 !   Subroutine re_associate_var_string (var_str, n, exact, init_val)
 !   Subroutine re_associate_integer (inte, n, exact, init_val)
