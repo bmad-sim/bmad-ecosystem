@@ -117,7 +117,7 @@ type (spline_struct) spline
 
 real(rp), optional :: rf_time
 real(rp) :: x, y, time, s_pos, s_body, s_lab, s_lab2, z, ff, dk(3,3), ref_charge, f_p0c
-real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), s0, Ex, Ey, amp
+real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), Ex, Ey, amp
 real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, sgn_z, kx, ky, dkm(2,2), cos_ks, sin_ks
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, a_amp
 real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start
@@ -665,7 +665,11 @@ case(fieldmap$)
 
       fld = 0; dfld = 0
 
-      call to_field_map_coords (local_orb, s_body, ct_map%ele_anchor_pt, ct_map%r0, .false., x, y, z)
+      call to_field_map_coords (ele, local_orb, s_body, ct_map%ele_anchor_pt, ct_map%r0, .false., x, y, z, err)
+      if (err) then
+        if (present(err_flag)) err_flag = .true.
+        return
+      endif
 
       n = size(ct_map%ptr%term)
       do i = 1, n
@@ -947,7 +951,11 @@ case(fieldmap$)
 
       if (cl_map%harmonic /= 0) k_t = twopi * freq / c_light
 
-      call to_field_map_coords (local_orb, s_body, cl_map%ele_anchor_pt, cl_map%r0, .false., x, y, z)
+      call to_field_map_coords (ele, local_orb, s_body, cl_map%ele_anchor_pt, cl_map%r0, .false., x, y, z, err)
+      if (err) then
+        if (present(err_flag)) err_flag = .true.
+        return
+      endif
 
       radius = sqrt(x**2 + y**2)
       phi = atan2(y, x)
@@ -1114,7 +1122,11 @@ case(fieldmap$)
         if (ele%key == rfcavity$) t_ref = 0.25/freq0 - t_ref
       endif
 
-      call to_field_map_coords (local_orb, s_body, g_field%ele_anchor_pt, g_field%r0, g_field%curved_ref_frame, x, y, z)
+      call to_field_map_coords (ele, local_orb, s_body, g_field%ele_anchor_pt, g_field%r0, g_field%curved_ref_frame, x, y, z, err)
+      if (err) then
+        if (present(err_flag)) err_flag = .true.
+        return
+      endif
 
       ! DC modes should have g_field%harmonic = 0
 
@@ -1202,7 +1214,11 @@ case(fieldmap$)
 
       fld = 0
 
-      call to_field_map_coords (local_orb, s_body, t_field%ele_anchor_pt, t_field%r0, t_field%curved_ref_frame, x, y, z)
+      call to_field_map_coords (ele, local_orb, s_body, t_field%ele_anchor_pt, t_field%r0, t_field%curved_ref_frame, x, y, z, err)
+      if (err) then
+        if (present(err_flag)) err_flag = .true.
+        return
+      endif
 
       iz0 = lbound(t_field%ptr%plane, 1)
       iz1 = ubound(t_field%ptr%plane, 1)
@@ -1398,15 +1414,67 @@ end subroutine convert_field_ele_to_lab
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine to_field_map_coords (local_orb, s_body, ele_anchor_pt, r0, curved_ref_frame, x, y, z)
+! restore_curvilinear_field(field_a, field_b)
+!
+! For sbend with Grid calculation.
 
+subroutine restore_curvilinear_field(field_a, field_b)
+
+real(rp) temp, field_a(3)
+real(rp), optional :: field_b(3)
+
+! For sbend with Grid calculation Restores x and s_body, and rotates output fields.
+
+if (ele%value(g$) == 0) return
+
+temp       = field_a(3)*cos_ang - field_a(1)*sin_ang
+field_a(1) = field_a(3)*sin_ang + field_a(1)*cos_ang
+field_a(3) = temp
+
+if (present(field_b)) then
+  temp       = field_b(3)*cos_ang - field_b(1)*sin_ang
+  field_b(1) = field_b(3)*sin_ang + field_b(1)*cos_ang
+  field_b(3) = temp 
+endif
+
+end subroutine restore_curvilinear_field
+
+end subroutine em_field_calc 
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine to_field_map_coords (ele, local_orb, s_body, ele_anchor_pt, r0, curved_ref_frame, x, y, z, err_flag)
+!
+! Routine to return the (x,y,s) position relative to a field map.
+!
+! Input:
+!   ele               -- ele_struct: Element being tracked through.
+!   local_orb         -- coord_struct: Particle orbit. Must be in local element coordinates.
+!   s_body            -- real(rp): Longitudinal position relative to the entrance end of the element.
+!   ele_anchor_pt     -- integer: anchor point of the field map (anchor_beginning$, anchor_center$, or anchor_end$).
+!   r0(3)             -- real(rp): origin point of the field_map.
+!   curved_ref_frame  -- logical: If the element is a bend: Does the field map follow the bend reference coords?
+!
+! Outpt:
+!   x, y, z           -- real(rp): Coords relative to the field map.
+!   err_flag          -- logical: Set True if there is an error. False otherwise.
+
+subroutine to_field_map_coords (ele, local_orb, s_body, ele_anchor_pt, r0, curved_ref_frame, x, y, z, err_flag)
+
+type (ele_struct) ele
 type (coord_struct) local_orb
 
-real(rp) :: s_body, r0(3), x, y, z, x_save
+real(rp) :: s_body, r0(3), x, y, z, x_save, s0, cos_ang, sin_ang
 integer ele_anchor_pt
 logical curved_ref_frame
+logical :: err_flag
+
+character(*), parameter :: r_name = 'to_field_map_coords'
 
 !
+
+err_flag = .false.
 
 select case (ele_anchor_pt)
 case (anchor_beginning$); s0 = 0
@@ -1415,7 +1483,7 @@ case (anchor_end$);       s0 = ele%value(l$)
 case default
   call out_io (s_fatal$, r_name, 'BAD ELE_ANCHOR_PT FOR FIELD GRID IN ELEMENT: ' // ele%name)
   if (global_com%exit_on_error) call err_exit
-  if (present(err_flag)) err_flag = .true.
+  err_flag = .true.
   return
 end select
 
@@ -1443,35 +1511,6 @@ y = local_orb%vec(3) - r0(2)
 z = z - r0(3)
 
 end subroutine to_field_map_coords
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! restore_curvilinear_field(field_a, field_b)
-!
-! For sbend with Grid calculation.
-
-subroutine restore_curvilinear_field(field_a, field_b)
-
-real(rp) temp, field_a(3)
-real(rp), optional :: field_b(3)
-
-! For sbend with Grid calculation Restores x and s_body, and rotates output fields.
-
-if (ele%value(g$) == 0) return
-
-temp       = field_a(3)*cos_ang - field_a(1)*sin_ang
-field_a(1) = field_a(3)*sin_ang + field_a(1)*cos_ang
-field_a(3) = temp
-
-if (present(field_b)) then
-  temp       = field_b(3)*cos_ang - field_b(1)*sin_ang
-  field_b(1) = field_b(3)*sin_ang + field_b(1)*cos_ang
-  field_b(3) = temp 
-endif
-
-end subroutine restore_curvilinear_field
-
-end subroutine em_field_calc 
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
