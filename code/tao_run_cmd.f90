@@ -109,8 +109,8 @@ endif
 ! everything but the common universe.
 
 if (s%global%orm_analysis) then
-  s%u(:)%calc%mat6 = .false.
-  s%u(ix_common_uni$)%calc%mat6 = .true.
+  s%u(:)%calc%twiss = .false.
+  s%u(ix_common_uni$)%calc%twiss = .true.
   s%u(:)%calc%track = .false.
   s%u(ix_common_uni$)%calc%track = .true.
 endif
@@ -162,7 +162,7 @@ s%u(:)%calc%beam_sigma_for_data = do_beam_sigma_data
 
 call tao_turn_on_special_calcs_if_needed_for_plotting ()
 
-if (s%global%orm_analysis) s%u(:)%calc%mat6 = .true.
+if (s%global%orm_analysis) s%u(:)%calc%twiss = .true.
 s%u(:)%calc%lattice = .true.
 
 

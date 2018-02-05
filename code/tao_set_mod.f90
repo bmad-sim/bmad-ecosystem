@@ -1843,12 +1843,12 @@ end subroutine tao_set_default_cmd
 !+
 ! Subroutine tao_set_universe_cmd (uni, who, what)
 !
-! Sets a universe on or off, or sets the recalculate or mat6_recalc logicals, etc.
+! Sets a universe on or off, or sets the recalculate or twiss_calc logicals, etc.
 !
 ! Input:
 !   uni     -- Character(*): which universe; 0 => current viewed universe
-!   who     -- Character(*): "on", "off", "recalculate", "dynamic_aperture_calc", "one_turn_map_calc", or "mat6_recalc"
-!   what    -- Character(*): "on" or "off" for who = "dynamic_aperture_calc", "one_turn_map_calc" or "mat6_recalc".
+!   who     -- Character(*): "on", "off", "recalculate", "dynamic_aperture_calc", "one_turn_map_calc", or "twiss_calc"
+!   what    -- Character(*): "on" or "off" for who = "dynamic_aperture_calc", "one_turn_map_calc" or "twiss_calc".
 !-
 
 subroutine tao_set_universe_cmd (uni, who, what)
@@ -1875,36 +1875,41 @@ if (uni /= '*') then
   n_uni = tao_universe_number (n_uni)
 endif
 
-!
+! Twiss calc.
+! "mat6_recalc" is old style
 
-if (index('mat6_recalc', trim(who)) == 1) then
+if (index('twiss_calc', trim(who)) == 1 .or. index('mat6_recalc', trim(who)) == 1) then
   if (what == 'on') then
     is_on = .true.
   elseif (what == 'off') then
     is_on = .false.
   else
-    call out_io (s_error$, r_name, 'Syntax is: "set universe <uni_num> mat6_recalc on/off"')
+    call out_io (s_error$, r_name, 'Syntax is: "set universe <uni_num> twiss_calc on/off"')
     return
   endif
   if (uni == '*') then
-    s%u(:)%calc%mat6 = is_on
+    s%u(:)%calc%twiss = is_on
     if (is_on) s%u(:)%calc%lattice = .true.
   else
-    s%u(n_uni)%calc%mat6 = is_on
+    s%u(n_uni)%calc%twiss = is_on
     if (is_on) s%u(n_uni)%calc%lattice = .true.
   endif
   return
 endif
-  
-if (index('track_recalc', trim(who)) == 1) then
+
+! Track calc
+! "track_recalc" is old style.
+
+if (index('track_calc', trim(who)) == 1 .or. index('track_recalc', trim(who)) == 1) then
   if (what == 'on') then
     is_on = .true.
   elseif (what == 'off') then
     is_on = .false.
   else
-    call out_io (s_error$, r_name, 'Syntax is: "set universe <uni_num> track_recalc on/off"')
+    call out_io (s_error$, r_name, 'Syntax is: "set universe <uni_num> track_calc on/off"')
     return
   endif
+
   if (uni == '*') then
     s%u(:)%calc%track = is_on
     if (is_on) s%u(:)%calc%lattice = .true.
@@ -1915,6 +1920,8 @@ if (index('track_recalc', trim(who)) == 1) then
   return
 endif
 
+! Dynamic aperture calc.
+
 if (index('dynamic_aperture_calc', trim(who)) == 1) then
   if (what == 'on') then
     is_on = .true.
@@ -1924,6 +1931,7 @@ if (index('dynamic_aperture_calc', trim(who)) == 1) then
     call out_io (s_error$, r_name, 'Syntax is: "set universe <uni_num> dynamic_aperture_calc on/off"')
     return
   endif
+
   if (uni == '*') then
     s%u(:)%calc%dynamic_aperture = is_on
     if (is_on) s%u(:)%calc%lattice = .true.
@@ -1933,7 +1941,9 @@ if (index('dynamic_aperture_calc', trim(who)) == 1) then
   endif
   return
 endif  
-  
+
+! One turn map calc.
+
 if ('one_turn_map_calc' == trim(who)) then
   if (what == 'on') then
     is_on = .true.
@@ -1953,7 +1963,7 @@ if ('one_turn_map_calc' == trim(who)) then
   return
 endif  
   
-!
+! Recalc.
 
 if (what /= '') then
   call out_io (s_error$, r_name, 'Extra stuff on line. Nothing done.')
@@ -1969,12 +1979,14 @@ if (index('recalculate', trim(who)) == 1) then
   return
 endif
 
+!
+
 if (who == 'on') then
   is_on = .true.
 elseif (who == 'off') then
   is_on = .false.
 else
-  call out_io (s_error$, r_name, "Choices are: 'on', 'off', 'recalculate', 'track_recalc', or 'mat6_recalc")
+  call out_io (s_error$, r_name, "Choices are: 'on', 'off', 'recalculate', 'track_recalc', 'twiss_calc', etc.")
   return
 endif
 
@@ -1996,7 +2008,7 @@ end subroutine tao_set_universe_cmd
 !+
 ! Subroutine tao_set_element_cmd (ele_list, attribute, value)
 !
-! Sets a universe on or off, or sets the recalculate or mat6_recalc logicals
+! Sets element parameters.
 !
 ! Input:
 !   ele_list   -- Character(*): which elements.

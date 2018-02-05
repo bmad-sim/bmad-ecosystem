@@ -9,13 +9,15 @@ covers the input files.
 
 In general, the input files tell \tao:
 \begin{example}
-  * What the "standard" variables should be.
-  * What the "standard" data is.
-  * What to plot and where to plot it.
+  * What \bmad lattice or lattices to use (\sref{s:init.lat}).
+  * What the variables and data should be when running optimizations (\sref{c:opti}).
+  * What to plot and how plots should be layed out in the plotting window (\sref{s:init.plot}).
+  * What kind of calculations are to be done. EG: a dynamic aperture calculation, etc.
+  * Etc.
 \end{example}
 
-Example initialization files can be found in the \tao distribution in
-the directory
+Example initialization files can be found in the \tao distribution in sub-directories of the
+directory:
 \begin{example}
   tao/examples
 \end{example}
@@ -98,11 +100,11 @@ has been explicitly set.
 \index{data_file}\index{var_file}\index{plot_file}
 \index{single_mode_file}\index{startup_file}\index{startup_single_mode}
 \index{beam_file}\index{hook_init_file}
-The initialization starts with the \tao initialization file. The default name for
-this file is \vn{tao.init} (See \sref{s:command.line}).
-The first namelist block read in from this initialization file is a 
-\vn{tao_start} namelist. This block is optional (in which case the defaults
-are used).  This namelist contains the variables:
+The initialization starts with the \vn{root} \tao initialization file. The default name for this
+file is \vn{tao.init} but this default may be overridden when \tao is started using the \vn{-init}
+switch (\sref{s:command.line}). The first namelist block read in from the root  initialization file is a
+\vn{tao_start} namelist. This block is optional (in which case the defaults are used).  This
+namelist contains the variables:
 \begin{example}
   &tao_start
     beam_file          = "<file_name>"  ! Default = Tao initialization file.
@@ -144,6 +146,10 @@ distinguish between multiple initialization files with custom versions
 of \tao. The other parameters specify which files to find the other
 initialization namelists. The \vn{plot_file} variable can be an array
 of plot files. 
+
+\tao will open an execute a command file (\sref{s:command.files}) at startup if it exists.  The
+default name is \vn{tao.statup} but this name can be changed by setting the \vn{startup_file}
+component in the \vn{tao_start} namelist.
 
 The following sections describe each of these initialization namelists
 and their locations are listed in table~\ref{t:init.files}. Note: If
@@ -343,7 +349,7 @@ The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{plot_on}\index{opt_with_ref}\index{opt_with_base}
 \index{single_mode}\index{lm_opt_deriv_reinit}
 \index{label_lattice_elements}\index{label_keys}\index{derivative_recalc}
-\index{lattice_calc_on}\index{command_file_print_on}\index{twiss_calc_on}
+\index{lattice_calc_on}\index{command_file_print_on}
 \index{print_command}\index{default_init_file}\index{derivative_uses_design}
 \index{current_init_file}\index{var_out_file}\index{draw_curve_off_scale_warn}
 \begin{example}
@@ -382,7 +388,6 @@ type tao_global_struct
   logical label_lattice_elements = T    ! For lat_layout plots
   logical label_keys = T                ! For lat_layout plots
   logical lattice_calc_on = T           ! Turn on/off beam and single particle calculations.
-  logical twiss_calc_on = T             ! Turn on/off Twiss calculations.
   logical opt_with_ref = F              ! use reference data in optimization?
   logical opt_with_base = F             ! use base data in optimization?
   logical optimizer_var_limit_warn = T  ! Warn when vars reach a limit when optimizing?
@@ -425,7 +430,8 @@ scenario where this switch is used involves first setting \vn{%lattice_calc_on} 
 the \vn{set} command (\sref{s:set})), then executing a set of commands, and finally setting
 \vn{%lattice_calc_on} back to \vn{True}. This saves some of the calculational overhead that each
 command generates. Similarly, \vn{global%plot_on} can be toggled to save even more time. Also see
-\vn{global%twiss_calc_on}.
+the \vn{set universe} command (\sref{s:set.universe}) for ways to supress certain types of
+calculations (for example, calculating the Twiss parameters) that are not needed.
 
   \item{\vn{global%merit_stop_value}} \Newline
 The \vn{global%merit_stop_value} establishes a point such that, during optimization, if
@@ -488,13 +494,6 @@ The setting of the \vn{global%track_type} parameter can be
 The \vn{"single"} setting is used when single particle tracking is desired and \vn{"beam"}
 is used when tracking with a beam of particles. Note that with \vn{"single"} tracking,
 synchrotron radiation fluctuations (but not damping) is always turned off.
-
-  \item{\vn{global%twiss_calc_on}} \Newline
-\vn{global%twiss_calc_on} controls whether the calculation of the Twiss parameters is done when
-there are changes in the lattice. The default is \vn{True}. Setting this parameter to \vn{False} is
-useful in speeding up calculations if only recalculation of the orbit is needed. Note that if
-\vn{global%lattice_calc_on} is set to \vn{False} then no Twiss (or other lattice) calculations are
-done irregardless of the setting of \vn{global%twiss_calc_on}.
 
   \item{\vn{global%var_limits_on}} \Newline
 The \vn{global%var_limits_on} switch controls whether a variable's model value is limited
