@@ -92,12 +92,12 @@ call bmad_parser ('parse_test.bmad', lat)
 call write_bmad_lattice_file ('write_parser_test.bmad', lat)
 call bmad_parser ('write_parser_test.bmad', lat)
 
-call pointer_to_attribute (lat%ele(1), 'QQQ', .false., a_ptr, err)
+call pointer_to_attribute (lat%ele(1), 'QQQ', .true., a_ptr, err)
 write (1, '(a, f8.4)')  '"zzz"                                   ABS 0', a_ptr%r
 
 call set_custom_attribute_name('CALIB', err, 4)
 ele2%key = overlay$
-call pointer_to_attribute (ele2, 'CALIB', .false., a_ptr, err)
+call pointer_to_attribute (ele2, 'CALIB', .true., a_ptr, err)
 a_ptr%r = 7
 write (1, '(a, f8.4)')  '"calib"                                 ABS 0', a_ptr%r
 
@@ -113,8 +113,8 @@ write (1, '(a, f10.2)') '"bmad_com[max_aperture_limit]"          ABS 0', bmad_co
 write (1, '(a, i4)')    '"bmad_com[ptc_max_fringe_order]"        ABS 0', bmad_com%ptc_max_fringe_order
 write (1, '(a, l1, a)') '"bmad_com[convert_to_kinetic_momentum]" STR   "', bmad_com%convert_to_kinetic_momentum, '"'
 write (1, '(3a)')       '"geometry"                              STR   "', trim(geometry_name(lat%param%geometry)), '"'
-write (1, '(3a)')       '"quad-custom_attribute2"                STR   "', trim(attribute_name(quadrupole$, custom_attribute2$)), '"'
-write (1, '(3a)')       '"sex-custom_attribute3"                 STR   "', trim(attribute_name(sextupole$, custom_attribute3$)), '"'
+write (1, '(3a)')       '"quad-custom_attribute2"                STR   "', trim(attribute_name(quadrupole$, custom_attribute0$+2)), '"'
+write (1, '(3a)')       '"sex-custom_attribute3"                 STR   "', trim(attribute_name(sextupole$, custom_attribute0$+3)), '"'
 
 bp_com%input_from_file = .false.
 bp_com%parse_line = '-2*7)'
@@ -129,7 +129,7 @@ write (1, '(a, f10.4)') '"5 REL"  ABS 0', lat%ele(5)%value(k2$)
 write (1, '(4a)')       '"TM1"     STR ', '"', trim(tracking_method_name(lat%ele(1)%tracking_method)), '"'
 write (1, '(4a)')       '"TM5"     STR ', '"', trim(tracking_method_name(lat%ele(5)%tracking_method)), '"'
 write (1, '(a, i3)')    '"N3"     ABS 0', lat%branch(2)%n_ele_track
-write (1, '(4a)')       '"Custom"  STR ', '"', trim(attribute_name(lat%ele(1), custom_attribute1$)), '"'
+write (1, '(4a)')       '"Custom"  STR ', '"', trim(attribute_name(lat%ele(1), custom_attribute0$+1)), '"'
 
 do i = lbound(mass_of_fundamental, 1), ubound(mass_of_fundamental, 1)
   write (1, '(3a, es20.12, i6)')         '"', trim(species_name(i)), '"  REL 1e-12', mass_of(i), charge_of(i)
