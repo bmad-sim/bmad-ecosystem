@@ -571,7 +571,6 @@ type tao_global_struct
   logical :: orm_analysis = .false.               ! orm using mdsa? 
   logical :: plot_on = .true.                     ! Do plotting?
   logical :: lattice_calc_on = .true.             ! Turn on/off beam and single particle calculations.
-  logical :: twiss_calc_on = .true.               ! Turn on/off Twiss calculations.
   logical :: svd_retreat_on_merit_increase = .true.
   logical :: stop_on_error = .true.               ! For debugging: True prevents tao from exiting on an error.
   logical :: command_file_print_on = .true.       ! print to terminal when using a cmd file?
@@ -793,8 +792,8 @@ type tao_universe_calc_struct
   logical beam_sigma_for_plotting        !   data or plotting? 
   logical :: dynamic_aperture = .false.  ! Do the dynamic_aperture calc?
   logical :: one_turn_map = .false.      ! Compute the one turn map?
-  logical lattice                        ! Used to indicate which lattices need tracking done.
-  logical :: mat6 = .true.               ! calc linear transfer matrix?
+  logical :: lattice = .true.            ! Used to indicate which lattices need tracking done.
+  logical :: twiss = .true.              ! calc linear transfer matrix?
   logical :: track = .true.              ! tracking needs to be done?
 end type
 

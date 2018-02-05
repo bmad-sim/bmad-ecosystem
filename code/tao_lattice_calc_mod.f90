@@ -424,9 +424,7 @@ endif
 
 ! Twiss
 
-if (.not. s%global%twiss_calc_on) return
-
-if (u%calc%mat6 .and. branch%param%particle /= photon$) then
+if (u%calc%twiss .and. branch%param%particle /= photon$) then
   do i = 1, ix_lost - 1
     if (branch%ele(i)%tracking_method == linear$) then
       call lat_make_mat6 (lat, i, ix_branch = ix_branch)

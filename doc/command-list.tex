@@ -135,7 +135,7 @@ Command loops can be implemented in a command file. See Section~\sref{s:do} for 
 
 Other useful commands to put in a command file are to speed up execution are:
 \begin{example}
-  set global lattice_calc_on = F   ! Stop lattic calculations
+  set global lattice_calc_on = F   ! Stop lattice calculations (\sref{s:lat.calc}).
   set global plot_on = F           ! Halt replotting
 \end{example}
 If set, at the end of the command file these logicals should be toggled back to True.
@@ -808,8 +808,8 @@ variables, etc. Format:
   set symbolic_number <name> = <value>                      ! \sref{s:set.symbolic}
   set universe <what_universe> <on/off>                     ! \sref{s:set.universe}
   set universe <what_universe> recalculate                  ! \sref{s:set.universe}
-  set universe <what_universe> mat6_recalc <on/off>         ! \sref{s:set.universe}
-  set universe <what_universe> track_recalc <on/off>        ! \sref{s:set.universe}
+  set universe <what_universe> twiss_calc <on/off>          ! \sref{s:set.universe}
+  set universe <what_universe> track_calc <on/off>          ! \sref{s:set.universe}
   set variable <var_name>|<component> = <value>             ! \sref{s:set.variable}
   set wave <component> = <value>                            ! \sref{s:set.wave}
 \end{example}
@@ -1370,21 +1370,27 @@ Example:
 
 Format:
 \begin{example}
-  set universe <what_universe> <on/off> 
+  set universe <what_universe> <on/off>
   set universe <what_universe> recalculate
-  set universe <what_universe> mat6_recalc <on/off>
+  set universe <what_universe> twiss_calc <on/off>
   set universe <what_universe> dynamic_aperture_calc <on/off>
   set universe <what_universe> one_turn_map_calc <on/off>
-  set universe <what_universe> track_recalc <on/off>
+  set universe <what_universe> track_calc <on/off>
 \end{example}
 
-The \vn{set universe <what_universe> <on/off>} command will turn the specified universe(s)
-on or off. Turning a universe off is useful to speed up lattice calculations when this
-universe is not being used. Or, if many changes are to be performed to a universe and
-there is no need to do any lattice calculations between commands then turning off all
-universes will speed things up. To specify the currently default universe
-(\sref{s:universe}), you can use \vn{-1} as an index. To specify all universes, use
-\vn{*}.
+The \vn{set universe <what_universe> ...} command will turn on or off specified lattice/tracking
+calculations for the specified universe(s). Turning specified calculations off for a universe is
+useful to speed up lattice calculations when the calculation is not necessary. To specify the
+currently default universe (\sref{s:universe}), you can use \vn{-1} as the \vn{<what_universe>}
+index. To specify all universes, use \vn{*}. Use the \vn{show universe} command to see the state of
+these switches are.
+
+Note: The global logical \vn{lattice_calc_on} (\sref{s:globals}) is separate from the logicals set
+by \vn{set universe}. That is, toggling the state of \vn{lattice_calc_on} will not affect the
+settings of the logicals set by \vn{set universe}. If \vn{lattice_calc_on} is set to \vn{False} then
+no calculations are done in any universe independent of the settings of the \vn{set universe}
+logicals. That is, \vn{lattice_calc_on} acts as a master toggle that can be used to turn off all
+lattice/tracking calculations.
 
 If optimizing while one or more universes are turned off, the variables associated with
 that universe will still be included in the merit function but not the data for that
@@ -1406,14 +1412,12 @@ the map calculation at startup, set the \vn{design_lattice(i)%one_turn_map_calc}
 
 The commands
 \begin{example}
-  set universe <what_universe> mat6_recalc  and
-  set universe <what_universe> track_recalc
+  set universe <what_universe> twiss_calc  and
+  set universe <what_universe> track_calc
 \end{example}
 will set whether the 6x6 transfer matrices and the central orbit (closed orbit for
 circular rings) is calculated for a given universe. Turning this off is useful in speeding
-up calculations in the case where the transfer matrices and/or orbit is not being used
-(Warning: The transfer matrices are needed to compute the Twiss parameters). Use the
-\vn{show universe} command to see the state of these switches are.
+up calculations in the case where the transfer matrices and/or orbit is not being used. 
 
 Example:
 \begin{example}
@@ -2558,7 +2562,7 @@ will print, about once a minute, the element number and the elapsed time.
 The \vn{timer start} and \vn{timer read} commands can be used to time execution
 times. Example:
 \begin{example}
-  timer start ; call my_cmd_file ; timer stop
+  timer start ; call my_cmd_file ; timer read
 \end{example}
 
 Note: \vn{timer start} will toggle \vn{beam timing} off.
@@ -2741,7 +2745,7 @@ following on the operating system command line:
 To learn how to pan, zoom, etc. in \vn{blender}, consult any one of a number of online
 tutorials and videos. A good place to start is:
 \begin{example}
-  https://www.blender.org/support/tutorials/  
+  www.blender.org/support/tutorials/  
 \end{example}
 Note: In order of the script to work, the script must be able to find the ``base'' file
 \vn{blender_base.py}. This base file lives in the \vn{bmad/scripts} directory and the

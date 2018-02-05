@@ -134,8 +134,8 @@ endif
 s%var%old_value = s%var%delta_merit
 
 if (s%global%orm_analysis) then 
-  s%u(:)%calc%mat6 = .false.
-  s%u(ix_common_uni$)%calc%mat6 = .true.
+  s%u(:)%calc%twiss = .false.
+  s%u(ix_common_uni$)%calc%twiss = .true.
   s%u(:)%calc%track = .false.
   s%u(ix_common_uni$)%calc%track = .true.
 endif
@@ -205,7 +205,7 @@ enddo
 
 ! End
 
-if (s%global%orm_analysis) s%u(:)%calc%mat6 = .true.
+if (s%global%orm_analysis) s%u(:)%calc%twiss = .true.
 
 if (s%global%derivative_uses_design) then
   do i = lbound(s%u, 1), ubound(s%u, 1)

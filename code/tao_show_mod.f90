@@ -1439,7 +1439,6 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %command_file_print_on         = ', s%global%command_file_print_on
     nl=nl+1; write(lines(nl), lmt) '  %disable_smooth_line_calc      = ', s%global%disable_smooth_line_calc
     nl=nl+1; write(lines(nl), lmt) '  %lattice_calc_on               = ', s%global%lattice_calc_on
-    nl=nl+1; write(lines(nl), lmt) '  %twiss_calc_on                 = ', s%global%twiss_calc_on
     nl=nl+1; write(lines(nl), lmt) '  %plot_on                       = ', s%global%plot_on
     nl=nl+1; write(lines(nl), lmt) '  %rf_on                         = ', s%global%rf_on
     nl=nl+1; write(lines(nl), lmt) '  %wait_for_CR_in_single_mode    = ', s%global%wait_for_CR_in_single_mode
@@ -3306,7 +3305,7 @@ case ('universe')
   nl=nl+1; write(lines(nl), lmt) '%do_rad_int_calc       = ', u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting
   nl=nl+1; write(lines(nl), lmt) '%do_chrom_calc         = ', u%calc%chrom_for_data .or. u%calc%chrom_for_plotting
   nl=nl+1; write(lines(nl), lmt) '%do_beam_sigma_calc    = ', u%calc%beam_sigma_for_data .or. u%calc%beam_sigma_for_plotting
-  nl=nl+1; write(lines(nl), lmt) '%calc%mat6             = ', u%calc%mat6
+  nl=nl+1; write(lines(nl), lmt) '%calc%twiss             = ', u%calc%twiss
   nl=nl+1; write(lines(nl), lmt) '%calc%dynamic_aperture = ', u%calc%dynamic_aperture
   nl=nl+1; write(lines(nl), lmt) '%calc%one_turn_map     = ', u%calc%one_turn_map
   nl=nl+1; write(lines(nl), lmt) '%calc%track            = ', u%calc%track
