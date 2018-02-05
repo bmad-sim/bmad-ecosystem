@@ -317,7 +317,7 @@ parsing_loop: do
   if (word_1(:ix_word) == 'TITLE') then
     if (delim_found) then
       if (delim /= " " .and. delim /= ",") call parser_error ('BAD DELIMITOR IN "TITLE" COMMAND')
-      call bmad_parser_type_get (this_ele, 'DESCRIP', delim, delim_found)
+      call bmad_parser_string_attribute_set(this_ele, 'DESCRIP', delim, delim_found)
       lat%title = this_ele%descrip
       deallocate (this_ele%descrip)
     else

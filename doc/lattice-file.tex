@@ -405,41 +405,66 @@ a lattice file. For example, a program might need error tolerance
 for the strength of quadrupoles.
 
 Adding custom attributes will not disrupt programs that are not designed to use the custom
-attributes. Currently, up to five scalar (that is, single valued) custom attributes may be
-defined for any given element type. The syntax for defining custom attributes is:
+attributes. Currently, up to 40 named custom attributes may be defined for any given element
+class. The syntax for defining custom attributes is:
 \begin{example}
-  parameter[custom_attributeN] = "\{class::\}attribute_name"
+  parameter[custom_attributeN] = \{class::\}attribute_name
 \end{example}
 Where ``\vn{N}'' is an integer between 1 and 40 and
 "\vn{attribute_name}" is the name of the attribute. To restrict the
 custom attribute to a particular element class, the element class can
 be prefixed to the attribute name. Examples:
 \begin{example}
-  parameter[custom_attribute1] = "mag_id"
-  parameter[custom_attribute1] = "quadrupole::error_k1"
-  parameter[custom_attribute2] = "color"
+  parameter[custom_attribute1] = quadrupole::error_k1
+  parameter[custom_attribute1] = mag_id
+  parameter[custom_attribute1] = sextupole::error_k2
+  parameter[custom_attribute2] = color
 \end{example}
-The first line in the example assigns a custom attribute name of
-\vn{mag_id} to all elements.  The second line in the example overrides
-the setting of \vn{custom_attribute1} for quadrupole elements only. 
+The first line in the example assigns, for the first custom attribute group (\vn{custom_attribute1}), a
+name of \vn{error_k1} to all quadrupoles. The second line in the example assigns to the first custom
+attribute group the name \vn{mag_id} to all element classes except quadrupoles since that class of element
+already has an assigned name. The third line assigns, for the first
+custom attribute group, a name of \vn{error_k2} to all sextupoles overriding the \vn{mad_id} name. The
+fourth line in the above example assigns, for the second custom attribute group, a name of \vn{color} to
+all element classes.
 
 Once a custom attribute has been defined it may be set for an element
-of the correct type. Example:
+of the correct class. Example:
 \begin{example}
-  parameter[custom_attribute2] = "lcavity::rms_phase_err"
+  parameter[custom_attribute2] = lcavity::rms_phase_err
   ...
   l2a: lcavity, rms_phase_err = 0.0034, ...
 \end{example}
+Notice that defining the name for a custom attribute must come before its use.
 
-For someone creating a program, section~\sref{s:ele.gen} describes how
-to make the appropriate associations.
+Custom attributes that are assigned to an individual element class, like \vn{error_k1} above, are
+called ``\vn{class-specific}'' attributes. Custom attributes, like \vn{mag_id} above, that are
+assigned to all element classes, are called ``\vn{common}'' attributes. For a given custom attribute
+group, The setting of a \vn{class-specific} attribute will take precidence over the setting of a
+\vn{common} attribute. Thus, in the above example, the fact that \vn{quadrupole::error_k1} comes
+before \vn{mag_id} and \vn{sextupole::error_k2} appears after does not affect anything. Once a
+\vn{common} attribute is defined for a given custom attribute group, it cannot be
+changed. Similarly, once a \vn{class-specific} attribute is defined for a given class for a given
+custom attribute group it cannot be changed. Trying to redefine a given custom attribute using a 
+new name that is the same as the old name is not considered an error. For example, the following is OK:
+\begin{example}
+  parameter[custom_attribute2] = color
+  parameter[custom_attribute2] = color   ! OK since the same name is used.
+\end{example}
+
+Custom attributes are global in a program and not lattice-specific. That is, if a program reads in two
+different lattices the custom attribute settings of both lattices will be combinded.
+
+For someone creating a program, section~\sref{s:ele.gen} describes how to make the appropriate
+associations.
 
 Note: If custom string information needs to be associated with an
 element, the \vn{type}, \vn{alias} and \vn{descrip} element components
 (\sref{s:alias}) are available.
 
 \index{r_custom}
-There is a three dimensional vector custom attribute called \vn{r_custom} that can be set.
+Besides the named custom attributes described above, there is a three dimensional vector, called
+\vn{r_custom}, associated with each element that can be used to store numbers.  
 For example:
 \begin{example}
   qq: quadrupole, r_custom(-2,1,5) = 34.5, r_custom(-3) = 77.9

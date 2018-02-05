@@ -334,7 +334,7 @@ if (ele%key == overlay$ .or. ele%key == group$) then
 
   select case (i)
   case (type$, alias$, descrip$)
-    call bmad_parser_type_get (ele, word, delim, delim_found)
+    call bmad_parser_string_attribute_set (ele, word, delim, delim_found)
     err_flag = .false.
     return
 
@@ -654,6 +654,20 @@ case ('ELE_END')
   return
 end select
 
+if (word(1:16) == 'CUSTOM_ATTRIBUTE') then
+  read(word(17:), *, iostat = ios) k
+  if (ios /= 0) then
+    call parser_error ('BAD NUMBER FOR: PARAMETER[' // trim(word) // ']')
+    err_flag = .true.
+  endif
+
+  call get_next_word (str, ix_word, ',= ', delim, delim_found, .false.) 
+  str = remove_quotes(str)
+  call set_custom_attribute_name(str, err_flag, k)
+  if (err_flag) call parser_error ('CANNOT SET PARAMETER[' // trim(word) // ']')
+  return
+endif
+
 !-------------------------------------------------------------------
 
 word = parser_translate_attribute_name (ele%key, word)
@@ -782,13 +796,13 @@ if (attrib_word == 'WALL') then
     select case (word)
 
     case ('NAME')
-      call bmad_parser_type_get (ele, word, delim, delim_found, str_out = wall3d%name)
+      call bmad_parser_string_attribute_set (ele, word, delim, delim_found, str_out = wall3d%name)
 
     case ('OPAQUE_MATERIAL') 
-      call bmad_parser_type_get (ele, word, delim, delim_found, str_out = wall3d%opaque_material)
+      call bmad_parser_string_attribute_set (ele, word, delim, delim_found, str_out = wall3d%opaque_material)
 
     case ('CLEAR_MATERIAL') 
-      call bmad_parser_type_get (ele, word, delim, delim_found, str_out = wall3d%clear_material)
+      call bmad_parser_string_attribute_set (ele, word, delim, delim_found, str_out = wall3d%clear_material)
 
     case ('THICKNESS') 
       call evaluate_value (ele%name, wall3d%thickness, lat, delim, delim_found, err_flag, ',}')
@@ -833,7 +847,7 @@ if (attrib_word == 'WALL') then
           if (err_flag2) return
 
         case ('MATERIAL') 
-          call bmad_parser_type_get (ele, word, delim, delim_found, str_out = section%material)
+          call bmad_parser_string_attribute_set (ele, word, delim, delim_found, str_out = section%material)
 
         case ('THICKNESS')
           call evaluate_value (trim(ele%name) // ' ' // word, section%thickness, lat, delim, delim_found, err_flag, ',}')
@@ -1462,18 +1476,6 @@ endif
 ! Stuff like TYPE, ALIAS, and DESCRIP attributes are special because their "values"
 ! are character strings
 
-if (attrib_word(1:16) == 'CUSTOM_ATTRIBUTE') then
-  call bmad_parser_type_get (ele, attrib_word, delim, delim_found, str)
-  read(attrib_word(17:), *, iostat = ios) k
-  if (ios /= 0) then
-    call parser_error ('BAD NUMBER FOR: PARAMETER[' // trim(attrib_word) // ']')
-    err_flag = .true.
-  endif
-  call set_custom_attribute_name(str, err_flag, k)
-  if (err_flag) call parser_error ('CANNOT SET PARAMETER[' // trim(attrib_word) // ']')
-  return
-endif
-
 select case (attrib_word)
 
 case ('REFERENCE')
@@ -1511,7 +1513,7 @@ case ('FIELD_OVERLAPS')
 
 case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
      'TO_LINE', 'TO_ELEMENT', 'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'ORIGIN_ELE', 'PHYSICAL_SOURCE')
-  call bmad_parser_type_get (ele, attrib_word, delim, delim_found, pele = pele)
+  call bmad_parser_string_attribute_set (ele, attrib_word, delim, delim_found, pele = pele)
 
 case ('REF_ORBIT')
   if (.not. parse_real_list (lat, ele%name // ' REF_ORBIT', ele%taylor%ref, .true.)) return
@@ -3103,7 +3105,7 @@ end subroutine parser_add_variable
 ! This subroutine is not intended for general use.
 !-
 
-subroutine bmad_parser_type_get (ele, attrib_name, delim, delim_found, name, pele, str_out)
+subroutine bmad_parser_string_attribute_set (ele, attrib_name, delim, delim_found, pele, str_out)
 
 implicit none
 
@@ -3113,7 +3115,7 @@ type (parser_ele_struct), optional :: pele
 integer ix, ix_word, n
 
 character(*) attrib_name
-character(*), optional :: name, str_out
+character(*), optional :: str_out
 character(40)  word
 character(1)   delim, str_end
 character(200) type_name
@@ -3145,6 +3147,8 @@ else
   call get_next_word (type_name, ix_word, ',= ', delim, delim_found, .false.)
 endif
 
+!--------------
+
 select case (attrib_name)
 case ('ALIAS')
   ele%alias = type_name
@@ -3167,17 +3171,12 @@ case ('SR_WAKE_FILE')
   call read_sr_wake (ele, type_name)
 case ('TYPE')
   ele%type = type_name
-case ('CUSTOM_ATTRIBUTE1', 'CUSTOM_ATTRIBUTE2', 'CUSTOM_ATTRIBUTE3', &
-      'CUSTOM_ATTRIBUTE4', 'CUSTOM_ATTRIBUTE5')
-  name = type_name
-  call upcase_string (name)
-
 case default
-  call parser_error ('INTERNAL ERROR IN BMAD_PARSER_TYPE_GET: I NEED HELP!')
+  call parser_error ('INTERNAL ERROR IN BMAD_PARSER_STRING_ATTRIBUTE_SET: I NEED HELP!')
   if (global_com%exit_on_error) call err_exit
 end select
 
-end subroutine bmad_parser_type_get
+end subroutine bmad_parser_string_attribute_set
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------

@@ -819,19 +819,15 @@ See Chapter~\sref{c:tracking} for more details.
 \index{ele_struct!\%ix_pointer}
 \index{ele_struct!\%logic}
 There are four components of an \vn{ele_struct} that are guaranteed to never be used by any \bmad
-routine and so are available for use by someone writing a program. These components are
-\vn{ele%r(:,:,:)}, \vn{ele%custom(:)}, \vn{ele%ix_pointer} and \vn{ele%logic}
+routine and so are available for use by someone writing a program. These components are:
 \begin{example}
-  type ele_struct
-    ...
-    real(rp), pointer :: r(:,:,:) => null()  
-    real(rp), pointer :: custom(:) => null()  
-    integer ix_pointer                 
-    logical logic                      
-    ...
-  end type
+  %r(:,:,:)                     ! real(rp), pointer.
+  %custom(:)                    ! real(rp), pointer.
+  %value(scratch1$:scratch5$)   ! Five elements of the %value(:) array.
+  %ix_pointer                   ! integer.
+  %logic                        ! logical.
 \end{example}
-Values for \vn{ele%r} and \vn{ele%custom} can be set in the lattice file (\sref{s:cust.att}).  If
+Values for \vn{ele%r} and \vn{ele%custom} can be set in the lattice file (\sref{s:cust.att}). If
 values are set for \vn{ele%r} or \vn{ele%custom}, these arrays will be expanded in size if needed.
 
 Accessing the \vn{ele%custom} array should be done using the standard accessor routines
@@ -849,10 +845,16 @@ then a program can access the \vn{rise_time} attribute via:
   call pointer_to_attribute (ele, 'RISE_TIME', .true., a_ptr, err_flag)
   print *, 'RISE_TIME Attribute has value:', a_ptr%r
 \end{example}
+Note: Even if there are custom attributes associated with a given type of element (say, all
+quadrupoles), a given element of that type may not have its \vn{%custom(:)} array allocated. [In
+this case, none of the custom values have been set so are zero by definition.] In the above example,
+the \vn{%custom} array will be allocated if needed in the call to \vn{pointer_to_attribute}.
+
 
 If not defined through a lattice file, custom attributes can also be
 defined directly from within a program using the 
-\Hyperref{r:set.custom.attribute.name}{set_custom_attribute_name} routine
+\Hyperref{r:set.custom.attribute.name}{set_custom_attribute_name} routine.
+For example:
 \begin{example}
   logical err_flag
   ...
