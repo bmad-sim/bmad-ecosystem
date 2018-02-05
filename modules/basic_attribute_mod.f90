@@ -460,6 +460,13 @@ if (.not. attribute_array_init_needed) return
 
 do i = 1, n_key$
 
+  call init_attribute_name1 (i, scratch1$,        'Scratch1', private$)
+  call init_attribute_name1 (i, scratch2$,        'Scratch2', private$)
+  call init_attribute_name1 (i, scratch3$,        'Scratch3', private$)
+  call init_attribute_name1 (i, scratch4$,        'Scratch4', private$)
+  call init_attribute_name1 (i, scratch5$,        'Scratch5', private$)
+
+
   if (i == def_bmad_com$)   cycle
   if (i == def_mad_beam$)   cycle
   if (i == def_beam_start$) cycle
@@ -843,12 +850,6 @@ call init_attribute_name1 (def_beam_start$, sig_e$,                   'SIG_E')
 call init_attribute_name1 (def_beam_start$, sig_z$,                   'SIG_Z')
 call init_attribute_name1 (def_beam_start$, direction_beam_start$,    'DIRECTION')
 
-
-call init_attribute_name1 (def_parameter$, custom_attribute1$,        'CUSTOM_ATTRIBUTE1')
-call init_attribute_name1 (def_parameter$, custom_attribute2$,        'CUSTOM_ATTRIBUTE2')
-call init_attribute_name1 (def_parameter$, custom_attribute3$,        'CUSTOM_ATTRIBUTE3')
-call init_attribute_name1 (def_parameter$, custom_attribute4$,        'CUSTOM_ATTRIBUTE4')
-call init_attribute_name1 (def_parameter$, custom_attribute5$,        'CUSTOM_ATTRIBUTE5')
 call init_attribute_name1 (def_parameter$, e_tot$,                    'E_TOT')
 call init_attribute_name1 (def_parameter$, p0c$,                      'P0C')
 call init_attribute_name1 (def_parameter$, live_branch$,              'LIVE_BRANCH')
@@ -2398,40 +2399,18 @@ subroutine set_custom_attribute_name (custom_name, err_flag, custom_index)
 implicit none
 
 integer, optional :: custom_index
+integer i, ix, ix_custom, key, ix_check
 character(*) custom_name
-character(40) custom_str 
+character(40) custom_str, a_str
 character(*), parameter :: r_name = 'set_custom_attribute_name'
-logical err_flag
-
-!
-
-if (attribute_array_init_needed) call init_attribute_name_array
-
-err_flag = .false.
-
-custom_str = upcase(custom_name)
-
-select case(integer_option(0, custom_index))
-case (1); call set_it (custom_attribute1$)
-case (2); call set_it (custom_attribute2$)
-case (3); call set_it (custom_attribute3$)
-case (4); call set_it (custom_attribute4$)
-case (5); call set_it (custom_attribute5$)
-case default
-  err_flag = .true.
-  call out_io (s_error$, r_name, 'ATTRIBUTE NAME NOT VALID FOR CUSTOM_ATTRIBUTE: ' // custom_name)
-end select
-
-!---------------------------------------------------------------
-contains
-
-subroutine set_it (ix_attrib)
-
-integer ix_attrib, ix, i, key
-character(40) old_attrib, a_str
+logical :: err_flag
 
 ! If custom_str is of the form "ele_class::custom_name" then need to split string
 
+if (attribute_array_init_needed) call init_attribute_name_array
+err_flag = .true.
+
+custom_str = upcase(custom_name)
 a_str = custom_str
 key = 0
 ix = index(custom_str, '::')
@@ -2440,7 +2419,6 @@ if (ix /= 0) then
   key = key_name_to_key_index(custom_str(1:ix-1), .true.)
   if (key < 1) then
     call out_io (s_error$, r_name, 'ELEMENT CLASS NOT RECOGNIZED: ' // custom_name)
-    err_flag = .true.
     return
   endif
 endif
@@ -2449,43 +2427,83 @@ endif
 
 if (str_find_first_not_in_set(trim(a_str), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_') > 0) then
   call out_io (s_error$, r_name, 'CUSTOM NAME HAS INVALID CHARACTERS: ' // a_str)
-  err_flag = .true.
   return
 endif
 
-! Set common
+! Note: The null_ele$ slot is where the "common" attribute name for a given index is stored.
+
+ix_custom = integer_option(0, custom_index)
+if (ix_custom < 0 .or. ix_custom > custom_attribute_num$) then
+  call out_io (s_error$, r_name, 'INDEX NUMBER FOR CUSTOM_ATTRIBUTE OUT OF RANGE: \i0\ ', ix_custom)
+  return
+endif
+
+if (ix_custom == 0) then
+  ix_check = key
+  if (ix_check == 0) ix_check = null_ele$
+  do i = 1, custom_attribute_num$
+    if (attribute_name(key, ix_custom) /= null_name$) cycle
+    call set_it (i)
+    return
+  enddo
+  ! Should not be here
+  call out_io (s_error$, r_name, 'NO BLANK SLOT FOUND FOR PUTTING THIS CUSTOM ATTRIBUTE: ' // custom_name)
+  return
+
+else
+  call set_it (ix_custom)
+endif
+
+!---------------------------------------------------------------
+contains
+
+subroutine set_it (ix_attrib)
+
+integer ix_attrib, i
+character(40) old_attrib
+
+! Set common custom attribute
+! Note: A common custom attribute will not override a non-common custom attribute that has already been set.
 
 if (key == 0) then
-  old_attrib = attribute_name(null_ele$, ix_attrib)
+  old_attrib = attribute_name(null_ele$, ix_attrib+custom_attribute0$)
   if (old_attrib /= null_name$ .and. old_attrib /= a_str) then
     call out_io (s_warn$, r_name, &
       'A CUSTOM_ATTRIBUTE IS BEING REDEFINED: ' // custom_name, &
       'FROM: ' // attribute_name(null_ele$, ix_attrib), &
       'TO:   ' // a_str)
+    return
   endif
 
   do i = 1, n_key$
     select case (i)
     case (def_parameter$, def_mad_beam$, def_bmad_com$, def_beam_start$, line_ele$); cycle
     end select
-    call init_attribute_name1 (i, ix_attrib, a_str, override = .true.)
+    old_attrib = attribute_name(i, ix_attrib+custom_attribute0$)
+    if (old_attrib /= null_name$) cycle
+    call init_attribute_name1 (i, ix_attrib+custom_attribute0$, a_str, override = .true.)
   enddo
 
-! Set one
+! Set a element type specific (that is, non-common) custom attribute.
+! Note: If the custom attribute slot is already being used this is an error except if the new
+! name matches the existing name.
 
 else
 
-  old_attrib = attribute_name(key, ix_attrib)
+  old_attrib = attribute_name(key, ix_attrib+custom_attribute0$)
   if (old_attrib /= null_name$ .and. old_attrib /= attribute_name(null_ele$, ix_attrib) .and. old_attrib /= a_str) then
     call out_io (s_warn$, r_name, &
       'A CUSTOM_ATTRIBUTE IS BEING REDEFINED: ' // custom_name, &
       'FOR ELEMENT CLASS: ' // key_name(key), &
       'FROM: ' // old_attrib, &
       'TO:   ' // a_str)
+    return
   endif
 
-  call init_attribute_name1 (key, ix_attrib, a_str, override = .true.)
+  call init_attribute_name1 (key, ix_attrib+custom_attribute0$, a_str, override = .true.)
 endif
+
+err_flag = .false.
 
 end subroutine set_it
 
@@ -2522,35 +2540,6 @@ character(40) common_name
 
 if (.not. allocated(list)) allocate(list(40))
 n = 0  ! Number of elements in the list
-
-!
-
-do ic = 1, 5
-  icc = ic + custom_attribute1$ - 1
-
-  ! Common attribute is stored in null_ele's slot
-
-  common_name = ''
-  if (attribute_name(null_ele$, icc) /= null_name$) then
-    common_name = attribute_name(null_ele$, icc)
-    n = n + 1
-    if (n > size(list)) call re_allocate(list, n+20)
-    write (list(n), '(a, i0, 2a)') 'custom_attribute', ic, '=', common_name
-  endif
-
-  ! For not common attributes
-
-  do is = 1, n_key$
-    select case (is)
-    case (def_parameter$, def_mad_beam$, def_bmad_com$, def_beam_start$, line_ele$); cycle
-    end select
-    if (attribute_name(is, icc) == null_name$) cycle
-    if (attribute_name(is, icc) == common_name) cycle
-    n = n + 1
-    if (n > size(list)) call re_allocate(list, n+20)
-    write (list(n), '(a, i0, 4a)') 'custom_attribute', ic, '=', trim(key_name(is)), '::', attribute_name(is, icc)
-  enddo
-enddo
 
 !
 

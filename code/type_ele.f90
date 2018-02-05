@@ -189,11 +189,7 @@ do i = 1, num_ele_attrib$
   if (attrib%type == private$) cycle
   ix_tot = corresponding_tot_attribute_index (ele, i)
 
-  if (i >= custom_attribute1$ .and. i <= custom_attribute5$) then
-    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 3x, a)') &
-                      i, a_name(1:n_att), '=', ele%value(i), '! Custom attribute'
-
-  elseif (ix_tot > 0) then
+  if (ix_tot > 0) then
     if (ele%value(i) == 0 .and. ele%value(ix_tot) == 0 .and. .not. type_zero) cycle
     nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, i3, 3x, a16, a, es15.7, 1x, a8)') &
                       i, a_name(1:n_att), '=', ele%value(i), attrib%units, &
@@ -262,14 +258,12 @@ enddo
 
 ! Custom attributes
 
-if (associated(ele%custom)) then
-  do i = 1, size(ele%custom)
-    attrib = attribute_info(ele, i+custom_attribute0$)
-    a_name = attrib%name
-    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 3x, a)') &
-                      i, a_name(1:n_att), '=', ele%custom(i), '! Custom attribute'
-  enddo
-endif
+do i = 1, custom_attribute_num$
+  attrib = attribute_info(ele, i+custom_attribute0$)
+  if (attrib%name(1:1) == '!') cycle
+  nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 3x, a)') &
+                i, attrib%name(1:n_att), '=', value_of_attribute(ele, attrib%name, err_flag), '! Custom attribute'
+enddo
 
 ! Multipoles
 

@@ -1064,6 +1064,16 @@ do ib = 0, ubound(lat%branch, 1)
 
     enddo attribute_loop ! attribute loop
 
+    ! Custom attributes
+
+    do j = 1, custom_attribute_num$
+      attrib = attribute_info(ele, j+custom_attribute0$)
+      if (attrib%name(1:1) == '!') cycle
+      val = value_of_attribute(ele, attrib%name, err_flag)
+      if (val == 0) cycle
+      line = trim(line) // ', ' // trim(attrib%name) // ' = ' // re_str(val)
+    enddo
+
     !----------------------------------------------------------------------------
     ! Print the combined limits if needed.
 
@@ -3087,12 +3097,12 @@ real(rp) bs_field, old_bs_field, a, b
 real(rp) xp, yp, xo, yo, zo, sad_fshift
 real(rp) hk, vk, tilt
 
-
-integer, parameter :: sad_f1$  = custom_attribute1$
-integer, parameter :: sad_geo_bound$ = custom_attribute2$
-integer, parameter :: sad_bz$  = custom_attribute3$
-integer, parameter :: sad_fshift$ = custom_attribute4$
-integer, parameter :: sad_mark_offset$  = custom_attribute5$
+! These will be used to point to slots in ele%old_value(:) array for extra needed information in converting to SAD.
+integer, parameter :: sad_f1$  = scratch1$
+integer, parameter :: sad_geo_bound$ = scratch2$
+integer, parameter :: sad_bz$  = scratch3$
+integer, parameter :: sad_fshift$ = scratch4$
+integer, parameter :: sad_mark_offset$  = scratch5$
 
 integer, optional :: ix_start, ix_end, ix_branch
 integer, allocatable :: n_repeat(:), an_indexx(:)
@@ -3178,7 +3188,7 @@ in_solenoid = .false.
 
 ! Loop over all input elements
 
-branch_out%ele%value(sad_mark_offset$) = 0  ! SAD mark offset
+branch_out%ele%old_value(sad_mark_offset$) = 0  ! SAD mark offset
 nullify(first_sol_edge)
 old_bs_field = 0
 n_name_change_warn = 0
@@ -3197,8 +3207,8 @@ do
   ! Patch element that was inserted in SAD to Bmad translation for fshift is to be removed 
   ! when translating back.
 
-  if (ele%key == patch$ .and. ele%value(sad_fshift$) /= 0) then
-    sad_fshift = ele%value(sad_fshift$)
+  if (ele%key == patch$ .and. ele%old_value(sad_fshift$) /= 0) then
+    sad_fshift = ele%old_value(sad_fshift$)
     ele%sub_key = not_set$
     cycle
   endif
@@ -3209,9 +3219,9 @@ do
   ! Bmad does not have a sol element so use null_ele to designate the sol element in the Bmad lattice.
   ! This works since there cannot be any actual null_eles in the lattice.
 
-  if ((ele%key == patch$ .or. ele%key == marker$) .and. ele%value(sad_geo_bound$) /= 0) then 
+  if ((ele%key == patch$ .or. ele%key == marker$) .and. ele%old_value(sad_geo_bound$) /= 0) then 
     ele%key = null_ele$  ! Convert to SOL
-    if (ele%value(sad_geo_bound$) > 0) then
+    if (ele%old_value(sad_geo_bound$) > 0) then
       if (in_solenoid) then
         ele%iyy = exit_end$
       else
@@ -3236,7 +3246,7 @@ do
           if (sol_ele%value(l$) /= 0) exit  ! No suitable marker or patch found
           sol_ele => pointer_to_next_ele(sol_ele, -1)
         enddo
-        sol_ele%value(sad_geo_bound$) = 0
+        sol_ele%old_value(sad_geo_bound$) = 0
       endif
 
       if (sol_ele%key /= marker$ .and. sol_ele%key /= patch$) then
@@ -3251,25 +3261,25 @@ do
       endif
 
       if (old_bs_field == 0) then
-        sol_ele%value(sad_geo_bound$) = 2
+        sol_ele%old_value(sad_geo_bound$) = 2
         sol_ele%iyy = entrance_end$  ! Entering solenoid
         in_solenoid = .true.
         first_sol_edge => sol_ele
       elseif (bs_field == 0) then
-        if (nint(ele%value(sad_geo_bound$)) == 2) then
-          sol_ele%value(sad_geo_bound$) = 2
-          first_sol_edge%value(sad_geo_bound$) = 1
+        if (nint(ele%old_value(sad_geo_bound$)) == 2) then
+          sol_ele%old_value(sad_geo_bound$) = 2
+          first_sol_edge%old_value(sad_geo_bound$) = 1
         else
-          sol_ele%value(sad_geo_bound$) = 1
+          sol_ele%old_value(sad_geo_bound$) = 1
         endif
         sol_ele%iyy = exit_end$  ! Entering solenoid
         in_solenoid = .false.
       else
-        sol_ele%value(sad_geo_bound$) = 0
+        sol_ele%old_value(sad_geo_bound$) = 0
       endif
 
       sol_ele%value(bs_field$) = bs_field
-      if (bs_field == 0) sol_ele%value(bs_field$) = sol_ele%value(sad_bz$)
+      if (bs_field == 0) sol_ele%value(bs_field$) = sol_ele%old_value(sad_bz$)
       sol_ele%key = null_ele$
 
       old_bs_field = bs_field
@@ -3285,7 +3295,7 @@ do
     ele2 => pointer_to_slave(lord, lord%n_slave)
     if (lord%n_slave == 2 .and. ele1%key == marker$ .and. &
           num_lords(ele, super_lord$) == 1 .and. num_lords(ele2, super_lord$) == 1) then
-      ele1%value(sad_mark_offset$) = -ele2%value(l$)/lord%value(l$) ! marker offset
+      ele1%old_value(sad_mark_offset$) = -ele2%value(l$)/lord%value(l$) ! marker offset
       ele = lord                              ! Super_slave piece becomes the entire element.
       ele2%sub_key = not_set$                 ! Ignore this super_slave piece.
     endif
@@ -3451,7 +3461,7 @@ if (bs_field /= 0) then
     ele => branch_out%ele(ie2)
   endif
 
-  ele%value(sad_geo_bound$) = 1
+  ele%old_value(sad_geo_bound$) = 1
 endif
 
 ! For a patch that is *not* associated with the edge of a solenoid: A z_offset must be split into a drift + patch
@@ -3670,8 +3680,8 @@ do ix_ele = ie1, ie2
     case (null_ele$)
       write (line_out, '(4a)') 'SOL ', trim(ele%name), ' = ('
       call value_to_line (line_out, val(bs_field$), 'BZ', 'R', .true., .false.)
-      call value_to_line (line_out, ele%value(sad_f1$), 'F1', 'R', .true., .false.)
-      select case (nint(ele%value(sad_geo_bound$)))
+      call value_to_line (line_out, ele%old_value(sad_f1$), 'F1', 'R', .true., .false.)
+      select case (nint(ele%old_value(sad_geo_bound$)))
       case (1)
         line_out = trim(line_out) // ' BOUND = 1'
       case (2)
@@ -3873,7 +3883,7 @@ do ix_ele = ie1, ie2
     call value_to_line (line_out, -val(tilt$),    'ROTATE', 'R', .true., .false.)
   endif
 
-  if (ele%key == null_ele$ .and. nint(ele%value(sad_geo_bound$)) == 2) then ! At geo = 1 end
+  if (ele%key == null_ele$ .and. nint(ele%old_value(sad_geo_bound$)) == 2) then ! At geo = 1 end
     if (ele%iyy == entrance_end$) then
       call value_to_line (line_out, val(x_pitch$), 'DPX', 'R', .true., .false.)
       call value_to_line (line_out, val(y_pitch$), 'DPY', 'R', .true., .false.)

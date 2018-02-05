@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 204
+integer, parameter :: bmad_inc_version$ = 205
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1327,7 +1327,7 @@ integer, parameter :: x_pitch$ = 34
 integer, parameter :: y_pitch$ = 35  
 integer, parameter :: x_offset$ = 36
 integer, parameter :: y_offset$ = 37 
-integer, parameter :: z_offset$ = 38 ! Assumed unique. Do not overload further.
+integer, parameter :: z_offset$ = 38
 integer, parameter :: hkick$ = 39, d_spacing$ = 39, x_offset_mult$ = 39, emittance_a$ = 39
 integer, parameter :: vkick$ = 40, y_offset_mult$ = 40, p0c_ref_init$ = 40, emittance_b$ = 40
 integer, parameter :: BL_hkick$ = 41, x_pitch_mult$ = 41, e_tot_ref_init$ = 41, emittance_z$ = 41
@@ -1339,11 +1339,11 @@ integer, parameter :: B2_gradient$ = 46, E2_gradient$ = 46, coupler_strength$ = 
 integer, parameter :: coupler_at$ = 47, E_tot_set$ = 47, ptc_canonical_coords$ = 47
 integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48, ptc_fringe_geometry$ = 48, p0c_set$ = 48
 integer, parameter :: Bs_field$ = 49, e_tot_offset$ = 49, ptc_field_geometry$ = 49
-integer, parameter :: delta_ref_time$ = 50 ! Assumed unique Do not overload.
-integer, parameter :: p0c_start$ = 51      ! Assumed unique. Do not overload.
-integer, parameter :: e_tot_start$ = 52    ! Assumed unique. Do not overload.
-integer, parameter :: p0c$ = 53            ! Assumed unique. Do not overload.
-integer, parameter :: e_tot$ = 54          ! Assumed unique. Do not overload.
+integer, parameter :: delta_ref_time$ = 50
+integer, parameter :: p0c_start$ = 51
+integer, parameter :: e_tot_start$ = 52
+integer, parameter :: p0c$ = 53
+integer, parameter :: e_tot$ = 54
 integer, parameter :: x_pitch_tot$ = 55, no_end_marker$ = 55
 integer, parameter :: y_pitch_tot$ = 56
 integer, parameter :: x_offset_tot$ = 57
@@ -1360,16 +1360,16 @@ integer, parameter :: ds_step$ = 67
 integer, parameter :: lord_pad1$ = 68
 integer, parameter :: lord_pad2$ = 69, ref_wavelength$ = 69
 integer, parameter :: r0_elec$ = 70
-integer, parameter :: custom_attribute1$ = 71   ! Assumed unique. Do not overload.
-integer, parameter :: custom_attribute2$ = 72   ! Assumed unique. Do not overload.
-integer, parameter :: custom_attribute3$ = 73   ! Assumed unique. Do not overload.
-integer, parameter :: custom_attribute4$ = 74   ! Assumed unique. Do not overload.
-integer, parameter :: custom_attribute5$ = 75, custom_attribute_max$ = 75   ! For general use
-integer, parameter :: x1_limit$ = 76   ! Assumed unique. Do not overload.
-integer, parameter :: x2_limit$ = 77   ! Assumed unique. Do not overload.
-integer, parameter :: y1_limit$ = 78   ! Assumed unique. Do not overload.
-integer, parameter :: y2_limit$ = 79   ! Assumed unique. Do not overload.
-integer, parameter :: check_sum$ = 80  ! Assumed unique. Do not overload.
+integer, parameter :: scratch1$ = 71   ! For general use.
+integer, parameter :: scratch2$ = 72   ! For general use.
+integer, parameter :: scratch3$ = 73   ! For general use.
+integer, parameter :: scratch4$ = 74   ! For general use.
+integer, parameter :: scratch5$ = 75   ! For general use.
+integer, parameter :: x1_limit$ = 76
+integer, parameter :: x2_limit$ = 77
+integer, parameter :: y1_limit$ = 78
+integer, parameter :: y2_limit$ = 79
+integer, parameter :: check_sum$ = 80
 
 !! 81 = 1 + num_ele_attrib$
 
