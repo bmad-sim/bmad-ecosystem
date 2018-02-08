@@ -7371,9 +7371,9 @@ allocate(g_field%ptr%pt(ix0:ix1, iy0:iy1, iz0:iz1))
 n = (ix1+1-ix0) * (iy1+1-iy0) * (iz1+1-iz0)
 if (n /= pt_counter) then
   call out_io (s_warn$, bp_com%parser_name, &
-                 'Note: Number of grid_field points (\i0\) in the file not equal to grid_field array size (\i0\ x \i0\ x \i0\).', &
+                 'Note: Number of grid_field points (\i0\) in the file not equal to grid_field array size (\i0\:\i0\, \i0\:\i0\, \i0\:\i0\).', &
                  'for element: ' // ele%name, &
-                 i_array = [pt_counter, (ix1+1-ix0), (iy1+1-iy0), (iz1+1-iz0)])
+                 i_array = [pt_counter, ix0, ix1, iy0, iy1, iz0, iz1])
 endif
 
 ! Assign grid_field values
