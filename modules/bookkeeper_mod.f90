@@ -1485,6 +1485,7 @@ in_len = ele_in%value(l$)
 
 if (.not. associated(sliced_ele%lord, ele_in) .or. sliced_ele%ix_ele /= -2) then
   call transfer_ele(ele_in, sliced_ele, .true.)
+  sliced_ele%custom => ele_in%custom  ! The one exception.
 endif
 
 sliced_ele%lord_status = not_a_lord$
