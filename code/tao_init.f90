@@ -10,7 +10,6 @@
 
 subroutine tao_init (err_flag)
 
-use tao_mod, dummy => tao_init
 use tao_init_mod, dummy2 => tao_init
 use tao_init_data_mod, dummy3 => tao_init
 use tao_init_variables_mod, dummy4 => tao_init
