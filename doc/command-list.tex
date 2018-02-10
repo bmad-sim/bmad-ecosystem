@@ -857,16 +857,18 @@ Format:
   set beam_init \{n@\}<component> = <value>
 \end{example}
 
-For \vn{set beam_init}, the \vn{<component>}s that can be set can be found in
-section~\sref{s:beam.init}. The optional \vn{n@} allows the specification of the universe
-or universes the set is applied to. The current default universe (\sref{s:universe}) will
-be used if no universe is given. Use the \vn{show beam} command (\sref{s:show}) to see the
-current values of the \vn{beam_init} structure.
+The \vn{set beam_init} command sets components of the \vn{beam_init} structure (\sref{s:beam.init})
+as well as \vn{beam_track_start} and \vn{beam_track_end} parameters (\sref{s:beam.init}).
+
+The optional \vn{n@} allows the specification of the universe or universes the set is applied
+to. The current default universe (\sref{s:universe}) will be used if no universe is given. Use the
+\vn{show beam} command (\sref{s:show}) to see the current values.
 
 Examples:
 \begin{example}
-  set beam_init 3@center(2) = 0.004  ! Set px center of beam for universe 3.
-  set beam_init [1,2]@sig_e = 0.02   ! Set sig_e for universes 1 and 2.
+  set beam_init 3@center(2) = 0.004   ! Set px center of beam for universe 3.
+  set beam_init [1,2]@sig_e = 0.02    ! Set sig_e for universes 1 and 2.
+  set beam_init beam_track_end = q10w ! Set beam_track_end parameter.
 \end{example}
 
 %% set beam_start --------------------------------------------------------------
