@@ -749,19 +749,54 @@ implicit none
 
 type (beam_init_struct) beam_init
 type (tao_universe_struct), pointer :: u
+type (ele_pointer_struct), allocatable :: eles(:)
+type (ele_struct), pointer :: ele
+
 character(*) who, value_str
 character(40) who2
 character(*), parameter :: r_name = 'tao_set_beam_init_cmd'
 
-integer i, iu, ios
+integer i, iu, ios, ib, n_loc
 logical err
 logical, allocatable :: picked_uni(:)
+character(40) name
 
 namelist / params / beam_init
 
 ! get universe
 
 call tao_pick_universe (who, who2, picked_uni, err)
+
+! Special cases not associated with the beam_init structure
+
+select case (who2)
+case ('beam_track_start', 'beam_track_end')
+  do i = lbound(s%u, 1), ubound(s%u, 1)
+    if (.not. picked_uni(i)) cycle
+    u => s%u(i)
+    call lat_ele_locator (value_str, u%design%lat, eles, n_loc, err)
+    if (err .or. n_loc == 0) then
+      call out_io (s_fatal$, r_name, 'ELEMENT NOT FOUND: ' // value_str)
+      return
+    endif
+    if (n_loc > 1) then
+      call out_io (s_fatal$, r_name, 'MULTIPLE ELEMENTS FOUND FOR: ' // value_str)
+      return
+    endif
+    ele => eles(1)%ele
+
+    select case (who2)
+    case ('beam_track_start')
+      u%uni_branch(ele%ix_branch)%beam_track_start = value_str
+      u%uni_branch(ele%ix_branch)%ix_beam_track_start = ele%ix_ele
+    case ('beam_track_end')
+      u%uni_branch(ele%ix_branch)%beam_track_end = value_str
+      u%uni_branch(ele%ix_branch)%ix_beam_track_end = ele%ix_ele
+    end select
+  enddo
+
+  return
+end select
 
 ! open a scratch file for a namelist read
 
