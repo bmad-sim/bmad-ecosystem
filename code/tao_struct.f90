@@ -546,6 +546,7 @@ type tao_global_struct
   real(rp) :: svd_cutoff = 1e-5          ! SVD singular value cutoff.
   real(rp) :: unstable_penalty = 1e-3    ! Used in unstable_ring datum merit calculation.
   real(rp) :: merit_stop_value = -1      ! Merit value below which an optimizer will stop.
+  real(rp) :: dmerit_stop_value = 0      ! Fractional Merit change below which an optimizer will stop.
   real(rp) :: random_sigma_cutoff = -1   ! cut-off in sigmas.
   real(rp) :: delta_e_chrom = 0          ! delta E used from chrom calc.
   integer :: n_opti_cycles = 20          ! number of optimization cycles

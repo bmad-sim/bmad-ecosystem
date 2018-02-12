@@ -30,7 +30,7 @@ implicit none
 type (tao_universe_struct), pointer :: u
 
 real(rp), allocatable, save :: var_vec(:)
-real(rp) merit
+real(rp) merit0, merit
 integer n_data, i, j, iu0, iu1
 
 character(*)  which
@@ -118,11 +118,10 @@ endif
 ! Optimize...
 
 s%com%optimizer_running = .true.
+merit0 = tao_merit()
 
 do i = 1, s%global%n_opti_loops
-
   select case (s%global%optimizer)
-
   case ('de') 
     call tao_de_optimizer (abort)
 
@@ -140,15 +139,22 @@ do i = 1, s%global%n_opti_loops
 
   case ('custom')
     call tao_hook_optimizer (abort)
-
   end select
 
   if (abort) exit
-  if (s%global%merit_stop_value > 0 .and. s%global%merit_stop_value > tao_merit()) then
-    call out_io (s_info$, r_name, 'Merit value below global%merit_stop_value. Stopping optimization.')
+
+  merit = tao_merit()
+  if (s%global%merit_stop_value > 0 .and. s%global%merit_stop_value > merit) then
+    call out_io (s_info$, r_name, 'Merit value below global%merit_stop_value. Stopping Optimization.')
     exit
   endif
 
+  if (merit0 - merit <= merit * s%global%dmerit_stop_value) then
+    call out_io (s_info$, r_name, 'Fractional change in Merit value in one loop below global%dmerit_stop_value. Stopping Optimization.')
+    exit
+  endif
+
+  merit0 = merit
 enddo
 
 ! We need a lattice recalc one last time since data not used in the 

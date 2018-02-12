@@ -33,9 +33,9 @@ type (tao_lattice_branch_struct), pointer :: tao_branch
 real(rp) value
 real(rp), pointer :: ptr_attrib
 
-character(80) arg, arg2, startup_file, hook_init_file
-character(100) plot_file, data_file, var_file, file_name
-character(100) building_wall_file, beam_file, why_invalid, init_tao_file
+character(80) arg, arg2
+character(200) plot_file, data_file, var_file, file_name, startup_file, hook_init_file
+character(200) building_wall_file, beam_file, why_invalid, init_tao_file
 character(40) name1, name2
 character(16) :: r_name = 'tao_init'
 character(16) init_name

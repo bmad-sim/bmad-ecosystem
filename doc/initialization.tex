@@ -361,6 +361,7 @@ type tao_global_struct
   real(rp) svd_cutoff = 1e-5          ! SVD singular value cutoff limit.
   real(rp) unstable_penalty = 1e-3    ! Used in unstable_ring datum merit calculation.
   real(rp) merit_stop_value = -1      ! Value below which an optimizer will stop.
+  real(rp) dmerit_stop_value = 0      ! Fractional change below which an optimizer will stop.
   real(rp) random_sigma_cutoff = -1   ! Cut-off in sigmas.
   real(rp) delta_e_chrom = 0          ! delta E used from chromaticity calc.
   integer n_opti_cycles = 20          ! number of optimization cycles
@@ -422,6 +423,11 @@ The \vn{global%disable_smooth_line_calc} is used to disable computation of the `
 curves'' used in plotting.  This can be used to speed up \tao as discussed in
 \sref{s:plot.data}.
 
+  \item{\vn{global%dmerit_stop_value}} \Newline
+When optimizing, if the fractional change in the merit function over one \vn{loop} (set by
+\vn{global%n_opti_loops}) is below the value of \vn{global%dmerit_stop_value}, optimization 
+will stop. The default value is zero. Also see \vn{global%merit_stop_value}.
+
   \item{\vn{global%lattice_calc_on}} \Newline
 \vn{global%lattice_calc_on} controls whether lattice calculations are done when there are changes in
 the lattice. Lattice calculations include the calculation of orbits, Twiss parameters, beam
@@ -436,7 +442,7 @@ calculations (for example, calculating the Twiss parameters) that are not needed
   \item{\vn{global%merit_stop_value}} \Newline
 The \vn{global%merit_stop_value} establishes a point such that, during optimization, if
 the merit function falls below that value, the optimization stops. If the value is
-negative (the default), \vn{global%merit_stop_value} is ignored.
+negative (the default), \vn{global%merit_stop_value} is ignored. Also see \vn{global%dmerit_stop_value}.
 
   \item{\vn{global%optimizer_allow_user_abort}} \Newline
 Normally \vn{optimizer_allow_user_abort} defaults to True which allows the optimizer, when
