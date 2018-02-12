@@ -1170,6 +1170,7 @@ call parser_init_custom_elements ()
 ! lat_make_mat6 since if there is a match element, there is an error raised 
 ! here since the Twiss parameters have not been set. But this is expected. 
 
+bmad_com%auto_bookkeeper = auto_bookkeeper_saved  ! potentially saves time with lat_make_mat6
 if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, ix_branch = -1) 
 
 !

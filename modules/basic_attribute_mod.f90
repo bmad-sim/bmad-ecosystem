@@ -2379,6 +2379,34 @@ end function has_attribute
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Function custom_attribute_ubound_index(ele_class) result (ix_ubound)
+! 
+! Routine to return, for a given element class, the upper bound index for the ele%custom(:) 
+! array which is needed to accomodate the registered custom attributes for that class.
+!
+! Input:
+!   ele_class   -- integer: Element class (key). EG: quadrupole$, etc.
+!
+! Output:
+!   ix_ubound   -- integer: Maximum index needed.
+!-
+
+function custom_attribute_ubound_index(ele_class) result (ix_ubound)
+
+integer ele_class, ix_ubound
+
+!
+
+do ix_ubound = custom_attribute_num$, 1, -1
+  if (attribute_name(ele_class, ix_ubound+custom_attribute0$) /= null_name$) exit
+enddo
+
+end function custom_attribute_ubound_index
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
 ! Subroutine set_custom_attribute_name (custom_name, err_flag, custom_index)
 !
 ! Routine to add custom element attributes to the element attribute name table.
