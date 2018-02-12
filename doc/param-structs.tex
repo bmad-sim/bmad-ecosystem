@@ -130,10 +130,10 @@ Toggles automatic or intelligent bookkeeping. See
 section~\sref{s:lat.bookkeeping} for more details.
 
 \item[\vn{\%d_orb}] \Newline 
-Sets the orbit displacement used in the routine that calculates the
-transfer matrix through an element via tracking.  \vn{%d_orb} needs to
-be large enough to avoid significant round-off errors but not so large
-that nonlinearities will affect the results. Also see
+Sets the orbit displacement used in the routine that calculates the transfer matrix through an
+element via tracking. That is, when the \vn{mat6_calc_method} (\sref{s:xfer}) is set to
+\vn{tracking}. \vn{%d_orb} needs to be large enough to avoid significant round-off errors but not so
+large that nonlinearities will affect the results. The default value is \vn{10^{-5}}. Also see
 \vn{%mat6_track_symmetric}.
 
 \item[\vn{\%default_ds_step}] \Newline
@@ -208,7 +208,7 @@ Toggle for turning on or off long-range higher order mode wake field effects.
 \item[\vn{\%mat6_track_symmetric}] \Newline
 Toggle to turn off whether the transfer matrix from tracking routine
 (\Hyperref{r:twiss.from.tracking}{twiss_from_tracking}) tracks 12 particles at both plus and
-minus \vn{%d_orb} values or only tracks 7 particles to save time.
+minus \vn{%d_orb} values or only tracks 7 particles to save time but is less accurate..
 
 \item[\vn{\%space_charge_on}] \Newline
 Toggle to turn on or off the high energy space charge effect in particle tracking

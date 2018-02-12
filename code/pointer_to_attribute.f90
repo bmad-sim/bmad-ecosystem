@@ -414,10 +414,10 @@ if (ix_a > custom_attribute0$ .and. ix_a <= custom_attribute0$+custom_attribute_
   n = ix_a - custom_attribute0$
   if (.not. associated(ele%custom)) then
     if (.not. do_allocation) return
-    call re_associate(ele%custom, n, .true., 0.0_rp)
+    call re_associate(ele%custom, custom_attribute_ubound_index(ele%key), .true., 0.0_rp)
   else
     if (size(ele%custom) < n .and. .not. do_allocation) return
-    if (size(ele%custom) < n) call re_associate(ele%custom, n, .true., 0.0_rp)
+    if (size(ele%custom) < n) call re_associate(ele%custom, custom_attribute_ubound_index(ele%key), .true., 0.0_rp)
   endif
   a_ptr%r => ele%custom(n)
   err_flag = .false.

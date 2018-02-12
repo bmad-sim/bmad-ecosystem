@@ -1938,19 +1938,6 @@ if (out_type == 'SAD') then
   return
 endif
 
-! open file
-
-if (present(err)) err = .true.
-n_taylor_order_saved = ptc_com%taylor_order_ptc
-
-iu = lunget()
-call fullfilename (out_file_name, line)
-open (iu, file = line, iostat = ios)
-if (ios /= 0) then
-  call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // trim(out_file_name))
-  return
-endif
-
 ! Use ptc exact_model = True since this is needed to get the drift nonlinear terms
 
 call get_ptc_params(ptc_param)
@@ -2009,6 +1996,20 @@ call out_io (s_info$, r_name, &
       'Note: Bmad lattice elements have attributes that cannot be translated. ', &
       '      For example, higher order terms in a Taylor element.', &
       '      Please use caution when using a translated lattice.')
+
+
+! open file
+
+if (present(err)) err = .true.
+n_taylor_order_saved = ptc_com%taylor_order_ptc
+
+iu = lunget()
+call fullfilename (out_file_name, line)
+open (iu, file = line, iostat = ios)
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // trim(out_file_name))
+  return
+endif
 
 !-----------------------------------------------------------------------------
 ! Translation is a two step process:
@@ -2973,6 +2974,8 @@ call deallocate_lat_pointers (lat_model)
 if (n_taylor_order_saved /= ptc_com%taylor_order_ptc) call set_ptc (taylor_order = n_taylor_order_saved) 
 call set_ptc (exact_modeling = ptc_param%exact_model)
 
+close(iu)
+
 !------------------------------------------------------------------------
 contains
 
@@ -3121,19 +3124,6 @@ character(2000) line_out
 logical, optional :: include_apertures, err
 logical converted, init_needed, in_solenoid
 
-! open file
-
-if (present(err)) err = .true.
-n_taylor_order_saved = ptc_com%taylor_order_ptc
-
-iu = lunget()
-call fullfilename (out_file_name, line)
-open (iu, file = line, iostat = ios)
-if (ios /= 0) then
-  call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // trim(out_file_name))
-  return
-endif
-
 ! Use ptc exact_model = True since this is needed to get the drift nonlinear terms
 
 call get_ptc_params(ptc_param)
@@ -3170,6 +3160,19 @@ call out_io (s_info$, r_name, &
       'Note: Bmad lattice elements have attributes that cannot be translated. ', &
       '      For example, higher order terms in a Taylor element.', &
       '      Please use caution when using a translated lattice.')
+
+! open file
+
+if (present(err)) err = .true.
+n_taylor_order_saved = ptc_com%taylor_order_ptc
+
+iu = lunget()
+call fullfilename (out_file_name, line)
+open (iu, file = line, iostat = ios)
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // trim(out_file_name))
+  return
+endif
 
 !-----------------------------------------------------------------------------
 ! Translation is a two step process:
@@ -3976,6 +3979,8 @@ call deallocate_lat_pointers (lat_model)
 
 if (n_taylor_order_saved /= ptc_com%taylor_order_ptc) call set_ptc (taylor_order = n_taylor_order_saved) 
 call set_ptc (exact_modeling = ptc_param%exact_model)
+
+close (iu)
 
 !------------------------------------------------------------------------
 contains
