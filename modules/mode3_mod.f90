@@ -168,7 +168,12 @@ end subroutine normal_mode3_calc
 ! Parameterizes the eigen-decomposition of the 6x6 transfer matrix into HVBP as defined in:
 ! "From the beam-envelop matrix to synchrotron-radiation integrals" by Ohmi, Hirata, and Oide.
 !
+! This routine takes N, which is usually made from make_N (also in this module), and decomposes
+! it into H, V, B, and P.
+!
+! N is defined by:
 ! M = N.U.Inverse[N] where U is block diagonal and the blocks are 2x2 rotation matrices.
+! and it is decomposed by this subroutine as,
 ! N = H.V.B.P
 ! P has the same free parameters as B
 ! B "Twiss matrix" has 6 free parameters (Twiss alphas and betas)
@@ -786,7 +791,7 @@ end subroutine order_evecs_by_tune
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine make_N(t6, N, err_flag, abz_tunes, tunes_out)
+! Subroutine make_N(t6, N, err_flag, abz_tunes, tunes_out, U)
 !
 ! Given a 1-turn transfer matrix, this returns N and its inverse Ninv.
 ! N converts between normal invarients and phases and canonical coordinates:
@@ -809,15 +814,17 @@ end subroutine order_evecs_by_tune
 !  N(6,6)              -- real(rp): X = N.J
 !  err_flag            -- logical: Set to true on error.  Often means Eigen decomposition failed.
 !  tunes_out(3)        -- real(rp), optional: Fractional tune (in radians) of the 3 normal modes of t6.
+!  U(6,6)              -- real(rp), U = Inverse(N).t6.N.  Block diagonal matrix of 2x2 rotation matrices.
 !-
 
-subroutine make_N(t6, N, err_flag, abz_tunes, tunes_out)
+subroutine make_N(t6, N, err_flag, abz_tunes, tunes_out, U)
 
 real(rp) t6(6,6)
 real(rp) N(6,6)
 logical err_flag
 real(rp), optional :: abz_tunes(3)
 real(rp), optional :: tunes_out(3)
+real(rp), optional :: U(6,6)
 
 complex(rp) eval(6), evec(6,6)
 real(rp) mat_tunes(3)
@@ -860,6 +867,10 @@ N = matmul(real(evec), Qr) - matmul(aimag(evec), Qi)
 
 if (present(tunes_out)) then
   tunes_out = mat_tunes
+endif
+
+if (present(U)) then
+  U = matmul(matmul(mat_symp_conj(N),t6),N)
 endif
 end subroutine make_N
 
