@@ -2331,18 +2331,16 @@ For Example:
     ele_shape(7) = "wall::building"          "-"        "black"    0       "-"
   /
 \end{example}
-A figure is drawn for each lattice element in the lattice that matches
-the \vn{<ele_id>} specification (\sref{s:ele.list.format}) of any
-\vn{ele_shape(:)}.  Thus, in the example above, \vn{ele_shape(1)} will
-match to all quadrupoles whose name begins with ``q'' and
-\vn{ele_shape(2)} will match all quadrupoles. If an element matches
-more than one shape, what is drawn depends upon the setting of
-\vn{<multi>}. If \vn{<multi>} is False (the default) for the first
-shape matched in the list of shapes, only this shape will be used.  If
-\vn{<multi>} is True for the first shape matched, \tao will look for
-additional matches. Each time a match is found, the setting of
-\vn{<multi>} for that shape will be used to determine whether
-additional shapes are searched for.
+A figure is drawn for each lattice element in the lattice that matches the \vn{<ele_id>}
+specification (\sref{s:ele.list.format}) of any \vn{ele_shape(:)}.  Thus, in the example above,
+\vn{ele_shape(1)} will match to all quadrupoles whose name begins with ``q'' and \vn{ele_shape(2)}
+will match all quadrupoles. If an element matches more than one shape, what is drawn depends upon
+the setting of \vn{<multi>}. If \vn{<multi>} is False (the default) for the first shape matched in
+the list of shapes, only this shape will be used.  If \vn{<multi>} is True, \tao will draw this
+shape and then look for additional matches. Each time an additional match is found, the shape is
+drawn and the setting of \vn{<multi>} for that shape will be used to determine whether additional
+shapes are searched for. Thus \vn{<multi>} can be use to draw, for example, a \vn{circle} shape
+superimposed upon a \vn{bow_tie} shape.
 
 For a floor plan, for \vn{wiggler}s or \vn{undulators} that have an
 \vn{x_ray_line_len} attribute (see the \bmad manual), The X-ray line
@@ -2484,12 +2482,11 @@ patterns are specified by a \vn{shape_pattern} namelist:
 \begin{example}
   &shape_pattern
     name = "<curve_name>"
-    curve(1)%pt(1) = <s>, <x>, <radius>
-    curve(1)%pt(2) = <s>, <x>, <radius>
-    curve(1)%line%color = <color_name> 
-    curve(1)%line%width = <line_width>
-    curve(1)%scale = "none"
-    curve(2)%...
+    pt(1) = <s>, <x>
+    pt(2) = <s>, <x>
+    pt(3) = ...
+    line%width = <line_width>
+    scale = "none"
   /
 \end{example}
 Example:
@@ -2502,24 +2499,19 @@ Example:
 
   &shape_pattern
     name = "q_pat"
-    curve(1)%pt(1) = 0, -1
-    curve(1)%pt(2) = 1, -1
-    curve(1)%pt(3) = 0.9, 1
-    curve(1)%pt(4) = 0.1, 1
-    curve(1)%pt(5) = 0, -1
+    pt(1) = 0, -1
+    pt(2) = 1, -1
+    pt(3) = 0.9, 1
+    pt(4) = 0.1, 1
+    pt(5) = 0, -1
   /
 \end{example}
-The \vn{name} of the \vn{shape_pattern} namelist (in this example it is "q_pat") must
-match the name given by \vn{"pattern:<pattern_name>"}. The pattern is a series of curves.
-Each curve is specified by a number of points. Between the points, an arc is drawn with
-the given \vn{radius} or a line segment if the \vn{radius} is zero (which is the
-default). If there is only one point specified with a non-zero \vn{radius}, the \vn{s, x}
-value is taken to be the center of a circle with the given radius. In the above example,
-there is one curve with five points which represents an isosceles trapezoid.  When drawn,
-the \vn{s} coordinate is scaled so that $s = 0$ corresponds to the entrance end of the
-element and $s = 1$ corresponds to the exit end. The \vn{x} coordinate is scaled by the
-\vn{size} attribute of the \vn{ele_shape}. The default color for a given curve is taken to
-be the \vn{color} attribute of the \vn{ele_shape} ("red" in the example).
+The \vn{name} of the \vn{shape_pattern} namelist (in this example it is "q_pat") must match the name
+given by \vn{"pattern:<pattern_name>"}. The pattern is specified by a number of points. Between the
+points, a line segment is drawn. In the above example, the pattern is an isosceles trapezoid.  When
+drawn, the \vn{s} coordinate is scaled so that $s = 0$ corresponds to the entrance end of the
+element and $s = 1$ corresponds to the exit end. The \vn{x} coordinate is scaled by the \vn{size}
+attribute of the \vn{ele_shape}.
 
 %-----------------------------------------------------------------
 \subsection{Drawing a Dynamic Aperture}

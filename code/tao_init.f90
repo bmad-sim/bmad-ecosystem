@@ -404,7 +404,8 @@ deallocate (s%plot_page%template)
 
 if (allocated(s%plot_page%lat_layout%ele_shape)) deallocate (s%plot_page%lat_layout%ele_shape)
 if (allocated(s%plot_page%floor_plan%ele_shape)) deallocate (s%plot_page%floor_plan%ele_shape)
-if (allocated(s%com%covar))                deallocate (s%com%covar, s%com%alpha)
+if (allocated(s%plot_page%pattern))              deallocate (s%plot_page%pattern)
+if (allocated(s%com%covar))                      deallocate (s%com%covar, s%com%alpha)
 
 ! Universes 
 
