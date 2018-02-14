@@ -530,6 +530,7 @@ type (tao_building_wall_point_struct), pointer :: pt(:)
 type (tao_ele_shape_struct), pointer :: ele_shape, branch_shape
 type (coord_struct), pointer :: orbit(:)
 type (coord_struct) orb_here, orb_start, orb_end
+type (tao_shape_pattern_struct), pointer :: pat
 
 integer ix_uni, i, j, k, icol, n_bend, n, ix, ic, n_mid, isu
 
@@ -541,7 +542,7 @@ real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
 real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height
 real(rp) x_inch, y_inch, x0, y0, x1, x2, y1, y2, e1_factor, e2_factor
 real(rp) r0_plus(2), r0_minus(2), dr2_p(2), dr2_m(2), dr_p(2), dr_m(2)
-real(rp) x_min, x_max, y_min, y_max, r1, xb, yb, s_here
+real(rp) x_min, x_max, y_min, y_max, xb, yb, s_here, r0(2), r1(2)
 
 character(*) dat_var_name
 character(80) str
@@ -990,6 +991,21 @@ if (ele_shape%shape == 'XBOX' .or. ele_shape%shape == 'BOW_TIE') then
                                                   units = draw_units, color = icol)
 endif
 
+! Custom pattern
+
+if (ele_shape%shape(1:8) == 'PATTERN:') then
+  do i = 1, size(s%plot_page%pattern)
+    if (ele_shape%shape(9:) /= s%plot_page%pattern(i)%name) cycle
+    pat => s%plot_page%pattern(i)
+    r0 = end1%r(1:2) + [pat%pt(1)%s, pat%pt(1)%x] * (end2%r(1:2) - end1%r(1:2))
+    do j = 2, size(pat%pt)
+      r1 = end1%r(1:2) + [pat%pt(j)%s, pat%pt(j)%x] * (end2%r(1:2) - end1%r(1:2))
+      call qp_draw_line (r0(1), r1(1), r0(2), r1(2), units = draw_units, color = icol)
+      r0 = r1
+    enddo
+  enddo
+endif
+
 ! Draw the label.
 ! Since multipass slaves are on top of one another, just draw the multipass lord's name.
 ! Also place a bend's label to the outside of the bend.
@@ -1239,7 +1255,7 @@ do
   if (x1 < graph%x%min .and. x2 < graph%x%min) return
 
   ! Here if element is to be drawn...
-  ! r1 and r2 are the scale factors for the lines below and above the center line.
+  ! y1 and y2 are the scale factors for the lines below and above the center line.
 
   y = ele_shape%size * s%plot_page%lat_layout_shape_scale 
   y1 = -y
@@ -1303,8 +1319,11 @@ end subroutine draw_ele_for_lat_layout
 subroutine draw_shape_for_lat_layout (name_in, x1, x2, s_pos, ele_shape)
 
 type (tao_ele_shape_struct) ele_shape
-real(rp) :: s_pos, y_off, r_dum = 0, x1, x2
+type (tao_shape_pattern_struct), pointer :: pat
+
+real(rp) :: s_pos, y_off, r_dum = 0, x1, x2, r0(2), r1(2)
 integer icol
+
 character(*) name_in
 character(20) shape_name
 
@@ -1351,6 +1370,21 @@ endif
 if (shape_name == 'XBOX' .or. shape_name == 'BOW_TIE') then
   call qp_draw_line (x1, x2, y2, y1, color = icol, clip = .true.)
   call qp_draw_line (x1, x2, y1, y2, color = icol, clip = .true.)
+endif
+
+! Custom pattern
+
+if (shape_name(1:8) == 'PATTERN:') then
+  do i = 1, size(s%plot_page%pattern)
+    if (shape_name(9:) /= s%plot_page%pattern(i)%name) cycle
+    pat => s%plot_page%pattern(i)
+    r0 = [x1, y1] + [pat%pt(1)%s, pat%pt(1)%x] * [x2-x1, y2-y1]
+    do j = 2, size(pat%pt)
+      r1 = [x1, y1] + [pat%pt(j)%s, pat%pt(j)%x] * [x2-x1, y2-y1]
+      call qp_draw_line (r0(1), r1(1), r0(2), r1(2), color = icol, clip = .true.)
+      r0 = r1
+    enddo
+  enddo
 endif
 
 ! Put on a label

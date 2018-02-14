@@ -359,7 +359,7 @@ case ('beam')
       nl=nl+1; write(lines(nl), rmt) '  %emit_jitter            = ', beam_init%emit_jitter
       nl=nl+1; write(lines(nl), rmt) '  %sig_z_jitter           = ', beam_init%sig_z_jitter
       nl=nl+1; write(lines(nl), rmt) '  %sig_e_jitter           = ', beam_init%sig_e_jitter
-      nl=nl+1; write(lines(nl), rmt) '  %spin%spin              = ', beam_init%spin
+      nl=nl+1; write(lines(nl), rmt) '  %spin                   = ', beam_init%spin
       nl=nl+1; write(lines(nl), lmt) '  %renorm_center          = ', beam_init%renorm_center
       nl=nl+1; write(lines(nl), lmt) '  %renorm_sigma           = ', beam_init%renorm_sigma
       nl=nl+1; write(lines(nl), amt) '  %random_engine          = ', beam_init%random_engine
@@ -3117,7 +3117,7 @@ case ('taylor_map', 'matrix')
         ele => pointer_to_slave (ele, ele%n_slave)
       case (overlay_lord$, multipass_lord$, girder_lord$, group_lord$)
         nl=1; lines(1) = 'LORD ELEMENT OF THIS TYPE (' // trim(control_name(ele%lord_status)) // &
-                         ')DOES NOT HAVE A DEFINITE POSITION: ' // ele1_name
+                         ') DOES NOT HAVE A DEFINITE POSITION: ' // ele1_name
         return
       end select
 
@@ -3435,8 +3435,7 @@ case ('universe')
       pz1 = pz1 + branch%ele(i)%value(l$) * (design_tao_branch%orbit(i-1)%vec(6) + design_tao_branch%orbit(i)%vec(6)) / branch%param%total_length
       pz2 = pz2 + branch%ele(i)%value(l$) * (tao_branch%orbit(i-1)%vec(6) + tao_branch%orbit(i)%vec(6)) / branch%param%total_length
     enddo
-    nl=nl+1; write(lines(nl), fmt) '<pz>:', branch%param%spin_tune/twopi, &
-                                          design_branch%param%spin_tune/twopi, '! Average closed orbit pz (momentum deviation)'
+    nl=nl+1; write(lines(nl), fmt) '<pz>:', pz1, pz2, '! Average closed orbit pz (momentum deviation)'
   endif
 
   result_id = show_what

@@ -88,23 +88,19 @@ type tao_ele_shape_struct    ! for the element layout plot
   character(40) :: name_ele = ''     ! Name of element
 end type
 
-type tao_pattern_point_struct
-  real(rp) :: s = real_garbage$, x = real_garbage$, radius = 0
+type tao_drawing_struct
+  type (tao_ele_shape_struct), allocatable :: ele_shape(:)
 end type
 
-type tao_pattern_curve_struct
-  type (qp_line_struct) :: line = qp_line_struct(1, -1, solid$)
-  type (tao_pattern_point_struct), allocatable :: pt(:)
-  character(8) :: scale = 'none'
+type tao_shape_pattern_point_struct
+  real(rp) :: s = real_garbage$, x = real_garbage$, radius = 0
 end type
 
 type tao_shape_pattern_struct
   character(40) :: name = ''
-  type (tao_pattern_curve_struct), allocatable :: curve(:)
-end type
-
-type tao_drawing_struct
-  type (tao_ele_shape_struct), allocatable :: ele_shape(:)
+  type (qp_line_struct) :: line = qp_line_struct(1, -1, solid$)
+  type (tao_shape_pattern_point_struct), allocatable :: pt(:)
+  character(8) :: scale = 'none'
 end type
 
 !-----------------------------------------------------------------------

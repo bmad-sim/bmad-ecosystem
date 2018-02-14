@@ -307,22 +307,37 @@ if (ios < 0) then
 
 endif
 
+!------------------------------------------------------------------------------------
+! Read in patterns
+! Reason this is in a separate routine is due to conflict with "curve" variable in namelist.
+
+call tao_read_in_patterns(iu, plot_file)
+
 ! Error check
 
 if (allocated(s%plot_page%lat_layout%ele_shape)) then
   do i = 1, size(s%plot_page%lat_layout%ele_shape)
     e_shape => s%plot_page%lat_layout%ele_shape(i)
     if (e_shape%ele_id(1:6) == 'wall::') cycle
+
+    if (e_shape%shape(1:8) == 'PATTERN:') then
+      if (all(e_shape%shape(9:) /= s%plot_page%pattern(:)%name)) then
+        call out_io (s_error$, r_name, 'ELE_SHAPE: ', trim(e_shape%shape) // ' DOES NOT HAVE AN ASSOCIATED PATTERN.', &
+                                       'IN FILE: ' // plot_file)
+      endif
+      cycle
+    endif
+
     select case (e_shape%shape)
     case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X', 'NONE')
     case ('VVAR_BOX', 'ASYM_VVAR_BOX')
       if (e_shape%ele_id(1:6) /= 'data::' .and. e_shape%ele_id(1:5) /= 'var::') then
-        call out_io (s_error$, r_name, 'ELE_SHAPE WITH ', trim(e_shape%shape) // ' MUST BE ASSOCIATED WITH A DATUM OR VARIABLE! NOT: ' // e_shape%ele_id, &
+        call out_io (s_error$, r_name, 'ELE_SHAPE WITH ', trim(e_shape%shape) // &
+                                             ' MUST BE ASSOCIATED WITH A DATUM OR VARIABLE! NOT: ' // e_shape%ele_id, &
                                        'IN FILE: ' // plot_file)
       endif
     case default
       call out_io (s_fatal$, r_name, 'UNKNOWN ELE_SHAPE: ' // e_shape%shape, 'IN FILE: ' // plot_file)
-      call err_exit
     end select
   enddo
 endif
@@ -330,6 +345,15 @@ endif
 if (allocated(s%plot_page%floor_plan%ele_shape)) then
   do i = 1, size(s%plot_page%floor_plan%ele_shape)
     e_shape => s%plot_page%floor_plan%ele_shape(i)
+
+    if (e_shape%shape(1:8) == 'PATTERN:') then
+      if (all(e_shape%shape(9:) /= s%plot_page%pattern(:)%name)) then
+        call out_io (s_error$, r_name, 'ELE_SHAPE: ', trim(e_shape%shape) // ' DOES NOT HAVE AN ASSOCIATED PATTERN.', &
+                                       'IN FILE: ' // plot_file)
+      endif
+      cycle
+    endif
+
     select case (e_shape%shape)
     case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X', 'NONE')
     case ('VVAR_BOX', 'ASYM_VVAR_BOX')
@@ -343,16 +367,12 @@ if (allocated(s%plot_page%floor_plan%ele_shape)) then
       endif
     case default
       call out_io (s_fatal$, r_name, 'UNKNOWN ELE_SHAPE: ' // e_shape%shape, 'IN FILE: ' // plot_file)
-      call err_exit
     end select
   enddo
 endif
 
-!------------------------------------------------------------------------------------
-! Read in patterns
-! Reason this is in a separate routine is due to conflict with "curve" variable in namelist.
+!
 
-call tao_read_in_patterns(iu, plot_file)
 close (iu)
 
 
@@ -2947,22 +2967,19 @@ use tao_struct
 
 implicit none
 
-type input_pattern_curve_struct
-  type (qp_line_struct) :: line 
-  type (tao_pattern_point_struct) :: pt(30)
-  character(8) :: scale
-end type
-
-type (input_pattern_curve_struct) curve(10)
 type (tao_shape_pattern_struct), allocatable :: temp_pat(:)
 type (tao_shape_pattern_struct), pointer :: pat
+type (qp_line_struct) :: line 
+type (tao_shape_pattern_point_struct) :: pt(30)
 
 integer iu, ios, nn, j, jc, jpt, nc, npt
+
 character(40) name
+character(8) :: scale
 character(*) plot_file
 character(*), parameter :: r_name = 'tao_read_in_patterns'
 
-namelist / shape_pattern / name, curve
+namelist / shape_pattern / name, line, pt, scale
 
 !
 
@@ -2971,12 +2988,11 @@ if (allocated(s%plot_page%pattern)) deallocate(s%plot_page%pattern)
 allocate (s%plot_page%pattern(0))
 
 do  ! Loop over all patterns
-  do j = 1, size(curve)
-    curve(j)%line  = qp_line_struct(1, -1, solid$)
-    curve(j)%pt    = tao_pattern_point_struct()
-    curve(j)%scale = 'none'
-  enddo
+  line  = qp_line_struct(1, -1, solid$)
+  pt    = tao_shape_pattern_point_struct()
+  scale = 'none'
   name = ''
+
   read (iu, nml = shape_pattern, iostat = ios) 
   if (ios < 0) exit
   if (ios > 0) then
@@ -2995,12 +3011,8 @@ do  ! Loop over all patterns
 
   do j = 1, nn
     pat => s%plot_page%pattern(j)
-    nc = size(temp_pat(j)%curve)
-    allocate(pat%curve(nc))
-    do jc = 1, nc
-      npt = size(temp_pat(j)%curve(jc)%pt)
-      allocate (pat%curve(jc)%pt(npt))
-    enddo
+    npt = size(temp_pat(j)%pt)
+    allocate (pat%pt(npt))
     pat = temp_pat(j)
   enddo
 
@@ -3009,22 +3021,14 @@ do  ! Loop over all patterns
   !
 
   pat => s%plot_page%pattern(nn+1)
-  pat%name = name
+  pat%name = upcase(name)
 
-  nc = size(curve)
-  do jc = nc, 1, -1
-    if (curve(jc)%pt(1)%s /= real_garbage$) exit
+  do jpt = size(pt), 1, -1
+    if (pt(jpt)%s /= real_garbage$) exit
   enddo
-  allocate(pat%curve(jc))
-  do jc = 1, size(pat%curve)
-    do jpt = size(curve(jc)%pt), 1, -1
-      if (curve(jc)%pt(jpt)%s /= real_garbage$) exit
-    enddo
-    allocate (pat%curve(jc)%pt(jpt))
-    pat%curve(jc)%line = curve(jc)%line
-    pat%curve(jc)%pt   = curve(jc)%pt(1:jpt)
-  enddo
-
+  allocate (pat%pt(jpt))
+  pat%line = line
+  pat%pt   = pt(1:jpt)
 enddo
 
 end subroutine tao_read_in_patterns
