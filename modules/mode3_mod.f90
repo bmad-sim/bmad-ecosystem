@@ -4,7 +4,7 @@ use twiss_and_track_mod
 
 implicit none
 
-real(rp), parameter :: m = 0.707106781d0  ! 1/sqrt(2)
+real(rp), parameter :: m = 1.0_rp / sqrt(2.0_rp)
 real(rp), parameter :: o = 0.0d0  ! for compact code
 real(rp), parameter :: l = 1.0d0  ! for compact code
 
@@ -16,7 +16,7 @@ complex(rp), parameter :: Q(6,6) = cmplx(Qr,Qi)
 real(rp), parameter :: S(6,6) = reshape( [o, -l, o, o, o, o, l, o, o, o, o, o, &
                                           o, o, o, -l, o, o, o, o, l, o, o, o, &
                                           o, o, o, o, o, -l, o, o, o, o, l, o], [6,6] )
-real(rp), parameter :: I2(2, 2) = reshape( [1, 0, 0, 1], [2, 2] )
+real(rp), parameter :: I2_mat(2, 2) = reshape( [1, 0, 0, 1], [2, 2] )
 
 private m, o, l
 private Qr, Qi
@@ -123,10 +123,10 @@ end subroutine t6_to_B123
 !
 !-
 
-subroutine normal_mode3_calc (t6, tunes, B, HV, above_transition)
+subroutine normal_mode3_calc (t6, tune, B, HV, above_transition)
 
 real(rp) t6(6,6)
-real(rp) tunes(3)
+real(rp) tune(3)
 real(rp) B(6,6)
 real(rp) HV(6,6)
 logical, optional :: above_transition
@@ -140,16 +140,16 @@ character(*), parameter :: r_name = 'normal_mode3_calc'
 
 !
 
-call make_N(t6, N, err_flag, tunes_out=tunes)
+call make_N(t6, N, err_flag, tunes_out=tune)
 if ( err_flag ) then
   call out_io (s_error$, r_name, "Error received from make_N.")
-  tunes = 0.0d0
+  tune = 0.0d0
   B = 0.0d0
   HV = 0.0d0
   return
 endif
 
-if (.not. logic_option(.false., above_transition)) tunes(3) = tunes(3) + twopi
+if (.not. logic_option(.false., above_transition)) tune(3) = tune(3) + twopi
 
 call make_HVBP (N, B, V, H)
 HV = matmul(H, V)
@@ -230,9 +230,9 @@ Hy = matmul(N(3:4, 5:6), mat_symp_conj(BcPc))
 ax = determinant(Hx)/(1.0d0+a)  !shorthand
 ay = determinant(Hy)/(1.0d0+a)  !shorthand
 
-H(1:2, 1:2) = (1.0d0-ax)*I2
-H(3:4, 3:4) = (1.0d0-ay)*I2
-H(5:6, 5:6) = a*I2
+H(1:2, 1:2) = (1.0d0-ax)*I2_mat
+H(3:4, 3:4) = (1.0d0-ay)*I2_mat
+H(5:6, 5:6) = a*I2_mat
 H(1:2, 5:6) = Hx
 H(3:4, 5:6) = Hy
 H(5:6, 1:2) = -1.0d0*mat_symp_conj(Hx)
@@ -248,9 +248,9 @@ BbPb = VBP(3:4, 3:4)/mu
 V2 = matmul(VBP(1:2, 3:4), mat_symp_conj(BbPb))
 
 V = 0.0d0
-V(1:2, 1:2) = mu*I2
-V(3:4, 3:4) = mu*I2
-V(5:6, 5:6) = I2
+V(1:2, 1:2) = mu*I2_mat
+V(3:4, 3:4) = mu*I2_mat
+V(5:6, 5:6) = I2_mat
 V(1:2, 3:4) = V2
 V(3:4, 1:2) = -1.0d0*mat_symp_conj(V2)
 

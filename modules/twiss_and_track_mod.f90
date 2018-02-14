@@ -33,10 +33,8 @@ use geometry_mod
 !   use bmad
 !
 ! Input:
-!   lat                  -- lat_struct: Input lat holding the lattice.
-!     %param%geometry -- Used to determine if lattice is open or closed.
-!                                = closed$ implies a closed lattice.
-!                                all others imply an open lattice.
+!   lat                  -- lat_struct: lattice.
+!     %param%geometry      -- Used to determine if lattice is open or closed.
 !   orb(0:)             -- Coord_struct, allocatable: Orbit to be computed
 !     orb(0)            -- Initial conditions to be used for an open geometry lattices.
 !     orb(0)%vec(6)     -- For a closed lat: Energy at which the closed orbit is computed.
