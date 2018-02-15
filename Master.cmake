@@ -869,9 +869,9 @@ foreach(exespec ${EXE_SPECS})
   # Set up linking for the executable.
   # Always produce a map file.  It is placed in the ../<build_type>/map directory
   # created during build setup.
-  set (MAPLINE "-Wl,-Map=${OUTPUT_BASEDIR}/map/${EXENAME}.map")
+  set (MAPLINE "-Wl,-Map=\"${OUTPUT_BASEDIR}/map/${EXENAME}.map\"")
   IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    SET (MAPLINE "-Wl,-map -Wl,${OUTPUT_BASEDIR}/map/${EXENAME}.map")
+    SET (MAPLINE "-Wl,-map -Wl,\"${OUTPUT_BASEDIR}/map/${EXENAME}.map\"")
   ENDIF ()
 
   set(STATIC_FLAG "")
