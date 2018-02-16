@@ -845,11 +845,11 @@ then a program can access the \vn{rise_time} attribute via:
   call pointer_to_attribute (ele, 'RISE_TIME', .true., a_ptr, err_flag)
   print *, 'RISE_TIME Attribute has value:', a_ptr%r
 \end{example}
+
 Note: Even if there are custom attributes associated with a given type of element (say, all
 quadrupoles), a given element of that type may not have its \vn{%custom(:)} array allocated. [In
 this case, none of the custom values have been set so are zero by definition.] In the above example,
 the \vn{%custom} array will be allocated if needed in the call to \vn{pointer_to_attribute}.
-
 
 If not defined through a lattice file, custom attributes can also be
 defined directly from within a program using the 
@@ -860,6 +860,13 @@ For example:
   ...
   call set_custom_attribute_name ('QUADRUPOLE::ERROR_CURRENT', err_flag) 
 \end{example}
+
+Note: When there is a superposition (\sref{s:super}), the \vn{super_slave} elements that are formed
+do {\em not} have any custom attributes assigned to them even when their \vn{super_lord} elements
+have custom attributes. This is done since the \bmad bookkeeping routines are not able to handle the
+situation where a \vn{super_slave} element has multiple \vn{super_lord} elements and thus the custom
+attributes from the different \vn{super_lord} elements have to be combined. Proper handling of this
+situation is left to any custom code that a program implements to handle custom attributes.
 
 %--------------------------------------------------------------------------
 \section{Bmad Reserved Variables}

@@ -258,12 +258,14 @@ enddo
 
 ! Custom attributes
 
-do i = 1, custom_attribute_num$
-  attrib = attribute_info(ele, i+custom_attribute0$)
-  if (attrib%name(1:1) == '!') cycle
-  nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 3x, a)') &
-                i, attrib%name(1:n_att), '=', value_of_attribute(ele, attrib%name, err_flag), '! Custom attribute'
-enddo
+if (ele%slave_status /= super_slave$) then
+  do i = 1, custom_attribute_num$
+    attrib = attribute_info(ele, i+custom_attribute0$)
+    if (attrib%name(1:1) == '!') cycle
+    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 3x, a)') &
+                  i, attrib%name(1:n_att), '=', value_of_attribute(ele, attrib%name, err_flag), '! Custom attribute'
+  enddo
+endif
 
 ! Multipoles
 

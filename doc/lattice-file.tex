@@ -397,12 +397,10 @@ may be set using the syntax as discussed in Section \sref{s:ele.names}. Example:
 \label{s:cust.att}
 \index{element attributes!defining custom attributes}
 
-Real scalar and vector custom element attributes may be defined for any class of
-element.  Custom element attributes are useful with programs that need
-to associate ``extra'' information with particular lattice elements
-and it is desired that this extra information be settable from within
-a lattice file. For example, a program might need error tolerance
-for the strength of quadrupoles.
+Real scalar and vector custom element attributes may be defined for any class of element.  Custom
+element attributes are useful with programs that need to associate ``extra'' information with
+particular lattice elements and it is desired that this extra information be settable from within a
+lattice file. For example, a program might need error tolerance for the strength of quadrupoles.
 
 Adding custom attributes will not disrupt programs that are not designed to use the custom
 attributes. Currently, up to 40 named custom attributes may be defined for any given element
@@ -471,6 +469,13 @@ For example:
 \end{example}
 Negative indices are accepted and if only one or two indices are present, the others
 are assumed to be zero. Thus \vn{r_custom(-3)} is equivalent to \vn{r_custom(-3,0,0)}.
+
+Note: When there is a superposition (\sref{s:super}), the \vn{super_slave} elements that are formed
+do {\em not} have any custom attributes assigned to them even when their \vn{super_lord} elements
+have custom attributes. This is done since the \bmad bookkeeping routines are not able to handle the
+situation where a \vn{super_slave} element has multiple \vn{super_lord} elements and thus the custom
+attributes from the different \vn{super_lord} elements have to be combined. Proper handling of this
+situation is left to any custom code that a program implements to handle custom attributes.
 
 %---------------------------------------------------------------------------
 \section{Variable Types}
