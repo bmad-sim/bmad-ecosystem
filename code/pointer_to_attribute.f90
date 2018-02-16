@@ -411,6 +411,8 @@ endif
 ! Custom attribute
 
 if (ix_a > custom_attribute0$ .and. ix_a <= custom_attribute0$+custom_attribute_num$) then
+  if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) return
+
   n = ix_a - custom_attribute0$
   if (.not. associated(ele%custom)) then
     if (.not. do_allocation) return

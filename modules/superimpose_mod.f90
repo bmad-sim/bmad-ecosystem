@@ -464,7 +464,8 @@ do
 
   ! Components like %wall3d, %em_field are contained in the lord so
   ! deallocate any of these components in the future slave.
-  ! Note that %a_pole and %b_pole components are the exception
+  ! Note that %a/b_pole and %a/b_pole_elec components are the exception since the
+  ! bookkeeping routines know how to scale these.
 
   call deallocate_ele_pointers (slave, nullify_branch = .false., dealloc_poles = .false.)
   slave%slave_status = super_slave$

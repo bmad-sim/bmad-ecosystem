@@ -807,6 +807,12 @@ if (associated (slave%a_pole_elec)) then
   slave%multipoles_on    = lord%multipoles_on
 endif
 
+! Custom attributes
+
+if (associated(slave%custom)) then
+  slave%custom = lord%custom
+endif
+
 ! RF wakes
 
 call transfer_wake (lord%wake, slave%wake)
@@ -820,7 +826,7 @@ endif
 ! methods
 
 slave%taylor_map_includes_offsets = lord%taylor_map_includes_offsets
-slave%is_on            = lord%is_on
+slave%is_on = lord%is_on
 
 ! Handled by set_flags_for_changed_attribute
 
@@ -1485,7 +1491,6 @@ in_len = ele_in%value(l$)
 
 if (.not. associated(sliced_ele%lord, ele_in) .or. sliced_ele%ix_ele /= -2) then
   call transfer_ele(ele_in, sliced_ele, .true.)
-  sliced_ele%custom => ele_in%custom  ! The one exception.
 endif
 
 sliced_ele%lord_status = not_a_lord$
