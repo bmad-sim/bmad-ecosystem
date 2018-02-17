@@ -88,6 +88,13 @@ function determinant (mat) result (det)
   real(rp) det
 end function
 
+subroutine display_size_and_resolution (ix_screen, x_size, y_size, x_res, y_res)
+  import
+  implicit none
+  real(rp) x_size, y_size, x_res, y_res
+  integer ix_screen
+end subroutine
+
 subroutine doubleup_quotes (str_in, str_out, quote)
   character(*) str_in
   character(*) str_out
