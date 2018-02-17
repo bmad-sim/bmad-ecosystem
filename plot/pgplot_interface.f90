@@ -592,6 +592,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, x_page, y_pag
 implicit none
 
 real(rp) x_len, y_len, x_page, y_page
+real(rp) x_size, y_size, x_res, y_res
 real(rp), optional :: page_scale
 
 real x, y
@@ -644,11 +645,18 @@ if (iw <= 0) then
   stop
 endif
 
-! set page size
+! set page size. 
+! pgplot assumes 72 pixels / inch for X-windows so there needs to be a correction
 
 if (x_len > 0 .and. y_len > 0) then
-  call pgpap (real(x_len), real(y_len/x_len))
+  if (page_type == 'X') then
+    call display_size_and_resolution(0, x_size, y_size, x_res, y_res)
+    call pgpap (real(x_len), real(y_len/x_len))
+  else
+    call pgpap (real(x_len), real(y_len/x_len))
+  endif
 endif
+
 
 ! do not pause when clearing the screen.
 

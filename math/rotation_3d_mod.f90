@@ -401,7 +401,7 @@ end function rotate_vec_given_axis_angle
 ! Input:
 !   vec(3)       -- real(rp): vector
 !   axis         -- integer: x_axis$, y_axis$, or z_axis$
-!   angle        -- real(rp): cosine of the angle to rotate
+!   angle        -- real(rp): angle to rotate.
 !
 ! Output:
 !   vec(3)       -- real(rp): Rotated vector.
