@@ -342,7 +342,7 @@ Example:
 The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{n_opti_cycles}\index{ix_key_bank}
 \index{n_lat_layout_label_rows}\index{phase_units}
-\index{bunch_to_plot}\index{random_seed}
+\index{bunch_to_plot}\index{random_seed}\index{concatenate_maps}
 \index{beam_random_engine}\index{beam_random_gauss_converter}
 \index{track_type}\index{prompt_string}\index{Optimization!setting the optimizer}
 \index{write_file}\index{var_limits_on}\index{only_limit_opt_vars}
@@ -380,6 +380,7 @@ type tao_global_struct
   character(40)  print_command = "lpr"
   character(80)  var_out_file  = "var#.out"
   logical beam_timer_on = F             ! For timing the beam tracking calculation.
+  logical concatenate_maps = F          ! False => tracking using DA.
   logical command_file_print_on = T     ! Toggle printing when using a command file.
   logical derivative_recalc = T         ! Recalc derivatives before each optimizer loop?
   logical derivative_uses_design = F    ! Derivative matrix uses the design lattice?
@@ -411,6 +412,16 @@ the \vn{set} command (\sref{s:set}).
   \begin{description}
   \item{\vn{global%command_file_print_on}} \Newline
 The \vn{} switch controls whether printing is suppressed when a command file is called.
+
+  \item{\vn{global%concatenate_maps}} \Newline
+When constructing transfer Taylor maps the default method, used with \vn{global%concatenate_maps} =
+False, is to use Differential Algebra (DA) to integrate the map from the starting point to the
+ending point.  Alternatively, with \vn{global%concatenate_maps} = True, if an element within the
+integration region has an associated map, that map is concatenated with the map under construction.
+This saves time but the potential drawback is a loss of accuracy. Note that a lattice element
+will only have an associate map if the \vn{tracking_method} or \vn{make_mat6_method} components
+of the lattice element are such that a map is needed for tracking (see the \bmad manual for more
+details).
 
   \item{\vn{global%derivative_recalc}} \Newline
 The \vn{global%derivative_recalc} logical determines whether the derivative matrix is
