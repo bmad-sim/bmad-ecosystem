@@ -12,7 +12,7 @@ contains
 !-----------------------------------------------------------------------
 !+         
 ! Subroutine transfer_map_from_s_to_s (lat, t_map, s1, s2, ref_orb, ix_branch, 
-!                                                     one_turn, unit_start, err_flag)
+!                                               one_turn, unit_start, err_flag, concat_if_possible)
 !
 ! Subroutine to calculate the transfer map between longitudinal positions s1 to s2.
 !
@@ -43,6 +43,9 @@ contains
 !   unit_start -- logical, optional: If present and False then t_map will be
 !                   used as the starting map instead of the unit map.
 !                   Default = True
+!   concat_if_possible
+!              -- logical, optional: If present and True then use map concatenation rather than tracking 
+!                   if a map is present for a given lattice element. See above. Default is False.
 !
 ! Output:
 !   t_map(6) -- Taylor_struct: Transfer map.
@@ -50,7 +53,7 @@ contains
 !-
 
 subroutine transfer_map_from_s_to_s (lat, t_map, s1, s2, ref_orb, ix_branch, &
-                                                            one_turn, unit_start, err_flag)
+                                                   one_turn, unit_start, err_flag, concat_if_possible)
 
 use ptc_interface_mod, only: concat_taylor, taylor_inverse
 
@@ -68,10 +71,10 @@ real(rp) ss1, ss2
 integer, optional :: ix_branch
 integer ix_br
 
-logical, optional :: one_turn, unit_start, err_flag
+logical, optional :: one_turn, unit_start, err_flag, concat_if_possible
 logical unit_start_this, error_flag
 
-character(40) :: r_name = 'transfer_map_from_s_to_s'
+character(*), parameter :: r_name = 'transfer_map_from_s_to_s'
 
 !
 
@@ -102,27 +105,27 @@ endif
 ! Normal case
 
 if (ss1 < ss2) then 
-  call transfer_this_map (t_map, branch, ss1, ss2, error_flag)
+  call transfer_this_map (t_map, branch, ss1, ss2, error_flag, concat_if_possible = concat_if_possible)
   if (error_flag) return
 
 ! For a circular lattice push through the origin.
 
 elseif (branch%param%geometry == closed$) then
-  call transfer_this_map (t_map, branch, ss1, branch%param%total_length, error_flag, ref_orb)
+  call transfer_this_map (t_map, branch, ss1, branch%param%total_length, error_flag, ref_orb, concat_if_possible)
   if (error_flag) return
-  call transfer_this_map (t_map, branch, 0.0_rp, ss2, error_flag, ref_orb)
+  call transfer_this_map (t_map, branch, 0.0_rp, ss2, error_flag, ref_orb, concat_if_possible)
   if (error_flag) return
 
 ! For an open lattice compute the backwards map
 
 else
   if (unit_start_this) then
-    call transfer_this_map (t_map, branch, ss2, ss1, error_flag, ref_orb)
+    call transfer_this_map (t_map, branch, ss2, ss1, error_flag, ref_orb, concat_if_possible)
     if (error_flag) return
     call taylor_inverse (t_map, t_map)
   else  
     call taylor_make_unit (a_map)
-    call transfer_this_map (a_map, branch, ss2, ss1, error_flag, ref_orb)
+    call transfer_this_map (a_map, branch, ss2, ss1, error_flag, ref_orb, concat_if_possible)
     if (error_flag) return
     call taylor_inverse (a_map, a_map)
     call concat_taylor (t_map, a_map, t_map)
@@ -139,14 +142,14 @@ end subroutine transfer_map_from_s_to_s
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine transfer_this_map (map, branch, s_1, s_2, error_flag, ref_orb)
+! Subroutine transfer_this_map (map, branch, s_1, s_2, error_flag, ref_orb, concat_if_possible)
 !
 ! Private subroutine used by transfer_map_from_s_to_s
 !-
 
-subroutine transfer_this_map (map, branch, s_1, s_2, error_flag, ref_orb)
+subroutine transfer_this_map (map, branch, s_1, s_2, error_flag, ref_orb, concat_if_possible)
 
-use ptc_interface_mod, only: concat_taylor, ele_to_taylor, taylor_propagate1
+use ptc_interface_mod, only: ele_to_taylor, taylor_propagate1, concat_ele_taylor
 use bookkeeper_mod, only: create_element_slice
 
 implicit none
@@ -166,6 +169,7 @@ integer i, ix_ele
 
 logical create_it, track_upstream_end, track_downstream_end, track_entire_ele
 logical runt_points_to_new, error_flag, include_next_ele
+logical, optional :: concat_if_possible
 logical, save :: old_track_end = .false.
 
 ! Init
@@ -219,7 +223,6 @@ do
   ! through the element and we have not done the bookkeeping before.
 
   if (.not. track_entire_ele) then
-
     create_it = .false.
 
     if (global_com%be_thread_safe .or. ds /= runt%value(l$) .or. runt_points_to_new) then
@@ -235,12 +238,15 @@ do
                                      branch%param, track_upstream_end, track_downstream_end, error_flag)
       if (error_flag) exit
     endif
-
   endif
 
   ! Now for the integration step
 
-  call taylor_propagate1 (map, runt, branch%param, ref_orb)
+  if (track_entire_ele .and. logic_option(.false., concat_if_possible)  .and. associated(ele%taylor(1)%term)) then
+    call concat_ele_taylor (map, ele, map)
+  else
+    call taylor_propagate1 (map, runt, branch%param, ref_orb)
+  endif
 
   ! Save the present integration step parameters so that if this routine
   ! is called in the future we can tell if the saved taylor map is still valid.

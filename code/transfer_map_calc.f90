@@ -164,7 +164,7 @@ integer i, k
 !
 
 if (logic_option(.false., concat_if_possible) .and. associated(ele%taylor(1)%term)) then
-  call concat_ele_taylor(map, ele, map)
+  call concat_ele_taylor (map, ele, map)
 else
   call taylor_propagate1 (map, ele, branch%param, ref_orb)
 endif
