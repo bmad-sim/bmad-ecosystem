@@ -559,30 +559,31 @@ type tao_global_struct
   character(16) :: optimizer     = 'de'             ! optimizer to use.
   character(40) :: print_command = 'lpr'
   character(80) :: var_out_file  = 'var#.out'
-  logical :: opt_with_ref = .false.               ! use reference data in optimization?
-  logical :: opt_with_base = .false.              ! use base data in optimization?
-  logical :: label_lattice_elements = .true.      ! For lat_layout plots
-  logical :: label_keys = .true.                  ! For lat_layout plots
+  logical :: beam_timer_on = .false.              ! For timing the beam tracking calculation.
+  logical :: box_plots = .false.                  ! For debugging plot layout issues.
+  logical :: command_file_print_on = .true.       ! Print to terminal when using a cmd file?
+  logical :: concatenate_maps = .false.           ! False => tracking using DA. 
+  logical :: debug_on = .false.                   ! For debugging.
   logical :: derivative_recalc = .true.           ! Recalc before each optimizer run?
   logical :: derivative_uses_design = .false.     ! Derivative calc uses design lattice instead of model?
-  logical :: orm_analysis = .false.               ! orm using mdsa? 
-  logical :: plot_on = .true.                     ! Do plotting?
-  logical :: lattice_calc_on = .true.             ! Turn on/off beam and single particle calculations.
-  logical :: svd_retreat_on_merit_increase = .true.
-  logical :: stop_on_error = .true.               ! For debugging: True prevents tao from exiting on an error.
-  logical :: command_file_print_on = .true.       ! print to terminal when using a cmd file?
-  logical :: box_plots = .false.                  ! For debugging plot layout issues.
-  logical :: beam_timer_on = .false.              ! For timing the beam tracking calculation.
-  logical :: var_limits_on = .true.               ! Respect the variable limits?
-  logical :: only_limit_opt_vars = .false.        ! Only apply limits to variables used in optimization.
-  logical :: optimizer_var_limit_warn = .true.    ! Warn when vars reach a limit with optimization.
-  logical :: rf_on = .false.                      ! RFcavities on or off? Does not affect lcavities.
-  logical :: draw_curve_off_scale_warn = .true.   ! Display warning on graphs?
-  logical :: wait_for_CR_in_single_mode = .false. ! For use with a python GUI. 
   logical :: disable_smooth_line_calc             ! Global disable of the smooth line calculation.
-  logical :: debug_on = .false.                   ! For debugging.
-  logical :: single_step = .false.                ! For debugging. Single step through a command file?
+  logical :: draw_curve_off_scale_warn = .true.   ! Display warning on graphs?
+  logical :: label_lattice_elements = .true.      ! For lat_layout plots
+  logical :: label_keys = .true.                  ! For lat_layout plots
+  logical :: lattice_calc_on = .true.             ! Turn on/off beam and single particle calculations.
+  logical :: only_limit_opt_vars = .false.        ! Only apply limits to variables used in optimization.
+  logical :: opt_with_ref = .false.               ! use reference data in optimization?
+  logical :: opt_with_base = .false.              ! use base data in optimization?
   logical :: optimizer_allow_user_abort = .true.  ! See Tao manual for more details.
+  logical :: optimizer_var_limit_warn = .true.    ! Warn when vars reach a limit with optimization.
+  logical :: orm_analysis = .false.               ! ORM using MDSA? 
+  logical :: plot_on = .true.                     ! Do plotting?
+  logical :: rf_on = .false.                      ! RFcavities on or off? Does not affect lcavities.
+  logical :: single_step = .false.                ! For debugging. Single step through a command file?
+  logical :: stop_on_error = .true.               ! For debugging: True prevents tao from exiting on an error.
+  logical :: svd_retreat_on_merit_increase = .true.
+  logical :: var_limits_on = .true.               ! Respect the variable limits?
+  logical :: wait_for_CR_in_single_mode = .false. ! For use with a python GUI. 
 end type
 
 !

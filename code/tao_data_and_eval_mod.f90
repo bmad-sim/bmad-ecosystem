@@ -1869,7 +1869,8 @@ case ('periodic.')
       call err_exit
     endif
 
-    call transfer_map_calc (lat, taylor, err, ix_ele, ix_ele, orbit(ix_ele), branch%ix_branch, one_turn = .true.)
+    call transfer_map_calc (lat, taylor, err, ix_ele, ix_ele, orbit(ix_ele), branch%ix_branch, &
+                                                       one_turn = .true., concat_if_possible = s%global%concatenate_maps)
     if (err) then
       call tao_set_invalid (datum, 'CANNOT INVERT MAP', why_invalid)
       return
@@ -2654,9 +2655,10 @@ case ('t.', 'tt.')
     if (s%com%ix_ref_taylor /= ix_ref .or. s%com%ix_ele_taylor /= ix_ele) then
       ix0 = s%com%ix_ele_taylor
       if (s%com%ix_ref_taylor == ix_ref .and. ix_ele > ix0) then
-        call transfer_map_calc (lat, taylor_save, err, ix0, ix_ele, orbit(ix0), unit_start = .false.)
+        call transfer_map_calc (lat, taylor_save, err, ix0, ix_ele, orbit(ix0), &
+                                                  unit_start = .false., concat_if_possible = s%global%concatenate_maps)
       else
-        call transfer_map_calc (lat, taylor_save, err, ix_ref, ix_ele, orbit(ix_ref))
+        call transfer_map_calc (lat, taylor_save, err, ix_ref, ix_ele, orbit(ix_ref), concat_if_possible = s%global%concatenate_maps)
       endif
 
       if (err) then
@@ -2673,7 +2675,7 @@ case ('t.', 'tt.')
   ! Here if there is a range.
   else
     k = ix_start
-    call transfer_map_calc (lat, taylor, err, ix_ref, k, orbit(ix_ref))
+    call transfer_map_calc (lat, taylor, err, ix_ref, k, orbit(ix_ref), concat_if_possible = s%global%concatenate_maps)
     if (err) then
       call tao_set_invalid (datum, 'MAP TERM OVERFLOW', why_invalid)
       return
@@ -2685,7 +2687,7 @@ case ('t.', 'tt.')
       k_old = k
       k = k + 1
       if (k > branch%n_ele_track) k = 0
-      call transfer_map_calc (lat, taylor, err, k_old, k, unit_start = .false.)
+      call transfer_map_calc (lat, taylor, err, k_old, k, unit_start = .false., concat_if_possible = s%global%concatenate_maps)
       if (err) then
        call tao_set_invalid (datum, 'MAP TERM OVERFLOW', why_invalid)
         return

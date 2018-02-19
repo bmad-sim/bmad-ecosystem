@@ -2492,7 +2492,8 @@ do ii = 1, size(curve%x_line)
     i = tao_read_this_index (data_type, 3); if (i == 0) goto 9000
     j = tao_read_this_index (data_type, 4); if (j == 0) goto 9000
     k = tao_read_this_index (data_type, 5); if (k == 0) goto 9000
-    call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch = ix_branch, unit_start = .false.)
+    call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch = ix_branch, &
+                                                       unit_start = .false., concat_if_possible = s%global%concatenate_maps)
     value = taylor_coef (t_map(i), taylor_expn([j, k]))
 
   case ('tt.')
@@ -2508,7 +2509,8 @@ do ii = 1, size(curve%x_line)
       k = tao_read_this_index (data_type, j); if (k == 0) goto 9000
       expnt(k) = expnt(k) + 1
     enddo
-    call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch = ix_branch, unit_start = .false.)
+    call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch = ix_branch, &
+                                                       unit_start = .false., concat_if_possible = s%global%concatenate_maps)
     value = taylor_coef (t_map(i), expnt)
   
   case ('velocity', 'velocity.')

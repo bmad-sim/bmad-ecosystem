@@ -1431,35 +1431,36 @@ case ('global')
 
   if (print_global) then
     nl=nl+1; lines(nl) = 'Global parameters [Note: To print optimizer globals use: "show optimizer"]'
+    nl=nl+1; write(lines(nl), lmt) '  %beam_timer_on                 = ', s%global%beam_timer_on
     nl=nl+1; write(lines(nl), imt) '  %bunch_to_plot                 = ', s%global%bunch_to_plot
+    nl=nl+1; write(lines(nl), lmt) '  %command_file_print_on         = ', s%global%command_file_print_on
+    nl=nl+1; write(lines(nl), lmt) '  %concatenate_maps              = ', s%global%concatenate_maps
+    nl=nl+1; write(lines(nl), rmt) '  %delta_e_chrom                 = ', s%global%delta_e_chrom
+    nl=nl+1; write(lines(nl), lmt) '  %disable_smooth_line_calc      = ', s%global%disable_smooth_line_calc
+    nl=nl+1; write(lines(nl), lmt) '  %draw_curve_off_scale_warn     = ', s%global%draw_curve_off_scale_warn
     nl=nl+1; write(lines(nl), lmt) '  %label_lattice_elements        = ', s%global%label_lattice_elements
     nl=nl+1; write(lines(nl), lmt) '  %label_keys                    = ', s%global%label_keys
-    nl=nl+1; write(lines(nl), amt) '  %phase_units                   = ', angle_units_name(s%global%phase_units)
-    nl=nl+1; write(lines(nl), lmt) '  %beam_timer_on                 = ', s%global%beam_timer_on
-    nl=nl+1; write(lines(nl), lmt) '  %command_file_print_on         = ', s%global%command_file_print_on
-    nl=nl+1; write(lines(nl), lmt) '  %disable_smooth_line_calc      = ', s%global%disable_smooth_line_calc
     nl=nl+1; write(lines(nl), lmt) '  %lattice_calc_on               = ', s%global%lattice_calc_on
+    nl=nl+1; write(lines(nl), lmt) '  %only_limit_opt_vars           = ', s%global%only_limit_opt_vars
+    nl=nl+1; write(lines(nl), lmt) '  %optimizer_var_limit_warn      = ', s%global%optimizer_var_limit_warn
+    nl=nl+1; write(lines(nl), amt) '  %phase_units                   = ', angle_units_name(s%global%phase_units)
     nl=nl+1; write(lines(nl), lmt) '  %plot_on                       = ', s%global%plot_on
-    nl=nl+1; write(lines(nl), lmt) '  %rf_on                         = ', s%global%rf_on
-    nl=nl+1; write(lines(nl), lmt) '  %wait_for_CR_in_single_mode    = ', s%global%wait_for_CR_in_single_mode
+    nl=nl+1; write(lines(nl), amt) '  %print_command                 = ', s%global%print_command
     nl=nl+1; write(lines(nl), amt) '  %prompt_string                 = ', s%global%prompt_string
     nl=nl+1; write(lines(nl), amt) '  %prompt_color                  = ', s%global%prompt_color 
-    nl=nl+1; write(lines(nl), amt) '  %print_command                 = ', s%global%print_command
-    nl=nl+1; write(lines(nl), rmt) '  %delta_e_chrom                 = ', s%global%delta_e_chrom
     nl=nl+1; write(lines(nl), amt) '  %random_engine                 = ', s%global%random_engine
     nl=nl+1; write(lines(nl), amt) '  %random_gauss_converter        = ', s%global%random_gauss_converter
-    nl=nl+1; write(lines(nl), rmt) '  %random_sigma_cutoff           = ', s%global%random_sigma_cutoff
     nl=nl+1; write(lines(nl), imt) '  %random_seed                   = ', s%global%random_seed
     if (s%global%random_seed == 0) then
       call ran_seed_get(ix)
       nl=nl+1; write(lines(nl), imt) '   random_seed (generated)      = ', ix
     endif
+    nl=nl+1; write(lines(nl), rmt) '  %random_sigma_cutoff           = ', s%global%random_sigma_cutoff
+    nl=nl+1; write(lines(nl), lmt) '  %rf_on                         = ', s%global%rf_on
     nl=nl+1; write(lines(nl), amt) '  %track_type                    = ', s%global%track_type
     nl=nl+1; write(lines(nl), lmt) '  %var_limits_on                 = ', s%global%var_limits_on
-    nl=nl+1; write(lines(nl), lmt) '  %only_limit_opt_vars           = ', s%global%only_limit_opt_vars
-    nl=nl+1; write(lines(nl), lmt) '  %optimizer_var_limit_warn      = ', s%global%optimizer_var_limit_warn
     nl=nl+1; write(lines(nl), amt) '  %var_out_file                  = ', s%global%var_out_file
-    nl=nl+1; write(lines(nl), lmt) '  %draw_curve_off_scale_warn     = ', s%global%draw_curve_off_scale_warn
+    nl=nl+1; write(lines(nl), lmt) '  %wait_for_CR_in_single_mode    = ', s%global%wait_for_CR_in_single_mode
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Internal Tao Parameters:'
@@ -3059,7 +3060,8 @@ case ('taylor_map', 'matrix')
 
     call twiss_and_track_at_s (lat, s1, ele0, u%model%tao_branch(ix_branch)%orbit, orb, ix_branch)
     if (n_order > 1) then
-      call transfer_map_from_s_to_s (lat, taylor, s1, s2, orb, ix_branch, one_turn = .true.)
+      call transfer_map_from_s_to_s (lat, taylor, s1, s2, orb, ix_branch, &
+                                                        one_turn = .true., concat_if_possible = s%global%concatenate_maps)
     else
       call mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orb, ix_branch, one_turn = .true.)
     endif
@@ -3135,7 +3137,8 @@ case ('taylor_map', 'matrix')
     endif
 
     if (n_order > 1) then
-      call transfer_map_calc (lat, taylor, err, ix1, ix2, u%model%tao_branch(ix_branch)%orbit(ix1), one_turn = .true.)
+      call transfer_map_calc (lat, taylor, err, ix1, ix2, u%model%tao_branch(ix_branch)%orbit(ix1), &
+                                                      one_turn = .true., concat_if_possible = s%global%concatenate_maps)
       if (err) then
         nl = 1; lines(1) = 'TAYLOR MAP TERMP OVERFLOW.'
         return
