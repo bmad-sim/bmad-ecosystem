@@ -17,4 +17,8 @@ documentation on these structures see the Bmad manual.
 Output
 ------
 
-The output file records the initial and final positions of all particles tracked.
+* end_dat_file:
+This file records the initial and final positions of all particles tracked.
+
+* turn_by_turn_dat_file:
+This file creates a record of the track of the first particle of the bunch.

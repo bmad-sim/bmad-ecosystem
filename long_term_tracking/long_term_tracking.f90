@@ -16,9 +16,10 @@ integer ix_ele_start, n_turns
 integer i, n, ie
 logical err_flag, rfcavity_on
 
-character(200) lat_file, init_file, dat_file
+character(200) lat_file, init_file, end_dat_file, turn_by_turn_dat_file
 
-namelist / long_term_tracking_params / lat_file, n_turns, ix_ele_start, bmad_com, dat_file, beam_init, rfcavity_on 
+namelist / long_term_tracking_params / lat_file, n_turns, ix_ele_start, bmad_com, end_dat_file, &
+                    turn_by_turn_dat_file, beam_init, rfcavity_on 
 
 ! Parse command line
 
@@ -34,8 +35,9 @@ endif
 ! Read parameters
 
 ix_ele_start = 0
-dat_file = 'long_term_tracking.dat'
 rfcavity_on = .true.
+end_dat_file = ''
+turn_by_turn_dat_file = ''
 
 print '(2a)', 'Initialization file: ', trim(init_file)
 
@@ -66,6 +68,12 @@ bunch_init%particle = bunch%particle
 call run_timer('START')
 call run_timer('READ', time0)
 
+if (turn_by_turn_dat_file /= '') then
+  open (1, file = turn_by_turn_dat_file, recl = 200)
+  write (1, '(a)') '#  Turn           x           px            y           py            z           pz             spin_x       spin_y       spin_z'
+  write (1, '(i9, 6f13.8, 4x, 3f13.8)'), 0, bunch%particle(1)%vec, bunch%particle(1)%spin
+endif
+
 do n = 1, n_turns
   do ie = ix_ele_start+1, lat%n_ele_track
     call track1_bunch(bunch, lat, lat%ele(ie), bunch, err_flag)
@@ -79,22 +87,30 @@ do n = 1, n_turns
     print '(a, f10.2)', 'Ellapsed time (min): ', time/60
     time0 = time
   endif
+
+  if (turn_by_turn_dat_file /= '') then
+    write (1, '(i9, 6f13.8, 4x, 3f13.8)'), n, bunch%particle(1)%vec, bunch%particle(1)%spin
+  endif
 enddo
+
+if (turn_by_turn_dat_file /= '') close (1)
 
 ! Output results
 
-open (1, file = dat_file, recl = 300)
-write (1, '(2a)') '                                                     Start                                                                        |', &
-                      '                                                 End'
-write (1, '(2a)') '#  Ix          x           px            y           py            z           pz             spin_x       spin_y       spin_z    |', &
-                      '           x           px            y           py            z           pz             spin_x       spin_y       spin_z'
+if (end_dat_file /= '') then
+  open (1, file = end_dat_file, recl = 300)
+  write (1, '(2a)') '#                                                    Start                                                                        |', &
+                        '                                                 End'
+  write (1, '(2a)') '#  Ix          x           px            y           py            z           pz             spin_x       spin_y       spin_z    |', &
+                        '           x           px            y           py            z           pz             spin_x       spin_y       spin_z'
 
-do i = 1, size(bunch%particle)
-  write (1, '(i6, 6f13.8, 4x, 3f13.8, 6x, 6f13.8, 4x, 3f13.8)'), i, &
-                    bunch_init%particle(i)%vec, bunch_init%particle(i)%spin, &
-                    bunch%particle(i)%vec, bunch%particle(i)%spin
-enddo
+  do i = 1, size(bunch%particle)
+    write (1, '(i6, 6f13.8, 4x, 3f13.8, 6x, 6f13.8, 4x, 3f13.8)'), i, &
+                      bunch_init%particle(i)%vec, bunch_init%particle(i)%spin, &
+                      bunch%particle(i)%vec, bunch%particle(i)%spin
+  enddo
 
-close (1)
+  close (1)
+endif
 
 end program
