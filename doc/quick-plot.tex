@@ -271,8 +271,10 @@ The first part \vn{unit_type} gives the type of units
   "DATA"    -- Data units. (Draw default)
   "MM"      -- millimeters.
   "INCH"    -- Inches. (Set default)
-  "POINTS"  -- Printers points (72 points = 1 inch, 1pt is about 1pixel).
+  "POINTS"  -- Printers points. NOT PIXELS. (72 points = 1 inch).
 \end{example}
+Note: For displays with a resolution of 72 pixes / inch, \vn{POINTS} corresponds to pixels but
+many displays have a higher resolution.
 The second and third parts give the reference point for a position.
 The second part specifies the reference object
 \begin{example}
