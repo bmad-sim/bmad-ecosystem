@@ -488,7 +488,7 @@ do i = 1, s%com%n_alias
     do
       ix = index (alias_cmd, sub_str(j))
       if (ix == 0) exit
-      alias_cmd = alias_cmd(1:ix-1) // trim(tail(1:ic)) // alias_cmd(ix+5:)
+      alias_cmd = alias_cmd(1:ix-1) // trim(tail(1:ic)) // trim(alias_cmd(ix+5:))
     enddo
   enddo
 
