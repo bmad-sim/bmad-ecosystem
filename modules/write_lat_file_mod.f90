@@ -302,8 +302,8 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Superposition stragegy: There is a problem where add_superposition will be confused by having a 
     ! superposition in a region next to an element (eg patch) with a negative length. 
-    ! To get around this, try to minimize the number of superpositions needed.
-    ! So don't superimpose any super_lord if the first slave of the lord does not have another super_lord.
+    ! To minimize problems, try to minimize the number of superpositions needed.
+    ! So don't superimpose any super_lord if the first slave of the lord does not have another super_lord and there is no wrap-around.
     ! Otherwise create a dummy drift to be used for superposition. 
 
     ! ele%iyy = 1  -> ele is the first slave to a superlord that is *not* superimposed in the new lattice.
@@ -340,7 +340,9 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%slave_status == super_slave$) then
       lord => pointer_to_lord(ele, 1)
       slave => pointer_to_slave(lord, 1)
-      if (num_lords(slave, super_lord$) == 1) then
+      slave2 => pointer_to_slave(lord, lord%n_slave)
+      ! slave%ix_ele < slave2%ix_ele => No wrap.
+      if (num_lords(slave, super_lord$) == 1 .and. (slave%ix_ele < slave2%ix_ele)) then
         lord%iyy = 10
         slave%iyy = 1
         do i = 2, lord%n_slave
@@ -486,6 +488,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ele%lord_status == super_lord$) then
       slave => pointer_to_slave(ele, 1)
+      slave2 => pointer_to_slave(ele, ele%n_slave)
       if (num_lords(slave, super_lord$) /= 1) then
         do i = 1, slave%n_lord
           super => pointer_to_lord(slave, i)
@@ -493,6 +496,9 @@ do ib = 0, ubound(lat%branch, 1)
         enddo
         line = trim(line) // ', superimpose, ele_origin = beginning, ref_origin = beginning, ref = ' // &
                 trim(super%name) // ', offset = ' // trim(re_str(ele%s_start-super%s_start))
+      elseif (slave%ix_ele > slave2%ix_ele) then  ! Wrap case
+        line = trim(line) // ', superimpose, ele_origin = end, offset = ' // trim(re_str(ele%s))
+
       endif
     endif
 
