@@ -457,7 +457,7 @@ use la_precision, only: wp => dp
 use f95_lapack
 
 real(rp) mat(6,6)
-real(rp) A(6,6)
+real(rp) A(6,6), notN(6,6)
 real(rp) VR(6,6)
 real(rp) eval_r(6), eval_i(6)
 complex(rp) eval(6)
@@ -469,6 +469,7 @@ integer i_error
 integer pair1, pair2, pair3, pairIndexes(6)
 integer i
 complex(rp) check_mat(6,6)
+real(rp) check_mat_r(6,6)
 
 character(*), parameter :: r_name = 'eigen_decomp_6mat'
 
@@ -496,26 +497,33 @@ evec(:, 4) = cmplx(VR(:, 3), -VR(:, 4), rp)
 evec(:, 5) = cmplx(VR(:, 5),  VR(:, 6), rp)
 evec(:, 6) = cmplx(VR(:, 5), -VR(:, 6), rp)
 
-check_mat = matmul(transpose(conjg(evec)), matmul(S, evec))
+check_mat = matmul(transpose(evec), matmul(S, evec))
 
-if ( aimag(check_mat(1,1)) > 0.0 ) then
+if ( aimag(check_mat(1,2)) < 0.0 ) then
   evec(:, 1) = conjg(evec(:, 1))
   evec(:, 2) = conjg(evec(:, 2))
   eval(1) = conjg(eval(1))
   eval(2) = conjg(eval(2))
 endif
-if ( aimag(check_mat(3,3)) > 0.0 ) then
+if ( aimag(check_mat(3,4)) < 0.0 ) then
   evec(:, 3) = conjg(evec(:, 3))
   evec(:, 4) = conjg(evec(:, 4))
   eval(3) = conjg(eval(3))
   eval(4) = conjg(eval(4))
 endif
-if ( aimag(check_mat(5,5)) > 0.0 ) then
+if ( aimag(check_mat(5,6)) < 0.0 ) then
   evec(:, 5) = conjg(evec(:, 5))
   evec(:, 6) = conjg(evec(:, 6))
   eval(5) = conjg(eval(5))
   eval(6) = conjg(eval(6))
 endif
+
+!check_mat = matmul(transpose(evec), matmul(S, evec))
+!do i=1,6
+!  write(*,'(6es14.4)') real(check_mat(i,:))
+!  write(*,'(6es14.4)') aimag(check_mat(i,:))
+!  write(*,*)
+!enddo
 
 if (present(tunes)) then
   tunes(1) = MyTan(-aimag(eval(1)), real(eval(1)))
@@ -525,8 +533,9 @@ endif
 
 err_flag = .false.
 
+end subroutine eigen_decomp_6mat
+
 !---------------------------------------------------------
-contains
 
 function MyTan(y, x) result(arg)
   !For a complex number x+iy graphed on an xhat, yhat plane, this routine returns the angle
@@ -540,8 +549,6 @@ function MyTan(y, x) result(arg)
     arg = atan2(y, x) + 2.0d0*pi
   endif
 end function MyTan
-
-end subroutine eigen_decomp_6mat
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
@@ -829,6 +836,7 @@ real(rp), optional :: U(6,6)
 complex(rp) eval(6), evec(6,6)
 real(rp) mat_tunes(3)
 real(rp) mat(6,6)
+real(rp) check_mat(6,6)
 integer i
 
 character(*), parameter :: r_name = 'make_N'
@@ -865,6 +873,9 @@ call normalize_evecs(evec)
 
 N = matmul(real(evec), Qr) - matmul(aimag(evec), Qi)
 
+!Apply rotation matrices to make N12, N34, and N56 equal to zero.
+N = matmul(N,Rot3(MyTan(N(1,2),N(1,1)),MyTan(N(3,4),N(3,3)),MyTan(N(5,6),N(5,5))))
+
 if (present(tunes_out)) then
   tunes_out = mat_tunes
 endif
@@ -872,6 +883,29 @@ endif
 if (present(U)) then
   U = matmul(matmul(mat_symp_conj(N),t6),N)
 endif
+
+contains
+
+function Rot3(a, b, c) result(mat)
+  real(rp) a, b, c
+  real(rp) mat(6,6)
+
+  mat = 0.0d0
+  mat(1:2,1:2) = Rot1(a)
+  mat(3:4,3:4) = Rot1(b)
+  mat(5:6,5:6) = Rot1(c)
+end function
+
+function Rot1(theta) result(mat)
+  real(rp) theta
+  real(rp) mat(2,2)
+
+  mat(1,1) = cos(theta)
+  mat(2,2) = mat(1,1)
+  mat(1,2) = -sin(theta)
+  mat(2,1) = -mat(1,2)
+end function
+
 end subroutine make_N
 
 !-----------------------------------------------------------------------------------------------
