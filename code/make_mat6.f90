@@ -109,7 +109,7 @@ case (symp_lie_bmad$)
   call symp_lie_bmad (ele, param, a_start_orb, a_end_orb, .true.)
 
 case (tracking$)
-  call make_mat6_tracking (ele, param, a_start_orb, a_end_orb)
+  call make_mat6_tracking (ele, param, a_start_orb, a_end_orb, err)
 
 case (mad$)
   call make_mat6_mad (ele, param, a_start_orb, a_end_orb)
