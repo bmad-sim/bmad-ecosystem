@@ -689,12 +689,13 @@ subroutine make_mat6_symp_lie_ptc (ele, param, start_orb, end_orb)
   type (lat_param_struct) param
 end subroutine
 
-subroutine make_mat6_tracking (ele, param, start_orb, end_orb)
+subroutine make_mat6_tracking (ele, param, start_orb, end_orb, err_flag)
   import
   implicit none
   type (ele_struct), target :: ele
   type (coord_struct) :: start_orb, end_orb
   type (lat_param_struct) param
+  logical err_flag
 end subroutine
 
 subroutine make_v_mats (ele, v_mat, v_inv_mat)
