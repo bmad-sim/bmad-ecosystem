@@ -149,6 +149,8 @@ end select
 if (do_scale_amp) then
   dE_cut = 10 ! eV
   if (abs(dE_peak_wanted) < dE_cut) return
+else
+  if (dE_peak_wanted == 0) return
 endif
 
 if (ele%value(field_autoscale$) == 0) then
