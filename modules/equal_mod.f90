@@ -532,6 +532,8 @@ do i = 0, ubound(branch2%ele, 1)
   branch1%ele(i)  = branch2%ele(i)
 enddo
 
+call transfer_wall3d (branch2%wall3d, branch1%wall3d)
+
 call transfer_branch_parameters(branch2, branch1)
 
 end subroutine branch_equal_branch
