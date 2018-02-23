@@ -32,13 +32,15 @@ integer i, n, ie, ib, nt, n_con, i1, i2
 integer :: ix_con(size(lat_in%control))
 
 logical, optional :: track_antiparticle
-logical err_flag
+logical err_flag, issued_wall_warning
 
+character(*), parameter :: r_name = 'reverse_lat'
 !
 
 call kill_ptc_layouts(lat_rev)    ! Cleanup lat_rev
 call allocate_branch_array(lat_rev, ubound(lat_in%branch, 1))
 call transfer_lat_parameters (lat_in, lat_rev)
+issued_wall_warning = .false.
 
 !
 
@@ -73,6 +75,11 @@ do ib = 0, ubound(lat_in%branch, 1)
     ele_rev%ix_ele = ie
     if (associated(ele_rev%taylor(1)%term)) call kill_taylor(ele_rev%taylor)
     if (associated(ele_rev%ptc_genfield%field)) call kill_ptc_genfield(ele_rev%ptc_genfield%field)
+    ! Need to fix this but for now give a warning...
+    if (associated(ele_in%wall3d) .and. .not. issued_wall_warning) then
+      call out_io (s_warn$, r_name, 'NOTE: THIS ROUTINE DOES NOT YET HANDLE CHAMBER WALLS.')
+      issued_wall_warning = .true.
+    endif
   enddo
 enddo
 

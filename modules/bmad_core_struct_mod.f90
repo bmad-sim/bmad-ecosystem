@@ -157,7 +157,6 @@ branch_out%a              = branch_in%a
 branch_out%b              = branch_in%b
 branch_out%z              = branch_in%z
 branch_out%ele%ix_branch  = branch_in%ix_branch
-branch_out%wall3d         => branch_in%wall3d
 
 end subroutine transfer_branch_parameters
 
