@@ -66,10 +66,10 @@ do i = 1, lat%n_ele_track
     print *
     print *, '!--------------------------------------------------'
     print *, ele%name
-    print '(a, 6es11.3)', 'Start:', start_orb%vec
-    print '(a, 6es11.3)', 'Whole:', end_orb%vec
-    print '(a, 6es11.3)', 'Split:', end_orb2%vec
-    print '(a, 7es11.3)', 'Diff: ', end_orb2%vec - end_orb%vec, maxval(abs(end_orb2%vec - end_orb%vec))
+    print '(a, 6es14.6)', 'Start:', start_orb%vec
+    print '(a, 6es14.6)', 'Whole:', end_orb%vec
+    print '(a, 6es14.6)', 'Split:', end_orb2%vec
+    print '(a, 7es14.6)', 'Diff: ', end_orb2%vec - end_orb%vec, maxval(abs(end_orb2%vec - end_orb%vec))
     print *
     print *, 'Whole:'
     do j = 1, 6
@@ -86,7 +86,6 @@ do i = 1, lat%n_ele_track
       print '(6f12.6)', ele%mat6(j,:)-xmat2(j,:)
     enddo
   endif
-
 enddo
 
 if (print_extra) stop

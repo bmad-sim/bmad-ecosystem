@@ -22,7 +22,7 @@ character(40) str, sub1, sub2, sub3
 
 real(rp) sig1, sig2, sig3, quat(0:3), omega(3), axis2(3), angle2
 real(rp) phi1, phi2, phi3
-real(rp) vec3(3), vec3a(3), vec3b(3), vec3c(3), axis(3), angle, w_mat(3,3)
+real(rp) vec3(3), vec3a(3), vec3b(3), vec3c(3), axis(3), angle, w_mat(3,3), unit_mat(3,3)
 complex(rp) amp1, amp2, amp3
 
 !
@@ -31,7 +31,27 @@ open (1, file = 'output.now')
 
 ! rotation tests
 
+call mat_make_unit (unit_mat)
 
+w_mat = unit_mat
+call rotate_mat(w_mat, x_axis$, 0.37_rp)
+call rotate_mat(w_mat, x_axis$, -0.37_rp, .true.)
+w_mat = w_mat - unit_mat
+write (1, '(a, es11.3)') '"rot X-X" ABS 1E-16 ', maxval(abs(w_mat))
+
+w_mat = unit_mat
+call rotate_mat(w_mat, y_axis$, 0.37_rp)
+call rotate_mat(w_mat, y_axis$, -0.37_rp, .true.)
+w_mat = w_mat - unit_mat
+write (1, '(a, es11.3)') '"rot Y-Y" ABS 1E-16 ', maxval(abs(w_mat))
+
+w_mat = unit_mat
+call rotate_mat(w_mat, z_axis$, 0.37_rp)
+call rotate_mat(w_mat, z_axis$, -0.37_rp, .true.)
+w_mat = w_mat - unit_mat
+write (1, '(a, es11.3)') '"rot Z-Z" ABS 1E-16 ', maxval(abs(w_mat))
+
+!
 
 axis = [3, 4, 5] / sqrt(50.0_rp)
 vec3 = [-2, 3, -4]
