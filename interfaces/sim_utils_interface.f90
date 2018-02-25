@@ -34,6 +34,13 @@ subroutine change_file_number (file_name, change)
   integer change
 end subroutine
 
+elemental function cos_one(angle) result (cos1)
+  import
+  implicit none
+  real(rp), intent(in) :: angle
+  real(rp) cos1
+end function
+
 subroutine cplx_lubksb(a,indx,b)
   use nrtype
   import
