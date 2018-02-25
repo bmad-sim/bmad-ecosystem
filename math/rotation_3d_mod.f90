@@ -399,9 +399,9 @@ end function rotate_vec_given_axis_angle
 !   use rotation_3d_mod
 !
 ! Input:
-!   vec(3)       -- real(rp): vector
-!   axis         -- integer: x_axis$, y_axis$, or z_axis$
-!   angle        -- real(rp): angle to rotate.
+!   vec(3)          -- real(rp): vector
+!   axis            -- integer: x_axis$, y_axis$, or z_axis$
+!   angle           -- real(rp): angle to rotate.
 !
 ! Output:
 !   vec(3)       -- real(rp): Rotated vector.
@@ -429,14 +429,14 @@ case (y_axis$)
 case (z_axis$)
   vec(1:2) =   [ca*vec(1) - sa*vec(2), sa*vec(1) + ca*vec(2)]
 end select
-  
+
 end subroutine
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine rotate_mat (mat, axis, angle)
+! Subroutine rotate_mat (mat, axis, angle, right_multiply)
 !            
 ! Basic routine to apply a rotation matrix to mat that rotates around the x, y, or z axis.
 ! 
@@ -447,15 +447,18 @@ end subroutine
 !   mat(3,3)        -- real(rp): matrix
 !   axis            -- integer: x_axis$, y_axis$, or z_axis$
 !   angle           -- real(rp): cosine of the angle to rotate
+!   right_multiply  -- logical, optional: If present and True then muliply rotation
+!                       matrix on the right: mat = mat . Rot. Default is False.
 !
 ! Output:
 !   mat(3,3)        -- real(rp): Rotated matrix
 !-
 
-subroutine rotate_mat(mat, axis, angle)
+subroutine rotate_mat(mat, axis, angle, right_multiply)
 
 real(rp) :: mat(:,:),  angle, temp, ca, sa
 integer :: axis
+logical, optional :: right_multiply
 
 !
 
@@ -464,22 +467,42 @@ if (angle == 0) return ! Simple case
 ca = cos(angle)
 sa = sin(angle) 
 
-select case (axis)
-case (x_axis$)
-  mat(2:3, 1) =   [ca*mat(2,1) - sa*mat(3,1), sa*mat(2,1) + ca*mat(3,1)]
-  mat(2:3, 2) =   [ca*mat(2,2) - sa*mat(3,2), sa*mat(2,2) + ca*mat(3,2)]
-  mat(2:3, 3) =   [ca*mat(2,3) - sa*mat(3,3), sa*mat(2,3) + ca*mat(3,3)]
+if (logic_option(.false., right_multiply)) then
+  select case (axis)
+  case (x_axis$)
+    mat(1, 2:3) =   [mat(1,2)*ca + mat(1,3)*sa, -mat(1,2)*sa + mat(1,3)*ca]
+    mat(2, 2:3) =   [mat(2,2)*ca + mat(2,3)*sa, -mat(2,2)*sa + mat(2,3)*ca]
+    mat(3, 2:3) =   [mat(3,2)*ca + mat(3,3)*sa, -mat(3,2)*sa + mat(3,3)*ca]
 
-case (y_axis$)
-  mat(1:3:2, 1) = [sa*mat(3,1) + ca*mat(1,1), ca*mat(3,1) - sa*mat(1,1)]
-  mat(1:3:2, 2) = [sa*mat(3,2) + ca*mat(1,2), ca*mat(3,2) - sa*mat(1,2)]
-  mat(1:3:2, 3) = [sa*mat(3,3) + ca*mat(1,3), ca*mat(3,3) - sa*mat(1,3)]
+  case (y_axis$)
+    mat(1, 1:3:2) = [mat(1,1)*ca - mat(1,3)*sa, mat(1,1)*sa + mat(1,3)*ca]
+    mat(2, 1:3:2) = [mat(2,1)*ca - mat(2,3)*sa, mat(2,1)*sa + mat(2,3)*ca]
+    mat(3, 1:3:2) = [mat(3,1)*ca - mat(3,3)*sa, mat(3,1)*sa + mat(3,3)*ca]
 
-case (z_axis$)
-  mat(1:2, 1) =   [ca*mat(1,1) - sa*mat(2,1), sa*mat(1,1) + ca*mat(2,1)]
-  mat(1:2, 2) =   [ca*mat(1,2) - sa*mat(2,2), sa*mat(1,2) + ca*mat(2,2)]
-  mat(1:2, 3) =   [ca*mat(1,3) - sa*mat(2,3), sa*mat(1,3) + ca*mat(2,3)]
-end select
+  case (z_axis$)
+    mat(1, 1:2) =   [mat(1,1)*ca + mat(1,2)*sa, -mat(1,1)*sa + mat(1,2)*ca]
+    mat(2, 1:2) =   [mat(2,1)*ca + mat(2,2)*sa, -mat(2,1)*sa + mat(2,2)*ca]
+    mat(3, 1:2) =   [mat(3,1)*ca + mat(3,2)*sa, -mat(3,1)*sa + mat(3,2)*ca]
+  end select
+
+else
+  select case (axis)
+  case (x_axis$)
+    mat(2:3, 1) =   [ca*mat(2,1) - sa*mat(3,1), sa*mat(2,1) + ca*mat(3,1)]
+    mat(2:3, 2) =   [ca*mat(2,2) - sa*mat(3,2), sa*mat(2,2) + ca*mat(3,2)]
+    mat(2:3, 3) =   [ca*mat(2,3) - sa*mat(3,3), sa*mat(2,3) + ca*mat(3,3)]
+
+  case (y_axis$)
+    mat(1:3:2, 1) = [sa*mat(3,1) + ca*mat(1,1), ca*mat(3,1) - sa*mat(1,1)]
+    mat(1:3:2, 2) = [sa*mat(3,2) + ca*mat(1,2), ca*mat(3,2) - sa*mat(1,2)]
+    mat(1:3:2, 3) = [sa*mat(3,3) + ca*mat(1,3), ca*mat(3,3) - sa*mat(1,3)]
+
+  case (z_axis$)
+    mat(1:2, 1) =   [ca*mat(1,1) - sa*mat(2,1), sa*mat(1,1) + ca*mat(2,1)]
+    mat(1:2, 2) =   [ca*mat(1,2) - sa*mat(2,2), sa*mat(1,2) + ca*mat(2,2)]
+    mat(1:2, 3) =   [ca*mat(1,3) - sa*mat(2,3), sa*mat(1,3) + ca*mat(2,3)]
+  end select
+endif
   
 end subroutine
 
