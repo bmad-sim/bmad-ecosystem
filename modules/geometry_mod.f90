@@ -297,7 +297,7 @@ real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dtheta
 real(rp) r0(3), w0_mat(3,3), rot_angle, graze_angle_in, graze_angle_out
 real(rp) chord_len, angle, ang, leng, rho, len_factor
 real(rp) theta, phi, psi, tlt, dz(3), z0(3), z_cross(3)
-real(rp) :: s_ang, c_ang, w_mat(3,3), w_mat_inv(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
+real(rp) :: w_mat(3,3), w_mat_inv(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
 
 integer i, key, n_loc, ix_pass, n_links, ix_pole_max
 
@@ -396,15 +396,8 @@ if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
           rot_angle = ele0%value(graze_angle$) - pi/2
         end select
 
-        s_mat = w_mat_for_x_pitch (-rot_angle)
+        s_mat = w_mat_for_bend_angle (-rot_angle, ele0%value(ref_tilt_tot$))
         w_mat = matmul (w_mat, s_mat)
-
-        if (ele0%value(ref_tilt_tot$) /= 0) then
-          t_mat = w_mat_for_tilt(ele0%value(ref_tilt_tot$))
-          w_mat = matmul (t_mat, w_mat)
-          t_mat(1,2) = -t_mat(1,2); t_mat(2,1) = -t_mat(2,1) ! form inverse
-          w_mat = matmul (w_mat, t_mat)
-        endif
         r0 = ele00%floor%r
         calc_done = .true.
 
@@ -507,26 +500,14 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
       angle = leng * dble(ele%value(g$))
       tlt = ele%value(ref_tilt_tot$)
       rho = 1.0_dp / ele%value(g$)
-      s_ang = sin(angle); c_ang = cos(angle)
-      r_vec = [rho * (c_ang - 1), 0.0_dp, rho * s_ang]
+      r_vec = [rho * cos_one(angle), 0.0_dp, rho * sin(angle)]
     else
       angle = knl(0) * len_factor
       tlt = tilt(0)
       r_vec = 0
     endif
-    ! By definition, positive angle is equivalent to negative x_pitch
-    s_mat = w_mat_for_x_pitch(-angle)
 
-    if (tlt /= 0) then
-      t_mat = w_mat_for_tilt (tlt)
-
-      r_vec = matmul (t_mat, r_vec)
-
-      s_mat = matmul (t_mat, s_mat)
-      t_mat(1,2) = -t_mat(1,2); t_mat(2,1) = -t_mat(2,1) ! form inverse
-      s_mat = matmul (s_mat, t_mat)
-    endif
-
+    s_mat = w_mat_for_bend_angle (angle, tlt, r_vec)
     call floor_angles_to_w_mat (theta, phi, psi, w_mat)
     floor%r = floor%r + matmul(w_mat, r_vec)
     w_mat = matmul (w_mat, s_mat)
@@ -561,20 +542,12 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
       r_vec = 0
     endif
 
-    ! By definition, positive angle is equivalent to negative x_pitch
-    s_mat = w_mat_for_x_pitch (-angle)
-
-    tlt = ele%value(ref_tilt_tot$)
-    if (tlt /= 0) then
-      t_mat = w_mat_for_tilt(tlt)
-      r_vec = matmul(t_mat, r_vec)
-      s_mat = matmul (t_mat, s_mat)
-      t_mat(1,2) = -t_mat(1,2); t_mat(2,1) = -t_mat(2,1) ! form inverse
-      s_mat = matmul (s_mat, t_mat)
-    endif
+    !
 
     call floor_angles_to_w_mat (theta, phi, psi, w_mat)
     floor%r = floor%r + matmul(w_mat, r_vec)
+
+    s_mat = w_mat_for_bend_angle(angle, ele%value(ref_tilt_tot$), r_vec)
     w_mat = matmul (w_mat, s_mat)
 
   ! patch
@@ -1662,7 +1635,7 @@ case(sbend$)
   ! L_mis at ele center:
   ! L_mis = L_offsets + [Rz(roll) - 1] . Rz(tilt) . Ry(bend_angle/2) . rho . [cos(bend_angle/2) -1, 0, sin(bend_angle/2)]
   if (ele%value(roll_tot$) /= 0) then
-    Lc = ele%value(rho$) * [cos(ele%value(angle$)/2) - 1, 0.0_rp, sin(ele%value(angle$)/2)]
+    Lc = ele%value(rho$) * [cos_one(ele%value(angle$)/2), 0.0_rp, sin(ele%value(angle$)/2)]
     call rotate_vec(Lc, y_axis$, ele%value(angle$)/2)  ! rotate to entrance about y axis by half angle 
     call rotate_vec(Lc, z_axis$, ele%value(ref_tilt_tot$)) ! rotate about z axis by tilt
     L_mis = L_mis - Lc
@@ -1729,7 +1702,7 @@ else
   call rotate_mat(S_mat, y_axis$, angle)
 endif
 
-L_vec = [cos(angle)-1, 0.0_rp, -sin(angle)]/g
+L_vec = [cos_one(angle), 0.0_rp, -sin(angle)]/g
 if (present(tilt)) call rotate_vec(L_vec, z_axis$, tilt)
 
 position2%r = matmul(S_mat, position1%r) + L_vec
@@ -1773,5 +1746,46 @@ else
 endif
 
 end subroutine update_floor_angles
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function w_mat_for_bend_angle (angle, ref_tilt, r_vec) result (w_mat)
+!
+! Routine to compute the W matrix for the angle transformation in a bend.
+! Using the notation in the Bmad manual:
+!   w_mat = R_z(ref_tilt) . R_y(-angle) . R_z(-ref_tilt)
+!
+! Input:
+!   angle       -- real(rp): Bending angle.
+!   ref_tilt    -- real(rp): Reference tilt.
+!   r_vec(3)    -- real(rp), optional: Starting position.
+!
+! Output:
+!   w_mat(3,3)  -- real(rp): W matrix
+!   r_vec(3)    -- real(rp), optional: position with ref_tilt transformation
+!-
+
+function w_mat_for_bend_angle (angle, ref_tilt, r_vec) result (w_mat)
+
+real(rp) angle, ref_tilt, w_mat(3,3), t_mat(3,3)
+real(rp), optional :: r_vec(3)
+
+! By definition, positive angle is equivalent to negative x_pitch
+
+w_mat = w_mat_for_x_pitch(-angle)
+
+if (ref_tilt == 0) return
+
+t_mat = w_mat_for_tilt (ref_tilt)
+
+if (present(r_vec)) r_vec = matmul (t_mat, r_vec)
+
+w_mat = matmul (t_mat, w_mat)
+t_mat(1,2) = -t_mat(1,2); t_mat(2,1) = -t_mat(2,1) ! form inverse
+w_mat = matmul (w_mat, t_mat)
+
+end function w_mat_for_bend_angle
 
 end module

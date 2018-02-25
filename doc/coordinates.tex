@@ -733,7 +733,7 @@ element body frame (see \Eq{llee}). Symbolically:
 \Endeq
 
 The first transformation, $\Lambda_s$ to $\Lambda_\text{mid}$, from laboratory coordinates
-at a distance $s$ from the beginning of the element to coordinates at the center the the
+at a distance $s$ from the beginning of the element to laboratory coordinates at the center the the
 bend is a rotation around the center of curvative of the bend and is given by \Eqs{vwlv}
 and \eq{wws} with \Eqs{ustt} and \eq{lrztt} with the substitution $\alpha_b \rightarrow (L/2
 - s)/\rho$.
@@ -784,8 +784,10 @@ we are dealing with element coordinates, the \vn{ref_tilt} is ignored.
 That is, \Eqs{ustt} and \eq{lrztt} are used with the substitutions
 $\theta_t \rightarrow 0$ and $\alpha_b \rightarrow L/\rho$.
 
-Notice that with this definition of how elements are misaligned, the position of a
-misaligned element depends only on the offsets, and is independent of the pitches and tilt.
+Notice that with this definition of how elements are misaligned, the position of a misaligned
+element depends only on the offsets, and is independent of the pitches and tilt. Also the
+orientation of an element depends only on the pitches and tilt (or roll and ref_tilt for a bend),
+and is independent of the offsets.
 
 %-----------------------------------------------------------------------------
 \section{Phase Space Coordinates}
