@@ -21,8 +21,8 @@ implicit none
 
 real(rp), intent(in) :: angle
 real(rp) cos1, a2
-real(rp), parameter :: c2 = 1.0_rp/2.0_rp, c4 = 1.0_rp/24.0_rp, c6 = 1.0_rp/720.0_rp
-real(rp), parameter :: c8 = 1.0_rp/40320.0_rp, c10 = 1.0_rp/3628800.0_rp, c12 = 1.0/479001600.0_rp
+real(rp), parameter :: c2 = -1.0_rp/2.0_rp, c4 = 1.0_rp/24.0_rp, c6 = -1.0_rp/720.0_rp
+real(rp), parameter :: c8 = 1.0_rp/40320.0_rp, c10 = -1.0_rp/3628800.0_rp, c12 = 1.0/479001600.0_rp
 
 !
 
