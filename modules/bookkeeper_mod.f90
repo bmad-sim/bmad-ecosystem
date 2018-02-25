@@ -1661,11 +1661,12 @@ subroutine makeup_super_slave1 (slave, lord, offset, param, include_upstream_end
 type (ele_struct), target :: slave, lord
 type (ele_struct), pointer :: slave2
 type (lat_param_struct) param
+type (floor_position_struct) from_pos, to_pos, init_pos
 
 real(rp) offset, s_del, coef, lord_ang, slave_ang, angle
-real(rp) value(num_ele_attrib$), cos_a, sin_a, dr(3)
+real(rp) value(num_ele_attrib$), cos_a, sin_a, dr(3), w_mat(3,3)
 real(rp) off(3), rot(3), cos_t, sin_t, m_trans(3,3)
-real(rp) xp, yp, roll, r_roll, tilt, dx, dy
+real(rp) xp, yp, roll, r_roll, tilt, dx, dy, len_slave, len_lord
 real(rp) w_inv(3,3), dl
 
 integer i, ifr
@@ -1677,11 +1678,13 @@ character(24) :: r_name = 'makeup_super_slave1'
 ! In case we are dealing with a non-physical situation, arbitrarily set coef = 1.
 
 err_flag = .true.
+len_slave = slave%value(l$)
+len_lord = lord%value(l$)
 
-if (abs(slave%value(l$)) >= abs(lord%value(l$))) then
+if (abs(len_slave) >= abs(len_lord)) then
   coef = 1
 else
-  coef = slave%value(l$) / lord%value(l$) 
+  coef = len_slave / len_lord 
 endif
 
 if (lord%orientation == 1) then
@@ -1696,7 +1699,7 @@ endif
 
 value = lord%value
 
-value(l$)              = slave%value(l$)                ! do not change slave length, etc.
+value(l$)              = len_slave                ! do not change slave length, etc.
 value(delta_ref_time$) = slave%value(delta_ref_time$)
 value(ref_time_start$) = slave%value(ref_time_start$)
 value(E_tot_start$)    = slave%value(E_tot_start$)
@@ -1727,7 +1730,7 @@ if (lord%key == e_gun$) then
     value(e_tot_ref_init$) = lord%value(e_tot_start$)
     value(p0c_ref_init$)   = lord%value(p0c_start$)
   endif
-  value(voltage$) = lord%value(gradient$) * slave%value(l$)
+  value(voltage$) = lord%value(gradient$) * len_slave
 endif
 
 ! fringe fields 
@@ -1770,65 +1773,44 @@ if (slave%key == rfcavity$) value(voltage$) = lord%value(voltage$) * coef
 ! s_del is the distance between lord and slave centers
 
 if (has_orientation_attributes(slave)) then
-  s_del = offset + slave%value(l$)/2 - lord%value(l$)/2
 
   if (slave%key == sbend$ .and. value(g$) /= 0) then
 
-    roll = value(roll_tot$);      tilt = value(ref_tilt_tot$)
+    roll = value(roll_tot$);     tilt = value(ref_tilt_tot$)
     off = [value(x_offset_tot$), value(y_offset_tot$), value(z_offset_tot$)]
-    xp    = value(x_pitch_tot$);   yp    = value(y_pitch_tot$)
+    xp  = value(x_pitch_tot$);   yp = value(y_pitch_tot$)
 
     value(ref_tilt$) = tilt
 
     if (any(off /= 0) .or. xp /= 0 .or. yp /= 0 .or. roll /= 0) then
-      angle =  s_del * value(g$)
-      cos_a = cos(angle); sin_a = sin(angle)
-      dr = [2 * sin(angle/2)**2 / value(g$), 0.0_rp, sin_a / value(g$)]
+      from_pos = init_pos
+      from_pos%r(3) = offset + len_slave/2
+      to_pos = coords_element_frame_to_local(from_pos, lord, w_mat)
+      to_pos = bend_shift (to_pos, lord%value(g$), offset + len_slave/2 - len_lord, tilt = tilt)
+      
+      w_mat = to_pos%w
+      if (tilt /= 0) call rotate_mat (w_mat, z_axis$, -tilt, right_multiply = .true.)
+      call floor_w_mat_to_angles (w_mat, value(x_pitch$), value(y_pitch$), value(roll$))
+
+      off = to_pos%r
 
       if (roll /= 0) then
-        r_roll = value(rho$) * (1 - cos(lord%value(angle$)/2))
-        off(1) = off(1) + r_roll*(cos(roll) - 1)
-        off(2) = off(2) + r_roll*sin(roll)
-      endif
-
-      if (tilt == 0) then
-        cos_t = 1; sin_t = 0
-        off = [cos_a * off(1) + sin_a * off(3), off(2), -sin_a * off(1) + cos_a * off(3)]
-        rot = [-cos_a * yp, xp, sin_a * yp + roll]
-      else
-        cos_t = cos(tilt);    sin_t = sin(tilt)
-        m_trans(1,:) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
-        m_trans(2,:) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, sin_a * sin_t]
-        m_trans(3,:) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]
-        rot = matmul(m_trans, [-yp, xp, roll])
-        off = matmul(m_trans, off)
-        dr = [cos_t * dr(1) + sin_t * dr(2), sin_t * dr(1) + cos_t * dr(2), dr(3)]
-      endif
-
-      if (any(rot /= 0)) then
-        call axis_angle_to_w_mat (rot, norm2(rot), m_trans)
-        off = off + matmul(m_trans, dr) - dr
-      endif
-
-      if (rot(3) /= 0) then
-        r_roll = value(rho$) * (1 - cos(value(l$)*value(g$)/2))
-        dx = r_roll * (1 - cos(rot(3)));  dy = -r_roll*sin(rot(3))
-        off(1) = off(1) + dx * cos_t - dy * sin_t
-        off(2) = off(2) + dx * sin_t + dy * cos_t
+        call rotate_vec(rot, y_axis$, len_slave/2)
+        call rotate_vec(rot, z_axis$, tilt)
+        off = off + rot
+        call rotate_vec(rot, z_axis$, roll)
+        off = off - rot
       endif
 
       value(x_offset$) = off(1)
       value(y_offset$) = off(2)
       value(z_offset$) = off(3)
-      value(x_pitch$) =  rot(2)
-      value(y_pitch$) = -rot(1)
-      value(roll$)    =  rot(3)
-
     endif
 
   ! Not an sbend
 
   else
+    s_del = offset + len_slave/2 - len_lord/2
     value(tilt$)     = value(tilt_tot$)
     value(x_pitch$)  = value(x_pitch_tot$)
     value(y_pitch$)  = value(y_pitch_tot$)
@@ -1845,7 +1827,7 @@ endif
 if (lord%key == patch$) then
   if ((include_upstream_end .and. lord%orientation == 1) .or. (include_downstream_end .and. lord%orientation == -1)) then
     call floor_angles_to_w_mat (lord%value(x_pitch$), lord%value(y_pitch$), lord%value(tilt$), w_mat_inv = w_inv)
-    dl = lord%value(l$) - slave%value(l$)
+    dl = len_lord - len_slave
     value(x_offset$)     = lord%value(x_offset$) - dl * w_inv(3,1)
     value(y_offset$)     = lord%value(y_offset$) - dl * w_inv(3,2)
     value(z_offset$)     = lord%value(z_offset$) - dl * w_inv(3,3)
@@ -1859,7 +1841,7 @@ if (lord%key == patch$) then
     value(tilt$)         = 0
     value(x_offset$)     = 0
     value(y_offset$)     = 0
-    value(z_offset$)     = slave%value(l$) ! L is set by create_element_slice
+    value(z_offset$)     = len_slave ! L is set by create_element_slice
     value(t_offset$)     = 0
     value(e_tot_offset$) = 0
     value(e_tot_set$)    = 0

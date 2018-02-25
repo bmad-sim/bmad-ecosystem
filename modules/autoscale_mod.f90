@@ -93,7 +93,7 @@ err_flag = .false.
 if (.not. ele%is_on) return
 
 do_scale_phase = logic_option(is_true(ele%value(autoscale_phase$)), scale_phase)
-do_scale_amp   = logic_option(is_true(ele%value(autoscale_amplitude$)),   scale_amp)
+do_scale_amp   = logic_option(is_true(ele%value(autoscale_amplitude$)), scale_amp)
 
 if (ele%key == e_gun$ .and. ele%value(rf_frequency$) == 0) then
   do_scale_phase = .false.
