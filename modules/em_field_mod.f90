@@ -99,7 +99,7 @@ use geometry_mod
 
 type (ele_struct), target :: ele, ele2
 type (ele_pointer_struct), allocatable, optional :: used_eles(:)
-type (ele_pointer_struct), allocatable :: use_list(:)
+type (ele_pointer_struct), allocatable :: used_list(:)
 type (ele_struct), pointer :: lord
 type (lat_param_struct) param
 type (coord_struct) :: orbit, local_orb, lab_orb, lord_orb, this_orb
@@ -150,24 +150,13 @@ dfield_computed = .false.
 if (present(err_flag)) err_flag = .false.
 if (.not. ele%is_on) return
 
-! Has this element been used before?
+! Has this element been used before? If so nothing to be done.
 
 if (present(used_eles)) then
   do j = 1, size(used_eles)
-    if (.not. associated (used_eles(j)%ele)) then
-      used_eles(j)%ele => ele
-      exit
-    endif
-
+    if (.not. associated (used_eles(j)%ele)) exit
     if (associated(used_eles(j)%ele, ele)) return
   enddo
-
-  if (j == size(used_eles) + 1) then
-    call move_alloc(used_eles, use_list)
-    allocate(used_eles(2*j))
-    used_eles(1:j-1) = use_list
-    used_eles(j)%ele => ele
-  endif
 endif
 
 !----------------------------------------------------------------------------
@@ -175,7 +164,7 @@ endif
 ! Note: multipass_slave elements do store their own field info. This should be changed.
 
 if (ele%field_calc == refer_to_lords$) then
-  if (.not. present(used_eles)) allocate (use_list(ele%n_lord+5))
+  if (.not. present(used_eles)) allocate (used_list(ele%n_lord+5))
 
   ! The lord of an element may have independent misalignments.
   ! So use an orbit that is not in the slave's reference frame.
@@ -212,7 +201,7 @@ if (ele%field_calc == refer_to_lords$) then
                                                use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
     else
       call em_field_calc (lord, param, s_lab2, lab_orb, .false., field2, calc_dfield, err, calc_potential, &
-                                               use_overlap, grid_allow_s_out_of_bounds, rf_time, use_list)
+                                               use_overlap, grid_allow_s_out_of_bounds, rf_time, used_list)
     endif
 
     if (err) then
@@ -241,6 +230,24 @@ if (ele%field_calc == custom$) then
                                       calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
   return
 end if
+
+!-----
+! If the used_eles list is present then put the present element in the list.
+
+if (present(used_eles)) then
+  do j = 1, size(used_eles)
+    if (associated (used_eles(j)%ele)) cycle
+    used_eles(j)%ele => ele
+    exit
+  enddo
+
+  if (j == size(used_eles) + 1) then
+    call move_alloc(used_eles, used_list)
+    allocate(used_eles(2*j))
+    used_eles(1:j-1) = used_list
+    used_eles(j)%ele => ele
+  endif
+endif
 
 !-------------------------------
 ! Sad mult is complicated by the fact that the sad_mult defines additional multipole misalignment

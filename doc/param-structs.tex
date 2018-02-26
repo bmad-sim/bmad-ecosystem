@@ -641,10 +641,10 @@ calculations. This structure has components:
     real(rp) :: min_angle = 0
     real(rp) :: max_angle = pi
     integer :: n_angle   = 9
-    integer :: n_turn = 100                   ! Number of turns a particle must survive
-    real(rp) :: x_init = 1e-3_rp              ! Initial estimate for horizontal aperture
-    real(rp) :: y_init = 1e-3_rp              ! Initial estimate for vertical aperture
-    real(rp) :: accuracy = 1e-5_rp            ! Resolution of bracketed aperture.
+    integer :: n_turn = 100                ! Number of turns a particle must survive
+    real(rp) :: x_init = 1e-3              ! Initial estimate for horizontal aperture
+    real(rp) :: y_init = 1e-3              ! Initial estimate for vertical aperture
+    real(rp) :: accuracy = 1e-5            ! Resolution of bracketed aperture.
   end type
 \end{example}
 
