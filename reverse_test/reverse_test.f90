@@ -86,6 +86,7 @@ do ib = 0, ubound(lat%branch, 1)
     max_diff_spin = 0
 
     do im = 1, n_methods$
+      if (im == fixed_step_runge_kutta$ .or. im == fixed_step_time_runge_kutta$) cycle
       if (.not. valid_tracking_method(ele, branch%param%particle, im)) cycle
       if (im == mad$) cycle
       if (im == symp_map$) cycle
