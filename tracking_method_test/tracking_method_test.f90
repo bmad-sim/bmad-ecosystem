@@ -85,6 +85,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     isn = 0
     do j = 1, n_methods$
+      if (j == fixed_step_runge_kutta$ .or. j == fixed_step_time_runge_kutta$) cycle
       if (track_method /= '' .and. upcase(tracking_method_name(j)) /= upcase(track_method)) cycle
       if (.not. valid_tracking_method(ele, branch%param%particle, j)) cycle
       if (j == symp_map$ .or. j == custom$) cycle
@@ -233,7 +234,12 @@ character(*) :: instr
     case("WIGGLER_PERIODIC1-Anti:Runge_Kutta")         ; tolerance = 'ABS 5e-13'
     case("WIGGLER_PERIODIC1-Anti:Time_Runge_Kutta")    ; tolerance = 'ABS 2e-13'                  
 
-    case default                                       ; tolerance = 'ABS 1e-14'
+    case default 
+      if (index(instr, 'Runge_Kutta') /= 0) then
+        tolerance = 'ABS 1e-13'
+      else
+        tolerance = 'ABS 1e-14'
+      endif
   end select
 
 end function tolerance

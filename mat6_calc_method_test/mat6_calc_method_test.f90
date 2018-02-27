@@ -84,6 +84,7 @@ do ib = 0, ubound(lat%branch, 1)
     do k = 1, 8
       do j = 1, n_methods$
         ! if (j == mad$ .and. custom_test) cycle
+        if (j == fixed_step_runge_kutta$ .or. j == fixed_step_time_runge_kutta$) cycle
         if(.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == static$ .or. j == custom$ .or. j == mad$) cycle
         ele2 => eles(j)
         if (k < 7) then
