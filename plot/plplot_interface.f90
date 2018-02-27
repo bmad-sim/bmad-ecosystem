@@ -66,7 +66,7 @@ end type
 type (pl_interface_struct), pointer, save, private :: pl_com
 type (pl_interface_struct), save, target, private :: pl_interface_save_com(0:20)
 integer, save, private :: i_save = 0
-real(rp), parameter, private :: point_to_mm_conv = .25   !approximate
+real(rp), save, private :: point_to_mm_conv
 
 contains
 
@@ -800,6 +800,7 @@ implicit none
 type (pl_interface_struct), pointer :: pl_ptr
 
 real(rp) x_len, y_len, x_page, y_page, x1i, x2i, y1i, y2i, d, h
+real(rp) x_size, y_size, x_res, y_res
 real(rp), optional :: page_scale
 
 integer, optional :: i_chan
@@ -887,11 +888,15 @@ call plscmap1l(.false., [0.d0, 1.d0], [240.d0, 0.d0], [0.6d0, 0.6d0], [0.8d0, 0.
 ! Work around for bug in plplot-5.9.5 is to set the geometry
 
 if (page_type == 'X' .or. page_type == 'TK' .or. page_type == 'QT' .or. page_type(1:3) == 'GIF') then
-  ix_len = nint(72*x_len)  ! 72 pixels per inch for a screen
-  iy_len = nint(72*y_len)
+  call display_size_and_resolution(0, x_size, y_size, x_res, y_res)
+  ix_len = nint(x_res * x_len * 25.4)  ! x_res is in pixels / mm
+  iy_len = nint(y_res * y_len * 25.4)
   call plspage (0.0_rp, 0.0_rp, ix_len, iy_len, 0, 0)
+  point_to_mm_conv = 0.25 * x_res * 25.4 / 72
   !write (geom, '(i0, a, i0, a)') ix_len, 'x', iy_len, '+10+10'
   !call plsetopt ("geometry", trim(geom))
+else
+  point_to_mm_conv = 0.25
 endif
 
 ! Initialize plplot
@@ -969,7 +974,9 @@ end subroutine
 subroutine qp_select_page_basic (iw)
 implicit none
 integer iw
-!
+
+! To enable need to restore scaling factors set in  qp_open_page_basic
+
 call out_io (s_abort$, 'qp_select_page_basic', 'NOT YET IMPLEMENTED!')
 if (global_com%exit_on_error) call err_exit
 call plsstrm(iw)
