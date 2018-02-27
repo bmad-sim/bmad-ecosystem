@@ -84,6 +84,8 @@ endif
 
 ds_safe = bmad_com%significant_length / 100
 dt_next = t_dir * bmad_com%init_ds_adaptive_tracking / c_light  ! Init time step.
+if (ele%tracking_method == fixed_step_time_runge_kutta$) dt_next = ele%value(ds_step$) / c_light
+
 call time_runge_kutta_periodic_kick_hook (orb, z_phase, ele, param, stop_time, true_int$)
 
 call calc_next_fringe_edge (ele, s_fringe_edge, fringe_info, orb, .true., time_tracking = .true.)
@@ -374,6 +376,10 @@ do
       return
     endif
     dt_temp = dt / 10
+    if (ele%tracking_method == fixed_step_time_runge_kutta$) exit  ! No adaptive step sizing.
+
+  elseif (ele%tracking_method == fixed_step_time_runge_kutta$) then
+    exit  ! No adaptive step sizing.
 
   else
     ! r_scal(7:9) is for spin
@@ -386,6 +392,7 @@ do
     if (err_max <=  1.0) exit
     dt_temp = safety * dt * (err_max**p_shrink)
   endif
+
   dt = t_dir * sign(max(abs(dt_temp), 0.1_rp*abs(dt)), dt)
   t_new = rf_time + dt
 
@@ -401,10 +408,11 @@ do
     orb%state = lost$
     return
   endif
-
 end do
 
-if (err_max > err_con) then
+if (ele%tracking_method == fixed_step_time_runge_kutta$) then
+  dt_next = ele%value(ds_step$) / c_light
+elseif (err_max > err_con) then
   dt_next = safety*dt*(err_max**p_grow)
 else
   dt_next = 5.0_rp * dt

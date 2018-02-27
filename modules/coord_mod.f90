@@ -300,7 +300,7 @@ integer species, dir
 
 logical, optional :: shift_vec6
 
-character(16), parameter :: r_name = 'init_coord1'
+character(*), parameter :: r_name = 'init_coord2'
 
 !
 

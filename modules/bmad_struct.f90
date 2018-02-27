@@ -63,19 +63,18 @@ end type
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
 
-integer, parameter :: bmad_standard$ = 1, symp_lie_ptc$ = 2
-integer, parameter :: runge_kutta$ = 3 
+integer, parameter :: bmad_standard$ = 1, symp_lie_ptc$ = 2, runge_kutta$ = 3 
 integer, parameter :: linear$ = 4, tracking$ = 5, symp_map$ = 6
-integer, parameter :: hard_edge_model$ = 9, symp_lie_bmad$ = 10, static$ = 11
-integer, parameter :: boris$ = 12, mad$ = 14
+integer, parameter :: fixed_step_runge_kutta$ = 9, symp_lie_bmad$ = 10, static$ = 11
+integer, parameter :: boris$ = 12, fixed_step_time_runge_kutta$ = 13, mad$ = 14
 integer, parameter :: time_runge_kutta$ = 15
 integer, parameter :: n_methods$ = 15
 
-character(16), parameter :: tracking_method_name(0:n_methods$) = [ &
-      'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Runge_Kutta     ', &
-      'Linear          ', 'GARBAGE!        ', 'Symp_Map        ', 'Custom          ', &
-      'Taylor          ', 'GARBAGE!        ', 'Symp_Lie_Bmad   ', 'Static          ', &
-      'Boris           ', 'GARBAGE!        ', 'MAD             ', 'Time_Runge_Kutta']
+character(28), parameter :: tracking_method_name(0:n_methods$) = [character(28) :: &
+      'GARBAGE! ', 'Bmad_Standard   ',            'Symp_Lie_PTC ', 'Runge_Kutta     ', &
+      'Linear   ', 'GARBAGE!        ',            'Symp_Map     ', 'Custom          ', &
+      'Taylor   ', 'Fixed_Step_Runge_Kutta',      'Symp_Lie_Bmad', 'Static          ', &
+      'Boris    ', 'Fixed_Step_Time_Runge_kutta', 'MAD          ', 'Time_Runge_Kutta']
 
 character(16), parameter :: spin_tracking_method_name(0:n_methods$) = [ &
       'GARBAGE!        ', 'GARBAGE!        ', 'Symp_Lie_PTC    ', 'GARBAGE!        ', &

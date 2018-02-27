@@ -91,6 +91,26 @@ default \vn{track1_custom} supplied with the \bmad release will print
 an error message and stop the program if it is called which probably
 indicates a program linking problem. See \vn{s:custom.ele} for more details.
 
+\index{fixed_step_runge_kutta!tracking_method}
+\item[\vn{fixed_step_runge_kutta}]
+The \vn{fixed_step_runge_kutta} method is similar to \vn{runge_kutta} tracking except that
+\vn{fixed_step_runge_kutta} does not use adaptive step size control but instead takes steps of fixed
+size using the setting of \vn{ds_step} for the element being tracked through (\sref{s:integ}).
+Generally, using adaptive step control will be much more efficient so it is recommended that
+\vn{fixed_step_runge_kutta} {\em not} be used unless there is a compelling reason not to. For
+example, one reason to use \vn{fixed_step_runge_kutta} would be to test how much adaptive step
+control contributes to non-symplecticity.
+
+\index{fixed_step_time_runge_kutta!tracking_method}
+\item[\vn{fixed_step_time_runge_kutta}]
+The \vn{fixed_step_time_runge_kutta} method is similar to \vn{time_runge_kutta} tracking except that
+\vn{fixed_step_time_runge_kutta} does not use adaptive step size control but instead takes steps of fixed
+size using the setting of \vn{ds_step} for the element being tracked through (\sref{s:integ}).
+Generally, using adaptive step control will be much more efficient so it is recommended that
+\vn{fixed_step_time_runge_kutta} {\em not} be used unless there is a compelling reason not to. For
+example, one reason to use \vn{fixed_step_time_runge_kutta} would be to test how much adaptive step
+control contributes to non-symplecticity.
+
 \index{linear!tracking_method}
 \item[\vn{Linear}]
 Linear just uses the 0th order vector with the 1st order 6x6 transfer matrix for an element. Very
@@ -182,7 +202,7 @@ different from using \vn{absolute time tracking} as explained in \sref{s:rf.time
 \index{element!table of class types}
 \begin{table}[pht]
 \centering {
-\begin{tabular}{lcccccccccccc} \toprule
+\begin{tabular}{lcccccccccccc}  % \toprule
 \rule{0pt}{80pt} 
 {\em Element Class} &
 \begin{sideways}\vn{Bmad_Standard}\end{sideways} &
@@ -190,11 +210,13 @@ different from using \vn{absolute time tracking} as explained in \sref{s:rf.time
 \begin{sideways}\vn{Custom}\end{sideways} &
 \begin{sideways}\vn{Linear}\end{sideways} &
 \begin{sideways}\vn{MAD}\end{sideways} &
+\begin{sideways}\vn{Fixed_Step_Runge_Kutta}\end{sideways}
 \begin{sideways}\vn{Runge_Kutta}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_Bmad}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_PTC}\end{sideways} &
 \begin{sideways}\vn{Symp_Map}\end{sideways} &
 \begin{sideways}\vn{Taylor}\end{sideways} &
+\begin{sideways}\vn{Fixed_Step_Time_Runge_Kutta}\end{sideways}
 \begin{sideways}\vn{Time_Runge_Kutta}\end{sideways} &
 \\ \midrule
 %                               BS   B   C   L   M   RK    SLB   SLP   SM     T   TRK
@@ -239,13 +261,11 @@ different from using \vn{absolute time tracking} as explained in \sref{s:rf.time
   \vn{wiggler} (periodic type) & D & X & X & X &   &X$^a$&X$^a$&X$^a$&X$^a$&X$^a$&    \\ \bottomrule
    \multicolumn{12}{l}{$^a$See \sref{s:wiggler.periodic} for more details} \\
 \end{tabular}
-} 
-\caption[Table of available {\bf tracking_method}\ switches for a
-given element class.]{Table of available {\bf tracking_method}\
-switches for a given element class. ``D'' denotes the default
-method. ``X'' denotes an available method. ``*'' denotes that the
-Taylor map will only be first order. 
 }
+\caption[Table of available {\bf tracking_method}\ switches for a given element class.] { 
+Table of valid {\bf tracking_method}\ switches for a given element class. ``D'' denotes the
+default method. ``X'' denotes a valid method. ``*'' denotes that the Taylor map will only be
+first order.}
 
 \label{t:track.methods}
 \end{table}
@@ -590,6 +610,8 @@ The methods that do not involve Taylor maps are
 \index{runge_kutta!and Taylor maps}
 \begin{example}
   boris
+  fixed_step_runge_kutta
+  fixed_step_time_runge_kutta
   runge_kutta
   time_runge_kutta
 \end{example}

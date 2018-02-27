@@ -63,7 +63,7 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Function valid_tracking_method (ele, species, tracking_method, num_valid) result (is_valid)
+! Function valid_tracking_method (ele, species, tracking_method) result (is_valid)
 !
 ! Routine to return whether a given tracking method is valid for a given element.
 !
@@ -76,24 +76,21 @@ contains
 !   tracking_method -- integer: bmad_standard$, etc.
 !
 ! Output:
-!   num_valid -- integer, optional: Number of valid methods. 
 !   is_valid  -- logical: True if a valid method. False otherwise.
 !-
 
-function valid_tracking_method (ele, species, tracking_method, num_valid) result (is_valid)
+function valid_tracking_method (ele, species, tracking_method) result (is_valid)
 
 implicit none
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord, field_ele
-integer tracking_method, species
-integer, optional :: num_valid
+integer tracking_method, species, method
 logical is_valid
 
 !
 
 is_valid = .false.
-if (present(num_valid)) num_valid = 0
 
 ! If tracking photons...
 
@@ -101,7 +98,6 @@ if (species == photon$) then
 
   select case (ele%key)
   case (crystal$, mirror$, multilayer_mirror$, drift$, fork$, photon_fork$, capillary$)
-    if (present(num_valid)) num_valid = 2
     select case (tracking_method)
     case (bmad_standard$, custom$)
       is_valid = .true.
@@ -115,283 +111,247 @@ if (species == photon$) then
 
 endif
 
-!
+! Save some writting since fixed_step_* versions are valid when non fixed_step_* versions are valid.
+
+method = tracking_method
+if (method == fixed_step_runge_kutta$) method = runge_kutta$
+if (method == fixed_step_time_runge_kutta$) method = time_runge_kutta$
 
 select case (ele%key)
 
 case (ab_multipole$)
-  if (present(num_valid)) num_valid = 6
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, custom$)
     is_valid = .true.
   end select
 
 case (ac_kicker$)
-  if (present(num_valid)) num_valid = 6
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, runge_kutta$, time_runge_kutta$, boris$, linear$, custom$)
     is_valid = .true.
   end select
   
 
 case (beambeam$)
-  if (present(num_valid)) num_valid = 3
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, linear$, custom$)
     is_valid = .true.
   end select
 
 case (bend_sol_quad$)
-  if (present(num_valid)) num_valid = 2
-  select case (tracking_method)
+  select case (method)
   case (symp_lie_bmad$, custom$)
     is_valid = .true.
   end select
 
 case (crystal$, mirror$, multilayer_mirror$, capillary$, fiducial$)
   if (species == not_set$) then
-    if (present(num_valid)) num_valid = 2
-    select case (tracking_method)
+    select case (method)
     case (bmad_standard$, custom$)
       is_valid = .true.
     end select
   endif
 
 case (custom$)
-  if (present(num_valid)) num_valid = 1
-  select case (tracking_method)
+  select case (method)
   case (custom$)
     is_valid = .true.
   end select
 
 case (diffraction_plate$, mask$)
-  if (present(num_valid)) num_valid = 2
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, custom$)
     is_valid = .true.
   end select
-  
 
 case (drift$)
-  if (present(num_valid)) num_valid = 10
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (e_gun$)
-  if (present(num_valid)) num_valid = 2
-  select case (tracking_method)
+  select case (method)
   case (time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (ecollimator$)
-  if (present(num_valid)) num_valid = 9
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (elseparator$)
-  if (present(num_valid)) num_valid = 10
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (em_field$)
-  if (present(num_valid)) num_valid = 4
-  select case (tracking_method)
+  select case (method)
   case (runge_kutta$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (floor_shift$)
-  if (present(num_valid)) num_valid = 2
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, custom$)
     is_valid = .true.
   end select
 
 case (fork$, photon_fork$)
-  if (present(num_valid)) num_valid = 3
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, linear$, custom$)
     is_valid = .true.
   end select
   
 case (hkicker$)
-  if (present(num_valid)) num_valid = 9
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (hybrid$)
-  if (present(num_valid)) num_valid = 2
-  select case (tracking_method)
+  select case (method)
   case (linear$, taylor$)
     is_valid = .true.
   end select
 
 case (instrument$, pipe$)
-  if (present(num_valid)) num_valid = 9
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (kicker$)
-  if (present(num_valid)) num_valid = 9
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (lcavity$)
-  if (present(num_valid)) num_valid = 9
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (marker$, detector$)
-  if (present(num_valid)) num_valid = 6
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, custom$)
     is_valid = .true.
   end select
 
 case (match$)
-  if (present(num_valid)) num_valid = 3
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, taylor$, custom$)
     is_valid = .true.
   end select
 
 case (monitor$)
-  if (present(num_valid)) num_valid = 9
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (multipole$)
-  if (present(num_valid)) num_valid = 6
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, custom$)
     is_valid = .true.
   end select
 
 case (octupole$)
-  if (present(num_valid)) num_valid = 9
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (patch$)
-  if (present(num_valid)) num_valid = 6
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, custom$, runge_kutta$, time_runge_kutta$)
     is_valid = .true.
   end select
 
 case (photon_init$)
-  if (present(num_valid)) num_valid = 2
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, custom$)
     is_valid = .true.
   end select
 
 case (quadrupole$)
-  if (present(num_valid)) num_valid = 11
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, boris$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (rcollimator$)
-  if (present(num_valid)) num_valid = 9
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (rfcavity$)
-  if (present(num_valid)) num_valid = 10
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (sad_mult$)
-  if (present(num_valid)) num_valid = 6
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, custom$, symp_lie_ptc$, linear$, symp_map$, taylor$)
     is_valid = .true.
   end select
 
 case (sample$)
-  if (present(num_valid)) num_valid = 2
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, custom$)
     is_valid = .true.
   end select
 
 case (sbend$, rbend$)
-  if (present(num_valid)) num_valid = 8
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, mad$, custom$, runge_kutta$, time_runge_kutta$)
     is_valid = .true.
   end select
 
 case (sextupole$)
-  if (present(num_valid)) num_valid = 10
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (solenoid$)
-  if (present(num_valid)) num_valid = 11
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, boris$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (sol_quad$)
-  if (present(num_valid)) num_valid = 11
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (taylor$)
-  if (present(num_valid)) num_valid = 4
-  select case (tracking_method)
+  select case (method)
   case (taylor$, linear$, custom$, symp_lie_ptc$)
     is_valid = .true.
   end select
 
 case (vkicker$)
-  if (present(num_valid)) num_valid = 9
-  select case (tracking_method)
+  select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (wiggler$, undulator$)
   if (ele%sub_key == map_type$) then
-    if (present(num_valid)) num_valid = 9
-    select case (tracking_method)
+    select case (method)
     case (symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, boris$, time_runge_kutta$, custom$)
       is_valid = .true.
     end select
   elseif (ele%sub_key == periodic_type$) then
-    if (present(num_valid)) num_valid = 9
-    select case (tracking_method)
+    select case (method)
     case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, time_runge_kutta$, custom$)
       is_valid = .true.
     end select
@@ -408,7 +368,7 @@ end function valid_tracking_method
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Function valid_mat6_calc_method (ele, species, mat6_calc_method, num_valid) result (is_valid)
+! Function valid_mat6_calc_method (ele, species, mat6_calc_method) result (is_valid)
 !
 ! Routine to return whether a given mat6_calc method is valid for a given element.
 !
@@ -421,31 +381,26 @@ end function valid_tracking_method
 !   mat6_calc_method -- integer: bmad_standard$, etc.
 !
 ! Output:
-!   num_valid -- integer, optional: Number of valid methods.
 !   is_valid  -- logical: True if a valid method. False otherwise.
 !-
 
-function valid_mat6_calc_method (ele, species, mat6_calc_method, num_valid) result (is_valid)
+function valid_mat6_calc_method (ele, species, mat6_calc_method) result (is_valid)
 
 implicit none
 
 type (ele_struct) ele
 integer mat6_calc_method, species
-integer, optional :: num_valid
 logical is_valid
 
 !
 
 is_valid = .false.
-if (present(num_valid)) num_valid = 0
 
 ! If tracking photons...
 
 if (species == photon$) then
-
   select case (ele%key)
   case (crystal$, mirror$, multilayer_mirror$, drift$, fork$, photon_fork$, capillary$)
-    if (present(num_valid)) num_valid = 4
     select case (mat6_calc_method)
     case (bmad_standard$, static$, tracking$, custom$)
       is_valid = .true.
@@ -456,43 +411,37 @@ if (species == photon$) then
   end select
 
   return
-
 endif
 
-!
+! Save some writting since fixed_step_* versions are valid when non fixed_step_* versions are valid.
 
 select case (ele%key)
 
 case (ab_multipole$)
-  if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (ac_kicker$)
-  if (present(num_valid)) num_valid = 3
   select case (mat6_calc_method)
   case (static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (beambeam$)
-  if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
   case (bmad_standard$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (bend_sol_quad$)
-  if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
   case (symp_lie_bmad$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (fork$, photon_fork$)
-  if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
   case (bmad_standard$, static$, tracking$, custom$)
     is_valid = .true.
@@ -507,196 +456,168 @@ case (crystal$, mirror$, multilayer_mirror$, capillary$)
   endif
 
 case (custom$)
-  if (present(num_valid)) num_valid = 3
   select case (mat6_calc_method)
   case (static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (diffraction_plate$, mask$, fiducial$, floor_shift$)
-  if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
   case (bmad_standard$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (drift$)
-  if (present(num_valid)) num_valid = 7
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, mad$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (e_gun$)
-  if (present(num_valid)) num_valid = 3
   select case (mat6_calc_method)
   case (static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (ecollimator$)
-  if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (elseparator$)
-  if (present(num_valid)) num_valid = 7
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, mad$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (em_field$)
-  if (present(num_valid)) num_valid = 3
   select case (mat6_calc_method)
   case (static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (hkicker$)
-  if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (hybrid$)
-  if (present(num_valid)) num_valid = 2
   select case (mat6_calc_method)
   case (taylor$, static$)
     is_valid = .true.
   end select
 
 case (instrument$, pipe$)
-  if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (kicker$)
-  if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (lcavity$)
-  if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (marker$, detector$)
-  if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (match$)
-  if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
   case (bmad_standard$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (monitor$)
-  if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (multipole$)
-  if (present(num_valid)) num_valid = 5
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (octupole$)
-  if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (patch$)
-  if (present(num_valid)) num_valid = 5
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (photon_init$)
-  if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
   case (bmad_standard$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (quadrupole$)
-  if (present(num_valid)) num_valid = 8
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, symp_lie_bmad$, mad$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (rcollimator$)
-  if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (sad_mult$)
-  if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
   case (bmad_standard$, static$, tracking$, custom$, symp_lie_ptc$, taylor$)
     is_valid = .true.
   end select
 
 case (sample$)
-  if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
   case (bmad_standard$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (sbend$, rbend$, sextupole$, rfcavity$)
-  if (present(num_valid)) num_valid = 7
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, mad$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (solenoid$)
-  if (present(num_valid)) num_valid = 8
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, symp_lie_bmad$, mad$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (sol_quad$)
-  if (present(num_valid)) num_valid = 7
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, symp_lie_bmad$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (taylor$)
-  if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
   case (taylor$, static$, custom$, symp_lie_ptc$)
     is_valid = .true.
   end select
 
 case (vkicker$)
-  if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
     is_valid = .true.
@@ -704,13 +625,11 @@ case (vkicker$)
 
 case (wiggler$, undulator$)
   if (ele%sub_key == map_type$) then
-    if (present(num_valid)) num_valid = 6
     select case (mat6_calc_method)
     case (symp_lie_ptc$, taylor$, symp_lie_bmad$, static$, tracking$, custom$)
       is_valid = .true.
     end select
   elseif (ele%sub_key == periodic_type$) then
-    if (present(num_valid)) num_valid = 7
     select case (mat6_calc_method)
     case (bmad_standard$, symp_lie_ptc$, taylor$, symp_lie_bmad$, static$, tracking$, custom$)
       is_valid = .true.
@@ -728,7 +647,7 @@ end function valid_mat6_calc_method
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Function valid_spin_tracking_method (ele, mat6_calc_method, num_valid) result (is_valid)
+! Function valid_spin_tracking_method (ele, spin_tracking_method) result (is_valid)
 !
 ! Routine to return whether a given spin_tracking method is valid for a given element.
 !
@@ -740,61 +659,52 @@ end function valid_mat6_calc_method
 !   spin_tracking_method -- integer: bmad_standard$, etc.
 !
 ! Output:
-!   num_valid -- integer, optional: Number of valid methods.
 !   is_valid  -- logical: True if a valid method. False otherwise.
 !-
 
-function valid_spin_tracking_method (ele, spin_tracking_method, num_valid) result (is_valid)
+function valid_spin_tracking_method (ele, spin_tracking_method) result (is_valid)
 
 implicit none
 
 type (ele_struct) ele
 integer spin_tracking_method
-integer, optional :: num_valid
 logical is_valid
 
-!
-
+! 
 
 select case (ele%key)
+
 case (ab_multipole$)
-  if (present(num_valid)) num_valid = 2
   select case (spin_tracking_method)
   case (tracking$, custom$)
     is_valid = .true.
   end select
 
 case (ac_kicker$)
-  if (present(num_valid)) num_valid = 2
   select case (spin_tracking_method)
   case (tracking$, custom$)
     is_valid = .true.
   end select
 
 case (capillary$, crystal$, mirror$, multilayer_mirror$, taylor$)
-  if (present(num_valid)) num_valid = 0
   is_valid = .false.
 
 case (custom$)
-  if (present(num_valid)) num_valid = 2
   select case (spin_tracking_method)
   case (tracking$, custom$)
     is_valid = .true.
   end select
 
 case (hybrid$)
-  if (present(num_valid)) num_valid = 0
   is_valid = .false.
 
 case (sad_mult$, patch$)
-  if (present(num_valid)) num_valid = 1
   select case (spin_tracking_method)
   case (custom$, symp_lie_ptc$)
     is_valid = .true.
   end select
 
 case default
-  if (present(num_valid)) num_valid = 3
   select case (spin_tracking_method)
   case (custom$, symp_lie_ptc$, tracking$)
     is_valid = .true.
