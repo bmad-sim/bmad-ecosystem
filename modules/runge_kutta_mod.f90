@@ -84,6 +84,7 @@ err_flag = .true.
 s_body = s1_body
 s_dir = sign(1.0_rp, s2_body-s1_body)
 ds_next = bmad_com%init_ds_adaptive_tracking * s_dir
+if (ele%tracking_method == fixed_step_runge_kutta$) ds_next = ele%value(ds_step$)
 ds_tiny  = bmad_com%significant_length/100
 track_spin = (ele%spin_tracking_method == tracking$ .and. &
                                 (ele%field_calc == bmad_standard$ .or. ele%field_calc == fieldmap$))
@@ -333,6 +334,10 @@ do
      return
     endif
     ds_temp = ds / 10
+    if (ele%tracking_method == fixed_step_runge_kutta$) exit  
+
+  elseif (ele%tracking_method == fixed_step_runge_kutta$) then
+    exit  ! No adaptive step sizing.
 
   else
     sqrt_N = sqrt(abs(ds12/ds))  ! number of steps we would take with this ds
@@ -344,6 +349,7 @@ do
     if (err_max <=  1.0) exit
     ds_temp = safety * ds * (err_max**p_shrink)
   endif
+
   ds = sign(max(abs(ds_temp), 0.1_rp*abs(ds)), ds)
 
   if (s + ds == s) then
@@ -361,7 +367,9 @@ end do
 
 !
 
-if (err_max > err_con) then
+if (ele%tracking_method == fixed_step_runge_kutta$) then
+  ds_next = ele%value(ds_step$) * sign_of(ds)
+elseif (err_max > err_con) then
   ds_next = safety*ds*(err_max**p_grow)
 else
   ds_next = 5.0_rp * ds

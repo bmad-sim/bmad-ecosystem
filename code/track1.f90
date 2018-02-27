@@ -59,12 +59,14 @@ character(8), parameter :: r_name = 'track1'
 
 logical, optional :: make_matrix
 logical, optional :: err_flag, ignore_radiation
-logical err, do_extra, finished, radiation_included, do_spin_tracking
+logical err, do_extra, finished, radiation_included, do_spin_tracking, time_RK_tracking
 
 ! Use start2_orb since start_orb is strictly input.
 
 if (present(err_flag)) err_flag = .true.
 start2_orb = start_orb
+time_RK_tracking = (ele%tracking_method == time_runge_kutta$ .or. &
+                                                  ele%tracking_method == fixed_step_time_runge_kutta$)
 
 do_extra = .not. logic_option(.false., ignore_radiation)
 
@@ -77,7 +79,7 @@ radiation_included = (ele%tracking_method == symp_lie_bmad$)
 ! Time Runge-Kutta is tricky so do not attempt to do a set.
 
 if (start2_orb%state == not_set$) then
-  if (ele%tracking_method == time_runge_kutta$) then
+  if (time_RK_tracking) then
     call out_io (s_error$, r_name, 'STARTING ORBIT NOT PROPERLY INITIALIZED! [NEEDS AN INIT_COORD CALL?]')
     return
   endif
@@ -88,7 +90,7 @@ endif
 ! For time runge-kutta the particle may be starting inside the element.
 ! In this case, do not set the location.
 
-if (ele%tracking_method /= time_runge_kutta$ .or. start2_orb%location /= inside$) then
+if (.not. time_RK_tracking .or. start2_orb%location /= inside$) then
   if (start2_orb%direction == 1) then
     start2_orb%location = upstream_end$
     start2_orb%s = ele%s_start
@@ -133,7 +135,7 @@ endif
 ! If a particle is inside the element then only time_runge_kutta
 ! can handle this situation.
 
-if (start2_orb%state == inside$ .and. ele%tracking_method /= time_runge_kutta$) then
+if (start2_orb%state == inside$ .and. .not. time_RK_tracking) then
   call out_io (s_error$, r_name, 'PARTICLE''S STARTING POSITION IS INSIDE THE ELEMENT! ' // ele%name)
   if (global_com%exit_on_error) call err_exit
 endif
@@ -189,7 +191,7 @@ case (bmad_standard$)
   if (present(track)) call add_to_track()
   if (err) return
 
-case (runge_kutta$) 
+case (runge_kutta$, fixed_step_runge_kutta$) 
   call track1_runge_kutta (start2_orb, ele, param, end_orb, err, track)
   if (err) return
 
@@ -229,7 +231,7 @@ case (custom$)
     return
   endif
 
-case (time_runge_kutta$)
+case (time_runge_kutta$, fixed_step_time_runge_kutta$)
   call track1_time_runge_kutta (start2_orb, ele, param, end_orb, err, track)
   if (err) return
 
@@ -257,7 +259,7 @@ else
   end_orb%ix_ele = ele%ix_ele
 endif
 
-if (tracking_method /= time_runge_kutta$) then
+if (.not. time_RK_tracking) then
   if (end_orb%state /= alive$) then
     end_orb%location = inside$
   elseif (start2_orb%direction == 1) then
