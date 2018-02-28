@@ -20,6 +20,8 @@ use ptc_interface_mod
 implicit none
 
 type (tao_design_lat_input) design_lattice(0:200), design_lat
+type (lat_struct), pointer :: lat
+type (ele_struct), pointer :: ele1, ele2
 type (tao_universe_struct), pointer :: u, u_work
 type (branch_struct), pointer :: branch
 
@@ -32,7 +34,7 @@ integer i, j, k, n, iu, ios, version, ix, key, n_universes, ib, ie
 
 logical custom_init, combine_consecutive_elements_of_like_name
 logical common_lattice
-logical err
+logical err, err1, err2, err3
 
 namelist / tao_design_lattice / design_lattice, &
        combine_consecutive_elements_of_like_name, unique_name_suffix, &
@@ -159,11 +161,17 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     design_lat%file = design_lat%file(ix+2:)
   endif
 
+  ! "#reverse" construct is old deprecated syntax.
+
   ix = index(design_lat%file, '#reverse')
   if (ix /= 0) then
-    u%reverse_tracking = .true.
+    design_lat%reverse_tracking = .true.
     design_lat%file = design_lat%file(1:ix-1) // design_lat%file(ix+8:)
   endif
+
+  u%reverse_tracking = design_lat%reverse_tracking
+
+  !
 
   ix = index(design_lat%file, '@')
   if (ix /= 0) then
@@ -215,6 +223,33 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     call tao_string_to_element_id (s%com%unique_name_suffix, key, suffix, err, .true.)
     if (err) call err_exit
     call create_unique_ele_names (u%design%lat, key, suffix)
+  endif
+
+  ! Element range?
+
+  if (design_lat%use_element_range(1) /= '') then
+    lat => u%design%lat
+    call pointer_to_this_ele (1, design_lat%use_element_range(1), err1, ele1)
+    call pointer_to_this_ele (2, design_lat%use_element_range(2), err2, ele2)
+
+    err3 = (ubound(u%design%lat%branch, 1) > 0)
+    if (err3) then
+      call out_io (s_fatal$, r_name, 'USE_ELEMENT_RANGE ERROR. CURRENTLY RANGES CAN ONLY BE USED WITH LATTICES WITH A SINGLE BRANCH')
+      if (s%global%stop_on_error) stop
+    endif
+
+    if (.not. err1 .and. .not. err2 .and. .not. err3) then
+      if (ele1%ix_ele > ele2%ix_ele) then
+        call out_io (s_fatal$, r_name, 'USE_ELEMENET_RANGE_ERROR. END ELEMENT1 IS AFTER END ELEMENT2: ' // &
+                          trim(design_lat%use_element_range(1)) // ', ' // trim(design_lat%use_element_range(2)))
+        if (s%global%stop_on_error) stop
+
+      else
+        lat%ele(1:ele1%ix_ele-1)%key = -1
+        lat%ele(ele2%ix_ele+1:lat%n_ele_track)%key = -1
+        call remove_eles_from_lat (lat)
+      endif
+    endif
   endif
 
   ! Call bmad_parser2 if wanted
@@ -324,5 +359,49 @@ if (s%com%common_lattice) then
   enddo
 
 endif
+
+!------------------------------------------------------------------
+contains
+
+subroutine pointer_to_this_ele (ix_range, ele_name, err, ele)
+
+type (ele_pointer_struct), allocatable :: eles(:)
+type (ele_struct), pointer :: ele
+character(*) ele_name
+integer n_loc, ix_range
+logical err
+
+!
+
+call lat_ele_locator (ele_name, u%design%lat, eles, n_loc, err)
+
+if (err .or. n_loc == 0) then
+  call out_io (s_fatal$, r_name, 'USE_ELEMENT_RANGE ERROR. CANNOT FIND ELEMENT IN LATTICE: ' // ele_name)
+  if (s%global%stop_on_error) stop
+  err = .true.
+  return
+endif
+
+if (n_loc > 1) then
+  call out_io (s_fatal$, r_name, 'USE_ELEMENT_RANGE ERROR. MULTIPLE ELEMENTS IN LATTICE: ' // ele_name)
+  if (s%global%stop_on_error) stop
+  err = .true.
+  return
+endif
+
+ele => eles(1)%ele
+if (ele%lord_status == super_lord$) then
+  if (ix_range == 1) ele => pointer_to_slave(ele, 1)
+  if (ix_range == 2) ele => pointer_to_slave(ele, ele%n_slave)
+endif
+
+if (ele%ix_ele > u%design%lat%n_ele_track) then
+  call out_io (s_fatal$, r_name, 'USE_ELEMENT_RANGE ERROR. ELEMENT IN: ' // ele_name)
+  if (s%global%stop_on_error) stop
+  err = .true.
+  return
+endif
+
+end subroutine pointer_to_this_ele
 
 end subroutine tao_init_lattice

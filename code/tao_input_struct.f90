@@ -159,6 +159,8 @@ type tao_design_lat_input
   character(40) :: use_line = ''
   logical :: one_turn_map_calc = .false.
   logical :: dynamic_aperture_calc = .false.
+  logical :: reverse_tracking = .false.
+  character(40) :: use_element_range(2) = ''
 end type
 
 type tao_key_input
