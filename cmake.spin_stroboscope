@@ -1,0 +1,20 @@
+set (EXENAME spin_stroboscope)
+
+FILE (GLOB SRC_FILES "spin_stroboscope/*.f90")
+
+set (LINK_LIBS
+  bmad
+  xsif
+  xrlf03
+  xrl
+  sim_utils
+  recipes_f-90_LEPP
+  forest
+  xsif
+  lapack95
+  lapack
+  fgsl
+  gsl
+  blas
+  gslcblas
+)

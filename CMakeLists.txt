@@ -18,6 +18,7 @@ set (EXE_SPECS
   cmake.dynamic_aperture
   cmake.ibs_linac
   cmake.ibs_ring
+  cmake.spin_stroboscope
   cmake.synrad
   cmake.synrad3d
   cmake.synrad_aperture_to_wall
