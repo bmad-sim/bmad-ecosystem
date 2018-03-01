@@ -4,6 +4,7 @@ use bmad_core_struct_mod
 
 interface assignment (=)
   module procedure ele_equal_ele
+  module procedure ele_vec_equal_ele_vec
   module procedure lat_equal_lat 
   module procedure lat_vec_equal_lat_vec 
   module procedure branch_equal_branch
@@ -349,6 +350,49 @@ if (associated(ele_save%ptc_genfield%field)) call kill_ptc_genfield (ele_save%pt
 if (associated(ele_out%ptc_genfield%field)) nullify (ele_out%ptc_genfield%field)
 
 end subroutine ele_equal_ele
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine ele_vec_equal_ele_vec (ele1, ele2)
+!
+! Subroutine that is used to set one ele vector equal to another. 
+! This routine takes care of the pointers in ele1. 
+!
+! Note: This subroutine is called by the overloaded equal sign:
+!		ele1(:) = ele2(:)
+!
+! Input:
+!   ele2(:) -- ele_struct: Input ele vector.
+!
+! Output:
+!   ele1(:) -- ele_struct: Output ele vector.
+!-
+
+subroutine ele_vec_equal_ele_vec (ele1, ele2)
+
+implicit none
+	
+type (ele_struct), intent(inout) :: ele1(:)
+type (ele_struct), intent(in) :: ele2(:)
+
+integer i
+
+! error check
+
+if (size(ele1) /= size(ele2)) then
+  print *, 'ERROR IN ele_vec_equal_ele_vec: ARRAY SIZES ARE NOT THE SAME!'
+  if (global_com%exit_on_error) call err_exit
+endif
+
+! transfer
+
+do i = 1, size(ele1)
+  call ele_equal_ele (ele1(i), ele2(i))
+enddo
+
+end subroutine ele_vec_equal_ele_vec 
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
