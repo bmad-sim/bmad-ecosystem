@@ -533,8 +533,7 @@ parsing_loop: do
   ! must have a ":" delimiter now
 
   if (delim /= ':') then
-    call parser_error ('1ST DELIMITER IS NOT ":". IT IS: ' // delim,  &
-                                                     'FOR: ' // word_1)
+    call parser_error ('1ST DELIMITER IS NOT ":". IT IS: ' // delim,  'FOR: ' // word_1)
     cycle parsing_loop
   endif
 
@@ -543,7 +542,7 @@ parsing_loop: do
 
   call get_next_word(word_2, ix_word, ':=,', delim, delim_found, .true.)
   if (ix_word == 0) then
-    call parser_error ('NO NAME FOUND AFTER: ' // word_1, ' ')
+    call parser_error ('NOTHING FOUND AFTER: ' // word_1)
     call parser_end_stuff 
     return
   endif
@@ -648,7 +647,7 @@ parsing_loop: do
   endif
 
   ! Element definition...
-  ! Overlay/group/girder case.
+  ! First parse any overlay/group/girder slave list
 
   key = in_lat%ele(n_max)%key
   if (key == overlay$ .or. key == group$ .or. key == girder$) then
@@ -672,8 +671,7 @@ parsing_loop: do
 
   endif
 
-  ! Not overlay/group/girder case.
-  ! Loop over all attributes...
+  ! Now loop over all attributes...
 
   do 
     if (.not. delim_found) exit   ! If no delim then we are finished with this element.

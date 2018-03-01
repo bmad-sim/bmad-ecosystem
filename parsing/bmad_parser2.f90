@@ -234,7 +234,7 @@ parsing_loop: do
   ! BEAM command
 
   if (word_1(:ix_word) == 'BEAM') then
-    if (delim /= ',')  call parser_error ('"BEAM" NOT FOLLOWED BY COMMA', ' ')
+    if (delim /= ',')  call parser_error ('"BEAM" NOT FOLLOWED BY COMMA')
 
     parsing = .true.
     do while (parsing)
@@ -259,7 +259,7 @@ parsing_loop: do
 
   if (word_1(:ix_word) == 'LATTICE') then
     if ((delim /= ':' .or. bp_com%parse_line(1:1) /= '=') .and. (delim /= '=')) then
-      call parser_error ('"LATTICE" NOT FOLLOWED BY ":="', ' ')
+      call parser_error ('"LATTICE" NOT FOLLOWED BY ":="')
     else
       if (delim == ':') bp_com%parse_line = bp_com%parse_line(2:)  ! trim off '='
       call get_next_word (lat%lattice, ix_word, ',', delim, delim_found, .true.)
@@ -403,7 +403,7 @@ parsing_loop: do
 
   call get_next_word(word_2, ix_word, ':=,', delim, delim_found, .true.)
   if (ix_word == 0) then
-    call parser_error ('NO NAME FOUND AFTER: ' // word_1, ' ')
+    call parser_error ('NOTHING FOUND AFTER: ' // word_1)
     if (global_com%exit_on_error) call err_exit
   endif
 
@@ -413,7 +413,7 @@ parsing_loop: do
   ! if line or list then this is an error for bmad_parser2
 
   if (word_2(:ix_word) == 'LINE' .or. word_2(:ix_word) == 'LIST') then
-    call parser_error ('LINES OR LISTS NOT PERMITTED: ' // word_1, ' ')
+    call parser_error ('LINES OR LISTS NOT PERMITTED: ' // word_1)
     cycle parsing_loop
   endif
 
@@ -436,7 +436,7 @@ parsing_loop: do
 
   do i = 1, n_max-1
     if (ele%name == lat%ele(i)%name) then
-      call parser_error ('DUPLICATE ELEMENT NAME ' // ele%name, ' ')
+      call parser_error ('DUPLICATE ELEMENT NAME ' // ele%name)
       exit
     endif
   enddo
@@ -516,8 +516,7 @@ parsing_loop: do
   ! Element must be a group, overlay, or superimpose element
 
   if (key /= overlay$ .and. key /= group$ .and. ele%lord_status /= super_lord$) then
-    call parser_error ('ELEMENT MUST BE AN OVERLAY, SUPERIMPOSE, ' //  &
-                                         'OR GROUP: ' // word_1, ' ')
+    call parser_error ('ELEMENT MUST BE AN OVERLAY, SUPERIMPOSE, ' //  'OR GROUP: ' // word_1)
     n_max = n_max - 1
     cycle parsing_loop
   endif

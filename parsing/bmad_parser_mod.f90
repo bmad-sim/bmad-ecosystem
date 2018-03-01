@@ -3708,8 +3708,9 @@ allocate (name(40), attrib_name(40), expression(40))
 
 call get_next_word (word_in, ix_word, '{,}', delim, delim_found, .true.)
 if (delim /= '{' .or. ix_word /= 0) call parser_error  &
-        ('BAD ' // control_name(ele%lord_status) // 'SPEC: ' // word_in,  &
-        'FOR ELEMENT: ' // ele%name)
+        ('BAD SYNTAX FOR ' // trim(upcase(control_name(ele%lord_status))), &
+         'EXPECTING A "{" AFTER "=")', &
+         'FOR ELEMENT: ' // ele%name)
 
 ele_names_only = (is_control_var_list .or. ele%key == girder$)
 
@@ -3740,7 +3741,7 @@ do
   if (j > 1) then
     k = index(word, ']')
     if (k <= j+1) then
-      call parser_error ('BAD ATTRIBUTE SPEC: ' // word_in, 'FOR: ' // ele%name)
+      call parser_error ('BAD ATTRIBUTE SYNTAX: ' // word_in, 'FOR: ' // ele%name)
       word = word(:k-1) // word(j+1:)
     else
       attrib_name(n_slave) = word(j+1:k-1)
