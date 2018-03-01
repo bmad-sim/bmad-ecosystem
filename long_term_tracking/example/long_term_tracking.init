@@ -1,11 +1,14 @@
 &long_term_tracking_params
-  lat_file = 'hp96lu820yhof.bmad'       ! Lattice file
+  lat_file = 'simple_ring.bmad'         ! Lattice file
   ix_ele_start = 0                      ! Index of start and end lattice element
-  n_turns = 10                          ! Number of turns to track
-  beam_init%n_particle = 100
+  n_turns = 1000                        ! Number of turns to track
+  beam_init%n_particle = 10
   end_dat_file = 'end.dat'              ! End of tracking data file. Blank ('') => no file generated.
   turn_by_turn_dat_file = 'turn.dat'    ! Turn-by-turn data file. Blank ('') => no file generated.
   rfcavity_on = F
+
+  snapshot_dat_file = 'snap#.dat'
+  snapshot_every_n_turns = 200
 
   bmad_com%spin_tracking_on = T         ! See Bmad manual for bmad_com parameters.
   bmad_com%radiation_damping_on = F

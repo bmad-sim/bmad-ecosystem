@@ -13,13 +13,13 @@ type (coord_struct), allocatable :: closed_orb(:)
 real(rp) time0, time
 
 integer ix_ele_start, n_turns
-integer i, n, ie
+integer i, n, ie, snapshot_every_n_turns
 logical err_flag, rfcavity_on
 
-character(200) lat_file, init_file, end_dat_file, turn_by_turn_dat_file
+character(200) lat_file, init_file, end_dat_file, turn_by_turn_dat_file, snapshot_dat_file
 
 namelist / long_term_tracking_params / lat_file, n_turns, ix_ele_start, bmad_com, end_dat_file, &
-                    turn_by_turn_dat_file, beam_init, rfcavity_on 
+                    turn_by_turn_dat_file, beam_init, rfcavity_on, snapshot_every_n_turns, snapshot_dat_file
 
 ! Parse command line
 
@@ -38,6 +38,8 @@ ix_ele_start = 0
 rfcavity_on = .true.
 end_dat_file = ''
 turn_by_turn_dat_file = ''
+snapshot_every_n_turns = -1
+snapshot_dat_file = ''
 
 print '(2a)', 'Initialization file: ', trim(init_file)
 
@@ -63,6 +65,13 @@ enddo
 allocate(bunch_init%particle(size(bunch%particle)))
 bunch_init%particle = bunch%particle
 
+!
+
+if (snapshot_dat_file /= '' .and. snapshot_every_n_turns < 1) then
+  print *, 'snapshot_every_n_turns must be set if snapshot files are to be generated!'
+  stop
+endif
+
 ! Track
 
 call run_timer('START')
@@ -73,6 +82,8 @@ if (turn_by_turn_dat_file /= '') then
   write (1, '(a)') '#  Turn           x           px            y           py            z           pz             spin_x       spin_y       spin_z'
   write (1, '(i9, 6f13.8, 4x, 3f13.8)'), 0, bunch%particle(1)%vec, bunch%particle(1)%spin
 endif
+
+call write_snapshot_dat_file (0)
 
 do n = 1, n_turns
   do ie = ix_ele_start+1, lat%n_ele_track
@@ -87,6 +98,8 @@ do n = 1, n_turns
     print '(a, f10.2)', 'Ellapsed time (min): ', time/60
     time0 = time
   endif
+
+  call write_snapshot_dat_file (n)
 
   if (turn_by_turn_dat_file /= '') then
     write (1, '(i9, 6f13.8, 4x, 3f13.8)'), n, bunch%particle(1)%vec, bunch%particle(1)%spin
@@ -112,5 +125,38 @@ if (end_dat_file /= '') then
 
   close (1)
 endif
+
+!------------------------------------------------------------------------------------------
+contains
+
+subroutine write_snapshot_dat_file (nn)
+integer nn, ix, ip, j
+character(200) file_name
+character(16) fmt
+
+!
+
+if (snapshot_dat_file == '') return
+if (mod(nn, snapshot_every_n_turns) /= 0) return
+
+
+j = int(log10(real(n_turns, rp)) + 1 + 1d-10)
+write (fmt, '(a, i0, a, i0, a)') '(a, i', j, '.', j, ', a)'
+
+ix = index(snapshot_dat_file, '#')
+if (ix == 0) then
+  write (file_name, fmt) trim(snapshot_dat_file), nn
+else
+  write (file_name, fmt) snapshot_dat_file(1:ix-1), nn, trim(snapshot_dat_file(ix+1:))
+endif
+
+open (2, file = file_name)
+write (2, '(a)') '# Ix_particle     x           px            y           py            z           pz             spin_x       spin_y       spin_z'
+
+do ip = 1, size(bunch%particle)
+  write (2, '(i9, 6f13.8, 4x, 3f13.8)'), ip, bunch%particle(ip)%vec, bunch%particle(ip)%spin
+enddo
+
+end subroutine write_snapshot_dat_file
 
 end program
