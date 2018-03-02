@@ -86,23 +86,23 @@ real(rp) x_global(3), y_global(3), z_global(3), rot_axis(3), merit_unnorm, merit
 real(rp) invar_spin_tolerance, closed_orbit_spin_tune, n_in_bin, old_dangle, invar_mat(3,3), old_invar_spin(3)
 real(rp) ct, st, x_spin_axis(3), y_spin_axis(3), z_global_axis(3), mat_1turn(6,6), N_mat_conj(6,6)
 real(rp) orbit_tune(3), mode3_tune(3), hoff_invar_spin(3), old_hoff_invar_spin(3), a_spin(2), last_invar_spin(3)
-real(rp) scatter_norm_cutoff, spin_tune_tolerance
+real(rp) scatter_norm_cutoff, spin_tune_tolerance, methods_invar_spin0(3)
 real(rp), allocatable :: merit_vec(:)
 
 integer i, j, k, k2, ix, it, ir, j1, j2, jj, n, nn, ibx, iby, ibz, ix_x, ix_y, ix_z, ix_xyz(3), np
-integer n_bin_max, i0, i1, i2, n_del, n_turns_max, n0(3), n1(3), track_state, i_dependent, n_wind
-integer i_turn, i_cycle, ix_lat_branch, status, ubound_bin(3), ia
+integer n_bin_max, i0, i1, i2, n_del, n_turns_min, n_turns_max, n0(3), n1(3), track_state, i_dependent, n_wind
+integer i_turn, i_cycle, ix_lat_branch, status, ubound_bin(3), ia, iu_methods
 integer calc_every, n_points(3)
 integer, allocatable :: indx(:)
 
 logical rf_on, first_time, linear_in_action, mode_is_oscillating(3), symmetric, err
 logical scatter_minimization_calc, self_consistent_calc, is_indep(3), at_end, out_of_range, verbose, debug
 
-character(200) bmad_lat, param_file
+character(200) bmad_lat, param_file, methods_data_file
 character(6) num_str
 
-namelist / strob_params / bmad_lat, rf_on, orbit_start, orbit_stop, n_points, n_turns_max, calc_every, &
-           n_in_bin, relaxation_tolerance, scatter_norm_cutoff, &
+namelist / strob_params / bmad_lat, rf_on, orbit_start, orbit_stop, n_points, n_turns_min, n_turns_max, calc_every, &
+           n_in_bin, relaxation_tolerance, scatter_norm_cutoff, methods_data_file, methods_invar_spin0, &
            ix_lat_branch, linear_in_action, invar_spin_tolerance, spin_tune_tolerance, symmetric, &
            scatter_minimization_calc, self_consistent_calc, verbose, debug, z_global_axis
 
@@ -128,6 +128,8 @@ self_consistent_calc = .true.
 verbose = .true.
 z_global_axis = 0
 symmetric = .true.
+methods_data_file = ''
+methods_invar_spin0 = 0
 
 open (1, file = param_file)
 read (1, nml = strob_params)
@@ -199,6 +201,12 @@ call run_timer('START')
 open (2, file = 'spin_stroboscope.dat', recl = 300)
 write (2, '(a)') '# ix  iy  iy  n_turn         Initial position (x, y, pz)              Orbit Action (Jx, Jy, Jz)                   spin_tune      p_lim            Average Spin (x,y,z)             Invariant Spin at Start (x,y,z)'
 
+if (methods_data_file /= '') then
+  iu_methods = 3
+  open (iu_methods, file = methods_data_file, recl = 250)
+  write (iu_methods, '(a)') '# Turn                   Hoff_Invar_Spin                                    Self_Consistant_Invar_Spin                             Scatter_Min_Invar_Spin' 
+endif
+
 do ix_x = 1, n_points(1)
 do ix_y = 1, n_points(2)
 do ix_z = 1, n_points(3)
@@ -269,6 +277,7 @@ do ix_z = 1, n_points(3)
     if (i_turn == 0) cycle
     if (calc_every < 0 .and. i_turn /= n_turns_max) cycle
     if (calc_every > 0 .and. i_turn /= n_turns_max .and. mod(i_turn, calc_every) /= 0) cycle
+    if (i_turn < n_turns_min) cycle
 
     if (verbose) then
       print *
@@ -497,6 +506,14 @@ do ix_z = 1, n_points(3)
       old_scatter_min_invar_spin = s(0)%invar_spin
     endif
 
+    !------
+
+    if (methods_data_file /= '') then
+      write (iu_methods, '(i6, 3(4f13.8, 4x))') i_turn, old_hoff_invar_spin, norm2(old_hoff_invar_spin - methods_invar_spin0), &
+                                                        old_relaxed_invar_spin, norm2(old_relaxed_invar_spin - methods_invar_spin0), &
+                                                        old_scatter_min_invar_spin, norm2(old_scatter_min_invar_spin - methods_invar_spin0)
+    endif
+
     !----------------------------
     ! Spin tune calculation...
 
@@ -514,7 +531,9 @@ do ix_z = 1, n_points(3)
 
     if (any(z_global_axis /= 0)) z_global = z_global_axis / norm2(z_global_axis)
 
-    print '(a, 3f12.6)', '  Z_global axis: ', z_global
+    if (verbose) then
+      print '(a, 3f12.6)', '  Z_global axis: ', z_global
+    endif
 
     ! Now construct rather arbitrary transverse coords to this direction. 
     ! These are called the  global coordinants
@@ -646,6 +665,7 @@ do ix_z = 1, n_points(3)
       exit
     endif
 
+    if (i_turn == n_turns_max) exit  ! Avoid i_turn = n_turns_max + 1
   enddo turns_loop
 
   !----------------------------
