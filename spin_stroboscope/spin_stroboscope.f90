@@ -26,11 +26,10 @@ type spin_track_point_struct
   logical :: track_angle_corrected = .false.
 end type
 
-type spin_bin_struct
-  real(rp) :: orbit_phase(3) = 0
-  real(rp) :: invar_spin(3) = 0
-  real(rp) :: x_spin_axis(3) = 0          ! x-axis of coordinate system for calculating the spin tune
-  real(rp) :: y_spin_axis(3) = 0          ! y-axis of coordinate system for calculating the spin tune
+type spin_results_struct
+  real(rp) :: relaxed_invar_spin(3) = 0
+  real(rp) :: scatter_min_invar_spin(3) = 0
+  real(rp) :: hoff_invar_spin(3) = 0
 end type
 
 type z_global_struct 
@@ -74,37 +73,37 @@ type (ele_struct), pointer :: ele0
 type (coord_struct), allocatable, target :: closed_orb(:), orbit(:)
 type (coord_struct) start_orb
 type (spin_track_point_struct), allocatable :: s(:)
-type (spin_bin_struct), allocatable :: bin(:,:,:)
 type (z_global_struct) z_try(24)
 type (fourier_mode_struct) fourier ! Fourier transform for the spin x-axis
+type (spin_results_struct), allocatable :: result(:)
 
 real(rp) orbit_start(3), orbit_stop(3), delta(3), xfer_mat(3,3), closed_orb_invar_spin(3), dtune
 real(rp) time, unit_mat(3,3), norm_max, norm, tune2, r, axis(3), ave_invar_spin(3), dphase, dphase2
 real(rp) f(3), p_lim, angle, angle0, angle1, angle2, dangle, j_amp(3), old_relaxed_invar_spin(3), old_scatter_min_invar_spin(3)
-real(rp) old_angle, spin_tune, phase(3), d, relaxation_tolerance, g, old_optimized_invar_spin(3), old_spin_tune
+real(rp) old_angle, spin_tune, phase(3), d, relaxation_tolerance, g, old_spin_tune
 real(rp) x_global(3), y_global(3), z_global(3), rot_axis(3), merit_unnorm, merit_norm, merit_unnorm0, merit_norm0, d_invar_spin(3)
-real(rp) invar_spin_tolerance, closed_orbit_spin_tune, n_in_bin, old_dangle, invar_mat(3,3), old_invar_spin(3)
+real(rp) invar_spin_tolerance, closed_orbit_spin_tune, old_dangle, invar_mat(3,3), old_invar_spin(3)
 real(rp) ct, st, x_spin_axis(3), y_spin_axis(3), z_global_axis(3), mat_1turn(6,6), N_mat_conj(6,6)
 real(rp) orbit_tune(3), mode3_tune(3), hoff_invar_spin(3), old_hoff_invar_spin(3), a_spin(2), last_invar_spin(3)
 real(rp) scatter_norm_cutoff, spin_tune_tolerance, methods_invar_spin0(3)
 real(rp), allocatable :: merit_vec(:)
 
 integer i, j, k, k2, ix, it, ir, j1, j2, jj, n, nn, ibx, iby, ibz, ix_x, ix_y, ix_z, ix_xyz(3), np
-integer n_bin_max, i0, i1, i2, n_del, n_turns_min, n_turns_max, n0(3), n1(3), track_state, i_dependent, n_wind
-integer i_turn, i_cycle, ix_lat_branch, status, ubound_bin(3), ia, iu_methods
+integer i0, i1, i2, n_del, n_turns_min, n_turns_max, n0(3), n1(3), track_state, i_dependent, n_wind
+integer i_turn, i_cycle, ix_lat_branch, status, ia, relaxation_weight
 integer calc_every, n_points(3)
 integer, allocatable :: indx(:)
 
-logical rf_on, first_time, linear_in_action, mode_is_oscillating(3), symmetric, err
+logical rf_on, first_time, linear_in_action, mode_is_oscillating(3), err
 logical scatter_minimization_calc, self_consistent_calc, is_indep(3), at_end, out_of_range, verbose, debug
 
 character(200) bmad_lat, param_file, methods_data_file
 character(6) num_str
 
 namelist / strob_params / bmad_lat, rf_on, orbit_start, orbit_stop, n_points, n_turns_min, n_turns_max, calc_every, &
-           n_in_bin, relaxation_tolerance, scatter_norm_cutoff, methods_data_file, methods_invar_spin0, &
-           ix_lat_branch, linear_in_action, invar_spin_tolerance, spin_tune_tolerance, symmetric, &
-           scatter_minimization_calc, self_consistent_calc, verbose, debug, z_global_axis
+           relaxation_tolerance, scatter_norm_cutoff, methods_data_file, methods_invar_spin0, &
+           ix_lat_branch, linear_in_action, invar_spin_tolerance, spin_tune_tolerance, &
+           scatter_minimization_calc, self_consistent_calc, verbose, debug, z_global_axis, relaxation_weight
 
 ! Read parameter file
 
@@ -127,9 +126,9 @@ scatter_minimization_calc = .true.
 self_consistent_calc = .true.
 verbose = .true.
 z_global_axis = 0
-symmetric = .true.
 methods_data_file = ''
 methods_invar_spin0 = 0
+relaxation_weight = 0
 
 open (1, file = param_file)
 read (1, nml = strob_params)
@@ -138,7 +137,7 @@ close (1)
 bmad_com%auto_bookkeeper = .false.
 bmad_com%spin_tracking_on = .true.
 
-allocate(s(0:n_turns_max), indx(0:n_turns_max))
+allocate(s(0:n_turns_max), indx(0:n_turns_max), result(0:n_turns_max))
 allocate (merit_vec(10*n_turns_max+10))
 
 call mat_make_unit(unit_mat)
@@ -200,12 +199,6 @@ call run_timer('START')
 
 open (2, file = 'spin_stroboscope.dat', recl = 300)
 write (2, '(a)') '# ix  iy  iy  n_turn         Initial position (x, y, pz)              Orbit Action (Jx, Jy, Jz)                   spin_tune      p_lim            Average Spin (x,y,z)             Invariant Spin at Start (x,y,z)'
-
-if (methods_data_file /= '') then
-  iu_methods = 3
-  open (iu_methods, file = methods_data_file, recl = 250)
-  write (iu_methods, '(a)') '# Turn                   Hoff_Invar_Spin                                    Self_Consistant_Invar_Spin                             Scatter_Min_Invar_Spin' 
-endif
 
 do ix_x = 1, n_points(1)
 do ix_y = 1, n_points(2)
@@ -269,8 +262,6 @@ do ix_z = 1, n_points(3)
     orbit(0) = orbit(branch%n_ele_track)
 
     n = count(mode_is_oscillating)
-    n_bin_max = nint((i_turn/n_in_bin)**(1.0/n))
-    if (modulo(n_bin_max, 2) /= 0) n_bin_max = n_bin_max + 1 ! Make even
 
     !--------
 
@@ -289,8 +280,6 @@ do ix_z = 1, n_points(3)
 
     do j = 1, 3
       if (mode_is_oscillating(j)) then
-        ubound_bin(j) = n_bin_max
-
         n_wind = 0
         do i = 1, i_turn
           if (s(i)%orbit_phase(j) < s(i-1)%orbit_phase(j)) n_wind = n_wind + 1
@@ -298,13 +287,9 @@ do ix_z = 1, n_points(3)
         orbit_tune(j) = (n_wind + s(i_turn)%orbit_phase(j) - s(0)%orbit_phase(j)) / i_turn
 
       else
-        ubound_bin(j) = 1
         orbit_tune(j) = 0
       endif
     enddo
-
-    if (allocated(bin)) deallocate(bin)
-    allocate(bin(0:ubound_bin(1), 0:ubound_bin(2), 0:ubound_bin(3)))
 
     !------------------------------------------------------
     ! For each track point: Find nearest neighbor track points in orbital phase space directions +/- x, +/- y, +/- z.
@@ -399,6 +384,7 @@ do ix_z = 1, n_points(3)
     endif
 
     old_hoff_invar_spin = hoff_invar_spin
+    result(i_turn)%hoff_invar_spin = hoff_invar_spin
 
     if (first_time) then
       first_time = .false.
@@ -423,13 +409,11 @@ do ix_z = 1, n_points(3)
       last_invar_spin = s(0)%invar_spin
       do i_cycle = 1, 100
 
-        call average_invariant_spin_setup()
+        ! Now compute the invarient spin turn-by-turn from the spin field calculated from the averaged invariant.
 
-        ! Now compute the invarient spin turn-by-turn from the spin field calculated from the binned invariant.
-
-        s(i_turn)%invar_spin = average_invariant_spin(s(i_turn), bin)  
+        s(i_turn)%invar_spin = average_invariant_spin(s(i_turn), relaxation_weight)  
         do nn = i_turn-1, 0, -1
-          s(nn)%invar_spin = average_invariant_spin(s(nn), bin) + matmul(s(nn+1)%invar_spin, s(nn)%xfer_mat)
+          s(nn)%invar_spin = average_invariant_spin(s(nn), relaxation_weight) + matmul(s(nn+1)%invar_spin, s(nn)%xfer_mat)
         enddo
 
         s(0)%invar_spin = s(0)%invar_spin / norm2(s(0)%invar_spin)
@@ -459,6 +443,7 @@ do ix_z = 1, n_points(3)
       endif
 
       old_relaxed_invar_spin = s(0)%invar_spin
+      result(i_turn)%relaxed_invar_spin = s(0)%invar_spin
     endif
 
     !------------------------------------------------------
@@ -504,14 +489,7 @@ do ix_z = 1, n_points(3)
       endif
 
       old_scatter_min_invar_spin = s(0)%invar_spin
-    endif
-
-    !------
-
-    if (methods_data_file /= '') then
-      write (iu_methods, '(i6, 3(4f13.8, 4x))') i_turn, old_hoff_invar_spin, norm2(old_hoff_invar_spin - methods_invar_spin0), &
-                                                        old_relaxed_invar_spin, norm2(old_relaxed_invar_spin - methods_invar_spin0), &
-                                                        old_scatter_min_invar_spin, norm2(old_scatter_min_invar_spin - methods_invar_spin0)
+      result(i_turn)%scatter_min_invar_spin = s(0)%invar_spin
     endif
 
     !----------------------------
@@ -703,6 +681,29 @@ do ix_z = 1, n_points(3)
   write (2, '(3i4, i8, 2x, 3f13.8, 4x, 3es14.6, 5x f11.6, f11.6, 2(5x, 3f11.7))'), ix_xyz, i_turn, &
                             delta, j_amp, spin_tune,  p_lim, ave_invar_spin, s(0)%invar_spin
 
+
+
+  if (methods_data_file /= '') then
+    if (all(methods_invar_spin0 == 0)) then
+      do i = n_turns_max, 1, -1
+        if (all(result(i)%hoff_invar_spin == 0)) cycle
+        methods_invar_spin0 = result(i)%scatter_min_invar_spin
+        exit
+      enddo
+    endif
+
+    open (2, file = methods_data_file, recl = 250)
+    write (2, '(a)') '# Turn                   Hoff_Invar_Spin                                    Self_Consistant_Invar_Spin                             Scatter_Min_Invar_Spin' 
+
+    do i = 1, n_turns_max
+      if (all(result(i)%hoff_invar_spin == 0)) cycle
+      write (2, '(i6, 3(4es13.5, 4x))') i, result(i)%hoff_invar_spin, norm2(result(i)%hoff_invar_spin - methods_invar_spin0), &
+                                    result(i)%relaxed_invar_spin, norm2(result(i)%relaxed_invar_spin - methods_invar_spin0), &
+                                    result(i)%scatter_min_invar_spin, norm2(result(i)%scatter_min_invar_spin - methods_invar_spin0)
+    enddo
+  endif
+
+
 enddo
 enddo
 enddo
@@ -750,53 +751,30 @@ end subroutine calc_phase_space_phase_and_amp
 !------------------------------------------------------------
 ! contains
 
-function average_invariant_spin (s_this, bin) result (invar_spin)
+function average_invariant_spin (s_this, weight) result (invar_spin)
 
 type (spin_track_point_struct) s_this
-type (spin_bin_struct) bin(0:,0:,0:)
 real(rp) phase(3), invar_spin(3)
-real(rp) f(3), r, dphase(3)
+real(rp) f(3), r, dphase(3), r_tot
+integer weight
 integer i, n2, kk, nb(3)
 
-! Symmetric case
+!
 
-if (symmetric) then
-  invar_spin = 0
-  do kk = 1, 6
-    n2 = s_this%ix_nearest(kk)
-    if (n2 == -1) cycle
-    dphase = phase_diff(s_this%orbit_phase - s(n2)%orbit_phase)
-    r = 1 / max(scatter_norm_cutoff, norm2(dphase))
-    invar_spin = invar_spin + r * s(n2)%invar_spin
-  enddo
+r_tot = 0
 
-  invar_spin = invar_spin / norm2(invar_spin)
+invar_spin = 0
+do kk = 1, 6
+  n2 = s_this%ix_nearest(kk)
+  if (n2 == -1) cycle
+  dphase = phase_diff(s_this%orbit_phase - s(n2)%orbit_phase)
+  r = 1 / max(scatter_norm_cutoff, norm2(dphase))
+  r_tot = r_tot + r
+  invar_spin = invar_spin + r * s(n2)%invar_spin / norm2(s(n2)%invar_spin)
+enddo
 
-! Non-symmetric case
-
-else
-
-  do i = 1, 3
-    if (mode_is_oscillating(i)) then
-      nb(i) = int(s_this%orbit_phase(i) * n_bin_max)
-      f(i) = s_this%orbit_phase(i) * n_bin_max - nb(i)
-    else
-      nb(i) = 0
-      f(i) = 0
-    endif
-  enddo
-
-  invar_spin = (1-f(1)) * (1-f(2)) * (1-f(3)) * bin(nb(1),   nb(2),   nb(3)  )%invar_spin + &
-                  f(1)  * (1-f(2)) * (1-f(3)) * bin(nb(1)+1, nb(2),   nb(3)  )%invar_spin + &
-               (1-f(1)) *    f(2)  * (1-f(3)) * bin(nb(1),   nb(2)+1, nb(3)  )%invar_spin + &
-                  f(1)  *    f(2)  * (1-f(3)) * bin(nb(1)+1, nb(2)+1, nb(3)  )%invar_spin + &
-               (1-f(1)) * (1-f(2)) *    f(3)  * bin(nb(1),   nb(2),   nb(3)+1)%invar_spin + &
-                  f(1)  * (1-f(2)) *    f(3)  * bin(nb(1)+1, nb(2),   nb(3)+1)%invar_spin + &
-               (1-f(1)) *    f(2)  *    f(3)  * bin(nb(1),   nb(2)+1, nb(3)+1)%invar_spin + &
-                  f(1)  *    f(2)  *    f(3)  * bin(nb(1)+1, nb(2)+1, nb(3)+1)%invar_spin
-
-  invar_spin = invar_spin / norm2(invar_spin)
-endif
+invar_spin = invar_spin / norm2(invar_spin)
+if (weight /= 0) invar_spin = invar_spin * r_tot**weight
 
 end function average_invariant_spin
 
@@ -810,61 +788,6 @@ real(rp) vec1(3), vec2(3), angle
 angle = abs(atan2(norm2(cross_product(vec1, vec2)), dot_product(vec1, vec2)))
 
 end function angle_of
-
-!------------------------------------------------------------
-! contains
-
-subroutine average_invariant_spin_setup ()
-
-real(rp) f(3)
-integer i, j, k, n(3), np(3), jx
-
-! symmetric calc does not use binning and there is no setup needed in this case.
-
-if (symmetric) return
-
-! Calculate the invariant spin at the bin points.
-
-bin = spin_bin_struct()
-
-do i = 0, i_turn
-  do jx = 1, 3
-    n(jx)  = int(s(i)%orbit_phase(jx) * ubound_bin(jx))
-    f(jx)  = s(i)%orbit_phase(jx) * ubound_bin(jx) - n(jx)
-    np(jx) = mod(n(jx)+1, ubound_bin(jx))
-  enddo
-
-  bin(n(1), n(2), n(3) )%invar_spin = bin(n(1), n(2), n(3) )%invar_spin + (1-f(1)) * (1-f(2)) * (1-f(3)) * s(i)%invar_spin
-  bin(np(1),n(2), n(3) )%invar_spin = bin(np(1),n(2), n(3) )%invar_spin +    f(1)  * (1-f(2)) * (1-f(3)) * s(i)%invar_spin
-  bin(n(1), np(2),n(3) )%invar_spin = bin(n(1), np(2),n(3) )%invar_spin + (1-f(1)) *    f(2)  * (1-f(3)) * s(i)%invar_spin
-  bin(np(1),np(2),n(3) )%invar_spin = bin(np(1),np(2),n(3) )%invar_spin +    f(1)  *    f(2)  * (1-f(3)) * s(i)%invar_spin
-  bin(n(1), n(2), np(3))%invar_spin = bin(n(1), n(2), np(3))%invar_spin + (1-f(1)) * (1-f(2)) *    f(3)  * s(i)%invar_spin
-  bin(np(1),n(2), np(3))%invar_spin = bin(np(1),n(2), np(3))%invar_spin +    f(1)  * (1-f(2)) *    f(3)  * s(i)%invar_spin
-  bin(n(1), np(2),np(3))%invar_spin = bin(n(1), np(2),np(3))%invar_spin + (1-f(1)) *    f(2)  *    f(3)  * s(i)%invar_spin
-  bin(np(1),np(2),np(3))%invar_spin = bin(np(1),np(2),np(3))%invar_spin +    f(1)  *    f(2)  *    f(3)  * s(i)%invar_spin
-enddo
-
-do i = 1, 3
-  bin(ubound_bin(1),:,:)%invar_spin(i) = bin(0,:,:)%invar_spin(i)
-  bin(:,ubound_bin(2),:)%invar_spin(i) = bin(:,0,:)%invar_spin(i)
-  bin(:,:,ubound_bin(3))%invar_spin(i) = bin(:,:,0)%invar_spin(i)
-enddo
-
-!
-
-do i = 0, ubound_bin(1)
-do j = 0, ubound_bin(2)
-do k = 0, ubound_bin(3)
-  bin(i,j,k)%orbit_phase(1) = real(i, rp) / ubound_bin(1)
-  bin(i,j,k)%orbit_phase(2) = real(j, rp) / ubound_bin(2)
-  bin(i,j,k)%orbit_phase(3) = real(k, rp) / ubound_bin(3)
-  if (norm2(bin(i,j,k)%invar_spin) == 0) cycle
-  bin(i,j,k)%invar_spin = bin(i,j,k)%invar_spin / norm2(bin(i,j,k)%invar_spin)
-enddo
-enddo
-enddo
-
-end subroutine average_invariant_spin_setup
 
 !------------------------------------------------------------
 ! contains
@@ -885,49 +808,26 @@ endif
 merit = 0
 num_merit_points = 0
 
-if (symmetric) then
-
-   do n = 0, i_turn
-    r = 0
-    d_spin = 0
-    do kk = 1, 6
-      n2 = s(n)%ix_nearest(kk)
-      if (n2 == -1) cycle
-      dphase = phase_diff(s(n)%orbit_phase - s(n2)%orbit_phase)
-      r(kk) = 1 / max(scatter_norm_cutoff, norm2(dphase))
-      d_spin(kk,:) = s(n2)%invar_spin - s(n)%invar_spin
-    enddo
-
-    do j = 1, 3
-      num_merit_points = num_merit_points + 1
-      if (normalized) then
-        merit = merit + dot_product(d_spin(:,j), r)**2
-      else
-        merit = merit + dot_product(d_spin(:,j), r)**2 / sum(r)**2
-      endif
-    enddo
-  enddo
-
-else
+ do n = 0, i_turn
+  r = 0
+  d_spin = 0
   do kk = 1, 6
-    do n = 0, i_turn
-      n2 = s(n)%ix_nearest(kk)
-      if (n2 == -1) cycle
-      num_merit_points = num_merit_points + 3
-      dspin = norm2(s(n)%invar_spin - s(n2)%invar_spin)
-      if (normalized) then
-        dphase = phase_diff(s(n)%orbit_phase - s(n2)%orbit_phase)
-        del = max(scatter_norm_cutoff, norm2(dphase))
-        merit = merit + dspin**2 / del**2
-        if (present(file_name)) then
-          write (10, '(i6, 4es12.4)') num_merit_points, merit, dspin**2 / del**2, dspin, del
-        endif
-      else
-        merit = merit + dspin
-      endif
-    enddo
+    n2 = s(n)%ix_nearest(kk)
+    if (n2 == -1) cycle
+    dphase = phase_diff(s(n)%orbit_phase - s(n2)%orbit_phase)
+    r(kk) = 1 / max(scatter_norm_cutoff, norm2(dphase))
+    d_spin(kk,:) = s(n2)%invar_spin - s(n)%invar_spin
   enddo
-endif
+
+  do j = 1, 3
+    num_merit_points = num_merit_points + 1
+    if (normalized) then
+      merit = merit + dot_product(d_spin(:,j), r)**2
+    else
+      merit = merit + dot_product(d_spin(:,j), r)**2 / sum(r)**2
+    endif
+  enddo
+enddo
 
 merit = merit / num_merit_points
 
@@ -962,52 +862,27 @@ if (.not. out_of_range) then
   enddo
 endif
 
-
-if (symmetric) then
-  n_pts = 0
-  do n = 0, i_turn
-    r = 0
-    dspin = 0
-    do kk = 1, 6
-      n2 = s(n)%ix_nearest(kk)
-      if (n2 == -1) cycle
-      dphase = phase_diff(s(n)%orbit_phase - s(n2)%orbit_phase)
-      r(kk) = 1 / max(scatter_norm_cutoff, norm2(dphase))
-      dspin(kk,:) = s(n2)%invar_spin - s(n)%invar_spin
-    enddo
-
-    do j = 1, 3
-      n_pts = n_pts + 1
-      if (out_of_range) then
-        merit_vec(n_pts) = amp2 * sum(r)
-      else
-        merit_vec(n_pts) = dot_product (dspin(:,j), r)
-      endif
-    enddo
+n_pts = 0
+do n = 0, i_turn
+  r = 0
+  dspin = 0
+  do kk = 1, 6
+    n2 = s(n)%ix_nearest(kk)
+    if (n2 == -1) cycle
+    dphase = phase_diff(s(n)%orbit_phase - s(n2)%orbit_phase)
+    r(kk) = 1 / max(scatter_norm_cutoff, norm2(dphase))
+    dspin(kk,:) = s(n2)%invar_spin - s(n)%invar_spin
   enddo
 
-else
-  ! Only use +direction %ix_nearest(kk) which correspond to kk even.
-  ! Do this since this halves the number of merit_vec points needed for a small penalty in precision. 
-
-  n_pts = 0
-  do kk = 2, 6, 2
-    do n = 0, i_turn
-      n2 = s(n)%ix_nearest(kk)
-      if (n2 == -1) cycle
-      dphase = phase_diff(s(n)%orbit_phase - s(n2)%orbit_phase)
-      del = max(scatter_norm_cutoff, norm2(dphase))
-      do j = 1, 3
-        n_pts = n_pts + 1
-        if (out_of_range) then
-          merit_vec(n_pts) = amp2 / del
-        else
-          merit_vec(n_pts) = (s(n)%invar_spin(j) - s(n2)%invar_spin(j)) / del
-        endif
-      enddo
-    enddo
+  do j = 1, 3
+    n_pts = n_pts + 1
+    if (out_of_range) then
+      merit_vec(n_pts) = amp2 * sum(r)
+    else
+      merit_vec(n_pts) = dot_product (dspin(:,j), r)
+    endif
   enddo
-endif
+enddo
 
 end subroutine scatter_min_merit_vec
 
@@ -1112,7 +987,7 @@ end subroutine write_spin_track
 subroutine rotate_axes_to_flatten_spin_phase_advance (n_order)
 
 real(rp) dangle_ave
-real(rp) coef(440), phi_x, phi_y, phi_z, phi1, phi2
+real(rp) coef(4000), phi_x, phi_y, phi_z, phi1, phi2
 integer n_order, i, it, jx, jy, jz, nn, n_coef, n_dim
 logical at_end
 
@@ -1126,7 +1001,7 @@ n_coef = (1 + n_order)**n_dim - 1
 call initial_lmdif()
 coef = 0
 
-do i = 1, 100
+do i = 1, 1000
 
   do it = 0, i_turn - 1
     merit_vec(it+1) = s(it)%spin_track_dangle - dangle_ave
