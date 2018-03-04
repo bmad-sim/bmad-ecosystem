@@ -238,6 +238,21 @@ for an accuracy on the level of $10^{-3}$, simulations using the code SPRINT nee
 turns of tracking. And a simulation of HERA-p neede 10,000 turns of tracking to get an accruacy of
 $10^{-3}$.
 
+
+is important since it can be used to
+calculate the maximum achievable time averaged polarization by averaging over the invariant spin
+field. Expressing the orbital phase space $\bfr$ in terms of the three actions $\bfJ$ and three normal
+mode phases $\bfPhi$, the limiting polarization $\Plim(\bfJ)$ at a given orbital amplitude is
+\Begineq
+  \Plim(\bfJ) = \int d\bfPhi \, \bfn(\bfJ, \bfPhi)
+\Endeq
+And the maximum polarization of a beam is just
+\Begineq
+   \Plim(beam) = \int d\bfJ \, \Plim(\bfJ) \, \widehat\rho(\bfJ) 
+\Endeq
+where $\widehat\rho(\bfJ)$ is the density of the beam, normalized to 1, as a function of orbital
+amplitude.
+
 \section{Superconvergent Calculation}
 
 The convergence of the spin-orbit tracking calculation may be speeded up using an iterative method
