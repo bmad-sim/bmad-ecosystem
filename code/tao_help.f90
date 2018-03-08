@@ -126,7 +126,9 @@ do
     endif
   endif
 
+  call substitute ("``\vn", '"')
   call substitute ("``", '"')
+  call substitute ("}''", '"')
   call substitute ("''", '"')
   call substitute ("$")
   call substitute ("\protect")
@@ -157,9 +159,14 @@ do
     if (line(1:1) /= '{' .and. line(1:1) /= '}') exit
     line = line(2:)
   enddo
-  do i = 2, len(line)
-    if (line(i-1:i-1) == '\') cycle !'
-    if (line(i:i) == '{' .or. line(i:i) == '}') line = line(:i-1) // line(i+1:)
+
+  i = 2
+  do while (i /= len(line))
+    if ((line(i:i) == '{' .or. line(i:i) == '}') .and. line(i-1:i-1) /= '\') then   ! '
+      line = line(:i-1) // line(i+1:)
+    else
+      i = i + 1
+    endif
   enddo
 
   call substitute ("\{", "{")

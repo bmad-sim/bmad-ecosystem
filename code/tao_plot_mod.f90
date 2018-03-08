@@ -341,10 +341,8 @@ call qp_save_state(.false.)
 call set_this_axis(graph%x, x_ax, 'X')
 call set_this_axis(graph%y, y_ax, 'Y')
 
-call qp_set_layout (x_axis = x_ax, y_axis = y_ax, y2_axis = graph%y2, x2_mirrors_x = .true., &
-                    y2_mirrors_y = .true., box = graph%box, margin = graph%margin)
-
-call qp_set_axis ('X2', draw_numbers = .true.)
+call qp_set_layout (x_axis = x_ax, y_axis = y_ax, x2_axis = graph%x2, y2_axis = graph%y2, &
+                    x2_mirrors_x = .true., y2_mirrors_y = .true., box = graph%box, margin = graph%margin)
 
 if (graph%correct_xy_distortion) call qp_eliminate_xy_distortion
 

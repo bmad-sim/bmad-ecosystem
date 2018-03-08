@@ -231,7 +231,7 @@ integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min
 integer, allocatable :: ix_c(:)
 
-logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned
+logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited, show_labels
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_attributes, print_ran_state
@@ -1774,6 +1774,7 @@ case ('lattice')
   lat_type = model$
   n_attrib = 0
   attrib0 = ''
+  undef_uses_column_format = .false.
 
   column(:) = show_lat_column_struct()
 
@@ -1786,7 +1787,7 @@ case ('lattice')
         '-custom             ', '-s                  ', '-radiation_integrals', '-remove_line_if_zero', &
         '-base               ', '-design             ', '-floor_coords       ', '-orbit              ', &
         '-attribute          ', '-all                ', '-no_slaves          ', '-energy             ', &
-        '-spin               '], &
+        '-spin               ', '-undef0             '], &
             .true., switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
@@ -1794,6 +1795,10 @@ case ('lattice')
 
     case ('-0undef')
       undef_str = '  0'
+
+    case ('-undef0')
+      undef_str = '  0'
+      undef_uses_column_format = .true.
 
     case ('-tracking_elements')
       print_lords = no$
@@ -2230,7 +2235,7 @@ case ('lattice')
 
     !
 
-    column(i)%format = '(' // trim(column(i)%format) // ')'
+    column(i)%format = '(' // trim(upcase(column(i)%format)) // ')'
 
     if (column(i)%width == 0) then
       if (column(i)%name /= 'ele::#[name]') then
@@ -2286,7 +2291,7 @@ case ('lattice')
       if (ix == 0) ix = index(name, '_')
       n = len_trim(name)
 
-      if (index(column(i)%format, 'a') /= 0) then
+      if (index(column(i)%format, 'A') /= 0) then
         line2(ix1:) = name
 
       elseif (ix == 0) then
@@ -2320,14 +2325,14 @@ case ('lattice')
 
       ix = index(name, '|')
       if (ix == 0) then
-        if (index(column(i)%format, 'a') /= 0) then
+        if (index(column(i)%format, 'A') /= 0) then
           line2(ix1:) = name
         else
           j = len_trim(name)
           line2(ix2-j:) = name(1:j)
         endif
       else
-        if (index(column(i)%format, 'a') /= 0) then
+        if (index(column(i)%format, 'A') /= 0) then
           line2(ix1:) = name(1:ix-1)
           line3(ix1:) = trim(name(ix+1:))
         else
@@ -2454,22 +2459,30 @@ case ('lattice')
                                                   dflt_component = lat_type_name(lat_type))
         if (err .or. .not. allocated(value) .or. size(value) /= 1) then
           if (column(i)%remove_line_if_zero) cycle line_loop
-          n = len(undef_str)
-          k = min(n, column(i)%width - 1)
-          j = nc + column(i)%width - k
-          line(j:) = undef_str(n-k+1:n)
+          if (undef_uses_column_format .and. index(column(i)%format, 'A') == 0) then
+            if (index(column(i)%format, 'I') /= 0) then
+              write (line(nc:), column(i)%format, iostat = ios) 0
+            else
+              write (line(nc:), column(i)%format, iostat = ios) 0.0_rp
+            endif
+          else
+            n = len(undef_str)
+            k = min(n, column(i)%width - 1)
+            j = nc + column(i)%width - k
+            line(j:) = undef_str(n-k+1:n)
+          endif
 
         elseif (column(i)%name == 'ele::#[state]') then
           write (line(nc:), column(i)%format, iostat = ios) coord_state_name(nint(value(1)))
 
-        elseif (index(column(i)%format, 'l') /= 0 .or. index(column(i)%format, 'L') /= 0) then
+        elseif (index(column(i)%format, 'L') /= 0) then
           if (value(1) == 0) then
             write (line(nc:), column(i)%format, iostat = ios) .false.
           else
             write (line(nc:), column(i)%format, iostat = ios) .true.
           endif
 
-        elseif (index(column(i)%format, 'i') /= 0 .or. index(column(i)%format, 'I') /= 0) then
+        elseif (index(column(i)%format, 'I') /= 0) then
           write (line(nc:), column(i)%format, iostat = ios) nint(value(1))
           if (column(i)%remove_line_if_zero .and. nint(value(1)) == 0) cycle line_loop
 
