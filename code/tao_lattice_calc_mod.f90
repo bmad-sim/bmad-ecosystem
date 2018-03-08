@@ -888,11 +888,7 @@ if (u%beam%beam0_file /= "") then
         call init_coord (orbit, orbit, branch%ele(ix_ele0), downstream_end$, branch%param%particle, +1, orbit%p0c, beam%bunch(i)%t_center)
       enddo
     enddo
-    call out_io (s_info$, r_name, &
-                  'Read initial beam distribution from: ' // u%beam%beam0_file, &
-                  'Centroid Offset: \6es12.3\ ', &
-                  'Number of particles: \i0\ ', &
-                  r_array = model%lat%beam_start%vec, i_array = [n])
+    u%beam%init_beam0 = .false.
   endif
 
   if (tao_no_beam_left (beam, branch%param%particle)) then
