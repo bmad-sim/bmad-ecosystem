@@ -128,7 +128,7 @@ Section~\sref{s:command.files} for more details.
 The \vn{call -ptc} command passes the command file to PTC for processing. Previous to such
 a call, the command \vn{ptc init} must be issued.
 
-If the command file has the \vn{quiet} command in it, output to the terminal is surpresed (but
+If the command file has the \vn{quiet} command in it, output to the terminal is suppressed (but
 only for the duration of the execution of the file).
 
 Command loops can be implemented in a command file. See Section~\sref{s:do} for more details.
@@ -286,7 +286,7 @@ Note: ``\vn{enddo}'' is one word and my not be split into two words.
 Loops can be nested and the number of levels is not unlimited. 
 
 A loop will execute the code in between the \vn{do} and \vn{enddo} lines a certain number of
-times. Each time trough the the the integer variable \vn{<var>} will be increamented by \vn{<incr>},
+times. Each time trough the the the integer variable \vn{<var>} will be incremented by \vn{<incr>},
 starting at \vn{<l_bound>} and stopping before \vn{<var>} is greater than \vn{<u_bound>}. If
 \vn{<incr>} is not present, the increment will be 1. Note: \vn{<l_bound>}, \vn{<u_bound>}, and
 \vn{<incr>} must all be integers.
@@ -576,12 +576,12 @@ Format:
 \end{example}
 
 The \vn{quiet} command can only be used in command files (\sref{s:call}).
-When placed in a command file, output to the terminal is surpresed (but
+When placed in a command file, output to the terminal is suppressed (but
 only from the \vn{quiet} command for the duration of the execution of the file).
 
 Other useful commands to put in a command file are to speed up execution are:
 \begin{example}
-  set global lattice_calc_on = F   ! Stop lattic calculations
+  set global lattice_calc_on = F   ! Stop lattice calculations
   set global plot_on = F           ! Halt replotting
 \end{example}
 If set, at the end of the command file these logicals should be toggled back to True.
@@ -1052,7 +1052,7 @@ Format:
 The \vn{set element} command sets the attributes of an element. Use the \vn{show element}
 command to view the attributes of an element.
 
-Note: If an element in the \vn{<element_list>} does not sepcify a universe or universes,
+Note: If an element in the \vn{<element_list>} does not specify a universe or universes,
 only the element in the viewed universe is used. See the examples below.
 
 Note: It is also possible to use the \vn{change element} command to change
@@ -1291,7 +1291,7 @@ For \vn{set plot}, \vn{<component>}s that can be set are:
 The \vn{visible} parameter hides a plot but keeps the plot associated with the associate region. If
 the plot window is not enabled (\vn{-noplot} option used at startup), the \vn{visible} parameter is
 used by \tao to decide whether to calculate the points needed for plotting curves (saves time if the
-computation is not needed). This is relavent when \tao is interfaced to a \vn{gui}
+computation is not needed). This is relevant when \tao is interfaced to a \vn{gui}
 (\sref{s:gui.plot}).
 
 Note: If the \vn{component} parameter is set, the \vn{<value>} is stored in each of the graphs of
@@ -1524,7 +1524,7 @@ Format:
         \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\} 
         \{-no_label_lines\} \{-no_tail_lines\} \{-no_slaves_lines\} \{-orbit\} 
         \{-radiation_integrals\} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} 
-        \{-spin\} \{-tracking_elements\} \{<elements>\}                     ! \sref{s:show.lattice}
+        \{-spin\} \{-tracking_elements\} \{-undef0\} \{<elements>\}           ! \sref{s:show.lattice}
   show matrix \{-s\} \{loc1 \{loc2\}\}                                      ! \sref{s:show.matrix}
   show merit \{-derivative\} \{-merit_only\}                              ! \sref{s:show.merit}
   show normal_form \{-order <n_order>\} <type>                          ! \sref{s:show.normal}
@@ -1903,7 +1903,7 @@ Shows the command history. Each command is given an index number starting from 1
 the first command. This index is printed with the command unless the \vn{-no_num} switch
 is present.
 
-The number of commands printed is, by defulat, the last 50. Setting the \vn{<num_to_display>} will
+The number of commands printed is, by default, the last 50. Setting the \vn{<num_to_display>} will
 change this. Setting \vn{<num_to_display>} to \vn{all}  will cause all the commands to be printed.
 
 Use the command \vn{re_execute} (\sref{s:re.exe}) to re-execute a command. 
@@ -1956,7 +1956,7 @@ Syntax:
       \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\}
       \{-no_label_lines\} \{-no_tail_lines\} \{-no_slaves\} \{-orbit\} \{-radiation_integrals\}
       \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{-spin\} \{-tracking_elements\}
-      \{<element_list>\} 
+      \{-undef0\} \{<element_list>\} 
 \end{example}
 
 Show a table of Twiss and orbit data, etc. at the specified element locations. The default
@@ -2051,7 +2051,7 @@ edit descriptors to be used. The default format is \vn{es12.4}. Example descript
   ESw.d  ES13.4   ! For real numbers. Has exponent
   Lw     L4       ! For logical numbers
   Iw     I8       ! For integers
-  wX     4x       ! Whitespace. 
+  wX     4x       ! White space. 
 \end{example}
 In the above, ``\vn{w}'' is the width of the field and ``\vn{d}'' is the number of digits to
 the right of the decimal. Example:
@@ -2067,19 +2067,23 @@ To encode the element index, use a \vn{\#} or \vn{\#index}. To encode the branch
 \vn{\#branch}. Any element attribute is permitted ("show ele" will show element attributes or see
 the Bmad manual). Additionally, the following are recognized:
 \begin{example}
-  x                          ! Add spaces
-  #                          ! Index number of element.
+  x                           ! Add spaces
+  #                           ! Index number of element.
   ele::#[name]                ! Name of element.
   ele::#[key]                 ! Type of element (``quadrupole'', etc.)
   ele::#[slave_status]        ! Slave type (``super_slave'', etc.)
   ele::#[lord_status]         ! Slave type (``multipass_lord'', etc.)
   ele::#[type]                ! Element type string (see \bmad manual).
 \end{example}
-If an attribute does not exist for a given element (for example, \vn{quadrupole}s do not
-have a \vn{voltage}), a series of dashes, ``-{}-{}-{}-'', will be placed in the appropriate spot
-in the table.  Additionally, an arithmetic expression that results in a divide by zero
-will result in dashes being printed. This behavior is changed if the \vn{-0undef} switch
-is present. In this case, a zero, ``0'', will be printed.
+If an attribute does not exist for a given element (for example, \vn{quadrupole}s do not have a
+\vn{voltage}), a series of dashes, ``-{}-{}-{}-'', will be placed in the appropriate spot in the
+table.  Additionally, an arithmetic expression that results in a divide by zero will result in
+dashes being printed. This behavior is changed if the \vn{-0undef} or \vn{-undef0} switch is
+present. In this case, a zero, ``0'', will be printed. The difference between \vn{-0undef} and
+\vn{-undef0} is that with \vn{-undef0} the zero will be printed using the same format as the other
+numbers in the column. With the \vn{-0undef} switch the zero will be printed as a right
+justified  ``0'' which gives a visual clue to differentiate between a true zero value and a zero
+that represents an undefined parameter.
 
 Additionally, The \vn{-blank_replacement <string>} switch specifies that whenever a blank
 string is encountered (for example, the \vn{type} attribute for an element can be blank),
@@ -2297,7 +2301,7 @@ Examples:
 \begin{example}
   set sym aaa = 23  ! Set a symbol.
   show sym          ! Show all user defined symbols.
-  show sym -phys    ! Show predifined physical and mathematical constants.
+  show sym -phys    ! Show predefined physical and mathematical constants.
 \end{example}
 
 %% show taylor_map --------------------------------------------------------------
@@ -2466,7 +2470,7 @@ wakes only affect particle tracking when tracking with a beam of particles (not 
 tracking just a single particle which is the default for \tao). 
 
 At this point in time, \tao is not setup to do multiturn tracking with bunches which means
-that if simulations with wakefieds is desired, a different program have to be used.
+that if simulations with wakefields is desired, a different program have to be used.
 
 %% show wall --------------------------------------------------------------
 
@@ -2660,7 +2664,7 @@ specifies the plot region where the results of the wave analysis is to be plotte
 present, the region defaults to the region of the plot containing the curve used for the
 analysis.
 
-Note: use the \vn{set wave} (\sref{s:set.wave}) command to set the boundries of the fit regions.
+Note: use the \vn{set wave} (\sref{s:set.wave}) command to set the boundaries of the fit regions.
 
 Examples:
 \begin{example}

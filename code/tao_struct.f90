@@ -193,7 +193,8 @@ type tao_graph_struct
   type (qp_point_struct) curve_legend_origin
   type (qp_axis_struct) x                     ! X-axis parameters.
   type (qp_axis_struct) y                     ! Y-axis attributes.
-  type (qp_axis_struct) y2                    ! Y-axis attributes.
+  type (qp_axis_struct) x2                    ! X2-axis attributes (Only used for floor_plan).
+  type (qp_axis_struct) y2                    ! Y2-axis attributes.
   type (qp_rect_struct) margin                ! Margin around the graph.
   type (qp_rect_struct) scale_margin          ! Margin for scaling
   real(rp) :: x_axis_scale_factor = 1         ! x-axis conversion from internal to plotting units.

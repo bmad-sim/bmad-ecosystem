@@ -133,6 +133,7 @@ type tao_graph_input
   type (qp_rect_struct) :: scale_margin = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
   type (qp_axis_struct) :: x = qp_axis_struct()
   type (qp_axis_struct) :: y = qp_axis_struct()
+  type (qp_axis_struct) :: x2 = qp_axis_struct()
   type (qp_axis_struct) :: y2 = qp_axis_struct()
 end type 
 
