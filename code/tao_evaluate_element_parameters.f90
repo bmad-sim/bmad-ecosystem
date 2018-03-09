@@ -131,9 +131,17 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     end select
 
     if (middle .and. ixe /= 0) then
-      call twiss_and_track_intra_ele (branch%ele(ixe), lat%param, 0.0_rp, branch%ele(ixe)%value(l$)/2, &
-                .true., .false., this_orb(ixe-1), orb, branch%ele(ixe-1), ele3, err)
-      call tao_orbit_value (parameter, orb, values(n_tot+j), err)
+      select case (parameter)
+      case ('x_position', 'y_position', 'z_position', 'theta_position', 'phi_position', 'psi_position')
+        call twiss_and_track_intra_ele (branch%ele(ixe), lat%param, 0.0_rp, branch%ele(ixe)%value(l$)/2, &
+                      .true., .false., this_orb(ixe-1), orb, branch%ele(ixe-1), ele3, compute_floor_coords = .true.)
+        err = .true. ! To trigger call to pointer_to_attribute
+      case default
+        call twiss_and_track_intra_ele (branch%ele(ixe), lat%param, 0.0_rp, branch%ele(ixe)%value(l$)/2, &
+                    .true., .false., this_orb(ixe-1), orb, branch%ele(ixe-1), ele3, err)
+        call tao_orbit_value (parameter, orb, values(n_tot+j), err)
+      end select
+
       if (err) then
         call pointer_to_attribute (ele3, parameter, .true., a_ptr, err, print_err)
         if (err) return
