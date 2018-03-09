@@ -550,9 +550,14 @@ endif
 if (tao_branch%track_state /= moving_forward$ .and. ix_ele >= tao_branch%track_state) then
   if ((data_source == 'beam' .and. head_data_type /= 'n_particle_loss') .or. &
                          head_data_type(1:4) == 'bpm_' .or. head_data_type == 'orbit.') then
-    if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE DUE TO PARTICLE LOSS.'
+    call tao_set_invalid (datum, 'CANNOT EVALUATE DUE TO PARTICLE LOSS.', why_invalid)
     return
   endif
+endif
+
+if (data_source == 'beam' .and. s%global%track_type /= 'beam') then
+  call tao_set_invalid (datum, 'DATA_SOURCE FOR DATUM SET TO "beam" BUT NOT TRACKING A BEAM (GLOBAL%TRACK_TYPE NOT SET TO "beam")', why_invalid)
+  return
 endif
 
 !---------------------------------------------------
