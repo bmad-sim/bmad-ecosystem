@@ -1408,6 +1408,7 @@ bunch_params%n_particle_tot = size(bunch%particle)
 bunch_params%n_particle_live = count(bunch%particle%state == alive$)
 bunch_params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%state == alive$))
 
+bunch_params%centroid          = bunch%particle(1)
 bunch_params%centroid%field(1) = sum(bunch%particle%field(1), mask = (bunch%particle%state == alive$))
 bunch_params%centroid%field(2) = sum(bunch%particle%field(2), mask = (bunch%particle%state == alive$))
 
@@ -1433,7 +1434,15 @@ if (charge_live == 0) then
   err = .false.
   return
 endif
-  
+
+bunch_params%centroid%charge     = charge_live
+bunch_params%centroid%s          = sum(bunch%particle%s * charge, mask = (bunch%particle%state == alive$))
+bunch_params%centroid%t          = sum(bunch%particle%t * charge, mask = (bunch%particle%state == alive$))
+if (species /= photon$) then
+  call convert_pc_to ((1 + bunch_params%centroid%vec(6)) * bunch_params%centroid%p0c, &
+                                                                 species, beta = bunch_params%centroid%beta)
+endif
+
 if (bmad_com%spin_tracking_on) call calc_spin_params (bunch, bunch_params)
   
 ! average the energy
