@@ -649,7 +649,7 @@ case ('alpha.')
     endif
 
   case ('alpha.z')
-    if (data_source == 'lat') return
+    if (data_source == 'lat') goto 8000  ! Error message and return
     call tao_load_this_datum (bunch_params(:)%z%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
   case default
@@ -748,7 +748,7 @@ case ('beta.')
     endif
 
   case ('beta.z')
-    if (data_source == 'lat') return
+    if (data_source == 'lat') goto 8000  ! Error message and return
     call tao_load_this_datum (bunch_params(:)%z%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     if (bunch_params(ix_ele)%z%norm_emit == 0) then
       valid_value = .false.
@@ -797,7 +797,7 @@ case ('bpm_orbit.')
     return
   end select
 
-  if (data_source == 'beam') return ! bad
+  if (data_source == 'beam') goto 9000  ! Set error message and return
   call to_orbit_reading (orbit(ix_ele), ele, which, datum_value, err)
   valid_value = .not. (err .or. (tao_branch%track_state /= moving_forward$ .and. ix_ele > tao_branch%track_state))
 
@@ -815,7 +815,7 @@ case ('bpm_eta.')
     return
   end select
 
-  if (data_source == 'beam') return ! bad
+  if (data_source == 'beam') goto 9000  ! Set error message and return
   vec2 = [ele%x%eta, ele%y%eta]
   call to_eta_reading (vec2, ele, which, datum_value, err)
   valid_value = .not. err
@@ -824,7 +824,7 @@ case ('bpm_eta.')
 
 case ('bpm_phase.')
 
-  if (data_source == 'beam') return ! bad
+  if (data_source == 'beam') goto 9000  ! Set error message and return
   call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
 
   select case (datum%data_type)
@@ -842,7 +842,7 @@ case ('bpm_phase.')
 
 case ('bpm_k.')
 
-  if (data_source == 'beam') return ! bad
+  if (data_source == 'beam') goto 9000  ! Set error message and return
   call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
 
   select case (datum%data_type)
@@ -864,7 +864,7 @@ case ('bpm_k.')
 
 case ('bpm_cbar.')
 
-  if (data_source == 'beam') return ! bad
+  if (data_source == 'beam') goto 9000  ! Set error message and return
   call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
 
   select case (datum%data_type)
@@ -884,7 +884,7 @@ case ('bpm_cbar.')
 
 !-----------
 case ('bunch_max.', 'bunch_min.')
-  if (data_source /= 'beam') return ! bad
+  if (data_source /= 'beam') goto 9000  ! Set error message and return
   select case (datum%data_type(11:))
   case ('x'); i=1
   case ('px');i=2
@@ -911,19 +911,19 @@ case ('c_mat.')
   select case (datum%data_type)
 
   case ('c_mat.11')
-    if (data_source == 'beam') return
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (branch%ele(:)%c_mat(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
 
   case ('c_mat.12')
-    if (data_source == 'beam') return
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (branch%ele(:)%c_mat(1,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
 
   case ('c_mat.21')
-    if (data_source == 'beam') return
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (branch%ele(:)%c_mat(2,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
 
   case ('c_mat.22')
-    if (data_source == 'beam') return
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (branch%ele(:)%c_mat(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
 
   case default
@@ -939,19 +939,19 @@ case ('cbar.')
   select case (datum%data_type)
 
   case ('cbar.11')
-    if (data_source == 'beam') return
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (scratch%cc%cbar(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
 
   case ('cbar.12')
-    if (data_source == 'beam') return
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (scratch%cc%cbar(1,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
 
   case ('cbar.21')
-    if (data_source == 'beam') return
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (scratch%cc%cbar(2,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
 
   case ('cbar.22')
-    if (data_source == 'beam') return
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (scratch%cc%cbar(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
 
   case default
@@ -964,7 +964,7 @@ case ('cbar.')
 
 case ('chrom.')
   
-  if (data_source == 'beam') return
+  if (data_source == 'beam') goto 9000  ! Set error message and return
 
   if (.not. associated(tao_branch%low_E_lat%ele)) then
     if (branch%param%unstable_factor == 0) then
@@ -1064,7 +1064,7 @@ case ('chrom.')
 
 case ('damp.')
 
-  if (data_source == 'beam') return ! bad
+  if (data_source == 'beam') goto 9000  ! Set error message and return
 
   select case (datum%data_type)
 
@@ -1162,7 +1162,7 @@ case ('e_tot')
     else
       orb => orbit(ix_ref)
     endif
-    if (orb%state == not_set$) return
+    if (orb%state == not_set$) goto 7000  ! Set error message and return
     call convert_pc_to ((1 + orb%vec(6))*orb%p0c, orb%species, e_tot = value_vec(ix_ref))
   endif
 
@@ -1172,7 +1172,7 @@ case ('e_tot')
     else
       orb => orbit(i)
     endif
-    if (orb%state == not_set$) return
+    if (orb%state == not_set$) goto 7000  ! Set error message and return
     call convert_pc_to ((1 + orb%vec(6))*orb%p0c, orb%species, e_tot = value_vec(i))
   enddo
 
@@ -1181,7 +1181,7 @@ case ('e_tot')
 !-----------
 
 case ('e_tot_ref')
-  if (data_source == 'beam') return
+  if (data_source == 'beam') goto 9000  ! Set error message and return
   call tao_load_this_datum (branch%ele(:)%value(e_tot$), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
 !-----------
@@ -1540,7 +1540,7 @@ case ('gamma.')
     endif
 
   case ('gamma.z')
-    if (data_source == 'lat') return
+    if (data_source == 'lat') goto 8000  ! Error message and return
     call tao_load_this_datum (bunch_params(:)%z%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
   case default
@@ -1556,16 +1556,16 @@ case ('k.')
   select case (datum%data_type)
 
   case ('k.11b')
-    if (data_source == 'beam') return
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (scratch%cc%k_11a, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
   case ('k.12a')
-    if (data_source == 'beam') return
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (scratch%cc%k_12a, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
   case ('k.12b')
-    if (data_source == 'beam') return
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (scratch%cc%k_12b, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
   case ('k.22a')
-    if (data_source == 'beam') return
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (scratch%cc%k_22b, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
 
   case default
@@ -1584,7 +1584,7 @@ case ('normal.')
     return
   endif
 
-  if (data_source == 'beam') return
+  if (data_source == 'beam') goto 9000  ! Set error message and return
 
   if (s%global%rf_on) then
     normal_form => branch%normal_form_with_rf
@@ -1695,14 +1695,14 @@ case ('normal.')
 !-----------
 
 case ('momentum')
-  if (data_source == 'beam') return
+  if (data_source == 'beam') goto 9000  ! Set error message and return
   call tao_load_this_datum (branch%ele(0:n_track)%value(p0c$) * (1+orbit(0:n_track)%vec(6)), &
                             ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
 !-----------
 
 case ('momentum_compaction')
-  if (data_source == 'beam') return
+  if (data_source == 'beam') goto 9000  ! Set error message and return
 
   if (ix_ref < 0) then
     ix_ref = 0
@@ -1733,7 +1733,7 @@ case ('momentum_compaction')
 !-----------
 
 case ('n_particle_loss')
-  if (data_source /= 'beam') return
+  if (data_source /= 'beam') goto 9000  ! Set error message and return
   if (ix_ele < 0) ix_ele = branch%n_ele_track
   datum_value = sum(bunch_params(ix_ref+1:ix_ele)%n_particle_lost_in_ele)
   valid_value = .true.
@@ -1757,7 +1757,7 @@ case ('orbit.')
       else
         orb => orbit(ix_ref)
       endif
-      if (orb%state == not_set$) return
+      if (orb%state == not_set$) goto 7000  ! Set error message and return
       value_vec(ix_ref) = (1 + orb%vec(6)) * orb%p0c / orb%beta
     endif
 
@@ -1767,7 +1767,7 @@ case ('orbit.')
       else
         orb => orbit(i)
       endif
-      if (orb%state == not_set$) return
+      if (orb%state == not_set$) goto 7000  ! Set error message and return
       call convert_pc_to ((1 + orb%vec(6))*orb%p0c, orb%species, e_tot = value_vec(i))
     enddo
 
@@ -1816,19 +1816,19 @@ case ('orbit.')
     endif
 
   case ('orbit.amp_a')
-    if (data_source == 'beam') return ! bad
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (scratch%cc%amp_a, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
 
   case ('orbit.amp_b')
-    if (data_source == 'beam') return ! bad
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (scratch%cc%amp_b, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
 
   case ('orbit.norm_amp_a')
-    if (data_source == 'beam') return ! bad
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (scratch%cc%amp_na, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
 
   case ('orbit.norm_amp_b')
-    if (data_source == 'beam') return ! bad
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (scratch%cc%amp_nb, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
 
   case default
@@ -1868,7 +1868,7 @@ case ('periodic.')
   select case (datum%data_type(1:ix))
 
   case ('periodic.tt.')
-    if (data_source == 'beam') return
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     if (lat%param%geometry /= closed$ .and. .not. associated(ele_ref)) then
       call tao_set_invalid (datum, 'LATTICE MUST BE CIRCULAR FOR A DATUM LIKE: ' // datum%data_type, why_invalid)
       call err_exit
@@ -1914,7 +1914,7 @@ case ('phase.', 'phase_frac.')
   select case (datum%data_type)
 
   case ('phase.a', 'phase_frac.a')
-    if (data_source == 'beam') return ! bad
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     if (ix_ref < 0) then
       datum_value = ele%a%phi
     else
@@ -1925,7 +1925,7 @@ case ('phase.', 'phase_frac.')
     valid_value = .true.
 
   case ('phase.b', 'phase_frac.b')
-    if (data_source == 'beam') return ! bad
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     if (ix_ref < 0) then
       datum_value = ele%b%phi
     else
@@ -1944,7 +1944,7 @@ case ('phase.', 'phase_frac.')
 !-----------
 
 case ('phase_frac_diff')
-  if (data_source == 'beam') return ! bad
+  if (data_source == 'beam') goto 9000  ! Set error message and return
   if (ix_ref < 0) then
     px = ele%a%phi 
     py = ele%b%phi 
@@ -1987,11 +1987,11 @@ case ('photon.')
     endif
 
   case ('photon.phase_x')
-    if (data_source == 'beam') return ! bad
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (orbit(:)%phase(1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
   case ('photon.phase_y')
-    if (data_source == 'beam') return ! bad
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (orbit(:)%phase(2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
   end select
@@ -2110,7 +2110,7 @@ case ('ping_b.')
 !-----------
 
 case ('r.')
-  if (data_source == 'beam') return
+  if (data_source == 'beam') goto 9000  ! Set error message and return
   i = tao_read_this_index (datum%data_type, 3); if (i == 0) return
   j = tao_read_this_index (datum%data_type, 4); if (j == 0) return
 
@@ -2131,7 +2131,7 @@ case ('r.')
 !-----------
 
 case ('r56_compaction')
-  if (data_source == 'beam') return
+  if (data_source == 'beam') goto 9000  ! Set error message and return
 
   if (ix_ref < 0) then
     ix_ref = 0
@@ -2163,7 +2163,7 @@ case ('rad_int.')
     if (ix_ref < 0) ix_ref = 0
   endif
 
-  if (data_source == 'beam') return
+  if (data_source == 'beam') goto 9000  ! Set error message and return
   if (.not. allocated(tao_branch%rad_int%ele)) return
 
   select case (datum%data_type(9:))
@@ -2270,7 +2270,7 @@ case ('rad_int.')
 
 case ('rad_int1.')
 
-  if (data_source == 'beam') return
+  if (data_source == 'beam') goto 9000  ! Set error message and return
   if (ix_ele < 0) return
   if (.not. allocated(tao_branch%rad_int%ele)) return
 
@@ -2583,7 +2583,7 @@ case ('spin.')
 !-----------
 
 case ('s_position') 
-  if (data_source == 'beam') return
+  if (data_source == 'beam') goto 9000  ! Set error message and return
   if (ix_ref >= 0) then
     datum_value = ele%s - ele_ref%s
   else
@@ -2607,12 +2607,12 @@ case ('tune.')
   select case (datum%data_type)
 
   case ('tune.a')
-    if (data_source == 'beam') return ! bad
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     datum_value = branch%ele(branch%n_ele_track)%a%phi
     valid_value = .true.
 
   case ('tune.b')
-    if (data_source == 'beam') return ! bad
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     datum_value = branch%ele(branch%n_ele_track)%b%phi
     valid_value = .true.
 
@@ -2629,7 +2629,7 @@ case ('t.', 'tt.')
     call out_io (s_fatal$, r_name, 'TRANSFER MAP CALC NOT YET MODIFIED FOR BRANCHES.')
     return
   endif
-  if (data_source == 'beam') return
+  if (data_source == 'beam') goto 9000  ! Set error message and return
 
   expnt = 0
   if (head_data_type == 't.') then
@@ -2744,7 +2744,7 @@ case ('unstable.')
     valid_value = .true.
 
   case ('unstable.ring')
-    if (data_source == 'beam') return
+    if (data_source == 'beam') goto 9000  ! Set error message and return
     datum_value = lat%param%unstable_factor
     ! unstable_penalty is needed since at the meta stable borderline the growth rate is zero.
     if (.not. lat%param%stable) datum_value = datum_value + s%global%unstable_penalty
@@ -2807,7 +2807,7 @@ case ('velocity', 'velocity.')
 !-----------
 
 case ('wall.')
-  if (data_source == 'beam') return
+  if (data_source == 'beam') goto 9000  ! Set error message and return
 
   constraint = datum%data_type(6:)
   z0_pt = 0
@@ -2858,7 +2858,7 @@ case ('wall.')
 !-----------
 
 case ('wire.')  
-  if (data_source == 'lat') return
+  if (data_source == 'lat') goto 8000  ! Error message and return
   read (datum%data_type(6:), '(a)') angle
   datum_value = tao_do_wire_scan (ele, angle, u%uni_branch(datum%ix_branch)%ele(ix_ele)%beam)
   valid_value = .true.
@@ -2877,6 +2877,22 @@ elseif (associated(ele)) then
   datum%s = ele%s
 endif
 
+return
+
+!----------------------------------------------------------------------
+
+7000 continue
+call tao_set_invalid (datum, 'PARTICLE SPECIES TYPE NOT SET ??!! PLEASE SEEK HELP!', why_invalid)
+return
+
+8000 continue
+call tao_set_invalid (datum, 'DATA_TYPE = "lat" NOT VALID FOR THIS DATA_TYPE: ' // datum%data_type, why_invalid)
+return
+
+9000 continue
+call tao_set_invalid (datum, 'DATA_TYPE = "beam" NOT VALID FOR THIS DATA_TYPE: ' // datum%data_type, why_invalid)
+return
+
 end subroutine tao_evaluate_a_datum
 
 !-----------------------------------------------------------------------
@@ -2894,7 +2910,7 @@ real(rp), target :: vec(0:)
 real(rp) datum_value, ref_value
 real(rp), pointer :: vec_ptr(:)
 
-character(20) :: r_name = 'tao_evaluate_a_datum'
+character(*), parameter :: r_name = 'tao_load_this_datum'
 character(*), optional :: why_invalid
 
 integer ix_m, i, n_track, ix_m2, ix_ref, ix_start, ix_ele
