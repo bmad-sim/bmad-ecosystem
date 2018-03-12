@@ -735,7 +735,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
   select case (ele%slave_status)
   case (multipass_slave$)
     lord => pointer_to_lord(ele, 1)
-    nl=nl+1; write (li(nl), '(3a, i0, a)') 'Associated Multipass_Lord: ', trim(ele%name), '  (Index: ', lord%ix_ele, ')'
+    nl=nl+1; write (li(nl), '(3a, i0, a)') 'Associated Multipass_Lord: ', trim(lord%name), '  (Index: ', lord%ix_ele, ')'
     nl=nl+1; li(nl) = 'Other slaves of this Lord:'
     nl=nl+1; li(nl) = '   Index   Name'
     do i = 1, lord%n_slave
