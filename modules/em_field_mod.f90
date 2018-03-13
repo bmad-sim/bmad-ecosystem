@@ -522,6 +522,10 @@ case (bmad_standard$)
       dfield_computed = .true.
     endif
 
+    if (logic_option(.false., calc_potential)) then
+      
+    endif
+
   !------------------------------------------
   ! Wiggler
 
