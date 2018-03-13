@@ -1511,18 +1511,18 @@ Format:
   show derivative <data_name(s)> <var_name(s)>                          ! \sref{s:show.derivative}
   show dynamic_aperture                                                 ! \sref{s:show.dynamic}
   show element \{-attributes\} \{-base\} \{-data\} \{-design\} \{-all\} \{-field\} 
-        \{-floor_coords\} \{-no_slaves\} \{-ptc\} \{-taylor\} \{-wall\} 
-        \{-xfer_mat\} <ele_name>                                          ! \sref{s:show.element}
+        \{-floor_coords\} \{-no_slaves\} \{-no_super_slaves\} \{-ptc\} \{-taylor\}
+        \{-wall\} \{-xfer_mat\} <ele_name>                                  ! \sref{s:show.element}
   show field <ele> <x> <y> <z> \{<t>\}                                    ! \sref{s:show.field}
   show global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\}     ! \sref{s:show.global}
-  show graph <graph_name>                                             ! \sref{s:show.graph}
+  show graph <graph_name>                                               ! \sref{s:show.graph}
   show history \{-no_num\} \{<num_to_display>\}                             ! \sref{s:show.history}
   show hom                                                              ! \sref{s:show.hom}
   show key_bindings                                                     ! \sref{s:show.key}
   show lattice \{-0undef\} \{-all\} \{-attribute <attrib>\} \{-base\} 
         \{-blank_replacement <string>\} \{-branch <name_or_index>\} 
         \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\} 
-        \{-no_label_lines\} \{-no_tail_lines\} \{-no_slaves_lines\} \{-orbit\} 
+        \{-no_label_lines\} \{-no_tail_lines\} \{-no_slaves\} \{-no_super_slaves\} \{-orbit\} 
         \{-radiation_integrals\} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} 
         \{-spin\} \{-tracking_elements\} \{-undef0\} \{<elements>\}           ! \sref{s:show.lattice}
   show matrix \{-s\} \{loc1 \{loc2\}\}                                      ! \sref{s:show.matrix}
@@ -1533,7 +1533,7 @@ Format:
         \{-element <element_name_or_index>\} \{-lost\} \{-all\}             ! \sref{s:show.particle}
   show plot \{-floor_plan\} \{-lat_layout \} \{<plot_region_name>\} 
         \{<template_plot_name>\}                                        ! \sref{s:show.plot}
-  show symbolic_numbers \{-physical_constants\}                      ! \sref{s:show.symbolic}
+  show symbolic_numbers \{-physical_constants\}                         ! \sref{s:show.symbolic}
   show taylor_map \{-order <n_order>\} \{-s\} \{loc1 \{loc2\}\}               ! \sref{s:show.taylor}
   show twiss_and_orbit \{-base\} \{-branch <name_or_index>\} \{-design\} 
         \{-universe <ix_uni>\} <s_position>                             ! \sref{s:show.twiss}
@@ -1757,7 +1757,8 @@ Shows parameters and results of the dynamic aperture calculation.
 Syntax:
 \begin{example}
   show element \{-attributes\} \{-base\} \{-data\} \{-design\} \{-all\} \{-field\}
-      \{-floor_coords\} \{-no_slaves\} \{-ptc\} \{-taylor\} \{-wall\} \{-xfer_mat\} <ele_name>
+      \{-floor_coords\} \{-no_slaves\} \{-no_super_slaves\} \{-ptc\} \{-taylor\} \{-wall\} 
+      \{-xfer_mat\} <ele_name>
 \end{example}
 
 This shows information on lattice elements. The syntax for \vn{<ele_name>} is explained in
@@ -1791,8 +1792,9 @@ If the \vn{-floor_coords} switch is present, the global floor coordinates at the
 of the element will be printed. See the \bmad manual for an explanation of the floor
 coordinates.
 
-When using wild cards in the element name, if the \vn{-no_slaves} switch is present,
-\vn{super_slave} and \vn{multipass} slave elements will not be listed.
+When using wild cards in the element name, if the \vn{-no_super_slaves} switch is present then
+\vn{super_slave} elements will not be included in the output. If the \vn{-no_slaves} switch is
+present, both \vn{super_slave} and \vn{multipass_slave} elements will be ignored.
 
 If the \vn{-taylor} switch is present, the Taylor map associated with an element, if there
 is one, is also displayed. An element will have an associated Taylor map if tracking or
@@ -1954,9 +1956,9 @@ Syntax:
   show lattice \{-0undef\} \{-all\} \{-attribute <attrib>\} \{-base\}
       \{-blank_replacement <string>\}  \{-branch <name_or_index>\}
       \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\}
-      \{-no_label_lines\} \{-no_tail_lines\} \{-no_slaves\} \{-orbit\} \{-radiation_integrals\}
-      \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{-spin\} \{-tracking_elements\}
-      \{-undef0\} \{<element_list>\} 
+      \{-no_label_lines\} \{-no_tail_lines\} \{-no_slaves\} \{-no_super_slaves\} \{-orbit\} 
+      \{-radiation_integrals\}\{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{-spin\} 
+      \{-tracking_elements\} \{-undef0\} \{<element_list>\} 
 \end{example}
 
 Show a table of Twiss and orbit data, etc. at the specified element locations. The default
@@ -1987,8 +1989,9 @@ If present, the \vn{-no_label_lines} switch will prevent the printing of the hea
 when the output needs to be read in by another program. The \vn{-no_tail_lines} just
 suppress the header lines at the bottom of the table.
 
-If present, the \vn{-no_slaves} switch will veto from the list of element to print all
-elements that are either a \vn{super slave} or a \vn{multipass slave}.
+If present, the \vn{-no_super_slaves} switch will veto from the list of element to print all
+\vn{super slave} elements. Similarly, if the \vn{-no_slaves} switch is present, all \vn{super slave}
+and \vn{multipass slave} elements will be ignored.
 
 If present, the \vn{-lords} switch will print a list of lord elements only.
 
