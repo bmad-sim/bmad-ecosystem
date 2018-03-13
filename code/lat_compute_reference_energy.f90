@@ -475,9 +475,10 @@ case (crystal$, mirror$, multilayer_mirror$, diffraction_plate$, photon_init$, m
   ele%value(ref_wavelength$) = c_light * h_planck / E_tot_start
   ele%ref_time = ref_time_start
 
-case (patch$) 
+case (patch$)
+  ! Ignore flexible patch error messages that can be generated.
   if (is_true(ele%value(flexible$))) then
-    call ele_geometry(ele0%floor, ele, ele%floor)
+    call ele_geometry(ele0%floor, ele, ele%floor, ignore_patch_err = .true.)
   endif
 
   if (ele%is_on .and. ele%value(e_tot_offset$) /= 0) then

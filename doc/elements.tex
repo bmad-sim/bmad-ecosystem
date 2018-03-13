@@ -3228,18 +3228,15 @@ everything else.  Example:
   pt: patch, z_offset = 3.2   ! Equivalent to a drift
 \end{example}
 
-With \vn{flexible} set to \vn{True}, the exit face is taken to be the
-reference frame of the entrance face of the next element in the
-lattice. In this case, it must be possible to compute the reference
-coordinates of the next element before the reference coordinates of
-the \vn{patch} are computed. A \vn{flexible} \vn{patch} will have the
-its offsets, pitches, and tilt as dependent parameters
-(\sref{s:depend}) and these parameters will be computed. Here the
-\vn{patch} is called ``flexible'' since the geometry of the patch will
-depend upon the geometry of the rest of the lattice and, therefore, if
-the geometry of the rest of the lattice is modified (is ``flexed''),
-the geometry of the \vn{patch} will vary as well. See
-Section~\sref{s:ex.erl} for an example.
+With \vn{flexible} set to \vn{True}, the exit face is taken to be the reference frame of the
+entrance face of the next element in the lattice. In this case, it must be possible to compute the
+reference coordinates of the next element (or any element downstream of the \vn{patch} as long as
+the elements in between have zero length) before the reference coordinates of the \vn{patch} are
+computed. A \vn{flexible} \vn{patch} will have the its offsets, pitches, and tilt as dependent
+parameters (\sref{s:depend}) and these parameters will be computed. Here the \vn{patch} is called
+``flexible'' since the geometry of the patch will depend upon the geometry of the rest of the
+lattice and, therefore, if the geometry of the rest of the lattice is modified (is ``flexed''), the
+geometry of the \vn{patch} will vary as well. See Section~\sref{s:ex.erl} for an example.
 
 If a \vn{flexible} patch is within a \vn{multipass} (\sref{s:multipass})
 region (as opposed to being just outside a multipass region as in

@@ -24,13 +24,13 @@
 
 recursive subroutine set_ele_status_stale (ele, status_group, set_slaves)
 
-use bmad_struct
+use bmad_routine_interface, dummy => set_ele_status_stale
 
 implicit none
 
 type (bookkeeping_state_struct), pointer :: state
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: slave
+type (ele_struct), pointer :: slave, ele2
 integer status_group, i
 logical, optional :: set_slaves
 
@@ -137,6 +137,23 @@ subroutine set_floor_position_status
   if (ele%key == overlay$ .or. ele%key == group$) return
   ele%bookkeeping_state%floor_position = stale$
   if (associated(state)) state%floor_position = stale$
+  ! If there is a flexible patch that depends upon the position of this element then
+  ! set the patch's floor_position status stale as well as all elements in between.
+  if (ele%ix_ele > 1 .and. associated(ele%branch)) then
+    if (ele%ix_ele > ele%branch%n_ele_track) return  ! Do not need to check lord elements.
+    ele2 => pointer_to_next_ele(ele, -1)
+    do
+      if (ele2%ix_ele == 0) return
+      if (ele2%key /= patch$) then
+        if (ele2%value(l$) /= 0) return
+        ele2 => pointer_to_next_ele(ele2, -1)
+        cycle
+      endif
+      if (is_false(ele2%value(flexible$))) return
+      ele%branch%ele(ele2%ix_ele:ele%ix_ele-1)%bookkeeping_state%floor_position = stale$
+      return
+    enddo
+  endif
 end subroutine set_floor_position_status
 
 !----------------------------------------------------------------------------

@@ -253,7 +253,7 @@ end subroutine lat_geometry
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine ele_geometry (floor0, ele, floor, len_scale, set_ok)
+! Subroutine ele_geometry (floor0, ele, floor, len_scale, set_ok, ignore_patch_err)
 !
 ! Routine to calculate the global (floor) coordinates of an element given the
 ! global coordinates of the preceeding element. This is the same as the MAD convention.
@@ -264,14 +264,16 @@ end subroutine lat_geometry
 ! Note: For floor_position element, floor is independent of floor0.
 !
 ! Input:
-!   floor0        -- Starting floor coordinates at upstream end.
-!                      Not used for fiducial and girder elements.
-!   ele           -- Ele_struct: Element to propagate the geometry through.
-!   len_scale     -- Real(rp), optional: factor to scale the length of the element.
-!                       1.0_rp => Output is geometry at end of element (default).
-!                       0.5_rp => Output is geometry at center of element. [Cannot be used for crystals.]
-!                      -1.0_rp => Used to propagate geometry in reverse.
-!   set_ok        -- logical, optional: If present and True, set ele%bookkeeping_state%floor_position = T.
+!   floor0           -- Starting floor coordinates at upstream end.
+!                         Not used for fiducial and girder elements.
+!   ele              -- Ele_struct: Element to propagate the geometry through.
+!   len_scale        -- Real(rp), optional: factor to scale the length of the element.
+!                          1.0_rp => Output is geometry at end of element (default).
+!                          0.5_rp => Output is geometry at center of element. [Cannot be used for crystals.]
+!                         -1.0_rp => Used to propagate geometry in reverse.
+!   set_ok           -- logical, optional: If present and True, set ele%bookkeeping_state%floor_position = T.
+!   ignore_patch_err -- logical, optional: If present and True, ignore flexible patch errors.
+!                         This is used by ele_compute_ref_energy_and_time to suppress unnecessary messages.
 !
 ! Output:
 !   floor       -- floor_position_struct: Floor position at downstream end.
@@ -280,7 +282,7 @@ end subroutine lat_geometry
 !     %theta, phi, %psi  -- Orientation angles 
 !-
 
-recursive subroutine ele_geometry (floor0, ele, floor, len_scale, set_ok)
+recursive subroutine ele_geometry (floor0, ele, floor, len_scale, set_ok, ignore_patch_err)
 
 use multipole_mod
 use multipass_mod
@@ -302,7 +304,7 @@ real(rp) :: w_mat(3,3), w_mat_inv(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
 integer i, key, n_loc, ix_pass, n_links, ix_pole_max
 
 logical err, calc_done, doit, finished
-logical, optional :: set_ok
+logical, optional :: set_ok, ignore_patch_err
 
 character(*), parameter :: r_name = 'ele_geometry'
 
@@ -578,7 +580,7 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
           ele2 => pointer_to_next_ele(ele2, 1)        
         enddo
 
-        if (ele2%bookkeeping_state%floor_position == stale$) then
+        if (ele2%bookkeeping_state%floor_position == stale$ .and. .not. logic_option(.true., ignore_patch_err)) then
           call out_io (s_fatal$, r_name, 'ELEMENT AFTER FLEXIBLE PATCH: ' // trim(ele%name) // &
                                                           '  (' // trim(ele_loc_to_string(ele)) // ')', &
                                          'DOES NOT HAVE A WELL DEFINED POSITION')
