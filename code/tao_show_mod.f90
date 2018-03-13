@@ -233,7 +233,7 @@ integer, allocatable :: ix_c(:)
 
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited, show_labels
-logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
+logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_attributes, print_ran_state
 logical print_global, print_optimization, print_bmad_com, print_csr_param, print_ptc
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni
@@ -1137,31 +1137,32 @@ case ('element')
   print_wall = .false.
   xfer_mat_print = 0
   print_slaves = .true.
+  print_super_slaves = .true.
   lat_type = model$
   print_ptc = .false.
   attrib0 = ''
 
   do
-    call tao_next_switch (what2, ['-taylor        ', '-em_field      ', &
-                '-all           ', '-data          ', '-design        ', &
-                '-no_slaves     ', '-wall          ', '-base          ', &
-                '-field         ', '-floor_coords  ', '-xfer_mat      ', &
-                '-ptc           ', '-everything    ', '-attributes    '], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(16):: '-taylor', '-em_field', &
+                '-all', '-data', '-design', '-no_slaves', '-wall', '-base', &
+                '-field', '-floor_coords', '-xfer_mat', '-ptc', '-everything', &
+                '-attributes', '-no_super_slaves'], .true., switch, err, ix)
     if (err) return
     select case (switch)
-    case ('');                exit
-    case ('-xfer_mat');       xfer_mat_print = 6
-    case ('-floor_coords');   print_floor = .true.
-    case ('-taylor');         print_taylor = .true.
-    case ('-design');         lat_type = design$
-    case ('-base');           lat_type = base$
-    case ('-em_field');       print_em_field = .true.  ! Old style. Use "-field".
-    case ('-field');          print_em_field = .true.
-    case ('-attributes');     print_attributes = .true.
-    case ('-data');           print_data = .true.
-    case ('-no_slaves');      print_slaves = .false.
-    case ('-wall');           print_wall = .true.
-    case ('-ptc');            print_ptc = .true.
+    case ('');                  exit
+    case ('-xfer_mat');         xfer_mat_print = 6
+    case ('-floor_coords');     print_floor = .true.
+    case ('-taylor');           print_taylor = .true.
+    case ('-design');           lat_type = design$
+    case ('-base');             lat_type = base$
+    case ('-em_field');         print_em_field = .true.  ! Old style. Use "-field".
+    case ('-field');            print_em_field = .true.
+    case ('-attributes');       print_attributes = .true.
+    case ('-data');             print_data = .true.
+    case ('-no_slaves');        print_slaves = .false.
+    case ('-no_super_slaves');  print_super_slaves = .false.
+    case ('-wall');             print_wall = .true.
+    case ('-ptc');              print_ptc = .true.
     case ('-everything', '-all')
       print_attributes = .true.
       xfer_mat_print = 6
@@ -1197,9 +1198,8 @@ case ('element')
       lat => s%u(i_uni)%model%lat
       do i = 1, size(eles)
         ele => eles(i)%ele
-        if (.not. print_slaves) then
-          if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) cycle
-        endif
+        if (.not. print_slaves .and. (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$)) cycle
+        if (.not. print_super_slaves .and. ele%slave_status == super_slave$) cycle
         if (size(lines) < nl+100) call re_allocate (lines, nl+200, .false.)
         n_tot = n_tot + 1
         if (size(ele%branch%lat%branch) == 1) then
@@ -1759,6 +1759,7 @@ case ('key_bindings')
 case ('lattice')
 
   print_slaves = .true.
+  print_super_slaves = .true.
   limited = .false.
   all_lat = .false.
   at_ends = .true.
@@ -1787,7 +1788,7 @@ case ('lattice')
         '-custom             ', '-s                  ', '-radiation_integrals', '-remove_line_if_zero', &
         '-base               ', '-design             ', '-floor_coords       ', '-orbit              ', &
         '-attribute          ', '-all                ', '-no_slaves          ', '-energy             ', &
-        '-spin               ', '-undef0             '], &
+        '-spin               ', '-undef0             ', '-no_super_slaves    '], &
             .true., switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
@@ -1869,6 +1870,9 @@ case ('lattice')
 
     case ('-no_slaves')
       print_slaves = .false.
+
+    case ('-no_super_slaves')
+      print_super_slaves = .false.
 
     case ('-no_tail_lines')
       print_tail_lines = .false.
@@ -2200,6 +2204,13 @@ case ('lattice')
   endif
 
   !
+
+  if (.not. print_super_slaves) then
+    do ie = 0, branch%n_ele_max
+      ele => branch%ele(ie)
+      if (ele%slave_status == super_slave$) picked_ele(ie) = .false.
+    enddo
+  endif
 
   if (.not. print_slaves) then
     do ie = 0, branch%n_ele_max
