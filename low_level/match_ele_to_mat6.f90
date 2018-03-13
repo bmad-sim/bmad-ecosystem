@@ -57,12 +57,12 @@ if (v(beta_a0$) == 0 .and. v(beta_b0$) == 0 .and. &
   return
 endif
 
-! Error Check
+! Error Check. Negative beta can be caused via twiss_propagate1 with a non-symplectic transfer matrix.
 
 old_mat6 = mat6
 old_vec0 = vec0
 
-if (v(beta_a1$) == 0 .or. v(beta_b1$) == 0) then
+if (v(beta_a1$) <= 0 .or. v(beta_b1$) <= 0) then
   mat6 = 0
   vec0 = 0
   err_flag = .true.
@@ -104,7 +104,7 @@ endif
 
 !
 
-if (v(beta_a0$) == 0 .or. v(beta_b0$) == 0) then
+if (v(beta_a0$) <= 0 .or. v(beta_b0$) <= 0) then
   mat6 = 0
   err_flag = .true.
   call kill_taylor (ele%taylor)
