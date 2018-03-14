@@ -1262,7 +1262,7 @@ case ('emit.', 'norm_emit.')
 
   case ('emit.a', 'norm_emit.a')
     if (data_source == 'lat') then
-      if (lat%param%geometry == open$) then
+      if (lat%param%geometry == open$ .and. ix_ele > -1) then
         if (.not. allocated(tao_branch%rad_int%ele)) then
           call out_io (s_error$, r_name, 'tao_branch%rad_int not allocated')
           return
@@ -1282,7 +1282,7 @@ case ('emit.', 'norm_emit.')
     
   case ('emit.b', 'norm_emit.b')  
     if (data_source == 'lat') then
-      if (lat%param%geometry == open$) then
+      if (lat%param%geometry == open$ .and. ix_ele > -1) then
         if (.not. allocated(tao_branch%rad_int%ele)) then
           call out_io (s_error$, r_name, 'tao_branch%rad_int not allocated')
           return

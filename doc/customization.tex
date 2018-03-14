@@ -285,21 +285,31 @@ The formula for single particle emittance is
   \label{e:emittance}
 \Endeq
 Place the following code in \vn{tao_hook_evaluate_a_datum.f90} in the
-\cmd{case select} construct (also add the necessary type declarations)
+\cmd{case select} construct. Also add the necessary type declarations. See the 
+routine \vn{tao_evaluate_a_datum} as an example.
 \begin{example}
   type (coord_struct), pointer :: orbit(:)
+  type (ele_struct), pointer :: ele
+  type (lat_struct), pointer :: lat
+  integer ix_ele
   ...
+  lat => tao_lat%lat
   orbit => tao_lat%tao_branch(0)%orbit
+  ele => tao_pointer_to_datum_ele (lat, datum%ele_name, datum%ix_ele, datum, &
+                                                          valid_value, why_invalid)
+  ix_ele = -1
   ...
+  select case (datum.data_source)
   case ('particle_emittance.x') 
-    datum_value =  (ele%a%gamma * orbit(ix1)%vec(1)**2 + &
-		     2 * ele%a%alpha * orbit(ix1)%vec(1) * orbit(ix1)%vec(2) + &
-		     ele%a%beta * orbit(ix1)%vec(2)**2)
+    datum_value =  (ele%a%gamma * orbit(ix_ele)%vec(1)**2 + &
+		     2 * ele%a%alpha * orbit(ix_ele)%vec(1) * orbit(ix_ele)%vec(2) + &
+		     ele%a%beta * orbit(ix_ele)%vec(2)**2)
     
   case ('particle_emittance.y')
-    datum_value = (ele%b%gamma * orbit(ix1)%vec(3)**2 + &
-		     2 * ele%b%alpha * orbit(ix1)%vec(3) * orbit(ix1)%vec(4) + &
-		     ele%b%beta * orbit(ix1)%vec(4)**2)
+    datum_value = (ele%b%gamma * orbit(ix_ele)%vec(3)**2 + &
+		     2 * ele%b%alpha * orbit(ix_ele)%vec(3) * orbit(ix_ele)%vec(4) + &
+		     ele%b%beta * orbit(ix_ele)%vec(4)**2)
+  end select
 \end{example}
 This defines what is to be calculated for each \vn{particle_emittance}
 datum.  There are two transverse coordinates, so two definitions need
