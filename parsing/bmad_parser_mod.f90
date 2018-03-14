@@ -1111,6 +1111,7 @@ if (attrib_word == 'CARTESIAN_MAP') then
     call parse_cartesian_map(ele%cartesian_map(i_ptr), ele, lat, delim, delim_found, err_flag)
   endif
 
+  if (ele%key == wiggler$ .or. ele%key == undulator$) ele%sub_key = map_type$
   return
 endif
 
@@ -6756,10 +6757,7 @@ logical err_flag, delim_found
 name = 'xxx'
 err_flag = .true.
 
-if (ele%key == wiggler$) then
-  ct_map%master_parameter = polarity$
-  ele%sub_key = map_type$
-endif
+if (ele%key == wiggler$) ct_map%master_parameter = polarity$
 
 !
 
