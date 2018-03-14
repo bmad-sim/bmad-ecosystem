@@ -34,9 +34,6 @@ contains
 ! This routine is essentially rtsafe from Numerical Recipes with the feature that it returns
 ! a status.
 !
-! Modules needed:
-!   use super_recipes_mod
-!
 ! Input:
 !   func(x)  -- Function whose root is to be found. See rtsafe for more details.
 !   x1, x2   -- Real(rp): Bracket values.
@@ -140,9 +137,6 @@ end function super_rtsafe
 ! This routine is essentially zbrent from Numerical Recipes with the feature that it returns
 ! an error flag if something goes wrong instead of bombing.
 !
-! Modules needed:
-!   use super_recipes_mod
-!
 ! Input:
 !   func(x)  -- Function whose root is to be found. See zbrent for more details.
 !   x1, x2   -- Real(rp): Bracket values.
@@ -164,7 +158,7 @@ real(rp) :: x_zero
 
 interface
   function func(x)
-    use precision_def
+    import
     implicit none
     real(rp), intent(in) :: x
     real(rp) :: func
@@ -276,9 +270,6 @@ end function super_zbrent
 ! This routine is essentially mrqmin from Numerical Recipes with some added features and
 ! some code tweaking to make the code run faster.
 !
-! Modules needed:
-!   use super_recipes_mod
-!
 ! Input:
 !   y(:)        -- Real(rp): Data to fit to. See mrqmin in NR for more details.
 !   weight(:)   -- Real(rp): This is equivalent to the 1/sig^2 of mrqmin in NR.
@@ -336,7 +327,7 @@ logical, intent(in), optional :: maska(:)
 
 interface
   subroutine funcs(a, yfit, dyda, status)
-    use precision_def
+    import
     real(rp), intent(in) :: a(:)
     real(rp), intent(out) :: yfit(:)
     real(rp), intent(out) :: dyda(:, :)
@@ -449,7 +440,7 @@ integer status
 
 interface
   subroutine funcs(a, yfit, dyda, status)
-    use precision_def
+    import
     real(rp), intent(in) :: a(:)
     real(rp), intent(out) :: yfit(:)
     real(rp), intent(out) :: dyda(:, :)
@@ -641,21 +632,32 @@ end subroutine super_ludcmp
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function super_brent (ax, bx, cx, func, rel_tol, abs_tol, xmin)
+! Function super_brent (ax, bx, cx, func, rel_tol, abs_tol, xmin) result (f_max)
+!
+! Routine to find the minimum of a function.
 !
 ! This routine is essentially brent from Numerical Recipes with the added feature
 ! there are two tollerances: rel_tol and abs_tol.
 !
-! Modules needed:
-!   use super_recipes_mod
+! The function func should satisfy the following interface:
+!   function func(x)
+!     use precision_def
+!     implicit none
+!     real(rp), intent(in) :: x
+!     real(rp) :: func
+!   end function func
 !
 ! Input:
+!   ax      -- real(rp): Lower bound of search range.
+!   bx      -- real(rp): point between ax and cx such that func(bx) < func(ax) and func(bx) < func(cx).
+!   cx      -- real(rp): Upper bound of search range.
+!   func    -- function: One dimensional function. 
+!   rel_tol -- real(rp): Relative tolerance.
+!   abs_tol -- real(rp): Absolute tolerance.  
 !
-!
-! Output
-!
-!
-!
+! Output:
+!   x_min   -- real(rp): minimum of the function.
+!   f_max   -- real(rp): Value at the minimum = func(x_min).
 !-
 
 function super_brent(ax, bx, cx, func, rel_tol, abs_tol, xmin) result (f_max)
@@ -778,5 +780,83 @@ b = c
 c = d
 end subroutine shft
 end function super_brent
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function super_qromb (func, a, b, rel_tol, abs_tol, k_order, err_flag) result (integral)
+!
+! Routine to use Romberg integration to integrate a function.
+!
+! This is essentially qromb from Numerical Recipes.
+!
+! The function func should satisfy the following interface:
+!   function func(x)
+!     use precision_def
+!     implicit none
+!     real(rp), intent(in) :: x
+!     real(rp) :: func
+!   end function func
+!
+! Input:
+!   func    -- function: Function to integrate.
+!   a       -- real(rp): Lower bound of integration region.
+!   b       -- real(rp): Upper bound of integration region.
+!   rel_tol -- real(rp): Relative tolerance.
+!   abs_tol -- real(rp): Absolute tolerance.
+!   k_order -- integer: Integration order. For smooth functions 5 is a good value. Use 2 if not smooth.
+!
+! Output:
+!   integral  -- real(rp): Integral.
+!   err_flag  -- logical: Set True if there is an error.
+!-
+
+function super_qromb (func, a, b, rel_tol, abs_tol, k_order, err_flag) result (integral)
+
+use nr, only : polint, trapzd
+
+implicit none
+
+integer, parameter :: jmax = 50, jmaxp = jmax+1
+
+real(rp)  :: a, b, rel_tol, abs_tol, integral
+real(rp) :: d_int, h(jmaxp), s(jmaxp)
+
+integer :: k_order
+integer :: j, k, km
+
+logical err_flag
+
+interface
+  function func(x)
+  import
+  real(rp), dimension(:), intent(in) :: x
+  real(rp), dimension(size(x)) :: func
+  end function func
+end interface
+
+!
+
+err_flag = .false.
+k = k_order
+km = k - 1
+h(1) = 1.0
+
+!
+
+do j = 1, jmax
+  call trapzd(func, a, b, s(j), j)
+  if (j >= k) then
+    call polint(h(j-km:j), s(j-km:j), 0.0_rp, integral, d_int)
+    if (abs(d_int) <= rel_tol*abs(integral) + abs_tol) return
+  end if
+  s(j+1) = s(j)
+  h(j+1) = 0.25_rp*h(j)
+end do
+
+err_flag = .true.
+
+end function super_qromb
 
 end module
