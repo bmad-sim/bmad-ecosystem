@@ -13,6 +13,7 @@ implicit none
 type spin_track_point_struct
   real(rp) :: xfer_mat(3,3) = 0         ! 1-turn Spin transfer matrix starting at N^th turn 
   real(rp) :: invar_spin(3) = 0         ! Inavarient spin.
+  real(rp) :: ave_invar_spin(3) = 0     ! Averaged invariant spin.
   real(rp) :: x_spin_axis(3) = 0        ! x-axis of coordinate system for calculating the spin
   real(rp) :: y_spin_axis(3) = 0        ! y-axis of coordinate system for calculating the spin
   real(rp) :: spin_track(3) = 0         ! Tracking for finding tune.
@@ -90,19 +91,19 @@ real(rp), allocatable :: merit_vec(:)
 
 integer i, j, k, k2, ix, it, ir, j1, j2, jj, n, nn, ibx, iby, ibz, ix_x, ix_y, ix_z, ix_xyz(3), np
 integer i0, i1, i2, n_del, n_turns_min, n_turns_max, n0(3), n1(3), track_state, i_dependent, n_wind
-integer i_turn, i_cycle, ix_lat_branch, status, ia, relaxation_weight
+integer i_turn, i_cycle, ix_lat_branch, status, ia, relaxation_weight, scatter_weight
 integer calc_every, n_points(3)
 integer, allocatable :: indx(:)
 
-logical rf_on, first_time, linear_in_action, mode_is_oscillating(3), err
+logical rf_on, first_time, linear_in_action, mode_is_oscillating(3), err, spin_tune_calc, full_average
 logical scatter_minimization_calc, self_consistent_calc, is_indep(3), at_end, out_of_range, verbose, debug
 
 character(200) bmad_lat, param_file, methods_data_file
 character(6) num_str
 
 namelist / strob_params / bmad_lat, rf_on, orbit_start, orbit_stop, n_points, n_turns_min, n_turns_max, calc_every, &
-           relaxation_tolerance, scatter_norm_cutoff, methods_data_file, methods_invar_spin0, &
-           ix_lat_branch, linear_in_action, invar_spin_tolerance, spin_tune_tolerance, &
+           relaxation_tolerance, scatter_norm_cutoff, methods_data_file, methods_invar_spin0, scatter_weight, &
+           ix_lat_branch, linear_in_action, invar_spin_tolerance, spin_tune_tolerance, spin_tune_calc, full_average, &
            scatter_minimization_calc, self_consistent_calc, verbose, debug, z_global_axis, relaxation_weight
 
 ! Read parameter file
@@ -124,11 +125,14 @@ spin_tune_tolerance = 1e-3
 scatter_norm_cutoff = 1e-6
 scatter_minimization_calc = .true.
 self_consistent_calc = .true.
+spin_tune_calc = .true.
 verbose = .true.
 z_global_axis = 0
 methods_data_file = ''
 methods_invar_spin0 = 0
-relaxation_weight = 0
+relaxation_weight = 1
+scatter_weight = 1
+full_average = .true.
 
 open (1, file = param_file)
 read (1, nml = strob_params)
@@ -244,6 +248,7 @@ do ix_z = 1, n_points(3)
   old_relaxed_invar_spin = 0
   old_scatter_min_invar_spin = 0
   old_invar_spin = 0
+  dtune = 0
 
   turns_loop: do i_turn = 0, n_turns_max
     do i = 1, 3
@@ -411,9 +416,12 @@ do ix_z = 1, n_points(3)
 
         ! Now compute the invarient spin turn-by-turn from the spin field calculated from the averaged invariant.
 
-        s(i_turn)%invar_spin = average_invariant_spin(s(i_turn), relaxation_weight)  
+        do nn = 0, i_turn
+          s(nn)%ave_invar_spin = average_invariant_spin(s(nn), relaxation_weight)  
+        enddo
+
         do nn = i_turn-1, 0, -1
-          s(nn)%invar_spin = average_invariant_spin(s(nn), relaxation_weight) + matmul(s(nn+1)%invar_spin, s(nn)%xfer_mat)
+          s(nn)%invar_spin = s(nn)%ave_invar_spin + matmul(s(nn+1)%invar_spin, s(nn)%xfer_mat)
         enddo
 
         s(0)%invar_spin = s(0)%invar_spin / norm2(s(0)%invar_spin)
@@ -466,7 +474,7 @@ do ix_z = 1, n_points(3)
 
       do i_cycle = 1, 100
         call scatter_min_merit_vec (a_spin, merit_vec, nn, out_of_range)
-        if (out_of_range) then
+        if (verbose .and. out_of_range) then
           print '(i4, a)', i_cycle, ' Scatter minimization: Out of Range!'
         endif
         if (at_end) exit
@@ -497,125 +505,134 @@ do ix_z = 1, n_points(3)
 
     ! First find a direction in spin space that is not near being antiparallel to any invariant spin direction.
 
-    z_try%merit = 1
-    do i = 0, i_turn
-      do j = 1, 24
-        z_try(j)%merit = min(z_try(j)%merit, dot_product(z_try(j)%z_axis, s(i)%invar_spin))
+    if (spin_tune_calc) then
+      z_try%merit = 1
+      do i = 0, i_turn
+        do j = 1, 24
+          z_try(j)%merit = min(z_try(j)%merit, dot_product(z_try(j)%z_axis, s(i)%invar_spin))
+        enddo
       enddo
-    enddo
 
-    n = maxloc(z_try%merit, 1)
-    z_global = z_try(n)%z_axis
+      n = maxloc(z_try%merit, 1)
+      z_global = z_try(n)%z_axis
 
-    if (any(z_global_axis /= 0)) z_global = z_global_axis / norm2(z_global_axis)
+      if (any(z_global_axis /= 0)) z_global = z_global_axis / norm2(z_global_axis)
 
-    if (verbose) then
-      print '(a, 3f12.6)', '  Z_global axis: ', z_global
-    endif
+      if (verbose) then
+        print '(a, 3f12.6)', '  Z_global axis: ', z_global
+      endif
 
-    ! Now construct rather arbitrary transverse coords to this direction. 
-    ! These are called the  global coordinants
+      ! Now construct rather arbitrary transverse coords to this direction. 
+      ! These are called the  global coordinants
 
-    x_global = [0.0_rp, -z_global(3), z_global(2)]
-    x_global = x_global / norm2(x_global)
-    y_global = cross_product(z_global, x_global)
+      x_global = [0.0_rp, -z_global(3), z_global(2)]
+      x_global = x_global / norm2(x_global)
+      y_global = cross_product(z_global, x_global)
 
-    ! At each track point construct transverse coordiantes that are close to the global transverse axes.
-
-    do i = 0, i_turn
-      rot_axis = cross_product(z_global, s(i)%invar_spin)
-      norm = norm2(rot_axis)
-      rot_axis = rot_axis / norm
-
-      angle = atan2(norm, dot_product(z_global, s(i)%invar_spin))
-      s(i)%x_spin_axis = rotate_vec_given_axis_angle(x_global, rot_axis, angle)
-      s(i)%y_spin_axis = rotate_vec_given_axis_angle(y_global, rot_axis, angle)
-    enddo
-
-    ! Track a spin in the transverse plane.
-
-    call transverse_plane_track(.true.)
-
-    ! First pass at adjusting the axes to make the phase advance independent of angle.
-
-    if (debug) call write_spin_track('before_track.dat')
-
-    call rotate_axes_to_flatten_spin_phase_advance (10)
-    call transverse_plane_track(.true.)
-
-    if (debug) call write_spin_track('after_track.dat')
-
-    !
-
-    do i = 0, i_turn
-      if (s(i)%track_angle_corrected) cycle
-      do j = 0, i_turn
-        print '(i6, 3f12.6, 3i6, l6, 6i6)', j, s(j)%orbit_phase, s(j)%ix_nearest, &
-                                             s(j)%track_angle_corrected, s(j)%indexx
-      enddo
-      print *, 'ERROR IN ADJUSTING AXES. PLEASE GET HELP!', i
-      stop
-    enddo
-
-    ! Fourier
-
-    fourier = fourier_mode_struct()
-    do j = 1, 3
-      if (.not. mode_is_oscillating(j)) cycle
+      ! At each track point construct transverse coordiantes that are close to the global transverse axes.
 
       do i = 0, i_turn
-        do it = 0, n_term_max
-          ct = cos(twopi * it * s(i)%orbit_phase(j))
-          st = sin(twopi * it * s(i)%orbit_phase(j))
+        rot_axis = cross_product(z_global, s(i)%invar_spin)
+        norm = norm2(rot_axis)
+        rot_axis = rot_axis / norm
 
-          angle = twopi * s(i)%orbit_phase(j)
-          do ir = -n_rot_max, n_rot_max
-            x_spin_axis = rotate_vec_given_axis_angle(s(i)%x_spin_axis, s(i)%invar_spin, ir*angle)
-            y_spin_axis = rotate_vec_given_axis_angle(s(i)%y_spin_axis, s(i)%invar_spin, ir*angle)
-
-            do ix = 1, 3
-              fourier%mode(j)%rot(ir)%term(it)%axis(1)%component(ix)%cos = fourier%mode(j)%rot(ir)%term(it)%axis(1)%component(ix)%cos + ct * x_spin_axis(ix)
-              fourier%mode(j)%rot(ir)%term(it)%axis(1)%component(ix)%sin = fourier%mode(j)%rot(ir)%term(it)%axis(1)%component(ix)%sin + st * x_spin_axis(ix)
-              fourier%mode(j)%rot(ir)%term(it)%axis(2)%component(ix)%cos = fourier%mode(j)%rot(ir)%term(it)%axis(2)%component(ix)%cos + ct * y_spin_axis(ix)
-              fourier%mode(j)%rot(ir)%term(it)%axis(2)%component(ix)%sin = fourier%mode(j)%rot(ir)%term(it)%axis(2)%component(ix)%sin + st * y_spin_axis(ix)
-            enddo
-          enddo
-        enddo
+        angle = atan2(norm, dot_product(z_global, s(i)%invar_spin))
+        s(i)%x_spin_axis = rotate_vec_given_axis_angle(x_global, rot_axis, angle)
+        s(i)%y_spin_axis = rotate_vec_given_axis_angle(y_global, rot_axis, angle)
       enddo
 
-      do it = 0, n_term_max
-        do ir = -n_rot_max, n_rot_max
-          do ia = 1, 2
-            do ix = 1, 3
-              fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%cos = fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%cos / (i_turn + 1)
-              fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%sin = fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%sin / (i_turn + 1)
-              fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%amp = norm2([fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%cos, fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%sin])
-              fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%phase = atan2(fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%sin, fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%cos) / twopi
-            enddo
-            fourier%mode(j)%rot(ir)%term(it)%axis(ia)%amp = norm2(fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(:)%amp)
-          enddo
-        enddo
-      enddo
-    enddo
+      ! Track a spin in the transverse plane.
 
-    if (debug) then
-      print '(a)', '# Mode  Axis_Rot |   Amp_x   Amp_y'
+      call transverse_plane_track(.true.)
+
+      ! First pass at adjusting the axes to make the phase advance independent of angle.
+
+      if (debug) call write_spin_track('before_track.dat')
+
+      call rotate_axes_to_flatten_spin_phase_advance (10)
+      call transverse_plane_track(.true.)
+
+      if (debug) call write_spin_track('after_track.dat')
+
+      !
+
+      do i = 0, i_turn
+        if (s(i)%track_angle_corrected) cycle
+        do j = 0, i_turn
+          print '(i6, 3f12.6, 3i6, l6, 6i6)', j, s(j)%orbit_phase, s(j)%ix_nearest, &
+                                               s(j)%track_angle_corrected, s(j)%indexx
+        enddo
+        print *, 'ERROR IN ADJUSTING AXES. PLEASE GET HELP!', i
+        stop
+      enddo
+
+      ! Fourier
+
+      fourier = fourier_mode_struct()
       do j = 1, 3
         if (.not. mode_is_oscillating(j)) cycle
-        do ir = -n_rot_max, n_rot_max
-          print '(i6, i10, 3x, 10(2f8.4, 4x))', j, ir, (fourier%mode(j)%rot(ir)%term(it)%axis(:)%amp, it = 0, n_term_max)
+
+        do i = 0, i_turn
+          do it = 0, n_term_max
+            ct = cos(twopi * it * s(i)%orbit_phase(j))
+            st = sin(twopi * it * s(i)%orbit_phase(j))
+
+            angle = twopi * s(i)%orbit_phase(j)
+            do ir = -n_rot_max, n_rot_max
+              x_spin_axis = rotate_vec_given_axis_angle(s(i)%x_spin_axis, s(i)%invar_spin, ir*angle)
+              y_spin_axis = rotate_vec_given_axis_angle(s(i)%y_spin_axis, s(i)%invar_spin, ir*angle)
+
+              do ix = 1, 3
+                fourier%mode(j)%rot(ir)%term(it)%axis(1)%component(ix)%cos = fourier%mode(j)%rot(ir)%term(it)%axis(1)%component(ix)%cos + ct * x_spin_axis(ix)
+                fourier%mode(j)%rot(ir)%term(it)%axis(1)%component(ix)%sin = fourier%mode(j)%rot(ir)%term(it)%axis(1)%component(ix)%sin + st * x_spin_axis(ix)
+                fourier%mode(j)%rot(ir)%term(it)%axis(2)%component(ix)%cos = fourier%mode(j)%rot(ir)%term(it)%axis(2)%component(ix)%cos + ct * y_spin_axis(ix)
+                fourier%mode(j)%rot(ir)%term(it)%axis(2)%component(ix)%sin = fourier%mode(j)%rot(ir)%term(it)%axis(2)%component(ix)%sin + st * y_spin_axis(ix)
+              enddo
+            enddo
+          enddo
+        enddo
+
+        do it = 0, n_term_max
+          do ir = -n_rot_max, n_rot_max
+            do ia = 1, 2
+              do ix = 1, 3
+                fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%cos = fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%cos / (i_turn + 1)
+                fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%sin = fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%sin / (i_turn + 1)
+                fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%amp = norm2([fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%cos, fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%sin])
+                fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%phase = atan2(fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%sin, fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(ix)%cos) / twopi
+              enddo
+              fourier%mode(j)%rot(ir)%term(it)%axis(ia)%amp = norm2(fourier%mode(j)%rot(ir)%term(it)%axis(ia)%component(:)%amp)
+            enddo
+          enddo
         enddo
       enddo
+
+      if (debug) then
+        print '(a)', '# Mode  Axis_Rot |   Amp_x   Amp_y'
+        do j = 1, 3
+          if (.not. mode_is_oscillating(j)) cycle
+          do ir = -n_rot_max, n_rot_max
+            print '(i6, i10, 3x, 10(2f8.4, 4x))', j, ir, (fourier%mode(j)%rot(ir)%term(it)%axis(:)%amp, it = 0, n_term_max)
+          enddo
+        enddo
+      endif
+
+      ! Now calculate the tune
+
+      do i = 1, i_turn
+        s(i)%spin_track_angle = s(i-1)%spin_track_angle + s(i-1)%spin_track_dangle
+      enddo
+
+      spin_tune = (s(i_turn)%spin_track_angle - s(0)%spin_track_angle) / i_turn
+      dtune = abs(spin_tune - old_spin_tune)
+      old_spin_tune = spin_tune
+
+      if (verbose) then
+        print '(a, f10.5)',  '  Spin_Tune:  ', spin_tune
+      endif
     endif
 
-    ! Now calculate the tune
-
-    do i = 1, i_turn
-      s(i)%spin_track_angle = s(i-1)%spin_track_angle + s(i-1)%spin_track_dangle
-    enddo
-
-    spin_tune = (s(i_turn)%spin_track_angle - s(0)%spin_track_angle) / i_turn
-
+    !-----------------------------------------------------------------------------
     ! p_lim calc
 
     ave_invar_spin = [sum(s(0:i_turn)%invar_spin(1)), sum(s(0:i_turn)%invar_spin(2)), sum(s(0:i_turn)%invar_spin(3))] / (i_turn + 1)
@@ -624,15 +641,12 @@ do ix_z = 1, n_points(3)
     ! Print some results
 
     if (verbose) then
-      print '(a, f10.5)',  '  Spin_Tune:  ', spin_tune
       print '(a, 3f10.5)', '  Average Spin:', ave_invar_spin
       print '(a, f10.5)',  '  P_lim:', p_lim
     endif
 
     d_invar_spin = s(0)%invar_spin - old_invar_spin
-    dtune = abs(spin_tune - old_spin_tune)
     old_invar_spin = s(0)%invar_spin
-    old_spin_tune = spin_tune
 
     if (norm2(d_invar_spin) < invar_spin_tolerance .and. dtune < spin_tune_tolerance) then
       if (verbose) then
@@ -755,26 +769,20 @@ function average_invariant_spin (s_this, weight) result (invar_spin)
 
 type (spin_track_point_struct) s_this
 real(rp) phase(3), invar_spin(3)
-real(rp) f(3), r, dphase(3), r_tot
+real(rp) f(3), r, dphase(3)
 integer weight
 integer i, n2, kk, nb(3)
 
-!
-
-r_tot = 0
+! Note: This average is weighted and not nomalized.
 
 invar_spin = 0
 do kk = 1, 6
   n2 = s_this%ix_nearest(kk)
   if (n2 == -1) cycle
   dphase = phase_diff(s_this%orbit_phase - s(n2)%orbit_phase)
-  r = 1 / max(scatter_norm_cutoff, norm2(dphase))
-  r_tot = r_tot + r
-  invar_spin = invar_spin + r * s(n2)%invar_spin / norm2(s(n2)%invar_spin)
+  r = 1 / max(scatter_norm_cutoff, norm2(dphase))**weight
+  invar_spin = invar_spin + r * s(n2)%invar_spin
 enddo
-
-invar_spin = invar_spin / norm2(invar_spin)
-if (weight /= 0) invar_spin = invar_spin * r_tot**weight
 
 end function average_invariant_spin
 
@@ -866,15 +874,17 @@ n_pts = 0
 do n = 0, i_turn
   r = 0
   dspin = 0
+  ! Loop over nearest eighbor points
   do kk = 1, 6
     n2 = s(n)%ix_nearest(kk)
     if (n2 == -1) cycle
     dphase = phase_diff(s(n)%orbit_phase - s(n2)%orbit_phase)
-    r(kk) = 1 / max(scatter_norm_cutoff, norm2(dphase))
+    r(kk) = 1 / max(scatter_norm_cutoff, norm2(dphase))**scatter_weight
     dspin(kk,:) = s(n2)%invar_spin - s(n)%invar_spin
   enddo
 
-  do j = 1, 3
+  ! Loop over spin components Sx, Sy, Sz
+  do j = 1, 3  
     n_pts = n_pts + 1
     if (out_of_range) then
       merit_vec(n_pts) = amp2 * sum(r)
