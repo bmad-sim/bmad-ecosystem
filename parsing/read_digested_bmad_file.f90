@@ -1,5 +1,5 @@
 !+
-! Subroutine read_digested_bmad_file (digested_file, lat, inc_version, err_flag)
+! Subroutine read_digested_bmad_file (digested_file, lat, inc_version, err_flag, parser_calling)
 !
 ! Subroutine to read in a digested file. The subroutine will check that
 ! the version of the digested file is up to date and that the digested file
@@ -16,14 +16,20 @@
 !
 ! Output:
 !   lat         -- lat_struct: Output lattice structure
-!   inc_version -- Integer: bmad_inc_version number stored in the lattice file.
+!   inc_version -- integer: bmad_inc_version number stored in the lattice file.
 !                   If the file is current this number should be the same 
 !                   as the global parameter bmad_inc_version$. 
 !                   Set to -1 if there is a read error.
-!   err_flag    -- Logical, optional: Set True if there is an error. False otherwise.
+!   err_flag    -- logical, optional: Set True if there is an error. False otherwise.
+!   parser_calling
+!               -- logical, optional: Is this routine being called from a parser routine (like bmad_parser)?
+!                  Default is False. This argument determines what are considered errors. For example, a
+!                  moved digested file is considered an error if this routine is called from a parser but
+!                  not otherwise. The reason for this dichotomy is that a parser is able to reread the
+!                  original lattice file.
 !-
 
-subroutine read_digested_bmad_file (digested_file, lat, inc_version, err_flag)
+subroutine read_digested_bmad_file (digested_file, lat, inc_version, err_flag, parser_calling)
 
 use ptc_interface_mod, dummy => read_digested_bmad_file
 
@@ -40,7 +46,7 @@ real(rp) value(num_ele_attrib$)
 
 integer inc_version, d_unit, n_files, file_version, i, j, k, ix, ix_value(num_ele_attrib$)
 integer stat_b(13), stat_b2, stat_b8, stat_b10, n_branch, n, control_type, coupler_at
-integer ierr, stat, ios, ios2, n_wall_section, garbage, j1, j2
+integer ierr, stat, ios, ios2, n_wall_section, garbage, j1, j2, io_err_level
 
 character(*) digested_file
 character(200) fname_read, fname_versionless, fname_full
@@ -48,16 +54,23 @@ character(200) input_file_name, full_digested_file, digested_prefix_in, digested
 character(200), allocatable :: file_names(:)
 character(100), allocatable :: list(:)
 character(60) p_name
-character(25) :: r_name = 'read_digested_bmad_file'
+character(*), parameter :: r_name = 'read_digested_bmad_file'
 
-logical, optional :: err_flag
-logical is_ok
-logical found_it, can_read_this_old_version, mode3, error, is_match, err, err_found
+logical, optional :: err_flag, parser_calling
+logical is_ok, parser_call
+logical found_it, mode3, error, is_match, err, err_found
 
 ! init all elements in lat
 
 if (present(err_flag)) err_flag = .true.
 err_found = .false.
+parser_call = logic_option(.false., parser_calling)
+
+if (parser_call) then
+  io_err_level = s_info$
+else
+  io_err_level = s_error$
+endif
 
 call init_lat (lat)
 
@@ -77,23 +90,17 @@ open (unit = d_unit, file = full_digested_file, status = 'old',  &
 read (d_unit, err = 9010) n_files, file_version
 allocate (file_names(n_files))
 
-! Version is old but recent enough to read.
-
-can_read_this_old_version = .false.
+! Version is old
 
 if (file_version < bmad_inc_version$) then
-  call out_io (s_info$, r_name, ['DIGESTED FILE VERSION OUT OF DATE \i0\ > \i0\ ' ],  &
+  call out_io (io_err_level, r_name, ['DIGESTED FILE VERSION OUT OF DATE \i0\ > \i0\ ' ],  &
                                 i_array = [bmad_inc_version$, file_version ])
-  if (can_read_this_old_version) then 
-    err_found = .true.
-  else
-    close (d_unit)
-    return
-  endif
+  close (d_unit)
+  return
 endif
 
 if (file_version > bmad_inc_version$) then
-  call out_io (s_info$, r_name, &
+  call out_io (io_err_level, r_name, &
        'DIGESTED FILE HAS VERSION: \i0\ ', &
        'GREATER THAN VERSION OF THIS PROGRAM: \i0\ ', &
        'WILL NOT USE THE DIGESTED FILE. YOU SHOULD RECOMPILE THIS PROGRAM.', &
@@ -106,18 +113,18 @@ endif
 ! we can possibly reuse the taylor series.
 
 do i = 1, n_files
-
   stat_b = 0
 
   read (d_unit, err = 9020, end = 9020) fname_read, stat_b2, stat_b8, stat_b10
   file_names(i) = fname_read
+  if (.not. parser_call) cycle  ! Do not need to check if file moved in this case.
 
   ! Cannot use full file name to check if this is the original digested file since
   ! the path may change depending upon what system the program is running on and how
   ! things are mounted. So use stat() instead
 
   if (fname_read(1:10) == '!DIGESTED:') then
-  fname_read = fname_read(11:)
+    fname_read = fname_read(11:)
     ierr = stat(full_digested_file, stat_b)
     ! Time stamp in file is created while file is being written to so is not accurate.
     is_match = (stat_b2 == stat_b(2))            !!!! .and. (stat_b10 == stat_b(10))
@@ -161,7 +168,6 @@ do i = 1, n_files
     if (.not. err_found) call out_io(s_info$, r_name, 'NOTE: DIGESTED FILE OUT OF DATE.')
     err_found = .true.
   endif
-
 enddo
 
 ! we read (and write) the lat in pieces since it is
@@ -341,7 +347,9 @@ return
 !------------------
 
 9000  continue
-!! call out_io (s_warn$, r_name, 'Digested file does not exist: ' // trim(full_digested_file))
+if (.not. parser_call) then
+  call out_io (s_error$, r_name, 'DIGESTED FILE DOES NOT EXIST: ' // trim(full_digested_file))
+endif
 close (d_unit)
 return
 

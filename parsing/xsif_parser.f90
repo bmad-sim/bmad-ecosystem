@@ -68,7 +68,7 @@ logical echo_output, err, error_lcl
 if (present(err_flag)) err_flag = .true.
 
 call form_digested_bmad_file_name (xsif_file, digested_file, full_lat_file_name)
-call read_digested_bmad_file (digested_file, lat, digested_version, err_flag = err)
+call read_digested_bmad_file (digested_file, lat, digested_version, err, .true.)
 
 if (present(use_line)) then
   if (use_line /= '') then

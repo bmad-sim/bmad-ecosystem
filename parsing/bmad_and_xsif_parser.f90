@@ -43,7 +43,7 @@ integer ix, inc_version
 ! Digested file?
 
 if (index(lat_file, '.digested') /= 0) then
-  call read_digested_bmad_file (lat_file, lat, inc_version, err_flag)
+  call read_digested_bmad_file (lat_file, lat, inc_version, err_flag, .true.)
   read_ok = (inc_version == bmad_inc_version$)
   if (present(digested_read_ok)) digested_read_ok = read_ok
   if (read_ok) then

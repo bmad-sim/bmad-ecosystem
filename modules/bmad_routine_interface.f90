@@ -1019,13 +1019,13 @@ subroutine remove_lord_slave_link (lord, slave)
   type (ele_struct), target :: lord, slave
 end subroutine
 
-subroutine read_digested_bmad_file (in_file_name, lat, version, err_flag)
+subroutine read_digested_bmad_file (in_file_name, lat, version, err_flag, parser_calling)
   import
   implicit none
   type (lat_struct), target, intent(inout) :: lat
   integer version
   character(*) in_file_name
-  logical, optional :: err_flag
+  logical, optional :: err_flag, parser_calling
 end subroutine
 
 subroutine reallocate_beam (beam, n_bunch, n_particle)
