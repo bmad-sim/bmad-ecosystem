@@ -795,8 +795,8 @@ end function super_brent
 !   function func(x)
 !     use precision_def
 !     implicit none
-!     real(rp), intent(in) :: x
-!     real(rp) :: func
+!     real(rp), intent(in) :: x(:)
+!     real(rp) :: func(size(x))
 !   end function func
 !
 ! Input:
@@ -831,8 +831,8 @@ logical err_flag
 interface
   function func(x)
   import
-  real(rp), dimension(:), intent(in) :: x
-  real(rp), dimension(size(x)) :: func
+  real(rp), intent(in) :: x(:)
+  real(rp) :: func(size(x))
   end function func
 end interface
 
@@ -842,6 +842,13 @@ err_flag = .false.
 k = k_order
 km = k - 1
 h(1) = 1.0
+
+!
+
+if (a == b) then
+  integral = 0
+  return
+endif
 
 !
 
