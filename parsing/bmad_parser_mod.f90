@@ -1104,7 +1104,9 @@ if (attrib_word == 'CARTESIAN_MAP') then
   !
 
   if (word(1:8) == 'BINARY::') then
-    call read_binary_cartesian_map(word(9:), ele%cartesian_map(i_ptr), err_flag)
+    call parser_file_stack('push', word(9:), err = err_flag, open_file = .false.); if (err_flag) return
+    call read_binary_cartesian_map(word(9:), ele%cartesian_map(i_ptr), err_flag); if (err_flag) return
+    call parser_file_stack('pop')
   else
     if (.not. expect_this ('{', .true., .true., 'AFTER "CARTESIAN_MAP"', ele, delim, delim_found)) return
     allocate (ele%cartesian_map(i_ptr)%ptr)
@@ -1149,7 +1151,9 @@ if (attrib_word == 'CYLINDRICAL_MAP') then
   endif
 
   if (word(1:8) == 'BINARY::') then
-    call read_binary_cylindrical_map(word(9:), ele%cylindrical_map(i_ptr), err_flag)
+    call parser_file_stack('push', word(9:), err = err_flag, open_file = .false.); if (err_flag) return
+    call read_binary_cylindrical_map(word(9:), ele%cylindrical_map(i_ptr), err_flag); if (err_flag) return
+    call parser_file_stack('pop')
   else
     if (.not. expect_this ('{', .true., .true., 'AFTER "CYLINDRICAL_MAP"', ele, delim, delim_found)) return
     allocate (ele%cylindrical_map(i_ptr)%ptr)
@@ -1196,7 +1200,9 @@ if (attrib_word == 'GRID_FIELD') then
   endif
 
   if (word(1:8) == 'BINARY::') then
-    call read_binary_grid_field(word(9:), ele%grid_field(i_ptr), err_flag)
+    call parser_file_stack('push', word(9:), err = err_flag, open_file = .false.); if (err_flag) return
+    call read_binary_grid_field(word(9:), ele%grid_field(i_ptr), err_flag); if (err_flag) return
+    call parser_file_stack('pop')
   else
     if (.not. expect_this ('{', .true., .true., 'AFTER "GRID_FIELD"', ele, delim, delim_found)) return
     allocate (ele%grid_field(i_ptr)%ptr)
@@ -1243,7 +1249,9 @@ if (attrib_word == 'TAYLOR_FIELD') then
   endif
 
   if (word(1:8) == 'BINARY::') then
-    call read_binary_taylor_field(word(9:), ele%taylor_field(i_ptr), err_flag)
+    call parser_file_stack('push', word(9:), err = err_flag, open_file = .false.); if (err_flag) return
+    call read_binary_taylor_field(word(9:), ele%taylor_field(i_ptr), err_flag); if (err_flag) return
+    call parser_file_stack('pop')
   else
     if (.not. expect_this ('{', .true., .true., 'AFTER "TAYLOR_FIELD"', ele, delim, delim_found)) return
     allocate (ele%taylor_field(i_ptr)%ptr)
@@ -2299,14 +2307,14 @@ end subroutine get_next_word
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_file_stack (how, file_name_in, finished, err)
+! Subroutine parser_file_stack (how, file_name_in, finished, err, open_file)
 !
 ! Subroutine to keep track of the files that are opened for reading.
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_file_stack (how, file_name_in, finished, err)
+subroutine parser_file_stack (how, file_name_in, finished, err, open_file)
 
 implicit none
 
@@ -2320,7 +2328,7 @@ character(*) how
 character(*), optional :: file_name_in
 character(200) file_name, basename, file_name2
 
-logical, optional :: finished, err
+logical, optional :: finished, err, open_file
 logical found_it, is_relative, valid, err_flag
 
 ! "Init" means init
@@ -2397,19 +2405,23 @@ case ('push', 'push_inline')
   file(i_level)%full_name = file_name
   file(i_level)%f_unit = lunget()
 
-  open (file(i_level)%f_unit, file = file_name, status = 'OLD', action = 'READ', iostat = ios)
-  if (ios /= 0 .or. .not. found_it) then
-    bp_com%current_file => file(i_level-1)  ! For warning
-    if (file_name2 == file_name)  then
-      call parser_error ('UNABLE TO OPEN FILE: ' // file_name, stop_here = .true.)
-    else
-      call parser_error ('UNABLE TO OPEN FILE: ' // file_name, &
-                         'THIS FROM THE LOGICAL FILE NAME: ' // file_name_in, stop_here = .true.)
+  ! Note: open_file will be False when the file is a binary file.
+
+  if (logic_option(.true., open_file)) then
+    open (file(i_level)%f_unit, file = file_name, status = 'OLD', action = 'READ', iostat = ios)
+    if (ios /= 0 .or. .not. found_it) then
+      bp_com%current_file => file(i_level-1)  ! For warning
+      if (file_name2 == file_name)  then
+        call parser_error ('UNABLE TO OPEN FILE: ' // file_name, stop_here = .true.)
+      else
+        call parser_error ('UNABLE TO OPEN FILE: ' // file_name, &
+                           'THIS FROM THE LOGICAL FILE NAME: ' // file_name_in, stop_here = .true.)
+      endif
+      do i = 1, i_level-1
+        close (file(i_level)%f_unit)
+      enddo
+      return
     endif
-    do i = 1, i_level-1
-      close (file(i_level)%f_unit)
-    enddo
-    return
   endif
 
   bp_com%current_file%i_line = 0
@@ -8431,5 +8443,40 @@ call load_parse_line ('init', 1, end_of_file)
 
 
 end subroutine parser_print_line
+
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!+
+! Subroutine parser_init_custom_elements (lat)
+!
+!-
+
+subroutine parser_init_custom_elements (lat)
+
+implicit none
+
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele
+integer i, n
+logical err
+
+! Init custom stuff.
+
+do n = 0, ubound(lat%branch, 1)
+  branch => lat%branch(n)
+  do i = 1, branch%n_ele_max
+    ele => branch%ele(i)
+    if (ele%key == custom$ .or. ele%tracking_method == custom$ .or. &
+        ele%mat6_calc_method == custom$ .or. ele%field_calc == custom$ .or. &
+        ele%aperture_type == custom_aperture$) then
+      call init_custom (ele, err)
+      if (err) bp_com%error_flag = .true.
+    endif
+  enddo
+enddo
+
+end subroutine parser_init_custom_elements
 
 end module
