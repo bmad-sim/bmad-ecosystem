@@ -706,6 +706,14 @@ subroutine make_v_mats (ele, v_mat, v_inv_mat)
   real(rp), optional :: v_inv_mat(4,4)
 end subroutine
 
+function master_parameter_value (master_parameter, ele) result (value)
+  import
+  implicit none
+  type (ele_struct) ele
+  real(rp) value
+  integer master_parameter
+end function
+
 subroutine mat6_add_offsets (ele, param)
   import
   implicit none
