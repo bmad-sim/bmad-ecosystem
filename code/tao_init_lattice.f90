@@ -200,17 +200,13 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     call aml_parser (design_lat%file, u%design%lat, err_flag = err)
   case ('digested')
     call out_io (s_blank$, r_name, "Reading digested BMAD file " // trim(design_lat%file))
-    call read_digested_bmad_file (design_lat%file, u%design%lat, version)
-    err = (bmad_inc_version$ /= version)
+    call read_digested_bmad_file (design_lat%file, u%design%lat, version, err)
   case default
     call out_io (s_abort$, r_name, 'LANGUAGE NOT RECOGNIZED: ' // design_lat%language)
     call err_exit
   end select
 
-  ! When reading digested files there are parser errors associated with, for example, the file
-  ! having been moved. Do not exit for such stuff.
-
-  if (design_lat%language /= 'digested' .and. err .and. .not. s%global%debug_on) then
+  if (err .and. .not. s%global%debug_on) then
     call out_io (s_fatal$, r_name, &
             'PARSER ERROR DETECTED FOR UNIVERSE: \i0\ ', &
             'EXITING...', i_array = (/ i /))
