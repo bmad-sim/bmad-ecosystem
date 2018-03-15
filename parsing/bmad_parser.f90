@@ -100,7 +100,7 @@ debug_line = ''
 
 if (.not. bp_com%always_parse) then
   call form_digested_bmad_file_name (lat_file, digested_file, full_lat_file_name, use_line)
-  call read_digested_bmad_file (digested_file, lat, digested_version, err_flag = err)
+  call read_digested_bmad_file (digested_file, lat, digested_version, err, .true.)
 endif
 
 ! Must make sure that if use_line is present the digested file has used the 
