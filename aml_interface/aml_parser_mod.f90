@@ -26,7 +26,7 @@ integer i, ix, ios
 
 character(40) value, str
 character(32) :: r_name = 'transfer_attribute_info_to_ele'
-logical found
+logical found, err_flag
 
 !
 
@@ -215,7 +215,7 @@ debug_line = ''
 bp_com%parser_name = "AML_PARSER"
 
 call form_digested_bmad_file_name (lat_file, digested_file, full_lat_file_name)
-call read_digested_bmad_file (digested_file, lat, digested_version)
+call read_digested_bmad_file (digested_file, lat, digested_version, err_flag, .true.)
 
 ! Must make sure that if use_line is present the digested file has used the 
 ! correct line

@@ -32,6 +32,7 @@
 subroutine read_digested_bmad_file (digested_file, lat, inc_version, err_flag, parser_calling)
 
 use ptc_interface_mod, dummy => read_digested_bmad_file
+use bmad_parser_mod, dummy2 => read_digested_bmad_file
 
 implicit none
 
@@ -342,9 +343,16 @@ if (.not. err_found) then
   enddo
 endif
 
+if (.not. err_found) then
+  if (lat%input_taylor_order /= 0) ptc_com%taylor_order_saved = lat%input_taylor_order
+  call set_ptc (1.0e12_rp, lat%param%particle)  ! Energy value used does not matter here
+  call parser_init_custom_elements (lat)
+endif
+
 return
 
-!------------------
+!----------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------
 
 9000  continue
 if (.not. parser_call) then

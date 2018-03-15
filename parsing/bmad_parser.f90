@@ -97,6 +97,7 @@ bp_com%input_from_file = .true.
 bp_com%write_digested = .true.
 bp_com%use_local_lat_file = .false.
 debug_line = ''
+err = .false.
 
 if (.not. bp_com%always_parse) then
   call form_digested_bmad_file_name (lat_file, digested_file, full_lat_file_name, use_line)
@@ -124,10 +125,7 @@ if (.not. err .and. .not. bp_com%always_parse) then
     if (lat%input_taylor_order > ptc_com%taylor_order_ptc) bp_com%write_digested = .false.
 
   else
-    if (lat%input_taylor_order /= 0) ptc_com%taylor_order_saved = lat%input_taylor_order
-    call set_ptc (1.0e12_rp, lat%param%particle)  ! Energy value used does not matter here
     if (present(digested_read_ok)) digested_read_ok = .true.
-    call parser_init_custom_elements ()
     call parser_end_stuff (.false.)
     return
   endif
@@ -1161,7 +1159,7 @@ do n = 0, ubound(lat%branch, 1)
   enddo
 enddo
 
-call parser_init_custom_elements ()
+call parser_init_custom_elements (lat)
 
 ! Make the transfer matrices.
 ! Note: The bmad_parser err_flag argument does *not* include errors in 
@@ -1275,30 +1273,6 @@ call deallocate_lat_pointers(in_lat)
 bp_com%parser_name = ''
 
 end subroutine parser_end_stuff 
-
-!---------------------------------------------------------------------
-! contains
-
-subroutine parser_init_custom_elements ()
-
-integer i, n
-
-! Init custom stuff.
-
-do n = 0, ubound(lat%branch, 1)
-  branch => lat%branch(n)
-  do i = 1, branch%n_ele_max
-    ele => branch%ele(i)
-    if (ele%key == custom$ .or. ele%tracking_method == custom$ .or. &
-        ele%mat6_calc_method == custom$ .or. ele%field_calc == custom$ .or. &
-        ele%aperture_type == custom_aperture$) then
-      call init_custom (ele, err)
-      if (err) bp_com%error_flag = .true.
-    endif
-  enddo
-enddo
-
-end subroutine parser_init_custom_elements
 
 !---------------------------------------------------------------------
 ! contains
