@@ -304,7 +304,11 @@ do ib = 0, ubound(lat_out%branch, 1)
           ele_out%key = drift$
           write (ele_out%name, '(a, i0)') 'DRIFT_HYBRID', ix_hyb
         else
-          ele_out%key = hybrid$
+          if (do_taylor) then
+            ele_out%key = taylor$
+          else
+            ele_out%key = hybrid$
+          endif
           write (ele_out%name, '(a, i0)') 'HYBRID', ix_hyb
         endif
 
