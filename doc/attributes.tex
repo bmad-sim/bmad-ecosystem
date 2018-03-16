@@ -2170,6 +2170,19 @@ the name is blank (""), no master parameter is used. The \vn{master_parameter}, 
 defined, is multiplied with the \vn{field_scale} to give the value used to scale the
 fields. The default \vn{master_parameter} is blank ("") except for \vn{wiggler} elements
 where, for historical reasons, the default is \vn{polarity}.
+
+Certain parameters have an associated ``error'' parameter. If the \vn{master_parameter} is one of
+these parameters, the value used to scale the field is the sum of the \vn{master_parameter} and the
+associated error parameter. The elements that have associated error parameters are:
+\begin{example}
+  Parameter     Assoc. Error Param    Element Type
+  ---------     ------------------    --------------
+  Voltage       Voltage_err           E_gun, LCavity
+  Gradient      Gradient_err          E_gun, LCavity
+  Phi0          Phi0_err              E_gun, LCavity
+  G             G_err                 Sbend, Rbend
+  B_field       B_field_err           Sbemd, Rbend
+\end{example}
   \item[phi0_fieldmap] \Newline
 For AC fields, \vn{phi0_fieldmap} is the phase of the field map field relative to the
 fundamental mode. [Note: Documentation on the phase of the fundamental mode is given in

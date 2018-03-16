@@ -914,6 +914,7 @@ call init_attribute_name1 (e_gun$, phi0_autoscale$,                 'PHI0_AUTOSC
 call init_attribute_name1 (elseparator$, gap$,                      'GAP')
 call init_attribute_name1 (elseparator$, e_field$,                  'E_FIELD', quasi_free$)
 call init_attribute_name1 (elseparator$, voltage$,                  'VOLTAGE', quasi_free$)
+call init_attribute_name1 (elseparator$, voltage_err$,              'voltage_err', private$) ! To fool master_parameter_value
 call init_attribute_name1 (elseparator$, r0_mag$,                   'R0_MAG')
 call init_attribute_name1 (elseparator$, r0_elec$,                  'R0_ELEC')
 call init_attribute_name1 (elseparator$, field_master$,             'FIELD_MASTER')
