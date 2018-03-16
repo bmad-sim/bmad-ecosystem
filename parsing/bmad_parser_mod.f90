@@ -5798,6 +5798,16 @@ case (lcavity$)
     endif
   endif
 
+  if (ele%value(voltage_err$) /= 0) then
+    if (ele%value(gradient_err$) /= 0) call parser_error &
+                ('BOTH VOLTAGE_ERR AND GRADIENT_ERR NON-ZERO FOR A LCAVITY:', ele%name)
+    if (ele%value(l$) == 0) then
+      ele%value(gradient_err$) = 0
+    else
+      ele%value(gradient_err$) = ele%value(voltage_err$) / ele%value(l$)
+    endif
+  endif
+
 ! 
 
 case (rfcavity$) 

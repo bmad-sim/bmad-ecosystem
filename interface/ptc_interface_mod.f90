@@ -3711,8 +3711,7 @@ if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
     do j = 1, 3
       do k = 1, size(plane%field(j)%term)
         tm => plane%field(j)%term(k)
-        coef = tm%coef * tf%field_scale * 1d9   ! * c_light / ele2%value(p0c$)
-        if (tf%master_parameter > 0) coef = coef * ele%value(tf%master_parameter)
+        coef = tm%coef * tf%field_scale * 1d9 * master_parameter_value(tf%master_parameter, ele2) ! * c_light / ele2%value(p0c$)
         pancake_field(j,ii)=pancake_field(j,ii)+(coef .mono. tm%expn)
       enddo
     enddo
@@ -3755,19 +3754,19 @@ else
 
   ! NB: Set of pointers only needed if doing stuff other than tracking (like calculating misalignments).
 
-  ptc_fibre%mag%p%dir=>ptc_fibre%dir
-  ptc_fibre%mag%p%beta0=>ptc_fibre%beta0
-  ptc_fibre%mag%p%gamma0i=>ptc_fibre%gamma0i
-  ptc_fibre%mag%p%gambet=>ptc_fibre%gambet
-  ptc_fibre%mag%p%mass=>ptc_fibre%mass
-  ptc_fibre%mag%p%charge=>ptc_fibre%charge
+  ptc_fibre%mag%p%dir     => ptc_fibre%dir
+  ptc_fibre%mag%p%beta0   => ptc_fibre%beta0
+  ptc_fibre%mag%p%gamma0i => ptc_fibre%gamma0i
+  ptc_fibre%mag%p%gambet  => ptc_fibre%gambet
+  ptc_fibre%mag%p%mass    => ptc_fibre%mass
+  ptc_fibre%mag%p%charge  => ptc_fibre%charge
 
-  ptc_fibre%magp%p%dir=>ptc_fibre%dir
-  ptc_fibre%magp%p%beta0=>ptc_fibre%beta0
-  ptc_fibre%magp%p%gamma0i=>ptc_fibre%gamma0i
-  ptc_fibre%magp%p%gambet=>ptc_fibre%gambet
-  ptc_fibre%magp%p%mass=>ptc_fibre%mass
-  ptc_fibre%magp%p%charge=>ptc_fibre%charge
+  ptc_fibre%magp%p%dir     => ptc_fibre%dir
+  ptc_fibre%magp%p%beta0   => ptc_fibre%beta0
+  ptc_fibre%magp%p%gamma0i => ptc_fibre%gamma0i
+  ptc_fibre%magp%p%gambet  => ptc_fibre%gambet
+  ptc_fibre%magp%p%mass    => ptc_fibre%mass
+  ptc_fibre%magp%p%charge  => ptc_fibre%charge
 endif
 
 if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
@@ -3793,8 +3792,7 @@ if (associated(ele2%cylindrical_map) .and. ele2%field_calc == fieldmap$) then
     enddo
 
     if (found) then
-      coef_e = cy%field_scale
-      if (cy%master_parameter > 0) coef_e = coef_e * ele%value(cy%master_parameter)
+      coef_e = cy%field_scale * master_parameter_value(cy%master_parameter, ele)
       if (ele%key == lcavity$ .or. ele%key == rfcavity$) coef_e = coef_e * ele%value(field_autoscale$)
       coef_b = coef_e * c_light / ele%value(p0c$)
       coef_e = -coef_e * 1d-6  ! Notice negative sign.

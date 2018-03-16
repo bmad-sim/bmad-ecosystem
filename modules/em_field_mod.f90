@@ -894,8 +894,7 @@ case(fieldmap$)
 
       !
 
-      fld = fld * ct_map%field_scale
-      if (ct_map%master_parameter > 0) fld = fld * ele%value(ct_map%master_parameter)
+      fld = fld * ct_map%field_scale * master_parameter_value(ct_map%master_parameter, ele)
       if (ele%key == sbend$) call restore_curvilinear_field(fld)
 
       select case (ct_map%field_type)
@@ -908,8 +907,7 @@ case(fieldmap$)
       end select
 
       if (do_df_calc) then
-        dfld = dfld * ct_map%field_scale
-        if (ct_map%master_parameter > 0) dfld = dfld * ele%value(ct_map%master_parameter)
+        dfld = dfld * ct_map%field_scale * master_parameter_value(ct_map%master_parameter, ele)
         if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
           rot2(1,:) = [ cos_ang, sin_ang]
           rot2(2,:) = [-sin_ang, cos_ang]
@@ -953,8 +951,7 @@ case(fieldmap$)
         if (ele%key == rfcavity$) t_ref = 0.25/freq0 - t_ref
       endif
 
-      coef = field_autoscale * cl_map%field_scale
-      if (cl_map%master_parameter > 0) coef = coef * ele%value(cl_map%master_parameter)
+      coef = field_autoscale * cl_map%field_scale * master_parameter_value(cl_map%master_parameter, ele)
 
       !
 
@@ -1141,9 +1138,8 @@ case(fieldmap$)
 
       ! DC modes should have g_field%harmonic = 0
 
-      expt = field_autoscale * g_field%field_scale
+      expt = field_autoscale * g_field%field_scale * master_parameter_value(g_field%master_parameter, ele)
       if (g_field%harmonic /= 0) expt = expt * exp(-I_imaginary * twopi * (freq * (time + t_ref)))
-      if (g_field%master_parameter > 0) expt = expt * ele%value(g_field%master_parameter)
 
       ! calculate field based on grid type
       select case(g_field%geometry)
@@ -1271,8 +1267,7 @@ case(fieldmap$)
 
       !
 
-      fld = fld * t_field%field_scale
-      if (t_field%master_parameter > 0) fld = fld * ele%value(t_field%master_parameter)
+      fld = fld * t_field%field_scale * master_parameter_value(t_field%master_parameter, ele)
       if (ele%key == sbend$ .and. .not. t_field%curved_ref_frame) call restore_curvilinear_field(fld)
 
       select case (t_field%field_type)
