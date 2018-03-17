@@ -2524,7 +2524,7 @@ case ('lattice')
     nl=nl+1; lines(nl) = line1
   endif
 
-  if (limited) then
+  if (limited .and. print_tail_lines) then
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), '(a, i0)') &
           'NOTE: Since no range given, the number of elements shown is first 200 of ', branch%n_ele_track
