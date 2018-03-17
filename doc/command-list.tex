@@ -2684,27 +2684,28 @@ The \vn{write} command creates various files.
 Format:
 \begin{example}
   write 3d_model \{<file_name>\}           ! Write a blender script for a 3D lattice display.
-  write bmad_lattice \{<file_name>\}       ! Write a Bmad lattice file of the model
-  write beam \{-ascii\} -at <element_list> \{<file_name>\} 
+  write bmad_lattice \{-binary\} \{<file_name>\} 
+                                         ! Write a Bmad lattice file of the model
+  write beam \{-binary\} -at <element_list> \{<file_name>\} 
                                          ! Write beam distribution data (\sref{s:beamfile}).
   write blender \{<file_name>\}            ! Write a blender script (Same as 3d_model).
   write covariance_matrix \{file_name\}    ! Write the covariance and alpha matrices 
                                          !   from the Levenburg (lm) optimization.
   write curve <curve_name> \{<file_name>\} ! Write the curve data
   write derivative_matrix \{file_name\}    ! Write the \vn{dModel_Data/dVar} matrix.
-  write digested \{<file_name>\}     ! Write a digested Bmad lattice file of the model.
-  write gif \{<file_name>\}          ! create a gif file of the plot window.
-  write hard                       ! Print the plot window to a printer.
-  write hard-l                     ! Like "hard" except use landscape orientation. 
-  write mad8_lattice \{<file_name>\} ! Write a MAD-8 lattice file of the model
-  write madx_lattice \{<file_name>\} ! Write a MAD-X lattice file of the model
+  write digested \{<file_name>\}      ! Write a digested Bmad lattice file of the model.
+  write gif \{<file_name>\}           ! create a gif file of the plot window.
+  write hard                        ! Print the plot window to a printer.
+  write hard-l                      ! Like "hard" except use landscape orientation. 
+  write mad8_lattice \{<file_name>\}  ! Write a MAD-8 lattice file of the model
+  write madx_lattice \{<file_name>\}  ! Write a MAD-X lattice file of the model
   write ps \{-scale <scale>\} \{<file_name>\}      
-                                   ! Create a PS file of the plot window.
+                                    ! Create a PS file of the plot window.
   write ps-l \{-scale <scale>\} \{<file_name>\}    
-                                   ! Create a PS file with landscape orientation.
+                                    ! Create a PS file with landscape orientation.
   write ptc \{-all\} \{-old\} \{-branch <name_or_index\} \{<file_name>\}
   write variable \{-good_var_only\} \{<file_name>\} 
-                                   ! Create a Bmad file of variable values.
+                                    ! Create a Bmad file of variable values.
 \end{example}
 
 \vskip 7pt 
@@ -2780,6 +2781,11 @@ Beam files can be used to initialize \tao (\sref{s:command.line}). Example
 \begin{example}
   write beam -at *   ! Output beam at every element.
 \end{example}
+
+The \vn{write bmad} command will create a bmad lattice file. The \vn{-binary} switch
+will cause secondary lattice files which are created, for example, for fieldmaps, to
+be written in a binary format. This will speed up the reading of the lattice at the
+expense of portability.
 
 The \vn{write ptc} command creates PTC lattice files (called ``flat'' files).  If the
 \vn{-all} switch is present, there will be two main flat files generated. The \vn{-all}
