@@ -171,7 +171,7 @@ case ('3d_model', 'blender')
 
 case ('bmad_lattice')
 
-  file_format = binary$
+  file_format = ascii$
   file_name0 = 'lat_#.bmad'
   ix_word = 0
 
@@ -179,14 +179,14 @@ case ('bmad_lattice')
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit
 
-    call tao_next_switch (word(ix_word), ['-ascii', '-at   '], .true., switch, err, ix)
+    call tao_next_switch (word(ix_word), ['-binary', '-at   '], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
     case ('');       exit
-    case ('-ascii'); file_format = ascii$
+    case ('-binary'); file_format = binary$
     case default
-      if (file_name0 /= '') then
+      if (file_name0 /= 'lat_#.bmad') then
         call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
         return
       endif
@@ -196,7 +196,7 @@ case ('bmad_lattice')
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
-    call write_bmad_lattice_file (file_name, s%u(i)%model%lat, err)
+    call write_bmad_lattice_file (file_name, s%u(i)%model%lat, err, file_format)
     if (err) return
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
   enddo
