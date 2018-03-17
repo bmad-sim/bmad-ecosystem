@@ -336,11 +336,10 @@ real(rp) :: rf_time, dt_try
 real(rp) :: dt_did, dt_next
 
 real(rp) :: sqrt_n, err_max, dt, dt_temp, t_new, p2, rel_pc, z_phase, new_z_phase
-real(rp) :: r_err(10), r_temp(10), dr_dt(10)
-real(rp) :: r_scal(10), rel_tol, abs_tol
+real(rp) :: r_err(10), r_temp(10), dr_dt(10), r_scaled_err(10), r_scaled_tot(10), abs_scale(10)
+real(rp) :: r_scal(10), rel_tol, abs_tol, pc_ref
 real(rp), parameter :: safety = 0.9_rp, p_grow = -0.2_rp
 real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89d-4
-real(rp), parameter :: tiny = 1.0e-30_rp
 
 integer t_dir
 
@@ -363,6 +362,9 @@ dt = dt_try
 new_orb = orb
 new_z_phase = z_phase
 
+pc_ref = (ele%value(p0c_start$) + ele%value(p0c$)) / 2
+abs_scale = [1d-2, 1d-6*pc_ref, 1d-2, 1d-6*pc_ref, 1d-2, 1d-2*pc_ref, 1.0_rp, 1.0_rp, 1.0_rp, 1d-4] 
+
 do
 
   call rk_time_step1 (ele, param, rf_time,  orb, z_phase, dt, new_orb, new_z_phase, r_err, dr_dt, err_flag)
@@ -384,11 +386,11 @@ do
   else
     ! r_scal(7:9) is for spin
     ! Note that cp is in eV, so 1.0_rp is 1 eV
-    r_scal(:) = [abs(orb%vec) + abs(new_orb%vec), c_light, c_light, c_light, abs(z_phase) + abs(new_z_phase)]  + TINY
-    r_scal(1:5:2) = r_scal(1:5:2) + [0.01_rp, 0.01_rp, 0.01_rp]
-    r_scal(2:6:2) = r_scal(2:6:2) + 1.0_rp + 1d-4* (abs(orb%vec(2))+abs(orb%vec(4))+abs(orb%vec(6)))
-    r_scal(10) = r_scal(10) + 1d-6
-    err_max = maxval(abs(r_err(:)/(r_scal(:)*rel_tol + abs_tol)))
+    r_scal(:) = [abs(orb%vec) + abs(new_orb%vec), 1.0_rp, 1.0_rp, 1.0_rp, abs(z_phase) + abs(new_z_phase)]
+    r_scal(2:6:2) = r_scal(2:6:2) + 1d-6 * (abs(orb%vec(2))+abs(orb%vec(4))+abs(orb%vec(6)))
+    r_scaled_tot = r_scal(:) * rel_tol + abs_scale * abs_tol
+    r_scaled_err = abs(r_err(:)/r_scaled_tot(:))
+    err_max = maxval(r_scaled_err)
     if (err_max <=  1.0) exit
     dt_temp = safety * dt * (err_max**p_shrink)
   endif
@@ -420,8 +422,10 @@ end if
 
 ! Increase step size, limited by an estimated next step ds = L/4
 
-if (abs(dr_dt(5)*dt_next) > ele%value(L$)/4.0_rp) then
-  dt_next = t_dir * abs(ele%value(L$) / (8.0_rp * dr_dt(5)))
+if (ele%tracking_method /= fixed_step_time_runge_kutta$) then
+  if (abs(dr_dt(5)*dt_next) > ele%value(L$)/4.0_rp) then
+    dt_next = t_dir * abs(ele%value(L$) / (8.0_rp * dr_dt(5)))
+  endif
 endif
 
 ! finish
