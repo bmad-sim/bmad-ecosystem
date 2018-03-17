@@ -659,7 +659,7 @@ do ib = 0, ubound(lat%branch, 1)
           string = trim(path) // '/' // trim(string)
 
           if (integer_option(binary$, output_form) == binary$) then
-            call write_binary_cartesian_map(string, ct_map, err_flag)
+            call write_binary_cartesian_map(string, ele, ct_map, err_flag)
           else
             iu2 = lunget()
             open (iu2, file = string)
@@ -716,7 +716,7 @@ do ib = 0, ubound(lat%branch, 1)
           string = trim(path) // '/' // trim(string)
 
           if (integer_option(binary$, output_form) == binary$) then
-            call write_binary_cylindrical_map(string, cl_map, err_flag)
+            call write_binary_cylindrical_map(string, ele, cl_map, err_flag)
           else
             iu2 = lunget()
             open (iu2, file = string)
@@ -764,7 +764,7 @@ do ib = 0, ubound(lat%branch, 1)
           string = trim(path) // '/' // trim(string)
 
           if (integer_option(binary$, output_form) == binary$) then
-            call write_binary_grid_field (string, g_field, err_flag)
+            call write_binary_grid_field (string, ele, g_field, err_flag)
           else
             iu2 = lunget()
             open (iu2, file = string)
@@ -851,7 +851,7 @@ do ib = 0, ubound(lat%branch, 1)
           string = trim(path) // '/' // trim(string)
 
           if (integer_option(binary$, output_form) == binary$) then
-            call write_binary_taylor_field (string, t_field, err_flag)
+            call write_binary_taylor_field (string, ele, t_field, err_flag)
           else
             iu2 = lunget()
             open (iu2, file = string)

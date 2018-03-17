@@ -151,6 +151,7 @@ type bp_common_struct
   character(n_parse_line) input_line1      ! Line before current line. For debug messages.
   character(n_parse_line) input_line2      ! Current line. For debug messages.
   character(40) :: parser_name = ''        ! Blank means not in bmad_parser nor bmad_parser2.
+  character(100) :: last_word              ! Last word to be parsed
   logical :: bmad_parser_calling = .false. ! used for expand_lattice
   logical error_flag                       ! Set True on error
   logical fatal_error_flag                 ! Set True on fatal (must abort now) error 
@@ -1105,8 +1106,12 @@ if (attrib_word == 'CARTESIAN_MAP') then
 
   if (word(1:8) == 'BINARY::') then
     call parser_file_stack('push', word(9:), err = err_flag, open_file = .false.); if (err_flag) return
-    call read_binary_cartesian_map(word(9:), ele%cartesian_map(i_ptr), err_flag); if (err_flag) return
+    call read_binary_cartesian_map(word(9:), ele, ele%cartesian_map(i_ptr), err_flag)
     call parser_file_stack('pop')
+    if (err_flag) then
+      call parser_error ('ERROR READING BINARY CARTESIAN_MAP FILE.')
+      return
+    endif
   else
     if (.not. expect_this ('{', .true., .true., 'AFTER "CARTESIAN_MAP"', ele, delim, delim_found)) return
     allocate (ele%cartesian_map(i_ptr)%ptr)
@@ -1152,8 +1157,12 @@ if (attrib_word == 'CYLINDRICAL_MAP') then
 
   if (word(1:8) == 'BINARY::') then
     call parser_file_stack('push', word(9:), err = err_flag, open_file = .false.); if (err_flag) return
-    call read_binary_cylindrical_map(word(9:), ele%cylindrical_map(i_ptr), err_flag); if (err_flag) return
+    call read_binary_cylindrical_map(word(9:), ele, ele%cylindrical_map(i_ptr), err_flag)
     call parser_file_stack('pop')
+    if (err_flag) then
+      call parser_error ('ERROR READING BINARY CYLINDIRCAL_MAP FILE.')
+      return
+    endif
   else
     if (.not. expect_this ('{', .true., .true., 'AFTER "CYLINDRICAL_MAP"', ele, delim, delim_found)) return
     allocate (ele%cylindrical_map(i_ptr)%ptr)
@@ -1201,8 +1210,12 @@ if (attrib_word == 'GRID_FIELD') then
 
   if (word(1:8) == 'BINARY::') then
     call parser_file_stack('push', word(9:), err = err_flag, open_file = .false.); if (err_flag) return
-    call read_binary_grid_field(word(9:), ele%grid_field(i_ptr), err_flag); if (err_flag) return
+    call read_binary_grid_field(word(9:), ele, ele%grid_field(i_ptr), err_flag)
     call parser_file_stack('pop')
+    if (err_flag) then
+      call parser_error ('ERROR READING BINARY GRID_FIELD FILE.')
+      return
+    endif
   else
     if (.not. expect_this ('{', .true., .true., 'AFTER "GRID_FIELD"', ele, delim, delim_found)) return
     allocate (ele%grid_field(i_ptr)%ptr)
@@ -1250,8 +1263,12 @@ if (attrib_word == 'TAYLOR_FIELD') then
 
   if (word(1:8) == 'BINARY::') then
     call parser_file_stack('push', word(9:), err = err_flag, open_file = .false.); if (err_flag) return
-    call read_binary_taylor_field(word(9:), ele%taylor_field(i_ptr), err_flag); if (err_flag) return
+    call read_binary_taylor_field(word(9:), ele, ele%taylor_field(i_ptr), err_flag)
     call parser_file_stack('pop')
+    if (err_flag) then
+      call parser_error ('ERROR READING BINARY TAYLOR_FIELD FILE.')
+      return
+    endif
   else
     if (.not. expect_this ('{', .true., .true., 'AFTER "TAYLOR_FIELD"', ele, delim, delim_found)) return
     allocate (ele%taylor_field(i_ptr)%ptr)
@@ -1772,7 +1789,7 @@ case ('TRACKING_METHOD')
     if (wild_key0) then
       err_flag = .false.
     else
-      call parser_error ('NOT A VALID TRACKING_METHOD: ' // word, &
+      call parser_error ('NOT A VALID TRACKING_METHOD: ' // bp_com%last_word, &
                          'FOR: ' // trim(ele%name), 'WHICH IS A: ' // key_name(ele%key))
     endif
     return
@@ -2300,6 +2317,8 @@ if (delim == ':' .and. index(delim_list, '=') /= 0 .and. bp_com%parse_line(1:1) 
   delim = '='
   bp_com%parse_line = bp_com%parse_line(2:)
 endif
+
+bp_com%last_word = word
 
 end subroutine get_next_word
 
@@ -8297,6 +8316,7 @@ if (ixp == 0) then
     line = trim(name_list(1))
     do  i = 2, size(name_list)
       if (name_list(i) == null_name$) cycle
+      if (upcase(name_list(i)) == 'GARBAGE!') cycle
       line = line // ', ' // trim(name_list(i))
     enddo
     call parser_error ('BAD "' // trim(name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word, &
