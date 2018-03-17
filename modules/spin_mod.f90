@@ -474,11 +474,11 @@ logical, optional :: phase_space_coords
 ! Want everything in units of eV
 
 anomalous_moment = anomalous_moment_of(orbit%species)
+mc2 = mass_of(orbit%species)
 
 if (logic_option(.true., phase_space_coords)) then
   rel_p = 1 + orbit%vec(6)
   e_particle = orbit%p0c * rel_p / orbit%beta
-  mc2 = mass_of(orbit%species)
   gamma = e_particle / mc2
   bz2 = rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2
   if (bz2 < 0) then  ! Particle has unphysical velocity
@@ -487,10 +487,15 @@ if (logic_option(.true., phase_space_coords)) then
   endif
   beta_vec = (orbit%beta / rel_p) * [orbit%vec(2), orbit%vec(4), sign_z_vel * sqrt(bz2)]
 
+! Can happen in an e_gun with the particle starting from rest.
+elseif (orbit%beta == 0 .and. orbit%vec(2) == 0 .and. orbit%vec(4) == 0 .and. orbit%vec(6) == 0) then
+  e_particle = mc2
+  beta_vec = 0
+  gamma = 1
+
 else
   e_particle = sqrt(orbit%vec(2)**2 + orbit%vec(4)**2 + orbit%vec(6)**2) / orbit%beta
   beta_vec = [orbit%vec(2), orbit%vec(4), orbit%vec(6)] / e_particle
-  mc2 = mass_of(orbit%species)
   gamma = e_particle / mc2
 endif
 

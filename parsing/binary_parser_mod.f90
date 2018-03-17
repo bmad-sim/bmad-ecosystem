@@ -8,31 +8,32 @@ contains
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine write_binary_cartesian_map (file_name, cart_map, err_flag)
+! Subroutine write_binary_cartesian_map (file_name, ele, cart_map, err_flag)
 !
 ! Routine to write a binary cartesian_map structure.
 ! Note: The file name should have a ".bin" suffix.
 !
 ! Input:
 !   file_name     -- character(*): File to create.
+!   ele           -- ele_struct: Element associated with the map.
 !   cart_map      -- cartesian_map_struct: Cartesian map.
 !
 ! Ouput:
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine write_binary_cartesian_map (file_name, cart_map, err_flag)
+subroutine write_binary_cartesian_map (file_name, ele, cart_map, err_flag)
 
 implicit none
 
 type (cartesian_map_struct), target :: cart_map
-
+type (ele_struct) ele
 integer i, j, iu, ios
 logical err_flag
 
 character(*) file_name
-character(*), parameter :: r_name = 'write_binary_cartesian_map'
 character(200) f_name
+character(*), parameter :: r_name = 'write_binary_cartesian_map'
 
 !
 
@@ -41,7 +42,7 @@ if (.not. open_binary_file(file_name, 'WRITE', iu, r_name, 1)) return
 
 !
 
-write (iu, err = 9000) cart_map%field_scale, cart_map%r0, cart_map%master_parameter, &
+write (iu, err = 9000) cart_map%field_scale, cart_map%r0, attribute_name(ele, cart_map%master_parameter), &
            cart_map%ele_anchor_pt, cart_map%field_type
 
 f_name = file_name
@@ -58,7 +59,7 @@ return
 !
 
 9000 continue
-call out_io (s_error$, r_name, 'WRITE ERROR!')
+call out_io (s_error$, r_name, 'ERROR WRITING FIELDMAP STRUCTURE. FILE: ' // file_name)
 close (iu)
 return
 
@@ -68,28 +69,31 @@ end subroutine write_binary_cartesian_map
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine read_binary_cartesian_map (file_name, cart_map, err_flag)
+! Subroutine read_binary_cartesian_map (file_name, ele, cart_map, err_flag)
 !
 ! Routine to read a binary cartesian_map structure.
 !
 ! Input:
 !   file_name     -- character(*): File to create.
+!   ele           -- ele_struct: Element associated with the map.
 !
 ! Ouput:
 !   cart_map      -- cartesian_map_struct, cartesian map.
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine read_binary_cartesian_map (file_name, cart_map, err_flag)
+subroutine read_binary_cartesian_map (file_name, ele, cart_map, err_flag)
 
 implicit none
 
 type (cartesian_map_struct), target :: cart_map
+type (ele_struct) ele
 
 integer i, j, iu, nt, iver
 logical err_flag
 
 character(*) file_name
+character(40) master_name
 character(*), parameter :: r_name = 'read_binary_cartesian_map'
 
 !
@@ -99,8 +103,9 @@ if (.not. open_binary_file(file_name, 'READ', iu, r_name, iver)) return
 
 !
 
-read (iu, err = 9000) cart_map%field_scale, cart_map%r0, cart_map%master_parameter, &
+read (iu, err = 9000) cart_map%field_scale, cart_map%r0, master_name, &
                       cart_map%ele_anchor_pt, cart_map%field_type
+cart_map%master_parameter = attribute_index(ele, master_name)
 
 allocate (cart_map%ptr)
 read (iu, err = 9000) nt, cart_map%ptr%file
@@ -117,7 +122,7 @@ return
 !
 
 9000 continue
-call out_io (s_error$, r_name, 'READ ERROR!')
+call out_io (s_error$, r_name, 'ERROR READING BINARY FIELDMAP FILE. FILE: ' // file_name)
 close (iu)
 return
 
@@ -127,31 +132,33 @@ end subroutine read_binary_cartesian_map
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine write_binary_cylindrical_map (file_name, cl_map, err_flag)
+! Subroutine write_binary_cylindrical_map (file_name, ele, cl_map, err_flag)
 !
 ! Routine to write a binary cylindrical_map structure.
 ! Note: The file name should have a ".bin" suffix.
 !
 ! Input:
 !   file_name     -- character(*): File to create.
+!   ele           -- ele_struct: Element associated with the map.
 !   cl_map        -- cylindrical_map_struct: Cylindrical map.
 !
 ! Ouput:
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine write_binary_cylindrical_map (file_name, cl_map, err_flag)
+subroutine write_binary_cylindrical_map (file_name, ele, cl_map, err_flag)
 
 implicit none
 
 type (cylindrical_map_struct), target :: cl_map
+type (ele_struct) ele
 
 integer i, j, iu, ios
 logical err_flag
 
 character(*) file_name
-character(*), parameter :: r_name = 'write_binary_cylindrical_map'
 character(200) f_name
+character(*), parameter :: r_name = 'write_binary_cylindrical_map'
 
 !
 
@@ -160,7 +167,7 @@ if (.not. open_binary_file(file_name, 'WRITE', iu, r_name, 1)) return
 
 !
 
-write (iu, err = 9000) cl_map%field_scale, cl_map%master_parameter, cl_map%harmonic, &
+write (iu, err = 9000) cl_map%field_scale, attribute_name(ele, cl_map%master_parameter), cl_map%harmonic, &
                 cl_map%phi0_fieldmap, cl_map%theta0_azimuth, cl_map%ele_anchor_pt, cl_map%m, cl_map%dz, cl_map%r0
 
 
@@ -178,7 +185,7 @@ return
 !
 
 9000 continue
-call out_io (s_error$, r_name, 'READ ERROR!')
+call out_io (s_error$, r_name, 'ERROR READING BINARY FIELDMAP FILE. FILE: ' // file_name)
 close (iu)
 return
 
@@ -188,28 +195,31 @@ end subroutine write_binary_cylindrical_map
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine read_binary_cylindrical_map (file_name, cl_map, err_flag)
+! Subroutine read_binary_cylindrical_map (file_name, ele, cl_map, err_flag)
 !
 ! Routine to read a binary cylindrical_map structure.
 !
 ! Input:
 !   file_name     -- character(*): File to create.
+!   ele           -- ele_struct: Element associated with the map.
 !
 ! Ouput:
 !   cl_map        -- cylindrical_map_struct, cylindrical map.
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine read_binary_cylindrical_map (file_name, cl_map, err_flag)
+subroutine read_binary_cylindrical_map (file_name, ele, cl_map, err_flag)
 
 implicit none
 
 type (cylindrical_map_struct), target :: cl_map
+type (ele_struct) ele
 
 integer i, j, iu, nt, iver
 logical err_flag
 
 character(*) file_name
+character(40) master_name
 character(*), parameter :: r_name = 'read_binary_cylindrical_map'
 
 !
@@ -219,8 +229,9 @@ if (.not. open_binary_file(file_name, 'READ', iu, r_name, iver)) return
 
 !
 
-read (iu, err = 9000) cl_map%field_scale, cl_map%master_parameter, cl_map%harmonic, &
+read (iu, err = 9000) cl_map%field_scale, master_name, cl_map%harmonic, &
                 cl_map%phi0_fieldmap, cl_map%theta0_azimuth, cl_map%ele_anchor_pt, cl_map%m, cl_map%dz, cl_map%r0
+cl_map%master_parameter = attribute_index(ele, master_name)
 
 allocate (cl_map%ptr)
 read (iu, err = 9000) nt, cl_map%ptr%file
@@ -237,7 +248,7 @@ return
 !
 
 9000 continue
-call out_io (s_error$, r_name, 'READ ERROR!')
+call out_io (s_error$, r_name, 'ERROR READING BINARY FIELDMAP FILE. FILE: ' // file_name)
 close (iu)
 return
 
@@ -247,24 +258,26 @@ end subroutine read_binary_cylindrical_map
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine write_binary_grid_field (file_name, g_field, err_flag)
+! Subroutine write_binary_grid_field (file_name, ele, g_field, err_flag)
 !
 ! Routine to write a binary grid_field structure.
 ! Note: The file name should have a ".bin" suffix.
 !
 ! Input:
 !   file_name     -- character(*): File to create.
+!   ele           -- ele_struct: Element associated with the map.
 !   g_field       -- grid_field_struct: Cylindrical map.
 !
 ! Ouput:
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine write_binary_grid_field (file_name, g_field, err_flag)
+subroutine write_binary_grid_field (file_name, ele, g_field, err_flag)
 
 implicit none
 
 type (grid_field_struct), target :: g_field
+type (ele_struct) ele
 
 integer i, j, k, n, iu, ios
 logical err_flag
@@ -280,7 +293,7 @@ if (.not. open_binary_file(file_name, 'WRITE', iu, r_name, 1)) return
 
 !
 
-write (iu, err = 9000) g_field%field_scale, g_field%master_parameter, &
+write (iu, err = 9000) g_field%field_scale, attribute_name(ele, g_field%master_parameter), &
                 g_field%ele_anchor_pt, g_field%phi0_fieldmap, g_field%dr, &
                 g_field%r0, g_field%harmonic, g_field%geometry, &
                 g_field%curved_ref_frame, g_field%field_type
@@ -299,7 +312,7 @@ return
 !
 
 9000 continue
-call out_io (s_error$, r_name, 'WRITE ERROR!')
+call out_io (s_error$, r_name, 'ERROR WRITING FIELDMAP STRUCTURE. FILE: ' // file_name)
 close (iu)
 return
 
@@ -309,28 +322,31 @@ end subroutine write_binary_grid_field
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine read_binary_grid_field (file_name, g_field, err_flag)
+! Subroutine read_binary_grid_field (file_name, ele, g_field, err_flag)
 !
 ! Routine to read a binary grid_field structure.
 !
 ! Input:
 !   file_name     -- character(*): File to create.
+!   ele           -- ele_struct: Element associated with the map.
 !
 ! Ouput:
 !   g_field       -- grid_field_struct, cylindrical map.
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine read_binary_grid_field (file_name, g_field, err_flag)
+subroutine read_binary_grid_field (file_name, ele, g_field, err_flag)
 
 implicit none
 
 type (grid_field_struct), target :: g_field
+type (ele_struct) ele
 
 integer i, j, k, iu, n0(3), n1(3), iver
 logical err_flag
 
 character(*) file_name
+character(40) master_name
 character(*), parameter :: r_name = 'read_binary_grid_field'
 
 !
@@ -340,10 +356,11 @@ if (.not. open_binary_file(file_name, 'READ', iu, r_name, iver)) return
 
 !
 
-read (iu, err = 9000) g_field%field_scale, g_field%master_parameter, &
+read (iu, err = 9000) g_field%field_scale, master_name, &
                 g_field%ele_anchor_pt, g_field%phi0_fieldmap, g_field%dr, &
                 g_field%r0, g_field%harmonic, g_field%geometry, &
                 g_field%curved_ref_frame, g_field%field_type
+g_field%master_parameter = attribute_index(ele, master_name)
 
 allocate (g_field%ptr)
 read (iu, err = 9000) n0, n1, g_field%ptr%file
@@ -360,7 +377,7 @@ return
 !
 
 9000 continue
-call out_io (s_error$, r_name, 'READ ERROR!')
+call out_io (s_error$, r_name, 'ERROR READING BINARY FIELDMAP FILE. FILE: ' // file_name)
 close (iu)
 return
 
@@ -370,24 +387,26 @@ end subroutine read_binary_grid_field
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine write_binary_taylor_field (file_name, t_field, err_flag)
+! Subroutine write_binary_taylor_field (file_name, ele, t_field, err_flag)
 !
 ! Routine to write a binary taylor_field structure.
 ! Note: The file name should have a ".bin" suffix.
 !
 ! Input:
 !   file_name     -- character(*): File to create.
+!   ele           -- ele_struct: Element associated with the map.
 !   t_field       -- taylor_field_struct: Cylindrical map.
 !
 ! Ouput:
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine write_binary_taylor_field (file_name, t_field, err_flag)
+subroutine write_binary_taylor_field (file_name, ele, t_field, err_flag)
 
 implicit none
 
 type (taylor_field_struct), target :: t_field
+type (ele_struct) ele
 
 integer i, j, k, n, iu, ios
 logical err_flag
@@ -403,7 +422,7 @@ if (.not. open_binary_file(file_name, 'WRITE', iu, r_name, 1)) return
 
 !
 
-write (iu, err = 9000) t_field%field_scale, t_field%master_parameter, t_field%curved_ref_frame, &
+write (iu, err = 9000) t_field%field_scale, attribute_name(ele, t_field%master_parameter), t_field%curved_ref_frame, &
           t_field%ele_anchor_pt, t_field%field_type, t_field%dz, t_field%r0, t_field%canonical_tracking
 
 f_name = file_name
@@ -425,7 +444,7 @@ return
 !
 
 9000 continue
-call out_io (s_error$, r_name, 'WRITE ERROR!')
+call out_io (s_error$, r_name, 'ERROR WRITING FIELDMAP STRUCTURE. FILE: ' // file_name)
 close (iu)
 return
 
@@ -435,28 +454,31 @@ end subroutine write_binary_taylor_field
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine read_binary_taylor_field (file_name, t_field, err_flag)
+! Subroutine read_binary_taylor_field (file_name, ele, t_field, err_flag)
 !
 ! Routine to read a binary taylor_field structure.
 !
 ! Input:
 !   file_name     -- character(*): File to create.
+!   ele           -- ele_struct: Element associated with the map.
 !
 ! Ouput:
 !   t_field       -- taylor_field_struct, cylindrical map.
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine read_binary_taylor_field (file_name, t_field, err_flag)
+subroutine read_binary_taylor_field (file_name, ele, t_field, err_flag)
 
 implicit none
 
 type (taylor_field_struct), target :: t_field
+type (ele_struct) ele
 
 integer i, j, k, iu, n0, n1, n, nn, iver
 logical err_flag
 
 character(*) file_name
+character(40) master_name
 character(*), parameter :: r_name = 'read_binary_taylor_field'
 
 !
@@ -466,8 +488,9 @@ if (.not. open_binary_file(file_name, 'READ', iu, r_name, iver)) return
 
 !
 
-read (iu, err = 9000) t_field%field_scale, t_field%master_parameter, t_field%curved_ref_frame, &
+read (iu, err = 9000) t_field%field_scale, master_name, t_field%curved_ref_frame, &
           t_field%ele_anchor_pt, t_field%field_type, t_field%dz, t_field%r0, t_field%canonical_tracking
+t_field%master_parameter = attribute_index(ele, master_name)
 
 allocate (t_field%ptr)
 read (iu, err = 9000) n0, n1, t_field%ptr%file
@@ -490,7 +513,7 @@ return
 !
 
 9000 continue
-call out_io (s_error$, r_name, 'READ ERROR!')
+call out_io (s_error$, r_name, 'ERROR READING BINARY FIELDMAP FILE. FILE: ' // file_name)
 close (iu)
 return
 
@@ -551,7 +574,7 @@ select case (action)
 case ('READ')
   read (iu, err = 9000) iver     ! Version number
   if (iver /= 1) then
-    call out_io (s_error$, r_name, 'VERSION NUMBER NOT RECOGNIZED!')
+    call out_io (s_error$, r_name, 'VERSION NUMBER NOT RECOGNIZED. FILE: ' // file_name)
     close (iu)
     return
   endif
@@ -568,12 +591,12 @@ return
 !
  
 9000 continue
-call out_io (s_error$, r_name, 'READ ERROR!')
+call out_io (s_error$, r_name, 'ERROR READING VERSION NUMBER FROM BINARY FILE. FILE: ' // file_name)
 close (iu)
 return
 
 9100 continue
-call out_io (s_error$, r_name, 'WRITE ERROR!')
+call out_io (s_error$, r_name, 'ERROR WRITING VERSION NUMBER TO FIELDMAP BINARY FILE. FILE: ' // file_name)
 close (iu)
 return
 
