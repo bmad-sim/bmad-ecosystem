@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 206
+integer, parameter :: bmad_inc_version$ = 207
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1286,8 +1286,8 @@ integer, parameter :: g_err$ = 7, n_pole$ = 7, bbi_const$ = 7, osc_amplitude$ = 
 integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, sad_flag$ = 7
 integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$ = 7
 integer, parameter :: rho$ = 8, delta_e$ = 8, diffraction_limited$ = 8
-integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8
-integer, parameter :: voltage$ = 9, eps_step_scale$ = 9
+integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8, voltage$ = 8 
+integer, parameter :: eps_step_scale$ = 9, voltage_err$ = 9
 integer, parameter :: fringe_type$ = 10
 integer, parameter :: fringe_at$ = 11, gang$ = 11
 integer, parameter :: higher_order_fringe_type$ = 12
@@ -1298,7 +1298,7 @@ integer, parameter :: fq1$ = 16, sig_z$ = 16, graze_angle_out$ = 16
 integer, parameter :: fq2$ = 17, sig_vx$ = 17
 integer, parameter :: sig_vy$ = 18, autoscale_amplitude$ = 18
 integer, parameter :: sig_e$ = 19, autoscale_phase$ = 19
-integer, parameter :: d1_thickness$ = 20, voltage_err$ = 20, default_tracking_species$ = 20, direction_beam_start$ = 20
+integer, parameter :: d1_thickness$ = 20, default_tracking_species$ = 20, direction_beam_start$ = 20
 integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20, E_center$ = 20, constant_ref_energy$ = 20
 integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
 integer, parameter :: e_loss$ = 21, dks_ds$ = 21, gap$ = 21, E_center_relative_to_ref$ = 21, spin_x$ = 21
