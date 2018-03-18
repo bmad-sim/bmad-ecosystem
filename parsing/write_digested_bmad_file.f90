@@ -293,20 +293,20 @@ write (d_unit) mode3, ix_r, ix_s, ix_wall3d_branch, associated(ele%ac_kick), &
           ix_lr_mode, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay, n_cus
 
 write (d_unit) &
-          ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
-          ele%a, ele%b, ele%z, ele%vec0, ele%mat6, &
-          ele%c_mat, ele%gamma_c, ele%s_start, ele%s, ele%key, ele%floor, &
-          ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, &
-          ele%n_slave, ele%n_slave_field, ele%ix1_slave, ele%n_lord, ele%n_lord_field, &
-          ele%ic1_lord, ele%ix_pointer, ele%ixx, &
-          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-          ele%spin_tracking_method, ele%symplectify, ele%mode_flip, &
-          ele%multipoles_on, ele%taylor_map_includes_offsets, ele%Field_master, &
-          ele%logic, ele%field_calc, ele%aperture_at, &
-          ele%aperture_type, ele%csr_calc_on, ele%orientation, &
-          ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
-          ele%ix_branch, ele%ref_time, ele%scale_multipoles, &
-          ele%bookkeeping_state, ele%ptc_integration_type
+        ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
+        ele%a, ele%b, ele%z, ele%vec0, ele%mat6, &
+        ele%c_mat, ele%gamma_c, ele%s_start, ele%s, ele%key, ele%floor, &
+        ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, &
+        ele%n_slave, ele%n_slave_field, ele%ix1_slave, ele%n_lord, ele%n_lord_field, &
+        ele%ic1_lord, ele%ix_pointer, ele%ixx, &
+        ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
+        ele%spin_tracking_method, ele%symplectify, ele%mode_flip, &
+        ele%multipoles_on, ele%taylor_map_includes_offsets, ele%Field_master, &
+        ele%logic, ele%field_calc, ele%aperture_at, &
+        ele%aperture_type, ele%csr_calc_on, ele%orientation, &
+        ele%map_ref_orb_in, ele%map_ref_orb_out, ele%time_ref_orb_in, ele%time_ref_orb_out, &
+        ele%offset_moves_aperture, ele%ix_branch, ele%ref_time, ele%scale_multipoles, &
+        ele%bookkeeping_state, ele%ptc_integration_type
 
 ! This compresses the ele%value array
 
