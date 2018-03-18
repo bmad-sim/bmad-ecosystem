@@ -593,7 +593,7 @@ error = .true.
 
 call zero_errors_in_ele (ele, changed)
 call init_coord (orb_start, ele%time_ref_orb_in, ele, upstream_end$, shift_vec6 = .false.)
-if (is_inside) orb_start%location = inside$ !to avoid entrance kick in time tracking
+if (is_inside) orb_start%location = inside$ ! To avoid entrance kick in time RK tracking
 call track1 (orb_start, ele, param, orb_end, ignore_radiation = .true.)
 if (.not. particle_is_moving_forward(orb_end)) then
   call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING: ' // ele%name, &
@@ -635,7 +635,7 @@ has_changed = .false.
 if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
-    if (lord%lord_status /= super_lord$) cycle
+    if (lord%lord_status == girder_lord$ .or. lord%lord_status == overlay_lord$ .or. lord%lord_status == group_lord$) cycle
     call zero_errors_in_ele (lord, changed)
     if (changed) has_changed = .true.
   enddo
@@ -657,6 +657,7 @@ case (lcavity$)
     ele%value(phi0_err$) = 0
     has_changed = .true.
   endif
+
   if (ele%value(gradient_err$) /= 0) then
     ele%value(gradient_err$) = 0
     has_changed = .true.
@@ -666,8 +667,7 @@ case (rfcavity$)
   if (ele%value(phi0$) /= 0) then
     ele%value(phi0$) = 0
     has_changed = .true.
-  endif
-    
+  endif    
 end select
 
 ! For speed, use symp_lie_bmad tracking if the taylor map does not exist or if the taylor
@@ -699,7 +699,7 @@ ele%tracking_method = ele%iyy
 if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
-    if (lord%lord_status /= super_lord$) cycle
+    if (lord%lord_status == girder_lord$ .or. lord%lord_status == overlay_lord$ .or. lord%lord_status == group_lord$) cycle
     call restore_errors_in_ele (lord)
   enddo
 endif
