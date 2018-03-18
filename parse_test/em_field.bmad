@@ -1,4 +1,4 @@
-!no_digested
+no_digested
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 parameter[geometry] = open
@@ -28,7 +28,7 @@ q4: quad, k1 = 0.4, cartesian_map = {
   field_type = electric }, field_calc = fieldmap
 
 
-m1: lcavity, l = 1, rf_frequency = 1e6, voltage = 2, cylindrical_map = {
+m1: lcavity, l = 1, rf_frequency = 1e6, voltage = 2, voltage_err = 1, cylindrical_map = {
   m = 2, 
   harmonic = 3,
   r0 = (0, 0, 0.001), 
