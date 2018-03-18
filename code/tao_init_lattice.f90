@@ -55,7 +55,7 @@ if (s%com%init_read_lat_info) then
 
   if (input_file_name /= '') then
     call tao_open_file (input_file_name, iu, full_input_name, s_fatal$)
-    call out_io (s_blank$, r_name, '*Init: Opening File: ' // full_input_name)
+    call out_io (s_blank$, r_name, '*Init: Opening Lattice Info File: ' // input_file_name)
     if (iu == 0) then
       call out_io (s_fatal$, r_name, 'ERROR OPENING TAO LATTICE INFO FILE. WILL EXIT HERE...')
       call err_exit

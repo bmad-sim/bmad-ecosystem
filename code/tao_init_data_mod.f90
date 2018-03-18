@@ -81,7 +81,7 @@ endif
 
 !---
 
-call out_io (s_blank$, r_name, '*Init: Opening Data File: ' // file_name)
+call out_io (s_blank$, r_name, '*Init: Opening Data File: ' // data_file)
 call tao_open_file (data_file, iu, file_name, s_fatal$)
 if (iu == 0) then
   call out_io (s_fatal$, r_name, 'CANNOT OPEN DATA INIT FILE: ' // data_file)

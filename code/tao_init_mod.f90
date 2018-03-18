@@ -67,10 +67,10 @@ if (init_file == '') then
   return
 endif
 
+call out_io (s_blank$, r_name, '*Init: Opening Init File: ' // init_file)
 call tao_open_file (init_file, iu, file_name, s_blank$)
-call out_io (s_blank$, r_name, '*Init: Opening Init File: ' // file_name)
 if (iu == 0) then
-  call out_io (s_blank$, r_name, "Note: Cannot open init file for tao_params namelist read")
+  call out_io (s_blank$, r_name, "Note: Cannot open initialization file for reading")
   call end_bookkeeping()
   return
 endif
@@ -167,7 +167,7 @@ if (.not. s%com%init_beam .or. init_file == '') return
 
 !
 
-call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
+call out_io (s_blank$, r_name, '*Init: Opening Beam File: ' // init_file)
 call tao_open_file (init_file, iu, file_name, s_fatal$)
 if (iu == 0) then
   call out_io (s_fatal$, r_name, 'CANNOT OPEN BEAM INIT FILE: ' // init_file)
