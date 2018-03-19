@@ -179,7 +179,7 @@ case ('bmad_lattice')
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit
 
-    call tao_next_switch (word(ix_word), ['-binary', '-at   '], .true., switch, err, ix)
+    call tao_next_switch (word(ix_word), [character(16):: '-binary', '-at'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
