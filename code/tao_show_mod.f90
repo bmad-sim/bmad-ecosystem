@@ -44,24 +44,28 @@ character(n_char_show), allocatable, save :: lines(:)
 character(16) :: r_name = 'tao_show_cmd'
 character(20) switch
 
-logical opened, err, doprint
+logical opened, err, doprint, err_out
 
 ! Init
 
 what2 = what
 opened = .false.
 doprint = s%com%print_to_terminal
+err_out = .true.
 
 ! See if the results need to be written to a file.
 
 do
-  call tao_next_switch (what2, ['-append ', '-write  ', '-noprint'], .false., switch, err, ix)
+  call tao_next_switch (what2, [character(16):: '-append', '-write', '-noprint', '-no_err_out'], .false., switch, err, ix)
   if (err) return
   if (switch == '') exit
 
   select case (switch)
   case ('-noprint')
     doprint = .false.
+
+  case ('-no_err_out')
+    err_out = .false.
 
   case ('-append', '-write')
     file_name = what2(:ix)
@@ -92,10 +96,12 @@ end do
 ! Result_id is for tao_show_this to show exactly what it did.
 ! This info can be helpful in tao_hook_show_cmd.
 
-if (opened) call output_direct (iu)  ! tell out_io to write to a file
+if (opened .and. err_out) call output_direct (iu)  ! tell out_io to write to a file
 
 call tao_show_this (what2, result_id, lines, nl)  
 call tao_hook_show_cmd (what2, result_id, lines, nl)
+
+if (opened) call output_direct (iu)  ! tell out_io to write to a file
 
 if (nl > 0) then
   if (result_id == 'ERROR') then
