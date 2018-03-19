@@ -2228,9 +2228,9 @@ case ('lattice')
   !
 
   if (at_ends) then
-    write (line1, '(a)') '#    Values at End of Element:'
+    write (line1, '(a)') '# Values shown are for the Exit End of each Element:'
   else
-    write (line1, '(a)') '#    Values at Center of Element:'
+    write (line1, '(a)') '# Values shown are for the Center of each Element:'
   endif
 
   ! Setup columns

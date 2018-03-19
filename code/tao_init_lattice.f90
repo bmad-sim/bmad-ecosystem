@@ -125,7 +125,11 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ! Get the name of the lattice file
 
-  if (init_lat_file /= '') then
+  if (design_lattice(i)%file /= '' .and. (init_lat_file(1:6) == 'HOOK::' .or. init_lat_file == '')) then
+    design_lat = design_lattice(i)
+
+  elseif (init_lat_file /= '') then
+    if (init_lat_file(1:6) == 'HOOK::') init_lat_file = init_lat_file(7:)
     ix = index (init_lat_file, '|') ! Indicates multiple lattices
     if (ix == 0) then
       design_lat%file = init_lat_file
@@ -135,9 +139,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     endif
     design_lat%language = ''
     design_lat%file2 = ''
-  else
-    ! If %file is blank then default is to use last one
-    if (design_lattice(i)%file /= '') design_lat = design_lattice(i)
   endif
 
   ! Can happen when design_lattice(1) is set and not design_lattice(0)

@@ -455,18 +455,38 @@ end subroutine deallocate_everything
 !------------------------------------------------------------------------------
 ! contains
 
-subroutine set_this_file_name (file_name, init_name, tao_com_name)
+!+
+! Subroutine set_this_file_name (file_name, default_name, tao_com_name)
+!
+! Routine to set the name of the file based on the file name set from various sources.
+!
+! Input:
+!   file_name     -- character(*): The file name as set in the tao init file.
+!                       If it has not been set then file_name = 'NOT SET!'.
+!   default_name  -- character(*): Default name if no other name is present.
+!   tao_com_name  -- character(*): Name from s%com structure. This name is from the startup command
+!                       line or, if there is a 'HOOK::' prefix, has been set via a hook routine.
+!
+! Output:
+!   file_name     -- character(*): File name.
+!-
 
-character(*) file_name, init_name, tao_com_name
+subroutine set_this_file_name (file_name, default_name, tao_com_name)
 
-! file_name may already have been set from the tao_init file. If not, it is 'NOT SET!'.
-! tao_com_name comes from the command line.
-! init_name is the default if not set.
+character(*) file_name, default_name, tao_com_name
 
-if (tao_com_name /= '') then
-  file_name    = tao_com_name
+! Order of preference. Highest used first:
+!   1) Name has been set on the command line.
+!   2) Name has been set in the Tao init file.
+!   3) Name has been set via a hook routine.
+!   4) Default_name.
+
+if (tao_com_name /= '' .and. tao_com_name(1:6) /= 'HOOK::') then
+  file_name  = tao_com_name
+elseif (file_name == 'NOT SET!' .and. tao_com_name(1:6) == 'HOOK::') then
+  file_name = tao_com_name(7:)
 elseif (file_name == 'NOT SET!') then
-  file_name = init_name
+  file_name = default_name
 elseif (file_name_is_relative(file_name)) then
   file_name = trim(s%com%init_tao_file_path) // trim(file_name)
 endif

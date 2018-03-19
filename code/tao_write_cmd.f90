@@ -9,15 +9,17 @@
 
 subroutine tao_write_cmd (what)
 
-use quick_plot
-use write_lat_file_mod
-use blender_interface_mod
 use tao_mod, dummy => tao_write_cmd
-use tao_command_mod, dummy2 => tao_write_cmd
-use tao_plot_mod, dummy3 => tao_write_cmd
-use tao_top10_mod, dummy4 => tao_write_cmd
-use madx_ptc_module, only: m_u, m_t, print_universe_pointed, print_complex_single_structure, print_new_flat, print_universe
-use beam_file_io
+use tao_command_mod, only: tao_cmd_split, tao_next_switch
+use tao_plot_mod, only: tao_draw_plots
+use tao_top10_mod, only: tao_var_write
+
+use quick_plot, only: qp_open_page, qp_base_library, qp_close_page
+use write_lat_file_mod, only: write_lattice_in_foreign_format, write_bmad_lattice_file
+use blender_interface_mod, only: write_blender_lat_layout
+use madx_ptc_module, only: m_u, m_t, print_universe_pointed, &
+                           print_complex_single_structure, print_new_flat, print_universe
+use beam_file_io, only: write_beam_file
 
 implicit none
 
