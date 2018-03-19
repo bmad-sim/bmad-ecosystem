@@ -2222,16 +2222,16 @@ case ('lattice')
   !
 
   if (at_ends) then
-    write (line1, '(6x, a)') 'Values at End of Element:'
+    write (line1, '(a)') '#    Values at End of Element:'
   else
-    write (line1, '(6x, a)') 'Values at Center of Element:'
+    write (line1, '(a)') '#    Values at Center of Element:'
   endif
 
   ! Setup columns
 
   ix1 = 1
-  line2 = ""
-  line3 = ""
+  line2 = "#"
+  line3 = "#"
   do i = 1, size(column)
     if (column(i)%name == '') cycle
 
@@ -2364,7 +2364,7 @@ case ('lattice')
   if (print_header_lines) then
     nl=nl+1; lines(nl) = line1
     nl=nl+1; lines(nl) = line2
-    if (line3 /= '') then
+    if (line3 /= '#') then
       nl=nl+1; lines(nl) = line3
     endif
   endif
@@ -2518,7 +2518,7 @@ case ('lattice')
 
   if (print_tail_lines) then
     nl=nl+1; lines(nl) = line2
-    if (line3 /= '') then
+    if (line3 /= '#') then
       nl=nl+1; lines(nl) = line3
     endif
     nl=nl+1; lines(nl) = line1
