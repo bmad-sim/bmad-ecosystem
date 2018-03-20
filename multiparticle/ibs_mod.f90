@@ -1,6 +1,6 @@
 module ibs_mod
 
-use bmad
+use bmad_interface
 use fgsl
 use, intrinsic :: iso_c_binding
 
@@ -606,6 +606,7 @@ end subroutine ibs_blowup1turn
 !-
 subroutine ibs1(lat, ibs_sim_params, rates, i, s)
   use ibs_rates_mod
+  use twiss_and_track_mod
 
   implicit none
 

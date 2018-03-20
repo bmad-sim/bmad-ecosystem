@@ -1,6 +1,5 @@
 module wall3d_mod
 
-use bmad_struct
 use bmad_interface
 use geometry_mod
 use rotation_3d_mod

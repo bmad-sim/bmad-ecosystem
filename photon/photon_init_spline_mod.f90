@@ -7,7 +7,6 @@
 
 module photon_init_spline_mod
 
-use bmad_struct
 use bmad_interface
 use spline_mod
 

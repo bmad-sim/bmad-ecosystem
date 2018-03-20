@@ -1,7 +1,5 @@
 module radiation_mod
 
-use bmad_struct
-use bmad_interface
 use rad_int_common
 
 contains

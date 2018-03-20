@@ -9,7 +9,6 @@
 
 module mad_mod
 
-use bmad_struct
 use bmad_interface
 
 type mad_energy_struct

@@ -1,6 +1,5 @@
 module transfer_map_mod
 
-use bmad_struct
 use bmad_interface
 
 private transfer_this_map, transfer_this_mat

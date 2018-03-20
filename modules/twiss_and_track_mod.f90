@@ -1,6 +1,5 @@
 module twiss_and_track_mod
 
-use bmad_struct
 use bmad_interface
 use geometry_mod
 

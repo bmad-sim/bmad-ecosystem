@@ -1,6 +1,5 @@
 module superimpose_mod
 
-use bmad_struct
 use bmad_interface
 use lat_ele_loc_mod
 use bookkeeper_mod

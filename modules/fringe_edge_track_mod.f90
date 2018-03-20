@@ -117,6 +117,7 @@ if (track_ele%slave_status == super_slave$ .or. track_ele%slave_status == slice_
     if (lord%key == overlay$ .or. lord%key == group$) cycle
     call does_this_ele_contain_the_next_edge (lord, i, track_ele, dir, orbit, s_edge_body, s_orb, fringe_info)
   enddo
+
 else
   call does_this_ele_contain_the_next_edge (track_ele, 1, track_ele, dir, orbit, s_edge_body, s_orb, fringe_info)
 endif
@@ -208,8 +209,21 @@ integer this_end, ix_loc, dir, rel_dir
 leng = this_ele%value(l$)
 rel_dir = dir * orbit%direction
 s_off = this_ele%s_start - track_ele%s_start
+
 s1 = s_off + (leng - hard_edge_model_length(this_ele)) / 2 
 s2 = s_off + (leng + hard_edge_model_length(this_ele)) / 2 
+
+! With a solenoid must always apply the fringe kick due to the longitudinal field. 
+! If not done the matrix calc will not be symplectic.
+! For other elements, especially quadrupoles, this is problematic due to the soft edge kick not being being exactly the reverse
+! going from inside to outside and vice versa (it is confusing if a superimposed marker shifts the tracking).
+
+if (track_ele%key == solenoid$ .or. track_ele%key == sol_quad$) then
+  s1 = max(s1, 0.0_rp)
+  s2 = min(s2, track_ele%value(l$))
+endif
+
+!
 
 if (dir > 0) then
   s_hard_upstream   = min(s1, s2)
