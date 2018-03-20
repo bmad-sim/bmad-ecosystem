@@ -152,7 +152,7 @@ The arguments for \vn{tao_hook_evaluate_a_datum} is
   tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, valid_value)
 \end{example}
 The \vn{found} logical argument should be set to \vn{True} for datums that are handled by this
-hook routine and \vn{found} sould be set to \vn{False} for all other datums.
+hook routine and \vn{found} should be set to \vn{False} for all other datums.
 
 %-----------------------------------------------------------------
 \subsection{tao_hook_init1 and tao_hook_init2}
@@ -230,6 +230,26 @@ merit types are calculated.
 If a non standard optimizer is needed, then it can be implemented
 here. See the \vn{tao_*_optimizer.f90} files for how the
 standard optimizers are implemented.
+
+%-----------------------------------------------------------------
+\subsection{tao_hook_parse_command_args}
+\index{customizing!tao_hook_parse_command_args}
+
+The \vn{tao_hook_parse_command_args} routine can be used to set the names of initialization
+files. The file names are stored in the \vn{s%com} structure. For example, in the hook file, the
+following changes the plot initialization file:
+\begin{example}
+  s%com%plot_file = 'HOOK::/nfs/acc/user/dcs16/my_plot_init.tao'
+\end{example}
+Normally something like \vn{s%com%plot_file} stores a file name that is set
+on the command line when \tao is invoked. And normally a file name specified on the command line
+will supersede a file name specified in the \tao root startup file. If it is desired for a file
+specified in the \tao root startup file to supersede the \vn{s%com%...} file, a prefix of
+\vn{"HOOK::"} for the \vn{s%com%...} name will tell \tao to switch the precedence order.
+
+Note: The \tao startup command line will be parsed after \vn{tao_hook_parse_command_args} is parsed
+so a file specified on the \tao startup command line will always supersede a file name set in this
+routine.
 
 %-----------------------------------------------------------------
 \subsection{tao_hook_plot_graph}

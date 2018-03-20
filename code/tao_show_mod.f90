@@ -1657,7 +1657,7 @@ case ('history')
   n_print = 50
 
   do 
-    call tao_next_switch (what2, ['-no_num'], .false., switch, err, ix_s2)
+    call tao_next_switch (what2, ['-no_num'], .true., switch, err, ix_s2)
 
     if (err) return
     if (switch == '') exit
@@ -1682,15 +1682,8 @@ case ('history')
 
   !
 
-  if (s%com%ix_history == 0) return
-
-  if (n_print > 0) then
-    i = mod (s%com%ix_history - n_print + 1, size(s%history))
-  else
-    i = mod (s%com%ix_history + 1, size(s%history))
-  endif
-
-  if (i < 1) i = i + size(s%history)
+  if (n_print < 1) return
+  i = max(1, s%com%ix_history - n_print + 1)
 
   do
     if (nl >= size(lines)) call re_allocate (lines, 2*size(lines))
@@ -1705,7 +1698,6 @@ case ('history')
 
     if (i == s%com%ix_history) exit
     i = i + 1
-    if (i > size(s%history)) i = 1
   enddo
 
   result_id = show_what
