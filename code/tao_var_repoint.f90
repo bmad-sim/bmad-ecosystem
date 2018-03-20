@@ -33,7 +33,7 @@ do i = 1, size(s%var)
     sl => var_ptr%slave(num+1)
     u => s%u(sl%ix_uni)
     call pointers_to_attribute (u%model%lat, var_ptr%ele_name, var_ptr%attrib_name, .true., a_ptr, err, .false.)
-    call pointers_to_attribute (u%model%lat, var_ptr%ele_name, var_ptr%attrib_name, .true., b_ptr, err, .false.)
+    call pointers_to_attribute (u%base%lat, var_ptr%ele_name, var_ptr%attrib_name, .true., b_ptr, err, .false.)
     do j = 1, size(a_ptr)
       var_ptr%slave(num+j)%model_value => a_ptr(j)%r
       var_ptr%slave(num+j)%base_value => b_ptr(j)%r
