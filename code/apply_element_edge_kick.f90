@@ -48,7 +48,7 @@ type (fringe_edge_info_struct) fringe_info
 type (ele_struct), pointer :: hard_ele, lord
 
 real(rp), optional :: mat6(6,6), rf_time
-real(rp) f, l_drift, ks4, s_edge, s, phi, omega(3), pc, z_saved, beta_ref, ds
+real(rp) f, fac, l_drift, ks4, s_edge, s, phi, omega(3), pc, z_saved, beta_ref, ds
 real(rp) a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
 complex(rp) xiy, c_vec
 
@@ -56,7 +56,7 @@ integer physical_end, dir, i, fringe_at, at_sign, sign_z_vel, particle_at, ix_el
 integer hard_ele_field_calc
 
 logical, optional :: make_matrix, apply_sol_fringe
-logical finished, track_spin, track_spn
+logical finished, track_spin, track_spn, err_flag
 
 ! The setting of fringe_info%hard_location is used by calc_next_fringe_edge to calculate the next fringe location.
 
@@ -98,11 +98,16 @@ endif
 call apply_element_edge_kick_hook (orb, fringe_info, track_ele, param, finished, mat6, make_matrix, rf_time)
 if (finished) return
 
-!
+! With a solenoid must always apply the fringe kick due to the longitudinal field. 
+! If not done the matrix calc will not be symplectic.
+! For other elements, especially quadrupoles, this is problematic due to the soft edge kick not being being exactly the reverse
+! going from inside to outside and vice versa (it is confusing if a superimposed marker shifts the tracking).
 
 physical_end = physical_ele_end (particle_at, orb%direction, track_ele%orientation)
 fringe_at = nint(track_ele%value(fringe_at$))
-if (.not. at_this_ele_end(physical_end, fringe_at)) return
+if (track_ele%key /= solenoid$ .and. track_ele%key /= sol_quad$) then
+  if (.not. at_this_ele_end(physical_end, fringe_at)) return
+endif
 track_spn = (track_spin .and. bmad_com%spin_tracking_on .and. is_true(hard_ele%value(spin_fringe_on$)))
 
 if (particle_at == first_track_edge$) then
@@ -116,10 +121,24 @@ sign_z_vel = orb%direction * track_ele%orientation
 ! Edge field when %field_calc = fieldmap$
 
 if (hard_ele_field_calc /= bmad_standard$ .and. hard_ele%tracking_method /= bmad_standard$) then
-  call electric_longitudinal_fringe()
+  call em_field_calc(hard_ele, param, s_edge, orb, .true., field, .false., err_flag, .true.)
+  f = at_sign * charge_of(orb%species) 
+  fac = at_sign * charge_of(orb%species) * c_light / orb%p0c
+
+  if (at_sign == 1) then
+    call apply_energy_kick (-f * field%phi, orb, f * field%E(1:2), mat6, make_matrix)
+    if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -f * field%phi])
+    orb%vec(2) = orb%vec(2) - fac * field%A(1)
+    orb%vec(4) = orb%vec(4) - fac * field%A(2)
+  else
+    orb%vec(2) = orb%vec(2) - fac * field%A(1)
+    orb%vec(4) = orb%vec(4) - fac * field%A(2)
+    if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -f * field%phi])
+    call apply_energy_kick (-f * field%phi, orb, f * field%E(1:2), mat6, make_matrix)
+  endif
+
   return
 endif
-
 
 !------------------------------------------------------------------------------------
 ! Only need this section when the field_calc or tracking is bmad_standard.
@@ -263,16 +282,6 @@ if (hard_ele_field_calc == bmad_standard$) then
     endif
   endif
 endif
-
-! DC fieldmap fringe. 
-
-if (hard_ele_field_calc /= bmad_standard$ .and. hard_ele%tracking_method /= bmad_standard$) then
-  f = at_sign * charge_of(orb%species) 
-  call em_field_calc(hard_ele, param, s_edge, orb, .true., field, .false., err_flag, .true.)
-  call apply_energy_kick (-f * field%phi, orb, f * field%E(1:2), mat6, make_matrix)
-  if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -f * field%phi])
-endif  
-
 
 end subroutine electric_longitudinal_fringe
 

@@ -1,6 +1,6 @@
 module gpt_interface_mod
 
-use bmad
+use em_field_mod
 
 implicit none
 

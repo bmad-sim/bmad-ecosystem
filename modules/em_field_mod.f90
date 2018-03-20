@@ -96,6 +96,7 @@ recursive subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, f
                            err_flag, calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
 
 use geometry_mod
+use super_recipes_mod
 
 type (ele_struct), target :: ele, ele2
 type (ele_pointer_struct), allocatable, optional :: used_eles(:)
@@ -119,7 +120,7 @@ real(rp), optional :: rf_time
 real(rp) :: x, y, time, s_pos, s_body, s_lab, s_lab2, z, ff, dk(3,3), ref_charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), Ex, Ey, amp
 real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, sgn_z, kx, ky, dkm(2,2), cos_ks, sin_ks
-real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, a_amp
+real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, a_amp, inte
 real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start
 real(rp) radius, phi, t_ref, tilt, omega, freq0, freq, B_phi_coef, z_center
 real(rp) sx_over_kx, sy_over_ky, sz_over_kz, rot2(2,2)
@@ -465,6 +466,10 @@ case (bmad_standard$)
       field%dB(2,1) =  ele%value(k1$) * f_p0c
     endif
 
+    if (logic_option(.false., calc_potential)) then
+      field%A(3) = 0.5_rp * (y * field%b(1) - x * field%b(2)) 
+    endif
+
   !------------------------------------------
   ! Sextupole 
 
@@ -511,6 +516,11 @@ case (bmad_standard$)
       field%dB(2,1) = ele%value(k1$) * f_p0c
     endif
 
+    if (logic_option(.false., calc_potential)) then
+      field%A = (0.5_rp * field%b(3)) * [-y, x, 0.0_rp]
+      field%A(3) = 0.5_rp * (y * field%b(1) - x * field%b(2)) 
+    endif
+
   !------------------------------------------
   ! Solenoid
 
@@ -523,7 +533,7 @@ case (bmad_standard$)
     endif
 
     if (logic_option(.false., calc_potential)) then
-      
+      field%A = (0.5_rp * field%b(3)) * [-y, x, 0.0_rp]      
     endif
 
   !------------------------------------------
@@ -1193,6 +1203,16 @@ case(fieldmap$)
         mode_field%e(3) = real(expt*g_pt%E(3))
         mode_field%b(3) = real(expt*g_pt%B(3)) 
     
+        ! Vector potential.
+        ! Right now only good for DC magnetic fields. This should be generalized.
+
+        if (logic_option(.false., calc_potential)) then
+          if (r /= 0) then
+            inte = super_qromb(rb_field, 0.0_rp, r, 1e-12_rp, 0.0_rp, 2, err) / r
+            field%A(1:2) = field%A(1:2) + inte * [-y, x] / r
+          endif
+        endif
+
       case default
         call out_io (s_fatal$, r_name, 'UNKNOWN GRID GEOMETRY: \i0\ ', &
                                        'FOR ELEMENT: ' // ele%name, i_array = [g_field%geometry])
@@ -1377,9 +1397,29 @@ endif
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
+contains
+
+! Function for vector potential calc.
+
+function rb_field(x)
+real(rp), intent(in) :: x(:)
+real(rp) :: rb_field(size(x))
+integer i
+
+!
+
+do i = 1, size(x)
+  call grid_field_linear_interpolate(ele, local_orb, g_field, g_pt, err, x(i), z, allow_s_out_of_bounds = .true.)
+  rb_field(i) = x(i) * expt * g_pt%b(3)
+enddo
+
+end function rb_field
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 ! Convert fields: ele to lab coords
 
-contains
+! contains
 
 subroutine convert_field_ele_to_lab (ele, s_here, forward_transform, field)
 
