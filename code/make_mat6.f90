@@ -2,7 +2,7 @@
 ! Subroutine make_mat6 (ele, param, start_orb, end_orb, err_flag)
 !
 ! Subroutine to make the 6x6 1st order transfer matrix for an element 
-! along with the 0th order transfer vector.
+! along with the 0th order transfer vector. Also optionally track the particle.
 !
 ! Note: Radiation fluctuations (but not damping) is turned off for the calculation.
 !
@@ -118,7 +118,6 @@ case (mad$)
 
 case (static$)
   if (present(err_flag)) err_flag = .false.
-  if (present(end_orb)) call track1 (a_end_orb, ele, param, end_orb)
   if (ele%bookkeeping_state%mat6 == stale$) ele%bookkeeping_state%mat6 = ok$
   return
 
@@ -141,12 +140,14 @@ if (bmad_com%space_charge_on) call make_mat6_ultra_rel_space_charge (ele, param)
 
 if (ele%symplectify) call mat_symplectify (ele%mat6, ele%mat6, ele%value(p0c$)/ele%value(p0c_start$))
 
-! Finish up
-
-ele%map_ref_orb_out = a_end_orb
+! If the tracking_method is not consistant with the mat6_calc_method then need to track.
 
 if (present(end_orb)) then
-  end_orb = a_end_orb
+  if (.not. ele%is_on .or. mat6_calc_method == tracking$ .or. mat6_calc_method == ele%tracking_method) then
+    end_orb = a_end_orb
+  else
+    call track1 (a_start_orb, ele, param, end_orb)
+  endif
 
   if (end_orb%state /= alive$) then
     end_orb%location = inside$
@@ -156,6 +157,11 @@ if (present(end_orb)) then
     end_orb%location = upstream_end$
   endif
 endif
+
+
+! Finish up
+
+ele%map_ref_orb_out = a_end_orb
 
 bmad_com%radiation_fluctuations_on = rad_fluct_save
 
