@@ -27,11 +27,13 @@ implicit none
 
 type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: lat
+type (ele_struct), pointer :: ele0
 type (ele_struct) ele3
-type (coord_struct), pointer :: this_orb(:)
 type (coord_struct) orb
+type (coord_struct), pointer :: orb0
 type (branch_struct), pointer :: branch
 type (all_pointer_struct) a_ptr
+type (tao_lattice_branch_struct), pointer :: tao_branch(:)
 
 character(*) param_name
 character(*) dflt_source
@@ -43,7 +45,7 @@ real(rp), allocatable :: values(:)
 real(rp) :: real_val
 
 integer, optional :: dflt_uni
-integer i, j, ix, num, ixe, ix1, ios, n_tot
+integer i, j, ix, num, ixe, ix1, ios, n_tot, ix_start, ib
 
 logical err, valid, middle
 logical :: print_err
@@ -112,33 +114,44 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       cycle
     endif
 
+    ib = scratch%eles(j)%ele%ix_branch
     select case (component)
-    case ('model')   
+    case ('model')
       lat => u%model%lat
-      this_orb => u%model%tao_branch(scratch%eles(j)%ele%ix_branch)%orbit
-      branch => u%model%lat%branch(scratch%eles(j)%ele%ix_branch)
-    case ('base')  
+      tao_branch => u%model%tao_branch
+      branch => u%model%lat%branch(ib)
+    case ('base')
       lat => u%base%lat
-      this_orb => u%base%tao_branch(scratch%eles(j)%ele%ix_branch)%orbit
-      branch => u%base%lat%branch(scratch%eles(j)%ele%ix_branch)
+      tao_branch => u%base%tao_branch
+      branch => u%base%lat%branch(ib)
     case ('design')
       lat => u%design%lat
-      this_orb => u%design%tao_branch(scratch%eles(j)%ele%ix_branch)%orbit
-      branch => u%design%lat%branch(scratch%eles(j)%ele%ix_branch)
+      tao_branch => u%design%tao_branch
+      branch => u%design%lat%branch(ib)
     case default
       call out_io (s_error$, r_name, 'BAD DATUM COMPONENT FOR: ' // param_name)
       return
     end select
 
     if (middle .and. ixe /= 0) then
+      ! Need to find element just before the element under consideration. 
+      ! This is complicated if the element under consideration is a lord.
+      ele0 => branch%ele(ixe)
+      do 
+        if (ele0%ix_ele <= branch%lat%branch(ele0%ix_branch)%n_ele_track) exit
+        ele0 => pointer_to_slave(ele0, 1)
+      enddo
+      ele0 => pointer_to_next_ele(ele0, -1)
+      orb0 => tao_branch(ele0%ix_branch)%orbit(ele0%ix_ele)
+
       select case (parameter)
       case ('x_position', 'y_position', 'z_position', 'theta_position', 'phi_position', 'psi_position')
         call twiss_and_track_intra_ele (branch%ele(ixe), lat%param, 0.0_rp, branch%ele(ixe)%value(l$)/2, &
-                      .true., .false., this_orb(ixe-1), orb, branch%ele(ixe-1), ele3, compute_floor_coords = .true.)
+                                                       .true., .false., orb0, orb, ele0, ele3, compute_floor_coords = .true.)
         err = .true. ! To trigger call to pointer_to_attribute
       case default
         call twiss_and_track_intra_ele (branch%ele(ixe), lat%param, 0.0_rp, branch%ele(ixe)%value(l$)/2, &
-                    .true., .false., this_orb(ixe-1), orb, branch%ele(ixe-1), ele3, err)
+                                                                      .true., .false., orb0, orb, ele0, ele3, err)
         call tao_orbit_value (parameter, orb, values(n_tot+j), err)
       end select
 
@@ -149,7 +162,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       endif
 
     else
-      call tao_orbit_value (parameter, this_orb(ixe), values(n_tot+j), err)
+      call tao_orbit_value (parameter, tao_branch(ib)%orbit(ixe), values(n_tot+j), err)
       if (err) then
         call pointer_to_attribute (branch%ele(ixe), parameter, .true., a_ptr, err, print_err)
         if (err) return
