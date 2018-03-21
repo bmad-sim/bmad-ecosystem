@@ -54,10 +54,11 @@ else
 endif
 
 ! The factor of 1.01 is used to avoid roundoff problems.
+! Note: init_coord is avoided since init_coord will make z and t consistent with the element's t_ref.
+! However, the reference time of the particle is not necessarily the same as the element's ref time.
 
 dorb6 = max(0.0_rp, 1.01 * (abs_p - (1 + start_orb%vec(6))))   ! Shift in start%vec(6) to apply.
-
-call init_coord(start_orb0, start_orb, ele, start_end$, start_orb%species, start_orb%direction, shift_vec6 = .false.)
+start_orb0 = start_orb
 
 call track1 (start_orb0, ele, param, end_orb)
 if (end_orb%state /= alive$) then
@@ -72,7 +73,7 @@ if (bmad_com%mat6_track_symmetric) then
     start = start_orb0
     start%vec(6) = start%vec(6) + dorb6
     start%vec(i) = start%vec(i) + del_orb(i)
-    call init_coord(start, start, ele, start_end$, start_orb%species, shift_vec6 = .false.)
+    call adjust_this
     call track1 (start, ele, param, end2)
     if (end2%state /= alive$) then
       call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING (+). MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
@@ -82,7 +83,7 @@ if (bmad_com%mat6_track_symmetric) then
     start = start_orb0
     start%vec(6) = start%vec(6) + dorb6
     start%vec(i) = start%vec(i) - del_orb(i)
-    call init_coord(start, start, ele, start_end$, start_orb%species, shift_vec6 = .false.)
+    call adjust_this
     call track1 (start, ele, param, end1)
     if (end1%state /= alive$) then
       call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING (-). MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
@@ -100,7 +101,7 @@ else
     start = start_orb0
     start%vec(6) = start%vec(6) + dorb6
     start%vec(i) = start%vec(i) + del_orb(i)
-    call init_coord(start, start, ele, start_end$, start_orb%species, shift_vec6 = .false.)
+    call adjust_this
     call track1 (start, ele, param, end1)
     if (end1%state /= alive$) then
       call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING. MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
@@ -115,6 +116,28 @@ endif
 ele%vec0 = end_orb%vec - matmul(mat6, start_orb%vec)
 ele%mat6 = mat6
 err_flag = .false.
+
+!------------------------------------------------------
+contains
+
+subroutine adjust_this
+
+if (start_orb%species == photon$) then
+ call init_coord(start, start, ele, start_end$, start_orb%species)
+ return
+endif
+
+!
+
+call convert_pc_to (start%p0c * (1 + start%vec(6)), start%species, beta = start%beta)
+
+if (start_orb%beta == 0) then
+  start%t = start_orb%t + start%vec(5) / (c_light * start%beta)
+else
+  start%t = start_orb%t + start%vec(5) / (c_light * start%beta) - start_orb%vec(5) / (c_light * start_orb%beta)
+endif
+
+end subroutine adjust_this
 
 end subroutine
 
