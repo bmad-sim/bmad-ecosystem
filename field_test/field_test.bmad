@@ -1,0 +1,32 @@
+no_digested
+
+parameter[geometry] = Open
+parameter[p0c]                    = 6e5
+parameter[particle]               = Electron
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+call, file = in.solenoid.bmad
+
+s1: solenoid, l = 1, tracking_method = runge_kutta, mat6_calc_method = tracking, field_calc = fieldmap,
+grid_field = {
+  geometry = rotationally_symmetric_rz,
+  field_type = magnetic,
+  harmonic = 0,
+  dr = (1, 2),
+  r0 = (0, 0, -0.5),
+  pt( 0, 0) = (0, 0, 1e-4),
+  pt( 0, 1) = (0, 0, 1e-4),
+  pt( 1, 0) = (0, 0, 1e-4),
+  pt( 1, 1) = (0, 0, 1e-4)}
+
+s2: solenoid, l = 1, bs_field = 1
+m0: marker, superimpose, offset = 0.2999
+m1: marker, superimpose, offset = 0.3001
+
+in.sol: in.solenoid, bs_field = 0.001
+
+ll: line = (in.sol, in.sol, s1, s2)
+
+use, ll
