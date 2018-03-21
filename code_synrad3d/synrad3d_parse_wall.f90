@@ -399,17 +399,21 @@ outer: do
 
     do k = 1, n_repeat
       do im = 1, m_max - 1
-        sec2 => wall_in%section(i+(k-1)*(m_max-1)+(im-1))
-        sec2 = m_sec%section(im)
+        sec2   => wall_in%section(i+(k-1)*(m_max-1)+(im-1))
+        sec2   = m_sec%section(im)
         sec2%s = ref_section%s + (k-1) * m_sec%section(m_max)%s + m_sec%section(im)%s
+        sec2%sub_chamber_name = ref_section%sub_chamber_name
+        sec2%surface_name     = ref_section%surface_name
         sec2%m_sec => m_sec%section(im)
       enddo
     enddo
 
     if (m_sec%section(m_max)%name == 'closed') then
-      sec2 => wall_in%section(i+n_repeat*(m_max-1))
-      sec2 = m_sec%section(1)
+      sec2   => wall_in%section(i+n_repeat*(m_max-1))
+      sec2   = m_sec%section(1)
       sec2%s = ref_section%s + n_repeat * m_sec%section(m_max)%s
+      sec2%sub_chamber_name = ref_section%sub_chamber_name
+      sec2%surface_name     = ref_section%surface_name
       sec2%m_sec => m_sec%section(1)
     endif
 
