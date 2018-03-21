@@ -15,7 +15,7 @@
 
 module touschek_mod
 
-use bmad_interface
+use twiss_and_track_mod
 use fgsl
 use, intrinsic :: iso_c_binding
 
