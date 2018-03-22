@@ -33,6 +33,29 @@ subroutine add_lattice_control_structs (ele, n_add_slave, n_add_lord, n_add_slav
   logical, optional :: add_at_end
 end subroutine
 
+subroutine allocate_branch_array (lat, upper_bound)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  integer :: upper_bound
+end subroutine
+
+subroutine allocate_element_array (ele, upper_bound, init_ele0)
+  import
+  implicit none
+  type (ele_struct), pointer :: ele(:)
+  integer, optional :: upper_bound
+  logical, optional :: init_ele0
+end subroutine
+
+subroutine allocate_lat_ele_array (lat, upper_bound, ix_branch)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  integer, optional :: upper_bound
+  integer, optional :: ix_branch
+end subroutine
+
 subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
   import
   implicit none
@@ -395,6 +418,25 @@ subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out, 
   logical, optional :: err_flag
 end subroutine
 
+subroutine deallocate_ele_array_pointers (eles)
+  import
+  implicit none
+  type (ele_struct), pointer :: eles(:)
+end subroutine
+
+subroutine deallocate_ele_pointers (ele, nullify_only, nullify_branch, dealloc_poles)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  logical, optional, intent(in) :: nullify_only, nullify_branch, dealloc_poles
+end subroutine
+
+subroutine deallocate_lat_pointers (lat)
+  import
+  implicit none
+  type (lat_struct) lat
+end subroutine
+
 function default_tracking_species (param) result (species)
   import
   implicit none
@@ -539,6 +581,22 @@ subroutine init_a_photon_from_a_photon_init_ele (ele, param, orbit)
   type (coord_struct) orbit
 end subroutine
 
+subroutine init_ele (ele, key, sub_key, ix_ele, branch)
+  import
+  implicit none
+  type (ele_struct)  ele
+  type (branch_struct), optional, target :: branch
+  integer, optional :: key, sub_key
+  integer, optional :: ix_ele
+end subroutine
+
+subroutine init_lat (lat, n)
+  import
+  implicit none
+  type (lat_struct)  lat
+  integer, optional :: n
+end subroutine
+
 subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr_mode, n_lr_spline, always_allocate)
   import
   implicit none
@@ -572,6 +630,12 @@ function key_name_to_key_index (key_str, abbrev_allowed) result (key_index)
   logical, optional :: abbrev_allowed
   integer key_index
 end function
+
+subroutine kill_ptc_genfield (ptc_genfield)
+  import
+  implicit none
+  type (genfield), pointer :: ptc_genfield
+end subroutine
 
 subroutine kill_ptc_layouts (lat)
   import
@@ -988,6 +1052,13 @@ subroutine radiation_integrals (lat, orb, mode, ix_cache, ix_branch, rad_int_by_
   type (coord_struct), target :: orb(0:)
   type (normal_modes_struct) mode
   integer, optional :: ix_cache, ix_branch
+end subroutine
+
+subroutine reallocate_control (lat, n)
+  import
+  implicit none
+  type (lat_struct) lat
+  integer, intent(in) :: n
 end subroutine
 
 subroutine reallocate_expression_stack (stack, n, exact)
@@ -1560,6 +1631,70 @@ subroutine transfer_ac_kick (ac_kick_in, ac_kick_out)
   type (ac_kicker_struct), pointer :: ac_kick_in, ac_kick_out
 end subroutine transfer_ac_kick
 
+subroutine transfer_branch (branch1, branch2)
+  import
+  implicit none
+  type (branch_struct) :: branch1
+  type (branch_struct) :: branch2
+end subroutine
+
+subroutine transfer_branch_parameters (branch_in, branch_out)
+  import
+  implicit none
+  type (branch_struct), intent(in) :: branch_in
+  type (branch_struct) :: branch_out
+end subroutine
+
+subroutine transfer_branches (branch1, branch2)
+  import
+  implicit none
+  type (branch_struct) :: branch1(:)
+  type (branch_struct) :: branch2(:)
+end subroutine
+
+subroutine transfer_ele (ele1, ele2, nullify_pointers)
+  import
+  implicit none
+  type (ele_struct), target :: ele1
+  type (ele_struct) :: ele2
+  logical, optional :: nullify_pointers
+end subroutine
+
+subroutine transfer_ele_taylor (ele_in, ele_out, taylor_order)
+  import
+  implicit none
+  type (ele_struct) ele_in, ele_out
+  integer, optional :: taylor_order
+end subroutine
+
+subroutine transfer_eles (ele1, ele2)
+  import
+  implicit none
+  type (ele_struct), intent(inout) :: ele1(:)
+  type (ele_struct), intent(inout) :: ele2(:)
+end subroutine
+
+subroutine transfer_fieldmap (ele_in, ele_out, who)
+  import
+  implicit none
+  type (ele_struct) :: ele_in, ele_out
+  integer who
+end subroutine
+
+subroutine transfer_lat (lat1, lat2)
+  import
+  implicit none
+  type (lat_struct), intent(in) :: lat1
+  type (lat_struct), intent(out) :: lat2
+end subroutine
+
+subroutine transfer_lat_parameters (lat_in, lat_out)
+  import
+  implicit none
+  type (lat_struct), intent(in) :: lat_in
+  type (lat_struct) :: lat_out
+end subroutine
+
 subroutine transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ref_orb, ix_branch, one_turn, unit_start, concat_if_possible)
   import
   implicit none
@@ -1589,10 +1724,23 @@ subroutine transfer_matrix_calc (lat, xfer_mat, xfer_vec, ix1, ix2, ix_branch, o
   logical, optional :: one_turn
 end subroutine
 
+subroutine transfer_twiss (ele_in, ele_out, reverse)
+  import
+  implicit none
+  type (ele_struct) ele_in, ele_out
+  logical, optional :: reverse
+end subroutine
+
 subroutine transfer_wake (wake_in, wake_out)
   import
   implicit none
   type (wake_struct), pointer :: wake_in, wake_out
+end subroutine
+
+subroutine transfer_wall3d (wall3d_in, wall3d_out)
+  import
+  implicit none
+  type (wall3d_struct), pointer :: wall3d_in(:), wall3d_out(:)
 end subroutine
 
 subroutine twiss_and_track_from_s_to_s (branch, orbit_start, s_end, orbit_end, &
@@ -1711,6 +1859,21 @@ subroutine type_twiss (ele, frequency_units, compact_format, lines, n_lines)
   integer, optional :: n_lines
   character(*), optional :: lines(:)
   logical, optional :: compact_format
+end subroutine
+
+subroutine unlink_fieldmap (cartesian_map, cylindrical_map, taylor_field, grid_field)
+  import
+  implicit none
+  type (cartesian_map_struct), pointer, optional :: cartesian_map(:)
+  type (cylindrical_map_struct), pointer, optional :: cylindrical_map(:)
+  type (taylor_field_struct), pointer, optional :: taylor_field(:)
+  type (grid_field_struct), pointer, optional :: grid_field(:)
+end subroutine
+
+subroutine unlink_wall3d (wall3d)
+  import
+  implicit none
+  type (wall3d_struct), pointer :: wall3d(:)
 end subroutine
 
 function value_of_attribute (ele, attrib_name, err_flag, err_print_flag, err_value) result (value)
