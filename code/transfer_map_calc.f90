@@ -114,6 +114,7 @@ enddo
 if (i1 < i2) then 
   do i = i1+1, i2
     call add_on_to_map (t_map, branch%ele(i))
+    if (err_flag) return
   enddo
 
 ! Circular lattice with i1 > i2: Track through origin.
