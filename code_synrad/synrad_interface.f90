@@ -1,7 +1,6 @@
 module synrad_interface
 
 use synrad_struct
-use bmad_interface
 
 interface
   subroutine set_wall_eles (wall, branch)
