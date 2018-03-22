@@ -8,8 +8,6 @@ module track1_mod
 
 use bmad_interface
 use make_mat6_mod
-use em_field_mod
-use geometry_mod
 use spin_mod
 
 ! Private routines for exact_bend_edge_kick
