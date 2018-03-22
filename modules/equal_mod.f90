@@ -1,6 +1,6 @@
 module equal_mod
 
-use bmad_core_struct_mod
+use bmad_routine_interface
 
 interface assignment (=)
   module procedure ele_equal_ele
