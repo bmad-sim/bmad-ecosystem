@@ -4,7 +4,6 @@ use synrad3d_struct
 use random_mod
 use photon_init_mod
 use capillary_mod
-use track1_mod
 
 implicit none
 
