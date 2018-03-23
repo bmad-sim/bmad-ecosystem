@@ -3,8 +3,11 @@ parameter[p0c] = 805e9
 parameter[particle] = proton
 bmad_com[spin_tracking_on] = T
 
-spin_x_rotator: taylor, {xx 1 |}, {yy -1 |}, {zz -1 |}
-spin_z_rotator: taylor, {xx -1 |}, {yy -1 |}, {zz 1 |}
+! spin_x_rotator: taylor, {xx 1 |}, {yy -1 |}, {zz -1 |}
+! spin_z_rotator: taylor, {xx -1 |}, {yy -1 |}, {zz 1 |}
+
+spin_x_rotator: taylor, {Sx 1 |}
+spin_z_rotator: taylor, {Sz 1 |}
 
 sn_fl1: spin_x_rotator, superimpose, offset = 158.139068
 sn_e:   spin_z_rotator, superimpose, offset = 214.908668
