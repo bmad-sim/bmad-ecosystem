@@ -2453,7 +2453,7 @@ if (.not. is_eq) return
 if (associated(f1%space_charge)) is_eq = (f1%space_charge == f2%space_charge)
 !! f_side.equality_test[type, 1, NOT]
 is_eq = is_eq .and. all(f1%taylor == f2%taylor)
-!! f_side.equality_test[type, 2, NOT]
+!! f_side.equality_test[type, 1, NOT]
 is_eq = is_eq .and. all(f1%spin_taylor == f2%spin_taylor)
 !! f_side.equality_test[type, 0, PTR]
 
