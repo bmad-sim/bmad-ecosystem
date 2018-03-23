@@ -7,7 +7,6 @@
 
 module ptc_interface_mod
 
-use multipole_mod
 use bookkeeper_mod
 use complex_taylor_mod
 

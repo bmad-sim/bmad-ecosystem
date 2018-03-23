@@ -21,7 +21,7 @@
 
 subroutine track_a_zero_length_element (start_orb, ele, param, end_orb, err_flag, track)
 
-use track1_mod, except_dummy => track_a_zero_length_element
+use fringe_mod, except_dummy => track_a_zero_length_element
 
 implicit none
 

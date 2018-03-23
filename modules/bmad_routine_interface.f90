@@ -558,6 +558,15 @@ subroutine find_matching_fieldmap (file_name, ele, t_type, match_ele, ix_field)
   character(*) file_name
 end subroutine
 
+subroutine get_field_ele_list (ele, field_eles, dz_offset, n_field_ele)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (ele_pointer_struct), allocatable :: field_eles(:)
+  real(rp), allocatable :: dz_offset(:)
+  integer n_field_ele
+end subroutine
+
 function gradient_shift_sr_wake (ele, param) result (grad_shift)
   import
   implicit none
@@ -969,6 +978,16 @@ subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_fla
   integer, optional :: ix_attrib
 end subroutine
 
+subroutine pointer_to_indexed_attribute (ele, ix_attrib, do_allocation, a_ptr, err_flag, err_print_flag)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (all_pointer_struct) :: a_ptr
+  integer :: ix_attrib
+  logical err_flag, do_allocation
+  logical, optional :: err_print_flag
+end subroutine
+
 function pointer_to_lord (slave, ix_lord, control, ix_slave, field_overlap_ptr) result (lord_ptr)
   import
   implicit none
@@ -1052,6 +1071,14 @@ subroutine radiation_integrals (lat, orb, mode, ix_cache, ix_branch, rad_int_by_
   type (coord_struct), target :: orb(0:)
   type (normal_modes_struct) mode
   integer, optional :: ix_cache, ix_branch
+end subroutine
+
+subroutine re_allocate_eles (eles, n, save_old, exact)
+  import
+  implicit none
+  type (ele_pointer_struct), allocatable :: eles(:)
+  integer n
+  logical, optional :: save_old, exact
 end subroutine
 
 subroutine reallocate_control (lat, n)
@@ -1875,6 +1902,30 @@ subroutine unlink_wall3d (wall3d)
   implicit none
   type (wall3d_struct), pointer :: wall3d(:)
 end subroutine
+
+function valid_mat6_calc_method (ele, species, mat6_calc_method) result (is_valid)
+  import
+  implicit none
+  type (ele_struct) ele
+  integer mat6_calc_method, species
+  logical is_valid
+end function
+
+function valid_spin_tracking_method (ele, spin_tracking_method) result (is_valid)
+  import
+  implicit none
+  type (ele_struct) ele
+  integer spin_tracking_method
+  logical is_valid
+end function
+
+function valid_tracking_method (ele, species, tracking_method) result (is_valid)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  integer tracking_method, species
+  logical is_valid
+end function
 
 function value_of_attribute (ele, attrib_name, err_flag, err_print_flag, err_value) result (value)
   import

@@ -16,7 +16,8 @@
 
 subroutine zero_ele_offsets (ele)
 
-use basic_attribute_mod, dummy => zero_ele_offsets
+use attribute_mod, dummy => zero_ele_offsets
+
 implicit none
 
 type (ele_struct) ele

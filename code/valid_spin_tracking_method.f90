@@ -1,0 +1,72 @@
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Function valid_spin_tracking_method (ele, spin_tracking_method) result (is_valid)
+!
+! Routine to return whether a given spin_tracking method is valid for a given element.
+!
+! Module needed:
+!   use fringe_mod
+!
+! Input:
+!   ele              -- ele_struct: Lattice element.
+!   spin_tracking_method -- integer: bmad_standard$, etc.
+!
+! Output:
+!   is_valid  -- logical: True if a valid method. False otherwise.
+!-
+
+function valid_spin_tracking_method (ele, spin_tracking_method) result (is_valid)
+
+use bmad_struct
+
+implicit none
+
+type (ele_struct) ele
+integer spin_tracking_method
+logical is_valid
+
+! 
+
+select case (ele%key)
+
+case (ab_multipole$)
+  select case (spin_tracking_method)
+  case (tracking$, custom$)
+    is_valid = .true.
+  end select
+
+case (ac_kicker$)
+  select case (spin_tracking_method)
+  case (tracking$, custom$)
+    is_valid = .true.
+  end select
+
+case (capillary$, crystal$, mirror$, multilayer_mirror$, taylor$)
+  is_valid = .false.
+
+case (custom$)
+  select case (spin_tracking_method)
+  case (tracking$, custom$)
+    is_valid = .true.
+  end select
+
+case (hybrid$)
+  is_valid = .false.
+
+case (sad_mult$, patch$)
+  select case (spin_tracking_method)
+  case (custom$, symp_lie_ptc$)
+    is_valid = .true.
+  end select
+
+case default
+  select case (spin_tracking_method)
+  case (custom$, symp_lie_ptc$, tracking$)
+    is_valid = .true.
+  end select
+end select
+
+end function valid_spin_tracking_method 
+

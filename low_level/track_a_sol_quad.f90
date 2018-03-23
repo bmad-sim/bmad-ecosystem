@@ -16,7 +16,7 @@
 
 subroutine track_a_sol_quad (orbit, ele, param, mat6, make_matrix)
 
-use track1_mod, except_dummy => track_a_sol_quad
+use fringe_mod, except_dummy => track_a_sol_quad
 
 implicit none
 

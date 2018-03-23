@@ -9,7 +9,7 @@
 !   orbit_too_large
 !
 ! Modules needed:
-!   use track1_mod
+!   use fringe_mod
 !
 ! Input:
 !   orb            -- Coord_struct: coordinates of a particle.

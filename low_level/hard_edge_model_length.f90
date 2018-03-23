@@ -10,7 +10,7 @@
 
 function hard_edge_model_length (ele) result (l_hard)
 
-use basic_attribute_mod, except_dummy => hard_edge_model_length
+use attribute_mod, except_dummy => hard_edge_model_length
 
 implicit none
 

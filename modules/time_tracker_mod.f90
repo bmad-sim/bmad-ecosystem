@@ -1038,7 +1038,7 @@ end subroutine  write_time_particle_distribution
 !   The starting element is located using start_orb%s.
 !
 ! Module needed:
-!   use track1_mod
+!   use fringe_mod
 !
 ! Input:
 !   start_orb   -- coord_struct: Starting coords.

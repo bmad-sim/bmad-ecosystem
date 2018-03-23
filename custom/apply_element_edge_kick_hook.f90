@@ -24,7 +24,7 @@
 
 subroutine apply_element_edge_kick_hook (orb, fringe_info, track_ele, param, finished, mat6, make_matrix, rf_time)
 
-use track1_mod, dummy => apply_element_edge_kick_hook
+use fringe_mod, dummy => apply_element_edge_kick_hook
 
 implicit none
 
