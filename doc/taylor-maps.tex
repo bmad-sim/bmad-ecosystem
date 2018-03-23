@@ -103,61 +103,32 @@ where
 \label{s:spin.map}
 \index{spin taylor map}
 
-A Taylor map that fully describes spin and orbital motion, would
-consist of nine Taylor series (six for the orbital phase space
-variables and three for the spin components) and each Taylor series
-would be a polynomial in nine variables.
+A Taylor map that fully describes spin (\sref{s:spin.dyn}) and orbital motion, would consist of nine
+Taylor series (six for the orbital phase space variables and three for the spin components) and each
+Taylor series would be a polynomial in nine variables.
 
-To simplify things, \bmad assumes that the effect on the orbital phase
-space due to the spin orientation is negligible. That is, Stern-Gerlach
-effects are ignored. With this assumption, the orbital part of the map
-is only dependent on the six orbital variables. Furthermore, 
-the three spin Taylor series are linear in the spin coordinates
-and can be cast into matrix form:
-\Begineq
-  S_i(\Out) = \sum_{j} \Bf\Lambda_{ij}(\bfr(\In) - \bfr_\Ref) \, S_j(\In)
-\Endeq
-where $\Bf S = (s_x, s_y, s_z)$ is the spin and $\Bf\Lambda_{ij}$ are
-Taylor series that are only dependent upon the orbit coordinates. The
-proof of this assertion is derived from the
-Thomas-Bargmann-Michel-Telegdi equation (\sref{tbmt}). Since the
-orbital coordinates are assumed independent of the spin, the TBMT
-equation is linear in the spin and thus the transport can be described
-by a matrix. Furthermore, since the spin magnitude is an invarient,
-for given initial orbit coordinates, The $\Bf\Lambda_{ij}$ matrix,
-evaluated for some given initial orbital starting point, must just
-represent a rotation about some axis. While use of the $\Bf\Lambda$
-matrix increases the number of Taylor series needed from 9 to 15, all
-the series are now only dependent on the six orbit coordinates.
+To simplify things, \bmad assumes that the effect on the orbital phase space due to the spin
+orientation is negligible. That is, Stern-Gerlach effects are ignored. With this assumption, the
+orbital part of the map is only dependent on the six orbital variables. This means that
+${\pmb\Omega}_{BMT}$ and ${\pmb\Omega}_{EDM}$ in the the Thomas-Bargmann-Michel-Telegdi equation
+(\sref{tbmt}), are assumed independent of the spin. Thus the spin transport is just a rotation.
+\bmad represents this rotation using a quaternion. Each of the four components of the quaternion is
+a Taylor series and the full phase space plus spin transport uses 10 (= 6 + 4) Taylor series with
+each Taylor series only being dependent on the six phase space coordinates.
 
-The standard \bmad routine for printing a spin Taylor map will produce
-something like this:
-\begin{example}
-  Spin Taylor Terms:
-  Out      Coef_Sx         Coef_Sy         Coef_Sz      Exponents           Order
-  -------------------------------------------------------------------------------
-  Sx:      0.99757886     -0.02372254     -0.06537314   0  0  0  0  0  0        0
-  Sx:      0.04802411      0.22401654      0.65154583   1  0  0  0  0  0        1
-  Sx:      0.07391383      3.77338795     -0.24137562   0  1  0  0  0  0        1
-  Sx:      0.00008802     -0.17584738      0.06515458   0  0  1  0  0  0        1
-  Sx:      0.01148244     -0.20322945      0.24896717   0  0  0  1  0  0        1
-  Sx:     -0.00457076     -0.22322148      0.01125358   0  0  0  0  0  1        1
-  -------------------------------------------------------------------------------
-  Sy:     -0.02460178      0.75885811     -0.65079114   0  0  0  0  0  0        0
-  Sy:      0.25039365     -0.04801091     -0.06544895   1  0  0  0  0  0        1
-  Sy:     -3.02631629     -0.07739091      0.02416143   0  1  0  0  0  0        1
-  Sy:      0.17584738      0.00008802     -0.00654489   0  0  1  0  0  0        1
-  Sy:      0.47579058      1.59361755      1.84025908   0  0  0  1  0  0        1
-  Sy:      0.13046518     -0.46155512     -0.54313051   0  0  0  0  0  1        1
-  -------------------------------------------------------------------------------
-  Sz:      0.06504736      0.65082378      0.75643719   0  0  0  0  0  0        0
-  Sz:     -0.64180483      0.06414595      0.00000000   1  0  0  0  0  0        1
-  Sz:     -2.27815007      0.22777762     -0.00007328   0  1  0  0  0  0        1
-  Sz:      0.06515785     -0.00651227      0.00000000   0  0  1  0  0  0        1
-  Sz:      0.00385332     -1.86555986      1.60475990   0  0  0  1  0  0        1
-  Sz:      0.11944181      0.53003513     -0.46630288   0  0  0  0  0  1        1
-\end{example}
-The reference orbit is seen by printing the orbital part of the map.
+Spin transport involves:
+\begin{enumerate}
+\item Using the six phase space coordinates, evaluate the four spin Taylor series to produce a quaternion $\bfq$.
+\item Normalize the quaternion to one: $\bfq \longrightarrow \bfq/|\bfq|$.
+\item Rotate the spin vector: $\bfS \longrightarrow \bfq \, \bfS \, \bfq^{-1}$.
+\end{enumerate}
+The  normalization of the quaternion is needed since the truncation of the map to a finite order will produce errors
+in the magnitude of the quaternion.
+
+The standard \bmad routine for printing a spin Taylor map will produce a result that is very similar
+as that produced for the orbital phase space. The difference is that there will only be four Taylor
+series labeled (\vn{S1}, \vn{Sx}, \vn{Sy}, \vn{Sz}) for the four components of the quaternion. Also the reference orbit
+will not be shown (it is exactly the same as the orbital phase space reference orbit).
 
 %-----------------------------------------------------------------
 \section{Symplectification}

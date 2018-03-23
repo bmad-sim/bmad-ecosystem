@@ -960,7 +960,7 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
     nl=nl+1; li(nl) = ' '
     nl=nl+1; write (li(nl), '(a, l1)') 'taylor_map_includes_offsets: ', ele%taylor_map_includes_offsets
     if (logic_option(.false., type_taylor)) then
-      call type_taylors (ele%taylor, lines = li2, n_lines = nt)
+      call type_taylors (ele%taylor, lines = li2, n_lines = nt, out_type = 'PHASE')
       call re_associate (li, nl+nt+100, .false.)
       li(1+nl:nt+nl) = li2(1:nt)
       deallocate (li2)
@@ -974,19 +974,19 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
     endif
   endif
 
-  if (associated(ele%spin_taylor(1,1)%term) .or. ele%key == taylor$) then
+  if (associated(ele%spin_taylor(1)%term) .or. ele%key == taylor$) then
     if (logic_option(.false., type_taylor)) then
-      nl=nl+1; li(nl) = ' '
-      call type_spin_taylors (ele%spin_taylor, lines = li2, n_lines = nt)
+      nl=nl+1; li(nl) = ''
+      call type_taylors (ele%spin_taylor, lines = li2, n_lines = nt, out_type = 'SPIN')
       call re_associate (li, nl+nt+100, .false.)
       li(1+nl:nt+nl) = li2(1:nt)
       deallocate (li2)
       nl = nl + nt
     else
       n_term = 0
-      do i = 1, 3; do j = 1, 3
-        n_term = n_term + size(ele%spin_taylor(i,j)%term)
-      enddo; enddo
+      do i = 1, 4
+        n_term = n_term + size(ele%spin_taylor(i)%term)
+      enddo
       nl=nl+1; write (li(nl), '(a, i6)') 'Spin_Taylor map total number of terms:', n_term
     endif
   endif

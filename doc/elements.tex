@@ -4015,11 +4015,11 @@ See \sref{s:list.taylor} for a full list of element attributes.
 Attributes specific to a \vn{taylor} element are:
 \begin{example}
   ref_orbit = (<x>, <px>, <y>, <py>, <z>, <pz>)     ! Reference orbit.
-  x_ref = <Real>                                    ! $x$ reference orbit component.
+  x_ref  = <Real>                                   ! $x$ reference orbit component.
   px_ref = <Real>                                   ! $p_x$ reference orbit component.
-  y_ref = <Real>                                    ! $y$ reference orbit component.
+  y_ref  = <Real>                                   ! $y$ reference orbit component.
   py_ref = <Real>                                   ! $p_y$ reference orbit component.
-  z_ref = <Real>                                    ! $z$ reference orbit component.
+  z_ref  = <Real>                                   ! $z$ reference orbit component.
   pz_ref = <Real>                                   ! $p_z$ reference orbit component.
   \{<out>: <coef>, <e1> <e2> <e3> <e4> <e5> <e6>\}    ! Taylor term. First form.
   \{<out>: <coef> | <n1> <n2> ...\}                   ! Taylor term. Second form.
@@ -4043,11 +4043,11 @@ For orbital phase space variables a term in a Taylor map is of the form
 \Begineq
   r_j(\Out) = C \cdot \Pi_{i = 1}^6 \, \delta r_i^{e_i}
 \Endeq
-where $\bfr = (x, p_x, y, p_y, z, p_z)$ and $\delta \bfr = \bfr(\In) - \bfr_\Ref$ with
-$\bfr_\Ref$ begin the reference orbit. A term in a Taylor map can be specified by one of
-two forms as shown above. The first form specifies the six exponents $e_i$ using the
-integers \vn{<e1>} corresponding to $e_1$, \vn{<e2>} corresponding to $e_2$, etc.  For
-example, a term in a Taylor map that was
+where $C$ is the coefficient, $\bfr = (x, p_x, y, p_y, z, p_z)$ and $\delta \bfr = \bfr(\In) -
+\bfr_\Ref$ with $\bfr_\Ref$ begin the reference orbit. A term in a Taylor map can be specified by
+one of two forms as shown above. The first form specifies the six exponents $e_i$ using the integers
+\vn{<e1>} corresponding to $e_1$, \vn{<e2>} corresponding to $e_2$, etc.  For example, a term in a
+Taylor map that was
 \Begineq
   p_y(\Out) = 2.73 \cdot \delta y^2(\In) \, \delta p_z(\In)
 \Endeq
@@ -4072,19 +4072,20 @@ would be written unsing the third form as:
   tt4336 = 2.73
 \end{example}
 
-For spin, a Taylor map is associated with one of the components in the
-3x3 spin map matrix (\sref{s:spin.map}). An individual Taylor term is
-of the form
+The spin (\sref{s:spin.dyn}) part of the transport map (\sref{s:spin.map}) is described using
+quaternions (\sref{s:quat}). The syntax for the spin part uses the first or second forms as
+described above. The four components of a quaternion are labeled (\vn{S1}, \vn{Sx}, \vn{Sy},
+\vn{Sz}).  An individual Taylor term is of the form:
 \Begineq
-  S_j(\Out) = C \cdot \Pi_{i = 1}^6 \, \delta r_i^{e_i}(\In) \, S_k(\In)
+  S_j = C \cdot \Pi_{i = 1}^6 \, \delta r_i^{e_i}(\In)
 \Endeq
 For example
 \begin{example}
-  \{xz: 0.43 | 13 \}
+  \{Sx: 0.43 | 13 \}
 \end{example}
 is equivalent to
 \Begineq
-  S_x(\Out) = 0.43 \cdot \delta x(\In) \, \delta y(\In) \, S_z(\In)
+  S_x = 0.43 \cdot \delta x(\In) \, \delta y(\In)
 \Endeq
 
 By default, a \vn{taylor} element starts out with the unit phase space map but no default

@@ -629,22 +629,19 @@ type (coord_struct) :: start_orb, end_orb
 type (ele_struct) ele
 type (lat_param_struct) param
 
-real(rp) rot(3,3)
+real(rp) quat(4)
 character(*), parameter :: r_name = 'track1_spin_taylor'
 
 !
 
-if (.not. associated(ele%spin_taylor(1,1)%term)) then
+if (.not. associated(ele%spin_taylor(1)%term)) then
   call out_io (s_error$, r_name, 'NO SPIN TAYLOR MAP ASSOCIATED WITH ELEMENT: ' // ele%name)
   if (global_com%exit_on_error) call err_exit
   end_orb%spin = start_orb%spin
 endif
 
-call track_taylor (start_orb%vec, ele%spin_taylor(1,:), rot(1,:), ele%taylor%ref)
-call track_taylor (start_orb%vec, ele%spin_taylor(2,:), rot(2,:), ele%taylor%ref)
-call track_taylor (start_orb%vec, ele%spin_taylor(3,:), rot(3,:), ele%taylor%ref)
-
-end_orb%spin = matmul(rot, start_orb%spin)
+quat = track_taylor (start_orb%vec, ele%spin_taylor, ele%taylor%ref)
+end_orb%spin = rotate_vec_given_quat(start_orb%spin, quat/norm2(quat))
 
 end subroutine track1_spin_taylor
 

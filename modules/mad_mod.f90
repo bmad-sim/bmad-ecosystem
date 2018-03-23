@@ -77,7 +77,7 @@ endif
 ! make the trasfer map.
 
 call taylor_to_mat6 (ele%taylor, c0%vec, ele%vec0, ele%mat6)
-call track_taylor (c0%vec, ele%taylor, c1%vec)
+c1%vec = track_taylor (c0%vec, ele%taylor)
 
 end subroutine make_mat6_mad
 
@@ -1662,7 +1662,7 @@ endif
 
 start2_orb = start_orb
 end_orb = start_orb
-call track_taylor (end_orb%vec, ele%taylor, end_orb%vec)
+end_orb%vec = track_taylor (end_orb%vec, ele%taylor)
 
 end_orb%s = ele%s
 end_orb%p0c = ele%value(p0c$)

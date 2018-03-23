@@ -94,14 +94,14 @@ if (logic_option(.false., make_matrix)) call taylor_to_mat6 (taylor_ptr, end_orb
 !
 
 if (start_orb%direction == 1) then
-  call track_taylor (end_orb%vec, taylor_ptr, end_orb%vec)
+  end_orb%vec = track_taylor (end_orb%vec, taylor_ptr)
 
 else
   end_orb%vec(2) = -end_orb%vec(2)
   end_orb%vec(4) = -end_orb%vec(4)
   z0 = end_orb%vec(5)
 
-  call track_taylor (end_orb%vec, taylor_ptr, end_orb%vec)
+  end_orb%vec = track_taylor (end_orb%vec, taylor_ptr)
 
   end_orb%vec(2) = -end_orb%vec(2)
   end_orb%vec(4) = -end_orb%vec(4)

@@ -540,7 +540,10 @@ ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
 ele%old_value = value_saved
 
 if (abs(ele%value(delta_ref_time$) - ele%old_value(delta_ref_time$)) * c_light > bmad_com%significant_length) then
-  if (associated (ele%taylor(1)%term) .and. ele%key /= taylor$) call kill_taylor (ele%taylor, ele%spin_taylor)
+  if (associated (ele%taylor(1)%term) .and. ele%key /= taylor$) then
+    call kill_taylor (ele%taylor)
+    call kill_taylor (ele%spin_taylor)
+  endif
   ele%bookkeeping_state%mat6 = stale$
 endif
 

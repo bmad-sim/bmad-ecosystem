@@ -262,10 +262,10 @@ case (taylor$)   ! start with unit matrix
   if (logic_option(.true., do_allocate)) then
     call taylor_make_unit (ele%taylor)
   
-    do i = 1, 3; do j = 1, 3
-      ele%spin_taylor(i,j)%ref = 0
-      call init_taylor_series (ele%spin_taylor(i,j), 0)
-    enddo; enddo
+    do i = 1, 4
+      ele%spin_taylor(i)%ref = 0
+      call init_taylor_series (ele%spin_taylor(i), 0)
+    enddo
   endif
 
 case (wiggler$, undulator$) 

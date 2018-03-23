@@ -43,7 +43,7 @@ call ele_to_taylor(ele, param, bmad_taylor, start_orb, .true.)
 call taylor_to_mat6 (bmad_taylor, start_orb%vec, ele%vec0, ele%mat6)
 
 end_orb = start_orb
-call track_taylor (end_orb%vec, bmad_taylor, end_orb%vec)
+end_orb%vec = track_taylor (end_orb%vec, bmad_taylor)
 call kill_taylor (bmad_taylor)
 
 bmad_com%spin_tracking_on = st

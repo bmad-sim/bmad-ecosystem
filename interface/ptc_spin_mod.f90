@@ -55,7 +55,7 @@ contains
 !
 ! Output:
 !   t_map(6)   -- Taylor_struct: Orbital transfer map.
-!   s_map(3,3) -- Taylor_struct: Spin transfer map.
+!   s_map(4)   -- Taylor_struct: Quaternion spin transfer map.
 !   err_flag   -- logical: Set True if problem like number overflow, etc.
 !-
 
@@ -66,7 +66,7 @@ use pointer_lattice, only: assignment(=), operator(+), operator(**), operator(-)
                       kill, internal_state, probe, probe_8, sqrt, c_damap, real_8, default, spin0, alloc, propagate
 
 type (lat_struct), target :: lat
-type (taylor_struct) :: t_map(6), s_map(3,3)
+type (taylor_struct) :: t_map(6), s_map(4)
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 type (coord_struct) orb0
@@ -156,8 +156,8 @@ endif
 
 t_map = y0
 
-do i = 1, 3
-  s_map(:,i) = ptc_probe8%s(i)%x
+do i = 1, 4
+  s_map(i) = ptc_probe8%q%x(i)%t
 enddo
 
 call kill (ptc_c_map)
