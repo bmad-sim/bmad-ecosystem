@@ -674,7 +674,6 @@ subroutine track1_spin_bmad (start_orb, ele, param, end_orb)
 
 use ptc_spin, rename_dummy => dp, rename2_dummy => twopi
 use ptc_interface_mod
-use fringe_edge_track_mod
 
 implicit none
 

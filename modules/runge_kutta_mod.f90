@@ -2,7 +2,6 @@ module runge_kutta_mod
 
 use fringe_mod
 use em_field_mod
-use fringe_edge_track_mod
 use spin_mod
 
 type runge_kutta_common_struct

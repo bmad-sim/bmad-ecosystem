@@ -1,16 +1,3 @@
-module fringe_edge_track_mod
-
-use bmad_routine_interface
-
-implicit none
-
-private does_this_ele_contain_the_next_edge 
-
-contains
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
 !+
 ! Subroutine calc_next_fringe_edge (track_ele, s_edge_body, fringe_info, orbit, init_needed, time_tracking)
 !
@@ -40,13 +27,17 @@ contains
 
 subroutine calc_next_fringe_edge (track_ele, s_edge_body, fringe_info, orbit, init_needed, time_tracking)
 
+use bmad_routine_interface, dummy => calc_next_fringe_edge
+
+implicit none
+
 type (ele_struct), target :: track_ele
 type (fringe_edge_info_struct) fringe_info
 type (ele_struct), pointer :: lord
 type (coord_struct) :: orbit
 
 real(rp) s_edge_body, s_orb
-integer i, num_lords, dir
+integer i, dir
 logical, optional :: init_needed, time_tracking
 
 character(*), parameter :: r_name = 'calc_next_finge_edge'
@@ -75,11 +66,9 @@ if (logic_option(.false., init_needed)) then
 
   if (track_ele%slave_status == super_slave$ .or. track_ele%slave_status == slice_slave$) then
     call re_allocate(fringe_info%location, track_ele%n_lord)
-    num_lords = 0
     do i = 1, track_ele%n_lord
       lord => pointer_to_lord(track_ele, i)
       if (lord%key == overlay$ .or. lord%key == group$) cycle
-      num_lords = num_lords + 1
       call init_this_ele (lord, i, dir)
     enddo
 
@@ -189,11 +178,8 @@ endif
 
 end subroutine init_this_ele
 
-end subroutine calc_next_fringe_edge
-
 !---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
+! contains
 
 subroutine does_this_ele_contain_the_next_edge (this_ele, ix_loc, track_ele, dir, orbit, s_edge_body, s_orb, fringe_info)
 
@@ -296,4 +282,5 @@ endif
 
 end subroutine does_this_ele_contain_the_next_edge
 
-end module
+end subroutine calc_next_fringe_edge
+
