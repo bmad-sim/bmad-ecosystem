@@ -1411,6 +1411,14 @@ logical err, l_value, err_flag
 call tao_find_var (err, var_str, v_array = v_var, re_array=r_var, log_array=l_var, &
                                                  str_array = s_var, component = component)
 
+if (component == 'base') then
+  call out_io (s_error$, r_name, &
+        'VARIABLES IN THE BASE LATTICE ARE NOT ALLOWED TO BE SET DIRECTLY SINCE DEPENDENT', &
+        'PARAMETERS (LIKE THE TWISS PARAMETERS) IN THE BASE LATTICE ARE NEVER COMPUTED.', &
+        'USE THE "SET LATTICE BASE = ..." COMMAND INSTEAD.')
+  return
+endif
+
 ! A logical value_str is either a logical or an array of datum values.
 
 if (size(l_var) > 0) then

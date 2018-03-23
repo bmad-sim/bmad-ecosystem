@@ -380,7 +380,7 @@ if (u%calc%track) then
     if (err) then
       calc_ok = .false.
       do i = 0, ubound(orbit, 1)
-        orbit(i)%vec = (/ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
+        orbit(i)%vec = 0
       enddo
     else
       tao_branch%orb0 = orbit(0)   ! Save beginning orbit as initial guess next time.
@@ -414,7 +414,7 @@ if (u%calc%track) then
       call out_io (s_blank$, r_name, &
               "particle lost in single particle tracking at branch>>element \I0\>>\I0\: " // &
               trim(branch%ele(ix_lost)%name) // '  [s =\F9.2\]', &
-              r_array = (/ branch%ele(ix_lost)%s /), i_array = (/ ix_branch, ix_lost /))
+              r_array = [branch%ele(ix_lost)%s], i_array = [ix_branch, ix_lost])
     endif
   endif
 
@@ -683,7 +683,7 @@ do j = ie1, ie2
     call run_timer ('READ', time)
     if (time - old_time > 60) then
       call out_io (s_blank$, r_name, 'Beam at Element: \i0\. Time: \i0\ min', &
-                          i_array = (/ j, nint(time/60) /) )
+                          i_array = [j, nint(time/60)] )
       old_time = time
     endif
   endif
@@ -699,7 +699,7 @@ enddo
 if (n_lost /= 0) &
   call out_io (s_blank$, r_name, &
       "Total number of lost particles by the end of universe \I2\: \I5\.", &
-                                  i_array = (/u%ix_uni, n_lost /))
+                                  i_array = [u%ix_uni, n_lost])
 
 tao_branch%track_state = ix_track
  
