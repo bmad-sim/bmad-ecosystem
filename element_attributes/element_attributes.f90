@@ -8,7 +8,7 @@
 
 program element_attributes
 
-use basic_attribute_mod
+use attribute_mod
 
 implicit none
 

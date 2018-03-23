@@ -1,4 +1,4 @@
- 2017-07-06 20:56:30 
+ 2018-03-15 23:44:49 
  
    1   Drift                 22   AB_multipole
    2   Sbend                 58   AC_Kicker
@@ -74,11 +74,11 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -117,12 +117,11 @@
  58  AC_Kicker           
          1  L                                       
          2  TILT                                    
-         4  H_DISPLACE                              
-         5  V_DISPLACE                              
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
         31  L_HARD_EDGE                             
+        32  T_OFFSET                                
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -152,11 +151,11 @@
         68  LORD_PAD1                               
         69  LORD_PAD2                               
         70  R0_ELEC                                 
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -167,6 +166,7 @@
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
         85  LR_FREQ_SPREAD                          
+        86  MULTIPOLES_ON                           
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
@@ -189,6 +189,7 @@
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
+       113  SCALE_MULTIPOLES                        
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -204,6 +205,7 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
+       140  A0                                      
  
  !---------------------------------
  11  BeamBeam            
@@ -239,11 +241,11 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -290,11 +292,11 @@
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         80  check_sum                                 [private]
         81  ALPHA_B                                 
         82  ETA_X                                   
@@ -347,8 +349,9 @@
         40  VKICK                                   
         41  BL_HKICK                                
         42  BL_VKICK                                
-        44  B_FIELD                                 
-        46  B1_GRADIENT                             
+        43  B_FIELD                                 
+        45  B1_GRADIENT                             
+        47  PTC_CANONICAL_COORDS                    
         49  BS_FIELD                                
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
@@ -370,11 +373,11 @@
         68  LORD_PAD1                               
         69  LORD_PAD2                               
         70  R0_ELEC                                 
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -426,6 +429,11 @@
  
  !---------------------------------
  20  Bend_sol_           
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         81  MAX_APERTURE_LIMIT                      
         82  DEFAULT_DS_STEP                         
         83  SIGNIFICANT_LENGTH                      
@@ -461,11 +469,11 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -504,6 +512,8 @@
          6  BRAGG_ANGLE_IN                          
          7  BRAGG_ANGLE_OUT                         
          8  DIFFRACTION_LIMITED                     
+        15  GRAZE_ANGLE_IN                          
+        16  GRAZE_ANGLE_OUT                         
         20  BRAGG_ANGLE                             
         21  ALPHA_ANGLE                             
         22  PSI_ANGLE                               
@@ -536,16 +546,17 @@
         64  ref_time_start                            [private]
         65  THICKNESS                               
         69  REF_WAVELENGTH                          
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  SPHERICAL_CURVATURE                     
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         88  SURFACE                                 
@@ -611,11 +622,11 @@
         67  DS_STEP                                 
         68  LORD_PAD1                               
         69  LORD_PAD2                               
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -685,6 +696,11 @@
         39  EMITTANCE_A                             
         40  EMITTANCE_B                             
         41  EMITTANCE_Z                             
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
  
  !---------------------------------
  21  Def_Mad_Beam        
@@ -692,6 +708,11 @@
         25  PARTICLE                                
         53  PC                                      
         54  ENERGY                                  
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
  
  !---------------------------------
  26  Def_Parameter       
@@ -706,11 +727,11 @@
         53  P0C                                     
         54  E_TOT                                   
         55  NO_END_MARKER                           
-        71  CUSTOM_ATTRIBUTE1                       
-        72  CUSTOM_ATTRIBUTE2                       
-        73  CUSTOM_ATTRIBUTE3                       
-        74  CUSTOM_ATTRIBUTE4                       
-        75  CUSTOM_ATTRIBUTE5                       
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         83  ELECTRIC_DIPOLE_MOMENT                  
         86  LATTICE                                 
         96  ABSOLUTE_TIME_TRACKING                  
@@ -752,16 +773,17 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  SPHERICAL_CURVATURE                     
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         88  SURFACE                                 
@@ -808,16 +830,17 @@
         60  TILT_TOT                                
         64  ref_time_start                            [private]
         69  REF_WAVELENGTH                          
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  SPHERICAL_CURVATURE                     
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         88  SURFACE                                 
@@ -873,11 +896,11 @@
         67  DS_STEP                                 
         68  LORD_PAD1                               
         69  LORD_PAD2                               
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -920,6 +943,7 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        20  voltage_err                               [private]
         21  GAP                                     
         31  L_HARD_EDGE                             
         34  X_PITCH                                 
@@ -929,7 +953,8 @@
         38  Z_OFFSET                                
         39  HKICK                                   
         40  VKICK                                   
-        44  E_FIELD                                 
+        43  E_FIELD                                 
+        47  PTC_CANONICAL_COORDS                    
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  E_tot_start                               [private]
@@ -950,11 +975,11 @@
         68  LORD_PAD1                               
         69  LORD_PAD2                               
         70  R0_ELEC                                 
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -1025,6 +1050,7 @@
         36  X_OFFSET                                
         37  Y_OFFSET                                
         38  Z_OFFSET                                
+        47  PTC_CANONICAL_COORDS                    
         50  DELTA_REF_TIME                          
         51  P0C_START                               
         52  E_TOT_START                             
@@ -1043,11 +1069,11 @@
         67  DS_STEP                                 
         68  LORD_PAD1                               
         69  LORD_PAD2                               
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -1138,11 +1164,11 @@
         67  DS_STEP                                 
         68  LORD_PAD1                               
         69  LORD_PAD2                               
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -1221,11 +1247,11 @@
         67  DS_STEP                                 
         68  LORD_PAD1                               
         69  LORD_PAD2                               
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -1281,11 +1307,11 @@
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         80  check_sum                                 [private]
         82  ALIAS                                   
         91  MAT6_CALC_METHOD                        
@@ -1317,11 +1343,11 @@
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -1364,11 +1390,11 @@
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -1421,11 +1447,11 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         61  REF_TILT_TOT                            
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         80  check_sum                                 [private]
         82  ALIAS                                   
        105  IS_ON                                   
@@ -1436,11 +1462,11 @@
  !---------------------------------
   4  Group               
         11  GANG                                    
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         80  check_sum                                 [private]
         82  ALIAS                                   
         89  VAR                                     
@@ -1466,6 +1492,7 @@
         37  Y_OFFSET                                
         38  Z_OFFSET                                
         43  BL_KICK                                 
+        47  PTC_CANONICAL_COORDS                    
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  E_tot_start                               [private]
@@ -1484,11 +1511,11 @@
         67  DS_STEP                                 
         68  LORD_PAD1                               
         69  LORD_PAD2                               
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -1548,11 +1575,11 @@
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -1630,11 +1657,11 @@
         67  DS_STEP                                 
         68  LORD_PAD1                               
         69  LORD_PAD2                               
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -1695,6 +1722,7 @@
         40  VKICK                                   
         41  BL_HKICK                                
         42  BL_VKICK                                
+        47  PTC_CANONICAL_COORDS                    
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  E_tot_start                               [private]
@@ -1715,11 +1743,11 @@
         68  LORD_PAD1                               
         69  LORD_PAD2                               
         70  R0_ELEC                                 
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -1801,10 +1829,10 @@
         40  VKICK                                   
         41  BL_HKICK                                
         42  BL_VKICK                                
-        43  COUPLER_AT                              
         44  COUPLER_PHASE                           
         45  COUPLER_ANGLE                           
         46  COUPLER_STRENGTH                        
+        47  COUPLER_AT                              
         50  DELTA_REF_TIME                          
         51  P0C_START                               
         52  E_TOT_START                             
@@ -1823,11 +1851,11 @@
         67  DS_STEP                                 
         68  LORD_PAD1                               
         69  LORD_PAD2                               
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -1895,11 +1923,11 @@
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         80  check_sum                                 [private]
         81  ALPHA_B                                 
         82  ETA_X                                   
@@ -1962,11 +1990,11 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -2021,11 +2049,11 @@
         60  TILT_TOT                                
         64  ref_time_start                            [private]
         69  REF_WAVELENGTH                          
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -2076,6 +2104,7 @@
         19  ETAP_Y1                                 
         20  MATCH_END_INPUT                         
         21  MATCH_END                               
+        22  DELTA_TIME                              
         24  X0                                      
         25  PX0                                     
         26  Y0                                      
@@ -2101,11 +2130,11 @@
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -2161,16 +2190,17 @@
         61  REF_TILT_TOT                            
         64  ref_time_start                            [private]
         69  REF_WAVELENGTH                          
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  SPHERICAL_CURVATURE                     
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         88  SURFACE                                 
@@ -2242,11 +2272,11 @@
         67  DS_STEP                                 
         68  LORD_PAD1                               
         69  LORD_PAD2                               
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -2319,16 +2349,17 @@
         61  REF_TILT_TOT                            
         64  ref_time_start                            [private]
         69  REF_WAVELENGTH                          
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  SPHERICAL_CURVATURE                     
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         88  SURFACE                                 
@@ -2368,11 +2399,11 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -2408,20 +2439,15 @@
  
  !---------------------------------
  27  Null_Ele            
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         80  check_sum                                 [private]
         82  ALIAS                                   
        112  DESCRIP                                 
        117  TYPE                                    
-       118  REF_ORIGIN                              
-       119  ELE_ORIGIN                              
-       120  SUPERIMPOSE                             
-       121  OFFSET                                  
-       122  REFERENCE                               
  
  !---------------------------------
  17  Octupole            
@@ -2441,6 +2467,7 @@
         40  VKICK                                   
         41  BL_HKICK                                
         42  BL_VKICK                                
+        47  PTC_CANONICAL_COORDS                    
         48  B3_GRADIENT                             
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
@@ -2462,11 +2489,11 @@
         68  LORD_PAD1                               
         69  LORD_PAD2                               
         70  R0_ELEC                                 
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -2519,11 +2546,11 @@
  !---------------------------------
   6  Overlay             
         11  GANG                                    
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         80  check_sum                                 [private]
         82  ALIAS                                   
         89  VAR                                     
@@ -2538,12 +2565,14 @@
          5  FLEXIBLE                                
         29  UPSTREAM_ELE_DIR                        
         30  DOWNSTREAM_ELE_DIR                      
+        32  T_OFFSET                                
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
         37  Y_OFFSET                                
         38  Z_OFFSET                                
-        39  T_OFFSET                                
+        47  E_TOT_SET                               
+        48  P0C_SET                                 
         49  E_TOT_OFFSET                            
         50  DELTA_REF_TIME                          
         51  P0C_START                               
@@ -2551,11 +2580,11 @@
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -2594,11 +2623,11 @@
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -2663,11 +2692,11 @@
         60  TILT_TOT                                
         64  ref_time_start                            [private]
         69  REF_WAVELENGTH                          
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -2743,11 +2772,11 @@
         67  DS_STEP                                 
         68  LORD_PAD1                               
         69  LORD_PAD2                               
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -2809,7 +2838,8 @@
         40  VKICK                                   
         41  BL_HKICK                                
         42  BL_VKICK                                
-        46  B1_GRADIENT                             
+        45  B1_GRADIENT                             
+        47  PTC_CANONICAL_COORDS                    
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  E_tot_start                               [private]
@@ -2830,11 +2860,11 @@
         68  LORD_PAD1                               
         69  LORD_PAD2                               
         70  R0_ELEC                                 
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -2917,10 +2947,10 @@
         40  VKICK                                   
         41  BL_HKICK                                
         42  BL_VKICK                                
-        43  COUPLER_AT                              
         44  COUPLER_PHASE                           
         45  COUPLER_ANGLE                           
         46  COUPLER_STRENGTH                        
+        47  COUPLER_AT                              
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  E_tot_start                               [private]
@@ -2939,11 +2969,11 @@
         67  DS_STEP                                 
         68  LORD_PAD1                               
         69  LORD_PAD2                               
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -2972,7 +3002,6 @@
        107  WALL                                    
        108  APERTURE_AT                             
        110  FIELD_OVERLAPS                          
-       111  HARMON_MASTER                           
        112  DESCRIP                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
@@ -3026,10 +3055,11 @@
         40  VKICK                                   
         41  BL_HKICK                                
         42  BL_VKICK                                
-        44  B_FIELD                                 
-        45  B_FIELD_ERR                             
-        46  B1_GRADIENT                             
-        47  B2_GRADIENT                             
+        43  B_FIELD                                 
+        44  B_FIELD_ERR                             
+        45  B1_GRADIENT                             
+        46  B2_GRADIENT                             
+        47  PTC_CANONICAL_COORDS                    
         48  PTC_FRINGE_GEOMETRY                     
         49  PTC_FIELD_GEOMETRY                      
         50  DELTA_REF_TIME                          
@@ -3053,11 +3083,11 @@
         68  LORD_PAD1                               
         69  LORD_PAD2                               
         70  R0_ELEC                                 
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -3140,11 +3170,11 @@
         67  DS_STEP                                 
         68  LORD_PAD1                               
         69  LORD_PAD2                               
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -3193,6 +3223,7 @@
          5  KS                                      
          7  Sad_Flag                                  [private]
          8  RHO                                     
+         9  EPS_STEP_SCALE                          
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
@@ -3211,8 +3242,7 @@
         40  Y_OFFSET_MULT                           
         41  X_PITCH_MULT                            
         42  Y_PITCH_MULT                            
-        43  EPS_STEP_SCALE                          
-        44  B_FIELD                                 
+        43  B_FIELD                                 
         49  BS_FIELD                                
         50  DELTA_REF_TIME                          
         53  P0C                                     
@@ -3226,11 +3256,11 @@
         64  ref_time_start                            [private]
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -3285,16 +3315,17 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  SPHERICAL_CURVATURE                     
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         88  SURFACE                                 
@@ -3359,10 +3390,11 @@
         40  VKICK                                   
         41  BL_HKICK                                
         42  BL_VKICK                                
-        44  B_FIELD                                 
-        45  B_FIELD_ERR                             
-        46  B1_GRADIENT                             
-        47  B2_GRADIENT                             
+        43  B_FIELD                                 
+        44  B_FIELD_ERR                             
+        45  B1_GRADIENT                             
+        46  B2_GRADIENT                             
+        47  PTC_CANONICAL_COORDS                    
         48  PTC_FRINGE_GEOMETRY                     
         49  PTC_FIELD_GEOMETRY                      
         50  DELTA_REF_TIME                          
@@ -3386,11 +3418,11 @@
         68  LORD_PAD1                               
         69  LORD_PAD2                               
         70  R0_ELEC                                 
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -3458,7 +3490,8 @@
         40  VKICK                                   
         41  BL_HKICK                                
         42  BL_VKICK                                
-        47  B2_GRADIENT                             
+        46  B2_GRADIENT                             
+        47  PTC_CANONICAL_COORDS                    
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  E_tot_start                               [private]
@@ -3479,11 +3512,11 @@
         68  LORD_PAD1                               
         69  LORD_PAD2                               
         70  R0_ELEC                                 
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -3552,7 +3585,8 @@
         40  VKICK                                   
         41  BL_HKICK                                
         42  BL_VKICK                                
-        46  B1_GRADIENT                             
+        45  B1_GRADIENT                             
+        47  PTC_CANONICAL_COORDS                    
         49  BS_FIELD                                
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
@@ -3574,11 +3608,11 @@
         68  LORD_PAD1                               
         69  LORD_PAD2                               
         70  R0_ELEC                                 
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -3646,6 +3680,7 @@
         40  VKICK                                   
         41  BL_HKICK                                
         42  BL_VKICK                                
+        47  PTC_CANONICAL_COORDS                    
         49  BS_FIELD                                
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
@@ -3667,11 +3702,11 @@
         68  LORD_PAD1                               
         69  LORD_PAD2                               
         70  R0_ELEC                                 
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -3744,11 +3779,11 @@
         64  ref_time_start                            [private]
         68  LORD_PAD1                               
         69  LORD_PAD2                               
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -3814,6 +3849,7 @@
         40  VKICK                                   
         41  BL_HKICK                                
         42  BL_VKICK                                
+        47  PTC_CANONICAL_COORDS                    
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  E_tot_start                               [private]
@@ -3834,11 +3870,11 @@
         68  LORD_PAD1                               
         69  LORD_PAD2                               
         70  R0_ELEC                                 
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -3904,6 +3940,7 @@
         37  Y_OFFSET                                
         38  Z_OFFSET                                
         43  BL_KICK                                 
+        47  PTC_CANONICAL_COORDS                    
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  E_tot_start                               [private]
@@ -3922,11 +3959,11 @@
         67  DS_STEP                                 
         68  LORD_PAD1                               
         69  LORD_PAD2                               
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -4000,6 +4037,7 @@
         40  VKICK                                   
         41  BL_HKICK                                
         42  BL_VKICK                                
+        47  PTC_CANONICAL_COORDS                    
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  E_tot_start                               [private]
@@ -4020,11 +4058,11 @@
         68  LORD_PAD1                               
         69  LORD_PAD2                               
         70  R0_ELEC                                 
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
         76  X1_LIMIT                                
         77  X2_LIMIT                                
         78  Y1_LIMIT                                
@@ -4081,25 +4119,25 @@
      1    52
      2    48
      3    22
-     4    20
-     5    23
+     4    19
+     5    22
      6    19
      7    19
      8    21
-     9     6
+     9     7
     10    28
     11    31
     12     5
     13    29
     14     7
-    15     5
-    16     7
+    15     6
+    16     8
     17     5
     18     7
     19    11
-    20    21
+    20    22
     21    20
-    22    14
+    22    15
     23    16
     24    16
     25    20
@@ -4109,23 +4147,23 @@
     29    10
     30    13
     31    33
-    32    10
+    32    12
     33    13
     34    43
     35    43
     36    45
     37    45
     38    44
-    39    24
+    39    23
     40    25
     41    24
     42    22
-    43     7
-    44     9
-    45     5
-    46     8
-    47     3
-    48     3
+    43     9
+    44     6
+    45     8
+    46     6
+    47    18
+    48     4
     49     7
     50    50
     51    35
@@ -4148,22 +4186,22 @@
     68    27
     69    33
     70    13
-    71    55
-    72    55
-    73    55
-    74    55
-    75    55
+    71    58
+    72    58
+    73    58
+    74    58
+    75    58
     76    47
     77    47
     78    47
     79    47
     80    54
-    81    30
+    81    36
     82    55
     83    31
     84    30
     85    30
-    86    20
+    86    21
     87    50
     88    37
     89    32
@@ -4188,18 +4226,18 @@
    108    49
    109     6
    110    27
-   111    22
+   111    21
    112    52
-   113    14
+   113    15
    114     0
    115     1
    116     5
    117    52
-   118    49
-   119    49
-   120    49
-   121    49
-   122    49
+   118    48
+   119    48
+   120    48
+   121    48
+   122    48
    123    19
    124    19
    125    19
@@ -4217,7 +4255,7 @@
    137     0
    138     0
    139     0
-   140    23
+   140    24
    141     0
    142     0
    143     0
@@ -4311,6 +4349,46 @@
    231     0
    232     0
    233     0
+   234     0
+   235     0
+   236     0
+   237     0
+   238     0
+   239     0
+   240     0
+   241     0
+   242     0
+   243     0
+   244     0
+   245     0
+   246     0
+   247     0
+   248     0
+   249     0
+   250     0
+   251     0
+   252     0
+   253     0
+   254     0
+   255     0
+   256     0
+   257     0
+   258     0
+   259     0
+   260     0
+   261     0
+   262     0
+   263     0
+   264     0
+   265     0
+   266     0
+   267     0
+   268     0
+   269     0
+   270     0
+   271     0
+   272     0
+   273     0
  
  !---------------------------------
 Index: 1
@@ -4464,7 +4542,6 @@ Index: 4
     Capillary           
     Undulator           
     Detector            
-    AC_Kicker           
  
  !---------------------------------
 Index: 5
@@ -4490,7 +4567,6 @@ Index: 5
     Undulator           
     Detector            
     Sad_Mult            
-    AC_Kicker           
  
  !---------------------------------
 Index: 6
@@ -4568,6 +4644,7 @@ Index: 9
     Match               
     Def_Beam_Start      
     E_Gun               
+    Sad_Mult            
  
  !---------------------------------
 Index: 10
@@ -4689,6 +4766,7 @@ Index: 15
     Custom              
     BeamBeam            
     Match               
+    Crystal             
     Photon_Init         
     Sad_Mult            
  
@@ -4699,6 +4777,7 @@ Index: 16
     BeamBeam            
     Match               
     Def_Beam_Start      
+    Crystal             
     Photon_Init         
     Sad_Mult            
  
@@ -4739,6 +4818,7 @@ Index: 20
     Sbend               
     Custom              
     RFcavity            
+    ELseparator         
     BeamBeam            
     Marker              
     Rbend               
@@ -4789,6 +4869,7 @@ Index: 22
     Rbend               
     Beginning_Ele       
     Line_Ele            
+    Match               
     Monitor             
     Instrument          
     Def_Beam_Start      
@@ -4976,6 +5057,7 @@ Index: 31
  !---------------------------------
 Index: 32
     RFcavity            
+    Patch               
     Lcavity             
     Beginning_Ele       
     Line_Ele            
@@ -4985,6 +5067,7 @@ Index: 32
     E_Gun               
     EM_Field            
     Fiducial            
+    AC_Kicker           
  
  !---------------------------------
 Index: 33
@@ -5250,7 +5333,6 @@ Index: 39
     Octupole            
     Rbend               
     Solenoid            
-    Patch               
     Lcavity             
     Monitor             
     Instrument          
@@ -5346,11 +5428,13 @@ Index: 42
  
  !---------------------------------
 Index: 43
-    RFcavity            
-    Lcavity             
+    Sbend               
+    ELseparator         
+    Rbend               
     Match               
     Hkicker             
     Vkicker             
+    Bend_Sol_Quad       
     Crystal             
     Sad_Mult            
  
@@ -5358,24 +5442,13 @@ Index: 43
 Index: 44
     Sbend               
     RFcavity            
-    ELseparator         
     Rbend               
     Lcavity             
     Match               
-    Bend_Sol_Quad       
     Crystal             
-    Sad_Mult            
  
  !---------------------------------
 Index: 45
-    Sbend               
-    RFcavity            
-    Rbend               
-    Lcavity             
-    Crystal             
- 
- !---------------------------------
-Index: 46
     Sbend               
     Quadrupole          
     RFcavity            
@@ -5386,16 +5459,41 @@ Index: 46
     Crystal             
  
  !---------------------------------
-Index: 47
+Index: 46
     Sbend               
     Sextupole           
+    RFcavity            
     Rbend               
+    Lcavity             
+    Crystal             
+ 
+ !---------------------------------
+Index: 47
+    Sbend               
+    Quadrupole          
+    Sextupole           
+    RFcavity            
+    ELseparator         
+    Wiggler             
+    Sol_Quad            
+    Kicker              
+    Octupole            
+    Rbend               
+    Solenoid            
+    Patch               
+    Lcavity             
+    Hkicker             
+    Vkicker             
+    Bend_Sol_Quad       
+    EM_Field            
+    Undulator           
  
  !---------------------------------
 Index: 48
     Sbend               
     Octupole            
     Rbend               
+    Patch               
  
  !---------------------------------
 Index: 49
@@ -6214,6 +6312,8 @@ Index: 71
     Octupole            
     Rbend               
     Multipole           
+    Bend_sol_           
+    Def_Mad_Beam        
     AB_multipole        
     Solenoid            
     Patch               
@@ -6231,6 +6331,7 @@ Index: 71
     Ecollimator         
     Girder              
     Bend_Sol_Quad       
+    Def_Beam_Start      
     Photon_Fork         
     Fork                
     Mirror              
@@ -6272,6 +6373,8 @@ Index: 72
     Octupole            
     Rbend               
     Multipole           
+    Bend_sol_           
+    Def_Mad_Beam        
     AB_multipole        
     Solenoid            
     Patch               
@@ -6289,6 +6392,7 @@ Index: 72
     Ecollimator         
     Girder              
     Bend_Sol_Quad       
+    Def_Beam_Start      
     Photon_Fork         
     Fork                
     Mirror              
@@ -6330,6 +6434,8 @@ Index: 73
     Octupole            
     Rbend               
     Multipole           
+    Bend_sol_           
+    Def_Mad_Beam        
     AB_multipole        
     Solenoid            
     Patch               
@@ -6347,6 +6453,7 @@ Index: 73
     Ecollimator         
     Girder              
     Bend_Sol_Quad       
+    Def_Beam_Start      
     Photon_Fork         
     Fork                
     Mirror              
@@ -6388,6 +6495,8 @@ Index: 74
     Octupole            
     Rbend               
     Multipole           
+    Bend_sol_           
+    Def_Mad_Beam        
     AB_multipole        
     Solenoid            
     Patch               
@@ -6405,6 +6514,7 @@ Index: 74
     Ecollimator         
     Girder              
     Bend_Sol_Quad       
+    Def_Beam_Start      
     Photon_Fork         
     Fork                
     Mirror              
@@ -6446,6 +6556,8 @@ Index: 75
     Octupole            
     Rbend               
     Multipole           
+    Bend_sol_           
+    Def_Mad_Beam        
     AB_multipole        
     Solenoid            
     Patch               
@@ -6463,6 +6575,7 @@ Index: 75
     Ecollimator         
     Girder              
     Bend_Sol_Quad       
+    Def_Beam_Start      
     Photon_Fork         
     Fork                
     Mirror              
@@ -6767,10 +6880,16 @@ Index: 81
     Rcollimator         
     Ecollimator         
     Bend_Sol_Quad       
+    Mirror              
+    Crystal             
     Pipe                
+    Multilayer_Mirror   
     E_Gun               
     EM_Field            
     Undulator           
+    Diffraction_Plate   
+    Sample              
+    Detector            
     AC_Kicker           
  
  !---------------------------------
@@ -6953,6 +7072,7 @@ Index: 86
     Vkicker             
     Bend_Sol_Quad       
     Undulator           
+    AC_Kicker           
  
  !---------------------------------
 Index: 87
@@ -7813,7 +7933,6 @@ Index: 111
     Quadrupole          
     Sextupole           
     Custom              
-    RFcavity            
     ELseparator         
     Wiggler             
     Sol_Quad            
@@ -7903,6 +8022,7 @@ Index: 113
     Vkicker             
     Bend_Sol_Quad       
     Undulator           
+    AC_Kicker           
  
  !---------------------------------
 Index: 114
@@ -7997,7 +8117,6 @@ Index: 118
     Solenoid            
     Patch               
     Lcavity             
-    Null_Ele            
     Match               
     Monitor             
     Instrument          
@@ -8049,7 +8168,6 @@ Index: 119
     Solenoid            
     Patch               
     Lcavity             
-    Null_Ele            
     Match               
     Monitor             
     Instrument          
@@ -8101,7 +8219,6 @@ Index: 120
     Solenoid            
     Patch               
     Lcavity             
-    Null_Ele            
     Match               
     Monitor             
     Instrument          
@@ -8153,7 +8270,6 @@ Index: 121
     Solenoid            
     Patch               
     Lcavity             
-    Null_Ele            
     Match               
     Monitor             
     Instrument          
@@ -8205,7 +8321,6 @@ Index: 122
     Solenoid            
     Patch               
     Lcavity             
-    Null_Ele            
     Match               
     Monitor             
     Instrument          
@@ -8573,3 +8688,4 @@ Index: 140
     Sample              
     Detector            
     Sad_Mult            
+    AC_Kicker           
