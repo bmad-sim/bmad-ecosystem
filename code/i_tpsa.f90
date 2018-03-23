@@ -26,7 +26,7 @@ MODULE TPSA
   private dexpt,dcost,dsint,dsqrtt,dtant,datanht,dtanht
   PRIVATE GETCHARnd2,GETintnd2,dputchar,dputint, filter,check_j,dsinHt,dCOSHt
   private GETintnd2t,print_for_bmad_parse
-  PRIVATE DEQUAL,REQUAL,varf,varf001  !,CHARINT
+  PRIVATE DEQUAL,REQUAL,varf,varf001,dputint0  !,CHARINT
   !  PUBLIC VAR,ASS
   private pbbra,full_absT,asstaylor,getcharnd2s,GETintnd2s,GETintk
   private shiftda,shift000
@@ -34,6 +34,8 @@ MODULE TPSA
   !  public, alloc_uni, null_uni, fill_uni, refill_uni
 
   private fill_uni_r ! new sagan
+! quaternion
+   private subq,unarysubq,addq,unaryADDq,absq,absq2,mulq,divq,EQUALq,EQUALqr,EQUALqi,powq,printq ,invq
 
   private NO,ND,ND2,NP,NDPT,NV
   integer NP,NO,ND,ND2,NDPT,NV
@@ -53,7 +55,7 @@ private norm_bessel_Ir,nbit,nbittr,nbitrt,etienne_bessel_Ir,etienne_bessel_It,et
 private nbitreal,nbittaylor,nbittaylorrt,nbittaylortr
   type(dalevel) scratchda(ndumt)   !scratch levels of DA using linked list
   real(dp), pointer :: tn0(:)=>null()
- 
+  
  INTERFACE nbi
      MODULE PROCEDURE nbitreal
      MODULE PROCEDURE nbittaylor
@@ -79,6 +81,9 @@ private nbitreal,nbittaylor,nbittaylorrt,nbittaylortr
 
   INTERFACE assignment (=)
      MODULE PROCEDURE EQUAL
+     MODULE PROCEDURE EQUALq
+     MODULE PROCEDURE EQUALqi
+     MODULE PROCEDURE EQUALqr
      !     MODULE PROCEDURE DAABSEQUAL  ! remove 2002.10.17
      !     MODULE PROCEDURE AABSEQUAL   ! remove 2002.10.17
      MODULE PROCEDURE DEQUAL  ! added 2002.10.17    ! check2002.10.17
@@ -113,99 +118,15 @@ private nbitreal,nbittaylor,nbittaylorrt,nbittaylortr
 
   INTERFACE print
      MODULE PROCEDURE printunitaylor
+     MODULE PROCEDURE printq
   END INTERFACE
 
 
-
-
-  !@    <table border="4" cellspacing="1" bordercolor="#000000" id="AutoNumber2" width="400" height="135">
-  !@      <tr>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">+</font></span></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@         <font face="Times New Roman" size="1">Taylor</font></span></td>
-  !@         <td width="77" height="20" align="center">
-  !@         <span style="text-transform: uppercase">
-  !@         <font face="Times New Roman" size="1">
-  !@         Real(dp)</font></span></td>
-  !@         <td width="78" height="20" align="center">
-  !@         <span style="text-transform: uppercase">
-  !@         <font face="Times New Roman" size="1">Real(sp)</font></span></td>
-  !@         <td width="56" height="20" align="center">
-  !@         <span style="text-transform: uppercase">
-  !@         <font face="Times New Roman" size="1">Integer</font></span></td>
-  !@       </tr>
-  !@       <tr>
-  !@         <td width="77" height="20" align="center">
-  !@         <span style="text-transform: uppercase">
-  !@         <font face="Times New Roman" size="1">Taylor</font></span></td>
-  !@         <td width="77" height="20" align="center">
-  !@         <span style="text-transform: uppercase; font-weight:700">
-  !@         <font face="Times New Roman" size="1">
-  !@         <a href="i_tpsa.htm#ADD" style="text-decoration: none">add</a></font></span></td>
-  !@         <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase; font-weight:700">
-  !@        <font face="Times New Roman" size="1">
-  !@        <a href="i_tpsa.htm#DADDSC" style="text-decoration: none">daddsc</a></font></span></td>
-  !@        <td width="78" height="20" align="center"><b>
-  !@        <font size="1" face="Times New Roman">
-  !@        <a href="i_tpsa.htm#ADDSC" style="text-decoration: none">ADDSC</a></font></b></td>
-  !@        <td width="56" height="20" align="center"><b>
-  !@        <font size="1" face="Times New Roman">
-  !@        <a href="i_tpsa.htm#IADDSC" style="text-decoration: none">
-  !@        IADDSC</a></font></b></td>
-  !@      </tr>
-  !@      <tr>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">
-  !@        Real(dp)</font></span></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase; font-weight:700">
-  !@        <font face="Times New Roman" size="1">
-  !@        <a href="i_tpsa.htm#DSCADD" style="text-decoration: none">dscadd</a></font></span></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="78" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="56" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@      </tr>
-  !@      <tr>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Real(sp)</font></span></td>
-  !@        <td width="77" height="20" align="center"><b>
-  !@        <font size="1" face="Times New Roman">
-  !@        <a href="i_tpsa.htm#SCADD" style="text-decoration: none">SCADD</a></font></b></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="78" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="56" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@      </tr>
-  !@      <tr>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Integer</font></span></td>
-  !@        <td width="77" height="20" align="center"><b>
-  !@        <font size="1" face="Times New Roman">
-  !@        <a href="i_tpsa.htm#ISCADD" style="text-decoration: none">
-  !@        ISCADD</a></font></b></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="78" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="56" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@      </tr>
-  !@     </table>
   INTERFACE OPERATOR (+)
      MODULE PROCEDURE unaryADD  !@2 This is a unary operation
      MODULE PROCEDURE add
+     MODULE PROCEDURE unaryADDq  !@2 This is a unary operation
+     MODULE PROCEDURE addq
      MODULE PROCEDURE daddsc
      MODULE PROCEDURE dscadd
      MODULE PROCEDURE addsc
@@ -215,96 +136,11 @@ private nbitreal,nbittaylor,nbittaylorrt,nbittaylortr
   END INTERFACE
 
 
-
-
-  !@    <table border="4" cellspacing="1" bordercolor="#000000" id="AutoNumber1" width="400" height="135">
-  !@      <tr>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">-</font></span></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Taylor</font></span></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">
-  !@        Real(dp)</font></span></td>
-  !@        <td width="78" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Real(sp)</font></span></td>
-  !@        <td width="56" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Integer</font></span></td>
-  !@      </tr>
-  !@      <tr>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Taylor</font></span></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">
-  !@        <a href="i_tpsa.htm#SUBS" style="text-decoration: none; font-weight: 700">SUBS</a></font></span></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">
-  !@        <a href="i_tpsa.htm#DSUBSC" style="text-decoration: none; font-weight: 700">dSUBsc</a></font></span></td>
-  !@        <td width="78" height="20" align="center">
-  !@        <font size="1" face="Times New Roman">
-  !@        <a href="i_tpsa.htm#SUBSC" style="text-decoration: none; font-weight: 700">SUBSC</a></font></td>
-  !@        <td width="56" height="20" align="center">
-  !@        <font size="1" face="Times New Roman">
-  !@        <a href="i_tpsa.htm#ISUBSC" style="text-decoration: none; font-weight: 700">ISUBSC</a></font></td>
-  !@      </tr>
-  !@      <tr>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">
-  !@        Real(dp)</font></span></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">
-  !@        <a href="i_tpsa.htm#DSCSUB" style="text-decoration: none; font-weight: 700">dscSUB</a></font></span></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="78" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="56" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@      </tr>
-  !@      <tr>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Real(sp)</font></span></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <font size="1" face="Times New Roman">
-  !@        <a href="i_tpsa.htm#SCSUB" style="text-decoration: none; font-weight: 700">
-  !@        SCSUB</a></font></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="78" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="56" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@      </tr>
-  !@      <tr>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Integer</font></span></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <font size="1" face="Times New Roman">
-  !@        <a href="i_tpsa.htm#ISCSUB" style="text-decoration: none; font-weight: 700">
-  !@        ISCSUB</a></font></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="78" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="56" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@      </tr>
-  !@     </table>
   INTERFACE OPERATOR (-)
      MODULE PROCEDURE unarySUB
      MODULE PROCEDURE subs
+     MODULE PROCEDURE unarySUBq
+     MODULE PROCEDURE subq
      MODULE PROCEDURE dsubsc
      MODULE PROCEDURE dscsub
      MODULE PROCEDURE subsc
@@ -315,94 +151,9 @@ private nbitreal,nbittaylor,nbittaylorrt,nbittaylortr
 
 
 
-  !@    <table border="4" cellspacing="1" bordercolor="#000000" id="AutoNumber1" width="400" height="134">
-  !@      <tr>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">*</font></span></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Taylor</font></span></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">
-  !@        Real(dp)</font></span></td>
-  !@        <td width="78" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Real(sp)</font></span></td>
-  !@        <td width="56" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Integer</font></span></td>
-  !@      </tr>
-  !@      <tr>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Taylor</font></span></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">
-  !@        <a href="i_tpsa.htm#MUL" style="text-decoration: none; font-weight:700">MUL</a></font></span></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">
-  !@        <a href="i_tpsa.htm#DMULSC" style="text-decoration: none; font-weight:700">dMULsc</a></font></span></td>
-  !@        <td width="78" height="20" align="center">
-  !@        <font size="1" face="Times New Roman">
-  !@        <a href="i_tpsa.htm#MULSC" style="text-decoration: none; font-weight:700">MULSC</a></font></td>
-  !@        <td width="56" height="20" align="center">
-  !@        <font size="1" face="Times New Roman">
-  !@        <a href="i_tpsa.htm#IMULSC" style="text-decoration: none; font-weight:700">IMULSC</a></font></td>
-  !@      </tr>
-  !@      <tr>
-  !@        <td width="77" height="19" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">
-  !@        Real(dp)</font></span></td>
-  !@        <td width="77" height="19" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">
-  !@        <a href="i_tpsa.htm#DSCMUL" style="text-decoration: none; font-weight:700">dscMUL</a></font></span></td>
-  !@        <td width="77" height="19" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="78" height="19" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="56" height="19" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@      </tr>
-  !@      <tr>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Real(sp)</font></span></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <font size="1" face="Times New Roman">
-  !@        <a href="i_tpsa.htm#SCMUL" style="text-decoration: none; font-weight:700">
-  !@        SCMUL</a></font></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="78" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="56" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@      </tr>
-  !@      <tr>
-  !@        <td width="77" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Integer</font></span></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <font size="1" face="Times New Roman">
-  !@        <a href="i_tpsa.htm#ISCMUL" style="text-decoration: none; font-weight:700">
-  !@        ISCMUL</a></font></td>
-  !@        <td width="77" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="78" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="56" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@      </tr>
-  !@     </table>
-
   INTERFACE OPERATOR (*)
      MODULE PROCEDURE mul
+     MODULE PROCEDURE mulq
      MODULE PROCEDURE dmulsc
      MODULE PROCEDURE dscmul
      MODULE PROCEDURE mulsc
@@ -411,91 +162,11 @@ private nbitreal,nbittaylor,nbittaylorrt,nbittaylortr
      MODULE PROCEDURE iscmul
   END INTERFACE
 
-  !@    <table border="4" cellspacing="1" bordercolor="#000000" id="AutoNumber1" width="400" height="135">
-  !@      <tr>
-  !@        <td width="0" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">/</font></span></td>
-  !@        <td width="0" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Taylor</font></span></td>
-  !@        <td width="0" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">
-  !@        Real(dp)</font></span></td>
-  !@        <td width="0" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Real(sp)</font></span></td>
-  !@        <td width="0" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Integer</font></span></td>
-  !@      </tr>
-  !@      <tr>
-  !@        <td width="0" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Taylor</font></span></td>
-  !@        <td width="0" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">
-  !@        <a href="i_tpsa.htm#DIV" style="text-decoration: none; font-weight: 700">div</a></font></span></td>
-  !@        <td width="0" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">
-  !@        <a href="i_tpsa.htm#DDIVSC" style="text-decoration: none; font-weight: 700">dDIVsc</a></font></span></td>
-  !@        <td width="0" height="20" align="center"><font size="1">
-  !@        <a href="i_tpsa.htm#DIVSC" style="text-decoration: none; font-weight: 700">DIVSC</a></font></td>
-  !@        <td width="0" height="20" align="center"><font size="1">
-  !@        <a href="i_tpsa.htm#IDIVSC" style="text-decoration: none; font-weight: 700">
-  !@        IDIVSC</a></font></td>
-  !@      </tr>
-  !@      <tr>
-  !@        <td width="0" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">
-  !@        Real(dp)</font></span></td>
-  !@        <td width="0" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">
-  !@        <a href="i_tpsa.htm#DSCDIV" style="text-decoration: none; font-weight: 700">dscDIV</a></font></span></td>
-  !@        <td width="0" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="0" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="0" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@      </tr>
-  !@      <tr>
-  !@        <td width="0" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Real(sp)</font></span></td>
-  !@        <td width="0" height="20" align="center"><font size="1">
-  !@        <a href="i_tpsa.htm#SCDIV" style="text-decoration: none; font-weight: 700">
-  !@        SCDIV</a></font></td>
-  !@        <td width="0" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="0" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="0" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@      </tr>
-  !@      <tr>
-  !@        <td width="0" height="20" align="center">
-  !@        <span style="text-transform: uppercase">
-  !@        <font face="Times New Roman" size="1">Integer</font></span></td>
-  !@        <td width="0" height="20" align="center"><font size="1">
-  !@        <a href="i_tpsa.htm#ISCDIV" style="text-decoration: none; font-weight: 700">
-  !@        ISCDIV</a></font></td>
-  !@        <td width="0" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="0" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@        <td width="0" height="20" align="center">
-  !@        <font size="2" face="Times New Roman"><b>F90</b></font></td>
-  !@      </tr>
-  !@    </table>
+
 
   INTERFACE OPERATOR (/)
      MODULE PROCEDURE div
+     MODULE PROCEDURE divq
      MODULE PROCEDURE ddivsc
      MODULE PROCEDURE dscdiv
      MODULE PROCEDURE divsc
@@ -507,6 +178,7 @@ private nbitreal,nbittaylor,nbittaylorrt,nbittaylortr
 
   INTERFACE OPERATOR (**)
      MODULE PROCEDURE POW
+     MODULE PROCEDURE POWq
      MODULE PROCEDURE POWR
      MODULE PROCEDURE POWR8
   END INTERFACE
@@ -572,7 +244,14 @@ private nbitreal,nbittaylor,nbittaylorrt,nbittaylortr
 
   INTERFACE abs
      MODULE PROCEDURE DAABSEQUAL  ! remove 2002.10.17
+     MODULE PROCEDURE absq  
   END INTERFACE
+
+
+  INTERFACE abs_square
+     MODULE PROCEDURE absq2
+  END INTERFACE
+
   INTERFACE dabs
      MODULE PROCEDURE DAABSEQUAL  ! remove 2002.10.17
   END INTERFACE
@@ -804,6 +483,93 @@ CONTAINS
   end subroutine count_taylor
 
 
+
+
+  FUNCTION unaryADDq( S1 )
+    implicit none
+    TYPE (quaternion) unaryADDq
+    TYPE (quaternion), INTENT (IN) :: S1
+ 
+
+    IF(.NOT.C_%STABLE_DA) then
+     unaryADDq%x=0
+     RETURN
+    endif
+
+
+    unaryADDq=s1
+
+  END FUNCTION unaryADDq
+
+  FUNCTION unarySUBq( S1 )
+    implicit none
+    TYPE (quaternion) unarySUBq
+    TYPE (quaternion), INTENT (IN) :: S1
+
+    IF(.NOT.C_%STABLE_DA) then
+     unarySUBq%x=0
+     RETURN
+    endif
+
+         unarySUBq%x= -unarySUBq%x
+
+  END FUNCTION unarySUBq
+
+
+  FUNCTION invq( S1 )
+    implicit none
+    TYPE (quaternion) invq
+    TYPE (quaternion), INTENT (IN) :: S1
+    real(dp) norm
+     integer i
+    IF(.NOT.C_%STABLE_DA) then
+     invq%x=0
+     RETURN
+    endif
+              invq=s1
+              do i=2,4
+                invq%x(i)=-invq%x(i)
+              enddo
+                norm=abs_square(invq)
+              do i=1,4
+                invq%x(i)=invq%x(i)/norm
+              enddo
+      
+  END FUNCTION invq
+
+
+  FUNCTION absq( S1 )
+    implicit none
+    real(dp) absq
+    TYPE (quaternion), INTENT (IN) :: S1
+    integer i
+
+    IF(.NOT.C_%STABLE_DA) then
+     absq=0
+     RETURN
+    endif
+   
+     absq=sqrt(abs_square(s1))
+  END FUNCTION absq
+
+
+  FUNCTION absq2( S1 )
+    implicit none
+    real(dp) absq2
+    TYPE (quaternion), INTENT (IN) :: S1
+    integer i
+
+    IF(.NOT.C_%STABLE_DA) then
+     absq2=0
+     RETURN
+    endif
+           absq2=0
+       do i=1,4
+         absq2 = s1%x(i)**2+absq2
+       enddo
+  END FUNCTION absq2
+
+
   FUNCTION unaryADD( S1 )
     implicit none
     TYPE (TAYLOR) unaryADD
@@ -846,6 +612,7 @@ CONTAINS
     master=localmaster
 
   END FUNCTION unarySUB
+
 
   SUBROUTINE  maketree(S1,s2)
     implicit none
@@ -984,6 +751,45 @@ CONTAINS
     !      call newdacop(S1%j,S2%j)
     !   endif
   END SUBROUTINE EQUAL
+
+  SUBROUTINE  EQUALq(S2,S1)
+    implicit none
+    type (quaternion),INTENT(inOUT)::S2
+    type (quaternion),INTENT(IN)::S1
+    integer i
+    IF(.NOT.C_%STABLE_DA) RETURN
+    
+    do i=1,4
+    s2%x(i)=s1%x(i)
+    enddo
+
+  end SUBROUTINE  EQUALq
+
+  SUBROUTINE  EQUALqr(S2,S1)
+    implicit none
+    type (quaternion),INTENT(inOUT)::S2
+    real(dp),INTENT(IN)::S1
+    integer i
+    IF(.NOT.C_%STABLE_DA) RETURN
+
+    do i=1,4
+    s2%x(i)=0
+    enddo
+    s2%x(1)=s1
+  end SUBROUTINE  EQUALqr
+
+  SUBROUTINE  EQUALqi(S2,S1)
+    implicit none
+    type (quaternion),INTENT(inOUT)::S2
+    integer,INTENT(IN)::S1
+    integer i
+    IF(.NOT.C_%STABLE_DA) RETURN
+
+    do i=1,4
+    s2%x(i)=0
+    enddo
+    s2%x(1)=s1
+  end SUBROUTINE  EQUALqi
 
   SUBROUTINE  DEQUAL(R1,S2)
     implicit none
@@ -1866,6 +1672,31 @@ endif
 
   END FUNCTION GETdatra
 
+
+  FUNCTION POWq( S1, R2 )
+    implicit none
+    TYPE (quaternion) POWq,temp
+    TYPE (quaternion), INTENT (IN) :: S1
+    INTEGER, INTENT (IN) :: R2
+    INTEGER I,R22
+    integer localmaster
+    IF(.NOT.C_%STABLE_DA) then
+       POWq%x=0
+      RETURN
+    endif
+    temp=1.0_dp
+
+    R22=IABS(R2)
+    DO I=1,R22
+       temp=temp*s1
+    ENDDO
+    IF(R2.LT.0) THEN
+       temp=invq(temp)
+    ENDIF
+     powq=temp
+ 
+  END FUNCTION POWq
+
   FUNCTION POW( S1, R2 )
     implicit none
     TYPE (taylor) POW
@@ -2342,6 +2173,71 @@ endif
     master=localmaster
 
   END FUNCTION add
+
+
+  FUNCTION addq( S1, S2 )
+    implicit none
+    TYPE (quaternion) addq
+    TYPE (quaternion), INTENT (IN) :: S1, S2
+
+    IF(.NOT.C_%STABLE_DA) then
+       addq%x=0
+      RETURN
+    endif 
+       addq%x=s1%x+s2%x
+  END FUNCTION addq
+
+
+  FUNCTION subq( S1, S2 )
+    implicit none
+    TYPE (quaternion) subq
+    TYPE (quaternion), INTENT (IN) :: S1, S2
+
+    IF(.NOT.C_%STABLE_DA) then
+       subq%x=0
+      RETURN
+    endif 
+          subq%x=s1%x+s2%x
+
+  END FUNCTION subq
+
+  FUNCTION mulq( S1, S2 )
+    implicit none
+    TYPE (quaternion) mulq
+    TYPE (quaternion), INTENT (IN) :: S1, S2
+    integer i
+
+    IF(.NOT.C_%STABLE_DA) then
+       mulq%x=0
+      RETURN
+    endif 
+          mulq=0.0_dp
+
+          mulq%x(1)=s1%x(1)*s2%x(1)-s1%x(2)*s2%x(2)-s1%x(3)*s2%x(3)-s1%x(4)*s2%x(4)
+
+         mulq%x(2)= mulq%x(2) + s1%x(3)*s2%x(4)-s1%x(4)*s2%x(3)
+         mulq%x(3)= mulq%x(3) + s1%x(4)*s2%x(2)-s1%x(2)*s2%x(4)
+         mulq%x(4)= mulq%x(4) + s1%x(2)*s2%x(3)-s1%x(3)*s2%x(2)
+
+        do i=2,4
+         mulq%x(i)= mulq%x(i) + s1%x(1)*s2%x(i)+ s1%x(i)*s2%x(1)
+        enddo
+
+  END FUNCTION mulq
+
+  FUNCTION divq( S1, S2 )
+    implicit none
+    TYPE (quaternion) divq
+    TYPE (quaternion), INTENT (IN) :: S1, S2
+
+    IF(.NOT.C_%STABLE_DA) then
+       divq%x=0
+      RETURN
+    endif 
+        
+       divq=s1*invq(s2)
+
+  END FUNCTION divq
 
   FUNCTION daddsc( S1, sc )
     implicit none
@@ -3268,6 +3164,20 @@ endif
   end  function filter_part
 
   !  i/o routines
+
+  SUBROUTINE  printq(S1,MFILE,PREC)
+    implicit none
+    INTEGER,OPTIONAL,INTENT(IN)::MFILE
+    type (quaternion),INTENT(IN)::S1
+    REAL(DP),OPTIONAL,INTENT(IN)::PREC
+    INTEGER I,mfi
+     mfi=6
+     if(present(mfile)) mfi=mfile
+      write(mfi,*) " real quaternion "
+    DO I=1,4
+      write(mfi,*) s1%x(i)
+    ENDDO
+  END SUBROUTINE printq
 
   SUBROUTINE  print_for_bmad_parse(S1,MFILE,prec,ind)
     implicit none

@@ -19,8 +19,8 @@ module ptc_spin
   PRIVATE TRACK_FRINGE_spin_R,TRACK_FRINGE_spin_P,TRACK_FRINGE_spin
   PRIVATE TRACK_NODE_LAYOUT_FLAG_pr_s12_R,TRACK_NODE_LAYOUT_FLAG_pr_s12_P
   PRIVATE GET_BE_CAVR,GET_BE_CAVP ,GET_BE_CAV
-  private rot_spin_x,rot_spin_xr,rot_spin_xp,rot_spin_z,rot_spin_zr,rot_spin_zp
-  private rot_spin_yr,rot_spin_yp,rot_spin_y
+  private rot_spin_xr,rot_spin_xp,rot_spin_zr,rot_spin_zp  !,rot_spin_z,rot_spin_x,
+  private rot_spin_yr,rot_spin_yp   !,rot_spin_y 
   private PATCH_SPINR,PATCH_SPINP,PATCH_SPIN,superdrift_SPINR,superdrift_SPINp
   private MIS_SPINR,MIS_SPINP,MIS_SPIN,furman_step
   private DTILT_SPINR,DTILT_SPINP,DTILT_SPIN
@@ -41,9 +41,10 @@ module ptc_spin
   private TRACK_FRINGE_multipole_r,TRACK_FRINGE_multipole_p,TRACK_FRINGE_multipole
   private TRACK_wedge_spin_R,TRACK_wedge_spin_p,TRACK_wedge_spin, find_as,find_frac_r,find_n0
   !REAL(DP) :: AG=A_ELECTRON
-  REAL(DP) :: bran_init=pi 
+  REAL(DP) :: bran_init=pi  
   logical :: locate_with_no_cavity = .false.,full_way=.true.
   integer  :: item_min=3,mfdebug
+
   !  INTEGER, PRIVATE :: ISPIN0P=0,ISPIN1P=3
   
 
@@ -257,7 +258,14 @@ contains
     REAL(DP), INTENT(IN) :: ang
     REAL(DP) co,si,st
     INTEGER I
-
+    type(quaternion) dq
+    if(p%use_q) then
+     dq%x(1)=COS(ang/2)
+     dq%x(3)=sin(ang/2)
+     dq%x(2)=0
+     dq%x(4)=0
+     p%q=dq*p%q
+    else
     CO =COS(ang)
     SI =sin(ang)
 
@@ -266,6 +274,7 @@ contains
        P%S(I)%X(3)=CO *P%S(I)%X(3)-SI *P%S(I)%X(1)
        P%S(I)%X(1)=ST
     ENDDO
+    endif
   END subroutine rot_spin_yr
 
   subroutine rot_spin_Xr(P,ang)
@@ -274,7 +283,17 @@ contains
     REAL(DP), INTENT(IN) :: ang
     REAL(DP) co,si,st
     INTEGER I
+    type(quaternion) dq
 
+    if(p%use_q) then
+
+     dq%x(1)=COS(ang/2)
+     dq%x(2)=-sin(ang/2)
+     dq%x(3)=0
+     dq%x(4)=0
+     p%q=dq*p%q
+
+    else
     CO =COS(ang)
     SI =sin(ang)
 
@@ -283,7 +302,7 @@ contains
        P%S(I)%X(3)=CO *P%S(I)%X(3)-SI *P%S(I)%X(2)
        P%S(I)%X(2)=ST
     ENDDO
-
+   endif
   END subroutine rot_spin_Xr
 
   subroutine rot_spin_zr(P,ang)
@@ -292,7 +311,16 @@ contains
     REAL(DP), INTENT(IN) :: ang
     REAL(DP) co,si,st
     INTEGER I
+    type(quaternion) dq
 
+    if(p%use_q) then
+  
+     dq%x(1)=COS(ang/2)
+     dq%x(4)=-sin(ang/2)
+     dq%x(2)=0
+     dq%x(3)=0
+     p%q=dq*p%q
+    else
     CO =COS(ang)
     SI =sin(ang)
 
@@ -301,7 +329,7 @@ contains
        P%S(I)%X(2)=CO *P%S(I)%X(2)-SI *P%S(I)%X(1)
        P%S(I)%X(1)=ST
     ENDDO
-
+    endif
 
   END subroutine rot_spin_zr
 
@@ -314,7 +342,16 @@ contains
     type(real_8) st
     !type(real_8) co,si,st
     INTEGER I
-
+    type(quaternion_8) dq
+    if(p%use_q) then
+     call alloc(dq)
+     dq%x(1)=COS(ang/2)
+     dq%x(3)=sin(ang/2)
+     dq%x(2)=0.0_dp
+     dq%x(4)=0.0_dp
+     p%q=dq*p%q
+     call kill(dq)
+    else
     call alloc(st)
 
     CO =COS(ang)
@@ -327,7 +364,7 @@ contains
     ENDDO
 
     call kill(st)
-
+    endif
   END subroutine rot_spin_yp
 
   subroutine rot_spin_xp(P,ang)
@@ -337,7 +374,17 @@ contains
     REAL(DP) co,si
     type(real_8) st
     INTEGER I
+    type(quaternion_8) dq
 
+    if(p%use_q) then
+     call alloc(dq)
+     dq%x(1)=COS(ang/2)
+     dq%x(2)=-sin(ang/2)
+     dq%x(3)=0.0_dp
+     dq%x(4)=0.0_dp
+     p%q=dq*p%q
+     call kill(dq)
+    else
     call alloc(st)
 
     CO =COS(ang)
@@ -350,7 +397,7 @@ contains
     ENDDO
 
     call kill(st)
-
+    endif
   END subroutine rot_spin_xp
 
   subroutine rot_spin_zp(P,ang)
@@ -361,6 +408,17 @@ contains
     type(real_8) st
     INTEGER I
 
+    type(quaternion_8) dq
+
+    if(p%use_q) then
+     call alloc(dq)
+     dq%x(1)=COS(ang/2)
+     dq%x(4)=-sin(ang/2)
+     dq%x(2)=0.0_dp
+     dq%x(3)=0.0_dp
+     p%q=dq*p%q
+     call kill(dq)
+    else
     call alloc(st)
 
     CO =COS(ang)
@@ -373,7 +431,7 @@ contains
     ENDDO
 
     call kill(st)
-
+    endif
   END subroutine rot_spin_zp
 
   subroutine radiate_2r(c,DS,FAC,X,b2,dlds,before,k,POS)
@@ -481,7 +539,8 @@ contains
     !    REAL(DP),INTENT(INOUT) :: X(6),S(3)
     REAL(DP), INTENT(IN) :: DS,FAC
     REAL(DP) OM(3),CO(3),SI(3),B2,XP(2)
-    REAL(DP) ST,dlds
+    REAL(DP) ST,dlds,norm,stheta
+    type(quaternion) dq,mulq
     LOGICAL(LP),intent(in) :: BEFORE
     type(internal_state) k
     INTEGER I
@@ -500,8 +559,34 @@ contains
        !       call radiate_2(c,DS,FAC,P%X,b2,dlds,XP,before,k,POS)
        call radiate_2(c,DS,FAC,P%X,b2,dlds,before,k,POS)
     endif
+   if(k%spin) then
+    if(p%use_q) then
+      if(EL%kind/=kind3) then
+        om=FAC*DS*OM/2.0_dp
+      else
+        om=FAC*OM/2.0_dp
+      endif
+        norm=sqrt(om(1)**2+om(2)**2+om(3)**2)
+        if(norm>0) then
+        stheta=sin(norm)
+        dq%x(1)=cos(norm)
+        dq%x(2)=stheta*om(1)/norm
+        dq%x(3)=stheta*om(2)/norm
+        dq%x(4)=stheta*om(3)/norm
+        p%q=dq*p%q
+ !         mulq%x=0.0_dp!
 
-    if(k%SPIN) then
+!          mulq%x(1)=dq%x(1)*p%q%x(1)-dq%x(2)*p%q%x(2)-dq%x(3)*p%q%x(3)-dq%x(4)*p%q%x(4)
+
+ !        mulq%x(2)= dq%x(3)*p%q%x(4)-dq%x(4)*p%q%x(3)+ dq%x(1)*p%q%x(2)+ dq%x(2)*p%q%x(1)
+ !        mulq%x(3)= dq%x(4)*p%q%x(2)-dq%x(2)*p%q%x(4)+ dq%x(1)*p%q%x(3)+ dq%x(3)*p%q%x(1)
+!          p%q%x(4)= dq%x(2)*p%q%x(3)-dq%x(3)*p%q%x(2)+ dq%x(1)*p%q%x(4)+ dq%x(4)*p%q%x(1)
+ !         p%q%x(1)=mulq%x(1)
+  !        p%q%x(2)=mulq%x(2)
+   !       p%q%x(3)=mulq%x(3)
+      endif
+
+    else
      if(EL%kind/=kind3) then
        CO(1)=COS(FAC*DS*OM(1)/2.0_dp)
        SI(1)=SIN(FAC*DS*OM(1)/2.0_dp)
@@ -536,7 +621,7 @@ contains
           p%s(I)%X(2)=ST
        ENDDO
     endif
-
+   endif
     !if(el%p%radiation.AND.(.NOT.BEFORE)) then
     if((k%radiation.or.k%envelope).AND.(.NOT.BEFORE)) then
        !       call radiate_2(c,DS,FAC,P%X,b2,dlds,XP,before,k,POS)
@@ -703,9 +788,10 @@ contains
     type(probe),INTENT(INOUT) :: p
 
     real(dp) OM(3),CO(3),SI(3),B2,XP(2)
-    real(dp) ST,dlds
+    real(dp) ST,dlds,norm,stheta
     !    LOGICAL(LP),intent(in) :: BEFORE
     type(internal_state) k
+    type(quaternion) dq
     INTEGER I
 
     IF(.NOT.CHECK_STABLE) return
@@ -724,6 +810,19 @@ contains
     !endif
 
     if(k%SPIN) then
+    if(p%use_q) then
+        om=OM/2.0_dp
+ 
+        norm=sqrt(om(1)**2+om(2)**2+om(3)**2)
+        if(norm>0) then
+        stheta=sin(norm)
+        dq%x(1)=cos(norm)
+        dq%x(2)=stheta*om(1)/norm
+        dq%x(3)=stheta*om(2)/norm
+        dq%x(4)=stheta*om(3)/norm
+        p%q=dq*p%q
+      endif
+else
        CO(1)=COS(OM(1)/2.0_dp)
        SI(1)=SIN(OM(1)/2.0_dp)
        CO(2)=COS(OM(2)/2.0_dp)
@@ -749,6 +848,7 @@ contains
           p%s(I)%X(2)=ST
        ENDDO
     endif
+endif
     !if(k%radiation.AND.(.NOT.BEFORE)) then
     ! call radiate_2(EL,DS,FAC,X,E_IJ,b2,dlds,XP,before,k,POS)
     !endif
@@ -767,10 +867,11 @@ contains
     !    TYPE(REAL_8),INTENT(INOUT) :: X(6),S(3)
 
     TYPE(REAL_8) OM(3),CO(3),SI(3),B2,XP(2)
-    TYPE(REAL_8) ST,dlds
+    TYPE(REAL_8) ST,dlds,norm,stheta
     !    LOGICAL(LP),intent(in) :: BEFORE
     type(internal_state) k
     INTEGER I
+    type(quaternion_8) dq
 
     IF(.NOT.CHECK_STABLE) return
     if(.not.((k%radiation.or.k%envelope).or.k%SPIN)) return
@@ -794,6 +895,25 @@ contains
     !endif
 
     if(k%SPIN) then
+    if(p%use_q) then
+     call alloc(dq)
+     call alloc(norm,stheta)
+       do i=1,3
+        om(i)=OM(i)/2.0_dp
+       enddo
+    
+      norm=om(1)**2+om(2)**2+om(3)**2
+
+        stheta=sin_quaternion(norm)
+        dq%x(1)=cos_quaternion(norm)
+        dq%x(2)=stheta*om(1)
+        dq%x(3)=stheta*om(2)
+        dq%x(4)=stheta*om(3)
+        p%q=dq*p%q
+
+       call kill(norm,stheta)
+       call kill(dq)
+   else
        CO(1)=COS(OM(1)/2.0_dp)
        SI(1)=SIN(OM(1)/2.0_dp)
        CO(2)=COS(OM(2)/2.0_dp)
@@ -836,6 +956,7 @@ contains
        ENDDO
 
     endif
+endif
     !if(k%radiation.AND.(.NOT.BEFORE)) then
     ! call radiate_2(EL,DS,FAC,X,E_IJ,b2,dlds,XP,before,k,POS)
     !endif
@@ -860,7 +981,8 @@ contains
     TYPE(REAL_8), INTENT(INout) :: DS
     REAL(DP), INTENT(IN) :: FAC
     TYPE(REAL_8) OM(3),CO(3),SI(3),B2,XP(2)
-    TYPE(REAL_8) ST,dlds
+    TYPE(REAL_8) ST,dlds,norm,stheta
+    type(quaternion_8) dq
     LOGICAL(LP),intent(in) :: BEFORE
     type(internal_state) k
     INTEGER I
@@ -877,6 +999,8 @@ contains
     CALL ALLOC(SI,3)
     CALL ALLOC(XP,2)
     CALL ALLOC(ST,B2,dlds)
+
+
     IF(K%PARA_IN ) KNOB=.TRUE.
     CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,POS,k)
     if((k%radiation.or.k%envelope).AND.BEFORE) then
@@ -886,7 +1010,32 @@ contains
 
     endif
 
-    if(k%SPIN) then
+   if(k%spin) then
+    if(p%use_q) then
+     call alloc(dq)
+     call alloc(norm,stheta)
+      if(EL%kind/=kind3) then
+       do i=1,3
+        om(i)=FAC*DS*OM(i)/2.0_dp
+       enddo
+      else
+       do i=1,3
+        om(i)=FAC*OM(i)/2.0_dp
+       enddo
+      endif
+      norm=om(1)**2+om(2)**2+om(3)**2
+
+        stheta=sin_quaternion(norm)
+        dq%x(1)=cos_quaternion(norm)
+        dq%x(2)=stheta*om(1)
+        dq%x(3)=stheta*om(2)
+        dq%x(4)=stheta*om(3)
+        p%q=dq*p%q
+
+       call kill(norm,stheta)
+       call kill(dq)
+
+    else
      if(EL%kind/=kind3) then
        CO(1)=COS(FAC*DS*OM(1)/2.0_dp)
        SI(1)=SIN(FAC*DS*OM(1)/2.0_dp)
@@ -902,22 +1051,6 @@ contains
        CO(3)=COS(FAC*OM(3))
        SI(3)=SIN(FAC*OM(3))
     endif
-
-       !       ST=   CO(1)*P%S%X(2)-SI(1)*P%S%X(3)
-       !       P%S%X(3)= CO(1)*P%S%X(3)+SI(1)*P%S%X(2)
-       !       P%S%X(2)=ST
-       !       ST=  CO(2)*P%S%X(1)+SI(2)*P%S%X(3)
-       !       P%S%X(3)=CO(2)*P%S%X(3)-SI(2)*P%S%X(1)
-       !       P%S%X(1)=ST
-       !       ST=   CO(3)*P%S%X(1)-SI(3)*P%S%X(2)
-       !       P%S%X(2)= CO(3)*P%S%X(2)+SI(3)*P%S%X(1)
-       !       P%S%X(1)=ST
-       !       ST=  CO(2)*P%S%X(1)+SI(2)*P%S%X(3)
-       !       P%S%X(3)=CO(2)*P%S%X(3)-SI(2)*P%S%X(1)
-       !       P%S%X(1)=ST
-       !       ST=   CO(1)*P%S%X(2)-SI(1)*P%S%X(3)
-       !       P%S%X(3)= CO(1)*P%S%X(3)+SI(1)*P%S%X(2)
-       !       P%S%X(2)=ST
 
        DO I=ISPIN0R,ISPIN1R
           ST=   CO(1)*p%S(I)%X(2)-SI(1)*p%S(I)%X(3)
@@ -936,7 +1069,7 @@ contains
           p%S(I)%X(3)= CO(1)*p%S(I)%X(3)+SI(1)*p%S(I)%X(2)
           p%s(I)%X(2)=ST
        ENDDO
-
+      endif
     endif
     if((k%radiation.or.k%envelope).AND.(.NOT.BEFORE)) then
        !if(el%p%radiation.AND.(.NOT.BEFORE)) then
@@ -989,6 +1122,7 @@ contains
     dlds=0.0_dp
     del=x(5)
     CALL get_field(EL,B,E,phi,X,k,POS)
+
     SELECT CASE(EL%KIND) 
     case(KIND2,kind3,kind5:kind7,kindwiggler) ! Straight for all practical purposes
        CALL B_PARA_PERP(k,EL,1,X,B,BPA,BPE,XP,XPA,ed,pos=POS)
@@ -1156,7 +1290,9 @@ contains
     xp(2)=x(4)   !  to prevent a crash in monitors, etc... CERN june 2010
     dlds=0.0_dp
     del=x(5)
+
     CALL get_field(EL,B,E,phi,X,k,POS)
+
     SELECT CASE(EL%KIND) 
     case(KIND2,kind3,kind5:kind7,kindwiggler) ! Straight for all practical purposes
        CALL B_PARA_PERP(k,EL,1,X,B,BPA,BPE,XP,XPA,ed,pos=POS)
@@ -1542,7 +1678,7 @@ e=0
             b(3)= (2*Pos+3)*vm  +b(3)     ! v here  e=-grad phi
             e(3)=-(2*Pos+3)*phi  +e(3)
     end select
- 
+
     call GET_BZ_fringe(EL,X,B(3),e(3),pos,k)
 
   END SUBROUTINE get_Bfield_fringeR
@@ -1587,10 +1723,9 @@ call alloc(vm,phi,z)
             b(3)=(2*Pos+3)*vm  +b(3)     ! v here  e=-grad phi
             e(3)= -(2*Pos+3)*phi  +e(3)
     end select
+
     call GET_BZ_fringe(EL,X,B(3),e(3),pos,k)
-!write(6,*) el%name,el%p%b0
-!call print(b(3),6)
-!pause
+
 
 call kill(vm,phi,z)
 
@@ -1615,7 +1750,6 @@ call kill(vm,phi,z)
     IF(EL%P%BEND_FRINGE) then
        bz=-(2*Pos+3)*X(3)*EL%BN(1)
     endif
-
 
     IF(.not.(k%FRINGE.or.el%p%permfringe/=0)) return
 
@@ -1674,7 +1808,6 @@ call kill(vm,phi,z)
     IF(EL%P%BEND_FRINGE) then
        bz=-(2*Pos+3)*X(3)*EL%BN(1)
     endif
-
 
     IF(.not.(k%FRINGE.or.el%p%permfringe/=0)) return
     call alloc(X1,X3,BBYTW,BBXTW,BBYTWT)
@@ -3239,12 +3372,18 @@ endif ! full_way
           if(C%POS_IN_FIBRE-C%PARENT_FIBRE%MAGp%p%nst==2) dofix=.true.
         call track_TREE_probe_complex(arbre,xs,dofix0,dofix,k)  
        endif
-    elseIF((c%cas==case1.or.c%cas==case2).and.useptc) then
+    elseIF(c%cas==case1.and.useptc) then
 if(ki==kind10)CALL MAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        CALL TRACK_FRINGE_spin(C,XS,K)
-if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
-       !        CALL  (C,XS,K)
        CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
+    elseIF(c%cas==case2.and.useptc) then
+if(ki==kind10)CALL MAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
+         CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+         CALL TRACK_FRINGE_spin(C,XS,K)
+       !        CALL  (C,XS,K)
+if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
+
     else
        IF(c%cas==caseP1) THEN
           CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
@@ -3323,12 +3462,16 @@ endif
     if(C%PARENT_FIBRE%dir==1) then
        IF(C%CAS==CASE1) THEN
           call TRACK_rotate_spin(C,p,K)
+
           if(.not.C%parent_fibre%mag%p%kill_ent_spin) call TRACK_FRINGE_multipole(C,p,K)
           call TRACK_wedge_spin(C,p,K)
        else
           call TRACK_wedge_spin(C,p,K)
+
           if(.not.C%parent_fibre%mag%p%kill_exi_spin) call TRACK_FRINGE_multipole(C,p,K)
+
           call TRACK_rotate_spin(C,p,K)
+
        endif
     else
       ! write(6,*) " TRACK_FRINGE_spin_R "
@@ -3367,8 +3510,11 @@ endif
           call TRACK_wedge_spin(C,p,K)
        else
           call TRACK_wedge_spin(C,p,K)
+
           if(.not.C%parent_fibre%magp%p%kill_exi_spin) call TRACK_FRINGE_multipole(C,p,K)
+
           call TRACK_rotate_spin(C,p,K)
+
        endif
     else
        IF(C%CAS==CASE1) THEN
@@ -3621,7 +3767,9 @@ endif
        elseif(C%CAS==CASE2) then
           pos=-1
           !          call PUSH_SPIN_fake_fringe(c,p,my_false,k,pos)
+
           if(.not.el%P%KILL_exi_spin) call PUSH_SPIN_fake_fringe(c,p,k,pos)
+
        endif
        !    case(KIND6)
        !    case(KIND7)
@@ -3664,7 +3812,9 @@ endif
        elseif(C%CAS==CASE2) then
           pos=-1
           !          call PUSH_SPIN_fake_fringe(c,p,my_false,k,pos)
+
           if(.not.el%P%KILL_exi_spin) call PUSH_SPIN_fake_fringe(c,p,k,pos)
+
        endif
        !    case(KIND6)
        !    case(KIND7)
@@ -3778,8 +3928,6 @@ endif
     !    REAL(DP), INTENT(INOUT) :: S(3)
     INTEGER(2) PATCHT,PATCHG,PATCHE
 
-
-
     IF(ASSOCIATED(C%PATCH)) THEN
        PATCHT=C%PATCH%TIME ;PATCHE=C%PATCH%ENERGY ;PATCHG=C%PATCH%PATCH;
     ELSE
@@ -3833,7 +3981,6 @@ endif
     ELSE
        PATCHT=0 ; PATCHE=0 ;PATCHG=0;
     ENDIF
-
 
 
     IF(C%MAG%MIS) THEN

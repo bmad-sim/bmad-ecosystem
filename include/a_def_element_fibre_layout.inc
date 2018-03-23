@@ -312,6 +312,27 @@ type info
    real(dp), pointer:: m(:,:)  => null()
 END type info
 
+
+TYPE INTEGRATION_NODE
+   INTEGER, POINTER :: pos_in_fibre => null(), CAS  => null()
+   INTEGER, POINTER ::  pos => null(),lost  => null()
+   real(dp), POINTER :: S(:)  => null()
+   real(dp), POINTER :: ds_ac  => null()
+   real(dp), POINTER :: ref(:)  => null()
+   real(dp), pointer :: ent(:,:),a(:)  => null()
+   real(dp), pointer :: exi(:,:),b(:)  => null()
+   real(dp), POINTER :: delta_rad_in  => null()
+   real(dp), POINTER :: delta_rad_out  => null()
+   INTEGER, POINTER :: TEAPOT_LIKE  => null()
+   TYPE (INTEGRATION_NODE), POINTER :: NEXT  => null()
+   TYPE (INTEGRATION_NODE), POINTER :: PREVIOUS  => null()
+   TYPE (NODE_LAYOUT), POINTER :: PARENT_NODE_LAYOUT  => null()
+   TYPE(FIBRE), POINTER :: PARENT_FIBRE  => null()
+   !   TYPE(EXTRA_WORK), POINTER :: WORK
+   TYPE(BEAM_BEAM_NODE), POINTER :: BB  => null()
+!   TYPE(tree_element), POINTER :: T
+END TYPE INTEGRATION_NODE
+
 TYPE FIBRE
    !  BELOW ARE THE DATA CARRIED BY THE NODE
    INTEGER,POINTER ::DIR => null()
@@ -326,8 +347,7 @@ TYPE FIBRE
    !  POINTING TO PARENT LAYOUT AND PARENT FIBRE DATA
    TYPE (LAYOUT),POINTER :: PARENT_LAYOUT => null()
    type(info),pointer ::i => null()
-   TYPE(INTEGRATION_NODE),POINTER :: T1 => null()  ! FIRST AND LAST INTEGRATION_NODE CHILDREN CORRESPOUNDING TO PATCHES
-   TYPE(INTEGRATION_NODE),POINTER :: T2 => null()  ! FIRST AND LAST INTEGRATION_NODE CHILDREN CORRESPOUNDING TO PATCHES
+   TYPE(INTEGRATION_NODE),POINTER :: T1 => null(),T2 => null()  ! FIRST AND LAST INTEGRATION_NODE CHILDREN CORRESPOUNDING TO PATCHES
    TYPE(INTEGRATION_NODE),POINTER :: TM  => null()     ! MIDDLE INTEGRATION_NODE
    INTEGER,POINTER ::pos  => null()             ! POSITION IN LAYOUT
    ! NEW STUFF....
@@ -343,7 +363,8 @@ END TYPE FIBRE
 
 TYPE LAYOUT
    CHARACTER(120), POINTER ::  NAME  => null()! IDENTIFICATION
-   INTEGER, POINTER ::  INDEX,HARMONIC_NUMBER  => null()! IDENTIFICATION, CHARGE SIGN
+   INTEGER, POINTER ::  INDEX  => null()! IDENTIFICATION, CHARGE SIGN
+   REAL(DP),  POINTER :: HARMONIC_NUMBER  => null()!
    logical(lp),POINTER ::CLOSED  => null()
    INTEGER,  POINTER :: N   => null()   ! TOTAL ELEMENT IN THE CHAIN
    INTEGER,POINTER ::NTHIN  => null() ! NUMBER IF THIN LENSES IN COLLECTION  (FOR SPEED ESTIMATES)
@@ -384,25 +405,6 @@ TYPE MAD_UNIVERSE             ! THE MOTHER OF ALL STRUCTURES
 END TYPE MAD_UNIVERSE
 
 
-TYPE INTEGRATION_NODE
-   INTEGER, POINTER :: pos_in_fibre => null(), CAS  => null()
-   INTEGER, POINTER ::  pos => null(),lost  => null()
-   real(dp), POINTER :: S(:)  => null()
-   real(dp), POINTER :: ds_ac  => null()
-   real(dp), POINTER :: ref(:)  => null()
-   real(dp), pointer :: ent(:,:),a(:)  => null()
-   real(dp), pointer :: exi(:,:),b(:)  => null()
-   real(dp), POINTER :: delta_rad_in  => null()
-   real(dp), POINTER :: delta_rad_out  => null()
-   INTEGER, POINTER :: TEAPOT_LIKE  => null()
-   TYPE (INTEGRATION_NODE), POINTER :: NEXT  => null()
-   TYPE (INTEGRATION_NODE), POINTER :: PREVIOUS  => null()
-   TYPE (NODE_LAYOUT), POINTER :: PARENT_NODE_LAYOUT  => null()
-   TYPE(FIBRE), POINTER :: PARENT_FIBRE  => null()
-   !   TYPE(EXTRA_WORK), POINTER :: WORK
-   TYPE(BEAM_BEAM_NODE), POINTER :: BB  => null()
-!   TYPE(tree_element), POINTER :: T
-END TYPE INTEGRATION_NODE
 
 TYPE BEAM_LOCATION
    TYPE (INTEGRATION_NODE), POINTER :: NODE  => null()
