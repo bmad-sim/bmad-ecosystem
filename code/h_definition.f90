@@ -96,6 +96,16 @@ module definition
      integer g,nb  !  group index, number in group
      !&2
   END TYPE REAL_8
+
+ type  quaternion
+  real(dp) x(4)
+ end type  quaternion  
+
+ type  quaternion_8 
+  type(real_8) x(4)
+END TYPE quaternion_8
+
+
   !@3 ---------------------------------------------</br>
   TYPE double_complex
      type (complextaylor) t
@@ -280,9 +290,11 @@ module definition
 
   !@3 ---------------------------------------------</br>
   include "a_def_frame_patch_chart.inc"
-  include "a_def_all_kind.inc"
   include "a_def_sagan.inc"
   include "a_def_element_fibre_layout.inc"
+  include "a_def_all_kind.inc"
+
+
   !@3 ---------------------------------------------</br>
   type(fibre), pointer :: lost_fibre=>null()
   type(integration_node), pointer :: lost_node=>null()
@@ -304,7 +316,8 @@ module definition
      type(rf_phasor)  AC(nacmax)
      integer:: nac=0
      type(spinor) s(3)
-     logical u
+     type(quaternion) q
+     logical u,use_q
      type(integration_node),pointer :: last_node=>null()
       real(dp) e
   end type probe
@@ -315,8 +328,9 @@ module definition
      integer:: nac=0 !  number of modulated clocks <=nacmax
      real(dp) E_ij(6,6)   !  Envelope for stochastic radiation
      type(spinor_8) s(3)   ! Polymorphic spin s(1:3)
+     type(quaternion_8) q
      !   stuff for exception
-     logical u
+     logical u,use_q
      type(integration_node),pointer :: last_node=>null()
       real(dp) e
   end type probe_8
@@ -374,10 +388,15 @@ type c_yu_w
  integer :: n=0 !@1 of non zero w
 end type c_yu_w
 
+ type  c_quaternion
+  type(c_taylor) x(4)
+END TYPE c_quaternion
+
 type c_damap
  type (c_taylor) v(lnv) !@1 orbital part of the map 
  integer :: n=0 !@1 number of plane allocated
  type(c_spinmatrix) s !@1 spin matrix
+ type(c_quaternion) q
  complex(dp) e_ij(6,6) !@1 stochastic fluctuation in radiation theory
 end type c_damap
 

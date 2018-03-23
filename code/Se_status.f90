@@ -1285,7 +1285,7 @@ CONTAINS
        add%radiation=T
     ENDIF
     IF(add%DELTA) THEN
-        add%ONLY_4D=T
+       add%ONLY_4D=T
        add%NOCAVITY =  T
     ENDIF
     IF(add%ONLY_4D) THEN
@@ -1302,7 +1302,6 @@ CONTAINS
        add%stochastic   =  F
        add%ENVELOPE   =  F
     ENDIF
-    if(add%only_4d.and.add%only_2d) add%only_4d=my_false
 
     add%RADIATION  =  S1%RADIATION.OR.S2%RADIATION
     add%NOCAVITY =  S1%NOCAVITY.OR.S2%NOCAVITY
@@ -1316,6 +1315,7 @@ CONTAINS
     add%SPIN  =       S1%SPIN.OR.S2%SPIN
     add%MODULATION  =       S1%MODULATION.OR.S2%MODULATION
     add%PARA_IN  =       S1%PARA_IN.OR.S2%PARA_IN.or.ALWAYS_knobs
+    if(add%only_4d.and.add%only_2d) add%only_4d=my_false
 
     ADD%FULL_WAY=ADD%RADIATION.OR.ADD%stochastic.OR.ADD%ENVELOPE.OR.ADD%SPIN.OR.ADD%MODULATION
   END FUNCTION add

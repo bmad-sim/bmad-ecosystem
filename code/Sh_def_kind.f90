@@ -127,7 +127,7 @@ MODULE S_DEF_KIND
   real(dp), target :: wedge_coeff(2)
   logical(lp), target :: MAD8_WEDGE=.TRUE.
   logical(lp) :: bug_intentional=.false.
- 
+  real(dp) :: e1_cas=0
   !  logical(lp) :: old_solenoid=.true.
   INTEGER :: N_CAV4_F=1
   INTEGER :: m_abell=1,n_abell=2
@@ -161,7 +161,7 @@ MODULE S_DEF_KIND
 integer :: put_a_abell = 1
 private rk2abellr,rk4abellr,rk6abellr,rk2abellp,rk4abellp,rk6abellp,get_z_abr,get_z_abp
 private fx_newcr,fx_newcp,fx_newc
-
+integer :: tot_t=1
   INTERFACE TRACK_SLICE
 !     MODULE PROCEDURE INTER_CAV4
 !     MODULE PROCEDURE INTEP_CAV4
@@ -1920,8 +1920,9 @@ CALL FRINGECAV(EL,X,k,2)
     TYPE(CAV4),INTENT(INOUT):: EL
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     real(dp) O,X1,X3,BBYTWT,BBYTW,BBXTW
-    integer j,ko
+    integer j,ko,it
     real(dp) dir
+    it=tot_t*k%totalpath+(1-tot_t)
     IF(k%NOCAVITY.and.(.not.EL%always_on)) RETURN
     IF(PRESENT(MID)) CALL XMID(MID,X,0)
     !    EL%DELTA_E=x(5)
@@ -1939,7 +1940,7 @@ CALL FRINGECAV(EL,X,k,2)
        do ko=1,el%nf
 
 
-          x(5)=x(5)-el%f(ko)*dir*EL%volt*volt_c*SIN(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO) &
+          x(5)=x(5)-el%f(ko)*dir*EL%volt*volt_c*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO) &
                +EL%phase0)/EL%P%P0C
           ! doing crabola
 
@@ -1963,8 +1964,8 @@ CALL FRINGECAV(EL,X,k,2)
 
           ! multipole * cos(omega t+ phi)/p0c
 
-          X(2)=X(2)-el%f(ko)*dir*BBYTW/EL%P%P0C*(el%a+ el%r*cos(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0))
-          X(4)=X(4)+el%f(ko)*DIR*BBXTW/EL%P%P0C*(el%a+ el%r*cos(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0))
+          X(2)=X(2)-el%f(ko)*dir*BBYTW/EL%P%P0C*(el%a+ el%r*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0))
+          X(4)=X(4)+el%f(ko)*DIR*BBXTW/EL%P%P0C*(el%a+ el%r*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0))
 
           IF(EL%P%NMUL>=1) THEN
              BBYTW=-EL%BN(EL%P%NMUL)/EL%P%NMUL
@@ -1983,7 +1984,7 @@ CALL FRINGECAV(EL,X,k,2)
              BBYTW=0.0_dp
              BBXTW=0.0_dp
           ENDIF
-          X(5)=X(5)+el%f(ko)*ko*O*dir*BBYTW/EL%P%P0C*el%r*sin(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0)
+          X(5)=X(5)+el%f(ko)*ko*O*dir*BBYTW/EL%P%P0C*el%r*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
 
        enddo
     endif
@@ -2002,8 +2003,9 @@ CALL FRINGECAV(EL,X,k,2)
     TYPE(CAV4P),INTENT(INOUT):: EL
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     type(real_8) O,X1,X3,BBYTWT,BBYTW,BBXTW
-    INTEGER J,ko
+    INTEGER J,ko,it
     real(dp) dir
+    it=tot_t*k%totalpath+(1-tot_t)
     IF(k%NOCAVITY.and.(.not.EL%always_on)) RETURN
     !    IF(PRESENT(MID)) CALL XMID(MID,X,0)
     !    EL%DELTA_E=x(5)
@@ -2021,7 +2023,7 @@ CALL FRINGECAV(EL,X,k,2)
 
     do ko=1,el%nf
 
-       x(5)=x(5)-el%f(ko)*dir*EL%volt*volt_c*SIN(ko*O*(x(6)+EL%t)+EL%PHAS+ &
+       x(5)=x(5)-el%f(ko)*dir*EL%volt*volt_c*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+ &
             EL%PH(KO)+EL%phase0)/EL%P%P0C
        ! doing crabola
 
@@ -2047,8 +2049,8 @@ CALL FRINGECAV(EL,X,k,2)
 
        ! multipole * cos(omega t+ phi)/p0c
 
-       X(2)=X(2)-el%f(ko)*dir*BBYTW/EL%P%P0C*(el%a+ el%r*cos(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0))
-       X(4)=X(4)+el%f(ko)*DIR*BBXTW/EL%P%P0C*(el%a+ el%r*cos(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0))
+       X(2)=X(2)-el%f(ko)*dir*BBYTW/EL%P%P0C*(el%a+ el%r*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0))
+       X(4)=X(4)+el%f(ko)*DIR*BBXTW/EL%P%P0C*(el%a+ el%r*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0))
 
        IF(EL%P%NMUL>=1) THEN
           BBYTW=-EL%BN(EL%P%NMUL)/EL%P%NMUL
@@ -2067,7 +2069,7 @@ CALL FRINGECAV(EL,X,k,2)
           BBYTW=0.0_dp
           BBXTW=0.0_dp
        ENDIF
-       X(5)=X(5)+el%f(ko)*ko*O*dir*BBYTW/EL%P%P0C*el%r*sin(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0)
+       X(5)=X(5)+el%f(ko)*ko*O*dir*BBYTW/EL%P%P0C*el%r*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
 
     enddo
 
@@ -2081,9 +2083,9 @@ CALL FRINGECAV(EL,X,k,2)
     real(dp),optional,INTENT(INOUT)::B(3),E(3)
     TYPE(CAV4),INTENT(INOUT):: EL
     real(dp) C1,S1,V,O,dad1dz
-     INTEGER KO
+     INTEGER KO,it
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-
+    it=tot_t*k%totalpath+(1-tot_t)
     if(el%N_BESSEL/=-1) return
     IF(k%NOCAVITY.and.(.not.EL%always_on)) RETURN
     IF(EL%THIN) RETURN
@@ -2105,14 +2107,14 @@ CALL FRINGECAV(EL,X,k,2)
     ad=0.0_dp
    do ko=1,el%nf    ! over modes
    
-    C1=el%f(ko)*V*sin(ko*O*z)*COS(ko*O*(x(6)+EL%t)+EL%PHAS+EL%phase0+EL%PH(KO))*0.5_dp
-    S1=el%f(ko)*(ko*O)*V*sin(ko*O*z)*SIN(ko*O*(x(6)+EL%t)+EL%PHAS+EL%phase0+EL%PH(KO))/2.0_dp
+    C1=el%f(ko)*V*sin(ko*O*z)*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))*0.5_dp
+    S1=el%f(ko)*(ko*O)*V*sin(ko*O*z)*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))/2.0_dp
     AD(1)=-C1+AD(1)
     AD(2)=S1+AD(2)
-    ad(3)=ad(3)-(ko*O)*el%f(ko)*V*cos(ko*O*z)*COS(ko*O*(x(6)+EL%t)+EL%PHAS+EL%phase0+EL%PH(KO))*0.5_dp
+    ad(3)=ad(3)-(ko*O)*el%f(ko)*V*cos(ko*O*z)*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))*0.5_dp
 
 !!!   DA_3/DT FOR KICK IN X(5)    
-    A(3)=A(3)-EL%P%DIR*el%f(ko)*V*COS(ko*O*z)*SIN(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0)
+    A(3)=A(3)-EL%P%DIR*el%f(ko)*V*COS(ko*O*z)*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
    enddo
 
     A(1)=AD(1)*X(1)  ! A_x
@@ -2139,9 +2141,9 @@ CALL FRINGECAV(EL,X,k,2)
     TYPE(CAV4P),INTENT(INOUT):: EL
     TYPE(REAL_8),optional,INTENT(INOUT):: B(3),E(3)
     TYPE(REAL_8) C1,S1,V,O,dad1dz
-     INTEGER KO
+     INTEGER KO,it
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-
+    it=tot_t*k%totalpath+(1-tot_t)
     if(el%N_BESSEL/=-1) return
     IF(k%NOCAVITY.and.(.not.EL%always_on)) RETURN
     IF(EL%THIN) RETURN
@@ -2170,16 +2172,16 @@ CALL FRINGECAV(EL,X,k,2)
 
    do ko=1,el%nf    ! over modes
    
-    C1=el%f(ko)*V*sin(ko*O*z)*COS(ko*O*(x(6)+EL%t)+EL%PHAS+EL%phase0+EL%PH(KO))*0.5_dp
-    S1=el%f(ko)*(ko*O)*V*sin(ko*O*z)*SIN(ko*O*(x(6)+EL%t)+EL%PHAS+EL%phase0+EL%PH(KO))/2.0_dp
+    C1=el%f(ko)*V*sin(ko*O*z)*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))*0.5_dp
+    S1=el%f(ko)*(ko*O)*V*sin(ko*O*z)*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))/2.0_dp
 
     AD(1)=-C1+AD(1)
     AD(2)=S1+AD(2)
 
-    ad(3)=ad(3)-(ko*O)*el%f(ko)*V*cos(ko*O*z)*COS(ko*O*(x(6)+EL%t)+EL%PHAS+EL%phase0+EL%PH(KO))*0.5_dp
+    ad(3)=ad(3)-(ko*O)*el%f(ko)*V*cos(ko*O*z)*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))*0.5_dp
 
 !!!   DA_3/DT FOR KICK IN X(5)    
-    A(3)=A(3)-EL%P%DIR*el%f(ko)*V*COS(ko*O*z)*SIN(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0)
+    A(3)=A(3)-EL%P%DIR*el%f(ko)*V*COS(ko*O*z)*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
    enddo
 
     A(1)=AD(1)*X(1)
@@ -3461,7 +3463,7 @@ CALL FRINGECAV(EL,X,k,2)
     REAL(DP), INTENT(INOUT) ::  X(6)
     TYPE(CAV4),INTENT(INOUT):: EL
     integer,INTENT(IN):: J
-    integer JC,ko
+    integer JC,ko,it
     REAL(DP) C1,S1,V,O,z
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     REAL(DP) KBMAD 
@@ -3469,7 +3471,7 @@ CALL FRINGECAV(EL,X,k,2)
     !  As of June 2007, Etienne believes that the fringe approximately cancels
     ! it is a mystery perhaps due to the use of canonical variables.
     ! as of 2012 David Sagan said that this is needed after all
-
+    it=tot_t*k%totalpath+(1-tot_t)
     JC=-2*J+3
     if(jc==1) then
      z=0.0_dp
@@ -3505,8 +3507,8 @@ CALL FRINGECAV(EL,X,k,2)
 
    do ko=1,el%nf    ! over modes
    
-    s1=cos(kbmad*ko*O*z)*sin(ko*O*(x(6)+EL%t)+EL%PHAS+EL%phase0+EL%PH(KO))
-    c1=cos(kbmad*ko*O*z)*cos(ko*O*(x(6)+EL%t)+EL%PHAS+EL%phase0+EL%PH(KO))
+    s1=cos(kbmad*ko*O*z)*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))
+    c1=cos(kbmad*ko*O*z)*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))
 
 
     X(2)=X(2)+V*S1*X(1)*0.5_dp
@@ -3521,7 +3523,7 @@ CALL FRINGECAV(EL,X,k,2)
     TYPE(REAL_8), INTENT(INOUT) ::  X(6)
     TYPE(CAV4P),INTENT(INOUT):: EL
     integer,INTENT(IN):: J
-    integer JC,ko
+    integer JC,ko,it
     TYPE(REAL_8) C1,S1,V,O,z
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     REAL(DP) KBMAD 
@@ -3531,7 +3533,7 @@ CALL FRINGECAV(EL,X,k,2)
     ! as of 2012 David Sagan said that this is needed after all
     CALL ALLOC(C1,S1,V,O,z)
     
- 
+     it=tot_t*k%totalpath+(1-tot_t)
     JC=-2*J+3
     if(jc==1) then
      z=0.0_dp
@@ -3563,8 +3565,8 @@ CALL FRINGECAV(EL,X,k,2)
 
    do ko=1,el%nf    ! over modes
    
-    s1=cos(kbmad*ko*O*z)*sin(ko*O*(x(6)+EL%t)+EL%PHAS+EL%phase0+EL%PH(KO))
-    c1=cos(kbmad*ko*O*z)*cos(ko*O*(x(6)+EL%t)+EL%PHAS+EL%phase0+EL%PH(KO))
+    s1=cos(kbmad*ko*O*z)*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))
+    c1=cos(kbmad*ko*O*z)*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))
 
 
     X(2)=X(2)+V*S1*X(1)*0.5_dp
@@ -3590,9 +3592,9 @@ CALL FRINGECAV(EL,X,k,2)
     INTEGER I
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     real(dp) BBYTWT,BBXTW,BBYTW,x1,x3
-    integer j,ko
+    integer j,ko,it
     real(dp) dir
-
+    it=tot_t*k%totalpath+(1-tot_t)
     IF(k%NOCAVITY.and.(.not.EL%always_on)) RETURN
 
     DIR=EL%P%DIR*EL%P%CHARGE
@@ -3626,12 +3628,15 @@ CALL FRINGECAV(EL,X,k,2)
        !    EL%DELTA_E=x(5)
 
        IF(EL%N_BESSEL>0) THEN
-          X(2)=X(2)-X(1)*el%f(ko)*DF*VL*COS(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0)/(ko*O)
-          X(4)=X(4)-X(3)*el%f(ko)*DF*VL*COS(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0)/(ko*O)
+          X(2)=X(2)-X(1)*el%f(ko)*DF*VL*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)/(ko*O)
+          X(4)=X(4)-X(3)*el%f(ko)*DF*VL*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)/(ko*O)
        ENDIF
 
-
-       x(5)=x(5)-el%f(ko)*F*VL*SIN(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0)
+!!!!!   el%t should be the "phase" of the cavity if many modes are used
+!!!!!   indeed EL%PH(KO) should be used to shape the harmonic profile of the cavity only
+!!!!!   if tot_t=1 (default)  then it=1 if totalpath=1 other zero
+!!!!!   if tot_t=0 it=1 always
+       x(5)=x(5)-el%f(ko)*F*VL*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
 
 
        ! doing crabola
@@ -3657,8 +3662,8 @@ CALL FRINGECAV(EL,X,k,2)
 
        ! multipole * cos(omega t+ phi)/p0c
 
-       X(2)=X(2)-el%f(ko)*YL*DIR*BBYTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0))
-       X(4)=X(4)+el%f(ko)*YL*DIR*BBXTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0))
+       X(2)=X(2)-el%f(ko)*YL*DIR*BBYTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0))
+       X(4)=X(4)+el%f(ko)*YL*DIR*BBXTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0))
 
        IF(EL%P%NMUL>=1) THEN
           BBYTW=-EL%BN(EL%P%NMUL)/EL%P%NMUL
@@ -3678,7 +3683,7 @@ CALL FRINGECAV(EL,X,k,2)
           BBXTW=0.0_dp
        ENDIF
 
-       X(5)=X(5)+el%f(ko)*(ko*O)*YL*DIR*BBYTW/EL%P%P0C*EL%R*sin(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0)
+       X(5)=X(5)+el%f(ko)*(ko*O)*YL*DIR*BBYTW/EL%P%P0C*EL%R*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
     enddo    ! over modes
 
 
@@ -3689,7 +3694,7 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
     TYPE(REAL_8),INTENT(INOUT):: X(6),YL
     TYPE(CAV4P),INTENT(INOUT):: EL
     TYPE(REAL_8) DF,R2,F,DR2,O,VL
-    INTEGER I
+    INTEGER I,it
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     TYPE(REAL_8) BBYTWT,BBXTW,BBYTW,x1,x3
     integer j,ko
@@ -3698,7 +3703,7 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
     IF(k%NOCAVITY.and.(.not.EL%always_on)) RETURN
     CALL ALLOC(DF,R2,F,DR2,O,VL)
     call alloc(BBYTWT,BBXTW,BBYTW,x1,x3)
-
+    it=tot_t*k%totalpath+(1-tot_t)
     DIR=EL%P%DIR*EL%P%CHARGE
 
        if(freq_redefine) then
@@ -3730,12 +3735,12 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
        !    EL%DELTA_E=x(5)
 
        IF(EL%N_BESSEL>0) THEN
-          X(2)=X(2)-X(1)*el%f(ko)*DF*VL*COS(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0)/(ko*O)
-          X(4)=X(4)-X(3)*el%f(ko)*DF*VL*COS(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0)/(ko*O)
+          X(2)=X(2)-X(1)*el%f(ko)*DF*VL*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)/(ko*O)
+          X(4)=X(4)-X(3)*el%f(ko)*DF*VL*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)/(ko*O)
        ENDIF
 
 
-       x(5)=x(5)-el%f(ko)*F*VL*SIN(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0)
+       x(5)=x(5)-el%f(ko)*F*VL*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
 
 
        ! doing crabola
@@ -3761,8 +3766,8 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
 
        ! multipole * cos(omega t+ phi)/p0c
 
-       X(2)=X(2)-el%f(ko)*YL*DIR*BBYTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0))
-       X(4)=X(4)+el%f(ko)*YL*DIR*BBXTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0))
+       X(2)=X(2)-el%f(ko)*YL*DIR*BBYTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0))
+       X(4)=X(4)+el%f(ko)*YL*DIR*BBXTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0))
 
        IF(EL%P%NMUL>=1) THEN
           BBYTW=-EL%BN(EL%P%NMUL)/EL%P%NMUL
@@ -3782,7 +3787,7 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
           BBXTW=0.0_dp
        ENDIF
 
-       X(5)=X(5)+el%f(ko)*(ko*O)*YL*DIR*BBYTW/EL%P%P0C*EL%R*sin(ko*O*(x(6)+EL%t)+EL%PHAS+EL%PH(KO)+EL%phase0)
+       X(5)=X(5)+el%f(ko)*(ko*O)*YL*DIR*BBYTW/EL%P%P0C*EL%R*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
 
     enddo    ! over modes
     CALL kill(DF,R2,F,DR2,O,VL)
@@ -5269,10 +5274,14 @@ integer :: kkk=0
 
 
        CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
+       if(e1_cas/=0.and.el%p%nmul>1) then
+          X(1)=X(1)+DH*X(2)/ROOT(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)*e1_cas*el%bn(2)
+       endif
        CALL KICK (EL,D,X,k)
        CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
-
-
+       if(e1_cas/=0.and.el%p%nmul>1) then
+          X(1)=X(1)+DH*X(2)/ROOT(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)*e1_cas*el%bn(2)
+       endif
 
     CASE(4)
        D1=EL%L*FD1/EL%P%NST
@@ -5370,8 +5379,14 @@ integer :: kkk=0
        DD=EL%P%LD/2.0_dp/EL%P%NST
 
        CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
+       if(e1_cas/=0.and.el%p%nmul>1) then
+          X(1)=X(1)+DH*X(2)/sqrt(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)*e1_cas*el%bn(2)
+       endif
        CALL KICK (EL,D,X,k)
        CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
+       if(e1_cas/=0.and.el%p%nmul>1) then
+          X(1)=X(1)+DH*X(2)/sqrt(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)*e1_cas*el%bn(2)
+       endif
 
        CALL KILL(DH,D)
 

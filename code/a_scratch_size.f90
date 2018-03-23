@@ -197,6 +197,7 @@ module precision_constants
   character(1024) :: messagelost
   integer, target :: ndpt_bmad = 0, only2d =0, addclock=0
   integer,TARGET :: HIGHEST_FRINGE=2
+  logical :: use_quaternion = .false.
   !  logical(lp) :: fixed_found
   !  lielib_print(1)=1   lieinit prints info
   !  lielib_print(2)=1   expflo warning if no convergence
