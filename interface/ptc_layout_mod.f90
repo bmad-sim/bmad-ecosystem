@@ -9,7 +9,7 @@ module ptc_layout_mod
 
 use ptc_interface_mod
 use multipass_mod
-use track1_mod
+use fringe_mod
 
 implicit none
 

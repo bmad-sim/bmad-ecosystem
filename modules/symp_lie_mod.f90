@@ -3,7 +3,8 @@ module symp_lie_mod
 use make_mat6_mod
 use em_field_mod
 use random_mod
-use track1_mod
+use fringe_mod
+use multipole_mod
 
 type wiggler_computations_struct
   real(rp) :: c_x = 0, s_x = 0, c_y = 0, s_y = 0, c_z = 0, s_z = 0

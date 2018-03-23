@@ -1,6 +1,5 @@
 !+
-! Subroutine pointer_to_attribute (ele, attrib_name, do_allocation,
-!                                                 a_ptr, err_flag, err_print_flag, ix_attrib)
+! Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_flag, err_print_flag, ix_attrib)
 !
 ! Returns a pointer to an attribute of an element ele with attribute name attrib_name.
 ! Note: Use attribute_free to see if the attribute may be varied independently.
@@ -35,8 +34,7 @@
 !                     Set to 0 if not in any of these arrays.
 !-
 
-subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
-                                    a_ptr, err_flag, err_print_flag, ix_attrib)
+subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_flag, err_print_flag, ix_attrib)
 
 use bmad_interface, except_dummy => pointer_to_attribute
 

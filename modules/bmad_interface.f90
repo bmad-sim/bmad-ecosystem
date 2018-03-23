@@ -9,6 +9,7 @@ use element_at_s_mod
 use twiss_mod
 use coord_mod
 use equality_mod
+use multipole_mod
 
 implicit none
 

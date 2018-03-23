@@ -7,7 +7,7 @@
 
 module bmad
 
-use track1_mod
+use fringe_mod
 use boris_mod
 use dynamic_aperture_mod
 use bookkeeper_mod

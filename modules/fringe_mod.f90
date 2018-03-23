@@ -1,14 +1,15 @@
 !+
-! Module track1_mod
+! Module fringe_mod
 !
 ! Module of helper routines for track1 routines
 !-
 
-module track1_mod
+module fringe_mod
 
 use bmad_interface
 use make_mat6_mod
 use spin_mod
+use multipole_mod
 
 ! Private routines for exact_bend_edge_kick
 private ptc_rot_xz, ptc_wedger, ptc_fringe_dipoler
@@ -25,9 +26,6 @@ contains
 ! Apply only the first order kick, which is edge focusing.
 ! This routine is the same as mad_hard_bend_edge_kick, except that only
 ! first order terms are applied.
-!
-! Module needed:
-!   use track1_mod
 !
 ! Input:
 !   ele         -- ele_struct: SBend element.
@@ -122,9 +120,6 @@ end subroutine linear_bend_edge_kick
 !
 ! Subroutine to track through the edge field of an sbend using a 2nd order map.
 ! See the Bmad manual for details on how the map was constructed.
-!
-! Module needed:
-!   use track1_mod
 !
 ! Input:
 !   orb         -- Coord_struct: Starting coords.
@@ -512,9 +507,6 @@ end subroutine no_edge_angle_hard_bend_edge_kick
 ! Routine to add the SAD "linear" soft edge (for finite f1 or f2).
 ! This routine assumes that the particle orbit has been rotated to the element reference frame.
 !
-! Moudle needed:
-!   use track1_mod
-!
 ! Input:
 !   ele           -- ele_struct: Element being tracked through
 !   param         -- lat_param_struct: Tracking parameters.
@@ -846,9 +838,6 @@ end subroutine hard_multipole_edge_kick
 !
 ! Subroutine to track through the edge field of an sbend.
 !
-! Module needed:
-!   use track1_mod
-!
 ! Input:
 !   ele         -- ele_struct: SBend element.
 !   param       -- lat_param_struct: Rel charge.
@@ -965,9 +954,6 @@ end subroutine bend_edge_kick
 ! Subroutine soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix, k0l, t0)
 !
 ! Subroutine to track through the ("linear") bend soft edge field of an sbend or sad_mult.
-!
-! Module needed:
-!   use track1_mod
 !
 ! Input:
 !   ele         -- ele_struct: SBend or sad_mult element.
@@ -1561,9 +1547,6 @@ end subroutine ptc_rot_xz
 !
 ! Subroutine to track through the edge field of an sbend.
 ! Uses routines adapted from PTC
-!
-! Module needed:
-!   use track1_mod
 !
 ! Input:
 !   ele         -- ele_struct: SBend element.

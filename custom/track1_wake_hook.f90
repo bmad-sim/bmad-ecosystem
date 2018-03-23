@@ -15,7 +15,7 @@
 
 subroutine track1_wake_hook (bunch, ele, finished)
 
-use track1_mod, dummy => track1_wake_hook
+use fringe_mod, dummy => track1_wake_hook
 
 implicit none
 
