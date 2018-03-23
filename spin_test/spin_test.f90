@@ -55,7 +55,8 @@ call transfer_map_calc_with_spin (lat, t_ele%taylor, t_ele%spin_taylor, orb0, er
 orb_start = orb0
 orb_start%vec = orb_start%vec + dr
 
-spin_a = matmul (spin_taylor_to_mat(orb_start%vec, t_ele%taylor%ref, t_ele%spin_taylor), orb0%spin)
+a_quat = track_taylor(orb_start%vec, t_ele%spin_taylor, t_ele%taylor%ref)
+spin_a = rotate_vec_given_quat (orb0%spin, a_quat)
 
 bmad_com%spin_tracking_on = .true.
 call track1 (orb_start, lat%ele(1), lat%param, orb_end)
@@ -70,7 +71,7 @@ write (1, '(a, 3f14.9)') '"dBmad-Quad"  ABS 0   ', spin_b - orb0%spin
 if (print_extra) then
   call type_taylors (t_ele%taylor)
   print *, '--------------------------------'
-  call type_spin_taylors (t_ele%spin_taylor)
+  call type_taylors (t_ele%spin_taylor, out_type = 'SPIN')
 
   print '(a, 3f12.6)', 'Init:      ', orb0%spin
   print '(a, 3f12.6)', 'dPTC_Quad: ', spin_a - orb0%spin
