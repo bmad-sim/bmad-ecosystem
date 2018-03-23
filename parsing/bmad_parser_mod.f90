@@ -265,7 +265,15 @@ wild_key0 = logic_option(.false., wild_and_key0)
 if ((ele%key == taylor$ .or. ele%key == hybrid$) .and. delim == '{' .and. word == '') then
 
   call get_next_word (word, ix_word, ':, =(){', delim, delim_found, call_check = .true.)
+
   call match_word (word, ['XX', 'XY', 'XZ', 'YX', 'YY', 'YZ', 'ZX', 'ZY', 'ZZ'], i_out, .true., .false.)
+  if (i_out > 0) then
+    call parser_error ('OLD STYLE, ROTATION MATRIX BASED SPIN TAYLOR MAP FOR ' // ele%name, &
+                       'MUST BE CONVERTED TO NEW STYLE QUATERNON BASED MAP.')
+    return
+  endif
+
+  call match_word (word, ['S1', 'SX', 'SY', 'SZ'], i_out, .true., .false.)
   if (i_out > 0) then
     i_out = i_out + 100 ! Make i_out not in range [1:6]
   else
@@ -2179,10 +2187,8 @@ integer i, j, i_out, expn(6)
 !
 
 if (i_out > 100) then
-  i_out = i_out - 101
-  i = i_out / 3
-  j = i_out - 3 * i
-  taylor => ele%spin_taylor(i+1,j+1) 
+  i_out = i_out - 100
+  taylor => ele%spin_taylor(i_out) 
 else
   if (i_out < 1 .or. i_out > 6) then
     call parser_error ('"OUT" VALUE IN TAYLOR TERM NOT IN RANGE (1 - 6)', &

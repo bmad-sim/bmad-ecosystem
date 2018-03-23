@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 208
+integer, parameter :: bmad_inc_version$ = 209
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -950,7 +950,7 @@ type ele_struct
                                                                ! Radiation integral calc cached values 
   type (space_charge_struct), pointer :: space_charge => null()
   type (taylor_struct) :: taylor(6) = taylor_struct()          ! Phase space Taylor map.
-  type (taylor_struct) :: spin_taylor(3,3) = taylor_struct()   ! Spin Taylor map.
+  type (taylor_struct) :: spin_taylor(4) = taylor_struct()     ! Quaternian Spin Taylor map.
   type (wake_struct), pointer :: wake => null()                ! Wakes
   type (wall3d_struct), pointer :: wall3d(:) => null()         ! Chamber or capillary wall
   type (coord_struct) :: map_ref_orb_in = coord_struct()       ! Entrance end transfer map ref orbit

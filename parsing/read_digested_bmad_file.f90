@@ -449,7 +449,7 @@ type (ac_kicker_struct), pointer :: ac
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_tay, n_grid, ix_ele, ix_branch, ix_wall3d
 integer i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e
 integer ix_r, ix_s, n_var, ix_d, ix_m, ix_lr_spline, idum, n_cus
-integer ix_sr_long, ix_sr_trans, ix_lr_mode, ix_wall3d_branch, ix_st(3,3)
+integer ix_sr_long, ix_sr_trans, ix_lr_mode, ix_wall3d_branch, ix_st(4)
 integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2
 
 logical error, is_alloc_pt, ac_kicker_alloc
@@ -692,14 +692,14 @@ do j = 1, size(ele%taylor)
   enddo
 enddo
 
-do i = 1, 3; do j = 1, 3
-  if (ix_st(i,j) == -1) cycle
-  read (d_unit, err = 9650) ele%spin_taylor(i,j)%ref
-  allocate (ele%spin_taylor(i,j)%term(ix_st(i,j)))
-  do k = 1, ix_st(i,j)
-    read (d_unit, err = 9700) ele%spin_taylor(i,j)%term(k)
+do i = 1, 4
+  if (ix_st(i) == -1) cycle
+  read (d_unit, err = 9650) ele%spin_taylor(i)%ref
+  allocate (ele%spin_taylor(i)%term(ix_st(i)))
+  do k = 1, ix_st(i)
+    read (d_unit, err = 9700) ele%spin_taylor(i)%term(k)
   enddo
-enddo; enddo
+enddo
 
 ! If ix_lr_mode is negative then it is a pointer to a previously read wake. 
 ! See write_digested_bmad_file.

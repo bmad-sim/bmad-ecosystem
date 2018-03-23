@@ -214,7 +214,7 @@ end function taylor_expn
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine type_taylors (bmad_taylor, max_order, lines, n_lines, file_id)
+! Subroutine type_taylors (bmad_taylor, max_order, lines, n_lines, file_id, out_type)
 !
 ! Subroutine to print or put in a string array a Bmad taylor map.
 ! If the lines(:) argument is not present, the element information is printed to the terminal.
@@ -226,15 +226,19 @@ end function taylor_expn
 !   bmad_taylor(6) -- taylor_struct: Array of taylors.
 !   max_order      -- integer, optional: Maximum order to print.
 !   file_id        -- integer, optional: If present, write output to a file with handle file_id.
+!   out_type       -- character(*), optional: Determins the string to be used for the output type column.
+!                       '' (default) -> '1', '2', '3', etc.
+!                       'PHASE'      -> 'X', 'Px, 'Y', 'Py', 'Z', 'Pz'
+!                       'SPIN'       -> 'S1', 'Sx', 'Sy', 'Sz' (quaternion representation)
 !
 ! Output:
-!   lines(:)     -- character(100), allocatable, optional :: Character array to hold the output. 
+!   lines(:)     -- character(*), allocatable, optional :: Character array to hold the output. 
 !                     If not present, the information is printed to the terminal.
 !   n_lines      -- integer, optional: Number of lines in lines(:) that hold valid output.
 !                     n_lines must be present if lines(:) is. 
 !-
 
-subroutine type_taylors (bmad_taylor, max_order, lines, n_lines, file_id)
+subroutine type_taylors (bmad_taylor, max_order, lines, n_lines, file_id, out_type)
 
 use re_allocate_mod
 
@@ -248,9 +252,13 @@ integer, optional, intent(out) :: n_lines
 integer, optional :: max_order, file_id
 integer i, j, k, nl, ix, nt
 
+character(*), optional :: out_type
 character(*), optional, allocatable :: lines(:)
 character(100), allocatable :: li(:)
-character(40) fmt1, fmt2, fmt
+character(40) fmt1, fmt2, fmt, o_type
+character(4) out_str
+character(2), parameter :: spin_out(4) = ['S1', 'Sx', 'Sy', 'Sz']
+character(2), parameter :: phase_out(6) = ['X ', 'Px', 'Y ', 'Py', 'Z ', 'Pz']
 
 ! If not allocated then not much to do
 
@@ -265,45 +273,65 @@ if (.not. associated(bmad_taylor(1)%term)) then
 ! Normal case
 
 else
-  nl = 8 + sum( [(size(bmad_taylor(i)%term), i = 1, nt) ])
+  o_type = ''
+  if (present(out_type)) o_type = out_type
+
+  nl = 8 + nt + sum( [(size(bmad_taylor(i)%term), i = 1, nt) ])
   allocate(li(nl))
 
   write (li(1), '(a)') ' Taylor Terms:'
-  write (li(2), '(a)') ' Out      Coef             Exponents           Order       Reference'
+  if (o_type == 'SPIN') then
+    write (li(2), '(a)') ' Out      Coef             Exponents           Order'
+  else
+    write (li(2), '(a)') ' Out      Coef             Exponents           Order       Reference'
+  endif
   nl = 2
 
-
-  fmt1 = '(i3, a, f20.12,  1x, 6i3, i9, f18.9)'
-  fmt2 = '(i3, a, es20.11, 1x, 6i3, i9, f18.9)'
+  fmt1 = '(a, f20.12,  1x, 6i3, i9, f18.9)'
+  fmt2 = '(a, es20.11, 1x, 6i3, i9, f18.9)'
 
   do i = 1, nt
     nl=nl+1; li(nl) = ' ---------------------------------------------------'
 
-    nullify (tlr%term)
-    call sort_taylor_terms (bmad_taylor(i), tlr)
+    out_str = ' ??:'
+    select case(o_type)
+    case ('')
+      write (out_str, '(i3)') i, ':'
+    case ('PHASE')
+      if (i <=6) out_str = ' ' // phase_out(i) // ':'
+    case ('SPIN')
+      if (i <=4) out_str = ' ' // spin_out(i) // ':'
+    end select
 
-    do j = 1, size(bmad_taylor(i)%term)
+    if (size(bmad_taylor(i)%term) == 0) then
+      nl=nl+1; write (li(nl), '(a, 6x, a)') out_str, 'No Terms.'
 
-      tt => tlr%term(j)
+    else
+      nullify (tlr%term)
+      call sort_taylor_terms (bmad_taylor(i), tlr)
 
-      if (present(max_order)) then
-        if (sum(tt%expn) > max_order) cycle
-      endif
+      do j = 1, size(bmad_taylor(i)%term)
+        tt => tlr%term(j)
 
-      if (abs(tt%coef) < 1d5) then
-        fmt = fmt1
-      else
-        fmt = fmt2
-      endif
+        if (present(max_order)) then
+          if (sum(tt%expn) > max_order) cycle
+        endif
 
-      if (j == 1) then
-        nl=nl+1; write (li(nl), fmt) i, ':', tt%coef, (tt%expn(k), k = 1, 6), sum(tt%expn), bmad_taylor(i)%ref
-      else
-        nl=nl+1; write (li(nl), fmt) i, ':', tt%coef, (tt%expn(k), k = 1, 6), sum(tt%expn)
-      endif
-    enddo
+        if (abs(tt%coef) < 1d5) then
+          fmt = fmt1
+        else
+          fmt = fmt2
+        endif
 
-    deallocate (tlr%term)
+        if (j == 1 .and. o_type /= 'SPIN') then
+          nl=nl+1; write (li(nl), fmt) out_str, tt%coef, (tt%expn(k), k = 1, 6), sum(tt%expn), bmad_taylor(i)%ref
+        else
+          nl=nl+1; write (li(nl), fmt) out_str, tt%coef, (tt%expn(k), k = 1, 6), sum(tt%expn)
+        endif
+      enddo
+
+      deallocate (tlr%term)
+    endif
 
   enddo
 endif
@@ -327,183 +355,6 @@ if (present(file_id)) then
 endif
 
 end subroutine type_taylors
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine type_spin_taylors (spin_taylor, max_order, lines, n_lines, file_id)
-!
-! Subroutine to print or put in a string array a Bmad spin taylor map.
-! If the lines(:) argument is not present, the element information is printed to the terminal.
-!
-! Moudles needed:
-!   use bmad
-!
-! Input:
-!   spin_taylor(3,3)  -- taylor_struct: Matrix of taylors.
-!   max_order         -- Integer, optional: Maximum order to print.
-!   file_id           -- integer, optional: If present, write output to a file with handle file_id.
-!
-! Output:
-!   lines(:)     -- character(100), allocatable, optional :: Character array to hold the output. 
-!                     If not present, the information is printed to the terminal.
-!   n_lines      -- integer, optional: Number of lines in lines(:) that hold valid output.
-!                     n_lines must be present if lines(:) is. 
-!-
-
-subroutine type_spin_taylors (spin_taylor, max_order, lines, n_lines, file_id)
-
-use re_allocate_mod
-
-implicit none
-
-type (taylor_struct), intent(in), target :: spin_taylor(3,3)
-type (taylor_term_struct), pointer :: tt1, tt2, tt3
-type (taylor_struct) tlr1, tlr2, tlr3
-
-real(rp) coef1, coef2, coef3
-
-integer, optional, intent(out) :: n_lines
-integer, optional :: max_order, file_id
-integer i, j, k, nl, ix, ixm, n1, n2, n3, ix1, ix2, ix3, exp_m(6)
-
-character(*), optional, allocatable :: lines(:)
-character(100), allocatable :: li(:)
-character(40) fmt
-character(*), parameter :: s_str(3) = ['Sx:', 'Sy:', 'Sz:']
-
-! If not allocated then not much to do
-
-if (.not. associated(spin_taylor(1,1)%term)) then
-  nl = 2
-  allocate (li(nl))
-  li(1) = '---------------------------------------------------'
-  li(2) = 'A Spin Taylor Map Does Not Exist.' 
-
-! Normal case
-
-else
-  nl = 0
-  do i = 1, 3;  do j = 1, 3
-    nl = nl + size(spin_taylor(i,j)%term)
-  enddo;  enddo
-  allocate(li(nl+5))
-
-  write (li(1), '(a)') ' Spin Taylor Terms:'
-  write (li(2), '(a)') ' Out      Coef_Sx             Coef_Sy             Coef_Sz          Exponents           Order'
-  nl = 2
-
-  ! Loop over Sx, Sy, Sz
-  do i = 1, 3
-    nl=nl+1; li(nl) = ' ------------------------------------------------------------------------------------------'
-
-    ! Idea is for a given set of 6 exponents, collect the 3 associated coefs: Coef_Sx, Coef_Sy, Coef_Sz
-    nullify (tlr1%term, tlr2%term, tlr3%term)
-
-    call sort_taylor_terms (spin_taylor(i, 1), tlr1)
-    call sort_taylor_terms (spin_taylor(i, 2), tlr2)
-    call sort_taylor_terms (spin_taylor(i, 3), tlr3)
-
-    ! Loop over all combinations of exponents
-    n1 = 1; n2 = 1; n3 = 1   ! Index in tlrN(:) array
-    do
-      ixm = -1    ! ixm is 6 digit number that encodes the exponents: e1 e2 e3 e4 e5 e6
-      ! Find the term with the smallest ixm
-      call setup_this_term (n1, tlr1, tt1, ix1, ixm)
-      call setup_this_term (n2, tlr2, tt2, ix2, ixm)
-      call setup_this_term (n3, tlr3, tt3, ix3, ixm)
-      if (ixm == -1) exit   ! If no more terms
-
-      call set_this_coef (ix1, ixm, coef1, tt1, n1, exp_m)  ! Find Coef_Sx
-      call set_this_coef (ix2, ixm, coef2, tt2, n2, exp_m)  ! Find Coef_Sy
-      call set_this_coef (ix3, ixm, coef3, tt3, n3, exp_m)  ! Find Coef_Sz
-
-      ! Now print coefs and exponents.
-      if (present(max_order)) then
-        if (sum(exp_m) > max_order) cycle
-      endif
-
-      if (max(abs(coef1), abs(coef2), abs(coef3)) < 1d5) then
-        fmt = '(1x, a, 3f20.12, 1x, 6i3, i9)'
-      else
-        fmt = '(1x, a, 3es20.11, 1x, 6i3, i9)'
-      endif
-
-      nl=nl+1; write (li(nl), fmt) s_str(i), coef1, coef2, coef3, (exp_m(k), k = 1, 6), sum(exp_m)
-    enddo
-
-    deallocate (tlr1%term, tlr2%term, tlr3%term)
-
-  enddo
-endif
-
-! Finish
-
-if (present(lines)) then
-  call re_allocate(lines, nl, .false.)
-  n_lines = nl
-  lines(1:nl) = li(1:nl)
-else
-  do i = 1, nl
-    print '(1x, a)', trim(li(i))
-  enddo
-endif
-
-if (present(file_id)) then
-  do i = 1, nl
-    write (file_id, '(a)') trim(li(i))
-  enddo
-endif
-
-!----------------------------------------------------------------------------
-contains
-
-subroutine setup_this_term (nn, tlr, tt, ixx, ixm)
-
-type (taylor_struct), target :: tlr
-type (taylor_term_struct), pointer :: tt
-integer nn, ixx, ixm
-
-!
-
-nullify(tt)
-ixx = -2    ! Something that will never equal ixm which will always be -1 or above.
-
-if (nn <= size(tlr%term)) then
-  tt => tlr%term(nn)
-  ixx = taylor_exponent_index(tt%expn)
-  if (ixm == -1) then
-    ixm = ixx
-  else
-    ixm = min(ixm, ixx)
-  endif
-endif
-
-end subroutine setup_this_term
-
-!----------------------------------------------------------------------------
-! contains
-
-subroutine set_this_coef (ix, ixm, coef, tt, n, exp_m)
-
-type (taylor_term_struct) tt
-integer ix, ixm, n, exp_m(6)
-real(rp) coef
-
-!
-
-if (ix == ixm) then
-  coef = tt%coef
-  exp_m = tt%expn
-  n = n + 1
-else
-  coef = 0
-endif
-
-end subroutine set_this_coef
-
-end subroutine type_spin_taylors
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -781,41 +632,31 @@ end subroutine init_taylor_series
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine kill_taylor (bmad_taylor, spin_taylor)
+! Subroutine kill_taylor (bmad_taylor)
 !
 ! Subroutine to deallocate a taylor map.
 ! It is OK if the taylor has already been deallocated.
 !
 ! Input:
 !   bmad_taylor(:)   -- Taylor_struct, optional: Taylor to be deallocated. 
-!   spin_taylor(3,3) -- Taylor_struct, optional: Taylor to be deallocated. 
 !
 ! Output:
 !   bmad_taylor(:)   -- Taylor_struct, optional: deallocated Taylor structure.
-!   spin_taylor(3,3) -- Taylor_struct, optional: Taylor to be deallocated. 
 !-
 
-subroutine kill_taylor (bmad_taylor, spin_taylor)
+subroutine kill_taylor (bmad_taylor)
 
 implicit none
 
-type (taylor_struct), optional :: bmad_taylor(:), spin_taylor(:,:)
+type (taylor_struct) :: bmad_taylor(:)
 
-integer i, j
+integer i
 
 !
 
-if (present(bmad_taylor)) then
-  do i = 1, size(bmad_taylor)
-    if (associated(bmad_taylor(i)%term)) deallocate (bmad_taylor(i)%term)
-  enddo
-endif
-
-if (present(spin_taylor)) then
-  do i = 1, size(spin_taylor, 1); do j = 1, size(spin_taylor, 2)
-    if (associated(spin_taylor(i,j)%term)) deallocate (spin_taylor(i,j)%term)
-  enddo; enddo
-endif
+do i = 1, size(bmad_taylor)
+  if (associated(bmad_taylor(i)%term)) deallocate (bmad_taylor(i)%term)
+enddo
 
 end subroutine kill_taylor
 
@@ -1111,30 +952,37 @@ end subroutine mat6_to_taylor
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine track_taylor (start_orb, bmad_taylor, end_orb, ref_orb)
+! Function track_taylor (start_orb, bmad_taylor, ref_orb) result (end_track)
 !
-! Subroutine to track using a Taylor map.
-! This routine can be used for both orbital phase space and spin tracking
+! Routine to track using a Taylor map.
+!
+! This routine can be used for both orbital phase space and (spin) quaternion tracking.
+! In the case of quaternion tracking, the result is the rotation rotation map which
+! then must be applied to the starting spin coords. Note: In general, the quaternion
+! returned by this routine will not have norm = 1 so it must be properly normalized.
 !
 ! Input:
-!   start_orb(6)   -- real(rp): Starting phase space coords.
+!   start_orb(6)   -- real(rp): Starting **phase space** coords.
 !   bmad_taylor(:) -- taylor_struct: Taylor map. Array size is 6 for phase space 
-!                       tracking and 3 for spin tracking.
-!   ref_orb(6)     -- real(rp), optional: Reference orbit. Needed if doing spin tracking since in 
-!                       this case the bmad_taylor argument will not contain the reference orbit.
+!                       tracking and 4 for quaternion spin tracking.
+!   ref_orb(6)     -- real(rp), optional: Phase space reference orbit. 
+!                       Needed if doing spin tracking since in this case the bmad_taylor 
+!                       argument will not contain the reference orbit.
 !
 ! Output:
-!   end_orb(:)     -- real(rp): Ending coords. Must be same size as bmad_taylor(:)
+!   end_track(:)   -- real(rp): Ending coords for phase space tracking and a quaternion 
+!                       for quaternion tracking. Array size will be 6 for phase space 
+!                       tracking and 4 for quaternion tracking (same as bmad_taylor(:)).
 !-
 
-subroutine track_taylor (start_orb, bmad_taylor, end_orb, ref_orb)
+function track_taylor (start_orb, bmad_taylor, ref_orb) result (end_track)
 
 implicit none
 
 type (taylor_struct) :: bmad_taylor(:)
 
 real(rp) :: start_orb(:)
-real(rp) :: end_orb(:)
+real(rp) :: end_track(size(bmad_taylor))
 real(rp), allocatable :: expn(:, :)
 real(rp), optional :: ref_orb(:)
 real(rp) diff_orb(size(start_orb))
@@ -1152,7 +1000,7 @@ endif
 ! size cache matrix
 
 e_max = 0
-n_size = size(end_orb)
+n_size = size(end_track)
 
 do i = 1, n_size
   do j = 1, size(bmad_taylor(i)%term)
@@ -1171,11 +1019,11 @@ enddo
 
 ! Compute taylor map
 
-end_orb = 0
+end_track = 0
 
 do i = 1, n_size
   do j = 1, size(bmad_taylor(i)%term)
-    end_orb(i) = end_orb(i) + bmad_taylor(i)%term(j)%coef * &
+    end_track(i) = end_track(i) + bmad_taylor(i)%term(j)%coef * &
                        expn(bmad_taylor(i)%term(j)%expn(1), 1) * &
                        expn(bmad_taylor(i)%term(j)%expn(2), 2) * &
                        expn(bmad_taylor(i)%term(j)%expn(3), 3) * &
@@ -1185,75 +1033,7 @@ do i = 1, n_size
   enddo
 enddo
 
-end subroutine track_taylor
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Function spin_taylor_to_mat (start_orb, ref_orb, spin_taylor) result (rot_mat)
-!
-! Routine to create the spin rotation matrix from a given spin map.
-!
-! Input:
-!   start_orb(6)     -- real(rp): Starting orbital coords.
-!   ref_orb(6)       -- real(rp): Reference orbit at the start.
-!   spin_taylor(3,3) -- taylor_struct: Spin Taylor map.
-!
-! Output:
-!   rot_mat(3,3)     -- real(rp): Spin rotation matrix.
-!-
-
-function spin_taylor_to_mat (start_orb, ref_orb, spin_taylor) result (rot_mat)
-
-implicit none
-
-type (taylor_struct) :: spin_taylor(:, :)
-
-real(rp) :: start_orb(:), ref_orb(:)
-real(rp) :: rot_mat(3,3), dorb(6)
-real(rp), allocatable :: expn(:, :)
-
-integer i1, i2, j, k, ie, e_max
-
-! size cache matrix
-
-e_max = 0
-
-do i1 = 1, 3;  do i2 = 1, 3
-  do j = 1, size(spin_taylor(i1, i2)%term)
-    e_max = max (e_max, maxval(spin_taylor(i1, i2)%term(j)%expn)) 
-  enddo
-enddo;  enddo
-
-allocate (expn(0:e_max, 6))
-
-! Fill in cache matrix
-
-expn(0,:) = 1.0d0  !for when ie=0
-dorb = start_orb - ref_orb
-if (e_max > 0) expn(1,:) = dorb
-do j = 2, e_max
-  expn(j,:) = expn(j-1,:) * dorb
-enddo
-
-! Compute spin matrix
-
-rot_mat = 0
-
-do i1 = 1, 3;  do i2 = 1, 3
-  do j = 1, size(spin_taylor(i1, i2)%term)
-    rot_mat(i1, i2) = rot_mat(i1, i2) + spin_taylor(i1, i2)%term(j)%coef * &
-                       expn(spin_taylor(i1, i2)%term(j)%expn(1), 1) * &
-                       expn(spin_taylor(i1, i2)%term(j)%expn(2), 2) * &
-                       expn(spin_taylor(i1, i2)%term(j)%expn(3), 3) * &
-                       expn(spin_taylor(i1, i2)%term(j)%expn(4), 4) * &
-                       expn(spin_taylor(i1, i2)%term(j)%expn(5), 5) * &
-                       expn(spin_taylor(i1, i2)%term(j)%expn(6), 6)
-  enddo
-enddo;  enddo
-
-end function spin_taylor_to_mat
+end function track_taylor
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

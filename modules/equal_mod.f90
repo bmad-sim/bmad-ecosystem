@@ -245,11 +245,9 @@ enddo
 
 ! %spin_taylor
 
-do i = 1, 3
-do j = 1, 3
-  ele_out%spin_taylor(i,j)%term => ele_save%spin_taylor(i,j)%term ! reinstate
-  ele_out%spin_taylor(i,j) = ele_in%spin_taylor(i,j)      ! use overloaded taylor_equal_taylor
-enddo
+do i = 1, 4
+  ele_out%spin_taylor(i)%term => ele_save%spin_taylor(i)%term ! reinstate
+  ele_out%spin_taylor(i) = ele_in%spin_taylor(i)      ! use overloaded taylor_equal_taylor
 enddo
 
 ! %wall3d

@@ -101,7 +101,7 @@ character(40), allocatable :: names(:)
 character(16) polar, dependence
 character(40) angle
 character(4) end_str, last
-character(1), parameter :: xyz(3) = ['x', 'y', 'z']
+character(2), parameter :: spin_quat_name(4) = ['S1', 'Sx', 'Sy', 'Sz']
 character(*), parameter :: r_name = 'write_bmad_lattice_file'
 
 integer, optional :: output_form
@@ -1168,12 +1168,12 @@ do ib = 0, ubound(lat%branch, 1)
         if (ele%key == taylor$ .and. .not. unit_found) write (line, '(2a, i0, a, 6i2, a)') trim(line), ', {', j, ': 0,', tm%expn, '}'
       enddo
 
-      do j1 = 1, 3;  do j2 = 1, 3
-        do k = 1, size(ele%spin_taylor(j1,j2)%term)
-          tm = ele%spin_taylor(j1,j2)%term(k)
-          write (line, '(7a, 6i2, a)') trim(line), ', {', xyz(j1), xyz(j2), ': ', trim(re_str(tm%coef)), ',', tm%expn, '}'
+      do j1 = 1, 4
+        do k = 1, size(ele%spin_taylor(j1)%term)
+          tm = ele%spin_taylor(j1)%term(k)
+          write (line, '(7a, 6i2, a)') trim(line), ', {', spin_quat_name(j1), ': ', trim(re_str(tm%coef)), ',', tm%expn, '}'
         enddo
-      enddo;  enddo
+      enddo
 
       if (any(ele%taylor%ref /= 0)) then
         write (line, '(16a)') trim(line), ', ref_orbit = (', &

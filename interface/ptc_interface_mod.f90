@@ -1052,7 +1052,7 @@ use mad_like, only: make_states, exact_model, always_exactmis, pmaMUON, pmaE, &
               assignment(=), nocavity, default, operator(+), &
               berz, init, set_madx, lp, superkill, TIME0, PHASE0, HIGHEST_FRINGE, init_all, SPIN0
 use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, m_u, bmadl, use_info, use_info_m
-use c_tpsa, only: c_verbose, E_MUON
+use c_tpsa, only: c_verbose, E_MUON, USE_QUATERNION
 
 implicit none
 
@@ -1079,6 +1079,7 @@ endif
 
 ! Some init
 
+USE_QUATERNION = .TRUE.
 E_MUON = bmad_com%electric_dipole_moment
 
 if (init_init_needed) then
@@ -2662,11 +2663,6 @@ end subroutine concat_ele_taylor
 !                        If present, the constant term of ptc_re8 will be removed.
 !-
 
-!+
-! Subroutine track_taylor_ptc (bmad_taylor, beta0, beta1, ptc_re8, ref_orb_ptc, exi_orb_ptc)
-!
-! Routine to take a Bmad Taylor map, 
-
 subroutine taylor_to_real_8 (bmad_taylor, beta0, beta1, ptc_re8, ref_orb_ptc, exi_orb_ptc)
 
 use ptc_spin
@@ -2993,8 +2989,8 @@ if (bmad_com%spin_tracking_on) then
   ptc_probe8%x = y8
   call track_probe (ptc_probe8, DEFAULT+SPIN0, fibre1 = bmadl%start)
   y8 = ptc_probe8%x
-  do i = 1, 3
-    ele%spin_taylor(:,i) = ptc_probe8%s(i)%x
+  do i = 1, 4
+    ele%spin_taylor(i) = ptc_probe8%q%x(i)%t
   enddo
   call kill(ptc_probe8)
   call kill (ptc_cdamap)
@@ -4020,11 +4016,9 @@ if (ele%key == taylor$ .or. ele%key == match$) then
 
   call alloc (ptc_taylor)
 
-  do i = 1, 3
-    do j = 1, 3
-      ptc_taylor = ele%spin_taylor(i,j)
-      ptc_c_damap%s%s(i,j) = ptc_taylor
-    enddo
+  do j = 1, 4
+    ptc_taylor = ele%spin_taylor(j)
+    ptc_c_damap%q%x(j) = ptc_taylor
   enddo
 
   call kill (ptc_taylor)

@@ -316,7 +316,7 @@ For \vn{lcavity} and \vn{rfcavity} elements, the vector potential is computed fr
 \Eq{aiew}.
 
 %-----------------------------------------------------------------   
-\section{Spin Dynamics}   
+\section{Spin Dynamics}
 \label{s:spin.dyn}
 \index{spin|hyperbf}   
 
@@ -366,11 +366,80 @@ momentum, $\gamma$ is the particle's relativistic gamma factor, $q$, $m$, and $\
 the particle's charge, mass, and magnetic_moment, $\bfbeta$ is the normalized
 velocity, and $G = (g-2)/2$ is the particle's anomalous gyro-magnetic g-factor (values
 given in Table~\ref{t:constants}).
-   
-It is more efficient to use the SU(2) representation rather than SO(3) when   
-describing rotations of spin. In the SU(2) representation, a spin $\Bf s$ is   
-written as a spinor $\Psi = \left( \psi_{1}, \psi_{2} \right)^{T}$ where   
-$\psi_{1,2}$ are complex numbers. The conversion between SU(2) and SO(3) is  
+
+%-----------------------------------------------------------------   
+\subsection{Quaternion Representation}
+\label{s:quat}
+
+\bmad uses a quaternion representation for spin rotations. The following is a brief introduction to
+quaternions. For more information, the reader is referred to the Web. In particular, the
+\vn{Quaternions and spatial rotation} article at \vn{wikipedia.org}. 
+
+A quaternion $\bfq$ is a 4-vector $\bfq = (q_1, q_x, q_y, q_z)$ where the components are reals if they represent a
+rotation and are Taylor series if they represent a rotation map (\sref{s:spin.map}). A quaternion can
+also be represented in the form:
+\Begineq
+  \bfq = q_1 + q_x \, \cali + q_y \, \calj + q_z \calk
+\Endeq
+where $\cali$, $\calj$, and $\calk$ are the {\em fundamental quaternion units} with the properties
+\Begineq
+  \cali^2 = \calj^2 = \calk^2 = \cali \, \calj \, \calk = -1, \quad 
+  \cali \, \calj = \calk, \quad \calj \, \cali = -\calk, \quad \text{etc.}
+\Endeq
+$\cali$, $\calj$, and $\calk$ do not commute among themselves but do commute with real numbers.
+
+The $q_1$ component of a quaternion is called the \vn{real} (or sometimes \vn{scalar}) part and the other
+three components are called the \vn{imaginary} (or sometimes \vn{vector}) part.
+
+When a quaternion represents a rotation, $\cali$, $\calj$, and $\calk$ can be thought of as representing unit
+vectors along the three Cartesian axes $\bfx$, $\bfy$, and $\bfz$ respectively. A rotation through an angle
+$\theta$ around the unit axis $\bfu = (u_x, u_y, u_z)$ is represented by the quaternion
+\Begineq
+  \bfq = \cos\frac{\theta}{2} + (u_x \, \cali + u_y \, \calj + u_z \, \calk) \sin\frac{\theta}{2}
+  \label{qt2ui}
+\Endeq
+
+A rotation quaternion $\bfq$ has normalization 1:
+\Begineq
+  1 = ||\bfq|| = \sqrt{q_1^2 + q_x^2 + q_y^2 + q_z^2}
+\Endeq
+Such a quaternion is called a \vn{unit} quaternion.
+
+Given an ordinary spatial vector $(\bfr_x, \bfr_y, \bfr_z)$, this vector is represented by a quaternion
+$\bfr = (0, \bfr_x, \bfr_y, \bfr_z)$ and the rotation of $\bfr$ through a rotation $\bfq$ is given by
+\Begineq
+  \bfr' = \bfq \, \bfr \, \bfq^{-1}
+\Endeq
+where $\bfr'$ is the rotated position of $\bfr$ and the quaternion inverse of the rotation
+represented in \Eq{qt2ui} is
+\Begineq
+  \bfq^{-1} = \cos\frac{\theta}{2} - (u_x \, \cali + u_y \, \calj + u_z \, \calk) \sin\frac{\theta}{2}
+\Endeq
+
+In quaternion notation, two rotations $\bfq_1$ and $\bfq_2$ are combined into one rotation using the formula
+\Begineq
+  \bfq_{12} = \bfq_2 \, \bfq_1
+\Endeq
+where $\bfq_{12}$ is the result of rotation $\bfq_1$ followed by $\bfq_2$. Note that this equation
+is analogous to how rotation matrices are combined.
+
+The rotation matrix $\bfR$ corresponding to a unit quaternion is
+\Begineq
+  \bfR = \begin{pmatrix}
+    q_1^2 + q_x^2 - q_y^2 - q_z^2    & 2 \, q_x \ q_y - 2 \, q_1 \, q_z & 2 \, q_x \ q_z + 2 \, q_1 \, q_y \\
+    2 \, q_x \ q_y + 2 \, q_1 \, q_z & q_1^2 - q_x^2 + q_y^2 - q_z^2    & 2 \, q_y \ q_z - 2 \, q_1 \, q_x \\
+    2 \, q_x \ q_z - 2 \, q_1 \, q_y & 2 \, q_y \ q_z + 2 \, q_1 \, q_x & q_1^2 - q_x^2 - q_y^2 + q_z^2 
+  \end{pmatrix}
+\Endeq
+
+%-----------------------------------------------------------------   
+\subsection{Spinor Notation}
+
+The following descibes the old spinor representation used by \bmad to represent spins. This
+documentation is kept as an aid for comparison with the spin tracking literature.
+
+In the SU(2) representation, a spin $\Bf s$ is written as a spinor $\Psi = \left( \psi_{1}, \psi_{2}
+\right)^{T}$ where $\psi_{1,2}$ are complex numbers. The conversion between SU(2) and SO(3) is
 \Begineq  
   \Bf S = \Psi^{\dagger} \Bf {\bfsig} \, \Psi 
   \qquad \longleftrightarrow \qquad
