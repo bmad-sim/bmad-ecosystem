@@ -35,7 +35,7 @@ integer n_d2_data_max, n_v1_var_max ! Deprecated variables
 integer n, iostat
 
 character(*) init_file
-character(40) :: r_name = 'tao_init_global'
+character(*), parameter :: r_name = 'tao_init_global'
 character(200) file_name
 character(40) name, universe
 

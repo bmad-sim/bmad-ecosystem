@@ -465,8 +465,8 @@ type tao_var_struct
   real(rp), pointer :: model_value => null()     ! Model value.
   real(rp), pointer :: base_value => null()      ! Base value.
   real(rp) :: design_value = 0      ! Design value from the design lattice.
-  real(rp) :: scratch_value = 0     ! Scratch space to be used within a routine.
-  real(rp) :: old_value = 0         ! Scratch space to be used within a routine.
+  real(rp) :: scratch_value = 0     ! Scratch space used by Tao.
+  real(rp) :: old_value = 0         ! Scratch space used by Tao.
   real(rp) :: meas_value = 0        ! The value when the data measurement was taken.
   real(rp) :: ref_value = 0         ! Value when the reference measurement was taken.
   real(rp) :: correction_value = 0  ! Value determined by a fit to correct the lattice.
@@ -480,6 +480,7 @@ type tao_var_struct
   real(rp) :: key_val0 = 0          ! Key base value
   real(rp) :: key_delta = 0         ! Change in value when a key is pressed.
   real(rp) :: s = 0                 ! longitudinal position of ele.
+  real(rp) :: extend_val            ! For extension code. Not used by Tao.
   character(40) :: merit_type = ''  ! 'target' or 'limit'
   logical :: exists = .false.       ! See above
   logical :: good_var = .false.     ! See above
@@ -764,9 +765,12 @@ end type
 
 type tao_universe_branch_struct
   type (tao_element_struct), allocatable :: ele(:) ! Per element information
-  character(40) beam_track_start, beam_track_end   
-  integer ix_beam_track_start                 ! Element start index of tracking
-  integer ix_beam_track_end                   ! Element end index of tracking
+  character(40) :: beam_track_start = '', beam_track_end = ''
+  integer :: ix_beam_track_start = 0          ! Element start index of tracking
+  integer :: ix_beam_track_end = -1           ! Element end index of tracking
+  character(40) :: particle_track_start = '', particle_track_end = ''
+  integer :: ix_particle_track_start = 0
+  integer :: ix_particle_track_end = -1
 end type
 
 ! Beam information for a particular universe 

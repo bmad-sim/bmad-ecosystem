@@ -102,26 +102,26 @@ has been explicitly set.
 \index{beam_file}\index{hook_init_file}
 The initialization starts with the \vn{root} \tao initialization file. The default name for this
 file is \vn{tao.init} but this default may be overridden when \tao is started using the \vn{-init}
-switch (\sref{s:command.line}). The first namelist block read in from the root  initialization file is a
+switch (\sref{s:command.line}). The first namelist block read in from the root initialization file is a
 \vn{tao_start} namelist. This block is optional (in which case the defaults are used).  This
 namelist contains the variables:
 \begin{example}
   &tao_start
-    beam_file          = "<file_name>"  ! Default = Tao initialization file.
+    beam_file          = "<file_name>"  ! Default = Tao root init file.
     building_wall_file = "<file_name>"  ! No Default.
-    data_file          = "<file_name>"  ! Default = Tao initialization file.
-    var_file           = "<file_name>"  ! Default = Tao initialization file.
+    data_file          = "<file_name>"  ! Default = Tao root init file.
+    var_file           = "<file_name>"  ! Default = Tao root init file.
     plot_file          = "<file_name1> \{<file_name2>\} ..."  
-                                       ! Default = Tao initialization file.
-    single_mode_file   = "<file_name>"  ! Default = Tao initialization file.
+                                        ! Default = Tao root init file.
+    single_mode_file   = "<file_name>"  ! Default = Tao root init file.
     startup_file       = "<file_name>"  ! Default = "tao.startup"
     hook_init_file     = '<file_name>'  ! Default = 'tao_hook.init'
     init_name          = "<init_name>"  ! Default = "Tao"
   /
 \end{example}
-Rule: A file name obtained from the \tao initialization file (as opposed to
+Rule: A file name obtained from the \tao root initialization file (as opposed to
 being present on the command line) is always relative to the directory
-that the \tao initialization file lives in. Example: If \tao is started from
+that the \tao root initialization file lives in. Example: If \tao is started from
 the system command line like:
 \begin{example}
     tao -data data.cl -init ../tao.init
@@ -166,26 +166,31 @@ however, can contain \vn{tao_template_plot} and
 \index{floor_plan_drawing}
 \begin{table}[ht]
 \centering {\tt
-\begin{tabular}{|l|l|l|l|} \hline
-  {\it Namelist} & {\it File Name} & {\it Initialized here}  & {\it Section} \\ \hline
-  \vn{lat_layout_drawing}        & \vn{plot_file}$^*$ & Plotting      & \sref{s:layout.and.floor}     \\ \hline
-  \vn{floor_plan_drawing}        & \vn{plot_file}$^*$ & Plotting      & \sref{s:layout.and.floor}     \\ \hline
-  \vn{tao_beam_init}             & \vn{beam_file}     & Particle beam & \sref{s:beam.init}     \\ \hline
-  \vn{tao_building_wall}         & \vn{building_wall_file} & Plotting & \sref{s:building.wall} \\ \hline 
-  \vn{tao_design_lattice}        & "tao.init"  & lattice files        & \sref{s:init.lat}      \\ \hline
-  \vn{tao_d1_data}               & \vn{data_file}     & Data          & \sref{s:init.data}     \\ \hline
-  \vn{tao_d2_data}               & \vn{data_file}     & Data          & \sref{s:init.data}     \\ \hline
-  \vn{tao_params}                & "tao.init"  & Global Variables     & \sref{s:globals}       \\ \hline
-  \vn{tao_plot_page}             & \vn{plot_file}$^*$ & Plotting      & \sref{s:init.plot}     \\ \hline
-  \vn{tao_template_graph}        & \vn{plot_file}     & Plotting      & \sref{s:init.plot}     \\ \hline
-  \vn{tao_template_plot}         & \vn{plot_file}     & Plotting      & \sref{s:init.plot}     \\ \hline
-  \vn{tao_var}                   & \vn{var_file}      & Variables     & \sref{s:init.var}      \\ \hline
+\begin{tabular}{llll} \toprule
+  {\it Namelist}                     & \parbox{2in}{\it Associated tao_start Namelist component}
+                                                            & {\it Parameter Type Initialized}  & {\it Section} \\ \midrule
+  \vn{lat_layout_drawing}            & \vn{plot_file}$^*$          & Plotting          & \sref{s:layout.and.floor}  \\ 
+  \vn{floor_plan_drawing}            & \vn{plot_file}$^*$          & Plotting          & \sref{s:layout.and.floor}  \\ 
+  \vn{tao_beam_init}                 & \vn{beam_file}              & Particle beam     & \sref{s:beam.init}         \\ 
+  \vn{tao_building_wall}             & \vn{building_wall_file}     & Plotting          & \sref{s:building.wall}     \\ 
+  \vn{tao_design_lattice}            &                             & lattice files     & \sref{s:init.lat}          \\ 
+  \vn{tao_d1_data}                   & \vn{data_file}              & Data              & \sref{s:init.data}         \\ 
+  \vn{tao_d2_data}                   & \vn{data_file}              & Data              & \sref{s:init.data}         \\ 
+  \vn{tao_params}                    &                             & Global Variables  & \sref{s:globals}           \\ 
+  \vn{tao_plot_page}                 & \vn{plot_file}$^*$          & Plotting          & \sref{s:init.plot}         \\ 
+  \vn{tao_single_particle_tracking}  & \vn{particle_tracking_file} & Particle Tracking & \sref{s:single.track}      \\
+  \vn{tao_template_graph}            & \vn{plot_file}              & Plotting          & \sref{s:init.plot}         \\ 
+  \vn{tao_template_plot}             & \vn{plot_file}              & Plotting          & \sref{s:init.plot}         \\ 
+  \vn{tao_var}                       & \vn{var_file}               & Variables         & \sref{s:init.var}          \\ \bottomrule
 \end{tabular}}
 \break
 $^*$This namelist taken from the first file in the {plot\_file} array.
 \caption{Table of \vn{tao} Initialization Namelists.}
 \label{t:init.files}
 \end{table}
+
+\etcetc: Must finish up going to each section and putting in info for in what directory tao looks for the namelist
+See the lat_tayout/floor plan section for an example...
 
 %-----------------------------------------------------------------
 \section{Lattice Initialization}\index{initialization!lattice}
@@ -2320,9 +2325,9 @@ view an element's global coordinates.
 
 %-----------------------------------------------------------------
 \subsection{Defining Shapes for Lat_layout and Floor_plan Drawings}
+\label{s:layout.and.floor}
 \index{lat_layout drawings}
 \index{floor_plan drawings}
-\label{s:layout.and.floor}
 
 \vn{Floor plan} (\sref{s:floor.plan}) and \vn{lattice layout} drawings
 use various shapes, sizes, and colors to represent lattice
@@ -2331,6 +2336,9 @@ is determined via two namelists: \vn{lat_layout_drawing} for the
 lattice layout and \vn{floor_plan_drawing} for floor plan drawings.
 Two different namelists are used since, for example, a size that is
 good for a layout will not necessarily be good for a floor plan.
+
+The file that \tao looks in to find these two namelists is set by the first file specified in the
+\vn{plot_file} array set in the \vn{tao_start} namelist (\sref{s:init_global}).
 
 The namelist syntax is the same for both:
 \begin{example}
