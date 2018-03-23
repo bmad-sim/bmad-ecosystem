@@ -3114,7 +3114,7 @@ public:
   CPP_rad_int_ele_cache* rad_int_cache;
   CPP_space_charge* space_charge;
   CPP_taylor_ARRAY taylor;
-  CPP_taylor_MATRIX spin_taylor;
+  CPP_taylor_ARRAY spin_taylor;
   CPP_wake* wake;
   CPP_wall3d_ARRAY wall3d;
   CPP_coord map_ref_orb_in;
@@ -3218,7 +3218,7 @@ public:
     rad_int_cache(NULL),
     space_charge(NULL),
     taylor(CPP_taylor_ARRAY(CPP_taylor(), 6)),
-    spin_taylor(CPP_taylor_ARRAY(CPP_taylor(), 3), 3),
+    spin_taylor(CPP_taylor_ARRAY(CPP_taylor(), 4)),
     wake(NULL),
     wall3d(CPP_wall3d_ARRAY(CPP_wall3d(), 0)),
     map_ref_orb_in(),

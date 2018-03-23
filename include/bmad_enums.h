@@ -23,16 +23,15 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 204;
+  const int BMAD_INC_VERSION = 209;
   const int N_POLE_MAXX = 21;
   const int OLD_CONTROL_VAR_OFFSET = 1000;
   const int VAR_OFFSET = 2000;
   const int TAYLOR_OFFSET = 1000000000;
-  const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2;
-  const int RUNGE_KUTTA = 3;
+  const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2, RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
-  const int HARD_EDGE_MODEL = 9, SYMP_LIE_BMAD = 10, STATIC = 11;
-  const int BORIS = 12, MAD = 14;
+  const int FIXED_STEP_RUNGE_KUTTA = 9, SYMP_LIE_BMAD = 10, STATIC = 11;
+  const int BORIS = 12, FIXED_STEP_TIME_RUNGE_KUTTA = 13, MAD = 14;
   const int TIME_RUNGE_KUTTA = 15;
   const int N_METHODS = 15;
   const int DRIFT_KICK = 1, MATRIX_KICK = 2, RIPKEN_KICK = 3;
@@ -147,8 +146,8 @@ namespace Bmad {
   const int GRADIENT_ERR = 7, CRITICAL_ANGLE = 7, SAD_FLAG = 7;
   const int BRAGG_ANGLE_OUT = 7, IX_TO_BRANCH = 7;
   const int RHO = 8, DELTA_E = 8, DIFFRACTION_LIMITED = 8;
-  const int CHARGE = 8, X_GAIN_CALIB = 8, IX_TO_ELEMENT = 8;
-  const int VOLTAGE = 9, EPS_STEP_SCALE = 9;
+  const int CHARGE = 8, X_GAIN_CALIB = 8, IX_TO_ELEMENT = 8, VOLTAGE = 8;
+  const int EPS_STEP_SCALE = 9, VOLTAGE_ERR = 9;
   const int FRINGE_TYPE = 10;
   const int FRINGE_AT = 11, GANG = 11;
   const int HIGHER_ORDER_FRINGE_TYPE = 12;
@@ -159,7 +158,7 @@ namespace Bmad {
   const int FQ2 = 17, SIG_VX = 17;
   const int SIG_VY = 18, AUTOSCALE_AMPLITUDE = 18;
   const int SIG_E = 19, AUTOSCALE_PHASE = 19;
-  const int D1_THICKNESS = 20, VOLTAGE_ERR = 20, DEFAULT_TRACKING_SPECIES = 20, DIRECTION_BEAM_START = 20;
+  const int D1_THICKNESS = 20, DEFAULT_TRACKING_SPECIES = 20, DIRECTION_BEAM_START = 20;
   const int N_SLICE = 20, Y_GAIN_CALIB = 20, BRAGG_ANGLE = 20, E_CENTER = 20, CONSTANT_REF_ENERGY = 20;
   const int POLARITY = 21, CRUNCH_CALIB = 21, ALPHA_ANGLE = 21, D2_THICKNESS = 21;
   const int E_LOSS = 21, DKS_DS = 21, GAP = 21, E_CENTER_RELATIVE_TO_REF = 21, SPIN_X = 21;
@@ -220,11 +219,11 @@ namespace Bmad {
   const int LORD_PAD1 = 68;
   const int LORD_PAD2 = 69, REF_WAVELENGTH = 69;
   const int R0_ELEC = 70;
-  const int CUSTOM_ATTRIBUTE1 = 71;
-  const int CUSTOM_ATTRIBUTE2 = 72;
-  const int CUSTOM_ATTRIBUTE3 = 73;
-  const int CUSTOM_ATTRIBUTE4 = 74;
-  const int CUSTOM_ATTRIBUTE5 = 75, CUSTOM_ATTRIBUTE_MAX = 75;
+  const int SCRATCH1 = 71;
+  const int SCRATCH2 = 72;
+  const int SCRATCH3 = 73;
+  const int SCRATCH4 = 74;
+  const int SCRATCH5 = 75;
   const int X1_LIMIT = 76;
   const int X2_LIMIT = 77;
   const int Y1_LIMIT = 78;
@@ -299,7 +298,9 @@ namespace Bmad {
   const int T0  = 162, T21  = 183;
   const int A0_ELEC = 190, A21_ELEC = 211;
   const int B0_ELEC = 212, B21_ELEC = 233;
-  const int NUM_ELE_ATTRIB_EXTENDED = B21_ELEC;
+  const int CUSTOM_ATTRIBUTE0 = B21_ELEC;
+  const int CUSTOM_ATTRIBUTE_NUM = 40;
+  const int NUM_ELE_ATTRIB_EXTENDED = CUSTOM_ATTRIBUTE0 + CUSTOM_ATTRIBUTE_NUM;
   const int OPEN = 1, CLOSED = 2;
   const int BENDS = 201;
   const int WIGGLERS = 202;

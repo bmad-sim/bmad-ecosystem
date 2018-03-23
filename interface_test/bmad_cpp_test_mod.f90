@@ -7942,12 +7942,11 @@ do jd1 = 1, size(F%taylor,1); lb1 = lbound(F%taylor,1) - 1
   rhs = 100 + jd1 + 34 + offset
   call set_taylor_test_pattern (F%taylor(jd1+lb1), ix_patt+jd1)
 enddo
-!! f_side.test_pat[type, 2, NOT]
+!! f_side.test_pat[type, 1, NOT]
 do jd1 = 1, size(F%spin_taylor,1); lb1 = lbound(F%spin_taylor,1) - 1
-do jd2 = 1, size(F%spin_taylor,2); lb2 = lbound(F%spin_taylor,2) - 1
-  rhs = 100 + jd1 + 10*jd2 + 35 + offset
-  call set_taylor_test_pattern (F%spin_taylor(jd1+lb1,jd2+lb2), ix_patt+jd1+10*jd2)
-enddo; enddo
+  rhs = 100 + jd1 + 35 + offset
+  call set_taylor_test_pattern (F%spin_taylor(jd1+lb1), ix_patt+jd1)
+enddo
 !! f_side.test_pat[type, 0, PTR]
 if (ix_patt < 3) then
   if (associated(F%wake)) deallocate (F%wake)

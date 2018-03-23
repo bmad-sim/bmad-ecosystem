@@ -5425,9 +5425,9 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   // c_side.test_pat[type, 1, NOT]
   for (unsigned int i = 0; i < C.taylor.size(); i++)
     {int rhs = 101 + i + 34 + offset; set_CPP_taylor_test_pattern(C.taylor[i], ix_patt+i+1);}
-  // c_side.test_pat[type, 2, NOT]
-  for (unsigned int i = 0; i < C.spin_taylor.size(); i++)  for (unsigned int j = 0; j < C.spin_taylor[0].size(); j++) 
-    {int rhs = 101 + i + 10*(j+1) + 35 + offset; set_CPP_taylor_test_pattern(C.spin_taylor[i][j], ix_patt+i+1+10*(j+1));}
+  // c_side.test_pat[type, 1, NOT]
+  for (unsigned int i = 0; i < C.spin_taylor.size(); i++)
+    {int rhs = 101 + i + 35 + offset; set_CPP_taylor_test_pattern(C.spin_taylor[i], ix_patt+i+1);}
   // c_side.test_pat[type, 0, PTR]
   if (ix_patt < 3) 
     C.wake = NULL;

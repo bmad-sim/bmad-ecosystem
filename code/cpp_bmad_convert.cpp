@@ -3330,10 +3330,9 @@ extern "C" void ele_to_f (const CPP_ele& C, Opaque_ele_class* F) {
   // c_side.to_f_setup[type, 1, NOT]
   const CPP_taylor* z_taylor[6];
   for (int i = 0; i < 6; i++) {z_taylor[i] = &C.taylor[i];}
-  // c_side.to_f_setup[type, 2, NOT]
-  const CPP_taylor* z_spin_taylor[3*3];
-  for (unsigned int i = 0; i < C.spin_taylor.size(); i++)  for (unsigned int j = 0; j < C.spin_taylor[0].size(); j++) 
-    {int m = 3*i + j; z_spin_taylor[m] = &C.spin_taylor[i][j];}
+  // c_side.to_f_setup[type, 1, NOT]
+  const CPP_taylor* z_spin_taylor[4];
+  for (int i = 0; i < 4; i++) {z_spin_taylor[i] = &C.spin_taylor[i];}
   // c_side.to_f_setup[type, 0, PTR]
   unsigned int n_wake = 0; if (C.wake != NULL) n_wake = 1;
   // c_side.to_f_setup[type, 1, PTR]
@@ -3547,9 +3546,8 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
 
   // c_side.to_c2_set[type, 1, NOT]
   for (unsigned int i = 0; i < C.taylor.size(); i++) taylor_to_c(z_taylor[i], C.taylor[i]);
-  // c_side.to_c2_set[type, 2, NOT]
-  for (unsigned int i = 0; i < C.spin_taylor.size(); i++)  for (unsigned int j = 0; j < C.spin_taylor[0].size(); j++) 
-    {int m = 3*i + j; taylor_to_c(z_spin_taylor[m], C.spin_taylor[i][j]);}
+  // c_side.to_c2_set[type, 1, NOT]
+  for (unsigned int i = 0; i < C.spin_taylor.size(); i++) taylor_to_c(z_spin_taylor[i], C.spin_taylor[i]);
   // c_side.to_c2_set[type, 0, PTR]
   if (n_wake == 0)
     delete C.wake;
