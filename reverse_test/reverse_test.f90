@@ -196,7 +196,8 @@ if (associated(ele_r%a_pole_elec)) then
   ele_r%b_pole_elec = -ele_r%b_pole_elec
 endif
 
-call kill_taylor (ele_r%taylor, ele_r%spin_taylor)
+call kill_taylor (ele_r%taylor)
+call kill_taylor (ele_r%spin_taylor)
 call make_mat6(ele_r, ele%branch%param, orb_0r_orient)
 call track1(orb_0r_orient, ele_r, ele_r%branch%param, orb_1r_orient)
 

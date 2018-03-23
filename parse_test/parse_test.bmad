@@ -38,7 +38,7 @@ sbend0: sbend, r_custom(3) = 4, lr_self_wake_on = F, superimpose = F, offset = 3
 
 sss: sbend,     lr_wake_spline = {t_max = 0.3}
 
-tt: taylor, {xy: 0.4 | 13}, {zz: 0.1|}
+tt: taylor, {s1: 0.4 | 13}, {sx: 0.1|}
 
 c: diffraction_plate, mode = transmission, 
     surface = {

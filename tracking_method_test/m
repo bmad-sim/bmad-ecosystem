@@ -1,4 +1,3 @@
 cd ..
 mkd tracking_method_test-exe
-mk tracking_method_test-exe
 cd tracking_method_test
