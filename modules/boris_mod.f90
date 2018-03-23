@@ -19,7 +19,6 @@ module boris_mod
 
 use em_field_mod
 use fringe_mod
-use fringe_edge_track_mod
 
 contains
 

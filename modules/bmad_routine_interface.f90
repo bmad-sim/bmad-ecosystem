@@ -177,6 +177,15 @@ subroutine c_to_cbar (ele, cbar_mat)
   real(rp) cbar_mat(2,2)
 end subroutine
 
+subroutine calc_next_fringe_edge (track_ele, s_edge_body, fringe_info, orbit, init_needed, time_tracking)
+  import
+  type (ele_struct), target :: track_ele
+  type (fringe_edge_info_struct) fringe_info
+  type (coord_struct) :: orbit
+  real(rp) s_edge_body
+  logical, optional :: init_needed, time_tracking
+end subroutine
+
 subroutine calc_super_slave_key (lord1, lord2, slave, create_jumbo_slave)
   import
   implicit none
