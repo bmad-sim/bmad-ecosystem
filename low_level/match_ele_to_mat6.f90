@@ -6,9 +6,6 @@
 !
 ! Note: ele%taylor%term will be deallocated if the xfer map has changed.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   ele                -- ele_struct: Match element.
 !   start_orb          -- coord_struct: Starting orbit.

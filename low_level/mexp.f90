@@ -3,9 +3,6 @@
 !
 ! Returns x^m with 0^0 = 1.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   x -- Real(rp): Number.
 !   m -- Integer: Exponent.

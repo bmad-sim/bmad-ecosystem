@@ -5,9 +5,6 @@
 ! This routine is called by track1_runge_kutta and track1_time_runge_kutta since 
 ! these routines cannot handle zero length elements with finite magnetic multipoles.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   start_orb  -- Coord_struct: Starting coords.
 !   ele        -- Ele_struct: Element tracked through.

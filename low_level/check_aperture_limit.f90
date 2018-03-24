@@ -8,9 +8,6 @@
 ! Also see:
 !   orbit_too_large
 !
-! Modules needed:
-!   use fringe_mod
-!
 ! Input:
 !   orb            -- Coord_struct: coordinates of a particle.
 !   ele            -- Ele_struct: Element holding the aperture

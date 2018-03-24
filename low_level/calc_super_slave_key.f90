@@ -4,9 +4,6 @@
 ! Function to decide what the type of element a super_slave should be based
 ! upon the types of its lords.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   lord1     -- Ele_struct: First slave.
 !     %key
