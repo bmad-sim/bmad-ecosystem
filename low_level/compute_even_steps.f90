@@ -5,9 +5,6 @@
 ! integer number of steps spans the length:
 !   length = ds_out * n_step
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ds_in      -- Real(rp): Input step size.
 !   length     -- Real(rp): Total length.

@@ -7,9 +7,6 @@
 ! Routine to reallocate the lat%control(:) and lat%ic(:) arrays.
 ! The old data in the arrays will be saved.
 ! 
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   lat  -- Lat_struct: Lattice.
 !   n    -- Integer: Array size for lat%control(:) and lat%ic(:).

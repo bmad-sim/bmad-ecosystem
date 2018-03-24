@@ -7,9 +7,6 @@
 ! Subroutine to calculate the transfer matrix for a combination 
 ! solenoid/quadrupole element (without a tilt).
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   ks          -- real(rp): Solenoid strength.
 !   k1          -- real(rp): Quadrupole strength.

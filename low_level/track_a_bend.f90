@@ -442,9 +442,6 @@ end subroutine track_a_bend
 ! Subroutine to calculate for a single step the transfer matrix and/or 
 ! ending coordinates for a sbend with a finite k1 but without a tilt.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   ele          -- Ele_struct: Sbend element.
 !   param        -- Lat_param_struct: Branch parameters.
