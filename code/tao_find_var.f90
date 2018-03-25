@@ -52,10 +52,10 @@ type (tao_string_array_struct), allocatable, optional  :: str_array(:)
 
 integer i, ix, n_var, ios, n_v1
 
-character(16), parameter :: real_components(17) = [character(16) :: &
+character(16), parameter :: real_components(19) = [character(16) :: &
              'model', 'base', 'design', 'meas', 'ref', 'old', &
              'model_value', 'base_value', 'design_value', 'meas_value', 'ref_value', 'old_value', &
-             'step', 'weight', 'high_lim', 'low_lim', 'key_delta']
+             'step', 'weight', 'high_lim', 'low_lim', 'key_delta', 'merit', 'delta_merit']
 character(16), parameter :: logic_components(8) = [ &
              'exists    ', 'good_var  ', 'good_user ', 'good_opt  ', 'good_plot ', &
              'useit_opt ', 'useit_plot', 'key_bound ']
@@ -326,6 +326,10 @@ if (present(re_array) .and.  any(component_name == real_components)) then
       re_array(j)%r => v1%v(i)%low_lim
     case ('key_delta')
       re_array(j)%r => v1%v(i)%key_delta
+    case ('merit')
+      re_array(j)%r => v1%v(i)%merit
+    case ('delta_merit')
+      re_array(j)%r => v1%v(i)%delta_merit
     case default
       call out_io (s_fatal$, r_name, "INTERNAL ERROR: REAL VAR")
       this_err = .true.
