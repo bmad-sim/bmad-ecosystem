@@ -167,24 +167,22 @@ however, can contain \vn{tao_template_plot} and
 \begin{table}[ht]
 \centering {\tt
 \begin{tabular}{llll} \toprule
-  {\it Namelist}                     & \parbox{2in}{\it Associated tao_start Namelist component}
-                                                            & {\it Parameter Type Initialized}  & {\it Section} \\ \midrule
-  \vn{lat_layout_drawing}            & \vn{plot_file}$^*$          & Plotting          & \sref{s:layout.and.floor}  \\ 
-  \vn{floor_plan_drawing}            & \vn{plot_file}$^*$          & Plotting          & \sref{s:layout.and.floor}  \\ 
-  \vn{tao_beam_init}                 & \vn{beam_file}              & Particle beam     & \sref{s:beam.init}         \\ 
-  \vn{tao_building_wall}             & \vn{building_wall_file}     & Plotting          & \sref{s:building.wall}     \\ 
-  \vn{tao_design_lattice}            &                             & lattice files     & \sref{s:init.lat}          \\ 
-  \vn{tao_d1_data}                   & \vn{data_file}              & Data              & \sref{s:init.data}         \\ 
-  \vn{tao_d2_data}                   & \vn{data_file}              & Data              & \sref{s:init.data}         \\ 
-  \vn{tao_params}                    &                             & Global Variables  & \sref{s:globals}           \\ 
-  \vn{tao_plot_page}                 & \vn{plot_file}$^*$          & Plotting          & \sref{s:init.plot}         \\ 
-  \vn{tao_single_particle_tracking}  & \vn{particle_tracking_file} & Particle Tracking & \sref{s:single.track}      \\
-  \vn{tao_template_graph}            & \vn{plot_file}              & Plotting          & \sref{s:init.plot}         \\ 
-  \vn{tao_template_plot}             & \vn{plot_file}              & Plotting          & \sref{s:init.plot}         \\ 
-  \vn{tao_var}                       & \vn{var_file}               & Variables         & \sref{s:init.var}          \\ \bottomrule
+  {\it Namelist}                     & {\it Type of Parameters Initialized}  & {\it Section} \\ \midrule
+  \vn{lat_layout_drawing}            & Plotting           & \sref{s:layout.and.floor}  \\ 
+  \vn{floor_plan_drawing}            & Plotting           & \sref{s:layout.and.floor}  \\ 
+  \vn{tao_beam_init}                 & Particle beams     & \sref{s:beam.init}         \\ 
+  \vn{building_wall_section}         & Building Walls     & \sref{s:building.wall}     \\ 
+  \vn{tao_design_lattice}            & Lattice Files      & \sref{s:init.lat}          \\ 
+  \vn{tao_d1_data}                   & \vn{data_file}               & Data              & \sref{s:init.data}         \\ 
+  \vn{tao_d2_data}                   & \vn{data_file}               & Data              & \sref{s:init.data}         \\ 
+  \vn{tao_params}                    &                              & Global Variables  & \sref{s:globals}           \\ 
+  \vn{tao_plot_page}                 & \vn{plot_file}$^*$           & Plotting          & \sref{s:init.plot}         \\ 
+  \vn{tao_single_particle_tracking}  & \vn{particle_tracking_file}  & Particle Tracking & \sref{s:single.track}      \\
+  \vn{tao_template_graph}            & \vn{plot_file}               & Plotting          & \sref{s:init.plot}         \\ 
+  \vn{tao_template_plot}             & \vn{plot_file}               & Plotting          & \sref{s:init.plot}         \\ 
+  \vn{tao_var}                       & \vn{var_file}                & Variables         & \sref{s:init.var}          \\ \bottomrule
 \end{tabular}}
 \break
-$^*$This namelist taken from the first file in the {plot\_file} array.
 \caption{Table of \vn{tao} Initialization Namelists.}
 \label{t:init.files}
 \end{table}
@@ -196,10 +194,10 @@ See the lat_tayout/floor plan section for an example...
 \section{Lattice Initialization}\index{initialization!lattice}
 \label{s:init.lat} 
 
-In the \vn{tao_start} namelist, the \vn{lattice_file} variable gives
-the name of the file that contains the \vn{tao_design_lattice}
-namelist. This namelist defines where the lattice input files are. The
-variables that are set in the \vn{tao_design_lattice} namelist are:
+In the \vn{tao_start} namelist, the \vn{lattice_file} variable gives the name of the file that
+contains the \vn{tao_design_lattice} namelist. The default, if \vn{lattice_file} is not present is
+to look in the \tao root initialization file. The \vn{tao_deisgin_lattice} namelist defines where
+the lattice input files are. The variables that are set in the \vn{tao_design_lattice} namelist are:
 \index{tao_design_lattice}\index{design_lattice}\index{design_lattice!file}
 \index{design_lattice!parser}\index{n_universes}\index{common_lattice}
 \begin{example}
@@ -645,8 +643,11 @@ See \sref{s:lattice.correction} for more details on
 \section{Initializing Particle Beams}\index{initialization!beams}
 \label{s:beam.init}
 
-A particle beam is initialized in the \vn{tao_beam_init} namelist block.
-The syntax is as follows:
+A particle beam is initialized in the \vn{tao_beam_init} namelist block.  The file that \tao looks
+in to find this namelist is set by the \vn{beam_file} component of the \vn{tao_start} namelist
+(\sref{s:init_global}). The default, if \vn{beam_file} is not set, is the root initialization file.
+
+The syntax of the \vn{tao_beam_init} namelist is:
 \index{tao_beam_init}\index{ix_universe}
 \index{beam_init}\index{beam_init!a_norm_emit}
 \index{beam_init!b_norm_emit}
@@ -1351,23 +1352,18 @@ existing building.}
   \label{f:building.wall}
 \end{figure}
 
-A two dimensional outline of the building containing the machine under
-simulation may be defined in \tao. This may be useful when drawing
-floor plans of the machine (\sref{s:floor.plan}) or to design a
-machine to fit within an existing building by optimizing
-(\sref{c:opti}) the position of the machine to be within the
-building's walls.
+A two dimensional outline of the building containing the machine under simulation may be defined in
+\tao. This may be useful when drawing floor plans of the machine (\sref{s:floor.plan}) or to design
+a machine to fit within an existing building by using optimization (\sref{c:opti}).
 
-The walls of a building are defined by a set of ``sections'' which are
-just curves that mark the wall boundaries. One such section is
-highlighted in Figure~\ref{f:building.wall} starting at the point
-marked ``point(1)'' and ending at the point marked ``point(N)''. Each
-section is defined by a set of points which are connected together using
-straight lines or circular arcs.
+The walls of a building are defined by a set of ``sections'' which are just curves that mark the
+wall boundaries. One such section is highlighted in Figure~\ref{f:building.wall} starting at the
+point marked ``point(1)'' and ending at the point marked ``point(N)''. Each section is defined by a
+set of points which are connected together using straight lines or circular arcs.
 
 The name of the file containing the building wall definition is given
 by the \vn{building_wall_file} variable in the \vn{tao_start} namelist
-(\sref{s:init.global}). This file will contain a number of
+(\sref{s:init.global}). In general, this file will contain a number of
 \vn{building_wall_section} namelists. Each \vn{building_wall_section}
 namelist defines a single wall section. The syntax of this namelist is
 \begin{example}
@@ -2329,16 +2325,15 @@ view an element's global coordinates.
 \index{lat_layout drawings}
 \index{floor_plan drawings}
 
-\vn{Floor plan} (\sref{s:floor.plan}) and \vn{lattice layout} drawings
-use various shapes, sizes, and colors to represent lattice
-elements. The association of a particular element with a given shape
-is determined via two namelists: \vn{lat_layout_drawing} for the
-lattice layout and \vn{floor_plan_drawing} for floor plan drawings.
-Two different namelists are used since, for example, a size that is
-good for a layout will not necessarily be good for a floor plan.
+\vn{Floor plan} (\sref{s:floor.plan}) and \vn{lattice layout} drawings use various shapes, sizes,
+and colors to represent lattice elements. The association of a particular element with a given shape
+is determined via two namelists: \vn{lat_layout_drawing} for the lattice layout and
+\vn{floor_plan_drawing} for floor plan drawings.  Two different namelists are used since, for
+example, a size that is good for a layout will not necessarily be good for a floor plan.
 
 The file that \tao looks in to find these two namelists is set by the first file specified in the
-\vn{plot_file} array set in the \vn{tao_start} namelist (\sref{s:init_global}).
+\vn{plot_file} array set in the \vn{tao_start} namelist (\sref{s:init_global}). The default, if
+\vn{plot_file} is not set, is the root initialization file.
 
 The namelist syntax is the same for both:
 \begin{example}
