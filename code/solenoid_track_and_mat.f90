@@ -17,7 +17,7 @@
 
 subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6)
 
-use make_mat6_mod, except_dummy => solenoid_track_and_mat
+use bmad_routine_interface, except_dummy => solenoid_track_and_mat
 
 implicit none
 

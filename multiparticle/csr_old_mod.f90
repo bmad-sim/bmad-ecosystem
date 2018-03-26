@@ -8,7 +8,6 @@
 
 module csr_old_mod
 
-use make_mat6_mod
 use beam_utils
 
 type csr_kick_factor_struct
@@ -70,9 +69,6 @@ contains
 ! Subroutine track1_bunch_csr_old (bunch_start, lat, ele, bunch_end, err, s_start, s_end)
 !
 ! Routine to track a bunch of particles through an element with csr radiation effects.
-!
-! Modules needed:
-!   use csr_mod
 !
 ! Input:
 !   bunch_start -- Bunch_struct: Starting bunch position.

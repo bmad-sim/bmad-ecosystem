@@ -2928,6 +2928,8 @@ case (rfcavity$)
 case (lcavity$)
   if (ix_attrib == voltage$ .and. ele%value(l$) /= 0) free = .false.
   if (ix_attrib == gradient$ .and. ele%value(l$) == 0) free = .false.
+  if (ix_attrib == voltage_err$ .and. ele%value(l$) /= 0) free = .false.
+  if (ix_attrib == gradient_err$ .and. ele%value(l$) == 0) free = .false.
 case (elseparator$)
   if (ix_attrib == voltage$) free = .false.
 end select

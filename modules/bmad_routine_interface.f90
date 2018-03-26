@@ -108,10 +108,25 @@ subroutine attribute_bookkeeper (ele, param, force_bookkeeping)
   logical, optional :: force_bookkeeping
 end subroutine
 
+function average_twiss (frac1, twiss1, twiss2) result (ave_twiss)
+  import
+  implicit none
+  type (twiss_struct) twiss1, twiss2, ave_twiss
+  real(rp) frac1
+end function
+
 subroutine bbi_kick (x, y, r, kx, ky)
   import
   implicit none
   real(rp) x, y, r, kx, ky
+end subroutine
+
+subroutine bbi_slice_calc (ele, n_slice, z_slice)
+  import
+  implicit none
+  type (ele_struct) ele
+  integer :: n_slice
+  real(rp) z_slice(:)
 end subroutine
 
 subroutine bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field, calc_dfield, calc_potential)
@@ -524,6 +539,13 @@ function ele_loc_to_string (ele, show_branch0) result (str)
   character(10) str
 end function
 
+function ele_to_lat_loc (ele) result (ele_loc)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (lat_ele_loc_struct) ele_loc
+end function
+
 function ele_value_has_changed (ele, list, abs_tol, set_old) result (has_changed)
   import
   implicit none
@@ -574,6 +596,14 @@ subroutine get_field_ele_list (ele, field_eles, dz_offset, n_field_ele)
   type (ele_pointer_struct), allocatable :: field_eles(:)
   real(rp), allocatable :: dz_offset(:)
   integer n_field_ele
+end subroutine
+
+subroutine get_slave_list (lord, slaves, n_slave)
+  import
+  implicit none
+  type (ele_struct) :: lord
+  type (ele_pointer_struct), allocatable :: slaves(:)
+  integer n_slave
 end subroutine
 
 function gradient_shift_sr_wake (ele, param) result (grad_shift)
@@ -668,6 +698,17 @@ subroutine lat_compute_ref_energy_and_time (lat, err_flag)
   logical err_flag
 end subroutine
 
+subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch)
+  import
+  implicit none
+  character(*) loc_str
+  type (lat_struct) lat
+  type (ele_pointer_struct), allocatable :: eles(:)
+  integer n_loc
+  logical, optional :: above_ubound_is_err, err
+  integer, optional :: ix_dflt_branch
+end subroutine
+
 recursive subroutine lat_make_mat6 (lat, ix_ele, ref_orb, ix_branch, err_flag)
   import
   implicit none
@@ -708,6 +749,13 @@ subroutine make_g_mats (ele, g_mat, g_inv_mat)
   type (ele_struct) ele
   real(rp) g_mat(4,4)
   real(rp) g_inv_mat(4,4)
+end subroutine
+
+subroutine make_g2_mats (twiss, g2_mat, g2_inv_mat)
+  import
+  implicit none
+  type (twiss_struct) twiss
+  real(rp) g2_mat(2,2), g2_inv_mat(2,2)
 end subroutine
 
 subroutine make_hybrid_lat (r_in, r_out, use_taylor, orb0)
@@ -803,6 +851,33 @@ subroutine mat6_add_offsets (ele, param)
   type (lat_param_struct) param
 end subroutine
 
+subroutine mat6_add_pitch (x_pitch_tot, y_pitch_tot, orientation, mat6)
+  import
+  implicit none
+  real(rp) mat6(6,6), x_pitch_tot, y_pitch_tot
+  integer orientation
+end subroutine
+
+subroutine mat_symp_decouple(t0, stat, U, V, Ubar, Vbar, G,  twiss1, twiss2, gamma, type_out)
+  import
+  implicit none
+  real(rp) t0(4,4), U(4,4), V(4,4)
+  integer stat
+  real(rp) Ubar(4,4), Vbar(4,4), G(4,4)
+  type (twiss_struct)  twiss1, twiss2
+  real(rp) gamma
+  logical type_out
+end subroutine
+
+subroutine mat4_multipole (knl, tilt, n, orbit, kick_mat)
+  import
+  implicit none
+  real(rp) knl, tilt
+  integer n
+  type (coord_struct) orbit
+  real(rp) kick_mat(4,4)
+end subroutine
+
 subroutine match_ele_to_mat6 (ele, start_orb, mat6, vec0, err_flag, twiss_ele, include_delta_time)
   import
   implicit none
@@ -848,6 +923,16 @@ subroutine multipole_init (ele, who, zero)
   type (ele_struct) ele
   integer who
   logical, optional :: zero
+end subroutine
+
+subroutine multipole_kick_mat (knl, tilt, ref_species, ele, orbit, factor, mat6)
+  import
+  implicit none
+  real(rp) knl(0:), tilt(0:)
+  integer ref_species
+  type (ele_struct) ele
+  type (coord_struct) orbit
+  real(rp) mat6(6,6), factor
 end subroutine
 
 subroutine name_to_list (lat, ele_names)
@@ -1071,6 +1156,15 @@ subroutine quad_beta_ave (ele, beta_a_ave, beta_b_ave)
   real(rp) beta_a_ave
   real(rp) beta_b_ave
 end subroutine
+
+subroutine quad_mat2_calc (k1, length, rel_p, mat2, z_coef, dz_dpz_coef)
+  import
+  implicit none
+  real(rp) k1, length, rel_p
+  real(rp) mat2(:,:)
+  real(rp), optional :: z_coef(3), dz_dpz_coef(3)
+end subroutine
+
 
 subroutine radiation_integrals (lat, orb, mode, ix_cache, ix_branch, rad_int_by_ele)
   import
@@ -1355,6 +1449,12 @@ subroutine tilt_coords (tilt_val, coord, mat6, make_matrix)
   real(rp) coord(:)
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
+end subroutine
+
+subroutine tilt_mat6 (mat6, tilt)
+  import
+  implicit none
+  real(rp) tilt, mat6(6,6)
 end subroutine
 
 subroutine track_a_beambeam (orbit, ele, param, mat6, make_matrix)
@@ -1750,6 +1850,13 @@ subroutine transfer_mat_from_twiss (ele1, ele2, orb1, orb2, m)
   real(rp) m(6,6)
 end subroutine
 
+subroutine transfer_mat2_from_twiss (twiss1, twiss2, mat)
+  import
+  implicit none
+  type (twiss_struct) twiss1, twiss2
+  real(rp) mat(2,2)
+end subroutine
+
 subroutine transfer_matrix_calc (lat, xfer_mat, xfer_vec, ix1, ix2, ix_branch, one_turn)
   import
   implicit none
@@ -1811,7 +1918,6 @@ recursive subroutine twiss_at_element (ele, start_ele, end_ele, average)
   type (ele_struct), optional :: start_ele
   type (ele_struct), optional :: end_ele
   type (ele_struct), optional :: average
-  integer ix_ele
 end subroutine
 
 subroutine twiss_at_start (lat, status, ix_branch)
@@ -1829,6 +1935,15 @@ subroutine twiss1_propagate (twiss1, mat2, ele_type, length, twiss2, err)
   integer ele_type
   real(rp) mat2(2,2), length
   logical err
+end subroutine
+
+subroutine twiss_from_mat2 (mat_in, twiss, stat, type_out)
+  import
+  implicit none
+  type (twiss_struct)  twiss
+  real(rp) mat_in(:, :)
+  integer stat
+  logical type_out
 end subroutine
 
 subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate, status, type_out)
@@ -1865,6 +1980,13 @@ subroutine twiss_propagate_all (lat, ix_branch, err_flag, ie_start, ie_end, zero
   type (lat_struct) lat
   integer, optional :: ix_branch, ie_start, ie_end
   logical, optional :: err_flag, zero_uncalculated
+end subroutine
+
+subroutine twiss_to_1_turn_mat (twiss, phi, mat2)
+  import
+  implicit none
+  type (twiss_struct) twiss
+  real(rp) phi, mat2(2,2)
 end subroutine
 
 subroutine type_coord (coord)

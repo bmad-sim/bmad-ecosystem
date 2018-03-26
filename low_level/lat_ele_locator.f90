@@ -1,11 +1,3 @@
-module lat_ele_loc_mod
-
-use bmad_routine_interface
-
-private lat_ele1_locator
-
-contains
-
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -50,9 +42,6 @@ contains
 ! possible exception when there is a comma in the loc_str. For example: loc_str = "q5,q1". In this
 ! case q5 will appear in eles(:) before q1 independent of the order in the lattice.
 ! 
-! Modules Needed:
-!   use lat_ele_loc_mod
-!
 ! Input:
 !   loc_str  -- Character(*): Element names or indexes. May be lower case.
 !   lat      -- lat_struct: Lattice to search through.
@@ -76,6 +65,8 @@ contains
 !-
 
 subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch)
+
+use bmad_routine_interface, dummy => lat_ele_locator
 
 implicit none
 
@@ -228,7 +219,7 @@ endif
 
 if (present(err)) err = .false.
 
-end subroutine lat_ele_locator
+contains
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -371,103 +362,4 @@ err = .false.
 
 end subroutine lat_ele1_locator
 
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Function ele_to_lat_loc (ele) result (ele_loc)
-!
-! Function to return an lat_ele_loc_struct identifying where an element is in the lattice.
-!
-! Input:
-!   ele -- Ele_struct: Element to be identified
-!
-! Output:
-!   ele_loc -- Lat_ele_loc_struct: Element identifier.
-!-
-
-function ele_to_lat_loc (ele) result (ele_loc)
-
-type (ele_struct) ele
-type (lat_ele_loc_struct) ele_loc
-
-!
-
-ele_loc%ix_ele = ele%ix_ele
-ele_loc%ix_branch = ele%ix_branch
-
-end function ele_to_lat_loc
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Subroutine get_slave_list (lord, slave_list, n_slave)
-!
-! Subroutine to get the list of slaves for a lord element.
-!
-! This is a list of ultimate slaves. That is, slaves in the tracking part 
-! of the lattice. Thus if the element lord controls an
-! element lord1 which controlls an element lord2, then lord2 will
-! show up in the slave_list but lord1 will not.
-!
-! If the "lord" element does not have any slaves, 
-! then the slave_list will just be the lord element.
-!
-! This routine will increase the size of slave_list if needed but will
-! not decrease it.
-!
-! Modules needed:
-!   use lat_ele_loc_mod
-!
-! Input:
-!   lord  -- Ele_struct: The lord element.
-!
-! Output:
-!   slaves(:) -- Ele_pointer_struct, allocatable :: Array of slaves.
-!   n_slave   -- Integer: Number of slaves.
-!-
-
-subroutine get_slave_list (lord, slaves, n_slave)
-
-implicit none
-
-type (ele_struct) :: lord
-type (ele_pointer_struct), allocatable :: slaves(:)
-
-integer n_slave
-
-!
-
-n_slave = 0
-if (.not. allocated(slaves)) call re_allocate_eles (slaves, lord%n_slave)
-
-call get_slaves (lord)
-
-!--------------------------------------------------------------------------
-contains
-
-recursive subroutine get_slaves (lord)
-
-type (ele_struct) lord
-type (ele_struct), pointer :: slave
-integer i, ix
-
-!
-
-do i = 1, lord%n_slave
-  slave => pointer_to_slave(lord, i)
-  if (slave%n_slave > 0) then
-    call get_slaves (slave)
-  else
-    n_slave = n_slave + 1
-    if (n_slave > size(slaves)) call re_allocate_eles(slaves, n_slave + 4, .true.)
-    slaves(n_slave)%ele => slave
-  endif
-enddo
-
-end subroutine get_slaves
-
-end subroutine get_slave_list
-
-end module
+end subroutine lat_ele_locator

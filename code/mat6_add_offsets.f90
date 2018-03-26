@@ -5,9 +5,6 @@
 ! to the computed Jacobian matrix. It is assumed that the input matrix
 ! has been computed without offsets. That is, in the element's reference frame
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele       -- Ele_struct: Element with given orientation.
 !     %vec0(6)         -- 0th order part of the transfer map.
@@ -30,7 +27,7 @@
 
 subroutine mat6_add_offsets (ele, param)
 
-use make_mat6_mod, except_dummy => mat6_add_offsets
+use bmad_routine_interface, except_dummy => mat6_add_offsets
 
 implicit none
 

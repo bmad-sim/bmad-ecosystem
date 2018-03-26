@@ -1,6 +1,5 @@
 module symp_lie_mod
 
-use make_mat6_mod
 use em_field_mod
 use random_mod
 use fringe_mod
@@ -26,9 +25,6 @@ contains
 !
 ! Subroutine to track through an element (which gives the 0th order map) 
 ! and optionally make the 6x6 transfer matrix (1st order map) as well.
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   ele          -- Ele_struct: Element with transfer matrix

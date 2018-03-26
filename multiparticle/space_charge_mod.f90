@@ -1,7 +1,6 @@
 module space_charge_mod
 
 use bmad_interface
-use make_mat6_mod
 
 contains
 

@@ -9,9 +9,6 @@
 ! Warning: This routine just takes the average to be the average of both ends of the element.
 ! this does not do a good job of calculating the average for some elements.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   ele    -- ele_struct: Element to be averaged
 !
@@ -25,8 +22,8 @@
 
 recursive subroutine twiss_at_element (ele, start, end, average)
 
-use lat_ele_loc_mod, except_dummy => twiss_at_element
-use expression_mod, only: linear_coef
+use expression_mod
+use bmad_routine_interface, dummy => twiss_at_element
 use nr
 
 implicit none

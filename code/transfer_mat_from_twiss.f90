@@ -6,9 +6,6 @@
 !
 ! Note: This routine assumes no RF acceleration and the value of m(5,6) will be zero. 
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   ele1     -- Ele_struct: Element with twiss parameters for the starting point.
 !     %a, %b       -- a-mode and b-mode Twiss paramters
@@ -29,7 +26,7 @@
 
 subroutine transfer_mat_from_twiss (ele1, ele2, orb1, orb2, m)
 
-use twiss_mod, dummy => transfer_mat_from_twiss
+use bmad_routine_interface, dummy => transfer_mat_from_twiss
 
 implicit none
 
