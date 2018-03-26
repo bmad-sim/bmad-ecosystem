@@ -7,9 +7,6 @@
 ! Note: This routine does not make sense in a number of cases. For example,
 ! for multipass_lord elements.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   ele          -- Ele_struct: Element to find the ends for.
 !   ix_multipass -- integer, optional: Which multipass pass to follow. Default is 1.
@@ -31,7 +28,7 @@
 subroutine find_element_ends (ele, ele1, ele2, ix_multipass)
 
 use nr, only: indexx
-use lat_ele_loc_mod, except_dummy => find_element_ends
+use bmad_routine_interface, except_dummy => find_element_ends
 
 implicit none
                                                        

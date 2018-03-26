@@ -1,7 +1,6 @@
 module gpt_interface_mod
 
 use em_field_mod
-use lat_ele_loc_mod
 
 implicit none
 

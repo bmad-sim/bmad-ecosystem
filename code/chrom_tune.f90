@@ -6,9 +6,6 @@
 ! relative vertical and horizontal betas at the sextupoles.
 ! The two groups are then varied by fractional amounts to match the desired chromaticities.
 ! 
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   lat     -- lat_struct: Lat to use, 
 !   delta_e  -- Real(rp): Delta energy used for the calculation.
@@ -34,7 +31,6 @@
 subroutine chrom_tune(lat, delta_e, target_x, target_y, err_tol, err_flag)
 
 use bmad_interface, except_dummy => chrom_tune
-use lat_ele_loc_mod, except_dummy2 => chrom_tune
 use nr, only: gaussj
 
 implicit none

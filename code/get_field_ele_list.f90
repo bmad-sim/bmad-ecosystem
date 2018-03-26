@@ -14,9 +14,6 @@
 ! This routine will increase the size of field_ele_list if needed but will
 ! not decrease it.
 !
-! Modules needed:
-!   use lat_ele_loc_mod
-!
 ! Input:
 !   lat   -- lat_struct: Lattice
 !   ele   -- Ele_struct: Element whose fields are to be evaluated.

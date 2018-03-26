@@ -7,7 +7,6 @@
 module fringe_mod
 
 use bmad_interface
-use make_mat6_mod
 use spin_mod
 use multipole_mod
 

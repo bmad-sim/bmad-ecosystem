@@ -33,7 +33,6 @@
 subroutine create_girder (lat, ix_girder, contrl, girder_info, err_flag)
 
 use bmad_interface, except_dummy => create_girder
-use lat_ele_loc_mod, only: lat_ele_locator
 
 implicit none
 

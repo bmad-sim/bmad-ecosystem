@@ -15,7 +15,7 @@
 
 subroutine transfer_wall3d (wall3d_in, wall3d_out)
 
-use bmad_struct
+use bmad_routine_interface, dummy => transfer_wall3d
 
 implicit none
 
