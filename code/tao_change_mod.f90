@@ -2,7 +2,6 @@ module tao_change_mod
 
 use tao_mod
 use tao_data_and_eval_mod
-use lat_ele_loc_mod
 
 contains
 
