@@ -19,8 +19,7 @@
 
 subroutine mat4_multipole (knl, tilt, n, orbit, kick_mat)
 
-use bmad_struct
-use bmad_routine_interface
+use bmad_routine_interface, dummy => mat4_multipole
 
 implicit none
 
