@@ -1810,8 +1810,6 @@ case ('lattice')
       n_attrib = n_attrib + 1
       attrib_list(n_attrib) = what2(1:ix_s2)
       call string_trim(what2(ix_s2+1:), what2, ix_s2)
-      ! Why was this put in? Consider: "show lat Q* -attrib k1"
-      !! if (print_lords == maybe$) print_lords = no$  
 
     case ('-base')
       lat_type = base$
@@ -1943,6 +1941,11 @@ case ('lattice')
         fmt = 'i12'
         width = 12
       case (is_switch$)
+        column(i0+i) = show_lat_column_struct('x', 'x', 2, '', .false., 1.0_rp)
+        i0 = i0 + 1
+        fmt = 'a'
+        width = 20
+      case (is_string$)
         column(i0+i) = show_lat_column_struct('x', 'x', 2, '', .false., 1.0_rp)
         i0 = i0 + 1
         fmt = 'a'
