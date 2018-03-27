@@ -238,6 +238,7 @@ implicit none
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable :: eles(:)
+type (ele_struct), pointer :: ele
 
 character(*) name
 character(*), parameter :: r_name = 'lat_ele1_locator'
@@ -340,11 +341,12 @@ do k = lbound(lat%branch, 1), ubound(lat%branch, 1)
   n_dup = 0
   if (ix_branch /= -1 .and. k /= ix_branch) cycle
   do i = 0, lat%branch(k)%n_ele_max
-    if (key /= 0 .and. lat%branch(k)%ele(i)%key /= key .and. lat%branch(k)%ele(i)%sub_key /= key) cycle
+    ele => lat%branch(k)%ele(i)
+    if ((key /= 0 .and. ele%key /= key) .and. (ele%key /= sbend$ .or. ele%sub_key /= key)) cycle
     if (do_match_wild) then
-      if (.not. match_wild(lat%branch(k)%ele(i)%name, name)) cycle
+      if (.not. match_wild(ele%name, name)) cycle
     else
-      if (lat%branch(k)%ele(i)%name /= name) cycle
+      if (ele%name /= name) cycle
     endif
     if (ix_dup > 0) then
       n_dup = n_dup + 1
@@ -353,7 +355,7 @@ do k = lbound(lat%branch, 1), ubound(lat%branch, 1)
     endif
     n_loc = n_loc + 1
     if (.not. allocated(eles) .or. size(eles) < n_loc) call re_allocate_eles (eles, 2*n_loc, .true.)
-    eles(n_loc)%ele => lat%branch(k)%ele(i)
+    eles(n_loc)%ele => ele
     eles(n_loc)%loc = lat_ele_loc_struct(i, k)
   enddo
 enddo 
