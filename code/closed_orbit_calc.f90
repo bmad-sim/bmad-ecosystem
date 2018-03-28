@@ -82,7 +82,6 @@ use bmad_interface, except_dummy => closed_orbit_calc
 use bookkeeper_mod, only: set_on_off, restore_state$, off_and_save$
 use super_recipes_mod
 use eigen_mod
-use rotation_3d_mod
 
 implicit none
 
