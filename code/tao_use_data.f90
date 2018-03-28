@@ -13,7 +13,7 @@
 
 subroutine tao_use_data (action, data_name)
 
-use tao_mod, dummy => tao_use_data
+use tao_interface, dummy => tao_use_data
 
 implicit none
 

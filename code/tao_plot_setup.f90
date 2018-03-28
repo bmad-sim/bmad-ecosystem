@@ -11,7 +11,7 @@
 subroutine tao_plot_setup ()
 
 use quick_plot
-use tao_mod
+use tao_interface
 use tao_graph_setup_mod
 use tao_scale_mod
 use tao_x_scale_mod

@@ -1,6 +1,6 @@
 module tao_dmerit_mod
 
-use tao_mod
+use tao_interface
 
 contains
 

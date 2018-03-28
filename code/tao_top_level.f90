@@ -4,7 +4,7 @@
 ! Top level tao routine.
 !
 ! Modules needed:
-!   use tao_mod
+!   use tao_interface
 !
 ! Input:
 !   command    -- character(*), optional: Tao command string. 

@@ -20,6 +20,9 @@ use quick_plot
 
 implicit none
 
+integer, parameter :: n_region_maxx   = 50     ! number of plotting regions.
+integer, parameter :: n_curve_maxx    = 20     ! number of curves per graph
+
 type old_tao_ele_shape_struct    ! for the element layout plot
   character(40) key_name     ! Element key name
   character(40) ele_name     ! element name

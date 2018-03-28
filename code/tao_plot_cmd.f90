@@ -10,7 +10,7 @@
 
 subroutine tao_plot_cmd (where, component)
 
-use tao_mod, dummy => tao_plot_cmd
+use tao_interface, dummy => tao_plot_cmd
 
 implicit none
 

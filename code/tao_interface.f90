@@ -14,13 +14,76 @@ module tao_interface
 
 use tao_struct
 
+!+
+! Function tao_pointer_to_universe (...) result (u)
+!
+! Routine to set a pointer to a universe.
+!
+! This is an overloaded routine for the:
+!  tao_pointer_to_universe_int (ix_uni) result (u)
+!  tao_pointer_to_universe_str (string) result (u)
+!
+! Note: With a string argument, this routine can only handle single universe picks. 
+! That is, it cannot handlle something like "[1,3,4]@...". To handle multiple universe picks, use:
+!   tao_pick_universe
+!
+! Input:
+!   ix_uni      -- Integer: Index to the s%u(:) array
+!                    If ix_uni is -1 then u(s%com%default_universe) will be used.
+!   string      -- character(*): String in the form "<ix_uni>@..." or, if 
+!                    no "@" is present, u will point to the default universe.
+!
+! Output:
+!   string -- character(*): String with universe prefix stripped off.
+!   u      -- Tao_universe_struct, pointer: Universe pointer.
+!               u will be nullified if there is an error and an error message will be printed.
+!-
+
+interface tao_pointer_to_universe
+  module procedure tao_pointer_to_universe_int
+  module procedure tao_pointer_to_universe_str
+end interface
+
+private tao_pointer_to_universe_int, tao_pointer_to_universe_str
+
 interface
+
+subroutine floor_to_screen (graph, r_floor, x_screen, y_screen)
+  import
+  implicit none
+  type (tao_graph_struct) graph
+  real(rp) r_floor(3), x_screen, y_screen 
+end subroutine
+
+subroutine floor_to_screen_coords (graph, floor, screen)
+  import
+  implicit none
+  type (tao_graph_struct) graph
+  type (floor_position_struct) floor, screen
+end subroutine
+
 
 subroutine tao_alias_cmd (alias, string)
   implicit none
   character(*) :: alias
   character(*) :: string
 end subroutine
+
+function tao_beam_emit_calc (plane, emit_type, ele, bunch_params) result (emit)
+  import
+  implicit none
+  integer plane, emit_type
+  type (ele_struct) ele
+  type (bunch_params_struct) bunch_params
+  real(rp) emit
+end function
+
+function tao_beam_sigma_calc_needed (data_type, data_source) result (do_beam_sigma)
+  import
+  implicit none
+  character(*) data_type, data_source
+  logical do_beam_sigma
+end function
  
 function tao_bmad_parameter_value (dat_name, ele, orbit, err_flag) result (value)
   import
@@ -37,6 +100,13 @@ subroutine tao_call_cmd (file_name, cmd_arg)
   character(*) :: file_name
   character(*), optional :: cmd_arg(:)
 end subroutine
+
+function tao_chrom_calc_needed (data_type, data_source) result (do_chrom)
+  import
+  implicit none
+  character(*) data_type, data_source
+  logical do_chrom
+end function
  
 subroutine tao_clip_cmd (gang, where, value1, value2)
   import
@@ -44,6 +114,20 @@ subroutine tao_clip_cmd (gang, where, value1, value2)
   logical gang
   character(*) :: where
   real(rp) value1, value2
+end subroutine
+
+function tao_constraint_type_name(datum) result (datum_name)
+  import
+  implicit none
+  type (tao_data_struct) datum
+  character(200) datum_name
+end function
+
+subroutine tao_count_strings (string, pattern, num)
+  import
+  implicit none
+  character(*) string, pattern
+  integer num
 end subroutine
 
 function tao_curve_component (curve, graph) result (component)
@@ -61,6 +145,28 @@ function tao_curve_ix_uni (curve) result (ix_uni)
   integer ix_uni
 end function
 
+function tao_curve_name(curve, use_region) result (curve_name)
+  import
+  implicit none
+  type (tao_curve_struct) curve
+  character(60) curve_name
+  logical, optional :: use_region
+end function
+
+function tao_d2_d1_name(d1, show_universe) result (d2_d1_name)
+  import
+  implicit none
+  type (tao_d1_data_struct) d1
+  character(60) d2_d1_name
+  logical, optional :: show_universe
+end function
+
+subroutine tao_data_check (err)
+  import
+  implicit none
+  logical err
+end subroutine
+
 function tao_data_sanity_check (datum, print_err) result (is_valid)
   import
   type (tao_data_struct) datum
@@ -75,9 +181,23 @@ subroutine tao_data_show_use (d2_data, lines, nl)
   integer, optional :: nl
 end subroutine
 
+function tao_datum_name(datum, show_universe) result (datum_name)
+  import
+  implicit none
+  type (tao_data_struct) datum
+  character(60) datum_name
+  logical, optional :: show_universe
+end function
+
 subroutine tao_de_optimizer (abort)
   implicit none
   logical abort
+end subroutine
+
+subroutine tao_ele_to_ele_track (ix_universe, ix_branch, ix_ele, ix_ele_track)
+  import
+  implicit none
+  integer ix_universe, ix_branch, ix_ele, ix_ele_track
 end subroutine
 
 subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, dflt_source, dflt_component, dflt_uni)
@@ -333,6 +453,30 @@ subroutine tao_init_single_mode (single_mode_file)
   implicit none
   character(*) single_mode_file
 end subroutine
+
+subroutine tao_key_info_to_str (ix_key, ix_min_key, ix_max_key, key_str, header_str)
+  import
+  implicit none
+  integer ix_key, ix_min_key, ix_max_key
+  character(*) key_str
+  character(*) header_str
+end subroutine
+
+subroutine tao_lat_bookkeeper (u, tao_lat)
+  import
+  implicit none
+  type (tao_universe_struct), target :: u
+  type (tao_lattice_struct) :: tao_lat
+end subroutine
+
+function tao_lat_emit_calc (plane, emit_type, ele, modes) result (emit)
+  import
+  implicit none
+  integer plane, emit_type
+  type (ele_struct) ele
+  type (normal_modes_struct) modes
+  real(rp) emit
+end function
  
 subroutine tao_limit_calc (limited)
   implicit none
@@ -353,13 +497,26 @@ subroutine tao_locate_all_elements (ele_list, eles, err, ignore_blank)
   logical, optional :: ignore_blank
 end subroutine
 
+subroutine tao_locate_elements (ele_list, ix_universe, eles, err, lat_type, ignore_blank, &
+                                                                 print_err, above_ubound_is_err, ix_dflt_branch)
+  import
+  implicit none
+  character(*) ele_list
+  integer ix_universe
+  type (ele_pointer_struct), allocatable :: eles(:)
+  logical err
+  integer, optional :: lat_type, ix_dflt_branch
+  logical, optional :: ignore_blank, print_err, above_ubound_is_err
+end subroutine
+
+
 function tao_merit (calc_ok) result (this_merit)
   import
   implicit none
   real(rp) this_merit
   logical, optional :: calc_ok
 end function
- 
+
 subroutine tao_open_file (file, iunit, file_name, error_severity, binary)
   implicit none
   character(*) file
@@ -368,6 +525,15 @@ subroutine tao_open_file (file, iunit, file_name, error_severity, binary)
   logical, optional :: binary
 end subroutine
 
+subroutine tao_orbit_value (component, orbit, value, err)
+  import
+  implicit none
+  character(*) component
+  type (coord_struct) orbit
+  real(rp) value
+  logical err
+end subroutine
+ 
 function tao_pointer_to_datum (d1, ele_name) result (datum_ptr)
   import
   implicit none
@@ -376,12 +542,13 @@ function tao_pointer_to_datum (d1, ele_name) result (datum_ptr)
   character(*) ele_name
 end function
 
- 
-subroutine tao_write_cmd (what)
+subroutine tao_parse_command_args (error, cmd_words)
+  import
   implicit none
-  character(*) :: what
+  character(*), optional :: cmd_words(:)
+  logical error
 end subroutine
- 
+
 subroutine tao_pause_cmd (time)
   import
   implicit none
@@ -416,11 +583,64 @@ subroutine tao_plot_struct_transfer (plot_in, plot_out)
   type (tao_plot_struct) plot_in
   type (tao_plot_struct) plot_out
 end subroutine
- 
+
+function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var_value, ix_shape) result (e_shape)
+  import
+  implicit none
+  integer ix_uni
+  type (ele_struct) ele
+  type (tao_ele_shape_struct), target :: ele_shape(:)
+  character(*), optional :: dat_var_name
+  real(rp), optional :: dat_var_value
+  integer, optional :: ix_shape
+  type (tao_ele_shape_struct), pointer :: e_shape
+end function
+
+function tao_pointer_to_tao_lat (u, lat_type) result (tao_lat)
+  import
+  implicit none
+  type (tao_universe_struct), target :: u
+  type (tao_lattice_struct), pointer :: tao_lat
+  integer, optional :: lat_type
+end function
+
+subroutine tao_print_command_line_info
+  import
+  implicit none
+end subroutine
+
+subroutine tao_python_cmd (input_str)
+  import
+  implicit none
+  character(*) input_str
+end subroutine
+
+subroutine tao_re_allocate_expression_info (info, n, exact)
+  import
+  implicit none
+  type (tao_expression_info_struct), allocatable :: info(:)
+  integer, intent(in) :: n
+  logical, optional :: exact
+end subroutine
+
+function tao_rad_int_calc_needed (data_type, data_source) result (do_rad_int)
+  import
+  implicit none
+  character(*) data_type, data_source
+  logical do_rad_int
+end function
+
 subroutine tao_read_cmd (which, file)
   implicit none
   character(*) which, file
 end subroutine
+
+function tao_read_this_index (name, ixc) result (ix)
+  import
+  implicit none
+  character(*) name
+  integer ix, ixc
+end function
  
 subroutine tao_run_cmd (which, abort)
   implicit none
@@ -449,7 +669,20 @@ subroutine tao_set_flags_for_changed_attribute (u, ele_name, ele_ptr, val_ptr)
   character(*) ele_name
 end subroutine
 
+subroutine tao_set_var_model_value (var, value, print_limit_warning)
+  import
+  implicit none
+  type (tao_var_struct), target :: var
+  real(rp) value
+  logical, optional :: print_limit_warning
+end subroutine
+
 subroutine tao_set_var_useit_opt ()
+end subroutine
+
+subroutine tao_setup_key_table ()
+  import
+  implicit none
 end subroutine
 
 subroutine tao_single_mode (char)
@@ -457,10 +690,40 @@ subroutine tao_single_mode (char)
   character(1) :: char
 end subroutine
 
+subroutine tao_split_component (comp_str, comp, err)
+  import
+  implicit none
+  character(*) comp_str
+  type (tao_data_var_component_struct), allocatable :: comp(:)
+  logical err
+end subroutine
+
+subroutine tao_string_to_element_id (str, ix_class, ele_name, err, print_err)
+  import
+  implicit none
+  character(*) str, ele_name
+  integer ix_class
+  logical err
+  logical, optional :: print_err
+end subroutine
+
+function tao_subin_uni_number (name_in, ix_uni, name_out) result (ok)
+  import
+  implicit none
+  character(*) name_in, name_out
+  integer ix_uni
+  logical ok
+end function
+
 subroutine tao_top_level (command, errcode)
   implicit none
   character(*), optional :: command
   integer, optional :: errcode
+end subroutine
+ 
+subroutine tao_turn_on_special_calcs_if_needed_for_plotting ()
+  import
+  implicit none
 end subroutine
  
 function tao_universe_number (i_uni) result (i_this_uni)
@@ -480,6 +743,20 @@ subroutine tao_use_var (action, var_name)
   character(*) :: action
   character(*) :: var_name
 end subroutine
+
+function tao_var1_name(var) result (var1_name)
+  import
+  implicit none
+  type (tao_var_struct) var
+  character(60) var1_name
+end function
+
+function tao_var_attrib_name(var) result (var_attrib_name)
+  import
+  implicit none
+  type (tao_var_struct) var
+  character(60) var_attrib_name
+end function
  
 subroutine tao_var_repoint ()
 end subroutine
@@ -492,6 +769,23 @@ subroutine tao_var_show_use (v1_var, lines, nl)
   integer, optional :: nl
 end subroutine
 
+subroutine tao_var_target_calc ()
+  import
+  implicit none
+end subroutine
+
+subroutine tao_var_useit_plot_calc (graph, var)
+  import
+  implicit none
+  type (tao_graph_struct) graph
+  type (tao_var_struct) var(:)
+end subroutine
+
+subroutine tao_write_cmd (what)
+  implicit none
+  character(*) :: what
+end subroutine
+ 
 subroutine tao_x_axis_cmd (where, what)
   implicit none
   character(*) where
@@ -500,7 +794,86 @@ end subroutine
 
 end interface
 
-integer, private, save :: dummy = 0 ! So ranlib will not complain about no symbols
+contains
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function tao_pointer_to_universe_int (ix_uni) result (u)
+!
+! Overloaded by tao_pointer_to_universe. See this routine for more details.
+!-
+
+function tao_pointer_to_universe_int (ix_uni) result(u)
+
+implicit none
+
+type (tao_universe_struct), pointer :: u
+integer ix_uni, ix_u
+character(*), parameter :: r_name = 'tao_pointer_to_universe_int'
+
+!
+
+ix_u = tao_universe_number(ix_uni)
+
+if (ix_u < lbound(s%u, 1) .or. ix_u > ubound(s%u, 1)) then
+  call out_io (s_fatal$, r_name, 'UNIVERSE INDEX OUT OF RANGE: \I0\ ', ix_u)
+  nullify (u)
+  return
+endif
+
+u => s%u(ix_u)
+
+end function tao_pointer_to_universe_int
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function tao_pointer_to_universe_str (string) result (u)
+!
+! Overloaded by tao_pointer_to_universe. See this routine for more details.
+!-
+
+function tao_pointer_to_universe_str (string) result(u)
+
+implicit none
+
+type (tao_universe_struct), pointer :: u
+integer ix, ix_u
+character(*) string
+character(*), parameter :: r_name = 'tao_pointer_to_universe_str'
+
+!
+
+nullify(u)
+
+ix = index(string, '@')
+if (ix == 0) then
+  u => s%u(tao_universe_number(-1))
+  return
+endif
+
+!
+
+if (.not. is_integer(string(1:ix-1))) then
+  call out_io (s_fatal$, r_name, 'MALFORMED UNIVERSE STRING')
+  return
+endif
+read (string(1:ix-1), *) ix_u
+string = string(ix+1:)
+
+ix_u = tao_universe_number(ix_u)
+
+if (ix_u < lbound(s%u, 1) .or. ix_u > ubound(s%u, 1)) then
+  call out_io (s_fatal$, r_name, 'UNIVERSE INDEX OUT OF RANGE: \I0\ ', ix_u)
+  return
+endif
+
+u => s%u(ix_u)
+
+end function tao_pointer_to_universe_str
 
 end module
 

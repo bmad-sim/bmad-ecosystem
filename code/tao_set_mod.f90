@@ -1,10 +1,8 @@
 module tao_set_mod
 
-use tao_mod
+use tao_interface
 use tao_data_and_eval_mod
 use tao_lattice_calc_mod
-use tao_input_struct
-use geodesic_lm
 
 implicit none
 
@@ -271,6 +269,8 @@ end subroutine tao_set_lattice_cmd
 
 subroutine tao_set_global_cmd (who, value_str)
 
+use bookkeeper_mod, only: set_on_off
+
 implicit none
 
 type (tao_global_struct) global, old_global
@@ -498,6 +498,8 @@ end subroutine tao_set_bmad_com_cmd
 !-
 
 subroutine tao_set_geodesic_lm_cmd (who, value_str)
+
+use geodesic_lm
 
 implicit none
 
@@ -858,6 +860,8 @@ end subroutine tao_set_beam_init_cmd
 !-
 
 subroutine tao_set_plot_page_cmd (component, value_str, value_str2)
+
+use tao_input_struct, only: tao_plot_page_input, tao_set_plotting
 
 implicit none
 
@@ -2062,6 +2066,9 @@ end subroutine tao_set_universe_cmd
 !-
 
 subroutine tao_set_elements_cmd (ele_list, attribute, value)
+
+use attribute_mod, only: attribute_type
+use set_ele_attribute_mod, only: set_ele_attribute
 
 implicit none
 

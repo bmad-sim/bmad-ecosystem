@@ -14,7 +14,8 @@
 
 subroutine tao_set_flags_for_changed_attribute (u, ele_name, ele_ptr, val_ptr)
 
-use tao_mod, dummy => tao_set_flags_for_changed_attribute
+use tao_interface, dummy => tao_set_flags_for_changed_attribute
+use bookkeeper_mod, only: set_flags_for_changed_attribute
 
 implicit none
 

@@ -1,6 +1,6 @@
 module tao_read_beam_mod
 
-use tao_mod
+use tao_interface
 
 type read_beam_common_struct
   real(rp) :: bunch_charge = 0

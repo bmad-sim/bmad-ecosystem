@@ -1,9 +1,8 @@
 module tao_show_mod
 
-use tao_mod
+use tao_interface
 use tao_data_and_eval_mod
 use tao_top10_mod
-use tao_command_mod, only: tao_next_switch
 use tao_lattice_calc_mod
 
 type show_common_struct
@@ -31,6 +30,8 @@ contains
 !-
 
 subroutine tao_show_cmd (what)
+
+use tao_command_mod, only: tao_next_switch
 
 implicit none
 
@@ -133,6 +134,8 @@ use random_mod
 use location_encode_mod
 use transfer_map_mod
 use opti_de_mod
+use tao_command_mod, only: tao_next_switch
+use twiss_and_track_mod, only: twiss_and_track_at_s
 
 implicit none
 

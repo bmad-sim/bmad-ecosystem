@@ -15,7 +15,7 @@
 
 subroutine tao_hook_draw_graph (plot, graph, found)
 
-use tao_mod, dummy => tao_hook_draw_graph
+use tao_interface, dummy => tao_hook_draw_graph
 
 implicit none
 

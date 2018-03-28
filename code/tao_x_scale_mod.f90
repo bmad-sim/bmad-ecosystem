@@ -1,6 +1,6 @@
 module tao_x_scale_mod
 
-use tao_mod
+use tao_interface
 use quick_plot
 use tao_graph_setup_mod
 

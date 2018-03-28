@@ -1,6 +1,5 @@
 module tao_wave_mod
 
-use tao_utils
 use tao_graph_setup_mod
 
 private ele_at_curve_point
@@ -1002,6 +1001,8 @@ end subroutine tao_wave_fit
 !---------------------------------------------------------------------------
 
 function ele_at_curve_point (plot, ix_pt) result (ele)
+
+use twiss_and_track_mod, only: twiss_and_track_at_s
 
 implicit none
 

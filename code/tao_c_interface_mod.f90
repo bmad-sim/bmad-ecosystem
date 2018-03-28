@@ -1,6 +1,6 @@
 module tao_c_interface_mod
 use iso_c_binding
-use tao_mod
+use tao_interface
 use fortran_cpp_utils
 
 implicit none

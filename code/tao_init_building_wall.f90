@@ -10,7 +10,7 @@
 
 subroutine tao_init_building_wall (wall_file)
 
-use tao_mod
+use tao_interface
 use tao_input_struct
 
 implicit none

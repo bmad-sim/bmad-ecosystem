@@ -9,7 +9,7 @@
 
 subroutine tao_var_show_use (v1_var, lines, nl)
 
-use tao_mod, dummy => tao_var_show_use
+use tao_interface, dummy => tao_var_show_use
 use location_encode_mod
 
 implicit none

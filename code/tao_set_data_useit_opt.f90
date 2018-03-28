@@ -11,7 +11,7 @@
 
 subroutine tao_set_data_useit_opt (data)
 
-use tao_mod, dummy => tao_set_data_useit_opt
+use tao_interface, dummy => tao_set_data_useit_opt
 
 implicit none
 

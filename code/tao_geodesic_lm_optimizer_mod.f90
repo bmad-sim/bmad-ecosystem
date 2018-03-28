@@ -1,6 +1,6 @@
 module tao_geodesic_lm_optimizer_mod
 
-use tao_mod
+use tao_interface
 use tao_dmerit_mod
 use tao_top10_mod
 use tao_var_mod

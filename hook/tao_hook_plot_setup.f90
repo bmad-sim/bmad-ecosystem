@@ -6,7 +6,7 @@
 
 subroutine tao_hook_plot_setup ()
 
-use tao_mod, dummy => tao_hook_plot_setup
+use tao_interface, dummy => tao_hook_plot_setup
 
 implicit none
 

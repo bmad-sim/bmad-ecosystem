@@ -1,10 +1,6 @@
 module tao_data_and_eval_mod
 
-use tao_mod
-use spin_mod
-use utilities_mod
-use measurement_mod
-use geometry_mod
+use tao_interface
 
 implicit none
 
@@ -239,6 +235,8 @@ end subroutine tao_evaluate_lat_or_beam_data
 
 subroutine tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
 
+use measurement_mod, only: to_phase_and_coupling_reading
+
 type (ele_struct) ele
 type (bpm_phase_coupling_struct) bpm_data
 type (bpm_phase_coupling_struct), save :: old_bpm_data
@@ -367,6 +365,12 @@ end subroutine
 !-
 
 recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, why_invalid)
+
+use ptc_interface_mod, only: taylor_inverse
+use twiss_and_track_mod, only: twiss_and_track_at_s
+use spin_mod, only: polar_to_vec, vec_to_polar
+use measurement_mod, only: to_orbit_reading, to_eta_reading
+use geometry_mod, only: floor_angles_to_w_mat, floor_w_mat_to_angles
 
 type (tao_universe_struct), target :: u
 type (tao_data_struct) datum
@@ -3465,6 +3469,7 @@ subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, &
           dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
 
 use random_mod
+use expression_mod
 
 type (tao_eval_stack1_struct), save :: stk(100)
 type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
@@ -4214,6 +4219,8 @@ end subroutine tao_param_value_routine
 !-
 
 subroutine tao_evaluate_stack (stack, n_size, use_good_user, value, info, err_flag, print_err)
+
+use expression_mod
 
 type (tao_eval_stack1_struct), target :: stack(:)
 type (tao_eval_stack1_struct), pointer :: s(:)

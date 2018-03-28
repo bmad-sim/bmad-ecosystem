@@ -21,7 +21,7 @@
 
 subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, dflt_source, dflt_component, dflt_uni)
 
-use tao_utils, except_dummy => tao_evaluate_element_parameters
+use tao_interface, except_dummy => tao_evaluate_element_parameters
 
 implicit none
 

@@ -6,7 +6,7 @@
 
 program tao_program
 
-use tao_mod
+use tao_interface
 
 implicit none
 

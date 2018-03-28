@@ -18,7 +18,7 @@
 
 subroutine tao_locate_all_elements (ele_list, eles, err, ignore_blank)
 
-use tao_mod, except_dummy => tao_locate_all_elements
+use tao_interface, except_dummy => tao_locate_all_elements
 
 implicit none
 

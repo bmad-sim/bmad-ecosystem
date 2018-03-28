@@ -24,11 +24,13 @@
 
 subroutine tao_python_cmd (input_str)
 
-use tao_mod
-use tao_command_mod
-use tao_init_data_mod
-use tao_init_variables_mod
+use tao_interface, dummy => tao_python_cmd
+use tao_command_mod, only: tao_next_switch, tao_cmd_split
+use tao_init_data_mod, only: tao_point_d1_to_data
+use tao_init_variables_mod, only: tao_point_v1_to_var
 use location_encode_mod
+use attribute_mod
+use twiss_and_track_mod, only: twiss_and_track_at_s
 
 implicit none
 

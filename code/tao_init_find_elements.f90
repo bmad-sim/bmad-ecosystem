@@ -17,7 +17,8 @@
 
 subroutine tao_init_find_elements (u, search_string, eles, attribute, found_one)
 
-use tao_mod, dummy => tao_init_find_elements
+use tao_interface, dummy => tao_init_find_elements
+use attribute_mod, only: attribute_index, attribute_free
 
 implicit none
 

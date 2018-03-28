@@ -67,7 +67,7 @@
 subroutine tao_find_data (err, data_name, d2_array, d1_array, d_array, re_array, &
                            log_array, str_array, int_array, ix_uni, dflt_index, print_err, component)
 
-use tao_mod, except_dummy => tao_find_data
+use tao_interface, except_dummy => tao_find_data
 
 implicit none
 

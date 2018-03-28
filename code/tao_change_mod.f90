@@ -1,6 +1,6 @@
 module tao_change_mod
 
-use tao_mod
+use tao_interface
 use tao_data_and_eval_mod
 
 contains
@@ -158,6 +158,8 @@ end subroutine
 !-
 
 subroutine tao_change_ele (ele_name, attrib_name, num_str)
+
+use attribute_mod, only: attribute_free
 
 implicit none
 

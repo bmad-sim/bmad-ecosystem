@@ -362,6 +362,8 @@ contains
 
 subroutine deallocate_everything ()
 
+use radiation_mod, only: release_rad_int_cache
+
 implicit none
 
 type (tao_plot_struct), pointer :: plot

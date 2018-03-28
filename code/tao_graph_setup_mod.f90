@@ -1,6 +1,6 @@
 module tao_graph_setup_mod
 
-use tao_mod
+use tao_interface
 use tao_lattice_calc_mod
 use tao_command_mod
 use tao_data_and_eval_mod
@@ -1852,6 +1852,7 @@ end subroutine tao_curve_data_setup
 subroutine tao_calc_data_at_s (tao_lat, curve, comp_sign, good)
 
 use transfer_map_mod
+use twiss_and_track_mod, only: twiss_and_track_at_s
 
 implicit none
 

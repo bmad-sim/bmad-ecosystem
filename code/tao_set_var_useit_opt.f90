@@ -10,7 +10,7 @@
 
 subroutine tao_set_var_useit_opt ()
 
-use tao_mod, dummy => tao_set_var_useit_opt
+use tao_interface, dummy => tao_set_var_useit_opt
 
 implicit none
 

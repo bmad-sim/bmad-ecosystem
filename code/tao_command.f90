@@ -19,7 +19,6 @@ use tao_command_mod
 use tao_data_and_eval_mod
 use tao_dmerit_mod
 use tao_misalign_mod
-use tao_cut_ring_mod
 use tao_plot_window_mod
 use tao_scale_mod
 use tao_set_mod
@@ -30,6 +29,9 @@ use tao_x_scale_mod
 ! MPI use tao_mpi_mod
 
 implicit none
+
+type (tao_universe_struct), pointer :: u
+type (lat_struct), pointer :: lat
 
 integer i, j, iu, ios, n_word, n_eq
 integer ix, ix_line, ix_cmd, which
@@ -58,7 +60,7 @@ character(16) :: cmd_names_old(6) = [&
     'x-scale      ', 'xy-scale     ', 'single-mode  ', 'x-axis       ', 'end-file     ', &
     'output       ']
 
-logical quit_tao, err, silent, gang, abort, err_flag
+logical quit_tao, err, silent, gang, abort, err_flag, ok
 
 ! pause if single stepping
 
@@ -203,7 +205,14 @@ case ('continue')
 
 case ('cut_ring')
 
-  call tao_cut_ring ()
+  u => tao_pointer_to_universe(-1)
+  lat => u%model%lat
+
+  lat%param%geometry = open$
+  u%calc%lattice = .true.
+  u%model%lat%beam_start%vec = 0
+  call tao_lattice_calc (ok)
+
   return
 
 !--------------------------------
