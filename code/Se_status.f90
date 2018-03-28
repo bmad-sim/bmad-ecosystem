@@ -10089,7 +10089,7 @@ endif
     IMPLICIT NONE
     TYPE(TREE_ELEMENT), INTENT(INOUT) :: T(:)
     TYPE(c_damap), INTENT(INOUT) :: Ma
-    INTEGER N,NP,i,k,j
+    INTEGER N,NP,i,k,j,kq
     real(dp) norm,mat(6,6)
     TYPE(taylor), ALLOCATABLE :: M(:), MG(:)
     TYPE(damap) ms
@@ -10132,6 +10132,21 @@ endif
       m(i)=ma%v(i)   ! orbital part
      enddo
 
+
+ 
+
+if(use_quaternion) then
+    call c_full_norm_quaternion(Ma%q,kq,norm)
+    if(kq==-1) then
+      do i=1,4
+        m(ind_spin(1,1)+i-1)=ma%q%x(i)
+      enddo
+    elseif(k/=-1) then
+      do i=ind_spin(1,1)+4,size_tree
+        m(i)=0.0_dp
+      enddo
+    endif
+else
     call c_full_norm_spin(Ma%s,k,norm)
 
     if(k==-1) then
@@ -10145,6 +10160,13 @@ endif
         m(ind_spin(i,i))=1.0e0_dp
       enddo
     endif
+endif
+
+ 
+
+  
+
+
 
       js=0
      js(1)=1;js(3)=1;js(5)=1; ! q_i(q_f,p_i) and p_f(q_f,p_i)
@@ -10164,6 +10186,7 @@ endif
      do i=1,6
       mg(i)=ms%v(i) 
      enddo
+    
      do i=1,3
      do j=1,3
        mg(ind_spin(i,j))=ms%v(2*i-1).d.(2*j-1)  !   Jacobian for Newton search
@@ -10180,10 +10203,12 @@ endif
 
      if(fact) then
       t(3)%rad=ma
+       t(3)%factored=.true.
      else
        do i=1,6
         t(3)%rad(i,i)=1.0_dp
        enddo
+       t(3)%factored=.false.
      endif
 
        mat=ma**(-1)
@@ -10204,7 +10229,7 @@ write(mf,'(3(1X,i8))') t%N,t%NP,t%no
 do i=1,t%n
  write(mf,'(1X,G20.13,1x,i8,1x,i8)')  t%cc(i),t%jl(i),t%jv(i)
 enddo
-write(mf,'(2(1X,L1))') t%symptrack,t%usenonsymp
+write(mf,'(2(1X,L1))') t%symptrack,t%usenonsymp,t%factored
 write(mf,'(18(1X,G20.13))') t%fix0,t%fix,t%fixr
 do i=1,6
  write(mf,'(6(1X,G20.13))') t%e_ij(i,1:6)
@@ -10239,7 +10264,7 @@ integer i,mf
 do i=1,t%n
  read(mf,*)  t%cc(i),t%jl(i),t%jv(i)
 enddo
-read(mf,*) t%symptrack,t%usenonsymp
+read(mf,*) t%symptrack,t%usenonsymp,t%factored
 read(mf,'(18(1X,G20.13))') t%fix0,t%fix,t%fixr
 do i=1,6
  read(mf,*) t%e_ij(i,1:6)
@@ -10263,21 +10288,25 @@ integer i,mf
 
 end subroutine read_tree_elements
 
-  SUBROUTINE track_TREE_probe_complexr(T,xs,dofix0,dofix,sta,jump)
+  SUBROUTINE track_TREE_probe_complexr(T,xs,dofix0,dofix,sta,jump,all_map)
     use da_arrays
     IMPLICIT NONE
     TYPE(TREE_ELEMENT), INTENT(IN) :: T(:)
-    logical, optional :: jump
+    logical, optional :: jump,all_map
     type(probe) xs
     real(dp) x(size_tree),x0(size_tree),s0(3,3),r(3,3),dx6,beta,q(3),p(3),qg(3),qf(3)
     real(dp) normb,norm 
+    type(quaternion)qu
     integer i,j,k,ier,nrmax,is
     type(internal_state) sta
-    logical dofix0,dofix,doit,jumpnot
+    logical dofix0,dofix,doit,jumpnot,allmap
+
     jumpnot=.true.
     if(present(jump)) jumpnot=.not.jump
 
  
+    allmap=.true.
+    if(present(all_map)) allmap=all_map
 
     nrmax=1000
     doit=.true.
@@ -10379,7 +10408,7 @@ do is=1,nrmax
        x(4)=x0(4)
        x(6)=x0(6)       
 
-       x(1:6)=matmul(t(3)%rad,x(1:6))
+       if(allmap) x(1:6)=matmul(t(3)%rad,x(1:6))
        exit
      endif
      normb=norm
@@ -10395,7 +10424,17 @@ enddo  ! is
 
 if(jumpnot) then
     if(sta%spin) then  ! spin
+ 
     call track_TREE_G_complex(T(2),X(7:15))
+ 
+     if(xs%use_q) then
+       do k=1,4
+         qu%x(k)=x(6+k)
+       enddo 
+ 
+       xs%q=qu*xs%q
+       xs%q%x=xs%q%x/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(4)**2)
+     else
     s0=0.0e0_dp
  
     do i=1,3
@@ -10421,6 +10460,8 @@ if(jumpnot) then
        xs%s(k)%x(j)=s0(k,j)
      enddo
     enddo   
+
+endif
     endif ! spin
 
 
@@ -10498,10 +10539,11 @@ SUBROUTINE track_TREE_probe_complexp_new(T,xs,dofix0,dofix,sta)
     TYPE(TREE_ELEMENT), INTENT(IN) :: T(:)
     type(probe_8) xs
     type(probe) xs0
-    type(real_8) x(size_tree),x0(size_tree),s0(3,3),r(3,3),dx6,beta
+    type(real_8) x(size_tree),x0(size_tree),s0(3,3),r(3,3),dx6,beta,ds
     real(dp) m(6,6),xi(6),norm,z0(6)
     type(damap) dm,md,iq
     type(c_damap) m0,mt
+    type(quaternion_8) qu
     integer i,j,k,o
     type(internal_state) sta
     logical dofix0,dofix
@@ -10595,8 +10637,8 @@ SUBROUTINE track_TREE_probe_complexp_new(T,xs,dofix0,dofix,sta)
       xs0%x(i)=x0(i)
       xi(i)=x0(i)
      enddo
-
-      call  track_TREE_probe_complexr(T,xs0,.false.,.false.,sta,jump=.true.)
+ 
+      call  track_TREE_probe_complexr(T,xs0,.false.,.false.,sta,jump=.true.,all_map=.not.t(3)%factored)
 
 !!! compute map  for speed up
      norm=0.d0
@@ -10605,42 +10647,44 @@ SUBROUTINE track_TREE_probe_complexp_new(T,xs,dofix0,dofix,sta)
      enddo
 !     write(6,*) "norm = ",norm
      if(norm>0) then
-     call alloc(dm,md,iq)
-     allocate(js(c_%nd2))
-      do i=1,3   !c_%nd
-       xi(2*i-1)=xs0%x(2*i-1)
-      enddo
+       call alloc(dm,md,iq)
+       allocate(js(c_%nd2))
+              do i=1,3   !c_%nd
+               xi(2*i-1)=xs0%x(2*i-1)
+              enddo
 
-      do i=1,c_%nd2
-      x0(i)=xi(i)+(1.0_dp.mono.i)
-      enddo
-      if(c_%nd2==4.and.C_%NPARA==5) then
-     !  x0(5)=xi(5)+(1.0_dp.mono.5)
-       x0(6)=0.0_dp !xi(6)
-      elseif(C_%NPARA==4) then
-       x0(5)=xi(5)
-       x0(6)=0.0_dp !xi(6)       
-      endif
+              do i=1,c_%nd2
+              x0(i)=xi(i)+(1.0_dp.mono.i)
+              enddo
+
+              if(c_%nd2==4.and.C_%NPARA==5) then
+             !  x0(5)=xi(5)+(1.0_dp.mono.5)
+               x0(6)=0.0_dp !xi(6)
+              elseif(C_%NPARA==4) then
+               x0(5)=xi(5)
+               x0(6)=0.0_dp !xi(6)       
+              endif
 
           call track_TREE_G_complex(T(3),X0(1:15))
        js=0
       do i=1,c_%nd2
-       if(mod(i,2)==1) js(i)=1
-       dm%v(i)=x0(i)-(x0(i).sub.'0') 
+          if(mod(i,2)==1) js(i)=1
+          dm%v(i)=x0(i)-(x0(i).sub.'0') 
       enddo
-       dm=dm**(js)
+        dm=dm**(js)
         do i=1,c_%nd2
           md%v(i)=x(i)-(x(i).sub.'0') 
         enddo 
-      if(c_%nd2==4) then
-        do i=1,c_%nd
-          iq%v(2*i-1)=dm%v(2*i-1) 
-          iq%v(2*i)=1.0_dp.mono.(2*i)
-        enddo 
-        x0(6)=x0(6)*iq  ! partial invertion undone
-        x0(6)=x0(6)*md  ! previous line concatenated
-       endif
+          if(c_%nd2==4) then
+            do i=1,c_%nd
+              iq%v(2*i-1)=dm%v(2*i-1) 
+              iq%v(2*i)=1.0_dp.mono.(2*i)
+            enddo 
+            x0(6)=x0(6)*iq  ! partial invertion undone
+            x0(6)=x0(6)*md  ! previous line concatenated
+          endif
           md=dm*md
+
         do i=1,c_%nd2
          x(i)=md%v(i)+xs0%x(i)
         enddo
@@ -10649,8 +10693,8 @@ SUBROUTINE track_TREE_probe_complexp_new(T,xs,dofix0,dofix,sta)
        x(6)=x0(6)+x(6)
       endif
 
-     call kill(dm,md,iq)
-     deallocate(js)
+        call kill(dm,md,iq)
+        deallocate(js)
      else
        do i=1,6  !c_%nd2
          x(i)=xs0%x(i)
@@ -10659,14 +10703,17 @@ SUBROUTINE track_TREE_probe_complexp_new(T,xs,dofix0,dofix,sta)
        do i=1,6
         x0(i)=0.0_dp
        enddo
+
        do i=1,6
         do j=1,6
-       x0(i)=t(3)%rad(i,j)*x(j)+x0(i)
+       x0(i)=t(3)%rad(i,j)*x(j)+x0(i)  
        enddo
       enddo
+
         do i=1,6
          x(i)=x0(i)
         enddo
+
      else
        call track_TREE_G_complex(T(1),X(1:6))
      endif
@@ -10679,7 +10726,22 @@ SUBROUTINE track_TREE_probe_complexp_new(T,xs,dofix0,dofix,sta)
  
     if(sta%spin) then  ! spin
     call track_TREE_G_complex(T(2),X(7:15))
+      if(xs%use_q) then
+call alloc(qu)
+call alloc(ds)
+       do k=1,4
+         qu%x(k)=x(6+k)
+       enddo 
  
+       xs%q=qu*xs%q
+        ds=1.0_dp/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(4)**2)
+            xs%q%x(1)=ds*xs%q%x(1)
+            xs%q%x(2)=ds*xs%q%x(2)
+            xs%q%x(3)=ds*xs%q%x(3)
+            xs%q%x(4)=ds*xs%q%x(4)
+call KILL(qu)
+call KILL(ds)
+   else
 
     do i=1,3
     do j=1,3
@@ -10703,7 +10765,7 @@ SUBROUTINE track_TREE_probe_complexp_new(T,xs,dofix0,dofix,sta)
      enddo
     enddo   
 endif ! spin
-
+endif
 
 
     if(dofix) then
@@ -10734,6 +10796,7 @@ endif ! spin
         x(6)=x(6)+t(1)%ds/t(1)%beta0 
        endif     
     endif
+
 
     do i=1,6
       xs%x(i)=x(i)

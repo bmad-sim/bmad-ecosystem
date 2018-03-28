@@ -3206,6 +3206,7 @@ call kill(vm,phi,z)
         CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
         call PUSH_SPIN(c,ds,FAC,XS,my_false,k,C%POS_IN_FIBRE-2)
        elseif(doonemap) then
+ 
           if(C%POS_IN_FIBRE-2==1) then 
                      dofix0=.true.;dofix=.true.
            call track_TREE_probe_complex(arbre,xs,dofix0,dofix,k)  
@@ -3228,13 +3229,15 @@ call kill(vm,phi,z)
           if(k%spin) then
  
                  CALL TRACK_SPIN_FRONT(C%PARENT_FIBRE,XS)
- 
+           xs%q%x=xs%q%x/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(4)**2)
+
           endif
        ELSEif(c%cas==caseP2) THEN
           if(k%spin) then
  
                  CALL TRACK_SPIN_BACK(C%PARENT_FIBRE,XS)
- 
+           xs%q%x=xs%q%x/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(4)**2)
+
            endif
           CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
      ENDIF
@@ -3270,6 +3273,7 @@ call kill(vm,phi,z)
           CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
        ELSEif(c%cas==caseP2) THEN
           CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
+
      ENDIF
 
     endif
@@ -3364,7 +3368,9 @@ endif ! full_way
 
           if(C%POS_IN_FIBRE-2==1) then 
                      dofix0=.true.;dofix=.true.
+ 
            call track_TREE_probe_complex(arbre,xs,dofix0,dofix,k)  
+ 
           endif
        else
           dofix0=.false.;dofix=.false.
@@ -3390,13 +3396,25 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
           if(k%spin) then
  
                  CALL TRACK_SPIN_FRONT(C%PARENT_FIBRE,XS)
- 
+                      ds=1.0_dp/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(4)**2)
+
+           xs%q%x(1)=xs%q%x(1)*ds
+           xs%q%x(2)=xs%q%x(2)*ds
+           xs%q%x(3)=xs%q%x(3)*ds
+           xs%q%x(4)=xs%q%x(4)*ds
+
+
           endif
        ELSEif(c%cas==caseP2) THEN
           if(k%spin) then
   
                  CALL TRACK_SPIN_BACK(C%PARENT_FIBRE,XS)
- 
+                      ds=1.0_dp/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(4)**2)
+
+           xs%q%x(1)=xs%q%x(1)*ds
+           xs%q%x(2)=xs%q%x(2)*ds
+           xs%q%x(3)=xs%q%x(3)*ds
+           xs%q%x(4)=xs%q%x(4)*ds
            endif
           CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
      ENDIF
@@ -5232,8 +5250,8 @@ if(.not.associated(f%parent_layout%t)) then
  stop
 else
  t=>f%parent_layout%t
- t1c=>f%t1 !%next
- t2c=>f%t2%next
+ t1c=>f%t1%next
+ t2c=>f%t2   !%next
 endif
 
 ! Classical radiation with stochastic envelope
@@ -5304,8 +5322,11 @@ call alloc(xs);call alloc(m)
 
 
 xs0=fix0
+ 
 m=1
 xs=xs0+m
+ 
+
 call propagate(xs,state,node1=t1c,node2=t2c)
  
 
@@ -5333,7 +5354,7 @@ if(f%dir==1) then
  else
   call KILL(f%mag%forward)
  endif
-
+ 
 call SET_TREE_G_complex(f%mag%forward,m,fact)
  f%mag%do1mapf=onemap
  f%mag%usef=.true.

@@ -280,7 +280,7 @@ END TYPE quaternion_8
      real(dp), pointer :: e_ij(:,:)
      real(dp), pointer :: rad(:,:)
      real(dp), pointer :: ds,beta0,eps
-     logical, pointer :: symptrack,usenonsymp
+     logical, pointer :: symptrack,usenonsymp,factored
   end  type tree_element
   !@3 ---------------------------------------------</br>
  
