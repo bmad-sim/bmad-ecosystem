@@ -9,6 +9,7 @@ implicit none
 type (lat_struct), target :: lat, lat2
 type (ele_struct), pointer :: ele, nele
 type (ele_struct) a_ele
+type (ele_pointer_struct), allocatable :: eles(:)
 type (coord_struct) orb
 type (control_struct), pointer :: ctl
 
@@ -16,8 +17,8 @@ character(40) :: lat_file  = 'bookkeeper_test.bmad'
 character(100) str
 
 real(rp), allocatable :: save(:)
-integer :: i, j, k, nargs
-logical print_extra
+integer :: i, j, k, nargs, n_loc
+logical print_extra, err
 
 !
 
@@ -164,6 +165,11 @@ write (1, '(3a)') '"Aperture-6"   STR "', trim(coord_state_name(orb%state)), '"'
 orb%vec = [-1.1_rp, 0.0_rp, -0.1_rp, 0.0_rp, 0.0_rp, 0.0_rp]
 call check_aperture_limit (orb, a_ele, second_track_edge$, lat%param)
 write (1, '(3a)') '"Aperture-7"   STR "', trim(coord_state_name(orb%state)), '"' 
+
+!
+
+call lat_ele_locator ('quad::*', lat, eles, n_loc, err)
+write (1, '(a, i4)') '"N_Quad_Loc" ABS 0', n_loc
 
 close(1)
 
