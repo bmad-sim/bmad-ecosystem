@@ -21,6 +21,8 @@ subroutine transfer_lat (lat1, lat2)
 
 use bmad_struct
 
+implicit none
+
 type (lat_struct), intent(in) :: lat1
 type (lat_struct), intent(out) :: lat2
 

@@ -21,6 +21,8 @@ subroutine transfer_eles (ele1, ele2)
 
 use bmad_struct
 
+implicit none
+
 type (ele_struct), intent(inout) :: ele1(:)
 type (ele_struct), intent(inout) :: ele2(:)
 

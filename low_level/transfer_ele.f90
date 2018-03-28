@@ -25,6 +25,8 @@ subroutine transfer_ele (ele1, ele2, nullify_pointers)
 
 use bmad_routine_interface, dummy => transfer_ele
 
+implicit none
+
 type (ele_struct), target :: ele1
 type (ele_struct) :: ele2
 logical, optional :: nullify_pointers

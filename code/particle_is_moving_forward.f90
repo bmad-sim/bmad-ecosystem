@@ -18,6 +18,8 @@ function particle_is_moving_forward (orbit) result (is_moving_forward)
 
 use bmad_struct
 
+implicit none
+
 type (coord_struct) orbit
 logical is_moving_forward
 
