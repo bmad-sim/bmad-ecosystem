@@ -296,7 +296,7 @@ else
     out_str = ' ??:'
     select case(o_type)
     case ('')
-      write (out_str, '(i3)') i, ':'
+      write (out_str, '(i3, a)') i, ':'
     case ('PHASE')
       if (i <=6) out_str = ' ' // phase_out(i) // ':'
     case ('SPIN')
