@@ -73,7 +73,6 @@ subroutine offset_particle (ele, param, set, orbit, set_tilt, set_hvkicks, drift
 
 use geometry_mod, except_dummy => offset_particle
 use spin_mod, only: rotate_spin, rotate_spin_given_field 
-use rotation_3d_mod
 
 implicit none
 

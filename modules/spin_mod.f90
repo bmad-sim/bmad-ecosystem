@@ -1,7 +1,6 @@
 module spin_mod
 
 use em_field_mod
-use rotation_3d_mod
 
 ! Pauli matrices
 

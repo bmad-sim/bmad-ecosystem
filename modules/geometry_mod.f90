@@ -1,7 +1,6 @@
 module geometry_mod
 
 use multipass_mod
-use rotation_3d_mod
 
 implicit none
 
