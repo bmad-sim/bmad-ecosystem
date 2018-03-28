@@ -17,6 +17,8 @@ function ele_to_lat_loc (ele) result (ele_loc)
 
 use bmad_struct
 
+implicit none
+
 type (ele_struct) ele
 type (lat_ele_loc_struct) ele_loc
 

@@ -21,6 +21,8 @@ subroutine transfer_branches (branch1, branch2)
 
 use bmad_struct
 
+implicit none
+
 type (branch_struct) :: branch1(:)
 type (branch_struct) :: branch2(:)
 
