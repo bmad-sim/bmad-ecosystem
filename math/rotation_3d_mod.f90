@@ -1,6 +1,7 @@
 module rotation_3d_mod
 
-use sim_utils
+use sim_utils_interface
+use output_mod
 
 implicit none
 
@@ -15,7 +16,7 @@ contains
 ! Routine to find the rotation axis and rotation angle corresponding  to a given
 ! 3D rotation matrix.
 !
-! The rotation axis is choisen to have a non-negative dot production with the
+! The rotation axis is chosen to have a non-negative dot product with the
 ! vector (1, 1, 1).
 !
 ! The rotation angle is chosen in the range [-pi, pi].

@@ -12,6 +12,7 @@ module sim_utils
   use physical_constants
   use particle_species_mod
   use sign_of_mod
+  use rotation_3d_mod
 
   ! This is to suppress the ranlib "has no symbols" message
   integer, private :: private_dummy
