@@ -9,8 +9,7 @@
 
 subroutine tao_data_check (err)
 
-use bmad_struct
-use tao_interface
+use tao_interface, dummy => tao_data_check
 
 implicit none
 

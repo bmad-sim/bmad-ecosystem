@@ -22,9 +22,7 @@
 
 function tao_datum_name(datum, show_universe) result (datum_name)
 
-use bmad_struct
-use tao_struct
-use tao_interface
+use tao_interface, dummy => tao_datum_name
 
 implicit none
 

@@ -21,8 +21,7 @@
 
 subroutine tao_ele_to_ele_track (ix_universe, ix_branch, ix_ele, ix_ele_track)
 
-use bmad_struct
-use tao_interface
+use tao_interface, dummy => tao_ele_to_ele_track
 
 implicit none
 
