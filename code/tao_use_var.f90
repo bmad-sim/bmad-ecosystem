@@ -10,7 +10,7 @@
 
 subroutine tao_use_var (action, var_name)
 
-use tao_mod, dummy => tao_use_var
+use tao_interface, dummy => tao_use_var
 
 implicit none
 

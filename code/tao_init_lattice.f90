@@ -13,7 +13,7 @@
 
 subroutine tao_init_lattice (input_file_name)
 
-use tao_mod, except => tao_init_lattice
+use tao_interface, except => tao_init_lattice
 use tao_input_struct
 use ptc_interface_mod
 

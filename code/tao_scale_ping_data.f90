@@ -1,6 +1,6 @@
 subroutine tao_scale_ping_data(u)
 
-use tao_mod, except_dummy => tao_scale_ping_data
+use tao_interface, except_dummy => tao_scale_ping_data
 
 implicit none
 

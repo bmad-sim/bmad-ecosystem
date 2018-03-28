@@ -9,7 +9,7 @@
 
 subroutine tao_write_cmd (what)
 
-use tao_mod, dummy => tao_write_cmd
+use tao_interface, dummy => tao_write_cmd
 use tao_command_mod, only: tao_cmd_split, tao_next_switch
 use tao_plot_mod, only: tao_draw_plots
 use tao_top10_mod, only: tao_var_write

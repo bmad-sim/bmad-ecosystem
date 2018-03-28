@@ -10,7 +10,7 @@
 
 subroutine tao_read_cmd (who, file_name)
 
-use tao_mod, dummy => tao_read_cmd
+use tao_interface, dummy => tao_read_cmd
 use madx_ptc_module, only: m_u, m_t, read_universe_pointed
 
 implicit none

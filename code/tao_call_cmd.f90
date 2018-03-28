@@ -15,7 +15,7 @@
 
 subroutine tao_call_cmd (file_name, cmd_arg)
 
-use tao_mod, dummy => tao_call_cmd
+use tao_interface, dummy => tao_call_cmd
 
 implicit none
 

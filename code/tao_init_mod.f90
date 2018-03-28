@@ -1,6 +1,6 @@
 module tao_init_mod
 
-use tao_mod
+use tao_interface
  
 implicit none
 

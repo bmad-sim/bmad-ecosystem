@@ -1,6 +1,6 @@
 module tao_get_user_input_mod
 
-use tao_mod
+use tao_interface
 use input_mod
 
 character(5), parameter, private :: sub_str(9) = ['[[1]]', '[[2]]', '[[3]]', '[[4]]', '[[5]]', &

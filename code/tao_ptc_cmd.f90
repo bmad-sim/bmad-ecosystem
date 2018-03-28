@@ -9,7 +9,7 @@
 
 subroutine tao_ptc_cmd (what, input_str)
 
-use tao_mod
+use tao_interface
 use ptc_layout_mod
 
 implicit none

@@ -13,7 +13,6 @@ use iso_c_binding
 use equal_mod
 use quick_plot_struct
 use dynamic_aperture_mod
-use tao_parameters
 
 integer, parameter :: model$ = 1, base$ = 2, design$ = 3
 integer, parameter :: ix_common_uni$ = 0

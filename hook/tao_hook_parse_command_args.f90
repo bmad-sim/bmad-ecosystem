@@ -10,7 +10,7 @@
 
 subroutine tao_hook_parse_command_args ()
 
-use tao_mod, dummy => tao_hook_parse_command_args
+use tao_interface, dummy => tao_hook_parse_command_args
 
 implicit none
 

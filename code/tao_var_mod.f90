@@ -1,6 +1,6 @@
 module tao_var_mod
 
-use tao_mod
+use tao_interface
 use input_mod
 
 contains

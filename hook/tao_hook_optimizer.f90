@@ -10,7 +10,7 @@
 
 subroutine tao_hook_optimizer (abort)
 
-use tao_mod, dummy => tao_hook_optimizer
+use tao_interface, dummy => tao_hook_optimizer
 
 implicit none
 

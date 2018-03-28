@@ -15,7 +15,7 @@
 
 function tao_data_sanity_check (datum, print_err) result (is_valid)
 
-use tao_utils, dummy => tao_data_sanity_check
+use tao_interface, dummy => tao_data_sanity_check
 
 implicit none
 

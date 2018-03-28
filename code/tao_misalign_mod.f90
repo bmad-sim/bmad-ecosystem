@@ -1,6 +1,5 @@
 module tao_misalign_mod
 
-use tao_mod
 use tao_data_and_eval_mod
 
 type (ele_struct), target, save :: zero_ele
@@ -53,6 +52,8 @@ contains
 subroutine tao_misalign (wrt, ele_type, where, ele_attrib, misalign_value)
 
 use random_mod
+use attribute_mod, only: attribute_free
+use bookkeeper_mod, only: set_flags_for_changed_attribute
 
 implicit none
 

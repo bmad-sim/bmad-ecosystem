@@ -1,8 +1,9 @@
 module tao_plot_mod
 
-use tao_mod
 use quick_plot
 use tao_plot_window_mod
+use geometry_mod, only: coords_local_curvilinear_to_floor
+use attribute_mod, only: attribute_index
 
 contains
 
@@ -513,6 +514,8 @@ end subroutine tao_draw_floor_plan
 !-
 
 recursive subroutine tao_draw_ele_for_floor_plan (plot, graph, ix_uni, lat, ele, dat_var_name, dat_var_value, ele_shape)
+
+use geometry_mod, only: floor_angles_to_w_mat, ele_geometry
 
 implicit none
 
@@ -1425,6 +1428,8 @@ end subroutine tao_draw_lat_layout
 !-
 
 subroutine tao_draw_beam_chamber_wall (plot, graph)
+
+use wall3d_mod, only: calc_wall_radius
 
 implicit none
 

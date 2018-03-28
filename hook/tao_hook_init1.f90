@@ -9,7 +9,7 @@
 
 subroutine tao_hook_init1 (init_file_name)
 
-use tao_mod, dummy => tao_hook_init1
+use tao_interface, dummy => tao_hook_init1
 
 implicit none
 

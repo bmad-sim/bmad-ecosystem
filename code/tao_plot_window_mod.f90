@@ -1,6 +1,6 @@
 module tao_plot_window_mod
 
-use tao_mod
+use tao_interface
 use quick_plot
 
 logical :: has_been_created = .false.

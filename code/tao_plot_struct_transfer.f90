@@ -13,7 +13,7 @@
 
 subroutine tao_plot_struct_transfer (plot_in, plot_out)
 
-use tao_utils, dummy => tao_plot_struct_transfer
+use tao_interface, dummy => tao_plot_struct_transfer
 
 implicit none
 

@@ -16,7 +16,7 @@
 
 subroutine tao_limit_calc (limited)
 
-use tao_mod, dummy => tao_limit_calc
+use tao_interface, dummy => tao_limit_calc
 
 implicit none
 

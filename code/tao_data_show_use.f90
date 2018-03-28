@@ -9,7 +9,7 @@
 
 subroutine tao_data_show_use (d2_data, lines, nl)
 
-use tao_mod, dummy => tao_data_show_use
+use tao_interface, dummy => tao_data_show_use
 use location_encode_mod
 
 implicit none

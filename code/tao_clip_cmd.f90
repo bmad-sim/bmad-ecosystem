@@ -21,7 +21,7 @@
 
 subroutine tao_clip_cmd (gang, where, y_min, y_max)
 
-use tao_mod, dummy => tao_clip_cmd
+use tao_interface, dummy => tao_clip_cmd
 
 implicit none
 

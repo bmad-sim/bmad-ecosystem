@@ -1,7 +1,7 @@
 module tao_command_mod
 
 use output_mod
-use tao_mod
+use tao_interface
 
 contains
 

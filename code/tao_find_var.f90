@@ -40,7 +40,7 @@
 subroutine tao_find_var (err, var_name, v1_array, v_array, re_array, log_array, &
                            str_array, print_err, component, dflt_var_index)
 
-use tao_mod, except_dummy => tao_find_var
+use tao_interface, except_dummy => tao_find_var
 
 implicit none
 
