@@ -33,6 +33,8 @@ function tao_read_this_index (name, ixc) result (ix)
 
 use bmad_struct
 
+implicit none
+
 character(*) name
 integer ix, ixc
 character(20) :: r_name = 'tao_read_this_index'

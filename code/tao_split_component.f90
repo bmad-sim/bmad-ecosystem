@@ -16,8 +16,9 @@
 
 subroutine tao_split_component (comp_str, comp, err)
 
-use bmad_struct
 use tao_struct
+
+implicit none
 
 type (tao_data_var_component_struct), allocatable :: comp(:)
 
