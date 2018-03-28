@@ -4,8 +4,7 @@
 
 subroutine tao_key_info_to_str (ix_key, ix_min_key, ix_max_key, key_str, header_str)
 
-use bmad_struct
-use tao_interface
+use tao_interface, dummy => tao_key_info_to_str
 
 implicit none
 

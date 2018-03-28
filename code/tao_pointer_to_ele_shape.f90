@@ -23,8 +23,7 @@
 
 function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var_value, ix_shape) result (e_shape)
 
-use bmad_struct
-use tao_interface
+use tao_interface, dummy => tao_pointer_to_ele_shape
 
 implicit none
 

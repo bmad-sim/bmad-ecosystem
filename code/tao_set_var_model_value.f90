@@ -18,8 +18,8 @@
 
 subroutine tao_set_var_model_value (var, value, print_limit_warning)
 
-use bmad
-use tao_interface
+use tao_interface, dummy => tao_set_var_model_value
+use bookkeeper_mod, only: set_flags_for_changed_attribute
 
 implicit none
 
