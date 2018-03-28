@@ -16,6 +16,8 @@
 
 function is_integer (string) result (valid)
 
+implicit none
+
 character(*) string
 integer i, i1
 logical valid
