@@ -120,3 +120,4 @@
 "Aperture-5"   STR "Hit -Y Side"
 "Aperture-6"   STR "Hit +Y Side"
 "Aperture-7"   STR "Hit -X Side"
+"N_Quad_Loc" ABS 0   9
