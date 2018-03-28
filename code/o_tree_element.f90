@@ -314,6 +314,7 @@ CONTAINS
     U%eps=T%eps
     U%symptrack=T%symptrack
     U%usenonsymp=T%usenonsymp
+    U%factored=T%factored
 
   END SUBROUTINE COPY_TREE
 
@@ -350,7 +351,7 @@ CONTAINS
 
     ALLOCATE(T%CC(N),T%fix0(6),T%fix(6),T%fixr(6),T%JL(N),T%JV(N),T%N,T%ds,T%beta0,T%np,T%no, & 
   !  t%e_ij(c_%nd2,c_%nd2),T%rad(c_%nd2,c_%nd2),t%usenonsymp, t%symptrack, t%eps)  !,t%file)
-     t%e_ij(6,6),T%rad(6,6),t%usenonsymp, t%symptrack, t%eps)  !,t%file)
+     t%e_ij(6,6),T%rad(6,6),t%usenonsymp, t%symptrack, t%eps,t%factored)  !,t%file)
     t%cc=0
     t%jl=0
     t%jv=0
@@ -371,6 +372,7 @@ CONTAINS
     t%eps=1.d-7
     t%symptrack=.false.
     t%usenonsymp=.false.
+    t%factored=.false.
 
   END SUBROUTINE ALLOC_TREE
 
@@ -529,7 +531,7 @@ CONTAINS
 
 
      IF(ASSOCIATED(T%CC))DEALLOCATE(T%CC,T%fix0,T%fix,T%fixr,t%ds,t%beta0,T%JL,T%JV,T%N,T%NP, &
-    T%No,t%e_ij,t%rad,t%eps,t%symptrack,t%usenonsymp)  !,t%file)
+    T%No,t%e_ij,t%rad,t%eps,t%symptrack,t%usenonsymp,t%factored)  !,t%file)
 
 
   END SUBROUTINE KILL_TREE
@@ -819,6 +821,7 @@ CONTAINS
     enddo
 ! quaternion
     p%q=1.0_dp
+    p%use_q=use_quaternion
     P%X=X
     P%ac%t=0.0_dp
     p%nac=n_rf
@@ -845,6 +848,7 @@ CONTAINS
     DO I=1,6
        P%X(i)=X(i)
     enddo
+    p%use_q=use_quaternion
     p%nac=n_rf
     P%AC%X(1)=0.0_dp
     P%AC%X(2)=0.0_dp
@@ -879,7 +883,7 @@ CONTAINS
     P8%AC(i)=P%AC(i)
     enddo
     P8%u=P%u
-
+    p8%use_q=P%use_q
     P8%e=P%e
 
 
@@ -960,6 +964,8 @@ CONTAINS
     P8%e=P%e
     P8%u=P%u
     P8%e_ij=0.0_dp
+    p8%use_q=P%use_q
+
   END subroutine EQUAL_PROBE8_PROBE
 
   subroutine EQUAL_PROBE_PROBE8 (P,P8)
@@ -978,6 +984,8 @@ CONTAINS
     P%e=P8%e
 ! quaternion
     P%q=P8%q
+    p%use_q=P8%use_q
+
 !!!new 2018.1.4
     p%nac=P8%nac
     do I=1,P8%nac
@@ -1001,6 +1009,7 @@ CONTAINS
     P%e=P8%e
 ! quaternion
     P%q=P8%q
+    p%use_q=P8%use_q
 !!!new 2018.1.4
     p%nac=P8%nac
     do I=1,P8%nac

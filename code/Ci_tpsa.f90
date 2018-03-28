@@ -735,7 +735,7 @@ end subroutine c_get_indices
     scdadd%u=my_false
     scdadd%E_ij=0.0_dp
     scdadd%nac=s2%nac
-      
+    scdadd%use_q=s2%use_q  
     if(doing_ac_modulation_in_ptc) then
        dc=2*rf
     else
@@ -847,6 +847,9 @@ enddo
     daddsc%u=my_false
     daddsc%E_ij=0.0_dp
     daddsc%nac=s2%nac
+
+    daddsc%nac=s2%nac
+    daddsc%use_q=s2%use_q
     if(doing_ac_modulation_in_ptc) then
        dc=2*rf
     else
@@ -3259,7 +3262,7 @@ FUNCTION cpbbra( S1, S2 )
     INTEGER I,J
     integer localmaster
     IF(.NOT.C_STABLE_DA) then
-     GETORDERquaternion%x(i)%i=0
+     GETORDERquaternion%x(1)%i=0
      RETURN
     endif
     localmaster=c_master
@@ -3633,7 +3636,7 @@ FUNCTION cpbbra( S1, S2 )
     INTEGER, INTENT (IN) ::  S2
     integer localmaster,I,j
     IF(.NOT.C_STABLE_DA) then
-     CUTORDERquaternion%x(i)=0
+     CUTORDERquaternion%x(1)=0
      RETURN
     endif
     localmaster=c_master
@@ -8825,12 +8828,12 @@ SUBROUTINE  c_EQUALcray(S2,S1)
      do i=1,s2%n
       s2%v(i)=1.0_dp.cmono.i
      enddo
-     s2%s=1
+!     s2%s=1
     elseIF(S1.EQ.0)  then
      do i=1,s2%n
       s2%v(i)=(0.0_dp,0.0_dp)
      enddo
-     s2%s=0
+!     s2%s=0
    endif
 
      s2%e_ij=0.0_dp
@@ -10622,7 +10625,8 @@ end subroutine c_full_factorise
             write(mkers,*) " **************************************** " 
             write(mkers,*) "Order ",i
           endif
-          
+  
+        
           mt=m1*ri !  S*exp(-theta_0 L_y)    (5)
 
 n0=mt%q
@@ -10695,7 +10699,7 @@ qnr=nr
 
 
 !        AS=1 ; AS%s=exp(nr)*AS%s         ! (11)
-        AS=1 ; AS%q=exp(qnr)*AS%q         ! (11)
+        AS=1 ; AS%q=exp(qnr)   !*AS%q         ! (11)
 
         n%AS=n%AS*AS             ! (12)
  
@@ -16483,7 +16487,7 @@ enddo
         else
          i=ndptb/2
         endif
-       phase(i)=phase(i)+b(ndptb,ndpt)
+if(present(phase))       phase(i)=phase(i)+b(ndptb,ndpt)
 
       endif
 
