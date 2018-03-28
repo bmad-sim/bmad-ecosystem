@@ -78,7 +78,7 @@ call ele_to_fibre (ele, fibre_ele, param, .true., track_particle = start_orb)
 stm = ele%spin_tracking_method
 if (bmad_com%spin_tracking_on .and. (stm == tracking$ .or. stm == symp_lie_ptc$) .or. present(track)) then
   ptc_probe = re
-  ptc_probe%s(1)%x = real(start_orb%spin, dp)
+  ptc_probe%q%x = [1, 0, 0, 0]
 
   if (present(track)) then
     ptc_track => fibre_ele%t1
@@ -97,7 +97,7 @@ if (bmad_com%spin_tracking_on .and. (stm == tracking$ .or. stm == symp_lie_ptc$)
     call track_probe (ptc_probe, STATE, fibre1 = fibre_ele)
   endif
 
-  end_orb%spin = ptc_probe%s(1)%x
+  end_orb%spin = rotate_vec_given_quat(start2_orb%spin, ptc_probe%q%x)
   re = ptc_probe%x
 
 else
@@ -148,7 +148,7 @@ re = ptc_probe%x
 re(5) = 1e9 * ptc_probe%E / end_orb%p0c       ! ptc_probe%E = Delta E in Gev
 call vec_ptc_to_bmad (re, beta1, orbit%vec)
 orbit%s = ptc_track%s(1) + ele%s_start
-orbit%spin = ptc_probe%s(1)%x
+orbit%spin = rotate_vec_given_quat(start2_orb%spin, ptc_probe%q%x)
 call save_a_step (track, ele, param, .false., orbit, ptc_track%s(1))
 
 end subroutine save_this_step
