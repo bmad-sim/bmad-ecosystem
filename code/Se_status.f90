@@ -10141,7 +10141,7 @@ if(use_quaternion) then
       do i=1,4
         m(ind_spin(1,1)+i-1)=ma%q%x(i)
       enddo
-    elseif(k/=-1) then
+    elseif(kq/=-1) then
       do i=ind_spin(1,1)+4,size_tree
         m(i)=0.0_dp
       enddo
