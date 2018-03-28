@@ -2,6 +2,8 @@ subroutine tao_abort_command_file
 
 use tao_struct
 
+implicit none
+
 integer i
 character(40) :: r_name = 'tao_abort_command_file'
 
