@@ -265,7 +265,7 @@ logical no_aperture_here
 
 !
 
-call rk_step1 (ele, param, old_orbit, dr_ds, old_s, ds, orbit, r_err, err_flag)
+call rk_step1 (ele, param, old_orbit, dr_ds, old_s, ds, orbit, r_err, err_flag, .true.)
 
 s_body = old_s + ds
 orbit%s = s_body + ele%s_start
@@ -322,12 +322,14 @@ ds = ds_try
 orb_new = orb
 
 do
-  call rk_step1 (ele, param, orb, dr_ds, s, ds, orb_new, r_err, err_flag)
+  call rk_step1 (ele, param, orb, dr_ds, s, ds, orb_new, r_err, err_flag, .false.)
   ! Can get errors due to step size too large. For example, for a field map that is only slightly larger than
   ! the aperture, a particle that is outside the aperture and outside of the fieldmap will generate an error.
   ! The solution is to just take a smaller step.
   if (err_flag) then
     if (ds < 1d-3) then
+      ! call rk_step1 to generate an error message.
+      call rk_step1 (ele, param, orb, dr_ds, s, ds, orb_new, r_err, err_flag, .true.)
       call out_io (s_error$, r_name, 'Problem with field calc. Tracked particle will be marked as dead.')
       orb%state = lost$
      return
@@ -388,7 +390,7 @@ end subroutine rk_adaptive_step
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine rk_step1 (ele, param, orb, dr_ds1, s, ds, orb_new, r_err, err)
+subroutine rk_step1 (ele, param, orb, dr_ds1, s, ds, orb_new, r_err, err, print_err)
 
 implicit none
 
@@ -414,32 +416,33 @@ real(rp), parameter :: a2=0.2_rp, a3=0.3_rp, a4=0.6_rp, &
 
 real(rp) quat(0:3)
 logical err
+logical, optional :: print_err
 
 !
 
-call kick_vector_calc (ele, param, s, orb, dr_ds1, err)
+call kick_vector_calc (ele, param, s, orb, dr_ds1, err, print_err)
 if (err) return
 
 !
 
 call transfer_this_orbit (orb, b21*ds*dr_ds1, orb_temp(1), .true.)
-call kick_vector_calc(ele, param, s + a2*ds, orb_temp(1), dr_ds2, err)
+call kick_vector_calc(ele, param, s + a2*ds, orb_temp(1), dr_ds2, err, print_err)
 if (err) return
 
 call transfer_this_orbit (orb, ds*(b31*dr_ds1 + b32*dr_ds2), orb_temp(2), .true.)
-call kick_vector_calc(ele, param, s + a3*ds, orb_temp(2), dr_ds3, err)
+call kick_vector_calc(ele, param, s + a3*ds, orb_temp(2), dr_ds3, err, print_err)
 if (err) return
 
 call transfer_this_orbit (orb, ds*(b41*dr_ds1 + b42*dr_ds2 + b43*dr_ds3), orb_temp(3), .true.)
-call kick_vector_calc(ele, param, s + a4*ds, orb_temp(3), dr_ds4, err)
+call kick_vector_calc(ele, param, s + a4*ds, orb_temp(3), dr_ds4, err, print_err)
 if (err) return
 
 call transfer_this_orbit (orb, ds*(b51*dr_ds1 + b52*dr_ds2 + b53*dr_ds3 + b54*dr_ds4), orb_temp(4), .true.)
-call kick_vector_calc(ele, param, s + a5*ds, orb_temp(4), dr_ds5, err)
+call kick_vector_calc(ele, param, s + a5*ds, orb_temp(4), dr_ds5, err, print_err)
 if (err) return
 
 call transfer_this_orbit (orb, ds*(b61*dr_ds1 + b62*dr_ds2 + b63*dr_ds3 + b64*dr_ds4 + b65*dr_ds5), orb_temp(5), .true.)
-call kick_vector_calc(ele, param, s + a6*ds, orb_temp(5), dr_ds6, err)
+call kick_vector_calc(ele, param, s + a6*ds, orb_temp(5), dr_ds6, err, print_err)
 if (err) return
 
 call transfer_this_orbit (orb, ds*(c1*dr_ds1 + c3*dr_ds3 + c4*dr_ds4 + c6*dr_ds6), orb_new, .false.)
@@ -481,7 +484,7 @@ end subroutine rk_step1
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine kick_vector_calc (ele, param, s_rel, orbit, dr_ds, field, err)
+! Subroutine kick_vector_calc (ele, param, s_rel, orbit, dr_ds, field, err, print_err)
 !
 ! Subroutine to calculate the dr/ds "kick vector" where
 !     r = [x, p_x, y, p_y, z, p_z, t, spin_x,y,z]
@@ -541,7 +544,7 @@ end subroutine rk_step1
 !   err         -- Logical: Set True if there is an error.
 !-
 
-subroutine kick_vector_calc (ele, param, s_body, orbit, dr_ds, err)
+subroutine kick_vector_calc (ele, param, s_body, orbit, dr_ds, err, print_err)
 
 implicit none
 
@@ -560,6 +563,7 @@ real(rp) e_tot, dt_ds_ref, p0, beta0, v2, pz_p0
 integer rel_dir
 
 logical :: err
+logical, optional :: print_err
 
 character(24), parameter :: r_name = 'kick_vector_calc'
 
@@ -591,15 +595,15 @@ if (ele%key == patch$) then
   ! Particle going towards an end uses the coordinate of that end.
   ! But the field is specified in the exit end coords so must transform if particle is traveling towards the entrance end.
   if (rel_dir == 1) then
-    call em_field_calc (ele, param, s_body, orbit, .true., field, .false., err)
+    call em_field_calc (ele, param, s_body, orbit, .true., field, .false., err, err_print_out_of_bounds = print_err)
   else
 !    call patch_transform_coords (orbit, orbit2, w_mat)
-    call em_field_calc (ele, param, s_body, orbit, .true., field, .false., err)
+    call em_field_calc (ele, param, s_body, orbit, .true., field, .false., err, err_print_out_of_bounds = print_err)
 !    call rotate_em_field (field, w, w, .false.)
   endif
 
 else
-  call em_field_calc (ele, param, s_body, orbit, .true., field, .false., err)
+  call em_field_calc (ele, param, s_body, orbit, .true., field, .false., err, err_print_out_of_bounds = print_err)
 endif
 
 if (err) return
