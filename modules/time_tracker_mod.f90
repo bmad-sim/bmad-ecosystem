@@ -278,7 +278,7 @@ logical err_flag
 call rk_time_step1 (ele, param, old_t, old_orb, old_z_phase, this_dt, orb, z_phase, vec_err, err_flag = err_flag)
 delta_s_target = s_body - s_fringe_edge
 rf_time = old_t + this_dt
-	
+  
 end function delta_s_target
 
 !------------------------------------------------------------------------------------------------
@@ -367,12 +367,14 @@ abs_scale = [1d-2, 1d-6*pc_ref, 1d-2, 1d-6*pc_ref, 1d-2, 1d-2*pc_ref, 1.0_rp, 1.
 
 do
 
-  call rk_time_step1 (ele, param, rf_time,  orb, z_phase, dt, new_orb, new_z_phase, r_err, dr_dt, err_flag)
+  call rk_time_step1 (ele, param, rf_time,  orb, z_phase, dt, new_orb, new_z_phase, r_err, dr_dt, err_flag, .false.)
   ! Can get errors due to step size too large. For example, for a field map that is only slightly larger than
   ! the aperture, a particle that is outside the aperture and outside of the fieldmap will generate an error.
   ! The solution is to just take a smaller step.
   if (err_flag) then
     if (dt * t_dir < 1d-3/c_light) then
+      ! Call rk_time_step1 to generate an error message.
+      call rk_time_step1 (ele, param, rf_time,  orb, z_phase, dt, new_orb, new_z_phase, r_err, dr_dt, err_flag, .true.)
       call out_io (s_fatal$, r_name, 'CANNOT COMPLETE TIME STEP. ABORTING.')
       if (global_com%exit_on_error) call err_exit
       return
@@ -444,7 +446,7 @@ end subroutine rk_adaptive_time_step
 ! Very similar to rk_step1_bmad, except that em_field_kick_vector_time is called
 !  and new_orb%s and %t are updated to the global values
 
-subroutine rk_time_step1 (ele, param, rf_time, orb, z_phase, dt, new_orb, new_z_phase, r_err, dr_dt, err_flag)
+subroutine rk_time_step1 (ele, param, rf_time, orb, z_phase, dt, new_orb, new_z_phase, r_err, dr_dt, err_flag, print_err)
 
 implicit none
 
@@ -472,13 +474,14 @@ real(rp), parameter :: a2=0.2_rp, a3=0.3_rp, a4=0.6_rp, &
 
 real(rp) quat(0:3)
 logical err_flag
+logical, optional :: print_err
 
 !
 
 if (present(dr_dt)) then
   dr_dt1 = dr_dt
 else
-  call em_field_kick_vector_time(ele, param, rf_time, orb, z_phase, dr_dt1, err_flag)
+  call em_field_kick_vector_time(ele, param, rf_time, orb, z_phase, dr_dt1, err_flag, print_err)
   if (err_flag) return
 endif
 
@@ -486,23 +489,23 @@ temp_orb = orb
 temp_z_phase = z_phase
 
 call transfer_this_orbit (temp_orb, temp_z_phase, orb, z_phase, b21*dt*dr_dt1)
-call em_field_kick_vector_time(ele, param, rf_time+a2*dt, temp_orb, temp_z_phase, dr_dt2, err_flag)
+call em_field_kick_vector_time(ele, param, rf_time+a2*dt, temp_orb, temp_z_phase, dr_dt2, err_flag, print_err)
 if (err_flag) return
 
 call transfer_this_orbit (temp_orb, temp_z_phase, orb, z_phase, dt*(b31*dr_dt1+b32*dr_dt2))
-call em_field_kick_vector_time(ele, param, rf_time+a3*dt, temp_orb, temp_z_phase, dr_dt3, err_flag) 
+call em_field_kick_vector_time(ele, param, rf_time+a3*dt, temp_orb, temp_z_phase, dr_dt3, err_flag, print_err)
 if (err_flag) return
 
 call transfer_this_orbit (temp_orb, temp_z_phase, orb, z_phase, dt*(b41*dr_dt1+b42*dr_dt2+b43*dr_dt3))
-call em_field_kick_vector_time(ele, param, rf_time+a4*dt, temp_orb, temp_z_phase, dr_dt4, err_flag)
+call em_field_kick_vector_time(ele, param, rf_time+a4*dt, temp_orb, temp_z_phase, dr_dt4, err_flag, print_err)
 if (err_flag) return
 
 call transfer_this_orbit (temp_orb, temp_z_phase, orb, z_phase, dt*(b51*dr_dt1+b52*dr_dt2+b53*dr_dt3+b54*dr_dt4))
-call em_field_kick_vector_time(ele, param, rf_time+a5*dt, temp_orb, temp_z_phase, dr_dt5, err_flag)
+call em_field_kick_vector_time(ele, param, rf_time+a5*dt, temp_orb, temp_z_phase, dr_dt5, err_flag, print_err)
 if (err_flag) return
 
 call transfer_this_orbit (temp_orb, temp_z_phase, orb, z_phase, dt*(b61*dr_dt1+b62*dr_dt2+b63*dr_dt3+b64*dr_dt4+b65*dr_dt5))
-call em_field_kick_vector_time(ele, param, rf_time+a6*dt, temp_orb, temp_z_phase, dr_dt6, err_flag)
+call em_field_kick_vector_time(ele, param, rf_time+a6*dt, temp_orb, temp_z_phase, dr_dt6, err_flag, print_err)
 if (err_flag) return
 
 ! Output new orb and error vector
@@ -552,7 +555,7 @@ end subroutine rk_time_step1
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
 !+
-! Subroutine em_field_kick_vector_time (ele, param, rf_time, orbit, z_phase, dvec_dt, err_flag)
+! Subroutine em_field_kick_vector_time (ele, param, rf_time, orbit, z_phase, dvec_dt, err_flag, print_err))
 !
 ! Subroutine to convert particle coordinates from t-based to s-based system. 
 !
@@ -566,12 +569,13 @@ end subroutine rk_time_step1
 !   orbit           -- coord_struct: in t-based system
 !   z_phase         -- real(rp): z phase space coord.
 !   err_flag        -- logical: Set True if there is an error. False otherwise.
+!   print_err       -- logical, optional: Passed to em_field_calc
 !
 ! Output:
 !    dvec_dt(10)  -- real(rp): Derivatives.
 !-
 
-subroutine em_field_kick_vector_time (ele, param, rf_time, orbit, z_phase, dvec_dt, err_flag)
+subroutine em_field_kick_vector_time (ele, param, rf_time, orbit, z_phase, dvec_dt, err_flag, print_err)
 
 implicit none
 
@@ -586,13 +590,14 @@ real(rp) vel(3), force(3)
 real(rp) :: pc, e_tot, mc2, gamma, charge, beta, p0, h, beta0, dp_dt, dbeta_dt
 
 logical :: err_flag
+logical, optional :: print_err
 
 character(28), parameter :: r_name = 'em_field_kick_vector_time'
 
 ! Calculate the field. ...
 !
 ! Note that only orbit%vec(1) = x and orbit%vec(3) = y are used in em_field_calc,
-!	and they coincide in both coordinate systems, so we can use the 'normal' routine.
+!  and they coincide in both coordinate systems, so we can use the 'normal' routine.
 !
 ! Also the hard edge to the field for field_calc = bmad_standard can drive the integrator nuts.
 ! The solution is to pretend that the particle is inside the element. 
@@ -608,9 +613,9 @@ else
 endif
 
 if (ele%key == patch$ .and. orbit%direction*ele%orientation == -1) then
-  call em_field_calc (ele, param, s_pos, orbit, .true., field, .false., err_flag, rf_time = rf_time)
+  call em_field_calc (ele, param, s_pos, orbit, .true., field, .false., err_flag, rf_time = rf_time, err_print_out_of_bounds = print_err)
 else
-  call em_field_calc (ele, param, s_pos, orbit, .true., field, .false., err_flag, rf_time = rf_time)
+  call em_field_calc (ele, param, s_pos, orbit, .true., field, .false., err_flag, rf_time = rf_time, err_print_out_of_bounds = print_err)
 endif
 
 if (err_flag) return
@@ -885,7 +890,7 @@ integer, parameter :: bmad$ = 1, opal$ = 2, astra$ = 3, gpt$ = 4
 logical, optional   :: err
 
 character(*), optional  :: style
-character(40)	:: r_name = 'write_time_particle_distribution'
+character(40)  :: r_name = 'write_time_particle_distribution'
 
 !
 
@@ -976,30 +981,20 @@ do i = 1, size(bunch%particle)
     ! OPAL has a problem with zero beta_s
     if ( gammabeta(3) == 0 ) gammabeta(3) = 1d-30 
     write(time_file_unit, '(6'//rfmt//')')  orb%vec(1), gammabeta(1), &
-										    orb%vec(3), gammabeta(2), &
-											orb%vec(5), gammabeta(3)
+                        orb%vec(3), gammabeta(2), orb%vec(5), gammabeta(3)
   case (astra$)
     orb = particle_in_global_frame (orb,  branch, in_time_coordinates = .true.)
     a_species_id = astra_species_id(orb_ref%species)
     ! The reference particle is used for z, pz, and t
-    write(time_file_unit, '(8'//rfmt//', 2i8)')  orb%vec(1), &
-	    	 									 orb%vec(3), &
-	    	 									 orb%vec(5) - orb_ref%vec(5), &
-	    	 									 orb%vec(2), &
-	    	 									 orb%vec(4), &
-	    	 									 orb%vec(6) - orb_ref%vec(6), &
-                                                 1e9_rp*(orb%t - orb_ref%t), &
-                                                 1e9_rp*orb%charge, &
-                                                 a_species_id, &
-                                                 a_status
+    write(time_file_unit, '(8'//rfmt//', 2i8)')  orb%vec(1), orb%vec(3), orb%vec(5) - orb_ref%vec(5), &
+                            orb%vec(2), orb%vec(4), orb%vec(6) - orb_ref%vec(6), &
+                            1e9_rp*(orb%t - orb_ref%t), 1e9_rp*orb%charge, a_species_id, a_status
   case (gpt$)
     orb = particle_in_global_frame (orb,  branch, in_time_coordinates = .true.)
     gammabeta =  orb%vec(2:6:2) / mass_of(orb%species) 
     write(time_file_unit, '(9'//rfmt//')')  orb%vec(1), orb%vec(3), orb%vec(5), &
-                                            gammabeta(1), gammabeta(2), gammabeta(3), &
-										    orb%t, &
-											charge_of(orb%species)*e_charge, &
-											orb%charge/e_charge  
+                      gammabeta(1), gammabeta(2), gammabeta(3), &
+                      orb%t, charge_of(orb%species)*e_charge, orb%charge/e_charge  
   end select
 
 end do 
@@ -1087,7 +1082,7 @@ track_loop: do iteration = 1, max_iteration
   
   s_rel = start2_orb%s - ele%s_start
   if ( (s_rel <  -bmad_com%significant_length .or. s_rel > ele%value(L$) + bmad_com%significant_length)) then
-	call out_io (s_fatal$, r_name, 'PARTICLE STARTED BEYOND ELEMENT BOUNDS FOR: ' // ele%name)
+  call out_io (s_fatal$, r_name, 'PARTICLE STARTED BEYOND ELEMENT BOUNDS FOR: ' // ele%name)
     print *, 's_rel: ', s_rel
     print *, 'start2_orb vec: ', start2_orb%vec
     print *, 'start2_orb%s: ', start2_orb%s
@@ -1157,7 +1152,7 @@ track_loop: do iteration = 1, max_iteration
 
   ! Sanity check
   !if (ix_ele /= ele%ix_ele) then
-  !	call out_io (s_fatal$, r_name, 'IX_ELE INCONSISTENCY IN ELE: ' // ele%name)
+  !  call out_io (s_fatal$, r_name, 'IX_ELE INCONSISTENCY IN ELE: ' // ele%name)
   !   if (global_com%exit_on_error) call err_exit
   ! endif
   

@@ -52,8 +52,8 @@ end function g_bend_from_em_field
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, &
-!                             err_flag, calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
+! Subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag, &
+!               calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, err_print_out_of_bounds)
 !
 ! Routine to calculate the E and B fields at a particular place in an element.
 !
@@ -80,20 +80,23 @@ end function g_bend_from_em_field
 !                         This is experimental and only implemented for wigglers at present.
 !   grid_allow_s_out_of_bounds 
 !                    -- logical, optional: For grids, allow s-coordinate to be grossly out of bounds 
-!                          and return zero instead of an error? Default: False. Used internally for overlapping fields.
+!                         and return zero instead of an error? Default: False. Used internally for overlapping fields.
 !   rf_time          -- real(rp), optional: Set the time relative to the RF clock. Normally this time is calculated using
-!                          orbit%t or orbit%vec(5) but sometimes it is convenient to be able to override this.
-!                          For example, time_runge_kutta uses this.
+!                         orbit%t or orbit%vec(5) but sometimes it is convenient to be able to override this.
+!                         For example, time_runge_kutta uses this.
 !   used_eles(:)     -- ele_pointer_struct, allocatable, optional: For internal use only when this routine is
-!                          called recursively. Used to prevent double counting when there is field overlap.
+!                         called recursively. Used to prevent double counting when there is field overlap.
+!   err_print_out_of_bounds
+!                    -- logical, optional: For grids: print an error message if the particle is out of bounds?
+!                         Default is True.
 !
 ! Output:
 !   field       -- em_field_struct: E and B fields and derivatives.
 !   err_flag    -- logical, optional: Set True if there is an error. False otherwise.
 !-
 
-recursive subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, &
-                           err_flag, calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
+recursive subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag, &
+             calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, err_print_out_of_bounds)
 
 use geometry_mod
 use super_recipes_mod
@@ -135,7 +138,7 @@ complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm, q
 integer i, j, m, n, ix, trig_x, trig_y, status, im, iz0, iz1, izp, field_calc, ix_pole_max
 
 logical :: local_ref_frame
-logical, optional :: calc_dfield, calc_potential, err_flag, use_overlap, grid_allow_s_out_of_bounds
+logical, optional :: calc_dfield, calc_potential, err_flag, use_overlap, grid_allow_s_out_of_bounds, err_print_out_of_bounds
 logical do_df_calc, err, dfield_computed, add_kicks
 
 character(*), parameter :: r_name = 'em_field_calc'
@@ -1157,7 +1160,7 @@ case(fieldmap$)
       case (xyz$)
       
         call grid_field_linear_interpolate(ele, local_orb, g_field, g_pt, err, x, y, z, &
-                                allow_s_out_of_bounds = logic_option(.false., grid_allow_s_out_of_bounds))
+                    allow_s_out_of_bounds = grid_allow_s_out_of_bounds, err_print_out_of_bounds = err_print_out_of_bounds)
         if (err) then
           if (present(err_flag)) err_flag = .true.
           return
@@ -1176,7 +1179,7 @@ case(fieldmap$)
         r = sqrt(x**2 + y**2)
 
         call grid_field_linear_interpolate(ele, local_orb, g_field, g_pt, err, r, z, &
-                                allow_s_out_of_bounds = logic_option(.false., grid_allow_s_out_of_bounds))
+                     allow_s_out_of_bounds = grid_allow_s_out_of_bounds, err_print_out_of_bounds = err_print_out_of_bounds)
         if (err) then
           if (global_com%exit_on_error) call err_exit
           if (present(err_flag)) err_flag = .true.
@@ -1409,7 +1412,8 @@ integer i
 !
 
 do i = 1, size(x)
-  call grid_field_linear_interpolate(ele, local_orb, g_field, g_pt, err, x(i), z, allow_s_out_of_bounds = .true.)
+  call grid_field_linear_interpolate(ele, local_orb, g_field, g_pt, err, x(i), z, &
+              allow_s_out_of_bounds = .true., err_print_out_of_bounds = err_print_out_of_bounds)
   rb_field(i) = x(i) * expt * g_pt%b(3)
 enddo
 
@@ -1604,7 +1608,8 @@ end subroutine rotate_em_field
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine grid_field_linear_interpolate (ele, orbit, grid, field, err_flag, x1, x2, x3, allow_s_out_of_bounds)
+! Subroutine grid_field_linear_interpolate (ele, orbit, grid, field, err_flag, x1, x2, x3, &
+!                                                              allow_s_out_of_bounds, err_print_out_of_bounds)
 !
 ! Subroutine to interpolate the E and B fields on a rectilinear grid.
 !
@@ -1618,13 +1623,16 @@ end subroutine rotate_em_field
 !   x3       -- real(rp), optional: dimension 3 interpolation point.
 !   allow_s_out_of_bounds -- logical, optional: allow s-coordinate grossly out of bounds to return
 !                 zero field without an error. This is used when the field of one element overlaps
-!                 the field of another.
+!                 the field of another. Default is False.
+!   err_print_out_of_bounds
+!            -- logical, optional: print an error message if the particle is out of bounds? Default is True.
 !
 ! Output:
 !   field    -- grid_field_pt_struct: Interpolated field (complex)
 !-
 
-subroutine grid_field_linear_interpolate (ele, orbit, grid, g_field, err_flag, x1, x2, x3, allow_s_out_of_bounds)
+subroutine grid_field_linear_interpolate (ele, orbit, grid, g_field, err_flag, x1, x2, x3, &
+                                                                allow_s_out_of_bounds, err_print_out_of_bounds)
 
 type (ele_struct) ele
 type (coord_struct) orbit
@@ -1635,8 +1643,7 @@ real(rp), optional :: x2, x3
 real(rp) rel_x1, rel_x2, rel_x3
 integer i1, i2, i3, grid_dim, allow_s, lbnd, ubnd
 logical err_flag
-logical :: allow_s_out_of_bounds
-
+logical, optional :: allow_s_out_of_bounds, err_print_out_of_bounds
 character(32), parameter :: r_name = 'grid_field_linear_interpolate'
 
 integer, parameter :: allow_tiny$ = 1, allow_some$ = 2, allow_all$ = 3
@@ -1646,7 +1653,7 @@ integer, parameter :: allow_tiny$ = 1, allow_some$ = 2, allow_all$ = 3
 err_flag = .false.
 
 allow_s = allow_some$
-if (allow_s_out_of_bounds) allow_s = allow_all$
+if (logic_option(.false., allow_s_out_of_bounds)) allow_s = allow_all$
 
 grid_dim = grid_field_dimension(grid%geometry)
 
@@ -1817,7 +1824,7 @@ if (i0 < ig0 .or. i0 >= ig1) then
     call check_aperture_limit(orb2, ele, in_between$, param)
   endif
 
-  if (orb2%state == alive$) then
+  if (orb2%state == alive$ .and. logic_option(.true., err_print_out_of_bounds)) then
     call out_io (s_error$, r_name, '\i0\D GRID_FIELD INTERPOLATION INDEX OUT OF BOUNDS: I\i0\ = \i0\ (POSITION = \f12.6\)', &
                                  'FOR ELEMENT: ' // ele%name // '  (' // trim(ele_loc_to_string(ele)) // ')', &
                                  'PARTICLE POSITION: \3F12.6\ ', &
