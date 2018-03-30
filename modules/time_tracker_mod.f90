@@ -232,6 +232,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   old_z_phase = z_phase
 
   call rk_adaptive_time_step (ele, param, orb, z_phase, t_dir, rf_time, dt, dt_did, dt_next, err)
+  if (err) return
   edge_kick_applied = .false.
 
   if (stop_time_limited) then
@@ -377,6 +378,7 @@ do
       call rk_time_step1 (ele, param, rf_time,  orb, z_phase, dt, new_orb, new_z_phase, r_err, dr_dt, err_flag, .true.)
       call out_io (s_fatal$, r_name, 'CANNOT COMPLETE TIME STEP. ABORTING.')
       if (global_com%exit_on_error) call err_exit
+      orb%state = lost$
       return
     endif
     dt_temp = dt / 10
