@@ -202,10 +202,10 @@ if (ele%field_calc == refer_to_lords$) then
         if (associated(used_eles(j)%ele, lord)) cycle lord_loop
       enddo
       call em_field_calc (lord, param, s_lab2, lab_orb, .false., field2, calc_dfield, err, calc_potential, &
-                                               use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
+                            use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, err_print_out_of_bounds)
     else
       call em_field_calc (lord, param, s_lab2, lab_orb, .false., field2, calc_dfield, err, calc_potential, &
-                                               use_overlap, grid_allow_s_out_of_bounds, rf_time, used_list)
+                            use_overlap, grid_allow_s_out_of_bounds, rf_time, used_list, err_print_out_of_bounds)
     endif
 
     if (err) then
@@ -231,7 +231,7 @@ endif
 
 if (ele%field_calc == custom$) then
   call em_field_custom (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag, &
-                                      calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
+                                    calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
   return
 end if
 
@@ -264,7 +264,7 @@ if (ele%key == sad_mult$ .and. ele%value(sad_flag$) == 0) then
   nullify(ele2%a_pole)
   nullify(ele2%b_pole)
   call em_field_calc (ele2, param, s_pos, orbit, local_ref_frame, field1, calc_dfield, err_flag, calc_potential, &
-                                                     use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
+                                use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, err_print_out_of_bounds)
   ! multipole calc
   ele2%value(ks$) = 0
   ele2%value(bs_field$) = 0
@@ -273,7 +273,7 @@ if (ele%key == sad_mult$ .and. ele%value(sad_flag$) == 0) then
   ele2%value(x_offset_tot$) = ele%value(x_offset_tot$) + ele%value(x_offset_mult$)
   ele2%value(y_offset_tot$) = ele%value(y_offset_tot$) + ele%value(y_offset_mult$)
   call em_field_calc (ele2, param, s_pos, orbit, local_ref_frame, field2, calc_dfield, err_flag, calc_potential, &
-                                                     use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
+                                use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, err_print_out_of_bounds)
 
   field%b  = field1%b + field2%b
   field%db = field1%db + field2%db 
@@ -1361,7 +1361,8 @@ if (ele%n_lord_field /= 0 .and. logic_option(.true., use_overlap)) then
     lord_orb%vec(3) = lord_position%r(2)
     ! Set use_overlap = False to prevent recursion.
     call em_field_calc (lord, param, lord_position%r(3), lord_orb, .false., l1_field, calc_dfield, err, &
-                        use_overlap = .false., grid_allow_s_out_of_bounds = .true., used_eles = used_eles)
+          use_overlap = .false., grid_allow_s_out_of_bounds = .true., used_eles = used_eles, &
+          err_print_out_of_bounds = err_print_out_of_bounds)
     if (err) then
       if (present(err_flag)) err_flag = .true.
       return
