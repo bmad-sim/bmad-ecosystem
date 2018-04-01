@@ -794,7 +794,7 @@ if (sec1%type == wall_end$ .or. sec2%type == wall_start$) then
   return
 endif
 
-! At a section cases
+! Zero distance between sections case
 
 ds = s2 - s1
 
@@ -812,18 +812,6 @@ if (s_particle == s1 .and. ds == 0) then
 
   return
 endif
-
-if (s_particle == s1) then
-  call d_radius_at_section(sec1)
-  return
-endif
-
-if (s_particle == s2) then
-  call d_radius_at_section(sec2)
-  return
-endif
-
-! If 
 
 !----------------------------
 ! If we are in a region with a patch then the geometry is more complicated since the section planes
@@ -973,9 +961,9 @@ if (sec2%patch_in_region) then
 
 else
 
-  if (ele%key == patch$) then
+  if (ele%key == patch$ .and. s_particle /= ele%s_start .and. s_particle /= ele%s) then
     call out_io (s_fatal$, r_name, &
-          'WALL3D RADIUS CALCULATION FAILURE IN/NEAR PATCH ELEMENT: ' // trim(ele%name) // '  (# \i0\)', &
+          'WALL3D RADIUS CALCULATION FAILURE IN PATCH ELEMENT: ' // trim(ele%name) // '  (# \i0\)', &
           'THE PROBLEM GENERALLY IS A WALL SECTION TOO NEAR A PATCH ELEMENT.', &
           'SEE THE BMAD MANUAL FOR MORE DETAILS', &
           'THE SOLUTION GENERALLY IS TO MOVE THE WALL SECTION AWAY FROM THE PATH ELEMENT', &
