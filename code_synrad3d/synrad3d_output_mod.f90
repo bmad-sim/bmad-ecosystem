@@ -21,18 +21,26 @@ contains
 !   lat             -- lat_struct: Lattice.
 !   lots_of_digits  -- logical, optional: If true then print using more digits than what is
 !                       printed if this argument is False (which is the default).
+!   iunit           -- integer, optional: If not present or equal to 0 then create a new file using file_name.
+!                       Otherwise  use this file unit number for writing instead of creating a new file.
+!
+! Output:
+!   iunit           -- integer, optional: File unit number used.
 !-
 
-subroutine sr3d_write_hit_points (file_name, photon, wall_hit, lat, lots_of_digits)
+subroutine sr3d_write_hit_points (file_name, photon, wall_hit, lat, lots_of_digits, iunit)
 
 type (sr3d_photon_track_struct), target :: photon
 type (sr3d_photon_wall_hit_struct), pointer :: hit
 type (sr3d_photon_wall_hit_struct), target :: wall_hit(0:)
 type (lat_struct) lat
 
+integer, optional :: iunit
 integer iu, n, iu_hit_file
 
 logical, optional :: lots_of_digits
+logical new_file
+
 character(*) file_name
 character(100) fm, fm2
 character(40) wall_name
@@ -41,8 +49,22 @@ character(40) wall_name
 
 if (file_name == '') return
 
-iu = lunget()
-open (iu, file = file_name, recl = 500)
+new_file = .true.
+
+if (present(iunit)) then
+  if (iunit == 0) then
+    iunit = lunget()
+    iu = iunit
+    open (iu, file = file_name, recl = 500)
+  else
+    iu = iunit
+    new_file = .false.
+  endif
+
+else
+  iu = lunget()
+  open (iu, file = file_name, recl = 500)
+endif
 
 !
 
@@ -52,6 +74,10 @@ if (logic_option(.false., lots_of_digits)) then
 else
   fm  = '(6f12.6)'
   fm2 = '(i7, i4, f10.2, 5x, 2f10.6, f14.6, i4, 2(5x, 3f10.6), 10x, 3f10.6, 5x, 3f10.6, 3x, a)'
+  if (new_file) then
+    write (iu, '(a)') '#                                                             ix_    |            Before             |             After                 |             Wall Perpendicular                Cos(perp)'
+    write (iu, '(a)') '# Index n_hit  Energy         X          Y            S       branch |   Vx        Vy         Vs     |       Vx        Vy        Vs      |            x         y        s             In        Out    Reflectivity'
+  endif
 endif
 
 !
@@ -64,17 +90,16 @@ do n = 0, photon%n_wall_hit
     wall_name = lat%branch(hit%ix_branch)%wall3d(hit%ix_wall3d)%name
     if (wall_name == '') wall_name = '<default_subchamber>'
   endif
-  write (iu, fm2) photon%ix_photon, n, hit%before_reflect%p0c, hit%after_reflect%vec(1:3:2), hit%after_reflect%s, &
-          hit%ix_branch, hit%before_reflect%vec(2:6:2), hit%after_reflect%vec(2:6:2), &
-          hit%dw_perp, hit%cos_perp_in, hit%cos_perp_out, hit%reflectivity
 
   write (iu, fm2) photon%ix_photon, n, hit%before_reflect%p0c, hit%after_reflect%vec(1:3:2), hit%after_reflect%s, &
           hit%ix_branch, hit%before_reflect%vec(2:6:2), hit%after_reflect%vec(2:6:2), &
           hit%dw_perp, hit%cos_perp_in, hit%cos_perp_out, hit%reflectivity, trim(wall_name)
 enddo
 
-close (iu)
-print *, 'Written file of hit points: ', trim(file_name)
+if (.not. present(iunit)) then
+  close (iu)
+  print *, 'Written file of hit points: ', trim(file_name)
+endif
 
 end subroutine sr3d_write_hit_points
 
