@@ -462,7 +462,7 @@ if (photon_start_input_file /= '') then
       cycle
     endif
 
-    call sr3d_write_hit_points (sr3d_params%wall_hit_file, photon, wall_hit, lat)
+    call sr3d_write_hit_points (sr3d_params%wall_hit_file, photon, wall_hit, lat, iunit = sr3d_params%iu_wall_hit)
     call write_photon_data (n_photon_array, photon)
 
   enddo photon_loop
@@ -581,14 +581,6 @@ else
         ! ix_photon_out is used for generating a file of the photon starting position.
         ! This is used for diagnostic purposes.
 
-        if (photon%ix_photon_generated == ix_photon_out) then
-          print *, 'Recording starting position.'
-          write (who, '(a, i0)') 'photon_', ix_photon_out
-          call sr3d_write_hit_points (trim(who) // '.hit_points', photon, wall_hit, lat)
-          call sr3d_write_photon_start_file (trim(who) // '.start', photon)
-          stop
-        endif
-
         ! Track photon.
 
         if (sr3d_params%iu_photon_track > 0) call sr3d_record_photon_position('START_RECORDING')
@@ -609,7 +601,15 @@ else
           cycle
         endif
 
-        call sr3d_write_hit_points (sr3d_params%wall_hit_file, photon, wall_hit, lat)
+        if (photon%ix_photon == ix_photon_out) then
+          print *, 'Recording starting position.'
+          write (who, '(a, i0)') 'photon_', ix_photon_out
+          call sr3d_write_hit_points (trim(who) // '.hit_points', photon, wall_hit, lat)
+          call sr3d_write_photon_start_file (trim(who) // '.start', photon)
+          stop
+        endif
+
+        call sr3d_write_hit_points (sr3d_params%wall_hit_file, photon, wall_hit, lat, iunit = sr3d_params%iu_wall_hit)
         call write_photon_data (n_photon_array, photon)
 
       enddo
