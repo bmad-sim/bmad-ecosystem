@@ -1454,6 +1454,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %optimizer_var_limit_warn      = ', s%global%optimizer_var_limit_warn
     nl=nl+1; write(lines(nl), amt) '  %phase_units                   = ', angle_units_name(s%global%phase_units)
     nl=nl+1; write(lines(nl), lmt) '  %plot_on                       = ', s%global%plot_on
+    nl=nl+1; write(lines(nl), lmt) '  %plot_calc_always              = ', s%global%plot_calc_always
     nl=nl+1; write(lines(nl), amt) '  %print_command                 = ', s%global%print_command
     nl=nl+1; write(lines(nl), amt) '  %prompt_string                 = ', s%global%prompt_string
     nl=nl+1; write(lines(nl), amt) '  %prompt_color                  = ', s%global%prompt_color 
