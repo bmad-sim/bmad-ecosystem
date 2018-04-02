@@ -38,13 +38,13 @@ character(20) :: r_name = 'tao_plot_setup'
 
 ! setup the plots
 
-if (.not. s%global%plot_on) return
+if (.not. s%global%plot_on  .and. .not. s%global%plot_calc_always) return
 
 plot_loop: do ir = 1, size(s%plot_page%region)
 
   plot => s%plot_page%region(ir)%plot
 
-  ! Don't worry about invisable graphs
+  ! Don't worry about invisible graphs
   if (.not. s%plot_page%region(ir)%visible) cycle  
 
   select case (plot%x_axis_type)
