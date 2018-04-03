@@ -2293,7 +2293,7 @@ other field map types.
 
 For DC fields, the \vn{e} coefficients specify the electric fields and the \vn{b} coefficients
 specify the magnetic fields. For AC fields, the \vn{e} coefficients specify modes that have finite
-longitudinal fields while the modes associated with the \vn{b} coefficients do not.
+longitudinal electric fields while the modes associated with the \vn{b} coefficients do not.
 
 To specify the RF frequency, specify the \vn{rf_frequency} {\em element} attribute along with
 the \vn{harmonic} attribute. See the discussion of the \vn{harmonic} attribute in 
@@ -2386,7 +2386,12 @@ individual field components are complex.  the syntax for specifying a complex nu
   (<Re>, <Im>)
 \end{example}
 where \vn{<Re>} and \vn{<Im>} are the real and imaginary parts of the
-component. Example:
+component and the fields $[\bfE, \bfB]$ vary in time as 
+\Begineq
+  [\bfE, \bfB] = \Re \Bigl( [\bfE_r + i \, \bfE_i, \bfB_r + i \, \bfB_i]  e^{-i \, \omega \, t} \Bigr)
+\Endeq
+where $\bfE_r$, $\bfE_i$, $\bfB_r$, and $\bfB_i$ are the real and imaginary components as specified
+in the \vn{grid_field} structure.  Example:
 \begin{example}
   pt(0, 0, -7) = ((0.34, -4.3), (2.37, 9.34), ...)  ! Complex field
   pt(0, 0, -7) = (0.12, -0.33, ...)                 ! Imaginary components are zero

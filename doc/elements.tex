@@ -4137,9 +4137,12 @@ unchanged when tracking through a \vn{taylor} element that is turned off.
 Example \vn{taylor} element definition:
 \begin{example}
   tt: Taylor, \{4:  2.7, 0 0 2 0 0 1\}, \{2:  1.9 | 1 1 2\},
-              \{xz: 0.43 | 2 \}, ..., 
+              \{S1: 0.43 | 2 \}, ..., 
               ref_orbit = (0.01, 0.003, 0.002, 0.001, 0.0, 0.2)
 \end{example}
+
+Note: When tracking a particle's spin through a map, the quaternion used to rotate the spin is
+always normalized to one so that the magnitude of the spin will be invariant. 
 
 Note: Tracking through a \vn{taylor} elements using \vn{symp_lie_ptc} is the same as
 tracking with the \vn{taylor} tracking method.  That is, the Taylor map is simply
