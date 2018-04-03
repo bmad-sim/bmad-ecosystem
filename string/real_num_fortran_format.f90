@@ -1,8 +1,10 @@
 !+
 ! Function real_num_fortran_format (number, width, n_blanks) result (fmt_str)
 !
-! Routine to find a "nice" format for a real number.
+! Routine to find a "nice" edit descriptor format for a real number.
 ! The format will either be "es" for numbers that are very small or very large or "f".
+!
+! Also see: parse_fortran_format
 !
 ! Example output:
 !     "es12.4"
