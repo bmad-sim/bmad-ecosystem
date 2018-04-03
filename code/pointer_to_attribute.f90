@@ -80,10 +80,10 @@ if (present(ix_attrib)) ix_attrib = 0
 
 if (associated (ele%control_var)) then
 
-  if (len(attrib_name) > 4) then
-    if (attrib_name(1:4) == 'OLD_') then
+  if (len(a_name) > 4) then
+    if (a_name(1:4) == 'OLD_') then
       do i = 1, size(ele%control_var)
-        if (ele%control_var(i)%name /= attrib_name(5:)) cycle
+        if (ele%control_var(i)%name /= a_name(5:)) cycle
         a_ptr%r => ele%control_var(i)%old_value
         if (present(ix_attrib)) ix_attrib = old_control_var_offset$ + i
         err_flag = .false.
@@ -94,7 +94,7 @@ if (associated (ele%control_var)) then
   endif
 
   do i = 1, size(ele%control_var)
-    if (ele%control_var(i)%name /= attrib_name) cycle
+    if (ele%control_var(i)%name /= a_name) cycle
     a_ptr%r => ele%control_var(i)%value
     if (present(ix_attrib)) ix_attrib = var_offset$ + i
     err_flag = .false.
@@ -592,11 +592,11 @@ return
 if (do_print) then
   if (out_of_bounds) then
     call out_io (s_error$, r_name, &
-        'INDEX OUT OF BOUNDS IN ATTRIBUTE: ' // attrib_name, &
+        'INDEX OUT OF BOUNDS IN ATTRIBUTE: ' // a_name, &
         'FOR THIS ELEMENT: ' // ele%name)
   else
     call out_io (s_error$, r_name, &
-        'MALFORMED ATTRIBUTE: ' // attrib_name, &
+        'MALFORMED ATTRIBUTE: ' // a_name, &
         'FOR THIS ELEMENT: ' // ele%name)
   endif
 endif
@@ -614,11 +614,11 @@ return
 if (do_print) then
   if (out_of_bounds) then
     call out_io (s_error$, r_name, &
-        'INDEX OUT OF BOUNDS IN ATTRIBUTE: ' // attrib_name, &
+        'INDEX OUT OF BOUNDS IN ATTRIBUTE: ' // a_name, &
         'FOR THIS ELEMENT: ' // ele%name)
   else
     call out_io (s_error$, r_name, &
-        'MALFORMED ATTRIBUTE: ' // attrib_name, &
+        'MALFORMED ATTRIBUTE: ' // a_name, &
         'FOR THIS ELEMENT: ' // ele%name)
   endif
 endif
@@ -627,7 +627,7 @@ return
 !----------------------------------------
 9210 continue
 if (do_print) call out_io (s_error$, r_name, &
-        'CROSS-SECTION NOT DEFINED SO CANNOT SET ATTRIBUTE: ' // attrib_name, &
+        'CROSS-SECTION NOT DEFINED SO CANNOT SET ATTRIBUTE: ' // a_name, &
         'FOR THIS ELEMENT: ' // ele%name)
 return
 
