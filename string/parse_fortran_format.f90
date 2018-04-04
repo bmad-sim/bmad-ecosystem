@@ -54,7 +54,7 @@ enddo
 
 if (i /= i0) then
   if (.not. is_integer(format_str(i0:i-1))) return
-  read (format_str(i0:i-1), '(i)') multiplyer
+  read (format_str(i0:i-1), *) multiplyer
 endif
 
 ! Look for code
@@ -80,7 +80,7 @@ if (i == i0 .or. .not. is_integer(format_str(i0:i-1))) then
   return
 endif
 
-read (format_str(i0:i-1), '(i)') width
+read (format_str(i0:i-1), *) width
 if (no_more(i)) return
 
 ! Look for digits
@@ -100,7 +100,7 @@ if (i == i0 .or. .not. is_integer(format_str(i0:i-1))) then
   return
 endif
 
-read (format_str(i0:i-1), '(i)') digits
+read (format_str(i0:i-1), *) digits
 if (no_more(i)) return
 
 
