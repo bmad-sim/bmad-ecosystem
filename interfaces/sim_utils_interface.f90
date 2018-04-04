@@ -415,9 +415,9 @@ function odd (num) result (is_odd)
   logical is_odd
 end function
 
-subroutine parse_fortran_format (format_str, multiplyer, code, width, digits)
+subroutine parse_fortran_format (format_str, multiplyer, power, code, width, digits)
   implicit none
-  integer multiplyer, width, digits
+  integer multiplyer, power, width, digits
   character(*) format_str, code
 end subroutine
 
