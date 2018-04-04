@@ -16,9 +16,10 @@ type (coord_struct) orbit
 real(rp) array(4), dE, freq(3)
 complex(rp) cdata(32)
 complex(rp) amp(3)
-integer i, which, where, n_freq
+integer i, which, where, n_freq, mult, power, width, digits
 logical match
 character(40) str, sub1, sub2, sub3
+character(2) code
 
 real(rp) sig1, sig2, sig3, quat(0:3), omega(3), axis2(3), angle2
 real(rp) phi1, phi2, phi3
@@ -28,6 +29,20 @@ complex(rp) amp1, amp2, amp3
 !
 
 open (1, file = 'output.now')
+
+! Parse fortran format tests
+
+call parse_fortran_format('34pf12.3', mult, power, code, width, digits)
+write (1, '(a, 2(i0, a), a, 2(i0, a))') '"34pf12.3" STR ', mult, '(', power, 'p', trim(code),  width, '.', digits, ')'
+
+call parse_fortran_format('x ', mult, power, code, width, digits)
+write (1, '(a, 2(i0, a), a, 2(i0, a))') '"x" STR ', mult, '(', power, 'p', trim(code),  width, '.', digits, ')'
+
+call parse_fortran_format('(7(4pi17)) ', mult, power, code, width, digits)
+write (1, '(a, 2(i0, a), a, 2(i0, a))') '"(7(4pi17))" STR ', mult, '(', power, 'p', trim(code),  width, '.', digits, ')'
+
+call parse_fortran_format('i17 i', mult, power, code, width, digits)
+write (1, '(a, 2(i0, a), a, 2(i0, a))') '"BAD-FMT" STR ', mult, '(', power, 'p', trim(code),  width, '.', digits, ')'
 
 ! rotation tests
 
