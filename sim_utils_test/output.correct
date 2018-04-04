@@ -1,6 +1,10 @@
-"rot X-X" ABS 1E-14   0.000E+00
-"rot Y-Y" ABS 1E-14   0.000E+00
-"rot Z-Z" ABS 1E-14   0.000E+00
+"34pf12.3" STR 1(34pf12.3)
+"x" STR 1(0px-1.-1)
+"(7(4pi17))" STR 7(4pi17.-1)
+"BAD-FMT" STR 1(0p17.-1)
+"rot X-X" ABS 1E-16   0.000E+00
+"rot Y-Y" ABS 1E-16   0.000E+00
+"rot Z-Z" ABS 1E-16   0.000E+00
 "axis-angle  " ABS 1E-14    4.243E-01  5.657E-01  7.071E-01  6.700E-01
 "daxis-dangle" ABS 1E-14    0.000E+00  0.000E+00  0.000E+00  0.000E+00
 "rot vecA" ABS 1E-14    -4.471674   2.284987  -1.944985
