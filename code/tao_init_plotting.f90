@@ -1307,11 +1307,11 @@ if (all(s%plot_page%template%name /= 'b_div_curl')) then
 
   plt = default_plot_g1c4
   plt%name                 = 'b_div_curl'
-  plt%description          = 'Magnetic Field Divergence and Curl along orbit'
+  plt%description          = 'Magnetic Field Divergence and (Curl B - (dE/dt)/c^2) Along Orbit'
 
   grph => plt%graph(1)
   grph%p => plt
-  grph%title               = 'Magnetic Field Divergence and Curl Along Orbit'
+  grph%title               = 'Magnetic Field Divergence and (Curl B - (dE/dt)/c^2) Along Orbit'
   grph%y%label             = 'Mag Div, Curl (T/m)'
   grph%y%label_offset= .15
 
@@ -1319,28 +1319,28 @@ if (all(s%plot_page%template%name /= 'b_div_curl')) then
   crv%name         = 'div'
   crv%g => grph
   crv%data_type    = 'b_div'
-  crv%legend_text  = 'divergence'
+  crv%legend_text  = 'B Divergence'
   crv%units        = 'T/m'
 
   crv => grph%curve(2)
   crv%name         = 'cx'
   crv%g => grph
   crv%data_type    = 'b_curl.x'
-  crv%legend_text  = 'curl x'
+  crv%legend_text  = '(curl B - (dE/dt)/c^2) x-component'
   crv%units        = 'T/m'
 
   crv => grph%curve(3)
   crv%name         = 'cy'
   crv%g => grph
   crv%data_type    = 'b_curl.y'
-  crv%legend_text  = 'curl y'
+  crv%legend_text  = '(curl B - (dE/dt)/c^2) y-component'
   crv%units        = 'T/m'
 
   crv => grph%curve(4)
   crv%name         = 'cz'
   crv%g => grph
   crv%data_type    = 'b_curl.z'
-  crv%legend_text  = 'curl z'
+  crv%legend_text  = '(curl B - (dE/dt)/c^2) z-component'
   crv%units        = 'T/m'
 endif
  
@@ -1885,11 +1885,11 @@ if (all(s%plot_page%template%name /= 'e_div_curl')) then
 
   plt = default_plot_g1c4
   plt%name                 = 'e_div_curl'
-  plt%description          = 'Electric Field Divergence and Curl along orbit'
+  plt%description          = 'Electric Field Divergence and (Curl E - dB/dt) Along Orbit'
 
   grph => plt%graph(1)
   grph%p => plt
-  grph%title               = 'Electric Field Divergence and Curl Along Orbit'
+  grph%title               = 'Electric Field Divergence and (Curl E - dB/dt) Along Orbit'
   grph%y%label             = 'Elec Div, Curl (V/m^2)'
   grph%y%label_offset= .15
 
@@ -1904,21 +1904,21 @@ if (all(s%plot_page%template%name /= 'e_div_curl')) then
   crv%name         = 'cx'
   crv%g => grph
   crv%data_type    = 'e_curl.x'
-  crv%legend_text  = 'curl x'
+  crv%legend_text  = '(curl E - dE/dt) x-component'
   crv%units        = 'V/m^2'
 
   crv => grph%curve(3)
   crv%name         = 'cy'
   crv%g => grph
   crv%data_type    = 'e_curl.y'
-  crv%legend_text  = 'curl y'
+  crv%legend_text  = '(curl E - dE/dt) y-component'
   crv%units        = 'V/m^2'
 
   crv => grph%curve(4)
   crv%name         = 'cz'
   crv%g => grph
   crv%data_type    = 'e_curl.z'
-  crv%legend_text  = 'curl z'
+  crv%legend_text  = '(curl E - dE/dt) z-component'
   crv%units        = 'V/m^2'
 endif
  

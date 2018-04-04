@@ -185,6 +185,7 @@ type (wall3d_vertex_struct), pointer :: v
 type (random_state_struct) ran_state
 type (normal_form_struct), pointer :: normal_form
 type (aperture_scan_struct), pointer :: aperture_scan
+type (coord_struct) orbit
 
 type show_lat_column_struct
   character(80) :: name = ''
@@ -212,6 +213,8 @@ character(n_char_show) what2
 character(9) angle_str
 
 character(3) undef_str
+character(16) velocity_fmt, momentum_fmt, e_field_fmt, b_field_fmt, position_fmt, energy_fmt, s_fmt
+character(16) spin_fmt, t_fmt
 character(24) show_name, show2_name, what_to_print
 character(24) :: var_name, blank_str = '', phase_units_str
 character(24)  :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
@@ -223,7 +226,7 @@ character(100) file_name, name, why_invalid, attrib0
 character(120) header, str
 character(200), allocatable :: alloc_lines(:)
 
-character(16) :: show_what, show_names(36) = [ &
+character(16) :: show_what, show_names(37) = [ &
    'data            ', 'variable        ', 'global          ', 'alias           ', 'top10           ', &
    'optimizer       ', 'element         ', 'lattice         ', 'constraints     ', 'plot            ', &
    'beam            ', 'tune            ', 'graph           ', 'curve           ', 'particle        ', &
@@ -231,7 +234,7 @@ character(16) :: show_what, show_names(36) = [ &
    'branch          ', 'use             ', 'taylor_map      ', 'value           ', 'wave            ', &
    'twiss_and_orbit ', 'building_wall   ', 'wall            ', 'normal_form     ', 'dynamic_aperture', &
    'matrix          ', 'field           ', 'wake_elements   ', 'history         ', 'symbolic_numbers', &
-   'merit           ']
+   'merit           ', 'track           ']
 
 integer :: data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
@@ -244,8 +247,8 @@ logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited, show_labels
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_attributes, print_ran_state
-logical print_global, print_optimization, print_bmad_com, print_csr_param, print_ptc
-logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni
+logical print_global, print_optimization, print_bmad_com, print_csr_param, print_ptc, print_position
+logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
 logical, allocatable :: picked_ele(:)
 
@@ -497,7 +500,7 @@ case ('branch')
       read (what2(1:ix_s2), *, iostat = ios) ix
       u => tao_pointer_to_universe(ix)
       if (ix_s2 == 0 .or. ios /= 0 .or. .not. associated(u)) then
-        nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" argument'
+        nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" ARGUMENT'
         return
       endif
       call string_trim(what2(ix_s2+1:), what2, ix_s2)
@@ -3204,6 +3207,135 @@ case ('taylor_map', 'matrix')
   result_id = show_what
 
 !----------------------------------------------------------------------
+! track
+
+case ('track')
+
+  velocity_fmt = ''
+  momentum_fmt = ''
+  e_field_fmt = ''
+  b_field_fmt = ''
+  position_fmt = 'f14.6'
+  s_fmt = 'f12.6'
+  t_fmt = ''
+  spin_fmt = ''
+  energy_fmt = ''
+  print_header_lines = .true.
+  s1 = -1
+  s2 = -1
+  n_print = -1
+
+  do 
+    call tao_next_switch (what2, [character(16):: '-e_field', '-b_field', '-velocity', '-momentum', &
+                '-energy', '-position', '-no_label_lines', '-s', '-spin', '-points', '-time', &
+                '-range'], .false., switch, err, ix_s2)
+
+    if (err) return
+    if (switch == '') exit
+
+    select case (switch)
+    case ('-e_field')
+      e_field_fmt = get_this_track_fmt(what2, 'es15.6', err); if (err) return
+    case ('-b_field')
+      b_field_fmt = get_this_track_fmt(what2, 'es15.6', err); if (err) return
+    case ('-energy')
+      energy_fmt = get_this_track_fmt(what2, 'es15.6', err); if (err) return
+    case ('-velocity')
+      velocity_fmt = get_this_track_fmt(what2, 'f13.8', err); if (err) return
+    case ('-momentum')
+      momentum_fmt = get_this_track_fmt(what2, 'f13.8', err); if (err) return
+    case ('-position')
+      position_fmt = get_this_track_fmt(what2, 'f14.6', err); if (err) return
+    case ('-no_label_lines')
+      print_header_lines = .false.
+    case ('-points')
+      read (what2(1:ix_s2), *, iostat = ios) n_print
+      if (ix_s2 == 0 .or. ios /= 0 .or. n_print < 2) then
+        nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-points" ARGUMENT'
+        return
+      endif
+      call string_trim(what2(ix_s2+1:), what2, ix_s2)
+    case ('-range')
+      read (what2(1:ix_s2), *, iostat = ios1) s1
+      call string_trim(what2(ix_s2+1:), what2, ix_s2)
+      read (what2(1:ix_s2), *, iostat = ios2) s2
+      if (ix_s2 == 0 .or. ios1 /= 0 .or. ios2 /= 0) then
+        nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-points" ARGUMENT'
+        return
+      endif
+      call string_trim(what2(ix_s2+1:), what2, ix_s2)
+    case ('-s')
+      s_fmt = get_this_track_fmt(what2, '12.6', err); if (err) return
+    case ('-spin')
+      spin_fmt = get_this_track_fmt(what2, 'f13.8', err); if (err) return
+    case ('-time')
+      t_fmt = get_this_track_fmt(what2, 'es15.6', err); if (err) return
+    end select
+  enddo
+
+  if (velocity_fmt == '' .and. momentum_fmt == '') momentum_fmt = 'f14.8'
+
+  !
+
+  if (print_header_lines) then
+    line1 = '#  Ix'
+    i1 = 7
+    call write_track_header (line1, i1, s_fmt, ['S'], err); if (err) return
+    call write_track_header (line1, i1, t_fmt, ['Time'], err); if (err) return
+    call write_track_header (line1, i1, position_fmt, ['X (mm)', 'Y (mm)', 'Z (mm)'], err); if (err) return
+    call write_track_header (line1, i1, velocity_fmt, ['Vx/c', 'Vy/c', 'Vs/c'], err); if (err) return
+    call write_track_header (line1, i1, momentum_fmt, ['px', 'py', 'pz'], err); if (err) return
+    call write_track_header (line1, i1, energy_fmt, ['E_tot'], err); if (err) return
+    call write_track_header (line1, i1, spin_fmt, ['Spin_x', 'Spin_y', 'Spin_z'], err); if (err) return
+    call write_track_header (line1, i1, b_field_fmt, ['Bx', 'By', 'Bz'], err); if (err) return
+    call write_track_header (line1, i1, e_field_fmt, ['Ex', 'Ey', 'Ez'], err); if (err) return
+    nl=nl+1; lines(nl) = line1
+  endif
+
+  !    
+
+  if (s1 < 0 .and. .not. tao_branch%plot_cache_valid) then
+    nl = 1; lines(nl) = 'PROBLEM: "-s" BOUNDS NOT SPECIFIED AND NO PLOT DATA AVAILABLE. NO TABLE CAN BE GENERATED.'
+    return
+  endif
+
+  if (n_print < 2) n_print = s%plot_page%n_curve_pts
+  call re_allocate(lines, nl+n_print+10)
+
+  do_field = ((e_field_fmt /= '' .and. e_field_fmt /= 'no') .or. (b_field_fmt /= '' .and. b_field_fmt /= 'no'))
+
+  do i = 1, n_print
+    ele => tao_branch%plot_cache(i)%ele
+    orbit = tao_branch%plot_cache(i)%orbit
+
+    write (line1, '(i6)') i
+    i1 = 6
+
+    call write_track_info (line1, i1, s_fmt, [ele%s], err);  if (err) return
+    call write_track_info (line1, i1, t_fmt, [orbit%t], err);  if (err) return
+    call write_track_info (line1, i1, position_fmt, 1d3 * orbit%vec(1:5:2), err);  if (err) return
+
+    vec3(1:2) = [orbit%vec(2), orbit%vec(4)] / (1 + orbit%vec(6))
+    vec3 = orbit%beta * [vec3(1), vec3(2), sqrt(max(0.0_rp, 1 - vec3(1)**2 - vec3(2)**2))]
+    call write_track_info (line1, i1, velocity_fmt, vec3, err);  if (err) return
+
+    call write_track_info (line1, i1, momentum_fmt, orbit%vec(2:6:2), err);  if (err) return
+    call convert_pc_to((1 + orbit%vec(6)) * orbit%p0c,  orbit%species, e_tot = e_tot)
+    call write_track_info (line1, i1, energy_fmt, [e_tot], err);  if (err) return
+    call write_track_info (line1, i1, spin_fmt, [orbit%spin], err);  if (err) return
+
+    if (do_field) then
+      call em_field_calc (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field)
+      call write_track_info (line1, i1, b_field_fmt, field%B, err);  if (err) return
+      call write_track_info (line1, i1, e_field_fmt, field%E, err);  if (err) return
+    endif
+
+    nl=nl+1; lines(nl) = line1
+  enddo
+
+  result_id = show_what
+
+!----------------------------------------------------------------------
 ! tune
 
 case ('tune')
@@ -3224,9 +3356,8 @@ case ('twiss_and_orbit')
 
   do 
 
-    call tao_next_switch (what2, [ &
-        '-branch     ', '-universe   ', '-design     ', '-base       '], &
-              .true., switch, err, ix_s2)
+    call tao_next_switch (what2, [character(16):: '-branch', '-universe', '-design', '-base'], &
+                                                                            .true., switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
 
@@ -4129,6 +4260,101 @@ nl=nl+1; write(lines(nl), rmt) 'ping_scale%b_mode_ref  = ', u%ping_scale%b_mode_
 
 end subroutine show_ping
 
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+! contains
+
+function get_this_track_fmt (string, dflt_fmt, err) result (fmt)
+
+character(*) string, dflt_fmt
+character(16) fmt
+integer ix
+logical err
+
+!
+
+call string_trim(string, string, ix)
+if (string(1:1) == '-' .or. ix == 0) then
+  fmt = dflt_fmt
+else
+  fmt = string(1:ix)
+  call string_trim(string, string, ix)
+endif
+
+err = .false.
+
+end function get_this_track_fmt
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+! contains
+
+subroutine write_track_header (line, ix_line, fmt, label, err)
+
+implicit none
+
+character(*) line, fmt, label(:)
+character(8) code
+integer ix_line, i, n, multiplyer, width, digits
+logical err
+
+!
+
+err = .false.
+if (fmt == '' .or. fmt == 'no') return
+
+call parse_fortran_format (fmt, multiplyer, code, width, digits)
+if (code == '') then
+  nl = 1; lines(1) = 'BAD FORMAT: ' // fmt
+  err = .true.
+  return
+endif
+
+do i = 1, size(label)
+  n = len(label(i))
+  line(ix_line+width-n-2:) = label(i)
+  ix_line = ix_line + width
+enddo
+
+ix_line = ix_line + 2
+
+end subroutine write_track_header
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+! contains
+
+subroutine write_track_info (line, ix_line, fmt, value, err)
+
+implicit none
+
+character(*) line, fmt
+character(8) code
+real(rp) value(:)
+integer ix_line, i, n, multiplyer, width, digits, ios
+logical err
+
+!
+
+err = .false.
+if (fmt == '' .or. fmt == 'no') return
+
+call parse_fortran_format (fmt, multiplyer, code, width, digits)
+
+do i = 1, size(value)
+  write (line(ix_line+1:), '(' // fmt // ')', iostat = ios) value(i)
+  if (ios /= 0) then
+    nl = 1; lines(1) = 'BAD FORMAT: ' // fmt
+    err = .true.
+    return
+  endif
+  ix_line = ix_line + width
+enddo
+
+ix_line = ix_line + 2
+
+end subroutine write_track_info
+
 end subroutine tao_show_this
 
 !------------------------------------------------------------------------------------------
@@ -4207,6 +4433,6 @@ call string_trim (num_str, num_str, ix)
 line = ''
 line(wid-ix+1:) = num_str
 
-end subroutine
+end subroutine write_real
 
 end module
