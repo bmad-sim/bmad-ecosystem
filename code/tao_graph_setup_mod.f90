@@ -1028,7 +1028,7 @@ case ('energy')
   ix_axis = 13
   if (present(p)) then
     do i=1, size(p)
-      call convert_pc_to((1.0_rp+ p(i)%vec(6))* p(i)%p0c,  p(i)%species, e_tot =  axis(i))
+      call convert_pc_to((1 + p(i)%vec(6)) * p(i)%p0c,  p(i)%species, e_tot =  axis(i))
     enddo
   endif
   
@@ -1869,12 +1869,12 @@ type (ele_struct), pointer :: ele_ref
 type (taylor_struct) t_map(6)
 type (branch_struct), pointer :: branch
 type (all_pointer_struct) a_ptr
-type (em_field_struct) field
+type (em_field_struct) field, field0, field1
 type (spin_polar_struct) polar
 
 real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
-real(rp) comp_sign, vec3(3), r_bunch, amp, phase, ds
+real(rp) comp_sign, vec3(3), r_bunch, amp, phase, ds, dt, time
 
 integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch, idum, n_ele_track
 integer cache_status   
@@ -2125,13 +2125,18 @@ do ii = 1, size(curve%x_line)
 
   case ('b_curl.')
     call em_field_derivatives (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field)
+    time = particle_rf_time(orbit, ele, (ele%field_calc /= fieldmap$), orbit%s-ele%s_start)
+    dt = bmad_com%d_orb(5) / c_light
+    call em_field_calc (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field0, rf_time = time-dt)
+    call em_field_calc (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field1, rf_time = time+dt)
+
     select case (data_type)
     case ('b_curl.x')
-      value = field%dB(2,3) - field%dB(3,2)
+      value = field%dB(2,3) - field%dB(3,2) - (field1%E(1) - field0%E(1)) / (2 * dt * c_light**2)
     case ('b_curl.y')
-      value = field%dB(3,1) - field%dB(1,3)
+      value = field%dB(3,1) - field%dB(1,3) - (field1%E(2) - field0%E(2)) / (2 * dt * c_light**2)
     case ('b_curl.z')
-      value = field%dB(1,2) - field%dB(2,1)
+      value = field%dB(1,2) - field%dB(2,1) - (field1%E(3) - field0%E(3)) / (2 * dt * c_light**2)
     case default
       goto 9000  ! Error message & Return
     end select
@@ -2201,13 +2206,18 @@ do ii = 1, size(curve%x_line)
 
   case ('e_curl.')
     call em_field_derivatives (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field)
+    time = particle_rf_time(orbit, ele, (ele%field_calc /= fieldmap$), orbit%s-ele%s_start)
+    dt = bmad_com%d_orb(5) / c_light
+    call em_field_calc (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field0, rf_time = time-dt)
+    call em_field_calc (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field1, rf_time = time+dt)
+
     select case (data_type)
     case ('e_curl.x')
-      value = field%dE(2,3) - field%dE(3,2)
+      value = field%dE(2,3) - field%dE(3,2) + (field1%B(1) - field0%B(1)) / (2 * dt)
     case ('e_curl.y')
-      value = field%dE(3,1) - field%dE(1,3)
+      value = field%dE(3,1) - field%dE(1,3) + (field1%B(2) - field0%B(2)) / (2 * dt)
     case ('e_curl.z')
-      value = field%dE(1,2) - field%dE(2,1)
+      value = field%dE(1,2) - field%dE(2,1) + (field1%B(3) - field0%B(3)) / (2 * dt)
     case default
       goto 9000  ! Error message & Return
     end select
