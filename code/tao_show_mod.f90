@@ -3282,7 +3282,7 @@ case ('track')
     i1 = 7
     call write_track_header (line1, i1, s_fmt, ['S'], err); if (err) return
     call write_track_header (line1, i1, t_fmt, ['Time'], err); if (err) return
-    call write_track_header (line1, i1, position_fmt, ['X (mm)', 'Y (mm)', 'Z (mm)'], err); if (err) return
+    call write_track_header (line1, i1, position_fmt, ['X', 'Y', 'Z'], err); if (err) return
     call write_track_header (line1, i1, velocity_fmt, ['Vx/c', 'Vy/c', 'Vs/c'], err); if (err) return
     call write_track_header (line1, i1, momentum_fmt, ['px', 'py', 'pz'], err); if (err) return
     call write_track_header (line1, i1, energy_fmt, ['E_tot'], err); if (err) return
@@ -3313,10 +3313,14 @@ case ('track')
 
     call write_track_info (line1, i1, s_fmt, [ele%s], err);  if (err) return
     call write_track_info (line1, i1, t_fmt, [orbit%t], err);  if (err) return
-    call write_track_info (line1, i1, position_fmt, 1d3 * orbit%vec(1:5:2), err);  if (err) return
+    call write_track_info (line1, i1, position_fmt, orbit%vec(1:5:2), err);  if (err) return
 
-    vec3(1:2) = [orbit%vec(2), orbit%vec(4)] / (1 + orbit%vec(6))
-    vec3 = orbit%beta * [vec3(1), vec3(2), sqrt(max(0.0_rp, 1 - vec3(1)**2 - vec3(2)**2))]
+    if (orbit%beta == 0) then
+      vec3 = 0
+    else
+      vec3(1:2) = [orbit%vec(2), orbit%vec(4)] / (1 + orbit%vec(6))
+      vec3 = orbit%beta * [vec3(1), vec3(2), sqrt(max(0.0_rp, 1 - vec3(1)**2 - vec3(2)**2))]
+    endif
     call write_track_info (line1, i1, velocity_fmt, vec3, err);  if (err) return
 
     call write_track_info (line1, i1, momentum_fmt, orbit%vec(2:6:2), err);  if (err) return
@@ -4294,8 +4298,8 @@ subroutine write_track_header (line, ix_line, fmt, label, err)
 implicit none
 
 character(*) line, fmt, label(:)
-character(8) code
-integer ix_line, i, n, multiplyer, width, digits
+character(16) code, str
+integer ix_line, i, n, multiplyer, power, width, digits
 logical err
 
 !
@@ -4303,7 +4307,7 @@ logical err
 err = .false.
 if (fmt == '' .or. fmt == 'no') return
 
-call parse_fortran_format (fmt, multiplyer, code, width, digits)
+call parse_fortran_format (fmt, multiplyer, power, code, width, digits)
 if (code == '') then
   nl = 1; lines(1) = 'BAD FORMAT: ' // fmt
   err = .true.
@@ -4311,8 +4315,13 @@ if (code == '') then
 endif
 
 do i = 1, size(label)
-  n = len(label(i))
-  line(ix_line+width-n-2:) = label(i)
+  if (power == 0) then
+    str = label(i)
+  else
+    write (str, '(2a, i0, a)') trim(label(i)), ' (*1E', power, ')'
+  endif
+  n = len(str)
+  line(ix_line+width-n-2:) = str
   ix_line = ix_line + width
 enddo
 
@@ -4331,7 +4340,7 @@ implicit none
 character(*) line, fmt
 character(8) code
 real(rp) value(:)
-integer ix_line, i, n, multiplyer, width, digits, ios
+integer ix_line, i, n, multiplyer, power, width, digits, ios
 logical err
 
 !
@@ -4339,7 +4348,7 @@ logical err
 err = .false.
 if (fmt == '' .or. fmt == 'no') return
 
-call parse_fortran_format (fmt, multiplyer, code, width, digits)
+call parse_fortran_format (fmt, multiplyer, power, code, width, digits)
 
 do i = 1, size(value)
   write (line(ix_line+1:), '(' // fmt // ')', iostat = ios) value(i)
