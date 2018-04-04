@@ -381,13 +381,14 @@ if (photon_start_input_file /= '') then
     ! Get next photon position
 
     do
+      ran_state%iy = -1  ! To see if ran_state is set by the read.
+      random_seed = -1
+
       if (photon_start_input_file == 'CUSTOM') then
         call synrad3d_photon_init_custom (orbit, ix_branch, lat, photons, n_photon_generated, n_photon_array, finished)
         if (finished) exit photon_loop
 
       else
-        ran_state%iy = -1  ! To see if ran_state is set by the read.
-        random_seed = -1
         ix_branch = 0   ! Default
         read (1, nml = start, iostat = ios)
         if (ios < 0) then
