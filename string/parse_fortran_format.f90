@@ -14,7 +14,7 @@
 !   multiplyer  -- integer: Multiplyer prefix before the code string. EG '5I2' -> multiplyer = 5, 
 !                   'es12.6' -> multiplyer = 1 (default).
 !   power       -- integer: Power scale factor. EG: '3pf12.2' -> power = 3. Set to 0 if no power factor present.
-!   code        -- character(*): Format code. EG 'T37' -> code = 'T'. Set to '' if there is a decode error.
+!   code        -- character(*): Format code. EG 't37' -> code = 'T'. Will be upper case. Set to '' if there is a decode error.
 !                   Note: If a power factor is present, code will *not* contain "p". EG: '3pf12.5' -> code = 'f'.
 !   width       -- integer: Field width. EG 'A23' -> width = 23. Set to -1 if not present (EG: '34X')
 !   digits      -- integer: number of digits after the decimal place for real numbers. EG '4f10.3' -> digits = 3.
@@ -93,7 +93,7 @@ do i1 = i0, nn
 enddo
 
 if (i1 == i0) return
-code = format_str(i0:i1-1)
+code = upcase(format_str(i0:i1-1))
 if (no_more(i1)) return
 
 ! Look for width
