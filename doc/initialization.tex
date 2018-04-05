@@ -331,20 +331,21 @@ lattice that is common to all universes. See \sref{s:cbl} for more
 details.
 
 %-----------------------------------------------------------------
-\section{Initializing Globals}\index{initialization!globals}
+\section{Initializing Globals}
+\index{initialization!globals}
 \label{s:globals} 
 
-Global variables are initialized in the \vn{data_and_var_file} using a
-namelist block named \vn{tao_params}.
+Global variables are initialized in the root initialization file using a 
+namelist named \vn{tao_params}.
 
 The syntax of this block is:
 \index{tao_params}\index{global}\index{bmad_com}\index{csr_param}\index{opti_de_param}
 \begin{example}
   &tao_params
-    global        = <tao_global_struct>     ! global parameters.
-    bmad_com      = <bmad_com_struct>       ! Bmad global parameters.
-    csr_param     = <csr_parameter_struct>  ! CSR global parameters.
-    opti_de_param = <opti_de_param_struct>  ! de optimizer parameters.
+    global        = <tao_global_struct>     ! global parameters. \sref{s:tao.global.struct}
+    bmad_com      = <bmad_com_struct>       ! Bmad global parameters. \sref{s:bmad.com.struct}
+    csr_param     = <csr_parameter_struct>  ! CSR global parameters. \sref{s:csr.param.struct}
+    opti_de_param = <opti_de_param_struct>  ! de optimizer parameters. \sref{opti.de.param.struct}
   /
 \end{example}
 Example:
@@ -353,6 +354,10 @@ Example:
     global%optimizer = "lm"  ! Set the default optimizer.
   /
 \end{example}
+
+%-----------------------------------------------------------------
+\subsection{tao\_global\_struct Structure}
+\label{s:tao.global.struct} 
 
 The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{n_opti_cycles}\index{ix_key_bank}
@@ -487,15 +492,6 @@ distinguish between input meant as a \tao command and input meant for aborting t
 optimization. In this case, \vn{optimizer_allow_user_abort} will default to False so that
 the optimizer will not do any checking.
 
-  \item{\vn{Random Number Generation}} \Newline
-Random number generation in \tao is divided into two categories: Random numbers used for
-generating the initial coordinates of the particles in a beam and random numbers used for
-everything else.  As explained below, there are four parameters that govern how random
-numbers are generated. For beam particle generation, three of the four (everything except
-the random number seed) are accessed through the \vn{beam_init} structure
-(\sref{s:beam.init}). For everything else, these parameters are accessed through the
-\vn{tao_global_struct}.
-
   \item{\vn{global%random_engine}} \Newline
 \vn{global%random_engine} selects the algorithm used for generating the random
 numbers. \vn{"pseudo"} causes \tao to use a pseudo-random number generator. \vn{"quasi"}
@@ -550,6 +546,18 @@ variable value goes past a limit.
 
 \end{description}
 
+Random number generation in \tao is divided into two categories: Random numbers used for
+generating the initial coordinates of the particles in a beam and random numbers used for
+everything else.  As explained below, there are four parameters that govern how random
+numbers are generated. For beam particle generation, three of the four (everything except
+the random number seed) are accessed through the \vn{beam_init} structure
+(\sref{s:beam.init}). For everything else, these parameters are accessed through the
+\vn{tao_global_struct}.
+
+%-----------------------------------------------------------------
+\subsection{bmad\_com\_struct Structure}
+\label{s:bmad.com.struct} 
+
 The \vn{bmad_com_struct} holds bmad global variables. 
 \index{radiation_damping_on}\index{taylor_order}
 \index{radiation_fluctuations_on}\index{sr_wakes_on}\index{lr_wakes_on}
@@ -589,6 +597,10 @@ The \vn{bmad_com_struct} holds bmad global variables.
 \end{example}
 See the \bmad manual for more details.
 
+%-----------------------------------------------------------------
+\subsection{csr\_param\_struct Structure}
+\label{s:csr.param.struct} 
+
 The \vn{csr_parameter_struct} holds global variables for the coherent
 synchrotron radiation calculations. 
 \begin{example}
@@ -621,6 +633,10 @@ The parameter \vn{bmad_com%coherent_synch_radiation} (see above this section) mu
 In the \bmad lattice file, \vn{csr_calc_on} must be set for the elements where CSR tracking is to be
 done (see the \bmad manual).
 \end{Itemize}
+
+%-----------------------------------------------------------------
+\subsection{opti\_de\_param\_struct Structure}
+\label{s:opti.de.param.struct}
 
 The \vn{opti_de_param_struct} holds parameters that influence the behavior
 of the \vn{de} optimizer (\sref{s:tao.opti})
