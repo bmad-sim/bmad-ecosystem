@@ -30,7 +30,7 @@ integer i, ix, ix_word, n_eles, n0
 
 character(*) ele_list
 character(100) ele_name, word
-character(20) :: r_name = 'tao_locate_all_elements'
+character(*), parameter :: r_name = 'tao_locate_all_elements'
 character(1) delim
 
 logical err, delim_found
