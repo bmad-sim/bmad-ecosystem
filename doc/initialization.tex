@@ -173,31 +173,28 @@ however, can contain \vn{tao_template_plot} and
   \vn{tao_beam_init}                 & Particle beams     & \sref{s:beam.init}         \\ 
   \vn{building_wall_section}         & Building Walls     & \sref{s:building.wall}     \\ 
   \vn{tao_design_lattice}            & Lattice Files      & \sref{s:init.lat}          \\ 
-  \vn{tao_d1_data}                   & \vn{data_file}               & Data              & \sref{s:init.data}         \\ 
-  \vn{tao_d2_data}                   & \vn{data_file}               & Data              & \sref{s:init.data}         \\ 
-  \vn{tao_params}                    &                              & Global Variables  & \sref{s:globals}           \\ 
-  \vn{tao_plot_page}                 & \vn{plot_file}$^*$           & Plotting          & \sref{s:init.plot}         \\ 
-  \vn{tao_single_particle_tracking}  & \vn{particle_tracking_file}  & Particle Tracking & \sref{s:single.track}      \\
-  \vn{tao_template_graph}            & \vn{plot_file}               & Plotting          & \sref{s:init.plot}         \\ 
-  \vn{tao_template_plot}             & \vn{plot_file}               & Plotting          & \sref{s:init.plot}         \\ 
-  \vn{tao_var}                       & \vn{var_file}                & Variables         & \sref{s:init.var}          \\ \bottomrule
+  \vn{tao_d1_data}                   & Data               & \sref{s:init.data}         \\ 
+  \vn{tao_d2_data}                   & Data               & \sref{s:init.data}         \\ 
+  \vn{tao_params}                    & Global Variables   & \sref{s:globals}           \\ 
+  \vn{tao_plot_page}                 & Plotting           & \sref{s:init.plot}         \\ 
+  \vn{tao_template_graph}            & Plotting           & \sref{s:init.plot}         \\ 
+  \vn{tao_template_plot}             & Plotting           & \sref{s:init.plot}         \\ 
+  \vn{tao_var}                       & Variables          & \sref{s:init.var}          \\ \bottomrule
 \end{tabular}}
 \break
 \caption{Table of \vn{tao} Initialization Namelists.}
 \label{t:init.files}
 \end{table}
 
-\etcetc: Must finish up going to each section and putting in info for in what directory tao looks for the namelist
-See the lat_tayout/floor plan section for an example...
-
 %-----------------------------------------------------------------
 \section{Lattice Initialization}\index{initialization!lattice}
 \label{s:init.lat} 
 
-In the \vn{tao_start} namelist, the \vn{lattice_file} variable gives the name of the file that
-contains the \vn{tao_design_lattice} namelist. The default, if \vn{lattice_file} is not present is
-to look in the \tao root initialization file. The \vn{tao_deisgin_lattice} namelist defines where
-the lattice input files are. The variables that are set in the \vn{tao_design_lattice} namelist are:
+In the \vn{tao_start} namelist (\sref{s:init.global}, the \vn{lattice_file} variable gives the name
+of the file that contains the \vn{tao_design_lattice} namelist. The default, if \vn{lattice_file} is
+not present is to look in the \tao root initialization file. The \vn{tao_deisgin_lattice} namelist
+defines where the lattice input files are. The variables that are set in the \vn{tao_design_lattice}
+namelist are:
 \index{tao_design_lattice}\index{design_lattice}\index{design_lattice!file}
 \index{design_lattice!parser}\index{n_universes}\index{common_lattice}
 \begin{example}
@@ -338,7 +335,9 @@ details.
 \label{s:globals} 
 
 Global variables are initialized in the \vn{data_and_var_file} using a
-namelist block named \vn{tao_params} The syntax of this block is:
+namelist block named \vn{tao_params}.
+
+The syntax of this block is:
 \index{tao_params}\index{global}\index{bmad_com}\index{csr_param}\index{opti_de_param}
 \begin{example}
   &tao_params
@@ -428,7 +427,7 @@ the \vn{set} command (\sref{s:set}).
 
   \begin{description}
   \item{\vn{global%command_file_print_on}} \Newline
-The \vn{} switch controls whether printing is suppressed when a command file is called.
+This switch controls whether printing to the terminal is suppressed when a command file is called.
 
   \item{\vn{global%concatenate_maps}} \Newline
 When constructing transfer Taylor maps the default method, used with \vn{global%concatenate_maps} =
@@ -469,10 +468,10 @@ calculations (for example, calculating the Twiss parameters) that are not needed
 
   \item{\vn{global%plot_calc_always} \Newline
 Sometimes it is convenient to have \tao calculate plotting curve points even when \tao is not doing
-any plotting (that is, \global%plot_on} = F). For example, when \tao is run as a server by a client
+any plotting (that is, \vn{global%plot_on} = F). For example, when \tao is run as a server by a client
 (such as a graphic user interface) program where the client program is taking care of the plotting but
 the data to be plotted is calculated by \tao. In this case by setting \vn{global%plot_calc_always} to
-True will force \tao to always calcuate curve data points even when \global%plot_on} = F.
+True will force \tao to always calcuate curve data points even when \vn{global%plot_on} = F.
 
   \item{\vn{global%merit_stop_value}} \Newline
 The \vn{global%merit_stop_value} establishes a point such that, during optimization, if
@@ -900,8 +899,13 @@ are explained in Section~\sref{s:globals}.
 \section{Initializing Variables}\index{initialization!variables}
 \label{s:init.var} 
 
-\vn{Variable}s are initialized using the \vn{tao_var} namelist. The
-format for this is
+\tao \vn{variable}s (\sref{c:var} are used in lattice correction or design (\sref{c:opti}). 
+
+The file that \tao looks in to find information on \tao variables is set by the \vn{var_file} component of
+the \vn{tao_start} namelist (\sref{s:init_global}). The default, if \vn{data_file} is not set, is
+the root initialization file.
+
+Variables are initialized using the \vn{tao_var} namelist. The format for this is
 \index{tao_var}\index{v1_var!name}\index{default_universe}
 \index{default_attribute}\index{default_weight}\index{default_step}
 \index{default_merit_type}\index{default_low_lim}\index{default_high_lim}
@@ -1090,9 +1094,15 @@ used together.
 \index{initialization!data}\index{initialization!constants}
 \label{s:init.data} 
 
-A set of data (\sref{c:data}) is initialized using a \vn{tao_d2_data}
-namelist block and one or more \vn{tao_d1_data} namelist blocks. The
-format of the \vn{tao_d2_data} namelist is
+Tao \vn{data} (\sref{c:data}) is used with lattice correction or design (\sref{c:opti}). A set of
+data is initialized using a \vn{tao_d2_data} namelist block and one or more \vn{tao_d1_data}
+namelist blocks.
+
+The file that \tao looks in to find these two namelists is set by the \vn{data_file} component of
+the \vn{tao_start} namelist (\sref{s:init_global}). The default, if \vn{data_file} is not set, is
+the root initialization file.
+
+The format of the \vn{tao_d2_data} namelist is
 \index{tao_d2_data}
 \index{d2_data!name}
 \index{Universe}
@@ -1353,10 +1363,9 @@ as being equivalent to \vn{ele_start}. The relative data types where:
   \centering
   \includegraphics[width=5in]{building-wall.pdf}
   \caption[Floor plot showing the walls of the building]
-{Floor plot showing the walls of the building (along with a section
-of a recirculation arc). Defining building walls can be useful for
-such things as floor plots and designing a machine to fit in an
-existing building.}
+{Floor plot showing the walls of the building (along with a section of a recirculation
+arc). Defining building walls can be useful for such things as floor plots and designing a machine
+to fit in an existing building.}
   \label{f:building.wall}
 \end{figure}
 
@@ -1369,11 +1378,10 @@ wall boundaries. One such section is highlighted in Figure~\ref{f:building.wall}
 point marked ``point(1)'' and ending at the point marked ``point(N)''. Each section is defined by a
 set of points which are connected together using straight lines or circular arcs.
 
-The name of the file containing the building wall definition is given
-by the \vn{building_wall_file} variable in the \vn{tao_start} namelist
-(\sref{s:init.global}). In general, this file will contain a number of
-\vn{building_wall_section} namelists. Each \vn{building_wall_section}
-namelist defines a single wall section. The syntax of this namelist is
+The name of the file containing the building wall definition is given by the \vn{building_wall_file}
+variable in the \vn{tao_start} namelist (\sref{s:init.global}). In general, this file will contain a
+number of \vn{building_wall_section} namelists. Each \vn{building_wall_section} namelist defines a
+single wall section. The syntax of this namelist is
 \begin{example}
   &building_wall_section
     \{constraint = <type>\}
@@ -1384,19 +1392,15 @@ namelist defines a single wall section. The syntax of this namelist is
     point(N) = <zN>, <xN>, \{<rN>\}
   /
 \end{example}
-The global coordinate system in \bmad (see the \bmad manual) defines
-the $(Z, X)$ plane as being horizontal.  [Note: $(Z, X)$ is used
-instead of $(X, Z)$ since $(Z, X, Y)$ forms a right handed coordinate
-system.] The points that define a wall section are specified in this
-coordinate system.  In the \vn{building_wall_section} namelist, the
-$(Z, X)$ position of each point defining a wall section is given along
-with an optional radius $r$. If a non-zero radius is given for point
-$j$, then the segment between point $j-1$ and $j$ is a circular arc of
-the given radius. If no radius is given, or if it is zero, the segment
-is a straight line. A radius for the first point, number 1, cannot be
-specified since this does not make sense. Additionally, a radius must
-be at least half the distance between the two points that define the
-end points of the arc.
+The global coordinate system in \bmad (see the \bmad manual) defines the $(Z, X)$ plane as being
+horizontal.  [Note: $(Z, X)$ is used instead of $(X, Z)$ since $(Z, X, Y)$ forms a right handed
+coordinate system.] The points that define a wall section are specified in this coordinate system.
+In the \vn{building_wall_section} namelist, the $(Z, X)$ position of each point defining a wall
+section is given along with an optional radius $r$. If a non-zero radius is given for point $j$,
+then the segment between point $j-1$ and $j$ is a circular arc of the given radius. If no radius is
+given, or if it is zero, the segment is a straight line. A radius for the first point, number 1,
+cannot be specified since this does not make sense. Additionally, a radius must be at least half the
+distance between the two points that define the end points of the arc.
 
 In general, given two end points and a radius, there are four possible
 arcs that can be drawn. The arc chosen follows the following convention:
@@ -1491,12 +1495,10 @@ The results can be plotted. See \sref{s:dynamicapertureplot}.
 \label{s:plot.page}
 \index{initialization!plotting!plot window}
 
-Plotting is defined by an initialization file whose name is defined
-by the \vn{tao_start} namelist (\sref{s:init.global}).
-The first namelist block in the file has a block
-name of \vn{tao_plot_page}. This block sets the size of the plot
-window (also called the plot page) and defines the ``regions'' where
-plots go. The syntax of this block is:
+Plotting is defined by an initialization file whose name is defined by the \vn{plot_file} component
+of the \vn{tao_start} namelist (\sref{s:init.global}).  The first namelist block in the file has a
+block name of \vn{tao_plot_page}. This block sets the size of the plot window (also called the plot
+page) and defines the ``regions'' where plots go. The syntax of this block is:
 \index{tao_plot_page}\index{plot_page!n_curve_pts}
 \index{plot_page!size}\index{plot_page!border}
 \index{plot_page!text_height}\index{plot_page!title}
@@ -1621,12 +1623,10 @@ component of a plot (\sref{s:template}).
 
 \vn{place(i)} determines the initial placement of plots.
 
-\vn{default_plot} sets the defaults for any \vn{plot}s
-defined in the \vn{tao_template_plot} namelists
-(\sref{s:template}). Similarly, \vn{default_graph} sets defaults for the
-\vn{graph} structure defined in the \vn{tao_template_graph} namelist
-(\sref{s:template}). In the example above, the default x-axis min and
-max are set to 100 and 200 respectively.
+\vn{default_plot} sets the defaults for any \vn{plot}s defined in the \vn{tao_template_plot}
+namelists (\sref{s:template}). Similarly, \vn{default_graph} sets defaults for the \vn{graph}
+structure defined in the \vn{tao_template_graph} namelist (\sref{s:template}). In the example above,
+the default x-axis min and max are set to 100 and 200 respectively.
 
 If \vn{include_default_plots} is set to \vn{False}, the collection of default template
 plots (\sref{s:template}) that \tao uses by default are not used along with the template
@@ -1637,17 +1637,19 @@ plots defined in the plotting file.
 \label{s:template}
 \index{plot templates}
 
-As shown in Figure~\ref{f:plot}, a ``plot'' is made up of a collection
-of ``graphs'' and a graph consists of axes plus a set of ``curves''.
-In the \vn{tao_plot.init} file there needs to be defined a set of
-``template plots''. A template plot specifies the layout of a plot:
-How the graphs are placed within a plot, what curves are associated
-with what graphs, etc. When running \tao, the information in a
-template plot may then be transferred to a region using the \vn{place}
-command and this will produce a visible plot.
+As shown in Figure~\ref{f:plot}, a ``plot'' is made up of a collection of ``graphs'' and a graph
+consists of axes plus a set of ``curves''. To define custom plots, there needs to be defined
+a set of ``template plots''. A template plot specifies the layout of a plot: How the graphs are
+placed within a plot, what curves are associated with what graphs, etc. When running \tao, the
+information in a template plot may then be transferred to a region using the \vn{place} command and
+this will produce a visible plot.
 
-Template plots are defined using namelists with a name of
-\vn{tao_template_graph}. The general syntax is:
+The file that \tao looks in to find plotting information is set by the \vn{plot_file} component of
+the \vn{tao_start} namelist (\sref{s:init_global}). The default, if \vn{plot_file} is not set, is
+the root initialization file.
+
+Template plots are defined using namelists with a name of \vn{tao_template_graph}. The general
+syntax is:
 \index{tao_template_plot}
 \index{plot!name}
 \index{plot!x}
