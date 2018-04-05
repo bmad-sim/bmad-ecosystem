@@ -3221,9 +3221,9 @@ case ('track')
   spin_fmt = ''
   energy_fmt = ''
   print_header_lines = .true.
-  s1 = -1
-  s2 = -1
-  n_print = -1
+  s1 = branch%ele(0)%s
+  s2 = branch%ele(branch%n_ele_track)%s
+  n_print = s%plot_page%n_curve_pts
 
   do 
     call tao_next_switch (what2, [character(16):: '-e_field', '-b_field', '-velocity', '-momentum', &
@@ -3278,7 +3278,7 @@ case ('track')
   !
 
   if (print_header_lines) then
-    line1 = '#  Ix'
+    line1 = '#   Ix'
     i1 = 7
     call write_track_header (line1, i1, s_fmt, ['S'], err); if (err) return
     call write_track_header (line1, i1, t_fmt, ['Time'], err); if (err) return
@@ -3299,7 +3299,6 @@ case ('track')
     return
   endif
 
-  if (n_print < 2) n_print = s%plot_page%n_curve_pts
   call re_allocate(lines, nl+n_print+10)
 
   do_field = ((e_field_fmt /= '' .and. e_field_fmt /= 'no') .or. (b_field_fmt /= '' .and. b_field_fmt /= 'no'))
@@ -4299,7 +4298,7 @@ implicit none
 
 character(*) line, fmt, label(:)
 character(16) code, str
-integer ix_line, i, n, multiplyer, power, width, digits
+integer ix_line, i, n, multiplyer, power, width, digits, ix
 logical err
 
 !
@@ -4320,8 +4319,9 @@ do i = 1, size(label)
   else
     write (str, '(2a, i0, a)') trim(label(i)), ' (*1E', power, ')'
   endif
-  n = len(str)
-  line(ix_line+width-n-2:) = str
+  n = len_trim(str)
+  ix = ix_line + max(1, width-n-2)
+  line(ix:) = str
   ix_line = ix_line + width
 enddo
 

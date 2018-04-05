@@ -2093,13 +2093,14 @@ call tao_locate_all_elements (ele_list, eles, err)
 if (err) return
 
 !-----------
-! Problem with set_ele_attribute is that it does not know about Tao syntax so it may have problems
-! evaluateing the value string.
-! How to handle this depends upon what type of attribute it is
+! The first complication is that what is being set can be a logical, switch (like an element's tracking_method), etc.
+! So use set_ele_attribute to do the set.
+! But set_ele_attribute does not know about Tao syntax so it may have problems evaluateing the value string.
+! How to handle this depends upon what type of attribute it is.
 
 ! If a real attribute then use tao_evaluate_expression to evaluate
 
-if (attribute_type(upcase(attribute)) == is_real$) then
+if (attribute_type(upcase(attribute), eles(1)%ele) == is_real$) then
   call tao_evaluate_expression (value, 1, .false., set_val, info, err)
   if (err) return
   write (val_str, *) set_val(1)
@@ -2148,7 +2149,6 @@ elseif (index(value, 'ele::') /= 0) then
     call out_io (s_error$, r_name, 'STRANGE SET VALUE: ' // value)
     return
   endif
-
 
 ! If the value string does not have "ele::" then just 
 ! assume that set_ele_attribute will be able to evaluate the value string.
