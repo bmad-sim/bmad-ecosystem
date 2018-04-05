@@ -1649,7 +1649,7 @@ end function has_orientation_attributes
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function attribute_type (attrib_name) result (attrib_type)
+! Function attribute_type (attrib_name, ele) result (attrib_type)
 !
 ! Routine to return the logical type of an attribute.
 !
@@ -1671,16 +1671,36 @@ end function has_orientation_attributes
 !
 ! Input:
 !   attrib_name -- Character(*): Name of the attribute. Must be upper case.
+!   ele         -- ele_struct, optional: Element associated with the attribute. Needed if attrib_name
+!                   can correspond to an overlay or group variable.
 !
 ! Output:
 !   attrib_type  -- Integer: Attribute type: 
 !                     is_string$, is_logical$, is_integer$, is_real$, is_switch$, is_struct$ or unknown$
+!                     Note: An overlay or group variable will be marked unknown$ if ele is missing.
 !-
 
-function attribute_type (attrib_name) result (attrib_type)
+function attribute_type (attrib_name, ele) result (attrib_type)
 
+type (ele_struct), optional :: ele
 character(*) attrib_name
-integer attrib_type
+integer attrib_type, i
+
+! Check if an overlay or group variable
+
+if (present(ele)) then
+  if (associated(ele%control_var)) then
+    do i = 1, size(ele%control_var)
+      if (attrib_name(1:4) == 'OLD_') then
+        if (attrib_name(5:) /= ele%control_var(i)%name) cycle
+      else
+        if (attrib_name /= ele%control_var(i)%name) cycle
+      endif
+      attrib_type = is_real$
+      return
+    enddo
+  endif
+endif
 
 !
 
