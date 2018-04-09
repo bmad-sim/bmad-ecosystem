@@ -33,16 +33,16 @@ open (1, file = 'output.now')
 ! Parse fortran format tests
 
 call parse_fortran_format('34pf12.3', mult, power, code, width, digits)
-write (1, '(a, 2(i0, a), a, 2(i0, a))') '"34pf12.3" STR ', mult, '(', power, 'p', trim(code),  width, '.', digits, ')'
+write (1, '(a, 2(i0, a), a, 2(i0, a))') '"34pf12.3" STR "', mult, '(', power, 'p', trim(code),  width, '.', digits, ')"'
 
 call parse_fortran_format('x ', mult, power, code, width, digits)
-write (1, '(a, 2(i0, a), a, 2(i0, a))') '"x" STR ', mult, '(', power, 'p', trim(code),  width, '.', digits, ')'
+write (1, '(a, 2(i0, a), a, 2(i0, a))') '"x" STR "', mult, '(', power, 'p', trim(code),  width, '.', digits, ')"'
 
 call parse_fortran_format('(7(4pi17)) ', mult, power, code, width, digits)
-write (1, '(a, 2(i0, a), a, 2(i0, a))') '"(7(4pi17))" STR ', mult, '(', power, 'p', trim(code),  width, '.', digits, ')'
+write (1, '(a, 2(i0, a), a, 2(i0, a))') '"(7(4pi17))" STR "', mult, '(', power, 'p', trim(code),  width, '.', digits, ')"'
 
 call parse_fortran_format('i17 i', mult, power, code, width, digits)
-write (1, '(a, 2(i0, a), a, 2(i0, a))') '"BAD-FMT" STR ', mult, '(', power, 'p', trim(code),  width, '.', digits, ')'
+write (1, '(a, 2(i0, a), a, 2(i0, a))') '"BAD-FMT" STR "', mult, '(', power, 'p', trim(code),  width, '.', digits, ')"'
 
 ! rotation tests
 
