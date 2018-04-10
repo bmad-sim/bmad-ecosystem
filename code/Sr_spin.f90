@@ -5659,7 +5659,7 @@ call kill(xs);call kill(m)
 end subroutine fill_tree_element_line
 
 !!!!!!!!!!!!!!!!!!!!   stuff for Zhe  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-subroutine fill_tree_element_line_zhe(state,f1,f2,no,fix0,filef,stochprec)   ! fix0 is the initial condition for the maps
+subroutine fill_tree_element_line_zhe(state,f1,f2,no,fix0,filef,stochprec,sagan_tree)   ! fix0 is the initial condition for the maps
 implicit none
 type(fibre), target :: f1,f2 
 type(layout), pointer :: r
@@ -5674,8 +5674,15 @@ type(c_damap) m,mr
 integer no,i,inf
 type(fibre), pointer :: p
 type(tree_element), pointer :: forward(:) =>null()
-character(*) filef
+character(*),optional :: filef
+type(tree_element),optional, target :: sagan_tree(3)
 
+
+if(present(sagan_tree)) then
+  forward=>sagan_tree
+else
+    allocate(forward(3))
+endif
 
 if(.not.associated(f1%parent_layout)) then
  write(6,*) " parent layout not associated "
@@ -5723,7 +5730,6 @@ enddo
 
 
 
-  allocate(forward(3))
 
 
 call SET_TREE_G_complex_zhe(forward,m)
@@ -5749,12 +5755,14 @@ forward(1)%fix(1:6)=fix    ! always same fixed point
  enddo
 forward(1)%beta0=f1%beta0
 
-   call kanalnummer(inf,filef)
+ if(present(filef)) then
+  call kanalnummer(inf,filef)
     call print_tree_elements(forward,inf)
    close(inf)
-
   call KILL(forward)
   deallocate(forward)
+endif
+
 call kill(xs);call kill(m);call kill(mr)
  
 end subroutine fill_tree_element_line_zhe
@@ -5765,7 +5773,7 @@ end subroutine fill_tree_element_line_zhe
     IMPLICIT NONE
     TYPE(TREE_ELEMENT), INTENT(INOUT) :: T(:)
     TYPE(c_damap), INTENT(INOUT) :: Ma
-    INTEGER N,NP,i,k,j
+    INTEGER N,NP,i,k,j,kq
     real(dp) norm,mat(6,6)
     TYPE(taylor), ALLOCATABLE :: M(:), MG(:)
     TYPE(damap) ms
@@ -5816,6 +5824,19 @@ end subroutine fill_tree_element_line_zhe
 
     call c_full_norm_spin(Ma%s,k,norm)
 
+
+if(use_quaternion) then
+    call c_full_norm_quaternion(Ma%q,kq,norm)
+    if(kq==-1) then
+      do i=1,4
+        m(ind_spin(1,1)+i-1)=ma%q%x(i)
+      enddo
+    elseif(kq/=-1) then
+      do i=ind_spin(1,1)+4,size_tree
+        m(i)=0.0_dp
+      enddo
+    endif
+else
     if(k==-1) then
       do i=1,3
       do j=1,3
@@ -5827,7 +5848,7 @@ end subroutine fill_tree_element_line_zhe
         m(ind_spin(i,i))=1.0e0_dp
       enddo
     endif
-
+endif
       js=0
      js(1)=1;js(3)=1;js(5)=1; ! q_i(q_f,p_i) and p_f(q_f,p_i)
      call alloc(ms)
