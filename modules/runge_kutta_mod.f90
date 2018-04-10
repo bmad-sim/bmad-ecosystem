@@ -190,8 +190,11 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
         return
       endif
     endif
-    if (orbit%state == alive$) too_large =  orbit_too_large (orbit, param)  ! Now check momentum aperture.
   end select
+
+  ! Check for a crazy orbit
+
+  if (orbit%state == alive$) too_large = orbit_too_large (orbit, param)
 
   ! Save track
 
