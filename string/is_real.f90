@@ -1,7 +1,9 @@
 !+
 ! Function is_real (string, ignore) result (good)
 !
-! Function to test if a string represents a real number.
+! Function to test if a string represents a real number. 
+! Both 'E' and 'D' are accepted as signifying an exponent.
+!
 ! If the ignore argument is present and True then only the first "word" 
 ! will be considered and the rest of the line will be ignored. 
 ! For example:
@@ -47,7 +49,7 @@ if (string(i:i) == '+' .or. string(i:i) == '-') then
   if (i > len(string)) return
 endif
 
-! look for a digit, '.', or 'e'
+! look for a digit, '.' or 'E' or 'D'
 
 digit_found = .false.
 point_found = .false.
@@ -59,7 +61,7 @@ do
   elseif (string(i:i) == '.') then
     if (point_found) return  ! cannot have two of '.'
     point_found = .true.
-  elseif (string(i:i) == 'e' .or. string(i:i) == 'E') then
+  elseif (string(i:i) == 'e' .or. string(i:i) == 'E' .or. string(i:i) == 'd' .or. string(i:i) == 'D') then
     exponent_found = .true.
   elseif (string(i:i) == ' ') then
     exit
