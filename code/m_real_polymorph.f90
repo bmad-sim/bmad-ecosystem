@@ -2942,21 +2942,22 @@ contains
     type(real_8) temp
     integer i,localmaster
 
-             localmaster=master
-        call ass_quaternion_8(addq)
 
        call alloc(temp)
        do i=1,4
         temp=s1%x(i)+s2%x(i)
        if(temp%kind==2) then
+             localmaster=master
+        call ass(addq%x(i))
          addq%x(i)=temp
+          master=localmaster
         else
          addq%x(i)%r=temp%r
          addq%x(i)%kind=1
         endif
        enddo
        call kill(temp)
-          master=localmaster
+
   END FUNCTION addq
 
   FUNCTION absq2( S1 )
@@ -2995,21 +2996,24 @@ contains
     TYPE (quaternion_8), INTENT (IN) :: S1, S2
     type(real_8) temp
     integer i,localmaster
-             localmaster=master
-        call ass_quaternion_8(subq)
+ 
+ 
        call alloc(temp)
        do i=1,4
         temp=s1%x(i)-s2%x(i)
        if(temp%kind==2) then
-
+             localmaster=master
+        call ass(subq%x(i))
          subq%x(i)%t=temp%t
+          master=localmaster
         else
+
          subq%x(i)%r=temp%r
          subq%x(i)%kind=1
         endif
        enddo
        call kill(temp)
-          master=localmaster
+
   END FUNCTION subq
 
   FUNCTION invq( S1 )
@@ -3024,8 +3028,7 @@ contains
      invq%x(1)=0
      RETURN
     endif
-             localmaster=master
-        call ass_quaternion_8(invq)
+ 
        call alloc(temp)
       call alloc(norm)
 
@@ -3041,7 +3044,10 @@ contains
 
     do i=1,4
        if(temp(i)%kind==2) then
+             localmaster=master
+        call ass(invq%x(i))
          invq%x(i)=temp(i)
+          master=localmaster
         else
          invq%x(i)%r=temp(i)%r
          invq%x(i)%kind=1
@@ -3050,7 +3056,7 @@ contains
 
           call kill(norm)
           call kill(temp)
-          master=localmaster
+
  
   END FUNCTION invq
 
@@ -3066,8 +3072,7 @@ contains
       RETURN
     endif
 
-             localmaster=master
-        call ass_quaternion_8(POWq)
+ 
      call alloc(qtemp)    
      qtemp=1.0_dp
 
@@ -3081,9 +3086,10 @@ contains
 
      do i=1,4
        if(qtemp%x(i)%kind==2) then
-
+             localmaster=master
+        call ass(powq%x(i))
          powq%x(i)=qtemp%x(i)
-
+        master=localmaster
         else
          powq%x(i)%r=qtemp%x(i)%r
          powq%x(i)%kind=1
@@ -3101,11 +3107,9 @@ contains
     type(real_8) temp(4)
     integer i,localmaster
 
-             localmaster=master
-        call ass_quaternion_8(mulq)
+ !       call ass_quaternion_8(mulq)
         call alloc(temp)
  
-
          temp(1)=s1%x(1)*s2%x(1)-s1%x(2)*s2%x(2)-s1%x(3)*s2%x(3)-s1%x(4)*s2%x(4)
 
          temp(2)=s1%x(3)*s2%x(4)-s1%x(4)*s2%x(3)
@@ -3118,16 +3122,18 @@ contains
 
         do i=1,4
             if(temp(i)%kind==2) then
+             localmaster=master
+               call ass(mulq%x(i))
 
                   mulq%x(i)=temp(i)
-
+                 master=localmaster
              else
               mulq%x(i)%r=temp(i)%r
               mulq%x(i)%kind=1
              endif      
        enddo
        call kill(temp)
-        master=localmaster
+
 
   END FUNCTION mulq
 
@@ -5496,32 +5502,7 @@ contains
 
   end subroutine assp_no_master
 
-subroutine ass_quaternion_8(s1)
-!*
-    implicit none
-    TYPE (quaternion_8) s1
-    integer i
-   
-    select case(master)
-    case(0:ndumt-1)
-       master=master+1
-    case(ndumt)
-       write(6,*) " cannot indent anymore in ass_quaternion_8 ",ndumt
-       read(5,*) master
-       stop 444
-    end select
-
-    do i=1,4
-       call ass0(s1%x(i)%t)
-      s1%x(i)%alloc=t
-      s1%x(i)%kind=2
-      s1%x(i)%i=0
-    enddo
-
-  end subroutine ass_quaternion_8
-
-
-  ! complex
+ 
 
   FUNCTION datant( S1 )
     implicit none
