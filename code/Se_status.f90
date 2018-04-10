@@ -522,7 +522,7 @@ CONTAINS
 
     elp%KILL_ENT_FRINGE=el%KILL_ENT_FRINGE
     elp%KILL_EXI_FRINGE=el%KILL_EXI_FRINGE
-    elp%KILL_ENT_SPIN=elp%KILL_ENT_SPIN
+    elp%KILL_ENT_SPIN=el%KILL_ENT_SPIN
     elp%KILL_EXI_SPIN=el%KILL_EXI_SPIN
     elp%bend_fringe=el%bend_fringe
 

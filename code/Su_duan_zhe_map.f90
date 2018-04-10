@@ -20,7 +20,8 @@ private subq,unarysubq,addq,unaryADDq,absq,absq2,mulq,divq,ranf
 private EQUALq,EQUALqr,EQUALqi,powq,printq ,invq
 real(dp),parameter::pi=3.141592653589793238462643383279502e0_dp
 real(dp) :: cut_zhe=6.0_dp
- 
+ logical :: use_quaternion = .false.
+
 TYPE INTERNAL_STATE
    INTEGER TOTALPATH   ! total time or path length is used
    LOGICAL(LP) TIME  ! Time is used instead of path length
@@ -241,7 +242,9 @@ contains
        write(mf,*) ' Variable ',i
        write(mf,'(6(1X,G20.13))') ds%x(i) 
     enddo
- 
+  if(ds%use_q) then
+   call print(ds%q,mf)
+else
     WRITE(MF,*) " SPIN X "
        write(mf,'(3(1X,G20.13))') ds%s(1)%x 
  
@@ -251,7 +254,7 @@ contains
     WRITE(MF,*) " SPIN Z "
        write(mf,'(3(1X,G20.13))') ds%s(3)%x 
 
- 
+ endif
 
   END subroutine print_probe_zhe
 
@@ -273,7 +276,7 @@ contains
     P%X=X
     p%q%x=0.0_dp
     p%q%x(1)=1.0_dp
-
+     p%use_q=use_quaternion
   END    subroutine EQUAL_PROBE_REAL6_zhe
 
 
@@ -1037,7 +1040,7 @@ x0_begin=0.0_dp
       x0_begin(i)=xs%x(i)
     enddo
 !      x0(1:6)=x(1:6)
-      x(7:12)=x(1:6)
+   !   x(7:12)=x(1:6)  remove4/9/2018
 
 
 
@@ -1139,7 +1142,7 @@ else
 
      if(xs%use_q) then
        do k=1,4
-         qu%x(k)=x(6+k)
+         qu%x(k)=x0_begin(6+k)
        enddo 
  
        xs%q=qu*xs%q
@@ -1150,7 +1153,7 @@ else
  
     do i=1,3
     do j=1,3
-     r(i,j)=x(ind_spin(i,j))
+     r(i,j)=x0_begin(ind_spin(i,j))
     enddo
     enddo
 
@@ -1248,7 +1251,7 @@ endif
     cut_zhe=cut
   end SUBROUTINE gaussian_seed_zhe
 
-   real(dp) function GRNF_zhe
+   real(dp) function GRNF_zhe()
     implicit none
     real(dp) r1,r2,x 
 
@@ -1505,8 +1508,11 @@ endif
   END SUBROUTINE ReportOpenFiles
 
 
-subroutine zhe_ini
+subroutine zhe_ini(use_q)
 implicit none
+logical , optional ::use_q 
+
+if(Present(use_q) )use_quaternion=use_q
     ind_spin(1,1)=1+6;ind_spin(1,2)=2+6;ind_spin(1,3)=3+6;
     ind_spin(2,1)=4+6;ind_spin(2,2)=5+6;ind_spin(2,3)=6+6;
     ind_spin(3,1)=7+6;ind_spin(3,2)=8+6;ind_spin(3,3)=9+6;    

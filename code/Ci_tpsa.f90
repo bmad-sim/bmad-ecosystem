@@ -10166,19 +10166,16 @@ end subroutine c_full_factorise
       call alloc(mt) 
       call alloc(AS) 
       n%AS=1
-write(6,*) "so(3)"
-call print(m1%s)
+ 
 
       call c_normal_spin_linear(m1,m1,n%AS,n0)  ! (1)
-call print(m1%s)
-call print(n%as%s)
+ 
 
       ri=1 ; ri%s=m1%s.sub.0 ; ! exp(theta_0 L_y)   (2)
       egspin(3)=ri%s%s(1,1)-i_*ri%s%s(1,3)
       egspin(2)=1.0_dp
       egspin(1)=ri%s%s(1,1)+i_*ri%s%s(1,3)
-write(6,*) egspin
-pause 666
+ 
       if(lielib_print(13)/=0) then
         write(mdiss,*) " eg(1:4),spin_def_tune" ,spin_def_tune
         write(mdiss,*)eg(1)
@@ -10600,8 +10597,7 @@ pause 666
       egspin(3)=cos(alpha)-i_*sin(alpha)
       egspin(2)=1.0_dp
       egspin(1)=cos(alpha)+i_*sin(alpha) 
-write(6,*) egspin
-pause 666
+ 
       if(lielib_print(13)/=0) then
         write(mdiss,*) " eg(1:4),spin_def_tune" ,spin_def_tune
         write(mdiss,*)eg(1)

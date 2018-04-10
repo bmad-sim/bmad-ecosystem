@@ -529,106 +529,6 @@ contains
 
   end subroutine radiate_2r
 
-  !  subroutine PUSH_SPINR(c,DS,FAC,S,X,before,k,POS)
-  subroutine PUSH_SPINR(c,DS,FAC,P,before,k,POS)
-    implicit none
-    TYPE(integration_node), POINTER::c
-    TYPE(ELEMENT), POINTER::EL
-    INTEGER,OPTIONAL,INTENT(IN) ::POS
-    TYPE(PROBE), INTENT(INOUT) :: P
-    !    REAL(DP),INTENT(INOUT) :: X(6),S(3)
-    REAL(DP), INTENT(IN) :: DS,FAC
-    REAL(DP) OM(3),CO(3),SI(3),B2,XP(2)
-    REAL(DP) ST,dlds,norm,stheta
-    type(quaternion) dq,mulq
-    LOGICAL(LP),intent(in) :: BEFORE
-    type(internal_state) k
-    INTEGER I
-
-    !if(.not.(el%p%radiation.or.EL%P%SPIN)) return
-    if(.not.(k%radiation.or.k%SPIN.or.k%envelope)) return
-    IF(.NOT.CHECK_STABLE) return
-    el=>c%parent_fibre%mag
-    if(EL%kind<=kind1) return    ! should I prevent monitor here??? instead of xp=Px,y in get_omega_spin
-    !    if(EL%kind>=kind11.and.EL%kind<=kind14) return    ! should I prevent monitor here??? instead of xp=Px,y in get_omega_spin
-    !    if(EL%kind>=kind18.and.EL%kind<=kind19) return    ! should I prevent monitor here??? instead of xp=Px,y in get_omega_spin
-
-    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,POS,k)
-    if((k%radiation.or.k%envelope).AND.BEFORE) then
-       !if(el%p%radiation.AND.BEFORE) then
-       !       call radiate_2(c,DS,FAC,P%X,b2,dlds,XP,before,k,POS)
-       call radiate_2(c,DS,FAC,P%X,b2,dlds,before,k,POS)
-    endif
-   if(k%spin) then
-    if(p%use_q) then
-      if(EL%kind/=kind3) then
-        om=FAC*DS*OM/2.0_dp
-      else
-        om=FAC*OM/2.0_dp
-      endif
-        norm=sqrt(om(1)**2+om(2)**2+om(3)**2)
-        if(norm>0) then
-        stheta=sin(norm)
-        dq%x(1)=cos(norm)
-        dq%x(2)=stheta*om(1)/norm
-        dq%x(3)=stheta*om(2)/norm
-        dq%x(4)=stheta*om(3)/norm
-        p%q=dq*p%q
- !         mulq%x=0.0_dp!
-
-!          mulq%x(1)=dq%x(1)*p%q%x(1)-dq%x(2)*p%q%x(2)-dq%x(3)*p%q%x(3)-dq%x(4)*p%q%x(4)
-
- !        mulq%x(2)= dq%x(3)*p%q%x(4)-dq%x(4)*p%q%x(3)+ dq%x(1)*p%q%x(2)+ dq%x(2)*p%q%x(1)
- !        mulq%x(3)= dq%x(4)*p%q%x(2)-dq%x(2)*p%q%x(4)+ dq%x(1)*p%q%x(3)+ dq%x(3)*p%q%x(1)
-!          p%q%x(4)= dq%x(2)*p%q%x(3)-dq%x(3)*p%q%x(2)+ dq%x(1)*p%q%x(4)+ dq%x(4)*p%q%x(1)
- !         p%q%x(1)=mulq%x(1)
-  !        p%q%x(2)=mulq%x(2)
-   !       p%q%x(3)=mulq%x(3)
-      endif
-
-    else
-     if(EL%kind/=kind3) then
-       CO(1)=COS(FAC*DS*OM(1)/2.0_dp)
-       SI(1)=SIN(FAC*DS*OM(1)/2.0_dp)
-       CO(2)=COS(FAC*DS*OM(2)/2.0_dp)
-       SI(2)=SIN(FAC*DS*OM(2)/2.0_dp)
-       CO(3)=COS(FAC*DS*OM(3))
-       SI(3)=SIN(FAC*DS*OM(3))
-    else
-       CO(1)=COS(FAC*OM(1)/2.0_dp)
-       SI(1)=SIN(FAC*OM(1)/2.0_dp)
-       CO(2)=COS(FAC*OM(2)/2.0_dp)
-       SI(2)=SIN(FAC*OM(2)/2.0_dp)
-       CO(3)=COS(FAC*OM(3))
-       SI(3)=SIN(FAC*OM(3))
-    endif
-
-       DO I=ISPIN0R,ISPIN1R
-          ST=   CO(1)*p%S(I)%X(2)-SI(1)*p%S(I)%X(3)
-          p%S(I)%X(3)= CO(1)*p%S(I)%X(3)+SI(1)*p%S(I)%X(2)
-          p%S(I)%X(2)=ST
-          ST=  CO(2)*p%S(I)%X(1)+SI(2)*p%S(I)%X(3)
-          p%S(I)%X(3)=CO(2)*p%S(I)%X(3)-SI(2)*p%S(I)%X(1)
-          p%S(I)%X(1)=ST
-          ST=   CO(3)*p%S(I)%X(1)-SI(3)*p%S(I)%X(2)
-          p%S(I)%X(2)= CO(3)*p%S(I)%X(2)+SI(3)*p%S(I)%X(1)
-          p%S(I)%X(1)=ST
-          ST=  CO(2)*p%S(I)%X(1)+SI(2)*p%S(I)%X(3)
-          p%S(I)%X(3)=CO(2)*p%S(I)%X(3)-SI(2)*p%S(I)%X(1)
-          p%S(I)%X(1)=ST
-          ST=   CO(1)*p%S(I)%X(2)-SI(1)*p%S(I)%X(3)
-          p%S(I)%X(3)= CO(1)*p%S(I)%X(3)+SI(1)*p%S(I)%X(2)
-          p%s(I)%X(2)=ST
-       ENDDO
-    endif
-   endif
-    !if(el%p%radiation.AND.(.NOT.BEFORE)) then
-    if((k%radiation.or.k%envelope).AND.(.NOT.BEFORE)) then
-       !       call radiate_2(c,DS,FAC,P%X,b2,dlds,XP,before,k,POS)
-       call radiate_2(c,DS,FAC,P%X,b2,dlds,before,k,POS)
-    endif
-
-  END subroutine PUSH_SPINR
 
   subroutine radiate_2p(c,DS,FAC,X,E_IJ,b2,dlds,XP,before,k,POS)
     implicit none
@@ -969,6 +869,106 @@ endif
     KNOB=.false.
   END subroutine PUSH_SPIN_fake_fringep
 
+  !  subroutine PUSH_SPINR(c,DS,FAC,S,X,before,k,POS)
+  subroutine PUSH_SPINR(c,DS,FAC,P,before,k,POS)
+    implicit none
+    TYPE(integration_node), POINTER::c
+    TYPE(ELEMENT), POINTER::EL
+    INTEGER,OPTIONAL,INTENT(IN) ::POS
+    TYPE(PROBE), INTENT(INOUT) :: P
+    !    REAL(DP),INTENT(INOUT) :: X(6),S(3)
+    REAL(DP), INTENT(IN) :: DS,FAC
+    REAL(DP) OM(3),CO(3),SI(3),B2,XP(2)
+    REAL(DP) ST,dlds,norm,stheta
+    type(quaternion) dq,mulq
+    LOGICAL(LP),intent(in) :: BEFORE
+    type(internal_state) k
+    INTEGER I
+
+    !if(.not.(el%p%radiation.or.EL%P%SPIN)) return
+    if(.not.(k%radiation.or.k%SPIN.or.k%envelope)) return
+    IF(.NOT.CHECK_STABLE) return
+    el=>c%parent_fibre%mag
+    if(EL%kind<=kind1) return    ! should I prevent monitor here??? instead of xp=Px,y in get_omega_spin
+    !    if(EL%kind>=kind11.and.EL%kind<=kind14) return    ! should I prevent monitor here??? instead of xp=Px,y in get_omega_spin
+    !    if(EL%kind>=kind18.and.EL%kind<=kind19) return    ! should I prevent monitor here??? instead of xp=Px,y in get_omega_spin
+
+    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,POS,k)
+    if((k%radiation.or.k%envelope).AND.BEFORE) then
+       !if(el%p%radiation.AND.BEFORE) then
+       !       call radiate_2(c,DS,FAC,P%X,b2,dlds,XP,before,k,POS)
+       call radiate_2(c,DS,FAC,P%X,b2,dlds,before,k,POS)
+    endif
+   if(k%spin) then
+    if(p%use_q) then
+      if(EL%kind/=kind3) then
+        om=FAC*DS*OM/2.0_dp
+      else
+        om=FAC*OM/2.0_dp
+      endif
+        norm=sqrt(om(1)**2+om(2)**2+om(3)**2)
+        if(norm>0) then
+        stheta=sin(norm)
+        dq%x(1)=cos(norm)
+        dq%x(2)=stheta*om(1)/norm
+        dq%x(3)=stheta*om(2)/norm
+        dq%x(4)=stheta*om(3)/norm
+        p%q=dq*p%q
+ !         mulq%x=0.0_dp!
+
+!          mulq%x(1)=dq%x(1)*p%q%x(1)-dq%x(2)*p%q%x(2)-dq%x(3)*p%q%x(3)-dq%x(4)*p%q%x(4)
+
+ !        mulq%x(2)= dq%x(3)*p%q%x(4)-dq%x(4)*p%q%x(3)+ dq%x(1)*p%q%x(2)+ dq%x(2)*p%q%x(1)
+ !        mulq%x(3)= dq%x(4)*p%q%x(2)-dq%x(2)*p%q%x(4)+ dq%x(1)*p%q%x(3)+ dq%x(3)*p%q%x(1)
+!          p%q%x(4)= dq%x(2)*p%q%x(3)-dq%x(3)*p%q%x(2)+ dq%x(1)*p%q%x(4)+ dq%x(4)*p%q%x(1)
+ !         p%q%x(1)=mulq%x(1)
+  !        p%q%x(2)=mulq%x(2)
+   !       p%q%x(3)=mulq%x(3)
+      endif
+
+    else
+     if(EL%kind/=kind3) then
+       CO(1)=COS(FAC*DS*OM(1)/2.0_dp)
+       SI(1)=SIN(FAC*DS*OM(1)/2.0_dp)
+       CO(2)=COS(FAC*DS*OM(2)/2.0_dp)
+       SI(2)=SIN(FAC*DS*OM(2)/2.0_dp)
+       CO(3)=COS(FAC*DS*OM(3))
+       SI(3)=SIN(FAC*DS*OM(3))
+    else
+       CO(1)=COS(FAC*OM(1)/2.0_dp)
+       SI(1)=SIN(FAC*OM(1)/2.0_dp)
+       CO(2)=COS(FAC*OM(2)/2.0_dp)
+       SI(2)=SIN(FAC*OM(2)/2.0_dp)
+       CO(3)=COS(FAC*OM(3))
+       SI(3)=SIN(FAC*OM(3))
+    endif
+
+       DO I=ISPIN0R,ISPIN1R
+          ST=   CO(1)*p%S(I)%X(2)-SI(1)*p%S(I)%X(3)
+          p%S(I)%X(3)= CO(1)*p%S(I)%X(3)+SI(1)*p%S(I)%X(2)
+          p%S(I)%X(2)=ST
+          ST=  CO(2)*p%S(I)%X(1)+SI(2)*p%S(I)%X(3)
+          p%S(I)%X(3)=CO(2)*p%S(I)%X(3)-SI(2)*p%S(I)%X(1)
+          p%S(I)%X(1)=ST
+          ST=   CO(3)*p%S(I)%X(1)-SI(3)*p%S(I)%X(2)
+          p%S(I)%X(2)= CO(3)*p%S(I)%X(2)+SI(3)*p%S(I)%X(1)
+          p%S(I)%X(1)=ST
+          ST=  CO(2)*p%S(I)%X(1)+SI(2)*p%S(I)%X(3)
+          p%S(I)%X(3)=CO(2)*p%S(I)%X(3)-SI(2)*p%S(I)%X(1)
+          p%S(I)%X(1)=ST
+          ST=   CO(1)*p%S(I)%X(2)-SI(1)*p%S(I)%X(3)
+          p%S(I)%X(3)= CO(1)*p%S(I)%X(3)+SI(1)*p%S(I)%X(2)
+          p%s(I)%X(2)=ST
+       ENDDO
+    endif
+   endif
+    !if(el%p%radiation.AND.(.NOT.BEFORE)) then
+    if((k%radiation.or.k%envelope).AND.(.NOT.BEFORE)) then
+       !       call radiate_2(c,DS,FAC,P%X,b2,dlds,XP,before,k,POS)
+       call radiate_2(c,DS,FAC,P%X,b2,dlds,before,k,POS)
+    endif
+
+  END subroutine PUSH_SPINR
 
   subroutine PUSH_SPINP(c,DS,FAC,P,before,k,POS) !,E_IJ
     implicit none
@@ -5679,11 +5679,10 @@ type(tree_element),optional, target :: sagan_tree(3)
 
 
 if(present(sagan_tree)) then
-  forward=>sagan_tree
+ forward=>sagan_tree
 else
-    allocate(forward(3))
+  allocate(forward(3))
 endif
-
 if(.not.associated(f1%parent_layout)) then
  write(6,*) " parent layout not associated "
  stop
@@ -5832,6 +5831,7 @@ if(use_quaternion) then
         m(ind_spin(1,1)+i-1)=ma%q%x(i)
       enddo
     elseif(kq/=-1) then
+      m(ind_spin(1,1))=1.0_dp
       do i=ind_spin(1,1)+4,size_tree
         m(i)=0.0_dp
       enddo
@@ -5871,22 +5871,29 @@ endif
        mg(ind_spin(i,j))=ms%v(2*i-1).d.(2*j-1)  !   Jacobian for Newton search
      enddo
      enddo
-      call kill(ms)    
-   
+          call kill(ms)  
 
      call SET_TREE_g(T(1),m(1:6))
-
+ !    do i=1,ma%n
+ !     m(i)=1.0_dp.cmono.i
+ !    enddo 
+ !    do i=ma%n+1,6
+ !     m(i)=0.0_dp
+ !    enddo
      call SET_TREE_g(T(2),m(7:15))
-
+ 
+ !    call SET_TREE_g(T(2),m(1:size_tree))
      call SET_TREE_g(T(3),mg(1:size_tree))
 
- 
+
       t(3)%rad=L_s
  
 
        mat=ma**(-1)
        t(1)%e_ij=ma%e_ij     !matmul(matmul(mat,ma%e_ij),transpose(mat))  not necessary I think
- 
+
+  
+
     call kill(m); call kill(mg);
     deallocate(M);    deallocate(Mg);
     call kill(L_ns , N_pure_ns , N_s , L_s)

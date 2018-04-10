@@ -1368,7 +1368,7 @@ endif
              x_ref=0.0_dp
 
 
-
+if(.not.my_estate%envelope) hgap=-1
              call FIND_ORBIT_x(x_ref,my_estate,1.d-7,fibre1=f1)
               call fill_tree_element_line_zhe(my_estate,f1,f2,MY_A_NO,x_ref,filename,stochprec=hgap) 
 
