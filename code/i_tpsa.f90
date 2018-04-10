@@ -2197,7 +2197,7 @@ endif
        subq%x=0
       RETURN
     endif 
-          subq%x=s1%x+s2%x
+          subq%x=s1%x-s2%x
 
   END FUNCTION subq
 
@@ -2215,9 +2215,9 @@ endif
 
           mulq%x(1)=s1%x(1)*s2%x(1)-s1%x(2)*s2%x(2)-s1%x(3)*s2%x(3)-s1%x(4)*s2%x(4)
 
-         mulq%x(2)= mulq%x(2) + s1%x(3)*s2%x(4)-s1%x(4)*s2%x(3)
-         mulq%x(3)= mulq%x(3) + s1%x(4)*s2%x(2)-s1%x(2)*s2%x(4)
-         mulq%x(4)= mulq%x(4) + s1%x(2)*s2%x(3)-s1%x(3)*s2%x(2)
+         mulq%x(2)=  s1%x(3)*s2%x(4)-s1%x(4)*s2%x(3)
+         mulq%x(3)=  s1%x(4)*s2%x(2)-s1%x(2)*s2%x(4)
+         mulq%x(4)=  s1%x(2)*s2%x(3)-s1%x(3)*s2%x(2)
 
         do i=2,4
          mulq%x(i)= mulq%x(i) + s1%x(1)*s2%x(i)+ s1%x(i)*s2%x(1)

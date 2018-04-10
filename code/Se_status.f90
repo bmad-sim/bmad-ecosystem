@@ -10382,7 +10382,7 @@ do is=1,nrmax
     enddo
     call matinv(r,r,3,3,ier)
     if(ier/=0) then
-     write(6,*) "matinv failed in track_TREE_probe_complexr "
+     write(6,*) "matinv failed in track_TREE_probe_complexr (Se_status) "
      stop
     endif
     do i=1,3
@@ -10396,8 +10396,25 @@ do is=1,nrmax
     enddo
    norm=abs(qg(1))+abs(qg(2))+abs(qg(3))
 
-   if(norm>t(3)%eps.and.doit) then
-     if(normb<=norm) doit=.false.
+!   if(norm>t(3)%eps.and.doit) then
+!     if(normb<=norm) doit=.false.
+!     normb=norm
+!   else
+!     if(normb<=norm) then 
+!       x(1)=qf(1)
+!       x(3)=qf(2)
+!       x(5)=qf(3)
+!       x(2)=x0(2)
+!       x(4)=x0(4)
+!       x(6)=x0(6)       
+
+!       if(allmap) x(1:6)=matmul(t(3)%rad,x(1:6))
+!       exit
+!     endif
+!     normb=norm
+!   endif
+
+   if(norm>t(3)%eps) then
      normb=norm
    else
      if(normb<=norm) then 
@@ -10413,6 +10430,8 @@ do is=1,nrmax
      endif
      normb=norm
    endif
+
+
 
 enddo  ! is 
  if(is>nrmax-10) then

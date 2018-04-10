@@ -3108,9 +3108,9 @@ contains
 
          temp(1)=s1%x(1)*s2%x(1)-s1%x(2)*s2%x(2)-s1%x(3)*s2%x(3)-s1%x(4)*s2%x(4)
 
-         temp(2)= temp(2) +s1%x(3)*s2%x(4)-s1%x(4)*s2%x(3)
-         temp(3)= temp(3) +s1%x(4)*s2%x(2)-s1%x(2)*s2%x(4)
-         temp(4)= temp(4)  +s1%x(2)*s2%x(3)-s1%x(3)*s2%x(2)
+         temp(2)=s1%x(3)*s2%x(4)-s1%x(4)*s2%x(3)
+         temp(3)=s1%x(4)*s2%x(2)-s1%x(2)*s2%x(4)
+         temp(4)=s1%x(2)*s2%x(3)-s1%x(3)*s2%x(2)
 
         do i=2,4
          temp(i)= temp(i) + s1%x(1)*s2%x(i)+ s1%x(i)*s2%x(1)
