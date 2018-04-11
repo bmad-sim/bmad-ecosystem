@@ -24,14 +24,6 @@
 !      If removal of the element will cause lattice bookkeeping problemsexcept if a sub-slave is being hybridized.
 !      If a sub-slave is being hybridized,  in which case the element will be removed to preserve lattice bookkeeping.
 !
-! For hybrid elements lat_out%ele(i)%tracking_method and 
-! lat_out%ele(i)%mat6_calc_method are set as follows:
-!
-!   use_taylor    tracking_method     mat6_calc_method
-!   ----------    ---------------     ----------------  
-!   False         linear$             static$
-!   True          taylor$             taylor$
-!
 ! With use_taylor = False, before this routine is called, the lat_in%ele(:)%mat6 matrices must be calculated.
 !
 ! The hybrid elements will have the following parameters defined:
@@ -222,7 +214,7 @@ do ib = 0, ubound(lat_out%branch, 1)
 
     ! here if no match found...
     ! If this is the first element after a matched element then just transfer in
-    ! to out. Else modify the ele_out%mat6 matrix using the ele_in%mat6 matrix.
+    ! to out.
 
     else
 
@@ -240,13 +232,13 @@ do ib = 0, ubound(lat_out%branch, 1)
         ele_out%n_lord = 0
         ele_out%n_lord_field = 0
         ele_out%ic1_lord = 0
-        ele_out%tracking_method = linear$
-        ele_out%mat6_calc_method = static$
         ele_out%value(e_tot_start$) = b_in%ele(j_in-1)%value(e_tot$)
         ref_time0                   = b_in%ele(j_in-1)%ref_time
         ele_out%value(ref_time_start$) = ref_time0
         ele_out%value(delta_e$)        = ele_in%value(e_tot$) - ele_out%value(e_tot_start$)
         ele_out%value(delta_ref_time$) = ele_in%ref_time - ref_time0 
+        ele_out%tracking_method = taylor$
+        ele_out%mat6_calc_method = taylor$
 
         ix_hyb = ix_hyb + 1
 
@@ -256,8 +248,6 @@ do ib = 0, ubound(lat_out%branch, 1)
           else
             c0%vec = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
           endif
-          ele_out%tracking_method = taylor$
-          ele_out%mat6_calc_method = taylor$
           if (.not. associated(ele_out%taylor(1)%term)) then ! construct taylor
             call ele_to_taylor (ele_out, b_in%param, ele_out%taylor, c0)
           endif
@@ -316,7 +306,10 @@ do ib = 0, ubound(lat_out%branch, 1)
         ele_out%b       = ele_in%b
         ele_out%c_mat   = ele_in%c_mat
         ele_out%gamma_c = ele_in%gamma_c
+      endif
 
+      if (.not. do_taylor) then
+        call mat6_to_taylor(ele_out%vec0, ele_out%mat6, ele_out%taylor)
       endif
 
     endif ! ele%select
