@@ -6,7 +6,7 @@ use write_lat_file_mod
 
 implicit none
 
-type (lat_struct), target :: lat, lat2
+type (lat_struct), target :: lat, lat2, lat3
 type (ele_struct), pointer :: ele, nele
 type (ele_struct) a_ele
 type (ele_pointer_struct), allocatable :: eles(:)
@@ -17,6 +17,7 @@ character(40) :: lat_file  = 'bookkeeper_test.bmad'
 character(100) str
 
 real(rp), allocatable :: save(:)
+real(rp) m1(6,6), m2(6,6), r0(6), vec1(6), vec2(6)
 integer :: i, j, k, nargs, n_loc
 logical print_extra, err
 
@@ -59,6 +60,11 @@ enddo
 
 call make_hybrid_lat (lat, lat2)
 call write_bmad_lattice_file('lat2.bmad', lat2)
+call bmad_parser('lat2.bmad', lat3)
+r0 = 0
+call taylor_to_mat6(lat2%ele(1)%taylor, r0, vec1, m1)
+call taylor_to_mat6(lat3%ele(1)%taylor, r0, vec2, m2)
+write (1, '(a, es12.3)') '"Hybrid" ABS 1e-12  ', maxval(abs(m2-m1))+sum(abs(vec2-vec1))
 
 !-------------
 
