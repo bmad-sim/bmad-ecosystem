@@ -2934,7 +2934,11 @@ err_flag = .true.
 
 if (index('-+.0123456789', word(1:1)) /= 0) then
   read (word, *, iostat = ios) value
-  if (ios /= 0) call parser_error ('BAD VARIABLE: ' // word)
+  if (ios == 0) then
+    err_flag = .false.
+  else
+    call parser_error ('BAD VARIABLE: ' // word)
+  endif
   return
 endif
 

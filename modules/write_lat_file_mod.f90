@@ -1135,7 +1135,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Encode taylor map. Hybrid elements do not have default terms.
 
-    if (ele%key == taylor$ .or. (ele%key == hybrid$ .and. ele%tracking_method == taylor$)) then
+    if (ele%key == taylor$ .or. ele%key == hybrid$) then
       do j = 1, 6
         unit_found = .false.
         unit = 0
@@ -1181,21 +1181,6 @@ do ib = 0, ubound(lat%branch, 1)
                 trim(re_str(ele%taylor(3)%ref)), ', ', trim(re_str(ele%taylor(4)%ref)), ', ', &
                 trim(re_str(ele%taylor(5)%ref)), ', ', trim(re_str(ele%taylor(6)%ref)), ')'
       endif
-    endif
-
-    ! Encode linear hybrid
-
-    if (ele%key == hybrid$ .and. ele%tracking_method == linear$) then
-      do i = 1, 6
-        if (ele%vec0(i) == 0) cycle
-        write (line, '(2a, i0, 2a)') trim(line), ', kick', i, ' = ', trim(re_str(ele%vec0(i)))
-      enddo 
-      do i = 1, 6
-        do j = 1, 6
-          if (ele%mat6(i,j) == 0) cycle
-          write (line, '(2a, 2i0, 2a)') trim(line), ', mat', i, j, ' = ', trim(re_str(ele%mat6(i,j)))
-        enddo
-      enddo
     endif
 
     ! Encode multipoles
