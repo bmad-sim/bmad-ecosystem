@@ -274,12 +274,17 @@ endif
 
 if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is an attribute for this element...
 
-  dz_dl_max_err = 1d-10
+  dz_dl_max_err = 1d-8
 
   ! Set ds_step and/or num_steps if not already set.
 
   if (val(ds_step$) == 0 .and. val(num_steps$) == 0) then
     select case (ele%key)
+
+    case (drift$, pipe$, ecollimator$, rcollimator$, instrument$, monitor$)
+      val(num_steps$) = 1
+      val(ds_step$) = val(l$)
+
     case (wiggler$, undulator$) 
       if (val(l_pole$) /= 0) val(ds_step$) = val(l_pole$) / 10
 
@@ -291,7 +296,7 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
 
         select case (ele%key)
         case (sbend$)
-          bend_factor = bend_factor + abs(val(g$)) + abs(val(g_err$)) 
+          bend_factor = bend_factor + max(abs(val(g$)), abs(val(g$) + val(g_err$)))
           quad_factor = val(l$) * (abs(val(k1$)) + abs(val(k2$)) * radius0 + bend_factor**2)
         case (quadrupole$)
           quad_factor = val(l$) * (abs(val(k1$)) + bend_factor**2)
@@ -315,7 +320,7 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
         ! check_bend is a PTC routine
         call check_bend (val(l$), quad_factor, bend_factor, dz_dl_max_err, step_info, ixm)
         val(integrator_order$) = ixm
-        val(num_steps$) = max(nint(step_info(ixm)), 1)
+        val(num_steps$) = max(nint(step_info(ixm+1)), 1)
         val(ds_step$) = abs(val(l$)) / val(num_steps$)
       endif
 
