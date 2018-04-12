@@ -1097,15 +1097,15 @@ As with a custom element, setting one of these attributes to
 \vn{custom} necessitates the use of custom code to implement the
 corresponding calculation.
 
-\index{delta_e}
+\index{delta_e_ref}
 \index{val1,  ..., Val12}
 Attributes specific to a \vn{custom} element are
 \begin{example}
   val1, ..., val12 = <Real>  ! Custom values 
-  delta_e          = <Real>  ! Change in energy.
+  delta_e_ref      = <Real>  ! Change in energy.
 \end{example}
 
-\vn{delta_e} is the energy gain of the {\it reference} particle
+\vn{delta_e_ref} is the energy gain of the {\it reference} particle
 between the starting edge of the element and the ending edge.
 
 Example:
@@ -2270,9 +2270,8 @@ care must be taken if that element attribute is changed. This is discussed in
 \label{s:hybrid}
 \index{hybrid|hyperbf}
 
-A \vn{hybrid} element is an element that is formed by concatenating
-other element together. \vn{hybrid} elements are not part of the input
-lattice file but are created by a program, usually for speed purposes.
+A \vn{hybrid} element is an element that is formed by a program by concatenating other element
+together. A \vn{hybrid} is essentially the same as s \vn{taylor} element.
 
 %-----------------------------------------------------------------
 \section{Instrument, Monitor, and Pipe}
@@ -4024,6 +4023,8 @@ Attributes specific to a \vn{taylor} element are:
   \{<out>: <coef>, <e1> <e2> <e3> <e4> <e5> <e6>\}    ! Taylor term. First form.
   \{<out>: <coef> | <n1> <n2> ...\}                   ! Taylor term. Second form.
   tt<out><n1><n2>...  = <Coef>                      ! Taylor term. Third form.
+  delta_ref_time = <Real>                           ! Change in the reference time.
+  delta_e_ref = <Real>                              ! Change in the reference energy.                 
 \end{example}
 
 For historical reasons, there are three differnt forms that can be used to specify a

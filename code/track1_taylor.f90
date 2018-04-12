@@ -45,6 +45,7 @@ character(*), parameter :: r_name = 'track1_taylor'
 
 start2_orb = start_orb
 end_orb = start_orb
+end_orb%p0c = ele%value(p0c$)
 
 ! Which map to use?
 
