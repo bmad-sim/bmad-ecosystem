@@ -1649,8 +1649,8 @@ endif
 
 e=0
     IF(ASSOCIATED(EL%B_SOL)) THEN
-       B(1)=  (2*Pos+3)*EL%B_SOL*0.5_dp*x(1);    ! POS =-2,-1  (ENT, EXIT)
-       B(2)=  (2*Pos+3)*EL%B_SOL*0.5_dp*x(3);
+       B(1)=  EL%p%DIR*EL%p%CHARGE*(2*Pos+3)*EL%B_SOL*0.5_dp*x(1);    ! POS =-2,-1  (ENT, EXIT)
+       B(2)=  EL%p%DIR*EL%p%CHARGE*(2*Pos+3)*EL%B_SOL*0.5_dp*x(3);
        B(3)=0.0_dp;
     else
        b(1)=0.0_dp
@@ -1694,8 +1694,8 @@ e=0
 
 call alloc(vm,phi,z)
     IF(ASSOCIATED(EL%B_SOL)) THEN
-       B(1)= (2*Pos+3)*EL%B_SOL*0.5_dp*x(1);    ! POS =-2,-1  (ENT, EXIT)
-       B(2)= (2*Pos+3)*EL%B_SOL*0.5_dp*x(3);
+       B(1)= EL%p%DIR*EL%p%CHARGE*(2*Pos+3)*EL%B_SOL*0.5_dp*x(1);    ! POS =-2,-1  (ENT, EXIT)
+       B(2)= EL%p%DIR*EL%p%CHARGE*(2*Pos+3)*EL%B_SOL*0.5_dp*x(3);
        B(3)=0.0_dp;
     else
        b(1)=0.0_dp
