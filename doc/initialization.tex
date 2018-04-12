@@ -345,7 +345,7 @@ The syntax of this block is:
     global        = <tao_global_struct>     ! global parameters. \sref{s:tao.global.struct}
     bmad_com      = <bmad_com_struct>       ! Bmad global parameters. \sref{s:bmad.com.struct}
     csr_param     = <csr_parameter_struct>  ! CSR global parameters. \sref{s:csr.param.struct}
-    opti_de_param = <opti_de_param_struct>  ! de optimizer parameters. \sref{opti.de.param.struct}
+    opti_de_param = <opti_de_param_struct>  ! de optimizer parameters. \sref{s:opti.de.param.struct}
   /
 \end{example}
 Example:
@@ -471,7 +471,7 @@ command generates. Similarly, \vn{global%plot_on} can be toggled to save even mo
 the \vn{set universe} command (\sref{s:set.universe}) for ways to supress certain types of
 calculations (for example, calculating the Twiss parameters) that are not needed.
 
-  \item{\vn{global%plot_calc_always} \Newline
+  \item{\vn{global%plot_calc_always}} \Newline
 Sometimes it is convenient to have \tao calculate plotting curve points even when \tao is not doing
 any plotting (that is, \vn{global%plot_on} = F). For example, when \tao is run as a server by a client
 (such as a graphic user interface) program where the client program is taking care of the plotting but
@@ -663,12 +663,13 @@ See \sref{s:lattice.correction} for more details on
 \vn{global%n_opti_cycles} and \vn{global%n_opti_loops}. 
 
 %-----------------------------------------------------------------
-\section{Initializing Particle Beams}\index{initialization!beams}
+\section{Initializing Particle Beams}
+\index{initialization!beams}
 \label{s:beam.init}
 
 A particle beam is initialized in the \vn{tao_beam_init} namelist block.  The file that \tao looks
 in to find this namelist is set by the \vn{beam_file} component of the \vn{tao_start} namelist
-(\sref{s:init_global}). The default, if \vn{beam_file} is not set, is the root initialization file.
+(\sref{s:init.global}). The default, if \vn{beam_file} is not set, is the root initialization file.
 
 The syntax of the \vn{tao_beam_init} namelist is:
 \index{tao_beam_init}\index{ix_universe}
@@ -918,7 +919,7 @@ are explained in Section~\sref{s:globals}.
 \tao \vn{variable}s (\sref{c:var} are used in lattice correction or design (\sref{c:opti}). 
 
 The file that \tao looks in to find information on \tao variables is set by the \vn{var_file} component of
-the \vn{tao_start} namelist (\sref{s:init_global}). The default, if \vn{data_file} is not set, is
+the \vn{tao_start} namelist (\sref{s:init.global}). The default, if \vn{data_file} is not set, is
 the root initialization file.
 
 Variables are initialized using the \vn{tao_var} namelist. The format for this is
@@ -1115,7 +1116,7 @@ data is initialized using a \vn{tao_d2_data} namelist block and one or more \vn{
 namelist blocks.
 
 The file that \tao looks in to find these two namelists is set by the \vn{data_file} component of
-the \vn{tao_start} namelist (\sref{s:init_global}). The default, if \vn{data_file} is not set, is
+the \vn{tao_start} namelist (\sref{s:init.global}). The default, if \vn{data_file} is not set, is
 the root initialization file.
 
 The format of the \vn{tao_d2_data} namelist is
@@ -1661,7 +1662,7 @@ information in a template plot may then be transferred to a region using the \vn
 this will produce a visible plot.
 
 The file that \tao looks in to find plotting information is set by the \vn{plot_file} component of
-the \vn{tao_start} namelist (\sref{s:init_global}). The default, if \vn{plot_file} is not set, is
+the \vn{tao_start} namelist (\sref{s:init.global}). The default, if \vn{plot_file} is not set, is
 the root initialization file.
 
 Template plots are defined using namelists with a name of \vn{tao_template_graph}. The general
@@ -2358,7 +2359,7 @@ is determined via two namelists: \vn{lat_layout_drawing} for the lattice layout 
 example, a size that is good for a layout will not necessarily be good for a floor plan.
 
 The file that \tao looks in to find these two namelists is set by the first file specified in the
-\vn{plot_file} array set in the \vn{tao_start} namelist (\sref{s:init_global}). The default, if
+\vn{plot_file} array set in the \vn{tao_start} namelist (\sref{s:init.global}). The default, if
 \vn{plot_file} is not set, is the root initialization file.
 
 The namelist syntax is the same for both:

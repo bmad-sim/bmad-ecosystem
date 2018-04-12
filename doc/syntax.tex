@@ -226,7 +226,7 @@ how many elements are in the array. For example, \vn{k_quad[10:21,44]}
 represents an array of 13 elements. 
 
 Depending upon the context, some parts of a token may be omitted. For example,
-with the \vn{set varible} command the ``\vn{var::}'' part of the token may be omitted.
+with the \vn{set variable} command the ``\vn{var::}'' part of the token may be omitted.
 Example:
 \begin{example}
   set var quad_k1[5]|meas = data::2@orbit.x|meas
@@ -262,17 +262,17 @@ where:
 \end{example}
 correspond to the data types as listed in \Sref{s:data.types}. 
 \begin{example}
-  3@lat::orbit.x[34:37]          Array of orbits at element 34 through 37 in universe 3.
-  3@lat::orbit.x[34]|model       Orbit.x model value at element 34
-  lat::sigma.12[q10w]            Beam sigma matrix component at element q10w computed 
-                                  from lattice parameters.
+  3@lat::orbit.x[34:37]         ! Array of orbits at element 34 through 37 in universe 3.
+  3@lat::orbit.x[q10w]|model    ! Orbit.x model value at element q10w
+  lat::sigma.12[q10w]           ! Beam sigma matrix component at element q10w computed 
+                                !  from lattice parameters.
 \end{example}
 
 The list of possible lattice \vn{<parameter>} names is given in \Sref{s:data.types}. The
 table \ref{t:data.types} shows which data names are associated with the lattice. Lattice
 parameters are independent of \vn{data} parameters. For example, \vn{lat::orbit.x} refers
 to the horizontal orbit while \vn{data::orbit.x} refers to user defined data whose name
-corresponds to \vn{orbit.x} and in fact there is nothing to prevenet a user from assigning
+corresponds to \vn{orbit.x} and in fact there is nothing to prevent a user from assigning
 the name \vn{orbit.x} to data that is derived from, say, the Twiss beta function.
 
 Also notice the difference between, say, ``\vn{lat::orbit.x[10]}'' and
@@ -393,8 +393,7 @@ The following table lists the parameters that have both \tao datum and \bmad par
 \label{t:bmad.equiv2}
 \end{table}
 
-
-For parameters that are vaying throughout the element, like the Twiss parameters,
+For parameters that are varying throughout the element, like the Twiss parameters,
 \vn{ele::} will evaluate the parameter at the exit end of the element and \vn{ele_mid::}
 will evaluate the parameter at the middle of the element. For parameters that do not vary,
 like the quadrupole strength, use the \vn{ele::} syntax.
@@ -405,3 +404,64 @@ array of elements can be defined.
 For element parameter that evaluate to a logical, if they are used on the right hand side
 of an expression where the result is a real number, a \vn{True} value will be converted to
 a value of \vn{1} and a \vn{False} value is converted to a value of \vn{0}.
+
+%------------------------------------------------------------------------
+\section{Format Descriptors}
+\label{s:edit.descrip}
+
+Some \tao commands like \vn{show lattice} (\sref{s:show.lattice}) have optional arguments where the 
+format output of various quantities can be specified. \tao follows Fortran format descriptor notation.
+Since complete information is available on the Web (do a search for ``fortran edit descriptor''), only a brief
+introduction will be given here.
+
+Format descriptors are case insensitive. The commonly used descriptors with \tao are:
+\begin{example}
+  Form     Output
+  ----     ----------------------------
+  Aw       String
+  Fw.d     Real numbers. Fixed point (no exponent).
+  nPFw.d   Real numbers. Fixed point with the decimal point shifted \vn{n} places.
+  ESw.d    Real numbers. Floating point (with exponent).
+  Lw       Logicals.
+  Iw       Integers.
+  Iw.r     Integers padded with zeros to width \vn{r}.
+  wX       White space.
+  Tc       Tab to column \vn{c}.
+\end{example}
+In the above, ``\vn{w}'' is the width of the field (number of charactgers in the printed string) and 
+``\vn{d}'' is the number of digits to the right of the decimal place, 
+
+Examples:
+\begin{example}
+           Internal
+  Format   Quantity   Output String   Comment
+  ----     --------   -------------   -----------
+  F7.2     76.1234    "  76.12"       Right justified.
+  1PF7.2   76.1234    " 761.23"       Shifted decimal place 1 digit.
+  F0.2     76.1234    "76.12"         0 Field width => Output width exactly fits.
+  F3.2     76.1234    "***"           Number overflows field width.
+  ES9.2    76.1234    " 7.61E+01"     Right justified.
+  L3       True       "  T"           Right justified.
+  I0       34         "34"            0 Field width => Actual width = number of digits.
+  I4       34         "  34"          Right justified.
+  I4.3     34         " 034"          Number padded with a zero to three digits.
+  A3       "abcdef"   "abc"           String truncated.
+  A3       "ab    "   "ab "           String truncated but looks left justified.
+  A        "abcdef"   "abcdef"        Output width exactly fits string.
+  A8       "abcdef"   "  abcdef"      Right justified.
+  4x                  "   "           Four spaces.
+  T45                                 Next output string starts at column 45
+\end{example}
+
+Note: When a format descriptor is being used to construct a table (EG \vn{show lattice} command),
+using a ``\vn{0}'' for the field width is ill-advised since columns will not be properly aligned.
+
+A comma delimited list is used for outputting multiple quantities. For example, the format ``\vn{I4, A}''
+is used to output an integer followed by a string.
+
+If multiple quantities with the same format are to be outputted a \vn{multiplier} prefix number can
+be used. For example, ``\vn{3A}'' is equivalent to ``\vn{A, A, A}''. If the format has a \vn{P} prefix
+then parentheses can be used to separate the multiplier from the \vn{P} prefix. Example: ``\vn{2(3PF7.2)}''
+is equivalent to ``\vn{3PF7.2, 3PF7.2}''.
+
+Note to programmers: In a code file, a format string must always be enclosed in parentheses.

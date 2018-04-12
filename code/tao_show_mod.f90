@@ -214,7 +214,7 @@ character(9) angle_str
 
 character(3) undef_str
 character(16) velocity_fmt, momentum_fmt, e_field_fmt, b_field_fmt, position_fmt, energy_fmt, s_fmt
-character(16) spin_fmt, t_fmt
+character(16) spin_fmt, t_fmt, twiss_fmt, disp_fmt
 character(24) show_name, show2_name, what_to_print
 character(24) :: var_name, blank_str = '', phase_units_str
 character(24)  :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
@@ -2604,17 +2604,17 @@ case ('normal_form')
   
   select case(attrib0(1:5))
     case ('dhdj ')
-      call type_taylors (normal_form%dhdj, max_order = n_order, lines = lines, n_lines = nl)
+      call type_taylors (normal_form%dhdj, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
     case ('A    ')
-      call type_taylors (normal_form%A, max_order = n_order, lines = lines, n_lines = nl)
+      call type_taylors (normal_form%A, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
     case ('A_inv')
-      call type_taylors (normal_form%A_inv, max_order = n_order, lines = lines, n_lines = nl)
+      call type_taylors (normal_form%A_inv, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
     case ('M    ')
-      call type_taylors (normal_form%M, max_order = n_order, lines = lines, n_lines = nl)
+      call type_taylors (normal_form%M, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
     case ('F    ')
-      call type_complex_taylors (normal_form%F, max_order = n_order, lines = lines, n_lines = nl)
+      call type_complex_taylors (normal_form%F, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
     case ('L    ')
-      call type_complex_taylors (normal_form%L, max_order = n_order, lines = lines, n_lines = nl)      
+      call type_complex_taylors (normal_form%L, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)      
     case ('rdts ')
       do i=1, size(normal_form%rd_term)
         write(lines(i),'(i4,"   ",A,"   (",f20.10,", ",f20.10,")   ",a)') normal_form%rd_term(i)%F_index, rd_term_name(i), &
@@ -3186,7 +3186,7 @@ case ('taylor_map', 'matrix')
   if (n_order > 1) call truncate_taylor_to_order (taylor, n_order, taylor)
 
   if (n_order > 1) then
-    call type_taylors (taylor, lines = lines, n_lines = nl)
+    call type_taylors (taylor, lines = lines, n_lines = nl, clean = .true.)
   else
     vec_in = 0
     if (n_order == 0) then 
@@ -3212,23 +3212,28 @@ case ('taylor_map', 'matrix')
 case ('track')
 
   velocity_fmt = ''
-  momentum_fmt = ''
   e_field_fmt = ''
   b_field_fmt = ''
-  position_fmt = 'f14.6'
-  s_fmt = 'f12.6'
+  position_fmt = '3pf14.6'
+  s_fmt = 'f13.6'
+  momentum_fmt = 'f14.8'
   t_fmt = ''
   spin_fmt = ''
   energy_fmt = ''
+  twiss_fmt = ''
+  disp_fmt = ''
   print_header_lines = .true.
   s1 = branch%ele(0)%s
   s2 = branch%ele(branch%n_ele_track)%s
   n_print = s%plot_page%n_curve_pts
+  tao_lat => u%model
+  branch => tao_lat%lat%branch(s%com%default_branch)
+  lat_type = model$
 
   do 
     call tao_next_switch (what2, [character(16):: '-e_field', '-b_field', '-velocity', '-momentum', &
                 '-energy', '-position', '-no_label_lines', '-s', '-spin', '-points', '-time', &
-                '-range'], .false., switch, err, ix_s2)
+                '-range', '-twiss', '-dispersion', '-branch', '-universe', '-design', '-base'], .false., switch, err, ix_s2)
 
     if (err) return
     if (switch == '') exit
@@ -3243,14 +3248,18 @@ case ('track')
     case ('-velocity')
       velocity_fmt = get_this_track_fmt(what2, 'f13.8', err); if (err) return
     case ('-momentum')
-      momentum_fmt = get_this_track_fmt(what2, 'f13.8', err); if (err) return
+      momentum_fmt = get_this_track_fmt(what2, momentum_fmt, err); if (err) return
+    case ('-twiss')
+      twiss_fmt = get_this_track_fmt(what2, 'f14.6', err); if (err) return
+    case ('-dispersion')
+      disp_fmt = get_this_track_fmt(what2, 'f14.6', err); if (err) return
     case ('-position')
-      position_fmt = get_this_track_fmt(what2, 'f14.6', err); if (err) return
+      position_fmt = get_this_track_fmt(what2, position_fmt, err); if (err) return
     case ('-no_label_lines')
       print_header_lines = .false.
     case ('-points')
       read (what2(1:ix_s2), *, iostat = ios) n_print
-      if (ix_s2 == 0 .or. ios /= 0 .or. n_print < 2) then
+      if (ix_s2 == 0 .or. ios /= 0 .or. n_print < 1) then
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-points" ARGUMENT'
         return
       endif
@@ -3265,15 +3274,38 @@ case ('track')
       endif
       call string_trim(what2(ix_s2+1:), what2, ix_s2)
     case ('-s')
-      s_fmt = get_this_track_fmt(what2, '12.6', err); if (err) return
+      s_fmt = get_this_track_fmt(what2, s_fmt, err); if (err) return
     case ('-spin')
       spin_fmt = get_this_track_fmt(what2, 'f13.8', err); if (err) return
     case ('-time')
       t_fmt = get_this_track_fmt(what2, 'es15.6', err); if (err) return
+    case ('-base')
+      lat_type = base$
+    case ('-branch')
+      branch => pointer_to_branch(what2(1:ix_s2), lat)
+      if (.not. associated(branch)) then
+        nl=1; write(lines(1), *) 'Bad branch index:', ix_branch
+        return
+      endif
+      call string_trim(what2(ix_s2+1:), what2, ix_s2)
+    case ('-design')
+      lat_type = design$
+    case ('-universe')
+      read (what2(1:ix_s2), *, iostat = ios) ix
+      u => tao_pointer_to_universe(ix)
+      if (ix_s2 == 0 .or. ios /= 0 .or. .not. associated(u)) then
+        nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" argument'
+        return
+      endif
+      call string_trim(what2(ix_s2+1:), what2, ix_s2)
     end select
   enddo
 
-  if (velocity_fmt == '' .and. momentum_fmt == '') momentum_fmt = 'f14.8'
+  tao_lat => tao_pointer_to_tao_lat (u, lat_type)
+  lat => tao_lat%lat
+  branch => lat%branch(branch%ix_branch)
+  ix_branch = branch%ix_branch
+  tao_branch => tao_lat%tao_branch(ix_branch)
 
   !
 
@@ -3286,6 +3318,8 @@ case ('track')
     call write_track_header (line1, i1, velocity_fmt, ['Vx/c', 'Vy/c', 'Vs/c'], err); if (err) return
     call write_track_header (line1, i1, momentum_fmt, ['px', 'py', 'pz'], err); if (err) return
     call write_track_header (line1, i1, energy_fmt, ['E_tot'], err); if (err) return
+    call write_track_header (line1, i1, twiss_fmt, ['Beta_a ', 'Alpha_a', 'Beta_b ', 'Alpha_b'], err); if (err) return
+    call write_track_header (line1, i1, disp_fmt, ['Eta_x ', 'Etap_x', 'Eta_y ', 'Etap_y'], err); if (err) return
     call write_track_header (line1, i1, spin_fmt, ['Spin_x', 'Spin_y', 'Spin_z'], err); if (err) return
     call write_track_header (line1, i1, b_field_fmt, ['Bx', 'By', 'Bz'], err); if (err) return
     call write_track_header (line1, i1, e_field_fmt, ['Ex', 'Ey', 'Ez'], err); if (err) return
@@ -3304,13 +3338,13 @@ case ('track')
   do_field = ((e_field_fmt /= '' .and. e_field_fmt /= 'no') .or. (b_field_fmt /= '' .and. b_field_fmt /= 'no'))
 
   do i = 1, n_print
-    ele => tao_branch%plot_cache(i)%ele
-    orbit = tao_branch%plot_cache(i)%orbit
+    s_pos = s1 + (i - 1) * (s2 - s1) / max(1, (n_print - 1))
+    call twiss_and_track_at_s (lat, s_pos, ele0, tao_branch%orbit, orbit, branch%ix_branch, err, (i /= 1), .false.)
 
-    write (line1, '(i6)') i
-    i1 = 6
+    write (line1, '(i5)') i
+    i1 = 5
 
-    call write_track_info (line1, i1, s_fmt, [ele%s], err);  if (err) return
+    call write_track_info (line1, i1, s_fmt, [s_pos], err);  if (err) return
     call write_track_info (line1, i1, t_fmt, [orbit%t], err);  if (err) return
     call write_track_info (line1, i1, position_fmt, orbit%vec(1:5:2), err);  if (err) return
 
@@ -3325,10 +3359,12 @@ case ('track')
     call write_track_info (line1, i1, momentum_fmt, orbit%vec(2:6:2), err);  if (err) return
     call convert_pc_to((1 + orbit%vec(6)) * orbit%p0c,  orbit%species, e_tot = e_tot)
     call write_track_info (line1, i1, energy_fmt, [e_tot], err);  if (err) return
+    call write_track_info (line1, i1, twiss_fmt, [ele0%a%beta, ele0%a%alpha, ele0%b%beta, ele0%b%alpha], err);  if (err) return
+    call write_track_info (line1, i1, disp_fmt, [ele0%x%eta, ele0%x%etap, ele0%y%eta, ele0%y%etap], err);  if (err) return
     call write_track_info (line1, i1, spin_fmt, [orbit%spin], err);  if (err) return
 
     if (do_field) then
-      call em_field_calc (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field)
+      call em_field_calc (ele0, branch%param, orbit%s-ele0%s_start, orbit, .false., field)
       call write_track_info (line1, i1, b_field_fmt, field%B, err);  if (err) return
       call write_track_info (line1, i1, e_field_fmt, field%E, err);  if (err) return
     endif
@@ -4314,7 +4350,7 @@ if (code == '') then
 endif
 
 do i = 1, size(label)
-  if (power == 0) then
+  if (power == 0 .or. code /= 'F') then
     str = label(i)
   else
     write (str, '(2a, i0, a)') trim(label(i)), ' (*1E', power, ')'
