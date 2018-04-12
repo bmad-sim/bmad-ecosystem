@@ -17,7 +17,7 @@ type (ele_struct), pointer :: ele, ele2
 type (coord_struct) start_orb, end_orb1, end_orb2, end_orb1p, end_orb2p
 type (coord_struct) end_orb1t, end_orb2t, closed_orb
 type (normal_modes_struct) mode
-type (taylor_struct) bmad_taylor(6)
+type (taylor_struct) bmad_taylor(6), tmap(6), smap(4)
 type (real_8) y8(6)
 type (branch_struct), pointer :: branch, branch2
 type (track_struct) orb_track
@@ -38,6 +38,37 @@ namelist / params / start_orb
 !
 
 open (1, file = 'output.now')
+
+!----------------------------
+! Layout test
+
+call bmad_parser ('figure_8.bmad', lat)
+call lat_to_ptc_layout (lat)
+
+bmad_com%spin_tracking_on = .true.
+call ptc_one_turn_map_at_ele (lat%ele(2), tmap, smap, order = 2)
+call taylor_clean(tmap)
+call taylor_clean(smap)
+call type_taylors (tmap)
+call type_taylors(smap, out_type = 'SPIN')
+
+stop
+
+
+call ptc_emit_calc (lat%ele(0), mode, sigma_mat, closed_orb)
+
+write (1, '(a, 3es16.8)') '"layout-tune" REL 1E-8', mode%a%tune, mode%b%tune, mode%z%tune
+write (1, '(a, 3es16.8)') '"layout-emit" REL 1E-8', mode%a%emittance, mode%b%emittance, mode%z%emittance
+write (1, '(a, 3es16.8)') '"layout-damp" REL 1E-8', mode%a%alpha_damp, mode%b%alpha_damp, mode%z%alpha_damp
+write (1, '(a, 6es16.8)') '"layout-orb"  REL 1E-8', closed_orb%vec
+do i = 1, 6
+  write (1, '(a, i0, a, 6es16.8)') '"layout-sigma', i, '" REL 1E-8', sigma_mat(i,:)
+enddo
+
+
+stop
+
+
 
 !-------------------------------------------------------
 
@@ -60,8 +91,6 @@ print '(a, 3f14.6)','E PTC:  ', e_field_ptc * ele%value(p0c$)
 print '(a, 3f14.6)','E Bmad: ', field%e
 print '(a, 3f14.6)','E Diff: ', e_field_ptc * ele%value(p0c$) - field%e
 
-
-stop
 
 !-------------------------------------------------------
 
@@ -242,22 +271,6 @@ do i = 1, 6
 enddo
 
 write (1, '(a, 6es10.2)') '"map_convert" ABS 1E-15', diff_vec
-
-!----------------------------
-! Layout test
-
-call bmad_parser ('figure_8.bmad', lat)
-call lat_to_ptc_layout (lat)
-call ptc_emit_calc (lat%ele(0), mode, sigma_mat, closed_orb)
-
-write (1, '(a, 3es16.8)') '"layout-tune" REL 1E-8', mode%a%tune, mode%b%tune, mode%z%tune
-write (1, '(a, 3es16.8)') '"layout-emit" REL 1E-8', mode%a%emittance, mode%b%emittance, mode%z%emittance
-write (1, '(a, 3es16.8)') '"layout-damp" REL 1E-8', mode%a%alpha_damp, mode%b%alpha_damp, mode%z%alpha_damp
-write (1, '(a, 6es16.8)') '"layout-orb"  REL 1E-8', closed_orb%vec
-do i = 1, 6
-  write (1, '(a, i0, a, 6es16.8)') '"layout-sigma', i, '" REL 1E-8', sigma_mat(i,:)
-enddo
-
 
 !-----------------------------------------------------------------
 contains
