@@ -1369,8 +1369,8 @@ endif
 
 
 if(.not.my_estate%envelope) hgap=-1
-             call FIND_ORBIT_x(x_ref,my_estate,1.d-7,fibre1=f1)
-              call fill_tree_element_line_zhe(my_estate,f1,f2,MY_A_NO,x_ref,filename,stochprec=hgap) 
+ if(my_a_no>0)            call FIND_ORBIT_x(x_ref,my_estate,1.d-7,fibre1=f1)
+              call fill_tree_element_line_zhe(my_estate,f1,f2,iabs(MY_A_NO),x_ref,filename,stochprec=hgap) 
 
 write(6,*) " State used "
           call print(my_estate,6)

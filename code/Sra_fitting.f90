@@ -3515,9 +3515,13 @@ call kill(yy); call kill(id);
     use_bmad_units_temp=use_bmad_units
     if(use_bmad_units_temp) then 
           if(present(fibre1)) then
-           beta1=fibre1%mag%p%beta0
+           beta1=fibre1%beta0
+  !         beta1=fibre1%mag%p%beta0
+
           else
-           beta1=node1%parent_fibre%mag%p%beta0
+!           beta1=node1%parent_fibre%mag%p%beta0
+           beta1=node1%parent_fibre%beta0
+
           endif
       call convert_bmad_to_ptc(fix,beta1,STATE%TIME)
     endif
