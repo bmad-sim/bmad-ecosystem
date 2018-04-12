@@ -1501,52 +1501,41 @@ Format:
 
 \vn{<what_to_show>} may be one of:
 \begin{example}
-  show alias                                                            ! \sref{s:show.alias}
-  show beam \{<element_name_or_index>\}                                   ! \sref{s:show.beam}
-  show branch \{-universe <universe>\}                                    ! \sref{s:show.branch}
-  show building_wall                                                    ! \sref{s:show.building}
-  show constraints                                                      ! \sref{s:show.constraints}
-  show curve \{-line\} \{-no_header\} \{-symbol\} <curve_name>                ! \sref{s:show.curve}
-  show data \{<data_name>\}                                               ! \sref{s:show.data}
-  show derivative <data_name(s)> <var_name(s)>                          ! \sref{s:show.derivative}
-  show dynamic_aperture                                                 ! \sref{s:show.dynamic}
-  show element \{-attributes\} \{-base\} \{-data\} \{-design\} \{-all\} \{-field\} 
-        \{-floor_coords\} \{-no_slaves\} \{-no_super_slaves\} \{-ptc\} \{-taylor\}
-        \{-wall\} \{-xfer_mat\} <ele_name>                                  ! \sref{s:show.element}
-  show field <ele> <x> <y> <z> \{<t>\}                                    ! \sref{s:show.field}
-  show global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\}     ! \sref{s:show.global}
-  show graph <graph_name>                                               ! \sref{s:show.graph}
-  show history \{-no_num\} \{<num_to_display>\}                             ! \sref{s:show.history}
-  show hom                                                              ! \sref{s:show.hom}
-  show key_bindings                                                     ! \sref{s:show.key}
-  show lattice \{-0undef\} \{-all\} \{-attribute <attrib>\} \{-base\} 
-        \{-blank_replacement <string>\} \{-branch <name_or_index>\} 
-        \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\} 
-        \{-no_label_lines\} \{-no_tail_lines\} \{-no_slaves\} \{-no_super_slaves\} \{-orbit\} 
-        \{-radiation_integrals\} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} 
-        \{-spin\} \{-tracking_elements\} \{-undef0\} \{<elements>\}           ! \sref{s:show.lattice}
-  show matrix \{-s\} \{loc1 \{loc2\}\}                                      ! \sref{s:show.matrix}
-  show merit \{-derivative\} \{-merit_only\}                              ! \sref{s:show.merit}
-  show normal_form \{-order <n_order>\} <type>                          ! \sref{s:show.normal}
-  show optimizer \{-geodesic_lm\}                                       ! \sref{s:show.optimizer}
-  show particle \{-bunch <bunch_name_or_index>\} \{-particle <particle_index> 
-        \{-element <element_name_or_index>\} \{-lost\} \{-all\}             ! \sref{s:show.particle}
-  show plot \{-floor_plan\} \{-lat_layout \} \{<plot_region_name>\} 
-        \{<template_plot_name>\}                                        ! \sref{s:show.plot}
-  show symbolic_numbers \{-physical_constants\}                         ! \sref{s:show.symbolic}
-  show taylor_map \{-order <n_order>\} \{-s\} \{loc1 \{loc2\}\}               ! \sref{s:show.taylor}
-  show track \{-b_field \{fmt\}\} \{-e_field \{fmt\}\} \{-energy \{fmt\}\}
-  show twiss_and_orbit \{-base\} \{-branch <name_or_index>\} \{-design\} 
-        \{-universe <ix_uni>\} <s_position>                             ! \sref{s:show.twiss}
-  show universe \{universe_number\}                                     ! \sref{s:show.universe}
-  show use                                                            ! \sref{s:show.use}
-  show value <expression>                                             ! \sref{s:show.value}
-  show variable \{-no_label_lines\} \{-universe <universes>\}            
-         \{-good_opt_only\} \{-bmad_format\} \{<var_name>\}                 ! \sref{s:show.variable}
-  show wakes                                                          ! \sref{s:show.wakes}
-  show wall \{-branch <name_or_index>\} \{-section <index>\} \{-angle <angle>\} 
-        \{-s <s1>:<s2>\} \{<n1>:<n2>\}                                    ! \sref{s:show.wall}
-  show wave                                                           ! \sref{s:show.wave}
+  alias                 ! Show aliases \sref{s:show.alias}.
+  beam ...              ! Show beam info \sref{s:show.beam}.
+  branch ...            ! Show lattice branch info \sref{s:show.branch}.
+  building_wall         ! Show building wall info \sref{s:show.building}.
+  constraints           ! Show optimization constraints \sref{s:show.constraints}.
+  curve ...             ! Show plot curve info \sref{s:show.curve}.
+  data ...              ! Show optimization data info \sref{s:show.data}.
+  derivative ...        ! Show d_data/d_var optimization info \sref{s:show.derivative}.
+  dynamic_aperture      ! Show DA info \sref{s:show.dynamic}.
+  element ...           ! Show lattice element info \sref{s:show.element}.
+  field ...             ! Show EM field \sref{s:show.field}.
+  global ...            ! Show Tao global parameters \sref{s:show.global}.
+  graph ...             ! Show plot graph info \sref{s:show.graph}.
+  history ...           ! Show command history \sref{s:show.history}.
+  hom                   ! Show Higher Order Mode info \sref{s:show.hom}.
+  key_bindings          ! Show single mode key bindings \sref{s:show.key}.
+  lattice ...           ! Show lattice info \sref{s:show.lattice}.
+  matrix ...            ! Show transport matrix \sref{s:show.matrix}.
+  merit ...             ! Show optimization merit function \sref{s:show.merit}.
+  normal_form ...       ! Show transport map normal form \sref{s:show.normal}.
+  optimizer ...         ! Show optimizer info \sref{s:show.optimizer}.
+  particle ...          ! Show tracked particle info \sref{s:show.particle}.
+  plot ...              ! Show plot info \sref{s:show.plot}.
+  symbolic_numbers ...  ! Show symbolic constants \sref{s:show.symbolic}.
+  taylor_map ...        ! Show transport Taylor map\sref{s:show.taylor}.
+  track ...             ! Show phase space coords, Twiss, EM field, 
+                        !   and other info along the tracked orbit \sref{s:show.track}.
+  twiss_and_orbit ...   ! Show Twiss and orbit info at given position \sref{s:show.twiss}.
+  universe ...          ! Show universe info \sref{s:show.universe}.
+  use                   ! Show data and vars used in optimization \sref{s:show.use}.
+  value ...             ! Show value of an expression \sref{s:show.value}.
+  variable ...          ! Show optimization variable info \sref{s:show.variable}.
+  wakes                 ! Show wake info \sref{s:show.wakes}.
+  wall ...              ! Show vacuum chamber wall info \sref{s:show.wall}.
+  wave                  ! Show wave analysis info \sref{s:show.wave}.
 \end{example}
 
 \vskip 10pt 
@@ -1558,7 +1547,7 @@ file. If \vn{global%write_file} has a \vn{*} character in it, a three digit numb
 substituted for the \vn{*}. The value of the number starts at \vn{001} and increases by 1
 each time \vn{show -write} is used.  Example:
 \begin{example}
-  show -write orb.dat orbit    ! Write orbit data to the file "orb.dat".
+  show -write floor.dat lat -floor  ! Write floor positions to the file "floor.dat".
 \end{example}
 
 The \vn{-noprint} option suppresses printing and is useful when writing large amounts of
@@ -1948,8 +1937,7 @@ Syntax:
   show key_bindings
 \end{example}
 
-
-Shows all key bindings.
+Shows all key bindings (\sref{s:key.bind}).
 
 %% show lattice --------------------------------------------------------------
 
@@ -2051,18 +2039,8 @@ printed.  The general form of \vn{<attrib>} is:
   attribute-name@format
 \end{example}
 where \vn{attribute-name} is the name of an attribute and \vn{format} specifies the Fortran style
-edit descriptors to be used. The default format is \vn{es12.4}. Example descriptors:
-\begin{example}
-  From   Example
-  ----   -------
-  Fw.d   F13.5    ! For real numbers. No exponent. 
-  ESw.d  ES13.4   ! For real numbers. Has exponent
-  Lw     L4       ! For logical numbers
-  Iw     I8       ! For integers
-  wX     4x       ! White space. 
-\end{example}
-In the above, ``\vn{w}'' is the width of the field and ``\vn{d}'' is the number of digits to
-the right of the decimal. Example:
+edit descriptors to be used (\sref{s:edit.descrip}. The default format is \vn{es12.4}. 
+Example:
 \begin{example}
   show lat -attrib is_on@l4 -attrib voltage rfcavity::*
 \end{example}
@@ -2353,6 +2331,109 @@ Examples:
   show taylor -s 13 23            ! Transfer map from s = 13 meters to 23 meters. 
 \end{example} 
 
+%% show track -----------------------------------------------------------------------
+
+\subsection{show track}
+\label{s:show.track}
+
+Syntax:
+\begin{example}
+  show track \{-b_field \{<fmt>\}\} \{-base\} \{-branch <name_or_index>\} \{-design\} 
+      \{-dispersion \{<fmt>\}\} \{-e_field \{<fmt>\}\} \{-momentum \{<fmt>\}\} \{-no_label_lines\} 
+      \{-points <num>\} \{-position \{<fmt>\}\} \{-energy \{<fmt>\}\} \{-range <s1> <s2>\}
+      \{-s \{<fmt>\}\} \{-spin \{<fmt>\}\} \{-time \{<fmt>\}\} \{-twiss \{<fmt>\}\}
+      \{-universe <ix_uni>\} \{-velocity \{<fmt>\}\}
+\end{example}
+
+The \vn{show track} command shows a table of phase space coords, Twiss parameters, EM fields, and
+other info at equally spaced points along the tracked orbit. Also see the \vn{show twiss_and_orbit}
+command.
+
+Command arguments that toggle whether a certain quantity is displayed have an optional \vn{<fmt>}
+format specifier that can be used to set the format of the displayed quantities. The format uses
+Fortran edit descriptor syntax (\sref{s:edit.descrip}). If ``\vn{no}'' is used as the format then
+the associated quantity will not be displayed. If there is no format specified then \tao will use
+a default format. Example:
+\begin{example}
+  show track -b_field      ! Display magnetic field components using the default format
+  show track -position no  ! Do not display position information.
+  show track -s 3pf12.1    ! Display S-position with decimal point shifted by three places.
+                           !   That is, display the S-position in millimeters.
+\end{example}
+When the value of quantities are shifted, using the ``\vn{P}'' prefix, the header string for the
+corresponding column(s) will be appropriately marked.
+
+\begin{description}
+\item[\vn{\{-b_field \{<fmt>\}\}}] \Newline
+Set the format for the three components of the magnetic field (in Tesla). The default, if
+\vn{-b_field} is not present, is not to print the field.
+%
+\item[\vn{\{-base\}}] \Newline
+If present, use the \vn{base} lattice for evaluating quantities. The default is the \vn{model}
+lattice.
+%
+\item[\vn{\{-branch <name_or_index>\}}] \Newline
+Lattice branch to use. The default is the default branch (\sref{s:lattice})
+%
+\item[\vn{\{-design\}}] \Newline
+If present, use the \vn{design} lattice for evaluating quantities. The default is the \vn{model}
+lattice.
+%
+\item[\vn{\{-dispersion \{<fmt>\}\}}] \Newline
+Set the format for the dispersion and dispersion derivative columns $(\eta_x, \eta'_x, \eta_y,
+\eta'_y)$. The default is not to print these columns.
+%
+\item[\vn{\{-e_field \{<fmt>\}\}}] \Newline
+Set the format for the three components of the electric field (in V/m). The default is not to print
+the field.
+%
+\item[\vn{\{-momentum \{<fmt>\}\}}] \Newline
+Set the format for the three phase space momentum components $(p_x, p_y, p_z)$. Notice that these
+are canonical momenta and are dimensionless as explained in the \bmad manual. In particular, $p_z$
+is the momentum deviation from the reference momentum. The default is to print the momenta using the
+default format.
+%
+\item[\vn{\{-no_label_lines\} }] \Newline
+If present then suppress the output header lines.
+%
+\item[\vn{\{-points <num>\}}] \Newline
+Set the number of evaluation points. That is, set the number of rows in the table.
+%
+\item[\vn{\{-position \{<fmt>\}\}}] \Newline
+Set the format for the three phase space position components $(x, y, z)$. See the \bmad manual for 
+details on phase space coordinates. The default is to print the position using the default format.
+The default format is \vn{3PF14.6} so the output will be in mm.
+%
+\item[\vn{\{-energy \{<fmt>\}\}}] \Newline
+Set the format for the column showing the total energy (in eV) of the particle. The default is not
+to print this.
+%
+\item[\vn{\{-range <s1> <s2>\}}] \Newline
+Set the S-position min/max bounds for the table. Default is beginning and ending S-positions of the lattice.
+%
+\item[\vn{\{-s \{<fmt>\}\}}] \Newline
+Set the format for the S-position column. The default, if \vn{-s} is not present, is to print the column.
+%
+\item[\vn{\{-spin \{<fmt>\}\}}] \Newline
+Set the format for the three components of the particle's spin. The default, if
+\vn{-spin} is not present, is not to print the spin.
+%
+\item[\vn{\{-time \{<fmt>\}\}}] \Newline
+Set the format for the time column. The default, if \vn{-s} is not present, is to not the column.
+%
+\item[\vn{\{-twiss \{<fmt>\}\}}] \Newline
+Set the format for the Beta and Alpha functions of the two ransverse normal modes. The default, if
+\vn{-twiss} is not present, is not to print the Twiss parameters
+%
+\item[\vn{\{-universe <ix_uni>\}}] \Newline
+Set the universe to use. The default is the default universe (\sref{s:universe}).
+%
+\item[\vn{\{-velocity \{<fmt>\}\}}] \Newline
+Set the format for the three particle velocity components $(v_x/c, v_y/c, v_z/c)$ normalized by the
+speed of light. The default is not to print the velocity.
+%
+\end{description}
+
 %% show twiss_and_orbit --------------------------------------------------------------
 
 \subsection{show twiss_and_orbit}
@@ -2364,7 +2445,8 @@ Syntax:
     \{-universe <ix_uni>\} <s_position>
 \end{example}
 
-Show Twiss and orbit information at a given longitudinal position \vn{<s_position>}. 
+The \vn{show twiss_and_orbit} shows Twiss and orbit information at a given longitudinal position
+\vn{<s_position>}. Also see \vn{show track}.
 
 The default universe to use is the current default universe. This can be changed using the
 \vn{-universe} switch.
@@ -2374,7 +2456,7 @@ The default is to show the \vn{model} Twiss and orbit parameters. The use of \vn
 lattices.
 
 The particular branch used in the analysis can be selected by the \vn{-branch} switch. The
-root branch (branch 0) is the default.
+default is the default branch (\sref{s:lattice}).
 
 Examples:
 \begin{example}

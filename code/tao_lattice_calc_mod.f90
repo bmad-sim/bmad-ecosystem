@@ -250,7 +250,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. associated(branch%ptc%m_t_layout)) call lat_to_ptc_layout (tao_lat%lat)
       
       ! Get one-turn-map
-      call ptc_one_turn_map_at_ele (normal_form%ele_origin, normal_form%m, rf_on, pz = 0.0_rp )
+      call ptc_one_turn_map_at_ele (normal_form%ele_origin, normal_form%m, pz = 0.0_rp )
 
       ! ! Get A, A_inv, dhdj
       ! call normal_form_taylors(normal_form%m, rf_on, dhdj = normal_form%dhdj, &
