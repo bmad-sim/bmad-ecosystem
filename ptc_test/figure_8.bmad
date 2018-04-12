@@ -9,7 +9,7 @@ parameter[geometry] = closed
 beginning[E_tot]    = 5.289e9
 
 bmad_com[use_hard_edge_drifts] = false
-parameter[ptc_exact_model] = true
+parameter[ptc_exact_model] =  false
 
 !
 
@@ -29,8 +29,6 @@ b  : rbend,l_arc = larc, angle=ang
 
 bb: b, g_err = -2*ang/larc
 
-*[ptc_integration_type]=drift_kick
-
 cell3 : LINE=  (d1, qd, d2, bb, d2, qf, d1)
 cell4 : LINE=  (d1, qd, d2,  b, d2, qf, d1)
 
@@ -44,6 +42,8 @@ IR2: line[multipass] = (d2, qf, d1)
 
 p1: patch, x_pitch = pi
 p2: patch, x_pitch = -pi
+
+*[num_steps] = 2
 
 fig8 : line  = (ir1, L4, ir2, ir1, p1, --L3, p2, ir2);
 
