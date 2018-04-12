@@ -648,17 +648,17 @@ type tao_common_struct
   character(100) :: cmd                        ! Used for the cmd history
   character(16) :: init_name = 'Tao'           ! label for initialization          
   character(200) :: lat_file = ''              ! '-lat'         command line argument.
-  character(100) :: init_tao_file = 'tao.init' ! '-init'        command line argument.
+  character(160) :: init_tao_file = 'tao.init' ! '-init'        command line argument.
   character(200) :: init_tao_file_path = ''    ! Path part of init_tao_file
-  character(100) :: beam_file = ''             ! '-beam'          command line argument.
-  character(100) :: beam_all_file = ''         ! '-beam_all'      command line argument.
-  character(100) :: beam0_file  = ''           ! '-beam0'         command line argument.
-  character(100) :: data_file = ''             ! '-data'          command line argument.
-  character(100) :: plot_file = ''             ! '-plot'          command line argument.
-  character(100) :: startup_file = ''          ! '-startup'       command line argument.
-  character(100) :: var_file = ''              ! '-var'           command line argument.
-  character(100) :: building_wall_file = ''    ! '-building_wall' command line argument.
-  character(100) :: hook_init_file = ''        ! '-hook_init_file' command line argument
+  character(160) :: beam_file = ''             ! '-beam'          command line argument.
+  character(160) :: beam_all_file = ''         ! '-beam_all'      command line argument.
+  character(160) :: beam0_file  = ''           ! '-beam0'         command line argument.
+  character(160) :: data_file = ''             ! '-data'          command line argument.
+  character(160) :: plot_file = ''             ! '-plot'          command line argument.
+  character(160) :: startup_file = ''          ! '-startup'       command line argument.
+  character(160) :: var_file = ''              ! '-var'           command line argument.
+  character(160) :: building_wall_file = ''    ! '-building_wall' command line argument.
+  character(160) :: hook_init_file = ''        ! '-hook_init_file' command line argument
   character(16) :: plot_geometry = ''          ! '-geometry' command line argument.
   character(80) :: single_mode_buffer = ''
   character(40) :: unique_name_suffix
@@ -779,8 +779,8 @@ type tao_beam_struct
   type (beam_init_struct) :: beam_init ! Beam distrubution at beginning of lattice
   type (beam_struct) start             ! Initial
   logical :: init_beam0 = .false.      ! Init beam
-  character(80) :: beam_all_file = ''  ! Input beam data file for entire lattice.
-  character(80) :: beam0_file    = ''  ! Input beam data file at the start of the lattice.
+  character(160) :: beam_all_file = ''  ! Input beam data file for entire lattice.
+  character(160) :: beam0_file    = ''  ! Input beam data file at the start of the lattice.
   character(160) saved_at
 end type
 
