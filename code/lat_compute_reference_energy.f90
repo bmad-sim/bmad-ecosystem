@@ -453,7 +453,7 @@ case (lcavity$)
   call calc_time_ref_orb_out
 
 case (custom$, hybrid$)
-  ele%value(E_tot$) = E_tot_start + ele%value(delta_e$)
+  ele%value(E_tot$) = E_tot_start + ele%value(delta_e_ref$)
   call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
   if (err) return
 

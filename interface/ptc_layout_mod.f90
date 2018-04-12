@@ -746,7 +746,7 @@ end subroutine ptc_closed_orbit_calc
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ptc_one_turn_map_at_ele (ele, map, rf_on, pz, order)
+! Subroutine ptc_one_turn_map_at_ele (ele, map, spin_map, pz, order)
 !
 ! Routine to calculate the one turn map for a ring.
 ! Note: Use set_ptc(no_cavity = True/False) set turn on/off the RF cavities.
@@ -756,68 +756,80 @@ end subroutine ptc_closed_orbit_calc
 !
 ! Input:
 !   ele     -- ele_struct: Element determining start/end position for one turn map.
-!   rf_on   -- logical: calculate with RF on
 !   pz      -- real(rp), optional: momentum deviation of closed orbit. 
 !                                  Default = 0
 !   order   -- integer, optional: Order of the map. If not given then default order is used.
 !
 ! Output:
-!   map(6)  -- taylor_struct: Bmad taylor map
+!   map(6)      -- taylor_struct: orbital map.
+!   spin_map(4) -- taylor_struct, optional: Quaternion spin map if spin tracking is on.
 !-
 
-subroutine ptc_one_turn_map_at_ele (ele, map, rf_on, pz, order)
+subroutine ptc_one_turn_map_at_ele (ele, map, spin_map, pz, order)
 
 use madx_ptc_module
 
 type (ele_struct), target :: ele
 type (taylor_struct) map(6)
+type (taylor_struct), optional :: spin_map(4)
 type (internal_state) ptc_state
 type (fibre), pointer :: fib
-type (damap) da_map
-type (real_8) ray(6)
+type (c_damap) da_map
+type (probe_8) p8
+type (probe) p0
 
 real(rp), optional :: pz
-real(rp) x_bmad(6)
 real(dp) x(6)
 
 integer :: map_order
 integer, optional :: order
 
-logical rf_on 
+logical rf_on, spin_on
 
 !
 
-map_order = integer_option(order, ptc_com%taylor_order_ptc)
+rf_on = rf_is_on(ele%branch)
+spin_on = bmad_com%spin_tracking_on .and. present(spin_map)
 
 if (rf_on) then
   ptc_state = default - nocavity0
 else
   ptc_state = default + nocavity0
-  ndpt_bmad = 1  ! Indicates that delta is in position 6 and not 5
+  ndpt_bmad = 1  ! Indicates that pz is in position 6 and not 5
 endif
 
+if (spin_on) ptc_state = ptc_state + spin0
+
+use_bmad_units = .true.
+map_order = integer_option(ptc_com%taylor_order_ptc, order)
 call init(ptc_state, map_order, 0) ! The third argument is the number of parametric variables
 
 ! Find closed orbit
+
 x = 0
-if (present(pz)) x(5) = pz
+if (present(pz)) x(6) = pz
 fib => ele%ptc_fibre%next
 call find_orbit_x (x, ptc_state, 1.0d-5, fibre1 = fib)  ! find closed orbit
 
 ! Construct map.
 
+call alloc(p8)
 call alloc(da_map)
-call alloc(ray)
-da_map = 1   ! Identity
-ray = da_map + x
-call track_probe_x (ray, ptc_state, fibre1 = fib)
 
-call vec_ptc_to_bmad (x, fib%beta0, x_bmad)
-map%ref = x_bmad
-call real_8_to_taylor(ray, fib%beta0, fib%beta0, map)
+p0 = x
+da_map = 1
+p8 = da_map + p0
+call track_probe (p8, ptc_state, fibre1 = fib)
 
-call kill(ray)
+map%ref = x
+map = p8%x
+if (spin_on) spin_map = p8%q%x
+
+call kill(p8)
 call kill(da_map)
+
+use_bmad_units = .false.
+if (.not. rf_on) ndpt_bmad = 0
 call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
 end Subroutine ptc_one_turn_map_at_ele

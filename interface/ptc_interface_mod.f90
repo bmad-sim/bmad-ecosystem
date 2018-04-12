@@ -1408,7 +1408,7 @@ use s_fibre_bundle
 implicit none
 
 type (taylor_struct) :: bmad_taylor(:)
-type (real_8) y8(:), rr(6), bet
+type (real_8) y8(:), rr(6), bet, ss(6)
 type (damap) bm, id, si
 
 real(rp) beta0, beta1, fix0(6)
@@ -1426,25 +1426,26 @@ id = 1
 
 rr = id + bmad_taylor%ref
 
-y8 = rr 
-y8(5) = (rr(6)**2+2.d0*rr(6))/(1.d0/beta0 + sqrt(1.d0/beta0**2+rr(6)**2+2.d0*rr(6)))
-bet = (1.d0+rr(6))/(1.d0/beta0+y8(5))
-y8(6) = -rr(5)/bet
+ss = rr 
+ss(5) = (rr(6)**2+2.d0*rr(6))/(1.d0/beta0 + sqrt(1.d0/beta0**2+rr(6)**2+2.d0*rr(6)))
+bet = (1.d0+rr(6))/(1.d0/beta0+ss(5))
+ss(6) = -rr(5)/bet
 
-si=y8  ! bmad to ptc map
+si=ss  ! bmad to ptc map
 
 bm = bm * si
 bm = fix0
 
 rr = bm
-y8 = rr
-y8(6) = (2.d0*rr(5)/beta1+rr(5)**2)/(sqrt(1.d0+2.d0*rr(5)/beta1+rr(5)**2)+1.d0)
-bet = (1.d0+y8(6))/(1.d0/beta1+rr(5))
-y8(5) = -bet*rr(6)
+ss = rr
+ss(6) = (2.d0*rr(5)/beta1+rr(5)**2)/(sqrt(1.d0+2.d0*rr(5)/beta1+rr(5)**2)+1.d0)
+bet = (1.d0+ss(6))/(1.d0/beta1+rr(5))
+ss(5) = -bet*rr(6)
 
-bmad_taylor = y8
+bmad_taylor = ss
 
 call kill (rr)
+call kill (ss)
 call kill (bet)
 call kill (bm, id, si)
 
@@ -2498,7 +2499,7 @@ implicit none
 
 type (taylor_struct) :: taylor1(:), taylor2(:)
 type (taylor_struct) :: taylor3(:)
-type (real_8) y1(size(taylor1)), y2(size(taylor1)), y3(size(taylor1))
+type (real_8) y1(size(taylor1)), y2(size(taylor2)), y3(size(taylor3))
 
 ! Set the taylor order in PTC if not already done so
 

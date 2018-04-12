@@ -29,7 +29,7 @@
 ! The hybrid elements will have the following parameters defined:
 !   L                 Length of the combinded elements.
 !   E_TOT_START       Starting energy.
-!   DELTA_E           Change in energy through the hybrid.
+!   DELTA_E_REF       Change in reference energy through the hybrid.
 !   DELTA_REF_TIME    Time needed for the reference particle to transverse the hybrid.
 !
 ! Note: Lat_out must not be the same actual argument as lat_in.
@@ -235,7 +235,7 @@ do ib = 0, ubound(lat_out%branch, 1)
         ele_out%value(e_tot_start$) = b_in%ele(j_in-1)%value(e_tot$)
         ref_time0                   = b_in%ele(j_in-1)%ref_time
         ele_out%value(ref_time_start$) = ref_time0
-        ele_out%value(delta_e$)        = ele_in%value(e_tot$) - ele_out%value(e_tot_start$)
+        ele_out%value(delta_e_ref$)    = ele_in%value(e_tot$) - ele_out%value(e_tot_start$)
         ele_out%value(delta_ref_time$) = ele_in%ref_time - ref_time0 
         ele_out%tracking_method = taylor$
         ele_out%mat6_calc_method = taylor$
@@ -285,7 +285,7 @@ do ib = 0, ubound(lat_out%branch, 1)
         ele_out%value(x2_limit$)       = ele_in%value(x2_limit$)
         ele_out%value(y1_limit$)       = ele_in%value(y1_limit$)
         ele_out%value(y2_limit$)       = ele_in%value(y2_limit$)
-        ele_out%value(delta_e$)        = ele_in%value(e_tot$) - ele_out%value(e_tot_start$)
+        ele_out%value(delta_e_ref$)    = ele_in%value(e_tot$) - ele_out%value(e_tot_start$)
         ele_out%value(delta_ref_time$) = ele_in%ref_time - ref_time0
 
         o_key = ele_out%key 

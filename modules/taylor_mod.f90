@@ -96,9 +96,6 @@ end subroutine taylor_equal_taylor
 ! Subroutine to transfer the values from one taylor map to another:
 !     Taylor1 <= Taylor2
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   taylor2(:) -- Taylor_struct: Taylor map.
 !
@@ -127,6 +124,57 @@ end subroutine taylors_equal_taylors
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Elemental subroutine taylor_clean (bmad_taylor)
+!
+! Routine to "cleanup" a taylor map by removing terms whose coefficients are small.
+!
+! Input:
+!   bmad_taylor -- Taylor_struct: Taylor series or array (since routine is elemental).
+!
+! Output:
+!    bmad_taylor -- Taylor_struct: Cleaned Taylor series/map
+!-
+
+elemental subroutine taylor_clean (bmad_taylor)
+
+implicit none
+
+type (taylor_struct), intent(inout) :: bmad_taylor
+type (taylor_struct) t2
+real(rp), parameter :: eps = 1d-10, ps_bound = 0.1
+integer i, n
+
+
+! ps_bound is an approximate upper bound to the phase space coordinates
+
+if (.not. associated(bmad_taylor%term)) return
+
+n = 0 
+do i = 1, size(bmad_taylor%term)
+  if (abs(bmad_taylor%term(i)%coef) * ps_bound**sum(bmad_taylor%term(i)%expn) > eps) n = n + 1
+enddo
+
+if (n == size(bmad_taylor%term)) return
+
+t2%term => bmad_taylor%term
+allocate(bmad_taylor%term(n))
+
+n = 0 
+do i = 1, size(t2%term)
+  if (abs(t2%term(i)%coef) * ps_bound**sum(t2%term(i)%expn) > eps) then
+    n = n + 1
+    bmad_taylor%term(n) = t2%term(i)
+  endif
+enddo
+
+deallocate(t2%term)
+
+end subroutine taylor_clean
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Function taylor_coef (bmad_taylor, expn) result (taylor_coef)
 !
 ! Function to return the coefficient for a particular taylor term from a Taylor Series.
@@ -139,9 +187,6 @@ end subroutine taylors_equal_taylors
 !   ...
 !   coef = taylor_coef (bmad_taylor(3), [0, 0, 0, 0, 0, 2 ]) or  
 !   coef = taylor_coef (bmad_taylor(3), taylor_expn([6,6]))
-!
-! Modules needed:
-!   use bmad
 !
 ! Input (taylor_coef1):
 !   bmad_taylor -- Taylor_struct: Taylor series.
@@ -214,22 +259,21 @@ end function taylor_expn
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine type_taylors (bmad_taylor, max_order, lines, n_lines, file_id, out_type)
+! Subroutine type_taylors (bmad_taylor, max_order, lines, n_lines, file_id, out_type, clean)
 !
 ! Subroutine to print or put in a string array a Bmad taylor map.
 ! If the lines(:) argument is not present, the element information is printed to the terminal.
 !
-! Moudles needed:
-!   use bmad
-!
 ! Input:
-!   bmad_taylor(6) -- taylor_struct: Array of taylors.
+!   bmad_taylor(:) -- taylor_struct: Array of taylors.
 !   max_order      -- integer, optional: Maximum order to print.
 !   file_id        -- integer, optional: If present, write output to a file with handle file_id.
 !   out_type       -- character(*), optional: Determins the string to be used for the output type column.
 !                       '' (default) -> '1', '2', '3', etc.
 !                       'PHASE'      -> 'X', 'Px, 'Y', 'Py', 'Z', 'Pz'
 !                       'SPIN'       -> 'S1', 'Sx', 'Sy', 'Sz' (quaternion representation)
+!   clean          -- logical, optional: If True then do not include terms whose coefficients
+!                       are negligible. Default is false
 !
 ! Output:
 !   lines(:)     -- character(*), allocatable, optional :: Character array to hold the output. 
@@ -238,7 +282,7 @@ end function taylor_expn
 !                     n_lines must be present if lines(:) is. 
 !-
 
-subroutine type_taylors (bmad_taylor, max_order, lines, n_lines, file_id, out_type)
+subroutine type_taylors (bmad_taylor, max_order, lines, n_lines, file_id, out_type, clean)
 
 use re_allocate_mod
 
@@ -246,11 +290,13 @@ implicit none
 
 type (taylor_struct), intent(in), target :: bmad_taylor(:)
 type (taylor_term_struct), pointer :: tt
-type (taylor_struct) tlr
+type (taylor_struct) tlr, t2
 
 integer, optional, intent(out) :: n_lines
 integer, optional :: max_order, file_id
 integer i, j, k, nl, ix, nt
+
+logical, optional :: clean
 
 character(*), optional :: out_type
 character(*), optional, allocatable :: lines(:)
@@ -303,14 +349,21 @@ else
       if (i <=4) out_str = ' ' // spin_out(i) // ':'
     end select
 
-    if (size(bmad_taylor(i)%term) == 0) then
+    if (logic_option(.false., clean)) then
+      t2 = bmad_taylor(i)
+      call taylor_clean(t2)
+    else
+      t2%term => bmad_taylor(i)%term
+    endif
+
+    if (size(t2%term) == 0) then
       nl=nl+1; write (li(nl), '(a, 6x, a)') out_str, 'No Terms.'
 
     else
       nullify (tlr%term)
-      call sort_taylor_terms (bmad_taylor(i), tlr)
+      call sort_taylor_terms (t2, tlr)
 
-      do j = 1, size(bmad_taylor(i)%term)
+      do j = 1, size(t2%term)
         tt => tlr%term(j)
 
         if (present(max_order)) then
@@ -808,9 +861,6 @@ end function taylor_exponent_index
 ! Subroutine to calculate, from a Taylor map and about some trajectory:
 !   The 1st order (Jacobian) transfer matrix.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   a_taylor(6) -- Taylor_struct: Taylor map.
 !   r_in(6)     -- Real(rp): Coordinates at the input about which the Jacobian is evaluated. 
@@ -896,9 +946,6 @@ end subroutine taylor_to_mat6
 !
 ! Subroutine to form a first order Taylor map from the 6x6 transfer
 ! matrix and the 0th order transfer vector.
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   vec0(6)   -- 0th order transfer vector.
@@ -1042,9 +1089,6 @@ end function track_taylor
 ! Subroutine truncate_taylor_to_order (taylor_in, order, taylor_out)
 !
 ! Subroutine to throw out all terms in a taylor map that are above a certain order.
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   taylor_in(:)   -- Taylor_struct: Input Taylor map.
@@ -1230,9 +1274,6 @@ end subroutine
 ! Subroutine to transfer the values from one em_taylor map to another:
 !     Em_taylor1 <= Em_taylor2
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   em_taylor2(:) -- Em_taylor_struct: Em_taylor map.
 !
@@ -1334,9 +1375,6 @@ end subroutine add_em_taylor_term
 ! Subroutine to initialize a Bmad Em_taylor series (6 of these series make
 ! a Em_taylor map). Note: This routine does not zero the structure. The calling
 ! routine is responsible for setting all values.
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   em_taylor   -- Em_taylor_struct: Old structure.
