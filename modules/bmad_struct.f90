@@ -1088,31 +1088,32 @@ type normal_form_struct
                                            ! A1 and L are linear, and c maps to the phasor basis: h+ = x + i p, h- = x - i p
   type (ele_struct), pointer :: ele_origin => null()  ! Element at which the on-turn map was created.
                                            ! See subroutines: normal_form_taylors and normal_form_complex_taylors
-  type(rd_term_struct) :: rd_term(29) = [ &
+  type(rd_term_struct) :: rd_term(32) = [ &
                           rd_term_struct(0, [2,1,0,0,0,0], (0.0d0,0.0d0)), rd_term_struct(0, [3,0,0,0,0,0], (0.0d0,0.0d0)), &
                           rd_term_struct(0, [1,0,1,1,0,0], (0.0d0,0.0d0)), rd_term_struct(0, [1,0,0,2,0,0], (0.0d0,0.0d0)), &
-                          rd_term_struct(0, [1,0,2,0,0,0], (0.0d0,0.0d0)), rd_term_struct(0, [2,0,0,0,1,0], (0.0d0,0.0d0)), &
-                          rd_term_struct(0, [0,0,2,0,1,0], (0.0d0,0.0d0)), rd_term_struct(0, [1,0,0,0,2,0], (0.0d0,0.0d0)), &
+                          rd_term_struct(0, [1,0,2,0,0,0], (0.0d0,0.0d0)), rd_term_struct(0, [2,0,0,0,0,1], (0.0d0,0.0d0)), &
+                          rd_term_struct(0, [0,0,2,0,0,1], (0.0d0,0.0d0)), rd_term_struct(0, [1,0,0,0,0,2], (0.0d0,0.0d0)), &
                           rd_term_struct(0, [3,1,0,0,0,0], (0.0d0,0.0d0)), rd_term_struct(0, [0,0,3,1,0,0], (0.0d0,0.0d0)), &
                           rd_term_struct(0, [1,1,2,0,0,0], (0.0d0,0.0d0)), rd_term_struct(0, [2,0,1,1,0,0], (0.0d0,0.0d0)), &
                           rd_term_struct(1, [1,1,0,0,0,0], (0.0d0,0.0d0)), rd_term_struct(2, [0,0,1,1,0,0], (0.0d0,0.0d0)), &
                           rd_term_struct(1, [0,0,1,1,0,0], (0.0d0,0.0d0)), rd_term_struct(0, [2,0,2,0,0,0], (0.0d0,0.0d0)), &
                           rd_term_struct(0, [2,0,0,2,0,0], (0.0d0,0.0d0)), rd_term_struct(0, [4,0,0,0,0,0], (0.0d0,0.0d0)), &
-                          rd_term_struct(0, [0,0,4,0,0,0], (0.0d0,0.0d0)), rd_term_struct(1, [0,0,0,0,1,0], (0.0d0,0.0d0)), &
-                          rd_term_struct(1, [0,0,0,0,2,0], (0.0d0,0.0d0)), rd_term_struct(1, [0,0,0,0,3,0], (0.0d0,0.0d0)), &
-                          rd_term_struct(2, [0,0,0,0,1,0], (0.0d0,0.0d0)), rd_term_struct(2, [0,0,0,0,2,0], (0.0d0,0.0d0)), &
-                          rd_term_struct(2, [0,0,0,0,3,0], (0.0d0,0.0d0)), rd_term_struct(3, [0,0,0,0,1,0], (0.0d0,0.0d0)), &
-                          rd_term_struct(3, [0,0,0,0,2,0], (0.0d0,0.0d0)), rd_term_struct(3, [0,0,0,0,3,0], (0.0d0,0.0d0)), &
-                          rd_term_struct(3, [0,0,0,0,4,0], (0.0d0,0.0d0))]
+                          rd_term_struct(0, [0,0,4,0,0,0], (0.0d0,0.0d0)), rd_term_struct(1, [0,0,0,0,0,1], (0.0d0,0.0d0)), &
+                          rd_term_struct(1, [0,0,0,0,0,2], (0.0d0,0.0d0)), rd_term_struct(1, [0,0,0,0,0,3], (0.0d0,0.0d0)), &
+                          rd_term_struct(2, [0,0,0,0,0,1], (0.0d0,0.0d0)), rd_term_struct(2, [0,0,0,0,0,2], (0.0d0,0.0d0)), &
+                          rd_term_struct(2, [0,0,0,0,0,3], (0.0d0,0.0d0)), rd_term_struct(3, [0,0,0,0,0,1], (0.0d0,0.0d0)), &
+                          rd_term_struct(3, [0,0,0,0,0,2], (0.0d0,0.0d0)), rd_term_struct(3, [0,0,0,0,0,3], (0.0d0,0.0d0)), &
+                          rd_term_struct(3, [0,0,0,0,0,4], (0.0d0,0.0d0)), rd_term_struct(0, [2,2,0,0,0,0], (0.0d0,0.0d0)), &
+                          rd_term_struct(0, [0,0,2,2,0,0], (0.0d0,0.0d0)), rd_term_struct(0, [1,1,1,1,0,0], (0.0d0,0.0d0))]
 end type
 
-character(8), parameter :: rd_term_name(29) = [ &
-                       '0.210000', '0.300000', '0.101100', '0.100200', '0.102000', '0.200010', '0.002010', '0.100020', &
+character(8), parameter :: rd_term_name(32) = [ &
+                       '0.210000', '0.300000', '0.101100', '0.100200', '0.102000', '0.200001', '0.002001', '0.100002', &
                        '0.310000', '0.003100', '0.112000', '0.201100', '1.110000', '2.001100', '1.001100', '0.202000', &
-                       '0.200200', '0.400000', '0.004000', '1.000010', '1.000020', '1.000030', '2.000010', '2.000020', &
-                       '2.000030', '3.000010', '3.000020', '3.000030', '3.000040']
+                       '0.200200', '0.400000', '0.004000', '1.000001', '1.000002', '1.000003', '2.000001', '2.000002', &
+                       '2.000003', '3.000001', '3.000002', '3.000003', '3.000004', '0.220000', '0.002200', '0.111100']
 
-character(100), parameter :: rd_term_descrip(29) = [character(100) :: &
+character(100), parameter :: rd_term_descrip(32) = [character(100) :: &
                        'Qx', '3Qx', 'Qx', 'Qx-2Qy', 'Qx+2Qy', 'Synchro-betatron resonances ???', &
                        'Momentum-dependence of beta functions ???', '2nd order dispersion', '2Qx', &
                        '2Qy', '2Qy', '2Qx', 'Horizontal ADTS', 'Vertical ADTS', 'Cross ADTS', '2Qx+2Qy', &
@@ -1121,7 +1122,8 @@ character(100), parameter :: rd_term_descrip(29) = [character(100) :: &
                        'dz/dp: first order momentum compaction (related by negative sign)', &
                        'd2z/dp2: second order momentum compaction (related by negative sign)', &
                        'd3z/dp3: third order momentum compaction (related by negative sign)', &
-                       'd3z/dp3: third order momentum compaction (related by negative sign)']
+                       'd3z/dp3: third order momentum compaction (related by negative sign)', &
+                       'Drives dQx/d(2Jx)', 'Drives dQy/d(2Jy)', 'Drives dQx/d(2Jy)']
 
 !
 
@@ -1574,6 +1576,8 @@ type aperture_scan_struct
   type(aperture_data_struct), allocatable :: aperture(:) ! set of apertures at different angles
   type(aperture_param_struct) :: param                   ! parameters used for the scan            
   type (coord_struct) :: ref_orb                         ! Ref orbit around which the scan is made.
+  real(rp)           :: Sx = 1.0   !used to scale angles for linear aperture
+  real(rp)           :: Sy = 1.0   !used to scale angles for linear aperture
 end type
 
 !-------------------------------------------------------------------------

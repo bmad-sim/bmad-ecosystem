@@ -44,6 +44,10 @@ type (aperture_param_struct), pointer :: ap_param
 
 real(rp), allocatable  :: angle_list(:)
 real(rp) :: delta_angle
+logical mask_x(1:lat%n_ele_track)
+logical mask_y(1:lat%n_ele_track)
+real(rp) x_lims(1:lat%n_ele_track)
+real(rp) y_lims(1:lat%n_ele_track)
 integer :: i, omp_n
 
 logical, optional :: parallel
@@ -61,9 +65,25 @@ endif
 allocate(angle_list(ap_param%n_angle))
 
 if (ap_param%n_angle == 1) then
+  aperture_scan%Sx = 1.0
+  aperture_scan%Sy = 1.0
   angle_list(1) = (ap_param%min_angle + ap_param%max_angle) / 2
 else
   delta_angle = (ap_param%max_angle - ap_param%min_angle)/(ap_param%n_angle -1)
+  where (abs(lat%ele(1:lat%n_ele_track)%value(x1_limit$)) > 0.0001)
+    x_lims(:) = lat%ele(1:)%value(x1_limit$)
+  elsewhere
+    x_lims(:) = 1.0
+  endwhere
+  where (abs(lat%ele(1:lat%n_ele_track)%value(y1_limit$)) > 0.0001)
+    y_lims(:) = lat%ele(1:)%value(y1_limit$)
+  elsewhere
+    y_lims(:) = 1.0
+  endwhere
+  mask_x = abs(lat%ele(1:lat%n_ele_track)%value(x1_limit$)) > 0.0001
+  mask_y = abs(lat%ele(1:lat%n_ele_track)%value(y1_limit$)) > 0.0001
+  aperture_scan%Sx = minval( lat%ele(1:lat%n_ele_track)%value(x1_limit$) / sqrt(lat%ele(1:lat%n_ele_track)%a%beta), mask_x ) * sqrt(lat%ele(1)%a%beta)
+  aperture_scan%Sy = minval( lat%ele(1:lat%n_ele_track)%value(y1_limit$) / sqrt(lat%ele(1:lat%n_ele_track)%b%beta), mask_y ) * sqrt(lat%ele(1)%b%beta)
   do i=1, ap_param%n_angle
     angle_list(i) = (i-1)*delta_angle + ap_param%min_angle
   enddo
@@ -80,12 +100,12 @@ if (.not. allocated(aperture_scan%aperture)) allocate(aperture_scan%aperture(ap_
 
 if (ap_param%x_init == 0) then
   ap_param%x_init = 0.001_rp
-  call dynamic_aperture1 (lat, aperture_scan%ref_orb, 0.0_rp, ap_param, aperture, .false.)
+  call dynamic_aperture1 (lat, aperture_scan%ref_orb, 0.0_rp, aperture_scan%Sx, aperture_scan%Sy, ap_param, aperture, .false.)
   ap_param%x_init = aperture%x
 endif
 if (ap_param%y_init == 0) then
   ap_param%y_init = 0.001_rp
-  call dynamic_aperture1 (lat, aperture_scan%ref_orb, pi/2, ap_param, aperture, .false.)
+  call dynamic_aperture1 (lat, aperture_scan%ref_orb, pi/2, aperture_scan%Sx, aperture_scan%Sy, ap_param, aperture, .false.)
   ap_param%y_init = aperture%y
 endif
 
@@ -94,10 +114,10 @@ endif
 omp_n = 1
 !$ omp_n = omp_get_max_threads()
 if (logic_option(.false., parallel) .and. omp_n > 1) then
-  call dynamic_aperture1_parallel(lat, aperture_scan%ref_orb, angle_list, ap_param, aperture_scan%aperture)
+  call dynamic_aperture1_parallel(lat, aperture_scan%ref_orb, angle_list, aperture_scan%Sx, aperture_scan%Sy, ap_param, aperture_scan%aperture)
 else
   do i = 1, ap_param%n_angle
-    call dynamic_aperture1 (lat, aperture_scan%ref_orb, angle_list(i), ap_param, aperture_scan%aperture(i))
+    call dynamic_aperture1 (lat, aperture_scan%ref_orb, angle_list(i), aperture_scan%Sx, aperture_scan%Sy, ap_param, aperture_scan%aperture(i))
   enddo
 endif
 
@@ -107,7 +127,7 @@ end subroutine dynamic_aperture_scan
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine dynamic_aperture1 (lat, orb0, theta_xy, aperture_param, aperture, check_xy_init)
+! Subroutine dynamic_aperture1 (lat, orb0, theta_xy, Sx, Sy aperture_param, aperture, check_xy_init)
 !
 ! Subroutine to determine one dynamic aperture point by tracking.
 ! This routine works by determining where on a radial line y = const * x
@@ -121,6 +141,8 @@ end subroutine dynamic_aperture_scan
 !   orb0           -- Coord_struct: reference orbit at the start.
 !   theta_xy       -- Real(rp): Angle of radial line (in radians) in x-y space.
 !                         Angle is "normalized" by %x_init, %y_init.
+!   Sx             -- real(rp): used to scale angles for linear aperture aspect ratio.
+!   Sy             -- real(rp): used to scale angles for linear aperture aspect ratio.
 !   aperture_param -- aperture_param_struct: Structure holding the input data:
 !   check_xy_init  -- logical, optional: If True, do not check that aperture_param%x_init 
 !                         and %y_init are non-zero. Default is True.
@@ -132,7 +154,7 @@ end subroutine dynamic_aperture_scan
 !       normalized by %X_INIT and %Y_INIT
 !-
 
-subroutine dynamic_aperture1 (lat, orb0, theta_xy, aperture_param, aperture, check_xy_init)
+subroutine dynamic_aperture1 (lat, orb0, theta_xy, Sx, Sy, aperture_param, aperture, check_xy_init)
 
 type (lat_struct)  lat
 type (bmad_common_struct)  com_save
@@ -142,6 +164,8 @@ type (aperture_data_struct)  aperture
 type (aperture_param_struct)  aperture_param
 
 real(rp) theta_xy, x0, x1, x2, y0, y1, y2
+real(rp) Sx, Sy
+real(rp) init_len
 
 integer it, turn_lost, track_state
 
@@ -174,8 +198,9 @@ call reallocate_coord (orbit, lat%n_ele_max)
 
 x0 = 0
 y0 = 0
-x1 = cos(theta_xy) * aperture_param%x_init
-y1 = sin(theta_xy) * aperture_param%y_init
+init_len = sqrt(aperture_param%x_init**2 + aperture_param%y_init**2)
+x1 = cosphi(theta_xy,Sx,Sy) * init_len
+y1 = sinphi(theta_xy,Sx,Sy) * init_len
 
 aperture_bracketed = .false.
 
@@ -223,8 +248,8 @@ test_loop: do
 
   ! check to see if there is an aperture
 
-  if (x1 > 1000*aperture_param%x_init .or. y1 > 1000*aperture_param%y_init) then
-    call out_io(s_error$, r_name, 'CANNOT FIND APERTURE LIMIT')
+  if (x1 > 1.0 .or. y1 > 1.0) then
+    call out_io(s_error$, r_name, 'DA exceeds 1 meter ... giving up.')
     if (global_com%exit_on_error) call err_exit
   endif
 
@@ -246,6 +271,16 @@ bmad_com = com_save
 
 end subroutine dynamic_aperture1
 
+function cosphi(th,Sx,Sy) result(x)
+  real(rp) th, Sx, Sy, x
+  x = Sx * cos(th) / sqrt(Sx**2 * cos(th)**2 + Sy**2 * sin(th)**2 )
+end function
+
+function sinphi(th,Sx,Sy) result(x)
+  real(rp) th, Sx, Sy, x
+  x = Sy * sin(th) / sqrt(Sx**2 * cos(th)**2 + Sy**2 * sin(th)**2 )
+end function
+
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -260,7 +295,7 @@ end subroutine dynamic_aperture1
 !-
 
 
-subroutine dynamic_aperture1_parallel(lat, orb0, angle_list, aperture_param, aperture_list)
+subroutine dynamic_aperture1_parallel(lat, orb0, angle_list, Sx, Sy, aperture_param, aperture_list)
 
 !$ use omp_lib
 
@@ -272,7 +307,7 @@ type (aperture_data_struct) :: aperture
 type (aperture_data_struct) :: aperture_list(:)
 type (aperture_data_struct), allocatable :: omp_aperture(:)
 
-real(rp) :: angle_list(:)
+real(rp) :: angle_list(:), Sx, Sy
 
 integer :: i
 integer :: omp_n, omp_i
@@ -292,12 +327,12 @@ end do
 
 !$OMP parallel &
 !$OMP default(private), &
-!$OMP shared(omp_lat, orb0, omp_aperture, angle_list, aperture_list, aperture_param)
+!$OMP shared(omp_lat, orb0, omp_aperture, angle_list, aperture_list, aperture_param, Sx, Sy)
 !$OMP do schedule(dynamic)
 do i=lbound(angle_list, 1), ubound(angle_list, 1)
   omp_i = 1
   !$ omp_i = omp_get_thread_num()+1
-  call dynamic_aperture1 (omp_lat(omp_i), orb0, angle_list(i), aperture_param, omp_aperture(omp_i))
+  call dynamic_aperture1 (omp_lat(omp_i), orb0, angle_list(i), Sx, Sy, aperture_param, omp_aperture(omp_i))
   aperture_list(i) = omp_aperture(omp_i)
 end do  
 !$OMP end do
