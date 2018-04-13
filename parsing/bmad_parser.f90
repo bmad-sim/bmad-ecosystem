@@ -267,8 +267,17 @@ parsing_loop: do
   ! NO_DIGESTED
 
   if (word_1(:ix_word) == 'NO_DIGESTED') then
+    if (bp_com%write_digested) call out_io (s_info$, r_name, 'Found in file: "NO_DIGESTED". No digested file will be created')
     bp_com%write_digested = .false.
-    call out_io (s_info$, r_name, 'Found in file: "NO_DIGESTED". No digested file will be created')
+    cycle parsing_loop
+  endif
+
+  !-------------------------------------------
+  ! WRITE_DIGESTED
+
+  if (word_1(:ix_word) == 'WRITE_DIGESTED') then
+    if (.not. bp_com%write_digested) call out_io (s_info$, r_name, 'Found in file: "WRITE_DIGESTED". A digested file will be created')
+    bp_com%write_digested = .true.
     cycle parsing_loop
   endif
 

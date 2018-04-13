@@ -84,7 +84,14 @@ endif
 
 ds_safe = bmad_com%significant_length / 100
 dt_next = t_dir * bmad_com%init_ds_adaptive_tracking / c_light  ! Init time step.
-if (ele%tracking_method == fixed_step_time_runge_kutta$) dt_next = ele%value(ds_step$) / c_light
+if (ele%tracking_method == fixed_step_time_runge_kutta$) then
+  if (ele%value(ds_step$) == 0) then
+    call out_io (s_error$, r_name, 'FIXED_STEP_TIME_RUNGE_KUTTA TRACKING USED WITHOUT DS_STEP BEING SET!', &
+                                   'WILL USE BMAD_COM%INIT_DS_ADAPTIVE_TRACKING AS A FALLBACK FOR ELEMENT: ' // ele%name)
+  else
+    dt_next = ele%value(ds_step$) / c_light
+  endif
+endif
 
 call time_runge_kutta_periodic_kick_hook (orb, z_phase, ele, param, stop_time, true_int$)
 
@@ -416,19 +423,20 @@ do
   endif
 end do
 
-if (ele%tracking_method == fixed_step_time_runge_kutta$) then
-  dt_next = ele%value(ds_step$) / c_light
-elseif (err_max > err_con) then
-  dt_next = safety*dt*(err_max**p_grow)
-else
-  dt_next = 5.0_rp * dt
-end if
-
-! Increase step size, limited by an estimated next step ds = L/4
+! Calculate next step
 
 if (ele%tracking_method /= fixed_step_time_runge_kutta$) then
-  if (abs(dr_dt(5)*dt_next) > ele%value(L$)/4.0_rp) then
-    dt_next = t_dir * abs(ele%value(L$) / (8.0_rp * dr_dt(5)))
+  if (err_max > err_con) then
+    dt_next = safety*dt*(err_max**p_grow)
+  else
+    dt_next = 5.0_rp * dt
+  end if
+
+  if (ele%tracking_method /= fixed_step_time_runge_kutta$) then
+    if (abs(dr_dt(5)*dt_next) > ele%value(L$)/4.0_rp) then
+      ! Increase step size, limited by an estimated next step ds = L/4
+      dt_next = t_dir * abs(ele%value(L$) / (8.0_rp * dr_dt(5)))
+    endif
   endif
 endif
 
