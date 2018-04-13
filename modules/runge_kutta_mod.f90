@@ -68,7 +68,7 @@ type (track_struct), optional :: track
 type (fringe_edge_info_struct) fringe_info
 
 real(rp), intent(in) :: s1_body, s2_body
-real(rp) :: ds, ds_did, ds_next, s_body, s_last, ds_save, s_edge_body
+real(rp) :: ds, ds_did, ds_next, s_body, s_last, ds_saved, s_edge_body
 real(rp) :: old_s, ds_zbrent, dist_to_wall, ds_tiny
 
 integer :: n_step, s_dir, nr_max
@@ -159,7 +159,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   if ((s_body+ds-s_edge_body)*s_dir > 0.0) then
     at_hard_edge = .true.
-    ds_save = ds
+    ds_saved = ds
     ds = s_edge_body - s_body - ds_tiny*s_dir / 2
   endif
 
@@ -199,7 +199,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   ! Save track
 
   if (present(track)) then
-    if ((abs(s_body-s_last) > track%ds_save)) then
+    if (track%ds_save <= 0 .or. (abs(s_body-s_last) > track%ds_save)) then
       call save_a_step (track, ele, param, .true., orbit, s_body, .true.)
       s_last = s_body
     endif
@@ -219,7 +219,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   ! been taken if no hard edge was present.
 
   if (at_hard_edge .and. abs(ds_next) >= abs(ds)) then
-    ds_next = max(abs(ds_save), abs(ds_next)) * s_dir
+    ds_next = max(abs(ds_saved), abs(ds_next)) * s_dir
   endif
 
   if ((s_body + ds_next - s2_body) * s_dir > 0) then
