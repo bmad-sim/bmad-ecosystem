@@ -2699,20 +2699,22 @@ See \sref{s:list.match} for a full list of element attributes.
 
 Attributes specific to a \vn{match} element are:
 \begin{example}
-  beta_a0     = <Real>,  beta_b0  = <Real>   ! Beginning betas
-  beta_a1     = <Real>,  beta_b1  = <Real>   ! Ending betas
-  alpha_a0    = <Real>,  alpha_b0 = <Real>   ! Beginning alphas
-  alpha_a1    = <Real>,  alpha_b1 = <Real>   ! Ending alphas
-  eta_x0      = <Real>,  eta_y0   = <Real>   ! Beginning etas 
-  eta_x1      = <Real>,  eta_y1   = <Real>   ! Ending etas 
-  etap_x0     = <Real>,  etap_y0  = <Real>   ! Beginning eta' 
-  etap_x1     = <Real>,  etap_y1  = <Real>   ! Ending eta'
-  dphi_a      = <Real>,  dphi_b   = <Real>   ! Phase advances
-  delta_time  = <Real>                       ! Change in time.
-  match_end = <Logic>                      ! See below. Default is False.
-  x0, px0, y0, py0, z0, pz0 = <Real>       ! Beginning coordinates
-  x1, px1, y1, py1, z1, pz1 = <Real>       ! Ending coordinates
-  match_end_orbit = <Logic>                ! See below. Default is False.
+  beta_a0, beta_b0   = <Real>                      ! Beginning betas
+  beta_a1, beta_b1   = <Real>                      ! Ending betas
+  alpha_a0, alpha_b0 = <Real>                      ! Beginning alphas
+  alpha_a1, alpha_b1 = <Real>                      ! Ending alphas
+  eta_x0, eta_y0     = <Real>                      ! Beginning etas 
+  eta_x1, eta_y1     = <Real>                      ! Ending etas 
+  etap_x0, etap_y0   = <Real>                      ! Beginning eta' 
+  etap_x1, etap_y1   = <Real>                      ! Ending eta'
+  c11_mat0, c12_mat0, c21_mat0, c22_mat0 = <Real>  ! Beginning coupling.
+  c11_mat1, c12_mat1, c21_mat1, c22_mat1 = <Real>  ! Ending coupling.
+  dphi_a, dphi_b     = <Real>                      ! Phase advances
+  x0, px0, y0, py0, z0, pz0 = <Real>               ! Beginning coordinates
+  x1, px1, y1, py1, z1, pz1 = <Real>               ! Ending coordinates
+  delta_time  = <Real>                             ! Change in time.
+  match_end = <Logic>                              ! See below. Default is False.
+  match_end_orbit = <Logic>                        ! See below. Default is False.
 \end{example}
 
 The transfer map for a \vn{match} element is a linear transformation 
@@ -2724,21 +2726,21 @@ where $r_1$ is the output coordinates, and $r_0$ are the input
 coordinates. The matrix $\Bf M$ is the linear part of the map and the
 vector $\Bf V$ is the zeroth order part of the map.
 
-\index{beta_a0}\index{beta_b0}
-\index{beta_a1}\index{beta_b1}
-\index{eta_x0}\index{etap_x0}
-\index{eta_y0}\index{etap_y0}
+\index{beta_a0}\index{beta_b0}\index{beta_a1}\index{beta_b1}
+\index{eta_x0}\index{etap_x0}\index{eta_y0}\index{etap_y0}
 \index{dphi_a}\index{dphi_b}
 Nomenclature: The parameters \vn{beta_a0}, \vn{alpha_a0}, etc. of the
 \vn{match} element are called the beginning (upstream) ``design''
 Twiss parameters. The parameters \vn{beta_a1}, \vn{alpha_a1}, etc. of
 the \vn{match} element are called the ending (downstream) ``design'' Twiss
-parameters.
+parameters. Similarly, \vn{c11_mat0}, etc. are the beginning components of the
+$\bfC$ coupling matrix (\sref{s:coupling}).
 
-The matrix $\Bf M$ is calculated such that if (and only if) the actual (computed) Twiss parameters
-at the beginning \vn{match} element are equal to the beginning design Twiss parameters, then the
-computed Twiss parameters at the end of the \vn{match} element will be the end design Twiss
-parameters and the phase advances (in radians) will be \vn{dphi_a} and \vn{dphi_b}.
+The matrix $\Bf M$ is calculated such that if (and only if) the actual (computed) Twiss coupling
+parameters at the beginning \vn{match} element are equal to the beginning design Twiss and coupling
+parameters, then the computed Twiss and coupling parameters at the end of the \vn{match} element
+will be the end design Twiss and coupling parameters and the phase advances (in radians) will be
+\vn{dphi_a} and \vn{dphi_b} (\sref{s:coupling}).
 
 Note: If all input betas and alphas (\vn{beta_a0}, etc.) are zero, and \vn{match_end} is False,
 then $\Bf M$ will be the unit map.

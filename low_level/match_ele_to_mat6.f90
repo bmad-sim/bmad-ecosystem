@@ -83,8 +83,7 @@ if (is_true(v(match_end$))) then
   v(eta_y0$)     = t_ele%y%eta
   v(etap_x0$)    = t_ele%x%etap
   v(etap_y0$)    = t_ele%y%etap
-  v(gamma_c$)    = t_ele%gamma_c
-  v(c_11$:c_22$) = [t_ele%c_mat(1,1), t_ele%c_mat(1,2), t_ele%c_mat(2,1), t_ele%c_mat(2,2)]
+  v(c11_mat0$:c22_mat0$) = [t_ele%c_mat(1,1), t_ele%c_mat(1,2), t_ele%c_mat(2,1), t_ele%c_mat(2,2)]
 endif
 
 ! Special case where match_end is set but there is no beginning beta value yet.
@@ -136,12 +135,13 @@ ele1%b%phi    = v(dphi_b$)
 ele1%y%eta    = v(eta_y1$)
 ele1%y%etap   = v(etap_y1$)
 
-ele0%c_mat(1,:) = [v(c_11$), v(c_12$)]
-ele0%c_mat(2,:) = [v(c_21$), v(c_22$)]
-ele0%gamma_c    = v(gamma_c$)
+ele0%c_mat(1,:) = v(c11_mat0$:c12_mat0$)
+ele0%c_mat(2,:) = v(c11_mat0$:c12_mat0$)
+ele0%gamma_c    = sqrt(1 - determinant(ele0%c_mat))
 
-ele1%c_mat = 0 
-ele1%gamma_c = 1
+ele1%c_mat(1,:) = v(c11_mat1$:c12_mat1$)
+ele1%c_mat(2,:) = v(c11_mat1$:c12_mat1$)
+ele1%gamma_c    = sqrt(1 - determinant(ele1%c_mat))
 
 ele0%name = ele%name
 ele1%name = ele%name

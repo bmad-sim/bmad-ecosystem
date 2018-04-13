@@ -6,11 +6,27 @@
 \index{normal mode!Coupling}
 
 The coupling formalism used by \bmad is taken from the paper of Sagan and
-Rubin\cite{b:coupling}. The main equations are reproduced here with the notation change
-that $\bfA$ and $\bfB$ is replaced by $\bfQ$ and $\bfW$. The reason for this is explained below.
+Rubin\cite{b:coupling}. The main equations are reproduced here with the notation change that $\bfA$
+and $\bfB$ is replaced by $\bfQ$ and $\bfW$\footnote{The reason why $q$ and $w$ are used here to
+denote the modes is to avoid confusion with the \bmad convention of using the labels $a$ and $b$ to
+represent the same modes throughout the lattice. At the start of the lattice, by convention, the $a$
+mode is the same as the $q$ mode and the $b$ mode is the same as the $w$ mode. If there is a ``mode
+flip'' (see Sagan and Rubin for an explanation of this term) at some spot in the lattice, the $a$
+mode before the mode flip will be the same physical mode after the mode flip (and similarly for the
+$b$ mode.  That is, after the mode flip the $a$ mode will be the same as the $w$ mode and the $b$
+mode will be the same as the $q$ mode.}
 
-A one--turn map $\bfT(s)$ for the transverse two--dimensional phase space $\bfx = (x, x',
-y, y')$ starting and ending at some point $s$ can be written as
+The analysis starts with the map $\bfT(s)$ for the transverse two--dimensional phase space coordinates
+$\bfx = (x, x', y, y')$. In ring, with a closed geometry, this map will be a one-turn map starting
+and ending at some point $s$. For a machine with open geometry, $\bfT(0)$ can be computed from the
+initial Twiss and coupling parameters and $\bfT(s)$ can then be computed by propagating with the
+transfer map $\bfM_{0s}$ from $0$ to $s$:
+\Begineq
+    \bfT(s) = \bfM_{0s} \, \bfT(0) \, \bfM_{0s}^{-1}
+\Endeq
+
+$\bfT$ can be decomposed using a similarity transformation
+ can be written as
   \Begineq
     \bfT = \bfV \, \bfU \, \bfV\inv 
     , \label{tvuv}
@@ -31,16 +47,15 @@ $\bfQ$ and $\bfW$. The normal modes are labeled $q$ and $w$ and if the one--turn
 $\bfT$ is uncoupled then $w$ corresponds to the horizontal mode and $w$ corresponds to the
 vertical mode.
 
-The reason why $q$ and $w$ are used here to denote the modes is to avoid confusion with
-the \bmad convention of using the labels $a$ and $b$ to represent the same modes
-throughout the lattice. At the start of the lattice, by convention, the $a$ mode is the
-same as the $q$ mode and the $b$ mode is the same as the $w$ mode. If there is a ``mode
-flip'' (see Sagan and Rubin for an explanation of this term) at some spot in the lattice,
-the $a$ mode before the mode flip will be the same physical mode after the mode flip (and
-similarly for the $b$ mode.  That is, after the mode flip the $a$ mode will be the same as
-the $w$ mode and the $b$ mode will be the same as the $q$ mode.
-
-$\bfV$ is written in the form
+The $\bfQ$ and $\bfW$ matrices can be parameterized using the standard 1-dimensional Twiss
+parameterization:
+\Begineq
+  \bfQ = \begin{pmatrix}
+    \cos\theta_q + \alpha_q \, \sin\theta_q & \beta_q \, \sin\theta_q \\
+    -\gamma_q \, \sin\theta_q & \cos\theta_q - \alpha_q \, \sin\theta_q
+    \end{pmatrix}
+\Endeq
+and $\bfV$ is written in the form
   \Begineq
     \bfV = 
     \begin{pmatrix}
@@ -143,6 +158,7 @@ dispersion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y)$ via
   \Endeq 
 When there is no coupling ($\bfC = 0$), $\bfeta_q$ and $\bfeta_x$ are
 equal to each other.
+
 
 %-----------------------------------------------------------------
 \section{Dispersion Calculation}
