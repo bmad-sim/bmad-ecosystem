@@ -5,6 +5,8 @@ use equal_mod
 
 implicit none
 
+private cosphi, sinphi
+
 contains
 
 !----------------------------------------------------------------------
