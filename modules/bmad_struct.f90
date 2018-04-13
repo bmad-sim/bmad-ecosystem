@@ -1547,7 +1547,7 @@ type track_struct
   type (coord_struct), allocatable :: orb(:)      ! An array of track points indexed from 0 (%orb(0:)).
   type (em_field_struct), allocatable:: field(:)  ! An array of em fields indexed from 0 (%field(0:)).
   type (track_map_struct), allocatable :: map(:)  ! An array of linear maps indexed from 0.
-  real(rp) :: ds_save = 1d-3                      ! Min distance between points.
+  real(rp) :: ds_save = 1d-3                      ! Min distance between points. Not positive => Save at all points.
   integer :: n_pt = -1                            ! Track upper bound for %orb(0:), etc. arrays.
   integer :: n_bad = 0                            ! Number of bad steps when adaptive tracking is done.
   integer :: n_ok = 0                             ! Number of good steps when adaptive tracking is done.
