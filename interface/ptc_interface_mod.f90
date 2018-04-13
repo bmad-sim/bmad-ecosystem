@@ -1048,7 +1048,7 @@ subroutine set_ptc (e_tot, particle, taylor_order, integ_order, n_step, &
                         no_cavity, exact_modeling, exact_misalign, init_complex, force_init) 
 
 use mad_like, only: make_states, exact_model, always_exactmis, pmaMUON, pmaE, &
-              assignment(=), nocavity, default, operator(+), &
+              assignment(=), nocavity0, default, operator(+), &
               berz, init, set_madx, lp, superkill, TIME0, PHASE0, HIGHEST_FRINGE, init_all, SPIN0
 use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, m_u, bmadl, use_info, use_info_m
 use c_tpsa, only: c_verbose, E_MUON, USE_QUATERNION
@@ -1117,7 +1117,7 @@ endif
 
 if (present (exact_modeling))     EXACT_MODEL = exact_modeling
 if (present (exact_misalign))     ALWAYS_EXACTMIS = exact_misalign
-if (present(no_cavity))           DEFAULT = DEFAULT + NOCAVITY
+if (present(no_cavity))           DEFAULT = DEFAULT + NOCAVITY0
 if (bmad_com%spin_tracking_on)    DEFAULT = DEFAULT + SPIN0
 
 if (present (integ_order)) then
