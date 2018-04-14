@@ -2096,14 +2096,41 @@ if (err) return
 ! The first complication is that what is being set can be a logical, switch (like an element's tracking_method), etc.
 ! So use set_ele_attribute to do the set.
 ! But set_ele_attribute does not know about Tao syntax so it may have problems evaluateing the value string.
+! And set_ele_attribute cannot handle the situation where there is an array of set values.
 ! How to handle this depends upon what type of attribute it is.
 
 ! If a real attribute then use tao_evaluate_expression to evaluate
 
 if (attribute_type(upcase(attribute), eles(1)%ele) == is_real$) then
-  call tao_evaluate_expression (value, 1, .false., set_val, info, err)
+  call tao_evaluate_expression (value, 0, .false., set_val, info, err)
   if (err) return
-  write (val_str, *) set_val(1)
+
+  if (size(set_val) == 1) then
+    write (val_str, *) set_val(1)
+
+  else
+    if (size(eles) == 0) then
+      call out_io (s_error$, r_name, 'CANNOT FIND ANY ELEMENTS CORRESPONDING TO: ' // ele_list)
+      return
+    endif
+    if (size(eles) /= size(set_val)) then
+      call out_io (s_error$, r_name, 'SIZE OF VALUE ARRAY NOT EQUAL TO THE SIZE OF THE ELEMENTS TO BE SET.', &
+                                     'NOTHING DONE.')
+      return
+    endif
+
+    do i = 1, size(eles)
+      call pointer_to_attribute(eles(i)%ele, attribute, .true., a_ptr, err)
+      if (err) return
+      if (.not. associated(a_ptr%r)) then
+        call out_io (s_error$, r_name, 'STRANGE ERROR: PLEASE CONTACT HELP.')
+        return
+      endif
+      a_ptr%r = set_val(i)
+    enddo
+
+    return
+  endif
 
 ! If there is a "ele::" construct in the value string...
 

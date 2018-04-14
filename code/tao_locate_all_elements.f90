@@ -29,7 +29,7 @@ type (ele_pointer_struct), allocatable :: this_eles(:)
 integer i, ix, ix_word, n_eles, n0
 
 character(*) ele_list
-character(100) ele_name, word
+character(100) ele_name, word, string
 character(*), parameter :: r_name = 'tao_locate_all_elements'
 character(1) delim
 
@@ -55,8 +55,9 @@ endif
 
 ! Loop over all items in the element list
 
+string = ele_list
 do 
-  call word_read (ele_list, ', ', word, ix_word, delim, delim_found, ele_list)
+  call word_read (string, ', ', word, ix_word, delim, delim_found, string)
   if (ix_word == 0) exit
   call tao_pick_universe (word, word, picked, err)
   if (err) return
