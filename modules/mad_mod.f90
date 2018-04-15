@@ -38,7 +38,7 @@ contains
 ! Subroutine to make the 6x6 transfer matrix for an element from the 
 ! 2nd order MAD transport map. The map is stored in ele%taylor.
 ! If the map exists then it is simply used to calculate ele%mat6. 
-! If ele%taylor doesn't exist it calculated.
+! If ele%taylor doesn't exist then calculate it.
 !
 ! Modules needed:
 !   use bmad
