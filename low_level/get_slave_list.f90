@@ -27,7 +27,7 @@
 
 subroutine get_slave_list (lord, slaves, n_slave)
 
-use bmad_struct
+use bmad_routine_interface, dummy => get_slave_list
 
 implicit none
 
