@@ -25,7 +25,7 @@ MODULE c_TPSA
   private unaryADD,add,daddsca,dscadd,addsc,scadd,iaddsc,iscadd,print_ql
   private unarySUB,subs,dsubsc,dscsub,subsc,scsub,isubsc,iscsub
   private c_allocda,c_killda,c_a_opt,K_opt,c_,c_allocdas,filter_part
-  private dexpt,dcost,dsint,dtant,DAPRINTTAYLORS,c_clean_yu_w,mul_ql_m
+  private dexpt,dcost,dsint,dtant,DAPRINTTAYLORS,c_clean_yu_w,mul_ql_m,mul_ql_cm
   PRIVATE GETCHARnd2,GETintnd2,dputchar,dputint, filter,check_j,c_dputint0,c_dputint0r
   private GETintnd2t,equalc_cspinor_cspinor,c_AIMAG,c_real,equalc_ray_ray,EQUALql_q,EQUALq_ql,EQUALql_i,EQUALql_ql
   PRIVATE DEQUAL,REQUAL,varf,varf001,equalc_spinor_cspinor,pbbrav,cpbbrav,EQUALql_r  !,CHARINT
@@ -35,6 +35,7 @@ MODULE c_TPSA
   private alloc_c_damap,c_DPEKMAP,c_DPOKMAP,kill_c_damap,kill_c_spinmatrix,c_etcct,c_spinmatrix_mul_cray
   private EQUALspinmatrix,c_trxtaylor,powmap,POWMAPs,alloc_c_vector_field,kill_c_vector_field
   private alloc_c_normal_form,kill_c_normal_form,c_EQUALVEC,c_spinmatrix_spinmatrix,c_IdentityEQUALVEC
+  private EQUALql_cmap,EQUALcmap_ql
   private NO,ND,ND2,NP,NDPT,NV,ndptb,rf
   integer NP,NO,ND,ND2,NDPT,NV,ndptb,rf
   private nd_used
@@ -97,8 +98,11 @@ private c_exp_vectorfield_on_quaternion,c_vector_field_quaternion,addql,subql,mu
 
 real(dp), private :: sj(6,6)
 type q_linear
-real(dp)  q(0:3,0:6) 
+complex(dp) mat(6,6)
+complex(dp)  q(0:3,0:6) 
 end type q_linear
+
+type(q_linear) q_phasor,qi_phasor
 
   INTERFACE assignment (=)
      MODULE PROCEDURE EQUAL
@@ -113,6 +117,8 @@ end type q_linear
      MODULE PROCEDURE EQUALq_c_r
      MODULE PROCEDURE EQUALq_r_c
      MODULE PROCEDURE EQUALql_ql
+     MODULE PROCEDURE EQUALql_cmap
+     MODULE PROCEDURE EQUALcmap_ql
      MODULE PROCEDURE cDEQUAL
      MODULE PROCEDURE DEQUAL  ! added 2002.10.17    ! check2002.10.17
      MODULE PROCEDURE REQUAL   ! added 2002.10.17   ! check2002.10.17
@@ -229,6 +235,9 @@ end type q_linear
      MODULE PROCEDURE mulq
      MODULE PROCEDURE mulql
      MODULE PROCEDURE mulcq
+     MODULE PROCEDURE mul_ql_m
+     MODULE PROCEDURE mul_ql_cm
+
      MODULE PROCEDURE dmulsc
      MODULE PROCEDURE cdmulsc
      MODULE PROCEDURE dscmul
@@ -237,7 +246,6 @@ end type q_linear
      MODULE PROCEDURE scmul
      MODULE PROCEDURE imulsc
      MODULE PROCEDURE iscmul
-     MODULE PROCEDURE mul_ql_m
 
 
      MODULE PROCEDURE c_concat      !# c_damap o  c_damap
@@ -5268,9 +5276,9 @@ endif
  
  
 
- 
-     qtemp%q=0
-     qtemp%q(0,0)=1.0_dp
+      qtemp=0
+!     qtemp%q=0
+!     qtemp%q(0,0)=1.0_dp
 
     R22=IABS(R2)
     DO I=1,R22
@@ -5333,11 +5341,14 @@ endif
     integer ipause, mypauses
     type (q_linear),INTENT(inOUT)::S2
     integer,INTENT(IN)::S1
-    integer i,j
+    integer i 
 
       S2%q(0:3,0:6)=0
- 
-      S2%q(s1,0)= 1
+      s2%mat=0.0_dp
+       do i=1,6
+      s2%mat(i,i)=1.0_dp
+       enddo
+      S2%q(s1,0)= 1.0_dp
 
  end   SUBROUTINE  EQUALql_i
 
@@ -5364,7 +5375,6 @@ endif
     integer i,j
 
       S2%q=0
-
       do i=0,3
        do j=0,min(6,nd2)
         s2%q(i,j)=s1%x(i).index.j
@@ -5372,6 +5382,29 @@ endif
       enddo
 
  end   SUBROUTINE  EQUALql_q
+
+  SUBROUTINE  EQUALql_cmap(S2,S1)
+    implicit none
+    integer ipause, mypauses
+    type (q_linear),INTENT(inOUT)::S2
+    type (c_damap),INTENT(IN)::S1
+  
+       s2%mat=s1
+       s2=s1%q
+      
+ end   SUBROUTINE  EQUALql_cmap
+
+  SUBROUTINE  EQUALcmap_ql(S1,S2)
+    implicit none
+    integer ipause, mypauses
+    type (q_linear),INTENT(in)::S2
+    type (c_damap),INTENT(INOUT)::S1
+  
+       s1=s2%mat
+       s1%q=s2 
+      
+ end   SUBROUTINE  EQUALcmap_ql
+
 
   SUBROUTINE  EQUALq_ql(S1,S2)
     implicit none
@@ -5398,27 +5431,63 @@ endif
     type (q_linear),INTENT(INout)::S1
  
 
-  
+   s1%mat=s2%mat
    S1%q(0:3,0:6)=S2%q(0:3,0:6)
  
 
  end   SUBROUTINE  EQUALql_ql
 
-  SUBROUTINE  print_ql(S2,mfile)
+  SUBROUTINE  print_ql(S2,imaginary,mfile)
     implicit none
     integer ipause, mypauses
     type (q_linear),INTENT(inOUT)::S2
     integer, optional :: mfile
+    logical, optional :: imaginary
     integer i,mf
 
       mf=6
      if(present(mfile)) mf=mfile
 
-      do i=0,3
+write(mf,*) " Orbital Matrix "
+if(present(imaginary) )write(mf,*) "Real part "
+      do i=1,6
  
-         write(mf,'(7(1x,G21.14))') s2%q(i,0:min(6,nd2))
+         write(mf,'(6(1x,G21.14))') real(s2%mat(i,1:min(6,nd2)))
        
       enddo
+if(present(imaginary) ) then
+if(imaginary) then
+write(mf,*) "Imaginary part "
+      do i=1,6
+ 
+         write(mf,'(6(1x,G21.14))') aimag(s2%mat(i,1:min(6,nd2)))
+       
+      enddo
+endif
+endif
+
+
+
+write(mf,*) " Quaternion Matrix "
+if(present(imaginary) )write(mf,*) "Real part "
+
+      do i=0,3
+ 
+         write(mf,'(7(1x,G21.14))') real(s2%q(i,0:min(6,nd2)))
+       
+      enddo
+
+if(present(imaginary) ) then
+if(imaginary) then
+write(mf,*) "Imaginary part "
+
+      do i=0,3
+ 
+         write(mf,'(7(1x,G21.14))') aimag(s2%q(i,0:min(6,nd2)))
+       
+      enddo
+endif
+endif
 
  end   SUBROUTINE  print_ql
 
@@ -5437,9 +5506,12 @@ endif
     integer ipause, mypauses
     type(q_linear) inv_q_linear 
     type(q_linear),intent (IN) :: s1 
-
+    integer i
+       call c_matinv(s1%mat,inv_q_linear%mat,6,6,i)
       inv_q_linear%q(0,0:6)=s1%q(0,0:6)
       inv_q_linear%q(1:3,0:6)=-s1%q(1:3,0:6)
+
+      inv_q_linear=inv_q_linear*inv_q_linear%mat
 
  end   function  inv_q_linear
 
@@ -5462,15 +5534,34 @@ endif
     real(dp), INTENT(IN)::S2(6,6)
     integer i,j
 
-      mul_ql_m%q=0
+      mul_ql_m=s1
 
-      mul_ql_m%q(0:3,0)=S1%q(0:3,0)
+ !     mul_ql_m%q(0:3,0)=S1%q(0:3,0)
 
       do i=0,3
        mul_ql_m%q(i,1:6)= matmul(s1%q(i,1:6),s2)
       enddo
 
  end   function  mul_ql_m
+
+
+  function   mul_ql_cm(S1,S2)
+    implicit none
+    integer ipause, mypauses
+    type (q_linear) mul_ql_cm
+    type (q_linear),INTENT(IN)::S1
+    complex(dp), INTENT(IN)::S2(6,6)
+    integer i,j
+
+      mul_ql_cm=s1
+
+ !     mul_ql_m%q(0:3,0)=S1%q(0:3,0)
+
+      do i=0,3
+       mul_ql_cm%q(i,1:6)= matmul(s1%q(i,1:6),s2)
+      enddo
+
+ end   function  mul_ql_cm
 
   function   addql(S1,S2)
     implicit none
@@ -5481,6 +5572,7 @@ endif
     integer i,j
 
       addql%q=s1%q+s2%q
+      addql%mat=s1%mat+s2%mat
 
 
  end   function  addql
@@ -5492,15 +5584,20 @@ endif
     type (q_linear) mulql
     type (q_linear),INTENT(IN)::S1
     type (q_linear),INTENT(IN)::S2
-    real(dp) temp(0:3),q0(0:3),p0(0:3),p1(0:3,6),q1(0:3,6)
+    complex(dp) temp(0:3),q0(0:3),p0(0:3),p1(0:3,6),q1(0:3,6)
     integer i,j
-
+    type(q_linear) qt
+        
+ 
+        qt=s1
+        qt=qt*s2%mat
 
         mulql%q=0
- 
-        q0(0:3)=s1%q(0:3,0)
+        mulql%mat=matmul(s1%mat,s2%mat)
+        
+        q0(0:3)=qt%q(0:3,0)
         p0(0:3)=s2%q(0:3,0)
-        q1(0:3,1:6)=s1%q(0:3,1:6)
+        q1(0:3,1:6)=qt%q(0:3,1:6)
         p1(0:3,1:6)=s2%q(0:3,1:6)        
 
          temp(0)= q0(0)*p0(0)-q0(1)*p0(1)-q0(2)*p0(2)-q0(3)*p0(3)
@@ -5547,6 +5644,7 @@ enddo
     integer i,j
 
       subql%q=s1%q-s2%q
+      subql%mat=s1%mat-s2%mat
 
 
  end   function  subql
@@ -7817,6 +7915,8 @@ endif
      sj(2*i-1,2*i)=1
      sj(2*i,2*i-1)=-1
     enddo 
+q_phasor=c_phasor()
+qi_phasor=ci_phasor()
   end subroutine c_init
 
   subroutine c_init_all(NO1,NV1,np1,ndpt1,AC_rf,ptc)  !,spin
@@ -16535,14 +16635,15 @@ enddo
 end subroutine transform_c_yu_w
 
 !!!!!!!!!!!!!!!!!!   End of Yu Li Hua  factorization   !!!!!!!!!!!!!!!!!! 
-subroutine c_fast_canonise(u,u_c,phase,damping,q_c,spin_tune ,dospin)
+subroutine c_fast_canonise(u,u_c,phase,damping,q_c,q_ptc,q_rot,spin_tune ,dospin)
 implicit none
 type(c_damap), intent(inout) ::  u,u_c
 real(dp), optional, intent(inout) :: phase(:),damping(:)
 real(dp), optional, intent(inout) :: spin_tune(2)
-type(q_linear), optional :: q_c
+type(q_linear), optional :: q_c,q_ptc,q_rot
 real(dp) b(6,6),b0(6,6),ri(6,6),ang,damp(3),t,cphi,sphi,s(6,6),aq,daq
-type(q_linear) q ,qr,qc
+type(q_linear) q ,qr,qc,qrot
+complex(dp) cri(6,6)
 integer i
 logical dos
 logical, optional :: dospin
@@ -16557,7 +16658,9 @@ b0(2*i,2*i)=1
 s(2*i-1,2*i)=1 
 s(2*i,2*i-1)=-1 
 enddo
-
+if(present(q_rot) ) then 
+qrot=0  ! actually makes identity
+endif
 b=0
 
 ri=0
@@ -16602,6 +16705,12 @@ enddo
   if(present(damping)) then
   damping(i)=damping(i)-log(damp(i))
  endif
+if(present(q_rot) ) then 
+ qrot%mat(2*i-1,2*i-1)=ri(2*i-1,2*i-1)*damp(i)**2
+ qrot%mat(2*i,2*i)=ri(2*i,2*i)*damp(i)**2
+ qrot%mat(2*i-1,2*i)=-ri(2*i-1,2*i)*damp(i)**2
+ qrot%mat(2*i,2*i-1)=-ri(2*i,2*i-1)*damp(i)**2
+endif
       enddo
 
 
@@ -16616,17 +16725,23 @@ enddo
          i=ndptb/2
         endif
 if(present(phase))       phase(i)=phase(i)+b(ndptb,ndpt)
-
+if(present(q_rot) ) then 
+ qrot%mat(ndptb,ndpt)=-ri(ndptb,ndpt)
+ qrot%mat(5,5)=ri(5,5)
+ qrot%mat(6,6)=ri(6,6)
+endif
       endif
 
        s=matmul(b,ri)
        s=matmul(b0,s)
     u_c=s
 if(use_quaternion.and.dos) then
+q=1
+qr=1
  q=u%q
  qr=0.0_dp
 
- aq=-atan2(q%q(2,0),q%q(0,0))
+ aq=-atan2(real(q%q(2,0)),real(q%q(0,0)))
 
  qr%q(0,0)= cos(aq)
  qr%q(2,0)= sin(aq)
@@ -16642,10 +16757,13 @@ if(use_quaternion.and.dos) then
  if(present(spin_tune)) then
   spin_tune(1)=spin_tune(1)-aq/pi
  endif
-qc=qc*ri
+cri=ri
+qc=qc*cri
  u_c%q=qc 
 if(present(q_c) ) then 
- q_c=qc*inv_symplectic66(s)
+q_c=1 
+cri=inv_symplectic66(s)
+q_c=qc*cri
 endif
 
 endif
@@ -16654,7 +16772,17 @@ endif
   spin_tune(2)=spin_tune(2)-daq/pi
  endif
 
- 
+if(present(q_ptc) ) then 
+q_ptc=u_c 
+endif
+if(present(q_rot) ) then 
+ qrot%q=qr%q 
+ qrot%q(1:3,0:6)=-qrot%q(1:3,0:6)
+endif
+
+if(present(q_rot) ) then 
+ q_rot=qrot*q_rot
+endif
  
 end subroutine c_fast_canonise
 
