@@ -23,9 +23,6 @@ contains
 !
 ! Subroutine to print the global information in a layout
 !
-! Module Needed:
-!   use ptc_layout_mod
-!
 ! Input:
 !   lay - layout: layout to use.
 !+
@@ -70,9 +67,6 @@ end subroutine type_ptc_layout
 ! exit end of ele will correspond to the exit end of ele%ptc_fibre.
 !
 ! Note: Photon branches will not be included in the layout.
-!
-! Module Needed:
-!   use ptc_layout_mod
 !
 ! Input:
 !   lat                   -- lat_struct: Input lattice
@@ -531,34 +525,74 @@ type (normal_modes_struct) norm_mode
 type (coord_struct) closed_orb
 type (fibre), pointer :: ptc_fibre
 type (branch_struct), pointer :: branch
+type (internal_state) ptc_state
+type (layout), pointer :: ptc_layout
+type (c_damap) id
+type (probe_8) xs
+type (probe) xs0
+type (c_normal_form) cc_norm
 
-real(rp) sigma_mat(6,6), emit(3), ptc_sigma_mat(6,6), tune(3), damp(3)
+real(rp) sigma_mat(6,6), emit(3), ptc_sigma_mat(6,6), tune(3), damp(3), energy_loss, dp_loss
 complex(rp) cmplx_sigma_mat(6,6)
+
+character(*), parameter :: r_name = 'ptc_emit_calc'
 
 !
 
 branch => pointer_to_branch(ele)
+if (.not. rf_is_on(branch)) then
+  call out_io (s_error$, r_name, 'RF is not on! Cannot compute emittances in PTC.')
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
+
+!
+
+use_bmad_units = .true.
+ptc_state = DEFAULT - NOCAVITY0 + RADIATION0
+
+
 ptc_fibre => ptc_reference_fibre(ele)
-call radia_new (branch%ptc%m_t_layout, ptc_fibre%pos, DEFAULT, fix = closed_orb%vec, em = emit, &
-                sij = ptc_sigma_mat, sijr = cmplx_sigma_mat, tune = tune, damping = damp)
+ptc_layout => ptc_fibre%parent_layout
+call find_orbit_x (closed_orb%vec, ptc_state, 1.e-8_rp, fibre1 = ptc_fibre) 
+
+ptc_state = ptc_state + ENVELOPE0
+call init_all(ptc_state, 1, 0)
+
+id=1
+xs0=closed_orb%vec
+xs=xs0+id
+call track_probe(xs, ptc_state, fibre1 = ptc_fibre)
+id=xs
+call GET_loss(ptc_layout, energy_loss, dp_loss)
+norm_mode%e_loss = energy_loss * 1e9
+
+call c_normal(id, cc_norm)
 
 call init_coord(closed_orb, closed_orb, ele, downstream_end$)
 
-norm_mode%a%tune = tune(1)   ! Fractional tune with damping
-norm_mode%b%tune = tune(2)
-norm_mode%z%tune = tune(3)
+norm_mode%a%tune = cc_norm%tune(1)   ! Fractional tune with damping
+norm_mode%b%tune = cc_norm%tune(2)
+norm_mode%z%tune = cc_norm%tune(3)
 
-norm_mode%a%alpha_damp = damp(1)
-norm_mode%b%alpha_damp = damp(2)
-norm_mode%z%alpha_damp = damp(3)
+norm_mode%a%alpha_damp = cc_norm%damping(1)
+norm_mode%b%alpha_damp = cc_norm%damping(2)
+norm_mode%z%alpha_damp = cc_norm%damping(3)
 
-norm_mode%a%emittance = emit(1)
-norm_mode%b%emittance = emit(2)
-norm_mode%z%emittance = emit(3)
+norm_mode%a%emittance = cc_norm%emittance(1)
+norm_mode%b%emittance = cc_norm%emittance(2)
+norm_mode%z%emittance = cc_norm%emittance(3)
 
-call sigma_mat_ptc_to_bmad (ptc_sigma_mat, ele%ptc_fibre%beta0, sigma_mat)
+sigma_mat = cc_norm%s_ij0
 
+!
+
+call kill (id)
+call kill (xs)
+
+use_bmad_units = .false.
 call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
+
 end subroutine ptc_emit_calc 
 
 !-----------------------------------------------------------------------------
@@ -611,9 +645,6 @@ end function ptc_reference_fibre
 !
 ! Routine to track from the start to the end of a lattice branch. 
 ! 
-! Modules Needed:
-!   use ptc_layout_mod
-!
 ! Input:
 !   branch      -- lat_struct: Lat to track through.
 !   orbit(0)    -- Coord_struct: Coordinates at beginning of branch.
@@ -676,6 +707,237 @@ do i = 1, branch%n_ele_track
 enddo
 
 end subroutine ptc_track_all
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine ptc_invariant_spin_field (ele, map_order, )
+!
+! Routine to calculate the invariant spin field.
+!
+! Input:
+!   ele         -- ele_struct: Element at which the spinf field is calculated
+!
+! Output:
+!-
+
+subroutine ptc_invariant_spin_field (ele, map_order, closed_orb)
+
+use pointer_lattice
+
+type (ele_struct) ele
+type (coord_struct) closed_orb
+type (c_spinor) cspin
+type (branch_struct), pointer :: branch
+type (internal_state) ptc_state
+type (fibre), pointer :: ptc_fibre, fib2
+type (layout), pointer :: ptc_layout
+type (c_damap) id, c_da, id2,u,u_c
+type (probe_8) xs
+type (probe) xs0
+type (c_normal_form) cc_norm
+type (taylor) t(3)
+type (c_spinor) cspin2, cspin3
+type (q_linear) q_lin, q_x, q_y, q_z, q_invar, q_m, q_l
+type (q_linear) l_axis, m_axis, q0, q_nonlin, q2
+
+real(rp) spin_tune(2), s_tune(2), mat(6,6), phase(3)
+integer map_order, i
+
+logical rf_on
+
+!
+
+q_x = 1
+q_y = 2
+q_z = 3
+
+call set_on_off(rfcavity$, ele%branch%lat, off$)
+
+branch => pointer_to_branch(ele)
+rf_on = rf_is_on(branch)
+if (rf_on) then
+  ptc_state = default - NOCAVITY0 + SPIN0
+else
+  ptc_state = default + NOCAVITY0 + SPIN0
+  ndpt_bmad = 1  ! Indicates that pz is in position 6 and not 5
+endif
+
+!
+
+use_bmad_units = .true.
+
+ptc_fibre => ptc_reference_fibre(ele)
+ptc_layout => ptc_fibre%parent_layout
+call find_orbit_x (closed_orb%vec, ptc_state, 1.e-8_rp, fibre1 = ptc_fibre) 
+
+call init_all(ptc_state, map_order, 0)
+
+call alloc(id,u,u_c)
+call alloc(xs)
+call alloc(cc_norm)
+
+id=1
+xs0=closed_orb%vec
+xs=xs0+id
+call track_probe(xs, ptc_state, fibre1 = ptc_fibre)
+id=xs
+
+call c_normal(id, cc_norm, dospin = .true.)
+
+call alloc(cspin)
+call quaternion_to_matrix_in_c_damap (cc_norm%as)
+cspin = 2
+cspin = cc_norm%as%s * cspin
+call print (cspin)
+
+u = cc_norm%atot
+call c_fast_canonise(u, u_c, q_c = q_lin, dospin = .true.)
+q_invar = q_lin * q_y * q_lin**(-1)
+
+call print (q_invar)
+
+! To init for an open geometry:
+
+!u = 1
+!u%q = my_q
+!u_c = A(6,6)
+!u = u * u_c
+!call c_fast_canonize (u, u_c, dospin = .true.)
+
+!
+
+spin_tune=0
+
+call alloc (c_da)
+call alloc(id2)
+
+phase = 0
+
+xs = xs0 + u_c
+fib2 => ptc_fibre
+
+do i = 1, ptc_layout%n
+  call track_probe(xs, ptc_state, fibre1 = fib2, fibre2 = fib2%next)
+  u = xs
+  fib2 => fib2%next
+
+  q_invar = u%q * u
+  q2 = q_invar * q_y * q_invar**(-1)
+
+  ! n0 (x, y, z): q2%q(1:3,0)   
+  ! dn_hat(x,y,z)/d_phase_space: q2%q(1:3,1:6)
+
+  call c_fast_canonise (u, u_c, q_c = q_lin, phase = phase, spin_tune = spin_tune, dospin = .true.)
+
+  q0 = q_lin
+  q0%q(0:3,1:6) = 0
+  q_nonlin = q0**(-1) * q_lin
+
+  ! G matrix alpha: q_nonlin%q(1,1:6)
+  ! G matrix beta: q_nonlin(3:1:6)
+
+  l_axis = q0 * q_x * q0**(-1) 
+  m_axis = q0 * q_z * q0**(-1)
+  ! n0: q_lin%q(1:3,0)
+  ! 0th order l_axis = l_axis%q(1:3,0)
+  ! 0th order m_axis = m_axis%q(1:3,0)
+
+  xs0 = xs
+  xs = xs0 + u_c
+enddo
+
+print *, phase    ! phase(3) = dz/dpz for rf off
+print *, cc_norm%tune(1:3)
+
+stop
+
+! c_da = cc_norm%atot**(-1) * id * cc_norm%atot
+s_tune(1) = atan2(real(c_da%q%x(2) .sub. '0'), real(c_da%q%x(0) .sub. '0')) / pi
+!print *, spin_tune(1), s_tune(1)
+!print *, cc_norm%spin_tune
+
+if (rf_on) s_tune(2) = -(c_da%q%x(0) .sub. '000001') / pi / (c_da%q%x(2) .sub. '0') ! dspin_tune/d_delta
+print *, spin_tune(2), s_tune(2)
+
+stop
+
+
+
+q_invar = q_nonlin * q_y * q_nonlin**(-1)
+print *, '!---------------'
+call print (q_invar)
+
+
+q_lin = cc_norm%as%q
+q0 = q_lin
+q0%q(0:3,1:6) = 0
+q_nonlin = q0**(-1) * q_lin
+
+q2 = q_nonlin * q_y * q_nonlin**(-1)
+print *, '!---------------'
+call print (q2)
+
+print *, '!---------------'
+print *, q2%q(1,1)* q2%q(1,3) + q2%q(3,1)* q2%q(3,3), q_invar%q(1,1)* q_invar%q(1,3) + q_invar%q(3,1)* q_invar%q(3,3)
+
+stop
+
+
+call print (q_lin)
+print *, '!---------------'
+call print (q_invar)
+q_invar = q_lin * q_y * q_lin**(-1)
+print *, '!---------------'
+call print (q_invar)
+
+!print *, '!---------------'
+!mat = u_c
+!q_invar = q_lin * mat
+!call print (q_invar)
+
+l_axis = q_lin * q_x * q_lin**(-1)
+m_axis = q_lin * q_z * q_lin**(-1)
+
+print *, '!---------------'
+call print (l_axis)
+print *, '!---------------'
+call print (m_axis)
+
+stop
+
+!
+
+call alloc(t)
+do i = 1, 3
+  t(i) = cspin%v(i)
+enddo
+!!taylor = t
+call kill (t)
+
+call alloc(cspin2) 
+call alloc(cspin3) 
+call quaternion_to_matrix_in_c_damap (id)
+cspin2 = id%s * cspin
+cspin3 = cspin * id
+do i = 1, 3
+  cspin2%v(i) = cspin2%v(i) - cspin3%v(i)
+enddo
+
+print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+call print (cspin2)
+
+!
+
+call kill (id)
+call kill (xs)
+
+use_bmad_units = .false.
+if (.not. rf_on) ndpt_bmad = 0
+call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
+
+end subroutine ptc_invariant_spin_field
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
