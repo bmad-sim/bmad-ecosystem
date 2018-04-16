@@ -5,8 +5,6 @@ use equal_mod
 
 implicit none
 
-private cosphi, sinphi
-
 contains
 
 !----------------------------------------------------------------------
@@ -267,19 +265,20 @@ aperture%i_turn = turn_lost
 
 bmad_com = com_save
 
+contains
+
+  function cosphi(th,Sxy) result(x)
+    real(rp) th, Sxy, x
+    !x = Sx * cos(th) / sqrt(Sx**2 * cos(th)**2 + Sy**2 * sin(th)**2 )
+    x = Sxy * cos(th) / sqrt(Sxy**2 * cos(th)**2 + sin(th)**2 )
+  end function
+
+  function sinphi(th,Sxy) result(x)
+    real(rp) th, Sxy, x
+    !x = Sy * sin(th) / sqrt(Sx**2 * cos(th)**2 + Sy**2 * sin(th)**2 )
+    x = sin(th) / sqrt(Sxy**2 * cos(th)**2 + sin(th)**2 )
+  end function
 end subroutine dynamic_aperture1
-
-function cosphi(th,Sxy) result(x)
-  real(rp) th, Sxy, x
-  !x = Sx * cos(th) / sqrt(Sx**2 * cos(th)**2 + Sy**2 * sin(th)**2 )
-  x = Sxy * cos(th) / sqrt(Sxy**2 * cos(th)**2 + sin(th)**2 )
-end function
-
-function sinphi(th,Sxy) result(x)
-  real(rp) th, Sxy, x
-  !x = Sy * sin(th) / sqrt(Sx**2 * cos(th)**2 + Sy**2 * sin(th)**2 )
-  x = sin(th) / sqrt(Sxy**2 * cos(th)**2 + sin(th)**2 )
-end function
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
