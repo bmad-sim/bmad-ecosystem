@@ -98,11 +98,11 @@ module definition
   END TYPE REAL_8
 
  type  quaternion
-  real(dp) x(4)
+  real(dp) x(0:3)
  end type  quaternion  
 
  type  quaternion_8 
-  type(real_8) x(4)
+  type(real_8) x(0:3)
 END TYPE quaternion_8
 
 
@@ -389,7 +389,7 @@ type c_yu_w
 end type c_yu_w
 
  type  c_quaternion
-  type(c_taylor) x(4)
+  type(c_taylor) x(0:3)
 END TYPE c_quaternion
 
 type c_damap

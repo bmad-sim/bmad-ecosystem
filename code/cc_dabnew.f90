@@ -3882,7 +3882,9 @@ contains
     integer,dimension(c_lnv)::j
     real(dp) a,b
     complex(dp) ccc
-    !
+    logical  long
+     long=longprint
+      if(iunit/=6) longprint=.true.
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -3956,6 +3958,7 @@ contains
     write(iunit,'(A)') '                                      '
     !
     return
+longprint=long
   end subroutine c_dapri
 
   subroutine c_dapri77(ina,iunit)
@@ -3972,6 +3975,9 @@ contains
     real(dp) a,b
     complex(dp) ccc
     logical some,imprime
+    logical  long
+     long=longprint
+      if(iunit/=6) longprint=.true.
     some=.false.
     !
     if(iunit.eq.0) return
@@ -4069,6 +4075,7 @@ if(longprint) write(iunit,502) -iout,0.0_dp,0.0_dp,(j(i),i=1,inva)
     if((.not.longprint).and.(.not.some)) write(iunit,*) " Complex Polynomial is zero "
     !
     return
+longprint=long
   end subroutine c_dapri77
 
   subroutine c_dashift(ina,inc,ishift)
@@ -4193,6 +4200,7 @@ if(longprint) write(iunit,502) -iout,0.0_dp,0.0_dp,(j(i),i=1,inva)
     integer,dimension(c_lnv)::j
     complex(dp) c
     character(10) c10
+ 
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -4206,6 +4214,7 @@ if(longprint) write(iunit,502) -iout,0.0_dp,0.0_dp,(j(i),i=1,inva)
        !        X = SQRT(-ONE)
        !        PRINT*,X
     endif
+
     !
     inoa = c_idano(ina)
     inva = c_idanv(ina)
@@ -4231,6 +4240,7 @@ if(longprint) write(iunit,502) -iout,0.0_dp,0.0_dp,(j(i),i=1,inva)
     read(iunit,'(A10)') c10
     read(iunit,'(A10)') c10
     read(iunit,'(A10)') c10
+     
     !
     !
     iin = 0
@@ -4283,6 +4293,7 @@ if(longprint) write(iunit,502) -iout,0.0_dp,0.0_dp,(j(i),i=1,inva)
     if(c_nomax.ne.1) call dapac(ina)
     !
     return
+ 
   end subroutine c_darea
   !FF
   !
@@ -4300,6 +4311,7 @@ if(longprint) write(iunit,502) -iout,0.0_dp,0.0_dp,(j(i),i=1,inva)
     real(dp) cr,ci
     character(10) c10,k10
     complex ik
+ 
     ik=( 0.0_dp,1.0_dp )
     !
     if((.not.C_STABLE_DA)) then
@@ -4327,12 +4339,14 @@ if(longprint) write(iunit,502) -iout,0.0_dp,0.0_dp,(j(i),i=1,inva)
     call daclr(ina)   ! etienne 2008
     !
     !
+
     read(iunit,'(A10)') c10
     read(iunit,'(A10)') c10
     read(iunit,'(A10)') c10
     read(iunit,'(A10)') c10
+
     read(iunit,'(A10)') c10
-    read(iunit,'(A10,I6,A10,I6)') c10,nojoh,k10,nvjoh
+     read(iunit,'(A10,I6,A10,I6)') c10,nojoh,k10,nvjoh
     !
     iin = 0
     !
@@ -4364,7 +4378,7 @@ if(longprint) write(iunit,502) -iout,0.0_dp,0.0_dp,(j(i),i=1,inva)
 20  continue
     !
     if(c_nomax.ne.1) call dapac(ina)
-    !
+ 
     return
   end subroutine c_darea77
 

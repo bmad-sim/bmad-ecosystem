@@ -2944,7 +2944,7 @@ contains
 
 
        call alloc(temp)
-       do i=1,4
+       do i=0,3
         temp=s1%x(i)+s2%x(i)
        if(temp%kind==2) then
              localmaster=master
@@ -2971,7 +2971,7 @@ contains
      RETURN
     endif
            absq2=0
-       do i=1,4
+       do i=0,3
          absq2 = s1%x(i)**2+absq2
        enddo
   END FUNCTION absq2
@@ -2999,7 +2999,7 @@ contains
  
  
        call alloc(temp)
-       do i=1,4
+       do i=0,3
         temp=s1%x(i)-s2%x(i)
        if(temp%kind==2) then
              localmaster=master
@@ -3032,17 +3032,17 @@ contains
        call alloc(temp)
       call alloc(norm)
 
-              norm=s1%x(1)**2+s1%x(2)**2+s1%x(3)**2+s1%x(4)**2
+              norm=s1%x(0)**2+s1%x(1)**2+s1%x(2)**2+s1%x(3)**2
 
             temp(1)=s1%x(1)
-              do i=2,4
+              do i=1,3
                 temp(i)=-s1%x(i)
               enddo
-              do i=1,4
+              do i=0,3
                 temp(i)=temp(i)/norm
               enddo
 
-    do i=1,4
+    do i=0,3
        if(temp(i)%kind==2) then
              localmaster=master
         call ass(invq%x(i))
@@ -3084,7 +3084,7 @@ contains
        qtemp=invq(qtemp)
     ENDIF
 
-     do i=1,4
+     do i=0,3
        if(qtemp%x(i)%kind==2) then
              localmaster=master
         call ass(powq%x(i))
@@ -3104,23 +3104,23 @@ contains
     implicit none
     TYPE (quaternion_8) mulq
     TYPE (quaternion_8), INTENT (IN) :: S1, S2
-    type(real_8) temp(4)
+    type(real_8) temp(0:3)
     integer i,localmaster
 
  !       call ass_quaternion_8(mulq)
         call alloc(temp)
  
-         temp(1)=s1%x(1)*s2%x(1)-s1%x(2)*s2%x(2)-s1%x(3)*s2%x(3)-s1%x(4)*s2%x(4)
+         temp(0)=s1%x(0)*s2%x(0)-s1%x(1)*s2%x(1)-s1%x(2)*s2%x(2)-s1%x(3)*s2%x(3)
 
-         temp(2)=s1%x(3)*s2%x(4)-s1%x(4)*s2%x(3)
-         temp(3)=s1%x(4)*s2%x(2)-s1%x(2)*s2%x(4)
-         temp(4)=s1%x(2)*s2%x(3)-s1%x(3)*s2%x(2)
+         temp(1)=s1%x(2)*s2%x(3)-s1%x(3)*s2%x(2)
+         temp(2)=s1%x(3)*s2%x(1)-s1%x(1)*s2%x(3)
+         temp(3)=s1%x(1)*s2%x(2)-s1%x(2)*s2%x(1)
 
-        do i=2,4
-         temp(i)= temp(i) + s1%x(1)*s2%x(i)+ s1%x(i)*s2%x(1)
+        do i=1,3
+         temp(i)= temp(i) + s1%x(0)*s2%x(i)+ s1%x(i)*s2%x(0)
         enddo
 
-        do i=1,4
+        do i=0,3
             if(temp(i)%kind==2) then
              localmaster=master
                call ass(mulq%x(i))
@@ -4400,7 +4400,7 @@ contains
     i=6
     if(present(mf)) i=mf
         write(i,*) " quaternion_8 " 
-    do k=1,4
+    do k=0,3
       call print(s2%x(k),i,prec)
     enddo
 
@@ -4672,7 +4672,7 @@ contains
     implicit none
     type (quaternion_8),INTENT(INOUT)::S2
     integer i
-     do i=1,4
+     do i=0,3
       call allocpoly(s2%x(i))
     enddo
 
@@ -4682,7 +4682,7 @@ contains
     implicit none
     type (quaternion_8),INTENT(INOUT)::S2
     integer i
-     do i=1,4
+     do i=0,3
       call resetpoly0(s2%x(i))
     enddo
 
@@ -4859,7 +4859,7 @@ contains
     type (quaternion_8),INTENT(IN)::S1
     integer i
 
-      do i=1,4
+      do i=0,3
         s2%x(i)=s1%x(i)
       enddo
 
@@ -4872,7 +4872,7 @@ contains
     type (quaternion_8),INTENT(IN)::S1
     integer i
 
-      do i=1,4
+      do i=0,3
         s2%x(i)=s1%x(i)
       enddo
 
@@ -4885,7 +4885,7 @@ contains
     type (quaternion),INTENT(IN)::S1
     integer i
 
-      do i=1,4
+      do i=0,3
         s2%x(i)=s1%x(i)
       enddo
 
@@ -4898,7 +4898,7 @@ contains
     real(dp),INTENT(IN)::S1
     integer i
 
-      do i=1,4
+      do i=0,3
         s2%x(i)=0.0_dp
       enddo
         s2%x(1)=s1
