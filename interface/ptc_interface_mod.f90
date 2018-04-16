@@ -2986,11 +2986,11 @@ if (bmad_com%spin_tracking_on) then
   call alloc(ptc_cdamap)
   ptc_cdamap = 1
   ptc_probe8 = ptc_cdamap
-  ptc_probe8%x = y8
+  ptc_probe8%x = y8  
   call track_probe (ptc_probe8, DEFAULT+SPIN0, fibre1 = bmadl%start)
   y8 = ptc_probe8%x
   do i = 1, 4
-    ele%spin_taylor(i) = ptc_probe8%q%x(i)%t
+    ele%spin_taylor(i) = ptc_probe8%q%x(i-1)%t
   enddo
   call kill(ptc_probe8)
   call kill (ptc_cdamap)
@@ -4018,7 +4018,7 @@ if (ele%key == taylor$ .or. ele%key == match$) then
 
   do j = 1, 4
     ptc_taylor = ele%spin_taylor(j)
-    ptc_c_damap%q%x(j) = ptc_taylor
+    ptc_c_damap%q%x(j-1) = ptc_taylor
   enddo
 
   call kill (ptc_taylor)

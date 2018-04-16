@@ -157,7 +157,7 @@ endif
 t_map = y0
 
 do i = 1, 4
-  s_map(i) = ptc_probe8%q%x(i)%t
+  s_map(i) = ptc_probe8%q%x(i-1)%t
 enddo
 
 call kill (ptc_c_map)
