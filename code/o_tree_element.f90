@@ -1159,7 +1159,7 @@ CONTAINS
      s=0.0_dp
      s%x(i+1)=1.0_dp
      sf=p%q*s*p%q**(-1)
-     p%s(i)%x=sf%x(2:4)
+     p%s(i)%x=sf%x(1:3)
     enddo
 
     end subroutine  probe_quaternion_to_matrixr 

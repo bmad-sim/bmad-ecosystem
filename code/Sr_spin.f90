@@ -260,10 +260,10 @@ contains
     INTEGER I
     type(quaternion) dq
     if(p%use_q) then
-     dq%x(1)=COS(ang/2)
-     dq%x(3)=sin(ang/2)
-     dq%x(2)=0
-     dq%x(4)=0
+     dq%x(0)=COS(ang/2)
+     dq%x(2)=sin(ang/2)
+     dq%x(1)=0
+     dq%x(3)=0
      p%q=dq*p%q
     else
     CO =COS(ang)
@@ -287,10 +287,10 @@ contains
 
     if(p%use_q) then
 
-     dq%x(1)=COS(ang/2)
-     dq%x(2)=-sin(ang/2)
+     dq%x(0)=COS(ang/2)
+     dq%x(1)=-sin(ang/2)
+     dq%x(2)=0
      dq%x(3)=0
-     dq%x(4)=0
      p%q=dq*p%q
 
     else
@@ -315,10 +315,10 @@ contains
 
     if(p%use_q) then
   
-     dq%x(1)=COS(ang/2)
-     dq%x(4)=-sin(ang/2)
+     dq%x(0)=COS(ang/2)
+     dq%x(3)=-sin(ang/2)
+     dq%x(1)=0
      dq%x(2)=0
-     dq%x(3)=0
      p%q=dq*p%q
     else
     CO =COS(ang)
@@ -345,10 +345,10 @@ contains
     type(quaternion_8) dq
     if(p%use_q) then
      call alloc(dq)
-     dq%x(1)=COS(ang/2)
-     dq%x(3)=sin(ang/2)
-     dq%x(2)=0.0_dp
-     dq%x(4)=0.0_dp
+     dq%x(0)=COS(ang/2)
+     dq%x(2)=sin(ang/2)
+     dq%x(1)=0.0_dp
+     dq%x(3)=0.0_dp
      p%q=dq*p%q
      call kill(dq)
     else
@@ -378,10 +378,10 @@ contains
 
     if(p%use_q) then
      call alloc(dq)
-     dq%x(1)=COS(ang/2)
-     dq%x(2)=-sin(ang/2)
+     dq%x(0)=COS(ang/2)
+     dq%x(1)=-sin(ang/2)
+     dq%x(2)=0.0_dp
      dq%x(3)=0.0_dp
-     dq%x(4)=0.0_dp
      p%q=dq*p%q
      call kill(dq)
     else
@@ -412,10 +412,10 @@ contains
 
     if(p%use_q) then
      call alloc(dq)
-     dq%x(1)=COS(ang/2)
-     dq%x(4)=-sin(ang/2)
+     dq%x(0)=COS(ang/2)
+     dq%x(3)=-sin(ang/2)
+     dq%x(1)=0.0_dp
      dq%x(2)=0.0_dp
-     dq%x(3)=0.0_dp
      p%q=dq*p%q
      call kill(dq)
     else
@@ -716,10 +716,10 @@ contains
         norm=sqrt(om(1)**2+om(2)**2+om(3)**2)
         if(norm>0) then
         stheta=sin(norm)
-        dq%x(1)=cos(norm)
-        dq%x(2)=stheta*om(1)/norm
-        dq%x(3)=stheta*om(2)/norm
-        dq%x(4)=stheta*om(3)/norm
+        dq%x(0)=cos(norm)
+        dq%x(1)=stheta*om(1)/norm
+        dq%x(2)=stheta*om(2)/norm
+        dq%x(3)=stheta*om(3)/norm
         p%q=dq*p%q
       endif
 else
@@ -805,10 +805,10 @@ endif
       norm=om(1)**2+om(2)**2+om(3)**2
 
         stheta=sin_quaternion(norm)
-        dq%x(1)=cos_quaternion(norm)
-        dq%x(2)=stheta*om(1)
-        dq%x(3)=stheta*om(2)
-        dq%x(4)=stheta*om(3)
+        dq%x(0)=cos_quaternion(norm)
+        dq%x(1)=stheta*om(1)
+        dq%x(2)=stheta*om(2)
+        dq%x(3)=stheta*om(3)
         p%q=dq*p%q
 
        call kill(norm,stheta)
@@ -909,10 +909,10 @@ endif
         norm=sqrt(om(1)**2+om(2)**2+om(3)**2)
         if(norm>0) then
         stheta=sin(norm)
-        dq%x(1)=cos(norm)
-        dq%x(2)=stheta*om(1)/norm
-        dq%x(3)=stheta*om(2)/norm
-        dq%x(4)=stheta*om(3)/norm
+        dq%x(0)=cos(norm)
+        dq%x(1)=stheta*om(1)/norm
+        dq%x(2)=stheta*om(2)/norm
+        dq%x(3)=stheta*om(3)/norm
         p%q=dq*p%q
  !         mulq%x=0.0_dp!
 
@@ -1026,10 +1026,10 @@ endif
       norm=om(1)**2+om(2)**2+om(3)**2
 
         stheta=sin_quaternion(norm)
-        dq%x(1)=cos_quaternion(norm)
-        dq%x(2)=stheta*om(1)
-        dq%x(3)=stheta*om(2)
-        dq%x(4)=stheta*om(3)
+        dq%x(0)=cos_quaternion(norm)
+        dq%x(1)=stheta*om(1)
+        dq%x(2)=stheta*om(2)
+        dq%x(3)=stheta*om(3)
         p%q=dq*p%q
 
        call kill(norm,stheta)
@@ -3229,14 +3229,14 @@ call kill(vm,phi,z)
           if(k%spin) then
  
                  CALL TRACK_SPIN_FRONT(C%PARENT_FIBRE,XS)
-           xs%q%x=xs%q%x/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(4)**2)
+           xs%q%x=xs%q%x/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(0)**2)
 
           endif
        ELSEif(c%cas==caseP2) THEN
           if(k%spin) then
  
                  CALL TRACK_SPIN_BACK(C%PARENT_FIBRE,XS)
-           xs%q%x=xs%q%x/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(4)**2)
+           xs%q%x=xs%q%x/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(0)**2)
 
            endif
           CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
@@ -3396,12 +3396,12 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
           if(k%spin) then
  
                  CALL TRACK_SPIN_FRONT(C%PARENT_FIBRE,XS)
-                      ds=1.0_dp/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(4)**2)
+                      ds=1.0_dp/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(0)**2)
 
+           xs%q%x(0)=xs%q%x(0)*ds
            xs%q%x(1)=xs%q%x(1)*ds
            xs%q%x(2)=xs%q%x(2)*ds
            xs%q%x(3)=xs%q%x(3)*ds
-           xs%q%x(4)=xs%q%x(4)*ds
 
 
           endif
@@ -3409,12 +3409,12 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
           if(k%spin) then
   
                  CALL TRACK_SPIN_BACK(C%PARENT_FIBRE,XS)
-                      ds=1.0_dp/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(4)**2)
+                      ds=1.0_dp/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(0)**2)
 
+           xs%q%x(0)=xs%q%x(0)*ds
            xs%q%x(1)=xs%q%x(1)*ds
            xs%q%x(2)=xs%q%x(2)*ds
            xs%q%x(3)=xs%q%x(3)*ds
-           xs%q%x(4)=xs%q%x(4)*ds
            endif
           CALL TRACK_NODE_SINGLE(C,XS%X,K)  !,CHARGE
      ENDIF
@@ -5827,12 +5827,12 @@ end subroutine fill_tree_element_line_zhe
 if(use_quaternion) then
     call c_full_norm_quaternion(Ma%q,kq,norm)
     if(kq==-1) then
-      do i=1,4
-        m(ind_spin(1,1)+i-1)=ma%q%x(i)
+      do i=0,3
+        m(ind_spin(1,1)+i)=ma%q%x(i)
       enddo
     elseif(kq/=-1) then
       m(ind_spin(1,1))=1.0_dp
-      do i=ind_spin(1,1)+4,size_tree
+      do i=ind_spin(1,1)+1,size_tree
         m(i)=0.0_dp
       enddo
     endif

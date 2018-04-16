@@ -59,7 +59,7 @@ END TYPE INTERNAL_STATE
 
   !@3 ---------------------------------------------</br>
  type  quaternion
-  real(dp) x(4)
+  real(dp) x(0:3)
  end type  quaternion 
   !@3 ---------------------------------------------</br>
   type probe
@@ -824,12 +824,12 @@ if(jumpnot) then
     call track_TREE_G_complex(T(2),X(7:15))
 
      if(xs%use_q) then
-       do k=1,4
-         qu%x(k)=x(6+k)
+       do k=0,3
+         qu%x(k)=x(7+k)
        enddo 
  
        xs%q=qu*xs%q
-       xs%q%x=xs%q%x/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(4)**2)
+       xs%q%x=xs%q%x/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(0)**2)
      else
 
     s0=0.0e0_dp
@@ -1141,12 +1141,12 @@ else
     call track_TREE_G_complex(T(2),x0_begin(7:15))
 
      if(xs%use_q) then
-       do k=1,4
-         qu%x(k)=x0_begin(6+k)
+       do k=0,3
+         qu%x(k)=x0_begin(7+k)
        enddo 
  
        xs%q=qu*xs%q
-       xs%q%x=xs%q%x/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(4)**2)
+       xs%q%x=xs%q%x/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(0)**2)
      else
 
     s0=0.0e0_dp
@@ -1591,11 +1591,11 @@ end subroutine kill_tree_zhe
     real(dp) norm
      integer i
      invq=s1
-              do i=2,4
+              do i=1,3
                 invq%x(i)=-invq%x(i)
               enddo
                 norm=abs_square(invq)
-              do i=1,4
+              do i=0,3
                 invq%x(i)=invq%x(i)/norm
               enddo
       
@@ -1621,7 +1621,7 @@ end subroutine kill_tree_zhe
     integer i
  
            absq2=0
-       do i=1,4
+       do i=0,3
          absq2 = s1%x(i)**2+absq2
        enddo
   END FUNCTION absq2
@@ -1633,7 +1633,7 @@ end subroutine kill_tree_zhe
     type (quaternion),INTENT(IN)::S1
     integer i
      
-    do i=1,4
+    do i=0,3
     s2%x(i)=s1%x(i)
     enddo
 
@@ -1645,10 +1645,10 @@ end subroutine kill_tree_zhe
     real(dp),INTENT(IN)::S1
     integer i
  
-    do i=1,4
+    do i=0,3
     s2%x(i)=0
     enddo
-    s2%x(1)=s1
+    s2%x(0)=s1
   end SUBROUTINE  EQUALqr
 
   SUBROUTINE  EQUALqi(S2,S1)
@@ -1657,10 +1657,10 @@ end subroutine kill_tree_zhe
     integer,INTENT(IN)::S1
     integer i
  
-    do i=1,4
+    do i=0,3
     s2%x(i)=0
     enddo
-    s2%x(1)=s1
+    s2%x(0)=s1
   end SUBROUTINE  EQUALqi
 
 
@@ -1711,16 +1711,17 @@ end subroutine kill_tree_zhe
     TYPE (quaternion), INTENT (IN) :: S1, S2
     integer i
  
+ 
           mulq=0.0_dp
 
-          mulq%x(1)=s1%x(1)*s2%x(1)-s1%x(2)*s2%x(2)-s1%x(3)*s2%x(3)-s1%x(4)*s2%x(4)
+          mulq%x(0)=s1%x(0)*s2%x(0)-s1%x(1)*s2%x(1)-s1%x(2)*s2%x(2)-s1%x(3)*s2%x(3)
 
-         mulq%x(2)=  s1%x(3)*s2%x(4)-s1%x(4)*s2%x(3)
-         mulq%x(3)=  s1%x(4)*s2%x(2)-s1%x(2)*s2%x(4)
-         mulq%x(4)=  s1%x(2)*s2%x(3)-s1%x(3)*s2%x(2)
+         mulq%x(1)=  s1%x(2)*s2%x(3)-s1%x(3)*s2%x(2)
+         mulq%x(2)=  s1%x(3)*s2%x(1)-s1%x(1)*s2%x(3)
+         mulq%x(3)=  s1%x(1)*s2%x(2)-s1%x(2)*s2%x(1)
 
-        do i=2,4
-         mulq%x(i)= mulq%x(i) + s1%x(1)*s2%x(i)+ s1%x(i)*s2%x(1)
+        do i=1,3
+         mulq%x(i)= mulq%x(i) + s1%x(0)*s2%x(i)+ s1%x(i)*s2%x(0)
         enddo
 
   END FUNCTION mulq

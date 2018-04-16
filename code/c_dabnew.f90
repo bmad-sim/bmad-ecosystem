@@ -4538,7 +4538,6 @@ contains
     ilma = idalm(ina)
     illa = idall(ina)
     !
-!  if(longprint)write(iunit,'(/1X,A10,A6,I5,A6,I5,A7,I5/1X,A/)') daname(ina),', NO =',inoa,', NV =',inva,', INA =',ina,&
 !         '*********************************************'
     if(longprint) then
        write(iunit,'(/1X,A10,A6,I5,A6,I5,A7,I5/1X,A/)') daname(ina),', NO =',inoa,', NV =',inva,', INA =',ina,&
@@ -4602,7 +4601,7 @@ contains
     enddo
     if(iout.eq.0) iout=1
 if(longprint) write(iunit,502) -iout,zero,(j(i),i=1,inva)
-if((.not.longprint).and.(.not.some)) write(iunit,*) " Real Polynomial is zero "
+if((.not.longprint).and.(.not.some)) write(iunit,*) 0," Real Polynomial is zero "
     !
     return
       end subroutine dapri77
@@ -4761,10 +4760,12 @@ if((.not.longprint).and.(.not.some)) write(iunit,*) " Real Polynomial is zero "
     iwarin = 0
     !
     read(iunit,'(A10)') c10
-    read(iunit,'(18X,I4)') nno
-    read(iunit,'(A10)') c10
-    read(iunit,'(A10)') c10
-    read(iunit,'(A10)') c10
+    if(longprint) then
+     read(iunit,'(18X,I4)') nno
+     read(iunit,'(A10)') c10
+     read(iunit,'(A10)') c10
+     read(iunit,'(A10)') c10
+    endif
     !
     !
     iin = 0
