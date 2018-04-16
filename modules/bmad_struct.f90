@@ -1577,8 +1577,7 @@ type aperture_scan_struct
   type(aperture_data_struct), allocatable :: aperture(:) ! set of apertures at different angles
   type(aperture_param_struct) :: param                   ! parameters used for the scan            
   type (coord_struct) :: ref_orb                         ! Ref orbit around which the scan is made.
-  real(rp)           :: Sx = 1.0   !used to scale angles for linear aperture
-  real(rp)           :: Sy = 1.0   !used to scale angles for linear aperture
+  real(rp)            :: Sxy = 1.0   !used to scale angles for linear aperture
 end type
 
 !-------------------------------------------------------------------------
