@@ -740,7 +740,7 @@ type (c_normal_form) cc_norm
 type (taylor) t(3)
 type (c_spinor) cspin2, cspin3
 type (q_linear) q_lin, q_x, q_y, q_z, q_invar, q_m, q_l
-type (q_linear) l_axis, m_axis, q0, q_nonlin, q2
+type (q_linear) l_axis, m_axis, q0, q_nonlin, q2, q_rot
 
 real(rp) spin_tune(2), s_tune(2), mat(6,6), phase(3)
 integer map_order, i
@@ -814,6 +814,7 @@ call alloc (c_da)
 call alloc(id2)
 
 phase = 0
+q_rot = 0
 
 xs = xs0 + u_c
 fib2 => ptc_fibre
@@ -829,7 +830,7 @@ do i = 1, ptc_layout%n
   ! n0 (x, y, z): q2%q(1:3,0)   
   ! dn_hat(x,y,z)/d_phase_space: q2%q(1:3,1:6)
 
-  call c_fast_canonise (u, u_c, q_c = q_lin, phase = phase, spin_tune = spin_tune, dospin = .true.)
+  call c_fast_canonise (u, u_c, q_c = q_lin, phase = phase, q_rot = q_rot, spin_tune = spin_tune, dospin = .true.)
 
   q0 = q_lin
   q0%q(0:3,1:6) = 0
@@ -848,15 +849,28 @@ do i = 1, ptc_layout%n
   xs = xs0 + u_c
 enddo
 
+print *, '!---------------'
 print *, phase    ! phase(3) = dz/dpz for rf off
+print *, '!---------------'
 print *, cc_norm%tune(1:3)
+
+print *, '!---------------'
+print *, spin_tune(1), s_tune(1)
+print *, '!---------------'
+print *, cc_norm%spin_tune
+
+print *, '!---------------'
+call print (q_rot)
+
+print *, '!---------------'
+q_rot = qi_phasor*q_rot * q_phasor
+call print (q_rot, imaginary = .true.)
+
 
 stop
 
 ! c_da = cc_norm%atot**(-1) * id * cc_norm%atot
 s_tune(1) = atan2(real(c_da%q%x(2) .sub. '0'), real(c_da%q%x(0) .sub. '0')) / pi
-!print *, spin_tune(1), s_tune(1)
-!print *, cc_norm%spin_tune
 
 if (rf_on) s_tune(2) = -(c_da%q%x(0) .sub. '000001') / pi / (c_da%q%x(2) .sub. '0') ! dspin_tune/d_delta
 print *, spin_tune(2), s_tune(2)

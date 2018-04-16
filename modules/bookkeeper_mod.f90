@@ -865,7 +865,7 @@ real(rp) ks_yp_sum, ks_yo_sum, l_slave, r_off(4), leng, offset
 real(rp) t_1(4), t_2(4), T_end(4,4), mat4(4,4), mat4_inv(4,4), beta(4)
 real(rp) T_tot(4,4), x_o_sol, x_p_sol, y_o_sol, y_p_sol
 
-logical is_first, is_last, err_flag
+logical is_first, is_last, err_flag, fixed_step
 
 character(20) :: r_name = 'makeup_super_slave'
 
@@ -908,10 +908,18 @@ if (slave%key == em_field$) then
   slave%mat6_calc_method            = tracking$
   slave%spin_tracking_method        = tracking$
   slave%tracking_method             = runge_kutta$
+  ! Use time_runge_kutta over runge_kutta since runge_kutta is not able to handle a particle starting from rest in an e_gun.
+  ! Used fixed_step over non-fixed step since fixed_step is basically only used for testing.
+  fixed_step = .false.
   do i = 1, slave%n_lord
     lord => pointer_to_lord(slave, i)
+    if (slave%value(ds_step$) == 0 .or. lord%value(ds_step$) < slave%value(ds_step$)) slave%value(ds_step$) = lord%value(ds_step$)
+    if (lord%tracking_method == fixed_step_runge_kutta$ .or. lord%tracking_method == fixed_step_time_runge_kutta$) fixed_step = .true.
     if (lord%tracking_method == time_runge_kutta$) slave%tracking_method = time_runge_kutta$
+    if (lord%tracking_method == fixed_step_time_runge_kutta$) slave%tracking_method = fixed_step_time_runge_kutta$
   enddo
+  if (fixed_step .and. slave%tracking_method == runge_kutta$) slave%tracking_method = fixed_step_runge_kutta$
+  if (fixed_step .and. slave%tracking_method == time_runge_kutta$) slave%tracking_method = fixed_step_time_runge_kutta$
   return
 endif
 
@@ -1060,8 +1068,7 @@ do j = 1, slave%n_lord
 
   ! Choose the smallest ds_step of all the lords.
 
-  if (value(ds_step$) == 0 .or. lord%value(ds_step$) < value(ds_step$)) &
-                                        value(ds_step$) = lord%value(ds_step$)
+  if (value(ds_step$) == 0 .or. lord%value(ds_step$) < value(ds_step$)) value(ds_step$) = lord%value(ds_step$)
 
   ! Methods...
   ! A "major" element is something other than a pipe.
@@ -1087,7 +1094,8 @@ do j = 1, slave%n_lord
 
   if (lord%key /= pipe$) then
     if (n_major_lords > 0) then
-      if (slave%mat6_calc_method /= lord%mat6_calc_method) then
+ 
+     if (slave%mat6_calc_method /= lord%mat6_calc_method) then
         call out_io(s_abort$, r_name, &
               'MAT6_CALC_METHOD DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name, &
               'Conflicting methods are: ' // trim(mat6_calc_method_name(lord%mat6_calc_method)) // ',  ' // & 
@@ -1095,20 +1103,33 @@ do j = 1, slave%n_lord
         if (global_com%exit_on_error) call err_exit
         err_flag = .true.
       endif
+
       if (slave%tracking_method /= lord%tracking_method) then
-        call out_io(s_abort$, r_name, &
+        if (slave%tracking_method == fixed_step_runge_kutta$ .and. lord%tracking_method == runge_kutta$) then
+          ! Do nothing
+        elseif (slave%tracking_method == runge_kutta$ .and. lord%tracking_method == fixed_step_runge_kutta$) then
+          slave%tracking_method = fixed_step_runge_kutta$
+        elseif (slave%tracking_method == fixed_step_time_runge_kutta$ .and. lord%tracking_method == time_runge_kutta$) then
+          ! Do nothing
+        elseif (slave%tracking_method == time_runge_kutta$ .and. lord%tracking_method == fixed_step_time_runge_kutta$) then
+          slave%tracking_method = fixed_step_time_runge_kutta$
+        else
+          call out_io(s_abort$, r_name, &
              'TRACKING_METHOD DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name, &
              'Conflicting methods are: ' // trim(tracking_method_name(lord%tracking_method)) // ',  ' // & 
              tracking_method_name(slave%tracking_method))
-        if (global_com%exit_on_error) call err_exit
-        err_flag = .true.
+          if (global_com%exit_on_error) call err_exit
+          err_flag = .true.
+        endif
       endif
+
       if (slave%taylor_map_includes_offsets .neqv. lord%taylor_map_includes_offsets) then
         call out_io(s_abort$, r_name, &
             'TAYLOR_MAP_INCLUDES_OFFSETS DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name)
         if (global_com%exit_on_error) call err_exit
         err_flag = .true.
       endif
+
       if ((is_first .or. is_last) .and. has_attribute (lord, 'FRINGE_TYPE')) then
        if (value(fringe_type$) /= lord%value(fringe_type$)) then
          call out_io(s_abort$, r_name, &
@@ -1116,6 +1137,7 @@ do j = 1, slave%n_lord
          if (global_com%exit_on_error) call err_exit
          err_flag = .true.
        endif
+
      endif
     endif
 
