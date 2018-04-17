@@ -18,11 +18,13 @@ contains
 !+
 ! subroutine apfft(cdata,freqs,amps,opt_dump_spectra,opt_zero_first)
 !
+! Implements the All Phase FFT method for obtaining accurate phase from signal data.
+!
+! Input:
+!   rdata_in(:)      - real(rp): signal data.
+!
 ! Output:
-!   freqs(:)         - real(rp), frequency components found in units of 0 to 1.
-!                       Will set to -1 if there is an error [Can happen, for example, if all data is zero 
-!                       except for one point.]
-!   amps(:)          - complex(rp), amplitudes of frequency components.
+!   phase            - real(rp), Phase dominant peak, as determined by ApFFT.
 !-
 
 subroutine apfft(rdata_in, phase)
