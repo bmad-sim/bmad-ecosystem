@@ -85,7 +85,6 @@ pc_start = ele%value(p0c_start$) * rel_p
 beta_start = orbit%beta
 E_start = pc_start / beta_start 
 
-
 gradient_max = e_accel_field(ele, gradient$)
 
 cos_phi = cos(phase)

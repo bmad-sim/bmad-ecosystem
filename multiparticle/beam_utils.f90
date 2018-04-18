@@ -574,10 +574,12 @@ endif
 
 !
 
-bunch%t_center = ix_bunch * beam_init%dt_bunch
-bunch%z_center = -bunch%t_center * c_light * ele%value(e_tot$) / ele%value(p0c$)
-bunch%ix_bunch = ix_bunch
+bunch%t_center      = ix_bunch * beam_init%dt_bunch
+bunch%z_center      = -bunch%t_center * c_light * ele%value(e_tot$) / ele%value(p0c$)
+bunch%ix_bunch      = ix_bunch
 bunch%particle(:)%t = bunch%particle(:)%t + bunch%t_center
+bunch%n_live        = size(bunch%particle)
+bunch%charge_live   = sum(bunch%particle%charge)
 
 ! Reset the random number generator parameters.
 

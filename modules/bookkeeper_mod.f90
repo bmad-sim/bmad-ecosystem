@@ -22,7 +22,9 @@ private makeup_group_lord, makeup_super_slave1, makeup_super_slave
 !
 ! Routine to mark an element or lattice as modified for use with "intelligent" bookkeeping.
 ! Also will do some dependent variable bookkeeping when a particular attribute has 
-! been altered. Look at this routine's code for more details.
+! been altered.
+!
+! This routine should be called after the attribute has been set.
 !
 ! set_flags_for_changed_attribute is an overloaded name for:
 !   set_flags_for_changed_lat_attribute (lat, set_dependent)
