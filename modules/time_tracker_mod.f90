@@ -932,12 +932,20 @@ select case (i_style)
       call out_io (s_warn$, r_name, 'Zero alive charge in bunch, nothing written to file')
       return
     endif
+    
+    ! Averages
     do i = 1, 6
       orb_ref%vec(i) = sum( bunch%particle(:)%vec(i) *  bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$)) / charge_alive
     enddo  
-    ! For now just use the first particle as a reference. 
+    
+    ! Use the mean time as a reference 
+    orb_ref%t = sum( bunch%particle(:)%t *  bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$)) / charge_alive
+    ! Old: 
+    !orb_ref%t = branch%ele(bunch%ix_ele)%ref_time
+    
+    ! For now just use the first particle to copy information:
     orb = bunch%particle(1)
-    orb_ref%t = branch%ele(bunch%ix_ele)%ref_time
+    orb_ref%s = orb%s
     orb_ref%ix_ele = bunch%ix_ele
     orb_ref%p0c = orb%p0c
     orb_ref%species = orb%species
@@ -963,7 +971,7 @@ do i = 1, size(bunch%particle)
   if (orb%state /= alive$) cycle
   
   ! Get time to track backwards by
-  dt = orb%t - bunch%t_center
+  dt = orb%t - orb_ref%t
 
   ! Get pc before conversion
   pc = (1+orb%vec(6)) * orb%p0c 
