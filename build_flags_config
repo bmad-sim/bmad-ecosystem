@@ -6,7 +6,7 @@
 # Set Plot Library Linker Flags
 if [ "${ACC_PLOT_PACKAGE}" == "plplot" ] ; then
     export PLOT_LINK_LIBS="plplotfortran;plplot;csirocsa;qsastime"
-    export PLOT_LINK_FLAGS="-lplotfortran -lplplot -lcsirocsa -lqsastime -lpthread"
+    export PLOT_LINK_FLAGS="-lplplotfortran -lplplot -lcsirocsa -lqsastime -lpthread"
 else
     export PLOT_LINK_LIBS="pgplot"
     export PLOT_LINK_FLAGS="-lpgplot"
