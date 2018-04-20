@@ -91,8 +91,8 @@ real(rp), allocatable :: merit_vec(:)
 
 integer i, j, k, k2, ix, it, ir, j1, j2, jj, n, nn, ibx, iby, ibz, ix_x, ix_y, ix_z, ix_xyz(3), np
 integer i0, i1, i2, n_del, n_turns_min, n_turns_max, n0(3), n1(3), track_state, i_dependent, n_wind
-integer i_turn, i_cycle, ix_lat_branch, status, ia, relaxation_weight, scatter_weight
-integer calc_every, n_points(3)
+integer i_turn, i_cycle, ix_lat_branch, status, ia, relaxation_weight, scatter_weight, nt_max
+integer calc_every, n_points(3), methods_n_turn_invar_spin0
 integer, allocatable :: indx(:)
 
 logical rf_on, first_time, linear_in_action, mode_is_oscillating(3), err, spin_tune_calc, full_average
@@ -104,7 +104,8 @@ character(6) num_str
 namelist / strob_params / bmad_lat, rf_on, orbit_start, orbit_stop, n_points, n_turns_min, n_turns_max, calc_every, &
            relaxation_tolerance, scatter_norm_cutoff, methods_data_file, methods_invar_spin0, scatter_weight, &
            ix_lat_branch, linear_in_action, invar_spin_tolerance, spin_tune_tolerance, spin_tune_calc, full_average, &
-           scatter_minimization_calc, self_consistent_calc, verbose, debug, z_global_axis, relaxation_weight
+           scatter_minimization_calc, self_consistent_calc, verbose, debug, z_global_axis, relaxation_weight, &
+           methods_n_turn_invar_spin0
 
 ! Read parameter file
 
@@ -130,6 +131,7 @@ verbose = .true.
 z_global_axis = 0
 methods_data_file = ''
 methods_invar_spin0 = 0
+methods_n_turn_invar_spin0 = 0
 relaxation_weight = 1
 scatter_weight = 1
 full_average = .true.
@@ -141,8 +143,10 @@ close (1)
 bmad_com%auto_bookkeeper = .false.
 bmad_com%spin_tracking_on = .true.
 
-allocate(s(0:n_turns_max), indx(0:n_turns_max), result(0:n_turns_max))
-allocate (merit_vec(10*n_turns_max+10))
+
+nt_max = max(n_turns_max, methods_n_turn_invar_spin0)
+allocate(s(0:nt_max), indx(0:nt_max), result(0:nt_max))
+allocate (merit_vec(10*nt_max+10))
 
 call mat_make_unit(unit_mat)
 first_time = .true.
@@ -250,7 +254,7 @@ do ix_z = 1, n_points(3)
   old_invar_spin = 0
   dtune = 0
 
-  turns_loop: do i_turn = 0, n_turns_max
+  turns_loop: do i_turn = 0, nt_max
     do i = 1, 3
       orbit(0)%spin = 0
       orbit(0)%spin(i) = 1
@@ -271,9 +275,10 @@ do ix_z = 1, n_points(3)
     !--------
 
     if (i_turn == 0) cycle
-    if (calc_every < 0 .and. i_turn /= n_turns_max) cycle
-    if (calc_every > 0 .and. i_turn /= n_turns_max .and. mod(i_turn, calc_every) /= 0) cycle
+    if (calc_every < 0 .and. i_turn /= nt_max) cycle
+    if (calc_every > 0 .and. i_turn /= nt_max .and. mod(i_turn, calc_every) /= 0) cycle
     if (i_turn < n_turns_min) cycle
+    if (i_turn > n_turns_max .and. i_turn /= nt_max) cycle
 
     if (verbose) then
       print *
@@ -657,7 +662,7 @@ do ix_z = 1, n_points(3)
       exit
     endif
 
-    if (i_turn == n_turns_max) exit  ! Avoid i_turn = n_turns_max + 1
+    if (i_turn == nt_max) exit  ! Avoid i_turn = n_turns_max + 1
   enddo turns_loop
 
   !----------------------------
@@ -699,7 +704,7 @@ do ix_z = 1, n_points(3)
 
   if (methods_data_file /= '') then
     if (all(methods_invar_spin0 == 0)) then
-      do i = n_turns_max, 1, -1
+      do i = nt_max, 1, -1
         if (all(result(i)%hoff_invar_spin == 0)) cycle
         methods_invar_spin0 = result(i)%scatter_min_invar_spin
         exit
@@ -727,8 +732,8 @@ close (2)
 ! End stuff
 
 call run_timer('READ', time)
-if (verbose) print *
-if (verbose) print '(a, f10.1)', 'Final Time (min):', time/60
+print *
+print '(a, f10.1)', 'Final Time (min):', time/60
 
 !------------------------------------------------------------
 contains
@@ -773,7 +778,7 @@ real(rp) f(3), r, dphase(3)
 integer weight
 integer i, n2, kk, nb(3)
 
-! Note: This average is weighted and not nomalized.
+! Note: This average is weighted and *not* nomalized.
 
 invar_spin = 0
 do kk = 1, 6
