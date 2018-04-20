@@ -70,7 +70,10 @@ sn_fl6: spin_x_rotator, superimpose, offset = 6164.304100
 ! R52B      : RFCAVITY, L=0.1968000E+01, VOLT=0.0000000E+00, FREQ=0.0520000E+03
 ! R208      : RFCAVITY, L=0.8000000E+00, VOLT=-.9052733E-01, FREQ=0.2080000E+03
 ! @, IPS=5, SCALE=VOLT
-rf00: rfcavity, voltage = (-.3621093e+00) * 1e6 / (0.8000000e+00) * (0.8000000e+00), rf_frequency &
+
+! Note: Switch sign of voltage from original file to make the synch tune stable.
+
+rf00: rfcavity, voltage = (.3621093e+00) * 1e6 / (0.8000000e+00) * (0.8000000e+00), rf_frequency &
          = (0.2080000e+03) * 1e6, l = 0.8000000e+00
 qc53: quadrupole, l = 0.1000000e+01, k1 = 0.462599980e-02
 qb28: quadrupole, l = 0.1800000e+01, k1 = 0.308123000e-02
