@@ -19,7 +19,9 @@
 !     %ele(0)%c_mat  -- Coupling matrix.
 !     %a%tune         -- Fractional part of the tune in radians
 !     %b%tune         -- Fractional part of the tune in radians
-!     %param%stable   -- Set true or false.
+!     %a%stable       -- Set True or False.
+!     %b%stable       -- Set True or False.
+!     %param%stable   -- Set True or False.
 !     %param%unstable_factor -- unstable growth rate (= 0 if stable)
 !   status      -- Integer, optional: Calculation status:
 !                       ok$, in_stop_band$, unstable$, or non_symplectic$
@@ -114,6 +116,8 @@ if (present(status)) status = stat
 
 lat%a%tune = branch%ele(0)%a%phi
 lat%b%tune = branch%ele(0)%b%phi
+lat%a%stable = (stat == ok$)
+lat%b%stable = (stat == ok$)
 
 branch%ele(0)%a%phi = 0
 branch%ele(0)%b%phi = 0

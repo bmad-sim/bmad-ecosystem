@@ -15,7 +15,8 @@
 !
 ! Output:
 !   lat -- lat_struct
-!     branch(ix_branch)%z%tune            -- Synchrotron tune (radians)
+!     branch(ix_branch)%z%tune            -- Synchrotron tune (radians). If unstable tune = 0.
+!     branch(ix_branch)%z%stable          -- Is the mode stable? If no rf then tune is zero but is stable.
 !     branch(ix_branch)%param%t1_with_RF  -- 6x6 1-turn matrix.
 !-
 
@@ -45,14 +46,16 @@ branch%param%t1_with_RF = a
 denom = 2 * (a(5,5)*a(6,6) - a(5,6)*a(6,5))
 if (denom == 0) then
   branch%z%tune = 0
+  branch%z%stable = .false.
   return
 endif
 
 cos_z = (a(5,5) + a(6,6)) / denom
 sgn = sign_of(a(5,6))
 
-if (cos_z > 0.9999999) then
+if (cos_z - 1 > -1d-7) then
   branch%z%tune = 0
+  branch%z%stable = (abs(cos_z-1) < 1d-7)
   return
 endif
 
@@ -64,5 +67,6 @@ call hqr(a,wr,wi)
 
 i = minloc(abs(wr-cos_z), 1)
 branch%z%tune = sgn * abs(atan2(wi(i),wr(i)))
+branch%z%stable = .true.
 
 end subroutine

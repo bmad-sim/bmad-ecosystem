@@ -213,11 +213,15 @@ do k = 1, loop_max
     else
       if (global_com%exit_on_error) call err_exit
     endif
+    lat%z%stable = .false.
+    return
   endif
 enddo
 
-!  Have bracketed index
-!superfluous? coef = zbrent (dz_tune_func, min(coef0, coef), max(coef0, coef), dQz_max)
+lat%z%stable = .true.
+
+! Have bracketed index
+! Superfluous? coef = zbrent (dz_tune_func, min(coef0, coef), max(coef0, coef), dQz_max)
 
 end subroutine set_z_tune
 
