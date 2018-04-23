@@ -2055,7 +2055,7 @@ end subroutine tao_set_universe_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_element_cmd (ele_list, attribute, value)
+! Subroutine tao_set_elements_cmd (ele_list, attribute, value)
 !
 ! Sets element parameters.
 !
@@ -2213,9 +2213,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
   if (.not. u%calc%lattice) cycle
   call lattice_bookkeeper (u%model%lat)
-  do j = 0, ubound(u%model%lat%branch, 1)
-    call lat_make_mat6 (u%model%lat, -1, u%model%tao_branch(j)%orbit, j)
-  enddo
 enddo
 
 end subroutine tao_set_elements_cmd
