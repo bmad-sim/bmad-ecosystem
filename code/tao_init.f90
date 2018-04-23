@@ -268,13 +268,13 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   enddo
 enddo
 
-! Turn off RF
+! Turn off RF. But first calculate the synchrotron tune.
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
-  do ib = 0, ubound(u%design%lat%branch, 1)
-    if (u%design%lat%branch(ib)%param%geometry == closed$) then
-      call calc_z_tune(u%design%lat, ib)
+  do ib = 0, ubound(u%model%lat%branch, 1)
+    if (u%model%lat%branch(ib)%param%geometry == closed$) then
+      call calc_z_tune(u%model%lat, ib)
       if (.not. s%global%rf_on) then
         call out_io (s_info$, r_name, "Note: global%rf_on = False  -->  RFCavities will be turned off in lattices")
         call set_on_off (rfcavity$, u%model%lat, off$, ix_branch = ib)

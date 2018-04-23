@@ -214,7 +214,7 @@ character(9) angle_str
 
 character(3) undef_str
 character(16) velocity_fmt, momentum_fmt, e_field_fmt, b_field_fmt, position_fmt, energy_fmt, s_fmt
-character(16) spin_fmt, t_fmt, twiss_fmt, disp_fmt
+character(16) spin_fmt, t_fmt, twiss_fmt, disp_fmt, str1, str2
 character(24) show_name, show2_name, what_to_print
 character(24) :: var_name, blank_str = '', phase_units_str
 character(24)  :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
@@ -3193,9 +3193,9 @@ case ('taylor_map', 'matrix')
       nl = nl+1; write(lines(nl), '(6f11.6)') vec0
     else
       if (any(abs(mat6(1:n_order,1:n_order)) >= 1000)) then
-        fmt = '(6es12.4, a, es12.4)'
+        fmt = '(6es15.7, a, es12.4)'
       else
-        fmt = '(6f12.5, a, es12.4)'
+        fmt = '(6f15.8, a, es12.4)'
       endif
 
       do i = 1, 6
@@ -3603,16 +3603,33 @@ case ('universe')
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), '(23x, a)') 'Model     Design'
   fmt  = '(1x, a16, 2es11.3, 3x, a)'
-  fmt2 = '(1x, a16, 2f11.4, 3x, a)'
+  fmt2 = '(1x, a16, 2f11.5, 3x, a)'
+
   if (branch%param%geometry == closed$) then
     call calc_z_tune(lat, ix_branch)
-    nl=nl+1; write(lines(nl), fmt2) 'Z_tune:', -branch%z%tune/twopi, -design_lat%z%tune/twopi, '! The design value is calculated with RF on'
+    if (abs(design_lat%z%tune/twopi)  > 1d-3 .and. abs(branch%z%tune/twopi) > 1d-3) then
+      nl=nl+1; write(lines(nl), fmt) 'Z_tune:', -branch%z%tune/twopi, -design_lat%z%tune/twopi, '! The design value is calculated with RF on'
+    else
+      if (.not. branch%z%stable) then
+        str1 = '  Unstable'
+      else
+        write (str1, '(f11.5)') -branch%z%tune/twopi
+      endif
+      if (.not. design_lat%z%stable) then
+        str2 = '  Unstable'
+      else
+        write (str2, '(f11.5)') -design_lat%z%tune/twopi
+      endif
+      nl=nl+1; write(lines(nl), '(1x, a16, 2a11, 3x, a)') 'Z_tune:', str1, str2, '! The design value is calculated with RF on'
+    endif
+
   else
     nl=nl+1; write (lines(nl), fmt) 'I2*gamma^4', tao_branch%modes%lin%i2_e4, &
           design_tao_branch%modes%lin%i2_e4, '! Linac Radiation Integral'
     nl=nl+1; write (lines(nl), fmt) 'I3*gamma^7', tao_branch%modes%lin%i3_e7, &
           design_tao_branch%modes%lin%i3_e7, '! Linac Radiation Integral'
   endif
+
   nl=nl+1; write(lines(nl), fmt) 'Sig_E/E:', tao_branch%modes%sigE_E, design_tao_branch%modes%sigE_E
   nl=nl+1; write(lines(nl), fmt) 'Sig_z:  ', tao_branch%modes%sig_z, design_tao_branch%modes%sig_z, '! Only calculated when RF is on'
   nl=nl+1; write(lines(nl), fmt) 'Energy Loss:', tao_branch%modes%e_loss, design_tao_branch%modes%e_loss, '! Energy_Loss (eV / Turn)'
