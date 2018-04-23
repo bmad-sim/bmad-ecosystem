@@ -84,29 +84,28 @@ if (key2 == marker$ .or. key2 == photon_fork$ .or. key2 == fork$) then
   return
 endif
 
+
+!---------------------------------------------------------------------
+! det_factor is a renormalization factor to handle non-symplectic errors.
+
+mat6 => ele2%mat6
+det_factor = sqrt(determinant (mat6(1:4,1:4)))
+
 !---------------------------------------------------------------------
 ! if transfer matrix is not coupled...
 ! propagate c_mat coupling matrix and setup temporary element for propagation
 
-mat6 => ele2%mat6
-
 if (all(ele2%mat6(1:2,3:4) == 0)) then
-
   mat2_a = ele2%mat6(1:2,1:2)
   mat2_b = ele2%mat6(3:4,3:4) 
 
-  ele2%c_mat = matmul(matmul(mat2_a, ele1%c_mat), mat_symp_conj(mat2_b))  ! conj == inverse
+  ele2%c_mat = matmul(matmul(mat2_a, ele1%c_mat), mat_symp_conj(mat2_b)) / det_factor ! conj == inverse
   ele2%gamma_c = ele1%gamma_c
 
 !---------------------------------------------------------------------
 ! here if we are dealing with a coupled transfer matrix
 
 else
-
-  ! det_factor is a renormalization factor to handle non-symplectic errors.
-
-  det_factor = sqrt(determinant (mat6(1:4,1:4)))
-
   big_M = mat6(1:2,1:2)
   small_m = mat6(1:2,3:4)
   big_N = mat6(3:4,3:4)
@@ -126,12 +125,11 @@ else
     mat2_b = (ele1%gamma_c * big_N + matmul(small_n, ele1%c_mat)) / gamma2_c
     F_inv_mat = mat_symp_conj (mat2_b)
     ele2%c_mat = matmul(matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m, F_inv_mat)
-    ele2%gamma_c = sqrt(det)
+    ele2%gamma_c = gamma2_c
 
   ! else we flip the modes
 
   else
-
     mat2 = matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m
     det = determinant(mat2) / det_factor
     if (det < 0) then

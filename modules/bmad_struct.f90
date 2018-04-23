@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 211
+integer, parameter :: bmad_inc_version$ = 212
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1063,11 +1063,12 @@ end type
 !
 
 type mode_info_struct
-  real(rp) :: tune   = 0  ! "fractional" tune in radians: 0 < tune < 2pi
-  real(rp) :: emit   = 0  ! Emittance.
-  real(rp) :: chrom  = 0  ! Chromaticity.
-  real(rp) :: sigma  = 0  ! Beam size.
-  real(rp) :: sigmap = 0  ! Beam divergence.
+  logical :: stable = .false.  ! Is the mode stable?
+  real(rp) :: tune   = 0       ! "fractional" tune in radians
+  real(rp) :: emit   = 0       ! Emittance.
+  real(rp) :: chrom  = 0       ! Chromaticity.
+  real(rp) :: sigma  = 0       ! Beam size.
+  real(rp) :: sigmap = 0       ! Beam divergence.
 end type
 
 ! RD = Resonance Driving term
