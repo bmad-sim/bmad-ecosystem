@@ -30,6 +30,8 @@
 !                    When tracking through multiple elements, the trajectory in an element
 !                    is appended to the existing trajectory. To reset: Set track%n_pt = -1.
 !   err_flag    -- Logical, optional: Set true if there is an error. False otherwise.
+!                    Note: The particle getting lost (EG hitting an aperture) is *not* an error.
+!                    An error is something like start_orb not being properly initialized.
 !   mat6(6,6)   -- Real(rp), optional: Transfer matrix including the element. Only used with bmad_standard tracking.
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !-
@@ -244,7 +246,10 @@ end select
 
 ! Check
 
-if (orbit_too_large (end_orb, param)) return
+if (orbit_too_large (end_orb, param)) then
+  if (present(err_flag)) err_flag = .false.
+  return
+endif
 
 ! spin tracking. Must do after regular tracking in the case of spin_tracking_method = bmad_standard
  

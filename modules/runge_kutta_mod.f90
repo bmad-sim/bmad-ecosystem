@@ -50,7 +50,8 @@ contains
 !
 ! Output:
 !   orbit     -- Coord_struct: Ending coords: (x, px, y, py, z, delta) in element body coords.
-!   err_flag  -- Logical: Set True if there is an error. False otherwise.
+!   err_flag  -- Logical: Set True if there is an error. False otherwise. Note: a particle getting
+!                  lost, for example hitting an aperture, is *not* an error.
 !   track     -- Track_struct, optional: Structure holding the track information.
 !-
 
@@ -213,7 +214,10 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   ! Exit?
 
-  if (orbit%state /= alive$) return
+  if (orbit%state /= alive$) then
+    err_flag = .false.
+    return
+  endif
 
   ! Calculate next step size. If there was a hard edge then take into account the step that would have
   ! been taken if no hard edge was present.
