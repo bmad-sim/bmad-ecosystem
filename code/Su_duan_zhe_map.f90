@@ -275,7 +275,7 @@ else
     enddo
     P%X=X
     p%q%x=0.0_dp
-    p%q%x(1)=1.0_dp
+    p%q%x(0)=1.0_dp
      p%use_q=use_quaternion
   END    subroutine EQUAL_PROBE_REAL6_zhe
 
@@ -1746,7 +1746,7 @@ end subroutine kill_tree_zhe
      mfi=6
      if(present(mfile)) mfi=mfile
       write(mfi,*) " real quaternion "
-    DO I=1,4
+    DO I=0,3
       write(mfi,*) s1%x(i)
     ENDDO
   END SUBROUTINE printq
