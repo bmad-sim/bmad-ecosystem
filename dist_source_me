@@ -1,3 +1,4 @@
+#!/bin/bash
 #-----------------------------------------------------------------
 # dist_source_me
 #
@@ -82,95 +83,140 @@ func_set_os_env () {
 
 #-----------------------------------------------------------------
 # Function to check for Fortran. If gfortran is requested, 
-# check for a minimum version of 4.9 
+# check for the specified  minimum version
 #-----------------------------------------------------------------
 func_check_fortran_version () {
 
+    # Set minimum Fortran compiler versions 
+    GCC_REQ_VER=5.3
+    IFORT_REQ_VER=16.0.2.181
+
+    # Version derived from "ifort -V"
+    IFORT_MIN_VER=20160204
+
+
+    func_echo_fortran () {
+	[ "${DIST_F90_REQUEST}" == "gfortran" ] \
+	    && echo -e "\nUsing: $(gfortran --version | head -1)\n" >> ${DIST_SETUP_LOG}	
+	[ "${DIST_F90_REQUEST}" == "ifort" ] \
+	    && echo -e "\nUsing: $(ifort --version | head -1)\n" >> ${DIST_SETUP_LOG}	
+    }
+
+
+    func_search_devtoolset () {
+	# Check for Red Hat Developer Toolset Distribution - this is RHEL, Centos, SL specific
+	if [ $(ls -1 /opt/rh | grep devtoolset &> /dev/null ; echo $?) -eq 0 ] ; then
+	    DEVTOOLSET_DIR=/opt/rh/devtoolset
+
+	    AVAIL_DEV=()
+
+	    for ((NUM=4 ; NUM < 10 ; NUM++))
+	    {
+		[ -d "${DEVTOOLSET_DIR}-${NUM}" ] && AVAIL_DEV=("${AVAIL_DEV[@]}" "${NUM}")
+	    }
+	    
+	    if [ -d "${DEVTOOLSET_DIR}-${AVAIL_DEV[0]}" ] ; then
+		source ${DEVTOOLSET_DIR}-${AVAIL_DEV[0]}/enable
+		echo -e "\nEnabling GCC/gfortran from the Red Hat Developer Toolset" >> ${DIST_SETUP_LOG} 
+		echo -e "in ${DEVTOOLSET_DIR}-${AVAIL_DEV[0]}" >> ${DIST_SETUP_LOG}
+		func_echo_fortran
+	    fi
+	else
+	    func_no_fortran
+	fi
+    }
+
+
+    func_no_fortran () {
+	echo -e "\nWARNING - no compatible fortran compiler found, unable to build the Bmad Distribution." \
+	    >> ${DIST_SETUP_LOG}
+
+	if [ "${DIST_F90_REQUEST}" == "gfortran" ] ; then
+	    if ( [ $(type gfortran &> /dev/null ; echo $?) -eq 0 ] ) ; then
+		echo -e "Please upgrade your version of GNU GCC/gfortran, to the ${GCC_REQ_VER} version, or later" \
+		    >> ${DIST_SETUP_LOG}
+	    else
+		echo -e "Please install GNU GCC/gfortran version ${GCC_REQ_VER}, or later"  \
+		    >> ${DIST_SETUP_LOG}
+	    fi
+	    echo -e "or set your PATH to where a minimum GNU GCC/gfortran version of ${GCC_REQ_VER} is located.\n" \
+		>> ${DIST_SETUP_LOG}
+
+	elif [ "${DIST_F90_REQUEST}" == "ifort" ] ; then
+	    if ( [ $(type ifort &> /dev/null ; echo $?) -eq 0 ] ) ; then
+		echo -e "Please upgrade your version of Intel ifort, to the ${IFORT_REQ_VER} version, or later" \
+		    >> ${DIST_SETUP_LOG}
+	    else
+		echo -e "Please install Intel ifort version ${IFORT_REQ_VER}, or later" \
+		    >> ${DIST_SETUP_LOG}
+	    fi
+            echo -e "or set your PATH to where a minimum Intel ifort version of ${IFORT_REQ_VER} is located.\n" \
+		>> ${DIST_SETUP_LOG}
+	fi
+    }
+
     if ( [ "${DIST_F90_REQUEST}" == "gfortran" ] ) ; then
 
+	unset DEVTOOLSET_DIR
+
 	if ( [ $(type gfortran &> /dev/null ; echo $?) -eq 0 ] ) ; then
+
 	    GCC_MAJOR_VER=$(gfortran --version | head -1 | cut -d')' -f2 | cut -c 2)
 	    GCC_MINOR_VER=$(gfortran --version | head -1 | cut -d')' -f2 | cut -c 4)
 
-	    if ( [ "${GCC_MAJOR_VER}" -lt 4 ] ) ; then
-		echo -e "\nPlease upgrade your version of GCC/gfortran" \
-		    >> ${DIST_SETUP_LOG}
-		echo -e "or set your PATH to where a minimum 4.9 version" \
-		    >> ${DIST_SETUP_LOG}
-		echo -e "of GCC/gfortran is located.\n" \
-		    >> ${DIST_SETUP_LOG}
+	    GCC_MIN_MINOR_VER=$(echo ${GCC_REQ_VER} | cut -d. -f2)
 
-	    elif ( [ "${GCC_MAJOR_VER}" -eq 4 ] && [ "${GCC_MINOR_VER}" -lt 9 ] ) ; then
-
-		# Check for Red Hat Developer Toolset Distribution - this is RHEL, Centos, SL specific
-		if ( [ $(ls -1 /opt/rh | grep devtoolset &> /dev/null ; echo $?) -eq 0 ] ) ; then
-		    DEVTOOLSET_DIR=/opt/rh/devtoolset
-
-		    if [ -d "${DEVTOOLSET_DIR}-3" ] ; then
-			source ${DEVTOOLSET_DIR}-3/enable 
-			echo -e "\nFound gfortran - enabling GCC/gfortran from the Red Hat Developer Toolset" \
-			    >> ${DIST_SETUP_LOG}
-			echo -e "in ${DEVTOOLSET_DIR}-3" \
-			    >> ${DIST_SETUP_LOG}
-
-		    elif [ -d "${DEVTOOLSET_DIR}-4" ] ; then
-			source ${DEVTOOLSET_DIR}-4/enable
-			echo -e "\nFound gfortran - enabling GCC/gfortran from the Red Hat Developer Toolset" \
-			    >> ${DIST_SETUP_LOG}
-			echo -e "in ${DEVTOOLSET_DIR}-4" \
-			    >> ${DIST_SETUP_LOG}
-
-		    elif [ -d "${DEVTOOLSET_DIR}-6" ] ; then
-			source ${DEVTOOLSET_DIR}-6/enable
-			echo -e "\nFound gfortran - enabling GCC/gfortran from the Red Hat Developer Toolset" \
-			    >> ${DIST_SETUP_LOG}
-			echo -e "in ${DEVTOOLSET_DIR}-6" \
-			    >> ${DIST_SETUP_LOG}
-		    else
-			echo -e "\nPlease upgrade to Red Hat Developer Toolset 3" \
-			    >> ${DIST_SETUP_LOG}
-			echo -e "or set your PATH to where a minimum 4.9 version of GCC/gfortran is located.\n" \
-			    >> ${DIST_SETUP_LOG}
+	    case "${GCC_MAJOR_VER}" in
+		[1-4]*)
+		    [ "$(uname -s)" == "Linux" ] && func_search_devtoolset
+		    [ "$(uname -s)" == "Darwin" ] && func_no_fortran
+		    if [ $(uname -o &> /dev/null ; echo $?) -eq 0 ] ; then 
+			[[ "$(uname -o)" == "Msys" ]] && func_no_fortran
 		    fi
+		    ;;
 
-		else
-		    echo -e "\nWarning - you will not be able to build the Bmad Distribution." \
-			>> ${DIST_SETUP_LOG}
-		    echo -e "Please upgrade your version of GNU GCC/gfortran" \
-			>> ${DIST_SETUP_LOG}
-		    echo -e "or set your PATH to where a minimum 4.9 version of GNU GCC/gfortran is located.\n" \
-			>> ${DIST_SETUP_LOG}
-		fi
-	    fi
-	    echo -e "\nUsing: $(gfortran --version | head -1)\n" \
-		>> ${DIST_SETUP_LOG}
+		5)
+		    if [ "${GCC_MINOR_VER}" -lt ${GCC_MIN_MINOR_VER} ] ; then
+			[ "$(uname -s)" == "Linux" ] && func_search_devtoolset
+			[ "$(uname -s)" == "Darwin" ] && func_no_fortran
+			if [ $(uname -o &> /dev/null ; echo $?) -eq 0 ] ; then 
+			    [[ "$(uname -o)" == "Msys" ]] && func_no_fortran
+			fi
+		    else
+			func_echo_fortran
+		    fi
+		    ;;
+
+		[6-9]*)
+		    func_echo_fortran 
+		    ;;
+
+		*)
+		    func_no_fortran
+		    ;;
+	    esac
 
 	else
-	    echo -e "\nWarning - you will not be able to build the Bmad Distribution." \
-		>> ${DIST_SETUP_LOG}
-	    echo -e "Please install GNU GCC/gfortran (version 4.9 or greater is recommended)" \
-		>> ${DIST_SETUP_LOG}
-	    echo -e "or set your PATH to where GNU GCC/gfortran is located.\n" \
-		>> ${DIST_SETUP_LOG}
+	    func_no_fortran
 	fi
 
     elif ( [ $(type ifort &> /dev/null ; echo $?) -eq 0 ] ) ; then
-	echo -e "\nUsing: $(ifort --version | head -1)\n" \
-	    >> ${DIST_SETUP_LOG}
+
+	IFORT_VER=$(ifort --version | head -1 | awk ' { print $4 } ')
+
+	if [ "${IFORT_VER}" -lt "${IFORT_MIN_VER}" ] ; then
+	    func_no_fortran
+	else
+	    func_echo_fortran
+	fi
 
     # This is CLASSE specific, for user convenience sake
     elif ( [ -e /nfs/opt/intel/ifort/bin/compilervars.sh ] ) ; then
 	source /nfs/opt/intel/ifort/bin/compilervars.sh intel64
-	echo -e "\nUsing: $(ifort --version | head -1)\n" \
-	    >> ${DIST_SETUP_LOG}
+	func_echo_fortran
 
     else
-	echo -e "\nWarning - you will not be able to build the Bmad Distribution." \
-	    >> ${DIST_SETUP_LOG}
-	echo -e "Your requested Fortran compiler, ${DIST_F90_REQUEST}, is not installed on your system." \
-	    >> ${DIST_SETUP_LOG}
-	echo -e "Please install or check your PATH.\n" \
-	    >> ${DIST_SETUP_LOG}
+	func_no_fortran
     fi
 }
 

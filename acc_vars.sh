@@ -71,7 +71,7 @@ ONLINE_RELEASE_MGMT_DIR=${ONLINE_ARCHIVE_BASE_DIR}'/util'
 ONLINE_IFORT_SETUP_DIR=${ONLINE_OPT_DIR}'/intel/parallel_studio_xe_2016.2.062/bin'
 ONLINE_IFORT_SETUP_COMMAND=(${ONLINE_IFORT_SETUP_DIR}'/compilervars.sh intel64')
 
-ONLINE_GFORTRAN_SETUP_DIR='/opt/rh/devtoolset-3/'
+ONLINE_GFORTRAN_SETUP_DIR='/opt/rh/devtoolset-4/'
 ONLINE_GFORTRAN_SETUP_COMMAND=(${ONLINE_GFORTRAN_SETUP_DIR}/enable)
 
 #--------------------------------------------------------------
@@ -86,7 +86,7 @@ OFFLINE_RELEASE_MGMT_DIR=${OFFLINE_ARCHIVE_BASE_DIR}'/util'
 OFFLINE_IFORT_SETUP_DIR=${OFFLINE_OPT_DIR}'/intel/parallel_studio_xe_2016.2.062/bin'
 OFFLINE_IFORT_SETUP_COMMAND=(${OFFLINE_IFORT_SETUP_DIR}'/compilervars.sh intel64')
 
-OFFLINE_GFORTRAN_SETUP_DIR='/opt/rh/devtoolset-3/'
+OFFLINE_GFORTRAN_SETUP_DIR='/opt/rh/devtoolset-4/'
 OFFLINE_GFORTRAN_SETUP_COMMAND=(${OFFLINE_GFORTRAN_SETUP_DIR}/enable)
 
 # Capture value of ACC_BIN to allow removal from path for cleanliness.

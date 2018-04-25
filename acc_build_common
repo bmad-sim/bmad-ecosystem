@@ -200,7 +200,7 @@ func_check_macports () {
 }
 
      
-# Function to check for GCC, and if gfortran is requested, a minimum 4.9 version
+# Function to check for GCC, and if gfortran is requested, a minimum 5.3 version
 
 func_check_gcc_version () {
 
@@ -211,27 +211,27 @@ func_check_gcc_version () {
 
 	if ( [ "${FC}" == "gfortran" ] ) ; then
 
-            if ( [ "${GCC_MAJOR_VER}" -lt 4 ] ) ; then
-		echo -e "\nPlease upgrade your version of GCC or set your PATH to where a minimum 4.9 version of GCC is located.\n"
+            if ( [ "${GCC_MAJOR_VER}" -lt 5 ] ) ; then
+		echo -e "\nPlease upgrade your version of GCC or set your PATH to where a minimum 5.3 version of GCC is located.\n"
 		exit 69
-	    elif ( [ "${GCC_MAJOR_VER}" -eq 4 ] && [ "${GCC_MINOR_VER}" -lt 9 ] ) ; then
+	    elif ( [ "${GCC_MAJOR_VER}" -eq 5 ] && [ "${GCC_MINOR_VER}" -lt 3 ] ) ; then
 		if ( [ $(ls -1 /opt/rh | grep devtoolset &> /dev/null ; echo $?) -eq 0 ] ) ; then 
 		    DEVTOOLSET_DIR=/opt/rh/devtoolset
-		    if [ -d "${DEVTOOLSET_DIR}-3" ] ; then
-			. ${DEVTOOLSET_DIR}-3/enable
-			echo -e "\nEnabling GCC from the Red Hat Developer Toolset Distribution in ${DEVTOOLSET_DIR}-3"
-		    elif [ -d "${DEVTOOLSET_DIR}-4" ] ; then
+		    if [ -d "${DEVTOOLSET_DIR}-4" ] ; then
 			. ${DEVTOOLSET_DIR}-4/enable
 			echo -e "\nEnabling GCC from the Red Hat Developer Toolset Distribution in ${DEVTOOLSET_DIR}-4"
-		    elif [ -d "${DEVTOOLSET_DIR}-5" ] ; then
-			. ${DEVTOOLSET_DIR}-5/enable
-			echo -e "\nEnabling GCC from the Red Hat Developer Toolset Distribution in ${DEVTOOLSET_DIR}-5"
+		    elif [ -d "${DEVTOOLSET_DIR}-6" ] ; then
+			. ${DEVTOOLSET_DIR}-6/enable
+			echo -e "\nEnabling GCC from the Red Hat Developer Toolset Distribution in ${DEVTOOLSET_DIR}-6"
+		    elif [ -d "${DEVTOOLSET_DIR}-7" ] ; then
+			. ${DEVTOOLSET_DIR}-7/enable
+			echo -e "\nEnabling GCC from the Red Hat Developer Toolset Distribution in ${DEVTOOLSET_DIR}-7"
 		    else
-			echo -e "\nPlease upgrade to Red Hat Developer Toolset 3 or set your PATH to where a minimum 4.9 version of GNU GCC is located.\n"
+			echo -e "\nPlease upgrade to Red Hat Developer Toolset 4 or set your PATH to where a minimum 5.3 version of GNU GCC is located.\n"
 			exit 69
 		    fi
 		else
-		    echo -e "\nPlease upgrade your version of GNU GCC or set your PATH to where a minimum 4.9 version of GNU GCC is located.\n"
+		    echo -e "\nPlease upgrade your version of GNU GCC or set your PATH to where a minimum 5.3 version of GNU GCC is located.\n"
 		    exit 69
 		fi
 	    fi
@@ -240,7 +240,7 @@ func_check_gcc_version () {
 	echo -e "\nUsing: $(gcc --version | head -1)"
 
     else
-	echo -e "\nPlease install GNU GCC (version 4.9 or greater is recommended) or set your PATH to where GNU GCC is located.\n"
+	echo -e "\nPlease install GNU GCC (version 5.3 or greater is recommended) or set your PATH to where GNU GCC is located.\n"
 	exit 69
     fi
 }
