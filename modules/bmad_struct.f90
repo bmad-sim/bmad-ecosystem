@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 212
+integer, parameter :: bmad_inc_version$ = 213
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -387,6 +387,7 @@ type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: phase(2) = 0        ! Photon E-field phase (x,y)
   real(rp) :: charge = 0          ! Macro charge (Coul) of particle. 
   real(rp) :: path_len = 0        ! path length (used by coherent photons).
+  real(rp) :: r = 0               ! For general use, Not used by Bmad. 
   real(rp) :: p0c = 0             ! For non-photons: Reference momentum.
                                   !     For photons: Photon momentum (not reference).
   real(rp) :: beta = -1           ! Velocity / c_light.
