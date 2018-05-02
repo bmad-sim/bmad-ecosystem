@@ -116,8 +116,11 @@ ELSE ()
   SET (CMAKE_Fortran_COMPILER ifort)
      IF ("${ACC_ENABLE_OPENMP}")
        SET (OPENMP_LINK_LIBS "-liomp5")
-       EXEC_PROGRAM (ifort ARGS -v OUTPUT_VARIABLE INTEL_VERSION_OUPUT)
-       IF (( ${INTEL_VERSION_OUPUT} MATCHES "16" ) OR ( ${INTEL_VERSION_OUPUT} MATCHES "17" ))
+       EXECUTE_PROCESS (
+	 COMMAND bash -c "ifort --version | head -1 | awk ' { print $3 } '"
+	 OUTPUT_VARIABLE INTEL_VERSION_OUPUT
+	 )
+       IF ( ${INTEL_VERSION_OUPUT} VERSION_GREATER "16.0.0" )
 	 SET (IFORT_OPENMP_FLAG "-qopenmp")
        ELSE()
 	 SET (IFORT_OPENMP_FLAG "-openmp")
