@@ -2127,6 +2127,14 @@ if (attribute_type(upcase(attribute), eles(1)%ele) == is_real$) then
         return
       endif
       a_ptr%r = set_val(i)
+      call set_flags_for_changed_attribute (eles(i)%ele, a_ptr%r)
+      s%u(eles(i)%id)%calc%lattice = .true.
+    enddo
+
+    do i = lbound(s%u, 1), ubound(s%u, 1)
+      u => s%u(i)
+      if (.not. u%calc%lattice) cycle
+      call lattice_bookkeeper (u%model%lat)
     enddo
 
     return
