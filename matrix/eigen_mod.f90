@@ -174,8 +174,7 @@ end subroutine
             IV(II) = 1
             IV(IJ) = 2
             DV(II) = VR(II)
-            IF(VI(II).LT.0.D+0) CALL out_io(s_fatal$,  &
-                'EIGENSYS', 'eigenvectors missinterpreted')
+            IF(VI(II).LT.0.D+0) CALL out_io(s_error$, 'EIGENSYS', 'eigenvectors missinterpreted')
             DV(IJ) = VI(II)
 
             DO 120 J=1,N
@@ -915,10 +914,8 @@ end subroutine
 
 !%%      write(*,*)'ordersys'
 
-      IF(N.GT.NMX) CALL &
-          out_io(s_fatal$, 'ORDERSYS', 'increase NMX')
-      IF(MOD(N,2).NE.0) CALL &
-          out_io(s_fatal$, 'ORDERSYS', 'eigensystem not even dimensional')
+      IF(N.GT.NMX) CALL out_io(s_error$, 'ORDERSYS', 'increase NMX')
+      IF(MOD(N,2).NE.0) CALL out_io(s_error$, 'ORDERSYS', 'eigensystem not even dimensional')
 
 !=====get matrix ORDER which specifies the size of two succesive components
 !=====for each eigenvector :
@@ -946,7 +943,7 @@ end subroutine
                DUM = DUM + ORDER(IDM(I),JDM(J))
  1140       CONTINUE
 
-            IF(DUM.LT.TINY) CALL out_io(s_fatal$, 'ORDERSYS', 'column of zeros')
+            IF(DUM.LT.TINY) CALL out_io(s_error$, 'ORDERSYS', 'column of zeros')
 
             DO 2140 I=K,N2
                ORDER(IDM(I),JDM(J)) = ORDER(IDM(I),JDM(J))/DUM
@@ -993,8 +990,7 @@ end subroutine
                ENDIF
  440        CONTINUE
 
-            IF(JM2.EQ.0) &
-                CALL out_io(s_fatal$, 'ORDERSYS', 'odd number of real columns')
+            IF(JM2.EQ.0) CALL out_io(s_fatal$, 'ORDERSYS', 'odd number of real columns')
 !===========place conjugate real columns together :
             J   = MAX(JM1,JM2)
             JM1 = MIN(JM1,JM2)

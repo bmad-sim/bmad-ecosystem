@@ -217,32 +217,44 @@ end function eval_logical
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function on_off_logic (logic) result (name)
+! Function on_off_logic (logic, true_str, false_str) result (string)
 !
-! Function to return the string "ON" or "OFF".
+! Function to encode the state of the logic argument in a string.
 !
 ! Modules needed:
 !   use sim_utils
 !
 ! Input:
-!   logic -- Logical: True or False.
+!   logic     -- Logical: True or False.
+!   true_str  -- character(*), optional: If present then use this instead of "ON".
+!   false_str -- character(*), optional: If present then use this instead of "OFF"
 !
 ! Output:
-!   name  -- Character(3): "ON" or "OFF"
+!   string  -- Character(8): "ON" or "OFF" except if true_str or false_str is present.
 !-
 
-function on_off_logic (logic) result (name)
+function on_off_logic (logic, true_str, false_str) result (string)
 
-  logical logic
-  character(3) name
+logical logic
+character(8) string
+character(*), optional :: true_str, false_str
 
 !
 
-  if (logic) then
-    name = 'ON'
+if (logic) then
+  if (present(true_str)) then
+    string = true_str
   else
-    name = 'OFF'
+    string = 'ON'
   endif
+
+else
+  if (present(false_str)) then
+    string = false_str
+  else
+    string = 'OFF'
+  endif
+endif
 
 end function on_off_logic
 
