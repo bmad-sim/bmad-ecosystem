@@ -2972,7 +2972,7 @@ if (.not. logic_option(.false., ignore_field_master)) then
   if (.not. free) then
     call it_is_not_free (ele, ix_attrib, &
          "THIS IS A DEPENDENT ATTRIBUTE SINCE", &
-         "THE ELEMENT'S FIELD_MASTER IS SET TO: " // on_off_logic (ele%field_master))
+         "THE ELEMENT'S FIELD_MASTER IS SET TO: " // on_off_logic (ele%field_master, 'True', 'False'))
     return
   endif
 endif
