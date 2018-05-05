@@ -552,7 +552,7 @@ use_bmad_units = .true.
 ptc_state = DEFAULT - NOCAVITY0 + RADIATION0
 
 
-ptc_fibre => ptc_reference_fibre(ele)
+ptc_fibre => pointer_to_fibre(ele)
 ptc_layout => ptc_fibre%parent_layout
 call find_orbit_x (closed_orb%vec, ptc_state, 1.e-8_rp, fibre1 = ptc_fibre) 
 
@@ -599,7 +599,7 @@ end subroutine ptc_emit_calc
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function ptc_reference_fibre (ele) result (ref_fibre)
+! Function pointer_to_fibre (ele) result (ref_fibre)
 !
 ! Routine to return the reference fibre for a bmad element.
 !
@@ -621,21 +621,25 @@ end subroutine ptc_emit_calc
 !   ref_fibre -- fibre, pointer: Pointer to the corresponding reference fibre.
 !-
 
-function ptc_reference_fibre (ele) result (ref_fibre)
+function pointer_to_fibre (ele) result (ref_fibre)
 
-type (ele_struct), target :: ele
+type (ele_struct) :: ele
+type (ele_struct), pointer :: ele1, ele2
 type (fibre), pointer :: ref_fibre
 type (branch_struct), pointer :: branch
+
 !
 
-branch => pointer_to_branch(ele)
-if (tracking_uses_end_drifts(ele, branch%lat%ptc_uses_hard_edge_drifts)) then
-  ref_fibre => ele%ptc_fibre%next%next
+call find_element_ends(ele, ele1, ele2)
+branch => pointer_to_branch(ele2)
+
+if (tracking_uses_end_drifts(ele2, branch%lat%ptc_uses_hard_edge_drifts)) then
+  ref_fibre => ele2%ptc_fibre%next%next
 else
-  ref_fibre => ele%ptc_fibre%next
+  ref_fibre => ele2%ptc_fibre%next
 endif
 
-end function ptc_reference_fibre
+end function pointer_to_fibre
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -768,7 +772,7 @@ endif
 
 use_bmad_units = .true.
 
-ptc_fibre => ptc_reference_fibre(ele)
+ptc_fibre => pointer_to_fibre(ele)
 ptc_layout => ptc_fibre%parent_layout
 call find_orbit_x (closed_orb%vec, ptc_state, 1.e-8_rp, fibre1 = ptc_fibre) 
 
