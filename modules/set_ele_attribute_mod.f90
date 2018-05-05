@@ -48,7 +48,7 @@ type (bp_common_struct) bp_save
 integer ix
 
 logical, optional :: err_print_flag
-logical err_flag, delim_found, print_save, file_input_save, is_slaved_field_attribute
+logical err_flag, delim_found, print_save, file_input_save, is_slaved_field_attribute, field_master
 
 character(*) set_string
 character(100) string
@@ -86,7 +86,9 @@ bp_com%current_file => current_file
 bp_com%print_err = logic_option(.true., err_print_flag)
 current_file%full_name = ''
 
+field_master = ele%field_master  ! Save
 call parser_set_attribute (redef$, ele, delim, delim_found, err_flag)
+ele%field_master = field_master  ! To prevent parser_set_attribute from changing %field_master.
 
 bp_com%input_from_file = file_input_save
 bp_com%print_err       = print_save
