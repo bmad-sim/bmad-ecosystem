@@ -24,7 +24,7 @@ type (coord_struct) :: orbit
 type (ele_struct), target :: ele
 type (lat_param_struct) :: param
 
-real(rp) xmat(6,6), vec0(6)
+real(rp) xmat(6,6), vec0(6), z0, beta0
 real(rp), optional :: mat6(6,6)
 
 logical, optional :: make_matrix
@@ -71,7 +71,11 @@ if (ele%value(delta_time$) /= 0) then
   orbit%vec(5) = orbit%vec(5) - orbit%beta * c_light * ele%value(delta_time$)
 endif
 
+beta0 = orbit%beta
+z0 = orbit%vec(5)
 orbit%vec = matmul (xmat, orbit%vec) + vec0
+
 call convert_pc_to ((1+orbit%vec(6))*orbit%p0c, orbit%species, beta = orbit%beta)
+orbit%t = orbit%t + (z0 / beta0 - orbit%vec(5) / orbit%beta) / c_light
 
 end subroutine
