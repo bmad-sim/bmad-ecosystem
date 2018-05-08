@@ -890,31 +890,31 @@ type (tao_plot_struct), allocatable :: temp_template(:)
 type (tao_plot_region_struct), allocatable :: temp_region(:)
 type (tao_plot_struct), pointer :: plot
 type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
-      tao_ele_shape_struct('FORK::*',              'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., fork$, '*', 1), &
-      tao_ele_shape_struct('CRYSTAL::*',           'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., crystal$, '*', 1), &
-      tao_ele_shape_struct('DETECTOR::*',          'BOX',    'BLACK',   0.30_rp, 'name', .true.,   .false., detector$, '*', 1), &
-      tao_ele_shape_struct('DIFFRACTION_PLATE::*', 'BOX',    'CYAN',    0.30_rp, 'name', .true.,   .false., diffraction_plate$, '*', 1), &
-      tao_ele_shape_struct('E_GUN::*',             'XBOX',   'RED',     0.40_rp, 'name', .true.,   .false., e_gun$, '*', 1), &
-      tao_ele_shape_struct('EM_FIELD::*',          'XBOX',   'BLUE',    0.40_rp, 'name', .true.,   .false., em_field$, '*', 1), &
-      tao_ele_shape_struct('ECOLLIMATOR::*',       'XBOX',   'BLUE',    0.20_rp, 'name', .false.,  .false., ecollimator$, '*', 1), &
-      tao_ele_shape_struct('INSTRUMENT::*',        'BOX',    'BLUE',    0.30_rp, 'name', .false.,  .false., instrument$, '*', 1), &
-      tao_ele_shape_struct('LCAVITY::*',           'XBOX',   'RED',     0.50_rp, 'none', .true.,   .false., lcavity$, '*', 1), &
-      tao_ele_shape_struct('MARKER::*',            'BOX',    'BLUE',    0.30_rp, 'name', .false.,  .false., marker$, '*', 1), &
-      tao_ele_shape_struct('MIRROR::*',            'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., mirror$, '*', 1), &
-      tao_ele_shape_struct('MONITOR::*',           'BOX',    'BLACK',   0.30_rp, 'name', .false.,  .false., monitor$, '*', 1), &
-      tao_ele_shape_struct('MULTILAYER_MIRROR::*', 'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., multilayer_mirror$, '*', 1), &
-      tao_ele_shape_struct('OCTUPOLE::*',          'BOX',    'BLACK',   0.30_rp, 'name', .false.,  .false., octupole$, '*', 1), &
-      tao_ele_shape_struct('PHOTON_FORK::*',       'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., photon_fork$, '*', 1), &
-      tao_ele_shape_struct('QUADRUPOLE::*',        'XBOX',   'MAGENTA', 0.37_rp, 'name', .true.,   .false., quadrupole$, '*', 1), &
-      tao_ele_shape_struct('RCOLLIMATOR::*',       'XBOX',   'BLUE',    0.20_rp, 'name', .false.,  .false., rcollimator$, '*', 1), &
-      tao_ele_shape_struct('RFCAVITY::*',          'XBOX',   'RED',     0.50_rp, 'name', .true.,   .false., rfcavity$, '*', 1), &
-      tao_ele_shape_struct('SAMPLE::*',            'BOX',    'BLACK',   0.30_rp, 'name', .true.,   .false., sample$, '*', 1), &
-      tao_ele_shape_struct('SBEND::*',             'BOX',    'BLACK',   0.20_rp, 'none', .true.,   .false., sbend$, '*', 1), &
-      tao_ele_shape_struct('SEXTUPOLE::*',         'XBOX',   'GREEN',   0.37_rp, 'none', .true.,   .false., sextupole$, '*', 1), &
-      tao_ele_shape_struct('SOL_QUAD::*',          'BOX',    'BLACK',   0.40_rp, 'name', .false.,  .false., sol_quad$, '*', 1), &
-      tao_ele_shape_struct('SOLENOID::*',          'BOX',    'BLUE',    0.30_rp, 'name', .true.,   .false., solenoid$, '*', 1), &
-      tao_ele_shape_struct('WIGGLER::*',           'XBOX',   'CYAN',    0.50_rp, 'name', .true.,   .false., wiggler$, '*', 1), &
-      tao_ele_shape_struct('PHOTON_INIT::*',       'BOX',    'BLACK',   0.30_rp, 'name', .true.,   .false., photon_init$, '*', 1)]
+      tao_ele_shape_struct('FORK::*',              'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., 1, fork$, '*'), &
+      tao_ele_shape_struct('CRYSTAL::*',           'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., 1, crystal$, '*'), &
+      tao_ele_shape_struct('DETECTOR::*',          'BOX',    'BLACK',   0.30_rp, 'name', .true.,   .false., 1, detector$, '*'), &
+      tao_ele_shape_struct('DIFFRACTION_PLATE::*', 'BOX',    'CYAN',    0.30_rp, 'name', .true.,   .false., 1, diffraction_plate$, '*'), &
+      tao_ele_shape_struct('E_GUN::*',             'XBOX',   'RED',     0.40_rp, 'name', .true.,   .false., 1, e_gun$, '*'), &
+      tao_ele_shape_struct('EM_FIELD::*',          'XBOX',   'BLUE',    0.40_rp, 'name', .true.,   .false., 1, em_field$, '*'), &
+      tao_ele_shape_struct('ECOLLIMATOR::*',       'XBOX',   'BLUE',    0.20_rp, 'name', .false.,  .false., 1, ecollimator$, '*'), &
+      tao_ele_shape_struct('INSTRUMENT::*',        'BOX',    'BLUE',    0.30_rp, 'name', .false.,  .false., 1, instrument$, '*'), &
+      tao_ele_shape_struct('LCAVITY::*',           'XBOX',   'RED',     0.50_rp, 'none', .true.,   .false., 1, lcavity$, '*'), &
+      tao_ele_shape_struct('MARKER::*',            'BOX',    'BLUE',    0.30_rp, 'name', .false.,  .false., 1, marker$, '*'), &
+      tao_ele_shape_struct('MIRROR::*',            'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., 1, mirror$, '*'), &
+      tao_ele_shape_struct('MONITOR::*',           'BOX',    'BLACK',   0.30_rp, 'name', .false.,  .false., 1, monitor$, '*'), &
+      tao_ele_shape_struct('MULTILAYER_MIRROR::*', 'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., 1, multilayer_mirror$, '*'), &
+      tao_ele_shape_struct('OCTUPOLE::*',          'BOX',    'BLACK',   0.30_rp, 'name', .false.,  .false., 1, octupole$, '*'), &
+      tao_ele_shape_struct('PHOTON_FORK::*',       'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., 1, photon_fork$, '*'), &
+      tao_ele_shape_struct('QUADRUPOLE::*',        'XBOX',   'MAGENTA', 0.37_rp, 'name', .true.,   .false., 1, quadrupole$, '*'), &
+      tao_ele_shape_struct('RCOLLIMATOR::*',       'XBOX',   'BLUE',    0.20_rp, 'name', .false.,  .false., 1, rcollimator$, '*'), &
+      tao_ele_shape_struct('RFCAVITY::*',          'XBOX',   'RED',     0.50_rp, 'name', .true.,   .false., 1, rfcavity$, '*'), &
+      tao_ele_shape_struct('SAMPLE::*',            'BOX',    'BLACK',   0.30_rp, 'name', .true.,   .false., 1, sample$, '*'), &
+      tao_ele_shape_struct('SBEND::*',             'BOX',    'BLACK',   0.20_rp, 'none', .true.,   .false., 1, sbend$, '*'), &
+      tao_ele_shape_struct('SEXTUPOLE::*',         'XBOX',   'GREEN',   0.37_rp, 'none', .true.,   .false., 1, sextupole$, '*'), &
+      tao_ele_shape_struct('SOL_QUAD::*',          'BOX',    'BLACK',   0.40_rp, 'name', .false.,  .false., 1, sol_quad$, '*'), &
+      tao_ele_shape_struct('SOLENOID::*',          'BOX',    'BLUE',    0.30_rp, 'name', .true.,   .false., 1, solenoid$, '*'), &
+      tao_ele_shape_struct('WIGGLER::*',           'XBOX',   'CYAN',    0.50_rp, 'name', .true.,   .false., 1, wiggler$, '*'), &
+      tao_ele_shape_struct('PHOTON_INIT::*',       'BOX',    'BLACK',   0.30_rp, 'name', .true.,   .false., 1, photon_init$, '*')]
 
 real(rp) y_layout, dx, dy, dz, x1, x2, y1, y2
 integer np, n, nr, n_plots

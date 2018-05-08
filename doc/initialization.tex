@@ -11,7 +11,7 @@ In general, the input files tell \tao:
 \begin{example}
   * What \bmad lattice or lattices to use (\sref{s:init.lat}).
   * What the variables and data should be when running optimizations (\sref{c:opti}).
-  * What to plot and how plots should be layed out in the plotting window (\sref{s:init.plot}).
+  * What to plot and how plots should be laid out in the plotting window (\sref{s:init.plot}).
   * What kind of calculations are to be done. EG: a dynamic aperture calculation, etc.
   * Etc.
 \end{example}
@@ -81,15 +81,38 @@ should not be used in unquoted strings:
 Note: While there are exceptions, in general \tao string variables are
 case sensitive.
 
-Logical variables should be set to \vn{T} or \vn{TRUE} when true and
-\vn{F} or \vn{FALSE} when false. This is case insensitive. It is
-possible to use the words \vn{.true.} and \vn{.false.} for logicals,
-however this may not always work. The reason for this is that a
-variable that is documented to be a logical may actually be a string
-variable! In this case a beginning period will cause problems. Why use
-string variables? Without going into detail, string variables are used
-in place of logical variables when \tao needs to know if the variable
-has been explicitly set.
+Logical variables should be set to \vn{T} or \vn{TRUE} when true and \vn{F} or \vn{FALSE} when
+false. This is case insensitive. It is possible to use the words \vn{.true.} and \vn{.false.} for
+logicals, however this may not always work. The reason for this is that a variable that is
+documented to be a logical may actually be a string variable! In this case a beginning period will
+cause problems. Why use string variables? String variables are used in place of logical variables
+when \tao needs to know if the variable has been explicitly set.
+
+When setting an array in a namelist where the array components are a structure, the set can be
+structured in several ways. To make this clear, consider the \vn{ele_shape(:)} array that can be set
+in the \vn{lat_layout_drawing} namelist as explained in \sref{s:layout.and.floor}. Each component
+of the \vn{ele_shape(:)} array is a structure and the elements of this structure are:
+\begin{example}
+  ele_shape(i) = "<ele_id>" "<shape>" "<color>" "<size>" "<label>" <draw> <multi> <line_width>
+\end{example}
+Setting a given \vn{ele_shape(:)} array component looks like:
+\begin{example}
+  &lat_layout_drawing
+    !               ele_id                  Shape      Color     Size  Label  ..etc..
+    ele_shape(2) = "quadrupole::*"          "xbox"     "red"     0.75  "none" 
+  /
+\end{example}
+This sets the \vn{ele_id} component of \vn{ele_shape(2)} to \vn{"quadrupole::*"}, etc.
+
+Alternatively, a given structure component can be set for multipole array components. Example:
+\begin{example}
+  &lat_layout_drawing
+    ele_shape(5:6)%line_width = 5, 6
+    ele_shape(3)%multi = T
+  /
+\end{example}
+Here the \vn{line_width} structure component for \vn{ele_shape(5)} and \vn{ele_shape(6)} is set along
+with the \vn{multi} structure component for \vn{ele_shape(3)}.
 
 %-----------------------------------------------------------------
 \section{Beginning Initialization}
@@ -148,7 +171,7 @@ initialization namelists. The \vn{plot_file} variable can be an array
 of plot files. 
 
 \tao will open an execute a command file (\sref{s:command.files}) at startup if it exists.  The
-default name is \vn{tao.statup} but this name can be changed by setting the \vn{startup_file}
+default name is \vn{tao.startup} but this name can be changed by setting the \vn{startup_file}
 component in the \vn{tao_start} namelist.
 
 The following sections describe each of these initialization namelists
@@ -192,7 +215,7 @@ however, can contain \vn{tao_template_plot} and
 
 In the \vn{tao_start} namelist (\sref{s:init.global}, the \vn{lattice_file} variable gives the name
 of the file that contains the \vn{tao_design_lattice} namelist. The default, if \vn{lattice_file} is
-not present is to look in the \tao root initialization file. The \vn{tao_deisgin_lattice} namelist
+not present is to look in the \tao root initialization file. The \vn{tao_design_lattice} namelist
 defines where the lattice input files are. The variables that are set in the \vn{tao_design_lattice}
 namelist are:
 \index{tao_design_lattice}\index{design_lattice}\index{design_lattice!file}
@@ -236,7 +259,7 @@ backward direction.
 
 The \vn{%use_element_range} parameter specifies two elements (labeled here \vn{<ele1>} and
 \vn{<ele2>}) to be used to pare down the lattice so that the only elements in the pared down lattice
-are the elements in the range from \vn{<ele1>} to \vn{<ele2} inclusive plus any lord elments that
+are the elements in the range from \vn{<ele1>} to \vn{<ele2} inclusive plus any lord elements that
 control elements in this range. The names \vn{<ele1>} and \vn{<ele2>} can be either an element names
 or an element index (\sref{s:ele.list.format}). Currently, only lattices with a single branch can
 be used with \vn{%use_element_range}. \vn{%use_element_range} can be used to minimize calculational
@@ -377,7 +400,7 @@ type tao_global_struct
   real(rp) lm_opt_deriv_reinit = -1   ! Derivative matrix cutoff. -1 => ignore this.
   real(rp) de_lm_step_ratio = 1       ! Step sizes between DE and LM optimizers.
   real(rp) de_var_to_population_factor = 5 
-  real(rp) lmdif_eps = 1e-12          ! tollerance for lmdif optimizer.
+  real(rp) lmdif_eps = 1e-12          ! tolerance for lmdif optimizer.
   real(rp) svd_cutoff = 1e-5          ! SVD singular value cutoff limit.
   real(rp) unstable_penalty = 1e-3    ! Used in unstable_ring datum merit calculation.
   real(rp) merit_stop_value = -1      ! Value below which an optimizer will stop.
@@ -468,7 +491,7 @@ scenario where this switch is used involves first setting \vn{%lattice_calc_on} 
 the \vn{set} command (\sref{s:set})), then executing a set of commands, and finally setting
 \vn{%lattice_calc_on} back to \vn{True}. This saves some of the calculational overhead that each
 command generates. Similarly, \vn{global%plot_on} can be toggled to save even more time. Also see
-the \vn{set universe} command (\sref{s:set.universe}) for ways to supress certain types of
+the \vn{set universe} command (\sref{s:set.universe}) for ways to suppress certain types of
 calculations (for example, calculating the Twiss parameters) that are not needed.
 
   \item{\vn{global%plot_calc_always}} \Newline
@@ -476,7 +499,7 @@ Sometimes it is convenient to have \tao calculate plotting curve points even whe
 any plotting (that is, \vn{global%plot_on} = F). For example, when \tao is run as a server by a client
 (such as a graphic user interface) program where the client program is taking care of the plotting but
 the data to be plotted is calculated by \tao. In this case by setting \vn{global%plot_calc_always} to
-True will force \tao to always calcuate curve data points even when \vn{global%plot_on} = F.
+True will force \tao to always calculate curve data points even when \vn{global%plot_on} = F.
 
   \item{\vn{global%merit_stop_value}} \Newline
 The \vn{global%merit_stop_value} establishes a point such that, during optimization, if
@@ -1535,7 +1558,7 @@ page) and defines the ``regions'' where plots go. The syntax of this block is:
     plot_page%floor_plan_shape_scale   = <real>   ! Floor_plan shape size scaling.
     plot_page%lat_layout_shape_scale   = <real>   ! Lat_layout shape size scaling.
     plot_page%title(i)                 = <string>, {<x>, <y>, "<units>", "<justify>"}
-    plot_page%n_curve_pts              = <intger> ! Num points used to construct a 
+    plot_page%n_curve_pts              = <int>    ! Num points used to construct a 
                                                   !   smooth curve. Default = 401
      = <T/F>    ! Used with "show plot" command.
     plot_page%box_plots                = <T/F>    ! For debugging. Default = F.
@@ -2365,25 +2388,28 @@ The file that \tao looks in to find these two namelists is set by the first file
 The namelist syntax is the same for both:
 \begin{example}
   &lat_layout_drawing
-    ele_shape(i) = "<name>" "<shape>" "<color>" "<size>" "<label>" <draw> <multi> <line_width>
+    ele_shape(i) = "<ele_id>" "<shape>" "<color>" "<size>" "<label>" <draw> 
+                                                                <multi> <line_width>
   /
 
   &floor_plan_drawing
     ... same as lat_layout_drawing ...
   /
 \end{example}
-For Example:                 
+For Example:
 \begin{example}
   &floor_plan_drawing
-    !               ele_id                   Shape      Color     Size     Label Draw? Multi?
-    ele_shape(1) = "quadrupole::q*"          "box"      "red"     0.75     "name"  T    
-    ele_shape(2) = "quadrupole::*"           "xbox"     "red"     0.75     "none" 
-    ele_shape(3) = "sbend::sb*"              "box"      "blue"    0.37     "none"  T    T
-    ele_shape(3) = "sbend::*"                "box"      "blue"    0.37     "none"  
-    ele_shape(4) = "wiggler::*"              "xbox"     "green"   0.50     "name"  F
-    ele_shape(5) = "var::quad_k1"            "circle"   "purple"  0.25     "name"
-    ele_shape(6) = "data::orbit.x|design"    "vvar_box" "orange"  0.25     "name"
-    ele_shape(7) = "wall::building"          "-"        "black"    0       "-"
+    !               ele_id                  Shape      Color     Size  Label  ..etc..
+    ele_shape(1) = "quadrupole::q*"         "box"      "red"     0.75  "name"  
+    ele_shape(2) = "quadrupole::*"          "xbox"     "red"     0.75  "none" 
+    ele_shape(3) = "sbend::sb*"             "box"      "blue"    0.37  "none"
+    ele_shape(3) = "sbend::*"               "box"      "blue"    0.37  "none"  
+    ele_shape(4) = "wiggler::*"             "xbox"     "green"   0.50  "name"
+    ele_shape(5) = "var::quad_k1"           "circle"   "purple"  0.25  "name"
+    ele_shape(6) = "data::orbit.x|design"   "vvar_box" "orange"  0.25  "name"
+    ele_shape(7) = "wall::building"         "-"        "black"    0    "-"
+    ele_shape(3)%multi = T
+    ele_shape(5:6)%line_width = 5, 6
   /
 \end{example}
 A figure is drawn for each lattice element in the lattice that matches the \vn{<ele_id>}
@@ -2427,7 +2453,7 @@ height determined by the \vn{<size>} setting.
 \vn{<size>} is the half height of the shape. That is, the size
 transverse to the longitudinal dimension. For \vn{lat_layout}
 drawings, \vn{<size>} = 1.0 corresponds to full scale if the default
-\vn{graph%y%min} = -1 and \vn{graph%y%max} = 1 are used. For For
+\vn{graph%y%min} = -1 and \vn{graph%y%max} = 1 are used. For
 {floor_plan} drawings, to determine the size of a shape, \vn{<size>}
 is combined with the \vn{graph} parameter
 \begin{example}
