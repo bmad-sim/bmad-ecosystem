@@ -2365,7 +2365,7 @@ The file that \tao looks in to find these two namelists is set by the first file
 The namelist syntax is the same for both:
 \begin{example}
   &lat_layout_drawing
-    ele_shape(i) = "<name>" "<shape>" "<color>" "<size>" "<label>" <draw> <multi>
+    ele_shape(i) = "<name>" "<shape>" "<color>" "<size>" "<label>" <draw> <multi> <line_width>
   /
 
   &floor_plan_drawing
@@ -2475,6 +2475,9 @@ Use the \vn{show plot} command to view these parameters. Use the
   "red"
   "yellow"
 \end{example}
+
+The \vn{<line_width>} parameter is an integer that specifies the width of the lines drawn. The
+default is 1.
 
 The \vn{<label>} indicates what type of label to print next to the corresponding
 element glyph. Possibilities are:
