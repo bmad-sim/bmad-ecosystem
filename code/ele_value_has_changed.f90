@@ -18,7 +18,7 @@
 
 function ele_value_has_changed (ele, list, abs_tol, set_old) result (has_changed)
 
-use bmad_struct
+use bmad_routine_interface
 implicit none
 
 type (ele_struct) ele
@@ -32,11 +32,9 @@ logical set_old, has_changed
 has_changed = .false.
 do i = 1, size(list)
   j = list(i)
-  if (abs(ele%value(j) - ele%old_value(j)) > abs_tol(i) + &
-                    small_rel_change$ * (abs(ele%value(j) + abs(ele%old_value(j))))) then
-    has_changed = .true.
-    exit
-  endif
+  if (.not. significant_difference(ele%value(j), ele%old_value(j), abs_tol(i), small_rel_change$)) cycle
+  has_changed = .true.
+  exit
 enddo
 
 if (set_old) ele%old_value(list) = ele%value(list)
