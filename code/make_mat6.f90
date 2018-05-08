@@ -55,8 +55,7 @@ if (present(err_flag)) err_flag = .true.
 
 if (.not. present(start_orb)) then
   call init_coord (a_start_orb, zero_vec, ele, upstream_end$, default_tracking_species(param))
-else if (start_orb%state == not_set$ .or. abs(start_orb%p0c - ele%value(p0c_start$)) > &
-                                    small_rel_change$ * (abs(ele%value(p0c_start$)) + abs(start_orb%p0c))) then
+else if (start_orb%state == not_set$ .or. significant_difference(start_orb%p0c, ele%value(p0c_start$), rel_tol = small_rel_change$)) then
   call init_coord(a_start_orb, start_orb, ele, upstream_end$, default_tracking_species(param))
 else
   a_start_orb = start_orb

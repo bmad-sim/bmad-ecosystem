@@ -1405,6 +1405,14 @@ subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
   logical ok
 end subroutine
 
+function significant_difference (value1, value2, abs_tol, rel_tol) result (is_different)
+  import
+  implicit none
+  real(rp) value1, value2
+  real(rp), optional :: abs_tol, rel_tol
+  logical is_different
+end function
+
 subroutine sol_quad_mat6_calc (ks, k1, s_len, ele, orbit, mat6, make_matrix)
   import
   implicit none

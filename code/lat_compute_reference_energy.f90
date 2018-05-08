@@ -507,7 +507,7 @@ case (patch$)
   ele%ref_time = ref_time_start + ele%value(t_offset$) + ele%value(l$) / velocity
 
 case default
-  if (abs(ele%value(p0c$) - p0c_start) > small_rel_change$ * (abs(ele%value(p0c$)) + abs(p0c_start))) then
+  if (significant_difference(ele%value(p0c$), p0c_start, rel_tol = small_rel_change$)) then
     ele%value(E_tot$) = E_tot_start
     ele%value(p0c$) = p0c_start
     ! Need to call attribute_bookkeeper since num_steps is not set until the energy is set.
