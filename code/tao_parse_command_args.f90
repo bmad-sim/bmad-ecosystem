@@ -1,8 +1,5 @@
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
 !+
-! Subroutine tao_parse_command_args (error, cmd_words)
+! Subroutine tao_parse_command_args (error, cmd_line)
 !
 ! Subroutine to parse the command line arguments.
 !
@@ -13,13 +10,15 @@
 !   error -- Logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine tao_parse_command_args (error, cmd_words)
+subroutine tao_parse_command_args (error, cmd_line)
 
 use tao_interface, dummy => tao_parse_command_args
+use tao_command_mod, only: tao_cmd_split
 
 implicit none
 
-character(*), optional :: cmd_words(:)
+character(*), optional :: cmd_line
+character(200) :: cmd_words(12)
 character(80) arg0, base, switch
 character(24) :: r_name = 'tao_parse_command_args'
 
@@ -33,7 +32,9 @@ error = .false.
 call tao_hook_parse_command_args()
 if (.not. s%com%parse_cmd_args) return
 
-if (present(cmd_words)) then
+if (present(cmd_line)) then
+  call tao_cmd_split(cmd_line, 12, cmd_words, .false., error)
+  if (error) return
   n_arg = size(cmd_words)
   if (cmd_words(1) == '') return
 else
@@ -160,8 +161,9 @@ endif
 
 i_arg = i_arg + 1
 
-if (present(cmd_words)) then
+if (present(cmd_line)) then
   arg = cmd_words(i_arg)
+  if (cmd_words(i_arg+1) == '') n_arg = i_arg
 else
   call cesr_getarg(i_arg, arg)
 endif

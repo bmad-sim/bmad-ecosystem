@@ -70,18 +70,11 @@ function tao_c_set_init_args(c_str) bind(c) result(error)
 use tao_command_mod
 character(len=1,kind=c_char), dimension(*), intent(in) ::  c_str
 character(2000) :: f_str
-character(200) :: cmd_word(10)
 integer(c_int) :: error
 integer :: n
 logical:: err
 call to_f_str(c_str, f_str)
-call tao_cmd_split (f_str, 10, cmd_word, .false., err)
-!count words actually found
-!TODO: generalize 10
-do n=1, 10
-  if (cmd_word(n) == '') exit
-enddo
-call tao_parse_command_args (err, cmd_word(1:n-1) )
+call tao_parse_command_args (err, f_str)
 error = merge(1, 0, err)
 end function
 
