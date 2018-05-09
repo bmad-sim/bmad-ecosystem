@@ -391,7 +391,7 @@ case ('restore', 'use', 'veto')
 
 case ('reinitialize')
 
-  call tao_cmd_split(cmd_line, 10, cmd_word, .false., err)
+  call tao_cmd_split(cmd_line, 2, cmd_word, .false., err)
   if (err) return
 
   call match_word (cmd_word(1), ['data', 'tao ', 'beam'], ix, .true., matched_name=word)
@@ -408,17 +408,9 @@ case ('reinitialize')
     s%u(:)%calc%lattice = .true.
 
   case ('tao') 
-
-    call tao_parse_command_args (err, cmd_word(2:))
+    call tao_parse_command_args (err, cmd_word(2))
     if (err) return
 
-    ! quit the plot window so it will be recreated    
-
-    if (s%global%plot_on) then
-      call tao_destroy_plot_window
-      s%com%init_plot_needed = .true.
-    endif
-      
     ! quit the plot window so it will be recreated    
     call tao_destroy_plot_window
     s%com%init_plot_needed = .true.

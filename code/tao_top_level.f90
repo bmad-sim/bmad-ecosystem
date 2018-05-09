@@ -38,54 +38,42 @@ logical found, err, will_need_input
 
 s_ptr => s       ! Used for debugging
 
-! Set interactive flags
-
-if (present(command)) then
-  s%global%plot_on = .false.
-else
-  s%global%plot_on = .true.
-endif
-
-! Read command line arguments.
-
-if (.not. present(command)) then
-  call tao_parse_command_args (err)
-  if (err) stop
-endif
-
-! Turn off plotting for slaves
-!if (.not. s%mpi%master)  s%global%plot_on = .false.
+! MPI: Turn off plotting for slaves
+! if (.not. s%mpi%master)  s%global%plot_on = .false.
 
 ! And init everything.
 
 if (.not. s%com%initialized) then
+  call tao_parse_command_args (err, command)
   call tao_init (err)
   if (err) then
     call out_io (s_fatal$, r_name, 'TAO INIT FILE NOT FOUND. STOPPING.')
     stop
   endif
-  s%com%initialized = .true. 
+  s%com%initialized = .true.
+  if (present(command)) return
 endif
 
 u => s%u(1)  ! Used for debugging
 
-! MPI slave settings
-!if (.not. s%mpi%master) then 
-!  !Turn off screen output
-!  s%com%print_to_terminal = .false.
-!  call output_direct( do_print = .false.)
-!endif
+! MPI: slave settings
+! if (.not. s%mpi%master) then 
+!   ! Turn off screen output
+!   s%com%print_to_terminal = .false.
+!   call output_direct( do_print = .false.)
+! endif
 
 ! Command loop
+
 do
   err = .false.
   
   call tao_get_user_input (cmd_out, cmd_in = command, will_need_input = will_need_input)
   
- ! if (s%mpi%master) call tao_get_user_input (cmd_out)
   
-  ! Broadcast command to slaves
-  !if (s%mpi%on) call tao_broadcast_chars_mpi(cmd_out)
+  ! MPI: Broadcast command to slaves
+  ! if (s%mpi%master) call tao_get_user_input (cmd_out)
+  ! if (s%mpi%on) call tao_broadcast_chars_mpi(cmd_out)
   
   if (s%com%single_mode) then
     ! single mode
@@ -99,7 +87,8 @@ do
   endif
   if (.not. err) call tao_cmd_history_record (cmd_out)
 
-  ! Exit if getting commands through the command argument
+  ! Exit if current command line parsing is finished (may not be if multiple commands were present) and 
+  ! Tao is getting commands through the command argument
   if (will_need_input .and. present(command)) exit
 enddo
 

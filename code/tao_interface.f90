@@ -542,10 +542,10 @@ function tao_pointer_to_datum (d1, ele_name) result (datum_ptr)
   character(*) ele_name
 end function
 
-subroutine tao_parse_command_args (error, cmd_words)
+subroutine tao_parse_command_args (error, cmd_line)
   import
   implicit none
-  character(*), optional :: cmd_words(:)
+  character(*), optional :: cmd_line
   logical error
 end subroutine
 
