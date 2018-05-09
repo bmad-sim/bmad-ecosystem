@@ -79,12 +79,12 @@ type (fourier_mode_struct) fourier ! Fourier transform for the spin x-axis
 type (spin_results_struct), allocatable :: result(:)
 
 real(rp) orbit_start(3), orbit_stop(3), delta(3), xfer_mat(3,3), closed_orb_invar_spin(3), dtune
-real(rp) time, unit_mat(3,3), norm_max, norm, tune2, r, axis(3), ave_invar_spin(3), dphase, dphase2
+real(rp) time, unit_mat(3,3), norm_max, norm, tune2, r, axis(3), ave_invar_spin(3), dphase_long, dphase_transverse
 real(rp) f(3), p_lim, angle, angle0, angle1, angle2, dangle, j_amp(3), old_relaxed_invar_spin(3), old_scatter_min_invar_spin(3)
-real(rp) old_angle, spin_tune, phase(3), d, relaxation_tolerance, g, old_spin_tune
+real(rp) old_angle, spin_tune, phase(3), d, relaxation_tolerance, g, old_spin_tune, dphase_amp_min, dphase_amp_this
 real(rp) x_global(3), y_global(3), z_global(3), rot_axis(3), merit_unnorm, merit_norm, merit_unnorm0, merit_norm0, d_invar_spin(3)
 real(rp) invar_spin_tolerance, closed_orbit_spin_tune, old_dangle, invar_mat(3,3), old_invar_spin(3)
-real(rp) ct, st, x_spin_axis(3), y_spin_axis(3), z_global_axis(3), mat_1turn(6,6), N_mat_conj(6,6)
+real(rp) ct, st, x_spin_axis(3), y_spin_axis(3), z_global_axis(3), mat_1turn(6,6), N_mat_conj(6,6), dphase_long_min
 real(rp) orbit_tune(3), mode3_tune(3), hoff_invar_spin(3), old_hoff_invar_spin(3), a_spin(2), last_invar_spin(3)
 real(rp) scatter_norm_cutoff, spin_tune_tolerance, methods_invar_spin0(3)
 real(rp), allocatable :: merit_vec(:)
@@ -97,6 +97,7 @@ integer, allocatable :: indx(:)
 
 logical rf_on, first_time, linear_in_action, mode_is_oscillating(3), err, spin_tune_calc, full_average
 logical scatter_minimization_calc, self_consistent_calc, is_indep(3), at_end, out_of_range, verbose, debug
+logical use_coordinate_for_phase_diff_calc(3)
 
 character(200) bmad_lat, param_file, methods_data_file
 character(6) num_str
@@ -105,7 +106,7 @@ namelist / strob_params / bmad_lat, rf_on, orbit_start, orbit_stop, n_points, n_
            relaxation_tolerance, scatter_norm_cutoff, methods_data_file, methods_invar_spin0, scatter_weight, &
            ix_lat_branch, linear_in_action, invar_spin_tolerance, spin_tune_tolerance, spin_tune_calc, full_average, &
            scatter_minimization_calc, self_consistent_calc, verbose, debug, z_global_axis, relaxation_weight, &
-           methods_n_turn_invar_spin0
+           methods_n_turn_invar_spin0, use_coordinate_for_phase_diff_calc
 
 ! Read parameter file
 
@@ -135,6 +136,7 @@ methods_n_turn_invar_spin0 = 0
 relaxation_weight = 1
 scatter_weight = 1
 full_average = .true.
+use_coordinate_for_phase_diff_calc = .true.
 
 open (1, file = param_file)
 read (1, nml = strob_params)
@@ -317,25 +319,32 @@ do ix_z = 1, n_points(3)
 
       do j = 0, i_turn
         i0 = indx(j)     ! Point to find nearest neighbors for 
+        dphase_amp_min = 10   ! Something large
+        dphase_long_min = 10  ! Something large
         minus_dir_loop: do j2 = 1, i_turn   ! Loop over all possible nearest neighbors.
           jj = j - j2
           if (jj < 0) then
             jj = jj + i_turn + 1
             i2 = indx(jj)
-            dphase = 1 + s(i0)%orbit_phase(k) - s(i2)%orbit_phase(k)
+            dphase_long = 1 + s(i0)%orbit_phase(k) - s(i2)%orbit_phase(k)
           else
             i2 = indx(jj)
-            dphase = s(i0)%orbit_phase(k) - s(i2)%orbit_phase(k)
+            dphase_long = s(i0)%orbit_phase(k) - s(i2)%orbit_phase(k)
           endif
+          if (dphase_long > 0.5) exit                  ! In +k^th direction, not -k^th.
+          if (dphase_long > 2 * dphase_long_min) exit  ! Cannot possibly be closer
           ! Check if point is in the correct direction
           do k2 = 1, 3
             if (k2 == k) cycle
             if (.not. mode_is_oscillating(k2)) cycle
-            dphase2 = modulo2 (s(i2)%orbit_phase(k2) - s(i0)%orbit_phase(k2), 0.5_rp)
-            if (abs(dphase2) > dphase) cycle minus_dir_loop ! Reject since not in -k^th direction
+            dphase_transverse = modulo2 (s(i2)%orbit_phase(k2) - s(i0)%orbit_phase(k2), 0.5_rp)
+            if (abs(dphase_transverse) > dphase_long) cycle minus_dir_loop ! Reject since not in -k^th direction
           enddo
-          s(i0)%ix_nearest(2*k-1) = i2  ! Found nearest neighbor in -k^th direction
-          exit
+          dphase_amp_this = norm2(phase_diff(s(i0)%orbit_phase - s(i2)%orbit_phase))
+          if (dphase_amp_this > dphase_amp_min) cycle
+          s(i0)%ix_nearest(2*k-1) = i2  ! Found possible nearest neighbor in -k^th direction
+          dphase_amp_min = dphase_amp_this
+          dphase_long_min = dphase_long
         enddo minus_dir_loop
       enddo
 
@@ -343,29 +352,36 @@ do ix_z = 1, n_points(3)
 
       do j = 0, i_turn
         i0 = indx(j)     ! Point to find nearest neighbors for 
+        dphase_amp_min = 10   ! Something large
+        dphase_long_min = 10  ! Something large
         plus_dir_loop: do j2 = 1, i_turn   ! Loop over all possible nearest neighbors.
           jj = j + j2
           if (jj > i_turn) then
             jj = jj - i_turn - 1
             i2 = indx(jj)
-            dphase = 1 + s(i2)%orbit_phase(k) - s(i0)%orbit_phase(k)
+            dphase_long = 1 + s(i2)%orbit_phase(k) - s(i0)%orbit_phase(k)
           else
             i2 = indx(jj)
-            dphase = s(i2)%orbit_phase(k) - s(i0)%orbit_phase(k)
+            dphase_long = s(i2)%orbit_phase(k) - s(i0)%orbit_phase(k)
           endif
+          if (dphase_long > 0.5) exit                  ! In -k^th direction, not +k^th.
+          if (dphase_long > 2 * dphase_long_min) exit  ! Cannot possibly be closer
           ! Check if point is in the correct direction
           do k2 = 1, 3
             if (k2 == k) cycle
             if (.not. mode_is_oscillating(k2)) cycle
-            dphase2 = modulo2 (s(i2)%orbit_phase(k2) - s(i0)%orbit_phase(k2), 0.5_rp)
-            if (abs(dphase2) > dphase) cycle plus_dir_loop ! Reject since not in k^th direction
+            dphase_transverse = modulo2 (s(i2)%orbit_phase(k2) - s(i0)%orbit_phase(k2), 0.5_rp)
+            if (abs(dphase_transverse) > dphase_long) cycle plus_dir_loop ! Reject since not in +k^th direction
           enddo
+          dphase_amp_this = norm2(phase_diff(s(i0)%orbit_phase - s(i2)%orbit_phase))
+          if (dphase_amp_this > dphase_amp_min) cycle
           s(i0)%ix_nearest(2*k) = i2  ! Found nearest neighbor in k^th direction
-          exit
+          dphase_amp_min = dphase_amp_this
+          dphase_long_min = dphase_long
         enddo plus_dir_loop
       enddo
 
-    enddo
+    enddo  ! k = 1, 3
 
     !------------------------------------------------------
     ! Hoffstaetter calc
@@ -422,7 +438,7 @@ do ix_z = 1, n_points(3)
         ! Now compute the invarient spin turn-by-turn from the spin field calculated from the averaged invariant.
 
         do nn = 0, i_turn
-          s(nn)%ave_invar_spin = average_invariant_spin(s(nn), relaxation_weight)  
+          s(nn)%ave_invar_spin = average_invariant_spin(s(nn))
         enddo
 
         do nn = i_turn-1, 0, -1
@@ -697,7 +713,7 @@ do ix_z = 1, n_points(3)
     j_amp(i) = (ele0%value(e_tot$)/mass_of(branch%param%particle)) * delta(i)**2 / ele0%b%beta
   enddo
 
-  write (2, '(3i4, i8, 2x, 3f13.8, 4x, 3es14.6, 5x f11.6, f11.6, 2(5x, 3f11.7))'), ix_xyz, i_turn, &
+  write (2, '(3i4, i8, 2x, 3f13.8, 4x, 3es14.6, 5x f11.6, f11.6, 2(5x, 3f11.7))') ix_xyz, i_turn, &
                             delta, j_amp, spin_tune,  p_lim, ave_invar_spin, s(0)%invar_spin
 
 
@@ -770,12 +786,11 @@ end subroutine calc_phase_space_phase_and_amp
 !------------------------------------------------------------
 ! contains
 
-function average_invariant_spin (s_this, weight) result (invar_spin)
+function average_invariant_spin (s_this) result (invar_spin)
 
 type (spin_track_point_struct) s_this
 real(rp) phase(3), invar_spin(3)
 real(rp) f(3), r, dphase(3)
-integer weight
 integer i, n2, kk, nb(3)
 
 ! Note: This average is weighted and *not* nomalized.
@@ -785,7 +800,7 @@ do kk = 1, 6
   n2 = s_this%ix_nearest(kk)
   if (n2 == -1) cycle
   dphase = phase_diff(s_this%orbit_phase - s(n2)%orbit_phase)
-  r = 1 / max(scatter_norm_cutoff, norm2(dphase))**weight
+  r = 1 / max(scatter_norm_cutoff, norm2(dphase))**relaxation_weight
   invar_spin = invar_spin + r * s(n2)%invar_spin
 enddo
 
@@ -821,7 +836,7 @@ endif
 merit = 0
 num_merit_points = 0
 
- do n = 0, i_turn
+do n = 0, i_turn
   r = 0
   d_spin = 0
   do kk = 1, 6
@@ -912,7 +927,7 @@ integer k
 !
 
 do k = 1, 3
-  if (mode_is_oscillating(k)) then
+  if (mode_is_oscillating(k) .and. use_coordinate_for_phase_diff_calc(k)) then
     diff(k) = modulo2(dphase(k), 0.5_rp)
   else
     diff(k) = 0

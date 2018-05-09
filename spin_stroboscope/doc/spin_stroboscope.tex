@@ -128,6 +128,25 @@ The command line options for \sss are:
 \end{example}
 
 
+Adiabatic
+anti-damping is a technique that exploits the fact that, away from resonances, $\bfS \cdot \bfn$,
+where $\bfS$ is a particle's spin, is an adiabatic invariant\cite{b:hoff.book}. Thus by starting a
+particle on the closed orbit with its spin parallel to $\bfn_0$, the closed orbit invariant spin
+(which is straightforward to compute), and then tracking the particle while slowly increasing the
+orbital amplitude to the point where the phase space ampltitude of interest is reached, the
+particle's spin will remain, more or less, pointing along $\bfn$. Issues with this method include the
+fact that it is not suitable if the particle crosses any resonances as its amplitude is increased
+and the computation time needed for a given accuracy.
+
+Another method for computation of the invariant spin field is the SODOM-2 algorithm\cite{b:sodom2}.
+This method computes $\bfn$ by inverting a matrix equation involving the Fourier components of
+$\bfn$ and the Fourier components of the transport map $\bfRs$.  The number $N$ of components used
+needs to be choisen small enough so that the problem can be solved in a reasonable time yet large
+enough for the solution to be accurate. Computation time problems arrise for orbital motion in more
+than one degree of freedom or for motion near spin-orbit resonances\cite{b:hoff.book}.
+
+
+
 %------------------------------------------------------------------------
 \chapter{Simulation Technique and Physics Models}
 \section{Overview} 
