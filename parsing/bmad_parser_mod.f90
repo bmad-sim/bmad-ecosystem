@@ -176,7 +176,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, wild_and_key0)
+! Subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, wild_and_key0, set_field_master)
 !
 ! Subroutine used by bmad_parser and bmad_parser2 to get the value of
 ! an attribute from the input file and set the appropriate value in an element.
@@ -184,25 +184,28 @@ contains
 ! This subroutine is not intended for general use.
 !
 ! Input:
-!   how           -- Integer: Either def$ if the element is being construct from scratch or
+!   how           -- integer: Either def$ if the element is being construct from scratch or
 !                      redef$ if the element has already been formed and this is part of a
 !                      "ele_name[attrib_name] = value" construct.
-!   check_free    -- Logical, optional: If present and True then an error will be generated
+!   check_free    -- logical, optional: If present and True then an error will be generated
 !                       if the attribute is not free to vary. Used by bmad_parser2.
-!   wild_and_key0 -- Logical, optional: If True (default = False), calling routine is working on
+!   wild_and_key0 -- logical, optional: If True (default = False), calling routine is working on
 !                       something like "*[tracking_method] = runge_kutta". In this case, 
 !                       runge_kutta may not be valid for ele but this is not an error.
+!   set_field_master -- logical, optional: If True (the default) set ele%field_master = T if the
+!                         attribute to be set is something like B_FIELD_ERR. If this routine is being
+!                         called post lattice parsing, setting ele%field_master is *not* wanted.
 !
 ! Output
 !   ele          -- ele_struct: Element whos attribute this is.
-!   delim        -- Character(1): Delimiter found where the parsing of the input line stops.
-!   delim_found  -- Logical: Delimiter found? False if end of input command.
-!   err_flag     -- Logical: Set True if there is a problem parsing the input.
+!   delim        -- character(1): Delimiter found where the parsing of the input line stops.
+!   delim_found  -- logical: Delimiter found? False if end of input command.
+!   err_flag     -- logical: Set True if there is a problem parsing the input.
 !   pele         -- parser_ele_struct, optional: Structure to hold additional 
 !                     information that cannot be stored in the ele argument.
 !-
 
-subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, wild_and_key0)
+subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, wild_and_key0, set_field_master)
 
 use random_mod
 use wall3d_mod
@@ -247,7 +250,7 @@ character(80) str, err_str, line
 
 logical delim_found, err_flag, logic, set_done, end_of_file, do_evaluate, wild_key0
 logical is_attrib, err_flag2, old_style_input, ok
-logical, optional :: check_free, wild_and_key0
+logical, optional :: check_free, wild_and_key0, set_field_master
 
 ! Get next WORD.
 ! If an overlay or group element then word is just an attribute to control
@@ -1877,13 +1880,18 @@ case default   ! normal attribute
           attrib_word == 'PHI_POSITION' .or. attrib_word == 'PSI_POSITION') ele%value(floor_set$) = 1
     else
       ele%value(ix_attrib) = value
-      ix = len_trim(attrib_word)
-      if (ix > 9 .and. index(attrib_word, '_GRADIENT') == ix-8) ele%field_master = .true.
-      if (ix > 6 .and. index(attrib_word, '_FIELD') == ix-5) ele%field_master = .true.
-      if (ix > 10 .and. index(attrib_word, '_FIELD_ERR') == ix-9) ele%field_master = .true.
-      if (attrib_word(1:3) == 'BL_') ele%field_master = .true.
-      if (ele%key == elseparator$ .and. attrib_word == 'VOLTAGE') ele%field_master = .true.
-      if (ele%key == elseparator$ .and. attrib_word == 'E_FIELD') ele%field_master = .true.
+
+      if (logic_option(.true., set_field_master)) then
+        ix = len_trim(attrib_word)
+        if (ix > 9 .and. index(attrib_word, '_GRADIENT') == ix-8) ele%field_master = .true.
+        if (ix > 6 .and. index(attrib_word, '_FIELD') == ix-5) ele%field_master = .true.
+        if (ix > 10 .and. index(attrib_word, '_FIELD_ERR') == ix-9) ele%field_master = .true.
+        if (attrib_word(1:3) == 'BL_') ele%field_master = .true.
+        if (ele%key == elseparator$ .and. attrib_word == 'VOLTAGE') ele%field_master = .true.
+        if (ele%key == elseparator$ .and. attrib_word == 'E_FIELD') ele%field_master = .true.
+      endif
+
+      !
 
       select case (attrib_word)
 
