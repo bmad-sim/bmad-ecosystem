@@ -3,7 +3,7 @@ module ptc_track_with_radiation_mod
 ! Etienne wanted the "zhe" stuff to be standalone and so duplicated structures in 
 
 use ptc_layout_mod
-use duan_zhe_map, only: tree_element_zhe => tree_element, probe_zhe => probe, track_tree_probe_complex_zhe
+use duan_zhe_map, only: tree_element_zhe => tree_element, probe_zhe => probe, track_tree_probe_complex_zhe, zhe_ini
 
 contains
 
