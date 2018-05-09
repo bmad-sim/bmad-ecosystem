@@ -4,6 +4,7 @@ use sim_utils_interface
 use precision_def
 use parallel_mod
 use utilities_mod
+use re_allocate_mod
 
 ! Message levels: Status level flags for messages.
 
@@ -26,8 +27,11 @@ integer, parameter :: s_important$ = 10 ! An important message.
 type output_mod_com_struct
   logical :: do_print(-1:10) = .true.
   integer :: file_unit(-1:10) = -1
-  integer :: post_process(-1:10) = 0
   integer :: indent_num(-1:10) = [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
+  integer :: post_process(-1:10) = 0      ! See output_direct routine documentation.
+  logical :: buffer_on = .false.          ! For storing the output in an internal buffer. See output_buffer_set.
+  integer :: n_buffer_lines = 0
+  character(300), allocatable :: buffer(:)
 end type
 
 type (output_mod_com_struct), save, private :: output_com
@@ -61,8 +65,10 @@ private header_io, find_format, output_lines, insert_numbers, out_io_line_out
 ! Anything that does not look like a valid format construct is ignored.
 ! Thus a literal "\" is allowed if it doesn't look like a valid format.
 !
-! Output can be directed to the terminal and/or a file and/or a routine.
-! The routine do this is: output_direct
+! Output can be directed to the terminal and/or a file and/or a routine and/or a buffer.
+! The routine do this is: 
+!   output_direct
+! See the documentation for this routine for more details.
 !
 ! Normaly a "tag" line is inserted at the top of the message with the error level, the 
 ! routine_name, and a time stamp. Several error levels will modify this behavior.
@@ -121,20 +127,33 @@ contains
 ! Subroutine output_direct (file_unit, do_print, post_process, min_level, max_level)
 !
 ! Subroutine to set where the output goes when out_io is called.
-! Output may be sent to the terminal screen, written to a file, or both.
+! Output may be sent to the terminal screen, written to a file, and/or stored in an internal buffer.
 !
 ! Settings can be made on a message status level by level basis.
-! "getf out_io" will show a list of the message status levels.
+! See the top of this file for the list of the message status levels.
 !
 ! Once set for a given status level, the settings remain until the next call to 
 ! output_direct that cover the same status level.
 ! 
-! The output can be sent to a routine for additional processing. 
-! This is useful, for example, when there is a GUI so that the output can be displayed in a window.
-! There are actually three routines involved here:
+! The post_process argument is used to enable the capture of the output for use by the program using out_io.
+! For example, it may be desired to display the output in a separate window or captured output could be passed
+! to a python process for processing.
+!
+! There are two capture modes: blocked and unblocked output.
+! Unblocked output is used when running multithreaded so that the program does not have to wait for output. For example, with a GUI.
+! Notice capture will only happen after a call to this routine with the post_process argument being non-zero.
+!
+! Unblocked output is the default.
+! With unblocked output, out_io calls three routines:
 !   out_io_called(level, routine_name)  ! Called at the start of a message.
 !   out_io_line(line)                   ! Called for each line of a message.
 !   out_io_end()                        ! Called at end of a message.
+! The versions of these routines in the sim_utils library are just dummies. 
+! The idea is that modified versions of these routines can be used to capture the output. 
+! 
+! Blocked output can be used by calling the routine output_buffer_reset.
+! Blocked output uses an internal buffer to store the output.
+! Output that has been buffered is retrieved by using the routines output_buffer_num_lines and output_buffer_get_line. 
 !
 ! Modules needed:
 !   use output_mod
@@ -144,7 +163,7 @@ contains
 !                      -1 => No writing (initial default setting).
 !   do_print      -- Logical, optional: If True (initial default setting) then 
 !                    print output at the TTY.
-!   post_process  -- Integer, optional: Send info to out_io_called/line/end.
+!   post_process  -- Integer, optional: Send info to internal buffer or to the routines out_io_called/line/end.
 !                      0 => Do not send. [Initial default setting.]
 !                      1 => Do send.
 !                     -1 => Send with char(0) string ending (For sending to C routines.)
@@ -211,15 +230,25 @@ character(len(line)+20) line_out
 line_out = line
 if (logic_option(.true., indent)) line_out = blank(1:output_com%indent_num(level)) // trim(line_out)
 
-! output
+! Output to file
 
 if (output_com%file_unit(level) > -1) write (output_com%file_unit(level), '(a)') trim(line_out)
 
-if (output_com%post_process(level) == 1) then
-  call out_io_line(trim(line_out))
-elseif (output_com%post_process(level) == -1) then
-  call out_io_line(trim(line_out) // char(0))
+! Output for program capture
+
+if (output_com%post_process(level) /= 0) then
+  if (output_com%post_process(level) == -1) line_out = trim(line_out) // char(0)
+  if (output_com%buffer_on) then
+    output_com%n_buffer_lines = output_com%n_buffer_lines + 1
+    if (.not. allocated(output_com%buffer)) allocate (output_com%buffer(20))
+    if (output_com%n_buffer_lines > size(output_com%buffer)) call re_allocate (output_com%buffer, 2*output_com%n_buffer_lines)
+    output_com%buffer(output_com%n_buffer_lines) = line_out
+  else
+    call out_io_line(trim(line_out))
+  endif
 endif
+
+! Output to terminal
 
 if (output_com%do_print(level)) write (*, '(a)') trim(line_out)
 
@@ -629,7 +658,7 @@ end subroutine find_format
 ! Internal routine for output_line4, etc.
 !-
 
-Subroutine header_io (level, routine_name, insert_tag_line)
+subroutine header_io (level, routine_name, insert_tag_line)
 
 implicit none
 
@@ -640,10 +669,12 @@ logical, optional :: insert_tag_line
 
 ! call out_io_called if wanted
 
-if (output_com%post_process(level) == 1) then
-  call out_io_called(level, trim(routine_name))
-elseif (output_com%post_process(level) == -1) then
-  call out_io_called(level, trim(routine_name) // char(0))
+if (.not. output_com%buffer_on) then
+  if (output_com%post_process(level) == 1) then
+    call out_io_called(level, trim(routine_name))
+  elseif (output_com%post_process(level) == -1) then
+    call out_io_called(level, trim(routine_name) // char(0))
+  endif
 endif
 
 ! Output header line
@@ -686,5 +717,84 @@ case (s_important$)
 end select
 
 end subroutine header_io
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine output_buffer_reset (reset)
+!
+! Routine to either initialize the internal buffer for capturing input when out_io is called or to turn off buffering.
+!
+! See the output_direct routine doucmentation for more details.
+! Output that has been buffered is retrieved by using the routines output_buffer_num_lines and output_buffer_get_line.
+!
+! Input:
+!   reset   -- logical, optional: If True (default) then turn on buffering (turn on blocked output) and empty the buffer.
+!                                 If False then turn off buffering (ouput capture is then unblocked).
+!-
+
+subroutine output_buffer_reset (reset)
+
+implicit none
+
+logical, optional :: reset
+
+!
+
+if (logic_option(.true., reset)) then
+  output_com%buffer_on = .true.
+  output_com%n_buffer_lines = 0
+else
+  output_com%buffer_on = .false.
+endif
+
+end subroutine output_buffer_reset
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function output_buffer_num_lines() result (n_lines)
+!
+! Routine to return the nuber of lines in the internal buffer.
+! See the output_direct documentation for more details.
+!
+! Output:
+!   n_line    -- integer: Number of lines of buffered output.
+!-
+
+function output_buffer_num_lines() result (n_lines)
+
+integer n_lines
+n_lines = output_com%n_buffer_lines
+
+end function output_buffer_num_lines
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function output_buffer_get_line(ix_line) result (line)
+!
+! Routine to return the nuber of lines in the internal buffer.
+! See the output_direct documentation for more details.
+!
+! Output:
+!   n_line    -- integer: Number of lines of buffered output.
+!-
+
+function output_buffer_get_line(ix_line) result (line)
+
+integer ix_line
+character(300) line
+
+if (ix_line < 0 .or. output_com%n_buffer_lines < ix_line) then
+  line = 'Garbage!'
+else
+  line = output_com%buffer(ix_line)
+endif
+
+end function output_buffer_get_line
 
 end module
