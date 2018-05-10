@@ -1,6 +1,8 @@
 set(LIBNAME forest)
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
+set (CREATE_SHARED true)
+
 set(INC_DIRS 
   include
 )
