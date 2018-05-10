@@ -112,7 +112,7 @@ end function
 
 function tao_c_out_io_buffer_get_line(n) bind(c) result (c_string_ptr)
 type(c_ptr) :: c_string_ptr
-character(c_char), target :: c_line(n_char_show+1) 
+character(c_char), target, save :: c_line(n_char_show+1) 
 integer(c_int), value :: n
 integer :: i
 
