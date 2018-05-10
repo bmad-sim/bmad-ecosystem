@@ -29,7 +29,7 @@ type output_mod_com_struct
   integer :: file_unit(-1:10) = -1
   integer :: indent_num(-1:10) = [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
   integer :: post_process(-1:10) = 0      ! See output_direct routine documentation.
-  logical :: buffer_on = .false.          ! For storing the output in an internal buffer. See output_buffer_set.
+  logical :: buffer_on = .false.          ! For storing the output in an internal buffer. See out_io_buffer_set.
   integer :: n_buffer_lines = 0
   character(300), allocatable :: buffer(:)
 end type
@@ -151,9 +151,9 @@ contains
 ! The versions of these routines in the sim_utils library are just dummies. 
 ! The idea is that modified versions of these routines can be used to capture the output. 
 ! 
-! Blocked output can be used by calling the routine output_buffer_reset.
+! Blocked output can be used by calling the routine out_io_buffer_reset.
 ! Blocked output uses an internal buffer to store the output.
-! Output that has been buffered is retrieved by using the routines output_buffer_num_lines and output_buffer_get_line. 
+! Output that has been buffered is retrieved by using the routines out_io_buffer_num_lines and out_io_buffer_get_line. 
 !
 ! Modules needed:
 !   use output_mod
@@ -722,19 +722,19 @@ end subroutine header_io
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine output_buffer_reset (reset)
+! Subroutine out_io_buffer_reset (reset)
 !
 ! Routine to either initialize the internal buffer for capturing input when out_io is called or to turn off buffering.
 !
 ! See the output_direct routine doucmentation for more details.
-! Output that has been buffered is retrieved by using the routines output_buffer_num_lines and output_buffer_get_line.
+! Output that has been buffered is retrieved by using the routines out_io_buffer_num_lines and out_io_buffer_get_line.
 !
 ! Input:
 !   reset   -- logical, optional: If True (default) then turn on buffering (turn on blocked output) and empty the buffer.
 !                                 If False then turn off buffering (ouput capture is then unblocked).
 !-
 
-subroutine output_buffer_reset (reset)
+subroutine out_io_buffer_reset (reset)
 
 implicit none
 
@@ -749,13 +749,13 @@ else
   output_com%buffer_on = .false.
 endif
 
-end subroutine output_buffer_reset
+end subroutine out_io_buffer_reset
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function output_buffer_num_lines() result (n_lines)
+! Function out_io_buffer_num_lines() result (n_lines)
 !
 ! Routine to return the nuber of lines in the internal buffer.
 ! See the output_direct documentation for more details.
@@ -764,18 +764,18 @@ end subroutine output_buffer_reset
 !   n_line    -- integer: Number of lines of buffered output.
 !-
 
-function output_buffer_num_lines() result (n_lines)
+function out_io_buffer_num_lines() result (n_lines)
 
 integer n_lines
 n_lines = output_com%n_buffer_lines
 
-end function output_buffer_num_lines
+end function out_io_buffer_num_lines
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function output_buffer_get_line(ix_line) result (line)
+! Function out_io_buffer_get_line(ix_line) result (line)
 !
 ! Routine to return the nuber of lines in the internal buffer.
 ! See the output_direct documentation for more details.
@@ -784,7 +784,7 @@ end function output_buffer_num_lines
 !   n_line    -- integer: Number of lines of buffered output.
 !-
 
-function output_buffer_get_line(ix_line) result (line)
+function out_io_buffer_get_line(ix_line) result (line)
 
 integer ix_line
 character(300) line
@@ -795,6 +795,6 @@ else
   line = output_com%buffer(ix_line)
 endif
 
-end function output_buffer_get_line
+end function out_io_buffer_get_line
 
 end module
