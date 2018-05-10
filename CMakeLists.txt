@@ -22,10 +22,22 @@ set (EXE_SPECS
 
 set(SHARED_DEPS
   bmad
+  sim_utils
+  recipes_f-90_LEPP 
+  ${PLOT_LINK_LIBS}
+  xsif
+  xrlf03
+  xrl
+  forest
+  fgsl
+  gsl
+  gslcblas
   lapack95
   lapack
   blas
-  )
+  X11
+  readline
+)
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   SET (SHARED_DEPS
