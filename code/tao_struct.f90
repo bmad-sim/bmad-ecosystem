@@ -696,9 +696,6 @@ type tao_scratch_space_struct
   real(rp), allocatable :: axis1(:), axis2(:), axis3(:)
   real(rp), allocatable :: x(:), y(:)
   real(rp), allocatable :: y_value(:)
-  character(n_char_show), allocatable :: lines(:) !For returning data to python through strings
-  character(c_char) :: c_line(n_char_show+1)      !For access from c
-  integer :: n_lines
 end type
 
 type (tao_scratch_space_struct), save, target :: scratch

@@ -73,11 +73,10 @@ type (ele_pointer_struct), allocatable, save :: eles(:)
 type (branch_struct), pointer :: branch
 type (tao_universe_branch_struct), pointer :: uni_branch
 type (random_state_struct) ran_state
-type (tao_scratch_space_struct), pointer :: ss
 type (ele_attribute_struct) attrib
 
 character(*) input_str
-character(n_char_show), pointer :: li(:) 
+character(n_char_show), allocatable :: li(:) 
 character(24) imt, rmt, lmt, amt, iamt, vamt, vrmt
 character(40) max_loc, loc_ele, name1(40), name2(40), a_name, name
 character(200) line, file_name
@@ -158,9 +157,6 @@ vamt = '(a, i0, 3a)'
 vrmt = '(a, i0, a, es24.16)'
 
 nl = 0
-ss => scratch
-li => ss%lines
-
 call re_allocate_lines (200)
 
 select case (command)
@@ -642,7 +638,7 @@ case ('global')
 
 case ('help')
 
-  call tao_help ('help-list', '', ss%lines, n)
+  call tao_help ('help-list', '', li, n)
 
   nl2 = 0
   do i = 1, n
@@ -1423,8 +1419,6 @@ contains
 
 subroutine end_stuff()
 
-scratch%n_lines = nl
-
 if (doprint) call out_io (s_blank$, r_name, li(1:nl))
 
 if (opened) then
@@ -1485,7 +1479,7 @@ function incr(n) result (n1)
 integer n, n1
 
 n1 = n + 1
-if (n1 > size(ss%lines)) call re_allocate_lines(int(1.5 * n1))
+if (n1 > size(li)) call re_allocate_lines(int(1.5 * n1))
 
 end function
 
@@ -1496,10 +1490,8 @@ subroutine re_allocate_lines (n_lines)
 
 integer n_lines
 
-if (.not. allocated(ss%lines)) allocate (ss%lines(n_lines))
-if (size(ss%lines) < n_lines) call re_allocate (ss%lines, n_lines)
-
-li => ss%lines
+if (.not. allocated(li)) allocate (li(n_lines))
+if (size(li) < n_lines) call re_allocate (li, n_lines)
 
 end subroutine re_allocate_lines
 
