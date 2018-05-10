@@ -80,7 +80,7 @@ call run_timer('READ', time0)
 if (turn_by_turn_dat_file /= '') then
   open (1, file = turn_by_turn_dat_file, recl = 200)
   write (1, '(a)') '#  Turn           x           px            y           py            z           pz             spin_x       spin_y       spin_z'
-  write (1, '(i9, 6f13.8, 4x, 3f13.8)'), 0, bunch%particle(1)%vec, bunch%particle(1)%spin
+  write (1, '(i9, 6f13.8, 4x, 3f13.8)') 0, bunch%particle(1)%vec, bunch%particle(1)%spin
 endif
 
 call write_snapshot_dat_file (0)
@@ -102,7 +102,7 @@ do n = 1, n_turns
   call write_snapshot_dat_file (n)
 
   if (turn_by_turn_dat_file /= '') then
-    write (1, '(i9, 6f13.8, 4x, 3f13.8)'), n, bunch%particle(1)%vec, bunch%particle(1)%spin
+    write (1, '(i9, 6f13.8, 4x, 3f13.8)') n, bunch%particle(1)%vec, bunch%particle(1)%spin
   endif
 enddo
 
@@ -118,7 +118,7 @@ if (end_dat_file /= '') then
                         '           x           px            y           py            z           pz             spin_x       spin_y       spin_z'
 
   do i = 1, size(bunch%particle)
-    write (1, '(i6, 6f13.8, 4x, 3f13.8, 6x, 6f13.8, 4x, 3f13.8)'), i, &
+    write (1, '(i6, 6f13.8, 4x, 3f13.8, 6x, 6f13.8, 4x, 3f13.8)') i, &
                       bunch_init%particle(i)%vec, bunch_init%particle(i)%spin, &
                       bunch%particle(i)%vec, bunch%particle(i)%spin
   enddo
@@ -154,7 +154,7 @@ open (2, file = file_name)
 write (2, '(a)') '# Ix_particle     x           px            y           py            z           pz             spin_x       spin_y       spin_z'
 
 do ip = 1, size(bunch%particle)
-  write (2, '(i9, 6f13.8, 4x, 3f13.8)'), ip, bunch%particle(ip)%vec, bunch%particle(ip)%spin
+  write (2, '(i9, 6f13.8, 4x, 3f13.8)') ip, bunch%particle(ip)%vec, bunch%particle(ip)%spin
 enddo
 
 end subroutine write_snapshot_dat_file
