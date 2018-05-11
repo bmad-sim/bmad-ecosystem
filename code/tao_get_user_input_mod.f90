@@ -138,7 +138,7 @@ if (n_level == 0) s%com%quiet = .false.  ! Disable if not running from a command
 
 if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
 
-  call output_direct (do_print = s%global%command_file_print_on)
+  call output_direct (print_and_capture = s%global%command_file_print_on)
 
   if (.not. s%com%multi_commands_here) then
     do
@@ -228,7 +228,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
       return 
     endif
   endif
-  call output_direct (do_print = s%com%print_to_terminal)
+  call output_direct (print_and_capture = s%com%print_to_terminal)
 endif
 
 ! Here if no command file is being used.
