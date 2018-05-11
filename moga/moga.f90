@@ -127,7 +127,7 @@ program moga
   logical slaves_done
 
   ! reduce number of error messages
-  call output_direct(do_print=.false., min_level=s_blank$, max_level=s_error$)
+  call output_direct(print_and_capture=.false., min_level=s_blank$, max_level=s_error$)
 
   ! read command line arguments
   call getarg(1,in_file)
