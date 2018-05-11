@@ -24,20 +24,21 @@ integer, parameter :: s_important$ = 10 ! An important message.
 
 ! Where to direct output as a function of message status flag index.
 
-type output_mod_com_struct
-  logical :: do_print(-1:10) = .true.
+type out_io_mod_com_struct
+  logical :: print_and_capture(-1:10) = .true.
   integer :: file_unit(-1:10) = -1
   integer :: indent_num(-1:10) = [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
-  integer :: post_process(-1:10) = 0      ! See output_direct routine documentation.
-  logical :: buffer_on = .false.          ! For storing the output in an internal buffer. See out_io_buffer_set.
+  logical :: print_on = .true.
+  logical :: capture_lines_null_terminated = .true.
   integer :: n_buffer_lines = 0
   character(300), allocatable :: buffer(:)
+  character(16) :: capture_state = 'OFF'          ! See out_io_print_and_capture_setup
 end type
 
-type (output_mod_com_struct), save, private :: output_com
+type (out_io_mod_com_struct), save, private :: out_io_com
 
-private output_line6, output_int, output_real, output_logical
-private header_io, find_format, output_lines, insert_numbers, out_io_line_out
+private out_io_line6, out_io_int, out_io_real, out_io_logical
+private header_io, find_format, out_io_lines, insert_numbers, out_io_line_out
 
 !+
 ! Subroutine out_io
@@ -47,11 +48,11 @@ private header_io, find_format, output_lines, insert_numbers, out_io_line_out
 ! can be redirected from the terminal to where ever the gui wants it to go.
 !
 ! This routine is an overloaded name for:
-!   output_real (level, routine_name, line, r_num, insert_tag_line)
-!   output_int (level, routine_name, line, i_num, insert_tag_line)
-!   output_logical (level, routine_name, line, l_num, insert_tag_line)
-!   output_lines (level, routine_name, lines, r_array, i_array, l_array, insert_tag_line)
-!   output_line6 (level, routine_name, line1, line2, line3, line4, line5, line6, &
+!   out_io_real (level, routine_name, line, r_num, insert_tag_line)
+!   out_io_int (level, routine_name, line, i_num, insert_tag_line)
+!   out_io_logical (level, routine_name, line, l_num, insert_tag_line)
+!   out_io_lines (level, routine_name, lines, r_array, i_array, l_array, insert_tag_line)
+!   out_io_line6 (level, routine_name, line1, line2, line3, line4, line5, line6, &
 !                                          r_array, i_array, l_array, insert_tag_line)
 !
 ! Numbers are encoded in lines using the syntax "\<fmt>\" 
@@ -111,11 +112,11 @@ private header_io, find_format, output_lines, insert_numbers, out_io_line_out
 !-
 
 interface out_io
-  module procedure output_line6
-  module procedure output_lines
-  module procedure output_real
-  module procedure output_int
-  module procedure output_logical
+  module procedure out_io_line6
+  module procedure out_io_lines
+  module procedure out_io_real
+  module procedure out_io_int
+  module procedure out_io_logical
 end interface
 
 contains
@@ -124,10 +125,10 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine output_direct (file_unit, do_print, post_process, min_level, max_level)
+! Subroutine output_direct (file_unit, print_and_capture, min_level, max_level)
 !
 ! Subroutine to set where the output goes when out_io is called.
-! Output may be sent to the terminal screen, written to a file, and/or stored in an internal buffer.
+! Output may be sent to the terminal screen, written to a file, and/or captured for program use.
 !
 ! Settings can be made on a message status level by level basis.
 ! See the top of this file for the list of the message status levels.
@@ -135,65 +136,33 @@ contains
 ! Once set for a given status level, the settings remain until the next call to 
 ! output_direct that cover the same status level.
 ! 
-! The post_process argument is used to enable the capture of the output for use by the program using out_io.
-! For example, it may be desired to display the output in a separate window or captured output could be passed
-! to a python process for processing.
-!
-! There are two capture modes: blocked and unblocked output.
-! Unblocked output is used when running multithreaded so that the program does not have to wait for output. For example, with a GUI.
-! Notice capture will only happen after a call to this routine with the post_process argument being non-zero.
-!
-! Unblocked output is the default.
-! With unblocked output, out_io calls three routines:
-!   out_io_called(level, routine_name)  ! Called at the start of a message.
-!   out_io_line(line)                   ! Called for each line of a message.
-!   out_io_end()                        ! Called at end of a message.
-! The versions of these routines in the sim_utils library are just dummies. 
-! The idea is that modified versions of these routines can be used to capture the output. 
-! 
-! Blocked output can be used by calling the routine out_io_buffer_reset.
-! Blocked output uses an internal buffer to store the output.
-! Output that has been buffered is retrieved by using the routines out_io_buffer_num_lines and out_io_buffer_get_line. 
-!
 ! Modules needed:
 !   use output_mod
 !
 ! Input:
-!   file_unit     -- Integer, optional: Unit number for writing to a file. 
-!                      -1 => No writing (initial default setting).
-!   do_print      -- Logical, optional: If True (initial default setting) then 
-!                    print output at the TTY.
-!   post_process  -- Integer, optional: Send info to internal buffer or to the routines out_io_called/line/end.
-!                      0 => Do not send. [Initial default setting.]
-!                      1 => Do send.
-!                     -1 => Send with char(0) string ending (For sending to C routines.)
-!   min_level     -- Integer, optional: Minimum message status level to apply to. 
-!                      Default is s_blank$
-!   max_level     -- Integer, optional: Maximum message status level to apply to. 
-!                      Default is s_important$
+!   file_unit         -- integer, optional: Unit number for writing to a file. 
+!                         -1 => No writing (initial default setting).
+!   print_and_capture -- logical, optional: If present then this sets whether output is printed to the terminal and/or 
+!                          captured for program use. See the out_io_print_and_caputure_setup routine documentation for more details.
+!   min_level         -- integer, optional: Minimum message status level to apply to.
+!                          Default is s_blank$
+!   max_level         -- integer, optional: Maximum message status level to apply to.
+!                          Default is s_important$
 !-
 
-subroutine output_direct (file_unit, do_print, post_process, min_level, max_level)
+subroutine output_direct (file_unit, print_and_capture, min_level, max_level)
 
 implicit none
 
-logical, optional :: do_print
-integer, optional :: file_unit, post_process, min_level, max_level
+logical, optional :: print_and_capture
+integer, optional :: file_unit, min_level, max_level
 integer i
 
 !
 
-if (present(post_process)) then
-  if (post_process > 1 .or. post_process < -1) then
-    print *, 'OUTPUT_DIRECT: SHOULD NOT BE HERE!'
-    if (global_com%exit_on_error) call err_exit
-  endif
-endif
-
 do i = integer_option(s_blank$, min_level), integer_option(s_important$, max_level)
-  if (present(post_process)) output_com%post_process(i) = post_process
-  if (present(do_print))   output_com%do_print(i)   = do_print
-  if (present(file_unit))  output_com%file_unit(i)  = file_unit
+  if (present(print_and_capture)) out_io_com%print_and_capture(i) = print_and_capture
+  if (present(file_unit))           out_io_com%file_unit(i)  = file_unit
 enddo
 
 end subroutine output_direct
@@ -228,29 +197,30 @@ character(len(line)+20) line_out
 ! compose string
 
 line_out = line
-if (logic_option(.true., indent)) line_out = blank(1:output_com%indent_num(level)) // trim(line_out)
+if (logic_option(.true., indent)) line_out = blank(1:out_io_com%indent_num(level)) // trim(line_out)
 
 ! Output to file
 
-if (output_com%file_unit(level) > -1) write (output_com%file_unit(level), '(a)') trim(line_out)
-
-! Output for program capture
-
-if (output_com%post_process(level) /= 0) then
-  if (output_com%post_process(level) == -1) line_out = trim(line_out) // char(0)
-  if (output_com%buffer_on) then
-    output_com%n_buffer_lines = output_com%n_buffer_lines + 1
-    if (.not. allocated(output_com%buffer)) allocate (output_com%buffer(20))
-    if (output_com%n_buffer_lines > size(output_com%buffer)) call re_allocate (output_com%buffer, 2*output_com%n_buffer_lines)
-    output_com%buffer(output_com%n_buffer_lines) = line_out
-  else
-    call out_io_line(trim(line_out))
-  endif
-endif
+if (out_io_com%file_unit(level) > -1) write (out_io_com%file_unit(level), '(a)') trim(line_out)
 
 ! Output to terminal
 
-if (output_com%do_print(level)) write (*, '(a)') trim(line_out)
+if (out_io_com%print_and_capture(level) .and. out_io_com%print_on) write (*, '(a)') trim(line_out)
+
+! Output for program capture
+
+if (out_io_com%print_and_capture(level) .and. out_io_com%capture_state == 'BUFFERED') then
+  if (out_io_com%capture_lines_null_terminated) line_out = trim(line_out) // char(0)
+  out_io_com%n_buffer_lines = out_io_com%n_buffer_lines + 1
+  if (.not. allocated(out_io_com%buffer)) allocate (out_io_com%buffer(20))
+  if (out_io_com%n_buffer_lines > size(out_io_com%buffer)) call re_allocate (out_io_com%buffer, 2*out_io_com%n_buffer_lines)
+  out_io_com%buffer(out_io_com%n_buffer_lines) = line_out
+endif
+
+if (out_io_com%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') then
+  if (out_io_com%capture_lines_null_terminated) line_out = trim(line_out) // char(0)
+  call out_io_line(trim(line_out))
+endif
 
 end subroutine out_io_line_out
 
@@ -258,13 +228,13 @@ end subroutine out_io_line_out
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine output_real (level, routine_name, line, r_num, insert_tag_line)
+! Subroutine out_io_real (level, routine_name, line, r_num, insert_tag_line)
 !
 ! Subroutine to print to the terminal for command line type programs.
 ! This routine is overloaded by the routine: out_io. See out_io for more details.
 !-
 
-subroutine output_real (level, routine_name, line, r_num, insert_tag_line)
+subroutine out_io_real (level, routine_name, line, r_num, insert_tag_line)
 
 implicit none
 
@@ -292,21 +262,21 @@ else
   call out_io_line_out (line, level, logic_option(.true., insert_tag_line))
 endif
 
-if (output_com%post_process(level) /= 0) call out_io_end()
+if (out_io_com%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
 
-end subroutine output_real
+end subroutine out_io_real
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine output_int (level, routine_name, line, i_num, insert_tag_line)
+! Subroutine out_io_int (level, routine_name, line, i_num, insert_tag_line)
 !
 ! Subroutine to print to the terminal for command line type programs.
 ! This routine is overloaded by the routine: out_io. See out_io for more details.
 !-
 
-subroutine output_int (level, routine_name, line, i_num, insert_tag_line)
+subroutine out_io_int (level, routine_name, line, i_num, insert_tag_line)
 
 implicit none
 
@@ -334,21 +304,21 @@ else
   call out_io_line_out(line, level, logic_option(.true., insert_tag_line))
 endif
 
-if (output_com%post_process(level) /= 0) call out_io_end()
+if (out_io_com%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
 
-end subroutine output_int
+end subroutine out_io_int
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine output_logical (level, routine_name, line, l_num, insert_tag_line)
+! Subroutine out_io_logical (level, routine_name, line, l_num, insert_tag_line)
 !
 ! Subroutine to print to the terminal for command line type programs.
 ! This routine is overloaded by the routine: out_io. See out_io for more details.
 !-
 
-subroutine output_logical (level, routine_name, line, l_num, insert_tag_line)
+subroutine out_io_logical (level, routine_name, line, l_num, insert_tag_line)
 
 implicit none
 
@@ -376,22 +346,22 @@ else
   call out_io_line_out(line, level, logic_option(.true., insert_tag_line))
 endif
 
-if (output_com%post_process(level) /= 0) call out_io_end()
+if (out_io_com%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
 
-end subroutine output_logical
+end subroutine out_io_logical
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine output_line6 (level, routine_name, line1, line2, line3, line4, line5, line6, &
+! Subroutine out_io_line6 (level, routine_name, line1, line2, line3, line4, line5, line6, &
 !                                                      r_array, i_array, l_array, insert_tag_line)
 !
 ! Subroutine to print to the terminal for command line type programs.
 ! This routine is overloaded by the routine: out_io. See out_io for more details.
 !-
 
-subroutine output_line6 (level, routine_name, line1, line2, line3, line4, line5, line6, &
+subroutine out_io_line6 (level, routine_name, line1, line2, line3, line4, line5, line6, &
                                                        r_array, i_array, l_array, insert_tag_line)
 
 implicit none
@@ -421,7 +391,7 @@ if (present(line4)) call insert_numbers (level, fmt, nr, ni, nl, line4, r_array,
 if (present(line5)) call insert_numbers (level, fmt, nr, ni, nl, line5, r_array, i_array, l_array, insert_tag_line)
 if (present(line6)) call insert_numbers (level, fmt, nr, ni, nl, line6, r_array, i_array, l_array, insert_tag_line)
 
-if (output_com%post_process(level) /= 0) call out_io_end()
+if (out_io_com%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
 
 end subroutine
 
@@ -429,13 +399,13 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine output_lines (level, routine_name, lines, r_array, i_array, l_array, insert_tag_line)
+! Subroutine out_io_lines (level, routine_name, lines, r_array, i_array, l_array, insert_tag_line)
 !
 ! Subroutine to print to the terminal for command line type programs.
 ! This routine is overloaded by the routine: out_io. See out_io for more details.
 !-
 
-subroutine output_lines (level, routine_name, lines, r_array, i_array, l_array, insert_tag_line)
+subroutine out_io_lines (level, routine_name, lines, r_array, i_array, l_array, insert_tag_line)
 
 implicit none
 
@@ -460,9 +430,9 @@ do i = 1, size(lines)
   call insert_numbers (level, fmt, nr, ni, nl, lines(i), r_array, i_array, l_array, insert_tag_line)
 enddo
 
-if (output_com%post_process(level) /= 0) call out_io_end()
+if (out_io_com%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
 
-end subroutine output_lines
+end subroutine out_io_lines
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -655,7 +625,7 @@ end subroutine find_format
 !+
 ! Subroutine header_io (level, routine_name, insert_tag_line)
 !
-! Internal routine for output_line4, etc.
+! Internal routine for out_io_line4, etc.
 !-
 
 subroutine header_io (level, routine_name, insert_tag_line)
@@ -669,11 +639,11 @@ logical, optional :: insert_tag_line
 
 ! call out_io_called if wanted
 
-if (.not. output_com%buffer_on) then
-  if (output_com%post_process(level) == 1) then
-    call out_io_called(level, trim(routine_name))
-  elseif (output_com%post_process(level) == -1) then
+if (out_io_com%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') then
+  if (out_io_com%capture_lines_null_terminated) then
     call out_io_called(level, trim(routine_name) // char(0))
+  else
+    call out_io_called(level, trim(routine_name))
   endif
 endif
 
@@ -722,32 +692,89 @@ end subroutine header_io
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine out_io_buffer_reset (reset)
+! Subroutine out_io_print_and_capture_setup (print_on, capture_state, capture_add_null)
 !
-! Routine to either initialize the internal buffer for capturing input when out_io is called or to turn off buffering.
+! Set whether a message from a call to out_io is sent to the terminal for printing and/or captured for program use.
 !
-! See the output_direct routine doucmentation for more details.
-! Output that has been buffered is retrieved by using the routines out_io_buffer_num_lines and out_io_buffer_get_line.
+! Capture may be desired, for example, to display the output in a separate window or captured output could be passed
+! to a python process for processing.
+!
+! The procedure for how a message is handled is as follows: 
+!   First: When out_io is called, the message level is used to determine if anything is to be printed or captured at all.
+!     When a program is started, everything will pass this test for printing and/or capturing. 
+!     This behavior can be modified by by calls to the output_direct routine.
+!   Second: If a message is to be printed and/or captured (passes the first step), then the internal print_on flag is used
+!     to determine if printing to the terminal and the internal capture_state flag is used to determine if capture is
+!     to be done. The initial setting of these flags is print_on = True and capture_state = 'OFF'.
+!     These internal flags can be set using the print_on and capture_state arguments of this routine.
+!
+! Notice that whether a message is also written to a file is independent of print and capture logic (see output_direct for more details).
+!
+! There are two capture modes. buffered (blocked) and unbuffered (unblocked) output.
+! If a message is to be captured as outlined above, one and only one capture mode is used
+!
+! Unbuffered output is used when running multithreaded so that the program does not have to wait for output. For example, with a GUI.
+! With unbuffered output, out_io calls three routines:
+!   out_io_called(level, routine_name)  ! Called at the start of a message.
+!   out_io_line(line)                   ! Called for each line of a message.
+!   out_io_end()                        ! Called at end of a message.
+! The versions of these routines in the sim_utils library are just dummies. 
+! The idea is that modified versions of these routines can be used to capture the output. 
+! 
+! Buffered output uses an internal buffer to store the output.
+! Output that has been buffered is retrieved by using the routines:
+!   out_io_buffer_reset
+!   out_io_buffer_num_lines and 
+!   out_io_buffer_get_line
 !
 ! Input:
-!   reset   -- logical, optional: If True (default) then turn on buffering (turn on blocked output) and empty the buffer.
-!                                 If False then turn off buffering (ouput capture is then unblocked).
+!   print_on          -- logical, optional: If present, set the internal print_on flag to the value of this argument.
+!   capture_state     -- character(*), optional: If present, set the internal capture_state to the value of this argument. 
+!                        Possible values:
+!                         'OFF'         -- Messages are not captured.
+!                         'BUFFERED'    -- Buffered capture is done.
+!                         'UNBUFFERED'  -- Unbuffered capter is done.
+!   capture_add_null  -- logical, optional: Is captured output null terminated (for interfacing with C/C++)?
 !-
 
-subroutine out_io_buffer_reset (reset)
+subroutine out_io_print_and_capture_setup (print_on, capture_state, capture_add_null)
+
+logical, optional :: print_on, capture_add_null
+character(*), optional :: capture_state
+
+!
+
+if (present(print_on))          out_io_com%print_on = print_on
+if (present(capture_add_null))  out_io_com%capture_lines_null_terminated = capture_add_null
+
+if (present(capture_state)) then
+  select case (capture_state)
+  case ('OFF', 'BUFFERED', 'UNBUFFERED')
+    out_io_com%capture_state = capture_state
+  case default
+    print *, 'OUT_IO_PRINT_AND_CAPTURE_SETUP: SHOULD NOT BE HERE!'
+    if (global_com%exit_on_error) call err_exit
+  end select
+endif
+
+end subroutine out_io_print_and_capture_setup
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine out_io_buffer_reset ()
+!
+! Routine to initialize the capture internal buffer.
+!-
+
+subroutine out_io_buffer_reset ()
 
 implicit none
 
-logical, optional :: reset
-
 !
 
-if (logic_option(.true., reset)) then
-  output_com%buffer_on = .true.
-  output_com%n_buffer_lines = 0
-else
-  output_com%buffer_on = .false.
-endif
+out_io_com%n_buffer_lines = 0
 
 end subroutine out_io_buffer_reset
 
@@ -767,7 +794,7 @@ end subroutine out_io_buffer_reset
 function out_io_buffer_num_lines() result (n_lines)
 
 integer n_lines
-n_lines = output_com%n_buffer_lines
+n_lines = out_io_com%n_buffer_lines
 
 end function out_io_buffer_num_lines
 
@@ -789,10 +816,10 @@ function out_io_buffer_get_line(ix_line) result (line)
 integer ix_line
 character(300) line
 
-if (ix_line < 0 .or. output_com%n_buffer_lines < ix_line) then
+if (ix_line < 0 .or. out_io_com%n_buffer_lines < ix_line) then
   line = 'Garbage!'
 else
-  line = output_com%buffer(ix_line)
+  line = out_io_com%buffer(ix_line)
 endif
 
 end function out_io_buffer_get_line
