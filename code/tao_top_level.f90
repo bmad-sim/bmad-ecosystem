@@ -60,7 +60,7 @@ u => s%u(1)  ! Used for debugging
 ! if (.not. s%mpi%master) then 
 !   ! Turn off screen output
 !   s%com%print_to_terminal = .false.
-!   call output_direct( do_print = .false.)
+!   call output_direct( print_and_capture = .false.)
 ! endif
 
 ! Command loop

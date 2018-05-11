@@ -70,14 +70,14 @@ if (s%com%log_startup) then
   open (iu_log, file = 'tao_init.log', action = 'write', iostat = ios)
   if (ios == 0) then
     call out_io (s_dinfo$, r_name, 'Opening initialization logging file: tao_init.log')
-    call output_direct (iu_log, .true., 0, s_blank$, s_abort$)
-    call output_direct (iu_log, .false., 0, s_blank$, s_success$) ! Do not print 
+    call output_direct (iu_log, .true., s_blank$, s_abort$)
+    call output_direct (iu_log, .false., s_blank$, s_success$) ! Do not print 
   else
     iu_log = -1
     call out_io (s_error$, r_name, 'NOTE: Cannot open a file for logging initialization messages')
   endif
 else
-  call output_direct (-1, .false., 0, s_blank$, s_success$) ! Do not print 
+  call output_direct (-1, .false., s_blank$, s_success$) ! Do not print 
 endif
 
 ! Open the init file.
@@ -94,7 +94,7 @@ if (s%com%init_tao_file /= '') then
   if (iu == 0) then ! If open failure
     call out_io (s_info$, r_name, 'Tao initialization file not found.')
     if (s%com%lat_file == '' .or. s%com%init_tao_file_arg_set) then
-      call output_direct (-1, do_print=s%com%print_to_terminal)
+      call output_direct (-1, print_and_capture=s%com%print_to_terminal)
       call out_io (s_blank$, r_name, &
               'Note: To run Tao, you either need a Tao initialization file or', &
               '  use a lattice file using the syntax "tao -lat <lat_file_name>".', &
@@ -226,7 +226,7 @@ call tao_init_plotting (plot_file)
 ! Need to do this before calling tao_lattice_calc since we don't want to supress these messages.
 
 if (iu_log > -1) close (iu_log)
-call output_direct (-1, do_print=s%com%print_to_terminal)
+call output_direct (-1, print_and_capture=s%com%print_to_terminal)
 
 ! Set up model and base lattices.
 ! Must first transfer to model lattice for tao_lattice_calc to run.

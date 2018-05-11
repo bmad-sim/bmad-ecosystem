@@ -108,14 +108,14 @@ if (nl > 0) then
   if (result_id == 'ERROR') then
     call out_io (s_error$, r_name, lines(1:nl))
   else
-    call output_direct (do_print = doprint)
+    call output_direct (print_and_capture = doprint)
     call out_io (s_blank$, r_name, lines(1:nl))
   endif
 endif
 
 ! Finish
 
-call output_direct (-1, do_print=s%com%print_to_terminal)  ! reset to not write to a file
+call output_direct (-1, print_and_capture=s%com%print_to_terminal)  ! reset to not write to a file
 
 if (opened) then
   close (iu)

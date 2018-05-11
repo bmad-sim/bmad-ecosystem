@@ -65,7 +65,7 @@ call out_io (s_blank$, r_name, line)
 
 !MPI if (s%mpi%on) then
 !MPI  ! Turn off printing to screen for slaves
-!MPI  !if ( s%mpi%rank /= 0 ) call output_direct( do_print = .false.)
+!MPI  !if ( s%mpi%rank /= 0 ) call output_direct(print_and_capture = .false.)
 !MPI  merit = opti_de_mpi(var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
 !MPI else
   merit = opti_de (var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
