@@ -122,6 +122,22 @@ integer :: i
 i = n
 c_line = c_string(out_io_buffer_get_line(i))
 c_string_ptr = c_loc(c_line(1)) ! must point to (1) to avoid gfortran compiler error
-end function
+
+end function tao_c_out_io_buffer_get_line
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+ 
+! Subroutine tao_c_out_io_buffer_reset() bind(c)
+!
+! Routine to reset the out_io buffer.
+!-
+
+subroutine tao_c_out_io_buffer_reset() bind(c)
+
+call out_io_buffer_reset()
+
+end subroutine tao_c_out_io_buffer_reset
 
 end module tao_c_interface_mod
