@@ -2,6 +2,8 @@ module spline_mod
 
 use sim_utils
 
+implicit none
+
 ! Given a spline s and some point x_eval, y_spline is:
 !   y_spline = Sum: s%coef(i) * dx**i, i = [0:3]
 ! where dx = x_eval - s%x0 
@@ -12,7 +14,7 @@ type spline_struct
   real(rp) :: coef(0:3) = 0      ! coefficients for cubic spline
 end type
 
-private akima_spline_coef23_calc, akima_spline_slope_calc
+private akima_spline_coef23_calc, akima_spline_slope_calc, bracket_index_for_spline
 
 contains
 
@@ -41,8 +43,6 @@ contains
 
 subroutine create_a_spline (spline, r0, r1, slope0, slope1)
 
-implicit none
-
 type (spline_struct) spline
 real(rp) r0(:), r1(:), slope0, slope1, dx, dy
 
@@ -68,9 +68,124 @@ spline%coef(1) = slope0
 spline%coef(2) = (3*dy / dx - 2*slope0 - slope1) / dx
 spline%coef(3) = (slope0 + slope1 - 2*dy / dx) / (dx**2)
 
-
-
 end subroutine create_a_spline
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+!+
+! Subroutine spline_akima_interpolate (x_knot, y_knot, x, ok, y, dy)
+!
+! Routine to interpolate using an akima spline. 
+!
+! When evaluating at enough points, this routine is slower than calling spline_akima to
+! first evaluate the spline coefficients and then repeatedly calling spline_evaluate.
+!
+! The advantage of this routine is that only the (x, y) knot points need to be stored
+! and it will be faster if the number of evaluations is small.
+!
+! Input:
+!   x_knot(:)   -- real(rp): Array of x values for the knot points. 
+!                    Must have more than 2 points and be in asending order.
+!   y_knot(:)   -- real(rp): Array of y values for the knot points. Must be same size as x_knot(:).
+!   x           -- real(rp): Point to evaluate at.
+!
+! Output:
+!   ok        -- Logical: Set .true. if everything ok, That is, x is within the spline range.
+!   y         -- Real(rp), optional: Spline interpolation.
+!   dy        -- Real(rp), optional: Spline derivative interpolation.
+!-
+
+subroutine spline_akima_interpolate (x_knot, y_knot, x, ok, y, dy)
+
+type (spline_struct) spline(3), spline0
+
+real(rp) x_knot(:), y_knot(:)
+real(rp) x
+real(rp), optional :: y, dy
+real(rp) slope(5), slope0, slope1
+
+integer ix0, ix_min, ix_max, n
+logical ok
+
+! Check if x value out of bounds.
+          
+ok = bracket_index_for_spline(x_knot, x, ix0)
+if (.not. ok) return
+
+! And evaluate...
+! If up to three points
+
+n = size(x_knot)
+if (n < 4) then
+  spline(1:n)%x0 = x_knot
+  spline(1:n)%y0 = y_knot
+  call spline_akima (spline(1:n), ok)
+  if (.not. ok) return
+  call spline_evaluate (spline(1:n), x, ok, y, dy)
+  return
+endif
+
+! Regular case
+
+if (ix0 == 1) then
+  slope(3:5) = (y_knot(2:4) - y_knot(1:3)) / (x_knot(2:4) - x_knot(1:3))
+  slope(2) = 2*slope(3) - slope(4)
+  slope(1) = 2*slope(2) - slope(3)
+
+elseif (ix0 == 2) then
+  if (n == 4) then
+    slope(2:4) = (y_knot(2:4) - y_knot(1:3)) / (x_knot(2:4) - x_knot(1:3))
+    slope(5) = 2*slope(4) - slope(3)
+  else
+    slope(2:5) = (y_knot(2:5) - y_knot(1:4)) / (x_knot(2:5) - x_knot(1:4))
+  endif
+  slope(1) = 2*slope(2) - slope(3)
+
+elseif (ix0 == n - 2) then
+  slope(1:4) = (y_knot(n-3:n) - y_knot(n-4:n-1)) / (x_knot(n-3:n) - x_knot(n-4:n-1))
+  slope(5) = 2*slope(4) - slope(3)
+
+elseif (ix0 == n - 1) then
+  slope(1:3) = (y_knot(n-2:n) - y_knot(n-3:n-1)) / (x_knot(n-2:n) - x_knot(n-3:n-1))
+  slope(4) = 2*slope(3) - slope(2)
+  slope(5) = 2*slope(4) - slope(3)
+
+else
+  slope(1:5) = (y_knot(ix0-1:ix0+3) - y_knot(ix0-2:ix0+2)) / (x_knot(ix0-1:ix0+3) - x_knot(ix0-2:ix0+2))
+endif
+
+!
+
+slope0 = this_slope_calc(slope(1:4))
+slope1 = this_slope_calc(slope(2:5))
+call create_a_spline (spline0, [x_knot(ix0), y_knot(ix0)], [x_knot(ix0+1), y_knot(ix0+1)], slope0, slope1)
+
+if (present(y))  y  = spline1 (spline0, x)
+if (present(dy)) dy = spline1 (spline0, x, 1)
+
+!----------------------------------------------------------
+contains
+
+function this_slope_calc(m) result (this_slope)
+
+real(rp) m(4), this_slope
+real(rp) m43, m21
+
+!
+
+if (m(1) == m(2) .and. m(3) == m(4)) then  ! special case
+  this_slope = (m(2) + m(3)) / 2
+else
+  m43 = abs(m(4) - m(3))
+  m21 = abs(m(2) - m(1)) 
+  this_slope = (m43 * m(2) + m21 * m(3)) / (m43 + m21)
+endif
+
+end function this_slope_calc
+
+
+end subroutine spline_akima_interpolate 
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -78,8 +193,12 @@ end subroutine create_a_spline
 !+
 ! Subroutine spline_evaluate (spline, x, ok, y, dy)
 !
-! Subroutine to evalueate a spline at a set of points. 
-! Also see spline1
+! Subroutine to evalueate a spline at a set of points.
+!
+! A point outside of the range of knot points is an error.
+! Also see: 
+!   spline1
+!   spline_akima_interpolate
 !
 ! A spline may be generated using, for example, the spline_akima routine.
 !
@@ -91,56 +210,76 @@ end subroutine create_a_spline
 !   x         -- Real(rp): point for evaluation.
 !
 ! Output:
-!   ok        -- Logical: Set .true. if everything ok
+!   ok        -- Logical: Set .true. if everything ok. That is, x is within the spline range.
 !   y         -- Real(rp), optional: Spline interpolation.
 !   dy        -- Real(rp), optional: Spline derivative interpolation.
-!
-! Note:
-!   The point x must lie between spline(1)%x0 and spline(max)%x0
 !-
 
 subroutine spline_evaluate (spline, x, ok, y, dy)
-
-implicit none
 
 type (spline_struct), target :: spline(:)
 
 real(rp) :: x
 real(rp), optional :: y, dy
 
-real(rp) eps
-
 integer ix0, ix_max
-                  
-logical ok       
-character(16) :: r_name = 'spline_evaluate'
+logical ok
 
 ! Check if x value out of bounds.
           
+ok = bracket_index_for_spline(spline%x0, x, ix0)
+if (.not. ok) return
+
+! And evaluate
+
+if (present(y))  y  = spline1 (spline(ix0), x)
+if (present(dy)) dy = spline1 (spline(ix0), x, 1)
+
+end subroutine spline_evaluate
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+!+
+! Function bracket_index_for_spline (x_knot, x, ix0) result (ok)
+!
+! Routine for internal use only.
+!-
+
+function bracket_index_for_spline (x_knot, x, ix0) result (ok)
+
+real(rp) x_knot(:), x
+real(rp) eps
+
+integer ix0, ix_max
+logical ok
+
+character(*), parameter :: r_name = 'bracket_index_for_spline'
+
+!
+
 ok = .false.
 
-ix_max = ubound(spline(:), 1)
-eps = 1d-6 * (spline(ix_max)%x0 - spline(1)%x0)   ! something small
+ix_max = size(x_knot)
+eps = 1d-6 * (x_knot(ix_max) - x_knot(1))   ! something small
 
-if (x < spline(1)%x0 - eps) then
+if (x < x_knot(1) - eps) then
   call out_io (s_error$, r_name, 'X EVALUATION POINT LESS THAN LOWER BOUND OF SPLINE INTERVAL')
   return
 endif
                               
-if (x > spline(ix_max)%x0 + eps) then
+if (x > x_knot(ix_max) + eps) then
   call out_io (s_error$, r_name, 'X EVALUATION POINT GREATER THAN UPPER BOUND OF SPLINE INTERVAL')
   return
 endif
 
-! Find correct interval and evaluate
-
-call bracket_index (spline%x0, 1, ix_max, x, ix0)
-if (present(y))  y  = spline1 (spline(ix0), x)
-if (present(dy)) dy = spline1 (spline(ix0), x, 1)
+call bracket_index (x_knot, 1, ix_max, x, ix0)
+if (ix0 == 0) ix0 = 1
+if (ix0 == ix_max) ix0 = ix_max - 1
 
 ok = .true.
 
-end subroutine spline_evaluate
+end function bracket_index_for_spline
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -149,7 +288,9 @@ end subroutine spline_evaluate
 ! Function spline1 (a_spline, x, n) result (y)
 !
 ! Function for spline evaluation using a single spline (instead of a spline array).
-! Also see: spline_evaluate
+! Also see: 
+!   spline_evaluate
+!   spline_akima_interpolate
 !
 ! Modules used:
 !   use spline_mod
@@ -165,8 +306,6 @@ end subroutine spline_evaluate
 !-
 
 function spline1 (a_spline, x, n) result (y)
-
-implicit none
 
 type (spline_struct), target :: a_spline
 
@@ -213,7 +352,8 @@ end function spline1
 ! This subroutine computes the semi-hermite cubic spline developed by 
 ! Hiroshi Akima. The spline goes thorugh all the points (that is, it is 
 ! not a smoothing spline). For interpolation use:
-!           spline_evaluate
+!   spline_evaluate
+!   spline_akima_interpolate ! You do not need to call spline_akima if you use this routine.
 !
 ! Reference: 
 !   H Akima, "A New Method of Interpolation and Smooth Curve Fitting Based 
@@ -236,8 +376,6 @@ end function spline1
 
 subroutine spline_akima (spline, ok)
 
-implicit none
-
 type (spline_struct) :: spline(:)
 
 real(rp) y21, y32, x21, x32, x221, x232
@@ -251,7 +389,7 @@ character(*), parameter :: r_name = 'spline_akima'
 ! init
                      
 ok = .false.  ! assume the worst
-nmax = ubound(spline, 1)
+nmax = size(spline)
 
 if (nmax < 2) then
   call out_io (s_error$, r_name, 'LESS THAN 2 DATA POINTS USED!')
@@ -334,8 +472,6 @@ end subroutine spline_akima
 
 subroutine end_akima_spline_calc (spline, which_end)
 
-implicit none
-
 type (spline_struct) :: spline(:)
 type (spline_struct), target :: end(0:5)
 real(rp), pointer :: x(:), y(:)
@@ -387,8 +523,6 @@ end subroutine end_akima_spline_calc
 
 subroutine akima_spline_slope_calc (spl)
 
-implicit none
-
 type (spline_struct), target :: spl(1:5)
 real(rp), pointer :: xx(:), yy(:)
 real(rp) m(4), m43, m21
@@ -414,8 +548,6 @@ end subroutine akima_spline_slope_calc
 ! contains
 
 subroutine akima_spline_coef23_calc (s2)
-
-implicit none
 
 type (spline_struct) :: s2(2)
 real(rp) x21, y21, t1, t2
