@@ -4989,14 +4989,14 @@ end subroutine get_sequence_args
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine seq_expand1 (sequence, iseq_tot, lat, top_level)
+! Subroutine parse_line_or_list (sequence, iseq_tot, lat, top_level)
 !
 ! Subroutine to expand a sequence.
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !-
 
-recursive subroutine seq_expand1 (sequence, iseq_tot, lat, top_level)
+recursive subroutine parse_line_or_list (sequence, iseq_tot, lat, top_level)
 
 implicit none
 
@@ -5117,7 +5117,7 @@ do
         this_ele%actual_arg = seq%dummy_arg
       endif
       bp_com%parse_line = '(' // bp_com%parse_line
-      call seq_expand1 (sequence, iseq_tot, lat, .false.)
+      call parse_line_or_list (sequence, iseq_tot, lat, .false.)
 
     ! else this is a replacement line
     else    
@@ -5191,7 +5191,7 @@ enddo
 
 deallocate (s_ele)
 
-end subroutine seq_expand1
+end subroutine parse_line_or_list
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -6306,18 +6306,19 @@ line_expansion: do
     s_ele => dummy_seq_ele
     s_ele%name = name
     s_ele%ele_orientation = seq%ele(stack(i_lev)%ix_ele)%ele_orientation
-    call find_indexx (name, in_name, 0, in_indexx, n_max, j)
-    if (j < 0) then  ! if not an element it must be a sequence
-      call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
-      if (j == 0) then  ! if not a sequence then I don't know what it is
+
+    call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
+    if (j > 0) then  ! if a sequence
+      s_ele%ix_ele = j
+      s_ele%type = sequence(j)%type
+    else  ! Must be an element
+      call find_indexx (name, in_name, 0, in_indexx, n_max, j)
+      if (j == 0) then  ! if not an element then I don't know what it is
         call parser_error ('CANNOT FIND DEFINITION FOR: ' // name, &
                           'IN LINE: ' // seq%name, seq = seq)
         if (global_com%exit_on_error) call err_exit
         return
       endif
-      s_ele%ix_ele = j
-      s_ele%type = sequence(j)%type
-    else
       s_ele%ix_ele = j 
       s_ele%type = element$
     endif

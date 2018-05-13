@@ -11,9 +11,11 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine ptc_setup_map_with_radiation (map_with_rad, ele1, ele2, orbit, map_order)
+! Subroutine ptc_setup_map_with_radiation (map_with_rad, ele1, ele2, orbit, map_order, err_flag)
 !
 ! Routine to construct a map including radiation damping and excitation.
+!
+! ele1/ele2 must have an associated PTC layout (which can be constructed by calling lat_to_ptc_layout).
 !
 ! To track after calling this routine track by calling ptc_track_with_radiation.
 !
@@ -26,10 +28,11 @@ contains
 !                         
 !
 ! Output:
-!		map_with_rad(3) -- tree_element_zhe: Transport map. 
+!    map_with_rad(3) -- tree_element_zhe: Transport map.
+!   err_flag        -- logical, optional: Set True if there is an error such as not associated PTC layout.
 !-
 
-subroutine ptc_setup_map_with_radiation (map_with_rad, ele1, ele2, orbit, map_order)
+subroutine ptc_setup_map_with_radiation (map_with_rad, ele1, ele2, orbit, map_order, err_flag)
 
 use pointer_lattice
 
@@ -50,7 +53,13 @@ real(rp) orb(6)
 integer, optional :: map_order
 integer order
 
+logical, optional :: err_flag
+
+character(*), parameter :: r_name = 'ptc_setup_map_with_radiation'
+
 !
+
+if (present(err_flag)) err_flag = .true.
 
 call zhe_ini
 use_bmad_units = .true.
@@ -62,24 +71,31 @@ call init_all(state, order, 0)
 branch => pointer_to_branch(ele1)
 ptc_layout => branch%ptc%m_t_layout
 
+if (.not. associated(ptc_layout)) then
+  call out_io (s_fatal$, r_name, 'NO ASSOCIATED PTC LAYOUT PRESENT!')
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
+
 f1 => pointer_to_fibre(ele1)
 if (present(ele2)) then
-	f2 => pointer_to_fibre(ele2)
+  f2 => pointer_to_fibre(ele2)
 else
-	f2 => f1
+  f2 => f1
 endif
 
 if (present(orbit)) then
-	orb = orbit%vec
+  orb = orbit%vec
 else
-	orb = 0
+  orb = 0
   call find_orbit_x(orb, STATE, 1.0d-8, fibre1 = f1)
 endif
 
 call fill_tree_element_line_zhe(state, f1, f2, order, orb, stochprec = 1d-10, sagan_tree = tree_map)
 call copy_this_tree (tree_map, map_with_rad)
 
-use_bmad_units = .false.
+use_bmad_units = .false. ! Since Zhe stuff is standalone this will not affect the use of map_with_rad.
+if (present(err_flag)) err_flag = .false.
 
 !----------------------------------------------------------------------------------
 contains

@@ -605,7 +605,7 @@ parsing_loop: do
       sequence(iseq_tot)%type = list$
       ele%key = list$
     endif
-    call seq_expand1 (sequence, iseq_tot, in_lat, .true.)
+    call parse_line_or_list (sequence, iseq_tot, in_lat, .true.)
 
     cycle parsing_loop
   endif

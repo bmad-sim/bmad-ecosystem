@@ -358,7 +358,7 @@ if (present(spin)) orb%spin = spin
 
 if (present(ele)) then
   if (.not. present(element_end)) then
-    call out_io (s_fatal$, r_name, 'Rule: "element_end" argument must be present if "ele" argument is.')
+    call out_io (s_fatal$, r_name, 'RULE: "ELEMENT_END" ARGUMENT MUST BE PRESENT IF "ELE" ARGUMENT IS.')
     call err_exit
   endif
 
