@@ -2,6 +2,8 @@ program particle_species_test
 
 use particle_species_mod
 
+implicit none
+
 integer :: i_dim, species
 integer :: namelist_file, n_char
 
@@ -17,37 +19,36 @@ namelist / particle_species_test_params / &
     example_names, verbose
 
 !------------------------------------------
-!Defaults for namelist
-example_names(1:6) =  [character(20) :: 'NH3+', 'CH3++', 'CH3+2', 'NH3@M37.5-', 'C+', '#12C+']
+! Defaults for namelist
+example_names(1:7) =  [character(20) :: 'Ag+76', 'NH3--', 'CH3++', 'CH3+2', 'NH3@M37.5-', 'C+', '#12C+']
 verbose = .false.
 
-!Read namelist
-in_file = 'particle_species_test.in'
-if (command_argument_count() > 0) call get_command_argument(1, in_file)
+! Read namelist
 
-namelist_file = lunget()
-print *, 'Opening: ', trim(in_file)
-open (namelist_file, file = in_file, status = "old")
-read (namelist_file, nml = particle_species_test_params)
-close (namelist_file)
-
-
+if (command_argument_count() > 0) then
+  call get_command_argument(1, in_file)
+  namelist_file = lunget()
+  print *, 'Opening: ', trim(in_file)
+  open (namelist_file, file = in_file, status = "old")
+  read (namelist_file, nml = particle_species_test_params)
+  close (namelist_file)
+endif
 
 ! 
 print *, 'atomic mass unit (eV): ', atomic_mass_unit
 
 ! Decode
-!call print_species(1)
+! call print_species(1)
 
 ! Encode
-!species = species_id('#2H--')
-!call print_species(species)
+! species = species_id('#2H--')
+! call print_species(species)
 
 open (1, file = 'output.now')
 
-!species = species_id('H2O ')
-!call print_species(species)
-!call write_mass_and_charge(species)
+! species = species_id('H2O ')
+! call print_species(species)
+! call write_mass_and_charge(species)
 
 call print_all(example_names, .true.)
 call print_all(fundamental_species_name, .false.)
