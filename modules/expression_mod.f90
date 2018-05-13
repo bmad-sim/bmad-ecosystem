@@ -488,7 +488,7 @@ end subroutine pushit
 !
 ! Input:
 !   stack(:)    -- expression_atom_struct: Expression to evaluate.
-!   var(:)      -- controller_var_struct, optional: Array of variables.
+!   var(:)      -- controller_var1_struct, optional: Array of variables.
 !   use_old     -- logical, optional: Use var%old_value? Must be present if var(:) is present.
 !
 ! Output:
@@ -503,7 +503,7 @@ use random_mod
 
 type (expression_atom_struct) stack(:)
 type (expression_atom_struct) stack2(20)
-type (controller_var_struct), optional :: var(:)
+type (controller_var1_struct), optional :: var(:)
 
 real(rp) value
 integer i, i2, ix

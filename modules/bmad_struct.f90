@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 213
+integer, parameter :: bmad_inc_version$ = 214
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -44,7 +44,7 @@ end type
 
 integer, parameter :: n_pole_maxx = 21  ! maximum multipole order
 
-integer, parameter :: old_control_var_offset$ = 1000  ! For indexing into ele%control_var(:) array
+integer, parameter :: old_control_var_offset$ = 1000  ! For indexing into ele%control%var(:) array
 integer, parameter :: var_offset$ = 2000              ! Important: var_offset$ > old_control_var_offset$
 integer, parameter :: taylor_offset$ = 1000000000     ! Taylor term index offset.
 
@@ -54,10 +54,21 @@ type expression_atom_struct
   real(rp) :: value = 0
 end type
 
-type controller_var_struct
+type controller_var1_struct
   character(40) :: name = ''
   real(rp) :: value = 0
   real(rp) :: old_value = 0
+  real(rp), allocatable :: y_knot(:)
+end type
+
+
+integer, parameter :: function$ = 2, spline$ = 3
+character(8), parameter :: interpolation_name(4) = [character(8):: null_name$, 'Function', 'Spline', 'Linear']
+
+type controller_struct
+  integer :: control_type = function$
+  type (controller_var1_struct), allocatable :: var(:)
+  real(rp), allocatable :: x_knot(:)
 end type
 
 !-------------------------------------------------------------------------
@@ -935,7 +946,7 @@ type ele_struct
   type (ac_kicker_struct), pointer :: ac_kick => null()  ! ac_kicker element parameters.
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct() ! Attribute bookkeeping
   type (branch_struct), pointer :: branch => null()                      ! Pointer to branch containing element.
-  type (controller_var_struct), pointer :: control_var(:) => null()      ! group & overlay variables.
+  type (controller_struct), pointer :: control => null()                 ! group & overlay variables.
   type (cartesian_map_struct), pointer :: cartesian_map(:) => null()     ! Used to define E/M fields
   type (cylindrical_map_struct), pointer :: cylindrical_map(:) => null() ! Used to define E/M fields
   type (ele_struct), pointer :: lord => null()                           ! Pointer to a slice lord.

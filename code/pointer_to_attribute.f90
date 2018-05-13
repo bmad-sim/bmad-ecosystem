@@ -30,7 +30,7 @@
 !     %l           -- pointer to logical attribute. Nullified if error or attribute is not logical.               
 !   err_flag   -- Logical: Set True if attribtute not found. False otherwise.
 !   ix_attrib  -- Integer, optional: If applicable, this is the index to the 
-!                     attribute in the ele%value(:), ele%control_var(:), ele%a_pole(:) or ele%b_pole(:) arrays.
+!                     attribute in the ele%value(:), ele%control%var(:), ele%a_pole(:) or ele%b_pole(:) arrays.
 !                     Set to 0 if not in any of these arrays.
 !-
 
@@ -78,13 +78,13 @@ if (present(ix_attrib)) ix_attrib = 0
 !--------------------
 ! If a controller with a defined list of variables
 
-if (associated (ele%control_var)) then
+if (associated (ele%control)) then
 
   if (len(a_name) > 4) then
     if (a_name(1:4) == 'OLD_') then
-      do i = 1, size(ele%control_var)
-        if (ele%control_var(i)%name /= a_name(5:)) cycle
-        a_ptr%r => ele%control_var(i)%old_value
+      do i = 1, size(ele%control%var)
+        if (ele%control%var(i)%name /= a_name(5:)) cycle
+        a_ptr%r => ele%control%var(i)%old_value
         if (present(ix_attrib)) ix_attrib = old_control_var_offset$ + i
         err_flag = .false.
         return
@@ -93,9 +93,9 @@ if (associated (ele%control_var)) then
     endif
   endif
 
-  do i = 1, size(ele%control_var)
-    if (ele%control_var(i)%name /= a_name) cycle
-    a_ptr%r => ele%control_var(i)%value
+  do i = 1, size(ele%control%var)
+    if (ele%control%var(i)%name /= a_name) cycle
+    a_ptr%r => ele%control%var(i)%value
     if (present(ix_attrib)) ix_attrib = var_offset$ + i
     err_flag = .false.
     return

@@ -813,20 +813,20 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     nl=nl+1; write (li(nl), '(2a)') 'Lord_status:  ', control_name(ele%lord_status)
   endif
 
-  if (associated(ele%control_var)) then
+  if (associated(ele%control)) then
     nl=nl+1; li(nl) = 'Control Variables:'
-    n_att = maxval(len_trim(ele%control_var%name))
+    n_att = maxval(len_trim(ele%control%var%name))
     if (ele%lord_status == group_lord$) then
-      do i = 1, size(ele%control_var)
-        a_name = ele%control_var(i)%name
+      do i = 1, size(ele%control%var)
+        a_name = ele%control%var(i)%name
         nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 11x, 3a, es15.7)')  i, &
-                      a_name(1:n_att), '  =', ele%control_var(i)%value, &
-                      'OLD_', a_name(1:n_att), '  =', ele%control_var(i)%old_value
+                      a_name(1:n_att), '  =', ele%control%var(i)%value, &
+                      'OLD_', a_name(1:n_att), '  =', ele%control%var(i)%old_value
       enddo
     else  ! overlay_lord
-      do i = 1, size(ele%control_var)
+      do i = 1, size(ele%control%var)
         nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7)')  i, &
-                      ele%control_var(i)%name, '  =', ele%control_var(i)%value
+                      ele%control%var(i)%name, '  =', ele%control%var(i)%value
       enddo
     endif
 
@@ -884,7 +884,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         slave => pointer_to_slave (ele, ix, ctl)
         if (allocated(ctl%stack)) then
           a_str = expression_stack_to_string (ctl%stack)
-          call evaluate_expression_stack(ctl%stack, val, err_flag, str1, ele%control_var)
+          call evaluate_expression_stack(ctl%stack, val, err_flag, str1, ele%control%var)
           write (coef_str, '(es12.4, 4x, a)') val, trim(a_str)
         else
           coef_str = ' ------ '

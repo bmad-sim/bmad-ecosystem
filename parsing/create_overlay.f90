@@ -5,7 +5,7 @@
 !
 ! Note: If the stack (in contrl(i)%stack(:)) array has a single numeric term,
 ! the arithmatic expression is modified so that the controlled attribute is linear
-! in lord%control_var(1) with a coefficient given by the single numeric term.
+! in lord%control%var(1) with a coefficient given by the single numeric term.
 !
 ! Input:
 !   lord           -- ele_struct: Overlay element.
@@ -50,8 +50,8 @@ lat => lord%branch%lat
 n_slave = size (contrl)
 err = .true.
 
-do iv = 1, size(lord%control_var)
-  call upcase_string(lord%control_var(iv)%name)
+do iv = 1, size(lord%control%var)
+  call upcase_string(lord%control%var(iv)%name)
 enddo
 
 do j = 1, n_slave
@@ -130,8 +130,8 @@ do j = 1, n_slave
   do is = 1, size(c%stack)
     if (c%stack(is)%type == end_stack$) exit
     if (c%stack(is)%type /= variable$) cycle
-    do iv = 1, size(lord%control_var)
-      if (upcase(c%stack(is)%name) /= lord%control_var(iv)%name) cycle
+    do iv = 1, size(lord%control%var)
+      if (upcase(c%stack(is)%name) /= lord%control%var(iv)%name) cycle
       c%stack(is)%type = iv + var_offset$
       exit
     enddo
@@ -148,11 +148,11 @@ do j = 1, n_slave
 
   if (.not. var_found) then
     if (size(c%stack) == 1 .and. c%stack(1)%name == '1' .or. c%stack(1)%name == '1.0') then
-      c%stack(1) = expression_atom_struct(lord%control_var(1)%name, 1+var_offset$, 0.0_rp)
+      c%stack(1) = expression_atom_struct(lord%control%var(1)%name, 1+var_offset$, 0.0_rp)
     else
       n = size(c%stack)
       call reallocate_expression_stack(c%stack, n+2)
-      c%stack(n+1) = expression_atom_struct(lord%control_var(1)%name, 1+var_offset$, 0.0_rp)
+      c%stack(n+1) = expression_atom_struct(lord%control%var(1)%name, 1+var_offset$, 0.0_rp)
       c%stack(n+2) = expression_atom_struct('', times$, 0.0_rp)
     endif
   endif

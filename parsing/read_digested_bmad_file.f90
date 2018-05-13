@@ -490,9 +490,10 @@ enddo
 ! Control vars
 
 if (n_var /= 0) then
-  allocate (ele%control_var(n_var))
+  allocate (ele%control)
+  allocate (ele%control%var(n_var))
   do i = 1, n_var
-    read (d_unit, err = 9120) ele%control_var(i)
+    read (d_unit, err = 9120) ele%control%var(i)
   enddo
 endif
 

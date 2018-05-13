@@ -221,19 +221,22 @@ else
   if (associated (ele_save%photon)) deallocate (ele_save%photon)
 endif
 
-! %control_var
+! %control
 
-if (associated(ele_in%control_var)) then
-  n = size(ele_in%control_var)
-  ele_out%control_var => ele_save%control_var   ! reinstate
-  if (associated(ele_out%control_var)) then
-    if (size(ele_out%control_var) /= n) deallocate(ele_out%control_var)
+if (associated(ele_in%control)) then
+  n = size(ele_in%control%var)
+  ele_out%control => ele_save%control   ! reinstate
+  if (associated(ele_out%control)) then
+    if (size(ele_out%control%var) /= n) deallocate(ele_out%control)
   endif
-  if (.not. associated(ele_out%control_var)) allocate(ele_out%control_var(n))
-  ele_out%control_var = ele_in%control_var
+  if (.not. associated(ele_out%control)) then
+    allocate(ele_out%control)
+    allocate(ele_out%control%var(n))
+  endif
+  ele_out%control = ele_in%control
 
 else
-  if (associated (ele_save%control_var)) deallocate(ele_save%control_var)
+  if (associated (ele_save%control)) deallocate(ele_save%control)
 endif
 
 ! %taylor

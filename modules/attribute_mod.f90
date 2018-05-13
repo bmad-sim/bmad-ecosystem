@@ -188,20 +188,20 @@ character(*) name
 character(*), optional :: full_name
 logical, optional :: can_abbreviate
 
-! Note: ele%control_var may not be associated during parsing.
+! Note: ele%control may not be associated during parsing.
 
-if ((ele%key == group$ .or. ele%key == overlay$) .and. associated(ele%control_var)) then
+if ((ele%key == group$ .or. ele%key == overlay$) .and. associated(ele%control)) then
   n = min(4, len(name))
   if (name(1:n) == 'OLD_') then
-    do i = 1, size(ele%control_var)
-      if (name(5:) /= ele%control_var(i)%name) cycle
+    do i = 1, size(ele%control%var)
+      if (name(5:) /= ele%control%var(i)%name) cycle
       attrib_index = i + old_control_var_offset$
       if (present(full_name)) full_name = name
       return
     enddo
   else  
-    do i = 1, size(ele%control_var)
-      if (name /= ele%control_var(i)%name) cycle
+    do i = 1, size(ele%control%var)
+      if (name /= ele%control%var(i)%name) cycle
       attrib_index = i + var_offset$
       if (present(full_name)) full_name = name
       return
@@ -380,18 +380,18 @@ elseif (key == taylor$ .and. ix_att > taylor_offset$) then
 
 elseif ((key == group$ .or. key == overlay$) .and. is_attribute(ix_att, control_var$)) then
   ix = ix_att - var_offset$
-  if (ix > size(ele%control_var)) then
+  if (ix > size(ele%control%var)) then
     attrib_name = '!BAD INDEX'
   else
-    attrib_name = ele%control_var(ix)%name
+    attrib_name = ele%control%var(ix)%name
   endif
 
 elseif (key == group$ .and. is_attribute(ix_att, old_control_var$)) then
   ix = ix_att - old_control_var_offset$
-  if (ix > size(ele%control_var)) then
+  if (ix > size(ele%control%var)) then
     attrib_name = '!BAD INDEX'
   else
-    attrib_name = 'OLD_' // ele%control_var(ix)%name
+    attrib_name = 'OLD_' // ele%control%var(ix)%name
   endif
 
 elseif (ix_att <= 0 .or. ix_att > num_ele_attrib_extended$) then
@@ -464,16 +464,16 @@ endif
 
 if ((ele%key == group$ .or. ele%key == overlay$) .and. is_attribute(ix_att, control_var$)) then
   ix = ix_att - var_offset$
-  if (ix > size(ele%control_var)) return
-  attrib_info%name = ele%control_var(ix)%name
+  if (ix > size(ele%control%var)) return
+  attrib_info%name = ele%control%var(ix)%name
   attrib_info%type = is_free$
   return
 endif
 
 if (ele%key == group$ .and. ix_att > old_control_var_offset$) then
   ix = ix_att - old_control_var_offset$
-  if (ix > size(ele%control_var)) return
-  attrib_info%name = 'OLD_' // ele%control_var(ix)%name
+  if (ix > size(ele%control%var)) return
+  attrib_info%name = 'OLD_' // ele%control%var(ix)%name
   attrib_info%type = is_free$
   return
 endif
@@ -1692,12 +1692,12 @@ integer attrib_type, i
 ! Check if an overlay or group variable
 
 if (present(ele)) then
-  if (associated(ele%control_var)) then
-    do i = 1, size(ele%control_var)
+  if (associated(ele%control)) then
+    do i = 1, size(ele%control%var)
       if (attrib_name(1:4) == 'OLD_') then
-        if (attrib_name(5:) /= ele%control_var(i)%name) cycle
+        if (attrib_name(5:) /= ele%control%var(i)%name) cycle
       else
-        if (attrib_name /= ele%control_var(i)%name) cycle
+        if (attrib_name /= ele%control%var(i)%name) cycle
       endif
       attrib_type = is_real$
       return
@@ -2844,7 +2844,7 @@ endif
 ! only one particular attribute of an overlay lord is allowed to be adjusted
 
 if (ele%key == overlay$ .or. ele%key == group$) then
-  if (all(attrib_name /= ele%control_var%name)) then
+  if (all(attrib_name /= ele%control%var%name)) then
     call it_is_not_free (ele, ix_attrib, 'IT IS NOT A VALID CONTROL VARIABLE')
   endif
   return
