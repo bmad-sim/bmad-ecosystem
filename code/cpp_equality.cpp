@@ -199,16 +199,30 @@ template bool is_all_equal (const CPP_photon_reflect_surface_MATRIX&, const CPP_
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_controller_var& x, const CPP_controller_var& y) {
+bool operator== (const CPP_controller_var1& x, const CPP_controller_var1& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.name == y.name);
   is_eq = is_eq && (x.value == y.value);
   is_eq = is_eq && (x.old_value == y.old_value);
+  is_eq = is_eq && is_all_equal(x.y_knot, y.y_knot);
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_controller_var_ARRAY&, const CPP_controller_var_ARRAY&);
-template bool is_all_equal (const CPP_controller_var_MATRIX&, const CPP_controller_var_MATRIX&);
+template bool is_all_equal (const CPP_controller_var1_ARRAY&, const CPP_controller_var1_ARRAY&);
+template bool is_all_equal (const CPP_controller_var1_MATRIX&, const CPP_controller_var1_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_controller& x, const CPP_controller& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.control_type == y.control_type);
+  is_eq = is_eq && is_all_equal(x.var, y.var);
+  is_eq = is_eq && is_all_equal(x.x_knot, y.x_knot);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_controller_ARRAY&, const CPP_controller_ARRAY&);
+template bool is_all_equal (const CPP_controller_MATRIX&, const CPP_controller_MATRIX&);
 
 //--------------------------------------------------------------
 
@@ -222,6 +236,7 @@ bool operator== (const CPP_coord& x, const CPP_coord& y) {
   is_eq = is_eq && is_all_equal(x.phase, y.phase);
   is_eq = is_eq && (x.charge == y.charge);
   is_eq = is_eq && (x.path_len == y.path_len);
+  is_eq = is_eq && (x.r == y.r);
   is_eq = is_eq && (x.p0c == y.p0c);
   is_eq = is_eq && (x.beta == y.beta);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
@@ -1074,6 +1089,7 @@ template bool is_all_equal (const CPP_lat_param_MATRIX&, const CPP_lat_param_MAT
 
 bool operator== (const CPP_mode_info& x, const CPP_mode_info& y) {
   bool is_eq = true;
+  is_eq = is_eq && (x.stable == y.stable);
   is_eq = is_eq && (x.tune == y.tune);
   is_eq = is_eq && (x.emit == y.emit);
   is_eq = is_eq && (x.chrom == y.chrom);
@@ -1345,7 +1361,9 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   if (!is_eq) return false;
   if (x.ac_kick != NULL) is_eq = (*x.ac_kick == *y.ac_kick);
   is_eq = is_eq && (x.bookkeeping_state == y.bookkeeping_state);
-  is_eq = is_eq && is_all_equal(x.control_var, y.control_var);
+  is_eq = is_eq && ((x.control == NULL) == (y.control == NULL));
+  if (!is_eq) return false;
+  if (x.control != NULL) is_eq = (*x.control == *y.control);
   is_eq = is_eq && is_all_equal(x.cartesian_map, y.cartesian_map);
   is_eq = is_eq && is_all_equal(x.cylindrical_map, y.cylindrical_map);
   is_eq = is_eq && is_all_equal(x.taylor_field, y.taylor_field);
@@ -1618,6 +1636,7 @@ bool operator== (const CPP_aperture_scan& x, const CPP_aperture_scan& y) {
   is_eq = is_eq && is_all_equal(x.aperture, y.aperture);
   is_eq = is_eq && (x.param == y.param);
   is_eq = is_eq && (x.ref_orb == y.ref_orb);
+  is_eq = is_eq && (x.sxy == y.sxy);
   return is_eq;
 };
 

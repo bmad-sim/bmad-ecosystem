@@ -3,7 +3,6 @@
 struct_def_files = [
     '../sim_utils/math/spline_mod.f90',
     '../bmad/modules/bmad_struct.f90', 
-    '../bmad/modules/twiss_mod.f90', 
     '../bmad/modules/taylor_mod.f90',
     '../bmad/multiparticle/csr_mod.f90',
     '../bmad/modules/complex_taylor_mod.f90',
@@ -29,7 +28,8 @@ struct_list = [
     'interval1_coef_struct',
     'photon_reflect_table_struct',
     'photon_reflect_surface_struct',
-    'controller_var_struct',
+    'controller_var1_struct',
+    'controller_struct',
     'coord_struct',
     'coord_array_struct',
     'bpm_phase_coupling_struct',

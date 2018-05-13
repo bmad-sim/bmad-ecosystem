@@ -61,10 +61,15 @@ typedef valarray<CPP_photon_reflect_surface>          CPP_photon_reflect_surface
 typedef valarray<CPP_photon_reflect_surface_ARRAY>    CPP_photon_reflect_surface_MATRIX;
 typedef valarray<CPP_photon_reflect_surface_MATRIX>   CPP_photon_reflect_surface_TENSOR;
 
-class CPP_controller_var;
-typedef valarray<CPP_controller_var>          CPP_controller_var_ARRAY;
-typedef valarray<CPP_controller_var_ARRAY>    CPP_controller_var_MATRIX;
-typedef valarray<CPP_controller_var_MATRIX>   CPP_controller_var_TENSOR;
+class CPP_controller_var1;
+typedef valarray<CPP_controller_var1>          CPP_controller_var1_ARRAY;
+typedef valarray<CPP_controller_var1_ARRAY>    CPP_controller_var1_MATRIX;
+typedef valarray<CPP_controller_var1_MATRIX>   CPP_controller_var1_TENSOR;
+
+class CPP_controller;
+typedef valarray<CPP_controller>          CPP_controller_ARRAY;
+typedef valarray<CPP_controller_ARRAY>    CPP_controller_MATRIX;
+typedef valarray<CPP_controller_MATRIX>   CPP_controller_TENSOR;
 
 class CPP_coord;
 typedef valarray<CPP_coord>          CPP_coord_ARRAY;
@@ -714,31 +719,61 @@ bool operator== (const CPP_photon_reflect_surface&, const CPP_photon_reflect_sur
 
 
 //--------------------------------------------------------------------
-// CPP_controller_var
+// CPP_controller_var1
 
-class Opaque_controller_var_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_controller_var1_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_controller_var {
+class CPP_controller_var1 {
 public:
   string name;
   Real value;
   Real old_value;
+  Real_ARRAY y_knot;
 
-  CPP_controller_var() :
+  CPP_controller_var1() :
     name(),
     value(0.0),
-    old_value(0.0)
+    old_value(0.0),
+    y_knot(0.0, 0)
     {}
 
-  ~CPP_controller_var() {
+  ~CPP_controller_var1() {
   }
 
 };   // End Class
 
-extern "C" void controller_var_to_c (const Opaque_controller_var_class*, CPP_controller_var&);
-extern "C" void controller_var_to_f (const CPP_controller_var&, Opaque_controller_var_class*);
+extern "C" void controller_var1_to_c (const Opaque_controller_var1_class*, CPP_controller_var1&);
+extern "C" void controller_var1_to_f (const CPP_controller_var1&, Opaque_controller_var1_class*);
 
-bool operator== (const CPP_controller_var&, const CPP_controller_var&);
+bool operator== (const CPP_controller_var1&, const CPP_controller_var1&);
+
+
+//--------------------------------------------------------------------
+// CPP_controller
+
+class Opaque_controller_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_controller {
+public:
+  Int control_type;
+  CPP_controller_var1_ARRAY var;
+  Real_ARRAY x_knot;
+
+  CPP_controller() :
+    control_type(Bmad::FUNCTION),
+    var(CPP_controller_var1_ARRAY(CPP_controller_var1(), 0)),
+    x_knot(0.0, 0)
+    {}
+
+  ~CPP_controller() {
+  }
+
+};   // End Class
+
+extern "C" void controller_to_c (const Opaque_controller_class*, CPP_controller&);
+extern "C" void controller_to_f (const CPP_controller&, Opaque_controller_class*);
+
+bool operator== (const CPP_controller&, const CPP_controller&);
 
 
 //--------------------------------------------------------------------
@@ -756,6 +791,7 @@ public:
   Real_ARRAY phase;
   Real charge;
   Real path_len;
+  Real r;
   Real p0c;
   Real beta;
   Int ix_ele;
@@ -774,6 +810,7 @@ public:
     phase(0.0, 2),
     charge(0.0),
     path_len(0.0),
+    r(0.0),
     p0c(0.0),
     beta(-1),
     ix_ele(-1),
@@ -2555,6 +2592,7 @@ class Opaque_mode_info_class {};  // Opaque class for pointers to corresponding 
 
 class CPP_mode_info {
 public:
+  Bool stable;
   Real tune;
   Real emit;
   Real chrom;
@@ -2562,6 +2600,7 @@ public:
   Real sigmap;
 
   CPP_mode_info() :
+    stable(false),
     tune(0.0),
     emit(0.0),
     chrom(0.0),
@@ -3103,7 +3142,7 @@ public:
   CPP_xy_disp y;
   CPP_ac_kicker* ac_kick;
   CPP_bookkeeping_state bookkeeping_state;
-  CPP_controller_var_ARRAY control_var;
+  CPP_controller* control;
   CPP_cartesian_map_ARRAY cartesian_map;
   CPP_cylindrical_map_ARRAY cylindrical_map;
   CPP_taylor_field_ARRAY taylor_field;
@@ -3207,7 +3246,7 @@ public:
     y(),
     ac_kick(NULL),
     bookkeeping_state(),
-    control_var(CPP_controller_var_ARRAY(CPP_controller_var(), 0)),
+    control(NULL),
     cartesian_map(CPP_cartesian_map_ARRAY(CPP_cartesian_map(), 0)),
     cylindrical_map(CPP_cylindrical_map_ARRAY(CPP_cylindrical_map(), 0)),
     taylor_field(CPP_taylor_field_ARRAY(CPP_taylor_field(), 0)),
@@ -3283,6 +3322,7 @@ public:
   ~CPP_ele() {
     delete descrip;
     delete ac_kick;
+    delete control;
     delete mode3;
     delete photon;
     delete rad_int_cache;
@@ -3672,11 +3712,13 @@ public:
   CPP_aperture_data_ARRAY aperture;
   CPP_aperture_param param;
   CPP_coord ref_orb;
+  Real sxy;
 
   CPP_aperture_scan() :
     aperture(CPP_aperture_data_ARRAY(CPP_aperture_data(), 0)),
     param(),
-    ref_orb()
+    ref_orb(),
+    sxy(1.0)
     {}
 
   ~CPP_aperture_scan() {

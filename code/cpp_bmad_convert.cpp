@@ -386,23 +386,30 @@ extern "C" void photon_reflect_surface_to_c2 (CPP_photon_reflect_surface& C, c_C
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_controller_var
+// CPP_controller_var1
 
-extern "C" void controller_var_to_c (const Opaque_controller_var_class*, CPP_controller_var&);
+extern "C" void controller_var1_to_c (const Opaque_controller_var1_class*, CPP_controller_var1&);
 
 // c_side.to_f2_arg
-extern "C" void controller_var_to_f2 (Opaque_controller_var_class*, c_Char, c_Real&, c_Real&);
+extern "C" void controller_var1_to_f2 (Opaque_controller_var1_class*, c_Char, c_Real&, c_Real&,
+    c_RealArr, Int);
 
-extern "C" void controller_var_to_f (const CPP_controller_var& C, Opaque_controller_var_class* F) {
+extern "C" void controller_var1_to_f (const CPP_controller_var1& C, Opaque_controller_var1_class* F) {
+  // c_side.to_f_setup[real, 1, ALLOC]
+  int n1_y_knot = C.y_knot.size();
+  c_RealArr z_y_knot = NULL;
+  if (n1_y_knot > 0) {
+    z_y_knot = &C.y_knot[0];
+  }
 
   // c_side.to_f2_call
-  controller_var_to_f2 (F, C.name.c_str(), C.value, C.old_value);
+  controller_var1_to_f2 (F, C.name.c_str(), C.value, C.old_value, z_y_knot, n1_y_knot);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void controller_var_to_c2 (CPP_controller_var& C, c_Char z_name, c_Real& z_value,
-    c_Real& z_old_value) {
+extern "C" void controller_var1_to_c2 (CPP_controller_var1& C, c_Char z_name, c_Real& z_value,
+    c_Real& z_old_value, c_RealArr z_y_knot, Int n1_y_knot) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.name = z_name;
@@ -410,6 +417,60 @@ extern "C" void controller_var_to_c2 (CPP_controller_var& C, c_Char z_name, c_Re
   C.value = z_value;
   // c_side.to_c2_set[real, 0, NOT]
   C.old_value = z_old_value;
+  // c_side.to_c2_set[real, 1, ALLOC]
+
+  C.y_knot.resize(n1_y_knot);
+  C.y_knot << z_y_knot;
+
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// CPP_controller
+
+extern "C" void controller_to_c (const Opaque_controller_class*, CPP_controller&);
+
+// c_side.to_f2_arg
+extern "C" void controller_to_f2 (Opaque_controller_class*, c_Int&, const
+    CPP_controller_var1**, Int, c_RealArr, Int);
+
+extern "C" void controller_to_f (const CPP_controller& C, Opaque_controller_class* F) {
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_var = C.var.size();
+  const CPP_controller_var1** z_var = NULL;
+  if (n1_var != 0) {
+    z_var = new const CPP_controller_var1*[n1_var];
+    for (int i = 0; i < n1_var; i++) z_var[i] = &C.var[i];
+  }
+  // c_side.to_f_setup[real, 1, ALLOC]
+  int n1_x_knot = C.x_knot.size();
+  c_RealArr z_x_knot = NULL;
+  if (n1_x_knot > 0) {
+    z_x_knot = &C.x_knot[0];
+  }
+
+  // c_side.to_f2_call
+  controller_to_f2 (F, C.control_type, z_var, n1_var, z_x_knot, n1_x_knot);
+
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_var;
+}
+
+// c_side.to_c2_arg
+extern "C" void controller_to_c2 (CPP_controller& C, c_Int& z_control_type,
+    Opaque_controller_var1_class** z_var, Int n1_var, c_RealArr z_x_knot, Int n1_x_knot) {
+
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.control_type = z_control_type;
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.var.resize(n1_var);
+  for (int i = 0; i < n1_var; i++) controller_var1_to_c(z_var[i], C.var[i]);
+
+  // c_side.to_c2_set[real, 1, ALLOC]
+
+  C.x_knot.resize(n1_x_knot);
+  C.x_knot << z_x_knot;
+
 }
 
 //--------------------------------------------------------------------
@@ -420,14 +481,14 @@ extern "C" void coord_to_c (const Opaque_coord_class*, CPP_coord&);
 
 // c_side.to_f2_arg
 extern "C" void coord_to_f2 (Opaque_coord_class*, c_RealArr, c_Real&, c_Real&, c_RealArr,
-    c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&,
-    c_Int&, c_Int&);
+    c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&,
+    c_Int&, c_Int&, c_Int&);
 
 extern "C" void coord_to_f (const CPP_coord& C, Opaque_coord_class* F) {
 
   // c_side.to_f2_call
   coord_to_f2 (F, &C.vec[0], C.s, C.t, &C.spin[0], &C.field[0], &C.phase[0], C.charge,
-      C.path_len, C.p0c, C.beta, C.ix_ele, C.ix_user, C.state, C.direction, C.species,
+      C.path_len, C.r, C.p0c, C.beta, C.ix_ele, C.ix_user, C.state, C.direction, C.species,
       C.location);
 
 }
@@ -435,8 +496,8 @@ extern "C" void coord_to_f (const CPP_coord& C, Opaque_coord_class* F) {
 // c_side.to_c2_arg
 extern "C" void coord_to_c2 (CPP_coord& C, c_RealArr z_vec, c_Real& z_s, c_Real& z_t, c_RealArr
     z_spin, c_RealArr z_field, c_RealArr z_phase, c_Real& z_charge, c_Real& z_path_len, c_Real&
-    z_p0c, c_Real& z_beta, c_Int& z_ix_ele, c_Int& z_ix_user, c_Int& z_state, c_Int&
-    z_direction, c_Int& z_species, c_Int& z_location) {
+    z_r, c_Real& z_p0c, c_Real& z_beta, c_Int& z_ix_ele, c_Int& z_ix_user, c_Int& z_state,
+    c_Int& z_direction, c_Int& z_species, c_Int& z_location) {
 
   // c_side.to_c2_set[real, 1, NOT]
   C.vec << z_vec;
@@ -454,6 +515,8 @@ extern "C" void coord_to_c2 (CPP_coord& C, c_RealArr z_vec, c_Real& z_s, c_Real&
   C.charge = z_charge;
   // c_side.to_c2_set[real, 0, NOT]
   C.path_len = z_path_len;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.r = z_r;
   // c_side.to_c2_set[real, 0, NOT]
   C.p0c = z_p0c;
   // c_side.to_c2_set[real, 0, NOT]
@@ -2614,20 +2677,22 @@ extern "C" void lat_param_to_c2 (CPP_lat_param& C, c_Real& z_n_part, c_Real& z_t
 extern "C" void mode_info_to_c (const Opaque_mode_info_class*, CPP_mode_info&);
 
 // c_side.to_f2_arg
-extern "C" void mode_info_to_f2 (Opaque_mode_info_class*, c_Real&, c_Real&, c_Real&, c_Real&,
-    c_Real&);
+extern "C" void mode_info_to_f2 (Opaque_mode_info_class*, c_Bool&, c_Real&, c_Real&, c_Real&,
+    c_Real&, c_Real&);
 
 extern "C" void mode_info_to_f (const CPP_mode_info& C, Opaque_mode_info_class* F) {
 
   // c_side.to_f2_call
-  mode_info_to_f2 (F, C.tune, C.emit, C.chrom, C.sigma, C.sigmap);
+  mode_info_to_f2 (F, C.stable, C.tune, C.emit, C.chrom, C.sigma, C.sigmap);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void mode_info_to_c2 (CPP_mode_info& C, c_Real& z_tune, c_Real& z_emit, c_Real&
-    z_chrom, c_Real& z_sigma, c_Real& z_sigmap) {
+extern "C" void mode_info_to_c2 (CPP_mode_info& C, c_Bool& z_stable, c_Real& z_tune, c_Real&
+    z_emit, c_Real& z_chrom, c_Real& z_sigma, c_Real& z_sigmap) {
 
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.stable = z_stable;
   // c_side.to_c2_set[real, 0, NOT]
   C.tune = z_tune;
   // c_side.to_c2_set[real, 0, NOT]
@@ -3262,8 +3327,8 @@ extern "C" void ele_to_c (const Opaque_ele_class*, CPP_ele&);
 extern "C" void ele_to_f2 (Opaque_ele_class*, c_Char, c_Char, c_Char, c_Char, c_Char, Int,
     const CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const CPP_xy_disp&, const
     CPP_xy_disp&, const CPP_ac_kicker&, Int, const CPP_bookkeeping_state&, const
-    CPP_controller_var**, Int, const CPP_cartesian_map**, Int, const CPP_cylindrical_map**,
-    Int, const CPP_taylor_field**, Int, const CPP_grid_field**, Int, const CPP_floor_position&,
+    CPP_controller&, Int, const CPP_cartesian_map**, Int, const CPP_cylindrical_map**, Int,
+    const CPP_taylor_field**, Int, const CPP_grid_field**, Int, const CPP_floor_position&,
     const CPP_mode3&, Int, const CPP_photon_element&, Int, const CPP_rad_int_ele_cache&, Int,
     const CPP_space_charge&, Int, const CPP_taylor**, const CPP_taylor**, const CPP_wake&, Int,
     const CPP_wall3d**, Int, const CPP_coord&, const CPP_coord&, const CPP_coord&, const
@@ -3284,13 +3349,8 @@ extern "C" void ele_to_f (const CPP_ele& C, Opaque_ele_class* F) {
   }
   // c_side.to_f_setup[type, 0, PTR]
   unsigned int n_ac_kick = 0; if (C.ac_kick != NULL) n_ac_kick = 1;
-  // c_side.to_f_setup[type, 1, PTR]
-  int n1_control_var = C.control_var.size();
-  const CPP_controller_var** z_control_var = NULL;
-  if (n1_control_var != 0) {
-    z_control_var = new const CPP_controller_var*[n1_control_var];
-    for (int i = 0; i < n1_control_var; i++) z_control_var[i] = &C.control_var[i];
-  }
+  // c_side.to_f_setup[type, 0, PTR]
+  unsigned int n_control = 0; if (C.control != NULL) n_control = 1;
   // c_side.to_f_setup[type, 1, PTR]
   int n1_cartesian_map = C.cartesian_map.size();
   const CPP_cartesian_map** z_cartesian_map = NULL;
@@ -3390,7 +3450,7 @@ extern "C" void ele_to_f (const CPP_ele& C, Opaque_ele_class* F) {
   // c_side.to_f2_call
   ele_to_f2 (F, C.name.c_str(), C.type.c_str(), C.alias.c_str(), C.component_name.c_str(),
       z_descrip, n_descrip, C.a, C.b, C.z, C.x, C.y, *C.ac_kick, n_ac_kick,
-      C.bookkeeping_state, z_control_var, n1_control_var, z_cartesian_map, n1_cartesian_map,
+      C.bookkeeping_state, *C.control, n_control, z_cartesian_map, n1_cartesian_map,
       z_cylindrical_map, n1_cylindrical_map, z_taylor_field, n1_taylor_field, z_grid_field,
       n1_grid_field, C.floor, *C.mode3, n_mode3, *C.photon, n_photon, *C.rad_int_cache,
       n_rad_int_cache, *C.space_charge, n_space_charge, z_taylor, z_spin_taylor, *C.wake,
@@ -3406,8 +3466,6 @@ extern "C" void ele_to_f (const CPP_ele& C, Opaque_ele_class* F) {
       C.taylor_map_includes_offsets, C.field_master, C.is_on, C.logic, C.bmad_logic, C.select,
       C.csr_calc_on, C.offset_moves_aperture);
 
-  // c_side.to_f_cleanup[type, 1, PTR]
- delete[] z_control_var;
   // c_side.to_f_cleanup[type, 1, PTR]
  delete[] z_cartesian_map;
   // c_side.to_f_cleanup[type, 1, PTR]
@@ -3427,9 +3485,9 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
     z_component_name, c_Char z_descrip, Int n_descrip, const Opaque_twiss_class* z_a, const
     Opaque_twiss_class* z_b, const Opaque_twiss_class* z_z, const Opaque_xy_disp_class* z_x,
     const Opaque_xy_disp_class* z_y, Opaque_ac_kicker_class* z_ac_kick, Int n_ac_kick, const
-    Opaque_bookkeeping_state_class* z_bookkeeping_state, Opaque_controller_var_class**
-    z_control_var, Int n1_control_var, Opaque_cartesian_map_class** z_cartesian_map, Int
-    n1_cartesian_map, Opaque_cylindrical_map_class** z_cylindrical_map, Int n1_cylindrical_map,
+    Opaque_bookkeeping_state_class* z_bookkeeping_state, Opaque_controller_class* z_control,
+    Int n_control, Opaque_cartesian_map_class** z_cartesian_map, Int n1_cartesian_map,
+    Opaque_cylindrical_map_class** z_cylindrical_map, Int n1_cylindrical_map,
     Opaque_taylor_field_class** z_taylor_field, Int n1_taylor_field, Opaque_grid_field_class**
     z_grid_field, Int n1_grid_field, const Opaque_floor_position_class* z_floor,
     Opaque_mode3_class* z_mode3, Int n_mode3, Opaque_photon_element_class* z_photon, Int
@@ -3490,9 +3548,13 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
 
   // c_side.to_c2_set[type, 0, NOT]
   bookkeeping_state_to_c(z_bookkeeping_state, C.bookkeeping_state);
-  // c_side.to_c2_set[type, 1, PTR]
-  C.control_var.resize(n1_control_var);
-  for (int i = 0; i < n1_control_var; i++) controller_var_to_c(z_control_var[i], C.control_var[i]);
+  // c_side.to_c2_set[type, 0, PTR]
+  if (n_control == 0)
+    delete C.control;
+  else {
+    C.control = new CPP_controller;
+    controller_to_c(z_control, *C.control);
+  }
 
   // c_side.to_c2_set[type, 1, PTR]
   C.cartesian_map.resize(n1_cartesian_map);
@@ -4274,7 +4336,7 @@ extern "C" void aperture_scan_to_c (const Opaque_aperture_scan_class*, CPP_apert
 
 // c_side.to_f2_arg
 extern "C" void aperture_scan_to_f2 (Opaque_aperture_scan_class*, const CPP_aperture_data**,
-    Int, const CPP_aperture_param&, const CPP_coord&);
+    Int, const CPP_aperture_param&, const CPP_coord&, c_Real&);
 
 extern "C" void aperture_scan_to_f (const CPP_aperture_scan& C, Opaque_aperture_scan_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
@@ -4286,7 +4348,7 @@ extern "C" void aperture_scan_to_f (const CPP_aperture_scan& C, Opaque_aperture_
   }
 
   // c_side.to_f2_call
-  aperture_scan_to_f2 (F, z_aperture, n1_aperture, C.param, C.ref_orb);
+  aperture_scan_to_f2 (F, z_aperture, n1_aperture, C.param, C.ref_orb, C.sxy);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_aperture;
@@ -4295,7 +4357,7 @@ extern "C" void aperture_scan_to_f (const CPP_aperture_scan& C, Opaque_aperture_
 // c_side.to_c2_arg
 extern "C" void aperture_scan_to_c2 (CPP_aperture_scan& C, Opaque_aperture_data_class**
     z_aperture, Int n1_aperture, const Opaque_aperture_param_class* z_param, const
-    Opaque_coord_class* z_ref_orb) {
+    Opaque_coord_class* z_ref_orb, c_Real& z_sxy) {
 
   // c_side.to_c2_set[type, 1, ALLOC]
   C.aperture.resize(n1_aperture);
@@ -4305,4 +4367,6 @@ extern "C" void aperture_scan_to_c2 (CPP_aperture_scan& C, Opaque_aperture_data_
   aperture_param_to_c(z_param, C.param);
   // c_side.to_c2_set[type, 0, NOT]
   coord_to_c(z_ref_orb, C.ref_orb);
+  // c_side.to_c2_set[real, 0, NOT]
+  C.sxy = z_sxy;
 }

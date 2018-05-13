@@ -23,11 +23,12 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 209;
+  const int BMAD_INC_VERSION = 214;
   const int N_POLE_MAXX = 21;
   const int OLD_CONTROL_VAR_OFFSET = 1000;
   const int VAR_OFFSET = 2000;
   const int TAYLOR_OFFSET = 1000000000;
+  const int FUNCTION = 2, SPLINE = 3;
   const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2, RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
   const int FIXED_STEP_RUNGE_KUTTA = 9, SYMP_LIE_BMAD = 10, STATIC = 11;
@@ -114,9 +115,9 @@ namespace Bmad {
   const int VAL1=11, VAL2=12, VAL3=13, VAL4=14, VAL5=15,
             VAL6=16, VAL7=17, VAL8=18, VAL9=19, VAL10=20, VAL11=21,
             VAL12=22;
-  const int BETA_A0 = 2, ALPHA_A0 = 3, BETA_B0 = 4;
-  const int ALPHA_B0 = 5, BETA_A1 = 6, ALPHA_A1 = 7, BETA_B1 = 8;
-  const int ALPHA_B1 = 9, DPHI_A = 10, DPHI_B = 11;
+  const int BETA_A0 = 2, ALPHA_A0 = 3, BETA_B0 = 4, ALPHA_B0 = 5;
+  const int BETA_A1 = 6, ALPHA_A1 = 7, BETA_B1 = 8, ALPHA_B1 = 9;
+  const int DPHI_A = 10, DPHI_B = 11;
   const int ETA_X0 = 12, ETAP_X0 = 13, ETA_Y0 = 14, ETAP_Y0 = 15;
   const int ETA_X1 = 16, ETAP_X1 = 17, ETA_Y1 = 18, ETAP_Y1 = 19;
   const int MATCH_END_INPUT = 20;
@@ -125,7 +126,8 @@ namespace Bmad {
   const int X0 = 24, PX0 = 25, Y0 = 26, PY0 = 27, Z0 = 28, PZ0 = 29;
   const int X1 = 30, PX1 = 31, Y1 = 32, PY1 = 33, Z1 = 34, PZ1 = 35;
   const int MATCH_END_ORBIT_INPUT = 36, MATCH_END_ORBIT = 37;
-  const int C_11 = 40, C_12 = 41, C_21 = 42, C_22 = 43, GAMMA_C = 44;
+  const int C11_MAT0 = 40, C12_MAT0 = 41, C21_MAT0 = 42, C22_MAT0 = 43;
+  const int C11_MAT1 = 44, C12_MAT1 = 45, C21_MAT1 = 46, C22_MAT1 = 47;
   const int X = 1, PX = 2, Y = 3, PY = 4, Z = 5, PZ = 6;
   const int T = 8;
   const int FIELD_X = 10, FIELD_Y = 11, PHASE_X = 12, PHASE_Y = 13;
@@ -145,7 +147,7 @@ namespace Bmad {
   const int G_ERR = 7, N_POLE = 7, BBI_CONST = 7, OSC_AMPLITUDE = 7;
   const int GRADIENT_ERR = 7, CRITICAL_ANGLE = 7, SAD_FLAG = 7;
   const int BRAGG_ANGLE_OUT = 7, IX_TO_BRANCH = 7;
-  const int RHO = 8, DELTA_E = 8, DIFFRACTION_LIMITED = 8;
+  const int RHO = 8, DELTA_E_REF = 8, DIFFRACTION_LIMITED = 8;
   const int CHARGE = 8, X_GAIN_CALIB = 8, IX_TO_ELEMENT = 8, VOLTAGE = 8;
   const int EPS_STEP_SCALE = 9, VOLTAGE_ERR = 9;
   const int FRINGE_TYPE = 10;
