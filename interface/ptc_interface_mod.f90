@@ -1050,7 +1050,8 @@ subroutine set_ptc (e_tot, particle, taylor_order, integ_order, n_step, &
 use mad_like, only: make_states, exact_model, always_exactmis, pmaMUON, pmaE, &
               assignment(=), nocavity0, default, operator(+), &
               berz, init, set_madx, lp, superkill, TIME0, PHASE0, HIGHEST_FRINGE, init_all, SPIN0
-use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, m_u, bmadl, use_info, use_info_m
+use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, m_u, bmadl, use_info, &
+              use_info_m, check_longitudinal
 use c_tpsa, only: c_verbose, E_MUON, USE_QUATERNION
 
 implicit none
@@ -1080,6 +1081,7 @@ endif
 
 USE_QUATERNION = .TRUE.
 E_MUON = bmad_com%electric_dipole_moment
+CHECK_LONGITUDINAL = .false. ! MAD-X uses the True setting.
 
 if (init_init_needed) then
   EXACT_MODEL = .false.
