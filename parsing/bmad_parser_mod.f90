@@ -350,12 +350,12 @@ if (ele%key == overlay$ .or. ele%key == group$) then
     return
 
   case (var$)
-    if (how == redef$ .or. associated(ele%control_var)) then
+    if (how == redef$ .or. associated(ele%control)) then
       call parser_error ('RESETTING VAR = {...} IS NOT PERMITTED', 'FOR: ' // ele%name)
       return
     endif
     call get_overlay_group_names(ele, lat, pele, delim, delim_found, .true.)
-    pele%default_attrib = ele%control_var(1)%name
+    pele%default_attrib = ele%control%var(1)%name
     err_flag = .false.
     return
 
@@ -367,11 +367,12 @@ if (ele%key == overlay$ .or. ele%key == group$) then
   ! Parse old style control var syntax: "i > num_ele_attrib$" handles accordion_edge for example.
 
   is_attrib = (attribute_index(0, word) > 0 .or. (ele%key == group$ .and. word == 'COMMAND'))
-  if (how == def$ .and. .not. associated(ele%control_var) .and. (i < 1 .or. i > num_ele_attrib$) .and. is_attrib) then 
+  if (how == def$ .and. .not. associated(ele%control) .and. (i < 1 .or. i > num_ele_attrib$) .and. is_attrib) then 
     pele%default_attrib = word
-    allocate (ele%control_var(1))
+    allocate (ele%control)
+    allocate (ele%control%var(1))
     if (ele%key == group$) word = 'COMMAND'
-    ele%control_var(1)%name = word
+    ele%control%var(1)%name = word
     i = 1 + var_offset$
   endif
 
@@ -3837,8 +3838,9 @@ enddo
 !        'NO SLAVE ELEMENTS ASSOCIATED WITH GROUP/OVERLAY ELEMENT: ' // ele%name)
 
 if (is_control_var_list) then
-  allocate(ele%control_var(n_slave))
-  ele%control_var%name = name(1:n_slave)
+  allocate(ele%control)
+  allocate(ele%control%var(n_slave))
+  ele%control%var%name = name(1:n_slave)
 else
   allocate (pele%control(n_slave))
   pele%control%name = name(1:n_slave)

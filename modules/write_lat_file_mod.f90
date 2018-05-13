@@ -401,26 +401,26 @@ do ib = 0, ubound(lat%branch, 1)
           write (line, '(3a)') trim(line), ', ', trim(slave%name)
         endif
         name = attribute_name(slave, ctl%ix_attrib)  
-        if (name /= ele%control_var(1)%name) line = trim(line) // '[' // trim(name) // ']'
+        if (name /= ele%control%var(1)%name) line = trim(line) // '[' // trim(name) // ']'
         string = expression_stack_to_string(ctl%stack)
-        if (string /= ele%control_var(1)%name) write (line, '(3a)') trim(line), ':', trim(string)
+        if (string /= ele%control%var(1)%name) write (line, '(3a)') trim(line), ':', trim(string)
 
         if (len_trim(line) > len(line)/2) call write_lat_line(line, iu, .false.)
       enddo j_loop
-      line = trim(line) // '}, var = {' // ele%control_var(1)%name
+      line = trim(line) // '}, var = {' // ele%control%var(1)%name
 
-      do j = 2, size(ele%control_var)
-        line = trim(line) // ', ' // ele%control_var(j)%name
+      do j = 2, size(ele%control%var)
+        line = trim(line) // ', ' // ele%control%var(j)%name
       enddo
 
       line = trim(line) // '}'
 
-      do j = 1, size(ele%control_var)
-        if (ele%control_var(j)%value /= 0) then
-          line = trim(line) // ', ' // trim(ele%control_var(j)%name) // ' = ' // trim(re_str(ele%control_var(j)%value))
+      do j = 1, size(ele%control%var)
+        if (ele%control%var(j)%value /= 0) then
+          line = trim(line) // ', ' // trim(ele%control%var(j)%name) // ' = ' // trim(re_str(ele%control%var(j)%value))
         endif
-        if (ele%control_var(j)%old_value /= 0) then
-          line = trim(line) // ', old_' // trim(ele%control_var(j)%name) // ' = ' // trim(re_str(ele%control_var(j)%value))
+        if (ele%control%var(j)%old_value /= 0) then
+          line = trim(line) // ', old_' // trim(ele%control%var(j)%name) // ' = ' // trim(re_str(ele%control%var(j)%value))
         endif
       enddo
 

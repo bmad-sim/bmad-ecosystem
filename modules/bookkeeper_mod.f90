@@ -479,8 +479,8 @@ if (moved) then
   call lat_geometry (lat)
 endif
 
-do i = 1, size(lord%control_var)
-  lord%control_var(i)%old_value = lord%control_var(i)%value ! update old
+do i = 1, size(lord%control%var)
+  lord%control%var(i)%old_value = lord%control%var(i)%value ! update old
 enddo
 
 lord%bookkeeping_state%control = ok$
@@ -618,8 +618,8 @@ if (err_flag) then
   return
 endif
 
-call evaluate_expression_stack (ctl%stack, val, err_flag, err_str, lord%control_var, .false.)
-call evaluate_expression_stack (ctl%stack, val_old, err_flag, err_str, lord%control_var, .true.)
+call evaluate_expression_stack (ctl%stack, val, err_flag, err_str, lord%control%var, .false.)
+call evaluate_expression_stack (ctl%stack, val_old, err_flag, err_str, lord%control%var, .true.)
 delta = val - val_old
 if (err_flag) then
   call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
@@ -2221,7 +2221,7 @@ character(100) err_str
 
 ! First evaluate the contribution from the overlay lord
 
-call evaluate_expression_stack(c%stack, this_contribution, err_flag, err_str, lord%control_var, .false.)
+call evaluate_expression_stack(c%stack, this_contribution, err_flag, err_str, lord%control%var, .false.)
 if (err_flag) then
   call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
   err_flag = .true.

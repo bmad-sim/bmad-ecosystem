@@ -140,7 +140,7 @@ do i = 1, lat%n_ele_max
       phase = twopi * (ele2%value(phi0$) + ele2%value(phi0_multipass$))
       coef_tot = coef_tot + linear_coef(ctl%stack, err_flag) * twopi * &
                cos(phase) * ele2%value(rf_frequency$) / (c_light * E0)
-      voltage_control(n_rf)%r => ele%control_var(1)%value
+      voltage_control(n_rf)%r => ele%control%var(1)%value
     enddo
   endif
 

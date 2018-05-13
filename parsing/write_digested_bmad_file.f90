@@ -234,8 +234,8 @@ enddo
 do i = 1, 4
   if (associated(ele%spin_taylor(i)%term)) ix_st(i) = size(ele%spin_taylor(i)%term)
 enddo
-if (associated(ele%wall3d))         ix_wall3d = size(ele%wall3d)
-if (associated(ele%control_var))    n_var = size(ele%control_var)
+if (associated(ele%wall3d))     ix_wall3d = size(ele%wall3d)
+if (associated(ele%control))    n_var = size(ele%control%var)
 
 ! Since some large lattices with a large number of wakes can take a lot of time writing the wake info,
 ! we only write a wake when needed and ix_lr_mode serves as a pointer to a previously written wake.
@@ -324,7 +324,7 @@ write (d_unit) ix_value(1:k), value(1:k)
 
 if (n_var /= 0) then
   do i = 1, n_var
-    write (d_unit) ele%control_var(i)
+    write (d_unit) ele%control%var(i)
   enddo
 endif
 

@@ -88,16 +88,16 @@ endif
 if (ele%key == overlay$ .or. ele%key == group$) then
   if (is_attribute(ix_attrib, control_var$)) then
     ix = ix_attrib - var_offset$ 
-    if (ix > size(ele%control_var)) return
-    a_ptr%r => ele%control_var(ix)%value
+    if (ix > size(ele%control%var)) return
+    a_ptr%r => ele%control%var(ix)%value
     err_flag = .false.
     return
   endif
 
   if (is_attribute(ix_attrib, old_control_var$)) then
     ix = ix_attrib - old_control_var_offset$ 
-    if (ix > size(ele%control_var)) return
-    a_ptr%r => ele%control_var(ix)%old_value
+    if (ix > size(ele%control%var)) return
+    a_ptr%r => ele%control%var(ix)%old_value
     err_flag = .false.
     return
   endif

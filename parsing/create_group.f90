@@ -6,7 +6,7 @@
 ! Note: If the stack (in contrl(i)%stack(:)) array has a single numeric term, and
 ! if there is only one control variable, then
 ! the arithmatic expression is modified so that the controlled attribute is linear
-! in lord%control_var(1) with a coefficient given by the single numeric term.
+! in lord%control%var(1) with a coefficient given by the single numeric term.
 !
 ! Note: See the Bmad manual for directions as to how to use this routine.
 !
@@ -87,8 +87,8 @@ err = .true.
 n_con = lat%n_control_max
 lord%ix1_slave = n_con + 1
 
-do iv = 1, size(lord%control_var)
-  call upcase_string(lord%control_var(iv)%name)
+do iv = 1, size(lord%control%var)
+  call upcase_string(lord%control%var(iv)%name)
 enddo
 
 ! loop over all controlled attributes
@@ -156,8 +156,8 @@ do i = 1, n_control
   do is = 1, size(c%stack)
     if (c%stack(is)%type == end_stack$) exit
     if (c%stack(is)%type /= variable$) cycle
-    do iv = 1, size(lord%control_var)
-      if (upcase(c%stack(is)%name) /= lord%control_var(iv)%name) cycle
+    do iv = 1, size(lord%control%var)
+      if (upcase(c%stack(is)%name) /= lord%control%var(iv)%name) cycle
       c%stack(is)%type = iv + var_offset$
       exit
     enddo
@@ -174,11 +174,11 @@ do i = 1, n_control
 
   if (.not. var_found) then
     if (size(c%stack) == 1 .and. c%stack(1)%name == '1' .or. c%stack(1)%name == '1.0') then
-      c%stack(1) = expression_atom_struct(lord%control_var(1)%name, 1+var_offset$, 0.0_rp)
+      c%stack(1) = expression_atom_struct(lord%control%var(1)%name, 1+var_offset$, 0.0_rp)
     else
       n = size(c%stack)
       call reallocate_expression_stack(c%stack, n+2)
-      c%stack(n+1) = expression_atom_struct(lord%control_var(1)%name, 1+var_offset$, 0.0_rp)
+      c%stack(n+1) = expression_atom_struct(lord%control%var(1)%name, 1+var_offset$, 0.0_rp)
       c%stack(n+2) = expression_atom_struct('', times$, 0.0_rp)
     endif
   endif
