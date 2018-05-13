@@ -1,6 +1,8 @@
  
-"NH3+:mass" ABS  1E-10     17.030518791
-"NH3+:charge" ABS  0      1
+"Ag+76:mass" ABS  1E-10    107.868200000
+"Ag+76:charge" ABS  0     76
+"NH3--:mass" ABS  1E-10     17.030518791
+"NH3--:charge" ABS  0     -2
 "CH3++:mass" ABS  1E-10     15.034498933
 "CH3++:charge" ABS  0      2
 "CH3++:mass" ABS  1E-10     15.034498933
@@ -11,10 +13,6 @@
 "C+:charge" ABS  0      1
 "#12C+:mass" ABS  1E-10     12.000000000
 "#12C+:charge" ABS  0      1
-"H2O-4:mass" ABS  1E-10     18.015278722
-"H2O-4:charge" ABS  0     -4
-"Electron:mass" ABS  1E-10      0.000548580
-"Electron:charge" ABS  0     -1
  
 "Anti_Deuteron:mass" ABS  1E-10     1.8756129280E+09
 "Anti_Deuteron:charge" ABS  0     -1

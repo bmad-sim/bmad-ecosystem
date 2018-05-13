@@ -11,24 +11,54 @@ use naff_mod
 
 implicit none
 
+type (spline_struct) a_spline(6)
 type (coord_struct) orbit
 
-real(rp) array(4), dE, freq(3)
 complex(rp) cdata(32)
 complex(rp) amp(3)
 integer i, which, where, n_freq, mult, power, width, digits
-logical match
+logical match, ok
 character(40) str, sub1, sub2, sub3
 character(2) code
 
+real(rp) array(4), dE, freq(3)
 real(rp) sig1, sig2, sig3, quat(0:3), omega(3), axis2(3), angle2
-real(rp) phi1, phi2, phi3
+real(rp) phi1, phi2, phi3, y1, dy1, y2, dy2
 real(rp) vec3(3), vec3a(3), vec3b(3), vec3c(3), axis(3), angle, w_mat(3,3), unit_mat(3,3)
 complex(rp) amp1, amp2, amp3
 
 !
 
 open (1, file = 'output.now')
+
+! Akima spline test
+
+do i = 1, 6
+  a_spline(i)%x0 = i + 0.1 * i * i
+  a_spline(i)%y0 = i * i
+enddo
+
+call spline_akima(a_spline, ok)
+
+call spline_evaluate (a_spline, 1.3_rp, ok, y1, dy1)
+call spline_akima_interpolate (a_spline%x0, a_spline%y0, 1.3_rp, ok, y2, dy2)
+write (1, '(a, 4f14.8)') '"Spline1" ABS 1E-10 ', y1, dy1, y2 - y1, dy2 - dy1
+
+call spline_evaluate (a_spline, 2.7_rp, ok, y1, dy1)
+call spline_akima_interpolate (a_spline%x0, a_spline%y0, 2.7_rp, ok, y2, dy2)
+write (1, '(a, 4f14.8)') '"Spline2" ABS 1E-10 ', y1, dy1, y2 - y1, dy2 - dy1
+
+call spline_evaluate (a_spline, 5.0_rp, ok, y1, dy1)
+call spline_akima_interpolate (a_spline%x0, a_spline%y0, 5.0_rp, ok, y2, dy2)
+write (1, '(a, 4f14.8)') '"Spline3" ABS 1E-10 ', y1, dy1, y2 - y1, dy2 - dy1
+
+call spline_evaluate (a_spline, 8.0_rp, ok, y1, dy1)
+call spline_akima_interpolate (a_spline%x0, a_spline%y0, 8.0_rp, ok, y2, dy2)
+write (1, '(a, 4f14.8)') '"Spline4" ABS 1E-10 ', y1, dy1, y2 - y1, dy2 - dy1
+
+call spline_evaluate (a_spline, 9.6_rp, ok, y1, dy1)
+call spline_akima_interpolate (a_spline%x0, a_spline%y0, 9.6_rp, ok, y2, dy2)
+write (1, '(a, 4f14.8)') '"Spline5" ABS 1E-10 ', y1, dy1, y2 - y1, dy2 - dy1
 
 ! Parse fortran format tests
 

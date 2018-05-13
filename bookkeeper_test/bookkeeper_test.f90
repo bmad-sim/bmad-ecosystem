@@ -96,9 +96,9 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   endif
 
   if (ele%key == overlay$ .or. ele%key == group$) then
-    do j = 1, size(ele%control_var)
+    do j = 1, size(ele%control%var)
       write (1, '(5a, f10.4)') '"', trim(ele%name), '[', &
-                      trim(ele%control_var(j)%name), ']"      ABS 0', ele%control_var(j)%value
+                      trim(ele%control%var(j)%name), ']"      ABS 0', ele%control%var(j)%value
     enddo
   endif
 

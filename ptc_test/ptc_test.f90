@@ -7,21 +7,24 @@
 program ptc_test
 
 use bmad, dummy => dp
-use s_def_kind
-use ptc_layout_mod, dummy2 => dp
+use s_def_kind, dummy2 => dp
+use ptc_layout_mod
+use ptc_track_with_radiation_mod
 
 implicit none
 
 type (lat_struct), target :: lat, lat2, lat3
 type (ele_struct), pointer :: ele, ele2
+type (coord_struct), allocatable :: orbit_track(:)
 type (coord_struct) start_orb, end_orb1, end_orb2, end_orb1p, end_orb2p
-type (coord_struct) end_orb1t, end_orb2t, closed_orb
+type (coord_struct) end_orb1t, end_orb2t, closed_orb, orbit
 type (normal_modes_struct) mode
 type (taylor_struct) bmad_taylor(6), tmap(6), smap(4)
 type (real_8) y8(6)
 type (branch_struct), pointer :: branch, branch2
 type (track_struct) orb_track
 type (em_field_struct) field
+type (tree_element_zhe) map_with_rad(3)
 
 real(rp) diff_mat(6,6), diff_vec(6)
 real(rp) vec_bmad(6), vec_ptc(6), vec_bmad2(6), beta0, beta1 
@@ -40,7 +43,39 @@ namelist / params / start_orb
 open (1, file = 'output.now')
 
 !----------------------------
-! Layout test
+
+call bmad_parser ('small_ring.bmad', lat)
+call lat_to_ptc_layout (lat)
+
+call ptc_setup_map_with_radiation (map_with_rad, lat%ele(0), lat%ele(0), map_order = 2)
+
+open (2, file = '1track.dat')
+orbit%vec = [-0.01664448d-3, 0.03015525d-3, 0.0d-3, 0.0d-3, 2.12971838d-3, -0.00039838d-3]
+do i = 1, 200
+  call ptc_track_with_radiation (orbit, map_with_rad, .true., .false.)
+  write (2, '(i6, 6f12.8)') i, orbit%vec
+enddo
+
+open (3, file = '2track.dat')
+call reallocate_coord (orbit_track, lat)
+orbit_track(0)%vec = [-0.01664448d-3, 0.03015525d-3, 0.0d-3, 0.0d-3, 2.12971838d-3, -0.00039838d-3]
+call init_coord (orbit_track(0), orbit_track(0), lat%ele(0), upstream_end$)
+do i = 1, 200
+  call track_all (lat, orbit_track)
+  orbit_track(0) = orbit_track(lat%n_ele_track)
+  write (3, '(i6, 6f12.8)') i, orbit_track(0)%vec
+enddo
+
+
+stop
+
+!----------------------------
+
+call bmad_parser ('bmad_L9A18A000-_MOVEREC.lat', lat)
+call lat_to_ptc_layout (lat)
+call ptc_invariant_spin_field (lat%ele(0), 1, closed_orb)
+
+!----------------------------
 
 call bmad_parser ('figure_8.bmad', lat)
 call lat_to_ptc_layout (lat)
@@ -52,8 +87,9 @@ call taylor_clean(smap)
 call type_taylors (tmap)
 call type_taylors(smap, out_type = 'SPIN')
 
-stop
+!----------------------------
 
+call bmad_parser ('bmad_L9A18A000-_MOVEREC.lat', lat)
 
 call ptc_emit_calc (lat%ele(0), mode, sigma_mat, closed_orb)
 
@@ -65,14 +101,9 @@ do i = 1, 6
   write (1, '(a, i0, a, 6es16.8)') '"layout-sigma', i, '" REL 1E-8', sigma_mat(i,:)
 enddo
 
-
-stop
-
-
-
 !-------------------------------------------------------
 
-call bmad_parser ('map.bmad', lat)
+call bmad_parser ('single_quad.bmad', lat)
 
 ele => lat%ele(1)
 call ele_to_fibre(ele, ele%ptc_fibre, lat%param, .true.)
