@@ -169,7 +169,7 @@ get_filename_component(SHORT_DIRNAME ${CMAKE_SOURCE_DIR} NAME)
 #  Shell: ACC_ENABLE_SHARED
 #  Cmake: CREATE_SHARED
 #-------------------------------------------------------
-set(ENABLE_SHARED $ENV{ACC_ENABLE_SHARED})
+SET (ENABLE_SHARED $ENV{ACC_ENABLE_SHARED})
 
 IF (${LIBNAME})
   project(${LIBNAME})
@@ -283,6 +283,10 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${FORTRAN_COMPILER} MATCHES "ifort"
 ENDIF ()
 
 IF ($ENV{ACC_ENABLE_FPIC})
+   SET (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -fPIC")
+ENDIF ()
+
+IF ($ENV{ACC_ENABLE_SHARED})
    SET (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -fPIC")
 ENDIF ()
 
@@ -616,7 +620,7 @@ ENDIF ()
 # 
 # Now works correctly with gmake -j values greater than 1
 #----------------------------------------------------------------
-IF (DEFINED SHARED_LINK_LIBS)
+IF (DEFINED ENABLE_SHARED)
 MESSAGE ("SHARED DEPS          : ${SHARED_DEPS}\n")
 ENDIF ()
 IF (ENABLE_SHARED AND CREATE_SHARED)
@@ -877,12 +881,18 @@ foreach(exespec ${EXE_SPECS})
     SET (MAPLINE "-Wl,-map -Wl,\"${OUTPUT_BASEDIR}/map/${EXENAME}.map\"")
   ENDIF ()
 
-  set(STATIC_FLAG "")
-  set(SHARED_FLAG "")
+  SET (STATIC_FLAG "")
+  SET (SHARED_FLAG "")
   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     IF (FORTRAN_COMPILER MATCHES "ifort")
-      set(STATIC_FLAG "-Wl,-Bstatic")
-      set(SHARED_FLAG "-Wl,-Bdynamic")
+      SET (STATIC_FLAG "-Wl,-Bstatic -fPIC")
+      SET (SHARED_FLAG "-Wl,-Bdynamic -fPIC")
+    ENDIF ()
+    IF ("${ACC_ENABLE_OPENMP}" AND FORTRAN_COMPILER MATCHES "gfortran")
+      SET (SHARED_FLAG "${SHARED_FLAG} -fopenmp")
+      SET (SHARED_DEPS "${SHARED_DEPS} gomp")
+    ELSEIF () 
+      SET (SHARED_FLAG "${SHARED_FLAG} -liomp5")
     ENDIF ()
   ELSEIF (${MSYS})
       # Link all libraries statically:
