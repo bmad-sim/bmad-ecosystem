@@ -2124,8 +2124,8 @@ Attributes specific to a \vn{Group} element are:
 \end{example}
 This lists the variables that control the slave attributes.
 
-There are two types of \vn{group} elements: \vn{Function} based and \vn{spline} based.
-The general syntax for a \vn{function} based \vn{group} element is
+There are two types of \vn{group} elements: \vn{Expression} based and \vn{spline} based.
+The general syntax for a \vn{expression} based \vn{group} element is
 \begin{example}
   name: GROUP = \{ele1[attrib1]:exp1, ele2[attrib2]:exp2, ...\}, 
               VAR = \{var1, var2, ...\}, var1 = init_val1, old_var1 = init_val_old1, ...
@@ -2143,7 +2143,7 @@ The general syntax for a \vn{spline} based  \vn{group} element is
 
 \textbf{See Section~\sref{s:go.syntax} for a detailed description of this syntax.}
 
-Example of a \vn{function} based \vn{group} element:
+Example of a \vn{expression} based \vn{group} element:
 \begin{example}
   gr1: group = \{q[k1]:a+b^2\}, var = \{a, b\}, a = 1, old_a = 2
   gr1[old_b] = 2
@@ -3071,15 +3071,12 @@ Example:
 \label{s:overlay}
 \index{ovlerlay|hyperbf}
 
-\vn{Overlay} elements are a type of \vn{control} element
-(\sref{s:lord.slave}) used to make variations in the attributes of
-other elements (called ``slave'' attributes) while a program is
-running. For example, to simulate the action of a magnet power supply
-that controls a string of magnets. Also see \vn{group}
-(\sref{s:group}) The difference between \vn{group} and \vn{overlay}
-elements is that \vn{overlay} elements set the values of the
-attributes directly while \vn{group} elements make delta changes to
-attribute values.
+\vn{Overlay} elements are a type of \vn{control} element (\sref{s:lord.slave}) used to make
+variations in the attributes of other elements (called ``slave'' attributes) while a program is
+running. For example, to simulate the action of a magnet power supply that controls a string of
+magnets. Also see \vn{group} (\sref{s:group}) The difference between \vn{group} and \vn{overlay}
+elements is that \vn{overlay} elements set the values of the attributes directly while \vn{group}
+elements make delta changes to attribute values.
 
 General \vn{overlay} attributes are:
 \begin{center}
@@ -3100,8 +3097,8 @@ Attributes specific to a \vn{Overlay} element are:
 \end{example}
 This lists the variables that control the slave attributes.
 
-There are two types of \vn{overlay} elements: \vn{Function} based and \vn{spline} based.
-The general syntax for a \vn{function} based \vn{overlay} element is
+There are two types of \vn{overlay} elements: \vn{Expression} based and \vn{spline} based.
+The general syntax for a \vn{expression} based \vn{overlay} element is
 \begin{example}
   name: OVERLAY = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, 
                                                        default_attrib = init_value

@@ -75,6 +75,12 @@ do j = 1, n_slave
   endif
 enddo
 
+if (lord%control%type /= expression$ .and. size(lord%control%var) /= 1) then
+  call parser_error ('A SPLINE BASED CONTROLLER MAY ONLY HAVE ONE CONTROL VARIABLE: ' // lord%name)
+  if (global_com%exit_on_error) call err_exit
+  return
+endif  
+
 ! Mark element as an overlay lord
 
 call check_controller_controls (contrl, lord%name, err)
@@ -124,7 +130,7 @@ do j = 1, n_slave
 
   !
 
-  if (lord%control%type == function$) then
+  if (lord%control%type == expression$) then
 
     do is = 1, size(contrl(j)%stack)
       if (contrl(j)%stack(is)%type == end_stack$) exit
@@ -172,6 +178,8 @@ do j = 1, n_slave
       case (ran$, ran_gauss$)
         call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH AN OVERLAY OR GROUP', &
                            'FOR ELEMENT: ' // lord%name)
+        if (global_com%exit_on_error) call err_exit
+        return
       case (variable$)
         call word_to_value (c%stack(is)%name, lat, c%stack(is)%value, err2)
         err = (err .or. err2)
@@ -191,6 +199,8 @@ do j = 1, n_slave
     if (size(c%y_knot) /= size(lord%control%x_knot)) then
       call parser_error ('NUMBER OF Y_SPLINE POINTS FOR SLAVE: ' // slave%name, &
                          'IS NOT THE SAME AS THE NUMBER OF X_SPLINE POINTS FOR ELEMENT: ' // lord%name)
+      if (global_com%exit_on_error) call err_exit
+      return
     endif
   endif
 

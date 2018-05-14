@@ -179,12 +179,12 @@ either a \vn{group} or \vn{overlay} element.
 Controller elements have a set of one or more ``\vn{variables}'' that are used to control the values
 of attributes of other elements (called ``\vn{slave}'' attributes).
 
-There are two types of controllers. \vn{Function} based controllers and \vn{Spline} based
-controllers. \vn{Function} based controllers use mathematical functions to define how slave
+There are two types of controllers. \vn{Expression} based controllers and \vn{Spline} based
+controllers. \vn{Expression} based controllers use mathematical expressions to define how slave
 attribute values are calculated based upon the values of the controller variables. \vn{Spline} based
 controllers use a spline fit to a function defined by a set of points (called ``\vn{knots}'') to
-determin the relationship between varialbes and slave attributes. With a spline based controller,
-the number of variables is restricted to one.
+determin ethe relationship between variables and slave attributes. With a spline based controller,
+the number of variables is restricted to be one.
 
 
 The general syntax for a \vn{group} element is

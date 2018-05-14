@@ -622,7 +622,7 @@ endif
 
 ! Evaluate value and old value.
 
-if (lord%control%type == function$) then
+if (lord%control%type == expression$) then
   call evaluate_expression_stack (ctl%stack, val, err_flag, err_str, lord%control%var, .false.)
   call evaluate_expression_stack (ctl%stack, val_old, err_flag, err_str, lord%control%var, .true.)
   if (err_flag) then
@@ -2239,7 +2239,7 @@ character(100) err_str
 
 ! First evaluate the contribution from the overlay lord
 
-if (lord%control%type == function$) then
+if (lord%control%type == expression$) then
   call evaluate_expression_stack(c%stack, this_contribution, err_flag, err_str, lord%control%var, .false.)
   if (err_flag) then
     call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
