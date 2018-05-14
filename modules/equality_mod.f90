@@ -305,12 +305,6 @@ is_eq = is_eq .and. (f1%name == f2%name)
 is_eq = is_eq .and. (f1%value == f2%value)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%old_value == f2%old_value)
-!! f_side.equality_test[real, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%y_knot) .eqv. allocated(f2%y_knot))
-if (.not. is_eq) return
-if (allocated(f1%y_knot)) is_eq = all(shape(f1%y_knot) == shape(f2%y_knot))
-if (.not. is_eq) return
-if (allocated(f1%y_knot)) is_eq = all(f1%y_knot == f2%y_knot)
 
 end function eq_controller_var1
 
@@ -328,7 +322,7 @@ logical is_eq
 
 is_eq = .true.
 !! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%control_type == f2%control_type)
+is_eq = is_eq .and. (f1%type == f2%type)
 !! f_side.equality_test[type, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%var) .eqv. allocated(f2%var))
 if (.not. is_eq) return
@@ -1704,6 +1698,12 @@ logical is_eq
 !
 
 is_eq = .true.
+!! f_side.equality_test[real, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%y_knot) .eqv. allocated(f2%y_knot))
+if (.not. is_eq) return
+if (allocated(f1%y_knot)) is_eq = all(shape(f1%y_knot) == shape(f2%y_knot))
+if (.not. is_eq) return
+if (allocated(f1%y_knot)) is_eq = all(f1%y_knot == f2%y_knot)
 !! f_side.equality_test[type, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%stack) .eqv. allocated(f2%stack))
 if (.not. is_eq) return

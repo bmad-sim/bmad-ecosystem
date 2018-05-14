@@ -606,6 +606,8 @@ integer dir, il, ix_slave
 
 real(rp) coef, new_val, val, val_old, delta
 
+logical ok
+
 character(*) attrib_name
 character(*), optional :: this_pad
 character(100) err_str
@@ -618,13 +620,29 @@ if (err_flag) then
   return
 endif
 
-call evaluate_expression_stack (ctl%stack, val, err_flag, err_str, lord%control%var, .false.)
-call evaluate_expression_stack (ctl%stack, val_old, err_flag, err_str, lord%control%var, .true.)
-delta = val - val_old
-if (err_flag) then
-  call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
-  return
+! Evaluate value and old value.
+
+if (lord%control%type == function$) then
+  call evaluate_expression_stack (ctl%stack, val, err_flag, err_str, lord%control%var, .false.)
+  call evaluate_expression_stack (ctl%stack, val_old, err_flag, err_str, lord%control%var, .true.)
+  if (err_flag) then
+    call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
+    return
+  endif
+
+else
+  call spline_akima_interpolate (lord%control%x_knot, ctl%y_knot, lord%control%var(1)%value, ok, val)
+  call spline_akima_interpolate (lord%control%x_knot, ctl%y_knot, lord%control%var(1)%old_value, ok, val_old)
+  if (.not. ok) then
+    call out_io (s_error$, r_name, 'VARIABLE VALUE OUTSIDE OF SPLINE KNOT RANGE.')
+    err_flag = .true.
+    return
+  endif
 endif
+
+!
+
+delta = val - val_old
 a_ptr%r = a_ptr%r + delta * dir
 
 call set_flags_for_changed_attribute (ele, a_ptr%r)
@@ -2215,17 +2233,27 @@ type (control_struct) c
 real(rp), target :: r_attrib
 real(rp) this_contribution
 integer iv
-logical err_flag
+logical err_flag, ok
 
 character(100) err_str
 
 ! First evaluate the contribution from the overlay lord
 
-call evaluate_expression_stack(c%stack, this_contribution, err_flag, err_str, lord%control%var, .false.)
-if (err_flag) then
-  call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
-  err_flag = .true.
-  return
+if (lord%control%type == function$) then
+  call evaluate_expression_stack(c%stack, this_contribution, err_flag, err_str, lord%control%var, .false.)
+  if (err_flag) then
+    call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
+    err_flag = .true.
+    return
+  endif
+
+else
+  call spline_akima_interpolate (lord%control%x_knot, c%y_knot, lord%control%var(1)%value, ok, this_contribution)
+  if (.not. ok) then
+    call out_io (s_error$, r_name, 'VARIABLE VALUE OUTSIDE OF SPLINE KNOT RANGE.')
+    err_flag = .true.
+    return
+  endif
 endif
 
 ! If the contribution (this_contribution) contributes to a slave attribute that is on the val_attrib list then

@@ -43,6 +43,7 @@ call move_alloc (lat%control, control)
 allocate (lat%control(n))
 do i = 1, n_old
   call move_alloc(control(i)%stack, lat%control(i)%stack)
+  call move_alloc(control(i)%y_knot, lat%control(i)%y_knot)
   lat%control(i)%lord      = control(i)%lord
   lat%control(i)%slave     = control(i)%slave
   lat%control(i)%ix_attrib = control(i)%ix_attrib

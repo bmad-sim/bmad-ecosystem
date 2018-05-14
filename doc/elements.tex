@@ -2122,26 +2122,45 @@ Attributes specific to a \vn{Group} element are:
 \begin{example}
   var = \{<var1>, <var2>, ...\}   ! List of variables.
 \end{example}
+This lists the variables that control the slave attributes.
 
-The general syntax for a \vn{group} element is
+There are two types of \vn{group} elements: \vn{Function} based and \vn{spline} based.
+The general syntax for a \vn{function} based \vn{group} element is
 \begin{example}
   name: GROUP = \{ele1[attrib1]:exp1, ele2[attrib2]:exp2, ...\}, 
               VAR = \{var1, var2, ...\}, var1 = init_val1, old_var1 = init_val_old1, ...
 \end{example}
+where \vn{ele1}[\vn{attrib1}], \vn{ele2}[\vn{attrib2}], etc. specify the slave attributes and
+\vn{exp1}, \vn{exp2}, etc. are the arithmetial expressions, that are functions of \vn{var1},
+\vn{var2}, etc., and are used to determine a value for the slave attributes.
+
+The general syntax for a \vn{spline} based  \vn{group} element is
+\begin{example}
+  name: GROUP = \{ele1[attrib1]:\{y_knot_points1\}, ele2[attrib2]:\{y_knot_points2\}, ...\}, 
+              VAR = \{var1\}, X_KNOT = \{x_knot_points\}, 
+              var1 = init_val1, old_var1 = init_val_old1, ...
+\end{example}
+
 \textbf{See Section~\sref{s:go.syntax} for a detailed description of this syntax.}
 
-Example:
+Example of a \vn{function} based \vn{group} element:
 \begin{example}
-  gr1: group = \{...\}, var = \{a, b\}, a = 1, old_a = 2
-  gr2[old_b] = 2
+  gr1: group = \{q[k1]:a+b^2\}, var = \{a, b\}, a = 1, old_a = 2
+  gr1[old_b] = 2
 \end{example}
-There are two numbers associated with each
-variable in a group: One number is the value of the variable (also
-called the ``present'' value) and the other number is the ``old''
-value. To refer to these old values prepend the string ``old_'' to the
-variable name. Thus, in the above example, the old variable values
-have names \vn{old_a} and \vn{old_b} and these old values can be set
-in the same manner as the present values.
+There are two numbers associated with each variable in a group: One number is the value of the
+variable (also called the ``present'' value) and the other number is the ``old'' value. To refer to
+these old values prepend the string ``old_'' to the variable name. Thus, in the above example, the
+old variable values have names \vn{old_a} and \vn{old_b} and these old values can be set in the same
+manner as the present values.
+
+Example of a \vn{spline} based \vn{group} element:
+\begin{example}
+  gr2: group = \{beginning[e_tot]]:\{4e6,...\}\}, 
+      var = \{time\}, x_knot = \{...\}
+\end{example}
+Here the function used to translate from the \vn{group}'s variables to the slave attribute values is
+a spline interpolation based upont the knot points specified (\sref{s:go.syntax}).
 
 A \vn{group} element is like an \vn{overlay} element in that a \vn{group} element controls the
 attribute values of other ``slave'' elements. The difference is that the value of a slave attribute
@@ -3079,12 +3098,24 @@ Attributes specific to a \vn{Overlay} element are:
 \begin{example}
   var = \{<var1>, <var2>, ...\}   ! List of variables.
 \end{example}
+This lists the variables that control the slave attributes.
 
-The general syntax for a \vn{overlay} element is
+There are two types of \vn{overlay} elements: \vn{Function} based and \vn{spline} based.
+The general syntax for a \vn{function} based \vn{overlay} element is
 \begin{example}
   name: OVERLAY = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, 
                                                        default_attrib = init_value
 \end{example}
+where \vn{ele1}[\vn{attrib1}], \vn{ele2}[\vn{attrib2}], etc. specify the slave attributes and
+\vn{exp1}, \vn{exp2}, etc. are the arithmetial expressions, that are functions of \vn{var1},
+\vn{var2}, etc., and are used to determine a value for the slave attributes.
+
+The general syntax for a \vn{spline} based  \vn{overlay} element is
+\begin{example}
+  name: OVERLAY = \{ele1[attrib1]:\{y_knot_points1\}, ele2[attrib2]:\{y_knot_points2\}, ...\}, 
+              VAR = \{var1\}, X_KNOT = \{x_knot_points\}, var1 = init_val1, ...
+\end{example}
+
 \textbf{See Section~\sref{s:go.syntax} for a detailed description of this syntax.}
 
 An \vn{overlay} element is used to control the attributes of other elements. 
