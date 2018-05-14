@@ -204,7 +204,6 @@ bool operator== (const CPP_controller_var1& x, const CPP_controller_var1& y) {
   is_eq = is_eq && (x.name == y.name);
   is_eq = is_eq && (x.value == y.value);
   is_eq = is_eq && (x.old_value == y.old_value);
-  is_eq = is_eq && is_all_equal(x.y_knot, y.y_knot);
   return is_eq;
 };
 
@@ -215,7 +214,7 @@ template bool is_all_equal (const CPP_controller_var1_MATRIX&, const CPP_control
 
 bool operator== (const CPP_controller& x, const CPP_controller& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.control_type == y.control_type);
+  is_eq = is_eq && (x.type == y.type);
   is_eq = is_eq && is_all_equal(x.var, y.var);
   is_eq = is_eq && is_all_equal(x.x_knot, y.x_knot);
   return is_eq;
@@ -964,6 +963,7 @@ template bool is_all_equal (const CPP_wall3d_MATRIX&, const CPP_wall3d_MATRIX&);
 
 bool operator== (const CPP_control& x, const CPP_control& y) {
   bool is_eq = true;
+  is_eq = is_eq && is_all_equal(x.y_knot, y.y_knot);
   is_eq = is_eq && is_all_equal(x.stack, y.stack);
   is_eq = is_eq && (x.slave == y.slave);
   is_eq = is_eq && (x.lord == y.lord);

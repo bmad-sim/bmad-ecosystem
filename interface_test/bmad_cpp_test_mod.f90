@@ -1005,17 +1005,6 @@ enddo
 rhs = 2 + offset; F%value = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 3 + offset; F%old_value = rhs
-!! f_side.test_pat[real, 1, ALLOC]
-
-if (ix_patt < 3) then
-  if (allocated(F%y_knot)) deallocate (F%y_knot)
-else
-  if (.not. allocated(F%y_knot)) allocate (F%y_knot(-1:1))
-  do jd1 = 1, size(F%y_knot,1); lb1 = lbound(F%y_knot,1) - 1
-    rhs = 100 + jd1 + 4 + offset
-    F%y_knot(jd1+lb1) = rhs
-  enddo
-endif
 
 end subroutine set_controller_var1_test_pattern
 
@@ -1101,7 +1090,7 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 offset = 100 * ix_patt
 
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 1 + offset; F%control_type = rhs
+rhs = 1 + offset; F%type = rhs
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
@@ -5834,6 +5823,17 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
+!! f_side.test_pat[real, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%y_knot)) deallocate (F%y_knot)
+else
+  if (.not. allocated(F%y_knot)) allocate (F%y_knot(-1:1))
+  do jd1 = 1, size(F%y_knot,1); lb1 = lbound(F%y_knot,1) - 1
+    rhs = 100 + jd1 + 1 + offset
+    F%y_knot(jd1+lb1) = rhs
+  enddo
+endif
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
@@ -5850,10 +5850,10 @@ call set_lat_ele_loc_test_pattern (F%slave, ix_patt)
 call set_lat_ele_loc_test_pattern (F%lord, ix_patt)
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%attribute)
-  F%attribute(jd1:jd1) = char(ichar("a") + modulo(100+5+offset+jd1, 26))
+  F%attribute(jd1:jd1) = char(ichar("a") + modulo(100+7+offset+jd1, 26))
 enddo
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 6 + offset; F%ix_attrib = rhs
+rhs = 8 + offset; F%ix_attrib = rhs
 
 end subroutine set_control_test_pattern
 

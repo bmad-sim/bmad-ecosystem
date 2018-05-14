@@ -728,13 +728,11 @@ public:
   string name;
   Real value;
   Real old_value;
-  Real_ARRAY y_knot;
 
   CPP_controller_var1() :
     name(),
     value(0.0),
-    old_value(0.0),
-    y_knot(0.0, 0)
+    old_value(0.0)
     {}
 
   ~CPP_controller_var1() {
@@ -755,12 +753,12 @@ class Opaque_controller_class {};  // Opaque class for pointers to corresponding
 
 class CPP_controller {
 public:
-  Int control_type;
+  Int type;
   CPP_controller_var1_ARRAY var;
   Real_ARRAY x_knot;
 
   CPP_controller() :
-    control_type(Bmad::FUNCTION),
+    type(Bmad::FUNCTION),
     var(CPP_controller_var1_ARRAY(CPP_controller_var1(), 0)),
     x_knot(0.0, 0)
     {}
@@ -2330,6 +2328,7 @@ class Opaque_control_class {};  // Opaque class for pointers to corresponding fo
 
 class CPP_control {
 public:
+  Real_ARRAY y_knot;
   CPP_expression_atom_ARRAY stack;
   CPP_lat_ele_loc slave;
   CPP_lat_ele_loc lord;
@@ -2337,6 +2336,7 @@ public:
   Int ix_attrib;
 
   CPP_control() :
+    y_knot(0.0, 0),
     stack(CPP_expression_atom_ARRAY(CPP_expression_atom(), 0)),
     slave(),
     lord(),

@@ -391,25 +391,19 @@ extern "C" void photon_reflect_surface_to_c2 (CPP_photon_reflect_surface& C, c_C
 extern "C" void controller_var1_to_c (const Opaque_controller_var1_class*, CPP_controller_var1&);
 
 // c_side.to_f2_arg
-extern "C" void controller_var1_to_f2 (Opaque_controller_var1_class*, c_Char, c_Real&, c_Real&,
-    c_RealArr, Int);
+extern "C" void controller_var1_to_f2 (Opaque_controller_var1_class*, c_Char, c_Real&,
+    c_Real&);
 
 extern "C" void controller_var1_to_f (const CPP_controller_var1& C, Opaque_controller_var1_class* F) {
-  // c_side.to_f_setup[real, 1, ALLOC]
-  int n1_y_knot = C.y_knot.size();
-  c_RealArr z_y_knot = NULL;
-  if (n1_y_knot > 0) {
-    z_y_knot = &C.y_knot[0];
-  }
 
   // c_side.to_f2_call
-  controller_var1_to_f2 (F, C.name.c_str(), C.value, C.old_value, z_y_knot, n1_y_knot);
+  controller_var1_to_f2 (F, C.name.c_str(), C.value, C.old_value);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void controller_var1_to_c2 (CPP_controller_var1& C, c_Char z_name, c_Real& z_value,
-    c_Real& z_old_value, c_RealArr z_y_knot, Int n1_y_knot) {
+    c_Real& z_old_value) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.name = z_name;
@@ -417,11 +411,6 @@ extern "C" void controller_var1_to_c2 (CPP_controller_var1& C, c_Char z_name, c_
   C.value = z_value;
   // c_side.to_c2_set[real, 0, NOT]
   C.old_value = z_old_value;
-  // c_side.to_c2_set[real, 1, ALLOC]
-
-  C.y_knot.resize(n1_y_knot);
-  C.y_knot << z_y_knot;
-
 }
 
 //--------------------------------------------------------------------
@@ -450,18 +439,18 @@ extern "C" void controller_to_f (const CPP_controller& C, Opaque_controller_clas
   }
 
   // c_side.to_f2_call
-  controller_to_f2 (F, C.control_type, z_var, n1_var, z_x_knot, n1_x_knot);
+  controller_to_f2 (F, C.type, z_var, n1_var, z_x_knot, n1_x_knot);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_var;
 }
 
 // c_side.to_c2_arg
-extern "C" void controller_to_c2 (CPP_controller& C, c_Int& z_control_type,
+extern "C" void controller_to_c2 (CPP_controller& C, c_Int& z_type,
     Opaque_controller_var1_class** z_var, Int n1_var, c_RealArr z_x_knot, Int n1_x_knot) {
 
   // c_side.to_c2_set[integer, 0, NOT]
-  C.control_type = z_control_type;
+  C.type = z_type;
   // c_side.to_c2_set[type, 1, ALLOC]
   C.var.resize(n1_var);
   for (int i = 0; i < n1_var; i++) controller_var1_to_c(z_var[i], C.var[i]);
@@ -2360,10 +2349,17 @@ extern "C" void wall3d_to_c2 (CPP_wall3d& C, c_Char z_name, c_Int& z_type, c_Int
 extern "C" void control_to_c (const Opaque_control_class*, CPP_control&);
 
 // c_side.to_f2_arg
-extern "C" void control_to_f2 (Opaque_control_class*, const CPP_expression_atom**, Int, const
-    CPP_lat_ele_loc&, const CPP_lat_ele_loc&, c_Char, c_Int&);
+extern "C" void control_to_f2 (Opaque_control_class*, c_RealArr, Int, const
+    CPP_expression_atom**, Int, const CPP_lat_ele_loc&, const CPP_lat_ele_loc&, c_Char,
+    c_Int&);
 
 extern "C" void control_to_f (const CPP_control& C, Opaque_control_class* F) {
+  // c_side.to_f_setup[real, 1, ALLOC]
+  int n1_y_knot = C.y_knot.size();
+  c_RealArr z_y_knot = NULL;
+  if (n1_y_knot > 0) {
+    z_y_knot = &C.y_knot[0];
+  }
   // c_side.to_f_setup[type, 1, ALLOC]
   int n1_stack = C.stack.size();
   const CPP_expression_atom** z_stack = NULL;
@@ -2373,16 +2369,22 @@ extern "C" void control_to_f (const CPP_control& C, Opaque_control_class* F) {
   }
 
   // c_side.to_f2_call
-  control_to_f2 (F, z_stack, n1_stack, C.slave, C.lord, C.attribute.c_str(), C.ix_attrib);
+  control_to_f2 (F, z_y_knot, n1_y_knot, z_stack, n1_stack, C.slave, C.lord,
+      C.attribute.c_str(), C.ix_attrib);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_stack;
 }
 
 // c_side.to_c2_arg
-extern "C" void control_to_c2 (CPP_control& C, Opaque_expression_atom_class** z_stack, Int
-    n1_stack, const Opaque_lat_ele_loc_class* z_slave, const Opaque_lat_ele_loc_class* z_lord,
-    c_Char z_attribute, c_Int& z_ix_attrib) {
+extern "C" void control_to_c2 (CPP_control& C, c_RealArr z_y_knot, Int n1_y_knot,
+    Opaque_expression_atom_class** z_stack, Int n1_stack, const Opaque_lat_ele_loc_class*
+    z_slave, const Opaque_lat_ele_loc_class* z_lord, c_Char z_attribute, c_Int& z_ix_attrib) {
+
+  // c_side.to_c2_set[real, 1, ALLOC]
+
+  C.y_knot.resize(n1_y_knot);
+  C.y_knot << z_y_knot;
 
   // c_side.to_c2_set[type, 1, ALLOC]
   C.stack.resize(n1_stack);

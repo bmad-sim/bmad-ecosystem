@@ -621,14 +621,6 @@ void set_CPP_controller_var1_test_pattern (CPP_controller_var1& C, int ix_patt) 
   // c_side.test_pat[real, 0, NOT]
   rhs = 3 + offset; C.old_value = rhs;
 
-  // c_side.test_pat[real, 1, ALLOC]
-  if (ix_patt < 3) 
-    C.y_knot.resize(0);
-  else {
-    C.y_knot.resize(3);
-    for (unsigned int i = 0; i < C.y_knot.size(); i++)
-      {int rhs = 101 + i + 4 + offset; C.y_knot[i] = rhs;}  }
-
 
 }
 
@@ -678,7 +670,7 @@ void set_CPP_controller_test_pattern (CPP_controller& C, int ix_patt) {
   int rhs, offset = 100 * ix_patt;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 1 + offset; C.control_type = rhs;
+  rhs = 1 + offset; C.type = rhs;
 
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
@@ -3857,6 +3849,14 @@ void set_CPP_control_test_pattern (CPP_control& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
+  // c_side.test_pat[real, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.y_knot.resize(0);
+  else {
+    C.y_knot.resize(3);
+    for (unsigned int i = 0; i < C.y_knot.size(); i++)
+      {int rhs = 101 + i + 1 + offset; C.y_knot[i] = rhs;}  }
+
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
     C.stack.resize(0);
@@ -3874,9 +3874,9 @@ void set_CPP_control_test_pattern (CPP_control& C, int ix_patt) {
   // c_side.test_pat[character, 0, NOT]
   C.attribute.resize(40);
   for (unsigned int i = 0; i < C.attribute.size(); i++)
-    {int rhs = 101 + i + 5 + offset; C.attribute[i] = 'a' + rhs % 26;}
+    {int rhs = 101 + i + 7 + offset; C.attribute[i] = 'a' + rhs % 26;}
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 6 + offset; C.ix_attrib = rhs;
+  rhs = 8 + offset; C.ix_attrib = rhs;
 
 
 }
