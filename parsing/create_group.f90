@@ -93,6 +93,12 @@ do iv = 1, size(lord%control%var)
   call upcase_string(lord%control%var(iv)%name)
 enddo
 
+if (lord%control%type /= expression$ .and. size(lord%control%var) /= 1) then
+  call parser_error ('A SPLINE BASED CONTROLLER MAY ONLY HAVE ONE CONTROL VARIABLE: ' // lord%name)
+  if (global_com%exit_on_error) call err_exit
+  return
+endif  
+
 ! loop over all controlled attributes
 
 do i = 1, n_control
@@ -148,7 +154,7 @@ do i = 1, n_control
   c%lord      = lat_ele_loc_struct(lord%ix_ele, 0)
 
 
-  if (lord%control%type == function$) then
+  if (lord%control%type == expression$) then
 
     do is = 1, size(contrl(i)%stack)
       if (contrl(i)%stack(is)%type == end_stack$) exit
@@ -200,6 +206,8 @@ do i = 1, n_control
       case (ran$, ran_gauss$)
         call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH A GROUP', &
                            'FOR ELEMENT: ' // lord%name)
+        if (global_com%exit_on_error) call err_exit
+        return
       case (variable$)
         call word_to_value (c%stack(is)%name, lat, c%stack(is)%value, err); if (err) return
         ! Variables in the arithmetic expression are immediately evaluated and never reevaluated.
@@ -218,6 +226,8 @@ do i = 1, n_control
     if (size(c%y_knot) /= size(lord%control%x_knot)) then
       call parser_error ('NUMBER OF Y_SPLINE POINTS FOR SLAVE: ' // slave%name, &
                          'IS NOT THE SAME AS THE NUMBER OF X_SPLINE POINTS FOR ELEMENT: ' // lord%name)
+      if (global_com%exit_on_error) call err_exit
+      return
     endif
   endif
 

@@ -3890,7 +3890,7 @@ else
   if (allocated(y_knot)) then
     ele%control%type = spline$
   else
-    ele%control%type = function$
+    ele%control%type = expression$
   endif
   allocate (pele%control(n_slave))
   pele%control%name = name(1:n_slave)

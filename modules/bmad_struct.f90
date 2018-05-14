@@ -60,11 +60,11 @@ type controller_var1_struct
   real(rp) :: old_value = 0
 end type
 
-integer, parameter :: function$ = 2, spline$ = 3
+integer, parameter :: expression$ = 2, spline$ = 3
 character(8), parameter :: interpolation_name(4) = [character(8):: null_name$, 'Function', 'Spline', 'Linear']
 
 type controller_struct
-  integer :: type = function$
+  integer :: type = expression$
   type (controller_var1_struct), allocatable :: var(:)
   real(rp), allocatable :: x_knot(:)
 end type
