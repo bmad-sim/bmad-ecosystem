@@ -33,6 +33,13 @@ open (1, file = 'output.now')
 
 !
 
+!call bmad_parser ('control.bmad', lat)
+!ele => pointer_to_ele (lat, 'OV1')
+
+
+
+!
+
 orb%vec = [0.1_rp, 0.2_rp, 0.3_rp, 0.4_rp, 0.5_rp, 0.6_rp]
 orb%species = electron$
 
@@ -118,7 +125,7 @@ write (1, '(3a)')       '"sex-custom_attribute3"                 STR   "', trim(
 
 bp_com%input_from_file = .false.
 bp_com%parse_line = '-2*7)'
-call evaluate_value ('ERR', value, lat, delim, delim_found, err, ',)')
+call parse_evaluate_value ('ERR', value, lat, delim, delim_found, err, ',)')
 write (1, '(a, f10.4)') '"EVAL 1"  ABS 0', value
 
 write (1, '(a, f10.4)') '"1 REL"  ABS 0', lat%ele(1)%value(k1$)
