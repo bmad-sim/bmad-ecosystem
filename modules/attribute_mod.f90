@@ -1022,6 +1022,7 @@ call init_attribute_name1 (girder$, is_on$,                         'IS_ON')
 
 call init_attribute_name1 (overlay$, var$,                          'VAR')
 call init_attribute_name1 (overlay$, gang$,                         'GANG')
+call init_attribute_name1 (overlay$, x_knot$,                       'X_KNOT')
 
 call init_attribute_name1 (group$, var$,                            'VAR')
 call init_attribute_name1 (group$, gang$,                           'GANG')
@@ -1029,6 +1030,7 @@ call init_attribute_name1 (group$, start_edge$,                     'START_EDGE'
 call init_attribute_name1 (group$, end_edge$,                       'END_EDGE')
 call init_attribute_name1 (group$, accordion_edge$,                 'ACCORDION_EDGE')
 call init_attribute_name1 (group$, s_position$,                     'S_POSITION')
+call init_attribute_name1 (group$, x_knot$,                         'X_KNOT')
 
 call init_attribute_name1 (lcavity$, field_autoscale$,              'FIELD_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (lcavity$, autoscale_amplitude$,          'AUTOSCALE_AMPLITUDE')

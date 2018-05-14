@@ -92,6 +92,7 @@ type parser_controller_struct ! For overlays and groups
   character(40) :: name     
   character(40) :: attrib_name
   type (expression_atom_struct), allocatable :: stack(:) ! Arithmetic expression stack
+  real(rp), allocatable :: y_knot(:)
   integer n_stk 
 end type
 
@@ -146,7 +147,7 @@ type bp_common_struct
   ! Note: use %line2_file_name to ID line. %line1_file_name may be blank!
   character(200) line1_file_name           ! Name of file from which %input_line1 was read
   character(200) line2_file_name           ! Name of file from which %input_line2 was read
-  character(n_parse_line) parse_line
+  character(n_parse_line) parse_line       ! Current part of input string not yet parsed.
   character(n_parse_line) input_line1      ! Line before current line. For debug messages.
   character(n_parse_line) input_line2      ! Current line. For debug messages.
   character(40) :: parser_name = ''        ! Blank means not in bmad_parser nor bmad_parser2.
@@ -286,7 +287,7 @@ if ((ele%key == taylor$ .or. ele%key == hybrid$) .and. delim == '{' .and. word =
     endif
   endif
 
-  call evaluate_value (ele%name, coef, lat, delim, delim_found, err_flag, ',|');  if (err_flag) return
+  call parse_evaluate_value (ele%name, coef, lat, delim, delim_found, err_flag, ',|');  if (err_flag) return
   delim2 = delim   ! Save
   expn = 0
 
@@ -350,7 +351,7 @@ if (ele%key == overlay$ .or. ele%key == group$) then
     return
 
   case (var$)
-    if (how == redef$ .or. associated(ele%control)) then
+    if (how == redef$ .or. allocated(ele%control%var)) then
       call parser_error ('RESETTING VAR = {...} IS NOT PERMITTED', 'FOR: ' // ele%name)
       return
     endif
@@ -362,12 +363,18 @@ if (ele%key == overlay$ .or. ele%key == group$) then
   case (gang$)
     call get_logical_real ('GANG', ele%value(gang$), err_flag)
     return
+
+  case (x_knot$)
+    if (.not. parse_real_list2 (lat, 'ERROR PARSING X_KNOT POINTS FOR: ' // ele%name, ele%control%x_knot, n, 10, '{', ',', '}')) return
+    call re_allocate(ele%control%x_knot, n)
+    return
+
   end select
 
   ! Parse old style control var syntax: "i > num_ele_attrib$" handles accordion_edge for example.
 
   is_attrib = (attribute_index(0, word) > 0 .or. (ele%key == group$ .and. word == 'COMMAND'))
-  if (how == def$ .and. .not. associated(ele%control) .and. (i < 1 .or. i > num_ele_attrib$) .and. is_attrib) then 
+  if (how == def$ .and. .not. allocated(ele%control%var) .and. (i < 1 .or. i > num_ele_attrib$) .and. is_attrib) then 
     pele%default_attrib = word
     allocate (ele%control)
     allocate (ele%control%var(1))
@@ -389,7 +396,7 @@ if (ele%key == overlay$ .or. ele%key == group$) then
 
   value = 0
   if (delim == '=') then  ! value
-    call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
+    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
     if (err_flag) return
   endif
 
@@ -443,7 +450,7 @@ if (key == def_beam_start$ .or. key == def_bmad_com$) then
   endif
 
   if (associated(a_ptrs(1)%r)) then
-    call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag) 
+    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag) 
     if (err_flag) return
     a_ptrs(1)%r = value
     if (associated(a_ptrs(1)%r, bmad_com%max_aperture_limit))             bp_com%extra%max_aperture_limit_set              = .true.
@@ -463,7 +470,7 @@ if (key == def_beam_start$ .or. key == def_bmad_com$) then
     if (name(1:5) == 'D_ORB')                                             bp_com%extra%d_orb_set                           = .true.
 
   elseif (associated(a_ptrs(1)%i)) then
-    call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag) 
+    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag) 
     if (err_flag) return
     a_ptrs(1)%i = nint(value)
     if (associated(a_ptrs(1)%i, bmad_com%taylor_order))                   bp_com%extra%taylor_order_set                    = .true.
@@ -518,7 +525,7 @@ if (delim == '(' .and. .not. (word == 'TERM' .and. how == def$)) then
     return
   endif
 
-  call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
+  call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
   a_ptr%r = value
   return
 endif
@@ -576,7 +583,7 @@ if (word(1:5) == 'WALL%') then
       return
     endif
 
-    call evaluate_value (ele%name, r_ptr, lat, delim, delim_found, err_flag)
+    call parse_evaluate_value (ele%name, r_ptr, lat, delim, delim_found, err_flag)
 
   ! Not recognized
 
@@ -817,7 +824,7 @@ if (attrib_word == 'WALL') then
       call bmad_parser_string_attribute_set (ele, word, delim, delim_found, str_out = wall3d%clear_material)
 
     case ('THICKNESS') 
-      call evaluate_value (ele%name, wall3d%thickness, lat, delim, delim_found, err_flag, ',}')
+      call parse_evaluate_value (ele%name, wall3d%thickness, lat, delim, delim_found, err_flag, ',}')
       if (err_flag) return
 
     case ('ELE_ANCHOR_PT')
@@ -862,17 +869,17 @@ if (attrib_word == 'WALL') then
           call bmad_parser_string_attribute_set (ele, word, delim, delim_found, str_out = section%material)
 
         case ('THICKNESS')
-          call evaluate_value (trim(ele%name) // ' ' // word, section%thickness, lat, delim, delim_found, err_flag, ',}')
+          call parse_evaluate_value (trim(ele%name) // ' ' // word, section%thickness, lat, delim, delim_found, err_flag, ',}')
           if (err_flag) return
           if (ele%key == capillary$) ele%value(l$) = section%s
 
         case ('S')
-          call evaluate_value (trim(ele%name) // ' ' // word, section%s, lat, delim, delim_found, err_flag, ',}')
+          call parse_evaluate_value (trim(ele%name) // ' ' // word, section%s, lat, delim, delim_found, err_flag, ',}')
           if (err_flag) return
           if (ele%key == capillary$) ele%value(l$) = section%s
 
         case ('DR_DS') 
-          call evaluate_value (trim(ele%name) // ' ' // word, section%dr_ds, lat, delim, delim_found, err_flag, ',}')
+          call parse_evaluate_value (trim(ele%name) // ' ' // word, section%dr_ds, lat, delim, delim_found, err_flag, ',}')
           if (err_flag) return
                   
         case ('ABSOLUTE_VERTICES') 
@@ -880,11 +887,11 @@ if (attrib_word == 'WALL') then
           if (err_flag) return
 
         case ('X0') 
-          call evaluate_value (trim(ele%name) // ' ' // word, section%r0(1), lat, delim, delim_found, err_flag, ',}')
+          call parse_evaluate_value (trim(ele%name) // ' ' // word, section%r0(1), lat, delim, delim_found, err_flag, ',}')
           if (err_flag) return
 
         case ('Y0') 
-          call evaluate_value (trim(ele%name) // ' ' // word, section%r0(2), lat, delim, delim_found, err_flag, ',}')
+          call parse_evaluate_value (trim(ele%name) // ' ' // word, section%r0(2), lat, delim, delim_found, err_flag, ',}')
           if (err_flag) return
 
         case ('R0')
@@ -908,24 +915,24 @@ if (attrib_word == 'WALL') then
 
           if (.not. expect_this (')={', .true., .false., 'AFTER "V(n)" IN WALL CONSTRUCT', ele, delim, delim_found)) return
 
-          call evaluate_value (trim(ele%name), section%v(ix_v)%x, lat, delim, delim_found, err_flag, ',')
+          call parse_evaluate_value (trim(ele%name), section%v(ix_v)%x, lat, delim, delim_found, err_flag, ',')
           if (err_flag) return
 
-          call evaluate_value (trim(ele%name), section%v(ix_v)%y, lat, delim, delim_found, err_flag, ',}')
+          call parse_evaluate_value (trim(ele%name), section%v(ix_v)%y, lat, delim, delim_found, err_flag, ',}')
           if (err_flag) return
 
           if (delim == ',') then
-            call evaluate_value (trim(ele%name), section%v(ix_v)%radius_x, lat, delim, delim_found, err_flag, ',}')
+            call parse_evaluate_value (trim(ele%name), section%v(ix_v)%radius_x, lat, delim, delim_found, err_flag, ',}')
             if (err_flag) return
           endif
 
           if (delim == ',') then
-            call evaluate_value (trim(ele%name), section%v(ix_v)%radius_y, lat, delim, delim_found, err_flag, ',}')
+            call parse_evaluate_value (trim(ele%name), section%v(ix_v)%radius_y, lat, delim, delim_found, err_flag, ',}')
             if (err_flag) return
           endif
 
           if (delim == ',') then
-            call evaluate_value (trim(ele%name), section%v(ix_v)%tilt, lat, delim, delim_found, err_flag, '}')
+            call parse_evaluate_value (trim(ele%name), section%v(ix_v)%tilt, lat, delim, delim_found, err_flag, '}')
             if (err_flag) return
           endif
 
@@ -1342,19 +1349,19 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
   err_str = trim(ele%name) // ' ' // str_ix
   ct_term => ct_map%ptr%term(ix)
 
-  call evaluate_value (err_str, ct_term%coef, lat, delim, delim_found, err_flag, ',');   if (err_flag) return
-  call evaluate_value (err_str, ct_term%kx, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
-  call evaluate_value (err_str, ct_term%ky, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
-  call evaluate_value (err_str, ct_term%kz, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
-  call evaluate_value (err_str, ct_term%phi_z, lat, delim, delim_found, err_flag, ',}'); if (err_flag) return
+  call parse_evaluate_value (err_str, ct_term%coef, lat, delim, delim_found, err_flag, ',');   if (err_flag) return
+  call parse_evaluate_value (err_str, ct_term%kx, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
+  call parse_evaluate_value (err_str, ct_term%ky, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
+  call parse_evaluate_value (err_str, ct_term%kz, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
+  call parse_evaluate_value (err_str, ct_term%phi_z, lat, delim, delim_found, err_flag, ',}'); if (err_flag) return
 
   old_style_input = .true.
   family = y_family$
 
   if (delim == ',') then
     ct_term%x0 = ct_term%phi_z
-    call evaluate_value (err_str, ct_term%y0, lat, delim, delim_found, err_flag, ','); if (err_flag) return
-    call evaluate_value (err_str, ct_term%phi_z, lat, delim, delim_found, err_flag, ','); if (err_flag) return
+    call parse_evaluate_value (err_str, ct_term%y0, lat, delim, delim_found, err_flag, ','); if (err_flag) return
+    call parse_evaluate_value (err_str, ct_term%phi_z, lat, delim, delim_found, err_flag, ','); if (err_flag) return
     call get_switch ('FAMILY', ['X ', 'Y ', 'QU', 'SQ'], family, err_flag, ele, delim, delim_found); if (err_flag) return
     if (.not. expect_this ('}', .true., .false., 'AFTER "FAMILY" SWITCH', ele, delim, delim_found)) return
     old_style_input = .false.
@@ -1520,7 +1527,7 @@ case ('REFERENCE')
   call get_next_word(pele%ref_name, ix_word,  '=,', delim, delim_found, .true.)
 
 case ('OFFSET')
-  call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
+  call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
   if (err_flag) return
   if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
   pele%offset = value
@@ -1825,7 +1832,7 @@ case default   ! normal attribute
     if (err_flag) return
 
   else
-    call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag); if (err_flag) return
+    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag); if (err_flag) return
 
     ! multipole attribute?
     if (ele%key == hybrid$ .and. is_attribute(ix_attrib, multipole$)) then
@@ -2765,7 +2772,7 @@ end function evaluate_logical
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------      
 !+
-! Subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims, string_out, string_in)
+! Subroutine parse_evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims, string_out, string_in)
 !
 ! This routine evaluates as a real number the characters at the beginning of bp_com%parse_line.
 !
@@ -2787,7 +2794,7 @@ end function evaluate_logical
 !                   Useful for group and overlay control expressions.
 !-
 
-subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims, string_out, string_in)
+subroutine parse_evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims, string_out, string_in)
 
 use expression_mod
 
@@ -2906,7 +2913,7 @@ endif
 
 err_flag = .false.
 
-end subroutine evaluate_value
+end subroutine parse_evaluate_value
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -3120,7 +3127,7 @@ logical delim_found, err_flag
 call find_indexx (word, bp_com%var%name, bp_com%var%indexx, bp_com%ivar_tot, i)
 if (i /= 0) then
   old_val = bp_com%var(i)%value
-  call evaluate_value (word, bp_com%var(i)%value, lat, delim, delim_found, err_flag)
+  call parse_evaluate_value (word, bp_com%var(i)%value, lat, delim, delim_found, err_flag)
 
   if (bp_com%var(i)%value == old_val) then
     call parser_error ('VARIABLES ARE NOT ALLOWED TO BE REDEFINED: ' // word, 'BUT SINCE OLD_VALUE = NEW_VALUE THIS IS ONLY A WARNING...', level = s_warn$)
@@ -3138,7 +3145,7 @@ else
   bp_com%var(ixm2+1:ivar)%indexx = bp_com%var(ixm2:ivar-1)%indexx
   bp_com%var(ixm2)%indexx = ivar
   ! Evaluate
-  call evaluate_value (bp_com%var(ivar)%name, bp_com%var(ivar)%value, lat, delim, delim_found, err_flag)
+  call parse_evaluate_value (bp_com%var(ivar)%name, bp_com%var(ivar)%value, lat, delim, delim_found, err_flag)
 endif
 
 if (delim_found .and. .not. err_flag) call parser_error  &
@@ -3728,6 +3735,10 @@ end subroutine get_list_of_names
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
+!
+! Input:
+!   is_control_var_list   -- logical: If True then parsing "var = {...}" list.
+!                                     If False then parsing "group = {...}" list (or overlay or girder).
 !-
       
 subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found, is_control_var_list)
@@ -3740,8 +3751,9 @@ type (lat_struct)  lat
 type (parser_controller_struct), pointer :: pc
 
 real(rp) value
+real(rp), allocatable :: y_knot(:,:), y_val(:)
 
-integer ix_word, n_slave, i, j, k
+integer ix_word, n_slave, i, j, k, n
                            
 character(1) delim
 character(40) word_in, word
@@ -3808,13 +3820,46 @@ do
   ! In this case, there are no expressions
   
   expression(n_slave) = '1'
+  bp_com%parse_line = adjustl(bp_com%parse_line)
 
   if (delim == '/' .or. (delim == ':' .and. ele%key /= girder$)) then
+
+    ! Not expecting this delim if ele_names_only
     if (ele_names_only) then
       call parser_error ('BAD VAR = {...} CONSTRUCT.', 'FOR: ' // ele%name)
       return
+
+
+    ! If a list of knot y-values
+    elseif (bp_com%parse_line(1:1) == '{') then   ! y_knot array
+      if (.not. parse_real_list2 (lat, 'ERROR PARSING Y KNOT POINTS FOR: ' // ele%name, y_val, n, 10, '{', ',', '}')) then
+        call load_parse_line ('new_command', 1, end_of_file)         ! next line
+        return
+      endif
+
+      if (n_slave > 1 .and. .not. allocated(y_knot)) then
+        call parser_error ('MIXING FUNCTIONS WITH SPLINES NOT ALLOWED.', 'FOR ELEMENT: ' // ele%name)
+        call load_parse_line ('new_command', 1, end_of_file)         ! next line
+        return
+      endif
+
+      if (n_slave == 1) allocate(y_knot(40, n))
+
+      if (n /= size(y_knot, 2)) then
+        call parser_error ('NUMBER OF KNOT POINTS FOR SLAVE: ' // word, 'NOT THE SAME AS PREVIOUS KNOT ARRAYS.', 'FOR ELEMENT: ' // ele%name)
+        call load_parse_line ('new_command', 1, end_of_file)         ! next line
+        return
+      endif
+
+      if (n_slave > size(y_knot, 1)) call re_allocate2d(y_knot, 2*n_slave, n)
+
+      y_knot(n_slave,:) = y_val(1:n)
+      if (.not. expect_one_of ('},', .false., ele, delim, delim_found)) return
+
+    ! Parse expression
     else
-      call evaluate_value (trim(ele%name), value, lat, delim, delim_found, err_flag, ',}', expression(n_slave))
+      ! Just parse and not evaluate.
+      call parse_evaluate_value (trim(ele%name), value, lat, delim, delim_found, err_flag, ',}', expression(n_slave))
       if (err_flag) then
         call parser_error ('BAD EXPRESSION: ' // word_in,  'FOR ELEMENT: ' // ele%name)
         call load_parse_line ('new_command', 1, end_of_file)         ! next line
@@ -3828,29 +3873,38 @@ do
     exit
   elseif (delim /= ',' .and. .not. (delim == ':' .and. ele%key == girder$)) then
     call parser_error ('BAD ' // control_name(ele%lord_status) //  &
-            'SPEC: ' // word_in, 'FOR: ' // ele%name)
+                       'SPEC: ' // word_in, 'FOR: ' // ele%name)
     exit
   endif
                         
 enddo
 
-! if (n_slave == 0) call parser_error ( &
-!        'NO SLAVE ELEMENTS ASSOCIATED WITH GROUP/OVERLAY ELEMENT: ' // ele%name)
+!
 
 if (is_control_var_list) then
-  allocate(ele%control)
+  ! Note: ele%control is already allocated
   allocate(ele%control%var(n_slave))
   ele%control%var%name = name(1:n_slave)
 else
+  allocate(ele%control)
+  if (allocated(y_knot)) then
+    ele%control%type = spline$
+  else
+    ele%control%type = function$
+  endif
   allocate (pele%control(n_slave))
   pele%control%name = name(1:n_slave)
   pele%control%attrib_name = attrib_name(1:n_slave)
   do i = 1, n_slave
-    ! Expression string to stack
     pc => pele%control(i)
-    call expression_string_to_stack (expression(i), pc%stack, pc%n_stk, err_flag, err_str)
-    if (err_flag) then
-      call parser_error (err_str, 'FOR ELEMENT: ' // ele%name, 'EXPRESSION: ' // trim(expression(i)))
+    if (allocated(y_knot)) then
+      pc%y_knot = y_knot(i,:)
+    ! Expression string to stack
+    else
+      call expression_string_to_stack (expression(i), pc%stack, pc%n_stk, err_flag, err_str)
+      if (err_flag) then
+        call parser_error (err_str, 'FOR ELEMENT: ' // ele%name, 'EXPRESSION: ' // trim(expression(i)))
+      endif
     endif
   enddo
 endif
@@ -4192,8 +4246,7 @@ do i = 1, n_multipass
   lat%control(ixc)%lord%ix_ele = ix_lord
   lat%control(ixc)%slave = lat_ele_loc_struct(slave%ix_ele, slave%ix_branch)
   if (slave%n_lord /= 0) then
-    call parser_error ('INTERNAL ERROR: CONFUSED MULTIPASS SETUP.', &
-                  'PLEASE GET EXPERT HELP!')
+    call parser_error ('INTERNAL ERROR: CONFUSED MULTIPASS SETUP.', 'PLEASE GET EXPERT HELP!')
     if (global_com%exit_on_error) call err_exit
   endif
   write (slave%name, '(2a, i0)') trim(slave%name), '\', i   ! '
@@ -5622,8 +5675,12 @@ do i = 1, size(pele%control)
     if (ix_pick /= 0 .and. k /= ix_pick) cycle
     slave => pointer_to_ele (lat, m_eles(i)%eles(k)%loc)
     n_slave = n_slave + 1
-    call reallocate_expression_stack (cs(n_slave)%stack, pc%n_stk)
-    cs(n_slave)%stack = pc%stack(1:pc%n_stk)
+    if (allocated(pc%y_knot)) then
+      cs(n_slave)%y_knot = pc%y_knot
+    else
+      call reallocate_expression_stack (cs(n_slave)%stack, pc%n_stk)
+      cs(n_slave)%stack = pc%stack(1:pc%n_stk)
+    endif
     cs(n_slave)%slave = lat_ele_loc_struct(slave%ix_ele, slave%ix_branch)
     cs(n_slave)%lord%ix_ele = -1             ! dummy value
     attrib_name = pc%attrib_name
@@ -6749,7 +6806,7 @@ do
   select case (attrib_name)
 
   case ('T_MAX')
-    call evaluate_value (ele%name, lr_pa%t_max, lat, delim, delim_found, err_flag, ',}')
+    call parse_evaluate_value (ele%name, lr_pa%t_max, lat, delim, delim_found, err_flag, ',}')
 
   case default
     if (attrib_name == '') then
@@ -6833,7 +6890,7 @@ do
   select case (attrib_name)
 
   case ('FIELD_SCALE')
-    call evaluate_value (ele%name, ct_map%field_scale, lat, delim, delim_found, err_flag, ',}')
+    call parse_evaluate_value (ele%name, ct_map%field_scale, lat, delim, delim_found, err_flag, ',}')
 
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
@@ -6902,13 +6959,13 @@ do
     err_str = trim(ele%name) // ' CARTESIAN_MAP TERM'
 
     if (.not. expect_this ('{', .false., .false., 'AFTER "TERM =" IN CARTESIAN_MAP DEFINITION', ele, delim, delim_found)) return
-    call evaluate_value (err_str, tm%coef, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
-    call evaluate_value (err_str, tm%kx, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
-    call evaluate_value (err_str, tm%ky, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
-    call evaluate_value (err_str, tm%kz, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
-    call evaluate_value (err_str, tm%x0, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
-    call evaluate_value (err_str, tm%y0, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
-    call evaluate_value (err_str, tm%phi_z, lat, delim, delim_found, err_flag, ','); if (err_flag) return
+    call parse_evaluate_value (err_str, tm%coef, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
+    call parse_evaluate_value (err_str, tm%kx, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
+    call parse_evaluate_value (err_str, tm%ky, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
+    call parse_evaluate_value (err_str, tm%kz, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
+    call parse_evaluate_value (err_str, tm%x0, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
+    call parse_evaluate_value (err_str, tm%y0, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
+    call parse_evaluate_value (err_str, tm%phi_z, lat, delim, delim_found, err_flag, ','); if (err_flag) return
     call get_switch ('FAMILY', ['X ', 'Y ', 'QU', 'SQ'], family, err_flag, ele, delim, delim_found); if (err_flag) return
     if (.not. expect_this ('}', .true., .false., 'AFTER "FAMILY" SWITCH', ele, delim, delim_found)) return
     if (.not. expect_one_of(',}', .false., ele, delim, delim_found)) return
@@ -7045,16 +7102,16 @@ do
                        'PLEASE MAKE THE CHANGE IN THE LATTICE FILE.')
 
   case ('PHI0_FIELDMAP')
-    call evaluate_value (ele%name, cl_map%phi0_fieldmap, lat, delim, delim_found, err_flag, ',}')
+    call parse_evaluate_value (ele%name, cl_map%phi0_fieldmap, lat, delim, delim_found, err_flag, ',}')
 
   case ('THETA0_AZIMUTH')
-    call evaluate_value (ele%name, cl_map%theta0_azimuth, lat, delim, delim_found, err_flag, ',}')
+    call parse_evaluate_value (ele%name, cl_map%theta0_azimuth, lat, delim, delim_found, err_flag, ',}')
 
   case ('FIELD_SCALE')
-    call evaluate_value (ele%name, cl_map%field_scale, lat, delim, delim_found, err_flag, ',}')
+    call parse_evaluate_value (ele%name, cl_map%field_scale, lat, delim, delim_found, err_flag, ',}')
 
   case ('DZ')            
-    call evaluate_value (trim(ele%name), cl_map%dz, lat, delim, delim_found, err_flag, ',}')
+    call parse_evaluate_value (trim(ele%name), cl_map%dz, lat, delim, delim_found, err_flag, ',}')
 
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
@@ -7263,10 +7320,10 @@ do
   select case (word)
 
   case ('PHI0_FIELDMAP')
-    call evaluate_value (ele%name, g_field%phi0_fieldmap, lat, delim, delim_found, err_flag, ',}')
+    call parse_evaluate_value (ele%name, g_field%phi0_fieldmap, lat, delim, delim_found, err_flag, ',}')
 
   case ('FIELD_SCALE')
-    call evaluate_value (ele%name, g_field%field_scale, lat, delim, delim_found, err_flag, ',}')
+    call parse_evaluate_value (ele%name, g_field%field_scale, lat, delim, delim_found, err_flag, ',}')
 
   case ('HARMONIC')
     call parser_get_integer (g_field%harmonic, word, ix_word, delim, delim_found, err_flag, 'BAD GRID_FIELD HARMONIC CONSTRUCT', 'IN ELEMENT: ' // ele%name)
@@ -7580,7 +7637,7 @@ do
   select case (attrib_name)
 
   case ('FIELD_SCALE')
-    call evaluate_value (ele%name, t_field%field_scale, lat, delim, delim_found, err_flag, ',}')
+    call parse_evaluate_value (ele%name, t_field%field_scale, lat, delim, delim_found, err_flag, ',}')
 
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
@@ -7588,7 +7645,7 @@ do
     if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
 
   case ('DZ')
-    call evaluate_value (ele%name, t_field%dz, lat, delim, delim_found, err_flag, ',}')
+    call parse_evaluate_value (ele%name, t_field%dz, lat, delim, delim_found, err_flag, ',}')
 
   case ('ELE_ANCHOR_PT', 'FIELD_TYPE', 'MASTER_PARAMETER')
     ! Expect "<component> = "
@@ -7684,7 +7741,7 @@ do
         return
       endif
 
-      call evaluate_value (ele%name, coef, lat, delim, delim_found, err_flag, ',|');  if (err_flag) return
+      call parse_evaluate_value (ele%name, coef, lat, delim, delim_found, err_flag, ',|');  if (err_flag) return
       delim2 = delim   ! Save
       expn = 0
 
@@ -7900,7 +7957,7 @@ num_found = 0
 ! Get integers
 do 
 
-  call evaluate_value ('BAD NUMBER IN: ' // err_str, rval, lat, delim, delim_found, err_flag, sep // cl_delim)
+  call parse_evaluate_value ('BAD NUMBER IN: ' // err_str, rval, lat, delim, delim_found, err_flag, sep // cl_delim)
   if (err_flag) return
   if (abs(rval - nint(rval)) > 1d-10) then
     call parser_error ('BAD INTEGER NUMBER IN: ' // err_str)
@@ -8056,9 +8113,9 @@ end function parse_real_lists
 !   parse_real_lists.
 !
 ! Input:
-!  lat        -- lat_struct: lattice
-!  err_str    -- character(*): Error string to print if there is an error. 
-!  real_array -- real(rp), allocatable: the array to be read in 
+!  lat            -- lat_struct: lattice
+!  err_str        -- character(*): Error string to print if there is an error. 
+!  real_array     -- real(rp), allocatable: the array to be read in 
 !
 !   Optional: 
 !   num_expected = 1     -- integer : number of expected arguments
@@ -8133,7 +8190,7 @@ real_array = default_val
 num_found = 0
 
 do 
-  call evaluate_value ('BAD REAL NUMBER IN: ' // err_str, value, lat, delim, delim_found, err_flag, sep // cl_delim)
+  call parse_evaluate_value ('BAD REAL NUMBER IN: ' // err_str, value, lat, delim, delim_found, err_flag, sep // cl_delim)
   if (err_flag) return
   ! real is found
   num_found = num_found + 1
@@ -8253,10 +8310,26 @@ end subroutine parser_get_logical
 !--------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------
-! delim_list    -- character(*): String of tokens expected. 
-! check_delim   -- logical: If True then use "delim" character as first token to check.
-!                    A blank character indicates end of command is expected.
-! call_check    -- Logical: If True then check for 'call::<filename>' construct.
+!+
+! Function expect_this (expecting, check_delim, call_check, err_str, ele, delim, delim_found) result (is_ok)
+!
+! Checks that the next character or characters in the parse stream correspont to the characters in thn
+! expecting argument. For example, if expecting is ')={' these three characters should be the next non-blank
+! characters in the parse stream.
+!
+! Also see: expect_one_of
+!
+! Input:
+!   expecting(*)  -- character: list of characters that are expected to be next in the parse stream.
+!   check_delim   -- logical: If True then use delim argument as first token to check.
+!                      A blank character indicates end of command is expected.
+!   call_check    -- Logical: If True then check for 'call::<filename>' construct.
+!   err_str       -- character(*): String used for error messages.
+!
+! Output:
+!   delim         -- character(*): Final delim
+!   delim_found   -- logical: Is there a final delim (as opposed to end of command).
+!-
 
 function expect_this (expecting, check_delim, call_check, err_str, ele, delim, delim_found) result (is_ok)
 
@@ -8377,26 +8450,42 @@ end subroutine get_switch
 !--------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------
-
-! delim_list -- character(*): List of valid tokens. If list contains a space character
-!                 then no token (indicating the end of the command) is a valid possibility.
+!+
+! Function expect_one_of (delim_list, check_input_delim, ele, delim, delim_found) result (is_ok)
 !
+! Routine to check for an expected delimitor in the parse stream.
+! This routine is not for general use.
+!
+! Also see: expect_this
+!
+! Input:
+!   delim_list  -- character(*): List of expected (valid) delimitors. If list contains a space character
+!                    then no delimitor (indicating the end of the command) is a valid possibility.
+!   check_input_delim 
+!               -- logical: If True, then check if delim argument is in the delim_list. 
+!                    If False, check that the next character in the parse stream is an expected delimitor.
+!   ele         -- ele_struct: Lattice element under construction. Used for error messages.
+!   delim       -- character(1): Current delimitor that will be checked if check_input_delim = .true.
+!
+! Output:
+!   delim       -- character(1): Next delim if check_input_delim = False.
+!-
 
-function expect_one_of (delim_list, check_delim, ele, delim, delim_found) result (is_ok)
+function expect_one_of (delim_list, check_input_delim, ele, delim, delim_found) result (is_ok)
 
 type (ele_struct) ele
 integer ix_word
 character(*) delim_list
 character(1) delim
 character(40) word
-logical check_delim, delim_found, is_ok, must_have_delim
+logical check_input_delim, delim_found, is_ok, must_have_delim
 
 !
 
 is_ok = .false.
 must_have_delim = (index(delim_list, ' ') == 0)
 
-if (check_delim) then
+if (check_input_delim) then
   if ((must_have_delim .and. .not. delim_found) .or. &
       (delim /= '' .and. index(delim_list, delim) == 0)) then
     call parser_error ('BAD DELIMITOR', 'FOR ELEMENT: ' // ele%name)
@@ -8474,7 +8563,7 @@ do
   ix2 = index(print_line(ix+1:), '`')
   if (ix2 == 0) exit
   ix2 = ix + ix2
-  call evaluate_value ('PRINT STATEMENT EVALUATION', value, lat, delim, delim_found, err_flag, string_in = print_line(ix+1:ix2-1))
+  call parse_evaluate_value ('PRINT STATEMENT EVALUATION', value, lat, delim, delim_found, err_flag, string_in = print_line(ix+1:ix2-1))
   if (err_flag) then
     print_line = print_line(:ix-1) // '???' // print_line(ix2+1:)
   else

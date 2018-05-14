@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 214
+integer, parameter :: bmad_inc_version$ = 215
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -58,15 +58,13 @@ type controller_var1_struct
   character(40) :: name = ''
   real(rp) :: value = 0
   real(rp) :: old_value = 0
-  real(rp), allocatable :: y_knot(:)
 end type
-
 
 integer, parameter :: function$ = 2, spline$ = 3
 character(8), parameter :: interpolation_name(4) = [character(8):: null_name$, 'Function', 'Spline', 'Linear']
 
 type controller_struct
-  integer :: control_type = function$
+  integer :: type = function$
   type (controller_var1_struct), allocatable :: var(:)
   real(rp), allocatable :: x_knot(:)
 end type
@@ -1026,6 +1024,7 @@ end type
 ! struct for element to element control
 
 type control_struct
+  real(rp), allocatable :: y_knot(:)
   type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
   type (lat_ele_loc_struct) :: slave = lat_ele_loc_struct()
   type (lat_ele_loc_struct) :: lord = lat_ele_loc_struct()
@@ -1401,7 +1400,7 @@ integer, parameter :: fatal_ds_adaptive_tracking$ = 90
 integer, parameter :: max_num_runge_kutta_step$ = 91
 
 integer, parameter :: spherical_curvature$ = 81
-integer, parameter :: alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81, tt$ = 81, lr_wake_spline$ = 81
+integer, parameter :: alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81, tt$ = 81, lr_wake_spline$ = 81, x_knot$ = 81
 integer, parameter :: alias$  = 82, eta_x$ = 82, ptc_max_fringe_order$ = 82
 integer, parameter :: eta_y$ = 83, electric_dipole_moment$ = 83, lr_self_wake_on$ = 83, x_ref$ = 83
 integer, parameter :: etap_x$ = 84, lr_wake_file$ = 84, px_ref$ = 84
