@@ -1,23 +1,23 @@
-set(LIBNAME forest)
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
-set (CREATE_SHARED true)
+SET (LIBNAME forest)
 
-set(INC_DIRS 
+SET (CREATE_SHARED true)
+
+SET (INC_DIRS 
   include
-)
+  )
 
-set(SRC_DIRS
+SET (SRC_DIRS
   code
-)
+  )
 
-# For profiling...
+## Profiler flags - Note: This  is not compatible with the -fPIC flag, so -pg can't be set for SHARED build.
 # set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 # set (FFLAGS "-pg") 
 # set (CFLAGS "-pg")
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
-
 
 
 
