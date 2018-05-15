@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
-set(LIBNAME sim_utils)
+SET (LIBNAME sim_utils)
 
-set (CREATE_SHARED true)
+SET (CREATE_SHARED true)
 
 SET (PLOT_LINK_LIBS $ENV{PLOT_LINK_LIBS})
 
-set(INC_DIRS 
-)
+SET (INC_DIRS 
+  )
 
-set(SRC_DIRS
+SET (SRC_DIRS
   file 
   interfaces 
   io 
@@ -20,30 +20,25 @@ set(SRC_DIRS
   plot 
   string
   geodesic_lm
-)
-
-# set (FFLAGS "-pg")  # For profiling
-# set (CFLAGS "-pg")
-
-IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  SET (SHARED_DEPS
-    recipes_f-90_LEPP 
-    ${PLOT_LINK_LIBS}
-    forest 
-    fgsl
-    gsl
-    gslcblas
-    lapack95
-    lapack
-    blas
-    X11
-    readline
   )
-ENDIF ()
+
+## Profiler flags - Note: This  is not compatible with the -fPIC flag, so -pg can't be set for SHARED build.
+# SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+# SET (FFLAGS "-pg")  
+# SET (CFLAGS "-pg")
+
+SET (SHARED_DEPS
+  recipes_f-90_LEPP 
+  ${PLOT_LINK_LIBS}
+  forest 
+  fgsl
+  gsl
+  gslcblas
+  lapack95
+  lapack
+  blas
+  X11
+  readline
+  )
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
-
-
-
-
-
