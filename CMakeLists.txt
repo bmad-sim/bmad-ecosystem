@@ -1,16 +1,15 @@
-
-set(LIBNAME bmad)
-
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
-set (CREATE_SHARED true)
+SET (LIBNAME bmad)
+
+SET (CREATE_SHARED true)
 
 SET (PLOT_LINK_LIBS $ENV{PLOT_LINK_LIBS})
 
-set(INC_DIRS
-)
+SET (INC_DIRS
+  )
 
-set(SRC_DIRS 
+SET (SRC_DIRS 
   code 
   custom
   interface
@@ -19,41 +18,34 @@ set(SRC_DIRS
   photon
   parsing
   low_level
-)
-
-# For profiling...
-# set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
-# set (FFLAGS "-pg") 
-# set (CFLAGS "-pg")
-
-# For SHARED support
-SET (FFLAGS "-fPIC")
-SET (LINK_FLAGS "-fPIC")
-
-IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  SET (SHARED_DEPS
-    bmad 
-    xsif
-    xrlf03
-    xrl
-    sim_utils
-    recipes_f-90_LEPP 
-    ${PLOT_LINK_LIBS}
-    forest 
-    fgsl
-    gsl
-    gslcblas
-    lapack95
-    lapack
-    blas
-    X11
-    readline
   )
-ENDIF ()
+
+# For profiling... - Note: This is not compatible with the -fPIC flag, so -pg can't be set for SHARED build.
+# SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+# SET (FFLAGS "-pg") 
+# SET (CFLAGS "-pg")
+
+# For SHARED support - Note: should now be set automatically by Master.cmake
+# SET (FFLAGS "-fPIC")
+# SET (LINK_FLAGS "-fPIC")
+
+SET (SHARED_DEPS
+  bmad 
+  xsif
+  xrlf03
+  xrl
+  sim_utils
+  recipes_f-90_LEPP 
+  ${PLOT_LINK_LIBS}
+  forest 
+  fgsl
+  gsl
+  gslcblas
+  lapack95
+  lapack
+  blas
+  X11
+  readline
+  )
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
-
-
-
-
-
