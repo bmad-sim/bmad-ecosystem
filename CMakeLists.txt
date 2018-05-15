@@ -1,26 +1,26 @@
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
-set (LIBNAME tao)
+SET (LIBNAME tao)
 
-set (CREATE_SHARED true)
+SET (CREATE_SHARED true)
 
 SET (PLOT_LINK_LIBS $ENV{PLOT_LINK_LIBS})
 
-## Profiler flags
-# set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
-# set (FFLAGS "-pg")  # For profiling
-# set (CFLAGS "-pg")
+## Profiler flags - Note: This	is not compatible with the -fPIC flag, so -pg can't be set for SHARED build.
+# SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+# SET (FFLAGS "-pg")  # For profiling
+# SET (CFLAGS "-pg")
 
-set(SRC_DIRS
+SET (SRC_DIRS
   code 
   hook
   )
 
-set (EXE_SPECS
+SET (EXE_SPECS
   cmake.tao
   )
 
-set(SHARED_DEPS
+SET (SHARED_DEPS
   bmad
   sim_utils
   recipes_f-90_LEPP 
@@ -37,6 +37,6 @@ set(SHARED_DEPS
   blas
   X11
   readline
-)
+  )
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
