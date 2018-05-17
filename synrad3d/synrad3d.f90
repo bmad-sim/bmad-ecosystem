@@ -53,7 +53,7 @@ character(16) chamber_end_geometry
 character(16) :: r_name = 'synrad3d'
 
 logical ok, s_wrap_on, filter_this, err, filter_phantom_photons
-logical is_inside, turn_off_kickers_in_lattice, finished
+logical is_inside, turn_off_kickers_in_lattice, finished, bad_stat_warning_given
 
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, chamber_end_geometry, &
             photon_direction, num_photons, lattice_file, ds_step_min, num_photons_per_pass, &
@@ -358,6 +358,7 @@ allocate (wall_hit(0:10))
 print *, 'Initialization done. Tracking beginning...'
 call run_timer ('START')
 old_time = 0
+bad_stat_warning_given = .false.
 
 !--------------------------------------------------------------------------
 ! If the photon_start input file exists then use that
@@ -494,8 +495,11 @@ else
       if (iu_lat_file > 0) close (iu_lat_file)
       iu_lat_file = 0 ! To stop further output
       if (n_photon_generated == 0) then
-        print *, 'NO PHOTONS GENERATED. N_PHOTONS OR N_PHOTONS_PER_PASS IS TOO SMALL!'
-        call err_exit
+        if (.not. bad_stat_warning_given) then
+          print *, 'WARNING: NUMBER OF PHOTONS GENERATED PER PASS IS TOO SMALL FOR RELIABLE STATISTICS.'
+          bad_stat_warning_given = .true.
+        endif
+        d_i0 = d_i0 / 2  ! Try to generate more photons
       endif
     endif
 
