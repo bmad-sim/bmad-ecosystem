@@ -1406,6 +1406,7 @@ contains
 ! Function for vector potential calc.
 
 function rb_field(x)
+
 real(rp), intent(in) :: x(:)
 real(rp) :: rb_field(size(x))
 integer i
@@ -1641,8 +1642,8 @@ type (grid_field_struct) :: grid
 type (grid_field_pt1_struct), intent(out) :: g_field
 real(rp) :: x1
 real(rp), optional :: x2, x3
-real(rp) rel_x1, rel_x2, rel_x3
-integer i1, i2, i3, grid_dim, allow_s, lbnd, ubnd
+real(rp) rel_x1, rel_x2, rel_x3, r2_x1
+integer i1, i2, i3, grid_dim, allow_s, lbnd, ubnd, nn
 logical err_flag
 logical, optional :: allow_s_out_of_bounds, err_print_out_of_bounds
 character(32), parameter :: r_name = 'grid_field_linear_interpolate'
@@ -1672,31 +1673,68 @@ case (2)
   call get_this_index(x1, 1, i1, rel_x1, err_flag, allow_tiny$); if (err_flag) return
 
   ! Do bilinear interpolation. If just outside longitudinally, interpolate between grid edge and zero.
+  ! If using rotationally_symmetric_rz$ then the z component of the fields are even in r.
+  ! In this case interpolate the z component using r^2 and not r.
+
+  if (grid%geometry == rotationally_symmetric_rz$) then
+    nn = 2
+    r2_x1 = (2*i1*rel_x1 + rel_x1**2) / (2*i1 + 1)  ! = ((i1+r1)^2 - i1^2) / ((i1+1)^2 - i1^2)
+  else
+    nn = 3
+  endif
 
   if (i2 == lbnd - 1) then  ! Just outside entrance end
-    g_field%E(:) = (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%E(:) &
-                 + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%E(:) 
+    g_field%E(1:nn) = (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%E(1:nn) &
+                    + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%E(1:nn) 
 
-    g_field%B(:) = (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%B(:) &
-                 + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%B(:)  
+    g_field%B(1:nn) = (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%B(1:nn) &
+                    + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%B(1:nn)  
+
+    if (grid%geometry == rotationally_symmetric_rz$) then
+      g_field%E(3) = (1-r2_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%E(3) &
+                   + (r2_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%E(3) 
+
+      g_field%B(3) = (1-r2_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%B(3) &
+                   + (r2_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%B(3)  
+    endif
 
   elseif (i2 == ubnd) then  ! Just outside exit end
-    g_field%E(:) = (1-rel_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%E(:) &
-                 + (rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%E(:)
+    g_field%E(1:nn) = (1-rel_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%E(1:nn) &
+                    + (rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%E(1:nn)
 
-    g_field%B(:) = (1-rel_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%B(:) &
-                 + (rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%B(:)
+    g_field%B(1:nn) = (1-rel_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%B(1:nn) &
+                    + (rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%B(1:nn)
 
-  elseif (lbnd <= i2 .and. i2 < ubnd) then   ! Inside 
-    g_field%E(:) = (1-rel_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%E(:) &
-                 + (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%E(:) &
-                 + (rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%E(:) &
-                 + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%E(:) 
+    if (grid%geometry == rotationally_symmetric_rz$) then
+      g_field%E(3) = (1-r2_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%E(3) &
+                   + (r2_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%E(3)
 
-    g_field%B(:) = (1-rel_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%B(:) &
-                 + (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%B(:) &
-                 + (rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%B(:) &
-                 + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%B(:)  
+      g_field%B(3) = (1-r2_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%B(3) &
+                   + (r2_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%B(3)
+    endif
+
+  elseif (lbnd <= i2 .and. i2 < ubnd) then   ! Inside
+    g_field%E(1:nn) = (1-rel_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%E(1:nn) &
+                    + (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%E(1:nn) &
+                    + (rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%E(1:nn) &
+                    + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%E(1:nn) 
+
+    g_field%B(1:nn) = (1-rel_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%B(1:nn) &
+                    + (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%B(1:nn) &
+                    + (rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%B(1:nn) &
+                    + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%B(1:nn)  
+
+    if (grid%geometry == rotationally_symmetric_rz$) then
+      g_field%E(3) = (1-r2_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%E(3) &
+                   + (1-r2_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%E(3) &
+                   + (r2_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%E(3) &
+                   + (r2_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%E(3) 
+
+      g_field%B(3) = (1-r2_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%B(3) &
+                   + (1-r2_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%B(3) &
+                   + (r2_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%B(3) &
+                   + (r2_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%B(3)  
+    endif
   endif
 
 ! xyz grid

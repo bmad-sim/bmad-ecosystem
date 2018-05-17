@@ -61,7 +61,7 @@ type controller_var1_struct
 end type
 
 integer, parameter :: expression$ = 2, spline$ = 3
-character(8), parameter :: interpolation_name(4) = [character(8):: null_name$, 'Function', 'Spline', 'Linear']
+character(8), parameter :: interpolation_name(4) = [character(8):: null_name$, 'Expression', 'Spline', 'Linear']
 
 type controller_struct
   integer :: type = expression$
