@@ -188,24 +188,26 @@ character(*) name
 character(*), optional :: full_name
 logical, optional :: can_abbreviate
 
-! Note: ele%control may not be associated during parsing.
+! Note: ele%control or ele%control%var may not be allocated during parsing.
 
 if ((ele%key == group$ .or. ele%key == overlay$) .and. associated(ele%control)) then
-  n = min(4, len(name))
-  if (name(1:n) == 'OLD_') then
-    do i = 1, size(ele%control%var)
-      if (name(5:) /= ele%control%var(i)%name) cycle
-      attrib_index = i + old_control_var_offset$
-      if (present(full_name)) full_name = name
-      return
-    enddo
-  else  
-    do i = 1, size(ele%control%var)
-      if (name /= ele%control%var(i)%name) cycle
-      attrib_index = i + var_offset$
-      if (present(full_name)) full_name = name
-      return
-    enddo
+  if (allocated(ele%control%var)) then
+    n = min(4, len(name))
+    if (name(1:n) == 'OLD_') then
+      do i = 1, size(ele%control%var)
+        if (name(5:) /= ele%control%var(i)%name) cycle
+        attrib_index = i + old_control_var_offset$
+        if (present(full_name)) full_name = name
+        return
+      enddo
+    else  
+      do i = 1, size(ele%control%var)
+        if (name /= ele%control%var(i)%name) cycle
+        attrib_index = i + var_offset$
+        if (present(full_name)) full_name = name
+        return
+      enddo
+    endif
   endif
 endif
 
