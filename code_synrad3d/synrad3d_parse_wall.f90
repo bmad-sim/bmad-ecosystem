@@ -678,8 +678,8 @@ do ib = 0, ubound(lat%branch, 1)
    
       if (.not. all(s0%v == s1%v)) then
         call out_io (s_warn$, r_name, &
-                'FOR A "CLOSED" LATTICE THE LAST WALL CROSS-SECTION SHOULD BE THE SAME AS THE FIRST!', &
-                'FOR SUBCHAMBER: ' // wall3d%name)
+                'FOR A "CLOSED" LATTICE THE LAST WALL CROSS-SECTION SHOULD HAVE THE SAME SHAPE AS THE FIRST!', &
+                'FOR SUBCHAMBER: "' // trim(wall3d%name) // '"')
       endif
     enddo
   endif
