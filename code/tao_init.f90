@@ -260,7 +260,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
                           tao_branch%modes, tao_branch%ix_rad_int_cache, ib, tao_branch%rad_int)
 
     tao_branch%modes_rf_on = tao_branch%modes
-    tao_branch%rad_int_rf_on = tao_branch%rad_int_rf_on
+    tao_branch%rad_int_rf_on = tao_branch%rad_int
     if (branch%param%geometry == closed$) then
       call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, &
                          tao_branch%b%chrom, err, low_E_lat=tao_branch%low_E_lat, high_E_lat=tao_branch%high_E_lat)
