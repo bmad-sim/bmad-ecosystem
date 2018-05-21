@@ -314,18 +314,6 @@ endif
 
 end function wall_intersection_func
 
-!------------------------------------------------------------------------------------------------
-! contains
-
-! Wall sections are in the reference frame, not the local frame, so offset before check
-function ref_frame_wall3d_d_radius (orb) result(ref_frame_d_radius)
-
-type(coord_struct) :: orb, test_orb
-real(rp) :: ref_frame_d_radius
-! Make a copy
-
-end function ref_frame_wall3d_d_radius
-
 end subroutine odeint_bmad_time
 
 !-------------------------------------------------------------------------

@@ -170,9 +170,9 @@ if (ele%aperture_at == wall_transition$) then
     endif
 
   case (wall3d$)
-    position = [old_orb%vec(1:4), old_orb%s-ele%s_start, 1.0_rp]
+    position = wall3d_to_position (old_orb, ele)
     d_old = wall3d_d_radius (position, ele, no_wall_here = no_wall, radius_wall = r_wall)
-    position = [orb%vec(1:4), orb%s-ele%s_start, 1.0_rp]
+    position = wall3d_to_position (orb, ele)
     d_radius = wall3d_d_radius (position, ele)
     if (.not. no_wall .and. (d_radius > 0 .neqv. d_old > 0)) then
       orb%state = lost$
@@ -232,7 +232,7 @@ case (rectangular$, auto_aperture$)
   endif
 
 case (wall3d$)
-  position = [orb%vec(1:4), orb%s-ele%s_start, 1.0_rp]
+  position = wall3d_to_position (orb, ele)
   d_radius = wall3d_d_radius (position, ele, no_wall_here = no_wall, radius_wall = r_wall)
   if (.not. no_wall .and. d_radius > 0) then
     orb%state = lost$

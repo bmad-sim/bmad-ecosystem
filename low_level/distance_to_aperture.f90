@@ -8,9 +8,12 @@
 ! This routine is similar to wall3d_d_radius except that this routine works with apertures set by the
 ! element parameters x1_limit, y1_limit, x2_limit, y2_limit.
 !
+! If in a patch element this routine assues the the orbit is with respect to the downstream coordinates
+! if the particle is moving forward and with respect to the upstream coords if moving backwards.
+!
 ! Input:
 !   orbit           -- coord_struct: Particle position.
-!   particle_at     -- integer: 
+!   particle_at     -- integer: first_track_edge$, second_track_edge$, or in_between$
 !   ele             -- ele_struct: Element containing aperture.
 !
 ! Output:
@@ -97,7 +100,7 @@ case (elliptical$, rectangular$, auto_aperture$)
   endif
 
 case (wall3d$)
-  position = [orbit%vec(1:4), orbit%s-ele%s_start, 1.0_rp]
+  position = wall3d_to_position(orbit, ele)
   d_radius = wall3d_d_radius (position, ele, no_wall_here = no_aperture_here, radius_wall = r_wall)
   dist = d_radius / r_wall
 end select

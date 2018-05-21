@@ -939,7 +939,7 @@ end function coords_floor_to_relative
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function coords_floor_to_local_curvilinear  (global_position, ele, status, w_mat) result(local_position)
+! Function coords_floor_to_local_curvilinear  (global_position, ele, status, w_mat, use_patch_entrance) result(local_position)
 !
 ! Given a position in global coordinates, return local curvilinear coordinates defined by ele.
 !
@@ -949,12 +949,14 @@ end function coords_floor_to_relative
 ! Angular orientation is ignored.
 !
 ! Input:
-!   global_position -- floor_position_struct: %r = [X, Y, Z] position in global coordinates
-!   ele             -- ele_struct: element to find local coordinates of
-!
+!   global_position     -- floor_position_struct: %r = [X, Y, Z] position in global coordinates
+!   ele                 -- ele_struct: element to find local coordinates of.
+!   use_patch_entrance  -- logical, optional: This argument is ignored for non-patch elements. If in a patch: 
+!                             True => use entrance coordinates. False (default) => use exit coordinates. 
+!                            
 ! Output:
 !   local_position  -- floor_position_struct: %r = [x, y, z] position in local curvilinear coordinates
-!                        with z relative to entrance end of the element.
+!                        with z relative to entrance edge of the element.
 !   status          -- logical: longitudinal position:
 !                               inside$: Inside the element.
 !                               upstream_end$: Upstream of element.
@@ -964,7 +966,7 @@ end function coords_floor_to_relative
 !                                  v_local = transpose(w_mat).v_global
 !-  
 
-function coords_floor_to_local_curvilinear (global_position, ele, status, w_mat) result(local_position)
+function coords_floor_to_local_curvilinear (global_position, ele, status, w_mat, use_patch_entrance) result(local_position)
 
 use nr, only: zbrent
 
@@ -974,7 +976,9 @@ type (floor_position_struct) :: floor0, floor1
 real(rp), optional :: w_mat(3,3)
 real(rp) x, y, z, rho, dtheta, tilt, dz0, dz1
 integer :: status
+logical, optional :: use_patch_entrance
 
+! In all cases remember that ele%floor is the downstream floor coords independent of ele%orientation
 ! sbend case.
 
 if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
@@ -1020,11 +1024,21 @@ if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
 ! patch case
 
 elseif (ele%key == patch$) then
-  if (ele%orientation == 1) then ! rotations at exit end
-    floor0 = ele%floor
+  if (ele%orientation == 1) then 
+    if (logic_option(.false., use_patch_entrance)) then
+      floor0 = ele%branch%ele(ele%ix_ele-1)%floor        ! Get floor0 from previous element
+    else
+      floor0 = ele%floor
+    endif
+
   else
-    floor0 = ele%branch%ele(ele%ix_ele-1)%floor        ! Get floor0 from previous element
+    if (logic_option(.false., use_patch_entrance)) then
+      floor0 = ele%floor
+    else
+      floor0 = ele%branch%ele(ele%ix_ele+1)%floor        ! Get floor0 from next element
+    endif
   endif
+
   local_position = coords_floor_to_relative (floor0, global_position)
 
   ! Is the particle inside the patch or outside?
@@ -1245,8 +1259,8 @@ end function coords_floor_to_curvilinear
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function coords_local_curvilinear_to_floor (local_position, ele, 
-!                              in_ele_frame, w_mat, calculate_angles) result (global_position)
+! Function coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, 
+!                                        w_mat, calculate_angles, use_patch_entrance) result (global_position)
 !
 ! Given a position local to ele, return global floor coordinates.
 ! Note: if the element is a patch then local_position%r(3) is the longitudinal position with
@@ -1256,8 +1270,8 @@ end function coords_floor_to_curvilinear
 !   local_position  -- floor_position_struct: Floor position in local curvilinear coordinates,
 !                        with %r = [x, y, z_local] where z_local is wrt the entrance end of the element.
 !   ele             -- ele_struct: element that local_position coordinates are relative to.
-!   in_ele_frame    -- logical, optional :: local_position is in ele body frame and includes misalignments.
-!                               Default: False. Ignored if element is a patch.
+!   in_ele_frame    -- logical, optional :: True => local_position is in ele body frame and includes misalignments.
+!                               Ignored if element is a patch. Default: False. 
 !
 ! Output:
 !   global_position -- floor_position_struct: Position in global coordinates.
@@ -1271,8 +1285,8 @@ end function coords_floor_to_curvilinear
 !                          False returns local_position angles (%theta, %phi, %psi) = 0.
 !-  
 
-function coords_local_curvilinear_to_floor (local_position, ele, &
-                              in_ele_frame, w_mat, calculate_angles) result (global_position)
+function coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, &
+                                        w_mat, calculate_angles, use_patch_entrance) result (global_position)
 
 type (floor_position_struct) :: local_position, global_position, p, floor0
 type (ele_struct), target :: ele
@@ -1282,6 +1296,7 @@ real(rp) :: w_mat_local(3,3), L_vec(3), S_mat(3,3), z
 real(rp), optional :: w_mat(3,3)
 logical, optional :: in_ele_frame
 logical, optional :: calculate_angles
+logical, optional :: use_patch_entrance
 character(*), parameter :: r_name = 'coords_local_curvilinear_to_floor'
 
 ! If a overlay, group or multipass then just use the first slave
@@ -1317,8 +1332,26 @@ else
 endif 
 
 ! Get global floor coordinates
-if (ele1%orientation == 1) then
+
+if (ele1%key == patch$) then
+  if (ele%orientation == 1) then
+    if (logic_option(.false., use_patch_entrance)) then
+      floor0 = ele%branch%ele(ele%ix_ele-1)%floor        ! Get floor0 from previous element
+    else
+      floor0 = ele%floor
+    endif
+
+  else
+    if (logic_option(.false., use_patch_entrance)) then
+      floor0 = ele%floor
+    else
+      floor0 = ele%branch%ele(ele%ix_ele+1)%floor        ! Get floor0 from next element
+    endif
+  endif
+
+elseif (ele1%orientation == 1) then
   floor0 = ele1%floor
+
 else
   ele0 => pointer_to_next_ele (ele1, -1)
   floor0 = ele0%floor
