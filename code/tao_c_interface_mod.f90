@@ -26,7 +26,7 @@ contains
 !-
 
 function tao_c_init_tao (c_str) bind(c) result (err)
-character(len=1, kind=c_char), dimension(*), intent (in) ::  c_str
+character(c_char), intent (in) ::  c_str(*)
 character(200) :: f_str
 integer :: errcode
 integer(c_int) :: err
@@ -58,7 +58,7 @@ end function tao_c_init_tao
 !-
 
 function tao_c_command (c_str) bind(c) result (err)
-character(len=1, kind=c_char), dimension(*), intent (in) ::  c_str
+character(c_char), intent (in) ::  c_str(*)
 character(200) :: f_str
 integer :: errcode
 integer(c_int) :: err
