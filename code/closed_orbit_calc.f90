@@ -81,6 +81,7 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_
 use bmad_interface, except_dummy => closed_orbit_calc
 use bookkeeper_mod, only: set_on_off, restore_state$, off_and_save$
 use super_recipes_mod
+use lmdif_mod
 use eigen_mod
 
 implicit none
@@ -105,15 +106,15 @@ real(rp) t1(6,6), del_co(6), t11_inv(6,6), i1_int
 real(rp) :: amp_co(6), amp_del(6), dt, amp, dorb(6), old_start(6), old_end(6)
 real(rp) z0, dz, z_here, this_amp, dz_norm, max_eigen, min_max_eigen, z_original
 real(rp) a_lambda, chisq, old_chisq, rf_freq, svec(3), mat3(3,3), rf_wavelen, dz_step
-real(rp), allocatable :: on_off_state(:), vec0(:), weight(:), a(:)
+real(rp), allocatable :: on_off_state(:), vec0(:), weight(:), a(:), merit_vec(:), dy_da(:,:)
 
 integer, optional :: direction, ix_branch, i_dim
-integer i, j, ie, i_loop, n_dim, n_ele, i_max, dir, track_state, n, status, j_max
+integer i, j, ie, i2, i_loop, n_dim, n_ele, i_max, dir, track_state, n, status, j_max
 integer ix_ele_start, ix_ele_end
 
 logical, optional, intent(out) :: err_flag
 logical, optional, intent(in) :: print_err
-logical err, error, allocate_m_done, stable_orbit_found, t1_needs_checking, printit
+logical err, error, allocate_m_done, stable_orbit_found, t1_needs_checking, printit, at_end
 logical, allocatable :: maska(:)
 
 character(20) :: r_name = 'closed_orbit_calc'
@@ -253,7 +254,7 @@ end select
 ! Because of nonlinearities we may need to iterate to find the solution
 
 allocate(co_saved(0:ubound(closed_orb, 1)))
-allocate(vec0(n_dim), weight(n_dim), a(n_dim), maska(n_dim))
+allocate(vec0(n_dim), weight(n_dim), a(n_dim), maska(n_dim), merit_vec(n_dim), dy_da(n_dim,n_dim))
 vec0 = 0
 maska = .false.
 stable_orbit_found = .false.
@@ -274,6 +275,23 @@ do i_loop = 1, i_max
   weight(1:n_dim) = 1 / (abs(a) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)**2
 
   call super_mrqmin (vec0, weight, a, chisq, co_func, storage, a_lambda, status)
+
+  if (status == 2) then  ! Particle lost. Try lmdif since lmdif does not need derivatives
+    call initial_lmdif()
+    call co_func(a, vec0, dy_da, status)
+    do i2 = 1, i_max
+      do j = 1, n_dim
+        merit_vec(j) = sqrt(weight(j)) * vec0(j)
+      enddo
+      call suggest_lmdif (a, merit_vec, bmad_com%rel_tol_tracking, i_max, at_end)
+    enddo
+    call co_func(a, vec0, dy_da, status)
+    if (status /= 0) then
+      if (printit) call out_io (s_error$, r_name, 'Cannot find stable orbit.', 'Using branch: ' // branch_name(branch))
+      call end_cleanup
+      return
+    endif
+  endif
 
   if (status == 1) then ! too large step in z
     a_lambda = a_lambda * dz_step  ! Scale next step 
@@ -540,8 +558,6 @@ endif
 call init_coord (orb_start, orb_start, ele_start, start_end$, orb_start%species, dir)
 call track_many (lat, closed_orb, ix_ele_start, ix_ele_end, dir, branch%ix_branch, track_state)
 
-status = 0
-
 !
 
 del_orb = orb_end%vec - orb_start%vec
@@ -554,8 +570,10 @@ endif
 if (track_state == moving_forward$) then
   stable_orbit_found = .true.
   y_fit = del_orb(1:n_dim)
+  status = 0
 else
-  y_fit = track_state   ! Some large number
+  y_fit = 1d10 * branch%param%unstable_factor   ! Some large number
+  status = 2  ! Unstable
 endif
 
 dy_da = t1(1:n_dim,1:n_dim)
