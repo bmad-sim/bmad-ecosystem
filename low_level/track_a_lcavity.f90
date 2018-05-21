@@ -69,6 +69,7 @@ if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle,
 phase = twopi * (ele%value(phi0_err$) + ele%value(phi0_autoscale$) + &
            ele%value(phi0$) + ele%value(phi0_multipass$) + &
            (particle_rf_time (orbit, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
+phase = modulo2(phase, pi)
 
 call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_matrix)
 

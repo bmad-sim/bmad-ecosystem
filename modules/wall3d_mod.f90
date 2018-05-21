@@ -648,10 +648,10 @@ end subroutine calc_wall_radius
 !   use wall3d_mod
 !
 ! Input:
-!   position(6)  -- real(rp): Particle position
-!                     [position(1), position(3)] = [x, y] transverse coords.
-!                     position(5)                = Longitudinal position relative to beginning of element.
-!                     position(6)                = Longitudinal velocity (only +/- sign matters).
+!   position(6)  -- real(rp): Particle position in element coordinates. In a patch, with respect to entrance coords.
+!           [position(1), position(3)] = [x, y] transverse coords.
+!            position(5)                = Longitudinal position relative to beginning of element.
+!            position(6)                = Longitudinal velocity (only +/- sign matters).
 !   ele          -- ele_struct: Element with wall
 !   ix_wall      -- integer, optional: Index of wall in %wall3d(:) array. Default is 1.
 !
@@ -676,9 +676,9 @@ type (wall3d_section_struct), pointer :: sec1, sec2
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_vertex_struct), allocatable :: v(:)
 type (ele_struct), pointer :: ele1, ele2, ele_ptr
-type (floor_position_struct) floor_particle, floor1_0, floor2_0
+type (floor_position_struct) floor_particle, floor_sec1, floor_sec2
 type (floor_position_struct) floor1_w, floor2_w, floor1_dw, floor2_dw, floor1_p, floor2_p
-type (floor_position_struct) loc_p, loc_1_0, loc_2_0, floor
+type (floor_position_struct) loc_p, loc1_sec2, loc2_sec1, floor
 type (branch_struct), pointer :: branch
 
 real(rp), intent(in) :: position(:)
@@ -688,11 +688,11 @@ real(rp), pointer :: vec(:), value(:)
 real(rp) d_radius, r_particle, r_norm, s_rel, spline, cos_theta, sin_theta
 real(rp) r1_wall, r2_wall, dr1_dtheta, dr2_dtheta, f_eff, ds, disp, r_wall
 real(rp) p1, p2, dp1, dp2, s_particle, ds_offset, x, y, x0, y0, f, d_rad1, d_rad2
-real(rp) r(3), r0(3), rw(3), drw(3), dr0(3), dr(3), drp(3)
+real(rp) r(3), r0(3), rw(3), drw(3), dr0(3), p_sec1(3), p_sec2(3), drp(3)
 real(rp) dtheta_dphi, alpha, dalpha, beta, dx, dy, w_mat(3,3)
 real(rp) s1, s2, r_p(3)
 
-integer i, ix_w, n_slice, n_sec, ix_vertex1, ix_vertex2
+integer i, ix_w, n_slice, n_sec, ix_vertex1, ix_vertex2, status
 integer, optional :: ix_section, ix_wall
 
 logical, optional :: err_flag, no_wall_here
@@ -826,41 +826,37 @@ if (sec2%patch_in_region) then
   ele2 => pointer_to_ele (branch%lat, sec2%ix_ele, sec2%ix_branch)
 
   ! floor_particle is coordinates of particle in global reference frame
-  ! floor1_0 is sec1 origin in global ref frame
-  ! floor2_0 is sec2 origin in global ref frame
-  floor_particle = coords_relative_to_floor (ele%floor, [position(1), position(3), position(5) - ele%value(l$)])
-  floor1_0 = coords_relative_to_floor (ele1%floor, [sec1%r0, sec1%s - ele1%s])
-  floor2_0 = coords_relative_to_floor (ele2%floor, [sec2%r0, sec2%s - ele2%s])
+  ! floor_sec1 is sec1 origin in global ref frame
+  ! floor_sec2 is sec2 origin in global ref frame
+  floor_particle = this_coords_to_floor (ele, [position(1), position(3), position(5)])
+  floor_sec1     = this_coords_to_floor (ele1, [sec1%r0, sec1%s - ele1%s_start])
+  floor_sec2     = this_coords_to_floor (ele2, [sec2%r0, sec2%s - ele2%s_start])
 
-  ! loc_p  is coordinates of particle in ele1 ref frame
-  ! loc_1_0 is coordinates of sec1 origin in ele1 ref frame
-  ! loc_2_0 is coordinates of sec2 origin in ele1 ref frame
-  loc_p = coords_floor_to_relative (ele1%floor, floor_particle, .false.)
-  loc_1_0%r = [sec1%r0, sec1%s - ele1%s]
-  loc_2_0 = coords_floor_to_relative (ele1%floor, floor2_0, .false.)
+  ! loc_p  is coordinates of particle in sec1 origin ref frame
+  ! loc2_sec1 is coordinates of sec2 origin in sec1 orgin ref frame
+  loc_p     = coords_floor_to_relative (floor_sec1, floor_particle, .false.)
+  loc2_sec1 = coords_floor_to_relative (floor_sec1, floor_sec2, .false.)
 
-  ! Find wall radius for sec1.
-  dr0 = loc_2_0%r - loc_1_0%r
-  dr0 = dr0 / norm2(dr0)
-  drp = loc_p%r - loc_1_0%r
-  s1 = drp(3) / dr0(3)
-  dr = drp - s1 * dr0  ! should have dr(3) = 0
-  r_norm = norm2(dr(1:2))
+  ! sec1, sec2, and particle origins form a triangle. There is a half plane that contains this triangle with the 
+  ! edge of the half plane along the sec1-sec2 origin line and with the half plane containing the particle origin.
+  ! The half plane intersects the sec1 wall curve at one point. This point, along with the projection of the 
+  ! particle origin onto the sec1 plane along the half plane edge, and the sec1 origin lie on a line and define
+  ! the radius of the particle at sec1.
+  dr0 = loc2_sec1%r / norm2(loc2_sec1%r)  ! sec2 - sec1 origins normalized vector
+  s1 = loc_p%r(3) / dr0(3)            ! Distance of particle from s1
+  p_sec1 = loc_p%r - s1 * dr0         ! Particle origin projected to sec1. Should have p_sec1(3) = 0
+  r_norm = norm2(p_sec1(1:2))
   if (r_norm /= 0) then
-    cos_theta = dr(1) / r_norm
-    sin_theta = dr(2) / r_norm
+    cos_theta = p_sec1(1) / r_norm
+    sin_theta = p_sec1(2) / r_norm
   endif
   call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta, ix_vertex1)
 
-  ! floor1_p is the particle coords projected onto the sec1 plane in global ref frame
-  ! floor1_w  is sec1 wall pt in global reference frame
+  ! floor1_p is the projected particle origin onto the sec1 plane expressed in global coords.
+  ! floor1_w is sec1 wall pt expressed in global coords.
 
-  alpha = drp(3) / dr0(3)
-  floor1_p%r = loc_p%r - alpha * dr0 
-  floor1_p = coords_relative_to_floor (ele1%floor, floor1_p%r)
-
-  r = loc_1_0%r + r1_wall * [cos_theta, sin_theta, 0.0_rp]
-  floor1_w = coords_relative_to_floor (ele1%floor, r)
+  floor1_p = coords_relative_to_floor (floor_sec1, p_sec1)
+  floor1_w = coords_relative_to_floor (floor_sec1, r1_wall * [cos_theta, sin_theta, 0.0_rp])
 
   ! floor1_dw is sec1 wall pt derivative with respect to theta in global reference frame. 
   ! dtheta_dphi is change in local sec1 angle (theta) with respect to global angle (phi).
@@ -869,39 +865,31 @@ if (sec2%patch_in_region) then
     beta = sqrt( (dr0(2)**2 + dr0(3)**2) / (dr0(1)**2 + dr0(3)**2) )
     dtheta_dphi = (beta**2 * sin_theta**2 + cos_theta**2) / beta
     r = dtheta_dphi * (dr1_dtheta * [cos_theta, sin_theta, 0.0_rp] + r1_wall * [-sin_theta, cos_theta, 0.0_rp])
-    floor1_dw = coords_relative_to_floor (ele1%floor, r)
-    floor1_dw%r = floor1_dw%r - ele1%floor%r
+    floor1_dw = coords_relative_to_floor (floor_sec1, r)
+    floor1_dw%r = floor1_dw%r - floor_sec1%r
   endif
 
-  ! loc_p  is coordinates of particle in ele2 ref frame
-  ! loc_1_0 is coordinates of sec1 origin in ele2 ref frame
-  ! loc_2_0 is coordinates of sec2 origin in ele2 ref frame
-  loc_p = coords_floor_to_relative (ele2%floor, floor_particle, .false.)
-  loc_1_0 = coords_floor_to_relative (ele2%floor, floor1_0, .false.)
-  loc_2_0%r = [sec2%r0, sec2%s - ele2%s]
+  ! loc_p  is coordinates of particle in sec1 origin ref frame
+  ! loc_1_sec2 is coordinates of sec1 origin in sec2 origin ref frame
+  loc_p = coords_floor_to_relative (floor_sec2, floor_particle, .false.)
+  loc1_sec2 = coords_floor_to_relative (floor_sec2, floor_sec1, .false.)
 
-  ! Find wall radius for sec2.
-  dr0 = loc_1_0%r - loc_2_0%r
-  dr0 = dr0 / norm2(dr0)
-  drp = loc_p%r - loc_2_0%r
-  s2 = drp(3) / dr0(3)
-  dr = drp - s2 * dr0
-  r_norm = norm2(dr(1:2))
+  ! Find wall radius for sec2. See above.
+  dr0 = loc1_sec2%r / norm2(loc1_sec2%r)  ! sec1 - sec2 origins normalized vector
+  s2 = loc_p%r(3) / dr0(3)
+  p_sec2 = loc_p%r - s2 * dr0   ! particle origin projected onto sec2 plane. Should have p_sec2(3) = 0
+  r_norm = norm2(p_sec2(1:2))
   if (r_norm /= 0) then
-    cos_theta = dr(1) / r_norm
-    sin_theta = dr(2) / r_norm
+    cos_theta = p_sec2(1) / r_norm
+    sin_theta = p_sec2(2) / r_norm
   endif
   call calc_wall_radius (sec2%v, cos_theta, sin_theta, r2_wall, dr2_dtheta, ix_vertex2)
 
   ! floor2_p is the particle coords projected onto the sec2 plane in global ref frame
   ! floor2_w  is sec2 wall pt in global reference frame
 
-  alpha = drp(3) / dr0(3)
-  floor2_p%r = loc_p%r - alpha * dr0 
-  floor2_p = coords_relative_to_floor (ele2%floor, floor2_p%r)
-
-  r = loc_2_0%r + r2_wall * [cos_theta, sin_theta, 0.0_rp]
-  floor2_w = coords_relative_to_floor (ele2%floor, r)
+  floor2_p = coords_relative_to_floor (floor_sec2, p_sec2)
+  floor2_w = coords_relative_to_floor (floor_sec2, r2_wall * [cos_theta, sin_theta, 0.0_rp])
 
   ! floor2_dw is sec2 wall pt derivative with respect to theta in global reference frame
   ! dtheta_dphi is change in local sec1 angle (theta) with respect to global angle (phi).
@@ -910,19 +898,19 @@ if (sec2%patch_in_region) then
     beta = sqrt( (dr0(2)**2 + dr0(3)**2) / (dr0(1)**2 + dr0(3)**2) )
     dtheta_dphi = (beta**2 * sin_theta**2 + cos_theta**2) / beta
     r = dtheta_dphi * (dr2_dtheta * [cos_theta, sin_theta, 0.0_rp] + r2_wall * [-sin_theta, cos_theta, 0.0_rp])
-    floor2_dw = coords_relative_to_floor (ele2%floor, r)
-    floor2_dw%r = floor2_dw%r - ele2%floor%r
+    floor2_dw = coords_relative_to_floor (floor_sec2, r)
+    floor2_dw%r = floor2_dw%r - floor_sec2%r
   endif
   
   ! Interpolate to get r0 which is on the line between the section origins
-  ! and rp which is on the line between floor1_p and floor2_p. 
-  ! Note: If there is no spline then rp is the particle position.
+  ! and r_p which is on the line between floor1_p and floor2_p. 
+  ! Note: If there is no spline then r_p is the particle position.
 
   s_rel = s1 / (s1 + s2)
   p1 = 1 - s_rel + sec1%p1_coef(1)*s_rel + sec1%p1_coef(2)*s_rel**2 + sec1%p1_coef(3)*s_rel**3
   p2 =     s_rel + sec1%p2_coef(1)*s_rel + sec1%p2_coef(2)*s_rel**2 + sec1%p2_coef(3)*s_rel**3
 
-  r0  = p1 * floor1_0%r + p2 * floor2_0%r
+  r0  = p1 * floor_sec1%r + p2 * floor_sec2%r
   r_p = p1 * floor1_p%r + p2 * floor2_p%r
 
   ! Calculate rw which is the point on the wall that intersects the line through r0 & r_p
@@ -940,9 +928,9 @@ if (sec2%patch_in_region) then
 
   if (present(origin)) then
     floor%r = r0
-    floor = coords_floor_to_relative (ele%floor, floor, .false.) 
+    floor = coords_floor_to_local_curvilinear (floor, ele, status, use_patch_entrance = .true.)
     origin = floor%r
-    origin(3) = origin(3) + ele%value(l$)
+    if (ele%key /= patch$) origin(3) = origin(3) + ele%value(l$)
   endif
 
   ! Calculate the surface normal vector
@@ -1084,6 +1072,24 @@ yes_wrap = .true.
 
 end function wrap_wall
 
+!---------------------------------------------------------------------------
+! contains
+
+function this_coords_to_floor (ele, r) result (floor)
+
+type (ele_struct) ele
+type (floor_position_struct) floor, local
+
+real(rp) r(3)
+
+!
+
+local%r = r
+call mat_make_unit(local%w)
+floor = coords_local_curvilinear_to_floor(local, ele, use_patch_entrance = .true.)
+
+end function this_coords_to_floor
+
 end function wall3d_d_radius
 
 !---------------------------------------------------------------------------
@@ -1152,6 +1158,54 @@ if (present(ds_offset)) then
 endif
 
 end function pointer_to_wall3d
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function wall3d_to_position (orbit, ele) result (position)
+!
+! Routine to return the suitable postion to be used in calling wall3d_d_radius
+!
+! This routine assumes that if in a patch the coordinates of orbit are with respect 
+! to the downstream end if orbit%direction = 1 and vice versa.
+!
+! Input:
+!   orbit       -- coord_struct: Particle position.
+!   ele         -- ele_struct: Element particle is in.
+!
+! Output:
+!   position(6) -- real(rp): Position used in wall3d_d_radius call.
+!-
+
+function wall3d_to_position (orbit, ele) result (position)
+
+implicit none
+
+type (coord_struct) orbit
+type (ele_struct) ele
+
+real(rp) position(6), r_vec(3), ww(3,3)
+
+! position(2) and position(4) are immaterial.
+
+
+if (ele%key == patch$) then 
+  ! Must transform to entrance coordinates.
+  if (orbit%direction == 1) then
+    call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat = ww)
+    r_vec = [orbit%vec(1), orbit%vec(3), orbit%s - ele%s]
+    position(1:5:2) = matmul(ww, r_vec) + [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)]
+    position(2:6:2) = [0.0_rp, 0.0_rp, 1.0_rp]
+  else
+    position = [orbit%vec(1:4), orbit%s - ele%s_start, -1.0_rp]
+  endif
+
+else
+  position = [orbit%vec(1:4), orbit%s-ele%s_start, 1.0_rp * orbit%direction]
+endif
+
+end function wall3d_to_position
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
