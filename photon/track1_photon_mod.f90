@@ -22,6 +22,37 @@ contains
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
+! Subroutine track1_lens (ele, param, orbit)
+!
+! Routine to track through a lens.
+!
+! Input:
+!   ele      -- ele_struct: Element tracking through.
+!   param    -- lat_param_struct: lattice parameters.
+!   orbit    -- Coord_struct: phase-space coords to be transformed
+!
+! Output:
+!   orbit    -- Coord_struct: final phase-space coords
+!-
+
+subroutine track1_lens (ele, param, orbit)
+
+type (ele_struct), target:: ele
+type (coord_struct), target:: orbit
+type (lat_param_struct) :: param
+
+character(*), parameter :: r_name = 'track1_lens'
+
+!
+
+! Nothing implemented yet.
+
+end subroutine track1_lens
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
 ! Subroutine track_a_patch_photon (ele, orbit, drift_to_exit, use_z_pos)
 !
 ! Routine to track through a patch element with a photon.

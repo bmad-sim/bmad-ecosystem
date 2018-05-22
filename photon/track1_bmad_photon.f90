@@ -108,6 +108,15 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
   end_orb%s = ele%s
 
 !-----------------------------------------------
+! Lens
+
+case (lens$) 
+
+  call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
+  call track1_lens (ele, param, end_orb)
+  call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
+
+!-----------------------------------------------
 ! Marker, etc.
 
 case (marker$, detector$, fork$, photon_fork$, floor_shift$, fiducial$)
