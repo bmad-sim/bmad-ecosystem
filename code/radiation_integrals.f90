@@ -132,7 +132,7 @@ integer i, j, k, n, ip, ir, key2, n_step, ix_pole_max
 
 character(*), parameter :: r_name = 'radiation_integrals'
 
-logical do_alloc, use_cache, init_cache, cache_only_wig, err
+logical do_alloc, use_cache, init_cache, cache_only_wig, err, hybrid_warning_given
 logical, parameter :: t = .true., f = .false.
 
 !---------------------------------------------------------------------
@@ -419,10 +419,18 @@ endif ! (init_cache)
 ! We do the elements that can be integrated quickly to establish a baseline 
 ! for setting the error tolerance for the elements that take more time to integrate through.
 
+hybrid_warning_given = .false.
+
 do ir = 1, branch%n_ele_track
 
   ele => branch%ele(ir)
   if (.not. ele%is_on) cycle
+
+  if (ele%key == hybrid$) then
+    if (.not. hybrid_warning_given) call out_io (s_error$, r_name, 'CANNOT COMPUTE RADIATION INTEGRALS WHEN THERE IS A HYBRID ELEMENT: ' // ele%name)
+    hybrid_warning_given = .true.
+    cycle
+  endif
 
   ri_info%ele => ele
   rad_int1 => rad_int_all%ele(ir)
