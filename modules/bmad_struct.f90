@@ -1206,28 +1206,23 @@ character(2), parameter :: coord_name(6) = ['X ', 'Px', 'Y ', 'Py', 'Z ', 'Pz']
 ! KEY value definitions
 ! Note: sbend$ and rbend$ also used for sub_key
 
-integer, parameter :: drift$ = 1, sbend$ = 2, quadrupole$ = 3, group$ = 4
-integer, parameter :: sextupole$ = 5, overlay$ = 6, custom$ = 7, taylor$ = 8
-integer, parameter :: rfcavity$ = 9
-integer, parameter :: elseparator$ = 10, beambeam$ = 11, wiggler$ = 12
-integer, parameter :: sol_quad$ = 13, marker$ = 14, kicker$ = 15
-integer, parameter :: hybrid$ = 16, octupole$ = 17, rbend$ = 18, multipole$ = 19
-integer, parameter :: def_bmad_com$ = 20, def_mad_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23
-integer, parameter :: patch$ = 24, lcavity$ = 25, def_parameter$ = 26
-integer, parameter :: null_ele$ = 27, beginning_ele$ = 28, line_ele$ = 29
-integer, parameter :: match$ = 30, monitor$ = 31, instrument$ = 32
-integer, parameter :: hkicker$ = 33, vkicker$ = 34, rcollimator$ = 35
-integer, parameter :: ecollimator$ = 36, girder$ = 37, bend_sol_quad$ = 38
-integer, parameter :: def_beam_start$ = 39, photon_fork$ = 40
-integer, parameter :: fork$ = 41, mirror$ = 42, crystal$ = 43
-integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
-integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_shift$ = 49, fiducial$ = 50
-integer, parameter :: undulator$ = 51, diffraction_plate$ = 52, photon_init$ = 53
-integer, parameter :: sample$ = 54, detector$ = 55, sad_mult$ = 56, mask$ = 57, ac_kicker$ = 58
+integer, parameter :: drift$ = 1, sbend$ = 2, quadrupole$ = 3, group$ = 4, sextupole$ = 5
+integer, parameter :: overlay$ = 6, custom$ = 7, taylor$ = 8, rfcavity$ = 9, elseparator$ = 10
+integer, parameter :: beambeam$ = 11, wiggler$ = 12, sol_quad$ = 13, marker$ = 14, kicker$ = 15
+integer, parameter :: hybrid$ = 16, octupole$ = 17, rbend$ = 18, multipole$ = 19, def_bmad_com$ = 20
+integer, parameter :: def_mad_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23, patch$ = 24, lcavity$ = 25
+integer, parameter :: def_parameter$ = 26, null_ele$ = 27, beginning_ele$ = 28, line_ele$ = 29
+integer, parameter :: match$ = 30, monitor$ = 31, instrument$ = 32, hkicker$ = 33, vkicker$ = 34
+integer, parameter :: rcollimator$ = 35, ecollimator$ = 36, girder$ = 37, bend_sol_quad$ = 38
+integer, parameter :: def_beam_start$ = 39, photon_fork$ = 40, fork$ = 41, mirror$ = 42, crystal$ = 43
+integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46, e_gun$ = 47, em_field$ = 48
+integer, parameter :: floor_shift$ = 49, fiducial$ = 50, undulator$ = 51, diffraction_plate$ = 52
+integer, parameter :: photon_init$ = 53, sample$ = 54, detector$ = 55, sad_mult$ = 56, mask$ = 57
+integer, parameter :: ac_kicker$ = 58, lens$ = 59
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
-integer, parameter :: n_key$ = 58
+integer, parameter :: n_key$ = 59
 character(20), parameter :: key_name(n_key$) = [ &
     'Drift            ', 'Sbend            ', 'Quadrupole       ', 'Group            ', &
     'Sextupole        ', 'Overlay          ', 'Custom           ', 'Taylor           ', &
@@ -1243,7 +1238,7 @@ character(20), parameter :: key_name(n_key$) = [ &
     'Capillary        ', 'Multilayer_Mirror', 'E_Gun            ', 'EM_Field         ', &
     'Floor_Shift      ', 'Fiducial         ', 'Undulator        ', 'Diffraction_Plate', &
     'Photon_Init      ', 'Sample           ', 'Detector         ', 'Sad_Mult         ', &
-    'Mask             ', 'AC_Kicker        ']
+    'Mask             ', 'AC_Kicker        ', 'Lens             ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -1286,6 +1281,8 @@ integer, parameter :: e_photon$ = 9
 
 integer, parameter :: e1$ = 19, e2$ = 20
 integer, parameter :: fint$ = 21, fintx$ = 22, hgap$ = 23, hgapx$ = 24, h1$ = 25, h2$ = 26
+
+integer, parameter :: radius$ = 3, transmission_coef$ = 4, focal_strength$ = 5
 
 integer, parameter :: l$ = 1                          ! Assumed unique. Do not assign 1 to another attribute.
 integer, parameter :: tilt$ = 2, roll$ = 2  ! Important: tilt$ = roll$

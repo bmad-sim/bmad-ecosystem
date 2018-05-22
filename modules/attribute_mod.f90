@@ -606,6 +606,7 @@ do i = 1, n_key$
   if (i == crystal$)           cycle
   if (i == sample$)            cycle
   if (i == capillary$)         cycle
+  if (i == lens$)              cycle
   if (i == photon_init$)       cycle
 
   if (i /= drift$) call init_attribute_name1 (i, is_on$,        'IS_ON')
@@ -832,6 +833,13 @@ call init_attribute_name1 (capillary$, n_slice_spline$,             'N_SLICE_SPL
 call init_attribute_name1 (capillary$, critical_angle_factor$,      'CRITICAL_ANGLE_FACTOR')
 call init_attribute_name1 (capillary$, e_tot_start$,                'e_tot_start', private$)
 call init_attribute_name1 (capillary$, p0c_start$,                  'p0c_start', private$)
+
+call init_attribute_name1 (lens$, l$,                               'L')
+call init_attribute_name1 (lens$, radius$,                          'RADIUS')
+call init_attribute_name1 (lens$, transmission_coef$,               'TRANSMISSION_COEF')
+call init_attribute_name1 (lens$, focal_strength$,                  'FOCAL_STRENGTH')
+call init_attribute_name1 (lens$, e_tot_start$,                     'e_tot_start', private$)
+call init_attribute_name1 (lens$, p0c_start$,                       'p0c_start', private$)
 
 call init_attribute_name1 (crystal$, l$,                            'L', dependent$)
 call init_attribute_name1 (crystal$, bragg_angle_in$,               'BRAGG_ANGLE_IN', dependent$)
