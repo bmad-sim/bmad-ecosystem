@@ -232,12 +232,15 @@ do ib = 0, ubound(lat_out%branch, 1)
         ele_out%n_lord = 0
         ele_out%n_lord_field = 0
         ele_out%ic1_lord = 0
-        ele_out%value(e_tot_start$) = b_in%ele(j_in-1)%value(e_tot$)
+        ele_out%value(e_tot_start$) = ele_in%value(e_tot_start$)
+        ele_out%value(p0c_start$)   = ele_in%value(p0c_start$)
         ref_time0                   = b_in%ele(j_in-1)%ref_time
         ele_out%value(ref_time_start$) = ref_time0
         ele_out%value(delta_e_ref$)    = ele_in%value(e_tot$) - ele_out%value(e_tot_start$)
         ele_out%value(delta_ref_time$) = ele_in%ref_time - ref_time0 
-        ele_out%tracking_method = taylor$
+        ele_out%value(e_tot$)    = ele_in%value(e_tot$)
+        ele_out%value(p0c$)      = ele_in%value(p0c$)
+        ele_out%tracking_method  = taylor$
         ele_out%mat6_calc_method = taylor$
 
         ix_hyb = ix_hyb + 1
@@ -285,8 +288,11 @@ do ib = 0, ubound(lat_out%branch, 1)
         ele_out%value(x2_limit$)       = ele_in%value(x2_limit$)
         ele_out%value(y1_limit$)       = ele_in%value(y1_limit$)
         ele_out%value(y2_limit$)       = ele_in%value(y2_limit$)
-        ele_out%value(delta_e_ref$)    = ele_in%value(e_tot$) - ele_out%value(e_tot_start$)
+
+        ele_out%value(delta_e_ref$)    = ele_in%value(E_tot$) - ele_out%value(e_tot_start$)
         ele_out%value(delta_ref_time$) = ele_in%ref_time - ref_time0
+        ele_out%value(e_tot$)          = ele_in%value(e_tot$)
+        ele_out%value(p0c$)            = ele_in%value(p0c$)
 
         o_key = ele_out%key 
 

@@ -1445,7 +1445,7 @@ call init_attribute_name1 (hybrid$, l$,                             'L')
 call init_attribute_name1 (hybrid$, delta_e_ref$,                   'DELTA_E_REF')
 call init_attribute_name1 (hybrid$, e_tot_start$,                   'E_TOT_START', dependent$)
 call init_attribute_name1 (hybrid$, p0c_start$,                     'P0C_START', dependent$)
-call init_attribute_name1 (hybrid$, delta_ref_time$,                'DELTA_REF_TIME', override = .true.)
+call init_attribute_name1 (hybrid$, delta_ref_time$,                'DELTA_REF_TIME', override = .true.) ! Here not dependent
 
 call init_attribute_name1 (mirror$, l$,                             'L', dependent$)
 call init_attribute_name1 (mirror$, graze_angle$,                   'GRAZE_ANGLE')
@@ -1480,6 +1480,8 @@ call init_attribute_name1 (taylor$, y_ref$,                         'Y_REF')
 call init_attribute_name1 (taylor$, py_ref$,                        'PY_REF')
 call init_attribute_name1 (taylor$, z_ref$,                         'Z_REF')
 call init_attribute_name1 (taylor$, pz_ref$,                        'PZ_REF')
+call init_attribute_name1 (taylor$, delta_e_ref$,                   'DELTA_E_REF')
+call init_attribute_name1 (taylor$, delta_ref_time$,                'DELTA_REF_TIME', override = .true.) ! Here not dependent
 
 call init_attribute_name1 (wiggler$, k1$,                           'K1', dependent$)
 call init_attribute_name1 (wiggler$, l_pole$,                       'L_POLE')

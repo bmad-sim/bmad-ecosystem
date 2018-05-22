@@ -39,20 +39,16 @@ available in \bmad.
 \end{table}
 
 \index{MAD}
-Most element types available in \mad are provided in \bmad.
-Additionally, \bmad provides a number of element types that are not
-available in \mad.  A word of caution: In some cases where both \mad
-and \bmad provide the same element type, there will be an overlap of
-the attributes available but the two sets of attributes will not be
-the same.  The list of element types known to \bmad is shown in
-Table~\ref{t:particle.classes}, \ref{t:photon.classes}, and
-\ref{t:control.classes}.  Table~\ref{t:particle.classes} lists the
-elements suitable for use with charged particles,
-Table~\ref{t:photon.classes} which lists the elements suitable for use
-with photons, and finally Table~\ref{t:control.classes} lists the
-\vn{controller} element types that can be used for parameter control
-of other elements. Note that some element types are suitable for both
-particle and photon use.
+Most element types available in \mad are provided in \bmad.  Additionally, \bmad provides a number
+of element types that are not available in \mad.  A word of caution: In some cases where both \mad
+and \bmad provide the same element type, there will be an overlap of the attributes available but
+the two sets of attributes will not be the same.  The list of element types known to \bmad is shown
+in Table~\ref{t:particle.classes}, \ref{t:photon.classes}, and \ref{t:control.classes}.
+Table~\ref{t:particle.classes} lists the elements suitable for use with charged particles,
+Table~\ref{t:photon.classes} which lists the elements suitable for use with photons, and finally
+Table~\ref{t:control.classes} lists the \vn{controller} element types that can be used for parameter
+control of other elements. Note that some element types are suitable for both particle and photon
+use.
 
 \begin{table}[ht]
 \centering
@@ -70,7 +66,8 @@ particle and photon use.
   Fiducial           & \ref{s:fiducial}      &  Photon_Init        & \ref{s:photon.init}\\
   Floor_Shift        & \ref{s:floor.ele}     &  Pipe               & \ref{s:monitor}    \\
   Fork               & \ref{s:fork}          &  Rcollimator        & \ref{s:col}        \\
-  Instrument         & \ref{s:monitor}       &  Sample             & \ref{s:sample}     \\ \bottomrule
+  Instrument         & \ref{s:monitor}       &  Sample             & \ref{s:sample}     \\
+  Lens               & \ref{s:lens}          &                     &                    \\ \bottomrule
 \end{tabular}
 }
 \caption{Table of element types suitable for use with photons.}
@@ -2558,6 +2555,15 @@ accurate way to simulate a cavity in this situation is by integrating
 through the actual field [Cf.~Runge Kutta tracking (\sref{s:tkm})]}
 
 %-----------------------------------------------------------------
+\section{Lens}
+\label{s:lens}
+\index{lens|hyperbf}
+
+A \vn{lens} is an element for concentrating or dispersing light rays.
+
+This element is under development...
+
+%-----------------------------------------------------------------
 \section{Marker}
 \label{s:mark}
 \index{marker|hyperbf}
@@ -2569,7 +2575,7 @@ General \vn{marker} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section             & {\sl Attribute Class}        & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}       &   Is_on                      & \ref{s:is.on}   \\ 
+  Aperture limits            & \ref{s:limit}       & Is_on                        & \ref{s:is.on}   \\ 
   Chamber wall               & \ref{s:wall}        & Offsets \& tilt              & \ref{s:offset}  \\
   Custom Attributes          & \ref{s:cust.att}    & Reference energy             & \ref{s:energy}  \\
   Description strings        & \ref{s:alias}       & Superposition                & \ref{s:super}   \\
