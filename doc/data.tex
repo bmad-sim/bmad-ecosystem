@@ -938,51 +938,54 @@ Photon intensity components in the horizontal and vertical planes.
   \item[photon.phase_x, .phase_y] \Newline
 Photon phases in the horizontal and vertical planes.
 
-  \item[ping_a.amp_x, .phase_x, .amp_y, .phase_y, .cos_y, .sin_y] \Newline
+  \item[ping_a.amp_x, .phase_x, .amp_y, .phase_y, .amp_cos_y, .amp_sin_y] \Newline
 Phase and amplitude response at a BPM from turn-by-turn data acquired after the beam is
 pinged. Ignoring damping, the beam response will be the sum of three components, one for
 each beam oscillation eigenmode. \vn{ping_a} data is for the response at the \vn{a}-mode
 frequency. 
 
-At each BPM, the response will have a component in the \vn{x} (horizontal) and \vn{y}
-(vertical) planes. If there is no coupling, vertical response for the \vn{a}-mode
-component is zero. The \vn{a}-mode response can be characterized by the equation
+At each BPM, the response will have a component in the \vn{x} (horizontal) and \vn{y} (vertical)
+planes. If there is no coupling, vertical response for the \vn{a}-mode component is zero. The
+horizontal $x_a(s, n)$ and vertical $y_a(s, n)$ \vn{a}-mode response at position $s$ and turn $n$
+is
 \begin{align}
-  x_a(n) &= A_{ax} \, \sin(n \, \omega_a + \phi_{ax} + \phi_{a0}) \CRNO
-  y_a(n) &= A_{ay} \, \sin(n \, \omega_a + \phi_{ay} + \phi_{a0})
+  x_a(s, n) &= A_{ax}(s) \, \cos(n \, \omega_a + \phi_{ax}(s) + \phi_{a0}) \CRNO
+  y_a(s, n) &= A_{ay}(s) \, \cos(n \, \omega_a + \phi_{ay}(s) + \phi_{a0})
 \end{align}
-where $\omega_a$ is the $a$-mode tune, $x_a(n)$ and $y_a(n)$ are the horizontal and
-vertical positions of the \vn{a}-mode component on the n\Th turn. $A_{ax}$ and $A_{ay}$
-are the response amplitudes, $f_a$ is the \vn{a}-mode frequency $\phi_{ax}$ and
-$\phi_{ay}$ are the oscillation phases, and $\phi_{a0}$ is an overall phase dependent upon
-how turn $n = 0$ is defined. 
-In terms of \tao's data parameters, the correspondence is
+where $\omega_a$ is the $a$-mode tune, $A_{ax}$ and $A_{ay}$ are the response amplitudes, $\phi_{ax}$
+and $\phi_{ay}$ are the horizontal and vertical phases, and $\phi_{a0}$ is an overall phase
+dependent upon how turn $n = 0$ is defined. In terms of \tao's data parameters, the correspondence
+is
 \begin{example}
-    ping_a.amp_x   \(\longrightarrow A_{ax}\)
-    ping_a.phase_x \(\longrightarrow \phi_{ax}\)
-    ping_a.amp_y   \(\longrightarrow A_{ay}\)
-    ping_a.phase_y \(\longrightarrow \phi_{ay}\)
-    ping_a.sin_y   \(\longrightarrow A_{ay} \, \sin \phi_{ay}\)
-    ping_a.cos_y   \(\longrightarrow A_{ay} \, \cos \phi_{ay}\)
+    ping_a.amp_x     \(\longrightarrow A_{ax}\)
+    ping_a.phase_x   \(\longrightarrow \phi_{ax}\)
+    ping_a.amp_y     \(\longrightarrow A_{ay}\)
+    ping_a.phase_y   \(\longrightarrow \phi_{ay}\)
+    ping_a.amp_sin_y \(\longrightarrow A_{ay}\cdot\sin(\phi_{ay}-\phi_{ax})\)
+    ping_a.amp_cos_y \(\longrightarrow A_{ay}\cdot\cos(\phi_{ay}-\phi_{ax})\)
 \end{example}
 In terms of how \tao analyses ping data, only differences in phases are important so $\phi_{a0}$ is
 ignorable. 
 
-The response can be related to the lattice Twiss parameters as given by Eq.~(7) of reference
-\cite{b:beta.meas}
+The response can be related to the lattice Twiss parameters as given by Eq.~(54) of reference
+\cite{b:linear.coupled}
 \begin{align}
-  x_a(n) &=  A_a \, \sqrt{\beta_a} \, \cos(n \omega_a) , \CRNO
-  y_a(n) &= -A_a \, \sqrt{\beta_b} \Bigl( \cbar{22} \, \cos(n \omega_a) +
-     \cbar{12} \, \sin(n \omega_a) \Bigr)
+  x_a(s, n) &=  A_a(s) \, \sqrt{\beta_a(s)} \, \cos(\theta_{ax}(s,n)) , \CRNO
+  y_a(s, n) &= -A_a(s) \, \sqrt{\beta_b(s)} \Bigl( \cbar{22} \, \cos(\theta_{ax}(s,n)) +
+     \cbar{12} \, \sin(\theta_{ax}(s,n)) \Bigr)
   \label{xabno}
 \end{align}
+where
+\Begineq
+  \theta_{ax}(s,n) = n \, \omega_a + \phi_{ax}(s) + \phi_{a0}
+\Endeq
 
 Roughly, if the coupling is not large, the ``in-plane'' \vn{x} oscillation is insensitive to any
 coupling so that \vn{ping_a.amp_x} and \vn{ping_a.phase_x} can be directly related to the Twiss
 parameters computed without coupling. On the other hand, the ``out-of-plane'' \vn{y} oscillation is
 a direct measure of the coupling. This can be used to measure and correct skew-quadrupole
 errors. Since the design coupling in many machines is zero or very small, in such cases the
-\vn{ping_a.sin_y} and \vn{ping_a.cos_y} datums are better for analysis as opposed to the
+\vn{ping_a.amp_sin_y} and \vn{ping_a.amp_cos_y} datums are better for analysis as opposed to the
 \vn{ping_a.amp_y} and \vn{ping_a.phase_y} datums since the value of \vn{ping_a.phase_y} is
 meaningless when the local coupling, and hence \vn{ping_a.amp_y}, is zero.
 
@@ -1002,7 +1005,7 @@ since, with a decoupled lattice, the \vn{model} values are zero.
 There is a similar multiplier defined for the reference data. The values of these two
 multipliers are shown with the \vn{show data} command.
 
-  \item[ping_b.amp_y, .phase_y, .amp_x, .phase_x, .sin_x, .cos_x] \Newline
+  \item[ping_b.amp_y, .phase_y, .amp_x, .phase_x, .amp_sin_x, .amp_cos_x] \Newline
 Similar to \vn{ping_a} except this is for the \vn{b}-mode component of the response.  Here
 the \vn{design} and \vn{model} values are calculated from Eq.~(8) of reference
 \cite{b:beta.meas}:
