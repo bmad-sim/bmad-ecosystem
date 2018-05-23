@@ -755,10 +755,10 @@ do n = 1, n_max
   end select
 
   dpoly_dx = (n+1) * poly_n1
-  dpoly_dy = i_imaginary * dpoly_dx
+  dpoly_dy = i_imag * dpoly_dx
 
   d2poly_dxx = n * (n+1) * poly_n2
-  d2poly_dxy = i_imaginary * d2poly_dxx
+  d2poly_dxy = i_imag * d2poly_dxx
   d2poly_dyy = -d2poly_dxx
 
   cab = charge_dir * cmplx(bp, ap, rp) / (4 * (n + 2) * rel_p)

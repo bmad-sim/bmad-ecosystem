@@ -124,8 +124,8 @@ complex(rp) :: spinor(2)
 
 !
 
-spinor(1) = sqrt(polar%polarization) * Exp(i_imaginary * polar%xi) * cos(polar%theta / 2.0d0)
-spinor(2) = sqrt(polar%polarization) * Exp(i_imaginary * (polar%xi+polar%phi)) * sin(polar%theta / 2.0d0)
+spinor(1) = sqrt(polar%polarization) * Exp(i_imag * polar%xi) * cos(polar%theta / 2.0d0)
+spinor(2) = sqrt(polar%polarization) * Exp(i_imag * (polar%xi+polar%phi)) * sin(polar%theta / 2.0d0)
 
 end function polar_to_spinor
 
@@ -955,13 +955,13 @@ call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn, include_kicks = .tru
 ! kick = qL/P_0*(B_y+i*Bx) = \sum_n (b_n+i*a_n)*(x+i*y)^n
 
 if (ix_pole_max > -1) then
-  kick = bn(0) + i_imaginary * an(0)
-  pos = orbit%vec(1) + i_imaginary * orbit%vec(3)
+  kick = bn(0) + i_imag * an(0)
+  pos = orbit%vec(1) + i_imag * orbit%vec(3)
   if (pos /= 0) then
-    kick = kick + (bn(1) + i_imaginary * an(1)) * pos
+    kick = kick + (bn(1) + i_imag * an(1)) * pos
     do n = 2, ix_pole_max
-      pos = pos * (orbit%vec(1) + i_imaginary * orbit%vec(3))
-      kick = kick + (bn(n) + i_imaginary * an(n)) * pos
+      pos = pos * (orbit%vec(1) + i_imag * orbit%vec(3))
+      kick = kick + (bn(n) + i_imag * an(n)) * pos
     enddo
   endif
 
@@ -977,7 +977,7 @@ if (ix_pole_max > -1) then
   ! calculate rotation of local coordinate system due to dipole component
 
   if (ele%key == multipole$ .and. (bn(0) /= 0 .or. an(0) /= 0)) then
-    kick = bn(0) + i_imaginary * an(0)
+    kick = bn(0) + i_imag * an(0)
     call rotate_spin ([-aimag(kick), -real(kick), 0.0_rp], orbit%spin)
   endif
 endif
