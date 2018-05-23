@@ -262,6 +262,8 @@ contains
 
 subroutine d1_data_stuffit (i_d1, u, n_d2)
 
+use srdt_mod
+
 type (tao_universe_struct), target :: u
 type (tao_d1_data_struct), pointer :: d1_this
 type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
@@ -534,7 +536,7 @@ do j = n1, n2
   if (ix /= 0) dat%data_type = dat%data_type(1:ix-1) // 'emit.' // dat%data_type(ix+10:)
   if (dat%data_type(1:9) == 'unstable_') dat%data_type(9:9) = '.'
 
-  !
+  u%calc%srdt_for_data = max(u%calc%srdt_for_data, tao_srdt_calc_needed(dat%data_type, dat%data_source))
 
   if (tao_rad_int_calc_needed(dat%data_type, dat%data_source)) then
     u%calc%rad_int_for_data = .true. 

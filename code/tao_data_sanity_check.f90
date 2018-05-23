@@ -76,7 +76,7 @@ endif
 
 !
 
-if (d_type == 'unstable.orbit' .or. d_type(1:7) == 'normal.') then
+if ((d_type == 'unstable.orbit' .or. d_type(1:7) == 'normal.') .or. d_type(1:5) == 'srdt.' ) then
   if (datum%ele_name /= '') then
     call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // d_type, &
                                    'CANNOT HAVE AN ASSOCIATED ELEMENT: ' // datum%ele_name, &

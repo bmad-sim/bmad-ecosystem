@@ -423,7 +423,7 @@ character(20) :: r_name = 'tao_evaluate_a_datum'
 character(40) head_data_type, sub_data_type, data_source, name, dflt_dat_index
 character(300) str
 
-logical found, valid_value, err, taylor_is_complex, use_real_part, compute_floor, term_found
+logical found, valid_value, err, taylor_is_complex, use_real_part, compute_floor, term_found, term_cplx
 logical, allocatable, save :: good(:)
 
 ! If does not exist
@@ -1579,6 +1579,94 @@ case ('k.')
 
 !-----------
 
+case ('srdt.')
+  valid_value = .true.
+  term_found = .true.
+  select case(sub_data_type(1:6))
+
+    case('h20001')
+      temp_cplx = tao_branch%srdt%h20001
+      term_cplx = .true.
+    case('h00201')
+      temp_cplx = tao_branch%srdt%h00201
+      term_cplx = .true.
+    case('h21000')
+      temp_cplx = tao_branch%srdt%h21000
+      term_cplx = .true.
+    case('h30000')
+      temp_cplx = tao_branch%srdt%h30000
+      term_cplx = .true.
+    case('h10110')
+      temp_cplx = tao_branch%srdt%h10110
+      term_cplx = .true.
+    case('h10020')
+      temp_cplx = tao_branch%srdt%h10020
+      term_cplx = .true.
+    case('h10200')
+      temp_cplx = tao_branch%srdt%h10200
+      term_cplx = .true.
+    case('h31000')
+      temp_cplx = tao_branch%srdt%h31000
+      term_cplx = .true.
+    case('h40000')
+      temp_cplx = tao_branch%srdt%h40000
+      term_cplx = .true.
+    case('h20110')
+      temp_cplx = tao_branch%srdt%h20110
+      term_cplx = .true.
+    case('h11200')
+      temp_cplx = tao_branch%srdt%h11200
+      term_cplx = .true.
+    case('h20020')
+      temp_cplx = tao_branch%srdt%h20020
+      term_cplx = .true.
+    case('h20200')
+      temp_cplx = tao_branch%srdt%h20200
+      term_cplx = .true.
+    case('h00310')
+      temp_cplx = tao_branch%srdt%h00310
+      term_cplx = .true.
+    case('h00400')
+      temp_cplx = tao_branch%srdt%h00400
+      term_cplx = .true.
+    case('h22000')
+      temp_cplx = tao_branch%srdt%h22000
+      term_cplx = .true.
+    case('h00220')
+      temp_cplx = tao_branch%srdt%h00220
+      term_cplx = .true.
+    case('h11110')
+      temp_cplx = tao_branch%srdt%h11110
+      term_cplx = .true.
+    case('nux_Jx')
+      datum_value = tao_branch%srdt%nux_Jx
+      term_cplx = .false.
+    case('nux_Jy')
+      datum_value = tao_branch%srdt%nux_Jy
+      term_cplx = .false.
+    case('nuy_Jy')
+      datum_value = tao_branch%srdt%nuy_Jy
+      term_cplx = .false.
+    case default
+      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID', 'data_type not found in summation_rdt_struct', .true.)
+      term_found = .false.
+      valid_value = .false.
+  end select
+
+  if(term_found .and. term_cplx) then
+    select case (sub_data_type(8:8))
+      case('r')
+        datum_value = real(temp_cplx)
+      case('i')
+        datum_value = aimag(temp_cplx)
+      case('a')
+        datum_value = abs(temp_cplx)
+      case default
+        call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID', 'data_type not ending in .r, .i, or .a.', .true.)
+        valid_value = .false.
+    end select
+  endif
+
 case ('normal.')
 
   ! Fetches normal_form components.
@@ -1597,8 +1685,6 @@ case ('normal.')
   
   ! Do nothing it the map wasn't made
   if (.not. associated(normal_form%ele_origin) ) return
-
-
 
   ! Expect: taylor.#.######
   ! Example: normal.dhdj.2.000001 is the b-mode chromaticity
@@ -1628,11 +1714,11 @@ case ('normal.')
         case('a')
           datum_value = abs(temp_cplx)
         case default
-          call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID', 'data_type not ending in .r, .i, or .a.')
+          call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  data_type not ending in .r, .i, or .a.', exterminate=.true.)
           valid_value = .false.
       end select
     else
-      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID', 'data_type not found in normal_form_struct')
+      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  data_type not found in normal_form_struct', exterminate=.true.)
       valid_value = .false.
     endif
   else

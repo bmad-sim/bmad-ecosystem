@@ -13,6 +13,7 @@ use iso_c_binding
 use equal_mod
 use quick_plot_struct
 use dynamic_aperture_mod
+use srdt_mod
 
 integer, parameter :: model$ = 1, base$ = 2, design$ = 3
 integer, parameter :: ix_common_uni$ = 0
@@ -554,6 +555,8 @@ type tao_global_struct
   integer :: bunch_to_plot = 1           ! Which bunch to plot
   integer :: random_seed = 0             ! Use system clock by default
   integer :: n_top10_merit = 10          ! Number of top merit constraints to print.
+  integer :: srdt_gen_n_slices = 10      ! number times to slice elements for summation RDT calculation
+  integer :: srdt_sxt_n_slices = 20      ! number times to slice sextupoles for summation RDT calculation
   character(16) :: random_engine = 'pseudo'         ! Non-beam random number engine
   character(16) :: random_gauss_converter = 'exact' ! Non-beam
   character(16) :: track_type    = 'single'         ! or 'beam'  
@@ -721,6 +724,7 @@ end type
 ! The %bunch_params(:) array has a 1-to-1 correspondence with the lattice elements.
 
 type tao_lattice_branch_struct
+  type (summation_rdt_struct) srdt
   type (bunch_params_struct), allocatable :: bunch_params(:)
   type (tao_sigma_mat_struct), allocatable :: linear(:) ! Sigma matrix derived from linear lattice.
   type (coord_struct), allocatable :: orbit(:)
@@ -787,6 +791,7 @@ end type
 
 type tao_universe_calc_struct
   logical rad_int_for_data               ! Do the radiation integrals need to be computed for
+  integer srdt_for_data                  ! 0 = false, 1 = 1st order, 2 = 1st & 2nd order
   logical rad_int_for_plotting           !   data or plotting?
   logical chrom_for_data                 ! Does the chromaticity need to be computed for
   logical chrom_for_plotting             !   data or plotting? 

@@ -113,6 +113,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u%is_on = .true.          ! turn universe on
   u%ix_uni = i
   u%calc%rad_int_for_data          = .false.
+  u%calc%srdt_for_data             = 0
   u%calc%rad_int_for_plotting      = .false.
   u%calc%chrom_for_data            = .false.
   u%calc%chrom_for_plotting        = .false.
