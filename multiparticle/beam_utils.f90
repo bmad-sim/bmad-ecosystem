@@ -1500,12 +1500,12 @@ q(3,3) = 1.0/sqrt(2.0)
 q(4,3) = 1.0/sqrt(2.0)
 q(5,5) = 1.0/sqrt(2.0)
 q(6,5) = 1.0/sqrt(2.0)
-q(1,2) =  i_imaginary / sqrt(2.0) 
-q(2,2) = -i_imaginary / sqrt(2.0)
-q(3,4) =  i_imaginary / sqrt(2.0) 
-q(4,4) = -i_imaginary / sqrt(2.0)
-q(5,6) =  i_imaginary / sqrt(2.0) 
-q(6,6) = -i_imaginary / sqrt(2.0)
+q(1,2) =  i_imag / sqrt(2.0) 
+q(2,2) = -i_imag / sqrt(2.0)
+q(3,4) =  i_imag / sqrt(2.0) 
+q(4,4) = -i_imag / sqrt(2.0)
+q(5,6) =  i_imag / sqrt(2.0) 
+q(6,6) = -i_imag / sqrt(2.0)
 
 ! compute N in eq. 44
 n = matmul(eigen_vec, q)
@@ -1641,7 +1641,7 @@ do i = 1, 6, 2
     wronsk = e(i,j)*temp(j) + wronsk
   enddo
   if (wronsk == 0) return ! Error   
-  factor = sqrt(i_imaginary) / sqrt(wronsk)
+  factor = sqrt(i_imag) / sqrt(wronsk)
   ! this next step is the actual normalization (Eq. 14a)
   e(i+1,:) = e(i+1,:) * factor 
   e(i,:) = conjg(e(i+1,:))

@@ -1002,9 +1002,9 @@ case(fieldmap$)
             Im_0    = I_bessel(0, kap_rho)
             Im_plus = I_bessel(1, kap_rho)
             E_rho = E_rho + real(cl_term%e_coef * exp_kz * Im_plus)
-            E_z   = E_z   + real(cl_term%e_coef * exp_kz * Im_0 * i_imaginary)
+            E_z   = E_z   + real(cl_term%e_coef * exp_kz * Im_0 * i_imag)
             B_rho = B_rho + real(cl_term%b_coef * exp_kz * Im_plus)
-            B_z   = B_z   + real(cl_term%b_coef * exp_kz * Im_0 * i_imaginary)
+            B_z   = B_z   + real(cl_term%b_coef * exp_kz * Im_0 * i_imag)
           else
             cm = exp_kz * cos(m * phi - cl_map%theta0_azimuth)
             sm = exp_kz * sin(m * phi - cl_map%theta0_azimuth)
@@ -1020,7 +1020,7 @@ case(fieldmap$)
             E_phi = E_phi + real(cl_term%e_coef * q)
             B_phi = B_phi + real(cl_term%b_coef * q)
 
-            q = i_imaginary * cm * Im_0
+            q = i_imag * cm * Im_0
             E_z = E_z + real(cl_term%e_coef * q)
             B_z = B_z + real(cl_term%b_coef * q)
           endif
@@ -1028,7 +1028,7 @@ case(fieldmap$)
           if (logic_option(.false., calc_potential)) then
             if (k_zn == 0) then
               if (m == 0) then
-                field%phi = field%phi - coef * real(cl_term%e_coef * z * i_imaginary)
+                field%phi = field%phi - coef * real(cl_term%e_coef * z * i_imag)
               elseif (m == 1) then
                 field%phi = field%phi - coef * real(cl_term%e_coef * cm * radius / 2)
               endif
@@ -1045,7 +1045,7 @@ case(fieldmap$)
           kappa_n = sqrt(abs(kappa2_n))
           kap_rho = kappa_n * radius
           if (kappa2_n < 0) then
-            kappa_n = -i_imaginary * kappa_n
+            kappa_n = -i_imag * kappa_n
             kap_rho = -kap_rho
           endif
 
@@ -1071,13 +1071,13 @@ case(fieldmap$)
             Im_0_R  = (Im_minus - Im_plus * kappa_n**2) / (2 * m) ! = Im_0 / radius
             Im_0    = radius * Im_0_R       
 
-            E_rho = E_rho - i_imaginary * (k_zn * cl_term%e_coef * Im_plus + cl_term%b_coef * Im_0_R) * cm
-            E_phi = E_phi - i_imaginary * (k_zn * cl_term%e_coef * Im_plus + cl_term%b_coef * (Im_0_R - Im_minus / m)) * sm
+            E_rho = E_rho - i_imag * (k_zn * cl_term%e_coef * Im_plus + cl_term%b_coef * Im_0_R) * cm
+            E_phi = E_phi - i_imag * (k_zn * cl_term%e_coef * Im_plus + cl_term%b_coef * (Im_0_R - Im_minus / m)) * sm
             E_z   = E_z +                         cl_term%e_coef * Im_0 * cm
      
-            B_rho = B_rho + i_imaginary * sm * (cl_term%e_coef * (m * Im_0_R + k_zn**2 * Im_plus) + &
+            B_rho = B_rho + i_imag * sm * (cl_term%e_coef * (m * Im_0_R + k_zn**2 * Im_plus) + &
                                           cl_term%b_coef * k_zn * (m * Im_0_R - Im_minus / m))
-            B_phi = B_phi + i_imaginary * cm * (cl_term%e_coef * (Im_minus - (k_zn**2 + k_t**2) * Im_plus) / 2 - &
+            B_phi = B_phi + i_imag * cm * (cl_term%e_coef * (Im_minus - (k_zn**2 + k_t**2) * Im_plus) / 2 - &
                                           cl_term%b_coef * k_zn * Im_0_R)
             B_z   = B_z +                 sm * (-cl_term%e_coef * k_zn * Im_0 + cl_term%b_coef * kappa2_n * Im_0 / m)
 

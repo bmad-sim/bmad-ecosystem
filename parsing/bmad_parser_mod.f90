@@ -7217,7 +7217,7 @@ do
                            'IN CYLINDRICAL_MAP IN ELEMENT: ' // ele%name)
         return
       endif
-      c_ptr = c_ptr + i_imaginary * array(1:i_term)
+      c_ptr = c_ptr + i_imag * array(1:i_term)
     endif
 
     ! Expect "," or "}"
