@@ -2033,7 +2033,7 @@ case ('ping_a.')
     endif
     valid_value = .true.
 
-  case ('ping_a.sin_y')
+  case ('ping_a.amp_sin_y')
     call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
     datum_value = -sqrt(ele%b%beta) * scratch%cc(ix_ele)%cbar(1,2)
 
@@ -2043,7 +2043,7 @@ case ('ping_a.')
     endif
     valid_value = .true.
 
-  case ('ping_a.cos_y')
+  case ('ping_a.amp_cos_y')
     call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
     datum_value = -sqrt(ele%b%beta) * scratch%cc(ix_ele)%cbar(2,2)
 
@@ -2089,7 +2089,7 @@ case ('ping_b.')
     endif
     valid_value = .true.
 
-  case ('ping_b.sin_x')
+  case ('ping_b.amp_sin_x')
     call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
     datum_value = -sqrt(ele%a%beta) * scratch%cc(ix_ele)%cbar(1,2)
 
@@ -2099,7 +2099,7 @@ case ('ping_b.')
     endif
     valid_value = .true.
 
-  case ('ping_b.cos_x')
+  case ('ping_b.amp_cos_x')
     call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
     datum_value = sqrt(ele%a%beta) * scratch%cc(ix_ele)%cbar(1,1)
 
@@ -4515,6 +4515,12 @@ end subroutine
 !
 ! Routine to either print an error message to the terminal (if why_invalid
 ! is not present) or set the why_invalid string to the error message.
+!
+! Note: The exterminate argument should be set to False if the datum is invalid for
+! reasons like the beam has been lost. In this case, the datum could possibly
+! become valid in the future. Exterminate should be set to True if the datum could
+! not possibly become valid. For example, the datum's reference element does not
+! exist in the lattice.
 !
 ! Input:
 !   datum       -- tao_data_struct: Bad datum.

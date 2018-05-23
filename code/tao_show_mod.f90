@@ -4171,7 +4171,7 @@ case ('wave')
       nl=nl+1; write(lines(nl), '(i9, f12.4, f10.3)') s%wave%kick(i)%ix_dat, s%wave%kick(i)%amp, s%wave%kick(i)%phi
     enddo
 
-  case ('cbar.11', 'cbar.12', 'cbar.22', 'ping_a.sin_y', 'ping_a.cos_y', 'ping_b.sin_x', 'ping_b.cos_x')
+  case ('cbar.11', 'cbar.12', 'cbar.22', 'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_b.amp_sin_x', 'ping_b.amp_cos_x')
     nl=nl+1; write(lines(nl), '(a, f8.3)') 'A Region Sigma_+/Amp_+:  ', s%wave%rms_rel_as
     nl=nl+1; write(lines(nl), '(a, f8.3)') 'A Region Sigma_-/Amp_-:  ', s%wave%rms_rel_ar
     nl=nl+1; write(lines(nl), '(a, f8.3)') 'B Region Sigma_+/Amp_+:  ', s%wave%rms_rel_bs

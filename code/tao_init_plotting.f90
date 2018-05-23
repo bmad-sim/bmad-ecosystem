@@ -2523,15 +2523,15 @@ if (all(s%plot_page%template%name /= 'ping_a_skew')) then
   crv => grph%curve(1)
   crv%name         = 'sin_y'
   crv%g => grph
-  crv%data_type    = 'ping_a.sin_y'
-  crv%legend_text  = 'ping_a.sin_y'
+  crv%data_type    = 'ping_a.amp_sin_y'
+  crv%legend_text  = 'ping_a.amp_sin_y'
   crv%units        = ''
 
   crv => grph%curve(2)
   crv%name         = 'cos_y'
   crv%g => grph
-  crv%data_type    = 'ping_a.cos_y'
-  crv%legend_text  = 'ping_a.cos_y'
+  crv%data_type    = 'ping_a.amp_cos_y'
+  crv%legend_text  = 'ping_a.amp_cos_y'
   crv%units        = ''
 endif
 
@@ -2554,21 +2554,21 @@ if (all(s%plot_page%template%name /= 'ping_b_skew')) then
   grph => plt%graph(1)
   grph%p => plt
   grph%title         = 'Ping B-mode Skew'
-  grph%y%label       = 'ping_a: sin_x, cos_x'
+  grph%y%label       = 'ping_b: sin_x, cos_x'
   grph%component     = 'model'
 
   crv => grph%curve(1)
   crv%name         = 'sin_x'
   crv%g => grph
-  crv%data_type    = 'ping_a.sin_x'
-  crv%legend_text  = 'ping_a.sin_x'
+  crv%data_type    = 'ping_b.amp_sin_x'
+  crv%legend_text  = 'ping_b.amp_sin_x'
   crv%units        = ''
 
   crv => grph%curve(2)
   crv%name         = 'cos_x'
   crv%g => grph
-  crv%data_type    = 'ping_a.cos_x'
-  crv%legend_text  = 'ping_a.cos_x'
+  crv%data_type    = 'ping_b.amp_cos_x'
+  crv%legend_text  = 'ping_b.amp_cos_x'
   crv%units        = ''
 endif
 

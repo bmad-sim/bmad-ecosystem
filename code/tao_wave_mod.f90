@@ -43,7 +43,7 @@ integer i, p1, p2, ix_curve
 character(*) curve_name, plot_place
 character(16), parameter :: wave_data_names(19) = [character(16):: 'orbit.x', 'orbit.y', 'beta.a', 'beta.b', &
     'eta.x', 'eta.y', 'ping_a.amp_x', 'ping_b.amp_y', 'phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y', &
-    'cbar.12', 'cbar.11', 'cbar.22', 'ping_a.sin_y', 'ping_a.cos_y', 'ping_b.sin_x', 'ping_b.cos_x']
+    'cbar.12', 'cbar.11', 'cbar.22', 'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_b.amp_sin_x', 'ping_b.amp_cos_x']
 
 character(*), parameter :: r_name = 'tao_wave_cmd'
 
@@ -362,7 +362,7 @@ case ('orbit.x', 'orbit.y', 'beta.a', 'beta.b', 'eta.x', 'eta.y', 'ping_a.amp_x'
 case ('phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y')
   call tao_phase_wave_anal (plot)
 
-case ('cbar.12', 'cbar.11', 'cbar.22', 'ping_a.sin_y', 'ping_a.cos_y', 'ping_b.sin_x', 'ping_b.cos_x')
+case ('cbar.12', 'cbar.11', 'cbar.22', 'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_b.amp_sin_x', 'ping_b.amp_cos_x')
   call tao_cbar_wave_anal (plot)
 
 case ('cbar.21')
