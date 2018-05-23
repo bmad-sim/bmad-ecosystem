@@ -35,6 +35,7 @@ contains
 subroutine tao_lattice_calc (calc_ok)
 
 use ptc_layout_mod
+use srdt_mod
 
 implicit none
 
@@ -50,6 +51,7 @@ type (normal_form_struct), pointer :: normal_form
 type (aperture_scan_struct), pointer :: scan
 
 real(rp) tt
+
 integer iuni, j, ib, ix, n_max, iu, it, id, ix_ele0
 
 character(20) :: r_name = "tao_lattice_calc"
@@ -234,6 +236,10 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
         call run_timer ('READ', tt)
         call out_io (s_info$, r_name, 'Computation time for aperture scan at this energy (min): \f10.2\ ', tt/60)
       enddo
+    endif
+
+    if ( u%calc%srdt_for_data .gt. 0 ) then
+      call srdt_calc(tao_lat%lat, tao_branch%srdt, u%calc%srdt_for_data, s%global%srdt_gen_n_slices, s%global%srdt_sxt_n_slices)
     endif
     
     ! PTC one-turn-map and normal form calc. Only for rings. 

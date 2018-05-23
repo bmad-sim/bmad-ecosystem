@@ -630,6 +630,13 @@ function tao_rad_int_calc_needed (data_type, data_source) result (do_rad_int)
   logical do_rad_int
 end function
 
+function tao_srdt_calc_needed (data_type, data_source) result (do_srdt)
+  import
+  implicit none
+  character(*) data_type, data_source
+  integer do_srdt
+end function
+
 subroutine tao_read_cmd (which, file)
   implicit none
   character(*) which, file
