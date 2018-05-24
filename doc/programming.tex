@@ -56,16 +56,11 @@ and compiling programs. The \bmad web site is at:
 \end{example}
 
 The \bmad libraries are divided into two groups. One group of
-libraries contains the Cornell developed code. The other
-\vn{``package''} libraries consist of non-Cornell code that \bmad
+libraries contains ``in-house'' developed code. The other
+\vn{``package''} libraries consist of ``external'' code that \bmad
 relies upon.
 
-The Cornell developed code can further be divided into CESR storage
-ring specific code and non-CESR specific code. The CESR specific code
-will not be discussed in this Manual.
-
-The Cornell developed non-CESR specific code libraries are:
-subsidiary libraries are: 
+The in-house developed code libraries are:
 \begin{description}
   \index{sim_utils library}
   \item[bmad] \Newline
@@ -82,7 +77,7 @@ The \vn{sim_utils} library contains a set of miscellaneous helper routines.
 Included are routines for string manipulation, file manipulation,
 matrix manipulation, spline fitting, Gaussian random number generation, etc. 
 \end{description}
-
+%  
 The \vn{package} libraries are:
 \begin{description}
   \index{PTC/FPP!library}
@@ -96,10 +91,12 @@ features.  For more inform
 ation see the FPP/PTC
 manual\cite{b:ptc}. The core Differential Algebra (DA) package used
 by PTC was developed by Martin Berz\cite{b:berz}.
+%
   \index{fftw!library}
   \item[fftw] \Newline
 FFTW is a C subroutine library for computing the discrete Fourier
 transform in one or more dimensions. FFTW has a Fortran 2003 API.
+%
   \index{gsl!library}
   \index{fgsl!library}
   \item[gsl / fgsl] \Newline
@@ -107,18 +104,22 @@ The Gnu Scientific Library (GSL), written in C, provides a wide range of mathema
 routines such as random number generators, special functions and least-squares
 fitting. There are over 1000 functions in total. The FGSL library provides a Fortran
 interface to the GSL library.
+%
   \index{hdf5!library}
   \item[hdf5] \Newline
-\vn{hdf5} is a library for for storing and managing data.
-  \index{h5hut!library}
-  \item[h5hut] \Newline
-\vn{h5hut} is a library, based on \vn{hdf5} for storing particle data. Additionally,
-there are associated programs for viewing the particle data.
+\vn{hdf5} is a library for for storing and managing data. In particular, \bmad uses
+this library for storing particle position data.
+%
   \index{lapack!library}
   \index{lapack95!library}
   \item[lapack / lapack95] \Newline
 \vn{lapack} is a widely used package of linear algebra routines written in Fortran77. The
 \vn{lapack95} library provides a Fortran95 interface to \vn{lapack}.
+%
+  \index{open_spacecharge!library}
+  \item[open_spacecharge] \Newline
+The \vn{open_spacecharge} library provides low energy tracking with space charge effects.
+%
   \index{pgplot!library}
   \item[PGPLOT] \Newline
 The \vn{pgplot} Graphics Subroutine Library is a Fortran or
@@ -133,6 +134,7 @@ most user friendly. To remedy this, there is a set of Fortran90
 wrapper subroutines called \vn{quick_plot}.  The \vn{quick_plot}
 suite is part of the \vn{sim_utils} library and is documented in
 Chapter~\ref{c:quick.plot}.
+%
   \index{plplot!library}
   \item[plplot] \Newline
 The \vn{plplot} library is an updated version of \vn{pgplot}. The \vn{plplot}
@@ -140,6 +142,7 @@ library can be used as a replacement for \vn{pgplot}. The \vn{quick_plot}
 suite, which is part of the \vn{sim_utils} library and is documented in
 Chapter~\ref{c:quick.plot}, provides wrapper routines for \vn{plplot} to
 make things more programmer friendly.
+%
   \index{numerical recipes!library}
   \item[recipes] \Newline
 Numerical Recipes is a set of subroutines for doing scientific
@@ -152,11 +155,17 @@ subroutines work and the second book explains what the argument lists
 for the Fortran90 version of the subroutines are. You do need both
 books if you want to use Numerical Recipes. For \bmad, this library
 has been modified to handle double precision reals which is the
-standard for the other libraries (See \sref{s:precision}).
+standard for the other libraries (See \sref{s:precision}). Additionally,
+some routines have been modified so that Numerical Recipes can be built
+as a shared object library. If you get a compiler complaint about a call
+to a Numerical Recipes routine missing a required argument, look in the code
+for that routine for documentation.
+%
   \index{xraylib!library}
   \item[xraylib] \Newline
 The XRAYLIB library provides routines for obtaining parameters
 pertinent to the X-ray interaction with matter.
+%
   \index{xsif!library}
   \item[xsif] \Newline
 \vn{xsif} is a library from \vn{SLAC} to read in \vn{xsif} format files. See 

@@ -102,11 +102,11 @@ type matrix_save
 end type
 type (matrix_save), allocatable :: m(:)
 
-real(rp) t1(6,6), del_co(6), t11_inv(6,6), i1_int
-real(rp) :: amp_co(6), amp_del(6), dt, amp, dorb(6), old_start(6), old_end(6)
-real(rp) z0, dz, z_here, this_amp, dz_norm, max_eigen, min_max_eigen, z_original
+real(rp) t1(6,6), del_co(6), t11_inv(6,6), i1_int, del_orb(6)
+real(rp) :: amp_co(6), amp_del(6), dt, amp, dorb(6), start_orb_t1(6)
+real(rp) z0, dz, z_here, this_amp, dz_norm, max_eigen, min_max_eigen, z_original, betas(2)
 real(rp) a_lambda, chisq, old_chisq, rf_freq, svec(3), mat3(3,3), rf_wavelen, dz_step
-real(rp), allocatable :: on_off_state(:), vec0(:), weight(:), a(:), merit_vec(:), dy_da(:,:)
+real(rp), allocatable :: on_off_state(:), vec0(:), dvec(:), weight(:), a(:), merit_vec(:), dy_da(:,:)
 
 integer, optional :: direction, ix_branch, i_dim
 integer i, j, ie, i2, i_loop, n_dim, n_ele, i_max, dir, track_state, n, status, j_max
@@ -114,7 +114,7 @@ integer ix_ele_start, ix_ele_end
 
 logical, optional, intent(out) :: err_flag
 logical, optional, intent(in) :: print_err
-logical err, error, allocate_m_done, stable_orbit_found, t1_needs_checking, printit, at_end
+logical err, error, allocate_m_done, stable_orbit_found, t1_needs_checking, printit, at_end, try_lmdif
 logical, allocatable :: maska(:)
 
 character(20) :: r_name = 'closed_orbit_calc'
@@ -144,6 +144,7 @@ bmad_com%aperture_limit_on = .false.
 bmad_com%spin_tracking_on = .false.
 
 n_ele = branch%n_ele_track
+betas = 1
 
 if (dir == 1) then
   ix_ele_start = 0
@@ -192,7 +193,7 @@ case (4, 5)
   if (any(branch%param%t1_no_RF /= 0) .and. dir == 1) then
     t1 = branch%param%t1_no_RF
   else
-    call this_t1_calc(branch, dir, .false., t1, err); if (err) return
+    call this_t1_calc(branch, dir, .false., t1, betas, start_orb_t1, err); if (err) return
     if (dir == 1) branch%param%t1_no_RF = t1
   endif
 
@@ -214,14 +215,14 @@ case (6)
   if (any(branch%param%t1_with_RF /= 0) .and. dir == 1) then
     t1 = branch%param%t1_with_RF
   else
-    call this_t1_calc(branch, dir, .false., t1, err); if (err) return
+    call this_t1_calc(branch, dir, .false., t1, betas, start_orb_t1, err); if (err) return
     if (dir == 1)  branch%param%t1_with_RF = t1
   endif
 
   if (t1(6,5) == 0) then
     call out_io (s_error$, r_name, 'CANNOT DO FULL 6-DIMENSIONAL', &
                                    'CALCULATION WITH NO RF VOLTAGE!', &
-                                    'USING BRANCH: ' // branch_name(branch))
+                                   'USING BRANCH: ' // branch_name(branch))
     bmad_com = bmad_com_saved  ! Restore
     return
   endif
@@ -254,16 +255,15 @@ end select
 ! Because of nonlinearities we may need to iterate to find the solution
 
 allocate(co_saved(0:ubound(closed_orb, 1)))
-allocate(vec0(n_dim), weight(n_dim), a(n_dim), maska(n_dim), merit_vec(n_dim), dy_da(n_dim,n_dim))
+allocate(vec0(n_dim), dvec(n_dim), weight(n_dim), a(n_dim), maska(n_dim), merit_vec(n_dim), dy_da(n_dim,n_dim))
 vec0 = 0
 maska = .false.
 stable_orbit_found = .false.
 a_lambda = -1
 old_chisq = 1d30   ! Something large
-old_start = 1d30
-old_end = 1d30
 a = orb_start%vec(1:n_dim)
 if (n_dim == 5) a(5) = orb_start%vec(6)
+try_lmdif = .true.
 
 !
 
@@ -273,24 +273,30 @@ i_max = 100
 do i_loop = 1, i_max
 
   weight(1:n_dim) = 1 / (abs(a) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)**2
+  weight(1:4) = weight(1:4) * [1/sqrt(betas(1)), sqrt(betas(1)), 1/sqrt(betas(2)), sqrt(betas(2))]
 
   call super_mrqmin (vec0, weight, a, chisq, co_func, storage, a_lambda, status)
 
-  if (status == 2) then  ! Particle lost. Try lmdif since lmdif does not need derivatives
+  if ((branch%param%unstable_factor /= 0 .and. try_lmdif) .or. a_lambda > 1d8) then  ! Particle lost. Try lmdif since lmdif does not need derivatives
     call initial_lmdif()
-    call co_func(a, vec0, dy_da, status)
-    do i2 = 1, i_max
+    do i2 = 1, i_max/4
+      call co_func(a, dvec, dy_da, status)
       do j = 1, n_dim
-        merit_vec(j) = sqrt(weight(j)) * vec0(j)
+        merit_vec(j) = sqrt(weight(j)) * dvec(j)
       enddo
       call suggest_lmdif (a, merit_vec, bmad_com%rel_tol_tracking, i_max, at_end)
     enddo
-    call co_func(a, vec0, dy_da, status)
+    call co_func(a, dvec, dy_da, status)
     if (status /= 0) then
-      if (printit) call out_io (s_error$, r_name, 'Cannot find stable orbit.', 'Using branch: ' // branch_name(branch))
+      if (printit) call out_io (s_error$, r_name, 'CANNOT FIND STABLE ORBIT.', 'USING BRANCH: ' // branch_name(branch))
       call end_cleanup
       return
     endif
+    call this_t1_calc (branch, dir, .true., t1, betas, start_orb_t1, err); if (err) return
+    t1_needs_checking = .true.  ! New t1 matrix needs to be checked for stability.
+    a_lambda = -1    ! Reset super_mrqmin
+    try_lmdif = .false.
+    cycle
   endif
 
   if (status == 1) then ! too large step in z
@@ -300,7 +306,7 @@ do i_loop = 1, i_max
   if (a_lambda < 1d-10) a_lambda = 1d-10
 
   if (status < 0) then  
-    if (printit) call out_io (s_error$, r_name, 'Singular matrix Encountered!', 'Using branch: ' // branch_name(branch))
+    if (printit) call out_io (s_error$, r_name, 'SINGULAR MATRIX ENCOUNTERED!', 'USING BRANCH: ' // branch_name(branch))
     call end_cleanup
     return
   endif
@@ -335,8 +341,8 @@ do i_loop = 1, i_max
   ! This is computationally intensive so only do this if the orbit has shifted significantly.
   ! Status == 1 means that the change in "a" was too large but t1 does not need to be remade.
 
-  if (chisq > old_chisq/2 .and. status /= 1) then
-    if (maxval(abs(old_start(1:n_dim)-co_saved(0)%vec(1:n_dim))) > 1d-6) then ! If not converging
+  if (chisq > old_chisq/2 .and. status == 0 .and. branch%param%unstable_factor == 0) then
+    if (maxval(abs(start_orb_t1(1:n_dim)-co_saved(0)%vec(1:n_dim))) > 1d-6) then ! If not converging
       if (.not. allocate_m_done) then
         allocate (m(branch%n_ele_max))
         allocate_m_done = .true.
@@ -349,7 +355,7 @@ do i_loop = 1, i_max
         m(n)%map_ref_orb_out = branch%ele(n)%map_ref_orb_out
       enddo
 
-      call this_t1_calc (branch, dir, .true., t1, err); if (err) return
+      call this_t1_calc (branch, dir, .true., t1, betas, start_orb_t1, err); if (err) return
       t1_needs_checking = .true.  ! New t1 matrix needs to be checked for stability.
 
       do n = 1, branch%n_ele_max
@@ -358,8 +364,6 @@ do i_loop = 1, i_max
         branch%ele(n)%map_ref_orb_in  = m(n)%map_ref_orb_in
         branch%ele(n)%map_ref_orb_out = m(n)%map_ref_orb_out
       enddo
-
-      old_start = co_saved(0)%vec
 
     ! Else try a step by inverting the 1-turn matrix.
     else
@@ -416,6 +420,7 @@ do i_loop = 1, i_max
       ! If z needs to be shifted, reset super_mrqmin
       if (j_max /= 0) then
         a_lambda = -1               ! Signal super_mrqmin reset
+        try_lmdif = .true.
       endif
     endif
     t1_needs_checking = .false.
@@ -500,7 +505,7 @@ if (track_state /= moving_forward$) then
   return
 endif
 
-call this_t1_calc (branch, dir, .true., t1, err); if (err) return
+call this_t1_calc (branch, dir, .true., t1, betas, start_orb_t1, err); if (err) return
 max_eigen = eigen_val_z(t1)
 
 end subroutine max_eigen_calc
@@ -531,7 +536,6 @@ subroutine co_func (a_try, y_fit, dy_da, status)
 real(rp), intent(in) :: a_try(:)
 real(rp), intent(out) :: y_fit(:)
 real(rp), intent(out) :: dy_da(:, :)
-real(rp) del_orb(6)
 
 integer status, i
 
@@ -560,6 +564,7 @@ call track_many (lat, closed_orb, ix_ele_start, ix_ele_end, dir, branch%ix_branc
 
 !
 
+status = 0
 del_orb = orb_end%vec - orb_start%vec
 
 if (n_dim == 6 .and. branch%lat%absolute_time_tracking) then
@@ -570,10 +575,8 @@ endif
 if (track_state == moving_forward$) then
   stable_orbit_found = .true.
   y_fit = del_orb(1:n_dim)
-  status = 0
 else
   y_fit = 1d10 * branch%param%unstable_factor   ! Some large number
-  status = 2  ! Unstable
 endif
 
 dy_da = t1(1:n_dim,1:n_dim)
@@ -588,14 +591,15 @@ end subroutine co_func
 !------------------------------------------------------------------------------
 ! contains
 
-subroutine this_t1_calc (branch, dir, make_mat6, t1, err)
+subroutine this_t1_calc (branch, dir, make_mat6, t1, betas, start_orb_t1, err)
 
 type (branch_struct) branch
 type (coord_struct) start_saved, end_saved
+type (ele_struct) ele0
 
-real(rp) t1(6,6), delta
-integer dir, i, track_state
-logical make_mat6, err
+real(rp) t1(6,6), delta, betas(2), growth_rate, start_orb_t1(6)
+integer dir, i, track_state, stat
+logical make_mat6, err, stable
 
 !
 
@@ -624,6 +628,17 @@ else
     t1(:,i) = (orb_end%vec - end_saved%vec) / delta
     orb_start%vec = start_saved%vec
   enddo
+endif
+
+start_orb_t1 = orb_start%vec
+
+!
+
+call twiss_from_mat6 (t1, orb_start%vec, ele0, stable, growth_rate, stat, .false.)
+if (stat == ok$) then
+  betas = [ele0%a%beta, ele0%b%beta]
+else
+  betas = 1
 endif
 
 end subroutine this_t1_calc
