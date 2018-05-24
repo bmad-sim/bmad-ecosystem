@@ -55,19 +55,6 @@ with the marker \vn{M} in \vn{RING_L}.
 \section{Example: Energy Recovery Linac}
 \label{s:ex.erl}
 
-\begin{figure}[tb]
-  \centering
-  \includegraphics[width=6in]{erl.pdf}
-  \caption[Example Energy Recovery Linac.]{
-Example Energy Recovery Linac. A) The ERL consists of an injection
-line, accelerating linac, return arc, deceleration linac, and finally
-a beam dump. B) Close up of the section where the end of the injector
-and the end of the arc inject into the beginning of the linac. C)
-Close up of the end of the linac which injects into the dump and the
-beginning of the arc.}
-  \label{f:erl}
-\end{figure}
-
 An Energy Recovery Linac (ERL) is illustrated in \fig{f:erl}A. The ERL
 starts with an injection line that feeds a linac which accelerates the
 beam to some energy. The beam then transverses a return \vn{arc} which
@@ -95,32 +82,38 @@ beam.
   ERL: line = (INJECT, LINAC, ARC, A_PATCH, LINAC, D_PATCH, DUMP)
 \end{example}
 
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=6in]{erl.pdf}
+  \caption[Example Energy Recovery Linac.]{
+Example Energy Recovery Linac. A) The ERL consists of an injection line, accelerating linac, return
+arc, deceleration linac, and finally a beam dump. B) Close up of the section where the end of the
+injector and the end of the arc inject into the beginning of the linac. C) Close up of the end of
+the linac which injects into the dump and the beginning of the arc.}
+  \label{f:erl}
+\end{figure}
+
 \index{patch!example}
-\fig{f:erl}B shows the injector and arc merging into the beginning of
-the linac. The first element of the linac is a bend named
-\vn{BEND_L1}. The bending angle for \vn{BEND_L1} has been set at the
-appropriate value for injection from the injector. To get the correct
-geometry for injection from the arc, a \vn{patch} element, named
-\vn{A_PATCH}, is placed in the \vn{ERL} line between the arc and the
-linac. \vn{A_PATCH} is a flexible patch which means that the exit edge
-of \vn{A_PATCH} will automatically be aligned with the entrance edge
-of the next element which is \vn{BEND_L1}. 
+\fig{f:erl}B shows the injector and arc merging into the beginning of the linac. The first element
+of the linac is a bend named \vn{BEND_L1}. The bending angle for \vn{BEND_L1} has been set at the
+appropriate value for injection from the injector. To get the correct geometry for injection from
+the arc, a \vn{patch} element, named \vn{A_PATCH}, is placed in the \vn{ERL} line between the arc
+and the linac. \vn{A_PATCH} is a flexible patch which means that the exit edge of \vn{A_PATCH} will
+automatically be aligned with the entrance edge of the next element which is \vn{BEND_L1}.
 
-Note that this use of a flexible patch works since the orientation of
-\vn{BEND_L1} has been determined before the orientation of
-\vn{A_PATCH} is determined. The orientation of elements is determined
-in order starting from the first element in the line (the exception to
-this rule is if there is a \vn{floor_position} element) and the
-orientation of \vn{BEND_L1} is thus determined right after the
-injector section on the first pass through the linac.
+Note that this use of a flexible patch works since the orientation of \vn{BEND_L1} has been
+determined before the orientation of \vn{A_PATCH} is determined. The orientation of elements is
+determined in order starting from the first element in the line (the exception to this rule is if
+there is a \vn{floor_position} element) and the orientation of \vn{BEND_L1} is thus determined right
+after the injector section on the first pass through the linac.
 
-
-
-\fig{f:erl}C shows the end of the linac splitting off into the dump
-and arc sections. The l
-
-A patch
-element named \vn{A_PATCH} is used
+\fig{f:erl}C shows the end of the linac splitting off into the dump and arc sections. The
+\vn{D_PATCH} is used to orient the reference trajectory so that the dump is correctly positioned.
+Here it is not possible to make the \vn{D_PATCH} flexible since the position of the dump is unknown
+when the orientation of the \vn{D_PATCH} is calculated. However, the \vn{D_PATCH} could be made
+flexible if a \vn{floor_position} element is used in the dump line (\bmad will work both forward and
+backwards from a \vn{floor_position} element so that a \vn{floor_position} element may be placed
+anywhere in the dump line).
 
 %-----------------------------------------------------------------------------
 \section{Example: Patch Between reversed and non-reversed elements}
@@ -130,9 +123,8 @@ element named \vn{A_PATCH} is used
   \centering
   \includegraphics[width=5in]{patch-between.pdf}
   \caption[Patching between reversed and non-reversed elements.]{
-Drift element \vn{D} is followed by a reversed drift element \vn{B}.
-The view is from $+y$ onto the $x$-$z$ plane. A) If no patch is
-present then the geometry does not make physical sense. B) With a
+Drift element \vn{D} is followed by a reversed drift element \vn{B}.  The view is from $+y$ onto the
+$x$-$z$ plane. A) If no patch is present then the geometry does not make physical sense. B) With a
 patch in between, a sane geometry can be obtained.}
   \label{f:patch.between}
 \end{figure}
@@ -149,27 +141,21 @@ Between normal and reversed elements there must be a reflection
   A_line: line = (D, --B)     ! Illegal. Do not use!
   B_line: line = (D, P, --B)  ! Correct
 \end{example}
-Line \vn{A_line} represents the situation shown in
-\fig{f:patch.between}A.  With no patch between the drift \vn{D} and
-the reversed bend \vn{B}, a particle leaving \vn{D} at \vn{D}'s
-downstream end will find itself outside of both \vn{D} and
-\vn{B}. Clearly this is an unphysical situation. Sanity is restored in
-line \vn{B_line} shown in \fig{f:patch.between}B. In this instance, the
-patch \vn{P} rotates the reference coordinates around the $y$-axis
-leaving the $y$-axis invariant the bend of \vn{B} is in the $x$-$z$
-plane. There are other patch parameter values that could be used to
-produce a reflection patch (\sref{s:reflect.patch}).  For example,
-Setting the patch's \vn{y_pitch} to \vn{pi} would produce a reflection
-patch.
+Line \vn{A_line} represents the situation shown in \fig{f:patch.between}A.  With no patch between
+the drift \vn{D} and the reversed bend \vn{B}, a particle leaving \vn{D} at \vn{D}'s downstream end
+will find itself outside of both \vn{D} and \vn{B}. Clearly this is an unphysical situation. Sanity
+is restored in line \vn{B_line} shown in \fig{f:patch.between}B. In this instance, the patch \vn{P}
+rotates the reference coordinates around the $y$-axis leaving the $y$-axis invariant the bend of
+\vn{B} is in the $x$-$z$ plane. There are other patch parameter values that could be used to produce
+a reflection patch (\sref{s:reflect.patch}).  For example, Setting the patch's \vn{y_pitch} to
+\vn{pi} would produce a reflection patch.
 
-Since bend \vn{B} is reversed, A particle moving downstream within
-\vn{B} is going the opposite direction from the normal direction. If
-\vn{g_err} were zero in this instance, a downstream moving particle
-would feel a force that will rotate the particle in a clockwise manner
-opposite from the counterclockwise direction of the bend. To counter
-this, \vn{g_err} is set so the total bending field \vn{g_tot = g +
-g_err} is opposite the design field. That is, \vn{g_err} is set so
-that \vn{g_tot = -g}.
+Since bend \vn{B} is reversed, A particle moving downstream within \vn{B} is going the opposite
+direction from the normal direction. If \vn{g_err} were zero in this instance, a downstream moving
+particle would feel a force that will rotate the particle in a clockwise manner opposite from the
+counterclockwise direction of the bend. To counter this, \vn{g_err} is set so the total bending
+field \vn{g_tot = g + g_err} is opposite the design field. That is, \vn{g_err} is set so that
+\vn{g_tot = -g}.
 
 %-----------------------------------------------------------------------------
 \section{Example: Colliding Beam Storage Rings}

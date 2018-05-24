@@ -53,9 +53,9 @@ endif
 cos_z = (a(5,5) + a(6,6)) / denom
 sgn = sign_of(a(5,6))
 
-if (cos_z - 1 > -1d-7) then
+if (cos_z - 1 > -1d-9) then
   branch%z%tune = 0
-  branch%z%stable = (abs(cos_z-1) < 1d-7)
+  branch%z%stable = (abs(cos_z-1) < 1d-9)
   return
 endif
 

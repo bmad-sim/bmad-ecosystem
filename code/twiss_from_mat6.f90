@@ -51,8 +51,8 @@ character(20) :: r_name = 'twiss_from_mat6'
 mat4 = mat6(1:4, 1:4)
 
 if (maxval(abs(mat4)) > 1d10) then
-  call out_io (s_error$, r_name, 'BAD 1-TURN MATRIX: UNSTABLE.', &
-                                 'TWISS PARAMETERS NOT COMPUTED')
+  if (type_out) call out_io (s_error$, r_name, 'BAD 1-TURN MATRIX: UNSTABLE.', &
+                                               'TWISS PARAMETERS NOT COMPUTED')
   status = unstable$
   return
 endif
@@ -60,14 +60,14 @@ endif
 symp_err = mat_symp_error(mat4)
 
 if (symp_err > 1) then
-  call out_io (s_error$, r_name, 'BAD 1-TURN MATRIX. NON_SYMPLECTIC WITH SYMPLECTIC ERROR OF: \f8.1\ ', &
-                                 'TWISS PARAMETERS NOT COMPUTED', r_array = [symp_err])
+  if (type_out) call out_io (s_error$, r_name, 'BAD 1-TURN MATRIX. NON_SYMPLECTIC WITH SYMPLECTIC ERROR OF: \f8.1\ ', &
+                                               'TWISS PARAMETERS NOT COMPUTED', r_array = [symp_err])
   status = non_symplectic$
   return
 endif
 
 if (symp_err > symp_tol) then
-  call out_io (s_warn$, r_name, '1-TURN MATRIX MARGINALLY SYMPLECTIC WITH SYMPLECTIC ERROR OF: \f10.4\ ', &
+  if (type_out) call out_io (s_warn$, r_name, '1-TURN MATRIX MARGINALLY SYMPLECTIC WITH SYMPLECTIC ERROR OF: \f10.4\ ', &
                                 r_array = [symp_err])
 endif
 
@@ -76,10 +76,8 @@ endif
 call mat_symp_decouple (mat4, status, u, v, ubar, vbar, g, ele%a, ele%b, ele%gamma_c, .false.)
 
 if (status /= ok$) then
-  if (type_out) then
-     call out_io (s_error$, r_name, 'BAD 1-TURN MATRIX: ' // &
+  if (type_out) call out_io (s_error$, r_name, 'BAD 1-TURN MATRIX: ' // &
                       matrix_status_name(status), 'TWISS PARAMETERS NOT COMPUTED')
-  endif
   if (status == non_symplectic$) then
     rate1 = 10.0
     rate2 = 10.0

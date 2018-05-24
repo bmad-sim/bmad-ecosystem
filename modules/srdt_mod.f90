@@ -1,16 +1,10 @@
 !+
 ! Implements Bengtsson's summation RDT formula's for first and second order resonant driving terms.
-!
-! These formulas are documented in "The Sextupole Scheme for the Swiss Light Source (SLS): An Analytic Approach"
-! by Johan Bengtsson.  SLS Note 9/97.
-!
-! The 2nd order formulas are documented in "Second-order driving terms due to sextupoles and
-! chromatic effects of quadrupoles" by Chun-xi Wang.  AOP-TN-2009-020.
 !-
 
 module srdt_mod
 
-use bmad
+use twiss_and_track_mod
 
 implicit none
 
@@ -45,21 +39,28 @@ character(6), parameter :: srdt_second(14) = [ 'h31000', 'h40000', 'h20110', 'h1
 contains
 
 !+ 
-! subroutine srdt_calc(lat, srdt, order, n_slices_gen_opt, n_slices_sext_opt)
+! Subroutine srdt_calc(lat, srdt, order, n_slices_gen_opt, n_slices_sext_opt)
 !
 ! Calculate summation RDT terms up to order=1 or order=2 while slicing sextupoles 
 ! n_slices_sext_opt times and all other elements n_slices_gen_opt times.
+!
+! These formulas are documented in "The Sextupole Scheme for the Swiss Light Source (SLS): An Analytic Approach"
+! by Johan Bengtsson.  SLS Note 9/97.
+!
+! The 2nd order formulas are documented in "Second-order driving terms due to sextupoles and
+! chromatic effects of quadrupoles" by Chun-xi Wang.  AOP-TN-2009-020.
 !
 ! Input:
 !   lat                -- lat_struct: lattice with Twiss parameters calculated.
 !   order              -- integer: 1 to calculate only first order terms.  2 to also calculate 2nd order terms.
 !   n_slices_gen_opt   -- integer, optional: number of times to slice elements other than sextupoles.  Default is 10.
 !   n_slices_sext_opt  -- integer, optional: nubmer of times to slice sextupoles.  Default is 20.
+!
 ! Output:
 !   srdt               -- summation_rdt_struct: contains complex RDT strengths.
 !-
 
-subroutine srdt_calc(lat, srdt, order, n_slices_gen_opt, n_slices_sext_opt)
+subroutine srdt_calc (lat, srdt, order, n_slices_gen_opt, n_slices_sext_opt)
 
 implicit none
 
