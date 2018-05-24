@@ -386,10 +386,10 @@ do
     n_count = 0
     n_period_old = n_period
     do i = 1, size(bbu_beam%stage)
-      bbu_beam%stage(i)%ave_orb = [0, 0, 0, 0, 0, 0]
-      bbu_beam%stage(i)%rms_orb = [0, 0, 0, 0, 0, 0]
-      bbu_beam%stage(i)%min_orb = [1, 1, 1, 1, 1, 1]        ! Something large
-      bbu_beam%stage(i)%max_orb = [-1, -1, -1, -1, -1, -1]  ! Something small
+      bbu_beam%stage(i)%ave_orb = 0
+      bbu_beam%stage(i)%rms_orb = 0
+      bbu_beam%stage(i)%min_orb = 1     ! Something large
+      bbu_beam%stage(i)%max_orb = -1    ! Something small
       bbu_beam%stage(i)%n_orb = 0  
     enddo
   endif
