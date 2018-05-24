@@ -1,5 +1,11 @@
 !+
 ! Implements Bengtsson's summation RDT formula's for first and second order resonant driving terms.
+!
+! These formulas are documented in "The Sextupole Scheme for the Swiss Light Source (SLS): An Analytic Approach"
+! by Johan Bengtsson.  SLS Note 9/97.
+!
+! The 2nd order formulas are documented in "Second-order driving terms due to sextupoles and
+! chromatic effects of quadrupoles" by Chun-xi Wang.  AOP-TN-2009-020.
 !-
 
 module srdt_mod
@@ -97,16 +103,14 @@ pinuy = lat%ele(lat%n_ele_track)%b%phi/2.0d0
 do pass=1,2
   w = 0
   do i=1,lat%n_ele_track
-    good_ele = .false.
-    good_k2 = .false.
     if( lat%ele(i)%key == wiggler$ ) cycle
     if( lat%ele(i)%key == multipole$ ) then
       if(attribute_index(lat%ele(i),'K2L').ne.0) then
         if(abs(value_of_attribute(lat%ele(i),'K2L')).gt.1e-8 .and. value_of_attribute(lat%ele(i), 'K2L') .ne. real_garbage$) then
-          k2l = value_of_attribute(lat%ele(i),'K2L')
-          k2l = k2l / 2.0  ! Convention shown in Eqn. 8 of Bengsston paper: moments divided by n.
           w = w + 1
           if(pass == 2) then
+            k2l = value_of_attribute(lat%ele(i),'K2L')
+            k2l = k2l / 2.0  ! Convention shown in Eqn. 8 of Bengsston paper: moments divided by n.
             eles(w)%good_k2 = .true.
             eles(w)%k1l = 0.0d0
             eles(w)%k2l = k2l
@@ -120,6 +124,8 @@ do pass=1,2
         endif
       endif
     elseif(value_of_attribute(lat%ele(i), 'l') .gt. 1e-6) then
+      good_ele = .false.
+      good_k2 = .false.
       if(attribute_index(lat%ele(i),'K1').ne.0 .or. attribute_index(lat%ele(i),'K2').ne.0) then
         k1 = 0.0d0
         k2 = 0.0d0
@@ -141,13 +147,13 @@ do pass=1,2
           endif
           slice_len = lat%ele(i)%value(l$) / ns
           do j=1,ns
-            if(i .gt. 1) then
-              sj = lat%ele(i-1)%s + slice_len*j
-            else
-              sj = slice_len*j
-            endif
             w = w + 1
             if(pass == 2) then
+              if(i .gt. 1) then
+                sj = lat%ele(i-1)%s + slice_len*j
+              else
+                sj = slice_len*j
+              endif
               call twiss_and_track_at_s(lat,sj,elei,co)
               eles(w)%good_k2 = good_k2
               eles(w)%k1l = k1 * slice_len
@@ -200,54 +206,56 @@ srdt%h00310 = 0
 srdt%h00400 = 0
 if(order .ge. 2) then
   do i=1,w
-    do j=1,w
-      if( eles(i)%good_k2 .and. eles(j)%good_k2 ) then
-        dmux = eles(i)%phi_a-eles(j)%phi_a
-        dmuy = eles(i)%phi_b-eles(j)%phi_b
-        prod = eles(i)%k2l*eles(j)%k2l
+    if( eles(i)%good_k2 ) then
+      do j=1,w
+        if( eles(j)%good_k2 ) then
+          dmux = eles(i)%phi_a-eles(j)%phi_a
+          dmuy = eles(i)%phi_b-eles(j)%phi_b
+          prod = eles(i)%k2l*eles(j)%k2l
 
-        srdt%nux_Jx = srdt%nux_Jx + prod * (eles(i)%beta_a*eles(j)%beta_a)**(3./2.) * &
-                   ( 3*cos(abs(dmux)-pinux)/sin(pinux) + cos(3*abs(dmux)-3*pinux)/sin(3*pinux) )
-        srdt%nuy_Jy = srdt%nuy_Jy + prod * sqrt(eles(i)%beta_a*eles(j)%beta_a)*eles(i)%beta_b*eles(j)%beta_b * &
-                   ( 4*cos(abs(dmux)-pinux)/sin(pinux) + &
-                       cos(abs(dmux+2*dmuy)-(pinux+2*pinuy))/sin((pinux+2*pinuy)) + &
-                       cos(abs(dmux-2*dmuy)-(pinux-2*pinuy))/sin((pinux-2*pinuy)) )
-        srdt%nux_Jy = srdt%nux_Jy + prod * sqrt(eles(i)%beta_a*eles(j)%beta_a)*eles(i)%beta_b * &
-                   ( 2*eles(j)%beta_a*cos(abs(dmux)-pinux)/sin(pinux) - &
-                       eles(j)%beta_b*cos(abs(dmux+2*dmuy)-(pinux+2*pinuy))/sin((pinux+2*pinuy)) + &
-                       eles(j)%beta_b*cos(abs(dmux-2*dmuy)-(pinux-2*pinuy))/sin((pinux-2*pinuy)) )
+          srdt%nux_Jx = srdt%nux_Jx + prod * (eles(i)%beta_a*eles(j)%beta_a)**(3./2.) * &
+                     ( 3*cos(abs(dmux)-pinux)/sin(pinux) + cos(3*abs(dmux)-3*pinux)/sin(3*pinux) )
+          srdt%nuy_Jy = srdt%nuy_Jy + prod * sqrt(eles(i)%beta_a*eles(j)%beta_a)*eles(i)%beta_b*eles(j)%beta_b * &
+                     ( 4*cos(abs(dmux)-pinux)/sin(pinux) + &
+                         cos(abs(dmux+2*dmuy)-(pinux+2*pinuy))/sin((pinux+2*pinuy)) + &
+                         cos(abs(dmux-2*dmuy)-(pinux-2*pinuy))/sin((pinux-2*pinuy)) )
+          srdt%nux_Jy = srdt%nux_Jy + prod * sqrt(eles(i)%beta_a*eles(j)%beta_a)*eles(i)%beta_b * &
+                     ( 2*eles(j)%beta_a*cos(abs(dmux)-pinux)/sin(pinux) - &
+                         eles(j)%beta_b*cos(abs(dmux+2*dmuy)-(pinux+2*pinuy))/sin((pinux+2*pinuy)) + &
+                         eles(j)%beta_b*cos(abs(dmux-2*dmuy)-(pinux-2*pinuy))/sin((pinux-2*pinuy)) )
 
-        if(i .ne. j) then
-          if( i < j ) then
-            sgn = 1
-          elseif( i > j ) then
-            sgn = -1
+          if(i .ne. j) then
+            if( i < j ) then
+              sgn = 1
+            elseif( i > j ) then
+              sgn = -1
+            endif
+            sqrtprod = sqrt(eles(i)%beta_a*eles(j)%beta_a)
+            srdt%h31000 = srdt%h31000 + sgn*prod*(eles(i)%beta_a*eles(j)%beta_a)**(3./2.) * exp( i_imag*(3.0*eles(i)%phi_a-eles(j)%phi_a) ) !2Qx
+            srdt%h40000 = srdt%h40000 + sgn*prod*(eles(i)%beta_a*eles(j)%beta_a)**(3./2.) * exp( i_imag*(3.0*eles(i)%phi_a+eles(j)%phi_a) ) !4Qx
+            srdt%h20110 = srdt%h20110 + sgn*prod*sqrtprod*eles(i)%beta_b * &
+                              ( eles(j)%beta_a*(exp( -i_imag*(eles(i)%phi_a-3.0*eles(j)%phi_a) ) - exp( i_imag*(eles(i)%phi_a+eles(j)%phi_a) ) ) + &
+                            2.0*eles(j)%beta_b*exp( i_imag*(eles(i)%phi_a+eles(j)%phi_a+2.0*eles(i)%phi_b-2.0*eles(j)%phi_b) ) )  !2Qx
+            srdt%h11200 = srdt%h11200 + sgn*prod*sqrtprod*eles(i)%beta_b * &
+                              ( eles(j)%beta_a*( exp(-i_imag*(eles(i)%phi_a-eles(j)%phi_a-2.0*eles(i)%phi_b) ) - &
+                                                 exp( i_imag*(eles(i)%phi_a-eles(j)%phi_a+2.0*eles(i)%phi_b) ) ) + &
+                            2.0*eles(j)%beta_b*( exp( i_imag*(eles(i)%phi_a-eles(j)%phi_a+2.0*eles(i)%phi_b) ) + &
+                                                 exp(-i_imag*(eles(i)%phi_a-eles(j)%phi_a-2.0*eles(i)%phi_b) ) ) ) !2Qy
+            srdt%h20020 = srdt%h20020 + sgn*prod*sqrtprod*eles(i)%beta_b * &
+                                       ( eles(j)%beta_a*exp( -i_imag*(eles(i)%phi_a-3.0*eles(j)%phi_a+2.0*eles(i)%phi_b) ) - &
+                                       (eles(j)%beta_a+4.0*eles(j)%beta_b)*exp(i_imag*(eles(i)%phi_a+eles(j)%phi_a-2.0*eles(i)%phi_b)) )! 2Qx+2Qy
+            srdt%h20200 = srdt%h20200 + sgn*prod*sqrtprod*eles(i)%beta_b * &
+                                       ( eles(j)%beta_a*exp( -i_imag*(eles(i)%phi_a-3.0*eles(j)%phi_a-2.0*eles(i)%phi_b) ) - &
+                                       (eles(j)%beta_a-4.0*eles(j)%beta_b)*exp(i_imag*(eles(i)%phi_a+eles(j)%phi_a+2.0*eles(i)%phi_b)) )! 2Qx-2Qy
+            srdt%h00310 = srdt%h00310 + sgn*prod*sqrtprod*eles(i)%beta_b*eles(j)%beta_b * &
+                                       ( exp( i_imag*(eles(i)%phi_a-eles(j)%phi_a+2.0*eles(i)%phi_b) ) - &
+                                         exp(-i_imag*(eles(i)%phi_a-eles(j)%phi_a-2.0*eles(i)%phi_b) ) )! 2Qy
+            srdt%h00400 = srdt%h00400 + sgn*prod*sqrtprod*eles(i)%beta_b*eles(j)%beta_b * &
+                                        exp(i_imag*(eles(i)%phi_a-eles(j)%phi_a+2.0*eles(i)%phi_b+2.0*eles(j)%phi_b) )  !4Qy
           endif
-          sqrtprod = sqrt(eles(i)%beta_a*eles(j)%beta_a)
-          srdt%h31000 = srdt%h31000 + sgn*prod*(eles(i)%beta_a*eles(j)%beta_a)**(3./2.) * exp( i_imag*(3.0*eles(i)%phi_a-eles(j)%phi_a) ) !2Qx
-          srdt%h40000 = srdt%h40000 + sgn*prod*(eles(i)%beta_a*eles(j)%beta_a)**(3./2.) * exp( i_imag*(3.0*eles(i)%phi_a+eles(j)%phi_a) ) !4Qx
-          srdt%h20110 = srdt%h20110 + sgn*prod*sqrtprod*eles(i)%beta_b * &
-                            ( eles(j)%beta_a*(exp( -i_imag*(eles(i)%phi_a-3.0*eles(j)%phi_a) ) - exp( i_imag*(eles(i)%phi_a+eles(j)%phi_a) ) ) + &
-                          2.0*eles(j)%beta_b*exp( i_imag*(eles(i)%phi_a+eles(j)%phi_a+2.0*eles(i)%phi_b-2.0*eles(j)%phi_b) ) )  !2Qx
-          srdt%h11200 = srdt%h11200 + sgn*prod*sqrtprod*eles(i)%beta_b * &
-                            ( eles(j)%beta_a*( exp(-i_imag*(eles(i)%phi_a-eles(j)%phi_a-2.0*eles(i)%phi_b) ) - &
-                                               exp( i_imag*(eles(i)%phi_a-eles(j)%phi_a+2.0*eles(i)%phi_b) ) ) + &
-                          2.0*eles(j)%beta_b*( exp( i_imag*(eles(i)%phi_a-eles(j)%phi_a+2.0*eles(i)%phi_b) ) + &
-                                               exp(-i_imag*(eles(i)%phi_a-eles(j)%phi_a-2.0*eles(i)%phi_b) ) ) ) !2Qy
-          srdt%h20020 = srdt%h20020 + sgn*prod*sqrtprod*eles(i)%beta_b * &
-                                     ( eles(j)%beta_a*exp( -i_imag*(eles(i)%phi_a-3.0*eles(j)%phi_a+2.0*eles(i)%phi_b) ) - &
-                                     (eles(j)%beta_a+4.0*eles(j)%beta_b)*exp(i_imag*(eles(i)%phi_a+eles(j)%phi_a-2.0*eles(i)%phi_b)) )! 2Qx+2Qy
-          srdt%h20200 = srdt%h20200 + sgn*prod*sqrtprod*eles(i)%beta_b * &
-                                     ( eles(j)%beta_a*exp( -i_imag*(eles(i)%phi_a-3.0*eles(j)%phi_a-2.0*eles(i)%phi_b) ) - &
-                                     (eles(j)%beta_a-4.0*eles(j)%beta_b)*exp(i_imag*(eles(i)%phi_a+eles(j)%phi_a+2.0*eles(i)%phi_b)) )! 2Qx-2Qy
-          srdt%h00310 = srdt%h00310 + sgn*prod*sqrtprod*eles(i)%beta_b*eles(j)%beta_b * &
-                                     ( exp( i_imag*(eles(i)%phi_a-eles(j)%phi_a+2.0*eles(i)%phi_b) ) - &
-                                       exp(-i_imag*(eles(i)%phi_a-eles(j)%phi_a-2.0*eles(i)%phi_b) ) )! 2Qy
-          srdt%h00400 = srdt%h00400 + sgn*prod*sqrtprod*eles(i)%beta_b*eles(j)%beta_b * &
-                                      exp(i_imag*(eles(i)%phi_a-eles(j)%phi_a+2.0*eles(i)%phi_b+2.0*eles(j)%phi_b) )  !4Qy
         endif
-      endif
-    enddo
+      enddo
+    endif
   enddo
   srdt%nux_Jx = srdt%nux_Jx / -16.0 / pi
   srdt%nuy_Jy = srdt%nuy_Jy / 8.0 / pi
