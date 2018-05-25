@@ -300,7 +300,7 @@ end function super_zbrent
 !     %alpha        -- Curvature matrix. See mrqmin in NR for more details.
 !     %covar        -- Covariance matrix. See mrqmin in NR for more details.
 !   alamda      -- Real(rp): See mrqmin in NR for more details.
-!   status      -- Integer: Calculation status:
+!   status      -- Integer: Calculation status. Any status /= 0 will cause super_mrqmin to stop.
 !                      -2    => Singular matrix error in gaussj routine.
 !                      -1    => Singular matrix error in gaussj routine.
 !                       0    => Normal.

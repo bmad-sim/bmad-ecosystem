@@ -6,10 +6,15 @@
 
 module apfft_mod
 
+use physical_constants
+
 implicit none
 
 contains
 
+!--------------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------------
 !+
 ! subroutine apfft_corr(rdata_in, bounds, window, phase, amp, freq, diag)
 !
@@ -30,78 +35,81 @@ contains
 !   freq                      -- real(rp): frequency of peak
 !   amp                       -- real(rp): amplitude of peak
 !-
+
 subroutine apfft_corr(rdata_in, bounds, window, phase, amp, freq, diag)
-  use bmad
-  use, intrinsic :: ieee_arithmetic
-  implicit none
 
-  real(rp) rdata_in(:)
-  real(rp) phase, amp, freq
-  real(rp), optional :: bounds(2)
-  character(3) window
-  integer, optional :: diag
+use, intrinsic :: ieee_arithmetic
 
-  real(rp), allocatable :: rdata(:)
-  real(rp), allocatable :: u1(:), u2(:)
-  real(rp) phase_u1, amp_u1, freq_u1
-  real(rp) phase_u2, amp_u2, freq_u2
-  real(rp) d
+implicit none
 
-  integer i,N, ndata
+real(rp) rdata_in(:)
+real(rp) phase, amp, freq
+real(rp), optional :: bounds(2)
+character(3) window
+integer, optional :: diag
 
-  character(*), parameter :: r_name = 'apfft_corr'
+real(rp), allocatable :: rdata(:)
+real(rp), allocatable :: u1(:), u2(:)
+real(rp) phase_u1, amp_u1, freq_u1
+real(rp) phase_u2, amp_u2, freq_u2
+real(rp) d
 
-  ndata = size(rdata_in)
-  N = floor((ndata+1.0)/3)
-  ndata = 3*N-1
+integer i,N, ndata
 
-  allocate(rdata(ndata))
-  
-  !remove zero offset
-  rdata = rdata_in(1:ndata) - sum(rdata_in(1:ndata))/size(rdata_in(1:ndata))
+character(*), parameter :: r_name = 'apfft_corr'
 
-  allocate(u1(2*N-1))
-  allocate(u2(2*N-1))
-  u1 = rdata(1:2*N-1)
-  u2 = rdata(N+1:3*N-1)
+ndata = size(rdata_in)
+N = floor((ndata+1.0)/3)
+ndata = 3*N-1
 
-  call apfft_ext(u1, bounds, window, phase_u1, amp_u1, freq_u1, diag)
-  call apfft_ext(u2, bounds, window, phase_u2, amp_u2, freq_u2, diag)
+allocate(rdata(ndata))
 
-  d = (phase_u2-phase_u1)/twopi
-  if(d .gt. 0.5) then
-    d = d - 1.0d0
-  elseif(d .le. -0.5) then
-    d = d + 1.0d0
+!remove zero offset
+rdata = rdata_in(1:ndata) - sum(rdata_in(1:ndata))/size(rdata_in(1:ndata))
+
+allocate(u1(2*N-1))
+allocate(u2(2*N-1))
+u1 = rdata(1:2*N-1)
+u2 = rdata(N+1:3*N-1)
+
+call apfft_ext(u1, bounds, window, phase_u1, amp_u1, freq_u1, diag)
+call apfft_ext(u2, bounds, window, phase_u2, amp_u2, freq_u2, diag)
+
+d = (phase_u2-phase_u1)/twopi
+if(d .gt. 0.5) then
+  d = d - 1.0d0
+elseif(d .le. -0.5) then
+  d = d + 1.0d0
+endif
+
+freq = freq_u1 + (1.0d0*d)/N
+
+phase = 2.0d0*phase_u1 - phase_u2
+if(phase .lt. 0) then
+  phase = phase + twopi
+elseif(phase .gt. twopi) then
+  phase = phase - twopi
+endif
+
+if(window == 'rec') then
+  if( ieee_is_finite(1.0d0/sin(pi*d)) ) then
+    amp = (pi*d/sin(pi*d))**2 * amp_u1 * 2.0
+  else
+    amp = 2.0d0 * amp_u1
   endif
-
-  freq = freq_u1 + (1.0d0*d)/N
-
-  phase = 2.0d0*phase_u1 - phase_u2
-  if(phase .lt. 0) then
-    phase = phase + twopi
-  elseif(phase .gt. twopi) then
-    phase = phase - twopi
+elseif(window == 'han') then
+  if( ieee_is_finite(1.0d0/sin(pi*d)) ) then
+    amp = (pi*d*(1.0d0-d*d)/sin(pi*d))**2 * amp_u1  * 2.0
+  else
+    amp = 2.0d0 * amp_u1
   endif
+endif
 
-  if(window == 'rec') then
-    if( ieee_is_finite(1.0d0/sin(pi*d)) ) then
-      amp = (pi*d/sin(pi*d))**2 * amp_u1 * 2.0
-    else
-      amp = 2.0d0 * amp_u1
-    endif
-  elseif(window == 'han') then
-    if( ieee_is_finite(1.0d0/sin(pi*d)) ) then
-      amp = (pi*d*(1.0d0-d*d)/sin(pi*d))**2 * amp_u1  * 2.0
-    else
-      amp = 2.0d0 * amp_u1
-    endif
-  endif
+deallocate(rdata)
+deallocate(u1)
+deallocate(u2)
 
-  deallocate(rdata)
-  deallocate(u1)
-  deallocate(u2)
-end subroutine
+end subroutine apfft_corr
 
 !--------------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------------
@@ -125,24 +133,25 @@ end subroutine
 !-
 
 subroutine apfft(rdata_in, bounds, window, phase, diag)
-  use bmad
-  use fgsl
 
-  implicit none
+use fgsl
 
-  real(rp) rdata_in(:)
-  real(rp) bounds(2)
-  character(3) window
-  real(rp) phase
-  
-  real(rp) amp, freq
-  real(rp) rdata(size(rdata_in))
-  integer, optional :: diag
+implicit none
 
-  rdata = rdata_in - 1.0d0*sum(rdata_in)/size(rdata_in)
+real(rp) rdata_in(:)
+real(rp) bounds(2)
+character(3) window
+real(rp) phase
 
-  call apfft_ext(rdata, bounds, window, phase, amp, freq, diag)
-end subroutine
+real(rp) amp, freq
+real(rp) rdata(size(rdata_in))
+integer, optional :: diag
+
+rdata = rdata_in - 1.0d0*sum(rdata_in)/size(rdata_in)
+
+call apfft_ext(rdata, bounds, window, phase, amp, freq, diag)
+
+end subroutine apfft
 
 !--------------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------------
@@ -163,136 +172,147 @@ end subroutine
 !-
 
 subroutine apfft_ext(rdata, bounds, window, phase, amp, freq, diag)
-  use bmad
-  use fgsl
+use fgsl
 
-  implicit none
+implicit none
 
-  real(rp) rdata(:)
-  real(rp) bounds(2)
-  character(3) window
-  real(rp) phase, amp, freq
-  integer, optional :: diag
+real(rp) rdata(:)
+real(rp) bounds(2)
+character(3) window
+real(rp) phase, amp, freq
+integer, optional :: diag
 
-  real(rp) wc(size(rdata))
-  real(rp) lb, ub
+real(rp) wc(size(rdata))
 
-  integer fid
-  integer ndata, N, max_ix
-  integer i, j
+integer fid
+integer ndata, N, max_ix
+integer i, j, lb, ub
 
-  real(rp) alpha, beta, gamma, p
+real(rp) alpha, beta, gamma, p
 
-  complex(rp), allocatable :: c_Xap(:)
+complex(rp), allocatable :: c_Xap(:)
 
-  type(fgsl_fft_complex_wavetable) :: wavetable
-  type(fgsl_fft_complex_workspace) :: work
-  integer(fgsl_int) :: status
-  real(rp), allocatable :: apwindow(:)
+type(fgsl_fft_complex_wavetable) :: wavetable
+type(fgsl_fft_complex_workspace) :: work
+integer(fgsl_int) :: status
+real(rp), allocatable :: apwindow(:)
 
-  character(4) fid_str
-  character(*), parameter :: r_name = 'apfft_ext'
+character(4) fid_str
+character(*), parameter :: r_name = 'apfft_ext'
 
-  ndata = size(rdata)
-  N = floor((ndata+1.0d0)/2.0d0)
+ndata = size(rdata)
+N = floor((ndata+1.0d0)/2.0d0)
 
-  allocate(c_Xap(N))
+allocate(c_Xap(N))
 
-  !Produce the all-phase vector from signal data.
+!Produce the all-phase vector from signal data.
 
-  if(window == 'rec') then
-    !rec-rec window
-    c_Xap(1) = cmplx(N*rdata(N),0.0d0)
-    do i=2,N
-      c_Xap(i) = cmplx((N-i+1)*rdata(N+i-1) + (i-1)*rdata(i-1),0.0d0)
+if(window == 'rec') then
+  !rec-rec window
+  c_Xap(1) = cmplx(N*rdata(N),0.0d0)
+  do i=2,N
+    c_Xap(i) = cmplx((N-i+1)*rdata(N+i-1) + (i-1)*rdata(i-1),0.0d0)
+  enddo
+  c_Xap = c_Xap / N / N
+elseif( window == 'han') then
+  allocate(apwindow(ndata))
+  call hanhan(N,apwindow)
+  rdata = apwindow*rdata
+  deallocate(apwindow)
+  c_Xap(1) = cmplx(rdata(N),0.0d0)
+  do i=2,N
+    c_Xap(i) = cmplx(rdata(N+i-1) + rdata(i-1),0.0d0)
+  enddo
+  c_Xap = c_Xap 
+else
+  write(*,*) "Unknown window passed to apfft_ext: ", window
+  call err_exit()
+endif
+
+wavetable = fgsl_fft_complex_wavetable_alloc(int(N,fgsl_size_t))
+work = fgsl_fft_complex_workspace_alloc(int(N,fgsl_size_t))
+status = fgsl_fft_complex_backward(c_Xap, 1_fgsl_size_t, int(N,fgsl_size_t), wavetable, work)
+call fgsl_fft_complex_workspace_free(work)
+call fgsl_fft_complex_wavetable_free(wavetable)
+
+if(present(diag)) then
+  if( diag .gt. 0) then
+    fid = 9000 + diag
+    write(fid_str,'(i4)') fid
+    open(fid, file = 'apfft_'//fid_str//'.diag')
+    write(fid,*) '#apfft_ext diag file'
+    write(fid,*) '#freq   abs   angle'
+    do i=1,N
+      write(fid,'(3f15.6)') (i-1.0d0)/N, abs(c_Xap(i)), twopi_atan2(aimag(c_Xap(i)),real(c_Xap(i)))
     enddo
-    c_Xap = c_Xap / N / N
-  elseif( window == 'han') then
-    allocate(apwindow(ndata))
-    call hanhan(N,apwindow)
-    rdata = apwindow*rdata
-    deallocate(apwindow)
-    c_Xap(1) = cmplx(rdata(N),0.0d0)
-    do i=2,N
-      c_Xap(i) = cmplx(rdata(N+i-1) + rdata(i-1),0.0d0)
-    enddo
-    c_Xap = c_Xap 
-  else
-    write(*,*) "Unknown window passed to apfft_ext: ", window
-    call err_exit()
+    write(fid,*)
+    write(fid,*)
+    close(fid)
   endif
+endif
 
-  wavetable = fgsl_fft_complex_wavetable_alloc(int(N,fgsl_size_t))
-  work = fgsl_fft_complex_workspace_alloc(int(N,fgsl_size_t))
-  status = fgsl_fft_complex_backward(c_Xap, 1_fgsl_size_t, int(N,fgsl_size_t), wavetable, work)
-  call fgsl_fft_complex_workspace_free(work)
-  call fgsl_fft_complex_wavetable_free(wavetable)
+lb = nint(N*bounds(1)) + 1
+ub = nint(N*bounds(2)) + 1
+max_ix = maxloc(abs(c_Xap(lb:ub)),1) + lb - 1
 
-  if(present(diag)) then
-    if( diag .gt. 0) then
-      fid = 9000 + diag
-      write(fid_str,'(i4)') fid
-      open(fid,name='apfft_'//fid_str//'.diag')
-      write(fid,*) '#apfft_ext diag file'
-      write(fid,*) '#freq   abs   angle'
-      do i=1,N
-        write(fid,'(3f15.6)') (i-1.0d0)/N, abs(c_Xap(i)), twopi_atan2(aimag(c_Xap(i)),real(c_Xap(i)))
-      enddo
-      write(fid,*)
-      write(fid,*)
-      close(fid)
-    endif
-  endif
+phase = twopi_atan2(aimag(c_Xap(max_ix)),real(c_Xap(max_ix)))
+amp = abs(c_Xap(max_ix))
+freq = (max_ix-1.0d0)/N
 
-  lb = nint(N*bounds(1)) + 1
-  ub = nint(N*bounds(2)) + 1
-  max_ix = maxloc(abs(c_Xap(lb:ub)),1) + lb - 1
+deallocate(c_Xap)
 
-  phase = twopi_atan2(aimag(c_Xap(max_ix)),real(c_Xap(max_ix)))
-  amp = abs(c_Xap(max_ix))
-  freq = (max_ix-1.0d0)/N
+!----------------------------------------------------------------------
 
-  deallocate(c_Xap)
+contains
 
-  contains
+function twopi_atan2(Y,X) result(arg)
+  use physical_constants
+  real(rp) Y, X, arg
+  arg = atan2(Y,X)
+  if(arg < 0) arg = arg+twopi
+  arg = twopi - arg
+end function twopi_atan2
 
-    function twopi_atan2(Y,X) result(arg)
-      use physical_constants
-      real(rp) Y, X, arg
-      arg = atan2(Y,X)
-      if(arg .lt. 0) arg = arg+twopi
-      arg = twopi - arg
-    end function
-end subroutine
+end subroutine apfft_ext
+
+!--------------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------------
 
 subroutine hanhan(N, hh)
-  use bmad, only: rp, pi
-  integer N
-  real(rp) hh(:) !length must be 2*N-1
+integer N
+real(rp) hh(:) !length must be 2*N-1
 
-  real(rp) h(N)
-  integer i
+real(rp) h(N)
+integer i
 
-  h = han(N)
+!
 
-  !convolution of two Hann windows
-  do i=1,N
-    hh(i) = sum( h(N-i+1:N) * h(1:i) )
-    hh(2*N-i) = hh(i)
-  enddo
-  hh = hh 
-end subroutine
+h = han(N)
+
+!convolution of two Hann windows
+do i=1,N
+  hh(i) = sum( h(N-i+1:N) * h(1:i) )
+  hh(2*N-i) = hh(i)
+enddo
+hh = hh 
+end subroutine hanhan
+
+!--------------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------------
 
 function han(N) 
-  use bmad, only: rp, pi
-  implicit none
-  integer i, N
-  real(rp) han(N)
+implicit none
+integer i, N
+real(rp) han(N)
 
-  do i=1,N
-    han(i) = sin(pi*i/(N-1.0d0))**2 / (N-1.0d0) * 2.0d0
-  enddo
-end function
+!
+
+do i=1,N
+  han(i) = sin(pi*i/(N-1.0d0))**2 / (N-1.0d0) * 2.0d0
+enddo
+end function han
 
 end module
 
