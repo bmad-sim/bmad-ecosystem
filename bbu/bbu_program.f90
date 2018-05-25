@@ -12,6 +12,7 @@ type (lat_struct) lat, lat_in, lat0
 type (beam_init_struct) beam_init
 type (ele_struct), pointer :: ele
 type (wake_lr_mode_struct), pointer :: lr(:)
+type (coord_struct), allocatable :: orb(:) 
 
 integer i, ix, j, n, nn, n_ele, ix_pass, o
 integer irep
@@ -26,16 +27,29 @@ logical lost
 integer :: file_unit, file_unit2
 integer k, status
 
-type (coord_struct), allocatable :: orb(:) 
+character(200) init_file
+
 namelist / bbu_params / bbu_param, beam_init, bmad_com
 
 
 ! Defaults for namelist
 beam_init%n_particle = 1
 
-print *,'Reading input file BBU.INIT'
+
+
+select case (cesr_iargc())
+case (0)
+  init_file = 'bbu.init'
+case (1)
+  call cesr_getarg(1, init_file)
+case default
+  print *, 'CONFUSED: MULTIPLE COMMAND LINE ARGUMENTS!'
+  stop
+end select
+
+print *,'Reading input file: ' // trim(init_file)
 print *
-open (1, file = 'bbu.init', status = 'old')
+open (1, file = init_file, status = 'old')
 read (1, nml = bbu_params)
 close (1)
 
@@ -93,10 +107,8 @@ endif
 
 !!!!!!!!!!!!!!!!!! HYBRIDIZATION !!!!!!!!!!!!!!!!!!!!!!!!
 !! ele%select == true means the element will be kept, NOT hybridized 
+
 if (bbu_param%hybridize) then
-!  print *, 'CANT HYBRIDIZE -- SET THIS TO FALSE'
-!  print *, 'WILL TRY ANYWAY'
-!  call err_exit
   do i = 1, lat_in%n_ele_max
     ele => lat_in%ele(i)
     ele%select = .false.
@@ -130,10 +142,17 @@ if (bbu_param%hybridize) then
     endif
     ele%select = .true.
   enddo
+
   call make_hybrid_lat (lat_in, lat, bbu_param%use_taylor_for_hybrids)
   print *, 'Hybridization complete !!!'
+
+  if (bbu_param%write_digested_hybrid_lat) then
+    call write_digested_bmad_file('hybrid.digested', lat)
+    print *, 'Wrote hybrid lattice: hybrid.digested'
+  endif
+
+! If not hybridizing, keep the original lattice
 else
-  ! If not hybridizing, keep the original lattice
   lat = lat_in
 endif
 
@@ -231,8 +250,7 @@ print *, 'bbu_setup complete !!!'
 
 beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
 
-print *, 'Number of stages and elements in the (hybridized) lattice: ' &
-, size(bbu_beam%stage),  lat%n_ele_track
+print '(a, 2i10)', 'Number of stages and elements in the tracking lattice: ' , size(bbu_beam%stage),  lat%n_ele_track
 
 lat = lat0 ! Restore lr wakes
 

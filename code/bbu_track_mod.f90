@@ -48,6 +48,7 @@ type bbu_param_struct
   character(100) :: bunch_by_bunch_info_file = '' ! For outputting bunch-by-bunch info.
   type (bbu_current_variation_struct) :: current_vary
   logical :: hybridize = .true.                  ! Combine non-hom elements to speed up simulation?
+  logical :: write_digested_hybrid_lat = .false. ! For debugging purposes.
   logical :: keep_overlays_and_groups = .false.  ! Keep when hybridizing?
   logical :: keep_all_lcavities  = .false.       ! Keep when hybridizing?
   logical :: use_taylor_for_hybrids = .false.    ! Use taylor map for hybrids when true. Otherwise tracking method is linear.
@@ -245,6 +246,7 @@ bbu_beam%stage%hom_voltage_max = 0
 bbu_beam%hom_voltage_max = 0
 bbu_beam%ix_stage_voltage_max = 1
 growth_rate = real_garbage$
+r_period = 0
 
 !open(28, file = 'volt_v_turn.txt', status = 'unknown', access = 'append')
 !open(29, file = '/home/wl528/nfs/linux_lib/bsim/bbu/examples/volt_v_turn.txt', status = 'unknown', access = 'append')
