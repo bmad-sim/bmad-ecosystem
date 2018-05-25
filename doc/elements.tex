@@ -2287,7 +2287,9 @@ care must be taken if that element attribute is changed. This is discussed in
 \index{hybrid|hyperbf}
 
 A \vn{hybrid} element is an element that is formed by a program by concatenating other element
-together. A \vn{hybrid} is essentially the same as s \vn{taylor} element.
+together. \vn{Hybrid} elements are used to reduce the number of elements in a lattice to speed up a
+simulation. In terms of tracking a \vn{hybrid} element is essentially the same as a \vn{taylor}
+element.
 
 %-----------------------------------------------------------------
 \section{Instrument, Monitor, and Pipe}
@@ -4163,9 +4165,28 @@ with the same \vn{out} and \vn{e1} through \vn{e6} indexes. For example the term
 \end{example}
 will override the default \vn{\{1: 1.0, 1 0 0 0 0 0\}} term.
 
-The \vn{l} length attribute of a \vn{taylor} element does not affect phase space
-coordinates but will affect the longitudinal $s$ position of succeeding elements and will
-affect the time it takes a particle to track through the element.
+The \vn{l} length attribute of a \vn{taylor} element does not affect phase space coordinates but
+will affect the longitudinal $s$ position of succeeding elements and will affect the time it takes a
+particle to track through the element The calculation involves first calculating the change in
+reference time which is the time a particle with the reference energy would take to transverse the
+element. Next, \Eq{zbctt} is used with the change in the phase space $z$ coordinate to calculate
+the time a particle takes to traverse the element.
+
+The time a particle takes to track through a \vn{taylor} element can also be controlled by setting
+the \vn{delta_ref_time} attribute which sets the travel time for the reference
+particle. \vn{delta_ref_time} is a dependent attribute so that if both \vn{l} and
+\vn{delta_ref_time} are set, the value of \vn{delta_ref_time} will be modified by \bmad to
+correspond to the setting of \vn{l}.
+
+The \vn{delta_e_ref} attribute can be used to modify the reference energy at the exit end of the
+\vn{taylor} element. The phase spece transport is completely determined by the Taylor map and is
+independent of \vn{delta_e_ref}. For example, with a unit Taylor map, the phase space coordinates
+$p_x$ and $p_y$ constant through the element independent of \vn{delta_e_ref}. However, a finite
+\vn{delta_e_ref} will modify the reference momentum $P_0$ and hence through \Eq{ppp} will affect the
+transport downstream of the \vn{Taylor} element. This behavior is in contrast to how
+\vn{delta_e_ref} is handled in a \vn{patch} element. In a \vn{patch} element, the transformation
+used when \vn{delta_e_ref} is non-zero is to hold as constant the actual transverse momenta $P_x$
+and $P_y$ and then $p_x$ and $p_y$ are modified using \Eq{ppp}.
 
 A \vn{taylor} element that is ``turned off'' (\vn{is_on} attribute set to False), is
 considered to be like a \vn{marker} element. That is, the orbit and twiss parameters are
