@@ -753,8 +753,11 @@ do ib = 0, ubound(lat%branch, 1)
 
     do iss = 1, size(wall3d%section)
       sec3d => wall3d%section(iss)
-
-      sec3d%ix_ele    = element_at_s(lat, sec3d%s, .true., branch%ix_branch)
+      if (iss == 1) then
+        sec3d%ix_ele    = element_at_s(lat, sec3d%s, .false., branch%ix_branch)
+      else
+        sec3d%ix_ele    = element_at_s(lat, sec3d%s, .true., branch%ix_branch)
+      endif
 
       ix = sec3d%ix_ele
       if (branch%ele(ix)%key == patch$) then

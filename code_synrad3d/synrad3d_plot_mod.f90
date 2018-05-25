@@ -1071,7 +1071,7 @@ type (branch_struct) branch
 
 real(rp) x_wall, y_wall
 real(rp), optional :: dw_perp(3)
-real(rp) d_radius, r_wall, r_part, origin(3)
+real(rp) r_wall, r_part, origin(3)
 
 logical no_wall_here ! No wall at this s-position?
 
@@ -1081,16 +1081,16 @@ x_wall = 0
 y_wall = 0
 
 photon%now%orb%ix_ele = element_at_s (branch%lat, photon%now%orb%s, .true., branch%ix_branch)
-call sr3d_photon_d_radius (photon%now, branch, no_wall_here, d_radius, dw_perp, origin)
+call sr3d_photon_d_radius (photon%now, branch, no_wall_here, dw_perp, origin)
 if (no_wall_here) return
 
-if (d_radius < 0) then
+if (photon%now%d_radius < 0) then
   print *, 'INTERNAL COMPUTATION ERROR!'
   call err_exit
 endif
 
 r_part = sqrt((photon%now%orb%vec(1) - origin(1))**2 + (photon%now%orb%vec(3) - origin(2))**2)
-r_wall = r_part - d_radius
+r_wall = r_part - photon%now%d_radius
 
 x_wall = origin(1) + (photon%now%orb%vec(1) - origin(1)) * r_wall / r_part
 y_wall = origin(2) + (photon%now%orb%vec(3) - origin(2)) * r_wall / r_part
