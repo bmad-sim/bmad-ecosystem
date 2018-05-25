@@ -19,7 +19,7 @@ type (em_field_struct) field
 real(rp) s0, s1, s2, s_end
 real(rp) xmat_c(6,6), vec0_c(6), xmat_d(6,6), vec0_d(6), xmat(6,6), xmat2(6,6)
 
-integer i, j, idum, nargs, is
+integer i, j, idum, nargs, is, n_slice
 logical print_extra, err
 character(100) lat_file
 
@@ -55,8 +55,9 @@ do i = 1, lat%n_ele_track
   ele2 = lat%ele(i-1)
   ele2%a = lat%ele(0)%a;  ele2%b = lat%ele(0)%b  ! Just to have some non-zero beta
   call mat_make_unit(xmat2)
-  do is = 1, 10
-    s_end = (s0 * (10 - is) + s1 * is) / 10
+  n_slice = 2
+  do is = 1, n_slice
+    s_end = (s0 * (n_slice - is) + s1 * is) / n_slice
     call twiss_and_track_from_s_to_s (lat%branch(0), end_orb2, s_end, end_orb2, ele2, ele2, err)
     xmat2 = matmul(ele2%mat6, xmat2)
     if (err) exit
@@ -71,12 +72,12 @@ do i = 1, lat%n_ele_track
     print '(a, 6es14.6)', 'Split:', end_orb2%vec
     print '(a, 7es14.6)', 'Diff: ', end_orb2%vec - end_orb%vec, maxval(abs(end_orb2%vec - end_orb%vec))
     print *
-    print *, 'Whole:'
+    print *, 'Whole:', mat_symp_error(ele%mat6)
     do j = 1, 6
       print '(6f12.6)', ele%mat6(j,:)
     enddo
     print *
-    print *, 'Split:'
+    print *, 'Split:', mat_symp_error(xmat2)
     do j = 1, 6
       print '(6f12.6)', xmat2(j,:)
     enddo
