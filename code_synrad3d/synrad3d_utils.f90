@@ -234,7 +234,7 @@ end subroutine sr3d_emit_photon
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_photon_d_radius (p_orb, branch, no_wall_here, d_radius, dw_perp, origin, ix_wall3d)
+! Subroutine sr3d_photon_d_radius (p_orb, branch, no_wall_here, dw_perp, origin, ix_wall3d)
 !
 ! Routine to calculate the (transverse) radius of the photon  relative to the wall.
 ! Optionally can also caluclate the outwrd normal vector perpendicular to the wall.
@@ -246,12 +246,12 @@ end subroutine sr3d_emit_photon
 !
 ! Output:
 !   no_wall_here   -- logical: True if wall does not longitudinally extend to position.
-!   d_radius       -- real(rp): r_photon - r_wall
+!   p_orb%d_radius -- real(rp): r_photon - r_wall
 !   dw_perp(3)     -- real(rp), optional: Outward normal vector perpendicular to the wall.
 !   origin(3)      -- real(rp), optional: (x, y, z) origin point of wall cross-section at the photon. 
 !-
 
-subroutine sr3d_photon_d_radius (p_orb, branch, no_wall_here, d_radius, dw_perp, origin, ix_wall3d)
+subroutine sr3d_photon_d_radius (p_orb, branch, no_wall_here, dw_perp, origin, ix_wall3d)
 
 implicit none
 
@@ -260,7 +260,7 @@ type (branch_struct), target :: branch
 type (ele_struct), pointer :: ele
 type (floor_position_struct) here
 
-real(rp) d_radius, position(6)
+real(rp) position(6)
 real(rp), optional :: dw_perp(3), origin(3)
 
 integer, optional :: ix_wall3d
@@ -274,11 +274,10 @@ call sr3d_get_section_index (p_orb, branch, ix_wall3d)
 
 ele => branch%ele(p_orb%orb%ix_ele)
 
-position = p_orb%orb%vec
-position(5) = p_orb%orb%s - branch%ele(p_orb%orb%ix_ele-1)%s
-
+position = wall3d_to_position(p_orb%orb, ele)
 ixw = integer_option(p_orb%ix_wall3d, ix_wall3d)
-d_radius = wall3d_d_radius (position, ele, ixw, dw_perp, ixs, no_wall_here, origin)
+
+p_orb%d_radius = wall3d_d_radius (position, ele, ixw, dw_perp, ixs, no_wall_here, origin)
 
 end subroutine sr3d_photon_d_radius
 

@@ -43,7 +43,7 @@ type (coord_struct), pointer :: orb
 type (sr3d_branch_overlap_struct), pointer :: bo
 type (floor_position_struct) floor
 
-real(rp) dw_perp(3), d_radius
+real(rp) dw_perp(3)
 
 integer n, iw, status, ij, ie_start, ie_end, n_subchamber_switch
 integer :: max_subchamber_switch = 100
@@ -282,7 +282,6 @@ type (sr3d_photon_track_struct) photon
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 
-real(rp) d_radius
 integer iw, bad_photon_counter, ix, status
 logical is_inside
 
@@ -342,12 +341,12 @@ function sr3d_photon_status_calc (photon, branch, ix_wall3d, dw_perp) result (st
 
 implicit none
 
-type (sr3d_photon_track_struct) photon
-type (sr3d_coord_struct) now
+type (sr3d_photon_track_struct), target :: photon
+type (sr3d_coord_struct), pointer :: now
 type (branch_struct), target :: branch
 type (wall3d_struct), pointer :: wall3d
 
-real(rp) d_radius, s
+real(rp) s
 real(rp), optional :: dw_perp(3)
 
 integer status
@@ -360,11 +359,11 @@ logical is_through, no_wall_here
 
 status = inside_the_wall$
 
-now = photon%now
+now => photon%now
 call sr3d_get_section_index(now, branch, ix_wall3d)
-call sr3d_photon_d_radius (now, branch, no_wall_here, d_radius, dw_perp = dw_perp, ix_wall3d = ix_wall3d)
+call sr3d_photon_d_radius (now, branch, no_wall_here, dw_perp = dw_perp, ix_wall3d = ix_wall3d)
 
-! Test for at_transverse_wall is if d_radius is in the range [0, significant_length].
+! Test for at_transverse_wall is if now%d_radius is in the range [0, significant_length].
 ! This is better than using a range [-significant_leng, significant_length] since, for near grazing angle
 ! photons traveling towards the wall that stop short of the wall, there is a very small but finite 
 ! possibility that the computed velocity component perpendicular to the wall will point away from the
@@ -372,12 +371,12 @@ call sr3d_photon_d_radius (now, branch, no_wall_here, d_radius, dw_perp = dw_per
 ! origin to a point on the wall is not co-linear with the surface normal at that point. The basic problem is that 
 ! the computation of the wall normal vector only makes physical sense when a particle is exactly at the wall.
 
-if (d_radius > 0 .and. d_radius < sr3d_params%significant_length .and. .not. no_wall_here) then
+if (now%d_radius > 0 .and. now%d_radius < sr3d_params%significant_length .and. .not. no_wall_here) then
   status = at_transverse_wall$
   return
 endif
 
-if (d_radius > 0 .or. no_wall_here) then
+if (now%d_radius > 0 .or. no_wall_here) then
   status = is_through_wall$
   return
 endif    
@@ -562,11 +561,12 @@ propagation_loop: do
           call err_exit
         endif
         call track_a_patch_photon (ele, now_orb, .false.)
-        ! Due to finite pitches, it is possible that now the photon is in some element after the patch.
-        if (now_orb%s > ele%s) then 
-          now_orb%ix_ele = element_at_s(branch, now_orb%s, .false.)
-          ele => branch%ele(now_orb%ix_ele)
-          now_orb%location = inside$
+        ! Due to finite pitches, it is possible that now the photon is in some other element after the patch.
+        ! In that case, just track back to the end of the patch.
+        if (now_orb%s > ele%s) then
+          call track_a_drift_photon (now_orb, -now_orb%vec(5), .false.)
+          now_orb%location = downstream_end$
+          cycle
         endif
       endif
     endif
@@ -789,7 +789,7 @@ type (wall3d_struct), pointer :: wall3d
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 type (sr3d_photon_track_struct) :: photon1
 
-real(rp) r0, r1, path_len, dl
+real(rp) path_len, dl
 real(rp) path_len0, path_len1, d_rad0, d_rad1
 
 integer i
@@ -803,10 +803,10 @@ if (photon%ix_photon_generated == sr3d_params%ix_generated_warn) then
   print *
   print *, '*************************************************************'
   print *, 'Hit:', photon%n_wall_hit
-  call sr3d_photon_d_radius (photon%old, branch, no_wall_here, r0)
-  call sr3d_photon_d_radius (photon%now, branch, no_wall_here, r1)
-  print *, 'photon%old:', photon%old%orb%vec, photon%old%orb%path_len, r0
-  print *, 'photon%now:', photon%now%orb%vec, photon%now%orb%path_len, r1
+  call sr3d_photon_d_radius (photon%old, branch, no_wall_here)
+  call sr3d_photon_d_radius (photon%now, branch, no_wall_here)
+  print *, 'photon%old:', photon%old%orb%vec, photon%old%orb%path_len, photon%old%d_radius
+  print *, 'photon%now:', photon%now%orb%vec, photon%now%orb%path_len, photon%now%d_radius
 endif
 
 ! Bracket the hit point. 
@@ -865,7 +865,7 @@ endif
 photon%now = photon%old
 dl = path_len-photon%now%orb%path_len
 if (abs(dl) > 0.1 * sr3d_params%significant_length) call sr3d_propagate_photon_a_step (photon, branch, dl, .false.)
-call sr3d_photon_d_radius (photon%now, branch, no_wall_here, d_rad0)
+call sr3d_photon_d_radius (photon%now, branch, no_wall_here)
 
 !---------------------------------------------------------------------------
 contains
@@ -920,7 +920,8 @@ endif
 d_track = path_len - photon1%now%orb%path_len
 call sr3d_propagate_photon_a_step (photon1, branch, d_track, .false.)
 
-call sr3d_photon_d_radius (photon1%now, branch, no_wall_here, d_radius)
+call sr3d_photon_d_radius (photon1%now, branch, no_wall_here)
+d_radius = photon1%now%d_radius
 
 end function sr3d_photon_hit_func
 
@@ -1011,7 +1012,7 @@ if (photon%status == at_wall_end$) then
   endif
 
 else
-  call sr3d_photon_d_radius (photon%now, branch, no_wall_here, d_rad, dw_perp)
+  call sr3d_photon_d_radius (photon%now, branch, no_wall_here, dw_perp)
 endif
 
 ! cos_perp is the component of the photon velocity perpendicular to the wall.

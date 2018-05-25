@@ -21,7 +21,8 @@ type sr3d_coord_struct
   type (coord_struct) orb
   integer :: ix_wall_section = not_set$      ! Wall section index.
   integer :: ix_wall3d = 1                   ! branch%wall3d(:) index where photon is within.
-  integer :: ix_branch = -1                  ! lattice branch index.        
+  integer :: ix_branch = -1                  ! lattice branch index.
+  real(rp) :: d_radius = real_garbage$       ! Distance from wall.       
 end type  
 
 ! This structure defines the full track of the photon from start to finish
