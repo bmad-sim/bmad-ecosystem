@@ -452,12 +452,23 @@ case (lcavity$)
 
   call calc_time_ref_orb_out
 
-case (custom$, hybrid$, taylor$)
+case (custom$, hybrid$)
   ele%value(E_tot$) = E_tot_start + ele%value(delta_e_ref$)
   call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
   if (err) return
 
   ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
+
+case (taylor$)
+  ele%value(E_tot$) = E_tot_start + ele%value(delta_e_ref$)
+  call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
+  if (err) return
+
+  if (ele%value(l$) == 0) then
+    ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
+  else
+    ele%ref_time = ref_time_start + ele%value(l$) * E_tot_start / (p0c_start * c_light)
+  endif
 
 case (e_gun$)
   ! Note: Due to the coupling between an e_gun and the init_ele, autoscaling is
