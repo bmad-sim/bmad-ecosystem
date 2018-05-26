@@ -110,11 +110,11 @@ type (sr3d_branch_overlap_struct), allocatable :: branch_overlap(:)
 
 real(rp) s_lat, r0(2), max_r1, max_r2, max_r
 
-integer i, j, k, n, ix, iu, im, iw, it, iss, ns, ios, ib, ie
+integer i, j, k, n, ix, iu, im, iw, it, iss, ns, ios, ib, ie, ix0, ix2, i2
 integer, allocatable :: n_sub_sec(:), ix_sort(:)
 integer n_shape, n_repeat, n_surface, last_type, n_overlap
-integer m_max, n_add, n_sub, ix_ele0, ix_ele1, ix_bend, ix_patch
-integer ix_slow, ix_fast, chamber_end_geometry
+integer m_max, n_add, n_sub, ix_ele0, ix_ele1, ix_bend, ix_patch, ix_b, ix_p
+integer ix_slow, ix_fast, chamber_end_geometry, n_sec
 integer ix_ele1_start, ix_ele1_end, ix_ele2_start, ix_ele2_end, ixe
 
 logical, optional :: err_flag
@@ -511,7 +511,10 @@ do ib = 0, ubound(lat%branch, 1)
   n_sub = 0
   n_sub_sec = 0
   branch => lat%branch(ib)
-  
+
+  chamber_end_geometry = sr3d_params%chamber_end_geometry
+  if (chamber_end_geometry < 0 .or. ib > 0) chamber_end_geometry = branch%param%geometry
+
   do i = 1, wall_in%n_place
     sec => wall_in%section(i)
     if (sec%ix_branch /= ib) cycle
@@ -585,7 +588,6 @@ do ib = 0, ubound(lat%branch, 1)
       endif
     endif
 
-
   enddo
 
   ! Start and End sections must come in non-overlapping pairs
@@ -616,56 +618,58 @@ do ib = 0, ubound(lat%branch, 1)
     endif
   enddo
 
-  ! If the first section of a subchamber is not marked as a starting or ending section it must have s = 0
+  ! For an open lattice geometry if the first section of a subchamber is 
+  ! not marked as a starting or ending section it must have s = 0
 
-  s_lat = branch%ele(branch%n_ele_track)%s
+  if (chamber_end_geometry == open$) then
+    s_lat = branch%ele(branch%n_ele_track)%s
 
-  do i = 1, size(branch%wall3d)
-    wall3d => branch%wall3d(i)
-    if (wall3d%section(1)%type /= normal$) cycle  
-    if (wall3d%section(1)%s /= 0) then
-      call out_io (s_info$, r_name, &
-            'subchamber named "' // trim(wall3d%name) // '" begins at: \f12.4\ ', &
-            'And not at lattice beginning.', &
-            r_array = [wall3d%section(1)%s])
-    endif
-  enddo
+    do i = 1, size(branch%wall3d)
+      wall3d => branch%wall3d(i)
+      if (wall3d%section(1)%type /= normal$) cycle  
+      if (wall3d%section(1)%s /= 0) then
+        call out_io (s_info$, r_name, &
+              'subchamber named "' // trim(wall3d%name) // '" begins at: \f12.4\ ', &
+              'And not at lattice beginning.', &
+              r_array = [wall3d%section(1)%s])
+      endif
+    enddo
+  endif
 
-  ! Subchambers must either stop or have cross section at end of lattice
+  ! For an open lattice geometry, subchambers must either stop or have cross section at end of lattice.
 
-  do i = 1, size(branch%wall3d)
-    wall3d => branch%wall3d(i)
-    n = ubound(wall3d%section, 1)
-    if (n == 1) then
-      call out_io (s_fatal$, r_name, 'subchamber named "' // trim(wall3d%name) // '" has only one section.')
-      call err_exit
-    endif
+  if (chamber_end_geometry == open$) then
+    do i = 1, size(branch%wall3d)
+      wall3d => branch%wall3d(i)
+      n = ubound(wall3d%section, 1)
+      if (n == 1) then
+        call out_io (s_fatal$, r_name, 'subchamber named "' // trim(wall3d%name) // '" has only one section.')
+        call err_exit
+      endif
 
-    if (wall3d%section(1)%type /= wall_start$ .and. wall3d%section(1)%s /= 0) then
-      call out_io (s_info$, r_name, &
-            'subchamber named "' // trim(wall3d%name) // '" has first cross-section at s =: \f12.4\ ', &
-            'And not at s = 0.', &
-            r_array = [wall3d%section(1)%s])
-      call err_exit
-    endif
+      if (wall3d%section(1)%type /= wall_start$ .and. wall3d%section(1)%s /= 0) then
+        call out_io (s_info$, r_name, &
+              'subchamber named "' // trim(wall3d%name) // '" has first cross-section at s =: \f12.4\ ', &
+              'And not at s = 0.', &
+              r_array = [wall3d%section(1)%s])
+        call err_exit
+      endif
 
 
-    if (wall3d%section(n)%type /= wall_end$ .and. abs(wall3d%section(n)%s - s_lat) > 0.01) then
-      call out_io (s_info$, r_name, &
-            'subchamber named "' // trim(wall3d%name) // '" ends at: \f12.4\ ', &
-            'And not at lattice end of: \f12.4\ ', &
-            '[But last point is always adjusted to have s = s_lat]', &
-            r_array = [wall3d%section(n)%s, s_lat])
-    endif
+      if (wall3d%section(n)%type /= wall_end$ .and. abs(wall3d%section(n)%s - s_lat) > 0.01) then
+        call out_io (s_info$, r_name, &
+              'subchamber named "' // trim(wall3d%name) // '" ends at: \f12.4\ ', &
+              'And not at lattice end of: \f12.4\ ', &
+              '[But last point is always adjusted to have s = s_lat]', &
+              r_array = [wall3d%section(n)%s, s_lat])
+      endif
 
-    if (wall3d%section(n)%type /= wall_end$) wall3d%section(n)%s = s_lat
-  enddo
+      if (wall3d%section(n)%type /= wall_end$) wall3d%section(n)%s = s_lat
+    enddo
+  endif
 
   ! Subchambers that wrap around s = 0 (in closed lattices) must have same cross-section at 
   ! beginning/end of lattice.
-
-  chamber_end_geometry = sr3d_params%chamber_end_geometry
-  if (chamber_end_geometry < 0) chamber_end_geometry = branch%param%geometry   ! In case this routine is used by something other than the synrad3d program
 
   if (chamber_end_geometry == closed$) then
    do i = 1, size(branch%wall3d)
@@ -693,44 +697,78 @@ do ib = 0, ubound(lat%branch, 1)
     i = 0
     do
       i = i + 1
-      if (i == size(wall3d%section)) exit
+      n_sec = size(wall3d%section)
+
+      if (i > n_sec) exit
+      if (i == n_sec .and. wall3d%section(n_sec)%type == wall_end$) exit
 
       ix_ele0 = element_at_s(lat, wall3d%section(i)%s,   .true., branch%ix_branch)
-      ix_ele1 = element_at_s(lat, wall3d%section(i+1)%s, .false., branch%ix_branch)
+      i2 = mod(i, n_sec) + 1
+      ix_ele1 = element_at_s(lat, wall3d%section(i2)%s, .false., branch%ix_branch)
 
       ix_bend = -1    ! Index of last bend before patch or first bend after patch
       ix_patch = -1   ! Index of last patch before bend or first patch after bend
-      do j = ix_ele0, ix_ele1
-        if (branch%ele(j)%key == sbend$ .and. (ix_bend == -1 .or. ix_patch == -1)) ix_bend = j
-        if (branch%ele(j)%key == patch$ .and. (ix_bend == -1 .or. ix_patch == -1)) ix_patch = j
-      enddo
+      ele => branch%ele(ix_ele0)
 
-      if (branch%ele(j)%key == patch$ .and. branch%ele(j)%orientation == -1) then
-        call out_io (s_fatal$, r_name, 'PATCH ELEMENTS WITH ORIENTATION = -1 NOT YET IMPLEMENTED!')
-        call err_exit
-      endif
+      ! Must be able to handle case where the wall has only one wall section
+
+      if (ix_ele0 == ix_ele1 .and. wall3d%section(i)%s < wall3d%section(i2)%s) cycle
+
+      do 
+        if (ele%key == sbend$) ix_bend = ele%ix_ele
+        if (ele%key == patch$) ix_patch = ele%ix_ele
+        if (ix_bend /= -1 .and. ix_patch /= -1) exit
+
+        if (ele%ix_ele == ix_ele1 .and. ix_ele1 /= ix_ele0) exit
+
+        if (ele%key == patch$ .and. ele%orientation == -1) then
+          call out_io (s_fatal$, r_name, 'PATCH ELEMENTS WITH ORIENTATION = -1 NOT YET IMPLEMENTED!')
+          call err_exit
+        endif
+
+        ele => pointer_to_next_ele(ele)
+        if (ele%ix_ele == ix_ele1 .and. ix_ele1 == ix_ele0) exit
+      enddo
 
       if (ix_bend == -1 .or. ix_patch == -1) cycle
 
       ! Need to add an additional section
 
-      n = size(wall3d%section)
       call move_alloc (wall3d%section, temp_section3d)
-      allocate (wall3d%section(1:n+1))
-      wall3d%section(1:i) = temp_section3d(1:i)
-      wall3d%section(i+2:n+1) = temp_section3d(i+1:n)
+      allocate (wall3d%section(1:n_sec+1))
+
+      ! Wall wrapping around case.
+      if (ix_bend < ix_ele0 .and. ix_patch < ix_ele0) then
+        wall3d%section(2:n_sec+1) = temp_section3d(1:n_sec)
+        sec3d => wall3d%section(1)
+        ix0 = n_sec + 1
+        ix2 = 2
+        i = 0  ! Reset
+      ! Normal case.
+      else
+        wall3d%section(1:i) = temp_section3d(1:i)
+        if (i /= n_sec) wall3d%section(i+2:n_sec+1) = temp_section3d(i+1:n_sec)
+        sec3d => wall3d%section(i+1)
+        ix0 = i
+        ix2 = mod(i+1, n_sec+1) + 1
+      endif
+
       deallocate (temp_section3d)
 
       ! Remember: Patch can have negative length
 
-      sec3d => wall3d%section(i+1)
+      ix_b = ix_bend
+      if (ix_b < ix_ele0) ix_b = ix_b + branch%n_ele_track
 
-      if (ix_bend < ix_patch) then  ! Add section at end of bend, before patch
-        sec3d = wall3d%section(i)
-        sec3d%s = min(branch%ele(ix_bend)%s, branch%ele(ix_patch)%s - branch%ele(ix_patch)%value(l$))
+      ix_p = ix_patch
+      if (ix_p < ix_ele0) ix_p = ix_p + branch%n_ele_track
+
+      if (ix_b < ix_p) then  ! Add section at end of bend, before patch
+        sec3d = wall3d%section(ix0)
+        sec3d%s = min(branch%ele(ix_bend)%s, branch%ele(ix_patch)%s_start)
       else  ! Add section at beginning of bend, after patch
-        sec3d = wall3d%section(i+2)
-        sec3d%s = max(branch%ele(ix_bend)%s - branch%ele(ix_bend)%value(l$), branch%ele(ix_patch)%s)
+        sec3d = wall3d%section(ix2)
+        sec3d%s = max(branch%ele(ix_bend)%s_start, branch%ele(ix_patch)%s)
       endif
 
       if (sec3d%name(1:6) /= 'ADDED:') then
@@ -946,7 +984,7 @@ ele2 => ele
 ll = 0
 
 do
-  if (branch%param%geometry == open$ .and. ele2%ix_ele == 1) exit
+  if (chamber_end_geometry == open$ .and. ele2%ix_ele == 1) exit
   ele2 => pointer_to_next_ele(ele2, -1)
   ll = ll + ele2%value(l$)
   if (ll > len_region) exit
@@ -960,7 +998,7 @@ ele2 => ele
 ll = 0
 
 do
-  if (branch%param%geometry == open$ .and. ele2%ix_ele == branch%n_ele_track) exit
+  if (chamber_end_geometry == open$ .and. ele2%ix_ele == branch%n_ele_track) exit
   ele2 => pointer_to_next_ele(ele2, 1)
   ll = ll + ele2%value(l$)
   if (ll > len_region) exit
