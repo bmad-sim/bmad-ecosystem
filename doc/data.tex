@@ -419,7 +419,8 @@ coming from. Possible values are:
 If \vn{data_source} is set to \vn{"beam"}, the data is calculated
 using multiparticle tracking.  If \vn{data_source} is set to
 \vn{"lat"}, the data is calculated using the ``lattice'' which here
-means everything {\em but} multiparticle tracking.  For example, the
+means everything {\em but} multiparticle tracking In particular, the "\vn{lat}" \vn{data_source}
+includes data derived from single particle tracking. For example, the
 \vn{"beam"} based calculation of the emittance uses the bunch sigma
 matrix obtained through multiparticle tracking. The \vn{"lat"} based
 calculation of the emittance uses radiation integrals.
@@ -791,7 +792,7 @@ Normal mode Twiss gamma function.
 Measured beam coupling parameters. See also \vn{bpm_k.11b, ...}.
 
   \item[momentum] \Newline
-Particle momentum.
+Particle momentum amplitude.
 
   \item[momentum_compaction] \Newline
 Momentum compaction factor. Also see \vn{r56_compaction}.
