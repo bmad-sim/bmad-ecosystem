@@ -331,6 +331,15 @@ if (p_orb%orb%s > wall3d%section(n_max)%s) then
   return
 endif
 
+if (n_max == 1) then
+  if (p_orb%orb%vec(6) > 0) then
+    ix_sec = 0
+  else
+    ix_sec = 1
+  endif
+  return
+endif
+
 if (ix_sec == not_set$ .or. ix_sec < 1) ix_sec = 1
 if (ix_sec >= n_max) ix_sec = n_max - 1
 

@@ -360,7 +360,6 @@ logical is_through, no_wall_here
 status = inside_the_wall$
 
 now => photon%now
-call sr3d_get_section_index(now, branch, ix_wall3d)
 call sr3d_photon_d_radius (now, branch, no_wall_here, dw_perp = dw_perp, ix_wall3d = ix_wall3d)
 
 ! Test for at_transverse_wall is if now%d_radius is in the range [0, significant_length].
