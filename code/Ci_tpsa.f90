@@ -95,7 +95,7 @@ private EQUALq_r,EQUALq_8_c,EQUALq_c_8,EQUALq,POWq,c_invq,subq,mulq,addq,alloc_c
 private c_pri_quaternion,CUTORDERquaternion,c_trxquaternion,EQUALq_c_r,EQUALq_r_c,mulcq,c_exp_quaternion
 private equalc_quaternion_c_spinor,equalc_spinor_c_quaternion
 private c_exp_vectorfield_on_quaternion,c_vector_field_quaternion,addql,subql,mulqdiv,powql
-
+real(dp) dts
 real(dp), private :: sj(6,6)
 type q_linear
 complex(dp) mat(6,6)
@@ -10150,13 +10150,17 @@ subroutine c_full_canonise(at,a_cs,as,a0,a1,a2,rotation,phase,nu_spin)
     call alloc(pha,tune_spin)   
     
   !  at= (a,s) =  (a,I) o  (I,s)
-    call c_full_norm_spin(at%s,kspin,norm)  
+  !  call c_full_norm_spin(at%s,kspin,norm)  
+    call c_full_norm_spin_map(at,kspin,norm)
+ 
  ! storing the spin because the code is careless (sets it to zero)   
       if(kspin==-1) then
          att=at
          att%s=1
+         att%q=1.0_dp
          ast=1
-         ast%s=at%s 
+         ast%s=at%s
+         ast%q=at%q 
       else
        att=at
        ast=1
@@ -10165,10 +10169,13 @@ subroutine c_full_canonise(at,a_cs,as,a0,a1,a2,rotation,phase,nu_spin)
 !  at= (a,s) =  (att,I) o  (I,ats)
 
       att%s=0
+      att%q=0.0_dp
 
       ar=1
  
     call extract_a0(att,a0t)
+ 
+
 
 !call print(phi%v(6),6)
 !pause 1
@@ -10184,19 +10191,32 @@ subroutine c_full_canonise(at,a_cs,as,a0,a1,a2,rotation,phase,nu_spin)
 !pause 3
 
     a2t=att
-    if(kspin==-1) ast%s=ast%s*phi**(-1)
+    if(kspin==-1) then 
+    if(use_quaternion)   THEN
+      ast%q=ast%q*phi**(-1)
+     else
+      ast%s=ast%s*phi**(-1)
+     endif
+
+    endif
     if(present(phase).or.present(rotation))     then 
          if(present(rotation)) then
            rotation=phi
            rotation%s=1
+           rotation%q=1.0_dp
          endif
          phi=c_simil(from_phasor(-1),phi,1)
     endif
 
-    a0t%s=1
-    a1t%s=1
-    a2t%s=1
-
+    if(use_quaternion)   THEN
+      a0t%q=1.0_dp
+      a1t%q=1.0_dp
+      a2t%q=1.0_dp
+     else
+      a0t%s=1
+      a1t%s=1
+      a2t%s=1
+    endif
     if(kspin==-1) then
      call c_remove_y_rot(ast,ar,tune_spin)
      if(present(nu_spin) ) nu_spin=tune_spin/twopi+nu_spin
@@ -10207,7 +10227,11 @@ subroutine c_full_canonise(at,a_cs,as,a0,a1,a2,rotation,phase,nu_spin)
     a_cs=a0t*a1t*a2t
 
       if(kspin==-1) then
+        if(use_quaternion) then
+         ast%q=ast%q*a_cs**(-1)
+        else
          ast%s=ast%s*a_cs**(-1)    !! at= ast*a_cs * rotation 
+        endif
       endif
 
     a_cs=ast*a_cs
@@ -10390,7 +10414,7 @@ end subroutine c_full_factorise
     logical(lp) removeit,rad_in
     complex(dp) v,lam,egspin(3)
     complex(dp), allocatable :: eg(:)
-    real(dp) norm,alpha,cx,sx,prec
+    real(dp) norm,alpha,prec !,cx,sx
     logical(lp), optional :: dospin
     logical dospinr
     type(c_spinor) n0,nr
@@ -10604,13 +10628,15 @@ endif
  
 
 if(use_quaternion)then
-      call c_normal_spin_linear_quaternion(m1,m1,n%AS,qn0)
+      call c_normal_spin_linear_quaternion(m1,m1,n%AS,qn0,alpha)
 
       ri=1 ; ri%q=m1%q.sub.0 ; ! exp(theta_0 L_y)   (2)
-      sx=sqrt(ri%q%x(1)**2+ri%q%x(2)**2+ri%q%x(3)**2)
-      cx=ri%q%x(0)
-      alpha=-2*atan2(sx,cx)
-
+!      sx=sqrt(ri%q%x(1)**2+ri%q%x(2)**2+ri%q%x(3)**2)
+!      cx=ri%q%x(0)
+!write(6,*) alpha
+!      alpha=-(-2*atan2(sx,cx))
+!write(6,*) alpha
+!pause 723
       egspin(3)=cos(alpha)-i_*sin(alpha)
       egspin(2)=1.0_dp
       egspin(1)=cos(alpha)+i_*sin(alpha) 
@@ -10838,32 +10864,30 @@ endif
  end subroutine c_normal
 
 
- subroutine c_normal_spin_linear_quaternion(m_in,m_out,as,qn0) 
+ subroutine c_normal_spin_linear_quaternion(m_in,m_out,as,qn0,alpha) 
 !#restricted: normal
 !# This routine normalises the constant part of the spin matrix. 
 !# m_out=as**(-1)*m_in*as
   implicit none
   type(c_damap), intent(inout) :: m_in,m_out,as
   type(c_quaternion), intent (inout) :: qn0
-  type(quaternion) q0,q1,e_y,q3,e_x,qs
+  type(quaternion) q0,q1,e_y,q3,qs
   real(dp) alpha,cosalpha,sinalpha
 
 q0=m_in%q.sub.0
- 
+
          as=1
- ! q0 = cos(t/2) + sin(t/2) n.l
+
 q1=q0
 q1%x(0)=0.0_dp
 qs=1.0_dp/sqrt(q1%x(1)**2+q1%x(2)**2+q1%x(3)**2)
-q1=q1*qs
+q1=q1*qs   ! q1=n
 
 e_y=0.0_dp
 e_y%x(2)=1.0_dp
  
 
-
-
-q3=e_y*q1
+q3=q1*e_y
 
  ! q3 =-n.j + n x j . l
 
@@ -10876,25 +10900,34 @@ sinalpha=sqrt(q3%x(1)**2+q3%x(2)**2+q3%x(3)**2)
 alpha= atan2(sinalpha,cosalpha)
 
 
+
 if(alpha==0.and.cosalpha/=-1.0_dp) then
- write(6,*) "weird in c_normal_spin_linear_quaternion "
- stop 
-endif
+! write(6,*)sinalpha,cosalpha
+! write(6,*) "weird in c_normal_spin_linear_quaternion "
+! pause 123 
+ q3=1.0_dp
+
+
+else
 
 if(cosalpha==-1.0_dp)  then
  q3=-1.0_dp
 else 
  q3%x(0)=cos(alpha/2)
- q3%x(1:3)=sin(alpha/2)*q3%x(1:3)/sinalpha 
+ q3%x(1:3)=-sin(alpha/2)*q3%x(1:3)/sinalpha 
+
 endif
 
-e_x=0.0_dp
-e_x%x(1)=1.0_dp
 
-as%q=q3*e_x
+endif
 
+  
+
+as%q=q3   
         m_out=c_simil(AS,m_in,-1)
+q0=m_out%q
 
+alpha=2*atan2(q0%x(2),q0%x(0))
  
  end  subroutine c_normal_spin_linear_quaternion
 
@@ -13052,6 +13085,22 @@ function c_vector_field_quaternion(h,ds) ! spin routine
     enddo
 
   end subroutine c_full_norm_damap
+
+
+  subroutine c_full_norm_spin_map(m,k,norm) ! spin routine
+    implicit none
+    TYPE(c_damap), INTENT(IN) :: m
+    real(dp) norm
+    integer i,k
+
+    norm=0.0_dp
+    if(use_quaternion) then
+     call c_full_norm_quaternion(m%q,k,norm)
+    else
+     call c_full_norm_spin(m%s,k,norm)
+    endif
+
+  end subroutine c_full_norm_spin_map
 
   subroutine c_full_norm_spinmatrix(s,norm) ! spin routine
     implicit none
@@ -15383,10 +15432,12 @@ end subroutine extract_a2
     check=.true.
     norm1=mybig
 
-       call c_full_norm_spin(as_xyz%s,i,EPS=d)
-      
+    !   call c_full_norm_spin(as_xyz%s,i,EPS=d)
+      call c_full_norm_spin_map(as_xyz,i,d)
+ 
       eps=d*eps
 !      write(6,*) eps
+
 
 !pause 1256
 
@@ -15424,7 +15475,7 @@ end subroutine extract_a2
        as_y=temp**(-1)*as_y
    !    write(6,*) norm1, norm2,i
        if(check) then
-          if(norm2<eps) then
+          if(norm2<eps.and.i>10) then
              check=.false.
           endif
        else
@@ -15467,10 +15518,13 @@ end subroutine extract_a2
     type(c_damap) temp,as_y,as_nl,rot_y
     type(c_spinor) n_expo,n_tune,tune0
     type(c_taylor) tr
+    type(taylor) si,co
+     real(dp) si0,co0
     type(c_taylor) t
+    type(c_quaternion) qnr
     integer i
     integer  nmax
-    real(dp) eps,norm1,norm2,d
+    real(dp) eps,norm1,norm2,d,dt
     logical check
 !!!  original as_xyz = as_xyz*r_y = a_y*a_nl*r_y  on exit
     check=.true.
@@ -15482,7 +15536,9 @@ end subroutine extract_a2
     call alloc(tune0)
     call alloc(temp,as_y,as_nl,rot_y)
     call alloc(tr)
+    call alloc(si,co)
     call alloc(t)
+    call alloc(qnr)
     tune0=0
     as_y=as_xyz
        as_y=from_phasor(-1)*as_y*from_phasor()
@@ -15491,9 +15547,10 @@ end subroutine extract_a2
     temp=1
     check=.true.
     norm1=mybig
+dt=0
+!       call c_full_norm_spin(as_xyz%s,i,EPS=d)
+      call c_full_norm_spin_map(as_xyz,i,d)
 
-       call c_full_norm_spin(as_xyz%s,i,EPS=d)
-      
       eps=d*eps
 !      write(6,*) eps
 
@@ -15503,52 +15560,111 @@ end subroutine extract_a2
    !    call find_exponent_only(as_y,n_expo)
 
  
-
-       n_expo=log(as_y%s,exact=my_false)
-
-
-
-
-       !     call dalog_spinor_8(as_y,n_expo)
-       norm2=0.0_dp
-  !     call c_n0_to_nr(n_expo,n_tune)  ! not necessary
- 
-       n_tune=n_expo
- 
-       n_tune%v(1)=0.0_dp
-       n_tune%v(3)=0.0_dp
- 
- 
-       call cfu(n_tune%v(2),c_phase_shift,n_tune%v(2))
+      if(use_quaternion) then
+            temp%q=1.0_dp
+            si0=as_y%q%x(2)
+            co0=as_y%q%x(0)
+!call print(as_y%q,16)
+            n_expo=as_y%q 
+             call c_n0_to_nr(n_expo,n_tune)  ! not necessary
   
- 
-        tune0%v(2)=tune0%v(2)+n_tune%v(2) 
+            n_tune=n_expo
+  
+            n_tune%v(1)=0.0_dp
+            n_tune%v(3)=0.0_dp
+  
+  
+            call cfu(n_tune%v(2),c_phase_shift,n_tune%v(2))
+qnr=n_tune
+  temp%q=exp(qnr)
+n_tune%v(2)=n_tune%v(2)*2.0_dp
+!write(16,*) 1,si0,co0
+        
+ !           co0= atan2(si0,co0) 
+!write(16,*) co0
+!            co0=asin(si0)
+!write(16,*) co0
+ !           temp%q%x(0)=cos(co0)
+ !           temp%q%x(2)=sin(co0)
+            
+ !  n_tune%v(2)=co0*2.0_dp
+ !        t=as_y%q%x(0)+i_*as_y%q%x(2)
+ !       t= log( t)
+ !       t=aimag(t)
+ !          n_tune%v(2)= 2*t
+ !             temp%q%x(0)=cos(t)
+ !             temp%q%x(2)=sin(t)
         norm2=FULL_ABS(n_tune%v(2)) 
+!write(6,*) norm2
+!write(6,*) i,norm2
+!call print(as_y%q%x(0))
+!call print(temp%q%x(2))
+! call print(as_y%q%x(2))
+
+!pause 123
+       else
+            n_expo=log(as_y%s,exact=my_false)
+            !     call dalog_spinor_8(as_y,n_expo)
+            norm2=0.0_dp
+             call c_n0_to_nr(n_expo,n_tune)  ! not necessary
+  
+            n_tune=n_expo
+  
+            n_tune%v(1)=0.0_dp
+            n_tune%v(3)=0.0_dp
+  
+  
+            call cfu(n_tune%v(2),c_phase_shift,n_tune%v(2))
+              temp%s=exp(n_tune)
+      endif
+
+
+            dt=dt+n_tune%v(2)
+            tune0%v(2)=tune0%v(2)+n_tune%v(2) 
+
+
+        norm2=FULL_ABS(n_tune%v(2)) 
+ 
   !      call c_nr_to_n0(n_tune,n_expo) 
        !  enddo
-       temp%s=exp(n_tune)
+
+
+
+
  
  
        rot_y=temp*rot_y
     !   call inv_as(temp%s%s,temp%s%s)
        as_y=as_y*temp**(-1)
    !    write(6,*) norm1, norm2,i
+if(use_quaternion) then
        if(check) then
           if(norm2<eps) then
              check=.false.
           endif
        else
+          if(norm2>=norm1) goto 123   !.and.i>40) exit
+       endif
+else
+       if(check) then
+          if(norm2<eps) then
+             check=.false.
+          endif
+       else
+
           if(norm2>=norm1) exit   !.and.i>40) exit
        endif
+endif
        norm1=norm2
+
     enddo
 
     if(i>nmax-10) then
-       write(6,*) "no convergence in remove_y_rot "
+       write(6,*) "no convergence in remove_y_rot ",norm2,norm1,i
        !stop 1067
     endif
     
-    as_xyz=from_phasor()*as_y*from_phasor(-1)
+123    as_xyz=from_phasor()*as_y*from_phasor(-1)
 
  
     if(present(r_y)) then
@@ -15559,12 +15675,17 @@ end subroutine extract_a2
         tune=spin_def_tune*tune0%v(2)   ! in phasors
        endif
 
+ 
+
     call kill(n_expo)
     call kill(temp,as_y,as_nl,rot_y)
     call kill(tune0)
+    call kill(si,co)
     call kill(tr)
     call kill(n_tune)
     call kill(t)
+    call kill(qnr)
+
 
   end subroutine c_remove_y_rot
 
@@ -16665,7 +16786,7 @@ b=0
 
 ri=0
 b=u
-
+ 
 if(ndpt/=0)  call extract_a0_mat(b,b0)
 
 s=matmul(matmul(b,s),transpose(b))
@@ -16697,7 +16818,6 @@ enddo
   
     endif
  
-
  if(present(phase)) then
      ang=-atan2(sphi,cphi)
   phase(i)=phase(i)-ang/twopi
@@ -16767,7 +16887,7 @@ q_c=qc*cri
 endif
 
 endif
-
+ 
  if(present(spin_tune)) then
   spin_tune(2)=spin_tune(2)-daq/pi
  endif

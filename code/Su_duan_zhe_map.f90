@@ -231,12 +231,14 @@ contains
 
   END SUBROUTINE KILL_TREE
 
-   subroutine print_probe_zhe(DS,MF)
+   subroutine print_probe_zhe(DS,MFF)
     implicit none
     TYPE(probe), INTENT(INOUT) :: DS
-    INTEGER MF,I
+    INTEGER I,mf
+    INTEGER, optional :: MFf
  
-
+    mf=6
+    if(present(mff)) mf=mff
     WRITE(MF,*) " ORBIT "
     do i=1,6
        write(mf,*) ' Variable ',i

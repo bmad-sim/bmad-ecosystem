@@ -216,7 +216,7 @@ endif
     REAL(DP) RA(2)
     REAL(DP) XA,YA,DXA,DYA, DC_ac,A_ac,theta_ac,D_ac
     real(dp), allocatable :: an(:),bn(:) !,n_co(:)
-    integer icnmin,icnmax,n_ac,inode !,n_coeff
+    integer icnmin,icnmax,n_ac,inode,icav !,n_coeff
     logical :: longprintt,onemap
 !    logical :: log_estate=.true. 
     integer :: mftune=6,nc
@@ -1383,7 +1383,7 @@ write(6,*) " closed orbit at position ",i1
           READ(MF,*) i1,I2,i3  ! position
           READ(MF,*) MY_A_NO  ! ORDER OF THE MAP
           READ(MF,*) fixp,fact,noca  !  SYMPLECTIC , factored
-    !      READ(MF,*) filename
+          READ(MF,*) filename
           if(.not.associated(my_ering%t)) call make_node_layout(my_ering)
           
            
@@ -1409,9 +1409,22 @@ write(6,*) " closed orbit at position ",i1
              else
                 ft=>my_fring%start       
              endif
+
+if(noca) then
+             call FIND_ORBIT_x(x_ref,time0+nocavity0,1.d-7,fibre1=f1)
+else
              call FIND_ORBIT_x(x_ref,time0,1.d-7,fibre1=f1)
+endif  
+
+             name_root=filename
+             call context(name_root)
+             if(name_root(1:2)=='NO') then
+              call fill_tree_element_line(f1,f2,ft,i2,x_ref,fact,nocav=noca)
+             else
+              call fill_tree_element_line(f1,f2,ft,i2,x_ref,fact,nocav=noca,file=filename)
+             endif
   
-              call fill_tree_element_line(f1,f2,ft,MY_A_NO,x_ref,fact,nocav=noca)
+
 
                     ft%mag%forward(3)%symptrack=FIXP
                     ft%magP%forward(3)%symptrack=FIXP
@@ -1433,7 +1446,7 @@ write(6,*) " closed orbit at position ",i1
           READ(MF,*) i1,i3  ! position
           READ(MF,*) I2  ! ORDER OF THE MAP
           READ(MF,*) fixp,fact,noca  !  SYMPLECTIC , factored
-    !      READ(MF,*) filename
+          READ(MF,*) filename
           if(.not.associated(my_ering%t)) call make_node_layout(my_ering)
           
            p=>my_ering%start
@@ -1453,14 +1466,20 @@ write(6,*) " closed orbit at position ",i1
              else
                 ft=>my_fring%start       
              endif
+if(noca) then
+             call FIND_ORBIT_x(x_ref,time0+nocavity0,1.d-7,fibre1=f1)
+else
              call FIND_ORBIT_x(x_ref,time0,1.d-7,fibre1=f1)
-         !    name_root=filename
-        !     call context(name_root)
-       !      if(name_root(1:2)=='NO') then
+endif  
+write(6,*) x_ref
+       
+             name_root=filename
+             call context(name_root)
+             if(name_root(1:2)=='NO') then
               call fill_tree_element_line(f1,f2,ft,i2,x_ref,fact,nocav=noca)
-       !      else
-        !      call fill_tree_element_line(f1,f2,ft,i2,x_ref,fact,nocav=noca,file=filename)
-      !       endif
+             else
+              call fill_tree_element_line(f1,f2,ft,i2,x_ref,fact,nocav=noca,file=filename)
+             endif
                     ft%mag%forward(3)%symptrack=FIXP
                     ft%magP%forward(3)%symptrack=FIXP
                     ft%mag%do1mapf=.true.
@@ -1537,6 +1556,7 @@ write(6,*) " closed orbit at position ",i1
           READ(MF,*) skipcav  !  skip cavity 
           icnmin=0
           icnmax=0
+          icav=0
           x_ref=0.0_DP
            n_ac=0
           if(.not.associated(my_ering%t)) call make_node_layout(my_ering)
@@ -1567,7 +1587,8 @@ write(6,*) " closed orbit at position ",i1
                     p%mag%BACKward(3)%symptrack=FIXP
                     p%magP%BACKward(3)%symptrack=FIXP
                    ENDIF
-  
+              else
+                icav=icav+1
               endif
              else
               icnmin=icnmin+1
@@ -1578,6 +1599,7 @@ write(6,*) " closed orbit at position ",i1
           enddo
          write(6,*) icnmax, " changed into Taylor maps "
          write(6,*) icnmin, " markers "
+         write(6,*) icav, " cavities left alone "
          write(6,*) my_ering%N, " total number of fibres "
        case('REMOVEALLMAPS')
        READ(MF,*) I1,I2  ! ORDER OF THE MAP
