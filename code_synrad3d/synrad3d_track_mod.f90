@@ -48,7 +48,7 @@ real(rp) dw_perp(3)
 integer n, iw, status, ij, ie_start, ie_end, n_subchamber_switch
 integer :: max_subchamber_switch = 100
 
-logical absorbed, err, no_wall_here
+logical absorbed, err, no_wall_here, inward_bound
 logical, optional :: one_reflection_only
 
 character(*), parameter :: r_name = 'sr3d_track_photon'
@@ -97,9 +97,9 @@ main_loop: do
   do iw = 1, size(branch%wall3d)
     if (iw == photon%now%ix_wall3d) cycle
     status = sr3d_photon_status_calc (photon, branch, iw, dw_perp)
-
-    if (status == inside_the_wall$ .or. (status == at_transverse_wall$ .and. &
-                                           dot_product (photon%now%orb%vec(2:6:2), dw_perp) < 0)) then
+    inward_bound = (dot_product (photon%now%orb%vec(2:6:2), dw_perp) < 0)
+    if ((status == at_transverse_wall$ .and. inward_bound) .or. &
+        (status == inside_the_wall$ .and. (photon%now%d_radius < -sr3d_params%significant_length .or. inward_bound))) then
       photon%now%ix_wall3d = iw
       photon%status = status
       n_subchamber_switch = n_subchamber_switch + 1
@@ -363,14 +363,14 @@ now => photon%now
 call sr3d_photon_d_radius (now, branch, no_wall_here, dw_perp = dw_perp, ix_wall3d = ix_wall3d)
 
 ! Test for at_transverse_wall is if now%d_radius is in the range [0, significant_length].
-! This is better than using a range [-significant_leng, significant_length] since, for near grazing angle
+! This is better than using a range [-significant_length, significant_length] since, for near grazing angle
 ! photons traveling towards the wall that stop short of the wall, there is a very small but finite 
 ! possibility that the computed velocity component perpendicular to the wall will point away from the
 ! wall. This will confuse sr3d_reflect_photon. This can happen when the line segment from the cross-section
 ! origin to a point on the wall is not co-linear with the surface normal at that point. The basic problem is that 
 ! the computation of the wall normal vector only makes physical sense when a particle is exactly at the wall.
 
-if (now%d_radius > 0 .and. now%d_radius < sr3d_params%significant_length .and. .not. no_wall_here) then
+if (.not. no_wall_here .and. (now%d_radius > 0 .and. now%d_radius < sr3d_params%significant_length)) then
   status = at_transverse_wall$
   return
 endif
@@ -400,7 +400,9 @@ endif
 if (now%orb%vec(6) > 0) then
   ix = branch%n_ele_track
   if (end_geometry == open$ .and. s == branch%ele(ix)%s) status = at_wall_end$
-  if (s == wall3d%section(ixs+1)%s .and. wall3d%section(ixs+1)%type == wall_end$) status = at_wall_end$
+  if (ixs + 1 == size(wall3d%section)) then
+    if (s == wall3d%section(ixs+1)%s .and. wall3d%section(ixs+1)%type == wall_end$) status = at_wall_end$
+  endif
 endif
 
 end function sr3d_photon_status_calc

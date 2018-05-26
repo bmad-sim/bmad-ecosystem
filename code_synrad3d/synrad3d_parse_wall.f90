@@ -108,7 +108,7 @@ type (sr3d_section_struct) ref_section
 type (ele_struct), pointer :: ele, ele2, ele0
 type (sr3d_branch_overlap_struct), allocatable :: branch_overlap(:)
 
-real(rp) s_lat, r0(2), max_r1, max_r2, max_r
+real(rp) s_branch, r0(2), max_r1, max_r2, max_r
 
 integer i, j, k, n, ix, iu, im, iw, it, iss, ns, ios, ib, ie, ix0, ix2, i2
 integer, allocatable :: n_sub_sec(:), ix_sort(:)
@@ -511,6 +511,7 @@ do ib = 0, ubound(lat%branch, 1)
   n_sub = 0
   n_sub_sec = 0
   branch => lat%branch(ib)
+  s_branch = branch%ele(branch%n_ele_track)%s
 
   chamber_end_geometry = sr3d_params%chamber_end_geometry
   if (chamber_end_geometry < 0 .or. ib > 0) chamber_end_geometry = branch%param%geometry
@@ -622,8 +623,6 @@ do ib = 0, ubound(lat%branch, 1)
   ! not marked as a starting or ending section it must have s = 0
 
   if (chamber_end_geometry == open$) then
-    s_lat = branch%ele(branch%n_ele_track)%s
-
     do i = 1, size(branch%wall3d)
       wall3d => branch%wall3d(i)
       if (wall3d%section(1)%type /= normal$) cycle  
@@ -636,12 +635,14 @@ do ib = 0, ubound(lat%branch, 1)
     enddo
   endif
 
-  ! For an open lattice geometry, subchambers must either stop or have cross section at end of lattice.
+  ! Some wall checks
 
-  if (chamber_end_geometry == open$) then
-    do i = 1, size(branch%wall3d)
-      wall3d => branch%wall3d(i)
-      n = ubound(wall3d%section, 1)
+  do i = 1, size(branch%wall3d)
+    wall3d => branch%wall3d(i)
+    n = ubound(wall3d%section, 1)
+
+    ! For an open lattice geometry, subchambers must either stop or have cross section at end of lattice.
+    if (chamber_end_geometry == open$) then
       if (n == 1) then
         call out_io (s_fatal$, r_name, 'subchamber named "' // trim(wall3d%name) // '" has only one section.')
         call err_exit
@@ -655,38 +656,28 @@ do ib = 0, ubound(lat%branch, 1)
         call err_exit
       endif
 
-
-      if (wall3d%section(n)%type /= wall_end$ .and. abs(wall3d%section(n)%s - s_lat) > 0.01) then
+      if (wall3d%section(n)%type /= wall_end$ .and. abs(wall3d%section(n)%s - s_branch) > 0.01) then
         call out_io (s_info$, r_name, &
               'subchamber named "' // trim(wall3d%name) // '" ends at: \f12.4\ ', &
               'And not at lattice end of: \f12.4\ ', &
-              '[But last point is always adjusted to have s = s_lat]', &
-              r_array = [wall3d%section(n)%s, s_lat])
+              '[But last point is always adjusted to have s = s_branch]', &
+              r_array = [wall3d%section(n)%s, s_branch])
       endif
 
-      if (wall3d%section(n)%type /= wall_end$) wall3d%section(n)%s = s_lat
-    enddo
-  endif
+      if (wall3d%section(n)%type /= wall_end$) wall3d%section(n)%s = s_branch
 
-  ! Subchambers that wrap around s = 0 (in closed lattices) must have same cross-section at 
-  ! beginning/end of lattice.
-
-  if (chamber_end_geometry == closed$) then
-   do i = 1, size(branch%wall3d)
-      wall3d => branch%wall3d(i)
-      n = ubound(wall3d%section, 1)
-      s0 => wall3d%section(1)
-      s1  => wall3d%section(n)
-      if (s0%type /= normal$) cycle
-      if (s1%type /= normal$) cycle
-   
-      if (.not. all(s0%v == s1%v)) then
-        call out_io (s_warn$, r_name, &
-                'FOR A "CLOSED" LATTICE THE LAST WALL CROSS-SECTION SHOULD HAVE THE SAME SHAPE AS THE FIRST!', &
-                'FOR SUBCHAMBER: "' // trim(wall3d%name) // '"')
+    ! For a closed lattice check if last section s-position pas lattice end
+    else
+      if (wall3d%section(n)%s - s_branch > 0.01) then
+        call out_io (s_info$, r_name, &
+              'subchamber named "' // trim(wall3d%name) // '" ends at: \f12.4\ ', &
+              'And not at lattice end of: \f12.4\ ', &
+              'Will adjust to have s = s_branch', &
+              r_array = [wall3d%section(n)%s, s_branch])
+        wall3d%section(n)%s = s_branch
       endif
-    enddo
-  endif
+    endif
+  enddo
 
   ! Regions between wall sections are not allowed to contain both bends and patch elements.
   ! If this is the case then add additional sections to avoid this situation
