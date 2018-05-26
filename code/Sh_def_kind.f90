@@ -1787,7 +1787,7 @@ contains
 !  INTEGER :: metcav=0, nstcav=0
 !  real(dp) :: xcav(1:6)=0.001d0, symplectic_check=1.d-10
 !  logical(lp) :: switch_to_fake=.true.
-  
+
     type(damap) m
     type(real_8) y(6)
 !   integer :: limit_int0(2) =(/4,18/)
@@ -1830,6 +1830,8 @@ contains
     if(nstcav/=0) then
      met=metcav
      nst=nstcav
+     el%p%method=met
+     el%p%nst=nst
      else
      met=2
      nst=2
