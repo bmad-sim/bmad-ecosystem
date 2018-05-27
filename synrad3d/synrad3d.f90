@@ -24,7 +24,7 @@ type (rad_int_all_ele_struct) rad_int_ele
 type (normal_modes_struct) modes
 type (branch_struct), pointer :: branch
 type (wall3d_struct), pointer :: wall3d
-type (sr3d_photon_track_struct), allocatable, target :: photons(:)
+type (sr3d_photon_track_struct), allocatable, target :: photons(:), temp_photons(:)
 type (sr3d_photon_track_struct) :: init_photon
 type (sr3d_photon_track_struct), pointer :: photon
 type (sr3d_plot_param_struct) plot_param
@@ -496,7 +496,7 @@ else
       iu_lat_file = 0 ! To stop further output
       if (n_photon_generated == 0) then
         if (.not. bad_stat_warning_given) then
-          print *, 'WARNING: NUMBER OF PHOTONS GENERATED PER PASS IS TOO SMALL FOR RELIABLE STATISTICS.'
+          call out_io (s_warn$, r_name, 'NUMBER OF PHOTONS GENERATED PER PASS IS TOO SMALL FOR RELIABLE STATISTICS.')
           bad_stat_warning_given = .true.
         endif
         d_i0 = d_i0 / 2  ! Try to generate more photons
@@ -550,8 +550,11 @@ else
         n_photon_generated = n_photon_generated + 1
         n_photon_array = n_photon_array + 1
         if (n_photon_array > size(photons)) then
-          print *, 'INTERNAL ERROR: NUMBER OF PHOTONS GENERATED TOO LARGE!'
-          call err_exit
+          n = size(photons)
+          call move_alloc(photons, temp_photons)
+          allocate (photons(2*n))
+          photons(1:n) = temp_photons
+          deallocate (temp_photons)
         endif
         photon => photons(n_photon_array)
         photon%ix_photon = n_photon_array
@@ -668,6 +671,7 @@ subroutine write_photon_data (n_photon, photon)
 
 type (sr3d_photon_track_struct) :: photon
 type (branch_struct), pointer :: branch
+type (wall3d_struct), pointer :: wall3d
 real(rp) start_vec(6), now_vec(6), dtrack
 integer n_photon, j, iu
 character(40) wall_name
@@ -710,6 +714,7 @@ subroutine check_filter_restrictions (ok, check_init_filters)
 type (branch_struct), pointer :: branch
 type (sr3d_coord_struct), pointer :: now
 type (photon_reflect_surface_struct), pointer :: surface
+integer n
 logical ok, check_init_filters
 
 ! Check filter restrictions
@@ -736,7 +741,9 @@ else
 
   if (filter_phantom_photons) then
     branch => lat%branch(now%ix_branch)
-    surface => branch%wall3d(now%ix_wall3d)%section(now%ix_wall_section+1)%surface
+    wall3d => branch%wall3d(now%ix_wall3d)
+    n = modulo(now%ix_wall_section, size(wall3d%section)) + 1
+    surface => wall3d%section(n)%surface
     if (surface%name == 'PHANTOM') filter_this = .true.
   endif
 endif
