@@ -452,7 +452,7 @@ real(rp) dl_step, dl_left, dl_left_xs, dl_xs, s_stop, denom, v_x, v_s, sin_t, co
 real(rp) g, radius, theta, tan_t, dl_1hop, dl2_xs, ct, st, s_ent, s0, ds, xdx
 real(rp), pointer :: vec(:)
 
-integer ixs, stop_location, end_geometry, n_section
+integer ixs, ixs_next, stop_location, end_geometry, n_section
 
 logical stop_at_check_pt, check_section_here
 
@@ -463,6 +463,7 @@ now_orb => photon%now%orb
 dl_left = dl_step
 
 wall3d => branch%wall3d(photon%now%ix_wall3d)
+n_section = ubound(wall3d%section, 1)
 
 ele => branch%ele(now_orb%ix_ele)
 s0 = ele%s - ele%value(l$)
@@ -498,23 +499,29 @@ endif
 ! Find wall section index such that when the photon stops it will be between ix_wall_section and ix_wall_section+1
 
 if (stop_at_check_pt) then
-  n_section = ubound(wall3d%section, 1)
   call bracket_index2 (wall3d%section%s, 1, n_section, now_orb%s, photon%now%ix_wall_section, ixs)
 
   if (now_orb%direction == 1) then
-    if (ixs > n_section - 1) ixs = n_section - 1
-    do
-      if (ixs == n_section - 1) exit
-      if (wall3d%section(ixs+1)%s /= now_orb%s) exit
-      ixs = ixs + 1
-    enddo
+    if (wall3d%section(1)%s >= now_orb%s) then
+      ixs = n_section
+    else
+      do
+        if (ixs == n_section) exit
+        if (wall3d%section(ixs+1)%s /= now_orb%s) exit
+        ixs = ixs + 1
+      enddo
+    endif
 
   else
-    do
-      if (ixs == 1) exit
-      if (wall3d%section(ixs)%s /= now_orb%s) exit
-      ixs = ixs - 1
-    enddo
+    if (wall3d%section(1)%s >= now_orb%s) then
+      ixs = n_section
+    else
+      do
+        if (ixs == n_section) exit
+        if (wall3d%section(ixs)%s /= now_orb%s) exit
+        ixs = ixs - 1
+      enddo
+    endif
   endif
 
   photon%now%ix_wall_section = ixs
@@ -539,11 +546,15 @@ propagation_loop: do
         now_orb%s = now_orb%s - branch%param%total_length
         photon%crossed_lat_end = .not. photon%crossed_lat_end
         if (stop_at_check_pt) then
-          ixs = 1
-          do
-            if (wall3d%section(ixs+1)%s > now_orb%s) exit
-            ixs = ixs + 1
-          enddo
+          if (wall3d%section(1)%s > now_orb%s) then
+            ixs = n_section
+          else
+            ixs = 1
+            do
+              if (wall3d%section(ixs+1)%s > now_orb%s) exit
+              ixs = ixs + 1
+            enddo
+          endif
           photon%now%ix_wall_section = ixs
         endif
 
@@ -576,9 +587,9 @@ propagation_loop: do
 
     s_stop = branch%ele(now_orb%ix_ele)%s
     stop_location = downstream_end$
-
     ixs = photon%now%ix_wall_section
-    if (stop_at_check_pt) then
+
+    if (stop_at_check_pt .and. ixs /= n_section) then
       if (wall3d%section(ixs+1)%s <= s_stop) then
         s_stop = wall3d%section(ixs+1)%s
         if (s_stop /= ele%s) stop_location = inside$
@@ -599,7 +610,7 @@ propagation_loop: do
         now_orb%ix_ele = branch%n_ele_track 
         photon%crossed_lat_end = .not. photon%crossed_lat_end
         if (stop_at_check_pt) then
-          ixs = ubound(wall3d%section, 1) - 1
+          ixs = n_section
           do
             if (wall3d%section(ixs)%s < now_orb%s) exit
             ixs = ixs - 1
@@ -1052,7 +1063,9 @@ dvec = -2 * cos_perp * dw_perp
 
 call sr3d_get_section_index(photon%now, branch, photon%now%ix_wall3d)
 if (photon%now%ix_wall_section == not_set$) call sr3d_get_section_index (photon%now, branch)
-surface => branch%wall3d(photon%now%ix_wall3d)%section(photon%now%ix_wall_section+1)%surface
+wall3d => branch%wall3d(photon%now%ix_wall3d)
+n = modulo(photon%now%ix_wall_section, size(wall3d%section)) + 1
+surface => wall3d%section(n)%surface
 
 ! Get reflectivity coef.
 

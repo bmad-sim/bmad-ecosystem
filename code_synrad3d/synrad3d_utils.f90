@@ -289,9 +289,9 @@ end subroutine sr3d_photon_d_radius
 !
 ! Routine to get the wall index such that:
 ! For p_orb%orb%vec(6) > 0 (forward motion):
-!   wall3d%section(ix_section)%s < p_orb%s <= wall3d%section(ix_section+1)%s
+!   wall3d%section(ix_wall_section)%s < p_orb%s <= wall3d%section(ix_wall_section+1)%s
 ! For p_orb%orb%vec(6) < 0 (backward motion):
-!   wall3d%section(ix_section)%s <= p_orb%s < wall3d%section(ix_section+1)%s
+!   wall3d%section(ix_wall_section)%s <= p_orb%s < wall3d%section(ix_wall_section+1)%s
 !
 ! Input:
 !   p_orb       -- sr3d_coord_struct: Photon position.
@@ -321,24 +321,19 @@ n_max = ubound(wall3d%section, 1)
 
 ix_sec => p_orb%ix_wall_section
 
-if (p_orb%orb%s < wall3d%section(1)%s) then
-  ix_sec = 0
-  return
-endif
+! End cases
 
-if (p_orb%orb%s > wall3d%section(n_max)%s) then
+if (p_orb%orb%s < wall3d%section(1)%s  .or. (p_orb%orb%vec(6) > 0 .and. p_orb%orb%s == wall3d%section(1)%s)) then
   ix_sec = n_max
   return
 endif
 
-if (n_max == 1) then
-  if (p_orb%orb%vec(6) > 0) then
-    ix_sec = 0
-  else
-    ix_sec = 1
-  endif
+if (p_orb%orb%s > wall3d%section(n_max)%s .or. (p_orb%orb%vec(6) < 0 .and. p_orb%orb%s == wall3d%section(n_max)%s)) then
+  ix_sec = n_max
   return
 endif
+
+!
 
 if (ix_sec == not_set$ .or. ix_sec < 1) ix_sec = 1
 if (ix_sec >= n_max) ix_sec = n_max - 1
@@ -350,8 +345,8 @@ endif
 
 ! %s at boundary cases
 
-if (p_orb%orb%s == wall3d%section(ix_sec)%s   .and. p_orb%orb%vec(6) > 0 .and. ix_sec /= 1)     ix_sec = ix_sec - 1
-if (p_orb%orb%s == wall3d%section(ix_sec+1)%s .and. p_orb%orb%vec(6) < 0 .and. ix_sec /= n_max) ix_sec = ix_sec + 1
+if (p_orb%orb%s == wall3d%section(ix_sec)%s   .and. p_orb%orb%vec(6) > 0) ix_sec = ix_sec - 1
+if (p_orb%orb%s == wall3d%section(ix_sec+1)%s .and. p_orb%orb%vec(6) < 0) ix_sec = ix_sec + 1
 
 end subroutine sr3d_get_section_index
 

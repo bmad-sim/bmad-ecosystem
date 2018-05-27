@@ -112,7 +112,7 @@ $\vcenter{\hbox{\includegraphics[width=2in]{lhc-cross-section.pdf}}}$
 {\LARGE\bfseries David Sagan and Gerry Dugan}
 
 \vspace{0.4in}
-{\large\bfseries March 29, 2018}
+{\large\bfseries May 26, 2018}
 
 \end{center}
 \end{titlepage}
@@ -902,10 +902,7 @@ explained in \sref{s:surface}.  Example:
 \end{example}
 
 The \vn{<s>} values for the cross-sections of a given subchamber must
-be in increasing order and there must be one subchamber that has a
-cross-section at \vn{<s>} = 0. If the last cross-section of a given
-subchamber has \vn{<s>} greater than the end of the lattice, the
-\vn{<s>} value will be reduced to the value at the end of the lattice.
+be in increasing order.
 
 The \vn{<section_name>} is a descriptive name that can be, for example,
 used in plotting. The \vn{<section_name>} is ignored for any calculation.
@@ -946,41 +943,34 @@ For every \vn{"START"} there must be an \vn{"END"}. A subchamber begins with the
 section with \vn{<edge-sec>} set to \vn{"START"} and ends with the section with
 \vn{<edge-sec>} set to \vn{"END"}. Example:
 \begin{example}
-  &place section =     0, "", "left_ante:shape-Z"
-  &place section =     5, "", "left_ante:shape-B@END"
-  &place section =   174, ""  "left_ante:shape-A@START" /
-  &place section =   182, "", "left_ante:shape-B@END"
-  &place section =   936, ""  "left_ante:shape-A@START" /
-  &place section =  1032, ""  "left_ante:shape-Z" /
+  &place section =     5.0, "", "left_ante:shape-B@END" /
+  &place section =   174.0, ""  "left_ante:shape-A@START" /
+  &place section =   182.0, "", "left_ante:shape-B@END"
+  &place section =   936.0, ""  "left_ante:shape-A@START" /
 \end{example}
-In this case there are two or three subchambers, depending upon the setting of
-\vn{chamber_end_geometry} (\sref{s:master.example}).  One subchamber begins at $s =
-174$~meters and ends at 182~meters. If, as st by \vn{chamber_end_geometry}, the vacuum
-chamber has a ``closed'' geometry, there is a second subchamber that begins at $s =
-936$~meters, wraps around the end of the lattice back to the beginning, and ends at
-5~meters. On the other hand, if the chamber has an ``open'' geometry, there are two other
-subchambers, one from $s = 936$~meters to the end of the lattice at $s = 1032$~meters and
-the other from $s = 0$ to $s = 5$~meters.
+With a \vn{closed} geometry (set by \vn{chamber_end_geometry} (\sref{s:master.example}), there are
+two subchambers, both with the same same: \vn{left_ante}. One subchamber begins at $s = 174$~meters
+and ends at 182~meters. The other subchamber that begins at $s = 936$~meters, wraps around the end
+of the lattice back to the beginning, and ends at 5~meters. With a \vn{open} geometry the above
+example would produce and error since subchambers are not wrapped around the ends of the lattice.
 
-In the above example, all the subchambers have the same name: \vn{left_ante}. Subchambers
-that overlap longitudinally may not share the same name. That is, ``nested'' start/end
-groups are not allowed since there is an ambiguity as to how to pair the
-cross-sections. For example, the following is not allowed:
+Subchambers with the same name may not overlap longitudinally. That is, ``nested'' start/end groups
+are not allowed since there is an ambiguity as to how to pair the cross-sections. For example, the
+following is not allowed:
 \begin{example}
-  &place section =  173, ""  "left_ante:shape-A@START" /
-  &place section =  174, ""  "left_ante:shape-A@START" /
-  &place section =  182, "", "left_ante:shape-B@END"
-  &place section =  183, "", "left_ante:shape-B@END"
+  &place section =  173.0, ""  "left_ante:shape-A@START" /
+  &place section =  174.0, ""  "left_ante:shape-A@START" /
+  &place section =  182.0, "", "left_ante:shape-B@END" /
+  &place section =  183.0, "", "left_ante:shape-B@END" /
 \end{example}
 
-A subchamber does not have to have a beginning and an ending. In this case, the subchamber
-extends along the entire length of the machine and the first section must be placed at $s
-= 0$ and the last section must be placed at $s$ set to the value at the end of the
-lattice.  In other words, the first cross-section of a subchamber (the one with minimal
-value of $s$), must either have $s = 0$ or have \vn{<edge-sec>} set to
-\vn{"START"}. Likewise, the last cross-section of a subchamber (the one with maximal value
-of $s$), must either have $s$ set to the value at the end of the lattice or have
-\vn{<edge-sec>} set to \vn{"END"}.
+A subchamber does not have to have \vn{START} and \vn{END} end sections. Such subchambers are called
+``\vn{open-ended}''. Open-ended subchambers extend along the entire length of the machine. For a
+lattice with an \vn{open} geometry, an open-ended subchamber must have the longitudinal $s$-position
+of its first and last sections be at the ends of the lattice. For a lattice with a \vn{closed}
+geometry, \srthree will naturally extend the wall from the last section around the ends of the
+lattice to the fist section. In fact, it is perfectly legitimate to define an open-ended subchamber
+in an \vn{closed} geometry with just one section.
 
 The \vn{<shape_name>} component of \vn{<section_id>} identifies the
 exact shape of the cross-section. The \vn{<shape_name>} is matched

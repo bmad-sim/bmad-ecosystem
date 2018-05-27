@@ -737,7 +737,8 @@ do
   else
     write (label, '(a, f0.3)') 'S: ', s_pos
     ! %species used for section index.
-    label2 = 'Surface: ' // wall3d_select%section(photon%now%ix_wall_section+1)%surface%name
+    n = modulo(photon%now%ix_wall_section, size(wall3d_select%section)) + 1
+    label2 = 'Surface: ' // wall3d_select%section(n)%surface%name
   endif
 
   call qp_clear_page
