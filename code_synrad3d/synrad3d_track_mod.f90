@@ -576,8 +576,9 @@ propagation_loop: do
         ! Due to finite pitches, it is possible that now the photon is in some other element after the patch.
         ! In that case, just track back to the end of the patch.
         if (now_orb%s > ele%s) then
-          call track_a_drift_photon (now_orb, -now_orb%vec(5), .false.)
+          call track_a_drift_photon (now_orb, ele%s - now_orb%s, .false.)
           now_orb%location = downstream_end$
+          now_orb%s = ele%s  ! To avoid round-off error
           cycle
         endif
       endif
@@ -781,7 +782,7 @@ end subroutine sr3d_propagate_photon_a_step
 !
 ! Input:
 !   photon    -- sr3d_photon_track_struct:
-!   branch  -- branch_struct: Lattice branch with associated wall.
+!   branch    -- branch_struct: Lattice branch with associated wall.
 !
 ! Output:
 !   photon    -- sr3d_photon_track_struct: 
