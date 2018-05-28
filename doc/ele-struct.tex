@@ -35,7 +35,7 @@ type ele_struct
   type (ac_kicker_struct), pointer :: ac_kick  ! ac_kicker element parameters.
   type (bookkeeping_state_struct) bookkeeping_state ! Element attribute bookkeeping
   type (branch_struct), pointer :: branch      ! Pointer to branch containing element.
-  type (controller_var_struct), pointer :: control_var(:) 
+  type (controller_struct), pointer :: control ! For group and overlay elements. 
   type (cartesian_map_struct), pointer :: cartesian_map(:)     ! Used to define DC fields
   type (cylindrical_map_struct), pointer :: cylindrical_map(:) ! Used to define DC fields
   type (ele_struct), pointer :: lord           ! Pointer to a slice lord.
@@ -50,7 +50,7 @@ type ele_struct
                                                ! Radiation integral calc cached values 
   type (space_charge_struct), pointer :: space_charge 
   type (taylor_struct) :: taylor(6)            ! Orbital Taylor map.
-  type (taylor_struct) :: spin_taylor(3,3)     ! Spin Taylor map.
+  type (taylor_struct) :: spin_taylor(4)       ! Spin Taylor map.
   type (wake_struct), pointer :: wake    ! Wakes
     ele_struct definition continued on next figure...
 \end{verbatim}
@@ -77,7 +77,7 @@ The complete structure is shown in this and the following figure.}
   real(rp) mat6(6,6)                           ! 1st order transport matrix.
   real(rp) c_mat(2,2)                          ! 2x2 C coupling matrix
   real(rp) gamma_c                             ! gamma associated with C matrix
-  real(rp) :: s_start = 0                                      ! longitudinal ref position at entrance_end
+  real(rp) s_start                             ! longitudinal ref position at entrance_end
   real(rp) s                                   ! longitudinal position at the downstream end.
   real(rp) ref_time                            ! Time ref particle passes downstream end.
   real(rp), pointer :: r(:,:,:)                ! For general use. Not used by Bmad.
@@ -425,7 +425,7 @@ This is explained fully in the chapter on the \vn{lat_struct} (\sref{c:lat.struc
 the control variables. Each element in the array represents a single variable. \vn{%control_var(:)}
 is an array of \vn{controller_var_struct} structures and these structures look like:
 \begin{example}
-  type controller_var_struct
+  type controller_struct
     character(40) :: name = ''
     real(rp) :: value = 0
     real(rp) :: old_value = 0
