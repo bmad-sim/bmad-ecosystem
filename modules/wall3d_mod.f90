@@ -737,7 +737,7 @@ if (s_particle < wall3d%section(1)%s .or. (s_particle == wall3d%section(1)%s .an
     endif
     return
 
-  elseif (wrap_wall()) then
+  elseif (wall3d%section(1)%type /= wall_start$) then
     sec1 => wall3d%section(n_sec);  s1 = sec1%s - branch%param%total_length
     sec2 => wall3d%section(1);      s2 = sec2%s
     if (present(ix_section)) ix_section = n_sec
@@ -756,7 +756,7 @@ elseif (s_particle > wall3d%section(n_sec)%s .or. (s_particle == wall3d%section(
     endif
     return
 
-  elseif (wrap_wall()) then
+  elseif (wall3d%section(n_sec)%type /= wall_end$) then
     sec1 => wall3d%section(n_sec);  s1 = sec1%s
     sec2 => wall3d%section(1);      s2 = sec2%s + branch%param%total_length
     if (present(ix_section)) ix_section = n_sec
@@ -1055,22 +1055,6 @@ if (present(err_flag)) err_flag = .false.
 if (present(radius_wall)) radius_wall = r_wall
 
 end subroutine d_radius_at_section
-
-!---------------------------------------------------------------------------
-! contains
-
-function wrap_wall() result (yes_wrap)
-
-logical yes_wrap
-
-!
-
-yes_wrap = .false.
-if (.not. is_branch_wall) return
-if (branch%param%geometry == open$) return
-yes_wrap = .true.
-
-end function wrap_wall
 
 !---------------------------------------------------------------------------
 ! contains
@@ -1567,8 +1551,9 @@ subroutine mark_patch_regions (branch)
 
 type (branch_struct), target :: branch
 type (wall3d_struct), pointer :: wall
-
-integer i, j, iw, ie1, ie2
+type (ele_struct), pointer :: ele
+integer i, i0, iw, ie0, ie1, n_sec
+logical first
 
 !
 
@@ -1576,14 +1561,37 @@ do iw = 1, size(branch%wall3d)
 
   wall => branch%wall3d(iw)
   wall%section%patch_in_region = .false.
+  n_sec = size(wall%section)
 
-  do i = 2, size(wall%section)
-    ie1 = element_at_s(branch, wall%section(i-1)%s, .false.)
-    ie2 = element_at_s(branch, wall%section(i)%s, .true.)
-    do j = ie1, ie2
-      if (branch%ele(j)%key /= patch$) cycle
-      if (wall%section(i-1)%s >= max(branch%ele(j)%s_start, branch%ele(j)%s)) cycle
-      if (wall%section(i)%s <= min(branch%ele(j)%s_start, branch%ele(j)%s)) cycle
+  do i = 1, n_sec
+    if (i == 1 .and. wall%section(1)%type == wall_start$) cycle
+
+    i0 = i - 1
+    if (i0 == 0) i0 = n_sec
+
+    ie0 = element_at_s(branch, wall%section(i0)%s, .false.)
+    ie1 = element_at_s(branch, wall%section(i)%s, .true.)
+
+    ele => branch%ele(ie0)
+
+    first = .true.
+    do
+      if (.not. first) then
+        ele => pointer_to_next_ele(ele)
+        if (ele%ix_ele == ie1) exit
+      endif
+      first = .false.
+
+      if (ele%key /= patch$) cycle
+
+      if (i == 1) then
+        if (ele%ix_ele >= ie1 .and. wall%section(i0)%s >= max(ele%s_start, ele%s)) cycle
+        if (ele%ix_ele <= ie0 .and. wall%section(i)%s <= min(ele%s_start, ele%s)) cycle
+      else
+        if (wall%section(i0)%s >= max(ele%s_start, ele%s)) cycle
+        if (wall%section(i)%s <= min(ele%s_start, ele%s)) cycle
+      endif
+
       wall%section(i)%patch_in_region = .true.
       exit
     enddo
