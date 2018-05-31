@@ -5,7 +5,18 @@ use moga_struct_mod
 
 implicit none
 
-real(rp), parameter :: numerical_delta = 100.0d0 !Step size in evaluating numerical derivative 
+real(rp), parameter :: numerical_delta = 1.0d0 !Step size in evaluating numerical derivative 
+
+type crm_struct
+  logical stale
+  type(mag_struct), pointer :: l_mags(:)
+  type(mag_struct), pointer :: c_mags(:)
+  real(rp) set_chrom_x
+  real(rp) set_chrom_y
+  real(rp), allocatable :: ApC(:)
+  real(rp), allocatable :: Q1(:,:)
+  real(rp), allocatable :: Q1t(:,:)
+end type
 
 contains
 
@@ -22,6 +33,7 @@ contains
 
   subroutine crm_build(ring, crm, err_flag)
     use bmad
+    use bmad_routine_interface
     use f95_lapack
     use make_pseudoinverse_mod
 
@@ -35,14 +47,11 @@ contains
 
     type(coord_struct), allocatable :: co(:)
     type (ele_pointer_struct), allocatable :: eles(:)
+    type (ele_pointer_struct), allocatable :: slaves(:)
     real(rp), allocatable :: A(:,:)
     real(rp), allocatable :: Ap(:,:)
     real(rp), allocatable :: Ident(:,:)
     real(rp), allocatable :: B(:,:), tau(:)
-
-    real(rp), allocatable :: sbend_k2_state(:)
-    real(rp), allocatable :: sextupole_state(:)
-    real(rp), allocatable :: multipole_state(:)
 
     integer, parameter :: la_work_size=1000
     real(rp) la_work(la_work_size)
@@ -53,7 +62,8 @@ contains
 
     integer i, j, k, n_loc
     integer n_chrom, n_omega
-    real(rp) nat_chrom_x, nat_chrom_y
+    integer n_slave
+    real(rp) init_chrom_x, init_chrom_y
     real(rp) chrom_x, chrom_y, chrom_vec(2)
 
     ring_working = ring
@@ -67,9 +77,11 @@ contains
     allocate(B(n_chrom,n_chrom))
     allocate(tau(n_chrom))
 
-    call set_on_off(sextupole$, ring_working, off_and_save$, saved_values=sextupole_state)
-    call set_on_off(multipole$, ring_working, off_and_save$, saved_values=multipole_state)
-    call set_on_off(sbend$,     ring_working, off_and_save$, saved_values=sbend_k2_state, attribute='K2')
+    do i=1,n_chrom
+      if(crm%c_mags(i)%type == 'c') then
+        call set_magnet_k2(crm%c_mags(i)%name, ring_working, 0.0d0)
+      endif
+    enddo
 
     call twiss_and_track(ring_working,co,status)
     if(status /= ok$) then
@@ -78,41 +90,24 @@ contains
       return
     endif
 
-    call chrom_calc(ring_working, 1.0d-5, nat_chrom_x, nat_chrom_y, err_flag)
+    call chrom_calc(ring_working, 1.0d-6, init_chrom_x, init_chrom_y, err_flag)
+    write(*,*) "Chromaticity with indicated sextupoles off: ", init_chrom_x, init_chrom_y
     if(err_flag) then
-      write(*,*) "Could not calculate natural chromaticity in build_chrom_mat."
+      write(*,*) "Could not calculate initial chromaticity in build_chrom_mat."
       call early_exit()
       return
     endif
 
-    call set_on_off(sextupole$, ring_working, restore_state$, saved_values=sextupole_state)
-    call set_on_off(multipole$, ring_working, restore_state$, saved_values=multipole_state)
-    call set_on_off(sbend$,     ring_working, restore_state$, saved_values=sbend_k2_state, attribute='K2')
-
-    deallocate(sextupole_state)
-    deallocate(multipole_state)
-    deallocate(sbend_k2_state)
-
+    !build chromaticity response matrix
     do k=1,n_chrom  !calculate response for family k
       do i=1,n_chrom  !loop over all families, turn family k on, an all others off
         if ( i .eq. k ) then
-          write(var_str,'(F14.6)') numerical_delta
+          call set_magnet_k2(crm%c_mags(i)%name, ring_working, numerical_delta)
         else
-          write(var_str,'(F14.6)') 0.0d0
+          call set_magnet_k2(crm%c_mags(i)%name, ring_working, 0.0d0)
         endif
-        set_str = trim(adjustl(crm%c_mags(i)%property))//'='//trim(adjustl(var_str))
-
-        call lat_ele_locator(crm%c_mags(i)%name, ring_working, eles, n_loc, err_flag)
-        do j=1, n_loc
-          call set_ele_attribute (eles(j)%ele, set_str, err_flag)
-          if(err_flag) then
-            write(*,*) "Set ele attribute error.  Terminating."
-            error stop
-          endif
-        enddo
-        deallocate(eles)
       enddo
-      call lattice_bookkeeper(ring_working)
+
       call twiss_and_track(ring_working,co,status)
       if(status /= ok$) then
         write(*,*) "Could not calculate ring in response loop in build_chrom_mat."
@@ -120,17 +115,23 @@ contains
         return
       endif
 
-      call chrom_calc(ring_working, 1.0d-5, chrom_x, chrom_y, err_flag)
+      call chrom_calc(ring_working, 1.0d-6, chrom_x, chrom_y, err_flag)
+      write(*,*) "second chrom calc: ", chrom_x, chrom_y
       if(err_flag) then
         write(*,*) "Could not calculate chromaticity in response loop in build_chrom_mat."
         call early_exit()
         return
       endif
-      A(1,k) = (chrom_x-nat_chrom_x)/numerical_delta
-      A(2,k) = (chrom_y-nat_chrom_y)/numerical_delta
+
+      A(1,k) = (chrom_x-init_chrom_x)/numerical_delta
+      A(2,k) = (chrom_y-init_chrom_y)/numerical_delta
     enddo
 
     call make_pseudoinverse(A,Ap)
+
+    chrom_vec(1) = init_chrom_x - crm%set_chrom_x
+    chrom_vec(2) = init_chrom_y - crm%set_chrom_y
+    crm%ApC = matmul(Ap,-1*chrom_vec)
 
     Ident = 0.0d0
     do i=1,n_chrom
@@ -157,10 +158,6 @@ contains
 
     crm%Q1t = transpose(crm%Q1)
 
-    chrom_vec(1) = nat_chrom_x - crm%set_chrom_x
-    chrom_vec(2) = nat_chrom_y - crm%set_chrom_y
-    crm%ApC = matmul(Ap,-1*chrom_vec)
-
     err_flag = .false.
 
     deallocate(A)
@@ -173,6 +170,40 @@ contains
     call deallocate_lat_pointers(ring_working)
 
     contains
+      subroutine set_magnet_k2(ele_name, ring, str)
+        implicit none
+
+        character(*) ele_name
+        type(lat_struct) ring
+        real(rp) str
+        type (ele_pointer_struct), allocatable :: eles(:), slaves(:)
+        integer j, n_loc, n_slave
+        logical err_flag
+        character(2) :: prop = 'k2'
+        character(14) var_str
+        character(25) set_str
+
+        call lat_ele_locator(ele_name,ring_working,eles,n_loc)
+        !write(*,'(a,i3,a,a)') "Found ", n_loc, " magnets named ", ele_name
+        write(var_str,'(F14.6)') str
+        set_str = trim(adjustl(prop))//'='//trim(adjustl(var_str))
+        if( eles(1)%ele%lord_status .ne. not_a_lord$ ) then
+          !write(*,*) "   Magnet is a lord."
+          call get_slave_list(eles(1)%ele, slaves, n_slave)
+          do j=1,n_loc
+            call set_ele_attribute (slaves(j)%ele, set_str, err_flag)
+          enddo
+          deallocate(slaves)
+        else
+          !write(*,*) "   Magnet is not a lord."
+          do j=1,n_loc
+            call set_ele_attribute( eles(j)%ele, set_str, err_flag)
+          enddo
+        endif
+        deallocate(eles)
+        call lattice_bookkeeper(ring_working)
+      end subroutine
+
       subroutine early_exit()
         crm%ApC = 0.0d0
         crm%Q1 = 0.0d0
