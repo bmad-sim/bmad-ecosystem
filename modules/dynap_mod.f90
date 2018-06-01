@@ -169,6 +169,7 @@ subroutine read_initial_population(pool, n_pop, n_linear, n_chrom, n_harmo, file
 end subroutine
 
 subroutine K2_to_omega(K2,omega,crm)
+  use crm_mod
   implicit none
 
   real(rp) omega(:), K2(:)
@@ -178,6 +179,7 @@ subroutine K2_to_omega(K2,omega,crm)
 end subroutine
 
 subroutine omega_to_K2(omega,crm,K2)
+  use crm_mod
   implicit none
 
   real(rp) omega(:), K2(:)

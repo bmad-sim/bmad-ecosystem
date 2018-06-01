@@ -199,8 +199,8 @@ endif
 
 x0 = 0
 y0 = 0
-x1 = cosphi(theta_xy,aperture_scan%Sx,aperture_scan%Sy) * aperture_param%init_len
-y1 = sinphi(theta_xy,aperture_scan%Sx,aperture_scan%Sy) * aperture_param%init_len
+x1 = local_cosphi(theta_xy,aperture_scan%Sx,aperture_scan%Sy) * aperture_param%init_len
+y1 = local_sinphi(theta_xy,aperture_scan%Sx,aperture_scan%Sy) * aperture_param%init_len
 
 aperture_bracketed = .false.
 
@@ -270,8 +270,8 @@ test_loop: do
     x1 = (x0 + x2) / 2
     y1 = (y0 + y2) / 2
   else
-    x1 = x1 + cosphi(theta_xy,aperture_scan%Sx,aperture_scan%Sy) * aperture_param%step_len
-    y1 = y1 + sinphi(theta_xy,aperture_scan%Sx,aperture_scan%Sy) * aperture_param%step_len
+    x1 = x1 + local_cosphi(theta_xy,aperture_scan%Sx,aperture_scan%Sy) * aperture_param%step_len
+    y1 = y1 + local_sinphi(theta_xy,aperture_scan%Sx,aperture_scan%Sy) * aperture_param%step_len
   endif
 
   ! check to see if there is an aperture
@@ -300,12 +300,12 @@ if(allocated(orbit_temp)) deallocate(orbit_temp)
 
 end subroutine
 
-function cosphi(th,Sx,Sy) result(x)
+function local_cosphi(th,Sx,Sy) result(x)
   real(rp) th, Sx, Sy, x
   x = Sx * cos(th) / sqrt(Sx**2 * cos(th)**2 + Sy**2 * sin(th)**2 )
 end function
 
-function sinphi(th,Sx,Sy) result(x)
+function local_sinphi(th,Sx,Sy) result(x)
   real(rp) th, Sx, Sy, x
   x = Sy * sin(th) / sqrt(Sx**2 * cos(th)**2 + Sy**2 * sin(th)**2 )
 end function
