@@ -7,7 +7,7 @@ contains
 subroutine linear_aperture(ring,da_config)
   !currently only works for round apertures
   use bmad
-  use custom_dynamic_aperture_mod, only: custom_aperture_scan_struct, cosphi, sinphi
+  use custom_dynamic_aperture_mod, only: custom_aperture_scan_struct, local_cosphi, local_sinphi
   use transfer_map_mod
 
   implicit none
@@ -43,8 +43,8 @@ subroutine linear_aperture(ring,da_config)
   do i=1,da_config%n_angle
     theta = (i-1)*delta_angle + da_config%min_angle
     vec_length = sqrt(pax**2 * cos(theta)**2 + pay**2 * sin(theta)**2)
-    da_config%aperture(i)%x = vec_length * cosphi(theta,da_config%Sx,da_config%Sy)
-    da_config%aperture(i)%y = vec_length * sinphi(theta,da_config%Sx,da_config%Sy)
+    da_config%aperture(i)%x = vec_length * local_cosphi(theta,da_config%Sx,da_config%Sy)
+    da_config%aperture(i)%y = vec_length * local_sinphi(theta,da_config%Sx,da_config%Sy)
     ! vec_length = sqrt(pax**2 * cos(theta)**2 + pay**2 * sin(theta)**2)
     ! da_config%aperture(i)%x = vec_length * cos(theta)
     ! da_config%aperture(i)%y = vec_length * sin(theta)
@@ -64,8 +64,8 @@ subroutine linear_aperture(ring,da_config)
       do k=1,da_config%n_angle
         theta = (k-1)*delta_angle + da_config%min_angle
 
-        B1 = tmat(1,1)*cosphi(theta,da_config%Sx,da_config%Sy)+tmat(1,3)*sinphi(theta,da_config%Sx,da_config%Sy)
-        B2 = tmat(3,1)*cosphi(theta,da_config%Sx,da_config%Sy)+tmat(3,3)*sinphi(theta,da_config%Sx,da_config%Sy)
+        B1 = tmat(1,1)*local_cosphi(theta,da_config%Sx,da_config%Sy)+tmat(1,3)*local_sinphi(theta,da_config%Sx,da_config%Sy)
+        B2 = tmat(3,1)*local_cosphi(theta,da_config%Sx,da_config%Sy)+tmat(3,3)*local_sinphi(theta,da_config%Sx,da_config%Sy)
         ! B1 = tmat(1,1)*cos(theta)+tmat(1,3)*sin(theta)
         ! B2 = tmat(3,1)*cos(theta)+tmat(3,3)*sin(theta)
         C1 = tmat(1,6)*dE+tvec(1)
@@ -91,8 +91,8 @@ subroutine linear_aperture(ring,da_config)
         endif
 
         if( pl**2 .lt. da_config%aperture(k)%x**2+da_config%aperture(k)%y**2 ) then
-          da_config%aperture(k)%x = abs(pl) * cosphi(theta,da_config%Sx,da_config%Sy)
-          da_config%aperture(k)%y = abs(pl) * sinphi(theta,da_config%Sx,da_config%Sy)
+          da_config%aperture(k)%x = abs(pl) * local_cosphi(theta,da_config%Sx,da_config%Sy)
+          da_config%aperture(k)%y = abs(pl) * local_sinphi(theta,da_config%Sx,da_config%Sy)
           ! da_config%aperture(k)%x = abs(pl) * cos(theta)
           ! da_config%aperture(k)%y = abs(pl) * sin(theta)
         endif
