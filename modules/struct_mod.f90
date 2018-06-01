@@ -15,16 +15,5 @@ type mag_struct
   real(rp) mutate_delta
 end type
 
-type crm_struct
-  logical stale
-  type(mag_struct), pointer :: l_mags(:)
-  type(mag_struct), pointer :: c_mags(:)
-  real(rp) set_chrom_x
-  real(rp) set_chrom_y
-  real(rp), allocatable :: ApC(:)
-  real(rp), allocatable :: Q1(:,:)
-  real(rp), allocatable :: Q1t(:,:)
-end type
-
 
 end module
