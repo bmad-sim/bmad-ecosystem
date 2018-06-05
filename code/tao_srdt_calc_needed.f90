@@ -20,8 +20,6 @@ integer do_srdt
 
 !
 
-do_srdt = .false.
-
 if (data_source /= 'lat') return
 
 do_srdt = 0
