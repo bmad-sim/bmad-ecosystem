@@ -358,7 +358,26 @@ if (graph%draw_axes) then
   call qp_draw_axes (draw_grid = graph%draw_grid)
 endif
 
-isu = tao_universe_number(graph%ix_universe)
+! Draw for a particular universe
+
+if (graph%ix_universe == -2) then
+  do isu = 1, size(s%u)
+    call draw_this_floor_plan(isu)
+  enddo
+else
+  isu = tao_universe_number(graph%ix_universe)
+  call draw_this_floor_plan(isu)
+endif
+
+!-------------------------------------------------------------
+contains
+
+subroutine draw_this_floor_plan(isu)
+
+integer isu
+
+!
+
 lat => s%u(isu)%model%lat
 
 if (.not. graph%valid) return
@@ -453,8 +472,10 @@ call tao_hook_draw_floor_plan (plot, graph)
 
 call qp_restore_state
 
+end subroutine draw_this_floor_plan
+
 !-------------------------------------------------------------------------
-contains
+! contains
 
 subroutine set_this_axis (axis_in, axis_out, which)
 
