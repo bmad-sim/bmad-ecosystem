@@ -83,7 +83,8 @@ OFFLINE_OPT_DIR='/nfs/opt'
 
 OFFLINE_RELEASE_MGMT_DIR=${OFFLINE_ARCHIVE_BASE_DIR}'/util'
 
-OFFLINE_IFORT_SETUP_DIR=${OFFLINE_OPT_DIR}'/intel/parallel_studio_xe_2016.2.062/bin'
+#OFFLINE_IFORT_SETUP_DIR=${OFFLINE_OPT_DIR}'/intel/parallel_studio_xe_2016.2.062/bin'
+OFFLINE_IFORT_SETUP_DIR=${OFFLINE_OPT_DIR}'/intel/parallel_studio_xe_2017_update7/bin'
 OFFLINE_IFORT_SETUP_COMMAND=(${OFFLINE_IFORT_SETUP_DIR}'/compilervars.sh intel64')
 
 OFFLINE_GFORTRAN_SETUP_DIR='/opt/rh/devtoolset-4/'
