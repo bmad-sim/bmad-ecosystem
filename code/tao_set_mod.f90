@@ -1021,7 +1021,7 @@ case ('ix_ele_ref')
 
 case ('ix_universe')
   call tao_set_integer_value (this_curve%ix_universe, component, &
-                                            value_str, error, 0, ubound(s%u, 1))
+                                            value_str, error, -2, ubound(s%u, 1))
   if (error) return
   call tao_locate_elements (this_curve%ele_ref_name, tao_curve_ix_uni(this_curve), eles, error, ignore_blank = .true.)
   if (size(eles) == 0) return
@@ -1311,7 +1311,7 @@ case ('draw_grid')
 case ('draw_only_good_user_data_or_vars')
   call tao_set_logical_value (this_graph%draw_only_good_user_data_or_vars, component, value, error)
 case ('ix_universe')
-  call tao_set_integer_value (this_graph%ix_universe, component, value, error, 1, ubound(s%u, 1))
+  call tao_set_integer_value (this_graph%ix_universe, component, value, error, -2, ubound(s%u, 1))
 case ('margin')
   call tao_set_qp_rect_struct (comp, sub_comp, this_graph%margin, value, error, this_graph%ix_universe)
 case ('scale_margin')
@@ -2319,14 +2319,14 @@ endif
 
 if (present(min_val)) then
   if (ix < min_val) then
-  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, var_str // ' VALUE TOO SMALL.')
+  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, trim(var_str) // ' VALUE TOO SMALL.')
     return 
   endif
 endif
 
 if (present(max_val)) then
   if (ix > max_val) then
-  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, var_str // ' VALUE TO LARGE.')
+  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, trim(var_str) // ' VALUE TO LARGE.')
     return 
   endif
 endif
@@ -2385,14 +2385,14 @@ error = .true.
 
 if (present(min_val)) then
   if (var_value < min_val) then
-    call out_io (s_error$, r_name, var_str // ' VALUE OUT OF RANGE.')
+    call out_io (s_error$, r_name, trim(var_str) // ' VALUE OUT OF RANGE.')
     return
   endif
 endif
 
 if (present(max_val)) then
   if (var_value > max_val) then
-    call out_io (s_error$, r_name, var_str // ' VALUE OUT OF RANGE.')
+    call out_io (s_error$, r_name, trim(var_str) // ' VALUE OUT OF RANGE.')
     return
   endif
 endif
