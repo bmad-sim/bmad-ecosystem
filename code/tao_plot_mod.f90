@@ -358,12 +358,6 @@ if (graph%draw_axes) then
   call qp_draw_axes (draw_grid = graph%draw_grid)
 endif
 
-do ic = 1, size(graph%curve)
-  ! ... needs to be filled in ..
-
- !!isu = tao_universe_number(graph%ix_universe)
-  isu = tao_universe_number(graph%curve(ic)%ix_universe)
-
 ! Draw for a particular universe
 
 if (graph%ix_universe == -2) then
@@ -384,7 +378,6 @@ integer isu
 
 !
 
->>>>>>> .r42181
 lat => s%u(isu)%model%lat
 
 if (.not. graph%valid) return
@@ -469,7 +462,8 @@ end if
 
 ! Draw any data curves and beam chamber wall curve
 
-
+do i = 1, size(graph%curve)
+  ! ... needs to be filled in ..
 enddo
 
 ! Hook routine for more plotting if desired...
