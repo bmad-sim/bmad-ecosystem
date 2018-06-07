@@ -68,7 +68,8 @@ ONLINE_OPT_DIR='/nfs/cesr/opt'
 
 ONLINE_RELEASE_MGMT_DIR=${ONLINE_ARCHIVE_BASE_DIR}'/util'
 
-ONLINE_IFORT_SETUP_DIR=${ONLINE_OPT_DIR}'/intel/parallel_studio_xe_2016.2.062/bin'
+#ONLINE_IFORT_SETUP_DIR=${ONLINE_OPT_DIR}'/intel/parallel_studio_xe_2016.2.062/bin'
+OFFLINE_IFORT_SETUP_DIR=${OFFLINE_OPT_DIR}'/intel/parallel_studio_xe_2017_update7/bin'
 ONLINE_IFORT_SETUP_COMMAND=(${ONLINE_IFORT_SETUP_DIR}'/compilervars.sh intel64')
 
 ONLINE_GFORTRAN_SETUP_DIR='/opt/rh/devtoolset-4/'
