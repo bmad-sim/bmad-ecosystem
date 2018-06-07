@@ -369,6 +369,12 @@ else
   call draw_this_floor_plan(isu)
 endif
 
+! Hook routine for more plotting if desired...
+
+call tao_hook_draw_floor_plan (plot, graph)
+
+call qp_restore_state
+
 !-------------------------------------------------------------
 contains
 
@@ -465,12 +471,6 @@ end if
 do i = 1, size(graph%curve)
   ! ... needs to be filled in ..
 enddo
-
-! Hook routine for more plotting if desired...
-
-call tao_hook_draw_floor_plan (plot, graph)
-
-call qp_restore_state
 
 end subroutine draw_this_floor_plan
 

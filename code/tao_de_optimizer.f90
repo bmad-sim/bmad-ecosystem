@@ -98,8 +98,6 @@ end subroutine
 !
 ! Input:
 !   var_vec(:) -- Array of variables.
-! 
-! Input:
 !   iter_count -- Integer: Number of times this routine has been called since
 !                 the start of the optimization modulo 1000.
 !

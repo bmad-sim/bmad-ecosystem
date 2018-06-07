@@ -433,7 +433,7 @@ character(:), allocatable :: cmd_out, tail, alias_cmd
 
 integer, optional :: depth
 integer ic, i, j, ix, this_depth
-logical err
+logical err, found_a_dummy_arg, found_this_dummy_arg
 character(*), parameter :: r_name = 'tao_alias_translate'
 
 !
@@ -482,15 +482,39 @@ do i = 1, s%com%n_alias
   ! Now get the actual arguments and replace dummy args with actual args.
 
   alias_cmd = trim(s%com%alias(i)%expanded_str)
+  found_a_dummy_arg = .false.
 
-  do j = 1, 9
+  outer_loop: do j = 1, 9
     call string_trim (tail(ic+1:), tail, ic)
+    found_this_dummy_arg = .false.
+    ! There can be multiple dummy args for a given actual arg so need to loop here.
     do
       ix = index (alias_cmd, sub_str(j))
+      if (ix == 0 .and. .not. found_this_dummy_arg) exit outer_loop
       if (ix == 0) exit
+      found_a_dummy_arg = .true.
+      found_this_dummy_arg = .true.
+      if (tail(1:ic) == '') then
+        call out_io (s_error$, r_name, 'ALIAS COMMAND DEMANDS MORE ARGUMENTS! ' // cmd_in)
+        err = .true.
+        cmd_out = ''
+        return
+      endif
       alias_cmd = alias_cmd(1:ix-1) // trim(tail(1:ic)) // trim(alias_cmd(ix+5:))
     enddo
-  enddo
+  enddo outer_loop
+
+  if (tail /= '') then
+    if (found_a_dummy_arg) then
+      call out_io (s_error$, r_name, 'EXTRA ARGUMENTS PRESENT IN COMMAND! ' // cmd_in)
+      err = .true.
+      cmd_out = ''
+      return
+    ! If there are no dummy args present then just append the tail to the command
+    else
+      alias_cmd = trim(alias_cmd) // trim(tail)
+    endif
+  endif
 
   ! The translation may need to be translated.
 
