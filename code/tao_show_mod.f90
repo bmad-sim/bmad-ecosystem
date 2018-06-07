@@ -1580,7 +1580,20 @@ case ('graph')
   if (err) return
 
   if (allocated(graph)) then
-    g => graph(1)%g
+    do i = 1, size(graph)
+      g => graph(i)%g
+      if (g%p%name == '') cycle  ! Can happen if plot associated with a region is nullified and the region has the same name as the plot.
+      if (associated(g%p%r)) then
+        if (.not. g%p%r%visible) cycle
+      endif
+      exit
+    enddo
+
+    if (i == size(graph) + 1) then
+      nl=1; lines(1) = 'This is not a visible graph'
+      return
+    endif
+
     if (associated(g%p%r)) then
       nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(g%p%r%name) // '.' // trim(g%name)
     endif
