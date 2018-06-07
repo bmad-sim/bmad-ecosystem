@@ -17,7 +17,6 @@ $pl_hash{"attribute_free3"} = "attribute_mod.f90";
 $pl_hash{"parser_add_branch"} = "bmad_parser_mod.f90";
 $pl_hash{"parser_set_attribute"} = "bmad_parser_mod.f90";
 $pl_hash{"bp_set_ran_status"} = "bmad_parser_mod.f90";
-$pl_hash{"bmad_parser_type_get"} = "bmad_parser_mod.f90";
 $pl_hash{"re_allocate_logical2d"} = "re_allocate_mod.f90";
 $pl_hash{"re_allocate_string2d"} = "re_allocate_mod.f90";
 $pl_hash{"re_allocate_integer2d"} = "re_allocate_mod.f90";
@@ -54,7 +53,6 @@ $pl_hash{"find_indexx"} = "bmad_parser_mod.f90";
 $pl_hash{"get_next_word"} = "bmad_parser_mod.f90";
 $pl_hash{"get_overlay_group_names"} = "bmad_parser_mod.f90";
 $pl_hash{"load_parse_line"} = "bmad_parser_mod.f90";
-$pl_hash{"seq_expand1"} = "bmad_parser_mod.f90";
 $pl_hash{"qromb_rad_int"} = "rad_int_common.f90";
 $pl_hash{"init_bmad_parser_common"} = "bmad_parser_mod.f90";
 $pl_hash{"bbi_slice_calc"} = "make_mat6_mod.f90";
@@ -66,7 +64,6 @@ $pl_hash{"get_called_file"} = "bmad_parser_mod.f90";
 $pl_hash{"mexp"} = "bmad_basic_mod.f90";
 $pl_hash{"integration_timer_fibre"} = "integration_timer_mod.f90";
 $pl_hash{"propagate_part_way"} = "rad_int_common.f90";
-$pl_hash{"evaluate_value"} = "bmad_parser_mod.f90";
 $pl_hash{"reallocate_bp_com_var"} = "bmad_parser_mod.f90";
 $pl_hash{"parser_debug_print_info"} = "bmad_parser_mod.f90";
 $pl_hash{"parser_expand_line"} = "bmad_parser_mod.f90";
@@ -173,6 +170,7 @@ while (<F_IN>) {
 
     $arg_list =~ s/\\\\//g;           # Remove "\\"
     $arg_list =~ s/\\hspace.+?\}//g;  # Remove "\hspace{...}"
+    $arg_list =~ s/\\hspace//g;       # Remove "\hfill"
     $arg_list =~ s/ {2,}/ /g;         # Multiple space to single space
     $tex_hash{$name} = $arg_list;
     ## print "$arg_list\n";

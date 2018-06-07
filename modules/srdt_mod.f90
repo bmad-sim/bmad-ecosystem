@@ -83,10 +83,10 @@ type(coord_struct), allocatable :: co(:)
 real(rp) pinux, pinuy
 real(rp) k2l, k1, k2
 real(rp) slice_len
-real(rp) ns, sj, sl
+real(rp) sj, sl
 real(rp) dmux, dmuy, prod, sqrtprod, sgn
 
-integer pass, w, i, j
+integer pass, w, i, j, ns
 integer n_slices_sext
 integer n_slices_gen
 
@@ -141,13 +141,13 @@ do pass=1,2
         endif
         if(good_ele) then
           k2 = k2 / 2.0  ! Convention shown in Eqn. 8 of Bengsston paper: moments divided by n.
-          if( lat%ele(i)%key == sextupole$ ) then
+          if (lat%ele(i)%key == sextupole$) then
             ns = n_slices_sext
           else
             ns = n_slices_gen
           endif
           slice_len = lat%ele(i)%value(l$) / ns
-          do j=1,ns
+          do j = 1, ns
             w = w + 1
             if(pass == 2) then
               if(i .gt. 1) then
@@ -182,13 +182,13 @@ srdt%h30000 = sum(eles(:)%k2l*eles(:)%beta_a**(3./2.) * exp( i_imag*3.0d0*eles(:
 srdt%h10110 = sum(eles(:)%k2l*eles(:)%beta_a**(1./2.)*eles(:)%beta_b * exp( i_imag*1.0d0*eles(:)%phi_a ))
 srdt%h10020 = sum(eles(:)%k2l*eles(:)%beta_a**(1./2.)*eles(:)%beta_b * exp( i_imag*(eles(:)%phi_a-2.0*eles(:)%phi_b) ))
 srdt%h10200 = sum(eles(:)%k2l*eles(:)%beta_a**(1./2.)*eles(:)%beta_b * exp( i_imag*(eles(:)%phi_a+2.0*eles(:)%phi_b) ))
-srdt%h21000 = srdt%h21000 / -8.0
-srdt%h30000 = srdt%h30000 / -24.0
+srdt%h21000 = -srdt%h21000 / 8.0
+srdt%h30000 = -srdt%h30000 / 24.0
 srdt%h10110 = srdt%h10110 /  4.0
 srdt%h10020 = srdt%h10020 /  8.0
 srdt%h10200 = srdt%h10200 /  8.0
 srdt%h20001 = srdt%h20001 /  8.0
-srdt%h00201 = srdt%h00201 / -8.0
+srdt%h00201 = -srdt%h00201 / 8.0
 
 
 !Calculate second order terms
@@ -258,9 +258,9 @@ if(order .ge. 2) then
       enddo
     endif
   enddo
-  srdt%nux_Jx = srdt%nux_Jx / -16.0 / pi
+  srdt%nux_Jx = -srdt%nux_Jx / 16.0 / pi
   srdt%nuy_Jy = srdt%nuy_Jy / 8.0 / pi
-  srdt%nux_Jy = srdt%nux_Jy / -16.0 / pi
+  srdt%nux_Jy = -srdt%nux_Jy / 16.0 / pi
   srdt%h31000 = srdt%h31000 * i_imag / 32.0
   srdt%h40000 = srdt%h40000 * i_imag / 64.0
   srdt%h20110 = srdt%h20110 * i_imag / 32.0
