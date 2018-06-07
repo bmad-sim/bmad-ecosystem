@@ -1602,6 +1602,7 @@ case ('graph')
     nl=nl+1; write(lines(nl), amt)  'floor_plan_view                  = ', g%floor_plan_view
     nl=nl+1; write(lines(nl), f3mt) 'floor_plan_rotation              = ', g%floor_plan_rotation
     nl=nl+1; write(lines(nl), f3mt) 'floor_plan_orbit_scale           = ', g%floor_plan_orbit_scale
+    nl=nl+1; write(lines(nl), amt)  'floor_plan_orbit_color           = ', g%floor_plan_orbit_color
     nl=nl+1; write(lines(nl), lmt)  'floor_plan_size_is_absolute      = ', g%floor_plan_size_is_absolute
     nl=nl+1; write(lines(nl), lmt)  'floor_plan_draw_only_first_pass  = ', g%floor_plan_draw_only_first_pass
     nl=nl+1; write(lines(nl), amt)  'x%label                          = ', g%x%label

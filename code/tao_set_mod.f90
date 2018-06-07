@@ -310,6 +310,13 @@ select case (who)
 case ('random_engine', 'random_gauss_converter', 'track_type', &
       'prompt_string', 'optimizer', 'print_command', 'var_out_file')
   needs_quotes = .true.
+case default
+  ! Surprisingly enough, a namelist read will ignore a blank value field so catch this problem here.
+  if (value_str == '') then
+    call out_io (s_error$, r_name, 'SET VALUE IS BLANK!')
+    return
+  endif
+
 end select
 if (value_str(1:1) == "'" .or. value_str(1:1) == '"') needs_quotes = .false.
 
