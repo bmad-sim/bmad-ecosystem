@@ -316,6 +316,8 @@ if (use_cache .or. init_cache) then
         ele2%tracking_method = symp_lie_bmad$  
         ele2%mat6_calc_method = symp_lie_bmad$  
       endif
+    elseif (key2 == wiggler$ .and. ele2%sub_key == map_type$ .and. ele2%tracking_method /= custom$) then
+      call compute_even_steps (ele%value(ds_step$), ele2%value(l$), bmad_com%default_ds_step, del_z, n_step)
     else
       beta_min = min(ele2%a%beta, ele2%b%beta, branch%ele(i-1)%a%beta, branch%ele(i-1)%b%beta)
       ds_step = min(ele2%value(ds_step$), beta_min / 10)
@@ -342,7 +344,7 @@ if (use_cache .or. init_cache) then
         c_pt%mat6 = track%map(k)%mat6
         c_pt%vec0 = track%map(k)%vec0
         c_pt%ref_orb_in  = orb_start
-        c_pt%ref_orb_out = orb_end
+        c_pt%ref_orb_out = track%orb(k)
       enddo
 
     ! All else...
