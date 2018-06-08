@@ -604,7 +604,7 @@ type (all_pointer_struct) :: a_ptr
 
 integer dir, il, ix_slave
 
-real(rp) coef, new_val, val, val_old, delta
+real(rp) coef, val_old, delta
 
 logical ok
 
@@ -623,7 +623,7 @@ endif
 ! Evaluate value and old value.
 
 if (lord%control%type == expression$) then
-  call evaluate_expression_stack (ctl%stack, val, err_flag, err_str, lord%control%var, .false.)
+  call evaluate_expression_stack (ctl%stack, ctl%value, err_flag, err_str, lord%control%var, .false.)
   call evaluate_expression_stack (ctl%stack, val_old, err_flag, err_str, lord%control%var, .true.)
   if (err_flag) then
     call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
@@ -631,7 +631,7 @@ if (lord%control%type == expression$) then
   endif
 
 else
-  call spline_akima_interpolate (lord%control%x_knot, ctl%y_knot, lord%control%var(1)%value, ok, val)
+  call spline_akima_interpolate (lord%control%x_knot, ctl%y_knot, lord%control%var(1)%value, ok, ctl%value)
   call spline_akima_interpolate (lord%control%x_knot, ctl%y_knot, lord%control%var(1)%old_value, ok, val_old)
   if (.not. ok) then
     call out_io (s_error$, r_name, 'VARIABLE VALUE OUTSIDE OF SPLINE KNOT RANGE.')
@@ -642,7 +642,7 @@ endif
 
 !
 
-delta = val - val_old
+delta = ctl%value - val_old
 a_ptr%r = a_ptr%r + delta * dir
 
 call set_flags_for_changed_attribute (ele, a_ptr%r)
@@ -2231,7 +2231,6 @@ type (ele_struct), pointer :: my_lord, my_slave
 type (control_struct) c
 
 real(rp), target :: r_attrib
-real(rp) this_contribution
 integer iv
 logical err_flag, ok
 
@@ -2240,7 +2239,7 @@ character(100) err_str
 ! First evaluate the contribution from the overlay lord
 
 if (lord%control%type == expression$) then
-  call evaluate_expression_stack(c%stack, this_contribution, err_flag, err_str, lord%control%var, .false.)
+  call evaluate_expression_stack(c%stack, c%value, err_flag, err_str, lord%control%var, .false.)
   if (err_flag) then
     call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
     err_flag = .true.
@@ -2248,7 +2247,7 @@ if (lord%control%type == expression$) then
   endif
 
 else
-  call spline_akima_interpolate (lord%control%x_knot, c%y_knot, lord%control%var(1)%value, ok, this_contribution)
+  call spline_akima_interpolate (lord%control%x_knot, c%y_knot, lord%control%var(1)%value, ok, c%value)
   if (.not. ok) then
     call out_io (s_error$, r_name, 'VARIABLE VALUE OUTSIDE OF SPLINE KNOT RANGE.')
     err_flag = .true.
@@ -2256,21 +2255,21 @@ else
   endif
 endif
 
-! If the contribution (this_contribution) contributes to a slave attribute that is on the val_attrib list then
-! just add this_contribution to the slave attribute
+! If the contribution (c%value) contributes to a slave attribute that is on the val_attrib list then
+! just add c%value to the slave attribute
 
 do iv = 1, n_attrib
   if (.not. associated(ptr_attrib(iv)%r, r_attrib)) cycle
-  val_attrib(iv) = val_attrib(iv) + this_contribution
+  val_attrib(iv) = val_attrib(iv) + c%value
   return
 enddo
 
 ! Must be a slave attribute that is not in the val_attrib list
-! So add this slave attribute to the list and set the value to this_contribution
+! So add this slave attribute to the list and set the value to c%value
 
 n_attrib = n_attrib + 1
 ptr_attrib(n_attrib)%r => r_attrib
-val_attrib(n_attrib) = this_contribution
+val_attrib(n_attrib) = c%value
 
 end subroutine overlay_change_this
 

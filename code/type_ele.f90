@@ -98,10 +98,10 @@ character(*), optional, allocatable :: lines(:)
 character(:), allocatable :: a_str
 character(200), pointer :: li(:)
 character(200), allocatable :: li2(:)
-character(200) coef_str
+character(200) expression_str
 character(60) str1, str2
 character(40) a_name, name, fmt_r, fmt_a, fmt_i, fmt_l, fmt
-character(12) val_str, units
+character(12) attrib_val_str, units
 character(8) angle, index_str
 
 character(*), parameter :: r_name = 'type_ele'
@@ -774,21 +774,20 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       case (super_lord$, multipass_lord$)
         cycle
       case (girder_lord$)
-        coef_str = ''
+        expression_str = ''
         a_name = ''
-        val_str = ''
       case default
         if (allocated(ctl%stack)) then
-          coef_str = expression_stack_to_string (ctl%stack)
+          expression_str = expression_stack_to_string (ctl%stack)
         else
-          coef_str = ''
+          expression_str = ''
         endif
         iv = ctl%ix_attrib
         a_name = attribute_name(ele, iv)
       end select
 
       nl=nl+1; write (li(nl), '(i8, 3x, a32, a18, 2x, a20, a)') &
-            lord%ix_ele, lord%name, a_name, key_name(lord%key), trim(coef_str)
+            lord%ix_ele, lord%name, a_name, key_name(lord%key), trim(expression_str)
     enddo
     nl=nl+1; li(nl) = ''
   endif
@@ -875,32 +874,32 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
 
     case default
       if (ele%key == overlay$) then
-        nl=nl+1; write (li(nl), '(a, i4)') 'Slaves: [Attrib_Val = Expression_Val summed over all Overlays controlling the attribute.]'
+        nl=nl+1; write (li(nl), '(a, i4)') 'Slaves: [Attrib_Value = Expression_Val summed over all Overlays controlling the attribute.]'
       else ! Group
-        nl=nl+1; write (li(nl), '(a, i4)') 'Slaves: [Attrib_Val = Value of the controlled attribute, Expression_Val = Value calculated by the Group element.]'
+        nl=nl+1; write (li(nl), '(a, i4)') 'Slaves: [Attrib_Value = Value of the controlled attribute, Expression_Val = Value calculated by this Group element.]'
       endif
       nl=nl+1; li(nl) = '   Index   Ele_Name';  li(nl)(n_char+14:) = 'Attribute         Attrib_Value  Expression_Val    Expression'
       do ix = 1, ele%n_slave
         slave => pointer_to_slave (ele, ix, ctl)
-        if (allocated(ctl%stack)) then
-          a_str = expression_stack_to_string (ctl%stack)
-          call evaluate_expression_stack(ctl%stack, val, err_flag, str1, ele%control%var)
-          write (coef_str, '(es12.4, 4x, a)') val, trim(a_str)
-        else
-          coef_str = ' ------ '
-        endif
 
         iv = ctl%ix_attrib
         a_name = attribute_name(slave, iv)
         if (iv > num_ele_attrib$) then  ! Special group construct: accordion_edge$, start_edge$, end_edge$, or s_position$
-          write (val_str, '(es12.4)') val
+          write (attrib_val_str, '(es12.4)') val
         else
           call pointer_to_attribute (slave, a_name, .false., a_ptr, err_flag)
-          val_str = ' ----'
-          if (associated(a_ptr%r)) write (val_str, '(es12.4)') a_ptr%r
+          attrib_val_str = ' ----'
+          if (associated(a_ptr%r)) write (attrib_val_str, '(es12.4)') a_ptr%r
         endif
 
-        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a, 4x, a)') trim(ele_loc_to_string(slave)), slave%name(1:n_char), a_name, val_str, trim(coef_str)
+        if (allocated(ctl%stack)) then
+          a_str = expression_stack_to_string (ctl%stack)
+          write (expression_str, '(es12.4, 4x, a)') ctl%value, trim(a_str)
+        else  ! Spline
+          write (expression_str, '(es12.4, 4x, a)') ctl%value, '<Knots>'
+        endif
+
+        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a, 4x, a)') trim(ele_loc_to_string(slave)), slave%name(1:n_char), a_name, attrib_val_str, trim(expression_str)
       enddo
     end select
   endif

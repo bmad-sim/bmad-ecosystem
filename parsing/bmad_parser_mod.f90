@@ -355,9 +355,8 @@ if (ele%key == overlay$ .or. ele%key == group$) then
       call parser_error ('RESETTING VAR = {...} IS NOT PERMITTED', 'FOR: ' // ele%name)
       return
     endif
-    call get_overlay_group_names(ele, lat, pele, delim, delim_found, .true.)
+    call get_overlay_group_names(ele, lat, pele, delim, delim_found, .true., err_flag)
     pele%default_attrib = ele%control%var(1)%name
-    err_flag = .false.
     return
 
   case (gang$)
@@ -367,6 +366,8 @@ if (ele%key == overlay$ .or. ele%key == group$) then
   case (x_knot$)
     if (.not. parse_real_list2 (lat, 'ERROR PARSING X_KNOT POINTS FOR: ' // ele%name, ele%control%x_knot, n, 10, '{', ',', '}')) return
     call re_allocate(ele%control%x_knot, n)
+    if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
+    err_flag = .false.
     return
 
   end select
@@ -3741,7 +3742,7 @@ end subroutine get_list_of_names
 !                                     If False then parsing "group = {...}" list (or overlay or girder).
 !-
       
-subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found, is_control_var_list)
+subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found, is_control_var_list, err_flag)
 
 implicit none
 
@@ -3753,7 +3754,7 @@ type (parser_controller_struct), pointer :: pc
 real(rp) value
 real(rp), allocatable :: y_knot(:,:), y_val(:)
 
-integer ix_word, n_slave, i, j, k, n
+integer ix_word, n_slave, i, j, k, n, i_last
                            
 character(1) delim
 character(40) word_in, word
@@ -3761,11 +3762,12 @@ character(40), allocatable :: name(:), attrib_name(:)
 character(200), allocatable :: expression(:)
 character(200) err_str
 
-logical :: is_control_var_list
-logical delim_found, err_flag, end_of_file, ele_names_only
+logical :: is_control_var_list, err_flag
+logical delim_found, err, end_of_file, ele_names_only
 
 !
 
+err_flag = .true.
 allocate (name(40), attrib_name(40), expression(40))
 
 call get_next_word (word_in, ix_word, '{,}', delim, delim_found, .true.)
@@ -3832,26 +3834,24 @@ do
 
     ! If a list of knot y-values
     elseif (bp_com%parse_line(1:1) == '{') then   ! y_knot array
-      if (.not. parse_real_list2 (lat, 'ERROR PARSING Y KNOT POINTS FOR: ' // ele%name, y_val, n, 10, '{', ',', '}')) then
-        call load_parse_line ('new_command', 1, end_of_file)         ! next line
-        return
-      endif
+      if (.not. parse_real_list2 (lat, 'ERROR PARSING Y KNOT POINTS FOR: ' // ele%name, y_val, n, 10, '{', ',', '}')) return
 
       if (n_slave > 1 .and. .not. allocated(y_knot)) then
         call parser_error ('MIXING FUNCTIONS WITH SPLINES NOT ALLOWED.', 'FOR ELEMENT: ' // ele%name)
-        call load_parse_line ('new_command', 1, end_of_file)         ! next line
         return
       endif
 
-      if (n_slave == 1) allocate(y_knot(40, n))
+      if (n_slave == 1) then
+        allocate(y_knot(40, n))
+        y_knot = real_garbage$
+      endif
 
       if (n /= size(y_knot, 2)) then
         call parser_error ('NUMBER OF KNOT POINTS FOR SLAVE: ' // word, 'NOT THE SAME AS PREVIOUS KNOT ARRAYS.', 'FOR ELEMENT: ' // ele%name)
-        call load_parse_line ('new_command', 1, end_of_file)         ! next line
         return
       endif
 
-      if (n_slave > size(y_knot, 1)) call re_allocate2d(y_knot, 2*n_slave, n)
+      if (n_slave > size(y_knot, 1)) call re_allocate2d(y_knot, 2*n_slave, n, .true., real_garbage$)
 
       y_knot(n_slave,:) = y_val(1:n)
       if (.not. expect_one_of ('},', .false., ele, delim, delim_found)) return
@@ -3859,10 +3859,9 @@ do
     ! Parse expression
     else
       ! Just parse and not evaluate.
-      call parse_evaluate_value (trim(ele%name), value, lat, delim, delim_found, err_flag, ',}', expression(n_slave))
-      if (err_flag) then
+      call parse_evaluate_value (trim(ele%name), value, lat, delim, delim_found, err, ',}', expression(n_slave))
+      if (err) then
         call parser_error ('BAD EXPRESSION: ' // word_in,  'FOR ELEMENT: ' // ele%name)
-        call load_parse_line ('new_command', 1, end_of_file)         ! next line
         return
       endif
     endif
@@ -3895,19 +3894,27 @@ else
   allocate (pele%control(n_slave))
   pele%control%name = name(1:n_slave)
   pele%control%attrib_name = attrib_name(1:n_slave)
+  i_last = 1
   do i = 1, n_slave
     pc => pele%control(i)
     if (allocated(y_knot)) then
-      pc%y_knot = y_knot(i,:)
+      if (y_knot(i,1) == real_garbage$) then
+        pc%y_knot = y_knot(i_last,:)
+      else
+        pc%y_knot = y_knot(i,:)
+        i_last = i
+      endif
     ! Expression string to stack
     else
-      call expression_string_to_stack (expression(i), pc%stack, pc%n_stk, err_flag, err_str)
-      if (err_flag) then
+      call expression_string_to_stack (expression(i), pc%stack, pc%n_stk, err, err_str)
+      if (err) then
         call parser_error (err_str, 'FOR ELEMENT: ' // ele%name, 'EXPRESSION: ' // trim(expression(i)))
       endif
     endif
   enddo
 endif
+
+err_flag = .false.
 
 end subroutine get_overlay_group_names
 
