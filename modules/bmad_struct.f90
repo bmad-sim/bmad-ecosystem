@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 215
+integer, parameter :: bmad_inc_version$ = 216
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1024,6 +1024,7 @@ end type
 ! struct for element to element control
 
 type control_struct
+  real(rp) :: value = 0          ! Used by group and overlay elements.
   real(rp), allocatable :: y_knot(:)
   type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
   type (lat_ele_loc_struct) :: slave = lat_ele_loc_struct()

@@ -38,7 +38,7 @@ type (control_struct), pointer :: c
 real(rp) value(num_ele_attrib$)
 
 integer, intent(in), optional :: n_files
-integer d_unit, i, j, k, n, n_file, ix_value(num_ele_attrib$), ierr
+integer d_unit, i, j, k, n, nk, n_file, ix_value(num_ele_attrib$), ierr
 integer stat_b(24), stat, n_wake, n_wall_section
 integer, allocatable :: ix_wake(:)
 
@@ -140,10 +140,13 @@ do i = 1, lat%n_control_max
   c => lat%control(i)
   n = 0
   if (allocated(c%stack)) n = size(c%stack)
-  write (d_unit) n, c%lord, c%slave, c%ix_attrib, c%attribute
+  nk = 0
+  if (allocated(c%y_knot)) nk = size(c%y_knot)
+  write (d_unit) n, nk, c%value, c%lord, c%slave, c%ix_attrib, c%attribute
   do j = 1, n
     write (d_unit) c%stack(j)
   enddo
+  if (nk /= 0) write (d_unit) c%y_knot
 enddo
 
 do i = 1, lat%n_ic_max

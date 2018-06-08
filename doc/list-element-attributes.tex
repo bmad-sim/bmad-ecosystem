@@ -170,7 +170,7 @@ aperture_at                 & lr_freq_spread              & taylor_map_includes_
 aperture_type               & lr_self_wake_on             & tilt                        & x_limit                     \\
 create_jumbo_slave          & lr_wake_file                & tilt_tot                    & x_offset                    \\
 csr_calc_on                 & lr_wake_spline              & tracking_method             & x_offset_tot                \\
-delta_e                     & l_hard_edge                 & type                        & x_pitch                     \\
+delta_e_ref                 & l_hard_edge                 & type                        & x_pitch                     \\
 delta_ref_time              & mat6_calc_method            & val1                        & x_pitch_tot                 \\
 descrip                     & num_steps                   & val10                       & y1_limit                    \\
 ds_step                     & n_ref_pass                  & val11                       & y2_limit                    \\
@@ -438,7 +438,7 @@ dy_origin                   & ref_tilt_tot                & x_pitch_tot         
  \label{s:list.group}
  
  \begin{tabular}{llll} \toprule
-accordion_edge              & end_edge                    & s_position                  &                             \\
+accordion_edge              & end_edge                    & s_position                  & x_knot                      \\
 alias                       & gang                        & type                        &                             \\
 descrip                     & start_edge                  & var                         &                             \\
  \bottomrule
@@ -482,7 +482,7 @@ aperture                    & e_tot                       & ptc_integration_type
 aperture_at                 & e_tot_start                 & reference                   & x_limit                     \\
 aperture_type               & l                           & ref_origin                  & y1_limit                    \\
 create_jumbo_slave          & mat6_calc_method            & spin_tracking_method        & y2_limit                    \\
-delta_e                     & offset                      & superimpose                 & y_limit                     \\
+delta_e_ref                 & offset                      & superimpose                 & y_limit                     \\
 delta_ref_time              & offset_moves_aperture       & tracking_method             &                             \\
 descrip                     & p0c                         & type                        &                             \\
  \bottomrule
@@ -580,6 +580,26 @@ e_tot                       & num_steps                   & tilt_tot            
  \vfill
  
  %---------------------------------
+ \section{Lens Element Element Attributes}
+ \label{s:list.lens}
+ 
+ \begin{tabular}{llll} \toprule
+alias                       & mat6_calc_method            & tilt_tot                    & x_pitch_tot                 \\
+aperture                    & offset                      & tracking_method             & y1_limit                    \\
+aperture_at                 & offset_moves_aperture       & transmission_coef           & y2_limit                    \\
+aperture_type               & p0c                         & type                        & y_limit                     \\
+create_jumbo_slave          & ptc_integration_type        & wall                        & y_offset                    \\
+delta_ref_time              & radius                      & x1_limit                    & y_offset_tot                \\
+descrip                     & reference                   & x2_limit                    & y_pitch                     \\
+ele_origin                  & ref_origin                  & x_limit                     & y_pitch_tot                 \\
+e_tot                       & spin_tracking_method        & x_offset                    & z_offset                    \\
+focal_strength              & superimpose                 & x_offset_tot                & z_offset_tot                \\
+l                           & tilt                        & x_pitch                     &                             \\
+ \bottomrule
+ \end{tabular}
+ \vfill
+ 
+ %---------------------------------
  \section{Marker Element Element Attributes}
  \label{s:list.marker}
  
@@ -628,22 +648,24 @@ is_on                       & superimpose                 & x_pitch             
  \label{s:list.match}
  
  \begin{tabular}{llll} \toprule
-alias                       & dphi_a                      & match_end_input             & superimpose                 \\
-alpha_a0                    & dphi_b                      & match_end_orbit             & tracking_method             \\
-alpha_a1                    & ele_origin                  & match_end_orbit_input       & type                        \\
-alpha_b0                    & etap_x0                     & offset                      & x0                          \\
-alpha_b1                    & etap_x1                     & offset_moves_aperture       & x1                          \\
-aperture                    & etap_y0                     & p0c                         & x1_limit                    \\
-aperture_at                 & etap_y1                     & ptc_integration_type        & x2_limit                    \\
-aperture_type               & eta_x0                      & px0                         & x_limit                     \\
-beta_a0                     & eta_x1                      & px1                         & y0                          \\
-beta_a1                     & eta_y0                      & py0                         & y1                          \\
-beta_b0                     & eta_y1                      & py1                         & y1_limit                    \\
-beta_b1                     & e_tot                       & pz0                         & y2_limit                    \\
-create_jumbo_slave          & is_on                       & pz1                         & y_limit                     \\
-delta_ref_time              & l                           & reference                   & z0                          \\
-delta_time                  & mat6_calc_method            & ref_origin                  & z1                          \\
-descrip                     & match_end                   & spin_tracking_method        &                             \\
+alias                       & c22_mat0                    & is_on                       & ref_origin                  \\
+alpha_a0                    & c22_mat1                    & l                           & spin_tracking_method        \\
+alpha_a1                    & create_jumbo_slave          & mat6_calc_method            & superimpose                 \\
+alpha_b0                    & delta_ref_time              & match_end                   & tracking_method             \\
+alpha_b1                    & delta_time                  & match_end_input             & type                        \\
+aperture                    & descrip                     & match_end_orbit             & x0                          \\
+aperture_at                 & dphi_a                      & match_end_orbit_input       & x1                          \\
+aperture_type               & dphi_b                      & offset                      & x1_limit                    \\
+beta_a0                     & ele_origin                  & offset_moves_aperture       & x2_limit                    \\
+beta_a1                     & etap_x0                     & p0c                         & x_limit                     \\
+beta_b0                     & etap_x1                     & ptc_integration_type        & y0                          \\
+beta_b1                     & etap_y0                     & px0                         & y1                          \\
+c11_mat0                    & etap_y1                     & px1                         & y1_limit                    \\
+c11_mat1                    & eta_x0                      & py0                         & y2_limit                    \\
+c12_mat0                    & eta_x1                      & py1                         & y_limit                     \\
+c12_mat1                    & eta_y0                      & pz0                         & z0                          \\
+c21_mat0                    & eta_y1                      & pz1                         & z1                          \\
+c21_mat1                    & e_tot                       & reference                   &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -747,7 +769,7 @@ field_overlaps              & offset                      & type                
  
  \begin{tabular}{llll} \toprule
 alias                       & gang                        & var                         &                             \\
-descrip                     & type                        &                             &                             \\
+descrip                     & type                        & x_knot                      &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -1030,11 +1052,12 @@ field_overlaps              & offset                      & type                
  \label{s:list.taylor}
  
  \begin{tabular}{llll} \toprule
-alias                       & offset                      & tilt                        & y1_limit                    \\
-aperture                    & offset_moves_aperture       & tilt_tot                    & y2_limit                    \\
-aperture_at                 & p0c                         & tracking_method             & y_limit                     \\
-aperture_type               & ptc_integration_type        & tt*                         & y_offset                    \\
-create_jumbo_slave          & px_ref                      & type                        & y_offset_tot                \\
+alias                       & mat6_calc_method            & taylor_map_includes_offsets & x_ref                       \\
+aperture                    & offset                      & tilt                        & y1_limit                    \\
+aperture_at                 & offset_moves_aperture       & tilt_tot                    & y2_limit                    \\
+aperture_type               & p0c                         & tracking_method             & y_limit                     \\
+create_jumbo_slave          & ptc_integration_type        & tt*                         & y_offset                    \\
+delta_e_ref                 & px_ref                      & type                        & y_offset_tot                \\
 delta_ref_time              & py_ref                      & wall                        & y_pitch                     \\
 descrip                     & pz_ref                      & x1_limit                    & y_pitch_tot                 \\
 ele_origin                  & reference                   & x2_limit                    & y_ref                       \\
@@ -1043,7 +1066,6 @@ is_on                       & ref_origin                  & x_offset            
 l                           & spin_tracking_method        & x_offset_tot                & z_ref                       \\
 lord_pad1                   & superimpose                 & x_pitch                     &                             \\
 lord_pad2                   & symplectify                 & x_pitch_tot                 &                             \\
-mat6_calc_method            & taylor_map_includes_offsets & x_ref                       &                             \\
  \bottomrule
  \end{tabular}
  \vfill

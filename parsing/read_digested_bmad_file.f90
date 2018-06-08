@@ -46,7 +46,7 @@ type (bmad_common_struct) bmad_com_read
 real(rp) value(num_ele_attrib$)
 
 integer inc_version, d_unit, n_files, file_version, i, j, k, ix, ix_value(num_ele_attrib$)
-integer stat_b(13), stat_b2, stat_b8, stat_b10, n_branch, n, control_type, coupler_at
+integer stat_b(13), stat_b2, stat_b8, stat_b10, n_branch, n, nk, control_type, coupler_at
 integer ierr, stat, ios, ios2, n_wall_section, garbage, j1, j2, io_err_level
 
 character(*) digested_file
@@ -229,12 +229,17 @@ enddo
 
 do i = 1, lat%n_control_max
   c => lat%control(i)
-  read (d_unit, err = 9040) n, c%lord, c%slave, c%ix_attrib, c%attribute
+  read (d_unit, err = 9040) n, nk, c%value, c%lord, c%slave, c%ix_attrib, c%attribute
   if (n > 0) then
     allocate (c%stack(n))
     do j = 1, n
       read (d_unit, err = 9045) c%stack(j)
     enddo
+  endif
+
+  if (nk > 0) then
+    allocate (c%y_knot(nk))
+    read (d_unit, err = 9045) c%y_knot
   endif
 enddo
 
