@@ -1478,15 +1478,15 @@ Example:
     point(3) = -10.8229,   14.7737
   /
 \end{example}
-In this example, point 1 is at $(Z, X) = (23.2837, 8.2842)$, the
-segment between points 1 and 2 is an arc with a radius of 107.345
-meters, and the segment between points 2 and 3 is a straight
-line. Also this wall section is to be used when evaluating any
-\vn{wall.x+} constraint.
+In this example, point 1 is at $(Z, X) = (23.2837, 8.2842)$, the segment between points 1 and 2 is
+an arc with a radius of 107.345 meters, and the segment between points 2 and 3 is a straight
+line. Also this wall section is to be used when evaluating any \vn{wall.x+} constraint.
 
-Note: To position a machine in the global coordinate system, the
-starting point and starting orientation can be adjusted using
-\vn{beginning[...]} statements as explained in the \bmad manual.
+If the machine varies vertically ($y$-direction), vertical constraints may be imposed using the
+\vn{floor.y} data type (\sref{s:data.types}).
+
+Note: To position a machine in the global coordinate system, the starting point and starting
+orientation can be adjusted using \vn{beginning[...]} statements as explained in the \bmad manual.
 
 %-----------------------------------------------------------------
 \section{Initializing Dynamic Aperture}
