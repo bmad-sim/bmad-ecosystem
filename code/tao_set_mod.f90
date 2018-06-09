@@ -999,6 +999,7 @@ type (ele_pointer_struct), allocatable :: eles(:)
 
 integer ix, i_branch
 logical error
+character(40) name
 
 !
 
@@ -1012,9 +1013,9 @@ this_graph => this_curve%g
 select case (component)
 
 case ('ele_ref_name')
-  this_curve%ele_ref_name = value_str
-  call tao_locate_elements (this_curve%ele_ref_name, i_uni, eles, error, ignore_blank = .true.)
+  call tao_locate_elements (value_str, i_uni, eles, error, ignore_blank = .true.)
   if (size(eles) == 0) return
+  this_curve%ele_ref_name = upcase(value_str)
   this_curve%ix_ele_ref = eles(1)%ele%ix_ele
   this_curve%ix_branch  = eles(1)%ele%ix_branch
   call tao_ele_to_ele_track (i_uni, i_branch, this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
