@@ -139,6 +139,7 @@ do
     call out_io (s_error$, r_name, 'BAD COMMAND LINE ARGUMENT: ' // arg0)
     call tao_print_command_line_info
     error = .true.
+    if (s%global%stop_on_error) stop
     return
   end select
 
