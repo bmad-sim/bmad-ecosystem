@@ -1,6 +1,6 @@
 module write_lat_file_mod
 
-use multipole_mod
+use expression_mod
 use multipass_mod
 use element_modeling_mod
 use binary_parser_mod
