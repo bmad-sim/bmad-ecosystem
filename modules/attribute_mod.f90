@@ -1060,7 +1060,7 @@ call init_attribute_name1 (lcavity$, coupler_angle$,                'COUPLER_ANG
 call init_attribute_name1 (lcavity$, coupler_phase$,                'COUPLER_PHASE')
 call init_attribute_name1 (lcavity$, coupler_at$,                   'COUPLER_AT')
 call init_attribute_name1 (lcavity$, gradient_err$,                 'GRADIENT_ERR')
-call init_attribute_name1 (lcavity$, voltage_err$,                  'VOLTAGE_ERR')
+call init_attribute_name1 (lcavity$, voltage_err$,                  'VOLTAGE_ERR', quasi_free$)
 call init_attribute_name1 (lcavity$, phi0_err$,                     'PHI0_ERR')
 call init_attribute_name1 (lcavity$, cartesian_map$,                'CARTESIAN_MAP')
 call init_attribute_name1 (lcavity$, cylindrical_map$,              'CYLINDRICAL_MAP')
