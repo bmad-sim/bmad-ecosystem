@@ -422,7 +422,7 @@ type (lat_struct), intent(inout), target :: lat_out
 type (lat_struct), intent(in), target :: lat_in
 type (branch_struct), pointer :: branch_out
 type (control_struct), pointer :: c_in, c_out
-integer i, n, ie, n_out, n_in
+integer i, n, nb, ne, ie, n_out, n_in
 
 ! Kill allociated PTC layouts if they exist
 
@@ -438,13 +438,14 @@ endif
 ! Care must be taken here since lat%ele points to the same memory as lat%branch(0).
 ! First take care of the branch lines.
 
-n = ubound(lat_in%branch, 1)
-call allocate_branch_array (lat_out, n)
+nb = ubound(lat_in%branch, 1)
+call allocate_branch_array (lat_out, nb)
 
-do i = 0, n
-  call allocate_lat_ele_array (lat_out, ubound(lat_in%branch(i)%ele, 1), i)
+do i = 0, nb
+  ne = min(lat_in%branch(i)%n_ele_max+10, ubound(lat_in%branch(i)%ele, 1))
+  call allocate_lat_ele_array (lat_out, ne, i)
   branch_out => lat_out%branch(i)
-  branch_out =  lat_in%branch(i)
+  branch_out = lat_in%branch(i)
   branch_out%lat => lat_out
   do ie = 0, ubound(branch_out%ele, 1)
     branch_out%ele(ie)%ix_ele = ie
@@ -568,12 +569,14 @@ implicit none
 	
 type (branch_struct), intent(inout) :: branch1
 type (branch_struct), intent(in) :: branch2
-integer i
+integer i, n
 
 !
 
-call allocate_element_array (branch1%ele, ubound(branch2%ele, 1))
-do i = 0, ubound(branch2%ele, 1)
+n = min(branch2%n_ele_max+10, ubound(branch2%ele, 1))
+
+call allocate_element_array (branch1%ele, n)
+do i = 0, n
   branch1%ele(i)  = branch2%ele(i)
 enddo
 
