@@ -33,10 +33,12 @@ open (1, file = 'output.now')
 
 !
 
-!call bmad_parser ('control.bmad', lat)
-!ele => pointer_to_ele (lat, 'OV1')
-
-
+call bmad_parser ('control.bmad', lat)
+do i = 1, 3
+  ele => lat%ele(i)
+  write (1, '(3a, f12.8)') '"Control-K1-', trim(ele%name), '"   ABS 0', ele%value(k1$)
+  write (1, '(3a, f12.8)') '"Control-TILT-', trim(ele%name), '" ABS 0', ele%value(tilt$)
+enddo
 
 !
 
