@@ -1,6 +1,6 @@
 module opal_interface_mod
 
-use bmad_interface
+use em_field_mod
 use write_lat_file_mod
 
 
