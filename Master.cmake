@@ -918,7 +918,7 @@ foreach(exespec ${EXE_SPECS})
   ENDIF ()
 
   # Temp fix for white space issue with OPENMP Flags.
-  STRING (STRIP ${SHARED_FLAG} SHARED_FLAG)
+  STRING (STRIP "${SHARED_FLAG}" SHARED_FLAG)
 
   IF (ENABLE_SHARED AND CREATE_SHARED)
   ELSE()
