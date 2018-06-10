@@ -46,13 +46,15 @@ real(rp), parameter :: classical_radius_factor = 1.439964416d-9  ! e^2 / (4 pi e
 
 real(rp), parameter :: N_avogadro = 6.02214129d23    ! Number / mole
 
-! Anomalous magnetic moment
+! Anomalous magnetic moment.
+! Note: Deuteron mag moment g = (mu_d / mu_N) * (m_deuteron / m_proton) and (mu_d / mu_N) is 
+! obtained from NIST CODATA. And then anomlous mag moment = (g - 2) / 2 as always.
 
 real(rp), parameter :: fine_structure_constant =  7.29735257d-3
 real(rp), parameter :: anomalous_mag_moment_electron = 1.159652193d-3
 real(rp), parameter :: anomalous_mag_moment_proton   = 1.79284735d0
 real(rp), parameter :: anomalous_mag_moment_muon     = 1.1659208d-3  ! ~fine_structure_constant / twopi
-real(rp), parameter :: anomalous_mag_moment_deuteron = -0.14298727047d0
+real(rp), parameter :: anomalous_mag_moment_deuteron = -0.1429872724d0
 
 ! Should make physical_const_list "parameter" but there is a gcc bug (in Version 7.1 at least)
 ! where if you pass physical_const_list%name to a routine there will be a crash.
