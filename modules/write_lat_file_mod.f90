@@ -1171,7 +1171,7 @@ do ib = 0, ubound(lat%branch, 1)
       do j1 = 1, 4
         do k = 1, size(ele%spin_taylor(j1)%term)
           tm = ele%spin_taylor(j1)%term(k)
-          write (line, '(7a, 6i2, a)') trim(line), ', {', spin_quat_name(j1), ': ', trim(re_str(tm%coef)), ',', tm%expn, '}'
+          write (line, '(6a, 6i2, a)') trim(line), ', {', spin_quat_name(j1), ': ', trim(re_str(tm%coef)), ',', tm%expn, '}'
         enddo
       enddo
 
