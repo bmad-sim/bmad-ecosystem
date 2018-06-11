@@ -14,6 +14,7 @@
 module element_modeling_mod
 
 use ptc_interface_mod
+use bookkeeper_mod
 
 type wiggler_modeling_common_struct
   real(rp) :: integral_g2_wgt = 1d4
