@@ -403,6 +403,9 @@ do
   call bbu_hom_voltage_calc (lat, bbu_beam, n_period)
   hom_voltage_sum = hom_voltage_sum + bbu_beam%hom_voltage_max
   n_count = n_count + 1 ! Number of track_a_stage in one period 
+  !print *, 'period:', n_period   !For debug
+  !print *, 'count:', n_count   !For debug
+  !print *, 'hom_volt_max:',  bbu_beam%hom_voltage_max   !For debug
   
   ! Write to file for Voltage sum  v.s. Turns (or any wanted information in one
   ! track_a_stage) for first cavity
@@ -469,9 +472,14 @@ ix_ele_start = bbu_beam%bunch(ib)%ix_ele
 !endif
 
 ! Track the bunch
+!open(999, file = 'bunch_vec.txt', status = 'unknown')
 do j = ix_ele_start+1, ix_ele_end
 
   call track1_bunch(bbu_beam%bunch(ib), lat, lat%ele(j), bbu_beam%bunch(ib), err)
+
+  ! For debug, to extract the bunch orbit.
+  !print *, 'Orbit information saved to bunch_vec.txt '
+  !write(999,'(a8, i8, a10, i8, a11, 6es11.3)') 'ele_ix:',j, 'bunch_ix:', ib, ' orbit:', bbu_beam%bunch(ib)%particle(1)%vec
 
 
   if (.not. all(bbu_beam%bunch(ib)%particle%state == alive$)) then
@@ -632,13 +640,15 @@ endif
 
 bbu_beam%ix_bunch_end = ixb
 
-! Offset particles if the particle is born within 
+! To excite HOMs initially, offset particles if the particle is born within 
 !"the first turn period" (initial population of bunches in the lattice).
 if (bunch%t_center < bbu_beam%one_turn_time) then
   do i = 1, size(bunch%particle)
     call ran_gauss (r)
     bunch%particle%vec(1) = bbu_param%init_particle_offset * r(1)
     bunch%particle%vec(3) = bbu_param%init_particle_offset * r(2)
+    !bunch%particle%vec(1) = 0
+    !bunch%particle%vec(3) = 0
   enddo
 endif
 
@@ -749,7 +759,6 @@ end subroutine bbu_hom_voltage_calc
 !!! output 'hom_info.txt' so that HOMs can be assigned starting next bbu run --------
 subroutine rf_cav_names (lat)
 implicit none
-type (bbu_param_struct) bbu_param
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 integer i
@@ -761,13 +770,42 @@ write(20,'(a15)') 'cavity_name'
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
   if (ele%key /= lcavity$) cycle
-  if (ele%slave_status == multipass_slave$)   ele => pointer_to_lord(ele, 1)
+  if (ele%slave_status == multipass_slave$)  ele => pointer_to_lord(ele, 1)
   cav_name = ele%name
   write(20,'(a25)') trim(adjustl(cav_name))
 enddo
 
 end subroutine rf_cav_names
 !------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
+!!!! output 'hom_info.txt' so that HOMs can be assigned starting next bbu run --------
+subroutine check_rf_freq (lat, fb)
+implicit none
+type (bbu_param_struct) bbu_param
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: ele
+integer i
+character(25) cav_name
+real(rp) fRF, fb
+
+do i = 1, lat%n_ele_track
+  ele => lat%ele(i)
+  if (ele%key /= lcavity$) cycle
+  if (ele%slave_status == multipass_slave$) ele => pointer_to_lord(ele, 1)
+  cav_name = ele%name 
+  fRF = ele%value(rf_frequency$) 
+  
+  if( abs(floor(fRF/fb) - fRF/fb) > 10E-6 ) then
+    !print *, abs(floor(fRf/fb) - fb/fRF)
+    print *,  'WARNING: For cavity ', cav_name, ' the RF frequency is not an integer &
+    multiple of the input bunch frequency!! Bunches might be lost due to this!'  
+  endif
+enddo
+
+end subroutine check_rf_freq
+!------------------------------------------------------------------------------
+
 !------------------------------------------------------------------------------
 subroutine write_bunch_by_bunch_info (lat, bbu_beam, bbu_param, this_stage)
 
