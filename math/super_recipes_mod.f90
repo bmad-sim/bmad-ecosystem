@@ -632,7 +632,7 @@ end subroutine super_ludcmp
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function super_brent (ax, bx, cx, func, rel_tol, abs_tol, xmin) result (f_max)
+! Function super_brent (ax, bx, cx, func, rel_tol, abs_tol, xmin) result (f_min)
 !
 ! Routine to find the minimum of a function.
 !
@@ -657,10 +657,10 @@ end subroutine super_ludcmp
 !
 ! Output:
 !   x_min   -- real(rp): minimum of the function.
-!   f_max   -- real(rp): Value at the minimum = func(x_min).
+!   f_min   -- real(rp): Value at the minimum = func(x_min).
 !-
 
-function super_brent(ax, bx, cx, func, rel_tol, abs_tol, xmin) result (f_max)
+function super_brent(ax, bx, cx, func, rel_tol, abs_tol, xmin) result (f_min)
 
 use nrtype
 
@@ -668,7 +668,7 @@ implicit none
 
 real(rp), intent(in) :: ax,bx,cx,rel_tol, abs_tol
 real(rp), intent(out) :: xmin
-real(rp) :: f_max
+real(rp) :: f_min
 
 interface
   function func(x)
@@ -687,7 +687,7 @@ real(rp) :: a,b,d,e,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm
 character(16) :: r_name = 'super_brent'
 
 !
-f_max = 0  ! avoid uninit warnings
+f_min = 0  ! avoid uninit warnings
 a = min(ax,cx)
 b = max(ax,cx)
 v = bx
@@ -703,7 +703,7 @@ do iter = 1, ITMAX
   tol2 = 2.0_rp*tol1
   if (abs(x-xm) <= (tol2-0.5_rp*(b-a))) then
     xmin = x
-    f_max = fx
+    f_min = fx
     return
   end if
   if (abs(e) > tol1) then
@@ -758,7 +758,7 @@ do iter = 1, ITMAX
 
   if (iter > 4 .and. fx >= max(fu, fv, fw) * 0.999999) then
     xmin = x
-    f_max = fx
+    f_min = fx
     return
   endif
 
