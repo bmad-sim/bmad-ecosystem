@@ -67,7 +67,7 @@ print *, 'Lattice file: ', trim(bbu_param%lat_filename)
 call bmad_parser (bbu_param%lat_filename, lat_in) !! lat_in is the parsed lattice
 
 
-call run_timer ('START')
+!call run_timer ('START')
 
 !print *, 'lat2 file name is:', bbu_param%lat2_filename
 !For DR-scan, parse additional lattice (lat2) 
@@ -158,9 +158,9 @@ endif
 
 !!!!!!!!!!!!!!!!!!!!!  END OF HYBRIDIZATION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-
+!=========================================================================================
 !!!!!!!!   Helpful functions to investigate the (hybridized) lattice !!!!!!!!!!!!!!!
-!!!!!!!!   Only use these for testing purpose, since they can slow down or even stop the program !!!!!!!!!! 
+!!!!!!!!   Only use these for debugging purpose, since they can slow down or even stop the program !!!!!!!!!! 
 
 !!! Print the element names of the hybridized lattice 
 !if (bbu_param%hybridize) then
@@ -170,10 +170,9 @@ endif
 !!!endif
 
 !!! Output the lattice file for the  hybridize lattice
-!call write_bmad_lattice_file ('/home/wl528/nfs/linux_lib/bsim/bbu/h0.dat', lat)
-!call write_bmad_lattice_file ('/home/wl528/nfs/linux_lib/bsim/bbu/pscan.dat', lat)
+!call write_bmad_lattice_file('/home/wl528/nfs/lib_SL7/bsim/bbu/cbeta_test/Apr09_2018_1p_125um_1tb/test1/bbu_test/h0.dat', lat)
 
-!!! Output properties of  hybridized elements, or the mat6s between all elements
+!!! Output properties of hybridized elements, or the mat6s between all elements
 !!! of the hybridized lattice
 !! This line will stop the program during its 2nd run
 !open(newunit = file_unit, file = '/home/wl528/nfs/linux_lib/bsim/bbu/mat6.dat', status = "new", action= "write")
@@ -194,7 +193,7 @@ endif
  !enddo  
 !close (file_unit)
 
-
+!================================================================================================
 
 ! Keep the lattice ready to use?
 lat0 = lat 
@@ -226,8 +225,10 @@ endif
 !! hom_info.txt can be useful if the user intends to assign HOM files randomly
 !! to the cavities
 if (bbu_param%write_hom_info) then
-  call rf_cav_names (lat)
+  call rf_cav_names(lat)
 endif
+
+call check_rf_freq(lat, bbu_param%bunch_freq)
 
 !print *, 'bbu_setup running...'
 call bbu_setup (lat, beam_init%dt_bunch, bbu_param, bbu_beam)
@@ -278,6 +279,6 @@ write(o,'(2a)') 'growth_rate_set = ', logical_to_python( .NOT.(growth_rate == re
 write(o,'(a, es14.6)') 'growth_rate = ', growth_rate
 close(o)
  
-call run_timer ('STOP', time)
+!call run_timer ('STOP', time)
 
 end program
