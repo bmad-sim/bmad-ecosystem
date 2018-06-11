@@ -6,7 +6,6 @@ module bmad_routine_interface
 
 use bmad_struct
 use pointer_to_branch_mod
-use pointer_to_ele_mod
 
 interface
 

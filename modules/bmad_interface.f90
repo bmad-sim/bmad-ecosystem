@@ -9,6 +9,7 @@ use element_at_s_mod
 use coord_mod
 use equality_mod
 use multipole_mod
+use pointer_to_ele_mod
 
 implicit none
 
