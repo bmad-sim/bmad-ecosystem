@@ -16,6 +16,7 @@
 
 subroutine combine_consecutive_elements (lat)
 
+use bookkeeper_mod
 use ptc_interface_mod, except => combine_consecutive_elements
 
 implicit none
