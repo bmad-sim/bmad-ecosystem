@@ -2102,24 +2102,33 @@ case ('ping_a.')
     if (associated(ele_ref)) datum_value = datum_value - ele_ref%a%phi
     valid_value = .true.
 
-  case ('ping_a.amp_y')
-    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
-    datum_value = sqrt(ele%b%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(2,2)**2))
-    if (associated(ele_ref)) then
-      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
-      datum_value = datum_value - sqrt(ele_ref%b%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(2,2)**2))
-    endif
-    valid_value = .true.
-
-  case ('ping_a.phase_y')
-    datum_value = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), - scratch%cc(ix_ele)%cbar(2,2))
-    if (associated(ele_ref)) then
-      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
-      datum_value = datum_value - ele_ref%a%phi - atan2(scratch%cc(ix_ref)%cbar(1,2), - scratch%cc(ix_ref)%cbar(2,2))
-    endif
-    valid_value = .true.
-
   case ('ping_a.amp_sin_y')
+    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+    amp = sqrt(ele%b%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(2,2)**2))
+    phase = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), -scratch%cc(ix_ele)%cbar(2,2))
+    datum_value = amp * sin(phase)
+    if (associated(ele_ref)) then
+      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
+      amp = sqrt(ele_ref%b%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(2,2)**2))
+      phase = ele_ref%a%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), -scratch%cc(ix_ref)%cbar(2,2))
+      datum_value = datum_value - amp * sin(phase)
+    endif
+    valid_value = .true.
+
+  case ('ping_a.amp_cos_y')
+    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+    amp = sqrt(ele%b%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(2,2)**2))
+    phase = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), -scratch%cc(ix_ele)%cbar(2,2))
+    datum_value = amp * cos(phase)
+    if (associated(ele_ref)) then
+      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
+      amp = sqrt(ele_ref%b%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(2,2)**2))
+      phase = ele_ref%a%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), -scratch%cc(ix_ref)%cbar(2,2))
+      datum_value = datum_value - amp * cos(phase)
+    endif
+    valid_value = .true.
+
+  case ('ping_a.amp_sin_rel_y')
     call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
     datum_value = -sqrt(ele%b%beta) * scratch%cc(ix_ele)%cbar(1,2)
 
@@ -2129,7 +2138,7 @@ case ('ping_a.')
     endif
     valid_value = .true.
 
-  case ('ping_a.amp_cos_y')
+  case ('ping_a.amp_cos_rel_y')
     call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
     datum_value = -sqrt(ele%b%beta) * scratch%cc(ix_ele)%cbar(2,2)
 
@@ -2157,25 +2166,33 @@ case ('ping_b.')
     if (associated(ele_ref)) datum_value = datum_value - ele_ref%b%phi
     valid_value = .true.
 
-  case ('ping_b.amp_x')
-    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
-    datum_value = sqrt(ele%a%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(1,1)**2))
-    if (associated(ele_ref)) then
-      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
-      datum_value = datum_value - sqrt(ele_ref%a%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(1,1)**2))
-    endif
-    valid_value = .true.
-
-  case ('ping_b.phase_x')
-    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
-    datum_value = ele%b%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), scratch%cc(ix_ele)%cbar(1,1))
-    if (associated(ele_ref)) then
-      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
-      datum_value = datum_value - ele_ref%b%phi - atan2(scratch%cc(ix_ref)%cbar(1,2), scratch%cc(ix_ref)%cbar(1,1))
-    endif
-    valid_value = .true.
-
   case ('ping_b.amp_sin_x')
+    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+    amp = sqrt(ele%a%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(1,1)**2))
+    phase = ele%b%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), scratch%cc(ix_ele)%cbar(1,1))
+    datum_value = amp * sin(phase)
+    if (associated(ele_ref)) then
+      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
+      amp = sqrt(ele_ref%a%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(1,1)**2))
+      phase = ele_ref%b%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), scratch%cc(ix_ref)%cbar(1,1))
+      datum_value = datum_value - amp * sin(phase)
+    endif
+    valid_value = .true.
+
+  case ('ping_b.amp_cos_x')
+    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+    amp = sqrt(ele%a%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(1,1)**2))
+    phase = ele%b%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), scratch%cc(ix_ele)%cbar(1,1))
+    datum_value = amp * cos(phase)
+    if (associated(ele_ref)) then
+      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
+      amp = sqrt(ele_ref%a%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(1,1)**2))
+      phase = ele_ref%b%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), scratch%cc(ix_ref)%cbar(1,1))
+      datum_value = datum_value - amp * cos(phase)
+    endif
+    valid_value = .true.
+
+  case ('ping_b.amp_sin_rel_x')
     call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
     datum_value = -sqrt(ele%a%beta) * scratch%cc(ix_ele)%cbar(1,2)
 
@@ -2185,7 +2202,7 @@ case ('ping_b.')
     endif
     valid_value = .true.
 
-  case ('ping_b.amp_cos_x')
+  case ('ping_b.amp_cos_rel_x')
     call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
     datum_value = sqrt(ele%a%beta) * scratch%cc(ix_ele)%cbar(1,1)
 
