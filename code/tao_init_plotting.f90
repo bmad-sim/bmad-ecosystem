@@ -2517,7 +2517,7 @@ if (all(s%plot_page%template%name /= 'ping_a_skew')) then
   grph => plt%graph(1)
   grph%p => plt
   grph%title         = 'Pinged A-mode Skew'
-  grph%y%label       = 'ping_a: sin_y, cos_y'
+  grph%y%label       = 'ping_a: amp_sin_y, amp_cos_y'
   grph%component     = 'model'
 
   crv => grph%curve(1)
@@ -2532,6 +2532,43 @@ if (all(s%plot_page%template%name /= 'ping_a_skew')) then
   crv%g => grph
   crv%data_type    = 'ping_a.amp_cos_y'
   crv%legend_text  = 'ping_a.amp_cos_y'
+  crv%units        = ''
+endif
+
+!---------------
+! ping_a_rel_skew
+
+if (all(s%plot_page%template%name /= 'ping_a_rel_skew')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
+
+  plt = default_plot_g1c2
+  plt%name                 = 'ping_a_rel_skew'
+  plt%description          = 'Pinged a-mode relative out-of-plane oscillations'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Pinged A-mode Rel Skew'
+  grph%y%label       = 'ping_a: amp_sin_rel_y, amp_cos_rel_y'
+  grph%component     = 'model'
+
+  crv => grph%curve(1)
+  crv%name         = 'sin_rel_y'
+  crv%g => grph
+  crv%data_type    = 'ping_a.amp_sin_rel_y'
+  crv%legend_text  = 'ping_a.amp_sin_rel_y'
+  crv%units        = ''
+
+  crv => grph%curve(2)
+  crv%name         = 'cos_rel_y'
+  crv%g => grph
+  crv%data_type    = 'ping_a.amp_cos_rel_y'
+  crv%legend_text  = 'ping_a.amp_cos_rel_y'
   crv%units        = ''
 endif
 
@@ -2569,6 +2606,43 @@ if (all(s%plot_page%template%name /= 'ping_b_skew')) then
   crv%g => grph
   crv%data_type    = 'ping_b.amp_cos_x'
   crv%legend_text  = 'ping_b.amp_cos_x'
+  crv%units        = ''
+endif
+
+!---------------
+! ping_b_rel_skew
+
+if (all(s%plot_page%template%name /= 'ping_b_rel_skew')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
+
+  plt = default_plot_g1c2
+  plt%name                 = 'ping_b_rel_skew'
+  plt%description          = 'Pinged b-mode relative out-of-plane oscillations'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Ping B-mode Rel Skew'
+  grph%y%label       = 'ping_b: sin_rel_x, cos_rel_x'
+  grph%component     = 'model'
+
+  crv => grph%curve(1)
+  crv%name         = 'sin_rel_x'
+  crv%g => grph
+  crv%data_type    = 'ping_b.amp_sin_rel_x'
+  crv%legend_text  = 'ping_b.amp_sin_rel_x'
+  crv%units        = ''
+
+  crv => grph%curve(2)
+  crv%name         = 'cos_rel_x'
+  crv%g => grph
+  crv%data_type    = 'ping_b.amp_cos_rel_x'
+  crv%legend_text  = 'ping_b.amp_cos_rel_x'
   crv%units        = ''
 endif
 

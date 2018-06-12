@@ -362,7 +362,8 @@ case ('orbit.x', 'orbit.y', 'beta.a', 'beta.b', 'eta.x', 'eta.y', 'ping_a.amp_x'
 case ('phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y')
   call tao_phase_wave_anal (plot)
 
-case ('cbar.12', 'cbar.11', 'cbar.22', 'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_b.amp_sin_x', 'ping_b.amp_cos_x')
+case ('ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x', &
+      'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_b.amp_sin_x', 'ping_b.amp_cos_x', 'cbar.12', 'cbar.11', 'cbar.22')
   call tao_cbar_wave_anal (plot)
 
 case ('cbar.21')
