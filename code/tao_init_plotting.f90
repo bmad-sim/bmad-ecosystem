@@ -943,7 +943,7 @@ endif
 
 !---------------------------------
 
-n_plots = 76
+n_plots = 78
 
 if (allocated(s%plot_page%template)) then
   n = size(s%plot_page%template)
