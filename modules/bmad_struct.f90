@@ -808,7 +808,7 @@ end type
 
 type photon_element_struct
   type (photon_surface_struct) :: surface = photon_surface_struct()
-  type (photon_target_struct) :: target !! = photon_target_struct() IFORT bug prevents set!
+  type (photon_target_struct) :: target = photon_target_struct()
   type (photon_material_struct) :: material = photon_material_struct()
 end type
 

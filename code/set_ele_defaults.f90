@@ -71,8 +71,7 @@ case (crystal$)
   ele%offset_moves_aperture = .true.
   if (logic_option(.true., do_allocate)) then
     if (.not. associated(ele%photon)) allocate(ele%photon)
-    !!! Due to ifort bug cannot do:  ele%photon = photon_element_struct()
-    call init_photon_element_struct(ele%photon)
+    ele%photon = photon_element_struct()
   endif
 
 case (custom$)  
@@ -97,8 +96,7 @@ case (detector$)
   ele%aperture_type = auto_aperture$
   if (logic_option(.true., do_allocate)) then
     if (.not. associated(ele%photon)) allocate(ele%photon)
-    !!! Due to ifort bug cannot do:  ele%photon = photon_element_struct()
-    call init_photon_element_struct(ele%photon)
+    ele%photon = photon_element_struct()
   endif
 
 case (diffraction_plate$)
@@ -108,8 +106,7 @@ case (diffraction_plate$)
   ele%value(mode$) = transmission$
   if (logic_option(.true., do_allocate)) then
     if (.not. associated(ele%photon)) allocate(ele%photon)
-    !!! Due to ifort bug cannot do: ele%photon = photon_element_struct()
-    call init_photon_element_struct(ele%photon)
+    ele%photon = photon_element_struct()
   endif
 
 case (e_gun$)
@@ -170,8 +167,7 @@ case (mask$)
   ele%value(mode$) = transmission$
   if (logic_option(.true., do_allocate)) then
     if (.not. associated(ele%photon)) allocate(ele%photon)
-    !!! Due to ifort bug cannot do: ele%photon = photon_element_struct()
-    call init_photon_element_struct(ele%photon)
+    ele%photon = photon_element_struct()
   endif
 
 case (mirror$)
@@ -179,8 +175,6 @@ case (mirror$)
   ele%offset_moves_aperture = .true.
   if (logic_option(.true., do_allocate)) then
     if (.not. associated(ele%photon)) allocate(ele%photon)
-    !!! Due to ifort bug cannot do:  ele%photon = photon_element_struct()
-    call init_photon_element_struct(ele%photon)
   endif
 
 case (multilayer_mirror$)
@@ -188,8 +182,7 @@ case (multilayer_mirror$)
   ele%offset_moves_aperture = .true.
   if (logic_option(.true., do_allocate)) then
     if (.not. associated(ele%photon)) allocate(ele%photon)
-    !!! Due to ifort bug cannot do:  ele%photon = photon_element_struct()
-    call init_photon_element_struct(ele%photon)
+    ele%photon = photon_element_struct()
   endif
 
 case (multipole$, ab_multipole$)
@@ -214,8 +207,7 @@ case (photon_init$)
   ele%value(E_center_relative_to_ref$) = true$
   if (logic_option(.true., do_allocate)) then
     if (.not. associated(ele%photon)) allocate(ele%photon)
-    !!! Due to ifort bug cannot do:  ele%photon = photon_element_struct()
-    call init_photon_element_struct(ele%photon)
+    ele%photon = photon_element_struct()
   endif
 
 case (rbend$, sbend$)
@@ -251,8 +243,7 @@ case (sample$)
   ele%value(mode$) = reflection$
   if (logic_option(.true., do_allocate)) then
     if (.not. associated(ele%photon)) allocate(ele%photon)
-    !!! Due to ifort bug cannot do:  ele%photon = photon_element_struct()
-    call init_photon_element_struct(ele%photon)
+    ele%photon = photon_element_struct()
   endif
 
 case (taylor$)   ! start with unit matrix
@@ -318,17 +309,6 @@ case default
   ele%bookkeeping_state%control        = ok$
 
 end select
-
-!------------------------------
-contains
-
-subroutine init_photon_element_struct(photon_element)
-type (photon_element_struct) photon_element
-
-photon_element%surface = photon_surface_struct()
-photon_element%target  = photon_target_struct() 
-
-end subroutine init_photon_element_struct
 
 end subroutine set_ele_defaults
 
