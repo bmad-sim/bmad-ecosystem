@@ -67,6 +67,7 @@
 subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch)
 
 use bmad_routine_interface, dummy => lat_ele_locator
+use pointer_to_branch_mod, only: pointer_to_branch
 
 implicit none
 

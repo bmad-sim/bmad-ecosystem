@@ -1,6 +1,7 @@
 module multipole_mod
 
 use bmad_routine_interface
+use pointer_to_branch_mod
 
 implicit none
 
