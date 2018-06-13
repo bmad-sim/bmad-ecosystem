@@ -32,7 +32,6 @@
 recursive subroutine lat_make_mat6 (lat, ix_ele, ref_orb, ix_branch, err_flag)
 
 use bmad_interface, except_dummy => lat_make_mat6
-use bookkeeper_mod, only: control_bookkeeper
 
 implicit none
                                        

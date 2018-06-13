@@ -7,6 +7,7 @@
 module csr_mod
 
 use beam_utils
+use geometry_mod
 use spline_mod
 use nr, only: zbrent
 

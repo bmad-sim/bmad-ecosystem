@@ -1,6 +1,6 @@
 module autoscale_mod
 
-use bookkeeper_mod
+use em_field_mod
 
 integer, private, save :: n_call ! Used for debugging.
 logical, private, save :: is_lost

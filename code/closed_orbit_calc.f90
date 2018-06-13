@@ -79,7 +79,6 @@
 subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag, print_err)
 
 use bmad_interface, except_dummy => closed_orbit_calc
-use bookkeeper_mod, only: set_on_off, restore_state$, off_and_save$
 use super_recipes_mod
 use lmdif_mod
 use eigen_mod

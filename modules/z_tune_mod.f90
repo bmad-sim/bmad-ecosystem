@@ -1,6 +1,6 @@
 module z_tune_mod
 
-use bookkeeper_mod
+use bmad_interface
 
 type (lat_struct), private, pointer :: lat_com
 type (all_pointer_struct) :: voltage_control(100)

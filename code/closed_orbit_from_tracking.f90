@@ -38,7 +38,6 @@ subroutine closed_orbit_from_tracking (lat, closed_orb, i_dim, &
                                                  eps_rel, eps_abs, init_guess, err_flag)
 
 use bmad_interface, except_dummy => closed_orbit_from_tracking
-use bookkeeper_mod, only: set_on_off, restore_state$, off_and_save$
 
 implicit none
 
