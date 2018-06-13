@@ -2,11 +2,20 @@
 \index{python interface}
 \label{c:python}
 
+It is sometimes convenient to be able to run Tao via Python. For example, in an online control
+system environment. \tao has scripts for doing this in one of two ways. One way is using the
+\vn{ctypes} module. The other way is using the \vn{pexpect} module. A Web search will point to
+documentation on \vn{ctypes} and \vn{pexpect}. The advantage of \vn{ctypes} is that it directly
+acceses \tao code which makes communication between Python and \tao more robust. The (minor)
+disadvantage of \vn{ctypes} is that it needs a shared-object version of the \vn{Tao} library. [See
+the Bmad web site for information on building shared-object libraries.] The disadvantage of
+\vn{pexpect} is that it is possible for \vn{pexpect} to time out waiting for a response from \tao.
+
 %--------------------------------------------------------------------------
 \section{Python Interface Via Pexpect}
 
 A python module, \vn{tao_pipe.py}, for interfacing \tao to \vn{Python}
-is provided in the \vn{tao/python} directory. 
+is provided in the directory \vn{tao/python/p_expect}.
 
 The \vn{tao_pipe} module uses the \vn{pexpect} module. The
 \vn{pexpect} module is a general purpose tool for interfacing
@@ -35,9 +44,41 @@ maintainability of python scripts, use the \vn{python} (\sref{s:python}) command
 as opposed to the \vn{show} command . See the \vn{python} command for more details.
 
 %--------------------------------------------------------------------------
+\section{Python Interface Via Ctypes}
+
+A \vn{ctypes} based python module \vn{pytao.py} for interfacing \tao to \vn{Python} is provided in
+the directoy \vn{tao/python/c_types}.
+
+A test driver script named \vn{example.py} is in the same directory. See the documentation in both of
+these files for further information.
+
+%--------------------------------------------------------------------------
 \section{Tao Python command}
 
+To get output from \tao that can be easily parsed by Python, use the \vn{python} command
+(\sref{s:python}). The output of this command are semi-colon delimited lists. Besides being easily
+parsed, the syntax of the output from the \vn{python} command will not change over time as the \tao
+program is developed.
 
+Documentation on the \vn{python} command is contained in the code file itself at:
+\begin{example}
+  tao/code/tao_python_cmd.f90
+\end{example}
+
+Example: The command
+\begin{example}
+  python global
+\end{example}
+will produce as output:
+\begin{example}
+  lm_opt_deriv_reinit;REAL;T; -1.0000000000000000E+00
+  de_lm_step_ratio;REAL;T;  1.0000000000000000E+00
+  de_var_to_population_factor;REAL;T;  5.0000000000000000E+00
+  lmdif_eps;REAL;T;  9.9999999600419720E-13
+  svd_cutoff;REAL;T;  9.9999997473787516E-06
+  unstable_penalty;REAL;T;  1.0000000474974513E-03
+  ... etc ...
+\end{example}
 
 
 %--------------------------------------------------------------------------

@@ -13,6 +13,7 @@ use iso_c_binding
 use equal_mod
 use quick_plot_struct
 use dynamic_aperture_mod
+use complex_taylor_mod
 use srdt_mod
 
 integer, parameter :: model$ = 1, base$ = 2, design$ = 3
