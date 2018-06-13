@@ -33,6 +33,7 @@ subroutine read_digested_bmad_file (digested_file, lat, inc_version, err_flag, p
 
 use ptc_interface_mod, dummy => read_digested_bmad_file
 use bmad_parser_mod, dummy2 => read_digested_bmad_file
+use wall3d_mod, dummy3 => read_digested_bmad_file
 
 implicit none
 

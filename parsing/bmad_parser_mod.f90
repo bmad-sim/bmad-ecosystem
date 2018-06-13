@@ -9,11 +9,11 @@
 module bmad_parser_mod
 
 use ptc_interface_mod, only: set_ptc
-use bookkeeper_mod
 use superimpose_mod
 use multipole_mod
 use binary_parser_mod
 use wake_mod
+use bookkeeper_mod 
 
 implicit none
 

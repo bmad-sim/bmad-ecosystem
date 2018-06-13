@@ -1,7 +1,6 @@
 module superimpose_mod
 
 use bmad_interface
-use bookkeeper_mod
 
 private delete_underscore, adjust_super_slave_names, adjust_drift_names, split_this_lat
 

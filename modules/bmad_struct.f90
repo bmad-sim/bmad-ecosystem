@@ -236,6 +236,8 @@ character(8), parameter :: sr_polarization_name(3) = ['None  ', 'X_Axis', 'Y_Axi
 integer, parameter :: off$ = 1, on$ = 2
 integer, parameter :: none$ = 1
 
+integer, parameter :: save_state$ = 3, restore_state$ = 4, off_and_save$ = 5
+
 integer, parameter :: horizontally_pure$ = 2, vertically_pure$ = 3
 character(20), parameter :: exact_multipoles_name(3) = [character(20):: 'Off', 'Horizontally_Pure', 'Vertically_Pure']
 

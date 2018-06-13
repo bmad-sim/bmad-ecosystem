@@ -27,7 +27,6 @@
 subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
 
 use bmad_interface, except_dummy => set_tune
-use bookkeeper_mod, only: lattice_bookkeeper, set_flags_for_changed_attribute, rf_is_on
 
 implicit none
 

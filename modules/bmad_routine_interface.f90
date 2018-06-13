@@ -321,6 +321,14 @@ subroutine compute_even_steps (ds_in, length, ds_default, ds_out, n_step)
   integer n_step
 end subroutine
 
+subroutine control_bookkeeper (lat, ele, err_flag)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  type (ele_struct), optional :: ele
+  logical, optional :: err_flag
+end subroutine
+
 subroutine convert_particle_coordinates_s_to_t (particle, s_body, orientation, z_phase)
   import
   implicit none
@@ -722,6 +730,13 @@ subroutine lat_sanity_check (lat, err_flag)
   implicit none
   type (lat_struct), target :: lat
   logical, intent(out) :: err_flag
+end subroutine
+
+subroutine lattice_bookkeeper (lat, err_flag)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  logical, optional :: err_flag
 end subroutine
 
 function lord_edge_aligned (slave, slave_edge, lord) result (is_aligned)
@@ -1332,6 +1347,18 @@ recursive subroutine set_lords_status_stale (ele, stat_group, control_bookkeepin
   integer stat_group
   logical, optional :: control_bookkeeping
   integer, optional :: flag
+end subroutine
+
+subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch, saved_values, attribute)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  type (coord_struct), optional :: orb(0:)
+  real(rp), optional, allocatable :: saved_values(:)
+  integer :: key, switch
+  integer, optional :: ix_branch
+  logical, optional :: use_ref_orb
+  character(*), optional :: attribute
 end subroutine
 
 subroutine set_orbit_to_zero (orbit, n1, n2, ix_noset)

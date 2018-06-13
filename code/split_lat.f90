@@ -37,7 +37,6 @@
 subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, save_null_drift, err_flag, choose_max)
 
 use bmad_interface, except_dummy => split_lat
-use bookkeeper_mod, only: control_bookkeeper
 use geometry_mod, only: floor_angles_to_w_mat
 
 implicit none
