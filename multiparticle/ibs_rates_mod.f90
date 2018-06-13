@@ -51,6 +51,7 @@ subroutine bjmt1(ele, coulomb_log, rates, n_part)
   real(rp) n_part
 
   real(rp) sigma_p, emit_a, emit_b, sigma_z, energy
+  real(rp) classical_radius
   real(rp) gamma, KE, rbeta, beta_a, beta_b
   real(rp) sigma_y
   real(rp) Dx, Dy, Dxp, Dyp
@@ -73,14 +74,16 @@ subroutine bjmt1(ele, coulomb_log, rates, n_part)
   integer(fgsl_int) :: fgsl_status
 
   energy = ele%value(E_TOT$)
-  call convert_total_energy_to(energy, -1, gamma, KE, rbeta)
+  call convert_total_energy_to(energy, ele%branch%param%particle, gamma, KE, rbeta)
 
   sigma_p = ele%z%sigma_p
   sigma_z = ele%z%sigma
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
-  big_A=(r_e**2)*c_light*n_part/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
+  classical_radius = c_light*c_light*e_charge*1.0d-7*charge_of(ele%branch%param%particle)/mass_of(ele%branch%param%particle)
+
+  big_A=(classical_radius**2)*c_light*n_part/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
 
   alpha_a = ele%a%alpha
   alpha_b = ele%b%alpha
@@ -229,6 +232,7 @@ subroutine bane1(ele, coulomb_log, rates, n_part)
   type(ibs_struct), intent(out) :: rates
 
   real(rp) sigma_p, emit_a, emit_b, sigma_z, energy
+  real(rp) classical_radius
   real(rp) gamma, KE, rbeta, beta_a, beta_b
   real(rp) sigma_b, sigma_b_beta
   real(rp) Da, Db, Dap, Dbp
@@ -247,14 +251,16 @@ subroutine bane1(ele, coulomb_log, rates, n_part)
   integer(fgsl_int) :: fgsl_status
 
   energy = ele%value(E_TOT$)
-  call convert_total_energy_to(energy, -1, gamma, KE, rbeta)
+  call convert_total_energy_to(energy, ele%branch%param%particle, gamma, KE, rbeta)
 
   sigma_p = ele%z%sigma_p
   sigma_z = ele%z%sigma
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
-  big_A=(r_e**2)*c_light*n_part/16.0/(gamma**3)/(emit_a**(3./4.))/(emit_b**(3./4.))/sigma_z/(sigma_p**3)
+  classical_radius = c_light*c_light*e_charge*1.0d-7*charge_of(ele%branch%param%particle)/mass_of(ele%branch%param%particle)
+
+  big_A=(classical_radius**2)*c_light*n_part/16.0/(gamma**3)/(emit_a**(3./4.))/(emit_b**(3./4.))/sigma_z/(sigma_p**3)
 
   beta_a = ele%a%beta
   beta_b = ele%b%beta
@@ -337,6 +343,7 @@ subroutine mpxx1(ele, coulomb_log, rates, n_part)
   type(ibs_struct), intent(out) :: rates
 
   real(rp) sigma_p, emit_a, emit_b, sigma_z, energy
+  real(rp) classical_radius
   real(rp) gamma, KE, rbeta, beta_a, beta_b
   real(rp) sigma_a, sigma_b, sigma_a_beta, sigma_b_beta
   real(rp) Da, Db, Dap, Dbp
@@ -356,14 +363,15 @@ subroutine mpxx1(ele, coulomb_log, rates, n_part)
   integer(fgsl_int) :: fgsl_status
 
   energy = ele%value(E_TOT$)
-  call convert_total_energy_to(energy, -1, gamma, KE, rbeta)
+  call convert_total_energy_to(energy, ele%branch%param%particle, gamma, KE, rbeta)
 
   sigma_p = ele%z%sigma_p
   sigma_z = ele%z%sigma
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
-  big_A=(r_e**2)*c_light*n_part/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
+  classical_radius = c_light*c_light*e_charge*1.0d-7*charge_of(ele%branch%param%particle)/mass_of(ele%branch%param%particle)
+  big_A=(classical_radius**2)*c_light*n_part/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
 
   alpha_a = ele%a%alpha
   alpha_b = ele%b%alpha
@@ -473,6 +481,7 @@ subroutine mpzt1(ele, coulomb_log, rates, n_part)
   type(ibs_struct), intent(out) :: rates
 
   real(rp) sigma_p, emit_a, emit_b, sigma_z, energy
+  real(rp) classical_radius
   real(rp) gamma, KE, rbeta, beta_a, beta_b
   real(rp) sigma_a, sigma_b, sigma_a_beta, sigma_b_beta
   real(rp) Da, Db, Dap, Dbp
@@ -492,14 +501,15 @@ subroutine mpzt1(ele, coulomb_log, rates, n_part)
   integer(fgsl_int) :: fgsl_status
 
   energy = ele%value(E_TOT$)
-  call convert_total_energy_to(energy, -1, gamma, KE, rbeta)
+  call convert_total_energy_to(energy, ele%branch%param%particle, gamma, KE, rbeta)
 
   sigma_p = ele%z%sigma_p
   sigma_z = ele%z%sigma
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
-  big_A=(r_e**2)*c_light*n_part/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
+  classical_radius = c_light*c_light*e_charge*1.0d-7*charge_of(ele%branch%param%particle)/mass_of(ele%branch%param%particle)
+  big_A=(classical_radius**2)*c_light*n_part/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
 
   alpha_a = ele%a%alpha
   alpha_b = ele%b%alpha
@@ -521,8 +531,8 @@ subroutine mpzt1(ele, coulomb_log, rates, n_part)
 
   a = sigma_H/gamma*sqrt(beta_a/emit_a)
   b = sigma_H/gamma*sqrt(beta_b/emit_b)
-  q = sigma_H*rbeta*sqrt(2.0_rp*sigma_b/r_e)
-  !---- q = (gamma**2)*sigma_b*emit_a/r_e/beta_a  !effective coulomb log 
+  q = sigma_H*rbeta*sqrt(2.0_rp*sigma_b/classical_radius)
+  !---- q = (gamma**2)*sigma_b*emit_a/classical_radius/beta_a  !effective coulomb log 
 
   !------------------------Begin calls to GSL integrator
   integ_wk = fgsl_integration_workspace_alloc(limit)
@@ -630,6 +640,7 @@ subroutine cimp1(ele, coulomb_log, rates, n_part)
   real(rp) element_length, E_TOT, n_part
 
   real(rp) sigma_p, emit_a, emit_b, sigma_z
+  real(rp) classical_radius
   real(rp) gamma, KE, rbeta, beta_a, beta_b
   real(rp) sigma_x, sigma_y, sigma_x_beta, sigma_y_beta
   real(rp) Dx, Dy, Dxp, Dyp
@@ -648,14 +659,15 @@ subroutine cimp1(ele, coulomb_log, rates, n_part)
 
   energy = ele%value(E_TOT$)
 
-  call convert_total_energy_to(energy, -1, gamma, KE, rbeta)
+  call convert_total_energy_to(energy, ele%branch%param%particle, gamma, KE, rbeta)
 
   sigma_p = ele%z%sigma_p
   sigma_z = ele%z%sigma
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
-  big_A=(r_e**2)*c_light*n_part/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
+  classical_radius = c_light*c_light*e_charge*1.0d-7*charge_of(ele%branch%param%particle)/mass_of(ele%branch%param%particle)
+  big_A=(classical_radius**2)*c_light*n_part/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
 
   alpha_a = ele%a%alpha
   alpha_b = ele%b%alpha
