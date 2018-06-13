@@ -471,10 +471,19 @@ else
       call lat_ele_locator (u%data(j)%ele_name, u%design%lat, eles, n_loc)
       if (n_loc == 0) then
         call out_io (s_error$, r_name, 'LATTICE ELEMENT NOT LOCATED: ' // u%data(j)%ele_name, & 
-                                       'FOR DATUM: ' // tao_datum_name(u%data(j)))
+                                       'FOR DATUM: ' // tao_datum_name(u%data(j)), &
+                                       'WILL MARK THIS DATUM AS NOT EXISTING')
         u%data(j)%exists = .false.
         cycle
       endif
+      if (n_loc > 1) then
+        call out_io (s_error$, r_name, 'MULTIPLE LATTICE ELEMENTS OF THE SAME NAME: ' // u%data(j)%ele_name, & 
+                                       'FOR DATUM: ' // tao_datum_name(u%data(j)), &
+                                       'WILL MARK THIS DATUM AS NOT EXISTING')
+        u%data(j)%exists = .false.
+        cycle
+      endif
+
       u%data(j)%ix_ele    = eles(1)%ele%ix_ele
       u%data(j)%ix_branch = eles(1)%ele%ix_branch
     endif
@@ -484,7 +493,15 @@ else
       call lat_ele_locator (u%data(j)%ele_ref_name, u%design%lat, eles, n_loc)
       if (n_loc == 0) then
         call out_io (s_error$, r_name, 'ELE_REF NOT LOCATED: ' // u%data(j)%ele_ref_name, & 
-                                       'FOR DATUM: ' // tao_datum_name(u%data(j)))
+                                       'FOR DATUM: ' // tao_datum_name(u%data(j)), &
+                                       'WILL MARK THIS DATUM AS NOT EXISTING')
+        u%data(j)%exists = .false.
+        cycle
+      endif
+      if (n_loc > 1) then
+        call out_io (s_error$, r_name, 'MULTIPLE ELE_REF ELEMENTS OF THE SAME NAME: ' // u%data(j)%ele_ref_name, & 
+                                       'FOR DATUM: ' // tao_datum_name(u%data(j)), &
+                                       'WILL MARK THIS DATUM AS NOT EXISTING')
         u%data(j)%exists = .false.
         cycle
       endif
@@ -496,7 +513,15 @@ else
       call lat_ele_locator (u%data(j)%ele_start_name, u%design%lat, eles, n_loc)
       if (n_loc == 0) then
         call out_io (s_error$, r_name, 'ELE_START NOT LOCATED: ' // u%data(j)%ele_start_name, & 
-                                       'FOR DATUM: ' // tao_datum_name(u%data(j)))
+                                       'FOR DATUM: ' // tao_datum_name(u%data(j)), &
+                                       'WILL MARK THIS DATUM AS NOT EXISTING')
+        u%data(j)%exists = .false.
+        cycle
+      endif
+      if (n_loc > 1) then
+        call out_io (s_error$, r_name, 'MULTIPLE ELE_START ELEMENTS OF THE SAME NAME: ' // u%data(j)%ele_start_name, & 
+                                       'FOR DATUM: ' // tao_datum_name(u%data(j)), &
+                                       'WILL MARK THIS DATUM AS NOT EXISTING')
         u%data(j)%exists = .false.
         cycle
       endif
