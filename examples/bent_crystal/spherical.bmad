@@ -16,9 +16,11 @@ t_bragg = 1.39527
 dft_len = rt*sin(t_bragg)
 rs = rt*(sin(t_bragg))^2
 
-source: x_ray_init, l = 0.001, x_offset = 0, y_offset = 0, z_offset = 0,
-                    x_pitch = 0, y_pitch = 0, tilt = 0, 
-			x_half_length = 0.0005, y_half_length = 0.0005
+source: photon_init, x_offset = 0, y_offset = 0, z_offset = 0,
+      x_pitch = 0, y_pitch = 0, tilt = 0, sig_E = 0, E_center = 2,
+      E_center_relative_to_ref = True, energy_distribution = GAUSSIAN, spatial_distribution = GAUSSIAN,
+			sig_x = 0.0005, sig_y = 0.0005, e_field_x = 0, e_field_y = 0
+
 drift1: pipe, l = dft_len
 cryst: crystal, crystal_type = 'Si(553)', b_param = -1, 
 	curvature_x0_y2 =  1 / (2 * rs), curvature_x0_y4 = 1 / (8 * rs^3),
