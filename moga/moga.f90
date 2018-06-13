@@ -80,7 +80,7 @@ program moga
   integer nsel, narc
   integer ix
   integer dim
-  integer con
+  integer con, con_read
   logical dead
   integer pool_gap
 
@@ -204,9 +204,15 @@ program moga
   n_de = i-1
 
   ! parse shared config params
-  call pisa_cfg_parser(prefix, alpha, mu, lambda, dim, con)
+  call pisa_cfg_parser(prefix, alpha, mu, lambda, dim, con_read)
+  con = 7
 
   ! check shared parameters meet program limitations
+  if( con_read /= con ) then
+    write(*,*) "PISA_cfg constraints must be ", con, ".  Terminating."
+    call mpi_finalize(mpierr)
+    error stop
+  endif
   if ( mu .ne. lambda ) then
     write(*,*) "this program can handle only mu == lambda.", mu, lambda
     call mpi_finalize(mpierr)
