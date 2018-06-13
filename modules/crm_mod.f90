@@ -91,7 +91,7 @@ contains
     endif
 
     call chrom_calc(ring_working, 1.0d-6, init_chrom_x, init_chrom_y, err_flag)
-    write(*,*) "Chromaticity with indicated sextupoles off: ", init_chrom_x, init_chrom_y
+    !write(*,*) "Chromaticity with indicated sextupoles off: ", init_chrom_x, init_chrom_y
     if(err_flag) then
       write(*,*) "Could not calculate initial chromaticity in build_chrom_mat."
       call early_exit()
@@ -116,7 +116,7 @@ contains
       endif
 
       call chrom_calc(ring_working, 1.0d-6, chrom_x, chrom_y, err_flag)
-      write(*,*) "second chrom calc: ", chrom_x, chrom_y
+      !write(*,*) "second chrom calc: ", chrom_x, chrom_y
       if(err_flag) then
         write(*,*) "Could not calculate chromaticity in response loop in build_chrom_mat."
         call early_exit()
