@@ -50,6 +50,10 @@ case ('lattice')
   call tao_var_repoint()
   u%calc%lattice = .true.
 
+  ! If the lattice is perturbed in terms of the number of elements, tao_var_repoint will fail. 
+  ! The reason is that tao_var_repoint will not be able to find the variable slave elements if they have moved. 
+  ! Therefore, it is forbidden for any Tao command (for example the "read lattice" command) to modify element positions.
+
   do i = 0, ubound(u%model%lat%branch, 1)
     if (u%model%lat%branch(i)%n_ele_track /= u%design%lat%branch(i)%n_ele_track .or. &
         u%model%lat%branch(i)%n_ele_max /= u%design%lat%branch(i)%n_ele_max) then
