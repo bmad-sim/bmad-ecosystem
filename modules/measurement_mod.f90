@@ -1,6 +1,6 @@
 module measurement_mod
 
-use bmad_routine_interface
+use equal_mod
 
 type measurement_common_struct
   real(rp) :: x_off, y_off

@@ -23,7 +23,7 @@
 
 subroutine sol_quad_mat6_calc (ks_in, k1_in, length, ele, orbit, mat6, make_matrix)
 
-use bmad_routine_interface, dummy => sol_quad_mat6_calc
+use equal_mod, dummy => sol_quad_mat6_calc
 
 implicit none
 

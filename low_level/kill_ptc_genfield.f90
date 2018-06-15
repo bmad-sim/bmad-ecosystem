@@ -15,7 +15,7 @@
 
 subroutine kill_ptc_genfield (ptc_genfield)
 
-use bmad_routine_interface, dummy => kill_ptc_genfield
+use equal_mod, dummy => kill_ptc_genfield
 
 use tpsalie_analysis, only: kill 
 

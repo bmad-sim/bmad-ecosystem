@@ -22,7 +22,8 @@
 
 subroutine match_ele_to_mat6 (ele, start_orb, mat6, vec0, err_flag, twiss_ele, include_delta_time)
 
-use bmad_routine_interface, dummy => match_ele_to_mat6
+use equal_mod, dummy => match_ele_to_mat6
+use taylor_mod, only: kill_taylor
 
 implicit none
 

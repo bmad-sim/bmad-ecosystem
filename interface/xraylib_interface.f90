@@ -6,7 +6,7 @@
 
 module xraylib_interface
 
-use bmad_routine_interface
+use equal_mod
 
 integer, parameter :: xraylib_z_max$ = 98  ! Maximum atomic Z value of tables.
 

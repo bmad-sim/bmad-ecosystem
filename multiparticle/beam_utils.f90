@@ -10,11 +10,6 @@ private init_random_distribution, init_grid_distribution
 private init_ellipse_distribution, init_kv_distribution
 private combine_bunch_distributions, calc_this_emit
 
-interface assignment (=)
-  module procedure bunch_equal_bunch
-  module procedure beam_equal_beam
-end interface
-
 contains
 
 !--------------------------------------------------------------------------
@@ -1825,112 +1820,5 @@ this_sigma = this_sigma / charge_live
 end function exp_calc
 
 end subroutine find_bunch_sigma_matrix 
-                                    
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!+
-! Subroutine bunch_equal_bunch (bunch1, bunch2)
-!
-! Subroutine to set one particle bunch equal to another.
-!
-! Note: This subroutine is called by the overloaded equal sign:
-!    bunch1 = bunch2
-!
-! Input: 
-!   bunch2 -- bunch_struct: Input bunch
-!
-! Output
-!   bunch1 -- bunch_struct: Output bunch
-!-
-
-subroutine bunch_equal_bunch (bunch1, bunch2)
-
-implicit none
-
-type (bunch_struct), intent(inout) :: bunch1
-type (bunch_struct), intent(in)    :: bunch2
-
-integer i, np
-
-!
-
-if (.not. allocated(bunch2%particle)) then
-  if (allocated(bunch1%particle)) deallocate (bunch1%particle, bunch1%ix_z)
-else
-  np = size(bunch2%particle)
-  if (.not. allocated(bunch1%particle)) allocate(bunch1%particle(np), bunch1%ix_z(np))
-  if (size(bunch1%particle) /= size(bunch2%particle)) then
-    deallocate (bunch1%particle, bunch1%ix_z)
-    allocate (bunch1%particle(np), bunch1%ix_z(np))
-  endif
-  bunch1%particle = bunch2%particle
-  bunch1%ix_z     = bunch2%ix_z
-endif
-
-bunch1%charge_tot  = bunch2%charge_tot
-bunch1%charge_live = bunch2%charge_live
-bunch1%z_center    = bunch2%z_center
-bunch1%t_center    = bunch2%t_center
-bunch1%ix_ele      = bunch2%ix_ele
-bunch1%ix_bunch    = bunch2%ix_bunch
-bunch1%n_live      = bunch2%n_live
-
-end subroutine bunch_equal_bunch
-
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!+
-! Subroutine beam_equal_beam (beam1, beam2)
-!
-! Subroutine to set one particle beam equal to another taking care of
-! pointers so that they don't all point to the same place.
-!
-! Note: This subroutine is called by the overloaded equal sign:
-!    beam1 = beam2
-!
-! Input: 
-!  beam2 -- beam_struct: Input beam
-!
-! Output
-!  beam1 -- beam_struct: Output beam
-!
-!-
-
-subroutine beam_equal_beam (beam1, beam2)
-
-implicit none
-
-type (beam_struct), intent(inout) :: beam1
-type (beam_struct), intent(in)    :: beam2
-
-integer i, j, n_bun, n_particle
-logical allocate_this
-
-! The following rule must be observed: If beam%bunch is allocated then
-! beam%bunch%particle must be also.
-
-n_bun = size(beam2%bunch)
-
-allocate_this = .true.
-if (allocated(beam1%bunch)) then
-  if (size(beam1%bunch) /= size(beam2%bunch)) then
-    do i = 1, size(beam1%bunch)
-      deallocate (beam1%bunch(i)%particle)
-    enddo
-    deallocate (beam1%bunch)
-  else
-    allocate_this = .false.
-  endif
-endif
-
-if (allocate_this) allocate (beam1%bunch(n_bun))
-
-do i = 1, n_bun
-  beam1%bunch(i) = beam2%bunch(i)
-enddo
-
-end subroutine beam_equal_beam
 
 end module

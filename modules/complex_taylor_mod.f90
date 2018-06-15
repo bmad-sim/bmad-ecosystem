@@ -9,28 +9,9 @@
 
 module complex_taylor_mod
 
-use sim_utils
-
-! Note: the complex_taylor_struct uses the Bmad standard (x, p_x, y, p_y, z, p_z) 
-! the universal_complex_taylor in Etienne's PTC uses (x, p_x, y, p_y, p_z, -c*t)
-! %ref is the reference point about which the complex_taylor expansion was made
-
-type complex_taylor_term_struct
-  complex(rp) :: coef
-  integer :: expn(6)  
-end type
-
-type complex_taylor_struct
-  complex (rp) :: ref = 0
-  type (complex_taylor_term_struct), pointer :: term(:) => null()
-end type
+use equal_mod
 
 !
-
-interface assignment (=)
-  module procedure complex_taylor_equal_complex_taylor
-  module procedure complex_taylors_equal_complex_taylors
-end interface
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -135,89 +116,9 @@ private complex_taylor_coef1, complex_taylor_coef2
 !   complex_taylor -- complex_taylor_struct: New series with term added
 !-
 
-interface add_complex_taylor_term
-  module procedure add_complex_taylor_term1
-  module procedure add_complex_taylor_term2
-end interface
-
 private add_complex_taylor_term1, add_complex_taylor_term2
 
 contains
-
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!+
-! Subroutine complex_taylor_equal_complex_taylor (complex_taylor1, complex_taylor2)
-!
-! Subroutine that is used to set one complex_taylor equal to another. 
-! This routine takes care of the pointers in complex_taylor1. 
-!
-! Note: This subroutine is called by the overloaded equal sign:
-!		complex_taylor1 = complex_taylor2
-!
-! Input:
-!   complex_taylor2 -- complex_taylor_struct: Input complex_taylor.
-!
-! Output:
-!   complex_taylor1 -- complex_taylor_struct: Output complex_taylor.
-!-
-
-subroutine complex_taylor_equal_complex_taylor (complex_taylor1, complex_taylor2)
-
-implicit none
-	
-type (complex_taylor_struct), intent(inout) :: complex_taylor1
-type (complex_taylor_struct), intent(in) :: complex_taylor2
-
-!
-
-complex_taylor1%ref = complex_taylor2%ref
-
-if (associated(complex_taylor2%term)) then
-  call init_complex_taylor_series (complex_taylor1, size(complex_taylor2%term))
-  complex_taylor1%term = complex_taylor2%term
-else
-  if (associated (complex_taylor1%term)) deallocate (complex_taylor1%term)
-endif
-
-end subroutine complex_taylor_equal_complex_taylor
-
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!+
-! Subroutine complex_taylors_equal_complex_taylors (complex_taylor1, complex_taylor2)
-!
-! Subroutine to transfer the values from one complex_taylor map to another:
-!     complex_taylor1 <= complex_taylor2
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   complex_taylor2(:) -- complex_taylor_struct: complex_taylor map.
-!
-! Output:
-!   complex_taylor1(:) -- complex_taylor_struct: complex_taylor map. 
-!-
-
-subroutine complex_taylors_equal_complex_taylors (complex_taylor1, complex_taylor2)
-
-implicit none
-
-type (complex_taylor_struct), intent(inout) :: complex_taylor1(:)
-type (complex_taylor_struct), intent(in)    :: complex_taylor2(:)
-
-integer i
-
-!
-
-do i = 1, size(complex_taylor1)
-  complex_taylor1(i) = complex_taylor2(i)
-enddo
-
-end subroutine complex_taylors_equal_complex_taylors
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -630,72 +531,6 @@ if (present (i9)) expn(i9) = expn(i9) + 1
 call add_complex_taylor_term1 (complex_taylor, coef, expn, replace)
 
 end subroutine add_complex_taylor_term2
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine init_complex_taylor_series (complex_taylor, n_term, save)
-!
-! Subroutine to initialize a Bmad complex_taylor series (6 of these series make
-! a complex_taylor map). Note: This routine does not zero the structure. The calling
-! routine is responsible for setting all values.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   complex_taylor -- complex_taylor_struct: Old structure.
-!   n_term      -- Integer: Number of terms to allocate. 
-!                   n_term < 1 => complex_taylor%term pointer will be disassociated.
-!   save        -- Logical, optional: If True then save any old terms when
-!                   complex_taylor is resized. Default is False.
-!
-! Output:
-!   complex_taylor -- complex_taylor_struct: Initalized structure.
-!-
-
-subroutine init_complex_taylor_series (complex_taylor, n_term, save)
-
-implicit none
-
-type (complex_taylor_struct) complex_taylor
-type (complex_taylor_term_struct), allocatable :: term(:)
-integer n_term
-integer n
-logical, optional :: save
-
-!
-
-if (n_term < 1) then
-  if (associated(complex_taylor%term)) deallocate(complex_taylor%term)
-  return
-endif
-
-if (.not. associated (complex_taylor%term)) then
-  allocate (complex_taylor%term(n_term))
-  return
-endif
-
-if (size(complex_taylor%term) == n_term) return
-
-!
-
-if (logic_option (.false., save) .and. n_term > 0 .and. size(complex_taylor%term) > 0) then
-  n = min (n_term, size(complex_taylor%term))
-  allocate (term(n))
-  term = complex_taylor%term(1:n)
-  deallocate (complex_taylor%term)
-  allocate (complex_taylor%term(n_term))
-  complex_taylor%term(1:n) = term
-  deallocate (term)
-
-else
-  deallocate (complex_taylor%term)
-  allocate (complex_taylor%term(n_term))
-endif
-
-end subroutine init_complex_taylor_series
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

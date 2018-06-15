@@ -1,6 +1,6 @@
 module changed_attribute_bookkeeper
 
-use bmad_routine_interface
+use equal_mod
 use pointer_to_branch_mod
 
 implicit none

@@ -26,7 +26,7 @@
 
 subroutine get_field_ele_list (ele, field_eles, dz_offset, n_field_ele)
 
-use bmad_routine_interface, dummy => get_field_ele_list
+use equal_mod, dummy => get_field_ele_list
 
 implicit none
 

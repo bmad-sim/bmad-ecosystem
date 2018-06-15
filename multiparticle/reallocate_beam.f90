@@ -19,7 +19,7 @@
 
 subroutine reallocate_beam (beam, n_bunch, n_particle)
 
-use bmad_routine_interface, except_dummy => reallocate_beam
+use equal_mod, except_dummy => reallocate_beam
 
 implicit none
 
