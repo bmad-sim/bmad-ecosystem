@@ -9,7 +9,6 @@
 
 function tao_beam_sigma_calc_needed (data_type, data_source) result (do_beam_sigma)
 
-use bmad_struct
 
 implicit none
 

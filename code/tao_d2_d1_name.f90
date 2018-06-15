@@ -25,7 +25,6 @@
 
 function tao_d2_d1_name(d1, show_universe) result (d2_d1_name)
 
-use bmad_struct
 use tao_struct
 
 implicit none

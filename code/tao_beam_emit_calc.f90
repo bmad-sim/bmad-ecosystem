@@ -23,7 +23,6 @@
 
 function tao_beam_emit_calc (plane, emit_type, ele, bunch_params) result (emit)
 
-use bmad_struct
 use tao_struct
 
 implicit none

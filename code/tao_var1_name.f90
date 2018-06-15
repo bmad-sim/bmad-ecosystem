@@ -17,7 +17,6 @@
 
 function tao_var1_name(var) result (var1_name)
 
-use bmad_struct
 use tao_struct
 
 implicit none

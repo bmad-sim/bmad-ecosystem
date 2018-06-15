@@ -15,7 +15,6 @@
 
 subroutine tao_var_useit_plot_calc (graph, var)
 
-use bmad_struct
 use tao_struct
 
 implicit none

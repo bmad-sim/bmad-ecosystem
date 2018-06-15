@@ -510,6 +510,12 @@ subroutine tao_locate_elements (ele_list, ix_universe, eles, err, lat_type, igno
 end subroutine
 
 
+subroutine tao_mark_lattice_ele (lat)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+end subroutine
+
 function tao_merit (calc_ok) result (this_merit)
   import
   implicit none

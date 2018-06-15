@@ -19,7 +19,6 @@
 
 function tao_var_attrib_name(var) result (var_attrib_name)
 
-use bmad_struct
 use location_encode_mod
 use tao_struct
 

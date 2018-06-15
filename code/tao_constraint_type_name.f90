@@ -17,7 +17,6 @@
 
 function tao_constraint_type_name(datum) result (datum_name)
 
-use bmad_struct
 use tao_struct
 
 implicit none

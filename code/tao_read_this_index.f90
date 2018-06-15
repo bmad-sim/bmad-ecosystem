@@ -31,7 +31,7 @@
 
 function tao_read_this_index (name, ixc) result (ix)
 
-use bmad_struct
+use sim_utils
 
 implicit none
 

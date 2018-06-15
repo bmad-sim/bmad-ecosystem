@@ -23,7 +23,6 @@
 
 function tao_lat_emit_calc (plane, emit_type, ele, modes) result (emit)
 
-use bmad_struct
 use tao_struct
 
 implicit none

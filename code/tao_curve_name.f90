@@ -20,7 +20,6 @@
 
 function tao_curve_name(curve, use_region) result (curve_name)
 
-use bmad_struct
 use tao_struct
 
 implicit none
