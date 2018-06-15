@@ -19,7 +19,6 @@
 
 subroutine floor_to_screen_coords (graph, floor, screen)
 
-use bmad_struct
 use tao_struct
 
 implicit none

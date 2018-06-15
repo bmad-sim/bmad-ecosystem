@@ -17,7 +17,6 @@
 
 subroutine tao_orbit_value (component, orbit, value, err)
 
-use bmad_struct
 use bmad_routine_interface
 
 implicit none

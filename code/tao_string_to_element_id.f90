@@ -29,7 +29,6 @@
 
 subroutine tao_string_to_element_id (str, ix_class, ele_name, err, print_err)
 
-use bmad_struct
 use bmad_routine_interface
 
 implicit none

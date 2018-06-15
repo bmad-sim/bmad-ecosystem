@@ -17,7 +17,6 @@
 
 subroutine floor_to_screen (graph, r_floor, x_screen, y_screen)
 
-use bmad_struct
 use tao_struct
 
 implicit none

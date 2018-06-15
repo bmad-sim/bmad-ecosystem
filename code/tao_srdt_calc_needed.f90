@@ -10,7 +10,6 @@
 
 function tao_srdt_calc_needed (data_type, data_source) result (do_srdt)
 
-use bmad_struct
 use srdt_mod
 
 implicit none

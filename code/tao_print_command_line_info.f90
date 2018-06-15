@@ -9,7 +9,7 @@
 
 subroutine tao_print_command_line_info
 
-use bmad_struct
+use sim_utils
 
 implicit none
 

@@ -22,7 +22,6 @@
 
 subroutine tao_re_allocate_expression_info (info, n, exact)
 
-use bmad_struct
 use tao_struct
 
 implicit none

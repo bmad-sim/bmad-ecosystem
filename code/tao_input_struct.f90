@@ -7,7 +7,6 @@
 module tao_input_struct
 
 use tao_struct
-use bmad_struct
 use bmad_interface
 
 integer, private, save :: dummy = 0 ! So ranlib will not complain about no symbols

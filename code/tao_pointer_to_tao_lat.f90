@@ -20,7 +20,6 @@
 
 function tao_pointer_to_tao_lat (u, lat_type) result (tao_lat)
 
-use bmad_struct
 use tao_struct
 
 implicit none

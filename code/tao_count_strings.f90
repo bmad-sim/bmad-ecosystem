@@ -16,7 +16,6 @@
 
 subroutine tao_count_strings (string, pattern, num)
 
-use bmad_struct
 
 implicit none
 
