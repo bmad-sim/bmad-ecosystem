@@ -1,7 +1,6 @@
 program bmad_to_gpt
 
 use gpt_interface_mod
-use bmad_struct
 use beam_mod
 use time_tracker_mod
 
