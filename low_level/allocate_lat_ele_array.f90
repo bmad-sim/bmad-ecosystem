@@ -22,7 +22,7 @@
 
 subroutine allocate_lat_ele_array (lat, upper_bound, ix_branch)
 
-use bmad_routine_interface, dummy => allocate_lat_ele_array
+use equal_mod, dummy => allocate_lat_ele_array
 
 implicit none
 

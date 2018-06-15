@@ -1,6 +1,6 @@
 module pointer_to_ele_mod
 
-use bmad_routine_interface
+use equal_mod
 
 implicit none
 

@@ -20,7 +20,7 @@
 
 subroutine allocate_branch_array (lat, upper_bound)
 
-use bmad_routine_interface, dummy => allocate_branch_array
+use equal_mod, dummy => allocate_branch_array
 
 implicit none
 

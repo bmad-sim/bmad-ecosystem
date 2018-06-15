@@ -19,7 +19,7 @@
 
 subroutine create_hard_edge_drift (ele_in, which_end, drift_ele)
 
-use bmad_routine_interface, dummy => create_hard_edge_drift
+use equal_mod, dummy => create_hard_edge_drift
 implicit none
 
 type (ele_struct) ele_in, drift_ele

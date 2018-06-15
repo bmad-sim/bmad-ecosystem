@@ -1,6 +1,6 @@
 module attribute_mod
 
-use bmad_routine_interface
+use equal_mod
 
 implicit none
 

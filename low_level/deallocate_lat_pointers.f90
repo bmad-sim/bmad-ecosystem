@@ -15,7 +15,7 @@
 
 subroutine deallocate_lat_pointers (lat)
 
-use bmad_routine_interface, dummy => deallocate_lat_pointers
+use equal_mod, dummy => deallocate_lat_pointers
 
 implicit none
 

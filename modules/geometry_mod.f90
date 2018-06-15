@@ -1,5 +1,6 @@
 module geometry_mod
 
+use bmad_interface
 use multipass_mod
 
 implicit none

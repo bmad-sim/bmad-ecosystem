@@ -1,7 +1,6 @@
 module wake_mod
 
-use bmad_interface
-use multipole_mod, only: ab_multipole_kick
+use multipole_mod
 use random_mod
 
 contains

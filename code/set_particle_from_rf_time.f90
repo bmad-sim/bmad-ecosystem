@@ -16,6 +16,7 @@
 subroutine set_particle_from_rf_time (rf_time, ele, apply_hard_edge_offset, orbit)
 
 use multipass_mod, dummy => set_particle_from_rf_time
+use attribute_mod, only: has_attribute
 
 implicit none
 

@@ -19,7 +19,7 @@
 
 subroutine init_ele (ele, key, sub_key, ix_ele, branch)
 
-use bmad_routine_interface, dummy => init_ele
+use equal_mod, dummy => init_ele
 
 implicit none
 

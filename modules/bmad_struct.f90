@@ -4,8 +4,6 @@
 
 module bmad_struct
 
-use taylor_mod
-use complex_taylor_mod
 use random_mod
 use spline_mod
 
@@ -371,6 +369,20 @@ type wall3d_struct
   type (wall3d_section_struct), allocatable :: section(:) ! Indexed from 1.
 end type  
 
+! Note: the taylor_struct uses the Bmad standard (x, p_x, y, p_y, z, p_z) 
+! the universal_taylor in Etienne's PTC uses (x, p_x, y, p_y, p_z, -c*t)
+! %ref is the reference point about which the taylor expansion was made.
+
+type taylor_term_struct
+  real(rp) :: coef = 0
+  integer :: expn(6) = 0
+end type
+
+type taylor_struct
+  real (rp) :: ref = 0
+  type (taylor_term_struct), pointer :: term(:) => null()
+end type
+
 ! plane list, etc
 
 integer, parameter :: x_plane$ = 1, y_plane$ = 2
@@ -613,6 +625,18 @@ end type
 
 ! The Taylor field is a set of evenly spaced planes.
 ! For each plane a taylor series is used to calculate the field components.
+! The 2-vector of %expn(2) is (x, y).
+
+type em_taylor_term_struct
+  real(rp) :: coef = 0
+  integer :: expn(2) = 0
+end type
+
+type em_taylor_struct
+  real (rp) :: ref = 0
+  type (em_taylor_term_struct), allocatable :: term(:)
+end type
+
 
 type taylor_field_plane1_struct
   type (em_taylor_struct) :: field(3)    ! [Bx, By, Bz] or [Ex, Ey, Ez]
@@ -1083,6 +1107,20 @@ type mode_info_struct
   real(rp) :: chrom  = 0       ! Chromaticity.
   real(rp) :: sigma  = 0       ! Beam size.
   real(rp) :: sigmap = 0       ! Beam divergence.
+end type
+
+! Note: the complex_taylor_struct uses the Bmad standard (x, p_x, y, p_y, z, p_z) 
+! the universal_complex_taylor in Etienne's PTC uses (x, p_x, y, p_y, p_z, -c*t)
+! %ref is the reference point about which the complex_taylor expansion was made
+
+type complex_taylor_term_struct
+  complex(rp) :: coef
+  integer :: expn(6)  
+end type
+
+type complex_taylor_struct
+  complex (rp) :: ref = 0
+  type (complex_taylor_term_struct), pointer :: term(:) => null()
 end type
 
 ! RD = Resonance Driving term

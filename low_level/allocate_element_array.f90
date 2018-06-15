@@ -26,7 +26,7 @@
 
 subroutine allocate_element_array (ele, upper_bound, init_ele0)
 
-use bmad_routine_interface, dummy => allocate_element_array
+use equal_mod, dummy => allocate_element_array
 
 implicit none
 

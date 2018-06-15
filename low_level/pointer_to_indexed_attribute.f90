@@ -35,6 +35,7 @@
 subroutine pointer_to_indexed_attribute (ele, ix_attrib, do_allocation, a_ptr, err_flag, err_print_flag)
 
 use attribute_mod, dummy => pointer_to_indexed_attribute
+use taylor_mod, only: taylor_term_index
 
 implicit none
 

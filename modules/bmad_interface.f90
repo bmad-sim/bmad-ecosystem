@@ -1,9 +1,8 @@
 module bmad_interface
 
-use equal_mod
 use nrutil, only: reallocate
 use custom_bmad_interface
-use bmad_routine_interface
+use equal_mod
 use attribute_mod
 use element_at_s_mod
 use coord_mod
@@ -12,6 +11,7 @@ use multipole_mod
 use pointer_to_ele_mod
 use changed_attribute_bookkeeper
 use pointer_to_branch_mod
+use taylor_mod
 
 implicit none
 

@@ -8,6 +8,14 @@ interface assignment (=)
   module procedure lat_equal_lat 
   module procedure lat_vec_equal_lat_vec 
   module procedure branch_equal_branch
+  module procedure taylor_equal_taylor
+  module procedure taylors_equal_taylors
+  module procedure em_taylor_equal_em_taylor
+  module procedure em_taylors_equal_em_taylors
+  module procedure complex_taylor_equal_complex_taylor
+  module procedure complex_taylors_equal_complex_taylors
+  module procedure bunch_equal_bunch
+  module procedure beam_equal_beam
 end interface
 
 interface operator (+)
@@ -617,6 +625,531 @@ coord1%vec = coord2%vec
 coord1%spin = coord2%spin
  
 end subroutine coord_equal_coord
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine taylor_equal_taylor (taylor1, taylor2)
+!
+! Subroutine that is used to set one taylor equal to another. 
+! This routine takes care of the pointers in taylor1. 
+!
+! Note: This subroutine is called by the overloaded equal sign:
+!		taylor1 = taylor2
+!
+! Input:
+!   taylor2 -- Taylor_struct: Input taylor.
+!
+! Output:
+!   taylor1 -- Taylor_struct: Output taylor.
+!-
+
+subroutine taylor_equal_taylor (taylor1, taylor2)
+
+implicit none
+	
+type (taylor_struct), intent(inout) :: taylor1
+type (taylor_struct), intent(in) :: taylor2
+
+!
+
+taylor1%ref = taylor2%ref
+
+if (associated(taylor2%term)) then
+  call init_taylor_series (taylor1, size(taylor2%term))
+  taylor1%term = taylor2%term
+  taylor1%ref = taylor2%ref
+else
+  if (associated (taylor1%term)) deallocate (taylor1%term)
+endif
+
+end subroutine taylor_equal_taylor
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine taylors_equal_taylors (taylor1, taylor2)
+!
+! Subroutine to transfer the values from one taylor map to another:
+!     Taylor1 <= Taylor2
+!
+! Input:
+!   taylor2(:) -- Taylor_struct: Taylor map.
+!
+! Output:
+!   taylor1(:) -- Taylor_struct: Taylor map. 
+!-
+
+subroutine taylors_equal_taylors (taylor1, taylor2)
+
+implicit none
+
+type (taylor_struct), intent(inout) :: taylor1(:)
+type (taylor_struct), intent(in)    :: taylor2(:)
+
+integer i
+
+!
+
+do i = 1, size(taylor1)
+  taylor1(i) = taylor2(i)
+enddo
+
+end subroutine taylors_equal_taylors
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine init_taylor_series (bmad_taylor, n_term, save_old)
+!
+! Subroutine to initialize or extend a Bmad Taylor series (6 of these series make
+! a Taylor map). Note: This routine does not zero the terms.
+!
+! Input:
+!   bmad_taylor -- taylor_struct: Old structure.
+!   n_term      -- integer: Number of terms to allocate. 
+!                    n_term < 0 => bmad_taylor%term pointer will be disassociated.
+!   save_old    -- logical, optional: If True then save any old terms and ref orbit when
+!                    bmad_taylor is resized. If False zero the ref orbit. Default is False.
+!
+! Output:
+!   bmad_taylor -- Taylor_struct: Initalized structure.
+!-
+
+subroutine init_taylor_series (bmad_taylor, n_term, save_old)
+
+implicit none
+
+type (taylor_struct) bmad_taylor
+type (taylor_term_struct), pointer :: term(:)
+integer n_term
+integer n
+logical, optional :: save_old
+
+!
+
+if (.not. logic_option (.false., save_old)) bmad_taylor%ref = 0
+
+if (n_term < 0) then
+  if (associated(bmad_taylor%term)) deallocate(bmad_taylor%term)
+  return
+endif
+
+if (.not. associated (bmad_taylor%term)) then
+  allocate (bmad_taylor%term(n_term))
+  return
+endif
+
+if (size(bmad_taylor%term) == n_term) return
+
+!
+
+if (logic_option (.false., save_old) .and. n_term > 0 .and. size(bmad_taylor%term) > 0) then
+  n = min (n_term, size(bmad_taylor%term))
+  term => bmad_taylor%term
+  allocate (bmad_taylor%term(n_term))
+  bmad_taylor%term(1:n) = term(1:n)
+  deallocate (term)
+
+else
+  deallocate (bmad_taylor%term)
+  allocate (bmad_taylor%term(n_term))
+endif
+
+end subroutine init_taylor_series
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine em_taylor_equal_em_taylor (em_taylor1, em_taylor2)
+!
+! Subroutine that is used to set one em_taylor equal to another. 
+!
+! Note: This subroutine is called by the overloaded equal sign:
+!		em_taylor1 = em_taylor2
+!
+! Input:
+!   em_taylor2 -- Em_taylor_struct: Input em_taylor.
+!
+! Output:
+!   em_taylor1 -- Em_taylor_struct: Output em_taylor.
+!-
+
+subroutine em_taylor_equal_em_taylor (em_taylor1, em_taylor2)
+
+implicit none
+	
+type (em_taylor_struct), intent(inout) :: em_taylor1
+type (em_taylor_struct), intent(in) :: em_taylor2
+integer n2
+
+!
+
+em_taylor1%ref = em_taylor2%ref
+
+if (allocated(em_taylor2%term)) then
+  n2 = size(em_taylor2%term)
+  if (allocated(em_taylor1%term)) then
+    if (size(em_taylor1%term) /= n2) then
+      deallocate(em_taylor1%term)
+      allocate (em_taylor1%term(n2))
+    endif
+  else
+    allocate (em_taylor1%term(n2))
+  endif
+  em_taylor1%term = em_taylor2%term
+
+else
+  if (allocated(em_taylor1%term)) deallocate (em_taylor1%term)
+endif
+
+end subroutine
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine em_taylors_equal_em_taylors (em_taylor1, em_taylor2)
+!
+! Subroutine to transfer the values from one em_taylor map to another:
+!     Em_taylor1 <= Em_taylor2
+!
+! Input:
+!   em_taylor2(:) -- Em_taylor_struct: Em_taylor map.
+!
+! Output:
+!   em_taylor1(:) -- Em_taylor_struct: Em_taylor map. 
+!-
+
+subroutine em_taylors_equal_em_taylors (em_taylor1, em_taylor2)
+
+implicit none
+
+type (em_taylor_struct), intent(inout) :: em_taylor1(:)
+type (em_taylor_struct), intent(in)    :: em_taylor2(:)
+
+integer i
+
+!
+
+do i = 1, size(em_taylor1)
+  em_taylor1(i) = em_taylor2(i)
+enddo
+
+end subroutine em_taylors_equal_em_taylors
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine init_em_taylor_series (em_taylor, n_term, save_old)
+!
+! Subroutine to initialize a Bmad Em_taylor series (6 of these series make
+! a Em_taylor map). Note: This routine does not zero the structure. The calling
+! routine is responsible for setting all values.
+!
+! Input:
+!   em_taylor   -- Em_taylor_struct: Old structure.
+!   n_term      -- Integer: Number of terms to allocate. 
+!                   n_term < 0 => em_taylor%term pointer will be disassociated.
+!   save_old    -- Logical, optional: If True then save any old terms when
+!                   em_taylor is resized. Default is False.
+!
+! Output:
+!   em_taylor -- Em_taylor_struct: Initalized structure.
+!-
+
+subroutine init_em_taylor_series (em_taylor, n_term, save_old)
+
+implicit none
+
+type (em_taylor_struct) em_taylor
+type (em_taylor_term_struct), allocatable :: term(:)
+integer n_term
+integer n
+logical, optional :: save_old
+
+!
+
+if (n_term < 0) then
+  if (allocated(em_taylor%term)) deallocate(em_taylor%term)
+  return
+endif
+
+if (.not. allocated (em_taylor%term)) then
+  allocate (em_taylor%term(n_term))
+  return
+endif
+
+if (size(em_taylor%term) == n_term) return
+
+!
+
+if (logic_option (.false., save_old) .and. n_term > 0 .and. size(em_taylor%term) > 0) then
+  n = min (n_term, size(em_taylor%term))
+  call move_alloc(em_taylor%term, term)
+  allocate (em_taylor%term(n_term))
+  em_taylor%term(1:n) = term(1:n)
+  deallocate (term)
+
+else
+  deallocate (em_taylor%term)
+  allocate (em_taylor%term(n_term))
+endif
+
+end subroutine init_em_taylor_series
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine complex_taylor_equal_complex_taylor (complex_taylor1, complex_taylor2)
+!
+! Subroutine that is used to set one complex_taylor equal to another. 
+! This routine takes care of the pointers in complex_taylor1. 
+!
+! Note: This subroutine is called by the overloaded equal sign:
+!		complex_taylor1 = complex_taylor2
+!
+! Input:
+!   complex_taylor2 -- complex_taylor_struct: Input complex_taylor.
+!
+! Output:
+!   complex_taylor1 -- complex_taylor_struct: Output complex_taylor.
+!-
+
+subroutine complex_taylor_equal_complex_taylor (complex_taylor1, complex_taylor2)
+
+implicit none
+	
+type (complex_taylor_struct), intent(inout) :: complex_taylor1
+type (complex_taylor_struct), intent(in) :: complex_taylor2
+
+!
+
+complex_taylor1%ref = complex_taylor2%ref
+
+if (associated(complex_taylor2%term)) then
+  call init_complex_taylor_series (complex_taylor1, size(complex_taylor2%term))
+  complex_taylor1%term = complex_taylor2%term
+else
+  if (associated (complex_taylor1%term)) deallocate (complex_taylor1%term)
+endif
+
+end subroutine complex_taylor_equal_complex_taylor
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine complex_taylors_equal_complex_taylors (complex_taylor1, complex_taylor2)
+!
+! Subroutine to transfer the values from one complex_taylor map to another:
+!     complex_taylor1 <= complex_taylor2
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   complex_taylor2(:) -- complex_taylor_struct: complex_taylor map.
+!
+! Output:
+!   complex_taylor1(:) -- complex_taylor_struct: complex_taylor map. 
+!-
+
+subroutine complex_taylors_equal_complex_taylors (complex_taylor1, complex_taylor2)
+
+implicit none
+
+type (complex_taylor_struct), intent(inout) :: complex_taylor1(:)
+type (complex_taylor_struct), intent(in)    :: complex_taylor2(:)
+
+integer i
+
+!
+
+do i = 1, size(complex_taylor1)
+  complex_taylor1(i) = complex_taylor2(i)
+enddo
+
+end subroutine complex_taylors_equal_complex_taylors
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine init_complex_taylor_series (complex_taylor, n_term, save)
+!
+! Subroutine to initialize a Bmad complex_taylor series (6 of these series make
+! a complex_taylor map). Note: This routine does not zero the structure. The calling
+! routine is responsible for setting all values.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   complex_taylor -- complex_taylor_struct: Old structure.
+!   n_term      -- Integer: Number of terms to allocate. 
+!                   n_term < 1 => complex_taylor%term pointer will be disassociated.
+!   save        -- Logical, optional: If True then save any old terms when
+!                   complex_taylor is resized. Default is False.
+!
+! Output:
+!   complex_taylor -- complex_taylor_struct: Initalized structure.
+!-
+
+subroutine init_complex_taylor_series (complex_taylor, n_term, save)
+
+implicit none
+
+type (complex_taylor_struct) complex_taylor
+type (complex_taylor_term_struct), allocatable :: term(:)
+integer n_term
+integer n
+logical, optional :: save
+
+!
+
+if (n_term < 1) then
+  if (associated(complex_taylor%term)) deallocate(complex_taylor%term)
+  return
+endif
+
+if (.not. associated (complex_taylor%term)) then
+  allocate (complex_taylor%term(n_term))
+  return
+endif
+
+if (size(complex_taylor%term) == n_term) return
+
+!
+
+if (logic_option (.false., save) .and. n_term > 0 .and. size(complex_taylor%term) > 0) then
+  n = min (n_term, size(complex_taylor%term))
+  allocate (term(n))
+  term = complex_taylor%term(1:n)
+  deallocate (complex_taylor%term)
+  allocate (complex_taylor%term(n_term))
+  complex_taylor%term(1:n) = term
+  deallocate (term)
+
+else
+  deallocate (complex_taylor%term)
+  allocate (complex_taylor%term(n_term))
+endif
+
+end subroutine init_complex_taylor_series
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine bunch_equal_bunch (bunch1, bunch2)
+!
+! Subroutine to set one particle bunch equal to another.
+!
+! Note: This subroutine is called by the overloaded equal sign:
+!    bunch1 = bunch2
+!
+! Input: 
+!   bunch2 -- bunch_struct: Input bunch
+!
+! Output
+!   bunch1 -- bunch_struct: Output bunch
+!-
+
+subroutine bunch_equal_bunch (bunch1, bunch2)
+
+implicit none
+
+type (bunch_struct), intent(inout) :: bunch1
+type (bunch_struct), intent(in)    :: bunch2
+
+integer i, np
+
+!
+
+if (.not. allocated(bunch2%particle)) then
+  if (allocated(bunch1%particle)) deallocate (bunch1%particle, bunch1%ix_z)
+else
+  np = size(bunch2%particle)
+  if (.not. allocated(bunch1%particle)) allocate(bunch1%particle(np), bunch1%ix_z(np))
+  if (size(bunch1%particle) /= size(bunch2%particle)) then
+    deallocate (bunch1%particle, bunch1%ix_z)
+    allocate (bunch1%particle(np), bunch1%ix_z(np))
+  endif
+  bunch1%particle = bunch2%particle
+  bunch1%ix_z     = bunch2%ix_z
+endif
+
+bunch1%charge_tot  = bunch2%charge_tot
+bunch1%charge_live = bunch2%charge_live
+bunch1%z_center    = bunch2%z_center
+bunch1%t_center    = bunch2%t_center
+bunch1%ix_ele      = bunch2%ix_ele
+bunch1%ix_bunch    = bunch2%ix_bunch
+bunch1%n_live      = bunch2%n_live
+
+end subroutine bunch_equal_bunch
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine beam_equal_beam (beam1, beam2)
+!
+! Subroutine to set one particle beam equal to another taking care of
+! pointers so that they don't all point to the same place.
+!
+! Note: This subroutine is called by the overloaded equal sign:
+!    beam1 = beam2
+!
+! Input: 
+!  beam2 -- beam_struct: Input beam
+!
+! Output
+!  beam1 -- beam_struct: Output beam
+!
+!-
+
+subroutine beam_equal_beam (beam1, beam2)
+
+implicit none
+
+type (beam_struct), intent(inout) :: beam1
+type (beam_struct), intent(in)    :: beam2
+
+integer i, j, n_bun, n_particle
+logical allocate_this
+
+! The following rule must be observed: If beam%bunch is allocated then
+! beam%bunch%particle must be also.
+
+n_bun = size(beam2%bunch)
+
+allocate_this = .true.
+if (allocated(beam1%bunch)) then
+  if (size(beam1%bunch) /= size(beam2%bunch)) then
+    do i = 1, size(beam1%bunch)
+      deallocate (beam1%bunch(i)%particle)
+    enddo
+    deallocate (beam1%bunch)
+  else
+    allocate_this = .false.
+  endif
+endif
+
+if (allocate_this) allocate (beam1%bunch(n_bun))
+
+do i = 1, n_bun
+  beam1%bunch(i) = beam2%bunch(i)
+enddo
+
+end subroutine beam_equal_beam
 
 end module
 

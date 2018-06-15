@@ -12,7 +12,7 @@
 
 function on_a_girder (ele) result (is_on_girder)
 
-use bmad_routine_interface, dummy => on_a_girder
+use equal_mod, dummy => on_a_girder
 
 implicit none
 

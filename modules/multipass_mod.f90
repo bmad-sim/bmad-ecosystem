@@ -1,6 +1,6 @@
 module multipass_mod
 
-use bmad_interface
+use equal_mod
 
 ! Multipass_lord_info_struct gives complete information about a single 
 ! multipass_lord and all its slaves ("from the top down"). 

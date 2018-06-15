@@ -22,7 +22,7 @@
 
 subroutine rf_coupler_kick (ele, param, particle_at, phase, orbit, mat6, make_matrix)
 
-use bmad_routine_interface, dummy => rf_coupler_kick
+use equal_mod, dummy => rf_coupler_kick
 
 implicit none
 
