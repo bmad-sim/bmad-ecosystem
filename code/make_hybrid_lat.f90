@@ -156,7 +156,7 @@ do ib = 0, ubound(lat_out%branch, 1)
     ele_out => b_out%ele(ie)
     if (b_out%ele(ie-1)%select .and. b_out%ele(ie+1)%select) ele_out%select = .true.
   enddo
-  lat_in%branch(ib)%ele(:)%select = b_out%ele(:)%select
+  lat_in%branch(ib)%ele(0:b_out%n_ele_max)%select = b_out%ele(0:b_out%n_ele_max)%select
 enddo
 
 ! Mark elements for deletion and then delete them. 
