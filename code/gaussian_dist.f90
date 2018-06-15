@@ -39,7 +39,6 @@
 !
  subroutine gaussian_dist (ele, mode, coupling, min_sig, coord)
 
-  use bmad_struct
   use bmad_interface
   use nr, ONLY : gasdev_s, ran
 

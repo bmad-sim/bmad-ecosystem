@@ -33,7 +33,6 @@
 !
  subroutine longitudinal_beta(ring, mode)
 
-  use bmad_struct
   use bmad_interface
 
   implicit none

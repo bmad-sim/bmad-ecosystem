@@ -14,7 +14,6 @@
 
 program ibs_linac
 
-use bmad_struct
 use beam_mod
 use twiss_and_track_mod
 use ibs_mod

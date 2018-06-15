@@ -30,7 +30,6 @@
 !
 subroutine writefile(in_file, parameters)
   
-!  use bmad_struct
   use bmad_interface
   
   implicit none

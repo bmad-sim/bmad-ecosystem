@@ -16,7 +16,7 @@
 
 function theta_floor (s, branch, theta_base) result (theta_fl)
 
-use bmad_struct
+use bmad_interface
 
 implicit none
 

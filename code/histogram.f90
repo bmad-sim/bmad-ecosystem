@@ -36,7 +36,6 @@
 !
 subroutine histogram (ele, coord, in_file, sig, a_out)
   
-  use bmad_struct
   use bmad_interface
   
   implicit none
