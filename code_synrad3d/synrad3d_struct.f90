@@ -1,6 +1,5 @@
 module synrad3d_struct
 
-use bmad_struct
 use bmad_interface
 use twiss_and_track_mod
 use photon_reflection_mod
