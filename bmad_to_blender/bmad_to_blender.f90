@@ -1,7 +1,6 @@
 program bmad_to_blender
 
 use blender_interface_mod
-use bmad_struct
 use beam_mod
 
 
