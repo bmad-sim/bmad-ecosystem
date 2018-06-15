@@ -2718,7 +2718,7 @@ The problem that arises with accelerating fields is how to set the overall ampli
 phase if the fields are oscillating) of the field so that a particle, starting on the
 reference orbit and starting with the reference energy, has the desired energy gain at the
 exit end of the element where the ``desired'' is set by the \vn{voltage} or \vn{gradient}
-attribute of the element.
+attribute of the element plus a \vn{phi0} phase attribute for AC fields.
 
 The scaling problem is not present when \vn{bmad_standard} tracking (\sref{s:tkm}) is used
 since \vn{bmad_standard} tracking uses an integrated formula that is designed to give the
@@ -2743,13 +2743,23 @@ The default value is True for both parameters. Example:
 
 Scaling takes place during program execution when a lattice is initially created (that is,
 when the lattice file is parsed) and when parameters in the lattice that would change the
-scaling are varied.  The element parameters varied wen autoscaling is done are:
+scaling are varied.  The element parameters varied when autoscaling is done are:
 \begin{example}
   field_autoscale       ! Amplitude scale
   phi0_autoscale        ! phase scale
 \end{example}
+For an \vn{rfcavity} element, the \vn{field_autoscale} parameter is set so that when the phase is
+adjusted for maximum acceleration, the voltage gain of a particle on the zero orbit is equal to the
+value of the element's \vn{voltage} parameter and then phi0_autoscale is shifted by approximately 90
+degrees so that with \vn{phi0} equal to zero a particle on the zero orbit will not see any energy
+gain through the cavity.
+
 If no autoscaling is done, the default setting of \vn{field_autoscale} is 1 and the
 default setting of \vn{phi0_autoscale} is 0.
+
+Notice that if autoscaling is on, the \vn{field_autoscale} is adjusted so that a particle on the
+zero orbit will see a field appropriate for the setting of the element's \vn{voltage} setting.
+If autoscaling is off, the field is independent of the element's \vn{voltage} setting.
 
 \vn{field_autoscale} and \vn{phi0_autoscale} are ignored when \vn{bmad_standard} tracking
 is done.

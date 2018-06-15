@@ -689,7 +689,7 @@ case(fieldmap$)
 
       fld = 0; dfld = 0
 
-      call to_field_map_coords (ele, local_orb, s_body, ct_map%ele_anchor_pt, ct_map%r0, .false., x, y, z, err)
+      call to_field_map_coords (ele, local_orb, s_body, ct_map%ele_anchor_pt, ct_map%r0, .false., x, y, z, cos_ang, sin_ang, err)
       if (err) then
         if (present(err_flag)) err_flag = .true.
         return
@@ -972,7 +972,7 @@ case(fieldmap$)
 
       if (cl_map%harmonic /= 0) k_t = twopi * freq / c_light
 
-      call to_field_map_coords (ele, local_orb, s_body, cl_map%ele_anchor_pt, cl_map%r0, .false., x, y, z, err)
+      call to_field_map_coords (ele, local_orb, s_body, cl_map%ele_anchor_pt, cl_map%r0, .false., x, y, z, cos_ang, sin_ang, err)
       if (err) then
         if (present(err_flag)) err_flag = .true.
         return
@@ -1143,7 +1143,7 @@ case(fieldmap$)
         if (ele%key == rfcavity$) t_ref = 0.25/freq0 - t_ref
       endif
 
-      call to_field_map_coords (ele, local_orb, s_body, g_field%ele_anchor_pt, g_field%r0, g_field%curved_ref_frame, x, y, z, err)
+      call to_field_map_coords (ele, local_orb, s_body, g_field%ele_anchor_pt, g_field%r0, g_field%curved_ref_frame, x, y, z, cos_ang, sin_ang, err)
       if (err) then
         if (present(err_flag)) err_flag = .true.
         return
@@ -1244,7 +1244,7 @@ case(fieldmap$)
 
       fld = 0
 
-      call to_field_map_coords (ele, local_orb, s_body, t_field%ele_anchor_pt, t_field%r0, t_field%curved_ref_frame, x, y, z, err)
+      call to_field_map_coords (ele, local_orb, s_body, t_field%ele_anchor_pt, t_field%r0, t_field%curved_ref_frame, x, y, z, cos_ang, sin_ang, err)
       if (err) then
         if (present(err_flag)) err_flag = .true.
         return
@@ -1496,7 +1496,8 @@ end subroutine em_field_calc
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine to_field_map_coords (ele, local_orb, s_body, ele_anchor_pt, r0, curved_ref_frame, x, y, z, err_flag)
+! Subroutine to_field_map_coords (ele, local_orb, s_body, ele_anchor_pt, r0, curved_ref_frame,
+!                                                               x, y, z, cos_ang, sin_ang, err_flag)
 !
 ! Routine to return the (x,y,s) position relative to a field map.
 !
@@ -1510,9 +1511,11 @@ end subroutine em_field_calc
 !
 ! Outpt:
 !   x, y, z           -- real(rp): Coords relative to the field map.
+!   cos_ang, sin_ang  -- real(rp): cos and sin of coordinate rotation angle.
 !   err_flag          -- logical: Set True if there is an error. False otherwise.
 
-subroutine to_field_map_coords (ele, local_orb, s_body, ele_anchor_pt, r0, curved_ref_frame, x, y, z, err_flag)
+subroutine to_field_map_coords (ele, local_orb, s_body, ele_anchor_pt, r0, curved_ref_frame, &
+                                                                      x, y, z, cos_ang, sin_ang, err_flag)
 
 type (ele_struct) ele
 type (coord_struct) local_orb
@@ -1539,7 +1542,6 @@ case default
   return
 end select
 
-
 !
 
 x = local_orb%vec(1)
@@ -1552,8 +1554,8 @@ if (ele%key == sbend$ .and. ele%value(g$) /= 0 .and. .not. curved_ref_frame) the
   sin_ang = sin(z*ele%value(g$))
 
   x_save = x
-  x = (x_save + ele%value(rho$) )*cos_ang - ele%value(rho$)
-  z = (x_save + ele%value(rho$) )*sin_ang 
+  x = (x_save + ele%value(rho$)) * cos_ang - ele%value(rho$)
+  z = (x_save + ele%value(rho$)) * sin_ang 
 endif
 
 !
