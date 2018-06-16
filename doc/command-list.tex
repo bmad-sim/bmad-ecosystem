@@ -2221,7 +2221,7 @@ lattice input format.
 Syntax:
 \begin{example}
     show particle \{-bunch <bunch_index>\} \{-particle <particle_index>
-    \{-element <element_name_or_index>\} \{-lost\} \{-all\}
+                  \{-element <element_name_or_index>\} \{-lost\} \{-all\}
 \end{example}
 
 
@@ -2250,24 +2250,39 @@ Examples:
 
 Syntax:
 \begin{example}
-  show plot \{-floor_plan\} \{-lat_layout \} \{<plot_or_template_name>\}
+  show plot \{-floor_plan\} \{-global\} \{-lat_layout\} \{-regions\} 
+            \{-templates\} \{<plot_or_template_name>\}
 \end{example}
-
-A simple \vn{show plot} displays which templates are being plotted and in which regions
-and also all available templates. See \sref{c:plotting} for the syntax on plot, graph, and
-curve names. A \vn{show plot <plot_or_region_name>} will display information on a
-particular plot.
 
 The \vn{show plot -floor_plan} and \vn{show plot -lat_layout} commands show the parameters
 associated with the \vn{floor_plan} or \vn{lat_layout} plots (\sref{s:shapes}).
 Use the \vn{set floor_plan} or \vn{set lat_layout} commands to set these parameters.
 
+The \vn{show plot -global} command shows some global plotting parameters like the size of the plot
+window.
+
+The \vn{show plot -regions} command shows what plots are placed in which regions. Use the \vn{place}
+command to change where plots are placed.
+
+The \vn{show plot -templates} command displays what plot templates have been defined for plotting.
+See \sref{s:init.plot} for information on setting up template plots.
+
+The \vn{show plot <plot_or_region_name>} command will display information on a
+particular plot.
+
+The various \vn{show plot} options are mutually exclusive and only the last option is used. That is,
+a command like
+\begin{example}
+  show plot -lat_layout -regions
+\end{example}
+is equivalent to \vn{show plot -regions}.
+
 Also see \vn{show graph} and \vn{show_curve}.
 
 Examples:
 \begin{example}
-  show plot      ! General plot info
-  show plot r13
+  show plot      ! Show plot region information by default
+  show plot r13  ! Show information on plot in region r13
 \end{example}
 
 %% show symbolic_numbers --------------------------------------------------------------
@@ -2424,7 +2439,7 @@ Set the format for the three components of the particle's spin. The default, if
 Set the format for the time column. The default, if \vn{-s} is not present, is to not the column.
 %
 \item[\vn{\{-twiss \{<fmt>\}\}}] \Newline
-Set the format for the Beta and Alpha functions of the two ransverse normal modes. The default, if
+Set the format for the Beta and Alpha functions of the two transverse normal modes. The default, if
 \vn{-twiss} is not present, is not to print the Twiss parameters
 %
 \item[\vn{\{-universe <ix_uni>\}}] \Newline

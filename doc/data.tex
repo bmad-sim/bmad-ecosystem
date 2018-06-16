@@ -564,9 +564,10 @@ type. Thus the user is free to group data as s/he sees fit.
 Description of the data types:
 
   \begin{description}
-
+  %----------------------
   \item[alpha.a, .b] \Newline
 Twiss function \vn{alpha}.
+  %----------------------
   \item[apparent_emit.x, .y] \Newline
 The apparent emittance is the emittance that one would calculate based
 upon a measurement of the beam size\cite{b:emit}. It can be useful to
@@ -584,9 +585,11 @@ With \vn{data_source} set to \vn{"lat"}, The apparent emittance is
 calculated from the true normal mode emittance and the Twiss
 parameters (Cf.~ Eqs (4) and (5) of \cite{b:emit}).
 
+  %----------------------
   \item[beta.a, .b, .c] \Newline
 Lattice normal mode betas.
 
+  %----------------------
   \item[beta.x, .y, .z] \Newline
 Beam projected beta functions. \vn{beta.x} is defined by
 \begin{equation}
@@ -598,77 +601,94 @@ The average \vn{<>} is over all the particles in the beam.
 Note: If the beta function is calculated from the beam distribution,
 the initial beam emittance must be set to something non-zero.
 
+  %----------------------
   \item[bpm_cbar.22a, .12a, .11b, .12b] \Newline
 The normalized Cbar coupling parameters. The computed \vn{model} values include detector
 misalignments, rotations, gain errors, etc. This type of datum is useful for simulating how well
 actual coupling corrections are. See the \bmad manual on ``Instrumental Measurement Attributes''
 for more details.
 
+  %----------------------
   \item[bpm_eta.x, y] \Newline
 The horizontal and vertical dispersion components. The computed \vn{model} values include detector
 misalignments, rotations, gain errors, etc. This type of datum is useful for simulating how well
 actual dispersion corrections are. See the \bmad manual on ``Instrumental Measurement Attributes''
 for more details.
 
+  %----------------------
   \item[bpm_orbit.x, y] \Newline
 Beam Orbit. The computed \vn{model} values include detector misalignments, rotations, gain
 errors, etc. This type of datum is useful for simulating how well actual orbit corrections
 are. See the \bmad manual on ``Instrumental Measurement Attributes'' for more details.
 
+  %----------------------
   \item[bpm_phase.a, b] \Newline
 Betatron phase. The computed \vn{model} values include detector misalignments, rotations, gain
 errors, etc. This type of datum is useful for simulating how well actual orbit corrections
 are. See the \bmad manual on ``Instrumental Measurement Attributes'' for more details.
 
+  %----------------------
   \item[bpm_k.22a, .12a, .11b, .12b] \Newline
 Measured beam coupling components. The computed \vn{model} values include detector misalignments, rotations, gain
 errors, etc. This type of datum is useful for simulating how well actual coupling corrections
 are. See the \bmad manual on ``Instrumental Measurement Attributes'' for more details.
 
+  %----------------------
   \item[bunch_max, bunch_min.x, .px, .y, .py, .z, .pz] \Newline
 Maximum or minimum phase space coordinate in a bunch, relative to its centroid.
 
+  %----------------------
   \item[c_mat.11, .12, .21, .22] \Newline
 Coupling matrix components. The 2x2 C matrix describe the $x$-$y$ coupling of the beam.
 See the \bmad manual for more details.
 
+  %----------------------
   \item[cbar.11, .12, .21, .22] \Newline
 Normalized coupling matrix components. The 2x2 C matrix describe the $x$-$y$ coupling of the beam.
 The normalized matrix is normalized by factors of $\beta$. See the \bmad manual for more details.
 
+  %----------------------
   \item[chrom.a, .b] \Newline
 Chromaticities. Old names: \vn{chrom.dtune.a} and \vn{chrom.dtune.b}
 
+  %----------------------
   \item[chrom.dbeta.a, .dbeta.b] \Newline
 The normalized change of the beta function with energy
 $(1/\beta_{a,b})\partial\beta_{a,b}/\partial\delta$. Unlike the standard chromaticities,\vn{chrom.a} and \vn{chrom.b},
 the these chromaticities are evaluated at individual elements.
 
+  %----------------------
   \item[chrom.deta.a, .deta.b] \Newline
 The chromatic dispersion $\partial\eta_{x,y}/\partial\delta$. Unlike the standard
 chromaticities,\vn{chrom.a} and \vn{chrom.b}, the these chromaticities are evaluated at
 individual elements.
 
+  %----------------------
   \item[chrom.detap.a, .detap.b] \Newline
 The chromatic dispersion derivatives $\partial\eta'_{x,y}/\partial\delta$. Unlike the standard
 chromaticities,\vn{chrom.a} and \vn{chrom.b}, the these chromaticities are evaluated at
 individual elements.
 
+  %----------------------
   \item[chrom.dphi.a, .dphi.b] \Newline
 The chromatic betatron phase $\partial\phi_{a,b}/\partial\delta$. Unlike the standard
 chromaticities,\vn{chrom.a} and \vn{chrom.b}, the these chromaticities are evaluated at
 individual elements.
 
+  %----------------------
   \item[damp.j_a, .j_b, .j_z] \Newline
 Damping partition numbers.
 
+  %----------------------
   \item[dpx_dx, dpy_dy, etc.] \Newline
 Bunch sigma matrix ratios, <x px> / <$x^2$> \& Etc.
 
+  %----------------------
   \item[e_tot_ref] \Newline
 The reference energy of the lattice. This is the same as the \vn{E_tot} attribute of a lattice element.
 For the actual particle energy, use \vn{orbit.e_tot}.
 
+  %----------------------
   \item[element_attrib.<attrib_name>] \Newline
 The \vn{element_attrib.<attrib_name>} data type is associated with the
 lattice element attribute named \vn{<attrib_name>}. See the \bmad
@@ -694,12 +714,14 @@ plot template (\sref{s:init.plot}) can be used:
   /
 \end{example}
 
+  %----------------------
   \item[emit.a, .b, .c] \Newline
 True normal mode (eigen) emittances.  With \vn{data_source} set to \vn{"beam"}, the
 emittance is calculated from the beam sigma matrix. With \vn{data_source} set to
 \vn{"lat"}, the normal mode emittance is calculated using the standard radiation
 integrals.
 
+  %----------------------
   \item[emit.x, .y, .z] \Newline
 ``Projected'' emittances\cite{b:emit}. 
 For a linear lattice, the emittance varies along the length
@@ -726,6 +748,7 @@ results.
 See also the \vn{norm_emit.}, \vn{apparent_emit.}, and
 \vn{norm_apparent_emit.} data types.
 
+  %----------------------
   \item[expression: <arithmetic_expression>] \Newline
 \vn{<arithmetic_expression>} is an arithmetic expression (\sref{s:arithmetic.exp}) which
 is evaluated to get the value of the datum. For example:
@@ -775,32 +798,40 @@ the syntax ``\vn{ele::\#}'' to represent the associated lattice element. Example
 In this example the values of the four datums will the integrated quadrupole strength K1*L
 of the associated lattice elements \vn{Q01} for the first datum, etc.
 
+  %----------------------
   \item[floor.x, .y, .z] \Newline
 Position of the element in the global ``floor'' coordinate system. This is the nominal
 position ignoring any misalignments. See the \bmad manual for details on the global
 coordinate system. See also \vn{rel_floor.} and \vn{will.}.
 
+  %----------------------
   \item[floor.theta, .phi, .psi] \Newline
 Orientation of the element in the global ``floor'' coordinate system. This is the nominal
 position ignoring any misalignments. See the \bmad manual for details on the global
 coordinate system. See also \vn{rel_floor.}.
 
+  %----------------------
   \item[gamma.a, .b] \Newline
 Normal mode Twiss gamma function.
 
+  %----------------------
   \item[k.11b, .12a, .12b, .22a] \Newline
 Measured beam coupling parameters. See also \vn{bpm_k.11b, ...}.
 
+  %----------------------
   \item[momentum] \Newline
 Particle momentum amplitude.
 
+  %----------------------
   \item[momentum_compaction] \Newline
 Momentum compaction factor. Also see \vn{r56_compaction}.
 
+  %----------------------
   \item[multi_turn_orbit.x, .y, .z, .px, .py, .pz] \Newline
 Used for storing the orbit over many turns. Only used for plotting purposes.
 See \sref{s:plot.data} for more details.
 
+  %----------------------
   \item[n_particle_loss] \Newline
 If the reference element is not specified, \vn{n_particle_loss} gives
 the number of particles lost at the evaluation element. If the
@@ -811,6 +842,7 @@ any losses at the reference element itself. If neither reference nor
 evaluation element is given then the total number of lost particles is
 given.
 
+  %----------------------
   \item[norm_apparent_emit.x, .y] \Newline
 Energy normalized apparent emittance. The normalization is the standard gamma factor:
 \Begineq
@@ -818,18 +850,21 @@ Energy normalized apparent emittance. The normalization is the standard gamma fa
 \Endeq
 See the \vn{apparent_emit.x, .y} data type for more details.
 
+  %----------------------
   \item[norm_emit.a, .b, .c] \Newline
 Energy normalized normal mode emittance. The normalization is the standard gamma factor:
 \Begineq
   \epsilon_{norm} = \gamma \, \epsilon
 \Endeq
 
+  %----------------------
   \item[norm_emit.x, .y, .z] \Newline
 Energy normalized projected emittance. The normalization is the standard gamma factor:
 \Begineq
   \epsilon_{norm} = \gamma \, \epsilon
 \Endeq
 
+  %----------------------
   \item[normal.<type>.$i$.<monomial>] \Newline
 Components of the normal form decomposition of the one-turn-map $M$ for a ring. 
 Possible settings for \vn{type} is
@@ -856,18 +891,22 @@ map. All of the nonlinearities are therefore in the complex vector field $F$. Th
 imaginary parts of $L$ and $F$ can be accessed through \vn{normal.ReF}, \vn{normal.ImF},
 \vn{normal.ReL}, and \vn{normal.ImL}.
 
+  %----------------------
   \item[null] \Newline
 A \vn{null} data type is used for data where \tao is not able to calculate a model value. Such data
 cannot be used in an optimization. For example, in a linac where the beam intensity is measured at
 the BPMs, \tao has no model for calculating the current variation down the linac. Nevertheless, it
 could be useful to read in the measured values and plot them.
 
+  %----------------------
   \item[orbit.amp_a, .amp_b] \Newline
 ``Invariant'' amplitude of the orbital motion.
 
+  %----------------------
   \item[orbit.norm_amp_a, .norm_amp_b] Newline
 Energy normalized ``invariant'' amplitude of the orbital motion.
 
+  %----------------------
   \item[orbit.e_tot] \Newline
 The \vn{orbit.e_tot} data type gives the total energy of a tracked particle (with
 \vn{data_source} = \vn{lat}) or the average energy of a beam (with \vn{data_source} =
@@ -876,9 +915,11 @@ The \vn{orbit.e_tot} data type gives the total energy of a tracked particle (wit
 Notice that this is different from the \vn{E_tot} attribute of a lattice element which
 is the reference energy at that element.
 
+  %----------------------
   \item[orbit.x, .y, .z, .px, .py, .pz] \Newline
 Orbit position and momenta
 
+  %----------------------
   \item[periodic.tt.$ijklm\ldots$] \Newline
 This is like the \vn{tt.} datum except here the terms are from the
 periodic Taylor map defined by
@@ -910,6 +951,7 @@ Note: If the reference element is not specified, or if the reference
 element is the same as the evaluation element, this data type cannot
 be used with a linear lattice.
 
+  %----------------------
   \item[phase.a, .b] \Newline
 Betatron phase.  If a \vn{d1_data} array has a set of
 \vn{phase} datums, and if the reference element is {\em not}
@@ -923,23 +965,29 @@ since one does not have to worry about arbitrary offsets between the
 \vn{model} and \vn{measured} values. If the reference element is
 specified then there is no arbitrary constant in the evaluation.
 
+  %----------------------
   \item[phase_frac.a, .b] \Newline
 Fractional betatron phase. Also see the discussion under \vn{phase.a, .b}.
 
+  %----------------------
   \item[phase_frac_diff] \Newline
 Fractional betatron phase difference between the $a$ and $b$ normal modes. 
 $-\pi < d\phi_{\mbox{frac}} < \pi$
 
+  %----------------------
   \item[photon.intensity] \Newline
 Photon total intensity.
 
+  %----------------------
   \item[photon.intensity_x, .intensity_y] \Newline
 Photon intensity components in the horizontal and vertical planes.
 
+  %----------------------
   \item[photon.phase_x, .phase_y] \Newline
 Photon phases in the horizontal and vertical planes.
 
-  \item[ping_a.amp_x, .phase_x, .amp_sin_y, .amp_cos_y, .amp_sin_rel_y, .amp_cos_rel_y] \Newline
+  %----------------------
+  \item[ping_a.amp_x, .phase_x, .amp_y, .phase_y, .amp_sin_y, .amp_cos_y, .amp_sin_rel_y, .amp_cos_rel_y] \Newline
 Phase and amplitude response at a BPM from turn-by-turn data acquired after the beam is
 pinged. Ignoring damping, the beam response will be the sum of three components, one for
 each beam oscillation eigenmode. \vn{ping_a} data is for the response at the \vn{a}-mode
@@ -998,6 +1046,8 @@ horizontal and vertical signals. In fact, for the CESR ring at Cornell Universit
 can measure in both planes, best coupling correction results are obtained by using the
 \vn{ping_a.amp_sin_rel_y} data and ignoring the \vn{ping_a.amp_cos_rel_y} data.
 
+The \vn{ping_a.amp_y} and \vn{ping_a.phase_y} data types are not useful for data analysis when the
+coupling is small since, in the limit of no coupling, \vn{ping_a.phase_y} meaningless.
 
 For the \vn{design} and \vn{model} values of a datum, \Eq{xabno} is used with $A_a$ taken
 to be unity. To be able to compare the \vn{design} and/or \vn{model} values with the
@@ -1014,8 +1064,8 @@ since, with a decoupled lattice, the \vn{model} values are zero.
 
 There is a similar multiplier defined for the reference data. The values of these two
 multipliers are shown with the \vn{show data} command.
-
-  \item[ping_b.amp_y, .phase_y, .amp_sin_x, .amp_cos_x, .amp_sin_rel_x, .amp_cos_rel_x] \Newline
+  %----------------------
+  \item[ping_b.amp_y, .phase_y, .amp_x, .phase_x, .amp_sin_x, .amp_cos_x, .amp_sin_rel_x, .amp_cos_rel_x] \Newline
 Similar to \vn{ping_a} except this is for the \vn{b}-mode component of the response.  Here
 the \vn{design} and \vn{model} values are calculated from Eq.~(8) of reference
 \cite{b:beta.meas}:
@@ -1030,9 +1080,11 @@ with \vn{A_b} taken to be unity for the evaluation.
 The corresponding multiplicative values are derived from \vn{ping_b.amp_y} in an analogous
 fashion to the multiplicative values for the $a$-mode ping data.
 
+  %----------------------
   \item[r.$ij$] \Newline
 Terms of the linear transfer map. $1 \le i,j \le 6$.
 
+  %----------------------
   \item[ \begin{tabular}{@{}l}
   rad_int.i1, .i2, .i2_e4, .i3, .i3_e7, .i4a, .i4b, .i4z, .i5a, .i5b, .i5a_e6, .i5b_e6 \\
   rad_int1.i1, .i2, .i2_e4, .i3, .i3_e7, .i4a, .i4b, .i4z, .i5a, .i5b, .i5a_e6, .i5b_e6
@@ -1055,6 +1107,7 @@ With the \vn{rad_int.xxx} datums, the integral is from \vn{ele_ref} to \vn{ele}.
   .i5b_e6     ! Energy normalized I5b
 \end{example}
 
+  %----------------------
   \item[r56_compaction] \Newline
 This datum is defined to be
 \Begineq
@@ -1071,11 +1124,13 @@ momentum compaction via:
 \end{example}
 where \vn{L} is the length of the lattice. 
 
+  %----------------------
   \item[ref_time] \Newline
 This is the time the reference particle passes the exit end of the element.
 If the particle is ultra-relativistic then this is just $c * s$ where $s$
 is the longitudinal distance from the start of the lattice.
 
+  %----------------------
   \item[rel_floor.x, .y, .z, .theta] \Newline
 This is the global floor position at the exit end of the evaluation
 element relative to the exit end of the reference element in a global
@@ -1083,6 +1138,7 @@ coordinate system where the exit end of the reference element is taken to be at
 \vn{x = y = z = theta = phi = 0}. See the \bmad manual for details on
 the global coordinate system. See also \vn{floor.} and \vn{wall.}.
 
+  %----------------------
   \item[sigma.x, .y, .z, .px, .py, .pz, .$ij$, .Lxy] \Newline
 Beam sizes \vn{sigma.x}, \vn{sigma.px}, etc., and angular momentum
 \vn{sigma.Lxy} = $<xp_x - yp_x>$ are calculated from the beam sigma matrix
@@ -1095,6 +1151,7 @@ Irregardless of the setting of \vn{data_source}, the beam emittance and longitud
 values will be taken from the \vn{beam_init} structure (\sref{s:beam.init}) and {\em not}
 any emittances or longitudinal sigma values specified in the lattice file.
 
+  %----------------------
   \item[t.$ijk$,  tt.$ijklm\ldots$] \Newline
 Taylor map components between two points with $1 \le i,j,k,\ldots \le 6$.  The difference
 between \vn{t.$ijk$} and \vn{tt.$ijklm\ldots$} is that \vn{t.$ijk$} is restricted to
@@ -1111,12 +1168,15 @@ generating the points that define this curve will be decreased if the s-distance
 points is smaller than the \vn{ds_step}.  In this case, discrepancies between the plot and
 datum values may be observed.
 
+  %----------------------
   \item[time] \Newline
 Time (in seconds) a particle or the bunch centroid is at the evaluation element.
 
+  %----------------------
   \item[tune.a, .b] \Newline
 Tune in radians.
 
+  %----------------------
   \item[unstable.orbit] \Newline
 The \vn{unstable.orbit} datum is used for linear lattices in an
 optimization to avoid unstable solutions (\sref{s:generalized.design}).
@@ -1150,6 +1210,7 @@ lattice.
 When tracking beams, the value of \vn{unstable.orbit} is the averaged
 value over all particles in the bunch.
 
+  %----------------------
   \item[unstable.ring] \Newline
 \vn{unstable.ring} is used for storage rings. The value of an
 \vn{unstable.ring} datum is zero if the ring is stable and set to the
@@ -1166,9 +1227,11 @@ centerline of a machine and the walls of the containment building.}
   \label{f:wall.constraint}
 \end{figure}
 
+  %----------------------
   \item[velocity, velocity.x, .y, .z] \Newline
 The velocity normalized by the speed of light $c$.
 
+  %----------------------
   \item[wall.left_side, .right_side] \Newline
 The \vn{wall} data data type is used to constrain the shape of a machine to fit
 inside a building's walls (\sref{s:building.wall}). The general layout is shown in
@@ -1199,6 +1262,7 @@ be used when searching for possible points \vn{B}. If there are no wall points w
 For \vn{wall} data there can be no reference element since this does
 not make sense.
 
+  %----------------------
   \item[wire.<angle>] \Newline
 \vn{wire} data simulates the measurement of a wire scanner. The angle
 specified is the angle of the wire with respect to the horizontal

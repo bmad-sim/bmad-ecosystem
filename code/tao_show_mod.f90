@@ -2828,7 +2828,8 @@ case ('plot')
   attrib0 = ''
 
   do
-    call tao_next_switch (what2, ['-floor_plan', '-lat_layout'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(16) :: '-floor_plan', '-lat_layout', '-templates', &
+                                                   '-global', '-regions'], .true., switch, err, ix)
     if (err) return
     select case (switch)
     case ('') 
@@ -2847,9 +2848,59 @@ case ('plot')
     end select
   enddo
 
+  ! Find particular plot
+
+  if (attrib0 /= '') then
+
+    call tao_find_plots (err, attrib0, 'BOTH', plot, print_flag = .false.)
+    if (err) then
+      nl = 1; lines(nl) = 'CANNOT FIND PLOT WITH NAME: ' // attrib0
+      return
+    endif
+
+    if (allocated(plot)) then
+      p => plot(1)%p
+
+      nl=nl+1; lines(nl) = 'Plot:  ' // p%name
+      if (associated(p%r)) then
+        nl=nl+1; lines(nl) = 'Region:  ' // trim(p%r%name)
+        nl=nl+1; write (lines(nl), lmt)  'Visible                = ', p%r%visible
+        nl=nl+1; write (lines(nl), f3mt) 'Location [x1,x2,y1,y2] = ', p%r%location
+      endif
+      nl=nl+1; write(lines(nl), amt) 'x_axis_type          = ', p%x_axis_type
+      nl=nl+1; write(lines(nl), amt) 'x%label              = ', p%x%label
+      nl=nl+1; write(lines(nl), rmt) 'x%max                = ', p%x%max
+      nl=nl+1; write(lines(nl), rmt) 'x%min                = ', p%x%min
+      nl=nl+1; write(lines(nl), imt) 'x%major_div          = ', p%x%major_div
+      nl=nl+1; write(lines(nl), imt) 'x%major_div_nominal  = ', p%x%major_div_nominal
+      nl=nl+1; write(lines(nl), imt) 'x%places             = ', p%x%places
+      nl=nl+1; write(lines(nl), lmt) 'x%draw_label         = ', p%x%draw_label
+      nl=nl+1; write(lines(nl), lmt) 'x%draw_numbers       = ', p%x%draw_numbers
+      nl=nl+1; write(lines(nl), lmt) 'autoscale_x          = ', p%autoscale_x
+      nl=nl+1; write(lines(nl), lmt) 'autoscale_y          = ', p%autoscale_y
+      nl=nl+1; write(lines(nl), lmt) 'autoscale_gang_x     = ', p%autoscale_gang_x
+      nl=nl+1; write(lines(nl), lmt) 'autoscale_gang_y     = ', p%autoscale_gang_y
+      nl=nl+1; write(lines(nl), imt) 'n_curve_pts          = ', p%n_curve_pts
+
+      nl=nl+1; lines(nl) = 'Graphs:'
+      do i = 1, size(p%graph)
+        nl=nl+1; write(lines(nl), amt) '   ', p%graph(i)%name
+      enddo
+      result_id = show_what
+
+    else
+      nl=1; lines(1) = 'This is not a name of a plot'
+      result_id = 'ERROR'
+    endif
+
+    return
+  endif
+
   ! Floor plan info
 
-  if (what == '-floor_plan') then
+  select case (what)
+  case ('-floor_plan')
+
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Element Shapes:'
     nl=nl+1; lines(nl) = &
@@ -2867,11 +2918,11 @@ case ('plot')
 
     result_id = 'plot:floor_plan'
     return
-  endif
 
   ! lat_layout info
 
-  if (what == '-lat_layout') then
+  case ('-lat_layout')
+
     nl=nl+1; lines(nl) = ' '
     nl=nl+1; lines(nl) = 'Element Shapes:'
     nl=nl+1; lines(nl) = &
@@ -2889,11 +2940,10 @@ case ('plot')
 
     result_id = 'plot:lat_layout'
     return 
-  endif
 
-  ! attrib0 is blank => print overall info
+  ! Global plot parameters
 
-  if (attrib0 == ' ') then
+  case ('-global')
 
     nl=nl+1; lines(nl) = 'plot_page parameters:'
     nl=nl+1; write(lines(nl), imt)  '  %size                         = ', nint(s%plot_page%size)
@@ -2913,6 +2963,13 @@ case ('plot')
     nl=nl+1; write(lines(nl), f3mt) '  %lat_layout_shape_scale       = ', s%plot_page%lat_layout_shape_scale 
     nl=nl+1; write(lines(nl), lmt)  '  %delete_overlapping_plots     = ', s%plot_page%delete_overlapping_plots
 
+    result_id = 'plot:global'
+    return 
+
+  ! Template plot parameters
+
+  case ('-templates')
+
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Templates:'
     nl=nl+1; lines(nl) = '   Plot                                    Description        '
@@ -2925,6 +2982,13 @@ case ('plot')
       nl=nl+1; write(lines(nl), '(3x, 2a)') p%name, trim(p%description)
     enddo
 
+    result_id = 'plot:template'
+    return 
+
+  ! Plot regions
+
+  case ('-regions', '')
+
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = '                                               Location on Page'
     nl=nl+1; lines(nl) = 'Plot Region         <-->  Plot                 x1    x2    y1    y2'  
@@ -2933,64 +2997,21 @@ case ('plot')
     do i = 1, size(s%plot_page%region)
       region => s%plot_page%region(i)
       if (region%name == '') cycle
-      if (.not. region%list_with_show_plot_command .and. region%plot%name == '') then
+      if (.not. region%list_with_show_plot_command .and. region%plot%name == '' .and. what == '') then
         found = .true.
         cycle
       endif
       nl=nl+1; write(lines(nl), '(a20, a, a18, 4f6.2)') region%name, '<-->  ', region%plot%name, region%location
     enddo
 
-    if (found) then
-      nl=nl+1; write(lines(nl), '(a)') '[Etc... In the interest of brevity, other regions not listed.]'
+    if (found .and. what == '') then
+      nl=nl+1; write(lines(nl), '(a)') '[Etc... In the interest of brevity, other regions not listed. Use "show plot -regions" for the entire list.]'
     endif
 
     result_id = 'plot:'
     return
-  endif
 
-  ! Find particular plot
-
-  call tao_find_plots (err, attrib0, 'BOTH', plot, print_flag = .false.)
-  if (err) then
-    nl = 1; lines(nl) = 'CANNOT FIND PLOT WITH NAME: ' // attrib0
-    return
-  endif
-
-  if (allocated(plot)) then
-    p => plot(1)%p
-
-    nl=nl+1; lines(nl) = 'Plot:  ' // p%name
-    if (associated(p%r)) then
-      nl=nl+1; lines(nl) = 'Region:  ' // trim(p%r%name)
-      nl=nl+1; write (lines(nl), lmt)  'Visible                = ', p%r%visible
-      nl=nl+1; write (lines(nl), f3mt) 'Location [x1,x2,y1,y2] = ', p%r%location
-    endif
-    nl=nl+1; write(lines(nl), amt) 'x_axis_type          = ', p%x_axis_type
-    nl=nl+1; write(lines(nl), amt) 'x%label              = ', p%x%label
-    nl=nl+1; write(lines(nl), rmt) 'x%max                = ', p%x%max
-    nl=nl+1; write(lines(nl), rmt) 'x%min                = ', p%x%min
-    nl=nl+1; write(lines(nl), imt) 'x%major_div          = ', p%x%major_div
-    nl=nl+1; write(lines(nl), imt) 'x%major_div_nominal  = ', p%x%major_div_nominal
-    nl=nl+1; write(lines(nl), imt) 'x%places             = ', p%x%places
-    nl=nl+1; write(lines(nl), lmt) 'x%draw_label         = ', p%x%draw_label
-    nl=nl+1; write(lines(nl), lmt) 'x%draw_numbers       = ', p%x%draw_numbers
-    nl=nl+1; write(lines(nl), lmt) 'autoscale_x          = ', p%autoscale_x
-    nl=nl+1; write(lines(nl), lmt) 'autoscale_y          = ', p%autoscale_y
-    nl=nl+1; write(lines(nl), lmt) 'autoscale_gang_x     = ', p%autoscale_gang_x
-    nl=nl+1; write(lines(nl), lmt) 'autoscale_gang_y     = ', p%autoscale_gang_y
-    nl=nl+1; write(lines(nl), imt) 'n_curve_pts          = ', p%n_curve_pts
-
-    nl=nl+1; lines(nl) = 'Graphs:'
-    do i = 1, size(p%graph)
-      nl=nl+1; write(lines(nl), amt) '   ', p%graph(i)%name
-    enddo
-
-  else
-    nl=1; lines(1) = 'This is not a name of a plot'
-    return
-  endif
-
-  result_id = show_what
+  end select
 
 !----------------------------------------------------------------------
 ! symbolic_numbers

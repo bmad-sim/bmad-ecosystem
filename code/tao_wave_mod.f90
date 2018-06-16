@@ -41,9 +41,11 @@ type (branch_struct), pointer :: branch
 integer i, p1, p2, ix_curve
 
 character(*) curve_name, plot_place
-character(16), parameter :: wave_data_names(19) = [character(16):: 'orbit.x', 'orbit.y', 'beta.a', 'beta.b', &
+character(16), parameter :: wave_data_names(27) = [character(16):: 'orbit.x', 'orbit.y', 'beta.a', 'beta.b', &
     'eta.x', 'eta.y', 'ping_a.amp_x', 'ping_b.amp_y', 'phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y', &
-    'cbar.12', 'cbar.11', 'cbar.22', 'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_b.amp_sin_x', 'ping_b.amp_cos_x']
+    'cbar.12', 'cbar.11', 'cbar.22', 'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_b.amp_sin_x', 'ping_b.amp_cos_x', &
+    'ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x', &
+    'ping_a.amp_y', 'ping_a.phase_y', 'ping_b.amp_x', 'ping_b.phase_x']
 
 character(*), parameter :: r_name = 'tao_wave_cmd'
 
@@ -363,7 +365,8 @@ case ('phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y')
   call tao_phase_wave_anal (plot)
 
 case ('ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x', &
-      'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_b.amp_sin_x', 'ping_b.amp_cos_x', 'cbar.12', 'cbar.11', 'cbar.22')
+      'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_b.amp_sin_x', 'ping_b.amp_cos_x', &
+      'ping_a.amp_y', 'ping_a.phase_y', 'ping_b.amp_x', 'ping_b.phase_x', 'cbar.12', 'cbar.11', 'cbar.22')
   call tao_cbar_wave_anal (plot)
 
 case ('cbar.21')
@@ -804,9 +807,9 @@ if (coef_ba(1) == 0 .and. coef_ba(2) == 0) then
   phi0_s = 0
 else
   select case (curve%data_type)
-  case ('cbar.11', 'cbar.22', 'ping_a.cos_y', 'ping_b.cos_x')
+  case ('cbar.11', 'cbar.22', 'ping_a.amp_cos_rel_y', 'ping_b.amp_cos_rel_x')
     phi0_s = atan2(-coef_ba(2), coef_ba(1))
-  case ('cbar.12', 'ping_a.sin_y', 'ping_b.sin_x')
+  case ('cbar.12', 'ping_a.amp_sin_rel_y', 'ping_b.amp_sin_rel_x')
     phi0_s = atan2(coef_ba(1), coef_ba(2))
   end select
 endif
@@ -815,9 +818,9 @@ if (coef_ba(3) == 0 .and. coef_ba(4) == 0) then
   phi0_r = 0
 else
   select case (curve%data_type)
-  case ('cbar.11', 'cbar.22', 'ping_a.cos_y', 'ping_b.cos_x')
+  case ('cbar.11', 'cbar.22', 'ping_a.amp_cos_rel_y', 'ping_b.amp_cos_rel_x')
     phi0_r = atan2(-coef_ba(4), coef_ba(3))
-  case ('cbar.12', 'ping_a.sin_y', 'ping_b.sin_x')
+  case ('cbar.12', 'ping_a.amp_sin_rel_y', 'ping_b.amp_sin_rel_x')
     phi0_r = atan2(coef_ba(3), coef_ba(4))
   end select
 endif
