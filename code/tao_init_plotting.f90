@@ -943,7 +943,7 @@ endif
 
 !---------------------------------
 
-n_plots = 78
+n_plots = 80
 
 if (allocated(s%plot_page%template)) then
   n = size(s%plot_page%template)
@@ -2573,6 +2573,43 @@ if (all(s%plot_page%template%name /= 'ping_a_rel_skew')) then
 endif
 
 !---------------
+! ping_a_y_amp_phase
+
+if (all(s%plot_page%template%name /= 'ping_a_y_amp_phase')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
+
+  plt = default_plot_g1c2
+  plt%name                 = 'ping_a_y_amp_phase'
+  plt%description          = 'Pinged a-mode out-of-plane phase and amplitude'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Pinged A-mode Y-plane Amp & Phase'
+  grph%y%label       = 'ping_a: amp_y, phase_y'
+  grph%component     = 'model'
+
+  crv => grph%curve(1)
+  crv%name         = 'amp_y'
+  crv%g => grph
+  crv%data_type    = 'ping_a.amp_y'
+  crv%legend_text  = 'ping_a.amp_y'
+  crv%units        = ''
+
+  crv => grph%curve(2)
+  crv%name         = 'phase_y'
+  crv%g => grph
+  crv%data_type    = 'ping_a.phase_y'
+  crv%legend_text  = 'ping_a.phase_y'
+  crv%units        = ''
+endif
+
+!---------------
 ! ping_b_skew
 
 if (all(s%plot_page%template%name /= 'ping_b_skew')) then
@@ -2643,6 +2680,43 @@ if (all(s%plot_page%template%name /= 'ping_b_rel_skew')) then
   crv%g => grph
   crv%data_type    = 'ping_b.amp_cos_rel_x'
   crv%legend_text  = 'ping_b.amp_cos_rel_x'
+  crv%units        = ''
+endif
+
+!---------------
+! ping_b_x_amp_phase
+
+if (all(s%plot_page%template%name /= 'ping_b_x_amp_phase')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
+
+  plt = default_plot_g1c2
+  plt%name                 = 'ping_b_x_amp_phase'
+  plt%description          = 'Pinged b-mode out-of-plane phase and amplitude'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Pinged B-mode X-plane Amp & Phase'
+  grph%y%label       = 'ping_b: amp_x, phase_x'
+  grph%component     = 'model'
+
+  crv => grph%curve(1)
+  crv%name         = 'amp_x'
+  crv%g => grph
+  crv%data_type    = 'ping_b.amp_x'
+  crv%legend_text  = 'ping_b.amp_x'
+  crv%units        = ''
+
+  crv => grph%curve(2)
+  crv%name         = 'phase_x'
+  crv%g => grph
+  crv%data_type    = 'ping_b.phase_x'
+  crv%legend_text  = 'ping_b.phase_x'
   crv%units        = ''
 endif
 
