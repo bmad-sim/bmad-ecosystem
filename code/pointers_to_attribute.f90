@@ -113,6 +113,9 @@ case ('BMAD_COM')
   case ('INIT_DS_ADAPTIVE_TRACKING');       ptr_array(1)%r => bmad_com%init_ds_adaptive_tracking
   case ('MIN_DS_ADAPTIVE_TRACKING');        ptr_array(1)%r => bmad_com%min_ds_adaptive_tracking
   case ('FATAL_DS_ADAPTIVE_TRACKING');      ptr_array(1)%r => bmad_com%fatal_ds_adaptive_tracking
+  case ('AUTOSCALE_AMP_ABS_TOL');           ptr_array(1)%r => bmad_com%autoscale_amp_abs_tol
+  case ('AUTOSCALE_AMP_REL_TOL');           ptr_array(1)%r => bmad_com%autoscale_amp_rel_tol
+  case ('AUTOSCALE_PHASE_TOL');             ptr_array(1)%r => bmad_com%autoscale_phase_tol
   case ('ELECTRIC_DIPOLE_MOMENT');          ptr_array(1)%r => bmad_com%electric_dipole_moment
   case ('PTC_CUT_FACTOR');                  ptr_array(1)%r => bmad_com%ptc_cut_factor
   case ('SAD_EPS_SCALE');                   ptr_array(1)%r => bmad_com%sad_eps_scale
