@@ -45,15 +45,18 @@ contains
 !
 ! Note: If |dE| is too small, this routine cannot scale and will do nothing.
 !
-! Modules needed
-!   use autoscale_mod
+! Tollerances use by the calculation are set by:
+!   bmad_com        -- bmad_common_struct: Global parameters used by Bmad.
+!     %autoscale_amp_abs_tol  -- Absolute amplitude tolerance. Default is 0.1 eV.
+!     %autoscale_amp_rel_tol  -- Relative amplitude tolerance. Default is 1d-6.
+!     %autoscale_phase_tol    -- Absolute phase tolerance. Default is 1d-5 rad/2pi.
 !
 ! Input:
-!  ele             -- ele_struct: RF element or e_gun.
-!  param           -- lat_param_struct: lattice parameters
-!  scale_amp       -- Logical, optional: Scale the amplitude? See above.
-!  scale_phase     -- Logical, optional: Scale the phase? See above.
-!  call_bookkeeper -- Logical, optional: Call lattice_bookkeeper at end? Default is True.
+!   ele             -- ele_struct: RF element or e_gun.
+!   param           -- lat_param_struct: lattice parameters
+!   scale_amp       -- Logical, optional: Scale the amplitude? See above.
+!   scale_phase     -- Logical, optional: Scale the phase? See above.
+!   call_bookkeeper -- Logical, optional: Call lattice_bookkeeper at end? Default is True.
 !
 ! Output:
 !   ele      -- ele_struct: element with phase and amplitude adjusted. 
@@ -169,9 +172,9 @@ endif
 ! scale_tol is the tolerance for scale_correct.
 ! scale_tol = E_tol / dE_peak_wanted corresponds to a tolerance in dE_peak_wanted of E_tol. 
 
-E_tol = 0.1 ! eV
-scale_tol = max(1d-6, E_tol / dE_peak_wanted) ! tolerance for scale_correct
-phi_tol = 1d-5
+E_tol = bmad_com%autoscale_amp_abs_tol ! eV
+scale_tol = max(bmad_com%autoscale_amp_rel_tol, E_tol / dE_peak_wanted) ! tolerance for scale_correct
+phi_tol = bmad_com%autoscale_phase_tol
 
 !------------------------------------------------------
 ! zero frequency e_gun

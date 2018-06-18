@@ -17,7 +17,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 216
+integer, parameter :: bmad_inc_version$ = 217
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1705,6 +1705,9 @@ type extra_parsing_info_struct
   logical :: init_ds_adaptive_tracking_set          = .false.
   logical :: min_ds_adaptive_tracking_set           = .false.
   logical :: fatal_ds_adaptive_tracking_set         = .false.
+  logical :: autoscale_amp_abs_tol_set              = .false.
+  logical :: autoscale_amp_rel_tol_set              = .false.
+  logical :: autoscale_phase_tol_set                = .false.
   logical :: electric_dipole_moment_set             = .false.
   logical :: ptc_cut_factor_set                     = .false.
   logical :: taylor_order_set                       = .false.
@@ -1757,6 +1760,9 @@ type bmad_common_struct
   real(rp) :: init_ds_adaptive_tracking = 1d-3        ! Initial step size
   real(rp) :: min_ds_adaptive_tracking = 0            ! Min step size to take.
   real(rp) :: fatal_ds_adaptive_tracking = 1d-8       ! If actual step size is below this particle is lost.
+  real(rp) :: autoscale_amp_abs_tol = 0.1_rp          ! Autoscale absolute amplitude tolerance (eV).
+  real(rp) :: autoscale_amp_rel_tol = 1d-6            ! Autoscale relative amplitude tolerance
+  real(rp) :: autoscale_phase_tol = 1d-5              ! Autoscale phase tolerance.
   real(rp) :: electric_dipole_moment = 0              ! Particle's EDM. Call set_ptc to transfer value to PTC.
   real(rp) :: ptc_cut_factor = 0.006                  ! Cut factor for PTC tracking
   real(rp) :: sad_eps_scale = 5.0d-3                  ! Used in sad_mult step length calc.

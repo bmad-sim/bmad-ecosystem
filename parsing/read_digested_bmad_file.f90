@@ -284,6 +284,9 @@ if (found_it) then
   if (extra%init_ds_adaptive_tracking_set)      bmad_com%init_ds_adaptive_tracking       = bmad_com_read%init_ds_adaptive_tracking
   if (extra%min_ds_adaptive_tracking_set)       bmad_com%min_ds_adaptive_tracking        = bmad_com_read%min_ds_adaptive_tracking
   if (extra%fatal_ds_adaptive_tracking_set)     bmad_com%fatal_ds_adaptive_tracking      = bmad_com_read%fatal_ds_adaptive_tracking
+  if (extra%autoscale_amp_abs_tol_set)          bmad_com%autoscale_amp_abs_tol           = bmad_com_read%autoscale_amp_abs_tol
+  if (extra%autoscale_amp_rel_tol_set)          bmad_com%autoscale_amp_rel_tol           = bmad_com_read%autoscale_amp_rel_tol
+  if (extra%autoscale_phase_tol_set)            bmad_com%autoscale_phase_tol             = bmad_com_read%autoscale_phase_tol
   if (extra%electric_dipole_moment_set)         bmad_com%electric_dipole_moment          = bmad_com_read%electric_dipole_moment
   if (extra%ptc_cut_factor_set)                 bmad_com%ptc_cut_factor                  = bmad_com_read%ptc_cut_factor
   if (extra%taylor_order_set)                   bmad_com%taylor_order                    = bmad_com_read%taylor_order

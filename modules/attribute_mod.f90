@@ -879,6 +879,9 @@ call init_attribute_name1 (def_bmad_com$, abs_tol_adaptive_tracking$,  'ABS_TOL_
 call init_attribute_name1 (def_bmad_com$, init_ds_adaptive_tracking$,  'INIT_DS_ADAPTIVE_TRACKING')
 call init_attribute_name1 (def_bmad_com$, min_ds_adaptive_tracking$,   'MIN_DS_ADAPTIVE_TRACKING')
 call init_attribute_name1 (def_bmad_com$, fatal_ds_adaptive_tracking$, 'FATAL_DS_ADAPTIVE_TRACKING')
+!call init_attribute_name1 (def_bmad_com$, autoscale_amp_abs_tol$,      'AUTOSCALE_AMP_ABS_TOL')
+!call init_attribute_name1 (def_bmad_com$, autoscale_amp_rel_tol$,      'AUTOSCALE_AMP_REL_TOL')
+!call init_attribute_name1 (def_bmad_com$, autoscale_phase_tol$,        'AUTOSCALE_PHASE_TOL')
 call init_attribute_name1 (def_bmad_com$, aperture_limit_on$,          'APERTURE_LIMIT_ON')
 call init_attribute_name1 (def_bmad_com$, max_num_runge_kutta_step$,   'MAX_NUM_RUNGE_KUTTA_STEP')
 
@@ -1801,7 +1804,7 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
       'POLARITY', 'PX', 'PX0', 'PX1', 'PX_REF', 'PY', 'PY0', 'PY1', 'PY_REF', 'PZ', 'PZ0', 'PZ1', 'PZ_REF', &
       'RAN_SEED', 'REF_CAP_GAMMA', 'REL_TOL_ADAPTIVE_TRACKING', 'REL_TOL_TRACKING', 'SIG_E', 'SIG_VX', 'SIG_VY', &
       'SPINOR_POLARIZATION', 'SPIN_X', 'SPIN_Y', 'SPIN_Z', 'TRANSVERSE_SIGMA_CUT', 'VKICK', &
-      'X_PITCH', 'Y_PITCH', 'X_PITCH_MULT', 'Y_PITCH_MULT', 'X_PITCH_TOT', 'Y_PITCH_TOT')
+      'X_PITCH', 'Y_PITCH', 'X_PITCH_MULT', 'Y_PITCH_MULT', 'X_PITCH_TOT', 'Y_PITCH_TOT', 'AUTOSCALE_AMP_REL_TOL')
   attrib_units = ''
 
 case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTURE', &
@@ -1833,7 +1836,7 @@ case ('ANGLE', 'BEND_TILT', 'BRAGG_ANGLE', 'BRAGG_ANGLE_IN', 'BRAGG_ANGLE_OUT', 
       'T12', 'T13', 'T14', 'T15', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21')
   attrib_units = 'rad'
 
-case ('COUPLER_PHASE', 'PHI0', 'PHI0_AUTOSCALE', 'PHI0_ERR', 'PHI0_MULTIPASS')
+case ('COUPLER_PHASE', 'PHI0', 'PHI0_AUTOSCALE', 'PHI0_ERR', 'PHI0_MULTIPASS', 'AUTOSCALE_PHASE_TOL')
   attrib_units = 'rad/2pi'
 
 case ('CRITICAL_ANGLE_FACTOR')
@@ -1861,7 +1864,7 @@ case ('DBRAGG_ANGLE_DE')
   attrib_units = 'rad/eV'
 
 case ('DELTA_E', 'ENERGY', 'E_CENTER', 'E_LOSS', 'E_PHOTON', 'E_TOT', 'E_TOT_OFFSET', 'E_TOT_START', &
-      'P0C', 'P0C_START', 'PC')
+      'P0C', 'P0C_START', 'PC', 'AUTOSCALE_AMP_ABS_TOL')
   attrib_units = 'eV'
 
 case ('DELTA_REF_TIME', 'REF_TIME', 'T', 'T_OFFSET')

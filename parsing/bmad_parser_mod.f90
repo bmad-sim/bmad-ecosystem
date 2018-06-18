@@ -10,7 +10,6 @@ module bmad_parser_mod
 
 use ptc_interface_mod, only: set_ptc
 use superimpose_mod
-use multipole_mod
 use binary_parser_mod
 use wake_mod
 use bookkeeper_mod 
@@ -415,14 +414,16 @@ if (ele%key == overlay$ .or. ele%key == group$) then
   return
 endif
 
-! beam_start and bmad_com element can have attributes that are not part of the element so
-! Need to use pointers_to_attribute.
+! For historical reasons, a few paramter[...] parameters are actually in bmad_com.
 
 key = ele%key
 if (ele%key == def_parameter$ .and. word == 'APERTURE_LIMIT_ON') key = def_bmad_com$
 if (ele%key == def_parameter$ .and. word == 'ELECTRIC_DIPOLE_MOMENT') key = def_bmad_com$
 if (ele%key == def_parameter$ .and. word == 'PTC_CUT_FACTOR') key = def_bmad_com$
 if (ele%key == def_parameter$ .and. word == 'USE_HARD_EDGE_DRIFTS') key = def_bmad_com$
+
+! beam_start and bmad_com element can have attributes that are not part of the element so
+! Need to use pointers_to_attribute.
 
 if (key == def_beam_start$ .or. key == def_bmad_com$) then
   name = ele%name
@@ -464,6 +465,9 @@ if (key == def_beam_start$ .or. key == def_bmad_com$) then
     if (associated(a_ptrs(1)%r, bmad_com%init_ds_adaptive_tracking))      bp_com%extra%init_ds_adaptive_tracking_set       = .true.
     if (associated(a_ptrs(1)%r, bmad_com%min_ds_adaptive_tracking))       bp_com%extra%min_ds_adaptive_tracking_set        = .true.
     if (associated(a_ptrs(1)%r, bmad_com%fatal_ds_adaptive_tracking))     bp_com%extra%fatal_ds_adaptive_tracking_set      = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%autoscale_amp_abs_tol))          bp_com%extra%autoscale_amp_abs_tol_set           = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%autoscale_amp_rel_tol))          bp_com%extra%autoscale_amp_rel_tol_set           = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%autoscale_phase_tol))            bp_com%extra%autoscale_phase_tol_set             = .true.
     if (associated(a_ptrs(1)%r, bmad_com%electric_dipole_moment))         bp_com%extra%electric_dipole_moment_set          = .true.
     if (associated(a_ptrs(1)%r, bmad_com%ptc_cut_factor))                 bp_com%extra%ptc_cut_factor_set                  = .true.
     if (associated(a_ptrs(1)%r, bmad_com%sad_eps_scale))                  bp_com%extra%sad_eps_scale_set                   = .true.
