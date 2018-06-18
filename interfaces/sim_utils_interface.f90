@@ -415,6 +415,13 @@ function odd (num) result (is_odd)
   logical is_odd
 end function
 
+function outer_product (a, b) result (c)
+  import
+  implicit none
+  real(rp) a(:), b(:)
+  real(rp) c(size(a), size(b))
+end function
+
 subroutine parse_fortran_format (format_str, multiplyer, power, code, width, digits)
   implicit none
   integer multiplyer, power, width, digits
