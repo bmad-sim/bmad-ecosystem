@@ -1,0 +1,11 @@
+Purpose: Ruby script for downloading reflectivity data from the MultiLayer Reflectivity website at
+	http://henke.lbl.gov/optical_constants/multi2.html
+and converting it to a reflectivity file for Synrad3D.
+
+Creator: Stephen Poprocki <stp44@cornell.edu>
+
+Necessary files: download_data.rb and default.input
+
+Usage: ./download_data.rb [inputfile]
+
+Output: .dat file for Synrad3D
