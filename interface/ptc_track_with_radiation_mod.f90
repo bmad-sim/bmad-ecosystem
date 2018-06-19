@@ -65,6 +65,8 @@ call zhe_ini
 use_bmad_units = .true.
 
 state = default0 + radiation0 + envelope
+if (.not. rf_is_on(ele1%branch)) state = state + nocavity0
+
 order = integer_option(ptc_com%taylor_order_ptc, map_order)
 call init_all(state, order, 0)
 
