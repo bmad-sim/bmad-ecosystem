@@ -17,7 +17,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 217
+integer, parameter :: bmad_inc_version$ = 218
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -999,6 +999,7 @@ type ele_struct
   real(rp) :: mat6(6,6) = 0                                    ! 1st order transport matrix.
   real(rp) :: c_mat(2,2) = 0                                   ! 2x2 C coupling matrix
   real(rp) :: gamma_c = 1                                      ! gamma associated with C matrix
+  real(rp) :: spin_quaternion(4) = 0                           ! 1st order Spin transport quaternion.
   real(rp) :: s_start = 0                                      ! longitudinal ref position at entrance_end
   real(rp) :: s = 0                                            ! longitudinal ref position at the exit end.
   real(rp) :: ref_time = 0                                     ! Time ref particle passes exit end.

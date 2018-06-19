@@ -45,7 +45,7 @@ contains
 !
 ! Note: If |dE| is too small, this routine cannot scale and will do nothing.
 !
-! Tollerances use by the calculation are set by:
+! Tolerances use by the calculation are set by:
 !   bmad_com        -- bmad_common_struct: Global parameters used by Bmad.
 !     %autoscale_amp_abs_tol  -- Absolute amplitude tolerance. Default is 0.1 eV.
 !     %autoscale_amp_rel_tol  -- Relative amplitude tolerance. Default is 1d-6.
