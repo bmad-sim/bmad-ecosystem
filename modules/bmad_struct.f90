@@ -17,7 +17,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 218
+integer, parameter :: bmad_inc_version$ = 219
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1729,11 +1729,12 @@ type extra_parsing_info_struct
   logical :: absolute_time_tracking_default_set     = .false.
   logical :: convert_to_kinetic_momentum_set        = .false.
   logical :: aperture_limit_on_set                  = .false.
-  logical :: debug_set                              = .false.
   logical :: sad_eps_scale_set                      = .false.
   logical :: sad_amp_max_set                        = .false.
   logical :: sad_n_div_max_set                      = .false.
   logical :: max_num_runge_kutta_step_set           = .false.
+  logical :: ptc_print_info_messages_set            = .false.
+  logical :: debug_set                              = .false.
 end type
 
 ! ptc_field_geometry for bends
@@ -1792,6 +1793,7 @@ type bmad_common_struct
   logical :: convert_to_kinetic_momentum = .false.    ! Cancel kicks due to finite vector potential when doing symplectic tracking?
                                                       !   Set to True to test symp_lie_bmad against runge_kutta.
   logical :: aperture_limit_on = .true.               ! use apertures in tracking?
+  logical :: ptc_print_info_messages = .false.        ! Allow PTC to print informational messages (which can clutter the output)?
   logical :: debug = .false.                          ! Used for code debugging.
 end type
   
@@ -1806,7 +1808,7 @@ type ptc_common_struct
   integer :: taylor_order_ptc = 0       ! What has been set in PTC. 0 -> not yet set
   integer :: taylor_order_saved = 3     ! Default to use.
   logical :: complex_ptc_used = .false. ! Complex PTC code in use? (EG for spin tracking, normal form anal, etc.)
-  logical :: use_totalpath = .false.    ! phase space z = time instead of time - ref_time? 
+  logical :: use_totalpath = .false.    ! phase space z = time instead of time - ref_time?
 end type
 
 type (ptc_common_struct), save :: ptc_com

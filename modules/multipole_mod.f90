@@ -421,7 +421,7 @@ endif
 if (.not. this_ele%scale_multipoles) return
 if (integer_option(magnetic$, pole_type) == electric$) then
   radius = this_ele%value(r0_elec$)
-  if (radius /= 0) then
+  if (radius /= 0 .and. radius /= 1) then
     factor = radius
     do n = 0, n_pole_maxx
       factor = factor / radius
@@ -486,7 +486,7 @@ end select
 ! scale multipole values
 
 radius = this_ele%value(r0_mag$)
-if (radius == 0) then
+if (radius == 0 .and. radius /= 1) then
   this_a = const * this_a
   this_b = const * this_b
 
