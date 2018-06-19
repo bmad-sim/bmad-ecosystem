@@ -502,6 +502,7 @@ if (key == def_beam_start$ .or. key == def_bmad_com$) then
     if (associated(a_ptrs(1)%l, bmad_com%absolute_time_tracking_default)) bp_com%extra%absolute_time_tracking_default_set  = .true.
     if (associated(a_ptrs(1)%l, bmad_com%convert_to_kinetic_momentum))    bp_com%extra%convert_to_kinetic_momentum_set     = .true.
     if (associated(a_ptrs(1)%l, bmad_com%aperture_limit_on))              bp_com%extra%aperture_limit_on_set               = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%ptc_print_info_messages))        bp_com%extra%ptc_print_info_messages_set         = .true.
     if (associated(a_ptrs(1)%l, bmad_com%debug))                          bp_com%extra%debug_set                           = .true.
 
   else

@@ -255,6 +255,8 @@ logical err_flag
 
 ! Multipole fringe
 
+if (hard_ele%value(l$) == 0) return  ! Can get divide by zero problems with zero length elements.
+
 if (hard_ele_field_calc == bmad_standard$) then
   if (ix_elec_max > -1) then
     f = at_sign * charge_of(orb%species) 

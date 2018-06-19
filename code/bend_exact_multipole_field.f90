@@ -764,7 +764,7 @@ type (pure_bend_multipole_struct), parameter :: h_to_v_real(0:n_pole_maxx) = [ &
 ]
 
 type (ele_struct) bend_in, bend_out
-real(rp) g_n(0:n_pole_maxx)
+real(rp) g_n(0:n_pole_maxx), r0_mag, r0_elec, factor
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
 integer out_type, i, j, np
 
@@ -808,7 +808,31 @@ endif
 
 !
 
+r0_mag = bend_in%value(r0_mag$)
+if (r0_mag /= 0 .and. r0_mag /= 1) then
+  factor = r0_mag
+  do i = 0, n_pole_maxx
+    factor = factor / r0_mag
+    a_pole(i) = factor * a_pole(i)
+    b_pole(i) = factor * b_pole(i)
+  enddo
+endif
+
+r0_elec = bend_in%value(r0_elec$)
+if (associated(bend_in%a_pole_elec) .and. r0_elec /= 0 .and. r0_elec /= 1) then
+  factor = r0_elec
+  do i = 0, n_pole_maxx
+    factor = factor / r0_elec
+    a_pole_elec(i) = factor * a_pole_elec(i)
+    b_pole_elec(i) = factor * b_pole_elec(i)
+  enddo
+endif
+
+!
+
 bend_out%value(exact_multipoles$) = out_type
+bend_out%value(r0_elec$) = 0
+bend_out%value(r0_mag$) = 0
 
 np = n_pole_maxx
 g_n(0) = 1
