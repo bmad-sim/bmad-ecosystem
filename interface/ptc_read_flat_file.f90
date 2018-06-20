@@ -64,8 +64,7 @@ old_style = (index(line, 'high') == 0)
 
 !
 
-n = lielib_print(11)
-lielib_print(11) = 0  ! No printing info messages
+call set_ptc_quiet(11, set$, n)
 
 if (old_style) then
   call read_and_append_virgin_general (M_u, flat_file(1))
@@ -79,8 +78,7 @@ else  ! New style, two files
   call create_dna (M_u, M_t)
 endif
 
-lielib_print(11) = n
-
+call set_ptc_quiet(11, unset$, n)
 
 err_flag = .false.
 if (.not. present(lat)) return

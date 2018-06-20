@@ -255,7 +255,7 @@ endif
 
 ! spin tracking. Must do after regular tracking in the case of spin_tracking_method = bmad_standard
  
-if (do_spin_tracking) call track1_spin (start2_orb, ele, param, end_orb)
+if (do_spin_tracking) call track1_spin (start2_orb, ele, param, end_orb, make_matrix)
 
 ! Set ix_ele. If the element is a slice_slave then the appropriate ix_ele is given by the lord.
 

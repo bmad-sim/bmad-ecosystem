@@ -520,7 +520,7 @@ end function spin_omega
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! subroutine track1_spin (start_orb, ele, param, end_orb)
+! subroutine track1_spin (start_orb, ele, param, end_orb, make_quaternion)
 !
 ! Particle spin tracking through a single element.
 !
@@ -531,18 +531,22 @@ end function spin_omega
 !   use spin_mod
 !
 ! Input :
-!   start_orb  -- Coord_struct: Starting coords.
-!   ele        -- Ele_struct: Element to track through.
-!   param      -- lat_param_struct: Beam parameters.
-!   end_orb    -- Coord_struct: Ending coords.
-!     %vec          -- Ending particle position needed for bmad_standard spin tracking.
+!   start_orb        -- Coord_struct: Starting coords.
+!   ele              -- Ele_struct: Element to track through.
+!   param            -- lat_param_struct: Beam parameters.
+!   end_orb          -- Coord_struct: Ending coords.
+!     %vec                -- Ending particle position needed for bmad_standard spin tracking.
+!   make_quaternion  -- logical, optional: If present and true then calculate the 1st
+!                          order spin map which is represented as a quaternion.
 !
 ! Output:
-!   end_orb    -- Coord_struct: Ending coords.
-!      %spin(2)   -- complex(rp): Ending spin
+!   ele              -- ele_struct: Element to track through
+!      %spin_quaternion   -- 1st order spin map made if make_quaternion = True.
+!   end_orb          -- Coord_struct: Ending coords.
+!      %spin(2)           -- complex(rp): Ending spin
 !-
 
-subroutine track1_spin (start_orb, ele, param, end_orb)
+subroutine track1_spin (start_orb, ele, param, end_orb, make_quaternion)
 
 use ptc_spin, rename_dummy => dp, rename2_dummy => twopi
 use ptc_interface_mod
@@ -555,6 +559,7 @@ type (lat_param_struct) :: param
 
 integer method
 character(*), parameter :: r_name = 'track1_spin'
+logical, optional :: make_quaternion
 logical err
 
 ! Use bmad_standard if spin_tracking_method = tracking$ and particle tracking is not using an integration method.
@@ -579,7 +584,7 @@ endif
 
 select case (method)
 case (bmad_standard$)
-  call track1_spin_bmad (start_orb, ele, param, end_orb)
+  call track1_spin_bmad (start_orb, ele, param, end_orb, make_quaternion)
 
 case (custom$)
   call track1_spin_custom (start_orb, ele, param, end_orb, err)
@@ -648,7 +653,7 @@ end subroutine track1_spin_taylor
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! subroutine track1_spin_bmad (start_orb, ele, param, end_orb)
+! subroutine track1_spin_bmad (start_orb, ele, param, end_orb, make_quaternion)
 !
 ! Bmad_standard particle spin tracking through a single element.
 !
@@ -669,7 +674,7 @@ end subroutine track1_spin_taylor
 !     %spin(3)       -- Ending spin
 !-
 
-subroutine track1_spin_bmad (start_orb, ele, param, end_orb)
+subroutine track1_spin_bmad (start_orb, ele, param, end_orb, make_quaternion)
 
 use ptc_spin, rename_dummy => dp, rename2_dummy => twopi
 use ptc_interface_mod
@@ -685,6 +690,7 @@ type (fringe_edge_info_struct) fringe_info
 real(rp) spline_x(0:3), spline_y(0:3), omega(3), s_edge_track, s_end_lab
 
 integer key
+logical, optional :: make_quaternion
 
 character(*), parameter :: r_name = 'track1_spin_bmad'
 

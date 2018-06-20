@@ -51,7 +51,7 @@ type (tree_element) tree_map(3)
 real(rp) orb(6)
 
 integer, optional :: map_order
-integer order
+integer order, val_save
 
 logical, optional :: err_flag
 
@@ -93,7 +93,10 @@ else
   call find_orbit_x(orb, STATE, 1.0d-8, fibre1 = f1)
 endif
 
+call set_ptc_quiet(0, set$, val_save)
 call fill_tree_element_line_zhe(state, f1, f2, order, orb, stochprec = 1d-10, sagan_tree = tree_map)
+call set_ptc_quiet(0, unset$, val_save)
+
 call copy_this_tree (tree_map, map_with_rad)
 
 use_bmad_units = .false. ! Since Zhe stuff is standalone this will not affect the use of map_with_rad.
