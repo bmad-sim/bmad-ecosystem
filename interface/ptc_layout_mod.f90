@@ -91,7 +91,7 @@ type (layout), pointer :: lay
 
 real(rp) ptc_orientation(3,3), ang(3)
 
-integer i, j, ix_pass
+integer i, j, ix_pass, i_save
 logical logic
 logical, optional :: use_hard_edge_drifts
 
@@ -167,7 +167,9 @@ do i = 0, ubound(lat%branch, 1)
 
   !
 
+  call set_ptc_quiet (12, set$, i_save)
   call make_node_layout(m_t%end)
+  call set_ptc_quiet (12, unset$, i_save)
 
 enddo
 
@@ -328,8 +330,7 @@ else
   m_u%end%closed = .false.
 endif
 
-n = lielib_print(12)
-lielib_print(12) = 0  ! No printing info messages
+call set_ptc_quiet(12, set$, n)
 
 m_u%end%closed = .true.
 doneit = .true.
@@ -337,7 +338,7 @@ call ring_l (m_u%end, doneit)
 call survey (m_u%end)
 call make_node_layout (m_u%end)
 
-lielib_print(12) = n
+call set_ptc_quiet(12, unset$, n)
 
 end subroutine layout_end_stuff
 
@@ -1985,13 +1986,12 @@ limit_int = [4, 18]
 
 if (logic_option(.false., use_2nd_order)) limit_int = [10000, 10001] ! Something big.
 
-lp14 = lielib_print(14)
-lielib_print(14) = 0
+call set_ptc_quiet(14, set$, lp14)
 
 call thin_lens_resplit (ptc_layout, kl_max, lim = crossover, &
             limit_wiggler = crossover_wiggler, lmax0 = ds_max, sexr = r_typical, xbend = dx_tol_bend)
 
-lielib_print(14) = lp14
+call set_ptc_quiet(14, unset$, lp14)
 
 end subroutine ptc_calculate_tracking_step_size
 
@@ -2043,7 +2043,7 @@ subroutine ptc_layouts_resplit (dKL_max, l_max, l_max_drift_only, bend_dorb, sex
                                                             even, crossover, crossover_wiggler)
 
 use s_fitting, only: thin_lens_restart, thin_lens_resplit
-use madx_ptc_module, only: m_u, lielib_print
+use madx_ptc_module, only: m_u
 
 type(layout), pointer :: r
 
@@ -2057,13 +2057,12 @@ logical, optional :: even
 
 r => m_u%start
 
-lp14 = lielib_print(14)
-lielib_print(14) = 0
+call set_ptc_quiet(14, set$, lp14)
 
 call thin_lens_restart(r, universe=.true.)
 call thin_lens_resplit(r, dKL_max, even, crossover, crossover_wiggler, l_max, bend_dorb, sex_dx, universe=.true.)
 
-lielib_print(14) = lp14
+call set_ptc_quiet(14, unset$, lp14)
 
 end subroutine ptc_layouts_resplit
 

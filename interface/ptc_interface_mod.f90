@@ -2896,7 +2896,7 @@ subroutine ele_to_taylor (ele, param, bmad_taylor, orb0, taylor_map_includes_off
 use s_tracking
 use mad_like, only: real_8, fibre, ring_l, survey, make_node_layout
 use ptc_spin, only: track_probe_x, track_probe
-use s_family, only: survey, lielib_print
+use s_family, only: survey
 use madx_ptc_module, only: bmadl
 
 implicit none
@@ -2946,10 +2946,9 @@ if (tracking_uses_end_drifts(ele)) then
   bmadl%closed = .true.
   call ring_l (bmadl, bmadl%closed)
   call survey (bmadl)
-  print12 = lielib_print(12)
-  lielib_print(12) = 0
+  call set_ptc_quiet (12, set$, print12)
   call make_node_layout(bmadl)
-  lielib_print(12) = print12
+  call set_ptc_quiet (12, unset$, print12)
 else
   call ele_to_fibre (ele, ptc_fibre, param, use_offsets, track_particle = orb0)
 endif
@@ -3722,8 +3721,7 @@ endif
 ! Create ptc_fibre
 ! The EXCEPTION argument is an error_flag. Set to 1 if error. Never reset.
 
-n = lielib_print(12)
-lielib_print(12) = 0  ! No printing info messages
+call set_ptc_quiet(12, set$, n)
 
 if (logic_option(.false., for_layout)) then
   call create_fibre_append (.true., m_u%end, ptc_key, EXCEPTION, br = pancake_field)   ! ptc routine
@@ -3774,7 +3772,7 @@ endif
 ptc_fibre%dir = ele%orientation
 if (present(track_particle)) ptc_fibre%dir = ptc_fibre%dir * track_particle%direction
 
-lielib_print(12) = n
+call set_ptc_quiet(12, unset$, n)
 
 ! Cylindrical field
 
@@ -4546,5 +4544,59 @@ ele%ptc_fibre%patch%b_d = dr
 ele%ptc_fibre%patch%b_ang = angle
 
 end subroutine apply_patch_to_ptc_fibre
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine set_ptc_quiet (channel, set, old_val)
+!
+! Routine to set the lielib_print(:) array or c_verbose logical to suppress informational messages
+! that can clutter the output from a program using PTC.
+!
+! Note: Only suppress printing if bmad_com%ptc_print_info_messages = F.
+!
+! Input:
+!   channel     -- integer: Index in the lielib_print(:) array to set. 0 => c_verbose.
+!   set         -- logical: If set$ then set lielib_print(:). If unset$ then undo a previous set$.
+!   old_val     -- integer: Old value needed for set = unset$.
+!
+! Output:
+!   old_val     -- integer: Saved value for set = set$.
+!-
+
+subroutine set_ptc_quiet (channel, set, old_val)
+
+use c_TPSA, only: c_verbose, lielib_print
+
+implicit none
+
+integer channel, old_val
+logical set
+
+!
+
+if (bmad_com%ptc_print_info_messages) return
+
+if (set .eqv. set$) then
+  if (channel == 0) then
+    old_val = logic_to_int(c_verbose)
+    c_verbose = .false.
+  else
+    old_val = lielib_print(channel)
+    lielib_print(channel) = 0
+  endif
+
+!
+
+else
+  if (channel == 0) then
+    c_verbose = (old_val == 1)
+  else
+    lielib_print(channel) = old_val
+  endif
+endif
+
+end subroutine set_ptc_quiet
 
 end module

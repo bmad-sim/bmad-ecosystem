@@ -2092,8 +2092,10 @@ explained in Sec.~\sref{s:overlap}.
 
 Field maps are used with integration type tracking methods (\sref{s:integ}).
 It is important to note that field maps are {\em ignored} by \vn{bmad_standard}
-tracking. Field maps may extend longitudinally beyound the ends of an element
-(\sref{s:overlap}).
+tracking. Additionaly, \vn{grid_field} field maps cannot be used with \vn{symp_lie_ptc}.
+
+Field maps may extend longitudinally beyound the ends of an element. See Sec~(\sref{s:overlap})
+for more details.
 
 In a lattice file, once a field map is defined for an element, components of the field map
 may be redefined using the notation
