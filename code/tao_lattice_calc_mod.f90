@@ -599,13 +599,6 @@ enddo
 
 call zero_lr_wakes_in_lat (lat)
 
-! Don't know what to do if the lattice is circular.
-
-if (branch%param%geometry == closed$) then
-  call out_io (s_abort$, r_name, 'BEAM TRACKING IN CIRCULAR LATTICE NOT YET IMPLEMENTED!')
-  call err_exit
-endif
-
 ! track through the lattice elements.
 ! The reference orbit for the transfer matrix calculation is taken to be the nominal 
 ! bunch center rather then the computed center to prevent jitter from changing things.
@@ -623,8 +616,18 @@ endif
 
 beam = u%beam%start
 
+if (ie2 < ie1 .and. branch%param%geometry == open$) then
+  call out_io (s_abort$, r_name, 'BEAM TRACKING WITH STARTING POINT AFTER ENDING POINT IN AN OPEN LATTICE DOES NOT MAKE SENSE.')
+  return
+endif
+
 n_lost_old = 0
-do j = ie1, ie2
+j = ie1 - 1
+
+do 
+  j = j + 1
+  if (j == ie2 + 1) exit
+  if (j > branch%n_ele_track) j = 1
 
   bunch_params => tao_branch%bunch_params(j)
   ele => branch%ele(j)
