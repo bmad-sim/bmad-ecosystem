@@ -101,6 +101,10 @@ module definition
   real(dp) x(0:3)
  end type  quaternion  
 
+ type  complex_quaternion
+  complex(dp) x(0:3)
+ end type  complex_quaternion  
+
  type  quaternion_8 
   type(real_8) x(0:3)
 END TYPE quaternion_8
@@ -405,7 +409,8 @@ end type c_damap
       integer :: n=0,nrmax !@1 n dimension used v(1:n) (nd2 by default) ; nrmax some big integer if eps<1 
       real(dp) eps !@1 if eps=-integer  then |eps| Lie brackets are taken ; otherwise eps=eps_tpsalie=10^-9
       type (c_taylor) v(lnv)  
-      type(c_spinor) om                      
+      type(c_spinor) om 
+      type(c_quaternion) q
   END TYPE c_vector_field
   !@3 ---------------------------------------------</br>
   TYPE c_vector_field_fourier  !@1 
