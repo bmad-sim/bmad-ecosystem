@@ -584,13 +584,6 @@ too_many_lost = .false.
 tao_branch%bunch_params(:)%n_particle_lost_in_ele = 0
 tao_branch%bunch_params(:)%n_particle_live = 0
 
-if (branch%param%geometry == closed$) then
-  call out_io (s_fatal$, r_name, &
-               'BEAM TRACKING WITH CIRCULAR LATTICE NOT YET IMPLEMENTED.', &
-               'PLEASE SEE DCS IF YOU NEED THIS.')
-  call err_exit
-endif
-
 ! Transfer wakes from  design
 
 do i = 1, branch%n_ele_max
