@@ -148,6 +148,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (err) return
 enddo
 
+call tao_var_repoint()
+
 ! Variable transfer for those variables which vary parameters of the affected universe(s).
 ! This only needs to be done when dest_lat is a model lattice.
 
