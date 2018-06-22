@@ -11,7 +11,7 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine ptc_setup_map_with_radiation (map_with_rad, ele1, ele2, orbit, map_order, err_flag)
+! Subroutine ptc_setup_map_with_radiation (map_with_rad, ele1, ele2, orbit1, map_order, err_flag)
 !
 ! Routine to construct a map including radiation damping and excitation.
 !
@@ -20,10 +20,10 @@ contains
 ! To track after calling this routine track by calling ptc_track_with_radiation.
 !
 ! Input:
-!   ele1            -- ele_struct: Starting element.
-!   ele2            -- ele_struct, optional: Ending element. If not present, the 
+!   ele1            -- ele_struct: The map starts at the exit end of ele1.
+!   ele2            -- ele_struct, optional: The map ends at the exit end of ele2. If not present, the 
 !                       1-turn map will be constructed.
-!   orbit           -- coord_struct, optional: Orbit about which the map is constructed.
+!   orbit1          -- coord_struct, optional: Orbit at ele1 about which the map is constructed.
 !   map_order       -- integer, optional: Order of the map. If not set the currently set order is used.
 !                         
 !
@@ -32,7 +32,7 @@ contains
 !   err_flag        -- logical, optional: Set True if there is an error such as not associated PTC layout.
 !-
 
-subroutine ptc_setup_map_with_radiation (map_with_rad, ele1, ele2, orbit, map_order, err_flag)
+subroutine ptc_setup_map_with_radiation (map_with_rad, ele1, ele2, orbit1, map_order, err_flag)
 
 use pointer_lattice
 
@@ -41,7 +41,7 @@ implicit none
 type (tree_element_zhe) map_with_rad(3)
 type (ele_struct) ele1
 type (ele_struct), optional :: ele2
-type (coord_struct), optional :: orbit
+type (coord_struct), optional :: orbit1
 type (layout), pointer :: ptc_layout
 type (internal_state) state
 type (branch_struct), pointer :: branch
@@ -79,15 +79,15 @@ if (.not. associated(ptc_layout)) then
   return
 endif
 
-f1 => pointer_to_fibre(ele1)
+f1 => pointer_to_ptc_ref_fibre(ele1)
 if (present(ele2)) then
-  f2 => pointer_to_fibre(ele2)
+  f2 => pointer_to_ptc_ref_fibre(ele2)
 else
   f2 => f1
 endif
 
-if (present(orbit)) then
-  orb = orbit%vec
+if (present(orbit1)) then
+  orb = orbit1%vec
 else
   orb = 0
   call find_orbit_x(orb, STATE, 1.0d-8, fibre1 = f1)

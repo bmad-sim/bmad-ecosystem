@@ -239,6 +239,8 @@ integer, parameter :: save_state$ = 3, restore_state$ = 4, off_and_save$ = 5
 integer, parameter :: horizontally_pure$ = 2, vertically_pure$ = 3
 character(20), parameter :: exact_multipoles_name(3) = [character(20):: 'Off', 'Horizontally_Pure', 'Vertically_Pure']
 
+!
+
 ! Polarization is not 1 when the spin_polar struct represents an ensamble of spins.
 
 type spin_polar_struct
@@ -928,7 +930,7 @@ type bunch_params_struct
   type (twiss_struct) :: x, y, z   ! Projected Twiss parameters
   type (twiss_struct) :: a, b, c   ! Normal mode twiss parameters
   type (coord_struct) :: centroid  ! Lab frame
-  type (spin_polar_struct) :: spin ! polarization
+  real(rp) :: spin(3)              ! polarization
   real(rp) sigma(6,6)              ! beam size matrix
   real(rp) rel_max(6)              ! Max orbit relative to centroid
   real(rp) rel_min(6)              ! Min orbit relative to_centroid
