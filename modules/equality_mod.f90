@@ -1698,6 +1698,8 @@ logical is_eq
 !
 
 is_eq = .true.
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%value == f2%value)
 !! f_side.equality_test[real, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%y_knot) .eqv. allocated(f2%y_knot))
 if (.not. is_eq) return
@@ -2273,6 +2275,12 @@ is_eq = is_eq .and. (f1%min_ds_adaptive_tracking == f2%min_ds_adaptive_tracking)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%fatal_ds_adaptive_tracking == f2%fatal_ds_adaptive_tracking)
 !! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%autoscale_amp_abs_tol == f2%autoscale_amp_abs_tol)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%autoscale_amp_rel_tol == f2%autoscale_amp_rel_tol)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%autoscale_phase_tol == f2%autoscale_phase_tol)
+!! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%electric_dipole_moment == f2%electric_dipole_moment)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%ptc_cut_factor == f2%ptc_cut_factor)
@@ -2320,6 +2328,8 @@ is_eq = is_eq .and. (f1%absolute_time_tracking_default .eqv. f2%absolute_time_tr
 is_eq = is_eq .and. (f1%convert_to_kinetic_momentum .eqv. f2%convert_to_kinetic_momentum)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%aperture_limit_on .eqv. f2%aperture_limit_on)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%ptc_print_info_messages .eqv. f2%ptc_print_info_messages)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%debug .eqv. f2%debug)
 
@@ -2526,6 +2536,8 @@ is_eq = is_eq .and. all(f1%mat6 == f2%mat6)
 is_eq = is_eq .and. all(f1%c_mat == f2%c_mat)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%gamma_c == f2%gamma_c)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%spin_quaternion == f2%spin_quaternion)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%s_start == f2%s_start)
 !! f_side.equality_test[real, 0, NOT]
@@ -2908,8 +2920,8 @@ is_eq = is_eq .and. (f1%b == f2%b)
 is_eq = is_eq .and. (f1%c == f2%c)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%centroid == f2%centroid)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%spin == f2%spin)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%spin == f2%spin)
 !! f_side.equality_test[real, 2, NOT]
 is_eq = is_eq .and. all(f1%sigma == f2%sigma)
 !! f_side.equality_test[real, 1, NOT]

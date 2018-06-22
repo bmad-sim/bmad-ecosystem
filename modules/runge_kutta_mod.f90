@@ -72,7 +72,7 @@ real(rp), intent(in) :: s1_body, s2_body
 real(rp) :: ds, ds_did, ds_next, s_body, s_last, ds_saved, s_edge_body
 real(rp) :: old_s, ds_zbrent, dist_to_wall, ds_tiny
 
-integer :: n_step, s_dir, nr_max
+integer :: n_step, s_dir, nr_max, n_step_max
 
 logical err_flag, err, at_hard_edge, track_spin, too_large
 
@@ -118,7 +118,10 @@ endif
 
 err = .false.
 
-do n_step = 1, bmad_com%max_num_runge_kutta_step
+n_step_max = bmad_com%max_num_runge_kutta_step
+if (ele%tracking_method == fixed_step_runge_kutta$) n_step_max = max(n_step_max, 2*nint(ele%value(num_steps$)))
+
+do n_step = 1, n_step_max
 
   runge_kutta_com%num_steps_done = n_step
   

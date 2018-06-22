@@ -553,7 +553,7 @@ use_bmad_units = .true.
 ptc_state = DEFAULT - NOCAVITY0 + RADIATION0
 
 
-ptc_fibre => pointer_to_fibre(ele)
+ptc_fibre => pointer_to_ptc_ref_fibre(ele)
 ptc_layout => ptc_fibre%parent_layout
 call find_orbit_x (closed_orb%vec, ptc_state, 1.e-8_rp, fibre1 = ptc_fibre) 
 
@@ -600,7 +600,7 @@ end subroutine ptc_emit_calc
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function pointer_to_fibre (ele) result (ref_fibre)
+! Function pointer_to_ptc_ref_fibre (ele) result (ref_fibre)
 !
 ! Routine to return the reference fibre for a bmad element.
 !
@@ -622,25 +622,23 @@ end subroutine ptc_emit_calc
 !   ref_fibre -- fibre, pointer: Pointer to the corresponding reference fibre.
 !-
 
-function pointer_to_fibre (ele) result (ref_fibre)
+function pointer_to_ptc_ref_fibre (ele) result (ref_fibre)
 
-type (ele_struct) :: ele
-type (ele_struct), pointer :: ele1, ele2
+type (ele_struct), target :: ele
 type (fibre), pointer :: ref_fibre
 type (branch_struct), pointer :: branch
 
 !
 
-call find_element_ends(ele, ele1, ele2)
-branch => pointer_to_branch(ele2)
+branch => pointer_to_branch(ele)
 
-if (tracking_uses_end_drifts(ele2, branch%lat%ptc_uses_hard_edge_drifts)) then
-  ref_fibre => ele2%ptc_fibre%next%next
+if (tracking_uses_end_drifts(ele, branch%lat%ptc_uses_hard_edge_drifts)) then
+  ref_fibre => ele%ptc_fibre%next%next
 else
-  ref_fibre => ele2%ptc_fibre%next
+  ref_fibre => ele%ptc_fibre%next
 endif
 
-end function pointer_to_fibre
+end function pointer_to_ptc_ref_fibre
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -717,14 +715,17 @@ end subroutine ptc_track_all
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ptc_invariant_spin_field (ele, map_order, )
+! Subroutine ptc_invariant_spin_field (ele, map_order, closed_orb)
 !
 ! Routine to calculate the invariant spin field.
 !
 ! Input:
-!   ele         -- ele_struct: Element at which the spinf field is calculated
+!   ele         -- ele_struct: Element at which the spinf field is calculated.
+!   map_order   -- integer: Oder of the map.
+!   closed_orb  -- coord_struct: Closed orbit around which the map is made.
 !
 ! Output:
+!
 !-
 
 subroutine ptc_invariant_spin_field (ele, map_order, closed_orb)
@@ -738,27 +739,18 @@ type (branch_struct), pointer :: branch
 type (internal_state) ptc_state
 type (fibre), pointer :: ptc_fibre, fib2
 type (layout), pointer :: ptc_layout
-type (c_damap) id, c_da, id2,u,u_c
+type (c_damap) id, c_da, id2
 type (probe_8) xs
 type (probe) xs0
 type (c_normal_form) cc_norm
 type (taylor) t(3)
 type (c_spinor) cspin2, cspin3
-type (q_linear) q_lin, q_x, q_y, q_z, q_invar, q_m, q_l
-type (q_linear) l_axis, m_axis, q0, q_nonlin, q2, q_rot
 
-real(rp) spin_tune(2), s_tune(2), mat(6,6), phase(3)
 integer map_order, i
 
 logical rf_on
 
 !
-
-q_x = 1
-q_y = 2
-q_z = 3
-
-call set_on_off(rfcavity$, ele%branch%lat, off$)
 
 branch => pointer_to_branch(ele)
 rf_on = rf_is_on(branch)
@@ -773,21 +765,21 @@ endif
 
 use_bmad_units = .true.
 
-ptc_fibre => pointer_to_fibre(ele)
+ptc_fibre => pointer_to_ptc_ref_fibre(ele)
 ptc_layout => ptc_fibre%parent_layout
 call find_orbit_x (closed_orb%vec, ptc_state, 1.e-8_rp, fibre1 = ptc_fibre) 
 
 call init_all(ptc_state, map_order, 0)
 
-call alloc(id,u,u_c)
+call alloc(id)
 call alloc(xs)
 call alloc(cc_norm)
 
-id=1
-xs0=closed_orb%vec
-xs=xs0+id
+id = 1
+xs0 = closed_orb%vec
+xs = xs0 + id
 call track_probe(xs, ptc_state, fibre1 = ptc_fibre)
-id=xs
+id = xs
 
 call c_normal(id, cc_norm, dospin = .true.)
 
@@ -795,136 +787,28 @@ call alloc(cspin)
 call quaternion_to_matrix_in_c_damap (cc_norm%as)
 cspin = 2
 cspin = cc_norm%as%s * cspin
-call print (cspin)
-
-u = cc_norm%atot
-call c_fast_canonise(u, u_c, q_c = q_lin, dospin = .true.)
-q_invar = q_lin * q_y * q_lin**(-1)
-
-call print (q_invar)
-
-! To init for an open geometry:
-
-!u = 1
-!u%q = my_q
-!u_c = A(6,6)
-!u = u * u_c
-!call c_fast_canonize (u, u_c, dospin = .true.)
 
 !
-
-spin_tune=0
 
 call alloc (c_da)
 call alloc(id2)
 
-phase = 0
-q_rot = 0
-
-xs = xs0 + u_c
+xs = xs0 + cc_norm%atot
 fib2 => ptc_fibre
-
 do i = 1, ptc_layout%n
   call track_probe(xs, ptc_state, fibre1 = fib2, fibre2 = fib2%next)
-  u = xs
   fib2 => fib2%next
-
-  q_invar = u%q * u
-  q2 = q_invar * q_y * q_invar**(-1)
-
-  ! n0 (x, y, z): q2%q(1:3,0)   
-  ! dn_hat(x,y,z)/d_phase_space: q2%q(1:3,1:6)
-
-  call c_fast_canonise (u, u_c, q_c = q_lin, phase = phase, q_rot = q_rot, spin_tune = spin_tune, dospin = .true.)
-
-  q0 = q_lin
-  q0%q(0:3,1:6) = 0
-  q_nonlin = q0**(-1) * q_lin
-
-  ! G matrix alpha: q_nonlin%q(1,1:6)
-  ! G matrix beta: q_nonlin(3:1:6)
-
-  l_axis = q0 * q_x * q0**(-1) 
-  m_axis = q0 * q_z * q0**(-1)
-  ! n0: q_lin%q(1:3,0)
-  ! 0th order l_axis = l_axis%q(1:3,0)
-  ! 0th order m_axis = m_axis%q(1:3,0)
-
-  xs0 = xs
-  xs = xs0 + u_c
 enddo
 
-print *, '!---------------'
-print *, phase    ! phase(3) = dz/dpz for rf off
-print *, '!---------------'
-print *, cc_norm%tune(1:3)
+c_da = 1
+id2 = xs
+c_da%q = id2%q
+c_da = id2 * c_da * id2**(-1) 
 
-print *, '!---------------'
-print *, spin_tune(1), s_tune(1)
-print *, '!---------------'
-print *, cc_norm%spin_tune
+call quaternion_to_matrix_in_c_damap (c_da)
 
-print *, '!---------------'
-call print (q_rot)
-
-print *, '!---------------'
-q_rot = qi_phasor*q_rot * q_phasor
-call print (q_rot, imaginary = .true.)
-
-
-stop
-
-! c_da = cc_norm%atot**(-1) * id * cc_norm%atot
-s_tune(1) = atan2(real(c_da%q%x(2) .sub. '0'), real(c_da%q%x(0) .sub. '0')) / pi
-
-if (rf_on) s_tune(2) = -(c_da%q%x(0) .sub. '000001') / pi / (c_da%q%x(2) .sub. '0') ! dspin_tune/d_delta
-print *, spin_tune(2), s_tune(2)
-
-stop
-
-
-
-q_invar = q_nonlin * q_y * q_nonlin**(-1)
-print *, '!---------------'
-call print (q_invar)
-
-
-q_lin = cc_norm%as%q
-q0 = q_lin
-q0%q(0:3,1:6) = 0
-q_nonlin = q0**(-1) * q_lin
-
-q2 = q_nonlin * q_y * q_nonlin**(-1)
-print *, '!---------------'
-call print (q2)
-
-print *, '!---------------'
-print *, q2%q(1,1)* q2%q(1,3) + q2%q(3,1)* q2%q(3,3), q_invar%q(1,1)* q_invar%q(1,3) + q_invar%q(3,1)* q_invar%q(3,3)
-
-stop
-
-
-call print (q_lin)
-print *, '!---------------'
-call print (q_invar)
-q_invar = q_lin * q_y * q_lin**(-1)
-print *, '!---------------'
-call print (q_invar)
-
-!print *, '!---------------'
-!mat = u_c
-!q_invar = q_lin * mat
-!call print (q_invar)
-
-l_axis = q_lin * q_x * q_lin**(-1)
-m_axis = q_lin * q_z * q_lin**(-1)
-
-print *, '!---------------'
-call print (l_axis)
-print *, '!---------------'
-call print (m_axis)
-
-stop
+cspin = 2
+cspin = c_da%s * cspin
 
 !
 
@@ -943,9 +827,6 @@ cspin3 = cspin * id
 do i = 1, 3
   cspin2%v(i) = cspin2%v(i) - cspin3%v(i)
 enddo
-
-print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-call print (cspin2)
 
 !
 
