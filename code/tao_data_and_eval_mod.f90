@@ -2656,7 +2656,7 @@ case ('spin.')
   case ('spin.x', 'spin.y', 'spin.z')
     do i = ix_start, ix_ele
       if (data_source == 'beam') then
-        vec3 = polar_to_vec(bunch_params(i)%spin)
+        vec3 = bunch_params(i)%spin
       else
         vec3 = orbit(i)%spin
       endif
@@ -2670,7 +2670,7 @@ case ('spin.')
 
     if (ix_ref > -1) then
       if (data_source == 'beam') then
-        vec3 = polar_to_vec(bunch_params(ix_ref)%spin)
+        vec3 = bunch_params(ix_ref)%spin
       else
         vec3 = orbit(ix_ref)%spin
       endif
@@ -2687,7 +2687,7 @@ case ('spin.')
   case ('spin.theta', 'spin.phi', 'spin.amplitude')
     do i = ix_start, ix_ele
       if (data_source == 'beam') then
-        polar_spin = bunch_params(i)%spin
+        polar_spin = vec_to_polar(bunch_params(i)%spin)
       else
         polar_spin = vec_to_polar(orbit(i)%spin)
       endif
@@ -2701,7 +2701,7 @@ case ('spin.')
 
     if (ix_ref > -1) then
       if (data_source == 'beam') then
-        polar_spin = bunch_params(ix_ref)%spin
+        polar_spin = vec_to_polar(bunch_params(ix_ref)%spin)
       else
         polar_spin = vec_to_polar(orbit(ix_ref)%spin)
       endif
