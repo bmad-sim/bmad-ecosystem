@@ -3849,13 +3849,16 @@ void set_CPP_control_test_pattern (CPP_control& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 1 + offset; C.value = rhs;
+
   // c_side.test_pat[real, 1, ALLOC]
   if (ix_patt < 3) 
     C.y_knot.resize(0);
   else {
     C.y_knot.resize(3);
     for (unsigned int i = 0; i < C.y_knot.size(); i++)
-      {int rhs = 101 + i + 1 + offset; C.y_knot[i] = rhs;}  }
+      {int rhs = 101 + i + 2 + offset; C.y_knot[i] = rhs;}  }
 
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
@@ -3874,9 +3877,9 @@ void set_CPP_control_test_pattern (CPP_control& C, int ix_patt) {
   // c_side.test_pat[character, 0, NOT]
   C.attribute.resize(40);
   for (unsigned int i = 0; i < C.attribute.size(); i++)
-    {int rhs = 101 + i + 7 + offset; C.attribute[i] = 'a' + rhs % 26;}
+    {int rhs = 101 + i + 8 + offset; C.attribute[i] = 'a' + rhs % 26;}
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 8 + offset; C.ix_attrib = rhs;
+  rhs = 9 + offset; C.ix_attrib = rhs;
 
 
 }
@@ -5100,79 +5103,91 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   rhs = 11 + offset; C.fatal_ds_adaptive_tracking = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 12 + offset; C.electric_dipole_moment = rhs;
+  rhs = 12 + offset; C.autoscale_amp_abs_tol = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 13 + offset; C.ptc_cut_factor = rhs;
+  rhs = 13 + offset; C.autoscale_amp_rel_tol = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 14 + offset; C.sad_eps_scale = rhs;
+  rhs = 14 + offset; C.autoscale_phase_tol = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 15 + offset; C.sad_amp_max = rhs;
+  rhs = 15 + offset; C.electric_dipole_moment = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 16 + offset; C.ptc_cut_factor = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 17 + offset; C.sad_eps_scale = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 18 + offset; C.sad_amp_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 16 + offset; C.sad_n_div_max = rhs;
+  rhs = 19 + offset; C.sad_n_div_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 17 + offset; C.taylor_order = rhs;
+  rhs = 20 + offset; C.taylor_order = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 18 + offset; C.runge_kutta_order = rhs;
+  rhs = 21 + offset; C.runge_kutta_order = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 19 + offset; C.default_integ_order = rhs;
+  rhs = 22 + offset; C.default_integ_order = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 20 + offset; C.ptc_max_fringe_order = rhs;
+  rhs = 23 + offset; C.ptc_max_fringe_order = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 21 + offset; C.max_num_runge_kutta_step = rhs;
+  rhs = 24 + offset; C.max_num_runge_kutta_step = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 22 + offset; C.use_hard_edge_drifts = (rhs % 2 == 0);
+  rhs = 25 + offset; C.use_hard_edge_drifts = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 23 + offset; C.sr_wakes_on = (rhs % 2 == 0);
+  rhs = 26 + offset; C.sr_wakes_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 24 + offset; C.lr_wakes_on = (rhs % 2 == 0);
+  rhs = 27 + offset; C.lr_wakes_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 25 + offset; C.mat6_track_symmetric = (rhs % 2 == 0);
+  rhs = 28 + offset; C.mat6_track_symmetric = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 26 + offset; C.auto_bookkeeper = (rhs % 2 == 0);
+  rhs = 29 + offset; C.auto_bookkeeper = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 27 + offset; C.space_charge_on = (rhs % 2 == 0);
+  rhs = 30 + offset; C.space_charge_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 28 + offset; C.coherent_synch_rad_on = (rhs % 2 == 0);
+  rhs = 31 + offset; C.coherent_synch_rad_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 29 + offset; C.spin_tracking_on = (rhs % 2 == 0);
+  rhs = 32 + offset; C.spin_tracking_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 30 + offset; C.radiation_damping_on = (rhs % 2 == 0);
+  rhs = 33 + offset; C.radiation_damping_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 31 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
+  rhs = 34 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 32 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
+  rhs = 35 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 33 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
+  rhs = 36 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 34 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
+  rhs = 37 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 35 + offset; C.aperture_limit_on = (rhs % 2 == 0);
+  rhs = 38 + offset; C.aperture_limit_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 36 + offset; C.debug = (rhs % 2 == 0);
+  rhs = 39 + offset; C.ptc_print_info_messages = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 40 + offset; C.debug = (rhs % 2 == 0);
 
 
 }
@@ -5559,14 +5574,17 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   // c_side.test_pat[real, 0, NOT]
   rhs = 49 + offset; C.gamma_c = rhs;
 
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.spin_quaternion.size(); i++)
+    {int rhs = 101 + i + 50 + offset; C.spin_quaternion[i] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 50 + offset; C.s_start = rhs;
+  rhs = 51 + offset; C.s_start = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 51 + offset; C.s = rhs;
+  rhs = 52 + offset; C.s = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 52 + offset; C.ref_time = rhs;
+  rhs = 53 + offset; C.ref_time = rhs;
 
   // c_side.test_pat[real, 1, PTR]
   if (ix_patt < 3) 
@@ -5574,7 +5592,7 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   else {
     C.a_pole.resize(3);
     for (unsigned int i = 0; i < C.a_pole.size(); i++)
-      {int rhs = 101 + i + 53 + offset; C.a_pole[i] = rhs;}  }
+      {int rhs = 101 + i + 54 + offset; C.a_pole[i] = rhs;}  }
 
   // c_side.test_pat[real, 1, PTR]
   if (ix_patt < 3) 
@@ -5582,7 +5600,7 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   else {
     C.b_pole.resize(3);
     for (unsigned int i = 0; i < C.b_pole.size(); i++)
-      {int rhs = 101 + i + 55 + offset; C.b_pole[i] = rhs;}  }
+      {int rhs = 101 + i + 56 + offset; C.b_pole[i] = rhs;}  }
 
   // c_side.test_pat[real, 1, PTR]
   if (ix_patt < 3) 
@@ -5590,7 +5608,7 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   else {
     C.a_pole_elec.resize(3);
     for (unsigned int i = 0; i < C.a_pole_elec.size(); i++)
-      {int rhs = 101 + i + 57 + offset; C.a_pole_elec[i] = rhs;}  }
+      {int rhs = 101 + i + 58 + offset; C.a_pole_elec[i] = rhs;}  }
 
   // c_side.test_pat[real, 1, PTR]
   if (ix_patt < 3) 
@@ -5598,7 +5616,7 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   else {
     C.b_pole_elec.resize(3);
     for (unsigned int i = 0; i < C.b_pole_elec.size(); i++)
-      {int rhs = 101 + i + 59 + offset; C.b_pole_elec[i] = rhs;}  }
+      {int rhs = 101 + i + 60 + offset; C.b_pole_elec[i] = rhs;}  }
 
   // c_side.test_pat[real, 1, PTR]
   if (ix_patt < 3) 
@@ -5606,7 +5624,7 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   else {
     C.custom.resize(3);
     for (unsigned int i = 0; i < C.custom.size(); i++)
-      {int rhs = 101 + i + 61 + offset; C.custom[i] = rhs;}  }
+      {int rhs = 101 + i + 62 + offset; C.custom[i] = rhs;}  }
 
   // c_side.test_pat[real, 3, PTR]
   if (ix_patt < 3) 
@@ -5618,116 +5636,116 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
       for (unsigned int j = 0; j < C.r[0].size(); j++) {
         C.r[i][j].resize(1);
         for (unsigned int k = 0; k < C.r[0][0].size(); k++) {
-          int rhs = 101 + i + 10*(j+1) + 100*(k+1) + 63 + offset; C.r[i][j][k] = rhs;
+          int rhs = 101 + i + 10*(j+1) + 100*(k+1) + 64 + offset; C.r[i][j][k] = rhs;
         }
       }
     }
   }
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 67 + offset; C.key = rhs;
+  rhs = 68 + offset; C.key = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 68 + offset; C.sub_key = rhs;
+  rhs = 69 + offset; C.sub_key = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 69 + offset; C.ix_ele = rhs;
+  rhs = 70 + offset; C.ix_ele = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 70 + offset; C.ix_branch = rhs;
+  rhs = 71 + offset; C.ix_branch = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 71 + offset; C.lord_status = rhs;
+  rhs = 72 + offset; C.lord_status = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 72 + offset; C.n_slave = rhs;
+  rhs = 73 + offset; C.n_slave = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 73 + offset; C.n_slave_field = rhs;
+  rhs = 74 + offset; C.n_slave_field = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 74 + offset; C.ix1_slave = rhs;
+  rhs = 75 + offset; C.ix1_slave = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 75 + offset; C.slave_status = rhs;
+  rhs = 76 + offset; C.slave_status = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 76 + offset; C.n_lord = rhs;
+  rhs = 77 + offset; C.n_lord = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 77 + offset; C.n_lord_field = rhs;
+  rhs = 78 + offset; C.n_lord_field = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 78 + offset; C.ic1_lord = rhs;
+  rhs = 79 + offset; C.ic1_lord = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 79 + offset; C.ix_pointer = rhs;
+  rhs = 80 + offset; C.ix_pointer = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 80 + offset; C.ixx = rhs;
+  rhs = 81 + offset; C.ixx = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 81 + offset; C.iyy = rhs;
+  rhs = 82 + offset; C.iyy = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 82 + offset; C.mat6_calc_method = rhs;
+  rhs = 83 + offset; C.mat6_calc_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 83 + offset; C.tracking_method = rhs;
+  rhs = 84 + offset; C.tracking_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 84 + offset; C.spin_tracking_method = rhs;
+  rhs = 85 + offset; C.spin_tracking_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 85 + offset; C.ptc_integration_type = rhs;
+  rhs = 86 + offset; C.ptc_integration_type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 86 + offset; C.field_calc = rhs;
+  rhs = 87 + offset; C.field_calc = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 87 + offset; C.aperture_at = rhs;
+  rhs = 88 + offset; C.aperture_at = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 88 + offset; C.aperture_type = rhs;
+  rhs = 89 + offset; C.aperture_type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 89 + offset; C.orientation = rhs;
+  rhs = 90 + offset; C.orientation = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 90 + offset; C.symplectify = (rhs % 2 == 0);
+  rhs = 91 + offset; C.symplectify = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 91 + offset; C.mode_flip = (rhs % 2 == 0);
+  rhs = 92 + offset; C.mode_flip = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 92 + offset; C.multipoles_on = (rhs % 2 == 0);
+  rhs = 93 + offset; C.multipoles_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 93 + offset; C.scale_multipoles = (rhs % 2 == 0);
+  rhs = 94 + offset; C.scale_multipoles = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 94 + offset; C.taylor_map_includes_offsets = (rhs % 2 == 0);
+  rhs = 95 + offset; C.taylor_map_includes_offsets = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 95 + offset; C.field_master = (rhs % 2 == 0);
+  rhs = 96 + offset; C.field_master = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 96 + offset; C.is_on = (rhs % 2 == 0);
+  rhs = 97 + offset; C.is_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 97 + offset; C.logic = (rhs % 2 == 0);
+  rhs = 98 + offset; C.logic = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 98 + offset; C.bmad_logic = (rhs % 2 == 0);
+  rhs = 99 + offset; C.bmad_logic = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 99 + offset; C.select = (rhs % 2 == 0);
+  rhs = 100 + offset; C.select = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 100 + offset; C.csr_calc_on = (rhs % 2 == 0);
+  rhs = 101 + offset; C.csr_calc_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 101 + offset; C.offset_moves_aperture = (rhs % 2 == 0);
+  rhs = 102 + offset; C.offset_moves_aperture = (rhs % 2 == 0);
 
 
 }
@@ -6276,9 +6294,9 @@ void set_CPP_bunch_params_test_pattern (CPP_bunch_params& C, int ix_patt) {
   // c_side.test_pat[type, 0, NOT]
   set_CPP_coord_test_pattern(C.centroid, ix_patt);
 
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_spin_polar_test_pattern(C.spin, ix_patt);
-
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.spin.size(); i++)
+    {int rhs = 101 + i + 8 + offset; C.spin[i] = rhs;}
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.sigma.size(); i++)  for (unsigned int j = 0; j < C.sigma[0].size(); j++) 
     {int rhs = 101 + i + 10*(j+1) + 9 + offset; C.sigma[i][j] = rhs;}

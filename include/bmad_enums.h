@@ -23,12 +23,12 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 214;
+  const int BMAD_INC_VERSION = 219;
   const int N_POLE_MAXX = 21;
   const int OLD_CONTROL_VAR_OFFSET = 1000;
   const int VAR_OFFSET = 2000;
   const int TAYLOR_OFFSET = 1000000000;
-  const int FUNCTION = 2, SPLINE = 3;
+  const int EXPRESSION = 2, SPLINE = 3;
   const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2, RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
   const int FIXED_STEP_RUNGE_KUTTA = 9, SYMP_LIE_BMAD = 10, STATIC = 11;
@@ -60,6 +60,7 @@ namespace Bmad {
   const int X_POLARIZATION = 2, Y_POLARIZATION = 3;
   const int OFF = 1, ON = 2;
   const int NONE = 1;
+  const int SAVE_STATE = 3, RESTORE_STATE = 4, OFF_AND_SAVE = 5;
   const int HORIZONTALLY_PURE = 2, VERTICALLY_PURE = 3;
   const int MAGNETIC = 1, ELECTRIC = 2, MIXED = 3;
   const int BRAGG_DIFFRACTED = 1, FORWARD_DIFFRACTED = 2, UNDIFFRACTED = 3;
@@ -92,25 +93,20 @@ namespace Bmad {
   const int SEGMENTED = 2, H_MISALIGN = 3, DIFFRACT_TARGET = 4;
   const int INCOHERENT = 1, COHERENT = 2;
   const int OPAL = 1, IMPACTT = 2;
-  const int DRIFT = 1, SBEND = 2, QUADRUPOLE = 3, GROUP = 4;
-  const int SEXTUPOLE = 5, OVERLAY = 6, CUSTOM = 7, TAYLOR = 8;
-  const int RFCAVITY = 9;
-  const int ELSEPARATOR = 10, BEAMBEAM = 11, WIGGLER = 12;
-  const int SOL_QUAD = 13, MARKER = 14, KICKER = 15;
-  const int HYBRID = 16, OCTUPOLE = 17, RBEND = 18, MULTIPOLE = 19;
-  const int DEF_BMAD_COM = 20, DEF_MAD_BEAM = 21, AB_MULTIPOLE = 22, SOLENOID = 23;
-  const int PATCH = 24, LCAVITY = 25, DEF_PARAMETER = 26;
-  const int NULL_ELE = 27, BEGINNING_ELE = 28, LINE_ELE = 29;
-  const int MATCH = 30, MONITOR = 31, INSTRUMENT = 32;
-  const int HKICKER = 33, VKICKER = 34, RCOLLIMATOR = 35;
-  const int ECOLLIMATOR = 36, GIRDER = 37, BEND_SOL_QUAD = 38;
-  const int DEF_BEAM_START = 39, PHOTON_FORK = 40;
-  const int FORK = 41, MIRROR = 42, CRYSTAL = 43;
-  const int PIPE = 44, CAPILLARY = 45, MULTILAYER_MIRROR = 46;
-  const int E_GUN = 47, EM_FIELD = 48, FLOOR_SHIFT = 49, FIDUCIAL = 50;
-  const int UNDULATOR = 51, DIFFRACTION_PLATE = 52, PHOTON_INIT = 53;
-  const int SAMPLE = 54, DETECTOR = 55, SAD_MULT = 56, MASK = 57, AC_KICKER = 58;
-  const int N_KEY = 58;
+  const int DRIFT = 1, SBEND = 2, QUADRUPOLE = 3, GROUP = 4, SEXTUPOLE = 5;
+  const int OVERLAY = 6, CUSTOM = 7, TAYLOR = 8, RFCAVITY = 9, ELSEPARATOR = 10;
+  const int BEAMBEAM = 11, WIGGLER = 12, SOL_QUAD = 13, MARKER = 14, KICKER = 15;
+  const int HYBRID = 16, OCTUPOLE = 17, RBEND = 18, MULTIPOLE = 19, DEF_BMAD_COM = 20;
+  const int DEF_MAD_BEAM = 21, AB_MULTIPOLE = 22, SOLENOID = 23, PATCH = 24, LCAVITY = 25;
+  const int DEF_PARAMETER = 26, NULL_ELE = 27, BEGINNING_ELE = 28, LINE_ELE = 29;
+  const int MATCH = 30, MONITOR = 31, INSTRUMENT = 32, HKICKER = 33, VKICKER = 34;
+  const int RCOLLIMATOR = 35, ECOLLIMATOR = 36, GIRDER = 37, BEND_SOL_QUAD = 38;
+  const int DEF_BEAM_START = 39, PHOTON_FORK = 40, FORK = 41, MIRROR = 42, CRYSTAL = 43;
+  const int PIPE = 44, CAPILLARY = 45, MULTILAYER_MIRROR = 46, E_GUN = 47, EM_FIELD = 48;
+  const int FLOOR_SHIFT = 49, FIDUCIAL = 50, UNDULATOR = 51, DIFFRACTION_PLATE = 52;
+  const int PHOTON_INIT = 53, SAMPLE = 54, DETECTOR = 55, SAD_MULT = 56, MASK = 57;
+  const int AC_KICKER = 58, LENS = 59;
+  const int N_KEY = 59;
   const int N_PART = 2, TAYLOR_ORDER = 3;
   const int VAL1=11, VAL2=12, VAL3=13, VAL4=14, VAL5=15,
             VAL6=16, VAL7=17, VAL8=18, VAL9=19, VAL10=20, VAL11=21,
@@ -134,6 +130,7 @@ namespace Bmad {
   const int E_PHOTON = 9;
   const int E1 = 19, E2 = 20;
   const int FINT = 21, FINTX = 22, HGAP = 23, HGAPX = 24, H1 = 25, H2 = 26;
+  const int RADIUS = 3, TRANSMISSION_COEF = 4, FOCAL_STRENGTH = 5;
   const int L = 1;
   const int TILT = 2, ROLL = 2;
   const int REF_TILT = 3, RF_FREQUENCY = 3, DIRECTION = 3;
@@ -243,7 +240,7 @@ namespace Bmad {
   const int FATAL_DS_ADAPTIVE_TRACKING = 90;
   const int MAX_NUM_RUNGE_KUTTA_STEP = 91;
   const int SPHERICAL_CURVATURE = 81;
-  const int ALPHA_B_BEGIN = 81, USE_HARD_EDGE_DRIFTS = 81, TT = 81, LR_WAKE_SPLINE = 81;
+  const int ALPHA_B_BEGIN = 81, USE_HARD_EDGE_DRIFTS = 81, TT = 81, LR_WAKE_SPLINE = 81, X_KNOT = 81;
   const int ALIAS  = 82, ETA_X = 82, PTC_MAX_FRINGE_ORDER = 82;
   const int ETA_Y = 83, ELECTRIC_DIPOLE_MOMENT = 83, LR_SELF_WAKE_ON = 83, X_REF = 83;
   const int ETAP_X = 84, LR_WAKE_FILE = 84, PX_REF = 84;
@@ -349,7 +346,7 @@ namespace Bmad {
   const double ANOMALOUS_MAG_MOMENT_ELECTRON = 1.159652193E-3;
   const double ANOMALOUS_MAG_MOMENT_PROTON   = 1.79284735E0;
   const double ANOMALOUS_MAG_MOMENT_MUON     = 1.1659208E-3;
-  const double ANOMALOUS_MAG_MOMENT_DEUTERON = -0.14298727047E0;
+  const double ANOMALOUS_MAG_MOMENT_DEUTERON = -0.1429872724E0;
   const int INVALID = -666;
   const int NOT_SET = -999;
   const int DEUTERON   = 8;

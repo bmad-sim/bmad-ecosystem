@@ -758,7 +758,7 @@ public:
   Real_ARRAY x_knot;
 
   CPP_controller() :
-    type(Bmad::FUNCTION),
+    type(Bmad::EXPRESSION),
     var(CPP_controller_var1_ARRAY(CPP_controller_var1(), 0)),
     x_knot(0.0, 0)
     {}
@@ -2328,6 +2328,7 @@ class Opaque_control_class {};  // Opaque class for pointers to corresponding fo
 
 class CPP_control {
 public:
+  Real value;
   Real_ARRAY y_knot;
   CPP_expression_atom_ARRAY stack;
   CPP_lat_ele_loc slave;
@@ -2336,6 +2337,7 @@ public:
   Int ix_attrib;
 
   CPP_control() :
+    value(0.0),
     y_knot(0.0, 0),
     stack(CPP_expression_atom_ARRAY(CPP_expression_atom(), 0)),
     slave(),
@@ -2967,6 +2969,9 @@ public:
   Real init_ds_adaptive_tracking;
   Real min_ds_adaptive_tracking;
   Real fatal_ds_adaptive_tracking;
+  Real autoscale_amp_abs_tol;
+  Real autoscale_amp_rel_tol;
+  Real autoscale_phase_tol;
   Real electric_dipole_moment;
   Real ptc_cut_factor;
   Real sad_eps_scale;
@@ -2991,6 +2996,7 @@ public:
   Bool absolute_time_tracking_default;
   Bool convert_to_kinetic_momentum;
   Bool aperture_limit_on;
+  Bool ptc_print_info_messages;
   Bool debug;
 
   CPP_bmad_common() :
@@ -3005,6 +3011,9 @@ public:
     init_ds_adaptive_tracking(1e-3),
     min_ds_adaptive_tracking(0.0),
     fatal_ds_adaptive_tracking(1e-8),
+    autoscale_amp_abs_tol(0.0),
+    autoscale_amp_rel_tol(1e-6),
+    autoscale_phase_tol(1e-5),
     electric_dipole_moment(0.0),
     ptc_cut_factor(0.006),
     sad_eps_scale(5.0e-3),
@@ -3029,6 +3038,7 @@ public:
     absolute_time_tracking_default(false),
     convert_to_kinetic_momentum(false),
     aperture_limit_on(true),
+    ptc_print_info_messages(false),
     debug(false)
     {}
 
@@ -3166,6 +3176,7 @@ public:
   Real_MATRIX mat6;
   Real_MATRIX c_mat;
   Real gamma_c;
+  Real_ARRAY spin_quaternion;
   Real s_start;
   Real s;
   Real ref_time;
@@ -3270,6 +3281,7 @@ public:
     mat6(Real_ARRAY(0.0, 6), 6),
     c_mat(Real_ARRAY(0.0, 2), 2),
     gamma_c(1),
+    spin_quaternion(0.0, 4),
     s_start(0.0),
     s(0.0),
     ref_time(0.0),
@@ -3570,7 +3582,7 @@ public:
   CPP_twiss b;
   CPP_twiss c;
   CPP_coord centroid;
-  CPP_spin_polar spin;
+  Real_ARRAY spin;
   Real_MATRIX sigma;
   Real_ARRAY rel_max;
   Real_ARRAY rel_min;
@@ -3588,7 +3600,7 @@ public:
     b(),
     c(),
     centroid(),
-    spin(),
+    spin(0.0, 3),
     sigma(Real_ARRAY(0.0, 6), 6),
     rel_max(0.0, 6),
     rel_min(0.0, 6),

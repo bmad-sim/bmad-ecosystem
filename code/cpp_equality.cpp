@@ -963,6 +963,7 @@ template bool is_all_equal (const CPP_wall3d_MATRIX&, const CPP_wall3d_MATRIX&);
 
 bool operator== (const CPP_control& x, const CPP_control& y) {
   bool is_eq = true;
+  is_eq = is_eq && (x.value == y.value);
   is_eq = is_eq && is_all_equal(x.y_knot, y.y_knot);
   is_eq = is_eq && is_all_equal(x.stack, y.stack);
   is_eq = is_eq && (x.slave == y.slave);
@@ -1272,6 +1273,9 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.init_ds_adaptive_tracking == y.init_ds_adaptive_tracking);
   is_eq = is_eq && (x.min_ds_adaptive_tracking == y.min_ds_adaptive_tracking);
   is_eq = is_eq && (x.fatal_ds_adaptive_tracking == y.fatal_ds_adaptive_tracking);
+  is_eq = is_eq && (x.autoscale_amp_abs_tol == y.autoscale_amp_abs_tol);
+  is_eq = is_eq && (x.autoscale_amp_rel_tol == y.autoscale_amp_rel_tol);
+  is_eq = is_eq && (x.autoscale_phase_tol == y.autoscale_phase_tol);
   is_eq = is_eq && (x.electric_dipole_moment == y.electric_dipole_moment);
   is_eq = is_eq && (x.ptc_cut_factor == y.ptc_cut_factor);
   is_eq = is_eq && (x.sad_eps_scale == y.sad_eps_scale);
@@ -1296,6 +1300,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.absolute_time_tracking_default == y.absolute_time_tracking_default);
   is_eq = is_eq && (x.convert_to_kinetic_momentum == y.convert_to_kinetic_momentum);
   is_eq = is_eq && (x.aperture_limit_on == y.aperture_limit_on);
+  is_eq = is_eq && (x.ptc_print_info_messages == y.ptc_print_info_messages);
   is_eq = is_eq && (x.debug == y.debug);
   return is_eq;
 };
@@ -1397,6 +1402,7 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && is_all_equal(x.mat6, y.mat6);
   is_eq = is_eq && is_all_equal(x.c_mat, y.c_mat);
   is_eq = is_eq && (x.gamma_c == y.gamma_c);
+  is_eq = is_eq && is_all_equal(x.spin_quaternion, y.spin_quaternion);
   is_eq = is_eq && (x.s_start == y.s_start);
   is_eq = is_eq && (x.s == y.s);
   is_eq = is_eq && (x.ref_time == y.ref_time);
@@ -1571,7 +1577,7 @@ bool operator== (const CPP_bunch_params& x, const CPP_bunch_params& y) {
   is_eq = is_eq && (x.b == y.b);
   is_eq = is_eq && (x.c == y.c);
   is_eq = is_eq && (x.centroid == y.centroid);
-  is_eq = is_eq && (x.spin == y.spin);
+  is_eq = is_eq && is_all_equal(x.spin, y.spin);
   is_eq = is_eq && is_all_equal(x.sigma, y.sigma);
   is_eq = is_eq && is_all_equal(x.rel_max, y.rel_max);
   is_eq = is_eq && is_all_equal(x.rel_min, y.rel_min);
