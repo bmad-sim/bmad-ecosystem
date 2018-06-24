@@ -715,44 +715,46 @@ end subroutine ptc_track_all
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ptc_invariant_spin_field (ele, map_order, closed_orb)
+! Subroutine spin_linear_match_info_calc (branch, match_info)
 !
-! Routine to calculate the invariant spin field.
+! Routine to calculate the G-matrix and other stuff relavent to spin matching.
+!
+! Note: A call to lat_to_ptc_layout must be done before calling this routine.
 !
 ! Input:
-!   ele         -- ele_struct: Element at which the spinf field is calculated.
-!   map_order   -- integer: Oder of the map.
-!   closed_orb  -- coord_struct: Closed orbit around which the map is made.
+!   branch          -- branch_struct: Lattice branch to analyze.
 !
 ! Output:
-!
+!   match_info(0:)  -- spin_linear_matching_struct, allocatable: G-matrix and other stuff.
+!                       The array will be allocated by this routine.
 !-
 
-subroutine ptc_invariant_spin_field (ele, map_order, closed_orb)
+subroutine spin_linear_match_info_calc (branch, match_info)
 
 use pointer_lattice
 
-type (ele_struct) ele
-type (coord_struct) closed_orb
+type (branch_struct), target :: branch
+type (spin_linear_matching_struct), allocatable, target :: match_info(:)
+type (spin_linear_matching_struct), pointer :: minfo
+type (ele_struct), pointer :: ele
 type (c_spinor) cspin
-type (branch_struct), pointer :: branch
 type (internal_state) ptc_state
-type (fibre), pointer :: ptc_fibre, fib2
+type (fibre), pointer :: ptc_fibre, fib_now, fib_next
 type (layout), pointer :: ptc_layout
-type (c_damap) id, c_da, id2
+type (c_damap) id, u, u_c
 type (probe_8) xs
 type (probe) xs0
 type (c_normal_form) cc_norm
-type (taylor) t(3)
-type (c_spinor) cspin2, cspin3
+type (q_linear) q0, q2, q_invar, q_nonlin, q_x, q_y, q_z, l_axis, m_axis, q_rot, q_lin
 
-integer map_order, i
+real(rp) spin_tune(2), phase(3)
+
+integer i, order
 
 logical rf_on
 
 !
 
-branch => pointer_to_branch(ele)
 rf_on = rf_is_on(branch)
 if (rf_on) then
   ptc_state = default - NOCAVITY0 + SPIN0
@@ -763,20 +765,35 @@ endif
 
 !
 
+if (allocated(match_info)) then
+  if (ubound(match_info, 1) /= branch%n_ele_track) deallocate(match_info)
+endif
+if (.not. allocated(match_info)) allocate(match_info(0:branch%n_ele_track))
+
+!
+
+q_x = 1
+q_y = 2
+q_z = 3
+
+!
+
 use_bmad_units = .true.
+ele => branch%ele(0)
+minfo => match_info(0)
 
 ptc_fibre => pointer_to_ptc_ref_fibre(ele)
 ptc_layout => ptc_fibre%parent_layout
-call find_orbit_x (closed_orb%vec, ptc_state, 1.e-8_rp, fibre1 = ptc_fibre) 
+call find_orbit_x (minfo%orb0, ptc_state, 1.e-8_rp, fibre1 = ptc_fibre) 
 
-call init_all(ptc_state, map_order, 0)
+call init_all(ptc_state, 1, 0)   ! Only need first order map for this analysis
 
 call alloc(id)
 call alloc(xs)
 call alloc(cc_norm)
 
 id = 1
-xs0 = closed_orb%vec
+xs0 = minfo%orb0
 xs = xs0 + id
 call track_probe(xs, ptc_state, fibre1 = ptc_fibre)
 id = xs
@@ -790,54 +807,52 @@ cspin = cc_norm%as%s * cspin
 
 !
 
-call alloc (c_da)
-call alloc(id2)
-
 xs = xs0 + cc_norm%atot
-fib2 => ptc_fibre
-do i = 1, ptc_layout%n
-  call track_probe(xs, ptc_state, fibre1 = fib2, fibre2 = fib2%next)
-  fib2 => fib2%next
-enddo
+fib_now => ptc_fibre
+do i = 0, branch%n_ele_track
+  if (i /= 0) then
+    fib_next => pointer_to_ptc_ref_fibre(branch%ele(i))
+    call track_probe(xs, ptc_state, fibre1 = fib_now, fibre2 = fib_next)
+    fib_now => fib_next
+  endif
 
-c_da = 1
-id2 = xs
-c_da%q = id2%q
-c_da = id2 * c_da * id2**(-1) 
+  minfo => match_info(i)
 
-call quaternion_to_matrix_in_c_damap (c_da)
+  u = xs
+  call c_fast_canonise (u, u_c, q_c = q_lin, phase = phase, q_rot = q_rot, spin_tune = spin_tune, dospin = .true.)
 
-cspin = 2
-cspin = c_da%s * cspin
+  minfo%n0 = q_lin%q(1:3,0)
+  minfo%dn_ddelta = q_lin%q(1:3,6)
 
-!
+  q0 = q_lin
+  q0%q(0:3,1:6) = 0
+  q_nonlin = q0**(-1) * q_lin
 
-call alloc(t)
-do i = 1, 3
-  t(i) = cspin%v(i)
-enddo
-!!taylor = t
-call kill (t)
+  minfo%alpha = q_nonlin%q(1,1:6)
+  minfo%beta = q_nonlin%q(3,1:6)
 
-call alloc(cspin2) 
-call alloc(cspin3) 
-call quaternion_to_matrix_in_c_damap (id)
-cspin2 = id%s * cspin
-cspin3 = cspin * id
-do i = 1, 3
-  cspin2%v(i) = cspin2%v(i) - cspin3%v(i)
+  l_axis = q0 * q_x * q0**(-1) 
+  m_axis = q0 * q_z * q0**(-1)
+
+  minfo%l_axis = l_axis%q(1:3,0)
+  minfo%m_axis = m_axis%q(1:3,0)
+
+  xs0 = xs
+  xs = xs0 + u_c
 enddo
 
 !
 
 call kill (id)
 call kill (xs)
+call kill (cc_norm)
+call kill (cspin)
 
 use_bmad_units = .false.
 if (.not. rf_on) ndpt_bmad = 0
 call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
-end subroutine ptc_invariant_spin_field
+end subroutine spin_linear_match_info_calc
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
