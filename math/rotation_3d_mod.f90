@@ -13,7 +13,7 @@ contains
 !+
 ! Subroutine w_mat_to_axis_angle (w_mat, axis, angle)
 !
-! Routine to find the rotation axis and rotation angle corresponding  to a given
+! Routine to find the rotation axis and rotation angle corresponding to a given
 ! 3D rotation matrix.
 !
 ! The rotation axis is chosen to have a non-negative dot product with the
@@ -35,27 +35,22 @@ contains
 subroutine w_mat_to_axis_angle (w_mat, axis, angle)
 
 real(rp) w_mat(3,3), axis(3), angle
-real(rp) sin_ang, cos_ang
+real(rp) sin2_ang, quat(0:3)
 
 !
 
-axis(1) = w_mat(3,2) - w_mat(2,3)
-axis(2) = w_mat(1,3) - w_mat(3,1)
-axis(3) = w_mat(2,1) - w_mat(1,2)
-
-sin_ang = norm2(axis) / 2
-if (sin_ang == 0) then
+quat = w_mat_to_quat(w_mat)
+if (all(quat(1:3) == 0)) then
   axis = [1, 0, 0]
   angle = 0
   return
 endif
 
-axis = axis / (2 * sin_ang)
-
 !
 
-cos_ang = (w_mat(1,1) + w_mat(2,2) + w_mat(3,3) - 1) / 2
-angle = atan2(sin_ang, cos_ang)
+sin2_ang = norm2(quat(1:3))
+axis = quat(1:3) / sin2_ang
+angle = 2 *atan2(sin2_ang, quat(0))
 
 ! Align to axis to point in the general direction of (1,1,1)
 
@@ -65,6 +60,64 @@ if (sum(axis) < 0) then
 endif
 
 end subroutine w_mat_to_axis_angle
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Function w_mat_to_quat (w_mat) result (quat)
+!
+! Routine to find the quaternion corresponding to a given 3D rotation matrix.
+!
+! Module needed:
+!   use rotation_3d_mod
+!
+! Input:
+!   w_mat(3,3) -- real(rp): Rotation matrix
+!
+! Output:
+!   quat(4)    -- real(rp): Quaternion.
+!-
+
+function w_mat_to_quat (w_mat) result (quat)
+
+real(rp) w_mat(3,3), quat(4)
+real(rp) trace, s
+
+!
+
+trace = w_mat(1,1) + w_mat(2,2) + w_mat(3,3)
+
+if (trace > 0) then
+  s = 0.5_rp / sqrt(trace + 1)
+  quat(1) = 1 / (4 * s)
+  quat(2) = (w_mat(3,2) - w_mat(2,3)) * s
+  quat(3) = (w_mat(1,3) - w_mat(3,1)) * s
+  quat(4) = (w_mat(2,1) - w_mat(1,2)) * s
+
+elseif (w_mat(1,1) > w_mat(2,2) .and. w_mat(1,1) > w_mat(3,3)) then
+  s = 2 * sqrt(1 + w_mat(1,1) - w_mat(2,2) - w_mat(3,3))
+  quat(1) = (w_mat(3,2) - w_mat(2,3)) / s
+  quat(2) = 0.25_rp * s
+  quat(3) = (w_mat(1,2) + w_mat(2,1)) / s
+  quat(4) = (w_mat(1,3) + w_mat(3,1)) / s
+
+elseif (w_mat(2,2) > w_mat(3,3)) then
+  s = 2 * sqrt(1 + w_mat(2,2) - w_mat(1,1) - w_mat(3,3))
+  quat(1) = (w_mat(1,3) - w_mat(3,1)) / s
+  quat(2) = (w_mat(1,2) + w_mat(2,1)) / s
+  quat(3) = 0.25_rp * s
+  quat(4) = (w_mat(2,3) + w_mat(3,2)) / s
+
+else
+  s = 2 * sqrt(1 + w_mat(3,3) - w_mat(1,1) - w_mat(2,2))
+  quat(1) = (w_mat(2,1) - w_mat(1,2)) / s
+  quat(2) = (w_mat(1,3) + w_mat(3,1)) / s
+  quat(3) = (w_mat(2,3) + w_mat(3,2)) / s
+  quat(4) = 0.25_rp * s
+endif
+
+end function w_mat_to_quat
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
