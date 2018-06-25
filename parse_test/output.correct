@@ -114,3 +114,46 @@
 "Overlap-Lord13"    STR   "MB"
 "Overlap-Lord14"    STR   "C"
 "Overlap-Lord15"    STR   "GG"
+"zzz"                                   ABS 0  3.0000
+"calib"                                 ABS 0  7.0000
+"gang0"  ABS 0    1   4
+"gang1"  ABS 0    2   2   2
+"bmad_com[max_aperture_limit]"          ABS 0     23.50
+"bmad_com[ptc_max_fringe_order]"        ABS 0  -1
+"bmad_com[convert_to_kinetic_momentum]" STR   "T"
+"geometry"                              STR   "Open"
+"quad-custom_attribute2"                STR   "QQQ"
+"sex-custom_attribute3"                 STR   "ZZZ"
+"EVAL 1"  ABS 0  -14.0000
+"1 REL"  ABS 0    2.0000
+"2 REL"  ABS 0    2.0000
+"3 REL"  ABS 0    1.0000
+"4 REL"  ABS 0    1.0000
+"5 REL"  ABS 0    3.0000
+"TM1"     STR "Symp_Lie_Bmad"
+"TM5"     STR "Runge_Kutta"
+"N3"     ABS 0  4
+"Custom"  STR "MY_CUSTOM"
+"Anti_Deuteron"  REL 1e-12  1.875612928000E+09    -1
+"Pion-"  REL 1e-12  1.395701800000E+08    -1
+"Muon"  REL 1e-12  1.056583715000E+08    -1
+"Antiproton"  REL 1e-12  9.382720813000E+08    -1
+"Electron"  REL 1e-12  5.109989461000E+05    -1
+"Photon"  REL 1e-12  0.000000000000E+00     0
+"Positron"  REL 1e-12  5.109989461000E+05     1
+"Proton"  REL 1e-12  9.382720813000E+08     1
+"Antimuon"  REL 1e-12  1.056583715000E+08     1
+"Pion+"  REL 1e-12  1.395701800000E+08     1
+"Pion0"  REL 1e-12  1.349766000000E+08     0
+"Ref_Particle"  REL 1e-12  0.000000000000E+00     0
+"Anti_Ref_Particle"  REL 1e-12  0.000000000000E+00     0
+"Deuteron"  REL 1e-12  1.875612928000E+09     1
+"He++"         STR "He++"
+"#12C-5"       STR "#12C-5"
+"CH3@M34.5+2"  STR "CH3@M34.5++"
+"@M3.45---"    STR "@M3.45-3"
+"XSIF:Twiss"  REL 1e-8 20.56499970 12.05361620
+"XSIF:Orbit"  REL 1e-8 1.54985296E-04 1.81420409E-04
+"PHOT-1"    STR "DDD#1"
+"PHOT-N"    STR "8"
+"Hard-Edge" STR "F"
