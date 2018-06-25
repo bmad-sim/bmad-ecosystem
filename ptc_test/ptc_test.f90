@@ -49,31 +49,16 @@ call lat_to_ptc_layout (lat)
 
 call ptc_setup_map_with_radiation (map_with_rad, lat%ele(0), lat%ele(0), map_order = 2)
 
-open (2, file = '1track.dat')
 orbit%vec = [-0.01664448d-3, 0.03015525d-3, 0.0d-3, 0.0d-3, 2.12971838d-3, -0.00039838d-3]
-do i = 1, 200
+do i = 1, 100
   call ptc_track_with_radiation (orbit, map_with_rad, .true., .false.)
-  write (2, '(i6, 6f12.8)') i, orbit%vec
 enddo
-
-open (3, file = '2track.dat')
-call reallocate_coord (orbit_track, lat)
-orbit_track(0)%vec = [-0.01664448d-3, 0.03015525d-3, 0.0d-3, 0.0d-3, 2.12971838d-3, -0.00039838d-3]
-call init_coord (orbit_track(0), orbit_track(0), lat%ele(0), upstream_end$)
-do i = 1, 200
-  call track_all (lat, orbit_track)
-  orbit_track(0) = orbit_track(lat%n_ele_track)
-  write (3, '(i6, 6f12.8)') i, orbit_track(0)%vec
-enddo
-
-
-stop
+write (1, '(a, 6f16.10)') '"Rad-Map-Track100" ABS 1E-10', orbit%vec
 
 !----------------------------
 
-call bmad_parser ('bmad_L9A18A000-_MOVEREC.lat', lat)
-call lat_to_ptc_layout (lat)
-call ptc_invariant_spin_field (lat%ele(0), 1, closed_orb)
+!! call ptc_invariant_spin_field (lat%ele(0), 1, closed_orb)
+
 
 !----------------------------
 
@@ -87,9 +72,12 @@ call taylor_clean(smap)
 call type_taylors (tmap)
 call type_taylors(smap, out_type = 'SPIN')
 
+call ptc_one_turn_mat_and_closed_orbit_calc (lat%branch(0), .true.)
+
 !----------------------------
 
-call bmad_parser ('bmad_L9A18A000-_MOVEREC.lat', lat)
+call bmad_parser ('small_ring.bmad', lat)
+call lat_to_ptc_layout (lat)
 
 call ptc_emit_calc (lat%ele(0), mode, sigma_mat, closed_orb)
 
