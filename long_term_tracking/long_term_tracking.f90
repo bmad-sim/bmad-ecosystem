@@ -50,13 +50,13 @@ close (1)
 
 ! Lattice init
 
+call ran_seed_put (ran_seed)
 call bmad_parser (lat_file, lat)
 if (.not. rfcavity_on) call set_on_off (rfcavity$, lat, off$)
 call twiss_and_track (lat, closed_orb)
 
 ! Bunch init
 
-call ran_seed_put (ran_seed)
 call init_bunch_distribution (lat%ele(ix_ele_start), lat%param, beam_init, 0, bunch, err_flag)
 if (err_flag) stop
 
