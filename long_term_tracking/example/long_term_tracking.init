@@ -7,6 +7,8 @@
   turn_by_turn_dat_file = 'turn.dat'    ! Turn-by-turn data file. Blank ('') => no file generated.
   rfcavity_on = F
 
+  ran_seed = 0                          ! Random number seed. 0 => use system clock.
+
   snapshot_dat_file = 'snap#.dat'
   snapshot_every_n_turns = 200
 

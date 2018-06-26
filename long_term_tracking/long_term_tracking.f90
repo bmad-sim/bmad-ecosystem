@@ -12,7 +12,7 @@ type (coord_struct), allocatable :: closed_orb(:)
 
 real(rp) time0, time
 
-integer ix_ele_start, n_turns
+integer ix_ele_start, n_turns, ran_seed
 integer i, n, ie, snapshot_every_n_turns
 logical err_flag, rfcavity_on
 
@@ -40,6 +40,7 @@ end_dat_file = ''
 turn_by_turn_dat_file = ''
 snapshot_every_n_turns = -1
 snapshot_dat_file = ''
+ran_seed = 0
 
 print '(2a)', 'Initialization file: ', trim(init_file)
 
@@ -55,6 +56,7 @@ call twiss_and_track (lat, closed_orb)
 
 ! Bunch init
 
+call ran_seed_put (ran_seed)
 call init_bunch_distribution (lat%ele(ix_ele_start), lat%param, beam_init, 0, bunch, err_flag)
 if (err_flag) stop
 
