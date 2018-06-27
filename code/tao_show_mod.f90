@@ -218,7 +218,7 @@ character(16) spin_fmt, t_fmt, twiss_fmt, disp_fmt, str1, str2
 character(24) show_name, show2_name, what_to_print
 character(24) :: var_name, blank_str = '', phase_units_str
 character(24)  :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
-character(40) ele_name, sub_name, ele1_name, ele2_name
+character(40) ele_name, sub_name, ele1_name, ele2_name, aname
 character(40) replacement_for_blank
 character(60) nam, attrib_list(20), attrib
 character(100) :: word1, fmt, fmt2, fmt3, switch
@@ -246,7 +246,7 @@ integer, allocatable :: ix_c(:)
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited, show_labels
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
-logical show_all, name_found, print_taylor, print_em_field, print_attributes, print_ran_state
+logical show_all, name_found, print_taylor, print_em_field, print_attributes, print_ran_state, err_flag
 logical print_global, print_optimization, print_bmad_com, print_csr_param, print_ptc, print_position
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
@@ -1442,7 +1442,7 @@ case ('global')
   enddo
 
   if (print_global) then
-    nl=nl+1; lines(nl) = 'Global parameters [Note: To print optimizer globals use: "show optimizer"]'
+    nl=nl+1; lines(nl) = 'Tao Global parameters [Note: To print optimizer globals use: "show optimizer"]'
     nl=nl+1; write(lines(nl), lmt) '  %beam_timer_on                 = ', s%global%beam_timer_on
     nl=nl+1; write(lines(nl), imt) '  %bunch_to_plot                 = ', s%global%bunch_to_plot
     nl=nl+1; write(lines(nl), lmt) '  %command_file_print_on         = ', s%global%command_file_print_on
@@ -1546,6 +1546,15 @@ case ('global')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'PTC_com Parameters:'
     nl=nl+1; write(lines(nl), imt) '  %taylor_order_ptc               = ', ptc_com%taylor_order_ptc
+
+    if (allocated(lat%custom)) then
+      nl=nl+1; lines(nl) = 'Custom lattice parameters defined in lattice file:'
+      do i = 1, size(lat%custom)
+        aname = attribute_name(def_parameter$, i+custom_attribute0$)
+        if (aname(1:1) == '!') cycle
+        nl= nl+1; write (lines(nl), rmt), '  parameter[' // trim(aname) // ']: ', lat%custom(i)
+      enddo
+    endif
   endif
 
   if (print_csr_param) then
@@ -3564,8 +3573,7 @@ case ('universe')
   nl=nl+1; write(lines(nl), amt) 'photon_type:            ', photon_type_name(lat%photon_type)
   nl=nl+1; write(lines(nl), amt) 'Geometry:               ', geometry_name(branch%param%geometry)
   nl=nl+1; write(lines(nl), lmt) 'global%rf_on:           ', s%global%rf_on
-  nl=nl+1; write(lines(nl), imt) &
-                'Elements used in tracking: From 1 through ', branch%n_ele_track
+  nl=nl+1; write(lines(nl), imt) 'Elements used in tracking: From 1 through ', branch%n_ele_track
   if (branch%n_ele_max > branch%n_ele_track) then
     nl=nl+1; write(lines(nl), '(a, i0, a, i0)') 'Lord elements:   ', &
                       branch%n_ele_track+1, '  through ', branch%n_ele_max
@@ -3594,6 +3602,15 @@ case ('universe')
       result_id = 'universe:unstable'
       return
     endif
+  endif
+
+  if (allocated(lat%custom)) then
+    nl=nl+1; lines(nl) = 'Custom lattice parameters defined in lattice file:'
+    do i = 1, size(lat%custom)
+      aname = attribute_name(def_parameter$, i+custom_attribute0$)
+      if (aname(1:1) == '!') cycle
+      nl= nl+1; write (lines(nl), rmt), '  parameter[' // trim(aname) // ']: ', lat%custom(i)
+    enddo
   endif
  
   call radiation_integrals (lat, tao_branch%orbit, tao_branch%modes, tao_branch%ix_rad_int_cache)

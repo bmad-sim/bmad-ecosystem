@@ -1123,7 +1123,8 @@ Format:
   set global <component> = <value>
 \end{example}
 
-For \vn{set global}: The \vn{show global} command will give a list of \vn{<component>}s.
+The \vn{set global} command sets global parameters of \tao.
+The \vn{show global} command will give a list of global parameters.
 
 Example:
 \begin{example}
@@ -1848,21 +1849,15 @@ Syntax:
   show global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
 \end{example}
 
-
-The \vn{show global} command, used without any optional switches,
-shows information on the global parameter structure
-(\sref{s:globals}). The optional switches are
-  \begin{description}
-  \item[-bmad_com] \Newline
-Displays \vn{bmad_com} components (\sref{s:globals}).
-  \item[-csr_param] \Newline
-Displays \vn{csr_param} components (\sref{s:globals}).
-  \item[-optimization] \Newline
-Displays optimization parameters.
-  \item[-ran_state] \Newline
-Displays the state of the random number generator. Use this with the
-\vn{set ran_state} command.
-  \end{description}
+The \vn{show global} command prints lists of global parameters. 
+Specifically:
+\begin{example}
+  show global               ! Displays \tao's global parameters.
+  show global -bmad_com     ! Displays \vn{bmad_com} components (\sref{s:globals}).
+  show global -csr_param    ! Displays \vn{csr_param} components (\sref{s:globals}).
+  show global -optimization ! Displays optimization parameters.
+  show global -ran_state    ! Displays the state of the random number generator.
+\end{example}
 
 %% show graph --------------------------------------------------------------
 
