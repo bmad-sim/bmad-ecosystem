@@ -12,7 +12,7 @@ use write_lat_file_mod
 
 implicit none
 
-type (lat_struct), target :: lat
+type (lat_struct), target :: lat, lat2
 type (ele_struct), pointer :: ele
 type (ele_struct) ele2
 type (all_pointer_struct) a_ptr
@@ -98,8 +98,12 @@ call write_bmad_lattice_file ('overlap_out.bmad', lat)
 !
 
 call bmad_parser ('parse_test.bmad', lat)
-call write_bmad_lattice_file ('write_parser_test.bmad', lat)
+lat2 = lat
+call write_bmad_lattice_file ('write_parser_test.bmad', lat2)
 call bmad_parser ('write_parser_test.bmad', lat)
+call bmad_parser ('write_parser_test.bmad', lat)   ! To read digested file
+
+write (1, '(a, es12.4)') '"parameter[abc]" ABS 0 ', lat%custom(2)
 
 call pointer_to_attribute (lat%ele(1), 'QQQ', .true., a_ptr, err)
 write (1, '(a, f8.4)')  '"zzz"                                   ABS 0', a_ptr%r
