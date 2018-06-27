@@ -93,7 +93,7 @@ character(4000) line
 character(2000) line2
 character(200) wake_name, file_name, path, basename
 character(200), allocatable :: sr_wake_name(:), lr_wake_name(:)
-character(100), allocatable :: list(:)
+character(100), allocatable :: name_list(:)
 character(100) string
 character(60) alias
 character(40) name, look_for, attrib_name
@@ -109,7 +109,7 @@ integer i, j, k, n, ix, iu, im, ix_ptr, iu2, iuw, ios, ixs, n_sr, n_lr, ix1, ie,
 integer unit(6), n_names, ix_match, ie2, id1, id2, id3, j1, j2, ip, it
 integer ix_slave, ix_ss, ix_l, ix_r, ix_pass
 integer ix_lord, ix_super, default_val, imax, ibr
-integer, allocatable :: an_indexx(:)
+integer, allocatable :: an_indexx(:), index_list(:)
 
 logical, optional :: err
 logical unit_found, write_term, found, in_multi_region, expand_branch_out
@@ -156,12 +156,21 @@ if (path == '') path = '.'
 
 ! Custom attribute names
 
-call custom_ele_attrib_name_list(list)
-do i = 1, size(list)
-  alias = list(i)
-  ix = index(alias, '=')
-  write (iu, '(4a)') 'parameter[', alias(1:ix-1), '] = ', trim(alias(ix+1:))
+call custom_ele_attrib_name_list(index_list, name_list)
+do i = 1, size(index_list)
+  write (iu, '(a, i0, 2a)') 'parameter[custom_attribute', index_list(i), '] = ', trim(name_list(i))
 enddo
+
+! Global custom attribute values
+
+if (allocated(lat%custom)) then
+  write (iu, '(a)') 
+  do i = 1, size(lat%custom)
+    name = attribute_name(def_parameter$, i+custom_attribute0$)
+    if (name(1:1) == '!') cycle
+    write (iu, '(4a)'), 'parameter[', trim(name), '] = ', trim(re_str(lat%custom(i)))
+  enddo
+endif
 
 ! Non-elemental stuff
 

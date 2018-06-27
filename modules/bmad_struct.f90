@@ -17,7 +17,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 219
+integer, parameter :: bmad_inc_version$ = 221
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1247,6 +1247,7 @@ type lat_struct
   type (photon_reflect_surface_struct), pointer :: surface(:) => null()
   type (coord_struct) beam_start                  ! Starting coords
   type (pre_tracker_struct) pre_tracker           ! For OPAL/IMPACT-T
+  real(rp), allocatable :: custom(:)              ! Custom attributes.
   integer :: version = -1                         ! Version number
   integer :: n_ele_track                          ! Number of lat elements to track through.
   integer :: n_ele_max                            ! Index of last valid element in %ele(:) array

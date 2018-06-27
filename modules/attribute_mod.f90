@@ -2535,11 +2535,16 @@ key = 0
 ix = index(custom_str, '::')
 if (ix /= 0) then
   a_str = custom_str(ix+2:)
-  key = key_name_to_key_index(custom_str(1:ix-1), .true.)
-  if (key < 1) then
-    call out_io (s_error$, r_name, 'ELEMENT CLASS NOT RECOGNIZED: ' // custom_name)
-    return
-  endif
+  select case (custom_str(1:ix-1))
+  case ('PARAMETER')
+    key = def_parameter$
+  case default
+    key = key_name_to_key_index(custom_str(1:ix-1), .true.)
+    if (key < 1) then
+      call out_io (s_error$, r_name, 'ELEMENT CLASS NOT RECOGNIZED: ' // custom_name)
+      return
+    endif
+  end select
 endif
 
 ! Check custom name for invalid characters
@@ -2632,32 +2637,35 @@ end subroutine set_custom_attribute_name
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine custom_ele_attrib_name_list (list)
+! Subroutine custom_ele_attrib_name_list (index_list, name_list)
 !
-! Routine to create a list of custom element attribute names.
-! Each element in the list is a string of the form:
-!   "custom_attribute<N>={<class>::}<attribute_name>"
+! Routine to create an array (index_list(i), name_list(i)) of custom element attribute names and indexes.
+! Each name in the name_list is of the form:
+!   "{<class>::}<attribute_name>"
 ! where:
-!   <N> is an integer.
 !   <class>:: is an optional class prefix.
 !   <attribute_name> is the name of the attribute.
 !
 ! Output:
-!   list(:)   -- character(100), allocatable: List of custom attributes.
+!   index_list(:) -- integer, allocatable: Index of the custom attribute.
+!   name_list(:)  -- character(*), allocatable: List of custom attributes.
 !-
 
-subroutine custom_ele_attrib_name_list (list)
+subroutine custom_ele_attrib_name_list (index_list, name_list)
 
 implicit none
 
+integer, allocatable :: index_list(:)
 integer n, j, ic, icc, is, n_name(n_key$)
 
-character(*), allocatable :: list(:)
-character(40) common_name
+character(*), allocatable :: name_list(:)
+character(40) common_name, k_name
 
 !
 
-if (.not. allocated(list)) allocate(list(40))
+call re_allocate(name_list, 10)
+call re_allocate(index_list, 10)
+
 n = 0  ! Number of elements in the list
 
 !
@@ -2671,27 +2679,34 @@ do ic = 1, custom_attribute_num$
   if (attribute_name(null_ele$, icc) /= null_name$) then
     common_name = attribute_name(null_ele$, icc)
     n = n + 1
-    if (n > size(list)) call re_allocate(list, n+20)
-    write (list(n), '(a, i0, 2a)') 'custom_attribute', ic, '=', common_name
+    if (n > size(name_list)) call re_allocate(name_list, n+10)
+    if (n > size(index_list)) call re_allocate(index_list, n+10)
+    index_list(n) = ic
+    name_list(n) = common_name
   endif
 
   ! For not common attributes
 
   do is = 1, n_key$
     select case (is)
-    case (def_parameter$, def_mad_beam$, def_bmad_com$, def_beam_start$, line_ele$); cycle
+    case (def_mad_beam$, def_bmad_com$, def_beam_start$, line_ele$); cycle
     end select
     if (attribute_name(is, icc) == null_name$) cycle
     if (attribute_name(is, icc) == common_name) cycle
     n = n + 1
-    if (n > size(list)) call re_allocate(list, n+20)
-    write (list(n), '(a, i0, 4a)') 'custom_attribute', ic, '=', trim(key_name(is)), '::', attribute_name(is, icc)
+    if (n > size(name_list)) call re_allocate(name_list, n+10)
+    if (n > size(index_list)) call re_allocate(index_list, n+10)
+    k_name = key_name(is)
+    if (is == def_parameter$) k_name = 'Parameter'   ! Not "def_parameter"
+    index_list(n) = ic
+    name_list(n) = trim(k_name) // '::' // attribute_name(is, icc)
   enddo
 enddo
 
 !
 
-call re_allocate(list, n)
+call re_allocate(index_list, n)
+call re_allocate(name_list, n)
 
 end subroutine custom_ele_attrib_name_list
 

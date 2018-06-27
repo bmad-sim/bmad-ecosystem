@@ -25,6 +25,7 @@ type lat_struct
   type (photon_reflect_surface_struct), pointer :: surface(:) => null()
   type (coord_struct) beam_start          ! Starting coords
   type (pre_tracker_struct) pre_tracker   ! For OPAL/IMPACT-T
+  real(rp), allocatable :: custom(:)      ! Custom attributes.
   integer version                         ! Version number
   integer n_ele_track                     ! Number of lat elements to track through.
   integer n_ele_max                       ! Index of last valid element in %ele(:) array
@@ -819,3 +820,21 @@ holding the information obtained from \vn{beam_start} statements
 This component is not used in any standard \bmad calculation. It is up
 to an individual program to use as desired.
 
+%----------------------------------------------------------------------------
+\section{Custom Parameters}
+\label{s:lat.custom}
+
+Custom parameters defined for the lattice as a whole (\sref{s:cust.att} are stored in
+\vn{lat%custom}. The following shows how to print a table of the custom parameters
+\begin{example}
+  type (lat_struct) lat
+  character(80) aname
+  ...
+  if (allocated(lat%custom)) then
+    do i = 1, size(lat%custom)
+      aname = attribute_name(def_parameter$, i+custom_attribute0$)
+      if (aname(1:1) == '!') cycle    ! Ignore non-existant parameters
+      print '(a, es12.4)', '  parameter[' // trim(aname) // '] = ', lat%custom(i)
+    enddo
+  endif
+\end{example}

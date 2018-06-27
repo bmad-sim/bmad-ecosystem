@@ -5,7 +5,8 @@ use em_field_mod
 use spin_mod
 
 type runge_kutta_common_struct
-  integer :: num_steps_done        ! Number of integration steps. Not used by Bmad. For external use.
+  integer :: num_steps_done = -1              ! Number of integration steps. Not used by Bmad. For external use.
+  logical :: calc_field_derivatives = .false. ! Experimental: For use with extensions to the spin BMT equation that involve field derivatives.
 end type
 
 type (runge_kutta_common_struct), save :: runge_kutta_com
@@ -572,10 +573,10 @@ real(rp) e_tot, dt_ds_ref, p0, beta0, v2, pz_p0
 
 integer rel_dir
 
-logical :: err
+logical :: err, calc_dfield
 logical, optional :: print_err
 
-character(24), parameter :: r_name = 'kick_vector_calc'
+character(*), parameter :: r_name = 'kick_vector_calc'
 
 ! Init
 ! The effective reference velocity is different from the velocity of the reference particle for wigglers where the 
@@ -601,19 +602,20 @@ rel_dir = ele%orientation * orbit%direction
 ! Calculate the field. 
 ! Note: Field is in frame of element. When ele%orientation = -1 => +z in -s direction.
 
+calc_dfield = runge_kutta_com%calc_field_derivatives
 if (ele%key == patch$) then
   ! Particle going towards an end uses the coordinate of that end.
   ! But the field is specified in the exit end coords so must transform if particle is traveling towards the entrance end.
   if (rel_dir == 1) then
-    call em_field_calc (ele, param, s_body, orbit, .true., field, .false., err, err_print_out_of_bounds = print_err)
+    call em_field_calc (ele, param, s_body, orbit, .true., field, calc_dfield, err, err_print_out_of_bounds = print_err)
   else
 !    call patch_transform_coords (orbit, orbit2, w_mat)
-    call em_field_calc (ele, param, s_body, orbit, .true., field, .false., err, err_print_out_of_bounds = print_err)
+    call em_field_calc (ele, param, s_body, orbit, .true., field, calc_dfield, err, err_print_out_of_bounds = print_err)
 !    call rotate_em_field (field, w, w, .false.)
   endif
 
 else
-  call em_field_calc (ele, param, s_body, orbit, .true., field, .false., err, err_print_out_of_bounds = print_err)
+  call em_field_calc (ele, param, s_body, orbit, .true., field, calc_dfield, err, err_print_out_of_bounds = print_err)
 endif
 
 if (err) return

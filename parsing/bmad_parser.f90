@@ -126,7 +126,7 @@ if (.not. err .and. .not. bp_com%always_parse) then
 
   else
     if (present(digested_read_ok)) digested_read_ok = .true.
-    call parser_end_stuff (.false.)
+    call parser_end_stuff (in_lat, .false.)
     return
   endif
 endif
@@ -150,7 +150,7 @@ call out_io (s_info$, r_name, 'Parsing lattice file(s). This might take a minute
 call parser_file_stack('init')
 call parser_file_stack('push', lat_file, finished, err)  ! open file on stack
 if (err) then
-  call parser_end_stuff (.false.)
+  call parser_end_stuff (in_lat, .false.)
   return
 endif
 
@@ -340,7 +340,7 @@ parsing_loop: do
   if (word_1(:ix_word) == 'CALL') then
     call get_called_file(delim, call_file, xsif_called, err)
     if (err) then
-      call parser_end_stuff ()
+      call parser_end_stuff (in_lat)
       return
     endif
 
@@ -387,7 +387,7 @@ parsing_loop: do
   if (word_1(:ix_word) == 'RETURN' .or.  word_1(:ix_word) == 'END_FILE') then
     call parser_file_stack ('pop', ' ', finished, err)
     if (err) then
-      call parser_end_stuff ()
+      call parser_end_stuff (in_lat)
       return
     endif
     if (finished) exit parsing_loop ! break loop
@@ -550,7 +550,7 @@ parsing_loop: do
   call get_next_word(word_2, ix_word, ':=,', delim, delim_found, .true.)
   if (ix_word == 0) then
     call parser_error ('NOTHING FOUND AFTER: ' // word_1)
-    call parser_end_stuff 
+    call parser_end_stuff (in_lat)
     return
   endif
 
@@ -588,7 +588,7 @@ parsing_loop: do
     sequence(iseq_tot)%name = word_1
     sequence(iseq_tot)%multipass = multipass
 
-    call new_element_init(err)
+    call new_element_init (in_lat, err)
     ele => in_lat%ele(n_max)
 
     if (delim /= '=') call parser_error ('EXPECTING: "=" BUT GOT: ' // delim)
@@ -613,7 +613,7 @@ parsing_loop: do
   !-------------------------------------------------------
   ! if not line or list then must be an element
 
-  call new_element_init(err)
+  call new_element_init (in_lat, err)
   if (err) cycle parsing_loop
 
   ! Check for valid element key name or if element is part of a element key.
@@ -695,7 +695,7 @@ parsing_loop: do
 enddo parsing_loop       ! main parsing loop
 
 if (bp_com%fatal_error_flag) then
-  call parser_end_stuff
+  call parser_end_stuff (in_lat)
   return
 endif
 
@@ -744,7 +744,7 @@ endif
 
 if (lat%use_name == blank_name$) then
   call parser_error ('NO "USE" STATEMENT FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
-  call parser_end_stuff ()
+  call parser_end_stuff (in_lat)
   return
 endif
 
@@ -771,7 +771,7 @@ branch_loop: do i_loop = 1, n_branch_max
     call parser_expand_line (lat, this_branch_name, sequence, in_name, in_indexx, seq_name, seq_indexx, &
                                                             in_lat, n_ele_use, is_true(param_ele%value(no_end_marker$)))
     if (bp_com%fatal_error_flag) then
-      call parser_end_stuff (.false.)
+      call parser_end_stuff (in_lat, .false.)
       return
     endif
     is_photon_fork = .false.
@@ -809,11 +809,11 @@ branch_loop: do i_loop = 1, n_branch_max
     lat%z                       = in_lat%z
     lat%absolute_time_tracking  = in_lat%absolute_time_tracking
     lat%input_taylor_order      = in_lat%input_taylor_order
+    if (allocated(in_lat%custom)) lat%custom = in_lat%custom
 
     call mat_make_unit (lat%ele(0)%mat6)
     call clear_lat_1turn_mats (lat)
 
-    
     if (mad_beam_ele%value(n_part$) /= 0 .and. param_ele%value(n_part$) /= 0) &
                                                        call parser_error ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
     lat%param%n_part = max(mad_beam_ele%value(n_part$), param_ele%value(n_part$))
@@ -945,7 +945,7 @@ branch_loop: do i_loop = 1, n_branch_max
   call settable_dep_var_bookkeeping(ele0)
 
   if (bp_com%error_flag) then
-    call parser_end_stuff ()
+    call parser_end_stuff (in_lat)
     return
   endif
 
@@ -975,7 +975,7 @@ branch_loop: do i_loop = 1, n_branch_max
 
   if (i_loop == n_branch_max) then
     call parser_error ('1000 BRANCHES GENERATED. LOOKS LIKE AN ENDLESS LOOP')
-    call parser_end_stuff ()
+    call parser_end_stuff (in_lat)
     return
   endif 
 
@@ -1106,7 +1106,7 @@ call s_calc(lat)
 call lat_sanity_check (lat, err)
 if (err) then
   bp_com%error_flag = .true.
-  call parser_end_stuff
+  call parser_end_stuff (in_lat)
   return
 endif
 
@@ -1122,7 +1122,7 @@ call set_flags_for_changed_attribute(lat)
 call lattice_bookkeeper (lat, err)
 if (err) then
   bp_com%error_flag = .true.
-  call parser_end_stuff
+  call parser_end_stuff (in_lat)
   return
 endif
 
@@ -1183,7 +1183,7 @@ if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, ix_branch = -1)
 
 call create_concatenated_wall3d (lat, err)
 if (err) then
-  call parser_end_stuff (.false.)
+  call parser_end_stuff (in_lat, .false.)
   return
 endif
 
@@ -1209,7 +1209,7 @@ endif
 call lat_sanity_check (lat, err)
 if (err) bp_com%error_flag = .true.
 
-call parser_end_stuff ()
+call parser_end_stuff (in_lat)
 
 if (bp_com%extra%ran_function_was_called) then
   call out_io(s_warn$, r_name, &
@@ -1220,8 +1220,9 @@ endif
 !---------------------------------------------------------------------
 contains
 
-subroutine parser_end_stuff (do_dealloc)
+subroutine parser_end_stuff (lat0, do_dealloc)
 
+type (lat_struct) lat0
 logical, optional :: do_dealloc
 integer i, j
 
@@ -1278,7 +1279,7 @@ do i = 1, lat%n_ele_max
   endif
 enddo
 
-call deallocate_lat_pointers(in_lat)
+call deallocate_lat_pointers(lat0)
 
 bp_com%parser_name = ''
 
@@ -1287,8 +1288,9 @@ end subroutine parser_end_stuff
 !---------------------------------------------------------------------
 ! contains
 
-subroutine new_element_init (err)
+subroutine new_element_init (lat0, err)
 
+type (lat_struct) lat0
 logical err, added
 
 !
@@ -1302,20 +1304,20 @@ endif
 err = .false.
 
 n_max = n_max
-if (n_max >= ubound(in_lat%ele, 1)) then
-  call allocate_lat_ele_array (in_lat)
-  call re_allocate2 (in_name, 0, ubound(in_lat%ele, 1))
-  call re_allocate2 (in_indexx, 0, ubound(in_lat%ele, 1))
-  call allocate_plat (plat, ubound(in_lat%ele, 1))
+if (n_max >= ubound(lat0%ele, 1)) then
+  call allocate_lat_ele_array (lat0)
+  call re_allocate2 (in_name, 0, ubound(lat0%ele, 1))
+  call re_allocate2 (in_indexx, 0, ubound(lat0%ele, 1))
+  call allocate_plat (plat, ubound(lat0%ele, 1))
 endif
 
-in_lat%ele(n_max+1)%name = word_1
+lat0%ele(n_max+1)%name = word_1
 call find_indexx (word_1, in_name, 0, in_indexx, n_max, ix, add_to_list = .true., has_been_added = added)
 if (.not. added) then
   call parser_error ('DUPLICATE ELEMENT, LINE, OR LIST NAME: ' // word_1)
 endif
 
-in_lat%ele(n_max)%ixx = n_max  ! Pointer to plat%ele() array
+lat0%ele(n_max)%ixx = n_max  ! Pointer to plat%ele() array
 
 plat%ele(n_max)%lat_file = bp_com%current_file%full_name
 plat%ele(n_max)%ix_line_in_file = bp_com%current_file%i_line
