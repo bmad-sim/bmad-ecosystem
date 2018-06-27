@@ -398,40 +398,46 @@ may be set using the syntax as discussed in Section \sref{s:ele.names}. Example:
 \label{s:cust.att}
 \index{element attributes!defining custom attributes}
 
-Real scalar and vector custom element attributes may be defined for any class of element.  Custom
-element attributes are useful with programs that need to associate ``extra'' information with
-particular lattice elements and it is desired that this extra information be settable from within a
-lattice file. For example, a program might need error tolerance for the strength of quadrupoles.
+Real scalar and vector custom element attributes may be defined for any class of element and real
+scaler parameters can be defined for the lattice as a whole.  Custom element attributes are useful
+with programs that need to associate ``extra'' information with particular lattice elements or the
+lattice itself and it is desired that this extra information be settable from within a lattice
+file. For example, a program might need an error tolerance for the strength of quadrupoles.
 
 Adding custom attributes will not disrupt programs that are not designed to use the custom
 attributes. Currently, up to 40 named custom attributes may be defined for any given element
 class. The syntax for defining custom attributes is:
 \begin{example}
-  parameter[custom_attributeN] = \{class::\}attribute_name
+  parameter[custom_attributeN] = \{class_name::\}attribute_name
 \end{example}
-Where ``\vn{N}'' is an integer between 1 and 40 and
-"\vn{attribute_name}" is the name of the attribute. To restrict the
-custom attribute to a particular element class, the element class can
-be prefixed to the attribute name. Examples:
+Where ``\vn{N}'' is an integer between 1 and 40 and "\vn{attribute_name}" is the name of the
+attribute. To restrict the custom attribute to a particular element class, the element class can be
+prefixed to the attribute name. To define a global parameter for the lattice, use \vn{parameter}''
+as the class name.
+Examples:
 \begin{example}
   parameter[custom_attribute1] = quadrupole::error_k1
   parameter[custom_attribute1] = mag_id
   parameter[custom_attribute1] = sextupole::error_k2
   parameter[custom_attribute2] = color
+  parameter[custom_attribute2] = parameter::quad_mag_moment
 \end{example}
-The first line in the example assigns, for the first custom attribute group (\vn{custom_attribute1}), a
-name of \vn{error_k1} to all quadrupoles. The second line in the example assigns to the first custom
-attribute group the name \vn{mag_id} to all element classes except quadrupoles since that class of element
-already has an assigned name. The third line assigns, for the first
-custom attribute group, a name of \vn{error_k2} to all sextupoles overriding the \vn{mad_id} name. The
-fourth line in the above example assigns, for the second custom attribute group, a name of \vn{color} to
-all element classes.
+The first line in the example assigns, for the first custom attribute group
+(\vn{custom_attribute1}), a name of \vn{error_k1} to all quadrupoles. The second line in the example
+assigns to the first custom attribute group the name \vn{mag_id} to all element classes except
+quadrupoles since that class of element already has an assigned name. The third line assigns, for
+the first custom attribute group, a name of \vn{error_k2} to all sextupoles overriding the
+\vn{mad_id} name. The fourth line in the above example assigns, for the second custom attribute
+group, a name of \vn{color} to all element classes. Finally, the last line defines a global parameter
+called \vn{quad_mag_moment}.
 
 Once a custom attribute has been defined it may be set for an element
 of the correct class. Example:
 \begin{example}
   parameter[custom_attribute2] = lcavity::rms_phase_err
+  parameter[custom_attribute3] = parameter::cost
   ...
+  parameter[cost] = 140000000
   l2a: lcavity, rms_phase_err = 0.0034, ...
 \end{example}
 Notice that defining the name for a custom attribute must come before its use.

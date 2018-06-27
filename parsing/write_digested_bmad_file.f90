@@ -39,13 +39,14 @@ real(rp) value(num_ele_attrib$)
 
 integer, intent(in), optional :: n_files
 integer d_unit, i, j, k, n, nk, n_file, ix_value(num_ele_attrib$), ierr
-integer stat_b(24), stat, n_wake, n_wall_section
+integer stat_b(24), stat, n_wake, n_wall_section, n_custom
 integer, allocatable :: ix_wake(:)
+integer, allocatable :: index_list(:)
 
 character(*) digested_name
 character(*), optional :: file_names(:)
 character(200) fname, full_digested_name
-character(100), allocatable :: list(:)
+character(100), allocatable :: name_list(:)
 character(*), parameter :: r_name = 'write_digested_bmad_file'
 character(30) time_stamp
 
@@ -95,18 +96,24 @@ enddo
 ! Write the lat structure to the digested file. We do this in pieces
 ! since the whole structure is too big to write in 1 statement.
 
+n_custom = -1
+if (allocated(lat%custom)) n_custom = size(lat%custom)
 write (d_unit) lat%use_name, lat%lattice, lat%input_file_name, lat%title
 write (d_unit) lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track
 write (d_unit) lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, lat%n_ic_max
 write (d_unit) lat%input_taylor_order, lat%absolute_time_tracking, lat%photon_type
-write (d_unit) ubound(lat%branch, 1), lat%pre_tracker
+write (d_unit) ubound(lat%branch, 1), lat%pre_tracker, n_custom
+
+! Global custom
+
+if (n_custom /= -1) write(d_unit) lat%custom
 
 ! custom attribute names
 
-call custom_ele_attrib_name_list(list)
-write (d_unit) size(list)
-do i = 1, size(list)
-  write (d_unit) list(i)
+call custom_ele_attrib_name_list(index_list, name_list)
+write (d_unit) size(index_list)
+do i = 1, size(index_list)
+  write (d_unit) index_list(i), name_list(i)
 enddo
 
 ! Branches

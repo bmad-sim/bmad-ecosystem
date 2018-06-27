@@ -560,6 +560,9 @@ call find_orbit_x (closed_orb%vec, ptc_state, 1.e-8_rp, fibre1 = ptc_fibre)
 ptc_state = ptc_state + ENVELOPE0
 call init_all(ptc_state, 1, 0)
 
+call alloc (id)
+call alloc (xs)
+
 id=1
 xs0=closed_orb%vec
 xs=xs0+id
@@ -632,7 +635,9 @@ type (branch_struct), pointer :: branch
 
 branch => pointer_to_branch(ele)
 
-if (tracking_uses_end_drifts(ele, branch%lat%ptc_uses_hard_edge_drifts)) then
+if (ele%ix_ele == 0) then
+  ref_fibre => branch%ele(1)%ptc_fibre
+elseif (tracking_uses_end_drifts(ele, branch%lat%ptc_uses_hard_edge_drifts)) then
   ref_fibre => ele%ptc_fibre%next%next
 else
   ref_fibre => ele%ptc_fibre%next
@@ -735,21 +740,29 @@ use pointer_lattice
 
 type (branch_struct), target :: branch
 type (spin_linear_matching_struct), allocatable, target :: match_info(:)
-type (spin_linear_matching_struct), pointer :: minfo
+type (spin_linear_matching_struct), pointer :: minfo, info0
 type (ele_struct), pointer :: ele
 type (c_spinor) cspin
 type (internal_state) ptc_state
 type (fibre), pointer :: ptc_fibre, fib_now, fib_next
 type (layout), pointer :: ptc_layout
-type (c_damap) id, u, u_c
-type (probe_8) xs
-type (probe) xs0
+type (c_damap) ptc_cdamap, u, u_c
+type (probe_8) p8_1turn, p8_ele
+type (probe) ptc_probe
 type (c_normal_form) cc_norm
+type (real_8) r8
 type (q_linear) q0, q2, q_invar, q_nonlin, q_x, q_y, q_z, l_axis, m_axis, q_rot, q_lin
+type (taylor_struct) spin_taylor
 
-real(rp) spin_tune(2), phase(3)
+type quat1_struct
+  real(rp) q(0:3)
+end type
+type (quat1_struct) qr(6)
 
-integer i, order
+real(rp) spin_tune(2), phase(3), quat(0:3), mat3(3,3)
+real(rp) quat0(4), quat_lmn_to_xyz(4), quat0_lmn_to_xyz(4)
+
+integer i, k, p, order
 
 logical rf_on
 
@@ -788,17 +801,21 @@ call find_orbit_x (minfo%orb0, ptc_state, 1.e-8_rp, fibre1 = ptc_fibre)
 
 call init_all(ptc_state, 1, 0)   ! Only need first order map for this analysis
 
-call alloc(id)
-call alloc(xs)
+call alloc(ptc_cdamap)
+call alloc(p8_1turn)
+call alloc(p8_ele)
 call alloc(cc_norm)
 
-id = 1
-xs0 = minfo%orb0
-xs = xs0 + id
-call track_probe(xs, ptc_state, fibre1 = ptc_fibre)
-id = xs
+ptc_cdamap = 1
+ptc_probe = minfo%orb0
 
-call c_normal(id, cc_norm, dospin = .true.)
+p8_1turn = ptc_probe + ptc_cdamap
+p8_ele   = ptc_probe + ptc_cdamap
+
+call track_probe(p8_1turn, ptc_state, fibre1 = ptc_fibre)
+
+ptc_cdamap = p8_1turn
+call c_normal(ptc_cdamap, cc_norm, dospin = .true.)
 
 call alloc(cspin)
 call quaternion_to_matrix_in_c_damap (cc_norm%as)
@@ -807,18 +824,28 @@ cspin = cc_norm%as%s * cspin
 
 !
 
-xs = xs0 + cc_norm%atot
+p8_1turn = ptc_probe + cc_norm%atot
+ptc_cdamap = 1
 fib_now => ptc_fibre
+
 do i = 0, branch%n_ele_track
   if (i /= 0) then
     fib_next => pointer_to_ptc_ref_fibre(branch%ele(i))
-    call track_probe(xs, ptc_state, fibre1 = fib_now, fibre2 = fib_next)
+    p8_ele = ptc_cdamap
+    p8_ele%x = p8_1turn%x
+
+    call track_probe(p8_1turn, ptc_state, fibre1 = fib_now, fibre2 = fib_next)
+    call track_probe(p8_ele, ptc_state, fibre1 = fib_now, fibre2 = fib_next)
+
     fib_now => fib_next
   endif
 
   minfo => match_info(i)
 
-  u = xs
+  !!!!!!!!!!!!!!!!!!!!!!!!!!! minfo%m_mat = p8_ele 
+  minfo%orb0 = p8_1turn%x
+
+  u = p8_1turn
   call c_fast_canonise (u, u_c, q_c = q_lin, phase = phase, q_rot = q_rot, spin_tune = spin_tune, dospin = .true.)
 
   minfo%n0 = q_lin%q(1:3,0)
@@ -831,20 +858,57 @@ do i = 0, branch%n_ele_track
   minfo%alpha = q_nonlin%q(1,1:6)
   minfo%beta = q_nonlin%q(3,1:6)
 
-  l_axis = q0 * q_x * q0**(-1) 
+  l_axis = q0 * q_x * q0**(-1)
   m_axis = q0 * q_z * q0**(-1)
 
   minfo%l_axis = l_axis%q(1:3,0)
   minfo%m_axis = m_axis%q(1:3,0)
 
-  xs0 = xs
-  xs = xs0 + u_c
+  !
+
+  if (i /= 0) then
+
+    mat3(:,1) = minfo%l_axis
+    mat3(:,2) = minfo%n0
+    mat3(:,3) = minfo%m_axis
+    quat_lmn_to_xyz = w_mat_to_quat(mat3)
+
+    info0 => match_info(i-1)
+    mat3(:,1) = info0%l_axis
+    mat3(:,2) = info0%n0
+    mat3(:,3) = info0%m_axis
+    quat0_lmn_to_xyz = w_mat_to_quat(mat3)
+
+    do k = 0, 3
+      spin_taylor = p8_ele%q%x(k)%t
+      quat0(k) = taylor_coef(spin_taylor, [0,0,0,0,0,0])
+      do p = 1, 6
+        qr(p)%q(k) = taylor_coef(spin_taylor, taylor_expn([p]))
+      enddo
+    enddo
+
+    quat0 = quat0 / norm2(quat0)
+    mat3 = quat_to_w_mat(quat0)
+    minfo%D_mat = mat3(1:2,1:2)
+
+    do p = 1, 6
+      qr(p)%q = quat_mul(quat_mul(quat_inverse(quat_lmn_to_xyz), qr(p)%q), quat0_lmn_to_xyz)
+      minfo%G_mat(:,p) = 0
+    enddo
+
+  endif
+
+  !
+
+  ptc_probe = p8_1turn
+  p8_1turn = ptc_probe + u_c
 enddo
 
 !
 
-call kill (id)
-call kill (xs)
+call kill (ptc_cdamap)
+call kill (p8_1turn)
+call kill (p8_ele)
 call kill (cc_norm)
 call kill (cspin)
 

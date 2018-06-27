@@ -48,6 +48,7 @@ type (grid_field_struct), pointer :: g_field
 type (taylor_field_struct), pointer :: t_field
 type (all_pointer_struct) a_ptr
 type (branch_struct), pointer :: branch
+type (lat_struct), pointer :: lat
 
 real(rp), pointer :: ptr_attrib, r(:,:,:)
 
@@ -412,14 +413,26 @@ if (ix_a > custom_attribute0$ .and. ix_a <= custom_attribute0$+custom_attribute_
   if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) return
 
   n = ix_a - custom_attribute0$
-  if (.not. associated(ele%custom)) then
-    if (.not. do_allocation) return
-    call re_associate(ele%custom, custom_attribute_ubound_index(ele%key), .true., 0.0_rp)
+  if (ele%key == def_parameter$) then
+    lat => branch%lat
+    if (.not. allocated(lat%custom)) then
+      if (.not. do_allocation) return
+      call re_allocate(lat%custom, custom_attribute_ubound_index(ele%key), .true., 0.0_rp)
+    else
+      if (size(lat%custom) < n .and. .not. do_allocation) return
+      if (size(lat%custom) < n) call re_allocate(lat%custom, custom_attribute_ubound_index(ele%key), .true., 0.0_rp)
+    endif
+    a_ptr%r => lat%custom(n)
   else
-    if (size(ele%custom) < n .and. .not. do_allocation) return
-    if (size(ele%custom) < n) call re_associate(ele%custom, custom_attribute_ubound_index(ele%key), .true., 0.0_rp)
+    if (.not. associated(ele%custom)) then
+      if (.not. do_allocation) return
+      call re_associate(ele%custom, custom_attribute_ubound_index(ele%key), .true., 0.0_rp)
+    else
+      if (size(ele%custom) < n .and. .not. do_allocation) return
+      if (size(ele%custom) < n) call re_associate(ele%custom, custom_attribute_ubound_index(ele%key), .true., 0.0_rp)
+    endif
+    a_ptr%r => ele%custom(n)
   endif
-  a_ptr%r => ele%custom(n)
   err_flag = .false.
   return
 endif

@@ -504,6 +504,15 @@ else
   if (allocated(lat_out%ic)) deallocate (lat_out%ic)
 endif
 
+! handle lat%custom array
+
+if (allocated(lat_in%custom)) then
+  call re_allocate(lat_out%custom, size(lat_in%custom))
+  lat_out%custom = lat_in%custom
+else
+  if (allocated(lat_out%custom)) deallocate (lat_out%custom)
+endif
+
 ! non-pointer transfer
 
 call transfer_lat_parameters (lat_in, lat_out)

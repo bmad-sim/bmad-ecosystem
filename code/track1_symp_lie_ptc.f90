@@ -3,7 +3,7 @@
 !
 ! Particle tracking through a single element using a hamiltonian
 ! and a symplectic integrator. This uses Etienne's PTC code. For a 
-! "native" BMAD version see track1_symnp_lie_bmad.
+! "native" BMAD version see track1_symp_lie_bmad.
 !
 ! Modules Needed:
 !   use bmad

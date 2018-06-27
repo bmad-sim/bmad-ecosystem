@@ -48,14 +48,14 @@ real(rp) value(num_ele_attrib$)
 
 integer inc_version, d_unit, n_files, file_version, i, j, k, ix, ix_value(num_ele_attrib$)
 integer stat_b(13), stat_b2, stat_b8, stat_b10, n_branch, n, nk, control_type, coupler_at
-integer ierr, stat, ios, ios2, n_wall_section, garbage, j1, j2, io_err_level
+integer ierr, stat, ios, ios2, n_wall_section, garbage, j1, j2, io_err_level, n_custom
+integer, allocatable :: index_list(:)
 
 character(*) digested_file
 character(200) fname_read, fname_versionless, fname_full
 character(200) input_file_name, full_digested_file, digested_prefix_in, digested_prefix_out
 character(200), allocatable :: file_names(:)
-character(100), allocatable :: list(:)
-character(60) p_name
+character(100), allocatable :: name_list(:)
 character(*), parameter :: r_name = 'read_digested_bmad_file'
 
 logical, optional :: err_flag, parser_calling
@@ -179,14 +179,21 @@ read (d_unit, err = 9030) lat%use_name, lat%lattice, lat%input_file_name, lat%ti
 read (d_unit, err = 9030) lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track
 read (d_unit, err = 9030) lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, lat%n_ic_max
 read (d_unit, err = 9030) lat%input_taylor_order, lat%absolute_time_tracking, lat%photon_type
-read (d_unit, err = 9070) n_branch, lat%pre_tracker
+read (d_unit, err = 9070) n_branch, lat%pre_tracker, n_custom
+
+! Global custom
+
+if (n_custom > -1) then
+  call re_allocate(lat%custom, n_custom)
+  read (d_unit, err = 9070) lat%custom
+endif
 
 ! custom attribute names
 
 read (d_unit, err = 9035) n
-allocate(list(n))
+allocate(index_list(n), name_list(n))
 do i = 1, n
-  read (d_unit, err = 9035) list(i)
+  read (d_unit, err = 9035) index_list(i), name_list(i)
 enddo
 
 ! Allocate lat%ele, lat%control and lat%ic arrays
@@ -320,18 +327,8 @@ endif
 ! there is an error.
 
 if (.not. err_found) then
-  do i = 1, size(list)
-    p_name = list(i)
-    ix = index(p_name, '=')
-
-    read(p_name(17:ix-1), *, iostat = ios) k
-    if (ios /= 0) then
-      call out_io(s_error$, r_name, 'ERROR PARSING CUSTOM_ATTRIBUTE: ' // p_name)
-      close (d_unit)
-      return
-    endif
-
-    call set_custom_attribute_name(p_name(ix+1:), err, k)
+  do i = 1, size(index_list)
+    call set_custom_attribute_name(name_list(i), err, index_list(i))
     if (err) err_found = .true.
   enddo
 endif
