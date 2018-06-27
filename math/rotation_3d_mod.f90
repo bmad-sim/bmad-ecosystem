@@ -123,6 +123,57 @@ end function w_mat_to_quat
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
+! Function quat_to_w_mat (quat) result (w_mat)
+!
+! Routine to construct the 3D rotation matrix w_mat given a rotation quaternion
+!
+! Module needed:
+!   use rotation_3d_mod
+!
+! Input:
+!   quat(4)    -- real(rp): Quaternion.
+!
+! Output:
+!   w_mat(3,3) -- real(rp): Rotation matrix
+!-
+
+function quat_to_w_mat (quat) result (w_mat)
+
+real(rp) quat(0:3), w_mat(3,3)
+real(rp) sq1, sqx, sqy, sqz, invs, tmp1, tmp2
+
+sq1 = quat(0) * quat(0)
+sqx = quat(1) * quat(1)
+sqy = quat(2) * quat(2)
+sqz = quat(3) * quat(3)
+
+! invs (inverse square length) is only required if quaternion is not already normalised
+
+invs = 1 / (sqx + sqy + sqz + sq1)
+w_mat(1,1) = ( sqx - sqy - sqz + sq1) * invs ! since sq1 + sqx + sqy + sqz =1/invs * invs
+w_mat(2,2) = (-sqx + sqy - sqz + sq1) * invs
+w_mat(3,3) = (-sqx - sqy + sqz + sq1) * invs
+
+tmp1 = quat(1) * quat(2)
+tmp2 = quat(3) * quat(0)
+w_mat(2,1) = 2.0_rp * (tmp1 + tmp2) * invs
+w_mat(1,2) = 2.0_rp * (tmp1 - tmp2) * invs
+
+tmp1 = quat(1) * quat(3)
+tmp2 = quat(2) * quat(0)
+w_mat(3,1) = 2.0_rp * (tmp1 - tmp2) * invs
+w_mat(1,3) = 2.0_rp * (tmp1 + tmp2) * invs
+tmp1 = quat(2) * quat(3)
+tmp2 = quat(1) * quat(0)
+w_mat(3,2) = 2.0_rp * (tmp1 + tmp2) * invs
+w_mat(2,3) = 2.0_rp * (tmp1 - tmp2) * invs    
+
+end function quat_to_w_mat
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
 ! Subroutine axis_angle_to_w_mat (axis, angle, w_mat)
 !
 ! Routine to construct the 3D rotation matrix w_mat given an axis of rotation
