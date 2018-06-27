@@ -7,10 +7,12 @@ beam, energy =   +5.28900
 parameter[p0c] = +1e12
 
 a_mom = anomalous_moment_of(parameter[particle])
-!!! cc = charge_of(deuteron)
 
 parameter[custom_attribute3] = 'zzz'
 parameter[custom_attribute2] = 'quadrupole::qqq'
+parameter[custom_attribute2] = 'parameter::abc'
+
+parameter[abc] = 17
 
 bmad_com[max_aperture_limit] = 23.5
 bmad_com[ptc_max_fringe_order] = -1
