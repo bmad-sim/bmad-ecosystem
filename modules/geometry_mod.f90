@@ -1135,8 +1135,9 @@ type (ele_struct), pointer :: ele1
 type (branch_struct), pointer :: branch
 
 real(rp), optional :: w_mat(3,3)
-real(rp) w_mat0(3,3), w_mat1(3,3)
-integer status, last_direction, ix_ele, n_try
+real(rp) w_mat0(3,3), w_mat1(3,3), ds_now, ds_old
+
+integer status, this_stat, last_direction, ix_ele, n_try
 character(*), parameter :: r_name = 'coords_floor_to_curvilinear'
 
 ! Loop over neighboring elements until an encompassing one is found
@@ -1145,10 +1146,14 @@ branch => ele0%branch
 ix_ele = ele0%ix_ele
 last_direction = 0
 n_try = 0
+ds_now = 0
+status = ok$
 
 do
+  n_try = n_try + 1
   ele1 => branch%ele(ix_ele)
-  local_coords = coords_floor_to_local_curvilinear (floor_coords, ele1, status) 
+  local_coords = coords_floor_to_local_curvilinear (floor_coords, ele1, this_stat) 
+
   if (ele1%key == patch$) then
     local_coords%r(3) = ele1%value(downstream_ele_dir$) * local_coords%r(3) + ele1%s
   elseif (ele1%orientation == 1) then
@@ -1156,19 +1161,21 @@ do
   else
     local_coords%r(3) = ele1%value(l$) - local_coords%r(3) + ele1%s_start
   endif
-  if (status == inside$) exit
-  n_try = n_try + 1
 
   ! No good so look for a problem and keep on searching if warranted
 
-  if (status == upstream_end$) then
-    if (n_try >= branch%n_ele_track .or. (ix_ele == 1 .and. branch%param%geometry == open$)) then
+  ds_old = ds_now
+
+  if (this_stat == upstream_end$) then
+    ds_now = local_coords%r(3) - ele1%s_start
+   
+    if (n_try > branch%n_ele_track .or. (ix_ele == 1 .and. branch%param%geometry == open$)) then
       status = outside$
       return
     endif
 
     if (last_direction == 1) then ! endless loop detected
-      call no_convergence_calc (branch, ix_ele-1, ix_ele, status)
+      call no_convergence_calc (branch, ix_ele-1, ix_ele, ds_old, ds_now, status)
       return
     endif
 
@@ -1178,14 +1185,18 @@ do
     last_direction = -1
     cycle
 
-  else if (status == downstream_end$) then
-    if (n_try >= branch%n_ele_track .or. (ix_ele == branch%n_ele_track .and. branch%param%geometry == open$)) then
+  !
+
+  else if (this_stat == downstream_end$) then
+    ds_now = local_coords%r(3) - ele1%s
+
+    if (n_try > branch%n_ele_track .or. (ix_ele == branch%n_ele_track .and. branch%param%geometry == open$)) then
       status = outside$
       return
     endif
 
     if (last_direction == -1) then ! endless loop detected
-      call no_convergence_calc (branch, ix_ele, ix_ele+1, status)
+      call no_convergence_calc (branch, ix_ele, ix_ele+1, ds_now, ds_old, status)
       return
     endif
 
@@ -1195,36 +1206,48 @@ do
     last_direction = 1
     cycle
 
+  ! This element contains position
   else 
-    ! This element contains position
     exit
   end if  
 enddo
 
 ! Optionally return rotation matrix
+
 if (present(w_mat) ) then
   w_mat = matmul(transpose(local_coords%W), floor_coords%W)
 endif
 
-status = ok$
-
 !---------------------------------------------------------------------------
 contains
 
-subroutine no_convergence_calc (branch, ie1, ie2, status)
+subroutine no_convergence_calc (branch, ie1, ie2, ds1, ds2, status)
 
 type (branch_struct), target :: branch
 type (ele_struct), pointer :: elem1, elem2
 type (floor_position_struct) pos1, pos2
 
-integer ie1, ie2, status, stat
+real(rp) ds1, ds2
+integer ie1, ie2, status, this_stat
+
+! Check if roundoff errors are throwing off the calculation
+
+elem1 => branch%ele(ie1)
+elem2 => branch%ele(ie2)
+
+if (10*abs(ds1) < bmad_com%significant_length .and. 10*abs(ds2) < bmad_com%significant_length) then
+  if (abs(ds1) < abs(ds2)) then
+    local_coords = coords_floor_to_local_curvilinear (floor_coords, elem1, this_stat)
+  else
+    local_coords = coords_floor_to_local_curvilinear (floor_coords, elem1, this_stat)
+  endif
+  status = ok$
+  return
+endif
 
 !
 
 status = patch_problem$
-
-elem1 => branch%ele(ie1)
-elem2 => branch%ele(ie2)
 
 if (elem1%key /= patch$ .and. elem2%key /= patch$) then
   call out_io (s_fatal$, r_name, 'CANNOT FIND CORRESPONDING LOCAL POSITION')
@@ -1233,14 +1256,14 @@ if (elem1%key /= patch$ .and. elem2%key /= patch$) then
 endif
 
 if (elem1%key == patch$ .and. ele1%orientation == 1) then
-  pos1 = coords_floor_to_local_curvilinear (floor_coords, branch%ele(ie1-1), stat)
+  pos1 = coords_floor_to_local_curvilinear (floor_coords, branch%ele(ie1-1), this_stat)
   pos1%r(3) = floor_coords%r(3) - elem1%value(z_offset$)
 else
-  pos1 = coords_floor_to_local_curvilinear (floor_coords, elem1, stat)
+  pos1 = coords_floor_to_local_curvilinear (floor_coords, elem1, this_stat)
   pos1%r(3) = pos1%r(3) - elem1%value(l$)
 endif
 
-pos2 = coords_floor_to_local_curvilinear (floor_coords, elem2, stat)
+pos2 = coords_floor_to_local_curvilinear (floor_coords, elem2, this_stat)
 
 if (abs(pos1%r(3)) < abs(pos2%r(3))) then
   local_coords = pos1
