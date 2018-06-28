@@ -762,7 +762,7 @@ type (branch_struct), pointer :: branch
 
 integer ix_branch, i_ele_from, i_br_from
 
-character(24) :: r_name = "tao_inject_particle"
+character(*), parameter :: r_name = "tao_inject_particle"
 
 ! Not main branch case
 
@@ -795,7 +795,11 @@ orb_out => model%tao_branch(ix_branch)%orbit(0)
 
 call init_coord (orb_out, orb_in, branch%ele(0), downstream_end$, default_tracking_species(branch%param), 1, orb_in%p0c)
 
-orb_out%spin = u%beam%beam_init%spin
+if (any(orb_out%spin /= 0) .and. any(u%beam%beam_init%spin /= 0)) then
+  call out_io (s_error$, r_name, 'INITIAL SPIN IS SET BOTH IN LATTICE FILE AND IN BEAM_INIT NAMELIST!', &
+                                 'USING BEAM_INIT VALUES.')
+endif
+if (any(u%beam%beam_init%spin /= 0)) orb_out%spin = u%beam%beam_init%spin
 
 end subroutine tao_inject_particle
 

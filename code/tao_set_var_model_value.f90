@@ -64,9 +64,10 @@ do i = 1, size(var%slave)
 
   lat => u%model%lat
   if (var%ele_name == 'BEAM_START') then
-    u%model%tao_branch(0)%orb0%vec = lat%beam_start%vec
-    u%model%tao_branch(0)%orb0%t   = lat%beam_start%t
-    u%model%tao_branch(0)%orb0%p0c = lat%beam_start%p0c
+    u%model%tao_branch(0)%orb0%vec  = lat%beam_start%vec
+    u%model%tao_branch(0)%orb0%t    = lat%beam_start%t
+    u%model%tao_branch(0)%orb0%p0c  = lat%beam_start%p0c
+    u%model%tao_branch(0)%orb0%spin = lat%beam_start%spin
   else
     ele => lat%branch(var_slave%ix_branch)%ele(var_slave%ix_ele)
     call set_flags_for_changed_attribute (ele, var_slave%model_value)
