@@ -29,16 +29,19 @@ character(*) ele_name
 ! Beam_start. 
 
 if (ele_name == 'BEAM_START') then
-  u%beam%beam_init%center            = u%model%lat%beam_start%vec
+  u%beam%beam_init%center             = u%model%lat%beam_start%vec
 
-  u%model%tao_branch(0)%orbit(0)%vec = u%model%lat%beam_start%vec
-  u%model%tao_branch(0)%orb0%vec     = u%model%lat%beam_start%vec
+  u%model%tao_branch(0)%orbit(0)%vec  = u%model%lat%beam_start%vec
+  u%model%tao_branch(0)%orb0%vec      = u%model%lat%beam_start%vec
 
-  u%model%tao_branch(0)%orbit(0)%t   = u%model%lat%beam_start%t
-  u%model%tao_branch(0)%orb0%t       = u%model%lat%beam_start%t
+  u%model%tao_branch(0)%orbit(0)%t    = u%model%lat%beam_start%t
+  u%model%tao_branch(0)%orb0%t        = u%model%lat%beam_start%t
 
-  u%model%tao_branch(0)%orbit(0)%p0c   = u%model%lat%beam_start%p0c
-  u%model%tao_branch(0)%orb0%p0c       = u%model%lat%beam_start%p0c
+  u%model%tao_branch(0)%orbit(0)%p0c  = u%model%lat%beam_start%p0c
+  u%model%tao_branch(0)%orb0%p0c      = u%model%lat%beam_start%p0c
+
+  u%model%tao_branch(0)%orbit(0)%spin = u%model%lat%beam_start%spin
+  u%model%tao_branch(0)%orb0%spin     = u%model%lat%beam_start%spin
 
   u%beam%init_beam0 = .true.
 endif
