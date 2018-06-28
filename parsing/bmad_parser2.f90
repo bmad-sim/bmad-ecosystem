@@ -583,12 +583,6 @@ if (ix1 /= lat%param%particle .and. ix2 /= lat%param%particle) &
 lat%param%particle = ix1
 if (ix2 /=  lat%param%particle) lat%param%particle = ix2
 
-! Spin
-
-call lat_ele_locator ('BEAM_START', lat, eles, n_loc, err)
-if (n_loc /= 1 .or. err) call err_exit
-call parser_set_spin (eles(1)%ele, lat%beam_start)
-
 ! Transfer the new elements to a safe_place and reset lat%n_max
 
 ele_num = n_max - n_max_old - n_def_ele

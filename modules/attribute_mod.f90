@@ -813,14 +813,6 @@ call init_attribute_name1 (beginning_ele$, cmat_22_begin$,               'CMAT_2
 call init_attribute_name1 (beginning_ele$, s_long$,                      'S')
 call init_attribute_name1 (beginning_ele$, ref_time$,                    'REF_TIME')
 
-call init_attribute_name1 (beginning_ele$, spin_x$,                  'spin_x', private$)
-call init_attribute_name1 (beginning_ele$, spin_y$,                  'spin_y', private$)
-call init_attribute_name1 (beginning_ele$, spin_z$,                  'spin_z', private$)
-call init_attribute_name1 (beginning_ele$, spinor_theta$,            'spinor_theta', private$)
-call init_attribute_name1 (beginning_ele$, spinor_phi$,              'spinor_phi', private$)
-call init_attribute_name1 (beginning_ele$, spinor_xi$,               'spinor_xi', private$)
-call init_attribute_name1 (beginning_ele$, spinor_polarization$,     'spinor_polarization', private$)
-
 attrib_array(line_ele$, :) = attrib_array(beginning_ele$, :)
 call init_attribute_name1 (line_ele$, particle$,                    'PARTICLE')
 call init_attribute_name1 (line_ele$, live_branch$,                 'LIVE_BRANCH')
@@ -905,10 +897,6 @@ call init_attribute_name1 (def_beam_start$, e_photon$,                'E_PHOTON'
 call init_attribute_name1 (def_beam_start$, spin_x$,                  'SPIN_X')
 call init_attribute_name1 (def_beam_start$, spin_y$,                  'SPIN_Y')
 call init_attribute_name1 (def_beam_start$, spin_z$,                  'SPIN_Z')
-call init_attribute_name1 (def_beam_start$, spinor_theta$,            'SPINOR_THETA')
-call init_attribute_name1 (def_beam_start$, spinor_phi$,              'SPINOR_PHI')
-call init_attribute_name1 (def_beam_start$, spinor_xi$,               'SPINOR_XI')
-call init_attribute_name1 (def_beam_start$, spinor_polarization$,     'SPINOR_POLARIZATION')
 call init_attribute_name1 (def_beam_start$, emittance_a$,             'EMITTANCE_A')
 call init_attribute_name1 (def_beam_start$, emittance_b$,             'EMITTANCE_B')
 call init_attribute_name1 (def_beam_start$, emittance_z$,             'EMITTANCE_Z')
@@ -1803,7 +1791,7 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
       'KICK', 'MAX_NUM_RUNGE_KUTTA_STEP', 'NOISE', 'N_PART', 'N_POLE', 'N_SAMPLE', 'N_SLICE_SPLINE', 'OSC_AMPLITUDE', &
       'POLARITY', 'PX', 'PX0', 'PX1', 'PX_REF', 'PY', 'PY0', 'PY1', 'PY_REF', 'PZ', 'PZ0', 'PZ1', 'PZ_REF', &
       'RAN_SEED', 'REF_CAP_GAMMA', 'REL_TOL_ADAPTIVE_TRACKING', 'REL_TOL_TRACKING', 'SIG_E', 'SIG_VX', 'SIG_VY', &
-      'SPINOR_POLARIZATION', 'SPIN_X', 'SPIN_Y', 'SPIN_Z', 'TRANSVERSE_SIGMA_CUT', 'VKICK', &
+      'SPIN_X', 'SPIN_Y', 'SPIN_Z', 'TRANSVERSE_SIGMA_CUT', 'VKICK', &
       'X_PITCH', 'Y_PITCH', 'X_PITCH_MULT', 'Y_PITCH_MULT', 'X_PITCH_TOT', 'Y_PITCH_TOT', 'AUTOSCALE_AMP_REL_TOL')
   attrib_units = ''
 
@@ -1830,7 +1818,7 @@ case ('ANGLE', 'BEND_TILT', 'BRAGG_ANGLE', 'BRAGG_ANGLE_IN', 'BRAGG_ANGLE_OUT', 
       'COUPLER_ANGLE', 'CRITICAL_ANGLE', 'CRUNCH', 'CRUNCH_CALIB', 'DARWIN_WIDTH_PI', 'DARWIN_WIDTH_SIGMA', &
       'DPHI_A', 'DPHI_B', 'DPHI_ORIGIN', 'DPSI_ORIGIN', 'DTHETA_ORIGIN', 'E1', 'E2', 'GRAZE_ANGLE', & 
       'PHASE_X', 'PHASE_Y', 'PHI_A', 'PHI_B', 'PHI_POSITION', 'PSI_ANGLE', 'PSI_POSITION', 'QUAD_TILT', &
-      'REF_TILT', 'REF_TILT_TOT', 'ROLL', 'ROLL_TOT', 'SPINOR_PHI', 'SPINOR_THETA', 'SPINOR_XI', 'THETA_POSITION', &
+      'REF_TILT', 'REF_TILT_TOT', 'ROLL', 'ROLL_TOT', 'THETA_POSITION', &
       'TILT', 'TILT_CALIB', 'TILT_CORR', 'TILT_TOT', 'GRAZE_ANGLE_IN', 'GRAZE_ANGLE_OUT', &
       'T0', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', &
       'T12', 'T13', 'T14', 'T15', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21')

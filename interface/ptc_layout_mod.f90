@@ -53,7 +53,7 @@ end subroutine type_ptc_layout
 ! Subroutine lat_to_ptc_layout (lat, use_hard_edge_drifts)
 !
 ! Subroutine to create a PTC layout from a Bmad lattice branch.
-! Note: If lat_to_ptc_layout has already been setup, you should first do a 
+! Note: If lat_to_ptc_layout has already been setup, you should first do a
 !           call kill_ptc_layouts(lat)
 ! This deallocates the pointers in PTC
 !
@@ -760,7 +760,7 @@ end type
 type (quat1_struct) qr(6)
 
 real(rp) spin_tune(2), phase(3), quat(0:3), mat3(3,3)
-real(rp) quat0(4), quat_lmn_to_xyz(4), quat0_lmn_to_xyz(4)
+real(rp) quat0(0:3), quat_lmn_to_xyz(0:3), quat0_lmn_to_xyz(0:3), qq(0:3)
 
 integer i, k, p, order
 
@@ -819,7 +819,7 @@ call c_normal(ptc_cdamap, cc_norm, dospin = .true.)
 
 call alloc(cspin)
 call quaternion_to_matrix_in_c_damap (cc_norm%as)
-cspin = 2
+cspin = 2   ! n0 axis is nominally vertical.
 cspin = cc_norm%as%s * cspin
 
 !
@@ -867,7 +867,6 @@ do i = 0, branch%n_ele_track
   !
 
   if (i /= 0) then
-
     mat3(:,1) = minfo%l_axis
     mat3(:,2) = minfo%n0
     mat3(:,3) = minfo%m_axis
@@ -889,13 +888,13 @@ do i = 0, branch%n_ele_track
 
     quat0 = quat0 / norm2(quat0)
     mat3 = quat_to_w_mat(quat0)
-    minfo%D_mat = mat3(1:2,1:2)
+    minfo%D_mat = mat3(1:3:2,1:3:2)
 
     do p = 1, 6
-      qr(p)%q = quat_mul(quat_mul(quat_inverse(quat_lmn_to_xyz), qr(p)%q), quat0_lmn_to_xyz)
-      minfo%G_mat(:,p) = 0
+      qq = quat_mul(quat_mul(quat_inverse(quat_lmn_to_xyz), qr(p)%q), quat0_lmn_to_xyz)
+      minfo%G_mat(1,p) = 2 * (quat0(1)*qq(2) + quat0(2)*qq(1) - quat0(0)*qq(3) - quat0(3)*qq(0))
+      minfo%G_mat(2,p) = 2 * (quat0(0)*qq(1) + quat0(1)*qq(0) + quat0(2)*qq(3) + quat0(3)*qq(2))
     enddo
-
   endif
 
   !

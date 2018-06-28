@@ -1389,10 +1389,10 @@ integer, parameter :: cmat_12$ = 28
 integer, parameter :: floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29
 integer, parameter :: cmat_21$ = 29, l_sagitta$ = 29
 integer, parameter :: dtheta_origin$ = 30, b_param$ = 30, transverse_sigma_cut$ = 30, l_chord$ = 30
-integer, parameter :: downstream_ele_dir$ = 30, cmat_22$ = 30, spinor_theta$ = 30
-integer, parameter :: l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31, ds_slice$ = 31, spinor_phi$ = 31
-integer, parameter :: field_autoscale$ = 32, dpsi_origin$ = 32, t_offset$ = 32, spinor_xi$ = 32
-integer, parameter :: angle$ = 33, n_cell$ = 33, x_ray_line_len$ = 33, spinor_polarization$ = 33
+integer, parameter :: downstream_ele_dir$ = 30, cmat_22$ = 30
+integer, parameter :: l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31, ds_slice$ = 31
+integer, parameter :: field_autoscale$ = 32, dpsi_origin$ = 32, t_offset$ = 32
+integer, parameter :: angle$ = 33, n_cell$ = 33, x_ray_line_len$ = 33
 integer, parameter :: x_pitch$ = 34
 integer, parameter :: y_pitch$ = 35  
 integer, parameter :: x_offset$ = 36

@@ -51,8 +51,6 @@ case (beambeam$)
 case (beginning_ele$)
   ele%value(e_tot$) = -1
   ele%value(p0c$) = -1
-  ele%value(spinor_polarization$) = 1
-  ele%value(spin_z$) = 1
 
 case (bend_sol_quad$) 
   ele%mat6_calc_method = symp_lie_bmad$
@@ -80,8 +78,6 @@ case (custom$)
   ele%field_calc       = custom$
 
 case (def_beam_start$)
-  ele%value(spinor_polarization$) = 1
-  ele%value(spin_z$) = 1
 
 case (def_mad_beam$)
   ele%value(particle$) = positron$

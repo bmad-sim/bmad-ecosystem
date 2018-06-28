@@ -168,7 +168,7 @@ if (allocated(lat%custom)) then
   do i = 1, size(lat%custom)
     name = attribute_name(def_parameter$, i+custom_attribute0$)
     if (name(1:1) == '!') cycle
-    write (iu, '(4a)'), 'parameter[', trim(name), '] = ', trim(re_str(lat%custom(i)))
+    write (iu, '(4a)') 'parameter[', trim(name), '] = ', trim(re_str(lat%custom(i)))
   enddo
 endif
 
