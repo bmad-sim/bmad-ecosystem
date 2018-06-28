@@ -278,8 +278,7 @@ cavity to keep the total length constant. Default is \vn{True}.
 \index{x}\index{px}\index{y}\index{py}\index{z}\index{pz}
 \index{emittance_a}\index{emittance_b}\index{emittance_z}
 \index{field_x}\index{field_y}\index{phase_x}\index{phase_y}
-\index{spin_x}\index{spin_y}\index{spin_z}\index{spinor_theta}
-\index{spinor_phi}\index{spinor_xi}\index{spinor_polarization}
+\index{spin_x}\index{spin_y}\index{spin_z}
 \vn{Beam_start} statements are used, among other things to set the starting coordinates
 for particle tracking. If multiple branches are present (\sref{s:branch.def}), these
 variables pertain to the \vn{root} branch.
@@ -305,10 +304,6 @@ variables pertain to the \vn{root} branch.
   beam_start[spin_x]              = <Real>   ! Spin polarization x-coordinate
   beam_start[spin_y]              = <Real>   ! Spin polarization y-coordinate
   beam_start[spin_z]              = <Real>   ! Spin polarization z-coordinate
-  beam_start[spinor_polarization] = <Real>   ! Spin polarization
-  beam_start[spinor_theta]        = <Real>   ! Spin angle
-  beam_start[spinor_phi]          = <Real>   ! Spin angle
-  beam_start[spinor_xi]           = <Real>   ! Spin angle
 \end{example}
 Normally the absolute time, set by \vn{beam_start[t]}, is a dependent
 parameter set by solving \Eq{zbctt} for $t$. The exception is when the
@@ -322,24 +317,8 @@ to +1 (travel in the +s direction) or -1 for the reverse.  +1 is the default. Ge
 constructed to handle this situation. To track a particle in the reverse direction see
 \sref{s:reverse}. 
 
-For particles with spin, the spin can be specified in one of two ways:
-One way is to specify the $(x, y, z)$ spin components using
-\vn{spin_x}, \vn{spin_y}, and \vn{spin_z}. The second way is by
-specifying the polar angles and magnitude with \vn{spinor_theta},
-\vn{spinor_phi}, \vn{spinor_xi}, and \vn{spinor_polarization}. The
-relationship between the two spin representations is given by
-\Eq{pp1p2}. To prevent ambiguity, only one representation can can be
-used in lattice. The default is
-\begin{example}
-  spinor_polarization = 1
-  spinor_theta        = 0
-  spinor_phi          = 0
-  spinor_xi           = 0
-
-  spin_x              = 0
-  spin_y              = 0
-  spin_z              = 1
-\end{example}
+For particles with spin, the spin can be specified using Cartiesian coordinates with \vn{spin_x},
+\vn{spin_y}, and \vn{spin_z}.
 
 For photons, \vn{px}, \vn{py}, and \vn{pz} are the normalized velocity components
 (Cf.~\Eq{xbybzb}). For photons \vn{pz} is a dependent parameter which will be set

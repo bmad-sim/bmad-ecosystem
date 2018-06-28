@@ -422,6 +422,13 @@ if (ele%key == def_parameter$ .and. word == 'ELECTRIC_DIPOLE_MOMENT') key = def_
 if (ele%key == def_parameter$ .and. word == 'PTC_CUT_FACTOR') key = def_bmad_com$
 if (ele%key == def_parameter$ .and. word == 'USE_HARD_EDGE_DRIFTS') key = def_bmad_com$
 
+
+if (word == 'SPINOR_POLARIZATION' .or. word == 'SPINOR_PHI' .or. word == 'SPINOR_THETA' .or. word == 'SPINOR_XI') then
+  call parser_error ('DUE TO BOOKKEEPING COMPLICATIONS, THE OLD SPINOR ATTRIBUTES NO LONGER EXIST: ' // word, &
+                     'PLEASE CONVERT TO SPIN_X, SPIN_Y, SPIN_Z COMPONENTS.', 'FOR ELEMENT: ' // ele%name)
+  return
+endif
+
 ! beam_start and bmad_com element can have attributes that are not part of the element so
 ! Need to use pointers_to_attribute.
 
@@ -8229,42 +8236,6 @@ end do
 is_ok = .true.
 
 end function parse_real_list2
-
-!----------------------------------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------
-!+
-! Subroutine parser_set_spin (bs_ele, orbit)
-!
-! This subroutine is used by bmad_parser and bmad_parser2.
-! This subroutine is not intended for general use.
-!- 
-
-subroutine parser_set_spin (bs_ele, orbit)
-
-use spin_mod
-
-type (ele_struct) bs_ele    ! beam_start element
-type (coord_struct) orbit   
-type (spin_polar_struct) :: polar
-
-real(rp) vec(3)
-
-!
-
-vec = [bs_ele%value(spin_x$), bs_ele%value(spin_y$), bs_ele%value(spin_z$)]
-polar = spin_polar_struct(bs_ele%value(spinor_polarization$), bs_ele%value(spinor_theta$), &
-                          bs_ele%value(spinor_phi$), bs_ele%value(spinor_xi$))
-
-if (any(vec /= [0, 0, 1])) then
-  if (polar%polarization /= 1 .or. polar%theta /= 0 .or. polar%phi /= 0 .or. polar%xi /= 0) &
-              call parser_error ('ERROR SETTING BEAM_START. BOTH SPIN_X/Y/Z AND SPINOR_XXX QUANTITIES SET!')
-  polar = vec_to_polar (vec)
-endif
-
-orbit%spin = polar_to_vec (polar)
-
-end subroutine parser_set_spin
 
 !--------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------

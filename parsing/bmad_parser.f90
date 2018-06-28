@@ -1110,10 +1110,6 @@ if (err) then
   return
 endif
 
-! Spin
-
-call parser_set_spin (lat%ele(0), lat%beam_start)
-
 ! Bookkeeping...
 ! Must do this before calling bmad_parser2 since after an expand_lattice command the lattice 
 ! file may contain references to dependent element parameters that are computed in lattice_bookkeeper.

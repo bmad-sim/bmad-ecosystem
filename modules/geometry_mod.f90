@@ -1239,7 +1239,7 @@ if (10*abs(ds1) < bmad_com%significant_length .and. 10*abs(ds2) < bmad_com%signi
   if (abs(ds1) < abs(ds2)) then
     local_coords = coords_floor_to_local_curvilinear (floor_coords, elem1, this_stat)
   else
-    local_coords = coords_floor_to_local_curvilinear (floor_coords, elem1, this_stat)
+    local_coords = coords_floor_to_local_curvilinear (floor_coords, elem2, this_stat)
   endif
   status = ok$
   return

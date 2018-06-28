@@ -201,19 +201,11 @@ case ('BEAM_START')
     ptr_array(1)%i => lat%beam_start%direction
 
   case (spin_x$)
-    ptr_array(1)%r => lat%ele(0)%value(spin_x$)
+    ptr_array(1)%r => lat%beam_start%spin(1)
   case (spin_y$)
-    ptr_array(1)%r => lat%ele(0)%value(spin_y$)
+    ptr_array(1)%r => lat%beam_start%spin(2)
   case (spin_z$)
-    ptr_array(1)%r => lat%ele(0)%value(spin_z$)
-  case (spinor_theta$)
-    ptr_array(1)%r => lat%ele(0)%value(spinor_theta$)
-  case (spinor_phi$)
-    ptr_array(1)%r => lat%ele(0)%value(spinor_phi$)
-  case (spinor_xi$)
-    ptr_array(1)%r => lat%ele(0)%value(spinor_xi$)
-  case (spinor_polarization$)
-    ptr_array(1)%r => lat%ele(0)%value(spinor_polarization$)
+    ptr_array(1)%r => lat%beam_start%spin(3)
 
   case (emittance_a$)
     ptr_array(1)%r => lat%a%emit
