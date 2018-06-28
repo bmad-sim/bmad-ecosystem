@@ -31,7 +31,7 @@ integer ix_neg, ix_pos, ix_min_seg_pos, ix_min_seg_neg, ix_pt, dir, itry
 real(rp) len_min_pos, len_min_neg, r_neg, r_pos, r
 real(rp) theta, s_last_pos, s_last_neg
 
-logical pos_go, neg_go, next_to_alley_pos, next_to_alley_neg
+logical pos_go, neg_go, next_to_alley_pos, next_to_alley_neg, pos_at_end, neg_at_end
 
 ! set pointers
 
@@ -45,7 +45,7 @@ dir = ray%direction
 call get_initial_wall_pt (ray, neg_x_wall, ix_neg)
 call get_initial_wall_pt (ray, pos_x_wall, ix_pos)
 
-! 
+! Essentially find the segment with the minimum distance from segment to ray start.
 
 ix_min_seg_pos = -1; len_min_pos = 1e10
 ix_min_seg_neg = -1; len_min_neg = 1e10
@@ -63,7 +63,10 @@ do itry = 1, pos_x_wall%n_pt_max + neg_x_wall%n_pt_max
   ! See if we have hit the end of the machine
 
   if (dir == 1) then
-    if (ix_pos == pos_x_wall%n_pt_max + 1 .and. ix_neg == neg_x_wall%n_pt_max + 1) then
+    pos_at_end = (ix_pos == pos_x_wall%n_pt_max + 1)
+    neg_at_end = (ix_neg == neg_x_wall%n_pt_max + 1)
+
+    if (pos_at_end .and. neg_at_end) then
       if (walls%lat_geometry == open$) then
         ray%wall_side = exit_side$   ! End "wall" at end of lattice
         return
@@ -73,7 +76,10 @@ do itry = 1, pos_x_wall%n_pt_max + neg_x_wall%n_pt_max
     endif
 
   else ! direction = -1
-    if (ix_pos == 0 .and. ix_neg == 0) then
+    pos_at_end = (ix_pos == 0)
+    neg_at_end = (ix_neg == 0)
+
+    if (pos_at_end .and. neg_at_end) then
       if (walls%lat_geometry == open$) then
         ray%wall_side = start_side$  ! End "wall" at beginning of lattice
         return
@@ -85,7 +91,7 @@ do itry = 1, pos_x_wall%n_pt_max + neg_x_wall%n_pt_max
 
   ! Check next pos_x wall point
 
-  if (pos_go .and. (.not. neg_go .or. dir * (s_last_pos - s_last_neg) <=  0)) then
+  if ((pos_go .and. .not. pos_at_end .and. dir * (s_last_pos - s_last_neg) <=  0) .or. .not. neg_go .or. neg_at_end) then
     call check_pt (ray, ix_pos, pos_x_wall, dir, len_min_pos, ix_min_seg_pos, r_pos)
     s_last_pos = pos_x_wall%pt(ix_pos)%s
     if (ix_min_seg_pos /= -1 .and. .not. pos_x_wall%pt(ix_pos)%next_to_alley) pos_go = .false.
