@@ -223,6 +223,7 @@ character(*) :: instr
     case('WIGGLER_PERIODIC1:Time_Runge_Kutta')         ; tolerance = 'ABS 2e-12'
 
     case("OCTUPOLE1-Anti:Runge_Kutta")                 ; tolerance = 'ABS 1e-13'
+    case("LCAVITY3-Anti:Runge_Kutta")                  ; tolerance = 'ABS 2E-13'
     case("RFCAVITY1-Anti:Runge_Kutta")                 ; tolerance = 'ABS 4E-10'
     case("RFCAVITY1-Anti:Time_Runge_Kutta")            ; tolerance = 'ABS 2e-10'
     case("RFCAVITY2-Anti:Runge_Kutta")                 ; tolerance = 'ABS 2E-10'
