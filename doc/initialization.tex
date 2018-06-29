@@ -736,9 +736,7 @@ The syntax of the \vn{tao_beam_init} namelist is:
     beam_init%emit_jitter       = <real>*2     ! Emittance rms jitter (\(d\epsilon/\epsilon\)) 
     beam_init%sig_z_jitter      = <real>       ! bunch length rms jitter (dz/z)
     beam_init%sig_e_jitter      = <real>       ! bunch energy spread rms jitter (dE/E)
-    beam_init%spin%polarization = <real>       ! spin polarization (1.0 = 100%)
-    beam_init%spin%theta        = <real>       ! spin orientation  (polar coordinate)
-    beam_init%spin%phi          = <real>       ! spin orientation  (polar coordinate)
+    beam_init%spin(3)           = <real>*3     ! (x, y, z) spin components.
     beam_init%init_spin         = <logical>    ! Initialize the spin (default: False)
     beam_init%preserve_dist     = <logical>    ! Use the same particle distribution.
     beam_init%random_engine     = "pseudo"     ! random number engine to use

@@ -1552,7 +1552,7 @@ case ('global')
       do i = 1, size(lat%custom)
         aname = attribute_name(def_parameter$, i+custom_attribute0$)
         if (aname(1:1) == '!') cycle
-        nl= nl+1; write (lines(nl), rmt), '  parameter[' // trim(aname) // ']: ', lat%custom(i)
+        nl= nl+1; write (lines(nl), rmt) '  parameter[' // trim(aname) // ']: ', lat%custom(i)
       enddo
     endif
   endif
@@ -3609,7 +3609,7 @@ case ('universe')
     do i = 1, size(lat%custom)
       aname = attribute_name(def_parameter$, i+custom_attribute0$)
       if (aname(1:1) == '!') cycle
-      nl= nl+1; write (lines(nl), rmt), '  parameter[' // trim(aname) // ']: ', lat%custom(i)
+      nl= nl+1; write (lines(nl), rmt) '  parameter[' // trim(aname) // ']: ', lat%custom(i)
     enddo
   endif
  
