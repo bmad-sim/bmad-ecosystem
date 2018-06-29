@@ -567,9 +567,9 @@ type (coord_struct) orbit, orbit2
 
 real(rp), intent(in) :: s_body
 real(rp), intent(out) :: dr_ds(10)
-real(rp) h_bend, g_bend, dt_ds, dp_ds, dbeta_ds
+real(rp) g_bend, dt_ds, dp_ds, dbeta_ds
 real(rp) vel(3), E_force(3), B_force(3), w_mat(3,3)
-real(rp) e_tot, dt_ds_ref, p0, beta0, v2, pz_p0
+real(rp) e_tot, dt_ds_ref, p0, beta0, v2, pz_p0, mc2, delta, dh_bend, rel_pc
 
 integer rel_dir
 
@@ -594,10 +594,10 @@ else
 endif
 
 err = .true.
-dt_ds_ref = ele%orientation * orbit%direction / (beta0 * c_light)
+rel_dir = ele%orientation * orbit%direction
+dt_ds_ref = rel_dir / (beta0 * c_light)
 p0 = ele%value(p0c$) / c_light
 e_tot = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
-rel_dir = ele%orientation * orbit%direction
 
 ! Calculate the field. 
 ! Note: Field is in frame of element. When ele%orientation = -1 => +z in -s direction.
@@ -622,37 +622,45 @@ if (err) return
 
 ! Bend factor
 
-vel(1:2) = [orbit%vec(2), orbit%vec(4)] / (1 + orbit%vec(6))
+delta = orbit%vec(6)
+rel_pc = 1 + delta
+vel(1:2) = [orbit%vec(2), orbit%vec(4)] / rel_pc
 v2 = vel(1)**2 + vel(2)**2
 if (v2 > 0.99999999_rp) return
 vel = orbit%beta * c_light * [vel(1), vel(2), sqrt(1 - v2) * rel_dir]
 E_force = charge_of(orbit%species) * field%E
 B_force = charge_of(orbit%species) * cross_product(vel, field%B)
 
-g_bend = 0
-h_bend = 1 ! Longitudinal distance per unit s-distance. Equal to 1 except when off axis in a bend.
 
 if (ele%key == sbend$) then
   g_bend = ele%value(g$)
-  h_bend = 1 + orbit%vec(1) * g_bend
+  dh_bend = orbit%vec(1) * g_bend
+else
+  g_bend = 0
+  dh_bend = 0 ! Longitudinal distance deviation per unit s-distance. Equal to 0 except when off axis in a bend.
 endif
 
-dt_ds = rel_dir * h_bend / abs(vel(3))
+mc2 = mass_of(orbit%species)
+dt_ds = rel_dir * (1 + dh_bend) / abs(vel(3))
 dp_ds = dot_product(E_force, vel) * dt_ds / (orbit%beta * c_light)
-dbeta_ds = mass_of(orbit%species)**2 * dp_ds * c_light / e_tot**3
-pz_p0 = (1 + orbit%vec(6)) * rel_dir * abs(vel(3)) / (orbit%beta * c_light)  ! Pz / P0
+dbeta_ds = mc2**2 * dp_ds * c_light / e_tot**3
+pz_p0 = rel_pc * rel_dir * abs(vel(3)) / (orbit%beta * c_light)  ! Pz / P0
 
 dr_ds(1) = vel(1) * dt_ds
 dr_ds(2) = (E_force(1) + B_force(1)) * dt_ds / p0 + g_bend * pz_p0
 dr_ds(3) = vel(2) * dt_ds
-dr_ds(4) = (E_force(2) + B_force(2)) * dt_ds / p0 
-dr_ds(5) = orbit%beta * c_light * (dt_ds_ref - dt_ds) + dbeta_ds * orbit%vec(5) / orbit%beta
+dr_ds(4) = (E_force(2) + B_force(2)) * dt_ds / p0
+! Modified dr_ds(5) to reduce roundoff. The old formula is:
+! dr_ds(5) = orbit%beta * c_light * (dt_ds_ref - dt_ds) + dbeta_ds * orbit%vec(5) / orbit%beta
+! Note that beta0 in a wiggler is not the velocity one would calculated based upon the ref energy.
+dr_ds(5) = rel_dir * (orbit%beta / beta0 - 1) + &
+           rel_dir * (sqrt_one(-v2) - dh_bend) / sqrt(1-v2) + dbeta_ds * orbit%vec(5) / orbit%beta
 dr_ds(6) = dp_ds / p0
 dr_ds(7) = dt_ds
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   ! dr_ds(8:10) = Omega/v_z
-  dr_ds(8:10) = rel_dir * h_bend * spin_omega (field, orbit, rel_dir)
+  dr_ds(8:10) = rel_dir * (1 + dh_bend) * spin_omega (field, orbit, rel_dir)
   if (ele%key == sbend$) dr_ds(8:10) = dr_ds(8:10) + [0.0_rp, g_bend, 0.0_rp]
 else
   dr_ds(8:10) = 0
