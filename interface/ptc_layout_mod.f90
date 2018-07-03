@@ -720,7 +720,7 @@ end subroutine ptc_track_all
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine spin_linear_match_info_calc (branch, match_info)
+! Subroutine spin_matching_calc (branch, match_info)
 !
 ! Routine to calculate the G-matrix and other stuff relavent to spin matching.
 !
@@ -730,17 +730,17 @@ end subroutine ptc_track_all
 !   branch          -- branch_struct: Lattice branch to analyze.
 !
 ! Output:
-!   match_info(0:)  -- spin_linear_matching_struct, allocatable: G-matrix and other stuff.
+!   match_info(0:)  -- spin_matching_struct, allocatable: G-matrix and other stuff.
 !                       The array will be allocated by this routine.
 !-
 
-subroutine spin_linear_match_info_calc (branch, match_info)
+subroutine spin_matching_calc (branch, match_info)
 
 use pointer_lattice
 
 type (branch_struct), target :: branch
-type (spin_linear_matching_struct), allocatable, target :: match_info(:)
-type (spin_linear_matching_struct), pointer :: minfo, info0
+type (spin_matching_struct), allocatable, target :: match_info(:)
+type (spin_matching_struct), pointer :: minfo, info0
 type (ele_struct), pointer :: ele
 type (c_spinor) cspin
 type (internal_state) ptc_state
@@ -751,15 +751,15 @@ type (probe_8) p8_1turn, p8_ele
 type (probe) ptc_probe
 type (c_normal_form) cc_norm
 type (real_8) r8
-type (q_linear) q0, q2, q_invar, q_nonlin, q_x, q_y, q_z, l_axis, m_axis, q_rot, q_lin
-type (taylor_struct) spin_taylor
+type (q_linear) q0, q2, n_axis, q_invar, q_nonlin, q_x, q_y, q_z, l_axis, m_axis, q_rot, q_lin
+type (taylor_struct) spin_taylor, bmad_taylor(6)
 
 type quat1_struct
   real(rp) q(0:3)
 end type
 type (quat1_struct) qr(6)
 
-real(rp) spin_tune(2), phase(3), quat(0:3), mat3(3,3)
+real(rp) spin_tune(2), phase(3), quat(0:3), mat3(3,3), vec0(6)
 real(rp) quat0(0:3), quat_lmn_to_xyz(0:3), quat0_lmn_to_xyz(0:3), qq(0:3)
 
 integer i, k, p, order
@@ -801,10 +801,11 @@ call find_orbit_x (minfo%orb0, ptc_state, 1.e-8_rp, fibre1 = ptc_fibre)
 
 call init_all(ptc_state, 1, 0)   ! Only need first order map for this analysis
 
-call alloc(ptc_cdamap)
+call alloc(ptc_cdamap, u, u_c)
 call alloc(p8_1turn)
 call alloc(p8_ele)
 call alloc(cc_norm)
+call alloc(cspin)
 
 ptc_cdamap = 1
 ptc_probe = minfo%orb0
@@ -817,7 +818,6 @@ call track_probe(p8_1turn, ptc_state, fibre1 = ptc_fibre)
 ptc_cdamap = p8_1turn
 call c_normal(ptc_cdamap, cc_norm, dospin = .true.)
 
-call alloc(cspin)
 call quaternion_to_matrix_in_c_damap (cc_norm%as)
 cspin = 2   ! n0 axis is nominally vertical.
 cspin = cc_norm%as%s * cspin
@@ -832,7 +832,6 @@ do i = 0, branch%n_ele_track
   if (i /= 0) then
     fib_next => pointer_to_ptc_ref_fibre(branch%ele(i))
     p8_ele = ptc_cdamap
-    p8_ele%x = p8_1turn%x
 
     call track_probe(p8_1turn, ptc_state, fibre1 = fib_now, fibre2 = fib_next)
     call track_probe(p8_ele, ptc_state, fibre1 = fib_now, fibre2 = fib_next)
@@ -841,15 +840,23 @@ do i = 0, branch%n_ele_track
   endif
 
   minfo => match_info(i)
+  minfo = spin_matching_struct()
 
-  !!!!!!!!!!!!!!!!!!!!!!!!!!! minfo%m_mat = p8_ele 
   minfo%orb0 = p8_1turn%x
 
-  u = p8_1turn
-  call c_fast_canonise (u, u_c, q_c = q_lin, phase = phase, q_rot = q_rot, spin_tune = spin_tune, dospin = .true.)
+  bmad_taylor = p8_ele%x
+  call taylor_to_mat6 (bmad_taylor, [0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp], vec0, minfo%m_ele(1:6,1:6))
 
-  minfo%n0 = q_lin%q(1:3,0)
-  minfo%dn_ddelta = q_lin%q(1:3,6)
+  bmad_taylor = p8_1turn%x
+  call taylor_to_mat6 (bmad_taylor, [0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp], vec0, minfo%m_1turn(1:6,1:6))
+
+  u = p8_1turn
+
+  q_invar = u%q * u
+  q2 = q_invar * q_y * q_invar**(-1)
+  minfo%dn_ddelta = q2%q(1:3,6)
+
+  call c_fast_canonise (u, u_c, q_c = q_lin, phase = phase, q_rot = q_rot, spin_tune = spin_tune, dospin = .true.)
 
   q0 = q_lin
   q0%q(0:3,1:6) = 0
@@ -859,9 +866,11 @@ do i = 0, branch%n_ele_track
   minfo%beta = q_nonlin%q(3,1:6)
 
   l_axis = q0 * q_x * q0**(-1)
+  n_axis = q0 * q_y * q0**(-1)
   m_axis = q0 * q_z * q0**(-1)
 
   minfo%l_axis = l_axis%q(1:3,0)
+  minfo%n0     = n_axis%q(1:3,0)
   minfo%m_axis = m_axis%q(1:3,0)
 
   !
@@ -878,6 +887,8 @@ do i = 0, branch%n_ele_track
     mat3(:,3) = info0%m_axis
     quat0_lmn_to_xyz = w_mat_to_quat(mat3)
 
+    !
+
     do k = 0, 3
       spin_taylor = p8_ele%q%x(k)%t
       quat0(k) = taylor_coef(spin_taylor, [0,0,0,0,0,0])
@@ -888,12 +899,32 @@ do i = 0, branch%n_ele_track
 
     quat0 = quat0 / norm2(quat0)
     mat3 = quat_to_w_mat(quat0)
-    minfo%D_mat = mat3(1:3:2,1:3:2)
+    minfo%M_ele(7:8,7:8) = mat3(1:3:2,1:3:2)
 
     do p = 1, 6
       qq = quat_mul(quat_mul(quat_inverse(quat_lmn_to_xyz), qr(p)%q), quat0_lmn_to_xyz)
-      minfo%G_mat(1,p) = 2 * (quat0(1)*qq(2) + quat0(2)*qq(1) - quat0(0)*qq(3) - quat0(3)*qq(0))
-      minfo%G_mat(2,p) = 2 * (quat0(0)*qq(1) + quat0(1)*qq(0) + quat0(2)*qq(3) + quat0(3)*qq(2))
+      minfo%M_ele(7,p) = 2 * (quat0(1)*qq(2) + quat0(2)*qq(1) - quat0(0)*qq(3) - quat0(3)*qq(0))
+      minfo%M_ele(8,p) = 2 * (quat0(0)*qq(1) + quat0(1)*qq(0) + quat0(2)*qq(3) + quat0(3)*qq(2))
+    enddo
+
+    !
+
+    do k = 0, 3
+      spin_taylor = p8_1turn%q%x(k)%t
+      quat0(k) = taylor_coef(spin_taylor, [0,0,0,0,0,0])
+      do p = 1, 6
+        qr(p)%q(k) = taylor_coef(spin_taylor, taylor_expn([p]))
+      enddo
+    enddo
+
+    quat0 = quat0 / norm2(quat0)
+    mat3 = quat_to_w_mat(quat0)
+    minfo%M_1turn(7:8,7:8) = mat3(1:3:2,1:3:2)
+
+    do p = 1, 6
+      qq = quat_mul(quat_mul(quat_inverse(quat_lmn_to_xyz), qr(p)%q), quat0_lmn_to_xyz)
+      minfo%M_1turn(7,p) = 2 * (quat0(1)*qq(2) + quat0(2)*qq(1) - quat0(0)*qq(3) - quat0(3)*qq(0))
+      minfo%M_1turn(8,p) = 2 * (quat0(0)*qq(1) + quat0(1)*qq(0) + quat0(2)*qq(3) + quat0(3)*qq(2))
     enddo
   endif
 
@@ -906,6 +937,8 @@ enddo
 !
 
 call kill (ptc_cdamap)
+call kill (u)
+call kill (u_c)
 call kill (p8_1turn)
 call kill (p8_ele)
 call kill (cc_norm)
@@ -915,7 +948,7 @@ use_bmad_units = .false.
 if (.not. rf_on) ndpt_bmad = 0
 call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
-end subroutine spin_linear_match_info_calc
+end subroutine spin_matching_calc
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
