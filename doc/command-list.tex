@@ -609,7 +609,7 @@ The \vn{re_execute} command reruns prior commands.  Format:
 
 \vskip 10pt 
 Every \tao command entered is recorded in a ``history stack''. These
-commands can be viewed using the \vn{show history} command. The \vn{show_history}
+commands can be viewed using the \vn{show history} command. The \vn{show history}
 command will also display the index number associated with each command.
 
 Examples
@@ -1899,9 +1899,10 @@ change this. Setting \vn{<num_to_display>} to \vn{all}  will cause all the comma
 
 Use the command \vn{re_execute} (\sref{s:re.exe}) to re-execute a command. 
 
-
 If a command file has been called, the commands within the command file will be displayed
 but will be proceeded by an exclamation mark ``!'' to show that the command was not ``directly'' executed.
+
+Note: Commands from previous sessions of \tao are saved in the file \vn{~/.history_tao}.
 
 Examples
 \begin{example}

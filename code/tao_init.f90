@@ -17,6 +17,7 @@ use tao_lattice_calc_mod, dummy5 => tao_init
 use tao_plot_mod, dummy6 => tao_init
 use tao_data_and_eval_mod, dummy7 => tao_init
 use tao_command_mod, dummy8 => tao_init
+use input_mod
 
 implicit none
 
@@ -40,7 +41,7 @@ character(40) name1, name2
 character(16) :: r_name = 'tao_init'
 character(16) init_name
 
-integer i, j, i2, j2, n_universes, iu, ix, n_arg, ib, ip, ios
+integer i, j, i2, j2, n_universes, iu, ix, n_arg, ib, ip, ios, stat
 integer iu_log
 
 logical err, calc_ok, valid_value, this_calc_ok
@@ -50,6 +51,8 @@ namelist / tao_start / startup_file, building_wall_file, hook_init_file, &
                data_file, var_file, plot_file, n_universes, init_name, beam_file
 
 ! global inits
+
+call readline_read_history(s%com%history_file, stat)
 
 s%com%n_alias = 0
 s%com%ix_key_bank = 0             ! For single mode.

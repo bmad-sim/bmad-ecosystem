@@ -25,6 +25,7 @@ use tao_set_mod
 use tao_show_mod
 use tao_wave_mod
 use tao_x_scale_mod
+use input_mod
 
 ! MPI use tao_mpi_mod
 
@@ -33,7 +34,7 @@ implicit none
 type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: lat
 
-integer i, j, iu, ios, n_word, n_eq
+integer i, j, iu, ios, n_word, n_eq, stat
 integer ix, ix_line, ix_cmd, which
 integer int1, int2, uni, wrt, n_level
 

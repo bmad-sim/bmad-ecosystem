@@ -1716,6 +1716,7 @@ case ('history')
   i = max(1, s%com%ix_history - n_print + 1)
 
   do
+    if (i > s%com%ix_history) exit
     if (nl >= size(lines)) call re_allocate (lines, 2*size(lines))
 
     if (s%history(i)%ix /= 0) then
@@ -1726,9 +1727,11 @@ case ('history')
       endif
     endif
 
-    if (i == s%com%ix_history) exit
     i = i + 1
   enddo
+
+  nl=nl+1; lines(nl) = ''
+  nl=nl+1; lines(nl) = 'Note: Commands from previous sessions are stored in: ' // s%com%history_file
 
   result_id = show_what
 

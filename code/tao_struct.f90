@@ -668,6 +668,7 @@ type tao_common_struct
   character(80) :: single_mode_buffer = ''
   character(40) :: unique_name_suffix
   character(16) :: valid_plot_who(10)          ! model, base, ref etc...
+  character(20) :: history_file = '~/.history_tao'
 end type
 
 integer, parameter :: n_char_show = 1000
