@@ -242,17 +242,16 @@ character(20), parameter :: exact_multipoles_name(3) = [character(20):: 'Off', '
 ! Structure for spin matching calculations.
 ! Naming follows Barber & Ripkin section 2.78 in the Handbook of Accelerator Physics and Engineering.
 
-type spin_linear_matching_struct
+type spin_matching_struct
   real(rp) :: n0(3) = 0             ! Invariant spin axis on closed orbit.
   real(rp) :: l_axis(3) = 0         ! Transverse axis.
   real(rp) :: m_axis(3) = 0         ! Transverse axis.
   real(rp) :: dn_ddelta(3) = 0      ! Invariant spin derivative
-  real(rp) :: M_mat(6,6) = 0        ! Orbital 1-turn matrix
-  real(rp) :: G_mat(2,6) = 0        ! G matrix
-  real(rp) :: D_mat(2,2) = 0        ! D matrix
   real(rp) :: alpha(6) = 0          ! Alpha vector
   real(rp) :: beta(6) = 0           ! Beta vector
   real(rp) :: orb0(6) = 0           ! Closed orbit 
+  real(rp) :: M_1turn(8,8) = 0      ! 1-turn matrix
+  real(rp) :: M_ele(8,8) = 0        ! Transfer matrix through element.
 end type
 
 ! Polarization is not 1 when the spin_polar struct represents an ensamble of spins.
