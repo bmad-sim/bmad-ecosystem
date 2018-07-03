@@ -742,13 +742,12 @@ type (branch_struct), target :: branch
 type (spin_matching_struct), allocatable, target :: match_info(:)
 type (spin_matching_struct), pointer :: minfo, info0
 type (ele_struct), pointer :: ele
-type (c_spinor) cspin
 type (internal_state) ptc_state
 type (fibre), pointer :: ptc_fibre, fib_now, fib_next
 type (layout), pointer :: ptc_layout
 type (c_damap) ptc_cdamap, u, u_c
 type (probe_8) p8_1turn, p8_ele
-type (probe) ptc_probe
+type (probe) probe_orb
 type (c_normal_form) cc_norm
 type (real_8) r8
 type (q_linear) q0, q2, n_axis, q_invar, q_nonlin, q_x, q_y, q_z, l_axis, m_axis, q_rot, q_lin
@@ -785,11 +784,16 @@ if (.not. allocated(match_info)) allocate(match_info(0:branch%n_ele_track))
 
 !
 
+call init_all(ptc_state, 1, 0)   ! Only need first order map for this analysis
+
+call alloc(ptc_cdamap, u, u_c)
+call alloc(p8_1turn)
+call alloc(p8_ele)
+call alloc(cc_norm)
+
 q_x = 1
 q_y = 2
 q_z = 3
-
-!
 
 use_bmad_units = .true.
 ele => branch%ele(0)
@@ -797,36 +801,32 @@ minfo => match_info(0)
 
 ptc_fibre => pointer_to_ptc_ref_fibre(ele)
 ptc_layout => ptc_fibre%parent_layout
+
+!
+
 call find_orbit_x (minfo%orb0, ptc_state, 1.e-8_rp, fibre1 = ptc_fibre) 
 
-call init_all(ptc_state, 1, 0)   ! Only need first order map for this analysis
-
-call alloc(ptc_cdamap, u, u_c)
-call alloc(p8_1turn)
-call alloc(p8_ele)
-call alloc(cc_norm)
-call alloc(cspin)
-
 ptc_cdamap = 1
-ptc_probe = minfo%orb0
+probe_orb = minfo%orb0
 
-p8_1turn = ptc_probe + ptc_cdamap
-p8_ele   = ptc_probe + ptc_cdamap
+p8_1turn = probe_orb + ptc_cdamap
+p8_ele   = probe_orb + ptc_cdamap
 
 call track_probe(p8_1turn, ptc_state, fibre1 = ptc_fibre)
 
 ptc_cdamap = p8_1turn
 call c_normal(ptc_cdamap, cc_norm, dospin = .true.)
 
-call quaternion_to_matrix_in_c_damap (cc_norm%as)
-cspin = 2   ! n0 axis is nominally vertical.
-cspin = cc_norm%as%s * cspin
-
-!
-
-p8_1turn = ptc_probe + cc_norm%atot
+p8_1turn = probe_orb + cc_norm%atot
 ptc_cdamap = 1
 fib_now => ptc_fibre
+
+u = cc_norm%atot
+call c_fast_canonise(u, u_c, q_c = q_lin, dospin = .true.)
+
+p8_1turn = probe_orb + u_c
+
+!
 
 do i = 0, branch%n_ele_track
   if (i /= 0) then
@@ -930,8 +930,8 @@ do i = 0, branch%n_ele_track
 
   !
 
-  ptc_probe = p8_1turn
-  p8_1turn = ptc_probe + u_c
+  probe_orb = p8_1turn
+  p8_1turn = probe_orb + u_c
 enddo
 
 !
@@ -942,7 +942,6 @@ call kill (u_c)
 call kill (p8_1turn)
 call kill (p8_ele)
 call kill (cc_norm)
-call kill (cspin)
 
 use_bmad_units = .false.
 if (.not. rf_on) ndpt_bmad = 0

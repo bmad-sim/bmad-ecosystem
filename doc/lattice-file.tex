@@ -353,7 +353,7 @@ to using the syntax
 \end{example}
 Element attributes can be set or used in an algebraic expression:
 \begin{example}
-  bo1w[roll] = 6.5                  ! Set an attribute value.
+  b01w[roll] = 6.5                  ! Set an attribute value.
   b01w[l] = 6.5                     ! Change an attribute value.
   b01w[l] = b01w[rho] / 12          ! OK to reset an attribute value.
   my_const = b01w[rho] / b01w[l]    ! Use of attribute values in an expression.
@@ -445,7 +445,7 @@ Notice that defining the name for a custom attribute must come before its use.
 Custom attributes that are assigned to an individual element class, like \vn{error_k1} above, are
 called ``\vn{class-specific}'' attributes. Custom attributes, like \vn{mag_id} above, that are
 assigned to all element classes, are called ``\vn{common}'' attributes. For a given custom attribute
-group, The setting of a \vn{class-specific} attribute will take precidence over the setting of a
+group, The setting of a \vn{class-specific} attribute will take precedence over the setting of a
 \vn{common} attribute. Thus, in the above example, the fact that \vn{quadrupole::error_k1} comes
 before \vn{mag_id} and \vn{sextupole::error_k2} appears after does not affect anything. Once a
 \vn{common} attribute is defined for a given custom attribute group, it cannot be
@@ -458,7 +458,7 @@ new name that is the same as the old name is not considered an error. For exampl
 \end{example}
 
 Custom attributes are global in a program and not lattice-specific. That is, if a program reads in two
-different lattices the custom attribute settings of both lattices will be combinded.
+different lattices the custom attribute settings of both lattices will be combined.
 
 For someone creating a program, section~\sref{s:ele.gen} describes how to make the appropriate
 associations.
@@ -528,9 +528,12 @@ The name ``switch'' can refer to the variable (for example,
 
 \index{MAD!units}
 \index{units!with MAD}
-\bmad uses SI (Syst\`eme International) units as shown in
-Table~\ref{t:units}.  Note that \mad uses different units. For example,
-\mad's unit of Particle Energy is GeV not eV.
+\bmad uses SI (Syst\`eme International) units as shown in Table~\ref{t:units}.  Note that \mad uses
+different units. For example, \mad's unit of Particle Energy is GeV not eV. 
+
+Note: For compatibility with \mad, the \vn{beam, energy = xxx} command (\sref{s:beam.mad}) uses GeV
+and the \vn{emass} and \vn{pmass} constants (see below this section) also use GeV. It is recommended that
+the use of these constructs be avoided.
 
 \begin{table}[ht]
 \centering
@@ -848,7 +851,7 @@ lattice file is parsed by a program. Syntax:
   print <string>
 \end{example}
 Where \vn{<string>} is the string to be printed. Variable values can be printed by including the
-variable in backquotes. For example
+variable in back-quotes. For example
 \begin{example}
   print Remember! Q01 quad strength of `q01[k1]` not yet optimized!
   print Optimization is as easy as 2 + 2 = `2+2`.
@@ -958,7 +961,7 @@ Example:
   c: crystal, call::my_curvature.bmad, surface = call::my_surface.bmad, ...
 \end{example}  
 
-Inline calls can be used to call binary files (useful for speeding up lattice parcing).
+Inline calls can be used to call binary files (useful for speeding up lattice parsing).
 See \sref{s:binary.form} for more details.
 
 %--------------------------------------------------------------------------
@@ -967,7 +970,7 @@ See \sref{s:binary.form} for more details.
 \index{binary format lattice files}
 
 It is possible to store certain element attributes in a binary format file which is useful for
-speeding up lattice parcing. These binary files must have a \vn{.bin} suffix. The attributes
+speeding up lattice parsing. These binary files must have a \vn{.bin} suffix. The attributes
 that support binary files are:
 \begin{example}
   cartesian_map       ! \sref{s:cart.map}
