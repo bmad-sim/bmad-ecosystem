@@ -116,11 +116,15 @@ end subroutine get_a_char
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine read_a_line (prompt, line_out, trim_prompt, prompt_color, prompt_bold)
+! Subroutine read_a_line (prompt, line_out, trim_prompt, prompt_color, prompt_bold, history_file)
 !
 ! Subroutine to read a line of input from the terminal.
 ! The line is also add to the history buffer so that the up-arrow
 ! and down-arrow keys can be used to recall past commands.
+!
+! Also see:
+!   readline_read_history
+!   readline_write_history
 !
 ! Modules needed:
 !   use input_mod
@@ -137,21 +141,25 @@ end subroutine get_a_char
 !                     'BLACK', 'RED', 'GREEN', 'YELLOW', 'BLUE', 'MAGENTA', 'CYAN', 'GRAY', 'DEFAULT'.
 !                     The 'DEFAULT' setting (the default) does not set the prompt color.
 !   prompt_bold   -- logical, optional: If present and True then the prompt will be printed in bold.
+!   history_file  -- character(*), optional: If present, add line_out to a file whose name is given 
+!                     by history_file. History files are useful for saving the command history in 
+!                     between when a program is run multiple times. 
 !
 ! Output:
 !   line_out   -- Character(*): Line typed by the user.
 !                   Note: If cntl-D is pressed, line_out = achar(24). 
 !-
 
-subroutine read_a_line (prompt, line_out, trim_prompt, prompt_color, prompt_bold)
+subroutine read_a_line (prompt, line_out, trim_prompt, prompt_color, prompt_bold, history_file)
 
 use sim_utils
 
 implicit none
 
 character(*) prompt, line_out
-character(*), optional :: prompt_color
+character(*), optional :: prompt_color, history_file
 character(16) pre, post
+character(200) h_file
 character(*), parameter :: r_name = 'read_a_line'
 
 logical, optional :: trim_prompt, prompt_bold
@@ -201,12 +209,63 @@ endif
 if (pre /= '') pre = rl_prompt_start_ignore // trim(pre) // rl_prompt_end_ignore
 if (post /= '') post = rl_prompt_start_ignore // trim(post) // rl_prompt_end_ignore
 
+h_file = ''
+if (present(history_file)) h_file = history_file
+
 if (logic_option(.true., trim_prompt)) then
-  call read_line (trim(pre) // trim(prompt) // ' ' // trim(post) // achar(0), line_out)  
+  call read_line (trim(pre) // trim(prompt) // ' ' // trim(post) // achar(0), line_out, trim(h_file) // achar(0))  
 else
-  call read_line (trim(pre) // prompt // trim(post) // achar(0), line_out)
+  call read_line (trim(pre) // prompt // trim(post) // achar(0), line_out, trim(h_file) // achar(0))
 endif
 
 end subroutine read_a_line
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine readline_read_history (history_file, status)
+!
+! Routine to add the contents of a file to the readline history list.
+! Use this routine with the read_a_line routine.
+!
+! Input
+!   history_file  -- character(*): Name of the history file. EG: '~/.my_history'
+!
+! Output:
+!   status        -- integer: 0 = Success, otherwise failure.
+!-
+
+subroutine readline_read_history (history_file, status)
+
+character(*) history_file
+integer status
+call read_history (trim(history_file) // achar(0), status)
+
+end subroutine readline_read_history
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine readline_write_history history_file, (history_file, status)
+!
+! Routine to write the contents of the readline history list to a file.
+! Use this routine with the read_a_line routine.
+!
+! Input
+!   history_file  -- character(*): Name of the history file. EG: '~/.my_history'
+!
+! Output:
+!   status        -- integer: 0 = Success, otherwise failure.
+!-
+
+subroutine readline_write_history (history_file, status)
+
+character(*) history_file
+integer status
+call write_history (trim(history_file) // achar(0), status)
+
+end subroutine readline_write_history
 
 end module
