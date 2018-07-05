@@ -745,7 +745,7 @@ type (ele_struct), pointer :: ele
 type (internal_state) ptc_state
 type (fibre), pointer :: ptc_fibre, fib_now, fib_next
 type (layout), pointer :: ptc_layout
-type (c_damap) ptc_cdamap, u, u_c
+type (c_damap) cdamap, u, u_c, cdamap_1
 type (probe_8) p8_1turn, p8_ele
 type (probe) probe_orb
 type (c_normal_form) cc_norm
@@ -759,7 +759,7 @@ end type
 type (quat1_struct) qr(6)
 
 real(rp) spin_tune(2), phase(3), quat(0:3), mat3(3,3), vec0(6)
-real(rp) quat0(0:3), quat_lmn_to_xyz(0:3), quat0_lmn_to_xyz(0:3), qq(0:3)
+real(rp) quat0(0:3), quat_xyz_to_lmn(0:3), quat0_xyz_to_lmn(0:3), qq(0:3)
 
 integer i, k, p, order
 
@@ -786,7 +786,7 @@ if (.not. allocated(match_info)) allocate(match_info(0:branch%n_ele_track))
 
 call init_all(ptc_state, 1, 0)   ! Only need first order map for this analysis
 
-call alloc(ptc_cdamap, u, u_c)
+call alloc(cdamap, cdamap_1, u, u_c)
 call alloc(p8_1turn)
 call alloc(p8_ele)
 call alloc(cc_norm)
@@ -794,6 +794,7 @@ call alloc(cc_norm)
 q_x = 1
 q_y = 2
 q_z = 3
+cdamap_1 = 1
 
 use_bmad_units = .true.
 ele => branch%ele(0)
@@ -804,37 +805,51 @@ ptc_layout => ptc_fibre%parent_layout
 
 !
 
-call find_orbit_x (minfo%orb0, ptc_state, 1.e-8_rp, fibre1 = ptc_fibre) 
+if (branch%param%geometry == closed$) then
 
-ptc_cdamap = 1
-probe_orb = minfo%orb0
+  call find_orbit_x (minfo%orb0, ptc_state, 1.e-8_rp, fibre1 = ptc_fibre) 
 
-p8_1turn = probe_orb + ptc_cdamap
-p8_ele   = probe_orb + ptc_cdamap
+  probe_orb = minfo%orb0
 
-call track_probe(p8_1turn, ptc_state, fibre1 = ptc_fibre)
+  p8_1turn = probe_orb + cdamap_1
+  p8_ele   = probe_orb + cdamap_1
 
-ptc_cdamap = p8_1turn
-call c_normal(ptc_cdamap, cc_norm, dospin = .true.)
+  call track_probe(p8_1turn, ptc_state, fibre1 = ptc_fibre)
 
-p8_1turn = probe_orb + cc_norm%atot
-ptc_cdamap = 1
+  cdamap = p8_1turn
+  call c_normal(cdamap, cc_norm, dospin = .true.)
+
+  p8_1turn = probe_orb + cc_norm%atot
+
+  u = cc_norm%atot
+  call c_fast_canonise(u, u_c, q_c = q_lin, dospin = .true.)
+
+else
+  u = 1
+  u%q = q_y
+  u_c = 1
+  u = u * u_c
+  call c_fast_canonise (u, u_c, dospin = .true.)
+
+  minfo%orb0 = 0
+  probe_orb = minfo%orb0
+  p8_ele   = probe_orb + cdamap_1
+endif
+
+
 fib_now => ptc_fibre
-
-u = cc_norm%atot
-call c_fast_canonise(u, u_c, q_c = q_lin, dospin = .true.)
-
 p8_1turn = probe_orb + u_c
+q_invar = 1   ! Set %mat = unit matrix
 
 !
 
 do i = 0, branch%n_ele_track
   if (i /= 0) then
     fib_next => pointer_to_ptc_ref_fibre(branch%ele(i))
-    p8_ele = ptc_cdamap
+    p8_ele = cdamap_1
 
     call track_probe(p8_1turn, ptc_state, fibre1 = fib_now, fibre2 = fib_next)
-    call track_probe(p8_ele, ptc_state, fibre1 = fib_now, fibre2 = fib_next)
+    call track_probe(p8_ele,   ptc_state, fibre1 = fib_now, fibre2 = fib_next)
 
     fib_now => fib_next
   endif
@@ -844,17 +859,19 @@ do i = 0, branch%n_ele_track
 
   minfo%orb0 = p8_1turn%x
 
-  bmad_taylor = p8_ele%x
-  call taylor_to_mat6 (bmad_taylor, [0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp], vec0, minfo%m_ele(1:6,1:6))
-
-  bmad_taylor = p8_1turn%x
-  call taylor_to_mat6 (bmad_taylor, [0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp], vec0, minfo%m_1turn(1:6,1:6))
-
   u = p8_1turn
 
   q_invar = u%q * u
   q2 = q_invar * q_y * q_invar**(-1)
   minfo%dn_ddelta = q2%q(1:3,6)
+
+  cdamap = u**(-1) * cc_norm%n * u
+  q2 = cdamap
+  minfo%m_1turn(1:6,1:6) = q2%mat
+  !! call taylor_to_mat6 (bmad_taylor, [0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp], vec0, minfo%m_1turn(1:6,1:6))
+
+  bmad_taylor = p8_ele%x
+  call taylor_to_mat6 (bmad_taylor, [0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp], vec0, minfo%m_ele(1:6,1:6))
 
   call c_fast_canonise (u, u_c, q_c = q_lin, phase = phase, q_rot = q_rot, spin_tune = spin_tune, dospin = .true.)
 
@@ -879,15 +896,15 @@ do i = 0, branch%n_ele_track
     mat3(:,1) = minfo%l_axis
     mat3(:,2) = minfo%n0
     mat3(:,3) = minfo%m_axis
-    quat_lmn_to_xyz = w_mat_to_quat(mat3)
+    quat_xyz_to_lmn = w_mat_to_quat(mat3)
 
     info0 => match_info(i-1)
     mat3(:,1) = info0%l_axis
     mat3(:,2) = info0%n0
     mat3(:,3) = info0%m_axis
-    quat0_lmn_to_xyz = w_mat_to_quat(mat3)
+    quat0_xyz_to_lmn = w_mat_to_quat(mat3)
 
-    !
+    ! ele matrix
 
     do k = 0, 3
       spin_taylor = p8_ele%q%x(k)%t
@@ -898,16 +915,17 @@ do i = 0, branch%n_ele_track
     enddo
 
     quat0 = quat0 / norm2(quat0)
-    mat3 = quat_to_w_mat(quat0)
+    qq = quat_mul(quat_mul(quat_xyz_to_lmn, quat0), quat_inverse(quat0_xyz_to_lmn))
+    mat3 = quat_to_w_mat(qq)
     minfo%M_ele(7:8,7:8) = mat3(1:3:2,1:3:2)
 
     do p = 1, 6
-      qq = quat_mul(quat_mul(quat_inverse(quat_lmn_to_xyz), qr(p)%q), quat0_lmn_to_xyz)
+      qq = quat_mul(quat_mul(quat_xyz_to_lmn, qr(p)%q), quat_inverse(quat0_xyz_to_lmn))
       minfo%M_ele(7,p) = 2 * (quat0(1)*qq(2) + quat0(2)*qq(1) - quat0(0)*qq(3) - quat0(3)*qq(0))
       minfo%M_ele(8,p) = 2 * (quat0(0)*qq(1) + quat0(1)*qq(0) + quat0(2)*qq(3) + quat0(3)*qq(2))
     enddo
 
-    !
+    ! 1turn matrix
 
     do k = 0, 3
       spin_taylor = p8_1turn%q%x(k)%t
@@ -918,11 +936,12 @@ do i = 0, branch%n_ele_track
     enddo
 
     quat0 = quat0 / norm2(quat0)
-    mat3 = quat_to_w_mat(quat0)
+    qq = quat_mul(quat_mul(quat_xyz_to_lmn, quat0), quat_inverse(quat_xyz_to_lmn))
+    mat3 = quat_to_w_mat(qq)
     minfo%M_1turn(7:8,7:8) = mat3(1:3:2,1:3:2)
 
     do p = 1, 6
-      qq = quat_mul(quat_mul(quat_inverse(quat_lmn_to_xyz), qr(p)%q), quat0_lmn_to_xyz)
+      qq = quat_mul(quat_mul(quat_xyz_to_lmn, qr(p)%q), quat_inverse(quat_xyz_to_lmn))
       minfo%M_1turn(7,p) = 2 * (quat0(1)*qq(2) + quat0(2)*qq(1) - quat0(0)*qq(3) - quat0(3)*qq(0))
       minfo%M_1turn(8,p) = 2 * (quat0(0)*qq(1) + quat0(1)*qq(0) + quat0(2)*qq(3) + quat0(3)*qq(2))
     enddo
@@ -936,7 +955,8 @@ enddo
 
 !
 
-call kill (ptc_cdamap)
+call kill (cdamap_1)
+call kill (cdamap)
 call kill (u)
 call kill (u_c)
 call kill (p8_1turn)
