@@ -81,7 +81,7 @@ subroutine bjmt1(ele, coulomb_log, rates, n_part)
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
-  classical_radius = c_light*c_light*e_charge*1.0d-7*charge_of(ele%branch%param%particle)/mass_of(ele%branch%param%particle)
+  classical_radius = c_light*c_light*e_charge*1.0d-7*abs(charge_of(ele%branch%param%particle))/mass_of(ele%branch%param%particle)
 
   big_A=(classical_radius**2)*c_light*n_part/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
 
@@ -258,7 +258,7 @@ subroutine bane1(ele, coulomb_log, rates, n_part)
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
-  classical_radius = c_light*c_light*e_charge*1.0d-7*charge_of(ele%branch%param%particle)/mass_of(ele%branch%param%particle)
+  classical_radius = c_light*c_light*e_charge*1.0d-7*abs(charge_of(ele%branch%param%particle))/mass_of(ele%branch%param%particle)
 
   big_A=(classical_radius**2)*c_light*n_part/16.0/(gamma**3)/(emit_a**(3./4.))/(emit_b**(3./4.))/sigma_z/(sigma_p**3)
 
@@ -370,7 +370,7 @@ subroutine mpxx1(ele, coulomb_log, rates, n_part)
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
-  classical_radius = c_light*c_light*e_charge*1.0d-7*charge_of(ele%branch%param%particle)/mass_of(ele%branch%param%particle)
+  classical_radius = c_light*c_light*e_charge*1.0d-7*abs(charge_of(ele%branch%param%particle))/mass_of(ele%branch%param%particle)
   big_A=(classical_radius**2)*c_light*n_part/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
 
   alpha_a = ele%a%alpha
@@ -508,7 +508,7 @@ subroutine mpzt1(ele, coulomb_log, rates, n_part)
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
-  classical_radius = c_light*c_light*e_charge*1.0d-7*charge_of(ele%branch%param%particle)/mass_of(ele%branch%param%particle)
+  classical_radius = c_light*c_light*e_charge*1.0d-7*abs(charge_of(ele%branch%param%particle))/mass_of(ele%branch%param%particle)
   big_A=(classical_radius**2)*c_light*n_part/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
 
   alpha_a = ele%a%alpha
@@ -666,7 +666,7 @@ subroutine cimp1(ele, coulomb_log, rates, n_part)
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
-  classical_radius = c_light*c_light*e_charge*1.0d-7*charge_of(ele%branch%param%particle)/mass_of(ele%branch%param%particle)
+  classical_radius = c_light*c_light*e_charge*1.0d-7*abs(charge_of(ele%branch%param%particle))/mass_of(ele%branch%param%particle)
   big_A=(classical_radius**2)*c_light*n_part/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
 
   alpha_a = ele%a%alpha

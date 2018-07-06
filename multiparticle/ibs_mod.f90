@@ -748,7 +748,7 @@ subroutine multi_coulomb_log(ibs_sim_params, ele, coulomb_log, n_part)
   sigma_a = sqrt(sigma_a_beta**2 + (Da**2)*(sigma_p**2))
   sigma_b = sqrt(sigma_b_beta**2 + (Db**2)*(sigma_p**2))
 
-  classical_radius = c_light*c_light*e_charge*1.0d-7*charge_of(ele%branch%lat%param%particle)/mass_of(ele%branch%lat%param%particle)
+  classical_radius = c_light*c_light*e_charge*1.0d-7*abs(charge_of(ele%branch%lat%param%particle))/mass_of(ele%branch%lat%param%particle)
 
   if( ibs_sim_params%clog_to_use == 1 ) then
     !Classic Coulomb Log.
