@@ -750,7 +750,7 @@ type (probe_8) p8_1turn, p8_ele
 type (probe) probe_orb
 type (c_normal_form) cc_norm
 type (real_8) r8
-type (q_linear) q0, q2, n_axis, q_invar, q_nonlin, q_x, q_y, q_z, l_axis, m_axis, q_rot, q_lin
+type (q_linear) q0, q2, n_axis, q_invar, q_nonlin, q_x, q_y, q_z, l_axis, m_axis, q_rot, q_lin, q_1turn
 type (taylor_struct) spin_taylor, bmad_taylor(6)
 
 type quat1_struct
@@ -759,7 +759,7 @@ end type
 type (quat1_struct) qr(6)
 
 real(rp) spin_tune(2), phase(3), quat(0:3), mat3(3,3), vec0(6)
-real(rp) quat0(0:3), quat_xyz_to_lmn(0:3), quat0_xyz_to_lmn(0:3), qq(0:3)
+real(rp) quat0(0:3), quat_lnm_to_xyz(0:3), quat0_lnm_to_xyz(0:3), qq(0:3)
 
 integer i, k, p, order
 
@@ -812,17 +812,20 @@ if (branch%param%geometry == closed$) then
   probe_orb = minfo%orb0
 
   p8_1turn = probe_orb + cdamap_1
-  p8_ele   = probe_orb + cdamap_1
 
   call track_probe(p8_1turn, ptc_state, fibre1 = ptc_fibre)
 
   cdamap = p8_1turn
   call c_normal(cdamap, cc_norm, dospin = .true.)
 
+  cc_norm%n = cc_norm%atot**(-1) * cdamap * cc_norm%atot
   p8_1turn = probe_orb + cc_norm%atot
 
   u = cc_norm%atot
   call c_fast_canonise(u, u_c, q_c = q_lin, dospin = .true.)
+
+  p8_1turn = probe_orb + u_c
+  p8_ele   = probe_orb + cdamap_1
 
 else
   u = 1
@@ -833,12 +836,12 @@ else
 
   minfo%orb0 = 0
   probe_orb = minfo%orb0
+
+  p8_1turn = probe_orb + u_c
   p8_ele   = probe_orb + cdamap_1
 endif
 
-
 fib_now => ptc_fibre
-p8_1turn = probe_orb + u_c
 q_invar = 1   ! Set %mat = unit matrix
 
 !
@@ -846,7 +849,7 @@ q_invar = 1   ! Set %mat = unit matrix
 do i = 0, branch%n_ele_track
   if (i /= 0) then
     fib_next => pointer_to_ptc_ref_fibre(branch%ele(i))
-    p8_ele = cdamap_1
+    p8_ele = probe_orb + cdamap_1
 
     call track_probe(p8_1turn, ptc_state, fibre1 = fib_now, fibre2 = fib_next)
     call track_probe(p8_ele,   ptc_state, fibre1 = fib_now, fibre2 = fib_next)
@@ -865,10 +868,9 @@ do i = 0, branch%n_ele_track
   q2 = q_invar * q_y * q_invar**(-1)
   minfo%dn_ddelta = q2%q(1:3,6)
 
-  cdamap = u**(-1) * cc_norm%n * u
-  q2 = cdamap
-  minfo%m_1turn(1:6,1:6) = q2%mat
-  !! call taylor_to_mat6 (bmad_taylor, [0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp], vec0, minfo%m_1turn(1:6,1:6))
+  cdamap = u * cc_norm%n * u**(-1)
+  q_1turn = cdamap
+  minfo%m_1turn(1:6,1:6) = q_1turn%mat
 
   bmad_taylor = p8_ele%x
   call taylor_to_mat6 (bmad_taylor, [0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp], vec0, minfo%m_ele(1:6,1:6))
@@ -896,13 +898,13 @@ do i = 0, branch%n_ele_track
     mat3(:,1) = minfo%l_axis
     mat3(:,2) = minfo%n0
     mat3(:,3) = minfo%m_axis
-    quat_xyz_to_lmn = w_mat_to_quat(mat3)
+    quat_lnm_to_xyz = w_mat_to_quat(mat3)
 
     info0 => match_info(i-1)
     mat3(:,1) = info0%l_axis
     mat3(:,2) = info0%n0
     mat3(:,3) = info0%m_axis
-    quat0_xyz_to_lmn = w_mat_to_quat(mat3)
+    quat0_lnm_to_xyz = w_mat_to_quat(mat3)
 
     ! ele matrix
 
@@ -915,33 +917,28 @@ do i = 0, branch%n_ele_track
     enddo
 
     quat0 = quat0 / norm2(quat0)
-    qq = quat_mul(quat_mul(quat_xyz_to_lmn, quat0), quat_inverse(quat0_xyz_to_lmn))
+    qq = quat_mul(quat_mul(quat_inverse(quat_lnm_to_xyz), quat0), quat0_lnm_to_xyz)
     mat3 = quat_to_w_mat(qq)
     minfo%M_ele(7:8,7:8) = mat3(1:3:2,1:3:2)
+    minfo%s_ele = quat_to_w_mat(quat0)
 
     do p = 1, 6
-      qq = quat_mul(quat_mul(quat_xyz_to_lmn, qr(p)%q), quat_inverse(quat0_xyz_to_lmn))
+      qq = quat_mul(quat_mul(quat_inverse(quat_lnm_to_xyz), qr(p)%q), quat0_lnm_to_xyz)
       minfo%M_ele(7,p) = 2 * (quat0(1)*qq(2) + quat0(2)*qq(1) - quat0(0)*qq(3) - quat0(3)*qq(0))
       minfo%M_ele(8,p) = 2 * (quat0(0)*qq(1) + quat0(1)*qq(0) + quat0(2)*qq(3) + quat0(3)*qq(2))
     enddo
 
-    ! 1turn matrix
+    ! 1-turn matrix
 
-    do k = 0, 3
-      spin_taylor = p8_1turn%q%x(k)%t
-      quat0(k) = taylor_coef(spin_taylor, [0,0,0,0,0,0])
-      do p = 1, 6
-        qr(p)%q(k) = taylor_coef(spin_taylor, taylor_expn([p]))
-      enddo
-    enddo
-
-    quat0 = quat0 / norm2(quat0)
-    qq = quat_mul(quat_mul(quat_xyz_to_lmn, quat0), quat_inverse(quat_xyz_to_lmn))
+    quat0 = q_1turn%q(:,0)
+    qq = quat_mul(quat_mul(quat_inverse(quat_lnm_to_xyz), quat0), quat_lnm_to_xyz)
     mat3 = quat_to_w_mat(qq)
     minfo%M_1turn(7:8,7:8) = mat3(1:3:2,1:3:2)
+    minfo%s_1turn = quat_to_w_mat(quat0)
 
     do p = 1, 6
-      qq = quat_mul(quat_mul(quat_xyz_to_lmn, qr(p)%q), quat_inverse(quat_xyz_to_lmn))
+      qq = q_1turn%q(:,p)
+      qq = quat_mul(quat_mul(quat_inverse(quat_lnm_to_xyz), qq), quat_lnm_to_xyz)
       minfo%M_1turn(7,p) = 2 * (quat0(1)*qq(2) + quat0(2)*qq(1) - quat0(0)*qq(3) - quat0(3)*qq(0))
       minfo%M_1turn(8,p) = 2 * (quat0(0)*qq(1) + quat0(1)*qq(0) + quat0(2)*qq(3) + quat0(3)*qq(2))
     enddo

@@ -252,6 +252,8 @@ type spin_matching_struct
   real(rp) :: orb0(6) = 0           ! Closed orbit 
   real(rp) :: M_1turn(8,8) = 0      ! 1-turn matrix
   real(rp) :: M_ele(8,8) = 0        ! Transfer matrix through element.
+  real(rp) :: S_1turn(3,3) = 0      ! 1-turn matrix
+  real(rp) :: S_ele(3,3) = 0        ! Transfer matrix through element.
 end type
 
 ! Polarization is not 1 when the spin_polar struct represents an ensamble of spins.

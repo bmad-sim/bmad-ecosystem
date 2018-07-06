@@ -645,7 +645,7 @@ if (.not. associated(ele%spin_taylor(1)%term)) then
 endif
 
 quat = track_taylor (start_orb%vec, ele%spin_taylor, ele%taylor%ref)
-end_orb%spin = rotate_vec_given_quat(start_orb%spin, quat/norm2(quat))
+end_orb%spin = rotate_vec_given_quat(quat/norm2(quat), start_orb%spin)
 
 end subroutine track1_spin_taylor
 
