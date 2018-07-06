@@ -211,7 +211,7 @@ enddo
 
 mode0=mode
 
-lat%param%n_part = high_current*0.001_rp*(lat%param%total_length/c_light)/e_charge
+lat%param%n_part = high_current*0.001_rp*(lat%param%total_length/c_light)/e_charge/abs(charge_of(lat%param%particle))
 if(do_pwd) call set_pwd_ele(lat, mode, inductance)
 mode%z%emittance = mode%sigE_E * mode%sig_z
 do i=6,stdoutlun,stdoutlun-6
@@ -278,7 +278,7 @@ rateslun = lunget()
 open(rateslun,file='ibs_rates0.out')
 write(rateslun,'(4a14)') "#s", "invTz", "invTa", "invTb"
 write(rateslun,'(a)') "# Element-by-element rates at start of simulation at full current."
-lat%param%n_part = high_current * lat%param%total_length / e_charge / c_light
+lat%param%n_part = high_current * lat%param%total_length / e_charge / abs(charge_of(lat%param%particle)) / c_light
 call ibs_rates1turn(lat,ibs_sim_params,rates,granularity)
 write(rateslun,'(a,3f15.7)') "# Initial average rates: ", rates%inv_Tz, rates%inv_Ta, rates%inv_Tb
 do i=1,lat%n_ele_track
@@ -293,7 +293,7 @@ close(rateslun)
 lat0 = lat
 do i=1,n_steps
   lat = lat0
-  lat%param%n_part = currents(i) * lat%param%total_length / e_charge / c_light
+  lat%param%n_part = currents(i) * lat%param%total_length / e_charge / abs(charge_of(lat%param%particle)) / c_light
 
   if(eqb_method == 'rlx') then
     call ibs_equib_rlx(lat,ibs_sim_params,mode0,mode,ratio,initial_blow_up,granularity)  !relaxation method
@@ -342,7 +342,7 @@ deallocate(ibs_data)
 ! Calculate rates for one turn at full current.
 !
 lat = lat0
-lat%param%n_part = 0.001 * high_current * lat%param%total_length / e_charge / c_light
+lat%param%n_part = 0.001 * high_current * lat%param%total_length / e_charge / abs(charge_of(lat%param%particle)) / c_light
 call ibs_equib_der(lat,ibs_sim_params,mode0,mode,granularity)
 do i=1,lat%n_ele_track
   lat%ele(i)%a%emit = mode%a%emittance
