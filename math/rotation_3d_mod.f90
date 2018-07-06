@@ -413,19 +413,19 @@ end function quat_mul
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Function rotate_vec_given_quat (vec_in, quat) result (vec_out)
+! Function rotate_vec_given_quat (quat, vec_in) result (vec_out)
 !
 ! Routine to rotate a vector using a quaternion..
 !
 ! Input:
-!   vec_in(3)   -- real(rp): Initial vector.
 !   q_out(0:3)  -- real(rp): Quaternion to rotate with. Assumed normalized to 1.
+!   vec_in(3)   -- real(rp): Initial vector.
 !
 ! Output:
 !   vec_out(3)  -- real(rp): Final vector.
 !-
 
-function rotate_vec_given_quat (vec_in, quat) result (vec_out)
+function rotate_vec_given_quat (quat, vec_in) result (vec_out)
 
 real(rp) :: vec_in(3), vec_out(3), quat(0:3)
 real(rp) :: q0_inv
