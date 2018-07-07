@@ -1169,6 +1169,17 @@ subroutine ptc_spin_matching_calc (branch, match_info)
   type (spin_matching_struct), allocatable, target :: match_info(:)
 end subroutine
 
+subroutine ptc_transfer_map_with_spin (branch, t_map, s_map, orb0, err_flag, ix1, ix2, one_turn, unit_start)
+  import
+  implicit none
+  type (branch_struct) :: branch
+  type (taylor_struct) :: t_map(6), s_map(4)
+  type (coord_struct) orb0
+  integer, optional :: ix1, ix2
+  logical err_flag
+  logical, optional :: one_turn, unit_start
+end subroutine
+
 subroutine quad_beta_ave (ele, beta_a_ave, beta_b_ave)
   import
   implicit none
@@ -1184,7 +1195,6 @@ subroutine quad_mat2_calc (k1, length, rel_p, mat2, z_coef, dz_dpz_coef)
   real(rp) mat2(:,:)
   real(rp), optional :: z_coef(3), dz_dpz_coef(3)
 end subroutine
-
 
 subroutine radiation_integrals (lat, orb, mode, ix_cache, ix_branch, rad_int_by_ele)
   import
