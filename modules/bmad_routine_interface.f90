@@ -1162,6 +1162,13 @@ subroutine ptc_read_flat_file (flat_file, err_flag, lat, create_end_marker, from
   logical, optional :: create_end_marker, from_mad
 end subroutine
 
+subroutine ptc_spin_matching_calc (branch, match_info)
+  import
+  implicit none
+  type (branch_struct), target :: branch
+  type (spin_matching_struct), allocatable, target :: match_info(:)
+end subroutine
+
 subroutine quad_beta_ave (ele, beta_a_ave, beta_b_ave)
   import
   implicit none
@@ -1457,6 +1464,14 @@ subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6)
   real(rp) length
   real(rp), optional :: mat6(:,:)
 end subroutine
+
+function spin_depolarization_rate (branch, match_info, rad_int_by_ele) result (depol_rate)
+  import
+  type (branch_struct), target :: branch
+  type (spin_matching_struct) match_info(0:)
+  type (rad_int_all_ele_struct) rad_int_by_ele
+  real(rp) depol_rate
+end function
 
 subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, save_null_drift, err_flag, choose_max)
   import

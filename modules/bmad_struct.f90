@@ -242,6 +242,10 @@ character(20), parameter :: exact_multipoles_name(3) = [character(20):: 'Off', '
 ! Structure for spin matching calculations.
 ! Naming follows Barber & Ripkin section 2.78 in the Handbook of Accelerator Physics and Engineering.
 
+type spin_eigen_struct
+  complex(rp) :: r(8) = 0
+end type
+
 type spin_matching_struct
   real(rp) :: n0(3) = 0             ! Invariant spin axis on closed orbit.
   real(rp) :: l_axis(3) = 0         ! Transverse axis.
@@ -252,8 +256,8 @@ type spin_matching_struct
   real(rp) :: orb0(6) = 0           ! Closed orbit 
   real(rp) :: M_1turn(8,8) = 0      ! 1-turn matrix
   real(rp) :: M_ele(8,8) = 0        ! Transfer matrix through element.
-  real(rp) :: S_1turn(3,3) = 0      ! 1-turn matrix
-  real(rp) :: S_ele(3,3) = 0        ! Transfer matrix through element.
+  type (spin_eigen_struct) :: eigen_vec(9) = spin_eigen_struct()
+  real(rp) :: sq_ele(0:3) = 0, sq_1turn(0:3) = 0
 end type
 
 ! Polarization is not 1 when the spin_polar struct represents an ensamble of spins.
@@ -1587,10 +1591,12 @@ real(rp) :: radians_to_angle_units(4) = [1.0_rp, 180/pi, 1/twopi, 1/twopi]
 ! Electric and magnetic fields.
 
 type em_field_struct
-  real(rp) :: E(3) = 0        ! electric field
-  real(rp) :: B(3) = 0        ! magnetic field
-  real(rp) :: dE(3,3) = 0     ! electric field gradient
-  real(rp) :: dB(3,3) = 0     ! magnetic field gradient
+  real(rp) :: E(3) = 0        ! electric field.
+  real(rp) :: B(3) = 0        ! magnetic field.
+  real(rp) :: dE(3,3) = 0     ! electric field gradient.
+  real(rp) :: dB(3,3) = 0     ! magnetic field gradient.
+  real(rp) :: dE_dt(3) = 0    ! electric time derivative.
+  real(rp) :: dB_dt(3) = 0    ! magnetic time derivative.
   real(rp) :: phi = 0         ! Electric scalar potential.
   real(rp) :: phi_B = 0       ! Magnetic scalar potential.
   real(rp) :: A(3) = 0        ! Magnetic vector potential.
