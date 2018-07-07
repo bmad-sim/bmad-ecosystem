@@ -42,8 +42,9 @@ type (quat1_struct) qr(6)
 
 real(rp) spin_tune(2), phase(3), quat(0:3), mat3(3,3), vec0(6)
 real(rp) quat0(0:3), quat_lnm_to_xyz(0:3), quat0_lnm_to_xyz(0:3), qq(0:3)
+real(rp) re_val(6), im_val(6), re_vec(6), im_vec(6)
 
-integer ie, k, p, order
+integer ie, k, p, order, plane(3)
 
 logical rf_on
 
@@ -145,10 +146,6 @@ do ie = 0, branch%n_ele_track
 
   u = p8_1turn
   q_invar = u%q * u
-
-  do p = 1, 6
-    minfo%eigen_vec(p)%r(1:6) = q_invar%mat(:,p)
-  enddo 
 
   q2 = q_invar * q_y * q_invar**(-1)
   minfo%dn_ddelta = q2%q(1:3,6)

@@ -243,7 +243,8 @@ character(20), parameter :: exact_multipoles_name(3) = [character(20):: 'Off', '
 ! Naming follows Barber & Ripkin section 2.78 in the Handbook of Accelerator Physics and Engineering.
 
 type spin_eigen_struct
-  complex(rp) :: r(8) = 0
+  complex(rp) :: vec(8) = 0
+  complex(rp) :: val = 0
 end type
 
 type spin_matching_struct
@@ -256,7 +257,7 @@ type spin_matching_struct
   real(rp) :: orb0(6) = 0           ! Closed orbit 
   real(rp) :: M_1turn(8,8) = 0      ! 1-turn matrix
   real(rp) :: M_ele(8,8) = 0        ! Transfer matrix through element.
-  type (spin_eigen_struct) :: eigen_vec(9) = spin_eigen_struct()
+  type (spin_eigen_struct) :: eigen(8) = spin_eigen_struct()
   real(rp) :: sq_ele(0:3) = 0, sq_1turn(0:3) = 0
 end type
 
