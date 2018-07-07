@@ -1,0 +1,49 @@
+!+
+! Function spin_depolarization_rate (branch, match_info, rad_int_by_ele) result (depol_rate)
+!
+! Routine to calculate the depolarization rate of a beam in the linear model where the dependence
+! of dn_isf/dDelta on transverse position is ignored. 
+!
+! See the writeup by Barber & Ripken in the Handbook of Accelerator Physics and Engineering.
+!
+! Input:
+!   branch          -- branch_struct: Lattice branch the beam is going through.
+!   match_info(0:)  -- spin_matching_struct:
+!     %dn_ddelta        -- ISR derivative.
+!   rad_int_by_ele  -- rad_int_all_ele_struct: Element-by-element radiation integrals.
+!     %i3               -- I3 radiation integral.
+!
+! Output:
+!   depol_rate      -- real(rp): Depolarization rate (1/sec). Will be positive.
+!-
+
+function spin_depolarization_rate (branch, match_info, rad_int_by_ele) result (depol_rate)
+
+use bmad_interface
+
+implicit none
+
+type (branch_struct), target :: branch
+type (ele_struct), pointer :: ele
+type (spin_matching_struct) match_info(0:)
+type (rad_int_all_ele_struct) rad_int_by_ele
+
+real(rp) depol_rate, gamma
+real(rp), parameter :: factor = 55.0_rp * sqrt(3.0_rp) * classical_radius_factor * h_bar_planck / 144.0_rp
+integer ie
+
+!
+
+depol_rate = 0
+
+do ie = 1, branch%n_ele_track
+  ele => branch%ele(ie)
+  depol_rate = depol_rate + 0.5_rp * rad_int_by_ele%ele(ie)%i3 * ele%value(l$) * &
+                  (norm2(match_info(ie-1)%dn_ddelta) + norm2(match_info(ie)%dn_ddelta))
+                    
+enddo
+
+gamma = branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle)
+depol_rate = depol_rate * factor * gamma**5 / branch%param%total_length
+
+end function
