@@ -1,7 +1,6 @@
 program spin_test
 
 use bmad
-use ptc_spin_mod
 use spin_mod
 use taylor_mod
 
@@ -50,7 +49,7 @@ open (1, file = 'output.now')
 !
 
 call init_coord (orb0, lat%beam_start, lat%ele(0), downstream_end$)
-call transfer_map_calc_with_spin (lat, t_ele%taylor, t_ele%spin_taylor, orb0, err_flag, 0, 1)
+call ptc_transfer_map_with_spin (lat%branch(0), t_ele%taylor, t_ele%spin_taylor, orb0, err_flag, 0, 1)
 
 orb_start = orb0
 orb_start%vec = orb_start%vec + dr
