@@ -1596,8 +1596,6 @@ type em_field_struct
   real(rp) :: B(3) = 0        ! magnetic field.
   real(rp) :: dE(3,3) = 0     ! electric field gradient.
   real(rp) :: dB(3,3) = 0     ! magnetic field gradient.
-  real(rp) :: dE_dt(3) = 0    ! electric time derivative.
-  real(rp) :: dB_dt(3) = 0    ! magnetic time derivative.
   real(rp) :: phi = 0         ! Electric scalar potential.
   real(rp) :: phi_B = 0       ! Magnetic scalar potential.
   real(rp) :: A(3) = 0        ! Magnetic vector potential.
