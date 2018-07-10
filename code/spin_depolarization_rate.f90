@@ -19,7 +19,7 @@
 
 function spin_depolarization_rate (branch, match_info, rad_int_by_ele) result (depol_rate)
 
-use bmad_interface
+use bmad_interface, dummy => spin_depolarization_rate
 
 implicit none
 
