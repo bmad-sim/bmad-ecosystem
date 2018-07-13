@@ -3013,7 +3013,11 @@ case ('plot')
         found = .true.
         cycle
       endif
-      nl=nl+1; write(lines(nl), '(a20, a, a18, 4f6.2)') region%name, '<-->  ', region%plot%name, region%location
+      if (region%visible) then
+        nl=nl+1; write(lines(nl), '(a20, a, a18, 4f6.2)') region%name, '<-->  ', region%plot%name, region%location
+      else
+        nl=nl+1; write(lines(nl), '(a20, a, 18x, 4f6.2)') region%name, '<-->  ', region%location
+      endif
     enddo
 
     if (found .and. what == '') then

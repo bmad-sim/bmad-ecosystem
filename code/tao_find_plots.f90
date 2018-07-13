@@ -137,11 +137,11 @@ if (plot_name(1:1) == '@') then
 else
   select case (where)
   case ('REGION')
-    n_exact = count(s%plot_page%region%name == plot_name) + &
-              count(s%plot_page%region%plot%name == plot_name)
+    n_exact = count(s%plot_page%region%name == plot_name .and. s%plot_page%region%visible) + &
+              count(s%plot_page%region%plot%name == plot_name .and. s%plot_page%region%visible)
   case ('BOTH')
-    n_exact = count(s%plot_page%region%name == plot_name) + &
-              count(s%plot_page%region%plot%name == plot_name) + &
+    n_exact = count(s%plot_page%region%name == plot_name .and. s%plot_page%region%visible) + &
+              count(s%plot_page%region%plot%name == plot_name .and. s%plot_page%region%visible) + &
               count(s%plot_page%template%name == plot_name)
   case ('TEMPLATE')
     n_exact = count(s%plot_page%template%name == plot_name)
@@ -159,6 +159,7 @@ else
 
   if (where == 'REGION' .or. where == 'BOTH') then
     do i = 1, size(s%plot_page%region)
+      if (.not. s%plot_page%region(i)%visible) cycle
       if (plot_name /= '*') then 
         if (have_exact_match) then
           if (s%plot_page%region(i)%name /= plot_name .and. s%plot_page%region(i)%plot%name /= plot_name) cycle
