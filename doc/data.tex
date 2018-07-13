@@ -987,7 +987,11 @@ Photon intensity components in the horizontal and vertical planes.
 Photon phases in the horizontal and vertical planes.
 
   %----------------------
-  \item[ping_a.amp_x, .phase_x, .amp_y, .phase_y, .amp_sin_y, .amp_cos_y, .amp_sin_rel_y, .amp_cos_rel_y] \Newline
+  \item[ \begin{tabular}{@{}l}
+  ping_a.amp_x, .phase_x, .amp_y, .phase_y, .amp_sin_y, .amp_cos_y, \\
+  \hspace*{1.5in} .amp_sin_rel_y, .amp_cos_rel_y
+  \end{tabular} ] \Newline
+
 Phase and amplitude response at a BPM from turn-by-turn data acquired after the beam is
 pinged. Ignoring damping, the beam response will be the sum of three components, one for
 each beam oscillation eigenmode. \vn{ping_a} data is for the response at the \vn{a}-mode
@@ -1065,7 +1069,10 @@ since, with a decoupled lattice, the \vn{model} values are zero.
 There is a similar multiplier defined for the reference data. The values of these two
 multipliers are shown with the \vn{show data} command.
   %----------------------
-  \item[ping_b.amp_y, .phase_y, .amp_x, .phase_x, .amp_sin_x, .amp_cos_x, .amp_sin_rel_x, .amp_cos_rel_x] \Newline
+  \item[ \begin{tabular}{@{}l}
+  ping_b.amp_y, .phase_y, .amp_x, .phase_x, .amp_sin_x, .amp_cos_x, \\
+  \hspace*{1.5in} .amp_sin_rel_x, .amp_cos_rel_x
+  \end{tabular} ] \Newline
 Similar to \vn{ping_a} except this is for the \vn{b}-mode component of the response.  Here
 the \vn{design} and \vn{model} values are calculated from Eq.~(8) of reference
 \cite{b:beta.meas}:
@@ -1088,7 +1095,7 @@ Terms of the linear transfer map. $1 \le i,j \le 6$.
   \item[ \begin{tabular}{@{}l}
   rad_int.i1, .i2, .i2_e4, .i3, .i3_e7, .i4a, .i4b, .i4z, .i5a, .i5b, .i5a_e6, .i5b_e6 \\
   rad_int1.i1, .i2, .i2_e4, .i3, .i3_e7, .i4a, .i4b, .i4z, .i5a, .i5b, .i5a_e6, .i5b_e6
-  \end{tabular}] \Newline
+  \end{tabular} ] \Newline
 Synchrotron radiation integrals. See the \bmad manual for details.
 The \vn{rad_int1.xxx} datums are the radiation integrals over a single element.
 With the \vn{rad_int.xxx} datums, the integral is from \vn{ele_ref} to \vn{ele}.
@@ -1392,14 +1399,18 @@ squared.
   photon.phase_x, .phase_y            & Photon phase                              & beam, lat   & No  \\ \hline
 
   \begin{tabular}{@{}l}
-    ping_a.amp_x, .phase_x,      \\
-    ping_a.amp_y, .phase_y       \\
-  \end{tabular}                       & Amp \& phase of $a$-mode response         & lat        & No  \\ \hline
+    ping_a.amp_x, .phase_x,              \\
+    ping_a.amp_y, .phase_y               \\
+    ping_a.amp_sin_y, .amp_cos_y         \\
+    ping_a.amp_sin_rel_y, .amp_cos_rel_y 
+  \end{tabular}                       & $a$-mode response of a pinged beam        & lat        & No  \\ \hline
 
   \begin{tabular}{@{}l}
-    ping_b.amp_x, .phase_x       \\
-    ping_b.amp_y, .phase_y       \\
-  \end{tabular}                       & Amp \& phase of $b$-mode response         & lat        & No  \\ \hline
+    ping_b.amp_x, .phase_x               \\
+    ping_b.amp_y, .phase_y               \\
+    ping_b.amp_sin_x, .amp_cos_x         \\
+    ping_b.amp_sin_rel_x, .amp_cos_rel_x 
+  \end{tabular}                       & $b$-mode response of a pinged beam        & lat        & No  \\ \hline
 
   r.$ij$ \hspace{10pt} $1 \le i,j \le 6$
                                       & Term in linear transfer map               & lat         & No  \\ \hline 

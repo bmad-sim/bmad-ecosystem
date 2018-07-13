@@ -383,7 +383,7 @@ end type tao_data_struct
 type tao_d1_data_struct
   character(40) name          ! Eg: 'x', etc.
   type (tao_d2_data_struct), pointer :: d2 => null() ! ptr to parent d2_data
-  type (tao_data_struct), pointer :: d(:) => null()  
+  type (tao_data_struct), pointer :: d(:) => null()
                               ! Pointer to the appropriate section in u%data
 end type
 
@@ -763,6 +763,8 @@ end type
 type tao_element_struct
   type (beam_struct) beam         ! Beam distribution at element.
   logical save_beam               ! Save beam here?
+  real(rp) spin_d_mat(2.2)
+  real(rp) spin_g_mat(2,6)
 end type
 
 ! Information for a particular lattice branch of a particular universe.
