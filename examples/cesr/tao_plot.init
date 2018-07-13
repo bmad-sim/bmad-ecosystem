@@ -54,6 +54,7 @@ Templates define the basics of, say, how to display an orbit.
   curve(1)%data_source = 'data'
   curve(1)%data_type   = 'orbit.x'
   curve(1)%y_axis_scale_factor = 1000
+  curve(1)%symbol%color = 2
 /
 
 &tao_template_graph

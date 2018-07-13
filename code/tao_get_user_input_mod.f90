@@ -6,6 +6,9 @@ use input_mod
 character(5), parameter, private :: sub_str(9) = ['[[1]]', '[[2]]', '[[3]]', '[[4]]', '[[5]]', &
                             '[[6]]', '[[7]]', '[[8]]', '[[9]]']
 
+character(5), parameter, private :: opt_sub_str(9) = ['[<1>]', '[<2>]', '[<3>]', '[<4>]', '[<5>]', &
+                            '[<6>]', '[<7>]', '[<8>]', '[<9>]']
+
 private tao_alias_translate
 
 contains
@@ -165,7 +168,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
 
     do i = 1, 9
       do j = 1, 10
-        ix = index (cmd_out, sub_str(i))
+        ix = max(index(cmd_out, sub_str(i)), index(cmd_out, opt_sub_str(i)))
         if (ix == 0) exit
         cmd_out = cmd_out(1:ix-1) // trim(s%com%cmd_file(n_level)%cmd_arg(i)) // cmd_out(ix+5:)
       enddo
@@ -434,7 +437,7 @@ character(*) cmd_in
 character(:), allocatable :: cmd_out, tail, alias_cmd
 
 integer, optional :: depth
-integer ic, i, j, ix, this_depth
+integer ic, i, j, ix, ix2, this_depth
 logical err, found_a_dummy_arg, found_this_dummy_arg
 character(*), parameter :: r_name = 'tao_alias_translate'
 
@@ -492,17 +495,22 @@ do i = 1, s%com%n_alias
     ! There can be multiple dummy args for a given actual arg so need to loop here.
     do
       ix = index (alias_cmd, sub_str(j))
-      if (ix == 0 .and. .not. found_this_dummy_arg) exit outer_loop
-      if (ix == 0) exit
+      ix2 = index(alias_cmd, opt_sub_str(j))
+      if (ix == 0 .and. ix2 == 0 .and. .not. found_this_dummy_arg) exit outer_loop
+      if (ix == 0 .and. ix2 == 0) exit
       found_a_dummy_arg = .true.
       found_this_dummy_arg = .true.
-      if (tail(1:ic) == '') then
+      if (tail(1:ic) == '' .and. ix /= 0) then
         call out_io (s_error$, r_name, 'ALIAS COMMAND DEMANDS MORE ARGUMENTS! ' // cmd_in)
         err = .true.
         cmd_out = ''
         return
       endif
-      alias_cmd = alias_cmd(1:ix-1) // trim(tail(1:ic)) // trim(alias_cmd(ix+5:))
+      if (ix /= 0) then
+        alias_cmd = alias_cmd(1:ix-1) // trim(tail(1:ic)) // trim(alias_cmd(ix+5:))
+      else
+        alias_cmd = alias_cmd(1:ix2-1) // trim(tail(1:ic)) // trim(alias_cmd(ix2+5:))
+      endif
     enddo
   enddo outer_loop
 

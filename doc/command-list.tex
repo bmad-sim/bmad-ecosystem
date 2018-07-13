@@ -85,22 +85,29 @@ The \vn{alias} command defines command shortcuts. Format:
 
 \vskip 7pt
 
-\vn{Alias} is like Unix aliases. Using the \vn{alias} command without any arguments
-results in a printout of the aliases that have been defined. When using an alias up to 9
-arguments may be substituted in the \vn{<string>}. The i\Th argument is substituted in
-place of the sub-string ``[[i]]''.  Arguments that do not have a corresponding ``[[i]]''
-are placed at the end of \vn{<string>}.
+\vn{Alias} is like Unix aliases. Using the \vn{alias} command without any arguments results in a
+printout of the aliases that have been defined. When using an alias up to 9 arguments may be
+substituted in the \vn{<string>}. The i\Th argument is substituted in place of the sub-string
+``[[i]]'' or ``[<i>]''.  Arguments that do not have a corresponding ``[[i]]'' or ``[<i>]'' are
+placed at the end of \vn{<string>}. The difference between ``[[i]]'' and ``[<i>]'' is that ``[[i]]''
+is a required argument while ``[<i>]'' defines an optional argument. For example
+\begin{example}
+  alias aaa show element [[1]] [[2]]
+  alias zzz show element [[1]] [<2>]
+\end{example}
+This defines ``\vn{aaa}'' as an alias for the \vn{show element} command with two required arguments
+while ``\vn{zzz}'' has only one requred argument.
 
 Aliases can be set up for multiple commands using semicolons.
 
 Examples:
 \begin{example}
-    alias xyzzy plot [[1]] model  ! Define xyzzy
-    alias                         ! Show all aliases
-    xyzzy top                     ! Use an alias
-    plot top model                ! Equivalent to "xyzzy top"
-    xyzzy top abc                 ! Equivalent to "plot top model abc"
-    alias foo  show uni; show top ! "foo" equivalent to "show uni; show top"
+  alias xyzzy plot [[1]] model  ! Define xyzzy
+  alias                         ! Show all aliases
+  xyzzy top                     ! Use an alias
+  plot top model                ! Equivalent to "xyzzy top"
+  xyzzy top abc                 ! Equivalent to "plot top model abc"
+  alias foo  show uni; show top ! "foo" equivalent to "show uni; show top"
 \end{example}
 In the above example ``xyzzy'' is the alias for the string ``plot [[1]] model''.  When the
 command xyzzy is used ``top'' is substituted for ``[[1]]'' in the string.
