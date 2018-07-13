@@ -763,7 +763,7 @@ end type
 type tao_element_struct
   type (beam_struct) beam         ! Beam distribution at element.
   logical save_beam               ! Save beam here?
-  real(rp) spin_d_mat(2.2)
+  real(rp) spin_d_mat(2,2)
   real(rp) spin_g_mat(2,6)
 end type
 
