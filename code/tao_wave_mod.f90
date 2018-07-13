@@ -10,7 +10,7 @@ contains
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine tao_wave_cmd (curve_name, plot_place, err)
+! Subroutine tao_wave_cmd (curve_name, plot_place, err_flag)
 !
 ! Routine to do the initial setup for wave plotting.
 ! The wave analysis is done by the routine tao_wave_analysis.
@@ -20,7 +20,7 @@ contains
 !   plot_place  -- Character(*) place on plot page to put the wave plot.
 !-
 
-subroutine tao_wave_cmd (curve_name, plot_place, err)
+subroutine tao_wave_cmd (curve_name, plot_place, err_flag)
 
 use quick_plot
 
@@ -41,18 +41,22 @@ type (branch_struct), pointer :: branch
 integer i, p1, p2, ix_curve
 
 character(*) curve_name, plot_place
-character(16), parameter :: wave_data_names(27) = [character(16):: 'orbit.x', 'orbit.y', 'beta.a', 'beta.b', &
-    'eta.x', 'eta.y', 'ping_a.amp_x', 'ping_b.amp_y', 'phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y', &
-    'cbar.12', 'cbar.11', 'cbar.22', 'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_b.amp_sin_x', 'ping_b.amp_cos_x', &
-    'ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x', &
-    'ping_a.amp_y', 'ping_a.phase_y', 'ping_b.amp_x', 'ping_b.phase_x']
+character(40), parameter :: wave_data_names(27) = [character(40):: 'orbit.x', 'orbit.y', 'beta.a', 'beta.b', &
+    'eta.x', 'eta.y', 'phase.a', 'phase.b', 'cbar.12', 'cbar.11', 'cbar.22', &
+    'ping_a.amp_x', 'ping_a.phase_x', 'ping_a.amp_y', 'ping_a.phase_y', &
+    'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', &
+    'ping_b.amp_y', 'ping_b.phase_y', 'ping_b.amp_x', 'ping_b.phase_x', &
+    'ping_b.amp_sin_x', 'ping_b.amp_cos_x', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x']
+
 
 character(*), parameter :: r_name = 'tao_wave_cmd'
 
 logical :: init_needed = .true.
-logical err
+logical err_flag, err
 
 ! Find the curve
+
+err_flag = .true.
 
 if (any(curve_name == wave_data_names)) then
 
@@ -168,7 +172,6 @@ if (wc0%data_source == 'data') then
 !  wg0%x%max = branch%ele(branch%n_ele_track)%s
 else
   call out_io (s_error$, r_name, 'ANALYSIS FOR THIS DATA_SOURCE NOT YET IMPLEMENTED: ' // wc0%data_source)
-  err = .true.
   return
 endif
 
@@ -189,6 +192,7 @@ enddo
 call tao_plot_struct_transfer (wave_plot, region%plot)
 region%visible = .true.
 region%plot%r => region
+err_flag = .false.
 
 end subroutine tao_wave_cmd
 

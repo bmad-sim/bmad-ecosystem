@@ -105,7 +105,7 @@ if (s%global%plot_on .and. s%plot_page%delete_overlapping_plots) then
     if (r2%location(2) < region%location(1) + 0.02) cycle
     if (r2%location(3) > region%location(4) - 0.02) cycle
     if (r2%location(4) < region%location(3) + 0.02) cycle
-    r2%visible = .false.
+    r2%visible = .false.  
   enddo
 endif
 
