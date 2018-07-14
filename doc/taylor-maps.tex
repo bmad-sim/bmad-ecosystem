@@ -112,13 +112,14 @@ orientation is negligible. That is, Stern-Gerlach effects are ignored. With this
 orbital part of the map is only dependent on the six orbital variables. This means that
 ${\pmb\Omega}_{BMT}$ and ${\pmb\Omega}_{EDM}$ in the the Thomas-Bargmann-Michel-Telegdi equation
 (\sref{tbmt}), are assumed independent of the spin. Thus the spin transport is just a rotation.
-\bmad represents this rotation using a quaternion. Each of the four components of the quaternion is
-a Taylor series and the full phase space plus spin transport uses 10 (= 6 + 4) Taylor series with
-each Taylor series only being dependent on the six phase space coordinates.
+\bmad represents this rotation using a quaternion (\sref{s:quat}). Each of the four components of
+the quaternion is a Taylor series and the full phase space plus spin transport uses 10 (= 6 orbital
++ 4 spin) Taylor series with each Taylor series only being dependent on the six orbital phase space
+coordinates.
 
 Spin transport involves:
-\begin{enumerate}
-\item Using the six phase space coordinates, evaluate the four spin Taylor series to produce a quaternion $\bfq$.
+\begin{enumerate}[itemsep=-0.6ex, topsep=-0.9ex]
+\item Using the six orbital coordinates, evaluate the four spin Taylor series to produce a quaternion $\bfq$.
 \item Normalize the quaternion to one: $\bfq \longrightarrow \bfq/|\bfq|$.
 \item Rotate the spin vector: $\bfS \longrightarrow \bfq \, \bfS \, \bfq^{-1}$.
 \end{enumerate}

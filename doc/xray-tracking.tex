@@ -244,18 +244,16 @@ relative to the element. Therefore, if the element is misaligned, the
 laboratory frame as shown in \fig{f:ele.coord}.
 
 \index{crystal}\index{mirror}\index{multilayer_mirror}
-For \vn{crystal} (\sref{s:crystal}), \vn{mirror} (\sref{s:mirror}),
-and \vn{multilayer_mirror} (\sref{s:multilayer}) elements, the
-``kinked'' reference trajectory through the element complicates the
-calculation. For these elements, there are three coordinate systems
-attached to the element as shown in \fig{f:photon.ele.coords}. Besides
-the \vn{element entrance} and \vn{element exit} coordinates, there are
-\vn{element surface} coordinates with $z$ perpendicular to the surface
+For \vn{crystal} (\sref{s:crystal}), \vn{mirror} (\sref{s:mirror}), and \vn{multilayer_mirror}
+(\sref{s:multilayer}) elements, the ``kinked'' reference trajectory through the element complicates
+the calculation. For these elements, there are three coordinate systems attached to the element as
+shown in \fig{f:photon.ele.coords}. Besides the \vn{element entrance} and \vn{element exit}
+coordinates, there are \vn{element surface} coordinates with $z$ perpendicular to the surface
 pointing inward.
 
 Tracking a particle through an element is therefore a three
 step transformation:
-\begin{enumerate}
+\begin{enumerate}[itemsep=-0.1ex, topsep=-0.4ex]
 \item
 At the entrance end of the element, transform from the laboratory
 reference coordinates to the element's \vn{entrance} or \vn{surface}
