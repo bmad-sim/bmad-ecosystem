@@ -261,7 +261,7 @@ type spin_matching_struct
   real(rp) :: sq_ele(0:3) = 0, sq_1turn(0:3) = 0
 end type
 
-! Polarization is not 1 when the spin_polar struct represents an ensamble of spins.
+! Note: Polarization is not 1 when the spin_polar struct represents an ensamble of spins.
 
 type spin_polar_struct
   real(rp) :: polarization = 1
@@ -269,6 +269,14 @@ type spin_polar_struct
   real(rp) :: phi   = 0
   real(rp) :: xi    = 0
 end type
+
+! Structure holding a single quaternion.
+
+type quaternion1_struct
+  real(rp) q(0:3)
+end type
+
+!
 
 real(rp), parameter :: x_unit_vec(3) = [1, 0, 0], y_unit_vec(3) = [0, 1, 0], z_unit_vec(3) = [0, 0, 1]
 
@@ -1021,7 +1029,7 @@ type ele_struct
   real(rp) :: mat6(6,6) = 0                                    ! 1st order transport matrix.
   real(rp) :: c_mat(2,2) = 0                                   ! 2x2 C coupling matrix
   real(rp) :: gamma_c = 1                                      ! gamma associated with C matrix
-  real(rp) :: spin_quaternion(4) = 0                           ! 1st order Spin transport quaternion.
+  real(rp) :: spin_quaternion(0:3) = 0                         ! 0th order Spin transport quaternion.
   real(rp) :: s_start = 0                                      ! longitudinal ref position at entrance_end
   real(rp) :: s = 0                                            ! longitudinal ref position at the exit end.
   real(rp) :: ref_time = 0                                     ! Time ref particle passes exit end.

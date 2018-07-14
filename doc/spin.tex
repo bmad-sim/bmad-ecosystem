@@ -1,0 +1,278 @@
+\chapter{Spin Dynamics}
+\label{c:spin}
+\index{spin|hyperbf}   
+
+%-----------------------------------------------------------------   
+\section{Equations of Motion}
+\label{s:spin.dyn}
+
+
+The classical spin vector $\Bf S$ is described in the local reference
+frame (\sref{s:ref}) by a modified Thomas-Bargmann-Michel-Telegdi
+(T-BMT) equation\cite{b:spin}
+\Begineq
+  \frac{\mathrm{d}}{\mathrm{d}s} \Bf S = 
+  \left\{ \frac{(1+\Bf r_t \dotproduct \bfg)}{c \, \beta_z} \, 
+  \left( {\pmb\Omega}_{BMT} + {\pmb\Omega}_{EDM} \right) - 
+  \bfg \times \bfhat z \right\} \times \mathbf{S}
+  \label{tbmt}
+\Endeq
+where $\bfg$ is the bend curvature function which points away from the center of curvature
+of the particle's reference orbit (see \fig{f:local.coords}), $\Bf r_t = (x, y)$ are the
+transverse coordinates, $c \, \beta_z$ is the longitudinal component of the velocity, and
+$\bfhat z$ is the unit vector in the $z$-direction. $\pmb\Omega_{BMT}$ is the usual T-BMT
+precession vector due to the particle's magnetic moment and $\pmb\Omega_{EDM}$ is the
+precession vector due to a finite electric dipole moment (EDM) \cite{b:silenko}. Note:
+The value for the EDM is set by \vn{bmad_com%electric_dipole_moment} (\sref{s:bmad.common}).
+\begin{align}
+  {\pmb\Omega}_{BMT} (\mathbf{r,P},t) &= 
+    - \frac{q}{m \, c} \left[ 
+    \left(\frac{1}{\gamma} + a \right) \, c \, \Bf B -
+    \frac{a \, \gamma \, c}{1 + \gamma} \, ( \bfbeta \dotproduct \Bf B ) \, \bfbeta -
+    \left( a + \frac{1}{1 + \gamma} \right) \, \mathbf{\bfbeta \times  E} 
+    \right] \\
+  &= - \frac{q}{m \, c} \left[ 
+    \left( \frac{1}{\gamma} + a \right) \, c \, \Bf B_{\perp} +
+    \frac{(1 + a) \, c}{\gamma} \, \Bf B_\parallel -
+    \left( a + \frac{1}{1 + \gamma} \right) \mathbf{\bfbeta \times E} 
+    \right] \nonumber
+\end{align}
+and
+\Begineq
+  {\pmb\Omega}_{EDM} (\mathbf{r,P},t) = 
+  - \frac{q \, \eta}{2 \, m \, c} \left[
+  \Bf E - \frac{\gamma}{1 + \gamma} \, 
+  ( \bfbeta \dotproduct \Bf E ) \, \bfbeta +
+  c \, \mathbf{\bfbeta \times B}
+  \right]
+\Endeq
+Here $\Bf E (\Bf r ,t)$ and $\Bf B (\Bf r ,t)$ are the electric and magnetic fields, $\Bf
+B_\perp$ and $\Bf B_\parallel$ are the components perpendicular and parallel to the
+momentum, $\gamma$ is the particle's relativistic gamma factor, $q$, $m$, and $\eta$ are
+the particle's charge, mass, and magnetic_moment, $\bfbeta$ is the normalized
+velocity, and $a = (g-2)/2$ is the particle's anomalous gyro-magnetic g-factor (values
+given in Table~\ref{t:constants}).
+
+%-----------------------------------------------------------------   
+\section{Quaternion Representation of Spin Rotations}
+\label{s:quat}
+
+\bmad uses a quaternion representation for spin rotations. The following is a brief introduction to
+quaternions. For more information, the reader is referred to the Web. In particular, the
+\vn{Quaternions and spatial rotation} article at \vn{wikipedia.org}. 
+
+A quaternion $\bfq$ is a 4-vector $\bfq = (q_1, q_x, q_y, q_z)$ where the components are reals if they represent a
+rotation and are Taylor series if they represent a rotation map (\sref{s:spin.map}). A quaternion can
+also be represented in the form:
+\Begineq
+  \bfq = q_1 + q_x \, \cali + q_y \, \calj + q_z \calk
+\Endeq
+where $\cali$, $\calj$, and $\calk$ are the {\em fundamental quaternion units} with the properties
+\Begineq
+  \cali^2 = \calj^2 = \calk^2 = \cali \, \calj \, \calk = -1, \quad 
+  \cali \, \calj = \calk, \quad \calj \, \cali = -\calk, \quad \text{etc.}
+\Endeq
+$\cali$, $\calj$, and $\calk$ do not commute among themselves but do commute with real numbers.
+
+The $q_1$ component of a quaternion is called the \vn{real} (or sometimes \vn{scalar}) part and the other
+three components are called the \vn{imaginary} (or sometimes \vn{vector}) part.
+
+When a quaternion represents a rotation, $\cali$, $\calj$, and $\calk$ can be thought of as representing unit
+vectors along the three Cartesian axes $\bfx$, $\bfy$, and $\bfz$ respectively. A rotation through an angle
+$\theta$ around the unit axis $\bfu = (u_x, u_y, u_z)$ is represented by the quaternion
+\Begineq
+  \bfq = \cos\frac{\theta}{2} + (u_x \, \cali + u_y \, \calj + u_z \, \calk) \sin\frac{\theta}{2}
+  \label{qt2ui}
+\Endeq
+
+A rotation quaternion $\bfq$ has normalization 1:
+\Begineq
+  1 = ||\bfq|| = \sqrt{q_1^2 + q_x^2 + q_y^2 + q_z^2}
+\Endeq
+Such a quaternion is called a \vn{unit} quaternion.
+The quaternion conjugate $\bfq^*$ is defined by
+\Begineq
+  \bfq^* = q_1 - q_x \, \cali - q_y \, \calj - q_z \calk
+\Endeq
+and the inverse $\bfq^{-1}$ is given by
+\Begineq
+  \bfq^{-1} = \frac{\bfq^*}{||\bfq||^2}
+\Endeq
+
+Given an ordinary spatial vector $(\bfr_x, \bfr_y, \bfr_z)$, this vector is represented by a
+quaternion $\bfr = (0, \bfr_x, \bfr_y, \bfr_z)$. The rotation of $\bfr$ through a rotation
+represented by quaternion $\bfq$ to position $\bfr'$ is given by
+\Begineq
+  \bfr' = \bfq \, \bfr \, \bfq^*
+  \label{rqrq}
+\Endeq
+The transformation matrix corresponding to the transformation of \Eq{rqrq} is
+\Begineq
+  \bfR = \begin{pmatrix}
+    q_1^2 + q_x^2 - q_y^2 - q_z^2    & 2 \, q_x \ q_y - 2 \, q_1 \, q_z & 2 \, q_x \ q_z + 2 \, q_1 \, q_y \\
+    2 \, q_x \ q_y + 2 \, q_1 \, q_z & q_1^2 - q_x^2 + q_y^2 - q_z^2    & 2 \, q_y \ q_z - 2 \, q_1 \, q_x \\
+    2 \, q_x \ q_z - 2 \, q_1 \, q_y & 2 \, q_y \ q_z + 2 \, q_1 \, q_x & q_1^2 - q_x^2 - q_y^2 + q_z^2 
+  \end{pmatrix}
+\Endeq
+
+In quaternion notation, two rotations $\bfq_1$ and $\bfq_2$ are combined into one rotation using the formula
+\Begineq
+  \bfq_{12} = \bfq_2 \, \bfq_1
+\Endeq
+where $\bfq_{12}$ is the result of rotation $\bfq_1$ followed by $\bfq_2$. Note that this equation
+is analogous to how rotation matrices are combined.
+
+%-----------------------------------------------------------------   
+\section{Invariant Spin Field}
+\label{s:isf}
+
+\etcetc
+
+%-----------------------------------------------------------------   
+\section{SLIM Formalism}
+\label{s:slim}
+
+The \vn{SLIM} formalism\cite{b:duan15,b:barber.ripkin}, indroduced by Alex Chao, is a way to represent the first order
+orbital + spin transport as an $8 \cross 8$ matrix which then can be efficiently analyzed.
+
+\etcetc
+
+
+To compute the $\bfD$ and $\bfG$ matrices from the spin transport map (\sref{s:spin.map}), the spin
+transport map is first truncated to linear order. In this case, the spin transport map $\cal M_s$
+can be written in the form
+\Begineq
+  \cal M_s = \bfq_0 + \sum_{i = 1}^6 r_i \, \bfq_i
+\Endeq
+The quaternion $\bfq_0$ is the zeroth order part of the map and the six quaternions $\bfq_i$, $i =
+1, \ldots, 6$ are the first order part with $\bfr$ being the orbital phase space point the map is
+being evaluated at.
+
+The next step is calculate the $(\bfl, \bfn_0, \bfm)$ coordinate system. If the entire ring is being
+analyzed, $\bfn_0$ at some starting point can be calculated as discussed above. If only part of the
+ring is being analyzed, the orientation of $\bfn_0$ at the start of the section will be an input
+parameter (that is, it is given and not calculated). The $\bfl$ and $\bfm$ axes at the starting
+point are chosen to give a right handed coordante system. After the initial $(\bfl, \bfn_0, \bfm)$
+coordinates have been calculated, the axes are transported using the $\bfq_0$
+quaternion. When analyzing only a section of a ring, there is no identifiable spin tune so the
+second step of rotating the $\bfl$ and $\bfm$ axes to give a uniform phase advance is skipped. In
+this case, the $\bfD$ matrix is just a unit matrix.  When analyzing an entire ring, the second step
+of rotating the $\bfl$ and $\bfm$ axes to give a uniform phase advance is optional (except at the
+end of the ring where the $\bfl$ and $\bfm$ axes must be rotated to keep the axes periodic) since,
+for analysis purposes, it generally does not matter if the spin phase advance is uniform as a
+funciton of longitudinal position.
+
+Once the $(\bfl, \bfn_0, \bfm)$ coordinate system is established, the transformation from this
+coordinate system to the laboratory $(x, y, z)$ coordinates is given by the matrix $(\bfl, \bfn_0,
+\bfm)$ where each axes is a column of the matrix. Between two longitudinal positions $s_1$ and
+$s_2$, the $\bfD$ matrix is calculated by first transforming $\bfq_0(s_1, s_2)$ to the $(\bfl,
+\bfn_0, \bfm)$ coordinate system
+\Begineq
+  \bfq_{0\gamma} = \bft_2 \, \bfq_0 \, \bft_1^{-1}
+\Endeq
+$\bfq_{0\gamma}$ is a rotation around the $\bfn_0$ axis. When $\bfq_{0\gamma}$ is represented as a
+matrix $\bfm_{0\gamma}$, the $\bfD$ matrix is then
+\Begineq
+  \bfD(s_1, s_2) = \begin{pmatrix}
+      m_{0\gamma}(1,1) & m_{0\gamma}(1,3) \\
+      m_{0\gamma}(3,1) & m_{0\gamma}(3,3)
+  \end{pmatrix}
+\Endeq
+
+
+
+%-----------------------------------------------------------------   
+\section{Spinor Notation}
+
+The following descibes the old spinor representation used by \bmad to represent spins. This
+documentation is kept as an aid for comparison with the spin tracking literature.
+
+In the SU(2) representation, a spin $\Bf s$ is written as a spinor $\Psi = \left( \psi_{1}, \psi_{2}
+\right)^{T}$ where $\psi_{1,2}$ are complex numbers. The conversion between SU(2) and SO(3) is
+\Begineq  
+  \Bf S = \Psi^{\dagger} \Bf {\bfsig} \, \Psi 
+  \qquad \longleftrightarrow \qquad
+  \Psi  = \frac{e^{i \xi}}{\sqrt{2 \left(P+s_{3}\right)}}   
+     \begin{pmatrix} P+s_{3} \\ s_{1}+i s_{2} \end{pmatrix}   
+  \Endeq  
+Where $\xi$ is an unmeasureable phase factor, and $P$ is the polarization. $P = 1$ for a single
+particle. Also ${\bfsig} = (\sigma_x, \sigma_y, \sigma_z)$ are the three Pauli matrices
+\Begineq
+  \sigma_x = \begin{pmatrix} 0 &  1 \\ 1 &  0 \end{pmatrix}, \qquad
+  \sigma_y = \begin{pmatrix} 0 & -i \\ i &  0 \end{pmatrix}, \qquad
+  \sigma_z = \begin{pmatrix} 1 &  0 \\ 0 & -1 \end{pmatrix}
+\Endeq
+In polar coordinates
+\Begineq   
+  \Psi = \begin{pmatrix} \psi_{1} \\ \psi_{2} \end{pmatrix}
+       = \sqrt{P} \, e^{i \xi}
+         \begin{pmatrix} 
+            \cos \frac{\theta}{2} \\   
+            e^{i \phi} \, \sin \frac{\theta}{2}
+         \end{pmatrix}
+  \qquad \longleftrightarrow \qquad
+  \Bf S = P \, \begin{pmatrix} \sin \theta \cos \phi \\   
+                          \sin \theta \sin \phi \\   
+                          \cos \theta \end{pmatrix}
+  \label{pp1p2}
+\Endeq
+Due to the unitarity of the spin vector,   
+$|\psi_{1}|^{2} + |\psi_{2}|^{2} = P$.
+The spinor eigenvectors along the $x$, $y$ and $z$ axes are
+\begin{align}
+   \Psi_{x+} &= \frac{1}{\sqrt{2}} \, \begin{pmatrix} 1 \\ 1 \end{pmatrix} \, , 
+  &\Psi_{x-} &= \frac{1}{\sqrt{2}} \, \begin{pmatrix} 1 \\ -1 \end{pmatrix} \, , \CRNO
+   \Psi_{y+} &= \frac{1}{\sqrt{2}} \, \begin{pmatrix} 1 \\ i \end{pmatrix} \, , 
+  &\Psi_{y-} &= \frac{1}{\sqrt{2}} \, \begin{pmatrix} 1 \\ -i \end{pmatrix} \, , \\
+   \Psi_{z+} &=                       \begin{pmatrix} 1 \\ 0 \end{pmatrix} \, , 
+  &\Psi_{z-} &=                       \begin{pmatrix} 0 \\ -1 \end{pmatrix} \, . \nonumber
+\end{align}
+
+In spinor notation, the T-BMT equation can be written as
+  \Begineq   
+    \frac{\mathrm{d}}{\mathrm{d} t} \Psi = - \frac{i}{2} \left( \bfsig \dotproduct   
+    {\pmb\Omega} \right) \Psi = -\frac{i}{2} \begin{pmatrix}
+    \Omega_z & \Omega_x - i \, \Omega_y \\
+    \Omega_x + i \, \Omega_y & -\Omega_z \end{pmatrix}
+    \Psi
+  \Endeq   
+The solution leads to a rotation of the spin vector by an angle   
+$\alpha$ around a unit vector $\bfhat n$ represented as   
+  \begin{align}   
+    \Psi_f &= \exp \left[ -i \frac{\alpha}{2} \bfhat n \dotproduct \bfsig \right] \Psi_i \CRNO
+         &= \left[ \cos \left( \frac{\alpha}{2} \right) \, \Bf 1_{2} - 
+            i \, (\bfhat n \dotproduct \bfsig) \, \sin \left( \frac{\alpha}{2} \right) \right] \Psi_i \\
+         &= \Bf A \Psi_i. \nonumber
+  \end{align}   
+where $\Psi_i$ is the initial spin state, $\Psi_f$ is the final spin state, and $\Bf A$,
+which describes the spin transport, is the SU(2) matrix representation of the quaternian
+$(a_0, \Bf a) = (\cos(\alpha/2), -\sin(\alpha/2) \, \bfhat n)$. $\Bf A$ has the
+normalization condition $a_{0}^{2} + \boldsymbol{a}^{2} = 1$. Thus the three components
+$\boldsymbol{a} = \left(a_{1}, a_{2}, a_{3}\right)$ completely describe $\Bf A$. 
+
+With spinors, the matrix representation of the observable $S_{\Bf u}$
+corresponding to the measurement of the spin along the unit vector
+$\Bf u$ is
+\begin{align}
+  S_{\Bf u} &\equiv \frac{\hbar}{2} \, \bfsig \dotproduct \Bf u \\   
+            &= \frac{\hbar}{2} 
+                   \begin{pmatrix} 
+                     u_z            & u_x - i \, u_y \\
+                     u_x + i \, u_y & u_z
+                   \end{pmatrix}
+\end{align}
+The expectation value of this operator, $\Psi^\dagger \, \Bf S_u \,
+\Psi$, representing the spin of a particle, satisfies the equation of
+motion of a classical spin vector in the particle's instantaneous rest
+frame.
+
+For a distribution of spins, the polarization $P_s$ along the unit
+vector $\Bf u$ is defined as the absolute value of the average
+expectation value of the spin over all N particles times
+$\frac{2}{\hbar}$,
+  \Begineq
+    P_s = \frac{2}{\hbar} \frac{1}{N} \sum_{j=1}^{N} \Psi_j^\dagger S_{\Bf u} \Psi_j
+  \Endeq  
+
+See \S~\sref{s:spin.hard.fringe} for formulas for tracking a spin through a multipole
+fring field.

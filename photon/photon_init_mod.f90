@@ -98,11 +98,12 @@ end subroutine absolute_photon_position
 !
 !   1) If E_integ_prob is present and non-negative, the photon energy E will be such that the integrated 
 !       probability  [E_min, E] relative to the integrated probability in the range [E_min, E_max] is E_integ_prob. 
-!       That is, E_integ_prob can be used to to give photon energies equally spaced in terms of the integrated probability distribution.
+!       That is, E_integ_prob can be used to to give a set of photon energies equally spaced in terms of the 
+!       integrated probability distribution.
 !
 !   2) If E_integ_prob is not present, or is negative, the photon energy is chosen at random in 
 !       the range [E_min, E_max].
-
+!
 ! An E_integ_prob of zero means that the generated photon will have energy E_min.
 ! An E_integ_prob of one means that the generated photon will have energy E_max.
 !
@@ -593,16 +594,20 @@ end subroutine bend_photon_vert_angle_init
 !
 ! Routine to convert a random number in the interval [0,1] to a photon energy.
 ! The photon probability spectrum is:
-!   P(E_rel) = 0.1909859 * Integral_{E_rel}^{Infty} K_{5/3}(x) dx
+!   P(E_rel) = 0.19098593171 * Integral_{E_rel}^{Infty} K_{5/3}(x) dx
 ! Where
 !   P(E_rel)) = Probability of finding a photon at relative energy E_rel.
 !   E_rel     = Relative photon energy: E / E_crit, E_crit = Critical energy.
 !   K_{5/3}   = Modified Bessel function.
+!
+! Notice that the P(E) is not the same as the distribution radiation energy since
+! the photons must be energy weighted.
+!
 ! There is a cut-off built into the calculation so that E_rel will be in the 
 ! range [0, ~17]. The error in neglecting photons with E_rel > ~17 is very small. 
 ! If r_in is present: 
 !   r_in = 0 => E_rel = 0 
-!   r_in = 1 => E_rel = ~17
+!   r_in = 1 => E_rel = ~30
 !
 ! Module needed:
 !   use photon_init_mod
@@ -622,13 +627,13 @@ implicit none
 ! Four spline fit arrays are used. 
 ! Each fit array has a different del_x and range of validity.
 
-type (photon_init_spline_struct), save :: spline(5)  
+type (photon_init_spline_struct), save :: spline(7) 
 
 real(rp) E_rel
 real(rp), optional :: r_in
-real(rp) rr, x, r_rel, rr0, x0, xp0, x1, xp1, v, vp
+real(rp) rr, rr1
 
-integer i, is, n
+integer is
 
 logical, save :: init_needed = .true.
 character(*), parameter :: r_name = 'bend_photon_energy_init'
@@ -646,84 +651,76 @@ else
 endif
 
 ! Init. 
-! The values for c0 and c1 were obtained from a Mathematica calculation.
+! The values for c0 and c1 were obtained from a Mathematica calculation See:
+!   bmad/calculations/bend_radiation_distribution_spline.nb
 
 if (init_needed) then
 
-  spline(:)%del_x = [0.02, 0.01, 0.001, 0.0001, 0.0001 ]
-  spline(:)%x_min = [0.0,  0.80, 0.990, 0.9990, 0.9999 ]
-  spline(:)%x_max = [0.8,  0.99, 0.999, 0.9999, 1.00000001 ]
+  spline(:)%del_x = [0.02_rp, 0.01_rp, 0.001_rp, 0.0001_rp, 0.00001_rp, 0.000001_rp, 0.000001_rp]
+  spline(:)%x_min = [0.0_rp,  0.80_rp, 0.990_rp, 0.9990_rp, 0.99990_rp, 0.999990_rp, 0.999990_rp]
+  spline(:)%x_max = [0.8_rp,  0.99_rp, 0.999_rp, 0.9999_rp, 0.99999_rp, 0.999999_rp, 0.999999_rp]
   spline(:)%spline_type = gen_poly_spline$
 
   allocate (spline(1)%pt(0:40), spline(2)%pt(0:19), spline(3)%pt(0:9), spline(4)%pt(0:9))
-  allocate (spline(5)%pt(0:1))
+  allocate (spline(5)%pt(0:9), spline(6)%pt(0:9), spline(7)%pt(0:9))
 
-  spline(1)%pt(:)%c0 = [0.0, &
-              4.28341e-6, 0.0000342902, 0.000115858, &
-              0.000275057, 0.000538307, 0.0009325, 0.00148513, 0.00222445, &
-              0.00317957, 0.00438067, 0.00585915, 0.00764782, 0.00978112, &
-              0.0122954, 0.015229, 0.0186228, 0.0225205, 0.026969, 0.0320186, &
-              0.037724, 0.0441446, 0.0513452, 0.0593972, 0.0683791, 0.0783781, &
-              0.0894916, 0.101829, 0.115512, 0.130682, 0.147499, 0.166146, &
-              0.186838, 0.209825, 0.235404, 0.263928, 0.295827, 0.331625, 0.371975, &
-              0.417703, 0.469878 ]
+  spline(1)%pt(:)%c0 = [0.0, 4.2834064e-6, 0.000034290156, 0.00011585842, 0.00027505747, &
+              0.00053830686, 0.00093250004, 0.0014851341, 0.0022244473, 0.0031795668, 0.0043806678, &
+              0.005859148, 0.0076478195, 0.0097811211, 0.012295356, 0.015228961, 0.018622804, &
+              0.022520536, 0.026968982, 0.032018597, 0.037723996, 0.044144571, 0.051345214, &
+              0.059397173, 0.06837907, 0.078378116, 0.08949158, 0.10182857, 0.11551222, &
+              0.13068237, 0.14749895, 0.1661462, 0.18683808, 0.20982519, 0.23540392, &
+              0.26392847, 0.29582721, 0.33162503, 0.37197493, 0.41770346, 0.46987814]
 
-  spline(1)%pt(:)%c1 = [0.0, & 
-              0.000642606, 0.00257329, 0.00580068, 0.0103393, 0.0162097, 0.0234387, &
-              0.0320599, 0.042114, 0.0536493, 0.0667223, 0.081399, 0.097755, &
-              0.115877, 0.135866, 0.157835, 0.181913, 0.20825, 0.237015, 0.268401, &
-              0.302633, 0.339965, 0.380692, 0.425158, 0.473758, 0.526956, 0.585298, &
-              0.649425, 0.720102, 0.798242, 0.884947, 0.981556, 1.08971, 1.21146, &
-              1.34935, 1.50665, 1.68757, 1.89762, 2.1442, 2.43746, 2.79164 ]
+  spline(1)%pt(:)%c1 = [0.0, 0.00064260631, 0.00257329, 0.0058006813, 0.010339284, &
+              0.016209659, 0.023438687, 0.032059915, 0.042114002, 0.05364926, 0.066722326, &
+              0.081398955, 0.097754987, 0.11587748, 0.13586608, 0.15783464, 0.18191312, &
+              0.20824993, 0.23701467, 0.26840143, 0.30263281, 0.33996474, 0.38069245, &
+              0.42515766, 0.4737576, 0.52695612, 0.58529771, 0.64942516, 0.72010211, &
+              0.79824218, 0.88494687, 0.98155565, 1.0897128, 1.2114583, 1.3493529, &
+              1.5066541, 1.687568, 1.8976188, 2.1442047, 2.4374605, 2.7916424]
 
-  spline(2)%pt(:)%c0 = [&
-              0.469878, 0.498807, 0.529911, 0.563449, 0.599724, 0.639103, 0.682028, &
-              0.72904, 0.780816, 0.83821, 0.902325, 0.974622, 1.05709, 1.15252, 1.26503, &
-              1.40105, 1.57139, 1.79651, 2.12271, 2.69945 ]
+  spline(2)%pt(:)%c0 = [0.46987814, 0.49880667, 0.52991104, 0.56344857, 0.59972426, 0.63910329, &
+              0.68202787, 0.72904042, 0.78081609, 0.83820971, 0.90232524, 0.97462245, 1.0570871, &
+              1.1525166, 1.2650292, 1.401046, 1.5713927, 1.7965129, 2.1227067, 2.6994536]
 
-  spline(2)%pt(:)%c1 = [& 
-              2.79164, 2.9977, 3.22744, 3.48512, 3.77607, 4.10707, 4.48684, 4.92685, &
-              5.44242, 6.05453, 6.79263, 7.69945, 8.83931, 10.3137, 12.2927, 15.0837, &
-              19.3053, 26.4104, 40.7923, 84.6624 ]
+  spline(2)%pt(:)%c1 = [2.7916424, 2.9977025, 3.2274448, 3.485124, 3.7760729, 4.1070657, &
+              4.4868378, 4.9268475, 5.4424214, 6.0545297, 6.7926343, 7.6994506, 8.8393066, &
+              10.313721, 12.292676, 15.083696, 19.305339, 26.41041, 40.792302, 84.662418]
 
-  spline(3)%pt(:)%c0 = [&
-              2.69945, 2.78886, 2.88928, 3.0037, 3.13651, 3.29451, 3.48916, 3.742, &
-              4.10159, 4.72378 ]
+  spline(3)%pt(:)%c0 = [2.6994536, 2.7888604, 2.8892809, 3.0037015, 3.1365059, &
+              3.2945089, 3.4891605, 3.7420006, 4.1015906, 4.7237837]
 
-  spline(3)%pt(:)%c1 = [& 
-              84.6624, 94.5006, 106.83, 122.726, 143.986, 173.851, 218.823, 294.119, &
-              445.575, 903.65 ]
+  spline(3)%pt(:)%c1 = [84.662418, 94.500558, 106.82986, 122.72601, 143.98575, &
+              173.85088, 218.82271, 294.11918, 445.57461, 903.65004]
 
-  spline(4)%pt(:)%c0 = [&
-              4.72378, 4.81908, 4.92582, 5.04708, 5.18739, 5.35376, 5.55797, 5.82214, &
-              6.19606, 6.83908 ]
+  spline(4)%pt(:)%c0 = [4.7237837, 4.8190811, 4.9258192, 5.0470809, &
+              5.1873871, 5.3537566, 5.5579673, 5.8221404, 6.1960561, 6.8390833]
 
-  spline(4)%pt(:)%c1 = [& 
-              903.65, 1005.91, 1133.9, 1298.7, 1518.78, 1827.44, 2291.39, 3066.54, 4621.7, &
-              9308.58 ]
+  spline(4)%pt(:)%c1 = [903.65004, 1005.9104, 1133.9035, 1298.7019, 1518.7818, &
+              1827.444, 2291.3909, 3066.5401, 4621.6998, 9308.5914]
 
-  ! In the range above rr = 0.9999 we use a simple extrapolation.
+  spline(5)%pt(:)%c0 = [6.8390833, 6.9372066, 7.0470098, 7.1716317, 7.3156733, &
+              7.4862732, 7.6954033, 7.9655326, 8.3471796, 9.001882]
 
-  n = ubound(spline(4)%pt, 1)
-  x1  = spline(4)%pt(n)%c0
-  xp1 = spline(4)%pt(n)%c1 * spline(5)%del_x
+  spline(5)%pt(:)%c1 = [9308.5914, 10352.865, 11659.208, 13340.208, 15583.647, &
+              18727.809, 23449.897, 31331.837, 47126.191, 94645.923]
 
-  x0  = spline(4)%pt(n-1)%c0
-  xp0 = spline(4)%pt(n-1)%c1 * spline(5)%del_x
+  spline(6)%pt(:)%c0 = [9.001882, 9.1016308, 9.2132088, 9.3397903, 9.486028, &
+              9.6591381, 9.8712192, 10.144967, 10.531391, 11.193479]
 
-  v  = x1 - x0 - xp0
-  vp = xp1 - xp0
+  spline(6)%pt(:)%c1 = [94645.923, 105223.63, 118452.33, 135469.88, 158173.89, &
+              189981.63, 237732.48, 317396.37, 476931.1, 956469.26]
 
-  spline(5)%pt(0)%c0 = x1
-  spline(5)%pt(0)%c1 = xp1
-  spline(5)%pt(0)%c2 = max(vp/2, 2*vp - 3*v) 
-  spline(5)%pt(0)%c3 = 1.1
+  spline(7)%pt(:)%c0 = [11.193479, 11.294278, 11.407001, 11.534857, 11.682527, &
+              11.857289, 12.07133, 12.347659, 12.737582, 13.403243]
 
-  spline(5)%spline_type = end_spline$
+  spline(7)%pt(:)%c1 = [956469.26, 1.0631543E6, 1.1965692E6, 1.3681661E6, 1.5970427E6, &
+              1.9176469E6, 2.3987897E6, 3.2018487E6, 4.8099726E6, 9.6282849E6]
 
   ! Fill in rest of the spline fit coefs.
 
-  do is = 1, ubound(spline, 1) - 1
+  do is = 1, ubound(spline, 1)
     call photon_init_spline_coef_calc (spline(is))
   enddo
 
@@ -737,6 +734,24 @@ do is = 1, ubound(spline, 1)
   E_rel = photon_init_spline_fit (spline(is), rr)
   return
 enddo
+
+! In the range above rr = 0.999999 use the approximation that P(x) ~ e^-x / Sqrt[x]
+
+rr1 = 1 - rr
+if (rr1 < 1d-14) then
+  E_rel = 31.4_rp
+  return
+endif
+
+E_rel = inverse(p_func, rr1, 13.4_rp, 31.4_rp, 1e-10_rp) 
+
+!---------------------------------------------------------------------------
+contains
+
+function p_func(x) result(rr1)
+real(rp) :: x, rr1, alpha = 2.42414961421056
+rr1 = alpha * exp(-x) / Sqrt(x)
+end function p_func
 
 end subroutine bend_photon_energy_init
 
