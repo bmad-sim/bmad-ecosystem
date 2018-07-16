@@ -66,7 +66,7 @@
 !                   ix_cache is set to a unique number. Otherwise ix_cache 
 !                   is not changed.
 !   rad_int_by_ele  -- Rad_int_all_ele_struct, optional: Radiation integrals element by element. 
-!     %ele(:)          -- Array of rad_int1_struct structures, one for each element in the branch.
+!     %ele(0:branch%n_ele_max) -- Array of rad_int1_struct structures, one for each element in the branch.
 !       %i0              -- I0 integral for the element. See the Bmad manual.
 !       %i1              -- I1 integral for the element.
 !       %i2              -- I2 integral for the element.
@@ -502,7 +502,7 @@ do ir = 1, branch%n_ele_track
 enddo
 
 !----------------------------------------------------------
-! Integrate wigglers, undulators, etc.
+! Integrate wigglers, undulators.
 
 do ir = 1, branch%n_ele_track
 
@@ -536,7 +536,6 @@ do ir = 1, branch%n_ele_track
       cycle
     endif
 
-  case (sad_mult$, em_field$) 
   case default
     cycle
   end select
