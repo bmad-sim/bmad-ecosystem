@@ -108,13 +108,22 @@ write (d_unit) ubound(lat%branch, 1), lat%pre_tracker, n_custom
 
 if (n_custom /= -1) write(d_unit) lat%custom
 
-! custom attribute names
+! Defined constants and custom attributes
 
 call custom_ele_attrib_name_list(index_list, name_list)
 write (d_unit) size(index_list)
 do i = 1, size(index_list)
   write (d_unit) index_list(i), name_list(i)
 enddo
+
+if (allocated(lat%constant)) then
+  write (d_unit) size(lat%constant)
+  do i = 1, size(lat%constant)
+    write (d_unit) lat%constant(i)
+  enddo
+else
+  write (d_unit) 0
+endif
 
 ! Branches
 

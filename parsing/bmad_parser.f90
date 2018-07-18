@@ -515,7 +515,7 @@ parsing_loop: do
 
   if (delim == '=') then
 
-    call parser_add_variable (word_1, in_lat)
+    call parser_add_constant (word_1, in_lat)
     cycle parsing_loop
 
   endif
@@ -809,7 +809,8 @@ branch_loop: do i_loop = 1, n_branch_max
     lat%z                       = in_lat%z
     lat%absolute_time_tracking  = in_lat%absolute_time_tracking
     lat%input_taylor_order      = in_lat%input_taylor_order
-    if (allocated(in_lat%custom)) lat%custom = in_lat%custom
+    lat%custom                  = in_lat%custom
+    lat%constant                = in_lat%constant
 
     call mat_make_unit (lat%ele(0)%mat6)
     call clear_lat_1turn_mats (lat)
