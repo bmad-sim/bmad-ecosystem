@@ -13,12 +13,11 @@ type lat_struct
   character(40) lattice                    ! Lattice name
   character(80) input_file_name            ! Lattice input file name
   character(80) title                      ! From TITLE statement
-  character(60), allocatable :: attribute_alias(:)  ! Aliases for custom1$, etc.
+  type (expression_atom_struct), allocatable :: constant(:)  ! Constants defined in the lattice
   type (mode_info_struct) a, b, z             ! Tunes, etc.                       
   type (lat_param_struct) param               ! Parameters                        
   type (bookkeeping_state_struct) lord_state  ! lord bookkeeping status.          
   type (ele_struct) ele_init                  ! For use by any program            
-  type (ele_struct) beam_start_ele            ! Element for holding spin info     
   type (ele_struct), pointer ::  ele(:) => null()  ! Array of elements [=> branch(0)].
   type (branch_struct), allocatable :: branch(:)   ! Branch(0:) array
   type (control_struct), allocatable :: control(:) ! Control list
@@ -46,19 +45,18 @@ end type
 The \vn{%ele_init} component within the \vn{lat_struct} is not used
 by \bmad and is available for general program use.
 
-
 %----------------------------------------------------------------------------
 \section{Initializing}
 \label{s:lat:init}
 \index{lat_struct!initializing}
 
 Normally initialization of a \vn{lat_struct} lattice is done by
-\Hyperref{r:bmad.parser}{bmad_parser} when a lattice file is parsed and does not have to
-be done by the programmer. When a programmer needs to initialize a
-lattice, however, \Hyperref{r:init.lat}{init_lat} is used to initalize the lattice with
-a single branch. After this initial setup, the routines
-\Hyperref{r:allocate.branch.array}{allocate_branch_array} and \Hyperref{r:allocate.lat.ele.array}{allocate_lat_ele_array} can be
-used to set up additional branches. Example:
+\Hyperref{r:bmad.parser}{bmad_parser} when a lattice file is parsed and does not have to be done by
+the programmer. When a programmer needs to initialize a lattice, however,
+\Hyperref{r:init.lat}{init_lat} is used to initalize the lattice with a single branch. After this
+initial setup, the routines \Hyperref{r:allocate.branch.array}{allocate_branch_array} and
+\Hyperref{r:allocate.lat.ele.array}{allocate_lat_ele_array} can be used to set up additional
+branches. Example:
 \begin{example}
   type (lat_struct) lat
   ...
@@ -74,10 +72,9 @@ used to set up additional branches. Example:
 \label{s:lat:point}
 \index{lat_struct!pointers}
 
-Since the \vn{lat_struct} has pointers within it, there is an extra
-burden on the programmer to make sure that allocation and deallocation
-is done properly. To this end, the equal sign has been overloaded by
-the routine \vn{lat_equal_lat} so that when one writes
+Since the \vn{lat_struct} has pointers within it, there is an extra burden on the programmer to make
+sure that allocation and deallocation is done properly. To this end, the equal sign has been
+overloaded by the routine \vn{lat_equal_lat} so that when one writes
 \begin{example}
     type (lat_struct) lattice1, lattice2
     ! ... some calculations ...
@@ -88,13 +85,11 @@ lattice1 will hold the same information as \vn{lattice2} with all the lattice el
 place but the pointers in \vn{lattice1} will point to different locations in physical memory so that
 changes to one lattice will not affect the other.
 
-\Hyperref{r:deallocate.lat.pointers}{deallocate_lat_pointers}
-Initial allocation of the pointers in a \vn{lat_struct} variable is
-generally handled by the \Hyperref{r:bmad.parser}{bmad_parser} 
-and \Hyperref{r:lat.equal.lat}{lat_equal_lat}
-routines.  Once allocated, local \vn{lat_struct} variables must have
-the save attribute or the pointers within must be appropriately
-deallocated before leaving the routine.
+\Hyperref{r:deallocate.lat.pointers}{deallocate_lat_pointers} Initial allocation of the pointers in
+a \vn{lat_struct} variable is generally handled by the \Hyperref{r:bmad.parser}{bmad_parser} and
+\Hyperref{r:lat.equal.lat}{lat_equal_lat} routines.  Once allocated, local \vn{lat_struct} variables
+must have the save attribute or the pointers within must be appropriately deallocated before leaving
+the routine.
 \begin{example}
   type (lat_struct), save :: lattice     ! Either do this at the start or ...
   ...

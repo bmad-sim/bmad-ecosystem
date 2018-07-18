@@ -128,14 +128,15 @@ end   = info%orbit(ele%ix_ele)
 gamma = ele%value(e_tot$) / mass_of(param%particle)
 
 ! Go to the local element frame if there has been caching.
+
 if (associated(info%cache_ele)) then
   call offset_particle (ele, param, set$, start, set_hvkicks = .false.)
   call offset_particle (ele, param, set$, end, set_hvkicks = .false., s_pos = ll)
 endif
 
-  ! For j >= 3 we test if the integral calculation has converged.
-  ! Exception: Since wigglers have a periodic field, the calculation can 
-  ! fool itself if we stop before j = 5.
+! For j >= 3 we test if the integral calculation has converged.
+! Exception: Since wigglers have a periodic field, the calculation can 
+! fool itself if we stop before j = 5.
 
 j_min_test = 3
 j_max = 14
@@ -150,12 +151,11 @@ if (ele%key == wiggler$ .or. ele%key == undulator$) then
   endif
 endif
 
+!---------------
 ! Loop until integrals converge.
+! This is trapzd from Numerical Recipes.
 
 do j = 1, j_max
-
-  !---------------
-  ! This is trapzd from Numerical Recipes
 
   if (j == 1) then
     n_pts = 2
@@ -345,7 +345,7 @@ if (associated(info%cache_ele)) then
   ! Now convert the g calc back to lab coords.
   
   if (ele%key == sbend$) then
-    tilt = ele%value(ref_tilt_tot$) + ele%value(roll$)  ! Small angle approx.
+    tilt = ele%value(ref_tilt_tot$) + ele%value(roll_tot$)  ! Small angle approx.
   else
     tilt = ele%value(tilt_tot$) 
   endif
@@ -416,8 +416,7 @@ if (z1 > ele%value(l$)) then
   z1 = min(ele%value(l$), z_here + dz)
 endif
 
-! bmad_standard will not properly do partial tracking through a periodic_type wiggler so
-! switch to symp_lie_bmad type tracking.
+! If wiggler/undulator with Taylor tracking then switch to symp_lie_bmad tracking 
 
 is_special_wiggler = ((ele%key == wiggler$ .or. ele%key == undulator$) .and. &
                                     ele%sub_key == periodic_type$ .and. ele%tracking_method == taylor$)
@@ -447,6 +446,9 @@ info%eta_a = matmul(v, [info%a%eta, info%a%etap, 0.0_rp,   0.0_rp ])
 info%eta_b = matmul(v, [0.0_rp,   0.0_rp,    info%b%eta, info%b%etap ])
 
 is_special_wiggler = ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%tracking_method /= custom$)
+
+! bmad_standard will not properly do partial tracking through a periodic_type wiggler so
+! use special calculation
 
 if (is_special_wiggler) then
   call calc_wiggler_g_params (ele, info%branch%param, z_here, orb_end, pt, info)
@@ -520,7 +522,7 @@ if (ele%sub_key == periodic_type$ .and. ele%tracking_method == bmad_standard$) t
 else
   ! Note: em_field_g_bend assumes orb is lab (not element) coords.
 
-  call em_field_g_bend (ele, param, s_rel, 0.0_rp, orb, g, dg)
+  call em_field_g_bend (ele, param, s_rel, orb, g, dg)
 
   pt%g_x0 = g(1)
   pt%g_y0 = g(2)
@@ -541,7 +543,7 @@ end subroutine calc_wiggler_g_params
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine em_field_g_bend (ele, param, s_, orbit, g, dg)
+! Subroutine em_field_g_bend (ele, param, s_rel, orbit, g, dg)
 !
 ! Subroutine to calculate the g bending kick felt by a particle in a element. 
 !
@@ -552,7 +554,6 @@ end subroutine calc_wiggler_g_params
 !   ele    -- Ele_struct: Element being tracked thorugh.
 !   param  -- lat_param_struct: Lattice parameters.
 !   s_rel  -- Real(rp): Distance from the start of the element to the particle.
-!   t_rel  -- Real(rp): Time relative to the reference particle.
 !   orbit  -- Coord_struct: Particle position in lab (not element) frame.
 !
 ! Output:
@@ -560,7 +561,7 @@ end subroutine calc_wiggler_g_params
 !   dg(3,3) -- Real(rp), optional: dg(:)/dr gradient. 
 !-
 
-subroutine em_field_g_bend (ele, param, s_rel, t_rel, orbit, g, dg)
+subroutine em_field_g_bend (ele, param, s_rel, orbit, g, dg)
 
 implicit none
 
@@ -569,7 +570,7 @@ type (lat_param_struct) param
 type (em_field_struct) field
 type (coord_struct) orbit
 
-real(rp), intent(in) :: s_rel, t_rel
+real(rp), intent(in) :: s_rel
 real(rp), intent(out) :: g(3)
 real(rp), optional :: dg(3,3)
 real(rp) vel_unit(3), fact
@@ -578,8 +579,6 @@ real(rp) f
 ! calculate the field
 
 call em_field_calc (ele, param, s_rel, orbit, .false., field, present(dg))
-
-!
 
 ! vel_unit is the velocity normalized to unit length
 

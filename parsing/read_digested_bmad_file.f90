@@ -188,12 +188,19 @@ if (n_custom > -1) then
   read (d_unit, err = 9070) lat%custom
 endif
 
-! custom attribute names
+! Defined constants and custom attributes
 
 read (d_unit, err = 9035) n
 allocate(index_list(n), name_list(n))
 do i = 1, n
   read (d_unit, err = 9035) index_list(i), name_list(i)
+enddo
+
+read (d_unit, err = 9035) n
+if (allocated(lat%constant)) deallocate(lat%constant)
+allocate(lat%constant(n))
+do i = 1, n
+  read (d_unit, err = 9035) lat%constant(n)
 enddo
 
 ! Allocate lat%ele, lat%control and lat%ic arrays

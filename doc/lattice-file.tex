@@ -304,6 +304,30 @@ element is to be used. Examples:
   q01##3                ! The 3rd element in each branch named q01.
 \end{example}
 
+\vn{Note:} It is advised to avoid setting the parameters of differing elements that share the same
+name to differing values since this can lead problems later on. For example,
+consider this in a lattice file named, say, \vn{lat.bmad}:
+\begin{example}
+  q1: quadrupole, ...
+  a: line = (..., q1, ...)
+  b: line = (..., q1, ...)
+  c: line = (a, b)  ! There are two q1 elements. 
+                    ! One from A-line and one from B-line.
+  use, c
+  expand_lattice    ! Expand the lattice
+  q1##1[k1] = 0.1   ! Set first element whose name is q1
+  q1##2[k1] = 0.2   ! Set second element whose name is q1
+\end{example}
+Now if later on someone wants to study just the \vn{B} line that person could try to do this by
+creating a second file with just two lines:
+\begin{example}
+  call, file = lat.bmad
+  use, b
+\end{example}
+Normally this would work but in this case the lattice is invalid since there is only one \vn{q1}
+element in line \vn{B}. A more flexible solution would be to use unique names for the two \vn{q1}
+elements.
+
 Multiple elements in a lattice may share the same name.  When
 multiple branches are present, to differentiate elements that
 appear in different branches, the ``branch qualified'' element name may be
@@ -330,7 +354,7 @@ where \vn{branch_name} is the name of the branch and \vn{element_name} is the
   xline>>cryst3
 \end{example}
 Using the full name is only needed to distinguish elements that have
-the same regular name in separate branches.  When parsing a lattice
+the same regular name in separate branches. When parsing a lattice
 file, branches are not formed until the lattice is expanded
 (\sref{s:expand}). Therefore an \vn{expand_lattice} statement is
 required before full names can be used in statements.
@@ -824,18 +848,18 @@ Immediate evaluation of arithmetic expressions (\sref{s:arith}) mandates that va
 before use.
 \item
 A lattice element must be defined before any of its parameters are set. Example:
-\begin{example}
+\begin{example2}
   pp[z_offset] = 0.1    ! WRONG! PP HAS NOT BEEN DEFINED YET!
   pp: patch             ! Here PP is defined
-\end{example}
+\end{example2}
 In this example, the \vn{z_offset} of the element \vn{pp} is set before \vn{pp} has been
 defined. This is an error. As a corollary to this rule, element parameters that are set 
 using wild card characters will only affect those parameters that have been already defined. For
 example:
-\begin{example}
+\begin{example2}
   crystal::*[b_param] = 0.2
   c5: crystal
-\end{example}
+\end{example2}
 In this example, the \vn{b_param} of all \vn{crystal} elements is set to \vn{0.2} {\em except} for
 \vn{c5} and all other crystal elements that are defined after the set.
 \end{itemize}
@@ -850,11 +874,11 @@ lattice file is parsed by a program. Syntax:
 \begin{example}
   print <string>
 \end{example}
-Where \vn{<string>} is the string to be printed. Variable values can be printed by including the
-variable in back-quotes. For example
+Where \vn{<string>} is the string to be printed. Variable values can be printed by using
+\textbf{back-tick} characters. For example:
 \begin{example}
-  print Remember! Q01 quad strength of `q01[k1]` not yet optimized!
-  print Optimization is as easy as 2 + 2 = `2+2`.
+  print Remember! Q01 quad strength of \backtick{}q01[k1]\backtick not yet optimized!
+  print Optimization is as easy as 2 + 2 = \backtick{}2+2\backtick.
 \end{example}
 will result in the following being printed:
 \begin{example}
@@ -1058,8 +1082,8 @@ The \vn{ran} and \vn{ran_gauss} functions, when used with elements
 that show up multiple times in a lattice, generally need to be used
 after lattice expansion. See \sref{s:functions}.
 \item
-Some dependent variables may be set as if they are independent
-variables but only if done before lattice expansion. See \sref{s:depend}.
+Some dependent parameters may be set as if they are independent
+parameters but only if done before lattice expansion. See \sref{s:depend}.
 \index{multipass}
 \item 
 Setting the \vn{phi0_multipass} attribute for an 
@@ -1155,12 +1179,12 @@ of output. The syntax is
 Valid \vn{<switches>} are
 \begin{example}
   beam_start          ! Print the beam_start information.
+  const               ! Print table of constants defined in the lattice file.
   ele <n1> <n2> ...   ! Print full info on selected elements.
   lattice             ! Print a list of lattice element information.
   lord                ! Print full information on all lord elements.
   seq                 ! Print sequence information.
   slave               ! Print full information on all slave elements.
-  var                 ! Print variable information.
 \end{example}
 Here $<n1>$, $<n2>$, etc. are the index of the selected elements in
 the lattice.  Example

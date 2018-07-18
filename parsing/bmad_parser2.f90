@@ -395,7 +395,7 @@ parsing_loop: do
   ! Variable definition 
 
   if (delim == '=') then
-    call parser_add_variable (word_1, lat)
+    call parser_add_constant (word_1, lat)
     cycle parsing_loop
   endif
 

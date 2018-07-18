@@ -335,7 +335,7 @@ Dummy routine for pre processing at the start of the track1 routine.
 
 \index[routine]{track1_spin_custom}
 \label{r:track1.spin.custom}
-\item[track1_spin_custom (start, ele, param, end, err_flag, track)] \Newline 
+\item[track1_spin_custom (start, ele, param, end, err_flag, track, make_quaternion)] \Newline 
 Dummy routine for custom spin tracking. 
 This routine needs to be replaced for a custom calculation.
 
@@ -481,7 +481,7 @@ Also can be used to restrict output verbosity.
 
 \index[routine]{read_a_line}
 \label{r:read.a.line}
-\item[read_a_line (prompt, line_out, trim_prompt, prompt_color, prompt_bold)] \Newline 
+\item[read_a_line (prompt, line_out, trim_prompt, prompt_color, prompt_bold, history_file)] \Newline 
 Routine to read a line of input from the terminal.
 The line is also add to the history buffer so that the up-arrow
 
@@ -1947,7 +1947,7 @@ Routine to type out a coordinate.
 
 \index[routine]{bend_photon_init}
 \label{r:bend.photon.init}
-\item[bend_photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob)] \Newline 
+\item[bend_photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob, emit_probability)] \Newline 
 Routine to initialize a photon
 
 \index[routine]{bend_photon_vert_angle_init}

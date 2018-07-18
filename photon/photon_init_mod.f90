@@ -89,7 +89,7 @@ end subroutine absolute_photon_position
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine bend_photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob)
+! Subroutine bend_photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob, emit_probability)
 !
 ! Routine to initalize a photon for dipole bends and wigglers (but not undulators).
 ! The photon is initialized using the standard formulas for bending radiation.
@@ -113,64 +113,48 @@ end subroutine absolute_photon_position
 ! the forward direction. To correct for the actual charged particle postion use the routine
 !   absolute_photon_position
 !
-! Modules needed:
-!   use photon_init_mod
-!
 ! Input:
-!   g_bend_x     -- Real(rp): Bending 1/rho component in horizontal plane.
-!   g_bend_y     -- Real(rp): Bending 1/rho component in vertical plane.
-!   gamma        -- Real(rp): Relativistic gamma factor of generating charged particle.
-!   E_min        -- Real(rp), optional: Minimum photon energy. Default is zero.
-!   E_max        -- Real(rp), optional: Maximum phton energy.  Default is Infinity.
-!                    If non-positive then E_max will be taken to be Infinity.
-!   E_integ_prob -- real(rp):, optional :: integrated energy probability. See above.
+!   g_bend_x         -- real(rp): Bending 1/rho component in horizontal plane.
+!   g_bend_y         -- real(rp): Bending 1/rho component in vertical plane.
+!   gamma            -- real(rp): Relativistic gamma factor of generating charged particle.
+!   E_min            -- real(rp), optional: Minimum photon energy. Default is zero. Ignored if negative.
+!   E_max            -- real(rp), optional: Maximum phton energy.  Default is Infinity. Ignored if negative.
+!                        If non-positive then E_max will be taken to be Infinity.
+!   E_integ_prob     -- real(rp):, optional :: integrated energy probability. See above.
 !                                If E_integ_prob is non-negative, it must be in the range [0, 1].
+!   emit_probability -- real(rp), optional: Probability of emitting a photon in the range [E_min, E_max]. 
+!                         Normalized so that the probability of emitting in the range [0, Infinity] is 1.
 !
-! output:
-!   orbit             -- coord_struct: Initialized photon.
+! Output:
+!   orbit            -- coord_struct: Initialized photon.
 !-
 
-subroutine bend_photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob)
+subroutine bend_photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob, emit_probability)
 
 implicit none
 
 type (coord_struct) orbit
-real(rp), optional :: E_min, E_max, E_integ_prob
-real(rp) g_bend_x, g_bend_y, g_bend, gamma, phi, e_factor, integ_prob
-real(rp) E_rel, gamma_phi, E_photon, r_min, r_max, r, Emin, Emax
+real(rp), optional :: E_min, E_max, E_integ_prob, emit_probability
+real(rp) g_bend_x, g_bend_y, g_bend, gamma, phi, e_factor
+real(rp) E_rel, gamma_phi, E_photon, r_min, r_max, r
 
 ! Photon energy
 
 g_bend = sqrt(g_bend_x**2 + g_bend_y**2)
 e_factor = 3 * h_bar_planck * c_light * gamma**3 * g_bend / 2 
 
-Emin = real_option(0.0_rp, E_min)
-Emax = real_option(0.0_rp, E_max)
+r_min = 0
+r_max = 1
 
-integ_prob = real_option(-1.0_rp, E_integ_prob)
-if (integ_prob >= 0) then
-  if (Emax <= 0 .and. Emin <= 0) then
-    call bend_photon_energy_init (E_rel, integ_prob)
-  else
-    if (Emin <= 0) Emin = 0
-    if (Emax <= 0) Emax = 1.0d100
-    r_min = bend_photon_energy_integ_prob(Emin, g_bend, gamma)
-    r_max = bend_photon_energy_integ_prob(Emax, g_bend, gamma)
-    r = r_min + integ_prob * (r_max - r_min)
-    call bend_photon_energy_init (E_rel, r)
-  endif
-  
-else
-  if (Emax <= 0) then
-    call bend_photon_energy_init (E_rel)
-  else
-    r_min = bend_photon_energy_integ_prob(Emin, g_bend, gamma)
-    r_max = bend_photon_energy_integ_prob(Emax, g_bend, gamma)
-    call ran_uniform(r)
-    r = r_min + r * (r_max - r_min)
-    call bend_photon_energy_init (E_rel, r)
-  endif
-endif
+if (real_option(0.0_rp, E_min) > 0) r_min = bend_photon_energy_integ_prob(E_min, g_bend, gamma)
+if (real_option(0.0_rp, E_max) > 0) r_max = bend_photon_energy_integ_prob(E_max, g_bend, gamma)
+if (present(emit_probability)) emit_probability = r_max - r_min
+
+r = real_option(-1.0_rp, E_integ_prob)
+if (r < 0) call ran_uniform(r)
+
+r = r_min + r * (r_max - r_min)
+call bend_photon_energy_init (E_rel, r)
 
 E_photon = E_rel * e_factor
 

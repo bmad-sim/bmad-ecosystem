@@ -128,20 +128,20 @@ integer, parameter :: def$ = 1, redef$ = 2
 
 integer, parameter :: n_parse_line = 280
 
-type bp_var_struct
-  character(40) name      ! variable name
-  real(rp) value          ! variable value
-  integer :: indexx = 0   ! variable sort index
+type bp_const_struct
+  character(40) name      ! Constant name
+  real(rp) value          ! Constant value
+  integer :: indexx = 0   ! Constant sort index
 end type
 
 type bp_common_struct
   type (stack_file_struct), pointer :: current_file
   type (stack_file_struct), pointer :: calling_file
   type (lat_struct), pointer :: old_lat
-  type (bp_var_struct), allocatable :: var(:)   ! variable name
+  type (bp_const_struct), allocatable :: const(:)   ! Constant name
   type (extra_parsing_info_struct) extra
   integer num_lat_files               ! Number of files opened
-  integer ivar_tot, ivar_init
+  integer i_const_tot, i_const_init
   character(200), allocatable :: lat_file_names(:) ! List of all files used to create lat
   ! Note: use %line2_file_name to ID line. %line1_file_name may be blank!
   character(200) line1_file_name           ! Name of file from which %input_line1 was read
@@ -2947,7 +2947,7 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_attribute_struct) attrib_info
 
 integer i, ix1, ix2, ix_word, ios, ix, n_loc, ix_attrib
-integer ivar, ixm, ixm2
+integer i_const, ixm, ixm2
 real(rp) value
 real(rp), pointer :: v(:)
 character(*) word
@@ -2981,7 +2981,7 @@ if (.not. verify_valid_name (var_name, ix_word)) return
 
 ix1 = index(var_name, '[')
 if (ix1 == 0) then
-  call find_indexx (var_name, bp_com%var%name, bp_com%var%indexx, bp_com%ivar_tot, i)
+  call find_indexx (var_name, bp_com%const%name, bp_com%const%indexx, bp_com%i_const_tot, i)
   if (i == 0) then
     do i = 1, size(old_style_physical_const_list)
       if (var_name == upcase(old_style_physical_const_list(i)%name)) then
@@ -2996,17 +2996,17 @@ if (ix1 == 0) then
     call parser_error ('VARIABLE USED BUT NOT YET DEFINED: ' // word, 'WILL TREAT AS ZERO.', level = s_warn$)
     value = 0
     ! To prevent multiple error messages define this variable.
-    bp_com%ivar_tot = bp_com%ivar_tot + 1
-    if (bp_com%ivar_tot > size(bp_com%var%name)) call reallocate_bp_com_var()
-    ivar = bp_com%ivar_tot
-    bp_com%var(ivar)%name = var_name
-    bp_com%var(ivar)%value = 0
-    call find_indexx (var_name, bp_com%var%name, bp_com%var%indexx, ivar-1, ixm, ixm2)
-    bp_com%var(ixm2+1:ivar)%indexx = bp_com%var(ixm2:ivar-1)%indexx
-    bp_com%var(ixm2)%indexx = ivar
+    bp_com%i_const_tot = bp_com%i_const_tot + 1
+    if (bp_com%i_const_tot > size(bp_com%const%name)) call reallocate_bp_com_const()
+    i_const = bp_com%i_const_tot
+    bp_com%const(i_const)%name = var_name
+    bp_com%const(i_const)%value = 0
+    call find_indexx (var_name, bp_com%const%name, bp_com%const%indexx, i_const-1, ixm, ixm2)
+    bp_com%const(ixm2+1:i_const)%indexx = bp_com%const(ixm2:i_const-1)%indexx
+    bp_com%const(ixm2)%indexx = i_const
 
   else
-    value = bp_com%var(i)%value
+    value = bp_com%const(i)%value
     err_flag = .false.
   endif
 
@@ -3124,48 +3124,57 @@ end subroutine word_to_value
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_add_variable (word, lat)
+subroutine parser_add_constant (word, lat)
 
 implicit none
 
 type (lat_struct) lat
+type (expression_atom_struct), allocatable :: temp_const(:)
 character(*) word
 character(1) delim
 real(rp) old_val
-integer i, ivar, ixm, ixm2
+integer i, i_const, ixm, ixm2, n
 logical delim_found, err_flag
 
 !
 
-call find_indexx (word, bp_com%var%name, bp_com%var%indexx, bp_com%ivar_tot, i)
+call find_indexx (word, bp_com%const%name, bp_com%const%indexx, bp_com%i_const_tot, i)
 if (i /= 0) then
-  old_val = bp_com%var(i)%value
-  call parse_evaluate_value (word, bp_com%var(i)%value, lat, delim, delim_found, err_flag)
+  old_val = bp_com%const(i)%value
+  call parse_evaluate_value (word, bp_com%const(i)%value, lat, delim, delim_found, err_flag)
 
-  if (bp_com%var(i)%value == old_val) then
-    call parser_error ('VARIABLES ARE NOT ALLOWED TO BE REDEFINED: ' // word, 'BUT SINCE OLD_VALUE = NEW_VALUE THIS IS ONLY A WARNING...', level = s_warn$)
+  if (bp_com%const(i)%value == old_val) then
+    call parser_error ('CONSTANTS ARE NOT ALLOWED TO BE REDEFINED: ' // word, 'BUT SINCE OLD_VALUE = NEW_VALUE THIS IS ONLY A WARNING...', level = s_warn$)
   else
-    call parser_error ('VARIABLES ARE NOT ALLOWED TO BE REDEFINED: ' // word)
+    call parser_error ('CONSTANTS ARE NOT ALLOWED TO BE REDEFINED: ' // word)
   endif
 
 else
-  bp_com%ivar_tot = bp_com%ivar_tot + 1
-  if (bp_com%ivar_tot > size(bp_com%var%name)) call reallocate_bp_com_var()
-  ivar = bp_com%ivar_tot
-  bp_com%var(ivar)%name = word
+  bp_com%i_const_tot = bp_com%i_const_tot + 1
+  if (bp_com%i_const_tot > size(bp_com%const%name)) call reallocate_bp_com_const()
+  i_const = bp_com%i_const_tot
+  bp_com%const(i_const)%name = word
   ! Reindex.
-  call find_indexx (word, bp_com%var%name, bp_com%var%indexx, ivar-1, ixm, ixm2)
-  bp_com%var(ixm2+1:ivar)%indexx = bp_com%var(ixm2:ivar-1)%indexx
-  bp_com%var(ixm2)%indexx = ivar
+  call find_indexx (word, bp_com%const%name, bp_com%const%indexx, i_const-1, ixm, ixm2)
+  bp_com%const(ixm2+1:i_const)%indexx = bp_com%const(ixm2:i_const-1)%indexx
+  bp_com%const(ixm2)%indexx = i_const
   ! Evaluate
-  call parse_evaluate_value (bp_com%var(ivar)%name, bp_com%var(ivar)%value, lat, delim, delim_found, err_flag)
+  call parse_evaluate_value (bp_com%const(i_const)%name, bp_com%const(i_const)%value, lat, delim, delim_found, err_flag)
+  ! Put in lat%constant(:) array
+  n = 0
+  if (allocated(lat%constant)) n = size(lat%constant)
+  call move_alloc(lat%constant, temp_const)
+  allocate (lat%constant(n+1))
+  if (allocated(temp_const)) lat%constant(1:n) = temp_const
+  lat%constant(n+1)%name = bp_com%const(i_const)%name
+  lat%constant(n+1)%value = bp_com%const(i_const)%value
 endif
 
 if (delim_found .and. .not. err_flag) call parser_error  &
                   ('EXTRA CHARACTERS ON RHS: ' // bp_com%parse_line,  &
-                   'FOR VARIABLE: ' // bp_com%var(ivar)%name)
+                   'FOR CONSTANT: ' // bp_com%const(i_const)%name)
 
-end subroutine parser_add_variable
+end subroutine parser_add_constant
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -4180,19 +4189,19 @@ integer nn, i
 
 ! 
 
-if (allocated(bp_com%var)) deallocate (bp_com%var)
+if (allocated(bp_com%const)) deallocate (bp_com%const)
 
 nn = size(physical_const_list)  ! number of standard (non-user defined) constants
-allocate (bp_com%var(nn))
+allocate (bp_com%const(nn))
 
 do i = 1, nn
-  bp_com%var(i) = bp_var_struct(upcase(physical_const_list(i)%name), physical_const_list(i)%value, 0)
+  bp_com%const(i) = bp_const_struct(upcase(physical_const_list(i)%name), physical_const_list(i)%value, 0)
 enddo
 
-bp_com%ivar_init = nn
-bp_com%ivar_tot  = nn
+bp_com%i_const_init = nn
+bp_com%i_const_tot  = nn
 
-call indexx (bp_com%var(1:nn)%name, bp_com%var(1:nn)%indexx)
+call indexx (bp_com%const(1:nn)%name, bp_com%const(1:nn)%indexx)
 
 end subroutine init_bmad_parser_common
 
@@ -4376,27 +4385,22 @@ end subroutine drift_multipass_name_correction
 ! This subroutine is not intended for general use.
 !-
 
-subroutine reallocate_bp_com_var()
+subroutine reallocate_bp_com_const()
 
 implicit none
 
-type (bp_var_struct) :: var_temp(size(bp_com%var))
-
+type (bp_const_struct), allocatable :: var_temp(:)
 integer n
 
 !
 
-var_temp = bp_com%var
-
-deallocate (bp_com%var)
-
-n = bp_com%ivar_tot+200
-allocate (bp_com%var(n))
-
+call move_alloc(bp_com%const, var_temp)
+n = bp_com%i_const_tot+100
+allocate (bp_com%const(n))
 n = size(var_temp)
-bp_com%var(1:n) = var_temp
+bp_com%const(1:n) = var_temp
 
-end subroutine reallocate_bp_com_var
+end subroutine reallocate_bp_com_const
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -6676,12 +6680,12 @@ if (index(debug_line, 'SEQ') /= 0 .and. present(sequence)) then
   found = .true.
 endif
 
-if (index(debug_line, 'VAR') /= 0) then
+if (index(debug_line, 'CONST') /= 0) then
   print *
   print *, '----------------------------------------'
-  print *, 'Number of Defined Variables:', bp_com%ivar_tot - bp_com%ivar_init
-  do i = bp_com%ivar_init+1, bp_com%ivar_tot
-    print '(i6, 2x, a, es18.10)', i, bp_com%var(i)%name, bp_com%var(i)%value
+  print *, 'Number of Defined Constants:', bp_com%i_const_tot - bp_com%i_const_init
+  do i = bp_com%i_const_init+1, bp_com%i_const_tot
+    print '(i6, 2x, a, es18.10)', i, bp_com%const(i)%name, bp_com%const(i)%value
   enddo
   found = .true.
 endif

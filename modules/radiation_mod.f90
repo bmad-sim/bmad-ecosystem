@@ -314,7 +314,7 @@ s0 = ele%s_start
 
 do j = n0, n1
 
-  call em_field_g_bend (ele, param, track%orb(j)%s - s0, 0.0_rp, track%orb(j), g)
+  call em_field_g_bend (ele, param, track%orb(j)%s - s0, track%orb(j), g)
 
   g2_here = g(1)**2 + g(2)**2 ! = g_x^2 + g_y^2
   g3_here = sqrt(g2_here)**3
