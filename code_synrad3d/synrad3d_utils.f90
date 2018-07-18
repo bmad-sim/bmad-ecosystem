@@ -4,6 +4,7 @@ use synrad3d_struct
 use random_mod
 use photon_init_mod
 use capillary_mod
+use em_field_mod
 
 implicit none
 
@@ -148,25 +149,30 @@ end subroutine sr3d_get_emission_pt_params
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, photon)
+! Subroutine sr3d_emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, 
+!                                                        e_init_min, e_init_max, photon, n_photon_eff)
 !
 ! subroutine sr3d_to initialize a new photon
 !
 ! Input:
-!   ele_here  -- Ele_struct: Emission is at the exit end of this element (which is a slice_slave).
-!   orb_here  -- coord_struct: orbit of particle emitting the photon.
-!   gx, gy    -- Real(rp): Horizontal and vertical bending strengths.
-!   emit_a    -- Real(rp): Emittance of the a-mode.
-!   emit_b    -- Real(rp): Emittance of the b-mode.
-!   photon_direction 
-!             -- Integer: +1 In the direction of increasing s.
-!                         -1 In the direction of decreasing s.
+!   ele_here          -- ele_struct: Emission is at the exit end of this element (which is a slice_slave).
+!   orb_here          -- coord_struct: orbit of particle emitting the photon.
+!   gx, gy            -- real(rp): Horizontal and vertical bending strengths.
+!   emit_a            -- real(rp): Emittance of the a-mode.
+!   emit_b            -- real(rp): Emittance of the b-mode.
+!   photon_direction  -- integer: +1 In the direction of increasing s.
+!                                 -1 In the direction of decreasing s.
+!   e_init_min        -- real(rp): If > 0: Minimum energy of emitted photon.
+!   e_init_max        -- real(rp): If > 0: Maximum energy of emitted photon.
+!   n_photon_eff      -- real(rp): Effective number of photons generated which is 1/P([e_init_min, e_init_max])
+!                           where P([e1,e2]) is the probability of emitting a photon in the range [e1, e2].
 !
 ! Output:
 !   photon    -- sr3d_coord_struct: Generated photon.
 !-
 
-subroutine sr3d_emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, photon)
+subroutine sr3d_emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, &
+                                                                 e_init_min, e_init_max, photon, n_photon_eff)
 
 implicit none
 
@@ -176,15 +182,16 @@ type (coord_struct) :: orb_here
 type (sr3d_coord_struct) :: photon
 type (twiss_struct), pointer :: t
 
-real(rp) emit_a, emit_b, sig_e, gx, gy, g_tot, gamma, v2
-real(rp) r(3), vec(4), v_mat(4,4)
+real(rp) emit_a, emit_b, sig_e, gx, gy, g_tot, gamma, v2, ep
+real(rp) r(3), vec(4), v_mat(4,4), e_init_min, e_init_max, n_photon_eff
 
 integer photon_direction
 
 ! Get photon energy and "vertical angle".
 
 call convert_total_energy_to (ele_here%value(E_tot$), ele_here%branch%param%particle, gamma) 
-call bend_photon_init (gx, gy, gamma, photon%orb)
+call bend_photon_init (gx, gy, gamma, photon%orb, e_init_min, e_init_max, emit_probability = ep)
+n_photon_eff = 1 / ep
 
 ! Offset due to finite beam size
 
@@ -366,10 +373,183 @@ subroutine sr3d_print_photon_info (photon)
 
 type (sr3d_photon_track_struct) photon
 
-print '(8x, a, 3i8, f12.4)', 'Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%orb%p0c
+print '(8x, a, 3i12, f12.4)', 'Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%orb%p0c
 print '(8x, a, 6es13.5, f13.6)', 'Start:  ', photon%start%orb%vec, photon%start%orb%s
 print '(8x, a, 6es13.5, f13.6)', 'Now:    ', photon%now%orb%vec, photon%now%orb%s
 
 end subroutine sr3d_print_photon_info
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Function i0_eff_calc(ele, orb0, e_min, e_max) result (i0_eff)
+!
+! Routine to calculate the effective I0 integration integral which is defined as
+!   I0_eff = Integral: ds * gamma * g * P([e_min, e_max)]
+! where 
+!   gamma = relativistic gamma factor
+!   g = 1 / bend_radius
+!   P([e1, e2]) = probability of emitting a photon in the energy range [e1, e2] with P([0, Infinity]) = 1.
+! Note: If [e_min, e_max] = [0, Infinity] then I0_eff is equal to the standard I0.
+!
+! Input:
+!   ele       -- ele_struct: Element to integrate over.
+!   orb0      -- coord_struct: Starting coords of the reference orbit.
+!   e_min     -- real(rp): Photon emission lower bound.
+!   e_max     -- real(rp): Photon emission upper bound.
+!-
+
+function i0_eff_calc(ele, orb0, e_min, e_max) result (i0_eff)
+
+use nrtype
+use nr, only: polint
+
+type (ele_struct) ele
+type (coord_struct) orb0, orb_end, orb_end1
+type (branch_struct), pointer ::branch
+type (em_field_struct) field
+
+real(rp) e_min, e_max, i0_eff
+real(rp) h(0:4), i0_sum(0:4), r_min, r_max, ll, l_ref, gamma, d0, dint
+real(rp) eps_int, eps_sum, del_z, z_pos, z1, theta, g, g_x, g_y
+real(rp) i0_accum, vel_unit(3), fact, force(3), force_perp(3), dz
+
+integer tm_saved, m6cm_saved
+integer j, n, j1, j_min_test, j_max, n_pts
+
+logical is_special_wiggler
+
+!
+
+r_min = 0
+r_max = 1
+
+eps_int = 1d-4
+eps_sum = 1d-6
+dz = 1d-3
+
+h(0) = 4
+i0_sum(0) = 0
+i0_eff = 0
+
+ll = ele%value(l$)
+
+gamma = ele%value(e_tot$) / mass_of(orb0%species)
+branch => pointer_to_branch(ele)
+
+!
+
+is_special_wiggler = ((ele%key == wiggler$ .or. ele%key == undulator$) .and. &
+                                    ele%sub_key == periodic_type$ .and. ele%tracking_method == taylor$)
+
+if (is_special_wiggler) then
+  tm_saved = ele%tracking_method  
+  m6cm_saved = ele%mat6_calc_method  
+  ele%tracking_method = symp_lie_bmad$
+  ele%mat6_calc_method = symp_lie_bmad$
+endif
+
+! For j >= 3 we test if the integral calculation has converged.
+! Exception: Since wigglers have a periodic field, the calculation can 
+! fool itself if we stop before j = 5.
+
+j_min_test = 3
+j_max = 14
+
+if (ele%key == wiggler$ .or. ele%key == undulator$) then
+  if (ele%sub_key == periodic_type$) then
+    j_min_test = 3 + log(max(1.0_rp, ele%value(n_pole$))) / log(2.0_rp)
+    j_max = j_min_test + 8
+  else
+    j_min_test = 5
+    j_max = 16
+  endif
+endif
+
+!---------------
+! Loop until integrals converge.
+! This is trapzd from Numerical Recipes
+
+do j = 1, j_max
+
+  if (j == 1) then
+    n_pts = 2
+    del_z = ll
+    l_ref = 0
+  else
+    n_pts = 2**(j-2)
+    del_z = ll / n_pts
+    l_ref = del_z / 2
+  endif
+
+  i0_accum = 0
+
+  do n = 1, n_pts
+    z_pos = l_ref + (n-1) * del_z
+
+    ! bmad_standard will not properly do partial tracking through a periodic_type wiggler so
+    ! use special calculation.
+
+    if (((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%tracking_method /= custom$)) then
+      call twiss_and_track_intra_ele (ele, branch%param, 0.0_rp, z_pos, .true., .false., orb0, orb_end)
+      call em_field_calc (ele, branch%param, z_pos, orb_end, .false., field)
+      ! vel_unit is the velocity normalized to unit length
+      vel_unit(1:2) = [orb_end%vec(2), orb_end%vec(4)] / (1 + orb_end%vec(6))
+      vel_unit(3) = sqrt(1 - vel_unit(1)**2 - vel_unit(2)**2)
+      fact = 1 / (ele%value(p0c$) * (1 + orb_end%vec(6)))
+      force = (field%E + cross_product(vel_unit, field%B) * orb_end%beta * c_light) * charge_of(orb0%species)
+      force_perp = force - vel_unit * (dot_product(force, vel_unit))
+      g = norm2(-force_perp * fact)
+
+    else
+      z1 = min(z_pos + dz, ll)
+      z_pos = max(0.0_rp, z1 - dz)
+      call twiss_and_track_intra_ele (ele, branch%param, 0.0_rp, z_pos, .true., .false., orb0, orb_end)
+      call twiss_and_track_intra_ele (ele, branch%param, z_pos, z1, .false., .false., orb_end, orb_end1)
+      g_x = -(orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_pos)
+      g_y = -(orb_end1%vec(4) - orb_end%vec(4)) / (z1 - z_pos)
+      if (ele%key == sbend$) then
+        theta = ele%value(ref_tilt_tot$) + ele%value(roll_tot$)
+        g_x = g_x + cos(theta) * ele%value(g$)
+        g_y = g_y - sin(theta) * ele%value(g$)
+      endif
+      g = norm2([g_x, g_y])
+    endif
+
+    if (e_min > 0) r_min = bend_photon_energy_integ_prob(e_min, g, gamma)
+    if (e_max > 0) r_max = bend_photon_energy_integ_prob(e_max, g, gamma)
+    i0_accum = i0_accum + gamma * g * (r_max - r_min)
+  enddo
+
+  if (j <= 4) then
+    j1 = j
+  else
+    h(0:3) = h(1:4)
+    i0_sum(0:3) = i0_sum(1:4)
+    j1 = 4
+  endif
+
+  h(j1) = h(j1-1) / 4
+  i0_sum(j1) = (i0_sum(j1-1) + del_z * i0_accum) / 2
+
+  !--------------
+  ! Back to qromb.
+
+  if (j < j_min_test) cycle
+
+  call polint (h(1:j1), i0_sum(1:j1), 0.0_rp, i0_eff, dint)
+  d0 = eps_int * i0_eff !! + eps_sum * i0_eff_tot ???????
+  if (dint <= d0) exit  ! if converged
+end do
+
+!
+
+if (is_special_wiggler) then
+  ele%tracking_method  = tm_saved 
+  ele%mat6_calc_method = m6cm_saved 
+endif
+
+end function i0_eff_calc
 
 end module
