@@ -829,13 +829,13 @@ for keeping a photon is from \vn{s_filter_min} through the end of the
 lattice along with the region from the start of the lattice to
 \vn{s_filter_max}.
 
-Note: Processes like florescence can create photons with an energy that is different
-from the energy of the photon that initiates the process. \srthree does not model such
-processes so the final photon energy will be equal to the initial photon energy. This
-being the case, \vn{e_init_filter_min} and \vn{e_init_filter_max} are equivalent to
-\vn{e_filter_min} and \vn{e_filter_max} respectively. Furthermore, the execution time of a
-simulation will be speeded up if \vn{e_init_filter_min} and \vn{e_init_filter_max} are
-used instead of \vn{e_filter_min} and \vn{e_filter_max} since less tracking will be done.
+Note: Processes like florescence can create photons with an energy that is different from the energy
+of the photon that initiates the process. Currently, \srthree does not model such processes so the
+final photon energy will be equal to the initial photon energy. This being the case,
+\vn{e_init_filter_min} and \vn{e_init_filter_max} are equivalent to \vn{e_filter_min} and
+\vn{e_filter_max} respectively. Furthermore, the execution time of a simulation will be speeded up
+if \vn{e_init_filter_min} and \vn{e_init_filter_max} are used instead of \vn{e_filter_min} and
+\vn{e_filter_max} since less tracking will be done.
 
 %------------------------------------------------------------------
 \chapter{Vacuum Chamber} 

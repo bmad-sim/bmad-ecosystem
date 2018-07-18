@@ -31,11 +31,12 @@ type (sr3d_plot_param_struct) plot_param
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 type (random_state_struct) ran_state
 
-real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
-real(rp) emit_a, emit_b, sig_e, g, gamma, r, dtrack, photon_number_factor
-real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
-real(rp) e_init_filter_min, e_init_filter_max, timer_time, old_time
+real(rp) ds_step_min, d_i0, i0_tot, i0_tot_eff, ds, gx, gy, s_offset, n_photon_eff
+real(rp) emit_a, emit_b, sig_e, g, gamma, emit_prob, r, dtrack, photon_number_factor
+real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max, n_photon_generated_eff
+real(rp) e_init_filter_min, e_init_filter_max, timer_time, old_time, r_min, r_max
 real(rp) surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set
+real(rp), allocatable :: i0_eff(:)
 
 integer i, n, iu, iu2, ix, random_seed, iu_start, j_photon, ix_ele, status, ix_branch
 integer n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
@@ -52,7 +53,7 @@ character(20) date_str
 character(16) chamber_end_geometry
 character(16) :: r_name = 'synrad3d'
 
-logical ok, s_wrap_on, filter_this, err, filter_phantom_photons
+logical ok, s_wrap_on, err, filter_phantom_photons
 logical is_inside, turn_off_kickers_in_lattice, finished, bad_stat_warning_given
 
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, chamber_end_geometry, &
@@ -151,7 +152,7 @@ endif
 random_seed = 0
 ix_ele_track_start = 0    ! defaults
 ix_ele_track_end = -1
-ds_step_min = 0.01
+ds_step_min = 0.001
 emit_a = -1
 emit_b = -1
 sig_e  = -1
@@ -283,17 +284,38 @@ else
            sum(rad_int_ele%ele(1:ix_ele_track_end)%i0)
 endif
 
+allocate (i0_eff(0:branch%n_ele_max))
+i0_eff = 0
+
+if (e_init_filter_min > 0 .or. e_init_filter_max > 0) then
+  do i = 1, branch%n_ele_track
+    if (rad_int_ele%ele(i)%i0 == 0) cycle
+    i0_eff(i) = i0_eff_calc(branch%ele(i), orb(i), e_init_filter_min, e_init_filter_max)
+  enddo
+
+  if (ix_ele_track_end > ix_ele_track_start) then
+    i0_tot_eff = sum(i0_eff(ix_ele_track_start+1:ix_ele_track_end))
+  else
+    i0_tot_eff = sum(i0_eff(ix_ele_track_start+1:branch%n_ele_track)) + sum(i0_eff(1:ix_ele_track_end))
+  endif
+
+else
+  i0_tot_eff = i0_tot
+  i0_eff = rad_int_ele%ele%i0
+endif
+
 ! To generate photons we either need bends or wigglers or a photon init file.
 
-if (i0_tot == 0 .and. photon_start_input_file == '') then
+if (i0_tot_eff == 0 .and. photon_start_input_file == '') then
   call out_io (s_fatal$, r_name, 'NO BENDS OR OTHER ELEMENTS TO GENERATE RADIATION IN REGION OF INTEREST!')
   call err_exit
 endif
 
 ! Print some info
 
-print *, 'I0 Radiation Integral of entire lattice:', modes%synch_int(0)
-print *, 'I0 Radiation Integral over emission region:', i0_tot
+print *, 'I0 Radiation Integral of entire lattice:              ', modes%synch_int(0)
+print *, 'I0 Radiation Integral over emission region:           ', i0_tot
+print *, 'I0 over emission region over init energy filter range:', i0_tot_eff
 print *, 'Closed orbit max X amplitude (meters):', maxval(abs(orb(:)%vec(1)))
 print *, 'Closed orbit max Y amplitude (meters):', maxval(abs(orb(:)%vec(3)))
 
@@ -301,7 +323,7 @@ print *, 'Closed orbit max Y amplitude (meters):', maxval(abs(orb(:)%vec(3)))
 
 n_photons_per_pass = num_photons_per_pass
 if (n_photons_per_pass < 1) n_photons_per_pass = ceiling(0.2 * num_photons)
-d_i0 = i0_tot / n_photons_per_pass
+d_i0 = i0_tot_eff / n_photons_per_pass
 
 ! Determine the emittance
 
@@ -326,8 +348,9 @@ if (lat_ele_file /= '') then
   iu_lat_file = lunget()
   open (iu_lat_file, file = lat_ele_file, recl = 120)
   print *, 'Creating lattice element output file: ', trim(lat_ele_file)
-    write (iu_lat_file, *) 'I0 Radiation Integral of entire lattice:', modes%synch_int(0)
-    write (iu_lat_file, *) 'I0 Radiation Integral over emission region:', i0_tot
+    write (iu_lat_file, *) 'I0 Radiation Integral of entire lattice:              ', modes%synch_int(0)
+    write (iu_lat_file, *) 'I0 Radiation Integral over emission region:           ', i0_tot
+    write (iu_lat_file, *) 'I0 over emission region over init energy filter range:', i0_tot_eff
     write (iu_lat_file, *) ''
     write (iu_lat_file, *) &
         'Index  Name                Type                  S       L          I0    N_phot  ds_step'
@@ -352,6 +375,7 @@ call write_this_header (sr3d_params%iu_dat_file)
 bmad_com%auto_bookkeeper = .false.  ! Since we are not changing any element params.
 
 n_photon_generated = 0
+n_photon_generated_eff = 0
 n_photon_array = 0
 
 allocate (wall_hit(0:10))
@@ -423,6 +447,7 @@ if (photon_start_input_file /= '') then
     photon = init_photon
 
     n_photon_generated = n_photon_generated + 1
+    n_photon_generated_eff = n_photon_generated_eff + 1
     photon%ix_photon_generated = n_photon_generated
     photon%ix_photon = n_photon_array
     photon%n_wall_hit = 0
@@ -508,7 +533,7 @@ else
 
     ele => branch%ele(ix_ele)
 
-    n_phot = nint(rad_int_ele%ele(ix_ele)%i0 / d_i0)
+    n_phot = nint(i0_eff(ix_ele) / d_i0)
     if (n_phot == 0) cycle
 
     ds = ele%value(l$) / n_phot
@@ -542,10 +567,18 @@ else
 
       call sr3d_get_emission_pt_params (branch, orb, ix_ele, s_offset, ele_here, orbit_here, gx, gy)
       g = sqrt(gx**2 + gy**2) 
+
+      r_min = 0
+      r_max = 1
+
+      call convert_total_energy_to (ele_here%value(E_tot$), ele_here%branch%param%particle, gamma) 
+      if (E_init_filter_min > 0) r_min = bend_photon_energy_integ_prob(E_init_filter_min, g, gamma)
+      if (E_init_filter_max > 0) r_max = bend_photon_energy_integ_prob(E_init_filter_max, g, gamma)
+
       call convert_total_energy_to (ele%value(e_tot$),  branch%param%particle, gamma)
       ! Generate photons, track to the wall 
 
-      n_photon_here = nint(g * gamma * ds / d_i0)
+      n_photon_here = nint(g * (r_max - r_min) * gamma * ds / d_i0)
       do j_photon = 1, n_photon_here
         n_photon_generated = n_photon_generated + 1
         n_photon_array = n_photon_array + 1
@@ -567,10 +600,13 @@ else
         photon%n_wall_hit = 0
 
         do
-          call sr3d_emit_photon (ele_here, orbit_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, photon%start)
+          call sr3d_emit_photon (ele_here, orbit_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, &
+                                                           e_init_filter_min, e_init_filter_max, photon%start, n_photon_eff = n_photon_eff)
           call sr3d_check_if_photon_init_coords_outside_wall (photon%start, lat, is_inside, num_ignore_generated_outside_wall)
           if (is_inside) exit
         enddo
+
+        n_photon_generated_eff = n_photon_generated_eff + n_photon_eff
 
         if (photon_start_output_file /= '') then
           call ran_default_state (get_state = ran_state)
@@ -648,12 +684,15 @@ enddo
 rewind(iu)
 rewind(iu2)
 
-photon_number_factor = 5 * sqrt(3.0) * classical_radius_factor * i0_tot / (6 * h_bar_planck * c_light * n_photon_generated)
+photon_number_factor = 5 * sqrt(3.0) * classical_radius_factor * i0_tot / (6 * h_bar_planck * c_light * n_photon_generated_eff)
 
 write (iu, '(a, es11.3, a)') '# photon_number_factor       =', photon_number_factor
-write (iu, '(a, i11, a)')    '# num_photons_generated      =', n_photon_generated, '   ! Total including filtered photons.'
-write (iu, '(a, i11, a)')    '# num_photons_passed_test    =', n_photon_array,     '   ! Num that passed filter tests'
-write (iu, '(a, es11.3, a)') '# I0_tot                     =', i0_tot, '   ! I0 radiation integral for the entire ring'
+write (iu, '(a, i11, a)')    '# num_photons_generated      =', n_photon_generated,     '   ! Total including filtered photons.'
+write (iu, '(a, es11.3, a)') '# num_photons_generated_eff  =', n_photon_generated_eff, '   ! Effective total'
+write (iu, '(a, i11, a)')    '# num_photons_passed_test    =', n_photon_array,         '   ! Num that passed filter tests'
+write (iu, '(a, es11.3, a)') '# I0_tot_ring                =', modes%synch_int(0),     '   ! I0 radiation integral for the entire ring'
+write (iu, '(a, es11.3, a)') '# I0_tot                     =', i0_tot,                 '   ! I0 radiation integral for emission region'
+write (iu, '(a, es11.3, a)') '# I0_tot_eff                 =', i0_tot_eff,             '   ! I0 for emission region in init energy filter range'
 
 do
   read (iu2, '(a)', iostat = ios) line3
@@ -715,7 +754,7 @@ type (branch_struct), pointer :: branch
 type (sr3d_coord_struct), pointer :: now
 type (photon_reflect_surface_struct), pointer :: surface
 integer n
-logical ok, check_init_filters
+logical ok, check_init_filters, filter_this
 
 ! Check filter restrictions
 
