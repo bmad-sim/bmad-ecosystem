@@ -26,7 +26,6 @@ type (lat_struct) :: lat_out
 
 !
 
-lat_out%constant                  = lat_in%constant
 lat_out%use_name                  = lat_in%use_name
 lat_out%lattice                   = lat_in%lattice
 lat_out%input_file_name           = lat_in%input_file_name
