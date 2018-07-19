@@ -3974,13 +3974,21 @@ extern "C" void lat_to_c (const Opaque_lat_class*, CPP_lat&);
 
 // c_side.to_f2_arg
 extern "C" void lat_to_f2 (Opaque_lat_class*, c_Char, c_Char, c_Char, c_Char, const
-    CPP_mode_info&, const CPP_mode_info&, const CPP_mode_info&, const CPP_lat_param&, const
-    CPP_bookkeeping_state&, const CPP_ele&, const CPP_ele**, Int, const CPP_branch**, Int,
-    const CPP_control**, Int, const CPP_photon_reflect_surface**, Int, const CPP_coord&, const
-    CPP_pre_tracker&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_IntArr, Int, c_Int&,
-    c_Bool&, c_Bool&);
+    CPP_expression_atom**, Int, const CPP_mode_info&, const CPP_mode_info&, const
+    CPP_mode_info&, const CPP_lat_param&, const CPP_bookkeeping_state&, const CPP_ele&, const
+    CPP_ele**, Int, const CPP_branch**, Int, const CPP_control**, Int, const
+    CPP_photon_reflect_surface**, Int, const CPP_coord&, const CPP_pre_tracker&, c_RealArr,
+    Int, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_IntArr, Int, c_Int&, c_Bool&,
+    c_Bool&);
 
 extern "C" void lat_to_f (const CPP_lat& C, Opaque_lat_class* F) {
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_constant = C.constant.size();
+  const CPP_expression_atom** z_constant = NULL;
+  if (n1_constant != 0) {
+    z_constant = new const CPP_expression_atom*[n1_constant];
+    for (int i = 0; i < n1_constant; i++) z_constant[i] = &C.constant[i];
+  }
   // c_side.to_f_setup[type, 1, PTR]
   int n1_ele = C.ele.size();
   const CPP_ele** z_ele = NULL;
@@ -4009,6 +4017,12 @@ extern "C" void lat_to_f (const CPP_lat& C, Opaque_lat_class* F) {
     z_surface = new const CPP_photon_reflect_surface*[n1_surface];
     for (int i = 0; i < n1_surface; i++) z_surface[i] = &C.surface[i];
   }
+  // c_side.to_f_setup[real, 1, ALLOC]
+  int n1_custom = C.custom.size();
+  c_RealArr z_custom = NULL;
+  if (n1_custom > 0) {
+    z_custom = &C.custom[0];
+  }
   // c_side.to_f_setup[integer, 1, ALLOC]
   int n1_ic = C.ic.size();
   c_IntArr z_ic = NULL;
@@ -4018,12 +4032,14 @@ extern "C" void lat_to_f (const CPP_lat& C, Opaque_lat_class* F) {
 
   // c_side.to_f2_call
   lat_to_f2 (F, C.use_name.c_str(), C.lattice.c_str(), C.input_file_name.c_str(),
-      C.title.c_str(), C.a, C.b, C.z, C.param, C.lord_state, C.ele_init, z_ele, n1_ele,
-      z_branch, n1_branch, z_control, n1_control, z_surface, n1_surface, C.beam_start,
-      C.pre_tracker, C.version, C.n_ele_track, C.n_ele_max, C.n_control_max, C.n_ic_max,
-      C.input_taylor_order, z_ic, n1_ic, C.photon_type, C.absolute_time_tracking,
-      C.ptc_uses_hard_edge_drifts);
+      C.title.c_str(), z_constant, n1_constant, C.a, C.b, C.z, C.param, C.lord_state,
+      C.ele_init, z_ele, n1_ele, z_branch, n1_branch, z_control, n1_control, z_surface,
+      n1_surface, C.beam_start, C.pre_tracker, z_custom, n1_custom, C.version, C.n_ele_track,
+      C.n_ele_max, C.n_control_max, C.n_ic_max, C.input_taylor_order, z_ic, n1_ic,
+      C.photon_type, C.absolute_time_tracking, C.ptc_uses_hard_edge_drifts);
 
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_constant;
   // c_side.to_f_cleanup[type, 1, PTR]
  delete[] z_ele;
   // c_side.to_f_cleanup[type, 1, ALLOC]
@@ -4036,16 +4052,17 @@ extern "C" void lat_to_f (const CPP_lat& C, Opaque_lat_class* F) {
 
 // c_side.to_c2_arg
 extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Char
-    z_input_file_name, c_Char z_title, const Opaque_mode_info_class* z_a, const
-    Opaque_mode_info_class* z_b, const Opaque_mode_info_class* z_z, const
-    Opaque_lat_param_class* z_param, const Opaque_bookkeeping_state_class* z_lord_state, const
-    Opaque_ele_class* z_ele_init, Opaque_ele_class** z_ele, Int n1_ele, Opaque_branch_class**
-    z_branch, Int n1_branch, Opaque_control_class** z_control, Int n1_control,
-    Opaque_photon_reflect_surface_class** z_surface, Int n1_surface, const Opaque_coord_class*
-    z_beam_start, const Opaque_pre_tracker_class* z_pre_tracker, c_Int& z_version, c_Int&
-    z_n_ele_track, c_Int& z_n_ele_max, c_Int& z_n_control_max, c_Int& z_n_ic_max, c_Int&
-    z_input_taylor_order, c_IntArr z_ic, Int n1_ic, c_Int& z_photon_type, c_Bool&
-    z_absolute_time_tracking, c_Bool& z_ptc_uses_hard_edge_drifts) {
+    z_input_file_name, c_Char z_title, Opaque_expression_atom_class** z_constant, Int
+    n1_constant, const Opaque_mode_info_class* z_a, const Opaque_mode_info_class* z_b, const
+    Opaque_mode_info_class* z_z, const Opaque_lat_param_class* z_param, const
+    Opaque_bookkeeping_state_class* z_lord_state, const Opaque_ele_class* z_ele_init,
+    Opaque_ele_class** z_ele, Int n1_ele, Opaque_branch_class** z_branch, Int n1_branch,
+    Opaque_control_class** z_control, Int n1_control, Opaque_photon_reflect_surface_class**
+    z_surface, Int n1_surface, const Opaque_coord_class* z_beam_start, const
+    Opaque_pre_tracker_class* z_pre_tracker, c_RealArr z_custom, Int n1_custom, c_Int&
+    z_version, c_Int& z_n_ele_track, c_Int& z_n_ele_max, c_Int& z_n_control_max, c_Int&
+    z_n_ic_max, c_Int& z_input_taylor_order, c_IntArr z_ic, Int n1_ic, c_Int& z_photon_type,
+    c_Bool& z_absolute_time_tracking, c_Bool& z_ptc_uses_hard_edge_drifts) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.use_name = z_use_name;
@@ -4055,6 +4072,10 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
   C.input_file_name = z_input_file_name;
   // c_side.to_c2_set[character, 0, NOT]
   C.title = z_title;
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.constant.resize(n1_constant);
+  for (int i = 0; i < n1_constant; i++) expression_atom_to_c(z_constant[i], C.constant[i]);
+
   // c_side.to_c2_set[type, 0, NOT]
   mode_info_to_c(z_a, C.a);
   // c_side.to_c2_set[type, 0, NOT]
@@ -4087,6 +4108,11 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
   coord_to_c(z_beam_start, C.beam_start);
   // c_side.to_c2_set[type, 0, NOT]
   pre_tracker_to_c(z_pre_tracker, C.pre_tracker);
+  // c_side.to_c2_set[real, 1, ALLOC]
+
+  C.custom.resize(n1_custom);
+  C.custom << z_custom;
+
   // c_side.to_c2_set[integer, 0, NOT]
   C.version = z_version;
   // c_side.to_c2_set[integer, 0, NOT]

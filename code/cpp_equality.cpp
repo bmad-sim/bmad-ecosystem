@@ -1519,6 +1519,7 @@ bool operator== (const CPP_lat& x, const CPP_lat& y) {
   is_eq = is_eq && (x.lattice == y.lattice);
   is_eq = is_eq && (x.input_file_name == y.input_file_name);
   is_eq = is_eq && (x.title == y.title);
+  is_eq = is_eq && is_all_equal(x.constant, y.constant);
   is_eq = is_eq && (x.a == y.a);
   is_eq = is_eq && (x.b == y.b);
   is_eq = is_eq && (x.z == y.z);
@@ -1531,6 +1532,7 @@ bool operator== (const CPP_lat& x, const CPP_lat& y) {
   is_eq = is_eq && is_all_equal(x.surface, y.surface);
   is_eq = is_eq && (x.beam_start == y.beam_start);
   is_eq = is_eq && (x.pre_tracker == y.pre_tracker);
+  is_eq = is_eq && is_all_equal(x.custom, y.custom);
   is_eq = is_eq && (x.version == y.version);
   is_eq = is_eq && (x.n_ele_track == y.n_ele_track);
   is_eq = is_eq && (x.n_ele_max == y.n_ele_max);

@@ -3465,6 +3465,7 @@ public:
   string lattice;
   string input_file_name;
   string title;
+  CPP_expression_atom_ARRAY constant;
   CPP_mode_info a;
   CPP_mode_info b;
   CPP_mode_info z;
@@ -3477,6 +3478,7 @@ public:
   CPP_photon_reflect_surface_ARRAY surface;
   CPP_coord beam_start;
   CPP_pre_tracker pre_tracker;
+  Real_ARRAY custom;
   Int version;
   Int n_ele_track;
   Int n_ele_max;
@@ -3493,6 +3495,7 @@ public:
     lattice(),
     input_file_name(),
     title(),
+    constant(CPP_expression_atom_ARRAY(CPP_expression_atom(), 0)),
     a(),
     b(),
     z(),
@@ -3505,6 +3508,7 @@ public:
     surface(CPP_photon_reflect_surface_ARRAY(CPP_photon_reflect_surface(), 0)),
     beam_start(),
     pre_tracker(),
+    custom(0.0, 0),
     version(-1),
     n_ele_track(0),
     n_ele_max(0),
