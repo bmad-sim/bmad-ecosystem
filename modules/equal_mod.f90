@@ -495,6 +495,14 @@ else
   if (allocated(lat_out%control)) deallocate (lat_out%control)
 endif
 
+! handle lat%constant array
+
+if (allocated(lat_in%constant)) then
+  lat_out%constant = lat_in%constant
+else
+  if (allocated(lat_out%constant)) deallocate (lat_out%constant)
+endif
+
 ! handle lat%ic array
 
 if (allocated(lat_in%ic)) then
