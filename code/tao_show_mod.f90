@@ -400,13 +400,14 @@ case ('beam')
     endif
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'bmad_com components:'
-    nl=nl+1; write(lines(nl), lmt) '  %sr_wakes_on               = ', bmad_com%sr_wakes_on
-    nl=nl+1; write(lines(nl), lmt) '  %lr_wakes_on               = ', bmad_com%lr_wakes_on
-    nl=nl+1; write(lines(nl), lmt) '  %space_charge_on           = ', bmad_com%space_charge_on
-    nl=nl+1; write(lines(nl), lmt) '  %coherent_synch_rad_on     = ', bmad_com%coherent_synch_rad_on
-    nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on          = ', bmad_com%spin_tracking_on
-    nl=nl+1; write(lines(nl), lmt) '  %radiation_damping_on      = ', bmad_com%radiation_damping_on
-    nl=nl+1; write(lines(nl), lmt) '  %radiation_fluctuations_on = ', bmad_com%radiation_fluctuations_on
+    nl=nl+1; write(lines(nl), lmt) '  %sr_wakes_on                     = ', bmad_com%sr_wakes_on
+    nl=nl+1; write(lines(nl), lmt) '  %lr_wakes_on                     = ', bmad_com%lr_wakes_on
+    nl=nl+1; write(lines(nl), lmt) '  %space_charge_on                 = ', bmad_com%space_charge_on
+    nl=nl+1; write(lines(nl), lmt) '  %coherent_synch_rad_on           = ', bmad_com%coherent_synch_rad_on
+    nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on
+    nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
+    nl=nl+1; write(lines(nl), lmt) '  %radiation_damping_on            = ', bmad_com%radiation_damping_on
+    nl=nl+1; write(lines(nl), lmt) '  %radiation_fluctuations_on       = ', bmad_com%radiation_fluctuations_on
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'csr_param components:'
     nl=nl+1; write(lines(nl), rmt) '  %ds_track_step        = ', csr_param%ds_track_step
@@ -2089,20 +2090,22 @@ case ('lattice')
     column(4)  = show_lat_column_struct('ele::#[key]',           'a17',      17, '', .false., 1.0_rp)
     column(5)  = show_lat_column_struct('ele::#[s]',             'f10.3',    10, '', .false., 1.0_rp)
     if (branch%param%geometry == open$) then
-      column(6)  = show_lat_column_struct('lat::rad_int1.i1[#]',     'es10.2',  10, '', .true., 1.0_rp)
-      column(7)  = show_lat_column_struct('lat::rad_int1.i2_e4[#]',  'es10.2',  10, '', .false., 1.0_rp)
-      column(8)  = show_lat_column_struct('lat::rad_int1.i3_e7[#]',  'es10.2',  10, '', .false., 1.0_rp)
-      column(9)  = show_lat_column_struct('lat::rad_int1.i5a_e6[#]', 'es10.2',  10, '', .false., 1.0_rp)
-      column(10) = show_lat_column_struct('lat::rad_int1.i5b_e6[#]', 'es10.2',  10, '', .false., 1.0_rp)
+      column(6)  = show_lat_column_struct('lat::rad_int1.i0[#]',     'es10.2',  10, '', .true., 1.0_rp)
+      column(7)  = show_lat_column_struct('lat::rad_int1.i1[#]',     'es10.2',  10, '', .true., 1.0_rp)
+      column(8)  = show_lat_column_struct('lat::rad_int1.i2_e4[#]',  'es10.2',  10, '', .false., 1.0_rp)
+      column(9)  = show_lat_column_struct('lat::rad_int1.i3_e7[#]',  'es10.2',  10, '', .false., 1.0_rp)
+      column(10) = show_lat_column_struct('lat::rad_int1.i5a_e6[#]', 'es10.2',  10, '', .false., 1.0_rp)
+      column(11) = show_lat_column_struct('lat::rad_int1.i5b_e6[#]', 'es10.2',  10, '', .false., 1.0_rp)
     else
-      column(6)  = show_lat_column_struct('lat::rad_int1.i1[#]',     'es10.2',  10, '', .true., 1.0_rp)
-      column(7)  = show_lat_column_struct('lat::rad_int1.i2[#]',     'es10.2',  10, '', .false., 1.0_rp)
-      column(8)  = show_lat_column_struct('lat::rad_int1.i3[#]',     'es10.2',  10, '', .false., 1.0_rp)
-      column(9)  = show_lat_column_struct('lat::rad_int1.i4a[#]',    'es10.2',  10, '', .false., 1.0_rp)
-      column(10) = show_lat_column_struct('lat::rad_int1.i5a[#]',    'es10.2',  10, '', .false., 1.0_rp)
-      column(11) = show_lat_column_struct('lat::rad_int1.i4b[#]',    'es10.2',  10, '', .false., 1.0_rp)
-      column(12) = show_lat_column_struct('lat::rad_int1.i5b[#]',    'es10.2',  10, '', .false., 1.0_rp)
-      column(13) = show_lat_column_struct('lat::rad_int1.i6b[#]',    'es10.2',  10, '', .false., 1.0_rp)
+      column(6)  = show_lat_column_struct('lat::rad_int1.i0[#]',     'es10.2',  10, '', .true., 1.0_rp)
+      column(7)  = show_lat_column_struct('lat::rad_int1.i1[#]',     'es10.2',  10, '', .true., 1.0_rp)
+      column(8)  = show_lat_column_struct('lat::rad_int1.i2[#]',     'es10.2',  10, '', .false., 1.0_rp)
+      column(9)  = show_lat_column_struct('lat::rad_int1.i3[#]',     'es10.2',  10, '', .false., 1.0_rp)
+      column(10) = show_lat_column_struct('lat::rad_int1.i4a[#]',    'es10.2',  10, '', .false., 1.0_rp)
+      column(11) = show_lat_column_struct('lat::rad_int1.i5a[#]',    'es10.2',  10, '', .false., 1.0_rp)
+      column(12) = show_lat_column_struct('lat::rad_int1.i4b[#]',    'es10.2',  10, '', .false., 1.0_rp)
+      column(13) = show_lat_column_struct('lat::rad_int1.i5b[#]',    'es10.2',  10, '', .false., 1.0_rp)
+      column(14) = show_lat_column_struct('lat::rad_int1.i6b[#]',    'es10.2',  10, '', .false., 1.0_rp)
     endif
 
   case ('standard')
@@ -3034,18 +3037,20 @@ case ('plot')
 
 case ('symbolic_numbers')
 
-  show_sym = .true.
+  what_to_print = 'tao'
 
   do
-    call tao_next_switch (what2, ['-physical_constants'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(24):: '-physical_constants', '-lattice_constants'], .true., switch, err, ix)
     if (err) return
     select case (switch)
     case ('');           exit
-    case ('-physical_constants');    show_sym = .false.
+    case ('-physical_constants');    what_to_print = 'physical'
+    case ('-lattice_constants');     what_to_print = 'lattice'
     end select
   enddo
 
-  if (show_sym) then
+  select case (what_to_print)
+  case ('tao')
     if (allocated(s%com%symbolic_num)) then
       do i = 1, size(s%com%symbolic_num)
         nl=nl+1; write (lines(nl), '(2x, 2a, es22.15)') s%com%symbolic_num(i)%name, '=', s%com%symbolic_num(i)%value
@@ -3054,7 +3059,7 @@ case ('symbolic_numbers')
       nl=nl+1; lines(nl) = 'No symbolic numbers yet defined.'
     endif
 
-  else
+  case ('physical')
     do i = 1, size(physical_const_list)
       if (physical_const_list(i)%name == 'emass' .or. physical_const_list(i)%name == 'pmass') then
         nl=nl+1; write (lines(nl), '(2x, 2a, es22.15, a)') physical_const_list(i)%name, '=', physical_const_list(i)%value, &
@@ -3063,7 +3068,16 @@ case ('symbolic_numbers')
         nl=nl+1; write (lines(nl), '(2x, 2a, es22.15)') physical_const_list(i)%name, '=', physical_const_list(i)%value
       endif
     enddo
-  endif
+
+  case ('lattice')
+    if (allocated(lat%constant)) then
+      do i = 1, size(lat%constant)
+        nl=nl+1; write (lines(nl), '(2x, 2a, es22.15)') lat%constant(i)%name, '=', lat%constant(i)%value
+      enddo
+    else
+      nl=nl+1; lines(nl) = 'No constants were defined in the lattice.'
+    endif
+  end select
 
   result_id = show_what
 
@@ -3555,13 +3569,14 @@ case ('universe')
   nl=nl+1; write(lines(nl), imt) 'Branch:   ', ix_branch
   nl=nl+1; write(lines(nl), imt) '%n_d2_data_used        = ', u%n_d2_data_used
   nl=nl+1; write(lines(nl), imt) '%n_data_used           = ', u%n_data_used
-  nl=nl+1; write(lines(nl), lmt) '%do_rad_int_calc       = ', u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting
-  nl=nl+1; write(lines(nl), lmt) '%do_chrom_calc         = ', u%calc%chrom_for_data .or. u%calc%chrom_for_plotting
-  nl=nl+1; write(lines(nl), lmt) '%do_beam_sigma_calc    = ', u%calc%beam_sigma_for_data .or. u%calc%beam_sigma_for_plotting
+  nl=nl+1; write(lines(nl), lmt) ' do_rad_int_calc       = ', u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting
+  nl=nl+1; write(lines(nl), lmt) ' do_chrom_calc         = ', u%calc%chrom_for_data .or. u%calc%chrom_for_plotting
+  nl=nl+1; write(lines(nl), lmt) ' do_beam_sigma_calc    = ', u%calc%beam_sigma_for_data .or. u%calc%beam_sigma_for_plotting
   nl=nl+1; write(lines(nl), lmt) '%calc%twiss             = ', u%calc%twiss
   nl=nl+1; write(lines(nl), lmt) '%calc%dynamic_aperture = ', u%calc%dynamic_aperture
   nl=nl+1; write(lines(nl), lmt) '%calc%one_turn_map     = ', u%calc%one_turn_map
   nl=nl+1; write(lines(nl), lmt) '%calc%track            = ', u%calc%track
+  nl=nl+1; write(lines(nl), lmt) '%calc%spin_matrices    = ', u%calc%spin_matrices
   nl=nl+1; write(lines(nl), lmt) '%is_on                 = ', u%is_on
   nl=nl+1; write(lines(nl), amt) '%beam0_file            = ', trim(u%beam%beam0_file)
   nl=nl+1; write(lines(nl), amt) '%beam_all_file         = ', trim(u%beam%beam_all_file)

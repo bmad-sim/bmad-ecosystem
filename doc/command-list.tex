@@ -2295,13 +2295,18 @@ Examples:
 
 Syntax:
 \begin{example}
-  show symbolic_numbers \{-physical_constants\}
+  show symbolic_numbers \{-physical_constants\} \{-lattice_constants\}
 \end{example}
 
-Show the symbolic constants created using the \vn{set symbolic_number} command. If the
-\vn{-physical_constants} switch is present, the predefined physical constants (like \vn{c_light})
-along with predefined mathematical constants (like \vn{pi}) are displayed instead (Also see the \bmad
-manual for this list). 
+Show the symbolic constants created using the \vn{set symbolic_number} command. 
+
+If the \vn{-physical_constants} switch is present, the predefined physical constants (like
+\vn{c_light}) along with predefined mathematical constants (like \vn{pi}) are displayed instead
+(Also see the \bmad manual for this list).
+
+If the \vn{-lattice_constants} switch is present, constants defined in the lattice are displayed.
+Note: At present, these constants cannot be used in any calculation and are for informational
+purposes only.
 
 Examples:
 \begin{example}
