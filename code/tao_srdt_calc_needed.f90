@@ -19,9 +19,8 @@ integer do_srdt
 
 !
 
-if (data_source /= 'lat') return
-
 do_srdt = 0
+if (data_source /= 'lat') return
 
 if (data_type(1:5)  == 'srdt.') then
   if(any(data_type(6:11) == srdt_first)) then
