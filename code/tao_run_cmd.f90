@@ -28,7 +28,7 @@ use tao_geodesic_lm_optimizer_mod, only: tao_geodesic_lm_optimizer
 implicit none
 
 type (tao_universe_struct), pointer :: u
-
+type (tao_universe_calc_struct) u_calc(lbound(s%u,1):ubound(s%u,1))
 real(rp), allocatable, save :: var_vec(:)
 real(rp) merit0, merit
 integer n_data, i, j, iu0, iu1
@@ -37,8 +37,6 @@ character(*)  which
 character(40) :: r_name = 'tao_run_cmd', my_opti
 
 logical abort
-logical, allocatable :: do_rad_int_data(:), do_chrom_data(:), do_beam_sigma_data(:)
-integer, allocatable :: do_srdt_data(:)
 
 !
 
@@ -68,15 +66,9 @@ endif
 s%com%have_datums_using_expressions = .false.
 
 iu0 = lbound(s%u, 1); iu1 = ubound(s%u, 1)
-allocate (do_rad_int_data(iu0:iu1), do_chrom_data(iu0:iu1), do_beam_sigma_data(iu0:iu1), do_srdt_data(iu0:iu1))
-
 do i = iu0, iu1
   u => s%u(i)
-
-  do_rad_int_data(i)    = u%calc%rad_int_for_data
-  do_srdt_data(i)       = u%calc%srdt_for_data
-  do_chrom_data(i)      = u%calc%chrom_for_data
-  do_beam_sigma_data(i) = u%calc%beam_sigma_for_data
+  u_calc = u%calc
 
   u%calc%rad_int_for_data        = .false.
   u%calc%rad_int_for_plotting    = .false.
@@ -84,6 +76,7 @@ do i = iu0, iu1
   u%calc%chrom_for_plotting      = .false.
   u%calc%beam_sigma_for_data     = .false.
   u%calc%beam_sigma_for_plotting = .false.
+  u%calc%spin_matrices           = .false.
   u%calc%srdt_for_data           = 0
 
   do j = 1, size(u%data)
@@ -91,6 +84,7 @@ do i = iu0, iu1
     if (tao_rad_int_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) u%calc%rad_int_for_data = .true.
     if (tao_chrom_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) u%calc%chrom_for_data = .true.
     if (tao_beam_sigma_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) u%calc%beam_sigma_for_data = .true.
+    if (tao_spin_matrices_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) u%calc%spin_matrices = .true.
     if (u%data(j)%data_type(1:11) == 'expression:') s%com%have_datums_using_expressions = .true.
     u%calc%srdt_for_data = max(tao_srdt_calc_needed(u%data(j)%data_type, u%data(j)%data_source), u%calc%srdt_for_data)
   enddo
@@ -166,10 +160,7 @@ enddo
 
 s%com%optimizer_running = .false.
 
-s%u(:)%calc%rad_int_for_data    = do_rad_int_data
-s%u(:)%calc%chrom_for_data      = do_chrom_data
-s%u(:)%calc%beam_sigma_for_data = do_beam_sigma_data
-s%u(:)%calc%srdt_for_data    = do_srdt_data
+s%u(:)%calc = u_calc
 
 call tao_turn_on_special_calcs_if_needed_for_plotting ()
 

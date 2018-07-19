@@ -571,9 +571,8 @@ do j = n1, n2
     endif
   endif
 
-  if (tao_beam_sigma_calc_needed(dat%data_type, dat%data_source)) then
-    u%calc%beam_sigma_for_data = .true. 
-  endif
+  if (tao_beam_sigma_calc_needed(dat%data_type, dat%data_source)) u%calc%beam_sigma_for_data = .true. 
+  if (tao_spin_matrices_calc_needed(dat%data_type, dat%data_source)) u%calc%spin_matrices = .true. 
 
   ! Some data types are global and are not associated with a particular element. Check for this.
 

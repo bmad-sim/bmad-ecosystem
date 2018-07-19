@@ -711,6 +711,13 @@ subroutine tao_split_component (comp_str, comp, err)
   logical err
 end subroutine
 
+function tao_spin_matrices_calc_needed (data_type, data_source) result (do_calc)
+  import
+  implicit none
+  character(*) data_type, data_source
+  logical do_calc
+end function
+
 subroutine tao_string_to_element_id (str, ix_class, ele_name, err, print_err)
   import
   implicit none

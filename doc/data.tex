@@ -1093,13 +1093,14 @@ Terms of the linear transfer map. $1 \le i,j \le 6$.
 
   %----------------------
   \item[ \begin{tabular}{@{}l}
-  rad_int.i1, .i2, .i2_e4, .i3, .i3_e7, .i4a, .i4b, .i4z, .i5a, .i5b, .i5a_e6, .i5b_e6 \\
-  rad_int1.i1, .i2, .i2_e4, .i3, .i3_e7, .i4a, .i4b, .i4z, .i5a, .i5b, .i5a_e6, .i5b_e6
+  rad_int.i0, .i1, .i2, .i2_e4, .i3, .i3_e7, .i4a, .i4b, .i4z, .i5a, .i5b, .i5a_e6, .i5b_e6 \\
+  rad_int1.i0, i1, .i2, .i2_e4, .i3, .i3_e7, .i4a, .i4b, .i4z, .i5a, .i5b, .i5a_e6, .i5b_e6
   \end{tabular} ] \Newline
 Synchrotron radiation integrals. See the \bmad manual for details.
 The \vn{rad_int1.xxx} datums are the radiation integrals over a single element.
 With the \vn{rad_int.xxx} datums, the integral is from \vn{ele_ref} to \vn{ele}.
 \begin{example}
+  .i0         ! I0 radiation integral
   .i1         ! I1 radiation integral
   .i2         ! I2 radiation integral
   .i2_e4      ! Energy normalized I2 radiation integral

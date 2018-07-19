@@ -2416,6 +2416,10 @@ case ('rad_int1.')
   if (.not. allocated(tao_branch%rad_int%ele)) return
 
   select case (datum%data_type(10:))
+  case ('i0')
+    datum_value = tao_branch%rad_int%ele(ix_ele)%i0
+    if (ix_ref > -1) datum_value = datum_value - tao_branch%rad_int%ele(ix_ref)%i0
+
   case ('i1')
     datum_value = tao_branch%rad_int%ele(ix_ele)%i1
     if (ix_ref > -1) datum_value = datum_value - tao_branch%rad_int%ele(ix_ref)%i1

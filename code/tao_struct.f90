@@ -763,8 +763,6 @@ end type
 type tao_element_struct
   type (beam_struct) beam         ! Beam distribution at element.
   logical save_beam               ! Save beam here?
-  real(rp) spin_d_mat(2,2)
-  real(rp) spin_g_mat(2,6)
 end type
 
 ! Information for a particular lattice branch of a particular universe.
@@ -794,18 +792,19 @@ end type
 ! Keep data and plotting separate since when optimizing will only do a calc if the data needs it
 
 type tao_universe_calc_struct
-  logical rad_int_for_data               ! Do the radiation integrals need to be computed for
-  integer srdt_for_data                  ! 0 = false, 1 = 1st order, 2 = 1st & 2nd order
-  logical rad_int_for_plotting           !   data or plotting?
-  logical chrom_for_data                 ! Does the chromaticity need to be computed for
-  logical chrom_for_plotting             !   data or plotting? 
-  logical beam_sigma_for_data            ! Do the beam sigmas need to be computed for
-  logical beam_sigma_for_plotting        !   data or plotting? 
-  logical :: dynamic_aperture = .false.  ! Do the dynamic_aperture calc?
-  logical :: one_turn_map = .false.      ! Compute the one turn map?
-  logical :: lattice = .true.            ! Used to indicate which lattices need tracking done.
-  logical :: twiss = .true.              ! calc linear transfer matrix?
-  logical :: track = .true.              ! tracking needs to be done?
+  logical :: rad_int_for_data = .false.           ! Do the radiation integrals need to be computed for
+  integer :: srdt_for_data = 0                    ! 0 = false, 1 = 1st order, 2 = 1st & 2nd order
+  logical :: rad_int_for_plotting = .false.       !   data or plotting?
+  logical :: chrom_for_data = .false.             ! Does the chromaticity need to be computed for
+  logical :: chrom_for_plotting = .false.         !   data or plotting? 
+  logical :: beam_sigma_for_data = .false.        ! Do the beam sigmas need to be computed for
+  logical :: beam_sigma_for_plotting = .false.    !   data or plotting? 
+  logical :: dynamic_aperture = .false.           ! Do the dynamic_aperture calc?
+  logical :: one_turn_map = .false.               ! Compute the one turn map?
+  logical :: lattice = .true.                     ! Used to indicate which lattices need tracking done.
+  logical :: twiss = .true.                       ! calc linear transfer matrix?
+  logical :: track = .true.                       ! tracking needs to be done?
+  logical :: spin_matrices = .false.              ! Calculate G and D spin matrices?
 end type
 
 !-----------------------------------------------------------------------
