@@ -277,7 +277,7 @@ if ((ele%key == taylor$ .or. ele%key == hybrid$) .and. delim == '{' .and. word =
 
   call match_word (word, ['S1', 'SX', 'SY', 'SZ'], i_out, .true., .false.)
   if (i_out > 0) then
-    i_out = i_out + 100 ! Make i_out not in range [1:6]
+    i_out = i_out + 99 ! Make i_out not in range [1:6]
   else
     read (word, *, iostat = ios) i_out
     if (delim /= ':' .or. ix_word == 0 .or. ios /= 0) then
@@ -2214,7 +2214,7 @@ integer i, j, i_out, expn(6)
 
 !
 
-if (i_out > 100) then
+if (i_out >= 100) then
   i_out = i_out - 100
   taylor => ele%spin_taylor(i_out) 
 else

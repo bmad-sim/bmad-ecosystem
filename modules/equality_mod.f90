@@ -2784,6 +2784,12 @@ is_eq = is_eq .and. (f1%lattice == f2%lattice)
 is_eq = is_eq .and. (f1%input_file_name == f2%input_file_name)
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%title == f2%title)
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%constant) .eqv. allocated(f2%constant))
+if (.not. is_eq) return
+if (allocated(f1%constant)) is_eq = all(shape(f1%constant) == shape(f2%constant))
+if (.not. is_eq) return
+if (allocated(f1%constant)) is_eq = all(f1%constant == f2%constant)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%a == f2%a)
 !! f_side.equality_test[type, 0, NOT]
@@ -2824,6 +2830,12 @@ if (associated(f1%surface)) is_eq = all(f1%surface == f2%surface)
 is_eq = is_eq .and. (f1%beam_start == f2%beam_start)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%pre_tracker == f2%pre_tracker)
+!! f_side.equality_test[real, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%custom) .eqv. allocated(f2%custom))
+if (.not. is_eq) return
+if (allocated(f1%custom)) is_eq = all(shape(f1%custom) == shape(f2%custom))
+if (.not. is_eq) return
+if (allocated(f1%custom)) is_eq = all(f1%custom == f2%custom)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%version == f2%version)
 !! f_side.equality_test[integer, 0, NOT]

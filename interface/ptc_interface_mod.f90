@@ -2868,9 +2868,9 @@ end subroutine taylor_propagate1
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine ele_to_taylor (ele, param, bmad_taylor, orb0, taylor_map_includes_offsets)
+! Subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, orbital_taylor, spin_taylor)
 !
-! Subroutine to make a taylor map for an element. 
+! Subroutine to make orbital and spin (if spin tracking is on) taylor maps for an element. 
 ! The order of the map is set by set_ptc
 !
 ! Modules needed:
@@ -2888,10 +2888,13 @@ end subroutine taylor_propagate1
 !                         ele%taylor_map_includes_offsets.
 !
 ! Output:
-!   taylor(6)  -- taylor_struct: Taylor map.
+!   orbital_taylor(6) -- taylor_struct, optional: Orbital taylor map.
+!                         If not present then the map is put in ele%taylor.
+!   spin_taylor(0:3)  -- taylor_struct, optional: Spin taylor map. 
+!                         If not present then the map is put in ele%spin_taylor.
 !-
 
-subroutine ele_to_taylor (ele, param, bmad_taylor, orb0, taylor_map_includes_offsets)
+subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, orbital_taylor, spin_taylor)
 
 use s_tracking
 use mad_like, only: real_8, fibre, ring_l, survey, make_node_layout
@@ -2901,11 +2904,12 @@ use madx_ptc_module, only: bmadl
 
 implicit none
 
-type (ele_struct) :: ele, drift_ele
+type (ele_struct), target :: ele, drift_ele
 type (lat_param_struct) :: param
 type (coord_struct), optional, intent(in) :: orb0
 type (coord_struct) c0
-type (taylor_struct) bmad_taylor(6)
+type (taylor_struct), optional, target :: orbital_taylor(6), spin_taylor(0:3)
+type (taylor_struct), pointer :: orb_tylr(:), spin_tylr(:)
 type (probe_8) ptc_probe8
 type (fibre), pointer :: ptc_fibre
 type (real_8) y0(6), y2(6), y8(6), bet
@@ -2920,10 +2924,25 @@ logical use_offsets, err_flag
 
 character(16) :: r_name = 'ele_to_taylor'
 
+!
+
+
+if (present(orbital_taylor)) then
+  orb_tylr => orbital_taylor
+else
+  orb_tylr => ele%taylor
+endif
+
+if (present(spin_taylor)) then
+  spin_tylr => spin_taylor
+else
+  spin_tylr => ele%spin_taylor
+endif
+
 ! Match elements are not implemented in PTC so just use the matrix.
 
 if (ele%key == match$) then
-  call mat6_to_taylor (ele%vec0, ele%mat6, bmad_taylor)
+  call mat6_to_taylor (ele%vec0, ele%mat6, orb_tylr)
   if (.not. warning_given) then
     call out_io (s_warn$, r_name, 'Note: Taylor maps for Match elements are always 1st order!')
     warning_given = .true.
@@ -2961,10 +2980,10 @@ call attribute_bookkeeper (ele, param, .true.)
 ! Initial map
 
 if (present(orb0)) then
-  bmad_taylor(:)%ref = orb0%vec
+  orb_tylr(:)%ref = orb0%vec
   x = orb0%vec
 else
-  bmad_taylor(:)%ref = 0
+  orb_tylr(:)%ref = 0
   x = 0
 endif
 
@@ -2989,8 +3008,8 @@ if (bmad_com%spin_tracking_on) then
   ptc_probe8%x = y8  
   call track_probe (ptc_probe8, DEFAULT+SPIN0, fibre1 = bmadl%start)
   y8 = ptc_probe8%x
-  do i = 1, 4
-    ele%spin_taylor(i) = ptc_probe8%q%x(i-1)%t
+  do i = 0, 3
+    spin_tylr(i) = ptc_probe8%q%x(i)%t
   enddo
   call kill(ptc_probe8)
   call kill (ptc_cdamap)
@@ -3015,9 +3034,9 @@ y0(5) = -bet*y8(6)
 !  call kill(y2)
 !endif
 
-! convert to bmad_taylor_struct
+! convert to orb_tylr_struct
 
-bmad_taylor = y0
+orb_tylr = y0
 
 call kill(y0)
 call kill(y8)
@@ -3998,7 +4017,7 @@ if (ele%key == taylor$ .or. ele%key == match$) then
   ! onemap = T means do not split.
   ! At this point in time there is no splitting allowed.
 
-  if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor (ele, param, ele%taylor)
+  if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor (ele, param)
 
   onemap = .true.
 
@@ -4015,9 +4034,9 @@ if (ele%key == taylor$ .or. ele%key == match$) then
 
   call alloc (ptc_taylor)
 
-  do j = 1, 4
+  do j = 0, 3
     ptc_taylor = ele%spin_taylor(j)
-    ptc_c_damap%q%x(j-1) = ptc_taylor
+    ptc_c_damap%q%x(j) = ptc_taylor
   enddo
 
   call kill (ptc_taylor)

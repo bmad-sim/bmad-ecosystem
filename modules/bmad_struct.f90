@@ -17,7 +17,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 222
+integer, parameter :: bmad_inc_version$ = 223
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1016,7 +1016,7 @@ type ele_struct
                                                                ! Radiation integral calc cached values 
   type (space_charge_struct), pointer :: space_charge => null()
   type (taylor_struct) :: taylor(6) = taylor_struct()          ! Phase space Taylor map.
-  type (taylor_struct) :: spin_taylor(4) = taylor_struct()     ! Quaternion Spin Taylor map.
+  type (taylor_struct) :: spin_taylor(0:3) = taylor_struct()     ! Quaternion Spin Taylor map.
   type (wake_struct), pointer :: wake => null()                ! Wakes
   type (wall3d_struct), pointer :: wall3d(:) => null()         ! Chamber or capillary wall
   type (coord_struct) :: map_ref_orb_in = coord_struct()       ! Entrance end transfer map ref orbit
@@ -1755,6 +1755,7 @@ type extra_parsing_info_struct
   logical :: space_charge_on_set                    = .false.
   logical :: coherent_synch_rad_on_set              = .false.
   logical :: spin_tracking_on_set                   = .false.
+  logical :: spin_sokolov_ternov_flipping_on_set    = .false.
   logical :: radiation_damping_on_set               = .false.
   logical :: radiation_fluctuations_on_set          = .false.
   logical :: conserve_taylor_maps_set               = .false.
@@ -1818,6 +1819,7 @@ type bmad_common_struct
   logical :: space_charge_on = .false.                ! Space charge switch
   logical :: coherent_synch_rad_on = .false.          ! csr 
   logical :: spin_tracking_on = .false.               ! spin tracking?
+  logical :: spin_sokolov_ternov_flipping_on = .false.  ! Spin flipping during synchrotron radiation emission?
   logical :: radiation_damping_on = .false.           ! Damping toggle.
   logical :: radiation_fluctuations_on = .false.      ! Fluctuations toggle.
   logical :: conserve_taylor_maps = .true.            ! Enable bookkeeper to set ele%taylor_map_includes_offsets = F?

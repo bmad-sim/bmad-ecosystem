@@ -33,7 +33,7 @@ logical, optional :: err_flag
 
 if (present(err_flag)) err_flag = .false.
 
-if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, param, ele%taylor, start_orb)
+if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, param, start_orb)
 
 call mat_make_unit (ele%mat6)
 

@@ -222,7 +222,7 @@ type (grid_field_struct), pointer :: g_field
 type (taylor_field_struct), pointer :: t_field
 type (ac_kicker_struct), pointer :: ac
 
-integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(4), ie, ib, ix_wall3d_branch
+integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(0:3), ie, ib, ix_wall3d_branch
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
 integer i, j, k, n, n_grid, n_cart, n_cyl, n_tay, ix_ele, ix_branch, ix_lr_spline
 integer n_cus
@@ -250,7 +250,7 @@ if (associated(ele%a_pole_elec))       ix_e = 1
 do n = 1, size(ele%taylor)
   if (associated(ele%taylor(n)%term)) ix_t(n) = size(ele%taylor(n)%term)
 enddo
-do i = 1, 4
+do i = 0, 3
   if (associated(ele%spin_taylor(i)%term)) ix_st(i) = size(ele%spin_taylor(i)%term)
 enddo
 if (associated(ele%wall3d))     ix_wall3d = size(ele%wall3d)
@@ -530,7 +530,7 @@ do j = 1, size(ele%taylor)
   enddo
 enddo
 
-do i = 1, 4
+do i = 0, 3
   if (.not. associated(ele%spin_taylor(i)%term)) cycle
   write (d_unit) ele%spin_taylor(i)%ref
   do k = 1, size(ele%spin_taylor(i)%term)

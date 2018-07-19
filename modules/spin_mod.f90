@@ -638,7 +638,7 @@ character(*), parameter :: r_name = 'track1_spin_taylor'
 
 !
 
-if (.not. associated(ele%spin_taylor(1)%term)) then
+if (.not. associated(ele%spin_taylor(0)%term)) then
   call out_io (s_error$, r_name, 'NO SPIN TAYLOR MAP ASSOCIATED WITH ELEMENT: ' // ele%name)
   if (global_com%exit_on_error) call err_exit
   end_orb%spin = start_orb%spin

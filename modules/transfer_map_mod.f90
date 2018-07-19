@@ -148,7 +148,7 @@ end subroutine transfer_map_from_s_to_s
 
 subroutine transfer_this_map (map, branch, s_1, s_2, error_flag, ref_orb, concat_if_possible)
 
-use ptc_interface_mod, only: ele_to_taylor, taylor_propagate1, concat_ele_taylor
+use ptc_interface_mod, only: taylor_propagate1, concat_ele_taylor
 use bookkeeper_mod, only: create_element_slice
 
 implicit none

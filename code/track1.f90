@@ -173,7 +173,7 @@ endif
 
 if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) .and. &
                                            .not. radiation_included .and. ele%is_on .and. do_extra) then
-  call track1_radiation (start2_orb, ele, param, start2_orb, start_edge$, z_start) 
+  call track1_radiation (start2_orb, ele, param, start_edge$, z_start) 
 endif
 
 ! bmad_standard handles the case when the element is turned off.
@@ -280,7 +280,7 @@ endif
 
 if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) .and. &
                                             .not. radiation_included .and. ele%is_on .and. do_extra) then
-  call track1_radiation (end_orb, ele, param, end_orb, end_edge$, z_start) 
+  call track1_radiation (end_orb, ele, param, end_edge$, z_start) 
 endif
 
 ! space charge

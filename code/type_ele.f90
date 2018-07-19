@@ -973,7 +973,7 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
     endif
   endif
 
-  if (associated(ele%spin_taylor(1)%term) .or. ele%key == taylor$) then
+  if (associated(ele%spin_taylor(0)%term) .or. ele%key == taylor$) then
     if (logic_option(.false., type_taylor)) then
       nl=nl+1; li(nl) = ''
       call type_taylors (ele%spin_taylor, lines = li2, n_lines = nt, out_type = 'SPIN')
@@ -983,7 +983,7 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
       nl = nl + nt
     else
       n_term = 0
-      do i = 1, 4
+      do i = 0, 3
         n_term = n_term + size(ele%spin_taylor(i)%term)
       enddo
       nl=nl+1; write (li(nl), '(a, i6)') 'Spin_Taylor map total number of terms:', n_term

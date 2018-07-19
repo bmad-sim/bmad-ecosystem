@@ -10,7 +10,7 @@
 !
 ! For i_dim = 4 this routine tracks through the lattice with the RF turned off.
 ! and the particle energy will be determined by closed_orb(0)%vec(6) for direction = 1
-! and closed_orb(n0)%vec(6) with n0 = lat%n_ele_track for direction = -1.
+! and closed_orb(nt)%vec(6) with nt = lat%n_ele_track for direction = -1.
 ! The z component (closed_orb(i)%vec(5)) will be set to zero at the beginning
 ! of tracking and will generally not be zero at the end.
 !
@@ -43,10 +43,10 @@
 !
 ! Input:
 !   lat            -- lat_struct: Lat to track through.
-!   closed_orb(0:) -- Coord_struct, allocatable: closed_orb(n0) 
-!                      is the initial guess where n0 = 0 for direction = 1 and 
-!                      n0 = lat%n_ele_track for direction = -1. Additionally, 
-!                      if i_dim = 4, then closed_orb(n0)%vec(6) is used as the energy 
+!   closed_orb(0:) -- Coord_struct, allocatable: closed_orb(nt) 
+!                      is the initial guess where nt = 0 for direction = 1 and 
+!                      nt = lat%n_ele_track for direction = -1. Additionally, 
+!                      if i_dim = 4, then closed_orb(nt)%vec(6) is used as the energy 
 !                      around which the closed orbit is calculated.
 !   i_dim          -- Integer, optional: Phase space dimensions to use:
 !                     = 4  Transverse closed orbit at constant energy (RF off).
@@ -69,10 +69,13 @@
 !   bmad_com       -- Bmad_common_struct: Bmad common block.
 !     %rel_tol_tracking -- Relative error. See above. Default = 1d-8
 !     %abs_tol_tracking -- Absolute error. See above. Default = 1d-10
+!     %spin_tracking_on -- If True, the closed orbit invariant spin will be calculated and put in closed_orb%spin
 !
 ! Output:
 !   closed_orb(0:) -- Coord_struct, allocatable: Closed orbit. closed_orb(i)
 !                      is the orbit at the exit end of the ith element.
+!      %vec(6)             -- Closed orbit phase space
+!      %spin(3)            -- Closed orbit invariant spin if bmad_com%spin_tracking_on = T.
 !   err_flag       -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
@@ -141,6 +144,7 @@ bmad_com_saved = bmad_com
 bmad_com%radiation_fluctuations_on = .false.  
 bmad_com%aperture_limit_on = .false.
 bmad_com%spin_tracking_on = .false.
+bmad_com%spin_sokolov_ternov_flipping_on = .false.
 
 n_ele = branch%n_ele_track
 betas = 1
