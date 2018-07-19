@@ -64,7 +64,7 @@ if (.not. associated(taylor_ptr(1)%term)) then
     return
   endif
   ! Else create a Taylor map around the zero orbit.
-  call ele_to_taylor(ele, param, ele%taylor)
+  call ele_to_taylor(ele, param)
 endif
 
 ! Note: ele%mat6 holds the matrix for forward tracking (start_orb%direction == 1) independent

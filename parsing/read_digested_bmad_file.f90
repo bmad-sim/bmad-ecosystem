@@ -316,6 +316,7 @@ if (found_it) then
   if (extra%space_charge_on_set)                bmad_com%space_charge_on                 = bmad_com_read%space_charge_on
   if (extra%coherent_synch_rad_on_set)          bmad_com%coherent_synch_rad_on           = bmad_com_read%coherent_synch_rad_on
   if (extra%spin_tracking_on_set)               bmad_com%spin_tracking_on                = bmad_com_read%spin_tracking_on
+  if (extra%spin_sokolov_ternov_flipping_on_set)  bmad_com%spin_sokolov_ternov_flipping_on   = bmad_com_read%spin_sokolov_ternov_flipping_on
   if (extra%radiation_damping_on_set)           bmad_com%radiation_damping_on            = bmad_com_read%radiation_damping_on
   if (extra%radiation_fluctuations_on_set)      bmad_com%radiation_fluctuations_on       = bmad_com_read%radiation_fluctuations_on
   if (extra%conserve_taylor_maps_set)           bmad_com%conserve_taylor_maps            = bmad_com_read%conserve_taylor_maps
@@ -463,7 +464,7 @@ type (ac_kicker_struct), pointer :: ac
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_tay, n_grid, ix_ele, ix_branch, ix_wall3d
 integer i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e
 integer ix_r, ix_s, n_var, ix_d, ix_m, ix_lr_spline, idum, n_cus
-integer ix_sr_long, ix_sr_trans, ix_lr_mode, ix_wall3d_branch, ix_st(4)
+integer ix_sr_long, ix_sr_trans, ix_lr_mode, ix_wall3d_branch, ix_st(0:3)
 integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2
 
 logical error, is_alloc_pt, ac_kicker_alloc
@@ -707,7 +708,7 @@ do j = 1, size(ele%taylor)
   enddo
 enddo
 
-do i = 1, 4
+do i = 0, 3
   if (ix_st(i) == -1) cycle
   read (d_unit, err = 9650) ele%spin_taylor(i)%ref
   allocate (ele%spin_taylor(i)%term(ix_st(i)))

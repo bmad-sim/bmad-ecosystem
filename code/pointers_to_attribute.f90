@@ -136,6 +136,7 @@ case ('BMAD_COM')
   case ('SPACE_CHARGE_ON');                 ptr_array(1)%l => bmad_com%space_charge_on
   case ('COHERENT_SYNCH_RAD_ON');           ptr_array(1)%l => bmad_com%coherent_synch_rad_on
   case ('SPIN_TRACKING_ON');                ptr_array(1)%l => bmad_com%spin_tracking_on
+  case ('SPIN_SOKOLOV_TERNOV_FLIPPING_ON');   ptr_array(1)%l => bmad_com%spin_sokolov_ternov_flipping_on
   case ('RADIATION_DAMPING_ON');            ptr_array(1)%l => bmad_com%radiation_damping_on
   case ('RADIATION_FLUCTUATIONS_ON');       ptr_array(1)%l => bmad_com%radiation_fluctuations_on
   case ('CONSERVE_TAYLOR_MAPS');            ptr_array(1)%l => bmad_com%conserve_taylor_maps

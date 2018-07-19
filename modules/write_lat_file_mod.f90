@@ -101,7 +101,7 @@ character(40), allocatable :: names(:)
 character(16) polar, dependence
 character(40) angle
 character(4) end_str, last
-character(2), parameter :: spin_quat_name(4) = ['S1', 'Sx', 'Sy', 'Sz']
+character(2), parameter :: spin_quat_name(0:3) = ['S1', 'Sx', 'Sy', 'Sz']
 character(*), parameter :: r_name = 'write_bmad_lattice_file'
 
 integer, optional :: output_form
@@ -1177,7 +1177,7 @@ do ib = 0, ubound(lat%branch, 1)
         if (ele%key == taylor$ .and. .not. unit_found) write (line, '(2a, i0, a, 6i2, a)') trim(line), ', {', j, ': 0,', tm%expn, '}'
       enddo
 
-      do j1 = 1, 4
+      do j1 = 0, 3
         do k = 1, size(ele%spin_taylor(j1)%term)
           tm = ele%spin_taylor(j1)%term(k)
           write (line, '(6a, 6i2, a)') trim(line), ', {', spin_quat_name(j1), ': ', trim(re_str(tm%coef)), ',', tm%expn, '}'
@@ -2202,7 +2202,7 @@ do
     if (ifa == entrance_end$ .or. ifa == both_ends$) then
       quad_ele%value(fringe_at$) = entrance_end$
       quad_ele%value(l$) = 1d-30
-      call ele_to_taylor (quad_ele, branch_out%param, taylor_ele%taylor, orbit_out(ie-1))
+      call ele_to_taylor (quad_ele, branch_out%param, orbit_out(ie-1), orbital_taylor = taylor_ele%taylor)
       write (taylor_ele%name, '(a, i0)') 'Q_FRINGE_IN', f_count
       call insert_element (lat_out, taylor_ele, ie, branch_out%ix_branch, orbit_out)
       ie = ie + 1
@@ -2212,7 +2212,7 @@ do
     if (ifa == exit_end$ .or. ifa == both_ends$) then
       quad_ele%value(fringe_at$) = exit_end$
       quad_ele%value(l$) = 1d-30
-      call ele_to_taylor (quad_ele, branch_out%param, taylor_ele%taylor, orbit_out(ie))
+      call ele_to_taylor (quad_ele, branch_out%param, orbit_out(ie), orbital_taylor = taylor_ele%taylor)
       write (taylor_ele%name, '(a, i0)') 'Q_FRINGE_OUT', f_count
       call insert_element (lat_out, taylor_ele, ie+1, branch_out%ix_branch, orbit_out)
       ie2 = ie2 + 1
@@ -2239,7 +2239,7 @@ do
     call track1 (orbit_out(ie-1), bend_ele, branch_out%param, orb_center)
 
     if (at_this_ele_end(entrance_end$, nint(ele%value(fringe_at$))) .or. ele%value(g_err$) /= 0) then
-      call ele_to_taylor (bend_ele, branch_out%param, taylor_a, orbit_out(ie-1))
+      call ele_to_taylor (bend_ele, branch_out%param, orbit_out(ie-1), orbital_taylor = taylor_a)
 
       bend_ele%value(fringe_type$) = basic_bend$
       bend_ele%value(g_err$) = 0
@@ -2247,7 +2247,7 @@ do
       orb_start%direction = -1
       orb_start%species = antiparticle(orb_center%species)
       call track1 (orb_start, bend_ele, branch_out%param, orb_start)  ! bactrack to entrance end
-      call ele_to_taylor (bend_ele, branch_out%param, taylor_b, orb_start)
+      call ele_to_taylor (bend_ele, branch_out%param, orb_start, orbital_taylor = taylor_b)
 
       call taylor_inverse (taylor_b, taylor_b)
       call concat_taylor (taylor_a, taylor_b, taylor_ele%taylor)
@@ -2267,11 +2267,11 @@ do
       bend_ele%value(e1$) = 0
       call set_fringe_on_off (bend_ele%value(fringe_at$), entrance_end$, off$)
 
-      call ele_to_taylor (bend_ele, branch_out%param, taylor_a, orb_center)
+      call ele_to_taylor (bend_ele, branch_out%param, orb_center, orbital_taylor = taylor_a)
 
       bend_ele%value(fringe_type$) = basic_bend$
       bend_ele%value(g_err$) = 0
-      call ele_to_taylor (bend_ele, branch_out%param, taylor_b, orb_center)
+      call ele_to_taylor (bend_ele, branch_out%param, orb_center, orbital_taylor = taylor_b)
       call taylor_inverse (taylor_b, taylor_b)
 
       call concat_taylor (taylor_b, taylor_a, taylor_ele%taylor)
@@ -2300,7 +2300,7 @@ do
     call mat6_to_taylor (drift_ele%vec0, drift_ele%mat6, taylor_a)
 
     drift_ele%value(l$) = ele%value(l$)
-    call ele_to_taylor (drift_ele, branch_out%param, taylor_b, orbit_out(ix_ele-1))
+    call ele_to_taylor (drift_ele, branch_out%param, orbit_out(ix_ele-1), orbital_taylor = taylor_b)
     call concat_taylor (taylor_a, taylor_b, taylor_ele%taylor)
     call kill_taylor (taylor_a)
     call kill_taylor (taylor_b)
@@ -2659,7 +2659,7 @@ do ix_ele = ie1, ie2
         cycle
       endif
       if (ptc_com%taylor_order_ptc /= 2) call set_ptc (taylor_order = 2) 
-      call ele_to_taylor (ele, branch%param, ele%taylor, orbit_out(ix_ele-1), .true.)
+      call ele_to_taylor (ele, branch%param, orbit_out(ix_ele-1), .true.)
     endif
 
     line_out = trim(ele%name) // ': matrix'

@@ -40,46 +40,51 @@ end subroutine release_rad_int_cache
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine track1_radiation (orb_start, ele, param, orb_end, edge, z_start)
+! Subroutine track1_radiation (orbit, ele, param, edge, z_start)
 !
-! Subroutine to put in radiation dampling and/or fluctuations.
+! Subroutine to put in radiation dampling and/or fluctuations including radiation 
+! induced spin flips ("Baier-Katkov" spin flips).
+!
 ! This routine calculates half the radiation of an element so this routine
 ! needs to be called before entering an element and just after exiting.
 !
-! Modules needed:
-!   use radiation_mod
+! Note: If both bmad_com%radiation_damping_on and not bmad_com%radiation_fluctuations_on are
+! False then no spin flipping is done.  
+!
+! Note: This routine is called by track1.
 !
 ! Input:
-!   orb_start -- coord_struct: Particle position before radiation applied.
+!   orbit     -- coord_struct: Particle position before radiation applied.
 !   ele       -- ele_struct: Element that causes radiation.
 !   edge      -- integer: Where the particle is: start_edge$ or end_edge$.
 !
 ! Output:
-!   orb_end   -- coord_struct: Particle position after radiation has been applied.
+!   orbit     -- coord_struct: Particle position after radiation has been applied.
 !
 ! Scratch:
 !   z_start   -- real(rp): Used by track1_radiation to save the z-coordinate.
 !                 z_start is an argument to avoid making it saved.
 !-
 
-subroutine track1_radiation (orb_start, ele, param, orb_end, edge, z_start)
+subroutine track1_radiation (orbit, ele, param, edge, z_start)
 
 use random_mod
 
 implicit none
 
-type (coord_struct) :: orb_start, orb_end
+type (coord_struct) :: orbit
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele0
 type (lat_param_struct) :: param
-type (coord_struct) :: orb_start2
+type (coord_struct) :: orbit2
 
 integer :: edge
 
 real(rp) s_len, g, g_x, g_y, this_ran, mc2, g2, g3, z_start
-real(rp) x_ave, y_ave, gamma_0, dE_p, fact_d, fact_f
-real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * h_bar_planck * c_light / (24 * sqrt_3)
-
+real(rp) x_ave, y_ave, gamma_0, dE_p, fact_d, fact_f, q_charge2, p_spin, spin_norm(3), norm
+real(rp), parameter :: rad_fluct_const = 55.0_rp * classical_radius_factor * h_bar_planck * c_light / (24.0_rp * sqrt_3)
+real(rp), parameter :: spin_const = 5.0_rp * sqrt_3 * classical_radius_factor * h_bar_planck * c_light / 16
+real(rp), parameter :: c1_spin = 2.0_rp / 9.0_rp, c2_spin = 8.0_rp / (5.0_rp * sqrt_3)
 integer direc
 
 logical set
@@ -89,10 +94,11 @@ character(*), parameter :: r_name = 'track1_radiation'
 
 ! If not a magnetic element then nothing to do.
 
+if (.not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuations_on) return
+
 select case (ele%key)
 case (quadrupole$, sextupole$, octupole$, sbend$, sol_quad$, wiggler$, undulator$)
 case default
-  orb_end = orb_start
   return
 end select
 
@@ -106,10 +112,10 @@ if (edge == start_edge$) then
   set = set$
   s_len = ele%value(l$) / 2
   direc = +1
-  z_start = orb_start%vec(5)
+  z_start = orbit%vec(5)
 elseif (edge == end_edge$) then
   set = unset$
-  s_len = ele%value(l$)/2 + (orb_start%vec(5) - z_start)
+  s_len = ele%value(l$)/2 + (orbit%vec(5) - z_start)
   direc = -1
 else
   call out_io (s_fatal$, r_name, 'BAD EDGE ARGUMENT:', set)
@@ -121,9 +127,9 @@ if (s_len < 0) s_len = 0
 ! Get the coords in the frame of reference of the element
 
 if (ele%key /= wiggler$ .and. ele%key /= undulator$) then
-  orb_start2 = orb_start
-  call offset_particle (ele, param, set, orb_start2)
-  call canonical_to_angle_coords (orb_start2)
+  orbit2 = orbit
+  call offset_particle (ele, param, set, orbit2)
+  call canonical_to_angle_coords (orbit2)
 endif
 
 ! Calculate the radius of curvature for an on-energy particle
@@ -131,41 +137,44 @@ endif
 select case (ele%key)
 
 case (quadrupole$, sol_quad$)
-  x_ave = orb_start2%vec(1) + direc * orb_start2%vec(2) * ele%value(l$) / 4
-  y_ave = orb_start2%vec(3) + direc * orb_start2%vec(4) * ele%value(l$) / 4
-  g_x =  ele%value(k1$) * x_ave
-  g_y = -ele%value(k1$) * y_ave
+  x_ave = orbit2%vec(1) + direc * orbit2%vec(2) * s_len / 2.0_rp
+  y_ave = orbit2%vec(3) + direc * orbit2%vec(4) * s_len / 2.0_rp
+  g_x = -ele%value(k1$) * x_ave
+  g_y =  ele%value(k1$) * y_ave
   g2 = g_x**2 + g_y**2
-  if (bmad_com%radiation_fluctuations_on) g3 = sqrt(g2)**3
+  g3 = sqrt(g2)**3
 
 case (sextupole$)
-  g = ele%value(k2$) * (orb_start2%vec(1)**2 + orb_start2%vec(3)**2)
-  g2 = g**2
-  if (bmad_com%radiation_fluctuations_on) g3 = g2 * abs(g)
+  x_ave = orbit2%vec(1) + direc * orbit2%vec(2) * s_len / 2.0_rp
+  y_ave = orbit2%vec(3) + direc * orbit2%vec(4) * s_len / 2.0_rp
+  g_x = ele%value(k2$) * (y_ave**2 - x_ave**2) / 2.0_rp
+  g_y = ele%value(k2$) * (x_ave * y_ave)
+  g2 = g_x**2 + g_y**2
+  g3 = sqrt(g2)**3
 
 case (octupole$)
-  g2 = ele%value(k3$)**2 * (orb_start2%vec(1)**2 + orb_start2%vec(3)**2)**3
-  if (bmad_com%radiation_fluctuations_on) g3 = sqrt(g2)**3
+  x_ave = orbit2%vec(1) + direc * orbit2%vec(2) * s_len / 2.0_rp
+  y_ave = orbit2%vec(3) + direc * orbit2%vec(4) * s_len / 2.0_rp
+  g_x = ele%value(k3$) * (3.0_rp * x_ave * y_ave**2 - x_ave**3) / 6.0_rp
+  g_y = ele%value(k3$) * (3.0_rp * x_ave**2 * y_ave - y_ave**3) / 6.0_rp
+  g2 = g_x**2 + g_y**2
+  g3 = sqrt(g2)**3
 
 case (sbend$)
-  if (ele%value(k1$) == 0) then
-    g = ele%value(g$) + ele%value(g_err$)
-    g2 = g**2 
-    if (bmad_com%radiation_fluctuations_on) g3 = g2 * abs(g)
-  else
-    x_ave = orb_start2%vec(1) + direc * orb_start2%vec(2) * ele%value(l$) / 4
-    y_ave = orb_start2%vec(3) + direc * orb_start2%vec(4) * ele%value(l$) / 4
-    g_x = ele%value(g$) + ele%value(g_err$) + ele%value(k1$) * x_ave
-    g_y = ele%value(k1$) * y_ave
-    g2 = g_x**2 + g_y**2
-    if (bmad_com%radiation_fluctuations_on) g3 = sqrt(g2)**3
-  endif
+  x_ave = orbit2%vec(1) + direc * orbit2%vec(2) * s_len / 2.0_rp
+  y_ave = orbit2%vec(3) + direc * orbit2%vec(4) * s_len / 2.0_rp
+  g_x = ele%value(g$) + ele%value(g_err$) + ele%value(k1$) * x_ave
+  g_y = ele%value(k1$) * y_ave
+  g2 = g_x**2 + g_y**2
+  g3 = sqrt(g2)**3
 
 case (wiggler$, undulator$)
+  g_x = 0
+  g_y = 0
   if (ele%sub_key == map_type$) then
     if (.not. associated(ele%rad_int_cache) .or. ele%rad_int_cache%stale) call calc_radiation_tracking_consts(ele, param)
-    g2 = ele%rad_int_cache%g2_0 + dot_product(orb_start%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg2_dorb(1:4))
-    g3 = ele%rad_int_cache%g3_0 + dot_product(orb_start%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg3_dorb(1:4))
+    g2 = ele%rad_int_cache%g2_0 + dot_product(orbit%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg2_dorb(1:4))
+    g3 = ele%rad_int_cache%g3_0 + dot_product(orbit%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg3_dorb(1:4))
     if (g3 < 0) g3 = 0
   elseif (ele%sub_key == periodic_type$) then
     g2 = abs(ele%value(k1$))
@@ -179,26 +188,28 @@ end select
 ! where xi is a random number with sigma = 1.
 
 mc2 = mass_of(param%particle)
+q_charge2 = charge_of(orbit%species)**2
 gamma_0 = ele%value(e_tot$) / mc2
 
 fact_d = 0
 if (bmad_com%radiation_damping_on) then
-  fact_d = 2 * classical_radius_factor * gamma_0**3 * g2 * s_len / (3 * mc2)
+  fact_d = 2 * classical_radius_factor * q_charge2 * gamma_0**3 * g2 * s_len / (3 * mc2)
   if (param%backwards_time_tracking) fact_d = -fact_d
 endif
 
 fact_f = 0
 if (bmad_com%radiation_fluctuations_on) then
   call ran_gauss (this_ran)
-  fact_f = sqrt(rad_fluct_const * s_len * gamma_0**5 * g3) * this_ran / mc2
+  fact_f = sqrt(rad_fluct_const * q_charge2 * s_len * gamma_0**5 * g3) * this_ran / mc2
 endif
 
-dE_p = (1 + orb_start%vec(6)) * (fact_d + fact_f) * synch_rad_com%scale 
+dE_p = (1 + orbit%vec(6)) * (fact_d + fact_f) * synch_rad_com%scale 
 
-orb_end = orb_start
-orb_end%vec(2) = orb_end%vec(2) * (1 - dE_p)
-orb_end%vec(4) = orb_end%vec(4) * (1 - dE_p)
-orb_end%vec(6) = orb_end%vec(6)  - dE_p * (1 + orb_end%vec(6))
+orbit%vec(2) = orbit%vec(2) * (1 - dE_p)
+orbit%vec(4) = orbit%vec(4) * (1 - dE_p)
+orbit%vec(6) = orbit%vec(6)  - dE_p * (1 + orbit%vec(6))
+
+! This is useful for debugging.
 
 if (synch_rad_com%i_calc_on) then
   synch_rad_com%i2 = synch_rad_com%i2 + g2 * s_len
@@ -213,6 +224,19 @@ if (synch_rad_com%i_calc_on) then
                   2 * ele0%a%alpha * ele0%a%eta * ele0%a%etap + ele0%a%beta * ele0%a%etap**2)
     synch_rad_com%i5b = synch_rad_com%i5b + g3 * s_len * (ele0%b%gamma * ele0%b%eta**2 + &
                   2 * ele0%b%alpha * ele0%b%eta * ele0%b%etap + ele0%b%beta * ele0%b%etap**2)
+  endif
+endif
+
+! Sokolov-Ternov Spin flip?
+
+if (bmad_com%spin_tracking_on .and. bmad_com%spin_sokolov_ternov_flipping_on) then
+  norm = norm2(orbit%spin)
+  if (norm /= 0) then
+    spin_norm = orbit%spin / norm
+    call ran_uniform (this_ran)
+    p_spin = (spin_const * q_charge2 * gamma_0**5 * s_len / (orbit%beta * mc2**2)) * &
+          (g3 - c1_spin * g3 * (spin_norm(3))**2 + c2_spin * g2 * dot_product([g_y, -g_x], spin_norm(1:2))) 
+    if (this_ran < p_spin) orbit%spin = -orbit%spin  ! spin flip
   endif
 endif
 
