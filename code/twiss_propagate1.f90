@@ -90,6 +90,7 @@ endif
 
 mat6 => ele2%mat6
 det_factor = sqrt(determinant (mat6(1:4,1:4)))
+if (det_factor == 0) return  ! Can happen if matrix was never computed.
 
 !---------------------------------------------------------------------
 ! if transfer matrix is not coupled...

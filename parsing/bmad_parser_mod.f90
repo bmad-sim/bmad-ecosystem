@@ -1126,7 +1126,7 @@ if (attrib_word == 'CARTESIAN_MAP') then
     ele0%cartesian_map => ele%cartesian_map
     allocate(ele%cartesian_map(i_ptr))
     do i = 1, i_ptr-1
-     ele%cartesian_map(i)%ptr => ele0%cartesian_map(i)%ptr
+     ele%cartesian_map(i) = ele0%cartesian_map(i)
     enddo
   else
     allocate(ele%cartesian_map(1))
@@ -1179,7 +1179,7 @@ if (attrib_word == 'CYLINDRICAL_MAP') then
     ele0%cylindrical_map => ele%cylindrical_map
     allocate(ele%cylindrical_map(i_ptr))
     do i = 1, i_ptr-1
-     ele%cylindrical_map(i)%ptr => ele0%cylindrical_map(i)%ptr
+     ele%cylindrical_map(i) = ele0%cylindrical_map(i)
     enddo
   else
     allocate(ele%cylindrical_map(1))
@@ -1285,7 +1285,7 @@ if (attrib_word == 'TAYLOR_FIELD') then
     ele0%taylor_field => ele%taylor_field
     allocate(ele%taylor_field(i_ptr))
     do i = 1, i_ptr-1
-     ele%taylor_field(i)%ptr => ele0%taylor_field(i)%ptr
+     ele%taylor_field(i) = ele0%taylor_field(i)
     enddo
   else
     allocate(ele%taylor_field(1))
