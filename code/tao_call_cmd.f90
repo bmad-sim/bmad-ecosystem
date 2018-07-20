@@ -1,8 +1,7 @@
 !+
 ! Subroutine tao_call_cmd (file_name, cmd_arg)
 !
-! Routine to open a tao command file. If not found in the current director
-! than the TAO_INIT_DIR will be searched.
+! Routine to open a tao command file.
 ! 
 ! Input:
 !   file_name  -- Character(*): Name of the tao command file.

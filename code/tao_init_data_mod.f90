@@ -14,9 +14,6 @@ contains
 ! Subroutine tao_init_data (data_file)
 !
 ! Subroutine to initialize the tao data structures.
-! If data_file is not in the current directory then it 
-! will be searched for in the directory:
-!   TAO_INIT_DIR
 !
 ! Input:
 !   data_file -- Character(*): Tao data initialization file.
@@ -40,6 +37,7 @@ type (tao_datum_input) datum(n_data_minn:n_data_maxx)
 type (ele_pointer_struct), allocatable :: eles(:)
 
 real(rp) default_weight, def_weight        ! default merit function weight
+real(rp) default_spin_n0(3), def_spin_n0(3)
 
 integer ios, iu, i, j, j1, k, ix, n_uni, num
 integer n, iostat, n_loc
@@ -59,10 +57,10 @@ logical err, free, gang, do_standard_setup
 logical :: good_unis(lbound(s%u, 1) : ubound(s%u, 1))
 logical :: mask(lbound(s%u, 1) : ubound(s%u, 1))
 
-namelist / tao_d2_data / d2_data, n_d1_data, universe, &
+namelist / tao_d2_data / d2_data, n_d1_data, universe, default_spin_n0, &
                 default_merit_type, default_weight, default_data_type, default_data_source
 
-namelist / tao_d1_data / d1_data, datum, ix_d1_data, &
+namelist / tao_d1_data / d1_data, datum, ix_d1_data, default_spin_n0, &
                default_merit_type, default_weight, default_data_type, default_data_source, &
                use_same_lat_eles_as, search_for_lat_eles, ix_min_data, ix_max_data
 
@@ -143,6 +141,7 @@ do
   universe               = '*'
   default_merit_type     = ''
   default_weight         = 0      
+  default_spin_n0        = 0
   default_data_type      = ''
   default_data_source    = ''
 
@@ -173,6 +172,7 @@ do
   def_weight      = default_weight
   def_data_type   = default_data_type
   def_data_source = default_data_source
+  def_spin_n0     = default_spin_n0
 
   do k = 1, n_d1_data
     use_same_lat_eles_as   = ''
@@ -180,6 +180,7 @@ do
     d1_data%name           = ''
     default_merit_type     = def_merit_type
     default_weight         = def_weight
+    default_spin_n0        = def_spin_n0
     default_data_type      = def_data_type
     default_data_source    = def_data_source
     ix_min_data            = int_garbage$
@@ -396,6 +397,18 @@ elseif (use_same_lat_eles_as /= '') then
 
   if (default_weight /= 0)    u%data(n1:n2)%weight = default_weight
   if (datum(ix1)%weight /= 0) u%data(n1:n2)%weight = datum(ix1)%weight
+
+  if (any(default_spin_n0 /= 0)) then
+    u%data(n1:n2)%spin_n0(1) = default_spin_n0(1)
+    u%data(n1:n2)%spin_n0(2) = default_spin_n0(2)
+    u%data(n1:n2)%spin_n0(3) = default_spin_n0(3)
+  endif
+
+  if (any(datum(ix1)%spin_n0 /= 0)) then
+    u%data(n1:n2)%spin_n0(1) = datum(ix1)%spin_n0(1)
+    u%data(n1:n2)%spin_n0(2) = datum(ix1)%spin_n0(2)
+    u%data(n1:n2)%spin_n0(3) = datum(ix1)%spin_n0(3)
+  endif
 
   ! use default_data_type if given, if not, auto-generate the data_type
   if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name

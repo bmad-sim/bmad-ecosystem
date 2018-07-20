@@ -13,9 +13,6 @@ contains
 ! Subroutine tao_init_global (init_file)
 !
 ! Subroutine to initialize the tao global structures.
-! If init_file is not in the current directory then it 
-! will be searched for in the directory:
-!   TAO_INIT_DIR
 !
 ! Input:
 !   init_file  -- Character(*): Tao initialization file.
@@ -124,10 +121,6 @@ end subroutine tao_init_global
 ! Subroutine tao_init_beams (init_file)
 !
 ! Subroutine to initialize beam stuff.
-!
-! If init_file is not in the current directory then it 
-! will be searched for in the directory:
-!   TAO_INIT_DIR
 !
 ! Input:
 !   init_file  -- Character(*): Tao initialization file.

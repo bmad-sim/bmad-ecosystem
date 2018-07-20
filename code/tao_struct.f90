@@ -359,6 +359,7 @@ type tao_data_struct
   real(rp) :: merit = 0                    ! Merit function term value: weight * delta^2
   real(rp) :: s = 0                        ! longitudinal position of ele.
   real(rp) :: s_offset = 0                 ! Offset of the evaluation point.
+  real(rp) :: spin_n0(3)                   ! n0 vector for spin g-matrix calculations.
   logical :: err_message_printed = .false. ! Used to prevent zillions of error messages being generated
   logical :: exists = .false.              ! See above
   logical :: good_model = .false.          ! See above
@@ -676,7 +677,7 @@ integer, parameter :: n_char_show = 1000
 !-----------------------------------------------------------------------
 ! scratch space
 
-type this_array_struct
+type tao_beam_shake_struct
   real(rp) cbar(2,2)
   real(rp) k_11a, k_12a, k_12b, k_22b
   real(rp) amp_a, amp_b, amp_na, amp_nb
@@ -685,8 +686,16 @@ type this_array_struct
   logical :: amp_calc_done = .false.
 end type
 
+type tao_spin_map_struct
+  type (taylor_struct) orbit(6)
+  type (taylor_struct) spin(0:3)
+  integer ix_ele, ix_ref, ix_uni
+  real(rp) n0(3)
+  real(rp) g_mat(2,6)
+end type
+
 type tao_scratch_space_struct
-  type (this_array_struct), allocatable :: cc(:)
+  type (tao_beam_shake_struct), allocatable :: cc(:)
   type (ele_pointer_struct), allocatable :: eles(:)
   type (tao_d1_data_array_struct), allocatable :: d1_array(:)
   type (tao_v1_var_array_struct), allocatable :: v1_array(:)
@@ -696,6 +705,7 @@ type tao_scratch_space_struct
   type (tao_data_var_component_struct), allocatable :: comp(:)
   type (tao_expression_info_struct), allocatable :: info(:)
   type (tao_expression_info_struct), allocatable :: info_x(:), info_y(:), info_ix(:)
+  type (tao_spin_map_struct), allocatable :: spin_map(:)
   logical, allocatable :: picked(:)
   logical, allocatable :: this_u(:)
   real(rp), allocatable :: axis1(:), axis2(:), axis3(:)
