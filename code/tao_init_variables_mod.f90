@@ -14,9 +14,6 @@ contains
 ! Subroutine tao_init_variables (var_file)
 !
 ! Subroutine to initialize the tao variable structures.
-! If var_file is not in the current directory then it 
-! will be searched for in the directory:
-!   TAO_INIT_DIR
 !
 ! Input:
 !   var_file  -- Character(*): Tao variable initialization file.

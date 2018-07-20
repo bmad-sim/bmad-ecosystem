@@ -400,7 +400,7 @@ type (all_pointer_struct) a_ptr
 type (spin_polar_struct) polar_spin
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
-real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2
+real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2, spin_g(2,6)
 real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len
 real(rp) dz, dx, cos_theta, sin_theta, z_pt, x_pt, z0_pt, x0_pt
 real(rp) z_center, x_center, x_wall, s_eval, s_eval_ref, phase, amp
@@ -2728,13 +2728,28 @@ case ('spin.')
 !-----------
 
 case ('spin_g_matrix')
+
+  call tao_spin_g_matrix_calc (datum, u, ix_ref, ix_ele, spin_g, valid_value, why_invalid)
+  if (.not. valid_value) return
+
   select case (datum%data_type)
-  case ('spin_g_matrix.1')
+  case ('spin_g_matrix.11');  datum_value = spin_g(1,1)
+  case ('spin_g_matrix.12');  datum_value = spin_g(1,2)
+  case ('spin_g_matrix.13');  datum_value = spin_g(1,3)
+  case ('spin_g_matrix.14');  datum_value = spin_g(1,4)
+  case ('spin_g_matrix.15');  datum_value = spin_g(1,5)
+  case ('spin_g_matrix.16');  datum_value = spin_g(1,6)
+  case ('spin_g_matrix.21');  datum_value = spin_g(2,1)
+  case ('spin_g_matrix.22');  datum_value = spin_g(2,2)
+  case ('spin_g_matrix.23');  datum_value = spin_g(2,3)
+  case ('spin_g_matrix.24');  datum_value = spin_g(2,4)
+  case ('spin_g_matrix.25');  datum_value = spin_g(2,5)
+  case ('spin_g_matrix.26');  datum_value = spin_g(2,6)
 
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    valid_value = .false.
     return
-
   end select
 
 !-----------
@@ -3342,7 +3357,7 @@ end subroutine integrate_max
 subroutine tao_scratch_values_calc (ix_ele, datum, branch, orbit)
 
 type (ele_struct), pointer :: ele
-type (this_array_struct), pointer :: cc_p
+type (tao_beam_shake_struct), pointer :: cc_p
 type (tao_data_struct) datum
 type (branch_struct) branch
 type (coord_struct) orbit(0:)

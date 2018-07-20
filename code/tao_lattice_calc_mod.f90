@@ -75,6 +75,8 @@ enddo
 if (.not. s%global%lattice_calc_on) return
 
 s%com%ix_ref_taylor = -999   ! Reset taylor map
+if (allocated(scratch%spin_map)) deallocate(scratch%spin_map)
+
 call tao_hook_lattice_calc (calc_ok)
     
 ! To save time, s%u(:)%calc%lattice are used to determine what gets calculated. 

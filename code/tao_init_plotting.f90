@@ -2,9 +2,6 @@
 ! Subroutine tao_init_plotting (plot_file_in)
 !
 ! Subroutine to initialize the tao plotting structures.
-! If plot_file is not in the current directory then it will be searched
-! for in the directory:
-!   TAO_INIT_DIR
 !
 ! Input:
 !   plot_file_in -- Character(*): Plot initialization file.
