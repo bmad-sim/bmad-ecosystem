@@ -125,7 +125,8 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     ! autoscale phase needs an AC field
 
-    if (is_true(ele%value(autoscale_phase$)) .and. ele%field_calc == fieldmap$) then
+    if (attribute_index(ele, 'AUTOSCALE_PHASE')/= 0 .and. &
+                is_true(ele%value(autoscale_phase$)) .and. ele%field_calc == fieldmap$) then
       foundit = .false.
       if (associated(ele%cylindrical_map)) then
         do i = 1, size(ele%cylindrical_map)
