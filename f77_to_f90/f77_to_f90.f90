@@ -268,7 +268,7 @@ integer :: ix1, ix2, ix_end, i_stk = 0, i_stk2 = 0
 
 character*80 stack(100), stack2(100), line2, name
 
-character*(*) line
+character(*) line
 character strng*120, str*8
 character*52 :: a_to_z = &
       'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'
@@ -683,7 +683,7 @@ subroutine flx_word_test (line, name, is_there, ix1, ix2, ix_end)
 
 implicit none
 
-character*(*) line, name
+character(*) line, name
 character*80 nam
 
 integer ix1, ix2, ix_end                                
@@ -768,7 +768,7 @@ subroutine flx_procedure_test (line, name, is_there, ix_end)
 
 implicit none
 
-character*(*) line, name
+character(*) line, name
 
 integer ix_end, i, j, ix
 
@@ -822,7 +822,7 @@ subroutine write_flx (line, i_stk)
 
 implicit none
 
-character*(*) line
+character(*) line
 character(10) fmt
 integer i_stk, n
 
@@ -840,7 +840,7 @@ subroutine push_stack (stack, i_stk, line)
 
 implicit none
 
-character*(*) stack(*), line
+character(*) stack(*), line
 integer i_stk
 
 i_stk = i_stk + 1
@@ -854,7 +854,7 @@ end subroutine
 
 subroutine add_ampersand (line)
 
-character*(*) line
+character(*) line
 integer i
 logical in_char
 
