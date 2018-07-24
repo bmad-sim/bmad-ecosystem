@@ -751,7 +751,7 @@ program moga
               cons(7) = min(tr_b_max-tr_b,cons(7))
             endif
           elseif(chrom_mode == 'tunes') then !screen tunes
-            if(fp_flag == .false.) then
+            if (.not. fp_flag) then
               if(mat_ok) then
                 nu_x = ring%ele(ring%n_ele_track)%a%phi/twopi
                 nu_y = ring%ele(ring%n_ele_track)%b%phi/twopi
