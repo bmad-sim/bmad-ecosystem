@@ -237,7 +237,7 @@ subroutine block_on_pisa_status(polli,prefix)
 
   sta = 1
   do while( sta .ne. 2 )
-    call sleepqq(polli)
+    call milli_sleep(polli)
     sta = poll_state(prefix)
   enddo
 end subroutine
