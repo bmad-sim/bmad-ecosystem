@@ -1,7 +1,6 @@
 module geometry_mod
 
 use bmad_interface
-use multipass_mod
 
 implicit none
 
@@ -284,7 +283,6 @@ end subroutine lat_geometry
 recursive subroutine ele_geometry (floor0, ele, floor, len_scale, set_ok, ignore_patch_err)
 
 use multipole_mod
-use multipass_mod
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele0, ele00, slave0, slave1, ele2

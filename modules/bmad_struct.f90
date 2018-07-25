@@ -1637,6 +1637,45 @@ type track_struct
 end type
 
 !------------------------------------------------------------------------------
+! Multipass structures
+! Multipass_lord_info_struct gives complete information about a single
+! multipass_lord and all its slaves ("from the top down").
+! If the multipass_lord has super_lords as slaves, n_super will be the number of
+! super_slaves per super_lord.
+! slave(1:n_pass, 1:n_super_slave) is a matrix of slaves in the tracking lattice.
+! If there are no super_lords then n_super_slave = 1 and
+!      super_lord(1:n_pass) = slave (1:n_pass, 1)
+
+type multipass_lord_info_struct
+  type (ele_struct), pointer :: lord          ! Lord element
+  integer n_pass           ! Number of passes (= number of slaves)
+  integer n_super_slave    ! Number of super_slaves per super_lord.
+  type (ele_pointer_struct), allocatable :: super_lord(:)  ! Super_lord list if they exist.
+  type (ele_pointer_struct), allocatable :: slave(:,:)     ! Slaves list in tracking part.
+end type
+
+! Multipass_ele_info_struct gives information about a singe element in the lattice
+! ("from the bottom up").
+
+type multipass_ele_info_struct
+  logical multipass     ! True if involved in multipass. False otherwise
+  integer ix_pass       ! Pass number
+  integer, allocatable :: ix_lord(:)   ! Pointers to lord(:) array
+  integer, allocatable :: ix_super(:) ! Indexes to slave(ix_pass, super_slave%ix_ele) matrix
+end type
+
+type multipass_branch_info_struct
+  type (multipass_ele_info_struct), allocatable :: ele(:)
+end type
+
+! %lord(i), i = 1, ..., n = number of multipass_lords in the lattice.
+! %branch(i), i = 0, ..., n = ubound(lat%branch)
+
+type multipass_all_info_struct
+  type (multipass_lord_info_struct), allocatable :: lord(:)      ! Array of lords
+  type (multipass_branch_info_struct), allocatable :: branch(:)
+end type
+
 ! Dynamic aperture structures
 
 type aperture_data_struct
