@@ -41,7 +41,7 @@ end type
 type (quat1_struct) qr(6)
 
 real(rp) spin_tune(2), phase(3), quat(0:3), mat3(3,3), vec0(6)
-real(rp) quat0(0:3), quat_lnm_to_xyz(0:3), quat0_lnm_to_xyz(0:3), qq(0:3)
+real(rp) quat0(0:3), quat_lnm_to_xyz(0:3), quat0_lnm_to_xyz(0:3), qq(0:3), q0_lnm(0:3)
 real(rp) re_val(6), im_val(6), re_vec(6), im_vec(6)
 
 integer ie, k, p, order, plane(3)
@@ -198,14 +198,14 @@ do ie = 0, branch%n_ele_track
       enddo
     enddo
 
-    qq = quat_mul(quat_mul(quat_inverse(quat_lnm_to_xyz), quat0), quat0_lnm_to_xyz)
-    mat3 = quat_to_w_mat(qq)
+    q0_lnm = quat_mul(quat_mul(quat_inverse(quat_lnm_to_xyz), quat0), quat0_lnm_to_xyz)
+    mat3 = quat_to_w_mat(q0_lnm)
     minfo%M_ele(7:8,7:8) = mat3(1:3:2,1:3:2)
 
     do p = 1, 6
       qq = quat_mul(quat_mul(quat_inverse(quat_lnm_to_xyz), qr(p)%q), quat0_lnm_to_xyz)
-      minfo%M_ele(7,p) = 2 * (quat0(1)*qq(2) + quat0(2)*qq(1) - quat0(0)*qq(3) - quat0(3)*qq(0))
-      minfo%M_ele(8,p) = 2 * (quat0(0)*qq(1) + quat0(1)*qq(0) + quat0(2)*qq(3) + quat0(3)*qq(2))
+      minfo%M_ele(7,p) = 2 * (q0_lnm(1)*qq(2) + q0_lnm(2)*qq(1) - q0_lnm(0)*qq(3) - q0_lnm(3)*qq(0))
+      minfo%M_ele(8,p) = 2 * (q0_lnm(0)*qq(1) + q0_lnm(1)*qq(0) + q0_lnm(2)*qq(3) + q0_lnm(3)*qq(2))
     enddo
 
     minfo%sq_ele = quat0
@@ -213,15 +213,15 @@ do ie = 0, branch%n_ele_track
     ! 1-turn matrix
 
     quat0 = q_1turn%q(:,0)
-    qq = quat_mul(quat_mul(quat_inverse(quat_lnm_to_xyz), quat0), quat_lnm_to_xyz)
-    mat3 = quat_to_w_mat(qq)
+    q0_lnm = quat_mul(quat_mul(quat_inverse(quat_lnm_to_xyz), quat0), quat_lnm_to_xyz)
+    mat3 = quat_to_w_mat(q0_lnm)
     minfo%M_1turn(7:8,7:8) = mat3(1:3:2,1:3:2)
 
     do p = 1, 6
       qq = q_1turn%q(:,p)
       qq = quat_mul(quat_mul(quat_inverse(quat_lnm_to_xyz), qq), quat_lnm_to_xyz)
-      minfo%M_1turn(7,p) = 2 * (quat0(1)*qq(2) + quat0(2)*qq(1) - quat0(0)*qq(3) - quat0(3)*qq(0))
-      minfo%M_1turn(8,p) = 2 * (quat0(0)*qq(1) + quat0(1)*qq(0) + quat0(2)*qq(3) + quat0(3)*qq(2))
+      minfo%M_1turn(7,p) = 2 * (q0_lnm(1)*qq(2) + q0_lnm(2)*qq(1) - q0_lnm(0)*qq(3) - q0_lnm(3)*qq(0))
+      minfo%M_1turn(8,p) = 2 * (q0_lnm(0)*qq(1) + q0_lnm(1)*qq(0) + q0_lnm(2)*qq(3) + q0_lnm(3)*qq(2))
     enddo
 
     minfo%sq_1turn = quat0
