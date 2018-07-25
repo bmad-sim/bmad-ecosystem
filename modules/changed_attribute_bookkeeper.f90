@@ -305,6 +305,12 @@ a_ptr => attrib
 if (associated(a_ptr, ele%value(x1_limit$)) .or. associated(a_ptr, ele%value(x2_limit$)) .or. &
     associated(a_ptr, ele%value(y1_limit$)) .or. associated(a_ptr, ele%value(y2_limit$))) return
 
+! delta_ref_time change
+
+if (associated(a_ptr, ele%value(l$))) then
+  call set_ele_status_stale (ele, ref_energy_group$)  ! Energy & time
+endif
+
 ! A length change involves changes in the floor position.
 
 if (associated(a_ptr, ele%value(l$))) then
