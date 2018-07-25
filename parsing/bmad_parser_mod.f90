@@ -4215,8 +4215,6 @@ end subroutine init_bmad_parser_common
 
 subroutine add_this_multipass (lat, m_slaves, lord_in)
 
-use multipass_mod
-
 implicit none
 
 type (lat_struct), target :: lat
@@ -4411,8 +4409,6 @@ end subroutine reallocate_bp_com_const
 !-
 
 subroutine parser_add_superimpose (branch, super_ele_in, pele, in_lat, plat)
-
-use multipass_mod
 
 implicit none
 
@@ -4740,7 +4736,6 @@ do
 
       call add_this_multipass (lat, m_slaves, super_ele_saved) 
 
-      call deallocate_multipass_all_info_struct (m_info)
       deallocate (m_slaves, multi_name)
       deallocate (ele_loc_com%branch)
 

@@ -23,7 +23,7 @@
 
 function particle_rf_time (orbit, ele, apply_hard_edge_offset, s_rel) result (time)
 
-use multipass_mod, dummy => particle_rf_time
+use equal_mod, dummy_except => particle_rf_time
 use attribute_mod, only: has_attribute
 
 implicit none

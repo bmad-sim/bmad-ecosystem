@@ -930,6 +930,22 @@ subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, map0, track0, chi)
   integer, intent(in) :: i_dim
 end subroutine
 
+subroutine multipass_all_info (lat, info)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  type (multipass_all_info_struct), target :: info
+end subroutine
+
+subroutine multipass_chain (ele, ix_pass, n_links, chain_ele)
+  import
+  implicit none
+  type (ele_struct) :: ele
+  type (ele_pointer_struct), allocatable, optional :: chain_ele(:)
+  integer :: n_links
+  integer ix_pass
+end subroutine
+
 subroutine multipole_init (ele, who, zero)
   import
   implicit none
@@ -1104,6 +1120,15 @@ function pointer_to_lord (slave, ix_lord, control, ix_slave, field_overlap_ptr) 
   integer, optional :: ix_slave
   integer ix_lord
   logical, optional :: field_overlap_ptr
+end function
+
+function pointer_to_multipass_lord (ele, ix_pass, super_lord) result (multi_lord)
+  import
+  implicit none
+  type (ele_struct) ele
+  integer, optional :: ix_pass
+  type (ele_struct), pointer :: multi_lord
+  type (ele_struct), pointer, optional :: super_lord
 end function
 
 function pointer_to_next_ele (this_ele, offset, skip_beginning, follow_fork) result (next_ele)

@@ -307,7 +307,7 @@ if (associated(a_ptr, ele%value(x1_limit$)) .or. associated(a_ptr, ele%value(x2_
 
 ! delta_ref_time change
 
-if (associated(a_ptr, ele%value(l$))) then
+if (associated(a_ptr, ele%value(delta_ref_time$))) then
   call set_ele_status_stale (ele, ref_energy_group$)  ! Energy & time
 endif
 

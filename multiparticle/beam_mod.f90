@@ -1,6 +1,5 @@
 module beam_mod
 
-use multipass_mod
 use beam_utils
 
 contains

@@ -1,7 +1,6 @@
 module write_lat_file_mod
 
 use expression_mod
-use multipass_mod
 use element_modeling_mod
 use binary_parser_mod
 
@@ -1486,7 +1485,6 @@ enddo
 close(iu)
 deallocate (names, an_indexx)
 deallocate (m_region%branch)
-call deallocate_multipass_all_info_struct (m_info)
 
 if (present(err)) err = .false.
 
