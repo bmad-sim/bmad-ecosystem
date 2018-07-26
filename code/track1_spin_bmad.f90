@@ -23,8 +23,6 @@
 subroutine track1_spin_bmad (start_orb, ele, param, end_orb, make_quaternion)
 
 use em_field_mod, dummy => track1_spin_bmad
-use ptc_spin, rename_dummy => dp, rename2_dummy => twopi
-use ptc_interface_mod
 
 implicit none
 

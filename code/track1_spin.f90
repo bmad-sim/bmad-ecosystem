@@ -1,6 +1,3 @@
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
 !+
 ! subroutine track1_spin (start_orb, ele, param, end_orb, make_quaternion)
 !
@@ -27,10 +24,8 @@
 
 subroutine track1_spin (start_orb, ele, param, end_orb, make_quaternion)
 
-use equal_mod
-use ptc_spin, rename_dummy => dp, rename2_dummy => twopi
-use ptc_interface_mod
-
+use equal_mod, dummy => track1_spin
+  
 implicit none
 
 type (coord_struct) :: start_orb, end_orb, temp_orb
