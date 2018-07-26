@@ -80,19 +80,22 @@ type (coord_struct) :: orbit2
 
 integer :: edge
 
-real(rp) s_len, g, g_x, g_y, this_ran, mc2, g2, g3, z_start
-real(rp) x_ave, y_ave, gamma_0, dE_p, fact_d, fact_f, q_charge2, p_spin, spin_norm(3), norm
+real(rp) s_len, g, g_x, g_y, this_ran, mc2, g2, g3, z_start, kx, ky, kx_tot, ky_tot
+real(rp) gamma_0, dE_p, fact_d, fact_f, q_charge2, p_spin, spin_norm(3), norm
+real(rp) a_pole_mag(0:n_pole_maxx), b_pole_mag(0:n_pole_maxx), a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
+
 real(rp), parameter :: rad_fluct_const = 55.0_rp * classical_radius_factor * h_bar_planck * c_light / (24.0_rp * sqrt_3)
 real(rp), parameter :: spin_const = 5.0_rp * sqrt_3 * classical_radius_factor * h_bar_planck * c_light / 16
 real(rp), parameter :: c1_spin = 2.0_rp / 9.0_rp, c2_spin = 8.0_rp / (5.0_rp * sqrt_3)
-integer direc
+
+integer i, direc, ix_mag_max, ix_elec_max
 
 logical set
 logical :: init_needed = .true.
 
 character(*), parameter :: r_name = 'track1_radiation'
 
-! If not a magnetic element then nothing to do.
+!
 
 if (.not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuations_on) return
 
@@ -105,8 +108,7 @@ end select
 ! The total radiation length is the element length + any change in path length.
 ! If entering the element then the length over which radiation is generated
 ! is taken to be 1/2 the element length.
-! If leaving the element the radiation length is taken to be 1/2 the element
-! length + delta_Z
+! If leaving the element the radiation length is taken to be 1/2 the element length + delta_Z
 
 if (edge == start_edge$) then
   set = set$
@@ -130,41 +132,49 @@ if (ele%key /= wiggler$ .and. ele%key /= undulator$) then
   orbit2 = orbit
   call offset_particle (ele, param, set, orbit2)
   call canonical_to_angle_coords (orbit2)
+  orbit2%vec(1) = orbit2%vec(1) + direc * orbit2%vec(2) * s_len / 2.0_rp ! Extrapolate to center of region 1/4 of way into element.
+  orbit2%vec(3) = orbit2%vec(3) + direc * orbit2%vec(4) * s_len / 2.0_rp
+
+  call multipole_ele_to_ab (ele, .false., ix_mag_max, a_pole_mag, b_pole_mag, magnetic$, .true.)
+  call multipole_ele_to_ab (ele, .false., ix_elec_max, a_pole_elec, b_pole_elec, electric$, .true.)
+
+  kx_tot = 0
+  ky_tot = 0
+
+  do i = 0, ix_mag_max
+    call ab_multipole_kick (a_pole_mag(i), b_pole_mag(i), i, orbit%species, ele%orientation, orbit, kx, ky, pole_type = magnetic$)
+    kx_tot = kx_tot + kx
+    ky_tot = ky_tot + ky
+  enddo
+
+  do i = 0, ix_mag_max
+    call ab_multipole_kick (a_pole_elec(i), b_pole_elec(i), i, orbit%species, ele%orientation, orbit, kx, ky, pole_type = electric$)
+    kx_tot = kx_tot + kx
+    ky_tot = ky_tot + ky
+  enddo
 endif
+
+!
 
 ! Calculate the radius of curvature for an on-energy particle
 
 select case (ele%key)
 
 case (quadrupole$, sol_quad$)
-  x_ave = orbit2%vec(1) + direc * orbit2%vec(2) * s_len / 2.0_rp
-  y_ave = orbit2%vec(3) + direc * orbit2%vec(4) * s_len / 2.0_rp
-  g_x = -ele%value(k1$) * x_ave
-  g_y =  ele%value(k1$) * y_ave
+  g_x = -ele%value(k1$) * orbit2%vec(1) - kx_tot
+  g_y =  ele%value(k1$) * orbit2%vec(3) - ky_tot
   g2 = g_x**2 + g_y**2
   g3 = sqrt(g2)**3
 
-case (sextupole$)
-  x_ave = orbit2%vec(1) + direc * orbit2%vec(2) * s_len / 2.0_rp
-  y_ave = orbit2%vec(3) + direc * orbit2%vec(4) * s_len / 2.0_rp
-  g_x = ele%value(k2$) * (y_ave**2 - x_ave**2) / 2.0_rp
-  g_y = ele%value(k2$) * (x_ave * y_ave)
-  g2 = g_x**2 + g_y**2
-  g3 = sqrt(g2)**3
-
-case (octupole$)
-  x_ave = orbit2%vec(1) + direc * orbit2%vec(2) * s_len / 2.0_rp
-  y_ave = orbit2%vec(3) + direc * orbit2%vec(4) * s_len / 2.0_rp
-  g_x = ele%value(k3$) * (3.0_rp * x_ave * y_ave**2 - x_ave**3) / 6.0_rp
-  g_y = ele%value(k3$) * (3.0_rp * x_ave**2 * y_ave - y_ave**3) / 6.0_rp
+case (sextupole$, octupole$)
+  g_x = -kx_tot
+  g_y = -ky_tot
   g2 = g_x**2 + g_y**2
   g3 = sqrt(g2)**3
 
 case (sbend$)
-  x_ave = orbit2%vec(1) + direc * orbit2%vec(2) * s_len / 2.0_rp
-  y_ave = orbit2%vec(3) + direc * orbit2%vec(4) * s_len / 2.0_rp
-  g_x = ele%value(g$) + ele%value(g_err$) + ele%value(k1$) * x_ave
-  g_y = ele%value(k1$) * y_ave
+  g_x = ele%value(g$) + ele%value(g_err$) + ele%value(k1$) * orbit2%vec(1) - kx_tot
+  g_y = ele%value(k1$) * orbit2%vec(3) - ky_tot
   g2 = g_x**2 + g_y**2
   g3 = sqrt(g2)**3
 
