@@ -42,7 +42,6 @@ use bmad, except_dummy1 => track1
 use mad_mod, only: track1_mad
 use boris_mod, only: track1_boris
 use space_charge_mod, except_dummy2 => track1
-use spin_mod, except_dummy3 => track1
 
 implicit none
 

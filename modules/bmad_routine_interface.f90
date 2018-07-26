@@ -64,6 +64,13 @@ subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, er
   character(*), optional :: use_line
 end subroutine
 
+function angle_between_polars (polar1, polar2) result (angle)
+  import
+  implicit none
+  type (spin_polar_struct), intent(in) :: polar1, polar2
+  real(rp) :: angle
+end function
+
 subroutine angle_to_canonical_coords (orbit)
   import
   implicit none
@@ -964,6 +971,14 @@ subroutine multipole_kick_mat (knl, tilt, ref_species, ele, orbit, factor, mat6)
   real(rp) mat6(6,6), factor
 end subroutine
 
+subroutine multipole_spin_tracking (ele, param, orbit)
+  import
+  implicit none
+  type (ele_struct) :: ele
+  type (lat_param_struct) param
+  type (coord_struct) orbit
+end subroutine
+
 subroutine name_to_list (lat, ele_names)
   import
   implicit none
@@ -1172,6 +1187,20 @@ subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
   integer, optional :: ix_attrib
 end subroutine
 
+function polar_to_spinor (polar) result (spinor)
+  import
+  implicit none
+  type (spin_polar_struct) polar
+  complex(rp) :: spinor(2)
+end function
+
+function polar_to_vec (polar) result (vec)
+  import
+  implicit none
+  type (spin_polar_struct) polar
+  real(rp) vec(3)
+end function
+
 subroutine ptc_bookkeeper (lat)
   import
   implicit none
@@ -1347,6 +1376,29 @@ function rf_ref_time_offset (ele) result (time)
   real(rp) time
 end function
 
+subroutine rotate_spin (rot_vec, spin)
+  import
+  implicit none
+  real(rp) :: spin(3), rot_vec(3)
+end subroutine
+
+subroutine rotate_spin_a_step (orbit, field, ele, ds)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (em_field_struct) field
+  type (ele_struct) ele
+  real(rp) ds
+end subroutine
+
+subroutine rotate_spin_given_field (orbit, sign_z_vel, BL, EL)
+  import
+  implicit none
+  type (coord_struct) orbit
+  real(rp), optional :: BL(3), EL(3)
+  integer sign_z_vel
+end subroutine
+
 subroutine s_calc (lat)
   import
   implicit none
@@ -1507,6 +1559,38 @@ function spin_depolarization_rate (branch, match_info, rad_int_by_ele) result (d
   type (rad_int_all_ele_struct) rad_int_by_ele
   real(rp) depol_rate
 end function
+
+function spin_omega (field, orbit, sign_z_vel, phase_space_coords) result (omega)
+  import
+  implicit none
+  type (em_field_struct) :: field
+  type (coord_struct) :: orbit
+  integer sign_z_vel
+  logical, optional :: phase_space_coords
+  real(rp) omega(3)
+end function
+
+function spinor_to_polar (spinor) result (polar)
+  import
+  implicit none
+  complex(rp) spinor(2)
+  type (spin_polar_struct) ::  polar
+end function
+
+function spinor_to_vec (spinor) result (vec)
+  import
+  implicit none
+  complex(rp) spinor(2)
+  real(rp) vec(3)
+end function
+
+subroutine spline_fit_orbit (ele, start_orb, end_orb, spline_x, spline_y)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (coord_struct) start_orb, end_orb
+  real(rp) spline_x(0:3), spline_y(0:3)
+end subroutine
 
 subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, save_null_drift, err_flag, choose_max)
   import
@@ -1792,6 +1876,33 @@ subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)
   type (lat_param_struct), target :: param
   logical err_flag
   type (track_struct), optional :: track
+end subroutine
+
+subroutine track1_spin (start_orb, ele, param, end_orb, make_quaternion)
+  import
+  implicit none
+  type (coord_struct) :: start_orb, end_orb
+  type (ele_struct) :: ele
+  type (lat_param_struct) :: param
+  logical, optional :: make_quaternion
+end subroutine
+
+subroutine track1_spin_bmad (start_orb, ele, param, end_orb, make_quaternion)
+  import
+  implicit none
+  type (coord_struct) :: start_orb
+  type (ele_struct) :: ele
+  type (lat_param_struct) :: param
+  type (coord_struct) :: end_orb
+  logical, optional :: make_quaternion
+end subroutine
+
+subroutine track1_spin_taylor (start_orb, ele, param, end_orb)
+  import
+  implicit none
+  type (coord_struct) :: start_orb, end_orb
+  type (ele_struct) ele
+  type (lat_param_struct) param
 end subroutine
 
 subroutine track1_symp_lie_ptc (start_orb, ele, param, end_orb, track)
@@ -2150,6 +2261,22 @@ function value_of_attribute (ele, attrib_name, err_flag, err_print_flag, err_val
   real(rp), optional :: err_value
   character(*) attrib_name
   logical, optional :: err_print_flag, err_flag
+end function
+
+function vec_to_polar (vec, phase) result (polar)
+  import
+  implicit none
+  real(rp) vec(3)
+  real(rp), optional :: phase
+  type (spin_polar_struct) :: polar
+end function
+
+function vec_to_spinor (vec, phase) result (spinor)
+  import
+  implicit none
+  real(rp) vec(3)
+  real(rp), optional :: phase
+  complex(rp) :: spinor(2)
 end function
 
 subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, extra, err_flag)
