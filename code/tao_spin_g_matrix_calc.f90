@@ -202,7 +202,7 @@ do j = ix1+1, ix2
   enddo
 
   call taylor_to_mat6 (ele%taylor, ele%taylor%ref, vec0, mat6)
-  q_map%mat = mat6
+  q_ele%mat = mat6
 
   q_map = q_ele * q_map
 enddo
