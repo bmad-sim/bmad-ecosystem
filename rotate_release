@@ -153,14 +153,14 @@ for platform in platforms:
     packages_link = os.readlink(platform_dir + buildname +'/packages')
     packages_dir = packages_link[3:26]
     online_basedir = '/nfs/cesr/online/lib/Linux_x86_64_intel/'
-    online_cmd_mkdir = ("ssh cesrulib@cesr104 mkdir " + online_basedir + buildname)
-    online_cmd_remote_tar = ("cd " + platform_dir + buildname + "; tar -cf - . | ssh cesrulib@cesr104 'cd "+ online_basedir + buildname + " ; tar -xf - .'")
-    online_cmd_rm_link = ("ssh cesrulib@cesr104 rm -f " + online_basedir + release_type)
-    online_cmd_new_link = ("ssh cesrulib@cesr104 'cd " + online_basedir + " ; ln -s " + buildname + " " + release_type +"'")
-    online_cmd_rotate_link = ("ssh cesrulib@cesr104 'cd " + online_basedir + " ; ln -s " + active_relname + " " + archive_linkname + "'")
-    online_cmd_check_packages = ("ssh cesrulib@cesr104 '[ -d " + online_basedir + packages_dir + " ] && echo yes || echo no'")
-    online_cmd_mkdir_packages = ("ssh cesrulib@cesr104 mkdir -p " + online_basedir + packages_dir)
-    online_cmd_remote_packages_tar = ("cd " + platform_dir + packages_dir + "; tar -cf - . | ssh cesrulib@cesr104 'cd "+ online_basedir + packages_dir  + " ; tar -xf - .'")
+    online_cmd_mkdir = ("ssh cesrulib@cesrshell mkdir " + online_basedir + buildname)
+    online_cmd_remote_tar = ("cd " + platform_dir + buildname + "; tar -cf - . | ssh cesrulib@cesrshell 'cd "+ online_basedir + buildname + " ; tar -xf - .'")
+    online_cmd_rm_link = ("ssh cesrulib@cesrshell rm -f " + online_basedir + release_type)
+    online_cmd_new_link = ("ssh cesrulib@cesrshell 'cd " + online_basedir + " ; ln -s " + buildname + " " + release_type +"'")
+    online_cmd_rotate_link = ("ssh cesrulib@cesrshell 'cd " + online_basedir + " ; ln -s " + active_relname + " " + archive_linkname + "'")
+    online_cmd_check_packages = ("ssh cesrulib@cesrshell '[ -d " + online_basedir + packages_dir + " ] && echo yes || echo no'")
+    online_cmd_mkdir_packages = ("ssh cesrulib@cesrshell mkdir -p " + online_basedir + packages_dir)
+    online_cmd_remote_packages_tar = ("cd " + platform_dir + packages_dir + "; tar -cf - . | ssh cesrulib@cesrshell 'cd "+ online_basedir + packages_dir  + " ; tar -xf - .'")
 
     # 
     print ''
