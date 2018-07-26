@@ -642,7 +642,7 @@ end subroutine multipole_include_kicks
 ! Subroutine to put in the kick due to a multipole.
 !
 ! Input:
-!   knl(0:)        -- real(rp): Multipole strengths (mad units).
+!   knl(0:)        -- real(rp): Multipole strengths.
 !   tilt(0:)       -- real(rp): Multipole tilts.
 !   ref_species    -- integer: Reference species.
 !   ele            -- ele_struct: Lattice element containing the multipoles.
