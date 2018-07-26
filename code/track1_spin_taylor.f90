@@ -19,8 +19,7 @@
 
 subroutine track1_spin_taylor (start_orb, ele, param, end_orb)
 
-use equal_mod
-use taylor_mod
+use taylor_mod, dummy => track1_spin_taylor
 
 implicit none
 

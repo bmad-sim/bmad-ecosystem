@@ -1,6 +1,3 @@
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
 !+
 ! Subroutine multipole_spin_tracking (ele, param, orbit)
 !
@@ -17,8 +14,7 @@
 
 subroutine multipole_spin_tracking (ele, param, orbit)
 
-use equal_mod
-use multipole_mod
+use multipole_mod, dummy => multipole_spin_tracking
 
 implicit none
 
