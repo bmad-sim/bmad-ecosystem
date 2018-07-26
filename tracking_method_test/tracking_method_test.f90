@@ -1,8 +1,6 @@
 program tracking_method_test
 
 use bmad
-use mad_mod
-use spin_mod
 
 implicit none
 
