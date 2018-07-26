@@ -699,12 +699,21 @@ type(q_linear) q_phasor,qi_phasor
 
 
 type c_quaternion_fourier
- type(complex_quaternion), allocatable :: qc(:,:) 
- type(complex_quaternion), allocatable :: dqc(:,:)
- type(complex_quaternion), allocatable :: dqm(:,:) 
- real(dp) dphix,dphiy,rx,ry,tx,ty
+ type(complex_quaternion), allocatable :: qd(:,:) 
+ type(complex_quaternion), allocatable ::  atot(:,:),qin(:,:),qout(:,:)
+ logical, allocatable :: found(:,:)
+ real(dp), allocatable :: d(:,:),ph(:,:,:)
+ integer, allocatable :: p(:,:)
+ 
+
+ real(dp), allocatable ::  x(:,:),ray(:,:,:),r(:,:,:)
+ real(dp) dphix,dphiy,rx,ry,mux,muy
+ real(dp) closed_orbit(6)
  real(dp) a(4,4),ai(4,4)
- integer nphix,nphiy,mx,my
+ integer nphix,nphiy,mx,my,n,nray
+ integer no,pos,nd
+ logical normalised
+ type(internal_state) state
 end type c_quaternion_fourier
 
 
@@ -713,13 +722,707 @@ CONTAINS
  subroutine alloc_c_quaternion_fourier(f)
  implicit none
  type(c_quaternion_fourier) f
+ integer n,i
+
+ n=f%n
+ f%closed_orbit=0.0_dp
+ f%nd=f%nphix*f%nphiy
+
+
+ if(f%normalised) then
+  allocate(f%qd(0:f%nphix,0:f%nphiy)) 
+ else
+  allocate(f%qd(0:f%nphix*f%nphiy,0:0)) 
+
+ endif
+  if(f%nray/=0) then
+    allocate(f%x(1:6,0:f%nray))
+    allocate(f%ray(1:6,-f%mx:f%mx,-f%my:f%my))
+    allocate(f%ph(1:2,0:f%nphix-1,0:f%nphiy-1))
+    allocate(f%r(1:6,0:f%nphix-1,0:f%nphiy-1))
+    f%x=0
+    f%ray=0
+    f%ph=0 
+    f%r=0
+  allocate(f%found(0:f%nphix-1,0:f%nphiy-1)) 
+  allocate(f%d(0:f%nphix-1,0:f%nphiy-1)) 
+  allocate(f%p(0:f%nphix-1,0:f%nphiy-1)) 
+  f%found=.false.
+  f%d=1000
+  f%p=0
+  else
+        allocate(f%x(1:6,0:0))
+    f%x=0
+  endif
+
+ allocate(f%atot(-f%mx:f%mx,-f%my:f%my),f%qin(-f%mx:f%mx,-f%my:f%my),f%qout(-f%mx:f%mx,-f%my:f%my))
+ 
  
 
- allocate(f%dqc(0:f%nphix,0:f%nphiy),f%qc(0:f%nphix,0:f%nphiy),f%dqm(-f%mx:f%mx,-f%my:f%my))
+ f%x=0.0_dp
 
+do i=1,3
+ f%qd%x(i)=0.0_dp
+ 
+ f%atot%x(i)=0.0_dp
+ f%qin%x(i)=0.0_dp
+ f%qout%x(i)=0.0_dp
+enddo
+
+do i=0,0
+ f%atot(0,0)%x(i)=1.0_dp
+ f%qin(0,0)%x(i)=1.0_dp
+ f%qout(0,0)%x(i)=1.0_dp
+ f%qd%x(i)=1.0_dp
+enddo
 
  end subroutine alloc_c_quaternion_fourier
 
+
+ subroutine constant_simil_fourier_c_quaternion(fq,a0)
+ implicit none
+  type(c_quaternion_fourier) fq
+  type(complex_quaternion) a0
+ integer k1,k2,i,j
+ 
+
+do k1=-fq%mx,fq%mx
+do k2=-fq%my,fq%my
+
+ fq%qout(k1,k2) =  a0**(-1)*fq%qout(k1,k2)*a0 
+
+enddo
+enddo
+ 
+end subroutine constant_simil_fourier_c_quaternion
+
+
+
+ subroutine constant_mul_fourier_c_quaternion(fq,a0)
+ implicit none
+  type(c_quaternion_fourier) fq
+  type(complex_quaternion) a0
+ integer k1,k2,i,j
+ 
+
+do k1=-fq%mx,fq%mx
+do k2=-fq%my,fq%my
+
+ fq%atot(k1,k2) =  fq%atot(k1,k2)*a0
+
+
+enddo
+enddo
+ 
+end subroutine constant_mul_fourier_c_quaternion
+
+
+
+
+ subroutine phase_advance_fourier_c_quaternion(fq,f,q,phi)
+ implicit none
+  type(c_quaternion_fourier) fq
+ type(complex_quaternion) q(:,:),f(:,:)
+ real(dp), optional :: phi(2)
+ real(dp) ph(2)
+ integer k1,k2,k11,k22
+ 
+ if(present(phi)) then
+  ph=phi
+ else
+  ph(1)=fq%mux
+  ph(2)=fq%muy
+ endif
+do k1=-fq%mx,fq%mx
+do k2=-fq%my,fq%my
+k11=k1+fq%mx+lbound(f,1)
+k22=k2+fq%my+lbound(f,2)
+ q(k11,k22)  =   exp(i_*(k1*ph(1)+k2*ph(2)))*f(k11,k22)
+enddo
+enddo
+ 
+end subroutine phase_advance_fourier_c_quaternion
+
+ subroutine mul_fourier_c_quaternion(fq,f1,f2,ft)
+ implicit none
+  type(c_quaternion_fourier) fq
+ type(complex_quaternion) f1(:,:),f2(:,:),ft(:,:)
+type(complex_quaternion) q1,q2
+type(complex_quaternion), allocatable :: qd(:,:)
+ integer  ij(2)
+ integer i,j
+ real(dp) norm
+
+  allocate(qd(0:fq%nphix,0:fq%nphiy))
+ if(fq%normalised) then
+do i=0,fq%nphix
+do j=0,fq%nphiy
+ij(1)=i
+ij(2)=j
+ call evaluate_fourier_c_quaternion(fq,f1,q1,ij=ij)
+ call evaluate_fourier_c_quaternion(fq,f2,q2,ij=ij)
+ q1=q1*q2
+ norm=1.d0/sqrt(q1%x(0)**2+q1%x(1)**2+q1%x(2)**2+q1%x(3)**2)
+  q1=norm*q1
+ qd(i,j)=q1
+enddo
+enddo
+else
+do i=0,fq%nphix*fq%nphiy
+ij(1)=i
+ij(2)=0
+j=0
+ call evaluate_fourier_c_quaternion(fq,f1,q1,ij=ij)
+ call evaluate_fourier_c_quaternion(fq,f2,q2,ij=ij)
+ q1=q1*q2
+ norm=1.d0/sqrt(q1%x(0)**2+q1%x(1)**2+q1%x(2)**2+q1%x(3)**2)
+  q1=norm*q1
+ qd(i,j)=q1
+enddo
+endif
+call fourier_c_quaternion(fq,qd,ft)
+
+deallocate(qd)
+
+end subroutine mul_fourier_c_quaternion
+
+ subroutine inv_fourier_c_quaternion(fq,f1,ft)
+ implicit none
+  type(c_quaternion_fourier) fq
+ type(complex_quaternion) f1(:,:),ft(:,:)
+type(complex_quaternion) q1
+type(complex_quaternion), allocatable :: qd(:,:)
+ integer  ij(2)
+ integer i,j
+real(dp) norm
+  allocate(qd(0:fq%nphix,0:fq%nphiy))
+if(fq%normalised) then
+do i=0,fq%nphix
+do j=0,fq%nphiy
+ij(1)=i
+ij(2)=j
+ call evaluate_fourier_c_quaternion(fq,f1,q1,ij=ij)
+ q1=q1**(-1)
+ norm=1.d0/sqrt(q1%x(0)**2+q1%x(1)**2+q1%x(2)**2+q1%x(3)**2)
+  q1=norm*q1
+ qd(i,j)=q1
+enddo
+enddo
+else
+do i=0,fq%nphix*fq%nphiy
+ij(1)=i
+ij(2)=0
+j=0
+ call evaluate_fourier_c_quaternion(fq,f1,q1,ij=ij)
+ q1=q1**(-1)
+ norm=1.d0/sqrt(q1%x(0)**2+q1%x(1)**2+q1%x(2)**2+q1%x(3)**2)
+  q1=norm*q1
+ qd(i,j)=q1
+enddo
+endif
+call fourier_c_quaternion(fq,qd,ft)
+
+deallocate(qd)
+
+end subroutine inv_fourier_c_quaternion
+
+ subroutine unit_fourier_c_quaternion(fq,f1,ft)
+ implicit none
+  type(c_quaternion_fourier) fq
+ type(complex_quaternion) f1(:,:),ft(:,:)
+type(complex_quaternion) q1
+type(complex_quaternion), allocatable :: qd(:,:)
+ integer  ij(2)
+ integer i,j,k
+real(dp) norm
+
+  allocate(qd(0:fq%nphix,0:fq%nphiy))
+
+if(fq%normalised) then
+do i=0,fq%nphix
+do j=0,fq%nphiy
+ij(1)=i
+ij(2)=j
+ call evaluate_fourier_c_quaternion(fq,f1,q1,ij=ij)
+ norm=1.d0/sqrt(q1%x(0)**2+q1%x(1)**2+q1%x(2)**2+q1%x(3)**2)
+  q1=norm*q1
+ qd(i,j)=q1
+enddo
+enddo
+call fourier_c_quaternion(fq,qd,ft)
+else
+do i=0,fq%nphix*fq%nphiy
+ij(1)=i
+ij(2)=0
+ j=0
+ call evaluate_fourier_c_quaternion(fq,f1,q1,ij=ij)
+ norm=1.d0/sqrt(q1%x(0)**2+q1%x(1)**2+q1%x(2)**2+q1%x(3)**2)
+  q1=norm*q1
+ qd(i,j)=q1
+enddo
+
+call fourier_c_quaternion(fq,qd,ft)
+
+endif
+
+deallocate(qd)
+
+
+end subroutine unit_fourier_c_quaternion
+
+
+ subroutine normal_fourier_c_quaternion(fq)
+ implicit none
+  type(c_quaternion_fourier) fq
+type(complex_quaternion), allocatable :: at(:,:), ai(:,:)
+ integer k1,k2,j,i1,j1
+  complex(dp) q,al,qt,alp,qp,qtp
+ type(complex_quaternion)m_out,a0
+
+call c_linear_quaternion_fourier(fq%qout(0,0),m_out,a0)  
+
+call constant_simil_fourier_c_quaternion(fq,a0)
+
+
+
+allocate(at(-fq%mx:fq%mx,-fq%my:fq%my),ai(-fq%mx:fq%mx,-fq%my:fq%my))
+
+
+do k1=-fq%mx,fq%mx
+do k2=-fq%my,fq%my
+
+if(k1==0.and.k2==0) then 
+ ai(0,0)=1.0_dp
+else
+ q=(fq%qout(k1,k2)%x(1)-i_*fq%qout(k1,k2)%x(3))/2.0_dp
+ qt=fq%qout(0,0)%x(0)+i_*fq%qout(0,0)%x(2)-(fq%qout(0,0)%x(0)-i_*fq%qout(0,0)%x(2))*exp(i_*(k1*fq%mux+k2*fq%muy))
+ al=q/qt
+ qp=(fq%qout(k1,k2)%x(1)+i_*fq%qout(k1,k2)%x(3))/2.0_dp
+ qtp=fq%qout(0,0)%x(0)-i_*fq%qout(0,0)%x(2)-(fq%qout(0,0)%x(0)+i_*fq%qout(0,0)%x(2))*exp(i_*(k1*fq%mux+k2*fq%muy))
+ alp=qp/qtp
+
+ai(k1,k2)%x(0) = 0.0_dp
+ai(k1,k2)%x(1) = al+alp
+ai(k1,k2)%x(3) = i_*(al-alp)
+ai(k1,k2)%x(2) = fq%qout(k1,k2)%x(2)/(1.0_dp-exp(i_*(k1*fq%mux+k2*fq%muy)))/fq%qout(0,0)%x(0)
+endif
+enddo
+enddo
+ 
+ call unit_fourier_c_quaternion(fq,ai,ai)
+
+ call phase_advance_fourier_c_quaternion(fq,ai,at)
+ call inv_fourier_c_quaternion(fq,ai,ai)
+
+
+call mul_fourier_c_quaternion(fq,at,fq%qout,at)
+call mul_fourier_c_quaternion(fq,at,ai,fq%qout)
+
+
+!!!! sum total
+call constant_mul_fourier_c_quaternion(fq,a0)
+call mul_fourier_c_quaternion(fq,fq%atot(:,:),ai,fq%atot(:,:))
+
+
+deallocate(at,ai)
+end subroutine normal_fourier_c_quaternion
+
+
+
+
+
+ subroutine print_fourier(fq,q,mfile)
+ implicit none
+  type(c_quaternion_fourier) fq
+    integer, optional :: mfile
+ type(complex_quaternion) q(:,:) 
+    integer k1,k2,i1,j1,mf
+
+      mf=6
+     if(present(mfile)) mf=mfile
+
+
+do k1=-fq%mx,fq%mx
+do k2=-fq%my,fq%my
+write(mf,*) k1,k2
+i1=lbound(q,1)+k1+fq%mx
+j1=lbound(q,2)+k2+fq%my
+ call print(q(i1,j1),mf)
+enddo
+enddo
+
+
+
+ end subroutine print_fourier
+
+ subroutine x_fourier_c_quaternion(fq)
+ implicit none
+  type(c_quaternion_fourier) fq
+ real(dp) norm,phi1,phi2
+ integer i,j,k1 
+
+
+
+!!!!
+norm=fq%nray+1
+do i=-fq%mx,fq%mx
+do j=-fq%my,fq%my
+
+
+fq%ray(1:6,i,j)=0
+
+do k1=0,fq%nray
+
+phi1=(k1)*fq%mux
+phi2=(k1)*fq%muy
+
+!fq%m(k1,1)=(i*phi1)/twopi
+!fq%m(k1,2)=(j*phi2)/twopi
+ 
+fq%ray(1:6,i,j) = (exp(-i_*(i*phi1+j*phi2))/norm)  * fq%x(1:6,k1)  + fq%ray(1:6,i,j)
+ enddo
+enddo
+enddo
+end subroutine x_fourier_c_quaternion
+
+
+ subroutine x_evaluate_fourier_c_quaternion(fq,ph,x)
+ implicit none
+  type(c_quaternion_fourier) fq
+ real(dp) ph(2),x(6)
+ integer k1,k2,k11,k22
+ 
+
+x=0
+
+do k1=-fq%mx,fq%mx
+do k2=-fq%my,fq%my
+
+ x  =  x + exp(i_*(k1*ph(1)+k2*ph(2)))*fq%ray(1:6,k1,k2)   
+enddo
+enddo
+ 
+ 
+ 
+
+ 
+end subroutine x_evaluate_fourier_c_quaternion
+
+ subroutine fourier_c_quaternion(fq,qd,q)
+ implicit none
+  type(c_quaternion_fourier) fq
+ type(complex_quaternion) q(:,:),qd(:,:)
+ real(dp) norm,phi1,phi2
+ integer i,j,k1,k2,i1,j1,k11,k22
+
+
+if(fq%normalised) then
+
+norm=fq%nphix*fq%nphiy
+
+do i=-fq%mx,fq%mx
+do j=-fq%my,fq%my
+
+i1=lbound(q,1)+i+fq%mx
+j1=lbound(q,2)+j+fq%my
+ q(i1,j1)=0.0_dp
+
+do k1=0,fq%nphix-1
+do k2=0,fq%nphiy-1
+
+phi1=k1*fq%dphix
+phi2=k2*fq%dphiy
+
+
+k11=lbound(qd,1)+k1
+k22=lbound(qd,2)+k2
+
+
+ q(i1,j1) = (exp(-i_*(i*phi1+j*phi2))/norm)  * qd(k11,k22)  + q(i1,j1)
+
+enddo
+enddo
+
+enddo
+enddo
+
+else
+!!!!
+norm=fq%nphix*fq%nphiy+1
+do i=-fq%mx,fq%mx
+do j=-fq%my,fq%my
+
+i1=lbound(q,1)+i+fq%mx
+j1=lbound(q,2)+j+fq%my
+ q(i1,j1)=0.0_dp
+
+
+
+do k1=0,fq%nphix*fq%nphiy
+ 
+
+phi1=(k1)*fq%mux
+phi2=(k1)*fq%muy
+
+
+k11=lbound(qd,1)+k1
+
+ q(i1,j1) = (exp(-i_*(i*phi1+j*phi2))/norm)  * qd(k11,1)  + q(i1,j1)
+
+ enddo
+enddo
+enddo
+
+!!!!
+endif
+
+end subroutine fourier_c_quaternion
+
+
+ subroutine evaluate_fourier_c_quaternion(fq,f,q,phi,ij)
+ implicit none
+  type(c_quaternion_fourier) fq
+ type(complex_quaternion) q,f(:,:)
+ real(dp), optional :: phi(2)
+ real(dp) ph(2)
+ integer, optional :: ij(2)
+ integer k1,k2,k11,k22
+ 
+
+if(fq%normalised) then
+q=0.0_dp
+ if(present(phi)) then
+  ph=phi
+ else
+  ph(1)=ij(1)*fq%dphix
+  ph(2)=ij(2)*fq%dphiy
+ endif
+do k1=-fq%mx,fq%mx
+do k2=-fq%my,fq%my
+k11=k1+fq%mx+lbound(f,1)
+k22=k2+fq%my+lbound(f,2)
+ q  =  q  + exp(i_*(k1*ph(1)+k2*ph(2)))*f(k11,k22)
+enddo
+enddo
+ 
+else
+
+q=0.0_dp
+ if(present(phi)) then
+  ph=phi
+ else
+   ph(1)=(ij(1))*fq%mux
+   ph(2)=(ij(1))*fq%muy
+ endif
+
+do k1=-fq%mx,fq%mx
+do k2=-fq%my,fq%my
+k11=k1+fq%mx+lbound(f,1)
+k22=k2+fq%my+lbound(f,2)
+ q  =  q  + exp(i_*(k1*ph(1)+k2*ph(2)))*f(k11,k22)
+enddo
+enddo
+ 
+
+endif
+end subroutine evaluate_fourier_c_quaternion
+
+ subroutine fourier_c_quaternion_test(fq,qd,q)
+ implicit none
+  type(c_quaternion_fourier) fq
+ type(complex_quaternion) q(:,:),qd(:,:)
+ real(dp)  phi1,phi2,norm
+ integer i,j,k1,k2,i1,j1
+
+
+ if(fq%normalised) then
+norm=fq%nphix*fq%nphiy
+do i=-fq%mx,fq%mx
+do j=-fq%my,fq%my
+
+i1=lbound(q,1)+i+fq%mx
+j1=lbound(q,2)+j+fq%my
+ q(i1,j1)=0.0_dp
+
+do k1=0,fq%nphix-1
+do k2=0,fq%nphiy-1
+
+phi1=k1*fq%dphix
+phi2=k2*fq%dphiy
+
+
+
+
+ q(i1,j1)%x(0) = (exp(-i_*(i*phi1+j*phi2))/norm)   +  q(i1,j1)%x(0)
+
+enddo
+enddo
+
+enddo
+enddo
+
+else
+norm=fq%nphix*fq%nphiy+1
+do i=-fq%mx,fq%mx
+do j=-fq%my,fq%my
+
+i1=lbound(q,1)+i+fq%mx
+j1=lbound(q,2)+j+fq%my
+ q(i1,j1)=0.0_dp
+
+
+
+do k1=0,fq%nphix*fq%nphiy
+ 
+
+phi1=(k1)*fq%mux
+phi2=(k1)*fq%muy
+
+
+
+ q(i1,j1)%x(0) = (exp(-i_*(i*phi1+j*phi2))/norm)   +  q(i1,j1)%x(0)
+
+ 
+enddo
+
+enddo
+enddo
+
+endif
+
+end subroutine fourier_c_quaternion_test
+
+
+ subroutine fourier_c_quaternion_test_plot(fq)
+ implicit none
+  type(c_quaternion_fourier) fq
+ real(dp)  phi1,phi2,norm
+ integer i,j,k1,k2,k,kmin
+ real(dp) nt,s
+ complex(dp), allocatable :: ntt(:,:)
+
+allocate(ntt(-fq%mx:fq%mx,-fq%my:fq%my))
+
+ntt=0
+
+s=1.d38 
+kmin=0
+
+do k1=0,fq%nphix*fq%nphiy
+
+norm=k1+1
+
+do i=-fq%mx,fq%mx
+do j=-fq%my,fq%my
+
+phi1=(k1)*fq%mux
+phi2=(k1)*fq%muy
+
+
+ ntt(i,j) = (exp(-i_*(i*phi1+j*phi2)))     + ntt(i,j)
+
+
+enddo
+enddo
+
+nt=0
+do i=-fq%mx,fq%mx
+do j=-fq%my,fq%my
+
+nt= abs(ntt(i,j))/norm+nt
+
+enddo
+enddo
+if(nt<s) then
+ 
+s=nt
+kmin=k1
+endif
+
+write(6,*) k1,nt
+enddo
+write(6,*) kmin,s
+ deallocate(ntt)
+
+end subroutine fourier_c_quaternion_test_plot
+
+
+ subroutine c_linear_quaternion_fourier(m_in,m_out,as) 
+!#restricted: normal
+!# This routine normalises the constant part of the spin matrix. 
+!# m_out=as**(-1)*m_in*as
+  implicit none
+  type(complex_quaternion), intent(inout) :: m_in,m_out,as
+  type(complex_quaternion) q0,q1,e_y,q3,qs
+  real(dp) alpha,cosalpha,sinalpha
+  integer i
+
+q0=m_in 
+alpha=1.0d0/sqrt(q0%x(0)**2+q0%x(1)**2+q0%x(2)**2+q0%x(3)**2)
+
+q0=alpha*q0   ! normalised
+
+
+         as=1
+
+q1=q0
+q1%x(0)=0.0_dp
+qs=0.0_dp
+qs%x(0)=1.0_dp/sqrt(q1%x(1)**2+q1%x(2)**2+q1%x(3)**2)
+q1=q1*qs   ! q1=n
+
+e_y=0.0_dp
+e_y%x(2)=1.0_dp
+ 
+
+q3=q1*e_y
+
+ ! q3 =-n.j + n x j . l
+
+cosalpha=-q3%x(0)
+
+sinalpha=sqrt(q3%x(1)**2+q3%x(2)**2+q3%x(3)**2)
+
+
+
+alpha= atan2(sinalpha,cosalpha)
+
+
+
+if(alpha==0.and.cosalpha/=-1.0_dp) then
+! write(6,*)sinalpha,cosalpha
+! write(6,*) "weird in c_normal_spin_linear_quaternion "
+! pause 123 
+ q3=1.0_dp
+
+
+else
+
+if(cosalpha==-1.0_dp)  then
+ q3=-1.0_dp
+else 
+ q3%x(0)=cos(alpha/2)
+ q3%x(1:3)=-sin(alpha/2)*q3%x(1:3)/sinalpha 
+
+endif
+
+
+endif
+
+  
+
+as=q3   
+
+     m_out=as**(-1)*m_in*as
+!        m_out=AS**(-1)*m_in*as
+q0=m_out
+
+alpha=2*atan2(real(q0%x(2)),real(q0%x(0)))
+ 
+ end  subroutine c_linear_quaternion_fourier
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
  subroutine c_get_indices(n,mf)
 !#general: information
@@ -2770,7 +3473,7 @@ endif
   if(complex_extra_order==1.and.special_extra_order_1) s2=s2.cut.no
    call kill(s2)
   END SUBROUTINE flatten_c_factored_lie
-
+! etienne1
   FUNCTION c_logf_spin( s1,h,epso,n,tpsa )
     implicit none
     TYPE (c_vector_field) c_logf_spin
@@ -2859,6 +3562,7 @@ endif
 
   END FUNCTION c_logf_spin
 
+! etienne2
   FUNCTION c_logf( s1,h,epso,n,tpsa )
 !#internal: manipulation
 !# Accessable with the interface log if desired.
@@ -3190,48 +3894,6 @@ FUNCTION cpbbra( S1, S2 )
     c_master=localmaster
 
   END FUNCTION cpbbra
-
-
-
- ! FUNCTION c_bra_v_spinmatrix( S1, S2 )
- !   implicit none
- !   TYPE (c_spinmatrix) c_bra_v_spinmatrix
- !   TYPE (c_vector_field), INTENT (IN) :: S1
- !  TYPE (c_spinmatrix), INTENT (IN) :: S2
- !   type(c_spinmatrix) s22
- 
- !   integer i,j
- !   integer localmaster
- !    IF(.NOT.C_STABLE_DA) then
- !    c_bra_v_spinmatrix%s(1,1)%i=0
- !    RETURN
- !    endif
- !   localmaster=c_master
- !
- !
- !   call c_ass_spinmatrix(c_bra_v_spinmatrix)
- !
- !   call alloc(s22 )
-    
- !   s22=0
- !
- !   do i=1,3
- !   do j=1,3
- !    s22%s(i,j)=S1*s2%s(i,j)
- !   enddo
- !   enddo
- !   do j=1,3
- !    s22%s(1,j)=s22%s(1,j)+(s1%om%v(2)*s2%s(3,j)-s1%om%v(3)*s2%s(2,j))
- !    s22%s(2,j)=s22%s(2,j)+(s1%om%v(3)*s2%s(1,j)-s1%om%v(1)*s2%s(3,j))
- !    s22%s(3,j)=s22%s(3,j)+(s1%om%v(1)*s2%s(2,j)-s1%om%v(2)*s2%s(1,j))
- !   enddo
-
- !   c_bra_v_spinmatrix=s22
- !   
- !   call kill(s22  )
- !   c_master=localmaster
- !
- ! END FUNCTION c_bra_v_spinmatrix
 
   FUNCTION liebraspinor( S1, S2 )
     implicit none
@@ -5550,30 +6212,30 @@ endif
 
  end   SUBROUTINE  EQUALql_ql
 
-  SUBROUTINE  print_ql(S2,imaginary,mfile)
+  SUBROUTINE  print_ql(S2,imaginary,mf)
     implicit none
     integer ipause, mypauses
     type (q_linear),INTENT(inOUT)::S2
-    integer, optional :: mfile
+    integer, optional :: mf
     logical, optional :: imaginary
-    integer i,mf
+    integer i,mff
 
-      mf=6
-     if(present(mfile)) mf=mfile
+      mff=6
+     if(present(mf)) mff=mf 
 
-write(mf,*) " Orbital Matrix "
-if(present(imaginary) )write(mf,*) "Real part "
+write(mff,*) " Orbital Matrix "
+if(present(imaginary) )write(mff,*) "Real part "
       do i=1,6
  
-         write(mf,'(6(1x,G21.14))') real(s2%mat(i,1:min(6,nd2)))
+         write(mff,'(6(1x,G21.14))') real(s2%mat(i,1:min(6,nd2)))
        
       enddo
 if(present(imaginary) ) then
 if(imaginary) then
-write(mf,*) "Imaginary part "
+write(mff,*) "Imaginary part "
       do i=1,6
  
-         write(mf,'(6(1x,G21.14))') aimag(s2%mat(i,1:min(6,nd2)))
+         write(mff,'(6(1x,G21.14))') aimag(s2%mat(i,1:min(6,nd2)))
        
       enddo
 endif
@@ -5581,22 +6243,22 @@ endif
 
 
 
-write(mf,*) " Quaternion Matrix "
-if(present(imaginary) )write(mf,*) "Real part "
+write(mff,*) " Quaternion Matrix "
+if(present(imaginary) )write(mff,*) "Real part "
 
       do i=0,3
  
-         write(mf,'(7(1x,G21.14))') real(s2%q(i,0:min(6,nd2)))
+         write(mff,'(7(1x,G21.14))') real(s2%q(i,0:min(6,nd2)))
        
       enddo
 
 if(present(imaginary) ) then
 if(imaginary) then
-write(mf,*) "Imaginary part "
+write(mff,*) "Imaginary part "
 
       do i=0,3
  
-         write(mf,'(7(1x,G21.14))') aimag(s2%q(i,0:min(6,nd2)))
+         write(mff,'(7(1x,G21.14))') aimag(s2%q(i,0:min(6,nd2)))
        
       enddo
 endif
@@ -5830,6 +6492,33 @@ enddo
      call kill(sf)
 
     end subroutine  quaternion_to_matrix_in_c_damap
+
+  subroutine  q_linear_to_matrix (q_lin,m)
+    implicit none
+    TYPE(c_spinmatrix), INTENT(INOUT) :: m
+    TYPE(q_linear), INTENT(IN) :: q_lin
+    type(c_quaternion) s,sf
+    type(c_damap) p
+    integer i,j
+
+     call alloc(s)
+     call alloc(sf)
+     call alloc(p)
+     p%q=q_lin
+    do i=1,3
+     s=0.0_dp
+     s%x(i)=1.0_dp
+     sf=p%q*s*p%q**(-1)
+     do j=1,3
+      m%s(j,i)=sf%x(j)
+     enddo
+    enddo
+     call kill(s)
+     call kill(sf)
+     call kill(p)
+
+    end subroutine  q_linear_to_matrix 
+
 
 
   FUNCTION cdaddsc( S1, sc )
@@ -7930,7 +8619,8 @@ end   SUBROUTINE  c_clean_yu_w
        call c_clean_taylor(s1%v(i),s2%v(i),prec,r)
     enddo
     
-    call c_clean_spinmatrix(s1%s,s2%s,prec)
+    call c_clean_spinmatrix(s1%s,s2%s,prec)    
+    call c_clean_quaternion(s1%q,s2%q,prec)
 
   END SUBROUTINE c_clean_damap
 
@@ -10814,13 +11504,12 @@ endif
       call alloc(nr)
       call alloc(mt) 
       call alloc(AS) 
-      call alloc(qn0) 
       call alloc(qnr)
       n%AS=1
  
 
 if(use_quaternion)then
-      call c_normal_spin_linear_quaternion(m1,m1,n%AS,qn0,alpha)
+      call c_normal_spin_linear_quaternion(m1,m1,n%AS,alpha)
 
       ri=1 ; ri%q=m1%q.sub.0 ; ! exp(theta_0 L_y)   (2)
 !      sx=sqrt(ri%q%x(1)**2+ri%q%x(2)**2+ri%q%x(3)**2)
@@ -10993,7 +11682,6 @@ endif
       call kill(mt) 
       call kill(n0) 
       call kill(nr) 
-      call kill(qn0) 
       call kill(qnr) 
     endif
       
@@ -11056,13 +11744,12 @@ endif
  end subroutine c_normal
 
 
- subroutine c_normal_spin_linear_quaternion(m_in,m_out,as,qn0,alpha) 
+ subroutine c_normal_spin_linear_quaternion(m_in,m_out,as,alpha) 
 !#restricted: normal
 !# This routine normalises the constant part of the spin matrix. 
 !# m_out=as**(-1)*m_in*as
   implicit none
   type(c_damap), intent(inout) :: m_in,m_out,as
-  type(c_quaternion), intent (inout) :: qn0
   type(quaternion) q0,q1,e_y,q3,qs
   real(dp) alpha,cosalpha,sinalpha
 
@@ -11521,11 +12208,11 @@ call c_linear_a(id,as)
  
     a=as
     at=transpose(a)
-    if (c_verbose) then
+ if (c_verbose) then
     do i=1,6
           write(6,'(6(1x,G21.14))') a(i,1:6)
     enddo
-    endif
+ endif
 !!!!  initially  !!!!
 !sigma_f= M sigma M^t + B
 !
@@ -16134,82 +16821,7 @@ end subroutine produce_orthogonal
 
 
  ! spin routine
- SUBROUTINE stroboscopic_average_one_res(orb,n_r,cray,xst,nturn,kp,n,mff)
-    IMPLICIT NONE
- 
-    type(probe)   xst,xs0
-    type(c_damap), intent(inout) :: orb
-    type(c_spinor), intent(inout) :: n_r
-    type(c_ray), intent(inout) :: cray
-    type(c_damap) e_ly
-    integer, intent(inout) :: kp,nturn
-    integer, optional :: mff
-    integer i,k,imax,j
-    type(spinor) n
-    real(dp) norm,norm0
-    logical ord
-   call alloc(e_ly)
 
-! call push_map(c_spin0,cray)
-! call push_map(orb,cray)
-! call produce_orthogonal(n_r,cray,e_ly%s)
-! call push_map(e_ly,cray)
-    ord=.false.
-    if(nturn<0) then
-      ord=.true.
-      nturn=-nturn
-    endif
-    
-    write(mff,*); write(mff,*) " Results of Stroboscopic Averaging "
-    write(mff,*) " every ",kp," turns "
-    do k=1,nturn
-     !  call track_probe(ring,xs0,mstate,node1=pos)  !,fibre2=3)
-  !  if(ord) then
-  !   cray=c_spin0.o.cray
-  !  else
-     call produce_orthogonal(n_r,cray,e_ly%s) 
-     cray=e_ly%s*cray
-     cray=orb.o.cray
-  !  endif
-     do j=1,3
-       xs0%s(1)%x(j)=cray%s1(j)
-       xs0%s(2)%x(j)=cray%s2(j)
-       xs0%s(3)%x(j)=cray%s3(j)
-     enddo
-     do i=1,3
-          xst%s(i)%x=xs0%s(i)%x+xst%s(i)%x  ! <---- Stroboscopic average
-!          xst%s(i)%x(j)=real(cray%s(j,i))+xst%s(i)%x(j)  ! <---- Stroboscopic averag
-       enddo
-
-
-       if(mod(k,kp)==0) then  ! kp
-          write(mff,*) k,"#########################"
-          do i=1,3
-             norm=root(xst%s(1)%x(i)**2+xst%s(2)%x(i)**2+xst%s(3)%x(i)**2)
-             if(norm>=0.0_dp) then
-                norm=1.d0/norm
-             endif
-             write(mff,'(a14,4(1x,g20.13))') " Norm and ISF ", 1.d0/norm, xst%s(1)%x(i)*norm,xst%s(2)%x(i)*norm,xst%s(3)%x(i)*norm
-          enddo
-       endif ! kp
-    enddo
-
-    norm0=0.0_dp
-    do i=1,3
-       norm=root(xst%s(1)%x(i)**2+xst%s(2)%x(i)**2+xst%s(3)%x(i)**2)
-       if(norm>=norm0) then
-          imax=1
-          n%x(1)=xst%s(1)%x(i)/norm
-          n%x(2)=xst%s(2)%x(i)/norm
-          if(abs(n%x(2))>=abs(n%x(1))) imax=2
-          n%x(3)=xst%s(3)%x(i)/norm
-          if(abs(n%x(3))>=abs(n%x(2))) imax=3
-          if(n%x(imax)<0) n%x=-n%x
-          norm0=norm
-       endif
-    enddo
-   call kill(e_ly)
-  end SUBROUTINE stroboscopic_average_one_res
 
  ! spin routine
  subroutine orthogonalise_ray(ray)

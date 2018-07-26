@@ -208,7 +208,7 @@ module precision_constants
   !  lielib_print(7)=-1  go manual in normal form  (use auto command in fpp)
   !  lielib_print(8)=-1  To use nplane from FPP normalform%plane
   !  lielib_print(9)=1  print in checksymp(s1,norm) in j_tpsalie.f90
-  !  lielib_print(10)=1  print lingyun's checks
+  !  lielib_print(10)=1  print radation gain 
   !  lielib_print(11)=1  print warning about Teng-Edwards
   !  lielib_print(12)=1  print info in make_node_layout
   !  lielib_print(13)=1  print info of normal form kernel into file kernel.txt and kernel_spin.txt
