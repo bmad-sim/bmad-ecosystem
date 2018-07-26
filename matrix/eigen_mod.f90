@@ -22,8 +22,8 @@ contains
 !                  "no eigen-system found" messages.
 !
 ! Output:
-!   eigen_val(n)   -- Complex(rp): Eigenvalue.
-!   eigen_vec(n,n) -- Complex(rp): Eigenvector.
+!   eigen_val(n)   -- Complex(rp): Eigenvalues.
+!   eigen_vec(n,n) -- Complex(rp): Eigenvectors are rows: eigen_vec(i,:)
 !   error          -- Logical: Set True on error. False otherwise.
 !-
 
@@ -75,7 +75,6 @@ do i = 2, n, 2
     if (global_com%exit_on_error) call err_exit
   endif
 enddo
-
 
 end subroutine
 
