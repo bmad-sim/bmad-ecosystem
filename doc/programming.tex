@@ -266,21 +266,46 @@ If True variable is used in plotting variable values:
 \end{example}
 \end{description}
 
-
 %-----------------------------------------------------------------
 \section {s\%u Component}
 \label{s:s.u}
+
+The \vn{s%u(:)} array holds the \tao universes (\sref{s:universe}). Each element
+of this array is a \vn{tao_universe_struct} structure:
+\begin{example}
+  type tao_universe_struct
+    type (tao_universe_struct), pointer :: common => null()
+    type (tao_lattice_struct), pointer :: model, design, base
+    type (tao_beam_struct) beam
+    type (tao_dynamic_aperture_struct) :: dynamic_aperture
+    type (tao_universe_branch_struct), pointer :: uni_branch(:) ! Per element information
+    type (tao_d2_data_struct), allocatable :: d2_data(:)   ! The data types
+    type (tao_data_struct), allocatable :: data(:)         ! Array of all data.
+    type (tao_ping_scale_struct) ping_scale
+    type (lat_struct) scratch_lat                          ! Scratch area.
+    type (tao_universe_calc_struct) calc                   ! What needs to be calculated?
+    real(rp), allocatable :: dModel_dVar(:,:)              ! Derivative matrix.
+    integer ix_uni                         ! Universe index.
+    integer n_d2_data_used                 ! Number of used %d2_data(:) components.
+    integer n_data_used                    ! Number of used %data(:) components.
+    logical :: reverse_tracking = .false.  ! Reverse tracking direction?
+    logical is_on                          ! universe turned on
+    logical picked_uni                     ! Scratch logical.
+  end type
+\end{example}
 
 %-----------------------------------------------------------------
 \section {s\%mpi Component}
 \label{s:s.mpi}
 
+The \vn{s%mpi} component holds information that is used when running \tao multi-threaded.
+
+
 %-----------------------------------------------------------------
 \section {s\%key Component}
 \label{s:s.key}
 
-The value of \vn{%key(i)} is the index in the 
-\vn{%var(:)} array associated with the $i$\th key.
+The value of \vn{%key(i)} is the index in the \vn{%var(:)} array associated with the $i$\th key.
 
 %-----------------------------------------------------------------
 \section {s\%building_wall Component}

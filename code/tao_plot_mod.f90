@@ -308,8 +308,6 @@ end subroutine tao_plot_key_table
 
 subroutine tao_draw_floor_plan (plot, graph)
 
-use multipass_mod
-
 implicit none
 
 type (tao_plot_struct) :: plot

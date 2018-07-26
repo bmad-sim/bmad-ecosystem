@@ -1532,6 +1532,7 @@ Format:
   optimizer ...         ! Show optimizer info \sref{s:show.optimizer}.
   particle ...          ! Show tracked particle info \sref{s:show.particle}.
   plot ...              ! Show plot info \sref{s:show.plot}.
+  spin                  ! Show information on spin simulations.
   symbolic_numbers ...  ! Show symbolic constants \sref{s:show.symbolic}.
   taylor_map ...        ! Show transport Taylor map\sref{s:show.taylor}.
   track ...             ! Show phase space coords, Twiss, EM field, 
@@ -2286,6 +2287,26 @@ Examples:
 \begin{example}
   show plot      ! Show plot region information by default
   show plot r13  ! Show information on plot in region r13
+\end{example}
+
+%% show spin --------------------------------------------------------------
+
+\subsection{show spin}
+\label{s:show.spin}
+
+Syntax:
+\begin{example}
+  show spin
+\end{example}
+
+Show spin related information. In particular, show the spin G matrices (if any) used in calculations.
+
+Note: In a lattice with closed geometry, to see the closed orbit invariant spin at any element, use
+the \vn{show element} command.
+
+Example:
+\begin{example}
+  show spin
 \end{example}
 
 %% show symbolic_numbers --------------------------------------------------------------

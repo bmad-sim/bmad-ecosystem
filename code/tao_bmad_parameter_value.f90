@@ -18,7 +18,6 @@ function tao_bmad_parameter_value (dat_name, ele, orbit, err_flag) result (value
 
 use tao_interface, except_dummy => tao_bmad_parameter_value
 use measurement_mod
-use spin_mod, only: vec_to_polar
 
 implicit none
 

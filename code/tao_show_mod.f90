@@ -186,6 +186,7 @@ type (random_state_struct) ran_state
 type (normal_form_struct), pointer :: normal_form
 type (aperture_scan_struct), pointer :: aperture_scan
 type (coord_struct) orbit
+type (tao_spin_map_struct), pointer :: sm
 
 type show_lat_column_struct
   character(80) :: name = ''
@@ -217,7 +218,7 @@ character(16) velocity_fmt, momentum_fmt, e_field_fmt, b_field_fmt, position_fmt
 character(16) spin_fmt, t_fmt, twiss_fmt, disp_fmt, str1, str2
 character(24) show_name, show2_name, what_to_print
 character(24) :: var_name, blank_str = '', phase_units_str
-character(24)  :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
+character(24) :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
 character(40) ele_name, sub_name, ele1_name, ele2_name, aname
 character(40) replacement_for_blank
 character(60) nam, attrib_list(20), attrib
@@ -226,7 +227,7 @@ character(100) file_name, name, why_invalid, attrib0
 character(120) header, str
 character(200), allocatable :: alloc_lines(:)
 
-character(16) :: show_what, show_names(37) = [ &
+character(16) :: show_what, show_names(38) = [ &
    'data            ', 'variable        ', 'global          ', 'alias           ', 'top10           ', &
    'optimizer       ', 'element         ', 'lattice         ', 'constraints     ', 'plot            ', &
    'beam            ', 'tune            ', 'graph           ', 'curve           ', 'particle        ', &
@@ -234,7 +235,7 @@ character(16) :: show_what, show_names(37) = [ &
    'branch          ', 'use             ', 'taylor_map      ', 'value           ', 'wave            ', &
    'twiss_and_orbit ', 'building_wall   ', 'wall            ', 'normal_form     ', 'dynamic_aperture', &
    'matrix          ', 'field           ', 'wake_elements   ', 'history         ', 'symbolic_numbers', &
-   'merit           ', 'track           ']
+   'merit           ', 'track           ', 'spin            ']
 
 integer :: data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
@@ -848,48 +849,51 @@ case ('data')
     if (size(s%u) > 1) then
       nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d_ptr%d1%d2%ix_uni
     endif
-    nl=nl+1; write(lines(nl), amt)  '%ele_name          = ', d_ptr%ele_name
-    nl=nl+1; write(lines(nl), amt)  '%ele_start_name    = ', d_ptr%ele_start_name
-    nl=nl+1; write(lines(nl), amt)  '%ele_ref_name      = ', d_ptr%ele_ref_name
-    nl=nl+1; write(lines(nl), amt)  '%data_type         = ', d_ptr%data_type
-    nl=nl+1; write(lines(nl), amt)  '%data_source       = ', d_ptr%data_source
+    nl=nl+1; write(lines(nl), amt)    '%ele_name          = ', d_ptr%ele_name
+    nl=nl+1; write(lines(nl), amt)    '%ele_start_name    = ', d_ptr%ele_start_name
+    nl=nl+1; write(lines(nl), amt)    '%ele_ref_name      = ', d_ptr%ele_ref_name
+    nl=nl+1; write(lines(nl), amt)    '%data_type         = ', d_ptr%data_type
+    nl=nl+1; write(lines(nl), amt)    '%data_source       = ', d_ptr%data_source
     if (d_ptr%id /= '') then
       nl=nl+1; write(lines(nl), amt)  '%id                = ', d_ptr%id
     endif
-    nl=nl+1; write(lines(nl), imt)  '%ix_branch         = ', d_ptr%ix_branch
-    nl=nl+1; write(lines(nl), imt)  '%ix_ele            = ', d_ptr%ix_ele
-    nl=nl+1; write(lines(nl), imt)  '%ix_ele_start      = ', d_ptr%ix_ele_start
-    nl=nl+1; write(lines(nl), imt)  '%ix_ele_ref        = ', d_ptr%ix_ele_ref
-    nl=nl+1; write(lines(nl), imt)  '%ix_ele_merit      = ', d_ptr%ix_ele_merit
-    nl=nl+1; write(lines(nl), imt)  '%ix_dmodel         = ', d_ptr%ix_dModel
-    nl=nl+1; write(lines(nl), imt)  '%ix_d1             = ', d_ptr%ix_d1
-    nl=nl+1; write(lines(nl), imt)  '%ix_data           = ', d_ptr%ix_data
-    nl=nl+1; write(lines(nl), imt)  '%ix_bunch          = ', d_ptr%ix_bunch
-    nl=nl+1; write(lines(nl), rmt)  '%model             = ', d_ptr%model_value
-    nl=nl+1; write(lines(nl), rmt)  '%design            = ', d_ptr%design_value
-    nl=nl+1; write(lines(nl), rmt)  '%meas              = ', d_ptr%meas_value
-    nl=nl+1; write(lines(nl), rmt)  '%ref               = ', d_ptr%ref_value
-    nl=nl+1; write(lines(nl), rmt)  '%base              = ', d_ptr%base_value
-    nl=nl+1; write(lines(nl), rmt)  '%old               = ', d_ptr%old_value   
-    nl=nl+1; write(lines(nl), rmt)  '%invalid           = ', d_ptr%invalid_value
-    nl=nl+1; write(lines(nl), amt)  '%eval_point        = ', anchor_pt_name(d_ptr%eval_point)
-    nl=nl+1; write(lines(nl), rmt)  '%s_offset          = ', d_ptr%s_offset
-    nl=nl+1; write(lines(nl), rmt)  '%s                 = ', d_ptr%s
-    nl=nl+1; write(lines(nl), amt)  '%merit_type        = ', d_ptr%merit_type
-    nl=nl+1; write(lines(nl), rmt)  '%merit             = ', d_ptr%merit
-    nl=nl+1; write(lines(nl), rmt)  '%delta_merit       = ', d_ptr%delta_merit
-    nl=nl+1; write(lines(nl), rmt)  '%weight            = ', d_ptr%weight
-    nl=nl+1; write(lines(nl), lmt)  '%exists            = ', d_ptr%exists
-    nl=nl+1; write(lines(nl), lmt)  '%good_model        = ', d_ptr%good_model
-    nl=nl+1; write(lines(nl), lmt)  '%good_design       = ', d_ptr%good_design
-    nl=nl+1; write(lines(nl), lmt)  '%good_base         = ', d_ptr%good_base 
-    nl=nl+1; write(lines(nl), lmt)  '%good_meas         = ', d_ptr%good_meas
-    nl=nl+1; write(lines(nl), lmt)  '%good_ref          = ', d_ptr%good_ref
-    nl=nl+1; write(lines(nl), lmt)  '%good_user         = ', d_ptr%good_user
-    nl=nl+1; write(lines(nl), lmt)  '%good_opt          = ', d_ptr%good_opt
-    nl=nl+1; write(lines(nl), lmt)  '%good_plot         = ', d_ptr%good_plot
-    nl=nl+1; write(lines(nl), lmt)  '%useit_plot        = ', d_ptr%useit_plot
-    nl=nl+1; write(lines(nl), lmt)  '%useit_opt         = ', d_ptr%useit_opt
+    nl=nl+1; write(lines(nl), imt)    '%ix_branch         = ', d_ptr%ix_branch
+    nl=nl+1; write(lines(nl), imt)    '%ix_ele            = ', d_ptr%ix_ele
+    nl=nl+1; write(lines(nl), imt)    '%ix_ele_start      = ', d_ptr%ix_ele_start
+    nl=nl+1; write(lines(nl), imt)    '%ix_ele_ref        = ', d_ptr%ix_ele_ref
+    nl=nl+1; write(lines(nl), imt)    '%ix_ele_merit      = ', d_ptr%ix_ele_merit
+    nl=nl+1; write(lines(nl), imt)    '%ix_dmodel         = ', d_ptr%ix_dModel
+    nl=nl+1; write(lines(nl), imt)    '%ix_d1             = ', d_ptr%ix_d1
+    nl=nl+1; write(lines(nl), imt)    '%ix_data           = ', d_ptr%ix_data
+    nl=nl+1; write(lines(nl), imt)    '%ix_bunch          = ', d_ptr%ix_bunch
+    nl=nl+1; write(lines(nl), rmt)    '%model             = ', d_ptr%model_value
+    nl=nl+1; write(lines(nl), rmt)    '%design            = ', d_ptr%design_value
+    nl=nl+1; write(lines(nl), rmt)    '%meas              = ', d_ptr%meas_value
+    nl=nl+1; write(lines(nl), rmt)    '%ref               = ', d_ptr%ref_value
+    nl=nl+1; write(lines(nl), rmt)    '%base              = ', d_ptr%base_value
+    nl=nl+1; write(lines(nl), rmt)    '%old               = ', d_ptr%old_value   
+    nl=nl+1; write(lines(nl), rmt)    '%invalid           = ', d_ptr%invalid_value
+    nl=nl+1; write(lines(nl), amt)    '%eval_point        = ', anchor_pt_name(d_ptr%eval_point)
+    nl=nl+1; write(lines(nl), rmt)    '%s_offset          = ', d_ptr%s_offset
+    nl=nl+1; write(lines(nl), rmt)    '%s                 = ', d_ptr%s
+    nl=nl+1; write(lines(nl), amt)    '%merit_type        = ', d_ptr%merit_type
+    nl=nl+1; write(lines(nl), rmt)    '%merit             = ', d_ptr%merit
+    nl=nl+1; write(lines(nl), rmt)    '%delta_merit       = ', d_ptr%delta_merit
+    nl=nl+1; write(lines(nl), rmt)    '%weight            = ', d_ptr%weight
+    if (d_ptr%data_type(1:4) == 'spin') then
+      nl=nl+1; write(lines(nl), rmt)  '%spin_n0           = ', d_ptr%spin_n0
+    endif
+    nl=nl+1; write(lines(nl), lmt)    '%exists            = ', d_ptr%exists
+    nl=nl+1; write(lines(nl), lmt)    '%good_model        = ', d_ptr%good_model
+    nl=nl+1; write(lines(nl), lmt)    '%good_design       = ', d_ptr%good_design
+    nl=nl+1; write(lines(nl), lmt)    '%good_base         = ', d_ptr%good_base 
+    nl=nl+1; write(lines(nl), lmt)    '%good_meas         = ', d_ptr%good_meas
+    nl=nl+1; write(lines(nl), lmt)    '%good_ref          = ', d_ptr%good_ref
+    nl=nl+1; write(lines(nl), lmt)    '%good_user         = ', d_ptr%good_user
+    nl=nl+1; write(lines(nl), lmt)    '%good_opt          = ', d_ptr%good_opt
+    nl=nl+1; write(lines(nl), lmt)    '%good_plot         = ', d_ptr%good_plot
+    nl=nl+1; write(lines(nl), lmt)    '%useit_plot        = ', d_ptr%useit_plot
+    nl=nl+1; write(lines(nl), lmt)    '%useit_opt         = ', d_ptr%useit_opt
 
     if (d_ptr%exists) then
       u => s%u(d_ptr%d1%d2%ix_uni)
@@ -3031,6 +3035,41 @@ case ('plot')
     return
 
   end select
+
+!----------------------------------------------------------------------
+! spin
+
+case ('spin')
+
+  nl=nl+1; lines(nl) = 'bmad_com components:'
+  nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on
+  nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
+
+  if (branch%param%geometry == open$) then
+    orb = tao_lat%tao_branch(branch%ix_branch)%orbit(0)
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Beginning spin:', orb%spin
+  endif
+
+  if (allocated(scratch%spin_map)) then
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; lines(nl) = 'Spin G-matrices used in calculations:'
+    do i = 1, size(scratch%spin_map)
+      if (i > 1) then
+        nl=nl+1; lines(nl) = ''
+      endif
+      sm => scratch%spin_map(i)
+      nl=nl+1; write(lines(nl), '(2x, a, i3)')     'Universe:', sm%ix_uni
+      nl=nl+1; write(lines(nl), '(2x, a, 2i6)')    'Ix_Ref, Ix_Ele:', sm%ix_ref, sm%ix_ele 
+      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'n0:', sm%n0
+      nl=nl+1; write(lines(nl), '(2x, a)')         'g-matrix:'
+      nl=nl+1; write(lines(nl), '(5x, 6es12.4)') sm%g_mat(1,:)
+      nl=nl+1; write(lines(nl), '(5x, 6es12.4)') sm%g_mat(2,:)
+    enddo
+  endif
+
+  result_id = 'spin:'
+  return
 
 !----------------------------------------------------------------------
 ! symbolic_numbers

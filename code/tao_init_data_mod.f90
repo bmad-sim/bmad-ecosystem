@@ -332,10 +332,12 @@ if (search_for_lat_eles /= '') then
 
   u%data(n1:n2)%good_user      = datum(ix1)%good_user
   u%data(n1:n2)%invalid_value  = datum(ix1)%invalid_value
+  u%data(n1:n2)%spin_n0(1)     = datum(ix1)%spin_n0(1)
+  u%data(n1:n2)%spin_n0(2)     = datum(ix1)%spin_n0(2)
+  u%data(n1:n2)%spin_n0(3)     = datum(ix1)%spin_n0(3)
   u%data(n1:n2)%ele_start_name = datum(ix1)%ele_start_name
   u%data(n1:n2)%ele_ref_name   = datum(ix1)%ele_ref_name
   u%data(n1:n2)%ix_bunch       = datum(ix1)%ix_bunch
-  u%data(n1:n2)%invalid_value  = datum(ix1)%invalid_value
   u%data(n1:n2)%data_type      = datum(ix1)%data_type
   u%data(n1:n2)%merit_type     = datum(ix1)%merit_type
   u%data(n1:n2)%weight         = datum(ix1)%weight
@@ -452,7 +454,9 @@ else
   u%data(n1:n2)%data_source    = datum(ix1:ix2)%data_source
   u%data(n1:n2)%data_type      = datum(ix1:ix2)%data_type
   u%data(n1:n2)%merit_type     = datum(ix1:ix2)%merit_type
-  u%data(n1:n2)%invalid_value  = datum(ix1:ix2)%invalid_value
+  u%data(n1:n2)%spin_n0(1)     = datum(ix1:ix2)%spin_n0(1)
+  u%data(n1:n2)%spin_n0(2)     = datum(ix1:ix2)%spin_n0(2)
+  u%data(n1:n2)%spin_n0(3)     = datum(ix1:ix2)%spin_n0(3)
   u%data(n1:n2)%s_offset       = datum(ix1:ix2)%s_offset
 
   u%data(n1:n2)%meas_value = datum(ix1:ix2)%meas

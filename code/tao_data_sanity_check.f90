@@ -130,11 +130,13 @@ if (ix_ele < 0) then
   return
 endif
 
-if (branch%ele(datum%ix_ele)%name /= datum%ele_name) then
-  if (print_err) call out_io (s_error$, r_name, err_str // ' LOCATION CONFUSION: ' // datum%ele_name, &
-                                                'FOR DATUM: ' // tao_datum_name(datum))
-  return
-endif
+! Problem with this test is that ele_name may be something like "1>>345".
+
+!if (branch%ele(datum%ix_ele)%name /= datum%ele_name) then
+!  if (print_err) call out_io (s_error$, r_name, err_str // ' LOCATION CONFUSION: ' // datum%ele_name, &
+!                                                'FOR DATUM: ' // tao_datum_name(datum))
+!  return
+!endif
 
 is_ok = .true.
 
