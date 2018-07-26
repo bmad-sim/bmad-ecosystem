@@ -4301,7 +4301,7 @@ endif
     write(mff,*) " every ",kp," turns "
     do k=1,nturn
        call track_probe(ring,xs0,mstate,node1=pos)  !,fibre2=3)
-
+  if(use_quaternion) call probe_quaternion_to_matrix(xs0)
        do i=1,3
           xst%s(i)%x=xs0%s(i)%x+xst%s(i)%x  ! <---- Stroboscopic average
        enddo
@@ -4334,8 +4334,6 @@ endif
     enddo
 
   end SUBROUTINE stroboscopic_average
-
-
 
 
   ! time tracking

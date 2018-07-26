@@ -3087,7 +3087,328 @@ endif
  
 
 
-!!!!!!!  stuff for demin  !!!!!!!
+!!!!!!!  stuff sodomite !!!!!!!
+
+
+ subroutine data_normal_form_fourier_c_quaternion(fq,r)
+ implicit none
+ type(layout), target :: r
+ type(c_quaternion_fourier) fq
+ type(c_damap) c_map,id_s
+ type(c_normal_form) c_n
+ type(probe_8) xs
+ type(probe) xs0
+ type(internal_state) state
+ integer i,j,n(2)
+ real(dp) x(6),phi(2)
+type(c_ray) cray
+
+CALL FIND_ORBIT(r,fq%closed_orbit,fq%pos,fq%STATE,c_1d_5)  ! (3)
+ 
+XS0=fq%closed_orbit
+ 
+write(6,'(6(1x,g20.13))')fq%closed_orbit
+
+state=fq%state+spin0
+
+
+call init_all(STATE,fq%no,0)
+
+call alloc(c_map,id_s)
+call alloc(c_n)
+call alloc(xs)
+
+id_s=1
+
+xs=xs0 + id_s
+
+ CALL propagate(r,XS,STATE,FIBRE1=fq%pos)  ! (4)
+
+c_map=xs
+call  c_normal(c_map,c_n,dospin=my_true) 
+
+fq%mux=c_n%tune(1)*twopi 
+fq%muy=c_n%tune(2)*twopi 
+
+
+fq%a=c_n%atot
+fq%ai=c_n%atot**(-1)
+ 
+
+x=0
+
+x(1)= fq%rx
+x(3)= fq%ry 
+if(fq%no==1) then
+
+ x(1:4)=matmul(fq%a,x(1:4)) 
+else
+ cray%x=0
+ cray%x(1:6)=x(1:6)
+
+ cray=c_n%a_t.o.cray
+
+  x = cray%x(1:6)
+
+endif
+fq%x(1:6,0)=x 
+
+if(fq%normalised.and.fq%nray==0) then
+
+do i=0,fq%nphix
+do j=0,fq%nphiy
+x=0
+
+x(1)= fq%rx*cos(i*fq%dphix)
+x(2)=-fq%rx*sin(i*fq%dphix)
+x(3)= fq%ry*cos(j*fq%dphiy)
+x(4)=-fq%ry*sin(j*fq%dphiy)
+
+if(fq%no==1) then
+ x(1:4)=matmul(fq%a,x(1:4)) 
+else
+ cray%x=0
+ cray%x(1:6)=x(1:6)
+
+ cray=c_n%a_t.o.cray
+
+  x = cray%x(1:6)
+
+endif
+
+
+
+
+x=x+fq%closed_orbit
+
+XS0%x=x
+XS0%q=1.0_dp
+
+ CALL propagate(r,XS0,STATE,FIBRE1=1) 
+ 
+fq%qd(i,j)=XS0%q
+ 
+ 
+enddo
+enddo
+
+elseif(fq%normalised.and.fq%nray/=0) then
+
+fq%x(1:6,0)=x
+write(6,*) " initial ray around the closed orbit "
+write(6,*) x
+write(6,*) " ######################################"
+state=fq%state-spin0
+
+ fq%x(5:6,0)=0
+XS0%x=fq%x(1:6,0)+fq%closed_orbit
+
+fq%d(0,0)=0.0_dp
+fq%p(0,0)=0
+fq%found(0,0)=.true.
+fq%nd=fq%nd-1
+!locate_phi(fq,i,ph,ij)
+
+do i=1,fq%nray
+ CALL propagate(r,XS0,STATE,FIBRE1=1) 
+ fq%x(1:6,i)=xs0%x-fq%closed_orbit
+ fq%x(5:6,i)=0
+ call locate_phi(fq,i,phi,n)
+ if(fq%nd/=0) write(6,*) i,"fq%nd ", fq%nd
+
+ if(.not.check_stable) then
+ write(6,*) xs0%x
+  stop 666
+ endif
+
+enddo
+
+
+if(.false.) then
+call x_fourier_c_quaternion(fq)
+
+state=fq%state+spin0
+
+do i=0,fq%nphix
+do j=0,fq%nphiy
+x=0
+
+phi(1)=i*fq%dphix
+phi(2)=j*fq%dphiy
+
+call x_evaluate_fourier_c_quaternion(fq,phi,x)
+
+x=x+fq%closed_orbit
+
+XS0%x=x
+XS0%q=1.0_dp
+
+ CALL propagate(r,XS0,STATE,FIBRE1=1) 
+ if(.not.check_stable) then
+ write(6,*) xs0%x
+ stop 666
+endif
+
+ fq%qd(i,j)=XS0%q
+ 
+enddo
+enddo
+endif ! false
+
+ 
+state=fq%state+spin0
+
+do i=0,fq%nphix-1
+do j=0,fq%nphiy-1
+
+
+x=fq%x(1:6,fq%p(i,j))
+ 
+
+x=x+fq%closed_orbit
+
+XS0%x=x
+XS0%q=1.0_dp
+
+ CALL propagate(r,XS0,STATE,FIBRE1=1) 
+ if(.not.check_stable) then
+ write(6,*) xs0%x
+ stop 666
+endif
+
+ fq%qd(i,j)=XS0%q
+ 
+enddo
+enddo
+
+else
+
+
+xs0%x=x+fq%closed_orbit
+
+do i=0,fq%nphix*fq%nphiy
+ 
+x=xs0%x
+ 
+
+x=x+fq%closed_orbit
+
+XS0%x=x
+XS0%q=1.0_dp
+
+ CALL propagate(r,XS0,STATE,FIBRE1=1) 
+ 
+fq%qd(i,0)=XS0%q
+ 
+
+
+enddo
+
+ call fourier_c_quaternion_test(fq,fq%qd,fq%qin)
+
+endif
+
+call kill(c_map,id_s)
+call kill(c_n)
+call kill(xs)
+
+ end subroutine data_normal_form_fourier_c_quaternion
+
+subroutine locate_phi(fq,i,phi,n)
+implicit none
+type(c_quaternion_fourier) fq
+integer i,n(2)
+real(dp) phi(2),nx,ny,d
+
+nx=fq%nphix
+ny=fq%nphiy
+
+phi(1)=mod(i*fq%mux/fq%dphix,nx)
+phi(2)=mod(i*fq%muy/fq%dphiy,ny)
+
+if(nx-0.5d0<phi(1)) phi(1)=phi(1)-nx
+if(ny-0.5d0<phi(2)) phi(2)=phi(2)-ny
+n(1)=nint(phi(1))
+n(2)=nint(phi(2))
+d=sqrt( (n(1)-phi(1))**2+ (n(2)-phi(2))**2)
+
+if(fq%found(n(1),n(2))) then
+ if(d<fq%d(n(1),n(2))) then
+  fq%d(n(1),n(2))=d
+  fq%p(n(1),n(2))=i
+  fq%ph(1,n(1),n(2))=-n(1)+phi(1)
+  fq%ph(2,n(1),n(2))=-n(2)+phi(2)
+!   write(6,*) n(1),n(2),d
+ endif
+else
+ fq%found(n(1),n(2))=.true.
+ fq%d(n(1),n(2))=d
+ fq%p(n(1),n(2))=i
+ fq%nd=fq%nd-1
+  fq%ph(1,n(1),n(2))=-n(1)+phi(1)
+  fq%ph(2,n(1),n(2))=-n(2)+phi(2)
+endif
+
+end subroutine locate_phi
+
+subroutine create_phi(fq)
+implicit none
+type(c_quaternion_fourier) fq
+integer k1,k2,pos,k11,pos11,k22,pos22
+ real(dp) dxx,dxy,dyx,dyy,d(2)
+ type(c_damap) a,b
+
+ call alloc(a,b)
+
+do k1=0, fq%nphix-1
+do k2=0, fq%nphiy-1
+
+write(6,*) k1,k2,fq%p(k1,k2)
+write(6,*) mod(fq%p(k1,k2)*fq%mux,twopi)/twopi,mod(fq%p(k1,k2)*fq%muy,twopi)/twopi
+write(6,*) fq%nphix*mod(fq%p(k1,k2)*fq%mux,twopi)/twopi,fq%nphiy*mod(fq%p(k1,k2)*fq%muy,twopi)/twopi
+write(6,*) fq%ph(1,k1,k2), fq%ph(2,k1,k2)
+
+
+b=0
+pos=fq%p(k1,k2)
+k11=k1+1
+if(k11==fq%nphix) k11=0
+pos11=fq%p(k11,k2)
+ write(6,*) " *** ",k11,k2
+write(6,*) fq%ph(1,k11,k2), fq%ph(2,k11,k2)
+dxx=fq%ph(1,k11,k2)+1-fq%ph(1,k1,k2)
+dxy=fq%ph(2,k11,k2)+1-fq%ph(2,k1,k2)
+k22=k2+1
+if(k22==fq%nphiy) k22=0
+pos22=fq%p(k1,k22)
+ write(6,*) " *** ",k1,k22
+write(6,*) fq%ph(1,k1,k22), fq%ph(2,k1,k22)
+dyx=fq%ph(1,k1,k22)+1-fq%ph(1,k1,k2)
+dyy=fq%ph(2,k1,k22)+1-fq%ph(2,k1,k2)
+ write(6,*) " deltas "
+write(6,*) dxx,dxy
+write(6,*) dyx,dyy
+
+a=1
+
+a%v(1)=(dxx.cmono.1)+(dxy.cmono.2)
+a%v(2)=(dyx.cmono.1)+(dyy.cmono.2)
+a=a**(-1)
+b%v(1)=fq%x(1,pos11)-fq%x(1,pos)
+b%v(2)=fq%x(1,pos22)-fq%x(1,pos)
+b=a.o.b
+
+d(1)=b%v(1)
+d(2)=b%v(2)
+!    allocate(f%r(1:6,0:f%nphix-1,0:f%nphiy-1))
+fq%r(1, k1,k2)= fq%x(1,pos) - d(1)*fq%ph(1,k1,k2)- d(2)*fq%ph(2,k1,k2)
+write(6,*) fq%r(1, k1,k2) ,fq%x(1,pos) 
+enddo
+enddo
+
+call kill(a,b)
+end subroutine create_phi
+
 
 
 end module pointer_lattice
