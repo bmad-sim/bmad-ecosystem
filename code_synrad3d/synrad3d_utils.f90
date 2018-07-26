@@ -300,6 +300,8 @@ end subroutine sr3d_photon_d_radius
 ! For p_orb%orb%vec(6) < 0 (backward motion):
 !   wall3d%section(ix_wall_section)%s <= p_orb%s < wall3d%section(ix_wall_section+1)%s
 !
+! Note: If number of sections = 1 then ix_wall3d will be set to 1.
+!
 ! Input:
 !   p_orb       -- sr3d_coord_struct: Photon position.
 !   branch      -- branch_struct: Lattice branch containing the wall.
@@ -327,6 +329,10 @@ wall3d => branch%wall3d(integer_option(p_orb%ix_wall3d, ix_wall3d))
 n_max = ubound(wall3d%section, 1)
 
 ix_sec => p_orb%ix_wall_section
+if (n_max == 1) then
+  ix_sec = 1
+  return
+endif
 
 ! End cases
 
