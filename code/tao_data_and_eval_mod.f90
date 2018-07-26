@@ -368,7 +368,6 @@ recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid
 
 use ptc_interface_mod, only: taylor_inverse
 use twiss_and_track_mod, only: twiss_and_track_at_s
-use spin_mod, only: polar_to_vec, vec_to_polar
 use measurement_mod, only: to_orbit_reading, to_eta_reading
 use geometry_mod, only: floor_angles_to_w_mat, floor_w_mat_to_angles
 
@@ -2719,6 +2718,15 @@ case ('spin.')
 
     call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     
+  case ('spin.depolarization_rate')
+    call tao_spin_polarization_calc(u, valid_value, why_invalid, depol_rate = datum_value)
+
+  case ('spin.polarization_rate')
+    call tao_spin_polarization_calc(u, valid_value, why_invalid, pol_rate = datum_value)
+
+  case ('spin.polarization_limit')
+    call tao_spin_polarization_calc(u, valid_value, why_invalid, pol_limit = datum_value)
+
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
@@ -2727,7 +2735,7 @@ case ('spin.')
 
 !-----------
 
-case ('spin_g_matrix')
+case ('spin_g_matrix.')
 
   call tao_spin_g_matrix_calc (datum, u, ix_ref, ix_ele, spin_g, valid_value, why_invalid)
   if (.not. valid_value) return

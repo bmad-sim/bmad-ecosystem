@@ -129,7 +129,6 @@ end subroutine tao_init_global
 
 subroutine tao_init_beams (init_file)
 
-use spin_mod
 use tao_input_struct
 
 type (tao_universe_struct), pointer :: u

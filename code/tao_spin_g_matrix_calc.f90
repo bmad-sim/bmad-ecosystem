@@ -29,17 +29,14 @@ type (tao_spin_map_struct), pointer :: sm
 type (tao_spin_map_struct), allocatable ::sm_temp(:)
 type (branch_struct), pointer :: branch
 type (taylor_struct) orbit_taylor(6), spin_taylor(0:3)
-type (c_damap) cd, cd2
-type (taylor) ptc_taylor
-type (real_8) r8(6)
-type (q_linear) q_lin
+type (q_linear) q_map
 
 integer ix_ref, ix_ele
 integer ix_r
 
 real(rp) spin_g(2,6)
-real(rp) :: mat6(6,6), mat3(3,3), quat0(0:3), quat1(0:3), qq(0:3)
-real(rp) :: v0(6) = 0, vec0(6), n0(3), n1(3), l0(3), m0(3), l1(3), m1(3)
+real(rp) :: mat3(3,3), quat0(0:3), quat1(0:3), qq(0:3)
+real(rp) :: n0(3), n1(3), l0(3), m0(3), l1(3), m1(3)
 real(rp) quat0_lnm_to_xyz(0:3), quat1_lnm_to_xyz(0:3)
 
 integer i, j, n, p
@@ -75,12 +72,7 @@ endif
 ! Calculate g-matrix...
 ! First concatenate the spin/orbital map
 
-call alloc (cd)
-call alloc (cd2)
-call alloc (ptc_taylor)
-call alloc (r8)
-
-cd = 1
+q_map = 0
 
 ix_r = ix_ref
 if (ix_r < 0) ix_r = ix_ele
@@ -92,23 +84,12 @@ else
   call concat_this (ix_r, ix_ele)
 endif
 
-q_lin = cd
-quat0 = q_lin%q(:, 0)
-
-!do i = 0, 3
-!  ptc_taylor = cd%q%x(i)
-!  spin_taylor(i) = ptc_taylor
-!enddo
-
-r8 = cd
-orbit_taylor = r8
-
-call taylor_to_mat6 (orbit_taylor, v0, vec0, mat6)
+quat0 = q_map%q(:, 0)
 
 ! If 1-turn then calculate n0. Otherwise take the value in the datum.
 
 if (ix_r == ix_ele) then  ! 1-turn
-  n0 = q_lin%q(1:3,0)   ! n0 is the rotation axis of the 0th order part of the map.
+  n0 = q_map%q(1:3,0)   ! n0 is the rotation axis of the 0th order part of the map.
   n1 = n0
 else
   n0 = datum%spin_n0 / norm2(datum%spin_n0)
@@ -147,19 +128,14 @@ quat1_lnm_to_xyz = w_mat_to_quat(mat3)
 
 ! Calculate the g-matrix.
 
+quat0 = quat_mul(quat_mul(quat_inverse(quat1_lnm_to_xyz), quat0), quat0_lnm_to_xyz)
+
 do p = 1, 6
-  quat1 = q_lin%q(:, p)
+  quat1 = q_map%q(:, p)
   qq = quat_mul(quat_mul(quat_inverse(quat1_lnm_to_xyz), quat1), quat0_lnm_to_xyz)
   spin_g(1,p) = 2 * (quat0(1)*qq(2) + quat0(2)*qq(1) - quat0(0)*qq(3) - quat0(3)*qq(0))
   spin_g(2,p) = 2 * (quat0(0)*qq(1) + quat0(1)*qq(0) + quat0(2)*qq(3) + quat0(3)*qq(2))
 enddo
-
-! Cleanup
-
-call kill (cd)
-call kill (cd2)
-call kill (ptc_taylor)
-call kill (r8)
 
 !---
 ! Save present results 
@@ -177,6 +153,7 @@ sm => scratch%spin_map(size(scratch%spin_map))
 sm%ix_ref = ix_ref
 sm%ix_ele = ix_ele
 sm%ix_uni = u%ix_uni
+sm%n0     = datum%spin_n0
 sm%g_mat = spin_g
 
 valid_value = .true.
@@ -186,21 +163,48 @@ contains
 
 subroutine concat_this (ix1, ix2)
 
+type (q_linear) q_ele
+type (ele_struct), pointer :: ele
+type (taylor_struct), pointer :: st
+real(rp) vec0(6), mat6(6,6)
 integer ix1, ix2
-integer i, j
+integer i, j, k, n, p
+logical st_on
+
 !
 
 do j = ix1+1, ix2
-  call truncate_taylor_to_order (branch%ele(j)%spin_taylor, 1, spin_taylor)
+  ele => branch%ele(j)
+  if (.not. associated(ele%spin_taylor(0)%term)) then
+    st_on = bmad_com%spin_tracking_on
+    bmad_com%spin_tracking_on = .true.
+    call ele_to_taylor(ele, branch%param, ele%map_ref_orb_in)
+    bmad_com%spin_tracking_on = st_on
+  endif
+
+  q_ele%q = 0
+
   do i = 0, 3
-    ptc_taylor = spin_taylor(i)
-    cd2%q%x(i) = ptc_taylor
+    st => ele%spin_taylor(i)
+    do k = 1, size(st%term)
+      n = sum(st%term(k)%expn)
+      select case (n)
+      case (0)
+        q_ele%q(i,0) = st%term(k)%coef
+      case (1)
+        do p = 1, 6
+          if (st%term(k)%expn(p) == 0) cycle
+          q_ele%q(i,p) = st%term(k)%coef
+          exit
+        enddo
+      end select
+    enddo
   enddo
 
-  call truncate_taylor_to_order (branch%ele(j)%taylor, 1, orbit_taylor)
-  r8 = orbit_taylor
+  call taylor_to_mat6 (ele%taylor, ele%taylor%ref, vec0, mat6)
+  q_map%mat = mat6
 
-  cd = cd2 * cd
+  q_map = q_ele * q_map
 enddo
 
 end subroutine concat_this

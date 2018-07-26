@@ -687,8 +687,8 @@ type tao_beam_shake_struct
 end type
 
 type tao_spin_map_struct
-  type (taylor_struct) orbit(6)
-  type (taylor_struct) spin(0:3)
+  type (taylor_struct) orbit_taylor(6)  ! Not yet used.
+  type (taylor_struct) spin_taylor(0:3) ! Not yet used.
   integer ix_ele, ix_ref, ix_uni
   real(rp) n0(3)
   real(rp) g_mat(2,6)
