@@ -7,7 +7,6 @@
 module fringe_mod
 
 use bmad_interface
-use spin_mod
 use multipole_mod
 
 ! Private routines for exact_bend_edge_kick

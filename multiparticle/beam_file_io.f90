@@ -1,6 +1,6 @@
 module beam_file_io
 
-use spin_mod
+use equal_mod
 
 implicit none
 

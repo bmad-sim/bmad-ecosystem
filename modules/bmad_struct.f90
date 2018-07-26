@@ -239,6 +239,20 @@ integer, parameter :: save_state$ = 3, restore_state$ = 4, off_and_save$ = 5
 integer, parameter :: horizontally_pure$ = 2, vertically_pure$ = 3
 character(20), parameter :: exact_multipoles_name(3) = [character(20):: 'Off', 'Horizontally_Pure', 'Vertically_Pure']
 
+! Pauli matrices
+
+complex(rp), parameter :: pauli_1(2,2) = reshape([(1,0), (0,0), (0,0), (1,0)], [2,2])
+complex(rp), parameter :: pauli_x(2,2) = reshape([(0,0), (1,0), (1,0), (0,0)], [2,2])
+complex(rp), parameter :: pauli_y(2,2) = reshape([(0,0), (0,1), (0,-1), (0,0)], [2,2])
+complex(rp), parameter :: pauli_z(2,2) = reshape([(1,0), (0,0), (0,0), (-1,0)], [2,2])
+
+type pauli_struct
+  complex(rp) sigma(2,2)
+end type
+
+type (pauli_struct), parameter :: pauli(0:3) = [pauli_struct(pauli_1), pauli_struct(pauli_x), &
+                                                pauli_struct(pauli_y), pauli_struct(pauli_z)]
+
 ! Structure for spin matching calculations.
 ! Naming follows Barber & Ripkin section 2.78 in the Handbook of Accelerator Physics and Engineering.
 

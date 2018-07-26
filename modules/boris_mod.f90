@@ -192,7 +192,6 @@ end subroutine
 !
 ! Modules needed:
 !   use bmad
-!   use spin_mod
 !   use em_field_mod
 !
 ! Input:

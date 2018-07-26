@@ -1,7 +1,6 @@
 module beam_utils
 
 use beam_file_io
-use spin_mod
 use eigen_mod
 use wake_mod
 use bookkeeper_mod
