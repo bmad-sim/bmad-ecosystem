@@ -1,8 +1,6 @@
 program spin_test
 
 use bmad
-use spin_mod
-use taylor_mod
 
 implicit none
 
