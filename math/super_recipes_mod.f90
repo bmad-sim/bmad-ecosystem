@@ -792,11 +792,11 @@ end function super_brent
 ! This is essentially qromb from Numerical Recipes.
 !
 ! The function func should satisfy the following interface:
-!   function func(x)
+!   function func(x) result (value)
 !     use precision_def
 !     implicit none
-!     real(rp), intent(in) :: x(:)
-!     real(rp) :: func(size(x))
+!     real(rp), intent(in) :: x(:) ! Array of points to evaluate at.
+!     real(rp) :: value(size(x))   ! Array of evaluation values.
 !   end function func
 !
 ! Input:
