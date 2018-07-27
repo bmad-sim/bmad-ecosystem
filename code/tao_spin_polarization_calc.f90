@@ -20,7 +20,7 @@ subroutine tao_spin_polarization_calc (branch, valid_value, why_invalid, pol_lim
 
 use tao_data_and_eval_mod, dummy => tao_spin_polarization_calc
 use ptc_interface_mod
-use pointer_lattice
+use pointer_lattice, dummy2 => sqrt
 use eigen_mod
 use f95_lapack
 
