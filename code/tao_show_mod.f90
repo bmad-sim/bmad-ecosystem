@@ -4,6 +4,7 @@ use tao_interface
 use tao_data_and_eval_mod
 use tao_top10_mod
 use tao_lattice_calc_mod
+use wall3d_mod
 
 type show_common_struct
   type (ele_struct), pointer :: ele 
