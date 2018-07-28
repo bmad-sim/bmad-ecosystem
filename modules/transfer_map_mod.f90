@@ -149,7 +149,6 @@ end subroutine transfer_map_from_s_to_s
 subroutine transfer_this_map (map, branch, s_1, s_2, error_flag, ref_orb, concat_if_possible)
 
 use ptc_interface_mod, only: taylor_propagate1, concat_ele_taylor
-use bookkeeper_mod, only: create_element_slice
 
 implicit none
 
@@ -409,8 +408,6 @@ end subroutine mat6_from_s_to_s
 !-
 
 subroutine transfer_this_mat (mat6, vec0, branch, s_1, s_2, error_flag, orbit, ele_save)
-
-use bookkeeper_mod, only: create_element_slice
 
 implicit none
 

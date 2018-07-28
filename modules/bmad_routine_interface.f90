@@ -378,6 +378,17 @@ subroutine convert_bend_exact_multipole (bend_in, bend_out, out_type)
   integer out_type
 end subroutine
 
+recursive subroutine create_element_slice (sliced_ele, ele_in, l_slice, offset, &
+                             param, include_upstream_end, include_downstream_end, err_flag, old_slice)
+  import
+  implicit none
+  type (ele_struct), target :: sliced_ele, ele_in
+  type (ele_struct), optional :: old_slice
+  type (lat_param_struct) param
+  real(rp) l_slice, offset
+  logical include_upstream_end, include_downstream_end, err_flag
+end subroutine
+
 subroutine create_field_overlap (lat, lord_name, slave_name, err_flag)
   import
   implicit none
