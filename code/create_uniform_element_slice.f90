@@ -42,7 +42,7 @@
 subroutine create_uniform_element_slice (ele, param, i_slice, n_slice_tot, &
                                                          sliced_ele, s_start, s_end)
 
-use bookkeeper_mod, except_dummy => create_uniform_element_slice
+use equal_mod, except_dummy => create_uniform_element_slice
 
 implicit none
 
