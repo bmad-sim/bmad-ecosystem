@@ -1202,6 +1202,7 @@ if (attrib_word == 'CYLINDRICAL_MAP') then
     call parse_cylindrical_map(cl_map, ele, lat, delim, delim_found, err_flag)
   endif
 
+  if (ele%key == wiggler$ .or. ele%key == undulator$) ele%sub_key = map_type$
   return
 endif
 
@@ -1256,6 +1257,7 @@ if (attrib_word == 'GRID_FIELD') then
     call parse_grid_field(g_field, ele, lat, delim, delim_found, err_flag)
   endif
 
+  if (ele%key == wiggler$ .or. ele%key == undulator$) ele%sub_key = map_type$
   return
 endif
 
@@ -1308,6 +1310,7 @@ if (attrib_word == 'TAYLOR_FIELD') then
     call parse_taylor_field(t_field, ele, lat, delim, delim_found, err_flag)
   endif
 
+  if (ele%key == wiggler$ .or. ele%key == undulator$) ele%sub_key = map_type$
   return
 endif
 

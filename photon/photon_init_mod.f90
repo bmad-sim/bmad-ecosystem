@@ -89,7 +89,8 @@ end subroutine absolute_photon_position
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine bend_photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob, emit_probability)
+! Subroutine bend_photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob,
+!                                         vert_angle_min, vert_angle_max, vert_angle_symmetric, emit_probability)
 !
 ! Routine to initalize a photon for dipole bends and wigglers (but not undulators).
 ! The photon is initialized using the standard formulas for bending radiation.
@@ -114,34 +115,45 @@ end subroutine absolute_photon_position
 !   absolute_photon_position
 !
 ! Input:
-!   g_bend_x         -- real(rp): Bending 1/rho component in horizontal plane.
-!   g_bend_y         -- real(rp): Bending 1/rho component in vertical plane.
-!   gamma            -- real(rp): Relativistic gamma factor of generating charged particle.
-!   E_min            -- real(rp), optional: Minimum photon energy. Default is zero. Ignored if negative.
-!   E_max            -- real(rp), optional: Maximum phton energy.  Default is Infinity. Ignored if negative.
-!                        If non-positive then E_max will be taken to be Infinity.
-!   E_integ_prob     -- real(rp):, optional :: integrated energy probability. See above.
-!                                If E_integ_prob is non-negative, it must be in the range [0, 1].
-!   emit_probability -- real(rp), optional: Probability of emitting a photon in the range [E_min, E_max]. 
-!                         Normalized so that the probability of emitting in the range [0, Infinity] is 1.
+!   g_bend_x             -- real(rp): Bending 1/rho component in horizontal plane.
+!   g_bend_y             -- real(rp): Bending 1/rho component in vertical plane.
+!   gamma                -- real(rp): Relativistic gamma factor of generating charged particle.
+!   E_min                -- real(rp), optional: Minimum photon energy. Default is zero. Ignored if negative.
+!   E_max                -- real(rp), optional: Maximum photon energy.  Default is Infinity. Ignored if negative.
+!                            If non-positive then E_max will be taken to be Infinity.
+!   E_integ_prob         -- real(rp):, optional :: integrated energy probability. See above.
+!                            If E_integ_prob is non-negative, it must be in the range [0, 1].
+!   vert_angle_min       -- real(rp), optional: Minimum vertical angle to emit a photon. 
+!                           -pi/2 is used if argument not present or if argument is less than -pi/2.
+!   vert_angle_max       -- real(rp), optional: Maximum vertical angle to emit a photon. 
+!                           pi/2 is used if argument not present or if argument is greater than pi/2.
+!   vert_angle_symmetric -- logical, optional: Default is False. If True, photons will be emitted
+!                             in the range [-vert_angle_max, -vert_angle_min] as well as the range
+!                             [vert_angle_min, vert_angle_max]. In this case vert_angle_min/max must be positive.
+!   emit_probability     -- real(rp), optional: Probability of emitting a photon in the range [E_min, E_max] or 
+!                             in the vertical angular range given. The probability is normalized so that the 
+!                             probability of emitting if no ranges are given is 1.
 !
 ! Output:
 !   orbit            -- coord_struct: Initialized photon.
 !-
 
-subroutine bend_photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob, emit_probability)
+subroutine bend_photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob, &
+                                         vert_angle_min, vert_angle_max, vert_angle_symmetric, emit_probability)
+
 
 implicit none
 
 type (coord_struct) orbit
-real(rp), optional :: E_min, E_max, E_integ_prob, emit_probability
-real(rp) g_bend_x, g_bend_y, g_bend, gamma, phi, e_factor
-real(rp) E_rel, gamma_phi, E_photon, r_min, r_max, r
+real(rp), optional :: E_min, E_max, E_integ_prob, emit_probability, vert_angle_min, vert_angle_max
+real(rp) g_bend_x, g_bend_y, g_bend, gamma, phi
+real(rp) E_rel, E_photon, r_min, r_max, r, f, phi_min, phi_max
+integer sgn
+logical, optional :: vert_angle_symmetric
 
 ! Photon energy
 
 g_bend = sqrt(g_bend_x**2 + g_bend_y**2)
-e_factor = 3 * h_bar_planck * c_light * gamma**3 * g_bend / 2 
 
 r_min = 0
 r_max = 1
@@ -154,15 +166,38 @@ r = real_option(-1.0_rp, E_integ_prob)
 if (r < 0) call ran_uniform(r)
 
 r = r_min + r * (r_max - r_min)
-call bend_photon_energy_init (E_rel, r)
+E_rel = bend_photon_energy_init (r)
 
-E_photon = E_rel * e_factor
+E_photon = E_rel * E_crit_photon(gamma, g_bend)
 
 ! Photon vertical angle
 
-call bend_photon_vert_angle_init (E_rel, gamma_phi)
+phi_min = real_option(-pi/2, vert_angle_min)
+r_min = bend_vert_angle_integ_prob(phi_min, E_rel, gamma)
 
-phi = modulo2(gamma_phi / gamma, pi/2)
+phi_max = real_option(pi/2, vert_angle_max)
+r_max = bend_vert_angle_integ_prob(phi_max, E_rel, gamma)
+
+call ran_uniform(r)
+if (logic_option(.false., vert_angle_symmetric)) then
+  f = 2
+  if (r > 0.5_rp) then
+    sgn = 1
+    r = 2 * (r - 0.5_rp)
+  else
+    sgn = -1
+    r = 2 * r
+  endif
+else
+  f = 1
+  sgn = 1
+endif
+
+r = r_min + r * (r_max - r_min)
+phi = sgn * bend_photon_vert_angle_init (E_rel, gamma, r)
+
+if (present(emit_probability)) emit_probability = emit_probability + f * (r_max - r_min)
+
 orbit%vec = 0
 orbit%vec(2) =  g_bend_y * sin(phi) / g_bend
 orbit%vec(4) = -g_bend_x * sin(phi) / g_bend
@@ -172,7 +207,7 @@ call init_coord (orbit, orbit%vec, particle = photon$, E_photon = E_photon)
 
 ! Polaraization
 
-call bend_photon_polarization_init(g_bend_x, g_bend_y, E_rel, gamma_phi, orbit)
+call bend_photon_polarization_init(g_bend_x, g_bend_y, E_rel, gamma*phi, orbit)
 
 end subroutine bend_photon_init
 
@@ -201,9 +236,8 @@ use nr
 implicit none
 
 real(rp) E_photon, g_bend, gamma, integ_prob, E1, E_rel_target
-real(rp), parameter :: e_factor = 3 * h_bar_planck * c_light / 2 
 
-! Easy cases. phton_energy_init gives a finite energy at integ_prob = 1 (in theory 
+! Easy cases. photon_energy_init gives a finite energy at integ_prob = 1 (in theory 
 ! should be infinity) so return 1.0 if E_photon > E (upper bound).
 
 if (E_photon == 0) then
@@ -211,9 +245,9 @@ if (E_photon == 0) then
   return
 endif
 
-E_rel_target = E_photon / (e_factor * gamma**3 * g_bend)
+E_rel_target = E_photon / E_crit_photon(gamma, g_bend)
 
-call bend_photon_energy_init (E1, 1.0_rp)
+E1 = bend_photon_energy_init (1.0_rp)
 if (E_rel_target >= E1) then
   integ_prob = 1
   return
@@ -232,12 +266,84 @@ function energy_func(integ_prob) result (dE)
 real(rp), intent(in) :: integ_prob
 real(rp) dE, E_rel
 
-call bend_photon_energy_init(E_rel, integ_prob)
+E_rel = bend_photon_energy_init(integ_prob)
 dE = E_rel - E_rel_target
 
 end function energy_func
 
 end function bend_photon_energy_integ_prob
+
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!+
+! Function bend_vert_angle_integ_prob (vert_angle, E_rel, gamma) result (integ_prob)
+!
+! Routine to find the integrated probability corresponding to emitting a photon
+! from a bend and with relative energy E_rel in the vertical angle range [-pi/2, vert_angle/2].
+!
+! Note: vert_angle is allowed to be out of the range [-pi/2, pi/2]. In this case, integ_prob
+! will be set to 0 or 1 as appropriate.
+!
+! Input:
+!   vert_angle  -- real(rp): Vertical angle.
+!   E_rel       -- real(rp): Relative photon energy E/E_crit. 
+!   gamma       -- real(rp): Relativistic gamma factor of generating charged particle.
+!
+! Output:
+!   integ_prob  -- real(rp): Integrated probability. Will be in the range [0, 1].
+!-
+
+function bend_vert_angle_integ_prob (vert_angle, E_rel, gamma) result (integ_prob)
+
+use nr
+
+implicit none
+
+real(rp) vert_angle, E_rel, gamma, integ_prob
+
+! Easy cases.
+
+if (vert_angle <= -pi/2) then
+  integ_prob = 0
+  return
+endif
+
+if (vert_angle >= pi/2) then
+  integ_prob = 1
+  return
+endif
+
+! If angle is so large that bend_photon_vert_angle_init is inaccurate, just round off to 0 or 1.
+
+if (bend_photon_vert_angle_init(E_rel, gamma, 0.0_rp) >= vert_angle) then
+  integ_prob = 0
+  return
+endif
+
+if (bend_photon_vert_angle_init(E_rel, gamma, 1.0_rp) <= vert_angle) then
+  integ_prob = 1
+  return
+endif
+
+! Invert using the NR routine zbrent.
+
+integ_prob = zbrent(vert_angle_func, 0.0_rp, 1.0_rp, 1d-10)
+
+!----------------------------------------------------------------------------------------
+contains
+
+function vert_angle_func(integ_prob) result (d_angle)
+
+real(rp), intent(in) :: integ_prob
+real(rp) angle, d_angle
+
+angle = bend_photon_vert_angle_init(E_rel, gamma, integ_prob)
+d_angle = angle - vert_angle
+
+end function vert_angle_func
+
+end function bend_vert_angle_integ_prob
 
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
@@ -295,7 +401,7 @@ end subroutine bend_photon_polarization_init
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine bend_photon_vert_angle_init (E_rel, gamma_phi, r_in)
+! Function bend_photon_vert_angle_init (E_rel, gamma, r_in) result (phi)
 !
 ! Routine to convert a "random" number in the interval [0,1] to a photon vertical emission 
 ! angle for a simple bend.
@@ -304,17 +410,17 @@ end subroutine bend_photon_polarization_init
 !   use photon_init_mod
 !
 ! Input:
-!   E_rel -- Real(rp): Relative photon energy E/E_crit. 
-!   r_in  -- Real(rp), optional: number in the range [0,1].
+!   E_rel -- real(rp): Relative photon energy E/E_crit. 
+!		gamma -- real(rp): beam relativistic factor 
+!   r_in  -- real(rp), optional: number in the range [0,1].
 !             If not present, a random number will be used.
 ! 
 ! Output:
-!   gamma_phi -- Real(rp): gamma * phi where gamma is the beam relativistic factor and
-!                  phi is the vertical photon angle (in radians).
-!                  Note: gamma_phi is an increasing monotonic function of r_in.
+!   phi   -- real(rp): The vertical photon angle (in radians).
+!                  Note: phi is an increasing monotonic function of r_in.
 !-
 
-subroutine bend_photon_vert_angle_init (E_rel, gamma_phi, r_in)
+function bend_photon_vert_angle_init (E_rel, gamma, r_in) result (phi)
 
 implicit none
 
@@ -322,18 +428,9 @@ type (photon_init_spline2_struct), target, save :: p(2), dp(2)
 type (photon_init_spline_struct), save :: spline
 
 real(rp), optional :: r_in
-real(rp) e_rel, gamma_phi, p_perp, sig, log_E_rel, x0, xp0
+real(rp) phi, e_rel, gamma, gamma_phi, p_perp, sig, log_E_rel, x0, xp0
 real(rp) rr, r, ss, x, log_E, frac, rro, drr, log_E_min, log_E_max, del_log_E
 real(rp) x1, xp1, v, vp
-
-real(rp) :: rel_amp(0:32) = [&
-                  0.249546, 0.249383, 0.249162, 0.248862, 0.248454, &
-                  0.247902, 0.247154, 0.246141, 0.244774, 0.242931, &
-                  0.240455, 0.237143, 0.232737, 0.226921, 0.219325, &
-                  0.209542, 0.197181, 0.181949, 0.163786, 0.143015, &
-                  0.120465, 0.0974421, 0.0755035, 0.0560654, 0.0400306, &
-                  0.0276386, 0.018578, 0.0122386, 0.00794693, 0.00510924, &
-                  0.00326308, 0.00207494, 0.0013157 ]
 
 integer i, j, n, ip, ix, sign_phi
 logical, save :: init_needed = .true.
@@ -498,7 +595,7 @@ endif
 ! gamma_phi is a function of E_rel and rr.
 ! gamma_phi is calculated by first finding the spline coefficients for the given E_rel
 
-log_E_rel = log10(E_rel)
+log_E_rel = log10(max(E_rel, 1e-3_rp))
 
 ! In the range above rr = 0.99 we use an extrapolation that matches gamma_phi and
 ! it's first two derivatives at rr = 0.99.
@@ -561,20 +658,22 @@ endif
 ! Scale result by the sigma of the spectrum at fixed E_rel
 
 if (E_rel < 0.1) then
-  sig = 0.597803 * E_rel**(-0.336351)
+  sig = 0.597803 * max(E_rel, 1e-6_rp)**(-0.336351)
 else
   sig = 0.451268 * E_rel**(-0.469377)
 endif
 
-gamma_phi = gamma_phi * sig * sign_phi
+phi = gamma_phi * sig * sign_phi / gamma
+if (phi > pi/2) phi = pi/2
+if (phi < -pi/2) phi = -phi/2
 
-end subroutine bend_photon_vert_angle_init
+end function bend_photon_vert_angle_init
 
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine bend_photon_energy_init (E_rel, r_in)
+! Function bend_photon_energy_init (r_in) result (E_rel)
 !
 ! Routine to convert a random number in the interval [0,1] to a photon energy.
 ! The photon probability spectrum is:
@@ -604,7 +703,7 @@ end subroutine bend_photon_vert_angle_init
 !   E_rel -- Real(rp): Relative photon energy E/E_crit. 
 !-
 
-subroutine bend_photon_energy_init (E_rel, r_in)
+function bend_photon_energy_init (r_in) result (E_rel)
 
 implicit none
 
@@ -737,7 +836,7 @@ real(rp) :: x, rr1, alpha = 2.42414961421056
 rr1 = alpha * exp(-x) / Sqrt(x)
 end function p_func
 
-end subroutine bend_photon_energy_init
+end function bend_photon_energy_init
 
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
@@ -788,19 +887,18 @@ end subroutine photon_init_spline_coef_calc
 !+
 ! Function photon_init_spline_fit (spline, rr) result (fit_val)
 !
-! Function to evaluate a spline fit for some value of the integrated probability rr.
+! Function to evaluate a spline fit at rr.
 ! 
 ! Module needed:
 !   use photon_init_mod
 !
 ! Input:
 !   spline    -- photon_init_spline_struct: spline section.
-!   r_in      -- Real(rp), Integrated probability in the range [0,1].
-!                 If not present, a random number will be used.
+!   rr        -- real(rp): Value to evaluate the fit at.
 !
 ! Output:
-!   fit_val -- Real(rp): Spline fit evaluated at r_in.
-!               Note: if r_in is out of range, fit_val will be 
+!   fit_val -- real(rp): Spline fit evaluated at rr  .
+!               Note: if rr is out of range, fit_val will be 
 !               set to the value at the edge of the spline range.
 !-
 
@@ -861,5 +959,32 @@ case default
 end select
 
 end function photon_init_spline_fit
+
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!+
+! Function E_crit_photon (gamma, g_bend) result (E_crit)
+!
+! Routine to calculate the photon critical energy in a bend.
+!
+! Input:
+!   gamma   -- real(rp): Gamma factor of charged particle emitting photon.
+!   g_bend  -- real(rp): 1/radius bending strength.
+!
+! Output:
+!   E_crit  -- real(rp): Critical photon energy.
+!-
+
+function E_crit_photon (gamma, g_bend) result (E_crit)
+
+real(rp) gamma, g_bend, E_crit
+real(rp), parameter :: e_factor = 3.0_rp * h_bar_planck * c_light / 2.0_rp
+
+!
+
+E_crit = e_factor * gamma**3 * g_bend
+
+end function E_crit_photon
 
 end module
