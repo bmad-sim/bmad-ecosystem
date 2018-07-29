@@ -6,7 +6,7 @@
 \section{Equations of Motion}
 \label{s:spin.dyn}
 
-The classical spin vector $\Bf S$ is described in the local reference
+The propagation of the classical spin vector $\Bf S$ is described in the local reference
 frame (\sref{s:ref}) by a modified Thomas-Bargmann-Michel-Telegdi
 (T-BMT) equation\cite{b:spin.hoff}
 \Begineq
@@ -47,8 +47,8 @@ and
 \Endeq
 Here $\Bf E (\Bf r ,t)$ and $\Bf B (\Bf r ,t)$ are the electric and magnetic fields, $\Bf
 B_\perp$ and $\Bf B_\parallel$ are the components perpendicular and parallel to the
-momentum, $\gamma$ is the particle's relativistic gamma factor, $q$, $m$, and $\eta$ are
-the particle's charge, mass, and magnetic_moment, $\bfbeta$ is the normalized
+particle's momentum, $\gamma$ is the particle's relativistic gamma factor, $q$, $m$, and $\eta$ are
+the particle's charge, mass, and electric dipole moment, $\bfbeta$ is the normalized
 velocity, and $a = (g-2)/2$ is the particle's anomalous gyro-magnetic g-factor (values
 given in Table~\ref{t:constants}).
 
@@ -129,7 +129,8 @@ is analogous to how rotation matrices are combined.
 \cite{b:spin.hoff,b:duan15}, at some phase space position $\bfr = (x, p_x, y, p_y, z, p_z)$ and at
 some point $s$ in the ring, is the continuous function with unit amplitude that satisifies
 \Begineq
-  \bfn(\cal M \bfr, s) = 
+  \bfn(\Cal M \bfr, s) = \bfn(\bfr, s)
+\Endeq
 
 Given 
 The invariant spin field 
@@ -146,7 +147,7 @@ orbital + spin transport as an $8 \cross 8$ matrix which then can be efficiently
 In development...
 
 
-To compute the $\bfD$ and $\bfG$ matrices from the spin transport map (\sref{s:spin.map}), the spin
+To compute the $\Bf D$ and $\bfG$ matrices from the spin transport map (\sref{s:spin.map}), the spin
 transport map is first truncated to linear order. In this case, the spin transport map $\cal M_s$
 can be written in the form
 \Begineq
@@ -164,7 +165,7 @@ point are chosen to give a right handed coordante system. After the initial $(\b
 coordinates have been calculated, the axes are transported using the $\bfq_0$
 quaternion. When analyzing only a section of a ring, there is no identifiable spin tune so the
 second step of rotating the $\bfl$ and $\bfm$ axes to give a uniform phase advance is skipped. In
-this case, the $\bfD$ matrix is just a unit matrix.  When analyzing an entire ring, the second step
+this case, the $\Bf D$ matrix is just a unit matrix.  When analyzing an entire ring, the second step
 of rotating the $\bfl$ and $\bfm$ axes to give a uniform phase advance is optional (except at the
 end of the ring where the $\bfl$ and $\bfm$ axes must be rotated to keep the axes periodic) since,
 for analysis purposes, it generally does not matter if the spin phase advance is uniform as a
@@ -173,15 +174,15 @@ funciton of longitudinal position.
 Once the $(\bfl, \bfn_0, \bfm)$ coordinate system is established, the transformation from this
 coordinate system to the laboratory $(x, y, z)$ coordinates is given by the matrix $(\bfl, \bfn_0,
 \bfm)$ where each axes is a column of the matrix. Between two longitudinal positions $s_1$ and
-$s_2$, the $\bfD$ matrix is calculated by first transforming $\bfq_0(s_1, s_2)$ to the $(\bfl,
+$s_2$, the $\Bf D$ matrix is calculated by first transforming $\bfq_0(s_1, s_2)$ to the $(\bfl,
 \bfn_0, \bfm)$ coordinate system
 \Begineq
   \bfq_{0\gamma} = \bft_2 \, \bfq_0 \, \bft_1^{-1}
 \Endeq
 $\bfq_{0\gamma}$ is a rotation around the $\bfn_0$ axis. When $\bfq_{0\gamma}$ is represented as a
-matrix $\bfm_{0\gamma}$, the $\bfD$ matrix is then
+matrix $\bfm_{0\gamma}$, the $\Bf D$ matrix is then
 \Begineq
-  \bfD(s_1, s_2) = \begin{pmatrix}
+  \Bf D(s_1, s_2) = \begin{pmatrix}
       m_{0\gamma}(1,1) & m_{0\gamma}(1,3) \\
       m_{0\gamma}(3,1) & m_{0\gamma}(3,3)
   \end{pmatrix}
