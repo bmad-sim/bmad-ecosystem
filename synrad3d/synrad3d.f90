@@ -34,8 +34,9 @@ type (random_state_struct) ran_state
 real(rp) ds_step_min, d_i0, i0_tot, i0_tot_eff, ds, gx, gy, s_offset, n_photon_eff
 real(rp) emit_a, emit_b, sig_e, g, gamma, emit_prob, r, dtrack, photon_number_factor
 real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max, n_photon_generated_eff
-real(rp) e_init_filter_min, e_init_filter_max, timer_time, old_time, r_min, r_max
+real(rp) e_init_filter_min, e_init_filter_max, timer_time, old_time
 real(rp) surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set
+real(rp) vert_angle_init_filter_min, vert_angle_init_filter_max
 real(rp), allocatable :: i0_eff(:)
 
 integer i, n, iu, iu2, ix, random_seed, iu_start, j_photon, ix_ele, status, ix_branch
@@ -53,7 +54,7 @@ character(20) date_str
 character(16) chamber_end_geometry
 character(16) :: r_name = 'synrad3d'
 
-logical ok, s_wrap_on, err, filter_phantom_photons
+logical ok, s_wrap_on, err, filter_phantom_photons, vert_angle_symmetric_init_filter
 logical is_inside, turn_off_kickers_in_lattice, finished, bad_stat_warning_given
 
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, chamber_end_geometry, &
@@ -61,9 +62,10 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, chamber_e
             emit_a, emit_b, sig_e, sr3d_params, wall_file, dat_file, random_seed, ix_branch, &
             e_filter_min, e_filter_max, s_filter_min, s_filter_max, wall_hit_file, &
             photon_start_input_file, photon_start_output_file, reflect_file, lat_ele_file, &
-            num_ignore_generated_outside_wall, turn_off_kickers_in_lattice, &
+            num_ignore_generated_outside_wall, turn_off_kickers_in_lattice, diffuse_com, &
             e_init_filter_min, e_init_filter_max, plot_param, surface_reflection_file, &
-            surface_roughness_rms, roughness_correlation_len, photon_track_file, filter_phantom_photons, diffuse_com
+            surface_roughness_rms, roughness_correlation_len, photon_track_file, filter_phantom_photons, &
+            vert_angle_init_filter_min, vert_angle_init_filter_max, vert_angle_symmetric_init_filter
 
 namelist / start / orbit, ix_branch, ran_state, random_seed
 
@@ -160,6 +162,9 @@ dat_file = 'synrad3d.dat'
 wall_file = 'synrad3d.wall'
 photon_track_file = ''
 photon_direction = 1
+vert_angle_init_filter_min = -2
+vert_angle_init_filter_max = 2
+vert_angle_symmetric_init_filter = .false.
 e_init_filter_min = -1
 e_init_filter_max = -1
 e_filter_min = -1
@@ -204,6 +209,7 @@ s_wrap_on = (s_filter_min >= 0) .and. (s_filter_max >= 0) .and. (s_filter_min > 
 
 call bmad_and_xsif_parser(lattice_file, lat)
 branch => lat%branch(ix_branch)
+bmad_com%auto_bookkeeper = .false.  ! Since we are not changing any element params.
 
 select case (chamber_end_geometry)
 case ('open')
@@ -287,10 +293,12 @@ endif
 allocate (i0_eff(0:branch%n_ele_max))
 i0_eff = 0
 
-if (e_init_filter_min > 0 .or. e_init_filter_max > 0) then
+if (e_init_filter_min > 0 .or. e_init_filter_max > 0 .or. &
+        vert_angle_init_filter_min > -pi/2 .or. vert_angle_init_filter_max < pi/2) then
   do i = 1, branch%n_ele_track
     if (rad_int_ele%ele(i)%i0 == 0) cycle
-    i0_eff(i) = i0_eff_calc(branch%ele(i), orb(i), e_init_filter_min, e_init_filter_max)
+    i0_eff(i) = i0_eff_calc(branch%ele(i), orb(i), e_init_filter_min, e_init_filter_max, &
+                         vert_angle_init_filter_min, vert_angle_init_filter_max, vert_angle_symmetric_init_filter)
   enddo
 
   if (ix_ele_track_end > ix_ele_track_start) then
@@ -371,8 +379,6 @@ endif
 call write_this_header (sr3d_params%iu_dat_file)
 
 ! Track through the elements and generate photons.
-
-bmad_com%auto_bookkeeper = .false.  ! Since we are not changing any element params.
 
 n_photon_generated = 0
 n_photon_generated_eff = 0
@@ -568,17 +574,11 @@ else
       call sr3d_get_emission_pt_params (branch, orb, ix_ele, s_offset, ele_here, orbit_here, gx, gy)
       g = sqrt(gx**2 + gy**2) 
 
-      r_min = 0
-      r_max = 1
-
-      call convert_total_energy_to (ele_here%value(E_tot$), ele_here%branch%param%particle, gamma) 
-      if (E_init_filter_min > 0) r_min = bend_photon_energy_integ_prob(E_init_filter_min, g, gamma)
-      if (E_init_filter_max > 0) r_max = bend_photon_energy_integ_prob(E_init_filter_max, g, gamma)
-
       call convert_total_energy_to (ele%value(e_tot$),  branch%param%particle, gamma)
       ! Generate photons, track to the wall 
 
-      n_photon_here = nint(g * (r_max - r_min) * gamma * ds / d_i0)
+      n_photon_here = nint(g * gamma * ds * init_photon_integ_prob(gamma, g, E_filter_min, E_filter_max, &
+                      vert_angle_init_filter_min, vert_angle_init_filter_max, vert_angle_symmetric_init_filter) / d_i0)
       do j_photon = 1, n_photon_here
         n_photon_generated = n_photon_generated + 1
         n_photon_array = n_photon_array + 1
@@ -601,7 +601,9 @@ else
 
         do
           call sr3d_emit_photon (ele_here, orbit_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, &
-                                                           e_init_filter_min, e_init_filter_max, photon%start, n_photon_eff = n_photon_eff)
+                           e_init_filter_min, e_init_filter_max, &
+                           vert_angle_init_filter_min, vert_angle_init_filter_max, vert_angle_symmetric_init_filter, &
+                           photon%start, n_photon_eff = n_photon_eff)
           call sr3d_check_if_photon_init_coords_outside_wall (photon%start, lat, is_inside, num_ignore_generated_outside_wall)
           if (is_inside) exit
         enddo
@@ -757,6 +759,7 @@ integer n
 logical ok, check_init_filters, filter_this
 
 ! Check filter restrictions
+! With recent changes the init filters do not need to be checked but leave in for now as a sanity check.
 
 ok = .true.
 
@@ -877,6 +880,8 @@ write (iu, '(a, es10.3)')    '# emit_b                     = ', emit_b
 write (iu, '(a, es10.3)')    '# sig_e                      = ', sig_e
 write (iu, '(a, es10.3)')    '# e_init_filter_min          = ', e_init_filter_min
 write (iu, '(a, es10.3)')    '# e_init_filter_max          = ', e_init_filter_max
+write (iu, '(a, es10.3)')    '# vert_angle_init_filter_min = ', vert_angle_init_filter_min
+write (iu, '(a, es10.3)')    '# vert_angle_init_filter_max = ', vert_angle_init_filter_max
 write (iu, '(a, es10.3)')    '# e_filter_min               = ', e_filter_min
 write (iu, '(a, es10.3)')    '# e_filter_max               = ', e_filter_max
 write (iu, '(a, f11.4)')     '# s_filter_min               = ', s_filter_min

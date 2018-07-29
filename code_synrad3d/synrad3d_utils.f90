@@ -150,29 +150,32 @@ end subroutine sr3d_get_emission_pt_params
 !-------------------------------------------------------------------------
 !+
 ! Subroutine sr3d_emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, 
-!                                                        e_init_min, e_init_max, photon, n_photon_eff)
+!        e_init_min, e_init_max, vert_angle_min, vert_angle_max, vert_angle_symmetric, photon, n_photon_eff)
 !
 ! subroutine sr3d_to initialize a new photon
 !
 ! Input:
-!   ele_here          -- ele_struct: Emission is at the exit end of this element (which is a slice_slave).
-!   orb_here          -- coord_struct: orbit of particle emitting the photon.
-!   gx, gy            -- real(rp): Horizontal and vertical bending strengths.
-!   emit_a            -- real(rp): Emittance of the a-mode.
-!   emit_b            -- real(rp): Emittance of the b-mode.
-!   photon_direction  -- integer: +1 In the direction of increasing s.
-!                                 -1 In the direction of decreasing s.
-!   e_init_min        -- real(rp): If > 0: Minimum energy of emitted photon.
-!   e_init_max        -- real(rp): If > 0: Maximum energy of emitted photon.
-!   n_photon_eff      -- real(rp): Effective number of photons generated which is 1/P([e_init_min, e_init_max])
-!                           where P([e1,e2]) is the probability of emitting a photon in the range [e1, e2].
+!   ele_here              -- ele_struct: Emission is at the exit end of this element (which is a slice_slave).
+!   orb_here              -- coord_struct: orbit of particle emitting the photon.
+!   gx, gy                -- real(rp): Horizontal and vertical bending strengths.
+!   emit_a                -- real(rp): Emittance of the a-mode.
+!   emit_b                -- real(rp): Emittance of the b-mode.
+!   photon_direction      -- integer: +1 In the direction of increasing s.
+!                                     -1 In the direction of decreasing s.
+!   e_init_min            -- real(rp): If > 0: Minimum energy of emitted photon.
+!   e_init_max            -- real(rp): If > 0: Maximum energy of emitted photon.
+!   vert_angle_min        -- real(rp): Minimum vertical photon angle.
+!   vert_angle_max        -- real(rp): Maximum vertical photon angle.
+!   vert_angle_symmetric  -- real(rp): Symmetric emission of photons in the vertical plane?
+!   n_photon_eff          -- real(rp): Effective number of photons generated which is 1/P where P is the 
+!                               probability of emitting a photon in the given energy and angle range.
 !
 ! Output:
 !   photon    -- sr3d_coord_struct: Generated photon.
 !-
 
 subroutine sr3d_emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, &
-                                                                 e_init_min, e_init_max, photon, n_photon_eff)
+        e_init_min, e_init_max, vert_angle_min, vert_angle_max, vert_angle_symmetric, photon, n_photon_eff)
 
 implicit none
 
@@ -182,15 +185,16 @@ type (coord_struct) :: orb_here
 type (sr3d_coord_struct) :: photon
 type (twiss_struct), pointer :: t
 
-real(rp) emit_a, emit_b, sig_e, gx, gy, g_tot, gamma, v2, ep
-real(rp) r(3), vec(4), v_mat(4,4), e_init_min, e_init_max, n_photon_eff
+real(rp) emit_a, emit_b, sig_e, gx, gy, g_tot, gamma, v2, ep, r(3), vec(4), v_mat(4,4)
+real(rp) e_init_min, e_init_max, vert_angle_min, vert_angle_max, n_photon_eff
 
 integer photon_direction
+logical vert_angle_symmetric
 
 ! Get photon energy and "vertical angle".
 
 call convert_total_energy_to (ele_here%value(E_tot$), ele_here%branch%param%particle, gamma) 
-call bend_photon_init (gx, gy, gamma, photon%orb, e_init_min, e_init_max, emit_probability = ep)
+call bend_photon_init (gx, gy, gamma, photon%orb, e_init_min, e_init_max, -1.0_rp, vert_angle_min, vert_angle_max, vert_angle_symmetric, ep)
 n_photon_eff = 1 / ep
 
 ! Offset due to finite beam size
@@ -389,7 +393,7 @@ end subroutine sr3d_print_photon_info
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Function i0_eff_calc(ele, orb0, e_min, e_max) result (i0_eff)
+! Function i0_eff_calc(ele, orb0, e_min, e_max, vert_angle_min, vert_angle_max, vert_angle_symmetric) result (i0_eff)
 !
 ! Routine to calculate the effective I0 integration integral which is defined as
 !   I0_eff = Integral: ds * gamma * g * P([e_min, e_max)]
@@ -400,13 +404,16 @@ end subroutine sr3d_print_photon_info
 ! Note: If [e_min, e_max] = [0, Infinity] then I0_eff is equal to the standard I0.
 !
 ! Input:
-!   ele       -- ele_struct: Element to integrate over.
-!   orb0      -- coord_struct: Starting coords of the reference orbit.
-!   e_min     -- real(rp): Photon emission lower bound.
-!   e_max     -- real(rp): Photon emission upper bound.
+!   ele                   -- ele_struct: Element to integrate over.
+!   orb0                  -- coord_struct: Starting coords of the reference orbit.
+!   e_min                 -- real(rp): Photon emission lower bound.
+!   e_max                 -- real(rp): Photon emission upper bound.
+!   vert_angle_min        -- real(rp): Photon vertical angle lower bound.
+!   vert_angle_max        -- real(rp): Photon vertical angle upper bound.
+!   vert_angle_symmetric  -- logical: Use symmetric angle range?
 !-
 
-function i0_eff_calc(ele, orb0, e_min, e_max) result (i0_eff)
+function i0_eff_calc(ele, orb0, e_min, e_max, vert_angle_min, vert_angle_max, vert_angle_symmetric) result (i0_eff)
 
 use nrtype
 use nr, only: polint
@@ -416,20 +423,17 @@ type (coord_struct) orb0, orb_end, orb_end1
 type (branch_struct), pointer ::branch
 type (em_field_struct) field
 
-real(rp) e_min, e_max, i0_eff
-real(rp) h(0:4), i0_sum(0:4), r_min, r_max, ll, l_ref, gamma, d0, dint
+real(rp) e_min, e_max, vert_angle_min, vert_angle_max, i0_eff
+real(rp) h(0:4), i0_sum(0:4), ll, l_ref, gamma, d0, dint
 real(rp) eps_int, eps_sum, del_z, z_pos, z1, theta, g, g_x, g_y
 real(rp) i0_accum, vel_unit(3), fact, force(3), force_perp(3), dz
 
 integer tm_saved, m6cm_saved
 integer j, n, j1, j_min_test, j_max, n_pts
 
-logical is_special_wiggler
+logical vert_angle_symmetric, is_special_wiggler
 
 !
-
-r_min = 0
-r_max = 1
 
 eps_int = 1d-4
 eps_sum = 1d-6
@@ -523,9 +527,8 @@ do j = 1, j_max
       g = norm2([g_x, g_y])
     endif
 
-    if (e_min > 0) r_min = bend_photon_energy_integ_prob(e_min, g, gamma)
-    if (e_max > 0) r_max = bend_photon_energy_integ_prob(e_max, g, gamma)
-    i0_accum = i0_accum + gamma * g * (r_max - r_min)
+    i0_accum = i0_accum + gamma * g * &
+                 init_photon_integ_prob(gamma, g, e_min, e_max, vert_angle_min, vert_angle_max, vert_angle_symmetric)
   enddo
 
   if (j <= 4) then
@@ -557,5 +560,79 @@ if (is_special_wiggler) then
 endif
 
 end function i0_eff_calc
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Function init_photon_integ_prob(gamma, g, E_min, E_max, vert_angle_min, 
+!                                             vert_angle_max, vert_angle_symmetric) result (integ_prob)
+!
+! Routine to calcuate the integrated probability of emitting a photon in a given vertical angle range
+! and in a given energy range
+!
+! Input:
+!   gamma                 -- real(rp): Gamma factor of charged particle emitting photon.
+!   g                     -- real(rp): 1/rho bending strength.
+!   E_min                 -- real(rp): Minimum energy
+!   E_max                 -- real(rp): Maximum_energy
+!   vert_angle_min        -- real(rp): Lower bound of vertical angle range.
+!   vert_angle_max        -- real(rp): Upper bound of vertical angle range.
+!   vert_angle_symmetric  -- real(rp): Use two symmetric ranges [-vert_angle_max, -vert_angle_min] and 
+!                             [vert_angle_min, vert_angle_max] instead of just [vert_angle_min, vert_angle_max]?
+!
+! Output:
+!   integ_prob            -- real(rp): Integrated probablility of emitting a photon in given angle range.
+!-
+
+function init_photon_integ_prob (gamma, g, E_min, E_max, vert_angle_min, &
+                                             vert_angle_max, vert_angle_symmetric) result (integ_prob)
+
+use super_recipes_mod
+
+real(rp) gamma, g, E_min, E_max, vert_angle_min, vert_angle_max, integ_prob
+real(rp) r_energy_min, r_energy_max
+logical vert_angle_symmetric, err_flag
+character(*), parameter :: r_name = 'init_photon_vert_angle_integ_prob'
+
+!
+
+r_energy_min = 0
+r_energy_max = 1
+
+if (E_min > 0) r_energy_min = bend_photon_energy_integ_prob(E_min, g, gamma)
+if (E_max > 0) r_energy_max = bend_photon_energy_integ_prob(E_max, g, gamma)
+
+integ_prob = super_qromb(vert_prob_func, r_energy_min, r_energy_max, 1.0e-6_rp, 0.0_rp, 3, err_flag)
+if (err_flag) then
+  call out_io (s_error$, r_name, 'PROBABILITY INTEGRATION FAILED! PLEASE GET HELP!')
+endif
+
+!-------------------
+contains
+
+function vert_prob_func(r_energy) result (prob)
+
+real(rp), intent(in) :: r_energy(:)
+real(rp) prob(size(r_energy))
+real(rp) E_rel, r_min, r_max
+integer i
+
+!
+
+r_min = 0
+r_max = 1
+
+do i = 1, size(r_energy)
+  E_rel = bend_photon_energy_init(r_energy(i))
+  if (vert_angle_min > -pi/2) r_min = bend_vert_angle_integ_prob(vert_angle_min, E_rel, gamma)
+  if (vert_angle_max <  pi/2) r_max = bend_vert_angle_integ_prob(vert_angle_max, E_rel, gamma)
+  prob(i) = r_max - r_min
+  if (vert_angle_symmetric) prob(i) = 2 * prob(i)
+enddo
+
+end function vert_prob_func
+
+end function init_photon_integ_prob
 
 end module
