@@ -112,7 +112,7 @@ $\vcenter{\hbox{\includegraphics[width=2in]{lhc-cross-section.pdf}}}$
 {\LARGE\bfseries David Sagan and Gerry Dugan}
 
 \vspace{0.4in}
-{\large\bfseries June 18, 2018}
+{\large\bfseries July 29, 2018}
 
 \end{center}
 \end{titlepage}
@@ -531,7 +531,7 @@ parameters for \srthree. Example:
     ix_ele_track_start   = 1      ! Radiation region start lattice element.
     ix_ele_track_end     = 912    ! Radiation region end lattice element.
     photon_direction     = 1      ! 1 = Forward generation, -1 = Backward generation.
-    num_photons          = 50000  ! Target number of unfiltered photons.
+    num_photons          = 50000  ! Target number of surviving photons.
     num_photons_per_pass = -1     ! photons generated per pass. -1 => num_photons/5.
     ds_step_min          = 0.01   ! Photons are generated at discrete points. 
                               ! Multiple photons can be generated at each point.
@@ -549,14 +549,17 @@ parameters for \srthree. Example:
     photon_start_input_file  = ""    ! File for initializing the photons
     photon_start_output_file = ""    ! File recording photon start positions
 
-    random_seed = 123456             ! 0 -> Use sys clock.
-    e_init_filter_min = -1           ! Min initial energy filter param.
-    e_init_filter_max = -1           ! Max initial energy filter param.
-    e_filter_min = -1                ! Min final energy filter param.
-    e_filter_max = -1                ! Max final energy filter param.
-    s_filter_min = -1                ! Min S position filter param.
-    s_filter_max = -1                ! Max S position filter param.
-    filter_phantom_photons = T       ! Filter photons striking a phantom wall?
+    random_seed = 123456                 ! 0 -> Use sys clock.
+    e_init_filter_min = -1               ! Min initial energy filter param.
+    e_init_filter_max = -1               ! Max initial energy filter param.
+    vert_angle_init_filter_min = -2      ! Min initial vertical angle filter.
+    vert_angle_init_filter_man = 2       ! Max initial vertical angle filter.
+    vert_angle_symmetric_init_filter = F ! Symmetrize vertical angle filter?
+    e_filter_min = -1                    ! Min final energy filter param.
+    e_filter_max = -1                    ! Max final energy filter param.
+    s_filter_min = -1                    ! Min S position filter param.
+    s_filter_max = -1                    ! Max S position filter param.
+    filter_phantom_photons = T           ! Filter photons striking a phantom wall?
     num_ignore_generated_outside_wall = 0    !
     turn_off_kickers_in_lattice = F          ! Zero the closed orbit?
     surface_roughness_rms       = -1         ! Roughness for diffuse scattering.
@@ -575,12 +578,16 @@ parameters for \srthree. Example:
   /
 \end{example}
 
+%------------------------------------------------------------------
+\section{Master Input File Parameters}
+\label{s:master.params}
+
   \begin{description}
   \item[\vn{chamber_end_geometry}] \Newline
 The \vn{chamber_end_geometry} sets how the chamber ends at the ends of the lattice
 are treated. \vn{chamber_end_geometry} may be set to one of:
 \begin{example}
-  ""            ! Use lattice geometry
+  ""            ! Use lattice geometry (default).
   "closed"      ! The chamber ends connect together.
   "open"        ! The chamber end are not connected together.
 \end{example}
@@ -596,33 +603,32 @@ the lattice. If The lattice has other branches, the chamber end geometry for cha
 these branches is always determined by the \vn{geometry} setting for the branch.
 
   \item[\vn{dat_file}] \Newline
-This string gives the name of the output data file (\sref{s:main.out}).
-See below for more details.
+This string gives the name of the output data file (\sref{s:main.out}). See below for more details.
 
   \item[\vn{ds_step_min}] \Newline
 This parameter establishes the minimum distance to track the particle beam between emission
 points. The thought was that if \srthree decided to make very small steps  between emission
 points, this might slow the calculation down. This has not been tested. This parameter
-does not influence photon tracking.
+does not influence photon tracking. Default is 0.001 meters.
 
   \item[\vn{e_init_filter_min}, \vn{e_init_filter_max}] \Newline
-Minimum and maximum initial energy filter values. A negative filter value
-indicates that the particular filter is not used. See below.
+Minimum and maximum filter values for a photon's initial energy (\sref{s:filter}). A negative filter
+value (which is the default) indicates that the particular filter is not used.
 
   \item[\vn{e_filter_min}, \vn{e_filter_max}] \Newline
-Minimum and maximum energy filter values. A negative filter value
-indicates that the particular filter is not used. See below.
+Minimum and maximum filter values for a photon's final energy (\sref{s:filter}). A negative filter
+value (which is the defaults) indicates that the particular filter is not used. 
 
   \item[\vn{emit_a}, \vn{emit_b}, \vn{sig_e}] \Newline
 These parameters set the particle beam size and so will affect the starting coordinates of
-the photons. A negative set of any of these parameters will result in \srthree 
+the photons. A negative value (which is the default) of any of these parameters will result in \srthree 
 using the value for the parameter from a calculation of the synchrotron radiation integrals.
 
   \item[\vn{filter_phantom_photons}] \Newline
 Phantom photons are photons that have hit a ``phantom'' wall (\sref{s:surface}).  That is,
 a wall whose surface name is set to ``PHANTOM''. If \vn{filter_phantom_photons} is set the
 \vn{True} (the default) a filter test is used to exclude phantom photons from the output.
-If set to \vn{False}, the filter will not be applied.
+If set to \vn{False}, the filter will not be applied. Default is True.
 
   \item[\vn{ix_ele_track_start}, \vn{ix_ele_track_end}] \Newline
 The parameters \vn{ix_ele_track_start} and \vn{ix_ele_track_end} establish
@@ -634,9 +640,10 @@ the end of the radiation region is taken to be end of the lattice.
 If \vn{ix_ele_track_end} is positive and less than \vn{ix_ele_track_start},
 the track region will be from \vn{ix_ele_track_start} through the
 end of the lattice and from the beginning of the lattice to \vn{ix_ele_track_end}.
+Defaults are 0 for \vn{ix_ele_track_start} and -1 for \vn{ix_ele_track_end}.
 
   \item[\vn{lat_ele_file}] \Newline
-This string, if not blank, will create a data file listing  the lattice
+This string, if not blank "" (and blank is the default), will create a data file listing  the lattice
 elements within the emission region. For each element the following are given. 
   \begin{enumerate}
   \item
@@ -671,69 +678,71 @@ wall. \srthree will ignore photons generated outside the wall, and
 generate another one at the same longitudinal position, up to the
 number set by \vn{num_ignore_generated_outside_wall}. If the number of
 photons generated outside the wall exceeds this number, \srthree will
-print an error message and stop.
+print an error message and stop. Default is 0. 
 
   \item[\vn{num_photons}] \Newline
-\vn{num_photons} establishes the minimum number of ``unfiltered''
-photons that need to be generated before \srthree will stop the
-simulation. The actual number of unfiltered photons will be between
-\vn{num_photons} and \vn{num_photons+num_photons_per_pass} See
-below for more details. [An unfiltered photon is a photon that passes
-all filter requirements and is recorded in the output statistics.]
+\vn{num_photons} establishes the minimum number of ``surviving'' photons that need to be generated
+before \srthree will stop the simulation. The actual number of surviving photons will be between
+\vn{num_photons} and \vn{num_photons+num_photons_per_pass}. See \sref{s:track}. [A surviving photon
+is a photon that passes all filter requirements (\sref{s:filter}) and is recorded in the output
+statistics.]
 
   \item[\vn{num_photons_per_pass}] \Newline
 \vn{num_photons_per_pass} sets the number of photons generated per
 ``pass''.  A ``pass'' is the act of generating photons throughout the
 radiation production region. If \vn{num_photon_per_pass} is negative
 (the default), the number of photons generated per pass is taken
-to be \vn{num_photons}/5. The actual number of unfiltered photons will be between
+to be \vn{num_photons}/5. The actual number of surviving photons will be between
 \vn{num_photons} and \vn{num_photons+num_photons_per_pass} See
-below for more details.
+below for more details. 
 
   \item[\vn{photon_direction}] \Newline
 The \vn{photon_direction} parameter determines in what direction the photons
-are traveling when initially created. A value of \vn{+1} indicates the photons
+are traveling when initially created. A value of \vn{+1} (the default) indicates the photons
 are created traveling in the $+s$ direction and a value of \vn{-1} indicates
 that the photons are created in the $-s$ direction.
 
   \item[\vn{photon_start_output_file}] \Newline
-This string, if not blank, will cause \srthree to create an output file, with a name given by the
-value of \vn{photon_start_output_file}, of the photon starting positions along with the state of the
-random number generator. The format for this file is compatible with the format of the
-\vn{photon_start_input_file}. This file is generally used for debugging purposes and is not of
-general interest. Note: If \vn{photon_start_input_file} is set, \vn{photon_start_output_file} will
-be ignored (no output file is generated). Also note that the file will have the starting coordinates
-of all photons generated, not just the photons that pass any filtering tests. Thus, if any of the
-filter parameters are set, the size of the file may be very large. See \sref{s:photon.start} for the
-syntax of this file. Alternatively, the \vn{-out} command line option (\sref{s:syntax}) may be used
-to create a starting position file for a particular photon.
+This string, if not blank (and blank is the default), will cause \srthree to create an output file,
+with a name given by the value of \vn{photon_start_output_file}, of the photon starting positions
+along with the state of the random number generator. The format for this file is compatible with the
+format of the \vn{photon_start_input_file}. This file is generally used for debugging purposes and
+is not of general interest. Note: If \vn{photon_start_input_file} is set,
+\vn{photon_start_output_file} will be ignored (no output file is generated). Also note that the file
+will have the starting coordinates of all photons generated, not just the photons that pass any
+filtering tests. Thus, if any of the filter parameters are set, the size of the file may be very
+large. See \sref{s:photon.start} for the syntax of this file. Alternatively, the \vn{-out} command
+line option (\sref{s:syntax}) may be used to create a starting position file for a particular
+photon.
 
   \item[\vn{photon_start_input_file}] \Newline
-If not blank, the file named by \vn{photon_start_input_file} will be read by \srthree and used to
-initialize photon starting positions. See \sref{s:photon.start} for the syntax of this file.  The
-state of the random number generator at the time of a photon's initialization can also be specified
-in the file. In this case, the random number generator state will also be set along with the state
-of the photon. This is useful for diagnostic purposes when one wishes to compare the results of
-different versions of the \srthree program. Note: Starting position files may be generated by
-setting \vn{photon_start_output_file} or by using the \vn{-out} command line option (\sref{s:syntax}).
+If not blank (and blank is the default), the file named by \vn{photon_start_input_file} will be read
+by \srthree and used to initialize photon starting positions. See \sref{s:photon.start} for the
+syntax of this file.  The state of the random number generator at the time of a photon's
+initialization can also be specified in the file. In this case, the random number generator state
+will also be set along with the state of the photon. This is useful for diagnostic purposes when one
+wishes to compare the results of different versions of the \srthree program. Note: Starting position
+files may be generated by setting \vn{photon_start_output_file} or by using the \vn{-out} command
+line option (\sref{s:syntax}).
 
 If \vn{photon_start_input_file} is set to ``\vn{CUSTOM}'', instead of reading from a file, custom
 code is used to generate the initial photon position. Details of how this works is given
 in Sec.~\sref{c:custom}.
 
   \item[\vn{photon_track_file}] \Newline
-This string, if not blank, will create a data file with a table of points along the photon tracks.
-This file is useful for plotting photon trajectories since it records intermediate points between
-points where the photon hits a wall.
-See \sref{s:photon.track.file} for more details
+This string, if not blank (and blank is the default), will create a data file with a table of points
+along the photon tracks.  This file is useful for plotting photon trajectories since it records
+intermediate points between points where the photon hits a wall.  See \sref{s:photon.track.file} for
+more details
 
   \item[\vn{plot_param\%...}] \Newline
 The \vn{plot_param} structure contains parameters used with the \vn{-plot} option when
 starting \srthree. See Section~\sref{s:plot.opt} for more details.
 
   \item[\vn{random_seed}] \Newline
-Random number seed used in by the random number generator. If set to 0, the system clock
-will be used. That is, if set to 0, the output results will vary from run to run. 
+Random number seed used in by the random number generator. If set to 0 (the default), the system
+clock will be used. That is, if set to 0, the output results will vary from run to run and if
+non-zero the results will be the same from run to run.
 
   \item[\vn{roughness_correlation_len}] \Newline
 This parameter sets the surface roughness correlation length in meters
@@ -742,22 +751,22 @@ diffuse scattering.  If negative (the default), the value of
 5.5~$\mu$m will be used.
 
   \item[\vn{s_filter_min}, \vn{s_filter_max}] \Newline
-Minimum and maximum longitudinal position filter values of the final
-photon position. A negative filter value indicates that the particular
-filter is not used. See below.
+Minimum and maximum longitudinal position filter values of the final photon position. A negative
+filter value (the default) indicates that the particular filter is not used. See \sref{s:filter}.
 
   \item[\vn{sr3d_params\%allow_absorption}] \Newline
-This parameter, if set False, will cause \srthree suppress absorption
-and to always reflect photons when they hit the chamber wall. This
-parameter is only used for testing purposes.
+This parameter, if set False, will cause \srthree suppress absorption and to always reflect photons
+when they hit the chamber wall. Default is True. Setting to False is only used for testing purposes. 
 
   \item[\vn{sr3d_params\%allow_reflections}] \Newline
 This parameter, if set False, will cause \srthree to stop tracking a given photon once
 it hits the chamber wall. This can be used to generate data on where the primary photons are striking.
+Default is True.
 
   \item[\vn{sr3d_params\%ds_track_step_max}, \vn{sr3d_params\%dr_track_step_max}] \Newline
-These parameters determine the maximum distance a photon is tracked in
-a given ``step'' see \sref{s:track} for more details.
+These parameters determine the maximum distance a photon is tracked in a given ``step'' see
+\sref{s:track} for more details. Defaults are 3 meters for \vn{sr3d_params%ds_track_step_max}
+and 0.1 meter for \vn{sr3d_params%dr_track_step_max}.
 
   \item[\vn{sr3d_params\%max_reflections}] \Newline
 This parameter sets the maximum number of reflections that a photon can have. If a photon is
@@ -783,60 +792,40 @@ default surface (\sref{s:dflt.reflect}). This is used for diffuse
 scattering.  If negative (the default), the value 200~nm will be used.
 
   \item[\vn{turn_off_kickers_in_lattice}] \Newline
-If \vn{turn_off_kickers_in_lattice} is set to True (the default is
-False), then all kicks from steering elements in the lattice will be zeroed.
+If \vn{turn_off_kickers_in_lattice} is set to True (the default is False), then all kicks from
+steering elements in the lattice will be zeroed.
+
+  \item[\vn{vert_angle_init_filter_min, vert_angle_init_filter_max}] \Newline
+Minimum and maximum filter values for a photon's initial vertical angle (\sref{s:filter}).  Without
+filtering photon angles will be in the range $[-\pi/2, \pi/2]$. If \vn{vert_angle_init_filter_min}
+is less than $-\pi/2$ (which is the default) a value of $-\pi/2$ is used for it. If
+\vn{vert_angle_init_filter_max} is greater than $\pi/2$ (which is the default) a value of $\pi/2$ is
+used for it. Also see \vn{vert_angle_symmetric_init_filter}.
+
+  \item[\vn{vert_angle_symmetric_init_filter}] \Newline
+Sets if the photon's initial vertical angle vertical angle (\sref{s:filter}) filtering is symmetric
+about 0. If set to False (the default), the filter angular range is
+\begin{example}
+  [vert_angle_init_filter_min, vert_angle_init_filter_max]
+\end{example}
+If set to True, photons will be accepted for tracking if they are in one of the ranges
+\begin{example}
+  [-vert_angle_init_filter_max, -vert_angle_init_filter_min], or
+  [vert_angle_init_filter_min, vert_angle_init_filter_max]
+\end{example}
+
 
   \item[\vn{wall_file}] \Newline
 This string gives the name of the vacuum chamber wall definition
 file. See \sref{s:wall.file} for more details.
 
   \item[\vn{wall_hit_file}] \Newline
-This string, if not blank, will create a data file listing the points
-where the photons hit the wall including all the reflection
-points. This will be in addition to the regular output file.  See
-\sref{s:wall.hit.file} for more details.
+This string, if not blank (which is the default), will create a data file listing the points where
+the photons hit the wall including all the reflection points. This will be in addition to the
+regular output file.  See \sref{s:wall.hit.file} for more details.
 \end{description}
-%-----------------------
 
-\srthree will generate a set of approximately \vn{num_photons_per_pass} photons in the
-radiation production region.  This is called a ``pass''.  After any filtering, \srthree
-will check to see if the number of unfiltered photons is at least \vn{num_photons}.  If
-so, photon generation will stop. If not enough photons have been generated, \srthree will
-generate another \vn{num_photons_per_pass}, and so on, until at least \vn{num_photons}
-unfiltered photons have been generated. Thus the actual number of unfiltered photons
-will be between \vn{num_photons} and \vn{num_photons_per_pass}.
-
-The six "filter" parameters are:
-\begin{example}
-  e_init_filter_min   ! min initial energy filter.
-  e_init_filter_max   ! max initial energy filter.
-  e_filter_min        ! min energy filter.
-  e_filter_max        ! max energy filter.
-  s_filter_min        ! min longitudinal position filter.
-  s_filter_max        ! max longitudinal position filter.
-\end{example}
-A filter parameter is "unset" if its value is negative and is "set"
-otherwise.
-
-Photons that do not satisfy the set filter values are discarded. The
-\vn{e_init_filter_min} and \vn{e_init_filter_max} parameters are 
-compared against the initial photon energy, and the other four
-filter parameters are compared against the final photon position and
-energy. The s-filter can wrap around $s = 0$: That is,
-if both \vn{s_filter_min} and \vn{s_filter_max} have been set,
-and \vn{s_filter_min} is {\em greater} than \vn{s_filter_max}, the region
-for keeping a photon is from \vn{s_filter_min} through the end of the
-lattice along with the region from the start of the lattice to
-\vn{s_filter_max}.
-
-Note: Processes like florescence can create photons with an energy that is different from the energy
-of the photon that initiates the process. Currently, \srthree does not model such processes so the
-final photon energy will be equal to the initial photon energy. This being the case,
-\vn{e_init_filter_min} and \vn{e_init_filter_max} are equivalent to \vn{e_filter_min} and
-\vn{e_filter_max} respectively. Furthermore, the execution time of a simulation will be speeded up
-if \vn{e_init_filter_min} and \vn{e_init_filter_max} are used instead of \vn{e_filter_min} and
-\vn{e_filter_max} since less tracking will be done.
-
+%------------------------------------------------------------------
 %------------------------------------------------------------------
 \chapter{Vacuum Chamber} 
 \label{s:vac.chamber}
@@ -1540,6 +1529,7 @@ Prescription for converting:
 \end{enumerate}
 
 %------------------------------------------------------------------
+%------------------------------------------------------------------
 \chapter{Photon Tracking \& Reflections}
 
 %------------------------------------------------------------------
@@ -1558,6 +1548,18 @@ sections are ellipses with 5:1 aspect ratio. The interpolated cross-section B2 a
 0.5$ is seen to be concave.}  \label{f:convex-chamber}
 \end{center}
 \end{figure}
+
+[Note: Parameters like \vn{num_photons_per_pass} mentioned in here are set in the master input file
+(\sref{s:master}).
+
+\srthree will generate a set of approximately \vn{num_photons_per_pass} photons in the radiation
+production region.  This is called a ``pass''.  After any filtering, \srthree will check to see if
+the number of surviving photons is at least \vn{num_photons}.  If so, photon generation will
+stop. If not enough photons have been generated, \srthree will generate another
+\vn{num_photons_per_pass}, and so on, until at least \vn{num_photons} surviving photons have been
+generated. Thus the actual number of surviving photons will be between \vn{num_photons} and
+\vn{num_photons_per_pass}. [A surviving photon is a photon that passes all filter requirements
+(\sref{s:filter}) and is recorded in the output statistics.]
 
 When a photon is created, \srthree checks to see if the photon is within any
 subchamber. If the photon is not within any subchamber, that is, if it is outside the
@@ -1647,6 +1649,45 @@ of the subchambers -- which defines the entire vacuum chamber -- is concave. To 
 another way, given a concave vacuum chamber, if the vacuum chamber can be constructed
 using a number of convex subchambers, there will be no problem with \srthree not detecting
 photons leaving and entering the vacuum chamber in a single step.
+
+%------------------------------------------------------------------
+\section{Photon Filtering}
+\label{s:filter}
+
+Filters (set in the main parameter file \sref{s:master}) are used to discard uninteresting photons
+from being recorded in output files. There are two types of filters. Initialization filters are
+applied when a photon is being generated and end filters are applied at the end of photon
+tracking. The initialization filters are
+\begin{example}
+  e_init_filter_min                 ! Min initial energy filter.
+  e_init_filter_max                 ! Max initial energy filter.
+  vert_angle_init_filter_min        ! Min vertical angle filter.
+  vert_angle_init_filter_max        ! Max vertical angle filter.
+  vert_angle_symmetric_init_filter  ! Logical: Symmetric angle filtering?
+\end{example}
+The use of initialization filters will also speed up the simulation since it eliminates tracking of
+uninteresting photons.
+
+The four end of photon tracking filters are:
+\begin{example}
+  e_filter_min        ! Min Energy filter.
+  e_filter_max        ! Max energy filter.
+  s_filter_min        ! Min longitudinal position filter.
+  s_filter_max        ! Max longitudinal position filter.
+\end{example}
+
+The s-filters can wrap around $s = 0$: That is, if both \vn{s_filter_min} and \vn{s_filter_max} have
+been set, and if \vn{s_filter_min} is {\em greater} than \vn{s_filter_max}, the region for keeping a
+photon is from \vn{s_filter_min} through the end of the lattice along with the region from the start
+of the lattice to \vn{s_filter_max}.
+
+Note: Processes like florescence can create photons with an energy that is different from the energy
+of the photon that initiates the process. Currently, \srthree does not model such processes so the
+final photon energy will be equal to the initial photon energy. This being the case,
+\vn{e_init_filter_min} and \vn{e_init_filter_max} are equivalent to \vn{e_filter_min} and
+\vn{e_filter_max} respectively except that the inital filters will speed up the simulation.
+
+See \sref{s:master.params} for more details.
 
 %------------------------------------------------------------------
 \section{photon\_start\_input\_file}
