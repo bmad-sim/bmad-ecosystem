@@ -17,13 +17,13 @@ character(16), parameter :: qp_color_name(0:16) =   ['White        ', &
 integer, parameter :: solid$ = 1, dashed$ = 2, dash_dot$ = 3
 integer, parameter :: dotted$ = 4, dash_dot3$ = 5
 
-character(16) :: qp_line_pattern_name(5) = ['solid    ', &
+character(16), parameter :: qp_line_pattern_name(5) = ['solid    ', &
     'dashed   ', 'dash_dot ', 'dotted   ', 'dash_dot3' ]
 
 integer, parameter :: solid_fill$ = 1, no_fill$ = 2
 integer, parameter :: hatched$ = 3, cross_hatched$ = 4
 
-character(16) :: qp_fill_name(4) = ['solid_fill   ', 'no_fill      ', &
+character(16), parameter :: qp_fill_name(4) = ['solid_fill   ', 'no_fill      ', &
                                       'hatched      ', 'cross_hatched' ]
 
 integer, parameter :: square_sym$ = 0, dot_sym$ = 1, plus_sym$ = 2, times_sym$ = 3
@@ -34,7 +34,7 @@ integer, parameter :: star5_sym$ = 12, triangle_filled_sym$ = 13, red_cross_sym$
 integer, parameter :: star_of_david_sym$ = 15, square_filled_sym$ = 16
 integer, parameter :: circle_filled_sym$ = 17, star5_filled_sym$ = 18
 
-character(16) :: qp_symbol_type_name(0:18) = ['square         ', &
+character(16), parameter :: qp_symbol_type_name(0:18) = ['square         ', &
     'dot            ', 'plus           ', 'times          ', 'circle         ', &
     'x_symbol       ', '---------------', 'triangle       ', 'circle_plus    ', &
     'circle_dot     ', 'square_concave ', 'diamond        ', 'star5          ', &
