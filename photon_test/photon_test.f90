@@ -14,7 +14,7 @@ integer i
 open (1, file = 'output.now', recl = 200)
 
 do i = 0, 5
-  call bend_photon_energy_init(E_rel, i / 5.0_rp)
+  E_rel = bend_photon_energy_init(i / 5.0_rp)
   write (1, '(a, i0, a, f16.10)') '"E_rel_', i, '" ABS 0', E_rel 
 enddo
 
