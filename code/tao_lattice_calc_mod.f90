@@ -270,11 +270,6 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       call normal_form_rd_terms(normal_form, rf_on)
     endif
 
-    !
-
-    !if (branch%param%geometry == closed$) then
-
-
     call tao_hook_branch_calc (u, tao_lat, branch)
 
   enddo branch_loop
