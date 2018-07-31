@@ -1052,6 +1052,21 @@ case ('ix_bunch')
 case ('symbol_every')
   call tao_set_integer_value (this_curve%symbol_every, component, value_str, error, 0, 1000000)
 
+case ('symbol_size')
+  call tao_set_real_value (this_curve%symbol%height, component, value_str, error)
+
+case ('symbol_color')
+  call tao_set_switch_value (this_curve%symbol%color, component, value_str, qp_color_name, error)
+
+case ('symbol_type')
+  call tao_set_switch_value (this_curve%symbol%type, component, value_str, qp_symbol_type_name, error)
+
+case ('smooth_line_calc')
+  call tao_set_logical_value (this_curve%smooth_line_calc, component, value_str, error)
+
+case ('line_color')
+  call tao_set_switch_value (this_curve%line%color, component, value_str, qp_color_name, error)
+
 case ('component')
   this_curve%component = remove_quotes(value_str)
 
@@ -1063,9 +1078,6 @@ case ('draw_symbols')
 
 case ('draw_symbol_index')
   call tao_set_logical_value (this_curve%draw_symbol_index, component, value_str, error)
-
-case ('smooth_line_calc')
-  call tao_set_logical_value (this_curve%smooth_line_calc, component, value_str, error)
 
 case ('use_y2')
   call tao_set_logical_value (this_curve%use_y2, component, value_str, error)
@@ -1120,7 +1132,7 @@ case ('y_axis_scale_factor')
 case default
   call out_io (s_error$, r_name, "BAD CURVE COMPONENT")
   return
-    
+
 end select
 
 ! Set ix_ele_ref_track if necessary
@@ -2345,6 +2357,61 @@ var = ix
 error = .false.
 
 end subroutine tao_set_integer_value
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_set_switch_value (var, var_str, value_str, name_list, error, print_err)
+!
+! Routine to  set the value of an integer switch varialbe.
+!
+! If the value is out of the range [min_val, max_val] then an error message will
+! be generated and the variable will not be set.
+!
+! Input:
+!   var_str   -- Character(*): Used for error messages.
+!   value_str -- Character(*): String with encoded value.
+!   print_err -- logical, optional: If True, print error message. Default is true
+!
+! Output:
+!   var   -- Integer: Variable to set.
+!   error -- Logical: Set True on an error. False otherwise.
+!-
+
+subroutine tao_set_switch_value (var, var_str, value_str, name_list, error, print_err)
+
+implicit none
+
+integer var
+integer ios, ix
+
+character(*) var_str, value_str
+character(*) name_list(:)
+character(*), parameter :: r_name = 'tao_set_switch_value'
+logical error
+logical, optional :: print_err
+
+!
+
+error = .true.
+
+call match_word(value_str, name_list, ix, .false., .true.)
+
+if (ix == 0) then
+  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, trim(var_str) // ' IS UNKNOWN.')
+  return 
+endif
+
+if (ix < 0) then
+  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, trim(var_str) // ' ABBREVIATION MATCHES MULTIPLE NAMES.')
+  return 
+endif
+
+var = ix
+error = .false.
+
+end subroutine tao_set_switch_value
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------

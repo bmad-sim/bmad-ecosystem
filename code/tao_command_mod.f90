@@ -270,7 +270,7 @@ end subroutine tao_cmd_split
 !
 ! Input:
 !   line              -- character(*): Command line
-!   switch_list(*)    -- character(*): List of valid switches. 
+!   switch_list(:)    -- character(*): List of valid switches. 
 !   return_next_word  -- logical: See above.
 !
 ! Output:
@@ -324,7 +324,7 @@ endif
 
 call string_trim(line(ix_word+1:), line, ix_word)
 
-end subroutine
+end subroutine tao_next_switch
 
 end module
 

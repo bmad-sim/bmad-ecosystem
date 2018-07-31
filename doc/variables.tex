@@ -22,7 +22,7 @@ with index 5 in the block.
 
 A set of variables within a \vn{v1_var} block
 can be referred to by using using a comma \vn{,} to
-separate their indexes. Additionally, a Colon \vn{:} can be use to
+separate their indexes. Additionally, a Colon ``\vn{:}'' can be use to
 specify a range of variables. For example
 \begin{example}
   quad_k1[3:6,23]
@@ -102,8 +102,10 @@ The list of components that can be set or refereed to are:
   \index{variable!model}\index{variable!design}\index{variable!base}
   \begin{description}
   \item[attrib_name] \Newline
-Name of the element attribute to vary. To see a list of attributes for a given element
-consult the \bmad manual or use the \vn{show element -attributes} command.
+Name of the attribute to vary. Consult the \bmad manual for appropriate attribute names. If the
+attribute is associated with a lattice element, the \vn{show element -all} command will list most
+attributes of interest.  It is important to keep in mind that it is not possible to use attributes
+that are computed (that is, dependent attributes).
   \item[base] \Newline
 The value of the variable as derived from the \vn{base} lattice (\sref{s:universe}).
   \item[delta_merit] \Newline
