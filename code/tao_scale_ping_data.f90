@@ -65,12 +65,12 @@ if (.not. any(good_user)) then
     do j = 1, size(d1_arr2)
       d1b => d1_arr2(j)%d1
       if (lbound(d1b%d, 1) /= lbound(d1%d, 1) .or. ubound(d1b%d, 1) /= ubound(d1%d, 1)) then
-        call out_io(s_error$, r_name, 'DATA ARRAY ' // ping_name(i) // ' ARRAY BOUNDS DO NOT MATCH ' // ping_name)
+        call out_io(s_error$, r_name, 'DATA ARRAY ' // trim(ping_name(i)) // ' ARRAY BOUNDS DO NOT MATCH ' // ping_main)
         cycle
       endif
       forall (id = lbound(d1%d, 1): ubound(d1%d, 1)) good_user2(id) = d1b%d(id)%good_user
       if (.not. any(good_user2)) cycle
-      if (any(good_user) .and. any(good_user /= good_user2)) then
+      if (any(good_user) .and. any(good_user .neqv. good_user2)) then
         call out_io(s_error$, r_name, 'DATA ARRAY ' // ping_name(i) // ' HAS GOOD_USER MISMATCH WITH ' // trim(ping_here_name))
       endif          
       good_user = good_user2
