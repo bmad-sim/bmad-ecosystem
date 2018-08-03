@@ -323,8 +323,13 @@ endif
 ! To generate photons we either need bends or wigglers or a photon init file.
 
 if (i0_tot_eff == 0 .and. photon_start_input_file == '') then
-  call out_io (s_fatal$, r_name, 'NO BENDS OR OTHER ELEMENTS TO GENERATE RADIATION IN REGION OF INTEREST!')
-  call err_exit
+  if (i0_tot == 0) then
+    call out_io (s_fatal$, r_name, 'NO BENDS OR OTHER ELEMENTS TO GENERATE RADIATION IN REGION OF INTEREST!')
+  else
+    call out_io (s_fatal$, r_name, 'ENERGY AND/OR VERTICAL PHOTON ANGLE INIT FILTERS ARE SET TO VALUES ' // &
+                                                                      'SUCH THAT NO PHOTONS WILL BE GENERATED!')
+  endif
+  stop
 endif
 
 ! Print some info
