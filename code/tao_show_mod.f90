@@ -1190,7 +1190,7 @@ case ('element')
       print_wall = .true.
     case default
       if (attrib0 /= '') then
-        call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // attrib0)
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // switch)
         return
       endif
       attrib0 = switch
