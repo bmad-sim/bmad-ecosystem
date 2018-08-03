@@ -195,6 +195,14 @@ close (1)
 print *,'Lattice file: ',trim(lattice_file)
 print *,'Wall file: ',trim(wall_file)
 
+if (vert_angle_init_filter_min < 0 .and. vert_angle_symmetric_init_filter) then
+  print *, 'vert_angle_init_filter_min must be non-negative if vert_angle_symmetric_init_filter = True!'
+  print *, 'Will stop here.'
+  stop
+endif
+
+
+
 if (reflect_file /= '') wall_hit_file = reflect_file  ! Accept old syntax.
 sr3d_params%photon_track_file = photon_track_file
 sr3d_params%wall_hit_file = wall_hit_file
