@@ -1,7 +1,7 @@
 !+
 ! Function num_lords (slave, lord_type) result (num)
 !
-! Routine to return the number of lords of a lattice element of a certain type.
+! Routine to return the number of lords of a given type for a given lattice element.
 !
 ! Input:
 !   slave     -- ele_struct: Slave element.

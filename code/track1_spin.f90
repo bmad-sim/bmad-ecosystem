@@ -62,7 +62,7 @@ case (bmad_standard$)
   call track1_spin_bmad (start_orb, ele, param, end_orb, make_quaternion)
 
 case (custom$)
-  call track1_spin_custom (start_orb, ele, param, end_orb, err)
+  call track1_spin_custom (start_orb, ele, param, end_orb, err, make_quaternion)
 
 ! Notice that PTC spin tracking is only done here only when the (orbital) tracking_method is *not* symp_lie_ptc
 case (symp_lie_ptc$)
