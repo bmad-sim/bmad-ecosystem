@@ -154,15 +154,15 @@ subroutine track1_preprocess (start_orb, ele, param, err_flag, finished, radiati
   logical err_flag, finished, radiation_included
 end subroutine
 
-subroutine track1_spin_custom (start_orb, ele, param, end_orb, err_flag, track)
+subroutine track1_spin_custom (start_orb, ele, param, end_orb, err_flag, make_quaternion)
   import
   implicit none
   type (coord_struct) :: start_orb
   type (coord_struct) :: end_orb
   type (ele_struct) :: ele
   type (lat_param_struct) :: param
-  type (track_struct), optional :: track
   logical err_flag
+  logical, optional :: make_quaternion
 end subroutine
 
 subroutine track1_wake_hook (bunch, ele, finished)
