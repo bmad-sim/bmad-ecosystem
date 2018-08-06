@@ -225,14 +225,8 @@ do
                 i_array = (/ k, ix_d1_data /) )  
       call err_exit
     endif
-    do i = lbound(datum, 1), ubound(datum, 1)
-      if ((datum(i)%ele_ref_name /= '' .or. datum(i)%ele_start_name /= '') .and. datum(i)%ele_name == '') then
-        write (line, '(4a, i0, a)') trim(d2_data%name), '.', trim(d1_data%name), '[', i, ']'
-        call out_io (s_abort$, r_name, &
-              'ERROR: ELE_NAME IS BLANK BUT ELE_REF_NAME OR ELE_START_NAME IS NOT FOR: ' // line)
-        call err_exit
-      endif
 
+    do i = lbound(datum, 1), ubound(datum, 1)
       if (index(datum(i)%data_type, 'dat::') /= 0) then
         call out_io (s_error$, r_name, &
                      'DATA_TYPE USES OLD "dat::" PREFIX. PLEASE CHANGE TO "data::": ' // datum(i)%data_type)
