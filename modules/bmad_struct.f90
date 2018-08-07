@@ -969,18 +969,18 @@ end type
 ! The routines calc_bunch_params and calc_bunch_params_slice calculate bunch parameters.
 
 type bunch_params_struct
-  type (twiss_struct) :: x, y, z   ! Projected Twiss parameters
-  type (twiss_struct) :: a, b, c   ! Normal mode twiss parameters
-  type (coord_struct) :: centroid  ! Lab frame
-  real(rp) :: spin(3)              ! polarization
-  real(rp) sigma(6,6)              ! beam size matrix
-  real(rp) rel_max(6)              ! Max orbit relative to centroid
-  real(rp) rel_min(6)              ! Min orbit relative to_centroid
-  real(rp) s                       ! Longitudinal position.
-  real(rp) charge_live             ! Charge of all non-lost particle
-  integer n_particle_tot           ! Total number of particles
-  integer n_particle_live          ! Number of non-lost particles
-  integer n_particle_lost_in_ele   ! Number lost in element (not calculated by Bmad)
+  type (coord_struct) :: centroid = coord_struct()  ! Lab frame
+  type (twiss_struct) :: x, y, z         ! Projected Twiss parameters
+  type (twiss_struct) :: a, b, c         ! Normal mode twiss parameters
+  real(rp) :: spin(3) = 0                ! polarization
+  real(rp) :: sigma(6,6) = 0             ! beam size matrix
+  real(rp) :: rel_max(6) = 0             ! Max orbit relative to centroid
+  real(rp) :: rel_min(6) = 0             ! Min orbit relative to_centroid
+  real(rp) :: s = -1                     ! Longitudinal position.
+  real(rp) :: charge_live = 0            ! Charge of all non-lost particle
+  integer :: n_particle_tot = 0          ! Total number of particles
+  integer :: n_particle_live = 0         ! Number of non-lost particles
+  integer :: n_particle_lost_in_ele = 0  ! Number lost in element (not calculated by Bmad)
 end type
 
 !-------------------------------------------------------------------------
