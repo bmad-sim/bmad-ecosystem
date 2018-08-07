@@ -1,4 +1,4 @@
 #!/usr/bin/perl
 
 `pdflatex synrad`; 
-`cp synrad.pdf /home/dcs16/public_html/manuals`;
+`cp synrad.pdf /home/dcs16/public_html/bmad/manuals`;

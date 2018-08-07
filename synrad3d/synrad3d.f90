@@ -196,12 +196,16 @@ print *,'Lattice file: ',trim(lattice_file)
 print *,'Wall file: ',trim(wall_file)
 
 if (vert_angle_init_filter_min < 0 .and. vert_angle_symmetric_init_filter) then
-  print *, 'vert_angle_init_filter_min must be non-negative if vert_angle_symmetric_init_filter = True!'
+  print *, 'ERROR: VERT_ANGLE_INIT_FILTER_MIN MUST BE NON-NEGATIVE IF VERT_ANGLE_SYMMETRIC_INIT_FILTER = TRUE!'
   print *, 'Will stop here.'
   stop
 endif
 
-
+if ((vert_angle_init_filter_min > -pi/2 .or. vert_angle_init_filter_max < pi/2) .and. e_init_filter_min <= 0) then
+  print *, 'e_init_filter_min must be set if vert_angle_init_filter_min or max is set.'
+  print *, 'Will stop here.'
+  stop
+endif
 
 if (reflect_file /= '') wall_hit_file = reflect_file  ! Accept old syntax.
 sr3d_params%photon_track_file = photon_track_file
@@ -320,6 +324,14 @@ else
   i0_eff = rad_int_ele%ele%i0
 endif
 
+! Print some info
+
+print *, 'I0 Radiation Integral of entire lattice:              ', modes%synch_int(0)
+print *, 'I0 Radiation Integral over emission region:           ', i0_tot
+print *, 'I0 over emission region & energy/angle filter range:  ', i0_tot_eff
+print *, 'Closed orbit max X amplitude (meters):', maxval(abs(orb(:)%vec(1)))
+print *, 'Closed orbit max Y amplitude (meters):', maxval(abs(orb(:)%vec(3)))
+
 ! To generate photons we either need bends or wigglers or a photon init file.
 
 if (i0_tot_eff == 0 .and. photon_start_input_file == '') then
@@ -332,13 +344,9 @@ if (i0_tot_eff == 0 .and. photon_start_input_file == '') then
   stop
 endif
 
-! Print some info
-
-print *, 'I0 Radiation Integral of entire lattice:              ', modes%synch_int(0)
-print *, 'I0 Radiation Integral over emission region:           ', i0_tot
-print *, 'I0 over emission region over init energy filter range:', i0_tot_eff
-print *, 'Closed orbit max X amplitude (meters):', maxval(abs(orb(:)%vec(1)))
-print *, 'Closed orbit max Y amplitude (meters):', maxval(abs(orb(:)%vec(3)))
+if (i0_tot_eff < 1d-8 * i0_tot .and. photon_start_input_file == '') then
+  call out_io (s_warn$, r_name, 'INIT ENERGY AND OR ANGLE FILTERS ARE SO RESTRICTIVE THAT THE SIULATION COULD BE VERY INACCURATE.')
+endif
 
 ! d_i0 determines the number of photons to generatie per unit i0 integral.
 
