@@ -36,15 +36,15 @@ is_valid = .false.
 d_type = datum%data_type
 
 if (datum%ele_name /= '') then
-  if (.not. check_ele_ok (datum%ele_name, datum%ix_ele, 'DATUM ELEMENT')) return
+  if (.not. check_ele_ok (datum%ele_name, datum%ix_ele, 'DATUM ELEMENT NOT FOUND: ' // datum%ele_name)) return
 endif
 
 if (datum%ele_ref_name /= '') then
-  if (.not. check_ele_ok (datum%ele_ref_name, datum%ix_ele_ref, 'DATUM ELEMENT REFERENCE ')) return
+  if (.not. check_ele_ok (datum%ele_ref_name, datum%ix_ele_ref, 'DATUM ELEMENT REFERENCE NOT FOUND: ' // datum%ele_ref_name)) return
 endif
 
 if (datum%ele_start_name /= '') then
-  if (.not. check_ele_ok (datum%ele_start_name, datum%ix_ele_start, 'DATUM ELEMENT START')) return
+  if (.not. check_ele_ok (datum%ele_start_name, datum%ix_ele_start, 'DATUM ELEMENT START NOT FOUND: ' // datum%ele_start_name)) return
 endif
 
 !
@@ -125,8 +125,7 @@ logical is_ok
 is_ok = .false.
 
 if (ix_ele < 0) then
-  if (print_err) call out_io (s_error$, r_name, err_str // ' NOT LOCATED: ' // datum%ele_name, &
-                                                'FOR DATUM: ' // tao_datum_name(datum))
+  if (print_err) call out_io (s_error$, r_name, err_str, 'FOR DATUM: ' // tao_datum_name(datum))
   return
 endif
 
