@@ -34,7 +34,6 @@ type (tao_universe_struct), pointer :: u
 type (tao_d2_data_input) d2_data
 type (tao_d1_data_input) d1_data
 type (tao_datum_input) datum(n_data_minn:n_data_maxx) 
-type (ele_pointer_struct), allocatable :: eles(:)
 
 real(rp) default_weight, def_weight        ! default merit function weight
 real(rp) default_spin_n0(3), def_spin_n0(3)
@@ -238,7 +237,7 @@ do
     do i = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. good_unis(i)) cycle
       if (.not. mask(i)) cycle
-      call d1_data_stuffit (k, s%u(i), s%u(i)%n_d2_data_used)
+      call d1_data_stuffit (k, s%u(i), s%u(i)%n_d2_data_used, datum)
     enddo
 
   enddo
@@ -255,11 +254,12 @@ call tao_init_data_end_stuff ()
 !-----------------------------------------------------------------------
 contains
 
-subroutine d1_data_stuffit (i_d1, u, n_d2)
+subroutine d1_data_stuffit (i_d1, u, n_d2, datum)
 
 use srdt_mod
 
 type (tao_universe_struct), target :: u
+type (tao_datum_input) datum(n_data_minn:n_data_maxx) 
 type (tao_d1_data_struct), pointer :: d1_this
 type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 type (ele_pointer_struct), allocatable, save :: eles(:)
@@ -311,6 +311,25 @@ if (search_for_lat_eles /= '') then
 
   ! get element names
 
+  u%data(n1:n2)%good_user      = datum(ix1:ix2)%good_user
+  u%data(n1:n2)%invalid_value  = datum(ix1:ix2)%invalid_value
+  u%data(n1:n2)%spin_n0(1)     = datum(ix1:ix2)%spin_n0(1)
+  u%data(n1:n2)%spin_n0(2)     = datum(ix1:ix2)%spin_n0(2)
+  u%data(n1:n2)%spin_n0(3)     = datum(ix1:ix2)%spin_n0(3)
+  u%data(n1:n2)%ele_start_name = datum(ix1:ix2)%ele_start_name
+  u%data(n1:n2)%ele_ref_name   = datum(ix1:ix2)%ele_ref_name
+  u%data(n1:n2)%ix_bunch       = datum(ix1:ix2)%ix_bunch
+  u%data(n1:n2)%data_type      = datum(ix1:ix2)%data_type
+  u%data(n1:n2)%merit_type     = datum(ix1:ix2)%merit_type
+  u%data(n1:n2)%weight         = datum(ix1:ix2)%weight
+  u%data(n1:n2)%s_offset       = datum(ix1:ix2)%s_offset
+  u%data(n1:n2)%data_source    = datum(ix1:ix2)%data_source
+  u%data(n1:n2)%meas_value     = 0  
+
+  ! use default_data_type if given, if not, auto-generate the data_type
+  if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name
+  where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = default_data_type
+
   jj = n1
   do k = lbound(eles, 1), ubound(eles, 1)
     if (jj .gt. n2) then
@@ -321,33 +340,21 @@ if (search_for_lat_eles /= '') then
     u%data(jj)%ix_ele    = eles(ind(k))%ele%ix_ele
     u%data(jj)%ix_branch = eles(ind(k))%ele%ix_branch
     u%data(jj)%exists    = .true.
+
+    call find_this_element (u%data(jj)%ele_ref_name,   'ELE_REF ELEMENT',   u, u%data(jj), u%data(jj)%ix_ele_ref)
+    call find_this_element (u%data(jj)%ele_start_name, 'ELE_START ELEMENT', u, u%data(jj), u%data(jj)%ix_ele_start)
+
+
+    ! eval_point
+    call match_word (datum(ix1+jj-n1)%eval_point, anchor_pt_name(1:), ix, can_abbreviate = .false.)
+    if (ix == 0) then
+      call out_io (s_abort$, r_name, 'EVAL_POINT UNRECOGNIZED: ' // datum(ix1+jj-n1)%eval_point)
+      stop
+    endif
+    u%data(jj)%eval_point = ix
+
     jj = jj + 1
   enddo
-
-  u%data(n1:n2)%good_user      = datum(ix1)%good_user
-  u%data(n1:n2)%invalid_value  = datum(ix1)%invalid_value
-  u%data(n1:n2)%spin_n0(1)     = datum(ix1)%spin_n0(1)
-  u%data(n1:n2)%spin_n0(2)     = datum(ix1)%spin_n0(2)
-  u%data(n1:n2)%spin_n0(3)     = datum(ix1)%spin_n0(3)
-  u%data(n1:n2)%ele_start_name = datum(ix1)%ele_start_name
-  u%data(n1:n2)%ele_ref_name   = datum(ix1)%ele_ref_name
-  u%data(n1:n2)%ix_bunch       = datum(ix1)%ix_bunch
-  u%data(n1:n2)%data_type      = datum(ix1)%data_type
-  u%data(n1:n2)%merit_type     = datum(ix1)%merit_type
-  u%data(n1:n2)%weight         = datum(ix1)%weight
-  u%data(n1:n2)%s_offset       = datum(ix1)%s_offset
-  u%data(n1:n2)%data_source    = datum(ix1)%data_source
-  u%data(n1:n2)%meas_value     = 0  
-  ! use default_data_type if given, if not, auto-generate the data_type
-  if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name
-  where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = default_data_type
-  ! eval_point
-  call match_word (datum(ix1)%eval_point, anchor_pt_name(1:), ix, can_abbreviate = .false.)
-  if (ix == 0) then
-    call out_io (s_abort$, r_name, 'EVAL_POINT UNRECOGNIZED: ' // datum(ix1)%eval_point)
-    stop
-  endif
-  u%data(n1:n2)%eval_point = ix
 
   deallocate (ind)
 
@@ -467,7 +474,6 @@ else
   ! Find elements associated with the data
 
   do j = n1, n2
-
     call match_word (datum(j+ix1-n1)%eval_point, anchor_pt_name(1:), ix, can_abbreviate = .false.)
     if (ix == 0) then
       call out_io (s_abort$, r_name, 'EVAL_POINT UNRECOGNIZED: ' // datum(j+ix1-n1)%eval_point)
@@ -477,68 +483,9 @@ else
 
     u%data(j)%exists = .true.
 
-    if (u%data(j)%ele_name /= '') then
-      call str_upcase (u%data(j)%ele_name, u%data(j)%ele_name)
-      call lat_ele_locator (u%data(j)%ele_name, u%design%lat, eles, n_loc)
-      if (n_loc == 0) then
-        call out_io (s_error$, r_name, 'LATTICE ELEMENT NOT LOCATED: ' // u%data(j)%ele_name, & 
-                                       'FOR DATUM: ' // tao_datum_name(u%data(j)), &
-                                       'WILL MARK THIS DATUM AS NOT EXISTING')
-        u%data(j)%exists = .false.
-        cycle
-      endif
-      if (n_loc > 1) then
-        call out_io (s_error$, r_name, 'MULTIPLE LATTICE ELEMENTS OF THE SAME NAME: ' // u%data(j)%ele_name, & 
-                                       'FOR DATUM: ' // tao_datum_name(u%data(j)), &
-                                       'WILL MARK THIS DATUM AS NOT EXISTING')
-        u%data(j)%exists = .false.
-        cycle
-      endif
-
-      u%data(j)%ix_ele    = eles(1)%ele%ix_ele
-      u%data(j)%ix_branch = eles(1)%ele%ix_branch
-    endif
-
-    if (u%data(j)%ele_ref_name /= '') then
-      call str_upcase (u%data(j)%ele_ref_name, u%data(j)%ele_ref_name)
-      call lat_ele_locator (u%data(j)%ele_ref_name, u%design%lat, eles, n_loc)
-      if (n_loc == 0) then
-        call out_io (s_error$, r_name, 'ELE_REF NOT LOCATED: ' // u%data(j)%ele_ref_name, & 
-                                       'FOR DATUM: ' // tao_datum_name(u%data(j)), &
-                                       'WILL MARK THIS DATUM AS NOT EXISTING')
-        u%data(j)%exists = .false.
-        cycle
-      endif
-      if (n_loc > 1) then
-        call out_io (s_error$, r_name, 'MULTIPLE ELE_REF ELEMENTS OF THE SAME NAME: ' // u%data(j)%ele_ref_name, & 
-                                       'FOR DATUM: ' // tao_datum_name(u%data(j)), &
-                                       'WILL MARK THIS DATUM AS NOT EXISTING')
-        u%data(j)%exists = .false.
-        cycle
-      endif
-      u%data(j)%ix_ele_ref = eles(1)%ele%ix_ele
-    endif
-
-    if (u%data(j)%ele_start_name /= '') then
-      call str_upcase (u%data(j)%ele_start_name, u%data(j)%ele_start_name)
-      call lat_ele_locator (u%data(j)%ele_start_name, u%design%lat, eles, n_loc)
-      if (n_loc == 0) then
-        call out_io (s_error$, r_name, 'ELE_START NOT LOCATED: ' // u%data(j)%ele_start_name, & 
-                                       'FOR DATUM: ' // tao_datum_name(u%data(j)), &
-                                       'WILL MARK THIS DATUM AS NOT EXISTING')
-        u%data(j)%exists = .false.
-        cycle
-      endif
-      if (n_loc > 1) then
-        call out_io (s_error$, r_name, 'MULTIPLE ELE_START ELEMENTS OF THE SAME NAME: ' // u%data(j)%ele_start_name, & 
-                                       'FOR DATUM: ' // tao_datum_name(u%data(j)), &
-                                       'WILL MARK THIS DATUM AS NOT EXISTING')
-        u%data(j)%exists = .false.
-        cycle
-      endif
-      u%data(j)%ix_ele_start = eles(1)%ele%ix_ele
-    endif
-
+    call find_this_element (u%data(j)%ele_name,       'LATTICE ELEMENT',   u, u%data(j), u%data(j)%ix_ele, u%data(j)%ix_branch) 
+    call find_this_element (u%data(j)%ele_ref_name,   'ELE_REF ELEMENT',   u, u%data(j), u%data(j)%ix_ele_ref)
+    call find_this_element (u%data(j)%ele_start_name, 'ELE_START ELEMENT', u, u%data(j), u%data(j)%ix_ele_start)
   enddo
 
 endif
@@ -599,6 +546,47 @@ if (.not. any(u%data(n1:n2)%exists)) then
 endif
 
 end subroutine d1_data_stuffit
+
+!------------------------------
+! contains
+
+subroutine find_this_element (ele_name, who, u, datum, ix_ele, ix_branch)
+
+type (tao_universe_struct) u
+type (tao_data_struct) datum
+type (ele_pointer_struct), allocatable :: eles(:)
+character(*) ele_name, who
+integer ix_ele, n_loc
+integer, optional :: ix_branch
+logical exists
+
+!
+
+if (ele_name == '') return
+
+call upcase_string (ele_name)
+call lat_ele_locator (ele_name, u%design%lat, eles, n_loc)
+
+if (n_loc == 0) then
+  call out_io (s_error$, r_name, who // ' NOT LOCATED: ' // ele_name, & 
+                                 'FOR DATUM: ' // tao_datum_name(datum), &
+                                 'WILL MARK THIS DATUM AS NOT EXISTING')
+  datum%exists = .false.
+  return
+endif
+
+if (n_loc > 1) then
+  call out_io (s_error$, r_name, 'MULTIPLE LATTICE ELEMENTS OF THE SAME NAME: ' // ele_name, & 
+                                 'FOR DATUM: ' // tao_datum_name(datum), &
+                                 'WILL MARK THIS DATUM AS NOT EXISTING')
+  datum%exists = .false.
+  return
+endif
+
+ix_ele = eles(1)%ele%ix_ele
+if (present(ix_branch)) ix_branch = eles(1)%ele%ix_branch
+
+end subroutine find_this_element
 
 end subroutine tao_init_data
 
