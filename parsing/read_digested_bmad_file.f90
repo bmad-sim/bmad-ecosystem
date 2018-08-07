@@ -526,7 +526,7 @@ if (ac_kicker_alloc) then
   endif
 
   if (n2 > -1) then
-    allocate(ac%frequencies(n1))
+    allocate(ac%frequencies(n2))
     do n = lbound(ac%frequencies, 1), ubound(ac%frequencies, 1)
       read (d_unit, err = 9130) ac%frequencies(n)
     enddo
