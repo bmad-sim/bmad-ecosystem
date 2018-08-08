@@ -1,3 +1,5 @@
+% Note: Use "pdflatex synrad3d" to generate a pdf file.
+
 \documentclass[11pt,openany]{report}
 \usepackage{tocloft}
 \usepackage{geometry}            % See geometry.pdf to learn the layout options. There are lots.
@@ -112,7 +114,7 @@ $\vcenter{\hbox{\includegraphics[width=2in]{lhc-cross-section.pdf}}}$
 {\LARGE\bfseries David Sagan and Gerry Dugan}
 
 \vspace{0.4in}
-{\large\bfseries July 29, 2018}
+{\large\bfseries August 8, 2018}
 
 \end{center}
 \end{titlepage}
@@ -796,11 +798,14 @@ If \vn{turn_off_kickers_in_lattice} is set to True (the default is False), then 
 steering elements in the lattice will be zeroed.
 
   \item[\vn{vert_angle_init_filter_min, vert_angle_init_filter_max}] \Newline
-Minimum and maximum filter values for a photon's initial vertical angle (\sref{s:filter}).  Without
+Minimum and maximum filter values for a photon's initial vertical angle (\sref{s:filter}). Without
 filtering photon angles will be in the range $[-\pi/2, \pi/2]$. If \vn{vert_angle_init_filter_min}
 is less than $-\pi/2$ (which is the default) a value of $-\pi/2$ is used for it. If
 \vn{vert_angle_init_filter_max} is greater than $\pi/2$ (which is the default) a value of $\pi/2$ is
-used for it. Also see \vn{vert_angle_symmetric_init_filter}.
+used for it. Also see \vn{vert_angle_symmetric_init_filter}. Note: If vertical angle filters are used,
+\vn{e_init_filter_min} must be set. This is mandated to avoid problems that occur at zero photon energy where
+the inital photon distribution from a bend has infinite probability density per unit of energy and an infinite 
+vertical angle width.
 
   \item[\vn{vert_angle_symmetric_init_filter}] \Newline
 Sets if the photon's initial vertical angle vertical angle (\sref{s:filter}) filtering is symmetric
@@ -1667,6 +1672,10 @@ tracking. The initialization filters are
 \end{example}
 The use of initialization filters will also speed up the simulation since it eliminates tracking of
 uninteresting photons.
+
+Note: If vertical angle filters are used, \vn{e_init_filter_min} must be set. This is mandated to
+avoid problems that occur at zero photon energy where the inital photon distribution from a bend has
+infinite probability density per unit of energy and an infinite vertical angle width.
 
 The four end of photon tracking filters are:
 \begin{example}
