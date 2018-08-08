@@ -328,7 +328,7 @@ endif
 
 ! Invert using the NR routine zbrent.
 
-integ_prob = zbrent(vert_angle_func, 0.0_rp, 1.0_rp, 1d-10)
+integ_prob = zbrent(vert_angle_func, 0.0_rp, 1.0_rp, 1d-12)
 
 !----------------------------------------------------------------------------------------
 contains
