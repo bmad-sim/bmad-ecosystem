@@ -256,7 +256,7 @@ endif
 ! bend_photon_e_rel_init calculates photon energy given the integrated probability
 ! so invert using the NR routine zbrent.
 
-integ_prob = zbrent(energy_func, 0.0_rp, 1.0_rp, 1d-10)
+integ_prob = zbrent(energy_func, 0.0_rp, 1.0_rp, 1d-12)
 
 !----------------------------------------------------------------------------------------
 contains
@@ -406,26 +406,31 @@ end subroutine bend_photon_polarization_init
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Function bend_photon_vert_angle_init (E_rel, gamma, r_in) result (phi)
+! Function bend_photon_vert_angle_init (E_rel, gamma, r_in, invert) result (phi)
 !
-! Routine to convert a "random" number in the interval [0,1] to a photon vertical emission 
-! angle for a simple bend.
+! Routine to convert an integrated probability to a vertical angle for emitting a photon from a bend. 
+! The integrated probability is in the range [0,1] with 0 corresponding to a phi = -pi/2 and 
+! integrated probability of 1 corresponding to phi = pi/2.
 !
 ! Module needed:
 !   use photon_init_mod
 !
 ! Input:
-!   E_rel -- real(rp): Relative photon energy E/E_crit. 
-!		gamma -- real(rp): beam relativistic factor 
-!   r_in  -- real(rp), optional: number in the range [0,1].
-!             If not present, a random number will be used.
+!   E_rel   -- real(rp): Relative photon energy E/E_crit. 
+!		gamma   -- real(rp): beam relativistic factor 
+!   r_in    -- real(rp), optional: Integrated probability in the range [0,1].
+!               If not present, a random number will be used.
+!   invert  -- real(rp), optional: If True then take r_in as the inverse integrated probability 
+!               with inverted probability = 1 - probability. This is useful to avoid round-off
+!               errors when for looking at the tail of the distribution where the integrated prob is 
+!               very close to 1 and small deviations can have large effects. Default is False.
 ! 
 ! Output:
-!   phi   -- real(rp): The vertical photon angle (in radians).
+!   phi   -- real(rp): The photon vertical emission angle (in radians).
 !                  Note: phi is an increasing monotonic function of r_in.
 !-
 
-function bend_photon_vert_angle_init (E_rel, gamma, r_in) result (phi)
+function bend_photon_vert_angle_init (E_rel, gamma, r_in, invert) result (phi)
 
 use nr, only: bcuint
 
@@ -444,12 +449,13 @@ type (photon_init_spline_struct), save :: angle_half_width(n_width)
 type (photon_vert_angle_pt_struct), save :: gp(n_E_pt, 0:n_prob_pt)
 
 real(rp), optional :: r_in
-real(rp), save :: prob_pt(0:n_prob_pt), log_E_pt(n_E_pt)
-real(rp) rr, phi, E_rel, gamma, gamma_phi, log_E_rel, log_E_prob, dval_dE, dval_dprob
+real(rp), save :: prob_pt(0:n_prob_pt), inv_prob_pt(0:n_prob_pt), log_E_pt(n_E_pt)
+real(rp) rr, inv_rr, phi, E_rel, gamma, gamma_phi, log_E_rel, log_E_prob, dval_dE, dval_dprob
 real(rp) f, sig
 
-logical, save :: init_needed = .true.
 integer i, sign_phi, ix_E, ix_prob
+logical, optional :: invert
+logical, save :: init_needed = .true.
 
 ! Init
 
@@ -470,17 +476,26 @@ endif
 ! The fit is only for positive phi.
 ! So make phi negative if rr < 0.5
 
-if (rr > 0.5) then
-  rr = 2 * rr - 1
+if (logic_option(.false., invert)) then
+  inv_rr = rr
+  rr = 1.0_rp - inv_rr
+else
+  inv_rr = 1.0_rp - rr
+endif
+
+if (rr > 0.5_rp) then
+  inv_rr = 2.0_rp * inv_rr
+  rr = 2.0_rp * rr - 1.0_rp
   sign_phi = 1
 else
-  rr = 1 - 2 * rr
+  inv_rr = 2.0_rp * rr
+  rr = 1.0_rp - 2.0_rp * rr
   sign_phi = -1
 endif
 
 ! Border cases:
 
-if (E_rel == 0 .or. rr == 1) then
+if (E_rel == 0 .or. inv_rr == 0) then
   phi = sign_phi * pi / 2
   return
 endif
@@ -515,14 +530,14 @@ if (ix_prob == n_prob_pt) then  ! Extrapolate
               [gp(ix_E,ix_prob-1)%dgp_dprob, gp(ix_E+1,ix_prob-1)%dgp_dprob, gp(ix_E+1,ix_prob)%dgp_dprob, gp(ix_E,ix_prob)%dgp_dprob], &
               [gp(ix_E,ix_prob-1)%dgp_d2,    gp(ix_E+1,ix_prob-1)%dgp_d2,    gp(ix_E+1,ix_prob)%dgp_d2,    gp(ix_E,ix_prob)%dgp_d2], &
                log_E_pt(ix_E), log_E_pt(ix_E+1), prob_pt(ix_prob-1), prob_pt(ix_prob), log_E_prob, prob_pt(n_prob_pt), gamma_phi, dval_dE, dval_dprob)
-  gamma_phi = gamma_phi * log((1-prob_pt(n_prob_pt))/(1-rr))
+  gamma_phi = gamma_phi * log((1-prob_pt(n_prob_pt))/inv_rr)
 
 else ! Interpolate
   call bcuint([gp(ix_E,ix_prob)%gp,        gp(ix_E+1,ix_prob)%gp,        gp(ix_E+1,ix_prob+1)%gp,        gp(ix_E,ix_prob+1)%gp], &
               [gp(ix_E,ix_prob)%dgp_dlogE, gp(ix_E+1,ix_prob)%dgp_dlogE, gp(ix_E+1,ix_prob+1)%dgp_dlogE, gp(ix_E,ix_prob+1)%dgp_dlogE], &
               [gp(ix_E,ix_prob)%dgp_dprob, gp(ix_E+1,ix_prob)%dgp_dprob, gp(ix_E+1,ix_prob+1)%dgp_dprob, gp(ix_E,ix_prob+1)%dgp_dprob], &
               [gp(ix_E,ix_prob)%dgp_d2,    gp(ix_E+1,ix_prob)%dgp_d2,    gp(ix_E+1,ix_prob+1)%dgp_d2,    gp(ix_E,ix_prob+1)%dgp_d2], &
-              log_E_pt(ix_E), log_E_pt(ix_E+1), prob_pt(ix_prob), prob_pt(ix_prob+1), log_E_prob, rr, gamma_phi, dval_dE, dval_dprob)
+              log_E_pt(ix_E), log_E_pt(ix_E+1), 0.0_rp, prob_pt(ix_prob+1) - prob_pt(ix_prob), log_E_prob, inv_prob_pt(ix_prob) - inv_rr, gamma_phi, dval_dE, dval_dprob)
 endif
 
 ! Scale result by the sigma of the spectrum at fixed E_rel
@@ -550,7 +565,7 @@ contains
 subroutine init_this()
 
 real(rp), parameter :: loge10 = log(10.0_rp)
-integer i
+integer i, ai
 
 !
 
@@ -582,13 +597,21 @@ enddo
 
 prob_pt(0) = 0
 do i = 1, 9
-  prob_pt(i)    = i/10.0_rp
-  prob_pt(i+ 9) = 0.9_rp     + i/100.0_rp
-  prob_pt(i+18) = 0.99_rp    + i/1000.0_rp
-  prob_pt(i+27) = 0.999_rp   + i/10000.0_rp
-  prob_pt(i+36) = 0.9999_rp  + i/100000.0_rp
-  prob_pt(i+45) = 0.99999_rp + i/1000000.0_rp
-  prob_pt(i+54) = 0.999999_rp + i/10000000.0_rp
+  ai = real(i, rp)
+  prob_pt(i)    =               ai*1.0e-1_rp
+  prob_pt(i+ 9) = 0.9_rp      + ai*1.0e-2_rp
+  prob_pt(i+18) = 0.99_rp     + ai*1.0e-3_rp
+  prob_pt(i+27) = 0.999_rp    + ai*1.0e-4_rp
+  prob_pt(i+36) = 0.9999_rp   + ai*1.0e-5_rp
+  prob_pt(i+45) = 0.99999_rp  + ai*1.0e-6_rp
+  prob_pt(i+54) = 0.999999_rp + ai*1.0e-7_rp
+  inv_prob_pt(i)    = 1.0_rp    - ai*1.0e-1_rp
+  inv_prob_pt(i+ 9) = 1.0e-1_rp - ai*1.0e-2_rp
+  inv_prob_pt(i+18) = 1.0e-2_rp - ai*1.0e-3_rp
+  inv_prob_pt(i+27) = 1.0e-3_rp - ai*1.0e-4_rp
+  inv_prob_pt(i+36) = 1.0e-4_rp - ai*1.0e-5_rp
+  inv_prob_pt(i+45) = 1.0e-5_rp - ai*1.0e-6_rp
+  inv_prob_pt(i+54) = 1.0e-6_rp - ai*1.0e-7_rp
 enddo
 
 log_E_pt = [-6.0_rp, -3.0_rp, -2.0_rp, -1.0_rp, 0.0_rp, 1.0_rp, 2.0_rp] 
@@ -1404,7 +1427,7 @@ integer i, n_int, ix_stack(2000), n_stack, ixs
 logical, optional :: vert_angle_symmetric
 logical err_flag
 
-character(*), parameter :: r_name = 'init_photon_vert_angle_integ_prob'
+character(*), parameter :: r_name = 'init_photon_integ_prob'
 
 !
 
