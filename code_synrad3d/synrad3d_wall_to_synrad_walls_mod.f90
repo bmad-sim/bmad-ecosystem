@@ -256,7 +256,7 @@ if (y1*y2 >= 0) then ! Does not straddle zero
   return
 endif
 
-y0 = super_zbrent (this_y, -10.0_rp, 10.0_rp, 1d-8, err_flag)
+y0 = super_zbrent (this_y, -10.0_rp, 10.0_rp, 0.0_rp, 1d-8, err_flag)
 if (err_flag) call err_exit
 y1 = this_y(y0)
 
