@@ -293,7 +293,8 @@ The lattice for this simulation is:
   drift1[l] = 2 * r_rowland * sin(theta_in-phi/2)
   drift2[l] = 2 * r_rowland * sin(theta_out-phi/2)
 
-  beginning[theta] = theta_in - phi
+  beginning[theta_position] = theta_in + phi/2
+  det[x_pitch] = pi/2 - theta_out + phi/2
 \end{example}
 
 The reference photon energy is 8.995~KeV and the Rowland circle radius is 0.5~m. The simulation uses
@@ -320,14 +321,15 @@ phi} respectively. Note that if these graze angles had not been explicitly set, 
 would be automatically set to the Bragg angles which
 is not what is wanted when doing an energy scan with finite \vn{phi}.
 
-Besides using the Bragg angles to set the crystal grazing angles, the entrance Bragg angle is used
-to set the initial orientation of the reference trajectory within the global coordinate system
-(\sref{s:global}) by setting \vn{beginning[theta]}. This does not affect photon tracking since
-changing the initial orientation of the reference trajectory just shifts all the lattice element as
-one rigid body. The purpose of setting \vn{beginning[theta]} is to keep the orientation of the
-global coordinates as shown in \fig{f:rowland}A which mimics the actual experimental setup that this
-example is based on. That is, in the actual experimental setup, the source and Rowland circle were
-fixed in the global coordinate system.
+In the actual experimental setup that this example is modeled on, the source and Rowland circle were
+fixed in the global coordinate system (\sref{s:global}) while the crystal and detector move with
+changing \vn{phi) (See \fig{f:rowland}A). To mimic this, the \vn{beginning[theta_position]}
+(\sref{s:beginning}) is set to give the desired orientation of the beginning reference trajectory
+within the global coordinate system. This does not affect photon tracking since changing the initial
+orientation of the reference trajectory just shifts all the lattice elements as one rigid
+body. Additionally, the detector orientation is fixed so that the detector surface normal always
+points towards the Rowland circle center. To get the correct orientation for the detector, the
+detector's \vn{x_pitch} attribute, which rotates the detector (\sref{s:offset}), is set appropriately.
 
 The effect of varying the \vn{crystal} curvature is shown in \fig{f:rowland}B and
 \fig{f:rowland}C. A \bmad based program called \vn{Lux} was used for the simulation. The \vn{Lux}
