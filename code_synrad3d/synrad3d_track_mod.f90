@@ -864,7 +864,7 @@ endif
 ! Find where the photon hits.
 
 in_zbrent = .true.
-path_len = super_zbrent (sr3d_photon_hit_func, path_len0, path_len1, 0.1 * sr3d_params%significant_length, err)
+path_len = super_zbrent (sr3d_photon_hit_func, path_len0, path_len1, 0.0_rp, 0.1 * sr3d_params%significant_length, err)
 if (err) then
   print *, 'WILL IGNORE THIS PHOTON.'
   call sr3d_print_photon_info (photon)
