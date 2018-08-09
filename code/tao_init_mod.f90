@@ -133,7 +133,6 @@ use tao_input_struct
 
 type (tao_universe_struct), pointer :: u
 type (beam_init_struct) beam_init
-type (spin_polar_struct) spin
 
 integer i, k, iu, ios, ib, n_uni
 integer n, iostat, ix_universe, to_universe

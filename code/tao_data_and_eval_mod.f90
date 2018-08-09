@@ -382,7 +382,6 @@ type (tao_lattice_struct), target :: tao_lat
 type (tao_expression_info_struct), allocatable :: info(:)
 type (lat_struct), pointer :: lat
 type (normal_modes_struct) mode
-type (spin_polar_struct) polar
 type (ele_struct), pointer :: ele, ele_start, ele_ref, ele2
 type (ele_struct) ele_at_s
 type (coord_struct), pointer :: orb0, orbit(:), orb
@@ -396,7 +395,6 @@ type (normal_form_struct), pointer :: normal_form
 type (taylor_struct), pointer :: taylor_ptr
 type (complex_taylor_struct), pointer :: complex_taylor_ptr
 type (all_pointer_struct) a_ptr
-type (spin_polar_struct) polar_spin
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2, spin_g(2,6)
@@ -2656,7 +2654,7 @@ case ('spin.')
 
   select case (datum%data_type)
 
-  case ('spin.x', 'spin.y', 'spin.z')
+  case ('spin.x', 'spin.y', 'spin.z', 'spin.amp')
     do i = ix_start, ix_ele
       if (data_source == 'beam') then
         vec3 = bunch_params(i)%spin
@@ -2665,9 +2663,10 @@ case ('spin.')
       endif
 
       select case (datum%data_type)
-      case ('spin.x');  value_vec(i) = vec3(1)
-      case ('spin.y');  value_vec(i) = vec3(2)
-      case ('spin.z');  value_vec(i) = vec3(3)
+      case ('spin.x');    value_vec(i) = vec3(1)
+      case ('spin.y');    value_vec(i) = vec3(2)
+      case ('spin.z');    value_vec(i) = vec3(3)
+      case ('spin.amp');  value_vec(i) = norm2(vec3)
       end select
     enddo
 
@@ -2679,40 +2678,10 @@ case ('spin.')
       endif
 
       select case (datum%data_type)
-      case ('spin.x');  value_vec(ix_ref) = vec3(1)
-      case ('spin.y');  value_vec(ix_ref) = vec3(2)
-      case ('spin.z');  value_vec(ix_ref) = vec3(3)
-      end select
-    endif
-
-    call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
-
-  case ('spin.theta', 'spin.phi', 'spin.amplitude')
-    do i = ix_start, ix_ele
-      if (data_source == 'beam') then
-        polar_spin = vec_to_polar(bunch_params(i)%spin)
-      else
-        polar_spin = vec_to_polar(orbit(i)%spin)
-      endif
-
-      select case (datum%data_type)
-      case ('spin.theta');   value_vec(i) = polar_spin%theta
-      case ('spin.phi');     value_vec(i) = polar_spin%phi
-      case ('spin.amp');     value_vec(i) = polar_spin%polarization
-      end select
-    enddo
-
-    if (ix_ref > -1) then
-      if (data_source == 'beam') then
-        polar_spin = vec_to_polar(bunch_params(ix_ref)%spin)
-      else
-        polar_spin = vec_to_polar(orbit(ix_ref)%spin)
-      endif
-
-      select case (datum%data_type)
-      case ('spin.theta');   value_vec(ix_ref) = polar_spin%theta
-      case ('spin.phi');     value_vec(ix_ref) = polar_spin%phi
-      case ('spin.amp');     value_vec(ix_ref) = polar_spin%polarization
+      case ('spin.x');    value_vec(ix_ref) = vec3(1)
+      case ('spin.y');    value_vec(ix_ref) = vec3(2)
+      case ('spin.z');    value_vec(ix_ref) = vec3(3)
+      case ('spin.amp');  value_vec(ix_ref) = norm2(vec3)
       end select
     endif
 

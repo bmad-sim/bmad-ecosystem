@@ -2820,40 +2820,6 @@ if (all(s%plot_page%template%name /= 'pz')) then
 endif
 
 !---------------
-! spin angles
-
-if (all(s%plot_page%template%name /= 'spin_angles')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(3))
-
-  plt = default_plot_g1c3
-  plt%name                 = 'spin_angles'
-  plt%description          = 'Spin angles & amplitude'
-
-  grph => plt%graph(1)
-  grph%p => plt
-  grph%title         = 'Spin Angles & Amplitude'
-  grph%y%label       = '\gh, \gf, Amp'
-
-  crv => grph%curve(1)
-  crv%g => grph
-  crv%data_type     = 'spin.theta'
-
-  crv => grph%curve(2)
-  crv%g => grph
-  crv%data_type     = 'spin.phi'
-
-  crv => grph%curve(3)
-  crv%g => grph
-  crv%data_type     = 'spin.amp'
-endif
-
-!---------------
 ! spin xyz
 
 if (all(s%plot_page%template%name /= 'spin_xyz')) then
