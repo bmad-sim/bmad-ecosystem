@@ -1876,39 +1876,52 @@ The \vn{dat_file} (whose name is specified in the master input file (\sref{s:mas
 divided into two parts. the top part essentially echos the information provided in
 the main input file. It looks like:
 \begin{example}
-  # photon_number_factor    =  8.155E-01
-  # num_photons_generated   = 123    ! Total including filtered photons.
-  # I0_tot                  = 0.34   ! I0 radiation integral for the ring
-  # ix_ele_track_start      = 103
-  # ix_ele_track_end        = 104
-  # photon_direction        = 1
-  # num_photons             = 10
-  # num_photons_per_pass    = -1
-  # random_seed             = 123456
-  # lattice_file            = "../tao/examples/cesr/lat.bmad"
-  # photon_start_input_file = ""
-  # wall_file               = "synrad3d.wall"
-  # dat_file                = "synrad3d.dat"
-  # chamber_end_geometry    = ""
-  # ds_step_min             =  1.000E-02
+  # photon_number_factor      =  8.155E-01
+  # num_photons               = 10     ! Target number of unfiltered photons.
+  # num_photons_generated     = 123    ! Total including filtered photons.
+  # num_photons_generated_eff = 123    ! Total including filtered photons.
+  # num_photons_passed_test   = -1     ! As set in the input file.
+  # I0_tot_ring               = 5.6e7  ! I0 radiation integral for the ring
+  # I0_tot                    = 5.6e7  ! I0 radiation integral for emit region
+  # I0_tot_eff                = 2.3e7  ! Effective I0 including filters
+  # ix_ele_track_start        = 103
+  # ix_ele_track_end          = 104
+  # photon_direction          = 1
+  # random_seed               = 123456
+  # lattice_file              = "../tao/examples/cesr/lat.bmad"
+  # photon_start_input_file   = ""
+  # wall_file                 = "synrad3d.wall"
+  # dat_file                  = "synrad3d.dat"
+  # chamber_end_geometry      = ""
+  # ds_step_min               =  1.000E-02
   ... etc ...
 \end{example}
 
 The first line gives the \vn{photon_number_factor} which is computed via the formula
 \Begineq
   \text{photon_number_factor} = 
-    \frac{5 \, \sqrt{3} \, e^2 \, I_0}{4 \, \pi \, \epsilon_0 \, \hbar \, c \, N_{sim}}
+    \frac{5 \, \sqrt{3} \, e^2 \, I_{0,eff}}{4 \, \pi \, \epsilon_0 \, \hbar \, c \, N_{sim}}
 \Endeq
 where $N_{sim}$ is the number of photons generated in the
-simulation run, and $I_0$ is the synchrotron radiation integral
+simulation run, and $I_{0,eff}$ is the effective synchrotron radiation integral.
+If there is no initial filtering (\sref{s:filter}), $I_{0,eff}$ is given by the
+standard radiation integral for $I_0$
 \Begineq
   I_0 = \int_{emit} ds \, \gamma_0 \, g(s)
 \Endeq
 with $g(s)$ being the bending strength (equal to $1/\rho$, with $\rho$ being the bending radius), and the
-integral is done over the region where photons are emitted in the simulaiton.
+integral is done over the region where photons are emitted in the simulaiton. If there is inital filtering
+applied, $I_{0,eff}$ is
+\Begineq
+  I_{0,eff} = f_p * I_0 
+\Endeq
+where $f_p$ is the fraction of photons that will pass the initial filter tests. If the
+filtering is too stringent, and the value of $f_p$ falls below $10^{-16}$ or so, round-off
+error will make the calculated value of $I_{0,eff}$ zero. In this case, \srthree will not be able to
+run.
 
-\vn{photon_number_factor} is related to $N_{\gamma}$, the total number of photons per
-beam particle emitted in one revolution in the actual machine via
+The \vn{photon_number_factor} is related to $N_{\gamma}$, the total number of photons per beam
+particle emitted in one revolution in the actual machine via
 \Begineq
   \text{photon_number_factor} = \frac{N_\gamma}{N_{sim}}
 \Endeq
