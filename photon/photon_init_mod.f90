@@ -296,39 +296,30 @@ end function bend_photon_energy_integ_prob
 
 function bend_vert_angle_integ_prob (vert_angle, E_rel, gamma) result (integ_prob)
 
-use nr
+use super_recipes_mod
 
 implicit none
 
 real(rp) vert_angle, E_rel, gamma, integ_prob
-
-! Easy cases.
-
-if (vert_angle <= -pi/2) then
-  integ_prob = 0
-  return
-endif
-
-if (vert_angle >= pi/2) then
-  integ_prob = 1
-  return
-endif
+logical err_flag, invert
 
 ! If angle is so large that bend_photon_vert_angle_init is inaccurate, just round off to 0 or 1.
 
-if (bend_photon_vert_angle_init(E_rel, gamma, 0.0_rp) >= vert_angle) then
-  integ_prob = 0
-  return
-endif
-
-if (bend_photon_vert_angle_init(E_rel, gamma, 1.0_rp) <= vert_angle) then
-  integ_prob = 1
+if (abs(bend_photon_vert_angle_init(E_rel, gamma, 1.0e-30_rp)) <= abs(vert_angle)) then
+  if (vert_angle < 0) then
+    integ_prob = 0
+  else
+    integ_prob = 1
+  endif
   return
 endif
 
 ! Invert using the NR routine zbrent.
+! Use the inverted probability in the calculation for positive angles since it is more accurate.
 
-integ_prob = zbrent(vert_angle_func, 0.0_rp, 1.0_rp, 1d-12)
+invert = (vert_angle > 0)
+integ_prob = super_zbrent(vert_angle_func, 0.0_rp, 1.0_rp, 1d-12, 1d-20, err_flag)
+if (invert) integ_prob = 1.0_rp - integ_prob
 
 !----------------------------------------------------------------------------------------
 contains
@@ -338,7 +329,7 @@ function vert_angle_func(integ_prob) result (d_angle)
 real(rp), intent(in) :: integ_prob
 real(rp) angle, d_angle
 
-angle = bend_photon_vert_angle_init(E_rel, gamma, integ_prob)
+angle = bend_photon_vert_angle_init(E_rel, gamma, integ_prob, invert)
 d_angle = angle - vert_angle
 
 end function vert_angle_func
