@@ -131,29 +131,32 @@ end function super_rtsafe
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function super_zbrent (func, x1, x2, tol, err_flag) result (x_zero)
+! Function super_zbrent (func, x1, x2, rel_tol, abs_err_flag) result (x_zero)
 !
 ! Routine to find the root of a function.
+! The tolerance is:
+!   tolerance = |x_root| * rel_tol + abs_tol
+!
 ! This routine is essentially zbrent from Numerical Recipes with the feature that it returns
 ! an error flag if something goes wrong instead of bombing.
 !
 ! Input:
-!   func(x)  -- Function whose root is to be found. See zbrent for more details.
-!   x1, x2   -- Real(rp): Bracket values.
-!   tol      -- Real(rp): Tolerance for root.
-!
+!   func(x)  -- function whose root is to be found. See zbrent for more details.
+!   x1, x2   -- real(rp): Bracket values.
+!   rel_tol  -- real(rp): Relative tolerance for the error of the root.
+!   abs_tol  -- real(rp): Absolute tolerance for the error of the root.
 ! Output:
-!   x_zero    -- Real(rp): Root found.
-!   err_flag -- Logical: Set True if there is a problem. False otherwise.
+!   x_zero   -- Real(rp): Root found.
+!   err_flag -- logical: Set True if there is a problem. False otherwise.
 !-
 
-function super_zbrent (func, x1, x2, tol, err_flag) result (x_zero)
+function super_zbrent (func, x1, x2, rel_tol, abs_tol, err_flag) result (x_zero)
 
 use nrtype
 
 implicit none
 
-real(rp), intent(in) :: x1,x2,tol
+real(rp), intent(in) :: x1,x2, rel_tol, abs_tol
 real(rp) :: x_zero
 
 interface
@@ -166,7 +169,6 @@ interface
 end interface
 
 integer, parameter :: itmax = 100
-real(rp), parameter :: eps = epsilon(x1)
 integer :: iter
 real(rp) :: a,b,c,d,e,fa,fb,fc,p,q,r,s,tol1,xm
 
@@ -209,7 +211,7 @@ do iter = 1,ITMAX
     fc = fa
   end if
 
-  tol1 = 2.0_rp*EPS*abs(b)+0.5_rp*tol
+  tol1 = 0.5_rp * (rel_tol * abs(b) + abs_tol)
   xm = 0.5_rp*(c-b)
 
   if (abs(xm) <= tol1 .or. fb == 0.0) then
