@@ -338,8 +338,9 @@ if (i0_tot_eff == 0 .and. photon_start_input_file == '') then
   if (i0_tot == 0) then
     call out_io (s_fatal$, r_name, 'NO BENDS OR OTHER ELEMENTS TO GENERATE RADIATION IN REGION OF INTEREST!')
   else
-    call out_io (s_fatal$, r_name, 'ENERGY AND/OR VERTICAL PHOTON ANGLE INIT FILTERS ARE SET TO VALUES ' // &
-                                                                      'SUCH THAT NO PHOTONS WILL BE GENERATED!')
+    call out_io (s_fatal$, r_name, 'ENERGY AND/OR VERTICAL PHOTON ANGLE INIT FILTERS ARE SET TO VALUES SUCH THAT, DUE TO ', &
+                                   'ROUND-OFF ERRORS, NO PHOTONS WILL BE GENERATED!', &
+                                   'GENERALLY THIS MEANS THAT THE SUPRESSION FACTOR DUE TO THE FILTERS IS GREATER THAN 10^16')
   endif
   stop
 endif
@@ -887,7 +888,7 @@ write (iu, '(2a)')           '# date                       = ', date_and_time
 write (iu, '(a, i0, a)')     '# ix_ele_track_start         = ', ix_ele_track_start
 write (iu, '(a, i0, a)')     '# ix_ele_track_end           = ', ix_ele_track_end
 write (iu, '(a, i0, a)')     '# photon_direction           = ', photon_direction
-write (iu, '(a, i0, a)')     '# num_photons                = ', num_photons, '   ! Input target number to generate'
+write (iu, '(a, i0, a)')     '# num_photons                = ', num_photons, '   ! Input target unfiltered photons'
 write (iu, '(a, i0, a)')     '# num_photons_per_pass       = ', num_photons_per_pass
 write (iu, '(a, i0, a)')     '# random_seed                = ', random_seed
 write (iu, '(a, 3a)')        '# lattice_file               = ', '"', trim(lattice_file), '"'
