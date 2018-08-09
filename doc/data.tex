@@ -917,7 +917,7 @@ is the reference energy at that element.
 
   %----------------------
   \item[orbit.x, .y, .z, .px, .py, .pz] \Newline
-Orbit position and momenta
+Orbit position and momenta.
 
   %----------------------
   \item[periodic.tt.$ijklm\ldots$] \Newline
@@ -1158,6 +1158,21 @@ Twiss parameters if the \vn{data_source} is set to \vn{lat}.
 Irregardless of the setting of \vn{data_source}, the beam emittance and longitudinal sigma
 values will be taken from the \vn{beam_init} structure (\sref{s:beam.init}) and {\em not}
 any emittances or longitudinal sigma values specified in the lattice file.
+
+  %----------------------
+  \item[spin.x, .y, .z, .amp] \Newline
+The \vn{spin.x}, \vn{spin.y} and \vn{spin.z} datums are the spin polarization $(x, y, z)$ components
+and the \vn{spin.amp} datum is the amplitude of the spin. For a beam, this is the spin averaged over
+the beam.  For particles with a lattice with an open geometry, the spin is calculated by propagating
+the spin from the beginning of the lattice. The beginning spin is set in the lattice file by setting
+\vn{beginning[spin_x]}, \vn{beginning[spin_y]} and \vn{beginning[spin_z]} as explained in the \bmad
+manual. For a lattice with a closed geometry, the calculated spin is the closed orbit invariant spin
+with the amplitude of the spin set at unity.
+
+  %----------------------
+  \item[spin.depolarization_rate, .polarization_rate, .polarization_limit] \Newline
+The spin depolarization rate 
+\etc...
 
   %----------------------
   \item[t.$ijk$,  tt.$ijklm\ldots$] \Newline
@@ -1430,10 +1445,14 @@ squared.
     sigma.Lxy
   \end{tabular}                       & Bunch size                                & beam, lat   & No  \\ \hline 
 
-  \begin{tabular}{@{}l}   
-    spin.amp, .theta, .phi          \\
-    spin.x, .y, .z          
-  \end{tabular}                       & Particle spin                             & beam, lat   & No  \\ \hline 
+  spin.x, .y, .z                      & Particle spin                             & beam, lat   & No  \\ \hline 
+  spin.depolarization_rate            & Spin depolarization rate.                 & lat         & No  \\ \hline
+  spin.polarization_rate              & Spin polarization rate.                   & lat         & No  \\ \hline
+  spin.polarization_limit             & Spin polarization limit.                  & lat         & No  \\ \hline
+
+  spin_g_matrix.$ij$ \hspace{10pt} $1 \le i \le 2, 1 \le j \le 6$ \\
+                                      & Spin G-matrix components                  & lat         & No  \\ \hline
+
   time                                & Particle time (sec)                       & beam, lat   & Yes \\ \hline
   t.$ijk$ \hspace{10pt} $1 \le i,j,k \le 6$
                                       & Term in 2\Nd order transfer map           & lat         & No  \\ \hline 

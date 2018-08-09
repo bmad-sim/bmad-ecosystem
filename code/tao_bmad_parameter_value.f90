@@ -24,7 +24,6 @@ implicit none
 type (ele_struct) ele
 type (coord_struct) orbit
 type (bpm_phase_coupling_struct) bpm_data
-type (spin_polar_struct) polar_spin
 
 real(rp) value, cbar(2,2), f, amp_a, amp_b, amp_na, amp_nb
 
@@ -216,14 +215,8 @@ case ('spin.')
   case ('spin.x');        value = orbit%spin(1)
   case ('spin.y');        value = orbit%spin(2)
   case ('spin.z');        value = orbit%spin(3)
-  case ('spin.theta', 'spin.phi', 'spin.amplitude')
-    polar_spin = vec_to_polar(orbit%spin)
-    select case (dat_name)
-    case ('spin.theta');     value = polar_spin%theta
-    case ('spin.phi');       value = polar_spin%phi
-    case ('spin.amp');       value = polar_spin%polarization
-    end select
-  case default;              err_flag = .true.
+  case ('spin.amp');      value = norm2(orbit%spin)
+  case default;           err_flag = .true.
   end select
 
 case ('s_position');         value = ele%s

@@ -1865,19 +1865,18 @@ type (coord_struct), pointer :: orb(:), orb_ref
 type (coord_struct) orbit_end, orbit_last, orbit
 type (lat_struct), pointer :: lat
 type (ele_struct) ele, ele_dum
-type (ele_struct), pointer :: ele_ref
+type (ele_struct), pointer :: ele_here, ele_ref
 type (taylor_struct) t_map(6)
 type (branch_struct), pointer :: branch
 type (all_pointer_struct) a_ptr
 type (em_field_struct) field, field0, field1
-type (spin_polar_struct) polar
 
 real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
 real(rp) comp_sign, vec3(3), r_bunch, amp, phase, ds, dt, time
 
 integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch, idum, n_ele_track
-integer cache_status   
+integer cache_status, ix_last_hybrid
 integer, parameter :: cache_off$ = 0, loading_cache$ = 1, using_cache$ = 2
 
 character(40) data_type, name
@@ -1896,6 +1895,7 @@ orb => tao_branch%orbit
 branch => lat%branch(ix_branch)
 first_time = .true.
 n_ele_track = branch%n_ele_track
+ix_last_hybrid = 0
 
 ix_ref = curve%ix_ele_ref_track
 if (ix_ref < 0) ix_ref = 0
@@ -1986,10 +1986,27 @@ do ii = 1, size(curve%x_line)
   ! Check if in a hybrid or taylor element within which interpolation cannot be done.
 
   ix_ele = element_at_s (lat, s_now, .true., ix_branch, err)
-  if (branch%ele(ix_ele)%key == hybrid$ .or. branch%ele(ix_ele)%key == taylor$ .or. err) then
-    good(ii) = .false.
-    first_time = .true.
-    cycle
+  ele_here => branch%ele(ix_ele)
+  if (ele_here%key == hybrid$ .or. ele_here%key == taylor$ .or. err) then
+    if (err .or. ix_last_hybrid == ix_ele) then
+      good(ii) = .false.
+      first_time = .true.
+      cycle
+    elseif (ix_last_hybrid == -ix_ele .or. s_now > (ele_here%s_start + ele_here%s)/2) then
+      s_now = ele_here%s
+      ix_last_hybrid = ix_ele
+    else
+      s_now = ele_here%s_start
+      ix_last_hybrid = -ix_ele
+    endif
+
+    if (s_now == s_last) then
+      good(ii) = .false.
+      first_time = .true.
+      cycle
+    endif
+
+    curve%x_line(ii) = s_now
   endif
 
   !-----------------------------
@@ -2496,15 +2513,8 @@ do ii = 1, size(curve%x_line)
 
   case ('spin.')
     select case (data_type)
-    case ('spin.theta')
-      polar = vec_to_polar(orbit%spin)
-      value = polar%theta
-    case ('spin.phi')
-      polar = vec_to_polar(orbit%spin)
-      value = polar%phi
     case ('spin.amp')
-      polar = vec_to_polar(orbit%spin)
-      value = polar%polarization
+      value = norm2(orbit%spin)
     case ('spin.x')
       value = orbit%spin(1)
     case ('spin.y')
