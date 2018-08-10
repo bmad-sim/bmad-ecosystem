@@ -17,7 +17,8 @@ use bmad_interface, dummy => ac_kicker_amp
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: lord
 type (ac_kicker_struct), pointer :: ac
 real(rp) t, time, ac_amp
 integer i, n, ix
@@ -27,7 +28,15 @@ integer i, n, ix
 ac_amp = 1
 if (ele%key /= ac_kicker$) return
 
-ac => ele%ac_kick
+! Slice slaves and super slaves have their associated %ac_kick components stored in the lord
+
+if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
+  lord => pointer_to_lord(ele, 1)
+else
+  lord => ele
+endif
+
+ac => lord%ac_kick
 t = time - ele%value(t_offset$)
 
 if (allocated(ac%frequencies)) then

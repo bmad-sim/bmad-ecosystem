@@ -125,57 +125,137 @@ is analogous to how rotation matrices are combined.
 \section{Invariant Spin Field}
 \label{s:isf}
 
-\etcetc In a storage ring, the \vn{invariant spin field} $\bfn(\bfr, s)$
+In a storage ring, the \vn{invariant spin field} $\bfn(\bfr, s)$
 \cite{b:spin.hoff,b:duan15}, at some phase space position $\bfr = (x, p_x, y, p_y, z, p_z)$ and at
 some point $s$ in the ring, is the continuous function with unit amplitude that satisifies
 \Begineq
-  \bfn(\Cal M \bfr, s) = \bfn(\bfr, s)
+  \bfn(\Cal M_r \bfr, s) = \Cal M_s(\bfr) \, \bfn(\bfr, s)
+  \label{nmrs}
+\Endeq
+where $\Cal M_r$ is the orbital part of the 1-turn transfer map and $\Cal M_s(\bfr)$ is the spin
+part of the map which is a function of $\bfr$. In general, it is not straightforward to calculate
+$\bfn$. The exceptional case (besides the cases where there is a resonance) is if the particle is on
+the closed orbit $\bfr_0$. In this case, since $\Cal M_r \bfr_0 = \bfr_0$, and since \Cal M_s(\bfr)
+is a rotation matrix, \Eq{nmrs} can be solved to give the invariant spin field on the closed orbit
+which is denoted $\bfn_0$.
+
+Once the invariant spin field has been calculated, various quantities of interest can be
+computed. For example, given some initial distribution of spins in a beam, the maximum possible time
+averaged polarization $\left< \bfS \right>_{\max}$ is
+\Begineq
+  \left< \bfS \right>_{\max} = \int d\bfr \, \rho(\bfr) \, \bfn(\bfr)
+\Endeq
+where the integral is over the beam phase space space density $\rho$ and the longitudinal
+$s$-dependence is implicit. The above equation neglects any single spin polarization or
+depolarization processes. Notice that what is calculated is a time averaged quantity.
+Instantaneously, the beam can be fully polarized but the average over many turns, at some given
+position $s$, cannot exceed $\left< \bfS \right>_{\max}$.
+
+Another quantity that can be computed from knowledge of $\bfn$ is the equilibrium polarization of a beam
+$\bfP_{dk}$ using the Derbenev-Kondratenko-Mane formula \cite{b:barber}:
+\Begineq
+  \bfP_{dk} = -\bfn \, \frac{8}{5 \, \sqrt{3}}
+  \frac{\displaystyle \oint ds \,\left< g^3 \, \what\bfb \cdot 
+    \left( \bfn - \frac{\partial \bfn}{\partial \delta} \right) \right>_{ps}}
+  {\displaystyle \oint ds \, \left< g^3 \left( 1 - \frac{2}{9} (\bfn \cdot \what\bfs)^2 + 
+    \frac{11}{18} \left| \frac{\partial \bfn}{\partial \delta} \right|^2 \right) \right>_{ps}}
+\Endeq
+where $<>_{ps}$ denotes an $s$-dependent average over phase space, $g = 1/\rho$ is the bending
+strength ($\rho$ is the bending radius), $\delta$ is the fractional energy deviation which, for
+ultra-relativistic particles, is the same as phase space $p_z$, $\what\bfs$ is the unit vector in
+the direction of motion, and $\what\bfb$ is defined to be
+\Begineq
+  \what\bfb \equiv \frac{\what\bfs \cross d\what\bfs/ds}{d\what\bfs/ds}
+\Endeq
+Notice that $\what\bfb$ is the direction of the magnetic field when $\what\bfs$ is perpendicular to
+the magnetic field and when there is no electric field.
+
+The time dependence of the polarization is \cite{b:barber})
+\Begineq
+  \bfP(t) = \bfP_{dk} \, \left( 1 - \exp{-t/\tau_{dk}} \right) + \bfP_0 \, \exp{-t/\tau_{dk}}
+\Endeq
+where $\bfP_0$ is the initial polarization and the polarization rate $\tau_{dk}^{-1}$ is 
+\Begineq
+  \tau_{dk}^{-1} = \frac{5 \, \sqrt{3}}{8} \frac{r_e \, \gamma^5 \, \hbar}{m}
+  \frac{1}{C} \, \oint ds \, \left< g^3 \, \left( 1 - \frac{2}{9} (\bfn \cdot \what\bfs)^2 + 
+  \frac{11}{18} \left| \frac{\partial \bfn}{\partial \delta} \right|^2 \right) \right>_{ps}
 \Endeq
 
-Given 
-The invariant spin field 
-
+$\tau_{dk}^{-1}$ can be decomposed into two parts:
+\Begineq
+  \tau_{dk}^{-1} = \tau_{st}^{-1} + \tau_{dep}^{-1}
+\Endeq
+where $\tau_{st}^{-1}$ is the Sokolov-Ternov poarization rate and the depolarization rate
+$\tau_{dep}^{-1}$ is given by the formula
+\Begineq
+  \tau_{dk}^{-1} = \frac{5 \, \sqrt{3}}{8} \frac{r_e \, \gamma^5 \, \hbar}{m}
+  \frac{1}{C} \, \oint ds \, \left< g^3 \,
+  \frac{11}{18} \left| \frac{\partial \bfn}{\partial \delta} \right|^2 \right>_{ps}
+\Endeq
 
 %-----------------------------------------------------------------   
 \section{SLIM Formalism}
 \label{s:slim}
 
-The \vn{SLIM} formalism\cite{b:duan15,b:barber.ripkin}, indroduced by Alex Chao, is a way to represent the first order
-orbital + spin transport as an $8 \cross 8$ matrix which then can be efficiently analyzed.
+The \vn{SLIM} formalism\cite{b:duan15,b:barber}, indroduced by Alex Chao, is a way to represent the
+first order orbital + spin transport as an $8 \cross 8$ matrix which then can be
+analyzed. The idea is to expand the transport map around the closed orbit $(\bfr_0, \bfn_0)$ where
+$\bfr_0$ is the orbital closed orbit and $\bfn_0$ is the invariant spin field on the closed orbit.
+The spin coordinates are expressed using coordinates $(\bfl_0(s), \bfn_0(s),
+\bfm_0(s))$\footnote{Different authors will use different conventions for the ordering of $\bfl_0$,
+$\bfn_0$, and $\bfm_0(s)$. The ordering used here reflects the fact that in many rings the $\bfn_0$
+axis will point in the vertical $y$-direction.}, where $\bfl_0$ and $\bfm_0$ are axes constructed to
+be periodic in $s$ and transverse to $\bfn_0$, with $(\bfl_0(s), \bfn_0(s), \bfm_0(s))$ forming a
+right hand coordinate system. 
 
-\etcetc
-In development...
-
-
-To compute the $\Bf D$ and $\bfG$ matrices from the spin transport map (\sref{s:spin.map}), the spin
-transport map is first truncated to linear order. In this case, the spin transport map $\cal M_s$
-can be written in the form
+The variation of the spin component along the $\bfn_0$ axis will be second order and therefore, to
+first order, can be ignored. Thus the first order map in the $(\bfr_0, (\bfl_0, \bfm_0))$ coordinate
+system between two any points $s_1$ and $s_2$ is an $8 \cross 8$ matrix $\what\bfM$ which is
+written in the form
 \Begineq
-  \cal M_s = \bfq_0 + \sum_{i = 1}^6 r_i \, \bfq_i
+  \what\bfM(s1, s2) = \begin{pmatrix}
+    \bfM_{6\cross6} & \Bf 0_{6\cross2} \\
+    \bfG_{2\cross6} & \bfD_{2\cross2}
+  \end{pmatrix}
+\Endeq
+Where $\bfM$ is the $6\cross6$ orbital transport matrix, $\bfG$ represents the coupling between
+orbital and spin coordinates, and $\bfD$ is the $2\cross2$ rotation matrix for the spin transport of
+a particle on the closed orbit. The upper right block $\Bf 0_{6\cross2}$ in the $\what\bfM$ matrix
+is zero since Stern-Gerlach effects are ignored. If $\what\bfM$ is the 1-turn matrix ($s_2 = s_1$),
+the phase advance of $\bfD$ is the spin tune.
+
+To compute $\what\bfM$, the first step is to calculate the $(\bfl_0, \bfn_0, \bfm_0)$ coordinate
+system. If the entire ring is being analyzed, $\bfn_0$ at some starting point can be calculated
+(\sref{s:isf}).  If only part of the ring is being analyzed, the orientation of $\bfn_0$ at the
+start of the section will be an input parameter (that is, it is given by the User and not
+calculated). After $\bfn_0$ is known at some $s$-position, $\bfl_0$ and $\bfm_0$ at that
+$s$-position can be choisen somewhat arbitrarily to form a right handed coordinate system.
+
+After the $(\bfl_0, \bfn_0, \bfm_0)$ coordinates have been calculated at some initial point, the
+axes can be transported using the $\bfq_0$ quaternion. When analyzing only a section of a ring,
+there is no identifiable spin tune so nothing further needs to be done. In this case, the $\bfD$
+matrix is just a unit matrix. When analyzing an entire ring, it is sometimes desireable to rotate
+the $\bfl_0(s)$ and $\bfm_0(s)$ axes to give a uniform phase advance as a function of $s$.  When
+analyzing one-turn maps, it is generally not necessary to rotate the $\bfl_0(s)$ and $\bfm_0(s)$
+axes. In this case the spin phase advance as a function of $s$ will be zero except just before the starting
+position where there will be a discontinuous jump in phase.
+
+Once the $(\bfl_0, \bfn_0, \bfm_0)$ coordinates have been calculated, the spin transport map
+(which \Bmad calculates via PTC (\sref{c:ptc})) is first truncated to linear order. In this case, the
+spin transport map $\Cal M_s$, to first order, can be written in the form
+\Begineq
+  \Cal M_s = \bfq_0 + \sum_{i = 1}^6 r_i \, \bfq_i
 \Endeq
 The quaternion $\bfq_0$ is the zeroth order part of the map and the six quaternions $\bfq_i$, $i =
 1, \ldots, 6$ are the first order part with $\bfr$ being the orbital phase space point the map is
 being evaluated at.
 
-The next step is calculate the $(\bfl, \bfn_0, \bfm)$ coordinate system. If the entire ring is being
-analyzed, $\bfn_0$ at some starting point can be calculated as discussed above. If only part of the
-ring is being analyzed, the orientation of $\bfn_0$ at the start of the section will be an input
-parameter (that is, it is given and not calculated). The $\bfl$ and $\bfm$ axes at the starting
-point are chosen to give a right handed coordante system. After the initial $(\bfl, \bfn_0, \bfm)$
-coordinates have been calculated, the axes are transported using the $\bfq_0$
-quaternion. When analyzing only a section of a ring, there is no identifiable spin tune so the
-second step of rotating the $\bfl$ and $\bfm$ axes to give a uniform phase advance is skipped. In
-this case, the $\Bf D$ matrix is just a unit matrix.  When analyzing an entire ring, the second step
-of rotating the $\bfl$ and $\bfm$ axes to give a uniform phase advance is optional (except at the
-end of the ring where the $\bfl$ and $\bfm$ axes must be rotated to keep the axes periodic) since,
-for analysis purposes, it generally does not matter if the spin phase advance is uniform as a
-funciton of longitudinal position.
 
-Once the $(\bfl, \bfn_0, \bfm)$ coordinate system is established, the transformation from this
-coordinate system to the laboratory $(x, y, z)$ coordinates is given by the matrix $(\bfl, \bfn_0,
-\bfm)$ where each axes is a column of the matrix. Between two longitudinal positions $s_1$ and
-$s_2$, the $\Bf D$ matrix is calculated by first transforming $\bfq_0(s_1, s_2)$ to the $(\bfl,
-\bfn_0, \bfm)$ coordinate system
+Once the $(\bfl_0, \bfn_0, \bfm_0)$ coordinate system is established, the transformation from this
+coordinate system to the laboratory $(x, y, z)$ coordinates is given by the matrix $(\bfl_0, \bfn_0,
+\bfm_0)$ where each axes is a column of the matrix. Between two longitudinal positions $s_1$ and
+$s_2$, the $\Bf D$ matrix is calculated by first transforming $\bfq_0(s_1, s_2)$ to the $(\bfl_0,
+\bfn_0, \bfm_0)$ coordinate system
 \Begineq
   \bfq_{0\gamma} = \bft_2 \, \bfq_0 \, \bft_1^{-1}
 \Endeq
