@@ -1419,6 +1419,7 @@ real(rp) beta0, beta1, fix0(6)
 call alloc (bm, id, si)
 call alloc (rr)
 call alloc (bet)
+call alloc (ss)
 
 bm = y8
 
@@ -2656,9 +2657,12 @@ end subroutine concat_ele_taylor
 !   bmad_taylor(6) -- Taylor_struct: Input taylor map.
 !   beta0          -- real(rp): Reference particle velocity at beginning of map
 !   beta1          -- real(rp): Reference particle velocity at end of map
+!   ptc_re8(6)     -- real_8: PTC Taylor polymorph. Note: it is the duty of the calling routine
+!                       to call alloc beforehand and kill afterwards.
 !
 ! Output:
-!   ptc_re8(6)      -- real_8: PTC Taylor polymorph.
+!   ptc_re8(6)      -- real_8: PTC Taylor polymorph. Note: it is the duty of the calling routine
+!                       to call alloc beforehand and kill afterwards.
 !   ref_orb_ptc(6)  -- real(rp), optional: PTC starting reference orbit.
 !   exi_orb_ptc(6)  -- real(rp), optional: constant part of the map = orbit at the exit end.
 !                        If present, the constant term of ptc_re8 will be removed.
@@ -2672,7 +2676,8 @@ implicit none
 
 type (taylor_struct) :: bmad_taylor(6)
 
-type(real_8) :: ptc_re8(6)
+type(real_8) :: ptc_re8(6) ! It is the duty of the calling routine to alloc and kill this.
+
 type(real_8), allocatable :: expn(:, :)
 type(real_8) diff_orb(6), start_orb(6)
 type(damap) id
@@ -2728,11 +2733,10 @@ do i = 1, 6
   expn(j, i) = expn(j-1, i) * diff_orb(i)
 enddo
 enddo
-call kill(diff_orb)
 
 ! Compute taylor map
 
-call alloc(ptc_re8)
+call alloc (ptc_re8)
 
 do i = 1, 6
   ptc_re8(i) = 0
@@ -2760,7 +2764,10 @@ endif
 
 ! Cleanup.
 
+call kill(diff_orb)
+call kill(start_orb)
 call kill(id)
+
 do i = 0, e_max
 do j = 1, 6
   call kill(expn(i, j))
@@ -4028,11 +4035,11 @@ if (ele%key == taylor$ .or. ele%key == match$) then
   beta0 = ele%value(p0c_start$)/ele%value(e_tot_start$)
   beta1 = ele%value(p0c$)/ele%value(e_tot$)  
 
-  call taylor_to_real_8 (ele%taylor, beta0, beta1, ptc_re8, ref0, ref1)
-
-  ptc_c_damap = ptc_re8
-
+  call alloc (ptc_re8)
   call alloc (ptc_taylor)
+
+  call taylor_to_real_8 (ele%taylor, beta0, beta1, ptc_re8, ref0, ref1)
+  ptc_c_damap = ptc_re8
 
   do j = 0, 3
     ptc_taylor = ele%spin_taylor(j)
@@ -4040,6 +4047,7 @@ if (ele%key == taylor$ .or. ele%key == match$) then
   enddo
 
   call kill (ptc_taylor)
+  call kill (ptc_re8);
 
   ! 
 
@@ -4136,7 +4144,7 @@ if (ele%key == taylor$ .or. ele%key == match$) then
 
   arbre(1)%beta0 = ptc_fibre%beta0
    
-  call kill(ptc_re8); call kill(ptc_c_damap)
+  call kill(ptc_c_damap)
 endif
 
 ! Customization if wanted

@@ -112,6 +112,7 @@ The transformation matrix corresponding to the transformation of \Eq{rqrq} is
     2 \, q_x \ q_y + 2 \, q_1 \, q_z & q_1^2 - q_x^2 + q_y^2 - q_z^2    & 2 \, q_y \ q_z - 2 \, q_1 \, q_x \\
     2 \, q_x \ q_z - 2 \, q_1 \, q_y & 2 \, q_y \ q_z + 2 \, q_1 \, q_x & q_1^2 - q_x^2 - q_y^2 + q_z^2 
   \end{pmatrix}
+  \label{rqqq}
 \Endeq
 
 In quaternion notation, two rotations $\bfq_1$ and $\bfq_2$ are combined into one rotation using the formula
@@ -210,21 +211,21 @@ right hand coordinate system.
 
 The variation of the spin component along the $\bfn_0$ axis will be second order and therefore, to
 first order, can be ignored. Thus the first order map in the $(\bfr_0, (\bfl_0, \bfm_0))$ coordinate
-system between two any points $s_1$ and $s_2$ is an $8 \cross 8$ matrix $\what\bfM$ which is
+system between two any points $s_1$ and $s_2$ is an $8 \cross 8$ matrix $\wt\bfM$ which is
 written in the form
 \Begineq
-  \what\bfM(s1, s2) = \begin{pmatrix}
+  \wt\bfM(s1, s2) = \begin{pmatrix}
     \bfM_{6\cross6} & \Bf 0_{6\cross2} \\
     \bfG_{2\cross6} & \bfD_{2\cross2}
   \end{pmatrix}
 \Endeq
 Where $\bfM$ is the $6\cross6$ orbital transport matrix, $\bfG$ represents the coupling between
 orbital and spin coordinates, and $\bfD$ is the $2\cross2$ rotation matrix for the spin transport of
-a particle on the closed orbit. The upper right block $\Bf 0_{6\cross2}$ in the $\what\bfM$ matrix
-is zero since Stern-Gerlach effects are ignored. If $\what\bfM$ is the 1-turn matrix ($s_2 = s_1$),
+a particle on the closed orbit. The upper right block $\Bf 0_{6\cross2}$ in the $\wt\bfM$ matrix
+is zero since Stern-Gerlach effects are ignored. If $\wt\bfM$ is the 1-turn matrix ($s_2 = s_1$),
 the phase advance of $\bfD$ is the spin tune.
 
-To compute $\what\bfM$, the first step is to calculate the $(\bfl_0, \bfn_0, \bfm_0)$ coordinate
+To compute $\wt\bfM$, the first step is to calculate the $(\bfl_0, \bfn_0, \bfm_0)$ coordinate
 system. If the entire ring is being analyzed, $\bfn_0$ at some starting point can be calculated
 (\sref{s:isf}).  If only part of the ring is being analyzed, the orientation of $\bfn_0$ at the
 start of the section will be an input parameter (that is, it is given by the User and not
@@ -237,37 +238,53 @@ there is no identifiable spin tune so nothing further needs to be done. In this 
 matrix is just a unit matrix. When analyzing an entire ring, it is sometimes desireable to rotate
 the $\bfl_0(s)$ and $\bfm_0(s)$ axes to give a uniform phase advance as a function of $s$.  When
 analyzing one-turn maps, it is generally not necessary to rotate the $\bfl_0(s)$ and $\bfm_0(s)$
-axes. In this case the spin phase advance as a function of $s$ will be zero except just before the starting
-position where there will be a discontinuous jump in phase.
+axes. In this case the spin phase advance as a function of $s$ will be zero except just before the
+starting position where there will be a discontinuous jump in phase.
 
-Once the $(\bfl_0, \bfn_0, \bfm_0)$ coordinates have been calculated, the spin transport map
-(which \Bmad calculates via PTC (\sref{c:ptc})) is first truncated to linear order. In this case, the
-spin transport map $\Cal M_s$, to first order, can be written in the form
+Once the $(\bfl_0, \bfn_0, \bfm_0)$ coordinates have been calculated, the matrices $\bfG$ and $\bfD$
+can be calculated from the spin transport map (which \bmad calculates via PTC
+(\sref{c:ptc})). To first order, the spin transport map $\bfq_s$, represented as a quaternion, can be
+written in the form
 \Begineq
-  \Cal M_s = \bfq_0 + \sum_{i = 1}^6 r_i \, \bfq_i
+  \bfq_s = \bfq_0 + \sum_{i = 1}^6 r_i \, \bfq_i
+  \label{qqrq}
 \Endeq
 The quaternion $\bfq_0$ is the zeroth order part of the map and the six quaternions $\bfq_i$, $i =
 1, \ldots, 6$ are the first order part with $\bfr$ being the orbital phase space point the map is
-being evaluated at.
-
-
-Once the $(\bfl_0, \bfn_0, \bfm_0)$ coordinate system is established, the transformation from this
-coordinate system to the laboratory $(x, y, z)$ coordinates is given by the matrix $(\bfl_0, \bfn_0,
-\bfm_0)$ where each axes is a column of the matrix. Between two longitudinal positions $s_1$ and
-$s_2$, the $\Bf D$ matrix is calculated by first transforming $\bfq_0(s_1, s_2)$ to the $(\bfl_0,
-\bfn_0, \bfm_0)$ coordinate system
+being evaluated at. Let $\bfq_{lnm}(s)$ be the quaternion that transforms from $(\bfl_0, \bfn_0,
+\bfm_0)$ coordinates to $(x, y, z)$ coordinates at a given point $s$. With this, the spin transport
+$\what\bfq$ from $s_1$ to $s_2$ in the $(\bfl_0, \bfn_0, \bfm_0)$ coordinate system is
 \Begineq
-  \bfq_{0\gamma} = \bft_2 \, \bfq_0 \, \bft_1^{-1}
+  \what\bfq_s(s_1, s_2) = \bfq_{lnm}(s_2) \, \bfq_s(s_1, s_2) \, \bfq_{lnm}^{-1}(s_1)
 \Endeq
-$\bfq_{0\gamma}$ is a rotation around the $\bfn_0$ axis. When $\bfq_{0\gamma}$ is represented as a
-matrix $\bfm_{0\gamma}$, the $\Bf D$ matrix is then
+The zeroth order part of this map 
+\Begineq
+  \what\bfq_0(s_1,s_2) = \bfq_{lnm}(s_2) \, \bfq_0(s_1, s_2) \, \bfq_{lnm}^{-1}(s_1) 
+\Endeq
+represents a rotation around the $\bfn_0$ axis. Converting this to a rotation matrix $bfR_0$ via
+\Eq{rqqq}) the $\Bf D$ matrix is then
 \Begineq
   \Bf D(s_1, s_2) = \begin{pmatrix}
-      m_{0\gamma}(1,1) & m_{0\gamma}(1,3) \\
-      m_{0\gamma}(3,1) & m_{0\gamma}(3,3)
+      R_0(1,1) & R_0(1,3) \\
+      R_0(3,1) & R_0(3,3)
   \end{pmatrix}
 \Endeq
+The $\bfG$ matrix is calulated from the first order part of $\what\bfq_s$
+\Begineq
+  \what\bfq_i = \bfq_{lnm}(s_2) \, \bfq_i(s_1, s_2) \, \bfq_{lnm}^{-1}(s_1)
+\Endeq
+Using \Eq{qqrq} in \Eq{rqqq} and keeping only first order terms gives
+\begin{align}
+  \bfG(1,j) &= 2 (\what q_{0,x} \, \what q_{j,y} + \what q_{0,y} \, \what q_{j,x} + 
+                  \what q_{0,z} \, \what q_{j,z} + \what q_{0,1} \, \what q_{j,1}) \\
+  \bfG(2,j) &= 2 (\what q_{0,1} \, \what q_{j,x} + \what q_{0,x} \, \what q_{j,1} + 
+                  \what q_{0,y} \, \what q_{j,z} + \what q_{0,z} \, \what q_{j,y}),
+  \quad j = 1, \ldots, 6
+  \nonumber
+\end{align}
 
+Lattice design consists of minimizing elements of the $\bfG$ matrix since that will minimize
+${\partial \bfn}/{\partial \delta}$.
 
 
 %-----------------------------------------------------------------   
