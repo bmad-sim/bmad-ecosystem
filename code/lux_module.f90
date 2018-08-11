@@ -63,6 +63,7 @@ type lux_common_struct
   type (lat_struct) :: lat
   type (branch_struct), pointer :: physical_source_branch, tracking_branch
   type (ele_struct), pointer :: physical_source_ele, photon_init_ele, fork_ele, detec_ele, photon1_ele
+  type (bunch_params_struct), allocatable :: stat(:)
   integer n_bend_slice             ! Number of slices
   integer(8) :: n_photon_stop1     ! Number of photons to track per processor.
                                    ! This is equal to lux_param%stop_num_photons when not using mpi.
@@ -72,7 +73,7 @@ type lux_common_struct
   integer :: iu_photon1_out        ! File I/O unit number.
   type (lux_bend_slice_struct), allocatable :: bend_slice(:) ! Size: (0:n_bend_slice)
   type (surface_grid_pt_struct), allocatable :: histogram_bin(:)
-  real(rp) E_min, E_max                                      ! Photon energy range 
+  real(rp) E_min, E_max                                      ! Photon energy range for bends and wigglers
   logical :: verbose = .false.
   logical :: using_mpi = .false.
 end type
@@ -192,6 +193,7 @@ if (index(lux_param%photon1_out_file, '#') /= 0 .or. index(lux_param%det_pix_out
   call increment_file_number (number_file, 3, n, num_str)
   call sub_in (lux_param%photon1_out_file)
   call sub_in (lux_param%det_pix_out_file)
+  call sub_in (lux_param%track_out_file)
 endif
 
 ! Read in lattice
@@ -254,6 +256,7 @@ endif
 
 lux_com%detec_ele => eles(1)%ele
 lux_com%tracking_branch => lux_com%detec_ele%branch
+allocate(lux_com%stat(0:lux_com%tracking_branch%n_ele_track))
 
 if (lux_com%detec_ele%ix_branch /= photon_init_ele%ix_branch) then
   call out_io (s_fatal$, r_name, 'PHOTON_INIT ELEMENT AND DETECTOR ELEMENT NOT IN THE SAME BRANCH!')
@@ -505,7 +508,7 @@ g_bend = g_bend_from_em_field (B, E, charged_orb)
 
 gamma_electron = physical_source_ele%value(p0c$) * &
                                 (1 + sl(ix)%orbit%vec(6)) / sl(ix)%orbit%beta / mass_of(sl(ix)%orbit%species)
-!! Note: Energy slices not yet implemented.
+!! Note: Energy slices for coherent photons is not yet implemented.
 !! if (lux_com%lat%photon_type == coherent$ .and. ix_energy > 0) then
 !!   rr = (ix_energy - 0.5_rp) / lux_param%n_energy_pts
 !!   call bend_photon_init (g_bend(1), g_bend(2), gamma_electron, orb, lux_com%E_min, lux_com%E_max, rr)
@@ -585,18 +588,6 @@ physical_source_ele => lux_com%physical_source_ele
 
 if (.not. associated(lux_com%physical_source_ele)) then
   call photon_target_setup (photon_init_ele)
-
-  if (nint(photon_init_ele%value(energy_distribution$)) == uniform$) then
-    f = 1
-  else
-    f = 3
-  endif
-  lux_com%E_min = photon_init_ele%value(E_center$) - f * photon_init_ele%value(sig_E$)
-  lux_com%E_max = photon_init_ele%value(E_center$) + f * photon_init_ele%value(sig_E$)
-  if (is_false(photon_init_ele%value(E_center_relative_to_ref$))) then
-    lux_com%E_min = lux_com%E_min - photon_init_ele%value(p0c$) 
-    lux_com%E_max = lux_com%E_max - photon_init_ele%value(p0c$) 
-  endif
 
 !-------------------------------------------------------------
 ! Sbend or wiggler source
@@ -772,7 +763,9 @@ nt = detec_ele%ix_ele
 
 call reallocate_coord (photon%orb, lat, t_branch%ix_branch)
 
+!----------------------------------
 ! Photon bunch tracking
+! Note: Not currently used...
 
 if (lux_param%track_bunch) then
 
@@ -796,7 +789,9 @@ if (lux_param%track_bunch) then
   do ip = 1, n
     call add_to_detector_statistics (bunch_start%particle(ip), bunch%particle(ip), intens)
     ix = bunch%particle(ip)%ix_ele
-    if (bunch%particle(ip)%state /= alive$) t_branch%ele(ix)%ix_pointer = t_branch%ele(ix)%ix_pointer + 1
+    if (bunch%particle(ip)%state == alive$) then
+      lux_com%stat(ix)%n_particle_live = lux_com%stat(ix)%n_particle_live + 1
+    endif
     if (lux_param%photon1_out_file /= '') then
       call photon1_out (bunch_start%particle(ip), bunch_stop1%particle(ip), bunch%particle(ip), ip)
     endif
@@ -807,6 +802,7 @@ if (lux_param%track_bunch) then
   return
 endif
 
+!----------------------------------
 ! Individual photon tracking
 
 intensity_tot = 0
@@ -827,13 +823,14 @@ do
   call track_all (lat, photon%orb, t_branch%ix_branch, track_state)
 
   call add_to_detector_statistics (photon%orb(0), photon%orb(nt), intens)
-  if (track_state /= moving_forward$) t_branch%ele(track_state)%ix_pointer = t_branch%ele(track_state)%ix_pointer + 1
+  if (track_state == moving_forward$) then
+    lux_com%stat(track_state)%n_particle_live = lux_com%stat(track_state)%n_particle_live + 1
+  endif
 
   ! Write to photon1_out_file
 
   if (lux_param%photon1_out_file /= '') then
-    call photon1_out (photon%orb(1), photon%orb(photon1_ele%ix_ele), &
-                                        photon%orb(detec_ele%ix_ele), int(lux_data%n_track_tot))
+    call photon1_out (photon%orb(1), photon%orb(photon1_ele%ix_ele), photon%orb(detec_ele%ix_ele), int(lux_data%n_track_tot))
   endif
 enddo
 

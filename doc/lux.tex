@@ -60,7 +60,7 @@
 
 \title{Lux Program}
 \author{D. Sagan, K. Finkelstein}
-\date{Revision 1.4 \\ November, 21 2017}
+\date{Revision 1.5 \\ August 11, 2018}
 
 %---------------------------------------------------------------------------------
 
@@ -131,19 +131,8 @@ to use in this script), and then start \lux with the command:
   qsub run_lux_mpi.sh
 \end{example}
 
-%------------------------------------------------------------------
-\section{Data Visualization}
-\label{s:vis}
-
-There is a python script for making an intensity plot of the
-\vn{det_pix_out_file} (\sref{s:det.pix.file}) in:
-\begin{example}
-  lux/plot/det_pix_plot.py
-\end{example}
-For help run the script
-\begin{example}
-  <path_to_script>/det_pix_plot.py -help
-\end{example}
+Note that two input files are always required to run \lux: The master input file
+(\sref{s:master.file}) and the Bmad lattice file (\sref{s:lat.file}).
 
 %------------------------------------------------------------------
 \section{Fortran Namelist}
@@ -171,6 +160,8 @@ etc. are variable names. Example:
 here \vn{section_def} is the namelist name and \vn{section} is a variable
 name.  Notice that here \vn{section} is a ``structure'' which has five
 components (0.0, ``arc_str'', etc.).
+
+
 
 %------------------------------------------------------------------
 \section{Master Input File} 
@@ -211,7 +202,6 @@ An example is:
 
     lux_param%histogram_variable = 'x_angle'       ! "x_angle", "y_angle", "energy", etc.
     lux_param%histogram_bin_width = 1e-4           ! Width of histogram bins.
-
   /
 \end{example}
 
@@ -219,7 +209,7 @@ An example is:
 \subsection{Master Input File Parameters}
 \label{ss:master.params}
 
-The components of the params namelist are:
+The following is a complete list of the components of the params namelist:
   \begin{description}
   \item[\vn{lux_param\%det_pix_out_file}] \Newline
 Name of the output data file recording the X-ray intensity on the
@@ -251,8 +241,7 @@ If not given then no histogram file is produced.
 Sets the threshold absorbed photon intensity such that all pixels
 who's intensity is below this will not be included in the
 \vn{det_pix_out} file (\sref{s:det.pix.file}). This intensity is
-relative to the maximum pixel intensity. [Note: pixels must also have
-non-zero intensity to be included.]
+relative to the maximum pixel intensity.
 
   \item[\vn{lux_param\%intensity_min_photon1_cutoff}] \Newline
 Cutoff intensity below which a photon will not be included in
@@ -280,11 +269,6 @@ The value 0.1 is the default. Changing this number can affect
 running time but the running time should be fairly insensitive
 to the value of \vn{%mpi_run_size}.
 
-  \item[\vn{lux_param\%n_energy_bin_pts}] \Newline
-Number of energy bins used for the table of intensity of photons
-hitting the detector as a function of photon energy
-(\sref{s:det.pix.file}).
-
   \item[\vn{lux_param\%photon_init_element}] \Newline
 Name of the lattice element that is the source of the photons (\sref{s:lat.file}).
 
@@ -293,7 +277,7 @@ Maximum number of photons to record in the \vn{photon1_out_file}.
 Default is 100.
 
   \item[\vn{lux_param\%photon1_element}] \Newline
-The photon position recorded in the photon1_out file will be the
+The photon position values in the photon1_out file will be the
 photon position at the lattice element named by \vn{lux_param%photon1_element}. 
 If \vn{photon1_element} is blank (default), the
 detector element used will be used (\sref{s:photon1.file}).
@@ -317,10 +301,9 @@ actually random. The numbers generated with the quasi random generator
 are always the same from run to run.
 
   \item[\vn{lux_param\%random_seed}] \Newline
-Random number seed used in by the random number generator if the
-\vn{random_engine} is set to \vn{pseudo}. If set to 0, the system
-clock will be used. That is, if set to 0, the output results will vary
-from run to run. Not used if the \vn{random_engine} is set to \vn{quasi}.
+If the \vn{random_engine} is set to \vn{pseudo}, \vn{%random_seed} is the random number seed used by
+the random number generator. If set to 0, the system clock will be used so that the
+output results will vary from run to run. Not used if the \vn{random_engine} is set to \vn{quasi}.
 
   \item[\vn{lux_param\%reject_dead_at_det_photon1}] \Newline
 If \vn{reject_dead_to_det_photon1} is set to True, do not print to the
@@ -341,94 +324,11 @@ at (\sref{s:det}).  Note: This parameter is ignored if running the
 parallel version of \lux and only \vn{lux_param%stop_num_photons}
 is used.
 
+  \item[\vn{lux_param\%track_out_file}] \Newline
+The \vn{track_out_file} records how many photons are lost at each lattice element. This is useful for
+diagnosing cases when too many photons are being lost before reaching the detector.
+
   \end{description}
-
-%------------------------------------------------------------------
-\section{Photon Description}
-\label{s:photon.descrip}
-
-Photons are described by:
-\begin{example}
-  (x, vx/c, y, vy/c, z, vz/c)   ! six dimensional phase space vector 
-  E                       ! Photon energy (eV)
-  e_field_x, e_field_y    ! Electric field magnitude vector
-  phase_x, phase_y        ! Electric field phase 
-\end{example}
-$(x, y, z)$ is the spatial position of the photon with $z$ being the
-longitudinal coordinate and $z=0$ corresponds to the beginning of the
-element the photon is passing though (Thus $z$ is generally not
-interesting). $(v_x/c, v_y/c, v_z)/c$ is the photon velocity normalized to 1.
-Generally photons that make it to the detector will have $v_z/c$ close to
-1 and $v_x/c$ and $v_y/c$ small.
-
-The photon phases \vn{phase_x} and \vn{phase_y} are only relevant with
-coherent tracking set in the lattice by the
-\vn{parameter[photon_type]}. See the Bmad manual for more details.
-
-The unnormalized intensity of a photon is:
-\begin{example}
-  I(unnormalized) = e_field_x^2 + e_field_y^2
-\end{example}
-
-To properly normalize the light intensity of the detector pixels in
-the output files, a normalization factor $f_n$ is applied.
-\Begineq
-  I (\mbox{normalized}) = f_n I (\mbox{unnormalized}) 
-\Endeq
-$f_n$ is constructed so that the normalized intensity will be
-independent of the number of simulation photons and independent of the
-detector pixel size. Explicitly:
-\Begineq
-  f_n = \frac{C_f}{A_{pix} \, N_p}
-\Endeq
-where $A_{pix}$ is the area of the pixels, $N_p$ is the number of
-photons tracked, and $C_f$ is a normalization coefficient set by the
-\vn{intensity_normalization_coef} parameter in the master input file,
-$C_f$ can be used, for example, to scale the output numbers to
-correspond to actual measured values.
-
-%------------------------------------------------------------------
-\subsection{Photon Polarization Initialization}
-
-When using a \vn{photon_init} element without an associated ``physical
-element'', the polarization of the photons is set by the
-\vn{photon_init} parameters \vn{e_field_x} and \vn{e_field_y}. 
-
-When using a \vn{photon_init} element with an associated physical
-element (which is generally a bend, wiggler, and undulator element),
-the polarization the photons is determined by the
-properties of the physical element.
-
-If the parameter \vn{lux_param%scale_initial_field_to_1} is set to
-True, \lux will scale the field so that the \vn{unnormalized}
-intensity (\sref{s:photon.descrip}) of each photon is 1 at the start
-of tracking. If both field components are set to zero, the
-polarization will be random. As photons travel, they can loose
-intensity via, for example, diffraction from a crystal.
-
-%------------------------------------------------------------------
-\section{Photon Detection}
-\label{s:det}
-
-Photons are tracked until they are lost (hit an aperture) or until
-they get to the detector which is the last element in the lattice.
-
-Two parameters in the master input file determine when the simulation
-is stopped:
-\begin{example}
-    lux_param%stop_total_intensity
-    lux_param%stop_num_photons
-\end{example}
-If \vn{lux_param%stop_total_intensity} is positive, the simulation
-ends when the total accumulated unnormalized intensity at the detector
-passes this threshold. Intensity is the square of the photon electric
-field and the unnormalized photon intensity will vary from zero to one for
-each photon.
-
-If \vn{lux_param%stop_num_photons} is positive, the simulation is
-stopped when the number of photons generated passes this threshold. If
-both stop parameters are positive, the simulation is stopped when either
-the intensity or the number of photons passes the set threshold.
 
 %------------------------------------------------------------------
 \section{Lattice Description File}
@@ -589,22 +489,116 @@ elements of \vn{c_line} are given in lines 39 and 40: Two slits, two
 crystals, and a detector with drifts in between. 
 
 %------------------------------------------------------------------
+\section{Photon Description}
+\label{s:photon.descrip}
+
+Photons are described by:
+\begin{example}
+  (x, vx/c, y, vy/c, z, vz/c)   ! six dimensional phase space vector 
+  E                             ! Photon energy (eV)
+  e_field_x, e_field_y          ! Electric field magnitude vector
+  phase_x, phase_y              ! Electric field phase 
+\end{example}
+$(x, y, z)$ is the spatial position of the photon with $z$ being the
+longitudinal coordinate and $z=0$ corresponds to the beginning of the
+element the photon is passing though (Thus $z$ is generally not
+interesting). $(v_x/c, v_y/c, v_z/c)$ is the photon velocity normalized to 1.
+Generally photons that make it to the detector will have $v_z/c$ close to
+1 and $v_x/c$ and $v_y/c$ small.
+
+The photon phases \vn{phase_x} and \vn{phase_y} are only relevant with
+coherent tracking set in the lattice by the
+\vn{parameter[photon_type]}. See the Bmad manual for more details.
+
+The unnormalized intensity of a photon is:
+\begin{example}
+  I(unnormalized) = e_field_x^2 + e_field_y^2
+\end{example}
+
+To properly normalize the light intensity of the detector pixels in
+the output files, a normalization factor $f_n$ is applied.
+\Begineq
+  I (\mbox{normalized}) = f_n I (\mbox{unnormalized}) 
+\Endeq
+$f_n$ is constructed so that the normalized intensity will be
+independent of the number of simulation photons and independent of the
+detector pixel size. Explicitly:
+\Begineq
+  f_n = \frac{C_f}{A_{pix} \, N_p}
+\Endeq
+where $A_{pix}$ is the area of the pixels, $N_p$ is the number of
+photons tracked, and $C_f$ is a normalization coefficient set by the
+\vn{intensity_normalization_coef} parameter in the master input file,
+$C_f$ can be used, for example, to scale the output numbers to
+correspond to actual measured values.
+
+%------------------------------------------------------------------
+\subsection{Photon Polarization Initialization}
+
+When using a \vn{photon_init} element without an associated ``physical
+element'', the polarization of the photons is set by the
+\vn{photon_init} parameters \vn{e_field_x} and \vn{e_field_y}. 
+
+When using a \vn{photon_init} element with an associated physical
+element (which is generally a bend, wiggler, and undulator element),
+the polarization the photons is determined by the
+properties of the physical element.
+
+If the parameter \vn{lux_param%scale_initial_field_to_1} is set to
+True, \lux will scale the field so that the \vn{unnormalized}
+intensity (\sref{s:photon.descrip}) of each photon is 1 at the start
+of tracking. If both field components are set to zero, the
+polarization will be random. As photons travel, they can loose
+intensity via, for example, diffraction from a crystal.
+
+%------------------------------------------------------------------
+\section{Photon Detection}
+\label{s:det}
+
+Photons are tracked until they are lost (hit an aperture) or until
+they get to the detector which is the last element in the lattice.
+
+Two parameters in the master input file determine when the simulation
+is stopped:
+\begin{example}
+    lux_param%stop_total_intensity
+    lux_param%stop_num_photons
+\end{example}
+If \vn{lux_param%stop_total_intensity} is positive, the simulation
+ends when the total accumulated unnormalized intensity at the detector
+passes this threshold. Intensity is the square of the photon electric
+field and the unnormalized photon intensity will vary from zero to one for
+each photon.
+
+If \vn{lux_param%stop_num_photons} is positive, the simulation is
+stopped when the number of photons generated passes this threshold. If
+both stop parameters are positive, the simulation is stopped when either
+the intensity or the number of photons passes the set threshold.
+
+%------------------------------------------------------------------
+\section{Output Data Files}
+\label{s:out.files}
+
+The names of the output data files are specified by the following
+parameters set in the master input file (\sref{s:master.file}):
+\begin{example}
+  photon1_out_file    ! \sref{s:photon1.file}
+  det_pix_out_file    ! \sref{s:det.pix.file}
+  track_out_file      ! \sref{s:track.file}
+\end{example}
+
+Note that the \vn{det_pix_out_file} name is used as a prefix to generate four different data files.
+
+%------------------------------------------------------------------
 \section{Numbering the Output Data Files}
 \label{s:number}
 
-The names of the output data files are specified by the following
-variables (\sref{s:master.file}):
-\begin{example}
-  photon1_out_file
-  det_pix_out_file
-\end{example}
-
-If an output data file name contains a pound character ``\#'', then a
+If an output data file name (see above) contains a pound character ``\#'', then a
 number will substituted for the pound character and the number
 substituted will be increased by one each time \lux is run. For example,
 if \vn{det_pix_out_file} is defined by
 \begin{example}
-  det_pix_out_file = 'lux.det_pix#'
+  lux_param%det_pix_out_file = 'lux.det_pix#'
 \end{example}
 Then the first time \lux is run, the pixel data file will be named
 ``lux.det_pix1''.  The next time \lux is run, the data file will be
@@ -613,10 +607,12 @@ named ``lux.det_pix2'', etc.
 Using a numbering system prevents data files from being
 overwritten. If more than one output file name has a pound character,
 all such files will receive the same number on a given run. To set the
-number given, one can edit the file:
+number, one can edit the file:
 \begin{example}
   lux_out_file.number
 \end{example}
+This file is created by \lux the first time \lux is run in a directory and then, every time there after
+\lux is run, \lux will increment the number contained in this file.
 
 When using the parallel version of \lux, if the \vn{photon1_out_file}
 contains an ``\vn{\@}'' character, then, for each slave process doing
@@ -626,23 +622,26 @@ single tread version of \lux is being used then a zero character will
 be substituted.
 
 %------------------------------------------------------------------
+\section{Track Data File}
+\label{s:track.file}
+
+The \vn{track_out_file} records how many photons are lost at each lattice element. This is useful for
+diagnosing cases when too many photons are being lost before reaching the detector.
+
+%------------------------------------------------------------------
 \section{Photon1 Data File}
 \label{s:photon1.file}
 
-The \vn{photon1_out_file} parameter (set in the master input file) is
-the name of an output data file containing beginning and ``end''
-coordinates of a set of photons.
-
-The location where the ``end'' coordinates are evaluated is set by the
-\vn{photon1_element} parameter from the master input file. If
-\vn{photon1_element} is blank, the end coordinates are
-evaluated at the detector element.  
+The \vn{photon1_out_file} parameter (set in the master input file) is the name of an output data
+file containing beginning photon coordinates and the photon coordinates at the lattice element
+specified by \vn{lux_param%photon1_element}.  If \vn{lux_param%photon1_element} is blank, the end
+coordinates are evaluated at the detector element.
 
 If \vn{reject_dead_at_det_photon1} is set to True, photons that do not
 make it to the detector will not be included in the photon1_out
 file. In any case, a photon that does not reach the \vn{photon1_element}
 element will not be included. Thus, if the lattice element where the
-photon position is being evaluated at is the detector, it will always
+photon position is being evaluated at the detector, it will always
 be the case that photons that do not make it to the detector will not
 be included in the photon1_out file irregardless of the setting of
 \vn{reject_dead_at_det_photon1}.
@@ -672,6 +671,13 @@ The \vn{det_pix_out_file} parameter (set in the master input file) is
 a prefix used to form the names for four output data files.
 If the file name is blank then no files will be generated. The file
 name may be ``numbered'' using a ``\#'' character (\sref{s:number}).
+The names of the four files are:
+\begin{example}
+  <det_pix_out_file>            ! Pixel-by-pixel file (\sref{s:pbp.file}).
+  <det_pix_out_file>.x          ! X-projection file (\sref{s:xy.file}).
+  <det_pix_out_file>.y          ! Y-projection file (\sref{s:xy.file}).
+  <det_pix_out_file>.histogram  ! Histogram file (\sref{s:histo.file}).
+\end{example}
 
 Each file contains a table of data. All of the files have the
 following columns (called the ``common'' columns):
@@ -739,6 +745,57 @@ recorded in the pixel-by-pixel file (due to a non-zero
 \vn{lux_param%intensity_min_det_pixel_cutoff} setting), quantities
 like the total number of photon need not match between the
 pixel-by-pixel file and the projected files.
+
+\clearpage
+
+%------------------------------------------------------------------
+\subsection{Data Visualization of the det_pix_out_file}
+\label{s:vis}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=5in]{det-pix-plot.pdf}
+  \caption{
+Example intensity plots. A) Results from a perfectly configured Rowland circle spectrometer. B) Same
+as (A) except that the curvature of the crystal is off by 1\%. The lattice used to generate these
+plots is illustrated in the Bmad manual in the \vn{Lattice Examples} chapter.
+  }
+\label{f:det.plot}
+\end{figure}
+
+%------------------------------------------------------------------
+
+There is a python script for making an intensity plot of the
+\vn{det_pix_out_file} in:
+\begin{example}
+  lux/plot/det_pix_plot.py
+\end{example}
+Here \vn{lux} is the root directory for the \lux program (\sref{s:build}).
+
+The script needs Python3 to run. You can invoke the script using the command
+\begin{example}
+  <path-to-lux-root-dir>/plot/det_pix_plot.py <det_pix_out_file>
+\end{example}
+where \vn{<det_pix_out_file>} is the actual name of the \vn{det_pix_out_file}.
+If the default version of python is not python3 then the following may work
+\begin{example}
+  python3 <path-to-lux-root-dir>/plot/det_pix_plot.py <det_pix_out_file>
+\end{example}
+
+The script has a number of optional arguments. The syntax for running the script is:
+\begin{example}
+    det_pix_plot.py \{-scale <scale>\} \{-plot <who_to_plot>\} \{<data_file_name>\}
+  <who_to_plot> = x         # Intensity of x-polarized photons
+                = y         # Intensity of y-polarized photons
+                = i         # Total intensity (sum of x & y polarizations)
+                = e         # Energy
+  Defaults:
+    <scale>          = 1e3
+    <data_file_name> = det_pix
+    <who_to_plot>    = i
+\end{example}
+
+Figure~\ref{f:det.plot} shows two example intensity plots. 
 
 %-------------------------------------------
 \subsection{Histogram File}
