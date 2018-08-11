@@ -22,11 +22,11 @@ type (ele_struct) ele
 type (lat_param_struct) param
 type (coord_struct) orbit
 
-real(rp) r(3), dir, rr
+real(rp) r(3), dir, rr, p2
 
 character(*), parameter :: r_name = 'init_a_photon_from_a_photon_init_ele'
 
-!
+! Spatial position
 
 if (nint(ele%value(spatial_distribution$)) == uniform$) then
   call ran_uniform(r)
@@ -45,7 +45,7 @@ orbit%vec(1:5:2) = [ele%value(x_offset_tot$) + ele%value(sig_x$) * r(1), &
                     ele%value(y_offset_tot$) + ele%value(sig_y$) * r(2), &
                     ele%value(z_offset_tot$) + ele%value(sig_z$) * r(3)]
 
-! Set direction
+! Direction of photon
 
 if (ele%photon%target%type == grided$) then
   call point_photon_emission (ele, param, orbit, +1, twopi)
@@ -69,7 +69,7 @@ else
   end select
 endif
 
-! Set energy
+! Energy of photon
 
 if (nint(ele%value(energy_distribution$)) == uniform$) then
   call ran_uniform(rr)
@@ -81,7 +81,15 @@ else
                                              distribution_name(nint(ele%value(energy_distribution$))))
 endif
 
-orbit%p0c = ele%value(sig_E$) * rr + ele%value(E_center$)
+p2 = 1
+if (ele%value(E2_probability$) /= 0) call ran_uniform(p2)
+
+if (p2 < ele%value(E2_probability$)) then
+  orbit%p0c = ele%value(sig_E2$) * rr + ele%value(E2_center$)
+else
+  orbit%p0c = ele%value(sig_E$)  * rr + ele%value(E_center$)
+endif  
+
 if (is_true(ele%value(E_center_relative_to_ref$))) orbit%p0c = orbit%p0c + ele%value(p0c$) 
 
 orbit%s = orbit%vec(5) + orbit%s + ele%value(z_offset_tot$)
