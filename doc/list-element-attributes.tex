@@ -800,21 +800,22 @@ e_tot_set                   & reference                   & x2_limit            
  \label{s:list.photon.init}
  
  \begin{tabular}{llll} \toprule
-alias                       & l                           & sig_y                       & x_offset                    \\
-aperture                    & mat6_calc_method            & sig_z                       & x_offset_tot                \\
-aperture_at                 & offset                      & spatial_distribution        & x_pitch                     \\
-aperture_type               & offset_moves_aperture       & spin_tracking_method        & x_pitch_tot                 \\
-create_jumbo_slave          & p0c                         & superimpose                 & y1_limit                    \\
-delta_ref_time              & physical_source             & tilt                        & y2_limit                    \\
-descrip                     & ptc_integration_type        & tilt_tot                    & y_limit                     \\
-ds_slice                    & reference                   & tracking_method             & y_offset                    \\
-ele_origin                  & ref_origin                  & transverse_sigma_cut        & y_offset_tot                \\
-energy_distribution         & ref_wavelength              & type                        & y_pitch                     \\
-e_center                    & scale_field_to_one          & velocity_distribution       & y_pitch_tot                 \\
-e_center_relative_to_ref    & sig_e                       & wall                        & z_offset                    \\
-e_field_x                   & sig_vx                      & x1_limit                    & z_offset_tot                \\
-e_field_y                   & sig_vy                      & x2_limit                    &                             \\
-e_tot                       & sig_x                       & x_limit                     &                             \\
+alias                       & e_tot                       & sig_x                       & x_offset                    \\
+aperture                    & l                           & sig_y                       & x_offset_tot                \\
+aperture_at                 & mat6_calc_method            & sig_z                       & x_pitch                     \\
+aperture_type               & offset                      & spatial_distribution        & x_pitch_tot                 \\
+create_jumbo_slave          & offset_moves_aperture       & spin_tracking_method        & y1_limit                    \\
+delta_ref_time              & p0c                         & superimpose                 & y2_limit                    \\
+descrip                     & physical_source             & tilt                        & y_limit                     \\
+ds_slice                    & ptc_integration_type        & tilt_tot                    & y_offset                    \\
+e2_center                   & reference                   & tracking_method             & y_offset_tot                \\
+e2_probability              & ref_origin                  & transverse_sigma_cut        & y_pitch                     \\
+ele_origin                  & ref_wavelength              & type                        & y_pitch_tot                 \\
+energy_distribution         & scale_field_to_one          & velocity_distribution       & z_offset                    \\
+e_center                    & sig_e                       & wall                        & z_offset_tot                \\
+e_center_relative_to_ref    & sig_e2                      & x1_limit                    &                             \\
+e_field_x                   & sig_vx                      & x2_limit                    &                             \\
+e_field_y                   & sig_vy                      & x_limit                     &                             \\
  \bottomrule
  \end{tabular}
  \vfill
