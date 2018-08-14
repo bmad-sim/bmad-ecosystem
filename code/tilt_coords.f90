@@ -29,7 +29,6 @@ real(rp) tilt_val, coord(:), rot_mat(2,2), mm(6,6)
 real(rp), optional :: mat6(6,6)
 
 logical, optional :: make_matrix
-logical set
 
 !
 

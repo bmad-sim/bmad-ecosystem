@@ -1629,6 +1629,13 @@ subroutine tilt_coords (tilt_val, coord, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
+subroutine tilt_coords_photon (tilt_val, coord, w_mat)
+  import
+  implicit none
+  real(rp) tilt_val, coord(:)
+  real(rp), optional :: w_mat(3,3)
+end subroutine
+
 subroutine tilt_mat6 (mat6, tilt)
   import
   implicit none

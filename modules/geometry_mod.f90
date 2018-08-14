@@ -267,7 +267,7 @@ end subroutine lat_geometry
 !   ele              -- Ele_struct: Element to propagate the geometry through.
 !   len_scale        -- Real(rp), optional: factor to scale the length of the element.
 !                          1.0_rp => Output is geometry at end of element (default).
-!                          0.5_rp => Output is geometry at center of element. [Cannot be used for crystals.]
+!                          0.5_rp => Output is geometry at center of element. 
 !                         -1.0_rp => Used to propagate geometry in reverse.
 !   set_ok           -- logical, optional: If present and True, set ele%bookkeeping_state%floor_position = T.
 !   ignore_patch_err -- logical, optional: If present and True, ignore flexible patch errors.
@@ -395,7 +395,7 @@ if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
           rot_angle = ele0%value(graze_angle$) - pi/2
         end select
 
-        s_mat = w_mat_for_bend_angle (-rot_angle, ele0%value(ref_tilt_tot$))
+        s_mat = w_mat_for_bend_angle (rot_angle, ele0%value(ref_tilt_tot$))
         w_mat = matmul (w_mat, s_mat)
         r0 = ele00%floor%r
         calc_done = .true.
@@ -512,17 +512,33 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
     w_mat = matmul (w_mat, s_mat)
 
   ! mirror, multilayer_mirror, crystal
+  ! Note: The reference frame is discontinuous.
 
   case (mirror$, multilayer_mirror$, crystal$)
     
-    if (ele%key == crystal$) then   ! Laue
+    if (len_factor > 0.75) then
+      len_factor = 1.0_rp
+    elseif (len_factor > 0.25) then
+      len_factor = 0.5_rp
+    elseif (len_factor > -0.50) then
+      len_factor = 0
+    else
+      len_factor = -1.0_rp
+    endif
+
+    if (ele%key == crystal$) then
       select case (nint(ele%value(ref_orbit_follows$)))
       case (bragg_diffracted$)
-        angle = len_factor * (graze_angle_in + graze_angle_out)
+        if (len_factor == 0.5_rp) then
+          angle = graze_angle_in
+        else
+          angle = len_factor * (graze_angle_in + graze_angle_out)
+        endif
       case (forward_diffracted$, undiffracted$)
         angle = 0
       end select
-      if (ele%value(b_param$) > 0) then
+
+      if (ele%value(b_param$) > 0 .and. len_factor /= 0.5_rp) then  ! Laue
         ! %l_ref is with respect to the body coords
         r_vec = len_factor * ele%photon%material%l_ref
         if (len_factor > 0) then  ! Forward propagation -> Express r_vec in entrance coords.
@@ -546,7 +562,15 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
     call floor_angles_to_w_mat (theta, phi, psi, w_mat)
     floor%r = floor%r + matmul(w_mat, r_vec)
 
-    s_mat = w_mat_for_bend_angle(angle, ele%value(ref_tilt_tot$), r_vec)
+    if (len_factor == 0.5_rp) then
+      if (ele%key == crystal$) then
+        s_mat = w_mat_for_bend_angle(angle-pi/2, ele%value(ref_tilt_tot$) + ele%value(tilt_corr$), r_vec)
+      else
+        s_mat = w_mat_for_bend_angle(angle-pi/2, ele%value(ref_tilt_tot$), r_vec)
+      endif
+    else
+      s_mat = w_mat_for_bend_angle(angle, ele%value(ref_tilt_tot$), r_vec)
+    endif
     w_mat = matmul (w_mat, s_mat)
 
   ! patch
@@ -1431,7 +1455,7 @@ function coords_element_frame_to_local (body_position, ele, w_mat, calculate_ang
 type (floor_position_struct) :: body_position, local_position
 type (ele_struct) :: ele
 real(rp) :: s, g, theta, Sb(3,3), Lb(3)
-real(rp) ::  L_mis(3), S_mis(3,3) , S_mat0(3,3)
+real(rp) ::  L_mis(3), S_mis(3,3), S_mat0(3,3)
 real(rp), optional :: w_mat(3,3)
 logical, optional :: calculate_angles
 !

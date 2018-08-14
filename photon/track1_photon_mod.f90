@@ -1415,7 +1415,7 @@ endif
 
 ! Normal case
 
-if (ele%value(ref_tilt_tot$) /= 0) call tilt_coords(ele%value(ref_tilt_tot$), orb%vec)
+if (ele%value(ref_tilt_tot$) /= 0) call tilt_coords_photon (ele%value(ref_tilt_tot$), orb%vec)
 
 radius = 1 / g
 theta = length * g
@@ -1444,7 +1444,7 @@ orb%vec(6) = v_s * cos_t - v_x * sin_t
 orb%s      = orb%s + length
 orb%t      = orb%t + length * orb%vec(6) / c_light
 
-if (ele%value(ref_tilt_tot$) /= 0) call tilt_coords(-ele%value(ref_tilt_tot$), orb%vec)
+if (ele%value(ref_tilt_tot$) /= 0) call tilt_coords_photon (-ele%value(ref_tilt_tot$), orb%vec)
 
 end subroutine track_a_bend_photon
 

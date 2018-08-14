@@ -705,7 +705,7 @@ endif
 word = parser_translate_attribute_name (ele%key, word)
 
 ix_attrib = attribute_index(ele, word, attrib_word)
-if (attrib_free_problem(attrib_word)) return
+if (attrib_free_problem(word)) return
 
 if (ix_attrib < 1) then
   if (ele%key == drift$ .and. (word == 'HKICK' .or. word == 'VKICK' .or. &
@@ -771,7 +771,7 @@ if (attrib_word == 'WALL') then
   ! "ele1[wall] = ele2[wall]" construct
 
   if (delim == '[') then
-    call parser_find_ele_for_attrib_transfer ('WALL')
+    call parser_find_ele_for_attrib_transfer ('WALL', word)
     if (.not. associated(eles(1)%ele%wall3d)) then
       call parser_error ('NO WALL ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
@@ -996,7 +996,7 @@ if (attrib_word == 'SURFACE') then
   ! "ele1[surface] = ele2[surface]" construct
 
   if (delim == '[') then
-    call parser_find_ele_for_attrib_transfer ('SURFACE')
+    call parser_find_ele_for_attrib_transfer ('SURFACE', word)
     if (.not. associated(eles(1)%ele%photon)) then
       call parser_error ('NO SURFACE ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
@@ -1109,7 +1109,7 @@ if (attrib_word == 'CARTESIAN_MAP') then
   ! "ele1[cartesian_map] = ele2[cartesian_map]" construct
 
   if (delim == '[') then
-    call parser_find_ele_for_attrib_transfer ('CARTESIAN_MAP')
+    call parser_find_ele_for_attrib_transfer ('CARTESIAN_MAP', word)
     if (err_flag) return
     if (.not. associated(eles(1)%ele%cartesian_map)) then
       call parser_error ('NO CARTESIAN_MAP ASSOCIATED WITH LATTICE ELEMENT: ' // word)
@@ -1164,7 +1164,7 @@ if (attrib_word == 'CYLINDRICAL_MAP') then
   ! "ele1[cylindrical_map] = ele2[cylindrical_map]" construct
 
   if (delim == '[') then
-    call parser_find_ele_for_attrib_transfer ('CYLINDRICAL_MAP')
+    call parser_find_ele_for_attrib_transfer ('CYLINDRICAL_MAP', word)
     if (err_flag) return
     if (.not. associated(eles(1)%ele%cylindrical_map)) then
       call parser_error ('NO CYLINDRICAL_MAP ASSOCIATED WITH LATTICE ELEMENT: ' // word)
@@ -1217,7 +1217,7 @@ if (attrib_word == 'GRID_FIELD') then
   ! "ele1[grid_field] = ele2[grid_field]" construct
 
   if (delim == '[') then
-    call parser_find_ele_for_attrib_transfer ('GRID_FIELD')
+    call parser_find_ele_for_attrib_transfer ('GRID_FIELD', word)
     if (err_flag) return
     if (.not. associated(eles(1)%ele%grid_field)) then
       call parser_error ('NO GRID_FIELD ASSOCIATED WITH LATTICE ELEMENT: ' // word)
@@ -1272,7 +1272,7 @@ if (attrib_word == 'TAYLOR_FIELD') then
   ! "ele1[taylor_field] = ele2[taylor_field]" construct
 
   if (delim == '[') then
-    call parser_find_ele_for_attrib_transfer ('TAYLOR_FIELD')
+    call parser_find_ele_for_attrib_transfer ('TAYLOR_FIELD', word)
     if (err_flag) return
     if (.not. associated(eles(1)%ele%taylor_field)) then
       call parser_error ('NO TAYLOR_FIELD ASSOCIATED WITH LATTICE ELEMENT: ' // word)
@@ -1837,7 +1837,7 @@ case ('VELOCITY_DISTRIBUTION')
 case default   ! normal attribute
 
   ! attrib_word = "x_limit" for example will generate an error here but this is not a true error.
-  call pointer_to_attribute (ele, attrib_word, .true., a_ptr, err_flag, .false.) 
+  call pointer_to_attribute (ele, attrib_word, .true., a_ptr, err_flag, .false.)
 
   if (attribute_type(attrib_word) == is_logical$) then
     if (associated (a_ptr%l)) then
@@ -1892,18 +1892,19 @@ case default   ! normal attribute
       ele%value(y1_limit$) = value
       ele%value(y2_limit$) = value
     elseif (ix_attrib > num_ele_attrib$) then
-      ! TT* Taylor Terms need do_allocation = True.
-      call pointer_to_attribute (ele, attrib_word, .true., a_ptr, err_flag, .false.)
       if (err_flag .or. .not. associated(a_ptr%r)) then
         call parser_error ('BAD ATTRIBUTE: ' // attrib_word, 'FOR ELEMENT: ' // ele%name)
         return
       endif
       a_ptr%r = value
+      call set_flags_for_changed_attribute (ele, a_ptr, .false.)
+
       if (attrib_word == 'X_POSITION' .or. attrib_word == 'X_POSITION' .or. &
           attrib_word == 'X_POSITION' .or. attrib_word == 'THETA_POSITION' .or. &
           attrib_word == 'PHI_POSITION' .or. attrib_word == 'PSI_POSITION') ele%value(floor_set$) = 1
     else
       ele%value(ix_attrib) = value
+      call set_flags_for_changed_attribute (ele, ele%value(ix_attrib), .false.)
 
       if (logic_option(.true., set_field_master)) then
         ix = len_trim(attrib_word)
@@ -1930,7 +1931,7 @@ case default   ! normal attribute
         branch => pointer_to_branch(ele%name, lat, .true.)
         if (associated(branch)) then
           branch%ele(0)%value(e_tot$) = value
-          call set_flags_for_changed_attribute (branch%ele(0), branch%ele(0)%value(e_tot$))
+          call set_flags_for_changed_attribute (branch%ele(0), branch%ele(0)%value(e_tot$), .false.)
         endif
 
       case ('ENERGY')    ! Only in def_mad_beam
@@ -1948,7 +1949,7 @@ case default   ! normal attribute
         branch => pointer_to_branch(ele%name, lat, .true.)
         if (associated(branch)) then
           branch%ele(0)%value(p0c$) = value
-          call set_flags_for_changed_attribute (branch%ele(0), branch%ele(0)%value(p0c$))
+          call set_flags_for_changed_attribute (branch%ele(0), branch%ele(0)%value(p0c$), .false.)
         endif
 
       case ('PC')    ! Only in def_mad_beam
@@ -1976,9 +1977,10 @@ err_flag = .false.
 !--------------------------------------------------------
 contains
 
-subroutine parser_find_ele_for_attrib_transfer (attribute)
+subroutine parser_find_ele_for_attrib_transfer (attribute, word)
 
-character(*) attribute
+character(*) attribute, word
+character(40) word2
 
 call get_next_word (word2, ix_word, '[],(){}', delim2, delim_found, call_check = .true.)
 if (delim2 /= ']' .or. word2 /= attribute) then
@@ -2039,6 +2041,7 @@ end function attrib_free_problem
 subroutine get_logical (attrib_name, this_logic, err)
 
 character(*) attrib_name
+character(40) word
 logical this_logic, err
 
 !

@@ -60,7 +60,7 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord, slave, ele0
 type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
-type (floor_position_struct) :: floor, f0
+type (floor_position_struct) :: floor, f0, floor2
 type (wake_lr_mode_struct), pointer :: lr
 type (wake_sr_mode_struct), pointer :: mode
 type (cartesian_map_struct), pointer :: ct_map
@@ -88,7 +88,7 @@ integer, optional, intent(out) :: n_lines
 integer i, i1, j, n, is, ix, iw, ix_tot, iv, ic, nl2, l_status, a_type, default_val
 integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle, ix_pole_max
 
-real(rp) coef, val
+real(rp) coef, val, L_mis(3), S_mis(3,3) 
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
 real(rp) a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
@@ -248,10 +248,10 @@ do i = 1, num_ele_attrib$
       nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8)')  i, a_name(1:n_att), '=', ele%value(i), attrib%units
     case (is_switch$)
       name = switch_attrib_value_name (a_name, ele%value(i), ele, is_default)
-      if (.not. is_default .or. type_zero) then
+      !! if (.not. is_default .or. type_zero) then
         nl=nl+1; write (li(nl), '(i5, 3x, 4a, i0, a)')  i, a_name(1:n_att), '=  ', &
                                                       trim(name), ' (', nint(ele%value(i)), ')'
-      endif
+      !! endif
     end select
   endif
 enddo
@@ -1071,15 +1071,31 @@ endif
 ! Encode Floor coords
 
 if (logic_option(.false., type_floor_coords)) then
+  ele0 => pointer_to_next_ele(ele, -1)
+
   select case (ele%key)
   case (floor_shift$, group$, overlay$, hybrid$, beginning_ele$, match$, null_ele$, patch$)
     ! These elements do not have offsets
     floor = ele%floor
 
   case (crystal$, mirror$, multilayer_mirror$)
+    call ele_geometry (ele0%floor, ele, floor2, 0.5_rp)
+
+    f0 = ele0%floor
+    call floor_angles_to_w_mat(ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$), s_mis)
+    f0%r = f0%r + matmul(f0%W, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)])
+    f0%W = matmul(f0%W, s_mis)
+    call floor_w_mat_to_angles (f0%W, f0%theta, f0%phi, f0%psi, f0)
+    call ele_geometry (f0, ele, floor, 0.5_rp)
+
+    nl=nl+1; li(nl) = ''
+    nl=nl+1; li(nl) = 'Global Floor Coords at Surface of Element:'
+    nl=nl+1; write (li(nl), '(a)')         '                   X           Y           Z       Theta         Phi         Psi'
+    nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Reference', floor2%r, floor2%theta, floor2%phi, floor2%psi, '! Position without misalignments'
+    nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi, '! Position with offset/pitch/tilt misalignments'
+
     ! Misalignments are referenced to beginning of element
-    call ele_geometry (ele%floor, ele, floor, -1.0_rp)
-    floor = coords_relative_to_floor (floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
+    floor = coords_relative_to_floor (ele0%floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
                                         ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$))
     call ele_geometry (floor, ele, floor)
 
@@ -1099,7 +1115,7 @@ if (logic_option(.false., type_floor_coords)) then
   nl=nl+1; write (li(nl), '(a)')         '                   X           Y           Z       Theta         Phi         Psi'
   nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Reference', ele%floor%r, ele%floor%theta, ele%floor%phi, ele%floor%psi, '! Position without misalignments'
   nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi, '! Position with offset/pitch/tilt misalignments'
-  ele0 => pointer_to_next_ele(ele, -1)
+
   if (associated(ele0)) then
     if (ele%ix_ele /= 0 .or. branch%param%geometry == closed$) then
       f0 = ele0%floor

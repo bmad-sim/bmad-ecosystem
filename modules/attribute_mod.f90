@@ -2859,7 +2859,7 @@ if (attrib_info%type == does_not_exist$) then
     ! Something like 'cartesian_map(1)%field_scale' does not have an attribute index
     call pointer_to_attribute (ele, attrib_name, .true., a_ptr, err_flag, .false.)
     if (.not. err_flag) return
-    call it_is_not_free (ele, ix_attrib, 'THIS NAME DOES NOT CORRESPOND TO A VALID ATTRIBUTE.')
+    call it_is_not_free (ele, ix_attrib, 'DOES NOT CORRESPOND TO A VALID ATTRIBUTE.', skip = .true.)
   end select
   return
 endif
@@ -2868,7 +2868,7 @@ endif
 
 if (ele%key == overlay$ .or. ele%key == group$) then
   if (all(attrib_name /= ele%control%var%name)) then
-    call it_is_not_free (ele, ix_attrib, 'IT IS NOT A VALID CONTROL VARIABLE')
+    call it_is_not_free (ele, ix_attrib, 'IS NOT A VALID CONTROL VARIABLE', skip = .true.)
   endif
   return
 endif
@@ -2908,7 +2908,7 @@ if (ele%slave_status == super_slave$) then
   select case (a_name)
   case ('L', 'CSR_CALC_ON')
   case default
-    call it_is_not_free (ele, ix_attrib, 'THIS ELEMENT IS A SUPER_SLAVE.', &
+    call it_is_not_free (ele, ix_attrib, 'THE ELEMENT IS A SUPER_SLAVE.', &
                                          '[ATTRIBUTES OF SUPER_SLAVE ELEMENTS ARE GENERALLY NOT FREE TO VARY.]')
   end select
   return
@@ -2926,7 +2926,7 @@ if (ele%slave_status == multipass_slave$) then
     lord => pointer_to_lord(ele, 1)
   end select
 
-  call it_is_not_free (ele, ix_attrib, 'THIS ELEMENT IS A MULTIPASS_SLAVE.', &
+  call it_is_not_free (ele, ix_attrib, 'THE ELEMENT IS A MULTIPASS_SLAVE.', &
                                        '[ATTRIBUTES OF MULTIPASS_SLAVE ELEMENTS ARE GENERALLY NOT FREE TO VARY.]')
 
   return
@@ -3003,7 +3003,7 @@ endif
 !-------------------------------------------------------
 contains
 
-subroutine it_is_not_free (ele, ix_attrib, l1, l2)
+subroutine it_is_not_free (ele, ix_attrib, l1, l2, skip)
 
 type (ele_struct) ele
 
@@ -3013,6 +3013,8 @@ character(*) l1
 character(*), optional :: l2
 character(100) li(8)
 character(*), parameter :: r_name = 'attribute_free'
+
+logical, optional :: skip
 
 !
 
@@ -3024,7 +3026,9 @@ nl = 0
 
 nl=nl+1; li(nl) =   'THE ATTRIBUTE: ' // attrib_name
 nl=nl+1; li(nl) =   'OF THE ELEMENT: ' // ele%name
-nl=nl+1; li(nl) = 'IS NOT FREE TO VARY SINCE:'
+if (.not. logic_option(.false., skip)) then
+  nl=nl+1; li(nl) = 'IS NOT FREE TO VARY SINCE:'
+endif
 
 nl=nl+1; li(nl) = l1
 if (present(l2)) then

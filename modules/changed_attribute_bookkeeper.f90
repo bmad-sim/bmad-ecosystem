@@ -456,10 +456,24 @@ case (beginning_ele$)
     return
   endif
 
+case (crystal$)
+  if (associated(a_ptr, ele%value(graze_angle_in$)) .or. associated(a_ptr, ele%value(graze_angle_out$))) then
+    call set_ele_status_stale (ele, floor_position_group$)
+    return
+  endif
+
+case (mirror$, multilayer_mirror$)
+  if (associated(a_ptr, ele%value(graze_angle$))) then
+    call set_ele_status_stale (ele, floor_position_group$)
+    return
+  endif
+
 case (fork$, photon_fork$)
 
 case (rfcavity$)
-  if (associated(a_ptr, ele%value(voltage$)) .and. ele%value(l$) /= 0) ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
+  if (dep_set) then
+    if (associated(a_ptr, ele%value(voltage$)) .and. ele%value(l$) /= 0) ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
+  endif
 
 case (lcavity$, e_gun$)
 
@@ -469,8 +483,10 @@ case (lcavity$, e_gun$)
     call set_ele_status_stale (ele, ref_energy_group$)
   endif
 
-  if (associated(a_ptr, ele%value(voltage$)) .and. ele%value(l$) /= 0) ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
-  if (associated(a_ptr, ele%value(voltage_err$)) .and. ele%value(l$) /= 0) ele%value(gradient_err$) = ele%value(voltage_err$) / ele%value(l$)
+  if (dep_set) then
+    if (associated(a_ptr, ele%value(voltage$)) .and. ele%value(l$) /= 0) ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
+    if (associated(a_ptr, ele%value(voltage_err$)) .and. ele%value(l$) /= 0) ele%value(gradient_err$) = ele%value(voltage_err$) / ele%value(l$)
+  endif
 
   if (ele%key == lcavity$) then 
     if (associated(a_ptr, ele%value(phi0_multipass$)) .or. associated(a_ptr, ele%value(e_loss$))) then
