@@ -87,7 +87,7 @@ if (set) then
   if (ele%key == crystal$) tilt = tilt + p(tilt_corr$)
   if (is_reflective_element) tilt = tilt + p(ref_tilt_tot$)
   if (tilt /= 0) then
-    call tilt_coords (tilt, vec)
+    call tilt_coords_photon (tilt, vec, rot_mat)
 
     if (.not. logic_option(.false., offset_position_only)) then
 
@@ -105,7 +105,7 @@ if (set) then
     endif
   endif
 
-  ! Set: Rotate to ele coords. 
+  ! Set: Rotate to body coords. 
 
   select case (ele%key)
   case (crystal$)
@@ -195,7 +195,7 @@ else
 
     ! ref_tilt rotation
 
-    call tilt_coords (-p(ref_tilt_tot$), orbit%vec)
+    call tilt_coords_photon (-p(ref_tilt_tot$), orbit%vec, rot_mat)
 
     ! Unset: tilt_tot
     ! The difference between ref_tilt_tot and tilt_tot is that ref_tilt_tot also rotates the output 

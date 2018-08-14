@@ -490,7 +490,7 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   hgap, hgapx        = <Real>     ! Pole half gap.
   k1                 = <Real>     ! Quadrupole strength.
   k2                 = <Real>     ! Sextupole strength (\sref{s:depend}).
-  l                  = <Real>     ! ``Length'' of bend. See below.
+  l                  = <Real>     ! "Length" of bend. See below.
   l_arc              = <Real>     ! Arc length. For \vn{rbend}s only. 
   l_chord                         ! Chord length. Dependent attribute. See \sref{s:l}.
   n_ref_pass         = 0 or 1     ! Multipass reference turn (\sref{s:multipass}).
@@ -1782,7 +1782,7 @@ to another ring, a patch can be placed in a separate ``transfer'' line
 to isolate it from the branches defining the rings. Example:
 \begin{example}
   ring1: line = (... A, F1, B, ...)     ! First ring
-  x_line: line = (X_F1, X_PATCH, X_F2)  ! ``Transfer'' line
+  x_line: line = (X_F1, X_PATCH, X_F2)  ! "Transfer" line
   ring2: line = (... C, F2, D, ...)     ! Second ring
   use, ring1
 
@@ -1931,7 +1931,7 @@ Attributes specific to a \vn{floor_shift} elements are:
   dtheta_origin     = <Real>     ! orientation angle offset.
   dphi_origin       = <Real>     ! orientation angle offset.
   dpsi_origin       = <Real>     ! orientation angle offset.
-  l                 ! Girder ``Length'' (\ref{s:l}). Dependent attribute (\sref{s:depend}).
+  l                 ! Girder "Length" (\ref{s:l}). Dependent attribute (\sref{s:depend}).
 \end{example}
 
 A simple example of a girder is shown in \fig{f:girder}. Here a girder supports three
@@ -2004,27 +2004,21 @@ coincident with the entrance end frame of an element named
   center        ! Default
   exit_end
 \end{example}
-For \vn{crystal}, \vn{mirror}, and \vn{multilayer_mirror} elements,
-setting \vn{origin_ele_ref_pt} to \vn{center} results in the reference
-frame being the frame of the surface (cf.~\fig{f:surface}).
+For \vn{crystal}, \vn{mirror}, and \vn{multilayer_mirror} elements, setting \vn{origin_ele_ref_pt}
+to \vn{center} results in the reference frame being the frame of the surface (cf.~\fig{f:surface}).
 
-If \vn{origin_ele} is not given, the default \vn{origin} frame is
-used. The default \vn{origin} frame is constructed as follows:
-Let $\calO_A$ be the reference frame of the upstream end of
-the first element in the list of supported elements. In this example
-it is the upstream end of element \vn{A} as shown in the figure. Let
-$\calO_C$ be the downstream end of the last element in the list of
-supported elements. In this example this is the downstream end of
-element \vn{C}. The origin of the \vn{girder}'s reference frame,
-marked $\calO_G$ in the figure, will be half way along the vector
-$r_{CA}$ from the origin of $\calO_A$ to the origin of $\calO_B$.  The
-orientation of $\calO_G$ is constructed by rotating the $\calO_A$
-coordinate system along an axis in $\calO_A$'s $x$-$y$ plane such that
-$\calO_A$'s $z$ axis ends up parallel with $r_{CA}$. In the example
-above, the rotation axis will be along $\calO_A$'s $y$-axis.
+If \vn{origin_ele} is not given, the default \vn{origin} frame is used. The default \vn{origin}
+frame is constructed as follows: Let $\calO_A$ be the reference frame of the upstream end of the
+first element in the list of supported elements. In this example it is the upstream end of element
+\vn{A} as shown in the figure. Let $\calO_C$ be the downstream end of the last element in the list
+of supported elements. In this example this is the downstream end of element \vn{C}. The origin of
+the \vn{girder}'s reference frame, marked $\calO_G$ in the figure, will be half way along the vector
+$r_{CA}$ from the origin of $\calO_A$ to the origin of $\calO_B$.  The orientation of $\calO_G$ is
+constructed by rotating the $\calO_A$ coordinate system along an axis in $\calO_A$'s $x$-$y$ plane
+such that $\calO_A$'s $z$ axis ends up parallel with $r_{CA}$. In the example above, the rotation
+axis will be along $\calO_A$'s $y$-axis.
 
-Once the \vn{origin} reference frame is established, the reference
-frame of the girder can be offset
+Once the \vn{origin} reference frame is established, the reference frame of the girder can be offset
 from the \vn{origin} frame using the parameters
 \begin{example}
   dx_origin    dtheta_origin
