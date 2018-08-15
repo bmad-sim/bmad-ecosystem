@@ -1,6 +1,7 @@
 module radiation_mod
 
 use rad_int_common
+use symp_lie_mod
 
 contains
 
@@ -40,68 +41,54 @@ end subroutine release_rad_int_cache
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine track1_radiation (orbit, ele, param, edge, z_start)
+! Subroutine calc_radiation_tracking_g_factors (ele, orbit, param, edge, len2, g_x, g_y, g, g2, g3)
 !
-! Subroutine to put in radiation dampling and/or fluctuations including radiation 
-! induced spin flips ("Baier-Katkov" spin flips).
-!
-! This routine calculates half the radiation of an element so this routine
-! needs to be called before entering an element and just after exiting.
-!
-! Note: If both bmad_com%radiation_damping_on and not bmad_com%radiation_fluctuations_on are
-! False then no spin flipping is done.  
-!
-! Note: This routine is called by track1.
+! Routine to calculate the g bending strength parameters for half the element. 
+! g = 1/rho where rho is the radius of curvature. g points raially outward in the plane of bending.
+! If the particle is at the starting edge then the calculation is over the first half of the element.
+! If the particle is at the exit edge then the calculation is over the 2nd half of the element.
 !
 ! Input:
-!   orbit     -- coord_struct: Particle position before radiation applied.
+!   orbit     -- coord_struct: Particle position.
 !   ele       -- ele_struct: Element that causes radiation.
 !   edge      -- integer: Where the particle is: start_edge$ or end_edge$.
+!     
 !
 ! Output:
-!   orbit     -- coord_struct: Particle position after radiation has been applied.
-!
-! Scratch:
-!   z_start   -- real(rp): Used by track1_radiation to save the z-coordinate.
-!                 z_start is an argument to avoid making it saved.
+!   len2      -- real(rp): Half length traveled by particle. Set to zero if no bending present.
+!   g_x       -- real(rp): Average of x-component of g.
+!   g_y       -- real(rp): Average of y-component of g.
+!   g2        -- real(rp): Average of g^2.
+!   g3        -- real(rp): Average of g^3.
 !-
 
-subroutine track1_radiation (orbit, ele, param, edge, z_start)
-
-use random_mod
+subroutine calc_radiation_tracking_g_factors (ele, orbit, param, edge, len2, g_x, g_y, g2, g3)
 
 implicit none
 
 type (coord_struct) :: orbit
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: ele0
 type (lat_param_struct) :: param
 type (coord_struct) :: orbit2
+type (coord_struct) start0_orb, start_orb, end_orb
+type (track_struct), save, target :: track_save
+type (track_struct), pointer :: track
 
-integer :: edge
-
-real(rp) s_len, g, g_x, g_y, this_ran, mc2, g2, g3, z_start, kx, ky, kx_tot, ky_tot
-real(rp) gamma_0, dE_p, fact_d, fact_f, q_charge2, p_spin, spin_norm(3), norm
+real(rp) len2, g_x, g_y, g2, g3, kx, ky, kx_tot, ky_tot, s_here
 real(rp) a_pole_mag(0:n_pole_maxx), b_pole_mag(0:n_pole_maxx), a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
+real(rp), parameter :: del_orb = 1d-4
 
-real(rp), parameter :: rad_fluct_const = 55.0_rp * classical_radius_factor * h_bar_planck * c_light / (24.0_rp * sqrt_3)
-real(rp), parameter :: spin_const = 5.0_rp * sqrt_3 * classical_radius_factor * h_bar_planck * c_light / 16
-real(rp), parameter :: c1_spin = 2.0_rp / 9.0_rp, c2_spin = 8.0_rp / (5.0_rp * sqrt_3)
+integer edge, direc
+integer i, j, ix_mag_max, ix_elec_max
 
-integer i, direc, ix_mag_max, ix_elec_max
-
-logical set
-logical :: init_needed = .true.
-
-character(*), parameter :: r_name = 'track1_radiation'
+character(*), parameter :: r_name = 'calc_radiation_tracking_g_factors'
 
 !
-
-if (.not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuations_on) return
 
 select case (ele%key)
 case (quadrupole$, sextupole$, octupole$, sbend$, sol_quad$, wiggler$, undulator$)
 case default
+  len2 = 0
   return
 end select
 
@@ -111,29 +98,27 @@ end select
 ! If leaving the element the radiation length is taken to be 1/2 the element length + delta_Z
 
 if (edge == start_edge$) then
-  set = set$
-  s_len = ele%value(l$) / 2
   direc = +1
-  z_start = orbit%vec(5)
+  s_here = 0
 elseif (edge == end_edge$) then
-  set = unset$
-  s_len = ele%value(l$)/2 + (orbit%vec(5) - z_start)
   direc = -1
+  s_here = ele%value(l$)
 else
-  call out_io (s_fatal$, r_name, 'BAD EDGE ARGUMENT:', set)
+  call out_io (s_fatal$, r_name, 'BAD EDGE ARGUMENT:', edge)
   if (global_com%exit_on_error) call err_exit
 endif
 
-if (s_len < 0) s_len = 0
+len2 = ele%value(l$) / 2
+if (len2 < 0) len2 = 0
 
 ! Get the coords in the frame of reference of the element
 
 if (ele%key /= wiggler$ .and. ele%key /= undulator$) then
   orbit2 = orbit
-  call offset_particle (ele, param, set, orbit2)
+  call offset_particle (ele, param, set$, orbit2, s_pos = s_here)
   call canonical_to_angle_coords (orbit2)
-  orbit2%vec(1) = orbit2%vec(1) + direc * orbit2%vec(2) * s_len / 2.0_rp ! Extrapolate to center of region 1/4 of way into element.
-  orbit2%vec(3) = orbit2%vec(3) + direc * orbit2%vec(4) * s_len / 2.0_rp
+  orbit2%vec(1) = orbit2%vec(1) + direc * orbit2%vec(2) * len2 / 2.0_rp ! Extrapolate to center of region 1/4 of way into element.
+  orbit2%vec(3) = orbit2%vec(3) + direc * orbit2%vec(4) * len2 / 2.0_rp
 
   call multipole_ele_to_ab (ele, .false., ix_mag_max, a_pole_mag, b_pole_mag, magnetic$, .true.)
   call multipole_ele_to_ab (ele, .false., ix_elec_max, a_pole_elec, b_pole_elec, electric$, .true.)
@@ -153,8 +138,6 @@ if (ele%key /= wiggler$ .and. ele%key /= undulator$) then
     ky_tot = ky_tot + ky
   enddo
 endif
-
-!
 
 ! Calculate the radius of curvature for an on-energy particle
 
@@ -177,12 +160,48 @@ case (sbend$)
   g_y = ele%value(k1$) * orbit2%vec(3) - ky_tot
   g2 = g_x**2 + g_y**2
   g3 = sqrt(g2)**3
+  len2 = len2 * (1.0_rp + ele%value(g$) * orbit2%vec(1))
 
 case (wiggler$, undulator$)
   g_x = 0
   g_y = 0
   if (ele%sub_key == map_type$) then
-    if (.not. associated(ele%rad_int_cache) .or. ele%rad_int_cache%stale) call calc_radiation_tracking_consts(ele, param)
+    if (.not. associated(ele%rad_int_cache) .or. ele%rad_int_cache%stale) then
+
+
+      if (.not. associated(ele%rad_int_cache)) allocate (ele%rad_int_cache)
+      ele%rad_int_cache%orb0 = ele%map_ref_orb_in%vec
+
+      if (global_com%be_thread_safe) then
+        allocate(track)
+      else
+        track => track_save
+      endif
+
+      track%n_pt = -1
+      call symp_lie_bmad (ele, param, ele%map_ref_orb_in, end_orb, .false., track)
+      call calc_g (track, ele%rad_int_cache%g2_0, ele%rad_int_cache%g3_0)
+
+      do j = 1, 4
+        start_orb = ele%map_ref_orb_in
+        start_orb%vec(j) = start_orb%vec(j) + del_orb
+        track%n_pt = -1
+        call symp_lie_bmad (ele, param, start_orb, end_orb, .false., track)
+        call calc_g (track, g2, g3)
+        ele%rad_int_cache%dg2_dorb(j) = (g2 - ele%rad_int_cache%g2_0) / del_orb
+        ele%rad_int_cache%dg3_dorb(j) = (g3 - ele%rad_int_cache%g3_0) / del_orb
+      enddo
+
+      ele%rad_int_cache%stale = .false.
+
+      if (global_com%be_thread_safe) then
+        deallocate(track%orb, track%field, track%map)
+        deallocate(track)
+      endif
+    endif
+
+
+
     g2 = ele%rad_int_cache%g2_0 + dot_product(orbit%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg2_dorb(1:4))
     g3 = ele%rad_int_cache%g3_0 + dot_product(orbit%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg3_dorb(1:4))
     if (g3 < 0) g3 = 0
@@ -192,6 +211,105 @@ case (wiggler$, undulator$)
   endif
 
 end select
+
+!-------------------------------------------------------
+contains
+
+subroutine calc_g (track, g2, g3)
+
+type (track_struct) track
+real(rp) g2, g3, g2_here, g3_here, g(3), f, s0
+integer j, n0, n1
+
+! g2 is the average g^2 over the element for an on-energy particle.
+! Note: em_field_g_bend assumes orb is lab (not local) coords.
+
+track%orb(:)%vec(6) = 0  ! on-energy
+
+g2 = 0; g3 = 0
+
+n0 = lbound(track%orb, 1)
+n1 = track%n_pt
+s0 = ele%s_start
+
+do j = n0, n1
+
+  call em_field_g_bend (ele, param, track%orb(j)%s - s0, track%orb(j), g)
+
+  g2_here = g(1)**2 + g(2)**2 ! = g_x^2 + g_y^2
+  g3_here = sqrt(g2_here)**3
+
+  if (j == n0 .or. j == n1) then
+    g2_here = g2_here / 2
+    g3_here = g3_here / 2
+  endif
+
+  g2 = g2 + g2_here
+  g3 = g3 + g3_here
+
+enddo
+
+g2 = g2 / (n1 - n0 + 1)
+g3 = g3 / (n1 - n0 + 1)
+
+end subroutine calc_g
+
+end subroutine calc_radiation_tracking_g_factors
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine track1_radiation (orbit, ele, param, edge)
+!
+! Subroutine to apply a kick to a particle to account for radiation dampling and/or fluctuations.
+! "Baier-Katkov" spin flips are included.
+!
+! For tracking through a given element, this routine should be called initially when
+! the particle is at the entrance end and at the end when the particle is at the exit end.
+! That is, each time this routine is called it applies half the radiation kick for the entire element.
+!
+! Note: If both bmad_com%radiation_damping_on and not bmad_com%radiation_fluctuations_on are
+! False then no spin flipping is done.  
+!
+! Note: This routine is called by track1.
+!
+! Input:
+!   orbit     -- coord_struct: Particle position before radiation applied.
+!   ele       -- ele_struct: Element that causes radiation.
+!   edge      -- integer: Where the particle is: start_edge$ or end_edge$.
+!
+! Output:
+!   orbit     -- coord_struct: Particle position after radiation has been applied.
+!-
+
+subroutine track1_radiation (orbit, ele, param, edge)
+
+use random_mod
+
+implicit none
+
+type (coord_struct) :: orbit
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: ele0
+type (lat_param_struct) :: param
+
+integer :: edge
+
+real(rp) s_len, g_x, g_y, this_ran, mc2, g2, g3
+real(rp) gamma_0, dE_p, fact_d, fact_f, q_charge2, p_spin, spin_norm(3), norm
+real(rp), parameter :: rad_fluct_const = 55.0_rp * classical_radius_factor * h_bar_planck * c_light / (24.0_rp * sqrt_3)
+real(rp), parameter :: spin_const = 5.0_rp * sqrt_3 * classical_radius_factor * h_bar_planck * c_light / 16
+real(rp), parameter :: c1_spin = 2.0_rp / 9.0_rp, c2_spin = 8.0_rp / (5.0_rp * sqrt_3)
+
+character(*), parameter :: r_name = 'track1_radiation'
+
+!
+
+if (.not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuations_on) return
+
+call calc_radiation_tracking_g_factors (ele, orbit, param, edge, s_len, g_x, g_y, g2, g3)
+if (s_len == 0) return
 
 ! Apply the radiation kicks
 ! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light
@@ -251,123 +369,5 @@ if (bmad_com%spin_tracking_on .and. bmad_com%spin_sokolov_ternov_flipping_on) th
 endif
 
 end subroutine track1_radiation 
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Subroutine calc_radiation_tracking_consts (ele, param)
-!
-! Routine to compute synchrotron radiation parameters prior to tracking.
-! This routine is not meant for general use
-!
-! Modules needed:
-!   use radiation_mod
-!
-! Input:
-!   ele   -- ele_struct: Element 
-!   param -- lat_param_struct
-!
-! Output:
-!   ele  -- ele_struct: Element 
-!     %rad_int_cache  -- radiation tracking constants.
-!-
-
-subroutine calc_radiation_tracking_consts (ele, param)
-
-use symp_lie_mod
-
-implicit none
-
-type (ele_struct) ele
-type (lat_param_struct) param
-type (coord_struct) start0_orb, start_orb, end_orb
-type (track_struct), save, target :: track_save
-type (track_struct), pointer :: track
-
-real(rp), parameter :: del_orb = 1d-4
-real(rp) g2, g3
-
-integer i, j
-
-! Compute for a map_type wiggler the change in g2 and g3 
-!   with respect to transverse orbit for an on-energy particle.
-
-if (ele%key /= wiggler$ .and. ele%key /= undulator$) return
-if (ele%sub_key /= map_type$) return
-
-if (.not. associated(ele%rad_int_cache)) allocate (ele%rad_int_cache)
-ele%rad_int_cache%orb0 = ele%map_ref_orb_in%vec
-
-if (global_com%be_thread_safe) then
-  allocate(track)
-else
-  track => track_save
-endif
-
-track%n_pt = -1
-call symp_lie_bmad (ele, param, ele%map_ref_orb_in, end_orb, .false., track)
-call calc_g (track, ele%rad_int_cache%g2_0, ele%rad_int_cache%g3_0)
-
-do j = 1, 4
-  start_orb = ele%map_ref_orb_in
-  start_orb%vec(j) = start_orb%vec(j) + del_orb
-  track%n_pt = -1
-  call symp_lie_bmad (ele, param, start_orb, end_orb, .false., track)
-  call calc_g (track, g2, g3)
-  ele%rad_int_cache%dg2_dorb(j) = (g2 - ele%rad_int_cache%g2_0) / del_orb
-  ele%rad_int_cache%dg3_dorb(j) = (g3 - ele%rad_int_cache%g3_0) / del_orb
-enddo
-
-ele%rad_int_cache%stale = .false.
-
-if (global_com%be_thread_safe) then
-  deallocate(track%orb, track%field, track%map)
-  deallocate(track)
-endif
-
-!-------------------------------------------------------
-contains
-
-subroutine calc_g (track, g2, g3)
-
-type (track_struct) track
-real(rp) g2, g3, g2_here, g3_here, g(3), f, s0
-integer j, n0, n1
-
-! g2 is the average g^2 over the element for an on-energy particle.
-! Note: em_field_g_bend assumes orb is lab (not local) coords.
-
-track%orb(:)%vec(6) = 0  ! on-energy
-
-g2 = 0; g3 = 0
-
-n0 = lbound(track%orb, 1)
-n1 = track%n_pt
-s0 = ele%s_start
-
-do j = n0, n1
-
-  call em_field_g_bend (ele, param, track%orb(j)%s - s0, track%orb(j), g)
-
-  g2_here = g(1)**2 + g(2)**2 ! = g_x^2 + g_y^2
-  g3_here = sqrt(g2_here)**3
-
-  if (j == n0 .or. j == n1) then
-    g2_here = g2_here / 2
-    g3_here = g3_here / 2
-  endif
-
-  g2 = g2 + g2_here
-  g3 = g3 + g3_here
-
-enddo
-
-g2 = g2 / (n1 - n0 + 1)
-g3 = g3 / (n1 - n0 + 1)
-
-end subroutine calc_g
-
-end subroutine calc_radiation_tracking_consts
 
 end module

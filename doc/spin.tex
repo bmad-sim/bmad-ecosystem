@@ -154,14 +154,16 @@ position $s$, cannot exceed $\left< \bfS \right>_{\max}$.
 
 Another quantity that can be computed from knowledge of $\bfn$ is the equilibrium polarization of a beam
 $\bfP_{dk}$ using the Derbenev-Kondratenko-Mane formula \cite{b:barber}:
-\Begineq
-  \bfP_{dk} = -\bfn \, \frac{8}{5 \, \sqrt{3}}
+\begin{align}
+  \bfP_{dk}(s) &= -\bfn(s) \, P_{dk} \\
+  P_{dk} &= -\frac{8}{5 \, \sqrt{3}}
   \frac{\displaystyle \oint ds \,\left< g^3 \, \what\bfb \cdot 
-    \left( \bfn - \frac{\partial \bfn}{\partial \delta} \right) \right>_{ps}}
+    \left( \bfn - \frac{\partial \bfn}{\partial \delta} \right) \right>}
   {\displaystyle \oint ds \, \left< g^3 \left( 1 - \frac{2}{9} (\bfn \cdot \what\bfs)^2 + 
-    \frac{11}{18} \left| \frac{\partial \bfn}{\partial \delta} \right|^2 \right) \right>_{ps}}
-\Endeq
-where $<>_{ps}$ denotes an $s$-dependent average over phase space, $g = 1/\rho$ is the bending
+    \frac{11}{18} \left| \frac{\partial \bfn}{\partial \delta} \right|^2 \right) \right>}
+    \nonumber
+\end{align}
+where $<>$ denotes an average over phase space, $g = 1/\rho$ is the bending
 strength ($\rho$ is the bending radius), $\delta$ is the fractional energy deviation which, for
 ultra-relativistic particles, is the same as phase space $p_z$, $\what\bfs$ is the unit vector in
 the direction of motion, and $\what\bfb$ is defined to be
@@ -179,7 +181,7 @@ where $\bfP_0$ is the initial polarization and the polarization rate $\tau_{dk}^
 \Begineq
   \tau_{dk}^{-1} = \frac{5 \, \sqrt{3}}{8} \frac{r_e \, \gamma^5 \, \hbar}{m}
   \frac{1}{C} \, \oint ds \, \left< g^3 \, \left( 1 - \frac{2}{9} (\bfn \cdot \what\bfs)^2 + 
-  \frac{11}{18} \left| \frac{\partial \bfn}{\partial \delta} \right|^2 \right) \right>_{ps}
+  \frac{11}{18} \left| \frac{\partial \bfn}{\partial \delta} \right|^2 \right) \right>
 \Endeq
 
 $\tau_{dk}^{-1}$ can be decomposed into two parts:
@@ -191,7 +193,7 @@ $\tau_{dep}^{-1}$ is given by the formula
 \Begineq
   \tau_{dk}^{-1} = \frac{5 \, \sqrt{3}}{8} \frac{r_e \, \gamma^5 \, \hbar}{m}
   \frac{1}{C} \, \oint ds \, \left< g^3 \,
-  \frac{11}{18} \left| \frac{\partial \bfn}{\partial \delta} \right|^2 \right>_{ps}
+  \frac{11}{18} \left| \frac{\partial \bfn}{\partial \delta} \right|^2 \right>
 \Endeq
 
 %-----------------------------------------------------------------   
