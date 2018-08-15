@@ -184,8 +184,9 @@ Difference used to calculate the contribution of the datum to the merit function
   \item[design] \Newline
 The value of the datum as calculated from the design lattice (\sref{s:datum.values}).
   \item[ele_name] \Newline
-Name of the associated lattice element where the datum is evaluated
-(\sref{s:datum.opt}). Also see \vn{eval_point} and \vn{s_offset} components.
+Name of the associated lattice element where the datum is evaluated at (\sref{s:data.lat.ele}). Not
+used for datums that are \vn{global}, like the emittance. Also see \vn{eval_point} and \vn{s_offset}
+components.
   \item[ele_start_name] \Newline
 Starting element of a range of lattice elements (\sref{s:data.lat.ele}).
   \item[ele_ref_name] \Newline
@@ -895,7 +896,7 @@ imaginary parts of $L$ and $F$ can be accessed through \vn{normal.ReF}, \vn{norm
   \item[null] \Newline
 A \vn{null} data type is used for data where \tao is not able to calculate a model value. Such data
 cannot be used in an optimization. For example, in a linac where the beam intensity is measured at
-the BPMs, \tao has no model for calculating the current variation down the linac. Nevertheless, it
+the BPMs, \tao is not able to calculate current variations down the linac. Nevertheless, it
 could be useful to read in the measured values and plot them.
 
   %----------------------
@@ -920,7 +921,7 @@ is the reference energy at that element.
 Orbit position and momenta.
 
   %----------------------
-  \item[periodic.tt.$ijklm\ldots$] \Newline
+  \item[periodic.tt.$ijklm\ldots$ \hspace{0.2in} $1 \le i,j,k,\ldots \le 6$] \Newline
 This is like the \vn{tt.} datum except here the terms are from the
 periodic Taylor map defined by
 \Begineq
@@ -1088,8 +1089,8 @@ The corresponding multiplicative values are derived from \vn{ping_b.amp_y} in an
 fashion to the multiplicative values for the $a$-mode ping data.
 
   %----------------------
-  \item[r.$ij$] \Newline
-Terms of the linear transfer map. $1 \le i,j \le 6$.
+  \item[r.$ij$ \hspace{0.2in} $1 \le i,j \le 6$] \Newline
+Terms of the linear transfer map.
 
   %----------------------
   \item[ \begin{tabular}{@{}l}
@@ -1147,17 +1148,31 @@ coordinate system where the exit end of the reference element is taken to be at
 the global coordinate system. See also \vn{floor.} and \vn{wall.}.
 
   %----------------------
-  \item[sigma.x, .y, .z, .px, .py, .pz, .$ij$, .Lxy] \Newline
+  \item[sigma.x, .y, .z, .px, .py, .pz, .Lxy, .$ij$ \hspace{0.2in} $1 \le i,j \le 6$] \Newline
 Beam sizes \vn{sigma.x}, \vn{sigma.px}, etc., and angular momentum
 \vn{sigma.Lxy} = $<xp_x - yp_x>$ are calculated from the beam sigma matrix
 if the \vn{data_source} is set to \vn{beam} and calculated from the linear
 Twiss parameters if the \vn{data_source} is set to \vn{lat}.
 
-\vn{sigma.$ij$} with $1 \le i,j,k,\ldots \le 6$ are components of the beam sigma matrix.
+\vn{sigma.$ij$} with $1 \le i,j,\ldots \le 6$ are components of the beam sigma matrix.
 
 Irregardless of the setting of \vn{data_source}, the beam emittance and longitudinal sigma
 values will be taken from the \vn{beam_init} structure (\sref{s:beam.init}) and {\em not}
 any emittances or longitudinal sigma values specified in the lattice file.
+
+  %----------------------
+  \item[spin_g_matrix.$ij$ \hspace{0.2in} $1 \le i \le 2, \quad 1 \le j \le 6$] \Newline
+The longitudinal dependent $G$ matrix is a $2\times6$ matrix that describes the coupling between
+orbital motion and spin precession as discussed in the chapter on spin in the \bmad manual.  Lattice
+design generally involves minimizing components of this matrix.
+
+
+  %----------------------
+  \item[spin.polarization_limit, .polarization_rate, .depolarization_rate] \Newline
+The spin depolarization limit, denoted $P_{dk}$, is calculated from the Derbenev-Kondratenko-Mane
+formula as outlined in the chapter on spin in the \bmad manual. The polarization rate, denoted
+$\tao_{dk}^{-1}$, and depolarizaiton rate, denoted $\tao_{dep}^{-1}$, are also discussed in the
+\bmad manual.
 
   %----------------------
   \item[spin.x, .y, .z, .amp] \Newline
@@ -1170,16 +1185,10 @@ manual. For a lattice with a closed geometry, the calculated spin is the closed 
 with the amplitude of the spin set at unity.
 
   %----------------------
-  \item[spin.depolarization_rate, .polarization_rate, .polarization_limit] \Newline
-The spin depolarization rate 
-\etc...
-
-  %----------------------
-  \item[t.$ijk$,  tt.$ijklm\ldots$] \Newline
-Taylor map components between two points with $1 \le i,j,k,\ldots \le 6$.  The difference
-between \vn{t.$ijk$} and \vn{tt.$ijklm\ldots$} is that \vn{t.$ijk$} is restricted to
-exactly three indices and \vn{tt.$ijklm\ldots$} is not. \vn{t.$ijk$} is superfluous but is
-keep for backwards compatibility.
+  \item[t.$ijk$,  tt.$ijklm\ldots$ \hspace{0.2in} $1 \le i,j,k,\ldots \le 6$] \Newline
+Taylor map components between two points.  The difference between \vn{t.$ijk$} and
+\vn{tt.$ijklm\ldots$} is that \vn{t.$ijk$} is restricted to exactly three indices and
+\vn{tt.$ijklm\ldots$} is not. \vn{t.$ijk$} is superfluous but is keep for backwards compatibility.
 
 Calculation of \vn{t.$ijk$} and \vn{tt.$ijklm\ldots$} datums involve symplectic
 integration through lattice elements. One point to be kept in mind is that results will be

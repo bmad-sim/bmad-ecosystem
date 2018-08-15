@@ -722,10 +722,11 @@ subroutine tao_spin_g_matrix_calc (datum, u, ix_ref, ix_ele, spin_g, valid_value
 character(*) why_invalid
 end subroutine
 
-subroutine tao_spin_polarization_calc (branch, valid_value, why_invalid, pol_limit, pol_rate, depol_rate)
+subroutine tao_spin_polarization_calc (branch, orbit, valid_value, why_invalid, pol_limit, pol_rate, depol_rate)
   import
   implicit none
   type (branch_struct), target :: branch
+  type (coord_struct) :: orbit(0:)
   real(rp), optional :: pol_limit, pol_rate, depol_rate
   logical valid_value
   character(*) why_invalid

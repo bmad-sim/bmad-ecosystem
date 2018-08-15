@@ -2688,13 +2688,13 @@ case ('spin.')
     call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     
   case ('spin.depolarization_rate')
-    call tao_spin_polarization_calc(branch, valid_value, why_invalid, depol_rate = datum_value)
+    call tao_spin_polarization_calc(branch, orbit, valid_value, why_invalid, depol_rate = datum_value)
 
   case ('spin.polarization_rate')
-    call tao_spin_polarization_calc(branch, valid_value, why_invalid, pol_rate = datum_value)
+    call tao_spin_polarization_calc(branch, orbit, valid_value, why_invalid, pol_rate = datum_value)
 
   case ('spin.polarization_limit')
-    call tao_spin_polarization_calc(branch, valid_value, why_invalid, pol_limit = datum_value)
+    call tao_spin_polarization_calc(branch, orbit, valid_value, why_invalid, pol_limit = datum_value)
 
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
