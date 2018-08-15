@@ -16,9 +16,10 @@
 !
 !-
 
-subroutine tao_spin_polarization_calc (branch, valid_value, why_invalid, pol_limit, pol_rate, depol_rate)
+subroutine tao_spin_polarization_calc (branch, orbit, valid_value, why_invalid, pol_limit, pol_rate, depol_rate)
 
 use tao_data_and_eval_mod, dummy => tao_spin_polarization_calc
+use radiation_mod
 use ptc_interface_mod
 use pointer_lattice, dummy2 => sqrt
 use eigen_mod
@@ -27,6 +28,7 @@ use f95_lapack
 implicit none
 
 type (branch_struct), target :: branch
+type (coord_struct) :: orbit(0:)
 type (q_linear) :: q_1turn
 type (q_linear), pointer :: q1
 type (q_linear), target :: q_ele(branch%n_ele_track)
@@ -34,9 +36,14 @@ type (ele_struct), pointer :: ele
 type (taylor_struct), pointer :: st
 
 real(rp), optional :: pol_limit, pol_rate, depol_rate
-real(rp) vec0(6), mat6(6,6), n0(3), l0(3), m0(3), mat3(3,3), f
+real(rp) vec0(6), mat6(6,6), n0(3), l0(3), m0(3), mat3(3,3)
 real(rp) dn_ddelta(3), m_1turn(8,8)
 real(rp) quat0(0:3), quat_lnm_to_xyz(0:3), q0_lnm(0:3), qq(0:3)
+real(rp) integral_bn, integral_1minus, integral_dn_ddel
+real(rp) len2, g_x, g_y, g, g2, g3, b_vec(3), s_vec(3), del_p, mc2, q, gamma, f
+real(rp), parameter :: f_limit = 8 / (5 * sqrt(3.0_rp))
+real(rp), parameter :: f_rate = 5 * sqrt(3.0_rp) * classical_radius_factor * h_bar_planck * c_light**2 / 8
+
 
 complex(rp) eval(6), evec(6,6), dd(2,2), gv(2,1), w_vec(6,2)
 
@@ -88,6 +95,10 @@ do ie = 1, branch%n_ele_track
 enddo
 
 ! Loop over all elements.
+
+integral_bn      = 0 ! Integral of g^3 (b_hat dot (n - dn/ddelta))
+integral_1minus  = 0 ! Integral of g^3 (1 - (2/9) (n dot s)^2)
+integral_dn_ddel = 0 ! Integral of g^3 (11/18) dn_ddelta
 
 do ie = 0, branch%n_ele_track
   ele => branch%ele(ie)
@@ -159,6 +170,49 @@ do ie = 0, branch%n_ele_track
 
   dn_ddelta = rotate_vec_given_quat (quat_lnm_to_xyz, dn_ddelta)
 
+  !
+
+  del_p  = 1 + orbit(ie)%vec(6)
+  s_vec(1:2) = [orbit(ie)%vec(2)/del_p, orbit(ie)%vec(4)/del_p]
+  s_vec(3) = sqrt(1.0_rp - s_vec(1)**2 - s_vec(2)**2)
+
+
+  ele => branch%ele(ie)
+  call calc_radiation_tracking_g_factors (ele, orbit(ie), branch%param, end_edge$, len2, g_x, g_y, g2, g3)
+  if (len2 /= 0) then
+    b_vec = [g_y, -g_x, 0.0_rp]
+    b_vec = b_vec / norm2(b_vec)
+
+    integral_bn      = integral_bn      + len2 * g3 * dot_product(b_vec, n0 - dn_ddelta)
+    integral_1minus  = integral_1minus  + len2 * g3 * (1 - (2.0_rp/9.0_rp) * dot_product(n0, s_vec)**2)
+    integral_dn_ddel = integral_dn_ddel + len2 * g3 * (11.0_rp/18.0_rp) * dot_product(dn_ddelta, dn_ddelta)
+  endif
+
+  if (ie == branch%n_ele_track) cycle
+
+  ele => branch%ele(ie+1)
+  call calc_radiation_tracking_g_factors (ele, orbit(ie), branch%param, start_edge$, len2, g_x, g_y, g2, g3)
+  if (len2 /= 0) then
+    b_vec = [g_y, -g_x, 0.0_rp]
+    b_vec = b_vec / norm2(b_vec)
+
+    integral_bn      = integral_bn      + len2 * g3 * dot_product(b_vec, n0 - dn_ddelta)
+    integral_1minus  = integral_1minus  + len2 * g3 * (1 - (2.0_rp/9.0_rp) * dot_product(n0, s_vec)**2)
+    integral_dn_ddel = integral_dn_ddel + len2 * g3 * (11.0_rp/18.0_rp) * dot_product(dn_ddelta, dn_ddelta)
+  endif
+
 enddo
+
+!
+
+mc2 = mass_of(branch%param%particle)
+q = charge_of(branch%param%particle)
+call convert_pc_to ((1 + orbit(0)%vec(6)) * orbit(0)%p0c, branch%param%particle, gamma = gamma)
+
+f = f_rate * gamma**5 * q**2 / (mc2**2 * branch%param%total_length)
+
+pol_limit = -f_limit * integral_bn / (integral_1minus + integral_dn_ddel)
+pol_rate = f * (integral_1minus + integral_dn_ddel)
+depol_rate = f * integral_dn_ddel
 
 end subroutine tao_spin_polarization_calc
