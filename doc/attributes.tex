@@ -509,18 +509,19 @@ as shown in \fig{f:pitch}. Similarly, \vn{y_offset} and
 \vn{z_offset} translate an element along the local $y$ and 
 $z$--directions respectively.
 
-The \vn{x_pitch} attribute rotates an element about the element's
-center such that the exit face of the element is displaced in the
-$+x$--direction as shown in figure~\ref{f:pitch}.  An
-\vn{x_pitch} represents a rotation around the positive $y$-axis.
+The \vn{x_pitch} attribute rotates an element about the element's center such that with a positive
+\vn{x_pitch} the exit face of the element is displaced in the $+x$--direction as shown in
+figure~\ref{f:pitch}. [One way to visualize the effect of an \vn{x_pitch} is to think of the element
+as an airplane pointing in the $+z$ direction. A positive \vn{x_pitch} would then move the front of
+the plane in the $+x$--direction.] An\vn{x_pitch} represents a rotation around the positive
+$y$-axis.
 
-Similarly, the \vn{y_pitch} attribute rotates an element about the
-element's center using the negative $x$--axis as the rotation axis so
-that the exit face of the element is displaced in the $+y$--direction.
+Similarly, the \vn{y_pitch} attribute rotates an element about the element's center using the
+negative $x$--axis as the rotation axis so that, with a positive \vn{y_pitch} the exit face of the
+element is displaced in the $+y$--direction.
 
-The \vn{x_pitch} and \vn{y_pitch} rotations are about the center of
-the element which is in contrast to the \vn{dtheta} and \vn{dphi}
-misalignments of \mad which rotate around the entrance point. The
+Note: the \vn{x_pitch} and \vn{y_pitch} rotations are about the center of the element which is in contrast
+to the \vn{dtheta} and \vn{dphi} misalignments of \mad which rotate around the entrance point. The
 sense of the rotation between \bmad and MAD is:
 \index{MAD!element rotation origin}
 \begin{example}

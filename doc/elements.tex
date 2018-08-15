@@ -3450,10 +3450,9 @@ $E_x^2 + E_y^2 = 1$.
 
   \index{energy_distribution}
   \item[\vn{energy_distribution}] \Newline
-Sets the type of energy spectrum for emitted photons. If there is an
-associated physical element then this parameter is ignored and the
-energy distribution is calculated from the physical element. Possible
-settings are:
+Sets the type of energy spectrum for emitted photons. If there is an associated physical element
+then this parameter is ignored and the energy distribution is calculated from the properties of the
+physical element. Possible settings are:
 \begin{example2}
   gaussian   ! Default
   uniform
@@ -3487,19 +3486,12 @@ Width of emitted photons in $x$, $y$ and $z$ directions. See
 
   \index{spatial_distribution}
   \item[\vn{spatial_distribution}] \Newline
-Sets spacial $(x, y, z)$ spectrum of emitted photons. If there is an
-associated physical element then this parameter is ignored and the
-energy distribution is calculated from the physical element. Possible
-settings are:
+Sets spacial $(x, y, z)$ spectrum of emitted photons. If there is an associated physical element
+then this parameter is ignored and the energy distribution is calculated from the properties of the
+physical element. Possible settings are:
 \begin{example2}
   gaussian    ! Default
   uniform
-\end{example2}
-The \vn{gaussian} setting gives a Gaussian distribution with width
-set by \vn{sig_E}. The \vn{uniform} setting gives a flat
-distribution in the range:
-\begin{example2}
-  [-sig_E, sig_E]
 \end{example2}
 The \vn{gaussian} setting gives a Gaussian distribution with width
 $\sigma$ where $sigma$ is 
@@ -3513,11 +3505,10 @@ distribution in the range: $[-\sigma, \sigma]$.
 
   \index{velocity_distribution}
   \item[\vn{velocity_distribution}] \Newline
-Sets the transverse $(v_x/c, v_y/c)$ velocity spectrum of emitted
-photons. If there is an associated physical element then this
-parameter is ignored and the energy distribution is calculated from
-the physical element. The longitudinal velocity is always computed to
-make $v_x^2 + v_y^2 + v_z^2 = c^2$ Possible settings are:
+Sets the transverse $(v_x/c, v_y/c)$ velocity spectrum of emitted photons. If there is an associated
+physical element then this parameter is ignored and the energy distribution is calculated from the
+properties of the physical element. The longitudinal velocity is always computed to make $v_x^2 +
+v_y^2 + v_z^2 = c^2$ Possible settings are:
 \begin{example2}
   gaussian    ! Default
   spherical
@@ -3541,13 +3532,11 @@ This cuts down on computation time.
 For the purposes of positioning the elements in the lattice around it,
 a \vn{photon_init} element is considered to have zero length.
 
-\vn{photon_init} elements are used in one of two modes: With or
-without an associated physical source element specified by the
-\vn{physical_source} attribute. Without an associated physical source,
-the \vn{photon_init} element completely specifies the initial photon
-distribution. With an associated physical source element, the photon
-distribution is determined by the physical source but the shape of the
-energy spectrum can be modified by setting attributes in the
+\vn{photon_init} elements are used in one of two modes: With or without an associated physical
+source element specified by the \vn{physical_source} attribute. Without an associated physical
+source, the \vn{photon_init} element completely specifies the initial photon distribution. With an
+associated physical source element, the photon distribution is determined by the properties of the
+physical source but the shape of the energy spectrum can be modified by setting attributes in the
 \vn{photon_init} element. Example:
 \begin{example}
   b05w: sbend, l = 3.2, angle = 0.1
@@ -3559,27 +3548,22 @@ energy spectrum can be modified by setting attributes in the
   c_line[e_tot] = 15e3
   pinit: photon_init, physical_source = 'b05w', sig_E = 2.1
 \end{example}
-In this example, the bend \vn{b05w} is a bend producing photons. It is
-part of the line \vn{bend_line}. \vn{bend_line} also contains a
-\vn{photon_fork} element named \vn{pfork} which branches to the line
-\vn{c_line}. \vn{c_line} contains the \vn{photon_init} element
-\vn{pinit} which references \vn{b03w} as the associated physical
-source element. When photons are tracked, they are generated in
-\vn{b05w} and then propagated to the \vn{pfork} fork.  After this they
-are propagated through \vn{c_line}. The \vn{pinit} element acts like a
-zero length \vn{marker} element when photons propagate through
-it. That is, the \vn{pinit} element essentially serves to associate
-\vn{c_line} with \vn{b03w} for the purposes of photon tracking. Also,
-in this example, \vn{pinit} modifies the photon energy spectrum so
-that only photons whose energy is within 2.1 eV are generated
+In this example, the bend \vn{b05w} is a bend producing photons. It is part of the line
+\vn{bend_line}. \vn{bend_line} also contains a \vn{photon_fork} element named \vn{pfork} which
+branches to the line \vn{c_line}. \vn{c_line} contains the \vn{photon_init} element \vn{pinit} which
+references \vn{b03w} as the associated physical source element. When photons are tracked, they are
+generated in \vn{b05w} and then propagated to the \vn{pfork} fork.  After this they are propagated
+through \vn{c_line}. The \vn{pinit} element acts like a zero length \vn{marker} element when photons
+propagate through it. That is, the \vn{pinit} element essentially serves to associate \vn{c_line}
+with \vn{b03w} for the purposes of photon tracking. Also, in this example, \vn{pinit} modifies the
+photon energy spectrum so that only photons whose energy is within 2.1 eV are generated
 
-It is important to note that in the above example, with the
-\vn{photon_init} element having an associated physical source, the
-setting of things like the spatial shape \vn{sig_z}, etc. in the
+It is important to note that in the above example, with the \vn{photon_init} element having an
+associated physical source, the setting of things like the spatial shape \vn{sig_z}, etc. in the
 \vn{photon_init} element will be ignored.
 
-See Section~\sref{s:rowland} for an example lattice that can be used to simulate
-a Rowland circle spectrometer using a \vn{photon_init} element.
+See Section~\sref{s:rowland} for an example lattice that can be used to simulate a Rowland circle
+spectrometer using a \vn{photon_init} element.
 
 %-----------------------------------------------------------------
 \section{Quadrupole}
