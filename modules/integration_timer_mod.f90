@@ -172,7 +172,7 @@ subroutine get_taylor (ns, ut, a_fibre, y, orbit)
   a_fibre%mag%p%nst  = ns
   a_fibre%magp%p%nst = ns
 
-  call real_8_init (y)
+  call alloc (y)
 
   y = orbit
   call ptc_track (a_fibre, y, default)  ! "track" in PTC

@@ -54,7 +54,7 @@ contains
 
 function taylor_plus_taylor (taylor1, taylor2) result (taylor3)
 
-use polymorphic_taylor, only: kill, operator(+), real_8
+use polymorphic_taylor, only: alloc, kill, operator(+), real_8
 
 implicit none
 
@@ -70,9 +70,9 @@ if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_
 
 !
 
-call real_8_init(y1)
-call real_8_init(y2)
-call real_8_init(y3)
+call alloc(y1)
+call alloc(y2)
+call alloc(y3)
 
 y1 = taylor1
 y2 = taylor2
@@ -107,7 +107,7 @@ end function taylor_plus_taylor
 
 function taylor_minus_taylor (taylor1, taylor2) result (taylor3)
 
-use polymorphic_taylor, only: kill, operator(-), real_8
+use polymorphic_taylor, only: kill, operator(-), real_8, alloc
 
 implicit none
 
@@ -123,9 +123,9 @@ if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_
 
 !
 
-call real_8_init(y1)
-call real_8_init(y2)
-call real_8_init(y3)
+call alloc(y1)
+call alloc(y2)
+call alloc(y3)
 
 y1 = taylor1
 y2 = taylor2
@@ -1296,7 +1296,7 @@ end subroutine bmad_taylor_equal_real_8
 
 subroutine real_8_equal_bmad_taylor (y8, bmad_taylor)
 
-use polymorphic_taylor, only: kill, assignment(=), real_8, universal_taylor
+use polymorphic_taylor, only: kill, assignment(=), real_8, universal_taylor, alloc
 
 implicit none
 
@@ -1309,7 +1309,7 @@ integer i, j, n, n_taylor
 ! init
 
 call kill (y8)
-call real_8_init (y8, .true.)
+call alloc(y8)
 
 !
 
@@ -1352,7 +1352,7 @@ end subroutine real_8_equal_bmad_taylor
 
 subroutine ptc_taylor_equal_bmad_taylor (ptc_taylor, bmad_taylor)
 
-use polymorphic_taylor, only: kill, assignment(=), taylor, universal_taylor
+use polymorphic_taylor, only: alloc, kill, assignment(=), taylor, universal_taylor
 
 implicit none
 
@@ -1729,54 +1729,6 @@ ut1%c  = ut2%c
 ut1%j  = ut2%j
 
 end subroutine
-
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!+
-! Subroutine real_8_init (y, set_taylor)
-!
-! Subroutine to allocate a PTC real_8 variable.
-! The internal kind parameter will be set to 0.
-!
-! Note: If this variable has been used before, make sure you have 
-! deallocated using:
-!   call kill(y)
-!
-! Modules needed:
-!   use ptc_interface_mod
-!
-! Input:
-!   y(:)       -- Real_8: 
-!   set_taylor -- Logical, optional :: If present and True then make
-!                   y the identity taylor series (kind = 2).
-!
-! Output:
-!   y(:) -- Real_8: Identity map.
-!-
-
-subroutine real_8_init (y, set_taylor)
-
-use s_fibre_bundle, only: assignment(=), alloc, real_8
-
-implicit none
-
-type (real_8) :: y(:)
-real(dp) :: x(size(y))
-
-logical, optional :: set_taylor
-
-!
-
-call alloc(y)
-y = 6
-
-if (present(set_taylor)) then
-  x = 0
-  if (set_taylor) y = x   ! converts y to taylor (kind = 2)
-endif
-
-end subroutine real_8_init
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -2176,12 +2128,12 @@ end subroutine
 
 subroutine concat_real_8 (y1, y2, y3, r2_ref, keep_y1_const_terms)
 
-use s_fitting, only: alloc, assignment(=), kill, damap, operator(*), real_8, operator(.o.), operator(.sub.), print
+use s_fitting, only: alloc, assignment(=), kill, damap, operator(*), operator(+), real_8, operator(.o.), operator(.sub.), print
 
 implicit none
 
 type (real_8) :: y1(:), y2(:), y3(:)
-type (damap) da1, da2, da3
+type (damap) da1, da2, da3, id
 real(dp), optional :: r2_ref(:)
 
 integer i
@@ -2193,6 +2145,7 @@ if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_
 
 ! Allocate temp vars
 
+call alloc(id)
 call alloc(da1)
 call alloc(da2)
 call alloc(da3)
@@ -2206,7 +2159,8 @@ if (logic_option(.false., keep_y1_const_terms)) then
   da3 = da2 .o. da1
 
 elseif (present(r2_ref)) then
-  y3 = -r2_ref ! Identity map - r2_ref
+  id = 1
+  y3 = id + (-r2_ref) ! Identity map - r2_ref
   da3 = y3
   da1 = da3 .o. da1
   da3 = da2 .o. da1  ! Includes constant term of da1.
@@ -2219,6 +2173,7 @@ y3 = da3
 
 ! kill temp vars
 
+call kill (id)
 call kill (da1)
 call kill (da2)
 call kill (da3)
@@ -2495,7 +2450,7 @@ end subroutine taylor_inverse
 
 subroutine concat_taylor (taylor1, taylor2, taylor3)
 
-use s_fitting, only: assignment(=), kill, real_8
+use s_fitting, only: assignment(=), alloc, kill, real_8
 
 implicit none
 
@@ -2509,9 +2464,9 @@ if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_
 
 ! Allocate temp vars
 
-call real_8_init (y1)
-call real_8_init (y2)
-call real_8_init (y3)
+call alloc (y1)
+call alloc (y2)
+call alloc (y3)
 
 ! Concat
 
@@ -2599,10 +2554,10 @@ call ele_to_fibre (ele, fib, param, use_offsets = .true.)
 
 ! Init
 
-call real_8_init(x_ele)
-call real_8_init(x_body)
-call real_8_init(x1)
-call real_8_init(x3)
+call alloc(x_ele)
+call alloc(x_body)
+call alloc(x1)
+call alloc(x3)
 
 beta0 = ele%value(p0c_start$)/ele%value(e_tot_start$)
 beta1 = ele%value(p0c$)/ele%value(e_tot$)
@@ -2837,7 +2792,7 @@ if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_
 beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
 beta1 = ele%value(p0c$) / ele%value(e_tot$)
 
-call real_8_init (ptc_tlr)
+call alloc (ptc_tlr)
 call taylor_to_real_8 (bmad_taylor, beta0, beta0, ptc_tlr)
 
 ! Track entrance drift if PTC is using a hard edge model
@@ -2981,6 +2936,7 @@ endif
 
 call alloc (y8)
 call alloc (bet)
+call alloc(ptc_cdamap)
 
 call attribute_bookkeeper (ele, param, .true.)
 
@@ -2994,8 +2950,9 @@ else
   x = 0
 endif
 
-call real_8_init(y0)
-y0 = x ! = IdentityMap + const
+call alloc(y0)
+ptc_cdamap = 1
+y0 = ptc_cdamap + x! = IdentityMap + const
 
 ! Convert to PTC
 
@@ -3009,8 +2966,6 @@ y8(6) = -y0(5)/bet
 
 if (bmad_com%spin_tracking_on) then
   call alloc(ptc_probe8)
-  call alloc(ptc_cdamap)
-  ptc_cdamap = 1
   ptc_probe8 = ptc_cdamap
   ptc_probe8%x = y8  
   call track_probe (ptc_probe8, DEFAULT+SPIN0, fibre1 = bmadl%start)
@@ -3019,7 +2974,6 @@ if (bmad_com%spin_tracking_on) then
     spin_tylr(i) = ptc_probe8%q%x(i)%t
   enddo
   call kill(ptc_probe8)
-  call kill (ptc_cdamap)
 else
   call track_probe_x (y8, DEFAULT, fibre1 = bmadl%start)
 endif
@@ -3035,7 +2989,7 @@ y0(5) = -bet*y8(6)
 ! take out the offset
 
 !if (any(x /= 0)) then
-!  call real_8_init(y2)
+!  call alloc(y2)
 !  y2 = -x  ! y2 = IdentityMap - x
 !  call concat_real_8 (y2, y0, y0)
 !  call kill(y2)
@@ -3048,6 +3002,7 @@ orb_tylr = y0
 call kill(y0)
 call kill(y8)
 call kill(bet)
+call kill (ptc_cdamap)
 
 if (associated (ele%ptc_genfield%field)) call kill_ptc_genfield (ele%ptc_genfield%field)
 
