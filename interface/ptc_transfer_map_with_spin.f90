@@ -110,7 +110,7 @@ endif
 y0 = ptc_probe8%x
 
 if (any(x /= 0)) then
-  call real_8_init(y2)
+  call alloc(y2)
   y2 = -x  ! y2 = IdentityMap - x
   call concat_real_8 (y2, y0, y0, keep_y1_const_terms = .true.)
   call kill(y2)
