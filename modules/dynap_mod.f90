@@ -229,9 +229,9 @@ subroutine write_population(pop, generate_feasible_seeds_only, n_linear, n_chrom
   if(present(prec)) then
     write(prec_str,'(i3)') prec
     write(prec_str2,'(i3)') prec+8
-    format_str = '(i8,50es'//trim(adjustl(prec_str2))//'.'//trim(adjustl(prec_str))//')'
+    format_str = '(i8,200es'//trim(adjustl(prec_str2))//'.'//trim(adjustl(prec_str))//')'
   else
-    format_str = '(i8,50es19.11)'
+    format_str = '(i8,200es19.11)'
   endif
 
   open(22,file=filename,access='append')
