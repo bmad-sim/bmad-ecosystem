@@ -1,7 +1,7 @@
 module integration_timer_mod
 
   use ptc_interface_mod
-  use mad_like, only: kill, fibre, real_8, universal_taylor
+  use mad_like, only: kill, alloc, fibre, real_8, universal_taylor
 
   private get_taylor, diff, term_diff  
 
