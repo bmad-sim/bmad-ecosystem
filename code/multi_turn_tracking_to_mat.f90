@@ -36,7 +36,7 @@ real(rp) sum2, dsum2, chisq, dtrack(6)
 real(rp), allocatable :: x(:), y(:), sig(:), v(:,:), w(:), a(:), m(:,:)
 type (coord_struct), allocatable, target :: d0track(:)
 integer i, n
-logical closed_orbit_calc
+logical orbit_calc
 
 ! init
 
@@ -76,7 +76,7 @@ sig = 1
 
 do i = 1, i_dim
   y = track(2:n)%vec(i)
-  closed_orbit_calc = .true.
+  orbit_calc = .true.
   call svdfit (x, y, sig, a, v, w, chisq, multi_turn_func)
   map1(i,1:i_dim) = a(1:i_dim)
   map0(i) = a(i_dim+1)
@@ -95,7 +95,7 @@ enddo
 
 do i = 1, i_dim
   y = track(2:n)%vec(i) - track0%vec(i)
-  closed_orbit_calc = .false.
+  orbit_calc = .false.
   call svdfit (x, y, sig, a, v, w, chisq, multi_turn_func)
   map1(i,1:i_dim) = a(1:i_dim)
 enddo
@@ -133,7 +133,7 @@ integer ix
 
 ix = nint(x)
 
-if (closed_orbit_calc) then
+if (orbit_calc) then
   vec = [track(ix)%vec(1:id-1), 1.0_rp]
 else
   vec = [d0track(ix)%vec(1:id-1), 1.0_rp]
