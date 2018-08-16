@@ -19,7 +19,7 @@
 
 subroutine tilt_coords_photon (tilt_val, coord, w_mat)
 
-use geometry_mod
+use geometry_mod, dummy => tilt_coords_photon
 
 implicit none
 
