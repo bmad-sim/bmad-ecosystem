@@ -561,6 +561,7 @@ call init_all(ptc_state, 1, 0)
 
 call alloc (id)
 call alloc (xs)
+call alloc (cc_norm)
 
 id=1
 xs0=closed_orb%vec
@@ -592,6 +593,7 @@ sigma_mat = cc_norm%s_ij0
 
 call kill (id)
 call kill (xs)
+call kill (cc_norm)
 
 use_bmad_units = .false.
 call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
