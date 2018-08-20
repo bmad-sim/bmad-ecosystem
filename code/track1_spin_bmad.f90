@@ -77,7 +77,7 @@ temp_end%spin = temp_start%spin
 
 ! 
 
-if (ele%value(l$) == 0) then
+if (ele%value(l$) == 0 .or. ele%key == multipole$ .or. ele%key == ab_multipole$ .or. ele%key == taylor$) then
   temp_end%vec = (temp_end%vec + temp_start%vec) / 2
   call multipole_spin_tracking (ele, param, temp_end)
 else
