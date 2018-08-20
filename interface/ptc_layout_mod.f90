@@ -1278,17 +1278,18 @@ subroutine update_ptc_fibre_from_bmad (ele)
 
 use madx_ptc_module
 
-type (ele_struct), target :: ele
+type (ele_struct), target :: ele, m_ele
 type (branch_struct), pointer :: branch
 type (keywords) ptc_key
 type (element), pointer :: mag
 type (elementp), pointer :: magp
 type (magnet_chart), pointer :: p, pp
 
-real(rp) value, hk, vk, phi_tot
+real(rp) value, hk, vk, phi_tot, fh
+real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp), pointer :: val(:)
 
-integer i, ix
+integer i, ix, ix_pole_max
 
 character(*), parameter :: r_name = 'update_ptc_fibre_from_bmad'
 
@@ -1296,19 +1297,39 @@ character(*), parameter :: r_name = 'update_ptc_fibre_from_bmad'
 ! As opposed to "1" which means add to existing value.
 
 branch => pointer_to_branch(ele)
-call ele_to_an_bn (ele, branch%param, .false., ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
+val => ele%value
 
 ! Must set all poles even if zero since they might have been non-zero beforehand.
+! Note: On ptc side bn(1) is error field when creating a fibre but is total field when fibre is being modified.	 
 
-do i = ptc_key%list%nmul, 1, -1
-  call add (ele%ptc_fibre,  i, 0, ptc_key%list%k(i))
-  call add (ele%ptc_fibre, -i, 0, ptc_key%list%ks(i))
+call ele_to_ptc_an_bn (ele, branch%param, b_pole, a_pole) ! Notice reversed b_pole, a_pole args.
+if (ele%key == sbend$) b_pole(1) = b_pole(1) + ele%value(g$)	 
+
+do i = n_pole_maxx, 0, -1
+  call add (ele%ptc_fibre,  (i+1), 0, b_pole(i))
+  call add (ele%ptc_fibre, -(i+1), 0, a_pole(i))
+enddo
+
+fh = 1d-9 * sign_of(charge_of(branch%param%particle)) / VOLT_C
+if (ele%key == sbend$ .and. nint(val(exact_multipoles$)) == vertically_pure$) then
+  call convert_bend_exact_multipole(ele, m_ele, horizontally_pure$)
+  call multipole_ele_to_ab(m_ele, .false., ix_pole_max, a_pole, b_pole, electric$, .true.)
+else
+  call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$)
+endif
+
+if (ele%key == elseparator$) then
+  a_pole(0) = a_pole(0) + val(vkick$) * val(p0c$) / val(l$)
+  b_pole(0) = b_pole(0) + val(hkick$) * val(p0c$) / val(l$)
+endif
+
+do i = 0, n_pole_maxx
+  if (b_pole(i) /= 0) call add (ele%ptc_fibre,  (i+1), 0, fh*b_pole(i), electric = .true.)
+  if (a_pole(i) /= 0) call add (ele%ptc_fibre, -(i+1), 0, fh*a_pole(i), electric = .true.)
 enddo
 
 ! Note: ele_to_an_bn takes care of such stuff as sextupole strength conversion so
 ! only have to worry about non-multipole components here.
-
-val => ele%value
 
 mag  => ele%ptc_fibre%mag
 magp => ele%ptc_fibre%magp
@@ -1316,24 +1337,10 @@ magp => ele%ptc_fibre%magp
 p => mag%p
 pp => magp%p
 
-! call set_integer (p%method, pp%method, nint(ele%value(integrator_order$)))
-! call set_integer (p%nst, pp%nst, nint(ele%value(num_steps$)))
+! call set_integer (p%method, pp%method, nint(val(integrator_order$)))
+! call set_integer (p%nst, pp%nst, nint(val(num_steps$)))
 
 select case (ele%key)
-
-case (elseparator$)
-  hk = val(hkick$) / val(l$)
-  vk = val(vkick$) / val(l$)
-  if (hk == 0 .and. vk == 0) then
-    ptc_key%tiltd = 0
-  else
-    if (branch%param%particle < 0) then
-      hk = -hk
-      vk = -vk
-    endif
-    ptc_key%tiltd = -atan2 (hk, vk) + val(tilt_tot$)
-  endif
-  call set_real (mag%volt, magp%volt, 1d-6 * val(e_tot$) * sqrt(hk**2 + vk**2))
 
 case (solenoid$)
   call set_real (mag%b_sol, magp%b_sol, val(ks$))
@@ -1345,7 +1352,7 @@ case (bend_sol_quad$)
   call set_real (mag%b_sol, magp%b_sol, val(ks$))
 
 case (rfcavity$, lcavity$)
-  phi_tot = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$))
+  phi_tot = twopi * (val(phi0$) + val(phi0_multipass$) + val(phi0_err$) + val(phi0_autoscale$))
   if (ele%key == lcavity$) phi_tot = pi / 2 - twopi * phi_tot
   call set_real (mag%phas, magp%phas, -mag%lag)
 
@@ -1353,10 +1360,10 @@ case (rfcavity$, lcavity$)
 
 case (sad_mult$)
 
-  if (ele%value(l$) /= 0) then
+  if (val(l$) /= 0) then
     call set_real (mag%b_sol, magp%b_sol, val(ks$))
-    call set_real (mag%va, magp%va, -sign(sqrt(24 * abs(ele%value(fq1$))), ele%value(fq1$)))
-    call set_real (mag%vs, magp%vs, ele%value(fq2$))
+    call set_real (mag%va, magp%va, -sign(sqrt(24 * abs(val(fq1$))), val(fq1$)))
+    call set_real (mag%vs, magp%vs, val(fq2$))
   endif
 
   call set_real (mag%b_sol, magp%b_sol, val(ks$))
@@ -1408,7 +1415,7 @@ elseif (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a val
     call set_integer (p%permfringe, pp%permfringe, 3)
   end select
 
-  if (ele%key == sad_mult$ .and. ele%value(l$) == 0) call set_integer (p%permfringe, pp%permfringe, 0)
+  if (ele%key == sad_mult$ .and. val(l$) == 0) call set_integer (p%permfringe, pp%permfringe, 0)
 endif
 
 if (attribute_index(ele, 'FRINGE_AT') > 0) then  ! If fringe_at is a valid attribute
@@ -1497,7 +1504,7 @@ type (ele_struct), target :: ele
 type (branch_struct), pointer :: branch
 type (fibre), pointer :: fib
 
-real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
+real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx), tilt, kick
 integer nmul, i, ix
 character(40) name
@@ -1525,11 +1532,8 @@ if (name(1:1) /= '!') call update_this_real (ele%value(integrator_order$), real(
 
 ! Multipole
 
-a_pole = 0
-b_pole = 0
-nmul = min(fib%mag%p%nmul, n_pole_maxx+1)
-a_pole(0:nmul-1) = fib%mag%an(1:nmul)
-b_pole(0:nmul-1) = fib%mag%bn(1:nmul)
+a_pole(0:n_pole_maxx) = fib%mag%an(1:n_pole_maxx+1)
+b_pole(0:n_pole_maxx) = fib%mag%bn(1:n_pole_maxx+1)
 
 call multipole_ab_to_kt (a_pole, b_pole, knl, tn)
 
@@ -1538,9 +1542,8 @@ call multipole_ab_to_kt (a_pole, b_pole, knl, tn)
 if (associated(fib%mag%tp10)) then
   if (associated(fib%mag%tp10%ae)) then
     if (.not. associated(ele%a_pole_elec)) call multipole_init(ele, electric$)
-    nmul = min(size(fib%mag%tp10%ae), n_pole_maxx+1)
-    ele%a_pole_elec(0:nmul-1) = 1d9 * VOLT_C * fib%mag%tp10%ae(1:nmul)
-    ele%b_pole_elec(0:nmul-1) = 1d9 * VOLT_C * fib%mag%tp10%be(1:nmul)
+    a_pole_elec(0:n_pole_maxx) = 1d9 * VOLT_C * fib%mag%tp10%ae(1:n_pole_maxx+1)
+    b_pole_elec(0:n_pole_maxx) = 1d9 * VOLT_C * fib%mag%tp10%be(1:n_pole_maxx+1)
   endif
 endif
 
@@ -1555,24 +1558,23 @@ endif
 !
 
 select case (ele%key)
-case (ab_multipole$)
-  ele%a_pole = a_pole
-  ele%b_pole = b_pole
 
-case (drift$)
+case (octupole$)
+  call update_this_real (ele%value(k3$), knl(3))
+  call update_this_real (ele%value(tilt$), tn(3))
+  knl(3) = 0
+  tn(3) = 0
 
-! Use dsin & dcos due to bug in ifort 13.1 compiler. 
-! Can rename to sin & cos when bug is fixed.
-
-case (elseparator$)
-  kick = fib%mag%volt * 1d6 / ele%value(e_tot$)
-  if (branch%param%particle < 0) kick = -kick
-  tilt = fib%mag%p%tiltd - ele%value(tilt_tot$)
-  call update_this_real (ele%value(hkick$), -kick * dsin(tilt))
-  call update_this_real (ele%value(vkick$), -kick * dcos(tilt))
+case (quadrupole$)
+  call update_this_real (ele%value(k1$), knl(1))
+  call update_this_real (ele%value(tilt$), tn(1))
+  knl(1) = 0
+  tn(1) = 0
 
 case (hkicker$)
   call update_this_real (ele%value(kick$), knl(1))
+  knl(1) = 0
+  tn(1) = 0
 
 case (lcavity$, rfcavity$)
   call update_this_real (ele%value(rf_frequency$), fib%mag%freq)
@@ -1592,18 +1594,6 @@ case (lcavity$, rfcavity$)
 case (multipole$)
   ele%a_pole = knl
   ele%b_pole = tn
-
-case (octupole$)
-  call update_this_real (ele%value(k3$), knl(3))
-  call update_this_real (ele%value(tilt$), tn(3))
-  knl(3) = 0
-  tn(3) = 0
-
-case (quadrupole$)
-  call update_this_real (ele%value(k1$), knl(1))
-  call update_this_real (ele%value(tilt$), tn(1))
-  knl(1) = 0
-  tn(1) = 0
 
 case (sbend$)
   call update_this_real (ele%value(g$), fib%mag%p%b0)
@@ -1645,11 +1635,17 @@ end select
 
 ! multipoles
 
-if (any(knl /= 0)) then
+if (any(a_pole /= 0) .or. any(b_pole /= 0)) then
+  if (.not. associated(ele%a_pole)) call multipole_init(ele, magnetic$)
+  ele%a_pole = a_pole
+  ele%b_pole = b_pole
 endif
 
-
-! kicks
+if (any(a_pole_elec /= 0) .or. any(b_pole_elec /= 0)) then
+  if (.not. associated(ele%a_pole_elec)) call multipole_init(ele, electric$)
+  ele%a_pole_elec = a_pole_elec
+  ele%b_pole_elec = b_pole_elec
+endif
 
 ! Fringes
 

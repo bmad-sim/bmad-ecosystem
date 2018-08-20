@@ -2975,7 +2975,7 @@ if (bmad_com%spin_tracking_on) then
   enddo
   call kill(ptc_probe8)
 else
-  call track_probe_x (y8, DEFAULT, fibre1 = bmadl%start)
+  call track_probe_x (y8, DEFAULT-SPIN0, fibre1 = bmadl%start)
 endif
 
 ! PTC to Bmad
@@ -3277,9 +3277,6 @@ endif
 
 leng = ele%value(l$)
 
-ptc_key%list%name = ele%name
-ptc_key%list%l    = leng
-
 if (use_offsets) then
   if (ele%key == sbend$) then
     ptc_key%tiltd = ele%value(ref_tilt_tot$)
@@ -3298,8 +3295,9 @@ if (present(steps)) then
   ptc_key%nstep = steps
 elseif (leng == 0) then
   ptc_key%nstep = 1
-elseif (ele%key == taylor$ .or. ele%key == match$) then
+elseif (ele%key == taylor$ .or. ele%key == match$ .or. ele%key == multipole$ .or. ele%key == ab_multipole$) then
   ptc_key%nstep = 1
+  leng = 0  ! Problem is that PTC will not ignore the length in tracking which is different from the Bmad convention.
 else
   if (ele%value(ds_step$) == 0) then
     call out_io (s_fatal$, r_name, 'DS_STEP IS ZERO FOR ELEMENT: ' // ele%name)
@@ -3309,6 +3307,9 @@ else
   ptc_key%nstep = nint(abs(leng) / ele%value(ds_step$))
   if (ptc_key%nstep == 0) ptc_key%nstep = 1
 endif
+
+ptc_key%list%name = ele%name
+ptc_key%list%l    = leng
 
 ! Fringes
 
@@ -3564,9 +3565,9 @@ endif
 
 if (ele%key == sbend$ .and. nint(ele%value(exact_multipoles$)) == vertically_pure$ .and. ptc_key%exact) then
   call convert_bend_exact_multipole(ele, m_ele, horizontally_pure$)
-  call ele_to_an_bn (m_ele, param, .true., ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
+  call ele_to_ptc_an_bn (m_ele, param, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
 else
-  call ele_to_an_bn (ele, param, .true., ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
+  call ele_to_ptc_an_bn (ele, param, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
 endif
 
 ! field map
@@ -4285,43 +4286,45 @@ end subroutine bmad_patch_parameters_to_ptc
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ele_to_an_bn (ele, param, creating_fibre, k, ks, n_max)
+! Subroutine ele_to_ptc_an_bn (ele, param, bn, an, n_max)
 !
 ! Routine to compute the a(n) and b(n) multipole components of a magnet.
 ! This is used to interface between eles and PTC fibres
+!
+! Note: On ptc side bn(1) is error field when creating a fibre but	 
+! is total field when fibre is being modified. This routine returns the error field.
 !
 ! Module needed:
 !   ptc_interface_mod
 !
 ! Input:
 !   ele                 -- ele_struct: Bmad Element.
-!   param               -- lat_param_struct: 
-!   creating_fibre      -- integer: Set True if fibre is being created. False if fibre is being modified.
+!   param               -- lat_param_struct:
 !
 ! Output:
-!   k(1:n_pole_maxx+1)  -- real(rp): Skew multipole component.
-!   ks(1:n_pole_maxx+1) -- real(rp): Normal multipole component.
-!   n_max               -- integer: If creating fibre: Maximum non-zero multipole component.
-!                                   If modifiying fibre: Maximum relavent multipole component.
+!   bn(1:n_pole_maxx+1) -- real(rp): Normal multipole component.
+!   an(1:n_pole_maxx+1) -- real(rp): Skew multipole component.
+!   n_max               -- integer, optional: Maximum non-zero multipole component.
 !-
 
-subroutine ele_to_an_bn (ele, param, creating_fibre, k, ks, n_max)
+subroutine ele_to_ptc_an_bn (ele, param, bn, an, n_max)
 
 implicit none
 
 type (ele_struct), target :: ele
 type (lat_param_struct) param
 
-real(rp) k(:), ks(:)
+real(rp) bn(:), an(:)
 real(rp) cos_t, sin_t, leng, hk, vk, tilt
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
 
-integer n, n_max, key, ix_pole_max
-logical creating_fibre, kick_here, add_kick
+integer, optional :: n_max
+integer n, key, ix_pole_max
+logical kick_here, add_kick
 
-character(16) :: r_name = 'ele_to_an_bn'
+character(*), parameter :: r_name = 'ele_to_ptc_an_bn'
 
 !
 
@@ -4337,8 +4340,8 @@ else
   val => value0  ! Not is_on -> has zero strength.
 endif
 
-k = 0
-ks = 0
+bn = 0
+an = 0
 n_max = 0
 add_kick = .true.
 
@@ -4352,45 +4355,45 @@ case (drift$, rfcavity$, lcavity$, &
   ! Nothing to be done
 
 case (octupole$)
-  k(4) = val(k3$) / 6
+  bn(4) = val(k3$) / 6
 
 case (quadrupole$) 
-  k(2) = val(k1$)
+  bn(2) = val(k1$)
 
 case (sad_mult$)
 
 case (sbend$)
   if (ele%is_on) then
-    k(1) = ele%value(g_err$)
+    bn(1) = ele%value(g_err$)
   else
-    k(1) = -ele%value(g$)
+    bn(1) = -ele%value(g$)
   endif
 
   if (nint(ele%value(exact_multipoles$)) == vertically_pure$) then
     add_kick = .false.
   else
-    k(2) = val(k1$)
-    k(3) = val(k2$) / 2
+    bn(2) = val(k1$)
+    bn(3) = val(k2$) / 2
   endif
 
 case (sextupole$)
-  k(3) = val(k2$) / 2
+  bn(3) = val(k2$) / 2
 
 case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
 
 case (solenoid$)
 
 case (sol_quad$)
-  k(2) = val(k1$)
+  bn(2) = val(k1$)
 
 case (hkicker$, vkicker$)
-  if (ele%key == hkicker$) k(1)  = val(kick$) 
-  if (ele%key == vkicker$) ks(1) = val(kick$) 
+  if (ele%key == hkicker$) bn(1)  = val(kick$) 
+  if (ele%key == vkicker$) an(1) = val(kick$) 
   add_kick = .false.
 
 case (kicker$)
-  k(1)  = val(hkick$) 
-  ks(1) = val(vkick$) 
+  bn(1)  = val(hkick$) 
+  an(1) = val(vkick$) 
   add_kick = .false.
 
 case (elseparator$)
@@ -4419,8 +4422,8 @@ if (add_kick .and. has_hkick_attributes(ele%key) .and. (val(hkick$) /= 0 .or. va
   endif
   cos_t = cos(tilt)
   sin_t = sin(tilt)
-  k(1)  = k(1)  - hk * cos_t - vk * sin_t
-  ks(1) = ks(1) - hk * sin_t + vk * cos_t
+  bn(1) = bn(1) - hk * cos_t - vk * sin_t
+  an(1) = an(1) - hk * sin_t + vk * cos_t
 endif
 
 ! bmad an and bn are integrated fields. PTC uses just the field.
@@ -4433,37 +4436,19 @@ if (associated(ele%a_pole)) then
     bn0 = bn0 / leng
   endif
 
-  n = min(n_pole_maxx+1, size(k))
-  if (n-1 < n_pole_maxx) then
-    if (any(an0(n:n_pole_maxx) /= 0) .or. any(bn0(n:n_pole_maxx) /= 0)) then
-      call out_io (s_warn$, r_name, 'WARNING IN ELE_TO_FIBRE: MULTIPOLE NOT TRANSFERED TO FIBRE', &
-                                    'FOR: ' // ele%name)
-    endif
-  endif
-   
-  ks(1:n) = ks(1:n) + an0(0:n-1)
-  k(1:n) = k(1:n) + bn0(0:n-1)
+  n = n_pole_maxx+1
+  an(1:n) = an(1:n) + an0(0:n-1)
+  bn(1:n) = bn(1:n) + bn0(0:n-1)
 endif
 
-
-if (creating_fibre) then
-  do n = size(k), 1, -1
-    if (ks(n) /= 0 .or. k(n) /= 0) exit
+if (present(n_max)) then
+  do n = size(bn), 1, -1
+    if (an(n) /= 0 .or. bn(n) /= 0) exit
   enddo
   n_max  = n
-else
-  n_max = min(n_pole_maxx, size(k))
 endif
 
-k = k
-ks = ks
-
-! On ptc side k(1) is error field when creating a fibre but	 
-! is total field when fibre is being modified.	 
- 	 
-if (.not. creating_fibre) k(1) = k(1) + ele%value(g$)	 
-
-end subroutine ele_to_an_bn
+end subroutine ele_to_ptc_an_bn
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
