@@ -12,7 +12,7 @@
 ! Output:
 !   valid_value   -- Logical: Set false when there is a problem. Set true otherwise.
 !   why_invalid   -- character(*), optional: Tells why datum value is invalid.
-!   pol_limit     -- real(rp): Equalibrium Polarization calculated via the Derbenev–Kondratenko–Mane formula.
+!   pol_limit     -- real(rp): Equalibrium Polarization calculated via the Derbenev-Kondratenko-Mane formula.
 !
 !-
 
@@ -40,7 +40,7 @@ real(rp) vec0(6), mat6(6,6), n0(3), l0(3), m0(3), mat3(3,3)
 real(rp) dn_ddelta(3), m_1turn(8,8)
 real(rp) quat0(0:3), quat_lnm_to_xyz(0:3), q0_lnm(0:3), qq(0:3)
 real(rp) integral_bn, integral_1minus, integral_dn_ddel
-real(rp) len2, g_x, g_y, g, g2, g3, b_vec(3), s_vec(3), del_p, mc2, q, gamma, f
+real(rp) len2, g_x, g_y, g, g2, g3, b_vec(3), s_vec(3), del_p, cm_ratio, gamma, f
 real(rp), parameter :: f_limit = 8 / (5 * sqrt(3.0_rp))
 real(rp), parameter :: f_rate = 5 * sqrt(3.0_rp) * classical_radius_factor * h_bar_planck * c_light**2 / 8
 
@@ -109,6 +109,7 @@ do ie = 0, branch%n_ele_track
   ! Construct coordinate systems (l0, n0, m0) and (l1, n1, m1)
 
   n0 = q_1turn%q(1:3, 0)
+  n0 = n0 / norm2(n0)
 
   j = maxloc(abs(n0), 1)
   select case (j)
@@ -129,7 +130,8 @@ do ie = 0, branch%n_ele_track
   q0_lnm = quat_mul(quat_mul(quat_inverse(quat_lnm_to_xyz), quat0), quat_lnm_to_xyz)
   mat3 = quat_to_w_mat(q0_lnm)
 
-  m_1turn = 0
+  M_1turn(1:6,1:6) = q_1turn%mat
+  M_1turn(1:6,7:8) = 0
   M_1turn(7:8,7:8) = mat3(1:3:2,1:3:2)
 
   do p = 1, 6
@@ -205,11 +207,10 @@ enddo
 
 !
 
-mc2 = mass_of(branch%param%particle)
-q = charge_of(branch%param%particle)
+cm_ratio = charge_to_mass_of(branch%param%particle)
 call convert_pc_to ((1 + orbit(0)%vec(6)) * orbit(0)%p0c, branch%param%particle, gamma = gamma)
 
-f = f_rate * gamma**5 * q**2 / (mc2**2 * branch%param%total_length)
+f = f_rate * gamma**5 * cm_ratio**2 / branch%param%total_length
 
 pol_limit = -f_limit * integral_bn / (integral_1minus + integral_dn_ddel)
 pol_rate = f * (integral_1minus + integral_dn_ddel)

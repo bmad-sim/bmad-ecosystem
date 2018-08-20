@@ -203,6 +203,7 @@ type (tao_expression_info_struct), allocatable, save :: info(:)
 
 real(rp) phase_units, s_pos, l_lat, gam, s_ele, s1, s2, gamma2, val, z, dt, angle, r
 real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, pz2
+real(rp) pol_limit, pol_rate, depol_rate
 real(rp), allocatable :: value(:)
 
 character(*) :: what
@@ -3047,9 +3048,15 @@ case ('spin')
   nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
 
   if (branch%param%geometry == open$) then
-    orb = tao_lat%tao_branch(branch%ix_branch)%orbit(0)
+    orb = tao_branch%orbit(0)
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Beginning spin:', orb%spin
+  else
+    call tao_spin_polarization_calc (branch, tao_branch%orbit, valid_value, why_invalid, pol_limit, pol_rate, depol_rate)
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarizaiton Limit:  ', pol_limit
+    nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarizaiton Rate:   ', pol_rate
+    nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Depolarizaiton Rate: ', depol_rate
   endif
 
   if (allocated(scratch%spin_map)) then
