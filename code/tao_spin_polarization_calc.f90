@@ -44,12 +44,11 @@ real(rp) len2, g_x, g_y, g, g2, g3, b_vec(3), s_vec(3), del_p, cm_ratio, gamma, 
 real(rp), parameter :: f_limit = 8 / (5 * sqrt(3.0_rp))
 real(rp), parameter :: f_rate = 5 * sqrt(3.0_rp) * classical_radius_factor * h_bar_planck * c_light**2 / 8
 
-
-complex(rp) eval(6), evec(6,6), dd(2,2), gv(2,1), w_vec(6,2)
+complex(rp) eval(6), evec(6,6), dd(2,2), gv(2,1), w_vec(6,2), vv(6,6), aa(6,1)
 
 integer ix1, ix2
 integer i, j, k, kk, n, p, ie
-integer pinfo, ipiv(2), ipiv6(6)
+integer pinfo, ipiv2(2), ipiv6(6)
 
 logical valid_value
 logical st_on, err
@@ -143,32 +142,20 @@ do ie = 0, branch%n_ele_track
 
   call mat_eigen(m_1turn(1:6,1:6), eval, evec, err)
 
-  do kk = 1, 3
-    k = 2*kk - 1
-    f = 2 * aimag(evec(k,1) * conjg(evec(k,2)) + evec(k,3) * conjg(evec(k,4)) + evec(k,5) * conjg(evec(k,6)))
-    if (f < 0) then
-      evec(k:k+1,:) = evec(k+1:k:-1, :)
-      eval(k:k+1) = [eval(k+1), eval(k)]
-    endif
-
-    evec(k,:)   = evec(k,:) / sqrt(abs(f))
-    evec(k+1,:) = evec(k+1,:) / sqrt(abs(f))
-  enddo
-
   do k = 1, 6
     dd = m_1turn(7:8,7:8)
     dd(1,1) = dd(1,1) - eval(k)
     dd(2,2) = dd(2,2) - eval(k)
     gv(:,1) = -matmul(m_1turn(7:8,1:6), evec(k,1:6))
-    call zgesv_f95 (dd, gv, ipiv, pinfo)
+    call zgesv_f95 (dd, gv, ipiv2, pinfo)
     w_vec(k,:) = gv(:,1)
   enddo
 
-  dn_ddelta = 0
-  do kk = 1, 3
-    k = 2*kk - 1
-    dn_ddelta(1:3:2) = dn_ddelta(1:3:2) - 2 * aimag(conjg(evec(k,5)) * w_vec(k,:))
-  enddo
+  vv = transpose(evec)
+  aa(:,1) = [0, 0, 0, 0, 0, 1]
+  call zgesv_f95(vv, aa, ipiv6, pinfo)
+  dn_ddelta(1) = sum(w_vec(:,1)* aa(:,1))
+  dn_ddelta(3) = sum(w_vec(:,2)* aa(:,1))
 
   dn_ddelta = rotate_vec_given_quat (quat_lnm_to_xyz, dn_ddelta)
 
