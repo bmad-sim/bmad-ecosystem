@@ -220,6 +220,7 @@ written in the form
     \bfM_{6\cross6} & \Bf 0_{6\cross2} \\
     \bfG_{2\cross6} & \bfD_{2\cross2}
   \end{pmatrix}
+  \label{mm0gd}
 \Endeq
 Where $\bfM$ is the $6\cross6$ orbital transport matrix, $\bfG$ represents the coupling between
 orbital and spin coordinates, and $\bfD$ is the $2\cross2$ rotation matrix for the spin transport of
@@ -263,7 +264,7 @@ The zeroth order part of this map
 \Begineq
   \what\bfq_0(s_1,s_2) = \bfq_{lnm}(s_2) \, \bfq_0(s_1, s_2) \, \bfq_{lnm}^{-1}(s_1) 
 \Endeq
-represents a rotation around the $\bfn_0$ axis. Converting this to a rotation matrix $bfR_0$ via
+represents a rotation around the $\bfn_0$ axis. Converting this to a rotation matrix $\bfR_0$ via
 \Eq{rqqq}) the $\Bf D$ matrix is then
 \Begineq
   \Bf D(s_1, s_2) = \begin{pmatrix}
@@ -288,6 +289,56 @@ Using \Eq{qqrq} in \Eq{rqqq} and keeping only first order terms gives
 Lattice design consists of minimizing elements of the $\bfG$ matrix since that will minimize
 ${\partial \bfn}/{\partial \delta}$.
 
+Calculation of ${\partial \bfn}/{\partial \delta}$ from the $8\cross8$ matrix $\wt\bfM$ (\Eq{mm0gd})
+is given by \cite{b:barber}.  The eigenvectors $\bfq_j$ and eigenvalues $\lambda_j$ of $\wt\bfM$,
+$j = 1, \ldots 8$, are first computed. These eigenvectors are of the form
+\begin{align}
+  \bfq_j &= \begin{pmatrix} \bfv_j \\ \bfw_j \end{pmatrix}, \quad j = 1, \ldots, 6 \CRNO
+  \bfq_j &= \begin{pmatrix} \Bf 0_6 \\ \bfw_j \end{pmatrix}, \quad j = 7, 8
+\end{align}
+where $\bfv_j$ are eigenvectors of the orbital submatrix $\bfM$, and the $\bfw_j$ are computed via
+\Begineq
+  \bfw_j = -\left[ \bfD - \lambda_j \right]^{-1} \bfG \, \bfv_j
+\Endeq
+With this, ${\partial \bfn}/{\partial \delta}$ is computed via
+\Begineq
+  \frac{\partial \bfn}{\partial \delta} = \sum_{j = 1}^6 A_j \, \bfw_j
+  \label{ndaw}
+\Endeq
+where the $A_j$ are computed by inverting the equation
+\Begineq
+  [0, 0, 0, 0, 0, 1]^t = \sum_{j = 1}^6 A_j \, \bfv_j
+  \label{000001}
+\Endeq
+where the superscript $t$ means transpose.
+
+An alternative to using \Eqs{ndaw} and \eq{000001} that is given in the literature is to first
+normalize the eigenvectors via \cite{b:chao79}
+\Begineq
+  \bfv_j^{*t} \, \bfS \bfv_j = i, \quad j = 1, 3, 5
+  \label{vsvi}
+\Endeq
+where the eigenvectors have been arranged in complex conjugate pairs with $\bfv_{j+1} = \bfv_j^*, \,
+j = 1, 3, 5$ with the superscript $*$ denoting the complex conjugate. In \Eq{vsvi} $\bfS$ is the matrix
+\Begineq
+  \bfS = \begin{pmatrix}
+      0 & -1 &  0 &  0 &  0 &  0 \\
+      1 &  0 &  0 &  0 &  0 &  0 \\
+      0 &  0 &  0 & -1 &  0 &  0 \\
+      0 &  0 &  1 &  0 &  0 &  0 \\
+      0 &  0 &  0 &  0 &  0 & -1 \\
+      0 &  0 &  0 &  0 &  1 &  0 \\
+  \end{pmatrix}
+\Endeq
+With this, ${\partial \bfn}/{\partial \delta}$ is computed via
+\Begineq
+  \frac{\partial \bfn}{\partial \delta} = i \, \sum_{j = 1}^6 \bfv_{j5}^* \, \bfw_j
+  \label{ndivw}
+\Endeq
+From a computational standpoint, the advantage of \Eq{000001} over \Eq{ndivw} is that \Eq{000001}
+can be used even if there are no synchrotron oscillations (no RF cavities) where the energy is a
+constant of the motion and the $\bfM$ orbital matrix has degenerate eigenvectors which prevent the
+normalization condition \Eq{vsvi} from being used.
 
 %-----------------------------------------------------------------   
 \section{Spinor Notation}

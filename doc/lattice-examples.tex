@@ -289,8 +289,8 @@ The lattice for this simulation is:
   theta_in  = cryst[bragg_angle_in]  ! 78.2759 * pi / 180
   theta_out = cryst[bragg_angle_out] ! 78.2759 * pi / 180
 
-  cryst[graze_angle_in]  = theta_in - phi
-  cryst[graze_angle_out] = theta_out - phi
+  cryst[graze_angle_in]  = theta_in - phi/2 
+  cryst[graze_angle_out] = theta_out - phi/2
   drift1[L] = 2 * r_rowland * sin(theta_in-phi/2)
   drift2[L] = 2 * r_rowland * sin(theta_out-phi/2)
 

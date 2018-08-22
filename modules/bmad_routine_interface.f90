@@ -4,7 +4,7 @@
 
 module bmad_routine_interface
 
-use bmad_struct
+use custom_bmad_interface
 
 interface
 
