@@ -996,7 +996,19 @@ contains
     integer,optional ::  NDPT1
     logical(lp),optional :: PACKAGE
     logical(lp) PACKAGE1
-    integer ndptt
+    integer ndptt,i
+ 
+     if(associated(dz_8)) then
+      call kill(dz_8)
+      deallocate(dz_8)
+      nullify(dz_8)
+     endif
+     if(associated(dz_t)) then
+      call kill(dz_t)
+      deallocate(dz_t)
+      nullify(dz_t)
+     endif
+
     package1=.true.
     ndptt=0
     if(present(PACKAGE)) PACKAGE1=PACKAGE
@@ -1006,13 +1018,36 @@ contains
     call init_map_p(NO1,ND1,NP1,ndptt,PACKAGE1)
     call set_in_poly(PACKAGE1)
     call set_in_polyp(PACKAGE1)
+
+    allocate(dz_8(nv))
+    call alloc(dz_8)
+    allocate(dz_t(nv))
+    call alloc(dz_t)
+
+    do i=1,nv
+     dz_8(i)=morph(1.0_dp.mono.i)   
+    enddo
+    do i=1,nv
+     dz_t(i)=1.0_dp.mono.i   
+    enddo
+
   end subroutine  init_map_cp
 
   subroutine init_tpsa_cp(NO1,NV1,PACKAGE)
     implicit none
-    integer NO1,NV1
+    integer NO1,NV1,i
     logical(lp),optional :: PACKAGE
     logical(lp) PACKAGE1
+     if(associated(dz_8)) then
+      call kill(dz_8)
+      deallocate(dz_8)
+      nullify(dz_8)
+     endif
+     if(associated(dz_t)) then
+      call kill(dz_t)
+      deallocate(dz_t)
+      nullify(dz_t)
+     endif
     package1=.true.
     if(present(PACKAGE)) PACKAGE1=PACKAGE
     !w_p=>W_I                  ! default output, comment out if necessary
@@ -1020,6 +1055,18 @@ contains
     call init_tpsa_p(NO1,NV1,PACKAGE1)
     call set_in_poly(PACKAGE1)
     call set_in_polyp(PACKAGE1)
+
+    allocate(dz_8(nv))
+    call alloc(dz_8)
+    allocate(dz_t(nv))
+    call alloc(dz_t)
+
+    do i=1,nv
+     dz_8(i)=morph(1.0_dp.mono.i)   
+    enddo
+    do i=1,nv
+     dz_t(i)=1.0_dp.mono.i   
+    enddo
   end subroutine  init_tpsa_cp
 
 

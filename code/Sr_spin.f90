@@ -2516,6 +2516,7 @@ call kill(vm,phi,z)
     TYPE (fibre),optional, POINTER :: fibre1,fibre2
     TYPE (INTEGRATION_NODE), POINTER :: C,n1,n2,last
     logical donew
+    real(dp) beta
     !    INTEGER,TARGET :: CHARGE
 
     !    if(present(node1))CHARGE=NODE1%PARENT_FIBRE%CHARGE
@@ -2552,6 +2553,11 @@ call kill(vm,phi,z)
     if(donew) then   ! actually calling old stuff pre-node
      call TRACK(xs%x,K,fibre1,fibre2=fibre2)
     else
+     if(use_bmad_units.and.(.not.inside_bmad)) then 
+       beta=C%PARENT_FIBRE%beta0
+       if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
+       call convert_bmad_to_ptc(xs,beta,k%time)
+     endif
      DO  WHILE(.not.ASSOCIATED(C,n2))
         CALL TRACK_NODE_PROBE(C,XS,K)
         if(.not.check_stable) exit
@@ -2561,6 +2567,11 @@ call kill(vm,phi,z)
      if(associated(last).and.check_stable) then
        CALL TRACK_NODE_PROBE(last,XS,K)
      endif
+    if(use_bmad_units.and.(.not.inside_bmad)) then 
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==5) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_ptc_to_bmad(xs,beta,k%time)
+    endif
     endif
 
 
@@ -2579,6 +2590,7 @@ call kill(vm,phi,z)
     TYPE (fibre),optional, POINTER :: fibre1,fibre2
     TYPE (INTEGRATION_NODE), POINTER :: C,n1,n2,last
     logical donew
+    real(dp) beta
     !    INTEGER,TARGET :: CHARGE
 
     !    if(present(node1))CHARGE=NODE1%PARENT_FIBRE%CHARGE
@@ -2628,6 +2640,11 @@ call kill(vm,phi,z)
     if(donew) then   ! actually calling old stuff pre-node
      call TRACK(xs%x,K,fibre1,fibre2=fibre2)
     else
+     if(use_bmad_units.and.(.not.inside_bmad)) then 
+       beta=C%PARENT_FIBRE%beta0
+       if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
+       call convert_bmad_to_ptc(xs,beta,k%time)
+     endif
      DO  WHILE(.not.ASSOCIATED(C,n2))
         CALL TRACK_NODE_PROBE(C,XS,K)
         if(.not.check_stable) exit
@@ -2637,6 +2654,11 @@ call kill(vm,phi,z)
      if(associated(last).and.check_stable) then
        CALL TRACK_NODE_PROBE(last,XS,K)
      endif
+    if(use_bmad_units.and.(.not.inside_bmad)) then 
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==5) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_ptc_to_bmad(xs,beta,k%time)
+    endif
     endif
 
 
