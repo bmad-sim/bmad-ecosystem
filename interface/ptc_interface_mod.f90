@@ -2862,7 +2862,7 @@ use s_tracking
 use mad_like, only: real_8, fibre, ring_l, survey, make_node_layout
 use ptc_spin, only: track_probe_x, track_probe
 use s_family, only: survey
-use madx_ptc_module, only: bmadl
+use madx_ptc_module, only: bmadl, use_bmad_units
 
 implicit none
 
@@ -2874,7 +2874,7 @@ type (taylor_struct), optional, target :: orbital_taylor(6), spin_taylor(0:3)
 type (taylor_struct), pointer :: orb_tylr(:), spin_tylr(:)
 type (probe_8) ptc_probe8
 type (fibre), pointer :: ptc_fibre
-type (real_8) y0(6), y2(6), y8(6), bet
+type (real_8) y2(6), y8(6)
 type (c_damap) ptc_cdamap
 
 real(dp) x(6), beta
@@ -2935,8 +2935,8 @@ else
 endif
 
 call alloc (y8)
-call alloc (bet)
 call alloc(ptc_cdamap)
+use_bmad_units = .true.
 
 call attribute_bookkeeper (ele, param, .true.)
 
@@ -2950,17 +2950,8 @@ else
   x = 0
 endif
 
-call alloc(y0)
 ptc_cdamap = 1
-y0 = ptc_cdamap + x! = IdentityMap + const
-
-! Convert to PTC
-
-beta = ele%value(p0c_start$) / ele%value(e_tot_start$)
-y8 = y0
-y8(5) = (y0(6)**2+2.d0*y0(6))/(1.d0/beta+sqrt( 1.d0/beta**2+y0(6)**2+2.d0*y0(6)) )
-bet = (1.d0+y0(6))/(1.d0/beta+y8(5))
-y8(6) = -y0(5)/bet
+y8 = ptc_cdamap + x ! = IdentityMap + const
 
 ! Origninally used track (ptc_fibre, y8, default) but that does not work with taylor elements.
 
@@ -2978,14 +2969,6 @@ else
   call track_probe_x (y8, DEFAULT-SPIN0, fibre1 = bmadl%start)
 endif
 
-! PTC to Bmad
-
-beta = ele%value(p0c$) / ele%value(e_tot$)
-y0 = y8
-y0(6) = (2.d0*y8(5)/beta+y8(5)**2)/(sqrt(1.d0+2.d0*y8(5)/beta+y8(5)**2)+1.d0)
-bet = (1.d0+y0(6))/(1.d0/beta+y8(5))
-y0(5) = -bet*y8(6)
-
 ! take out the offset
 
 !if (any(x /= 0)) then
@@ -2997,12 +2980,11 @@ y0(5) = -bet*y8(6)
 
 ! convert to orb_tylr_struct
 
-orb_tylr = y0
+orb_tylr = y8
 
-call kill(y0)
 call kill(y8)
-call kill(bet)
 call kill (ptc_cdamap)
+use_bmad_units = .false.
 
 if (associated (ele%ptc_genfield%field)) call kill_ptc_genfield (ele%ptc_genfield%field)
 
