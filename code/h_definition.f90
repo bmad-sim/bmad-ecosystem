@@ -93,7 +93,7 @@ module definition
      INTEGER I   !@1   USED FOR KNOBS AND SPECIAL KIND=0
      REAL(DP) S   !@1   SCALING FOR KNOBS AND SPECIAL KIND=0
      LOGICAL(lp) :: ALLOC  !@1 IF TAYLOR IS ALLOCATED IN DA-PACKAGE
-     integer g,nb  !  group index, number in group
+ !    integer g,nb  !  group index, number in group
      !&2
   END TYPE REAL_8
 
@@ -359,7 +359,9 @@ END TYPE quaternion_8
   TYPE C_taylor
      INTEGER I !@1  integer I is a pointer to the complexified Berz package
   END TYPE C_taylor
-  type(c_taylor),pointer :: dx_(:)=>null()
+  type(c_taylor),pointer :: dz_c(:)=>null()
+  type(real_8),pointer :: dz_8(:)=>null()
+  type(taylor),pointer :: dz_t(:)=>null()
   !@3 ---------------------------------------------</br>
   type c_dascratch
      type(c_taylor), pointer :: t

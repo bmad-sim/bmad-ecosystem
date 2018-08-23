@@ -4073,6 +4073,7 @@ longprint=long
     if(iout.eq.0) iout=1
 if(longprint) write(iunit,502) -iout,0.0_dp,0.0_dp,(j(i),i=1,inva)
     if((.not.longprint).and.(.not.some)) write(iunit,*) " Complex Polynomial is zero "
+if(.not.longprint) write(6,*) " "
     !
     return
 longprint=long

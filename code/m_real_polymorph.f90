@@ -4662,8 +4662,8 @@ contains
     s2%kind=1
     s2%r=0.0_dp
     s2%i=0
-    s2%g=0
-    s2%nb=0
+!    s2%g=0
+!    s2%nb=0
     s2%s=1.0_dp
 
   END SUBROUTINE allocpoly
@@ -6448,13 +6448,13 @@ contains
     type (real_8),INTENT(IN)::  S2
 
     if(knob) then
-       if(nb_==0) then
+    !   if(nb_==0) then
           varf1=(/S2%R,S2%S/).var.(s2%i+npara_fpp)
-       elseif(s2%nb==nb_) then
-          varf1=(/S2%R,S2%S/).var.(s2%i+npara_fpp-s2%g+1)
-       else
-          varf1=S2%R
-       endif
+    !   elseif(s2%nb==nb_) then
+    !      varf1=(/S2%R,S2%S/).var.(s2%i+npara_fpp-s2%g+1)
+    !   else
+    !      varf1=S2%R
+    !   endif
     else ! Not a knob
        stop 333
        varf1=(/S2%R,0.0_dp/).var.0  ! this is a buggy line never used
@@ -6469,13 +6469,13 @@ contains
     type (real_8),INTENT(IN)::  S2
 
     if(knob) then
-       if(nb_==0) then
+  !     if(nb_==0) then
           varf2=(/S2%R,S2%S/).var.(s2%i+npara_fpp)
-       elseif(s2%nb==nb_) then
-          varf2=(/S2%R,S2%S/).var.(s2%i+npara_fpp-s2%g+1)
-       else
-          varf2=S2%R
-       endif
+  !     elseif(s2%nb==nb_) then
+  !        varf2=(/S2%R,S2%S/).var.(s2%i+npara_fpp-s2%g+1)
+  !     else
+  !        varf2=S2%R
+  !     endif
     else ! Not a knob
        stop 334
        varf2=(/S2%R,0.0_dp/).var.0   ! this is a buggy line never used
