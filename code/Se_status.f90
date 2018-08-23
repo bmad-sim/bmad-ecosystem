@@ -1424,7 +1424,7 @@ CONTAINS
     INTEGER, INTENT(IN):: NO1,NP1
     INTEGER ND1,NDEL,NDPT1
     INTEGER,optional :: ND2,NPARA,number_of_clocks
-    INTEGER  ND2l,NPARAl,n_acc,no1c
+    INTEGER  ND2l,NPARAl,n_acc,no1c,nv,i
     LOGICAL(lp) package
     n_rf=0
 !    call dd_p !valishev
@@ -1482,7 +1482,32 @@ CONTAINS
    ! endif
     !    write(6,*) NO1,ND1,NP1,NDEL,NDPT1
     !pause 678
+     if(associated(dz_t)) then
+      call kill(dz_t)
+      deallocate(dz_t)
+      nullify(dz_t)
+     endif
+     if(associated(dz_8)) then
+      call kill(dz_8)
+      deallocate(dz_8)
+      nullify(dz_8)
+     endif
     CALL INIT(NO1,ND1,NP1+NDEL+2*n_acc,NDPT1,PACKAGE)
+    nv=2*nd1+NP1+NDEL+2*n_acc
+
+    allocate(dz_t(nv))
+    call alloc(dz_t)
+
+    do i=1,nv
+     dz_t(i)=1.0_dp.mono.i   
+    enddo
+
+    allocate(dz_8(nv))
+    call alloc(dz_8)
+
+    do i=1,nv
+     dz_8(i)=morph(1.0_dp.mono.i)   
+    enddo
 
     ND2l=ND1*2+2*n_acc
     NPARAl=ND2l+NDEL
@@ -1495,17 +1520,12 @@ CONTAINS
     if(present(nd2)) nd2=nd2l
     if(present(npara)) npara=nparal
 ! etienne
+
 no1c=no1+complex_extra_order
 ND1=ND1+n_acc
     if(use_complex_in_ptc) call c_init(NO1c,nd1,np1+ndel,ndpt1,n_acc,ptc=my_false)  ! PTC false because we will not use the real FPP for acc modulation
     n_rf=n_acc
-!call c_init(c_%NO,c_%nd,c_%np,c_%ndpt,number_of_ac_plane,ptc=my_true)  
-!  subroutine c_init(NO1,NV1,np1,ndpt1,AC_rf,ptc)  !,spin
-!    implicit none
-!    integer, intent(in) :: NO1,NV1
-!    integer, optional :: np1,ndpt1,AC_RF
-!    logical(lp), optional :: ptc  !spin,
-!    integer ndpt_ptc
+ 
 
   END  subroutine S_init
 

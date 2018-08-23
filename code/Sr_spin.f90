@@ -2656,7 +2656,7 @@ call kill(vm,phi,z)
     INTEGER, INTENT(IN):: I1,I2
     INTEGER J,i22
     TYPE (INTEGRATION_NODE), POINTER :: C
-
+    real(dp) beta
     ! CALL RESET_APERTURE_FLAG
     xs%u=my_false
 
@@ -2671,6 +2671,12 @@ call kill(vm,phi,z)
 
     J=I1
 
+    if(use_bmad_units.and.(.not.inside_bmad)) then 
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_bmad_to_ptc(xs,beta,k%time)
+    endif
+
     DO  WHILE(J<I22.AND.ASSOCIATED(C))
        CALL TRACK_NODE_PROBE(C,XS,K)
 
@@ -2680,6 +2686,13 @@ call kill(vm,phi,z)
        C=>C%NEXT
        J=J+1
     ENDDO
+
+    if(use_bmad_units.and.(.not.inside_bmad)) then 
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==5) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_ptc_to_bmad(xs,beta,k%time)
+    endif
+
     C_%STABLE_DA=.true.
 
     !    if(c_%watch_user) ALLOW_TRACKING=.FALSE.
@@ -2695,7 +2708,7 @@ call kill(vm,phi,z)
     INTEGER, INTENT(IN):: I1,I2
     INTEGER J   ,i22
     TYPE (INTEGRATION_NODE), POINTER :: C
-
+    real(dp) beta
 
     !    CALL RESET_APERTURE_FLAG
 
@@ -2713,6 +2726,13 @@ call kill(vm,phi,z)
 
     J=I1
 
+
+    if(use_bmad_units.and.(.not.inside_bmad)) then 
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_bmad_to_ptc(xs,beta,k%time)
+    endif
+
     DO  WHILE(J<I22.AND.ASSOCIATED(C))
         CALL TRACK_NODE_PROBE(C,XS,K)  !,R%charge)
         if(.not.check_stable) exit
@@ -2720,6 +2740,13 @@ call kill(vm,phi,z)
        C=>C%NEXT
        J=J+1
     ENDDO
+
+    if(use_bmad_units.and.(.not.inside_bmad)) then 
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==5) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_ptc_to_bmad(xs,beta,k%time)
+    endif
+
     C_%STABLE_DA=.true.
 
     !    if(c_%watch_user) ALLOW_TRACKING=.FALSE.
@@ -3144,7 +3171,7 @@ call kill(vm,phi,z)
     type(INTEGRATION_NODE), pointer :: C
     type(probe), INTENT(INOUT) :: xs
     TYPE(INTERNAL_STATE) K
-    REAL(DP) FAC,DS
+    REAL(DP) FAC,DS,beta
     logical useptc,dofix0,dofix,doonemap
     type(tree_element), pointer :: arbre(:)
 !    logical(lp) bmad
@@ -3185,8 +3212,11 @@ call kill(vm,phi,z)
      endif
  !   endif ! cavity
  
-    if(use_bmad_units) then 
-      call convert_bmad_to_ptc(xs,C%PARENT_FIBRE%beta0,k%time)
+
+    if(use_bmad_units.and.inside_bmad) then
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_bmad_to_ptc(xs,beta,k%time)
     endif
 
     IF(K%MODULATION.and.xs%nac/=0) THEN !modulate
@@ -3247,10 +3277,11 @@ call kill(vm,phi,z)
   !  IF((K%MODULATION.or.ramp).and.c%parent_fibre%mag%slow_ac) THEN  !modulate
   !     CALL restore_ANBN_SINGLE(C%PARENT_FIBRE%MAG,C%PARENT_FIBRE%MAGP)
   !  ENDIF  !modulate
-    if(use_bmad_units) then 
-      call convert_ptc_to_bmad(xs,C%PARENT_FIBRE%beta0,k%time)
+    if(use_bmad_units.and.inside_bmad) then
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==5) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_ptc_to_bmad(xs,beta,k%time)
     endif
-
  else ! full_way
  
 
@@ -3292,7 +3323,7 @@ endif ! full_way
     type(INTEGRATION_NODE), pointer :: C
     type(probe_8), INTENT(INOUT) :: xs
     TYPE(INTERNAL_STATE) K
-    REAL(DP) FAC
+    REAL(DP) FAC,beta
     type(real_8) ds
     logical(lp) CHECK_KNOB
     integer(2), pointer,dimension(:)::AN,BN
@@ -3335,8 +3366,12 @@ endif ! full_way
      endif
 !    endif
  
-    if(use_bmad_units) then 
-      call convert_bmad_to_ptc(xs,C%PARENT_FIBRE%beta0,k%time)
+ 
+
+    if(use_bmad_units.and.inside_bmad) then
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_bmad_to_ptc(xs,beta,k%time)
     endif
 
     IF(K%MODULATION.and.xs%nac/=0) then
@@ -3430,8 +3465,10 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     call kill(ds)
 
 
-    if(use_bmad_units) then 
-      call convert_ptc_to_bmad(xs,C%PARENT_FIBRE%beta0,k%time)
+    if(use_bmad_units.and.inside_bmad) then
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==5) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_ptc_to_bmad(xs,beta,k%time)
     endif
 else
 

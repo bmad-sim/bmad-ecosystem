@@ -25,7 +25,7 @@ module ptc_multiparticle
   real(dp) :: xsm0t=0.0_dp,xsmt=0.0_dp
   !real(dp) :: unit_time =1.0e-3_dp
   REAL(dp) :: x_orbit_sync(6)= 0.0_dp,dt_orbit_sync=0.0_dp
-    logical(lp) :: use_bmad_units=.false.
+    logical(lp) :: use_bmad_units=.false.,inside_bmad=.false.
 
   INTERFACE TRACK_NODE_SINGLE
      MODULE PROCEDURE TRACK_NODE_SINGLER     !@1  t,x,state,charge
