@@ -705,6 +705,7 @@ type(q_linear) q_phasor,qi_phasor
 
 type c_fourier_index
  integer, pointer :: i
+ REAL(dp), pointer :: x(:),ph(:),r(:)
  type(c_fourier_index), pointer :: next =>null() 
  type(c_fourier_index), pointer :: last =>null() 
 end type c_fourier_index
@@ -721,7 +722,7 @@ type c_quaternion_fourier
  real(dp) dphix,dphiy,rx,ry,mux,muy
  real(dp) closed_orbit(6)
  real(dp) a(4,4),ai(4,4)
- integer nphix,nphiy,mx,my,n,nray
+ integer nphix,nphiy,mx,my,n,nray,countmax
  integer no,pos,nd
  logical normalised
  type(internal_state) state
@@ -730,15 +731,15 @@ end type c_quaternion_fourier
 
 CONTAINS
 
- subroutine alloc_c_quaternion_fourier(f)
+ subroutine alloc_c_quaternion_fourier(f,count)
  implicit none
  type(c_quaternion_fourier) f
- integer n,i,j
+ integer n,i,j,count
 
  n=f%n
  f%closed_orbit=0.0_dp
  f%nd=f%nphix*f%nphiy
-
+  f%countmax=count
 
  if(f%normalised) then
   allocate(f%qd(0:f%nphix,0:f%nphiy)) 
@@ -761,7 +762,13 @@ CONTAINS
      nullify(f%f(i,j)%next)
      nullify(f%f(i,j)%last)
      allocate(f%f(i,j)%i)
+     allocate(f%f(i,j)%ph(2))
+     allocate(f%f(i,j)%x(6))
+     allocate(f%f(i,j)%r(6))
      f%f(i,j)%i=0
+     f%f(i,j)%ph=0
+     f%f(i,j)%x=0
+     f%f(i,j)%r=0
     enddo
     enddo
     

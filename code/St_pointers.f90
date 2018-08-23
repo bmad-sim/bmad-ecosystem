@@ -58,46 +58,46 @@ module pointer_lattice
 
 !!  new stuff on non-perturbative !
 
-type  vector_field_fourier 
-     real(dp) fix(6)    !   closed orbit of map
-     integer :: ns(3)=0   ! integer for Fourier transform
-     real(dp), pointer :: mr(:,:,:,:,:) =>null()   ! spin matrices produced by code (i,j,k,1:3,1:3)
-     real(dp), pointer ::  x_i(:,:,:,:) =>null()   ! starting position in phase  x_i(i,j,k,1:6)=r%x(1:6)
-     real(dp), pointer :: phis(:,:,:,:) =>null()   ! %phis(i,j,k,2)=j*dphi2
-     type(spinor), pointer :: sp(:,:,:)            ! sp(:i,j,k)   spinor for all the matrices mr  
-     integer n1,n2,n3,nd                           ! # fourier modes -n1:n1, etc... nd=degree of freedom
-     real(dp)  mu(3),muf(3),em(3)                  ! tune and initial emitances
-     complex(dp),  DIMENSION(:,:,:,:), POINTER :: f  !  vector field expansion f(1:3,-n1:n1,-n2:n2,-n3:n3)
-end  type vector_field_fourier
-   type(vector_field_fourier) af
+!type  vector_field_fourier 
+!     real(dp) fix(6)    !   closed orbit of map
+!     integer :: ns(3)=0   ! integer for Fourier transform
+!     real(dp), pointer :: mr(:,:,:,:,:) =>null()   ! spin matrices produced by code (i,j,k,1:3,1:3)
+!     real(dp), pointer ::  x_i(:,:,:,:) =>null()   ! starting position in phase  x_i(i,j,k,1:6)=r%x(1:6)
+!     real(dp), pointer :: phis(:,:,:,:) =>null()   ! %phis(i,j,k,2)=j*dphi2
+!     type(spinor), pointer :: sp(:,:,:)            ! sp(:i,j,k)   spinor for all the matrices mr  
+!     integer n1,n2,n3,nd                           ! # fourier modes -n1:n1, etc... nd=degree of freedom
+!     real(dp)  mu(3),muf(3),em(3)                  ! tune and initial emitances
+!     complex(dp),  DIMENSION(:,:,:,:), POINTER :: f  !  vector field expansion f(1:3,-n1:n1,-n2:n2,-n3:n3)
+!end  type vector_field_fourier
+!   type(vector_field_fourier) af
 
-type  spinor_fourier 
-     integer n1,n2,n3
-     complex(dp),  DIMENSION(:,:,:,:), POINTER :: s
-end  type spinor_fourier 
+!type  spinor_fourier 
+!     integer n1,n2,n3
+!     complex(dp),  DIMENSION(:,:,:,:), POINTER :: s
+!end  type spinor_fourier 
 
-type  matrix_fourier 
-      real(dp) muf(3)
-     type(spinor_fourier) v(3)
-end  type matrix_fourier 
+!type  matrix_fourier 
+!      real(dp) muf(3)
+!     type(spinor_fourier) v(3)
+!end  type matrix_fourier 
 
-  type  explogs  
-     integer n1,n2
-     complex(dp),  DIMENSION(:,:,:), POINTER :: h
-  end  type explogs
+!  type  explogs  
+!     integer n1,n2
+!     complex(dp),  DIMENSION(:,:,:), POINTER :: h
+!  end  type explogs
 
 
-  type  logs 
-     integer  m(3),ms  
-     integer  ns,no
-     type(explogs) h,a,n
-     type(explogs), pointer ::  af(:)
-     real(dp), pointer :: as(:,:,:)
-     type(spinor), pointer :: sp(:,:)
-     real(dp), pointer :: s(:,:,:,:)  !   spin matrices
-     real(dp) em(2),mu(2),fix(6)
-     real(dp), pointer :: x_i(:,:,:),phis(:,:,:)
-  end  type logs
+!  type  logs 
+!     integer  m(3),ms  
+!     integer  ns,no
+!     type(explogs) h,a,n
+!     type(explogs), pointer ::  af(:)
+!     real(dp), pointer :: as(:,:,:)
+!     type(spinor), pointer :: sp(:,:)
+!     real(dp), pointer :: s(:,:,:,:)  !   spin matrices
+!     real(dp) em(2),mu(2),fix(6)
+!     real(dp), pointer :: x_i(:,:,:),phis(:,:,:)
+!  end  type logs
 
 
 contains
@@ -3100,7 +3100,7 @@ endif
  type(probe) xs0
  type(internal_state) state
 type(c_fourier_index) , pointer ::p
- integer i,j,n(2)
+ integer i,j,n(2),count
  real(dp) x(6),phi(2)
 type(c_ray) cray
 
@@ -3157,7 +3157,8 @@ write(6,*) " closed "
 write(6,'(6(1x,g20.13))')fq%closed_orbit
 write(6,'(6(1x,g20.13))')fq%x(1:6,0)
 !write(6,*) " start 0"
-if(fq%normalised.and.fq%nray==0) then
+
+if(fq%nray==0) then
 
 do i=0,fq%nphix
 do j=0,fq%nphiy
@@ -3197,9 +3198,12 @@ enddo
 enddo
 !write(6,*) " end 0"
 
+call kill(c_map,id_s)
+call kill(c_n)
+call kill(xs)
 
-elseif(fq%normalised.and.fq%nray/=0) then
 
+else 
 
 write(6,*) " initial ray around the closed orbit "
 write(6,*) x
@@ -3207,19 +3211,30 @@ write(6,*) " ######################################"
 state=fq%state-spin0
 
 XS0%x=fq%x(1:6,0)+fq%closed_orbit
-
-fq%d(0,0)=0.0_dp
-fq%p(0,0)=0
-fq%found(0,0)=.true.
-fq%nd=fq%nd-1
-!locate_phi(fq,i,ph,ij)
-
+ 
 do i=0,fq%nray
+
  CALL propagate(r,XS0,STATE,FIBRE1=1) 
  if(i/=fq%nray) then
   fq%x(1:6,i+1)=xs0%x-fq%closed_orbit
   fq%x(5:6,i+1)=0
  endif
+enddo
+call find_tunes(fq)
+
+count=0
+  call locate_phi(fq,0,phi,n,count)
+ 
+do i=0,fq%nray
+
+ if(i/=fq%nray) then
+  fq%x(1:6,i+1)=xs0%x-fq%closed_orbit
+  fq%x(5:6,i+1)=0
+  call locate_phi(fq,i+1,phi,n,count)
+ endif
+ if( count==fq%nphix*fq%nphiy) exit
+
+
 ! call locate_phi(fq,i,phi,n)
  !if(fq%nd/=0) write(6,*) i,"fq%nd ", fq%nd
 
@@ -3231,19 +3246,17 @@ do i=0,fq%nray
 enddo
 
 
-     allocate(fq%f(0,0)%next)
-     fq%f(0,0)%last=>fq%f(0,0)%next
-     p=>fq%f(0,0)%next
-     allocate(p%i)
-     p%i=1
-     fq%f(0,0)%i=1
+call kill(c_map,id_s)
+call kill(c_n)
+call kill(xs)
 
-do i=0,fq%nray
- call locate_phi(fq,i,phi,n)
- if(fq%nd/=0) write(6,*) i,"fq%nd ", fq%nd
-enddo
-call create_phi(fq)
-fq%r(1:6, 0,0)=fq%x(1:6,0)
+ call c_phi(fq)
+
+
+
+
+ 
+fq%f(0,0)%r(1:6)=fq%x(1:6,0)
 
 if(.true.) then
 
@@ -3255,7 +3268,7 @@ do i=0,fq%nphix-1
 do j=0,fq%nphiy-1
 
 
-XS0%x=fq%r(1:6, i,j)+fq%closed_orbit
+XS0%x=fq%f( i,j)%r+fq%closed_orbit
 XS0%q=1.0_dp
 
  CALL propagate(r,XS0,STATE,FIBRE1=1) 
@@ -3275,46 +3288,67 @@ enddo
 write(6,*) " end "
 endif ! false
 
-
-
-else
-
-
-xs0%x=x+fq%closed_orbit
-
-do i=0,fq%nphix*fq%nphiy
- 
-x=xs0%x
- 
-
-x=x+fq%closed_orbit
-
-XS0%x=x
-XS0%q=1.0_dp
-
- CALL propagate(r,XS0,STATE,FIBRE1=1) 
- 
-fq%qd(i,0)=XS0%q
- 
-
-
-enddo
-
- call fourier_c_quaternion_test(fq,fq%qd,fq%qin)
-
 endif
 
-call kill(c_map,id_s)
-call kill(c_n)
-call kill(xs)
 
  end subroutine data_normal_form_fourier_c_quaternion
 
-subroutine locate_phi(fq,i,phi,n)
+subroutine c_phi(fq)
 implicit none
 type(c_quaternion_fourier) fq
 type(c_fourier_index) , pointer ::p
-integer i,n(2) 
+integer i,j,k,nx,ny,l,inx
+type(taylor) g,h,f(4)
+type(gmap) gm
+ 
+
+call init(2,2,0,0)
+call alloc(gm)
+call alloc(g,h)
+call alloc(f)
+
+nx=fq%nphix
+ny=fq%nphiy
+
+do i=0,nx-1
+do j=0,ny-1
+ fq%f(i,j)%r=0.0_dp
+do inx=1,4
+p=> fq%f(i,j)
+ h=0.0_dp
+f(inx)=0.0_dp
+do k=1,fq%f(i,j)%i
+p=>p%next
+ 
+  g=dz_t(1)+dz_t(2)*p%ph(1)+dz_t(3)*p%ph(2) !+dz_t(4)*p%ph(1)**2 + &
+   !+dz_t(5)*p%ph(1)*p%ph(2) +dz_t(6)*p%ph(2)**2 
+  f(inx)=0.5_dp*(p%x(inx) - g)**2 + f(inx)
+enddo
+ 
+ 
+ do l=1,3  !6
+  gm%v(l)=f(inx).d.l
+ enddo
+gm%v(4)=1.d0.mono.4
+ 
+  gm=gm.oo.(-1)
+  fq%f(i,j)%r(inx)=gm%v(1).sub.'0'
+ 
+enddo ! inx
+
+enddo 
+ enddo
+
+call kill(gm)
+call kill(g,h)
+
+end subroutine c_phi
+
+subroutine locate_phi(fq,i,phi,n,count)
+implicit none
+type(c_quaternion_fourier) fq
+type(c_fourier_index) , pointer ::p
+integer i,n(2) ,count
 real(dp) phi(2),nx,ny,d
 
 nx=fq%nphix
@@ -3335,16 +3369,23 @@ if(fq%found(n(1),n(2))) then
   fq%p(n(1),n(2))=i
   fq%ph(1,n(1),n(2))=-n(1)+phi(1)
   fq%ph(2,n(1),n(2))=-n(2)+phi(2)
+  fq%f(n(1),n(2))%ph=-n(1:2)+phi(1:2)
+  fq%f(n(1),n(2))%x=fq%x(1:6,i)
 !   write(6,*) n(1),n(2),d
  endif
- !  if(n(1)+n(2)/=0) then
+ 
      allocate(fq%f(n(1),n(2))%last%next)
      fq%f(n(1),n(2))%last=>fq%f(n(1),n(2))%last%next
      p=>fq%f(n(1),n(2))%last
      allocate(p%i)
+     allocate(p%x(6))
+     allocate(p%ph(2))
+     p%ph(1:2)=-n(1:2)+phi(1:2)
+     p%x=fq%x(1:6,i)
      p%i=fq%f(n(1),n(2))%i+1
+   if(p%i==fq%countmax) count=count+1
      fq%f(n(1),n(2))%i=fq%f(n(1),n(2))%i+1
-  ! endif
+ 
 else
  fq%found(n(1),n(2))=.true.
  fq%d(n(1),n(2))=d
@@ -3357,6 +3398,10 @@ else
      fq%f(n(1),n(2))%last=>fq%f(n(1),n(2))%next
      p=>fq%f(n(1),n(2))%next
      allocate(p%i)
+     allocate(p%x(6))
+     allocate(p%ph(2))
+     p%ph(1:2)=-n(1:2)+phi(1:2)
+     p%x=fq%x(1:6,i)
      p%i=1
      fq%f(n(1),n(2))%i=1
  ! endif
