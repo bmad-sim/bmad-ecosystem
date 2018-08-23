@@ -549,6 +549,7 @@ endif
 !
 
 use_bmad_units = .true.
+ndpt_bmad = 1  ! Indicates that delta is in position 6 and not 5
 ptc_state = DEFAULT - NOCAVITY0 + RADIATION0
 
 
@@ -596,6 +597,7 @@ call kill (xs)
 call kill (cc_norm)
 
 use_bmad_units = .false.
+ndpt_bmad = 0
 call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
 end subroutine ptc_emit_calc 
@@ -835,12 +837,13 @@ if (rf_on) then
   ptc_state = default - nocavity0
 else
   ptc_state = default + nocavity0
-  ndpt_bmad = 1  ! Indicates that pz is in position 6 and not 5
 endif
 
 if (spin_on) ptc_state = ptc_state + spin0
 
 use_bmad_units = .true.
+ndpt_bmad = 1  ! Indicates that pz is in position 6 and not 5
+
 map_order = integer_option(ptc_com%taylor_order_ptc, order)
 call init(ptc_state, map_order, 0) ! The third argument is the number of parametric variables
 
@@ -869,7 +872,8 @@ call kill(p8)
 call kill(da_map)
 
 use_bmad_units = .false.
-if (.not. rf_on) ndpt_bmad = 0
+ndpt_bmad = 0
+
 call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
 end Subroutine ptc_one_turn_map_at_ele
@@ -924,8 +928,9 @@ if (rf_on) then
   state = default - nocavity0
 else
   state = default + nocavity0
-  ndpt_bmad = 1 ! Indicates that delta is in position 6 and not 5
 endif
+
+ndpt_bmad = 1 ! Indicates that delta is in position 6 and not 5
 
 call init (state, ptc_com%taylor_order_ptc, 0) 
 call alloc(map8)
@@ -1000,8 +1005,9 @@ if (rf_on) then
   state = default - nocavity0
 else
   state = default + nocavity0
-  ndpt_bmad = 1  ! Indicates that delta is in position 6 and not 5
 endif
+
+ndpt_bmad = 1  ! Indicates that delta is in position 6 and not 5
 
 ! Set PTC state
 !no longer needed: use_complex_in_ptc=my_true
@@ -1132,8 +1138,9 @@ if (rf_on) then
   state = default - nocavity0
 else
   state = default + nocavity0
-  ndpt_bmad = 1  ! Indicates that delta is in position 6 and not 5
 endif
+
+ndpt_bmad = 1  ! Indicates that delta is in position 6 and not 5
 
 ! Set PTC state
 !no longer needed: use_complex_in_ptc=my_true

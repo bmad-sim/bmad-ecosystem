@@ -2888,6 +2888,8 @@ character(16) :: r_name = 'ele_to_taylor'
 
 !
 
+use_bmad_units = .true.
+ndpt_bmad = 1  ! Indicates that delta is in position 6 and not 5
 
 if (present(orbital_taylor)) then
   orb_tylr => orbital_taylor
@@ -2936,7 +2938,6 @@ endif
 
 call alloc (y8)
 call alloc(ptc_cdamap)
-use_bmad_units = .true.
 
 call attribute_bookkeeper (ele, param, .true.)
 
@@ -2984,7 +2985,9 @@ orb_tylr = y8
 
 call kill(y8)
 call kill (ptc_cdamap)
+
 use_bmad_units = .false.
+ndpt_bmad = 0
 
 if (associated (ele%ptc_genfield%field)) call kill_ptc_genfield (ele%ptc_genfield%field)
 
