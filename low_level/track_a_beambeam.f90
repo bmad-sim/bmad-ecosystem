@@ -37,7 +37,7 @@ logical, optional :: make_matrix
 
 if (ele%value(charge$) == 0 .or. param%n_part == 0) return
 
-if (make_matrix) call mat_make_unit(mat6)
+if (logic_option(.false., make_matrix)) call mat_make_unit(mat6)
 
 del = 0.001
 sig_x0 = ele%value(sig_x$)
@@ -75,7 +75,7 @@ do i = 1, n_slice
   orbit%vec(1) = orbit%vec(1) + orbit%vec(2) * del_s
   orbit%vec(3) = orbit%vec(3) + orbit%vec(4) * del_s
 
-  if (make_matrix) then
+  if (logic_option(.false., make_matrix)) then
     mat6(1,:) = mat6(1,:) + del_s * mat6(2,:)
     mat6(3,:) = mat6(3,:) + del_s * mat6(4,:)
   endif
@@ -103,7 +103,7 @@ do i = 1, n_slice
   orbit%vec(2) = orbit%vec(2) + k0_x * coef
   orbit%vec(4) = orbit%vec(4) + k0_y * coef
 
-  if (make_matrix) then
+  if (logic_option(.false., make_matrix)) then
     call bbi_kick (x_pos+del, y_pos, ratio, k_xx, k_yx)
     call bbi_kick (x_pos, y_pos+del, ratio, k_xy, k_yy)
 
