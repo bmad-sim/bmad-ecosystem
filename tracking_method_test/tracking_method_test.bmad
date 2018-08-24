@@ -79,7 +79,7 @@ wiggler_map1:      wiggler, l = 1.6, num_steps = 10, field_calc = fieldmap, cart
                           term = {3e-4, 5, 3, 4, 0.002, 3e-4, 0.63, x}, term = {3e-4, 5, 3, 4, 0.002, 3e-4, 0.63, y},
                           term = {3e-4, 4, 5, 3, 0.002, 3e-4, 0.63, x}, term = {3e-4, 4, 5, 3, 0.002, 3e-4, 0.63, y}},
                             tracking_method = symp_lie_ptc, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
-wiggler_periodic1: wiggler, l = 1, b_max = 0.01, n_pole = 20, num_steps = 1, x_offset = 0.01, y_pitch = 0.001, tilt = 0.1
+wiggler_periodic1: wiggler, l = 1, b_max = 0.0001, n_pole = 20, num_steps = 1, x_offset = 0.01, y_pitch = 0.001, tilt = 0.1
 
 !-----------
 ! Separate e_gun from rest of elements since e_gun shifts reference energy.

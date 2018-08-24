@@ -110,21 +110,6 @@ print '(a, 3f14.6)','E PTC:  ', e_field_ptc * ele%value(p0c$)
 print '(a, 3f14.6)','E Bmad: ', field%e
 print '(a, 3f14.6)','E Diff: ', e_field_ptc * ele%value(p0c$) - field%e
 
-
-!-------------------------------------------------------
-
-call bmad_parser ('track.bmad', lat)
-
-call track1 (lat%beam_start, lat%ele(1), lat%param, end_orb1, orb_track, err_flag)
-
-print *
-
-do i = 0, orb_track%n_pt
-  print '(i4, f10.6, 4x, 6f10.6)', i, orb_track%orb(i)%s, orb_track%orb(i)%vec
-enddo
-
-stop
-
 !----------------------------------------------------------
 ! Check information passing between bmad element and associated ptc fibre
 ! Procedure: 

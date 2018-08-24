@@ -7,7 +7,6 @@ implicit none
 type (lat_struct), target :: lat
 type (coord_struct) start_orb, end_orb, end_bs, end_ptc
 type (branch_struct), pointer :: branch
-type (ele_struct), pointer :: ele
 type (track_struct) track
 
 character(200) :: line(10)
@@ -68,6 +67,7 @@ contains
 
 subroutine track_it(d_sign, p_sign)
 
+type (ele_struct), pointer :: ele
 integer d_sign, p_sign
 
 !
