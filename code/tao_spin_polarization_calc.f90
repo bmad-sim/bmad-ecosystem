@@ -13,7 +13,8 @@
 !   valid_value   -- Logical: Set false when there is a problem. Set true otherwise.
 !   why_invalid   -- character(*), optional: Tells why datum value is invalid.
 !   pol_limit     -- real(rp): Equalibrium Polarization calculated via the Derbenev-Kondratenko-Mane formula.
-!
+!   pol_rate,     -- real(rp): Polarization rate (1/sec).
+!   depol_rate    -- real(rp): Depolarization rate (1/sec).
 !-
 
 subroutine tao_spin_polarization_calc (branch, orbit, valid_value, why_invalid, pol_limit, pol_rate, depol_rate)
@@ -154,9 +155,7 @@ do ie = 0, branch%n_ele_track
   vv = transpose(evec)
   aa(:,1) = [0, 0, 0, 0, 0, 1]
   call zgesv_f95(vv, aa, ipiv6, pinfo)
-  dn_ddelta(1) = sum(w_vec(:,1)* aa(:,1))
-  dn_ddelta(3) = sum(w_vec(:,2)* aa(:,1))
-
+  dn_ddelta = [real(sum(w_vec(:,1)* aa(:,1)), rp), 0.0_rp, real(sum(w_vec(:,2)* aa(:,1)), rp)]
   dn_ddelta = rotate_vec_given_quat (quat_lnm_to_xyz, dn_ddelta)
 
   !
