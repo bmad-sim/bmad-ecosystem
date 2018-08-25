@@ -47,9 +47,10 @@ contains
 !
 ! Tolerances use by the calculation are set by:
 !   bmad_com        -- bmad_common_struct: Global parameters used by Bmad.
-!     %autoscale_amp_abs_tol  -- Absolute amplitude tolerance. Default is 0.1 eV.
-!     %autoscale_amp_rel_tol  -- Relative amplitude tolerance. Default is 1d-6.
-!     %autoscale_phase_tol    -- Absolute phase tolerance. Default is 1d-5 rad/2pi.
+!     %autoscale_amp_abs_tol      -- Absolute amplitude tolerance. Default is 0.1 eV.
+!     %autoscale_amp_rel_tol      -- Relative amplitude tolerance. Default is 1d-6.
+!     %autoscale_phase_tol        -- Absolute phase tolerance. Default is 1d-5 rad/2pi.
+!     %rf_phase_below_transition_ref -- Use phi0 = 0.5 as reference phase instead of 0?
 !
 ! Input:
 !   ele             -- ele_struct: RF element or e_gun.
@@ -217,6 +218,7 @@ endif
 
 value_saved = ele%value
 ele%value(phi0$) = 0
+if (ele%key == rfcavity$ .and. bmad_com%rf_phase_below_transition_ref) ele%value(phi0$) = 0.5_rp
 ele%value(phi0_multipass$) = 0
 ele%value(phi0_err$) = 0
 if (ele%key == lcavity$ .or. ele%key == e_gun$) ele%value(gradient_err$) = 0

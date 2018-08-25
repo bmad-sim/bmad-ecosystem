@@ -678,10 +678,17 @@ case (lcavity$)
   endif
 
 case (rfcavity$)
-  if (ele%value(phi0$) /= 0) then
-    ele%value(phi0$) = 0
-    has_changed = .true.
-  endif    
+  if (bmad_com%rf_phase_below_transition_ref) then
+    if (ele%value(phi0$) /= 0.5_rp) then
+      ele%value(phi0$) = 0.5_rp
+      has_changed = .true.
+    endif    
+  else
+    if (ele%value(phi0$) /= 0) then
+      ele%value(phi0$) = 0
+      has_changed = .true.
+    endif    
+  endif
 end select
 
 ! For speed, use symp_lie_bmad tracking if the taylor map does not exist or if the taylor

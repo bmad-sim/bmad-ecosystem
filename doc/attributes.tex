@@ -2760,12 +2760,21 @@ gain through the cavity.
 If no autoscaling is done, the default setting of \vn{field_autoscale} is 1 and the
 default setting of \vn{phi0_autoscale} is 0.
 
+For an \vn{rfcavity}, the autoscaling is normally done around a phase of \vn{phi0} = 0 which is
+appropriate for a ring above transition since \vn{phi0} = 0 is the stable fixed point. Below
+transition, the stable fixed point is at \vn{phi0} = 0.5. In this case, the \vn{bmad_com} global
+parameter \vn{rf_phase_below_transition_ref} (\sref{s:bmad.common}) should be set to True so that
+autoscaling is done around \vn{phi0} = 0.5. For an ultrarelativistic reference particle with speed
+very nearly $c$ there is no difference in the autoscaling between \vn{phi0} = 0 and \vn{phi0} = 0.5.
+However, when there are velocity variations of the particle within the cavity there will be differences
+between autoscaling at the two phases.
+
 Notice that if autoscaling is on, the \vn{field_autoscale} is adjusted so that a particle on the
 zero orbit will see a field appropriate for the setting of the element's \vn{voltage} setting.
 If autoscaling is off, the field is independent of the element's \vn{voltage} setting.
 
-\vn{field_autoscale} and \vn{phi0_autoscale} are ignored when \vn{bmad_standard} tracking
-is done.
+\vn{field_autoscale} and \vn{phi0_autoscale} are not needed and therefore ignored when
+\vn{bmad_standard} tracking is done.
 
 %-----------------------------------------------------------------
 \section{Wakefields}

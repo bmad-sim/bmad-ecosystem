@@ -91,6 +91,7 @@ one instance (\sref{c:param.structs}) of this structure and this instance has th
     integer default_integ_order = 2             ! PTC integration order
     integer ptc_max_fringe_order = 2            ! PTC max fringe order (2 => Quadrupole !).
     integer max_num_runge_kutta_step = 10000    ! Max num RK steps before particle is lost.
+    logical rf_phase_below_transition_ref = F   ! Autoscale around phase phi0 = 0.5
     logical use_hard_edge_drifts = T            ! Insert drifts when tracking through cavity?
     logical sr_wakes_on = T                     ! Short range wake fields?
     logical lr_wakes_on = T                     ! Long range wake fields
@@ -142,6 +143,14 @@ absolute tolerance for the autoscale amplitude parameter.
 \item[\vn{\%autoscale_amp_rel_tol}] \Newline
 Used when \bmad autoscales (\sref{s:autoscale}) an elements field amplitude. This parameter sets the
 relative tolerance for the autoscale amplitude parameter.
+
+\item[\vn{\%rf_phase_below_transition_ref}] \Newline
+Used when \bmad autoscales (\sref{s:autoscale}) an \vn{rfcavity} and when \bmad calculates the
+reference time through a cavity (which affects calculation of phase space $z$ via \Eq{zbctt}). 
+If True, the reference phase will be taken to be at
+\vn{phi0} = 0.5 which is appropriate for a ring below transition. Default is False in which
+case autoscaling will be around the phase \vn{phi0} = 0.
+
 
 \item[\vn{\%autoscale_phase_tol}] \Newline
 Used when \bmad autoscales (\sref{s:autoscale}) an elements AC phase. This parameter sets the

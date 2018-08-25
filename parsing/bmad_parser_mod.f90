@@ -495,6 +495,7 @@ if (key == def_beam_start$ .or. key == def_bmad_com$) then
   elseif (associated(a_ptrs(1)%l)) then
     call get_logical (trim(ele%name) // ' ' // word, a_ptrs(1)%l, err_flag)
     if (err_flag) return
+    if (associated(a_ptrs(1)%l, bmad_com%rf_phase_below_transition_ref))  bp_com%extra%rf_phase_below_transition_ref_set   = .true.
     if (associated(a_ptrs(1)%l, bmad_com%use_hard_edge_drifts))           bp_com%extra%use_hard_edge_drifts_set            = .true.
     if (associated(a_ptrs(1)%l, bmad_com%sr_wakes_on))                    bp_com%extra%sr_wakes_on_set                     = .true.
     if (associated(a_ptrs(1)%l, bmad_com%lr_wakes_on))                    bp_com%extra%lr_wakes_on_set                     = .true.
