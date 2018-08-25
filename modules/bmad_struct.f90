@@ -17,7 +17,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 224
+integer, parameter :: bmad_inc_version$ = 225
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1416,11 +1416,11 @@ integer, parameter :: lattice_type$ = 27, x_quad$ = 27, ds_photon_slice$ = 27
 integer, parameter :: phi0_max$ = 28, dy_origin$ = 28, y_quad$ = 28, photon_type$ = 28
 integer, parameter :: cmat_12$ = 28, e_field_x$ = 28
 integer, parameter :: floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29
-integer, parameter :: cmat_21$ = 29, l_sagitta$ = 29, e_field_y$ = 29
+integer, parameter :: field_autoscale$ = 29, cmat_21$ = 29, l_sagitta$ = 29, e_field_y$ = 29
 integer, parameter :: dtheta_origin$ = 30, b_param$ = 30, l_chord$ = 30, scale_field_to_one$ = 30
 integer, parameter :: downstream_ele_dir$ = 30, cmat_22$ = 30
 integer, parameter :: l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31, transverse_sigma_cut$ = 31
-integer, parameter :: field_autoscale$ = 32, dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32
+integer, parameter :: dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32
 integer, parameter :: angle$ = 33, n_cell$ = 33, x_ray_line_len$ = 33
 integer, parameter :: x_pitch$ = 34
 integer, parameter :: y_pitch$ = 35  
@@ -1794,6 +1794,7 @@ type extra_parsing_info_struct
   logical :: autoscale_amp_abs_tol_set              = .false.
   logical :: autoscale_amp_rel_tol_set              = .false.
   logical :: autoscale_phase_tol_set                = .false.
+  logical :: rf_phase_below_transition_ref_set      = .false.
   logical :: electric_dipole_moment_set             = .false.
   logical :: ptc_cut_factor_set                     = .false.
   logical :: taylor_order_set                       = .false.
@@ -1864,6 +1865,7 @@ type bmad_common_struct
   integer :: ptc_max_fringe_order = 2                 ! PTC max fringe order (2  = > Quadrupole !). 
                                                       !   Must call set_ptc after changing.
   integer :: max_num_runge_kutta_step = 10000         ! Maximum number of RK steps before particle is considered lost.
+  logical :: rf_phase_below_transition_ref = .false.     ! Autoscale uses below transition stable point for RFCavities?
   logical :: use_hard_edge_drifts = .true.            ! Insert drifts when tracking through cavity?
   logical :: sr_wakes_on = .true.                     ! Short range wakefields?
   logical :: lr_wakes_on = .true.                     ! Long range wakefields

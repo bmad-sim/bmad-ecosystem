@@ -128,6 +128,7 @@ case ('BMAD_COM')
   case ('RUNGE_KUTTA_ORDER');               ptr_array(1)%i => bmad_com%runge_kutta_order
   case ('MAX_NUM_RUNGE_KUTTA_STEP');        ptr_array(1)%i => bmad_com%max_num_runge_kutta_step
 
+  case ('RF_PHASE_BELOW_TRANSITION_REF');   ptr_array(1)%l => bmad_com%rf_phase_below_transition_ref
   case ('USE_HARD_EDGE_DRIFTS');            ptr_array(1)%l => bmad_com%use_hard_edge_drifts
   case ('SR_WAKES_ON');                     ptr_array(1)%l => bmad_com%sr_wakes_on
   case ('LR_WAKES_ON');                     ptr_array(1)%l => bmad_com%lr_wakes_on
@@ -136,7 +137,7 @@ case ('BMAD_COM')
   case ('SPACE_CHARGE_ON');                 ptr_array(1)%l => bmad_com%space_charge_on
   case ('COHERENT_SYNCH_RAD_ON');           ptr_array(1)%l => bmad_com%coherent_synch_rad_on
   case ('SPIN_TRACKING_ON');                ptr_array(1)%l => bmad_com%spin_tracking_on
-  case ('SPIN_SOKOLOV_TERNOV_FLIPPING_ON');   ptr_array(1)%l => bmad_com%spin_sokolov_ternov_flipping_on
+  case ('SPIN_SOKOLOV_TERNOV_FLIPPING_ON'); ptr_array(1)%l => bmad_com%spin_sokolov_ternov_flipping_on
   case ('RADIATION_DAMPING_ON');            ptr_array(1)%l => bmad_com%radiation_damping_on
   case ('RADIATION_FLUCTUATIONS_ON');       ptr_array(1)%l => bmad_com%radiation_fluctuations_on
   case ('CONSERVE_TAYLOR_MAPS');            ptr_array(1)%l => bmad_com%conserve_taylor_maps
