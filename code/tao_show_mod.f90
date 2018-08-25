@@ -337,7 +337,7 @@ case ('beam')
 
   if (word1 == '') then
 
-    nl=nl+1; write(lines(nl), '(a, i0, a, i0)') 'Universe: ', u%ix_uni, '  of: ', ubound(s%u, 1)
+    nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', u%ix_uni, '  of: ', ubound(s%u, 1)
     nl=nl+1; write(lines(nl), '(a, i3)') 'Branch:   ', ix_branch
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), amt) 's%com%beam_file             = ', s%com%beam_file
@@ -849,7 +849,7 @@ case ('data')
     d_ptr => d_array(1)%d
     nl=nl+1; lines(nl) = ''
     if (size(s%u) > 1) then
-      nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d_ptr%d1%d2%ix_uni
+      nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', d_ptr%d1%d2%ix_uni, '  of: ', ubound(s%u, 1)
     endif
     nl=nl+1; write(lines(nl), amt)    '%ele_name          = ', d_ptr%ele_name
     nl=nl+1; write(lines(nl), amt)    '%ele_start_name    = ', d_ptr%ele_start_name
@@ -913,7 +913,7 @@ case ('data')
 
     d1_ptr => d1_array(1)%d1
     if (size(s%u) > 1) then
-      nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d1_ptr%d2%ix_uni
+      nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', d1_ptr%d2%ix_uni, '  of: ', ubound(s%u, 1)
     endif
     
     nl=nl+1; write(lines(nl), '(2a)') 'Data name: ', trim(d1_ptr%d2%name) // '.' // d1_ptr%name
@@ -1516,43 +1516,48 @@ case ('global')
   if (print_bmad_com) then
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Bmad_com Parameters:'
-    nl=nl+1; write(lines(nl), rmt) '  %max_aperture_limit             = ', bmad_com%max_aperture_limit
-    nl=nl+1; write(lines(nl), rmt) '  %d_orb                          = ', bmad_com%d_orb
-    nl=nl+1; write(lines(nl), rmt) '  %default_ds_step                = ', bmad_com%default_ds_step
-    nl=nl+1; write(lines(nl), rmt) '  %significant_length             = ', bmad_com%significant_length
-    nl=nl+1; write(lines(nl), rmt) '  %rel_tol_tracking               = ', bmad_com%rel_tol_tracking
-    nl=nl+1; write(lines(nl), rmt) '  %abs_tol_tracking               = ', bmad_com%abs_tol_tracking
-    nl=nl+1; write(lines(nl), rmt) '  %rel_tol_adaptive_tracking      = ', bmad_com%rel_tol_adaptive_tracking
-    nl=nl+1; write(lines(nl), rmt) '  %abs_tol_adaptive_tracking      = ', bmad_com%abs_tol_adaptive_tracking
-    nl=nl+1; write(lines(nl), rmt) '  %init_ds_adaptive_tracking      = ', bmad_com%init_ds_adaptive_tracking
-    nl=nl+1; write(lines(nl), rmt) '  %min_ds_adaptive_tracking       = ', bmad_com%min_ds_adaptive_tracking
-    nl=nl+1; write(lines(nl), rmt) '  %electric_dipole_moment         = ', bmad_com%electric_dipole_moment
-    nl=nl+1; write(lines(nl), rmt) '  %ptc_cut_factor                 = ', bmad_com%ptc_cut_factor
-    nl=nl+1; write(lines(nl), rmt) '  %sad_eps_scale                  = ', bmad_com%sad_eps_scale
-    nl=nl+1; write(lines(nl), rmt) '  %sad_amp_max                    = ', bmad_com%sad_amp_max
+    nl=nl+1; write(lines(nl), rmt) '  %max_aperture_limit              = ', bmad_com%max_aperture_limit
+    nl=nl+1; write(lines(nl), rmt) '  %d_orb                           = ', bmad_com%d_orb
+    nl=nl+1; write(lines(nl), rmt) '  %default_ds_step                 = ', bmad_com%default_ds_step
+    nl=nl+1; write(lines(nl), rmt) '  %significant_length              = ', bmad_com%significant_length
+    nl=nl+1; write(lines(nl), rmt) '  %rel_tol_tracking                = ', bmad_com%rel_tol_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %abs_tol_tracking                = ', bmad_com%abs_tol_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %rel_tol_adaptive_tracking       = ', bmad_com%rel_tol_adaptive_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %abs_tol_adaptive_tracking       = ', bmad_com%abs_tol_adaptive_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %autoscale_amp_rel_tol           = ', bmad_com%autoscale_amp_rel_tol
+    nl=nl+1; write(lines(nl), rmt) '  %autoscale_amp_abs_tol           = ', bmad_com%autoscale_amp_abs_tol
+    nl=nl+1; write(lines(nl), rmt) '  %autoscale_phase_tol             = ', bmad_com%autoscale_phase_tol
+    nl=nl+1; write(lines(nl), rmt) '  %init_ds_adaptive_tracking       = ', bmad_com%init_ds_adaptive_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %min_ds_adaptive_tracking        = ', bmad_com%min_ds_adaptive_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %electric_dipole_moment          = ', bmad_com%electric_dipole_moment
+    nl=nl+1; write(lines(nl), rmt) '  %ptc_cut_factor                  = ', bmad_com%ptc_cut_factor
+    nl=nl+1; write(lines(nl), rmt) '  %sad_eps_scale                   = ', bmad_com%sad_eps_scale
+    nl=nl+1; write(lines(nl), rmt) '  %sad_amp_max                     = ', bmad_com%sad_amp_max
 
-    nl=nl+1; write(lines(nl), imt) '  %sad_n_div_max                  = ', bmad_com%sad_n_div_max
-    nl=nl+1; write(lines(nl), imt) '  %taylor_order                   = ', bmad_com%taylor_order
-    nl=nl+1; write(lines(nl), imt) '  %default_integ_order            = ', bmad_com%default_integ_order
-    nl=nl+1; write(lines(nl), imt) '  %ptc_max_fringe_order           = ', bmad_com%ptc_max_fringe_order
+    nl=nl+1; write(lines(nl), imt) '  %sad_n_div_max                   = ', bmad_com%sad_n_div_max
+    nl=nl+1; write(lines(nl), imt) '  %taylor_order                    = ', bmad_com%taylor_order
+    nl=nl+1; write(lines(nl), imt) '  %default_integ_order             = ', bmad_com%default_integ_order
+    nl=nl+1; write(lines(nl), imt) '  %ptc_max_fringe_order            = ', bmad_com%ptc_max_fringe_order
 
-    nl=nl+1; write(lines(nl), lmt) '  %use_hard_edge_drifts           = ', bmad_com%use_hard_edge_drifts
-    nl=nl+1; write(lines(nl), lmt) '  %sr_wakes_on                    = ', bmad_com%sr_wakes_on
-    nl=nl+1; write(lines(nl), lmt) '  %lr_wakes_on                    = ', bmad_com%lr_wakes_on
-    nl=nl+1; write(lines(nl), lmt) '  %mat6_track_symmetric           = ', bmad_com%mat6_track_symmetric
-    nl=nl+1; write(lines(nl), lmt) '  %auto_bookkeeper                = ', bmad_com%auto_bookkeeper
-    nl=nl+1; write(lines(nl), lmt) '  %space_charge_on                = ', bmad_com%space_charge_on
-    nl=nl+1; write(lines(nl), lmt) '  %coherent_synch_rad_on          = ', bmad_com%coherent_synch_rad_on
-    nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on               = ', bmad_com%spin_tracking_on
-    nl=nl+1; write(lines(nl), lmt) '  %radiation_damping_on           = ', bmad_com%radiation_damping_on
-    nl=nl+1; write(lines(nl), lmt) '  %radiation_fluctuations_on      = ', bmad_com%radiation_fluctuations_on
-    nl=nl+1; write(lines(nl), lmt) '  %conserve_taylor_maps           = ', bmad_com%conserve_taylor_maps
-    nl=nl+1; write(lines(nl), lmt) '  %absolute_time_tracking_default = ', bmad_com%absolute_time_tracking_default
-    nl=nl+1; write(lines(nl), lmt) '  %convert_to_kinetic_momentum    = ', bmad_com%convert_to_kinetic_momentum
-    nl=nl+1; write(lines(nl), lmt) '  %aperture_limit_on              = ', bmad_com%aperture_limit_on
+    nl=nl+1; write(lines(nl), lmt) '  %rf_phase_below_transition_ref   = ', bmad_com%rf_phase_below_transition_ref
+    nl=nl+1; write(lines(nl), lmt) '  %use_hard_edge_drifts            = ', bmad_com%use_hard_edge_drifts
+    nl=nl+1; write(lines(nl), lmt) '  %sr_wakes_on                     = ', bmad_com%sr_wakes_on
+    nl=nl+1; write(lines(nl), lmt) '  %lr_wakes_on                     = ', bmad_com%lr_wakes_on
+    nl=nl+1; write(lines(nl), lmt) '  %mat6_track_symmetric            = ', bmad_com%mat6_track_symmetric
+    nl=nl+1; write(lines(nl), lmt) '  %auto_bookkeeper                 = ', bmad_com%auto_bookkeeper
+    nl=nl+1; write(lines(nl), lmt) '  %space_charge_on                 = ', bmad_com%space_charge_on
+    nl=nl+1; write(lines(nl), lmt) '  %coherent_synch_rad_on           = ', bmad_com%coherent_synch_rad_on
+    nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on
+    nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
+    nl=nl+1; write(lines(nl), lmt) '  %radiation_damping_on            = ', bmad_com%radiation_damping_on
+    nl=nl+1; write(lines(nl), lmt) '  %radiation_fluctuations_on       = ', bmad_com%radiation_fluctuations_on
+    nl=nl+1; write(lines(nl), lmt) '  %conserve_taylor_maps            = ', bmad_com%conserve_taylor_maps
+    nl=nl+1; write(lines(nl), lmt) '  %absolute_time_tracking_default  = ', bmad_com%absolute_time_tracking_default
+    nl=nl+1; write(lines(nl), lmt) '  %convert_to_kinetic_momentum     = ', bmad_com%convert_to_kinetic_momentum
+    nl=nl+1; write(lines(nl), lmt) '  %aperture_limit_on               = ', bmad_com%aperture_limit_on
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'PTC_com Parameters:'
-    nl=nl+1; write(lines(nl), imt) '  %taylor_order_ptc               = ', ptc_com%taylor_order_ptc
+    nl=nl+1; write(lines(nl), imt) '  %taylor_order_ptc                = ', ptc_com%taylor_order_ptc
 
     if (allocated(lat%custom)) then
       nl=nl+1; lines(nl) = 'Custom lattice parameters defined in lattice file:'
@@ -2672,7 +2677,7 @@ case ('optimizer')
     u => s%u(i)
     nl=nl+1; lines(nl) = 'Data Used:'
     if (size(s%u) > 1) then
-      nl=nl+1; write(lines(nl), '(a, i4)') 'Universe: ', i
+      nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', i, '  of: ', ubound(s%u, 1)
     endif
     do j = 1, u%n_d2_data_used
       if (u%d2_data(j)%name == ' ') cycle
@@ -3054,9 +3059,9 @@ case ('spin')
   else
     call tao_spin_polarization_calc (branch, tao_branch%orbit, valid_value, why_invalid, pol_limit, pol_rate, depol_rate)
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarizaiton Limit:  ', pol_limit
-    nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarizaiton Rate:   ', pol_rate
-    nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Depolarizaiton Rate: ', depol_rate
+    nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarizaiton Limit:          ', pol_limit
+    nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarizaiton Rate (1/sec):   ', pol_rate
+    nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Depolarizaiton Rate (1/sec): ', depol_rate
   endif
 
   if (allocated(scratch%spin_map)) then
@@ -3067,7 +3072,7 @@ case ('spin')
         nl=nl+1; lines(nl) = ''
       endif
       sm => scratch%spin_map(i)
-      nl=nl+1; write(lines(nl), '(2x, a, i3)')     'Universe:', sm%ix_uni
+      nl=nl+1; write(lines(nl), '(2x, a, i0, a, i0)')     'Universe: ', sm%ix_uni, '  of: ', ubound(s%u, 1)
       nl=nl+1; write(lines(nl), '(2x, a, 2i6)')    'Ix_Ref, Ix_Ele:', sm%ix_ref, sm%ix_ele 
       nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'n0:', sm%n0
       nl=nl+1; write(lines(nl), '(2x, a)')         'g-matrix:'
@@ -3612,7 +3617,7 @@ case ('universe')
   design_tao_branch => u%design%tao_branch(ix_branch)
 
   nl = 0
-  nl=nl+1; write(lines(nl), imt) 'Universe: ', ix_u
+  nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', ix_u, '  of: ', ubound(s%u, 1)
   nl=nl+1; write(lines(nl), imt) 'Branch:   ', ix_branch
   nl=nl+1; write(lines(nl), imt) '%n_d2_data_used        = ', u%n_d2_data_used
   nl=nl+1; write(lines(nl), imt) '%n_data_used           = ', u%n_data_used
@@ -3644,7 +3649,7 @@ case ('universe')
   nl=nl+1; write(lines(nl), lmt) 'global%rf_on:           ', s%global%rf_on
   nl=nl+1; write(lines(nl), imt) 'Elements used in tracking: From 1 through ', branch%n_ele_track
   if (branch%n_ele_max > branch%n_ele_track) then
-    nl=nl+1; write(lines(nl), '(a, i0, a, i0)') 'Lord elements:   ', &
+    nl=nl+1; write(lines(nl), '(2(a, i0))') 'Lord elements:   ', &
                       branch%n_ele_track+1, '  through ', branch%n_ele_max
   else
     nl=nl+1; write(lines(nl), '(a)') 'There are NO Lord elements'
