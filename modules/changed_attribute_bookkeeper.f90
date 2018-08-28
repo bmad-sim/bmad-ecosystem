@@ -320,6 +320,7 @@ if (associated(a_ptr, ele%value(l$))) then
     call set_ele_status_stale (ele, ref_energy_group$)
   endif
   if (ele%value(p0c$) /= ele%value(p0c_start$)) call set_ele_status_stale (ele, ref_energy_group$)
+  return
 endif
 
 ! E_tot and p0c can be varied in an init_ele or a multipass lord with n_ref_pass = 0.
@@ -389,6 +390,13 @@ if (associated(a_ptr, ele%value(p0c_start$)) .and. associated(branch)) then
   if (dep_set) then
     call convert_pc_to (ele%value(p0c_start$), branch%param%particle, e_tot = ele%value(e_tot_start$))
   endif
+  return
+endif
+
+!
+
+if (associated(a_ptr, ele%value(num_steps$))) then
+  if (dep_set .and. ele%value(num_steps$) /= 0) ele%value(ds_step$) = abs(ele%value(l$)) / ele%value(num_steps$)
   return
 endif
 

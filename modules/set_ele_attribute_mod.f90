@@ -68,7 +68,7 @@ if (ix == 0) then
 endif
 
 a_name = string(1:ix-1)
-if (.not. attribute_free (ele, a_name, err_print_flag, ignore_field_master = .true.)) return
+if (.not. attribute_free (ele, a_name, err_print_flag, dependent_attribs_free = .true.)) return
 
 ! Evaluate and set.
 ! This essentially is a wrapper for the bmad_parser routine parser_set_attribute.
@@ -144,7 +144,7 @@ character(40) a_name
 
 err_flag = .true.
 call str_upcase (a_name, attrib_name)
-if (.not. attribute_free (ele, a_name, err_print_flag, ignore_field_master = .true.)) return
+if (.not. attribute_free (ele, a_name, err_print_flag, dependent_attribs_free = .true.)) return
 
 call pointer_to_attribute (ele, attrib_name, .true., a_ptr, err_flag)
 if (associated(a_ptr%r)) then
