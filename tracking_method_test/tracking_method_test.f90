@@ -224,7 +224,7 @@ character(*) :: instr
     case("LCAVITY3-Anti:Runge_Kutta")                  ; tolerance = 'ABS 2E-13'
     case("RFCAVITY1-Anti:Runge_Kutta")                 ; tolerance = 'ABS 4E-10'
     case("RFCAVITY1-Anti:Time_Runge_Kutta")            ; tolerance = 'ABS 2e-10'
-    case("RFCAVITY2-Anti:Runge_Kutta")                 ; tolerance = 'ABS 2E-10'
+    case("RFCAVITY2-Anti:Runge_Kutta")                 ; tolerance = 'ABS 4E-10'
     case("RFCAVITY2-Anti:Time_Runge_Kutta")            ; tolerance = 'ABS 2E-10'
     case("SOL_QUAD1-Anti:Symp_Lie_Bmad")               ; tolerance = 'ABS 1E-13'
     case("SOL_QUAD1-Anti:Time_Runge_Kutta")            ; tolerance = 'ABS 2e-12'
