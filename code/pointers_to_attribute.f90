@@ -33,8 +33,7 @@
 ! Output:
 !   ptr_array(:) -- all_pointer_struct, allocatable: Pointer to the attribute.
 !                     Size of ptr_array will be set to 0 if there is a problem.
-!   err_flag     -- Logical: Set True if attribtute not found or attriubte
-!                     cannot be changed directly.
+!   err_flag     -- Logical: Set True if attribtute not found.
 !   eles(:)      -- Ele_pointer_struct, optional, allocatable: Array of element pointers.
 !                     size(eles) = size(ptr_array). 
 !                     If there are no associated lattice elements, eles(i)%ele will be null.
