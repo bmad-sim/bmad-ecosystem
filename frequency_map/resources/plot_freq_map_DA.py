@@ -6,39 +6,40 @@
 
 import numpy as np
 import numpy.ma as ma
-import os
+import os, sys
 import matplotlib
 import matplotlib.pyplot as plt
 import pylab, math
 
 #######################################################################
 ### Modify these lines according to your job:
-
-filename   = 'combined.txt' # file containing frequency_map output
-makeinputs = 'make_inputs.py' # script used to generate GRID inputs
+target = '/home/cfsd/lovelace/BMAD/bmad_dist_2018_0807/bsim/frequency_map/resources'
+filename   = os.path.join(target,'../example/10GeV.e000000.fm') #'combined.txt' # file containing frequency_map output
+makeinputs = os.path.join(target,'make_inputs_DA.py') # script used to generate GRID inputs
 
 # Set limits for amplitude scale. Recall A = log(sqrt[dQx^2+dQy^2])
-minimum = 1.e-12
+minimum = 1.e-7
 maximum = 0.1
 
 # Twiss parameters and emittances at start of lattice: 
-betax = 9.253
-betay = 2.217
-emitx = 30.99e-9
+betax = 0.61
+betay = 0.07
+emitx = 1.794E-08
 emity = emitx * 0.01
 
 # Tune plane limits for plotting:
-Qxmin = 0.50
-Qxmax = 1.0
-Qymin = 0.50
-Qymax = 1.0
+ 
+Qxmin = 0.002
+Qxmax = 0.012
+Qymin = 0.002
+Qymax = 0.012
 
 # Minimum projected apertures, in beam-sigmas, as projected
 # to start of lattice. Only used if plotting these apertures
 # onto DA
 plotApertures = False
-hlim = 34.9  
-vlim = 69.65 
+hlim = 25
+vlim = 10 
 
 
 
@@ -203,7 +204,7 @@ if plotApertures == True:
 	ax1.plot((-hlim,hlim),(vlim,vlim), ls='--', c='r',lw=4)
 fig.colorbar(mappable, ax=ax1)
 ax1.set_title('$\Delta Q$ vs. (x,y)')
-plt.savefig('x_y_dQ_DA.png')
+plt.savefig(os.path.join(target,'x_y_dQ_DA.png'))
 
 ###########################
 # plotting of \Delta Q vs. (Qx,Qy)
@@ -218,5 +219,5 @@ ax2.set_xlim(Qxmin, Qxmax)
 ax2.set_ylim(Qymin, Qymax)
 ax2.grid()
 ax2.set_title('$\Delta Q$ vs. ($Q_x$,$Q_y$)')
-plt.savefig('Qx_Qy_dQ_DA.png')
+plt.savefig(os.path.join(target,'Qx_Qy_dQ_DA.png'))
 plt.show()
