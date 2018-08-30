@@ -222,9 +222,14 @@ do i = 1, num_ele_attrib$
     endif
 
   elseif (a_name == 'E_TOT') then
-    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, 6x, a, es15.7)') &
+    if (particle == photon$) then
+      nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, 6x, a, es15.7)') &
+                      i, a_name(1:n_att), '=', ele%value(i), attrib%units
+    else
+      nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, 6x, a, es15.7)') &
                       i, a_name(1:n_att), '=', ele%value(i), attrib%units, &
                       'GAMMA           =', ele%value(e_tot$) / mass_of(particle)
+    endif
 
   elseif (index(a_name, 'ANGLE') /= 0 .and. a_name /= 'CRITICAL_ANGLE_FACTOR') then
     units = ' deg'

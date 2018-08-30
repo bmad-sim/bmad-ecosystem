@@ -67,7 +67,7 @@ endif
 
 err_flag = .true.
 
-if (girder_ele%component_name /= '') then
+if (girder_ele%component_name /= '' .and. girder_ele%component_name /= 'GLOBAL_COORDINATES') then
   call lat_ele_locator (girder_ele%component_name, lat, eles, n_loc)
 
   if (n_loc == 0) then

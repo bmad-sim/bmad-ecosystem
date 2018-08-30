@@ -354,23 +354,51 @@ endif
 
 if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
 
-  ele0 => null()
-  if (ele%component_name /= '') then
-    call lat_ele_locator (ele%component_name, ele%branch%lat, eles, n_loc, err)
-    if (n_loc /= 1) then
-      call out_io (s_fatal$, r_name, 'ORIGIN_ELE: ' // ele%component_name,  &
-                                     'FOR ELEMENT: ' // ele%name, &
-                                     'IS NOT UNIQUE!')
-      if (global_com%exit_on_error) call err_exit
-      return
+  ! Fiducial with no origin ele: Use global origin.
+  if (key == fiducial$ .and. ele%component_name == '') then
+    call mat_make_unit(w_mat)
+    r0 = 0
+
+  ! Girder with global origin
+  elseif (key == girder$ .and. ele%component_name == 'GLOBAL_COORDINATES') then
+    call mat_make_unit(w_mat)
+    r0 = 0
+
+  ! Girder uses center of itself by default.
+  else  if (key == girder$ .and. ele%component_name == '') then
+    floor_ref = floor  ! Save
+    call find_element_ends (ele, slave0, slave1)
+    r0 = (slave0%floor%r + slave1%floor%r) / 2
+    ! 
+    w0_mat = slave0%floor%w
+    dz = r0 - slave0%floor%r
+    z0 = w0_mat(:,3)
+    z_cross = cross_product(z0, dz)
+    if (all(dz == 0) .or. sum(abs(z_cross)) <= 1d-14 * sum(abs(dz))) then
+      w_mat = w0_mat
+    else
+      angle = atan2(sqrt(dot_product(z_cross, z_cross)), dot_product(z0, dz))
+      call axis_angle_to_w_mat (z_cross, angle, w_mat)
+      w_mat = matmul (w_mat, w0_mat)
     endif
 
-    ele0 => eles(1)%ele
-  elseif (key == floor_shift$) then
-    ele0 => pointer_to_next_ele(ele, -1)
-  endif
 
-  if (associated(ele0)) then
+  else  ! Must have a reference element
+    if (ele%component_name == '') then  ! Must be a floor_shift element
+      ele0 => pointer_to_next_ele(ele, -1)
+    else
+      call lat_ele_locator (ele%component_name, ele%branch%lat, eles, n_loc, err)
+      if (n_loc /= 1) then
+        call out_io (s_fatal$, r_name, 'ORIGIN_ELE: ' // ele%component_name,  &
+                                       'FOR ELEMENT: ' // ele%name, &
+                                       'IS NOT UNIQUE!')
+        if (global_com%exit_on_error) call err_exit
+        return
+      endif
+
+      ele0 => eles(1)%ele
+    endif
+
     calc_done = .false.
     select case (stream_ele_end(nint(ele%value(origin_ele_ref_pt$)), ele%orientation))
     case (upstream_end$)
@@ -415,31 +443,9 @@ if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
       w_mat = floor_ref%w
       r0 = floor_ref%r
     endif
-
-  ! Fiducial with no origin ele: Use global origin.
-  elseif (key == fiducial$) then
-    call mat_make_unit(w_mat)
-    r0 = 0
-
-  ! Girder uses center of itself by default.
-  else  ! must be a girder
-    floor_ref = floor  ! Save
-    call find_element_ends (ele, slave0, slave1)
-    r0 = (slave0%floor%r + slave1%floor%r) / 2
-    ! 
-    w0_mat = slave0%floor%w
-    dz = r0 - slave0%floor%r
-    z0 = w0_mat(:,3)
-    z_cross = cross_product(z0, dz)
-    if (all(dz == 0) .or. sum(abs(z_cross)) <= 1d-14 * sum(abs(dz))) then
-      w_mat = w0_mat
-    else
-      angle = atan2(sqrt(dot_product(z_cross, z_cross)), dot_product(z0, dz))
-      call axis_angle_to_w_mat (z_cross, angle, w_mat)
-      w_mat = matmul (w_mat, w0_mat)
-    endif
   endif
 
+  !---------------
   ! Now offset from origin pt. 
   ! Fiducial and floor_shift elements are not allowed to be be turned off.
   if (ele%key == girder$ .and. .not. ele%is_on) then
