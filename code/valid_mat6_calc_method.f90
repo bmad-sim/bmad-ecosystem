@@ -126,7 +126,7 @@ case (elseparator$)
 
 case (em_field$)
   select case (mat6_calc_method)
-  case (static$, tracking$, custom$)
+  case (symp_lie_ptc$, taylor$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
