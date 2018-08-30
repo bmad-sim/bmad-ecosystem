@@ -128,7 +128,7 @@ case (elseparator$)
 
 case (em_field$)
   select case (method)
-  case (runge_kutta$, boris$, time_runge_kutta$, custom$)
+  case (symp_lie_ptc$, taylor$, symp_map$, runge_kutta$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 

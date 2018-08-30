@@ -3309,6 +3309,21 @@ ptc_key%list%kill_exi_spin = (ix == entrance_end$ .or. ix == no_end$ .or. kill_s
 
 !
 
+ele2 => ele
+s_rel = 0
+if (ele%field_calc == refer_to_lords$) then
+  call get_field_ele_list (ele, field_eles, dz_offset, n_field)
+  do i = 1, n_field
+    ele2 => field_eles(i)%ele
+    if (ele2%key == ele%key) then
+      s_rel = dz_offset(i)
+      exit
+    endif
+  enddo
+endif
+
+!
+
 key = ele%key
 if (ele%is_on) then
   val => ele%value
@@ -3317,7 +3332,7 @@ else
 endif
 
 if (key == sbend$ .and. ele%value(l$) == 0) key = kicker$
-if (ele%field_calc == fieldmap$ .and. ele%tracking_method /= bmad_standard$) key = wiggler$
+if (ele2%field_calc == fieldmap$ .and. ele2%tracking_method /= bmad_standard$) key = wiggler$
 
 select case (key)
 
@@ -3557,19 +3572,8 @@ endif
 
 ! field map
 
-ele2 => ele
-
 if ((ele%field_calc == fieldmap$ .and. ele%tracking_method /= bmad_standard$) &
                                             .or. ele%key == wiggler$ .or. ele%key == undulator$) then
-
-  call get_field_ele_list (ele, field_eles, dz_offset, n_field)
-  do i = 1, n_field
-    ele2 => field_eles(i)%ele
-    if (ele2%key == ele%key) then
-      s_rel = dz_offset(i)
-      exit
-    endif
-  enddo
 
   if (associated(ele2%grid_field)) then
     call out_io (s_fatal$, r_name, 'PTC TRACKING IS NOT ABLE TO USE GRID_FIELDS. FOR ELEMENT: ' // ele%name)
