@@ -3572,8 +3572,8 @@ endif
 
 ! field map
 
-if ((ele%field_calc == fieldmap$ .and. ele%tracking_method /= bmad_standard$) &
-                                            .or. ele%key == wiggler$ .or. ele%key == undulator$) then
+if ((ele2%field_calc == fieldmap$ .and. ele%tracking_method /= bmad_standard$) &
+                                            .or. ele2%key == wiggler$ .or. ele2%key == undulator$) then
 
   if (associated(ele2%grid_field)) then
     call out_io (s_fatal$, r_name, 'PTC TRACKING IS NOT ABLE TO USE GRID_FIELDS. FOR ELEMENT: ' // ele%name)
@@ -3902,7 +3902,7 @@ ptc_fibre = energy_work
 ! FieldMap cartesian_map element. 
 ! Include all wiggler elements even periodic_type with field_calc = bmad_standard$
 
-if ((associated(ele2%cartesian_map) .and. ele%field_calc == fieldmap$) .or. ele%key == wiggler$ .or. ele%key == undulator$) then
+if ((associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$) .or. ele2%key == wiggler$ .or. ele2%key == undulator$) then
 
   cm => ele2%cartesian_map(1)
 
