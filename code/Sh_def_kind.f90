@@ -14827,8 +14827,8 @@ endif
     TYPE(REAL_8),  INTENT(In) :: Z
     TYPE(REAL_8), optional, INTENT(OUT) :: E_IN(3), B_IN(3),A_IN(3),DA_IN(3,2),PSIM_IN,PSIE_IN
     TYPE(REAL_8)  B(3),A(3),DA(3,2),PSIM,PSIE,E(3)
-    TYPE(double_complex) X_IP(0:NMAX+1),AM,EX,AMB,AMI,CX,CY,C,D,DX,DY,dd
-    TYPE(double_complex) DE,DXE,DYE,ddE,AME,EXE,AMBE,AMIE
+    TYPE(complex_8) X_IP(0:NMAX+1),AM,EX,AMB,AMI,CX,CY,C,D,DX,DY,dd
+    TYPE(complex_8) DE,DXE,DYE,ddE,AME,EXE,AMBE,AMIE
     REAL(dp) K_N
     TYPE(REAL_8) XN,YN,nbm,nbm1,nbm2
     INTEGER I,N,M,J,DIR(3),DIRE(3)

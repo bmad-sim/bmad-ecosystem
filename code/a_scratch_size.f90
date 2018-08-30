@@ -754,18 +754,20 @@ CONTAINS
   END SUBROUTINE ReportOpenFiles
 
 
-  SUBROUTINE CONTEXT( STRING, nb,dollar )
+  SUBROUTINE CONTEXT( STRING, nb,dollar,maj )
     IMPLICIT NONE
     CHARACTER(*) STRING
     CHARACTER(1) C1
     integer, optional :: nb
-    logical(lp), optional :: dollar
+    logical(lp), optional :: dollar ,maj
     integer I,J,K,nb0,count
-     logical(lp) dol
+     logical(lp) dol,ma
     nb0=0
     dol=.false.
+    ma=.true.
     if(present(nb)) nb0=1
     if(present(dollar)) dol=dollar
+    if(present(maj)) ma=maj
     J = 0
     count=0
     DO I = 1, LEN (STRING)
@@ -782,7 +784,7 @@ CONTAINS
           endif
           J = J + 1
           K = ICHAR( C1 )
-          IF( K .GE. ICHAR('a') .AND. K .LE. ICHAR('z') ) THEN
+          IF( K .GE. ICHAR('a') .AND. K .LE. ICHAR('z').and.ma ) THEN
              C1 = CHAR( K - ICHAR('a') + ICHAR('A') )
           ENDIF
           STRING(J:J) = C1
