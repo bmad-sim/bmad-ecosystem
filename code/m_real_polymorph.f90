@@ -33,7 +33,7 @@ module polymorphic_taylor
   private lessthan,dlessthansc,dsclessthan,lessthansc,sclessthan,ilessthansc,isclessthan
   private igreatersc,iscgreater,dgreatersc,dscgreater,greatersc,scgreater
   private dgreatereqsc,dscgreatereq,greatereqsc,scgreatereq,igreatereqsc,iscgreatereq
-  private abst,full_abst
+  private abst,full_abst,print6
   private lesseq,dlesseqsc,dsclesseq,lesseqsc,sclesseq,ilesseqsc,isclesseq
   private eq,deqsc,dsceq,eqsc,sceq,ieqsc,isceq
   private neq,dneqsc,dscneq,neqsc,scneq,ineqsc,iscneq
@@ -47,7 +47,7 @@ module polymorphic_taylor
   ! end complex stuff
   private printpoly,printdouble,printsingle,dmulmapconcat,nbiP
   private line,Mequaldacon,cos_quaternionr,cos_quaternionp,sin_quaternionr,sin_quaternionp
-
+  private make_it_knobr,kill_knobr
   character(120) line
   !integer npol
   !parameter (npol=20)
@@ -810,12 +810,14 @@ INTEGER, private, PARAMETER :: I4B = SELECTED_INT_KIND(9)
      MODULE PROCEDURE printdouble
      MODULE PROCEDURE printsingle
      MODULE PROCEDURE printpolyq
+     MODULE PROCEDURE print6
   END INTERFACE
   INTERFACE print
      MODULE PROCEDURE printpoly   !
      MODULE PROCEDURE printdouble
      MODULE PROCEDURE printsingle
      MODULE PROCEDURE printpolyq
+     MODULE PROCEDURE print6
   END INTERFACE
 
 
@@ -844,6 +846,15 @@ INTEGER, private, PARAMETER :: I4B = SELECTED_INT_KIND(9)
      MODULE PROCEDURE resetpolyn  !
   END INTERFACE
 
+interface make_it_knob
+ module procedure make_it_knobr
+end INTERFACE
+
+interface kill_knob
+module procedure kill_knobr
+end INTERFACE
+
+
   ! Managing
 
   INTERFACE ass
@@ -852,7 +863,7 @@ INTEGER, private, PARAMETER :: I4B = SELECTED_INT_KIND(9)
 
 contains
 
-  subroutine make_it_knob(k,i,s)
+  subroutine make_it_knobr(k,i,s)
     implicit none
     TYPE (real_8), intent(inout) :: k
     real(dp), optional :: s
@@ -862,15 +873,15 @@ contains
     if(present(s)) k%s=s
     k%i=i
     k%kind=3
-  end subroutine make_it_knob
+  end subroutine make_it_knobr
 
-  subroutine kill_knob(k)
+  subroutine kill_knobr(k)
     implicit none
     TYPE (real_8), intent(inout) :: k
     k%s=1.0_dp
     k%i=0
     k%kind=1
-  end subroutine kill_knob
+  end subroutine kill_knobr
 
 
   FUNCTION polymorpht( S1 )
@@ -4247,10 +4258,15 @@ contains
        imulsc%r=s1%r*REAL(s2,kind=DP)
        imulsc%kind=1
     case(m2)
-       localmaster=master
-       call ass(imulsc)
-       imulsc%t= s1%t*REAL(s2,kind=DP)
-       master=localmaster
+       if(s2/=0) then
+        localmaster=master
+        call ass(imulsc)
+        imulsc%t= s1%t*REAL(s2,kind=DP)
+        master=localmaster
+       else
+        imulsc%r=0.0_dp
+        imulsc%kind=1
+       endif
     case(m3)
        if(knob) then
           localmaster=master
@@ -4286,10 +4302,15 @@ contains
        iscmul%r=s1%r*REAL(s2,kind=DP)
        iscmul%kind=1
     case(m2)
-       localmaster=master
-       call ass(iscmul)
-       iscmul%t= s1%t*REAL(s2,kind=DP)
-       master=localmaster
+       if(s2/=0) then
+        localmaster=master
+        call ass(iscmul)
+        iscmul%t= s1%t*REAL(s2,kind=DP)
+        master=localmaster
+       else
+        iscmul%r=0.0_dp
+        iscmul%kind=1
+       endif
     case(m3)
        if(knob) then
           localmaster=master
@@ -4422,11 +4443,15 @@ contains
        case(m2)
           call pri(S2%t,i,prec)
        case(m3)
+
           if(s2%i>0) then
-             write(i,*) s2%r,"  +",s2%s,"  *x_",int(s2%i)
-          else
-             write(i,*) s2%r
+             write(line,*) s2%r,"  +",s2%s,"  (x_",s2%i,")"
+
+         else
+          write(line,*) s2%r
           endif
+             call context(line,maj=.false.)
+             write(i,'(a)') adjustr(line(1:len_trim(line)))
           if(s2%alloc) then
              write(line,'(a41)')  " weird Taylor part should be deallocated "
              ipause=mypauses(0,line)
@@ -4440,6 +4465,24 @@ contains
     endif
 
   END SUBROUTINE printpoly
+
+  SUBROUTINE  print6(S1,mf)
+    implicit none
+    type (real_8),INTENT(INout)::S1(:)
+    integer,optional :: mf
+    integer        i
+    
+ !   if(size(s1)==6) then
+ !    do i=1,ndd
+ !       call print(s1(i),mf)
+ !    enddo
+ !   else
+     do i=lbound(s1,1),ubound(s1,1)
+        call print(s1(i),mf)
+     enddo
+ !   endif
+  END SUBROUTINE print6
+
 
   SUBROUTINE  printdouble(S2,mf)
     implicit none

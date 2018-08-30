@@ -30,7 +30,7 @@ module tree_element_MODULE
 
 
   private scdaddo,daddsco
-  private real_8REAL6,REAL6real_8,real_8REAL_8,PRINT6
+  private real_8REAL6,REAL6real_8,real_8REAL_8
   private probe_quaternion_to_matrixr,probe_quaternion_to_matrixp
 
 
@@ -113,7 +113,7 @@ module tree_element_MODULE
 
 
   INTERFACE PRINT
-     MODULE PROCEDURE PRINT6
+
 !!!
      MODULE PROCEDURE PRINT_probe
      MODULE PROCEDURE PRINT_probe8
@@ -121,10 +121,7 @@ module tree_element_MODULE
      MODULE PROCEDURE print_rf_phasor_8
   END INTERFACE
 
-  INTERFACE daPRINT
-     MODULE PROCEDURE PRINT6
-!!!!
-  END INTERFACE
+
 
   INTERFACE READ
      MODULE PROCEDURE read_probe8   ! a bit illegal : reading polymorphs as taylor...
@@ -265,27 +262,6 @@ CONTAINS
        s1(i)=s2(i)
     enddo
   END SUBROUTINE real_8REAL6
-
-
- 
- 
-
-  SUBROUTINE  print6(S1,mf)
-    implicit none
-    type (real_8),INTENT(INout)::S1(:)
-    integer,optional :: mf
-    integer        i
-    
- !   if(size(s1)==6) then
- !    do i=1,ndd
- !       call print(s1(i),mf)
- !    enddo
- !   else
-     do i=1,size(s1)
-        call print(s1(i),mf)
-     enddo
- !   endif
-  END SUBROUTINE print6
 
 !!! end of "use to be in extend_poly"
 
@@ -809,7 +785,7 @@ CONTAINS
   subroutine EQUAL_PROBE_REAL6 (P,X)
     implicit none
     TYPE(PROBE), INTENT(INOUT) :: P
-    REAL(DP), INTENT(IN) :: X(6)
+    REAL(DP), INTENT(IN) :: X(:)
     INTEGER I
     P%u=my_false
     !       P%s(0)%x=zero
@@ -822,7 +798,9 @@ CONTAINS
 ! quaternion
     p%q=1.0_dp
     p%use_q=use_quaternion
-    P%X=X
+    DO I=1,size(x,1)
+       P%X(i)=X(i)
+    enddo
     P%ac%t=0.0_dp
     p%nac=n_rf
   END    subroutine EQUAL_PROBE_REAL6
@@ -830,7 +808,7 @@ CONTAINS
   subroutine EQUAL_PROBE8_REAL6 (P,X)
     implicit none
     TYPE(PROBE_8), INTENT(INOUT) :: P
-    REAL(DP), INTENT(IN) :: X(6)
+    REAL(DP), INTENT(IN) :: X(:)
     INTEGER I
 
     P%u=my_false
@@ -845,7 +823,7 @@ CONTAINS
     enddo
 ! quaternion
     p%q=1.0_dp
-    DO I=1,6
+    DO I=1,size(x,1)
        P%X(i)=X(i)
     enddo
     p%use_q=use_quaternion

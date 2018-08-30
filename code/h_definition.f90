@@ -111,15 +111,15 @@ END TYPE quaternion_8
 
 
   !@3 ---------------------------------------------</br>
-  TYPE double_complex
+  TYPE complex_8
      type (complextaylor) t
      complex(dp) r
      logical(lp) alloc
      integer kind
      integer i,j
      complex(dp) s
-     integer g,nb  !  group index
-  END TYPE double_complex
+  !   integer g,nb  !  group index
+  END TYPE complex_8
 
   type(taylor)        varf1,varf2
   type(complextaylor) varc1,varc2
@@ -317,10 +317,10 @@ END TYPE quaternion_8
   !@3 ---------------------------------------------</br>
   type probe
      real(dp) x(6)
-     type(rf_phasor)  AC(nacmax)
-     integer:: nac=0
      type(spinor) s(3)
      type(quaternion) q
+     type(rf_phasor)  AC(nacmax)
+     integer:: nac=0
      logical u,use_q
      type(integration_node),pointer :: last_node=>null()
       real(dp) e
@@ -328,15 +328,15 @@ END TYPE quaternion_8
   !@3 ---------------------------------------------</br>
   type probe_8
      type(real_8) x(6)     ! Polymorphic orbital ray
+     type(spinor_8) s(3)   ! Polymorphic spin s(1:3)
+     type(quaternion_8) q
      type(rf_phasor_8)  ac(nacmax)  ! Modulation of magnet
      integer:: nac=0 !  number of modulated clocks <=nacmax
      real(dp) E_ij(6,6)   !  Envelope for stochastic radiation
-     type(spinor_8) s(3)   ! Polymorphic spin s(1:3)
-     type(quaternion_8) q
      !   stuff for exception
      logical u,use_q
      type(integration_node),pointer :: last_node=>null()
-      real(dp) e
+    real(dp) e
   end type probe_8
   !@3 ---------------------------------------------</br>
   type TEMPORAL_PROBE
