@@ -251,7 +251,7 @@ end subroutine lat_geometry
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine ele_geometry (floor0, ele, floor, len_scale, set_ok, ignore_patch_err)
+! Subroutine ele_geometry (floor_start, ele, floor, len_scale, set_ok, ignore_patch_err)
 !
 ! Routine to calculate the global (floor) coordinates of an element given the
 ! global coordinates of the preceeding element. This is the same as the MAD convention.
@@ -262,7 +262,7 @@ end subroutine lat_geometry
 ! Note: For floor_position element, floor is independent of floor0.
 !
 ! Input:
-!   floor0           -- Starting floor coordinates at upstream end.
+!   floor_start      -- Starting floor coordinates at upstream end.
 !                         Not used for fiducial and girder elements.
 !   ele              -- Ele_struct: Element to propagate the geometry through.
 !   len_scale        -- Real(rp), optional: factor to scale the length of the element.
@@ -280,13 +280,13 @@ end subroutine lat_geometry
 !     %theta, phi, %psi  -- Orientation angles 
 !-
 
-recursive subroutine ele_geometry (floor0, ele, floor, len_scale, set_ok, ignore_patch_err)
+recursive subroutine ele_geometry (floor_start, ele, floor, len_scale, set_ok, ignore_patch_err)
 
 use multipole_mod
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele0, ele00, slave0, slave1, ele2
-type (floor_position_struct) floor0, floor, floor_ref, floor_saved
+type (floor_position_struct) floor_start, floor, this_floor, old_floor, floor0
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_pointer_struct), allocatable, target :: chain_ele(:)
 type (lat_param_struct) param
@@ -300,7 +300,7 @@ real(rp) :: w_mat(3,3), w_mat_inv(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
 
 integer i, key, n_loc, ix_pass, n_links, ix_pole_max
 
-logical err, calc_done, doit, finished
+logical err, doit, finished
 logical, optional :: set_ok, ignore_patch_err
 
 character(*), parameter :: r_name = 'ele_geometry'
@@ -316,10 +316,6 @@ if (finished) return
 
 len_factor = ele%orientation * real_option(1.0_rp, len_scale)
 
-if (ele%key /= girder$) then
-  floor   = floor0
-endif
-
 if (ele%key == crystal$) then
   if (ele%value(graze_angle_in$) /= 0) then
     graze_angle_in  = ele%value(graze_angle_in$) 
@@ -330,12 +326,13 @@ if (ele%key == crystal$) then
   endif
 endif
 
+old_floor = ele%floor
+floor0 = floor_start  ! Use floor0 in case actual args floor = floor_start
 
 theta   = floor0%theta
 phi     = floor0%phi
 psi     = floor0%psi
 w_mat   = floor0%w
-
 
 knl  = 0   ! initialize
 tilt = 0  
@@ -366,7 +363,6 @@ if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
 
   ! Girder uses center of itself by default.
   else  if (key == girder$ .and. ele%component_name == '') then
-    floor_ref = floor  ! Save
     call find_element_ends (ele, slave0, slave1)
     r0 = (slave0%floor%r + slave1%floor%r) / 2
     ! 
@@ -399,10 +395,11 @@ if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
       ele0 => eles(1)%ele
     endif
 
-    calc_done = .false.
     select case (stream_ele_end(nint(ele%value(origin_ele_ref_pt$)), ele%orientation))
     case (upstream_end$)
-      call ele_geometry (ele0%floor, ele0, floor_ref, -1.0_rp)
+      call ele_geometry (ele0%floor, ele0, this_floor, -1.0_rp)
+      w_mat = this_floor%w
+      r0 = this_floor%r
 
     case (center_pt$)
       select case (ele0%key)
@@ -426,28 +423,26 @@ if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
         s_mat = w_mat_for_bend_angle (rot_angle, ele0%value(ref_tilt_tot$))
         w_mat = matmul (w_mat, s_mat)
         r0 = ele00%floor%r
-        calc_done = .true.
 
       case default
-        call ele_geometry (ele0%floor, ele0, floor_ref, -0.5_rp)
+        call ele_geometry (ele0%floor, ele0, this_floor, -0.5_rp)
+        w_mat = this_floor%w
+        r0 = this_floor%r
       end select
 
     case (downstream_end$)
-      floor_ref = ele0%floor
+      w_mat = ele0%floor%w
+      r0 = ele0%floor%r
+
     case default
       call out_io (s_fatal$, r_name, 'ORIGIN_ELE_REF_PT NOT VALID FOR ELEMENT: ' // ele%name)
       if (global_com%exit_on_error) call err_exit
     end select
-
-    if (.not. calc_done) then
-      w_mat = floor_ref%w
-      r0 = floor_ref%r
-    endif
   endif
 
-  !---------------
   ! Now offset from origin pt. 
   ! Fiducial and floor_shift elements are not allowed to be be turned off.
+
   if (ele%key == girder$ .and. .not. ele%is_on) then
     r_vec = 0
     theta = 0
@@ -467,34 +462,33 @@ if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
   floor%w = w_mat
 
   if (ele%key == fiducial$) then
-    ! floor0 for a fiducial element is meaningless. Instead use approximate floor_ref to try to
+    ! floor0 for a fiducial element is meaningless. Instead use approximate floor coords to try to
     ! have the angles come out without annoying factors of 2pi offsets
-    floor_ref%theta = theta; floor_ref%phi = phi; floor_ref%psi = psi
+    this_floor%theta = theta; this_floor%phi = phi; this_floor%psi = psi
     if (associated(ele0)) then
-      floor_ref%theta = floor_ref%theta + ele0%floor%theta
-      floor_ref%phi   = floor_ref%phi   + ele0%floor%phi
-      floor_ref%psi   = floor_ref%psi   + ele0%floor%psi
+      this_floor%theta = this_floor%theta + ele0%floor%theta
+      this_floor%phi   = this_floor%phi   + ele0%floor%phi
+      this_floor%psi   = this_floor%psi   + ele0%floor%psi
     endif
-    call update_floor_angles(floor, floor_ref)
+    call update_floor_angles(floor, this_floor)
   else
     call update_floor_angles(floor, floor0)
   endif
 
-  if (any(floor%r /= floor_ref%r) .or. floor%theta /= floor_ref%theta .or. &
-      floor%phi /= floor_ref%phi .or. floor%psi /= floor_ref%psi) then
+  if (logic_option(.false., set_ok) .and. (any(floor%r /= old_floor%r) .or. &
+        floor%theta /= old_floor%theta .or. floor%phi /= old_floor%phi .or. floor%psi /= old_floor%psi)) then
     call set_ele_status_stale (ele, control_group$, .false.)
   endif
   return
-endif
+endif   ! Fiducial, girder, floor_shift
 
+!---------------------------
 ! General case where layout is not in the horizontal plane
 ! Note: 
 
 if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
          ele%value(ref_tilt_tot$) /= 0) .or. phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
          key == crystal$ .or. (key == multipole$ .and. knl(0) /= 0 .and. tilt(0) /= 0)) then
-
-  !
 
   select case (key)
 
@@ -514,7 +508,7 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
 
     s_mat = w_mat_for_bend_angle (angle, tlt, r_vec)
     call floor_angles_to_w_mat (theta, phi, psi, w_mat)
-    floor%r = floor%r + matmul(w_mat, r_vec)
+    floor%r = floor0%r + matmul(w_mat, r_vec)
     w_mat = matmul (w_mat, s_mat)
 
   ! mirror, multilayer_mirror, crystal
@@ -566,7 +560,7 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
     !
 
     call floor_angles_to_w_mat (theta, phi, psi, w_mat)
-    floor%r = floor%r + matmul(w_mat, r_vec)
+    floor%r = floor0%r + matmul(w_mat, r_vec)
 
     if (len_factor == 0.5_rp) then
       if (ele%key == crystal$) then
@@ -614,14 +608,14 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
           if (global_com%exit_on_error) call err_exit
         endif
 
-        call ele_geometry (ele2%floor, ele2, floor_ref, -1.0_rp) 
+        call ele_geometry (ele2%floor, ele2, this_floor, -1.0_rp) 
         
         ele0 => pointer_to_next_ele(ele, -1)
         w_mat_inv = transpose(ele0%floor%w)
-        w_mat = floor_ref%w
+        w_mat = this_floor%w
         w_mat = matmul(w_mat_inv, w_mat)
         call floor_w_mat_to_angles (w_mat, ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$))
-        r_vec = matmul(w_mat_inv, floor_ref%r - ele0%floor%r)
+        r_vec = matmul(w_mat_inv, this_floor%r - ele0%floor%r)
         ele%value(x_offset$) = r_vec(1)
         ele%value(y_offset$) = r_vec(2)
         ele%value(z_offset$) = r_vec(3)
@@ -662,18 +656,17 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
     if (len_factor < 0) then
       call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = s_mat)
       w_mat = matmul(w_mat, s_mat)
-      floor%r = floor%r - matmul(w_mat, r_vec)
+      floor%r = floor0%r - matmul(w_mat, r_vec)
     else
-      floor%r = floor%r + matmul(w_mat, r_vec)
+      floor%r = floor0%r + matmul(w_mat, r_vec)
       call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), s_mat)
       w_mat = matmul(w_mat, s_mat)
     endif
 
-  ! everything else. Just a translation
+  ! Everything else. Just a translation
 
   case default
-    !call floor_angles_to_w_mat (theta, phi, psi, w_mat)
-    floor%r = floor%r + w_mat(:,3) * leng
+    floor%r = floor0%r + w_mat(:,3) * leng
 
   end select 
 
@@ -697,8 +690,8 @@ else
   end select
 
   theta = theta - angle / 2
-  floor%r(1) = floor%r(1) + chord_len * sin(theta)
-  floor%r(3) = floor%r(3) + chord_len * cos(theta)
+  floor%r(1) = floor0%r(1) + chord_len * sin(theta)
+  floor%r(3) = floor0%r(3) + chord_len * cos(theta)
   theta = theta - angle / 2
 
   call rotate_mat(w_mat, y_axis$, -angle)
@@ -709,6 +702,11 @@ endif
 
 floor%w = w_mat 
 call update_floor_angles(floor, floor0)
+
+if (logic_option(.false., set_ok) .and. (any(floor%r /= old_floor%r) .or. floor%theta /= old_floor%theta .or. &
+                    floor%phi /= old_floor%phi .or. floor%psi /= old_floor%psi)) then
+  call set_ele_status_stale (ele, control_group$, .false.)
+endif
 
 end subroutine ele_geometry
 
