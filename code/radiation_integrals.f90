@@ -281,8 +281,8 @@ if (use_cache .or. init_cache) then
     if (ele%value(l$) == 0) cycle
 
     select case (ele%key)
-    case (wiggler$, undulator$)
-    case (quadrupole$, sol_quad$, sbend$, em_field$, sad_mult$, hkicker$, vkicker$)
+    case (wiggler$, undulator$, em_field$)
+    case (quadrupole$, sol_quad$, sbend$, sad_mult$, hkicker$, vkicker$)
       if (cache_only_wig) cycle
     case default
       if (cache_only_wig) cycle
@@ -316,8 +316,6 @@ if (use_cache .or. init_cache) then
         ele2%tracking_method = symp_lie_bmad$  
         ele2%mat6_calc_method = symp_lie_bmad$  
       endif
-    elseif (key2 == wiggler$ .and. ele2%sub_key == map_type$ .and. ele2%tracking_method /= custom$) then
-      call compute_even_steps (ele%value(ds_step$), ele2%value(l$), bmad_com%default_ds_step, del_z, n_step)
     else
       beta_min = min(ele2%a%beta, ele2%b%beta, branch%ele(i-1)%a%beta, branch%ele(i-1)%b%beta)
       ds_step = min(ele2%value(ds_step$), beta_min / 10)
@@ -461,7 +459,7 @@ do ir = 1, branch%n_ele_track
 
   ! Wigglers and undulators get handled later.
 
-  if (ele%key == wiggler$ .or. ele%key == undulator$) cycle
+  if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == em_field$) cycle
   if (ele%key == patch$) cycle
   if (ele%value(hkick$) == 0 .and. ele%value(vkick$) == 0 .and. &
           ele%key /= quadrupole$ .and. ele%key /= sol_quad$ .and. ele%key /= sbend$ .and. &
@@ -520,7 +518,7 @@ do ir = 1, branch%n_ele_track
   pt = rad_int_track_point_struct()  ! zero components
 
   select case (ele%key)
-  case (wiggler$, undulator$)
+  case (wiggler$, undulator$, em_field$)
     ! For an periodic type wiggler we make the approximation that the variation of G is
     ! fast compaired to the variation in eta.
     if (ele%sub_key == periodic_type$ .and. ele%tracking_method == bmad_standard$) then

@@ -86,7 +86,7 @@ character(*), parameter :: r_name = 'calc_radiation_tracking_g_factors'
 !
 
 select case (ele%key)
-case (quadrupole$, sextupole$, octupole$, sbend$, sol_quad$, wiggler$, undulator$)
+case (quadrupole$, sextupole$, octupole$, sbend$, sol_quad$, wiggler$, undulator$, em_field$)
 case default
   len2 = 0
   return
@@ -162,7 +162,7 @@ case (sbend$)
   g3 = sqrt(g2)**3
   len2 = len2 * (1.0_rp + ele%value(g$) * orbit2%vec(1))
 
-case (wiggler$, undulator$)
+case (wiggler$, undulator$, em_field$)
   g_x = 0
   g_y = 0
   if (ele%sub_key == map_type$) then
