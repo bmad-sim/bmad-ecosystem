@@ -73,12 +73,18 @@ do ib = 0, ubound(lat%branch, 1)
     ff = em_field_struct()
 
     do i = 1, 3
-      j = 2*i - 1
-      dorb = orb
-      dorb%vec(j) = orb%vec(j) + del
-      call em_field_calc (ele, lat%param, dorb%vec(5), dorb, .false., fp, .false., err, .true., rf_time = 1.0_rp)
-      dorb%vec(j) = orb%vec(j) - del
-      call em_field_calc (ele, lat%param, dorb%vec(5), dorb, .false., fm, .false., err, .true., rf_time = 1.0_rp)
+      if (i == 3) then
+        call em_field_calc (ele, lat%param, orb%vec(5)+del, orb, .false., fp, .false., err, .true., rf_time = 1.0_rp)
+        call em_field_calc (ele, lat%param, orb%vec(5)-del, orb, .false., fm, .false., err, .true., rf_time = 1.0_rp)
+      else
+        j = 2*i - 1
+        dorb = orb
+        dorb%vec(j) = orb%vec(j) + del
+        call em_field_calc (ele, lat%param, dorb%vec(5), dorb, .false., fp, .false., err, .true., rf_time = 1.0_rp)
+        dorb%vec(j) = orb%vec(j) - del
+        call em_field_calc (ele, lat%param, dorb%vec(5), dorb, .false., fm, .false., err, .true., rf_time = 1.0_rp)
+      endif
+
       ff%dE(:,i) = (fp%e - fm%e) / (2 * del)
       ff%dB(:,i) = (fp%b - fm%b) / (2 * del)
       select case (i)
@@ -113,6 +119,14 @@ do ib = 0, ubound(lat%branch, 1)
     if (print_extra) then
       print '(a, 3f10.3)', 'At:', orb%vec(1:5:2)
 
+      if (any(field0%E /= 0)) then
+        print *
+        print '(2x, a, t49, a, t95, a)', 'dE(em_field)', 'dE(diff)', 'dE(em_field) - dE(diff)'
+        do i = 1, 3
+          print '(3(3es14.6, 4x))', field0%dE(i,:), ff%dE(i,:), field0%dE(i,:) - ff%dE(i,:)
+        enddo
+      endif
+
       print *
       print '(2x, a, t49, a, t95, a)', 'dB(em_field)', 'dB(diff)', 'dB(em_field) - dB(diff)'
       do i = 1, 3
@@ -146,6 +160,17 @@ do ib = 0, ubound(lat%branch, 1)
     do i = 1, 3
       write (1, '(3a, i0, a, 3es16.8)') '"', trim(ele%name), ':dB-diff Row', i, '" REL 1E-6', field0%dB(i,:)-ff%dB(i,:)
     enddo
+
+    if (any(field0%E /= 0)) then
+      do i = 1, 3
+        write (1, '(3a, i0, a, 3es16.8)') '"', trim(ele%name), ':dE Row', i, '" REL 1E-6', field0%dE(i,:)
+      enddo
+
+      do i = 1, 3
+        write (1, '(3a, i0, a, 3es16.8)') '"', trim(ele%name), ':dE-diff Row', i, '" REL 1E-6', field0%dE(i,:)-ff%dE(i,:)
+      enddo
+    endif
+
 
     write (1, *)
 
