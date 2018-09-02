@@ -33,8 +33,6 @@ real(rp) :: vec0(6), kmat(6,6)
 
 integer n, nd, orientation, n_div, np_max, physical_end, fringe_at, ix_pole_max
 
-logical fringe_here
-
 character(*), parameter :: r_name = 'track_a_sad_mult'
 
 !

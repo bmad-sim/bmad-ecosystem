@@ -56,11 +56,11 @@ type (track_struct), optional :: track
 type (fringe_edge_info_struct) fringe_info
 
 real(rp) z_phase
-real(rp), target :: old_t, dt_tol
+real(rp), target :: old_t, dt_tol, s_fringe_edge
 real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save, s_save, dummy, rf_time
 real(rp), target  :: dvec_dt(10), vec_err(10), s_target, dt_next_save
-real(rp) :: s_fringe_edge, stop_time, s_stop_fwd, old_z_phase
-real(rp), pointer :: s_body
+real(rp) :: stop_time, s_stop_fwd, old_z_phase
+real(rp), pointer :: s_body, s_fringe_ptr
 
 integer :: t_dir, n_step, n_pt, old_direction
 
@@ -72,6 +72,7 @@ character(*), parameter :: r_name = 'odeint_bmad_time'
 ! init
 
 s_body => orb%vec(5)
+s_fringe_ptr => s_fringe_edge   ! To get around an intel bug: s_fringe_ptr is used in contained routine.
 
 if (ele%key == patch$) then
   s_stop_fwd = 0  ! By convention.
@@ -283,7 +284,7 @@ real(rp) :: delta_s_target
 logical err_flag
 !
 call rk_time_step1 (ele, param, old_t, old_orb, old_z_phase, this_dt, orb, z_phase, vec_err, err_flag = err_flag)
-delta_s_target = s_body - s_fringe_edge
+delta_s_target = s_body - s_fringe_ptr
 rf_time = old_t + this_dt
   
 end function delta_s_target

@@ -96,9 +96,43 @@ logical, optional, intent(in) :: set_hvkicks, drift_to_edge
 logical, optional :: make_matrix
 logical set_hv, set_t, set_hv1, set_hv2, do_drift, set_spn
 
-!---------------------------------------------------------------         
+!
+
+length = ele%value(l$)
+sign_z_vel = ele%orientation * orbit%direction
+
+if (set) then
+  ! ds_center is distance to the center of the element from the particle position
+
+  if (present(s_pos)) then
+    ds_center = ele%orientation * (length/2 - s_pos)   ! S_pos is in lab coords
+    if (present(s_out)) then
+      if (ele%orientation == 1) then;  s_out = s_pos
+      else;                            s_out = length - s_pos
+      endif
+    endif
+  else
+    ds_center = sign_z_vel * length / 2
+    if (present(s_out)) s_out = (1 - sign_z_vel) * length / 2
+  endif
+
+else
+  if (present(s_pos)) then
+    ds_center = length/2 - s_pos    ! s_pos is in body coords 
+    if (present(s_out)) then
+      if (ele%orientation == 1) then;  s_out = s_pos
+      else;                            s_out = length - s_pos
+      endif
+    endif
+  else
+    ds_center = -sign_z_vel * length / 2
+    if (present(s_out)) s_out = (1 + sign_z_vel) * length / 2
+  endif
+endif
 
 if (ele%key == patch$) return
+
+!---------------------------------------------------------------         
 
 rel_p = (1 + orbit%vec(6))
 
@@ -108,10 +142,8 @@ set_t      = logic_option (.true., set_tilt) .and. has_orientation_attributes(el
 do_drift   = logic_option (.true., drift_to_edge) .and. has_orientation_attributes(ele)
 set_spn    = logic_option (.false., set_spin) .and. bmad_com%spin_tracking_on
 
-sign_z_vel = ele%orientation * orbit%direction
 rel_tracking_charge = rel_tracking_charge_to_mass (orbit, param)
 charge_dir = rel_tracking_charge * sign_z_vel 
-length = ele%value(l$)
 
 if (set_hv) then
   select case (ele%key)
@@ -133,20 +165,6 @@ if (set_spn) B_factor = ele%value(p0c$) / (charge_of(param%particle) * c_light)
 ! Set...
 
 if (set) then
-
-  ! ds_center is distance to the center of the element from the particle position
-
-  if (present(s_pos)) then
-    ds_center = ele%orientation * (length/2 - s_pos)   ! S_pos is in lab coords
-    if (present(s_out)) then
-      if (ele%orientation == 1) then;  s_out = s_pos
-      else;                            s_out = length - s_pos
-      endif
-    endif
-  else
-    ds_center = sign_z_vel * length / 2
-    if (present(s_out)) s_out = (1 - sign_z_vel) * length / 2
-  endif
 
   ! Set: Offset and pitch
 
@@ -303,20 +321,6 @@ else
     orbit%vec(2) = orbit%vec(2) + charge_dir * ele%value(hkick$) / 2
     orbit%vec(4) = orbit%vec(4) + charge_dir * ele%value(vkick$) / 2
     if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, (B_factor / 2) * [ele%value(vkick$), -ele%value(hkick$), 0.0_rp])
-  endif
-
-  ! ds_center is distance to the center of the element from the particle position
-
-  if (present(s_pos)) then
-    ds_center = length/2 - s_pos    ! s_pos is in body coords 
-    if (present(s_out)) then
-      if (ele%orientation == 1) then;  s_out = s_pos
-      else;                            s_out = length - s_pos
-      endif
-    endif
-  else
-    ds_center = -sign_z_vel * length / 2
-    if (present(s_out)) s_out = (1 + sign_z_vel) * length / 2
   endif
 
   ! Unset: Offset and pitch

@@ -290,7 +290,7 @@ real(rp), optional :: mat6(6,6)
 real(rp) p_vec(3), r_vec(3), sin_e, cos_e, vec_in(6), e_angle
 real(rp) rel_pc
 
-integer fringe_type, fringe_at, physical_end, particle_at
+integer fringe_type, particle_at
 integer i, i_max, element_end
 
 logical, optional :: make_matrix
@@ -299,10 +299,7 @@ logical, optional :: make_matrix
 
 fringe_type = nint(ele%value(fringe_type$))
 if (fringe_type /= full$ .and. fringe_type /= hard_edge_only$) return
-
-fringe_at = nint(ele%value(fringe_at$))
-physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
-if (.not. at_this_ele_end(physical_end, fringe_at)) return
+if (.not. fringe_here(ele, orbit, particle_at)) return
 
 !
 
@@ -421,7 +418,7 @@ type (lat_param_struct) param
 real(rp), optional :: mat6(6,6), g_bend, tilt
 real(rp) g, px, y, y2, rel_p, p_zy, yg, kmat(6,6), c_dir, t0, ppx2
 
-integer fringe_type, fringe_at, physical_end, particle_at
+integer fringe_type, particle_at
 integer i, i_max, element_end
 
 logical, optional :: make_matrix
@@ -430,10 +427,7 @@ logical, optional :: make_matrix
 
 fringe_type = nint(ele%value(fringe_type$))
 if (fringe_type /= full$ .and. fringe_type /= hard_edge_only$) return
-
-fringe_at = nint(ele%value(fringe_at$))
-physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
-if (.not. at_this_ele_end(physical_end, fringe_at)) return
+if (.not. fringe_here(ele, orbit, particle_at)) return
 
 ! extract params from ele
 
@@ -532,7 +526,7 @@ real(rp) k1_rel, x, y, px, py, charge_dir, kmat(6,6)
 real(rp) f1, f2, ef1, vec(4), rel_p, vx, vy
 
 integer particle_at
-integer fringe_at, physical_end, fringe_type
+integer fringe_type
 
 logical, optional :: make_matrix
 
@@ -545,11 +539,7 @@ else
 endif
 
 if (fringe_type /= soft_edge_only$ .and. fringe_type /= full$) return
-
-
-fringe_at = nint(ele%value(fringe_at$))
-physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
-if (.not. at_this_ele_end(physical_end, fringe_at)) return
+if (.not. fringe_here(ele, orbit, particle_at)) return
 
 charge_dir = ele%orientation * orbit%direction
 if (associated(ele%branch)) charge_dir = charge_dir * rel_tracking_charge_to_mass(orbit, param)
@@ -666,7 +656,7 @@ real(rp) fy, dfy_dx, dfy_dy, d2fy_dxx, d2fy_dxy, d2fy_dyy
 complex(rp) poly, poly_n1, poly_n2, dpoly_dx, dpoly_dy, d2poly_dxx, d2poly_dxy, d2poly_dyy
 complex(rp) xy, xny, dxny_dx, dxny_dy, cab
 
-integer fringe_type, fringe_at, physical_end, particle_at
+integer fringe_type, particle_at
 integer n, n_max
 
 logical, optional :: make_matrix
@@ -685,9 +675,7 @@ case default
   return
 end select
 
-fringe_at = nint(ele%value(fringe_at$))
-physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
-if (.not. at_this_ele_end(physical_end, fringe_at)) return
+if (.not. fringe_here(ele, orbit, particle_at)) return
 
 charge_dir = ele%orientation * orbit%direction
 if (associated(ele%branch)) charge_dir = charge_dir * rel_tracking_charge_to_mass(orbit, param)
@@ -862,15 +850,14 @@ type (em_field_struct) field
 real(rp), optional :: mat6(6,6)
 real(rp) vec(6), e_ang, omega(3), x, y, tan_e_x
 
-integer particle_at, fringe_type, physical_end
+integer fringe_type, physical_end, particle_at
 
 logical, optional :: make_matrix, track_spin
 character(*), parameter :: r_name = 'bend_edge_kick'
 
 !
 
-physical_end = physical_ele_end (particle_at, orb%direction, ele%orientation)
-if (.not. at_this_ele_end (physical_end, nint(ele%value(fringe_at$)))) return
+if (.not. fringe_here(ele, orb, particle_at)) return
 
 ! Higher order fringes. 
 ! Remember: In a bend, these fringes are turned on/off by ele%value(higher_order_fringe_type$)
@@ -928,6 +915,7 @@ endif
 if (logic_option(.false., track_spin)) then
   ave_orb%vec = (ave_orb%vec + orb%vec) / 2   ! Use average position
   field%E = 0
+  physical_end = physical_ele_end (particle_at, orb%direction, ele%orientation)
   if (physical_end == entrance_end$) then
     e_ang = ele%value(e1$)
   else
@@ -1674,5 +1662,40 @@ if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int, mat6)
 orb%t = orb%t + (X(6) - ct)/c_light
 
 end subroutine exact_bend_edge_kick
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Function fringe_here (ele, orbit, particle_at) result (is_here)
+!
+! Routine to determine if there is a fringe field which must be tracked through.
+!
+! Input:
+!   ele         -- ele_struct: Lattice element.
+!   orbit       -- coord_struct: Particle position.
+!   particle_at -- integer: Either first_track_edge$ or second_track_edge$.
+!
+! Output:
+!   is_here     -- logical: True if there is a fringe. False if not.
+!-
+
+function fringe_here (ele, orbit, particle_at) result (is_here)
+
+type (ele_struct) ele
+type (coord_struct) orbit
+
+integer particle_at, fringe_at, physical_end
+logical is_here
+
+!
+
+fringe_at = nint(ele%value(fringe_at$))
+physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
+is_here = at_this_ele_end(physical_end, fringe_at)
+
+if (nint(ele%value(fringe_type$)) == none$) is_here = .false.
+
+end function fringe_here
 
 end module
