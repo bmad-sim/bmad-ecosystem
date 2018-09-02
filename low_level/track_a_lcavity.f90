@@ -27,19 +27,21 @@
 subroutine track_a_lcavity (orbit, ele, param, mat6, make_matrix)
 
 use fringe_mod, except_dummy => track_a_lcavity
+use em_field_mod, only: em_field_calc
 
 implicit none
 
 type (coord_struct) :: orbit, start_orb
 type (ele_struct), target :: ele
 type (lat_param_struct) :: param
+type (em_field_struct) field
 
 real(rp), optional :: mat6(6,6)
 real(rp) length, pc_start, pc_end, gradient_ref, gradient_max, dz_factor, rel_p, coef, k2
 real(rp) E_start_ref, E_end_ref, pc_end_ref, alpha, sin_a, cos_a, r_mat(2,2), volt_ref
 real(rp) phase, cos_phi, sin_phi, gradient_net, e_start, e_end, e_ratio, voltage_max, dp_dg, sqrt_8, f, k1
-real(rp) dE_start, dE_end, dE, beta_start, beta_end
-real(rp) pxy2, xp1, xp2, yp1, yp2, mc2, om, om_g, m2(2,2), kmat(6,6)
+real(rp) dE_start, dE_end, dE, beta_start, beta_end, l_drift, f_ave, pc_start_ref
+real(rp) pxy2, xp1, xp2, yp1, yp2, mc2, om, om_g, m2(2,2), kmat(6,6), ds
 real(rp) dbeta1_dE1, dbeta2_dE2, dalpha_dt1, dalpha_dE1, dcoef_dt1, dcoef_dE1, z21, z22
 real(rp) c_min, c_plu, dc_min, dc_plu, cos_term, dcos_phi, drp1_dr0, drp1_drp0, drp2_dr0, drp2_drp0
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
@@ -48,9 +50,15 @@ integer ix_pole_max, ix_elec_max
 
 logical, optional :: make_matrix
 
-!
+! Note: To enable this routine to handle L_hard_edge /= L, the code must be able handle slice and super slaves.
+! That is, tracking using [drift, cavity, drift] does not take into account slicing.
+
+!! length = ele%value(l_hard_edge$)
+!! l_drift = (ele%value(l$) - length) / 2
 
 length = ele%value(l$)
+l_drift = 0
+
 if (length == 0) return
 
 ! 
@@ -59,9 +67,10 @@ call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 call offset_particle (ele, param, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
+!! call track_a_drift(orbit, l_drift, mat6, make_matrix)
 
 if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, 1.0_rp/2,   mat6, make_matrix)
-if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, ele%value(l$)/2, mat6, make_matrix)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, length/2, mat6, make_matrix)
 
 ! The RF phase is defined with respect to the time at the beginning of the element.
 ! So if dealing with a slave element and absolute time tracking then need to correct.
@@ -79,6 +88,7 @@ rel_p = 1 + orbit%vec(6)
 E_start_ref  = ele%value(E_tot_start$)
 E_end_ref    = ele%value(E_tot$)
 gradient_ref = (E_end_ref - E_start_ref) / length
+pc_start_ref = ele%value(p0c_start$)
 pc_end_ref   = ele%value(p0c$)
 mc2 = mass_of(orbit%species)
 
@@ -86,11 +96,11 @@ pc_start = ele%value(p0c_start$) * rel_p
 beta_start = orbit%beta
 E_start = pc_start / beta_start 
 
-gradient_max = e_accel_field(ele, gradient$)
+gradient_max = e_accel_field(ele, gradient$) * ele%value(l$) / length
 
 cos_phi = cos(phase)
 sin_phi = sin(phase)
-gradient_net = gradient_max * cos_phi + gradient_shift_sr_wake(ele, param)
+gradient_net = gradient_max * cos_phi + gradient_shift_sr_wake(ele, param) * ele%value(l$) / length
 
 dE = gradient_net * length
 E_end = E_start + dE
@@ -105,13 +115,33 @@ call convert_total_energy_to (E_end, orbit%species, pc = pc_end, beta = beta_end
 E_ratio = E_end / E_start
 mc2 = mass_of(orbit%species)
 
+! Traveling_wave fringe (standing_wave fringe is built-in to the body formulas)
+
+if (nint(ele%value(cavity_type$)) == traveling_wave$ .and. fringe_here(ele, orbit, first_track_edge$)) then
+  ds = bmad_com%significant_length / 10  ! Make sure inside field region
+  call em_field_calc (ele, param, l_drift + ds, orbit, .true., field, logic_option(.false., make_matrix))
+  f = charge_of(orbit%species) / (2 * pc_start_ref)
+
+  if (logic_option(.false., make_matrix)) then
+    call mat_make_unit(kmat)
+    kmat(2,1) = f * (-field%dE(3,1) * orbit%vec(1) + c_light * field%dB(3,1) * orbit%vec(3) - field%E(3))
+    kmat(2,3) = f * (-field%dE(3,2) * orbit%vec(1) + c_light * field%dB(3,2) * orbit%vec(3) + c_light * field%B(3))
+    kmat(2,5) = f * (-field%dE(3,3) * orbit%vec(1) + c_light * field%dB(3,3) * orbit%vec(3)) * beta_start
+    kmat(2,6) = -(-field%E(3) * orbit%vec(1) * f + c_light * field%B(3) * orbit%vec(3)) * f / pc_start
+    kmat(4,1) = f * (-field%dE(3,1) * orbit%vec(3) - c_light * field%dB(3,1) * orbit%vec(1) - c_light * field%B(3))
+    kmat(4,3) = f * (-field%dE(3,2) * orbit%vec(3) - c_light * field%dB(3,2) * orbit%vec(1) - field%E(3))
+    kmat(4,5) = f * (-field%dE(3,3) * orbit%vec(3) - c_light * field%dB(3,3) * orbit%vec(1)) * beta_start
+    kmat(4,6) = -(-field%E(3) * orbit%vec(1) * f - c_light * field%B(3) * orbit%vec(3)) * f / pc_start
+    mat6 = matmul(kmat, mat6)
+  endif
+
+  orbit%vec(2) = orbit%vec(2) - field%E(3) * orbit%vec(1) * f + c_light * field%B(3) * orbit%vec(3) * f
+  orbit%vec(4) = orbit%vec(4) - field%E(3) * orbit%vec(3) * f - c_light * field%B(3) * orbit%vec(1) * f
+endif
+
 ! Body tracking longitudinal
 
-if (abs(dE) <  1d-4*(pc_end+pc_start)) then
-  dp_dg = length * (1 / beta_start - mc2**2 * dE / (2 * pc_start**3) + (mc2 * dE)**2 * E_start / (2 * pc_start**5))
-else
-  dp_dg = (pc_end - pc_start) / gradient_net
-endif
+dp_dg = length * (2*E_start + dE) / (pc_end + pc_start)   ! = (pc_end - pc_start) / gradient_net
 
 if (logic_option(.false., make_matrix)) then
   om = twopi * ele%value(rf_frequency$) / c_light
@@ -128,7 +158,7 @@ if (logic_option(.false., make_matrix)) then
   mat6(5:6,:) = matmul(m2, mat6(5:6,:))
 
   ! longitudinal track
-  kmat = 0
+  call mat_make_unit (kmat)
   kmat(6,5) = om_g * sin_phi
   kmat(6,6) = 1
 
@@ -151,30 +181,41 @@ orbit%vec(5) = orbit%vec(5) / beta_start
 orbit%vec(6) = rel_p * orbit%p0c / orbit%beta - 1
 orbit%t = orbit%t + dp_dg / c_light
 
-! Body tracking. Transverse kick only happens with standing wave cavities.
+! Body tracking. Note: Transverse kick only happens with standing wave cavities.
 
 ! Traveling wave
 if (nint(ele%value(cavity_type$)) == traveling_wave$) then
+  f_ave = (pc_start + pc_end) / (2 * pc_end)
+  dz_factor = (orbit%vec(2)**2 + orbit%vec(4)**2) * f_ave**2 * dp_dg / 2
 
   if (logic_option(.false., make_matrix)) then
-    kmat(1,1) = 1
-    kmat(1,2) = length
-    kmat(2,2) = 1
+    kmat(1,2) = length * f_ave
+    kmat(1,5) = -orbit%vec(2) * kmat(5,6) * length * pc_start / (2 * pc_end**2)
+    kmat(1,6) =  orbit%vec(2) * (1 - kmat(6,6) * pc_start / pc_end) / (2 * pc_end)
 
-    kmat(3,3) = 1
-    kmat(3,4) = length
-    kmat(4,4) = 1
+    kmat(2,2) = pc_start / pc_end
+    kmat(2,5) = -orbit%vec(2) * kmat(5,6) * pc_start / pc_end**2
+    kmat(2,6) =  orbit%vec(2) * (1 - kmat(6,6) * pc_start / pc_end) / pc_end 
 
-    kmat(5,2) = -length * orbit%vec(4)
-    kmat(5,4) = -length * orbit%vec(4)
+    kmat(3,4) = length * f_ave
+    kmat(3,5) = -orbit%vec(4) * kmat(5,6) * length * pc_start / (2 * pc_end**2)
+    kmat(3,6) =  orbit%vec(4) * (1 - kmat(6,6) * pc_start / pc_end) / (2 * pc_end)
+
+    kmat(4,4) = pc_start / pc_end
+    kmat(4,5) = -orbit%vec(4) * kmat(5,6) * pc_start / pc_end**2
+    kmat(4,6) =  orbit%vec(4) * (1 - kmat(6,6) * pc_start / pc_end) / pc_end 
+
+    kmat(5,2) = -orbit%vec(2) * f_ave**2 * dp_dg 
+    kmat(5,4) = -orbit%vec(4) * f_ave**2 * dp_dg 
 
     mat6 = matmul(kmat, mat6)
   endif
 
-  orbit%vec(1) = orbit%vec(1) + orbit%vec(2) * length
-  orbit%vec(3) = orbit%vec(3) + orbit%vec(4) * length
+  orbit%vec(1) = orbit%vec(1) + orbit%vec(2) * length * f_ave
+  orbit%vec(2) = orbit%vec(2) * pc_start / pc_end 
+  orbit%vec(3) = orbit%vec(3) + orbit%vec(4) * length * f_ave
+  orbit%vec(4) = orbit%vec(4) * pc_start / pc_end 
 
-  dz_factor = (orbit%vec(2)**2 + orbit%vec(4)**2) * dp_dg / 2
   orbit%vec(5) = orbit%vec(5) - dz_factor
   orbit%t = orbit%t + dz_factor / c_light
 
@@ -340,7 +381,7 @@ endif
 
 !
 
-orbit%vec(5) = orbit%vec(5) - (dp_dg - c_light * ele%value(delta_ref_time$))
+orbit%vec(5) = orbit%vec(5) - (dp_dg + l_drift * (E_start_ref/pc_start_ref + E_end_ref/pc_end_ref) - c_light * ele%value(delta_ref_time$))
 orbit%vec(6) = (pc_end - pc_end_ref) / pc_end_ref 
 orbit%p0c = pc_end_ref
 
@@ -363,13 +404,37 @@ orbit%vec(5) = orbit%vec(5) * beta_end
 
 orbit%beta = beta_end
 
+if (nint(ele%value(cavity_type$)) == traveling_wave$ .and. fringe_here(ele, orbit, second_track_edge$)) then
+  ds = bmad_com%significant_length / 10  ! Make sure inside field region
+  call em_field_calc (ele, param, l_drift + length - ds, orbit, .true., field, logic_option(.false., make_matrix))
+  f = -charge_of(orbit%species) / (2 * pc_end_ref)
+
+  if (logic_option(.false., make_matrix)) then
+    call mat_make_unit(kmat)
+    kmat(2,1) = f * (-field%dE(3,1) * orbit%vec(1) + c_light * field%dB(3,1) * orbit%vec(3) - field%E(3))
+    kmat(2,3) = f * (-field%dE(3,2) * orbit%vec(1) + c_light * field%dB(3,2) * orbit%vec(3) + c_light * field%B(3))
+    kmat(2,5) = f * (-field%dE(3,3) * orbit%vec(1) + c_light * field%dB(3,3) * orbit%vec(3)) * beta_end
+    kmat(2,6) = -(-field%E(3) * orbit%vec(1) * f + c_light * field%B(3) * orbit%vec(3)) * f / pc_end
+    kmat(4,1) = f * (-field%dE(3,1) * orbit%vec(3) - c_light * field%dB(3,1) * orbit%vec(1) - c_light * field%B(3))
+    kmat(4,3) = f * (-field%dE(3,2) * orbit%vec(3) - c_light * field%dB(3,2) * orbit%vec(1) - field%E(3))
+    kmat(4,5) = f * (-field%dE(3,3) * orbit%vec(3) - c_light * field%dB(3,3) * orbit%vec(1)) * beta_end
+    kmat(4,6) = -(-field%E(3) * orbit%vec(1) * f - c_light * field%B(3) * orbit%vec(3)) * f / pc_end
+    mat6 = matmul(kmat, mat6)
+  endif
+
+  ds = bmad_com%significant_length / 10  ! Make sure inside field region
+  orbit%vec(2) = orbit%vec(2) - field%E(3) * orbit%vec(1) * f + c_light * field%B(3) * orbit%vec(3) * f
+  orbit%vec(4) = orbit%vec(4) - field%E(3) * orbit%vec(3) * f - c_light * field%B(3) * orbit%vec(1) * f
+endif
+
 ! Coupler kick
 
 call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_matrix)
 
 if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, 1.0_rp/2,   mat6, make_matrix)
-if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, ele%value(l$)/2, mat6, make_matrix)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, length/2, mat6, make_matrix)
 
+!! call track_a_drift(orbit, l_drift, mat6, make_matrix)
 call offset_particle (ele, param, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
 
 end subroutine

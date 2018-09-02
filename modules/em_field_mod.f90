@@ -124,7 +124,7 @@ real(rp) :: x, y, time, s_pos, s_body, s_lab, s_lab2, z, ff, dk(3,3), ref_charge
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), Ex, Ey, amp
 real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, sgn_z, kx, ky, dkm(2,2), cos_ks, sin_ks
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, a_amp, inte
-real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start
+real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start, f
 real(rp) radius, phi, t_ref, tilt, omega, freq0, freq, B_phi_coef, z_center
 real(rp) sx_over_kx, sy_over_ky, sz_over_kz, rot2(2,2)
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), pot
@@ -406,7 +406,10 @@ case (bmad_standard$)
 
     s_hard_offset = (ele%value(l$) - hard_edge_model_length(ele)) / 2  ! Relative to entrance end of the cavity
     s_eff = s_body - s_hard_offset
-    if (s_eff < 0 .or. s_eff > hard_edge_model_length(ele)) goto 8000  ! Zero field outside
+    if (s_eff < 0 .or. s_eff > hard_edge_model_length(ele)) then
+      dfield_computed = .true.
+      goto 8000  ! Zero field outside
+    endif
 
     beta_start = ele%value(p0c_start$) / ele%value(e_tot_start$)
 
@@ -419,12 +422,12 @@ case (bmad_standard$)
     if (nint(ele%value(cavity_type$)) == traveling_wave$) then
       phi = omega * time + phase - k_wave * s_eff
       E_z        =  gradient * cos(phi)
-      E_r_coef   = -gradient * k_wave * sin(phi) / 2
-      B_phi_coef = -gradient * k_wave * sin(phi) / c_light / 2
+      E_r_coef   = -gradient * k_wave * sin(phi) / 2.0_rp
+      B_phi_coef = -gradient * k_wave * sin(phi) / (2.0_rp * c_light)
     else
-      E_z        = 2 * gradient * cos(k_wave * s_eff) * cos(omega * time + phase)
-      E_r_coef   =     gradient * k_wave * sin(k_wave*s_eff) * cos(omega * time + phase)
-      B_phi_coef =    -gradient * k_wave * cos(k_wave*s_eff) * sin(omega * time + phase) / c_light 
+      E_z        = 2.0_rp * gradient * cos(k_wave*s_eff) * cos(omega * time + phase)
+      E_r_coef   =          gradient * k_wave * sin(k_wave*s_eff) * cos(omega * time + phase)
+      B_phi_coef =         -gradient * k_wave * cos(k_wave*s_eff) * sin(omega * time + phase) / c_light 
     endif
 
     field%E(1) = E_r_coef * x
@@ -433,6 +436,31 @@ case (bmad_standard$)
     
     field%B(1) = -B_phi_coef * y
     field%B(2) =  B_phi_coef * x
+
+    if (do_df_calc) then
+      dfield_computed = .true.
+      field%dE(1,1) =  E_r_coef
+      field%dE(2,2) =  E_r_coef
+      field%dB(1,2) = -B_phi_coef
+      field%dB(2,1) =  B_phi_coef
+      if (nint(ele%value(cavity_type$)) == traveling_wave$) then
+        f = gradient * k_wave**2 * cos(phi) / 2.0_rp
+        field%dE(1,3) =  x * f
+        field%dE(2,3) =  y * f
+        field%dE(3,3) =  k_wave * gradient * sin(phi)
+        field%dB(1,3) = -y * f / c_light
+        field%dB(2,3) =  x * f / c_light
+      else
+        f = gradient * k_wave**2 * cos(k_wave*s_eff) * cos(omega * time + phase)
+        field%dE(1,3) =  x * f
+        field%dE(2,3) =  y * f
+        field%dE(3,3) =  -2.0_rp * k_wave * gradient * sin(k_wave*s_eff) * cos(omega * time + phase)
+        f = gradient * k_wave**2 * sin(k_wave*s_eff) * sin(omega * time + phase)
+        field%dB(1,3) = -y * f / c_light
+        field%dB(2,3) =  x * f / c_light
+      endif
+
+    endif
 
   !------------------------------------------
   ! Octupole 
