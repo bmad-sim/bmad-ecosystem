@@ -22,7 +22,7 @@ contains
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 !+
-! Subroutine create_a_spline (spline, r0, r1, slope0, slope1)
+! Function create_a_spline (r0, r1, slope0, slope1) result (spline)
 !
 ! Routine to create a single spline given end point positions and slopes.
 ! The spline will pass through the data points and have the given slopes
@@ -41,7 +41,7 @@ contains
 !   spline  -- spline_struct: Spline.
 !-
 
-subroutine create_a_spline (spline, r0, r1, slope0, slope1)
+function create_a_spline (r0, r1, slope0, slope1) result (spline)
 
 type (spline_struct) spline
 real(rp) r0(:), r1(:), slope0, slope1, dx, dy
@@ -68,7 +68,7 @@ spline%coef(1) = slope0
 spline%coef(2) = (3*dy / dx - 2*slope0 - slope1) / dx
 spline%coef(3) = (slope0 + slope1 - 2*dy / dx) / (dx**2)
 
-end subroutine create_a_spline
+end function create_a_spline
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -159,7 +159,7 @@ endif
 
 slope0 = this_slope_calc(slope(1:4))
 slope1 = this_slope_calc(slope(2:5))
-call create_a_spline (spline0, [x_knot(ix0), y_knot(ix0)], [x_knot(ix0+1), y_knot(ix0+1)], slope0, slope1)
+spline0 = create_a_spline ([x_knot(ix0), y_knot(ix0)], [x_knot(ix0+1), y_knot(ix0+1)], slope0, slope1)
 
 if (present(y))  y  = spline1 (spline0, x)
 if (present(dy)) dy = spline1 (spline0, x, 1)
