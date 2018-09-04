@@ -239,7 +239,7 @@ do i = 0, n
   endif
   if (.not. parallel0) eleinfo%L_chord = -eleinfo%L_chord
 
-  call create_a_spline (eleinfo%spline, [0.0_rp, 0.0_rp], [eleinfo%L_chord, 0.0_rp], theta0, theta1)
+  eleinfo%spline = create_a_spline ([0.0_rp, 0.0_rp], [eleinfo%L_chord, 0.0_rp], theta0, theta1)
   eleinfo%dL_s = dspline_len(0.0_rp, eleinfo%L_chord, eleinfo%spline)
 enddo
 
