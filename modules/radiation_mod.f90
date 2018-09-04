@@ -78,8 +78,10 @@ real(rp) len2, g_x, g_y, g2, g3, kx, ky, kx_tot, ky_tot, s_here
 real(rp) a_pole_mag(0:n_pole_maxx), b_pole_mag(0:n_pole_maxx), a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
 real(rp), parameter :: del_orb = 1d-4
 
-integer edge, direc
+integer edge, direc, track_method_saved
 integer i, j, ix_mag_max, ix_elec_max
+
+logical err_flag
 
 character(*), parameter :: r_name = 'calc_radiation_tracking_g_factors'
 
@@ -111,38 +113,94 @@ endif
 len2 = ele%value(l$) / 2
 if (len2 < 0) len2 = 0
 
-! Get the coords in the frame of reference of the element
+!---------------------------------
+! Calculate the radius of curvature for an on-energy particle
+! Wiggler, undulator, em_field case
 
-if (ele%key /= wiggler$ .and. ele%key /= undulator$) then
-  orbit2 = orbit
-  call offset_particle (ele, param, set$, orbit2, s_pos = s_here)
-  call canonical_to_angle_coords (orbit2)
-  orbit2%vec(1) = orbit2%vec(1) + direc * orbit2%vec(2) * len2 / 2.0_rp ! Extrapolate to center of region 1/4 of way into element.
-  orbit2%vec(3) = orbit2%vec(3) + direc * orbit2%vec(4) * len2 / 2.0_rp
+if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == em_field$) then
+  g_x = 0
+  g_y = 0
 
-  call multipole_ele_to_ab (ele, .false., ix_mag_max, a_pole_mag, b_pole_mag, magnetic$, .true.)
-  call multipole_ele_to_ab (ele, .false., ix_elec_max, a_pole_elec, b_pole_elec, electric$, .true.)
+  if (ele%sub_key == periodic_type$) then
+    g2 = abs(ele%value(k1$))
+    g3 = 4 * sqrt(2*g2)**3 / (3 * pi)  
 
-  kx_tot = 0
-  ky_tot = 0
+  else
+    if (.not. associated(ele%rad_int_cache) .or. ele%rad_int_cache%stale) then
+      if (.not. associated(ele%rad_int_cache)) allocate (ele%rad_int_cache)
+      ele%rad_int_cache%orb0 = ele%map_ref_orb_in%vec
 
-  do i = 0, ix_mag_max
-    call ab_multipole_kick (a_pole_mag(i), b_pole_mag(i), i, orbit%species, ele%orientation, orbit, kx, ky, pole_type = magnetic$)
-    kx_tot = kx_tot + kx
-    ky_tot = ky_tot + ky
-  enddo
+      if (global_com%be_thread_safe) then
+        allocate(track)
+      else
+        track => track_save
+      endif
 
-  do i = 0, ix_mag_max
-    call ab_multipole_kick (a_pole_elec(i), b_pole_elec(i), i, orbit%species, ele%orientation, orbit, kx, ky, pole_type = electric$)
-    kx_tot = kx_tot + kx
-    ky_tot = ky_tot + ky
-  enddo
+      track%n_pt = -1
+      track_method_saved = ele%tracking_method
+      if (ele%tracking_method == taylor$) ele%tracking_method = runge_kutta$
+      call track1 (ele%map_ref_orb_in, ele, param, end_orb, track, err_flag, .true.)
+      call calc_g (track, ele%rad_int_cache%g2_0, ele%rad_int_cache%g3_0)
+
+      do j = 1, 4
+        start_orb = ele%map_ref_orb_in
+        start_orb%vec(j) = start_orb%vec(j) + del_orb
+        track%n_pt = -1
+        call track1 (start_orb, ele, param, end_orb, track, err_flag, .true.)
+        call calc_g (track, g2, g3)
+        ele%rad_int_cache%dg2_dorb(j) = (g2 - ele%rad_int_cache%g2_0) / del_orb
+        ele%rad_int_cache%dg3_dorb(j) = (g3 - ele%rad_int_cache%g3_0) / del_orb
+      enddo
+
+      ele%rad_int_cache%stale = .false.
+      ele%tracking_method = track_method_saved
+
+      if (global_com%be_thread_safe) then
+        deallocate(track%orb, track%field, track%map)
+        deallocate(track)
+      endif
+    endif
+
+    g2 = ele%rad_int_cache%g2_0 + dot_product(orbit%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg2_dorb(1:4))
+    g3 = ele%rad_int_cache%g3_0 + dot_product(orbit%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg3_dorb(1:4))
+    if (g3 < 0) g3 = 0
+  endif
+
+  return
 endif
 
-! Calculate the radius of curvature for an on-energy particle
+!---------------------------------------------------------
+! Everything else but wiggler, undulator, em_field
+
+! Get the coords in the frame of reference of the element
+
+orbit2 = orbit
+call offset_particle (ele, param, set$, orbit2, s_pos = s_here)
+call canonical_to_angle_coords (orbit2)
+orbit2%vec(1) = orbit2%vec(1) + direc * orbit2%vec(2) * len2 / 2.0_rp ! Extrapolate to center of region 1/4 of way into element.
+orbit2%vec(3) = orbit2%vec(3) + direc * orbit2%vec(4) * len2 / 2.0_rp
+
+call multipole_ele_to_ab (ele, .false., ix_mag_max, a_pole_mag, b_pole_mag, magnetic$, .true.)
+call multipole_ele_to_ab (ele, .false., ix_elec_max, a_pole_elec, b_pole_elec, electric$, .true.)
+
+kx_tot = 0
+ky_tot = 0
+
+do i = 0, ix_mag_max
+  call ab_multipole_kick (a_pole_mag(i), b_pole_mag(i), i, orbit%species, ele%orientation, orbit, kx, ky, pole_type = magnetic$)
+  kx_tot = kx_tot + kx
+  ky_tot = ky_tot + ky
+enddo
+
+do i = 0, ix_mag_max
+  call ab_multipole_kick (a_pole_elec(i), b_pole_elec(i), i, orbit%species, ele%orientation, orbit, kx, ky, pole_type = electric$)
+  kx_tot = kx_tot + kx
+  ky_tot = ky_tot + ky
+enddo
+
+!
 
 select case (ele%key)
-
 case (quadrupole$, sol_quad$)
   g_x = -ele%value(k1$) * orbit2%vec(1) - kx_tot
   g_y =  ele%value(k1$) * orbit2%vec(3) - ky_tot
@@ -162,54 +220,11 @@ case (sbend$)
   g3 = sqrt(g2)**3
   len2 = len2 * (1.0_rp + ele%value(g$) * orbit2%vec(1))
 
-case (wiggler$, undulator$, em_field$)
-  g_x = 0
-  g_y = 0
-  if (ele%sub_key == map_type$) then
-    if (.not. associated(ele%rad_int_cache) .or. ele%rad_int_cache%stale) then
-
-
-      if (.not. associated(ele%rad_int_cache)) allocate (ele%rad_int_cache)
-      ele%rad_int_cache%orb0 = ele%map_ref_orb_in%vec
-
-      if (global_com%be_thread_safe) then
-        allocate(track)
-      else
-        track => track_save
-      endif
-
-      track%n_pt = -1
-      call symp_lie_bmad (ele, param, ele%map_ref_orb_in, end_orb, .false., track)
-      call calc_g (track, ele%rad_int_cache%g2_0, ele%rad_int_cache%g3_0)
-
-      do j = 1, 4
-        start_orb = ele%map_ref_orb_in
-        start_orb%vec(j) = start_orb%vec(j) + del_orb
-        track%n_pt = -1
-        call symp_lie_bmad (ele, param, start_orb, end_orb, .false., track)
-        call calc_g (track, g2, g3)
-        ele%rad_int_cache%dg2_dorb(j) = (g2 - ele%rad_int_cache%g2_0) / del_orb
-        ele%rad_int_cache%dg3_dorb(j) = (g3 - ele%rad_int_cache%g3_0) / del_orb
-      enddo
-
-      ele%rad_int_cache%stale = .false.
-
-      if (global_com%be_thread_safe) then
-        deallocate(track%orb, track%field, track%map)
-        deallocate(track)
-      endif
-    endif
-
-
-
-    g2 = ele%rad_int_cache%g2_0 + dot_product(orbit%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg2_dorb(1:4))
-    g3 = ele%rad_int_cache%g3_0 + dot_product(orbit%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg3_dorb(1:4))
-    if (g3 < 0) g3 = 0
-  elseif (ele%sub_key == periodic_type$) then
-    g2 = abs(ele%value(k1$))
-    g3 = 4 * sqrt(2*g2)**3 / (3 * pi)  
-  endif
-
+case default
+  g_x = -kx_tot
+  g_y = -ky_tot
+  g2 = g_x**2 + g_y**2
+  g3 = sqrt(g2)**3
 end select
 
 !-------------------------------------------------------
