@@ -451,6 +451,7 @@ type(c_taylor) c_temp
  TYPE c_ray
   complex(dp) x(lnv)            !# orbital and/or magnet modulation clocks
   complex(dp) s1(3),s2(3),s3(3) !# 3 spin directions
+  type(complex_quaternion) q
  end type c_ray
 
 
