@@ -341,8 +341,7 @@ do i = 0, ubound(vec1, 1)
   endif
 enddo
 
-write (2, '(3a, t30, a, i6, es20.9)') '"', str, '"', 'ABS   1e-10', im, mdiff/vmax
-!!! write (2, '(3a, t30, a, i6, es20.9)') '"', str, '-rel"', 'ABS   1e-10', imr, mrdiff
+write (2, '(3a, t30, a, i6, 3es20.9)') '"', str, '"', 'ABS   1e-10', im, mdiff/vmax!, vec1(im), vec2(im)
 
 end subroutine
 
