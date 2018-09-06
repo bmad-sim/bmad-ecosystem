@@ -54,7 +54,7 @@ MODULE S_DEF_KIND
   PRIVATE GETMULB_SOLR,GETMULB_SOLP,GETMULB_SOL
   PRIVATE KICKMULR,KICKMULP !,KICKMUL
   PRIVATE GETNEWBR,GETNEWBP
-  PRIVATE EXPR7,EXPD7,EXPCOSY7
+  PRIVATE EXPR7,EXPD7,EXPCOSY7,get_z_cavr,get_z_cavp
 
   PRIVATE PUSH_NSMI_R,PUSH_NSMI_D
   PRIVATE PUSH_SSMI_R,PUSH_SSMI_D
@@ -243,6 +243,10 @@ integer :: tot_t=1
      MODULE PROCEDURE fringe_STREXP
   END INTERFACE
 
+  INTERFACE get_z_cav
+     MODULE PROCEDURE get_z_cavr
+     MODULE PROCEDURE get_z_cavp
+  END INTERFACE  
 
   INTERFACE B_E_FIELD
      MODULE PROCEDURE B_E_FIELDR
@@ -13499,6 +13503,42 @@ integer :: kkk=0
 
   END SUBROUTINE ADJUSTP_TIME_CAV_TRAV_OUT
 
+  SUBROUTINE get_z_cavr(EL,i,z)
+    IMPLICIT NONE
+    TYPE(CAV_TRAV),INTENT(INOUT):: EL
+    integer i
+    real(dp),INTENT(INOUT):: z
+    real(dp) d
+
+    D=EL%L/EL%P%NST
+    IF(EL%P%DIR==1) THEN
+       Z=(i-1)*d
+    ELSE
+       Z=EL%L-(i-1)*d
+    ENDIF
+
+  end SUBROUTINE get_z_cavr
+
+  SUBROUTINE get_z_cavp(EL,i,z)
+    IMPLICIT NONE
+    TYPE(CAV_TRAVP),INTENT(INOUT):: EL
+    integer i
+    TYPE(REAL_8),INTENT(INOUT):: z
+    TYPE(REAL_8) d
+
+    CALL ALLOC(D)
+
+    D=EL%L/EL%P%NST
+    IF(EL%P%DIR==1) THEN
+       Z=(i-1)*d
+    ELSE
+       Z=EL%L-(i-1)*d
+    ENDIF
+
+    CALL KILL(D)
+
+  end SUBROUTINE get_z_cavp
+
   SUBROUTINE INTER_CAV_TRAV(EL,X,kt,j)
     IMPLICIT NONE
     real(dp), INTENT(INOUT) :: X(6)
@@ -13515,7 +13555,7 @@ integer :: kkk=0
     IF(EL%P%DIR==1) THEN
        Z0=(j-1)*d1
     ELSE
-       Z0=EL%L+(j-1)*d1
+       Z0=EL%L-(j-1)*d1   ! bug  fixed 2018 september
     ENDIF
 
     k=kt
@@ -13565,7 +13605,7 @@ integer :: kkk=0
     IF(EL%P%DIR==1) THEN
        Z0=(j-1)*d1
     ELSE
-       Z0=EL%L+(j-1)*d1
+       Z0=EL%L-(j-1)*d1
     ENDIF
     k=kt
     TOTALPATH=k%TOTALPATH
@@ -17830,6 +17870,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     CALL ALLOC(PZ)
 
 
+ 
     CALL A_TRANS(D,Z0,X,k,A,AD)
 
     X(2)=X(2)-A(1)
@@ -17893,9 +17934,10 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     real(dp) C1,S1,C2,S2,V,O
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
-    !    IF(k%NOCAVITY.OR.(.NOT.k%FRINGE)) RETURN
+
+ 
     IF(k%NOCAVITY.and.(.not.EL%always_on)) RETURN
-!    IF(k%NOCAVITY) RETURN
+ 
 
        if(freq_redefine) then
         O=EL%freq
@@ -17944,8 +17986,8 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     TYPE(REAL_8) C1,S1,C2,S2,V,O
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
-    IF(k%NOCAVITY.OR.(.NOT.k%FRINGE)) RETURN
-!    IF(k%NOCAVITY) RETURN
+    IF(k%NOCAVITY.and.(.not.EL%always_on)) RETURN
+
 
     CALL ALLOC(C1,S1,C2,S2,V,O)
        if(freq_redefine) then
@@ -17982,6 +18024,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
      E(2)=-ad(2)*x(3)/EL%P%CHARGE
      E(3)=EL%P%DIR*A(3)/EL%P%CHARGE
     endif
+
 
     CALL KILL(C1,S1,C2,S2,V,O)
 
@@ -18062,6 +18105,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
        y(j) = y(j)+b(j)
     enddo
     tI=ti+h
+
 
     call kill(tt)
     call kill(yt,ne)

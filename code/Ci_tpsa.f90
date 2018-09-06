@@ -35,8 +35,8 @@ MODULE c_TPSA
   private alloc_c_damap,c_DPEKMAP,c_DPOKMAP,kill_c_damap,kill_c_spinmatrix,c_etcct,c_spinmatrix_mul_cray
   private EQUALspinmatrix,c_trxtaylor,powmap,POWMAPs,alloc_c_vector_field,kill_c_vector_field
   private alloc_c_normal_form,kill_c_normal_form,c_EQUALVEC,c_spinmatrix_spinmatrix,c_IdentityEQUALVEC,qua_ql
-  private liebraquaternion
-  private EQUALql_cmap,EQUALcmap_ql
+  private liebraquaternion,pow_tpsaMAP,c_concat_quaternion_ray
+  private EQUALql_cmap,EQUALcmap_ql,EQUAL_complex_quaternion_c_quaternion,EQUAL_c_quaternion_complex_quaternion
   private NO,ND,ND2,NP,NDPT,NV,ndptb,rf
   integer NP,NO,ND,ND2,NDPT,NV,ndptb,rf
   private nd_used
@@ -60,7 +60,7 @@ MODULE c_TPSA
  private c_spinmatrix_add_spinmatrix,c_exp_spinmatrix,unarySUB_spinor,c_spinor_add_spinor,c_taylor_spinor
  private c_IdentityEQUALSPINOR,c_spinmatrix_spinor,c_logt,c_pri_factored_lie,equalc_map_cmap
  private c_expflo_fac_inv,c_logc,c_complex_spinor,c_real_spinor,GETORDERSPINMATRIX,c_pri_spinor
- private c_spinor_cmap,c_adjoint_vec,c_adjoint,c_trxtaylor_da,c_spinmatrix_sub_spinmatrix
+ private c_spinor_cmap,c_adjoint_vec,c_adjoint,c_trxtaylor_da,c_spinmatrix_sub_spinmatrix,c_spinor_cmap_tpsa
  PRIVATE CUTORDERMAP,CUTORDERspin,CUTORDERspinor,c_concat_tpsa,c_concat_spinor_ray,GETORDERquaternion
   type(C_dalevel) c_scratchda(ndumt)   !scratch levels of DA using linked list
 integer, private :: nd2t=6,ndt=3,ndc2t=2,ndct=1,nd2harm,ndharm
@@ -94,13 +94,14 @@ private EQUAL_c_spinmatrix_probe,EQUAL_c_spinmatrix_3_by_3,EQUAL_3_by_3_probe,EQ
 private EQUAL_probe_3_by_3,equalc_cspinor_spinor,EQUAL_3_by_3_c_spinmatrix
 private EQUALq_r,EQUALq_8_c,EQUALq_c_8,EQUALq,POWq,c_invq,subq,mulq,addq,alloc_c_quaternion,kill_c_quaternion
 private c_pri_quaternion,CUTORDERquaternion,c_trxquaternion,EQUALq_c_r,EQUALq_r_c,mulcq,c_exp_quaternion
-private equalc_quaternion_c_spinor,equalc_spinor_c_quaternion,unarySUB_q
+private equalc_quaternion_c_spinor,equalc_spinor_c_quaternion,unarySUB_q,c_trxquaternion_tpsa
 private c_exp_vectorfield_on_quaternion,c_vector_field_quaternion,addql,subql,mulqdiv,powql
 real(dp) dts
 real(dp), private :: sj(6,6)
+
 type q_linear
-complex(dp) mat(6,6)
-complex(dp)  q(0:3,0:6) 
+ complex(dp) mat(6,6)
+ complex(dp)  q(0:3,0:6) 
 end type q_linear
 
 
@@ -120,6 +121,8 @@ type(q_linear) q_phasor,qi_phasor
      MODULE PROCEDURE EQUALq_c_r
      MODULE PROCEDURE EQUALq_r_c
      MODULE PROCEDURE EQUALql_ql
+     MODULE PROCEDURE EQUAL_complex_quaternion_c_quaternion
+     MODULE PROCEDURE EQUAL_c_quaternion_complex_quaternion
      MODULE PROCEDURE EQUALql_cmap
      MODULE PROCEDURE EQUALcmap_ql
      MODULE PROCEDURE cDEQUAL
@@ -257,7 +260,6 @@ type(q_linear) q_phasor,qi_phasor
      MODULE PROCEDURE c_bra_v_ct     !# F.grad taylor
      MODULE PROCEDURE c_bra_v_dm     !# c_damap=(exp(F.grad) c_damap
 !     MODULE PROCEDURE c_bra_v_v     !   (exp(F.grad) H) . grad
-     MODULE PROCEDURE c_spinmatrix_mul_cray !#  spin_matrix.c_ray
      MODULE PROCEDURE c_spinmatrix_spinmatrix !#  Spinmatrix*Spinmatrix
      MODULE PROCEDURE c_complex_spinmatrix  !# c*Spinmatrix
      MODULE PROCEDURE c_taylor_spinor    !# taylor * spinor
@@ -281,16 +283,28 @@ type(q_linear) q_phasor,qi_phasor
 
   INTERFACE OPERATOR (.o.) 
   !
-     module procedure c_concat_c_ray    !# c_taylor .o. c_ray
-     module procedure c_concat_map_ray  !# c_ray= c_damap o c_ray
+     module procedure c_concat_c_ray    !# c_taylor .o. c_ray  
+     module procedure c_concat_map_ray  !# c_ray= c_damap .o. c_ray
      module procedure c_trxtaylor_da   !# c_taylor= c_taylor .o. c_damap
-     module procedure c_concat_tpsa     !# c_damap o  c_damap
-     module procedure c_concat_spinor_ray   !# c_spinor= c_spinor o  c_ray
-     module procedure c_concat_spinmatrix_ray !# c_spinmatrix= c_spinmatrix o  c_ray
-     module procedure c_concat_vector_field_ray  !# c_vector_field o  cray
-     module procedure c_trxspinmatrixda     !# c_spinmatrix=c_spinmatrix o  c_damap
+     module procedure c_concat_tpsa     !# c_damap .o.  c_damap
+     module procedure c_concat_spinor_ray   !# c_spinor= c_spinor .o.  c_ray
+! not overloaded
+   !  module procedure c_concat_spinmatrix_ray !# c_spinmatrix= c_spinmatrix .o.  c_ray
+   !  module procedure c_concat_quaternion_ray !# c_quaternion= c_quaternion .o.  c_ray
+   !  Instead these overloaded
+     MODULE PROCEDURE c_spinmatrix_mul_cray !# c_ray%s = spin_matrix.o.c_ray%x  c_ray%S(1:3)
+     MODULE PROCEDURE c_quaternion_mul_cray !# c_ray%q = c_quaternion.o.c_ray%x  c_ray%q  c_quaternion.o.c_ray%x**(-1)
+
+     module procedure c_concat_vector_field_ray  !# c_vector_field .o.  cray
+     module procedure c_trxspinmatrixda     !# c_spinmatrix=c_spinmatrix .o.  c_damap
+     module procedure c_trxquaternion_tpsa   !# c_quaternion=  c_quaternion .o. c_damap
+     MODULE PROCEDURE c_spinor_cmap_tpsa        !# spinor * c_damap
    END INTERFACE 
  
+  INTERFACE OPERATOR (.oo.) 
+     module procedure pow_tpsaMAP
+  END INTERFACE 
+
   INTERFACE OPERATOR (/)
      MODULE PROCEDURE div
      MODULE PROCEDURE cddivsc
@@ -2657,6 +2671,7 @@ enddo
      s2%s1 = s1%s1
      s2%s2 = s1%s2
      s2%s3 = s1%s3
+     s2%q = s1%q
 
   END SUBROUTINE equalc_ray_ray
 
@@ -6239,9 +6254,40 @@ endif
 
  end   SUBROUTINE  EQUALq_ql
 
+
+  SUBROUTINE  EQUAL_c_quaternion_complex_quaternion(S1,S2)
+    implicit none
+    type (complex_quaternion),INTENT(in)::S2
+    type (c_quaternion),INTENT(INout)::S1
+    integer i 
+
+ 
+
+      do i=0,3
+        s1%x(i) = s2%x(i)  
+      enddo
+
+ end   SUBROUTINE  EQUAL_c_quaternion_complex_quaternion
+
+  SUBROUTINE  EQUAL_complex_quaternion_c_quaternion(S1,S2)
+    implicit none
+    type (c_quaternion),INTENT(in)::S2
+    type (complex_quaternion),INTENT(INout)::S1
+    integer i 
+
+ 
+
+      do i=0,3
+        s1%x(i) = s2%x(i)  
+      enddo
+
+
+ end   SUBROUTINE  EQUAL_complex_quaternion_c_quaternion
+
+
+
   SUBROUTINE  EQUALql_ql(S1,S2)
     implicit none
-    integer ipause, mypauses
     type (q_linear),INTENT(in)::S2
     type (q_linear),INTENT(INout)::S1
  
@@ -6254,7 +6300,6 @@ endif
 
   SUBROUTINE  print_ql(S2,imaginary,mf)
     implicit none
-    integer ipause, mypauses
     type (q_linear),INTENT(inOUT)::S2
     integer, optional :: mf
     logical, optional :: imaginary
@@ -9200,7 +9245,7 @@ endif
 
     call alloc(temp)
     temp=s1
-    temp=temp.o.s2
+    temp=c_concat_spinmatrix_ray(temp,s2) !.o.s2
     c_spinmatrix_mul_cray%s1=0.0_dp
     c_spinmatrix_mul_cray%s2=0.0_dp
     c_spinmatrix_mul_cray%s3=0.0_dp
@@ -9218,6 +9263,24 @@ endif
  
      call kill(temp)
   END FUNCTION c_spinmatrix_mul_cray
+
+  FUNCTION c_quaternion_mul_cray(S1,S2) ! spin routine function
+    implicit none
+    TYPE (c_ray) c_quaternion_mul_cray 
+    TYPE (c_quaternion), INTENT (IN) :: S1
+    TYPE (c_ray), INTENT (IN) :: S2 
+    TYPE (c_quaternion) temp
+    TYPE (complex_quaternion) tempc
+    integer i,j
+
+    call alloc(temp)
+    temp=s1
+    tempc=c_concat_quaternion_ray(temp,s2)  !.o.s2
+    c_quaternion_mul_cray%q=tempc*s2%q*tempc**(-1)
+    c_quaternion_mul_cray%x=s2%x
+ 
+     call kill(temp)
+  END FUNCTION c_quaternion_mul_cray
 
  FUNCTION c_spinmatrix_spinor(S1,S2) ! spin routine function
     implicit none
@@ -9314,6 +9377,34 @@ endif
     c_master=localmaster
 
   END FUNCTION c_spinor_cmap
+
+ FUNCTION c_spinor_cmap_tpsa(S1,S2) ! spin routine function
+    implicit none
+    TYPE (c_spinor) c_spinor_cmap_tpsa 
+    TYPE (c_damap), INTENT (IN) :: S2
+    TYPE (c_spinor), INTENT (IN) :: S1
+    integer localmaster
+    integer i
+     IF(.NOT.C_STABLE_DA) then
+     c_spinor_cmap_tpsa%v%i=0
+     RETURN
+     endif
+
+    localmaster=c_master
+
+    call c_ass_spinor(c_spinor_cmap_tpsa)
+
+ 
+    c_spinor_cmap_tpsa=0
+
+     do i=1,3
+          c_spinor_cmap_tpsa%v(i)=s1%v(i)*s2
+     enddo
+     
+          if(complex_extra_order==1.and.special_extra_order_1) c_spinor_cmap_tpsa=c_spinor_cmap_tpsa.cut.no
+    c_master=localmaster
+
+  END FUNCTION c_spinor_cmap_tpsa
 
   FUNCTION c_complex_spinmatrix(S1,S2) ! spin routine function
     implicit none
@@ -9607,6 +9698,31 @@ endif
 
   END FUNCTION c_trxquaternion
 
+  FUNCTION c_trxquaternion_tpsa( S1, S2 ) ! spin routine function
+    implicit none
+    TYPE (c_quaternion) c_trxquaternion_tpsa
+    TYPE (c_quaternion), INTENT (IN) :: S1
+    TYPE (c_damap), INTENT (IN) ::  S2
+    integer i
+    integer localmaster
+     IF(.NOT.C_STABLE_DA) then
+     c_trxquaternion_tpsa%x(1)%i=0
+     RETURN
+     endif
+    localmaster=c_master
+
+    call c_ass_quaternion(c_trxquaternion_tpsa)
+     
+      do i=0,3
+
+        c_trxquaternion_tpsa%x(i)=s1%x(i).o.s2
+       enddo
+      
+     if(complex_extra_order==1.and.special_extra_order_1) c_trxquaternion_tpsa=c_trxquaternion_tpsa.cut.no
+    c_master=localmaster
+
+  END FUNCTION c_trxquaternion_tpsa
+
 
   FUNCTION c_trxspinmatrixda( S1, S2 ) ! spin routine function
     implicit none
@@ -9772,6 +9888,29 @@ endif
 
   END FUNCTION c_concat_spinmatrix_ray
 
+ FUNCTION c_concat_quaternion_ray( S1, S2 )
+    implicit none
+    TYPE (c_quaternion) c_concat_quaternion_ray
+    TYPE (c_quaternion), INTENT (IN) :: S1
+    TYPE (c_ray), INTENT (IN) ::  S2
+    integer i,j
+    integer localmaster
+    
+     IF(.NOT.C_STABLE_DA) then
+     c_concat_quaternion_ray=1.0_dp
+     RETURN
+     endif
+
+    localmaster=c_master
+     
+    call c_ass_quaternion(c_concat_quaternion_ray)
+
+    do i=0,3
+      c_concat_quaternion_ray%x(i)=c_concat_quaternion_ray%x(i).o.s2
+     enddo
+    c_master=localmaster
+
+  END FUNCTION c_concat_quaternion_ray
 
 
 
@@ -9841,7 +9980,11 @@ endif
  !    c_concat_map_ray%s1=s2%s1   ! added spin 2016.6.29
  !    c_concat_map_ray%s2=S2%s2
  !    c_concat_map_ray%s3=S2%s3
-      c_concat_map_ray=s1%s*s2
+      if(use_quaternion) then
+      c_concat_map_ray=s1%q.o.s2
+      else
+      c_concat_map_ray=s1%s.o.s2
+      endif
  ! order important because the first one puts s2%x into c_concat_map_ray%x
      do i=1,s1%n
       c_concat_map_ray%x(i)=s1%v(i).o.temp
@@ -10045,6 +10188,59 @@ endif
 
   END FUNCTION POWMAP
 
+
+  FUNCTION pow_tpsaMAP( S1, R2 )
+    implicit none
+    TYPE (c_damap) pow_tpsaMAP
+    TYPE (c_damap), INTENT (IN) :: S1
+    INTEGER, INTENT (IN) :: R2
+    TYPE (c_damap) S11,s0
+    INTEGER I,R22
+    integer localmaster
+    complex(dp) v(lnv)
+     v=0
+     IF(.NOT.C_STABLE_DA) then
+     pow_tpsaMAP%v%i=0
+     RETURN
+     endif
+    localmaster=c_master
+
+     pow_tpsaMAP%N=s1%n
+    call c_assmap(pow_tpsaMAP)
+    
+    s11%n=s1%n
+    s0%n=s1%n
+    call alloc(s11,s0)
+
+    s11=1
+
+    R22=IABS(R2)
+    DO I=1,R22
+       s11=s1.o.s11
+   ENDDO
+    do i=1,s11%n
+       v(i)=s11%v(i).sub.'0'
+     enddo
+    IF(R2.LT.0) THEN
+
+ !     CALL c_etinv1(S11%v%i,S11%v%i,s11%n)
+        CALL c_etinv(S11,S11)
+
+    ENDIF
+
+    do i=1,s1%n
+       s0%v(i)=(1.0_dp.cmono.i)-v(i)
+       !s11%v(i)=s11%v(i)-(s11%v(i).sub.'0')
+    enddo
+    s11=s11.o.s0
+    pow_tpsaMAP=s11
+         if(complex_extra_order==1.and.special_extra_order_1) pow_tpsaMAP=pow_tpsaMAP.cut.no
+
+    call kill(s11,s0)
+
+    c_master=localmaster
+
+  END FUNCTION pow_tpsaMAP
 
   FUNCTION POWMAPs( SS1, R2 )
     implicit none
