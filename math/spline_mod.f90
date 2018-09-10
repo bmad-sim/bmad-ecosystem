@@ -184,7 +184,6 @@ endif
 
 end function this_slope_calc
 
-
 end subroutine spline_akima_interpolate 
 
 !--------------------------------------------------------------------------------
@@ -299,7 +298,8 @@ end function bracket_index_for_spline
 !   a_spline  -- spline_struct: Single spline structure.
 !   x         -- real(rp): Point for evaluation.
 !   n         -- integer, optional: Output derivative order. May be -1, 0, 1, 2, or 3. Default is 0.
-!                   n = -1 => output is integral of y, n = 1 => output is dy/dx, n = 2 => output is d^2y/dx^2, etc.
+!                   n = -1 => output is integral of y from a_spline%x0 to x.
+!                   n = 1 => output is dy/dx, n = 2 => output is d^2y/dx^2, etc.
 !
 ! Output:
 !   y         -- real(rp), optional: Interpolated spline value or derivative.
