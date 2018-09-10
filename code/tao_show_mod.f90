@@ -149,7 +149,6 @@ type (tao_d1_data_struct), pointer :: d1_ptr
 type (tao_data_struct), pointer :: d_ptr
 type (tao_building_wall_section_struct), pointer :: section
 type (tao_building_wall_point_struct), pointer :: pt
-type (all_pointer_struct) a_ptr
 type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: v_ptr
@@ -164,6 +163,7 @@ type (tao_plot_region_struct), pointer :: region
 type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 type (tao_data_array_struct), allocatable, save :: d_array(:)
 type (tao_ele_shape_struct), pointer :: shape
+type (all_pointer_struct) a_ptr
 type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
 type (lat_struct), pointer :: lat, design_lat
@@ -173,7 +173,7 @@ type (em_field_struct) field
 type (bunch_struct), pointer :: bunch
 type (wake_struct), pointer :: wake
 type (wake_lr_mode_struct), pointer :: lr_mode
-type (coord_struct), target :: orb
+type (coord_struct), target :: orb, orb0, orb2
 type (bunch_params_struct) bunch_params
 type (bunch_params_struct), pointer :: bunch_p
 type (taylor_struct) taylor(6)
@@ -201,9 +201,10 @@ end type
 type (show_lat_column_struct) column(60)
 type (tao_expression_info_struct), allocatable, save :: info(:)
 
-real(rp) phase_units, s_pos, l_lat, gam, s_ele, s1, s2, gamma2, val, z, dt, angle, r
+real(rp) phase_units, s_pos, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, dt, angle, r
 real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, pz2
-real(rp) pol_limit, pol_rate, depol_rate
+real(rp) pol_limit, pol_rate, depol_rate, g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del
+real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b
 real(rp), allocatable :: value(:)
 
 character(*) :: what
@@ -2078,7 +2079,7 @@ case ('lattice')
     column(13)  = show_lat_column_struct('ele::#[spin_y]',         'es14.6',   14, '', .false., 1.0_rp)
     column(14)  = show_lat_column_struct('ele::#[spin_z]',         'es14.6',   14, '', .false., 1.0_rp)
 
-  case ('spin:orbit')
+  case ('spin')
     column( 1)  = show_lat_column_struct('#',                      'i6',        6, '', .false., 1.0_rp)
     column( 2)  = show_lat_column_struct('x',                      'x',         2, '', .false., 1.0_rp)
     column( 3)  = show_lat_column_struct('ele::#[name]',           'a',         0, '', .false., 1.0_rp)
@@ -2087,12 +2088,6 @@ case ('lattice')
     column( 6)  = show_lat_column_struct('ele::#[spin_x]',         'es14.6',   14, '', .false., 1.0_rp)
     column( 7)  = show_lat_column_struct('ele::#[spin_y]',         'es14.6',   14, '', .false., 1.0_rp)
     column( 8)  = show_lat_column_struct('ele::#[spin_z]',         'es14.6',   14, '', .false., 1.0_rp)
-    column( 9)  = show_lat_column_struct('ele::#[orbit_x]',        'es14.6',   14, '', .false., 1.0_rp)
-    column(10)  = show_lat_column_struct('ele::#[orbit_px]',       'es14.6',   14, '', .false., 1.0_rp)
-    column(11)  = show_lat_column_struct('ele::#[orbit_y]',        'es14.6',   14, '', .false., 1.0_rp)
-    column(12)  = show_lat_column_struct('ele::#[orbit_py]',       'es14.6',   14, '', .false., 1.0_rp)
-    column(13)  = show_lat_column_struct('ele::#[orbit_z]',        'es14.6',   14, '', .false., 1.0_rp)
-    column(14)  = show_lat_column_struct('ele::#[orbit_pz]',       'es14.6',   14, '', .false., 1.0_rp)
 
   case ('rad_int')
     column(1)  = show_lat_column_struct('#',                     'i6',        6, '', .false., 1.0_rp)
@@ -3571,15 +3566,67 @@ case ('twiss_and_orbit')
 
   call twiss_and_track_at_s (lat, s_pos, ele0, tao_lat%tao_branch(ix_branch)%orbit, orb, ix_branch, err)
   if (err) return 
+  ele => ele0%lord
 
   nl=nl+1; write(lines(nl), '(a, f10.5)') 'At S =', s_pos
-  nl=nl+1; write(lines(nl), '(2a)')       'In Element: ', ele0%name
+  nl=nl+1; write(lines(nl), '(3a, 2(i0, a))')       'In Element: ', trim(ele0%name), '  (', ele%ix_branch, '>>', ele%ix_ele, ')'
 
   call type_twiss (ele0, s%global%phase_units, lines = lines(nl+1:), n_lines = n)
   nl = nl + n
 
+  if (branch%param%particle /= photon$) then
+    ! When evaluating g, stay away from possible element edge fringe fields
+    del = 1d-5
+    s0 = max(ele%s_start+bmad_com%significant_length, s_pos - del)
+    call twiss_and_track_at_s(lat, s0, ele3, tao_lat%tao_branch(ix_branch)%orbit, orb0, ix_branch, err)
+    s2 = min(ele%s-bmad_com%significant_length, s_pos + del)
+    call twiss_and_track_at_s(lat, s2, ele3, tao_lat%tao_branch(ix_branch)%orbit, orb2, ix_branch, err)
+    if (s2 <= s0) then
+      nl=nl+1; lines(nl) = 'Cannot evaluate synchrotron radiation parameters in lattice element of negligible width.'
+    else
+      dr(1:2) = orb2%vec(1:3:2) - orb0%vec(1:3:2)
+      dr(3) = s2 - s0
+      v0 = [orb0%vec(2), orb0%vec(4), sqrt((1 + orb0%vec(6))**2 - orb0%vec(2)**2 - orb0%vec(4)**2)] / (1 + orb0%vec(6))
+      v2 = [orb2%vec(2), orb2%vec(4), sqrt((1 + orb2%vec(6))**2 - orb2%vec(2)**2 - orb2%vec(4)**2)] / (1 + orb2%vec(6))
+      g_vec = v2 - v0
+      g_vec = g_vec - dr * (dot_product(g_vec, dr) / dot_product(dr, dr))  ! Component of g_vec perpendicular to dr
+      g_vec = -g_vec / norm2(dr)
+      if (ele%key == sbend$) then
+        g_vec(1:2) = g_vec(1:2) + ele%value(g$) * [cos(ele%value(ref_tilt$)), sin(ele%value(ref_tilt$))]
+      endif
+      g_bend = norm2(g_vec)
+
+      e_tot = ele0%value(e_tot$)
+      mc2 = mass_of(branch%param%particle)
+      gamma = e_tot / mc2
+      E_crit = 3 * h_bar_planck * c_light * g_bend * gamma**3 / 2
+      E_ave = 8 * e_crit / (15 * sqrt(3.0_rp))
+      c_gamma = 4 * pi * classical_radius_factor / (3 * mc2**4)
+      P_gam = c_light * c_gamma * e_tot**4 * g_bend**2 / twopi 
+      N_gam = 5 * sqrt(3.0_rp) * c_gamma * e_tot**4 * g_bend / (8 * pi * h_bar_planck * gamma**3)
+      N_E2 = 55.0_rp * classical_radius_factor * h_bar_planck * c_light**2 * gamma**7 * g_bend**3 / (24 * sqrt(3.0_rp))
+      H_a = ele0%a%gamma * ele0%a%eta**2 + 2 * ele0%a%alpha * ele0%a%eta * ele0%a%etap + ele0%a%beta * ele0%a%etap**2
+      H_b = ele0%b%gamma * ele0%b%eta**2 + 2 * ele0%b%alpha * ele0%b%eta * ele0%b%etap + ele0%b%beta * ele0%b%etap**2
+
+      fmt = '(2x, a, es16.8, t40, a)'
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; write (lines(nl), '(2x, a, 3f13.8, a)') '[g_x, g_y, g_z]:   ', g_vec,  '  ! g bending strength vector'
+      nl=nl+1; write (lines(nl), '(2x, a, f13.8, t40, a)')  'g:                 ', g_bend, '  ! bending strength = 1/rho'
+      nl=nl+1; write (lines(nl), fmt) 'E_crit:            ', E_crit, '  ! Critical photon energy (eV)'
+      nl=nl+1; write (lines(nl), fmt) '<E_gam>:           ', E_ave,  '  ! Average photon energy (eV)'
+      nl=nl+1; write (lines(nl), fmt) 'N_gam:             ', N_gam,  '  ! Photon emission rate per particle (1/sec)'
+      nl=nl+1; write (lines(nl), fmt) 'P_gam:             ', P_gam,  '  ! Photon power emitted per particle (eV/sec)'
+      nl=nl+1; write (lines(nl), fmt) 'N_gam * <E_gam^2>: ', N_E2,   '  ! #photons * Mean energy^2 (eV^2/sec)'
+      nl=nl+1; write (lines(nl), fmt) 'H_a:               ', H_a,    '  ! a-mode curly H'
+      nl=nl+1; write (lines(nl), fmt) 'H_b:               ', H_b,    '  ! b-mode curly H'
+      nl=nl+1; write (lines(nl), fmt) 'g^3 * H_a          ', H_a * g_bend**3, '  ! Integrand of I_5a radiation integral'
+      nl=nl+1; write (lines(nl), fmt) 'g^3 * H_b:         ', H_b * g_bend**3, '  ! Integrand of I_5b radiation integral'
+      nl=nl+1; write (lines(nl), fmt) 'H_a * N_gam * <E^2>', H_a * N_E2
+    endif
+  endif
+
   fmt = '(2x, a, 3p2f11.4)'
-  nl=nl+1; write(lines(nl), *) ' '
+  nl=nl+1; write(lines(nl), *) ''
   nl=nl+1; write(lines(nl), *)   'Orbit: [mm, mrad]'
   nl=nl+1; write(lines(nl), fmt) "X  X':", orb%vec(1), orb%vec(2)
   nl=nl+1; write(lines(nl), fmt) "Y  Y':", orb%vec(3), orb%vec(4)

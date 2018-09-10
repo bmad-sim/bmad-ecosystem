@@ -329,10 +329,15 @@ if (cmd_word(1) /= 'do' .and. cmd_word(1) /= 'enddo') return
 
 if (cmd_word(1) == 'do') then
 
-  if (cmd_word(3) /= '=' .or. .not. is_integer(cmd_word(4)) .or. &
-      cmd_word(5) /= ',' .or. .not. is_integer(cmd_word(6)) .or. &
-     (cmd_word(7) /= '' .and. ( &
-      cmd_word(7) /= ',' .or. .not. is_integer(cmd_word(8)) .or. cmd_word(9) /= ''))) then
+  if (.not. is_integer(cmd_word(4)) .or. .not. is_integer(cmd_word(6)) .or. &
+                        (.not. is_integer(cmd_word(8)) .and. cmd_word(8) /= '')) then 
+    call out_io (s_error$, r_name, 'DO LOOP VARIABLES MUST BE INTEGERS.')
+    call tao_abort_command_file()
+    return
+  endif
+
+  if (cmd_word(3) /= '=' .or. cmd_word(5) /= ',' .or. cmd_word(9) /= '' .or. &
+      (cmd_word(7) == ',' .and. cmd_word(8) == '') .or. (cmd_word(7) /= ',' .and. cmd_word(7) /= '')) then
     call out_io (s_error$, r_name, 'MALFORMED DO STATEMENT.')
     call tao_abort_command_file()
     return

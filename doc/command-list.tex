@@ -285,7 +285,7 @@ The \vn{continue} command is used to continue reading of a suspended command fil
 
 Command loops can be implemented in a command file files. Format:
 \begin{example}
-  do <var> = <l_bound>, <u_bound> \{<incr>\}
+  do <var> = <l_bound>, <u_bound> \{, <incr>\}
     ...   ! use the syntax ``[[<var>]]'' to refer to a variable.
   enddo
 \end{example}
@@ -1537,7 +1537,8 @@ Format:
   taylor_map ...        ! Show transport Taylor map\sref{s:show.taylor}.
   track ...             ! Show phase space coords, Twiss, EM field, 
                         !   and other info along the tracked orbit \sref{s:show.track}.
-  twiss_and_orbit ...   ! Show Twiss and orbit info at given position \sref{s:show.twiss}.
+  twiss_and_orbit ...   ! Show Twiss and orbit info at given position including
+                        !   synchrotron radiation related parameters \sref{s:show.twiss}.
   universe ...          ! Show universe info \sref{s:show.universe}.
   use                   ! Show data and vars used in optimization \sref{s:show.use}.
   value ...             ! Show value of an expression \sref{s:show.value}.
@@ -2492,7 +2493,7 @@ Syntax:
 \end{example}
 
 The \vn{show twiss_and_orbit} shows Twiss and orbit information at a given longitudinal position
-\vn{<s_position>}. Also see \vn{show track}.
+\vn{<s_position>} including synchrotron radiation related parameters. Also see \vn{show track}.
 
 The default universe to use is the current default universe. This can be changed using the
 \vn{-universe} switch.

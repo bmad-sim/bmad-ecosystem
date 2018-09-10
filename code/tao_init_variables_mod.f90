@@ -53,7 +53,7 @@ logical, allocatable, save :: default_key_b(:)
 character(100) line, search_for_lat_eles
 
 logical err, free, gang
-logical searching, limited, do_standard_setup
+logical searching, limited
 logical, allocatable, save :: dflt_good_unis(:), good_unis(:)
 
 namelist / tao_var / v1_var, var, default_weight, default_step, default_key_delta, &
@@ -69,15 +69,11 @@ allocate (s%v1_var(0))
 s%n_var_used = 0
 s%n_v1_var_used = 0
 
-! Call the hook routine and then return if the standard init is not wanted.
-
-call tao_hook_init_var(do_standard_setup) 
-if (.not. do_standard_setup) return
-
 ! No var file then just setup the key table if needed.
 
 if (var_file == '') then
   call tao_setup_key_table ()
+  call tao_hook_init_var()
   return
 endif
 
@@ -117,7 +113,7 @@ do
   default_key_d(n) = default_key_delta
 enddo
 
-call tao_allocate_v1_var (n)
+call tao_allocate_v1_var (n, .false.)
 n_list = n
 
 ! Now fill in all the information
@@ -289,6 +285,10 @@ if (limited) then
   call out_io (s_fatal$, r_name, 'VARIABLES OUT OF RANGE ON STARTUP NOT PERMITTED!')
   stop
 endif
+
+! Call the hook routine.
+
+call tao_hook_init_var ()
 
 end subroutine tao_init_variables
 
@@ -602,24 +602,36 @@ end subroutine tao_var_stuffit1
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 
-subroutine tao_allocate_v1_var (n_v1)
+subroutine tao_allocate_v1_var (n_v1, save_old)
 
 implicit none
 
-integer i, n_v1
+type (tao_v1_var_struct), allocatable :: var_temp(:)
+integer i, n_v1, n0
+logical save_old
 
 !
 
-if (allocated(s%v1_var)) deallocate (s%v1_var)
-allocate (s%v1_var(n_v1))
+if (allocated(s%v1_var) .and. .not. save_old) deallocate (s%v1_var)
 
-do i = 1, n_v1
+if (allocated(s%v1_var)) then
+  n0 = size(s%v1_var)
+  call move_alloc(s%v1_var, var_temp)
+  allocate (s%v1_var(n_v1+n0))
+  s%v1_var(1:n0) = var_temp
+
+else
+  n0 = 0
+  allocate (s%v1_var(n_v1))
+  s%n_v1_var_used = 0
+  s%n_var_used = 0
+endif
+
+do i = n0+1, n_v1
   s%v1_var(i)%name = ''  ! blank name means it doesn't (yet) exist
   s%v1_var(i)%ix_v1_var = i
 enddo
 
-s%n_v1_var_used = 0
-s%n_var_used = 0
 
 end subroutine tao_allocate_v1_var
 
