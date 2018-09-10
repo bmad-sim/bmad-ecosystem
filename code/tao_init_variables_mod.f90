@@ -941,7 +941,7 @@ end subroutine tao_pointer_to_var_in_lattice2
 
 subroutine tao_allocate_var_array (n_var)
 
-type (tao_var_struct) :: var(size(s%var))
+type (tao_var_struct), allocatable :: var(:)
 type (tao_v1_var_struct), pointer :: v1
 
 integer i, j1, j2, n0, n_var
@@ -951,11 +951,7 @@ integer i, j1, j2, n0, n_var
 
 if (allocated(s%var)) then
   n0 = s%n_var_used
-  do i = 1, n0
-    allocate(var(i)%slave(size(s%var(i)%slave)))
-  enddo
-  var(1:n0) = s%var(1:n0)
-  deallocate (s%var)
+  call move_alloc(s%var, var)
   allocate (s%var(n_var))
   do i = 1, n0
     allocate(s%var(i)%slave(size(var(i)%slave)))
