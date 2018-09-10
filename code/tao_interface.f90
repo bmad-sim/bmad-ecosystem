@@ -374,9 +374,8 @@ subroutine tao_hook_init2 ()
   implicit none
 end subroutine
 
-subroutine tao_hook_init_var(do_standard_setup) 
+subroutine tao_hook_init_var()
   implicit none
-  logical do_standard_setup
 end subroutine
 
 subroutine tao_hook_lattice_calc (calc_ok)
