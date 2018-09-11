@@ -607,7 +607,7 @@ subroutine tao_allocate_v1_var (n_v1, save_old)
 implicit none
 
 type (tao_v1_var_struct), allocatable :: var_temp(:)
-integer i, n_v1, n0
+integer i, j, n_v1, n0
 logical save_old
 
 !
@@ -617,8 +617,13 @@ if (allocated(s%v1_var) .and. .not. save_old) deallocate (s%v1_var)
 if (allocated(s%v1_var)) then
   n0 = size(s%v1_var)
   call move_alloc(s%v1_var, var_temp)
-  allocate (s%v1_var(n_v1+n0))
+  allocate (s%v1_var(n0+n_v1))
   s%v1_var(1:n0) = var_temp
+  do i = 1, n0
+    do j = lbound(s%v1_var(i)%v, 1), ubound(s%v1_var(i)%v, 1)
+      s%v1_var(i)%v(j)%v1 => s%v1_var(i)
+    enddo
+  enddo
 
 else
   n0 = 0
@@ -627,11 +632,10 @@ else
   s%n_var_used = 0
 endif
 
-do i = n0+1, n_v1
+do i = n0+1, n0+n_v1
   s%v1_var(i)%name = ''  ! blank name means it doesn't (yet) exist
   s%v1_var(i)%ix_v1_var = i
 enddo
-
 
 end subroutine tao_allocate_v1_var
 
@@ -954,7 +958,7 @@ if (allocated(s%var)) then
   call move_alloc(s%var, var)
   allocate (s%var(n_var))
   do i = 1, n0
-    allocate(s%var(i)%slave(size(var(i)%slave)))
+    if(allocated(var(i)%slave)) allocate(s%var(i)%slave(size(var(i)%slave)))
   enddo
   s%var(1:n0) = var(1:n0)
 else
