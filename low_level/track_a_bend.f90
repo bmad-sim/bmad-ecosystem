@@ -121,7 +121,7 @@ do n = 1, n_step
       one_ct = step_len * angle / 2
     else
       stg = sin(angle) / g
-      one_ct = (1 - ct) / g
+      one_ct = -cos_one(angle) / g
     endif
 
     x  = orbit%vec(1)
@@ -143,13 +143,7 @@ do n = 1, n_step
     ! The following is to make sure that a beam entering on-axis remains 
     ! *exactly* on-axis.
 
-    if (pxy2 < 1d-5) then  
-      ff = pxy2 / (2 * rel_p)
-      fg = g * (pz - ff - ff*ff/2 - g_tot*x) - g_err
-    else
-      fg = g * p_long - g_tot * (1 + x * g)
-    endif
-
+    fg = g * sqrt_one(2*pz + pz**2 - pxy2) - g_tot * g * x - g_err  ! = g * p_long - g_tot * (1 + x * g)
     Dy  = sqrt(rel_p2 - py**2)
     px_t = px*ct + fg*stg
     dpx_t = -px*st*g + fg*ct
@@ -191,7 +185,23 @@ do n = 1, n_step
       dpx_t_dpy = ct*df_dpy
       dpx_t_dpz = ct*df_dpz
 
-      if (abs(g_tot) < 1d-5 * abs(g)) then
+      if (abs(angle) < 1d-5 .and. abs(g_tot * step_len) < 1d-5) then
+        mat6_i(1,1) = 1
+        mat6_i(1,2) = step_len / p_long + step_len * px**2 / p_long**3 - 3 * g_tot * px * (step_len * Dy)**2 / (2 * p_long**5) + &
+                      g * step_len * (step_len *px + x * (p_long - px**2 / p_long)) / p_long**2 + &
+                      g * step_len * px * (step_len * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) / p_long**4
+        mat6_i(1,3) = 0
+        mat6_i(1,4) = step_len * px *py / p_long**3 + &
+                      g_tot * step_len**2 * (py / p_long**3 - 3 * py * Dy**2 / (2 * p_long**5)) + &
+                      g * step_len * (-step_len * py - x * px * py / p_long) / p_long**2 + &
+                      g * step_len * (step_len * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) * py / p_long**4
+        mat6_i(1,5) = 0
+        mat6_i(1,6) = -step_len * px * rel_p / p_long**3 + &
+                      g_tot * step_len**2 * (3 * rel_p * Dy**2 / (2 * p_long**5) - rel_p / p_long**3) + &
+                      g * step_len * (step_len * rel_p + x * px * rel_p / p_long) / p_long**2 - &
+                      g * step_len * (step_len * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) * rel_p / p_long**4
+
+      elseif (abs(g_tot) < 1d-5 * abs(g)) then
         alpha = p_long * ct - px * st
         dalpha_dpx = dp_long_dpx * ct - st
         dalpha_dpy = dp_long_dpy * ct
@@ -217,45 +227,16 @@ do n = 1, n_step
                       +(-dalpha_dpz+(1+g*x)*dp_long_dpz)/(g*alpha) &
                       -(g_tot*st**2*(1+g*x)**2*Dy*Dy_dpz)/(g**2*alpha**3) &
                       +(g_tot**2*st**3*(1+g*x)**3*Dy*(ct*px+st*p_long)*Dy_dpz)/(g**3*alpha**5)
-
-      elseif (abs(angle) < 1d-5 .and. abs(g_tot * step_len) < 1d-5) then
-        mat6_i(1,1) = 1
-        mat6_i(1,2) = step_len / p_long + step_len * px**2 / p_long**3 - 3 * g_tot * px * (step_len * Dy)**2 / (2 * p_long**5) + &
-                      g * step_len * (step_len *px + x * (p_long - px**2 / p_long)) / p_long**2 + &
-                      g * step_len * px * (step_len * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) / p_long**4
-        mat6_i(1,3) = 0
-        mat6_i(1,4) = step_len * px *py / p_long**3 + &
-                      g_tot * step_len**2 * (py / p_long**3 - 3 * py * Dy**2 / (2 * p_long**5)) + &
-                      g * step_len * (-step_len * py - x * px * py / p_long) / p_long**2 + &
-                      g * step_len * (step_len * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) * py / p_long**4
-        mat6_i(1,5) = 0
-        mat6_i(1,6) = -step_len * px * rel_p / p_long**3 + &
-                      g_tot * step_len**2 * (3 * rel_p * Dy**2 / (2 * p_long**5) - rel_p / p_long**3) + &
-                      g * step_len * (step_len * rel_p + x * px * rel_p / p_long) / p_long**2 - &
-                      g * step_len * (step_len * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) * rel_p / p_long**4
-
       else
         eps = px_t**2 + py**2
         deps_dx  = 2*px_t*st*df_dx
         deps_dpx = 2*px_t*(ct+st*df_dpx)
         deps_dpy = 2*px_t*st*df_dpy + 2*py
         deps_dpz = 2*px_t*st*df_dpz
-!        if (eps < 1d-5 * rel_p2 ) then  ! use small angle approximation
-!          eps = eps / (2 * rel_p)
-!          deps_dx  = deps_dx / (2 * rel_p)
-!          deps_dpx = deps_dpx / (2 * rel_p)
-!          deps_dpy = deps_dpy / (2 * rel_p)
-!          deps_dpz = deps_dpz / (2 * rel_p) - (px_t**2 + py**2) / (2*rel_p2) 
-!          mat6_i(1,1) = (-dpx_t_dx + (eps/(2*rel_p) - 1)*deps_dx + eps*deps_dx/(2*rel_p))/g_tot
-!          mat6_i(1,2) = (-dpx_t_dpx + (eps/(2*rel_p) - 1)*deps_dpx + eps*deps_dpx/(2*rel_p))/g_tot
-!          mat6_i(1,4) = (-dpx_t_dpy + (eps/(2*rel_p) - 1)*deps_dpy + eps*deps_dpy/(2*rel_p))/g_tot
-!          mat6_i(1,6) = (1 - dpx_t_dpz + (eps/(2*rel_p) - 1)*deps_dpz + eps*(deps_dpz/(2*rel_p) - eps/(2*rel_p2)))/g_tot
-!        else
-          mat6_i(1,1) = (-dpx_t_dx - deps_dx/(2*sqrt(rel_p2 - eps)))/g_tot
-          mat6_i(1,2) = (-dpx_t_dpx - deps_dpx/(2*sqrt(rel_p2 - eps)))/g_tot
-          mat6_i(1,4) = (-dpx_t_dpy - deps_dpy/(2*sqrt(rel_p2 - eps)))/g_tot
-          mat6_i(1,6) = (-dpx_t_dpz + (2*rel_p - deps_dpz)/(2*sqrt(rel_p2 - eps)))/g_tot
-!        endif
+        mat6_i(1,1) = (-dpx_t_dx - deps_dx/(2*sqrt(rel_p2 - eps)))/g_tot
+        mat6_i(1,2) = (-dpx_t_dpx - deps_dpx/(2*sqrt(rel_p2 - eps)))/g_tot
+        mat6_i(1,4) = (-dpx_t_dpy - deps_dpy/(2*sqrt(rel_p2 - eps)))/g_tot
+        mat6_i(1,6) = (-dpx_t_dpz + (2*rel_p - deps_dpz)/(2*sqrt(rel_p2 - eps)))/g_tot
       endif
       
       mat6_i(2,1) = -g_tot * st
@@ -264,6 +245,10 @@ do n = 1, n_step
       mat6_i(2,6) = rel_p * st / p_long
 
       if (abs(g_tot) < 1d-5 * abs(g)) then
+        alpha = p_long * ct - px * st
+        dalpha_dpx = dp_long_dpx * ct - st
+        dalpha_dpy = dp_long_dpy * ct
+        dalpha_dpz = dp_long_dpz * ct
         beta = (1 + g * x) * st / (g * alpha) - &
                g_tot * (px * ct + p_long * st) * (st * (1 + g * x))**2 / (2 * g**2 * alpha**3)
         dbeta_dx  = st/alpha - (g_tot*st**2*(1+g*x)*(ct*px+st*p_long))/(g*alpha**3)
@@ -320,6 +305,7 @@ do n = 1, n_step
     orbit%vec(4) = py
 
     if (abs(g_tot) < 1d-5 * abs(g)) then
+      alpha = p_long * ct - px * st
       beta = (1 + g * x) * st / (g * alpha) - &
              g_tot * (px * ct + p_long * st) * (st * (1 + g * x))**2 / (2 * g**2 * alpha**3)
       orbit%vec(3) = y + py * beta

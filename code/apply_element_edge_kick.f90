@@ -264,7 +264,7 @@ if (hard_ele_field_calc == bmad_standard$) then
 
     if (hard_ele%key == sbend$ .and. nint(hard_ele%value(exact_multipoles$)) /= off$) then
       call bend_exact_multipole_field (hard_ele, param, orb, .true., field, .false., .true.)
-      call apply_energy_kick (-f * field%phi, orb, [-f * field%E(1), -f * field%E(2)], mat6, make_matrix)
+      call apply_energy_kick (-f * field%phi, orb, [f * field%E(1), f * field%E(2)], mat6, make_matrix)
       if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -f * field%phi])
 
     else
