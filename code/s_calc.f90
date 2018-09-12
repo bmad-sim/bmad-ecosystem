@@ -74,6 +74,8 @@ do n = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(n)
   lord%bookkeeping_state%s_position = ok$
 
+  ! Important: Do not mangle null_eles since null_eles are used by bmad_parser to preserve 
+  ! information on placement of drifts that have been superimposed upon.
   if (lord%key == null_ele$) cycle
   if (lord%n_slave == 0) cycle  ! Can happen when manipulating a lattice.
 
