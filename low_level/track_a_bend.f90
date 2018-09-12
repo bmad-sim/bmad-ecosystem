@@ -45,7 +45,6 @@ real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0
 integer n, n_step, ix_pole_max, ix_elec_max
 
 logical, optional :: make_matrix
-logical drifting
 
 !-----------------------------------------------------------------------
 
@@ -75,7 +74,6 @@ if (nint(ele%value(exact_multipoles$)) /= off$) then
   k_1 = 0  ! Is folded in with multipoles.
   ix_pole_max = max(1, ix_pole_max)
 endif
-drifting = .false.
 
 if (.not. ele%is_on) then
   g_err = -g
@@ -108,9 +106,8 @@ do n = 1, n_step
     call sbend_body_with_k1_map (ele, param, n_step, orbit, mat6, make_matrix)
     orbit%vec(5) = orbit%vec(5) + low_energy_z_correction(orbit, ele, step_len, mat6, make_matrix)
 
-  elseif (g == 0 .and. g_err == 0) then
+  elseif ((g == 0 .and. g_err == 0) .or. step_len == 0) then
     call track_a_drift (orbit, step_len, mat6, make_matrix)
-    drifting = .true.
 
   !-----------------------------------------------------------------------
   ! Track through main body...

@@ -304,12 +304,14 @@ do j = 0, max(ix_mag_max, ix_elec_max)+1
   call add_this_field (pole_elec_coef(j), field%E, field%dE, electric$)
 enddo
 
-f = ele%value(p0c$) / (c_light * charge_of(param%particle) * ele%value(l$))
-field%B = field%B * f
-if (do_dfield_calc) field%dB = field%dB * f
-if (logic_option(.false., calc_potential)) then
-  field%phi_B = field%phi_B * f
-  field%a = field%a * f
+if (ix_mag_max >= 0) then
+  f = ele%value(p0c$) / (c_light * charge_of(param%particle) * ele%value(l$))
+  field%B = field%B * f
+  if (do_dfield_calc) field%dB = field%dB * f
+  if (logic_option(.false., calc_potential)) then
+    field%phi_B = field%phi_B * f
+    field%a = field%a * f
+  endif
 endif
 
 !------------------------------------------------------------------------
