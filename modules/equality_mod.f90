@@ -2301,6 +2301,8 @@ is_eq = is_eq .and. (f1%ptc_max_fringe_order == f2%ptc_max_fringe_order)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%max_num_runge_kutta_step == f2%max_num_runge_kutta_step)
 !! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%rf_phase_below_transition_ref .eqv. f2%rf_phase_below_transition_ref)
+!! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%use_hard_edge_drifts .eqv. f2%use_hard_edge_drifts)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%sr_wakes_on .eqv. f2%sr_wakes_on)
@@ -2316,6 +2318,8 @@ is_eq = is_eq .and. (f1%space_charge_on .eqv. f2%space_charge_on)
 is_eq = is_eq .and. (f1%coherent_synch_rad_on .eqv. f2%coherent_synch_rad_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%spin_tracking_on .eqv. f2%spin_tracking_on)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%spin_sokolov_ternov_flipping_on .eqv. f2%spin_sokolov_ternov_flipping_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%radiation_damping_on .eqv. f2%radiation_damping_on)
 !! f_side.equality_test[logical, 0, NOT]
@@ -2919,6 +2923,8 @@ logical is_eq
 
 is_eq = .true.
 !! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%centroid == f2%centroid)
+!! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%x == f2%x)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%y == f2%y)
@@ -2930,8 +2936,6 @@ is_eq = is_eq .and. (f1%a == f2%a)
 is_eq = is_eq .and. (f1%b == f2%b)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%c == f2%c)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%centroid == f2%centroid)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%spin == f2%spin)
 !! f_side.equality_test[real, 2, NOT]

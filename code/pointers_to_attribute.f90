@@ -35,8 +35,8 @@
 !                     Size of ptr_array will be set to 0 if there is a problem.
 !   err_flag     -- Logical: Set True if attribtute not found.
 !   eles(:)      -- Ele_pointer_struct, optional, allocatable: Array of element pointers.
-!                     size(eles) = size(ptr_array). 
-!                     If there are no associated lattice elements, eles(i)%ele will be null.
+!                     size(eles) = size(ptr_array). If there are no associated lattice 
+!                     elements (EG if ele_name = 'BEAM_START'), eles(i)%ele will be null.
 !                     
 !   ix_attrib    -- Integer, optional: If applicable then this is the index to the 
 !                     attribute in the ele%value(:) array.
