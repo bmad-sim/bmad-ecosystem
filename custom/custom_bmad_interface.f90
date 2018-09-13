@@ -77,11 +77,12 @@ subroutine ele_to_fibre_hook (ele, ptc_fibre, param)
   type (lat_param_struct) param
 end subroutine
 
-subroutine radiation_integrals_custom (lat, ir, orb, err_flag)
+subroutine radiation_integrals_custom (lat, ir, orb, rad_int1, err_flag)
   import
   implicit none
   type (lat_struct) lat
   type (coord_struct) orb(0:)
+  type (rad_int1_struct) rad_int1
   integer ir
   logical err_flag
 end subroutine

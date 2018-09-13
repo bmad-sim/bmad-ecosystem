@@ -453,7 +453,7 @@ do ir = 1, branch%n_ele_track
   ! custom
 
   if (ele%key == custom$) then
-    call radiation_integrals_custom (lat, ir, orbit, err)
+    call radiation_integrals_custom (lat, ir, orbit, rad_int1, err)
     cycle
   endif
 
