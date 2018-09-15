@@ -710,6 +710,7 @@ type (ele_struct) ele
 
 real(rp) an(0:), bn(0:)
 real(rp) f, g, dpz, kx, ky, rel_p2, dk(2,2), alpha, kx_tot, ky_tot, dk_tot(2,2), kmat(6,6), dk_dp
+real(rp) E0, E1, mc2
 real(rp), optional :: scale, mat6(6,6)
 
 integer, optional :: pole_type
@@ -768,6 +769,10 @@ else  ! Electric
     f = 1 / (1 + orbit%vec(6))
     g = orb0%vec(5) * orbit%beta * (1 - orbit%beta**2) / (orb0%beta * (1 + orbit%vec(6)))
 
+    E0 = orb0%p0c * (1 + orb0%vec(6)) / orb0%beta
+    E1 = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
+    mc2 = mass_of(orbit%species)
+
     kmat(2,1) = dk_tot(1,1)
     kmat(2,3) = dk_tot(1,2)
     kmat(2,6) = -dk_dp * kx_tot
@@ -776,15 +781,16 @@ else  ! Electric
     kmat(4,3) = dk_tot(2,2)
     kmat(4,6) = -dk_dp * ky_tot
 
-    kmat(6,1) = f * (orbit%vec(2) * dk_tot(1,1) + orbit%vec(4) * dk_tot(1,2))
+    kmat(6,1) = f * (orbit%vec(2) * dk_tot(1,1) + orbit%vec(4) * dk_tot(2,1))
     kmat(6,2) = f * kx_tot
-    kmat(6,3) = f * (orbit%vec(2) * dk_tot(2,1) + orbit%vec(4) * dk_tot(2,2))
+    kmat(6,3) = f * (orbit%vec(2) * dk_tot(1,2) + orbit%vec(4) * dk_tot(2,2))
     kmat(6,4) = f * ky_tot
     kmat(6,6) = f * ((1 + orb0%vec(6)) - orbit%vec(2) * dk_dp * kx_tot - orbit%vec(4) * dk_dp * ky_tot)
 
     kmat(5,1:4) = g * kmat(6,1:4)
     kmat(5,5) = orbit%beta / orb0%beta
-    kmat(5,6) = 0
+    kmat(5,6) = orb0%vec(5) * mc2**2 * orbit%p0c * (kmat(6,6) / (orb0%beta * E1**3) - &
+                                                            orbit%beta / (orb0%beta**2 * E0**3))
 
     mat6 = matmul(kmat, mat6)
   endif
