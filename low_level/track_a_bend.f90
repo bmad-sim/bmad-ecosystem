@@ -359,7 +359,7 @@ type (em_field_struct) field
 type (coord_struct) orb0
 
 real(rp) coef, ps, ps2, kx, ky, alpha, f_coef, df_coef_dx, kmat(6,6), rel_p0
-real(rp) mc2, dk_dp, pc0, E0, E1, f, df_dps_coef
+real(rp) mc2, dk_dp, pc0, E0, E1, f, df_dps_coef, dkm(2,2), f_p0c, Ex, Ey
 integer i, charge
 
 !
@@ -367,87 +367,114 @@ integer i, charge
 charge = charge_of(orbit%species)
 
 if (nint(ele%value(exact_multipoles$)) /= off$ .and. ele%value(g$) /= 0) then
-
   call bend_exact_multipole_field (ele, param, orbit, .true., field, make_matrix)
 
-  if (ix_pole_max > -1) then
-    orb0 = orbit
-    f_coef = coef * c_dir * step_len * (1 + ele%value(g$) * orbit%vec(1))
-    orbit%vec(2) = orbit%vec(2) - f_coef * field%B(2)
-    orbit%vec(4) = orbit%vec(4) + f_coef * field%B(1)
+else
+  field = em_field_struct()
+  f_p0c = ele%value(p0c$) / (c_light * charge)
 
+  do i = 0, ix_pole_max
+    if (an(i) == 0 .and. bn(i) == 0) cycle
     if (logic_option(.false., make_matrix)) then
-      df_coef_dx = coef * c_dir * step_len * ele%value(g$)
-
-      mat6(2,:) = mat6(2,:) - (f_coef * field%dB(2,1) + df_coef_dx * field%B(2)) * mat6(1,:) - & 
-                              (f_coef * field%dB(2,2)) * mat6(3,:)
-      mat6(4,:) = mat6(4,:) + (f_coef * field%dB(1,1) + df_coef_dx * field%B(1)) * mat6(1,:) + & 
-                              (f_coef * field%dB(1,2)) * mat6(3,:)
+      call ab_multipole_kick(an(i), bn(i), i, orbit%species, 0, orbit, kx, ky, dkm)
+    else
+      call ab_multipole_kick(an(i), bn(i), i, orbit%species, 0, orbit, kx, ky)
     endif
-  endif
-
-
-  if (ix_elec_max > -1) then
-    orb0 = orbit
-    rel_p0 = 1 + orb0%vec(6)
-    ps2 = rel_p0**2 - orb0%vec(2)**2 - orb0%vec(4)**2
-    ps = sqrt(ps2) / rel_p0
-    f_coef = coef * step_len * (1 + ele%value(g$) * orb0%vec(1)) * charge / (ps * orb0%beta * orb0%p0c)
-    Kx = f_coef * field%E(1)
-    Ky = f_coef * field%E(2)
-    alpha = (kx * (2*orb0%vec(2) + kx) + ky * (2*orb0%vec(4) + ky)) / rel_p0**2
-
-    orbit%vec(2) = orb0%vec(2) + Kx
-    orbit%vec(4) = orb0%vec(4) + Ky
-    orbit%vec(6) = orb0%vec(6) + rel_p0 * sqrt_one(alpha)
-
-    orbit%beta = (1 + orbit%vec(6)) / sqrt(ps2 + orbit%vec(2)**2 + orbit%vec(4)**2 + (mass_of(orbit%species)/orbit%p0c)**2)
-
-    orbit%vec(5) = orb0%vec(5) * orbit%beta/ orb0%beta
-
+    field%B(1) = field%B(1) + f_p0c * ky / ele%value(l$)
+    field%B(2) = field%B(2) - f_p0c * kx / ele%value(l$)
     if (logic_option(.false., make_matrix)) then
-      df_coef_dx = coef * step_len * ele%value(g$) * charge / (ps * orb0%beta * orb0%p0c)
-      df_dps_coef = 1 / (ps**2 * rel_p0**2)
-      mc2 = mass_of(orbit%species)
-      pc0 = rel_p0 * orb0%p0c
-      dk_dp = (mc2 * orb0%beta / (rel_p0 * orb0%p0c))**2 / rel_p0 + df_dps_coef * (orb0%vec(2)**2 + orb0%vec(4)**2) / rel_p0
-      E0 = orb0%p0c * rel_p0 / orb0%beta
-      E1 = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
-
-      call mat_make_unit(kmat)
-      kmat(2,1) =  f_coef * field%dE(1,1) + df_coef_dx * field%E(1)
-      kmat(2,2) =  1 + f_coef * field%E(1) * orb0%vec(2) * df_dps_coef
-      kmat(2,3) =  f_coef * field%dE(1,2)
-      kmat(2,4) =  f_coef * field%E(1) * orb0%vec(4) * df_dps_coef
-      kmat(2,6) = -f_coef * field%E(1) * (mc2**2 * orb0%p0c / (E0**2 * pc0) + df_dps_coef * (orb0%vec(2)**2 + orb0%vec(4)**2) / rel_p0)
-
-      kmat(4,1) =  f_coef * field%dE(2,1) + df_coef_dx * field%E(2)
-      kmat(4,2) =  f_coef * field%E(2) * orb0%vec(2) * df_dps_coef
-      kmat(4,3) =  f_coef * field%dE(2,2)
-      kmat(4,4) =  1 + f_coef * field%E(2) * orb0%vec(4) * df_dps_coef
-      kmat(4,6) = -f_coef * field%E(2) * (mc2**2 * orb0%p0c / (E0**2 * pc0) + df_dps_coef * (orb0%vec(2)**2 + orb0%vec(4)**2) / rel_p0)
-
-      f = 1 / (1 + orbit%vec(6))
-      kmat(6,1) = f * (orbit%vec(2) * (f_coef * field%dE(1,1) + df_coef_dx * field%E(1)) + orbit%vec(4) * f_coef * field%dE(2,1))
-      kmat(6,2) = f * Kx * (1.0_rp + orbit%vec(2) * orb0%vec(2) * df_dps_coef)
-      kmat(6,3) = f * (orbit%vec(2) * f_coef * field%dE(1,2) + orbit%vec(4) * f_coef * field%dE(2,2))
-      kmat(6,4) = f * Ky * (1.0_rp + orbit%vec(4) * orb0%vec(4) * df_dps_coef)
-      kmat(6,6) = f * (rel_p0 - orbit%vec(2) * dk_dp * Kx - orbit%vec(4) * dk_dp * Ky)
-
-      kmat(5,1:4) = (mc2**2 * orb0%p0c * orb0%vec(5) / (orb0%beta * E1**3)) * kmat(6,1:4) 
-      kmat(5,5) = orbit%beta / orb0%beta
-      kmat(5,6) = orb0%vec(5) * mc2**2 * orbit%p0c * (kmat(6,6) / (orb0%beta * E1**3) - orbit%beta / (orb0%beta**2 * E0**3))
-
-      mat6 = matmul(kmat, mat6)
+      field%dB(1,1) = field%dB(1,1) + f_p0c * dkm(2,1) / ele%value(l$)
+      field%dB(1,2) = field%dB(1,2) + f_p0c * dkm(2,2) / ele%value(l$)
+      field%dB(2,1) = field%dB(2,1) - f_p0c * dkm(1,1) / ele%value(l$)
+      field%dB(2,2) = field%dB(2,2) - f_p0c * dkm(1,2) / ele%value(l$)
     endif
-  endif
+  enddo
+
+  ! Add electric multipoles
+
+  call multipole_ele_to_ab(ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
+  do i = 0, ix_elec_max
+    if (an_elec(i) == 0 .and. bn_elec(i) == 0) cycle
+    call elec_multipole_field(an_elec(i), bn_elec(i), i, orbit, Ex, Ey, dkm, .true.)
+    field%E(1) = field%E(1) + Ex
+    field%E(2) = field%E(2) + Ey
+    field%dE(1:2,1:2) = field%dE(1:2,1:2) + dkm
+  enddo
+endif
 
 !
 
-else
-  f_coef = coef * (1 + ele%value(g$) * orbit%vec(1))
-  if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, f_coef * r_step,   mat6, make_matrix)
-  if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, f_coef * step_len, mat6, make_matrix)
+
+if (ix_pole_max > -1) then
+  orb0 = orbit
+  f_coef = coef * c_dir * step_len * (1 + ele%value(g$) * orbit%vec(1)) * c_light * charge / orb0%p0c
+  orbit%vec(2) = orbit%vec(2) - f_coef * field%B(2)
+  orbit%vec(4) = orbit%vec(4) + f_coef * field%B(1)
+
+  if (logic_option(.false., make_matrix)) then
+    df_coef_dx = coef * c_dir * step_len * ele%value(g$) * c_light * charge / orb0%p0c
+
+    mat6(2,:) = mat6(2,:) - (f_coef * field%dB(2,1) + df_coef_dx * field%B(2)) * mat6(1,:) - & 
+                            (f_coef * field%dB(2,2)) * mat6(3,:)
+    mat6(4,:) = mat6(4,:) + (f_coef * field%dB(1,1) + df_coef_dx * field%B(1)) * mat6(1,:) + & 
+                            (f_coef * field%dB(1,2)) * mat6(3,:)
+  endif
+endif
+
+
+if (ix_elec_max > -1) then
+  orb0 = orbit
+  rel_p0 = 1 + orb0%vec(6)
+  ps2 = rel_p0**2 - orb0%vec(2)**2 - orb0%vec(4)**2
+  ps = sqrt(ps2) / rel_p0
+  f_coef = coef * step_len * (1 + ele%value(g$) * orb0%vec(1)) * charge / (ps * orb0%beta * orb0%p0c)
+  Kx = f_coef * field%E(1)
+  Ky = f_coef * field%E(2)
+  alpha = (kx * (2*orb0%vec(2) + kx) + ky * (2*orb0%vec(4) + ky)) / rel_p0**2
+
+  orbit%vec(2) = orb0%vec(2) + Kx
+  orbit%vec(4) = orb0%vec(4) + Ky
+  orbit%vec(6) = orb0%vec(6) + rel_p0 * sqrt_one(alpha)
+
+  orbit%beta = (1 + orbit%vec(6)) / sqrt(ps2 + orbit%vec(2)**2 + orbit%vec(4)**2 + (mass_of(orbit%species)/orbit%p0c)**2)
+
+  orbit%vec(5) = orb0%vec(5) * orbit%beta/ orb0%beta
+
+  if (logic_option(.false., make_matrix)) then
+    df_coef_dx = coef * step_len * ele%value(g$) * charge / (ps * orb0%beta * orb0%p0c)
+    df_dps_coef = 1 / (ps**2 * rel_p0**2)
+    mc2 = mass_of(orbit%species)
+    pc0 = rel_p0 * orb0%p0c
+    dk_dp = (mc2 * orb0%beta / (rel_p0 * orb0%p0c))**2 / rel_p0 + df_dps_coef * (orb0%vec(2)**2 + orb0%vec(4)**2) / rel_p0
+    E0 = orb0%p0c * rel_p0 / orb0%beta
+    E1 = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
+
+    call mat_make_unit(kmat)
+    kmat(2,1) =  f_coef * field%dE(1,1) + df_coef_dx * field%E(1)
+    kmat(2,2) =  1 + f_coef * field%E(1) * orb0%vec(2) * df_dps_coef
+    kmat(2,3) =  f_coef * field%dE(1,2)
+    kmat(2,4) =  f_coef * field%E(1) * orb0%vec(4) * df_dps_coef
+    kmat(2,6) = -f_coef * field%E(1) * (mc2**2 * orb0%p0c / (E0**2 * pc0) + df_dps_coef * (orb0%vec(2)**2 + orb0%vec(4)**2) / rel_p0)
+
+    kmat(4,1) =  f_coef * field%dE(2,1) + df_coef_dx * field%E(2)
+    kmat(4,2) =  f_coef * field%E(2) * orb0%vec(2) * df_dps_coef
+    kmat(4,3) =  f_coef * field%dE(2,2)
+    kmat(4,4) =  1 + f_coef * field%E(2) * orb0%vec(4) * df_dps_coef
+    kmat(4,6) = -f_coef * field%E(2) * (mc2**2 * orb0%p0c / (E0**2 * pc0) + df_dps_coef * (orb0%vec(2)**2 + orb0%vec(4)**2) / rel_p0)
+
+    f = 1 / (1 + orbit%vec(6))
+    kmat(6,1) = f * (orbit%vec(2) * (f_coef * field%dE(1,1) + df_coef_dx * field%E(1)) + orbit%vec(4) * f_coef * field%dE(2,1))
+    kmat(6,2) = f * Kx * (1.0_rp + orbit%vec(2) * orb0%vec(2) * df_dps_coef)
+    kmat(6,3) = f * (orbit%vec(2) * f_coef * field%dE(1,2) + orbit%vec(4) * f_coef * field%dE(2,2))
+    kmat(6,4) = f * Ky * (1.0_rp + orbit%vec(4) * orb0%vec(4) * df_dps_coef)
+    kmat(6,6) = f * (rel_p0 - orbit%vec(2) * dk_dp * Kx - orbit%vec(4) * dk_dp * Ky)
+
+    kmat(5,1:4) = (mc2**2 * orb0%p0c * orb0%vec(5) / (orb0%beta * E1**3)) * kmat(6,1:4) 
+    kmat(5,5) = orbit%beta / orb0%beta
+    kmat(5,6) = orb0%vec(5) * mc2**2 * orbit%p0c * (kmat(6,6) / (orb0%beta * E1**3) - orbit%beta / (orb0%beta**2 * E0**3))
+
+    mat6 = matmul(kmat, mat6)
+  endif
 endif
 
 end subroutine apply_multipole_kicks
