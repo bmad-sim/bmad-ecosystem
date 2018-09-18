@@ -344,10 +344,10 @@ func_add_bmad_path () {
 #-----------------------------------------------------------------
 # Main Script
 #
-# If this script is run in the top-level directory of a 
-# distribution source tree, use that directory, otherwise
-# check to see if a directory has been specified in the
-# DIST_BASE_DIR environment variable.
+# Check to see if a directory has been specified in the
+# DIST_BASE_DIR environment variable.  Otherwise, if this 
+# script is run in the top-level directory of a 
+# distribution source tree, use that directory. 
 #
 # If neither, cough up an error message prompting the user
 # to try again.
@@ -366,18 +366,18 @@ CWD=$(pwd)
 CWD_DIR_CHECK=$(func_is_dir_toplevel ${CWD})
 DIST_BASE_DIR_CHECK=$(func_is_dir_toplevel ${DIST_BASE_DIR})
 
-if ( [ "${CWD_DIR_CHECK}" == "Y" ] ) ; then
-    export DIST_BASE_DIR=${CWD}
-    echo -e "\nCurrent working directory is the root of a Bmad Distribution tree." \
+if ( [ "${DIST_BASE_DIR_CHECK}" == "Y" ] ) ; then
+    echo -e "\nThe working directory of the Bmad Distribution tree is defined by DIST_BASE_DIR." \
 	> ${DIST_SETUP_LOG}
 
     func_set_os_env
     func_set_bmad_env
     func_add_bmad_path
     func_check_fortran_version
-    
-elif ( [ "${DIST_BASE_DIR_CHECK}" == "Y" ] ) ; then
-    echo -e "\nThe working directory of the Bmad Distribution tree is defined by DIST_BASE_DIR." \
+
+elif ( [ "${CWD_DIR_CHECK}" == "Y" ] ) ; then
+    export DIST_BASE_DIR=${CWD}
+    echo -e "\nCurrent working directory is the root of a Bmad Distribution tree." \
 	> ${DIST_SETUP_LOG}
 
     func_set_os_env
