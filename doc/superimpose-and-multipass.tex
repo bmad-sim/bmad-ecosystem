@@ -462,11 +462,9 @@ elements. If \vn{m_line} was {\em not} marked \vn{multipass}, the
 tracking part of the lattice would have four \vn{A} and two \vn{B}
 elements and there would be no lord elements.
 
-Sublines contained in a multipass line are handled differently
-depending upon whether a subline is itself marked \vn{multipass} or
-not. When a subline is {\em not} designated \vn{multipass}, the result
-is the same as if the elements of the subline where substituted directly
-in place of the subline in the containing line. For example:
+Sublines contained in a multipass line that are themselves not marked multipass act the same as if
+the elements of the subline where substituted directly in place of the subline in the containing
+line. For example:
 \begin{example}
   a_line: line = (A)
   m_line: line[multipass] = (a_line, a_line, B)
@@ -479,36 +477,8 @@ is the same as the previous example where \vn{m_line} was defined
 to be \vn{(A, A, B)}. That is, there will be three physical elements
 represented by three multipass lords.
 
-When a subline is marked \vn{multipass}, the evaluation of whether the
-elements that come from this subline in the expanded lattice are
-physical distinct or not is independent of whether the line
-containing the subline is marked multipass or not. For example:
-\begin{example}
-  a_line: line[multipass] = (A)
-  m_line: line[multipass] = (a_line, a_line, B)
-  u_line: line = (m_line, m_line)
-  use, u_line
-\end{example}
-Here \vn{a_line} is marked as \vn{multipass} so the \vn{A} element
-that is contained in it will always represent a single physical 
-element. In this case the tracking part of the lattice will be:
-\begin{example}
-  A\B1, A\B2, B\B1, A\B3, A\B4, B\B2
-\end{example}
-There will be two lord elements representing the two physically
-distinct elements. One multipass lord element will be \vn{A} and this
-lord will control the four \vn{A\B n} elements in the tracking part of
-the lattice. The \vn{B} lord will control the two \vn{B\B n} elements
-in the tracking part of the lattice. Notice that if \vn{m_line} was not
-marked as \vn{multipass} in the above example, the four \vn{A\B n} elements
-in the tracking part of the lattice would still be considered one physical 
-element and would still have a single \vn{A} lord. But in this case,
-there would be two \vn{B} elements in the tracking part of the lattice
-and no \vn{B} lord.
-
-Multipass lines do not have to be at the same ``level'' in terms of
-nesting of lines within lines. Additionally, multipass can be used with line reversal
-(\sref{s:ele.reverse}). Example:
+Multipass lines do not have to be at the same ``level'' in terms of nesting of lines within
+lines. Additionally, multipass can be used with line reversal (\sref{s:ele.reverse}). Example:
 \begin{example}
   m_line: line[multipass] = (A, B)
   m2_line: line = (m_line)
@@ -521,47 +491,75 @@ Here the tracking part of the lattice is
 \begin{example}
   A\B1, B\B1, ..., B\B2 (r), A\B2 (r)
 \end{example}
-The ``(r)'' here just denotes that the element is reversed and is not
-part of the name. The lattice will have a multipass lord \vn{A} that
-controls the two \vn{A\B n} elements and similarly with \vn{B}. This
-lattice represents the case where a particle goes through the m_line
-in the ``forward'' direction, gets turned around in the \vn{arc} line,
-and then passes back through \vn{m_line} in the reverse direction.
-While it is possible to use reflection ``$-$'' (\sref{s:lines.wo.arg})
-instead of reversal ``$--$'' (\sref{s:ele.reverse}), reflection here does not make physical
-sense.  Needed here is a reversing patch \vn{P} (\sref{s:patch})
-between reversed and unreversed elements.
+The ``(r)'' here just denotes that the element is reversed and is not part of the name. The lattice
+will have a multipass lord \vn{A} that controls the two \vn{A\B n} elements and similarly with
+\vn{B}. This lattice represents the case where a particle goes through the m_line in the ``forward''
+direction, gets turned around in the \vn{arc} line, and then passes back through \vn{m_line} in the
+reverse direction.  While it is possible to use reflection ``$-$'' (\sref{s:lines.wo.arg}) instead
+of reversal ``$--$'' (\sref{s:ele.reverse}), reflection here does not make physical sense.  Needed
+here is a reversing patch \vn{P} (\sref{s:patch}) between reversed and unreversed elements.
 
-The general rule for deciding how to group multipass elements into slave groups which represent the
-same physical element is the following. For any given element in the lattice, this element has some
-line it came from. Call this line $L_0$ and denote by $n_0$ the index where the element under
-consideration is in $L_0$ line (the first element in $L_0$ has index 1, etc.). The $L_0$ line in
-turn came from some other line. Call this line $L_1$ and denote by $n_1$ the position of $L_0$ in
-$L_1$. This chain of lines $L_0$, $L_1$, ..., $L_n$ ends at some point and the last (top) line $L_n$
-will be one of the root lines listed in the \vn{use} statement (\sref{s:use}). For any given element in the
-lattice, starting with $L_0$ and proceeding upwards through the chain, let $L_m$ be the first line
-reached that is marked as \vn{multipass}. If no such line exists for a given element then that
-element is not part of any multipass grouping and is ignored. All lattice elements that have the
-same chain $L_0$, ..., $L_m$ (where $L_m$ is the lowest multipass line) and have the same position
-indexes $n_0$, ..., $n_m$ represent the same physical element and are slaved together. For example,
-using the example above, the first element of the lattice, \vn{A\B1}, has the chain of lines 
+The procedure for how to group lattice elements into multipass slave groups which represent the same
+physical element is done by grouping all lattice elements that have the same multipass
+``\vn{signature}''. For any given element in the lattice, this element has some line it came
+from. Call this line $L_0$ and denote by $n_0$ the index where the element under consideration is in
+$L_0$ line (the first element in $L_0$ has index 1, etc.). The $L_0$ line in turn was contained in
+some other line. Call this line $L_1$ and denote by $n_1$ the position of $L_0$ in $L_1$. This chain
+of lines $L_0$, $L_1$, ..., $L_n$ ends at some point and the last (top) line $L_n$ will be one of
+the root lines listed in the \vn{use} statement (\sref{s:use}). For any given element in the
+lattice, starting with $L_0$ and proceeding upwards through the chain, let $L_m$ be the first line in
+the chain that is marked as \vn{multipass}. If no such line exists for a given element, $L_m$ is
+taken to be the top line $L_n$. The \vn{signature} of the elment is the list of (line, position)
+pairs $(L_0, n_0)$, ..., $(L_m, n_m)$ and two elements have the same signature if this list is the
+same for both. Elements that have the same signaturethe same physical element and are slaved
+together. For example, using the example above, the first element of the lattice, \vn{A\B1}, has the
+chain of (line, position): 
 \begin{example}
-  \(L_0, n_0\) = m_line, 1
-  \(L_1, n_1\) = u_line, 1
+  (\(L_0, n_0\)) = (m_line, 1)
+  (\(L_1, n_1\)) = (u_line, 1)
 \end{example} 
 The last element in the lattice, (\vn{A\B2}), has the chain
 \begin{example}
-  \(L_0, n_0\) = m_line, 1
-  \(L_1, n_1\) = m2_line, 1
-  \(L_2, n_2\) = u_line, 3
+  (\(L_0, n_0\)) = (m_line, 1)
+  (\(L_1, n_1\)) = (m2_line, 1)
+  (\(L_2, n_2\)) = (u_line, 3)
 \end{example}
-Cutting the chains at the first multipass line, \vn{m_line}, results in identical chains (each with
-a single line) so the two elements will be slaved together.
+The signature for both elements is just the single (line, position) pair \vn{(m_line, 1)}. 
+Since the signatures are identical, the two elements will be slaved together.
 
-Notice that the global coordinates (\sref{s:global}) of the slaves of
-a given multipass lord are not constrained by \bmad to be the same. It
-is up to the lattice designer to make sure that the physical positions of
-the slaves makes sense (that is, are the same).
+As a final example, consider the case where a subline of a multipass line is also marked
+\vn{multipass}:
+\begin{example}
+  a_line: line[multipass] = (A)
+  m_line: line[multipass] = (a_line, a_line, B)
+  u_line: line = (m_line, m_line)
+  use, u_line
+\end{example}
+Here \vn{a_line} is marked as \vn{multipass} so the \vn{A} element that is contained in it has the
+signature \vn{(a_line, 1)}. In this case the tracking part of the lattice will be:
+\begin{example}
+  A\B1, A\B2, B\B1, A\B3, A\B4, B\B2
+\end{example}
+There will be two lord elements representing the two physically distinct elements \vn{A} and \vn{B}.
+The \vn{A} lord element will will control the four \vn{A\B n} elements in the tracking
+part of the lattice. The \vn{B} lord will control the two \vn{B\B n} elements in the tracking part
+of the lattice. 
+
+To simplify the constructed lattice, if the set of lattice elements to slave together only contains
+one element, a multipass lord is not constructed. For example:
+\begin{example}
+  m_line: line[multipass] = (A, A, B)
+  u_line: line = (m_line)
+  use, u_line
+\end{example}
+In this example no multipass lords are constructed and the lattice is simply
+\begin{example}
+  A, A, B
+\end{example}
+
+It is important to note that the global coordinates (\sref{s:global}) of the slaves of a given
+multipass lord are not constrained by \bmad to be the same. It is up to the lattice designer to make
+sure that the physical positions of the slaves makes sense (that is, are the same).
 
 %-----------------------------------------------------------------------------
 \subsection{The Reference Energy in a Multipass Line}

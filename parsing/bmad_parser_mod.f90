@@ -64,6 +64,7 @@ end type
 ! used to form a lattice
 
 type seq_stack_struct
+  character(40) seq_name        ! Name of sequence.
   integer ix_seq                ! index to seq(:) array
   integer ix_ele                ! index to seq%ele(:) array
   integer rep_count             ! repetition count
@@ -4237,10 +4238,11 @@ character(40) base_name
 character(100) slave2_name
 
 ! Count slaves.
-! If i > lat%n_ele_track we are looking at cloning a super_lord which should
-! not happen.
+! If n_multi > lat%n_ele_track we are looking at cloning a super_lord which should not happen.
+! If n_multi = 1 then, to symplify the lattice, do not create a lord
 
 n_multipass = size(m_slaves)
+if (n_multipass == 1) return
 
 ! setup multipass_lord
 
@@ -6314,6 +6316,7 @@ enddo
 i_lev = 1                          ! level on the stack
 seq => sequence(i_use)
 
+stack(1)%seq_name = sequence(i_use)%name
 stack(1)%ix_seq    = i_use           ! which sequence to use for the lat
 stack(1)%ix_ele    =  1              ! we start at the beginning
 stack(1)%ele_order_direction = +1              ! element order is forward
@@ -6326,14 +6329,11 @@ n_ele_use = 0
          
 sequence(:)%ix = 1  ! Init. Used for replacement list index
 
-! Note: if present(expanded_line) => expansion is for getting a girder slave list.
+! Note: If present(expanded_line) => Expansion is for getting a girder slave list.
 
 if (stack(1)%multipass) then
   if (present(expanded_line)) then
     ix_multipass = 1
-  else
-    call parser_error ('"USE"D LINE FOR LATTICE EXPANSION IS MARKED MULTIPASS!')
-    if (global_com%exit_on_error) call err_exit
   endif
 endif
 
@@ -6486,6 +6486,7 @@ line_expansion: do
 
     seq => sequence(s_ele%ix_ele)
     stack(i_lev)%ix_seq = s_ele%ix_ele
+    stack(i_lev)%seq_name = seq%name
     stack(i_lev)%multipass = (stack(i_lev-1)%multipass .or. seq%multipass)
 
     if (stack(i_lev-1)%tag /= '' .and. s_ele%tag /= '') then
