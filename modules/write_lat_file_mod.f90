@@ -1143,7 +1143,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Encode taylor map. Hybrid elements do not have default terms.
 
-    if (ele%key == taylor$ .or. ele%key == hybrid$) then
+    if (ele%key == taylor$ .or. (ele%key == hybrid$ .and. associated(ele%taylor(1)%term))) then
       do j = 1, 6
         unit_found = .false.
         unit = 0
