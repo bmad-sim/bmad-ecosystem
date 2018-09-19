@@ -185,7 +185,7 @@ read (d_unit, err = 9070) n_branch, lat%pre_tracker, n_custom
 ! As a double check, check the version number again.
 
 if (lat%version /= bmad_inc_version$) then
-  call out_io (io_err_level, r_name, 'DIGESTED FILE BINARY FORMAT IS WRONG.', &
+  call out_io (s_error$, r_name, 'DIGESTED FILE BINARY FORMAT IS WRONG.', &
          '[CAN HAPPEN IF THE DIGESTED FILE IS CREATED WITH A PROGRAM COMPILED WITH A DIFFERENT COMPILER.]')
   close (d_unit)
   return
