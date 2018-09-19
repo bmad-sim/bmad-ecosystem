@@ -368,7 +368,11 @@ logical create
 
 ! First search for existing term.
 
-n = size(bmad_taylor%term)
+if (associated(bmad_taylor%term)) then
+  n = size(bmad_taylor%term)
+else
+  n = 0
+endif
 
 do i = 1, n
   if (.not. all(bmad_taylor%term(i)%expn == expn)) cycle
