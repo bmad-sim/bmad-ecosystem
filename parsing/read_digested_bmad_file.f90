@@ -16,7 +16,7 @@
 !
 ! Output:
 !   lat         -- lat_struct: Output lattice structure
-!   inc_version -- integer: bmad_inc_version number stored in the lattice file.
+!   inc_version -- integer: bmad version number stored in the lattice file.
 !                   If the file is current this number should be the same 
 !                   as the global parameter bmad_inc_version$. 
 !                   Set to -1 if there is a read error.
@@ -180,6 +180,16 @@ read (d_unit, err = 9030) lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele
 read (d_unit, err = 9030) lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, lat%n_ic_max
 read (d_unit, err = 9030) lat%input_taylor_order, lat%absolute_time_tracking, lat%photon_type
 read (d_unit, err = 9070) n_branch, lat%pre_tracker, n_custom
+
+! Different compilers (EG ifort and gfortran) will produce different binary formats. 
+! As a double check, check the version number again.
+
+if (lat%version /= bmad_inc_version$) then
+  call out_io (io_err_level, r_name, 'DIGESTED FILE BINARY FORMAT IS WRONG.', &
+         '[CAN HAPPEN IF THE DIGESTED FILE IS CREATED WITH A PROGRAM COMPILED WITH A DIFFERENT COMPILER.]')
+  close (d_unit)
+  return
+endif
 
 ! Global custom
 
