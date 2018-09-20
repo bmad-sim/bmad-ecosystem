@@ -726,7 +726,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
-subroutine tao_init_data_in_universe (u, n_d2_data, keep_existing_data)
+subroutine tao_init_data_in_universe (u, n_d2_add, keep_existing_data)
 
 implicit none
 
@@ -735,14 +735,15 @@ type (tao_d2_data_struct), allocatable :: d2_data(:)
 type (tao_data_struct), allocatable :: data(:)
 type (tao_d1_data_struct), pointer :: d1
 
-integer n_d2_data
+integer n_d2_add, n_d2_data
 integer i, j, k, n2
 logical, optional :: keep_existing_data
 
 !
 
-if (logic_option(.false., keep_existing_data)) then
+if (logic_option(.false., keep_existing_data) .and. allocated(u%d2_data)) then
   n2 = size(u%d2_data)
+  n_d2_data = n2 + n_d2_add
   call move_alloc(u%d2_data, d2_data)
   allocate (u%d2_data(n_d2_data))
   u%d2_data(1:n2) = d2_data
@@ -758,6 +759,7 @@ if (logic_option(.false., keep_existing_data)) then
 
 else
   n2 = 0
+  n_d2_data = n2 + n_d2_add
   if (allocated(u%data)) deallocate(u%data)
   allocate (u%data(0))
   u%n_d2_data_used = 0      ! size of s%u(i)%d2_data(:) array
