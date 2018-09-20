@@ -52,7 +52,7 @@ character(40) default_merit_type, default_data_source, def_merit_type, def_data_
 character(100) search_for_lat_eles
 character(200) line, default_data_type, def_data_type
 
-logical err, free, gang, do_standard_setup
+logical err, free, gang
 logical :: good_unis(lbound(s%u, 1) : ubound(s%u, 1))
 logical :: mask(lbound(s%u, 1) : ubound(s%u, 1))
 
@@ -64,18 +64,14 @@ namelist / tao_d1_data / d1_data, datum, ix_d1_data, default_spin_n0, &
                use_same_lat_eles_as, search_for_lat_eles, ix_min_data, ix_max_data
 
 !-----------------------------------------------------------------------
-! Custom data setup?
-
-call tao_hook_init_data(do_standard_setup)
-if (.not. do_standard_setup) return
-
 ! Find out how many d2_data structures we need for each universe
 
 if (data_file == '') then
   do i = lbound(s%u, 1), ubound(s%u, 1)
     call tao_init_data_in_universe (s%u(i), 0)
   enddo
-  call tao_init_data_end_stuff ()
+  call tao_hook_init_data()
+  call tao_init_data_end_stuff()
   return
 endif
 
@@ -245,6 +241,10 @@ do
 enddo
 
 close (iu)
+
+! Custom data setup?
+
+call tao_hook_init_data()
 
 ! Init ix_data array
 
@@ -726,33 +726,59 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
-subroutine tao_init_data_in_universe (u, n_d2_data)
+subroutine tao_init_data_in_universe (u, n_d2_data, keep_existing_data)
 
 implicit none
 
-type (tao_universe_struct) u
-integer j, n_d2_data
+type (tao_universe_struct), target :: u
+type (tao_d2_data_struct), allocatable :: d2_data(:)
+type (tao_data_struct), allocatable :: data(:)
+type (tao_d1_data_struct), pointer :: d1
+
+integer n_d2_data
+integer i, j, k, n2
+logical, optional :: keep_existing_data
 
 !
 
-allocate (u%data(0))
-u%n_d2_data_used = 0      ! size of s%u(i)%d2_data(:) array
-u%n_data_used = 0         ! size of s%u(i)%data(:) array
-u%model%tao_branch%ix_rad_int_cache = 0
-u%design%tao_branch%ix_rad_int_cache = 0
-u%base%tao_branch%ix_rad_int_cache = 0
+if (logic_option(.false., keep_existing_data)) then
+  n2 = size(u%d2_data)
+  call move_alloc(u%d2_data, d2_data)
+  allocate (u%d2_data(n_d2_data))
+  u%d2_data(1:n2) = d2_data
+  do i = 1, n2
+    do j = lbound(u%d2_data(i)%d1, 1), ubound(u%d2_data(i)%d1, 1)
+      d1 => u%d2_data(i)%d1(j)
+      d1%d2 => u%d2_data(i)
+      do k = lbound(d1%d, 1), ubound(d1%d, 1)
+        d1%d(k)%d1 => d1
+      enddo
+    enddo
+  enddo
 
-if (n_d2_data == 0) return
-if (allocated(u%d2_data)) deallocate (u%d2_data)
+else
+  n2 = 0
+  if (allocated(u%data)) deallocate(u%data)
+  allocate (u%data(0))
+  u%n_d2_data_used = 0      ! size of s%u(i)%d2_data(:) array
+  u%n_data_used = 0         ! size of s%u(i)%data(:) array
+  u%model%tao_branch%ix_rad_int_cache = 0
+  u%design%tao_branch%ix_rad_int_cache = 0
+  u%base%tao_branch%ix_rad_int_cache = 0
 
-allocate (u%d2_data(n_d2_data))
+  if (n_d2_data == 0) return
+  if (allocated(u%d2_data)) deallocate (u%d2_data)
+  allocate (u%d2_data(n_d2_data))
+endif
+
+! 
+
+u%d2_data(n2+1:n_d2_data)%name = ''  ! blank name means it doesn't exist
 
 do j = 1, n_d2_data
   u%d2_data(j)%ix_d2_data = j
-  u%d2_data(j)%descrip = ''
+  if (j > n2) u%d2_data(j)%descrip = ''
 enddo
-
-u%d2_data%name = ''  ! blank name means it doesn't exist
 
 ! This is needed to keep the totalview debugger happy.
 

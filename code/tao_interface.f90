@@ -337,9 +337,8 @@ subroutine tao_hook_init_beam ()
   implicit none
 end subroutine
 
-subroutine tao_hook_init_data (do_standard_setup) 
+subroutine tao_hook_init_data ()
   implicit none
-  logical do_standard_setup
 end subroutine
 
 subroutine tao_hook_init_global (init_file, global)
