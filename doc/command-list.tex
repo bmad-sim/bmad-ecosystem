@@ -264,9 +264,10 @@ vetoed. For example, if datum number 23 in \vn{orbit.x} is clipped, datum number
 
 Examples:
 \begin{example}
-  clip top.x -3  7  ! Clip the curves in the x graph in the top region
-  clip bottom       ! Clip the graphs in the bottom region
-  clip -g orbit.x   ! Clip the 
+  clip top.x -3  7  ! Clip the curves in the x graph in the region named "top".
+  clip bottom       ! Clip the graphs in the "bottom" region
+  clip -g orbit.x   ! Clip the orbit.x graph and also veto corresponding points
+                    ! in other graphs of the orbit plot.
 \end{example}
 
 %% continue --------------------------------------------------------------
