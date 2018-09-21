@@ -253,6 +253,7 @@ func_set_bmad_env () {
     export DIST_PLATFORM="${DIST_OS_ARCH}_${DIST_F90}"
 
     alias distinfo="env | grep DIST ; env | grep ACC"
+    alias accinfo="env | grep DIST ; env | grep ACC"
 }
 
 
