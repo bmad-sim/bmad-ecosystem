@@ -3011,9 +3011,14 @@ case ('plot')
   case ('-regions', '')
 
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; lines(nl) = '                                               Location on Page'
-    nl=nl+1; lines(nl) = 'Plot Region         <-->  Plot                 x1    x2    y1    y2'  
-    nl=nl+1; lines(nl) = '-----------               -----------------------------------------'
+    if (s%global%plot_on) then
+      nl=nl+1; lines(nl) = '                                               Location on Page'
+      nl=nl+1; lines(nl) = 'Plot Region         <-->  Plot                 x1    x2    y1    y2'  
+      nl=nl+1; lines(nl) = '-----------               -----------------------------------------'
+    else
+      nl=nl+1; lines(nl) = 'Plot Region         <-->  Plot                 Visible'
+      nl=nl+1; lines(nl) = '-----------               ----------------------------'
+    endif
     found = .false.
     do i = 1, size(s%plot_page%region)
       region => s%plot_page%region(i)
@@ -3022,7 +3027,9 @@ case ('plot')
         found = .true.
         cycle
       endif
-      if (region%visible) then
+      if (.not. s%global%plot_on) then
+        nl=nl+1; write(lines(nl), '(a20, a, a21, l1)') region%name, '<-->  ', region%plot%name, region%visible
+      elseif (region%visible) then
         nl=nl+1; write(lines(nl), '(a20, a, a18, 4f6.2)') region%name, '<-->  ', region%plot%name, region%location
       else
         nl=nl+1; write(lines(nl), '(a20, a, 18x, 4f6.2)') region%name, '<-->  ', region%location

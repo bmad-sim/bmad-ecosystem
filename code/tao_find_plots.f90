@@ -137,12 +137,21 @@ if (plot_name(1:1) == '@') then
 else
   select case (where)
   case ('REGION')
-    n_exact = count(s%plot_page%region%name == plot_name .and. s%plot_page%region%visible) + &
-              count(s%plot_page%region%plot%name == plot_name .and. s%plot_page%region%visible)
+    if (s%global%plot_on) then
+      n_exact = count(s%plot_page%region%name == plot_name .and. s%plot_page%region%visible) + &
+                count(s%plot_page%region%plot%name == plot_name .and. s%plot_page%region%visible)
+    else
+      n_exact = count(s%plot_page%region%name == plot_name) + count(s%plot_page%region%plot%name == plot_name)
+    endif
   case ('BOTH')
-    n_exact = count(s%plot_page%region%name == plot_name .and. s%plot_page%region%visible) + &
-              count(s%plot_page%region%plot%name == plot_name .and. s%plot_page%region%visible) + &
-              count(s%plot_page%template%name == plot_name)
+    if (s%global%plot_on) then
+      n_exact = count(s%plot_page%region%name == plot_name .and. s%plot_page%region%visible) + &
+                count(s%plot_page%region%plot%name == plot_name .and. s%plot_page%region%visible) + &
+                count(s%plot_page%template%name == plot_name)
+    else
+      n_exact = count(s%plot_page%region%name == plot_name) + &
+                count(s%plot_page%region%plot%name == plot_name) + count(s%plot_page%template%name == plot_name)
+    endif
   case ('TEMPLATE')
     n_exact = count(s%plot_page%template%name == plot_name)
   case ('COMPLETE')
@@ -159,7 +168,7 @@ else
 
   if (where == 'REGION' .or. where == 'BOTH') then
     do i = 1, size(s%plot_page%region)
-      if (.not. s%plot_page%region(i)%visible) cycle
+      if (s%global%plot_on .and. .not. s%plot_page%region(i)%visible) cycle
       if (plot_name /= '*') then 
         if (have_exact_match) then
           if (s%plot_page%region(i)%name /= plot_name .and. s%plot_page%region(i)%plot%name /= plot_name) cycle
@@ -205,7 +214,18 @@ else
   ! Allocate space
 
   if (np == 0) then
-    if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, 'PLOT NOT FOUND: ' // plot_name)
+    select case (where)
+    case ('REGION')
+      if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
+          'PLOT REGION NOT FOUND: ' // plot_name, 'USE THE COMMAND "show plot" TO SEE A LIST OF REGIONS.')
+    case ('TEMPLATE')
+      if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
+          'PLOT TEMPLATE NOT FOUND: ' // plot_name, 'USE THE COMMAND "show plot -templates" TO SEE A LIST OF PLOTS.')
+    case ('BOTH', 'COMPLETE')
+      if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
+          '"' // trim(plot_name) // '" IS NOT THE NAME OF A PLOT REGION NOR A PLOT TEMPLATE', &
+          'USE THE COMMAND "show plot" AND "show plot -templates" TO SEE A LIST OF REGIONS AND TEMPLATES.')
+    end select
     err = .true.
     return
   endif
