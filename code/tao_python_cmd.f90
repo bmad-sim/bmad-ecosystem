@@ -77,7 +77,7 @@ type (ele_attribute_struct) attrib
 
 character(*) input_str
 character(n_char_show), allocatable :: li(:) 
-character(24) imt, rmt, lmt, amt, iamt, vamt, vrmt
+character(24) imt, rmt, lmt, amt, iamt, vamt, vrmt, vrmt2
 character(40) max_loc, loc_ele, name1(40), name2(40), a_name, name
 character(200) line, file_name
 character(20), allocatable :: name_list(:)
@@ -155,6 +155,7 @@ rmt = '(a,es24.16,a)'
 lmt = '(a,l1,a)'
 vamt = '(a, i0, 3a)'
 vrmt = '(a, i0, a, es24.16)'
+vrmt2 = '(a, i0, i0, a, es24.16)'
 
 nl = 0
 call re_allocate_lines (200)
@@ -246,6 +247,13 @@ case ('bunch1')
   call twiss_out(bunch_params%a, 'a', .true.)
   call twiss_out(bunch_params%b, 'b', .true.)
   call twiss_out(bunch_params%c, 'c', .true.)
+
+  ! Sigma matrix
+  do i = 1, 6
+    do j = 1,6
+      nl=incr(nl); write (li(nl), vrmt2) 'sigma_', i, j, ';REAL;F;',           bunch_params%sigma(i,j)  
+    enddo
+  enddo
 
   nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                                bunch_params%s
   nl=incr(nl); write (li(nl), rmt) 'charge_live;REAL;F;',                      bunch_params%charge_live
