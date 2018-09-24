@@ -717,6 +717,8 @@ character(*), parameter :: r_name = 'track1_cyrstal'
 ! A graze angle of zero means the wavelength of the reference photon was too large
 ! for the bragg condition. 
 
+if (orbit_too_large(orbit, param)) return
+
 if (ele%value(bragg_angle_in$) == 0) then
   call out_io (s_fatal$, r_name, 'REFERENCE ENERGY TOO SMALL TO SATISFY BRAGG CONDITION!')
   orbit%state = lost_pz_aperture$

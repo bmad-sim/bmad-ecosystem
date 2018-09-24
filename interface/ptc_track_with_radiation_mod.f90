@@ -28,7 +28,7 @@ contains
 !                         
 !
 ! Output:
-!    map_with_rad(3) -- tree_element_zhe: Transport map.
+!   map_with_rad(3) -- tree_element_zhe: Transport map.
 !   err_flag        -- logical, optional: Set True if there is an error such as not associated PTC layout.
 !-
 
@@ -61,7 +61,7 @@ character(*), parameter :: r_name = 'ptc_setup_map_with_radiation'
 
 if (present(err_flag)) err_flag = .true.
 
-call zhe_ini
+call zhe_ini(bmad_com%spin_tracking_on)
 use_bmad_units = .true.
 
 state = default0 + radiation0 + envelope
@@ -157,6 +157,8 @@ end subroutine ptc_setup_map_with_radiation
 
 subroutine ptc_track_with_radiation (orbit, map_with_rad, rad_damp, rad_fluct)
 
+use rotation_3d_mod
+
 implicit none
 
 type (coord_struct) orbit
@@ -171,12 +173,18 @@ logical damp, fluct
 damp   = logic_option(bmad_com%radiation_damping_on, rad_damp)
 fluct = logic_option(bmad_com%radiation_fluctuations_on, rad_fluct)
 
+!
 
 z_probe%x = orbit%vec
+z_probe%q%x = [1, 0, 0, 0]
+
 call track_tree_probe_complex_zhe (map_with_rad, z_probe, bmad_com%spin_tracking_on, rad_damp, rad_fluct)
+
 orbit%vec = z_probe%x
+if (bmad_com%spin_tracking_on) then
+  orbit%spin = rotate_vec_given_quat(z_probe%q%x, orbit%spin)
+endif
 
 end subroutine ptc_track_with_radiation
 
 end module
-

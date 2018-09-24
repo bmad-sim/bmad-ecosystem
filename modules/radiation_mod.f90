@@ -315,6 +315,7 @@ real(rp) s_len, g_x, g_y, this_ran, mc2, g2, g3
 real(rp) gamma_0, dE_p, fact_d, fact_f, q_charge2, p_spin, spin_norm(3), norm
 real(rp), parameter :: rad_fluct_const = 55.0_rp * classical_radius_factor * h_bar_planck * c_light / (24.0_rp * sqrt_3)
 real(rp), parameter :: spin_const = 5.0_rp * sqrt_3 * classical_radius_factor * h_bar_planck * c_light / 16
+real(rp), parameter :: damp_const = 2 * classical_radius_factor / 3
 real(rp), parameter :: c1_spin = 2.0_rp / 9.0_rp, c2_spin = 8.0_rp / (5.0_rp * sqrt_3)
 
 character(*), parameter :: r_name = 'track1_radiation'
@@ -336,7 +337,7 @@ gamma_0 = ele%value(e_tot$) / mc2
 
 fact_d = 0
 if (bmad_com%radiation_damping_on) then
-  fact_d = 2 * classical_radius_factor * q_charge2 * gamma_0**3 * g2 * s_len / (3 * mc2)
+  fact_d = damp_const * q_charge2 * gamma_0**3 * g2 * s_len / mc2
   if (param%backwards_time_tracking) fact_d = -fact_d
 endif
 
