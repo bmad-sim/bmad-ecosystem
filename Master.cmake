@@ -152,8 +152,8 @@ IF (PREBUILD_ACTION)
   )
 ENDIF ()
 
-
 get_filename_component(SHORT_DIRNAME ${CMAKE_SOURCE_DIR} NAME)
+
 #-------------------------------------------------------
 # Check to see if shared object creation is enabled.
 # If enabled, shared object libraries will only be
@@ -178,40 +178,8 @@ ENDIF ()
 # (Also provides include directory
 # locations.)
 #-----------------------------------
+
 find_package(X11)
-
-
-#-----------------------------------
-# C / C++ Compiler flags
-#-----------------------------------
-
-IF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
-  SET (BASE_C_FLAGS)
-  SET (BASE_CXX_FLAGS)
-ELSE ()
-  SET (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 ${CESR_FLAGS} -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
-  SET (BASE_CXX_FLAGS "-O0 -Wno-deprecated ${CESR_FLAGS} -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
-ENDIF ()
-
-#-----------------------------------                                                                                
-# For non-Linux or non-ifort or 
-# non-64-bit builds, do not use
-# unspported flag option 
-# "-mcmodel=medium"                                                                      
-#-----------------------------------                                                                                
-IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${FORTRAN_COMPILER} MATCHES "ifort" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-  SET (BASE_C_FLAGS "${BASE_C_FLAGS} -mcmodel=medium")
-  SET (BASE_CXX_FLAGS "${BASE_CXX_FLAGS} -mcmodel=medium")
-ELSEIF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
-  SET (BASE_C_FLAGS)
-  SET (BASE_CXX_FLAGS)
-ENDIF ()
-
-#-----------------------------------
-# Readline Library Definitions 
-#-----------------------------------
-SET (READLINE_LINK_LIBS readline)
-SET (READLINE_LINK_FLAGS "-lreadline")
 
 #-----------------------------------
 # Plotting Library Linker flags
@@ -220,7 +188,7 @@ SET (READLINE_LINK_FLAGS "-lreadline")
 SET (PLOT_LINK_LIBS $ENV{PLOT_LINK_LIBS})
 
 IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
-  SET (PLOT_LIBRARY_F_FLAG "-DCESR_PLPLOT")
+  SET (PLOT_LIBRARY_FLAG "-DCESR_PLPLOT")
 
   IF (${DISTRIBUTION_BUILD})
     IF (NOT "$ENV{ACC_PLOT_DISPLAY_TYPE}" MATCHES "QT")
@@ -242,7 +210,7 @@ IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
   SET (ACC_PLOT_INC_DIRS)
 
 ELSEIF ($ENV{ACC_PLOT_PACKAGE} MATCHES "pgplot")
-  SET (PLOT_LIBRARY_F_FLAG "-DCESR_PGPLOT")
+  SET (PLOT_LIBRARY_FLAG "-DCESR_PGPLOT")
   IF ("$ENV{ACC_ENABLE_SHARED}" MATCHES "Y")
 # This is a temporary fix -amd275 
 #    SET (PLOT_LINK_FLAGS "-lX11 $ENV{PLOT_LINK_FLAGS}")
@@ -252,7 +220,7 @@ ELSEIF ($ENV{ACC_PLOT_PACKAGE} MATCHES "pgplot")
   ENDIF ()
 
 ELSEIF ($ENV{ACC_PLOT_PACKAGE} MATCHES "none")
-  SET (PLOT_LIBRARY_F_FLAG "-DCESR_NOPLOT")
+  SET (PLOT_LIBRARY_FLAG "-DCESR_NOPLOT")
   SET (PLOT_LINK_LIBS)
   SET (PLOT_LINK_FLAGS)
 
@@ -268,13 +236,47 @@ IF (${CMAKE_Fortran_COMPILER} MATCHES "ifort" AND "$ENV{ACC_ENABLE_SHARED}" MATC
   SET (PLOT_LINK_FLAGS "${PLOT_LINK_FLAGS} -lifcore -lifport -limf -lsvml -lintlc")
 ENDIF ()
 
+#-----------------------------------
+# C / C++ Compiler flags
+#-----------------------------------
+
+IF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
+  SET (BASE_C_FLAGS)
+  SET (BASE_CXX_FLAGS)
+ELSE ()
+  SET (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 ${CESR_FLAGS} ${PLOT_LIBRARY_FLAG} -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
+  SET (BASE_CXX_FLAGS "-O0 -Wno-deprecated ${CESR_FLAGS} ${PLOT_LIBRARY_FLAG} -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
+ENDIF ()
+
+#-----------------------------------                                                                                
+# For non-Linux or non-ifort or 
+# non-64-bit builds, do not use
+# unspported flag option 
+# "-mcmodel=medium"                                                                      
+#----------------------------------- 
+                                                                               
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${FORTRAN_COMPILER} MATCHES "ifort" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+  SET (BASE_C_FLAGS "${BASE_C_FLAGS} -mcmodel=medium")
+  SET (BASE_CXX_FLAGS "${BASE_CXX_FLAGS} -mcmodel=medium")
+ELSEIF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
+  SET (BASE_C_FLAGS)
+  SET (BASE_CXX_FLAGS)
+ENDIF ()
+
+#-----------------------------------
+# Readline Library Definitions 
+#-----------------------------------
+
+SET (READLINE_LINK_LIBS readline)
+SET (READLINE_LINK_FLAGS "-lreadline")
 
 #--------------------------------------
 # Fortran Compiler flags
 #--------------------------------------
+
 enable_language( Fortran )
 
-SET (BASE_Fortran_FLAGS "-Df2cFortran ${CESR_FLAGS} -u -traceback ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG} ${MPI_COMPILE_FLAGS}")
+SET (BASE_Fortran_FLAGS "-Df2cFortran ${CESR_FLAGS} -u -traceback ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_FLAG} ${MPI_COMPILE_FLAGS}")
 
 # For ifort, move STACK memory to the HEAP, see RT#45710
 IF (${FORTRAN_COMPILER} MATCHES "ifort")
