@@ -1,6 +1,3 @@
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
 !+
 ! Subroutine tao_print_command_line_info
 !
@@ -29,17 +26,17 @@ call out_io (s_blank$, r_name, [ &
         '  -data <data_file>               # Define data for plotting and optimization            ', &
         '  -debug                          # Debug mode for Wizards                               ', &
         '  -disable_smooth_line_calc       # Disable the smooth line calc used in plotting        ', &
-        '  -geometry <width>x<height>      # Plot window geometry                                 ', &
+        '  -geometry <width>x<height>      # Plot window geometry (pixels)                        ', &
         '  -help                           # Display this list of command line options            ', &
         '  -hook_init_file <init_file>     # Init file for hook routines (Default = tao_hook.init)', &
         '  -init <tao_init_file>           # Tao init file                                        ', &
         '  -lat <bmad_lattice_file>        # Bmad lattice file                                    ', &
         '  -lat xsif::<xsif_lattice_file>  # XSIF lattice file                                    ', &
         '  -log_startup                    # Write startup debugging info                         ', &
-        '  -no_stopping                    # For debugging: Prevents Tao from exiting on err      ', &
+        '  -no_stopping                    # For debugging: Prevents Tao from exiting on errors   ', &
         '  -noinit                         # Do not use Tao init file                             ', &
         '  -noplot                         # Do not open a plotting window                        ', &
-        '  -plot <plot_file>               # Define plot setup info                               ', &
+        '  -plot <plot_file>               # Plotting initialization file                         ', &
         '  -rf_on                          # Keep RF on (Default is to turn off)                  ', &
         '  -startup <starup_command_file>  # Commands to run after parsing Tao init file          ', &
         '  -var <var_file>                 # Define variables for plotting and optimization       '])

@@ -438,29 +438,27 @@ n_loc_ele = n_tot - n_name - n_loc_ref - n_loc_start - 4
 l1 = 'Constraints'
 n=3+n_d2_d1_name+2+n_name;    l1(n:) = 'Ref_Ele'
 n=len_trim(l1)+n_loc_ref-3;   l1(n:) = 'Start_Ele'
-n=len_trim(l1)+n_loc_start-5; l1(n:) = 'Ele/S'
-n=len_trim(l1)+n_loc_ele-2;   l1(n:) = 'Target      Value      Merit     Max'
+n=len_trim(l1)+n_loc_start-6; l1(n:) = 'Ele/S'
+n=len_trim(l1)+n_loc_ele-3;   l1(n:) = 'Meas-or-Lim    Model       Merit      Max_Loc'
 
 nl=nl+1; line(nl) = ' '
 nl=nl+1; line(nl) = l1
 
 !
 
-fmt  = '(a, 4(2x, a), es11.3, es12.3, es10.2, 2x, a)'
-fmt2 = '(a, 1(2x, a), es11.3, es12.3, es10.2, 2x, a)'
+fmt  = '(a, 4(2x, a), es13.4, es13.4, es11.3, 2x, a)'
+fmt2 = '(a, 1(2x, a), es13.4, es13.4, es11.3, 2x, a)'
 
 call re_allocate (line, nl+n_max+100)
 do j = 1, n_max
   i = ixm(j)
   if (con(i)%expression) then
     nl=nl+1; write (line(nl), fmt2) con(i)%d2_d1_name(1:n_d2_d1_name), &
-            con(i)%name(1:n_tot), con(i)%target_value, &
-            con(i)%actual_value, con(i)%merit, con(i)%max_loc
+            con(i)%name(1:n_tot), con(i)%target_value, con(i)%actual_value, con(i)%merit, con(i)%max_loc
   else
-    nl=nl+1; write (line(nl), fmt) con(i)%d2_d1_name(1:n_d2_d1_name), &
-            con(i)%name(1:n_name), con(i)%loc_ref(1:n_loc_ref), &
-            con(i)%loc_start(1:n_loc_start), con(i)%loc_ele(1:n_loc_ele), con(i)%target_value, &
-            con(i)%actual_value, con(i)%merit, con(i)%max_loc
+    nl=nl+1; write (line(nl), fmt) con(i)%d2_d1_name(1:n_d2_d1_name), con(i)%name(1:n_name), &
+            con(i)%loc_ref(1:n_loc_ref), con(i)%loc_start(1:n_loc_start), con(i)%loc_ele(1:n_loc_ele), &
+            con(i)%target_value, con(i)%actual_value, con(i)%merit, con(i)%max_loc
   endif
 end do
 nl=nl+1; line(nl) = l1

@@ -276,10 +276,11 @@ A given datum has six values associated it:
 \begin{description}
   \vspace{-1ex}
   \item[meas] \Newline 
-The value of the datum as obtained from some measurement. This is the
-target or limit value that is used when running the optimizer. When
-doing lattice design, the measured value corresponds to a constraint
-value (\ref{c:opti}).
+When fitting data, the \vn{meas} value is the value of the datum as obtained from some
+measurement. When designing lattices, the \vn{meas} value is the desired value of the datum. For
+example, when designing a lattice for a colliding ring machine, a datum may be constructed for 
+the beta function at the interaction point with the \vn{meas} value set to the desired value. See
+Chapter~\ref{c:opti} for more details.
   \vspace{-1ex}
   \item[base] \Newline
 The datum value as calculated from the \vn{base} lattice (\sref{s:lattice}).
@@ -298,10 +299,13 @@ A datum value that was saved at some point in \tao's calculations. This value
 can be ignored.
   \vspace{-0.5ex}
   \item[ref] \Newline
-The reference datum value as obtained from some reference measurement. For example,
-a measurement before some variable is varied could be designated as
-the \vn{reference}, and the datum taken after the variation could be 
-designated the \vn{measured} datum.
+When fitting data, \{ref} is the datum value as obtained from some reference measurement. For
+example, a measurement before some variable is varied could be designated as the \vn{reference}, and
+the datum taken after the variation could be designated the \vn{measured} datum. When designing
+lattices, the \vn{ref} value is the value of the datum associated with the \vn{design} or \vn{base}
+lattice (determined by the setting of the global \vn{opt_with_base} parameter
+(\sref{s:generalized.design}). Note: The \vn{meas} value of a datum is always associated with the
+\vn{model} lattice.
 \end{description}
 
 %------------------------------------------------------------------------
