@@ -418,7 +418,7 @@ end function quat_mul
 ! Routine to rotate a vector using a quaternion..
 !
 ! Input:
-!   q_out(0:3)  -- real(rp): Quaternion to rotate with. Assumed normalized to 1.
+!   quat(0:3 )  -- real(rp): Quaternion to rotate with. Does not have to be normalized.
 !   vec_in(3)   -- real(rp): Initial vector.
 !
 ! Output:
@@ -440,7 +440,8 @@ vec_out = [quat(0)*vec_in(1) + quat(2)*vec_in(3) - quat(3)*vec_in(2), &
 
 vec_out = [quat(0)*vec_out(1) + quat(2)*vec_out(3) - quat(3)*vec_out(2) - q0_inv*quat(1), &
            quat(0)*vec_out(2) + quat(3)*vec_out(1) - quat(1)*vec_out(3) - q0_inv*quat(2), &
-           quat(0)*vec_out(3) + quat(1)*vec_out(2) - quat(2)*vec_out(1) - q0_inv*quat(3)]
+           quat(0)*vec_out(3) + quat(1)*vec_out(2) - quat(2)*vec_out(1) - q0_inv*quat(3)] * &
+                                                                     (1.0_rp / dot_product(quat, quat))
 
 end function rotate_vec_given_quat
 
