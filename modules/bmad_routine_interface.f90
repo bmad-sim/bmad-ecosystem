@@ -2440,11 +2440,11 @@ subroutine time_runge_kutta_periodic_kick_hook (orbit, z_phase_space, ele, param
   integer :: init_needed
 end subroutine
 
-subroutine track1_beam_hook (beam_start, lat, ele, beam_end, err, centroid, direction, finished)
+subroutine track1_bunch_hook (bunch_start, lat, ele, bunch_end, err, centroid, direction, finished)
   import
   implicit none
-  type (beam_struct) beam_start
-  type (beam_struct) :: beam_end
+  type (bunch_struct) bunch_start
+  type (bunch_struct) :: bunch_end
   type (lat_struct) :: lat
   type (ele_struct) ele
   type (coord_struct), optional :: centroid(0:)
