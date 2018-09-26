@@ -35,13 +35,19 @@ contains
 ! a status.
 !
 ! Input:
-!   func(x)  -- Function whose root is to be found. See rtsafe for more details.
-!   x1, x2   -- Real(rp): Bracket values.
-!   tol      -- Real(rp): Tolerance for root.
+!   funcs   -- Function whose root is to be found. The interface is:
+!                  subroutine funcs(x, fval, fderiv, status)
+!                    real(rp), intent(in) :: x
+!                    real(rp), intent(out) :: fval, fderiv
+!                    integer status
+!                  end subroutine funcs
+!
+!   x1, x2  -- Real(rp): Bracket values.
+!   tol     -- Real(rp): Tolerance for root.
 !
 ! Output:
-!   x_zero   -- Real(rp): Root found.
-!   status      -- Integer: Calculation status:
+!   x_zero  -- Real(rp): Root found.
+!   status  -- Integer: Calculation status:
 !                      -2    => Max iterations exceeded.
 !                      -1    => Root not bracketed.
 !                       0    => Normal.
@@ -131,7 +137,7 @@ end function super_rtsafe
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function super_zbrent (func, x1, x2, rel_tol, abs_err_flag) result (x_zero)
+! Function super_zbrent (func, x1, x2, rel_tol, status) result (x_zero)
 !
 ! Routine to find the root of a function.
 ! The tolerance is:
@@ -141,53 +147,63 @@ end function super_rtsafe
 ! an error flag if something goes wrong instead of bombing.
 !
 ! Input:
-!   func(x)  -- function whose root is to be found. See zbrent for more details.
+!   func(x)  -- function whose root is to be found. The interface is:
+!                  function func(x, status) result (value)
+!                    real(rp), intent(in) :: x
+!                    integer status
+!                    real(rp) :: value
+!                  end function func
 !   x1, x2   -- real(rp): Bracket values.
 !   rel_tol  -- real(rp): Relative tolerance for the error of the root.
 !   abs_tol  -- real(rp): Absolute tolerance for the error of the root.
 ! Output:
 !   x_zero   -- Real(rp): Root found.
-!   err_flag -- logical: Set True if there is a problem. False otherwise.
+!   status   -- Integer: Calculation status:
+!                      -2    => Max iterations exceeded.
+!                      -1    => Root not bracketed.
+!                       0    => Normal.
+!                       Other => Set by funcs. 
 !-
 
-function super_zbrent (func, x1, x2, rel_tol, abs_tol, err_flag) result (x_zero)
+function super_zbrent (func, x1, x2, rel_tol, abs_tol, status) result (x_zero)
 
 use nrtype
 
 implicit none
 
-real(rp), intent(in) :: x1,x2, rel_tol, abs_tol
+real(rp), intent(in) :: x1, x2, rel_tol, abs_tol
 real(rp) :: x_zero
 
 interface
-  function func(x)
+  function func(x, status) result (value)
     import
     implicit none
     real(rp), intent(in) :: x
-    real(rp) :: func
+    integer status
+    real(rp) :: value
   end function func
 end interface
 
 integer, parameter :: itmax = 100
-integer :: iter
+integer :: status, iter
 real(rp) :: a,b,c,d,e,fa,fb,fc,p,q,r,s,tol1,xm
 
-logical err_flag
-character(16) :: r_name = 'super_zbrent'
+character(*), parameter :: r_name = 'super_zbrent'
 
 !
 
-err_flag = .true.
+status = 0
 
 a = x1
 b = x2
 
-fa = func(a)
-fb = func(b)
+fa = func(a, status); if (status /= 0) return
+fb = func(b, status); if (status /= 0) return
 
 if ((fa > 0.0 .and. fb > 0.0) .or. (fa < 0.0 .and. fb < 0.0)) then
   call out_io (s_fatal$, r_name, 'ROOT NOT BRACKETED!')
   x_zero = 1d100
+  status = -1
   return
 endif
 
@@ -221,8 +237,7 @@ do iter = 1,ITMAX
     else
       x_zero = (b * fc - c * fb) / (fc - fb)   ! Linear interpolation.
     endif
-    err_flag = .false.
-    RETURN
+    return
   end if
 
   if (abs(e) >= tol1 .and. abs(fa) > abs(fb)) then
@@ -253,11 +268,11 @@ do iter = 1,ITMAX
   a = b
   fa = fb
   b = b+merge(d,sign(tol1,xm), abs(d) > tol1 )
-  fb = func(b)
-
+  fb = func(b, status); if (status /= 0) return
 end do
 
 call out_io (s_fatal$, r_name, 'EXCEEDED MAXIMUM ITERATIONS!')
+status = -2
 x_zero = b
 
 end function super_zbrent 
@@ -279,7 +294,6 @@ end function super_zbrent
 !   funcs       -- Function: User supplied subroutine. See mrqmin in NR for more details.
 !                   The interface is:
 !                        subroutine funcs(a, yfit, dyda, status)
-!                          use precision_def
 !                          real(rp), intent(in) :: a(:)
 !                          real(rp), intent(out) :: yfit(:)
 !                          real(rp), intent(out) :: dyda(:, :)
@@ -519,7 +533,7 @@ integer, target :: irc(2)
 integer :: i, l, n
 integer, pointer :: irow, icol
 
-character(16) :: r_name = 'super_gaussj'
+character(*), parameter :: r_name = 'super_gaussj'
 
 !
 
@@ -643,8 +657,6 @@ end subroutine super_ludcmp
 !
 ! The function func should satisfy the following interface:
 !   function func(x)
-!     use precision_def
-!     implicit none
 !     real(rp), intent(in) :: x
 !     real(rp) :: func
 !   end function func
@@ -674,7 +686,7 @@ real(rp) :: f_min
 
 interface
   function func(x)
-    use precision_def
+    import
     implicit none
     real(rp), intent(in) :: x
     real(rp) :: func
@@ -686,7 +698,7 @@ real(rp), parameter :: cgold = 0.3819660_rp
 integer :: iter
 real(rp) :: a,b,d,e,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm
 
-character(16) :: r_name = 'super_brent'
+character(*), parameter :: r_name = 'super_brent'
 
 !
 f_min = 0  ! avoid uninit warnings
@@ -795,8 +807,6 @@ end function super_brent
 !
 ! The function func should satisfy the following interface:
 !   function func(x) result (value)
-!     use precision_def
-!     implicit none
 !     real(rp), intent(in) :: x(:) ! Array of points to evaluate at.
 !     real(rp) :: value(size(x))   ! Array of evaluation values.
 !   end function func

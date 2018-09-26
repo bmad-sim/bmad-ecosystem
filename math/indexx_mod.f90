@@ -39,7 +39,7 @@ end interface
 !
 ! If add_to_list = True, name is added to the names_list and
 ! an_indexx is updated using the prescription:
-!   Find ix2_match.
+!   First: Find ix2_match.
 !   an_indexx(ix2_match+1:n_max+1) = an_indexx(ix2_match:n_max)
 !   an_indexx(ix2_match) = n_max + 1
 !   names(n_max+1) = name
@@ -58,11 +58,13 @@ end interface
 !   n_max          -- Integer: Use only names(n_min:n_max) part of array.
 !   add_to_list    -- Logical, optional: If present and True and name does not appear in the names(:) array,
 !                         add name to the end of the names(:) array and update the str_indexx%index array.
+!                         Default is False.
 !  
 ! Output:
 !   n_max          -- Integer: Increased by 1 if name is added to names(:) array.
 !   ix_match       -- Integer: If a match is found then: names(ix_match) = name
 !                              If no match is found then: ix_match = n_min - 1 (= 0 for indexx0 or indexx1) 
+!                              Note: There will always be a match if add_to_list = T
 !   ix2_match      -- Integer, optional: 
 !                       If a match is found then
 !                                an_indexx(ix2_match) = ix_match
