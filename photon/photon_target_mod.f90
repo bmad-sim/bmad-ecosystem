@@ -32,6 +32,7 @@ type (branch_struct), pointer :: branch
 
 real(rp), pointer :: val(:)
 real(rp) z
+integer status
 logical :: is_bending_element, follow_fork, grid_defined
 character(*), parameter :: r_name = 'photon_target_setup '
 
@@ -123,16 +124,16 @@ else
 
   if (associated(ap_ele%photon)) then
     if (ap_ele%photon%surface%has_curvature .and. ap_ele%aperture_at == surface$) then
-      z = z_at_surface(ele, -val(x1_limit$), -val(y1_limit$))
+      z = z_at_surface(ele, -val(x1_limit$), -val(y1_limit$), status)
       call photon_target_corner_calc (ap_ele, -val(x1_limit$), -val(y1_limit$), z, ele, target%corner(5))
 
-      z = z_at_surface(ele, -val(x1_limit$), val(y1_limit$))
+      z = z_at_surface(ele, -val(x1_limit$), val(y1_limit$), status)
       call photon_target_corner_calc (ap_ele, -val(x1_limit$),  val(y2_limit$), z, ele, target%corner(6))
 
-      z = z_at_surface(ele, val(x1_limit$), -val(y1_limit$))
+      z = z_at_surface(ele, val(x1_limit$), -val(y1_limit$), status)
       call photon_target_corner_calc (ap_ele,  val(x2_limit$), -val(y1_limit$), z, ele, target%corner(7))
 
-      z = z_at_surface(ele, val(x1_limit$), val(y1_limit$))
+      z = z_at_surface(ele, val(x1_limit$), val(y1_limit$), status)
       call photon_target_corner_calc (ap_ele,  val(x2_limit$),  val(y1_limit$), z, ele, target%corner(8))
       target%n_corner = 8
     endif

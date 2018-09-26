@@ -301,7 +301,8 @@ use super_recipes_mod
 implicit none
 
 real(rp) vert_angle, E_rel, gamma, integ_prob
-logical err_flag, invert
+integer status
+logical invert
 
 ! If angle is so large that bend_photon_vert_angle_init is inaccurate, just round off to 0 or 1.
 
@@ -318,16 +319,19 @@ endif
 ! Use the inverted probability in the calculation for positive angles since it is more accurate.
 
 invert = (vert_angle > 0)
-integ_prob = super_zbrent(vert_angle_func, 0.0_rp, 1.0_rp, 1d-12, 1d-20, err_flag)
+integ_prob = super_zbrent(vert_angle_func, 0.0_rp, 1.0_rp, 1d-12, 1d-20, status)
 if (invert) integ_prob = 1.0_rp - integ_prob
 
 !----------------------------------------------------------------------------------------
 contains
 
-function vert_angle_func(integ_prob) result (d_angle)
+function vert_angle_func(integ_prob, status) result (d_angle)
 
 real(rp), intent(in) :: integ_prob
 real(rp) angle, d_angle
+integer status
+
+!
 
 angle = bend_photon_vert_angle_init(E_rel, gamma, integ_prob, invert)
 d_angle = angle - vert_angle

@@ -42,7 +42,7 @@ end function photon_type
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Function z_at_surface (ele, x, y) result (z)
+! Function z_at_surface (ele, x, y, status) result (z)
 !
 ! Routine return the height (z) of the surface for a particular (x,y) position. 
 ! Remember: +z points into the element.
@@ -50,21 +50,25 @@ end function photon_type
 ! Input:
 !   ele         -- ele_struct: Element
 !   x, y        -- real(rp): coordinates on surface.
+!
 ! Output:
-!   z           -- real(rp): z coordinate. 
+!   z           -- real(rp): z coordinate.
+!   status      -- integer: 0 -> Everythin OK.
+!                           1 -> Cannot compute z due to point being outside of ellipseoid bounds.
 !-
 
-function z_at_surface (ele, x, y) result (z)
+function z_at_surface (ele, x, y, status) result (z)
 
 type (ele_struct), target :: ele
 type (photon_surface_struct), pointer :: surf
 
-real(rp) x, y, z, g(3)
-integer ix, iy
+real(rp) x, y, z, g(3), f
+integer status, ix, iy
 
 !
 
 surf => ele%photon%surface
+status = 0
 
 if (surf%grid%type == segmented$) then
   call init_surface_segment (x, y, ele)
@@ -82,7 +86,12 @@ else
   enddo
 
   g = surf%spherical_curvature + surf%elliptical_curvature
-  if (g(3) /= 0) z = z + sqrt_one(-sign_of(g(1)) * (g(1) * x)**2 - sign_of(g(2)) * (g(2) * y)**2) / g(3)
+  f = -sign_of(g(1)) * (g(1) * x)**2 - sign_of(g(2)) * (g(2) * y)**2
+  if (f < -1) then
+    status = 1
+    return
+  endif
+  if (g(3) /= 0) z = z + sqrt_one(f) / g(3)
 endif
 
 end function z_at_surface

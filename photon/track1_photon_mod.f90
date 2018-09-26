@@ -1040,18 +1040,21 @@ end subroutine e_field_calc
 !
 ! Output:
 !   orbit      -- coord_struct: At surface in local surface coordinate frame
+!     %state     -- set to lost$ if the photon does not intersect the surface (can happen when surface is curved).
 !   err        -- logical: Set true if surface intersection cannot be found. 
 !-
 
 subroutine track_to_surface (ele, orbit, curved_surface_rot)
 
-use nr, only: zbrent
+use super_recipes_mod
 
 type (ele_struct) ele
 type (coord_struct) orbit
 type (segmented_surface_struct), pointer :: segment
 
-real(rp) :: s_len, s1, s2, s_center, x0, y0
+real(rp) :: s_len, s1, s2, s_center, x0, y0, z
+integer status 
+
 character(*), parameter :: r_name = 'track_to_surface'
 logical, optional :: curved_surface_rot
 
@@ -1068,10 +1071,12 @@ if (ele%photon%surface%has_curvature) then
 
   s1 = s_center
   s2 = s_center
-  if (photon_depth_in_element(s_center) > 0) then
+  z = photon_depth_in_element(s_center, status); if (status /= 0) return
+  if (z > 0) then
     do
       s1 = s1 - 0.1
-      if (photon_depth_in_element(s1) < 0) exit
+      z = photon_depth_in_element(s1, status); if (status /= 0) return
+      if (z < 0) exit
       if (s1 < -10) then
         !! call out_io (s_warn$, r_name, &
         !!      'PHOTON INTERSECTION WITH SURFACE NOT FOUND FOR ELEMENT: ' // ele%name)
@@ -1082,7 +1087,8 @@ if (ele%photon%surface%has_curvature) then
   else
     do
       s2 = s2 + 0.1
-      if (photon_depth_in_element(s2) > 0) exit
+      z = photon_depth_in_element(s2, status); if (status /= 0) return
+      if (z > 0) exit
       if (s1 > 10) then
         !! call out_io (s_warn$, r_name, &
         !!      'PHOTON INTERSECTION WITH SURFACE NOT FOUND FOR ELEMENT: ' // ele%name)
@@ -1092,7 +1098,8 @@ if (ele%photon%surface%has_curvature) then
     enddo
   endif
 
-  s_len = zbrent (photon_depth_in_element, s1, s2, 1d-10)
+  s_len = super_zbrent (photon_depth_in_element, s1, s2, 0.0_rp, 1d-10, status)
+  if (orbit%state == lost$) return
 
   ! Compute the intersection point
 
@@ -1111,7 +1118,7 @@ contains
 
 !-----------------------------------------------------------------------------------------------
 !+
-! Function photon_depth_in_element (s_len) result (delta_h)
+! Function photon_depth_in_element (s_len, status) result (delta_h)
 ! 
 ! Private routine to be used as an argument in zbrent. Propagates
 ! photon forward by a distance s_len. Returns delta_h = z-z0
@@ -1119,22 +1126,27 @@ contains
 ! Since positive z points inward, positive delta_h => inside element.
 !
 ! Input:
-!   s_len   -- Real(rp): Place to position the photon.
+!   s_len   -- real(rp): Place to position the photon.
 !
 ! Output:
-!   delta_h -- Real(rp): Depth of photon below surface in crystal coordinates.
+!   delta_h -- real(rp): Depth of photon below surface in crystal coordinates.
+!   status  -- integer: 0 -> Calculation OK.
+!                       1 -> Calculation not OK.
 !-
 
-function photon_depth_in_element (s_len) result (delta_h)
+function photon_depth_in_element (s_len, status) result (delta_h)
 
 real(rp), intent(in) :: s_len
 real(rp) :: delta_h
 real(rp) :: point(3)
 
+integer status
+
 !
 
 point = s_len * orbit%vec(2:6:2) + orbit%vec(1:5:2)
-delta_h = point(3) - z_at_surface(ele, point(1), point(2))
+delta_h = point(3) - z_at_surface(ele, point(1), point(2), status)
+if (status /= 0) orbit%state = lost$
 
 end function photon_depth_in_element
 
