@@ -340,7 +340,7 @@ if (i0_tot_eff == 0 .and. photon_start_input_file == '') then
   else
     call out_io (s_fatal$, r_name, 'ENERGY AND/OR VERTICAL PHOTON ANGLE INIT FILTERS ARE SET TO VALUES SUCH THAT, DUE TO ', &
                                    'ROUND-OFF ERRORS, NO PHOTONS WILL BE GENERATED!', &
-                                   'GENERALLY THIS MEANS THAT THE SUPRESSION FACTOR DUE TO THE FILTERS IS GREATER THAN 10^16')
+                                   'GENERALLY THIS MEANS that LESS THAN ONE PHOTON IN 10^16 WOULD PASS THE INIT FILTERS.')
   endif
   stop
 endif
