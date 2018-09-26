@@ -362,6 +362,12 @@ case ('LR_SELF_WAKE_ON')
   a_ptr%l => ele%wake%lr_self_wake_on
 case ('SPHERICAL_CURVATURE')
   a_ptr%r => ele%photon%surface%spherical_curvature
+case ('ELLIPTICAL_CURVATURE_X')
+  a_ptr%r => ele%photon%surface%elliptical_curvature(1)
+case ('ELLIPTICAL_CURVATURE_Y')
+  a_ptr%r => ele%photon%surface%elliptical_curvature(2)
+case ('ELLIPTICAL_CURVATURE_Z')
+  a_ptr%r => ele%photon%surface%elliptical_curvature(3)
 end select
 
 if (a_name(1:11) == 'CURVATURE_X' .and. a_name(13:14) == '_Y' .and. a_name(16:) == '') then
