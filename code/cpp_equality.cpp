@@ -832,6 +832,7 @@ bool operator== (const CPP_photon_surface& x, const CPP_photon_surface& y) {
   is_eq = is_eq && (x.segment == y.segment);
   is_eq = is_eq && is_all_equal(x.curvature_xy, y.curvature_xy);
   is_eq = is_eq && (x.spherical_curvature == y.spherical_curvature);
+  is_eq = is_eq && is_all_equal(x.elliptical_curvature, y.elliptical_curvature);
   is_eq = is_eq && (x.has_curvature == y.has_curvature);
   return is_eq;
 };
@@ -1286,6 +1287,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.default_integ_order == y.default_integ_order);
   is_eq = is_eq && (x.ptc_max_fringe_order == y.ptc_max_fringe_order);
   is_eq = is_eq && (x.max_num_runge_kutta_step == y.max_num_runge_kutta_step);
+  is_eq = is_eq && (x.rf_phase_below_transition_ref == y.rf_phase_below_transition_ref);
   is_eq = is_eq && (x.use_hard_edge_drifts == y.use_hard_edge_drifts);
   is_eq = is_eq && (x.sr_wakes_on == y.sr_wakes_on);
   is_eq = is_eq && (x.lr_wakes_on == y.lr_wakes_on);
@@ -1294,6 +1296,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.space_charge_on == y.space_charge_on);
   is_eq = is_eq && (x.coherent_synch_rad_on == y.coherent_synch_rad_on);
   is_eq = is_eq && (x.spin_tracking_on == y.spin_tracking_on);
+  is_eq = is_eq && (x.spin_sokolov_ternov_flipping_on == y.spin_sokolov_ternov_flipping_on);
   is_eq = is_eq && (x.radiation_damping_on == y.radiation_damping_on);
   is_eq = is_eq && (x.radiation_fluctuations_on == y.radiation_fluctuations_on);
   is_eq = is_eq && (x.conserve_taylor_maps == y.conserve_taylor_maps);
@@ -1572,13 +1575,13 @@ template bool is_all_equal (const CPP_bunch_MATRIX&, const CPP_bunch_MATRIX&);
 
 bool operator== (const CPP_bunch_params& x, const CPP_bunch_params& y) {
   bool is_eq = true;
+  is_eq = is_eq && (x.centroid == y.centroid);
   is_eq = is_eq && (x.x == y.x);
   is_eq = is_eq && (x.y == y.y);
   is_eq = is_eq && (x.z == y.z);
   is_eq = is_eq && (x.a == y.a);
   is_eq = is_eq && (x.b == y.b);
   is_eq = is_eq && (x.c == y.c);
-  is_eq = is_eq && (x.centroid == y.centroid);
   is_eq = is_eq && is_all_equal(x.spin, y.spin);
   is_eq = is_eq && is_all_equal(x.sigma, y.sigma);
   is_eq = is_eq && is_all_equal(x.rel_max, y.rel_max);

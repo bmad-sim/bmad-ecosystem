@@ -2051,6 +2051,7 @@ public:
   CPP_segmented_surface segment;
   Real_MATRIX curvature_xy;
   Real spherical_curvature;
+  Real_ARRAY elliptical_curvature;
   Bool has_curvature;
 
   CPP_photon_surface() :
@@ -2058,6 +2059,7 @@ public:
     segment(),
     curvature_xy(Real_ARRAY(0.0, 7), 7),
     spherical_curvature(0.0),
+    elliptical_curvature(0.0, 3),
     has_curvature(false)
     {}
 
@@ -2982,6 +2984,7 @@ public:
   Int default_integ_order;
   Int ptc_max_fringe_order;
   Int max_num_runge_kutta_step;
+  Bool rf_phase_below_transition_ref;
   Bool use_hard_edge_drifts;
   Bool sr_wakes_on;
   Bool lr_wakes_on;
@@ -2990,6 +2993,7 @@ public:
   Bool space_charge_on;
   Bool coherent_synch_rad_on;
   Bool spin_tracking_on;
+  Bool spin_sokolov_ternov_flipping_on;
   Bool radiation_damping_on;
   Bool radiation_fluctuations_on;
   Bool conserve_taylor_maps;
@@ -3024,6 +3028,7 @@ public:
     default_integ_order(2),
     ptc_max_fringe_order(2),
     max_num_runge_kutta_step(10000),
+    rf_phase_below_transition_ref(false),
     use_hard_edge_drifts(true),
     sr_wakes_on(true),
     lr_wakes_on(true),
@@ -3032,6 +3037,7 @@ public:
     space_charge_on(false),
     coherent_synch_rad_on(false),
     spin_tracking_on(false),
+    spin_sokolov_ternov_flipping_on(false),
     radiation_damping_on(false),
     radiation_fluctuations_on(false),
     conserve_taylor_maps(true),
@@ -3579,13 +3585,13 @@ class Opaque_bunch_params_class {};  // Opaque class for pointers to correspondi
 
 class CPP_bunch_params {
 public:
+  CPP_coord centroid;
   CPP_twiss x;
   CPP_twiss y;
   CPP_twiss z;
   CPP_twiss a;
   CPP_twiss b;
   CPP_twiss c;
-  CPP_coord centroid;
   Real_ARRAY spin;
   Real_MATRIX sigma;
   Real_ARRAY rel_max;
@@ -3597,18 +3603,18 @@ public:
   Int n_particle_lost_in_ele;
 
   CPP_bunch_params() :
+    centroid(),
     x(),
     y(),
     z(),
     a(),
     b(),
     c(),
-    centroid(),
     spin(0.0, 3),
     sigma(Real_ARRAY(0.0, 6), 6),
     rel_max(0.0, 6),
     rel_min(0.0, 6),
-    s(0.0),
+    s(-1),
     charge_live(0.0),
     n_particle_tot(0),
     n_particle_live(0),

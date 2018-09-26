@@ -2005,7 +2005,7 @@ extern "C" void photon_surface_to_c (const Opaque_photon_surface_class*, CPP_pho
 
 // c_side.to_f2_arg
 extern "C" void photon_surface_to_f2 (Opaque_photon_surface_class*, const CPP_surface_grid&,
-    const CPP_segmented_surface&, c_RealArr, c_Real&, c_Bool&);
+    const CPP_segmented_surface&, c_RealArr, c_Real&, c_RealArr, c_Bool&);
 
 extern "C" void photon_surface_to_f (const CPP_photon_surface& C, Opaque_photon_surface_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
@@ -2013,14 +2013,14 @@ extern "C" void photon_surface_to_f (const CPP_photon_surface& C, Opaque_photon_
 
   // c_side.to_f2_call
   photon_surface_to_f2 (F, C.grid, C.segment, z_curvature_xy, C.spherical_curvature,
-      C.has_curvature);
+      &C.elliptical_curvature[0], C.has_curvature);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, const Opaque_surface_grid_class*
     z_grid, const Opaque_segmented_surface_class* z_segment, c_RealArr z_curvature_xy, c_Real&
-    z_spherical_curvature, c_Bool& z_has_curvature) {
+    z_spherical_curvature, c_RealArr z_elliptical_curvature, c_Bool& z_has_curvature) {
 
   // c_side.to_c2_set[type, 0, NOT]
   surface_grid_to_c(z_grid, C.grid);
@@ -2030,6 +2030,8 @@ extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, const Opaque_surfac
   C.curvature_xy << z_curvature_xy;
   // c_side.to_c2_set[real, 0, NOT]
   C.spherical_curvature = z_spherical_curvature;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.elliptical_curvature << z_elliptical_curvature;
   // c_side.to_c2_set[logical, 0, NOT]
   C.has_curvature = z_has_curvature;
 }
@@ -3115,7 +3117,7 @@ extern "C" void bmad_common_to_f2 (Opaque_bmad_common_class*, c_Real&, c_RealArr
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
     c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Opaque_bmad_common_class* F) {
 
@@ -3127,9 +3129,10 @@ extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Opaque_bmad_common_c
       C.autoscale_amp_rel_tol, C.autoscale_phase_tol, C.electric_dipole_moment,
       C.ptc_cut_factor, C.sad_eps_scale, C.sad_amp_max, C.sad_n_div_max, C.taylor_order,
       C.runge_kutta_order, C.default_integ_order, C.ptc_max_fringe_order,
-      C.max_num_runge_kutta_step, C.use_hard_edge_drifts, C.sr_wakes_on, C.lr_wakes_on,
-      C.mat6_track_symmetric, C.auto_bookkeeper, C.space_charge_on, C.coherent_synch_rad_on,
-      C.spin_tracking_on, C.radiation_damping_on, C.radiation_fluctuations_on,
+      C.max_num_runge_kutta_step, C.rf_phase_below_transition_ref, C.use_hard_edge_drifts,
+      C.sr_wakes_on, C.lr_wakes_on, C.mat6_track_symmetric, C.auto_bookkeeper,
+      C.space_charge_on, C.coherent_synch_rad_on, C.spin_tracking_on,
+      C.spin_sokolov_ternov_flipping_on, C.radiation_damping_on, C.radiation_fluctuations_on,
       C.conserve_taylor_maps, C.absolute_time_tracking_default, C.convert_to_kinetic_momentum,
       C.aperture_limit_on, C.ptc_print_info_messages, C.debug);
 
@@ -3145,13 +3148,14 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
     c_Real& z_electric_dipole_moment, c_Real& z_ptc_cut_factor, c_Real& z_sad_eps_scale,
     c_Real& z_sad_amp_max, c_Int& z_sad_n_div_max, c_Int& z_taylor_order, c_Int&
     z_runge_kutta_order, c_Int& z_default_integ_order, c_Int& z_ptc_max_fringe_order, c_Int&
-    z_max_num_runge_kutta_step, c_Bool& z_use_hard_edge_drifts, c_Bool& z_sr_wakes_on, c_Bool&
-    z_lr_wakes_on, c_Bool& z_mat6_track_symmetric, c_Bool& z_auto_bookkeeper, c_Bool&
-    z_space_charge_on, c_Bool& z_coherent_synch_rad_on, c_Bool& z_spin_tracking_on, c_Bool&
-    z_radiation_damping_on, c_Bool& z_radiation_fluctuations_on, c_Bool&
-    z_conserve_taylor_maps, c_Bool& z_absolute_time_tracking_default, c_Bool&
-    z_convert_to_kinetic_momentum, c_Bool& z_aperture_limit_on, c_Bool&
-    z_ptc_print_info_messages, c_Bool& z_debug) {
+    z_max_num_runge_kutta_step, c_Bool& z_rf_phase_below_transition_ref, c_Bool&
+    z_use_hard_edge_drifts, c_Bool& z_sr_wakes_on, c_Bool& z_lr_wakes_on, c_Bool&
+    z_mat6_track_symmetric, c_Bool& z_auto_bookkeeper, c_Bool& z_space_charge_on, c_Bool&
+    z_coherent_synch_rad_on, c_Bool& z_spin_tracking_on, c_Bool&
+    z_spin_sokolov_ternov_flipping_on, c_Bool& z_radiation_damping_on, c_Bool&
+    z_radiation_fluctuations_on, c_Bool& z_conserve_taylor_maps, c_Bool&
+    z_absolute_time_tracking_default, c_Bool& z_convert_to_kinetic_momentum, c_Bool&
+    z_aperture_limit_on, c_Bool& z_ptc_print_info_messages, c_Bool& z_debug) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.max_aperture_limit = z_max_aperture_limit;
@@ -3202,6 +3206,8 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
   // c_side.to_c2_set[integer, 0, NOT]
   C.max_num_runge_kutta_step = z_max_num_runge_kutta_step;
   // c_side.to_c2_set[logical, 0, NOT]
+  C.rf_phase_below_transition_ref = z_rf_phase_below_transition_ref;
+  // c_side.to_c2_set[logical, 0, NOT]
   C.use_hard_edge_drifts = z_use_hard_edge_drifts;
   // c_side.to_c2_set[logical, 0, NOT]
   C.sr_wakes_on = z_sr_wakes_on;
@@ -3217,6 +3223,8 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
   C.coherent_synch_rad_on = z_coherent_synch_rad_on;
   // c_side.to_c2_set[logical, 0, NOT]
   C.spin_tracking_on = z_spin_tracking_on;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.spin_sokolov_ternov_flipping_on = z_spin_sokolov_ternov_flipping_on;
   // c_side.to_c2_set[logical, 0, NOT]
   C.radiation_damping_on = z_radiation_damping_on;
   // c_side.to_c2_set[logical, 0, NOT]
@@ -4208,9 +4216,9 @@ extern "C" void bunch_to_c2 (CPP_bunch& C, Opaque_coord_class** z_particle, Int 
 extern "C" void bunch_params_to_c (const Opaque_bunch_params_class*, CPP_bunch_params&);
 
 // c_side.to_f2_arg
-extern "C" void bunch_params_to_f2 (Opaque_bunch_params_class*, const CPP_twiss&, const
+extern "C" void bunch_params_to_f2 (Opaque_bunch_params_class*, const CPP_coord&, const
     CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const
-    CPP_coord&, c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_Real&, c_Real&, c_Int&, c_Int&,
+    CPP_twiss&, c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_Real&, c_Real&, c_Int&, c_Int&,
     c_Int&);
 
 extern "C" void bunch_params_to_f (const CPP_bunch_params& C, Opaque_bunch_params_class* F) {
@@ -4218,20 +4226,22 @@ extern "C" void bunch_params_to_f (const CPP_bunch_params& C, Opaque_bunch_param
   Real z_sigma[6*6]; matrix_to_vec(C.sigma, z_sigma);
 
   // c_side.to_f2_call
-  bunch_params_to_f2 (F, C.x, C.y, C.z, C.a, C.b, C.c, C.centroid, &C.spin[0], z_sigma,
+  bunch_params_to_f2 (F, C.centroid, C.x, C.y, C.z, C.a, C.b, C.c, &C.spin[0], z_sigma,
       &C.rel_max[0], &C.rel_min[0], C.s, C.charge_live, C.n_particle_tot, C.n_particle_live,
       C.n_particle_lost_in_ele);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void bunch_params_to_c2 (CPP_bunch_params& C, const Opaque_twiss_class* z_x, const
-    Opaque_twiss_class* z_y, const Opaque_twiss_class* z_z, const Opaque_twiss_class* z_a,
-    const Opaque_twiss_class* z_b, const Opaque_twiss_class* z_c, const Opaque_coord_class*
-    z_centroid, c_RealArr z_spin, c_RealArr z_sigma, c_RealArr z_rel_max, c_RealArr z_rel_min,
-    c_Real& z_s, c_Real& z_charge_live, c_Int& z_n_particle_tot, c_Int& z_n_particle_live,
-    c_Int& z_n_particle_lost_in_ele) {
+extern "C" void bunch_params_to_c2 (CPP_bunch_params& C, const Opaque_coord_class* z_centroid,
+    const Opaque_twiss_class* z_x, const Opaque_twiss_class* z_y, const Opaque_twiss_class*
+    z_z, const Opaque_twiss_class* z_a, const Opaque_twiss_class* z_b, const
+    Opaque_twiss_class* z_c, c_RealArr z_spin, c_RealArr z_sigma, c_RealArr z_rel_max,
+    c_RealArr z_rel_min, c_Real& z_s, c_Real& z_charge_live, c_Int& z_n_particle_tot, c_Int&
+    z_n_particle_live, c_Int& z_n_particle_lost_in_ele) {
 
+  // c_side.to_c2_set[type, 0, NOT]
+  coord_to_c(z_centroid, C.centroid);
   // c_side.to_c2_set[type, 0, NOT]
   twiss_to_c(z_x, C.x);
   // c_side.to_c2_set[type, 0, NOT]
@@ -4244,8 +4254,6 @@ extern "C" void bunch_params_to_c2 (CPP_bunch_params& C, const Opaque_twiss_clas
   twiss_to_c(z_b, C.b);
   // c_side.to_c2_set[type, 0, NOT]
   twiss_to_c(z_c, C.c);
-  // c_side.to_c2_set[type, 0, NOT]
-  coord_to_c(z_centroid, C.centroid);
   // c_side.to_c2_set[real, 1, NOT]
   C.spin << z_spin;
   // c_side.to_c2_set[real, 2, NOT]

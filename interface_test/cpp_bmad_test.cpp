@@ -3316,8 +3316,11 @@ void set_CPP_photon_surface_test_pattern (CPP_photon_surface& C, int ix_patt) {
   // c_side.test_pat[real, 0, NOT]
   rhs = 4 + offset; C.spherical_curvature = rhs;
 
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.elliptical_curvature.size(); i++)
+    {int rhs = 101 + i + 5 + offset; C.elliptical_curvature[i] = rhs;}
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 5 + offset; C.has_curvature = (rhs % 2 == 0);
+  rhs = 6 + offset; C.has_curvature = (rhs % 2 == 0);
 
 
 }
@@ -5142,52 +5145,58 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   rhs = 24 + offset; C.max_num_runge_kutta_step = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 25 + offset; C.use_hard_edge_drifts = (rhs % 2 == 0);
+  rhs = 25 + offset; C.rf_phase_below_transition_ref = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 26 + offset; C.sr_wakes_on = (rhs % 2 == 0);
+  rhs = 26 + offset; C.use_hard_edge_drifts = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 27 + offset; C.lr_wakes_on = (rhs % 2 == 0);
+  rhs = 27 + offset; C.sr_wakes_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 28 + offset; C.mat6_track_symmetric = (rhs % 2 == 0);
+  rhs = 28 + offset; C.lr_wakes_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 29 + offset; C.auto_bookkeeper = (rhs % 2 == 0);
+  rhs = 29 + offset; C.mat6_track_symmetric = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 30 + offset; C.space_charge_on = (rhs % 2 == 0);
+  rhs = 30 + offset; C.auto_bookkeeper = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 31 + offset; C.coherent_synch_rad_on = (rhs % 2 == 0);
+  rhs = 31 + offset; C.space_charge_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 32 + offset; C.spin_tracking_on = (rhs % 2 == 0);
+  rhs = 32 + offset; C.coherent_synch_rad_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 33 + offset; C.radiation_damping_on = (rhs % 2 == 0);
+  rhs = 33 + offset; C.spin_tracking_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 34 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
+  rhs = 34 + offset; C.spin_sokolov_ternov_flipping_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 35 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
+  rhs = 35 + offset; C.radiation_damping_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 36 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
+  rhs = 36 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 37 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
+  rhs = 37 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 38 + offset; C.aperture_limit_on = (rhs % 2 == 0);
+  rhs = 38 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 39 + offset; C.ptc_print_info_messages = (rhs % 2 == 0);
+  rhs = 39 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 40 + offset; C.debug = (rhs % 2 == 0);
+  rhs = 40 + offset; C.aperture_limit_on = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 41 + offset; C.ptc_print_info_messages = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 42 + offset; C.debug = (rhs % 2 == 0);
 
 
 }
@@ -6290,6 +6299,9 @@ void set_CPP_bunch_params_test_pattern (CPP_bunch_params& C, int ix_patt) {
   int rhs, offset = 100 * ix_patt;
 
   // c_side.test_pat[type, 0, NOT]
+  set_CPP_coord_test_pattern(C.centroid, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
   set_CPP_twiss_test_pattern(C.x, ix_patt);
 
   // c_side.test_pat[type, 0, NOT]
@@ -6306,9 +6318,6 @@ void set_CPP_bunch_params_test_pattern (CPP_bunch_params& C, int ix_patt) {
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_twiss_test_pattern(C.c, ix_patt);
-
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_coord_test_pattern(C.centroid, ix_patt);
 
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.spin.size(); i++)
