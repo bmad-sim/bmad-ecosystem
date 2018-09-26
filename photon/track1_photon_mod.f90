@@ -1168,7 +1168,7 @@ type (photon_surface_struct), pointer :: s
 
 real(rp), optional :: rot_mat(3,3)
 real(rp) curve_rot(3,3), angle
-real(rp) slope_y, slope_x, x, y, g, dg
+real(rp) slope_y, slope_x, x, y, zt, g(3)
 integer ix, iy
 
 logical set
@@ -1197,11 +1197,11 @@ else
   enddo
   enddo
 
-  g = s%spherical_curvature
-  if (g /= 0) then
-    dg = g / sqrt(1 - (x**2 + y**2) * g**2)
-    slope_x = slope_x - x * dg
-    slope_y = slope_y - y * dg
+  g = s%spherical_curvature + s%elliptical_curvature
+  if (g(3) /= 0) then
+    zt = sqrt(1 - sign_of(g(1)) * (x * g(1))**2 - sign_of(g(2)) * (y * g(2))**2)
+    slope_x = slope_x - x * sign_of(g(1)) * g(1)**2 / (g(3) * zt)
+    slope_y = slope_y - y * sign_of(g(2)) * g(2)**2 / (g(3) * zt)
   endif
 endif
 

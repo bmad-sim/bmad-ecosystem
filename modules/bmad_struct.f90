@@ -845,7 +845,8 @@ type photon_surface_struct
   type (segmented_surface_struct) :: segment = segmented_surface_struct()
   real(rp) :: curvature_xy(0:6,0:6) = 0
   real(rp) :: spherical_curvature = 0
-  logical :: has_curvature = .false.     ! Dependent var. Will be set by Bmad
+  real(rp) :: elliptical_curvature(3) = 0   ! Total curvature = elliptical + spherical
+  logical :: has_curvature = .false.        ! Dependent var. Will be set by Bmad
 end type
 
 ! Target points are in element coordinates.
@@ -1488,9 +1489,9 @@ integer, parameter :: spherical_curvature$ = 81
 integer, parameter :: alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81, tt$ = 81, lr_wake_spline$ = 81, x_knot$ = 81
 integer, parameter :: alias$  = 82, eta_x$ = 82, ptc_max_fringe_order$ = 82
 integer, parameter :: eta_y$ = 83, electric_dipole_moment$ = 83, lr_self_wake_on$ = 83, x_ref$ = 83
-integer, parameter :: etap_x$ = 84, lr_wake_file$ = 84, px_ref$ = 84
-integer, parameter :: etap_y$ = 85, lr_freq_spread$ = 85, y_ref$ = 85
-integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86, py_ref$ = 86
+integer, parameter :: etap_x$ = 84, lr_wake_file$ = 84, px_ref$ = 84, elliptical_curvature_x$ = 84
+integer, parameter :: etap_y$ = 85, lr_freq_spread$ = 85, y_ref$ = 85, elliptical_curvature_y$ = 85
+integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86, py_ref$ = 86, elliptical_curvature_z$ = 86
 integer, parameter :: aperture_type$ = 87, eta_z$ = 87
 integer, parameter :: taylor_map_includes_offsets$ = 88, cmat_11_begin$ = 88, surface_attrib$ = 88
 integer, parameter :: csr_calc_on$ = 89, cmat_12_begin$ = 89, var$ = 89, z_ref$ = 89

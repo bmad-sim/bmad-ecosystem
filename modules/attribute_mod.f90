@@ -699,6 +699,9 @@ do i = 1, n_key$
   case (crystal$, multilayer_mirror$, mirror$, sample$, diffraction_plate$, detector$)
     call init_attribute_name1 (i, surface_attrib$, 'SURFACE')
     call init_attribute_name1 (i, spherical_curvature$, 'SPHERICAL_CURVATURE')
+    call init_attribute_name1 (i, elliptical_curvature_x$, 'ELLIPTICAL_CURVATURE_X')
+    call init_attribute_name1 (i, elliptical_curvature_y$, 'ELLIPTICAL_CURVATURE_Y')
+    call init_attribute_name1 (i, elliptical_curvature_z$, 'ELLIPTICAL_CURVATURE_Z')
     num = a0$ - 1
     do ix = 0, ubound(surface%curvature_xy, 1)
     do iy = 0, ubound(surface%curvature_xy, 2)
@@ -1834,7 +1837,7 @@ case ('COUPLER_PHASE', 'PHI0', 'PHI0_AUTOSCALE', 'PHI0_ERR', 'PHI0_MULTIPASS', '
 case ('CRITICAL_ANGLE_FACTOR')
   attrib_units = 'rad*eV'
 
-case ('SPHERICAL_CURVATURE')
+case ('SPHERICAL_CURVATURE', 'ELLIPTICAL_CURVATURE_X', 'ELLIPTICAL_CURVATURE_Y', 'ELLIPTICAL_CURVATURE_Z')
   attrib_units = '1/m'
 
 case ('CURVATURE_X0_Y2', 'CURVATURE_X1_Y1', 'CURVATURE_X2_Y0', 'G', 'G_ERR', 'H1', 'H2')

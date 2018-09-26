@@ -1150,9 +1150,8 @@ LITHIUM_OXIDE                       & XYLENE                                    
   \centering
   \includegraphics[width=5in]{surface-curvature.pdf}
   \caption[Surface curvature geometry.]
-{Surface curvature geometry. The element reference frame used to
-describe surface curvature has the $x$ axis pointing towards the
-interior of the element, and the $z$ axis along the plane defined by
+{Surface curvature geometry. The element reference frame used to describe surface curvature has the
+$z$ axis pointing towards the interior of the element, and the $x$ axis in the plane defined by
 the entrance and exit reference orbit.}
   \label{f:surface}
 \end{figure}
@@ -1174,21 +1173,43 @@ The following X-ray elements have a surface which X-rays impinge upon:
 [There is also the \vn{capillary} element but this element specifies
 its surface differently.]
 
+\index{spherical_curvature}\index{elliptical_curvature_x}
+\index{elliptical_curvature_y}\index{elliptical_curvature_z}
 The coordinate system used for characterizing the curvature of a surface is the element reference
-frame as shown in \fig{f:surface}). This coordinate system has the $x$ axis pointing towards the
-interior of the element, and the $z$ axis along the plane defined by the entrance and exit reference
-orbit. In this coordinate system, the surface curvature is parameterized by the parameter
-\vn{spherical_curvature} plus a fourth order polynomial in $z$ and $y$
+frame as shown in \fig{f:surface}). This coordinate system has the $z$ axis pointing towards the
+interior of the element, and the $x$ axis in the plane defined by the entrance and exit reference
+orbit. In this coordinate system, the surface is an ellipsoid plus a fourth order polynomial
+in $x$ and $y$:
 \Begineq
-  {-z} = \left( R_s - \sqrt{R_s^2 - x^2 - y^2} \right) + \sum_{2 \le i+j \le 6} c_{ij} \, x^i \, y^j
+  {-z} = \frac{1}{g_z} \, \left[ 1 - \sqrt{1 - \sign(g_x) \, (g_x \, x)^2 - \sign(g_y) \, (g_y \, y)^2} \right] + 
+  \sum_{2 \le i+j \le 6} c_{ij} \, x^i \, y^j
   \label{xs2ij4}
 \Endeq
-where $R_s$ is the radias of the sphere and which is the inverse of the value of
-\vn{sperical_curvature}. The polynomial coefficients are set in the lattice file by setting the
-following element attributes
+where the $c_{ij}$ parameterize the fourth order polynomial and $g_x, g_y$, and $g_z$ parameterize
+the ellipsoid with $\sign$ being the sign function
+\Begineq
+  \sign(g_i) \equiv \begin{cases} 1 & g_i > 0 \\ -1 & g_i < 0 \end{cases}
+\Endeq
+If $g_z$ is zero, the first term on the RHS of \Eq{xs2ij4} is ignored. If $g_x$, $g_y$, and $g_z$
+are the same value $g$ then the ellipsoid is a sphere with radius $1/g$ The ellipsoid parameters are
+set for an element by setting the element parameters
+\begin{example}
+  spherical_curvature    = <Real>
+  elliptical_curvature_x = <Real>
+  elliptical_curvature_y = <Real>
+  elliptical_curvature_z = <Real>
+\end{example}
+and the correspondence between the ellipsoid parameters of \Eq{xs2ij4} and these parameters is:
+\begin{example}
+  \(g_x\) = elliptical_curvature_x + spherical_curvature
+  \(g_y\) = elliptical_curvature_y + spherical_curvature
+  \(g_z\) = elliptical_curvature_z + spherical_curvature
+\end{example}
+The polynomial coefficients $c_{ij}$ are set in the lattice file by setting the
+element attributes
 \index{surface curveture}
 \begin{example}
-  curvature_xM_yN      = <Real>   
+  curvature_xM_yN = <Real>   
 \end{example}
 where \vn{M} and \vn{N} are integers in the range 0 through 6 with the restriction
 \begin{example}

@@ -1457,6 +1457,8 @@ is_eq = is_eq .and. (f1%segment == f2%segment)
 is_eq = is_eq .and. all(f1%curvature_xy == f2%curvature_xy)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%spherical_curvature == f2%spherical_curvature)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%elliptical_curvature == f2%elliptical_curvature)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%has_curvature .eqv. f2%has_curvature)
 

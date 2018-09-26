@@ -59,7 +59,7 @@ function z_at_surface (ele, x, y) result (z)
 type (ele_struct), target :: ele
 type (photon_surface_struct), pointer :: surf
 
-real(rp) x, y, z, g
+real(rp) x, y, z, g(3)
 integer ix, iy
 
 !
@@ -81,8 +81,8 @@ else
   enddo
   enddo
 
-  g = surf%spherical_curvature
-  if (g /= 0) z = z + sqrt_one(-g**2 * (x**2 + y**2)) / g
+  g = surf%spherical_curvature + surf%elliptical_curvature
+  if (g(3) /= 0) z = z + sqrt_one(-sign_of(g(1)) * (g(1) * x)**2 - sign_of(g(2)) * (g(2) * y)**2) / g(3)
 endif
 
 end function z_at_surface
@@ -110,8 +110,8 @@ type (ele_struct), target :: ele
 type (photon_surface_struct), pointer :: s
 type (segmented_surface_struct), pointer :: seg
 
-real(rp) x, y, x0, y0, dx, dy, coef_xx, coef_xy, coef_yy, coef_diag, r, g, dg
-integer ix, iy
+real(rp) x, y, zt, x0, y0, dx, dy, coef_xx, coef_xy, coef_yy, coef_diag, g(3)
+integer ix, iy, sx, sy
 
 ! Only redo the cacluation if needed
 
@@ -151,19 +151,19 @@ do iy = 0, ubound(s%curvature_xy, 2) - ix
 enddo
 enddo
 
-g = s%spherical_curvature
-if (g /= 0) then
-  r = 1 / g
-  dg = 1 / sqrt(r**2 - (x**2 + y**2))
-  seg%z0 = seg%z0 + r * sqrt_one(-g**2 * (x**2 + y**2))
-  seg%slope_x = seg%slope_x - x0 * dg
-  seg%slope_y = seg%slope_y - y0 * dg
-  coef_xx = coef_xx - (r**2 - y**2) * dg**3
-  coef_yy = coef_yy - (r**2 - x**2) * dg**3
-  coef_xy = coef_xy - x * y * dg**3
+g = s%spherical_curvature + s%elliptical_curvature
+if (g(3) /= 0) then
+  sx = sign_of(g(1)); sy = sign_of(g(2))
+  zt = sqrt(1 - sx * (x0 * g(1))**2 - sy * (y0 * g(2))**2)
+  seg%z0 = seg%z0 + sqrt_one(-sx * (g(1) * x)**2 - sy * (g(2) * y)**2) / g(3)
+  seg%slope_x = seg%slope_x - x0 * sx * g(1)**2 / (g(3) * zt)
+  seg%slope_y = seg%slope_y - y0 * sy * g(2)**2 / (g(3) * zt)
+  coef_xx = coef_xx - (sx * g(1)**2 / zt - (x0 * g(1)**2)**2 / zt**3) / (2 * g(3))
+  coef_yy = coef_yy - (sy * g(2)**2 / zt - (y0 * g(2)**2)**2 / zt**3) / (2 * g(3))
+  coef_xy = coef_xy - (x0 * y0 * sx * sy * (g(1) * g(2))**2 / zt**3) / (g(3))
 endif
 
-! Correct for fact that segment is supported at the corners of the segment
+! Correct for fact that segment is supported at the corners of the segment and the segment is flat.
 ! This correction only affects z0 and not the slopes
 
 dx = s%grid%dr(1) / 2
@@ -173,9 +173,9 @@ coef_xy = coef_xy * dx * dy
 coef_yy = coef_yy * dy**2
 coef_diag = coef_xx + coef_yy - abs(coef_xy)
 
-if (coef_diag < coef_xx .and. coef_diag < coef_yy) then
+if (abs(coef_diag) > abs(coef_xx) .and. abs(coef_diag) > abs(coef_yy)) then
   seg%z0 = seg%z0 + coef_diag
-else if (coef_xx < coef_yy) then
+else if (abs(coef_xx) > abs(coef_yy)) then
   seg%z0 = seg%z0 + coef_xx
 else
   seg%z0 = seg%z0 + coef_yy

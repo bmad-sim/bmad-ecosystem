@@ -662,7 +662,8 @@ if (associated(p)) then
   nl=nl+1; write (li(nl), *) 'Surface:'
  
   if (s%has_curvature) then
-    nl=nl+1; write (li(nl), '(a, f11.6)') 'SPHERICAL_CURVATURE = ', s%spherical_curvature
+    nl=nl+1; write (li(nl), '(a, f11.6)')  'Spherical_Curvature        = ', s%spherical_curvature
+    nl=nl+1; write (li(nl), '(a, 3f11.6)') 'Elliptical_Curvature_X/Y/Z = ', s%elliptical_curvature
     do ix = 0, ubound(s%curvature_xy, 1)
     do iy = 0, ubound(s%curvature_xy, 2)
       if (s%curvature_xy(ix,iy) == 0) cycle

@@ -74,6 +74,7 @@ type (coord_struct) start, end
 type (em_field_struct) field
 type (branch_struct), pointer :: branch
 type (cartesian_map_term1_struct), pointer :: term
+type (photon_surface_struct), pointer :: surface
 
 real(rp) factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time
 real(rp) w_inv(3,3), len_old, f
@@ -394,17 +395,18 @@ case (beambeam$)
 
 ! Crystal
 
-case (crystal$, multilayer_mirror$)
+case (crystal$, multilayer_mirror$, mirror$)
 
   if (ele%key == crystal$) then
     call crystal_type_to_crystal_params (ele, err_flag)
     call crystal_attribute_bookkeeper (ele)
-  else
+  elseif (ele%key == multilayer_mirror$) then
     call multilayer_type_to_multilayer_params (ele, err_flag)
   endif
 
-  ele%photon%surface%has_curvature = (any(ele%photon%surface%curvature_xy /= 0) .or. &
-                                                            ele%photon%surface%spherical_curvature /= 0)
+  surface => ele%photon%surface
+  surface%has_curvature = (any(surface%curvature_xy /= 0) .or. &
+                     surface%spherical_curvature /= 0 .or. any(surface%elliptical_curvature /= 0))
 
 ! E_Gun
 

@@ -30,7 +30,7 @@ type (cylindrical_map_struct), pointer :: cl_map
 type (grid_field_struct), pointer :: g_field
 type (taylor_field_struct), pointer :: t_field
 
-real(rp) s1, s2, ds, ds_small, l_lord
+real(rp) s1, s2, ds, ds_small, l_lord, g(3)
 
 integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i, iw, i2
 integer ix1, ix2, ii, i_b, i_b2, n_pass, k, is, tm
@@ -520,6 +520,8 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       endif
     endif
 
+    !
+
     if ((ele%key == sample$ .and. nint(ele%value(mode$)) == transmission$) .or. ele%key == multilayer_mirror$) then
       if (ele%component_name == '') then
         call out_io (s_fatal$, r_name, &
@@ -570,6 +572,13 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         err_flag = .true.
       endif
 
+      g = surf%spherical_curvature + surf%elliptical_curvature
+      if ((g(1) /= 0 .or. g(2) /= 0) .and. g(3) == 0) then
+        call out_io (s_warn$, r_name, &
+                  'ELEMENT: ' // ele%name, &
+                  'HAS ELLIPTICAL_CURVATURE_Z+SPHERICAL_CURVATURE = 0 BUT ELLIPTICAL_CURVATURE_X+SPHERICAL_CURVATURE OR', &
+                  'ELLIPTICAL_CURVATURE_Y+SPHERICAL_CURVATURE IS NON-ZERO. THE CURVATURE WILL BE IGNORED.')
+      endif
     endif
 
     ! Cylindrical_map field
