@@ -805,7 +805,7 @@ type (sr3d_photon_track_struct) :: photon1
 real(rp) path_len, dl
 real(rp) path_len0, path_len1, d_rad0, d_rad1
 
-integer i
+integer i, status
 
 logical err, no_wall_here
 logical :: in_zbrent
@@ -837,7 +837,7 @@ if (wall_hit(photon%n_wall_hit)%after_reflect%path_len == photon%old%orb%path_le
 
   path_len0 = (photon%now%orb%path_len + 3*photon%old%orb%path_len) / 4
   do i = 1, 30
-    d_rad0 = sr3d_photon_hit_func(path_len0)
+    d_rad0 = sr3d_photon_hit_func(path_len0, status)
     if (photon%ix_photon_generated == sr3d_params%ix_generated_warn) then
       print *
       print *, 'path_len, d_rad0:', path_len0, d_rad0
@@ -864,7 +864,8 @@ endif
 ! Find where the photon hits.
 
 in_zbrent = .true.
-path_len = super_zbrent (sr3d_photon_hit_func, path_len0, path_len1, 0.0_rp, 0.1 * sr3d_params%significant_length, err)
+path_len = super_zbrent (sr3d_photon_hit_func, path_len0, path_len1, 0.0_rp, 0.1 * sr3d_params%significant_length, status)
+err = (status /= 0)
 if (err) then
   print *, 'WILL IGNORE THIS PHOTON.'
   call sr3d_print_photon_info (photon)
@@ -884,23 +885,25 @@ call sr3d_photon_d_radius (photon%now, branch, no_wall_here)
 contains
 
 !+
-! Function sr3d_photon_hit_func (path_len) result (d_radius)
+! Function sr3d_photon_hit_func (path_len, status) result (d_radius)
 ! 
 ! Routine to be used as an argument in zbrent in the sr3d_photon_hit_spot_calc.
 !
 ! Input:
-!   path_len -- Real(rp): Place to position the photon.
+!   path_len -- real(rp): Place to position the photon.
+!   status   -- integer: Not used.
 !
 ! Output:
-!   d_radius -- Real(rp): 
+!   d_radius -- real(rp): 
 !-
 
-function sr3d_photon_hit_func (path_len) result (d_radius)
+function sr3d_photon_hit_func (path_len, status) result (d_radius)
 
 implicit none
 
 real(rp), intent(in) :: path_len
 real(rp) d_radius, d_track
+integer status
 
 ! Easy case at the ends of the track.
 ! The reason why we are carful about reusing d_rad0 and d_rad1 is that 

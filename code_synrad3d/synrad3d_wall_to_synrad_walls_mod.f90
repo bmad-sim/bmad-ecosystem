@@ -235,7 +235,7 @@ type (ele_struct), pointer :: ele            ! For super_zbrent
 real(rp) s, x, dw_perp(3), origin(3)
 real(rp) x2, y0, y1, y2
 real(rp) position(6), x_wall                 ! For super_zbrent
-integer dir, ixs, ix_ele, ix_wall
+integer dir, ixs, ix_ele, ix_wall, status
 logical no_wall_here, err_flag
 
 !
@@ -248,28 +248,28 @@ position = [dir * 1.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, s - (ele%s - ele%value(l$)), 0
 x2 = wall3d_d_radius (position, ele, ix_wall, dw_perp, ixs, no_wall_here, origin)
 if (no_wall_here) return
 
-y1 = this_y(10.0_rp)
-y2 = this_y(-10.0_rp)
+y1 = this_y(10.0_rp, status)
+y2 = this_y(-10.0_rp, status)
 
 if (y1*y2 >= 0) then ! Does not straddle zero
   no_wall_here = .true.
   return
 endif
 
-y0 = super_zbrent (this_y, -10.0_rp, 10.0_rp, 0.0_rp, 1d-8, err_flag)
-if (err_flag) call err_exit
-y1 = this_y(y0)
+y0 = super_zbrent (this_y, -10.0_rp, 10.0_rp, 0.0_rp, 1d-8, status)
+if (status /= 0) call err_exit
+y1 = this_y(y0, status)
 
 x = x_wall
 
 !--------------------------------------------------------------------------------
 contains
 
-function this_y (y_in) result (y_wall)
+function this_y (y_in, status) result (y_wall)
 
 real(rp), intent(in) :: y_in
 real(rp) y_wall, dw_perp(3), origin(3), dr, r_part, r_wall
-integer ixs
+integer status, ixs
 logical no_wall_here
 
 !
