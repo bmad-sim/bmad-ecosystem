@@ -5,6 +5,7 @@ implicit none
   public EQUAL_PROBE_REAL6_zhe,print,zhe_ini,track_TREE_probe_complex_ptc, dp,INTERNAL_STATE
   public DEFAULT0,TOTALPATH0 ,TIME0,ONLY_4d0,DELTA0,SPIN0,MODULATION0,only_2d0   
   public RADIATION0, NOCAVITY0, FRINGE0 ,STOCHASTIC0,ENVELOPE0,gaussian_seed_zhe
+     public CHECK_STABLE_ZHE
  ! public EQUALi_zhe,EQUALt_zhe
   public OPERATOR(+),operator(-), assignment(=)
   real(kind(1d0)) :: doublenum = 0d0
@@ -12,7 +13,8 @@ implicit none
   integer,parameter::dp=selected_real_kind(2*precision(1.e0))
   logical(lp),parameter:: my_true=.true.
   logical(lp),parameter:: my_false=.false.
-   LOGICAL(lp),TARGET  :: CHECK_STABLE=.TRUE.
+   LOGICAL(lp),TARGET  :: CHECK_STABLE_ZHE=.TRUE.
+ 
  complex(dp), parameter :: i_ = ( 0.0_dp,1.0_dp )    ! cmplx(zero,one,kind=dp)
   integer,parameter::lno=200,lnv=100
   integer :: zhe_ISEED=1000
@@ -815,7 +817,7 @@ do is=1,nrmax
 enddo  ! is 
  if(is>nrmax-10) then
    xs%u=.true.
-  check_stable=.false.
+  check_stable_zhe=.false.
   return
  endif
 !!!    
@@ -1033,6 +1035,27 @@ endif ! jumpnot
     if(present(rad)) rad0=rad
     nrmax=1000
 
+
+!!!! put stochastic kick in front per Sagan
+ if(stoch0) then 
+
+    do i=1,6
+      x(i)=xs%x(i)-t(1)%fix0(i)
+    enddo
+
+    xr=0.0_dp
+  do i=1,6
+    xr(i)=GRNF_zhe()*t(2)%fix0(i)
+  enddo
+    xr(1:6)=matmul(t(2)%rad,xr)
+
+    x=x+xr(1:6)
+
+    do i=1,6
+      xs%x(i)=x(i)+t(1)%fix0(i)
+    enddo
+ endif
+!!!!!!!!!!!!!!!!!!!
     x=0.e0_dp
     x0=0.e0_dp
 x0_begin=0.0_dp
@@ -1129,7 +1152,7 @@ do is=1,nrmax
 enddo  ! is 
  if(is>nrmax-10) then
    xs%u=.true.
-  check_stable=.false.
+  check_stable_zhe=.false.
  endif
 else
        x(1:6)=matmul(t(3)%rad,x(1:6))
@@ -1184,15 +1207,15 @@ else
 
 
 
-if(stoch0) then 
-    xr=0.0_dp
-  do i=1,6
-    xr(i)=GRNF_zhe()*t(2)%fix0(i)
-  enddo
-    xr(1:6)=matmul(t(2)%rad,xr)
-
-    x=x+xr(1:6)
-endif
+! if(stoch0) then 
+!    xr=0.0_dp
+!  do i=1,6
+!    xr(i)=GRNF_zhe()*t(2)%fix0(i)
+!  enddo
+!    xr(1:6)=matmul(t(2)%rad,xr)
+!
+!    x=x+xr(1:6)
+! endif
 
 
          do i=1,6
