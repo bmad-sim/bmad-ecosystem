@@ -326,18 +326,19 @@ END TYPE quaternion_8
       real(dp) e
   end type probe
   !@3 ---------------------------------------------</br>
-  type probe_8
-     type(real_8) x(6)     ! Polymorphic orbital ray
-     type(spinor_8) s(3)   ! Polymorphic spin s(1:3)
-     type(quaternion_8) q
-     type(rf_phasor_8)  ac(nacmax)  ! Modulation of magnet
-     integer:: nac=0 !  number of modulated clocks <=nacmax
-     real(dp) E_ij(6,6)   !  Envelope for stochastic radiation
-     !   stuff for exception
-     logical u,use_q
-     type(integration_node),pointer :: last_node=>null()
-    real(dp) e
-  end type probe_8
+type probe_8
+   type(real_8) x(6)     ! Polymorphic orbital ray
+   type(spinor_8) s(3)   ! Polymorphic spin s(1:3)
+   type(quaternion_8) q
+   type(rf_phasor_8)  ac(nacmax)  ! Modulation of magnet
+   integer:: nac=0 !  number of modulated clocks <=nacmax
+   real(dp) E_ij(6,6)   !  Envelope for stochastic radiation
+   real(dp) x0(6) ! initial value of the ray for TPSA calculations with c_damap
+   !   stuff for exception
+   logical u,use_q
+   type(integration_node),pointer :: last_node=>null()
+  real(dp) e
+end type probe_8
   !@3 ---------------------------------------------</br>
   type TEMPORAL_PROBE
      TYPE(probe)  XS   ! probe at r=0
@@ -404,15 +405,20 @@ type c_damap
  type(c_spinmatrix) s !@1 spin matrix
  type(c_quaternion) q
  complex(dp) e_ij(6,6) !@1 stochastic fluctuation in radiation theory
+ complex(dp) x0(lnv) 
+ logical :: tpsa=.false.
 end type c_damap
 
   !@3 ---------------------------------------------</br>
-  TYPE c_vector_field  !@1 
-      integer :: n=0,nrmax !@1 n dimension used v(1:n) (nd2 by default) ; nrmax some big integer if eps<1 
-      real(dp) eps !@1 if eps=-integer  then |eps| Lie brackets are taken ; otherwise eps=eps_tpsalie=10^-9
-      type (c_taylor) v(lnv)  
-      type(c_spinor) om 
-      type(c_quaternion) q
+  TYPE c_vector_field  !@1
+   !@1 n dimension used v(1:n) (nd2 by default) ; nrmax some big integer if eps<1  
+   integer :: n=0,nrmax
+   !@1 if eps=-integer  then |eps| # of Lie brackets are taken 
+   !@ otherwise eps=eps_tpsalie=10^-9
+   real(dp) eps
+   type (c_taylor) v(lnv)  
+ !  type(c_spinor) om 
+   type(c_quaternion) q
   END TYPE c_vector_field
   !@3 ---------------------------------------------</br>
   TYPE c_vector_field_fourier  !@1 
@@ -426,23 +432,23 @@ end type c_damap
        type (c_vector_field), pointer :: f(:)=>null()                   
   END TYPE c_factored_lie
   !@3 ---------------------------------------------</br>
-  TYPE c_normal_form
-      type(c_damap) a1   !@1 brings to fix point at least linear
-      type(c_damap) a2   !@1 linear normal form 
-      type(c_factored_lie) g   !@1 nonlinear part of a in phasors
-      type(c_factored_lie) ker !@1  kernel i.e. normal form in phasors
-      type(c_damap) a_t !@1 transformation a (m=a n a^-1) 
-      type(c_damap) n   !@1 transformation n (m=a n a^-1)      
-      type(c_damap) As  !@1  For Spin   (m = As a n a^-1 As^-1)  
-      type(c_damap) Atot  !@1  For Spin   (m = Atot n Atot^-1)  
-      integer NRES,M(NDIM2t/2,NRESO),ms(NRESO) !@1 stores resonances to be left in the map, including spin (ms)
-      real(dp) tune(NDIM2t/2),damping(NDIM2t/2),spin_tune !@1 Stores simple information
-      logical positive ! forces positive tunes (close to 1 if <0)
+TYPE c_normal_form
+ type(c_damap) a1   !@1 brings to fix point at least linear
+ type(c_damap) a2   !@1 linear normal form 
+ type(c_factored_lie) g   !@1 nonlinear part of a in phasors
+ type(c_factored_lie) ker !@1  kernel i.e. normal form in phasors
+ type(c_damap) a_t !@1 transformation a (m=a n a^-1) 
+ type(c_damap) n   !@1 transformation n (m=a n a^-1)      
+ type(c_damap) As  !@1  For Spin   (m = As a n a^-1 As^-1)  
+ type(c_damap) Atot  !@1  For Spin   (m = Atot n Atot^-1)  
+ integer NRES,M(NDIM2t/2,NRESO),ms(NRESO) !@1 stores resonances to be left in the map, including spin (ms)
+ real(dp) tune(NDIM2t/2),damping(NDIM2t/2),spin_tune !@1 Stores simple information
+ logical positive ! forces positive tunes (close to 1 if <0)
 !!!Envelope radiation stuff to normalise radiation (Sand's like theory)
-     complex(dp) s_ij0(6,6)  !@1  equilibrium beam sizes
-     complex(dp) s_ijr(6,6)  !@1  equilibrium beam sizes in resonance basis
-     real(dp) emittance(3)   !@1  Equilibrium emittances as defined by Chao (computed from s_ijr(2*i-1,2*i) i=1,2,3 )
-  END TYPE c_normal_form
+ complex(dp) s_ij0(6,6)  !@1  equilibrium beam sizes
+ complex(dp) s_ijr(6,6)  !@1  equilibrium beam sizes in resonance basis
+ real(dp) emittance(3)   !@1  Equilibrium emittances as defined by Chao (computed from s_ijr(2*i-1,2*i) i=1,2,3 )
+END TYPE c_normal_form
   !@2 the routine c_canonize(at,a_cs,a0,a1,a2,phase) factors neatly the map "at"
   !@2 at= a_cs o rotation(phase) where  a_cs = a0 o a1 o a2 ; this gives the phase advance even nonlinear!
   !@3 ---------------------------------------------</br>
@@ -451,7 +457,9 @@ type(c_taylor) c_temp
  TYPE c_ray
   complex(dp) x(lnv)            !# orbital and/or magnet modulation clocks
   complex(dp) s1(3),s2(3),s3(3) !# 3 spin directions
-  type(complex_quaternion) q
+  type(complex_quaternion) q    !# quaternion
+  integer n                     !# of dimensions used in x(lnv)
+  complex(dp) x0(lnv)           !# the initial orbit around which the map is computed
  end type c_ray
 
 

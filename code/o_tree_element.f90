@@ -863,6 +863,7 @@ CONTAINS
     P8%u=P%u
     p8%use_q=P%use_q
     P8%e=P%e
+    P8%x0=P%x0
 
 
   END subroutine EQUAL_PROBE8_PROBE8
@@ -943,7 +944,7 @@ CONTAINS
     P8%u=P%u
     P8%e_ij=0.0_dp
     p8%use_q=P%use_q
-
+    p8%x0=P%x
   END subroutine EQUAL_PROBE8_PROBE
 
   subroutine EQUAL_PROBE_PROBE8 (P,P8)
@@ -1063,6 +1064,7 @@ CONTAINS
     r%u=.false.
     r%use_q=use_quaternion
     r%e=0
+    r%x0=0
   END    subroutine EQUAL_IDENTITY_probe_8
 
 
@@ -1394,6 +1396,7 @@ CONTAINS
     r%u=.false.
     r%use_q=use_quaternion
     r%e=0
+    r%x0=0
   END    subroutine ALLOC_probe_8
 
   subroutine ALLOC_rf_phasor_8(R)

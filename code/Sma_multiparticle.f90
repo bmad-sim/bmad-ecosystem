@@ -3100,7 +3100,7 @@ if(.not.associated(p%t1%a))     CALL  allocate_node_frame( R)   !call FILL_SURVE
  
 
 
-!t=>p%t1
+t=>p%t1
 !call survey_integration_node_p1(t,a0,ent0)
 t=>t%next
 call survey_integration_fringe(t,a0,ent0)
