@@ -148,9 +148,11 @@ do n_step = 1, n_step_max
   enddo
 
   ! Check if we are done.
+  ! Use s = s_body - ds_tiny for save_a_step to make sure s-position is inside the element (don't want
+  ! to have the field = 0 due to being outside).
 
   if ((s_body-s2_body)*s_dir > -ds_tiny) then
-    if (present(track)) call save_a_step (track, ele, param, .true., orbit, s_body, .true.)
+    if (present(track)) call save_a_step (track, ele, param, .true., orbit, s_body-ds_tiny*s_dir, .true.)
     call reference_energy_correction (ele, orbit, second_track_edge$)
     err_flag = .false.
     return
