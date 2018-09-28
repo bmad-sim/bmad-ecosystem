@@ -1585,6 +1585,9 @@ else
   px2  = exp_px2  - exp_px_d**2 / bunch_params%sigma(6,6)
 endif
 
+twiss%sigma = sqrt(x2)
+twiss%sigma_p = sqrt(px2)
+
 emit = sqrt(max(0.0_rp, x2*px2 - x_px**2)) ! Roundoff may give negative argument.
 
 twiss%emit      = emit
