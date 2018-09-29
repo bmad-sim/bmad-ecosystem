@@ -1744,8 +1744,8 @@ case ('PTC_INTEGRATION_TYPE')
 case ('PARTICLE')
   call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .false.)
   ix = species_id(word)
-  if (ix == invalid$) then
-    call parser_error ('INVALID PARTICLE SPECIES: ' // word)
+  if (ix == invalid$ .or. ix == ref_particle$ .or. ix == anti_ref_particle$) then
+    call parser_error ('INVALID REFERENCE PARTICLE SPECIES: ' // word)
     return
   endif
   branch => pointer_to_branch(ele%name, lat, .true.)
@@ -8544,7 +8544,7 @@ do
   if (err_flag) then
     print_line = print_line(:ix-1) // '???' // print_line(ix2+1:)
   else
-    print_line = print_line(:ix-1) // trim(real_to_string(value)) // print_line(ix2+1:)
+    print_line = print_line(:ix-1) // trim(real_to_string(value, 20, 14)) // print_line(ix2+1:)
   endif
 enddo
 
