@@ -1,75 +1,216 @@
 !+
-! Function real_to_string (num, fmt) result (str)
+! Function real_to_string (real_num, width, n_signif, n_decimal) result (str)
 ! 
 ! Routine to turn a real number into a string for printing.
+! 
+! Notes:
+!   Keep in mind: With floating format the largest number of digits needed for the exponent is 5. EG: "-1.2e-123".
+!   Thus with decimal point and possible negative sign, the field width should be at least n_signif + 7
+!   If the field width is too small to display the number of significant digits wanted, "******" will be printed.
+!
+! Examples:
+!   real_to_string(1.20001234e-4_rp, 12, 3)      => "1.20E-4     "
+!   real_to_string(1.20001234e-2_rp, 12, 6)      => "0.0120001   "
+!   real_to_string(1.20001234e-4_rp, 12, 7)      => "1.200012E-04"
+!   real_to_string(1.20001234e-4_rp, 12, 10)     => "************"
+!   real_to_string(1.20001234e-4_rp, 12, 2, 6)   => "    0.000120"
+!   real_to_string(1.20001234e-8_rp, 12, 2, 6)   => "    0.000000"
+!   real_to_string(1.20001234e+6_rp, 12, 2, 6)   => "     1.2E+06"
 !
 ! Input:
-!   num -- real(rp): Input number.
-!   fmt -- characher(*), optional: Currently not used.
+!   real_num    -- real(rp): Input number.
+!   width       -- integer: width of number field. The output string length will also be equal to width.
+!   n_signif    -- integer, optional: Nominal number of significant digits to display. Must be non-negative. Default is 15.
+!                    If necessary, more digits will be displayed to pad out the string to n_deciaml places after the decimal point.
+!                    If n_decimal < 0: Number of significant digits displayed will be reduced if trailing zeros are suppressed.
+!                    
+!   n_decimal   -- integer, optional: 
+!                     n_decimal = positive or 0: Number of digits after the decimal point to display if fixed format is used. 
+!                         Fixed format is preferred and floating format will only be used if necessary.
+!                         Numbers are right justified. This is good for tables.
+!                     n_decimal = -1 (default): Trailing zeros replaced by blanks. Numbers are left justified.
+!                         The more compact fixed/floating format will be used. This is good for numbers in text.
 !
 ! Output:
-!   str -- character(24): String representation of num.
+!   str         -- character(width): String representation of real_num. The length will be equal to the value of the width argument.
 !-
 
-function real_to_string (num, fmt) result (str)
+function real_to_string (real_num, width, n_signif, n_decimal) result (str)
 
-use precision_def
+use sim_utils, dummy => real_to_string
 
 implicit none
 
-real(rp) num
-integer pl
-character(24) str
-character(24) fmt2
-character(*), optional :: fmt
+real(rp) real_num, rnum, cut
 
-if (num == 0) then
-  str = '0'
+integer width
+integer, optional :: n_signif, n_decimal
+integer ix, n_sig, n_dec, n_exp, n_digits, width_net, n_neg, e_width
+
+character(width) str
+character(30) fmt, str1, str2
+
+!
+
+rnum = real_num
+n_sig = integer_option(15, n_signif)
+n_dec = integer_option(-1, n_decimal)
+if (n_sig > 17) n_sig = 17
+
+if (n_sig <= 0) then
+  str = 'ERROR!'
   return
 endif
 
-pl = floor(log10(abs(num)))
+if (real_num == 0) then
+  if (n_dec == -1) then
+    str = '0'
+  elseif (width < n_dec+2) then
+    call x_string(str)
+  else
+    write (fmt, '(a, i0, a)') '(f', width, '.', n_dec, ')'
+    write (str, fmt) real_num
+  endif
+  return
+endif
 
-if (pl > 5) then
-  fmt2 = '(2a, i0)'
-  write (str, fmt2) trim(rchomp(num/10.0**pl, 0)), 'E', pl
+if (real_num < 0) then
+  n_neg = 1
+  width_net = width - 1     
+else
+  n_neg = 0
+  width_net = width
+endif
 
-elseif (pl > -3) then
-  str = rchomp(num, pl)
+n_exp = floor( log10(abs(real_num)) )   ! real_num = a * 10^n_exp where a is in the range 1 <= a < 10
+! EG: A real_num like 0.997 with n_sig = 2 is treated as 1.0 due to rounding.
+cut = 10.0_rp**(n_exp+1) * (1 - 0.5_rp * 10.0_rp**(-n_sig))
+if (n_sig > 0 .and. abs(real_num) > cut) then
+  n_exp = n_exp + 1
+  rnum = 10.0_rp**n_exp
+endif
+
+if (n_exp >= 100) then
+  e_width = 5   ! "E+nnn"
+elseif (n_exp >= 10) then
+  e_width = 4   ! "E+nn"
+elseif (n_exp >= 1) then
+  e_width = 4   ! "E+nn"
+elseif (n_exp == 0) then
+  e_width = 0   ! No exponent needed
+elseif (n_exp >= -9) then
+  e_width = 4   ! "E-nn"
+elseif (n_exp >= -99) then
+  e_width = 4   ! "E-nn"
+else
+  e_width = 5   ! "E-nnn"
+endif
+
+!----------------
+! Compact format wanted
+
+if (n_dec == -1) then
+  ! Construct floating point string
+  call rchomp(rnum * 10.0_rp**(-n_exp), n_sig-1, str2)
+  write (str2, '(2a, sp, i0.2)') trim(str2), 'E', n_exp
+
+  if (n_exp > 6) then
+    if (len_trim(str2) > width) then
+      call x_string(str)
+    else
+      str = str2
+    endif
+    return
+  endif
+
+  ! Construct fixed point string
+  if (n_exp+1 >= n_sig) then
+    write (str1, '(i0)') nint(real_num)
+  else
+    call rchomp(rnum, n_sig-n_exp-1, str1)
+  endif
+  
+  ! Choose the more compact
+  if (min(len_trim(str1), len_trim(str2)) > width) then
+    call x_string(str)
+  elseif (len_trim(str2) < len_trim(str1)) then
+    str = str2
+  else
+    str = str1
+  endif
+  return
+endif
+
+!----------------
+
+! Case: Fixed format integer (no displayed decimal point).
+! Example: real_to_string(9812.345, 12, 3, 0) => "       9812"
+
+if (n_dec == 0 .and. n_exp+1 <= width_net) then
+  write (fmt, '(a, i0, a)') '(f', width+1, '.0)'
+  write (str1, '(f30.0)') real_num  
+  if (str1(30:30) == '.') str1(30:30) = ' '
+  str = adjustl(str1)
+  str = adjustr(str)
+
+! Case: Fixed format with decimal point
+
+elseif (n_dec > 0 .and. n_exp+1+n_dec <= 17 .and. n_exp+2+n_dec <= width_net) then
+  write (fmt, '(a, i0, a, i0, a)') '(f', width, '.', n_dec, ')'
+  write (str, fmt) real_num
+
+! Case: Floating format
+
+elseif (n_sig+1+e_width <= width_net) then
+  if (n_exp >= 100) then
+    write (fmt, '(a, i0, a, i0, a)') '(es', width, '.', n_sig-1, 'E3)'
+  else
+    write (fmt, '(a, i0, a, i0, a)') '(es', width, '.', n_sig-1, ')'
+  endif
+  write (str, fmt) real_num
+
+! Case: Overflow
 
 else
-  fmt2 = '(2a, i0)'
-  write (str, fmt2) trim(rchomp(num*10.0**(-pl), 0)), 'E', pl
-
+  call x_string(str)
 endif
 
 !--------------------------
 contains
 
-function rchomp (rel, plc) result (out)
+subroutine x_string(str)
+character(*) str
+character(30), parameter :: x_str = 'X*****************************'
+str = x_str(1:len(str))
+end subroutine
+
+!--------------------------
+! contains
+
+subroutine rchomp (num, n_pl, str_out)
 
 implicit none
 
-real(rp) rel
-character(24) out
-character(8) :: fmt = '(f24.xx)'
-integer it, plc, ix
+real(rp) num
+integer n_pl, it, ix
+character(*) str_out
+character(30) line, fmt
 
 !
 
-write (fmt(6:7), '(i2.2)') 10-plc
-write (out, fmt) rel
-do it = len(out), 1, -1
-  if (out(it:it) == ' ') cycle
-  if (out(it:it) == '0') then
-    out(it:it) = ' '
+write (fmt, '(a, i0, a)'), '(f25.', n_pl, ')'
+write (line, fmt) num
+do it = len(line), 1, -1
+  if (line(it:it) == ' ') cycle
+  if (line(it:it) == '0') then
+    line(it:it) = ' '
     cycle
   endif
-  if (out(it:it) == '.') out(it:it) = ' '
-  call string_trim(out, out, ix)
+  if (line(it:it) == '.') line(it:it) = ' '
+  call string_trim(line, str_out, ix)
   return
 enddo
 
-end function
+end subroutine
 
 end function
