@@ -450,12 +450,13 @@ subroutine query_string (query_str, upcase, return_str, ix, ios)
   logical upcase
 end subroutine
 
-function real_to_string (num, fmt) result (str)
+function real_to_string (real_num, width, n_signif, n_decimal) result (str)
   import
   implicit none
-  real(rp) num
-  character(*), optional :: fmt
-  character(24) str
+  real(rp) real_num
+  integer width
+  integer, optional :: n_signif, n_decimal
+  character(width) str
 end function
 
 function all_pointer_to_string (a_ptr, err) result (str)
