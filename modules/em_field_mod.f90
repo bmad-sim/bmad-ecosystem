@@ -130,7 +130,7 @@ real(rp) sx_over_kx, sy_over_ky, sz_over_kz, rot2(2,2)
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), pot
 real(rp) w_ele_mat(3,3), w_lord_mat(3,3), Er, Ep, Ez, Br, Bp, Bz
 real(rp) :: fld(3), dfld(3,3), fld0(3), fld1(3), dfld0(3,3), dfld1(3,3)
-real(rp) phi0_autoscale, field_autoscale, ds, beta_ref
+real(rp) phi0_autoscale, field_autoscale, ds, beta_ref, ds_small
 
 complex(rp) exp_kz, expt, dEp, dEr, E_rho, E_phi, E_z, B_rho, B_phi, B_z
 complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm, q
@@ -318,8 +318,10 @@ select case (field_calc)
 
 case (bmad_standard$)
 
-  ! Field outside of element is zero
-  if (s_body < 0 .or. s_body > ele%value(l$)) goto 8000   ! Goto field overlap code.
+  ! Field outside of element is zero. 
+
+  ds_small = bmad_com%significant_length / 10.0_rp
+  if (s_body < -ds_small .or. s_body > ele%value(l$) + ds_small) goto 8000   ! Goto field overlap code.
 
   select case (ele%key)
 

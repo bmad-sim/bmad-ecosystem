@@ -764,7 +764,7 @@ else
       s2(i2)%type = variable$
 
       if (atom%name == '') then
-        s2_name(i2) = trim(real_to_string(atom%value))
+        s2_name(i2) = real_to_string(atom%value, 20, 14)
       else
         s2_name(i2) = trim(atom%name)
       endif
@@ -787,7 +787,7 @@ else
       i2 = i2 + 1
       s2(i2)%type = atom%type
       if (atom%name == '') then
-        s2_name(i2) = real_to_string(atom%value)
+        s2_name(i2) = real_to_string(atom%value, 20, 14)
       else
         s2_name(i2) = atom%name
       endif
