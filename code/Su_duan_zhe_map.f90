@@ -701,6 +701,8 @@ end subroutine read_tree_elements
     logical dofix0,dofix,jumpnot
     type(quaternion)qu
 
+   check_stable_zhe=.true.
+       xs%u=.false.
 
     jumpnot=.true.
     if(present(jump)) jumpnot=.not.jump
@@ -782,6 +784,8 @@ do is=1,nrmax
     call matinv(r,r,3,3,ier)
     if(ier/=0) then
      write(6,*) "matinv failed in track_TREE_probe_complexr in zhe"
+     xs%u=.true.
+     check_stable_zhe=.false.
      stop
     endif
     do i=1,3
@@ -818,6 +822,7 @@ enddo  ! is
  if(is>nrmax-10) then
    xs%u=.true.
   check_stable_zhe=.false.
+ 
   return
  endif
 !!!    
@@ -929,6 +934,7 @@ endif ! jumpnot
     enddo
     if(i>nrmax-10) then
      write(6,*) i, a, "did not converge in orthonormaliser"
+     read(5,*) i
       stop
     endif 
   end SUBROUTINE orthonormaliser
@@ -1034,8 +1040,8 @@ endif ! jumpnot
     if(present(stoch)) stoch0=stoch
     if(present(rad)) rad0=rad
     nrmax=1000
-
-
+   check_stable_zhe=.true.
+       xs%u=.false.
 !!!! put stochastic kick in front per Sagan
  if(stoch0) then 
 
@@ -1117,6 +1123,9 @@ do is=1,nrmax
     call matinv(r,r,3,3,ier)
     if(ier/=0) then
      write(6,*) "matinv failed in track_TREE_probe_complex_zhe"
+       check_stable_zhe=.false.
+       xs%u=.true.
+      return
      stop
     endif
     do i=1,3
@@ -1152,7 +1161,9 @@ do is=1,nrmax
 enddo  ! is 
  if(is>nrmax-10) then
    xs%u=.true.
-  check_stable_zhe=.false.
+   check_stable_zhe=.false.
+       xs%u=.false.
+  return
  endif
 else
        x(1:6)=matmul(t(3)%rad,x(1:6))
