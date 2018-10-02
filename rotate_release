@@ -1,4 +1,4 @@
-#!/opt/rh/python27/root/usr/bin/python
+#!/usr/bin/python
 # -*- python -*-      
 # rotate_release   
 #--------------------------------------------------------
@@ -115,6 +115,9 @@ def send_notification_email(old_relname):
         f.write('                             ' + platform + '\n')
     f.write('\n')
     f.write('Old:  ' + old_relname +'  -->  New:  '+ buildname +'\n\n')
+    f.write('\n')
+    f.write('  **** NOTE: '+ buildname +' WAS BUILT UNDER Scientific Linux 7 ****\n\n')
+    f.write('\n')
     f.write('   -Accelerator Code Librarian\n\n')
     f.write('--------------------------------------------------------------------------------\n')
     f.write('Accelerator Code Support Links -\n')
