@@ -249,6 +249,8 @@ integer ix
 str_out = template
 component = tao_curve_component(curve, graph)
 
+if (str_out(1:11) == 'expression:') str_out = str_out(12:)
+
 do
   ix = index(str_out, '#ref')
   if (ix == 0) exit
