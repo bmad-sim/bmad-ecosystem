@@ -540,13 +540,14 @@ do i = 1, n_key$
   if (i == group$)    cycle
   if (i == overlay$)  cycle
   if (i == girder$)   cycle
-  if (i == null_ele$) cycle
 
   call init_attribute_name1 (i, superimpose$,        'SUPERIMPOSE')
   call init_attribute_name1 (i, offset$,             'OFFSET')
   call init_attribute_name1 (i, reference$,          'REFERENCE')
   call init_attribute_name1 (i, ref_origin$,         'REF_ORIGIN')
   call init_attribute_name1 (i, ele_origin$,         'ELE_ORIGIN')
+
+  if (i == null_ele$) cycle
 
   call init_attribute_name1 (i, mat6_calc_method$,       'MAT6_CALC_METHOD')
   call init_attribute_name1 (i, tracking_method$,        'TRACKING_METHOD')

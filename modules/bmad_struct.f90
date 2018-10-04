@@ -261,17 +261,21 @@ type spin_eigen_struct
   complex(rp) :: val = 0
 end type
 
-type spin_matching_struct
+type spin_axis_struct
   real(rp) :: n0(3) = 0             ! Invariant spin axis on closed orbit.
-  real(rp) :: l_axis(3) = 0         ! Transverse axis.
-  real(rp) :: m_axis(3) = 0         ! Transverse axis.
+  real(rp) :: l(3) = 0         ! Transverse axis.
+  real(rp) :: m(3) = 0         ! Transverse axis.
+end type
+
+type spin_matching_struct
+  type (spin_axis_struct) :: axis = spin_axis_struct()
+  type (spin_eigen_struct) :: eigen(8) = spin_eigen_struct()
   real(rp) :: dn_ddelta(3) = 0      ! Invariant spin derivative
   real(rp) :: alpha(6) = 0          ! Alpha vector
   real(rp) :: beta(6) = 0           ! Beta vector
   real(rp) :: orb0(6) = 0           ! Closed orbit 
   real(rp) :: M_1turn(8,8) = 0      ! 1-turn matrix
   real(rp) :: M_ele(8,8) = 0        ! Transfer matrix through element.
-  type (spin_eigen_struct) :: eigen(8) = spin_eigen_struct()
   real(rp) :: sq_ele(0:3) = 0, sq_1turn(0:3) = 0
 end type
 
