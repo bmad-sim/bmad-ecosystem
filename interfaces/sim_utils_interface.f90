@@ -450,6 +450,15 @@ subroutine query_string (query_str, upcase, return_str, ix, ios)
   logical upcase
 end subroutine
 
+function real_array_to_string (real_arr, width, n_decimal, n_blank) result (str)
+  import
+  implicit none
+  real(rp) real_arr(:)
+  integer width, n_decimal
+  integer, optional :: n_blank
+  character(width*size(real_arr)) str
+end function
+
 function real_to_string (real_num, width, n_signif, n_decimal) result (str)
   import
   implicit none
