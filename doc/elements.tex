@@ -3019,12 +3019,18 @@ Example:
 \label{s:null.ele}
 \index{null_ele|hyperbf}
 
-A \vn{null_ele} is a special type of element. It is like a \vn{marker}
-but it has the property that when the lattice is expanded
-(\sref{s:lines.wo.arg}) all \vn{null_ele} elements are removed. The
-primary use of a \vn{null_ele} is in computer generated lattices where
-it can be used to serve as a reference point for element
-superpositions (\sref{s:super}). It is not generally useful otherwise.
+A \vn{null_ele} is a special type of element. It is like a \vn{marker} but it has the property that
+when the lattice is expanded (\sref{s:lines.wo.arg}) all \vn{null_ele} elements are removed. The
+primary use of a \vn{null_ele} is in computer generated lattices where it can be used to serve as a
+reference point for element superpositions (\sref{s:super}). Another use is to split an element
+using superposition while avoiding having to add a marker element to the lattice. Example:
+\begin{example}
+  N: null_ele, superimpose, ref = quadrupole::*
+\end{example}
+This will split all quadrupoles in the lattice in two.
+
+\vn{Null_ele} elements are not generally useful otherwise.
+
 
 %-----------------------------------------------------------------
 \section{Octupole}

@@ -41,10 +41,15 @@ character(24) :: r_name = 'lat_sanity_check'
 logical, intent(out) :: err_flag
 logical good_control(12,12), girder_here, finished, foundit
 
-! check energy
+! Some global checks
 
 if (any(lat%ele(:)%key == lcavity$) .and. lat%param%geometry /= open$) then
   call out_io (s_fatal$, r_name, 'THERE IS A LCAVITY BUT THE GEOMETRY IS NOT SET TO OPEN!')
+endif
+
+if (lat%beam_start%direction /= -1 .and. lat%beam_start%direction /= 1) then
+  call out_io (s_fatal$, r_name, 'BEAM_START DIRECTION IS NOT -1 NOR 1. IT IS: \i0\ ', lat%beam_start%direction)
+  err_flag = .true.
 endif
 
 ! good_control specifies what elements can control what other elements.

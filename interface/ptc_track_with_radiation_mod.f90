@@ -158,6 +158,7 @@ end subroutine ptc_setup_map_with_radiation
 subroutine ptc_track_with_radiation (orbit, map_with_rad, rad_damp, rad_fluct)
 
 use rotation_3d_mod
+use duan_zhe_map, only: assignment(=)
 
 implicit none
 
@@ -175,7 +176,7 @@ fluct = logic_option(bmad_com%radiation_fluctuations_on, rad_fluct)
 
 !
 
-z_probe%x = orbit%vec
+z_probe = orbit%vec
 z_probe%q%x = [1, 0, 0, 0]
 
 call track_tree_probe_complex_zhe (map_with_rad, z_probe, bmad_com%spin_tracking_on, rad_damp, rad_fluct)

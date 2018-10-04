@@ -170,22 +170,22 @@ do ie = 0, branch%n_ele_track
   n_axis = q0 * q_y * q0**(-1)
   m_axis = q0 * q_z * q0**(-1)
 
-  minfo%l_axis = l_axis%q(1:3,0)
-  minfo%n0     = n_axis%q(1:3,0)
-  minfo%m_axis = m_axis%q(1:3,0)
+  minfo%axis%l  = l_axis%q(1:3,0)
+  minfo%axis%n0 = n_axis%q(1:3,0)
+  minfo%axis%m  = m_axis%q(1:3,0)
 
   !
 
   if (ie /= 0) then
-    mat3(:,1) = minfo%l_axis
-    mat3(:,2) = minfo%n0
-    mat3(:,3) = minfo%m_axis
+    mat3(:,1) = minfo%axis%l
+    mat3(:,2) = minfo%axis%n0
+    mat3(:,3) = minfo%axis%m
     quat_lnm_to_xyz = w_mat_to_quat(mat3)
 
     info0 => match_info(ie-1)
-    mat3(:,1) = info0%l_axis
-    mat3(:,2) = info0%n0
-    mat3(:,3) = info0%m_axis
+    mat3(:,1) = info0%axis%l
+    mat3(:,2) = info0%axis%n0
+    mat3(:,3) = info0%axis%m
     quat0_lnm_to_xyz = w_mat_to_quat(mat3)
 
     ! ele matrix

@@ -485,6 +485,10 @@ if (key == def_beam_start$ .or. key == def_bmad_com$) then
   elseif (associated(a_ptrs(1)%i)) then
     call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag) 
     if (err_flag) return
+    if (associated(a_ptrs(1)%i, lat%beam_start%direction) .and. nint(value) /= -1 .and. nint(value) /= 1) then
+      call parser_error ('VALUE OF BEAM_SART[DIRECTION] MUST BE -1 OR 1.')
+      return
+    endif
     a_ptrs(1)%i = nint(value)
     if (associated(a_ptrs(1)%i, bmad_com%taylor_order))                   bp_com%extra%taylor_order_set                    = .true.
     if (associated(a_ptrs(1)%i, bmad_com%default_integ_order))            bp_com%extra%default_integ_order_set             = .true.
