@@ -342,7 +342,7 @@ type tao_data_struct
   integer :: ix_ele = -1                   ! Index of the lattice element corresponding to ele_name
   integer :: ix_ele_start = -1             ! Index of lattice elment when there is a range 
   integer :: ix_ele_ref = -1               ! Index of lattice elment when there is a reference.
-  integer :: ix_ele_merit                  ! Index of lattice elment where merit is evaluated.
+  integer :: ix_ele_merit = -1             ! Index of lattice elment where merit is evaluated.
   integer :: ix_d1 = -1                    ! Index number in u%d2_data(i)%d1_data(j)%d(:) array.
   integer :: ix_data = -1                  ! Index of this datum in the u%data(:) array of data_structs.
   integer :: ix_dModel = -1                ! Row number in the dModel_dVar derivative matrix.
@@ -359,7 +359,7 @@ type tao_data_struct
   real(rp) :: merit = 0                    ! Merit function term value: weight * delta^2
   real(rp) :: s = 0                        ! longitudinal position of ele.
   real(rp) :: s_offset = 0                 ! Offset of the evaluation point.
-  real(rp) :: spin_n0(3)                   ! n0 vector for spin g-matrix calculations.
+  type (spin_axis_struct) :: spin_axis = spin_axis_struct()  ! For spin g-matrix calculations.
   logical :: err_message_printed = .false. ! Used to prevent zillions of error messages being generated
   logical :: exists = .false.              ! See above
   logical :: good_model = .false.          ! See above
@@ -687,11 +687,12 @@ type tao_beam_shake_struct
 end type
 
 type tao_spin_map_struct
-  type (taylor_struct) orbit_taylor(6)  ! Not yet used.
-  type (taylor_struct) spin_taylor(0:3) ! Not yet used.
-  integer ix_ele, ix_ref, ix_uni
-  real(rp) n0(3)
-  real(rp) g_mat(2,6)
+  type (taylor_struct) :: orbit_taylor(6) = taylor_struct()  ! Not yet used.
+  type (taylor_struct) :: spin_taylor(0:3) = taylor_struct() ! Not yet used.
+  type (spin_axis_struct) :: axis = spin_axis_struct()
+  integer :: ix_ele = 0, ix_ref = 0, ix_uni = 0
+  integer :: ix_branch = 0
+  real(rp) :: mat8(8,8) = 0
 end type
 
 type tao_scratch_space_struct

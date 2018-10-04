@@ -311,20 +311,20 @@ if (search_for_lat_eles /= '') then
 
   ! get element names
 
-  u%data(n1:n2)%good_user      = datum(ix1:ix2)%good_user
-  u%data(n1:n2)%invalid_value  = datum(ix1:ix2)%invalid_value
-  u%data(n1:n2)%spin_n0(1)     = datum(ix1:ix2)%spin_n0(1)
-  u%data(n1:n2)%spin_n0(2)     = datum(ix1:ix2)%spin_n0(2)
-  u%data(n1:n2)%spin_n0(3)     = datum(ix1:ix2)%spin_n0(3)
-  u%data(n1:n2)%ele_start_name = datum(ix1:ix2)%ele_start_name
-  u%data(n1:n2)%ele_ref_name   = datum(ix1:ix2)%ele_ref_name
-  u%data(n1:n2)%ix_bunch       = datum(ix1:ix2)%ix_bunch
-  u%data(n1:n2)%data_type      = datum(ix1:ix2)%data_type
-  u%data(n1:n2)%merit_type     = datum(ix1:ix2)%merit_type
-  u%data(n1:n2)%weight         = datum(ix1:ix2)%weight
-  u%data(n1:n2)%s_offset       = datum(ix1:ix2)%s_offset
-  u%data(n1:n2)%data_source    = datum(ix1:ix2)%data_source
-  u%data(n1:n2)%meas_value     = 0  
+  u%data(n1:n2)%good_user        = datum(ix1:ix2)%good_user
+  u%data(n1:n2)%invalid_value    = datum(ix1:ix2)%invalid_value
+  u%data(n1:n2)%spin_axis%n0(1)  = datum(ix1:ix2)%spin_n0(1)
+  u%data(n1:n2)%spin_axis%n0(2)  = datum(ix1:ix2)%spin_n0(2)
+  u%data(n1:n2)%spin_axis%n0(3)  = datum(ix1:ix2)%spin_n0(3)
+  u%data(n1:n2)%ele_start_name   = datum(ix1:ix2)%ele_start_name
+  u%data(n1:n2)%ele_ref_name     = datum(ix1:ix2)%ele_ref_name
+  u%data(n1:n2)%ix_bunch         = datum(ix1:ix2)%ix_bunch
+  u%data(n1:n2)%data_type        = datum(ix1:ix2)%data_type
+  u%data(n1:n2)%merit_type       = datum(ix1:ix2)%merit_type
+  u%data(n1:n2)%weight           = datum(ix1:ix2)%weight
+  u%data(n1:n2)%s_offset         = datum(ix1:ix2)%s_offset
+  u%data(n1:n2)%data_source      = datum(ix1:ix2)%data_source
+  u%data(n1:n2)%meas_value       = 0  
 
   ! use default_data_type if given, if not, auto-generate the data_type
   if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name
@@ -402,15 +402,15 @@ elseif (use_same_lat_eles_as /= '') then
   if (datum(ix1)%weight /= 0) u%data(n1:n2)%weight = datum(ix1)%weight
 
   if (any(default_spin_n0 /= 0)) then
-    u%data(n1:n2)%spin_n0(1) = default_spin_n0(1)
-    u%data(n1:n2)%spin_n0(2) = default_spin_n0(2)
-    u%data(n1:n2)%spin_n0(3) = default_spin_n0(3)
+    u%data(n1:n2)%spin_axis%n0(1) = default_spin_n0(1)
+    u%data(n1:n2)%spin_axis%n0(2) = default_spin_n0(2)
+    u%data(n1:n2)%spin_axis%n0(3) = default_spin_n0(3)
   endif
 
   if (any(datum(ix1)%spin_n0 /= 0)) then
-    u%data(n1:n2)%spin_n0(1) = datum(ix1)%spin_n0(1)
-    u%data(n1:n2)%spin_n0(2) = datum(ix1)%spin_n0(2)
-    u%data(n1:n2)%spin_n0(3) = datum(ix1)%spin_n0(3)
+    u%data(n1:n2)%spin_axis%n0(1) = datum(ix1)%spin_n0(1)
+    u%data(n1:n2)%spin_axis%n0(2) = datum(ix1)%spin_n0(2)
+    u%data(n1:n2)%spin_axis%n0(3) = datum(ix1)%spin_n0(3)
   endif
 
   ! use default_data_type if given, if not, auto-generate the data_type
@@ -445,20 +445,20 @@ else
 
   ! Transfer info from the input structure
 
-  u%data(n1:n2)%good_user      = datum(ix1:ix2)%good_user
-  u%data(n1:n2)%weight         = datum(ix1:ix2)%weight
-  u%data(n1:n2)%ele_name       = datum(ix1:ix2)%ele_name
-  u%data(n1:n2)%invalid_value  = datum(ix1:ix2)%invalid_value
-  u%data(n1:n2)%ele_ref_name   = datum(ix1:ix2)%ele_ref_name
-  u%data(n1:n2)%ele_start_name = datum(ix1:ix2)%ele_start_name
-  u%data(n1:n2)%ix_bunch       = datum(ix1:ix2)%ix_bunch
-  u%data(n1:n2)%data_source    = datum(ix1:ix2)%data_source
-  u%data(n1:n2)%data_type      = datum(ix1:ix2)%data_type
-  u%data(n1:n2)%merit_type     = datum(ix1:ix2)%merit_type
-  u%data(n1:n2)%spin_n0(1)     = datum(ix1:ix2)%spin_n0(1)
-  u%data(n1:n2)%spin_n0(2)     = datum(ix1:ix2)%spin_n0(2)
-  u%data(n1:n2)%spin_n0(3)     = datum(ix1:ix2)%spin_n0(3)
-  u%data(n1:n2)%s_offset       = datum(ix1:ix2)%s_offset
+  u%data(n1:n2)%good_user        = datum(ix1:ix2)%good_user
+  u%data(n1:n2)%weight           = datum(ix1:ix2)%weight
+  u%data(n1:n2)%ele_name         = datum(ix1:ix2)%ele_name
+  u%data(n1:n2)%invalid_value    = datum(ix1:ix2)%invalid_value
+  u%data(n1:n2)%ele_ref_name     = datum(ix1:ix2)%ele_ref_name
+  u%data(n1:n2)%ele_start_name   = datum(ix1:ix2)%ele_start_name
+  u%data(n1:n2)%ix_bunch         = datum(ix1:ix2)%ix_bunch
+  u%data(n1:n2)%data_source      = datum(ix1:ix2)%data_source
+  u%data(n1:n2)%data_type        = datum(ix1:ix2)%data_type
+  u%data(n1:n2)%merit_type       = datum(ix1:ix2)%merit_type
+  u%data(n1:n2)%spin_axis%n0(1)  = datum(ix1:ix2)%spin_n0(1)
+  u%data(n1:n2)%spin_axis%n0(2)  = datum(ix1:ix2)%spin_n0(2)
+  u%data(n1:n2)%spin_axis%n0(3)  = datum(ix1:ix2)%spin_n0(3)
+  u%data(n1:n2)%s_offset         = datum(ix1:ix2)%s_offset
 
   u%data(n1:n2)%meas_value = datum(ix1:ix2)%meas
   where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was set

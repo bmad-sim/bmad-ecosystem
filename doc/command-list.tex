@@ -731,10 +731,12 @@ To stop the optimizer
 before it is finished press the period ``.''  key. If you want the optimizer to run
 forever run the optimizer in \vn{single mode}. Valid optimizers are:
 \begin{example}
-  de            ! Differential Evolution
-  geodesic_lm   ! ``Geodesic'' Levenburg-Marquardt 
+  custom        ! Used when a custom optimizer has been implemented (\sref{c:custom.tao}).
+  de            ! Differential Evolution (good for global optimizations).
+  geodesic_lm   ! ``Geodesic'' Levenburg-Marquardt (good for local optimizations).
   lm            ! Levenburg-Marquardt from Numerical Recipes 
-  lmdif         ! Levenburg-Marquardt 
+  lmdif         ! Levenburg-Marquardt (good for local optimizations).
+  svd           ! svd optimizer (good for local optimizations).
 \end{example}
 
 See Chapter~\sref{c:opti} for details on how \tao structures optimization and 
