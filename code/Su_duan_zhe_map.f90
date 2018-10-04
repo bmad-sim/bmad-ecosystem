@@ -1,10 +1,10 @@
 module duan_zhe_map
 implicit none
   private    !  this private can be removed outside PTC
-  public track_TREE_probe_complex_zhe,probe,tree_element, read_tree_zhe,kill_tree_zhe
+  public track_TREE_probe_complex_zhe,probe,tree_element, read_tree_zhe,kill_tree_zhe,print_tree_elements_zhe
   public EQUAL_PROBE_REAL6_zhe,print,zhe_ini,track_TREE_probe_complex_ptc, dp,INTERNAL_STATE
-  public DEFAULT0,TOTALPATH0 ,TIME0,ONLY_4d0,DELTA0,SPIN0,MODULATION0,only_2d0   
-  public RADIATION0, NOCAVITY0, FRINGE0 ,STOCHASTIC0,ENVELOPE0,gaussian_seed_zhe
+  public DEFAULT0,TOTALPATH0 ,TIME0,ONLY_4d0,DELTA0,SPIN0,MODULATION0,only_2d0   ,nrmax_zhe
+  public RADIATION0, NOCAVITY0, FRINGE0 ,STOCHASTIC0,ENVELOPE0,gaussian_seed_zhe,nrmax_used_zhe
      public CHECK_STABLE_ZHE
  ! public EQUALi_zhe,EQUALt_zhe
   public OPERATOR(+),operator(-), assignment(=)
@@ -17,7 +17,7 @@ implicit none
  
  complex(dp), parameter :: i_ = ( 0.0_dp,1.0_dp )    ! cmplx(zero,one,kind=dp)
   integer,parameter::lno=200,lnv=100
-  integer :: zhe_ISEED=1000
+  integer :: zhe_ISEED=1000,nrmax_used
 private subq,unarysubq,addq,unaryADDq,absq,absq2,mulq,divq,ranf
 private EQUALq,EQUALqr,EQUALqi,powq,printq ,invq
 real(dp),parameter::pi=3.141592653589793238462643383279502e0_dp
@@ -53,6 +53,7 @@ END TYPE INTERNAL_STATE
      real(dp), pointer :: rad(:,:)
      real(dp), pointer :: ds,beta0,eps
      logical, pointer :: symptrack,usenonsymp,factored
+ !    integer, pointer :: ng
   end  type tree_element
 
   type spinor
@@ -74,7 +75,7 @@ END TYPE INTERNAL_STATE
   end type probe
 
 
-   integer :: nrmax
+   integer :: nrmax = 1000
  
 
 
@@ -219,6 +220,7 @@ contains
     t%symptrack=.false.
     t%usenonsymp=.false.
      t%factored=.false.
+ !    t%ng=1
   END SUBROUTINE ALLOC_TREE
  
 
@@ -228,7 +230,7 @@ contains
 
 
      IF(ASSOCIATED(T%CC))DEALLOCATE(T%CC,T%fix0,T%fix,T%fixr,t%ds,t%beta0,T%JL,T%JV,T%N,T%NP, &
-    T%No,t%e_ij,t%rad,t%eps,t%symptrack,t%usenonsymp,t%factored )  !,t%file)
+    T%No,t%e_ij,t%rad,t%eps,t%symptrack,t%usenonsymp,t%factored  )  !,t%file)
 
 
   END SUBROUTINE KILL_TREE
@@ -625,7 +627,7 @@ type(tree_element) t
  
 integer i,mf
 !   write(mf,'(a204)') t%file
-write(mf,'(3(1X,i8))') t%N,t%NP,t%no
+write(mf,'(3(1X,i8))') t%N,t%NP,t%no ! ,t%ng
 do i=1,t%n
  write(mf,'(1X,G20.13,1x,i8,1x,i8)')  t%cc(i),t%jl(i),t%jv(i)
 enddo
@@ -641,7 +643,7 @@ enddo
 
 end subroutine print_tree_element
 
-subroutine print_tree_elements(t,mf)
+subroutine print_tree_elements_zhe(t,mf)
 implicit none
 type(tree_element) t(:)
  
@@ -651,7 +653,7 @@ integer i,mf
   call print_tree_element(t(i),mf)
  enddo
 
-end subroutine print_tree_elements
+end subroutine print_tree_elements_zhe
  
 subroutine read_tree_element(t,mf)
 implicit none
@@ -662,7 +664,7 @@ integer i,mf
  ! read(mf,'(a204)') t%file
 !read(mf,*) t%N,t%NP,t%no
 do i=1,t%n
- read(mf,*)  t%cc(i),t%jl(i),t%jv(i)
+ read(mf,*)  t%cc(i),t%jl(i),t%jv(i) 
 enddo
 read(mf,*) t%symptrack,t%usenonsymp,t%factored
 read(mf,'(18(1X,G20.13))') t%fix0,t%fix,t%fixr
@@ -709,7 +711,7 @@ end subroutine read_tree_elements
     
  
 
-    nrmax=1000
+   
 
     x=0.e0_dp
     x0=0.e0_dp
@@ -1026,7 +1028,7 @@ endif ! jumpnot
  
     type(probe) xs
     real(dp) x(size_tree),x0(size_tree),s0(3,3),r(3,3),dx6,beta,q(3),p(3),qg(3),qf(3)
-    real(dp) normb,norm,x0_begin(size_tree),xr(6)
+    real(dp) normb,norm,x0_begin(size_tree),xr(6),normbb
     integer i,j,k,ier,is
     logical, optional  :: spin,stoch,rad
     logical  spin0,stoch0,rad0
@@ -1039,7 +1041,7 @@ endif ! jumpnot
     if(present(spin)) spin0=spin
     if(present(stoch)) stoch0=stoch
     if(present(rad)) rad0=rad
-    nrmax=1000
+!    nrmax=1000
    check_stable_zhe=.true.
        xs%u=.false.
 !!!! put stochastic kick in front per Sagan
@@ -1138,8 +1140,9 @@ do is=1,nrmax
      qf(i) = qf(i) + qg(i)
     enddo
    norm=abs(qg(1))+abs(qg(2))+abs(qg(3))
-
+!write(6,*) is,normb,norm
    if(norm>t(3)%eps) then
+      normbb=normb  ! saving for debugging
      normb=norm
    else
      if(normb<=norm) then 
@@ -1151,15 +1154,17 @@ do is=1,nrmax
        x(6)=x0(6)       
 
        x(1:6)=matmul(t(3)%rad,x(1:6))
+
        exit
      endif
      normb=norm
    endif
 
-
+       nrmax_used=is
 
 enddo  ! is 
  if(is>nrmax-10) then
+   write(6,*) " Too many iterations ",normbb,norm,t(3)%eps
    xs%u=.true.
    check_stable_zhe=.false.
        xs%u=.false.
@@ -1286,6 +1291,18 @@ else
     zhe_ISEED=seed
     cut_zhe=cut
   end SUBROUTINE gaussian_seed_zhe
+
+  SUBROUTINE nrmax_zhe(nrmax_in)
+    implicit none
+    integer nrmax_in
+    nrmax=nrmax_in
+  end SUBROUTINE nrmax_zhe
+
+  SUBROUTINE nrmax_used_zhe(nrmax_u)
+    implicit none
+    integer nrmax_u
+    nrmax_u=nrmax_used
+  end SUBROUTINE nrmax_used_zhe
 
    real(dp) function GRNF_zhe()
     implicit none
@@ -1575,6 +1592,7 @@ integer inf,i,n,np,no
   do i=1,3
     read(inf,*) n,np,no
     CALL ALLOC_TREE(t(i),N,NP)
+   ! t(i)%Ng=ng
     t(i)%N=n
     t(i)%NP=np
     t(i)%no=no
