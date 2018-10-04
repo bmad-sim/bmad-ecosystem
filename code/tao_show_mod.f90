@@ -147,6 +147,7 @@ type (tao_d2_data_array_struct), allocatable :: d2_array(:)
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_ptr
 type (tao_data_struct), pointer :: d_ptr
+type (tao_data_struct) datum
 type (tao_building_wall_section_struct), pointer :: section
 type (tao_building_wall_point_struct), pointer :: pt
 type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
@@ -163,6 +164,7 @@ type (tao_plot_region_struct), pointer :: region
 type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 type (tao_data_array_struct), allocatable, save :: d_array(:)
 type (tao_ele_shape_struct), pointer :: shape
+type (tao_spin_map_struct), pointer :: spin_map
 type (all_pointer_struct) a_ptr
 type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
@@ -884,7 +886,7 @@ case ('data')
     nl=nl+1; write(lines(nl), rmt)    '%delta_merit       = ', d_ptr%delta_merit
     nl=nl+1; write(lines(nl), rmt)    '%weight            = ', d_ptr%weight
     if (d_ptr%data_type(1:4) == 'spin') then
-      nl=nl+1; write(lines(nl), rmt)  '%spin_n0           = ', d_ptr%spin_n0
+      nl=nl+1; write(lines(nl), rmt)  '%spin_n0           = ', d_ptr%spin_axis%n0
     endif
     nl=nl+1; write(lines(nl), lmt)    '%exists            = ', d_ptr%exists
     nl=nl+1; write(lines(nl), lmt)    '%good_model        = ', d_ptr%good_model
@@ -1195,11 +1197,10 @@ case ('element')
         call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // switch)
         return
       endif
-      attrib0 = switch
+      ele_name = upcase(switch)
     end select
   enddo
 
-  call str_upcase (ele_name, attrib0)
   call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
   if (err) return
   u => s%u(ix_u)
@@ -3050,40 +3051,126 @@ case ('plot')
 
 case ('spin')
 
-  nl=nl+1; lines(nl) = 'bmad_com components:'
-  nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on
-  nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
+  what_to_print = 'standard'
+  datum = tao_data_struct()
+  ele2_name = ''
+  ele2 => null()
 
-  if (branch%param%geometry == open$) then
-    orb = tao_branch%orbit(0)
-    nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Beginning spin:', orb%spin
-  else
-    call tao_spin_polarization_calc (branch, tao_branch%orbit, valid_value, why_invalid, pol_limit, pol_rate, depol_rate)
-    nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarizaiton Limit:          ', pol_limit
-    nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarizaiton Rate (1/sec):   ', pol_rate
-    nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Depolarizaiton Rate (1/sec): ', depol_rate
-  endif
+  do
+    call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', '-ref_element'], .true., switch, err, ix)
+    if (err) return
 
-  if (allocated(scratch%spin_map)) then
-    nl=nl+1; lines(nl) = ''
-    nl=nl+1; lines(nl) = 'Spin G-matrices used in calculations:'
-    do i = 1, size(scratch%spin_map)
-      if (i > 1) then
-        nl=nl+1; lines(nl) = ''
+    select case (switch)
+    case ('')
+      exit
+    case ('-element')
+      what_to_print = 'element'
+      ele_name = upcase(what2(1:ix))
+      call string_trim(what2(ix+1:), what2, ix)
+    case ('-ref_element')
+      ele2_name = upcase(what2(1:ix))
+      call string_trim(what2(ix+1:), what2, ix)
+    case ('-n_axis')
+      read (what2, *, iostat = ios) datum%spin_axis%n0
+      if (ios /= 0) then
+        nl=nl+1; lines(nl) = 'CANNOT PARSE N AXIS: ' // what2
+        return
       endif
-      sm => scratch%spin_map(i)
-      nl=nl+1; write(lines(nl), '(2x, a, i0, a, i0)')     'Universe: ', sm%ix_uni, '  of: ', ubound(s%u, 1)
-      nl=nl+1; write(lines(nl), '(2x, a, 2i6)')    'Ix_Ref, Ix_Ele:', sm%ix_ref, sm%ix_ele 
-      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'n0:', sm%n0
-      nl=nl+1; write(lines(nl), '(2x, a)')         'g-matrix:'
-      nl=nl+1; write(lines(nl), '(5x, 6es12.4)') sm%g_mat(1,:)
-      nl=nl+1; write(lines(nl), '(5x, 6es12.4)') sm%g_mat(2,:)
+      call string_trim(what2(ix+1:), what2, ix)
+      call string_trim(what2(ix+1:), what2, ix)
+      call string_trim(what2(ix+1:), what2, ix)
+    case ('-l_axis')
+      read (what2, *, iostat = ios) datum%spin_axis%l
+      if (ios /= 0) then
+        nl=nl+1; lines(nl) = 'CANNOT PARSE N AXIS: ' // what2
+        return
+      endif
+      call string_trim(what2(ix+1:), what2, ix)
+      call string_trim(what2(ix+1:), what2, ix)
+      call string_trim(what2(ix+1:), what2, ix)
+    end select
+  enddo
+
+  ! what_to_print = standard
+
+  if (what_to_print == 'standard') then
+    nl=nl+1; lines(nl) = 'bmad_com components:'
+    nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on
+    nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
+
+    if (branch%param%geometry == open$) then
+      orb = tao_branch%orbit(0)
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Beginning spin:', orb%spin
+    else
+      call tao_spin_polarization_calc (branch, tao_branch%orbit, valid_value, why_invalid, pol_limit, pol_rate, depol_rate)
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarizaiton Limit:          ', pol_limit
+      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarizaiton Rate (1/sec):   ', pol_rate
+      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Depolarizaiton Rate (1/sec): ', depol_rate
+    endif
+
+    if (allocated(scratch%spin_map)) then
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; lines(nl) = 'Spin G-matrices used in calculations:'
+      do i = 1, size(scratch%spin_map)
+        if (i > 1) then
+          nl=nl+1; lines(nl) = ''
+        endif
+        sm => scratch%spin_map(i)
+        nl=nl+1; write(lines(nl), '(2x, a, i0, a, i0)')     'Universe: ', sm%ix_uni, '  of: ', ubound(s%u, 1)
+        nl=nl+1; write(lines(nl), '(2x, a, 2i6)')    'Ix_Ref, Ix_Ele:', sm%ix_ref, sm%ix_ele 
+        nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'l-axis: ', sm%axis%l
+        nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'n0-axis:', sm%axis%n0
+        nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'm-axis:', sm%axis%m
+        nl=nl+1; write(lines(nl), '(2x, a)')         '8x8 matrix:'
+        do j = 1, 8
+          nl=nl+1; write(lines(nl), '(5x, a)') real_array_to_string(sm%mat8(j,:), 13, 7)
+        enddo
+      enddo
+    endif
+
+  ! what_to_print = element
+  else
+    call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
+    if (err) return
+    u => s%u(ix_u)
+    call tao_locate_elements (ele_name, ix_u, eles, err)
+    if (err) return
+    ele => eles(1)%ele
+
+    if (ele2_name /= '') then
+      call tao_locate_elements (ele2_name, ix_u, eles, err)
+      if (err) return
+      ele2 => eles(1)%ele
+    else
+      ele2 => pointer_to_next_ele(ele, -1)
+    endif
+
+    if (all(datum%spin_axis%n0 == 0)) then
+      datum%spin_axis%n0 = u%model%tao_branch(ele%ix_branch)%orbit(ele%ix_ele-1)%spin
+    endif
+
+    if (all(datum%spin_axis%n0 == 0)) then
+      nl=nl+1; lines(nl) = 'NO N-AXIS GIVEN AND SPIN TRACKING IS NOT ON SO NO N0-AXIS IS AVAILABLE TO USE AS A DEFAULT.'
+      return
+    endif
+
+    datum%ix_branch = ix_branch
+    call tao_spin_g_matrix_calc (datum, u, ele2%ix_ele, ele%ix_ele, spin_map, valid_value, why_invalid)
+    if (.not. valid_value) return
+
+    nl=nl+1; write (lines(nl), '(a, 3f11.6)') 'L-axis:', spin_map%axis%l
+    nl=nl+1; write (lines(nl), '(a, 3f11.6)') 'N-axis:', spin_map%axis%n0
+    nl=nl+1; write (lines(nl), '(a, 3f11.6)') 'M-axis:', spin_map%axis%m
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; lines(nl) = '8x8 Matrix:'
+    do i = 1, 8
+      nl=nl+1; write (lines(nl), '(5x, a)') real_array_to_string(spin_map%mat8(i,:), 13, 7)
     enddo
   endif
 
-  result_id = 'spin:'
+  result_id = 'spin:' // what_to_print
   return
 
 !----------------------------------------------------------------------

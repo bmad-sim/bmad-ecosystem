@@ -246,10 +246,12 @@ integer ix
 
 !
 
-str_out = template
-component = tao_curve_component(curve, graph)
-
+call string_trim(str_out, template, ix)
 if (str_out(1:11) == 'expression:') str_out = str_out(12:)
+
+!
+
+component = tao_curve_component(curve, graph)
 
 do
   ix = index(str_out, '#ref')

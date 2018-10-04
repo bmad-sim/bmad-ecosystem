@@ -112,9 +112,6 @@ enddo
 
 if (any(dy_da /= dy_da_old)) then
   dy_da_old = dy_da
-  !call svdcmp(dy_da, w, v)
-  !dy_da_out = dy_da
-
   !Lapack95 routine. Note that this returns V^Transpose, not V, so we need an extra step
   print *, 'call DGESDD_F95'
   call DGESDD_F95( dy_da, w(1:min(n_data,n_var)), VT=v, JOB = 'U') 
