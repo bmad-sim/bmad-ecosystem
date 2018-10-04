@@ -1345,7 +1345,7 @@ endif
 
        case('MAPFORZHE')
           READ(MF,*) i1,I2,hgap  ! position  i1=i2 one turn map,  fact is precision of stochastic kick
-          READ(MF,*) MY_A_NO  ! ORDER OF THE MAP
+          READ(MF,*) MY_A_NO   ! ORDER OF THE MAP  
           READ(MF,*) filename
           if(.not.associated(my_ering%t)) call make_node_layout(my_ering)
           

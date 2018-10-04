@@ -5748,6 +5748,7 @@ TYPE (NODE_LAYOUT), POINTER :: t
 type(internal_state), intent(in):: state
 real(dp) fixr(6),fixs(6),fix(6),fix0(6),mat(6,6),xn,stoch
 real(dp), optional :: stochprec
+ 
 type(probe) xs0
 type(probe_8) xs
 type(c_damap) m,mr
@@ -5757,6 +5758,7 @@ type(tree_element), pointer :: forward(:) =>null()
 character(*),optional :: filef
 type(tree_element),optional, target :: sagan_tree(3)
 
+ 
 
 if(present(sagan_tree)) then
  forward=>sagan_tree
@@ -5851,16 +5853,18 @@ end subroutine fill_tree_element_line_zhe
     TYPE(TREE_ELEMENT), INTENT(INOUT) :: T(:)
     TYPE(c_damap), INTENT(INOUT) :: Ma
     INTEGER N,NP,i,k,j,kq
+ 
     real(dp) norm,mat(6,6)
     TYPE(taylor), ALLOCATABLE :: M(:), MG(:)
     TYPE(damap) ms
     integer js(6)
     type(c_damap) L_ns , N_pure_ns , N_s , L_s
 
-  
+
+ 
 
     call alloc(L_ns , N_pure_ns , N_s , L_s)
-
+    
     call symplectify_for_zhe(ma,L_ns , N_pure_ns, L_s , N_s )
     
 !    np=ma%n+18
@@ -5963,7 +5967,8 @@ endif
  !    call SET_TREE_g(T(2),m(1:size_tree))
      call SET_TREE_g(T(3),mg(1:size_tree))
 
-
+!T(3)%ng=mul
+!     write(6,*) " mul ",mul
       t(3)%rad=L_s
  
 
@@ -5987,7 +5992,7 @@ type(c_vector_field) f,fs
 complex(dp) v
 type(c_taylor) t,dt
 real(dp),allocatable::  mat(:,:)
-integer i,j,k,n(11),nv,nd2,al,ii,a
+integer i,j,k,n(11),nv,nd2,al,ii,a,mul
 integer, allocatable :: je(:)
 real(dp) dm,norm,normb,norma
 TYPE(c_damap) mt
@@ -6072,12 +6077,15 @@ do i=1,f%n
 
 enddo
  
+
+
 N_s=exp(fs)
 N_pure_ns= mt*N_s**(-1)
 N_s= L_s**(-1)*N_s*L_s 
 
-!mt=L_ns*N_pure_ns
-
+!norma=1.d0/mul
+!fs=norma*log(n_s)
+!N_s=exp(fs)
 
 
 deallocate(je);deallocate(s,id);

@@ -10225,7 +10225,7 @@ type(tree_element) t
  
 integer i,mf
 !   write(mf,'(a204)') t%file
-write(mf,'(3(1X,i8))') t%N,t%NP,t%no
+write(mf,'(3(1X,i8))') t%N,t%NP,t%no 
 do i=1,t%n
  write(mf,'(1X,G20.13,1x,i8,1x,i8)')  t%cc(i),t%jl(i),t%jv(i)
 enddo

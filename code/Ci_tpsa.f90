@@ -99,7 +99,7 @@ private equalc_quaternion_c_spinor,equalc_spinor_c_quaternion,unarySUB_q,c_trxqu
 private c_exp_vectorfield_on_quaternion,c_vector_field_quaternion,addql,subql,mulqdiv,powql
 real(dp) dts
 real(dp), private :: sj(6,6)
-
+logical :: use_new_stochastic_normal_form=.true.
 type q_linear
  complex(dp) mat(6,6)
  complex(dp)  q(0:3,0:6) 
@@ -10921,6 +10921,190 @@ subroutine c_linear_a(xy,a1)
     return
   end subroutine c_linear_a
 
+subroutine c_linear_a_stoch(xy,a1)
+!#internal: normal
+!# This routine linearises the linear part of the map ONLY.
+!# For a full harmonic system the call c_linear_a(xy,a1) will result in
+!# R=a1**(-1)*xy*a1.
+!# The map R can be an amplitude dependent rotation, or a rotation followed by a drift
+!# in the energy plane, or even a rotation sink if radiation is present. 
+!# R can also have rotations for clocks concerning AC modulation. (See Chap.4 of my Springer book)
+    implicit none
+    integer i,j
+    type(c_damap), intent(inout) ::  xy,a1 
+    real(dp) reval(ndim2t),imval(ndim2t),vr(ndim2t,ndim2t),vi(ndim2t,ndim2t),vrt(ndim2t,ndim2t),vit(ndim2t,ndim2t)
+    real(dp) fm0(ndim2t,ndim2t),x(ndim2t/2),xx(ndim2t/2)
+    integer idef(ndim2t/2)
+    real(dp), allocatable :: fm(:,:),fmi(:,:),fmii(:,:)
+    type(c_damap) s1
+
+
+    if(.not.c_stable_da) return
+
+ 
+    idef=0
+ 
+    allocate(fm(xy%n,xy%n),fmi(xy%n,xy%n),fmii(xy%n,xy%n))
+ 
+
+     fm=xy
+     fm0=0
+
+     !!! To understand this, it is better to first understand ndpt=0
+     !!! in PTC ndpt=0 includes :    nd2=4 and nd2=6 (cavity on)
+     !!! Ndpt =5 is PTC's coasting beam normalisation
+     !!! if there are no magnet modulation,then the matrix massaging below will do very little
+     !!! see  explanation below at the "else"
+
+     !!! We are diagonalising a Lie map which is just the transposed
+     !!! of the matrix in the linear case
+     !!! The usual nonlinear map acts on rays and so does its matrix.
+     !!! Lie maps, Hamiltonian operators, act on functions.
+     !!! In the world of Linear maps, this involves taking the transposed of the matrix
+     !!! which represents the linear part of the map
+    if(ndpt==0) then
+      fm0(1:nd2,1:nd2)=transpose(fm(1:nd2,1:nd2))
+    else
+      if(c_verbose) then
+        write(6,*) " nd2t,nd2,nd2harm "
+        write(6,*) nd2t,nd2,nd2harm
+      endif
+      ! Consider the following example
+      ! ndc2t,nd2t,nd2harm,nd2
+      !           2           4           6           8
+      ! nd2= total size of phase space
+      !
+      !  ndc2t=2 dimension of coasting phase space (2 or 0), here it is 2
+      !
+      ! nd2t=4  dimension of pseudo-harmonic  phase space due to orbit (not magnet modulations) 
+      ! here it is 4, which is a normal PTC run. 
+      ! in accelerator physics, with mid-plane symmetry, it could be 2. But PTC only permits 4 and 6.
+      !
+      ! nd2harm=6  Total size of pseudo-harmonic  planes including magnet modulation. In the above case,
+      ! nd2-nd2harm=2  So there is a coasting plane. 
+      !  
+
+      !! The purpose of all the gymnastic below is to exchange the order of the planes
+      ! IF AND ONLY IF the longitudinal is coasting
+      ! The issue is that  call c_eig6(fm0,reval,imval,vr,vi) should be called only on
+      ! matrix which is pseudo-harmonic. 
+      fmi=0
+      fmii=0
+      do i=1,nd2t
+        fmi(i,i)=1
+        fmii(i,i)=1
+      enddo
+      fmi(nd2-1,nd2t+1)=1
+      fmi(nd2,nd2t+2)=1
+      fmii(nd2t+1,nd2-1)=1
+      fmii(nd2t+2,nd2)=1
+
+      do i=1,2*rf
+        fmi(nd2t+i,nd2t+2+i)=1
+        fmii(nd2t+2+i,nd2t+i)=1
+      enddo
+
+  !      fmi(1:nd2,1:nd2)=matmul(fmi(1:nd2,1:nd2),fmii(1:nd2,1:nd2))
+
+      fm0(1:nd2,1:nd2)=matmul( fm(1:nd2,1:nd2),fmii(1:nd2,1:nd2))
+      fm0(1:nd2,1:nd2)=matmul( (fmi(1:nd2,1:nd2)),fm0(1:nd2,1:nd2))
+
+
+      fm0(1:nd2harm,1:nd2harm)=transpose(fm0(1:nd2harm,1:nd2harm))
+! The diagonalisation is done only on the planes
+! 1...nd2harm which are now in the front of the matrix
+! Thus the Coasting beam is moved in the last plane  (nd2-1,nd2)
+    
+    endif
+ 
+
+    call c_eig6(fm0,reval,imval,vr,vi)
+if(c_verbose) then
+do i=1,6
+write(6,*) i,reval(i),imval(i)
+enddo
+
+do i=1,6
+write(6,'(i4,6(1x,g13.6))') i,vr(1:6,i)
+write(6,'(i4,6(1x,g13.6))') i,vi(1:6,i)
+enddo
+endif
+    !! This routine will locate the modulated plane
+    !! It assumes that the modulated plane are rotations
+    !! It will fail if some orbital planes are exactly rotations, say beta=1.00000000 and no coupling
+  
+    x=0.0_dp
+    xx=1.0_dp
+
+    idef(1)=1
+    idef(2)=3
+    idef(3)=5
+
+    do i=1,ndharm  !ndt                
+
+      x(i)=0.0_dp
+      xx(i)=1.0_dp
+
+      !!! Here the Eigenvectors of the transposed matric (Lie map)
+      !!! are normalised so that the Poisson bracket is one.
+      !!! If the map is not Hamiltonian (radiation), no harm is done.
+      !!! If it is Hamiltonian, that alone will insure that the linear
+      !!! canonical transformation is symplectic.
+
+      do j=1,ndharm  !ndt
+           x(i)=vr(2*j-1,idef(i))*vi(2*j,idef(i))-vr(2*j,idef(i))*vi(2*j-1,idef(i))+x(i)
+      enddo
+
+    enddo
+
+    do i=1,ndharm  !ndt
+      if(x(i).lt.0.0_dp) xx(i)=-1.0_dp
+      x(i)=SQRT(abs(x(i)))
+    enddo
+
+
+    fm=0
+    do i=1,xy%n
+      fm(i,i)=1.0_dp
+    enddo
+
+    do i=1,nd2harm  !nd2t
+      do j=1,ndharm  !ndt
+        fm(2*j-1,i)=vr(i,idef(j))*xx(j)/x(j)
+        fm(2*j,i)=vi(i,idef(j))/x(j)
+      enddo
+    enddo
+    
+   
+    a1 = fm
+
+    call alloc(s1)
+ 
+    
+ 
+
+
+
+    !!! In the case of a symplectic map, without magnet modulation,
+    !!! everything is done.
+    !!! However magnet modulations do not produce a symplectic matrix
+    !!! if there is a longitudinal coasting beam.
+    !!! Therefore time must be adjusted to make sure that the map
+    !!! is truly diagonalised.
+    a1%s=1
+    a1%q=1.0_dp
+    a1=a1**(-1)
+    
+
+ 
+!    a1%s=1  ! make sure spin is non-zero
+    call kill(s1)    
+    deallocate(fm,fmi,fmii)   
+
+
+    return
+  end subroutine c_linear_a_stoch
+
 subroutine c_locate_planes(vr,vi,idef)
 !#restricted: normal
 !# Tries to locate the planes in c_linear_a, 
@@ -12306,7 +12490,7 @@ alpha=2*atan2(q0%x(2),q0%x(0))
     enddo
     enddo
 
-    
+if(.not.use_new_stochastic_normal_form) then    
 !!!! In rings without errors and middle plane symmetry
 !!!  the y-part of the envelope is exactly zero
 !!! So I add a y-part to make sure that my normal form
@@ -12319,11 +12503,12 @@ alpha=2*atan2(q0%x(2),q0%x(0))
     enddo
     enddo
      if (c_verbose) write(6,*) " norm y",norm
+
      if((normy/10)/norm<eps) then
        f(3,3)=0.234567_dp*twopi 
        f(4,4)=0.234567_dp*twopi 
      endif
-!!!!!!!!!!!!!!!
+endif
      f=matmul(f,s)
     do i=1,6
     do j=1,6
@@ -12332,9 +12517,12 @@ alpha=2*atan2(q0%x(2),q0%x(0))
     enddo
 
     id=exp(vf)
- 
+
+if(use_new_stochastic_normal_form) then
+call  c_linear_a_stoch(id,as)
+else
 call c_linear_a(id,as)
- 
+endif 
     a=as
     at=transpose(a)
  if (c_verbose) then

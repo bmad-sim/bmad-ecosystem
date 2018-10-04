@@ -291,7 +291,7 @@ CONTAINS
     U%symptrack=T%symptrack
     U%usenonsymp=T%usenonsymp
     U%factored=T%factored
-
+   ! U%ng=T%ng
   END SUBROUTINE COPY_TREE
 
   SUBROUTINE COPY_TREE_N(T,U)
@@ -327,7 +327,7 @@ CONTAINS
 
     ALLOCATE(T%CC(N),T%fix0(6),T%fix(6),T%fixr(6),T%JL(N),T%JV(N),T%N,T%ds,T%beta0,T%np,T%no, & 
   !  t%e_ij(c_%nd2,c_%nd2),T%rad(c_%nd2,c_%nd2),t%usenonsymp, t%symptrack, t%eps)  !,t%file)
-     t%e_ij(6,6),T%rad(6,6),t%usenonsymp, t%symptrack, t%eps,t%factored)  !,t%file)
+     t%e_ij(6,6),T%rad(6,6),t%usenonsymp, t%symptrack, t%eps,t%factored) !,t%ng)  !,t%file)
     t%cc=0
     t%jl=0
     t%jv=0
@@ -349,7 +349,7 @@ CONTAINS
     t%symptrack=.false.
     t%usenonsymp=.false.
     t%factored=.false.
-
+  !  t%ng=1
   END SUBROUTINE ALLOC_TREE
 
   SUBROUTINE SET_TREE(T,MA)
