@@ -1,7 +1,8 @@
 !+
 ! Function real_to_string (real_num, width, n_signif, n_decimal) result (str)
 ! 
-! Routine to turn a real number into a string for printing.
+! Routine to turn a real number into a string for printing. 
+! Printing the number without an explicit exponent is preferred.
 ! 
 ! Notes:
 !   Keep in mind: With floating format the largest number of digits needed for the exponent is 5. EG: "-1.2e-123".
@@ -18,10 +19,11 @@
 !   real_to_string(1.20001234e+6_rp, 12, 2, 6)   => "     1.2E+06"
 !
 ! Input:
-!   real_num    -- real(rp): Input number.
+!   real_num    -- real(rp): Real number to encode.
 !   width       -- integer: width of number field. The output string length will also be equal to width.
 !   n_signif    -- integer, optional: Nominal number of significant digits to display. Must be non-negative. Default is 15.
-!                    If necessary, more digits will be displayed to pad out the string to n_deciaml places after the decimal point.
+!                    If n_decimal >= 0: n_signif is ignored is the number can be encoded with fixed format.
+!                           n_signif only affects encoding if the number is encoded with a floating point format.
 !                    If n_decimal < 0: Number of significant digits displayed will be reduced if trailing zeros are suppressed.
 !                    
 !   n_decimal   -- integer, optional: 
@@ -68,7 +70,7 @@ if (real_num == 0) then
   elseif (width < n_dec+2) then
     call x_string(str)
   else
-    write (fmt, '(a, i0, a)') '(f', width, '.', n_dec, ')'
+    write (fmt, '(a, i0, a, i0, a)') '(f', width, '.', n_dec, ')'
     write (str, fmt) real_num
   endif
   return
@@ -198,7 +200,7 @@ character(30) line, fmt
 
 !
 
-write (fmt, '(a, i0, a)'), '(f25.', n_pl, ')'
+write (fmt, '(a, i0, a)') '(f25.', n_pl, ')'
 write (line, fmt) num
 do it = len(line), 1, -1
   if (line(it:it) == ' ') cycle
