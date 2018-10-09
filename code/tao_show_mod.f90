@@ -3052,7 +3052,7 @@ case ('plot')
 case ('spin')
 
   what_to_print = 'standard'
-  datum = tao_data_struct()
+  datum%spin_axis = spin_axis_struct()
   ele2_name = ''
   ele2 => null()
 
