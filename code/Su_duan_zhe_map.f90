@@ -6,6 +6,7 @@ implicit none
   public DEFAULT0,TOTALPATH0 ,TIME0,ONLY_4d0,DELTA0,SPIN0,MODULATION0,only_2d0   ,nrmax_zhe
   public RADIATION0, NOCAVITY0, FRINGE0 ,STOCHASTIC0,ENVELOPE0,gaussian_seed_zhe,nrmax_used_zhe
      public CHECK_STABLE_ZHE
+     public c_verbose_zhe 
  ! public EQUALi_zhe,EQUALt_zhe
   public OPERATOR(+),operator(-), assignment(=)
   real(kind(1d0)) :: doublenum = 0d0
@@ -14,7 +15,7 @@ implicit none
   logical(lp),parameter:: my_true=.true.
   logical(lp),parameter:: my_false=.false.
    LOGICAL(lp),TARGET  :: CHECK_STABLE_ZHE=.TRUE.
- 
+   logical :: c_verbose_zhe = .false.
  complex(dp), parameter :: i_ = ( 0.0_dp,1.0_dp )    ! cmplx(zero,one,kind=dp)
   integer,parameter::lno=200,lnv=100
   integer :: zhe_ISEED=1000,nrmax_used
@@ -1164,7 +1165,7 @@ do is=1,nrmax
 
 enddo  ! is 
  if(is>nrmax-10) then
-   write(6,*) " Too many iterations ",normbb,norm,t(3)%eps
+   if(c_verbose_zhe) write(6,*) " Too many iterations ",normbb,norm,t(3)%eps
    xs%u=.true.
    check_stable_zhe=.false.
        xs%u=.false.
