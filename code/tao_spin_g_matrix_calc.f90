@@ -62,7 +62,7 @@ if (allocated(scratch%spin_map)) then
   do i = 1, size(scratch%spin_map)
     sm => scratch%spin_map(i)
     if (sm%ix_ele /= ix_ele .or. sm%ix_ref /= ix_ref .or. sm%ix_uni /= u%ix_uni) cycle
-    if (ix_ref > -1 .and. all(sm%axis%n0 /= datum%spin_axis%n0) .and. all(sm%axis%l /= datum%spin_axis%l)) cycle
+    if (ix_ref > -1 .and. all(sm%axis0%n0 /= datum%spin_axis%n0) .and. all(sm%axis0%l /= datum%spin_axis%l)) cycle
     spin_map => sm
     valid_value = .true.
     return
@@ -151,8 +151,6 @@ quat1_lnm_to_xyz = w_mat_to_quat(mat3)
 
 spin_map%mat8(1:6,1:6) = q_map%mat
 
-quat0 = quat_mul(quat_mul(quat_inverse(quat1_lnm_to_xyz), quat0), quat0_lnm_to_xyz)
-
 q0_lnm = quat_mul(quat_mul(quat_inverse(quat1_lnm_to_xyz), quat0), quat0_lnm_to_xyz)
 mat3 = quat_to_w_mat(q0_lnm)
 spin_map%mat8(7:8,7:8) = mat3(1:3:2,1:3:2)
@@ -160,8 +158,8 @@ spin_map%mat8(7:8,7:8) = mat3(1:3:2,1:3:2)
 do p = 1, 6
   quat1 = q_map%q(:, p)
   qq = quat_mul(quat_mul(quat_inverse(quat1_lnm_to_xyz), quat1), quat0_lnm_to_xyz)
-  spin_map%mat8(7,p) = 2 * (quat0(1)*qq(2) + quat0(2)*qq(1) - quat0(0)*qq(3) - quat0(3)*qq(0))
-  spin_map%mat8(8,p) = 2 * (quat0(0)*qq(1) + quat0(1)*qq(0) + quat0(2)*qq(3) + quat0(3)*qq(2))
+  spin_map%mat8(7,p) = 2 * (q0_lnm(1)*qq(2) + q0_lnm(2)*qq(1) - q0_lnm(0)*qq(3) - q0_lnm(3)*qq(0))
+  spin_map%mat8(8,p) = 2 * (q0_lnm(0)*qq(1) + q0_lnm(1)*qq(0) + q0_lnm(2)*qq(3) + q0_lnm(3)*qq(2))
 enddo
 
 !
@@ -172,7 +170,8 @@ datum%spin_axis%m = m0
 spin_map%ix_ref   = ix_ref
 spin_map%ix_ele   = ix_ele
 spin_map%ix_uni   = u%ix_uni
-spin_map%axis     = datum%spin_axis
+spin_map%axis0    = datum%spin_axis
+spin_map%axis1    = spin_axis_struct(l1, n1, m1)
 
 valid_value = .true.
 
