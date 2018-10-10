@@ -267,10 +267,11 @@ end subroutine multipole1_kt_to_ab
 !   use_ele_tilt  -- logical: If True then include ele%value(tilt_tot$) in calculations.
 !                      use_ele_tilt is ignored in the case of multipole$ elements.
 !   pole_type     -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
-!   include_kicks -- logical, optional: If True, include hkick/vkick in the n = 0 components.
-!                      Also included are sextupole k2 and octupole k3 components.
-!                      Not included is everything else like a quad k1 component.
-!                      Default is False.
+!   include_kicks -- integer, optional: Possibilities are: 
+!                      include_kicks$: Include hkick/vkick in the n = 0 components.
+!                           Also included are quad k1, sextupole k2 and octupole k3 components.
+!                      include_kicks_except_k1$: Like include_kicks$ but no k1 component is included.
+!                      no$: Default. Do not include any kick components in a and b multipoles. 
 !
 ! Output:
 !   ix_pole_max      -- Integer: Index of largest nonzero pole. Set to -1 if all multipoles are zero.
@@ -289,10 +290,9 @@ real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
 real(rp), pointer :: a_pole(:), b_pole(:)
 
 integer ix_pole_max
-integer, optional :: pole_type
-integer i, ref_exp, n
+integer, optional :: pole_type, include_kicks
+integer i, n, ref_exp
 
-logical, optional :: include_kicks
 logical use_ele_tilt
 
 character(*), parameter :: r_name = 'multipole_ele_to_ab'
@@ -349,9 +349,14 @@ else
   endif
 endif
 
-! Include h/v & k2/k3 kicks?
+! 
 
-if (logic_option(.false., include_kicks)) call multipole_include_kicks (ele, use_ele_tilt, a, b, pole_type)
+select case (integer_option(no$, include_kicks))
+case (include_kicks$)
+  call multipole_include_kicks (ele, use_ele_tilt, a, b, pole_type)
+case (include_kicks_except_k1$)
+  call multipole_include_kicks (ele, use_ele_tilt, a, b, pole_type, .false.)
+end select
 
 ix_pole_max = max_nonzero(0, a, b)
 
@@ -507,9 +512,9 @@ end subroutine multipole_ele_to_ab
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_include_kicks (ele, use_ele_tilt, a, b, pole_type)
+! Subroutine multipole_include_kicks (ele, use_ele_tilt, a, b, pole_type, include_k1)
 !
-! Routine to add in the hkick/vkick element components along with k2 and k3 (but not k1)
+! Routine to add in the hkick/vkick element components along with k1, k2 and k3
 ! values into the a and b multipole components.
 !
 ! Input:
@@ -517,11 +522,13 @@ end subroutine multipole_ele_to_ab
 !   use_ele_tilt  -- logical: If True then include ele%value(tilt_tot$) in calculations.
 !   pole_type     -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
 !   a(0:), b(0:)  -- real(rp): Existing skew and normal multipole components.    
+!   include_k1    -- logical, option: If present and False, any k1 component will not 
+!                     be added into b(1). Default is True.
 !
 ! Output:
 !   a(0:), b(0:)  -- real(rp): Skew and normal multipole components with kick values added in.
 
-subroutine multipole_include_kicks (ele, use_ele_tilt, a, b, pole_type)
+subroutine multipole_include_kicks (ele, use_ele_tilt, a, b, pole_type, include_k1)
 
 implicit none
 
@@ -533,6 +540,7 @@ integer, optional :: pole_type
 integer tilt_dir
 
 logical use_ele_tilt
+logical, optional :: include_k1
 
 !
 
@@ -597,8 +605,12 @@ endif
 
 if (integer_option(magnetic$, pole_type) == magnetic$) then
   select case (ele%key)
+  case (quadrupole$)
+    if (logic_option(.true., include_k1)) call add_in_this_multipole (ele%value(ref_tilt_tot$), 1, ele%value(k1$))
+
   case (sbend$)
     call add_in_this_multipole (ele%value(ref_tilt_tot$), 2, ele%value(k2$))
+    if (logic_option(.true., include_k1)) call add_in_this_multipole (ele%value(ref_tilt_tot$), 1, ele%value(k1$))
 
   case (sextupole$)
     call add_in_this_multipole (ele%value(tilt_tot$), 2, ele%value(k2$))

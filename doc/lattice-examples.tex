@@ -351,15 +351,19 @@ called \vn{original_line}. To create a reversed lattice, create a new file with 
 \begin{example}
   call, file = original_lattice.bmad
   reversed_line: line = (--original_line)
-  parameter[particle] = antiparticle(parameter[particle])
+  parameter[default_tracking_species] = antiparticle(parameter[particle])
   use, reversed_line
 \end{example}
-The ``\vn{--}'' reverses the line and reverses the elements (\sref{s:ele.reverse}). Tracking through
+The ``\vn{-{}-}'' reverses the line and reverses the elements (\sref{s:ele.reverse}). Tracking through
 \vn{reversed_line} is equivalent to tracking backwards through \vn{original_line}.  
 
-If the \vn{original_line} lattice had just static magnetic fields and no electric fields, then
-by tracking with the anti-particle in the reversed lattice, the anti-particle will follow the same
-path (but backward) as the the particle in the original lattice. For this to work, the anti-particle
-must be started with the appropriate phase space coordinates. If $(x, p_x, y, p_y, z, p_z)$ is
-the phase space coordinates of the particle at the end of the original lattice, the anti-particle
-must be initialized with phase space coordinates of $(x, -p_x, y, -p_y, \text{immaterial}, p_z)$.
+The default for the type of particle tracked is set by \vn{parameter[default_tracking_species]}
+(\sref{s:param}). [A \bmad based program can always override this default but it will be assumed
+here that this is not the case.] In this case the default species to use for tracking is set to the
+antiparticle of the reference particle species. If the \vn{original_line} lattice had just static
+magnetic fields and no electric fields, by tracking with the anti-particle in the reversed lattice,
+the anti-particle will follow the same path (but backward) as the the particle in the original
+lattice. For this to work, the anti-particle must be started with the appropriate phase space
+coordinates. If $(x, p_x, y, p_y, z, p_z)$ is the phase space coordinates of the particle at the end
+of the original lattice, the anti-particle must be initialized with phase space coordinates of $(x,
+-p_x, y, -p_y, \text{immaterial}, p_z)$.

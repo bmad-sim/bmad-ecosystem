@@ -66,7 +66,7 @@ endif
 
 !
 
-call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks = include_kicks)
+call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 if (kick == 0 .and. ix_pole_max == -1 .and. ix_elec_max == -1) then

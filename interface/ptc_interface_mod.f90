@@ -3190,7 +3190,7 @@ use madx_ptc_module
 
 implicit none
  
-type (ele_struct), target :: ele, m_ele
+type (ele_struct), target :: ele
 type (lat_param_struct) param
 type (coord_struct), optional :: track_particle
 type (ele_struct), pointer :: field_ele, ele2
@@ -3561,14 +3561,9 @@ if (associated(ele%a_pole_elec) .or. ele%key == elseparator$) then
   endif
 endif
 
-! Multipole components
+! Magnetic multipole components
 
-if (ele%key == sbend$ .and. nint(ele%value(exact_multipoles$)) == vertically_pure$ .and. ptc_key%exact) then
-  call convert_bend_exact_multipole(ele, m_ele, horizontally_pure$)
-  call ele_to_ptc_an_bn (m_ele, param, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
-else
-  call ele_to_ptc_an_bn (ele, param, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
-endif
+call ele_to_ptc_magnetic_an_bn (ele, param, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
 
 ! field map
 
@@ -3819,9 +3814,9 @@ if (associated(ele%a_pole_elec) .or. ele%key == elseparator$) then
     ptc_fibre%magp%p%bend_fringe = .false.
   endif
   fh = 1d-9 * sign_of(charge_of(param%particle)) / VOLT_C
-  if (ele%key == sbend$ .and. nint(ele%value(exact_multipoles$)) == vertically_pure$) then
-    call convert_bend_exact_multipole(ele, m_ele, horizontally_pure$)
-    call multipole_ele_to_ab(m_ele, .false., ix_pole_max, a_pole, b_pole, electric$, .true.)
+  if (ele%key == sbend$ .and. nint(ele%value(exact_multipoles$)) == vertically_pure$ .and. ele%value(g$) /= 0) then
+    call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$, include_kicks$)
+    call convert_bend_exact_multipole(ele%value(g$), horizontally_pure$, a_pole, b_pole)
   else
     call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$)
   endif
@@ -4212,7 +4207,6 @@ elseif (use_offsets) then
   tiltd = ptc_fibre%mag%p%tiltd
   roll = 0
   if (ele%key == sbend$) roll = ele%value(roll_tot$)
-  
 
   if (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. x_pitch /= 0 .or. &
                               y_pitch /= 0 .or. roll /= 0 .or. tiltd /= 0) then
@@ -4275,9 +4269,9 @@ end subroutine bmad_patch_parameters_to_ptc
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ele_to_ptc_an_bn (ele, param, bn, an, n_max)
+! Subroutine ele_to_ptc_magnetic_an_bn (ele, param, bn, an, n_max)
 !
-! Routine to compute the a(n) and b(n) multipole components of a magnet.
+! Routine to compute the a(n) and b(n) magnetic multipole components of a magnet.
 ! This is used to interface between eles and PTC fibres
 !
 ! Note: On ptc side bn(1) is error field when creating a fibre but	 
@@ -4296,7 +4290,7 @@ end subroutine bmad_patch_parameters_to_ptc
 !   n_max               -- integer, optional: Maximum non-zero multipole component.
 !-
 
-subroutine ele_to_ptc_an_bn (ele, param, bn, an, n_max)
+subroutine ele_to_ptc_magnetic_an_bn (ele, param, bn, an, n_max)
 
 implicit none
 
@@ -4311,9 +4305,9 @@ real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
 
 integer, optional :: n_max
 integer n, key, ix_pole_max
-logical kick_here, add_kick
+logical kick_here, add_kick, add_multipoles
 
-character(*), parameter :: r_name = 'ele_to_ptc_an_bn'
+character(*), parameter :: r_name = 'ele_to_ptc_magnetic_an_bn'
 
 !
 
@@ -4333,6 +4327,7 @@ bn = 0
 an = 0
 n_max = 0
 add_kick = .true.
+add_multipoles = .true.
 
 select case (key)
 
@@ -4358,8 +4353,17 @@ case (sbend$)
     bn(1) = -ele%value(g$)
   endif
 
-  if (nint(ele%value(exact_multipoles$)) == vertically_pure$) then
-    add_kick = .false.
+  ! PTC assumes horizontally_pure
+  if (nint(ele%value(exact_multipoles$)) == vertically_pure$ .and. ele%value(g$) /= 0) then
+    call multipole_ele_to_ab (ele, .false., ix_pole_max, an, bn, magnetic$, include_kicks$)
+    call convert_bend_exact_multipole(ele%value(g$), horizontally_pure$, an, bn)
+    if (leng /= 0) then
+      an = an / leng
+      bn = bn / leng
+    endif
+    add_kick = .false.   
+    add_multipoles = .false.
+
   else
     bn(2) = val(k1$)
     bn(3) = val(k2$) / 2
@@ -4415,11 +4419,12 @@ if (add_kick .and. has_hkick_attributes(ele%key) .and. (val(hkick$) /= 0 .or. va
   an(1) = an(1) - hk * sin_t + vk * cos_t
 endif
 
-! bmad an and bn are integrated fields. PTC uses just the field.
+! Bmad an and bn are integrated fields. PTC uses just the field.
 ! Exception is multipole element.
 
-if (associated(ele%a_pole)) then
+if (associated(ele%a_pole) .and. add_multipoles) then
   call multipole_ele_to_ab (ele, .false., ix_pole_max, an0, bn0)
+
   if (leng /= 0) then
     an0 = an0 / leng
     bn0 = bn0 / leng
@@ -4437,7 +4442,7 @@ if (present(n_max)) then
   n_max  = n
 endif
 
-end subroutine ele_to_ptc_an_bn
+end subroutine ele_to_ptc_magnetic_an_bn
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------

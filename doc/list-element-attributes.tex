@@ -138,23 +138,24 @@ l                           & s_spline                    & x_pitch             
  \label{s:list.crystal}
  
  \begin{tabular}{llll} \toprule
-alias                       & diffraction_limited         & ref_orbit_follows           & x1_limit                    \\
-alpha_angle                 & d_spacing                   & ref_origin                  & x2_limit                    \\
-aperture                    & ele_origin                  & ref_tilt                    & x_limit                     \\
-aperture_at                 & e_tot                       & ref_tilt_tot                & x_offset                    \\
-aperture_type               & graze_angle_in              & ref_wavelength              & x_offset_tot                \\
-bragg_angle                 & graze_angle_out             & spherical_curvature         & x_pitch                     \\
-bragg_angle_in              & l                           & spin_tracking_method        & x_pitch_tot                 \\
-bragg_angle_out             & mat6_calc_method            & superimpose                 & y1_limit                    \\
-b_param                     & offset                      & surface                     & y2_limit                    \\
-create_jumbo_slave          & offset_moves_aperture       & thickness                   & y_limit                     \\
-crystal_type                & p0c                         & tilt                        & y_offset                    \\
-curvature_x0_y2             & pendellosung_period_pi      & tilt_corr                   & y_offset_tot                \\
-darwin_width_pi             & pendellosung_period_sigma   & tilt_tot                    & y_pitch                     \\
-darwin_width_sigma          & psi_angle                   & tracking_method             & y_pitch_tot                 \\
-dbragg_angle_de             & ptc_integration_type        & type                        & z_offset                    \\
-delta_ref_time              & reference                   & v_unitcell                  & z_offset_tot                \\
-descrip                     & ref_cap_gamma               & wall                        &                             \\
+alias                       & d_spacing                   & ref_cap_gamma               & x1_limit                    \\
+alpha_angle                 & ele_origin                  & ref_orbit_follows           & x2_limit                    \\
+aperture                    & elliptical_curvature_x      & ref_origin                  & x_limit                     \\
+aperture_at                 & elliptical_curvature_y      & ref_tilt                    & x_offset                    \\
+aperture_type               & elliptical_curvature_z      & ref_tilt_tot                & x_offset_tot                \\
+bragg_angle                 & e_tot                       & ref_wavelength              & x_pitch                     \\
+bragg_angle_in              & graze_angle_in              & spherical_curvature         & x_pitch_tot                 \\
+bragg_angle_out             & graze_angle_out             & spin_tracking_method        & y1_limit                    \\
+b_param                     & l                           & superimpose                 & y2_limit                    \\
+create_jumbo_slave          & mat6_calc_method            & surface                     & y_limit                     \\
+crystal_type                & offset                      & thickness                   & y_offset                    \\
+curvature_x0_y2             & offset_moves_aperture       & tilt                        & y_offset_tot                \\
+darwin_width_pi             & p0c                         & tilt_corr                   & y_pitch                     \\
+darwin_width_sigma          & pendellosung_period_pi      & tilt_tot                    & y_pitch_tot                 \\
+dbragg_angle_de             & pendellosung_period_sigma   & tracking_method             & z_offset                    \\
+delta_ref_time              & psi_angle                   & type                        & z_offset_tot                \\
+descrip                     & ptc_integration_type        & v_unitcell                  &                             \\
+diffraction_limited         & reference                   & wall                        &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -192,21 +193,21 @@ l                           & sr_wake_file                & val9                
  \label{s:list.detector}
  
  \begin{tabular}{llll} \toprule
-alias                       & mat6_calc_method            & tilt_calib                  & y1_limit                    \\
-aperture                    & noise                       & tilt_tot                    & y2_limit                    \\
-aperture_at                 & n_sample                    & tracking_method             & y_gain_calib                \\
-aperture_type               & offset                      & type                        & y_gain_err                  \\
-create_jumbo_slave          & offset_moves_aperture       & wall                        & y_limit                     \\
-crunch                      & osc_amplitude               & x1_limit                    & y_offset                    \\
-crunch_calib                & p0c                         & x2_limit                    & y_offset_calib              \\
-curvature_x0_y2             & ptc_integration_type        & x_gain_calib                & y_offset_tot                \\
-delta_ref_time              & reference                   & x_gain_err                  & y_pitch                     \\
-descrip                     & ref_origin                  & x_limit                     & y_pitch_tot                 \\
-de_eta_meas                 & spherical_curvature         & x_offset                    & z_offset                    \\
-ele_origin                  & spin_tracking_method        & x_offset_calib              & z_offset_tot                \\
-e_tot                       & superimpose                 & x_offset_tot                &                             \\
-is_on                       & surface                     & x_pitch                     &                             \\
-l                           & tilt                        & x_pitch_tot                 &                             \\
+alias                       & e_tot                       & superimpose                 & x_offset_tot                \\
+aperture                    & is_on                       & surface                     & x_pitch                     \\
+aperture_at                 & l                           & tilt                        & x_pitch_tot                 \\
+aperture_type               & mat6_calc_method            & tilt_calib                  & y1_limit                    \\
+create_jumbo_slave          & noise                       & tilt_tot                    & y2_limit                    \\
+crunch                      & n_sample                    & tracking_method             & y_gain_calib                \\
+crunch_calib                & offset                      & type                        & y_gain_err                  \\
+curvature_x0_y2             & offset_moves_aperture       & wall                        & y_limit                     \\
+delta_ref_time              & osc_amplitude               & x1_limit                    & y_offset                    \\
+descrip                     & p0c                         & x2_limit                    & y_offset_calib              \\
+de_eta_meas                 & ptc_integration_type        & x_gain_calib                & y_offset_tot                \\
+ele_origin                  & reference                   & x_gain_err                  & y_pitch                     \\
+elliptical_curvature_x      & ref_origin                  & x_limit                     & y_pitch_tot                 \\
+elliptical_curvature_y      & spherical_curvature         & x_offset                    & z_offset                    \\
+elliptical_curvature_z      & spin_tracking_method        & x_offset_calib              & z_offset_tot                \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -216,18 +217,19 @@ l                           & tilt                        & x_pitch_tot         
  \label{s:list.diffraction.plate}
  
  \begin{tabular}{llll} \toprule
-alias                       & mat6_calc_method            & surface                     & x_pitch_tot                 \\
-aperture                    & mode                        & tilt                        & y1_limit                    \\
-aperture_at                 & offset                      & tilt_tot                    & y2_limit                    \\
-aperture_type               & offset_moves_aperture       & tracking_method             & y_limit                     \\
-create_jumbo_slave          & p0c                         & type                        & y_offset                    \\
-curvature_x0_y2             & ptc_integration_type        & wall                        & y_offset_tot                \\
-delta_ref_time              & reference                   & x1_limit                    & y_pitch                     \\
-descrip                     & ref_origin                  & x2_limit                    & y_pitch_tot                 \\
-ele_origin                  & ref_wavelength              & x_limit                     & z_offset                    \\
-e_tot                       & spherical_curvature         & x_offset                    & z_offset_tot                \\
-field_scale_factor          & spin_tracking_method        & x_offset_tot                &                             \\
-is_on                       & superimpose                 & x_pitch                     &                             \\
+alias                       & field_scale_factor          & superimpose                 & x_pitch_tot                 \\
+aperture                    & is_on                       & surface                     & y1_limit                    \\
+aperture_at                 & mat6_calc_method            & tilt                        & y2_limit                    \\
+aperture_type               & mode                        & tilt_tot                    & y_limit                     \\
+create_jumbo_slave          & offset                      & tracking_method             & y_offset                    \\
+curvature_x0_y2             & offset_moves_aperture       & type                        & y_offset_tot                \\
+delta_ref_time              & p0c                         & wall                        & y_pitch                     \\
+descrip                     & ptc_integration_type        & x1_limit                    & y_pitch_tot                 \\
+ele_origin                  & reference                   & x2_limit                    & z_offset                    \\
+elliptical_curvature_x      & ref_origin                  & x_limit                     & z_offset_tot                \\
+elliptical_curvature_y      & ref_wavelength              & x_offset                    &                             \\
+elliptical_curvature_z      & spherical_curvature         & x_offset_tot                &                             \\
+e_tot                       & spin_tracking_method        & x_pitch                     &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -675,19 +677,19 @@ c21_mat1                    & e_tot                       & reference           
  \label{s:list.mirror}
  
  \begin{tabular}{llll} \toprule
-alias                       & l                           & superimpose                 & x_pitch_tot                 \\
-aperture                    & mat6_calc_method            & surface                     & y1_limit                    \\
-aperture_at                 & offset                      & tilt                        & y2_limit                    \\
-aperture_type               & offset_moves_aperture       & tilt_tot                    & y_limit                     \\
-create_jumbo_slave          & p0c                         & tracking_method             & y_offset                    \\
-critical_angle              & ptc_integration_type        & type                        & y_offset_tot                \\
-curvature_x0_y2             & reference                   & wall                        & y_pitch                     \\
-delta_ref_time              & ref_origin                  & x1_limit                    & y_pitch_tot                 \\
-descrip                     & ref_tilt                    & x2_limit                    & z_offset                    \\
-diffraction_limited         & ref_tilt_tot                & x_limit                     & z_offset_tot                \\
-ele_origin                  & ref_wavelength              & x_offset                    &                             \\
-e_tot                       & spherical_curvature         & x_offset_tot                &                             \\
-graze_angle                 & spin_tracking_method        & x_pitch                     &                             \\
+alias                       & elliptical_curvature_z      & ref_wavelength              & x_offset                    \\
+aperture                    & e_tot                       & spherical_curvature         & x_offset_tot                \\
+aperture_at                 & graze_angle                 & spin_tracking_method        & x_pitch                     \\
+aperture_type               & l                           & superimpose                 & x_pitch_tot                 \\
+create_jumbo_slave          & mat6_calc_method            & surface                     & y1_limit                    \\
+critical_angle              & offset                      & tilt                        & y2_limit                    \\
+curvature_x0_y2             & offset_moves_aperture       & tilt_tot                    & y_limit                     \\
+delta_ref_time              & p0c                         & tracking_method             & y_offset                    \\
+descrip                     & ptc_integration_type        & type                        & y_offset_tot                \\
+diffraction_limited         & reference                   & wall                        & y_pitch                     \\
+ele_origin                  & ref_origin                  & x1_limit                    & y_pitch_tot                 \\
+elliptical_curvature_x      & ref_tilt                    & x2_limit                    & z_offset                    \\
+elliptical_curvature_y      & ref_tilt_tot                & x_limit                     & z_offset_tot                \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -697,20 +699,21 @@ graze_angle                 & spin_tracking_method        & x_pitch             
  \label{s:list.multilayer.mirror}
  
  \begin{tabular}{llll} \toprule
-alias                       & l                           & spin_tracking_method        & x_offset_tot                \\
-aperture                    & mat6_calc_method            & superimpose                 & x_pitch                     \\
-aperture_at                 & material_type               & surface                     & x_pitch_tot                 \\
-aperture_type               & n_cell                      & tilt                        & y1_limit                    \\
-create_jumbo_slave          & offset                      & tilt_tot                    & y2_limit                    \\
-curvature_x0_y2             & offset_moves_aperture       & tracking_method             & y_limit                     \\
-d1_thickness                & p0c                         & type                        & y_offset                    \\
-d2_thickness                & ptc_integration_type        & v1_unitcell                 & y_offset_tot                \\
-delta_ref_time              & reference                   & v2_unitcell                 & y_pitch                     \\
-descrip                     & ref_origin                  & wall                        & y_pitch_tot                 \\
-diffraction_limited         & ref_tilt                    & x1_limit                    & z_offset                    \\
-ele_origin                  & ref_tilt_tot                & x2_limit                    & z_offset_tot                \\
-e_tot                       & ref_wavelength              & x_limit                     &                             \\
-graze_angle                 & spherical_curvature         & x_offset                    &                             \\
+alias                       & e_tot                       & spherical_curvature         & x_offset_tot                \\
+aperture                    & graze_angle                 & spin_tracking_method        & x_pitch                     \\
+aperture_at                 & l                           & superimpose                 & x_pitch_tot                 \\
+aperture_type               & mat6_calc_method            & surface                     & y1_limit                    \\
+create_jumbo_slave          & material_type               & tilt                        & y2_limit                    \\
+curvature_x0_y2             & n_cell                      & tilt_tot                    & y_limit                     \\
+d1_thickness                & offset                      & tracking_method             & y_offset                    \\
+d2_thickness                & offset_moves_aperture       & type                        & y_offset_tot                \\
+delta_ref_time              & p0c                         & v1_unitcell                 & y_pitch                     \\
+descrip                     & ptc_integration_type        & v2_unitcell                 & y_pitch_tot                 \\
+diffraction_limited         & reference                   & wall                        & z_offset                    \\
+ele_origin                  & ref_origin                  & x1_limit                    & z_offset_tot                \\
+elliptical_curvature_x      & ref_tilt                    & x2_limit                    &                             \\
+elliptical_curvature_y      & ref_tilt_tot                & x_limit                     &                             \\
+elliptical_curvature_z      & ref_wavelength              & x_offset                    &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -910,18 +913,18 @@ e_tot                       & reference                   & x_offset            
  \label{s:list.sample}
  
  \begin{tabular}{llll} \toprule
-alias                       & material_type               & tilt                        & y1_limit                    \\
-aperture                    & mode                        & tilt_tot                    & y2_limit                    \\
-aperture_at                 & offset                      & tracking_method             & y_limit                     \\
-aperture_type               & offset_moves_aperture       & type                        & y_offset                    \\
-create_jumbo_slave          & p0c                         & wall                        & y_offset_tot                \\
-curvature_x0_y2             & ptc_integration_type        & x1_limit                    & y_pitch                     \\
-delta_ref_time              & reference                   & x2_limit                    & y_pitch_tot                 \\
-descrip                     & ref_origin                  & x_limit                     & z_offset                    \\
-ele_origin                  & spherical_curvature         & x_offset                    & z_offset_tot                \\
-e_tot                       & spin_tracking_method        & x_offset_tot                &                             \\
-l                           & superimpose                 & x_pitch                     &                             \\
-mat6_calc_method            & surface                     & x_pitch_tot                 &                             \\
+alias                       & e_tot                       & spin_tracking_method        & x_offset_tot                \\
+aperture                    & l                           & superimpose                 & x_pitch                     \\
+aperture_at                 & mat6_calc_method            & surface                     & x_pitch_tot                 \\
+aperture_type               & material_type               & tilt                        & y1_limit                    \\
+create_jumbo_slave          & mode                        & tilt_tot                    & y2_limit                    \\
+curvature_x0_y2             & offset                      & tracking_method             & y_limit                     \\
+delta_ref_time              & offset_moves_aperture       & type                        & y_offset                    \\
+descrip                     & p0c                         & wall                        & y_offset_tot                \\
+ele_origin                  & ptc_integration_type        & x1_limit                    & y_pitch                     \\
+elliptical_curvature_x      & reference                   & x2_limit                    & y_pitch_tot                 \\
+elliptical_curvature_y      & ref_origin                  & x_limit                     & z_offset                    \\
+elliptical_curvature_z      & spherical_curvature         & x_offset                    & z_offset_tot                \\
  \bottomrule
  \end{tabular}
  \vfill

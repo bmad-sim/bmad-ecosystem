@@ -180,8 +180,8 @@ call canonical_to_angle_coords (orbit2)
 orbit2%vec(1) = orbit2%vec(1) + direc * orbit2%vec(2) * len2 / 2.0_rp ! Extrapolate to center of region 1/4 of way into element.
 orbit2%vec(3) = orbit2%vec(3) + direc * orbit2%vec(4) * len2 / 2.0_rp
 
-call multipole_ele_to_ab (ele, .false., ix_mag_max, a_pole_mag, b_pole_mag, magnetic$, .true.)
-call multipole_ele_to_ab (ele, .false., ix_elec_max, a_pole_elec, b_pole_elec, electric$, .true.)
+call multipole_ele_to_ab (ele, .false., ix_mag_max, a_pole_mag, b_pole_mag, magnetic$, include_kicks$)
+call multipole_ele_to_ab (ele, .false., ix_elec_max, a_pole_elec, b_pole_elec, electric$, include_kicks$)
 
 kx_tot = 0
 ky_tot = 0
@@ -201,21 +201,9 @@ enddo
 !
 
 select case (ele%key)
-case (quadrupole$, sol_quad$)
-  g_x = -ele%value(k1$) * orbit2%vec(1) - kx_tot
-  g_y =  ele%value(k1$) * orbit2%vec(3) - ky_tot
-  g2 = g_x**2 + g_y**2
-  g3 = sqrt(g2)**3
-
-case (sextupole$, octupole$)
-  g_x = -kx_tot
-  g_y = -ky_tot
-  g2 = g_x**2 + g_y**2
-  g3 = sqrt(g2)**3
-
 case (sbend$)
-  g_x = ele%value(g$) + ele%value(g_err$) + ele%value(k1$) * orbit2%vec(1) - kx_tot
-  g_y = ele%value(k1$) * orbit2%vec(3) - ky_tot
+  g_x = -kx_tot + ele%value(g$) + ele%value(g_err$) 
+  g_y = -ky_tot
   g2 = g_x**2 + g_y**2
   g3 = sqrt(g2)**3
   len2 = len2 * (1.0_rp + ele%value(g$) * orbit2%vec(1))

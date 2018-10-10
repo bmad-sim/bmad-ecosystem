@@ -1309,7 +1309,9 @@ val => ele%value
 ! Must set all poles even if zero since they might have been non-zero beforehand.
 ! Note: On ptc side bn(1) is error field when creating a fibre but is total field when fibre is being modified.	 
 
-call ele_to_ptc_an_bn (ele, branch%param, b_pole, a_pole) ! Notice reversed b_pole, a_pole args.
+! Magnetic
+
+call ele_to_ptc_magnetic_an_bn (ele, branch%param, b_pole, a_pole) ! Yes arg order is b_pole, a_pole.
 if (ele%key == sbend$) b_pole(1) = b_pole(1) + ele%value(g$)	 
 
 do i = n_pole_maxx, 0, -1
@@ -1317,10 +1319,12 @@ do i = n_pole_maxx, 0, -1
   call add (ele%ptc_fibre, -(i+1), 0, a_pole(i))
 enddo
 
+! Electric. Notice that PTC assumes horizontally_pure bend multipoles
+
 fh = 1d-9 * sign_of(charge_of(branch%param%particle)) / VOLT_C
 if (ele%key == sbend$ .and. nint(val(exact_multipoles$)) == vertically_pure$) then
-  call convert_bend_exact_multipole(ele, m_ele, horizontally_pure$)
-  call multipole_ele_to_ab(m_ele, .false., ix_pole_max, a_pole, b_pole, electric$, .true.)
+  call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$, include_kicks$)
+  call convert_bend_exact_multipole(ele%value(g$), horizontally_pure$, a_pole, b_pole)
 else
   call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$)
 endif

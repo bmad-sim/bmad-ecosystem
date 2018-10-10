@@ -41,7 +41,7 @@ logical, optional :: make_matrix
 !   2) Track as a quadrupole through the body
 !   3) 1/2 the octupole kick at the exit face.
 
-call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks = .true.)
+call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)

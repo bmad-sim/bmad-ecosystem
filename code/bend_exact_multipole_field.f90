@@ -214,7 +214,7 @@ end type pole_coef_struct
 
 type (pole_coef_struct) pole_coef(0:n_pole_maxx+1), pole_elec_coef(0:n_pole_maxx+1)
 
-type (ele_struct), target :: ele, ele2
+type (ele_struct), target :: ele
 type (lat_param_struct) param
 type (coord_struct) orbit
 type (em_field_struct) field
@@ -229,10 +229,18 @@ logical local_ref_frame
 logical, optional :: calc_dfield, calc_potential
 logical do_dfield_calc
 
+character(*), parameter :: r_name = 'bend_exact_multipole_field'
+
 !
 
 g = ele%value(g$)
 rho = ele%value(rho$)
+
+if (ele%value(g$) == 0) then
+  call out_io (s_fatal$, r_name, 'this routine called with g = 0!')
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
 
 x = orbit%vec(1)
 y = orbit%vec(3)
@@ -244,10 +252,19 @@ do_dfield_calc = logic_option(.false., calc_dfield)
 
 !
 
-call convert_bend_exact_multipole(ele, ele2, vertically_pure$)
-call multipole_ele_to_ab (ele2, .not. local_ref_frame, ix_mag_max, a_pole, b_pole, magnetic$)
-call multipole_ele_to_ab (ele2, .not. local_ref_frame, ix_elec_max, a_pole_elec, b_pole_elec, electric$)
-call deallocate_ele_pointers(ele2)
+call multipole_ele_to_ab (ele, .not. local_ref_frame, ix_mag_max, a_pole, b_pole, magnetic$, include_kicks$)
+call multipole_ele_to_ab (ele, .not. local_ref_frame, ix_elec_max, a_pole_elec, b_pole_elec, electric$)
+
+if (nint(ele%value(exact_multipoles$)) == horizontally_pure$) then
+  if (ix_mag_max /= -1) then
+    call convert_bend_exact_multipole(g, vertically_pure$, a_pole, b_pole)
+    ix_mag_max = n_pole_maxx
+  endif
+  if (ix_elec_max /= -1) then
+    call convert_bend_exact_multipole(g, vertically_pure$, a_pole_elec, b_pole_elec)
+    ix_elec_max = n_pole_maxx
+  endif
+endif
 
 ! Calculate y-dependent coefs
 
@@ -305,7 +322,7 @@ do j = 0, max(ix_mag_max, ix_elec_max)+1
 enddo
 
 if (ix_mag_max >= 0) then
-  f = ele%value(p0c$) / (c_light * charge_of(param%particle) * ele%value(l$))
+  f = orbit%p0c / (c_light * charge_of(param%particle) * ele%value(l$))
   field%B = field%B * f
   if (do_dfield_calc) field%dB = field%dB * f
   if (logic_option(.false., calc_potential)) then
@@ -550,22 +567,23 @@ end subroutine bend_exact_multipole_field
 !-------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------
 !+
-! Subroutine convert_bend_exact_multipole (bend_in, bend_out, out_type)
+! Subroutine convert_bend_exact_multipole (g, out_type, an, bn)
 !
-! Routine to convert exact bend multipole coefficients between horizontally pure and vertically bases.
-! k1, k2, and h/vkick components of bend_in will be added to the bend_out multipole.
-! If bend_in has exact_multipole = off$ or is the same as out_type, there is no basis conversion (but k1, k2,
-! and h/vkick components will still be added in).
+! Routine to convert exact bend multipole coefficients between horizontally pure and vertically pure bases.
+! Note: Scaling by r0 multipole radius not handled here.
 ! 
 ! Input:
-!   bend_in   -- ele_struct: Bend with multipole coefs.
-!   out_type  -- integer: Output type: horizontally_pure$ or vertically_pure.
+!   g                 -- real(rp): 1/rho bending strength.
+!   out_type          -- integer: Output type: horizontally_pure$ or vertically_pure$.
+!   an(0:n_pole_maxx) -- real(rp): Skew multipoles. 
+!   bn(0:n_pole_maxx) -- real(rp): Non-skew multipoles.
 !
 ! Output:
-!   bend_out  -- ele_struct: Bend with converted multipole coefs.
+!   an(0:n_pole_maxx) -- real(rp): Converted skew multipoles.
+!   bn(0:n_pole_maxx) -- real(rp): Converted Non-skew multipoles.
 !-
 
-subroutine convert_bend_exact_multipole (bend_in, bend_out, out_type)
+subroutine convert_bend_exact_multipole (g, out_type, an, bn)
 
 use bmad_interface, except_dummy => convert_bend_exact_multipole
 
@@ -765,116 +783,41 @@ type (pure_bend_multipole_struct), parameter :: h_to_v_real(0:n_pole_maxx) = [ &
         0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp]) &
 ]
 
-type (ele_struct) bend_in, bend_out
-real(rp) g_n(0:n_pole_maxx), r0_mag, r0_elec, factor
-real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
-integer out_type, i, j, np
+real(rp) g_n(0:n_pole_maxx), g
+real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), a_temp(0:n_pole_maxx), b_temp(0:n_pole_maxx)
+integer out_type, i, j, np, np0
 
 !
-
-bend_out = bend_in
-
-call multipole_init(bend_out, magnetic$, .true.)
-call multipole_init(bend_out, electric$, .true.)
-
-!
-
-if (associated(bend_in%a_pole)) then
-  a_pole = bend_in%a_pole
-  b_pole = bend_in%b_pole
-else
-  a_pole = 0
-  b_pole = 0
-endif
-
-b_pole(1) = b_pole(1) + bend_in%value(k1$) * bend_in%value(l$)
-call multipole_include_kicks (bend_out, .false., a_pole, b_pole)
-
-!
-
-if (associated(bend_in%a_pole_elec)) then
-  a_pole_elec = bend_in%a_pole_elec
-  b_pole_elec = bend_in%b_pole_elec
-endif
-
-!
-
-if (nint(bend_in%value(exact_multipoles$)) == off$ .or. nint(bend_in%value(exact_multipoles$)) == out_type) then
-  bend_out%a_pole = a_pole
-  bend_out%b_pole = b_pole
-  bend_out%a_pole_elec = a_pole_elec
-  bend_out%b_pole_elec = b_pole_elec
-  bend_out%value(exact_multipoles$) = bend_in%value(exact_multipoles$)
-  return
-endif
-
-!
-
-r0_mag = bend_in%value(r0_mag$)
-if (r0_mag /= 0 .and. r0_mag /= 1) then
-  factor = r0_mag
-  do i = 0, n_pole_maxx
-    factor = factor / r0_mag
-    a_pole(i) = factor * a_pole(i)
-    b_pole(i) = factor * b_pole(i)
-  enddo
-endif
-
-r0_elec = bend_in%value(r0_elec$)
-if (associated(bend_in%a_pole_elec) .and. r0_elec /= 0 .and. r0_elec /= 1) then
-  factor = r0_elec
-  do i = 0, n_pole_maxx
-    factor = factor / r0_elec
-    a_pole_elec(i) = factor * a_pole_elec(i)
-    b_pole_elec(i) = factor * b_pole_elec(i)
-  enddo
-endif
-
-!
-
-bend_out%value(exact_multipoles$) = out_type
-bend_out%value(r0_elec$) = 0
-bend_out%value(r0_mag$) = 0
 
 np = n_pole_maxx
+do np0 = n_pole_maxx, 0, -1
+  if (an(np0) /= 0 .or. bn(np0) /= 0) exit
+enddo
+
 g_n(0) = 1
 do i = 1, np
-  g_n(i) = bend_in%value(g$) * g_n(i-1)
+  g_n(i) = g * g_n(i-1)
 enddo
 
 !
 
-select case (nint(bend_in%value(exact_multipoles$)))
-case (horizontally_pure$)
-  bend_out%value(exact_multipoles$) = vertically_pure$
-  do i = 0, n_pole_maxx
-    if (a_pole(i) /= 0) bend_out%a_pole(i:np) = bend_out%a_pole(i:np) + &
-                                            a_pole(i) * (h_to_v_real(i)%convert(i:np) * g_n(0:np-i))
-    if (b_pole(i) /= 0) bend_out%b_pole(i:np) = bend_out%b_pole(i:np) + &
-                                            b_pole(i) * (h_to_v_imag(i)%convert(i:np) * g_n(0:np-i))
+a_temp(1:np0) = an(1:np0)
+b_temp(1:np0) = bn(1:np0)
 
-    if (associated(bend_in%a_pole_elec)) then
-      if (a_pole_elec(i) /= 0) bend_out%a_pole_elec(i:np) = bend_out%a_pole_elec(i:np) + &
-                                            a_pole_elec(i) * (h_to_v_imag(i)%convert(i:np) * g_n(0:np-i))
-      if (b_pole_elec(i) /= 0) bend_out%b_pole_elec(i:np) = bend_out%b_pole_elec(i:np) + &
-                                            b_pole_elec(i) * (h_to_v_real(i)%convert(i:np) * g_n(0:np-i))
-    endif
+an = 0
+bn = 0
+
+select case (out_type)
+case (vertically_pure$)
+  do i = 0, np0
+    if (a_temp(i) /= 0) an(i:np) = an(i:np) + a_temp(i) * (h_to_v_real(i)%convert(i:np) * g_n(0:np-i))
+    if (b_temp(i) /= 0) bn(i:np) = bn(i:np) + b_temp(i) * (h_to_v_imag(i)%convert(i:np) * g_n(0:np-i))
   enddo
 
-case (vertically_pure$)
-  bend_out%value(exact_multipoles$) = horizontally_pure$
-  do i = 0, n_pole_maxx
-    if (a_pole(i) /= 0) bend_out%a_pole(i:np) = bend_out%a_pole(i:np) + &
-                                            a_pole(i) * (v_to_h_real(i)%convert(i:np) * g_n(0:np-i))
-    if (b_pole(i) /= 0) bend_out%b_pole(i:np) = bend_out%b_pole(i:np) + &
-                                            b_pole(i) * (v_to_h_imag(i)%convert(i:np) * g_n(0:np-i))
-
-    if (associated(bend_in%a_pole_elec)) then
-      if (a_pole_elec(i) /= 0) bend_out%a_pole_elec(i:np) = bend_out%a_pole_elec(i:np) + &
-                                            a_pole_elec(i) * (v_to_h_imag(i)%convert(i:np) * g_n(0:np-i))
-      if (b_pole_elec(i) /= 0) bend_out%b_pole_elec(i:np) = bend_out%b_pole_elec(i:np) + &
-                                            b_pole_elec(i) * (v_to_h_real(i)%convert(i:np) * g_n(0:np-i))
-    endif
+case (horizontally_pure$)
+  do i = 0, np0
+    if (a_temp(i) /= 0) an(i:np) = an(i:np) + a_temp(i) * (v_to_h_real(i)%convert(i:np) * g_n(0:np-i))
+    if (b_temp(i) /= 0) bn(i:np) = bn(i:np) + b_temp(i) * (v_to_h_imag(i)%convert(i:np) * g_n(0:np-i))
   enddo
 
 case default

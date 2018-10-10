@@ -30,7 +30,7 @@ integer n, sign_z_vel, ix_pole_max
 
 ! spin tracking for magnetic multipoles
 
-call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn, include_kicks = .true.)
+call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn, magnetic$, include_kicks$)
 
 ! calculate kick_angle (for particle) and unit vector (Bx, By) parallel to B-field
 ! according to bmad manual, chapter "physics", section "Magnetic Fields"

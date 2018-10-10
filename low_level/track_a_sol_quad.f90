@@ -43,7 +43,7 @@ rel_tracking_charge = rel_tracking_charge_to_mass(start_orb, param)
 charge_dir = rel_tracking_charge * orientation
 mc2 = mass_of(orbit%species)
 
-call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks = .true.)
+call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks_except_k1$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 n_step = 1
