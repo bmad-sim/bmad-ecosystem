@@ -3120,9 +3120,10 @@ case ('spin')
         sm => scratch%spin_map(i)
         nl=nl+1; write(lines(nl), '(2x, a, i0, a, i0)')     'Universe: ', sm%ix_uni, '  of: ', ubound(s%u, 1)
         nl=nl+1; write(lines(nl), '(2x, a, 2i6)')    'Ix_Ref, Ix_Ele:', sm%ix_ref, sm%ix_ele 
-        nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'l-axis: ', sm%axis%l
-        nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'n0-axis:', sm%axis%n0
-        nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'm-axis:', sm%axis%m
+        nl=nl+1; write (lines(nl), '(26x, a, 51x, a)') 'Initial', 'Final'
+        nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'L-axis: ', sm%axis0%l, sm%axis1%l
+        nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'N0-axis:', sm%axis0%n0, sm%axis1%n0
+        nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'M-axis: ', sm%axis0%m, sm%axis1%m
         nl=nl+1; write(lines(nl), '(2x, a)')         '8x8 matrix:'
         do j = 1, 8
           nl=nl+1; write(lines(nl), '(5x, a)') real_array_to_string(sm%mat8(j,:), 13, 7)
@@ -3160,9 +3161,10 @@ case ('spin')
     call tao_spin_g_matrix_calc (datum, u, ele2%ix_ele, ele%ix_ele, spin_map, valid_value, why_invalid)
     if (.not. valid_value) return
 
-    nl=nl+1; write (lines(nl), '(a, 3f11.6)') 'L-axis:', spin_map%axis%l
-    nl=nl+1; write (lines(nl), '(a, 3f11.6)') 'N-axis:', spin_map%axis%n0
-    nl=nl+1; write (lines(nl), '(a, 3f11.6)') 'M-axis:', spin_map%axis%m
+    nl=nl+1; write (lines(nl), '(23x, a, 51x, a)') 'Initial', 'Final'
+    nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'L-axis:', spin_map%axis0%l, spin_map%axis1%l
+    nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'N-axis:', spin_map%axis0%n0, spin_map%axis1%n0
+    nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'M-axis:', spin_map%axis0%m, spin_map%axis1%m
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = '8x8 Matrix:'
     do i = 1, 8

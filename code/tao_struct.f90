@@ -689,7 +689,8 @@ end type
 type tao_spin_map_struct
   type (taylor_struct) :: orbit_taylor(6) = taylor_struct()  ! Not yet used.
   type (taylor_struct) :: spin_taylor(0:3) = taylor_struct() ! Not yet used.
-  type (spin_axis_struct) :: axis = spin_axis_struct()
+  type (spin_axis_struct) :: axis0 = spin_axis_struct()      ! Initial axes.
+  type (spin_axis_struct) :: axis1 = spin_axis_struct()      ! Final axes.
   integer :: ix_ele = 0, ix_ref = 0, ix_uni = 0
   integer :: ix_branch = 0
   real(rp) :: mat8(8,8) = 0
