@@ -189,6 +189,11 @@ type twiss_struct
   real(rp) :: sigma = 0, sigma_p = 0, emit = 0, norm_emit = 0
 end type
 
+! Misc parameters
+
+integer, parameter :: include_kicks$ = 1, include_kicks_except_k1$ = 2
+
+
 !-------------------------------------------------------------------------
 ! Structure for holding the photon reflection probability tables.
 
@@ -262,8 +267,8 @@ type spin_eigen_struct
 end type
 
 type spin_axis_struct
-  real(rp) :: n0(3) = 0             ! Invariant spin axis on closed orbit.
   real(rp) :: l(3) = 0         ! Transverse axis.
+  real(rp) :: n0(3) = 0        ! Invariant spin axis on closed orbit.
   real(rp) :: m(3) = 0         ! Transverse axis.
 end type
 

@@ -45,7 +45,7 @@ call apply_element_edge_kick(end_orb, fringe_info, ele, param, .false.)
 
 !
 
-call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn, magnetic$, include_kicks = .true.)
+call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn, magnetic$, include_kicks$)
 if (ix_pole_max > -1) then
   amp = ac_kicker_amp(ele, particle_rf_time(end_orb, ele, .false., 0.0_rp))
   call ab_multipole_kicks (an, bn, param%particle, ele, end_orb, magnetic$, amp)

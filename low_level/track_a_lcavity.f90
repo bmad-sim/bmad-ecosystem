@@ -63,7 +63,7 @@ if (length == 0) return
 
 ! 
 
-call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks = .true.)
+call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 call offset_particle (ele, param, set$, orbit, mat6 = mat6, make_matrix = make_matrix)

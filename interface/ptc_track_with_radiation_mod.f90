@@ -152,7 +152,8 @@ end subroutine ptc_setup_map_with_radiation
 !   rad_fluct     -- logical, optional: Override the setting of bmad_com%radiation_fluctuations_on
 !   
 ! Output:
-!   orbit         -- coord_struct: Ending orbit after tracking through the map..
+!   orbit         -- coord_struct: Ending orbit after tracking through the map.
+!     %state        -- Set to lost$ if there is a problem.
 !-
 
 subroutine ptc_track_with_radiation (orbit, map_with_rad, rad_damp, rad_fluct)
@@ -180,6 +181,7 @@ z_probe = orbit%vec
 z_probe%q%x = [1, 0, 0, 0]
 
 call track_tree_probe_complex_zhe (map_with_rad, z_probe, bmad_com%spin_tracking_on, rad_damp, rad_fluct)
+if (z_probe%u) orbit%state = lost$   ! %u = T => "unstable".
 
 orbit%vec = z_probe%x
 if (bmad_com%spin_tracking_on) then

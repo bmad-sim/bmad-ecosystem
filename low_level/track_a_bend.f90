@@ -37,7 +37,7 @@ real(rp) dfactor_dx, dfactor_dpx, dfactor_dpy, dfactor_dpz, factor1, factor2
 real(rp) r_step, axis(3), w_mat(3,3), dr(3), s_off, mass, e_tot
 
 real(rp) angle, ct, st, x, px, y, py, z, pz, dpx_t, p_long
-real(rp) rel_p, rel_p2, Dy, px_t, factor, g, g_err, c_dir, stg
+real(rp) rel_p, rel_p2, Dy, px_t, factor, g, g_err, rel_charge_dir, c_dir, stg
 real(rp) step_len, g_tot, eps, pxy2, ff, fg, alpha, beta, one_ct
 real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, z_2, s_y, c_y, r(6)
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
@@ -51,29 +51,30 @@ logical, optional :: make_matrix
 start_orb = orbit
 
 call offset_particle (ele, param, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
+
 ! Entrance edge kick
 
-c_dir = ele%orientation * orbit%direction * rel_tracking_charge_to_mass(orbit, param)
+rel_charge_dir = ele%orientation * orbit%direction * rel_tracking_charge_to_mass(orbit, param)
+c_dir = ele%orientation * orbit%direction * charge_of(orbit%species)
 
 nullify(fringe_info%hard_ele)
 fringe_info%particle_at = first_track_edge$
 call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
 
-! If we have a sextupole component then step through in steps of length ds_step
-
-call multipole_ele_to_ab(ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks = .true.)
-call multipole_ele_to_ab(ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
-
 ! Set some parameters
 
 g = ele%value(g$)
-g_tot = (g + ele%value(g_err$)) * c_dir
+g_tot = (g + ele%value(g_err$)) * rel_charge_dir
 g_err = g_tot - g
-k_1 = ele%value(k1$) * c_dir
+k_1 = ele%value(k1$) * rel_charge_dir
 if (nint(ele%value(exact_multipoles$)) /= off$) then
   k_1 = 0  ! Is folded in with multipoles.
   ix_pole_max = max(1, ix_pole_max)
+  call multipole_ele_to_ab(ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks$)
+else
+  call multipole_ele_to_ab(ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks_except_k1$)
 endif
+call multipole_ele_to_ab(ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 if (.not. ele%is_on) then
   g_err = -g
@@ -362,7 +363,7 @@ real(rp) coef, ps, ps2, kx, ky, alpha, f_coef, df_coef_dx, kmat(6,6), rel_p0
 real(rp) mc2, dk_dp, pc0, E0, E1, f, df_dps_coef, dkm(2,2), f_p0c, Ex, Ey
 integer i, charge
 
-!
+! Calculate field
 
 charge = charge_of(orbit%species)
 
@@ -371,14 +372,14 @@ if (nint(ele%value(exact_multipoles$)) /= off$ .and. ele%value(g$) /= 0) then
 
 else
   field = em_field_struct()
-  f_p0c = ele%value(p0c$) / (c_light * charge)
+  f_p0c = ele%value(p0c$) / (c_light * charge_of(param%particle))
 
   do i = 0, ix_pole_max
     if (an(i) == 0 .and. bn(i) == 0) cycle
     if (logic_option(.false., make_matrix)) then
-      call ab_multipole_kick(an(i), bn(i), i, orbit%species, 0, orbit, kx, ky, dkm)
+      call ab_multipole_kick(an(i), bn(i), i, param%particle, 0, orbit, kx, ky, dkm)
     else
-      call ab_multipole_kick(an(i), bn(i), i, orbit%species, 0, orbit, kx, ky)
+      call ab_multipole_kick(an(i), bn(i), i, param%particle, 0, orbit, kx, ky)
     endif
     field%B(1) = field%B(1) + f_p0c * ky / ele%value(l$)
     field%B(2) = field%B(2) - f_p0c * kx / ele%value(l$)
@@ -392,7 +393,6 @@ else
 
   ! Add electric multipoles
 
-  call multipole_ele_to_ab(ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
   do i = 0, ix_elec_max
     if (an_elec(i) == 0 .and. bn_elec(i) == 0) cycle
     call elec_multipole_field(an_elec(i), bn_elec(i), i, orbit, Ex, Ey, dkm, .true.)
@@ -402,17 +402,16 @@ else
   enddo
 endif
 
-!
-
+! Magnetic kick.
 
 if (ix_pole_max > -1) then
   orb0 = orbit
-  f_coef = coef * c_dir * step_len * (1 + ele%value(g$) * orbit%vec(1)) * c_light * charge / orb0%p0c
+  f_coef = coef * c_dir * step_len * (1 + ele%value(g$) * orbit%vec(1)) * c_light / orb0%p0c
   orbit%vec(2) = orbit%vec(2) - f_coef * field%B(2)
   orbit%vec(4) = orbit%vec(4) + f_coef * field%B(1)
 
   if (logic_option(.false., make_matrix)) then
-    df_coef_dx = coef * c_dir * step_len * ele%value(g$) * c_light * charge / orb0%p0c
+    df_coef_dx = coef * c_dir * step_len * ele%value(g$) * c_light / orb0%p0c
 
     mat6(2,:) = mat6(2,:) - (f_coef * field%dB(2,1) + df_coef_dx * field%B(2)) * mat6(1,:) - & 
                             (f_coef * field%dB(2,2)) * mat6(3,:)
@@ -421,6 +420,8 @@ if (ix_pole_max > -1) then
   endif
 endif
 
+
+! Electric kick.
 
 if (ix_elec_max > -1) then
   orb0 = orbit
@@ -479,19 +480,6 @@ endif
 
 end subroutine apply_multipole_kicks
 
-!---------------------------------------------------------------------------
-! contains
-
-function cross(A, B, ix) result (C_ix)
-
-real(rp) A(3), B(3), C(3), C_ix
-integer ix
-
-C = cross_product(A, B)
-C_ix = C(ix)
-
-end function cross
-
 end subroutine track_a_bend
 
 !---------------------------------------------------------------------------
@@ -533,7 +521,7 @@ real(rp) g, g_err, length
 real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, s_y, c_y, r(6)
 real(rp) z0, z1, z2, z11, z12, z22, z33, z34, z44
 real(rp) dom_x, dom_xx, dx_c, dc_x, ds_x, dom_y, dom_yy, dc_y, ds_y, dcs_x, dcs_y
-real(rp) g_tot, rel_p, rel_p2, charge_dir
+real(rp) g_tot, rel_p, rel_p2, rel_charge_dir
 real(rp) rel_pc, px, py, pxy2, pz
 
 integer n_step
@@ -541,11 +529,11 @@ logical, optional :: make_matrix
 
 ! Degenerate case
 
-charge_dir = rel_tracking_charge_to_mass(orbit, param) * ele%orientation * orbit%direction
+rel_charge_dir = rel_tracking_charge_to_mass(orbit, param) * ele%orientation * orbit%direction
 
-k_1 = ele%value(k1$) * charge_dir
+k_1 = ele%value(k1$) * rel_charge_dir
 g = ele%value(g$)
-g_tot = (g + ele%value(g_err$)) * charge_dir
+g_tot = (g + ele%value(g_err$)) * rel_charge_dir
 g_err = g_tot - g
 length = ele%value(l$) / n_step
 

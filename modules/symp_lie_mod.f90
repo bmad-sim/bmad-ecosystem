@@ -109,7 +109,7 @@ charge_dir = rel_tracking_charge * orient_dir
 
 ! element offset 
 
-call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks = .true.)
+call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks_except_k1$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 if (do_offset) call offset_particle (ele, param, set$, end_orb, mat6 = ele%mat6, make_matrix = calculate_mat6)

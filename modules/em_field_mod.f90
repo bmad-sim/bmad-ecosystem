@@ -594,7 +594,7 @@ case (bmad_standard$)
   !---------------------------------------------------------------------
   ! Add multipoles
 
-  if (ele%key == sbend$ .and. nint(ele%value(exact_multipoles$)) /= off$) then
+  if (ele%key == sbend$ .and. nint(ele%value(exact_multipoles$)) /= off$ .and. ele%value(g$) /= 0) then
     call bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field2, do_df_calc, calc_potential)
     field%e = field%e + field2%e
     field%b = field%b + field2%b
@@ -606,18 +606,13 @@ case (bmad_standard$)
 
   ! Everything but exact bend multipoles
   else
+    ! First magnetic
     add_kicks = .true.
-    call multipole_ele_to_ab(ele, .not. local_ref_frame, ix_pole_max, a_pole, b_pole)
-
+    ! This should be cleaned up so that include_kicks is always present.
     if (ele%key == sbend$) then
-      if (ele%value(k1$) /= 0) then
-        b_pole(1) = b_pole(1) + ele%value(k1$) * ele%value(l$)
-        ix_pole_max = max(1, ix_pole_max)
-      endif
-      if (ele%value(k2$) /= 0) then
-        b_pole(2) = b_pole(2) + ele%value(k2$) * ele%value(l$) / 2 
-        ix_pole_max = max(2, ix_pole_max)
-      endif
+      call multipole_ele_to_ab(ele, .not. local_ref_frame, ix_pole_max, a_pole, b_pole, magnetic$, include_kicks$)
+    else
+      call multipole_ele_to_ab(ele, .not. local_ref_frame, ix_pole_max, a_pole, b_pole, magnetic$)
     endif
 
     if (ix_pole_max > -1) then

@@ -371,10 +371,10 @@ subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho, beta1
   logical, optional :: err_flag
 end subroutine
 
-subroutine convert_bend_exact_multipole (bend_in, bend_out, out_type)
+subroutine convert_bend_exact_multipole (g, out_type, an, bn)
   import
   implicit none
-  type (ele_struct) bend_in, bend_out
+  real(rp) g, an(0:n_pole_maxx), bn(0:n_pole_maxx)
   integer out_type
 end subroutine
 
