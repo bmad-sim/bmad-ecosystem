@@ -81,6 +81,7 @@ enddo
 
 control = 0
 ic = 0
+control_to_ic = 0
 
 ! Mark entries in control and ic arrays for deletion.
 
@@ -95,11 +96,15 @@ do i = 1, lat%n_control_max
   lord => pointer_to_ele(lat, ctl%lord)
   if (lord%key == -1) control(i) = -1
   if (ctl%ix_attrib == int_garbage$ .or. ctl%attribute == 'REMOVE') control(i) = -1
-  if (control(i) == -1 .and. control_to_ic(i) /= -1) ic(control_to_ic(i)) = -1
+  if (control(i) == -1 .and. control_to_ic(i) > 0) ic(control_to_ic(i)) = -1
 enddo
 
 do i = 1, lat%n_ic_max
   if (control(lat%ic(i)) == -1) ic(i) = -1
+  ! Can happen for drifts that have been turned into lord null_ele elements due to superposition.
+  ! In this case the lord will point to the element that is put in the space of the drift but,
+  ! to simplify matters, the "slave" element will not point back to the null_ele.
+  if (lat%ic(i) == 0) ic(i) = -1
 enddo
 
 ! Compress branch%ele(:) array and fill in ibr(:) array.

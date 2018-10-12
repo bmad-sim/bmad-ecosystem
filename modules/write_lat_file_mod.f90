@@ -275,7 +275,6 @@ write (iu, '(a)')
 write (iu, '(a)') '!-------------------------------------------------------'
 write (iu, '(a)')
 
-ixs = 0
 n_names = 0
 n = lat%n_ele_max
 allocate (names(n), an_indexx(n), named_eles(n))
@@ -289,8 +288,6 @@ do ib = 0, ubound(lat%branch, 1)
     write (iu, '(2a)') '! Branch: ', trim(branch%name)
     write (iu, '(a)')
   endif
-
-  branch%ele%iyy = 0
 
   ele_loop: do ie = 1, branch%n_ele_max
 
@@ -306,42 +303,13 @@ do ib = 0, ubound(lat%branch, 1)
 
     ele_dflt => ele_default(ele%key)
 
-    multi_lord => pointer_to_multipass_lord (ele, ix_pass) 
-
-    ! Superposition stragegy: There is a problem where add_superposition will be confused by having a 
-    ! superposition in a region next to an element (eg patch) with a negative length. 
-    ! To minimize problems, try to minimize the number of superpositions needed.
-    ! So don't superimpose any super_lord if the first slave of the lord does not have another super_lord and there is no wrap-around.
-    ! Otherwise create a dummy drift to be used for superposition. 
-
-    ! ele%iyy = 1  -> ele is the first slave to a superlord that is *not* superimposed in the new lattice.
-    ! ele%iyy = 2  -> ele is slave (but not the first) to a superlord that is *not* superimposed in the new lattice.
-    ! ele%iyy = 3  -> ele has zero length and is not superimposed but it will be superimposed so ignore it in the
-    !                    element line list.
-    ! ele%iyy = 10 -> ele is a super_lord that is *not* superimposed in the new lattice.
-    ! ele%iyy = 20 -> ele is a multipass_lord that is *not* superimposed but needs to be superimposed.
-
-    ! A zero length element that has superposition on both sides gets superimposed to avoid problems
-    ! if the element is within the region of a super_lord that is *not* being superimposed.
-
-    if (ele%slave_status == multipass_slave$) then
-      if (ele%value(l$) == 0 .and. ele%ix_ele /= branch%n_ele_max) then
-        if (branch%ele(ie-1)%slave_status == super_slave$ .and. branch%ele(ie+1)%slave_status == super_slave$) then
-          ele%iyy = 3   ! Mark so that element will not be in the line list of elements.
-          lord => pointer_to_lord(ele, 1)
-          lord%iyy = 20          
-        endif
-      endif
-
-      cycle 
-    endif
- 
-    !
+    ! Superposition stragegy: Replace each super_slave with a null_ele which acts as a fiducial for superposing and a drift
+    ! with the same length as the super_slave.
 
     if (ele%key == null_ele$) cycle
+    multi_lord => pointer_to_multipass_lord (ele, ix_pass) 
     if (ele%lord_status == super_lord$ .and. ix_pass > 0) cycle
     if (ele%slave_status == super_slave$ .and. ix_pass > 1) cycle
-    if (ele%slave_status == super_slave$ .and. ele%iyy == 2) cycle
 
     ! super_slave bookkeeping
 
@@ -349,19 +317,7 @@ do ib = 0, ubound(lat%branch, 1)
       lord => pointer_to_lord(ele, 1)
       slave => pointer_to_slave(lord, 1)
       slave2 => pointer_to_slave(lord, lord%n_slave)
-      ! slave%ix_ele < slave2%ix_ele => No wrap.
-      if (num_lords(slave, super_lord$) == 1 .and. (slave%ix_ele < slave2%ix_ele)) then
-        lord%iyy = 10
-        slave%iyy = 1
-        do i = 2, lord%n_slave
-          slave => pointer_to_slave(lord, i)
-          slave%iyy = 2
-        enddo
-      elseif (ele%iyy == 0) then
-        ixs = ixs + 1
-        ele%ixx = ixs
-        write (iu, '(a, i0, 2a)') 'slave_drift_', ixs, ': drift, l = ', trim(re_str(ele%value(l$)))
-      endif
+      write (iu, '(2(a, i0), 2a)') 'slave_drift_', ib, '_', ele%ix_ele, ': drift, l = ', trim(re_str(ele%value(l$)))
       cycle
     endif
 
@@ -482,63 +438,17 @@ do ib = 0, ubound(lat%branch, 1)
       slave => pointer_to_slave(ele, 1)
       if (slave%lord_status == super_lord$) then
         slave2 => pointer_to_slave(slave, 1)
-        if (num_lords(slave2, super_lord$) /= 1) then
-          do i = 1, slave2%n_lord
-            super => pointer_to_lord(slave2, i)
-            if (super%iyy == 10) exit
-          enddo
-          lord2 => pointer_to_lord(super, 1) ! Multipass_lord
-          line = trim(line) // ', superimpose, ele_origin = beginning, ref_origin = beginning, ref = ' // &
-                trim(lord2%name) // ', offset = ' // trim(re_str(slave%s_start-super%s_start))
-        endif
+        write (line, '(2(a, i0))') trim(line) // &
+                ', superimpose, ele_origin = beginning, ref_origin = beginning, ref = slave_drift_', &
+                slave2%ix_branch, '_', slave2%ix_ele
       endif
     endif
 
     if (ele%lord_status == super_lord$) then
       slave => pointer_to_slave(ele, 1)
-      slave2 => pointer_to_slave(ele, ele%n_slave)
-      if (num_lords(slave, super_lord$) /= 1) then
-        do i = 1, slave%n_lord
-          super => pointer_to_lord(slave, i)
-          if (super%iyy == 10) exit
-        enddo
-        line = trim(line) // ', superimpose, ele_origin = beginning, ref_origin = beginning, ref = ' // &
-                trim(super%name) // ', offset = ' // trim(re_str(ele%s_start-super%s_start))
-      elseif (slave%ix_ele > slave2%ix_ele) then  ! Wrap case
-        line = trim(line) // ', superimpose, ele_origin = end, offset = ' // trim(re_str(ele%s))
-
-      endif
-    endif
-
-    ! A zero length element that has superposition on both sides gets superimposed to avoid problems
-    ! if the element is within the region of a super_lord that is *not* being superimposed.
-
-    if (ele%value(l$) == 0 .and. ele%ix_ele /= branch%n_ele_max .and. ele%slave_status /= super_slave$) then
-      if (branch%ele(ie-1)%slave_status == super_slave$ .and. branch%ele(ie+1)%slave_status == super_slave$) then
-        ele%iyy = 3   ! Mark so that element will not be in the line list of elements.
-        ele2 => branch%ele(ie-1)
-        do i = 1, ele2%n_lord
-          lord => pointer_to_lord(ele2, i)
-          if (lord%iyy /= 10) cycle
-          line = trim(line) // ', superimpose, ref_origin = beginning, ref = ' // &
-                trim(lord%name) // ', offset = ' // trim(re_str(ele%s_start-lord%s_start))
-          exit
-        enddo
-      endif
-    endif
-
-    if (ele%iyy == 20) then
-      slave => pointer_to_slave(ele, 1)
-      ele2 => pointer_to_next_ele(slave, -1)
-      do i = 1, ele2%n_lord
-        lord => pointer_to_lord(ele2, i)
-        if (lord%iyy /= 10) cycle
-        lord2 => lord
-        if (lord2%slave_status == multipass_slave$) lord2 => pointer_to_lord(lord2, 1)
-        line = trim(line) // ', superimpose, ref_origin = beginning, ref = ' // &
-              trim(lord2%name) // ', offset = ' // trim(re_str(slave%s_start-lord%s_start))
-        exit
-      enddo
+      write (line, '(2(a, i0))') trim(line) // &
+                ', superimpose, ele_origin = beginning, ref_origin = beginning, ref = slave_drift_', &
+                slave%ix_branch, '_', slave%ix_ele
     endif
 
     ! AC_Kicker
@@ -1577,26 +1487,12 @@ integer j, ix
 
 !
 
-if (ele%iyy == 3) return
-
 if (ele%slave_status == super_slave$) then
-
-  if (ele%iyy == 1) then
-    lord => pointer_to_lord(ele, 1)
-    if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
-
-    if (lord%orientation == 1) then
-      write (line, '(4a)') trim(line), ' ', trim(lord%name), ','
-    else
-      write (line, '(4a)') trim(line), ' --', trim(lord%name), ','
-    endif
-
-    return
-  endif  
-
-  if (ele%iyy == 2) return
-
-  write (line, '(2a, i0, a)') trim(line), ' slave_drift_', ele%ixx, ','
+  if (ele%orientation == 1) then
+    write (line, '(a, 2(a, i0), a)') trim(line), ' slave_drift_', ele%ix_branch, '_', ele%ix_ele, ','
+  else
+    write (line, '(a, 2(a, i0), a)') trim(line), ' --slave_drift_', ele%ix_branch, '_', ele%ix_ele, ','
+  endif
 
 elseif (ele%slave_status == multipass_slave$) then
   lord => pointer_to_lord(ele, 1)

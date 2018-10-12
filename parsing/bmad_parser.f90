@@ -395,7 +395,7 @@ parsing_loop: do
   endif
 
   !-------------------------------------------
-  ! if an element attribute redef
+  ! If an element attribute redef
 
   if (delim == '[') then
 
@@ -511,7 +511,7 @@ parsing_loop: do
   endif
 
   !-------------------------------------------
-  ! variable def
+  ! Variable def
 
   if (delim == '=') then
 
@@ -521,7 +521,7 @@ parsing_loop: do
   endif
 
   !-------------------------------------------
-  ! if a "(" delimitor then we are looking at a replacement line.
+  ! If a "(" delimitor then we are looking at a replacement line.
 
   if (delim == '(') then
     call get_sequence_args (word_1, sequence(iseq_tot+1)%dummy_arg, delim, err)
@@ -573,7 +573,7 @@ parsing_loop: do
   endif
 
   !-------------------------------------------------------
-  ! if line or list
+  ! If line or list
 
   if (word_2(:ix_word) == 'LINE' .or. word_2(:ix_word) == 'LIST') then
     iseq_tot = iseq_tot + 1
@@ -611,7 +611,7 @@ parsing_loop: do
   endif
 
   !-------------------------------------------------------
-  ! if not line or list then must be an element
+  ! If not line or list then must be an element
 
   call new_element_init (in_lat, err)
   if (err) cycle parsing_loop
@@ -623,6 +623,7 @@ parsing_loop: do
 
   call find_indexx (word_2, in_name, 0, in_indexx, n_max, i)
   if (i >= 0 .and. i < n_max) then ! i < n_max avoids "abc: abc" construct.
+    plat%ele(n_max) = plat%ele(i)
     in_lat%ele(n_max) = in_lat%ele(i)
     in_lat%ele(n_max)%ixx = n_max  ! Restore correct value
     in_lat%ele(n_max)%name = word_1

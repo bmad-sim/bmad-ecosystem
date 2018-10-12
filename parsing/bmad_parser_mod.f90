@@ -4296,7 +4296,12 @@ do i = 1, n_multipass
   ! If slave is a super_lord then create the appropriate super_slave names
   i1 = 0
   do j = 1, slave%n_slave
-    slave2 => pointer_to_slave(slave, j)
+    if (slave%orientation == 1) then
+      slave2 => pointer_to_slave(slave, j)
+    else
+      slave2 => pointer_to_slave(slave, slave%n_slave+1-j)
+    endif
+
     if (slave2%n_lord == 1) then
       i1 = i1 + 1
       write (slave2%name, '(2a, i0, a, i0)') trim(lord%name), '\', i, '#', i1      ! '
@@ -4479,7 +4484,7 @@ if (pele%ref_name == blank_name$) then
   if (ele_at_s%iyy == 0) then  ! If not in multipass region proceed as normal.
     call check_for_superimpose_problem (branch, super_ele, err_flag); if (err_flag) return
     call add_superimpose (lat, super_ele, 0, err_flag, save_null_drift = .true., &
-                                        create_jumbo_slave = pele%create_jumbo_slave)
+                                  create_jumbo_slave = pele%create_jumbo_slave, ix_insert = ix_insert)
     if (err_flag) bp_com%error_flag = .true.
     return
   endif
@@ -4825,25 +4830,35 @@ subroutine compute_super_lord_s (ref_ele, super_ele, pele, ix_insert)
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct) ref_ele, super_ele
+type (ele_struct), target :: ref_ele, super_ele
 type (ele_struct), pointer :: slave
 type (parser_ele_struct) pele
 type (branch_struct), pointer :: branch
 
-integer i, ix, ix_insert
+integer i, ix, ix_insert, ele_pt, ref_pt
 
 real(rp) s_ref_begin, s_ref_end
 
 ! Find the reference point on the element being superimposed.
 
 ix_insert = -1
-super_ele%s = pele%offset
+super_ele%s = pele%offset * ref_ele%orientation
+super_ele%orientation = ref_ele%orientation
 
-if (pele%ele_pt == anchor_beginning$) then
+ele_pt = pele%ele_pt
+if (ref_ele%orientation == -1) then
+  if (ele_pt == anchor_beginning$) then
+    ele_pt = anchor_end$
+  elseif (ele_pt == anchor_end$) then
+    ele_pt = anchor_beginning$
+  endif
+endif
+
+if (ele_pt == anchor_beginning$) then
   super_ele%s = super_ele%s + super_ele%value(l$)
-elseif (pele%ele_pt == anchor_center$ .or. pele%ele_pt == not_set$) then
+elseif (ele_pt == anchor_center$ .or. ele_pt == not_set$) then
   super_ele%s = super_ele%s + super_ele%value(l$) / 2
-elseif (pele%ele_pt /= anchor_end$) then
+elseif (ele_pt /= anchor_end$) then
   call parser_error ('ERROR IN COMPUTE_SUPER_LORD_S: CONTROL #1 INTERNAL ERROR!')
   if (global_com%exit_on_error) call err_exit
 endif
@@ -4869,11 +4884,20 @@ end select
 
 ! Now compute the s position at the end of the element and put it in ele%s.
 
-if (pele%ref_pt == anchor_beginning$) then
+ref_pt = pele%ref_pt
+if (ref_ele%orientation == -1) then
+  if (ref_pt == anchor_beginning$) then
+    ref_pt = anchor_end$
+  elseif (ref_pt == anchor_end$) then
+    ref_pt = anchor_beginning$
+  endif
+endif
+
+if (ref_pt == anchor_beginning$) then
   super_ele%s = super_ele%s + s_ref_begin
-elseif (pele%ref_pt == anchor_center$ .or. pele%ref_pt == not_set$) then
+elseif (ref_pt == anchor_center$ .or. ref_pt == not_set$) then
   super_ele%s = super_ele%s + (s_ref_begin + s_ref_end) / 2
-elseif (pele%ref_pt == anchor_end$) then
+elseif (ref_pt == anchor_end$) then
   super_ele%s = super_ele%s + s_ref_end
 else
   call parser_error ('ERROR IN COMPUTE_SUPER_LORD_S: CONTROL #2 INTERNAL ERROR!')
@@ -4911,6 +4935,14 @@ if (ref_ele%value(l$) == 0 .and. super_ele%value(l$) == 0 .and. pele%offset == 0
   elseif (pele%ref_pt == anchor_end$) then
     ix_insert = ref_ele%ix_ele + 1 
   endif
+
+! For elements with finite length just return the ref element index.
+! This will be useful in superpositions near elements that have negative length (EG a patch).
+else
+  slave => ref_ele
+  if (slave%n_slave /= 0) slave => pointer_to_slave(slave, 1) ! Does not matter which slave choisen
+  if (slave%n_slave /= 0) slave => pointer_to_slave(slave, 1) ! Does not matter which slave choisen
+  ix_insert = slave%ix_ele
 endif
 
 end subroutine compute_super_lord_s
@@ -4962,27 +4994,6 @@ if (err_flag) then
   call parser_error ('BAD SUPERIMPOSE OF: ' // super_ele%name, 'DOWNSTREAM ELEMENT EDGE OUT OF BOUNDS.')
   return
 endif
-
-! A Negative length element (EG a patch) at the edge of the superipose region is problematic.
-! Search +/- 10 elements outside of the range [ele1, ele2] to make sure.
-
-ele => pointer_to_next_ele(ele1, max(-10, -ele1%ix_ele))
-ele_stop => pointer_to_next_ele(ele2, min(10, ele2%branch%n_ele_track-ele2%ix_ele))
-
-do
-  if (ele%ix_ele == ele_stop%ix_ele) exit
-  if (ele%value(l$) < 0) then
-    if (ele%s_start > super_ele%s_start .and. ele%s < super_ele%s_start .or. &
-        ele%s_start > super_ele%s .and. ele%s < super_ele%s) then
-      call parser_error ('EDGE OF SUPERIMPOSE OF: ' // super_ele%name, &
-                         'OVERLAPS ELEMENT WITH NEGATIVE LENGTH: ' // ele%name, &
-                         'THIS IS NOT A WELL DEFINED SITUATION!')
-      return
-    endif
-  endif
-  ele => pointer_to_next_ele(ele)
-enddo
-
 
 ! Ref ele check.
 
