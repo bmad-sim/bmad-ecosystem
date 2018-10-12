@@ -9,7 +9,7 @@ program ptc_test
 use bmad, dummy => dp
 use s_def_kind, dummy2 => dp
 use ptc_layout_mod
-use ptc_track_with_radiation_mod
+use ptc_map_with_radiation_mod
 
 implicit none
 
@@ -51,7 +51,7 @@ call ptc_setup_map_with_radiation (map_with_rad, lat%ele(0), lat%ele(0), map_ord
 
 orbit%vec = [-0.01664448d-3, 0.03015525d-3, 0.0d-3, 0.0d-3, 2.12971838d-3, -0.00039838d-3]
 do i = 1, 100
-  call ptc_track_with_radiation (orbit, map_with_rad, .true., .false.)
+  call ptc_track_map_with_radiation (orbit, map_with_rad, .true., .false.)
 enddo
 write (1, '(a, 6f16.10)') '"Rad-Map-Track100" ABS 1E-10', orbit%vec
 
