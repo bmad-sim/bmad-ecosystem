@@ -1,4 +1,4 @@
-module ptc_track_with_radiation_mod
+module ptc_map_with_radiation_mod
 
 ! Etienne wanted the "zhe" stuff to be standalone and so duplicated structures in 
 
@@ -140,7 +140,7 @@ end subroutine ptc_setup_map_with_radiation
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine ptc_track_with_radiation (orbit, map_with_rad, rad_damp, rad_fluct)
+! Subroutine ptc_track_map_with_radiation (orbit, map_with_rad, rad_damp, rad_fluct)
 !
 ! Routine to track through a map that includes radiation.
 ! Use the routine ptc_setup_map_with_radiation to construct the map.
@@ -156,10 +156,10 @@ end subroutine ptc_setup_map_with_radiation
 !     %state        -- Set to lost$ if there is a problem.
 !-
 
-subroutine ptc_track_with_radiation (orbit, map_with_rad, rad_damp, rad_fluct)
+subroutine ptc_track_map_with_radiation (orbit, map_with_rad, rad_damp, rad_fluct)
 
 use rotation_3d_mod
-use duan_zhe_map, only: assignment(=)
+use duan_zhe_map, only: assignment(=), C_VERBOSE_ZHE
 
 implicit none
 
@@ -174,6 +174,7 @@ logical damp, fluct
 
 damp   = logic_option(bmad_com%radiation_damping_on, rad_damp)
 fluct = logic_option(bmad_com%radiation_fluctuations_on, rad_fluct)
+C_VERBOSE_ZHE = .false.
 
 !
 
@@ -188,6 +189,6 @@ if (bmad_com%spin_tracking_on) then
   orbit%spin = rotate_vec_given_quat(z_probe%q%x, orbit%spin)
 endif
 
-end subroutine ptc_track_with_radiation
+end subroutine ptc_track_map_with_radiation
 
 end module

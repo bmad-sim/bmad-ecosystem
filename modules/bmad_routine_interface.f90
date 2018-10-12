@@ -1603,13 +1603,15 @@ subroutine spline_fit_orbit (ele, start_orb, end_orb, spline_x, spline_y)
   real(rp) spline_x(0:3), spline_y(0:3)
 end subroutine
 
-subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, save_null_drift, err_flag, choose_max)
+subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, &
+                              save_null_drift, err_flag, choose_max, ix_insert)
   import
   implicit none
   type (lat_struct), target :: lat
   real(rp) s_split
   integer ix_branch
   integer ix_split
+  integer, optional :: ix_insert
   logical split_done
   logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag, choose_max
 end subroutine

@@ -1,8 +1,10 @@
 !+
-! Subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, save_null_drift, err_flag, choose_max)
+! Subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, 
+!                                       check_sanity, save_null_drift, err_flag, choose_max, ix_insert)
 !
 ! Routine to split an element of the lattice into two to create a lattice that has an element boundary at the point s = s_split. 
-! This routine will not split the lattice if the split would create a "runt" element with length less than 5*bmad_com%significant_length.
+! This routine will not split the lattice if the split would create a "runt" element with length less 
+! than 5*bmad_com%significant_length.
 !
 ! split_lat will create a super_lord element if needed and will redo the 
 ! appropriate bookkeeping for lords and slaves.
@@ -23,9 +25,15 @@
 !   save_null_drift -- logical, optional: Save a copy of a drift to be split as a null_ele?
 !                         This is useful if when superpositions are done. See add_superimpose for more info.
 !                         Default is False.
-!   choose_max      -- logical, optional: If no splitting of an element is needed, ix_split will be set to the maximum possible index.
-!                       There can be multiple possible values for ix_split if there exist zero length elements at the split point.
-!                       If a split is done, the setting of choose_max is immaterial.
+!   choose_max      -- logical, optional: If no splitting of an element is needed, that is, s_split is at an element 
+!                       boundary, there can be multiple possible values for ix_split if there exist zero length elements 
+!                       at the split point. If choose_max = True, ix_split will be chosen to be the maximum possible 
+!                       index and if choose_max = False ix_split will be chosen to be the minimal possible index.
+!                       If s_split is not at an element boundary, the setting of choose_max is immaterial.
+!                       If ix_insert is present then the default value of choose_max is set to give the closest element to ix_insert.
+!   ix_insert       -- integer, optional: Element index near the point to be split. ix_insert is useful in the case where
+!                       there is a patch with a negative length which can create an ambiguity as to where to do the split
+!                       In this case ix_insert will remove the ambiguity. Ignored if negative.
 !
 ! Output:
 !   lat        -- lat_struct: Modified lat structure.
@@ -34,7 +42,8 @@
 !   err_flag   -- logical, optional: Set true if there is an error, false otherwise.
 !-
 
-subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, save_null_drift, err_flag, choose_max)
+subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, &
+                                    check_sanity, save_null_drift, err_flag, choose_max, ix_insert)
 
 use bmad_interface, except_dummy => split_lat
 use geometry_mod, only: floor_angles_to_w_mat
@@ -50,11 +59,12 @@ type (control_struct), pointer :: ctl
 real(rp) s_split, len_orig, len1, len2, ds_fudge
 real(rp) dl, w_inv(3,3)
 
+integer, optional :: ix_insert
 integer i, j, k, ix, ix_branch, ib, ie, n_slave
-integer ix_split, ixc, ix_attrib, ix_super_lord
+integer ix_split, ixc, ix_attrib, ix_super_lord, ix_start
 integer ix2, inc, nr, n_ic2, ct
 
-logical split_done, err, controls_need_removing
+logical split_done, err, controls_need_removing, found, ix_insert_present
 logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag, choose_max
 
 character(*), parameter :: r_name = "split_lat"
@@ -74,26 +84,66 @@ endif
 
 ! Find where to split.
 
-if (logic_option(.false., choose_max)) then
-  do ix_split = branch%n_ele_track, 0, -1
+if (integer_option(-1, ix_insert) >= 0) then
+  ix_start = ix_insert
+  ix_insert_present = .true.
+elseif (logic_option(.false., choose_max)) then
+  ix_start = branch%n_ele_track
+  ix_insert_present = .false.
+else
+  ix_start = 0
+  ix_insert_present = .false.
+endif
+
+found = .false.
+
+if (branch%ele(ix_start)%s < s_split + 5*ds_fudge .or. &
+          (abs(branch%ele(ix_start)%s - s_split) < 5*ds_fudge .and. logic_option(.false., choose_max))) then
+  do ix_split = ix_start, branch%n_ele_track
     if (abs(branch%ele(ix_split)%s - s_split) < 5*ds_fudge) then
-      split_done = .false.
-      if (present(err_flag)) err_flag = .false.
-      return
+      if (.not. logic_option(.false., choose_max) .or. ix_split == branch%n_ele_track .or. ix_insert_present) then
+        split_done = .false.
+        if (present(err_flag)) err_flag = .false.
+        return
+      else ! choose_max = True so check if next boundary is the correct choice
+        found = .true.
+      endif
+    ! If we have gone past
+    elseif (branch%ele(ix_split)%s >= s_split + 5*ds_fudge) then
+      if (found) then
+        split_done = .false.
+        if (present(err_flag)) err_flag = .false.
+        return
+      else
+        exit ! Element split needed.
+      endif
     endif
-    if (branch%ele(ix_split)%s_start <= s_split - 5*ds_fudge) exit
   enddo
 
 else
-  do ix_split = 0, branch%n_ele_track
+  do ix_split = ix_start, 0, -1
     if (abs(branch%ele(ix_split)%s - s_split) < 5*ds_fudge) then
-      split_done = .false.
-      if (present(err_flag)) err_flag = .false.
-      return
+      if (logic_option(.false., choose_max) .or. ix_split == 0 .or. ix_insert_present) then
+        split_done = .false.
+        if (present(err_flag)) err_flag = .false.
+        return
+      else ! choose_max = False so check if next boundary is the correct choice
+        found = .true.
+      endif
+    ! If we have gone past 
+    elseif (branch%ele(ix_split)%s_start <= s_split - 5*ds_fudge) then
+      if (found) then
+        split_done = .false.
+        if (present(err_flag)) err_flag = .false.
+        return
+      else
+        exit ! Element split needed.
+      endif
     endif
-    if (branch%ele(ix_split)%s > s_split) exit
   enddo
 endif
+
+! Here if split is to be done.
 
 split_done = .true.
 ele = branch%ele(ix_split)
@@ -110,13 +160,22 @@ if (ele%key == custom$ .or. ele%key == match$) then
   if (global_com%exit_on_error) call err_exit
 endif
 
-! Save element to be split as a null element if needed
+! Save element to be split as a null element if it is a drift that has not been already split.
 
-if (branch%ele(ix_split)%key == drift$ .and. logic_option(.false., save_null_drift)) then
-  call new_control (lat, ixc)
-  lat%ele(ixc) = branch%ele(ix_split)
-  lat%ele(ixc)%key = null_ele$
-  lat%ele(ixc)%sub_key = drift$  ! To mark that the element was formally a drift
+if (branch%ele(ix_split)%key == drift$ .and. branch%ele(ix_split)%value(drift_id$) == 0 .and. &
+                                                                 logic_option(.false., save_null_drift)) then
+  call new_control (lat, ix)
+  lord => lat%ele(ix)
+  lord = branch%ele(ix_split)
+  lord%key = null_ele$
+  lord%sub_key = drift$  ! To mark that the element was formally a drift
+  ixc = lat%n_control_max
+  if (ixc+1 > size(lat%control)) call reallocate_control (lat, ixc+10)
+  lord%ix1_slave = ixc + 1
+  lord%n_slave = 1
+  lat%n_control_max = ixc + 1
+  lat%control(ixc+1)%lord  = lat_ele_loc_struct(lord%ix_ele, 0)
+  lat%control(ixc+1)%slave = lat_ele_loc_struct(ix_split, ix_branch)
 endif
 
 ! Insert a new element.

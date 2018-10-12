@@ -3243,15 +3243,15 @@ end select
 if (ele%key == sbend$ .and. ele%value(angle$) == 0 .and. ptc_key%model /= 'DRIFT_KICK') then
   ptc_key%model = 'DRIFT_KICK'
   ! Only need to issue a warning if K1 is nonzero.
-  if (ele%value(k1$) /= 0) call out_io (s_warn$, r_name, &
-            'BEND WITH ZERO BENDING ANGLE WILL USE PTC_INTEGRATION_TYPE OF DRIFT_KICK: ' // ele%name)
+  !if (ele%value(k1$) /= 0) call out_io (s_warn$, r_name, &
+  !          'BEND WITH ZERO BENDING ANGLE WILL USE PTC_INTEGRATION_TYPE OF DRIFT_KICK: ' // ele%name)
 endif
 
 if (ele%key == sbend$ .and. ele%value(g$) + ele%value(g_err$) == 0 .and. ptc_key%model /= 'DRIFT_KICK') then
   ptc_key%model = 'DRIFT_KICK'
   ! Only need to issue a warning if K1 is nonzero.
-  if (ele%value(k1$) /= 0) call out_io (s_warn$, r_name, &
-            'BEND WITH ZERO NET BENDING FIELD WILL USE PTC_INTEGRATION_TYPE OF DRIFT_KICK: ' // ele%name)
+  !if (ele%value(k1$) /= 0) call out_io (s_warn$, r_name, &
+  !          'BEND WITH ZERO NET BENDING FIELD WILL USE PTC_INTEGRATION_TYPE OF DRIFT_KICK: ' // ele%name)
 endif
 
 if (present(track_particle)) then

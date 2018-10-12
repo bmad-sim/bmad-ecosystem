@@ -43,11 +43,9 @@ contains
 !                       that are created that have super_ele_in as their super_lord are
 !                       em_field elements.
 !   ix_insert       -- integer, optional: If present and positive, and super_ele_in has zero length,
-!                       use ix_insert as the index to insert super_ele_in at. ix_insert is useful 
-!                       when superposing next to another zero length element and you want to make sure 
-!                       that the superimposed element is on the correct side of the existing element.
-!                       Note: As a sanity check, it is an error if super_ele_in%s does not match the 
-!                       s-position at ix_insert.
+!                       use ix_insert as the index to insert super_ele_in at. ix_insert is useful when superposing 
+!                       next to another element that has zero or negative length (EG a patch) and you want 
+!                       to make sure that the superimposed element is on the correct side of the element.
 !
 ! Output:
 !   lat           -- lat_struct: Modified lat.
@@ -63,7 +61,7 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct)  super_ele_in
 type (ele_struct), pointer, optional ::  super_ele_out
-type (ele_struct) super_saved, slave_saved, drift, null_ele
+type (ele_struct) super_saved, slave_saved
 type (ele_struct), pointer :: slave, lord, slave2, ele0, ele
 type (control_struct)  sup_con(100)
 type (control_struct), pointer ::  cntl
@@ -74,7 +72,7 @@ real(rp) s1, s2, s1_lat, s2_lat, s1_lat_fudge, s2_lat_fudge, s1_in, s2_in
 real(rp) ds_small, l_super
 
 integer, optional :: ix_insert
-integer i, j, jj, k, ix, n, i2, ic, n_con, ixs, ix_branch, ii
+integer i, j, jj, k, ix, ix2, n, i2, ic, n_con, ixs, ix_branch, ii
 integer ix1_split, ix2_split, ix_super, ix_super_con, ix_ic
 integer ix_slave, ixn, ixc, ix_1lord, ix_lord_max_old
 
@@ -102,8 +100,6 @@ endif
 
 ! We need a copy of super_ele_in since the actual argument may be in the lat
 ! and split_lat can then overwrite it.
-
-drift%key = drift$
 
 call transfer_ele (super_ele_in, super_saved)
 super_saved%slave_status = free$
@@ -158,20 +154,11 @@ endif
 ! this affects the status flag setting.
 
 if (super_saved%value(l$) == 0) then
-  super_saved%lord_status  = not_a_lord$ 
-  ix = integer_option(-1, ix_insert)
-  if (ix > 0) then
-    if (abs(branch%ele(ix-1)%s - s1) > bmad_com%significant_length / 10) then
-      call out_io (s_abort$, r_name, 'SUPERIMPOSE CONFUSION WITH ZERO LENGTH SUPERPOSITION.')
-      if (global_com%exit_on_error) call err_exit
-      return
-    endif
-    ix1_split = ix - 1
-  else
-    call split_lat (lat, s1, ix_branch, ix1_split, split1_done, &
-                                check_sanity = .false., save_null_drift = save_null_drift, err_flag = err)
-    if (err) return
-  endif
+  super_saved%lord_status  = not_a_lord$
+  call split_lat (lat, s1, ix_branch, ix1_split, split1_done, check_sanity = .false., &
+                        save_null_drift = save_null_drift, err_flag = err, ix_insert = ix_insert)
+  if (err) return
+
   call insert_element (lat, super_saved, ix1_split+1, ix_branch)
   ix_super = ix1_split + 1
   if (present(super_ele_out)) super_ele_out => branch%ele(ix_super)
@@ -188,13 +175,13 @@ endif
 
 ! if superimpose wraps around 0 ...
 if (s2 < s1) then
-  if (split_this_lat(2, branch, s2, ix2_split, split2_done, save_null_drift, create_jumbo_slave)) return
-  if (split_this_lat(1, branch, s1, ix1_split, split1_done, save_null_drift, create_jumbo_slave)) return
+  if (split_this_lat(2, branch, s2, ix2_split, split2_done, save_null_drift, create_jumbo_slave, ix_insert)) return
+  if (split_this_lat(1, branch, s1, ix1_split, split1_done, save_null_drift, create_jumbo_slave, ix_insert)) return
 
 ! no wrap case...
 else                  
-  if (split_this_lat(1, branch, s1, ix1_split, split1_done, save_null_drift, create_jumbo_slave)) return
-  if (split_this_lat(2, branch, s2, ix2_split, split2_done, save_null_drift, create_jumbo_slave)) return
+  if (split_this_lat(1, branch, s1, ix1_split, split1_done, save_null_drift, create_jumbo_slave, ix_insert)) return
+  if (split_this_lat(2, branch, s2, ix2_split, split2_done, save_null_drift, create_jumbo_slave, ix_insert)) return
 endif
 
 ! If the element has zero length then need to insert a zero length element
@@ -259,15 +246,30 @@ if (.not. zero_length_lord) then
 endif
 
 ! If there are null_ele elements in the superimpose region then just move them
-! out of the way to the lord section of the branch. This prevents unnecessary
-! splitting.
+! out of the way to the lord section of the branch. This prevents unnecessary splitting.
+! Also save any drifts if needed.
 
 i = ix1_split
 do
   i = i + 1
   if (i > branch%n_ele_track) i = 0
-  if (branch%ele(i)%key == null_ele$) then
 
+  if (branch%ele(i)%key == drift$ .and. branch%ele(i)%value(drift_id$) == 0 .and. &
+                                                            logic_option(.false., save_null_drift)) then
+    call new_control (lat, ix)
+    lord => lat%ele(ix)
+    lord = branch%ele(i)
+    lord%key = null_ele$
+    lord%sub_key = drift$  ! To mark that the element was formally a drift
+    ixc = lat%n_control_max
+    if (ixc+1 > size(lat%control)) call reallocate_control (lat, ixc+10)
+    lord%ix1_slave = ixc + 1
+    lord%n_slave = 1
+    lat%n_control_max = ixc + 1
+    lat%control(ixc+1)%lord  = lat_ele_loc_struct(lord%ix_ele, 0)
+    lat%control(ixc+1)%slave = lat_ele_loc_struct(i, ix_branch)
+
+  elseif (branch%ele(i)%key == null_ele$) then
     branch%n_ele_max = branch%n_ele_max + 1
     ix = branch%n_ele_max
     if (ix > ubound(branch%ele, 1))  call allocate_lat_ele_array (lat, ix_branch = ix_branch)
@@ -283,17 +285,15 @@ do
     if (ix2_split > i) ix2_split = ix2_split - 1
     if (ix1_split > i) ix1_split = ix1_split - 1
   endif
+
   if (i == ix2_split) exit
 enddo
 
-! If element overlays only drifts then just 
-! insert it in the tracking part of the lat list.
+! If element overlays only drifts then just insert it in the tracking part of the lattice.
 
 all_drift = (ix2_split > ix1_split)
 do i = ix1_split+1, ix2_split
   if (branch%ele(i)%key /= drift$) all_drift = .false.
-  if (branch%ele(i)%slave_status == super_slave$ .or. branch%ele(i)%slave_status == multipass_slave$) all_drift = .false.
-  if (.not. all_drift) exit
 enddo
 
 if (all_drift) then  
@@ -500,8 +500,13 @@ enddo
 
 if (split1_done .and. split2_done .and. &
               branch%ele(ix1_split)%name == branch%ele(ix2_split+1)%name) then
-  branch%ele(ix1_split)%name = trim(branch%ele(ix1_split)%name) // '#1'
-  branch%ele(ix2_split+1)%name = trim(branch%ele(ix2_split+1)%name) // '#2'
+  if (branch%ele(ix1_split)%orientation == 1) then
+    branch%ele(ix1_split)%name = trim(branch%ele(ix1_split)%name) // '#1'
+    branch%ele(ix2_split+1)%name = trim(branch%ele(ix2_split+1)%name) // '#2'
+  else
+    branch%ele(ix1_split)%name = trim(branch%ele(ix1_split)%name) // '#2'
+    branch%ele(ix2_split+1)%name = trim(branch%ele(ix2_split+1)%name) // '#1'
+  endif
   call delete_underscore (branch%ele(ix1_split))
   call delete_underscore (branch%ele(ix2_split+1))
 endif
@@ -638,7 +643,7 @@ end subroutine add_superimpose
 !------------------------------------------------------------------------------
 
 function split_this_lat (which, branch, s_here, ix_split, split_done, &
-                                  save_null_drift, create_jumbo_slave) result (err)
+                                  save_null_drift, create_jumbo_slave, ix_insert) result (err)
 
 implicit none
 
@@ -647,6 +652,7 @@ type (branch_struct) branch
 real(rp) s_here
 
 integer ix_split, which
+integer, optional :: ix_insert
 
 logical split_done, err, choose_max
 logical, optional :: save_null_drift, create_jumbo_slave
@@ -671,8 +677,8 @@ if (logic_option(.false., create_jumbo_slave)) then
   endif
 endif
 
-call split_lat (branch%lat, s_here, branch%ix_branch, ix_split, split_done, &
-                                                            .false., .false., save_null_drift, err, choose_max = choose_max)
+call split_lat (branch%lat, s_here, branch%ix_branch, ix_split, split_done, .false., .false., &
+                                     save_null_drift, err, choose_max = choose_max, ix_insert = ix_insert)
 
 end function split_this_lat 
 
@@ -774,7 +780,11 @@ do i = ix1_lord, ix2_lord
 
   ix_slave_names = 0
   do j = 1, lord%n_slave
-    slave => pointer_to_slave(lord, j)
+    if (lord%orientation == 1) then
+      slave => pointer_to_slave(lord, j)
+    else
+      slave => pointer_to_slave(lord, lord%n_slave+1-j)
+    endif
 
     do k = 1, n_unique
       if (slave%name == slave_names(k)) then
@@ -789,7 +799,6 @@ do i = ix1_lord, ix2_lord
       lord2 => pointer_to_lord(slave, k)
       if (.not. lord2%bmad_logic) call adjust_super_slave_names (lat, lord2%ix_ele, lord2%ix_ele, .false.)
     enddo
-
   enddo
 
   deallocate (slave_names, n_slave_names, ix_slave_names)
@@ -840,8 +849,12 @@ do ib = 0, ubound(lat%branch, 1)
 
   branch => lat%branch(ib)
   do i = 1, branch%n_ele_max
+    if (drift_ele%orientation == 1) then
+      ele => branch%ele(i)
+    else
+      ele => branch%ele(branch%n_ele_max+1-i)
+    endif
 
-    ele => branch%ele(i)
     if ((ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) .and. ele%lord_status /= multipass_lord$) cycle
     if (ele%value(drift_id$) /= drift_id) cycle
 
@@ -851,7 +864,11 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%lord_status == multipass_lord$) then
       do k = 1, ele%n_slave
         slave => pointer_to_slave(ele, k)
-        write (slave%name, '(2a, i0)') trim(ele%name), '\', k  ! '
+        if (slave%orientation == 1) then
+          write (slave%name, '(2a, i0)') trim(ele%name), '\', k    ! '
+        else
+          write (slave%name, '(2a, i0)') trim(ele%name), '\', ele%n_slave + 1 - k    ! '
+        endif
       enddo
     endif
 
