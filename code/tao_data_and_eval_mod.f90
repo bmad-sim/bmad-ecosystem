@@ -1478,9 +1478,10 @@ case ('expression:')
       if (dp%d1%d2%ix_uni < u%ix_uni) cycle ! OK
       if (dp%d1%d2%ix_uni == u%ix_uni .and. dp%ix_data < datum%ix_data) cycle
       call out_io (s_error$, r_name, 'DATUM: ' // tao_datum_name(datum), &
-                                     'WHICH IS OF TYPE EXPRESSION:' // datum%data_type(12:), &
-                                     'THE EXPRESSION HAS A COMPONENT: ' // datum%stack(i)%name, &
-                                     'AND THIS COMPONENT IS EVALUATED AFTER THE EXPRESSION!')
+                      'WHICH IS OF TYPE EXPRESSION:' // datum%data_type(12:), &
+                      'THE EXPRESSION HAS A COMPONENT: ' // datum%stack(i)%name, &
+                      'AND THIS COMPONENT IS EVALUATED AFTER THE EXPRESSION!', &
+                      'TO FIX: MOVE THE EXPRESSION DATUM TO BE AFTER THE COMPONENT DATUM IN THE FILE THAT DEFINES THE DATA.')
       return
     enddo
     valid_value = .true.

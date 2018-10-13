@@ -140,7 +140,8 @@ real(rp) delta, a_max, merit
 integer i, j, n, nl, nu
 
 character(40) name
-character(100) fmt, lines(20)
+character(100) fmt
+character(100), allocatable :: lines(:)
 character(20) :: r_name = 'tao_top10_print'
 
 ! tao_merit also calculates the contrribution of the individual
@@ -172,6 +173,7 @@ a_max = max(1.1, maxval(abs(top_delta(:)%value)))
 n = max(0, 6 - int(log10(a_max)))
 
 write (fmt, '(a, i1, a)') '((a10, i5, es12.3, 3x), (a10, i5, f11.', n, '))'
+allocate (lines(10+s%global%n_top10_merit))
 
 nl = 0
 nl=nl+1; lines(nl) = ' '
@@ -397,7 +399,7 @@ enddo
 
 if (form == 'MERIT') then
   call indexx(con(1:nc)%merit, ixm(1:nc))
-  n_max = min(nc, 10)
+  n_max = min(nc, s%global%n_top10_merit)
   ixm(1:n_max) = ixm(nc:nc-n_max+1:-1)
   line(1) = ' '
   line(2) = '! Top 10'
