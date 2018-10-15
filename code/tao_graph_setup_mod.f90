@@ -246,7 +246,7 @@ integer ix
 
 !
 
-call string_trim(str_out, template, ix)
+call string_trim(template, str_out, ix)
 if (str_out(1:11) == 'expression:') str_out = str_out(12:)
 
 !
