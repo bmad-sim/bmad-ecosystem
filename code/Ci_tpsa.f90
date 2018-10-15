@@ -17,20 +17,20 @@ MODULE c_TPSA
   integer,private::ndel ,nd2par,nd2part,nd2partt
   integer,private,dimension(lnv)::jfil,jfilt
 
-  private equal,DAABSEQUAL,Dequaldacon ,equaldacon ,Iequaldacon,derive  !,AABSEQUAL 2002.10.17
+  private equal,DAABSEQUAL,Dequaldacon ,equaldacon ,Iequaldacon,derive,DEQUALDACONS  !,AABSEQUAL 2002.10.17
   private pow, GETORDER,CUTORDER,getchar,GETint,GETORDERMAP  !, c_bra_v_spinmatrix
   private getdiff,getdATRA  ,mul,dmulsc,dscmul,GETintmat   !,c_spinor_spinmatrix
   private mulsc,scmul,imulsc,iscmul,DAREADTAYLORS,c_pri_c_ray
   private div,ddivsc,dscdiv,divsc,scdiv,idivsc,iscdiv,equalc_ray_r6r 
   private unaryADD,add,daddsca,dscadd,addsc,scadd,iaddsc,iscadd,print_ql
-  private unarySUB,subs,dsubsc,dscsub,subsc,scsub,isubsc,iscsub
+  private unarySUB,subs,dsubsc,dscsub,subsc,scsub,isubsc,iscsub,c_clean_taylors
   private c_allocda,c_killda,c_a_opt,K_opt,c_,c_allocdas,filter_part
   private dexpt,dcost,dsint,dtant,DAPRINTTAYLORS,c_clean_yu_w,mul_ql_m,mul_ql_cm
   PRIVATE GETCHARnd2,GETintnd2,dputchar,dputint, filter,check_j,c_dputint0,c_dputint0r
   private GETintnd2t,equalc_cspinor_cspinor,c_AIMAG,c_real,equalc_ray_ray,EQUALql_q,EQUALq_ql,EQUALql_i,EQUALql_ql
   PRIVATE DEQUAL,REQUAL,varf,varf001,equalc_spinor_cspinor,pbbrav,cpbbrav,EQUALql_r  !,CHARINT
   !  PUBLIC VAR,ASS
-  private pbbra,liebra,full_absT,c_asstaylor,getcharnd2s,GETintnd2s,GETintk,c_clean_taylorn
+  private pbbra,liebra,full_absT,c_asstaylor,getcharnd2s,GETintnd2s,GETintk
   private shiftda,shift000,cDEQUAL,pri,rea,cfu000,alloc_DA,alloc_c_spinmatrix,cpbbra
   private alloc_c_damap,c_DPEKMAP,c_DPOKMAP,kill_c_damap,kill_c_spinmatrix,c_etcct,c_spinmatrix_mul_cray
   private EQUALspinmatrix,c_trxtaylor,powmap,POWMAPs,alloc_c_vector_field,kill_c_vector_field
@@ -131,7 +131,7 @@ type(q_linear) q_phasor,qi_phasor
      MODULE PROCEDURE REQUAL   ! added 2002.10.17   ! check2002.10.17
      MODULE PROCEDURE cDEQUALDACON
      MODULE PROCEDURE Dequaldacon
-     MODULE PROCEDURE equaldacon
+     MODULE PROCEDURE DEQUALDACONS ! C_taylor(:) = real(dp))
      MODULE PROCEDURE Iequaldacon
      MODULE PROCEDURE equalc_t_ct   !# complex Taylor
      MODULE PROCEDURE equalc_ct_c
@@ -450,12 +450,12 @@ type(q_linear) q_phasor,qi_phasor
 !     MODULE PROCEDURE c_clean
      MODULE PROCEDURE c_clean_spinor
      MODULE PROCEDURE c_clean_taylor
-     MODULE PROCEDURE c_clean_taylorn
      MODULE PROCEDURE c_clean_spinmatrix
      MODULE PROCEDURE c_clean_damap
      MODULE PROCEDURE c_clean_vector_field
      MODULE PROCEDURE c_clean_yu_w
      MODULE PROCEDURE c_clean_quaternion
+     MODULE PROCEDURE c_clean_taylors
   end INTERFACE clean
   ! Exponential of Lie Operators
 
@@ -3399,6 +3399,28 @@ endif
     !       CALL newDACON(S2%j,R1)
     !    endif
   END SUBROUTINE DEQUALDACON
+
+  SUBROUTINE  DEQUALDACONS(S2,R1)
+!*
+    implicit none
+    type (c_taylor),INTENT(inOUT)::S2(:)
+    real(dp), INTENT(IN)::R1
+    complex(dp) rt
+    integer k
+    IF(.NOT.C_STABLE_DA) RETURN
+
+    !    if(old) then
+    if(s2(1)%i==0)  call c_crap1("DEQUALDACON 1") !call allocw(s2)
+    do k=lbound(s2,1),ubound(s2,1)
+    rt=r1
+    CALL c_dacon(S2(k)%I,rt)
+    enddo
+    !    else
+    !       IF (.NOT. ASSOCIATED(s2%j%r)) call c_crap1("DEQUALDACON 2") !call allocw(s2)
+    !       CALL newDACON(S2%j,R1)
+    !    endif
+  END SUBROUTINE DEQUALDACONS
+
 
   SUBROUTINE  EQUALDACON(S2,R1)
 !*
@@ -8509,19 +8531,6 @@ if(present(mfile)) mfi=mfile
 
  end function c_clean
 
-  SUBROUTINE  c_clean_taylorn(S1,S2,prec)
-    implicit none
-    type (c_taylor),INTENT(INOUT)::S2(:)
-    type (c_taylor), intent(INOUT):: s1(:)
-    real(dp) prec
-    integer i,m
-
-     m=min(size(s1),size(s2))
-     do i=1,m
-      call c_clean_taylor(s1(i),s2(i),prec)   
-     enddo
-    
-end   SUBROUTINE  c_clean_taylorn
 
   SUBROUTINE  c_clean_yu_w(S1,S2,prec)
     implicit none
@@ -10368,8 +10377,11 @@ endif
     do i=1,min(s1%n,s2%n)
        s2%v(i)=s1%v(i)
     enddo
+     if(use_quaternion) then
      s2%q=s1%q
+     else
      s2%s=s1%s
+    endif
      s2%e_ij=s1%e_ij
      s2%x0=s1%x0
      s2%tpsa=s1%tpsa
@@ -10937,7 +10949,7 @@ subroutine c_linear_a_stoch(xy,a1)
     integer idef(ndim2t/2)
     real(dp), allocatable :: fm(:,:),fmi(:,:),fmii(:,:)
     type(c_damap) s1
-
+    real(dp) :: eps_eigen = 1.e-12_dp,norm
 
     if(.not.c_stable_da) return
 
@@ -11019,15 +11031,28 @@ subroutine c_linear_a_stoch(xy,a1)
  
 
     call c_eig6(fm0,reval,imval,vr,vi)
+
+norm=0.0_dp
+do i=1,6
+ norm=norm+ abs(reval(i))+abs(imval(i))-1.0_dp
+enddo
+
 if(c_verbose) then
 do i=1,6
 write(6,*) i,reval(i),imval(i)
 enddo
-
+write(6,*) " norm ",norm
 do i=1,6
 write(6,'(i4,6(1x,g13.6))') i,vr(1:6,i)
 write(6,'(i4,6(1x,g13.6))') i,vi(1:6,i)
 enddo
+endif
+
+
+if(norm<eps_eigen) then
+ a1=1
+ deallocate(fm,fmi,fmii)   
+return
 endif
     !! This routine will locate the modulated plane
     !! It assumes that the modulated plane are rotations
@@ -11093,6 +11118,11 @@ endif
     !!! is truly diagonalised.
     a1%s=1
     a1%q=1.0_dp
+
+
+
+ 
+
     a1=a1**(-1)
     
 
@@ -17400,6 +17430,20 @@ end subroutine mulc_vector_field_fourier
     enddo
 
   END SUBROUTINE c_clean_vector_field_fourier
+
+  SUBROUTINE  c_clean_taylors(S1,S2,prec,r)
+    implicit none
+    type (c_taylor),INTENT(INOUT)::S2(:)
+    type (c_taylor), intent(INOUT):: s1(:)
+    real(dp) prec
+    type(c_ray), optional :: r
+    integer i
+
+    do i=lbound(s1,1),ubound(s1,1)
+       call clean(s1(i),s2(i),prec,r)
+    enddo
+
+  END SUBROUTINE c_clean_taylors
 
   SUBROUTINE  c_evaluate_vector_field_fourier(S1,theta,S2)
     implicit none
