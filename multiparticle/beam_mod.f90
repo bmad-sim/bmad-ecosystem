@@ -63,8 +63,10 @@ end subroutine track_beam
 !+
 ! Subroutine track_bunch (lat, bunch, ele1, ele2, err, centroid, direction)
 !
-! Subroutine to track a particle bunch from the end of
-! ele1 Through to the end of ele2. Both must be in the same lattice branch.
+! Subroutine to track a particle bunch from the end of ele1 Through to the end of ele2.
+! Both must be in the same lattice branch.
+! With forward tracking, if ele2 is at or before ele1, the tracking will "wrap" around 
+! the ends of the lattice.
 !
 ! Note: To zero wakes between runs, zero_lr_wakes_in_lat needs to be called.
 !
