@@ -1,0 +1,378 @@
+%-----------------------------------------
+% Note: Use pdflatex to process this file.
+%-----------------------------------------
+
+%\documentclass{article}
+\documentclass{hitec}
+\usepackage{color,soul}
+
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{moreverb}    % Defines {listing} environment.
+\usepackage{amsmath, amsthm, amssymb, amsbsy, mathtools}
+\usepackage{alltt}
+\usepackage{rotating}
+\usepackage{subcaption}
+\usepackage{toc-bmad}
+\usepackage{xspace}
+\usepackage[section]{placeins}   % For preventing floats from floating to end of chapter.
+\usepackage{longtable}  % For splitting long vertical tables into pieces
+\usepackage{index}
+\usepackage{multirow}
+\usepackage{booktabs}   % For table layouts
+\usepackage{yhmath}     % For widehat
+\usepackage{xcolor}      % Needed for listings package.
+\usepackage{listings}
+\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
+\usepackage[strings]{underscore}    % to use "_" in text
+\usepackage[pdftex,colorlinks=true]{hyperref}   % Must be last package!
+
+\definecolor{light-gray}{gray}{0.95}
+\lstset{backgroundcolor=\color{light-gray}}
+\lstset{xleftmargin=0cm}
+\lstset{framexleftmargin=0.3em}
+%\lstset{basicstyle = \ttfamily\fontsize{11}{11}\selectfont} 
+\lstset{basicstyle = \small}
+\lstnewenvironment{code}{}{}
+
+%---------------------------------------------------------------------------------
+
+\definecolor{lightestgray}{gray}{0.99}
+\sethlcolor{lightestgray}
+\soulregister{\texttt}{1}
+\newcommand\dottcmd[1]{\hl{\em#1}\endgroup}
+%\newcommand\dottcmd[1]{{#1}\endgroup}
+\newcommand{\vn}{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
+\newcommand{\ltt}{\vn{long_term_tracking}\xspace}
+\newcommand{\Newline}{\hfil \\}
+\newcommand{\sref}[1]{$\S$\ref{#1}}
+
+%---------------------------------------------------------------------------------
+
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\topfraction}{1.0}
+\renewcommand{\bottomfraction}{1.0}
+
+\settextfraction{0.9}  % Width of text
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex}
+%\setlength{\textwidth}{6in}
+\newcommand{\Section}[1]{\section{#1}\vspace*{-1ex}}
+
+\newenvironment{display}
+  {\vspace*{-1.5ex} \begin{alltt}}
+  {\end{alltt} \vspace*{-1.0ex}}
+
+%---------------------------------------------------------------------------------
+
+\title{Long Term Tracking Program}
+\author{}
+\date{David Sagan \\ October 10, 2018}
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+%---------------------------------------------------------------------------------
+
+\Section{Introduction} 
+
+The \ltt program is for long term tracking of a particle or beam possibly
+including tracking of the spin.
+
+The \ltt program is built atop the the Bmad software library \cite{b:bmad}. The Bmad library,
+developed at Cornell, has been developed for modeling relativistic charged particles in storage
+rings and Linacs, as well as modeling photons in x-ray beam lines.
+
+%------------------------------------------------------------------
+\Section{Running the Long Term Tracking Program} 
+\label{s:run}
+
+Ask your local Bmad Guru how to setup the proper environmental variables for running the long term
+tracking program. This is the same setup as needed for compiling Bmad programs so if you have done
+any Bmad based compiling you are all set. 
+
+Syntax for invoking the \ltt program:
+\begin{code}
+  long_term_tracking {<master_input_file_name>}
+\end{code}
+Example:
+\begin{code}
+  long_term_tracking my_input_file.init
+\end{code}
+The \vn{<master_input_file_name>} optional argument is used to set the master input file name. The
+default is ``\vn{long_term_tracking.init}''.
+
+Example input files are in the directory:
+\begin{code}
+  $sACC_ROOT_DIR/bsim/long_turn_tracking/example
+\end{code}
+
+%------------------------------------------------------------------
+\Section{Simulation Modes}
+\label{s:sim.modes}
+
+There are a number of simulation ``modes'' which determine what is done by the program. The
+simulation mode is set by the \vn{simulation_mode} parameter in the master input file
+(\sref{s:input}).  Possible settings of \vn{simulation_mode} are:
+\begin{code}
+  "CHECK"   ! Quick map check.
+  "SINGLE"  ! Single particle tracking.
+  "BUNCH"   ! Bunch tracking.
+  "STAT"    ! Lattice statistics.
+\end{code}
+
+\begin{description}
+\item["CHECK"] \Newline
+In this mode a particle is tracked for one turn using the 1-turn map and, using the exact same
+starting conditions, tracked element-by-element for one turn. The results are then printed to the
+terminal. This mode can be used to get a sense of how accurate the 1-turn map is. One thing to keep
+in mind that since the 1-turn map is computed using PTC (see the Bmad manual for an explanation of
+what PTC is), there will be differences if the element-by-element tracking is using non-PTC tracking
+methods. even if the map is completely accurate. 
+
+No data files are produced in this mode.
+%
+\item["SINGLE"] \Newline
+In this mode a single particle is tracked for \vn{n_turns} turns. The name of the data file is set
+by the \vn{tracking_data_file} parameter (\sref{s:input}). The particle position will be output every
+
+%
+\item["BUNCH"] \Newline
+In this mode a particle bunch is tracked for \vn{n_turns} turns. The output data file(s) format is
+described in Section~\sref{s:out.dat}.
+%
+\item["STAT"] \Newline
+In this mode statistics about the lattice are calculated. No long term tracking is done.
+
+Three data files are produced: 
+\begin{code}
+  twiss.dat         ! Twiss parameters
+  coupling.dat      ! Coupling parameters
+  closed_orbit.dat  ! Closed orbit
+\end{code}
+\end{description}
+
+
+%------------------------------------------------------------------
+\Section{Initial Particle Positions}
+\label{s:init.pos}
+
+When the \vn{simulation_mode} (\sref{s:sim.modes}) is set to \vn{"SINGLE"} or \vn{"CHECK"}, the
+initial particle position is determined by the \vn{beam_init%center} and \vn{beam_init%spin}
+components of the \vn{beam_init} structure (\sref{s:input}) in the master input file. If the
+\vn{add_closed_orbit_to_init_position} logical is set to \vn{True}, the closed orbit position is added to
+\vn{beam_init%center} to get the initial particle position.
+
+When the \vn{simulation_mode} is set to \vn{"BUNCH"}, the initial particle positions are calculated
+using the \vn{beam_init} structure as discussed in the Bmad manual. Like the other modes, if the
+\vn{add_closed_orbit_to_init_position} logical is set to \vn{True}, the closed orbit position is added to
+the initial particle positions.
+
+In all cases, tracking will start at the lattice element set by \vn{ele_start_name}.
+
+
+%------------------------------------------------------------------
+\Section{Particle Tracking}
+\label{s:track.modes}
+
+Tracking can be done on an element-by-element basis or using a one-turn map that includes radiation
+damping and excitation. [The map is a two step process: One step is to apply a map that has the
+1-turn transport including radiation damping and the other step to to apply, using a random number
+generator, a transformation that simulates the radiation excitation.] 
+
+What tracking mode is used is determined by the \vn{use_1_turn_map} logical (\sref{s:input}).  If a
+map is used, the order of the map is given by \vn{map_order}. Larger map order will mean better
+accuracy at the expense of more computation time. Tracking using a map will be extremely quick
+compared to element-by-element tracking. However, map tracking can be inaccurate if the map order
+is too small or the particle amplitude is too large.
+
+Long term particle tracking starts from the lattice element specified by \vn{ele_start_name} and proceeds
+for \vn{n_turns} number of turns.
+
+%------------------------------------------------------------------
+\Section{Fortran Namelist}
+\label{s:namelist}
+
+Fortran namelist syntax is used for parameter input. The
+general form of a namelist is
+\begin{code}
+&<namelist_name>
+  <var1> = ...
+  <var2> = ...
+  ...
+/
+\end{code}
+The tag \vn{"\&<namelist_name>"} starts the namelist where
+\vn{<namelist_name>} is the name of the namelist. The namelist ends
+with the slash \vn{"/"} tag. Anything outside of this is
+ignored. Within the namelist, anything after an exclamation mark
+\vn{"!"} is ignored including the exclamation mark. \vn{<var1>},
+\vn{<var2>}, etc. are variable names. Example:
+\begin{code}
+&place 
+  section = 0.0, "arc_std", "elliptical", 0.045, 0.025 
+/
+\end{code}
+here \vn{place} is the namelist name and \vn{section} is a
+variable name.  Notice that here \vn{section} is a ``structure'' which
+has five components -- a real number, followed by two strings,
+followed by two real numbers.
+
+Everything is case insensitive except for quoted strings.
+
+Logical values are specified by \vn{True} or \vn{False} or can be
+abbreviated \vn{T} or \vn{F}. Avoid using the dots (periods) that one
+needs in Fortran code.
+
+%------------------------------------------------------------------
+\Section{Master Input File}
+\label{s:input}
+
+The master input file holds the parameters needed for running the long term tracking program. The
+master input file must contain a single namelist (\sref{s:namelist}) named \vn{params}.  Example:
+\begin{code}
+&params
+  simulation_mode = "BUNCH"
+  lat_file   =  "lat.bmad"     ! Bmad lattice file
+
+  tracking_data_file  = "snap.dat"
+  output_every_n_turns = 200
+  include_initial_position = False
+
+  ele_start_name     = ""
+  n_turns            = 1000
+  map_order          = 5
+  rfcavity_on        = True
+  use_1-turn_map     = True
+  timer_print_dtime  = 300
+  ran_seed           = 0
+  add_closed_orbit_to_init_position = True
+
+  bmad_com%spin_tracking_on = T         ! See Bmad manual for 
+  bmad_com%radiation_damping_on = F     !    bmad_com parameters.
+  bmad_com%radiation_fluctuations_on = F 
+
+  beam_init%n_particle = 10
+  beam_init%spin = 0, 1, 0        ! See Bmad manual for 
+  beam_init%a_emit = 1e-8         !    beam_init_struct parameters.
+  beam_init%b_emit = 1e-8
+  beam_init%sig_z = 1e-4
+  beam_init%sig_e = 1e-4
+/
+\end{code}
+
+Namelist parameters:
+\begin{description}
+\item[add_closed_orbit_to_init_position] \Newline
+If set \vn{True} (the default), initial particle positions are set equal to the input particle positions
+plus the closed orbit position. See Section~\sref{s:init.pos}.
+%
+\item[beam_init] \Newline
+This sets the initial beam distribution. See Section~\sref{s:init.pos}.
+%
+\item[bmad_com] \Newline
+The \vn{bmad_com} structure contains various parameters that affect tracking. For example, whether
+radiation damping and fluctuations are included in tracking. A full list of \vn{bmad_com} parameters
+is detailed in the Bmad reference manual. Note: \vn{bmad_com} parameters can be set in the Bmad
+lattice file. \vn{Bmad_com} parameter set in the master input file will take precedence over
+parameters set in the lattice file.
+%
+\item[ele_start_name] \Newline
+Name or element index of the element to start the tracking. Examples:
+\begin{code}
+  ele_start_name = "Q3##2"   ! 2nd element named Q3 in the lattice.
+  ele_start_name = 37        ! 37th element in the lattice.
+\end{code}
+The default is to start at the beginning of the lattice. Notice that the tracking starts at the downstream
+end of the element so the first element tracked through is the element after the chosen one.
+%
+\item[lat_file] \Newline
+Name of the Bmad lattice file to use.
+%
+\item[include_initial_position] \Newline
+Used with \vn{simulation_mode} set to \vn{"BUNCH"}. If \vn{include_initial_position} is set to \vn{True},
+additional columns will be added to the output tracking data file to show the initial particle
+position and spin. Default is \vn{False}. See Section~\sref{s:out.dat}.
+%
+\item[map_order] \Newline
+Order of the 1-turn map. See Section~\sref{s:track.modes}. The default is what is set in the lattice file
+and if not set in the lattice file the default is 3
+%
+\item[n_turns] \Newline
+Number of turns to track. See Section~\sref{s:track.modes}.
+%
+\item[one_tracking_data_file]
+If set to \vn{True}, all the tracking data will be put in one file. Only relevant for \vn{"BEAM"} tracking.
+See Section~\sref{s:out.dat}.
+%
+\item[random_seed] \Newline
+The random number seed used by the random number generator. If set to 0, the
+system clock will be used. That is, if set to 0, the output results will vary from run to run.
+%
+\item[rfcavity_on] \Newline
+If set to \vn{False}, the voltage on all RF cavity elements will be turned off. Default is \vn{True}.
+If 1-turn map tracking is used, the RF voltage may not be turned off.
+%
+\item[simulation_mode] \Newline
+Sets the simulation mode for the program. See Section~\sref{s:sim.modes}.
+%
+\item[tracking_data_file] \Newline
+String specifying the name of the file or files that are created to hold the tracking
+data. See Section~\sref{s:out.dat}. Default is \vn{"tracking.dat"}.
+%
+\item[output_every_n_turns] \Newline
+With Sets the number of turns between when tracking data is recorded. See Section~\sref{s:out.dat}.
+%
+\item[timer_print_dtime] \Newline
+The program will print a tracking status message every so often. The nominal time between status
+messages is set by \vn{timer_print_dtime} which is a number in seconds.
+%
+\item[use_1_turn_map] \Newline
+If set \vn{True} (the default) use a 1-turn map for tracking as opposed to element-by-element
+tracking (\sref{s:track.modes}).
+\end{description}
+
+%------------------------------------------------------------------
+\Section{Output Data Format for BUNCH Tracking}
+\label{s:out.dat}
+
+The following describes the output data file format when the \vn{simulation_mode} is set to
+\vn{"BUNCH"}.
+
+Tracking data is always recorded when the beam is at the \vn{ele_start_name} position independent of
+where the lattice begins and ends.
+
+With \vn{one_tracking_data_file} set to \vn{False}, an output data file will be produced every
+\vn{output_every_n_turns} turns. Each line in this file records a particle's orbital and
+spin position. The name of the data file is derived from the \vn{tracking_data_file} string using
+the following rules: If \vn{tracking_data_file} contains a hash character ''\#'', the data file name
+is formed by substituting the turn number for the hash token. If there is no hash character, the
+data file name is formed by appending the turn number to the \vn{tracking_data_file} string.
+
+With \vn{one_tracking_data_file} set to \vn{True}, instead of generating multiple files, all data is
+put into one file whose name is given by \vn{tracking_data_file}.
+
+Nominally tracking data is recorded every \vn{output_every_n_turns} number of
+turns. However, if \vn{output_every_n_turns} is set to 0, tracking data is recorded only
+at the start and end of the tracking. If \vn{output_every_n_turns} is set to -1,
+tracking data is only recorded at the end of tracking.
+
+If \vn{include_initial_position} is set to \vn{True}, additional columns will be added to the output
+tracking data file to show the initial particle position and spin.
+
+
+%------------------------------------------------------------------
+\begin{thebibliography}{9}
+
+\bibitem{b:bmad}
+D. Sagan,
+``Bmad: A Relativistic Charged Particle Simulation Library''
+Nuc.\ Instrum.\ \& Methods Phys.\ Res.\ A, {\bf 558}, pp 356-59 (2006).
+
+\end{thebibliography}
+
+\end{document}
+
+
+
