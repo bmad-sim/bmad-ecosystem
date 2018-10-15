@@ -2113,6 +2113,10 @@ logical is_on, err, mat6_toggle
 
 call tao_locate_all_elements (ele_list, eles, err)
 if (err) return
+if (size(eles) == 0) then
+  call out_io (s_error$, r_name, 'CANNOT FIND ANY ELEMENTS CORRESPONDING TO: ' // ele_list)
+  return
+endif
 
 !-----------
 ! The first complication is that what is being set can be a logical, switch (like an element's tracking_method), etc.
@@ -2124,43 +2128,36 @@ if (err) return
 ! If a real attribute then use tao_evaluate_expression to evaluate
 
 if (attribute_type(upcase(attribute), eles(1)%ele) == is_real$) then
-  call tao_evaluate_expression (value, 0, .false., set_val, info, err)
+  ! Important to use "size(eles)" as 2nd arg instead of "0" since if value is something like "ran()" then
+  ! want a an array of set_val values with each value different.
+  call tao_evaluate_expression (value, size(eles), .false., set_val, info, err)
   if (err) return
 
-  if (size(set_val) == 1) then
-    write (val_str, *) set_val(1)
-
-  else
-    if (size(eles) == 0) then
-      call out_io (s_error$, r_name, 'CANNOT FIND ANY ELEMENTS CORRESPONDING TO: ' // ele_list)
-      return
-    endif
-    if (size(eles) /= size(set_val)) then
-      call out_io (s_error$, r_name, 'SIZE OF VALUE ARRAY NOT EQUAL TO THE SIZE OF THE ELEMENTS TO BE SET.', &
-                                     'NOTHING DONE.')
-      return
-    endif
-
-    do i = 1, size(eles)
-      call pointer_to_attribute(eles(i)%ele, attribute, .true., a_ptr, err)
-      if (err) return
-      if (.not. associated(a_ptr%r)) then
-        call out_io (s_error$, r_name, 'STRANGE ERROR: PLEASE CONTACT HELP.')
-        return
-      endif
-      a_ptr%r = set_val(i)
-      call set_flags_for_changed_attribute (eles(i)%ele, a_ptr%r)
-      s%u(eles(i)%id)%calc%lattice = .true.
-    enddo
-
-    do i = lbound(s%u, 1), ubound(s%u, 1)
-      u => s%u(i)
-      if (.not. u%calc%lattice) cycle
-      call lattice_bookkeeper (u%model%lat)
-    enddo
-
+  if (size(eles) /= size(set_val)) then
+    call out_io (s_error$, r_name, 'SIZE OF VALUE ARRAY NOT EQUAL TO THE SIZE OF THE ELEMENTS TO BE SET.', &
+                                   'NOTHING DONE.')
     return
   endif
+
+  do i = 1, size(eles)
+    call pointer_to_attribute(eles(i)%ele, attribute, .true., a_ptr, err)
+    if (err) return
+    if (.not. associated(a_ptr%r)) then
+      call out_io (s_error$, r_name, 'STRANGE ERROR: PLEASE CONTACT HELP.')
+      return
+    endif
+    a_ptr%r = set_val(i)
+    call set_flags_for_changed_attribute (eles(i)%ele, a_ptr%r)
+    s%u(eles(i)%id)%calc%lattice = .true.
+  enddo
+
+  do i = lbound(s%u, 1), ubound(s%u, 1)
+    u => s%u(i)
+    if (.not. u%calc%lattice) cycle
+    call lattice_bookkeeper (u%model%lat)
+  enddo
+
+  return
 
 ! If there is a "ele::" construct in the value string...
 
