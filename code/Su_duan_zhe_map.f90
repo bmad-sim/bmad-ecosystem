@@ -1168,7 +1168,6 @@ enddo  ! is
    if(c_verbose_zhe) write(6,*) " Too many iterations ",normbb,norm,t(3)%eps
    xs%u=.true.
    check_stable_zhe=.false.
-       xs%u=.false.
   return
  endif
 else
@@ -1224,17 +1223,9 @@ else
 
 
 
-! if(stoch0) then 
-!    xr=0.0_dp
-!  do i=1,6
-!    xr(i)=GRNF_zhe()*t(2)%fix0(i)
-!  enddo
-!    xr(1:6)=matmul(t(2)%rad,xr)
-!
-!    x=x+xr(1:6)
-! endif
 
 
+ 
          do i=1,6
            x(i)=x(i)+t(1)%fix(i)
          enddo

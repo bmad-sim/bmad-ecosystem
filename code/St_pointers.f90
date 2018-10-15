@@ -21,6 +21,8 @@ module pointer_lattice
   integer :: kind_ap=2,file_ap=0                      ! Single aperture position and kind of aperture + file unit
   character(nlp) name_ap,namet(2)
   character(255) :: filename_ap = "Tracking.txt"
+  character(255), private :: file_zher,filezhe, name_zhe
+  integer, private :: k_zhe,number_zhe_maps
   integer last_npara 
   integer :: i_layout=0,i_layout_t=1
   integer my_lost_position
@@ -167,7 +169,7 @@ endif
     integer ntune(2)
     ! fitting and scanning tunes
     real(dp) tune_ini(2),tune_fin(2),dtu(2),fint,hgap
-    integer nstep(2),i1,i2,I3,n_bessel
+    integer nstep(2),i1,i2,I3,n_bessel,i11,i22,di12
     LOGICAL(LP) STRAIGHT,skip,fixp,skipcav,fact
     ! end
     ! TRACK 4D NORMALIZED
@@ -216,7 +218,7 @@ endif
     REAL(DP) RA(2)
     REAL(DP) XA,YA,DXA,DYA, DC_ac,A_ac,theta_ac,D_ac
     real(dp), allocatable :: an(:),bn(:) !,n_co(:)
-    integer icnmin,icnmax,n_ac,inode,icav !,n_coeff
+    integer icnmin,icnmax,n_ac,inode,icavv !,n_coeff
     logical :: longprintt,onemap
 !    logical :: log_estate=.true. 
     integer :: mftune=6,nc
@@ -1341,7 +1343,56 @@ endif
       !    if(n_coeff>0) then
       !       deallocate(n_co)
       !    endif
+       case('MAPSFORZHE')
+          READ(MF,*) i11,I22,number_zhe_maps ,hgap ! position  i1=i2 one turn map,  fact is precision of stochastic kick
+          READ(MF,*) MY_A_NO   ! ORDER OF THE MAP  
+          READ(MF,*) filename
+          if(.not.associated(my_ering%t)) call make_node_layout(my_ering)
+          if(i11==i22) i22=i11+my_ering%n
+          di12=float(i22-i11)/number_zhe_maps
+                        do k_zhe=1,number_zhe_maps
+                             write(name_zhe,*) k_zhe
+                           file_zher(1:len_trim(filename))=filename(1:len_trim(filename))
+                           file_zher(1+len_trim(filename):len_trim(filename)+len_trim(name_zhe))=name_zhe(1:len_trim(name_zhe))
+                           call context(file_zher)
+                          write(6,*) "out file ",file_zher(1:len_trim(file_zher))
+           
+          i1=i11+(k_zhe-1)*di12
+          i2=i1+di12
+          if(i2>i22.or.k_zhe==number_zhe_maps) i2=i22
+          write(6,*)" from to ", i1,i2,i22
+!pause 873
+           p=>my_ering%start
+           f1=>p          
+           do ii=2,i1
+            p=>p%next
+             f1=>p
+           enddo
+           if(I2==i1) then
+            f2=>f1
+           else
+            p=>my_ering%start
+            f2=>p 
+            do ii=2,i2
+              p=>p%next
+              f2=>p
+            enddo
+            endif
+             x_ref=0.0_dp
 
+
+if(.not.my_estate%envelope) hgap=-1
+ if(my_a_no>0)            call FIND_ORBIT_x(x_ref,my_estate,1.d-7,fibre1=f1)
+
+              call fill_tree_element_line_zhe(my_estate,f1,f2,iabs(MY_A_NO),x_ref,file_zher,stochprec=hgap) 
+
+
+write(6,*) " State used "
+          call print(my_estate,6)
+write(6,*) " closed orbit at position ",i1
+           write(6,*) x_ref(1:3)
+           write(6,*) x_ref(4:6)
+                  enddo
 
        case('MAPFORZHE')
           READ(MF,*) i1,I2,hgap  ! position  i1=i2 one turn map,  fact is precision of stochastic kick
@@ -1370,7 +1421,9 @@ endif
 
 if(.not.my_estate%envelope) hgap=-1
  if(my_a_no>0)            call FIND_ORBIT_x(x_ref,my_estate,1.d-7,fibre1=f1)
+
               call fill_tree_element_line_zhe(my_estate,f1,f2,iabs(MY_A_NO),x_ref,filename,stochprec=hgap) 
+
 
 write(6,*) " State used "
           call print(my_estate,6)
@@ -1556,7 +1609,7 @@ write(6,*) x_ref
           READ(MF,*) skipcav  !  skip cavity 
           icnmin=0
           icnmax=0
-          icav=0
+          icavv=0
           x_ref=0.0_DP
            n_ac=0
           if(.not.associated(my_ering%t)) call make_node_layout(my_ering)
@@ -1588,7 +1641,7 @@ write(6,*) x_ref
                     p%magP%BACKward(3)%symptrack=FIXP
                    ENDIF
               else
-                icav=icav+1
+                icavv=icavv+1
               endif
              else
               icnmin=icnmin+1
@@ -1599,7 +1652,7 @@ write(6,*) x_ref
           enddo
          write(6,*) icnmax, " changed into Taylor maps "
          write(6,*) icnmin, " markers "
-         write(6,*) icav, " cavities left alone "
+         write(6,*) icavv, " cavities left alone "
          write(6,*) my_ering%N, " total number of fibres "
        case('REMOVEALLMAPS')
        READ(MF,*) I1,I2  ! ORDER OF THE MAP
