@@ -22,9 +22,10 @@ contains
 ! Input:
 !   ele1            -- ele_struct: The map starts at the exit end of ele1.
 !   ele2            -- ele_struct, optional: The map ends at the exit end of ele2. If not present, the 
-!                       1-turn map will be constructed.
+!                        1-turn map will be constructed.
 !   orbit1          -- coord_struct, optional: Orbit at ele1 about which the map is constructed.
-!   map_order       -- integer, optional: Order of the map. If not set the currently set order is used.
+!   map_order       -- integer, optional: Order of the map. 
+!                        If not present or less than 1, the currently set order is used.
 !                         
 !
 ! Output:
@@ -65,9 +66,12 @@ call zhe_ini(bmad_com%spin_tracking_on)
 use_bmad_units = .true.
 
 state = default0 + radiation0 + envelope
+if (bmad_com%spin_tracking_on) state = state + spin0
 if (.not. rf_is_on(ele1%branch)) state = state + nocavity0
 
 order = integer_option(ptc_com%taylor_order_ptc, map_order)
+if (order < 1) order = ptc_com%taylor_order_ptc
+
 call init_all(state, order, 0)
 
 branch => pointer_to_branch(ele1)

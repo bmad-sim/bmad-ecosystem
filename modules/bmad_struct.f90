@@ -966,7 +966,7 @@ type beam_init_struct
   real(rp) :: bunch_charge = 1               ! charge (Coul) in a bunch. Default is something non-zero.
   integer :: n_bunch = 1                     ! Number of bunches.
   character(16) :: species = ""              ! "positron", etc. "" => use referece particle.
-  logical :: init_spin     = .false.         ! initialize beam spinors
+  logical :: init_spin     = .true.          ! Not used. Deprecated.
   logical :: full_6D_coupling_calc = .false. ! Use V from 6x6 1-turn mat to match distribution?  
                                              !   Else use 4x4 1-turn mat used.
   logical :: use_lattice_center = .false.    ! Use beam_start[...] in lattice rather than beam_init%center(:)?
