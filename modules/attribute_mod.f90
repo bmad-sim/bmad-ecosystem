@@ -2914,7 +2914,10 @@ endif
 ! Exception: phi0_multipass can be varied for lcavity and rfcavity slaves, etc.
 
 if (ele%slave_status == multipass_slave$) then
-  if (a_name == 'CSR_CALC_ON') return
+  select case (a_name)
+  case ('CSR_CALC_ON', 'DESCRIP', 'ALIAS', 'TYPE');     return
+  end select
+
   select case (ele%key)
   case (lcavity$, rfcavity$) 
     if (ix_attrib == phi0_multipass$) return
