@@ -14,7 +14,7 @@ class Tao:
   
   
   """
-  def __init__(self, so_lib = ''):
+  def __init__(self, init='', so_lib = ''):
     if so_lib == '':
       BASE_DIR=os.environ['ACC_ROOT_DIR'] + '/production/lib/'
       if os.path.isfile(BASE_DIR + 'libtao.so'):
@@ -30,11 +30,19 @@ class Tao:
 
     self.so_lib.tao_c_out_io_buffer_get_line.restype = c_char_p
     self.so_lib.tao_c_out_io_buffer_reset.restype = None
+    
+    # Attributes
+    self.initialized = False
  
     try:
         self.register_cell_magic()
     except:
         print('unable to register cell magic')
+        
+    if init:
+        # Call init
+        cmd = '-init '+init
+        self.init(cmd)
 
   # Used by init and cmd routines
   def get_output(self):
@@ -45,8 +53,17 @@ class Tao:
  
   # Init Tao
   def init(self, cmd):
-    self.so_lib.tao_c_init_tao(cmd.encode('utf-8'))
-    return self.get_output()
+    if not self.initialized:
+        self.so_lib.tao_c_init_tao(cmd.encode('utf-8'))
+        self.initialized = True
+        self.cmd('sho ele 0') # TODO: this is necessary to get the output of the next cmd to work. 
+        return self.get_output()
+    else:
+        # Reinit
+        self.cmd('reinit tao')
+        self.initialized = True
+        return self.get_output()
+        
  
   # Send a command to Tao and return the output
   def cmd(self, cmd):
@@ -74,4 +91,10 @@ class Tao:
             for l in res:
                  print(l)
     del tao
+
+
+
+
+
+
 
