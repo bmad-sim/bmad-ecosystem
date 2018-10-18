@@ -52,11 +52,12 @@ do i = 1, lat%n_ele_track
   if (ele%key == patch$) nn = nn + 1
 enddo
 
-allocate (t_shift(nn))
 allocate (name(nn))
+allocate (t_shift(nn))
 
 !-------------
 ! PTC way
+! Note: find_time_patch looks for rfcavities and assumes the patch is the element before the cavity.
 
 if (calc_fshift_for == 'PTC') then
   call lat_to_ptc_layout (lat)
@@ -66,7 +67,7 @@ if (calc_fshift_for == 'PTC') then
   do i = 1, lat%n_ele_track
     ele => lat%ele(i)
     if (ele%key == patch$) then
-      print '(i6, 2x, a20, i2, 2es13.4)', i, ele%name, &
+      print '(a, i6, 2x, a20, i2, 2es13.4)', 'Patch:', i, ele%name, &
                               ele%ptc_fibre%patch%time, ele%ptc_fibre%patch%a_t, ele%ptc_fibre%patch%b_t
       if (ele%ptc_fibre%patch%time /= 0) then
         nn = nn + 1
@@ -74,8 +75,8 @@ if (calc_fshift_for == 'PTC') then
         t_shift(nn) = (ele%ptc_fibre%patch%a_t + ele%ptc_fibre%patch%b_t) / c_light
       endif
 
-    else
-      if (ele%ptc_fibre%patch%time /= 0) print '(a, i6, 2x, a20, i2, 2es13.4)', 'ERROR: ', &
+    elseif (ele%ptc_fibre%patch%time /= 0) then
+      print '(a, i6, 2x, a20, i2, 2es13.4)', 'ERROR IN SAD_TO_BMAD_POSTPROCESS: ', &
                               i, ele%name, ele%ptc_fibre%patch%time, ele%ptc_fibre%patch%a_t, ele%ptc_fibre%patch%b_t
     endif
   enddo
@@ -124,7 +125,7 @@ do
     do i = 1, nn
       if (name(i) == pname) exit
       if (i == nn) then
-        print *, 'ERROR: CANNOT MATCH PATCH NAME: ', pname
+        print *, 'ERROR IN SAD_TO_BMAD_POSTPROCESS: CANNOT MATCH PATCH NAME: ', pname
         call err_exit
       endif
     enddo
@@ -140,6 +141,6 @@ close(2)
 ! And now move temp file to lattice file
 
 call system_command ('mv temp.temp ' // trim(lat_file))
-print *, 'Modified file: ', trim(lat_file)
+print *, 'Sad_to_bmad_postprocess: Modified file: ', trim(lat_file)
 
 end program
