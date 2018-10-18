@@ -2872,9 +2872,10 @@ type (coord_struct), optional, intent(in) :: orb0
 type (coord_struct) c0
 type (taylor_struct), optional, target :: orbital_taylor(6), spin_taylor(0:3)
 type (taylor_struct), pointer :: orb_tylr(:), spin_tylr(:)
+type (probe) ptc_probe
 type (probe_8) ptc_probe8
 type (fibre), pointer :: ptc_fibre
-type (real_8) y2(6), y8(6)
+type (real_8) y2(6)
 type (c_damap) ptc_cdamap
 
 real(dp) x(6), beta
@@ -2936,10 +2937,10 @@ else
   call ele_to_fibre (ele, ptc_fibre, param, use_offsets, track_particle = orb0)
 endif
 
-call alloc (y8)
 call alloc(ptc_cdamap)
+call alloc(ptc_probe8)
 
-call attribute_bookkeeper (ele, param, .true.)
+call attribute_bookkeeper (ele, .true.)
 
 ! Initial map
 
@@ -2951,24 +2952,23 @@ else
   x = 0
 endif
 
-ptc_cdamap = 1
-y8 = ptc_cdamap + x ! = IdentityMap + const
+ptc_probe = 0
+ptc_probe = x
 
-! Origninally used track (ptc_fibre, y8, default) but that does not work with taylor elements.
+ptc_cdamap = 1
+ptc_probe8 = ptc_cdamap + ptc_probe ! = IdentityMap + const
+
+! 
 
 if (bmad_com%spin_tracking_on) then
-  call alloc(ptc_probe8)
-  ptc_probe8 = ptc_cdamap
-  ptc_probe8%x = y8  
   call track_probe (ptc_probe8, DEFAULT+SPIN0, fibre1 = bmadl%start)
-  y8 = ptc_probe8%x
-  do i = 0, 3
-    spin_tylr(i) = ptc_probe8%q%x(i)%t
-  enddo
-  call kill(ptc_probe8)
 else
-  call track_probe_x (y8, DEFAULT-SPIN0, fibre1 = bmadl%start)
+  call track_probe (ptc_probe8, DEFAULT-SPIN0, fibre1 = bmadl%start)
 endif
+
+do i = 0, 3
+  spin_tylr(i) = ptc_probe8%q%x(i)%t
+enddo
 
 ! take out the offset
 
@@ -2981,9 +2981,9 @@ endif
 
 ! convert to orb_tylr_struct
 
-orb_tylr = y8
+orb_tylr = ptc_probe8%x
 
-call kill(y8)
+call kill(ptc_probe8)
 call kill (ptc_cdamap)
 
 use_bmad_units = .false.

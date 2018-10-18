@@ -105,11 +105,10 @@ function at_this_ele_end (now_at, where_at) result (is_at_this_end)
   logical is_at_this_end
 end function
 
-subroutine attribute_bookkeeper (ele, param, force_bookkeeping)
+subroutine attribute_bookkeeper (ele, force_bookkeeping)
   import
   implicit none
   type (ele_struct), target :: ele
-  type (lat_param_struct) param
   logical, optional :: force_bookkeeping
 end subroutine
 

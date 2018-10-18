@@ -131,7 +131,7 @@ do i = 1, 10
       ele%value(k1$) = ele%value(k1$) + abs(dk1(j)) * dk_y
     endif
     call set_flags_for_changed_attribute (ele, ele%value(k1$))
-    call attribute_bookkeeper (ele, lat%param, .true.)
+    call attribute_bookkeeper (ele, .true.)
     ele%field_master = master_saved
   enddo
 

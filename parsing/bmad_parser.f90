@@ -540,7 +540,11 @@ parsing_loop: do
   ! must have a ":" delimiter now
 
   if (delim /= ':') then
-    call parser_error ('1ST DELIMITER IS NOT ":". IT IS: ' // delim,  'FOR: ' // word_1)
+    if (delim == '') then
+      call parser_error ('UNRECOGNIZED COMMAND: ' // word_1)
+    else
+      call parser_error ('EXPECTED DELIMITER TO BE ":". BUT IT IS: "' // trim(delim),  '" AFTER WORD: ' // word_1)
+    endif
     cycle parsing_loop
   endif
 

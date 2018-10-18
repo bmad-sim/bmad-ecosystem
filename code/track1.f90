@@ -156,7 +156,7 @@ endif
 
 ! Init
 
-if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
+if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele)
 
 ! check for particles outside aperture.
 

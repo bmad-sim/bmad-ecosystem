@@ -50,7 +50,7 @@ do i = 0, ubound(lat%branch, 1)
     ele => branch%ele(n)
     ele%s_start = ss
     ! Patch element have a length that is a dependent variable
-    if (ele%key == patch$ .and. ele%bookkeeping_state%attributes /= ok$) call attribute_bookkeeper(ele, branch%param)
+    if (ele%key == patch$ .and. ele%bookkeeping_state%attributes /= ok$) call attribute_bookkeeper(ele)
     ss = ss + ele%value(l$)
     ele%s = ss
     if (ele%bookkeeping_state%s_position == stale$) ele%bookkeeping_state%s_position = ok$

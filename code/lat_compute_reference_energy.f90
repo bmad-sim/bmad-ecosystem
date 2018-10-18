@@ -429,7 +429,7 @@ case (lcavity$)
     ele%value(E_tot$) = ele%value(e_tot_start$)      
     ele%value(p0c$) = ele%value(p0c_start$)
     ele%ref_time = ref_time_start
-    call attribute_bookkeeper(ele, param, .true.)
+    call attribute_bookkeeper(ele, .true.)
   endif
 
   if (ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) then
@@ -522,7 +522,7 @@ case default
     ele%value(E_tot$) = E_tot_start
     ele%value(p0c$) = p0c_start
     ! Need to call attribute_bookkeeper since num_steps is not set until the energy is set.
-    call attribute_bookkeeper(ele, param, .true.) 
+    call attribute_bookkeeper(ele, .true.) 
   endif
   
   if (ele%key == rfcavity$ .and. ele%slave_status /= super_slave$ .and. &

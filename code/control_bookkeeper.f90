@@ -83,7 +83,7 @@ do ib = 0, ubound(lat%branch, 1)
   do ie = 0, branch%n_ele_track
     ele2 => branch%ele(ie)
     if (ele2%bookkeeping_state%control /= stale$ .and. ele2%bookkeeping_state%attributes /= stale$) cycle
-    call attribute_bookkeeper (ele2, branch%param)
+    call attribute_bookkeeper (ele2)
     ele2%bookkeeping_state%control = ok$
   enddo
 
@@ -127,7 +127,7 @@ if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attribute
   ! First make sure the attribute bookkeeping for this element is correct since
   ! the makeup_*_slave routines may need it.
 
-  call attribute_bookkeeper (ele, lat%branch(ele%ix_branch)%param, force_bookkeeping)
+  call attribute_bookkeeper (ele, force_bookkeeping)
 
   ! Slave bookkeeping
 
@@ -162,7 +162,7 @@ if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attribute
   ! Example: super_slave will, at this point, have its lord's num_steps value but 
   ! num_steps in the slave is different from the lord due to differences in length.
 
-  if (call_a_bookkeeper) call attribute_bookkeeper (ele, lat%branch(ele%ix_branch)%param, force_bookkeeping)
+  if (call_a_bookkeeper) call attribute_bookkeeper (ele, force_bookkeeping)
 
   ele%bookkeeping_state%control = ok$
 
