@@ -43,7 +43,8 @@ implicit none
 !                               This is used by, for example, the create_overlay routine.
 !   dependent_attribs_free  -- logical, optional: If present and True then mark as free 
 !                               attributes that are dependent. For example, if ele%field_master = F,
-!                               b1_field is dependent upon k1. Default is False.
+!                               b1_field is dependent upon k1. Default is False. Use True when
+!                               using intelligent bookkeeping.
 !
 ! Output:
 !   free   -- Logical: Set True if attribtute not found or attriubte

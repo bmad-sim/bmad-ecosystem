@@ -1,5 +1,5 @@
 !+
-! Subroutine attribute_bookkeeper (ele, param, force_bookkeeping)
+! Subroutine attribute_bookkeeper (ele, force_bookkeeping)
 !
 ! Routine to recalculate the dependent attributes of an element.
 ! If the attributes have changed then any Taylor Maps will be killed.
@@ -47,7 +47,6 @@
 !
 ! Input:
 !   ele            -- Ele_struct: Element with attributes 
-!   param          -- lat_param_struct: 
 !   force_bookkeeping 
 !                  -- Logical, optional: If present and True then force
 !                       attribute bookkeeping to be done independent of
@@ -59,7 +58,7 @@
 !       the attribute_free routine must be modified.
 !-
 
-subroutine attribute_bookkeeper (ele, param, force_bookkeeping)
+subroutine attribute_bookkeeper (ele, force_bookkeeping)
 
 use s_fitting, only: check_bend
 use bookkeeper_mod, except_dummy => attribute_bookkeeper
@@ -69,7 +68,6 @@ implicit none
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord, slave, slave2
-type (lat_param_struct) param
 type (coord_struct) start, end
 type (em_field_struct) field
 type (branch_struct), pointer :: branch
@@ -81,9 +79,9 @@ real(rp) w_inv(3,3), len_old, f
 real(rp), pointer :: val(:), tt
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), eps6
 real(rp) kick_magnitude, bend_factor, quad_factor, radius0, step_info(7), dz_dl_max_err
-real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
+real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), n_particles
 
-integer i, n, n_div, ixm, ix_pole_max
+integer i, n, n_div, ixm, ix_pole_max, particle, geometry
 
 character(20) ::  r_name = 'attribute_bookkeeper'
 
@@ -99,6 +97,17 @@ logical :: dval_change(num_ele_attrib$)
 
 val => ele%value
 branch => pointer_to_branch(ele)
+
+if (associated(branch)) then
+  particle = branch%param%particle
+  geometry = branch%param%geometry
+  n_particles = branch%param%n_part
+else
+  particle = positron$  ! Just to keep the code happy
+  geometry = open$
+  n_particles = 0
+endif
+  
 
 ! Overlay and group and hybrid elements do not have any dependent attributes
 
@@ -189,7 +198,7 @@ if (ele%field_master) then
   if (val(p0c$) == 0) then
     factor = 0
   else
-    factor = charge_of(param%particle) * c_light / val(p0c$)
+    factor = charge_of(particle) * c_light / val(p0c$)
   endif
 
   select case (ele%key)
@@ -228,10 +237,10 @@ if (ele%field_master) then
 
 else
 
-  if (charge_of(param%particle) == 0) then
+  if (charge_of(particle) == 0) then
     factor = 0
   else
-    factor = val(p0c$) / (charge_of(param%particle) * c_light)
+    factor = val(p0c$) / (charge_of(particle) * c_light)
   endif
 
   select case (ele%key)
@@ -375,7 +384,7 @@ case (beambeam$)
 
   if (val(n_slice$) == 0) val(n_slice$) = 1.0 ! revert to default
 
-  if (val(charge$) == 0 .or. param%n_part == 0) then
+  if (val(charge$) == 0 .or. n_particles == 0) then
     val(bbi_const$) = 0
 
   else
@@ -387,7 +396,7 @@ case (beambeam$)
     endif
 
     if (val(p0c$) /= 0) then  ! Can happen when parsing lattice file.
-      val(bbi_const$) = -param%n_part * val(charge$) * classical_radius_factor /  &
+      val(bbi_const$) = -n_particles * val(charge$) * classical_radius_factor /  &
                              (2 * pi * val(p0c$) * (val(sig_x$) + val(sig_y$)))
     endif
 
@@ -477,7 +486,7 @@ case (quadrupole$)
 ! RFcavity
 
 case (rfcavity$)
-  if (param%geometry == closed$ .and. associated(branch) .and. val(p0c$) /= 0) then
+  if (geometry == closed$ .and. associated(branch) .and. val(p0c$) /= 0) then
     time = branch%ele(branch%n_ele_track)%ref_time
     if (time /= 0) then
       if (ele%field_master) then
@@ -562,7 +571,7 @@ case (wiggler$, undulator$)
     val(b_max$) = 0
     n = nint(val(num_steps$))
     do i = 0, n
-      call em_field_calc (ele, param, i * val(l$) / n, start, .true., field, rf_time = 0.0_rp)
+      call em_field_calc (ele, branch%param, i * val(l$) / n, start, .true., field, rf_time = 0.0_rp)
       val(b_max$) = max(val(b_max$), sqrt(sum(field%b**2)))
     enddo
     ele%is_on = is_on

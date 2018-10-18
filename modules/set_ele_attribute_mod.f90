@@ -202,7 +202,7 @@ case default
   if (.not. field_attribute_free(ele, attrib_name)) then
     ele%field_master = .not. ele%field_master
     branch => pointer_to_branch(ele)
-    call attribute_bookkeeper(ele, branch%param, force_bookkeeping = .true.)
+    call attribute_bookkeeper(ele, force_bookkeeping = .true.)
     ele%field_master = .not. ele%field_master
   endif
 end select

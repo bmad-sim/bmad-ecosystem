@@ -539,6 +539,14 @@ case (sbend$)
       associated(a_ptr, ele%value(rho$))) then
     call set_ele_status_stale (ele, floor_position_group$)
   endif
+  if (dep_set) then
+    if (associated(a_ptr, ele%value(angle$))) then
+      if (ele%value(l$) /= 0) ele%value(g$) = ele%value(angle$) / ele%value(l$)
+    endif
+    if (associated(a_ptr, ele%value(rho$))) then
+      if (ele%value(rho$) /= 0) ele%value(g$) = 1 / ele%value(rho$)
+    endif
+  endif
 
 end select
 

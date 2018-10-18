@@ -1092,10 +1092,10 @@ if (slave%key == lcavity$ .or. slave%key == rfcavity$) call compute_slave_couple
 
 if (slave%field_master) then
   slave%field_master = .false.   ! So attribute_bookkeeper will do the right thing.
-  call attribute_bookkeeper (slave, branch%param)
+  call attribute_bookkeeper (slave)
   slave%field_master = .true.
 else
-  call attribute_bookkeeper (slave, branch%param)
+  call attribute_bookkeeper (slave)
 endif
 
 end subroutine makeup_super_slave
@@ -1391,7 +1391,7 @@ if (slave%key == lcavity$) then
 endif
 
 slave%bookkeeping_state%attributes = stale$
-call attribute_bookkeeper (slave, param)
+call attribute_bookkeeper (slave)
 
 err_flag = .false.
 

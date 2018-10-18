@@ -278,6 +278,13 @@ parsing_loop: do
   endif
 
   !-------------------------------------------
+  ! EXPAND_LATTICE command: This does nothing since the lattice has already been expanded.
+
+  if (word_1(:ix_word) == 'EXPAND_LATTICE') then
+    exit parsing_loop
+  endif
+
+  !-------------------------------------------
   ! RETURN or END_FILE command
 
   if (word_1(:ix_word) == 'RETURN' .or.  word_1(:ix_word) == 'END_FILE') then
@@ -403,7 +410,11 @@ parsing_loop: do
   ! bad delimiter
 
   if (delim /= ':') then
-    call parser_error ('1ST DELIMITER IS NOT ":". IT IS: ' // delim,  'FOR: ' // word_1)
+    if (delim == '') then
+      call parser_error ('UNRECOGNIZED COMMAND: ' // word_1)
+    else
+      call parser_error ('EXPECTED DELIMITER TO BE ":". BUT IT IS: "' // trim(delim),  '" AFTER WORD: ' // word_1)
+    endif
     cycle parsing_loop
   endif
 
