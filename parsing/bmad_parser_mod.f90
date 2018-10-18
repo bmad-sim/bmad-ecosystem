@@ -4924,16 +4924,17 @@ if (branch%param%geometry == closed$) then
   endif
 endif
 
-! Compute ix_insert which is used for positioning zero length super_lords in case
+! The "nominal" insert point is at the downstream end of element with index ix_insert.
+! ix_insert is used for positioning zero length super_lords in case
 ! They are next to an element which is also zero length.
 
 if (ref_ele%value(l$) == 0 .and. super_ele%value(l$) == 0 .and. pele%offset == 0) then
   if (ref_ele%ix_ele == 0) then  ! Automatically must be at downstream end.
-    ix_insert = 1
+    ix_insert = 0
   elseif (pele%ref_pt == anchor_beginning$) then
-    ix_insert = ref_ele%ix_ele  
+    ix_insert = ref_ele%ix_ele - 1
   elseif (pele%ref_pt == anchor_end$) then
-    ix_insert = ref_ele%ix_ele + 1 
+    ix_insert = ref_ele%ix_ele 
   endif
 
 ! For elements with finite length just return the ref element index.
