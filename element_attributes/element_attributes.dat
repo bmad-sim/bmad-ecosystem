@@ -1,4 +1,4 @@
- 2018-03-15 23:44:49 
+ 2018-08-10 21:42:22 
  
    1   Drift                 22   AB_multipole
    2   Sbend                 58   AC_Kicker
@@ -29,35 +29,36 @@
   27   Null_Ele              32   Instrument
   28   Beginning_Ele         15   Kicker
   29   Line_Ele              25   Lcavity
-  30   Match                 29   Line_Ele
-  31   Monitor               14   Marker
-  32   Instrument            57   Mask
-  33   Hkicker               30   Match
-  34   Vkicker               42   Mirror
-  35   Rcollimator           31   Monitor
-  36   Ecollimator           46   Multilayer_Mirror
-  37   Girder                19   Multipole
-  38   Bend_Sol_Quad         27   Null_Ele
-  39   Def_Beam_Start        17   Octupole
-  40   Photon_Fork            6   Overlay
-  41   Fork                  24   Patch
-  42   Mirror                40   Photon_Fork
-  43   Crystal               53   Photon_Init
-  44   Pipe                  44   Pipe
-  45   Capillary              3   Quadrupole
-  46   Multilayer_Mirror      9   RFcavity
-  47   E_Gun                 18   Rbend
-  48   EM_Field              35   Rcollimator
-  49   Floor_Shift           56   Sad_Mult
-  50   Fiducial              54   Sample
-  51   Undulator              2   Sbend
-  52   Diffraction_Plate      5   Sextupole
-  53   Photon_Init           13   Sol_Quad
-  54   Sample                23   Solenoid
-  55   Detector               8   Taylor
-  56   Sad_Mult              51   Undulator
-  57   Mask                  34   Vkicker
-  58   AC_Kicker             12   Wiggler
+  30   Match                 59   Lens
+  31   Monitor               29   Line_Ele
+  32   Instrument            14   Marker
+  33   Hkicker               57   Mask
+  34   Vkicker               30   Match
+  35   Rcollimator           42   Mirror
+  36   Ecollimator           31   Monitor
+  37   Girder                46   Multilayer_Mirror
+  38   Bend_Sol_Quad         19   Multipole
+  39   Def_Beam_Start        27   Null_Ele
+  40   Photon_Fork           17   Octupole
+  41   Fork                   6   Overlay
+  42   Mirror                24   Patch
+  43   Crystal               40   Photon_Fork
+  44   Pipe                  53   Photon_Init
+  45   Capillary             44   Pipe
+  46   Multilayer_Mirror      3   Quadrupole
+  47   E_Gun                  9   RFcavity
+  48   EM_Field              18   Rbend
+  49   Floor_Shift           35   Rcollimator
+  50   Fiducial              56   Sad_Mult
+  51   Undulator             54   Sample
+  52   Diffraction_Plate      2   Sbend
+  53   Photon_Init            5   Sextupole
+  54   Sample                13   Sol_Quad
+  55   Detector              23   Solenoid
+  56   Sad_Mult               8   Taylor
+  57   Mask                  51   Undulator
+  58   AC_Kicker             34   Vkicker
+  59   Lens                  12   Wiggler
  
  !---------------------------------
  22  AB_multipole        
@@ -278,14 +279,7 @@
  !---------------------------------
  28  Beginning_Ele       
          1  l                                         [private]
-        21  spin_x                                    [private]
-        22  spin_y                                    [private]
-        23  spin_z                                    [private]
         29  floor_set                                 [private]
-        30  spinor_theta                              [private]
-        31  spinor_phi                                [private]
-        32  spinor_xi                                 [private]
-        33  spinor_polarization                       [private]
         50  delta_ref_time                            [private]
         51  P0C_START                               
         52  E_TOT_START                             
@@ -585,7 +579,7 @@
   7  Custom              
          1  L                                       
          2  TILT                                    
-         8  DELTA_E                                 
+         8  DELTA_E_REF                             
         11  VAL1                                    
         12  VAL2                                    
         13  VAL3                                    
@@ -689,10 +683,6 @@
         21  SPIN_X                                  
         22  SPIN_Y                                  
         23  SPIN_Z                                  
-        30  SPINOR_THETA                            
-        31  SPINOR_PHI                              
-        32  SPINOR_XI                               
-        33  SPINOR_POLARIZATION                     
         39  EMITTANCE_A                             
         40  EMITTANCE_B                             
         41  EMITTANCE_Z                             
@@ -939,11 +929,11 @@
  10  ELseparator         
          1  L                                       
          2  TILT                                    
-         9  VOLTAGE                                 
+         8  VOLTAGE                                 
+         9  voltage_err                               [private]
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
-        20  voltage_err                               [private]
         21  GAP                                     
         31  L_HARD_EDGE                             
         34  X_PITCH                                 
@@ -1126,13 +1116,13 @@
          3  RF_FREQUENCY                            
          6  GRADIENT                                
          7  GRADIENT_ERR                            
-         9  VOLTAGE                                 
+         8  VOLTAGE                                 
+         9  VOLTAGE_ERR                             
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
         18  AUTOSCALE_AMPLITUDE                     
         19  AUTOSCALE_PHASE                         
-        20  VOLTAGE_ERR                             
         24  PHI0                                    
         25  PHI0_ERR                                
         26  phi0_multipass                            [private]
@@ -1468,6 +1458,7 @@
         74  Scratch4                                  [private]
         75  Scratch5                                  [private]
         80  check_sum                                 [private]
+        81  X_KNOT                                  
         82  ALIAS                                   
         89  VAR                                     
        112  DESCRIP                                 
@@ -1568,7 +1559,7 @@
  !---------------------------------
  16  Hybrid              
          1  L                                       
-         8  DELTA_E                                 
+         8  DELTA_E_REF                             
         50  DELTA_REF_TIME                          
         51  P0C_START                               
         52  E_TOT_START                             
@@ -1804,13 +1795,13 @@
          3  RF_FREQUENCY                            
          6  GRADIENT                                
          7  GRADIENT_ERR                            
-         9  VOLTAGE                                 
+         8  VOLTAGE                                 
+         9  VOLTAGE_ERR                             
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
         18  AUTOSCALE_AMPLITUDE                     
         19  AUTOSCALE_PHASE                         
-        20  VOLTAGE_ERR                             
         21  E_LOSS                                  
         23  CAVITY_TYPE                             
         24  PHI0                                    
@@ -1903,20 +1894,72 @@
        131  S_Position                                [private]
  
  !---------------------------------
+ 59  Lens                
+         1  L                                       
+         2  TILT                                    
+         3  RADIUS                                  
+         4  TRANSMISSION_COEF                       
+         5  FOCAL_STRENGTH                          
+        34  X_PITCH                                 
+        35  Y_PITCH                                 
+        36  X_OFFSET                                
+        37  Y_OFFSET                                
+        38  Z_OFFSET                                
+        50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
+        53  P0C                                     
+        54  E_TOT                                   
+        55  X_PITCH_TOT                             
+        56  Y_PITCH_TOT                             
+        57  X_OFFSET_TOT                            
+        58  Y_OFFSET_TOT                            
+        59  Z_OFFSET_TOT                            
+        60  TILT_TOT                                
+        64  ref_time_start                            [private]
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
+        76  X1_LIMIT                                
+        77  X2_LIMIT                                
+        78  Y1_LIMIT                                
+        79  Y2_LIMIT                                
+        80  check_sum                                 [private]
+        82  ALIAS                                   
+        87  APERTURE_TYPE                           
+        91  MAT6_CALC_METHOD                        
+        92  TRACKING_METHOD                         
+        93  PTC_INTEGRATION_TYPE                    
+        94  SPIN_TRACKING_METHOD                    
+        95  APERTURE                                
+        96  X_LIMIT                                 
+        97  Y_LIMIT                                 
+        98  OFFSET_MOVES_APERTURE                   
+       107  WALL                                    
+       108  APERTURE_AT                             
+       112  DESCRIP                                 
+       117  TYPE                                    
+       118  REF_ORIGIN                              
+       119  ELE_ORIGIN                              
+       120  SUPERIMPOSE                             
+       121  OFFSET                                  
+       122  REFERENCE                               
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                            [private]
+       129  Start_Edge                                [private]
+       130  End_Edge                                  [private]
+       131  S_Position                                [private]
+ 
+ !---------------------------------
  29  Line_Ele            
          1  l                                         [private]
         20  DEFAULT_TRACKING_SPECIES                
-        21  spin_x                                    [private]
-        22  spin_y                                    [private]
-        23  spin_z                                    [private]
         24  LIVE_BRANCH                             
         25  PARTICLE                                
         26  GEOMETRY                                
         29  floor_set                                 [private]
-        30  spinor_theta                              [private]
-        31  spinor_phi                                [private]
-        32  spinor_xi                                 [private]
-        33  spinor_polarization                       [private]
         50  delta_ref_time                            [private]
         51  P0C_START                               
         52  E_TOT_START                             
@@ -2119,11 +2162,14 @@
         35  PZ1                                     
         36  MATCH_END_ORBIT_INPUT                   
         37  MATCH_END_ORBIT                         
-        40  c_11                                      [private]
-        41  c_12                                      [private]
-        42  c_21                                      [private]
-        43  c_22                                      [private]
-        44  gamma_c                                   [private]
+        40  C11_MAT0                                
+        41  C12_MAT0                                
+        42  C21_MAT0                                
+        43  C22_MAT0                                
+        44  C11_MAT1                                
+        45  C12_MAT1                                
+        46  C21_MAT1                                
+        47  C22_MAT1                                
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  E_tot_start                               [private]
@@ -2552,6 +2598,7 @@
         74  Scratch4                                  [private]
         75  Scratch5                                  [private]
         80  check_sum                                 [private]
+        81  X_KNOT                                  
         82  ALIAS                                   
         89  VAR                                     
        112  DESCRIP                                 
@@ -2922,13 +2969,13 @@
          4  HARMON                                  
          6  GRADIENT                                
          7  gradient_err                              [private]
-         9  VOLTAGE                                 
+         8  VOLTAGE                                 
+         9  voltage_err                               [private]
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
         18  AUTOSCALE_AMPLITUDE                     
         19  AUTOSCALE_PHASE                         
-        20  voltage_err                               [private]
         23  CAVITY_TYPE                             
         24  PHI0                                    
         25  phi0_err                                  [private]
@@ -3760,6 +3807,7 @@
   8  Taylor              
          1  L                                       
          2  TILT                                    
+         8  DELTA_E_REF                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -4116,14 +4164,14 @@
  !---------------------------------
  Index usage:
     Ix Count
-     1    52
-     2    48
-     3    22
-     4    19
-     5    22
+     1    53
+     2    49
+     3    23
+     4    20
+     5    23
      6    19
      7    19
-     8    21
+     8    26
      9     7
     10    28
     11    31
@@ -4135,85 +4183,85 @@
     17     5
     18     7
     19    11
-    20    22
-    21    20
-    22    15
-    23    16
+    20    18
+    21    18
+    22    13
+    23    14
     24    16
     25    20
     26    22
     27    11
     28     7
     29    10
-    30    13
-    31    33
-    32    12
-    33    13
-    34    43
-    35    43
-    36    45
-    37    45
-    38    44
+    30    10
+    31    30
+    32     9
+    33    10
+    34    44
+    35    44
+    36    46
+    37    46
+    38    45
     39    23
     40    25
     41    24
     42    22
     43     9
     44     6
-    45     8
-    46     6
-    47    18
+    45     9
+    46     7
+    47    19
     48     4
     49     7
-    50    50
-    51    35
-    52    36
-    53    52
-    54    52
-    55    41
-    56    40
-    57    42
-    58    42
-    59    42
-    60    42
+    50    51
+    51    36
+    52    37
+    53    53
+    54    53
+    55    42
+    56    41
+    57    43
+    58    43
+    59    43
+    60    43
     61     6
     62    26
     63    13
-    64    50
+    64    51
     65    27
     66    27
     67    27
     68    27
     69    33
     70    13
-    71    58
-    72    58
-    73    58
-    74    58
-    75    58
-    76    47
-    77    47
-    78    47
-    79    47
-    80    54
-    81    36
-    82    55
+    71    59
+    72    59
+    73    59
+    74    59
+    75    59
+    76    48
+    77    48
+    78    48
+    79    48
+    80    55
+    81    38
+    82    56
     83    31
     84    30
     85    30
     86    21
-    87    50
+    87    51
     88    37
     89    32
     90     4
-    91    51
-    92    50
-    93    50
-    94    48
-    95    47
-    96    48
-    97    47
-    98    47
+    91    52
+    92    51
+    93    51
+    94    49
+    95    48
+    96    49
+    97    48
+    98    48
     99     1
    100    30
    101     3
@@ -4222,31 +4270,31 @@
    104     3
    105    40
    106    30
-   107    45
-   108    49
+   107    46
+   108    50
    109     6
    110    27
    111    21
-   112    52
+   112    53
    113    15
    114     0
    115     1
    116     5
-   117    52
-   118    48
-   119    48
-   120    48
-   121    48
-   122    48
+   117    53
+   118    49
+   119    49
+   120    49
+   121    49
+   122    49
    123    19
    124    19
    125    19
    126    19
-   127    47
-   128    35
-   129    35
-   130    35
-   131    35
+   127    48
+   128    36
+   129    36
+   130    36
+   131    36
    132     0
    133     0
    134     0
@@ -4444,6 +4492,7 @@ Index: 1
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 2
@@ -4495,6 +4544,7 @@ Index: 2
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 3
@@ -4520,6 +4570,7 @@ Index: 3
     E_Gun               
     EM_Field            
     Detector            
+    Lens                
  
  !---------------------------------
 Index: 4
@@ -4542,6 +4593,7 @@ Index: 4
     Capillary           
     Undulator           
     Detector            
+    Lens                
  
  !---------------------------------
 Index: 5
@@ -4567,6 +4619,7 @@ Index: 5
     Undulator           
     Detector            
     Sad_Mult            
+    Lens                
  
  !---------------------------------
 Index: 6
@@ -4616,11 +4669,15 @@ Index: 7
 Index: 8
     Sbend               
     Custom              
+    Taylor              
+    RFcavity            
+    ELseparator         
     BeamBeam            
     Wiggler             
     Marker              
     Hybrid              
     Rbend               
+    Lcavity             
     Match               
     Monitor             
     Instrument          
@@ -4632,6 +4689,7 @@ Index: 8
     Crystal             
     Pipe                
     Multilayer_Mirror   
+    E_Gun               
     Undulator           
     Detector            
     Sad_Mult            
@@ -4817,12 +4875,9 @@ Index: 19
 Index: 20
     Sbend               
     Custom              
-    RFcavity            
-    ELseparator         
     BeamBeam            
     Marker              
     Rbend               
-    Lcavity             
     Def_Parameter       
     Line_Ele            
     Match               
@@ -4832,7 +4887,6 @@ Index: 20
     Crystal             
     Pipe                
     Multilayer_Mirror   
-    E_Gun               
     EM_Field            
     Photon_Init         
     Detector            
@@ -4847,8 +4901,6 @@ Index: 21
     Marker              
     Rbend               
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
     Match               
     Monitor             
     Instrument          
@@ -4867,8 +4919,6 @@ Index: 22
     Custom              
     Marker              
     Rbend               
-    Beginning_Ele       
-    Line_Ele            
     Match               
     Monitor             
     Instrument          
@@ -4887,8 +4937,6 @@ Index: 23
     Marker              
     Rbend               
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
     Monitor             
     Instrument          
     Def_Beam_Start      
@@ -5008,11 +5056,8 @@ Index: 30
     BeamBeam            
     Rbend               
     Patch               
-    Beginning_Ele       
-    Line_Ele            
     Match               
     Girder              
-    Def_Beam_Start      
     Crystal             
     Floor_Shift         
     Fiducial            
@@ -5033,8 +5078,6 @@ Index: 31
     Rbend               
     Solenoid            
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
     Match               
     Monitor             
     Instrument          
@@ -5044,7 +5087,6 @@ Index: 31
     Ecollimator         
     Girder              
     Bend_Sol_Quad       
-    Def_Beam_Start      
     Crystal             
     Pipe                
     E_Gun               
@@ -5059,11 +5101,8 @@ Index: 32
     RFcavity            
     Patch               
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
     Match               
     Girder              
-    Def_Beam_Start      
     E_Gun               
     EM_Field            
     Fiducial            
@@ -5077,11 +5116,8 @@ Index: 33
     Marker              
     Rbend               
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
     Match               
     Bend_Sol_Quad       
-    Def_Beam_Start      
     Multilayer_Mirror   
     Undulator           
  
@@ -5130,6 +5166,7 @@ Index: 34
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 35
@@ -5176,6 +5213,7 @@ Index: 35
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 36
@@ -5224,6 +5262,7 @@ Index: 36
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 37
@@ -5272,6 +5311,7 @@ Index: 37
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 38
@@ -5319,6 +5359,7 @@ Index: 38
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 39
@@ -5455,6 +5496,7 @@ Index: 45
     Sol_Quad            
     Rbend               
     Lcavity             
+    Match               
     Bend_Sol_Quad       
     Crystal             
  
@@ -5465,6 +5507,7 @@ Index: 46
     RFcavity            
     Rbend               
     Lcavity             
+    Match               
     Crystal             
  
  !---------------------------------
@@ -5482,6 +5525,7 @@ Index: 47
     Solenoid            
     Patch               
     Lcavity             
+    Match               
     Hkicker             
     Vkicker             
     Bend_Sol_Quad       
@@ -5557,6 +5601,7 @@ Index: 50
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 51
@@ -5595,6 +5640,7 @@ Index: 51
     Undulator           
     Detector            
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 52
@@ -5634,6 +5680,7 @@ Index: 52
     Undulator           
     Detector            
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 53
@@ -5689,6 +5736,7 @@ Index: 53
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 54
@@ -5744,6 +5792,7 @@ Index: 54
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 55
@@ -5788,6 +5837,7 @@ Index: 55
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 56
@@ -5831,6 +5881,7 @@ Index: 56
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 57
@@ -5876,6 +5927,7 @@ Index: 57
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 58
@@ -5921,6 +5973,7 @@ Index: 58
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 59
@@ -5966,6 +6019,7 @@ Index: 59
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 60
@@ -6011,6 +6065,7 @@ Index: 60
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 61
@@ -6118,6 +6173,7 @@ Index: 64
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 65
@@ -6351,6 +6407,7 @@ Index: 71
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 72
@@ -6412,6 +6469,7 @@ Index: 72
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 73
@@ -6473,6 +6531,7 @@ Index: 73
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 74
@@ -6534,6 +6593,7 @@ Index: 74
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 75
@@ -6595,6 +6655,7 @@ Index: 75
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 76
@@ -6645,6 +6706,7 @@ Index: 76
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 77
@@ -6695,6 +6757,7 @@ Index: 77
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 78
@@ -6745,6 +6808,7 @@ Index: 78
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 79
@@ -6795,6 +6859,7 @@ Index: 79
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 80
@@ -6852,12 +6917,15 @@ Index: 80
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 81
     Sbend               
     Quadrupole          
+    Group               
     Sextupole           
+    Overlay             
     Custom              
     Taylor              
     RFcavity            
@@ -6949,6 +7017,7 @@ Index: 82
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 83
@@ -7126,6 +7195,7 @@ Index: 87
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 88
@@ -7262,6 +7332,7 @@ Index: 91
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 92
@@ -7315,6 +7386,7 @@ Index: 92
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 93
@@ -7368,6 +7440,7 @@ Index: 93
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 94
@@ -7419,6 +7492,7 @@ Index: 94
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 95
@@ -7469,6 +7543,7 @@ Index: 95
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 96
@@ -7520,6 +7595,7 @@ Index: 96
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 97
@@ -7570,6 +7646,7 @@ Index: 97
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 98
@@ -7620,6 +7697,7 @@ Index: 98
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 99
@@ -7835,6 +7913,7 @@ Index: 107
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 108
@@ -7887,6 +7966,7 @@ Index: 108
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 109
@@ -8005,6 +8085,7 @@ Index: 112
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 113
@@ -8093,6 +8174,7 @@ Index: 117
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 118
@@ -8144,6 +8226,7 @@ Index: 118
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 119
@@ -8195,6 +8278,7 @@ Index: 119
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 120
@@ -8246,6 +8330,7 @@ Index: 120
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 121
@@ -8297,6 +8382,7 @@ Index: 121
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 122
@@ -8348,6 +8434,7 @@ Index: 122
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 123
@@ -8486,6 +8573,7 @@ Index: 127
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 128
@@ -8524,6 +8612,7 @@ Index: 128
     Sample              
     Sad_Mult            
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 129
@@ -8562,6 +8651,7 @@ Index: 129
     Sample              
     Sad_Mult            
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 130
@@ -8600,6 +8690,7 @@ Index: 130
     Sample              
     Sad_Mult            
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 131
@@ -8638,6 +8729,7 @@ Index: 131
     Sample              
     Sad_Mult            
     AC_Kicker           
+    Lens                
  
  !---------------------------------
 Index: 132
