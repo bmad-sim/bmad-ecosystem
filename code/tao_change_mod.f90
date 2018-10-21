@@ -251,7 +251,11 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   endif
 
   if (all(.not. free)) then
-    call out_io (s_error$, r_name, 'ATTRIBUTE NOT FREE TO VARY. NOTHING DONE')
+    if (e_name == 'BEAM_START' .and. a_name == 'PZ') then
+      call out_io (s_error$, r_name, 'BEAM_START[PZ] NOT FREE TO VARY SINCE RF IS ON AND THE LATTICE IS CLOSED')
+    else
+      call out_io (s_error$, r_name, 'ATTRIBUTE NOT FREE TO VARY. NOTHING DONE')
+    endif
     return
   endif
 
