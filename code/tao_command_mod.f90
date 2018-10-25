@@ -121,17 +121,19 @@ end subroutine tao_re_execute
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_cmd_split (cmd_line, n_word, cmd_word, no_extra_words, err, separator)
+! Subroutine tao_cmd_split (cmd_line, n_word, cmd_word, extra_words_is_error, err, separator)
 !
 ! This routine splits the command line into words.
 !
 ! Input: 
-!   cmd_line       -- Character(*): The command line.
-!   n_word         -- Integer: Maximum number of words to split command line into.
-!   no_extra_words -- Logical: are extra words allowed at the end?
+!   cmd_line        -- Character(*): The command line.
+!   n_word          -- Integer: Maximum number of words to split command line into.
+!   extra_words_is_error 
+!                   -- Logical: are extra words allowed at the end?
+!                        If True then err argument is set True.
 !                        If False then cmd_word(n_word) will contain everything after 
 !                        the n_word-1 word.
-!   separator      -- Character(*), optional: a list of characters that,
+!   separator       -- Character(*), optional: a list of characters that,
 !                        besides a blank space, signify a word boundary. 
 !
 ! Output:
@@ -150,7 +152,7 @@ end subroutine tao_re_execute
 ! Whitespace or a separator inside of "{}", "()", or "[]" is ignored.
 !-
 
-subroutine tao_cmd_split (cmd_line, n_word, cmd_word, no_extra_words, err, separator)
+subroutine tao_cmd_split (cmd_line, n_word, cmd_word, extra_words_is_error, err, separator)
 
 integer i, ix, nw, n_word, ix_b1, ix_b2, ix_b3
 
@@ -162,7 +164,7 @@ character(300) line
 character(1), parameter :: tab = char(9)
 
 logical err
-logical no_extra_words
+logical extra_words_is_error
 
 !
 
@@ -177,8 +179,14 @@ nw_loop: do
   if (ix == 0) exit
 
   ! If extra words allowed, everything left goes into cmd_word(n_word)
-  if (nw == n_word - 1 .and. .not. no_extra_words) then
+  if (nw == n_word - 1 .and. .not. extra_words_is_error) then
     nw=nw+1; cmd_word(nw) = trim(line)
+    return
+  endif
+
+  if (nw == n_word) then
+    call out_io (s_error$, r_name, 'EXTRA STUFF ON COMMAND LINE: ' // line)
+    err = .true.
     return
   endif
 
@@ -213,6 +221,7 @@ nw_loop: do
         if (i /= 1) then
           nw=nw+1; cmd_word(nw) = line(1:i-1)
           line = line(i:)
+          if (nw == n_word - 1 .and. .not. extra_words_is_error) cycle nw_loop 
         endif
         nw=nw+1; cmd_word(nw) = line(1:1)
         line = line(2:)
@@ -239,12 +248,6 @@ nw_loop: do
 
 enddo nw_loop
 
-!  
-
-if (no_extra_words .and. nw > n_word) then
-  call out_io (s_error$, r_name, 'EXTRA STUFF ON COMMAND LINE: ' // line)
-  err = .true.
-endif
 
 end subroutine tao_cmd_split
 

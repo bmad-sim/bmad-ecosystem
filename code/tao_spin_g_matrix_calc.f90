@@ -62,7 +62,7 @@ if (allocated(scratch%spin_map)) then
   do i = 1, size(scratch%spin_map)
     sm => scratch%spin_map(i)
     if (sm%ix_ele /= ix_ele .or. sm%ix_ref /= ix_ref .or. sm%ix_uni /= u%ix_uni) cycle
-    if (ix_ref > -1 .and. all(sm%axis0%n0 /= datum%spin_axis%n0) .and. all(sm%axis0%l /= datum%spin_axis%l)) cycle
+    if (any(sm%axis0%n0 /= datum%spin_axis%n0) .or. any(sm%axis0%l /= datum%spin_axis%l)) cycle
     spin_map => sm
     valid_value = .true.
     return
@@ -94,10 +94,10 @@ ix_r = ix_ref
 if (ix_r < 0) ix_r = ix_ele
 
 if (ix_r >= ix_ele) then
-  call concat_this (ix_r, branch%n_ele_track)
-  call concat_this (0, ix_ele)
+  call concat_this (q_map, ix_r, branch%n_ele_track)
+  call concat_this (q_map, 0, ix_ele)
 else
-  call concat_this (ix_r, ix_ele)
+  call concat_this (q_map, ix_r, ix_ele)
 endif
 
 quat0 = q_map%q(:, 0)
@@ -178,9 +178,9 @@ valid_value = .true.
 !--------------------------------------------
 contains
 
-subroutine concat_this (ix1, ix2)
+subroutine concat_this (q_map, ix1, ix2)
 
-type (q_linear) q_ele
+type (q_linear) q_map, q_ele
 type (ele_struct), pointer :: ele
 type (taylor_struct), pointer :: st
 real(rp) vec0(6), mat6(6,6)
