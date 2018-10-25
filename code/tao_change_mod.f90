@@ -246,7 +246,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     endif
   else
     do i = 1, nd
-      free(i) = attribute_free (eles(i)%ele, a_name, .false.)
+      free(i) = attribute_free (eles(i)%ele, a_name, .false., dependent_attribs_free = .true.)
     end do
   endif
 
