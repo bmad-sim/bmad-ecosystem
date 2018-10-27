@@ -4325,7 +4325,7 @@ endif
 
 bn = 0
 an = 0
-n_max = 0
+if (present(n_max)) n_max = 0
 add_kick = .true.
 add_multipoles = .true.
 
