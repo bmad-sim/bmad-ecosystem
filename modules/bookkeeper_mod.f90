@@ -125,7 +125,7 @@ if (this_slave%lord_status == super_lord$) then
   this_slave2 => pointer_to_slave (this_slave, this_slave%n_slave)
   ix_max = this_slave2%ix_ele
   branch => lat%branch(this_slave2%ix_branch)
-elseif (this_slave%ix_ele < lat%n_ele_track) then
+elseif (this_slave%ix_ele < this_slave%branch%n_ele_track) then
   ix_min = this_slave%ix_ele
   ix_max = this_slave%ix_ele
   branch => lat%branch(this_slave%ix_branch)
