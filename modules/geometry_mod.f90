@@ -295,7 +295,7 @@ real(rp), optional :: len_scale
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dtheta
 real(rp) r0(3), w0_mat(3,3), rot_angle, graze_angle_in, graze_angle_out
 real(rp) chord_len, angle, ang, leng, rho, len_factor
-real(rp) theta, phi, psi, tlt, dz(3), z0(3), z_cross(3)
+real(rp) theta, phi, psi, tlt, dz(3), z0(3), z_cross(3), eps
 real(rp) :: w_mat(3,3), w_mat_inv(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
 
 integer i, key, n_loc, ix_pass, n_links, ix_pole_max
@@ -703,8 +703,10 @@ endif
 floor%w = w_mat 
 call update_floor_angles(floor, floor0)
 
-if (logic_option(.false., set_ok) .and. (any(floor%r /= old_floor%r) .or. floor%theta /= old_floor%theta .or. &
-                    floor%phi /= old_floor%phi .or. floor%psi /= old_floor%psi)) then
+eps = bmad_com%significant_length
+if (logic_option(.false., set_ok) .and. (any(abs(floor%r - old_floor%r) > eps) .or. &
+              abs(floor%theta - old_floor%theta) > eps .or. abs(floor%phi - old_floor%phi) > eps .or. &
+              abs(floor%psi - old_floor%psi) > eps)) then
   call set_ele_status_stale (ele, control_group$, .false.)
 endif
 
