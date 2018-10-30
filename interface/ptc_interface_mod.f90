@@ -3280,7 +3280,8 @@ if (present(steps)) then
   ptc_key%nstep = steps
 elseif (leng == 0) then
   ptc_key%nstep = 1
-elseif (ele%key == taylor$ .or. ele%key == match$ .or. ele%key == multipole$ .or. ele%key == ab_multipole$) then
+elseif (ele%key == taylor$ .or. ele%key == match$ .or. ele%key == multipole$ .or. &
+                                ele%key == ab_multipole$ .or. ele%key == patch$) then
   ptc_key%nstep = 1
   leng = 0  ! Problem is that PTC will not ignore the length in tracking which is different from the Bmad convention.
 else
