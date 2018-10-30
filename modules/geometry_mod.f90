@@ -1,3 +1,4 @@
+
 module geometry_mod
 
 use bmad_interface
@@ -145,8 +146,8 @@ contains
 subroutine propagate_geometry (ie, dir, stale)
 
 type (floor_position_struct) floor0
-type (ele_pointer_struct), allocatable :: chain_ele(:)
-
+type (ele_pointer_struct), allocatable, target :: chain_ele(:)
+type (ele_struct), pointer :: this_ele
 integer ie, dir, ix, ix_pass, n_links, k
 logical stale
 
@@ -196,7 +197,9 @@ endif
 call multipass_chain(ele, ix_pass, n_links, chain_ele)
 if (ix_pass > 0) then
   do k = ix_pass+1, n_links
-    chain_ele(k)%ele%bookkeeping_state%floor_position = stale$
+    this_ele => chain_ele(k)%ele
+    this_ele%bookkeeping_state%floor_position = stale$
+    lat%branch(this_ele%ix_branch)%param%bookkeeping_state%floor_position = stale$
   enddo
 endif
 
