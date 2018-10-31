@@ -1770,7 +1770,10 @@ void set_CPP_cartesian_map_term1_test_pattern (CPP_cartesian_map_term1& C, int i
   rhs = 7 + offset; C.phi_z = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 8 + offset; C.type = rhs;
+  rhs = 8 + offset; C.family = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 9 + offset; C.form = rhs;
 
 
 }

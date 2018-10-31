@@ -2728,7 +2728,9 @@ rhs = 6 + offset; F%y0 = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 7 + offset; F%phi_z = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 8 + offset; F%type = rhs
+rhs = 8 + offset; F%family = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 9 + offset; F%form = rhs
 
 end subroutine set_cartesian_map_term1_test_pattern
 

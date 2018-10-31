@@ -467,7 +467,8 @@ bool operator== (const CPP_cartesian_map_term1& x, const CPP_cartesian_map_term1
   is_eq = is_eq && (x.x0 == y.x0);
   is_eq = is_eq && (x.y0 == y.y0);
   is_eq = is_eq && (x.phi_z == y.phi_z);
-  is_eq = is_eq && (x.type == y.type);
+  is_eq = is_eq && (x.family == y.family);
+  is_eq = is_eq && (x.form == y.form);
   return is_eq;
 };
 

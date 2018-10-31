@@ -1284,7 +1284,8 @@ public:
   Real x0;
   Real y0;
   Real phi_z;
-  Int type;
+  Int family;
+  Int form;
 
   CPP_cartesian_map_term1() :
     coef(0.0),
@@ -1294,7 +1295,8 @@ public:
     x0(0.0),
     y0(0.0),
     phi_z(0.0),
-    type(0)
+    family(0),
+    form(0)
     {}
 
   ~CPP_cartesian_map_term1() {
@@ -2519,7 +2521,7 @@ public:
     bunch_charge(1),
     n_bunch(1),
     species(),
-    init_spin(false),
+    init_spin(true),
     full_6d_coupling_calc(false),
     use_lattice_center(false),
     use_t_coords(false),

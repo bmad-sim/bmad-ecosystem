@@ -1077,19 +1077,20 @@ extern "C" void cartesian_map_term1_to_c (const Opaque_cartesian_map_term1_class
 
 // c_side.to_f2_arg
 extern "C" void cartesian_map_term1_to_f2 (Opaque_cartesian_map_term1_class*, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&);
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&);
 
 extern "C" void cartesian_map_term1_to_f (const CPP_cartesian_map_term1& C, Opaque_cartesian_map_term1_class* F) {
 
   // c_side.to_f2_call
-  cartesian_map_term1_to_f2 (F, C.coef, C.kx, C.ky, C.kz, C.x0, C.y0, C.phi_z, C.type);
+  cartesian_map_term1_to_f2 (F, C.coef, C.kx, C.ky, C.kz, C.x0, C.y0, C.phi_z, C.family,
+      C.form);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void cartesian_map_term1_to_c2 (CPP_cartesian_map_term1& C, c_Real& z_coef, c_Real&
     z_kx, c_Real& z_ky, c_Real& z_kz, c_Real& z_x0, c_Real& z_y0, c_Real& z_phi_z, c_Int&
-    z_type) {
+    z_family, c_Int& z_form) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.coef = z_coef;
@@ -1106,7 +1107,9 @@ extern "C" void cartesian_map_term1_to_c2 (CPP_cartesian_map_term1& C, c_Real& z
   // c_side.to_c2_set[real, 0, NOT]
   C.phi_z = z_phi_z;
   // c_side.to_c2_set[integer, 0, NOT]
-  C.type = z_type;
+  C.family = z_family;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.form = z_form;
 }
 
 //--------------------------------------------------------------------
