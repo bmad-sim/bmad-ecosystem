@@ -7,10 +7,12 @@
 
 \textit{[Developed by Michael Saelim]}
 
-To better visualize the evolution of a particle beam, it is 
-sometimes convenient to initialize the beam with
-the particles regularly spaced. The following two algorithms
-are implemented in \bmad for such a purpose.
+To better visualize the evolution of a particle beam, it is sometimes convenient to initialize the
+beam with the particles regularly spaced. The following two algorithms are implemented in \bmad for
+such a purpose.
+
+See Section~\vn{s:beam.init} for details on the standard input format used by \bmad based programs for
+reading in bunch initialization parameters.
 
 %----------------------------------------------
 \subsection{Elliptical Phase Space Distribution}
@@ -184,12 +186,92 @@ The weight of each particle is
 where $N_{tot}$ is the total number of particles
 
 %-----------------------------------------------------------------
+\section{Touschek Scattering}
+\label{s:touschek}
+\index{Touschek Scattering}
+
+\textit{[Developed by Michael Ehrlichman]}
+
+Touschek scattering occurs when a single
+scattering event between two particles in the same beam transfers
+transverse momentum to longitudinal momentum, and the resulting change
+in longitudinal momentum results in the loss of one or both particles.
+In the case of storage rings, these losses impose a beam lifetime.  In
+low-emittance storage rings, Touschek scattering can be the dominant
+mechanism for particle loss.  In the case of linear accelerators,
+these losses generate radiation in the accelerator tunnel.  When the
+scattered particles collide with the beam chamber, x-rays are produced
+which can damage equipment and impose a biohazard.  Studies of
+Touschek scattering typically look at beam lifetime and locations
+where scattering occurs and where particles are lost.
+
+A commonly utilized theory for studying Touschek scattering is from
+Piwinski \cite{b:piwinski}.  A basic outline of the derivation is,
+\begin{enumerate}
+\item Scatter two particles from a bunch in their COM frame using the relativistic
+Moller cross-section.
+\item Boost from COM frame to lab frame.  Changes to longitudinal momentum end up 
+amplified by a factor of $\gamma$.
+\item Integrate over 3D Gaussian distribution of particle positions and angles.
+\end{enumerate}
+During the derivation many approximations are made which lead to a relatively simple
+formula.  The integration is set up such that only those collisions which will
+result in particle loss are counted.  The formula takes the momentum aperture
+as a parameter.  The resulting formula is reproduced here to give the reader
+an idea of what influences the scattering rate, and how one might go about evaluating
+the formula,
+\begin{multline}
+R=\frac{r_e^2 c\beta_x\beta_y\sigma_h N_p^2}{8\sqrt\pi\beta^2\gamma^4\sigma_{x\beta}^2
+\sigma_{y\beta}^2\sigma_s\sigma_p}\int_{\tau_m}^\infty\Bigg(
+\left(2+\frac{1}{\tau}\right)^2\left(\frac{\tau/\tau_m}{1+\tau}-1\right)+1
+-\frac{\sqrt{1+\tau}}{\sqrt{\tau/\tau_m}}\\
+-\frac{1}{2\tau}\left(4+\frac{1}{\tau}\right)\ln\frac{\tau/\tau_m}{1+\tau}\Bigg)
+\frac{\sqrt\tau}{\sqrt{1+\tau}}e^{-B_1\tau}I_0\left[B_2\tau\right]d\tau,
+\end{multline}
+where $\tau_m=\beta^2\delta_m^2$ and $\delta_m$ is the momentum
+aperture.  This formula gives the rate at which particles are
+scattered out of the bunch.  It is assumed that two particles are lost
+per scattering event, one with too much energy and one with too little
+energy.  If a machine with an unsymmetric momentum aperture is being
+studied, then the formula should be evaluated twice, once for each
+aperture, and the results averaged.  Refer to \cite{b:piwinski} for
+definitions of the parameters involved.  This formula is implemented
+in BMAD as part of the {\tt touschek\_mod} module.
+
+Different formulas for calculating the Touschek scattering rate exist
+elsewhere in the literature.  For example,
+Wiedemann~\cite{b:wiedemann}, presents a formula with a simpler
+integrand.  This formula, originally from a paper by
+LeDuff~\cite{b:leduff}, is derived in a fashion similar to Piwinski
+except that the formula does not take dispersion into account and uses
+a non-relativistic scattering cross-section.  Since Piwinski's formula
+is the most robust, it is the one used in \bmad.
+
+Particles are lost from Touschek scattering due to two effects.  In
+storage rings, there is a momentum aperture defined by the RF system
+that is often referred to as the RF bucket.  If the $\delta p$
+imparted by a Touschek scattering event exceeds this RF bucket, then
+the particle will no longer undergo synchrotron oscillations with the
+rest of the bunch and will coast through the accelerator.  Second, if
+the Touschek scattering event occurs in a dispersive region, the
+scattered particles will take on a finite $J$ and undergo betatron
+oscillations.  These oscillations can be large in amplitude and may
+cause the particles to collide with the beam pipe.  To first order,
+the amplitude of $J$ due to a scattering event that imparts a momentum
+deviation of $\Delta p$ is,
+\begin{equation}
+  J\approx\gamma_0{\cal H}_0\frac{\Delta p^2}{2},
+\end{equation}
+where $\gamma_0$ is relativistic $\gamma$ and ${\cal H}_0$ is the dispersion invariant.
+
+%-----------------------------------------------------------------
 \section{Macroparticles}
 \label{s:macro}
 \index{macroparticles|hyperbf}
 
-{\em Note: The macroparticle tracking code is not currently maintained
-in favor of tracking an ensemble of particles.}
+{\em Note: The macroparticle tracking code is not currently maintained in favor of tracking an
+ensemble of particles where each particle is specified by a position without a sigma matrix. The 
+following is present for historical reference only.}
 
 A macroparticle\cite{b:transport.appendix} is
 represented by a centroid position $\bfrbar$ and a $6 \times 6$
@@ -285,84 +367,4 @@ distribution where the energy width $dE_{mp}$ is
 \Begineq
   dE_{mp} = \frac{2 \, \sigma_E \, N_{\sigma E}}{n_{mp}}
 \Endeq
-
-%-----------------------------------------------------------------
-\section{Touschek Scattering}
-\label{s:touschek}
-\index{Touschek Scattering}
-
-\textit{[Developed by Michael Ehrlichman]}
-
-Touschek scattering occurs when a single
-scattering event between two particles in the same beam transfers
-transverse momentum to longitudinal momentum, and the resulting change
-in longitudinal momentum results in the loss of one or both particles.
-In the case of storage rings, these losses impose a beam lifetime.  In
-low-emittance storage rings, Touschek scattering can be the dominant
-mechanism for particle loss.  In the case of linear accelerators,
-these losses generate radiation in the accelerator tunnel.  When the
-scattered particles collide with the beam chamber, x-rays are produced
-which can damage equipment and impose a biohazard.  Studies of
-Touschek scattering typically look at beam lifetime and locations
-where scattering occurs and where particles are lost.
-
-A commonly utilized theory for studying Touschek scattering is from
-Piwinski \cite{b:piwinski}.  A basic outline of the derivation is,
-\begin{enumerate}
-\item Scatter two particles from a bunch in their COM frame using the relativistic
-Moller cross-section.
-\item Boost from COM frame to lab frame.  Changes to longitudinal momentum end up 
-amplified by a factor of $\gamma$.
-\item Integrate over 3D Gaussian distribution of particle positions and angles.
-\end{enumerate}
-During the derivation many approximations are made which lead to a relatively simple
-formula.  The integration is set up such that only those collisions which will
-result in particle loss are counted.  The formula takes the momentum aperture
-as a parameter.  The resulting formula is reproduced here to give the reader
-an idea of what influences the scattering rate, and how one might go about evaluating
-the formula,
-\begin{multline}
-R=\frac{r_e^2 c\beta_x\beta_y\sigma_h N_p^2}{8\sqrt\pi\beta^2\gamma^4\sigma_{x\beta}^2
-\sigma_{y\beta}^2\sigma_s\sigma_p}\int_{\tau_m}^\infty\Bigg(
-\left(2+\frac{1}{\tau}\right)^2\left(\frac{\tau/\tau_m}{1+\tau}-1\right)+1
--\frac{\sqrt{1+\tau}}{\sqrt{\tau/\tau_m}}\\
--\frac{1}{2\tau}\left(4+\frac{1}{\tau}\right)\ln\frac{\tau/\tau_m}{1+\tau}\Bigg)
-\frac{\sqrt\tau}{\sqrt{1+\tau}}e^{-B_1\tau}I_0\left[B_2\tau\right]d\tau,
-\end{multline}
-where $\tau_m=\beta^2\delta_m^2$ and $\delta_m$ is the momentum
-aperture.  This formula gives the rate at which particles are
-scattered out of the bunch.  It is assumed that two particles are lost
-per scattering event, one with too much energy and one with too little
-energy.  If a machine with an unsymmetric momentum aperture is being
-studied, then the formula should be evaluated twice, once for each
-aperture, and the results averaged.  Refer to \cite{b:piwinski} for
-definitions of the parameters involved.  This formula is implemented
-in BMAD as part of the {\tt touschek\_mod} module.
-
-Different formulas for calculating the Touschek scattering rate exist
-elsewhere in the literature.  For example,
-Wiedemann~\cite{b:wiedemann}, presents a formula with a simpler
-integrand.  This formula, originally from a paper by
-LeDuff~\cite{b:leduff}, is derived in a fashion similar to Piwinski
-except that the formula does not take dispersion into account and uses
-a non-relativistic scattering cross-section.  Since Piwinski's formula
-is the most robust, it is the one used in \bmad.
-
-Particles are lost from Touschek scattering due to two effects.  In
-storage rings, there is a momentum aperture defined by the RF system
-that is often referred to as the RF bucket.  If the $\delta p$
-imparted by a Touschek scattering event exceeds this RF bucket, then
-the particle will no longer undergo synchrotron oscillations with the
-rest of the bunch and will coast through the accelerator.  Second, if
-the Touschek scattering event occurs in a dispersive region, the
-scattered particles will take on a finite $J$ and undergo betatron
-oscillations.  These oscillations can be large in amplitude and may
-cause the particles to collide with the beam pipe.  To first order,
-the amplitude of $J$ due to a scattering event that imparts a momentum
-deviation of $\Delta p$ is,
-\begin{equation}
-  J\approx\gamma_0{\cal H}_0\frac{\Delta p^2}{2},
-\end{equation}
-where $\gamma_0$ is relativistic $\gamma$ and ${\cal H}_0$ is the dispersion invariant.
-
 

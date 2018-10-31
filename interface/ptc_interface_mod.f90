@@ -3929,7 +3929,7 @@ if ((associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$) .or. ele
   ptc_fibre%mag%wi%w%f(1:n_term)     = cm%ptr%term%phi_z + s_rel * cm%ptr%term%kz
   ptc_fibre%mag%wi%w%x0(1:n_term)    = cm%ptr%term%x0
   ptc_fibre%mag%wi%w%y0(1:n_term)    = cm%ptr%term%y0
-  ptc_fibre%mag%wi%w%form(1:n_term)  = cm%ptr%term%type
+  ptc_fibre%mag%wi%w%form(1:n_term)  = 3*(cm%ptr%term%family - 1) + cm%ptr%term%form
 
   if (ele%is_on) then
     do i = 1, size(ptc_fibre%mag%wi%w%a(1:n_term))

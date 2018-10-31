@@ -242,7 +242,7 @@ real(rp), pointer :: r_ptr
 
 integer i, i2, j, k, n, nn, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef, switch
 integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_ptr, i_term, ib, ie, im
-integer ix_bounds(2), iy_bounds(2), i_vec(2), family, n_sec, key
+integer ix_bounds(2), iy_bounds(2), i_vec(2), n_sec, key
 
 character(40) :: word, str_ix, attrib_word, word2, name
 character(40), allocatable :: name_list(:)
@@ -1378,13 +1378,13 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
   call parse_evaluate_value (err_str, ct_term%phi_z, lat, delim, delim_found, err_flag, ',}'); if (err_flag) return
 
   old_style_input = .true.
-  family = y_family$
+  ct_term%family = family_y$
 
   if (delim == ',') then
     ct_term%x0 = ct_term%phi_z
     call parse_evaluate_value (err_str, ct_term%y0, lat, delim, delim_found, err_flag, ','); if (err_flag) return
     call parse_evaluate_value (err_str, ct_term%phi_z, lat, delim, delim_found, err_flag, ','); if (err_flag) return
-    call get_switch ('FAMILY', ['X ', 'Y ', 'QU', 'SQ'], family, err_flag, ele, delim, delim_found); if (err_flag) return
+    call get_switch ('FAMILY', ['Y ', 'X ', 'QU', 'SQ'], ct_term%family, err_flag, ele, delim, delim_found); if (err_flag) return
     if (.not. expect_this ('}', .true., .false., 'AFTER "FAMILY" SWITCH', ele, delim, delim_found)) return
     old_style_input = .false.
     call parser_error ('"HYBRID" STYLE WIGGLER TERMS DEPRECATED. PLEASE CONVERT TO CARTESIAN_MAP FORM.', level = s_warn$)
@@ -1396,26 +1396,16 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
   tol = 1d-5 * (kx**2 + ky**2 + kz**2)
 
   if (abs(ky**2 - kx**2 - kz**2) < tol) then
-    select case (family)
-    case (x_family$);   ct_term%type = hyper_y_family_x$
-    case (y_family$);   ct_term%type = hyper_y_family_y$
-    case (qu_family$);  ct_term%type = hyper_y_family_qu$
-    case (sq_family$);  ct_term%type = hyper_y_family_sq$
+    ct_term%form = hyper_y$
     ky = sign_of(ky) * sqrt(kx**2 + kz**2)
-    end select
 
     if (old_style_input) then
       if (ct_term%kx == 0) ct_term%kx = 1d-30  ! Something small to prevent divide by zero problems.
     endif
 
   elseif (abs(ky**2 + kx**2 - kz**2) < tol) then
-    select case (family)
-    case (x_family$);   ct_term%type = hyper_xy_family_x$
-    case (y_family$);   ct_term%type = hyper_xy_family_y$
-    case (qu_family$);  ct_term%type = hyper_xy_family_qu$
-    case (sq_family$);  ct_term%type = hyper_xy_family_sq$
+    ct_term%form = hyper_xy$
     kz = sign_of(kz) * sqrt(kx**2 + ky**2)
-    end select
 
     if (old_style_input) then
       ct_term%coef = ct_term%coef * ct_term%kz / ct_term%ky
@@ -1424,13 +1414,8 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
     endif
 
   elseif (abs(ky**2 - kx**2 + kz**2) < tol) then
-    select case (family)
-    case (x_family$);   ct_term%type = hyper_x_family_x$
-    case (y_family$);   ct_term%type = hyper_x_family_y$
-    case (qu_family$);  ct_term%type = hyper_x_family_qu$
-    case (sq_family$);  ct_term%type = hyper_x_family_sq$
+    ct_term%form = hyper_x$
     kx = sign_of(kx) * sqrt(ky**2 + kz**2)
-    end select
 
     if (old_style_input) then
       ct_term%coef = ct_term%coef * ct_term%kx / ct_term%ky
@@ -4928,7 +4913,12 @@ endif
 ! ix_insert is used for positioning zero length super_lords in case
 ! They are next to an element which is also zero length.
 
-if (ref_ele%value(l$) == 0 .and. super_ele%value(l$) == 0 .and. pele%offset == 0) then
+! First special case: A null_ele that has been moved to the lord list
+
+if (ref_ele%key == null_ele$ .and. ref_ele%ix_branch == 0 .and. ref_ele%ix_ele > lat%n_ele_track) then
+  ix_insert = -1  ! Will be ignored 
+
+elseif (ref_ele%value(l$) == 0 .and. super_ele%value(l$) == 0 .and. pele%offset == 0) then
   if (ref_ele%ix_ele == 0) then  ! Automatically must be at downstream end.
     ix_insert = 0
   elseif (pele%ref_pt == anchor_beginning$) then
@@ -6893,7 +6883,7 @@ real(rp) kx, ky, kz, tol
 
 complex(rp), pointer :: c_ptr(:)
 
-integer n, ix_word, i_term, ib, ie, im, ix, family
+integer n, ix_word, i_term, ib, ie, im, ix
 
 character(80) err_str
 character(40) word, word2, name, attrib_name
@@ -6995,7 +6985,7 @@ do
     call parse_evaluate_value (err_str, tm%x0, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
     call parse_evaluate_value (err_str, tm%y0, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
     call parse_evaluate_value (err_str, tm%phi_z, lat, delim, delim_found, err_flag, ','); if (err_flag) return
-    call get_switch ('FAMILY', ['X ', 'Y ', 'QU', 'SQ'], family, err_flag, ele, delim, delim_found); if (err_flag) return
+    call get_switch ('FAMILY', ['Y ', 'X ', 'QU', 'SQ'], tm%family, err_flag, ele, delim, delim_found); if (err_flag) return
     if (.not. expect_this ('}', .true., .false., 'AFTER "FAMILY" SWITCH', ele, delim, delim_found)) return
     if (.not. expect_one_of(',}', .false., ele, delim, delim_found)) return
 
@@ -7005,31 +6995,16 @@ do
     tol = 1d-5 * (kx**2 + ky**2 + kz**2)
 
     if (abs(ky**2 - kx**2 - kz**2) < tol) then
-      select case (family)
-      case (x_family$);   tm%type = hyper_y_family_x$
-      case (y_family$);   tm%type = hyper_y_family_y$
-      case (qu_family$);  tm%type = hyper_y_family_qu$
-      case (sq_family$);  tm%type = hyper_y_family_sq$
+      tm%form = hyper_y$
       ky = sign_of(ky) * sqrt(kx**2 + kz**2)
-      end select
 
     elseif (abs(ky**2 + kx**2 - kz**2) < tol) then
-      select case (family)
-      case (x_family$);   tm%type = hyper_xy_family_x$
-      case (y_family$);   tm%type = hyper_xy_family_y$
-      case (qu_family$);  tm%type = hyper_xy_family_qu$
-      case (sq_family$);  tm%type = hyper_xy_family_sq$
+      tm%form = hyper_xy$
       kz = sign_of(kz) * sqrt(kx**2 + ky**2)
-      end select
 
     elseif (abs(ky**2 - kx**2 + kz**2) < tol) then
-      select case (family)
-      case (x_family$);   tm%type = hyper_x_family_x$
-      case (y_family$);   tm%type = hyper_x_family_y$
-      case (qu_family$);  tm%type = hyper_x_family_qu$
-      case (sq_family$);  tm%type = hyper_x_family_sq$
+      tm%form = hyper_x$
       kx = sign_of(kx) * sqrt(ky**2 + kz**2)
-      end select
 
     else
       call parser_error ('CARTESIAN_MAP TERM DOES NOT HAVE CONSISTANT Kx, Ky, and Kz', &

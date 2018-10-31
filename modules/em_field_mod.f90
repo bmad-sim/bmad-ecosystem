@@ -725,55 +725,60 @@ case(fieldmap$)
         ct_term => ct_map%ptr%term(i)
         sgn_x = 1; sgn_y = 1; sgn_z = 1
 
-        select case (ct_term%type)
-        case (hyper_y_family_x$, hyper_y_family_y$, hyper_y_family_qu$, hyper_y_family_sq$)
+        select case (ct_term%form)
+        case (hyper_y$)
           coef = ct_term%coef / ct_term%ky
           c_x = cos(ct_term%kx * (x + ct_term%x0))
           s_x = sin(ct_term%kx * (x + ct_term%x0))
           c_y = cosh (ct_term%ky * (y + ct_term%y0))
           s_y = sinh (ct_term%ky * (y + ct_term%y0))
-          if (ct_term%type == hyper_y_family_y$)  sgn_x = -1
-          if (ct_term%type == hyper_y_family_sq$) sgn_x = -1
-          if (ct_term%type == hyper_y_family_sq$) sgn_z = -1
+          select case (ct_term%family)
+          case (family_y$);  sgn_x = -1
+          case (family_sq$); sgn_x = -1; sgn_z = -1
+          end select
           trig_x = -1; trig_y = 1
 
-        case (hyper_xy_family_x$, hyper_xy_family_y$, hyper_xy_family_qu$, hyper_xy_family_sq$)
+        case (hyper_xy$)
           coef = ct_term%coef / ct_term%kz
           c_x = cosh(ct_term%kx * (x + ct_term%x0))
           s_x = sinh(ct_term%kx * (x + ct_term%x0))
           c_y = cosh (ct_term%ky * (y + ct_term%y0))
           s_y = sinh (ct_term%ky * (y + ct_term%y0))
-          if (ct_term%type == hyper_xy_family_sq$) sgn_z = -1
+          select case (ct_term%family)
+          case (family_sq$); sgn_z = -1
+          end select
           trig_x = 1; trig_y = 1
 
-        case (hyper_x_family_x$, hyper_x_family_y$, hyper_x_family_qu$, hyper_x_family_sq$)
+        case (hyper_x$)
           coef = ct_term%coef / ct_term%kx
           c_x = cosh(ct_term%kx * (x + ct_term%x0))
           s_x = sinh(ct_term%kx * (x + ct_term%x0))
           c_y = cos (ct_term%ky * (y + ct_term%y0))
           s_y = sin (ct_term%ky * (y + ct_term%y0))
-          if (ct_term%type == hyper_x_family_x$)  sgn_y = -1
-          if (ct_term%type == hyper_x_family_sq$) sgn_x = -1
+          select case (ct_term%family)
+          case (family_x$);  sgn_y = -1
+          case (family_sq$); sgn_x = -1
+          end select
           trig_x = 1; trig_y = -1
         end select
 
         c_z = cos (ct_term%kz * z + ct_term%phi_z)
         s_z = sin (ct_term%kz * z + ct_term%phi_z)
 
-        select case (ct_term%type)
-        case (hyper_y_family_x$, hyper_xy_family_x$, hyper_x_family_x$)
+        select case (ct_term%family)
+        case (family_x$)
           fld(1) = fld(1) + coef  * ct_term%kx * c_x * c_y * c_z
           fld(2) = fld(2) + coef  * ct_term%ky * s_x * s_y * c_z * sgn_y
           fld(3) = fld(3) - coef  * ct_term%kz * s_x * c_y * s_z
-        case (hyper_y_family_y$, hyper_xy_family_y$, hyper_x_family_y$)
+        case (family_y$)
           fld(1) = fld(1) + coef  * ct_term%kx * s_x * s_y * c_z * sgn_x
           fld(2) = fld(2) + coef  * ct_term%ky * c_x * c_y * c_z
           fld(3) = fld(3) - coef  * ct_term%kz * c_x * s_y * s_z
-        case (hyper_y_family_qu$, hyper_xy_family_qu$, hyper_x_family_qu$)
+        case (family_qu$)
           fld(1) = fld(1) + coef  * ct_term%kx * c_x * s_y * c_z
           fld(2) = fld(2) + coef  * ct_term%ky * s_x * c_y * c_z
           fld(3) = fld(3) - coef  * ct_term%kz * s_x * s_y * s_z
-        case (hyper_y_family_sq$, hyper_xy_family_sq$, hyper_x_family_sq$)
+        case (family_sq$)
           fld(1) = fld(1) + coef  * ct_term%kx * s_x * c_y * c_z * sgn_x
           fld(2) = fld(2) + coef  * ct_term%ky * c_x * s_y * c_z
           fld(3) = fld(3) + coef  * ct_term%kz * c_x * c_y * s_z * sgn_z
@@ -781,8 +786,8 @@ case(fieldmap$)
 
         if (do_df_calc) then
           dfield_computed = .true.
-          select case (ct_term%type)
-          case (hyper_y_family_x$, hyper_xy_family_x$, hyper_x_family_x$)
+          select case (ct_term%family)
+          case (family_x$)
             ff = coef * ct_term%kx
             dfld(1,1) = dfld(1,1) + ff * ct_term%kx * s_x * c_y * c_z * trig_x
             dfld(2,1) = dfld(2,1) + ff * ct_term%ky * c_x * s_y * c_z * sgn_y
@@ -795,7 +800,7 @@ case(fieldmap$)
             dfld(1,3) = dfld(1,3) - ff * ct_term%kx * c_x * c_y * s_z
             dfld(2,3) = dfld(2,3) - ff * ct_term%ky * s_x * s_y * s_z * sgn_y 
             dfld(3,3) = dfld(3,3) - ff * ct_term%kz * s_x * c_y * c_z
-          case (hyper_y_family_y$, hyper_xy_family_y$, hyper_x_family_y$)
+          case (family_y$)
             ff = coef * ct_term%kx
             dfld(1,1) = dfld(1,1) + ff * ct_term%kx * c_x * s_y * c_z * sgn_x
             dfld(2,1) = dfld(2,1) + ff * ct_term%ky * s_x * c_y * c_z * trig_x
@@ -808,7 +813,7 @@ case(fieldmap$)
             dfld(1,3) = dfld(1,3) - ff * ct_term%kx * s_x * s_y * s_z * sgn_x
             dfld(2,3) = dfld(2,3) - ff * ct_term%ky * c_x * c_y * s_z 
             dfld(3,3) = dfld(3,3) - ff * ct_term%kz * c_x * s_y * c_z 
-          case (hyper_y_family_qu$, hyper_xy_family_qu$, hyper_x_family_qu$)
+          case (family_qu$)
             ff = coef * ct_term%kx
             dfld(1,1) = dfld(1,1) + ff * ct_term%kx * s_x * s_y * c_z * trig_x
             dfld(2,1) = dfld(2,1) + ff * ct_term%ky * c_x * c_y * c_z 
@@ -821,7 +826,7 @@ case(fieldmap$)
             dfld(1,3) = dfld(1,3) - ff * ct_term%kx * c_x * s_y * s_z
             dfld(2,3) = dfld(2,3) - ff * ct_term%ky * s_x * c_y * s_z 
             dfld(3,3) = dfld(3,3) - ff * ct_term%kz * s_x * s_y * c_z 
-          case (hyper_y_family_sq$, hyper_xy_family_sq$, hyper_x_family_sq$)
+          case (family_sq$)
             ff = coef * ct_term%kx
             dfld(1,1) = dfld(1,1) + ff * ct_term%kx * c_x * c_y * c_z * sgn_x
             dfld(2,1) = dfld(2,1) + ff * ct_term%ky * s_x * s_y * c_z * trig_x
@@ -839,14 +844,14 @@ case(fieldmap$)
 
         if (logic_option(.false., calc_potential)) then
           coef = ct_term%coef 
-          select case (ct_term%type)
-          case (hyper_y_family_x$, hyper_xy_family_x$, hyper_x_family_x$)
+          select case (ct_term%family)
+          case (family_x$)
             if (abs(ct_term%ky * (y + ct_term%y0)) < 1d-10) then
               sy_over_ky = y + ct_term%y0
             else
               sy_over_ky = s_y / ct_term%ky
             endif
-          case (hyper_y_family_y$, hyper_xy_family_y$, hyper_x_family_y$)
+          case (family_y$)
             if (abs(ct_term%kx * (x + ct_term%x0)) < 1d-10) then
               sx_over_kx = x + ct_term%x0
             else
@@ -865,65 +870,89 @@ case(fieldmap$)
           end select
 
           if (ct_map%field_type == magnetic$) then
-            select case (ct_term%type)
-            case (hyper_y_family_x$)
-              field%a(1) = field%a(1) + coef * s_x * sy_over_ky * s_z * ct_term%kz / ct_term%ky
-              field%a(3) = field%a(3) + coef * c_x * sy_over_ky * c_z * ct_term%kx / ct_term%ky
-            case (hyper_xy_family_x$)
-              field%a(1) = field%a(1) + coef * s_x * sy_over_ky * s_z
-              field%a(3) = field%a(3) + coef * c_x * sy_over_ky * c_z * ct_term%kx / ct_term%kz
-            case (hyper_x_family_x$)
-              field%a(1) = field%a(1) + coef * s_x * sy_over_ky * s_z * ct_term%kz / ct_term%kx
-              field%a(3) = field%a(3) + coef * c_x * sy_over_ky * c_z
+            select case (ct_term%family)
+            case (family_x$)
+              select case (ct_term%form)
+              case (hyper_y$)
+                field%a(1) = field%a(1) + coef * s_x * sy_over_ky * s_z * ct_term%kz / ct_term%ky
+                field%a(3) = field%a(3) + coef * c_x * sy_over_ky * c_z * ct_term%kx / ct_term%ky
+              case (hyper_xy$)
+                field%a(1) = field%a(1) + coef * s_x * sy_over_ky * s_z
+                field%a(3) = field%a(3) + coef * c_x * sy_over_ky * c_z * ct_term%kx / ct_term%kz
+              case (hyper_x$)
+                field%a(1) = field%a(1) + coef * s_x * sy_over_ky * s_z * ct_term%kz / ct_term%kx
+                field%a(3) = field%a(3) + coef * c_x * sy_over_ky * c_z
+              end select
 
-            case (hyper_y_family_y$)
-              field%a(2) = field%a(2) - coef * sx_over_kx * s_y * s_z * ct_term%kz / ct_term%ky
-              field%a(3) = field%a(3) - coef * sx_over_kx * c_y * c_z
-            case (hyper_xy_family_y$)
-              field%a(2) = field%a(2) - coef * sx_over_kx * s_y * s_z
-              field%a(3) = field%a(3) - coef * sx_over_kx * c_y * c_z * ct_term%ky / ct_term%kz
-            case (hyper_x_family_y$)
-              field%a(2) = field%a(2) - coef * sx_over_kx * s_y * s_z * ct_term%kz / ct_term%kx
-              field%a(3) = field%a(3) - coef * sx_over_kx * c_y * c_z * ct_term%ky / ct_term%kx
+            case (family_y$)
+              select case (ct_term%form)
+              case (hyper_y$)
+                field%a(2) = field%a(2) - coef * sx_over_kx * s_y * s_z * ct_term%kz / ct_term%ky
+                field%a(3) = field%a(3) - coef * sx_over_kx * c_y * c_z
+              case (hyper_xy$)
+                field%a(2) = field%a(2) - coef * sx_over_kx * s_y * s_z
+                field%a(3) = field%a(3) - coef * sx_over_kx * c_y * c_z * ct_term%ky / ct_term%kz
+              case (hyper_x$)
+                field%a(2) = field%a(2) - coef * sx_over_kx * s_y * s_z * ct_term%kz / ct_term%kx
+                field%a(3) = field%a(3) - coef * sx_over_kx * c_y * c_z * ct_term%ky / ct_term%kx
+              end select
 
-            case (hyper_y_family_qu$)
-              field%a(1) = field%a(1) + coef * s_x * c_y * sz_over_kz
-              field%a(2) = field%a(2) - coef * c_x * s_y * sz_over_kz * ct_term%kx / ct_term%ky
-            case (hyper_xy_family_qu$)
-              field%a(1) = field%a(1) + coef * s_x * c_y * sz_over_kz * ct_term%ky / ct_term%kz
-              field%a(2) = field%a(2) - coef * c_x * s_y * sz_over_kz * ct_term%kx / ct_term%kz
-            case (hyper_x_family_qu$)
-              field%a(1) = field%a(1) + coef * s_x * c_y * sz_over_kz * ct_term%ky / ct_term%kx
-              field%a(2) = field%a(2) - coef * c_x * s_y * sz_over_kz
+            case (family_qu$)
+              select case (ct_term%form)
+              case (hyper_y$)
+                field%a(1) = field%a(1) + coef * s_x * c_y * sz_over_kz
+                field%a(2) = field%a(2) - coef * c_x * s_y * sz_over_kz * ct_term%kx / ct_term%ky
+              case (hyper_xy$)
+                field%a(1) = field%a(1) + coef * s_x * c_y * sz_over_kz * ct_term%ky / ct_term%kz
+                field%a(2) = field%a(2) - coef * c_x * s_y * sz_over_kz * ct_term%kx / ct_term%kz
+              case (hyper_x$)
+                field%a(1) = field%a(1) + coef * s_x * c_y * sz_over_kz * ct_term%ky / ct_term%kx
+                field%a(2) = field%a(2) - coef * c_x * s_y * sz_over_kz
+              end select
 
-            case (hyper_y_family_sq$)
-              field%a(1) = field%a(1) + coef * c_x * s_y * sz_over_kz
-              field%a(2) = field%a(2) + coef * s_x * c_y * sz_over_kz * ct_term%kx / ct_term%ky
-            case (hyper_xy_family_sq$)
-              field%a(1) = field%a(1) + coef * c_x * s_y * sz_over_kz * ct_term%ky / ct_term%kz
-              field%a(2) = field%a(2) - coef * s_x * c_y * sz_over_kz * ct_term%kx / ct_term%kz
-            case (hyper_x_family_sq$)
-              field%a(1) = field%a(1) + coef * c_x * s_y * sz_over_kz * ct_term%ky / ct_term%kx
-              field%a(2) = field%a(2) + coef * s_x * c_y * sz_over_kz
+            case (family_sq$)
+              select case (ct_term%form)
+              case (hyper_y$)
+                field%a(1) = field%a(1) + coef * c_x * s_y * sz_over_kz
+                field%a(2) = field%a(2) + coef * s_x * c_y * sz_over_kz * ct_term%kx / ct_term%ky
+              case (hyper_xy$)
+                field%a(1) = field%a(1) + coef * c_x * s_y * sz_over_kz * ct_term%ky / ct_term%kz
+                field%a(2) = field%a(2) - coef * s_x * c_y * sz_over_kz * ct_term%kx / ct_term%kz
+              case (hyper_x$)
+                field%a(1) = field%a(1) + coef * c_x * s_y * sz_over_kz * ct_term%ky / ct_term%kx
+                field%a(2) = field%a(2) + coef * s_x * c_y * sz_over_kz
+              end select
             end select
 
           else  ! electric$
-            select case (ct_term%type)
-            case (hyper_y_family_x$);   field%phi = field%phi + coef * s_x * c_y * c_z / ct_term%ky
-            case (hyper_xy_family_x$);  field%phi = field%phi + coef * s_y * c_y * c_z / ct_term%kz
-            case (hyper_x_family_x$);   field%phi = field%phi + coef * s_x * c_y * c_z / ct_term%kx
+            select case (ct_term%family)
+            case (family_x$)
+              select case (ct_term%form)
+              case (hyper_y$);   field%phi = field%phi + coef * s_x * c_y * c_z / ct_term%ky
+              case (hyper_xy$);  field%phi = field%phi + coef * s_y * c_y * c_z / ct_term%kz
+              case (hyper_x$);   field%phi = field%phi + coef * s_x * c_y * c_z / ct_term%kx
+              end select
 
-            case (hyper_y_family_y$);   field%phi = field%phi + coef * c_x * s_y * c_z / ct_term%ky
-            case (hyper_xy_family_y$);  field%phi = field%phi + coef * c_x * s_y * c_z / ct_term%kz
-            case (hyper_x_family_y$);   field%phi = field%phi + coef * c_x * s_y * c_z / ct_term%kx
+            case (family_y$)
+              select case (ct_term%form)
+              case (hyper_y$);   field%phi = field%phi + coef * c_x * s_y * c_z / ct_term%ky
+              case (hyper_xy$);  field%phi = field%phi + coef * c_x * s_y * c_z / ct_term%kz
+              case (hyper_x$);   field%phi = field%phi + coef * c_x * s_y * c_z / ct_term%kx
+              end select
 
-            case (hyper_y_family_qu$);   field%phi = field%phi + coef * s_x * s_y * c_z / ct_term%ky
-            case (hyper_xy_family_qu$);  field%phi = field%phi + coef * s_x * s_y * c_z / ct_term%kz
-            case (hyper_x_family_qu$);   field%phi = field%phi + coef * s_x * s_y * c_z / ct_term%kx
+            case (family_qu$)
+              select case (ct_term%form)
+              case (hyper_y$);   field%phi = field%phi + coef * s_x * s_y * c_z / ct_term%ky
+              case (hyper_xy$);  field%phi = field%phi + coef * s_x * s_y * c_z / ct_term%kz
+              case (hyper_x$);   field%phi = field%phi + coef * s_x * s_y * c_z / ct_term%kx
+              end select
 
-            case (hyper_y_family_sq$);   field%phi = field%phi + coef * c_x * c_y * c_z / ct_term%ky
-            case (hyper_xy_family_sq$);  field%phi = field%phi + coef * c_x * c_y * c_z / ct_term%kz
-            case (hyper_x_family_sq$);   field%phi = field%phi - coef * c_x * c_y * c_z / ct_term%kx
+            case (family_sq$)
+              select case (ct_term%form)
+              case (hyper_y$);   field%phi = field%phi + coef * c_x * c_y * c_z / ct_term%ky
+              case (hyper_xy$);  field%phi = field%phi + coef * c_x * c_y * c_z / ct_term%kz
+              case (hyper_x$);   field%phi = field%phi - coef * c_x * c_y * c_z / ct_term%kx
+              end select
             end select
           endif
 

@@ -594,14 +594,14 @@ do ib = 0, ubound(lat%branch, 1)
               ct_term => ct_map%ptr%term(j)
               last = '}, &'
               if (j == size(ct_map%ptr%term)) last = '} &'
-              select case (ct_term%type)
-              case (hyper_y_family_x$, hyper_xy_family_x$, hyper_x_family_x$)
+              select case (ct_term%family)
+              case (family_x$)
                 name = 'X'
-              case (hyper_y_family_y$, hyper_xy_family_y$, hyper_x_family_y$)
+              case (family_y$)
                 name = 'Y'
-              case (hyper_y_family_qu$, hyper_xy_family_qu$, hyper_x_family_qu$)
+              case (family_qu$)
                 name = 'QU'
-              case (hyper_y_family_sq$, hyper_xy_family_sq$, hyper_x_family_sq$)
+              case (family_sq$)
                 name = 'SQ'
               end select
               write (iu2, '(17a)') '  term = {', trim(re_str(ct_term%coef)), ', ', &

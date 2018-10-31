@@ -804,7 +804,9 @@ is_eq = is_eq .and. (f1%y0 == f2%y0)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%phi_z == f2%phi_z)
 !! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%type == f2%type)
+is_eq = is_eq .and. (f1%family == f2%family)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%form == f2%form)
 
 end function eq_cartesian_map_term1
 

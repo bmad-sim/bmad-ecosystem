@@ -17,7 +17,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 225
+integer, parameter :: bmad_inc_version$ = 226
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -587,25 +587,21 @@ type ac_kicker_struct
   type (ac_kicker_freq_struct), allocatable :: frequencies(:)
 end type
 
-! Cartesian field decomposition
+! Cartesian field decomposition.
+! Note: Integer mapping of family and form parameters must be maintained for interface to PTC equivalent.
 
-integer, parameter :: hyper_y_family_y$ = 1, hyper_xy_family_y$ = 2, hyper_x_family_y$ = 3
-integer, parameter :: hyper_y_family_x$ = 4, hyper_xy_family_x$ = 5, hyper_x_family_x$ = 6
-integer, parameter :: hyper_y_family_qu$ = 7, hyper_xy_family_qu$ = 8, hyper_x_family_qu$ = 9
-integer, parameter :: hyper_y_family_sq$ = 10, hyper_xy_family_sq$ = 11, hyper_x_family_sq$ = 12
-integer, parameter :: x_family$ = 1, y_family$ = 2, qu_family$ = 3, sq_family$ = 4
+integer, parameter :: family_y$ = 1, family_x$ = 2, family_qu$ = 3, family_sq$ = 4
+integer, parameter :: hyper_y$ = 1, hyper_xy$ = 2, hyper_x$ = 3
 
-character(20), parameter :: cartesian_map_term_name(0:12) = [ 'GARBAGE!          ', &
-                                        'Hyper_Y_Family_Y  ', 'Hyper_XY_Family_Y ', 'Hyper_X_Family_Y  ', &
-                                        'Hyper_Y_Family_X  ', 'Hyper_XY_Family_X ', 'Hyper_X_Family_X  ', &
-                                        'Hyper_Y_Family_QU ', 'Hyper_XY_Family_QU', 'Hyper_X_Family_QU ', &
-                                        'Hyper_Y_Family_SQ ', 'Hyper_XY_Family_SQ', 'Hyper_X_Family_SQ ']
+character(8), parameter :: cartesian_map_family_name(0:4) = [character(8):: 'GARBAGE!', 'Y', 'X', 'QU', 'SQ']
+character(8), parameter :: cartesian_map_form_name(0:3) = ['GARBAGE!', 'Hyper_Y ', 'Hyper_XY', 'Hyper_X ']
 
 type cartesian_map_term1_struct
   real(rp) :: coef = 0
   real(rp) :: kx = 0, ky = 0, kz = 0
   real(rp) :: x0 = 0, y0 = 0, phi_z = 0
-  integer :: type = 0        ! hyper_y_family_x$, etc.
+  integer :: family = 0        ! family_x$, etc.
+  integer :: form = 0          ! hyper_y$, etc.
 end type
 
 type cartesian_map_term_struct

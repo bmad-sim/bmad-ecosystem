@@ -445,8 +445,8 @@ if (associated(ele%cartesian_map)) then
       do j = 1, min(10, size(ct_map%ptr%term))
         if (nl+1 > size(li)) call re_associate(li, 2 * nl, .false.)
         ct_term => ct_map%ptr%term(j)
-        nl=nl+1; write (li(nl), '(i8, 4f12.6, 3f14.6, 3x, a)') i, ct_term%coef, ct_term%kx, ct_term%ky, ct_term%kz, &
-                               ct_term%x0, ct_term%y0, ct_term%phi_z, cartesian_map_term_name(ct_term%type)
+        nl=nl+1; write (li(nl), '(i8, 4f12.6, 3f14.6, 3x, a, 2x, a)') i, ct_term%coef, ct_term%kx, ct_term%ky, ct_term%kz, ct_term%x0, &
+                               ct_term%y0, ct_term%phi_z, cartesian_map_family_name(ct_term%family), cartesian_map_form_name(ct_term%form)
       enddo
       if (size(ct_map%ptr%term) > 10) then
         nl=nl+1; write (li(nl), '(a, i0, a)') '     .... etc ... (#Terms = ', size(ct_map%ptr%term), ')' 
