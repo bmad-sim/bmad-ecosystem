@@ -817,8 +817,8 @@ end subroutine tao_inject_particle
 !-
 subroutine tao_inject_beam (u, model, ix_branch, init_ok, ix_ele0)
 
-use tao_read_beam_mod
 use beam_utils
+use beam_file_io
 
 implicit none
 
@@ -875,15 +875,8 @@ beam => u%beam%start
 
 if (u%beam%beam0_file /= "") then
   if (u%beam%init_beam0 .or. .not. allocated(beam%bunch)) then
-    call tao_open_beam_file (u%beam%beam0_file, err)
-    if (err) return
-    call tao_set_beam_params (beam_init%n_bunch, beam_init%n_particle, beam_init%bunch_charge)
-    call tao_read_beam (beam, err)
-    if (err) return
-    call tao_close_beam_file()
-    n = 0
+    call read_beam_file (u%beam%beam0_file, beam, beam_init, .true., err)
     do i = 1, size(beam%bunch)
-      n = n + size(beam%bunch(i)%particle)
       do j = 1, size(beam%bunch(i)%particle)
         orbit => beam%bunch(i)%particle(j)
         orbit%vec = orbit%vec + model%lat%beam_start%vec

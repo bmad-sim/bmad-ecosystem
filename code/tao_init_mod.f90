@@ -265,7 +265,7 @@ contains
 
 subroutine init_beam (u)
 
-use tao_read_beam_mod
+use beam_file_io
 
 type (tao_universe_struct), target :: u
 type (ele_pointer_struct), allocatable, save, target :: eles(:)
@@ -350,17 +350,15 @@ u%beam%saved_at = beam_saved_at
 
 if (u%beam%beam_all_file /= '') then
   s%com%use_saved_beam_in_tracking = .true.
-  call tao_open_beam_file (beam_all_file, err)
+  call read_beam_file (beam_all_file, uni_branch0%ele(j)%beam, u%beam%beam_init, .false., err)
   if (err) call err_exit
-  call tao_read_beam_file_header (j, u%beam%beam_init%n_bunch, u%beam%beam_init%n_particle, err)  
-  if (err) call err_exit
-  do
-    if (j == -1) exit
-    call tao_read_beam (uni_branch0%ele(j)%beam, err)
-    if (err) call err_exit
-  enddo  
-  call out_io (s_info$, r_name, 'Read beam_all file: ' // u%beam%beam_all_file)
-  call tao_close_beam_file ()
+! Need to recode...
+!  do
+!    if (j == -1) exit
+!    call tao_read_beam (uni_branch0%ele(j)%beam, err)
+!    if (err) call err_exit
+!  enddo  
+!  call out_io (s_info$, r_name, 'Read beam_all file: ' // u%beam%beam_all_file)
 endif
 
 if (allocated(eles)) deallocate (eles)
