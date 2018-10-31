@@ -694,6 +694,7 @@ else
 
   theta = theta - angle / 2
   floor%r(1) = floor0%r(1) + chord_len * sin(theta)
+  floor%r(2) = floor0%r(2)
   floor%r(3) = floor0%r(3) + chord_len * cos(theta)
   theta = theta - angle / 2
 

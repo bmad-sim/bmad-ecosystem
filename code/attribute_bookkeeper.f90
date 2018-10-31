@@ -630,7 +630,8 @@ case (wiggler$, undulator$)
     term%x0     = 0
     term%y0     = 0
     term%phi_z  = -term%kz * val(l$) / 2 
-    term%type   = hyper_y_family_y$
+    term%family = family_y$
+    term%form   = hyper_y$
   endif
 
 end select

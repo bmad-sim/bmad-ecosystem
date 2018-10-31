@@ -10,7 +10,7 @@ type wiggler_computations_struct
   real(rp) :: coef_Ax = 0, coef_Ay = 0, coef_Az = 0
   real(rp) :: sx_over_kx = 0, sy_over_ky = 0, sz_over_kz = 0
   real(rp) :: integral_sx = 0, integral_sy = 0, integral_cx = 0, integral_cy = 0
-  integer :: trig_x = 0, trig_y = 0, family= 0
+  integer :: trig_x = 0, trig_y = 0
 end type
 
 private wiggler_computations_struct
@@ -58,6 +58,7 @@ type (cartesian_map_struct), pointer :: ct_map
 type (cartesian_map_term1_struct), pointer :: wig_term(:)
 type (cartesian_map_term1_struct), pointer :: wt
 type (wiggler_computations_struct), allocatable, target :: tm(:)
+type (wiggler_computations_struct), pointer :: tm2(:)
 
 real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6), kmat6(6,6), Ax_saved, Ay_saved
 real(rp) g_x, g_y, k1, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch
@@ -178,6 +179,7 @@ Case (wiggler$, undulator$)
   num_wig_terms = size(wig_term)
 
   allocate (tm(num_wig_terms))
+  tm2 => tm   ! To get around intel compiler bug which prevents debug viewing of variables shared in contained procedures.
 
   call calc_wig_coefs (calculate_mat6)
   call update_wig_y_terms (err); if (err) return
@@ -688,92 +690,102 @@ do j = 1, num_wig_terms
   tmj = wiggler_computations_struct()
   coef = factor * wt%coef 
 
-  select case (wt%type)
-  case (hyper_y_family_x$)
-    tmj%trig_x = -1
-    tmj%trig_y =  1
-    tmj%family = x_family$
-    tmj%coef_Ax =  coef * wt%kz / wt%ky                ! Missing factor of: 1/k_y
-    tmj%coef_Az =  coef * wt%kx / wt%ky * orient_dir   ! Missing factor of: 1/k_y
+  select case (wt%family)
+  case (family_x$)
+    select case (wt%form)
+    case (hyper_y$)
+      tmj%trig_x = -1
+      tmj%trig_y =  1
+      tmj%coef_Ax =  coef * wt%kz / wt%ky                ! Missing factor of: 1/k_y
+      tmj%coef_Az =  coef * wt%kx / wt%ky * orient_dir   ! Missing factor of: 1/k_y
 
-  case (hyper_y_family_y$)
-    tmj%trig_x = -1
-    tmj%trig_y =  1
-    tmj%family = y_family$
-    tmj%coef_Ay = -coef * wt%kz / wt%ky                ! Missing factor of: 1/k_x
-    tmj%coef_Az = -coef * orient_dir                   ! Missing factor of: 1/k_x
+    case (hyper_xy$)
+      tmj%trig_x =  1
+      tmj%trig_y =  1
+      tmj%coef_Ax =  coef                                ! Missing factor of: 1/k_y
+      tmj%coef_Az =  coef * wt%kx / wt%kz * orient_dir   ! Missing factor of: 1/k_y
 
-  case (hyper_y_family_qu$)
-    tmj%trig_x = -1
-    tmj%trig_y =  1
-    tmj%family = qu_family$
-    tmj%coef_Ax =  coef                                ! Missing factor of: 1/k_z
-    tmj%coef_Ay = -coef * wt%kx / wt%ky                ! Missing factor of: 1/k_z
+    case (hyper_x$)
+      tmj%trig_x =  1
+      tmj%trig_y = -1
+      tmj%coef_Ax =  coef * wt%kz / wt%kx                ! Missing factor of: 1/k_y
+      tmj%coef_Az =  coef * orient_dir                   ! Missing factor of: 1/k_y
 
-  case (hyper_y_family_sq$)
-    tmj%trig_x = -1
-    tmj%trig_y =  1
-    tmj%family = sq_family$
-    tmj%coef_Ax =  coef                                ! Missing factor of: 1/k_z
-    tmj%coef_Ay =  coef * wt%kx / wt%ky                ! Missing factor of: 1/k_z
+    case default
+      call err_exit
+    end select
 
+  case (family_y$)
+    select case (wt%form)
+    case (hyper_y$)
+      tmj%trig_x = -1
+      tmj%trig_y =  1
+      tmj%coef_Ay = -coef * wt%kz / wt%ky                ! Missing factor of: 1/k_x
+      tmj%coef_Az = -coef * orient_dir                   ! Missing factor of: 1/k_x
 
-  case (hyper_xy_family_x$)
-    tmj%trig_x =  1
-    tmj%trig_y =  1
-    tmj%family = x_family$
-    tmj%coef_Ax =  coef                                ! Missing factor of: 1/k_y
-    tmj%coef_Az =  coef * wt%kx / wt%kz * orient_dir   ! Missing factor of: 1/k_y
+    case (hyper_xy$)
+      tmj%trig_x =  1
+      tmj%trig_y =  1
+      tmj%coef_Ay = -coef                                ! Missing factor of: 1/k_x
+      tmj%coef_Az = -coef * wt%ky / wt%kz * orient_dir   ! Missing factor of: 1/k_x
 
-  case (hyper_xy_family_y$)
-    tmj%trig_x =  1
-    tmj%trig_y =  1
-    tmj%family = y_family$
-    tmj%coef_Ay = -coef                                ! Missing factor of: 1/k_x
-    tmj%coef_Az = -coef * wt%ky / wt%kz * orient_dir   ! Missing factor of: 1/k_x
+    case (hyper_x$)
+      tmj%trig_x =  1
+      tmj%trig_y = -1
+      tmj%coef_Ay = -coef * wt%kz / wt%kx                ! Missing factor of: 1/k_x
+      tmj%coef_Az = -coef * wt%ky / wt%kx * orient_dir   ! Missing factor of: 1/k_x
 
-  case (hyper_xy_family_qu$)
-    tmj%trig_x =  1
-    tmj%trig_y =  1
-    tmj%family = qu_family$
-    tmj%coef_Ax =  coef * wt%ky / wt%kz                ! Missing factor of: 1/k_z
-    tmj%coef_Ay = -coef * wt%kx / wt%kz                ! Missing factor of: 1/k_z
+    case default
+      call err_exit
+    end select
 
-  case (hyper_xy_family_sq$)
-    tmj%trig_x =  1
-    tmj%trig_y =  1
-    tmj%family = sq_family$
-    tmj%coef_Ax =  coef * wt%ky / wt%kz                ! Missing factor of: 1/k_z
-    tmj%coef_Ay = -coef * wt%kx / wt%kz                ! Missing factor of: 1/k_z
+  case (family_qu$)
+    select case (wt%form)
+    case (hyper_y$)
+      tmj%trig_x = -1
+      tmj%trig_y =  1
+      tmj%coef_Ax =  coef                                ! Missing factor of: 1/k_z
+      tmj%coef_Ay = -coef * wt%kx / wt%ky                ! Missing factor of: 1/k_z
 
+    case (hyper_xy$)
+      tmj%trig_x =  1
+      tmj%trig_y =  1
+      tmj%coef_Ax =  coef * wt%ky / wt%kz                ! Missing factor of: 1/k_z
+      tmj%coef_Ay = -coef * wt%kx / wt%kz                ! Missing factor of: 1/k_z
 
-  case (hyper_x_family_x$)
-    tmj%trig_x =  1
-    tmj%trig_y = -1
-    tmj%family = x_family$
-    tmj%coef_Ax =  coef * wt%kz / wt%kx                ! Missing factor of: 1/k_y
-    tmj%coef_Az =  coef * orient_dir                   ! Missing factor of: 1/k_y
+    case (hyper_x$)
+      tmj%trig_x =  1
+      tmj%trig_y = -1
+      tmj%coef_Ax =  coef * wt%ky / wt%kx                ! Missing factor of: 1/k_z
+      tmj%coef_Ay = -coef                                ! Missing factor of: 1/k_z
 
-  case (hyper_x_family_y$)
-    tmj%trig_x =  1
-    tmj%trig_y = -1
-    tmj%family = y_family$
-    tmj%coef_Ay = -coef * wt%kz / wt%kx                ! Missing factor of: 1/k_x
-    tmj%coef_Az = -coef * wt%ky / wt%kx * orient_dir   ! Missing factor of: 1/k_x
+    case default
+      call err_exit
+    end select
 
-  case (hyper_x_family_qu$)
-    tmj%trig_x =  1
-    tmj%trig_y = -1
-    tmj%family = qu_family$
-    tmj%coef_Ax =  coef * wt%ky / wt%kx                ! Missing factor of: 1/k_z
-    tmj%coef_Ay = -coef                                ! Missing factor of: 1/k_z
+  case (family_sq$)
+    select case (wt%form)
+    case (hyper_y$)
+      tmj%trig_x = -1
+      tmj%trig_y =  1
+      tmj%coef_Ax =  coef                                ! Missing factor of: 1/k_z
+      tmj%coef_Ay =  coef * wt%kx / wt%ky                ! Missing factor of: 1/k_z
 
-  case (hyper_x_family_sq$)
-    tmj%trig_x =  1
-    tmj%trig_y = -1
-    tmj%family = sq_family$
-    tmj%coef_Ax =  coef * wt%ky / wt%kx                ! Missing factor of: 1/k_z
-    tmj%coef_Ay =  coef                                ! Missing factor of: 1/k_z
+    case (hyper_xy$)
+      tmj%trig_x =  1
+      tmj%trig_y =  1
+      tmj%coef_Ax =  coef * wt%ky / wt%kz                ! Missing factor of: 1/k_z
+      tmj%coef_Ay = -coef * wt%kx / wt%kz                ! Missing factor of: 1/k_z
+
+    case (hyper_x$)
+      tmj%trig_x =  1
+      tmj%trig_y = -1
+      tmj%coef_Ax =  coef * wt%ky / wt%kx                ! Missing factor of: 1/k_z
+      tmj%coef_Ay =  coef                                ! Missing factor of: 1/k_z
+
+    case default
+      call err_exit
+    end select
 
   case default
     call err_exit
@@ -817,7 +829,7 @@ do j = 1, num_wig_terms
       tmj%integral_sx = (cos(arg0) - tmj%c_x) / wt%kx
     endif
 
-    if (tmj%family == sq_family$) then
+    if (wt%family == family_sq$) then
       if (abs(darg) < 1d-4) then
         tmj%integral_cx = x * ((1 - darg**2/6) * cos(arg0) + (-darg/2 + darg**3/24) * sin(arg0))
       else
@@ -840,7 +852,7 @@ do j = 1, num_wig_terms
       tmj%integral_sx = (tmj%c_x - cosh(arg0)) / wt%kx
     endif
 
-    if (tmj%family == sq_family$) then
+    if (wt%family == family_sq$) then
       if (abs(darg) < 1d-4) then
         tmj%integral_cx = x * ((1 + darg**2/6) * cosh(arg0) + (darg/2 + darg**3/24) * sinh(arg0))
       else
@@ -850,7 +862,7 @@ do j = 1, num_wig_terms
 
   end select
 
-  if (tmj%family == y_family$) then
+  if (wt%family == family_y$) then
     if (abs(arg) < 1d-10) then
       tmj%sx_over_kx = x + wt%x0
     else
@@ -897,7 +909,7 @@ do j = 1, num_wig_terms
       tmj%integral_sy = (cos(arg0) - tmj%c_y) / wt%ky
     endif
 
-    if (tmj%family == sq_family$) then
+    if (wt%family == family_sq$) then
       if (abs(darg) < 1d-4) then
         tmj%integral_cy = y * ((1 - darg**2/6) * cos(arg0) + (-darg/2 + darg**3/24) * sin(arg0))
       else
@@ -920,7 +932,7 @@ do j = 1, num_wig_terms
       tmj%integral_sy = (tmj%c_y - cosh(arg0)) / wt%ky
     endif
 
-    if (tmj%family == sq_family$) then
+    if (wt%family == family_sq$) then
       if (abs(darg) < 1d-4) then
         tmj%integral_cy = y * ((1 + darg**2/6) * cosh(arg0) + (darg/2 + darg**3/24) * sinh(arg0))
       else
@@ -930,15 +942,13 @@ do j = 1, num_wig_terms
 
   end select
 
-  if (tmj%family == x_family$) then
+  if (wt%family == family_x$) then
     if (abs(arg) < 1d-10) then
       tmj%sy_over_ky = y + wt%y0
     else
       tmj%sy_over_ky = tmj%s_y / wt%ky
     endif
   endif
-
-
 enddo
 
 end subroutine update_wig_y_terms
@@ -971,9 +981,9 @@ tm(1:num_wig_terms)%c_z = cos(kzz(1:num_wig_terms))
 tm(1:num_wig_terms)%s_z = sin(kzz(1:num_wig_terms))
 
 do j = 1, num_wig_terms
-  select case (tm(j)%family)
-  case (qu_family$, sq_family$)
-    wt => wig_term(j)
+  wt => wig_term(j)
+  select case (wt%family)
+  case (family_qu$, family_sq$)
     if (abs(kzz(j)) < 1d-5) then
       if (wt%kz == 0) then
         tm(j)%sz_over_kz = spz_offset 
@@ -1000,12 +1010,13 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  select case (tm(j)%family)
-  case (x_family$)
+  wt => wig_term(j)
+  select case (wt%family)
+  case (family_x$)
     value = value + tm(j)%coef_Ax * tm(j)%s_x * tm(j)%sy_over_ky * tm(j)%s_z
-  case (qu_family$)
+  case (family_qu$)
     value = value + tm(j)%coef_Ax * tm(j)%s_x * tm(j)%c_y * tm(j)%sz_over_kz
-  case (sq_family$)
+  case (family_sq$)
     value = value + tm(j)%coef_Ax * tm(j)%c_x * tm(j)%s_y * tm(j)%sz_over_kz
   end select
 enddo
@@ -1026,12 +1037,12 @@ integer j
 value = 0
 do j = 1, size(wig_term)
   wt => wig_term(j)
-  select case (tm(j)%family)
-  case (x_family$)
+  select case (wt%family)
+  case (family_x$)
     value = value + tm(j)%coef_Ax * tm(j)%c_x * tm(j)%sy_over_ky * tm(j)%s_z * wt%kx
-  case (qu_family$)
+  case (family_qu$)
     value = value + tm(j)%coef_Ax * tm(j)%c_x * tm(j)%c_y * tm(j)%sz_over_kz * wt%kx
-  case (sq_family$)
+  case (family_sq$)
     value = value + tm(j)%coef_Ax * tm(j)%s_x * tm(j)%s_y * tm(j)%sz_over_kz * wt%kx * tm(j)%trig_x
   end select
 enddo
@@ -1052,12 +1063,12 @@ integer j
 value = 0
 do j = 1, size(wig_term)
   wt => wig_term(j)
-  select case (tm(j)%family)
-  case (x_family$)
+  select case (wt%family)
+  case (family_x$)
     value = value + tm(j)%coef_Ax * tm(j)%s_x * tm(j)%c_y * tm(j)%s_z
-  case (qu_family$)
+  case (family_qu$)
     value = value + tm(j)%coef_Ax * tm(j)%s_x * tm(j)%s_y * tm(j)%sz_over_kz * wt%ky * tm(j)%trig_y
-  case (sq_family$)
+  case (family_sq$)
     value = value + tm(j)%coef_Ax * tm(j)%c_x * tm(j)%c_y * tm(j)%sz_over_kz * wt%ky
   end select
 enddo
@@ -1078,12 +1089,12 @@ integer j
 value = 0
 do j = 1, size(wig_term)
   wt => wig_term(j)
-  select case (tm(j)%family)
-  case (x_family$)
+  select case (wt%family)
+  case (family_x$)
     value = value + tm(j)%coef_Ax * tm(j)%integral_sx * tm(j)%c_y * tm(j)%s_z
-  case (qu_family$)
+  case (family_qu$)
     value = value + tm(j)%coef_Ax * tm(j)%integral_sx * tm(j)%s_y * tm(j)%sz_over_kz * wt%ky * tm(j)%trig_y
-  case (sq_family$)
+  case (family_sq$)
     value = value + tm(j)%coef_Ax * tm(j)%integral_cx * tm(j)%c_y * tm(j)%sz_over_kz * wt%ky
   end select
 enddo
@@ -1104,12 +1115,12 @@ integer j
 value = 0
 do j = 1, size(wig_term)
   wt => wig_term(j)
-  select case (tm(j)%family)
-  case (x_family$)
+  select case (wt%family)
+  case (family_x$)
     value = value + tm(j)%coef_Ax * tm(j)%integral_sx * tm(j)%s_y * tm(j)%s_z * wt%ky * tm(j)%trig_y
-  case (qu_family$)
+  case (family_qu$)
     value = value + tm(j)%coef_Ax * tm(j)%integral_sx * tm(j)%c_y * tm(j)%sz_over_kz * wt%ky**2 * tm(j)%trig_y
-  case (sq_family$)
+  case (family_sq$)
     value = value + tm(j)%coef_Ax * tm(j)%integral_cx * tm(j)%s_y * tm(j)%sz_over_kz * wt%ky**2 * tm(j)%trig_y
   end select
 enddo
@@ -1129,12 +1140,13 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  select case (tm(j)%family)
-  case (y_family$)
+  wt => wig_term(j)
+  select case (wt%family)
+  case (family_y$)
     value = value + tm(j)%coef_Ay * tm(j)%sx_over_kx * tm(j)%s_y * tm(j)%s_z
-  case (qu_family$)
+  case (family_qu$)
     value = value + tm(j)%coef_Ay * tm(j)%c_x * tm(j)%s_y * tm(j)%sz_over_kz
-  case (sq_family$)
+  case (family_sq$)
     value = value + tm(j)%coef_Ay * tm(j)%s_x * tm(j)%c_y * tm(j)%sz_over_kz
   end select
 enddo
@@ -1155,12 +1167,12 @@ integer j
 value = 0
 do j = 1, size(wig_term)
   wt => wig_term(j)
-  select case (tm(j)%family)
-  case (y_family$)
+  select case (wt%family)
+  case (family_y$)
     value = value + tm(j)%coef_Ay * tm(j)%c_x * tm(j)%s_y * tm(j)%s_z
-  case (qu_family$)
+  case (family_qu$)
     value = value + tm(j)%coef_Ay * tm(j)%s_x * tm(j)%s_y * tm(j)%sz_over_kz * wt%kx * tm(j)%trig_x
-  case (sq_family$)
+  case (family_sq$)
     value = value + tm(j)%coef_Ay * tm(j)%c_x * tm(j)%c_y * tm(j)%sz_over_kz * wt%kx
   end select
 enddo
@@ -1181,12 +1193,12 @@ integer j
 value = 0
 do j = 1, size(wig_term)
   wt => wig_term(j)
-  select case (tm(j)%family)
-  case (y_family$)
+  select case (wt%family)
+  case (family_y$)
     value = value + tm(j)%coef_Ay * tm(j)%sx_over_kx * tm(j)%c_y * tm(j)%s_z * wt%ky
-  case (qu_family$)
+  case (family_qu$)
     value = value + tm(j)%coef_Ay * tm(j)%c_x * tm(j)%c_y * tm(j)%sz_over_kz * wt%ky
-  case (sq_family$)
+  case (family_sq$)
     value = value + tm(j)%coef_Ay * tm(j)%s_x * tm(j)%s_y * tm(j)%sz_over_kz * wt%ky * tm(j)%trig_y
   end select
 enddo
@@ -1207,12 +1219,12 @@ integer j
 value = 0
 do j = 1, size(wig_term)
   wt => wig_term(j)
-  select case (tm(j)%family)
-  case (y_family$)
+  select case (wt%family)
+  case (family_y$)
     value = value + tm(j)%coef_Ay * tm(j)%c_x * tm(j)%integral_sy * tm(j)%s_z
-  case (qu_family$)
+  case (family_qu$)
     value = value + tm(j)%coef_Ay * tm(j)%s_x * tm(j)%integral_sy * tm(j)%sz_over_kz * wt%kx * tm(j)%trig_x
-  case (sq_family$)
+  case (family_sq$)
     value = value + tm(j)%coef_Ay * tm(j)%c_x * tm(j)%integral_cy * tm(j)%sz_over_kz * wt%kx
   end select
 enddo
@@ -1233,12 +1245,12 @@ integer j
 value = 0
 do j = 1, size(wig_term)
   wt => wig_term(j)
-  select case (tm(j)%family)
-  case (y_family$)
+  select case (wt%family)
+  case (family_y$)
     value = value + tm(j)%coef_Ay * tm(j)%s_x * tm(j)%integral_sy * tm(j)%s_z * wt%kx * tm(j)%trig_x
-  case (qu_family$)
+  case (family_qu$)
     value = value + tm(j)%coef_Ay * tm(j)%c_x * tm(j)%integral_sy * tm(j)%sz_over_kz * wt%kx**2 * tm(j)%trig_x
-  case (sq_family$)
+  case (family_sq$)
     value = value + tm(j)%coef_Ay * tm(j)%s_x * tm(j)%integral_cy * tm(j)%sz_over_kz * wt%kx**2 * tm(j)%trig_x
   end select
 enddo
@@ -1259,10 +1271,11 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  select case (tm(j)%family)
-  case (x_family$)
+  wt => wig_term(j)
+  select case (wt%family)
+  case (family_x$)
     value = value + tm(j)%coef_Az * tm(j)%s_x * tm(j)%sy_over_ky * tm(j)%c_z * wig_term(j)%kx * tm(j)%trig_x
-  case (y_family$)
+  case (family_y$)
     value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%c_y * tm(j)%c_z
   end select
 enddo
@@ -1282,10 +1295,11 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  select case (tm(j)%family)
-  case (x_family$)
+  wt => wig_term(j)
+  select case (wt%family)
+  case (family_x$)
     value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%c_y * tm(j)%c_z
-  case (y_family$)
+  case (family_y$)
     value = value + tm(j)%coef_Az * tm(j)%sx_over_kx * tm(j)%s_y * tm(j)%c_z * wig_term(j)%ky * tm(j)%trig_y
   end select
 enddo
@@ -1305,10 +1319,11 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  select case (tm(j)%family)
-  case (x_family$)
+  wt => wig_term(j)
+  select case (wt%family)
+  case (family_x$)
     value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%sy_over_ky * tm(j)%c_z * wig_term(j)%kx**2 * tm(j)%trig_x
-  case (y_family$)
+  case (family_y$)
     value = value + tm(j)%coef_Az * tm(j)%s_x * tm(j)%c_y * tm(j)%c_z * wig_term(j)%kx * tm(j)%trig_x
   end select
 enddo
@@ -1328,10 +1343,11 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  select case (tm(j)%family)
-  case (x_family$)
+  wt => wig_term(j)
+  select case (wt%family)
+  case (family_x$)
     value = value + tm(j)%coef_Az * tm(j)%s_x * tm(j)%c_y * tm(j)%c_z * wig_term(j)%kx * tm(j)%trig_x
-  case (y_family$)
+  case (family_y$)
     value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z * wig_term(j)%ky * tm(j)%trig_y
   end select
 enddo
@@ -1351,10 +1367,11 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  select case (tm(j)%family)
-  case (x_family$)
+  wt => wig_term(j)
+  select case (wt%family)
+  case (family_x$)
     value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z * wig_term(j)%ky * tm(j)%trig_y
-  case (y_family$)
+  case (family_y$)
     value = value + tm(j)%coef_Az * tm(j)%sx_over_kx * tm(j)%c_y * tm(j)%c_z * wig_term(j)%ky**2 * tm(j)%trig_y
   end select
 enddo

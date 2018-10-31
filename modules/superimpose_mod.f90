@@ -270,11 +270,11 @@ do
     lat%control(ixc+1)%slave = lat_ele_loc_struct(i, ix_branch)
 
   elseif (branch%ele(i)%key == null_ele$) then
-    branch%n_ele_max = branch%n_ele_max + 1
-    ix = branch%n_ele_max
-    if (ix > ubound(branch%ele, 1))  call allocate_lat_ele_array (lat, ix_branch = ix_branch)
+    lat%n_ele_max = lat%n_ele_max + 1
+    ix = lat%n_ele_max
+    if (ix > ubound(lat%ele, 1))  call allocate_lat_ele_array (lat)
 
-    branch%ele(ix) = branch%ele(i)       ! copy null_ele
+    lat%ele(ix) = branch%ele(i)       ! copy null_ele
     do ic = branch%ele(i)%ic1_lord, branch%ele(i)%ic1_lord+branch%ele(i)%n_lord-1
       j = lat%ic(ic)
       lat%control(j)%slave%ix_ele = ix ! point to new null_ele.
