@@ -229,9 +229,10 @@ closed_orbit=0.d0
 
 call find_orbit_x(kekb,closed_orbit,STATE,1.e-8_dp,fibre1=1)  
 
+cc=0
 !call propagate(kekb,closed_orbit,state,fibre1=1)
 closed_orbit(6)=0.d0
-cc = 0
+
 f1=> kekb%start
 if(bm) then
 f=> kekb%start
