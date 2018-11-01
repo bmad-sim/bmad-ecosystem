@@ -11,6 +11,7 @@ implicit none
 type summation_rdt_struct
   complex(rp) h20001
   complex(rp) h00201
+  complex(rp) h10002
   complex(rp) h21000
   complex(rp) h30000
   complex(rp) h10110
@@ -33,7 +34,7 @@ type summation_rdt_struct
   real(rp) nux_Jy
 end type
 
-character(6), parameter :: srdt_first(7) = [ 'h20001', 'h00201', 'h21000', 'h30000', 'h10110', 'h10020', 'h10200' ]
+character(6), parameter :: srdt_first(8) = [ 'h20001', 'h00201', 'h10002', 'h21000', 'h30000', 'h10110', 'h10020', 'h10200' ]
 character(6), parameter :: srdt_second(14) = [ 'h31000', 'h40000', 'h20110', 'h11200', 'h20020', 'h20200', 'h00310', \
                                                'h00400', 'h22000', 'h00220', 'h11110', 'nux_Jx', 'nuy_Jy', 'nux_Jy' ]
 contains
@@ -177,6 +178,7 @@ enddo
 ! Calculate first order terms.
 srdt%h20001 = sum((eles(:)%k1l-2.0*eles(:)%k2l*eles(:)%eta_a)*eles(:)%beta_a * exp( i_imag*2.0d0*eles(:)%phi_a ))
 srdt%h00201 = sum((eles(:)%k1l-2.0*eles(:)%k2l*eles(:)%eta_a)*eles(:)%beta_b * exp( i_imag*2.0d0*eles(:)%phi_b ))
+srdt%h10002 = sum((eles(:)%k1l-eles(:)%k2l*eles(:)%eta_a)*eles(:)%eta_a*sqrt(eles(:)%beta_a) * exp( i_imag*eles(:)%phi_a ))
 srdt%h21000 = sum(eles(:)%k2l*eles(:)%beta_a**(3./2.) * exp( i_imag*1.0d0*eles(:)%phi_a ))
 srdt%h30000 = sum(eles(:)%k2l*eles(:)%beta_a**(3./2.) * exp( i_imag*3.0d0*eles(:)%phi_a ))
 srdt%h10110 = sum(eles(:)%k2l*eles(:)%beta_a**(1./2.)*eles(:)%beta_b * exp( i_imag*1.0d0*eles(:)%phi_a ))
@@ -189,6 +191,7 @@ srdt%h10020 = srdt%h10020 /  8.0
 srdt%h10200 = srdt%h10200 /  8.0
 srdt%h20001 = srdt%h20001 /  8.0
 srdt%h00201 = -srdt%h00201 / 8.0
+srdt%h10002 = srdt%h10002 / 2.0
 
 
 !Calculate second order terms
