@@ -2833,7 +2833,7 @@ Format:
   write bmad_lattice \{-binary\} \{<file_name>\} 
                                          ! Write a Bmad lattice file of the model
   write beam \{-ascii\} -at <element_list> \{<file_name>\} 
-                                         ! Write beam distribution data (\sref{s:beamfile}).
+                                         ! Write beam distribution data.
   write blender \{<file_name>\}            ! Write a blender script (Same as 3d_model).
   write covariance_matrix \{file_name\}    ! Write the covariance and alpha matrices 
                                          !   from the Levenburg (lm) optimization.
@@ -2918,12 +2918,13 @@ defined.
 The \vn{write variable} command has an optional \vn{-good_var_only} switch.  If present,
 only the information on variables that are currently used in the optimization is written.
 
-\vn{write beam} will create a file of the particle positions when beam tracking is being
-used. The \vn{-at} switch specifies at what elements the particle positions are
-written. Element list format (\sref{s:ele.list.format}), without any embedded blanks, is
-used for the \vn{<element_list>} argument to the \vn{-at} switch. The \vn{-ascii} switch
-is for writing text files. The default is to write with a compressed binary format.  Note:
-Beam files can be used to initialize \tao (\sref{s:command.line}). Example
+\vn{write beam} will create a file of the particle positions when beam tracking is being used. The
+\vn{-at} switch specifies at what elements the particle positions are written. Element list format
+(\sref{s:ele.list.format}), without any embedded blanks, is used for the \vn{<element_list>}
+argument to the \vn{-at} switch. The \vn{-ascii} switch is for writing text files. See the \vn{Beam
+Initialization} chapter in the \bmad manual for a discussion of the syntax. The default is to write
+with a compressed binary format. Note: Beam files can be used to initialize \tao
+(\sref{s:command.line}). Example
 \begin{example}
   write beam -at *   ! Output beam at every element.
 \end{example}
