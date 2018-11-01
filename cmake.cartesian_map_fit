@@ -1,0 +1,8 @@
+set (EXENAME cartesian_map_fit)
+
+FILE (GLOB SRC_FILES "cartesian_map_fit/*.f90")
+
+set (LINK_LIBS
+  sim_utils
+  recipes_f-90_LEPP 
+)
