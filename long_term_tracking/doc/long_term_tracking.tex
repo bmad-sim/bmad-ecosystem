@@ -165,9 +165,13 @@ components of the \vn{beam_init} structure (\sref{s:input}) in the master input 
 \vn{beam_init%center} to get the initial particle position.
 
 When the \vn{simulation_mode} is set to \vn{"BUNCH"}, the initial particle positions are calculated
-using the \vn{beam_init} structure as discussed in the Bmad manual. Like the other modes, if the
-\vn{add_closed_orbit_to_init_position} logical is set to \vn{True}, the closed orbit position is added to
-the initial particle positions.
+using the \vn{beam_init} structure as discussed in the \vn{Beam Initialization} chapter of the Bmad
+manual. Like the other modes, if the \vn{add_closed_orbit_to_init_position} logical is set to
+\vn{True}, the closed orbit position is added to the initial particle positions. To read in a file
+with beam particle positions, set the \vn{beam_init} structure appropriately. Example:
+\begin{code}
+  beam_init%file_name = 'beam_particle_file.init'
+\end{code}
 
 In all cases, tracking will start at the lattice element set by \vn{ele_start_name}.
 
