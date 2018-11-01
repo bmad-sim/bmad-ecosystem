@@ -665,6 +665,15 @@ type tao_common_struct
   character(160) :: var_file = ''              ! '-var'           command line argument.
   character(160) :: building_wall_file = ''    ! '-building_wall' command line argument.
   character(160) :: hook_init_file = ''        ! '-hook_init_file' command line argument
+
+  character(200) :: hook_lat_file = ''           ! To be set by tao_hook_parse_command_args
+  character(160) :: hook_beam_file = ''          ! To be set by tao_hook_parse_command_args
+  character(160) :: hook_data_file = ''          ! To be set by tao_hook_parse_command_args
+  character(160) :: hook_plot_file = ''          ! To be set by tao_hook_parse_command_args
+  character(160) :: hook_startup_file = ''       ! To be set by tao_hook_parse_command_args
+  character(160) :: hook_var_file = ''           ! To be set by tao_hook_parse_command_args
+  character(160) :: hook_building_wall_file = '' ! To be set by tao_hook_parse_command_args
+
   character(16) :: plot_geometry = ''          ! '-geometry' command line argument.
   character(80) :: single_mode_buffer = ''
   character(40) :: unique_name_suffix

@@ -45,6 +45,9 @@ namelist / tao_design_lattice / design_lattice, &
 design_lattice = tao_design_lat_input()
 design_lat = tao_design_lat_input()
 
+init_lat_file = s%com%hook_lat_file
+if (s%com%lat_file /= '') init_lat_file = s%com%lat_file
+
 ! Read lattice info
 
 call tao_hook_init_read_lattice_info (input_file_name)
@@ -71,7 +74,7 @@ if (s%com%init_read_lat_info) then
 
   if (input_file_name /= '') then
     read (iu, nml = tao_design_lattice, iostat = ios)
-    if (ios > 0 .or. (ios < 0 .and. s%com%lat_file == '')) then
+    if (ios > 0 .or. (ios < 0 .and. init_lat_file == '')) then
       call out_io (s_abort$, r_name, 'TAO_DESIGN_LATTICE NAMELIST READ ERROR.')
       rewind (iu)
       do
@@ -105,8 +108,6 @@ endif
 
 ! Read in the lattices
 
-init_lat_file = s%com%lat_file
-
 do i = lbound(s%u, 1), ubound(s%u, 1)
 
   u => s%u(i)
@@ -120,11 +121,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ! Get the name of the lattice file
 
-  if (design_lattice(i)%file /= '' .and. (init_lat_file(1:6) == 'HOOK::' .or. init_lat_file == '')) then
-    design_lat = design_lattice(i)
+  design_lat = design_lattice(i)
 
-  elseif (init_lat_file /= '') then
-    if (init_lat_file(1:6) == 'HOOK::') init_lat_file = init_lat_file(7:)
+  if (init_lat_file /= '') then
     ix = index (init_lat_file, '|') ! Indicates multiple lattices
     if (ix == 0) then
       design_lat%file = init_lat_file
@@ -180,7 +179,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! If the lattice file was obtained from the tao init file and if the lattice name 
   ! is relative, then it is relative to the directory where the tao init file is.
 
-  if (s%com%lat_file == '' .and. file_name_is_relative(design_lat%file)) &
+  if (init_lat_file == '' .and. file_name_is_relative(design_lat%file)) &
                 design_lat%file = trim(s%com%init_tao_file_path) // design_lat%file 
 
   ! Read in the design lattice. 

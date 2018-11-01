@@ -758,6 +758,9 @@ on the command line (\sref{s:command.line}). The file can either be in binary fo
 can be created by the \vn{write beam} command), or written in ASCII. If the \vn{beam0_file} string
 is set, the \vn{beam_init} component is ignored and the initial particle distribution is read in
 from the file. This is documented in the \bmad manual in the \vn{Beam Initialization} chapter.
+Note: When the particle coordinates are read in from the \vn{beam0_file}, the centroid will be
+shifted by the setting of \vn{beam_init%center}.  To vary the centroid of the beam on the \tao
+command line, the \vn{set beam_init%center} command (\sref{s:set}) can be used.
 
 \vn{ix_universe} refers to the universe index.  See the \bmad documentation on the
 \vn{beam_init_struct} for what the \vn{beam_init} parameters refer to. The charge per particle is

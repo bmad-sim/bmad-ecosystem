@@ -237,19 +237,12 @@ standard optimizers are implemented.
 
 The \vn{tao_hook_parse_command_args} routine can be used to set the names of initialization
 files. The file names are stored in the \vn{s%com} structure. For example, in the hook file, the
-following changes the plot initialization file:
+following changes the default plot initialization file:
 \begin{example}
-  s%com%plot_file = 'HOOK::/nfs/acc/user/dcs16/my_plot_init.tao'
+  s%com%hook_plot_file = '/nfs/acc/user/dcs16/my_plot_init.tao'
 \end{example}
-Normally something like \vn{s%com%plot_file} stores a file name that is set
-on the command line when \tao is invoked. And normally a file name specified on the command line
-will supersede a file name specified in the \tao root startup file. If it is desired for a file
-specified in the \tao root startup file to supersede the \vn{s%com%...} file, a prefix of
-\vn{"HOOK::"} for the \vn{s%com%...} name will tell \tao to switch the precedence order.
-
-Note: The \tao startup command line will be parsed after \vn{tao_hook_parse_command_args} is parsed
-so a file specified on the \tao startup command line will always supersede a file name set in this
-routine.
+Note that if an initialization file name is given on the command line or in the root \tao
+initialization file, that name will supersede the hook name.
 
 %-----------------------------------------------------------------
 \subsection{tao_hook_plot_graph}
