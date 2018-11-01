@@ -96,7 +96,7 @@ if (s%com%init_tao_file /= '') then
   call tao_open_file (s%com%init_tao_file, iu, file_name, s_blank$)
   if (iu == 0) then ! If open failure
     call out_io (s_info$, r_name, 'Tao initialization file not found.')
-    if (s%com%lat_file == '' .or. s%com%init_tao_file_arg_set) then
+    if ((s%com%lat_file == '' .and. s%com%hook_lat_file == '') .or. s%com%init_tao_file_arg_set) then
       call output_direct (-1, print_and_capture=s%com%print_to_terminal)
       call out_io (s_blank$, r_name, &
               'Note: To run Tao, you either need a Tao initialization file or', &
@@ -146,13 +146,13 @@ endif
 
 ! Set
 
-call set_this_file_name (plot_file, init_tao_file, s%com%plot_file)
-call set_this_file_name (data_file, init_tao_file, s%com%data_file)
-call set_this_file_name (var_file,  init_tao_file, s%com%var_file)
-call set_this_file_name (beam_file, init_tao_file, s%com%beam_file)
-call set_this_file_name (building_wall_file, '',   s%com%building_wall_file)
-call set_this_file_name (startup_file, 'tao.startup', s%com%startup_file)
-call set_this_file_name (hook_init_file, 'tao_hook.init', s%com%hook_init_file)
+call set_this_file_name (plot_file, init_tao_file, s%com%plot_file, s%com%hook_plot_file)
+call set_this_file_name (data_file, init_tao_file, s%com%data_file, s%com%hook_data_file)
+call set_this_file_name (var_file,  init_tao_file, s%com%var_file, s%com%hook_var_file)
+call set_this_file_name (beam_file, init_tao_file, s%com%beam_file, s%com%hook_beam_file)
+call set_this_file_name (building_wall_file, '',   s%com%building_wall_file, s%com%hook_building_wall_file)
+call set_this_file_name (startup_file, 'tao.startup', s%com%startup_file, s%com%hook_startup_file)
+call set_this_file_name (hook_init_file, 'tao_hook.init', s%com%hook_init_file, '')
 s%com%hook_init_file = hook_init_file
 
 ! Tao inits.
@@ -461,7 +461,7 @@ end subroutine deallocate_everything
 ! contains
 
 !+
-! Subroutine set_this_file_name (file_name, default_name, tao_com_name)
+! Subroutine set_this_file_name (file_name, default_name, tao_com_name, hook_name)
 !
 ! Routine to set the name of the file based on the file name set from various sources.
 !
@@ -469,16 +469,16 @@ end subroutine deallocate_everything
 !   file_name     -- character(*): The file name as set in the tao init file.
 !                       If it has not been set then file_name = 'NOT SET!'.
 !   default_name  -- character(*): Default name if no other name is present.
-!   tao_com_name  -- character(*): Name from s%com structure. This name is from the startup command
-!                       line or, if there is a 'HOOK::' prefix, has been set via a hook routine.
+!   tao_com_name  -- character(*): Name from s%com structure. This name is from the startup command line.
+!   hook_name     -- character(*): Name as set by the tao_hook_parse_command_args routine.
 !
 ! Output:
 !   file_name     -- character(*): File name.
 !-
 
-subroutine set_this_file_name (file_name, default_name, tao_com_name)
+subroutine set_this_file_name (file_name, default_name, tao_com_name, hook_name)
 
-character(*) file_name, default_name, tao_com_name
+character(*) file_name, default_name, tao_com_name, hook_name
 
 ! Order of preference. Highest used first:
 !   1) Name has been set on the command line.
@@ -486,10 +486,12 @@ character(*) file_name, default_name, tao_com_name
 !   3) Name has been set via a hook routine.
 !   4) Default_name.
 
-if (tao_com_name /= '' .and. tao_com_name(1:6) /= 'HOOK::') then
+if (tao_com_name /= '') then
   file_name  = tao_com_name
-elseif (file_name == 'NOT SET!' .and. tao_com_name(1:6) == 'HOOK::') then
-  file_name = tao_com_name(7:)
+elseif (file_name == 'NOT SET!' .and. tao_com_name /= '') then
+  file_name = tao_com_name
+elseif (file_name == 'NOT SET!' .and. hook_name /= '') then
+  file_name = hook_name
 elseif (file_name == 'NOT SET!') then
   file_name = default_name
 elseif (file_name_is_relative(file_name)) then
