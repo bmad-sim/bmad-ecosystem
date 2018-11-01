@@ -746,116 +746,28 @@ The syntax of the \vn{tao_beam_init} namelist is:
     beam_init%use_z_as_t        = <logical>    ! Use time instead of z (for e_guns)?
   /
 \end{example}
-\vn{ix_universe} refers to the universe index.
-See the \bmad documentation on the \vn{beam_init_struct} for what
-the \vn{beam_init} parameters refer to. The charge per particle is set to
-$\vn{bunch_charge} / \vn{n_particle}$ and is used when calculating wakefield
-effects.
 
-The emittances used construct to the beam's particle distribution can
-be set using the energy normalized emittances \vn{%a_norm_emit} and
-\vn{%b_norm_emit} or the unnormalized (``geometric'') \vn{%a_emit} and
-\vn{%b_emit}. If not set, the emittances set in the lattice file
-are used. These emittances are also used as the initial emittance in a
-linear lattice for the emittance calculation using the radiation
-integrals.
+The \vn{beam_init} parameter is an instance of a \vn{beam_init_struct} structure which holds parameters (for
+example, the beam emittances) from which a distribution of particles can be constructed. Documentation on this
+can be found in the \bmad manual in the \vn{Beam Initialization} chapter.
 
-\label{s:beamfile}
-The \vn{beam0_file} component specifies a beam data file (which can be
-created with the \vn{write beam -at <ele_name>} command) which
-contains a beam's particle coordinates which are to be used at the
-start of the lattice.  Note: The file name can be overridden by using
-the \vn{-beam0} argument on the command line
-(\sref{s:command.line}). The file can either be in binary format
-(binary files can be created by the \vn{write beam} command), or
-written in ASCII. The ASCII file format is:
-\begin{example}
-  <ix_ele>         ! Lattice element index. This is ignored.
-  <n_bunch>        ! Number of bunches.
-  <n_particle>     ! Number of particles per bunch to use
-  [bunch loop: ib = 1 to n_bunch]
-    BEGIN_BUNCH    ! Marker to mark the beginning of a bunch specification block.
-    <species_name> ! Species of particle
-    <bunch_charge> ! Charge of bunch. 0 => Use <particle_charge>.
-    <z_center>     ! z position at center of bunch.
-    <t_center>     ! t position at center of bunch.
-    [particle loop: Stop when END_BUNCH marker found]
-      <x> <px> <y> <py> <z> <pz> <charge> <state> <spin_x> <spin_y> <spin_z> 
-    [end particle loop]
-    END_BUNCH      ! Marker to mark the end of the bunch specification block
-  [end bunch loop]
-\end{example}
-Example:
-\begin{example}
-  0       ! ix_ele
-  1       ! n_bunch
-  25000   ! n_particle
-  BEGIN_BUNCH
-    POSITRON
-    3.2E-9   ! bunch_charge
-    0.0      ! z_center
-    0.0      ! t_center
-   -6.5E-3  9.6E-3 -1.9E-2  8.8E-3  2.2E-2 -2.4E-2  1.2E-13  1 1.0 0.0 0.0
-    8.5E-3  5.5E-3  4.0E-2 -1.9E-2 -4.9E-3  2.1E-2  1.2E-13  1 1.0 0.0 0.0
-    1.1E-2 -1.9E-2 -2.5E-2  1.0E-2 -1.8E-2 -7.1E-3  1.2E-13  1 1.0 0.0 0.0
-   -3.4E-2 -2.7E-3 -4.1E-3  1.3E-2  1.3E-2  1.0E-2  1.2E-13  1 1.0 0.0 0.0
-    6.8E-3 -4.5E-3  2.5E-3  1.4E-2 -2.3E-3  7.3E-2  1.2E-13  1 1.0 0.0 0.0
-    1.2E-2 -9.8E-3  1.7E-3  6.4E-3 -9.8E-3 -7.2E-2  1.2E-13  1 1.0 0.0 0.0
-    1.1E-2 -3.5E-4  1.2E-2  1.8E-2  5.4E-3  1.4E-2  1.2E-13  1 1.0 0.0 0.0
-       ... etc. ...
-  END_BUNCH
-\end{example}
+The \vn{beam0_file} component specifies a beam data file (which can be created with the \vn{write
+beam -at <ele_name>} command) which contains a beam's particle coordinates which are to be used at
+the start of the lattice.  Note: The file name can be overridden by using the \vn{-beam0} argument
+on the command line (\sref{s:command.line}). The file can either be in binary format (binary files
+can be created by the \vn{write beam} command), or written in ASCII. If the \vn{beam0_file} string
+is set, the \vn{beam_init} component is ignored and the initial particle distribution is read in
+from the file. This is documented in the \bmad manual in the \vn{Beam Initialization} chapter.
 
-The first line of the file gives \vn{ix_ele}, the index of the lattice
-element at which the distribution was created. This is ignored when
-the file is Read. The second line gives \vn{<n_bunch>}, the number
-of bunches. The third line gives \vn{n_particle} the number of
-particles in a bunch. After this, there are \vn{<n_bunch>} blocks of
-data, one for each bunch. Each one of these blocks starts with a
-\vn{BEGIN_BUNCH} line to mark the beginning of the block and ends with
-a \vn{END_BUNCH} marker line. In between, the first four lines give
-the \vn{species} name, \vn{bunch_charge}, \vn{z_center}, and
-\vn{t_center} values. The \vn{species} name may be one of:
-\begin{example}
-  positron  ! default
-  electron
-  proton
-  antiproton
-  muon
-  antimuon
-  photon
-\end{example}
+\vn{ix_universe} refers to the universe index.  See the \bmad documentation on the
+\vn{beam_init_struct} for what the \vn{beam_init} parameters refer to. The charge per particle is
+set to $\vn{bunch_charge} / \vn{n_particle}$ and is used when calculating wakefield effects.
 
-The lines following the \vn{t_center} line specify particle coordinates. One line for each particle.
-Only the first six numbers, which are the phase space coordinates, need to be specified for each
-particle. If \vn{<particle_charge>} is not present, or is zero, it defaults to
-\vn{bunch_charge/n_particle}. The \vn{<state>} parameter indicates whether a particle is alive or
-dead. Values are
-\begin{example}
-  1     ! Alive
-  2-7   ! Dead
-\end{example}
-
-The particle spin is specified by $x$, $y$ and $z$ components.
-
-The number rows specifying particle coordinates may be more then
-\vn{<n_particle>}. In this case, particles will be discarded so that
-the the beam has \vn{<n_particle>} particles. If
-\vn{beam_init%n_particle}, if set in the \tao input file, this will
-override the setting of \vn{<n_particle>} in the beam file.
-
-Each particle has an associated \vn{<particle_charge>}. If
-\vn{<bunch_charge>} is set to a non-zero value, the charge of all the
-particles will be scaled by a factor to make the bunch charge equal
-to \vn{<bunch_charge>}. Additionally, if \vn{beam_init%bunch_charge}
-is set in the \tao input file, this will override the setting of
-\vn{bunch_charge} in the beam file.
-
-\index{change}\index{beam_start}\index{beam_init}
-When the particle coordinates are read in from the \vn{beam0_file},
-the centroid will be shifted by the setting of \vn{beam_init%center}.
-To vary the centroid of the beam on the \tao command line, the \vn{set
-beam_init%center} command (\sref{s:set}) can be used.
+The emittances used construct to the beam's particle distribution can be set using the energy
+normalized emittances \vn{%a_norm_emit} and \vn{%b_norm_emit} or the unnormalized (``geometric'')
+\vn{%a_emit} and \vn{%b_emit}. If not set, the emittances set in the lattice file are used. These
+emittances are also used as the initial emittance in a linear lattice for the emittance calculation
+using the radiation integrals.
 
 The \vn{beam_all_file} component specifies a beam data file (which can
 be created with the \vn{write beam} command) which contains the
