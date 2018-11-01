@@ -77,7 +77,7 @@ logical(lp) :: time_lie_choice=my_false,courant_snyder_teng_edwards=my_true,dosy
   private copy_damap_matrix,copy_matrix_matrix,invert_22,ALLOC_33t,kill_33t,matmul_33,print_33t
   private A_OPT_C_damap,K_OPT_c_damap,equalc_t,equalt_c,daddsco,scdaddo,daddsc,scdadd,matmulr_33
 private equal_real8_cmap,equal_cmap_real8,EQUAL_c_map_RAY8,EQUAL_RAY8_c_map,c_add_vf,real_mul_vec
-private c_sub_vf,c_spinor_sub_spinor,matmult_33
+private c_sub_vf,c_spinor_sub_spinor,matmult_33,EQUALq_i
 private c_IdentityEQUALfactored,c_log_spinmatrix,c_concat_c_ray,equalc_ray_r6,equalc_r6_ray
 private dotc_spinor,c_spinor_spinor,c_read_spinmatrix,c_read_map,c_concat_spinmatrix_ray
  
@@ -102,6 +102,8 @@ private c_exp_vectorfield_on_quaternion,c_vector_field_quaternion,addql,subql,mu
 real(dp) dts
 real(dp), private :: sj(6,6)
 logical :: use_new_stochastic_normal_form=.true.
+logical :: qphase=.true.
+
 type q_linear
  complex(dp) mat(6,6)
  complex(dp)  q(0:3,0:6) 
@@ -119,6 +121,7 @@ type(q_linear) q_phasor,qi_phasor
      MODULE PROCEDURE EQUALql_q
      MODULE PROCEDURE EQUALq_ql
      MODULE PROCEDURE EQUALql_i
+     MODULE PROCEDURE EQUALq_i
      MODULE PROCEDURE EQUALql_r
      MODULE PROCEDURE EQUALq
      MODULE PROCEDURE EQUALq_c_r
@@ -6485,6 +6488,21 @@ enddo
 
  end   SUBROUTINE  EQUALq_r
 
+
+  SUBROUTINE  EQUALq_i(S2,S1)
+    implicit none
+    integer ipause, mypauses
+    type (c_quaternion),INTENT(inOUT)::S2
+    integer,INTENT(IN)::S1
+    integer i
+
+      do i=0,3
+        s2%x(i)=0.0_dp
+      enddo
+        s2%x(s1)=1
+
+ end   SUBROUTINE  EQUALq_i
+
   subroutine  quaternion_to_matrix_in_c_damap(p)
     implicit none
     TYPE(c_damap), INTENT(INOUT) :: p
@@ -11606,7 +11624,9 @@ subroutine c_full_factor_map(U,Q,U_0,U_1,U_2)
     type(c_damap) , intent(inout) :: U,Q,U_0,U_1,U_2
     type(c_damap) a
     call alloc(a)
+    qphase=.false.
     call c_full_canonise(U,a,Q,U_0,U_1,U_2,irot=0) 
+    qphase=.true.
     call kill(a)
 end subroutine c_full_factor_map   
 
@@ -11711,7 +11731,7 @@ subroutine c_full_canonise(at,a_cs,as,a0,a1,a2,rotation,phase,nu_spin,irot)
     if(kspin==-1.and.ir==1) then
 
      call c_remove_y_rot(ast,ar,tune_spin)
-     if(present(nu_spin) ) nu_spin=tune_spin/twopi+nu_spin
+     if(present(nu_spin) ) nu_spin=-tune_spin/twopi+nu_spin      !  changed 2018.11.01
          if(present(rotation)) then
            rotation=rotation*ar
          endif     
@@ -12319,20 +12339,12 @@ endif
       else
         m1=n%Atot**(-1)*xy*n%Atot
       endif
-      
+          qphase=.false.
       call c_full_canonise(m1,a1,phase=phase,nu_spin=nu_spin)
-      
+        if(real(nu_spin.sub.'0')<0) nu_spin=-nu_spin   ! 2018.11.01  to match phase advance
+          qphase=.true.
       
     endif
-
-    !  if(present(nu_spin)) then
-    !    call alloc(c1,s1)
-    !    c1=m1%s%s(1,1)
-    !    s1=m1%s%s(1,3)
-    !    nu_spin=spin_def_tune*atan2(s1,c1)/twopi
-     !!   nu_spin=nu_spin*from_phasor()
-     !   call kill(c1,s1)
-    !  endif
 
 
     call c_check_rad(m1%e_ij,rad_in)
@@ -16996,9 +17008,19 @@ dt=0
 
  
       if(use_quaternion) then
-      if(i==1) then
+ 
+      
+      if(i==1.and.qphase) then
           q=1
           q=as_y%q
+ !  make sure isf not below y plane
+       aq=q%q(0,0)**2-(q%q(1,0)**2+q%q(2,0)**2+q%q(3,0)**2)
+if(aq<0) then
+         temp%q=1   !  = i 
+         as_y%q=as_y%q*temp%q
+         q=as_y%q
+endif
+ 
             aq=-atan2(real(q%q(2,0)),real(q%q(0,0)))
             temp%q=1.0_dp
             temp%q%x(0)= cos(aq)
@@ -18223,8 +18245,16 @@ endif
     u_c=s
 if(use_quaternion.and.dos) then
 q=1
-qr=1
  q=u%q
+!  make sure isf not below y plane
+       aq=q%q(0,0)**2-(q%q(1,0)**2+q%q(2,0)**2+q%q(3,0)**2)
+if(aq<0) then
+          qr=1   !  = i 
+          qr=0.0_dp
+          qr%q(1,0)=1.0_dp
+          q=q*qr
+endif
+ qr=1
  qr=0.0_dp
 
  aq=-atan2(real(q%q(2,0)),real(q%q(0,0)))
@@ -18241,7 +18271,7 @@ qr=1
  endif
  qc=q*qr
  if(present(spin_tune)) then
-  spin_tune(1)=spin_tune(1)-aq/pi
+  spin_tune(1)=spin_tune(1)+aq/pi   ! changed 2018.11.01
  endif
 cri=ri
 qc=qc*cri
@@ -18255,7 +18285,7 @@ endif
 endif
  
  if(present(spin_tune)) then
-  spin_tune(2)=spin_tune(2)-daq/pi
+  spin_tune(2)=spin_tune(2)+daq/pi   ! changed 2018.11.01
  endif
 
 if(present(q_ptc) ) then 
