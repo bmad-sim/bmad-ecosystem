@@ -14,7 +14,9 @@ MODULE c_TPSA
   use tree_element_MODULE
   IMPLICIT NONE
   public
-  integer,private::ndel ,nd2par,nd2part,nd2partt
+  integer,private::nd2par,nd2part,nd2partt
+  integer,private,target ::pos_of_delta  
+
   integer,private,dimension(lnv)::jfil,jfilt
 
   private equal,DAABSEQUAL,Dequaldacon ,equaldacon ,Iequaldacon,derive,DEQUALDACONS  !,AABSEQUAL 2002.10.17
@@ -38,7 +40,7 @@ MODULE c_TPSA
   private liebraquaternion,pow_tpsaMAP,c_concat_quaternion_ray
   private EQUALql_cmap,EQUALcmap_ql,EQUAL_complex_quaternion_c_quaternion,EQUAL_c_quaternion_complex_quaternion
   private NO,ND,ND2,NP,NDPT,NV,ndptb,rf
-  integer NP,NO,ND,ND2,NDPT,NV,ndptb,rf
+  integer, target :: NP,NO,ND,ND2,NDPT,NV,ndptb,rf
   private nd_used
   integer nd_used
   logical(lp):: do_linear_ac_longitudinal=.true.
@@ -64,7 +66,7 @@ MODULE c_TPSA
  private c_spinor_cmap,c_adjoint_vec,c_adjoint,c_trxtaylor_da,c_spinmatrix_sub_spinmatrix,c_spinor_cmap_tpsa
  PRIVATE CUTORDERMAP,CUTORDERspin,CUTORDERspinor,c_concat_tpsa,c_concat_spinor_ray,GETORDERquaternion
   type(C_dalevel) c_scratchda(ndumt)   !scratch levels of DA using linked list
-integer, private :: nd2t=6,ndt=3,ndc2t=2,ndct=1,nd2harm,ndharm
+integer, private,target :: nd2t=6,ndt=3,ndc2t=2,ndct=1,nd2harm,ndharm
 !integer, private, parameter :: ndim2t=10
 logical(lp), private ::   c_similarity=my_false
 logical(lp) :: symp =my_false
@@ -708,12 +710,20 @@ type(q_linear) q_phasor,qi_phasor
 
   INTERFACE MAKESO3
      MODULE PROCEDURE quaternion_to_matrix_in_c_damap
+     MODULE PROCEDURE q_linear_to_matrix
+     MODULE PROCEDURE q_linear_to_3_by_3_by_6
   END INTERFACE
   ! management routines
 
   INTERFACE ass
      MODULE PROCEDURE c_asstaylor   !2000.12.25
   END INTERFACE
+
+  INTERFACE AVERAGE
+     MODULE PROCEDURE c_AVERAGE   !2000.12.25
+  END INTERFACE
+
+
 
 type c_fourier_index
  integer, pointer :: i
@@ -1465,7 +1475,7 @@ alpha=2*atan2(real(q0%x(2)),real(q0%x(0)))
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
  subroutine c_get_indices(n,mf)
-!#general: information
+!#general: informationc_%
 !# In the arrary n(>11), important parameters of the normal
 !# form can be retrieved.
 !# If mf/=0, they are printed on file mf.
@@ -6523,6 +6533,35 @@ enddo
 
     end subroutine  q_linear_to_matrix 
 
+  subroutine  q_linear_to_3_by_3_by_6 (q_lin,m)
+    implicit none
+    real(dp), INTENT(INOUT) :: m(3,3,0:6)
+    TYPE(q_linear), INTENT(IN) :: q_lin
+    type(q_linear) sf,q,s
+    integer i,j
+
+!type q_linear
+! complex(dp) mat(6,6)
+! complex(dp)  q(0:3,0:6) 
+!end type q_linear
+
+     q=1
+     q%q=q_lin%q
+     s%mat=0
+     s%q=0
+     m=0
+    do i=1,3
+     s=i
+
+     sf=q*s*q**(-1)
+
+     do j=1,3
+      m(j,i,0:6)=sf%q(j,0:6)
+     enddo
+    enddo
+ 
+
+    end subroutine  q_linear_to_3_by_3_by_6 
 
 
   FUNCTION cdaddsc( S1, sc )
@@ -7196,7 +7235,7 @@ enddo
      endif
     localmaster=c_master
 
-    ndel=0
+   ! ndel=0
     !    call check(s1)
     call ass(GETCHARnd2)
 
@@ -7271,7 +7310,7 @@ enddo
        jfil(i)=0
     enddo
     nd2par=size(s2)
-    ndel=0
+  !  ndel=0
 
     !frs get around compiler problem
     !frs    do i=1,len(trim(ADJUSTR (s2)))
@@ -7337,7 +7376,7 @@ enddo
     s2=s22%j
     nd2part=s22%min
     nd2partt=s22%max
-    ndel=0
+  !  ndel=0
     !frs get around compiler problem
     !frs    do i=1,len(trim(ADJUSTR (s2)))
     do i=nd2part,nd2partt
@@ -8792,6 +8831,38 @@ endif
     enddo 
 q_phasor=c_phasor()
 qi_phasor=ci_phasor()
+
+c_%rf=>rf
+c_%nd2t=>nd2t
+c_%nd2harm=>nd2harm
+c_%ndc2t=>ndc2t
+c_%no=>NO
+c_%NDPT=>NDPT
+c_%ND=>ND
+c_%ND2=>ND2
+c_%ndptb=>ndptb
+c_%ndpt=>ndpt
+
+c_%pos_of_delta=>pos_of_delta
+c_%pos_of_delta=0
+if(ndpt/=0) then
+c_%pos_of_delta=ndpt
+else
+ i=nv1-nd2harm-2*rf-np
+  if(i/=0) c_%pos_of_delta=nd2harm+1 
+endif
+
+
+
+
+!    ndct=iabs(ndpt-ndptb)  ! 1 if coasting, otherwise 0
+!    ndc2t=2*ndct  ! 2 if coasting, otherwise 0
+!    nd2t=nd2-2*rf-ndc2t   !  size of harmonic oscillators minus modulated clocks
+!    ndt=nd2t/2        ! ndt number of harmonic oscillators minus modulated clocks
+!    nd2harm=nd2t+2*rf  !!!!  total dimension of harmonic phase space
+!    ndharm=ndt+rf  !!!! total number of harmonic planes
+!
+
   end subroutine c_init
 
   subroutine c_init_all(NO1,NV1,np1,ndpt1,AC_rf,ptc)  !,spin
@@ -8801,6 +8872,18 @@ qi_phasor=ci_phasor()
     logical(lp), optional :: ptc  
     call c_init(NO1,NV1,np1,ndpt1,AC_rf,ptc)
      call init(NO,nd,np,ndpt) 
+
+c_%nd2t=>nd2t
+c_%nd2harm=>nd2harm
+c_%ndc2t=>ndc2t
+c_%no=>NO
+c_%NDPT=>NDPT
+c_%ND=>ND
+c_%ND2=>ND2
+c_%ndptb=>ndptb
+c_%ndpt=>ndpt
+write(6,*) ndpt
+
  end   subroutine c_init_all
 
     subroutine c_etcct(x,n1,y,n2,z)
@@ -10565,8 +10648,8 @@ SUBROUTINE  c_EQUALcray(S2,S1)
        JL(i)=0
     enddo
     ! if(old) then
-    do i=1,S1%n
-       do j=1,S1%n
+    do i=1,min(S1%n,size(s2,1))
+       do j=1,min(S1%n,size(s2,2))
           JL(j)=1
           call c_dapek(S1%v(i)%i,JL,s2(i,j))
           JL(j)=0
@@ -11626,6 +11709,7 @@ subroutine c_full_canonise(at,a_cs,as,a0,a1,a2,rotation,phase,nu_spin,irot)
       a2t%s=1
     endif
     if(kspin==-1.and.ir==1) then
+
      call c_remove_y_rot(ast,ar,tune_spin)
      if(present(nu_spin) ) nu_spin=tune_spin/twopi+nu_spin
          if(present(rotation)) then
@@ -12238,16 +12322,17 @@ endif
       
       call c_full_canonise(m1,a1,phase=phase,nu_spin=nu_spin)
       
-      if(present(nu_spin)) then
-        call alloc(c1,s1)
-        c1=m1%s%s(1,1)
-        s1=m1%s%s(1,3)
-        nu_spin=spin_def_tune*atan2(s1,c1)/twopi
-        nu_spin=nu_spin*from_phasor()
-        call kill(c1,s1)
-      endif
       
     endif
+
+    !  if(present(nu_spin)) then
+    !    call alloc(c1,s1)
+    !    c1=m1%s%s(1,1)
+    !    s1=m1%s%s(1,3)
+    !    nu_spin=spin_def_tune*atan2(s1,c1)/twopi
+     !!   nu_spin=nu_spin*from_phasor()
+     !   call kill(c1,s1)
+    !  endif
 
 
     call c_check_rad(m1%e_ij,rad_in)
@@ -12304,7 +12389,7 @@ sinalpha=sqrt(q3%x(1)**2+q3%x(2)**2+q3%x(3)**2)
 
 alpha= atan2(sinalpha,cosalpha)
 
-
+ 
 
 if(alpha==0.and.cosalpha/=-1.0_dp) then
 ! write(6,*)sinalpha,cosalpha
@@ -12315,7 +12400,7 @@ if(alpha==0.and.cosalpha/=-1.0_dp) then
 
 else
 
-if(cosalpha==-1.0_dp)  then
+if(abs(cosalpha+1.0_dp)<=1.e-16_dp)  then
  q3=-1.0_dp
 else 
  q3%x(0)=cos(alpha/2)
@@ -16871,13 +16956,14 @@ end subroutine extract_a2
      real(dp) si0,co0
     type(c_taylor) t
     type(c_quaternion) qnr
+    type(q_linear) q,qr
     integer i
     integer  nmax
-    real(dp) eps,norm1,norm2,d,dt
+    real(dp) eps,norm1,norm2,d,dt,aq
     logical check
 !!!  original as_xyz = as_xyz*r_y = a_y*a_nl*r_y  on exit
     check=.true.
-    eps=1.d-6
+    eps=1.d-9
     nmax=1000
  
     call alloc(n_expo)
@@ -16910,6 +16996,20 @@ dt=0
 
  
       if(use_quaternion) then
+      if(i==1) then
+          q=1
+          q=as_y%q
+            aq=-atan2(real(q%q(2,0)),real(q%q(0,0)))
+            temp%q=1.0_dp
+            temp%q%x(0)= cos(aq)
+            temp%q%x(2)= -sin(aq)
+
+            n_tune%v(1)=0.0_dp
+            n_tune%v(3)=0.0_dp
+            n_tune%v(2)=-aq*2.0_dp
+ 
+     else
+
             temp%q=1.0_dp
             si0=as_y%q%x(2)
             co0=as_y%q%x(0)
@@ -16924,33 +17024,11 @@ dt=0
   
   
             call cfu(n_tune%v(2),c_phase_shift,n_tune%v(2))
-qnr=n_tune
-  temp%q=exp(qnr)
-n_tune%v(2)=n_tune%v(2)*2.0_dp
-!write(16,*) 1,si0,co0
-        
- !           co0= atan2(si0,co0) 
-!write(16,*) co0
-!            co0=asin(si0)
-!write(16,*) co0
- !           temp%q%x(0)=cos(co0)
- !           temp%q%x(2)=sin(co0)
-            
- !  n_tune%v(2)=co0*2.0_dp
- !        t=as_y%q%x(0)+i_*as_y%q%x(2)
- !       t= log( t)
- !       t=aimag(t)
- !          n_tune%v(2)= 2*t
- !             temp%q%x(0)=cos(t)
- !             temp%q%x(2)=sin(t)
-        norm2=FULL_ABS(n_tune%v(2)) 
-!write(6,*) norm2
-!write(6,*) i,norm2
-!call print(as_y%q%x(0))
-!call print(temp%q%x(2))
-! call print(as_y%q%x(2))
-
-!pause 123
+             qnr=n_tune
+           temp%q=exp(qnr)
+            n_tune%v(2)=n_tune%v(2)*2.0_dp
+  endif
+ 
        else
             n_expo=log(as_y%s,exact=my_false)
             !     call dalog_spinor_8(as_y,n_expo)
@@ -17009,7 +17087,7 @@ endif
     enddo
 
     if(i>nmax-10) then
-       write(6,*) "no convergence in remove_y_rot ",norm2,norm1,i
+       write(6,*) "no convergence in remove_y_rot ",norm2,norm1,eps,i,norm2>=norm1
        !stop 1067
     endif
     

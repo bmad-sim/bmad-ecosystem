@@ -4002,7 +4002,7 @@ endif
   subroutine crap1(STRING)
     implicit none
     CHARACTER(*) STRING
-
+ 
  
       write(6,*) "ERROR IN :"
       write(6,*) STRING
