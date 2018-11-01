@@ -807,12 +807,11 @@ Twiss parameters and emittances is done using the routine
   ...
   call init_beam_distribution (lat%ele(0), lat%param, beam_init, beam)
 \end{example}
-The \vn{lat%ele(0)} argument, which is of type \vn{ele_struct}, gives
-the twiss parameters to initialize the beam to. In this case, we are
-starting tracking from the beginning of the lattice. The
-\vn{beam_init} argument which is of type \vn{beam_init} gives
-additional information, like emittances, which is needed to initialize
-the beam. See Section~\sref{s:beam.init} for more details.
+The \vn{lat%ele(0)} argument, which is of type \vn{ele_struct}, gives the twiss parameters to
+initialize the beam to. In this case, we are starting tracking from the beginning of the
+lattice. The \vn{beam_init} argument which is of type \vn{beam_init} gives additional information,
+like emittances, which is needed to initialize the beam. See chapter~\sref{c:beam.init} for more
+details.
 
 Tracking a beam is done using the \Hyperref{r:track.beam}{track_beam} routine
 \begin{example}

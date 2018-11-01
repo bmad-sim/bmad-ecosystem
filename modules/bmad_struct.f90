@@ -930,7 +930,7 @@ type grid_beam_init_struct
 end type
 
 type beam_init_struct
-  character(200) :: file_name = ''           ! For distribution_type(1) = 'FILE'
+  character(200) :: file_name = ''           ! Beam initalization file.
   character(16) :: distribution_type(3) = '' ! distribution type (in x-px, y-py, and z-pz planes)
                                              ! "ELLIPSE", "KV", "GRID", "FILE", "", or "RAN_GAUSS" 
   real(rp) :: spin(3) = 0                    ! Spin (x, y, z)

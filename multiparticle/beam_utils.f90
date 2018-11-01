@@ -254,7 +254,7 @@ if (present(err_flag)) err_flag = .true.
 
 ! Special init from file
 
-if (upcase(beam_init%distribution_type(1)) == 'FILE') then
+if (beam_init%file_name /= '') then
   call read_beam_file (beam_init%file_name, beam, beam_init, .false., err_here)
   if (err_here) then
     call out_io (s_abort$, r_name, "Problem with beam file: "//beam_init%file_name)
