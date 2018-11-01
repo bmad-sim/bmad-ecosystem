@@ -237,9 +237,16 @@ module precision_constants
      integer,pointer :: nspin => null()       ! number of spin variables (0 or 3)
      integer,pointer :: SPIN_pos => null()       ! position of spin variables (0 or 3)
      integer,pointer :: ndpt     => null() ! constant energy variable position is different from zero
+     integer,pointer ::ndptb  => null()  
      integer,pointer :: NPARA    => null() ! PARAMETER LOCATION IN PTC in fpp
      integer,pointer :: npara_fpp=> null()     ! PARAMETER LOCATION IN FPP or PTC
      integer,pointer :: np_pol   => null()  ! parameters produced through pol_block
+     integer,pointer :: nd2t   => null()  ! harmonic planes minus clocks
+     integer,pointer :: nd2harm   => null()  ! harmonic plane
+     integer,pointer :: ndc2t   => null()  ! 0 or 2 : jordan planes     
+     integer,pointer :: pos_of_delta   => null()  !  constant delta
+     integer,pointer :: rf   => null()  !   # of modulated planes
+
      logical(lp),pointer :: knob => null()
      logical(lp),pointer :: valishev => null()
      !     integer, pointer :: NDPT_OTHER

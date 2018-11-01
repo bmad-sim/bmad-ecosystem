@@ -412,11 +412,8 @@ endif
            call context(name)
            orbitname(i1)=name
           enddo
-!       case('SETORBITPHASORFREQUENCY')
-!          read(mf,*) xsm%ac%om
-!          xsm0%ac%om=xsm%ac%om
-!          ptc_node_old=-1
-!          first_particle=my_false
+       case('USER1')
+         call my_user_routine1
        case('SETORBITPHASORTIME','ORBITTIME')
           read(mf,*) xsmt
           xsm0t=xsmt
@@ -888,6 +885,16 @@ endif
                 TL=>TL%NEXT
              ENDDO
           endif
+       case('E1CAS','E1WM')
+       read(MF,*) sc
+       if(sc/=e1_cas) then
+         write(6,*) "E1 of the wonderful magnet company was ", e1_cas
+         write(6,*) "                     |  "
+         write(6,*) "                     |  "
+         write(6,*) "                    \|/  "
+           e1_cas=sc
+         write(6,*) "E1 of the wonderful magnet company is now ", e1_cas     
+        endif
        case('BEAMBEAM')
           READ(MF,*) SC,pos,patchbb
           read(mf,*) X_ref(1), X_ref(2), X_ref(3), X_ref(4)
@@ -3758,3 +3765,125 @@ subroutine read_mad_command77(ptc_fichier)
 
 end  subroutine read_mad_command77
 
+subroutine my_user_routine1 
+use madx_ptc_module
+!use pointer_lattice
+!use duan_zhe_map, probe_zhe=>probe,tree_element_zhe=>tree_element,dp_zhe=>dp, & 
+!DEFAULT0_zhe=>DEFAULT0,TOTALPATH0_zhe=>TOTALPATH0,TIME0_zhe=>TIME0,ONLY_4d0_zhe=>ONLY_4d0,RADIATION0_zhe=>RADIATION0, &
+!NOCAVITY0_zhe=>NOCAVITY0,FRINGE0_zhe=>FRINGE0,STOCHASTIC0_zhe=>STOCHASTIC0,ENVELOPE0_zhe=>ENVELOPE0, &
+!DELTA0_zhe=>DELTA0,SPIN0_zhe=>SPIN0,MODULATION0_zhe=>MODULATION0,only_2d0_zhe=>only_2d0 , &
+!INTERNAL_STATE_zhe=>INTERNAL_STATE
+implicit none
+ 
+type(layout),pointer :: fodo
+type(c_normal_form) normal_form
+integer pos,no,np,mf,i
+real(dp) closed_orbit(6)
+type(probe) xs0
+type(probe_8) xs
+type(c_damap) id,one_turn_map,a_cs,a0,a1,a2,a
+type(c_taylor) x2div2,x2div2_f,phase(3),phase_one_turn_map(3)
+type(internal_state) state
+type(fibre), pointer :: f
+
+
+
+ 
+!!!! reading the flat file produced by MAD-X
+!call ptc_ini_no_append
+call read_lattice_append(M_U,"../../files_for_cas/guido_fodo/flat.txt")
+!call read_lattice_append(M_U,"C:\msys64\home\Etienne\MAD-X\files_for_cas\guido_fodo\flat.txt")
+!call read_lattice_append(M_U,"guido_fodo_ubuntu.txt")
+fodo=>m_u%end
+
+
+call in_bmad_units   ! units similar to MAD-X
+ 
+
+! finds the closed orbit at position 1 (should be (0,0,0,0,0,0))
+pos=1
+closed_orbit=0.d0;  
+                                                
+call find_orbit_x(fodo,closed_orbit(1:6),STATE,1.e-8_dp,fibre1=pos)  
+ 
+state=nocavity   ! state that produces map with delta dependence
+no=3
+np=0
+call init_all(state,no,np)
+ 
+
+!   create these TPSA objects
+call alloc(id,one_turn_map,a_cs,a0,a1,a2,a)
+call alloc(xs)
+call alloc(normal_form)
+call alloc(x2div2,x2div2_f)
+call alloc(phase)
+call alloc(phase_one_turn_map)
+
+xs0=closed_orbit   ! xs0 contains orbit and spin 
+id=1   !    identity map
+xs=id+xs0   !  xs is a probe_8 which can become a Taylor series
+ 
+ 
+call propagate(fodo,xs,state,fibre1=pos) ! computes one turn map around closed orbit
+ 
+one_turn_map=xs
+ 
+ 
+call c_normal(one_turn_map,normal_form,phase=phase_one_turn_map)  ! one_turn_map= normal_form%atot o  rotation o  normal_form%atot^-1
+ 
+call c_canonise(normal_form%atot,a_cs,a0,a1,a2) 
+
+xs =  a_cs +xs0
+
+call kanalnummer(mf,"twiss_from_guido.txt")
+
+phase=0.0_dp
+x2div2=2.0_dp*(1.0_dp.cmono.1)**2
+call C_AVERAGE(x2div2,a1,x2div2_f)  
+
+write(mf,*) " Phase advance in x "
+call clean(phase,phase,prec=1.d-10)
+call print(phase(1),mf)
+write(mf,*) " Beginning of lattice "
+call print(x2div2_f,mf)
+
+f=>fodo%start
+do i=1,fodo%n
+ call propagate(fodo,xs,state,fibre1=i,fibre2=i+1)
+
+write(mf,*) " end of Magnet ",f%mag%name
+
+ a=xs  ! creates tracked canonical transformation
+ xs0=xs
+call c_canonise(a,a_cs,a0,a1,a2,phase) ;call clean(a1,a1,prec=1.d-10);
+ 
+call C_AVERAGE(x2div2,a1,x2div2_f)  
+
+write(mf,*) " Phase advance in x "
+call clean(phase,phase,prec=1.d-10)
+call print(phase(1),mf)
+write(mf,*) " 2(x^2> ~ beta"
+call print(x2div2_f,mf)
+
+xs=xs0+a_cs
+
+f=>f%next
+enddo
+
+
+write(mf,*) " Tune in x from one turn map"
+call clean(phase_one_turn_map,phase_one_turn_map,prec=1.d-10)
+call print(phase_one_turn_map(1),mf)
+
+close(mf)
+
+call kill(id,one_turn_map,a_cs,a0,a1,a2,a)
+call kill(xs)
+call kill(normal_form)
+call kill(x2div2,x2div2_f)
+call kill(phase)
+call kill(phase_one_turn_map)
+
+
+end  subroutine my_user_routine1
