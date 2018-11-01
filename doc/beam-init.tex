@@ -1,4 +1,4 @@
-\chapter{Beam Initialzation}
+\chapter{Beam Initialization}
 \label{c:beam.init}
 
 Some \bmad based programs track beams of particles instead of tracking individual particles
@@ -9,12 +9,12 @@ bookkeeping a program needs to do to calculate such quantities such as the bunch
 A \bmad based program has two standard ways to specify the initial distribution of a beam. One is
 using a \vn{beam_init_struct} \vn{structure} (\sref{s:struct}) which holds parameters (for
 example, the beam emittances) from which a distribution of particles can be constructed. The
-\vn{beam_init_struct} structure is explained in Section~\sref{s:beam.init.struct}. The other wayto
+\vn{beam_init_struct} structure is explained in Section~\sref{s:beam.init.struct}. The other way is to
 specify the inital beam distribution via a file that has the individual particle positions. This is
 covered in Section~\sref{s:beam.init.file}.
 
 %-----------------------------------------------------------------
-\section{Beam_Init_Struct}
+\section{Beam_Init_Struct Structure}
 \label{s:beam.init.struct}
 \index{beam initialization parameters|hyperbf}
 
@@ -23,7 +23,7 @@ The \vn{beam_init_struct} \vn{structure} (\sref{s:struct}) holds parameters whic
 initialize a beam. The parameters of this structure are:
 \begin{example}
   type beam_init_struct
-    character(200) :: file_name = ''       ! For %distribution_type(1) = "FILE"
+    character(200) :: file_name = ''       ! Initialization file name.
     character distribution_type(3)         ! "ELLIPSE", "KV", "GRID", "" (default).
     type (ellipse_beam_init_struct) ellipse(3) ! For ellipse beam distribution
     type (kv_beam_init_struct) KV              ! For KV beam distribution
@@ -69,9 +69,9 @@ tracking (\sref{s:rf.time}) must be used.
 
 \begin{description}
 \item[\%file_name] \Newline
-\vn{%file_name} sets the name of the file to be read in containing the particle coordinates. 
-Input from a file is triggered if \vn{%distribution_type(1)} is set to "FILE". The format of the
-file is discused in Section~\sref{s:beam.init.file}.
+\vn{%file_name} sets the name of the file to be read in containing the particle coordinates.  Input
+from a file is triggered if not-blank. The format of the file is discused in
+Section~\sref{s:beam.init.file}.
 %
 \item[\%a_emit, \%b_emit, \%a_norm_emit, \%b_norm_emit] \Newline
 Normalized and unnormalized emittances. Either \vn{a_norm_emit} or \vn{a_emit}
@@ -246,3 +246,94 @@ proper $s$-coordinate distributions for Bmad to use.
 \end{description}
 
 
+%-----------------------------------------------------------------
+\section{File Based Beam Initialization}
+\label{s:beam.init.file}
+\index{beam initialization parameters|hyperbf}
+
+A beam initialization file specifies the coordinates of all the particles in a beam. If a \bmad
+based program uses a \vn{beam_init_struct} (\sref{s:beam.init.file}) for inputting initialization
+parameters, the file name for file based beam initialization can be set using the \vn{%file_name}
+component of the structure.
+
+There are two formats for the beam initialization file: ASCII and binary. Currently, the binary file
+format is undergoing revision and will not be discussed here. The ASCII file format is:
+\begin{example}
+  <ix_ele>         ! Lattice element index. This is ignored.
+  <n_bunch>        ! Number of bunches.
+  <n_particle>     ! Number of particles per bunch to use
+  [bunch loop: ib = 1 to n_bunch]
+    BEGIN_BUNCH    ! Marker to mark the beginning of a bunch specification block.
+    <species_name> ! Species of particle
+    <bunch_charge> ! Charge of bunch. 0 => Use <particle_charge>.
+    <z_center>     ! z position at center of bunch.
+    <t_center>     ! t position at center of bunch.
+    [particle loop: Stop when END_BUNCH marker found]
+      <x> <px> <y> <py> <z> <pz> <charge> <state> <spin_x> <spin_y> <spin_z> 
+    [end particle loop]
+    END_BUNCH      ! Marker to mark the end of the bunch specification block
+  [end bunch loop]
+\end{example}
+Example:
+\begin{example}
+  0       ! ix_ele
+  1       ! n_bunch
+  25000   ! n_particle
+  BEGIN_BUNCH
+    POSITRON
+    3.2E-9   ! bunch_charge
+    0.0      ! z_center
+    0.0      ! t_center
+   -6.5E-3  9.6E-3 -1.9E-2  8.8E-3  2.2E-2 -2.4E-2  1.2E-13  1 1.0 0.0 0.0
+    8.5E-3  5.5E-3  4.0E-2 -1.9E-2 -4.9E-3  2.1E-2  1.2E-13  1 1.0 0.0 0.0
+    1.1E-2 -1.9E-2 -2.5E-2  1.0E-2 -1.8E-2 -7.1E-3  1.2E-13  1 1.0 0.0 0.0
+   -3.4E-2 -2.7E-3 -4.1E-3  1.3E-2  1.3E-2  1.0E-2  1.2E-13  1 1.0 0.0 0.0
+    6.8E-3 -4.5E-3  2.5E-3  1.4E-2 -2.3E-3  7.3E-2  1.2E-13  1 1.0 0.0 0.0
+    1.2E-2 -9.8E-3  1.7E-3  6.4E-3 -9.8E-3 -7.2E-2  1.2E-13  1 1.0 0.0 0.0
+    1.1E-2 -3.5E-4  1.2E-2  1.8E-2  5.4E-3  1.4E-2  1.2E-13  1 1.0 0.0 0.0
+       ... etc. ...
+  END_BUNCH
+\end{example}
+
+The first line of the file gives \vn{ix_ele}, the index of the lattice element at which the
+distribution was created. This is ignored when the file is Read. The second line gives
+\vn{<n_bunch>}, the number of bunches. The third line gives \vn{n_particle} the number of particles
+in a bunch. After this, there are \vn{<n_bunch>} blocks of data, one for each bunch. Each one of
+these blocks starts with a \vn{BEGIN_BUNCH} line to mark the beginning of the block and ends with a
+\vn{END_BUNCH} marker line. In between, the first four lines give the \vn{species} name,
+\vn{bunch_charge}, \vn{z_center}, and \vn{t_center} values. The \vn{species} name may be one of:
+\begin{example}
+  positron  ! default
+  electron
+  proton
+  antiproton
+  muon
+  antimuon
+  photon
+\end{example}
+
+The lines following the \vn{t_center} line specify particle coordinates. One line for each particle.
+Only the first six numbers, which are the phase space coordinates, need to be specified for each
+particle. If \vn{<particle_charge>} is not present, or is zero, it defaults to
+\vn{bunch_charge/n_particle}. The \vn{<state>} parameter indicates whether a particle is alive or
+dead. Values are
+\begin{example}
+  1     ! Alive
+  2-7   ! Dead
+\end{example}
+
+The particle spin is specified by $x$, $y$ and $z$ components.
+
+The number rows specifying particle coordinates may be more then \vn{<n_particle>}. In this case,
+particles will be discarded so that the the beam has \vn{<n_particle>} particles. If
+\vn{beam_init%n_particle}, if set in the \tao input file, this will override the setting of
+\vn{<n_particle>} in the beam file.
+
+Each particle has an associated \vn{<particle_charge>}. If \vn{<bunch_charge>} is set to a non-zero
+value, the charge of all the particles will be scaled by a factor to make the bunch charge equal to
+\vn{<bunch_charge>}. Additionally, if \vn{beam_init%bunch_charge} is set in the \tao input file,
+this will override the setting of \vn{bunch_charge} in the beam file.
+
+\index{change}\index{beam_start}\index{beam_init}
+When the particle coordinates are read in from the \vn{beam0_file}, the centroid will be shifted by
+the setting of \vn{beam_init%center}.
