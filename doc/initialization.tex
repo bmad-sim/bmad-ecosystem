@@ -827,11 +827,12 @@ the \vn{tao_params} namelist above, for example,
   /
 \end{example}
 
-\vn{beam_saved_at} is used to specify at what elements the beam
-distribution is to be saved at. The syntax used is
-element list format as explained in \sref{s:ele.list.format}.
-The \vn{BEGINNING} element (with index 0 in the lattice
-list) and the last element are automatically saved.
+\vn{beam_saved_at} is used to specify at what elements the beam particle positions are saved
+at. Note that, independent of the setting of \vn{beam_saved_at}, beam statistics (like the beam
+sigma matrix) are always saved at each lattice element. Element list format, as explained in
+\sref{s:ele.list.format}, is used to specify to liast of elements for \vn{beam_saved_at}. The
+\vn{BEGINNING} element (with index 0 in the lattice list) and the last element are automatically
+saved.
 \begin{example}
   &tao_beam_init
     beam_saved_at = "marker::m* *34w*" ! Save beam at all markers starting with "m"

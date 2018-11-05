@@ -315,10 +315,6 @@ u%beam%beam0_file = beam0_file
 u%beam%beam_all_file = beam_all_file
 call init_coord(u%design%tao_branch(0)%orbit(0), beam_init%center, u%design%lat%ele(0), downstream_end$)
 
-! No initialization for a circular lattice
-
-if (u%model%lat%param%geometry == closed$) return
-
 ! Find where to save the beam at.
 ! Always save at branch points.
 
