@@ -446,10 +446,17 @@ case ('beam')
     n_tot = bunch_p%n_particle_tot
 
     if (n_tot == 0) then
-      nl=nl+1; lines(nl) = 'Beam has no particles!'
+      nl=nl+1; lines(nl) = 'Beam not tracked through this element!'
       result_id = 'beam:no_particles'
       return
     endif
+
+    if (n_live == 0) then
+      nl=nl+1; lines(nl) = 'No live particles!'
+      result_id = 'beam:no_live'
+      return
+    endif
+
 
     nl=nl+1; lines(nl) = 'Cashed bunch parameters:'
     nl=nl+1; write(lines(nl), imt)  '  Parameters for bunch:       ', n
@@ -473,14 +480,20 @@ case ('beam')
       nl=nl+1; write(lines(nl), rmt) '  x:       ', bunch_p%x%norm_emit, bunch_p%x%beta, bunch_p%x%alpha
       nl=nl+1; write(lines(nl), rmt) '  y:       ', bunch_p%y%norm_emit, bunch_p%y%beta, bunch_p%y%alpha
       nl=nl+1; write(lines(nl), rmt) '  z:       ', bunch_p%z%norm_emit, bunch_p%z%beta
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; lines(nl) = 'Sigma Mat       x              px               y              py              z             pz'
+      do i = 1, 6
+        nl=nl+1; write (lines(nl), '(a2, 2x, 6es16.8)') coord_name(i), bunch_p%sigma(i,:)
+      enddo
     endif
 
     beam => u%uni_branch(eles(1)%ele%ix_branch)%ele(ix_ele)%beam
+    nl=nl+1; lines(nl) = ''
     if (allocated(beam%bunch)) then
       bunch => beam%bunch(n)
-      nl=nl+1; lines(nl) = 'Note: The beam distribution is saved at this element.'
+      nl=nl+1; lines(nl) = 'Note: Individual particle positions are saved at this element.'
     else
-      nl=nl+1; lines(nl) = 'Note: The beam distribution is not saved at this element.'
+      nl=nl+1; lines(nl) = 'Note: Individual particle positions are not saved at this element.'
     endif
   
   endif
