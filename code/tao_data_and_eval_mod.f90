@@ -1589,6 +1589,9 @@ case ('srdt.')
     case('h00201')
       temp_cplx = tao_branch%srdt%h00201
       term_cplx = .true.
+    case('h10002')
+      temp_cplx = tao_branch%srdt%h10002
+      term_cplx = .true.
     case('h21000')
       temp_cplx = tao_branch%srdt%h21000
       term_cplx = .true.
