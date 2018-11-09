@@ -633,7 +633,6 @@ type tao_common_struct
   logical :: initialized = .false.                  ! Does tao_init() need to be called?
   logical :: cmd_file_paused
   logical :: use_cmd_here  = .false.                ! Used for the cmd history stack
-  logical :: multi_commands_here = .false.
   logical :: cmd_from_cmd_file = .false.            ! was command from a command file?
   logical :: use_saved_beam_in_tracking = .false.
   logical :: single_mode = .false.
@@ -673,11 +672,11 @@ type tao_common_struct
   character(160) :: hook_startup_file = ''       ! To be set by tao_hook_parse_command_args
   character(160) :: hook_var_file = ''           ! To be set by tao_hook_parse_command_args
   character(160) :: hook_building_wall_file = '' ! To be set by tao_hook_parse_command_args
-
-  character(16) :: plot_geometry = ''          ! '-geometry' command line argument.
+  character(200) :: saved_cmd_line = ''          ! Saved part of command line when there are mulitple commands on a line 
+  character(16) :: plot_geometry = ''            ! '-geometry' command line argument.
   character(80) :: single_mode_buffer = ''
   character(40) :: unique_name_suffix
-  character(16) :: valid_plot_who(10)          ! model, base, ref etc...
+  character(16) :: valid_plot_who(10)            ! model, base, ref etc...
   character(20) :: history_file = '~/.history_tao'
 end type
 
