@@ -55,11 +55,10 @@ character(*) :: cmd_out
 character(*), optional :: prompt_str, cmd_in
 character(80) prompt_string, color_prompt_string
 character(40) name
-character(200), save :: saved_line
 character(40) :: r_name = 'tao_get_user_input'
 
 logical, optional :: wait_flag, will_need_input
-logical err, wait, flush, boldit
+logical err, wait, flush, boldit, using_saved_cmd
 logical, save :: init_needed = .true.
 
 ! Init single char input
@@ -74,7 +73,7 @@ endif
 
 ! Init
 
-if (present(cmd_in)) cmd_out = cmd_in
+cmd_out = ''
 
 prompt_string = s%global%prompt_string
 if (present(prompt_str)) prompt_string = prompt_str
@@ -108,21 +107,11 @@ if (s%com%single_mode) then
     call get_a_char (cmd_out(1:1), wait, [' '])  ! ignore blanks
     s%com%cmd_from_cmd_file = .false.
   endif
+  if (present(will_need_input)) will_need_input = .true.
   return
 endif
 
 s%com%single_mode_buffer = '' ! Reset buffer when not in single mode
-
-! check if we still have something from a line with multiple commands
-
-if (s%com%multi_commands_here) then
-  call string_trim (saved_line, saved_line, ix)
-  if (ix == 0) then
-    s%com%multi_commands_here = .false.
-  else
-    cmd_out = saved_line
-  endif
-endif
 
 ! If recalling a command from the cmd history stack...
 
@@ -131,7 +120,17 @@ if (s%com%use_cmd_here) then
   call out_io (s_blank$, r_name, '  ' // cmd_out)
   cmd_out = tao_alias_translate (cmd_out, err)
   s%com%use_cmd_here = .false.
+  if (present(will_need_input)) will_need_input = .true.
   return
+endif
+
+! check if we still have something from a line with multiple commands
+
+using_saved_cmd = .false.
+if (s%com%saved_cmd_line /= '') then
+  call string_trim (s%com%saved_cmd_line, s%com%saved_cmd_line, ix)
+  cmd_out = s%com%saved_cmd_line
+  using_saved_cmd = .true.
 endif
 
 ! If a command file is open then read a line from the file.
@@ -143,7 +142,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
 
   call output_direct (print_and_capture = s%global%command_file_print_on)
 
-  if (.not. s%com%multi_commands_here) then
+  if (cmd_out == '') then
     do
       read (s%com%cmd_file(n_level)%ix_unit, '(a)', end = 8000, iostat = ios) cmd_out
       if (ios /= 0) then
@@ -182,6 +181,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
         call out_io (s_error$, r_name, 'MALFORMED LINE IN COMMAND FILE: ' // cmd_out)
         call tao_abort_command_file()
         cmd_out = ''
+        if (present(will_need_input)) will_need_input = .true.
         return
       endif
       name = cmd_out(ix1+2:ix2-1)
@@ -196,8 +196,9 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
       call out_io (s_error$, r_name, 'CANNOT MATCH NAME IN [[...]] CONSTRUCT: ' // cmd_out)
       call tao_abort_command_file()
       cmd_out = ''
+      if (present(will_need_input)) will_need_input = .true.
       return
-      
+
     enddo loop1
 
     if (.not. s%com%quiet) call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
@@ -208,15 +209,15 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
   endif
 
   cmd_out = tao_alias_translate (cmd_out, err)
-  call check_for_multi_commands
+  call check_for_multi_commands ()
 
-  if (s%com%multi_commands_here) then
+  if (using_saved_cmd .or. s%com%saved_cmd_line /= '') then
     call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
   endif
 
   return
 
-  !-----------------------------------------
+  !--------------
 
   8000 continue
   close (s%com%cmd_file(n_level)%ix_unit)
@@ -232,13 +233,15 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
     endif
   endif
   call output_direct (print_and_capture = s%com%print_to_terminal)
+  if (present(will_need_input) .and. s%com%cmd_file_level == 0) will_need_input = .true.
+  return
 endif
 
+!------------------------------------------------------------------
 ! Here if no command file is being used.
 
 if (.not. present(cmd_in)) then
-  if (.not. s%com%multi_commands_here) then
-    cmd_out = ''
+  if (cmd_out == '') then
     s%com%cmd_from_cmd_file = .false.
     boldit = (s%global%prompt_color /= '' .and. s%global%prompt_color /= 'DEFAULT')
     call out_io (s_blank$, r_name, '')
@@ -249,17 +252,17 @@ if (.not. present(cmd_in)) then
   endif
 endif
 
+cmd_out = tao_alias_translate (cmd_out, err)
+call check_for_multi_commands ()
+
 if (present (will_need_input)) then
   will_need_input = .false.
-  if (.not. s%com%multi_commands_here .and. (s%com%cmd_file_level == 0 .or. s%com%cmd_file(n_level)%paused)) then
+  if (s%com%saved_cmd_line == '' .and. (s%com%cmd_file_level == 0 .or. s%com%cmd_file(n_level)%paused)) then
      will_need_input = .true.
   endif
 endif
 
-cmd_out = tao_alias_translate (cmd_out, err)
-call check_for_multi_commands
-
-if (s%com%multi_commands_here) then
+if (using_saved_cmd .or. s%com%saved_cmd_line /= '') then
   call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
 endif
 
@@ -267,12 +270,13 @@ endif
 !-------------------------------------------------------------------------
 contains
 
-subroutine check_for_multi_commands
+subroutine check_for_multi_commands ()
 
 integer ix
 character(1) quote
 
 !
+
 
 if (cmd_out(1:5) == 'alias') return
 
@@ -285,8 +289,7 @@ do ix = 1, len(cmd_out)
       exit
 
     case (';')
-      s%com%multi_commands_here = .true.
-      saved_line = cmd_out(ix+1:)
+      s%com%saved_cmd_line = cmd_out(ix+1:)
       cmd_out = cmd_out(:ix-1)
       return
 
@@ -300,7 +303,7 @@ do ix = 1, len(cmd_out)
 
 enddo
 
-saved_line = ' '
+s%com%saved_cmd_line = ' '
 
 end subroutine
 
