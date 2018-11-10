@@ -17,24 +17,34 @@ contains
 !-------------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------------
 !+
-! Subroutine tao_get_user_input (cmd_out, prompt_str, wait_flag, cmd_in, will_need_input)
+! Subroutine tao_get_user_input (cmd_out, prompt_str, wait_flag, cmd_in)
 !
-! Subroutine to get input from the terminal.
+! Subroutine to get the next Tao command. In order of precedence, input may come from:
+!   1) s%com%cmd string (if s%com%use_cmd_here is set to True). 
+!      Used for recalling commands from the history stack.
+!   2) A saved command string. 
+!   3) A command file.
+!   4) The cmd_in argument (if present). Used, for example, when interfacing with Python.
+!   5) The terminal.
 !
+! Note: A saved command string is present if a prior input string contained multiple commands. 
+! For example, the following string is read from a command file or terminal or passed via cmd_in:
+!         "show ele 1; set opti de; run"
+! Then cmd_out would be "show ele 1" and "set opti de; run" would be saved for the next call to this routine.
+!
+! Note: In single character mode, the input precedence order is ignored and input is taken from the terminal.
+! 
 ! Input:
 !   prompt_str -- Character(*), optional: Primpt string to print at terminal. If not
 !                   present then s%global%prompt_string will be used.
 !   wait_flag  -- logical, optional: Used for single mode: Wait state for get_a_char call.
-!   cmd_in     -- Character(*), optional: Command. Used, for example, when using Python.
+!   cmd_in     -- Character(*), optional: Command to be used in place getting user input. 
 !
 ! Output:
 !   cmd_out    -- Character(*): Command from the user.
-!   will_need_input
-!              -- logical, optional :: This argument is set to True when the local command buffer is 
-!                   empty and more input will be needed when this routine is next called.
 !-
 
-subroutine tao_get_user_input (cmd_out, prompt_str, wait_flag, cmd_in, will_need_input)
+subroutine tao_get_user_input (cmd_out, prompt_str, wait_flag, cmd_in)
 
 implicit none
 
@@ -57,7 +67,7 @@ character(80) prompt_string, color_prompt_string
 character(40) name
 character(40) :: r_name = 'tao_get_user_input'
 
-logical, optional :: wait_flag, will_need_input
+logical, optional :: wait_flag
 logical err, wait, flush, boldit, using_saved_cmd
 logical, save :: init_needed = .true.
 
@@ -107,7 +117,6 @@ if (s%com%single_mode) then
     call get_a_char (cmd_out(1:1), wait, [' '])  ! ignore blanks
     s%com%cmd_from_cmd_file = .false.
   endif
-  if (present(will_need_input)) will_need_input = .true.
   return
 endif
 
@@ -120,11 +129,10 @@ if (s%com%use_cmd_here) then
   call out_io (s_blank$, r_name, '  ' // cmd_out)
   cmd_out = tao_alias_translate (cmd_out, err)
   s%com%use_cmd_here = .false.
-  if (present(will_need_input)) will_need_input = .true.
   return
 endif
 
-! check if we still have something from a line with multiple commands
+! Check if we still have something from a line with multiple commands
 
 using_saved_cmd = .false.
 if (s%com%saved_cmd_line /= '') then
@@ -139,7 +147,6 @@ n_level = s%com%cmd_file_level
 if (n_level == 0) s%com%quiet = .false.  ! Disable if not running from a command file
 
 if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
-
   call output_direct (print_and_capture = s%global%command_file_print_on)
 
   if (cmd_out == '') then
@@ -181,7 +188,6 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
         call out_io (s_error$, r_name, 'MALFORMED LINE IN COMMAND FILE: ' // cmd_out)
         call tao_abort_command_file()
         cmd_out = ''
-        if (present(will_need_input)) will_need_input = .true.
         return
       endif
       name = cmd_out(ix1+2:ix2-1)
@@ -196,7 +202,6 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
       call out_io (s_error$, r_name, 'CANNOT MATCH NAME IN [[...]] CONSTRUCT: ' // cmd_out)
       call tao_abort_command_file()
       cmd_out = ''
-      if (present(will_need_input)) will_need_input = .true.
       return
 
     enddo loop1
@@ -208,6 +213,8 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
     
   endif
 
+  !
+
   cmd_out = tao_alias_translate (cmd_out, err)
   call check_for_multi_commands ()
 
@@ -216,32 +223,17 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
   endif
 
   return
-
-  !--------------
-
-  8000 continue
-  close (s%com%cmd_file(n_level)%ix_unit)
-  s%com%cmd_file(n_level)%ix_unit = 0 
-  s%com%cmd_file_level = n_level - 1 ! signal that the file has been closed
-  cmd_out = ''
-  ! If still lower nested command file to complete then return
-  if (s%com%cmd_file_level /= 0) then
-    if (s%com%cmd_file(n_level-1)%paused) then
-      call out_io (s_info$, r_name, 'To continue the paused command file type "continue".')
-    else
-      return 
-    endif
-  endif
-  call output_direct (print_and_capture = s%com%print_to_terminal)
-  if (present(will_need_input) .and. s%com%cmd_file_level == 0) will_need_input = .true.
-  return
 endif
 
-!------------------------------------------------------------------
-! Here if no command file is being used.
+!-------------------------------------------------------------------------
+! Here if no command file is being read from...
 
-if (.not. present(cmd_in)) then
-  if (cmd_out == '') then
+! Get a command if cmd_out has not already been set due to stuff saved in s%com%saved_cmd_line.
+
+if (cmd_out == '') then
+  if (present(cmd_in)) then
+    cmd_out = cmd_in
+  else
     s%com%cmd_from_cmd_file = .false.
     boldit = (s%global%prompt_color /= '' .and. s%global%prompt_color /= 'DEFAULT')
     call out_io (s_blank$, r_name, '')
@@ -252,19 +244,37 @@ if (.not. present(cmd_in)) then
   endif
 endif
 
+! Alias translate the command and do other bookkeeping.
+
 cmd_out = tao_alias_translate (cmd_out, err)
 call check_for_multi_commands ()
-
-if (present (will_need_input)) then
-  will_need_input = .false.
-  if (s%com%saved_cmd_line == '' .and. (s%com%cmd_file_level == 0 .or. s%com%cmd_file(n_level)%paused)) then
-     will_need_input = .true.
-  endif
-endif
 
 if (using_saved_cmd .or. s%com%saved_cmd_line /= '') then
   call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
 endif
+
+return
+
+!-------------------------------------------------------------------------
+! Here on an end of file detected or a file read error.
+
+8000 continue
+close (s%com%cmd_file(n_level)%ix_unit)
+s%com%cmd_file(n_level)%ix_unit = 0 
+s%com%cmd_file_level = n_level - 1 ! Signal that the file has been closed
+cmd_out = ''
+
+! If there exists a still lower nested command file to complete then return.
+if (s%com%cmd_file_level /= 0) then
+  if (s%com%cmd_file(n_level-1)%paused) then
+    call out_io (s_info$, r_name, 'To continue the paused command file type "continue".')
+  else
+    return 
+  endif
+endif
+
+call output_direct (print_and_capture = s%com%print_to_terminal)
+return
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -276,7 +286,6 @@ integer ix
 character(1) quote
 
 !
-
 
 if (cmd_out(1:5) == 'alias') return
 
@@ -439,10 +448,10 @@ end subroutine tao_get_user_input
 !-------------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------------
 
-recursive function tao_alias_translate (cmd_in, err, depth) result(cmd_out)
+recursive function tao_alias_translate (cmd_str_in, err, depth) result(cmd_str_out)
 
-character(*) cmd_in
-character(:), allocatable :: cmd_out, tail, alias_cmd
+character(*) cmd_str_in
+character(:), allocatable :: cmd_str_out, tail, alias_cmd
 
 integer, optional :: depth
 integer ic, i, j, ix, ix2, this_depth
@@ -455,7 +464,7 @@ if (present(depth)) then
   this_depth = depth + 1
   if (this_depth > 100) then
     call out_io (s_error$, r_name, 'INFINITE RECURSION LOOP TRANSLATING ALIASES.')
-    cmd_out = ''
+    cmd_str_out = ''
     err = .true.
     return
   endif
@@ -466,25 +475,25 @@ endif
 
 ! Look multiple commands
 
-ix = index(cmd_in, ';')
+ix = index(cmd_str_in, ';')
 if (ix /= 0) then
-  cmd_out = tao_alias_translate(cmd_in(1:ix-1), err, this_depth)
-  tail = cmd_in(ix+1:)
+  cmd_str_out = tao_alias_translate(cmd_str_in(1:ix-1), err, this_depth)
+  tail = cmd_str_in(ix+1:)
 
   do 
-    ix = index(cmd_out, ';')
+    ix = index(cmd_str_out, ';')
     if (ix == 0) exit
-    cmd_out = trim(cmd_out) // ';' // tao_alias_translate(tail(1:ix-1), err, depth)
+    cmd_str_out = trim(cmd_str_out) // ';' // tao_alias_translate(tail(1:ix-1), err, depth)
     tail = tail(ix+1:)
   enddo
 
-  cmd_out = trim(cmd_out) // ';' // tao_alias_translate(tail, err, depth)
+  cmd_str_out = trim(cmd_str_out) // ';' // tao_alias_translate(tail, err, depth)
   return
 endif
 
 ! Here if there is just a single command to translate
 
-tail = cmd_in
+tail = cmd_str_in
 call string_trim (tail, tail, ic)
 
 do i = 1, s%com%n_alias
@@ -509,9 +518,9 @@ do i = 1, s%com%n_alias
       found_a_dummy_arg = .true.
       found_this_dummy_arg = .true.
       if (tail(1:ic) == '' .and. ix /= 0) then
-        call out_io (s_error$, r_name, 'ALIAS COMMAND DEMANDS MORE ARGUMENTS! ' // cmd_in)
+        call out_io (s_error$, r_name, 'ALIAS COMMAND DEMANDS MORE ARGUMENTS! ' // cmd_str_in)
         err = .true.
-        cmd_out = ''
+        cmd_str_out = ''
         return
       endif
       if (ix /= 0) then
@@ -524,9 +533,9 @@ do i = 1, s%com%n_alias
 
   if (tail /= '') then
     if (found_a_dummy_arg) then
-      call out_io (s_error$, r_name, 'EXTRA ARGUMENTS PRESENT IN COMMAND! ' // cmd_in)
+      call out_io (s_error$, r_name, 'EXTRA ARGUMENTS PRESENT IN COMMAND! ' // cmd_str_in)
       err = .true.
-      cmd_out = ''
+      cmd_str_out = ''
       return
     ! If there are no dummy args present then just append the tail to the command
     else
@@ -536,13 +545,13 @@ do i = 1, s%com%n_alias
 
   ! The translation may need to be translated.
 
-  cmd_out = tao_alias_translate (alias_cmd, err, this_depth) ! Translation is an alias?
+  cmd_str_out = tao_alias_translate (alias_cmd, err, this_depth) ! Translation is an alias?
   return
 enddo
 
 ! No translation needed
 
-cmd_out = trim(cmd_in)
+cmd_str_out = trim(cmd_str_in)
 
 end function tao_alias_translate
 
