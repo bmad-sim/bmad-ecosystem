@@ -129,7 +129,7 @@ case ('alias')
 
 case ('call')
 
-  call tao_cmd_split(cmd_line, 10, cmd_word, .true., err); if (err) return
+  call tao_cmd_split(cmd_line, 10, cmd_word, .true., err); if (err) goto 9000
   call tao_call_cmd (cmd_word(1), cmd_word(2:10))
   return
 
@@ -138,23 +138,23 @@ case ('call')
 
 case ('change')
 
-  call tao_cmd_split (cmd_line, 2, cmd_word, .false., err); if (err) return
+  call tao_cmd_split (cmd_line, 2, cmd_word, .false., err); if (err) goto 9000
 
   silent = .false.
   if (index('-silent', trim(cmd_word(1))) == 1) then
     silent = .true.
-    call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) return
+    call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) goto 9000
   endif
 
   if (index ('variable', trim(cmd_word(1))) == 1) then
-    call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) return
+    call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) goto 9000
     call tao_change_var (cmd_word(1), cmd_word(2), silent)
   elseif (index('element', trim(cmd_word(1))) == 1) then
-    call tao_cmd_split (cmd_word(2), 3, cmd_word, .false., err); if (err) return
+    call tao_cmd_split (cmd_word(2), 3, cmd_word, .false., err); if (err) goto 9000
     call tao_change_ele (cmd_word(1), cmd_word(2), cmd_word(3))
   elseif (index(trim(cmd_word(1)), 'beam_start') /= 0) then     ! Could be "2@beam_start"
     word = cmd_word(1)
-    call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) return
+    call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) goto 9000
     call tao_change_ele (word, cmd_word(1), cmd_word(2))
   else
     call out_io (s_error$, r_name, 'Change who? (should be: "element", "beam_start", or "variable")')
@@ -279,7 +279,7 @@ case ('help')
 
 case ('misalign')
 
-  call tao_cmd_split (cmd_line, 5, cmd_word, .true., err); if (err) return
+  call tao_cmd_split (cmd_line, 5, cmd_word, .true., err); if (err) goto 9000
   call tao_misalign (cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4), &
                      cmd_word(5))
 
@@ -328,7 +328,7 @@ case ('plot')
 
 case ('ptc')
 
-  call tao_cmd_split (cmd_line, 2, cmd_word, .false., err); if (err) return
+  call tao_cmd_split (cmd_line, 2, cmd_word, .false., err); if (err) goto 9000
 
   call tao_ptc_cmd (cmd_word(1), cmd_word(2))
   return
@@ -365,7 +365,7 @@ case ('re_execute')
 
 case ('read')
 
-  call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
+  call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) goto 9000
   call tao_read_cmd (cmd_word(1), cmd_word(2))
 
 !--------------------------------
@@ -373,8 +373,7 @@ case ('read')
 
 case ('restore', 'use', 'veto')
 
-  call tao_cmd_split(cmd_line, 2, cmd_word, .true., err)
-  if (err) return
+  call tao_cmd_split(cmd_line, 2, cmd_word, .true., err);  if (err) goto 9000
   
   call match_word (cmd_word(1), ["data    ", "variable"], which, .true., matched_name = switch)
   
@@ -392,8 +391,7 @@ case ('restore', 'use', 'veto')
 
 case ('reinitialize')
 
-  call tao_cmd_split(cmd_line, 2, cmd_word, .false., err)
-  if (err) return
+  call tao_cmd_split(cmd_line, 2, cmd_word, .false., err);  if (err) goto 9000
 
   call match_word (cmd_word(1), ['data', 'tao ', 'beam'], ix, .true., matched_name=word)
 
@@ -409,8 +407,7 @@ case ('reinitialize')
     s%u(:)%calc%lattice = .true.
 
   case ('tao') 
-    call tao_parse_command_args (err, cmd_word(2))
-    if (err) return
+    call tao_parse_command_args (err, cmd_word(2));  if (err) goto 9000
 
     ! quit the plot window so it will be recreated    
     call tao_destroy_plot_window
@@ -431,7 +428,7 @@ case ('reinitialize')
 
 case ('run_optimizer', 'flatten')
 
-  call tao_cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) return
+  call tao_cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) goto 9000
   call tao_run_cmd (cmd_word(1), abort)
 
 !--------------------------------
@@ -487,7 +484,7 @@ case ('set')
     'ran_state', 'symbolic_number'], ix, .true., matched_name = set_word)
   if (ix < 1) then
     call out_io (s_error$, r_name, 'NOT RECOGNIZED OR AMBIGUOUS: ' // cmd_word(1))
-    return
+    goto 9000
   endif
 
   cmd_line = cmd_word(2)
@@ -504,7 +501,7 @@ case ('set')
 
   if (set_word /= 'universe' .and. cmd_word(n_eq) /= '=') then
     call out_io (s_error$, r_name, 'SYNTAX PROBLEM. "=" NOT IN CORRECT PLACE.')
-    return
+    goto 9000
   endif
 
   select case (set_word)
@@ -553,8 +550,7 @@ case ('set')
   case ('var')
     call tao_set_var_cmd (cmd_word(1), cmd_word(3))
   case ('wave')
-    call tao_set_wave_cmd (cmd_word(1), cmd_word(3), err)
-    if (err) return
+    call tao_set_wave_cmd (cmd_word(1), cmd_word(3), err);  if (err) goto 9000
     call tao_cmd_end_calc
     call tao_show_cmd ('wave')
   end select
@@ -686,6 +682,13 @@ end select
 ! Note: wave command bypasses this.
 
 call tao_cmd_end_calc
+return
+
+!------------------------------------------------------------------------
+! Error:
+
+9000 continue
+call tao_abort_command_file()
 
 end subroutine tao_command
 

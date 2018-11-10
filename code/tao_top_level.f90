@@ -26,13 +26,14 @@ type (tao_super_universe_struct), pointer :: s_ptr  ! For debug purposes
 type (tao_universe_struct), pointer :: u
 
 integer, optional :: errcode
+integer n_lev
 
 character(*), optional :: command
 character(1000) :: cmd_in
 character(300) cmd_out
 character(16) :: r_name = 'tao_top_level'
 
-logical found, err, will_need_input
+logical found, err, need_input
 
 ! init
 
@@ -68,9 +69,8 @@ u => s%u(1)  ! Used for debugging
 do
   err = .false.
   
-  call tao_get_user_input (cmd_out, cmd_in = command, will_need_input = will_need_input)
-  
-  
+  call tao_get_user_input (cmd_out, cmd_in = command)
+
   ! MPI: Broadcast command to slaves
   ! if (s%mpi%master) call tao_get_user_input (cmd_out)
   ! if (s%mpi%on) call tao_broadcast_chars_mpi(cmd_out)
@@ -81,18 +81,22 @@ do
     ! Do the standard calculations and plotting after command execution.
     call tao_cmd_end_calc ()
   else
-    ! command line mode
+    ! Command line mode
     call tao_hook_command (cmd_out, found)
     if (.not. found) call tao_command (cmd_out, err)
+    call tao_cmd_history_record (cmd_out)
   endif
-  if (.not. err) call tao_cmd_history_record (cmd_out)
 
   ! Exit if current command line parsing is finished (may not be if multiple commands were present) and 
   ! Tao is getting commands through the command argument
-  if (will_need_input .and. present(command)) exit
+  n_lev = s%com%cmd_file_level
+  need_input = (s%com%saved_cmd_line == '' .and. (n_lev == 0 .or. s%com%cmd_file(n_lev)%paused) .and. &
+                                                                                  .not. s%com%single_mode)
+  if (present(command) .and. need_input) exit
+
 enddo
 
-if (present(errcode) )then
+if (present(errcode)) then
   if (err) then
     errcode = 1
   else
