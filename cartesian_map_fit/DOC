@@ -23,31 +23,44 @@ fitnnnn.in Input File
 The program will read in "fitnnnn.in" which should look something
 like:
 
-     Chi2:       0.140916528215442     
-     Chi2_coef:  1.443933309059283E-002
-     B_diff (G):   1.94478176399389     
-     dB_rms (G):   9.31438448020503     
-     B_Merit   :  3.978451184747663E-004
-     B_int:  3.533268607619795E-009
-     Weight_coef:   3.000000000000000E-003
+    parameter[E_tot] = 5e9
+    map:  wiggler, l = 1.6, cartesian_map = {term = {0.03, 3.0, 4.0, 5.0, 0, 0, 0.63, y}}
+
+    l: line = (map)
+    use, l
+    end_file
+
+   Chi2:       0.140916528215442     
+   Chi2_coef:  1.443933309059283E-002
+   B_diff (G):   1.94478176399389     
+   dB_rms (G):   9.31438448020503     
+   B_Merit   :  3.978451184747663E-004
+   B_int:  3.533268607619795E-009
  
-     &Parameters
-       field_file = "binary_w8-20_37_144.table"
-       Nz_ref = 1
-       term(  1) =    0.0134634   42.1841705    1.9727237   -1.5707960
-       term(  2) =   -0.0379654   34.2375794    5.9284662   -1.5707960
-       term(  3) =   -0.0593513  -24.7150456    7.3399490   -1.5707960
-       term(  4) =    0.0014459  -63.4099878    7.8424788   -1.5707960
-        ... etc. ...
-     /
+   &Parameters
+     field_file = "binary_w8-20_37_144.table"
+     z0_phase_ref = 0
+     coef_weight = 
+     n_loops =
+     n_cycles = 
+     fft_write = 
+   /
 
-The stuff before the "&Parameters" line is just information about the
+
+The first part of the file before the "end_file" line specifies a bmad lattice with one element that contains
+the starting cartesian map fit.
+
+The stuff after the "end_file" and before the "&Parameters" line is just information about the
 fit that was performed to create this file and is ignored on input
-(see below for more info on this). 
+(see below for more info on this).
 
-The "field_file = " line specifies the field table file 
+The "&Parameters" line to the slash "/" is a fortran namelist. This namelist specifies one parameter
+which is the name of the file containing the field table.
 
-The "Nz_ref = 1" sets where the phase reference point is for phi_z. That is, 
+
+
+
+The "Nz_ref" sets where the phase reference point is for phi_z. That is, 
 the fit terms are of the form:
   B ~ sin(phi_z + kz * (z-z0))
 and Nz_ref sets z0. Nz_ref = 1 means that z0 is at z index #1 in the table.
@@ -56,18 +69,15 @@ and Nz_ref sets z0. Nz_ref = 1 means that z0 is at z index #1 in the table.
 
 the "term(n) = " lines specifies the fit terms of the starting point of the fit.
 Each term is of the form:
-      term(n) = coef  kx  kz  phi_z
+      term(n) = coef  kx  ky  kz  family phi_z
 The coef is in Tesla.  There are different "forms" and "families" used for the Cartesian map
-terms. See the documentation in the Bmad manual. Here ky is calculated from kx and kz via:
-  If kx > 0:          ky = sqrt(kz^2 + kx^2)
-  If 0 > Kx > -|kz|:  ky = sqrt(kz^2 - kx^2)
-  Else:               ky = sqrt(kx^2 - kz^2)
+terms. See the documentation in the Bmad manual.
 
 Note: phi_z is referenced from the center of the element and not the
 element end.
 
 %-----------------------------------------------------------------
-Element Field Table File
+Field Table File
 
 The third input file used by the program is the element field file
 whose name is given the program from the fitnnnn.in file. There are
@@ -78,19 +88,22 @@ files tend to be large. The binary files must have a name that starts
 with "binary_". The program to convert from ASCII to binary is in
       write_binary_table/write_binary_table.f90
 
-The first line in the field file gives Nx, Ny and Nz where Nx
-is the number of points in the table horizontally, Ny is the number of
-points in the table vertically, and Nz is the number of points
-longitudinally. The total number of points is, naturally: 
-      Nx x Ny x Nz. 
-The next lines give the columns of the table. This table should have
-columns:
-      x_postion   y_position   z_position  Bx    By    Bz
-					(cm)     (cm)          (cm)     (G)   (G)   (G)   
-The order of the lines in the table is important. For example, the
-program assumes that in the first Nz data lines the x_position and
-y_position are constant (with a value of 0) and the z_position is
-increasing in fixed steps.
+The first five lines in the field file gives
+  Nx_min, Nx_max, del_x
+  Ny_min, Ny_max, del_y
+  Nz_min, Nz_max, del_z
+  length_scale.
+  field_scale.
+where one th first line (Nx_min, Nx_max) are the minimum and maximum indexes of the field grid along
+the x-axis and del_x is the spacing between points. The other two lines give corresponding
+parameters for the y and z-axes. The length_scale gives the conversion factor between position
+values in terms of meters. For example, a length_scale of 0.01 means that the positions in the file
+are in cm. The field_scale gives the conversion factor between field in terms of Tesla. For example,
+a field_scale of 1e-4 means that the field values in the file are in Gauss.
+
+The next seciton of the file gives the field tabletable. This table should have
+six columns:
+      ! x_postion   y_position   z_position  Bx    By    Bz
 
 %-----------------------------------------------------------------
 fit.weight Input File
@@ -106,7 +119,7 @@ This file has all the parameters needed by the program. It looks like:
       vary_phi_z = .false.      ! vary phi_z in the fit
       n_loops =  200
       n_cycles =  5
-      weight_coef_all =  3e-3
+      coef_weight_all =  3e-3
       phi_ref_pt = '1'
     /
 
@@ -135,9 +148,8 @@ The merit function to be minimized is:
   M = sum: (Bx_fit - Bx_table)^2 + 
       sum: (By_fit - By_table)^2 + 
       sum: (Bz_fit - Bz_table)^2 + 
-      sum: weight_i * (coef_i)^2)
-The last sum is over all terms in the fit.  weight_i is determined by
-the weight_coef_all variable in the fit.weight file.
+      sum: coef_weight * (coef_i)^2)
+The last sum is over all terms in the fit. 
 
 %-----------------------------------------------------------------
 Running the program
@@ -146,15 +158,15 @@ Running the program is simple. It will run by itself until it
 finishes.  When the program writes out a fitmmmm.in file it also
 prints something like:
 
-		Chi2:        391407.750877595     
-		Chi2_coef:  1.890402000000000E-004
-		B_diff (G):   4229.52984190201     
-		dB_rms (G):   12894.8166488047     
-		B_Merit   :   1.00384824152624     
-		B_int:   -6.011840298555775E-002
-		B_diff:     31.37  10752.85   1904.38  12688.59
-		B_rms:      67.25  12474.38   3265.23  12894.82
-		B_dat:      25.47  10710.09   1904.38  12639.95
+    Chi2:        391407.750877595     
+    Chi2_coef:  1.890402000000000E-004
+    B_diff (G):   4229.52984190201     
+    dB_rms (G):   12894.8166488047     
+    B_Merit   :   1.00384824152624     
+    B_int:   -6.011840298555775E-002
+    B_diff:     31.37  10752.85   1904.38  12688.59
+    B_rms:      67.25  12474.38   3265.23  12894.82
+    B_dat:      25.47  10710.09   1904.38  12639.95
 
 Chi2 is the figure of merit (M).
 
@@ -261,5 +273,31 @@ To convert you use the program wiggler_fitting/bin/to_bmad_format. This program 
 create some files that can be used for plotting results. The file with the Bmad 
 coefficients has a ".bmad_coefs" suffix.
 
-WARNING: THIS PROGRAM DID WORK IN TIMES PAST BUT THE FIELD TABLE FILE HAS CHANGED ENOUGH
-SO THAT IT SHOULD BE TESTED THAT THE PHI_Z TRANSFORMATION STILL IS CORRECT.
+%-----------------------------------------------------------------
+Under the Hood
+
+Some details about the optimization: For a given family, the different forms for the field are
+constructed such that they can be considered as one continuous function of (kx, ky, kz) such that
+when kx passes through zero there is a transition between hyper_y and hyper_xy forms and when ky
+passes through zero there is a transition between hyper_x and hyper_xy forms.  [Note: With the forms
+as constructed, a transition between hyper_x and hyper_y when kz passes through zero is not
+continuous.  This is not a problem since the constructed continuous function avoids direct
+transitions between hyper_x and hyper_y.]
+
+Since there are only two degrees of freedom for (kx, ky, kz) the field is considered to be a
+function of kxy = kx + ky and kz. The reason why kxy is used instead of kx or ky is that the
+optimizer needs the derivatives of the field with respect the independent variables and if kx or ky
+is used, the derivatives can become infinite at the transition points between forms. Using kxy
+avoids all infinities. With this, the correspondence between form and (kxy, kz) values is
+                                                                                                      Sign of
+  Condition          Form          kx                                  ky                             kx   ky
+  ---------          --------  --------------------------------    --------------------------------   -------
+  kxy > |kz|         hyper_y   (kxy^2 - kz^2) / (2kxy)             (kxy^2 + kz^2) / (2kxy)            +    + 
+-|kz| < kxy < |kz|   hyper_xy  (kxy - sqrt(2 kz^2 - kxy^2)) / 2    (kxy + sqrt(2 kz^2 - kxy^2)) / 2   -    +
+  kxy < -|kz|        hyper_x   (kxy^2 + kz^2) / (2kxy)             (kxy^2 - kz^2) / (2kxy)            -    -
+
+When the (kx, ky, kz) parameters of a given term are readin from the input file, the form for the
+term can determined by using the condition, for example, that ky^2 = kx^2 + kz^2 for the hyper_y
+form, etc. The sign of the input kx and ky might not correspond to what is given in the above
+table. This can be corrected by flipping signs as needed for kx and ky and then possibly flipping
+the sign for the Coef coefficient to keep the caculated field invariant.

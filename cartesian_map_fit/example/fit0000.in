@@ -1,0 +1,20 @@
+parameter[E_tot] = 5e9
+map:  quadrupole, l = 1.6, cartesian_map = {term = {0.03, 5.0, 3.0, 4.0, 0.11, 0.22, 0.63, sq}}
+
+l: line = (map)
+use, l
+
+end_file
+
+
+&Parameters
+  field_file = "field.table"
+  coef_weight = 2
+  n_loops = 2
+  n_cycles = 10
+  fft_write = F
+  z0_phase_ref = 0
+  mask_x0 = F
+  mask_y0 = F
+  mask_phi_z = F
+/

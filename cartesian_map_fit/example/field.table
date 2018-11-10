@@ -1,0 +1,19 @@
+-1, 0, 1   ! Nx_min, Nx_max, del_x
+0, 1, 2    ! Ny_min, Ny_max, del_y
+-1, 1, 10  ! Nz_min, Ny_max, del_z
+0.01       ! position_scale
+1          ! field_scale
+
+!  X    Y    Z    B_x    B_y   B_z
+  -1    0  -10    0      0     1
+  -1    0    0    0      0     0
+  -1    0   10    0      0     0
+  -1    2  -10    0      0     0
+  -1    2    0    0      0     0
+  -1    2   10    0      0     0
+   0    0  -10    0      0     0
+   0    0    0    0      0     0
+   0    0   10    0      0     0
+   0    2  -10    0      0     0
+   0    2    0    0      0     0
+   0    2   10    0      0     0
