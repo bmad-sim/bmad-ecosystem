@@ -52,7 +52,10 @@ if (.not. s%com%initialized) then
     stop
   endif
   s%com%initialized = .true.
-  if (present(command)) return
+  n_lev = s%com%cmd_file_level
+  need_input = (s%com%saved_cmd_line == '' .and. (n_lev == 0 .or. s%com%cmd_file(n_lev)%paused) .and. &
+                                                                                  .not. s%com%single_mode)
+  if (present(command) .and. need_input) return
 endif
 
 u => s%u(1)  ! Used for debugging
