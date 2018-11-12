@@ -71,16 +71,17 @@ character(8) :: columns(7) = (/ '1 X   ', '2 Y   ', '3 Z   ', &
 
 
 ! Binary
+! Notice that the binary table stores lengths in meters and fields in Tesla independent of length_scale and field_scale.
 
 if (field_file(1:8) == 'binary::') then
 
-  open (1, file = field_file(9:), status = 'old', form = 'unformatted', readonly)
+  open (1, file = field_file(9:), form = 'unformatted', status = 'OLD')
+  read (1) length_scale, field_scale
   read (1) Nx_min, Nx_max
   read (1) Ny_min, Ny_max
   read (1) Nz_min, Nz_max
   read (1) del_grid
   read (1) r0_grid
-  read (1) length_scale, field_scale
 
   allocate (Bx_in(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max), By_in(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
   allocate (Bz_in(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max), valid_field(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
@@ -98,7 +99,7 @@ if (field_file(1:8) == 'binary::') then
 
 else
 
-  open (1, file = field_file, STATUS='OLD', readonly, shared)
+  open (1, file = field_file, status = 'OLD', shared)
   read (1, '(a)') line
   read (line, *) length_scale
   read (1, '(a)') line
@@ -138,14 +139,15 @@ else
   end do
 
   close (1)
+
+  del_grid = del_grid * length_scale
+  r0_grid = r0_grid * length_scale
+  Bx = Bx * field_scale
+  By = By * field_scale
+  Bz = Bz * field_scale
 endif
 
 !
-
-del_grid = del_grid * length_scale
-Bx = Bx * field_scale
-By = By * field_scale
-Bz = Bz * field_scale
 
 opti_field = .false.
 do ix = Nx_min, Nx_max, Nx_max-Nx_min
@@ -220,7 +222,7 @@ namelist / parameters / field_file, coef_weight, n_loops, n_cycles, mask_x0, mas
 ! Read in parameters and starting fit
 
 coef_weight = 0
-open (1, file = param_file, status = 'old', readonly, shared)
+open (1, file = param_file, status = 'OLD', shared)
 read (1, nml = parameters)
 close (1)
 
