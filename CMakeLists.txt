@@ -24,7 +24,7 @@ set (EXE_SPECS
   cmake.f77_to_f90
   cmake.lattice_cleaner
   cmake.sad_to_bmad_postprocess
- ## cmake.cartesian_map_fit
+  cmake.cartesian_map_fit
 )
 
 if($ENV{ACC_ENABLE_MPI})
