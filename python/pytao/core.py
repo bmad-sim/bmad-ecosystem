@@ -37,7 +37,8 @@ class Tao:
     try:
         self.register_cell_magic()
     except:
-        print('unable to register cell magic')
+        pass
+        #print('unable to register cell magic')
         
     if init:
         # Call init
@@ -56,7 +57,7 @@ class Tao:
     if not self.initialized:
         self.so_lib.tao_c_init_tao(cmd.encode('utf-8'))
         self.initialized = True
-        self.cmd('sho ele 0') # TODO: this is necessary to get the output of the next cmd to work. 
+        #self.cmd('sho ele 0') # TODO: this is necessary to get the output of the next cmd to work. 
         return self.get_output()
     else:
         # Reinit
@@ -69,6 +70,7 @@ class Tao:
   def cmd(self, cmd):
     self.so_lib.tao_c_command(cmd.encode('utf-8'))
     return self.get_output()
+    
 
   def register_cell_magic(self):
     """
