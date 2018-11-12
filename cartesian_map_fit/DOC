@@ -1,163 +1,81 @@
 cartesian_map_fit program documentation:
 
-This program finds the best Cartesian map fit to a lattice element field table.
+This program varies the parametes of a Cartesian map to fit the field as calculated from the map to
+a field table.
 
-This documentation and source code is in the directory
+This documentation and source code is in the directory:
   util_programs/cartesian_map_fit
+
+
+%-----------------------------------------------------------------
+Input Files
+
+There are three input files. Example input files can be found at 
+  util_programs/cartesian_map_fit/example
+
 
 %-----------------------------------------------------------------
 number.in Input File
 
-There are four input files. The first file to be read in by the
-program is:
+The first file to be read in by the program is:
   number.in
   
-This file has only one line and this line just contains a number. The
-program will read in this number and then open a file "fitnnnn.in"
-where "nnnn" is the number read in. For example, if the number is
-"132" then the program will look for the input file: "fit0132.in".
+This file has only one line and this line just contains a number. The program will read in this
+number and then open a file "fitNNNN.in" where "NNNN" is the number read in. For example, if the
+number is "132" then the program will look for the input file: "fit0132.in".
+
+After the fitNNNN.in file has been read in, the program will take the following steps:
+  1) Optimize the map parameters.
+  2) Every n_cycles (set in the fitNNNN.in file, see below):
+    2a) Increase the number in the number.in file by one,
+    2b) Write a fitNNNN.in file where NNNN is the number that was writen to the number.in file.
+
+Step (2) will be done n_loops times. Each time incrementing the number it writes to number.in. The
+program will stop before n_loops are doen if it feels that it cannot make progress.
+
 
 %-----------------------------------------------------------------
-fitnnnn.in Input File
-
-The program will read in "fitnnnn.in" which should look something
-like:
-
-    parameter[E_tot] = 5e9
-    map:  wiggler, l = 1.6, cartesian_map = {term = {0.03, 3.0, 4.0, 5.0, 0, 0, 0.63, y}}
-
-    l: line = (map)
-    use, l
-    end_file
-
-   Chi2:       0.140916528215442     
-   Chi2_coef:  1.443933309059283E-002
-   B_diff (G):   1.94478176399389     
-   dB_rms (G):   9.31438448020503     
-   B_Merit   :  3.978451184747663E-004
-   B_int:  3.533268607619795E-009
- 
-   &Parameters
-     field_file = "binary_w8-20_37_144.table"
-     z0_phase_ref = 0
-     coef_weight = 
-     n_loops =
-     n_cycles = 
-     fft_write = 
-   /
-
-
-The first part of the file before the "end_file" line specifies a bmad lattice with one element that contains
-the starting cartesian map fit.
-
-The stuff after the "end_file" and before the "&Parameters" line is just information about the
-fit that was performed to create this file and is ignored on input
-(see below for more info on this).
-
-The "&Parameters" line to the slash "/" is a fortran namelist. This namelist specifies one parameter
-which is the name of the file containing the field table.
-
-
-
-
-The "Nz_ref" sets where the phase reference point is for phi_z. That is, 
-the fit terms are of the form:
-  B ~ sin(phi_z + kz * (z-z0))
-and Nz_ref sets z0. Nz_ref = 1 means that z0 is at z index #1 in the table.
-(see below for a description of the field table).
-
-
-the "term(n) = " lines specifies the fit terms of the starting point of the fit.
-Each term is of the form:
-      term(n) = coef  kx  ky  kz  family phi_z
-The coef is in Tesla.  There are different "forms" and "families" used for the Cartesian map
-terms. See the documentation in the Bmad manual.
-
-Note: phi_z is referenced from the center of the element and not the
-element end.
-
-%-----------------------------------------------------------------
-Field Table File
-
-The third input file used by the program is the element field file
-whose name is given the program from the fitnnnn.in file. There are
-two types of field files: ASCII and binary. The binary files are
-created from the ascii files and their advantage is that they can be
-read in much quicker. This is a significant advantage since these
-files tend to be large. The binary files must have a name that starts
-with "binary_". The program to convert from ASCII to binary is in
-      write_binary_table/write_binary_table.f90
-
-The first five lines in the field file gives
-  Nx_min, Nx_max, del_x
-  Ny_min, Ny_max, del_y
-  Nz_min, Nz_max, del_z
-  length_scale.
-  field_scale.
-where one th first line (Nx_min, Nx_max) are the minimum and maximum indexes of the field grid along
-the x-axis and del_x is the spacing between points. The other two lines give corresponding
-parameters for the y and z-axes. The length_scale gives the conversion factor between position
-values in terms of meters. For example, a length_scale of 0.01 means that the positions in the file
-are in cm. The field_scale gives the conversion factor between field in terms of Tesla. For example,
-a field_scale of 1e-4 means that the field values in the file are in Gauss.
-
-The next seciton of the file gives the field tabletable. This table should have
-six columns:
-      ! x_postion   y_position   z_position  Bx    By    Bz
-
-%-----------------------------------------------------------------
-fit.weight Input File
-
-The third input file used by the program is named "fit.weight". 
-This file has all the parameters needed by the program. It looks like:
-
-    &wght
-      Nx = 0                    ! restrict Nx
-      Ny = 0                    ! restrict Ny
-      iz1 = 0                   ! restrict z-range
-      iz2 = 0                   ! restrict z-range
-      vary_phi_z = .false.      ! vary phi_z in the fit
-      n_loops =  200
-      n_cycles =  5
-      coef_weight_all =  3e-3
-      phi_ref_pt = '1'
-    /
-
-The Nx and Ny values here can be used to restrict the region over
-which the fit is done. "0" means use the full range. For example, if
-in the field table there are 12 points horizontally, setting "Nx = 10"
-would mean that only 10 points are used from 1 (which is at x = 0) to
-10 (which is at x = 9*del_x where del_x is the grid spacing). iz1 and
-iz2 restrict the longitudinal range from point iz1 to point iz2. iz1 =
-0 means use the default starting longitudinal point (point #1) and iz2
-= 0 means use the default ending longitudinal point (point #Nz).
-
-vary_phi_z is a logical that if True alows the optimizer to very phi_z
-in the optimiation. Generally if you know that the field has a symmetry
-in z (true for CESR wigglers at least), you *don't* want to vary phi_z.
-Conversely if there is no symmetry then you will want to vary phi_z.
-
-The optimizer is run for n_cycles and then the program will add 1 to
-the number it has from number.in. It will store this new number in
-number.in and it will write out a new "fitmmmm.in" file where "mmmm"
-is the updated number. It will do this n_loops times. Each time
-incrementing the number it writes to number.in. The program will also
-stop if it feels that it cannot make progress.
+Optimization
 
 The merit function to be minimized is:
-  M = sum: (Bx_fit - Bx_table)^2 + 
-      sum: (By_fit - By_table)^2 + 
-      sum: (Bz_fit - Bz_table)^2 + 
-      sum: coef_weight * (coef_i)^2)
-The last sum is over all terms in the fit. 
+  M = Sum over exterior grid points: (Bx_fit - Bx_table)^2 + 
+      Sum over exterior grid points: (By_fit - By_table)^2 + 
+      Sum over exterior grid points: (Bz_fit - Bz_table)^2 + 
+      Sum over Cartesion map terms: coef_weight * (coef_i)^2)
 
-%-----------------------------------------------------------------
-Running the program
+The last sum is over all terms in the fit. This last sum is included to keep the coefficients of
+degenerate or near-degenate terms from diverging to +/- infinity. The value for coef_weight is
+set in the fitNNNN.in file.
 
-Running the program is simple. It will run by itself until it
-finishes.  When the program writes out a fitmmmm.in file it also
-prints something like:
+Note: To save time, the sum over grid points is restricted to the grid points on the exterior of the
+grid volume. This is valid since the error between the fit and grid points will is maximal on the
+exterior points.
 
+The parameters that will be varied by the optimization are the parameters for each Cartesian map term:
+  Coef kxy, kz, x0, y0, phi_z
+The reason for using kxy = kx + ky is discussed in the Under the Hood section below. The x0, y0, and
+phi_z parameters may be excluded from varying in the optimization as discussed below. Thus the
+maximum number of variables is 6*N where N is the number of Cartesian map terms. Notice that the
+family of a term is never varied.
+
+For the lm optimizer, the program also prints out lines like:
+           1   391407.750877595        10.0000000000000     
+           2   391407.750877595        100.000000000000     
+           3   391393.714610333        100.000000000000     
+           4   391357.721046570        100.000000000000     
+           5   391357.721046570        1000.00000000000     
+           6   391355.478001373        1000.00000000000     
+           7   391352.133272867        1000.00000000000     
+           8   391352.133272867        10000.0000000000     
+
+The first column is n_cycles The second column is the merit function
+The third column is something called "lambda" which is a measure of
+how well the fitting is going. lambda decreases or remains roughly the
+same when the optimizer is making progress and increases when the
+optimizer is stuck.
+
+Every time a new fitNNNN.in file is generated, parameters of the optimization fit will
+be printed. Example:
     Chi2:        391407.750877595     
     Chi2_coef:  1.890402000000000E-004
     B_diff (G):   4229.52984190201     
@@ -188,90 +106,189 @@ B_rms [x, y, z, tot] = B_rms for Bx, By, and Bz components
 
 B_dat: [x, y, z, tot] = Average |Bx_table|, |By_table|, and |Bz_table| 
 
-The program also prints out lines like:
-           1   391407.750877595        10.0000000000000     
-           2   391407.750877595        100.000000000000     
-           3   391393.714610333        100.000000000000     
-           4   391357.721046570        100.000000000000     
-           5   391357.721046570        1000.00000000000     
-           6   391355.478001373        1000.00000000000     
-           7   391352.133272867        1000.00000000000     
-           8   391352.133272867        10000.0000000000     
 
-The first column is n_cycles The second column is the merit function
-The third column is something called "lambda" which is a measure of
-how well the fitting is going. lambda decreases or remains roughly the
-same when the optimizer is making progress and increases when the
-optimizer is stuck.
+%-----------------------------------------------------------------
+fitNNNN.in Input File
+
+The program will read in the "fitNNNN.in" as explained above. 
+This file should look something like:
+
+  parameter[E_tot] = 5e9
+  map:  quadrupole, l = 1.6, cartesian_map = {
+  term = {0.03, 3.0, 4.0, 5.0, 0, 0, 0.63, y},
+  term = {...},
+  ...
+  term = {...} }
+
+  l: line = (map)
+  use, l
+
+  end_file
+
+  &Parameters
+    field_file = "binary::w8-20_37_144.table"
+    optimizer = "lm"
+    n_loops = 1000
+    n_cycles = 100
+    coef_weight = 4.0
+    mask_x0 = T
+    mask_y0 = T
+    mask_phi_z = F
+    de_var_to_population_factor = 5
+    de_coef_step  = 0.01
+    de_k_step     = 0.01
+    de_x0_y0_step = 0.0001
+    de_phi_z_step = 1e-4
+  /
+
+  Chi2:       0.140916528215442     
+  Chi2_coef:  1.443933309059283E-002
+  B_diff (G):   1.94478176399389     
+  dB_rms (G):   9.31438448020503     
+  B_Merit   :  3.978451184747663E-004
+  B_int:  3.533268607619795E-009
+
+
+The first part of the file before the "end_file" line specifies a bmad lattice with one element that
+contains the starting cartesian map fit.
+
+The "&Parameters" line to the slash "/" is a fortran namelist. This namelist specifies optimization
+parameters which will be explained below.
+
+The stuff below the Parameters namelist is information about the fit that was performed to create
+this file if the file was created by the cartesian_map_fit program (as opposed to being created by
+the user, see below). This information is ignored on input.
+
+Parameters:
+
+field_file
+-----------
+The name of the file that contains the field table. A discussion of the syntax of this file
+is given below.
+
+optimizer
+----------
+Selects which optimizer is used. Possibilities are:
+  "lm"        ! Levenburg-Marquadt
+  "de"        ! Differential Evolution
+See the Tao manual for more details on these optimizers
+
+n_loops, n_cycles
+------------------
+The optimizer will cycle for n_loops and then write out a new fitNNNN.in file. After n_cycles of n_loops
+the program will end.
+
+coef_weight
+-----------
+Weight for the Cartesian map term coefficients. See the Optimization section above
+
+mask_x0, mask_y0
+----------------
+If set True then x0 and/or y0 parameters in the Cartesian map terms are not varied.
+
+mask_phi_z
+----------
+If set True then the phi_z term will not be varied in the optimization.
+
+de_var_to_population_factor
+---------------------------
+For the de optimizer: Ratio of population number to number of variables in the optimization.
+
+de_coef_step
+------------
+For the de optimizer: The spread in the coefficient variables for the inital population distribution.
+
+de_k_step
+---------
+For the de optimizer: The spread in the kxy and kz variables for the inital population distribution.
+
+de_x0_y0_step
+-------------
+For the de optimizer: The spread in the x0 and y0 variables for the inital population distribution.
+
+de_phi_z_step
+-------------
+For the de optimizer: The spread in the phi_z variables for the inital population distribution.
+
+
+%-----------------------------------------------------------------
+Field Table File
+
+The name of the field table input file is set by the field_file parameter of the Parameters namelist
+(see above). There are two types of field files: ASCII and binary. The binary files are created from the
+ascii files and their advantage is that they can be read in much quicker. This is a significant
+advantage since these files tend to be large. To designate a binary file prefix the field_file name with
+"binary::". Example:
+  &Parameters
+    field_file = "binary::table.dat"
+		...
+	/
+
+To convert an ASCII file into a binary file, run the program with the "binary" command line option:
+	cartesian_map_fit binary
+
+
+For ASCII files, the first seven lines in the file must be
+  length_scale
+  field_scale
+  Nx_min, Nx_max
+  Ny_min, Ny_max
+  Nz_min, Nz_max
+	del_grid
+	r0_grid
+
+Example:
+  0.01             ! length_scale
+  1                ! field_scale
+  -20, 20          ! Nx_min, Nx_max
+  -10, 10          ! Ny_min, Ny_max
+   0, 100          ! Nz_min, Ny_max
+  1.0, 2.0, 10.0   ! Distance between points: del_x, del_y, del_z
+  0.0, 0.0, 0.0    ! Grid origin offset x_off, y_off, z_off 
+
+The length_scale gives the conversion factor between position values in terms of meters. For
+example, a length_scale of 0.01 means that the positions in the file are in cm.
+
+The field_scale gives the conversion factor between field in terms of Tesla. For example, a
+field_scale of 1e-4 means that the field values in the file are in Gauss.
+
+The next three lines gives minimum and maximum indexs for the field grid
+along the x, y, and z-axes. 
+
+The 6th line gives the spacing (length) between grid points in the x, y, and z-directions.
+
+The 7th line gives the actual position of the (0, 0, 0) grid point with respect to element coordinates.
+The origin for element coordinates is the x = y = 0 point at the entrance end of the element.
+
+After the initial seven lines, the rest of the file gives the field table. This table should have
+six columns:
+      ! x_postion   y_position   z_position  Bx    By    Bz
+
 
 %-----------------------------------------------------------------
 FFT calculation
 
-The fit will be very dependent upon the initial terms so choosing the
-initial terms is important.
+The fit will be very dependent upon the setting initial map terms so choosing the initial map terms is
+important. Also if you want to increase the number of map terms, an FFT can indicate the best
+parameter values to use for additional terms.
 
-The general procedure for obtaining a good fit is as follows: 
+When starting fresh, start with a fitNNNN.in file with no map terms. 
 
-First, start with a fitnnnn.in file with no terms. 
+Run the program with the "fft" command line option:
+  cartesian_map_fit fft
 
-Second, Run wiggler_fitting/bin/fft_fit. This uses the same input files as wig_fit.
-An example of what the output looks like is:
+The program will run three FFTs in kz for Bx, By and Bz along the centerline (x = y = 0).
+The FFT terms with the largest amplitude indicate the best kz value to use. 
+If the FFT term is in the FFT for Bx then the map term should have family x.
+If the FFT term is in the FFT for By then the map term should have family y.
+If the FFT term is in the FFT for Bz then the map term should have family sq.
 
- Kx:  -50.0000000000000     
- Index       K_z       Amp_fft    Symmetric     Anti_sym
-    25     15.79     0.305872     0.009402    -0.305727
-    24     15.14     0.292969    -0.169035    -0.239286
-    26     16.45     0.288817     0.184179    -0.222471
-    23     14.49     0.238295    -0.224184    -0.080782
-    27     17.10     0.229874     0.224383    -0.049942
-    22     13.83     0.162141    -0.158195     0.035556
-    28     17.76     0.147667     0.131929     0.066335
-    21     13.18     0.076880    -0.059042     0.049240
+Currently an FFT for finding family qu terms has not yet been implemented
 
- Kx:  0.000000000000000E+000
- Index       K_z       Amp_fft    Symmetric     Anti_sym
-    25     15.79     1.514723     0.044730    -1.514062
-    24     15.14     1.446352    -0.824673    -1.188212
-    26     16.45     1.414771     0.891391    -1.098636
-    23     14.49     1.167886    -1.096554    -0.401903
-
-
-What the program does is set Kx to a few values and then steps through a
-number of values for Kz and looks
-to see what amplitude coefficient you would want to minimize |B_table - B_fit|
-where B_fit is the fit function that it reads in from fitnnnn.in plus an extra
-term with a given Kx and Kz. The columns are:
-
-Index:        Ignore this
-K_z:          Kz value
-Amp_fft:      A measure of how much good the term would do with no symmetry. 
-Symmetric:    What the coefficient you would want if the field was symmetric
-                [with phi_z = 0]
-Anti_sym:     What the coefficient you would want if the field was anti-symmetric 
-                [with phi_z = -pi/2]
-
-For example, with the above output, assuming the wiggler field was anti-symmetric, 
-you would want to put a term in the fitnnnn.in file that looks like:
-  term(  1) = 1.51   0.1  15.79   1.5707960
-Note: This sets phi_z to pi/2 which is what you want for an anti-symmetric field. 
-For a symmetric field you want phi_z to be 0.
-Note: kx is set to something slightly nonzero (0.1) since there is a bug in the 
-wig_fit program such that if kx is exactly 0 then the program bombs.
-
-At this point you could put in more terms from the fft calculation if you want. 
-After putting in the some terms run wig_fit to find the best local solution. 
-After this, run fft_wig again to get further terms, etc., etc.
+After putting in the some terms run the program to find the best solution. 
+After this, another fft run will show you values for further map terms, etc., etc.
 Eventually you get a fit that has the accuracy you want.
 
-%-----------------------------------------------------------------
-Converting to Bmad form.
-
-The fit terms used by the programs in wiggler_fitting do not conform to the Bmad format.
-Also the phi_z values must be changed since the reference point for the Bmad format
-is at the beginning of the wiggler.
-To convert you use the program wiggler_fitting/bin/to_bmad_format. This program will also
-create some files that can be used for plotting results. The file with the Bmad 
-coefficients has a ".bmad_coefs" suffix.
 
 %-----------------------------------------------------------------
 Under the Hood
