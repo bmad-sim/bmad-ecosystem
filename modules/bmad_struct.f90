@@ -227,7 +227,7 @@ end type
 
 !-------------------------------------------------------------------------
 
-integer, parameter :: ascii$ = 1, binary$ = 2, hdf5$ = 3
+integer, parameter :: ascii$ = 1, binary$ = 2, hdf5$ = 3, one_file$ = 4
 
 ! num_ele_attrib$ is size of ele%value(:) array.
 

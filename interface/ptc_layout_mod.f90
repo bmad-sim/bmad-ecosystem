@@ -1315,8 +1315,8 @@ call ele_to_ptc_magnetic_an_bn (ele, branch%param, b_pole, a_pole) ! Yes arg ord
 if (ele%key == sbend$) b_pole(1) = b_pole(1) + ele%value(g$)	 
 
 do i = n_pole_maxx, 0, -1
-  call add (ele%ptc_fibre,  (i+1), 0, b_pole(i))
-  call add (ele%ptc_fibre, -(i+1), 0, a_pole(i))
+  if (b_pole(i) /= 0) call add (ele%ptc_fibre,  (i+1), 0, b_pole(i))
+  if (a_pole(i) /= 0) call add (ele%ptc_fibre, -(i+1), 0, a_pole(i))
 enddo
 
 ! Electric. Notice that PTC assumes horizontally_pure bend multipoles
