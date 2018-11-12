@@ -55,7 +55,7 @@ end select
 
 !
 
-open (1, file = 'number.in', readonly, shared)
+open (1, file = 'number.in', status = 'OLD', shared)
 read (1, *) cur_num
 close(1)
 
@@ -97,15 +97,16 @@ call print_stuff
 
 
 ! Write binary table
+! Notice that the binary table stores lengths in meters and fields in Tesla independent of length_scale and field_scale.
 
 if (mode == 'binary') then
   open (1, file = trim(field_file) // '.binary')
+  write (1) length_scale, field_scale
   write (1) Nx_min, Nx_max
   write (1) Ny_min, Ny_max
   write (1) Nz_min, Nz_max
   write (1) del_grid
   write (1) r0_grid
-  write (1) length_scale, field_scale
   do ix = Nx_min, Nx_max, Nx_max-Nx_min
   do iy = Ny_min, Ny_max
   do iz = Nz_min, Nz_max
@@ -243,8 +244,8 @@ do ijk = 1, n_loops
   write (1, *) '  de_phi_z_step      =', de_phi_z_step
   write (1, *) '/end'
   write (1, *)
-  write (1, *) 'Chi2:     ', merit_tot
-  write (1, *) 'Chi2_coef:', merit_coef
+  write (1, *) 'Merit_tot: ', merit_tot
+  write (1, *) 'Merit_coef:', merit_coef
   write (1, *) 'B_diff (G):', 1e4*B_diff / (3*n_grid_pts)
   write (1, *) 'dB_rms (G):', dB_rms
   write (1, *) 'B_Merit   :', B_diff / sumB_in
