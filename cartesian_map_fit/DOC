@@ -76,7 +76,7 @@ optimizer is stuck.
 
 Every time a new fitNNNN.in file is generated, parameters of the optimization fit will
 be printed. Example:
-    Chi2:        391407.750877595     
+    Merit_tot:   391407.750877595     
     Chi2_coef:  1.890402000000000E-004
     B_diff (G):   4229.52984190201     
     dB_rms (G):   12894.8166488047     
@@ -86,10 +86,10 @@ be printed. Example:
     B_rms:      67.25  12474.38   3265.23  12894.82
     B_dat:      25.47  10710.09   1904.38  12639.95
 
-Chi2 is the figure of merit (M).
+Merit_tot is the figure of merit (M).
 
-Chi2_coef is the part of the figure of merit for the
-coefficients. This will always be less than Chi2.
+Merit_coef is the part of the figure of merit for the coefficients. This will always be less than
+merit_tot.
 
 B_diff = Average: |Bx_fit - Bx_table| + |By_fit - By_table| + |Bz_fit - Bz_table| 
 
