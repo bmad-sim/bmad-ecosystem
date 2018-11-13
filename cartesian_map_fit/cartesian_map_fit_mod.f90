@@ -17,9 +17,9 @@ integer :: n_loops, n_cycles
 
 real(rp), allocatable :: s_x_arr(:), c_x_arr(:), s_y_arr(:), c_y_arr(:), s_z_arr(:), c_z_arr(:)
 real(rp), allocatable :: Bx_fit(:,:,:), By_fit(:,:,:), Bz_fit(:,:,:), y_fit(:)
-real(rp), allocatable :: Bx_in(:,:,:), By_in(:,:,:), Bz_in(:,:,:)
+real(rp), allocatable :: Bx_dat(:,:,:), By_dat(:,:,:), Bz_dat(:,:,:)
 
-real(rp) :: del_grid(3), sumB_in, field_scale, length_scale
+real(rp) :: del_grid(3), field_scale, length_scale
 real(rp) ::	de_var_to_population_factor = 5, de_coef_step = 0, de_k_step = 0
 real(rp) :: de_x0_y0_step = 0, de_phi_z_step = 0
 
@@ -28,13 +28,13 @@ real(rp) div_max, div_scale_max, div_scale, r0_grid(3)
 real(rp) curl_x_max, curl_x_scale_max, curl_x_scale
 real(rp) curl_y_max, curl_y_scale_max, curl_y_scale
 real(rp) curl_z_max, curl_z_scale_max, curl_z_scale
-real(rp) B_int, B_diff, merit_coef, merit_data, dB_rms
-real(rp) :: merit_tot, coef_weight
+real(rp) B_diff, merit_coef, merit_data, dB_rms
+real(rp) merit_tot, coef_weight
 real(rp) merit_x, merit_y, merit_z, x_offset_map, y_offset_map, z_offset_map
 
 logical :: dyda_calc = .true.
 logical :: mask_x0 = .true., mask_y0 = .true., mask_phi_z = .false.
-logical :: calc_fit_at_exterior_grid_points_only = .false.
+logical :: calc_at_surface_grid_points_only = .false.
 logical, allocatable :: valid_field(:,:,:), opti_field(:,:,:)
 
 character(80) :: field_file
@@ -83,13 +83,13 @@ if (field_file(1:8) == 'binary::') then
   read (1) del_grid
   read (1) r0_grid
 
-  allocate (Bx_in(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max), By_in(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
-  allocate (Bz_in(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max), valid_field(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
+  allocate (Bx_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max), By_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
+  allocate (Bz_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max), valid_field(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
   allocate (opti_field(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
 
   valid_field = .false.
   do 
-    read (1, iostat = ios) i, j, k, Bx_in(i,j,k), By_in(i,j,k), Bz_in(i,j,k), valid_field(i,j,k)
+    read (1, iostat = ios) i, j, k, Bx_dat(i,j,k), By_dat(i,j,k), Bz_dat(i,j,k), valid_field(i,j,k)
     if (ios /= 0) exit
   enddo
 
@@ -115,8 +115,8 @@ else
   read (1, '(a)') line
   read (line, *) r0_grid
 
-  allocate (Bx_in(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max), By_in(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
-  allocate (Bz_in(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max), valid_field(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
+  allocate (Bx_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max), By_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
+  allocate (Bz_dat(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max), valid_field(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
   allocate (opti_field(Nx_min:Nx_max,Ny_min:Ny_max,Nz_min:Nz_max))
 
   do
@@ -132,9 +132,9 @@ else
       print *, 'COMPUTED INDEX OUT OF RANGE FOR LINE: ', trim(line)
       stop
     endif
-    Bx_in(i,j,k) = Bx
-    By_in(i,j,k) = By
-    Bz_in(i,j,k) = Bz
+    Bx_dat(i,j,k) = Bx
+    By_dat(i,j,k) = By
+    Bz_dat(i,j,k) = Bz
     valid_field(i,j,k) = .true.
   end do
 
@@ -179,8 +179,13 @@ n_opti_grid_pts = count(opti_field)
 
 print *, 'Field table read: ', trim(field_file)
 print *, '  Number of grid field points:       ', n_grid_pts
-print *, '  Number points missing in table:    ', n_grid_pts - count(valid_field)
 print *, '  Number points used in optimization:', n_opti_grid_pts
+
+if (n_grid_pts /= count(valid_field)) then
+  print *, 'Number points missing in table: ', n_grid_pts - count(valid_field)
+  print *, 'Will stop here!'
+  stop
+endif
 
 end subroutine read_field_table
 
@@ -315,10 +320,8 @@ allocate (Bz_fit(Nx_min:Nx_max, Ny_min:Ny_max, Nz_min:Nz_max))
 ! This is for seeing how well the curl of the field is zero.
 
 If (write_curl) then
-  call curl_calc (Bx_in, By_in, Bz_in)
+  call curl_calc (Bx_dat, By_dat, Bz_dat)
 endif
-
-sumB_in = sum(abs(Bx_in) + abs(By_in) + abs(Bz_in), valid_field)
 
 end subroutine read_cartesian_map_fit_param_file
                
@@ -400,47 +403,125 @@ end subroutine curl_calc
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 
-subroutine print_stuff
+subroutine print_stuff(iu, var_vec)
 
 implicit none
 
-call db_rms_calc
+real(rp) m, var_vec(:), bx2_sum, by2_sum, bz2_sum, bx_sum, by_sum, bz_sum, sum_Bin
+real(rp) B_sum, sumB_dat
 
-print *, 'Nx_min, Nx_max:', Nx_min, Nx_max
-print *, 'Ny_min, Ny_max:', Ny_min, Ny_max
-print *, 'Nz_min, Nz_max:', Nz_min, Nz_max
-print *, 'N_term:', n_term
-print *, 'Chi2:     ', merit_tot
-print *, 'Chi2_coef:', merit_coef
-print *, 'B_diff (G):', B_diff / (3 * n_opti_grid_pts)
-print *, 'dB_rms (G):', dB_rms
-print *, 'B_Merit   :', B_diff / sumB_in
-print *, 'B_int:  ', B_int
-print '(a, 4f10.2)', ' B_diff [x, y, z, tot]:', &
-                  sum(abs(Bx_fit(:,:,:)-Bx_in(:,:,:)))/n_grid_pts, &
-                  sum(abs(By_fit(:,:,:)-By_in(:,:,:)))/n_grid_pts, &
-                  sum(abs(Bz_fit(:,:,:)-Bz_in(:,:,:)))/n_grid_pts, &
-                  B_diff/n_grid_pts
-print '(a, 4f10.2)', ' B_rms [x, y, z, tot]: ', &
-                  sqrt(merit_x/n_opti_grid_pts), sqrt(merit_y/n_opti_grid_pts), &
-                  sqrt(merit_z/n_opti_grid_pts), dB_rms
-print '(a, 4f10.2)', ' B_dat [x, y, z, tot]: ', &
-                  sum(abs(Bx_in(:,:,:)))/n_grid_pts, &
-                  sum(abs(By_in(:,:,:)))/n_grid_pts, &
-                  sum(abs(Bz_in(:,:,:)))/n_grid_pts, &
-                  sumB_in/n_grid_pts
+integer iu, iter_count, status
 
-end subroutine  
+!
 
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
+if (calc_at_surface_grid_points_only) then
+  calc_at_surface_grid_points_only = .false.
+  m = funcs_de(var_vec, status, iter_count)
+  calc_at_surface_grid_points_only = .true.
+endif
 
-subroutine db_rms_calc
+bx2_sum = sum((Bx_fit - Bx_dat)**2, opti_field)
+by2_sum = sum((By_fit - By_dat)**2, opti_field)
+bz2_sum = sum((Bz_fit - Bz_dat)**2, opti_field)
 
-db_rms = sqrt(merit_data/n_grid_pts) 
+bx_sum = sum(abs(Bx_fit - Bx_dat), opti_field)
+by_sum = sum(abs(By_fit - By_dat), opti_field)
+bz_sum = sum(abs(Bz_fit - Bz_dat), opti_field)
 
-end subroutine
+B_sum = bx_sum + by_sum + bz_sum
+sumB_dat = sum(abs(Bx_dat) + abs(By_dat) + abs(Bz_dat), opti_field)
+dB_rms = sqrt(merit_data/n_opti_grid_pts) 
+
+!
+
+call print_int ('N_term: ', [n_term])
+call print_real('Merit_tot:    ', [merit_tot])
+call print_real('Merit_coef:   ', [merit_coef])
+
+call print_str('Sums over surface grid points:')
+call print_real('  dB:           ', [B_sum / n_opti_grid_pts])
+call print_real('  dB_rms:       ', [dB_rms])
+call print_real('  dB/B_dat: ', [B_sum / sumB_dat])
+call print_real('  dB [x, y, z]:', [Bx_sum, By_sum, Bz_sum]/n_opti_grid_pts)
+call print_real('  B_dat [x, y, z]: ', [sum(abs(Bx_dat), opti_field), &
+                      sum(abs(By_dat), opti_field), sum(abs(Bz_dat), opti_field)]/n_opti_grid_pts)
+
+!
+
+bx2_sum = sum((Bx_fit - Bx_dat)**2)
+by2_sum = sum((By_fit - By_dat)**2)
+bz2_sum = sum((Bz_fit - Bz_dat)**2)
+
+bx_sum = sum(abs(Bx_fit - Bx_dat))
+by_sum = sum(abs(By_fit - By_dat))
+bz_sum = sum(abs(Bz_fit - Bz_dat))
+
+B_sum = bx_sum + by_sum + bz_sum
+sumB_dat = sum(abs(Bx_dat) + abs(By_dat) + abs(Bz_dat))
+dB_rms = sqrt(merit_data/n_opti_grid_pts) 
+
+call print_str('Sums over all grid points:')
+call print_real('  dB:           ', [B_sum / n_grid_pts])
+call print_real('  dB_rms:       ', [dB_rms])
+call print_real('  dB/B_dat: ', [B_sum / sumB_dat])
+call print_real('  dB [x, y, z]:', [Bx_sum, By_sum, Bz_sum]/n_grid_pts)
+call print_real('  B_dat [x, y, z]: ', [sum(abs(Bx_dat)), &
+                      sum(abs(By_dat)), sum(abs(Bz_dat))]/n_grid_pts)
+
+!----------------------------------
+contains
+
+subroutine print_real(str, nums)
+
+real(rp) :: nums(:)
+integer i
+character(*) str
+character(100) line
+
+!
+
+line = ''
+do i = 1, size(nums)
+  line = trim(line) // '  ' // real_to_string(nums(i), 16, 8)
+enddo
+
+print '(3a)', str, '  ', trim(line)
+if (iu /= 0) then
+  write (iu, '(3a)') str, '  ', trim(line)
+endif
+
+end subroutine print_real
+
+!----------------------------------
+!contains
+
+subroutine print_int(str, nums)
+
+integer :: nums(:)
+character(*) str
+
+print '(a, 10i6)', str, nums
+if (iu /= 0) then
+  write (iu, '(a, 10i6)') str, nums
+endif
+
+end subroutine print_int
+
+!----------------------------------
+!contains
+
+subroutine print_str(str)
+
+character(*) str
+
+print '(a)', str
+if (iu /= 0) then
+  write (iu, '(a)') str
+endif
+
+end subroutine print_str
+
+end subroutine print_stuff
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -643,7 +724,7 @@ do i = 1, n_term
   Bz_fit = 0
   jb = 0
 
-  if (calc_fit_at_exterior_grid_points_only) then
+  if (calc_at_surface_grid_points_only) then
     do ix = Nx_min, Nx_max, Nx_max-Nx_min
     do iy = Ny_min, Ny_max
     do iz = Nz_min, Nz_max
@@ -684,63 +765,58 @@ enddo
 
 !
 
-dB_rms = 0
 B_diff = 0
 merit_x = 0
 merit_y = 0
 merit_z = 0
 
-if (calc_fit_at_exterior_grid_points_only) then
-  do ix = Nx_min, Nx_max, Nx_max-Nx_min
-  do iy = Ny_min, Ny_max
-  do iz = Nz_min, Nz_max
-    jj = jj + 1
-    yfit(jj) = Bx_fit(ix,iy,iz) - Bx_in(ix,iy,iz)
-    merit_x = merit_x + yfit(jj)**2
-    jj = jj + 1
-    yfit(jj) = By_fit(ix,iy,iz) - By_in(ix,iy,iz)
-    merit_y = merit_x + yfit(jj)**2
-    jj = jj + 1
-    yfit(jj) = Bz_fit(ix,iy,iz) - Bz_in(ix,iy,iz)
-    merit_z = merit_x + yfit(jj)**2
-  enddo
-  enddo
-  enddo
+do ix = Nx_min, Nx_max, Nx_max-Nx_min
+do iy = Ny_min, Ny_max
+do iz = Nz_min, Nz_max
+  jj = jj + 1
+  yfit(jj) = Bx_fit(ix,iy,iz) - Bx_dat(ix,iy,iz)
+  merit_x = merit_x + yfit(jj)**2
+  jj = jj + 1
+  yfit(jj) = By_fit(ix,iy,iz) - By_dat(ix,iy,iz)
+  merit_y = merit_y + yfit(jj)**2
+  jj = jj + 1
+  yfit(jj) = Bz_fit(ix,iy,iz) - Bz_dat(ix,iy,iz)
+  merit_z = merit_z + yfit(jj)**2
+enddo
+enddo
+enddo
 
-  do ix = Nx_min, Nx_max
-  do iy = Ny_min, Ny_max, Ny_max-Ny_min
-  do iz = Nz_min, Nz_max
-    jj = jj + 1
-    yfit(jj) = Bx_fit(ix,iy,iz) - Bx_in(ix,iy,iz)
-    merit_x = merit_x + yfit(jj)**2
-    jj = jj + 1
-    yfit(jj) = By_fit(ix,iy,iz) - By_in(ix,iy,iz)
-    merit_y = merit_x + yfit(jj)**2
-    jj = jj + 1
-    yfit(jj) = Bz_fit(ix,iy,iz) - Bz_in(ix,iy,iz)
-    merit_z = merit_x + yfit(jj)**2
-  enddo
-  enddo
-  enddo
+do ix = Nx_min, Nx_max
+do iy = Ny_min, Ny_max, Ny_max-Ny_min
+do iz = Nz_min, Nz_max
+  jj = jj + 1
+  yfit(jj) = Bx_fit(ix,iy,iz) - Bx_dat(ix,iy,iz)
+  merit_x = merit_x + yfit(jj)**2
+  jj = jj + 1
+  yfit(jj) = By_fit(ix,iy,iz) - By_dat(ix,iy,iz)
+  merit_y = merit_y + yfit(jj)**2
+  jj = jj + 1
+  yfit(jj) = Bz_fit(ix,iy,iz) - Bz_dat(ix,iy,iz)
+  merit_z = merit_z + yfit(jj)**2
+enddo
+enddo
+enddo
 
-  do ix = Nx_min, Nx_max
-  do iy = Ny_min, Ny_max
-  do iz = Nz_min, Nz_max, Nz_max-Nz_min
-    jj = jj + 1
-    yfit(jj) = Bx_fit(ix,iy,iz) - Bx_in(ix,iy,iz)
-    merit_x = merit_x + yfit(jj)**2
-    jj = jj + 1
-    yfit(jj) = By_fit(ix,iy,iz) - By_in(ix,iy,iz)
-    merit_y = merit_x + yfit(jj)**2
-    jj = jj + 1
-    yfit(jj) = Bz_fit(ix,iy,iz) - Bz_in(ix,iy,iz)
-    merit_z = merit_x + yfit(jj)**2
-  enddo
-  enddo
-  enddo
-
-  return
-endif
+do ix = Nx_min, Nx_max
+do iy = Ny_min, Ny_max
+do iz = Nz_min, Nz_max, Nz_max-Nz_min
+  jj = jj + 1
+  yfit(jj) = Bx_fit(ix,iy,iz) - Bx_dat(ix,iy,iz)
+  merit_x = merit_x + yfit(jj)**2
+  jj = jj + 1
+  yfit(jj) = By_fit(ix,iy,iz) - By_dat(ix,iy,iz)
+  merit_y = merit_y + yfit(jj)**2
+  jj = jj + 1
+  yfit(jj) = Bz_fit(ix,iy,iz) - Bz_dat(ix,iy,iz)
+  merit_z = merit_z + yfit(jj)**2
+enddo
+enddo
+enddo
 
 !
 

@@ -93,8 +93,8 @@ enddo
 
 print *, '------------------------------------------------------'
 print *, 'File: ', fname
-call print_stuff
 
+call print_stuff(0, a)
 
 ! Write binary table
 ! Notice that the binary table stores lengths in meters and fields in Tesla independent of length_scale and field_scale.
@@ -110,7 +110,7 @@ if (mode == 'binary') then
   do ix = Nx_min, Nx_max, Nx_max-Nx_min
   do iy = Ny_min, Ny_max
   do iz = Nz_min, Nz_max
-    write (1) i, j, k, Bx_in(i,j,k), By_in(i,j,k), Bz_in(i,j,k), valid_field(i,j,k)
+    write (1) i, j, k, Bx_dat(i,j,k), By_dat(i,j,k), Bz_dat(i,j,k), valid_field(i,j,k)
   enddo
   enddo
   enddo
@@ -123,7 +123,7 @@ endif
 ! Note: When debugging use a map with only one term.
 
 if (mode == 'debug') then
-  calc_fit_at_exterior_grid_points_only = .false.
+  calc_at_surface_grid_points_only = .false.
   call funcs_lm(a, y_fit, dyda, status) 
 
   call init_coord (orbit, orbit, lat%ele(0), downstream_end$)
@@ -168,7 +168,7 @@ endif
 ! FFT
 
 if (mode == 'fft') then
-  calc_fit_at_exterior_grid_points_only = .false.
+  calc_at_surface_grid_points_only = .false.
   call funcs_lm(a, y_fit, dyda, status) 
   call fft_field()
   stop
@@ -184,7 +184,7 @@ weight = 1
 weight(n_data_grid+1:n_data_tot) = coef_weight
 population = de_var_to_population_factor * n_var
 
-calc_fit_at_exterior_grid_points_only = .true.
+calc_at_surface_grid_points_only = .true.
 call funcs_lm(a, y_fit, dyda, status) 
 
 do ijk = 1, n_loops
@@ -218,8 +218,6 @@ do ijk = 1, n_loops
   write (fname, '(a, i4.4, a)') trim(file_name), cur_num, '.in'
  
   print *, 'File: ', fname
-  call print_stuff
-  call db_rms_calc
  
   call write_bmad_lattice_file (fname, lat, output_form = one_file$)
 
@@ -244,12 +242,7 @@ do ijk = 1, n_loops
   write (1, *) '  de_phi_z_step      =', de_phi_z_step
   write (1, *) '/end'
   write (1, *)
-  write (1, *) 'Merit_tot: ', merit_tot
-  write (1, *) 'Merit_coef:', merit_coef
-  write (1, *) 'B_diff (G):', 1e4*B_diff / (3*n_grid_pts)
-  write (1, *) 'dB_rms (G):', dB_rms
-  write (1, *) 'B_Merit   :', B_diff / sumB_in
-  write (1, *) 'B_int:', B_int
+  call print_stuff(1, a)
   close (1)
 
   if (alamda > 1e20 .or. alamda < 1e-20) exit
@@ -350,9 +343,9 @@ fx = 0; fy = 0; fz = 0
 do iz = Nz_min, Nz_max
   do if = 0, N/2
     fc = exp(-twopi * I_imag * if * iz / N)
-    fx(if) = fx(if) + (Bx_fit(ix,iy,iz) - Bx_in(ix,iy,iz)) * fc
-    fy(if) = fy(if) + (By_fit(ix,iy,iz) - By_in(ix,iy,iz)) * fc
-    fz(if) = fz(if) + (Bz_fit(ix,iy,iz) - Bz_in(ix,iy,iz)) * fc
+    fx(if) = fx(if) + (Bx_fit(ix,iy,iz) - Bx_dat(ix,iy,iz)) * fc
+    fy(if) = fy(if) + (By_fit(ix,iy,iz) - By_dat(ix,iy,iz)) * fc
+    fz(if) = fz(if) + (Bz_fit(ix,iy,iz) - Bz_dat(ix,iy,iz)) * fc
   enddo
 enddo
 
