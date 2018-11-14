@@ -2095,11 +2095,15 @@ dfield%dE(:,2) = (f1%E - f0%E) / (2 * del)
 orb = orbit
 del = bmad_com%d_orb(5)
 
-call em_field_calc (ele, param, s_pos-del, orbit, .true., f0, rf_time = rf_time)
-call em_field_calc (ele, param, s_pos+del, orbit, .true., f1, rf_time = rf_time)
+s0 = max(ele%s_start, s_pos-del)
+s1 = min(ele%s, s_pos+del)
+if (s1 == s0) return  ! Cannot calc if zero length
 
-dfield%dB(:,3) = (f1%B - f0%B) / (2 * del)
-dfield%dE(:,3) = (f1%E - f0%E) / (2 * del)
+call em_field_calc (ele, param, s0, orbit, .true., f0, rf_time = rf_time)
+call em_field_calc (ele, param, s1, orbit, .true., f1, rf_time = rf_time)
+
+dfield%dB(:,3) = (f1%B - f0%B) / (s1 - s0)
+dfield%dE(:,3) = (f1%E - f0%E) / (s1 - s0)
 
 end subroutine em_field_derivatives
 
