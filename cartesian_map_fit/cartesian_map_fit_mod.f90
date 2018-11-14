@@ -75,7 +75,7 @@ character(8) :: columns(7) = (/ '1 X   ', '2 Y   ', '3 Z   ', &
 
 if (field_file(1:8) == 'binary::') then
 
-  open (1, file = field_file(9:), form = 'unformatted', status = 'OLD')
+  open (1, file = field_file(9:), form = 'unformatted', status = 'OLD', action = 'READ')
   read (1) length_scale, field_scale
   read (1) Nx_min, Nx_max
   read (1) Ny_min, Ny_max
@@ -99,7 +99,7 @@ if (field_file(1:8) == 'binary::') then
 
 else
 
-  open (1, file = field_file, status = 'OLD', shared)
+  open (1, file = field_file, status = 'OLD', action = 'READ')
   read (1, '(a)') line
   read (line, *) length_scale
   read (1, '(a)') line
@@ -227,7 +227,7 @@ namelist / parameters / field_file, coef_weight, n_loops, n_cycles, mask_x0, mas
 ! Read in parameters and starting fit
 
 coef_weight = 0
-open (1, file = param_file, status = 'OLD', shared)
+open (1, file = param_file, status = 'OLD', action = 'READ')
 read (1, nml = parameters)
 close (1)
 
