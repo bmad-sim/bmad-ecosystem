@@ -2031,7 +2031,7 @@ end function field_interpolate_3d
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine em_field_derivatives (ele, param, s_pos, orbit, local_ref_frame, dfield, rf_time)
+! Subroutine em_field_derivatives (ele, param, z_pos, orbit, local_ref_frame, dfield, rf_time)
 !
 ! Routine to calculate field derivatives.
 ! In theory this should be handled by em_filed_calc. In practice, em_field_calc is currently incomplete.
@@ -2039,7 +2039,7 @@ end function field_interpolate_3d
 ! Input
 !   ele             -- Ele_struct: Element
 !   param           -- lat_param_struct: Lattice parameters.
-!   s_pos           -- Real(rp): Longitudinal position relative to the upstream edge of the element.
+!   z_pos           -- Real(rp): Longitudinal position relative to the upstream edge of the element.
 !   time            -- Real(rp): Particle time.
 !                       For absolute time tracking this is the absolute time.
 !                       For relative time tracking this is relative to the reference particle entering the element.
@@ -2053,7 +2053,7 @@ end function field_interpolate_3d
 !   dfield       -- em_field_struct: E and B field derivatives. dfield%E and dfield%B are not touched.
 !-
 
-subroutine em_field_derivatives (ele, param, s_pos, orbit, local_ref_frame, dfield, rf_time)
+subroutine em_field_derivatives (ele, param, z_pos, orbit, local_ref_frame, dfield, rf_time)
 
 type (ele_struct), target :: ele
 type (lat_param_struct) param
@@ -2061,7 +2061,7 @@ type (em_field_struct) :: dfield, f0, f1
 type (coord_struct) :: orbit, orb
 
 real(rp), optional :: rf_time
-real(rp) s_pos, s0, s1, del
+real(rp) z_pos, s0, s1, del
 logical local_ref_frame
 
 !
@@ -2070,9 +2070,9 @@ orb = orbit
 del = bmad_com%d_orb(1)
 
 orb%vec(1) = orbit%vec(1) - del
-call em_field_calc (ele, param, s_pos, orb, .true., f0, rf_time = rf_time)
+call em_field_calc (ele, param, z_pos, orb, .true., f0, rf_time = rf_time)
 orb%vec(1) = orbit%vec(1) + del
-call em_field_calc (ele, param, s_pos, orb, .true., f1, rf_time = rf_time)
+call em_field_calc (ele, param, z_pos, orb, .true., f1, rf_time = rf_time)
 
 dfield%dB(:,1) = (f1%B - f0%B) / (2 * del)
 dfield%dE(:,1) = (f1%E - f0%E) / (2 * del)
@@ -2083,9 +2083,9 @@ orb = orbit
 del = bmad_com%d_orb(3)
 
 orb%vec(3) = orbit%vec(3) - del
-call em_field_calc (ele, param, s_pos, orb, .true., f0, rf_time = rf_time)
+call em_field_calc (ele, param, z_pos, orb, .true., f0, rf_time = rf_time)
 orb%vec(3) = orbit%vec(3) + del
-call em_field_calc (ele, param, s_pos, orb, .true., f1, rf_time = rf_time)
+call em_field_calc (ele, param, z_pos, orb, .true., f1, rf_time = rf_time)
 
 dfield%dB(:,2) = (f1%B - f0%B) / (2 * del)
 dfield%dE(:,2) = (f1%E - f0%E) / (2 * del)
@@ -2095,8 +2095,8 @@ dfield%dE(:,2) = (f1%E - f0%E) / (2 * del)
 orb = orbit
 del = bmad_com%d_orb(5)
 
-s0 = max(ele%s_start, s_pos-del)
-s1 = min(ele%s, s_pos+del)
+s0 = max(0.0_rp, z_pos-del)
+s1 = min(ele%value(l$), z_pos+del)
 if (s1 == s0) return  ! Cannot calc if zero length
 
 call em_field_calc (ele, param, s0, orbit, .true., f0, rf_time = rf_time)
