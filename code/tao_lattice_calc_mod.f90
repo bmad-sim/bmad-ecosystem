@@ -875,7 +875,7 @@ beam => u%beam%start
 
 if (u%beam%beam0_file /= "") then
   if (u%beam%init_beam0 .or. .not. allocated(beam%bunch)) then
-    call read_beam_file (u%beam%beam0_file, beam, beam_init, .true., err)
+    call read_beam_file (u%beam%beam0_file, beam, beam_init, .true., err); if (err) return
     do i = 1, size(beam%bunch)
       do j = 1, size(beam%bunch(i)%particle)
         orbit => beam%bunch(i)%particle(j)
