@@ -55,7 +55,7 @@ end select
 
 !
 
-open (1, file = 'number.in', status = 'OLD', shared)
+open (1, file = 'number.in', status = 'OLD', action = 'READ')
 read (1, *) cur_num
 close(1)
 
@@ -199,7 +199,7 @@ do ijk = 1, n_loops
     dyda_calc = .true.
     do i = 1, n_cycles
       call super_mrqmin (y0, weight, a, chisq, funcs_lm, storage, alamda, status, maska)
-      type *, i, chisq, alamda
+      print *, i, chisq, alamda
       if (alamda > 1e20 .or. alamda < 1e-20) exit
       call funcs_lm(a, y_fit, dyda, status) 
     enddo
