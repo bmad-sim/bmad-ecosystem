@@ -6895,6 +6895,7 @@ logical err_flag, delim_found
 
 name = 'xxx'
 err_flag = .true.
+ct_map%ptr%file = bp_com%line2_file_name   ! In case there are no terms
 
 if (ele%key == wiggler$) ct_map%master_parameter = polarity$
 
@@ -7091,6 +7092,7 @@ logical err_flag, delim_found, file_name_set
 err_flag = .true.
 allocate (array(1024))
 file_name_set = .false.
+cl_map%ptr%file = bp_com%line2_file_name  ! In case there are no terms
 
 !
 
@@ -7315,6 +7317,7 @@ logical delim_found, delim_found2, err_flag, err_flag2
 allocate(array(1024))
 pt_counter = 0
 err_flag = .true.
+g_field%ptr%file = bp_com%line2_file_name    ! In case there are no terms
 
 do    
 
@@ -7630,6 +7633,7 @@ logical err_flag, delim_found
 
 name = 'xxx'
 err_flag = .true.
+t_field%ptr%file = bp_com%line2_file_name    ! In case there are no terms
 
 !
 
