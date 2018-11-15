@@ -23,7 +23,7 @@ type (term_struct), pointer :: tt
 real(rp), allocatable :: a(:), y0(:)
 real(rp), allocatable :: covar(:,:), alpha(:,:), weight(:), dyda(:,:), var_step(:)
 real(rp) :: chisq, chisq1, chisq2, alamda, da, dy_max, dy, fret, tol, z, delta
-real(rp) dfield(3)
+real(rp) dfield(3), merit
 
 logical, allocatable :: maska(:)
 
@@ -37,6 +37,8 @@ character(100) fname
 
 !
 
+cur_num = -1
+
 select case (cesr_iargc())
 case (0)
   mode = 'STD'
@@ -45,8 +47,12 @@ case (1)
   select case (mode)
   case ('fft', 'debug', 'binary')
   case default
-    print *, 'I DO NOT UNDERSTAND: ', mode
-    stop
+    if (.not. is_integer(mode)) then
+      print *, 'I DO NOT UNDERSTAND: ', mode
+      stop
+    endif
+    read (mode, *) cur_num
+    mode = 'STD'
   end select
 case default
   print *, 'EXTRA STUFF ON THE COMMAND LINE!'
@@ -55,9 +61,11 @@ end select
 
 !
 
-open (1, file = 'number.in', status = 'OLD', action = 'READ')
-read (1, *) cur_num
-close(1)
+if (cur_num == -1) then
+  open (1, file = 'number.in', status = 'OLD', action = 'READ')
+  read (1, *) cur_num
+  close(1)
+endif
 
 file_name = 'fit'
 write (fname, '(a, i4.4, a)') trim(file_name), cur_num, '.in'
@@ -92,7 +100,7 @@ do i = 1, n_term
 enddo
 
 print *, '------------------------------------------------------'
-print *, 'File: ', fname
+print *, 'File: ', trim(fname)
 
 call print_stuff(0, a)
 
@@ -124,7 +132,7 @@ endif
 
 if (mode == 'debug') then
   calc_at_surface_grid_points_only = .false.
-  call funcs_lm(a, y_fit, dyda, status) 
+  merit = funcs_de(a, status, jj) 
 
   call init_coord (orbit, orbit, lat%ele(0), downstream_end$)
 
@@ -169,7 +177,7 @@ endif
 
 if (mode == 'fft') then
   calc_at_surface_grid_points_only = .false.
-  call funcs_lm(a, y_fit, dyda, status) 
+  merit = funcs_de(a, status, jj)
   call fft_field()
   stop
 endif
@@ -201,8 +209,9 @@ do ijk = 1, n_loops
       call super_mrqmin (y0, weight, a, chisq, funcs_lm, storage, alamda, status, maska)
       print *, i, chisq, alamda
       if (alamda > 1e20 .or. alamda < 1e-20) exit
-      call funcs_lm(a, y_fit, dyda, status) 
     enddo
+
+    call funcs_lm(a, y_fit, dyda, status) 
 
   case default
     print *, 'Unknown optimizer: ', optimizer
@@ -231,7 +240,6 @@ do ijk = 1, n_loops
   write (1, *) '  coef_weight  = ', coef_weight
   write (1, *) '  n_loops      = ', n_loops
   write (1, *) '  n_cycles     = ', n_cycles
-  write (1, '(a, 3f12.6)') '  r0_grid      = ', r0_grid
   write (1, *) '  mask_x0      = ', mask_x0
   write (1, *) '  mask_y0      = ', mask_y0
   write (1, *) '  mask_phi_z   = ', mask_phi_z
@@ -352,33 +360,33 @@ enddo
 amp = abs(fx)
 call indexx(-amp, indx)
 print *, 'B_x FFT:'
-print *,   '    Freq      Amp      Phase'
+print *,   '    Freq          Amp           Phase'
 do i = 1, min(5, size(indx))
   j = indx(i-1) - 1
   f = twopi * j / (N * del_grid(3))
-  print '(3es12.4)', f, amp(j), atan2(aimag(fx(j)), real(fx(j)))
+  print '(3es14.4)', f, amp(j), atan2(aimag(fx(j)), real(fx(j)))
 enddo
 
 amp = abs(fy)
 call indexx(-amp, indx)
 print *
 print *, 'B_y FFT:'
-print *,   '    Freq      Amp      Phase'
+print *,   '    Freq          Amp           Phase'
 do i = 1, min(5, size(indx))
   j = indx(i-1) - 1
   f = twopi * j / (N * del_grid(3))
-  print '(3es12.4)', f, amp(j), atan2(aimag(fy(j)), real(fy(j)))
+  print '(3es14.4)', f, amp(j), atan2(aimag(fy(j)), real(fy(j)))
 enddo
 
 amp = abs(fz)
 call indexx(-amp, indx)
 print *
 print *, 'B_z FFT:'
-print *,   '    Freq      Amp      Phase'
+print *,   '    Freq          Amp           Phase'
 do i = 1, min(5, size(indx))
   j = indx(i-1) - 1
   f = twopi * j / (N * del_grid(3))
-  print '(3es12.4)', f, amp(j), atan2(aimag(fz(j)), real(fz(j)))
+  print '(3es14.4)', f, amp(j), atan2(aimag(fz(j)), real(fz(j)))
 enddo
 
 end subroutine fft_field
