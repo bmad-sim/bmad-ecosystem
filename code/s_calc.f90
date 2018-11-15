@@ -61,8 +61,6 @@ do i = 0, ubound(lat%branch, 1)
 enddo
 
 ! Now fill in the s positions of the lords.
-! Exception: A null_ele lord element is the result of a superposition on a multipass section.
-! We need to preserve the s-value of this element.
 ! Note: The s-position of a overlay, group, or control lord will not make sense if the lord
 ! controls multiple disjoint elements.
 
@@ -74,10 +72,10 @@ do n = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(n)
   lord%bookkeeping_state%s_position = ok$
 
-  ! Important: Do not mangle null_eles since null_eles are used by bmad_parser to preserve 
-  ! information on placement of drifts that have been superimposed upon.
+  ! Important: Do not mangle null_eles since null_eles in the lord section are used by bmad_parser 
+  ! to preserve information on placement of drifts or null_eles that have been superimposed upon.
   if (lord%key == null_ele$) cycle
-  if (lord%n_slave == 0) cycle  ! Can happen when manipulating a lattice.
+  if (lord%n_slave == 0) cycle  ! Can happen when manipulating a lattice during parsing.
 
   select case (lord%lord_status)
   case (super_lord$, overlay_lord$, group_lord$, control_lord$)

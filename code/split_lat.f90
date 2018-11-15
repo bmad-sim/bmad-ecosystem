@@ -170,12 +170,6 @@ if (branch%ele(ix_split)%key == drift$ .and. branch%ele(ix_split)%value(drift_id
   lord%key = null_ele$
   lord%sub_key = drift$  ! To mark that the element was formally a drift
   ixc = lat%n_control_max
-  if (ixc+1 > size(lat%control)) call reallocate_control (lat, ixc+10)
-  lord%ix1_slave = ixc + 1
-  lord%n_slave = 1
-  lat%n_control_max = ixc + 1
-  lat%control(ixc+1)%lord  = lat_ele_loc_struct(lord%ix_ele, 0)
-  lat%control(ixc+1)%slave = lat_ele_loc_struct(ix_split, ix_branch)
 endif
 
 ! Insert a new element.
