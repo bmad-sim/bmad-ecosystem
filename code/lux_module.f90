@@ -32,6 +32,7 @@ type lux_param_struct
   character(100) :: track_out_file = 'track.dat'
   character(100) :: param_file = 'lux.init'
   character(100) :: lattice_file = ''
+  character(200) :: bmad_parameters_out = ''
   character(40) :: photon_init_element = ''       ! element name
   character(40) :: detector_element = ''          ! element name
   character(40) :: photon1_element = ''           ! element name
@@ -194,6 +195,13 @@ if (index(lux_param%photon1_out_file, '#') /= 0 .or. index(lux_param%det_pix_out
   call sub_in (lux_param%photon1_out_file)
   call sub_in (lux_param%det_pix_out_file)
   call sub_in (lux_param%track_out_file)
+
+  open (1, file = 'lux_out_file.names')
+  write (1, '(a)') '# Lux output file names for use with python post-processing scripts'
+  write (1, '(3a)') 'photon1_out_file = "', trim(lux_param%photon1_out_file), '"'
+  write (1, '(3a)') 'det_pix_out_file = "', trim(lux_param%det_pix_out_file), '"'
+  write (1, '(3a)') 'track_out_file   = "', trim(lux_param%track_out_file), '"'
+  close (1)
 endif
 
 ! Read in lattice
@@ -743,7 +751,7 @@ type (surface_grid_pt_struct) :: pixel
 
 real(rp) phase, intensity_tot, intens
 
-integer ix, n, nt, nx, ny, track_state, ip, ie
+integer i, ix, n, nt, nx, ny, track_state, ip, ie
 
 logical err_flag
 
@@ -823,9 +831,9 @@ do
   call track_all (lat, photon%orb, t_branch%ix_branch, track_state)
 
   call add_to_detector_statistics (photon%orb(0), photon%orb(nt), intens)
-  if (track_state == moving_forward$) then
-    lux_com%stat(track_state)%n_particle_live = lux_com%stat(track_state)%n_particle_live + 1
-  endif
+  do i = 1, nt
+    if (photon%orb(i)%state == alive$) lux_com%stat(i)%n_particle_live = lux_com%stat(i)%n_particle_live + 1
+  enddo
 
   ! Write to photon1_out_file
 
@@ -991,6 +999,7 @@ type (surface_grid_pt_struct), pointer :: pix
 type (surface_grid_pt_struct) :: p
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
+type (all_pointer_struct), allocatable :: ptr_array(:)
 
 real(rp) normalization, cut, dtime
 real(rp) total_dead_intens, pix_in_file_intens, norm2
@@ -998,8 +1007,12 @@ real(rp) :: intens_tot, intens_tot_x, intens_tot_y, intens_max
 real(rp) x_sum, y_sum, x2_sum, y2_sum, x_ave, y_ave, e_rms, e_ave
 real(rp) phase_x, phase_y, x, y
 
-integer i, j, nx, ny, n_min, n_max, n
+integer i, j, ix, ix2, nx, ny, n_min, n_max, n
 integer nx_active_min, nx_active_max, ny_active_min, ny_active_max
+
+logical err_flag
+
+character(200) params_out, param
 
 !------------------------------------------
 
@@ -1073,6 +1086,47 @@ if (lux_param%det_pix_out_file /= '') then
   write (3, '(a, i8)')              'nx_active_max       =', nx_active_max
   write (3, '(a, i8)')              'ny_active_min       =', ny_active_min
   write (3, '(a, i8)')              'ny_active_max       =', ny_active_max
+
+  params_out = lux_param%bmad_parameters_out
+  param_loop: do 
+    if (params_out == '') exit
+    ix = index(params_out, ';')
+    if (ix == 0) then
+      param = upcase(params_out)
+      params_out = ''
+    else
+      param = upcase(params_out(1:ix-1))
+      params_out = params_out(ix+1:)
+    endif
+
+    ix = index(param, '[')
+    if (ix == 0) then  ! Must be a constant
+      if (allocated(lat%constant)) then
+        do i = 1, size(lat%constant)
+          if (param /= lat%constant(i)%name) cycle
+          write (3, '(2a, es16.8)') trim(downcase(param)), ' = ', lat%constant(i)%value
+          cycle param_loop
+        enddo
+      endif
+
+    else
+      ix2 = index(param, ']')
+      if (ix2 == 0 .or. param(ix2+1:) /= '') then
+        write (3, '(2a, es16.8)') trim(downcase(param)), ' = "UNKNOWN"'
+        cycle
+      endif
+      call pointers_to_attribute (lat, param(1:ix-1), param(ix+1:ix2-1), .true., ptr_array, err_flag)
+      if (size(ptr_array) /= 0) then
+        param = param(1:ix-1) // '__' // param(ix+1:ix2-1)
+        write (3, '(2a, es16.8)') trim(downcase(param)), ' = ', ptr_array(1)%r
+        cycle
+      endif
+    endif
+
+    write (3, '(2a, es16.8)') trim(downcase(param)), ' = "UNKNOWN"'
+
+  enddo param_loop
+
   write (3, '(a, es16.5, a, f8.2, a)') 'x_center_det        =', p%orbit(1), '  # ', p%orbit(1) / detec_grid%dr(1), ' pixels'
   write (3, '(a, es16.5, a, f8.2, a)') 'y_center_det        =', p%orbit(3), '  # ', p%orbit(3) / detec_grid%dr(2), ' pixels'
   write (3, '(a, es16.5, a, f8.2, a)') 'x_rms_det           =', p%orbit_rms(1), '  # ', p%orbit_rms(1) / detec_grid%dr(1), ' pixels'
