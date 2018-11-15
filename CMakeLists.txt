@@ -37,6 +37,7 @@ SET (SHARED_DEPS
   blas
   X11
   readline
+  gomp
   )
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)

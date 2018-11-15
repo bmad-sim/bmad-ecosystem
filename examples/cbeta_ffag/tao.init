@@ -47,7 +47,7 @@ global%beam_timer_on = T
 &tao_d2_data
         d2_data%name = 'time'
         universe = '*'
-        n_d1_data = 1
+        n_d1_data = 2
 /
 &tao_d1_data
         ix_d1_data = 1
@@ -55,19 +55,32 @@ global%beam_timer_on = T
         d1_data%name = 'total'
         datum( 1) =  'time'     'BEGINNING' '' 'END'   'target'   0
 /
+&tao_d1_data
+        ix_d1_data = 2
+        default_weight = 1
+        d1_data%name = 'ref'
+        datum( 1) =  'ref_time'     'BEGINNING' '' 'END'   'target'   0
+/
+
+
 
 &tao_d2_data
         d2_data%name = 'test'
         universe = '*'
-        n_d1_data = 1
+        n_d1_data = 2
 /
 &tao_d1_data
         ix_d1_data =1 
         default_weight = 1
-        d1_data%name = 'harmonic'
-        datum(1)%data_type = 'expression: (data::time.total[1])*1.3e9'
+        d1_data%name = 'time'
+        datum(1)%data_type = 'expression: (data::time.total[1])'
 /
-
+&tao_d1_data
+        ix_d1_data =2 
+        default_weight = 1
+        d1_data%name = 'dtime'
+        datum(1)%data_type = 'expression: (data::time.total[1]-1@data::time.total[1])*299792458'
+/
 
 !-------- Orbit x, y------------
 &tao_d2_data
