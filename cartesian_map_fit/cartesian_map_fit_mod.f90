@@ -437,7 +437,8 @@ real(rp) m, bx2_sum, by2_sum, bz2_sum, bx_sum, by_sum, bz_sum, sum_Bin
 real(rp) B_sum, B_dat_sum
 real(rp) :: var_vec(:) 
 
-integer iu, iter_count, status, c_save
+integer iu, iter_count, status
+logical c_save
 
 !
 
@@ -613,21 +614,21 @@ do i = 1, n_term
   endif
 
   if (abs(cmt%kx * (del_grid(1) * (Nx_max-Nx_min) + abs (x_offset_map - r0_grid(1)))) > 1000) then
-    print '(a, i, 3a)', 'FUNCS_LM: X-VARIABLES OUT OF RANGE', i, reals_to_string([cmt%kx, x_offset_map, r0_grid(1)], 12, 4)
+    print '(a, i4, 3a)', 'FUNCS_LM: X-VARIABLES OUT OF RANGE', i, reals_to_string([cmt%kx, x_offset_map, r0_grid(1)], 12, 4)
     merit_tot = 1e100_rp
     status = 1
     return
   endif
 
   if (abs(cmt%ky * (del_grid(2) * (Ny_max-Ny_min) + abs (y_offset_map - r0_grid(2)))) > 1000) then
-    print '(a, i, 3a)', 'FUNCS_LM: Y-VARIABLES OUT OF RANGE', i, reals_to_string([cmt%ky, y_offset_map, r0_grid(2)], 12, 4)
+    print '(a, i4, 3a)', 'FUNCS_LM: Y-VARIABLES OUT OF RANGE', i, reals_to_string([cmt%ky, y_offset_map, r0_grid(2)], 12, 4)
     merit_tot = 1e100_rp
     status = 1
     return
   endif
 
   if (abs(cmt%kz * del_grid(3)) > pi/2) then
-    print '(a, i, 2a)', 'FUNCS_LM: Z-VARIABLES OUT OF RANGE', i, reals_to_string([cmt%kz, del_grid(3)], 12, 4) 
+    print '(a, i4, 2a)', 'FUNCS_LM: Z-VARIABLES OUT OF RANGE', i, reals_to_string([cmt%kz, del_grid(3)], 12, 4) 
     merit_tot = 1e100_rp
     status = 1
     return
