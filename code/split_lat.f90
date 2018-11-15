@@ -23,7 +23,7 @@
 !   check_sanity    -- logical, optional: If True (default) then call lat_sanity_check
 !                        after the split to make sure everything is ok.
 !   save_null_drift -- logical, optional: Save a copy of a drift to be split as a null_ele?
-!                         This is useful if when superpositions are done. See add_superimpose for more info.
+!                         This is useful when superpositions are done. See add_superimpose for more info.
 !                         Default is False.
 !   choose_max      -- logical, optional: If no splitting of an element is needed, that is, s_split is at an element 
 !                       boundary, there can be multiple possible values for ix_split if there exist zero length elements 

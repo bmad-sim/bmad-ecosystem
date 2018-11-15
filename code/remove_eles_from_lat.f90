@@ -51,6 +51,7 @@ logical, optional :: check_sanity
 logical err_flag, found_one
 
 ! Mark for removal any lords that do not have any live slaves.
+! Exception: null_eles since they are used to keep track of drifts that have been superimposed upon.
 
 do
   found_one = .false.
@@ -58,6 +59,7 @@ do
   do i = lat%n_ele_track+1, lat%n_ele_max
     lord => lat%ele(i)
     if (lord%key == -1) cycle
+    if (lord%key == null_ele$) cycle
 
     do j = 1, lord%n_slave
       slave => pointer_to_slave(lord, j)

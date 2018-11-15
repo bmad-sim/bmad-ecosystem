@@ -219,15 +219,6 @@ endif
 if (split1_done) super_saved%value(l$) = super_saved%value(l$) - (branch%ele(ix1_split)%s - s1) 
 if (split2_done) super_saved%value(l$) = super_saved%value(l$) + (branch%ele(ix2_split)%s - s2) 
 
-! Get rid of duplicate saved drifts if present
-
-n = lat%n_ele_max
-if (lat%ele(n)%key == null_ele$ .and. lat%ele(n-1)%key == null_ele$ .and. &
-        lat%ele(n)%s == lat%ele(n-1)%s .and. lat%ele(n)%name == lat%ele(n-1)%name) then
-  lat%ele(n)%key = -1
-  call remove_eles_from_lat (lat, .false.)
-endif
-
 ! zero length elements at the edges of the superimpose region can be excluded
 ! from the region
 
