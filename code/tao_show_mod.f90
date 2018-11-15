@@ -3139,7 +3139,7 @@ case ('spin')
         nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'M-axis: ', sm%axis0%m, sm%axis1%m
         nl=nl+1; write(lines(nl), '(2x, a)')         '8x8 matrix:'
         do j = 1, 8
-          nl=nl+1; write(lines(nl), '(5x, a)') real_array_to_string(sm%mat8(j,:), 13, 7)
+          nl=nl+1; write(lines(nl), '(5x, a)') reals_to_table_row(sm%mat8(j,:), 13, 7)
         enddo
       enddo
     endif
@@ -3181,7 +3181,7 @@ case ('spin')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = '8x8 Matrix:'
     do i = 1, 8
-      nl=nl+1; write (lines(nl), '(5x, a)') real_array_to_string(spin_map%mat8(i,:), 13, 7)
+      nl=nl+1; write (lines(nl), '(5x, a)') reals_to_table_row(spin_map%mat8(i,:), 13, 7)
     enddo
   endif
 
