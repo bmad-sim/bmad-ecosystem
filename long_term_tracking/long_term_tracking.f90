@@ -181,7 +181,7 @@ case ('SINGLE')
   open(iu_out, file = tracking_data_file, recl = 200)
   write (iu_out, '(a)') ' #                                             * 10^3                                  |'           
   write (iu_out, '(a)') ' #Turn           x           px            y           py            z           pz    |   spin_x    spin_y    spin_z'
-  write (iu_out, fmt) 0, real_array_to_string(1d3*orb(ix_ele_start)%vec, 13, 7, 1), orb(ix_ele_start)%spin
+  write (iu_out, fmt) 0, reals_to_table_row(1d3*orb(ix_ele_start)%vec, 13, 7, 1), orb(ix_ele_start)%spin
 
   do i_turn = 1, n_turns
     if (use_1_turn_map) then
@@ -195,7 +195,7 @@ case ('SINGLE')
     endif
 
     if (output_every_n_turns > 0 .and. modulo(i_turn, output_every_n_turns) == 0) then
-      write (iu_out, fmt) i_turn, real_array_to_string(1d3*orb(ix_ele_start)%vec, 13, 7, 1), orb(ix_ele_start)%spin
+      write (iu_out, fmt) i_turn, reals_to_table_row(1d3*orb(ix_ele_start)%vec, 13, 7, 1), orb(ix_ele_start)%spin
     endif
 
     if (is_lost) then
@@ -360,10 +360,10 @@ do ip = 1, size(bunch%particle)
   p0 => bunch_init%particle(ip)
   p => bunch%particle(ip)
   if (include_initial_position) then
-    write (iu_snap, '(i9, i9, 2(a, 3x, 3f10.6, 4x), a)') ip, nn, real_array_to_string(1d3*p0%vec, 13, 7, 1), &
-                              p0%spin, real_array_to_string(1d3*p%vec, 13, 7, 1), p%spin, trim(coord_state_name(p%state))
+    write (iu_snap, '(i9, i9, 2(a, 3x, 3f10.6, 4x), a)') ip, nn, reals_to_table_row(1d3*p0%vec, 13, 7, 1), &
+                              p0%spin, reals_to_table_row(1d3*p%vec, 13, 7, 1), p%spin, trim(coord_state_name(p%state))
   else
-    write (iu_snap, '(i9, i9, a, 3x, 3f10.6, 4x, a)')  ip, nn, real_array_to_string(1d3*p%vec, 13, 7, 1), p%spin, coord_state_name(p%state)
+    write (iu_snap, '(i9, i9, a, 3x, 3f10.6, 4x, a)')  ip, nn, reals_to_table_row(1d3*p%vec, 13, 7, 1), p%spin, coord_state_name(p%state)
   endif
 enddo
 
