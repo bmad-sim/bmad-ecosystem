@@ -4,6 +4,10 @@
 ! Routine to turn a real number into a string for printing. 
 ! Printing the number without an explicit exponent is preferred.
 ! 
+! See also:
+!   reals_to_string
+!   reals_to_table_row
+!
 ! Notes:
 !   Keep in mind: With floating format the largest number of digits needed for the exponent is 5. EG: "-1.2e-123".
 !   Thus with decimal point and possible negative sign, the field width should be at least n_signif + 7

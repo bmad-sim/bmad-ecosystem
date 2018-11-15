@@ -470,12 +470,13 @@ nd = size(weight)
 nv = size(a)
 
 call funcs(a, storage%ymod, storage%dyda, status)
-if (status /= 0) return
 
 storage%old_dy = storage%dy
 storage%dy = y - storage%ymod
-j = 0
 
+if (status /= 0) return
+
+j = 0
 do l = 1, nv
   if (.not. storage%mask(l)) cycle
   j = j+1

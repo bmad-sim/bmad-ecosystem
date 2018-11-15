@@ -119,10 +119,18 @@ function downcase(str_in) result (str_out)
   character(len(str_in)) str_out
 end function
 
-function even (num) result (is_even)
+elemental function dsinc(x) result (y)
+  import
   implicit none
-  integer num
-  logical is_even
+  real(rp), intent(in) :: x
+  real(rp) y
+end function
+
+elemental function dsinchx_x(x) result (y)
+  import
+  implicit none
+  real(rp), intent(in) :: x
+  real(rp) y
 end function
 
 function factorial(n) result (fact)
@@ -409,12 +417,6 @@ subroutine node_put (node, n1, n2, val_in, cmd_only, val_out, bad_set)
   logical bad_set
 end subroutine
 
-function odd (num) result (is_odd)
-  implicit none
-  integer num
-  logical is_odd
-end function
-
 function outer_product (a, b) result (c)
   import
   implicit none
@@ -450,15 +452,6 @@ subroutine query_string (query_str, upcase, return_str, ix, ios)
   logical upcase
 end subroutine
 
-function real_array_to_string (real_arr, width, n_decimal, n_blank) result (str)
-  import
-  implicit none
-  real(rp) real_arr(:)
-  integer width, n_decimal
-  integer, optional :: n_blank
-  character(width*size(real_arr)) str
-end function
-
 function real_to_string (real_num, width, n_signif, n_decimal) result (str)
   import
   implicit none
@@ -466,6 +459,24 @@ function real_to_string (real_num, width, n_signif, n_decimal) result (str)
   integer width
   integer, optional :: n_signif, n_decimal
   character(width) str
+end function
+
+function reals_to_string (real_arr, width, n_signif, n_decimal) result (str)
+  import
+  implicit none
+  real(rp) real_arr(:)
+  integer width
+  integer, optional :: n_signif, n_decimal
+  character(width*size(real_arr)) str
+end function
+
+function reals_to_table_row (real_arr, width, n_decimal, n_blank) result (str)
+  import
+  implicit none
+  real(rp) real_arr(:)
+  integer width, n_decimal
+  integer, optional :: n_blank
+  character(width*size(real_arr)) str
 end function
 
 function all_pointer_to_string (a_ptr, err) result (str)
@@ -499,6 +510,13 @@ subroutine run_timer(command, time)
 end subroutine
 
 elemental function sinc(x) result (y)
+  import
+  implicit none
+  real(rp), intent(in) :: x
+  real(rp) y
+end function
+
+elemental function sinchx_x(x) result (y)
   import
   implicit none
   real(rp), intent(in) :: x
