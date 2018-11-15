@@ -20,6 +20,7 @@ SET (SRC_DIRS
   plot 
   string
   geodesic_lm
+  special_functions
   )
 
 ## Profiler flags - Note: This  is not compatible with the -fPIC flag, so -pg can't be set for SHARED build.

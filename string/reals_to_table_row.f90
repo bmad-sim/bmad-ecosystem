@@ -1,10 +1,12 @@
 !+
-! Function real_array_to_string (real_arr, width, n_decimal, n_blank) result (str)
+! Function reals_to_table_row (real_arr, width, n_decimal, n_blank) result (str)
 ! 
 ! Routine to turn an array of real numbers into a string for printing tables.
 ! Fixed format is preferred and floating format will only be used if necessary.
 ! 
-! Also see: real_to_string
+! See also:
+!   real_to_string
+!   reals_to_string
 !
 ! Notes:
 !   Keep in mind: With floating format the largest number of digits needed for the exponent is 5. EG: "-1.2e-123".
@@ -25,9 +27,9 @@
 !   str         -- character(width): String representation of real_arr. The length will be of str is size(real_arr) * width.
 !-
 
-function real_array_to_string (real_arr, width, n_decimal, n_blank) result (str)
+function reals_to_table_row (real_arr, width, n_decimal, n_blank) result (str)
 
-use sim_utils, dummy => real_array_to_string
+use sim_utils, dummy => reals_to_table_row
 
 implicit none
 
