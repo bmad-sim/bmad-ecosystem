@@ -268,8 +268,8 @@ six columns:
 %-----------------------------------------------------------------
 FFT calculation
 
-The fit will be very dependent upon the setting initial map terms so choosing the initial map terms is
-important. Also if you want to increase the number of map terms, an FFT can indicate the best
+The fit will be very dependent upon the setting initial map terms so choosing the initial map terms
+is important. Also if you want to increase the number of map terms, an FFT can indicate the best
 parameter values to use for additional terms.
 
 When starting fresh, start with a fitNNNN.in file with no map terms. 
@@ -278,7 +278,7 @@ Run the program with the "fft" command line option:
   cartesian_map_fit fft
 
 The program will run three FFTs in kz for Bx, By and Bz along the centerline (x = y = 0).
-The FFT terms with the largest amplitude indicate the best kz value to use. 
+The FFT terms with the largest amplitude indicate the best kz value to use:
 If the FFT term is in the FFT for Bx then the map term should have family x.
 If the FFT term is in the FFT for By then the map term should have family y.
 If the FFT term is in the FFT for Bz then the map term should have family sq.
