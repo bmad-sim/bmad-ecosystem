@@ -990,6 +990,80 @@ the plot page) is broken up.
 /
 
 
+!!------------  Multi time4 ------------
+
+&tao_template_plot
+  plot%name = 'multitime4'
+  plot%x_axis_type = 's'
+  plot%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 't'
+
+ !graph%title = 'Lattice orbit'
+ !graph%x%draw_numbers = .false.
+ !graph%x%draw_label = .false.
+  graph_index = 1
+
+ 
+  graph%y%min = -0.1
+  graph%y%max =  0.1
+
+  graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = 'time (-)'
+  graph%y%label_offset=.1
+  graph%n_curve = 4
+
+  curve(1)%ix_universe = -1
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'time'
+  curve(1)%smooth_line_calc = F
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = 2
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=.false.
+  curve(1)%legend_text = '1@time'
+  curve(1)%y_axis_scale_factor = 1
+
+  curve(2)%ix_universe = -1
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'time'
+  curve(2)%smooth_line_calc = F
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%line%color = 8
+  curve(2)%line%width=2
+  curve(2)%draw_symbols=.false.
+  curve(2)%legend_text = '2@eta.x'
+  curve(2)%y_axis_scale_factor = 1
+  
+  curve(3)%ix_universe = -1
+  curve(3)%data_source = 'lattice'
+  curve(3)%data_type   = 'time'
+  curve(3)%smooth_line_calc = F
+  curve(3)%y_axis_scale_factor = 1
+  curve(3)%line%color = 11
+  curve(3)%line%width=2
+  curve(3)%draw_symbols=.false.
+  curve(3)%legend_text = '3@eta.x'
+  curve(3)%y_axis_scale_factor = 1
+
+  curve(4)%ix_universe = -1
+  curve(4)%data_source = 'lattice'
+  curve(4)%data_type   = 'time'
+  curve(4)%smooth_line_calc = F  
+  curve(4)%y_axis_scale_factor = 1
+  curve(4)%line%color = 12
+  curve(4)%line%width=2
+  curve(4)%draw_symbols=.false.
+  curve(4)%legend_text = '4@eta.x'
+  curve(4)%y_axis_scale_factor = 1
+
+
+
+/
+
 
 !!------------  momentum_compaction ------------
 

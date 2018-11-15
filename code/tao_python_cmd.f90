@@ -255,6 +255,14 @@ case ('bunch1')
     enddo
   enddo
 
+  ! Relative min, max, centroid
+  do i = 1, 6
+    nl=incr(nl); write (li(nl), vrmt) 'rel_min_', i, ';REAL;F;',                bunch_params%rel_min(i)
+    nl=incr(nl); write (li(nl), vrmt) 'rel_max_', i, ';REAL;F;',                bunch_params%rel_max(i) 
+    nl=incr(nl); write (li(nl), vrmt) 'centroid_vec_', i, ';REAL;F;',           bunch_params%centroid%vec(i) 
+  enddo
+
+
   nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                                bunch_params%s
   nl=incr(nl); write (li(nl), rmt) 'charge_live;REAL;F;',                      bunch_params%charge_live
   nl=incr(nl); write (li(nl), imt) 'n_particle_tot;INT;F;',                    bunch_params%n_particle_tot
