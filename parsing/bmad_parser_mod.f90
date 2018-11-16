@@ -4569,7 +4569,9 @@ endif
 
 ! Tag reference elements using %logic flag which is not otherwise used during parsing.
 
-branch%ele(:)%logic = .false.  
+branch%ele(:)%logic = .false.
+lat%ele(:)%logic = .false.  ! For lord elements
+ 
 do i = 1, n_loc
   eles(i)%ele%logic = .true. ! Tag reference element.
 enddo
@@ -4577,185 +4579,207 @@ enddo
 ! Note: branch%n_ele_max will vary when an element is superimposed.
 
 do 
-
   have_inserted = .false.
-
   i_ele = -1
-  ele_loop: do 
+
+  do 
     i_ele = i_ele + 1
-    if (i_ele > branch%n_ele_max) exit
+    if (i_ele > branch%n_ele_track) exit
+    call do_this_superimpose(branch%ele(i_ele), i_ele, have_inserted)
+  enddo
 
-    ref_ele => branch%ele(i_ele)
-     
-    if (ref_ele%slave_status == super_slave$ .or. ref_ele%slave_status == multipass_slave$) then
-      do il = 1, ref_ele%n_lord
-        lord => pointer_to_lord(ref_ele, il)
-        if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
-        if (.not. lord%logic) cycle
-        ref_ele => lord
-        exit
-      enddo
-    endif
-
-    if (ref_ele%key == group$) cycle
-    if (ref_ele%key == girder$) cycle
-    if (ref_ele%slave_status == super_slave$) cycle
-    if (.not. ref_ele%logic) cycle
-
-    ref_ele%logic = .false.  ! So only use this reference once
-
-    ! If superimposing on a multipass_lord (only happens with bmad_parser2) 
-    ! then the superposition must be done at all multipass locations.
-
-    if (ref_ele%lord_status == multipass_lord$) then
-      allocate (m_slaves(ref_ele%n_slave), multi_name(ref_ele%n_slave))
-      allocate (ele_loc_com%branch(1))
-      allocate (ele_loc_com%branch(1)%ele(ref_ele%n_slave))
-      do i = 1, ref_ele%n_slave
-        slave => pointer_to_slave(ref_ele, i)
-        ele_loc_com%branch(1)%ele(i)%ix_ele    = slave%ix_ele
-        ele_loc_com%branch(1)%ele(i)%ix_branch = slave%ix_branch
-      enddo
-      call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
-      super_ele%name = super_ele_saved%name(:ix)
-
-      ! Put in the superposition at the multipass locations.
-      ! Since elements get shuffled around, tag the superimposed elements 
-      !     with "temp_name!" to identify them later.
-
-      do i = 1, ref_ele%n_slave
-        ele => pointer_to_ele (lat, ele_loc_com%branch(1)%ele(i))
-        call compute_super_lord_s (ele, super_ele, pele, ix_insert)
-        super_ele%iyy = ele%iyy   ! Multipass info
-        call check_for_superimpose_problem (branch, super_ele, err_flag, ele); if (err_flag) return
-        ! Don't need to save drifts since a multipass_lord drift already exists.
-        call add_superimpose (lat, super_ele, ix_branch, err_flag, super_ele_out, &
-               save_null_drift = .false., create_jumbo_slave = pele%create_jumbo_slave, ix_insert = ix_insert)
-        if (err_flag) bp_com%error_flag = .true.
-        super_ele_out%name = 'temp_name!'
-      enddo
-
-      ! Mark any super_lord drifts (along with any lords that control the super_lord) for 
-      ! future deletion at the end of lattice parsing.
-
-      call multipass_all_info (lat, m_info) ! Save multipass info for later.
-
-      do i = lat%n_ele_track+1, lat%n_ele_max 
-        ele => lat%ele(i)
-        if (ele%key /= drift$) cycle
-        if (ele%lord_status /= super_lord$) cycle 
-        ele%key = -1 ! mark for deletion
-
-        do j = 1, ele%n_lord
-          lord => pointer_to_lord(ele, j)
-          lord%key = -1  ! Mark lord for deletion
-        enddo
-
-        ! Need to remove super_lord/super_slave links otherwise the code below gets confused
-        ! when it tries to connect the former super_slave drifts.
-
-        do while (ele%n_slave /= 0)
-          call remove_lord_slave_link (ele, pointer_to_slave(ele, 1))
-        enddo
-      enddo
-
-      ! Reconnect drifts that were part of the multipass region.
-
-      do i = 1, size(m_info%lord) ! Loop over multipass lords
-        do j = 1, size(m_info%lord(i)%slave, 2)   ! loop over super_slaves
-          slave => m_info%lord(i)%slave(1, j)%ele
-          if (slave%key /= drift$) cycle
-          if (slave%slave_status == multipass_slave$) cycle
-          do k = 1, size(m_info%lord(i)%slave(:, j))   ! Loop over all passes
-            ele => m_info%lord(i)%slave(k, j)%ele
-            m_slaves(k) = ele_to_lat_loc (ele)  ! Make a list slave elements
-            ib = index(ele%name, '\') ! '
-            if (ib /= 0) ele%name = ele%name(1:ib-1) // ele%name(ib+2:)
-          enddo
-          call add_this_multipass (lat, m_slaves) ! And create a multipass lord
-        enddo
-      enddo
-
-      ! If the super_lords have a single super_slave and the super_slave
-      ! has only a single super_lord, the super_lords
-      ! can be eliminated and the created multipass_lord can control the
-      ! super_slaves directly.
-
-      j = 0
-
-      do i = 1, branch%n_ele_track
-        if (branch%ele(i)%name == 'temp_name!') then
-          branch%ele(i)%name = super_ele_saved%name
-          j = j + 1
-          m_slaves(j) = ele_to_lat_loc (branch%ele(i))
-        endif
-      enddo
-
-      do i = lat%n_ele_track+1, lat%n_ele_max
-        if (lat%ele(i)%name == 'temp_name!') then
-          lat%ele(i)%name = super_ele_saved%name
-          j = j + 1
-          m_slaves(j) = ele_to_lat_loc (lat%ele(i))
-        endif
-      enddo
-
-      ele => pointer_to_ele (lat, m_slaves(1))
-      if (ele%lord_status == super_lord$ .and. ele%n_slave == 1) then
-        slave => pointer_to_slave(ele, 1)
-        if (slave%n_lord == 1) then
-          do i = 1, size(m_slaves)
-            ele => pointer_to_ele (lat, m_slaves(i))
-            ele%key = -1 ! Mark for deletion
-            ele => pointer_to_slave(ele, 1)
-            ele%name = super_ele_saved%name
-            m_slaves(i) = ele_to_lat_loc (ele)
-          enddo
-        endif
-      endif
-
-      ! Remove eles marked for deletion. But first shift m_slaves list
-
-      do i = 1, size(m_slaves)
-        ele => pointer_to_ele (lat, m_slaves(i))
-        m_slaves(i)%ix_ele = m_slaves(i)%ix_ele - count(lat%branch(ele%ix_branch)%ele(1:ele%ix_ele)%key == -1)
-      enddo
-
-      call remove_eles_from_lat (lat, .false.)
-
-      ! Add a multipass_lord to control the created super_lords.
-
-      call add_this_multipass (lat, m_slaves, super_ele_saved) 
-
-      deallocate (m_slaves, multi_name)
-      deallocate (ele_loc_com%branch)
-
-    !-----------------------
-    ! Else not superimposing on a multipass_lord ...
-    ! [Note: Only will superimpose on a multipass_lord in bmad_parser2.]
-
-    else
-      call compute_super_lord_s (ref_ele, super_ele, pele, ix_insert)
-      super_ele%iyy = ref_ele%iyy   ! Multipass info
-      call check_for_superimpose_problem (branch, super_ele, err_flag, ref_ele); if (err_flag) return
-      call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
-      super_ele%name = super_ele_saved%name(:ix)            
-      call add_superimpose (lat, super_ele, branch%ix_branch, err_flag, super_ele_out, &
-         save_null_drift = .true., create_jumbo_slave = pele%create_jumbo_slave, ix_insert = ix_insert)
-      if (err_flag) bp_com%error_flag = .true.
-      call control_bookkeeper (lat, super_ele_out)
-    endif
-
-    !---------------------
-
-    call s_calc (lat)
-
-    have_inserted = .true.   
-
-  enddo ele_loop
+  i_ele = lat%n_ele_track
+  do
+    i_ele = i_ele + 1
+    if (i_ele > lat%n_ele_max) exit
+    call do_this_superimpose(lat%ele(i_ele), i_ele, have_inserted)
+  enddo
 
   if (.not. have_inserted) exit
-
 enddo
+
+!-------------------------------------------------------------
+contains
+
+subroutine do_this_superimpose (start_ele, i_ele, have_inserted)
+
+type (ele_struct), target :: start_ele
+type (ele_struct), pointer :: ref_ele
+integer i_ele
+logical have_inserted
+
+!
+
+ref_ele => start_ele
+
+if (ref_ele%slave_status == super_slave$ .or. ref_ele%slave_status == multipass_slave$) then
+  do il = 1, ref_ele%n_lord
+    lord => pointer_to_lord(ref_ele, il)
+    if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
+    if (.not. lord%logic) cycle
+    ref_ele => lord
+    exit
+  enddo
+endif
+
+if (ref_ele%key == group$) return
+if (ref_ele%key == girder$) return
+if (ref_ele%slave_status == super_slave$) return
+if (.not. ref_ele%logic) return
+
+ref_ele%logic = .false.  ! So only use this reference once
+
+! If superimposing on a multipass_lord (only happens with bmad_parser2) 
+! then the superposition must be done at all multipass locations.
+
+if (ref_ele%lord_status == multipass_lord$) then
+  allocate (m_slaves(ref_ele%n_slave), multi_name(ref_ele%n_slave))
+  allocate (ele_loc_com%branch(1))
+  allocate (ele_loc_com%branch(1)%ele(ref_ele%n_slave))
+  do i = 1, ref_ele%n_slave
+    slave => pointer_to_slave(ref_ele, i)
+    ele_loc_com%branch(1)%ele(i)%ix_ele    = slave%ix_ele
+    ele_loc_com%branch(1)%ele(i)%ix_branch = slave%ix_branch
+  enddo
+  call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
+  super_ele%name = super_ele_saved%name(:ix)
+
+  ! Put in the superposition at the multipass locations.
+  ! Since elements get shuffled around, tag the superimposed elements 
+  !     with "temp_name!" to identify them later.
+
+  do i = 1, ref_ele%n_slave
+    ele => pointer_to_ele (lat, ele_loc_com%branch(1)%ele(i))
+    call compute_super_lord_s (ele, super_ele, pele, ix_insert)
+    super_ele%iyy = ele%iyy   ! Multipass info
+    call check_for_superimpose_problem (branch, super_ele, err_flag, ele); if (err_flag) return
+    ! Don't need to save drifts since a multipass_lord drift already exists.
+    call add_superimpose (lat, super_ele, ix_branch, err_flag, super_ele_out, &
+           save_null_drift = .false., create_jumbo_slave = pele%create_jumbo_slave, ix_insert = ix_insert)
+    if (err_flag) bp_com%error_flag = .true.
+    super_ele_out%name = 'temp_name!'
+  enddo
+
+  ! Mark any super_lord drifts (along with any lords that control the super_lord) for 
+  ! future deletion at the end of lattice parsing.
+
+  call multipass_all_info (lat, m_info) ! Save multipass info for later.
+
+  do i = lat%n_ele_track+1, lat%n_ele_max 
+    ele => lat%ele(i)
+    if (ele%key /= drift$) cycle
+    if (ele%lord_status /= super_lord$) cycle 
+    ele%key = -1 ! mark for deletion
+
+    do j = 1, ele%n_lord
+      lord => pointer_to_lord(ele, j)
+      lord%key = -1  ! Mark lord for deletion
+    enddo
+
+    ! Need to remove super_lord/super_slave links otherwise the code below gets confused
+    ! when it tries to connect the former super_slave drifts.
+
+    do while (ele%n_slave /= 0)
+      call remove_lord_slave_link (ele, pointer_to_slave(ele, 1))
+    enddo
+  enddo
+
+  ! Reconnect drifts that were part of the multipass region.
+
+  do i = 1, size(m_info%lord) ! Loop over multipass lords
+    do j = 1, size(m_info%lord(i)%slave, 2)   ! loop over super_slaves
+      slave => m_info%lord(i)%slave(1, j)%ele
+      if (slave%key /= drift$) cycle
+      if (slave%slave_status == multipass_slave$) cycle
+      do k = 1, size(m_info%lord(i)%slave(:, j))   ! Loop over all passes
+        ele => m_info%lord(i)%slave(k, j)%ele
+        m_slaves(k) = ele_to_lat_loc (ele)  ! Make a list slave elements
+        ib = index(ele%name, '\') ! '
+        if (ib /= 0) ele%name = ele%name(1:ib-1) // ele%name(ib+2:)
+      enddo
+      call add_this_multipass (lat, m_slaves) ! And create a multipass lord
+    enddo
+  enddo
+
+  ! If the super_lords have a single super_slave and the super_slave
+  ! has only a single super_lord, the super_lords
+  ! can be eliminated and the created multipass_lord can control the
+  ! super_slaves directly.
+
+  j = 0
+
+  do i = 1, branch%n_ele_track
+    if (branch%ele(i)%name == 'temp_name!') then
+      branch%ele(i)%name = super_ele_saved%name
+      j = j + 1
+      m_slaves(j) = ele_to_lat_loc (branch%ele(i))
+    endif
+  enddo
+
+  do i = lat%n_ele_track+1, lat%n_ele_max
+    if (lat%ele(i)%name == 'temp_name!') then
+      lat%ele(i)%name = super_ele_saved%name
+      j = j + 1
+      m_slaves(j) = ele_to_lat_loc (lat%ele(i))
+    endif
+  enddo
+
+  ele => pointer_to_ele (lat, m_slaves(1))
+  if (ele%lord_status == super_lord$ .and. ele%n_slave == 1) then
+    slave => pointer_to_slave(ele, 1)
+    if (slave%n_lord == 1) then
+      do i = 1, size(m_slaves)
+        ele => pointer_to_ele (lat, m_slaves(i))
+        ele%key = -1 ! Mark for deletion
+        ele => pointer_to_slave(ele, 1)
+        ele%name = super_ele_saved%name
+        m_slaves(i) = ele_to_lat_loc (ele)
+      enddo
+    endif
+  endif
+
+  ! Remove eles marked for deletion. But first shift m_slaves list
+
+  do i = 1, size(m_slaves)
+    ele => pointer_to_ele (lat, m_slaves(i))
+    m_slaves(i)%ix_ele = m_slaves(i)%ix_ele - count(lat%branch(ele%ix_branch)%ele(1:ele%ix_ele)%key == -1)
+  enddo
+
+  call remove_eles_from_lat (lat, .false.)
+
+  ! Add a multipass_lord to control the created super_lords.
+
+  call add_this_multipass (lat, m_slaves, super_ele_saved) 
+
+  deallocate (m_slaves, multi_name)
+  deallocate (ele_loc_com%branch)
+
+!-----------------------
+! Else not superimposing on a multipass_lord ...
+! [Note: Only will superimpose on a multipass_lord in bmad_parser2.]
+
+else
+  ref_branch => pointer_to_branch(ref_ele)
+  if (ref_branch%ix_branch /= branch%ix_branch) return
+
+  call compute_super_lord_s (ref_ele, super_ele, pele, ix_insert)
+  super_ele%iyy = ref_ele%iyy   ! Multipass info
+  call check_for_superimpose_problem (branch, super_ele, err_flag, ref_ele); if (err_flag) return
+  call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
+  super_ele%name = super_ele_saved%name(:ix)            
+  call add_superimpose (lat, super_ele, branch%ix_branch, err_flag, super_ele_out, &
+     save_null_drift = .true., create_jumbo_slave = pele%create_jumbo_slave, ix_insert = ix_insert)
+  if (err_flag) bp_com%error_flag = .true.
+  call control_bookkeeper (lat, super_ele_out)
+endif
+
+!---------------------
+
+call s_calc (lat)
+have_inserted = .true.   
+
+end subroutine do_this_superimpose
+
 
 end subroutine parser_add_superimpose
 

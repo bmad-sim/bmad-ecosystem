@@ -169,7 +169,7 @@ if (branch%ele(ix_split)%key == drift$ .and. branch%ele(ix_split)%value(drift_id
   lord = branch%ele(ix_split)
   lord%key = null_ele$
   lord%sub_key = drift$  ! To mark that the element was formally a drift
-  ixc = lat%n_control_max
+  lord%value(ix_branch$) = branch%ix_branch  ! Save branch index.
 endif
 
 ! Insert a new element.

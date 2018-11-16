@@ -1379,7 +1379,7 @@ integer, parameter :: fint$ = 21, fintx$ = 22, hgap$ = 23, hgapx$ = 24, h1$ = 25
 integer, parameter :: radius$ = 3, transmission_coef$ = 4, focal_strength$ = 5
 
 integer, parameter :: l$ = 1                          ! Assumed unique. Do not assign 1 to another attribute.
-integer, parameter :: tilt$ = 2, roll$ = 2  ! Important: tilt$ = roll$
+integer, parameter :: tilt$ = 2, roll$ = 2,  ix_branch$ = 2 ! Important: tilt$ = roll$
 integer, parameter :: ref_tilt$ = 3, rf_frequency$ = 3, direction$ = 3
 integer, parameter :: kick$ = 3, x_gain_err$ = 3
 integer, parameter :: rf_frequency_err$ = 4, k1$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
