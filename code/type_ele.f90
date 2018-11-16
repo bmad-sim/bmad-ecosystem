@@ -746,7 +746,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     nl=nl+1; li(nl) = '   Index   Name'
     do i = 1, lord%n_slave
       slave => pointer_to_slave(lord, i)
-      if (slave%ix_ele == ele%ix_ele) cycle
+      if (slave%ix_ele == ele%ix_ele .and. slave%ix_branch == ele%ix_branch) cycle
       nl=nl+1; write (li(nl), '(i8, 3x, a)') slave%ix_ele, trim(slave%name)
     enddo
 

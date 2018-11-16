@@ -140,11 +140,21 @@ recursive function pointer_to_branch_given_ele (ele) result (branch_ptr)
 
 type (ele_struct), target :: ele
 type (branch_struct), pointer :: branch_ptr
+integer ixb
 
-! Now associated with a lattice case
+! Not associated with a lattice case
 
 if (.not. associated(ele%branch)) then
   nullify(branch_ptr)
+  return
+endif
+
+! A null_ele that is a lord is the result of superposition. This null_ele has no slaves and the
+! original branch info is in %value(ix_branch$).
+
+if (ele%key == null_ele$ .and. ele%ix_branch == 0 .and. ele%ix_ele > ele%branch%n_ele_track) then
+  ixb = nint(ele%value(ix_branch$))
+  branch_ptr => ele%branch%lat%branch(ixb)
   return
 endif
 

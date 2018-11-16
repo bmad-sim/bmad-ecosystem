@@ -1230,6 +1230,8 @@ call init_attribute_name1 (fiducial$, dtheta_origin$,              'DTHETA_ORIGI
 call init_attribute_name1 (fiducial$, dphi_origin$,                'DPHI_ORIGIN')
 call init_attribute_name1 (fiducial$, dpsi_origin$,                'DPSI_ORIGIN')
 
+call init_attribute_name1 (null_ele$, ix_branch$,                  'ix_branch', private$)
+
 call init_attribute_name1 (quadrupole$, k1$,                        'K1', quasi_free$)
 call init_attribute_name1 (quadrupole$, B1_gradient$,               'B1_GRADIENT', quasi_free$)
 call init_attribute_name1 (quadrupole$, r0_mag$,                    'R0_MAG')

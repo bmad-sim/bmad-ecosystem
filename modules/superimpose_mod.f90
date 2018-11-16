@@ -252,6 +252,7 @@ do
     lord = branch%ele(i)
     lord%key = null_ele$
     lord%sub_key = drift$  ! To mark that the element was formally a drift
+    lord%value(ix_branch$) = branch%ix_branch  ! Save branch index.
 
   elseif (branch%ele(i)%key == null_ele$) then
     lat%n_ele_max = lat%n_ele_max + 1
