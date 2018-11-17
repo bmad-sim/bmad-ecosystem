@@ -112,7 +112,6 @@ n1 = 0
 n3 = branch%n_ele_track
 
 do
-
   if (n3 == n1 + 1) exit
 
   n2 = (n1 + n3) / 2
@@ -130,13 +129,35 @@ do
       n1 = n2
     endif
   endif
-
 enddo
 
 ! Solution is n3 except in one case.
 
+if (.not. choose_max .and. ss == branch%ele(n3)%s_start) n3 = n3-1
+
+! Since elements may have negative lengths (patch elements frequently do), the bracketing algorithm may not 
+! have found the correct max/min solution.
+! So search +/- 2 meters just to make sure. That is, it is assumed that negative lengths never exceed 2 meters
+
 ix_ele = n3
-if (.not. choose_max .and. ss == branch%ele(n3)%s_start) ix_ele = n3-1
+if (choose_max) then
+  do
+    if (n3 == branch%n_ele_track) exit
+    n3 = n3 + 1
+    if (branch%ele(n3)%s_start <= s) ix_ele = n3
+    if (branch%ele(n3)%s_start > s + 2) exit
+  enddo
+
+else
+  do
+    if (n3 == 0) exit
+    n3 = n3 - 1
+    if (branch%ele(n3)%s > s) ix_ele = n3
+    if (branch%ele(n3)%s_start < s - 2) exit
+  enddo
+endif
+
+!
 
 if (present(s_eff)) s_eff = ss
 
