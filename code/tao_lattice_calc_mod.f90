@@ -595,7 +595,7 @@ call zero_lr_wakes_in_lat (lat)
 
 ie1 = ix_ele0
 ie2 = branch%n_ele_track
-if (uni_branch%ix_beam_track_end > -1 .and. ix_branch == 0) ie2 = uni_branch%ix_beam_track_end
+if (u%beam%ix_track_end > -1 .and. ix_branch == 0) ie2 = u%beam%ix_track_end
 
 print_err = .true.
 
@@ -604,7 +604,7 @@ if (s%global%beam_timer_on) then
   old_time = 0
 endif
 
-beam = u%beam%start
+beam = u%beam%beam_at_start
 
 if (ie2 < ie1 .and. branch%param%geometry == open$) then
   call out_io (s_abort$, r_name, 'BEAM TRACKING WITH STARTING POINT AFTER ENDING POINT IN AN OPEN LATTICE DOES NOT MAKE SENSE.')
@@ -861,7 +861,7 @@ if (ix_branch > 0) then
     return
   endif
 
-  u%beam%start = u%uni_branch(ib)%ele(ie)%beam
+  u%beam%beam_at_start = u%uni_branch(ib)%ele(ie)%beam
   init_ok = .true.
   return
 endif
@@ -869,13 +869,13 @@ endif
 ! Init for main branch...
 ! If there is an init file then read from the file
 
-ix_ele0 = uni_branch%ix_beam_track_start
+ix_ele0 = u%beam%ix_track_start
 beam_init => u%beam%beam_init
-beam => u%beam%start
+beam => u%beam%beam_at_start
 
-if (u%beam%beam0_file /= "") then
-  if (u%beam%init_beam0 .or. .not. allocated(beam%bunch)) then
-    call read_beam_file (u%beam%beam0_file, beam, beam_init, .true., err); if (err) return
+if (u%beam%position0_file /= "") then
+  if (u%beam%init_position0 .or. .not. allocated(beam%bunch)) then
+    call read_beam_file (u%beam%position0_file, beam, beam_init, .true., err); if (err) return
     do i = 1, size(beam%bunch)
       do j = 1, size(beam%bunch(i)%particle)
         orbit => beam%bunch(i)%particle(j)
@@ -884,7 +884,7 @@ if (u%beam%beam0_file /= "") then
         call init_coord (orbit, orbit, branch%ele(ix_ele0), downstream_end$, branch%param%particle, +1, orbit%p0c, beam%bunch(i)%t_center)
       enddo
     enddo
-    u%beam%init_beam0 = .false.
+    u%beam%init_position0 = .false.
   endif
 
   if (tao_no_beam_left (beam, branch%param%particle)) then
@@ -896,9 +896,9 @@ if (u%beam%beam0_file /= "") then
   return
 endif
 
-! Only reinit beam has not already been initialized or if commanded via %init_beam0.
+! Only reinit beam has not already been initialized or if commanded via %init_beam_position0.
 
-if (u%beam%init_beam0 .or. .not. allocated(beam%bunch)) then
+if (u%beam%init_position0 .or. .not. allocated(beam%bunch)) then
   if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.
   call init_beam_distribution (branch%ele(ix_ele0), branch%param, beam_init, beam, err)
   if (err) then
@@ -911,7 +911,7 @@ if (u%beam%init_beam0 .or. .not. allocated(beam%bunch)) then
     return
   endif
 
-  u%beam%init_beam0 = .false.
+  u%beam%init_position0 = .false.
 endif
 
 init_ok = .true.

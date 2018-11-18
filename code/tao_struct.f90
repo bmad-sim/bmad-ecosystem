@@ -657,7 +657,7 @@ type tao_common_struct
   character(200) :: init_tao_file_path = ''    ! Path part of init_tao_file
   character(160) :: beam_file = ''             ! '-beam'          command line argument.
   character(160) :: beam_all_file = ''         ! '-beam_all'      command line argument.
-  character(160) :: beam0_file  = ''           ! '-beam0'         command line argument.
+  character(160) :: beam_position0_file  = ''  ! '-beam_position0'         command line argument.
   character(160) :: data_file = ''             ! '-data'          command line argument.
   character(160) :: plot_file = ''             ! '-plot'          command line argument.
   character(160) :: startup_file = ''          ! '-startup'       command line argument.
@@ -789,9 +789,6 @@ end type
 
 type tao_universe_branch_struct
   type (tao_element_struct), allocatable :: ele(:) ! Per element information
-  character(40) :: beam_track_start = '', beam_track_end = ''
-  integer :: ix_beam_track_start = 0          ! Element start index of tracking
-  integer :: ix_beam_track_end = -1           ! Element end index of tracking
   character(40) :: particle_track_start = '', particle_track_end = ''
   integer :: ix_particle_track_start = 0
   integer :: ix_particle_track_end = -1
@@ -800,11 +797,14 @@ end type
 ! Beam information for a particular universe 
 
 type tao_beam_struct
-  type (beam_init_struct) :: beam_init ! Beam distrubution at beginning of lattice
-  type (beam_struct) start             ! Initial
-  logical :: init_beam0 = .false.      ! Init beam
-  character(160) :: beam_all_file = ''  ! Input beam data file for entire lattice.
-  character(160) :: beam0_file    = ''  ! Input beam data file at the start of the lattice.
+  type (beam_init_struct) :: beam_init        ! Beam distrubution at beginning of lattice
+  type (beam_struct) beam_at_start            ! Initial
+  integer :: ix_track_start = 0          ! Element start index of tracking
+  integer :: ix_track_end = -1           ! Element end index of tracking
+  logical :: init_position0 = .false.    ! Init beam
+  character(40) :: track_start = '', track_end = ''
+  character(160) :: all_file = ''             ! Input beam data file for entire lattice.
+  character(160) :: position0_file    = ''    ! Input beam data file at the start of the lattice.
   character(160) saved_at
 end type
 

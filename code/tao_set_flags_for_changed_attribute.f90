@@ -43,7 +43,7 @@ if (ele_name == 'BEAM_START') then
   u%model%tao_branch(0)%orbit(0)%spin = u%model%lat%beam_start%spin
   u%model%tao_branch(0)%orb0%spin     = u%model%lat%beam_start%spin
 
-  u%beam%init_beam0 = .true.
+  u%beam%init_position0 = .true.
 endif
 
 !

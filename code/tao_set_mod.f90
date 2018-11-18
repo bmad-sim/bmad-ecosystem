@@ -612,6 +612,7 @@ end subroutine tao_set_opti_de_param_cmd
 !   value_str -- Character(*): Value to set to.
 !
 ! Output:
+!    err     -- logical: Set True if there is an error. False otherwise.
 !    s%wave  -- Wave variables structure.
 !-
 
@@ -666,6 +667,102 @@ s%wave%ix_b2 = ix_b(2)
 err = .false.
 
 end subroutine tao_set_wave_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_set_beam_cmd (who, value_str, err)
+!
+! Routine to set beam_start variables
+! 
+! Input:
+!   who       -- Character(*): which beam_start variable to set
+!   value_str -- Character(*): Value to set to.
+!
+! Output:
+!    err      -- logical: Set True if there is an error. False otherwise.
+!-
+
+subroutine tao_set_beam_cmd (who, value_str)
+
+type (tao_universe_struct), pointer :: u
+type (ele_pointer_struct), allocatable, save, target :: eles(:)
+type (ele_struct), pointer :: ele
+
+integer ix, iu, n_loc
+logical, allocatable :: this_u(:)
+logical err
+
+character(*) who, value_str
+character(20) switch, who2
+character(*), parameter :: r_name = 'tao_set_beam_cmd'
+
+!
+
+call tao_pick_universe (remove_quotes(who), who2, this_u, err); if (err) return
+
+call match_word (who2, [character(20):: 'track_start', 'track_end', 'all_file', 'position0_file', 'saved_at', &
+                    'beam_track_start', 'beam_track_end', 'beam_all_file', 'beam_position0_file', 'beam_saved_at'], &
+                    ix, matched_name=switch)
+
+do iu = lbound(s%u, 1), ubound(s%u, 1)
+  if (.not. this_u(iu)) cycle
+  u => s%u(iu)
+
+  select case (switch)
+  case ('track_start', 'beam_track_start')
+    call set_this_track(u%beam%track_start, u%beam%ix_track_start)
+  case ('track_end', 'beam_track_end')
+    call set_this_track(u%beam%track_end, u%beam%ix_track_end)
+  case ('all_file', 'beam_all_file')
+    u%beam%all_file = value_str
+  case ('position0_file', 'beam_position0_file')
+    u%beam%position0_file = value_str
+  case ('saved_at', 'beam_saved_at')
+    call tao_locate_elements (value_str, u%ix_uni, eles, err, ignore_blank = .false.)
+    if (err) then
+      call out_io (s_error$, r_name, 'BAD BEAM_SAVED_AT STRING: ' // value_str)
+    else
+      do ix = 1, size(eles)
+        ele => eles(ix)%ele
+        u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam = .true.
+      enddo
+    endif
+    u%beam%saved_at = value_str
+  case default
+    call out_io (s_fatal$, r_name, 'PARAMETER NOT RECOGNIZED: ' // who2)
+    return
+  end select
+enddo
+
+!-------------------------------------------------------------
+contains
+
+subroutine set_this_track (track_ele, ix_track_ele)
+
+type (ele_pointer_struct), allocatable, save, target :: eles(:)
+integer ix_track_ele, n_loc
+character(*) track_ele
+
+!
+
+call lat_ele_locator (value_str, u%design%lat, eles, n_loc, err)
+if (err .or. n_loc == 0) then
+  call out_io (s_fatal$, r_name, 'ELEMENT NOT FOUND: ' // value_str)
+  call err_exit
+endif
+if (n_loc > 1) then
+  call out_io (s_fatal$, r_name, 'MULTIPLE ELEMENTS FOUND: ' // value_str)
+  call err_exit
+endif
+
+track_ele = value_str
+ix_track_ele = eles(1)%ele%ix_ele
+
+end subroutine set_this_track
+
+end subroutine tao_set_beam_cmd 
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -798,11 +895,11 @@ case ('beam_track_start', 'beam_track_end')
 
     select case (who2)
     case ('beam_track_start')
-      u%uni_branch(ele%ix_branch)%beam_track_start = value_str
-      u%uni_branch(ele%ix_branch)%ix_beam_track_start = ele%ix_ele
+      u%beam%track_start = value_str
+      u%beam%ix_track_start = ele%ix_ele
     case ('beam_track_end')
-      u%uni_branch(ele%ix_branch)%beam_track_end = value_str
-      u%uni_branch(ele%ix_branch)%ix_beam_track_end = ele%ix_ele
+      u%beam%track_end = value_str
+      u%beam%ix_track_end = ele%ix_ele
     end select
   enddo
 
@@ -837,7 +934,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   if (ios == 0) then
     u%beam%beam_init = beam_init
-    u%beam%init_beam0 = .true.  ! Force reinit
+    u%beam%init_position0 = .true.  ! Force reinit
     u%model%lat%beam_start%vec = u%beam%beam_init%center
     u%calc%lattice = .true.
   else

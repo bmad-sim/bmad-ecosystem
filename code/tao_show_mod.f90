@@ -342,28 +342,34 @@ case ('beam')
 
     nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', u%ix_uni, '  of: ', ubound(s%u, 1)
     nl=nl+1; write(lines(nl), '(a, i3)') 'Branch:   ', ix_branch
+
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), amt) 's%com%beam_file             = ', s%com%beam_file
-    nl=nl+1; write(lines(nl), amt) 'beam0_file                  = ', u%beam%beam0_file
-    nl=nl+1; write(lines(nl), amt) 'beam_all_file               = ', u%beam%beam_all_file
-    nl=nl+1; write(lines(nl), amt) 'global%track_type           = ', s%global%track_type
+    nl=nl+1; write(lines(nl), amt) 'global%track_type           = ', quote(s%global%track_type)
     nl=nl+1; write(lines(nl), lmt) 'global%beam_timer_on        = ', s%global%beam_timer_on
-    nl=nl+1; write(lines(nl), amt) 'beam_track_start            = ', trim(uni_branch%beam_track_start)
-    nl=nl+1; write(lines(nl), amt) 'beam_track_end              = ', trim(uni_branch%beam_track_end)
-    nl=nl+1; write(lines(nl), imt) 'ix_beam_track_start         = ', uni_branch%ix_beam_track_start 
-    nl=nl+1; write(lines(nl), imt) 'ix_beam_track_end           = ', uni_branch%ix_beam_track_end
-    nl=nl+1; write(lines(nl), amt) 'u%beam%saved_at:            = ', trim(u%beam%saved_at)
-    beam => uni_branch%ele(uni_branch%ix_beam_track_start)%beam
+
+    fmt = '(3a, i0, a)'
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; lines(nl) = 'General beam components (set by "set beam ..."):'
+    nl=nl+1; write(lines(nl), amt) 'position0_file         = ', quote(u%beam%position0_file)
+    nl=nl+1; write(lines(nl), amt) 'all_file               = ', quote(u%beam%all_file)
+    nl=nl+1; write(lines(nl), amt) 'saved_at               = ', quote(u%beam%saved_at)
+    nl=nl+1; write(lines(nl), fmt) 'track_start            = ', quote(u%beam%track_start), &
+                                                                                ' (', u%beam%ix_track_start, ')'
+    nl=nl+1; write(lines(nl), fmt) 'track_end              = ', quote(u%beam%track_end), &
+                                                                                ' (', u%beam%ix_track_end, ')'
+
+    beam => uni_branch%ele(u%beam%ix_track_start)%beam
     if (allocated(beam%bunch)) then
-      nl=nl+1; write(lines(nl), imt) 'n_particle                  = ', size(beam%bunch(1)%particle)
-      nl=nl+1; write(lines(nl), imt) 'n_bunch                     = ', size(beam%bunch)
-      nl=nl+1; write(lines(nl), rmt) 'bunch_charge_tot            = ', beam%bunch(1)%charge_tot
-      nl=nl+1; write(lines(nl), amt) 'bunch_species               = ', trim(species_name(beam%bunch(1)%particle(1)%species))
+      nl=nl+1; write(lines(nl), imt) 'n_particle                = ', size(beam%bunch(1)%particle)
+      nl=nl+1; write(lines(nl), imt) 'n_bunch                   = ', size(beam%bunch)
+      nl=nl+1; write(lines(nl), rmt) 'bunch_charge_tot          = ', beam%bunch(1)%charge_tot
+      nl=nl+1; write(lines(nl), amt) 'bunch_species             = ', species_name(beam%bunch(1)%particle(1)%species)
     endif
-    if (u%beam%beam_all_file == '' .and. u%beam%beam0_file == '') then
+
+    if (u%beam%all_file == '' .and. u%beam%position0_file == '') then
       beam_init => u%beam%beam_init
-      nl=nl+1; lines(nl) = 'beam_init components:'
-      nl=nl+1; write(lines(nl), amt) '  %distribution_type      = ', beam_init%distribution_type
+      nl=nl+1; lines(nl) = 'beam_init components (set by "set beam_init ..."):'
+      nl=nl+1; write(lines(nl), amt) '  %distribution_type      = ', quoten(beam_init%distribution_type)
       nl=nl+1; write(lines(nl), rmt) '  %center                 = ', beam_init%center
       nl=nl+1; write(lines(nl), rmt) '  %a_norm_emit            = ', beam_init%a_norm_emit
       nl=nl+1; write(lines(nl), rmt) '  %b_norm_emit            = ', beam_init%b_norm_emit
@@ -380,8 +386,8 @@ case ('beam')
       nl=nl+1; write(lines(nl), rmt) '  %spin                   = ', beam_init%spin
       nl=nl+1; write(lines(nl), lmt) '  %renorm_center          = ', beam_init%renorm_center
       nl=nl+1; write(lines(nl), lmt) '  %renorm_sigma           = ', beam_init%renorm_sigma
-      nl=nl+1; write(lines(nl), amt) '  %random_engine          = ', beam_init%random_engine
-      nl=nl+1; write(lines(nl), amt) '  %random_gauss_converter = ', beam_init%random_gauss_converter
+      nl=nl+1; write(lines(nl), amt) '  %random_engine          = ', quote(beam_init%random_engine)
+      nl=nl+1; write(lines(nl), amt) '  %random_gauss_converter = ', quote(beam_init%random_gauss_converter)
       nl=nl+1; write(lines(nl), f3mt)'  %random_sigma_cutoff    = ', beam_init%random_sigma_cutoff
       fmt = '(a, i1, a, es16.8)'
       do i = 1, 3
@@ -404,8 +410,9 @@ case ('beam')
         nl=nl+1; write(lines(nl), rmt) '  %kv%a                 = ', beam_init%kv%a
       endif
     endif
+
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; lines(nl) = 'bmad_com components:'
+    nl=nl+1; lines(nl) = 'bmad_com components (set by "set bmad_com ..."):'
     nl=nl+1; write(lines(nl), lmt) '  %sr_wakes_on                     = ', bmad_com%sr_wakes_on
     nl=nl+1; write(lines(nl), lmt) '  %lr_wakes_on                     = ', bmad_com%lr_wakes_on
     nl=nl+1; write(lines(nl), lmt) '  %space_charge_on                 = ', bmad_com%space_charge_on
@@ -414,8 +421,9 @@ case ('beam')
     nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
     nl=nl+1; write(lines(nl), lmt) '  %radiation_damping_on            = ', bmad_com%radiation_damping_on
     nl=nl+1; write(lines(nl), lmt) '  %radiation_fluctuations_on       = ', bmad_com%radiation_fluctuations_on
+
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; lines(nl) = 'csr_param components:'
+    nl=nl+1; lines(nl) = 'csr_param components (set by "set csr_param ..."):'
     nl=nl+1; write(lines(nl), rmt) '  %ds_track_step        = ', csr_param%ds_track_step
     nl=nl+1; write(lines(nl), rmt) '  %beam_chamber_height  = ', csr_param%beam_chamber_height
     nl=nl+1; write(lines(nl), rmt) '  %sigma_cutoff         = ', csr_param%sigma_cutoff
@@ -667,14 +675,14 @@ case ('curve')
       do i = 2, size(curve)
         nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c))
       enddo
-      nl=nl+1; write(lines(nl), amt)  'data_source          = ', c1%data_source
-      nl=nl+1; write(lines(nl), amt)  'data_index           = ', c1%data_index
-      nl=nl+1; write(lines(nl), amt)  'data_type_x          = ', c1%data_type_x
-      nl=nl+1; write(lines(nl), amt)  'data_type_z          = ', c1%data_type_z
-      nl=nl+1; write(lines(nl), amt)  'data_type            = ', c1%data_type
-      nl=nl+1; write(lines(nl), amt)  'legend_text          = ', c1%legend_text
-      nl=nl+1; write(lines(nl), amt)  'ele_ref_name         = ', c1%ele_ref_name
-      nl=nl+1; write(lines(nl), amt)  'component            = ', c1%component
+      nl=nl+1; write(lines(nl), amt)  'data_source          = ', quote(c1%data_source)
+      nl=nl+1; write(lines(nl), amt)  'data_index           = ', quote(c1%data_index)
+      nl=nl+1; write(lines(nl), amt)  'data_type_x          = ', quote(c1%data_type_x)
+      nl=nl+1; write(lines(nl), amt)  'data_type_z          = ', quote(c1%data_type_z)
+      nl=nl+1; write(lines(nl), amt)  'data_type            = ', quote(c1%data_type)
+      nl=nl+1; write(lines(nl), amt)  'legend_text          = ', quote(c1%legend_text)
+      nl=nl+1; write(lines(nl), amt)  'ele_ref_name         = ', quote(c1%ele_ref_name)
+      nl=nl+1; write(lines(nl), amt)  'component            = ', quote(c1%component)
       nl=nl+1; write(lines(nl), imt)  'ix_branch            = ', c1%ix_branch
       nl=nl+1; write(lines(nl), imt)  'ix_ele_ref           = ', c1%ix_ele_ref
       nl=nl+1; write(lines(nl), imt)  'ix_ele_ref_track     = ', c1%ix_ele_ref_track
@@ -867,13 +875,13 @@ case ('data')
     if (size(s%u) > 1) then
       nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', d_ptr%d1%d2%ix_uni, '  of: ', ubound(s%u, 1)
     endif
-    nl=nl+1; write(lines(nl), amt)    '%ele_name          = ', d_ptr%ele_name
-    nl=nl+1; write(lines(nl), amt)    '%ele_start_name    = ', d_ptr%ele_start_name
-    nl=nl+1; write(lines(nl), amt)    '%ele_ref_name      = ', d_ptr%ele_ref_name
-    nl=nl+1; write(lines(nl), amt)    '%data_type         = ', d_ptr%data_type
-    nl=nl+1; write(lines(nl), amt)    '%data_source       = ', d_ptr%data_source
+    nl=nl+1; write(lines(nl), amt)    '%ele_name          = ', quote(d_ptr%ele_name)
+    nl=nl+1; write(lines(nl), amt)    '%ele_start_name    = ', quote(d_ptr%ele_start_name)
+    nl=nl+1; write(lines(nl), amt)    '%ele_ref_name      = ', quote(d_ptr%ele_ref_name)
+    nl=nl+1; write(lines(nl), amt)    '%data_type         = ', quote(d_ptr%data_type)
+    nl=nl+1; write(lines(nl), amt)    '%data_source       = ', quote(d_ptr%data_source)
     if (d_ptr%id /= '') then
-      nl=nl+1; write(lines(nl), amt)  '%id                = ', d_ptr%id
+      nl=nl+1; write(lines(nl), amt)  '%id                = ', quote(d_ptr%id)
     endif
     nl=nl+1; write(lines(nl), imt)    '%ix_branch         = ', d_ptr%ix_branch
     nl=nl+1; write(lines(nl), imt)    '%ix_ele            = ', d_ptr%ix_ele
@@ -894,7 +902,7 @@ case ('data')
     nl=nl+1; write(lines(nl), amt)    '%eval_point        = ', anchor_pt_name(d_ptr%eval_point)
     nl=nl+1; write(lines(nl), rmt)    '%s_offset          = ', d_ptr%s_offset
     nl=nl+1; write(lines(nl), rmt)    '%s                 = ', d_ptr%s
-    nl=nl+1; write(lines(nl), amt)    '%merit_type        = ', d_ptr%merit_type
+    nl=nl+1; write(lines(nl), amt)    '%merit_type        = ', quote(d_ptr%merit_type)
     nl=nl+1; write(lines(nl), rmt)    '%merit             = ', d_ptr%merit
     nl=nl+1; write(lines(nl), rmt)    '%delta_merit       = ', d_ptr%delta_merit
     nl=nl+1; write(lines(nl), rmt)    '%weight            = ', d_ptr%weight
@@ -1018,13 +1026,13 @@ case ('data')
     enddo
 
     if (d2_ptr%data_read_in) then
-      nl=nl+1; write(lines(nl), amt)  '%data_file_name    = ', d2_ptr%data_file_name
-      nl=nl+1; write(lines(nl), amt)  '%data_date         = ', d2_ptr%data_date
+      nl=nl+1; write(lines(nl), amt)  '%data_file_name    = ', quote(d2_ptr%data_file_name)
+      nl=nl+1; write(lines(nl), amt)  '%data_date         = ', quote(d2_ptr%data_date)
     endif
 
     if (d2_ptr%ref_read_in) then
-      nl=nl+1; write(lines(nl), amt)  '%ref_file_name    = ', d2_ptr%data_file_name
-      nl=nl+1; write(lines(nl), amt)  '%ref_date         = ', d2_ptr%data_date
+      nl=nl+1; write(lines(nl), amt)  '%ref_file_name    = ', quote(d2_ptr%data_file_name)
+      nl=nl+1; write(lines(nl), amt)  '%ref_date         = ', quote(d2_ptr%data_date)
     endif
 
     if (any(d2_ptr%descrip /= ' ')) then
@@ -1480,11 +1488,11 @@ case ('global')
     nl=nl+1; write(lines(nl), amt) '  %phase_units                   = ', angle_units_name(s%global%phase_units)
     nl=nl+1; write(lines(nl), lmt) '  %plot_on                       = ', s%global%plot_on
     nl=nl+1; write(lines(nl), lmt) '  %plot_calc_always              = ', s%global%plot_calc_always
-    nl=nl+1; write(lines(nl), amt) '  %print_command                 = ', s%global%print_command
-    nl=nl+1; write(lines(nl), amt) '  %prompt_string                 = ', s%global%prompt_string
-    nl=nl+1; write(lines(nl), amt) '  %prompt_color                  = ', s%global%prompt_color 
-    nl=nl+1; write(lines(nl), amt) '  %random_engine                 = ', s%global%random_engine
-    nl=nl+1; write(lines(nl), amt) '  %random_gauss_converter        = ', s%global%random_gauss_converter
+    nl=nl+1; write(lines(nl), amt) '  %print_command                 = ', quote(s%global%print_command)
+    nl=nl+1; write(lines(nl), amt) '  %prompt_string                 = ', quote(s%global%prompt_string)
+    nl=nl+1; write(lines(nl), amt) '  %prompt_color                  = ', quote(s%global%prompt_color)
+    nl=nl+1; write(lines(nl), amt) '  %random_engine                 = ', quote(s%global%random_engine)
+    nl=nl+1; write(lines(nl), amt) '  %random_gauss_converter        = ', quote(s%global%random_gauss_converter)
     nl=nl+1; write(lines(nl), imt) '  %random_seed                   = ', s%global%random_seed
     if (s%global%random_seed == 0) then
       call ran_seed_get(ix)
@@ -1492,28 +1500,25 @@ case ('global')
     endif
     nl=nl+1; write(lines(nl), rmt) '  %random_sigma_cutoff           = ', s%global%random_sigma_cutoff
     nl=nl+1; write(lines(nl), lmt) '  %rf_on                         = ', s%global%rf_on
-    nl=nl+1; write(lines(nl), amt) '  %track_type                    = ', s%global%track_type
+    nl=nl+1; write(lines(nl), amt) '  %track_type                    = ', quote(s%global%track_type)
     nl=nl+1; write(lines(nl), lmt) '  %var_limits_on                 = ', s%global%var_limits_on
-    nl=nl+1; write(lines(nl), amt) '  %var_out_file                  = ', s%global%var_out_file
+    nl=nl+1; write(lines(nl), amt) '  %var_out_file                  = ', quote(s%global%var_out_file)
     nl=nl+1; write(lines(nl), lmt) '  %wait_for_CR_in_single_mode    = ', s%global%wait_for_CR_in_single_mode
 
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; lines(nl) = 'Internal Tao Parameters:'
+    nl=nl+1; lines(nl) = 'Tao Parameters:'
     nl=nl+1; write(lines(nl), imt) 'Universe index range:        = ', lbound(s%u, 1), ubound(s%u, 1)
     nl=nl+1; write(lines(nl), imt) 'default_universe:            = ', s%com%default_universe
     nl=nl+1; write(lines(nl), imt) 'default_branch:              = ', s%com%default_branch
     nl=nl+1; write(lines(nl), lmt) 'common_lattice               = ', s%com%common_lattice
-    nl=nl+1; write(lines(nl), amt) 's%com%beam_file              = ', s%com%beam_file
-    nl=nl+1; write(lines(nl), amt) 's%com%beam_all_file          = ', s%com%beam_all_file
-    nl=nl+1; write(lines(nl), amt) 's%com%beam0_file             = ', s%com%beam0_file
-    nl=nl+1; write(lines(nl), amt) 's%com%building_wall_file     = ', s%com%building_wall_file
-    nl=nl+1; write(lines(nl), amt) 's%com%data_file              = ', s%com%data_file
-    nl=nl+1; write(lines(nl), amt) 's%com%hook_init_file         = ', s%com%hook_init_file
-    nl=nl+1; write(lines(nl), amt) 's%com%init_tao_file          = ', s%com%init_tao_file
-    nl=nl+1; write(lines(nl), amt) 's%com%lat_file               = ', s%com%lat_file
-    nl=nl+1; write(lines(nl), amt) 's%com%plot_file              = ', s%com%plot_file
-    nl=nl+1; write(lines(nl), amt) 's%com%var_file               = ', s%com%var_file
-    nl=nl+1; write(lines(nl), amt) 's%com%startup_file           = ', s%com%startup_file
+    nl=nl+1; write(lines(nl), amt) 's%com%building_wall_file     = ', quote(s%com%building_wall_file)
+    nl=nl+1; write(lines(nl), amt) 's%com%data_file              = ', quote(s%com%data_file)
+    nl=nl+1; write(lines(nl), amt) 's%com%hook_init_file         = ', quote(s%com%hook_init_file)
+    nl=nl+1; write(lines(nl), amt) 's%com%init_tao_file          = ', quote(s%com%init_tao_file)
+    nl=nl+1; write(lines(nl), amt) 's%com%lat_file               = ', quote(s%com%lat_file)
+    nl=nl+1; write(lines(nl), amt) 's%com%plot_file              = ', quote(s%com%plot_file)
+    nl=nl+1; write(lines(nl), amt) 's%com%var_file               = ', quote(s%com%var_file)
+    nl=nl+1; write(lines(nl), amt) 's%com%startup_file           = ', quote(s%com%startup_file)
     nl=nl+1; write(lines(nl), lmt) 's%com%combine_consecutive_elements_of_like_name = ', &
                                                 s%com%combine_consecutive_elements_of_like_name
     nl=nl+1; write(lines(nl), imt) 'Number paused command files    = ', count(s%com%cmd_file%paused)
@@ -1634,10 +1639,10 @@ case ('graph')
       nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(g%p%r%name) // '.' // trim(g%name)
     endif
     nl=nl+1; lines(nl) = 'Plot.Graph:   ' // trim(g%p%name) // '.' // trim(g%name)
-    nl=nl+1; write(lines(nl), amt)  'type                             = ', g%type
-    nl=nl+1; write(lines(nl), amt)  'title                            = ', g%title
-    nl=nl+1; write(lines(nl), amt)  'title_suffix                     = ', g%title_suffix
-    nl=nl+1; write(lines(nl), amt)  'component                        = ', g%component
+    nl=nl+1; write(lines(nl), amt)  'type                             = ', quote(g%type)
+    nl=nl+1; write(lines(nl), amt)  'title                            = ', quote(g%title)
+    nl=nl+1; write(lines(nl), amt)  'title_suffix                     = ', quote(g%title_suffix)
+    nl=nl+1; write(lines(nl), amt)  'component                        = ', quote(g%component)
     nl=nl+1; write(lines(nl), '(a, 4f10.2, 2x, a)') &
                                     'margin                           = ', g%margin
     nl=nl+1; write(lines(nl), '(a, 4f10.2, 2x, a)') &
@@ -1648,13 +1653,13 @@ case ('graph')
 
     nl=nl+1; write(lines(nl), rmt)  'x_axis_scale_factor              = ', g%x_axis_scale_factor
     nl=nl+1; write(lines(nl), rmt)  'symbol_size_scale                = ', g%symbol_size_scale
-    nl=nl+1; write(lines(nl), amt)  'floor_plan_view                  = ', g%floor_plan_view
+    nl=nl+1; write(lines(nl), amt)  'floor_plan_view                  = ', quote(g%floor_plan_view)
     nl=nl+1; write(lines(nl), f3mt) 'floor_plan_rotation              = ', g%floor_plan_rotation
     nl=nl+1; write(lines(nl), f3mt) 'floor_plan_orbit_scale           = ', g%floor_plan_orbit_scale
-    nl=nl+1; write(lines(nl), amt)  'floor_plan_orbit_color           = ', g%floor_plan_orbit_color
+    nl=nl+1; write(lines(nl), amt)  'floor_plan_orbit_color           = ', quote(g%floor_plan_orbit_color)
     nl=nl+1; write(lines(nl), lmt)  'floor_plan_size_is_absolute      = ', g%floor_plan_size_is_absolute
     nl=nl+1; write(lines(nl), lmt)  'floor_plan_draw_only_first_pass  = ', g%floor_plan_draw_only_first_pass
-    nl=nl+1; write(lines(nl), amt)  'x%label                          = ', g%x%label
+    nl=nl+1; write(lines(nl), amt)  'x%label                          = ', quote(g%x%label)
     nl=nl+1; write(lines(nl), rmt)  'x%max                            = ', g%x%max
     nl=nl+1; write(lines(nl), rmt)  'x%min                            = ', g%x%min
     nl=nl+1; write(lines(nl), imt)  'x%major_div                      = ', g%x%major_div
@@ -1664,7 +1669,7 @@ case ('graph')
     nl=nl+1; write(lines(nl), lmt)  'x%draw_numbers                   = ', g%x%draw_numbers
 
     nl=nl+1; write(lines(nl), lmt)  'y2_mirrors_y                     = ', g%y2_mirrors_y
-    nl=nl+1; write(lines(nl), amt)  'y%label                          = ', g%y%label
+    nl=nl+1; write(lines(nl), amt)  'y%label                          = ', quote(g%y%label)
     nl=nl+1; write(lines(nl), rmt)  'y%label_offset                   = ', g%y%label_offset
     nl=nl+1; write(lines(nl), rmt)  'y%max                            = ', g%y%max
     nl=nl+1; write(lines(nl), rmt)  'y%min                            = ', g%y%min
@@ -1674,7 +1679,7 @@ case ('graph')
     nl=nl+1; write(lines(nl), lmt)  'y%draw_label                     = ', g%y%draw_label
     nl=nl+1; write(lines(nl), lmt)  'y%draw_numbers                   = ', g%y%draw_numbers
 
-    nl=nl+1; write(lines(nl), amt)  'y2%label                         = ', g%y2%label
+    nl=nl+1; write(lines(nl), amt)  'y2%label                         = ', quote(g%y2%label)
     nl=nl+1; write(lines(nl), rmt)  'y2%label_offset                  = ', g%y2%label_offset
     nl=nl+1; write(lines(nl), rmt)  'y2%max                           = ', g%y2%max
     nl=nl+1; write(lines(nl), rmt)  'y2%min                           = ', g%y2%min
@@ -1692,7 +1697,7 @@ case ('graph')
     if (allocated(g%curve)) then
       nl=nl+1; lines(nl) = 'Curves:'
       do i = 1, size(g%curve)
-        nl=nl+1; write(lines(nl), amt) '   ', g%curve(i)%name
+        nl=nl+1; write(lines(nl), amt) '   ', quote(g%curve(i)%name)
       enddo
     else
       nl=nl+1; lines(nl) = 'Curves: None associated'
@@ -2701,7 +2706,7 @@ case ('optimizer')
   enddo
 
   nl=nl+1; lines(nl) = ' '
-  nl=nl+1; write(lines(nl), amt) 'optimizer:        ', s%global%optimizer
+  nl=nl+1; write(lines(nl), amt) 'optimizer:        ', quote(s%global%optimizer)
   call show_opt
   call out_io (s_blank$, r_name, lines(1:nl))
   nl = 0
@@ -2902,8 +2907,8 @@ case ('plot')
         nl=nl+1; write (lines(nl), lmt)  'Visible                = ', p%r%visible
         nl=nl+1; write (lines(nl), f3mt) 'Location [x1,x2,y1,y2] = ', p%r%location
       endif
-      nl=nl+1; write(lines(nl), amt) 'x_axis_type          = ', p%x_axis_type
-      nl=nl+1; write(lines(nl), amt) 'x%label              = ', p%x%label
+      nl=nl+1; write(lines(nl), amt) 'x_axis_type          = ', quote(p%x_axis_type)
+      nl=nl+1; write(lines(nl), amt) 'x%label              = ', quote(p%x%label)
       nl=nl+1; write(lines(nl), rmt) 'x%max                = ', p%x%max
       nl=nl+1; write(lines(nl), rmt) 'x%min                = ', p%x%min
       nl=nl+1; write(lines(nl), imt) 'x%major_div          = ', p%x%major_div
@@ -2919,7 +2924,7 @@ case ('plot')
 
       nl=nl+1; lines(nl) = 'Graphs:'
       do i = 1, size(p%graph)
-        nl=nl+1; write(lines(nl), amt) '   ', p%graph(i)%name
+        nl=nl+1; write(lines(nl), amt) '   ', quote(p%graph(i)%name)
       enddo
       result_id = show_what
 
@@ -3780,19 +3785,19 @@ case ('universe')
   nl=nl+1; write(lines(nl), lmt) ' do_rad_int_calc       = ', u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting
   nl=nl+1; write(lines(nl), lmt) ' do_chrom_calc         = ', u%calc%chrom_for_data .or. u%calc%chrom_for_plotting
   nl=nl+1; write(lines(nl), lmt) ' do_beam_sigma_calc    = ', u%calc%beam_sigma_for_data .or. u%calc%beam_sigma_for_plotting
-  nl=nl+1; write(lines(nl), lmt) '%calc%twiss             = ', u%calc%twiss
+  nl=nl+1; write(lines(nl), lmt) '%calc%twiss            = ', u%calc%twiss
   nl=nl+1; write(lines(nl), lmt) '%calc%dynamic_aperture = ', u%calc%dynamic_aperture
   nl=nl+1; write(lines(nl), lmt) '%calc%one_turn_map     = ', u%calc%one_turn_map
   nl=nl+1; write(lines(nl), lmt) '%calc%track            = ', u%calc%track
   nl=nl+1; write(lines(nl), lmt) '%calc%spin_matrices    = ', u%calc%spin_matrices
   nl=nl+1; write(lines(nl), lmt) '%is_on                 = ', u%is_on
-  nl=nl+1; write(lines(nl), amt) '%beam0_file            = ', trim(u%beam%beam0_file)
-  nl=nl+1; write(lines(nl), amt) '%beam_all_file         = ', trim(u%beam%beam_all_file)
-  nl=nl+1; write(lines(nl), amt) '%beam%saved_at:        = ', trim(u%beam%saved_at)
+  nl=nl+1; write(lines(nl), amt) '%beam_position0_file   = ', quote(trim(u%beam%position0_file))
+  nl=nl+1; write(lines(nl), amt) '%beam_all_file         = ', quote(trim(u%beam%all_file))
+  nl=nl+1; write(lines(nl), amt) '%beam%saved_at:        = ', quote(trim(u%beam%saved_at))
   nl=nl+1; lines(nl) = ''
-  nl=nl+1; write(lines(nl), amt) 'Lattice name:           ', lat%lattice
-  nl=nl+1; write(lines(nl), amt) 'Used line in lat file:  ', lat%use_name
-  nl=nl+1; write(lines(nl), amt) 'Lattice file name:      ', lat%input_file_name
+  nl=nl+1; write(lines(nl), amt) 'Lattice name:           ', quote(lat%lattice)
+  nl=nl+1; write(lines(nl), amt) 'Used line in lat file:  ', quote(lat%use_name)
+  nl=nl+1; write(lines(nl), amt) 'Lattice file name:      ', quote(lat%input_file_name)
   nl=nl+1; write(lines(nl), amt) 'Reference species:      ', species_name(branch%param%particle)
   if (branch%param%particle == photon$) then
     nl=nl+1; write(lines(nl), amt) 'photon_type:            ', photon_type_name(lat%photon_type)
@@ -4131,10 +4136,10 @@ case ('variable')
 
     v_ptr => v_array(1)%v
 
-    nl=nl+1; write(lines(nl), amt)  '%ele_name         = ', v_ptr%ele_name
-    nl=nl+1; write(lines(nl), amt)  '%attrib_name      = ', v_ptr%attrib_name 
+    nl=nl+1; write(lines(nl), amt)  '%ele_name         = ', quote(v_ptr%ele_name)
+    nl=nl+1; write(lines(nl), amt)  '%attrib_name      = ', quote(v_ptr%attrib_name)
     if (v_ptr%id /= '') then
-      nl=nl+1; write(lines(nl), amt)  '%id                = ', v_ptr%id
+      nl=nl+1; write(lines(nl), amt)  '%id                = ', quote(v_ptr%id)
     endif
     nl=nl+1; write(lines(nl), imt)  '%ix_attrib        = ', v_ptr%ix_attrib 
     nl=nl+1; write(lines(nl), imt)  '%ix_var           = ', v_ptr%ix_var
@@ -4183,7 +4188,7 @@ case ('variable')
     nl=nl+1; write(lines(nl), rmt)  '%step             = ', v_ptr%step
     nl=nl+1; write(lines(nl), rmt)  '%weight           = ', v_ptr%weight
     nl=nl+1; write(lines(nl), rmt)  '%delta_merit      = ', v_ptr%delta_merit
-    nl=nl+1; write(lines(nl), amt)  '%merit_type       = ', v_ptr%merit_type
+    nl=nl+1; write(lines(nl), amt)  '%merit_type       = ', quote(v_ptr%merit_type)
     nl=nl+1; write(lines(nl), rmt)  '%merit            = ', v_ptr%merit
     nl=nl+1; write(lines(nl), rmt)  '%dmerit_dvar      = ', v_ptr%dMerit_dVar
     nl=nl+1; write(lines(nl), rmt)  '%s                = ', v_ptr%s
@@ -4564,7 +4569,7 @@ nl=nl+1; write(lines(nl), lmt) '  %derivative_uses_design        = ', s%global%d
 nl=nl+1; write(lines(nl), lmt) '  %opt_with_ref                  = ', s%global%opt_with_ref 
 nl=nl+1; write(lines(nl), lmt) '  %opt_with_base                 = ', s%global%opt_with_base
 nl=nl+1; write(lines(nl), lmt) '  %optimizer_allow_user_abort    = ', s%global%optimizer_allow_user_abort
-nl=nl+1; write(lines(nl), amt) '  %optimizer                     = ', s%global%optimizer
+nl=nl+1; write(lines(nl), amt) '  %optimizer                     = ', quote(s%global%optimizer)
 nl=nl+1; lines(nl) = ''
 nl=nl+1; lines(nl) = 'opti_de_param Parameters:'
 nl=nl+1; write(lines(nl), rmt) '  %CR                   = ', opti_de_param%CR
@@ -4779,5 +4784,89 @@ line = ''
 line(wid-ix+1:) = num_str
 
 end subroutine write_real
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Function quote(str) result (q_str)
+!
+! Function to put double quote marks (") around a string.
+! The string will be trimmed of trailing blanks.
+!
+! Input:
+!   str     -- character(*): Input string
+!
+! Output:
+!   q_str   -- character(:), allocatable: String with quote marks.
+!-
+
+function quote(str) result (q_str)
+character(*) str
+character(:), allocatable :: q_str
+integer n
+
+!
+
+n = len_trim(str) + 2
+allocate(character(n) :: q_str)
+q_str = '"' // trim(str) // '"'
+
+end function quote
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Function quoten(str, delim) result (q_str)
+!
+! Function to put double quote marks (") around each string in an array and
+! return the concatenated string with a delimitor between the strings.
+!
+! Input:
+!   str(:)  -- character(*): Input string array
+!   delim   -- character(*), optional: Delimitor between strings. Default is a blank space.
+! Output:
+!   q_str   -- character(:), allocatable: String with quote marks.
+!-
+
+function quoten(str, delim) result (q_str)
+
+character(*) str(:)
+character(*), optional :: delim
+character(:), allocatable :: q_str
+integer i, n, ns
+
+!
+
+ns = size(str)
+n = 0
+do i = 1, ns
+  n = n + len_trim(str(i)) + 2
+enddo
+
+if (present(delim)) then
+  n = n + (ns-1) * len(delim)
+else
+  n = n + (ns-1)
+endif
+
+allocate(character(n) :: q_str)
+
+n = 0
+do i = 1, ns
+  q_str = q_str(:n-1) // '"' // trim(str(i)) // '"'
+  n = n + len_trim(str(i)) + 2
+  if (i == ns) exit
+  if (present(delim)) then
+    q_str = q_str(:n-1) // delim
+    n = n + len(delim)
+  else
+    q_str = q_str(:n-1) // ' '
+    n = n + 1
+  endif
+enddo
+
+end function quoten
 
 end module

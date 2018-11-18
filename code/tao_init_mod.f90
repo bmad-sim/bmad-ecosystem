@@ -141,13 +141,13 @@ character(*) init_file
 character(40) :: r_name = 'tao_init_beams'
 character(40) track_start, track_end, beam_track_start, beam_track_end
 character(160) beam_saved_at
-character(200) file_name, beam0_file, beam_all_file
+character(200) file_name, beam0_file, beam_position0_file, beam_all_file
 character(60), target :: save_beam_at(100)   ! old style syntax
 
 logical err
 
-namelist / tao_beam_init / ix_universe, beam0_file, beam_all_file, beam_init, beam_saved_at, &
-          beam_saved_at, track_start, track_end, beam_track_start, beam_track_end
+namelist / tao_beam_init / ix_universe, beam0_file, beam_all_file, beam_init, &
+            beam_saved_at, track_start, track_end, beam_track_start, beam_track_end, beam_position0_file
          
 !-----------------------------------------------------------------------
 ! Init Beams
@@ -166,14 +166,12 @@ if (iu == 0) then
 endif
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
-  s%u(i)%beam%beam0_file = s%com%beam0_file
-  s%u(i)%beam%beam_all_file = s%com%beam_all_file
-  do ib = 0, ubound(s%u(i)%uni_branch, 1)
-    s%u(i)%uni_branch(ib)%beam_track_start    = ''
-    s%u(i)%uni_branch(ib)%beam_track_end      = ''
-    s%u(i)%uni_branch(ib)%ix_beam_track_start = 0
-    s%u(i)%uni_branch(ib)%ix_beam_track_end   = -1
-  enddo
+  s%u(i)%beam%position0_file = s%com%beam_position0_file
+  s%u(i)%beam%all_file = s%com%beam_all_file
+  s%u(i)%beam%track_start    = ''
+  s%u(i)%beam%track_end      = ''
+  s%u(i)%beam%ix_track_start = 0
+  s%u(i)%beam%ix_track_end   = -1
 enddo
 
 do 
@@ -202,6 +200,7 @@ do
   beam_track_start = ''
   beam_track_end = ''
   beam0_file = ''
+  beam_position0_file = ''
   beam_all_file = ''
 
   ! Read beam parameters
@@ -215,7 +214,8 @@ do
     enddo
   endif
 
-  if (s%com%beam0_file /= '')    beam0_file = s%com%beam0_file        ! From the command line
+  if (beam0_file /= '')                beam_position0_file = beam0_file
+  if (s%com%beam_position0_file /= '') beam_position0_file = s%com%beam_position0_file        ! From the command line
   if (s%com%beam_all_file /= '') beam_all_file = s%com%beam_all_file  ! From the command line
   if (track_start /= '') beam_track_start = track_start   ! For backwards compatibility
   if (track_end /= '')   beam_track_end   = track_end     ! For backwards compatibility
@@ -270,7 +270,6 @@ use beam_file_io
 type (tao_universe_struct), target :: u
 type (ele_pointer_struct), allocatable, save, target :: eles(:)
 type (ele_struct), pointer :: ele
-type (tao_universe_branch_struct), pointer :: uni_branch0
 type (branch_struct), pointer :: branch
 
 real(rp) v(6), bunch_charge, gamma
@@ -279,10 +278,8 @@ character(60) at, class, ele_name, line
 
 ! Set tracking start/stop
 
-uni_branch0 => u%uni_branch(0)
-
-uni_branch0%beam_track_start = beam_track_start
-uni_branch0%beam_track_end   = beam_track_end
+u%beam%track_start = beam_track_start
+u%beam%track_end   = beam_track_end
 
 if (beam_track_start /= '') then
   call lat_ele_locator (beam_track_start, u%design%lat, eles, n_loc, err)
@@ -294,7 +291,7 @@ if (beam_track_start /= '') then
     call out_io (s_fatal$, r_name, 'MULTIPLE BEAM_TRACK_START ELEMENTS FOUND: ' // beam_track_start)
     call err_exit
   endif
-  uni_branch0%ix_beam_track_start = eles(1)%ele%ix_ele
+  u%beam%ix_track_start = eles(1)%ele%ix_ele
 endif
 
 if (beam_track_end /= '') then
@@ -307,12 +304,12 @@ if (beam_track_end /= '') then
     call out_io (s_fatal$, r_name, 'MULTIPLE BEAM_TRACK_END ELEMENTS FOUND: ' // beam_track_end)
     call err_exit
   endif
-  uni_branch0%ix_beam_track_end = eles(1)%ele%ix_ele
+  u%beam%ix_track_end = eles(1)%ele%ix_ele
 endif
 
 u%beam%beam_init = beam_init
-u%beam%beam0_file = beam0_file
-u%beam%beam_all_file = beam_all_file
+u%beam%position0_file = beam_position0_file
+u%beam%all_file = beam_all_file
 call init_coord(u%design%tao_branch(0)%orbit(0), beam_init%center, u%design%lat%ele(0), downstream_end$)
 
 ! Find where to save the beam at.
@@ -344,17 +341,17 @@ u%beam%saved_at = beam_saved_at
 
 ! If beam_all_file is set, read in the beam distributions.
 
-if (u%beam%beam_all_file /= '') then
-  s%com%use_saved_beam_in_tracking = .true.
-  call read_beam_file (beam_all_file, uni_branch0%ele(j)%beam, u%beam%beam_init, .false., err)
-  if (err) call err_exit
+if (u%beam%all_file /= '') then
 ! Need to recode...
+!  s%com%use_saved_beam_in_tracking = .true.
+!  call read_beam_file (beam_all_file, uni_branch0%ele(j)%beam, u%beam%beam_init, .false., err)
+!  if (err) call err_exit
 !  do
 !    if (j == -1) exit
 !    call tao_read_beam (uni_branch0%ele(j)%beam, err)
 !    if (err) call err_exit
 !  enddo  
-!  call out_io (s_info$, r_name, 'Read beam_all file: ' // u%beam%beam_all_file)
+!  call out_io (s_info$, r_name, 'Read beam_all file: ' // u%beam%all_file)
 endif
 
 if (allocated(eles)) deallocate (eles)

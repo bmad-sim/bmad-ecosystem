@@ -51,13 +51,10 @@ do
   if (i_arg == n_arg) exit
   call get_next_arg (arg0)
 
-  call match_word (arg0,            ['-?                       ', &
-        '-init                    ', '-noinit                  ', '-beam_all                ', '-beam0                   ', &
-        '-noplot                  ', '-lat                     ', '-log_startup             ', '-beam                    ', &
-        '-var                     ', '-data                    ', '-building_wall           ', '-plot                    ', &
-        '-startup                 ', 'help                     ', '-help                    ', '?                        ', &
-        '-geometry                ', '-rf_on                   ', '-debug                   ', '-disable_smooth_line_calc', &
-        '-color_prompt            ', '-no_stopping             ', '-hook_init_file          ', '-gui_mode                '], &
+  call match_word (arg0, [character(40):: '-?', '-init', '-noinit', '-beam_all', '-beam0', &
+        '-noplot', '-lat', '-log_startup', '-beam', '-var', '-data', '-building_wall', '-plot', &
+        '-startup', 'help', '-help', '?', '-geometry', '-rf_on', '-debug', '-disable_smooth_line_calc', &
+        '-color_prompt', '-no_stopping', '-hook_init_file', '-gui_mode', '-beam_position0'], &
               ix, .true., matched_name=switch)
 
   select case (switch)
@@ -77,8 +74,8 @@ do
   case ('-beam_all')
     call get_next_arg (s%com%beam_all_file)
 
-  case ('-beam0')
-    call get_next_arg (s%com%beam0_file)
+  case ('-beam_position0', '-beam0')
+    call get_next_arg (s%com%beam_position0_file)
 
   case ('-building_wall')
     call get_next_arg (s%com%building_wall_file)
