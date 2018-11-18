@@ -308,7 +308,7 @@ endif
 
 ! Histogram setup
 
-if (lux_param%det_pix_out_file /= '') then
+if (lux_param%det_pix_out_file /= '' .and. lux_param%histogram_variable /= '') then
   if (lux_param%histogram_bin_width == 0) then
     call out_io (s_fatal$, r_name, 'LUX_PARAM%HISTOGRAM_BIN_WIDTH IS ZERO!')
     stop
