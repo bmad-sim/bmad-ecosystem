@@ -796,6 +796,7 @@ Examples:
 The \vn{set} command is used to set values for data,
 variables, etc. Format:
 \begin{example}
+  set beam \{n@\}<component> = <value>                        ! \sref{s:set.beam}
   set beam_init \{n@\}<component> = <value>                   ! \sref{s:set.beam.init}
   set beam_start \{n@\}<coordinate> = <value>                 ! \sref{s:set.beam.start}
   set bmad_com <component> = <value>                        ! \sref{s:set.bmad.com}
@@ -856,6 +857,29 @@ Where \vn{<value>} may be one of:
 %   help set <what>
 % to obtain more information on a particular set subtopic. Example:
 %   help set plot
+
+%% set beam --------------------------------------------------------------
+
+\subsection{set beam}
+\label{s:set.beam}
+
+Format:
+\begin{example}
+  set beam \{n@\}<component> = <value>
+\end{example}
+
+The \vn{set beam} command sets beam parameters such as the initial and final tracking positions.
+Use the \vn{show beam} command (\sref{s:show}) to see the current values.
+
+The optional \vn{n@} allows the specification of the universe or universes the set is applied
+to. The current default universe (\sref{s:universe}) will be used if no universe is given. 
+
+Examples:
+\begin{example}
+  set beam 2@track_start = q10w  ! Set the tracking start at element Q10W in universe 2.
+  set beam saved_at = "Q*, B*"   ! Save beam parameters (sigma matrix, etc.) at elements
+                                 !  whose names begin with "Q" or "B".
+\end{example}
 
 %% set beam_init --------------------------------------------------------------
 
