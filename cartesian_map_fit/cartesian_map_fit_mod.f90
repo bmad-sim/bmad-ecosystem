@@ -564,7 +564,7 @@ type (term_struct), pointer :: tt
 real(rp), intent(in) :: a(:)
 real(rp), intent(out) :: yfit(:)
 real(rp), intent(out) :: dyda(:, :)
-real(rp) x_pos, y_pos, z_pos, rrx, rry, rrz, dkx_dkxy, dky_dkxy
+real(rp) x_pos, y_pos, z_pos, rrx, rry, rrz, dkx_dkxy, dky_dkxy, dkx_dkz, dky_dkz
 real(rp) drrx_dkx, drrx_dky, drrx_dkz, drry_dkx, drry_dky, drry_dkz, drrz_dkx, drrz_dky, drrz_dkz
 real(rp) x, y, z
 
@@ -699,7 +699,10 @@ do i = 1, n_term
     drry_dkx = 0; drry_dky = 0; drry_dkz = 0
     drrz_dkx = 0; drrz_dky = -rrz / cmt%ky; drrz_dkz = 1 / cmt%ky
 
-    dkx_dkxy = (tt%kxy**2 + cmt%kz**2) / (2 * tt%kxy**2);  dky_dkxy = (tt%kxy**2 - cmt%kz**2) / (2 * tt%kxy**2)
+    dkx_dkxy = (tt%kxy**2 + cmt%kz**2) / (2 * tt%kxy**2)
+    dky_dkxy = (tt%kxy**2 - cmt%kz**2) / (2 * tt%kxy**2)
+    dkx_dkz = cmt%kz / tt%kxy
+    dky_dkz = -dkx_dkz
     dsgn_x = -1; dsgn_y = 1; dsgn_z = -1
 
   case (hyper_xy$)
@@ -728,7 +731,10 @@ do i = 1, n_term
     drry_dkx = 0; drry_dky = 1 / cmt%kz; drry_dkz = -rry / cmt%kz
     drrz_dkx = 0; drrz_dky = 0; drrz_dkz = 0
 
-    dkx_dkxy = (1 + tt%kxy / (tt%kxy - 2 * cmt%kx)) / 2;  dky_dkxy = (1 - tt%kxy / (tt%kxy - 2 * cmt%kx)) / 2
+    dkx_dkxy = (1 + tt%kxy / (tt%kxy - 2 * cmt%kx)) / 2
+    dky_dkxy = (1 - tt%kxy / (tt%kxy - 2 * cmt%kx)) / 2
+    dkx_dkz = -cmt%kz / sqrt(2 * cmt%kz**2 - tt%kxy**2)
+    dky_dkz = -dkx_dkz
     dsgn_x = 1; dsgn_y = 1; dsgn_z = -1
 
   case (hyper_x$)
@@ -757,15 +763,15 @@ do i = 1, n_term
     drry_dkx = -rry / cmt%kx; drry_dky = 1 / cmt%kx; drry_dkz = 0
     drrz_dkx = -rrz / cmt%kx; drrz_dky = 0; drrz_dkz = 1 / cmt%kx
 
-    dkx_dkxy = (tt%kxy**2 - cmt%kz**2) / (2 * tt%kxy**2);  dky_dkxy = (tt%kxy**2 + cmt%kz**2) / (2 * tt%kxy**2)
+    dkx_dkxy = (tt%kxy**2 - cmt%kz**2) / (2 * tt%kxy**2)
+    dky_dkxy = (tt%kxy**2 + cmt%kz**2) / (2 * tt%kxy**2)
+    dkx_dkz = cmt%kz / tt%kxy
+    dky_dkz = -dkx_dkz
     dsgn_x = 1; dsgn_y = -1; dsgn_z = -1
   end select
 
   !
 
-  Bx_fit = 0
-  By_fit = 0
-  Bz_fit = 0
   id = 0
 
   if (calc_at_surface_grid_points_only) then
@@ -874,7 +880,7 @@ contains
 
 subroutine add_to_field(id, j0_var)
 
-real(rp) s_x, c_x, s_y, c_y, s_z, c_z
+real(rp) s_x, c_x, s_y, c_y, s_z, c_z, dbx_dkx, dbx_dky, dby_dkx, dby_dky, dbz_dkx, dbz_dky
 integer iv, id, id0, j0_var
 
 !
@@ -901,21 +907,27 @@ case (family_x$)
   By_fit(ix,iy,iz) = By_fit(ix,iy,iz) + cmt%coef * rry * s_x * s_y * c_z * sgn_y
   Bz_fit(ix,iy,iz) = Bz_fit(ix,iy,iz) + cmt%coef * rrz * s_x * c_y * s_z * sgn_z
   if (.not. dyda_calc) return
+  dbx_dkx = cmt%coef * c_y * c_z * sgn_x * (drrx_dkx * c_x + rrx * s_x * x_pos * dsgn_x) 
+  dbx_dky = cmt%coef * c_x * c_z * sgn_x * (drrx_dky * c_y + rrx * s_y * y_pos * dsgn_y) 
+  dby_dkx = cmt%coef * s_y * c_z * sgn_y * (drry_dkx * s_x + rry * c_x * x_pos)
+  dby_dky = cmt%coef * s_x * c_z * sgn_y * (drry_dky * s_y + rry * c_y * y_pos)
+  dbz_dkx = cmt%coef * c_y * s_z * sgn_z * (drrz_dkx * s_x + rrz * c_x * x_pos)
+  dbz_dky = cmt%coef * s_x * s_z * sgn_z * (drrz_dky * c_y + rrz * s_y * y_pos * dsgn_y)
   ! dB_fit/dCoef terms
   dyda(id0+1,j0_var+1) = rrx * c_x * c_y * c_z * sgn_x   
   dyda(id0+2,j0_var+1) = rry * s_x * s_y * c_z * sgn_y
   dyda(id0+3,j0_var+1) = rrz * s_x * c_y * s_z * sgn_z
   ! dB_fit/dkxy terms
-  dyda(id0+1,j0_var+2) = cmt%coef * c_y * c_z * sgn_x * (drrx_dkx * c_x + rrx * s_x * x_pos * dsgn_x) * dkx_dkxy + &
-                        cmt%coef * c_x * c_z * sgn_x * (drrx_dky * c_y + rrx * s_y * y_pos * dsgn_y) * dky_dkxy
-  dyda(id0+2,j0_var+2) = cmt%coef * s_y * c_z * sgn_y * (drry_dkx * s_x + rry * c_x * x_pos) * dkx_dkxy + &
-                        cmt%coef * s_x * c_z * sgn_y * (drry_dky * s_y + rry * c_y * y_pos) * dky_dkxy
-  dyda(id0+3,j0_var+2) = cmt%coef * c_y * s_z * sgn_z * (drrz_dkx * s_x + rrz * c_x * x_pos) * dkx_dkxy + &
-                        cmt%coef * s_x * s_z * sgn_z * (drrz_dky * c_y + rrz * s_y * y_pos * dsgn_y) * dky_dkxy
+  dyda(id0+1,j0_var+2) = dbx_dkx * dkx_dkxy + dbx_dky * dky_dkxy
+  dyda(id0+2,j0_var+2) = dby_dkx * dkx_dkxy + dby_dky * dky_dkxy
+  dyda(id0+3,j0_var+2) = dbz_dkx * dkx_dkxy + dbz_dky * dky_dkxy
   ! dB_fit/dkz terms
-  dyda(id0+1,j0_var+3) = cmt%coef * c_x * c_y * sgn_x * (drrx_dkz * c_z + rrx * s_z * z_pos * dsgn_z)
-  dyda(id0+2,j0_var+3) = cmt%coef * s_x * s_y * sgn_y * (drry_dkz * c_z + rry * s_z * z_pos * dsgn_z)
-  dyda(id0+3,j0_var+3) = cmt%coef * s_x * c_y * sgn_z * (drrz_dkz * s_z + rrz * c_z * z_pos)
+  dyda(id0+1,j0_var+3) = cmt%coef * c_x * c_y * sgn_x * (drrx_dkz * c_z + rrx * s_z * z_pos * dsgn_z) + &
+                         dbx_dkx * dkx_dkz + dbx_dky * dky_dkz
+  dyda(id0+2,j0_var+3) = cmt%coef * s_x * s_y * sgn_y * (drry_dkz * c_z + rry * s_z * z_pos * dsgn_z) + &
+                         dby_dkx * dkx_dkz + dby_dky * dky_dkz
+  dyda(id0+3,j0_var+3) = cmt%coef * s_x * c_y * sgn_z * (drrz_dkz * s_z + rrz * c_z * z_pos) + &
+                         dbz_dkx * dkx_dkz + dbz_dky * dky_dkz
 
   iv = j0_var+3
   if (.not. mask_x0) then
@@ -939,26 +951,34 @@ case (family_x$)
     dyda(id0+3,iv) = cmt%coef * rrz * s_x * c_y * c_z * sgn_z
   endif
 
+!------
+
 case (family_y$)
   Bx_fit(ix,iy,iz) = Bx_fit(ix,iy,iz) + cmt%coef * rrx * s_x * s_y * c_z * sgn_x
   By_fit(ix,iy,iz) = By_fit(ix,iy,iz) + cmt%coef * rry * c_x * c_y * c_z * sgn_y
   Bz_fit(ix,iy,iz) = Bz_fit(ix,iy,iz) + cmt%coef * rrz * c_x * s_y * s_z * sgn_z
   if (.not. dyda_calc) return
+  dbx_dkx = cmt%coef * s_y * c_z * sgn_x * (drrx_dkx * s_x + rrx * c_x * x_pos)
+  dbx_dky = cmt%coef * s_x * c_z * sgn_x * (drrx_dky * s_y + rrx * c_y * y_pos)
+  dby_dkx = cmt%coef * c_y * c_z * sgn_y * (drry_dkx * c_x + rry * s_x * x_pos * dsgn_x)
+  dby_dky = cmt%coef * c_x * c_z * sgn_y * (drry_dky * c_y + rry * s_y * y_pos * dsgn_y)
+  dbz_dkx = cmt%coef * s_y * s_z * sgn_z * (drrz_dkx * c_x + rrz * s_x * x_pos * dsgn_x)
+  dbz_dky = cmt%coef * c_x * s_z * sgn_z * (drrz_dky * s_y + rrz * c_y * y_pos)
   ! dB_fit/dCoef terms
   dyda(id0+1,j0_var+1) = rrx * s_x * s_y * c_z * sgn_x
   dyda(id0+2,j0_var+1) = rry * c_x * c_y * c_z * sgn_y
   dyda(id0+3,j0_var+1) = rrz * c_x * s_y * s_z * sgn_z
   ! dB_fit/dkxy terms
-  dyda(id0+1,j0_var+2) = cmt%coef * s_y * c_z * sgn_x * (drrx_dkx * s_x + rrx * c_x * x_pos) * dkx_dkxy + &
-                        cmt%coef * s_x * c_z * sgn_x * (drrx_dky * s_y + rrx * c_y * y_pos) * dky_dkxy
-  dyda(id0+2,j0_var+2) = cmt%coef * c_y * c_z * sgn_y * (drry_dkx * c_x + rry * s_x * x_pos * dsgn_x) * dkx_dkxy + &
-                        cmt%coef * c_x * c_z * sgn_y * (drry_dky * c_y + rry * s_y * y_pos * dsgn_y) * dky_dkxy
-  dyda(id0+3,j0_var+2) = cmt%coef * s_y * s_z * sgn_z * (drrz_dkx * c_x + rrz * s_x * x_pos * dsgn_x) * dkx_dkxy + &
-                        cmt%coef * c_x * s_z * sgn_z * (drrz_dky * s_y + rrz * c_y * y_pos) * dky_dkxy
+  dyda(id0+1,j0_var+2) = dbx_dkx * dkx_dkxy + dbx_dky * dky_dkxy
+  dyda(id0+2,j0_var+2) = dby_dkx * dkx_dkxy + dby_dky * dky_dkxy
+  dyda(id0+3,j0_var+2) = dbz_dkx * dkx_dkxy + dbz_dky * dky_dkxy
   ! dB_fit/dkz terms
-  dyda(id0+1,j0_var+3) = cmt%coef * s_x * s_y * sgn_x * (drrx_dkz * c_z + rrx * s_z * z_pos * dsgn_z)
-  dyda(id0+2,j0_var+3) = cmt%coef * c_x * c_y * sgn_y * (drry_dkz * c_z + rry * s_z * z_pos * dsgn_z)
-  dyda(id0+3,j0_var+3) = cmt%coef * c_x * s_y * sgn_z * (drrz_dkz * s_z + rrz * c_z * z_pos)
+  dyda(id0+1,j0_var+3) = cmt%coef * s_x * s_y * sgn_x * (drrx_dkz * c_z + rrx * s_z * z_pos * dsgn_z) + &
+                         dbx_dkx * dkx_dkz + dbx_dky * dky_dkz
+  dyda(id0+2,j0_var+3) = cmt%coef * c_x * c_y * sgn_y * (drry_dkz * c_z + rry * s_z * z_pos * dsgn_z) + &
+                         dby_dkx * dkx_dkz + dby_dky * dky_dkz
+  dyda(id0+3,j0_var+3) = cmt%coef * c_x * s_y * sgn_z * (drrz_dkz * s_z + rrz * c_z * z_pos) + &
+                         dbz_dkx * dkx_dkz + dbz_dky * dky_dkz
 
   iv = j0_var+3
   if (.not. mask_x0) then
@@ -982,28 +1002,34 @@ case (family_y$)
     dyda(id0+3,iv) = cmt%coef * rrz * c_x * s_y * c_z * sgn_z
   endif
 
-!---
+!------
 
 case (family_qu$)
   Bx_fit(ix,iy,iz) = Bx_fit(ix,iy,iz) + cmt%coef * rrx * c_x * s_y * c_z * sgn_x
   By_fit(ix,iy,iz) = By_fit(ix,iy,iz) + cmt%coef * rry * s_x * c_y * c_z * sgn_y
   Bz_fit(ix,iy,iz) = Bz_fit(ix,iy,iz) + cmt%coef * rrz * s_x * s_y * s_z * sgn_z
   if (.not. dyda_calc) return
+  dbx_dkx = cmt%coef * s_y * c_z * sgn_x * (drrx_dkx * c_x + rrx * s_x * x_pos * dsgn_x)
+  dbx_dky = cmt%coef * c_x * c_z * sgn_x * (drrx_dky * s_y + rrx * c_y * y_pos)
+  dby_dkx = cmt%coef * c_y * c_z * sgn_y * (drry_dkx * s_x + rry * c_x * x_pos)
+  dby_dky = cmt%coef * s_x * c_z * sgn_y * (drry_dky * c_y + rry * s_y * y_pos * dsgn_y)
+  dbz_dkx = cmt%coef * s_y * s_z * sgn_z * (drrz_dkx * s_x + rrz * c_x * x_pos)
+  dbz_dky = cmt%coef * s_x * s_z * sgn_z * (drrz_dky * s_y + rrz * c_y * y_pos)
   ! dB_fit/dCoef terms
   dyda(id0+1,j0_var+1) = rrx * c_x * s_y * c_z * sgn_x
   dyda(id0+2,j0_var+1) = rry * s_x * c_y * c_z * sgn_y
   dyda(id0+3,j0_var+1) = rrz * s_x * s_y * s_z * sgn_z
   ! dB_fit/dkxy terms
-  dyda(id0+1,j0_var+2) = cmt%coef * s_y * c_z * sgn_x * (drrx_dkx * c_x + rrx * s_x * x_pos * dsgn_x) * dkx_dkxy + &
-                        cmt%coef * c_x * c_z * sgn_x * (drrx_dky * s_y + rrx * c_y * y_pos) * dky_dkxy
-  dyda(id0+2,j0_var+2) = cmt%coef * c_y * c_z * sgn_y * (drry_dkx * s_x + rry * c_x * x_pos) * dkx_dkxy + &
-                        cmt%coef * s_x * c_z * sgn_y * (drry_dky * c_y + rry * s_y * y_pos * dsgn_y) * dky_dkxy
-  dyda(id0+3,j0_var+2) = cmt%coef * s_y * s_z * sgn_z * (drrz_dkx * s_x + rrz * c_x * x_pos) * dkx_dkxy + &
-                        cmt%coef * s_x * s_z * sgn_z * (drrz_dky * s_y + rrz * c_y * y_pos) * dky_dkxy
+  dyda(id0+1,j0_var+2) = dbx_dkx * dkx_dkxy + dbx_dky * dky_dkxy
+  dyda(id0+2,j0_var+2) = dby_dkx * dkx_dkxy + dby_dky * dky_dkxy
+  dyda(id0+3,j0_var+2) = dbz_dkx * dkx_dkxy + dbz_dky * dky_dkxy
   ! dB_fit/dkz terms
-  dyda(id0+1,j0_var+3) = cmt%coef * c_x * s_y * sgn_x * (drrx_dkz * c_z + rrx * s_z * z_pos * dsgn_z)
-  dyda(id0+2,j0_var+3) = cmt%coef * s_x * c_y * sgn_y * (drry_dkz * c_z + rry * s_z * z_pos * dsgn_z)
-  dyda(id0+3,j0_var+3) = cmt%coef * s_x * s_y * sgn_z * (drrz_dkz * s_z + rrz * c_z * z_pos)
+  dyda(id0+1,j0_var+3) = cmt%coef * c_x * s_y * sgn_x * (drrx_dkz * c_z + rrx * s_z * z_pos * dsgn_z) + &
+                         dbx_dkx * dkx_dkz + dbx_dky * dky_dkz
+  dyda(id0+2,j0_var+3) = cmt%coef * s_x * c_y * sgn_y * (drry_dkz * c_z + rry * s_z * z_pos * dsgn_z) + &
+                         dby_dkx * dkx_dkz + dby_dky * dky_dkz
+  dyda(id0+3,j0_var+3) = cmt%coef * s_x * s_y * sgn_z * (drrz_dkz * s_z + rrz * c_z * z_pos) + &
+                         dbz_dkx * dkx_dkz + dbz_dky * dky_dkz
 
   iv = j0_var+3
   if (.not. mask_x0) then
@@ -1027,28 +1053,34 @@ case (family_qu$)
     dyda(id0+3,iv) = cmt%coef * rrz * s_x * s_y * c_z * sgn_z
   endif
 
-!---
+!------
 
 case (family_sq$)
   Bx_fit(ix,iy,iz) = Bx_fit(ix,iy,iz) + cmt%coef * rrx * s_x * c_y * c_z * sgn_x
   By_fit(ix,iy,iz) = By_fit(ix,iy,iz) + cmt%coef * rry * c_x * s_y * c_z * sgn_y
   Bz_fit(ix,iy,iz) = Bz_fit(ix,iy,iz) + cmt%coef * rrz * c_x * c_y * s_z * sgn_z
   if (.not. dyda_calc) return
+  dbx_dkx = cmt%coef * c_y * c_z * sgn_x * (drrx_dkx * s_x + rrx * c_x * x_pos)
+  dbx_dky = cmt%coef * s_x * c_z * sgn_x * (drrx_dky * c_y + rrx * s_y * y_pos * dsgn_y)
+  dby_dkx = cmt%coef * s_y * c_z * sgn_y * (drry_dkx * c_x + rry * s_x * x_pos * dsgn_x)
+  dby_dky = cmt%coef * c_x * c_z * sgn_y * (drry_dky * s_y + rry * c_y * y_pos)
+  dbz_dkx = cmt%coef * c_y * s_z * sgn_z * (drrz_dkx * c_x + rrz * s_x * x_pos * dsgn_x)
+  dbz_dky = cmt%coef * c_x * s_z * sgn_z * (drrz_dky * c_y + rrz * s_y * y_pos * dsgn_y)
   ! dB_fit/dCoef terms
   dyda(id0+1,j0_var+1) = rrx * s_x * c_y * c_z * sgn_x
   dyda(id0+2,j0_var+1) = rry * c_x * s_y * c_z * sgn_y
   dyda(id0+3,j0_var+1) = rrz * c_x * c_y * s_z * sgn_z
   ! dB_fit/dkxy terms
-  dyda(id0+1,j0_var+2) = cmt%coef * c_y * c_z * sgn_x * (drrx_dkx * s_x + rrx * c_x * x_pos)          * dkx_dkxy + &
-                        cmt%coef * s_x * c_z * sgn_x * (drrx_dky * c_y + rrx * s_y * y_pos * dsgn_y) * dky_dkxy
-  dyda(id0+2,j0_var+2) = cmt%coef * s_y * c_z * sgn_y * (drry_dkx * c_x + rry * s_x * x_pos * dsgn_x) * dkx_dkxy + &
-                        cmt%coef * c_x * c_z * sgn_y * (drry_dky * s_y + rry * c_y * y_pos)          * dky_dkxy
-  dyda(id0+3,j0_var+2) = cmt%coef * c_y * s_z * sgn_z * (drrz_dkx * c_x + rrz * s_x * x_pos * dsgn_x) * dkx_dkxy + &
-                        cmt%coef * c_x * s_z * sgn_z * (drrz_dky * c_y + rrz * s_y * y_pos * dsgn_y) * dky_dkxy
+  dyda(id0+1,j0_var+2) = dbx_dkx * dkx_dkxy + dbx_dky * dky_dkxy
+  dyda(id0+2,j0_var+2) = dby_dkx * dkx_dkxy + dby_dky * dky_dkxy
+  dyda(id0+3,j0_var+2) = dbz_dkx * dkx_dkxy + dbz_dky * dky_dkxy
   ! dB_fit/dkz terms
-  dyda(id0+1,j0_var+3) = cmt%coef * s_x * c_y * sgn_x * (drrx_dkz * c_z + rrx * s_z * z_pos * dsgn_z)
-  dyda(id0+2,j0_var+3) = cmt%coef * c_x * s_y * sgn_y * (drry_dkz * c_z + rry * s_z * z_pos * dsgn_z)
-  dyda(id0+3,j0_var+3) = cmt%coef * c_x * c_y * sgn_z * (drrz_dkz * s_z + rrz * c_z * z_pos)
+  dyda(id0+1,j0_var+3) = cmt%coef * s_x * c_y * sgn_x * (drrx_dkz * c_z + rrx * s_z * z_pos * dsgn_z) + &
+                         dbx_dkx * dkx_dkz + dbx_dky * dky_dkz
+  dyda(id0+2,j0_var+3) = cmt%coef * c_x * s_y * sgn_y * (drry_dkz * c_z + rry * s_z * z_pos * dsgn_z) + &
+                         dby_dkx * dkx_dkz + dby_dky * dky_dkz
+  dyda(id0+3,j0_var+3) = cmt%coef * c_x * c_y * sgn_z * (drrz_dkz * s_z + rrz * c_z * z_pos) + &
+                         dbz_dkx * dkx_dkz + dbz_dky * dky_dkz
 
   iv = j0_var+3
   if (.not. mask_x0) then
