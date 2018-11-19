@@ -20,10 +20,10 @@ type (em_field_struct) field
 type (cartesian_map_term1_struct), pointer :: c1, cmt
 type (term_struct), pointer :: tt
 
-real(rp), allocatable :: a(:), y0(:)
-real(rp), allocatable :: covar(:,:), alpha(:,:), weight(:), dyda(:,:), var_step(:)
+real(rp), allocatable :: a(:), a0(:), y_target(:), y0(:), y1(:)
+real(rp), allocatable :: covar(:,:), alpha(:,:), weight(:), dyda(:,:), var_step(:), dyda2(:,:)
 real(rp) :: chisq, chisq1, chisq2, alamda, da, dy_max, dy, fret, tol, z, delta
-real(rp) dfield(3), merit
+real(rp) dfield(3), merit, dyda_err, dyda_this, rel_err
 
 logical, allocatable :: maska(:)
 
@@ -74,11 +74,11 @@ call read_cartesian_map_fit_param_file (fname, .false.)
 
 !
 
-allocate (a(n_var), maska(n_var), y0(n_data_tot), weight(n_data_tot))
+allocate (a(n_var), maska(n_var), y_target(n_data_tot), weight(n_data_tot))
 allocate (covar(n_var,n_var), alpha(n_var,n_var))
 allocate (y_fit(n_data_tot), dyda(n_data_tot,n_var), var_step(n_var))
 
-y0 = 0
+y_target = 0
 
 do i = 1, n_term
   jj = (i - 1) * n_var_per_term 
@@ -131,8 +131,31 @@ endif
 ! Note: When debugging use a map with only one term.
 
 if (mode == 'debug') then
-  calc_at_surface_grid_points_only = .false.
-  merit = funcs_de(a, status, jj) 
+  calc_at_surface_grid_points_only = .true.
+  call funcs_lm(a, y_fit, dyda, status) 
+
+  allocate (a0(n_var), y0(n_data_tot), y1(n_data_tot), dyda2(n_data_tot, n_var))
+  dyda_err = 0
+  a0 = a
+  delta = 1e-5
+  do i = 1, n_var
+    a(i) = a0(i) - delta
+    call funcs_lm(a, y0, dyda2, status) 
+    a(i) = a0(i) + delta
+    call funcs_lm(a, y1, dyda2, status) 
+    a(i) = a0(i)
+
+    do j = 1, size(y_fit)
+      dyda_this = (y1(j) - y0(j)) / (2 * delta)
+      if (dyda_this == 0 .and. dyda(j,i) == 0) cycle
+      rel_err = abs(dyda_this - dyda(j,i)) / (abs(dyda_this) + abs(dyda(j,i)))
+      if (rel_err > dyda_err) then
+        dyda_err = rel_err
+        print *, 'Max err:', i, j, dyda_err
+      endif
+    enddo
+  enddo
+  stop
 
   call init_coord (orbit, orbit, lat%ele(0), downstream_end$)
 
@@ -143,7 +166,6 @@ if (mode == 'debug') then
   c1%coef = cmt%coef   ! There may be a sign flip
   c1%kx   = cmt%kx
   c1%ky   = cmt%ky
-
 
   jj = 0
   do i = Nx_min, Nx_max
@@ -206,7 +228,7 @@ do ijk = 1, n_loops
   case ('lm')
     dyda_calc = .true.
     do i = 1, n_cycles
-      call super_mrqmin (y0, weight, a, chisq, funcs_lm, storage, alamda, status, maska)
+      call super_mrqmin (y_target, weight, a, chisq, funcs_lm, storage, alamda, status, maska)
       print *, i, chisq, alamda
       if (alamda > 1e20 .or. alamda < 1e-20) exit
     enddo
