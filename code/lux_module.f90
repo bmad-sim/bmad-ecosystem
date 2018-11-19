@@ -321,8 +321,6 @@ endif
 
 call run_timer('START')
 
-!
-
 if (lux_com%using_mpi) then
   lux_com%n_photon_stop1 = 0.1 + lux_param%stop_num_photons * lux_param%mpi_run_size / (lux_com%mpi_n_proc - 1)
 else
@@ -333,7 +331,7 @@ call lux_tracking_setup (lux_param, lux_com)
 
 if (lat%photon_type == coherent$) then
   if (photon_init_ele%value(e_field_x$) == 0 .and. photon_init_ele%value(e_field_y$) == 0) then
-    call out_io (s_fatal$, r_name, 'WARNING: INPUT E_FIELD IS ZERO SO RANDOM FILED WILL BE GENERATED WITH COHERENT PHOTONS!')
+    call out_io (s_fatal$, r_name, 'WARNING: INPUT E_FIELD IS ZERO SO RANDOM FIELD WILL BE GENERATED WITH COHERENT PHOTONS!')
   endif
 endif
 
@@ -1021,14 +1019,6 @@ lat => lux_com%lat
 
 !
 
-do n = 1, 6
-  intens_tot = sum(detec_grid%pt%intensity)
-  p%orbit(n) = sum(detec_grid%pt%orbit(n)) / intens_tot
-  p%orbit_rms(n) = sqrt(max(0.0_rp, sum(detec_grid%pt%orbit_rms(n)) / intens_tot - p%orbit(n)**2))
-enddo
-
-!
-
 do nx = lux_data%nx_min, lux_data%nx_max; do ny = lux_data%ny_min, lux_data%ny_max
   pix => detec_grid%pt(nx,ny)
 
@@ -1044,6 +1034,14 @@ do nx = lux_data%nx_min, lux_data%nx_max; do ny = lux_data%ny_min, lux_data%ny_m
   pix%init_orbit     = pix%init_orbit / pix%intensity
   pix%init_orbit_rms = pix%init_orbit_rms / pix%intensity
 enddo; enddo
+
+!
+
+do n = 1, 6
+  intens_tot = sum(detec_grid%pt%intensity)
+  p%orbit(n) = sum(detec_grid%pt%orbit(n)) / intens_tot
+  p%orbit_rms(n) = sqrt(max(0.0_rp, sum(detec_grid%pt%orbit_rms(n)) / intens_tot - p%orbit(n)**2))
+enddo
 
 !------------------------------------------
 ! lux_param%det_pix_out_file
@@ -1227,34 +1225,36 @@ if (lux_param%det_pix_out_file /= '') then
   !------------------------------------------
   ! det_pix_out_file.histogram
 
-  norm2 = lux_param%intensity_normalization_coef / (lux_data%n_track_tot * lux_param%histogram_bin_width)
-  open (3, file = trim(lux_param%det_pix_out_file) // '.histogram', recl = 240)
-  write (3, '(a)')  '#-----------------------------------------------------'
-  write (3, '(a, t130, a)')  '#', '|                    Init'
-  write (3, '(3a)') '# indx', adjustr(lux_param%histogram_variable(1:14)), '   Intens_x   Intens_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms |    X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
+  if (lux_param%histogram_variable /= '') then
+    norm2 = lux_param%intensity_normalization_coef / (lux_data%n_track_tot * lux_param%histogram_bin_width)
+    open (3, file = trim(lux_param%det_pix_out_file) // '.histogram', recl = 240)
+    write (3, '(a)')  '#-----------------------------------------------------'
+    write (3, '(a, t130, a)')  '#', '|                    Init'
+    write (3, '(3a)') '# indx', adjustr(lux_param%histogram_variable(1:14)), '   Intens_x   Intens_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms |    X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
 
-  do j = ubound(lux_com%histogram_bin,1), lbound(lux_com%histogram_bin,1), -1
-    pix => lux_com%histogram_bin(j)
-    if (pix%intensity == 0) cycle
+    do j = ubound(lux_com%histogram_bin,1), lbound(lux_com%histogram_bin,1), -1
+      pix => lux_com%histogram_bin(j)
+      if (pix%intensity == 0) cycle
 
-    pix%orbit          = pix%orbit / pix%intensity
-    pix%orbit_rms      = pix%orbit_rms / pix%intensity
-    pix%init_orbit     = pix%init_orbit / pix%intensity
-    pix%init_orbit_rms = pix%init_orbit_rms / pix%intensity
+      pix%orbit          = pix%orbit / pix%intensity
+      pix%orbit_rms      = pix%orbit_rms / pix%intensity
+      pix%init_orbit     = pix%init_orbit / pix%intensity
+      pix%init_orbit_rms = pix%init_orbit_rms / pix%intensity
 
-    p = pix
-    do n = 1, 6
-      p%orbit_rms(n) = sqrt(max(0.0_rp, p%orbit_rms(n) - p%orbit(n)**2))
-      p%init_orbit_rms(n) = sqrt(max(0.0_rp, p%init_orbit_rms(n) - p%init_orbit(n)**2))
+      p = pix
+      do n = 1, 6
+        p%orbit_rms(n) = sqrt(max(0.0_rp, p%orbit_rms(n) - p%orbit(n)**2))
+        p%init_orbit_rms(n) = sqrt(max(0.0_rp, p%init_orbit_rms(n) - p%init_orbit(n)**2))
+      enddo
+
+      write (3, '(i6, es14.3, 3es11.3, i12, 2f10.3, 12es11.3)') j, j * lux_param%histogram_bin_width, p%intensity_x * norm2, &
+                         p%intensity_y * norm2, p%intensity * norm2, p%n_photon, p%orbit(6), p%orbit_rms(6), &
+                         p%orbit(2), p%orbit_rms(2), p%orbit(4), p%orbit_rms(4), &
+                         p%init_orbit(1), p%init_orbit_rms(1), p%init_orbit(2), p%init_orbit_rms(2), p%init_orbit(3), p%init_orbit_rms(3), p%init_orbit(4), p%init_orbit_rms(4)
     enddo
 
-    write (3, '(i6, es14.3, 3es11.3, i12, 2f10.3, 12es11.3)') j, j * lux_param%histogram_bin_width, p%intensity_x * norm2, &
-                       p%intensity_y * norm2, p%intensity * norm2, p%n_photon, p%orbit(6), p%orbit_rms(6), &
-                       p%orbit(2), p%orbit_rms(2), p%orbit(4), p%orbit_rms(4), &
-                       p%init_orbit(1), p%init_orbit_rms(1), p%init_orbit(2), p%init_orbit_rms(2), p%init_orbit(3), p%init_orbit_rms(3), p%init_orbit(4), p%init_orbit_rms(4)
-  enddo
-
-  close(3)
+    close(3)
+  endif
 endif
 
 !------------------------------------------
