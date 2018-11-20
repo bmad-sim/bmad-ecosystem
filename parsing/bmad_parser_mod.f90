@@ -3757,7 +3757,7 @@ end subroutine get_list_of_names
 !
 ! Input:
 !   is_control_var_list   -- logical: If True then parsing "var = {...}" list.
-!                                     If False then parsing "group = {...}" list (or overlay or girder).
+!                                     If False then parsing "group/overlay/girder = {...}" list.
 !-
       
 subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found, is_control_var_list, err_flag)
@@ -3903,11 +3903,13 @@ if (is_control_var_list) then
   allocate(ele%control%var(n_slave))
   ele%control%var%name = name(1:n_slave)
 else
-  allocate(ele%control)
-  if (allocated(y_knot)) then
-    ele%control%type = spline$
-  else
-    ele%control%type = expression$
+  if (ele%lord_status == group_lord$ .or. ele%lord_status == overlay_lord$) then
+    allocate(ele%control)
+    if (allocated(y_knot)) then
+      ele%control%type = spline$
+    else
+      ele%control%type = expression$
+    endif
   endif
   allocate (pele%control(n_slave))
   pele%control%name = name(1:n_slave)
