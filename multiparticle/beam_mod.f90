@@ -224,7 +224,7 @@ csr_on = bmad_com%coherent_synch_rad_on .and. ele%csr_calc_on
 if (csr_param%ix1_ele_csr > -1) csr_on = csr_on .and. (ele%ix_ele > csr_param%ix1_ele_csr) 
 if (csr_param%ix2_ele_csr > -1) csr_on = csr_on .and. (ele%ix_ele <= csr_param%ix2_ele_csr) 
 
-if (csr_on) then
+if (csr_on .and. ele%key /= match$) then
   if (csr_param%use_csr_old) then
     call track1_bunch_csr_old (bunch_start, lat, ele, bunch_end, err)
   else

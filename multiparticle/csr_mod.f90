@@ -20,7 +20,8 @@ type csr_ele_info_struct
   type (coord_struct) orbit0, orbit1           ! centroid orbit at entrance/exit ends
   type (floor_position_struct) floor0, floor1  ! Floor position of centroid at entrance/exit ends
   type (floor_position_struct) e_floor0, e_floor1  ! Floor position of element ref coords at entrance/exit ends
-  type (spline_struct) spline                  ! spline for centroid orbit. spline%x = distance along chord
+  type (spline_struct) spline                  ! Spline for centroid orbit. spline%x = distance along chord.
+                                               !   The spline is zero at the ends by construction.
   real(rp) theta_chord                         ! Reference angle of chord in z-x plane
   real(rp) L_chord                             ! Chord Length. Negative if bunch moves backwards in element.
   real(rp) dL_s                                ! L_s(of element) - L_chord
@@ -228,6 +229,8 @@ do i = 0, n
     eleinfo%dL_s = 0
     cycle
   endif
+
+  if (s_ele%key == match$) cycle  ! Match elements offsets are ignored so essentially they are like markers.
 
   ! With a negative step length, %L_chord is negative
   parallel0 = (abs(modulo2(eleinfo%floor0%theta - theta_chord, pi)) < pi/2)
@@ -526,13 +529,25 @@ csr%y0_bunch = sum(csr%slice%y0 * csr%slice%charge) / sum(csr%slice%charge)
 ! Abs(x-x0) is used instead of the usual formula involving (x-x0)^2 to lessen the effect
 ! of non-Gaussian tails.
 
+n = 0
 do ic = 1, size(tloc)
   if (tloc(ic)%ib < 0) cycle
   slice => csr%slice(tloc(ic)%ib)
   if (slice%n_particle < csr_param%sc_min_in_bin) cycle
+  n = n + 1
   slice%sig_x = slice%sig_x + abs(tloc(ic)%x0 - slice%x0) * tloc(ic)%charge
   slice%sig_y = slice%sig_y + abs(tloc(ic)%y0 - slice%y0) * tloc(ic)%charge
 enddo
+
+if (n < size(tloc) / 2) then
+  call out_io (s_error$, r_name, &
+          'With the number of live particles (out of \i0\), coupled with n_bin (\i0\) and ', &
+          'sc_min_in_bin (\i0\), there are not enough particle to properly compute the beam width for each bin.', &
+          'The beam width will be set large which will make the coulomb force negligible.', &
+           i_array = [size(particle), csr_param%n_bin, csr_param%sc_min_in_bin])
+  csr%slice(:)%sig_x = 1
+  csr%slice(:)%sig_y = 1
+endif
 
 f = sqrt(pi/2)
 do ib = 1, csr_param%n_bin
@@ -651,7 +666,7 @@ type (csr_struct), target :: csr
 type (branch_struct), pointer :: branch
 type (csr_kick1_struct), pointer :: kick1
 
-real(rp) ds_kick_pt, coef
+real(rp) ds_kick_pt, coef, dr_match(3)
 
 integer i, n_bin
 logical err_flag
@@ -670,13 +685,14 @@ do i = lbound(csr%kick1, 1), ubound(csr%kick1, 1)
 
   if (i == lbound(csr%kick1, 1)) then
     kick1%ix_ele_source = csr%ix_ele_kick  ! Initial guess where source point is
+    dr_match = 0  ! Discontinuity factor for match element. See s_source_calc routine.
   else
     kick1%ix_ele_source = csr%kick1(i-1)%ix_ele_source
   endif
 
   ! Calculate what element the source point is in.
 
-  kick1%s_chord_source = s_source_calc(kick1, csr, err_flag)
+  kick1%s_chord_source = s_source_calc(kick1, csr, err_flag, dr_match)
   if (err_flag) return
 
   ! calculate csr.
@@ -725,21 +741,23 @@ end subroutine csr_bin_kicks
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function s_source_calc (kick1, csr, err_flag) result (s_source)
+! Function s_source_calc (kick1, csr, err_flag, dr_match) result (s_source)
 !
 ! Routine to calculate the distance between source and kick points.
 !
 ! Input:
 !   kick1         -- csr_kick1_struct:
 !   csr           -- csr_struct:
+!   dr_match(3)   -- real(rp): Discontinuity factor if there is a match element between source and kick elements.
 !
 ! Output:
 !   s_source      -- real(rp): source s-position.
 !   kick1         -- csr_kick1_struct:
 !   err_flag      -- logical: Set True if there is an error. Untouched otherwise.
+!   dr_match(3)   -- real(rp): Discontinuity factor if there is a match element between source and kick elements.
 !-
 
-function s_source_calc (kick1, csr, err_flag) result (s_source)
+function s_source_calc (kick1, csr, err_flag, dr_match) result (s_source)
 
 implicit none
 
@@ -750,7 +768,7 @@ type (floor_position_struct), pointer :: fk, f0, fs
 type (ele_struct), pointer :: ele
 
 real(rp) a, b, c, dz, s_source, beta2, L0, Lz, ds_source
-real(rp) z0, z1, sz_kick, sz0, Lsz0, ddz0, ddz1
+real(rp) z0, z1, sz_kick, sz0, Lsz0, ddz0, ddz1, dr_match(3)
 
 integer i, last_step
 logical err_flag
@@ -763,7 +781,7 @@ character(*), parameter :: r_name = 's_source_calc'
 dz = kick1%dz_particles   ! Target distance.
 beta2 = csr%beta**2
 last_step = 0
-s_source = 0   ! To prevent uninitalized complaints from the compiler.
+s_source = 0        ! To prevent uninitalized complaints from the compiler.
 
 do
 
@@ -804,24 +822,16 @@ do
     return
   endif
 
-  !
+  ! Match elements can have an orbit discontinuity which is non-physical.
+  ! So if there is a match element then shift the orbit using dr_match to remove the discontinuity.
+  ! Any angle discontinuity is ignored.
 
   ele => einfo_s%ele
-
-  if (ele%key == match$ .and. (abs(ele%value(x1$) - ele%value(x0$)) > 0 .or. &
-                               abs(ele%value(y1$) - ele%value(y0$)) > 0)) then
-    call out_io (s_fatal$, r_name, &
-        'CSR CALC IS NOT ABLE TO HANDLE A MATCH ELEMENT WITH FINITE ORBIT OFFSETS: ' // ele%name, &
-        'WHILE TRACKING THROUGH ELEMENT: ', csr%kick_ele%name)
-    if (global_com%exit_on_error) call err_exit
-    err_flag = .true.
-    return
-  endif
 
   if (ele%key == floor_shift$) then
     call out_io (s_fatal$, r_name, &
         'CSR CALC IS NOT ABLE TO HANDLE A FLOOR_SHIFT ELEMENT: ' // ele%name, &
-        'WHILE TRACKING THROUGH ELEMENT: ', csr%kick_ele%name)
+        'WHILE TRACKING THROUGH ELEMENT: ' // csr%kick_ele%name)
     if (global_com%exit_on_error) call err_exit
     err_flag = .true.
     return
@@ -847,6 +857,13 @@ do
     if (last_step == 1) exit       ! Round off error can cause problems
     last_step = -1
     kick1%ix_ele_source = kick1%ix_ele_source - 1
+
+    einfo_s => csr%eleinfo(kick1%ix_ele_source)
+    if (einfo_s%ele%key == match$) then
+      dr_match = einfo_s%floor1%r - einfo_s%floor0%r ! discontinuity in x.
+      kick1%ix_ele_source = kick1%ix_ele_source - 1
+    endif
+
     cycle
   endif
 
@@ -855,6 +872,12 @@ do
     if (last_step == -1) exit      ! Round off error can cause problems
     last_step = 1
     kick1%ix_ele_source = kick1%ix_ele_source + 1
+
+    if (csr%eleinfo(kick1%ix_ele_source)%ele%key == match$) then
+      dr_match = 0
+      kick1%ix_ele_source = kick1%ix_ele_source + 1
+    endif
+
     cycle
   endif
 
@@ -905,7 +928,7 @@ character(*), parameter :: r_name = 'ddz_calc_csr'
 x = spline1(einfo_s%spline, s_chord_source)
 c = cos(einfo_s%theta_chord)
 s = sin(einfo_s%theta_chord)
-kick1%floor_s%r = [x*c + s_chord_source*s, csr%y_source, -x*s + s_chord_source*c] + einfo_s%floor0%r    ! Floor coordinates
+kick1%floor_s%r = [x*c + s_chord_source*s, csr%y_source, -x*s + s_chord_source*c] + einfo_s%floor0%r + dr_match   ! Floor coordinates
 
 kick1%L_vec = csr%floor_k%r - kick1%floor_s%r
 kick1%L = sqrt(dot_product(kick1%L_vec, kick1%L_vec))
@@ -931,6 +954,7 @@ else
   dL = dspline_len(s0, einfo_s%L_chord, einfo_s%spline, modulo2(theta_L-einfo_s%theta_chord, pi/2))
   do i = kick1%ix_ele_source+1, csr%ix_ele_kick-1
     ce => csr%eleinfo(i)
+    if (ce%ele%key == match$) cycle  ! Match elements are adjusted to give zero displacement.
     dL = dL + dspline_len(0.0_rp, ce%L_chord, ce%spline, modulo2(theta_L-ce%theta_chord, pi/2))
   enddo
   ce => csr%eleinfo(csr%ix_ele_kick)

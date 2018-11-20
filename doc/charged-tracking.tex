@@ -640,6 +640,9 @@ combined together and the total kick is then the sum of the ``positive kick'' pa
 ``negative kick'' part. The kick applied to a particle is calculated by first evaluating the kick,
 at the particle's $x$ and $y$, at the neighboring slices and then using linear interpolation.
 
+Note: Match elements (\sref{s:match}) can have orbit shifts which are not well handled by the CSR
+algorithm. For this reason, match elements are ignored in the CSR calculation.
+
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
 \section{BeamBeam Tracking}
