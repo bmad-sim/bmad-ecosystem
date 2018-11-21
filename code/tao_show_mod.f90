@@ -2152,7 +2152,7 @@ case ('lattice')
       column(14) = show_lat_column_struct('ele::#[phase_x]',     'f10.4',      10, 'phase_x', .false., 1.0_rp)
       column(15) = show_lat_column_struct('ele::#[phase_y]',     'f10.4',      10, 'phase_y', .false., 1.0_rp)
       column(16) = show_lat_column_struct('x',                   'x',           3, '', .false., 1.0_rp)
-      column(17) = show_lat_column_struct('ele::#[state]',       'a11',        11, 'Track_State', .false., 1.0_rp)
+      column(17) = show_lat_column_struct('ele::#[state]',       'a11',        11, 'Track|State', .false., 1.0_rp)
     else
       column(1)  = show_lat_column_struct('#',                   'i6',          6, '', .false., 1.0_rp)
       column(2)  = show_lat_column_struct('x',                   'x',           2, '', .false., 1.0_rp)
@@ -2169,7 +2169,7 @@ case ('lattice')
       column(13) = show_lat_column_struct('ele::#[eta_b]',       'f7.2',        7, '', .false., 1.0_rp)
       column(14) = show_lat_column_struct('ele::#[orbit_y]',     '3p, f8.3',    8, 'orbit|y [mm]', .false., 1.0_rp)
       column(15) = show_lat_column_struct('x',                   'x',           3, '', .false., 1.0_rp)
-      column(16) = show_lat_column_struct('ele::#[state]',       'a11',        11, 'Track_State', .false., 1.0_rp)
+      column(16) = show_lat_column_struct('ele::#[state]',       'a11',        11, 'Track|State', .false., 1.0_rp)
     endif
 
   end select

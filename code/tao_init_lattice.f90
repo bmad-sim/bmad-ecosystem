@@ -1,17 +1,16 @@
 !+
-! Subroutine tao_init_lattice (input_file_name)
+! Subroutine tao_init_lattice (namelist_file)
 !
 ! Subroutine to initialize the design lattices.
 !
 ! Input:
-!   input_file_name  -- character(*): file name containing lattice file
-!                                             namestructs
+!   namelist_file  -- character(*): Name of file containing lattice file info.
 !
 ! Output:
 !    %u(:)%design -- Initialized design lattices.
 !-
 
-subroutine tao_init_lattice (input_file_name)
+subroutine tao_init_lattice (namelist_file)
 
 use tao_interface, except => tao_init_lattice
 use tao_input_struct
@@ -25,15 +24,15 @@ type (ele_struct), pointer :: ele1, ele2
 type (tao_universe_struct), pointer :: u, u_work
 type (branch_struct), pointer :: branch
 
-character(*) input_file_name
-character(200) full_input_name, init_lat_file
+character(*) namelist_file
+character(200) full_input_name
 character(40) unique_name_suffix, suffix
 character(20) :: r_name = 'tao_init_lattice'
 
 integer i, j, k, n, iu, ios, version, ix, key, n_universes, ib, ie
 
 logical custom_init, combine_consecutive_elements_of_like_name
-logical common_lattice
+logical common_lattice, alternative_lat_file_exists
 logical err, err1, err2, err3
 
 namelist / tao_design_lattice / design_lattice, &
@@ -45,20 +44,19 @@ namelist / tao_design_lattice / design_lattice, &
 design_lattice = tao_design_lat_input()
 design_lat = tao_design_lat_input()
 
-init_lat_file = s%com%hook_lat_file
-if (s%com%lat_file /= '') init_lat_file = s%com%lat_file
+alternative_lat_file_exists = (s%com%hook_lat_file /= '' .or. s%com%lat_file /= '')
 
 ! Read lattice info
 
-call tao_hook_init_read_lattice_info (input_file_name)
+call tao_hook_init_read_lattice_info (namelist_file)
 
 if (s%com%init_read_lat_info) then
 
-  ! input_file_name == '' means there is no lattice file so just use the defaults.
+  ! namelist_file == '' means there is no lattice file so just use the defaults.
 
-  if (input_file_name /= '') then
-    call tao_open_file (input_file_name, iu, full_input_name, s_fatal$)
-    call out_io (s_blank$, r_name, '*Init: Opening Lattice Info File: ' // input_file_name)
+  if (namelist_file /= '') then
+    call tao_open_file (namelist_file, iu, full_input_name, s_fatal$)
+    call out_io (s_blank$, r_name, '*Init: Opening Lattice Info File: ' // namelist_file)
     if (iu == 0) then
       call out_io (s_fatal$, r_name, 'ERROR OPENING TAO LATTICE INFO FILE. WILL EXIT HERE...')
       call err_exit
@@ -72,9 +70,9 @@ if (s%com%init_read_lat_info) then
   combine_consecutive_elements_of_like_name = .false.
   unique_name_suffix = ''
 
-  if (input_file_name /= '') then
+  if (namelist_file /= '') then
     read (iu, nml = tao_design_lattice, iostat = ios)
-    if (ios > 0 .or. (ios < 0 .and. init_lat_file == '')) then
+    if (ios > 0 .or. (ios < 0 .and. .not. alternative_lat_file_exists)) then
       call out_io (s_abort$, r_name, 'TAO_DESIGN_LATTICE NAMELIST READ ERROR.')
       rewind (iu)
       do
@@ -120,19 +118,26 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (s%com%common_lattice .and. i /= ix_common_uni$) cycle
 
   ! Get the name of the lattice file
+  ! The presedence is: 
+  !   From the command line (preferred).
+  !   From the tao_design_lattice namelist.
+  !   Specified by hook code.
 
   design_lat = design_lattice(i)
-
-  if (init_lat_file /= '') then
-    ix = index (init_lat_file, '|') ! Indicates multiple lattices
-    if (ix == 0) then
-      design_lat%file = init_lat_file
-    else
-      design_lat%file = init_lat_file(1:ix-1)
-      init_lat_file = init_lat_file(ix+1:)
-    endif
+  if (s%com%lat_file /= '') then
+    design_lat%file = s%com%lat_file
     design_lat%language = ''
     design_lat%file2 = ''
+  elseif (s%com%hook_lat_file /= '' .and. design_lat%file == '') then
+    design_lat%file = s%com%hook_lat_file
+    design_lat%language = ''
+    design_lat%file2 = ''
+  endif
+
+  ix = index (design_lat%file, '|') ! Indicates multiple lattices
+  if (ix /= 0) then
+    design_lat%file2 = design_lat%file(ix+1:)
+    design_lat%file  = design_lat%file(1:ix-1)
   endif
 
   ! Can happen when design_lattice(1) is set and not design_lattice(0)
@@ -179,7 +184,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! If the lattice file was obtained from the tao init file and if the lattice name 
   ! is relative, then it is relative to the directory where the tao init file is.
 
-  if (init_lat_file == '' .and. file_name_is_relative(design_lat%file)) &
+  if (.not. alternative_lat_file_exists .and. file_name_is_relative(design_lat%file)) &
                 design_lat%file = trim(s%com%init_tao_file_path) // design_lat%file 
 
   ! Read in the design lattice. 
