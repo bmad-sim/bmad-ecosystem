@@ -31,7 +31,7 @@ After the fitNNNN.in file has been read in, the program will take the following 
     2b) Write a fitNNNN.in file where NNNN is the number that was writen to the number.in file.
 
 Step (2) will be done n_loops times. Each time incrementing the number it writes to number.in. The
-program will stop before n_loops are doen if it feels that it cannot make progress.
+program will stop before n_loops are done if it feels that it cannot make progress.
 
 
 %-----------------------------------------------------------------
@@ -41,11 +41,29 @@ The merit function to be minimized is:
   M = Sum over exterior grid points: (Bx_fit - Bx_table)^2 + 
       Sum over exterior grid points: (By_fit - By_table)^2 + 
       Sum over exterior grid points: (Bz_fit - Bz_table)^2 + 
-      Sum over Cartesion map terms: coef_weight * (coef_i)^2)
+      Sum over Cartesian map coef terms: coef_weight * (coef_i)^2 +
+      Sum over Cartesian map kxy terms:  k_weight * delta_kxy^2 +
+      Sum over Cartesian map kz terms:   k_weight * delta_kz^2 +
 
-The last sum is over all terms in the fit. This last sum is included to keep the coefficients of
-degenerate or near-degenate terms from diverging to +/- infinity. The value for coef_weight is
-set in the fitNNNN.in file.
+where:
+  delta_kxy = kxy + limit_xy  if kxy < -limit_xy
+            = 0               if |kxy| < limit_xy
+            = kxy - limit_xy  if kxy > limit_xy
+
+  delta_kz = kz + limit_z   if kz < -limit_z
+           = 0              if |kz| < limit_z
+           = kz - limit_z   if kz > limit_z
+
+	limit_kxy = pi / (4*del_grid_x) + pi / (4*del_grid_z)
+	limit_kz  = pi / (4*del_grid_z)
+
+	del_grid_x/y/z = Grid spacing of field table.
+
+The sum over the coef terms is included to keep the coefficients of degenerate or near-degenate
+terms (where kx, ky, kz are nearly equal) from diverging to +/- infinity. The value for coef_weight
+is set in the fitNNNN.in file.
+
+The sum over kxy and kz is included to keek the k values reasonably small. kxy = kx + ky (see below).
 
 Note: To save time, the sum over grid points is restricted to the grid points on the exterior of the
 grid volume. This is valid since the error between the fit and grid points will is maximal on the
@@ -131,6 +149,7 @@ This file should look something like:
     n_loops = 1000
     n_cycles = 100
     coef_weight = 4.0
+		k_weight = 2.0
     mask_x0 = T
     mask_y0 = T
     mask_phi_z = F
@@ -176,11 +195,21 @@ See the Tao manual for more details on these optimizers
 n_loops, n_cycles
 ------------------
 The optimizer will cycle for n_loops and then write out a new fitNNNN.in file. After n_cycles of n_loops
-the program will end.
+the program will end. N_cycles can be set larger to cut down on the number of fitNNNN.in files generated and 
+vice verse. N_loops can be set to something large.
 
 coef_weight
 -----------
-Weight for the Cartesian map term coefficients. See the Optimization section above
+Weight to keep the Cartesian map term coefficients resonably small. See the Optimization section
+above.  Note: Part of the fitting procedure is making sure the coef_weight is adjusted properly.
+Too large and the fit to the field will be poor.  Too small and the fit can include near degenerate
+term pairs which give a good fit at the grid points but have an unphysical ripple in between.
+
+k_weight
+--------
+Weight to keep the Cartesian map kx, ky and kz coefficients within a reasonable range.  See the
+Optimization section above.  Note: Part of the fitting procedure is making sure the k_weight is
+adjusted properly. Generally having large k_weight is not a problem.
 
 mask_x0, mask_y0
 ----------------
@@ -221,11 +250,11 @@ advantage since these files tend to be large. To designate a binary file prefix 
 "binary::". Example:
   &Parameters
     field_file = "binary::table.dat"
-		...
-	/
+    ...
+  /
 
 To convert an ASCII file into a binary file, run the program with the "binary" command line option:
-	cartesian_map_fit binary
+  cartesian_map_fit binary
 
 
 For ASCII files, the first seven lines in the file must be
@@ -234,8 +263,8 @@ For ASCII files, the first seven lines in the file must be
   Nx_min, Nx_max
   Ny_min, Ny_max
   Nz_min, Nz_max
-	del_grid
-	r0_grid
+  del_grid
+  r0_grid
 
 Example:
   0.01             ! length_scale
@@ -313,8 +342,9 @@ avoids all infinities. With this, the correspondence between form and (kxy, kz) 
 -|kz| < kxy < |kz|   hyper_xy  (kxy - sqrt(2 kz^2 - kxy^2)) / 2    (kxy + sqrt(2 kz^2 - kxy^2)) / 2   -    +
   kxy < -|kz|        hyper_x   (kxy^2 + kz^2) / (2kxy)             (kxy^2 - kz^2) / (2kxy)            -    -
 
-When the (kx, ky, kz) parameters of a given term are readin from the input file, the form for the
-term can determined by using the condition, for example, that ky^2 = kx^2 + kz^2 for the hyper_y
-form, etc. The sign of the input kx and ky might not correspond to what is given in the above
-table. This can be corrected by flipping signs as needed for kx and ky and then possibly flipping
-the sign for the Coef coefficient to keep the caculated field invariant.
+When the (kx, ky, kz) parameters of a given term are read in from the input file, the form for the
+term can determined by using the relationship between kx, ky, and kz for each form. For example,
+that ky^2 = kx^2 + kz^2 for the hyper_y form, etc. The sign of the input kx and ky might not
+correspond to what is given in the above table. This can be corrected by flipping signs as needed
+for kx and ky and then possibly flipping the sign for the Coef coefficient to keep the calculated
+field invariant.
