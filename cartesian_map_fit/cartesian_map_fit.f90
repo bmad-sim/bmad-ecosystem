@@ -31,40 +31,44 @@ integer i, j, jj, nn, k, ijk, status, population
 integer :: iter, nret, lib$get_foreign, istat
 integer ix, iy, iz, cur_num
 
-character(16) :: mode
+character(16) :: mode, num_str, arg_in
 character(100) file_name
 character(100) fname
 
 !
 
-cur_num = -1
+mode = 'STD'
+num_str = ''
 
-select case (cesr_iargc())
-case (0)
-  mode = 'STD'
-case (1)
-  call cesr_getarg(1, mode)
-  select case (mode)
-  case ('fft', 'debug', 'binary')
-  case default
-    if (.not. is_integer(mode)) then
-      print *, 'I DO NOT UNDERSTAND: ', mode
-      stop
-    endif
-    read (mode, *) cur_num
-    mode = 'STD'
-  end select
-case default
-  print *, 'EXTRA STUFF ON THE COMMAND LINE!'
-  stop
-end select
+if (cesr_iargc() > 0) then
+  call cesr_getarg(1, arg_in)
+  if (is_integer(arg_in)) then
+    num_str = arg_in
+    if (cesr_iargc() > 1) call cesr_getarg(2, mode)
+  else
+    mode = arg_in
+  endif
+endif
 
 !
 
-if (cur_num == -1) then
+select case (mode)
+case ('STD', 'fft', 'debug', 'binary')
+case default
+  print *, 'I DO NOT UNDERSTAND MODE: ', mode
+  stop
+end select
+
+if (num_str == '') then
   open (1, file = 'number.in', status = 'OLD', action = 'READ')
   read (1, *) cur_num
   close(1)
+else
+  if (.not. is_integer(num_str)) then
+    print *, 'I DO NOT UNDERSTAND NUMBER: ', num_str
+    stop
+  endif
+  read (num_str, *) cur_num
 endif
 
 file_name = 'fit'
@@ -211,7 +215,9 @@ alamda = -1
 maska = .true.
 covar = 0
 weight = 1
-weight(n_data_grid+1:n_data_tot) = coef_weight
+weight(n_data_grid+1:n_data_tot:3) = coef_weight
+weight(n_data_grid+2:n_data_tot:3) = k_weight
+weight(n_data_grid+3:n_data_tot:3) = k_weight
 population = de_var_to_population_factor * n_var
 
 calc_at_surface_grid_points_only = .true.
@@ -260,6 +266,7 @@ do ijk = 1, n_loops
   write (1, *) '  field_file   = "', trim(field_file), '"'
   write (1, *) '  optimizer    = "', trim(optimizer), '"'
   write (1, *) '  coef_weight  = ', coef_weight
+  write (1, *) '  k_weight     = ', k_weight
   write (1, *) '  n_loops      = ', n_loops
   write (1, *) '  n_cycles     = ', n_cycles
   write (1, *) '  mask_x0      = ', mask_x0
@@ -345,7 +352,7 @@ subroutine fft_field()
 complex(rp), allocatable :: fx(:), fy(:), fz(:)
 complex(rp) fc
 real(rp), allocatable :: amp(:)
-real(rp) f
+real(rp) ff, norm
 
 integer ix, iy, N, i, j, if
 integer, allocatable :: indx(:)
@@ -379,36 +386,38 @@ do iz = Nz_min, Nz_max
   enddo
 enddo
 
+norm = 2.0 / (Nz_max - Nz_min + 1)
+
 amp = abs(fx)
 call indexx(-amp, indx)
 print *, 'B_x FFT:'
-print *,   '    Freq          Amp           Phase'
+print *,   '    kz            Amp           Phase'
 do i = 1, min(5, size(indx))
   j = indx(i-1) - 1
-  f = twopi * j / (N * del_grid(3))
-  print '(3es14.4)', f, amp(j), atan2(aimag(fx(j)), real(fx(j)))
+  ff = twopi * j / (N * del_grid(3))
+  print '(3es14.4)', ff, norm*amp(j), atan2(aimag(fx(j)), real(fx(j)))
 enddo
 
 amp = abs(fy)
 call indexx(-amp, indx)
 print *
 print *, 'B_y FFT:'
-print *,   '    Freq          Amp           Phase'
+print *,   '    kz            Amp           Phase'
 do i = 1, min(5, size(indx))
   j = indx(i-1) - 1
-  f = twopi * j / (N * del_grid(3))
-  print '(3es14.4)', f, amp(j), atan2(aimag(fy(j)), real(fy(j)))
+  ff = twopi * j / (N * del_grid(3))
+  print '(3es14.4)', ff, norm*amp(j), atan2(aimag(fy(j)), real(fy(j)))
 enddo
 
 amp = abs(fz)
 call indexx(-amp, indx)
 print *
 print *, 'B_z FFT:'
-print *,   '    Freq          Amp           Phase'
+print *,   '    kz            Amp           Phase'
 do i = 1, min(5, size(indx))
   j = indx(i-1) - 1
-  f = twopi * j / (N * del_grid(3))
-  print '(3es14.4)', f, amp(j), atan2(aimag(fz(j)), real(fz(j)))
+  ff = twopi * j / (N * del_grid(3))
+  print '(3es14.4)', ff, norm*amp(j), atan2(aimag(fz(j)), real(fz(j)))
 enddo
 
 end subroutine fft_field

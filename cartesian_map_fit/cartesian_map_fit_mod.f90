@@ -28,8 +28,8 @@ real(rp) div_max, div_scale_max, div_scale, r0_grid(3)
 real(rp) curl_x_max, curl_x_scale_max, curl_x_scale
 real(rp) curl_y_max, curl_y_scale_max, curl_y_scale
 real(rp) curl_z_max, curl_z_scale_max, curl_z_scale
-real(rp) B_diff, merit_coef, merit_data, dB_rms
-real(rp) merit_tot, coef_weight
+real(rp) B_diff, merit_coef, merit_k, merit_data, dB_rms
+real(rp) merit_tot, coef_weight, k_weight
 real(rp) merit_x, merit_y, merit_z, x_offset_map, y_offset_map, z_offset_map
 
 logical :: dyda_calc = .true.
@@ -244,7 +244,7 @@ character(*) :: param_file
 
 namelist / parameters / field_file, coef_weight, n_loops, n_cycles, mask_x0, mask_y0, mask_phi_z, &
                   optimizer, de_var_to_population_factor, de_coef_step, de_k_step, &
-                  de_x0_y0_step, de_phi_z_step
+                  de_x0_y0_step, de_phi_z_step, k_weight
 
 ! Read in parameters and starting fit
 
@@ -327,7 +327,7 @@ if (mask_phi_z) n_var_per_term = n_var_per_term - 1
 
 n_var = n_var_per_term * n_term
 n_data_grid = 3 * (n_grid_pts - (Nx_max-Nx_min-1) * (Ny_max-Ny_min-1) * (Nz_max-Nz_min-1)) 
-n_data_tot = n_data_grid + n_term
+n_data_tot = n_data_grid + 3 * n_term
 
 allocate(s_x_arr(Nx_min:Nx_max), c_x_arr(Nx_min:Nx_max))
 allocate(s_y_arr(Ny_min:Ny_max), c_y_arr(Ny_min:Ny_max))
@@ -339,9 +339,7 @@ allocate (div(Nx_min:Nx_max, Ny_min:Ny_max, Nz_min:Nz_max), curl_z(Nx_min:Nx_max
 allocate (Bx_fit(Nx_min:Nx_max, Ny_min:Ny_max, Nz_min:Nz_max), By_fit(Nx_min:Nx_max, Ny_min:Ny_max, Nz_min:Nz_max))
 allocate (Bz_fit(Nx_min:Nx_max, Ny_min:Ny_max, Nz_min:Nz_max))
 
-!
-
-allocate (y_fit_max(n_term + 3*n_grid_pts))
+allocate (y_fit_max(n_data_tot))
 
 ! This is for seeing how well the curl of the field is zero.
 
@@ -464,6 +462,7 @@ dB_rms = sqrt(B_dat_sum/n_opti_grid_pts)
 call print_int ('N_term: ', [n_term])
 call print_real('Merit_tot:    ', [merit_tot])
 call print_real('Merit_coef:   ', [merit_coef])
+call print_real('Merit_k:      ', [merit_k])
 
 call print_str('Sums over surface grid points:')
 call print_real('  dB:           ', [B_sum / n_opti_grid_pts])
@@ -566,7 +565,7 @@ real(rp), intent(out) :: yfit(:)
 real(rp), intent(out) :: dyda(:, :)
 real(rp) x_pos, y_pos, z_pos, rrx, rry, rrz, dkx_dkxy, dky_dkxy, dkx_dkz, dky_dkz
 real(rp) drrx_dkx, drrx_dky, drrx_dkz, drry_dkx, drry_dky, drry_dkz, drrz_dkx, drrz_dky, drrz_dkz
-real(rp) x, y, z
+real(rp) x, y, z, lim_xy, lim_z, del
 
 integer sgn_x, sgn_y, sgn_z, dsgn_x, dsgn_y, dsgn_z
 integer status
@@ -576,12 +575,18 @@ logical err_flag
 
 ! Compute the fit
 
+lim_xy = pi * (1 / (4 * del_grid(1)) + 1 / (4 * del_grid(2)))
+lim_z  = pi / (4 * del_grid(3))
+
 Bx_fit = 0
 By_fit = 0
 Bz_fit = 0
 
 jv = 0
 j0_var = 0
+
+merit_coef = 0
+merit_k = 0
 
 do i = 1, n_term
   tt => term(i)
@@ -613,33 +618,71 @@ do i = 1, n_term
     cmt%phi_z = a(jv)
   endif
 
-  if (abs(cmt%kx * (del_grid(1) * (Nx_max-Nx_min) + abs (x_offset_map - r0_grid(1)))) > 1000) then
-    print '(a, i4, 3a)', 'FUNCS_LM: X-VARIABLES OUT OF RANGE', i, reals_to_string([cmt%kx, x_offset_map, r0_grid(1)], 12, 4)
-    merit_tot = 1e100_rp
-    status = 1
-    return
+  if (abs(cmt%kx * del_grid(1)) > pi) then
+    print '(a, i4, 3x, a)', 'FUNCS_LM: |KX| TOO LARGE', i, reals_to_string([cmt%kx, del_grid(1)], 12, 4)
+    print '(a, i4, 3x, a)', '          INCREASE K_WEIGHT IF THESE MESSAGES DO NOT STOP!'
   endif
 
-  if (abs(cmt%ky * (del_grid(2) * (Ny_max-Ny_min) + abs (y_offset_map - r0_grid(2)))) > 1000) then
-    print '(a, i4, 3a)', 'FUNCS_LM: Y-VARIABLES OUT OF RANGE', i, reals_to_string([cmt%ky, y_offset_map, r0_grid(2)], 12, 4)
-    merit_tot = 1e100_rp
-    status = 1
-    return
+  if (abs(cmt%ky * del_grid(2)) > pi) then
+    print '(a, i4, 3x, a)', 'FUNCS_LM: |KY| TOO LARGE', i, reals_to_string([cmt%ky, del_grid(2)], 12, 4)
+    print '(a, i4, 3x, a)', '          INCREASE K_WEIGHT IF THESE MESSAGES DO NOT STOP!'
   endif
 
-  if (abs(cmt%kz * del_grid(3)) > pi/2) then
-    print '(a, i4, 2a)', 'FUNCS_LM: Z-VARIABLES OUT OF RANGE', i, reals_to_string([cmt%kz, del_grid(3)], 12, 4) 
-    merit_tot = 1e100_rp
-    status = 1
-    return
+  if (abs(cmt%kz * del_grid(3)) > pi) then
+    print '(a, i4, 3x, a)', 'FUNCS_LM: |KZ| TOO LARGE', i, reals_to_string([cmt%kz, del_grid(3)], 12, 4) 
+    print '(a, i4, 3x, a)', '          INCREASE K_WEIGHT IF THESE MESSAGES DO NOT STOP!'
   endif
 
-  ! This is the datum representing the term coefficient.
+  ! Datum representing the term coefficient variable.
 
-  yfit(n_data_grid+i) = cmt%coef
+  yfit(n_data_grid+3*i-2) = cmt%coef
+  merit_coef = merit_coef + cmt%coef**2
+
   if (dyda_calc) then
-    dyda (n_data_grid+i, :) = 0
-    dyda (n_data_grid+i, j0_var+1) = 1
+    dyda (n_data_grid+3*i-2, :) = 0
+    dyda (n_data_grid+3*i-2, j0_var+1) = 1
+  endif
+
+  ! Daum representing the term kxy variable.
+
+  if (abs(tt%kxy) < lim_xy) then
+    yfit(n_data_grid+3*i-1) = 0
+
+    if (dyda_calc) then
+      dyda (n_data_grid+3*i-1, :) = 0
+      dyda (n_data_grid+3*i-1, j0_var+2) = 0
+    endif
+
+  else
+    del = tt%kxy - lim_xy * sign_of(tt%kxy)
+    yfit(n_data_grid+3*i-1) = del
+    merit_k = merit_k + del
+
+    if (dyda_calc) then
+      dyda (n_data_grid+3*i-1, :) = 0
+      dyda (n_data_grid+3*i-1, j0_var+2) = 1
+    endif
+  endif
+
+  ! Datum representing the term kz variables.
+
+  if (abs(cmt%kz) < lim_z) then
+    yfit(n_data_grid+3*i) = 0
+
+    if (dyda_calc) then
+      dyda (n_data_grid+3*i, :) = 0
+      dyda (n_data_grid+3*i, j0_var+3) = 0
+    endif
+
+  else
+    del = cmt%kz - lim_z * sign_of(cmt%kz)
+    yfit(n_data_grid+3*i) = del
+    merit_k = merit_k + del
+
+    if (dyda_calc) then
+      dyda (n_data_grid+3*i, :) = 0
+      dyda (n_data_grid+3*i, j0_var+3) = 1
+    endif
   endif
 
   ! The forms are constructed to make the field a continuous function of (kx, ky, kz) when going
@@ -871,9 +914,10 @@ enddo
 
 !
 
-merit_coef = sum(term(1:n_term)%cmt%coef**2) * coef_weight
+merit_coef = coef_weight * merit_coef
+merit_k    = k_weight * merit_k
 merit_data = merit_x + merit_y + merit_z
-merit_tot = merit_data + merit_coef
+merit_tot  = merit_data + merit_coef + merit_k
 
 !---------------------------------------------
 contains
