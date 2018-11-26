@@ -1,5 +1,5 @@
 !+
-! Subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, err_flag)
+! Subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, err_flag, in_lat)
 !
 ! Subroutine parse (read in) a BMAD input file.
 ! This subrotine assumes that lat already holds an existing lattice.
@@ -25,18 +25,21 @@
 !                           bmad_parser2 calls lat_make_mat6
 !   make_mats6  -- Logical, optional: Make the 6x6 transport matrices for then
 !                   Elements? Default is True.
+!   in_lat      -- lat_struct, optional: Used by bmad_parser to pass to bmad_parser2 a 
+!                    list of elements that were defined in the lattice file but not used.
 !
 ! Output:
 !   lat    -- lat_struct: lattice with modifications.
 !-
 
-subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, err_flag)
+subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, err_flag, in_lat)
 
 use bmad_parser_mod, except_dummy => bmad_parser2
 
 implicit none
   
 type (lat_struct), target :: lat
+type (lat_struct), optional :: in_lat
 type (lat_struct) :: lat2
 type (ele_struct), pointer :: ele, mad_beam_ele, param_ele, lord, slave, slave2
 type (ele_pointer_struct), allocatable :: eles(:)
@@ -86,27 +89,6 @@ if (lat_file /= 'FROM: BMAD_PARSER') then
   call parser_file_stack('push', lat_file, finished, err)   ! open file on stack
   if (err) return
 endif
-
-! Mark multipass elements in case there is a superposition
-
-do ib = 0, ubound(lat%branch, 1)
-  branch => lat%branch(ib)
-  branch%ele%iyy = 0
-enddo
-
-do ie = lat%n_ele_track+1, lat%n_ele_max
-  ele => lat%ele(ie)
-  if (ele%lord_status /= multipass_lord$) cycle
-  do is = 1, ele%n_slave
-    slave => pointer_to_slave(ele, is)
-    slave%iyy = ie
-    if (slave%lord_status /= super_lord$) cycle
-    do is2 = 1, slave%n_slave
-      slave2 => pointer_to_slave(slave, is2)
-      slave2%iyy = ie
-    enddo
-  enddo
-enddo
 
 !
 
@@ -625,11 +607,7 @@ do i = 1, ele_num
   end select
 
   ixx = ele%ixx
-
-  do j = 0, ubound(lat%branch, 1)
-    call parser_add_superimpose (lat%branch(j), ele, plat%ele(ixx))
-    call parser_check_superimpose_valid_ref (ele, lat, plat%ele(ixx))
-  enddo
+  call parser2_add_superimpose (lat, ele, plat%ele(ixx), in_lat)
 enddo
 
 call drift_multipass_name_correction(lat) ! In case superimposing upon multipass elements.

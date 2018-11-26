@@ -4,7 +4,7 @@
 ! Routine to allocate an array of ele_pointer_structs.
 !
 ! Input:
-!   eles(:) -- ele_pointer_struct, allocatable: Array of element pointers with possible old data.
+!   eles(:)  -- ele_pointer_struct, allocatable: Array of element pointers with possible old data.
 !   n        -- Integer: Array size to set.
 !   save_old -- Logical, optional: If present and True then save the old data.
 !   exact    -- Logical, optional: If present and True then eles will have size = n

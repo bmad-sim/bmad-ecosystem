@@ -164,11 +164,12 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, e
   character(*), optional :: use_line
 end subroutine
 
-subroutine bmad_parser2 (in_file, lat, orbit, make_mats6, err_flag)
+subroutine bmad_parser2 (in_file, lat, orbit, make_mats6, err_flag, in_lat)
   import
   implicit none
   character(*) in_file
   type (lat_struct), target :: lat
+  type (lat_struct), optional :: in_lat
   type (coord_struct), optional :: orbit(0:)
   logical, optional :: make_mats6, err_flag
 end subroutine
@@ -1603,7 +1604,7 @@ subroutine spline_fit_orbit (ele, start_orb, end_orb, spline_x, spline_y)
 end subroutine
 
 subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, &
-                              save_null_drift, err_flag, choose_max, ix_insert)
+                                                 save_null_drift, err_flag, choose_max, ix_insert)
   import
   implicit none
   type (lat_struct), target :: lat

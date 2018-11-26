@@ -4409,7 +4409,7 @@ end subroutine reallocate_bp_com_const
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is used by bmad_parser (but not bmad_parser2)
 ! This subroutine is not intended for general use.
 !-
 
@@ -4421,21 +4421,19 @@ type (ele_struct) super_ele_in
 type (ele_struct), save :: super_ele_saved, super_ele
 type (ele_struct), pointer :: ref_ele, ele, slave, lord, super_ele_out, ele_at_s
 type (ele_pointer_struct), allocatable :: eles(:)
-type (parser_lat_struct), optional, target :: plat
+type (parser_lat_struct), target :: plat
 type (parser_ele_struct) :: pele
 type (parser_ele_struct), pointer :: ref_pele
 type (multipass_all_info_struct) m_info
-type (lat_struct), optional :: in_lat
-type (lat_ele_loc_struct), allocatable :: m_slaves(:)
+type (lat_struct) :: in_lat
 type (branch_struct), target :: branch
 type (branch_struct), pointer :: ref_branch
 type (lat_struct), pointer :: lat
 
-integer ix, i, j, k, it, nic, nn, i_ele, ib, il
-integer n_con, ix_branch, n_loc, ix_insert
+integer ix, i, j, k, it, nn, i_ele, ib, il
+integer n_con, ix_branch, n_loc, ix_insert, ix_pass
 
 character(40) name, ref_name
-character(40), allocatable :: multi_name(:)
 character(80) line
 
 logical have_inserted, found, err_flag, err
@@ -4455,37 +4453,10 @@ super_ele_saved = super_ele     ! in case super_ele_in changes
 lat => branch%lat
 pele%ix_ref_multipass = 0
 
-! If no refrence element then superposition is simple.
-! Remember, no reference element implies superposition on branch 0.
-
-if (pele%ref_name == blank_name$) then
-  if (branch%ix_branch /= 0) return
-  if (bp_com%used_line_set_by_calling_routine) return
-  call compute_super_lord_s (branch%ele(0), super_ele, pele, ix_insert)
-  ele_at_s => pointer_to_element_at_s (branch, super_ele%s, .true., err_flag)
-  if (err_flag) then
-    call parser_error ('S-POSITION OUT OF BOUNDS FOR SUPERPOSITION OF: ' // super_ele%name)
-    return
-  endif
-
-  if (ele_at_s%iyy == 0) then  ! If not in multipass region proceed as normal.
-    call check_for_superimpose_problem (branch, super_ele, err_flag); if (err_flag) return
-    call add_superimpose (lat, super_ele, 0, err_flag, save_null_drift = .true., &
-                                  create_jumbo_slave = pele%create_jumbo_slave, ix_insert = ix_insert)
-    if (err_flag) bp_com%error_flag = .true.
-    return
-  endif
-
-  ! Must be in multipass region
-  if (ele_at_s%slave_status == super_slave$) ele_at_s => pointer_to_lord(ele_at_s, 1)
-  pele%ref_name = ele_at_s%name
-  pele%ref_pt = anchor_end$
-  pele%ele_pt = anchor_end$
-  pele%offset = super_ele%s - ele_at_s%s
-  pele%ix_ref_multipass = ele_at_s%iyy
-endif
-
 ! Find all matches
+! If no refrence element then this implies superposition on branch 0.
+
+if (pele%ref_name == blank_name$) pele%ref_name = '0>>BEGINNING'
 
 call lat_ele_locator (pele%ref_name, lat, eles, n_loc, err)
 if (err) then
@@ -4507,21 +4478,31 @@ if (pele%ix_ref_multipass /= 0) then ! throw out elements that are the same phys
   enddo
 endif
 
-! If the reference element is a group or overlay then this is fine as long as there
-! is only one slave element.
+! Group and overlay elements may have not yet been transfered from in_lat to lat.
+! So search in_lat for a match if there has not been a match using lat. 
+! Note: Using a group or overlay as the reference element is only valid if there is only one slave element.
 
 if (n_loc == 0) then
-  call lat_ele_locator (pele%ref_name, in_lat, eles, n_loc, err)
+  call lat_ele_locator (pele%ref_name, in_lat, eles, n_loc, err) ! Notice: Searching in_lat
+  if (err) then
+    call parser_error ('MALFORMED SUPERIMPOSE REFERENCE NAME: ' // pele%ref_name)
+    return
+  endif
+  ! Since superposition in bmad_parser is done branch-by-branch, n_loc = 0 might not be an error.
+  ! This will get checked later.
   if (n_loc == 0) return
   if (n_loc > 1) then
     call parser_error ('CONFUSED SUPERPOSITION. PLEASE CONTACT A BMAD MAINTAINER.')
     return
   endif
 
+  ! n_loc = 1 case
+  if (eles(1)%ele%key /= group$ .and. eles(1)%ele%key /= overlay$) return ! Should be handled in another branch.
+
   ref_ele => eles(1)%ele
-  if (ref_ele%key /= group$ .and. ref_ele%key /= overlay$) return
   ref_pele => plat%ele(ref_ele%ixx)
   ref_name = ref_pele%control(1)%name
+
   do i = 2, size(ref_pele%control)
     if (ref_pele%control(i)%name /= ref_name) then
       call parser_error ('SUPERPOSITION USING A GROUP OR OVERLAY AS A REFERENCE ELEMENT IS ONLY ALLOWED', &
@@ -4530,14 +4511,17 @@ if (n_loc == 0) then
       return
     endif
   enddo 
- 
+
   call lat_ele_locator (ref_name, lat, eles, n_loc, err)
-  if (err .or. n_loc == 0) return
+  if (err) then
+    call parser_error ('MALFORMED OVERLAY OR GROUP SLAVE NAME: ' // ref_name)
+    return
+  endif
 endif
 
-! If there is a single ref element, and the superposition offset puts the super_ele into a multipass region,
-! then shift the ref element to the multipass region.
-! If there are multiple ref elements then the situation is too complicated and is considered an error.
+! If a ref element is outside is outside, and the superposition offset puts the super_ele into a multipass
+! region, must add further superpositions to keep the multipass regions on separate passes looking the same.
+! shift the ref element to the multipass region.
 
 if (n_loc == 1) then
   ref_ele => eles(1)%ele
@@ -4553,7 +4537,11 @@ if (n_loc == 1) then
         pele%ele_pt = anchor_end$
         pele%offset = super_ele%s - ele_at_s%s
         pele%ix_ref_multipass = ele_at_s%iyy
+        ! If in bmad_parser then multipass bookkeeping has not been done yet and ele_at_s%name is
+        ! the name of the multipass_lord (something like "Q1". If in bmad_parser2 then multipass bookkeeping
+        ! has been done and ele_at_s%name is the slave name like "Q1\2".
         call lat_ele_locator (ele_at_s%name, lat, eles, n_loc, err)
+
         i = 1 ! throw out elements that are the same physical element
         do
           if (i > n_loc) exit
@@ -4587,14 +4575,14 @@ do
   do 
     i_ele = i_ele + 1
     if (i_ele > branch%n_ele_track) exit
-    call do_this_superimpose(branch%ele(i_ele), i_ele, have_inserted)
+    call do_this_superimpose(branch%ele(i_ele), have_inserted)
   enddo
 
   i_ele = lat%n_ele_track
   do
     i_ele = i_ele + 1
     if (i_ele > lat%n_ele_max) exit
-    call do_this_superimpose(lat%ele(i_ele), i_ele, have_inserted)
+    call do_this_superimpose(lat%ele(i_ele), have_inserted)
   enddo
 
   if (.not. have_inserted) exit
@@ -4603,104 +4591,245 @@ enddo
 !-------------------------------------------------------------
 contains
 
-subroutine do_this_superimpose (start_ele, i_ele, have_inserted)
+subroutine do_this_superimpose (start_ele, have_inserted)
 
 type (ele_struct), target :: start_ele
 type (ele_struct), pointer :: ref_ele
-integer i_ele
 logical have_inserted
 
 !
 
 ref_ele => start_ele
-
-if (ref_ele%slave_status == super_slave$ .or. ref_ele%slave_status == multipass_slave$) then
-  do il = 1, ref_ele%n_lord
-    lord => pointer_to_lord(ref_ele, il)
-    if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
-    if (.not. lord%logic) cycle
-    ref_ele => lord
-    exit
-  enddo
-endif
-
-if (ref_ele%key == group$) return
-if (ref_ele%key == girder$) return
-if (ref_ele%slave_status == super_slave$) return
 if (.not. ref_ele%logic) return
-
 ref_ele%logic = .false.  ! So only use this reference once
 
-! If superimposing on a multipass_lord (only happens with bmad_parser2) 
+if (ref_ele%slave_status == super_slave$) then
+  call parser_error ('SUPERIMPOSE REFERENCE ELEMENT MUST NOT BE A SUPER_SLAVE: ' // ref_ele%name)
+  return
+endif
+
+if (ref_ele%key == group$ .or. ref_ele%key == overlay$) return
+if (ref_ele%key == girder$) return
+if (ref_ele%slave_status == super_slave$) return
+
+ref_branch => pointer_to_branch(ref_ele)
+if (ref_branch%ix_branch /= branch%ix_branch) return
+
+call compute_super_lord_s (ref_ele, super_ele, pele, ix_insert)
+super_ele%iyy = ref_ele%iyy   ! Multipass info
+call check_for_superimpose_problem (branch, super_ele, err_flag, ref_ele); if (err_flag) return
+call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
+super_ele%name = super_ele_saved%name(:ix)            
+call add_superimpose (lat, super_ele, branch%ix_branch, err_flag, super_ele_out, &
+   save_null_drift = .true., create_jumbo_slave = pele%create_jumbo_slave, ix_insert = ix_insert)
+if (err_flag) bp_com%error_flag = .true.
+call control_bookkeeper (lat, super_ele_out)
+
+call s_calc (lat)
+have_inserted = .true.   
+
+end subroutine do_this_superimpose
+
+end subroutine parser_add_superimpose
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! This subroutine is used by bmad_parser2 (but not bmad_parser).
+! This subroutine is not intended for general use.
+!-
+
+subroutine parser2_add_superimpose (lat, super_ele_in, pele, in_lat)
+
+implicit none
+
+type (ele_struct) super_ele_in
+type (ele_struct), save :: super_ele_saved, super_ele
+type (ele_struct), pointer :: ref_ele, ele
+type (ele_pointer_struct), allocatable :: eles(:)
+type (parser_ele_struct) :: pele
+type (parser_ele_struct), pointer :: ref_pele
+type (lat_struct), optional :: in_lat
+type (branch_struct), pointer :: branch
+type (branch_struct), pointer :: ref_branch
+type (lat_struct), target :: lat
+
+integer ix, i, j, k, it, nn, i_ele, n_super
+integer n_con, ix_branch, n_loc, ix_insert, ix_pass
+
+character(40) name, ref_name
+character(80) line
+
+logical have_inserted, found, err_flag, err
+
+! init
+
+if (.not. bp_com%do_superimpose) return
+
+call settable_dep_var_bookkeeping (super_ele_in)
+
+call init_ele(super_ele_saved)
+call init_ele(super_ele)
+
+super_ele = super_ele_in
+super_ele%logic = .false.
+super_ele_saved = super_ele     ! in case super_ele_in changes
+
+! Find all matches
+! If no refrence element then this implies superposition on branch 0.
+
+if (pele%ref_name == blank_name$) pele%ref_name = '0>>BEGINNING'
+
+call lat_ele_locator (pele%ref_name, lat, eles, n_loc, err)
+if (err) then
+  call parser_error ('MALFORMED SUPERIMPOSE REFERENCE ELEMENT NAME: ' // pele%ref_name, &
+                     'FOR SUPERPOSITION OF: ' // super_ele_saved%name, pele = pele)
+  return
+endif
+
+! The superimpose may reference elements that were defined but not used in the construction of the lattice
+! by bmad_parser. If so, this is not an error and just do not do the superposition.
+
+if (n_loc == 0 .and. present(in_lat)) then
+  call lat_ele_locator (pele%ref_name, in_lat, eles, n_loc, err) ! Notice: Searching in_lat
+  if (err) then
+    call parser_error ('MALFORMED SUPERIMPOSE REFERENCE NAME: ' // pele%ref_name)
+    return
+  endif
+  if (n_loc > 0) return
+endif
+
+! Check
+
+if (n_loc == 0) then
+  call parser_error ('NO MATCH FOR REFERENCE ELEMENT: ' //  pele%ref_name, &      
+                     'FOR SUPERPOSITION OF: ' // super_ele%name, pele = pele)
+  return
+endif
+
+! If a ref element is outside is outside, and the superposition offset puts the super_ele into a multipass
+! region, must add further superpositions to keep the multipass regions on separate passes looking the same.
+! shift the ref element to the multipass region.
+
+! Tag reference elements using %logic flag which is not otherwise used during parsing.
+
+do i = 0, ubound(lat%branch, 1)
+  lat%branch(i)%ele(:)%logic = .false.
+  lat%branch(i)%ele(:)%iyy = 0
+enddo
+
+do i = 1, n_loc
+  eles(i)%ele%logic = .true. ! Tag reference element.
+enddo
+
+n_super = 0
+do i = 0, ubound(lat%branch, 1)
+  branch => lat%branch(i)
+  i_ele = -1
+  do 
+    i_ele = i_ele + 1
+    if (i_ele > branch%n_ele_max) exit
+    n_super = n_super + 1
+    call do2_this_superimpose(branch%ele(i_ele), have_inserted, pele, n_super)
+  enddo
+enddo
+
+!-------------------------------------------------------------
+contains
+
+subroutine do2_this_superimpose (ref0_ele, have_inserted, pele, n_super)
+
+type (ele_struct), target :: ref0_ele
+type (ele_struct), pointer :: ref_ele, ele, slave, slave2, ele_at_s, super_ele_out
+type (branch_struct), pointer :: branch
+type (parser_ele_struct), target :: pele
+type (parser_ele_struct) :: pele2
+type (multipass_all_info_struct) m_info
+type (lat_ele_loc_struct), allocatable :: m_slaves(:)
+
+logical have_inserted
+integer i, j, k, ib, n_slave, n_super
+
+!
+
+ref_ele => ref0_ele
+if (.not. ref_ele%logic) return
+ref_ele%logic = .false.  ! So only use this reference once
+
+if (ref_ele%slave_status == super_slave$) then
+  call parser_error ('SUPERIMPOSE REFERENCE ELEMENT MUST NOT BE A SUPER_SLAVE: ' // ref_ele%name)
+  return
+endif
+
+! Note: Using a group or overlay as the reference element is only valid if there is only one slave element.
+
+if (ref_ele%key == group$ .or. ref_ele%key == overlay$) then
+  slave => pointer_to_slave(ref_ele, 1)
+
+  do i = 2, ref_ele%n_slave
+    slave2 => pointer_to_slave(ref_ele, i)
+    if (slave2%ix_ele /= slave%ix_ele .or. slave2%ix_branch /= slave%ix_branch) then
+      call parser_error ('SUPERPOSITION USING A GROUP OR OVERLAY AS A REFERENCE ELEMENT IS ONLY ALLOWED', &
+                         'WHEN THE GROUP OR OVERLAY CONTROLS A SINGLE ELEMENT.', &
+                         'FOR SUPERPOSITION OF: ' // super_ele_saved%name, pele = pele)
+      return
+    endif
+  enddo
+
+  ref_ele => slave
+endif
+
+!
+
+pele2 = pele
+
+! If a ref element is outside is outside, and the superposition offset puts the super_ele into a multipass
+! region, must use the appropriate multipass_lord as the reference element so that a superposition is done
+! one for each pass.
+
+if (.not. associated (pointer_to_multipass_lord(ref_ele))) then
+  branch => pointer_to_branch(ref_ele)
+  call compute_super_lord_s (ref_ele, super_ele, pele2, ix_insert)
+  ele_at_s => pointer_to_element_at_s (branch, super_ele%s_start, .true., err_flag)
+  if (ele_at_s%slave_status == super_slave$) ele_at_s => pointer_to_lord(ele_at_s, 1)
+  if (ele_at_s%slave_status == multipass_slave$) then
+    ref_ele => ele_at_s
+    pele2%ref_pt = anchor_end$
+    pele2%ele_pt = anchor_end$
+    pele2%offset = super_ele%s - ele_at_s%s
+  endif
+endif
+
+if (ref_ele%slave_status == multipass_slave$) then
+  ref_ele => pointer_to_lord(ref_ele, 1)
+endif
+
+if (ref_ele%key == girder$) return
+if (ref_ele%slave_status == super_slave$) return
+
+! If superimposing on a multipass_lord
 ! then the superposition must be done at all multipass locations.
 
 if (ref_ele%lord_status == multipass_lord$) then
-  allocate (m_slaves(ref_ele%n_slave), multi_name(ref_ele%n_slave))
-  allocate (ele_loc_com%branch(1))
-  allocate (ele_loc_com%branch(1)%ele(ref_ele%n_slave))
-  do i = 1, ref_ele%n_slave
-    slave => pointer_to_slave(ref_ele, i)
-    ele_loc_com%branch(1)%ele(i)%ix_ele    = slave%ix_ele
-    ele_loc_com%branch(1)%ele(i)%ix_branch = slave%ix_branch
-  enddo
-  call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
-  super_ele%name = super_ele_saved%name(:ix)
+  ref_ele%iyy = -1  ! So we can find it again after it has moved during superposition
 
-  ! Put in the superposition at the multipass locations.
-  ! Since elements get shuffled around, tag the superimposed elements 
-  !     with "temp_name!" to identify them later.
-
-  do i = 1, ref_ele%n_slave
-    ele => pointer_to_ele (lat, ele_loc_com%branch(1)%ele(i))
-    call compute_super_lord_s (ele, super_ele, pele, ix_insert)
-    super_ele%iyy = ele%iyy   ! Multipass info
-    call check_for_superimpose_problem (branch, super_ele, err_flag, ele); if (err_flag) return
-    ! Don't need to save drifts since a multipass_lord drift already exists.
-    call add_superimpose (lat, super_ele, ix_branch, err_flag, super_ele_out, &
-           save_null_drift = .false., create_jumbo_slave = pele%create_jumbo_slave, ix_insert = ix_insert)
+  n_slave = ref_ele%n_slave
+  allocate (m_slaves(n_slave))
+  do j = 1, n_slave
+    ! Find where ref_ele is
+    do k = lat%n_ele_track+1, lat%n_ele_max
+      ref_ele => lat%ele(k)
+      if (ref_ele%iyy == -1) exit
+    enddo
+    if (j == n_slave) ref_ele%iyy = 0  ! No longer needed. Important to reset to zero.
+    slave => pointer_to_slave(ref_ele, j)
+    branch => pointer_to_branch(slave)
+    call compute_super_lord_s (slave, super_ele, pele2, ix_insert)
+    call add_superimpose (lat, super_ele, branch%ix_branch, err_flag, super_ele_out, &
+             save_null_drift = .false., create_jumbo_slave = pele2%create_jumbo_slave, ix_insert = ix_insert) 
     if (err_flag) bp_com%error_flag = .true.
-    super_ele_out%name = 'temp_name!'
-  enddo
-
-  ! Mark any super_lord drifts (along with any lords that control the super_lord) for 
-  ! future deletion at the end of lattice parsing.
-
-  call multipass_all_info (lat, m_info) ! Save multipass info for later.
-
-  do i = lat%n_ele_track+1, lat%n_ele_max 
-    ele => lat%ele(i)
-    if (ele%key /= drift$) cycle
-    if (ele%lord_status /= super_lord$) cycle 
-    ele%key = -1 ! mark for deletion
-
-    do j = 1, ele%n_lord
-      lord => pointer_to_lord(ele, j)
-      lord%key = -1  ! Mark lord for deletion
-    enddo
-
-    ! Need to remove super_lord/super_slave links otherwise the code below gets confused
-    ! when it tries to connect the former super_slave drifts.
-
-    do while (ele%n_slave /= 0)
-      call remove_lord_slave_link (ele, pointer_to_slave(ele, 1))
-    enddo
-  enddo
-
-  ! Reconnect drifts that were part of the multipass region.
-
-  do i = 1, size(m_info%lord) ! Loop over multipass lords
-    do j = 1, size(m_info%lord(i)%slave, 2)   ! loop over super_slaves
-      slave => m_info%lord(i)%slave(1, j)%ele
-      if (slave%key /= drift$) cycle
-      if (slave%slave_status == multipass_slave$) cycle
-      do k = 1, size(m_info%lord(i)%slave(:, j))   ! Loop over all passes
-        ele => m_info%lord(i)%slave(k, j)%ele
-        m_slaves(k) = ele_to_lat_loc (ele)  ! Make a list slave elements
-        ib = index(ele%name, '\') ! '
-        if (ib /= 0) ele%name = ele%name(1:ib-1) // ele%name(ib+2:)
-      enddo
-      call add_this_multipass (lat, m_slaves) ! And create a multipass lord
-    enddo
+    super_ele_out%iyy = n_super  ! Is unique
   enddo
 
   ! If the super_lords have a single super_slave and the super_slave
@@ -4710,27 +4839,21 @@ if (ref_ele%lord_status == multipass_lord$) then
 
   j = 0
 
-  do i = 1, branch%n_ele_track
-    if (branch%ele(i)%name == 'temp_name!') then
-      branch%ele(i)%name = super_ele_saved%name
-      j = j + 1
-      m_slaves(j) = ele_to_lat_loc (branch%ele(i))
-    endif
-  enddo
-
-  do i = lat%n_ele_track+1, lat%n_ele_max
-    if (lat%ele(i)%name == 'temp_name!') then
-      lat%ele(i)%name = super_ele_saved%name
-      j = j + 1
-      m_slaves(j) = ele_to_lat_loc (lat%ele(i))
-    endif
+  do ib = 0, ubound(lat%branch, 1)
+    branch => lat%branch(ib)
+    do i = 1, branch%n_ele_max
+      if (branch%ele(i)%iyy == n_super) then
+        j = j + 1
+        m_slaves(j) = ele_to_lat_loc (branch%ele(i))
+      endif
+    enddo
   enddo
 
   ele => pointer_to_ele (lat, m_slaves(1))
   if (ele%lord_status == super_lord$ .and. ele%n_slave == 1) then
     slave => pointer_to_slave(ele, 1)
     if (slave%n_lord == 1) then
-      do i = 1, size(m_slaves)
+      do i = 1, n_slave
         ele => pointer_to_ele (lat, m_slaves(i))
         ele%key = -1 ! Mark for deletion
         ele => pointer_to_slave(ele, 1)
@@ -4753,8 +4876,7 @@ if (ref_ele%lord_status == multipass_lord$) then
 
   call add_this_multipass (lat, m_slaves, super_ele_saved) 
 
-  deallocate (m_slaves, multi_name)
-  deallocate (ele_loc_com%branch)
+  deallocate (m_slaves)
 
 !-----------------------
 ! Else not superimposing on a multipass_lord ...
@@ -4764,13 +4886,13 @@ else
   ref_branch => pointer_to_branch(ref_ele)
   if (ref_branch%ix_branch /= branch%ix_branch) return
 
-  call compute_super_lord_s (ref_ele, super_ele, pele, ix_insert)
+  call compute_super_lord_s (ref_ele, super_ele, pele2, ix_insert)
   super_ele%iyy = ref_ele%iyy   ! Multipass info
   call check_for_superimpose_problem (branch, super_ele, err_flag, ref_ele); if (err_flag) return
   call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
   super_ele%name = super_ele_saved%name(:ix)            
   call add_superimpose (lat, super_ele, branch%ix_branch, err_flag, super_ele_out, &
-     save_null_drift = .true., create_jumbo_slave = pele%create_jumbo_slave, ix_insert = ix_insert)
+     save_null_drift = .true., create_jumbo_slave = pele2%create_jumbo_slave, ix_insert = ix_insert)
   if (err_flag) bp_com%error_flag = .true.
   call control_bookkeeper (lat, super_ele_out)
 endif
@@ -4780,53 +4902,9 @@ endif
 call s_calc (lat)
 have_inserted = .true.   
 
-end subroutine do_this_superimpose
+end subroutine do2_this_superimpose
 
-
-end subroutine parser_add_superimpose
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! This subroutine is used by bmad_parser and bmad_parser2.
-! This subroutine is not intended for general use.
-!-
-
-subroutine parser_check_superimpose_valid_ref (ele, lat, pele, in_lat)
-
-implicit none
-
-type (ele_struct) ele
-type (lat_struct) lat
-type (parser_ele_struct) :: pele
-type (lat_struct), optional :: in_lat
-type (ele_pointer_struct), allocatable :: eles(:)
-
-integer n_loc
-logical found, err
-
-! If a superimpose reference element does not appear in the list of elements in the lattice file and
-! does not appear in the final lattice, this is considered a mispelling and is considered an error.
-! Note: Something like "branch_name>>ele_name" may show up in the finished lattice but not the list of
-! elements in the lattice file.
-
-if (.not. bp_com%do_superimpose) return
-if (pele%ref_name == blank_name$) return
-
-call lat_ele_locator (pele%ref_name, lat, eles, n_loc, err)
-if (err) return    ! this error already handled by parser_add_superimpose
-if (n_loc /= 0) return
-
-if (present(in_lat)) then
-  call lat_ele_locator (pele%ref_name, in_lat, eles, n_loc, err)
-  if (n_loc /= 0) return
-endif
-
-call parser_error ('NO MATCH FOR REFERENCE ELEMENT: ' //  pele%ref_name, &      
-                   'FOR SUPERPOSITION OF: ' // ele%name, pele = pele)
-
-end subroutine parser_check_superimpose_valid_ref
+end subroutine parser2_add_superimpose
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------

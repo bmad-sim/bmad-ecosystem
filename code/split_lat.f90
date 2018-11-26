@@ -1,6 +1,6 @@
 !+
 ! Subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, 
-!                                       check_sanity, save_null_drift, err_flag, choose_max, ix_insert)
+!                               check_sanity, save_null_drift, err_flag, choose_max, ix_insert)
 !
 ! Routine to split an element of the lattice into two to create a lattice that has an element boundary at the point s = s_split. 
 ! This routine will not split the lattice if the split would create a "runt" element with length less 
@@ -10,9 +10,6 @@
 ! appropriate bookkeeping for lords and slaves.
 !
 ! Note: split_lat does NOT call make_mat6. The Twiss parameters are also not recomputed.
-!
-! Modules Needed:
-!   use bmad
 !
 ! Input:
 !   lat             -- lat_struct: Original lat structure.
@@ -36,14 +33,14 @@
 !                       In this case ix_insert will remove the ambiguity. Ignored if negative.
 !
 ! Output:
-!   lat        -- lat_struct: Modified lat structure.
-!   ix_split   -- integer: Index of element just before the s = s_split point.
-!   split_done -- logical: True if lat was split.
-!   err_flag   -- logical, optional: Set true if there is an error, false otherwise.
+!   lat           -- lat_struct: Modified lat structure.
+!   ix_split      -- integer: Index of element just before the s = s_split point.
+!   split_done    -- logical: True if lat was split.
+!   err_flag      -- logical, optional: Set true if there is an error, false otherwise.
 !-
 
 subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, &
-                                    check_sanity, save_null_drift, err_flag, choose_max, ix_insert)
+                            check_sanity, save_null_drift, err_flag, choose_max, ix_insert)
 
 use bmad_interface, except_dummy => split_lat
 use geometry_mod, only: floor_angles_to_w_mat

@@ -60,7 +60,7 @@ integer, allocatable :: seq_indexx(:), in_indexx(:)
 integer :: ix_param_ele, ix_mad_beam_ele
 integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_track
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
-integer  iseq_tot, iyy, n_ele_max, n_multi, n0, n_ele, ixc, n_slave
+integer  iseq_tot, iyy, n_ele_max, n_multi, n0, n_ele, ixc, n_slave, n_loc
 integer ib, ie, ib2, ie2, flip, n_branch, n_branch_ele, i_loop, n_branch_max
 integer, pointer :: n_max
 
@@ -1054,10 +1054,23 @@ enddo
 
 ! Check for misspellings of superposition reference elements.
 
-do i = 1, n_max
-  if (in_lat%ele(i)%lord_status /= super_lord$) cycle
-  call parser_check_superimpose_valid_ref (in_lat%ele(i), lat, plat%ele(i), in_lat)
-enddo
+if (bp_com%do_superimpose) then
+  do i = 1, n_max
+    if (in_lat%ele(i)%lord_status /= super_lord$) cycle
+    pele => plat%ele(i)
+    if (pele%ref_name == blank_name$) cycle
+
+    call lat_ele_locator (pele%ref_name, lat, eles, n_loc, err)
+    if (err) cycle    ! this error already handled by parser_add_superimpose
+    if (n_loc /= 0) cycle
+
+    call lat_ele_locator (pele%ref_name, in_lat, eles, n_loc, err)
+    if (n_loc /= 0) cycle
+
+    call parser_error ('NO MATCH FOR REFERENCE ELEMENT: ' //  pele%ref_name, &      
+                       'FOR SUPERPOSITION OF: ' // in_lat%ele(i)%name, pele = pele)
+  enddo
+endif
 
 ! PTC stuff.
 ! Use arbitrary energy above the rest mass energy since when tracking individual elements the
@@ -1161,7 +1174,7 @@ if (detected_expand_lattice_cmd) then
   global_com%exit_on_error = .false.
   bp_com%bmad_parser_calling = .true.
   bp_com%old_lat => in_lat
-  call bmad_parser2 ('FROM: BMAD_PARSER', lat, make_mats6 = .false.)
+  call bmad_parser2 ('FROM: BMAD_PARSER', lat, make_mats6 = .false., in_lat = in_lat)
   bp_com%bmad_parser_calling = .false.
   global_com%exit_on_error = exit_on_error
 endif
