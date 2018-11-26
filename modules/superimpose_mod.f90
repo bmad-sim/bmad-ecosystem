@@ -11,7 +11,7 @@ contains
 !-----------------------------------------------------------------------------------------
 !+
 ! Subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out,
-!                                         save_null_drift, create_jumbo_slave, ix_insert)
+      !                                     save_null_drift, create_jumbo_slave, ix_insert)
 !
 ! Routine to superimpose an element. If the element can be inserted
 ! into the lat without making a super_lord element then this will be done.
@@ -29,17 +29,17 @@ contains
 !
 ! Input:
 !   lat              -- lat_struct: Lat to modify.
-!   super_ele_in     -- Ele_struct: Element to superimpose.
+!   super_ele_in     -- ele_struct: Element to superimpose.
 !         %s            -- Position of end of element.
 !                          Negative distances mean distance from the end.
-!   ix_branch        -- Integer: Branch index to put element.
-!   save_null_drift  -- Logical, optional: Save a copy of a drift to be split as a null_ele?
+!   ix_branch        -- integer: Branch index to put element.
+!   save_null_drift  -- logical, optional: Save a copy of a drift to be split as a null_ele?
 !                         This is useful if further superpositions might use this drift as a 
 !                         reference element. After all superpositions are done, 
 !                         remove_eles_from_lat can be called to remove all null_eles.
 !                         Default is False.
 !   create_jumbo_slave
-!                   -- Logical, optional: Default is False. If True then super_slaves
+!                   -- logical, optional: Default is False. If True then super_slaves
 !                       that are created that have super_ele_in as their super_lord are
 !                       em_field elements.
 !   ix_insert       -- integer, optional: If present and positive, and super_ele_in has zero length,
@@ -49,12 +49,12 @@ contains
 !
 ! Output:
 !   lat           -- lat_struct: Modified lat.
-!   err_flag      -- Logical :: Set True if there is an error. False otherwise
-!   super_ele_out -- Ele_struct, pointer, optional :: Pointer to the super element in the lattice.
+!   err_flag      -- logical: Set True if there is an error. False otherwise
+!   super_ele_out -- ele_struct, pointer, optional: Pointer to the super element in the lattice.
 !-
 
 subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, &
-                                              save_null_drift, create_jumbo_slave, ix_insert)
+                                                  save_null_drift, create_jumbo_slave, ix_insert)
 
 implicit none
 
@@ -156,7 +156,7 @@ endif
 if (super_saved%value(l$) == 0) then
   super_saved%lord_status  = not_a_lord$
   call split_lat (lat, s1, ix_branch, ix1_split, split1_done, check_sanity = .false., &
-                        save_null_drift = save_null_drift, err_flag = err, ix_insert = ix_insert)
+              save_null_drift = save_null_drift, err_flag = err, ix_insert = ix_insert)
   if (err) return
 
   call insert_element (lat, super_saved, ix1_split+1, ix_branch)
@@ -192,13 +192,13 @@ if (abs(l_super) < 10*bmad_com%significant_length .and. .not. logic_option(.fals
   ds_small = 10 * bmad_com%significant_length
 
   if (branch%ele(ix1_split)%value(l$) > ds_small) then
-    call split_lat (branch%lat, s1-ds_small, branch%ix_branch, ix1_split, split2_done, &
-                                              .false., .false., save_null_drift, err, choose_max = .true.)
+    call split_lat (branch%lat, s1-ds_small, branch%ix_branch, ix1_split, split2_done, .false., &
+                           .false., save_null_drift, err, choose_max = .true.)
     ix2_split = ix2_split + 1
 
   elseif (branch%ele(ix1_split+1)%value(l$) > ds_small) then
-    call split_lat (branch%lat, s1+ds_small, branch%ix_branch, ix2_split, split2_done, &
-                                              .false., .false., save_null_drift, err, choose_max = .false.)
+    call split_lat (branch%lat, s1+ds_small, branch%ix_branch, ix2_split, split2_done, .false., &
+                        .false., save_null_drift, err, choose_max = .false.)
 
   else
     call out_io (s_fatal$, r_name, 'CONFUSED SUPERPOSITION WITH ELEMENT OF SMALL LENGTH!')
@@ -330,17 +330,6 @@ do i = ix1_split+1, ix2_split
   call add_lattice_control_structs (slave, n_add_lord = 1)
   ic = slave%ic1_lord
   lat%ic(ic) = ix
-  !
-  if (allocated(ele_loc_com%branch)) then
-    do ii = lbound(ele_loc_com%branch, 1), ubound(ele_loc_com%branch, 1)
-      do jj = lbound(ele_loc_com%branch(ii)%ele, 1), ubound(ele_loc_com%branch(ii)%ele, 1)
-        loc => ele_loc_com%branch(ii)%ele(jj)
-        if (loc%ix_branch /= branch%ix_branch .or. loc%ix_ele /= slave%ix_ele) cycle
-        loc%ix_branch = lord%ix_branch
-        loc%ix_ele = lord%ix_ele
-      enddo
-    enddo
-  endif
 enddo
 
 ! Now to create the superimposed element super_lord.
@@ -663,7 +652,7 @@ if (logic_option(.false., create_jumbo_slave)) then
 endif
 
 call split_lat (branch%lat, s_here, branch%ix_branch, ix_split, split_done, .false., .false., &
-                                     save_null_drift, err, choose_max = choose_max, ix_insert = ix_insert)
+                             save_null_drift, err, choose_max = choose_max, ix_insert = ix_insert)
 
 end function split_this_lat 
 

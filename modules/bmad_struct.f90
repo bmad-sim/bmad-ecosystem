@@ -1910,19 +1910,6 @@ type (ptc_common_struct), save :: ptc_com
 
 real(rp), parameter :: small_rel_change$ = 1d-14
 
-! Some routines need to keep track of where elements are when elements are added or removed from
-! the lattice. 
-
-type ele_loc_ele_struct
-  type (lat_ele_loc_struct), allocatable :: ele(:)
-end type
-
-type ele_loc_branch_struct
-  type (ele_loc_ele_struct), allocatable :: branch(:)
-end type
-
-type (ele_loc_branch_struct), save, target :: ele_loc_com
-
 ! This structure stores the radiation integrals for an individual element except
 ! lin_norm_emit_a and lin_norm_emit_b are running sums from the beginning of the branch.
 ! See also rad_int_all_ele_struct.

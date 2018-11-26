@@ -13,19 +13,16 @@
 ! Note: Bookkeeping like recalculating s-positions, reference energy, etc. is not done by this routine.
 ! Note: set_flags_for_changed_attribute is called for the inserted element.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
-!     lat          -- lat_struct: lattice that will be modified
-!     insert_ele   -- ele_struct: element to insert into the lat
-!     insert_index -- integer: lat index where the new element is inserted.
-!     ix_branch    -- Integer, optional :: branch index for the insertion. Default = 0.
-!     orbit(:)     -- coord_struct, optional, allocatable: orbit array to enlarge.
+!   lat          -- lat_struct: lattice that will be modified
+!   insert_ele   -- ele_struct: element to insert into the lat
+!   insert_index -- integer: lat index where the new element is inserted.
+!   ix_branch    -- Integer, optional :: branch index for the insertion. Default = 0.
+!   orbit(:)     -- coord_struct, optional, allocatable: orbit array to enlarge.
 !
 ! Output:
-!     lat       -- lat_struct: lattice with new element inserted
-!     orbit(:)  -- coord_struct, optional, allocatable: Enlarged orbit array.
+!   lat       -- lat_struct: lattice with new element inserted
+!   orbit(:)  -- coord_struct, optional, allocatable: Enlarged orbit array.
 !-
 
 subroutine insert_element (lat, insert_ele, insert_index, ix_branch, orbit)
@@ -115,18 +112,6 @@ do ix = 0, ubound(lat%branch, 1)
     if (ele2%ix_ele >= insert_index) ele0%value(ix_to_element$) = ele2%ix_ele + 1
   enddo
 enddo
-
-! 
-
-if (allocated(ele_loc_com%branch)) then
-  do i = lbound(ele_loc_com%branch, 1), ubound(ele_loc_com%branch, 1)
-    do j = lbound(ele_loc_com%branch(i)%ele, 1), ubound(ele_loc_com%branch(i)%ele, 1)
-      loc => ele_loc_com%branch(i)%ele(j)
-      if (loc%ix_branch /= ix_br) cycle
-      if (loc%ix_ele >= insert_index) loc%ix_ele = loc%ix_ele + 1
-    enddo
-  enddo
-endif
 
 call set_flags_for_changed_attribute (inserted_ele)
 

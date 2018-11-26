@@ -21,10 +21,10 @@
 ! Input:
 !   lat            -- lat_struct: Lattice to compress.
 !   check_sanity   -- logical, optional: If True (default) then call lat_sanity_check
-!                       after the remove to make sure everything is ok.
 !
 ! Output:
 !   lat -- lat_struct: Compressed lattice.
+!   ele_all_loc   -- ele_all_location_struct, optional: Used to keep track of which elements move where.
 !-
 
 subroutine remove_eles_from_lat (lat, check_sanity)
@@ -251,17 +251,6 @@ do ib = 0, ubound(lat%branch, 1)
   enddo
 
 enddo
-
-! 
-
-if (allocated(ele_loc_com%branch)) then
-  do i = lbound(ele_loc_com%branch, 1), ubound(ele_loc_com%branch, 1)
-    do j = lbound(ele_loc_com%branch(i)%ele, 1), ubound(ele_loc_com%branch(i)%ele, 1)
-      loc => ele_loc_com%branch(i)%ele(j)
-      loc = ibr(loc%ix_branch)%new(loc%ix_ele)
-    enddo
-  enddo
-endif
 
 ! do a check
 
