@@ -344,6 +344,8 @@ This structure has components
     integer n_bin = 0                 ! Number of bins used
     integer particle_bin_span = 2     ! Longitudinal particle length / dz_bin
     integer n_shield_images = 0       ! Chamber wall shielding. 0 = no shielding.
+    integer ix1_ele_csr = -1          ! Lattice element start index for CSR tracking.
+    integer ix2_ele_csr = -1          ! Lattice element stop index for CSR tracking.
     integer sc_min_in_bin = 10        ! Min number of particle needed to compute sigmas.
     logical lcsr_component_on = T     ! Longitudinal csr component
     logical lsc_component_on = T      ! Longitudinal space charge component
@@ -352,10 +354,13 @@ This structure has components
     logical tsc_component_on = T      ! Transverse space charge component
     logical small_angle_approx = T    ! Use lcsr small angle approximation?
     logical print_taylor_warning = T  ! Print Taylor element warning?
+    logical write_csr_wake = F        ! Write a CSR wake file?
   end type
 \end{example}
 The values for the various quantities shown above are their default values. 
 
+\begin{description}
+\item{ds_track_step} \Newline
 \vn{ds_track_step} is the nominal longitudinal distance traveled by
 the bunch between CSR kicks. The actual distance between kicks within
 a lattice element is adjusted so that there is an integer number of
@@ -363,16 +368,20 @@ steps from steps from the element entrance to the element exit.  This
 parameter must be set to something positive otherwise an error will
 result. Larger values will speed up the calculation at the expense of
 accuracy.
-
+%
+\item{beam_chamber_height} \Newline
 \vn{beam_chamber_height} is the height of the beam chamber in
 meters. This parameter is used when shielding is taken into account.
 See also the description of the parameter \vn{n_shield_images}.
-
+%
+\item{sigma_cutoff} \Newline
 \vn{sigma_cutoff} is used in the longitudinal space charge (LSC)
 calculation and is used to prevent bins with only a few particles in
 them to give a large contribution to the kick when the computed
 transverse sigmas are abnormally low.
 
+%
+\item{n_bin} \Newline
 \vn{n_bin} is the number of bins used. The bind width is dynamically
 adjusted at each kick point so that the bins will span the bunch
 length.  This parameter must be set to something positive. Larger
@@ -381,11 +390,14 @@ inaccuracies and loss of resolution. \vn{n_bin} should also not be set
 so large that the average number of particles in a bin is too small. 
 ``Typical'' values are in the range 100 --- 1000.
 
+%
+\item{particle_bin_span} \Newline
 \vn{particle_bin_span} is the width of a particle's triangular density
 distribution (cf.~\sref{s:csr}) in multiples of the bin width. A
 larger span will give better smoothing of the computed particle
 density with an attendant loss in resolution.
-
+%
+\item{n_shield_images} \Newline
 \vn{n_shield_images} is the number of shielding current layers used in
 the shielding calculation. A value of zero results in no
 shielding. See also the description of the parameter
@@ -393,30 +405,56 @@ shielding. See also the description of the parameter
 upon how strong the shielding is. Larger values give better accuracy
 at the expense of computation speed. ``Typical'' values are in the
 range 0 --- 5.
-
+%
+\item{ix1_ele_csr, ix2_ele_csr} \Newline
+These parameters set the region outside of which CSR effects are not included when tracking.  That
+is, CSR effects are ignored when tracking through a lattice element whose index in the lattice is
+less than \vn{ix1_ele_csr} or whose index is greater than \vn{ix2_ele_csr}. Within the region
+delimited by \vn{ix1_ele_csr} and \vn{ix2_ele_csr}, CSR effects will only be included when tracking
+through a given lattice element if the \vn{csr_calc_on} logical is set for that element. If
+\vn{ix1_ele_csr} is set to -1 (the default) then the region extends to the beginning of the lattice
+and if \vn{ix2_ele_csr} is set to -1 (the default) then the region extends to the end of the lattice.
+%
+\item{sc_min_in_bin} \Newline
 the \vn{sc_min_in_bin} parameter sets the minimum number of particle in a bin needed to
 compute the transverse beam sigmas for that bin. If the number of particles is less than
 this number, the beam sigmas are taken to be equal to the beam sigmas of a nearby bin
 where there are enough particle to compute the sigma. The beam sigmas are needed for the
 CS calculation but not need for the CSR calculation.
 
-\vn{lcsr_component_on} toggles on or off the (longitudinal) CSR kick.  Note: Since \bmad
+%
+\item{lcsr_component_on} \Newline
+The \vn{lcsr_component_on} toggles on or off the (longitudinal) CSR kick. Note: Since \bmad
 uses a ``1-Dimensional'' model for the CSR kick, there is no transverse CSR kick in
 the model.
 
+%
+\item \vn{lsc_component_on} \Newline
 The \vn{lsc_component_on} parameter toggles on or off the longitudinal space charge kick.
 
+%
+\item{tsc_component_on} \Newline
 The \vn{tsc_component_on} parameter toggles on or off the transverse space charge kick.
 
+%
+\item{lsc_kick_transverse_dependence} \Newline
 The \vn{lsc_kick_transverse_dependence} parameter toggles on or off whether the longitudinal
 space charge kick is evaluated along the beam centerline (\vn{lsc_kick_transverse_dependence}
 set to False) or whether the transverse displacement of a particle is used with the calculation
 (\vn{lsc_kick_transverse_dependence} set to True). Simulating the transverse dependence to the
 longitudinal SC kick is more physical but will take more time.
+%
+\item{write_csr_wake} \Newline
+If True (default is False), an output file called \vn{csr_wake.dat} is created that contains a table
+of the CSR wake at each track step (the track step size is set by \vn{ds_track_step}). If tracking is 
+done through multiple lattice elements, the wake tables for the elemnts are appended to the file. This
+file is useful for visualization of the wake.
+\end{description}
+
 
 Note: \vn{Taylor} map elements (\sref{s:taylor}) that have a finite length cannot be
 subdivided for the CSR calculation. \bmad will ignore any \vn{taylor} elements present in
-the lattice but will print a warning that it is doing so. So suppress the warning,
+the lattice but will print a warning that it is doing so. To suppress the warning,
 \vn{print_taylor_warning} should be set to False.
 
 %-----------------------------------------------------------------
