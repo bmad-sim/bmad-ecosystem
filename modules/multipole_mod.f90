@@ -92,7 +92,7 @@ end subroutine multipole1_ab_to_kt
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_ele_to_kt (ele, use_ele_tilt, ix_pole_max, knl, tilt, pole_type)
+! Subroutine multipole_ele_to_kt (ele, use_ele_tilt, ix_pole_max, knl, tilt, pole_type, include_kicks)
 !
 ! Subroutine to put the multipole components (strength and tilt)
 ! into 2 vectors along with the appropriate scaling for the relative tracking charge, etc.
@@ -108,6 +108,11 @@ end subroutine multipole1_ab_to_kt
 !   use_ele_tilt -- Logical: If True then include ele%value(tilt_tot$) in calculations. 
 !                     use_ele_tilt is ignored in the case of multipole$ elements.
 !   pole_type    -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
+!   include_kicks -- integer, optional: Possibilities are: 
+!            no$                      -- Default. Do not include any kick components in a and b multipoles. 
+!            include_kicks$           -- Include hkick/vkick in the n = 0 components.
+!                                           Also included are quad k1, sextupole k2 and octupole k3 components.
+!            include_kicks_except_k1$ -- Like include_kicks$ but no k1 component is included.
 !
 ! Output:
 !   ix_pole_max         -- Integer: Index of largest nonzero pole.
@@ -115,7 +120,7 @@ end subroutine multipole1_ab_to_kt
 !   tilt(0:n_pole_maxx) -- Real(rp): Vector of tilts.
 !-
 
-subroutine multipole_ele_to_kt (ele, use_ele_tilt, ix_pole_max, knl, tilt, pole_type)
+subroutine multipole_ele_to_kt (ele, use_ele_tilt, ix_pole_max, knl, tilt, pole_type, include_kicks)
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
@@ -126,7 +131,7 @@ real(rp) tilt1
 real(rp), pointer :: a_pole(:), b_pole(:)
 
 integer ix_pole_max
-integer, optional :: pole_type
+integer, optional :: pole_type, include_kicks
 integer i, ix_max
 
 logical use_ele_tilt
@@ -144,7 +149,7 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
     lord => pointer_to_lord(ele, i)
     call pointer_to_ele_multipole (lord, a_pole, b_pole, pole_type)
     if (.not. associated(a_pole)) cycle
-    call multipole_ele_to_ab (lord, use_ele_tilt, ix_max, this_a, this_b, pole_type)
+    call multipole_ele_to_ab (lord, use_ele_tilt, ix_max, this_a, this_b, pole_type, include_kicks)
     if (ix_max == -1) cycle
     if (ix_pole_max == -1) then
       a = this_a * (ele%value(l$) / lord%value(l$))
@@ -268,10 +273,10 @@ end subroutine multipole1_kt_to_ab
 !                      use_ele_tilt is ignored in the case of multipole$ elements.
 !   pole_type     -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
 !   include_kicks -- integer, optional: Possibilities are: 
-!                      include_kicks$: Include hkick/vkick in the n = 0 components.
-!                           Also included are quad k1, sextupole k2 and octupole k3 components.
-!                      include_kicks_except_k1$: Like include_kicks$ but no k1 component is included.
-!                      no$: Default. Do not include any kick components in a and b multipoles. 
+!            no$                      -- Default. Do not include any kick components in a and b multipoles. 
+!            include_kicks$           -- Include hkick/vkick in the n = 0 components.
+!                                           Also included are quad k1, sextupole k2 and octupole k3 components.
+!            include_kicks_except_k1$ -- Like include_kicks$ but no k1 component is included.
 !
 ! Output:
 !   ix_pole_max      -- Integer: Index of largest nonzero pole. Set to -1 if all multipoles are zero.
