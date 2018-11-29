@@ -1,7 +1,6 @@
 program make_a_matching_knob
 
   use bmad
-  use make_pseudoinverse_mod
 
   implicit none
 
