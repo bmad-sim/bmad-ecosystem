@@ -324,6 +324,15 @@ function match_wild (string, template) result (is_match)
   character(*) template
 end function
 
+subroutine make_pseudoinverse(A,Ap,svd_condition,print_err,ok)
+  import
+  real(rp) A(:,:)
+  real(rp) Ap(:,:)
+  real(rp), optional :: svd_condition
+  logical, optional :: print_err
+  logical, optional :: ok
+end subroutine
+
 subroutine mat_inverse (mat, mat_inv, ok, print_err)
   import
   real(rp) :: mat(:,:)
