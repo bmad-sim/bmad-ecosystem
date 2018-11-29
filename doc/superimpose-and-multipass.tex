@@ -2,18 +2,15 @@
 \label{c:super.multi}
 
 \index{superposition}\index{multipass}
-This chapter covers two concepts: \vn{superposition} (\sref{s:super})
-and \vn{multipass} (\sref{s:multipass}) \vn{Superposition} is used
-when elements overlap spatially.  \vn{Multipass} is used when an
-element is ``shared'' between branches such as the interaction region
-shared by two storage rings, or when a beam goes through the same
-physical element in a branch multiple times as in an energy recovery
-linac.
+This chapter covers two concepts: \vn{superposition} (\sref{s:super}) and \vn{multipass}
+(\sref{s:multipass}) \vn{Superposition} is used when elements overlap spatially.  \vn{Multipass} is
+used when an element is ``shared'' between branches such as the interaction region shared by two
+storage rings, or when a beam goes through the same physical element in a branch multiple times as
+in an energy recovery linac.
 
-In both cases, \vn{lord} and \vn{slave} elements (\sref{s:lord.slave})
-are constructed by \bmad to hold the necessary information. In both
-cases, the \vn{lord} elements will represent the ``physical'' element
-while the \vn{slave} elements will embody the ``beam path''.
+In both cases, \vn{lord} and \vn{slave} elements (\sref{s:lord.slave}) are constructed by \bmad to
+hold the necessary information. In both cases, the \vn{lord} elements will represent the
+``physical'' element while the \vn{slave} elements will embody the ``beam path''.
 
 %-----------------------------------------------------------------------------
 \section{Superposition}
@@ -33,12 +30,10 @@ space where elements overlap.}
   \label{f:super.ex}
   \end{figure}
 
-In practice the field at a particular point in the lattice may be due
-to more than one physical element. One example of this is a quadrupole
-magnet inside a larger solenoid magnet as shown in
-\fig{f:super.ex}A. \bmad has a mechanism to handle this using what is
-called ``superposition''. A simple example shows how this works (also
-see section \sref{s:lord.slave}):
+In practice the field at a particular point in the lattice may be due to more than one physical
+element. One example of this is a quadrupole magnet inside a larger solenoid magnet as shown in
+\fig{f:super.ex}A. \bmad has a mechanism to handle this using what is called ``superposition''. A
+simple example shows how this works (also see section \sref{s:lord.slave}):
 \begin{example}
   Q: quad, l = 4
   D: drift, l = 12
@@ -459,22 +454,22 @@ will have two \vn{RF1} elements in the tracking part of the lattice:
 \begin{example}
   RF1\B1, ..., RF1\B2, ...
 \end{example}
-Since the two elements are derived from a \vn{multipass} line, they
-are given unique names by adding a \vn{{\B}n} suffix. These types of
-elements are known as \vn{multipass_slave} elements. In addition, to
-the \vn{multipass_slave} elements, there is a \vn{multipass_lord}
-element (that doesn't get tracked through) called \vn{RF1} in the lord
-part of the lattice (\sref{s:lord.slave}).  Changes to attributes of
-the lord \vn{RF1} element will be passed to the slave elements by
-\bmad's bookkeeping routines. Assuming that the phase of \vn{RF1\B1}
-gives acceleration, to make \vn{RF1\B2} decelerate the
-\vn{phi0_multipass} attribute of \vn{RF1\B2} is set to 0.5. This is
-the one attribute that \bmad's bookkeeping routines will not touch
-when transferring attribute values from \vn{RF1} to its slaves. Notice
-that the \vn{phi0_multipass} attribute had to be set after
-\vn{expand_lattice} (\sref{s:expand}) is used to expand the lattice
-since \bmad does immediate evaluation and \vn{RF1\B2} does not exist
-before the lattice is expanded.
+Since the two elements are derived from a \vn{multipass} line, they are given unique names by adding
+a \vn{{\B}n} suffix. These types of elements are known as \vn{multipass_slave} elements. In
+addition, to the \vn{multipass_slave} elements, there is a \vn{multipass_lord} element (that doesn't
+get tracked through) called \vn{RF1} in the lord part of the lattice (\sref{s:lord.slave}).  Changes
+to attributes of the lord \vn{RF1} element will be passed to the slave elements by \bmad's
+bookkeeping routines. Assuming that the phase of \vn{RF1\B1} gives acceleration, to make \vn{RF1\B2}
+decelerate the \vn{phi0_multipass} attribute of \vn{RF1\B2} is set to 0.5. This is the one attribute
+that \bmad's bookkeeping routines will not touch when transferring attribute values from \vn{RF1} to
+its slaves. Notice that the \vn{phi0_multipass} attribute had to be set after \vn{expand_lattice}
+(\sref{s:expand}) is used to expand the lattice. This is true since \bmad does immediate evaluation and
+\vn{RF1\B2} does not exist before the lattice is expanded. \vn{Phi0_multipass} is useful with
+relative time tracking \sref{s:rf.time}. However, \vn{phi0_multipass} is ``unphysical'' and is just
+a convienient way to shift the phase pass-to-pass through a given cavity. To ``correctly'' simulate
+the recirculating beam, absolute time tracking should be used and the length of the lattice from a
+cavity back to itself needs to be properly adjusted to get the desired phase advance. See the discussion
+in section~\sref{s:rf.time}.
 
 Multiple elements of the same name in a multipass line are considered 
 physically distinct. Example:

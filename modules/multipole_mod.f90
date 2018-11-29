@@ -164,14 +164,13 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
 ! Not a slave
 
 else
-  if (.not. associated(a_pole)) return
   if (ele%key == multipole$) then
     knl  = a_pole
     tilt = b_pole + ele%value(tilt_tot$)
     ix_pole_max = max_nonzero(0, knl)
     return
   else
-    call multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type)
+    call multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks)
   endif
 endif
 
