@@ -2480,13 +2480,14 @@ where the total gradient is
 The phase $\phi_{\text{ref}}$ is
 \begin{example}
   \(\phi_{\text{ref}}\) = phi0 + phi0_multipass + phi0_err + phi0_autoscale
+  \label{lcav.phi}
 \end{example}
 and $\phi_t$ is the part of the phase due to when the particle arrives
 at the cavity and depends upon whether \vn{absolute time tracking} or 
 \vn{relative time tracking} as discussed in \sref{s:rf.time}.
 
-\vn{phi0_multipass} is only to be used to shift the phase with respect to a
-\vn{multipass} lord. See \sref{s:multipass}.
+\vn{phi0_multipass} is only to be used with multipass to shift the phase of the cavity from pass to
+pass. See \sref{s:multipass}.
 
 \vn{phi0_autoscale} and \vn{field_autoscale} are calculated by \bmad's auto-scale
 module. See Section~\sref{s:autoscale} for more details. Autoscaling can be toggled on/off
@@ -3683,6 +3684,7 @@ The \vn{phi0} attribute here is identical to the \vn{lag} attribute of
 where
 \begin{example}
   \(\phi_\text{ref}\) = phi0 + phi0_multipass + phi0_autoscale
+  \label{rfcav.phi}
 \end{example}
 and $\phi_t$ is the part of the phase due to when the particle arrives
 at the cavity and depends upon whether \vn{absolute time tracking} or 

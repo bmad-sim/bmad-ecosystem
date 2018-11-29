@@ -619,12 +619,16 @@ The methods that do not involve Taylor maps are
 there are a number of element attributes that can affect the
 calculation. They are
 \begin{example}
-  ds_step = <Real>              ! Integration step length
-  num_steps = <Integer>         ! Number of integration steps.
-  integrator_order = <Integer>  ! Integrator order
-  field_calc = <Switch>         ! How the field is calculated
+  ds_step = <Real>              ! Integration step length (\sref{s:ds.step})
+  num_steps = <Integer>         ! Number of integration steps. (\sref{s:ds.step})
+  integrator_order = <Integer>  ! Integrator order (\sref{s:ptc.integ})
+  field_calc = <Switch>         ! How the field is calculated (\sef{s:field.calc})
   csr_calc_on = <Logical>       ! Coherent Synchrotron Radiation on/off.
 \end{example}
+
+The \vn{csr_calc_on} switch toggles on/off Coherent Synchrotron Radiation effects.  The default is
+True. CSR effects are only present if the program that is being run is setup to track bunches of
+particles (as opposed to single particle tracking).
 
 Example:
 \begin{example}
@@ -632,7 +636,11 @@ Example:
         mat6_calc_method = symp_lie_ptc, ds_step = 0.2, field_calc = custom
 \end{example}
 
+%-----------------------------------------------------------------
+\subsection{ds_step and num_steps Parameters}
+\label{s:ds.step}
 \index{ds_step}\index{num_steps}
+
 \index{taylor}\index{symp_lie_ptc}\index{symp_lie_bmad}
 \index{runge_kutta}\index{boris}
 One way to create a transfer map through an element is to divide the
@@ -647,23 +655,6 @@ Alternatively, \vn{num_steps} attribute can be used in place of
 \vn{ds_step} to specify the number of slices.
 This is applicable to \vn{Boris}, \vn{symp_lie_bmad}, and
 \vn{symp_lie_ptc} integration.
-
-\index{integrator_order}
-\index{ds_step}\index{symp_lie_bmad}
-\vn{integrator_order} is the order of the integration formula for 
-\vn{Symp_Lie_PTC}. Possible values are
-\begin{example}
-  integrator_order = 2 (default), 4, or 6
-\end{example}
-Essentially, an integration order of $n$ means that the error in an
-integration step scales as $dz^{n+1}$ where $dz$ is the slice
-thickness.  For a given number of steps a higher order will give more
-accurate results but a higher order integrator will take more time per
-step. It turns out that for wigglers, after adjusting \vn{ds_step}
-for a given accuracy, the order 2 integrator is the fastest. This is
-not surprising given the highly nonlinear nature of a wiggler. Note
-that \vn{symp_lie_bmad} always uses an order 2 integrator
-independent of the setting of \vn{integrator_order}.
 
 \index{ds_step}
 \index{runge_kutta}\index{time_runge_kutta}
@@ -683,25 +674,38 @@ The estimated error of the integration is then bounded by
 lowering the error bounds makes for greater accuracy (as long as round-off 
 doesn't hurt) but for slower tracking. 
 
-\index{field_calc}\index{runge_kutta}\index{boris}
-The \vn{boris}, and \vn{runge_kutta} tracking all use
-as input the electric and magnetic fields of an element. How the EM fields
-are calculated is determined by the \vn{field_calc} attribute for an element.
-Possible values for \vn{field_calc} are:
+%-----------------------------------------------------------------
+\subsection{Field_calc Parameter}
+\label{s:field.calc}
+\index{field_calc}
+
+\index{runge_kutta}\index{boris}
+The \vn{boris}, and \vn{runge_kutta} tracking all use as input the electric and magnetic fields of
+an element. How the EM fields are calculated is determined by the \vn{field_calc} attribute for an
+element.  For all lattice elements, except \vn{wigglers} and \vn{undulators}, possible values for
+\vn{field_calc} are:
 \begin{example}
   bmad_standard     ! This is the default
   custom
   fieldmap
 \end{example}
+For \vn{wigglers} and \vn{undulators}, possible values for
+\vn{field_calc} are:
+\begin{example}
+  planer_model     ! This is the default
+  helical_model
+  custom
+  fieldmap
+\end{example}
 \index{custom}\index{runge_kutta}
-\vn{Custom} means that the field calculations are done outside of the \bmad software. A program
-doing \vn{custom} field calculations will need the appropriate custom routine
-(\sref{s:custom.ele}). Elements that set \vn{field_calc} to \vn{fieldmap} need to have a field map
-defined (\sref{s:fieldmap}).
+Note that with \vn{bmad_standard} tracking, the setting of \vn{field_calc} is ignored except in the
+case of \vn{wigglers} and \vn{undulators} where \vn{field_calc} must be set to either
+\vn{planer_model} or \vn{helical_model}.
 
-The \vn{csr_calc_on} switch toggles on/off Coherent Synchrotron Radiation effects.  The default is
-True. CSR effects are only present if the program that is being run is setup to track bunches of
-particles (as opposed to single particle tracking).
+\vn{Custom} means that the field calculations are done outside of the \bmad software. A program
+doing \vn{custom} field calculations will need the appropriate custom routine (\sref{s:custom.ele}).
+Elements that set \vn{field_calc} to \vn{fieldmap} need to have a field map defined
+(\sref{s:fieldmap}).
 
 \vn{Warning:} When tracking a particle through a custom field using \vn{runge_kutta}, it is
 important that the field obey Maxwell's equations. Fields that do not obey Maxwell's Equations may
@@ -714,20 +718,43 @@ can fool the control algorithm into thinking that the error is always larger tha
 tolerance for any finite step size. A typical situation is where the field has an unphysical step
 across some boundary.
 
+%-----------------------------------------------------------------
+\subsection{Boris Integration}
+\label{s:boris.integ}
+\index{boris integration}
+
 \index{boris}
-The phase space coordinates used with \vn{boris} tracking are not the
-standard \bmad coordinates. Rather what is used is
+The phase space coordinates used with \vn{boris} tracking are not the standard \bmad
+coordinates. Rather what is used is
 \begin{example}
     (x, p_x/p_0, y, p_y/p_0, s-ct, dE/(cP_0))
 \end{example}
-At high energy $s-ct = z$ which is the distance of the particle from
-the reference particle and $c \, P_0 = v \, E_0/C = E_0$ so that
-$dE/cP_0 = dE/E$ giving the standard \bmad coordinates.
+At high energy $s-ct = z$ which is the distance of the particle from the reference particle and $c
+\, P_0 = v \, E_0/C = E_0$ so that $dE/cP_0 = dE/E$ giving the standard \bmad coordinates.
+
+%-----------------------------------------------------------------
+\subsection{PTC Integration}
+\label{s:ptc.integ}
+\index{PTC integration}
+
+\index{integrator_order}
+\index{ds_step}\index{symp_lie_bmad}
+The \vn{integrator_order} element attribute is the order of the integration formula for
+\vn{Symp_Lie_PTC}. Possible values are
+\begin{example}
+  integrator_order = 2 (default), 4, or 6
+\end{example}
+Essentially, an integration order of $n$ means that the error in an integration step scales as
+$dz^{n+1}$ where $dz$ is the slice thickness.  For a given number of steps a higher order will give
+more accurate results but a higher order integrator will take more time per step. It turns out that
+for wigglers, after adjusting \vn{ds_step} for a given accuracy, the order 2 integrator is the
+fastest. This is not surprising given the highly nonlinear nature of a wiggler. Note that
+\vn{symp_lie_bmad} always uses an order 2 integrator independent of the setting of
+\vn{integrator_order}.
 
 \index{ptc_exact_model}\index{ptc_exact_misalign}
-When tracking uses the \vn{PTC} library (\sref{s:ptc.intro}), there are two
-global parameters that can be set in the lattice file that affect the
-calculation. These are:
+When tracking uses the \vn{PTC} library (\sref{s:ptc.intro}), there are two global parameters that
+can be set in the lattice file that affect the calculation. These are:
 \begin{example}
   parameter[ptc_exact_model]        = <Logical>  ! "exact" tracking? Default: False
   parameter[ptc_exact_misalignment] = <Logical>  ! "exactly" misalign elements? 
@@ -737,24 +764,21 @@ The default for \vn{ptc_exact_model} is \vn{False} and the default for
 \vn{ptc_exact_misalignment} is \vn{True}. 
 
 The \vn{ptc_exact_model} parameter sets whether PTC uses an ``exact'' model for
-tracking. Essentially this means that the paraxial approximation
-(\sref{s:mag.hamiltonian}) is made for \vn{ptc_exact_model} set to \vn{False} and is not
-made if set to \vn{True}. This can be important, for example, for bend tracking when the
-bend radius is small. 
+tracking. Essentially this means that the paraxial approximation (\sref{s:mag.hamiltonian}) is made
+for \vn{ptc_exact_model} set to \vn{False} and is not made if set to \vn{True}. This can be
+important, for example, for bend tracking when the bend radius is small.
 
-In PTC, exact modeling can be set on an element-by-element basis. Currently \bmad does
-not support specifying element-by-element setting of exact modeling. However, PTC does
-not have a non-exact tracking option for elements that have an electric field. In this
-case, PTC tracking will always be exact independent of the setting of \vn{ptc_exact_model}.
-Additionally, for elements with an electric field, tracking will not be symplectic.
+In PTC, exact modeling can be set on an element-by-element basis. Currently \bmad does not support
+specifying element-by-element setting of exact modeling. However, PTC does not have a non-exact
+tracking option for elements that have an electric field. In this case, PTC tracking will always be
+exact independent of the setting of \vn{ptc_exact_model}.  Additionally, for elements with an
+electric field, tracking will not be symplectic.
 
-The \vn{ptc_exact_misalignment} parameter determines whether
-misalignments are handled exactly or whether approximations are made
-that will speed up the calculation.
+The \vn{ptc_exact_misalignment} parameter determines whether misalignments are handled exactly or
+whether approximations are made that will speed up the calculation.
 
-In addition to the above parameters, how the Hamiltonian is split when
-tracking with \vn{PTC} can be set for individual elements using the
-\vn{ptc_integration_type} parameter. Possible settings of this
+In addition to the above parameters, how the Hamiltonian is split when tracking with \vn{PTC} can be
+set for individual elements using the \vn{ptc_integration_type} parameter. Possible settings of this
 parameter are
 \begin{example}
   drift_kick    ! See Eq.~(125) of \cite{b:geo.int}
@@ -765,16 +789,15 @@ Example:
 \begin{example}
   q2: quad, l = 0.6, k1 = 0.34, ptc_integration_type = drift_kick
 \end{example}
-A discussion of the different types of integration schemes is given by
-Forest\cite{b:geo.int}. The equation that shows the appropriate splitting of the
-Hamiltonian for each integration type is referenced in the above list. The
-\vn{ripken_kick} type is for benchmarking with the \vn{SixTrack} program and is not
-otherwise generally useful. The difference between \vn{drift_kick} and \vn{matrix_kick} is
-that with \vn{drift_kick} the quadrupolar part of the magnetic multipole is is included in
-the applied kick between drifts while in the \vn{matrix_kick} method the quadrupolar
-component is used for the ``matrix'' tracking between kicks. With the
-\vn{matrix_kick} method the tune of a machine tends to be insensitive to how many
-integration steps (set by \vn{ds_step} or \vn{n_steps}) are used. 
+A discussion of the different types of integration schemes is given by Forest\cite{b:geo.int}. The
+equation that shows the appropriate splitting of the Hamiltonian for each integration type is
+referenced in the above list. The \vn{ripken_kick} type is for benchmarking with the \vn{SixTrack}
+program and is not otherwise generally useful. The difference between \vn{drift_kick} and
+\vn{matrix_kick} is that with \vn{drift_kick} the quadrupolar part of the magnetic multipole is is
+included in the applied kick between drifts while in the \vn{matrix_kick} method the quadrupolar
+component is used for the ``matrix'' tracking between kicks. With the \vn{matrix_kick} method the
+tune of a machine tends to be insensitive to how many integration steps (set by \vn{ds_step} or
+\vn{n_steps}) are used.
 
 PTC does not implement \vn{matrix_kick} tracking for elements with an electric field.  In
 this case, the setting of \vn{ptc_integration_type} is ignored and tracking will be
