@@ -397,10 +397,12 @@ end subroutine
 !   lat                -- lat_struct: lattice with Twiss parameters calculated.
 !   n_slices_gen_opt   -- integer, optional: number of times to slice elements other than sextupoles.  Default is 10.
 !   n_slices_sext_opt  -- integer, optional: nubmer of times to slice sextupoles.  Default is 20.
+!   chrom_set_x_opt    -- real(rp), optional: what to set x chromaticity to.  Default zero.
+!   chrom_set_y_opt    -- real(rp), optional: what to set y chromaticity to.  Default zero.
 ! Output:
 !   ls_soln(1:n_ele_track)  -- real(rp): contains K2 for 
 !-
-subroutine srdt_lsq_solution(lat, ls_soln, n_slices_sext_opt, n_slices_gen_opt)
+subroutine srdt_lsq_solution(lat, ls_soln, n_slices_sext_opt, n_slices_gen_opt, chrom_set_x_opt, chrom_set_y_opt)
 
   implicit none
 
@@ -408,6 +410,7 @@ subroutine srdt_lsq_solution(lat, ls_soln, n_slices_sext_opt, n_slices_gen_opt)
   real(rp) ls_soln(:)
   integer, optional :: n_slices_sext_opt
   integer, optional :: n_slices_gen_opt
+  real(rp), optional :: chrom_set_x_opt, chrom_set_y_opt
 
   type(sliced_eles_struct), allocatable :: eles(:)
   type(sliced_eles_struct), allocatable :: K2eles(:)
@@ -418,6 +421,7 @@ subroutine srdt_lsq_solution(lat, ls_soln, n_slices_sext_opt, n_slices_gen_opt)
   real(rp), allocatable :: A(:,:), Ap(:,:)
   real(rp) B(18)
   real(rp), allocatable :: ls_soln_sliced(:)
+  real(rp) chrom_set_x, chrom_set_y
 
   logical, allocatable :: mask(:)
 
@@ -426,6 +430,8 @@ subroutine srdt_lsq_solution(lat, ls_soln, n_slices_sext_opt, n_slices_gen_opt)
  
   n_slices_gen = integer_option(10, n_slices_gen_opt)
   n_slices_sext = integer_option(20, n_slices_sext_opt)
+  chrom_set_x = real_option(0.0d0, chrom_set_x_opt)
+  chrom_set_y = real_option(0.0d0, chrom_set_y_opt)
 
   call make_slices(lat, eles, n_slices_gen, n_slices_sext)
   w = size(eles)
@@ -482,8 +488,8 @@ subroutine srdt_lsq_solution(lat, ls_soln, n_slices_sext_opt, n_slices_gen_opt)
   enddo
   call make_pseudoinverse(A,Ap)
   B(:) = 0.0d0
-  B(1) = -4.0+sum(eles(:)%k1l*eles(:)%beta_a)
-  B(2) = 4.0-sum(-eles(:)%k1l*eles(:)%beta_b)
+  B(1) = -chrom_set_x+sum(eles(:)%k1l*eles(:)%beta_a)
+  B(2) = chrom_set_y-sum(-eles(:)%k1l*eles(:)%beta_b)
   B(3) = sum(real(eles(:)%k1l*eles(:)%beta_a*eles(:)%e2a))
   B(4) = sum(aimag(eles(:)%k1l*eles(:)%beta_a*eles(:)%e2a))
   B(5) = sum(real(-eles(:)%k1l*eles(:)%beta_b*eles(:)%e2b))
