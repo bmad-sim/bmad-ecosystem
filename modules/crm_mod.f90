@@ -35,7 +35,6 @@ contains
     use bmad
     use bmad_routine_interface
     use f95_lapack
-    use make_pseudoinverse_mod
 
     implicit none
 
