@@ -290,92 +290,83 @@ subroutine make_slices(lat,eles,n_slices_gen,n_slices_sext)
 
   integer i, j, w
   integer ns, pass
+  integer ix_pole_max
 
-  logical good_ele, good_k2
+  logical good_k2
 
-  real(rp) k2l, k1, k2, slice_len, sj
+  real(rp) k2l, k1l, k1, k2, slice_len, sj
+  real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 
   do pass=1,2
     w = 0
     do i=1,lat%n_ele_track
-      if( lat%ele(i)%key == wiggler$ ) cycle
-      if( lat%ele(i)%key == multipole$ ) then
-        if(attribute_index(lat%ele(i),'K2L') /= 0) then
-          if(abs(value_of_attribute(lat%ele(i),'K2L')) > 1e-8 .and. value_of_attribute(lat%ele(i), 'K2L') /= real_garbage$) then
+      call multipole_ele_to_kt(lat%ele(i), .true., ix_pole_max, knl, tilt, magnetic$, include_kicks$)
+      if(ix_pole_max .ge. 1) then
+        k1l = knl(1)
+        if(ix_pole_max .ge. 2) then
+          k2l = knl(2) / 2.0  ! Convention shown in Eqn. 8 of Bengsston paper: moments divided by n.
+          good_k2 = .true.
+        else
+          k2l = 0.0
+          good_k2 = .false.
+        endif
+
+        if( lat%ele(i)%key == multipole$ ) then
+          w = w + 1
+          if(pass == 2) then
+            eles(w)%k2l = k2l
+            eles(w)%k1l = k1l
+            eles(w)%ix = i
+            eles(w)%good_k2 = good_k2
+            eles(w)%l = -1  !zero length
+            eles(w)%s = lat%ele(i)%s
+            eles(w)%eta_a  = lat%ele(i)%a%eta
+            eles(w)%beta_a = lat%ele(i)%a%beta
+            eles(w)%beta_b = lat%ele(i)%b%beta
+            eles(w)%phi_a  = lat%ele(i)%a%phi
+            eles(w)%phi_b  = lat%ele(i)%b%phi
+            eles(w)%ea = exp(i_imag*lat%ele(i)%a%phi)
+            eles(w)%eb = exp(i_imag*lat%ele(i)%b%phi)
+            eles(w)%e2a = exp(i_imag*2.0d0*lat%ele(i)%a%phi)
+            eles(w)%e2b = exp(i_imag*2.0d0*lat%ele(i)%b%phi)
+            eles(w)%e3a = exp(i_imag*3.0d0*lat%ele(i)%a%phi)
+          endif
+        else
+          k1 = k1l / lat%ele(i)%value(l$)
+          k2 = k2l / lat%ele(i)%value(l$)
+          if (lat%ele(i)%key == sextupole$) then
+            ns = n_slices_sext
+          else
+            ns = n_slices_gen
+          endif
+          slice_len = lat%ele(i)%value(l$) / ns
+          do j = 1, ns
             w = w + 1
             if(pass == 2) then
-              k2l = value_of_attribute(lat%ele(i),'K2L')
-              k2l = k2l / 2.0  ! Convention shown in Eqn. 8 of Bengsston paper: moments divided by n.
-              eles(w)%ix = i
-              eles(w)%good_k2 = .true.
-              eles(w)%k1l = 0.0d0
-              eles(w)%k2l = k2l
-              eles(w)%l = -1
-              eles(w)%s = lat%ele(i)%s
-              eles(w)%eta_a  = lat%ele(i)%a%eta
-              eles(w)%beta_a = lat%ele(i)%a%beta
-              eles(w)%beta_b = lat%ele(i)%b%beta
-              eles(w)%phi_a  = lat%ele(i)%a%phi
-              eles(w)%phi_b  = lat%ele(i)%b%phi
-              eles(w)%ea = exp(i_imag*lat%ele(i)%a%phi)
-              eles(w)%eb = exp(i_imag*lat%ele(i)%b%phi)
-              eles(w)%e2a = exp(i_imag*2.0d0*lat%ele(i)%a%phi)
-              eles(w)%e2b = exp(i_imag*2.0d0*lat%ele(i)%b%phi)
-              eles(w)%e3a = exp(i_imag*3.0d0*lat%ele(i)%a%phi)
-            endif
-          endif
-        endif
-      elseif(value_of_attribute(lat%ele(i), 'l')  >  1e-6) then
-        good_ele = .false.
-        good_k2 = .false.
-        if(attribute_index(lat%ele(i),'K1')/=0 .or. attribute_index(lat%ele(i),'K2')/=0) then
-          k1 = 0.0d0
-          k2 = 0.0d0
-          if(abs(value_of_attribute(lat%ele(i),'K1')) > 1e-8 .and. value_of_attribute(lat%ele(i), 'K1') /= real_garbage$) then
-            k1 = value_of_attribute(lat%ele(i),'K1')
-            good_ele = .true.
-          endif
-          if(abs(value_of_attribute(lat%ele(i),'K2')) > 1d-8 .and. value_of_attribute(lat%ele(i), 'K2') /= real_garbage$) then
-            k2 = value_of_attribute(lat%ele(i),'K2')
-            good_ele = .true.
-            good_k2 = .true.
-          endif
-          if(good_ele) then
-            k2 = k2 / 2.0  ! Convention shown in Eqn. 8 of Bengsston paper: moments divided by n.
-            if (lat%ele(i)%key == sextupole$) then
-              ns = n_slices_sext
-            else
-              ns = n_slices_gen
-            endif
-            slice_len = lat%ele(i)%value(l$) / ns
-            do j = 1, ns
-              w = w + 1
-              if(pass == 2) then
-                if(i > 1) then
-                  sj = lat%ele(i-1)%s + slice_len*j
-                else
-                  sj = slice_len*j
-                endif
-                call twiss_and_track_at_s(lat,sj,elei,co)
-                eles(w)%ix = i
-                eles(w)%good_k2 = good_k2
-                eles(w)%k1l = k1 * slice_len
-                eles(w)%k2l = k2 * slice_len
-                eles(w)%l = slice_len
-                eles(w)%s = sj
-                eles(w)%eta_a = elei%a%eta
-                eles(w)%beta_a =elei%a%beta
-                eles(w)%beta_b =elei%b%beta
-                eles(w)%phi_a = elei%a%phi
-                eles(w)%phi_b = elei%b%phi
-                eles(w)%ea = exp(i_imag*elei%a%phi)
-                eles(w)%eb = exp(i_imag*elei%b%phi)
-                eles(w)%e2a = exp(i_imag*2.0d0*elei%a%phi)
-                eles(w)%e2b = exp(i_imag*2.0d0*elei%b%phi)
-                eles(w)%e3a = exp(i_imag*3.0d0*elei%a%phi)
+              if(i > 1) then
+                sj = lat%ele(i-1)%s + slice_len*j
+              else
+                sj = slice_len*j
               endif
-            enddo
-          endif
+              call twiss_and_track_at_s(lat,sj,elei,co)
+              eles(w)%k2l = k2 * slice_len
+              eles(w)%k1l = k1 * slice_len
+              eles(w)%ix = i
+              eles(w)%good_k2 = good_k2
+              eles(w)%l = slice_len
+              eles(w)%s = sj
+              eles(w)%eta_a = elei%a%eta
+              eles(w)%beta_a =elei%a%beta
+              eles(w)%beta_b =elei%b%beta
+              eles(w)%phi_a = elei%a%phi
+              eles(w)%phi_b = elei%b%phi
+              eles(w)%ea = exp(i_imag*elei%a%phi)
+              eles(w)%eb = exp(i_imag*elei%b%phi)
+              eles(w)%e2a = exp(i_imag*2.0d0*elei%a%phi)
+              eles(w)%e2b = exp(i_imag*2.0d0*elei%b%phi)
+              eles(w)%e3a = exp(i_imag*3.0d0*elei%a%phi)
+            endif
+          enddo
         endif
       endif
     enddo
@@ -460,6 +451,7 @@ subroutine srdt_lsq_solution(lat, ls_soln, n_slices_sext_opt, n_slices_gen_opt, 
   allocate(ls_soln_sliced(nmag))
   allocate(mask(nmag))
   allocate(mags(nmag))
+
   j=0
   do i=1,size(ls_soln)
     mask = k2eles(:)%ix==i
