@@ -100,17 +100,16 @@ if (ubound(lat%ele, 1) < n_max + n_def_ele) call allocate_lat_ele_array(lat, n_m
 ele => lat%ele(n_max+1)
 call init_ele(ele, def_mad_beam$, 0, n_max+1, lat%branch(0))
 ele%name = 'BEAM'              ! For MAD compatibility.
-ele%value(n_part$)     = lat%param%n_part
-ele%value(particle$)   = lat%param%particle
+ele%value(n_part$)     = real_garbage$
+ele%value(particle$)   = real_garbage$
 ele%ixx = 1                    ! Pointer to plat%ele() array
 
 ele => lat%ele(n_max+2)
 call init_ele (ele, def_parameter$, 0, n_max+2, lat%branch(0))
 ele%name = 'PARAMETER'
-ele%value(geometry$)     = lat%param%geometry
-ele%value(live_branch$)  = logic_to_int(lat%param%live_branch)
-ele%value(n_part$)       = lat%param%n_part
-ele%value(particle$)     = lat%param%particle
+ele%value(n_part$)       = real_garbage$
+ele%value(particle$)     = real_garbage$
+ele%value(ix_branch$)    = -1
 ele%ixx = 2                    ! Pointer to plat%ele() array
 
 ele => lat%ele(n_max+3)
@@ -132,6 +131,7 @@ do i = 0, ubound(lat%branch, 1)
   ele => lat%ele(n_max+6+i)
   call init_ele(ele, line_ele$, 0, n_max+6+i, lat%branch(0))
   ele%name = lat%branch(i)%name
+  ele%value(ix_branch$) = i
   ele%ixx = 6 + i
 enddo
 
@@ -532,6 +532,8 @@ enddo parsing_loop
 
 bp_com%input_line_meaningful = .false.
 
+lat%input_taylor_order = bmad_com%taylor_order
+
 call lat_ele_locator ('BEAM', lat, eles, n_loc, err)
 if (n_loc /= 1 .or. err) call err_exit
 mad_beam_ele => eles(1)%ele
@@ -539,9 +541,13 @@ call lat_ele_locator ('PARAMETER', lat, eles, n_loc, err)
 if (n_loc /= 1 .or. err) call err_exit
 param_ele => eles(1)%ele
 
-lat%param%geometry = nint(param_ele%value(geometry$))
-lat%param%live_branch = is_true(param_ele%value(live_branch$))
-lat%input_taylor_order = bmad_com%taylor_order
+if (param_ele%value(geometry$) /= real_garbage$)    lat%param%geometry = nint(param_ele%value(geometry$))
+if (param_ele%value(live_branch$) /= real_garbage$) lat%param%live_branch = is_true(param_ele%value(live_branch$))
+if (param_ele%value(default_tracking_species$) /= real_garbage$) &
+                      lat%param%default_tracking_species = nint(param_ele%value(default_tracking_species$))
+
+if (mad_beam_ele%value(particle$) /= real_garbage$)  lat%param%particle = nint(mad_beam_ele%value(particle$))
+if (param_ele%value(particle$) /= real_garbage$)     lat%param%particle = nint(param_ele%value(particle$))
 
 if (associated(param_ele%descrip)) then
   lat%lattice = param_ele%descrip
@@ -558,23 +564,8 @@ do i = 0, ubound(lat%branch, 1)
   endif
 enddo
 
-
-v1 = param_ele%value(n_part$)
-v2 = mad_beam_ele%value(n_part$)
-if (lat%param%n_part /= v1 .and. lat%param%n_part /= v2) then
-  call parser_error ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
-else if (v1 /= lat%param%n_part) then
-  lat%param%n_part = v1
-else
-  lat%param%n_part = v2
-endif
-
-ix1 = nint(param_ele%value(particle$))
-ix2 = nint(mad_beam_ele%value(particle$))
-if (ix1 /= lat%param%particle .and. ix2 /= lat%param%particle) &
-        call parser_error ('BOTH "PARAMETER[PARTICLE]" AND "BEAM, PARTICLE" SET.')
-lat%param%particle = ix1
-if (ix2 /=  lat%param%particle) lat%param%particle = ix2
+if (mad_beam_ele%value(n_part$) /= real_garbage$)  lat%param%n_part = mad_beam_ele%value(n_part$)
+if (param_ele%value(n_part$) /= real_garbage$)     lat%param%n_part = param_ele%value(n_part$)
 
 ! Transfer the new elements to a safe_place and reset lat%n_max
 

@@ -87,6 +87,7 @@ case (def_parameter$)
   ele%value(live_branch$) = real_garbage$
   ele%value(particle$) = positron$
   ele%value(default_tracking_species$) = real_garbage$
+  ele%value(ix_branch$) = -1
 
 case (detector$)
   ele%aperture_type = auto_aperture$
@@ -155,6 +156,7 @@ case (line_ele$)
   ele%value(default_tracking_species$) = real_garbage$
   ele%value(e_tot$) = -1
   ele%value(p0c$) = -1
+  ele%value(ix_branch$) = -1
 
 case (mask$)
   ele%aperture_at = surface$

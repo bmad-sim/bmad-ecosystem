@@ -178,6 +178,9 @@ endif
 
 if (ix_pole_max > -1) then
   call multipole_ab_to_kt (a, b, knl, tilt)
+else
+  knl = 0
+  tilt = 0
 endif
 
 end subroutine multipole_ele_to_kt
