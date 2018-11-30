@@ -1347,8 +1347,6 @@ logical has_kick_attributes(n_key$)
 
 ! Element attribute name logical definitions
 
-integer, parameter :: n_part$ = 2, taylor_order$ = 3
-
 integer, parameter :: val1$=11, val2$=12, val3$=13, val4$=14, val5$=15, &
           val6$=16, val7$=17, val8$=18, val9$=19, val10$=20, val11$=21, &
           val12$=22
@@ -1379,14 +1377,14 @@ integer, parameter :: fint$ = 21, fintx$ = 22, hgap$ = 23, hgapx$ = 24, h1$ = 25
 integer, parameter :: radius$ = 3, transmission_coef$ = 4, focal_strength$ = 5
 
 integer, parameter :: l$ = 1                          ! Assumed unique. Do not assign 1 to another attribute.
-integer, parameter :: tilt$ = 2, roll$ = 2,  ix_branch$ = 2 ! Important: tilt$ = roll$
+integer, parameter :: tilt$ = 2, roll$ = 2, n_part$ = 2 ! Important: tilt$ = roll$
 integer, parameter :: ref_tilt$ = 3, rf_frequency$ = 3, direction$ = 3
-integer, parameter :: kick$ = 3, x_gain_err$ = 3
+integer, parameter :: kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3
 integer, parameter :: rf_frequency_err$ = 4, k1$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coordinates$ = 4
 integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, drift_id$ = 5
 integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5
-integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6
+integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_branch$ = 6
 integer, parameter :: g$ = 6, bragg_angle_in$ = 6, symmetry$ = 6, field_scale_factor$ = 6
 integer, parameter :: g_err$ = 7, n_pole$ = 7, bbi_const$ = 7, osc_amplitude$ = 7
 integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, sad_flag$ = 7

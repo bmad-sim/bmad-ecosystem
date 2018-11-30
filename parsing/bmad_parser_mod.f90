@@ -1648,7 +1648,10 @@ case ('DEFAULT_TRACKING_SPECIES')
     call parser_error ('INVALID PARTICLE SPECIES: ' // word)
     return
   endif
+
   ele%value(default_tracking_species$) = ix
+  j = nint(ele%value(ix_branch$)) 
+  if (j >= 0) lat%branch(j)%param%default_tracking_species = ix 
 
 case ('ENERGY_DISTRIBUTION')
   call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
@@ -1737,9 +1740,10 @@ case ('PARTICLE')
     call parser_error ('INVALID REFERENCE PARTICLE SPECIES: ' // word)
     return
   endif
-  branch => pointer_to_branch(ele%name, lat, .true.)
-  if (associated(branch)) branch%param%particle = ix 
+
   ele%value(particle$) = ix
+  j = nint(ele%value(ix_branch$)) 
+  if (j >= 0) lat%branch(j)%param%particle = ix 
 
 case ('PTC_FIELD_GEOMETRY')
   call get_switch (attrib_word, ptc_field_geometry_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
@@ -1752,14 +1756,14 @@ case ('PTC_FIELD_GEOMETRY')
 
 case ('GEOMETRY')
   call get_switch (attrib_word, geometry_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
-  branch => pointer_to_branch(ele%name, lat, .true.)
-  if (associated(branch)) branch%param%geometry = ix
   ele%value(geometry$) = ix
+  j = nint(ele%value(ix_branch$)) 
+  if (j >= 0) lat%branch(j)%param%geometry = ix
 
 case ('LIVE_BRANCH')
   call get_logical_real (attrib_word, ele%value(live_branch$), err_flag); if (err_flag) return
-  branch => pointer_to_branch(ele%name, lat, .true.)
-  if (associated(branch)) branch%param%live_branch = is_true(ele%value(live_branch$))
+  j = nint(ele%value(ix_branch$)) 
+  if (j >= 0) lat%branch(j)%param%live_branch = is_true(ele%value(live_branch$))
 
 case ('PHOTON_TYPE')
   call get_switch (attrib_word, photon_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
