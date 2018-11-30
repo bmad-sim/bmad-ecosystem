@@ -136,45 +136,19 @@ integer i, ix_max
 
 logical use_ele_tilt
 
-! Init
+! Multipole type element case
 
-ix_pole_max = -1
-call pointer_to_ele_multipole (ele, a_pole, b_pole, pole_type)
-
-! Note: For multipoles, use_ele_tilt arg is ignored.
-! Slice slaves and super slaves have their associated multipoles stored in the lord.
-
-if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
-  do i = 1, ele%n_lord
-    lord => pointer_to_lord(ele, i)
-    call pointer_to_ele_multipole (lord, a_pole, b_pole, pole_type)
-    if (.not. associated(a_pole)) cycle
-    call multipole_ele_to_ab (lord, use_ele_tilt, ix_max, this_a, this_b, pole_type, include_kicks)
-    if (ix_max == -1) cycle
-    if (ix_pole_max == -1) then
-      a = this_a * (ele%value(l$) / lord%value(l$))
-      b = this_b * (ele%value(l$) / lord%value(l$))
-    else
-      a = a + this_a * (ele%value(l$) / lord%value(l$))
-      b = b + this_b * (ele%value(l$) / lord%value(l$))
-    endif
-    ix_pole_max = max(ix_pole_max, ix_max)
-  enddo
-
-! Not a slave
-
-else
-  if (ele%key == multipole$) then
-    knl  = a_pole
-    tilt = b_pole + ele%value(tilt_tot$)
-    ix_pole_max = max_nonzero(0, knl)
-    return
-  else
-    call multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks)
-  endif
+if (ele%key == multipole$) then
+  call pointer_to_ele_multipole (ele, a_pole, b_pole, pole_type)
+  knl  = a_pole
+  tilt = b_pole + ele%value(tilt_tot$)
+  ix_pole_max = max_nonzero(0, knl)
+  return
 endif
 
-!
+! Everything else
+
+call multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks)
 
 if (ix_pole_max > -1) then
   call multipole_ab_to_kt (a, b, knl, tilt)
