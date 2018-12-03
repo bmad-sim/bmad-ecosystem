@@ -126,8 +126,6 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
 
 real(rp) knl(0:), tilt(0:), a(0:n_pole_maxx), b(0:n_pole_maxx)
-real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
-real(rp) tilt1
 real(rp), pointer :: a_pole(:), b_pole(:)
 
 integer ix_pole_max
@@ -139,7 +137,12 @@ logical use_ele_tilt
 ! Multipole type element case
 
 if (ele%key == multipole$) then
-  call pointer_to_ele_multipole (ele, a_pole, b_pole, pole_type)
+  if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
+    lord => pointer_to_lord(ele, 1)
+    call pointer_to_ele_multipole (lord, a_pole, b_pole, pole_type)
+  else
+    call pointer_to_ele_multipole (ele, a_pole, b_pole, pole_type)
+  endif
   knl  = a_pole
   tilt = b_pole + ele%value(tilt_tot$)
   ix_pole_max = max_nonzero(0, knl)
@@ -284,10 +287,6 @@ a = 0
 b = 0
 ix_pole_max = -1
 
-call pointer_to_ele_multipole (ele, a_pole, b_pole, pole_type)
-
-! Multipole type element case. Note: use_ele_tilt is ignored in this case.
-
 ! Slice slaves and super slaves have their associated multipoles stored in the lord
 
 if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
@@ -319,7 +318,10 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
   ix_pole_max = max_nonzero(0, a, b)
 
 ! Not a slave
+
 else
+  call pointer_to_ele_multipole (ele, a_pole, b_pole, pole_type)
+
   if (ele%key == multipole$) then
     if (integer_option(magnetic$, pole_type) == electric$) return
     ix_pole_max = max_nonzero(0, a_pole, b_pole)
