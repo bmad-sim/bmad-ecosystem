@@ -303,7 +303,7 @@ real(rp) :: w_mat(3,3), w_mat_inv(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
 
 integer i, key, n_loc, ix_pass, n_links, ix_pole_max
 
-logical err, doit, finished
+logical err, doit, finished, has_multipole_rot_tilt
 logical, optional :: set_ok, ignore_patch_err
 
 character(*), parameter :: r_name = 'ele_geometry'
@@ -337,17 +337,10 @@ phi     = floor0%phi
 psi     = floor0%psi
 w_mat   = floor0%w
 
-knl  = 0   ! initialize
-tilt = 0  
-
 leng = ele%value(l$) * len_factor
 
 key = ele%key
 if (key == sbend$ .and. (leng == 0 .or. ele%value(g$) == 0)) key = drift$
-
-if (key == multipole$) then
-  call multipole_ele_to_kt (ele, .true., ix_pole_max, knl, tilt)
-endif
 
 ! Fiducial, floor_shift and girder elements.
 ! Note that fiducial, and girder elements are independent of floor0
@@ -489,9 +482,15 @@ endif   ! Fiducial, girder, floor_shift
 ! General case where layout is not in the horizontal plane
 ! Note: 
 
+has_multipole_rot_tilt = .false.
+if (key == multipole$) then
+  call multipole_ele_to_kt (ele, .true., ix_pole_max, knl, tilt)
+  if (knl(0) /= 0 .and. tilt(0) /= 0) has_multipole_rot_tilt = .true.
+endif
+
 if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
          ele%value(ref_tilt_tot$) /= 0) .or. phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
-         key == crystal$ .or. (key == multipole$ .and. knl(0) /= 0 .and. tilt(0) /= 0)) then
+         key == crystal$ .or. has_multipole_rot_tilt) then
 
   select case (key)
 

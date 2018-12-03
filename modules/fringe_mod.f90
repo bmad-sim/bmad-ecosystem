@@ -506,13 +506,14 @@ end subroutine no_edge_angle_hard_bend_edge_kick
 !   orbit         -- coord_struct: Position before kick.
 !   mat6(6,6)     -- real(rp), optional: Transfer matrix up to the edge.
 !   make_matrix   -- real(rp), optional: Propagate the transfer matrix? Default is False.
+!   k1_sad        -- real(rp), optional: k1l for a sad_mult. Used by track_a_sad_mult routine.
 !
 ! Output:
 !   orbit         -- coord_struct: Position after kick.
 !   mat6(6,6)     -- real(rp), optional: Transfer matrix with edge kick added on.
 !-
 
-subroutine soft_quadrupole_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix)
+subroutine soft_quadrupole_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix, k1_sad)
 
 implicit none
 
@@ -521,7 +522,7 @@ type (ele_struct), pointer :: m_ele
 type (coord_struct) orbit
 type (lat_param_struct) param
 
-real(rp), optional :: mat6(6,6)
+real(rp), optional :: mat6(6,6), k1_sad
 real(rp) k1_rel, x, y, px, py, charge_dir, kmat(6,6)
 real(rp) f1, f2, ef1, vec(4), rel_p, vx, vy
 
@@ -556,7 +557,8 @@ case (sad_mult$)
   else
     m_ele => ele
   endif
-  k1_rel = charge_dir * sqrt(m_ele%a_pole(1)**2 + m_ele%b_pole(1)**2)  / m_ele%value(l$) / rel_p
+  ! Note: k1_sad already has charge_dir factored in.
+  k1_rel = k1_sad / rel_p
 end select
 
 f1 = k1_rel * ele%value(fq1$)
