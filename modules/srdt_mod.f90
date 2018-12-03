@@ -263,27 +263,32 @@ endif
 end subroutine
 
 !+
-! Subroutine make_slices(lat,eles,n_slices_gen,n_slices_sext)
+! Subroutine make_slices(lat,eles,n_slices_gen,n_slices_sext,var_indexes)
 !
 ! Private subroutine in srdt_mod.f90.  Given lat, returns eles, which
 ! contains lattice functions needed for driving term calculations on
 ! sub-element spacing.  Also pre-computed some quantities to speed
 ! up driving term calculations.
 !
+! All elements with a K1 and/or K2 are sliced according to n_slices_gen and 
+! n_slices_sext put into eles.
+!
 ! Input:
 !   lat                -- lat_struct: lattice with Twiss parameters calculated.
 !   n_slices_gen_opt   -- integer: number of times to slice elements other than sextupoles.
 !   n_slices_sext_opt  -- integer: nubmer of times to slice sextupoles.
+!   var_indexes(:)     -- integer: make sure that good_K2 slices are made for these elements.
 ! Output:
 !   eles               -- sliced_eles_struct: lattice parameters needed for driving term calculations.
 !-
-subroutine make_slices(lat,eles,n_slices_gen,n_slices_sext)
+subroutine make_slices(lat,eles,n_slices_gen,n_slices_sext,var_indexes)
 
   implicit none
 
   type(lat_struct) lat
   type(sliced_eles_struct), allocatable :: eles(:)
   integer n_slices_gen, n_slices_sext
+  integer, optional :: var_indexes(:)
 
   type(coord_struct), allocatable :: co(:)
   type(ele_struct) :: elei
@@ -291,19 +296,30 @@ subroutine make_slices(lat,eles,n_slices_gen,n_slices_sext)
   integer i, j, w
   integer ns, pass
   integer ix_pole_max
+  integer, allocatable :: var_indexes_use(:)
 
   logical good_k2
 
   real(rp) k2l, k1l, k1, k2, slice_len, sj
   real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 
+  if(present(var_indexes)) then
+    allocate(var_indexes_use(size(var_indexes)))
+    var_indexes_use = var_indexes
+  else
+    allocate(var_indexes_use(1))
+    var_indexes_use = -1
+  endif
+
   do pass=1,2
     w = 0
     do i=1,lat%n_ele_track
+      knl = 0.0
+      tilt = 0.0
       call multipole_ele_to_kt(lat%ele(i), .true., ix_pole_max, knl, tilt, magnetic$, include_kicks$)
-      if(ix_pole_max .ge. 1) then
+      if( (ix_pole_max .ge. 1) .or. any(i==var_indexes_use) ) then
         k1l = knl(1)
-        if(ix_pole_max .ge. 2) then
+        if( (ix_pole_max .ge. 2) .or. any(i==var_indexes_use) ) then
           k2l = knl(2) / 2.0  ! Convention shown in Eqn. 8 of Bengsston paper: moments divided by n.
           good_k2 = .true.
         else
@@ -375,29 +391,34 @@ subroutine make_slices(lat,eles,n_slices_gen,n_slices_sext)
 end subroutine
 
 !+
-! Subroutine srdt_lsq_solution(lat, ls_soln, n_slices_sext_opt, n_slices_gen_opt)
+! Subroutine srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_sext_opt, n_slices_gen_opt, chrom_set_x_opt, chrom_set_y_opt)
 !
 ! Given lat, finds K2 moments that set the chromaticity and zeros-out the real
 ! and complex parts of the first order driving terms, that minimizes the sum of the squares
 ! of the K2 moments.  i.e. the weakest sextupole scheme that sets chromaticity
 ! and zeros out the first order terms.
 !
+! Note:  This subroutine does not, in its present form, work well with knobs, overlays, or in lattices where
+!        multiple elements have the same name.
+!
 ! This subroutine assumes that Nsext > 18.
 !
 ! Input:
 !   lat                -- lat_struct: lattice with Twiss parameters calculated.
+!   var_indexes(:)     -- integer: indexes in lat%ele that are K2 variables.  Must be sorted smallest index to largest index.
 !   n_slices_gen_opt   -- integer, optional: number of times to slice elements other than sextupoles.  Default is 10.
 !   n_slices_sext_opt  -- integer, optional: nubmer of times to slice sextupoles.  Default is 20.
 !   chrom_set_x_opt    -- real(rp), optional: what to set x chromaticity to.  Default zero.
 !   chrom_set_y_opt    -- real(rp), optional: what to set y chromaticity to.  Default zero.
 ! Output:
-!   ls_soln(1:n_ele_track)  -- real(rp): contains K2 for 
+!   ls_soln(1:size(var_indexes))  -- real(rp): contains K2 for the indexes in var_indexes
 !-
-subroutine srdt_lsq_solution(lat, ls_soln, n_slices_sext_opt, n_slices_gen_opt, chrom_set_x_opt, chrom_set_y_opt)
+subroutine srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_sext_opt, n_slices_gen_opt, chrom_set_x_opt, chrom_set_y_opt)
 
   implicit none
 
   type(lat_struct) lat
+  integer var_indexes(:)
   real(rp) ls_soln(:)
   integer, optional :: n_slices_sext_opt
   integer, optional :: n_slices_gen_opt
@@ -406,11 +427,11 @@ subroutine srdt_lsq_solution(lat, ls_soln, n_slices_sext_opt, n_slices_gen_opt, 
   type(sliced_eles_struct), allocatable :: eles(:)
   type(sliced_eles_struct), allocatable :: K2eles(:)
 
-  integer i,j,w,nK2,nmag
+  integer i,j,w,nK2,nvar
   integer, allocatable :: k2mask(:), mags(:)
 
   real(rp), allocatable :: A(:,:), Ap(:,:)
-  real(rp) B(18)
+  real(rp) B(18), C(18)
   real(rp), allocatable :: ls_soln_sliced(:)
   real(rp) chrom_set_x, chrom_set_y
 
@@ -418,81 +439,102 @@ subroutine srdt_lsq_solution(lat, ls_soln, n_slices_sext_opt, n_slices_gen_opt, 
 
   integer n_slices_sext
   integer n_slices_gen
+
+  character(8) err_str
+  character(17) :: r_name = 'srdt_lsq_solution'
  
   n_slices_gen = integer_option(10, n_slices_gen_opt)
   n_slices_sext = integer_option(20, n_slices_sext_opt)
   chrom_set_x = real_option(0.0d0, chrom_set_x_opt)
   chrom_set_y = real_option(0.0d0, chrom_set_y_opt)
 
-  call make_slices(lat, eles, n_slices_gen, n_slices_sext)
+  call make_slices(lat, eles, n_slices_gen, n_slices_sext, var_indexes)
   w = size(eles)
 
+  !k2eles is a subset of eles containing only those slices with a valid sextupole moment.
   nK2 = count(eles(:)%good_k2 .eqv. .true.)
   allocate(k2eles(nK2))
-  !k2eles is a subset of eles containing only those slices with a valid sextupole moment.
-  !Assumption here is that all slices with valid sextupole moment are in fact sextupoles which
-  !can be adjusted to manipulate nonlinerities.
-  j=0
-  do i=1,w
-    if(eles(i)%good_k2) then
-      j = j + 1
-      k2eles(j) = eles(i)
-    endif
-  enddo
-  !Count the number of sextupoles represented in k2eles.  Note that accurate calculation of
-  !RDTs requires sextupole slicing.  However, the K2 of each slice cannot be manipulated independently
-  !to minimize the RDTs.
-  nmag=0
-  do i=1,size(ls_soln)
-    if(count(k2eles(:)%ix==i) .gt. 0) nmag = nmag + 1
-  enddo
-  allocate(A(18,nmag))
-  allocate(Ap(nmag,18))
-  allocate(ls_soln_sliced(nmag))
-  allocate(mask(nmag))
-  allocate(mags(nmag))
+  k2eles(:) = pack(eles,eles(:)%good_k2)
 
-  j=0
-  do i=1,size(ls_soln)
-    mask = k2eles(:)%ix==i
+  nvar=size(var_indexes)
+  allocate(A(18,nvar))
+  allocate(Ap(nvar,18))
+  allocate(ls_soln_sliced(nvar))
+  allocate(mask(nvar))
+  allocate(mags(nvar))
+
+  ! A is a matrix of the coefficients of the sextupoles s.t. A.K2vec = RDTs
+  ! The columns of A are condensed such that each column corresponds to one physical sextupole. That is,
+  ! the contributions from each slice are added together.
+  do i=1,nvar
+    mask = k2eles(:)%ix==var_indexes(i)
     if(count(mask) .gt. 0) then
-      j = j + 1
-      mags(j) = i
-      A(1 ,j) = sum(k2eles(:)%l*(-2.0)*k2eles(:)%eta_a*k2eles(:)%beta_a,mask=mask)   ! chrom_x
-      A(2 ,j) = sum(k2eles(:)%l*(-2.0)*k2eles(:)%eta_a*k2eles(:)%beta_b,mask=mask)   ! chrom_y
-      A(3 ,j) = sum(k2eles(:)%l* real(-2.0*k2eles(:)%eta_a*k2eles(:)%beta_a * k2eles(:)%e2a),mask=mask)  !h20001
-      A(4 ,j) = sum(k2eles(:)%l*aimag(-2.0*k2eles(:)%eta_a*k2eles(:)%beta_a * k2eles(:)%e2a),mask=mask)
-      A(5 ,j) = sum(k2eles(:)%l* real( 2.0*k2eles(:)%eta_a*k2eles(:)%beta_b * k2eles(:)%e2b),mask=mask)  !h00201
-      A(6 ,j) = sum(k2eles(:)%l*aimag( 2.0*k2eles(:)%eta_a*k2eles(:)%beta_b * k2eles(:)%e2b),mask=mask)
-      A(7 ,j) = sum(k2eles(:)%l* real(k2eles(:)%eta_a*k2eles(:)%eta_a*sqrt(k2eles(:)%beta_a) * k2eles(:)%ea),mask=mask) !h10002
-      A(8 ,j) = sum(k2eles(:)%l*aimag(k2eles(:)%eta_a*k2eles(:)%eta_a*sqrt(k2eles(:)%beta_a) * k2eles(:)%ea),mask=mask)
-      A(9 ,j) = sum(k2eles(:)%l* real(k2eles(:)%beta_a**(3./2.) * k2eles(:)%ea),mask=mask)  !h21000
-      A(10,j) = sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(3./2.) * k2eles(:)%ea),mask=mask)
-      A(11,j) = sum(k2eles(:)%l* real(k2eles(:)%beta_a**(3./2.) * k2eles(:)%e3a),mask=mask)  !h30000
-      A(12,j) = sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(3./2.) * k2eles(:)%e3a),mask=mask)
-      A(13,j) = sum(k2eles(:)%l* real(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea),mask=mask)  !h10110
-      A(14,j) = sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea),mask=mask)
-      A(15,j) = sum(k2eles(:)%l* real(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea/k2eles(:)%e2b),mask=mask) !h10020
-      A(16,j) = sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea/k2eles(:)%e2b),mask=mask)
-      A(17,j) = sum(k2eles(:)%l* real(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea*k2eles(:)%e2b),mask=mask) !h10200
-      A(18,j) = sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea*k2eles(:)%e2b),mask=mask)
+      A(1 ,i) = sum(k2eles(:)%l*(-2.0)*k2eles(:)%eta_a*k2eles(:)%beta_a,mask=mask)/4.0   ! chrom_x
+      A(2 ,i) = sum(k2eles(:)%l*(-2.0)*k2eles(:)%eta_a*k2eles(:)%beta_b,mask=mask)/(-4.0)   ! chrom_y
+      A(3 ,i) = sum(k2eles(:)%l* real(-2.0*k2eles(:)%eta_a*k2eles(:)%beta_a * k2eles(:)%e2a),mask=mask)/8.0  !h20001
+      A(4 ,i) = sum(k2eles(:)%l*aimag(-2.0*k2eles(:)%eta_a*k2eles(:)%beta_a * k2eles(:)%e2a),mask=mask)/8.0
+      A(5 ,i) = sum(k2eles(:)%l* real( 2.0*k2eles(:)%eta_a*k2eles(:)%beta_b * k2eles(:)%e2b),mask=mask)/(-8.0)  !h00201
+      A(6 ,i) = sum(k2eles(:)%l*aimag( 2.0*k2eles(:)%eta_a*k2eles(:)%beta_b * k2eles(:)%e2b),mask=mask)/(-8.0)
+      A(7 ,i) = sum(k2eles(:)%l* real(k2eles(:)%eta_a*k2eles(:)%eta_a*sqrt(k2eles(:)%beta_a) * k2eles(:)%ea),mask=mask)/2.0 !h10002
+      A(8 ,i) = sum(k2eles(:)%l*aimag(k2eles(:)%eta_a*k2eles(:)%eta_a*sqrt(k2eles(:)%beta_a) * k2eles(:)%ea),mask=mask)/2.0
+      A(9 ,i) = sum(k2eles(:)%l* real(k2eles(:)%beta_a**(3./2.) * k2eles(:)%ea),mask=mask)/(-8.0)  !h21000
+      A(10,i) = sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(3./2.) * k2eles(:)%ea),mask=mask)/(-8.0)
+      A(11,i) = sum(k2eles(:)%l* real(k2eles(:)%beta_a**(3./2.) * k2eles(:)%e3a),mask=mask)/(-24.0)  !h30000
+      A(12,i) = sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(3./2.) * k2eles(:)%e3a),mask=mask)/(-24.0)
+      A(13,i) = sum(k2eles(:)%l* real(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea),mask=mask)/4.0  !h10110
+      A(14,i) = sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea),mask=mask)/4.0
+      A(15,i) = sum(k2eles(:)%l* real(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea/k2eles(:)%e2b),mask=mask)/8.0 !h10020
+      A(16,i) = sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea/k2eles(:)%e2b),mask=mask)/8.0
+      A(17,i) = sum(k2eles(:)%l* real(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea*k2eles(:)%e2b),mask=mask)/8.0 !h10200
+      A(18,i) = sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea*k2eles(:)%e2b),mask=mask)/8.0
+    else
+      write(*,*) var_indexes(i) 
+      write(err_str,'(i8)') var_indexes(i)
+      call out_io (s_error$, r_name, 'element of var_indexes not identified as having valid K2','element ix = '//err_str,'returning ls_soln=0')
+      ls_soln=0
+      return
     endif
   enddo
-  call make_pseudoinverse(A,Ap)
-  B(:) = 0.0d0
-  B(1) = -chrom_set_x+sum(eles(:)%k1l*eles(:)%beta_a)
-  B(2) = chrom_set_y-sum(-eles(:)%k1l*eles(:)%beta_b)
-  B(3) = sum(real(eles(:)%k1l*eles(:)%beta_a*eles(:)%e2a))
-  B(4) = sum(aimag(eles(:)%k1l*eles(:)%beta_a*eles(:)%e2a))
-  B(5) = sum(real(-eles(:)%k1l*eles(:)%beta_b*eles(:)%e2b))
-  B(6) = sum(aimag(-eles(:)%k1l*eles(:)%beta_b*eles(:)%e2b))
-  B(7) = sum(real(-eles(:)%k1l*eles(:)%eta_a*sqrt(eles(:)%beta_a) * eles(:)%ea))
-  B(8) = sum(aimag(-eles(:)%k1l*eles(:)%eta_a*sqrt(eles(:)%beta_a) * eles(:)%ea))
-  ls_soln_sliced = matmul(Ap,-1.0d0*B) 
-  ls_soln = 0
-  do i=1,nmag
-    ls_soln(mags(i)) = 2.0*ls_soln_sliced(i)
+
+  ! C is a vector of the contributions to the DTs from those elements with valid K2 that are not variables. 
+  C=0.0d0
+  do i=1,nK2
+    if(.not. any(k2eles(i)%ix==var_indexes(:))) then
+      C(1 ) = C(1 ) + k2eles(i)%k2l*(-2.0)*k2eles(i)%eta_a*k2eles(i)%beta_a/4.0  ! chrom_x
+      C(2 ) = C(2 ) + k2eles(i)%k2l*(-2.0)*k2eles(i)%eta_a*k2eles(i)%beta_b/(-4.0)   ! chrom_y
+      C(3 ) = C(3 ) + k2eles(i)%k2l* real(-2.0*k2eles(i)%eta_a*k2eles(i)%beta_a * k2eles(i)%e2a)/8.0  !h20001
+      C(4 ) = C(4 ) + k2eles(i)%k2l*aimag(-2.0*k2eles(i)%eta_a*k2eles(i)%beta_a * k2eles(i)%e2a)/8.0
+      C(5 ) = C(5 ) + k2eles(i)%k2l* real( 2.0*k2eles(i)%eta_a*k2eles(i)%beta_b * k2eles(i)%e2b)/(-8.0)  !h00201
+      C(6 ) = C(6 ) + k2eles(i)%k2l*aimag( 2.0*k2eles(i)%eta_a*k2eles(i)%beta_b * k2eles(i)%e2b)/(-8.0)
+      C(7 ) = C(7 ) + k2eles(i)%k2l* real(k2eles(i)%eta_a*k2eles(i)%eta_a*sqrt(k2eles(i)%beta_a) * k2eles(i)%ea)/2.0 !h10002
+      C(8 ) = C(8 ) + k2eles(i)%k2l*aimag(k2eles(i)%eta_a*k2eles(i)%eta_a*sqrt(k2eles(i)%beta_a) * k2eles(i)%ea)/2.0
+      C(9 ) = C(9 ) + k2eles(i)%k2l* real(k2eles(i)%beta_a**(3./2.) * k2eles(i)%ea)/(-8.0)  !h21000
+      C(10) = C(10) + k2eles(i)%k2l*aimag(k2eles(i)%beta_a**(3./2.) * k2eles(i)%ea)/(-8.0)
+      C(11) = C(11) + k2eles(i)%k2l* real(k2eles(i)%beta_a**(3./2.) * k2eles(i)%e3a)/(-24.0)  !h30000
+      C(12) = C(12) + k2eles(i)%k2l*aimag(k2eles(i)%beta_a**(3./2.) * k2eles(i)%e3a)/(-24.0)
+      C(13) = C(13) + k2eles(i)%k2l* real(k2eles(i)%beta_a**(1./2.)*k2eles(i)%beta_b * k2eles(i)%ea)/4.0  !h10110
+      C(14) = C(14) + k2eles(i)%k2l*aimag(k2eles(i)%beta_a**(1./2.)*k2eles(i)%beta_b * k2eles(i)%ea)/4.0
+      C(15) = C(15) + k2eles(i)%k2l* real(k2eles(i)%beta_a**(1./2.)*k2eles(i)%beta_b * k2eles(i)%ea/k2eles(i)%e2b)/8.0 !h10020
+      C(16) = C(16) + k2eles(i)%k2l*aimag(k2eles(i)%beta_a**(1./2.)*k2eles(i)%beta_b * k2eles(i)%ea/k2eles(i)%e2b)/8.0
+      C(17) = C(17) + k2eles(i)%k2l* real(k2eles(i)%beta_a**(1./2.)*k2eles(i)%beta_b * k2eles(i)%ea*k2eles(i)%e2b)/8.0 !h10200
+      C(18) = C(18) + k2eles(i)%k2l*aimag(k2eles(i)%beta_a**(1./2.)*k2eles(i)%beta_b * k2eles(i)%ea*k2eles(i)%e2b)/8.0
+    endif
   enddo
+
+  call make_pseudoinverse(A,Ap)
+
+  ! B is a vector of the K1 contributions to the DTs.
+  B(1:18) = 0.0d0
+  B(1) = -chrom_set_x+sum(eles(:)%k1l*eles(:)%beta_a)/4.0
+  B(2) = chrom_set_y+sum(eles(:)%k1l*eles(:)%beta_b)/(-4.0)
+  B(3) = sum(real(eles(:)%k1l*eles(:)%beta_a*eles(:)%e2a))/8.0
+  B(4) = sum(aimag(eles(:)%k1l*eles(:)%beta_a*eles(:)%e2a))/8.0
+  B(5) = sum(real(-eles(:)%k1l*eles(:)%beta_b*eles(:)%e2b))/(-8.0)
+  B(6) = sum(aimag(-eles(:)%k1l*eles(:)%beta_b*eles(:)%e2b))/(-8.0)
+  B(7) = sum(real(-eles(:)%k1l*eles(:)%eta_a*sqrt(eles(:)%beta_a) * eles(:)%ea))/2.0
+  B(8) = sum(aimag(-eles(:)%k1l*eles(:)%eta_a*sqrt(eles(:)%beta_a) * eles(:)%ea))/2.0
+
+  ls_soln = 2.0*matmul(Ap,-B-C) 
 end subroutine
 
 end module
