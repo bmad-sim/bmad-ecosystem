@@ -140,9 +140,9 @@ else
       print *, 'COMPUTED INDEX OUT OF RANGE FOR LINE: ', trim(line)
       stop
     endif
-    Bx_dat(i,j,k) = Bx
-    By_dat(i,j,k) = By
-    Bz_dat(i,j,k) = Bz
+    Bx_dat(i,j,k) = Bx * field_scale
+    By_dat(i,j,k) = By * field_scale
+    Bz_dat(i,j,k) = Bz * field_scale
     valid_field(i,j,k) = .true.
   end do
 
@@ -150,9 +150,6 @@ else
 
   del_grid = del_grid * length_scale
   r0_grid = r0_grid * length_scale
-  Bx = Bx * field_scale
-  By = By * field_scale
-  Bz = Bz * field_scale
 endif
 
 !

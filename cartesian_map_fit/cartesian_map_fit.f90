@@ -31,33 +31,33 @@ integer i, j, jj, nn, k, ijk, status, population
 integer :: iter, nret, lib$get_foreign, istat
 integer ix, iy, iz, cur_num
 
-character(16) :: mode, num_str, arg_in
+character(16) :: mode, mode_in, num_str, arg_in
 character(100) file_name
 character(100) fname
 
 !
 
-mode = 'STD'
+mode_in = 'STD'
 num_str = ''
 
 if (cesr_iargc() > 0) then
   call cesr_getarg(1, arg_in)
   if (is_integer(arg_in)) then
     num_str = arg_in
-    if (cesr_iargc() > 1) call cesr_getarg(2, mode)
+    if (cesr_iargc() > 1) call cesr_getarg(2, mode_in)
   else
-    mode = arg_in
+    mode_in = arg_in
   endif
 endif
 
 !
 
-select case (mode)
-case ('STD', 'fft', 'debug', 'binary')
-case default
-  print *, 'I DO NOT UNDERSTAND MODE: ', mode
+call match_word (mode_in, ['STD', 'fft', 'debug', 'binary', 'fit_table'], ix, .false., .true., mode)
+
+if (ix == 0) then
+  print *, 'I DO NOT UNDERSTAND MODE: ', mode_in
   stop
-end select
+endif
 
 if (num_str == '') then
   open (1, file = 'number.in', status = 'OLD', action = 'READ')
@@ -130,6 +130,30 @@ if (mode == 'binary') then
   stop
 endif
 
+! Write a fit table
+
+if (mode == 'fit_table') then
+  open (1, file = 'fit.table')
+  write (1, '(2a)') real_to_string(length_scale, 16, 4),   '! length_scale'
+  write (1, '(2a)') real_to_string(field_scale, 16, 4),    '! field_scale'
+  write (1, '(2i6, 4x, a)') Nx_min, Nx_max, '! Nx_min, Nx_max'
+  write (1, '(2i6, 4x, a)') Ny_min, Ny_max, '! Ny_min, Ny_max'
+  write (1, '(2i6, 4x, a)') Nz_min, Nz_max, '! Nz_min, Nz_max'
+  write (1, '(a, 4x, a)') reals_to_table_row(del_grid/length_scale, 16, 6, 2),       '! del_grid'
+  write (1, '(a, 4x, a)') reals_to_table_row(r0_grid/length_scale, 16, 6, 2),        '! r0_grid'
+
+  do ix = Nx_min, Nx_max
+  do iy = Ny_min, Ny_max
+  do iz = Nz_min, Nz_max
+    write (1, '(3f13.6, 3es16.7)') [ix*del_grid(1), iy*del_grid(2), iz*del_grid(3)] / length_scale, &
+                     [Bx_fit(ix, iy, iz), By_fit(ix, iy, iz), Bz_fit(ix, iy, iz)] / field_scale
+  enddo
+  enddo
+  enddo
+
+  print *, 'Wrote fit table file: fit.table'
+  stop
+endif
 
 ! Debug. 
 ! Note: When debugging use a map with only one term.
@@ -390,7 +414,7 @@ norm = 2.0 / (Nz_max - Nz_min + 1)
 
 amp = abs(fx)
 call indexx(-amp, indx)
-print *, 'B_x FFT:'
+print *, 'B_x FFT (X-family):'
 print *,   '    kz            Amp           Phase'
 do i = 1, min(5, size(indx))
   j = indx(i-1) - 1
@@ -401,7 +425,7 @@ enddo
 amp = abs(fy)
 call indexx(-amp, indx)
 print *
-print *, 'B_y FFT:'
+print *, 'B_y FFT (Y-family):'
 print *,   '    kz            Amp           Phase'
 do i = 1, min(5, size(indx))
   j = indx(i-1) - 1
@@ -412,7 +436,7 @@ enddo
 amp = abs(fz)
 call indexx(-amp, indx)
 print *
-print *, 'B_z FFT:'
+print *, 'B_z FFT (SQ-family):'
 print *,   '    kz            Amp           Phase'
 do i = 1, min(5, size(indx))
   j = indx(i-1) - 1
