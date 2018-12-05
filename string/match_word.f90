@@ -43,8 +43,11 @@ can_abbrev = logic_option (.true., can_abbreviate)
 ix = 0                         ! if no match found
 call string_trim (string, str, ixs)
 if (.not. exact) call str_upcase(str, str)
-if (present(matched_name)) matched_name = ''
-if (ixs == 0) return           ! blank match string
+
+if (ixs == 0) then
+  if (present(matched_name)) matched_name = ''
+  return           ! blank match string
+endif
 
 ! loop over all match names
 
@@ -81,6 +84,12 @@ do i = 1, size(names)
 
 enddo
 
-if (present(matched_name) .and. ix > 0) matched_name = names(ix)
+if (present(matched_name)) then
+  if (ix > 0) then
+    matched_name = names(ix)
+  else
+    matched_name = ''
+  endif
+endif
 
 end subroutine
