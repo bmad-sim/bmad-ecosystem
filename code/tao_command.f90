@@ -280,9 +280,7 @@ case ('help')
 case ('misalign')
 
   call tao_cmd_split (cmd_line, 5, cmd_word, .true., err); if (err) goto 9000
-  call tao_misalign (cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4), &
-                     cmd_word(5))
-
+  call tao_misalign (cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4), cmd_word(5))
 
 !--------------------------------
 ! PAUSE
@@ -478,7 +476,7 @@ case ('set')
 
   call tao_cmd_split (cmd_line, 2, cmd_word, .false., err, '=')
 
-  call match_word (cmd_word(1), [character(16) :: 'data', 'var', 'lattice', 'global', 'plot_page', &
+  call match_word (cmd_word(1), [character(16) :: 'branch', 'data', 'var', 'lattice', 'global', 'plot_page', &
     'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
     'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'beam_start', &
     'ran_state', 'symbolic_number', 'beam'], ix, .true., matched_name = set_word)
@@ -494,7 +492,7 @@ case ('set')
         'opti_de_param', 'wave', 'floor_plan', 'lat_layout', 'geodesic_lm', 'key', 'symbolic_number'); n_word = 3; n_eq = 2
   case ('universe'); n_word = 3; n_eq = 10
   case ('plot_page'); n_word = 4; n_eq = 2
-  case ('curve', 'element', 'graph', 'plot'); n_word = 4; n_eq = 3
+  case ('branch', 'curve', 'element', 'graph', 'plot'); n_word = 4; n_eq = 3
   end select
 
   call tao_cmd_split (cmd_line, n_word, cmd_word, .false., err, '=')
@@ -513,6 +511,8 @@ case ('set')
     call tao_set_beam_start_cmd (cmd_word(1), cmd_word(3))
   case ('bmad_com')
     call tao_set_bmad_com_cmd (cmd_word(1), cmd_word(3))
+  case ('branch')
+    call tao_set_branch_cmd (cmd_word(1), cmd_word(2), cmd_word(4)) 
   case ('csr_param')
     call tao_set_csr_param_cmd (cmd_word(1), cmd_word(3))
   case ('curve')
