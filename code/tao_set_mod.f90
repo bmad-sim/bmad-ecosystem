@@ -134,7 +134,7 @@ real(rp) source_val
 
 integer i, j
 
-logical, allocatable, save :: this_u(:)
+logical, allocatable :: this_u(:)
 logical err
 
 ! Lattice transfer
@@ -1675,6 +1675,107 @@ end subroutine tao_set_var_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
+! Subroutine tao_set_branch_cmd (branch_str, component_str, value_str)
+!
+! Routine to set lattice branch values.
+!
+! Input:
+!   branch_str      -- character(*): Which branch to set.
+!   component_str   -- character(*): Which branch parameter to set.
+!   value_str       -- character(*): What value to set it to.
+!-
+
+subroutine tao_set_branch_cmd (branch_str, component_str, value_str)
+
+implicit none
+
+integer i
+logical, allocatable :: this_u(:)
+logical err
+
+character(*) branch_str, component_str, value_str
+character(*), parameter :: r_name = 'tao_set_branch_cmd'
+character(40) b_str
+
+!
+
+call tao_pick_universe (branch_str, b_str, this_u, err)
+if (err) return
+
+do i = lbound(s%u, 1), ubound(s%u, 1)
+  if (.not. this_u(i)) cycle
+  call set_this_branch(s%u(i), err)
+  if (err) return
+enddo
+
+!--------------------------------------------
+contains
+
+subroutine set_this_branch(u, err)
+
+type (tao_universe_struct), target :: u
+type (branch_struct), pointer :: branch
+integer ix
+logical err
+character(40) c_str
+
+!
+
+err = .true.
+
+branch => pointer_to_branch(b_str, u%model%lat)
+if (.not. associated(branch)) then
+  call out_io (s_error$, r_name, 'BAD BRANCH NAME OR INDEX: ' // b_str)
+  return
+endif
+
+!
+
+call match_word (component_str, [character(28):: 'particle', 'default_tracking_species', 'geometry', 'live_branch'], &
+                                                                                                    ix, matched_name = c_str)
+if (ix < 1) THEN
+  call out_io (s_error$, r_name, 'BAD BRANCH COMPONENT NAME: ' // component_str)
+  return
+endif
+
+select case (c_str)
+case ('particle')
+  ix = species_id(value_str)
+  if (ix == invalid$ .or. ix == ref_particle$ .or. ix == anti_ref_particle$) then
+    call out_io (s_error$, r_name, 'INVALID REFERENCE PARTICLE SPECIES: ' // value_str)
+    return
+  endif
+  branch%param%particle = ix
+
+case ('default_tracking_species')
+  ix = species_id(value_str)
+  if (ix == invalid$) then
+    call out_io (s_error$, r_name, 'INVALID DEFAULT TRACKING SPECIES: ' // value_str)
+    return
+  endif
+  branch%param%default_tracking_species = ix
+
+case ('geometry')
+  call tao_set_switch_value (ix, c_str, value_str, geometry_name(1:), err)
+  if (err) return
+  branch%param%geometry = ix
+
+case ('live_branch')
+  call tao_set_logical_value (branch%param%live_branch, c_str, value_str, err)
+  if (err) return
+
+end select
+
+err = .false.
+
+end subroutine set_this_branch
+
+end subroutine tao_set_branch_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
 ! Subroutine tao_set_data_cmd (who_str, value_str)
 !
 ! Routine to set data values.
@@ -2464,13 +2565,14 @@ end subroutine tao_set_integer_value
 ! be generated and the variable will not be set.
 !
 ! Input:
-!   var_str   -- Character(*): Used for error messages.
-!   value_str -- Character(*): String with encoded value.
-!   print_err -- logical, optional: If True, print error message. Default is true
+!   var_str       -- character(*): Used for error messages.
+!   value_str     -- character(*): String with encoded value.
+!   name_list(:)  -- character(*): Names to match to.
+!   print_err     -- logical, optional: If True, print error message. Default is true
 !
 ! Output:
-!   var   -- Integer: Variable to set.
-!   error -- Logical: Set True on an error. False otherwise.
+!   var         -- Integer: Variable to set.
+!   error       -- Logical: Set True on an error. False otherwise.
 !-
 
 subroutine tao_set_switch_value (var, var_str, value_str, name_list, error, print_err)
@@ -2866,6 +2968,7 @@ case ('bounds')
 
 case ('draw_label')
   call tao_set_logical_value (qp_axis%draw_label, qp_axis_name, value, error)
+
 case ('draw_numbers')
   call tao_set_logical_value (qp_axis%draw_numbers, qp_axis_name, value, error)
 

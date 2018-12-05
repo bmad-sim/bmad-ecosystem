@@ -800,6 +800,7 @@ variables, etc. Format:
   set beam_init \{n@\}<component> = <value>                   ! \sref{s:set.beam.init}
   set beam_start \{n@\}<coordinate> = <value>                 ! \sref{s:set.beam.start}
   set bmad_com <component> = <value>                        ! \sref{s:set.bmad.com}
+  set branch <branch> <component> = <value>
   set csr_param <component> = <value>                       ! \sref{s:set.csr.param}
   set curve <curve> <component> = <value>                   ! \sref{s:set.curve}
   set data <data_name>|<component> = <value>                ! \sref{s:set.data}
@@ -949,13 +950,35 @@ Format:
   set bmad_com <component> = <value>
 \end{example}
 
-
 For \vn{set bmad_com}: The \vn{show global} command will give a list of 
 \vn{<component>}s.
 
 Example:
 \begin{example}
   set bmad_com radiation_fluctuations_on = T ! Turn on synchrotron radiation fluctuations.
+\end{example}
+
+%% set branch --------------------------------------------------------------
+
+\subsection{set branch}
+\label{s:set.branch}
+
+Format:
+\begin{example}
+  set branch <branch> <component> = <value>
+\end{example}
+
+Sets parameters associated with a lattice branch. Use the \vn{show branch} command to see the
+various parameters that can be set. \vn{<branch>} may be the branch index or branch
+name. \vn{<branch>} may also contain an optional \vn{n@} prefix to specify a particular universe
+to apply the set to. The default is to only set the current viewed universe.
+
+Examples:
+\begin{example}
+  set branch 2@0 live_branch = F     ! Suppress calculations for branch \# 0 of universe 2.
+  set branch a_line geometry = open  ! Open geometry for branch named a_line.
+  set branch default_tracking_species = positron
+                                     ! Set the tracking species to positron.
 \end{example}
 
 %% set csr_param --------------------------------------------------------------
@@ -967,7 +990,6 @@ Format:
 \begin{example}
   set csr_param <component> = <value>
 \end{example}
-
 
 Sets coherent synchrotron radiation parameters. Use the \vn{show global -csr_param}
 command to see a list of \vn{<component>}s.
