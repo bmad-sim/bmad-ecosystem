@@ -2,8 +2,7 @@
 ! Subroutine insert_element (lat, insert_ele, insert_index, ix_branch, orbit)
 !
 ! Insert a new element into the tracking part of the lattice list.
-! The existing elements from insert_index to n_ele_max get shoved up 1
-! in the element array.
+! The existing elements from insert_index to n_ele_max get shoved up 1 in the element array.
 !
 ! Additionally, the length of an optional orbit array can be correspondingly increased
 ! by addition of an element at the corresponding point in the orbit array.
@@ -100,7 +99,7 @@ do ix = 0, ubound(lat%branch, 1)
                                                   branch2%ix_from_ele = branch2%ix_from_ele + 1
 enddo
 
-! update fork info
+! Update fork info
 
 do ix = 0, ubound(lat%branch, 1)
   branch2 => lat%branch(ix)
