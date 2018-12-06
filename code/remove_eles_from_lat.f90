@@ -7,10 +7,7 @@
 !     lat%branch(ib)%ele(ie)%key = -1
 ! To remove an entire branch mark the branch index:
 !     lat%branch(ib)%ix_branch = -1 
-!
-! When removing branch 0 the lord elements of the branch will be saved unless individually marked for deletion.
-! Note: The lat%control and lat%ic arrays will be appropriately adjusted.
-! Remember: When branch and ele arrays will be compressed. So, for example, if branch #0 is removed, then
+! Remember: Branch and ele arrays will be compressed. So, for example, if branch #0 is removed, then
 ! branch #1 will become branch #0, etc.
 !
 ! Individual lat%control(i) elements, along with the corresponding lat%ic(j), can 
@@ -19,11 +16,14 @@
 ! In this case, the appropriate lord%n_slave value must have been adjusted for 
 ! the appropriate lord element.
 !
-! Note: Currently there is a deprecated way to remove lat%control(i) elements via setting:
-!     lat%control(i)%ix_attrib = int_garbage$    ! DO NOT DO THIS!
-!
-! Note: To save computation time, lattice_bookkeeper is not called by this routine.
+! Important: To save computation time, lattice_bookkeeper is not called by this routine.
 ! If you use this routine you should call lattice_bookkeeper after all lattice adjustments have been made.
+!
+! Notes:
+!  * Removing branch 0 the lord elements of the branch will be saved unless individually marked for deletion.
+!  * When removing branches or elements, the lat%control and lat%ic arrays will be appropriately adjusted.
+!  * Currently there is a deprecated way to remove lat%control(i) elements via setting:
+!     lat%control(i)%ix_attrib = int_garbage$    ! DO NOT DO THIS!
 !
 ! Input:
 !   lat            -- lat_struct: Lattice to compress.
