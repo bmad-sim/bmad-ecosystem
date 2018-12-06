@@ -52,7 +52,7 @@ endif
 
 !
 
-call match_word (mode_in, ['STD', 'fft', 'debug', 'binary', 'fit_table'], ix, .false., .true., mode)
+call match_word (mode_in, [character(16):: 'STD', 'fft', 'debug', 'binary', 'fit_table'], ix, .false., .true., mode)
 
 if (ix == 0) then
   print *, 'I DO NOT UNDERSTAND MODE: ', mode_in
