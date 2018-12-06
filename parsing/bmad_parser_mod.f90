@@ -4446,13 +4446,13 @@ logical have_inserted, found, err_flag, err
 
 if (.not. bp_com%do_superimpose) return
 
-call settable_dep_var_bookkeeping (super_ele_in)
-
 call init_ele(super_ele_saved)
 call init_ele(super_ele)
 
 super_ele = super_ele_in
 super_ele%logic = .false.
+call settable_dep_var_bookkeeping (super_ele)
+
 super_ele_saved = super_ele     ! in case super_ele_in changes
 lat => branch%lat
 pele%ix_ref_multipass = 0
