@@ -1,10 +1,17 @@
 !+
 ! Subroutine remove_eles_from_lat (lat, check_sanity)
 !
-! Subroutine to compress the ele(:), control(:), and ic(:) arrays to remove
-! elements no longer used. Note: to mark an element for removal use:
-!     lat%branch(ib)%ele(i)%key = -1
-! The lat%control and lat%ic arrays will be appropriately adjusted.
+! Subroutine to compress the ele(:), branch(:), control(:), and ic(:) arrays to remove elements no longer used. 
+!
+! To mark element ie of branch ib for removal use:
+!     lat%branch(ib)%ele(ie)%key = -1
+! To remove an entire branch mark the branch index:
+!     lat%branch(ib)%ix_branch = -1 
+!
+! When removing branch 0 the lord elements of the branch will be saved unless individually marked for deletion.
+! Note: The lat%control and lat%ic arrays will be appropriately adjusted.
+! Remember: When branch and ele arrays will be compressed. So, for example, if branch #0 is removed, then
+! branch #1 will become branch #0, etc.
 !
 ! Individual lat%control(i) elements, along with the corresponding lat%ic(j), can 
 ! be removed by setting:
@@ -35,7 +42,7 @@ implicit none
                          
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, lord, ele2, slave
-type (branch_struct), pointer :: branch
+type (branch_struct), pointer :: branch, b0
 type (control_struct), pointer :: ctl
 type (lat_ele_loc_struct), pointer :: loc
 
@@ -74,9 +81,9 @@ do
   if (.not. found_one) exit
 enddo
 
-! Allocate
+! Allocate ibr
 
-allocate (ibr(0:ubound(lat%branch, 1)) )
+allocate (ibr(0:ubound(lat%branch, 1)))
 do i = 0, ubound(lat%branch, 1)
   allocate (ibr(i)%new(lat%branch(i)%n_ele_max))
 enddo
@@ -119,7 +126,7 @@ do ib = 0, ubound(lat%branch, 1)
   i2 = 0
   do i = 1, branch%n_ele_max
     ele => branch%ele(i)
-    if (ele%key == -1) then
+    if (ele%key == -1 .or. (branch%ix_branch == -1 .and. i <= branch%n_ele_track)) then
       ibr(ib)%new(i)%ix_ele    = -1
       ibr(ib)%new(i)%ix_branch = -1
     else
@@ -252,7 +259,17 @@ do ib = 0, ubound(lat%branch, 1)
 
 enddo
 
-! do a check
+! Removing branch 0 is unique since it has lord elements.
+
+!b0 => lat%branch(0)
+!if (b0%ix_branch == -1) then
+!  nt = lat%branch(1)%n_ele_track ! Note b0%n_ele_track = 0 since all tracking eles have been removed.
+!  ! 
+!endif
+
+! Remove other branches.
+
+! Sanity check
 
 call set_flags_for_changed_attribute(lat)
 if (logic_option(.true., check_sanity)) call lat_sanity_check (lat, err_flag)
