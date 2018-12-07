@@ -341,7 +341,7 @@ do i_step = 0, n_step
     endif
     write (iu_wake, '(a)') '!#-----------------------------'
     write (iu_wake, '(a, i4, f12.6)') '! Step index:', i_step
-    write (iu_wake, '(a, i4, f12.6)') '! S-position:', ele%s_start + s0_step
+    write (iu_wake, '(a, f12.6)') '! S-position:', ele%s_start + s0_step
     write (iu_wake, '(a)') '!         Z   Charge/Meter    CSR_Kick/m       I_CSR/m      S_Source' 
     ds_step = csr%kick_factor * csr%actual_track_step
     do j = 1, csr_param%n_bin
