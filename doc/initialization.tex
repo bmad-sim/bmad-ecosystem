@@ -437,7 +437,7 @@ type tao_global_struct
   logical opt_with_base = F             ! use base data in optimization?
   logical optimizer_var_limit_warn = T  ! Warn when vars reach a limit when optimizing?
   logical plot_on = T                   ! Do plotting?
-  logical plot_calc_always = F          ! Always calc plot curve points even with %plot_on = F?
+  logical force_plot_data_calc = F      ! Always calc plot curve points even with %plot_on = F?
   logical rf_on = F                     ! RF cavities on?
   logical svd_retreat_on_merit_increase = T    
   logical var_limits_on = T             ! Respect the variable limits?
@@ -494,11 +494,11 @@ command generates. Similarly, \vn{global%plot_on} can be toggled to save even mo
 the \vn{set universe} command (\sref{s:set.universe}) for ways to suppress certain types of
 calculations (for example, calculating the Twiss parameters) that are not needed.
 
-  \item{\vn{global%plot_calc_always}} \Newline
+  \item{\vn{global%force_plot_data_calc}} \Newline
 Sometimes it is convenient to have \tao calculate plotting curve points even when \tao is not doing
 any plotting (that is, \vn{global%plot_on} = F). For example, when \tao is run as a server by a client
 (such as a graphic user interface) program where the client program is taking care of the plotting but
-the data to be plotted is calculated by \tao. In this case by setting \vn{global%plot_calc_always} to
+the data to be plotted is calculated by \tao. In this case by setting \vn{global%force_plot_data_calc} to
 True will force \tao to always calculate curve data points even when \vn{global%plot_on} = F.
 
   \item{\vn{global%merit_stop_value}} \Newline
