@@ -586,7 +586,7 @@ type tao_global_struct
   logical :: optimizer_var_limit_warn = .true.    ! Warn when vars reach a limit with optimization.
   logical :: orm_analysis = .false.               ! ORM using MDSA? 
   logical :: plot_on = .true.                     ! Do plotting?
-  logical :: plot_calc_always = .false.           ! Always calc plot curve points even with %plot_on = F?
+  logical :: force_plot_data_calc = .false.       ! Always calc plot curve points even with %plot_on = F?
   logical :: rf_on = .false.                      ! RFcavities on or off? Does not affect lcavities.
   logical :: single_step = .false.                ! For debugging. Single step through a command file?
   logical :: stop_on_error = .true.               ! For debugging: True prevents tao from exiting on an error.
