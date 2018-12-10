@@ -1251,7 +1251,8 @@ case ('expression')
 
   else
     call tao_evaluate_expression  (curve%data_type(12:), 0, graph%draw_only_good_user_data_or_vars, value_arr, &
-                                                 scratch%info, err, .false., scratch%stack, component, curve%data_source)
+                                                 scratch%info, err, .true., scratch%stack, component, curve%data_source)
+    if (err) return
     n_dat = count(scratch%info%good)
     call re_allocate (curve%ix_symb, n_dat)
     call re_allocate (curve%x_symb,  n_dat) ! allocate space for the data

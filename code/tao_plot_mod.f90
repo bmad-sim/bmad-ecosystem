@@ -1673,20 +1673,20 @@ endif
 
 call qp_use_axis (y = 'Y')  ! reset
 
+!-----------------------------------------------
 contains
 
-  function z_color()
-  integer :: z_color
-  real(rp) :: z
-  if (dz==0) then
-    z_color = black$
-  else
-    z = (curve%z_symb(i) - curve%z_color0)/dz
-    z = 1-z ! Make red -> purple with PLPlot
-    z_color = qp_continuous_color(z)  
-   endif
-  end function
-
+function z_color()
+integer :: z_color
+real(rp) :: z
+if (dz==0) then
+  z_color = black$
+else
+  z = (curve%z_symb(i) - curve%z_color0)/dz
+  z = 1-z ! Make red -> purple with PLPlot
+  z_color = qp_continuous_color(z)  
+ endif
+end function z_color
 
 end subroutine tao_draw_curve_data
 
