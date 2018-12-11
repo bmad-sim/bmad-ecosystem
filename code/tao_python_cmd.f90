@@ -257,11 +257,18 @@ case ('bunch1')
 
   ! Relative min, max, centroid
   do i = 1, 6
-    nl=incr(nl); write (li(nl), vrmt) 'rel_min_', i, ';REAL;F;',                bunch_params%rel_min(i)
-    nl=incr(nl); write (li(nl), vrmt) 'rel_max_', i, ';REAL;F;',                bunch_params%rel_max(i) 
-    nl=incr(nl); write (li(nl), vrmt) 'centroid_vec_', i, ';REAL;F;',           bunch_params%centroid%vec(i) 
+    nl=incr(nl); write (li(nl), vrmt) 'rel_min_', i, ';REAL;F;',               bunch_params%rel_min(i)
+    nl=incr(nl); write (li(nl), vrmt) 'rel_max_', i, ';REAL;F;',               bunch_params%rel_max(i) 
+    nl=incr(nl); write (li(nl), vrmt) 'centroid_vec_', i, ';REAL;F;',          bunch_params%centroid%vec(i) 
   enddo
-
+  nl=incr(nl); write (li(nl), rmt) 'centroid_t;REAL;F;',                       bunch_params%centroid%t
+  nl=incr(nl); write (li(nl), rmt) 'centroid_p0c;REAL;F;',                     bunch_params%centroid%p0c
+  nl=incr(nl); write (li(nl), rmt) 'centroid_beta;REAL;F;',                    bunch_params%centroid%beta
+  nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;F;',                            bunch_params%centroid%ix_ele
+  nl=incr(nl); write (li(nl), imt) 'direction;INT;F;',                         bunch_params%centroid%direction
+  nl=incr(nl); write (li(nl), amt) 'species;STR;F;',                           species_name(bunch_params%centroid%species)
+  nl=incr(nl); write (li(nl), amt) 'location;STR;F;',                          location_name(bunch_params%centroid%location)
+  
 
   nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                                bunch_params%s
   nl=incr(nl); write (li(nl), rmt) 'charge_live;REAL;F;',                      bunch_params%charge_live
