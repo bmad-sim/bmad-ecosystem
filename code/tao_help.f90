@@ -120,37 +120,38 @@ do
   if (left_over_eliminate /= '') then
     ix = index(line, trim(left_over_eliminate))
     if (ix /= 0) then
-      call substitute (left_over_eliminate, left_over_sub)
+      call substitute (line, left_over_eliminate, left_over_sub)
       left_over_eliminate = ''
       left_over_sub = ''
     endif
   endif
 
-  call substitute ("``\vn", '"')
-  call substitute ("``", '"')
-  call substitute ("}''", '"')
-  call substitute ("''", '"')
-  call substitute ("$")
-  call substitute ("\protect")
-  call substitute ("\_", "_")
-  call substitute ("\#", "#")
-  call substitute ("\%", "%")
-  call substitute ("\tao", "Tao")
-  call eliminate2 ('\item[', ']', '     ', '')
-  call eliminate2 ('\vn{', '}', '"', '"')
-  call eliminate_inbetween ('& \sref{', '}', .true.)
-  call eliminate_inbetween ('\hspace*{', '}', .true.)
-  call eliminate_inbetween ('(\sref{', '})', .false.)
-  call eliminate_inbetween ('\sref{', '}', .false.)
-  call eliminate_inbetween ('{\it ', '}', .false.)
-  call eliminate_inbetween ('\parbox{', '}', .false.)
-  call substitute ("] \Newline")
-  call substitute ("\Newline")
-  if (.not. in_example) call substitute (" &")
-  call substitute ('\\ \hline')
-  call substitute ('\\')
-  call substitute ('\W ', '^')
-  call substitute ('"\W"', '"^"')
+  call eliminate2 (line, '\item[\vn{\{', '\}}]', '   Argument: ', '')
+  call substitute (line, "``\vn", '"')
+  call substitute (line, "``", '"')
+  call substitute (line, "}''", '"')
+  call substitute (line, "''", '"')
+  call substitute (line, "$")
+  call substitute (line, "\protect")
+  call substitute (line, "\_", "_")
+  call substitute (line, "\#", "#")
+  call substitute (line, "\%", "%")
+  call substitute (line, "\tao", "Tao")
+  call eliminate2 (line, '\item[', ']', '     ', '')
+  call eliminate2 (line, '\vn{', '}', '"', '"')
+  call eliminate_inbetween (line, '& \sref{', '}', .true.)
+  call eliminate_inbetween (line, '\hspace*{', '}', .true.)
+  call eliminate_inbetween (line, '(\sref{', '})', .false.)
+  call eliminate_inbetween (line, '\sref{', '}', .false.)
+  call eliminate_inbetween (line, '{\it ', '}', .false.)
+  call eliminate_inbetween (line, '\parbox{', '}', .false.)
+  call substitute (line, "] \Newline")
+  call substitute (line, "\Newline")
+  if (.not. in_example) call substitute (line, " &")
+  call substitute (line, '\\ \hline')
+  call substitute (line, '\\')
+  call substitute (line, '\W ', '^')
+  call substitute (line, '"\W"', '"^"')
 
   if (line(1:2) == '% ') line = line(3:)
   if (line(1:1) == '%')  line = line(2:)
@@ -169,8 +170,8 @@ do
     endif
   enddo
 
-  call substitute ("\{", "{")
-  call substitute ("\}", "}")
+  call substitute (line, "\{", "{")
+  call substitute (line, "\}", "}")
 
   n = max(1, len_trim(line))
   if (line(n:n) == '!') line(n:n) =  ' '
@@ -199,11 +200,11 @@ if (present(n_lines)) n_lines = nl
 !-----------------------------------------------------------------------------
 contains
 !
-! substitutes a string and optionally replaces it with another
+! Removes a string and optionally replaces it with another.
 
-subroutine substitute (str1, sub)
+subroutine substitute (line, str1, sub)
 
-character(*) str1
+character(*) line, str1
 character(*), optional :: sub
 integer n1
 
@@ -229,9 +230,9 @@ end subroutine
 !
 ! eliminates two strings, but only if they both exist on the same line
 
-subroutine eliminate2 (str1, str2, sub1, sub2)
+subroutine eliminate2 (line, str1, str2, sub1, sub2)
 
-character(*) str1, str2
+character(*) line, str1, str2
 character(*), optional :: sub1, sub2
 integer n1, n2, ix1, ix2
 
@@ -294,9 +295,9 @@ end subroutine
 !
 ! eliminates everything between strings, including the strings
 
-subroutine eliminate_inbetween (str1, str2, pad_with_blanks)
+subroutine eliminate_inbetween (line, str1, str2, pad_with_blanks)
 
-character(*) str1, str2
+character(*) line, str1, str2
 character(100) :: blank = ''
 
 integer n1, n2, ix1, ix2

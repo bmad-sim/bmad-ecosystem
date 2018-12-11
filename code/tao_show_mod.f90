@@ -1845,13 +1845,11 @@ case ('lattice')
   ! get command line switches
 
   do
-    call tao_next_switch (what2, [ &
-        '-branch             ', '-blank_replacement  ', '-lords              ', '-middle             ', &
-        '-tracking_elements  ', '-0undef             ', '-no_label_lines     ', '-no_tail_lines      ', &
-        '-custom             ', '-s                  ', '-radiation_integrals', '-remove_line_if_zero', &
-        '-base               ', '-design             ', '-floor_coords       ', '-orbit              ', &
-        '-attribute          ', '-all                ', '-no_slaves          ', '-energy             ', &
-        '-spin               ', '-undef0             ', '-no_super_slaves    '], &
+    call tao_next_switch (what2, [character(28):: &
+        '-branch', '-blank_replacement', '-lords', '-middle', '-tracking_elements', '-0undef', &
+        '-no_label_lines', '-no_tail_lines', '-custom', '-s', '-radiation_integrals', '-remove_line_if_zeo', &
+        '-base', '-design', '-floor_coords', '-orbit', '-attribute', '-all', '-no_slaves', '-energy', &
+        '-spin', '-undef0', '-no_super_slaves', '-sum_radiation_integrals'], &
             .true., switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
@@ -1947,6 +1945,9 @@ case ('lattice')
 
     case ('-radiation_integrals')
       what_to_print = 'rad_int'
+
+    case ('-sum_radiation_integrals')
+      what_to_print = 'sum_rad_int'
 
     case ('-remove_line_if_zero')
       read (what2(1:ix_s2), *, iostat = ios) ix_remove
@@ -2131,6 +2132,31 @@ case ('lattice')
       column(12) = show_lat_column_struct('lat::rad_int1.i4b[#]',    'es10.2',  10, '', .false., 1.0_rp)
       column(13) = show_lat_column_struct('lat::rad_int1.i5b[#]',    'es10.2',  10, '', .false., 1.0_rp)
       column(14) = show_lat_column_struct('lat::rad_int1.i6b[#]',    'es10.2',  10, '', .false., 1.0_rp)
+    endif
+
+  case ('sum_rad_int')
+    column(1)  = show_lat_column_struct('#',                     'i6',        6, '', .false., 1.0_rp)
+    column(2)  = show_lat_column_struct('x',                     'x',         2, '', .false., 1.0_rp)
+    column(3)  = show_lat_column_struct('ele::#[name]',          'a',         0, '', .false., 1.0_rp)
+    column(4)  = show_lat_column_struct('ele::#[key]',           'a17',      17, '', .false., 1.0_rp)
+    column(5)  = show_lat_column_struct('ele::#[s]',             'f10.3',    10, '', .false., 1.0_rp)
+    if (branch%param%geometry == open$) then
+      column(6)  = show_lat_column_struct('lat::rad_int.i0[#]',     'es10.2',  10, '', .true., 1.0_rp)
+      column(7)  = show_lat_column_struct('lat::rad_int.i1[#]',     'es10.2',  10, '', .true., 1.0_rp)
+      column(8)  = show_lat_column_struct('lat::rad_int.i2_e4[#]',  'es10.2',  10, '', .false., 1.0_rp)
+      column(9)  = show_lat_column_struct('lat::rad_int.i3_e7[#]',  'es10.2',  10, '', .false., 1.0_rp)
+      column(10) = show_lat_column_struct('lat::rad_int.i5a_e6[#]', 'es10.2',  10, '', .false., 1.0_rp)
+      column(11) = show_lat_column_struct('lat::rad_int.i5b_e6[#]', 'es10.2',  10, '', .false., 1.0_rp)
+    else
+      column(6)  = show_lat_column_struct('lat::rad_int.i0[#]',     'es10.2',  10, '', .true., 1.0_rp)
+      column(7)  = show_lat_column_struct('lat::rad_int.i1[#]',     'es10.2',  10, '', .true., 1.0_rp)
+      column(8)  = show_lat_column_struct('lat::rad_int.i2[#]',     'es10.2',  10, '', .false., 1.0_rp)
+      column(9)  = show_lat_column_struct('lat::rad_int.i3[#]',     'es10.2',  10, '', .false., 1.0_rp)
+      column(10) = show_lat_column_struct('lat::rad_int.i4a[#]',    'es10.2',  10, '', .false., 1.0_rp)
+      column(11) = show_lat_column_struct('lat::rad_int.i5a[#]',    'es10.2',  10, '', .false., 1.0_rp)
+      column(12) = show_lat_column_struct('lat::rad_int.i4b[#]',    'es10.2',  10, '', .false., 1.0_rp)
+      column(13) = show_lat_column_struct('lat::rad_int.i5b[#]',    'es10.2',  10, '', .false., 1.0_rp)
+      column(14) = show_lat_column_struct('lat::rad_int.i6b[#]',    'es10.2',  10, '', .false., 1.0_rp)
     endif
 
   case ('standard')
