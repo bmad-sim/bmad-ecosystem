@@ -1570,6 +1570,7 @@ logical err
 
 !
 
+err = .true.
 nullify(ele)
 call lat_ele_locator (line, tao_lat%lat, eles, n_loc)
 
@@ -1580,6 +1581,7 @@ if (n_loc /= 1) then
 endif
 
 ele => eles(1)%ele
+err = .false.
 
 end function point_to_ele
 
