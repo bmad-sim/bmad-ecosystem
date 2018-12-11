@@ -2004,8 +2004,8 @@ Syntax:
       \{-blank_replacement <string>\}  \{-branch <name_or_index>\}
       \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\}
       \{-no_label_lines\} \{-no_tail_lines\} \{-no_slaves\} \{-no_super_slaves\} \{-orbit\} 
-      \{-radiation_integrals\}\{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{-spin\} 
-      \{-tracking_elements\} \{-undef0\} \{<element_list>\} 
+      \{-radiation_integrals\} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{-spin\} 
+      \{-sum_radiation_integrals\} \{-tracking_elements\} \{-undef0\} \{<element_list>\} 
 \end{example}
 
 Show a table of Twiss and orbit data, etc. at the specified element locations. The default
@@ -2028,8 +2028,13 @@ closed geometry and is the spin beginning from the specified starting spin for l
 geometry. Use \vn{set beam_start} to vary the starting spin in this case. If the \vn{-orbit} switch
 is also present, the particle's phase space orbit will also be displayed.
 
-The \vn{-radiation_integrals} switch, if present, will cause the radiation integrals for
-each lattice element to be displayed instead of the standard Twiss and orbit data.
+The \vn{-radiation_integrals} switch, if present, will display the radiation integrals for
+each lattice element instead of the standard Twiss and orbit data. See the
+\bmad manual for the definitions of the radiation integrals. Also see \vn{-sum_radiation_integrals}.
+
+The \vn{-sum_radiation_integrals} switch, if present, will display the radiation integrals
+integrated from the start of the lattice to for each lattice element. See the \bmad manual for the
+definitions of the radiation integrals. Also see \vn{-radiation_integrals}.
 
 If present, the \vn{-no_label_lines} switch will prevent the printing of the header
 (containing the column labels) lines at the top and bottom of the table.  This is useful

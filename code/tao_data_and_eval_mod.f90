@@ -503,7 +503,7 @@ elseif (ix /= 0) then
   head_data_type = head_data_type(1:ix) 
 endif
 
-if (head_data_type  == 'rad_int.' .or. head_data_type == 'rad_int1.') then
+if (head_data_type(1:7)  == 'rad_int.') then
   if (index(head_data_type, '_e') /= 0 .and. (ix_ref > -1 .or. ix_ele > -1)) then
     if (.not. allocated(tao_branch%rad_int%ele)) then
       call out_io (s_error$, r_name, 'tao_branch%rad_int not allocated')
@@ -2310,6 +2310,13 @@ case ('rad_int.')
   if (.not. allocated(tao_branch%rad_int%ele)) return
 
   select case (datum%data_type(9:))
+  case ('i0')
+    if (ix_ele > -1) then
+      datum_value = sum(tao_branch%rad_int%ele(ix_ref:ix_ele)%i0)
+    else
+      datum_value = tao_branch%modes%synch_int(0)
+    endif
+
   case ('i1')
     if (ix_ele > -1) then
       datum_value = sum(tao_branch%rad_int%ele(ix_ref:ix_ele)%i1)
