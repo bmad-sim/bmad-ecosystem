@@ -34,12 +34,14 @@ integer i, ix_pole_max, ix_elec_max, n_step
 
 logical, optional :: make_matrix
 
-! Only periodic type wigglers are handled here.
+! For planar wigglers:
 ! In the horizontal plane the tracking looks like a drift.
 ! The tracking in the vertical plane is:
 !   1) 1/2 the octupole kick at the entrance face.
 !   2) Track as a quadrupole through the body
 !   3) 1/2 the octupole kick at the exit face.
+
+! For helical wigglers use the vertical plane tracking for the horizontal plane as well.
 
 call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
@@ -88,15 +90,26 @@ do i = 1, n_step
     m43 = k3l * rel_p * k_z**2 * orbit%vec(3)**2
     m46 = -k3l * k_z**2 * orbit%vec(3)**3 / 3
     mat6(4,:) = mat6(4,:) + m43 * mat6(3,:) + m46 * mat6(6,:)
+    if (ele%field_calc == helical_model$) then
+      mat6(2,:) = mat6(2,:) + m43 * mat6(1,:) + m46 * mat6(6,:)
+    endif
   endif
 
   orbit%vec(4) = orbit%vec(4) + k3l * rel_p * k_z**2 * orbit%vec(3)**3 / 3
+  if (ele%field_calc == helical_model$) then
+    orbit%vec(2) = orbit%vec(2) + k3l * rel_p * k_z**2 * orbit%vec(1)**3 / 3
+  endif
 
   ! Quadrupole body
 
   if (logic_option(.false., make_matrix)) call mat_make_unit (kmat)
 
-  call quad_mat2_calc (0.0_rp, step_len, rel_p, kmat(1:2,1:2), dz_x, ddz_x)
+  if (ele%field_calc == helical_model$) then
+    call quad_mat2_calc (k1,     step_len, rel_p, kmat(1:2,1:2), dz_x, ddz_x)
+  else
+    call quad_mat2_calc (0.0_rp, step_len, rel_p, kmat(1:2,1:2), dz_x, ddz_x)
+  endif
+
   call quad_mat2_calc (k1,     step_len, rel_p, kmat(3:4,3:4), dz_y, ddz_y)
 
   ! The mat6(i,6) terms are constructed so that mat6 is sympelctic
@@ -142,9 +155,15 @@ do i = 1, n_step
     m43 = k3l * rel_p * k_z**2 * orbit%vec(3)**2
     m46 = -k3l * k_z**2 * orbit%vec(3)**3 / 3
     mat6(4,:) = mat6(4,:) + m43 * mat6(3,:) + m46 * mat6(6,:)
+    if (ele%field_calc == helical_model$) then
+      mat6(2,:) = mat6(2,:) + m43 * mat6(1,:) + m46 * mat6(6,:)
+    endif
   endif
 
   orbit%vec(4) = orbit%vec(4) + k3l * rel_p * k_z**2 * orbit%vec(3)**3 / 3
+  if (ele%field_calc == helical_model$) then
+    orbit%vec(2) = orbit%vec(2) + k3l * rel_p * k_z**2 * orbit%vec(1)**3 / 3
+  endif
 
   !
 

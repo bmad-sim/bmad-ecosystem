@@ -397,6 +397,13 @@ subroutine create_field_overlap (lat, lord_name, slave_name, err_flag)
   logical err_flag
 end subroutine
 
+subroutine create_wiggler_cartesian_map (ele, cart_map)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (cartesian_map_struct), target :: cart_map
+end subroutine
+
 subroutine create_girder (lat, ix_ele, con, init_ele, err_flag)
   import
   implicit none
@@ -611,15 +618,6 @@ subroutine find_matching_fieldmap (file_name, ele, t_type, match_ele, ix_field)
   type (ele_struct), pointer :: match_ele
   integer t_type, ix_field
   character(*) file_name
-end subroutine
-
-subroutine get_field_ele_list (ele, field_eles, dz_offset, n_field_ele)
-  import
-  implicit none
-  type (ele_struct), target :: ele
-  type (ele_pointer_struct), allocatable :: field_eles(:)
-  real(rp), allocatable :: dz_offset(:)
-  integer n_field_ele
 end subroutine
 
 subroutine get_slave_list (lord, slaves, n_slave)

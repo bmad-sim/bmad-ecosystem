@@ -283,14 +283,19 @@ case (vkicker$)
   end select
 
 case (wiggler$, undulator$)
-  if (ele%sub_key == map_type$) then
+  if (ele%field_calc == fieldmap$) then
     select case (method)
     case (symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, boris$, time_runge_kutta$, custom$)
       is_valid = .true.
     end select
-  elseif (ele%sub_key == periodic_type$) then
+  elseif (ele%field_calc == planar_model$) then
     select case (method)
     case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, time_runge_kutta$, custom$)
+      is_valid = .true.
+    end select
+  elseif (ele%field_calc == helical_model$) then
+    select case (method)
+    case (bmad_standard$, runge_kutta$, linear$, symp_lie_bmad$, time_runge_kutta$, custom$)
       is_valid = .true.
     end select
   endif

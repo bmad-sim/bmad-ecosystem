@@ -4244,20 +4244,26 @@ General \vn{wiggler} attributes are:
 \toffset
 See \sref{s:list.wiggler} for a full list of element attributes.
 
-There are two types of wigglers. Those that that are described using a
-magnetic field map (``map type'') and those that are described
-assuming a periodic field (``periodic type''). 
+There are three types of wigglers. Those that that are described using a magnetic field map
+(``\vn{map type}''), those that are described assuming a periodic field (``\vn{periodic type}''),
+and those that use a custom field. \vn{periodic type} wigglers are have their \vn{field_calc}
+attribute \vn{s:field.calc} set to one of:
+\begin{example}
+  planer_model    ! Default
+  helical_model
+\end{example}
+while \vn{map type} wigglers have their \vn{field_calc} attribute set to \vn{fieldmap} and custom type
+wigglers have their \vn{field_calc} attribute set to \vn{custom}.
 
 %-----------------------------------------------------
-\subsection{Map\_Type Wigglers}
+\subsection{Map Type Wigglers}
 \label{s:wiggler.map}
 
-The \vn{map type} wigglers are modeled using the Cartesian mode
-decomposition of Sec.~\sref{s:cart.map}. 
+The \vn{map type} wigglers are modeled using a field map as described in section~\vn{s:fieldmap}.
 
 \index{polarity}
 \index{term (for a wiggler)}
-Attributes specific to a \vn{map type} \vn{wiggler} element are:
+Attributes specific to \vn{map type} \vn{wigglers} element are:
 \begin{example}
   b_max    = <Real>   ! Maximum magnetic field (in T) on the wiggler centerline. 
                       !   Dependent attribute (\sref{s:depend}).
@@ -4270,90 +4276,31 @@ default, \vn{polarity} has a value of 1.0.  Example:
   wig1: wiggler, l = 1.6, polarity = -1, cartesian_map = \{...\}
 \end{example}
 
-The \vn{b_max} attribute for a \vn{map type} \vn{wiggler} is the
-maximum field computed for \vn{polarity} = 1.
+The \vn{b_max} attribute for a \vn{map type} \vn{wiggler} is the maximum field computed for
+\vn{polarity} = 1.
 
 There is no \vn{bmad_standard} tracking for a \vn{map_type}
 \vn{wiggler}. \vn{symp_lie_bmad} type tracking is discussed in \sref{s:symp.track}
 
 %-----------------------------------------------------
-\subsection{Old Map\_Type Wigglers Syntax}
-\label{s:old.wiggler}
-
-When the wiggler model was first developed, the definition of the field was somewhat
-different and there was a special syntax for specifying the field. The old syntax looked
-like
-\Begineq
-  \text{term(i)} = \{C, k_x, k_y, k_z, \phi_z \}
-\Endeq
-Example:
-\begin{example}
-  wig1: wiggler, l = 1.6, 
-        term(1) = \{0.03, 3.00, 4.00, 5.00, 0.63\},
-        term(2) = ...
-\end{example}
-
-The old definition used only the three forms corresponding to the \vn{cartesian_map}
-\vn{y} family (\sref{s:cart.map.phys}) with $x_0 = y_0 = 0$. There was also a different
-normalization convention. The old style \vn{hyper-y} form was
-\begin{alignat}{5}
-  B_x &= -& C \, &\dfrac{k_x}{k_y} & \sin(k_x x) \sinh(k_y y) \cos(\kzz) &\CRNEG
-  B_y &=  & C \, &                 & \cos(k_x x) \cosh(k_y y) \cos(\kzz) &\qquad \text{! Old style} \CRNEG
-  B_s &= -& C \, &\dfrac{k_z}{k_y} & \cos(k_x x) \sinh(k_y y) \sin(\kzz) &\label{f1} \\
-  & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_z^2$ .} &&&&  \nonumber
-\end{alignat}
-The old style \vn{hyper-xy} form was
-\begin{alignat}{5}
-  B_x &=  & C \, &\dfrac{k_x}{k_y} & \sinh(k_x x) \sinh(k_y y) \cos(\kzz) &\CRNEG
-  B_y &=  & C \, &                 & \cosh(k_x x) \cosh(k_y y) \cos(\kzz) &\qquad \text{! Old style} \CRNEG
-  B_s &= -& C \, &\dfrac{k_z}{k_y} & \cosh(k_x x) \sinh(k_y y) \sin(\kzz) &\label{f2} \\
-  & \makebox[1pt][l]{with $k_y^2 = k_z^2 - k_x^2$ ,} &&&&  \nonumber
-\end{alignat}
-The old style \vn{hyper_x} form was
-\begin{alignat}{5}
-  B_x &=  & C \, &\dfrac{k_x}{k_y} & \sinh(k_x x) \sin(k_y y) \cos(\kzz) &\CRNEG
-  B_y &=  & C \, &                 & \cosh(k_x x) \cos(k_y y) \cos(\kzz) &\qquad \text{! Old style} \CRNEG
-  B_s &= -& C \, &\dfrac{k_z}{k_y} & \cosh(k_x x) \sin(k_y y) \sin(\kzz) &\label{f3} \\
-  & \makebox[1pt][l]{with $k_y^2 = k_x^2 - k_z^2$ .} &&&& \nonumber
-\end{alignat}
-The correspondence between $C$ in the above equations and $A$ in the new equations is
-given by comparing \Eqs{f1}, \eq{f2}, and \eq{f3} with \Eqs{family.y}.
-
-When the {cartesian_map} construct was being developed, an intermediate hybrid syntax was used defined:
-\Begineq
-  term(i) = \{A, k_x, k_y, k_z, x_0, y_0, \phi_z, \text{family}\}
-\Endeq
-The parameters here directly correspond to the \vn{cartesian_map} forms (see \Eqs{cm1} through \eq{bsq}).
-
-For example, the old style syntax:
-\begin{example}
-  term(1) = \{0.03*4/5, 3.00, 4.00, 5.00, 0.63 \}    ! Old style
-\end{example}
-is equivalent to:
-\begin{example}
-  term(2) = \{0.03, 3.00, 4.00, 5.00, 0, 0, 0.63, y\}  ! Hybrid style
-\end{example}
-
-Note: When converting from the old or hybrid styles to \vn{cartesian_map}, the
-\vn{field_calc} parameter must be set to \vn{fieldmap}.
-
-%-----------------------------------------------------
-\subsection{Periodic\_Type Wiggler Element Tracking}
+\subsection{Periodic Type Wiggler Element Tracking}
 \label{s:wiggler.periodic}
 
-For the \vn{periodic type} wigglers the attributes are: 
+Attributes specific to \vn{periodic type} wigglers the attributes are: 
 \index{b_max}\index{n_pole}
 \index{k1}\index{rho}
-\begin{example}  
-  b_max    = <Real>  ! Maximum magnetic field (in T) on the wiggler centerline. 
-  l_pole   = <Real>  ! Wiggler pole length. The period is then 2 * l_pole.
-  n_pole   = <Real>  ! The number of poles (L / L_POLE). 
-                     !   A settable Dependent attribute (\sref{s:depend}).
+\begin{example}
+  b_max      = <Real>  ! Maximum magnetic field (in T) on the wiggler centerline. 
+  l_pole     = <Real>  ! Wiggler pole length. The period is then 2 * l_pole.
+  n_pole     = <Real>  ! The number of poles (L / L_POLE). 
+                       !   A settable Dependent attribute (\sref{s:depend}).
+  k1_pseudo            ! Pseudo K1 value. A Dependent attribute (\sref{s:depend}).
+  g_max                ! Maximum bending strength. Dependent attribute.
 \end{example}
 
 Example:
 \begin{example}
-  wig2: wiggler, l = 1.6, b_max = 2.1, n_pole = 7  ! periodic type wiggler
+  wig2: wiggler, l = 1.6, b_max = 2.1, n_pole = 7
 \end{example}
 
 The type of wiggler is determined by whether there are \vn{term(i)}
@@ -4388,17 +4335,16 @@ horizontal motion looks like a drift and the vertical motion is
 modeled as a combination focusing quadrupole and focusing octupole
 giving a kick\cite{b:corbett}
 \Begineq
-  \frac{dp_y}{dz} = k_1 \left( y + \frac{2}{3} \, k_z^2 \, y^3 \right)
+  \frac{dp_y}{dz} = k1 \left( y + \frac{2}{3} \, k_z^2 \, y^3 \right)
 \Endeq
 where
 \begin{alignat}{1}
-  k_1 &= \frac{-1}{2} \, \left( \frac{e \, B_{\max}}{P_0 \, (1 + p_z)} \right)^2 
+  g_max &= \frac{e \, B_{\max}}{P_0 \, (1 + p_z)}
+  k1 &= \frac{-1}{2} \, g_max^2 
 \end{alignat}
-with $k_1$ being the linear focusing constant. For radiation
-calculations the true horizontal trajectory with $y = 0$ is needed
-\Begineq
-  x = \frac{\sqrt{2 \, |k_1|}}{k_z^2} \, \cos (k_z \, z)
-\Endeq
+with $k1_\text{pseudo}$ being the linear focusing constant. Notice that the focusing is only in
+the vertical plane.
+
 
 With \vn{periodic type} wigglers and \vn{bmad_standard}
 tracking, the phase $\phi_z$ in \Eqs{bbkykz} is irrelevant. When the
@@ -4427,20 +4373,79 @@ Example:
 %-----------------------------------------------------
 \subsection{Common Wiggler Parameters}
 
-Tracking a particle through a wiggler is always done so that
-if the particle starts on-axis with no momentum offsets, there is no
-change in the $z$ coordinate even though the actual trajectory through
+Tracking a particle through a wiggler is always done so that if the particle starts on-axis with no
+momentum offsets, there is no change in the $z$ coordinate even though the actual trajectory through
 the wiggler does not follow the straight line reference trajectory.
 
 \index{x_ray_line_len}
-both types of wigglers have the following attributes:
+All wigglers have the following attributes:
 \begin{example}
-  x_ray_line_len = <Real>
+  x_ray_line_len = <Real> ! Deprecated.
   polarity       = <Real> ! Used to scale the field strength.
-  k1                      ! Vertical focusing strength. Dependent attribute (\sref{s:depend}).
-  rho                     ! Bending radius. Dependent attribute (\sref{s:depend}).
 \end{example}
-\vn{x_ray_line_len} is the length of an associated x-ray synchrotron
-light line measured from the exit end of the element. This is used for
-machine geometry calculations and is irrelevant for lattice
-computations.
+\vn{x_ray_line_len} is the length of an associated x-ray synchrotron light line measured from the
+exit end of the element. This is used for machine geometry calculations and is irrelevant for
+lattice computations. \vn{x_ray_line_len} is deprecated. Use a \vn{photon_fork} (\sref{s:fork})
+instead.
+
+%-----------------------------------------------------
+\subsection{Old Syntax for Wiggler Cartesian Map}
+\label{s:old.wiggler}
+
+When the wiggler model was first developed, the only \vn{map type} available was a Cartesian map (s:fieldmap}.
+The syntax for specifying a this Cartesian map
+was different from what it is currently. The old syntax for a Cartiesian map term was:
+\Begineq
+  \text{term(i)} = \{C, k_x, k_y, k_z, \phi_z \}
+\Endeq
+Example:
+\begin{example}
+  wig1: wiggler, l = 1.6, 
+        term(1) = \{0.03, 3.00, 4.00, 5.00, 0.63\},
+        term(2) = ...
+\end{example}
+
+The old syntax was limited to using the \vn{cartesian_map} \vn{y} family (\sref{s:cart.map.phys})
+with $x_0 = y_0 = 0$. There was also a different normalization convention. The old style
+\vn{hyper-y} form was
+\begin{alignat}{5}
+  B_x &= -& C \, &\dfrac{k_x}{k_y} & \sin(k_x x) \sinh(k_y y) \cos(\kzz) &\CRNEG
+  B_y &=  & C \, &                 & \cos(k_x x) \cosh(k_y y) \cos(\kzz) &\qquad \text{! Old style} \CRNEG
+  B_s &= -& C \, &\dfrac{k_z}{k_y} & \cos(k_x x) \sinh(k_y y) \sin(\kzz) &\label{f1} \\
+  & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_z^2$ .} &&&&  \nonumber
+\end{alignat}
+The old style \vn{hyper-xy} form was
+\begin{alignat}{5}
+  B_x &=  & C \, &\dfrac{k_x}{k_y} & \sinh(k_x x) \sinh(k_y y) \cos(\kzz) &\CRNEG
+  B_y &=  & C \, &                 & \cosh(k_x x) \cosh(k_y y) \cos(\kzz) &\qquad \text{! Old style} \CRNEG
+  B_s &= -& C \, &\dfrac{k_z}{k_y} & \cosh(k_x x) \sinh(k_y y) \sin(\kzz) &\label{f2} \\
+  & \makebox[1pt][l]{with $k_y^2 = k_z^2 - k_x^2$ ,} &&&&  \nonumber
+\end{alignat}
+The old style \vn{hyper_x} form was
+\begin{alignat}{5}
+  B_x &=  & C \, &\dfrac{k_x}{k_y} & \sinh(k_x x) \sin(k_y y) \cos(\kzz) &\CRNEG
+  B_y &=  & C \, &                 & \cosh(k_x x) \cos(k_y y) \cos(\kzz) &\qquad \text{! Old style} \CRNEG
+  B_s &= -& C \, &\dfrac{k_z}{k_y} & \cosh(k_x x) \sin(k_y y) \sin(\kzz) &\label{f3} \\
+  & \makebox[1pt][l]{with $k_y^2 = k_x^2 - k_z^2$ .} &&&& \nonumber
+\end{alignat}
+The correspondence between $C$ in the above equations and $A$ in the new equations is
+given by comparing \Eqs{f1}, \eq{f2}, and \eq{f3} with \Eqs{family.y}.
+
+When the {cartesian_map} construct was being developed, an intermediate hybrid syntax was used defined:
+\Begineq
+  term(i) = \{A, k_x, k_y, k_z, x_0, y_0, \phi_z, \text{family}\}
+\Endeq
+The parameters here directly correspond to the \vn{cartesian_map} forms (see \Eqs{cm1} through \eq{bsq}).
+
+For example, the old style syntax:
+\begin{example}
+  term(1) = \{0.03*4/5, 3.00, 4.00, 5.00, 0.63 \}    ! Old style
+\end{example}
+is equivalent to the hybrid syntax:
+\begin{example}
+  term(2) = \{0.03, 3.00, 4.00, 5.00, 0, 0, 0.63, y\}  ! Hybrid style
+\end{example}
+
+Note: When converting from the old or hybrid styles to the new syntax, the \vn{field_calc} parameter
+must be set to \vn{fieldmap}.
+

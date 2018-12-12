@@ -1485,10 +1485,10 @@ call init_attribute_name1 (taylor$, pz_ref$,                        'PZ_REF')
 call init_attribute_name1 (taylor$, delta_e_ref$,                   'DELTA_E_REF')
 call init_attribute_name1 (taylor$, delta_ref_time$,                'DELTA_REF_TIME', override = .true.) ! Here not dependent
 
-call init_attribute_name1 (wiggler$, k1$,                           'K1', dependent$)
+call init_attribute_name1 (wiggler$, k1_pseudo$,                    'K1', dependent$)
 call init_attribute_name1 (wiggler$, l_pole$,                       'L_POLE')
 call init_attribute_name1 (wiggler$, b_max$,                        'B_MAX')
-call init_attribute_name1 (wiggler$, rho$,                          'RHO', dependent$)
+call init_attribute_name1 (wiggler$, g_max$,                        'G_MAX', dependent$)
 call init_attribute_name1 (wiggler$, n_pole$,                       'N_POLE')
 call init_attribute_name1 (wiggler$, term$,                         'TERM')
 call init_attribute_name1 (wiggler$, polarity$,                     'POLARITY')

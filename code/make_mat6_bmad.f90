@@ -23,6 +23,7 @@ use fringe_mod, dummy1 => make_mat6_bmad
 implicit none
 
 type (ele_struct), target :: ele
+type (ele_struct), pointer :: field_ele
 type (coord_struct) :: start_orb, end_orb
 type (lat_param_struct)  param
 
@@ -68,7 +69,9 @@ case (ab_multipole$, sad_mult$, beambeam$, sbend$, patch$, quadrupole$, drift$, 
       elseparator$, rfcavity$, lcavity$, match$, multipole$, octupole$, sextupole$, &
       sol_quad$, solenoid$, taylor$, wiggler$, undulator$)
   tm = ele%tracking_method
-  if (key /= wiggler$ .or. ele%sub_key /= map_type$)   ele%tracking_method = bmad_standard$
+  field_ele => ele
+  if (ele%field_calc == refer_to_lords$) field_ele => pointer_to_lord(ele, 1)
+  if (key /= wiggler$ .or. field_ele%field_calc /= fieldmap$)   ele%tracking_method = bmad_standard$
   call track1 (start_orb, ele, param, end_orb, mat6 = ele%mat6, make_matrix = .true.)
   ele%tracking_method = tm
 

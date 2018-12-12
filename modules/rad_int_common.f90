@@ -135,14 +135,14 @@ if (associated(info%cache_ele)) then
 endif
 
 ! For j >= 3 we test if the integral calculation has converged.
-! Exception: Since wigglers have a periodic field, the calculation can 
+! Exception: Since wigglers have a planar or helical field, the calculation can 
 ! fool itself if we stop before j = 5.
 
 j_min_test = 3
 j_max = 14
 
 if (ele%key == wiggler$ .or. ele%key == undulator$) then
-  if (ele%sub_key == periodic_type$) then
+  if (ele%field_calc == planar_model$ .or. ele%field_calc == helical_model$) then
     j_min_test = 3 + log(max(1.0_rp, ele%value(n_pole$))) / log(2.0_rp)
     j_max = j_min_test + 8
   else
@@ -419,7 +419,7 @@ endif
 ! If wiggler/undulator with Taylor tracking then switch to symp_lie_bmad tracking 
 
 is_special_wiggler = ((ele%key == wiggler$ .or. ele%key == undulator$) .and. &
-                                    ele%sub_key == periodic_type$ .and. ele%tracking_method == taylor$)
+          (ele%field_calc == planar_model$ .or. ele%field_calc == helical_model$) .and. ele%tracking_method == taylor$)
 
 if (is_special_wiggler) then
   tm_saved = ele%tracking_method  
@@ -447,7 +447,7 @@ info%eta_b = matmul(v, [0.0_rp,   0.0_rp,    info%b%eta, info%b%etap ])
 
 is_special_wiggler = ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%tracking_method /= custom$)
 
-! bmad_standard will not properly do partial tracking through a periodic_type wiggler so
+! bmad_standard will not properly do partial tracking through a planar or helical wiggler so
 ! use special calculation
 
 if (is_special_wiggler) then
@@ -493,48 +493,22 @@ type (rad_int_info_struct), optional :: info
 type (ele_struct) ele
 
 real(rp) s_rel, g(3), dg(3,3)
-real(rp) f0, k_z, sinh_y, cosh_y, sin_z, cos_z
+real(rp) f0, k_z, sinh_x, cosh_x, sinh_y, cosh_y, sin_z, cos_z
 
-!
+! Note: em_field_g_bend assumes orb is lab (not element) coords.
 
-if (ele%sub_key == periodic_type$ .and. ele%tracking_method == bmad_standard$) then
-  f0 = ele%value(B_max$) * c_light / (orb%p0c * (1 + orb%vec(6)))
-  k_z = pi / ele%value(l_pole$)
-  sinh_y = sinh(k_z * orb%vec(3))
-  cosh_y = cosh(k_z * orb%vec(3))
-  sin_z  = sin(k_z * s_rel)
-  cos_z  = cos(k_z * s_rel)
+call em_field_g_bend (ele, param, s_rel, orb, g, dg)
 
-  pt%g_x0 = f0 * cosh_y * cos_z
-  pt%g_y0 = 0
-  pt%dgx_dx =  f0 * k_z * sinh_y * cos_z
-  pt%dgx_dy = -f0 * k_z * cosh_y * sin_z
-  pt%dgy_dx =  0
-  pt%dgy_dy =  0
+pt%g_x0 = g(1)
+pt%g_y0 = g(2)
+pt%dgx_dx = dg(1,1)
+pt%dgx_dy = dg(1,2)
+pt%dgy_dx = dg(2,1)
+pt%dgy_dy = dg(2,2)
 
-  if (present(info)) then
-    info%g_x  =  f0 * cosh_y * cos_z
-    info%g_y  =  0
-  endif
-
-!
-
-else
-  ! Note: em_field_g_bend assumes orb is lab (not element) coords.
-
-  call em_field_g_bend (ele, param, s_rel, orb, g, dg)
-
-  pt%g_x0 = g(1)
-  pt%g_y0 = g(2)
-  pt%dgx_dx = dg(1,1)
-  pt%dgx_dy = dg(1,2)
-  pt%dgy_dx = dg(2,1)
-  pt%dgy_dy = dg(2,2)
-
-  if (present(info)) then
-    info%g_x = g(1)
-    info%g_y = g(2)
-  endif
+if (present(info)) then
+  info%g_x = g(1)
+  info%g_y = g(2)
 endif
 
 end subroutine calc_wiggler_g_params

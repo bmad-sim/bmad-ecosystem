@@ -63,9 +63,7 @@ start_orb_saved = start_orb
 end_orb = start_orb
 rf_time = particle_rf_time (end_orb, ele, .true., end_orb%s - ele%s_start)
 beta_ref = ele%value(p0c$) / ele%value(E_tot$)
-set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$ .and. &
-            (ele%field_calc == bmad_standard$ .or. ele%field_calc == fieldmap$) .and. &
-            is_true(ele%value(spin_fringe_on$)))
+set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)
 
 ! s_lab is longitudinal position relative to entrance end (element body coords).
 ! Remember that if an element has reversed orientation, +s direction in body coords is opposite to

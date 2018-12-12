@@ -101,7 +101,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
-type (ele_struct), pointer :: ele, slave
+type (ele_struct), pointer :: ele, slave, field_ele
 type (ele_struct) :: ele2, ele_start, ele_end
 type (coord_struct), target :: orbit(0:), orb_start, orb_end, orb_end1
 type (normal_modes_struct) mode
@@ -118,7 +118,7 @@ type (rad_int1_struct) int_tot
 type (rad_int1_struct), pointer :: rad_int1
 type (rad_int_cache_struct), allocatable :: cache_temp(:)
 
-real(rp) i1, i2, i3, i4a, i4b, i4z, i5a, i5b, i6b, m65, G_max, g3_ave
+real(rp) i1, i2, i3, i4a, i4b, i4z, i5a, i5b, i6b, m65, G_max
 real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f, ds_step
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), dk(2,2), kx, ky, beta_min
 real(rp) v(4,4), v_inv(4,4), del_z, z_here, z_start, mc2, gamma, gamma4, gamma6
@@ -279,6 +279,7 @@ if (use_cache .or. init_cache) then
 
     ele => branch%ele(i)
     if (ele%value(l$) == 0) cycle
+    field_ele => pointer_to_field_ele(ele, 1)
 
     select case (ele%key)
     case (wiggler$, undulator$, em_field$)
@@ -307,10 +308,10 @@ if (use_cache .or. init_cache) then
     orb_start = orbit(i-1)
     call offset_particle (branch%ele(i), branch%param, set$, orb_start, set_hvkicks = .false.)
 
-    if (key2 == wiggler$ .and. ele2%sub_key == periodic_type$) then
+    if (key2 == wiggler$ .and. field_ele%field_calc /= fieldmap$) then
       n_step = max(nint(10 * ele2%value(l$) / ele2%value(l_pole$)), 1)
       del_z = ele2%value(l$) / n_step
-      ! taylor will not properly do partial track through a periodic_type wiggler so
+      ! taylor will not properly do partial track through a non-fieldmap wiggler so
       ! switch to symp_lie_bmad type tracking.
       if (ele2%tracking_method == taylor$) then
         ele2%tracking_method = symp_lie_bmad$  
@@ -329,9 +330,9 @@ if (use_cache .or. init_cache) then
     if (.not. allocated (cache_ele%pt)) allocate (cache_ele%pt(0:n_step))
 
     !------------------------------------
-    ! map_type wiggler
+    ! 
 
-    if (key2 == wiggler$ .and. ele2%sub_key == map_type$ .and. ele2%tracking_method /= custom$) then
+    if (key2 == wiggler$ .and. field_ele%field_calc == fieldmap$ .and. ele2%tracking_method /= custom$) then
       track%n_pt = -1
       call symp_lie_bmad (ele2, branch%param, orb_start, orb_end, make_matrix = .true., track = track)
       do k = 0, track%n_pt
@@ -375,8 +376,8 @@ if (use_cache .or. init_cache) then
         c_pt%vec0 = vec0
         c_pt%ref_orb_out = orb_end
 
-        if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$ .and. ele%tracking_method == bmad_standard$) then
-          call calc_wiggler_g_params (ele_end, branch%param, z_here, orb_end, c_pt)
+        if (ele%key == wiggler$ .and. field_ele%field_calc /= fieldmap$ .and. ele%tracking_method == bmad_standard$) then
+          call calc_wiggler_g_params (ele2, branch%param, z_here, orb_end, c_pt)
 
         else
           c_pt%g_x0 = -(orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_here)
@@ -506,6 +507,7 @@ do ir = 1, branch%n_ele_track
 
   ele => branch%ele(ir)
   if (.not. ele%is_on) cycle
+  field_ele => pointer_to_field_ele(ele, 1)
 
   ri_info%ele => ele
   rad_int1 => rad_int_all%ele(ir)
@@ -519,16 +521,23 @@ do ir = 1, branch%n_ele_track
 
   select case (ele%key)
   case (wiggler$, undulator$, em_field$)
-    ! For an periodic type wiggler we make the approximation that the variation of G is
+    ! For a planar or helical model wiggler we make the approximation that the variation of G is
     ! fast compaired to the variation in eta.
-    if (ele%sub_key == periodic_type$ .and. ele%tracking_method == bmad_standard$) then
+    if (field_ele%field_calc /= fieldmap$ .and. ele%tracking_method == bmad_standard$) then
       if (ele%value(l_pole$) == 0) cycle        ! Cannot do calculation
-      G_max = sqrt(2*abs(ele%value(k1$)))       ! 1/rho at max B
-      g3_ave = 4 * G_max**3 / (3 * pi)
-      rad_int1%i0 = (ele%value(e_tot$) / mass_of(branch%param%particle)) * 2 * G_max / 3
-      rad_int1%i1 = -ele%value(k1$) * (ele%value(l_pole$) / pi)**2
-      rad_int1%i2 = ele%value(l$) * G_max**2 / 2
-      rad_int1%i3 = ele%value(l$) * g3_ave
+      if (field_ele%field_calc == planar_model$) then
+        G_max = sqrt(2*abs(ele%value(k1$)))       ! 1/rho at max B
+        rad_int1%i0 = (ele%value(e_tot$) / mass_of(branch%param%particle)) * 2 * G_max / 3
+        rad_int1%i1 = -ele%value(k1$) * (ele%value(l_pole$) / pi)**2
+        rad_int1%i2 = ele%value(l$) * G_max**2 / 2
+        rad_int1%i3 = ele%value(l$) * 4 * G_max**3 / (3 * pi)
+      else
+        G_max = sqrt(2*abs(ele%value(k1$)))       ! 1/rho at max B
+        rad_int1%i0 = (ele%value(e_tot$) / mass_of(branch%param%particle)) * G_max
+        rad_int1%i1 = -2*ele%value(k1$) * (ele%value(l_pole$) / pi)**2
+        rad_int1%i2 = ele%value(l$) * G_max**2
+        rad_int1%i3 = ele%value(l$) * G_max**3
+      endif
 
       call qromb_rad_int (branch%param, [F, F, F, T, T, T, T, F, T], pt, ri_info, int_tot, rad_int1)
       cycle

@@ -558,10 +558,9 @@ do ib = 0, ubound(lat%branch, 1)
       line = trim(line) // '}'
     endif
 
-    ! cartesian_map. Periodic style wigglers do not have their map written out.
+    ! Cartesian_map.
 
-    if (associated(ele%cartesian_map) .and. .not. &
-                      ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%sub_key == periodic_type$)) then
+    if (associated(ele%cartesian_map)) then
       do im = 1, size(ele%cartesian_map)
         ct_map => ele%cartesian_map(im)
 

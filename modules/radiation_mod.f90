@@ -121,9 +121,13 @@ if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == em_field$) th
   g_x = 0
   g_y = 0
 
-  if (ele%sub_key == periodic_type$) then
+  if (ele%field_calc == planar_model$) then
     g2 = abs(ele%value(k1$))
     g3 = 4 * sqrt(2*g2)**3 / (3 * pi)  
+
+  elseif (ele%field_calc == helical_model$) then
+    g2 = abs(ele%value(k1$))
+    g3 = sqrt(g2)**3
 
   else
     if (.not. associated(ele%rad_int_cache) .or. ele%rad_int_cache%stale) then
