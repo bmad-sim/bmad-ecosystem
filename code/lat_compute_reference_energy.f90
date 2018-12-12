@@ -53,8 +53,6 @@ do ib = 0, ubound(lat%branch, 1)
   if (branch%param%bookkeeping_state%ref_energy /= stale$) cycle
   stale = (init_elem%bookkeeping_state%ref_energy == stale$)
 
-  branch%param%bookkeeping_state%ref_energy = ok$
-
   ! Init energy at beginning of branch if needed.
 
   if (stale) then
@@ -301,11 +299,13 @@ do ib = 0, ubound(lat%branch, 1)
 
   enddo
 
+  ! Need to do this at the end of the loop since if it is at the beginning the set may be overwriten.
+
+  branch%param%bookkeeping_state%ref_energy = ok$
+
 enddo ! Branch loop
 
 ! Put the appropriate energy values in the lord elements...
-
-lat%param%bookkeeping_state%ref_energy = ok$
 
 do ie = lat%n_ele_track+1, lat%n_ele_max
 

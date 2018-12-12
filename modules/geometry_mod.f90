@@ -51,7 +51,6 @@ do n = 0, ubound(lat%branch, 1)
     stale = .false.
   endif
 
-  branch%param%bookkeeping_state%floor_position = ok$
   branch%ele(0)%value(floor_set$) = false$
 
   ! If there are fiducial elements then survey the fiducial regions
@@ -110,6 +109,7 @@ do n = 0, ubound(lat%branch, 1)
     call propagate_geometry(i, -1, stale)
   enddo
 
+  branch%param%bookkeeping_state%floor_position = ok$
 enddo
 
 ! put info in super_lords and multipass_lords
