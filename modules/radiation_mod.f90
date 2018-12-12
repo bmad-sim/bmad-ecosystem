@@ -229,7 +229,6 @@ real(rp) g2, g3, g2_here, g3_here, g(3), f, s0
 integer j, n0, n1
 
 ! g2 is the average g^2 over the element for an on-energy particle.
-! Note: em_field_g_bend assumes orb is lab (not local) coords.
 
 track%orb(:)%vec(6) = 0  ! on-energy
 
@@ -241,7 +240,7 @@ s0 = ele%s_start
 
 do j = n0, n1
 
-  call em_field_g_bend (ele, param, track%orb(j)%s - s0, track%orb(j), g)
+  call g_bending_strength_from_em_field (ele, param, track%orb(j)%s - s0, track%orb(j), .false., g)
 
   g2_here = g(1)**2 + g(2)**2 ! = g_x^2 + g_y^2
   g3_here = sqrt(g2_here)**3

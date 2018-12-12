@@ -272,7 +272,7 @@ subroutine propagate_part_way (orb_start, param, pt, info, z_here)
 implicit none
 
 type (coord_struct) orb, orb_start, orb0, orb1, orb_end, orb_end1
-type (ele_struct), pointer :: ele0, ele
+type (ele_struct), pointer :: ele0, ele, field_ele
 type (ele_struct), save :: runt, ele_end
 type (twiss_struct) a0, b0, a1, b1
 type (rad_int_info_struct) info
@@ -418,8 +418,9 @@ endif
 
 ! If wiggler/undulator with Taylor tracking then switch to symp_lie_bmad tracking 
 
-is_special_wiggler = ((ele%key == wiggler$ .or. ele%key == undulator$) .and. &
-          (ele%field_calc == planar_model$ .or. ele%field_calc == helical_model$) .and. ele%tracking_method == taylor$)
+field_ele => pointer_to_field_ele(ele, 1)
+is_special_wiggler = ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%tracking_method == taylor$ .and. &
+                                  (field_ele%field_calc == planar_model$ .or. field_ele%field_calc == helical_model$))
 
 if (is_special_wiggler) then
   tm_saved = ele%tracking_method  
@@ -495,9 +496,9 @@ type (ele_struct) ele
 real(rp) s_rel, g(3), dg(3,3)
 real(rp) f0, k_z, sinh_x, cosh_x, sinh_y, cosh_y, sin_z, cos_z
 
-! Note: em_field_g_bend assumes orb is lab (not element) coords.
+! Note: Using lab (not element) coords here.
 
-call em_field_g_bend (ele, param, s_rel, orb, g, dg)
+call g_bending_strength_from_em_field (ele, param, s_rel, orb, .false., g, dg)
 
 pt%g_x0 = g(1)
 pt%g_y0 = g(2)
@@ -512,79 +513,5 @@ if (present(info)) then
 endif
 
 end subroutine calc_wiggler_g_params
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine em_field_g_bend (ele, param, s_rel, orbit, g, dg)
-!
-! Subroutine to calculate the g bending kick felt by a particle in a element. 
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   ele    -- Ele_struct: Element being tracked thorugh.
-!   param  -- lat_param_struct: Lattice parameters.
-!   s_rel  -- Real(rp): Distance from the start of the element to the particle.
-!   orbit  -- Coord_struct: Particle position in lab (not element) frame.
-!
-! Output:
-!   g(3)    -- Real(rp): (g_x, g_y, g_s) bending radiuses
-!   dg(3,3) -- Real(rp), optional: dg(:)/dr gradient. 
-!-
-
-subroutine em_field_g_bend (ele, param, s_rel, orbit, g, dg)
-
-implicit none
-
-type (ele_struct) ele
-type (lat_param_struct) param
-type (em_field_struct) field
-type (coord_struct) orbit
-
-real(rp), intent(in) :: s_rel
-real(rp), intent(out) :: g(3)
-real(rp), optional :: dg(3,3)
-real(rp) vel_unit(3), fact
-real(rp) f
-
-! calculate the field
-
-call em_field_calc (ele, param, s_rel, orbit, .false., field, present(dg))
-
-! vel_unit is the velocity normalized to unit length
-
-vel_unit(1:2) = [orbit%vec(2), orbit%vec(4)] / (1 + orbit%vec(6))
-vel_unit(3) = sqrt(1 - vel_unit(1)**2 - vel_unit(2)**2)
-fact = 1 / (ele%value(p0c$) * (1 + orbit%vec(6)))
-g = g_from_field (field%B, field%E)
-
-! Derivative
-
-if (present(dg)) then
-  dg(:,1) = g_from_field (field%dB(:,1), field%dE(:,1))
-  dg(:,2) = g_from_field (field%dB(:,2), field%dE(:,2))
-  dg(:,3) = g_from_field (field%dB(:,3), field%dE(:,3))
-endif
-
-!---------------------------------------------------------------
-contains
-
-function g_from_field (B, E) result (g_bend)
-
-real(rp) B(3), E(3), g_bend(3)
-real(rp) force(3), force_perp(3)
-
-! force_perp is the perpendicular component of the force.
-
-force = (E + cross_product(vel_unit, B) * orbit%beta * c_light) * charge_of(param%particle)
-force_perp = force - vel_unit * (dot_product(force, vel_unit))
-g_bend = -force_perp * fact
-
-end function g_from_field
-
-end subroutine em_field_g_bend
 
 end module

@@ -620,6 +620,18 @@ subroutine find_matching_fieldmap (file_name, ele, t_type, match_ele, ix_field)
   character(*) file_name
 end subroutine
 
+subroutine g_bending_strength_from_em_field (ele, param, s_rel, orbit, local_ref_frame, g, dg)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  type (coord_struct) orbit
+  real(rp), intent(in) :: s_rel
+  real(rp), intent(out) :: g(3)
+  real(rp), optional :: dg(3,3)
+  logical local_ref_frame
+end subroutine
+
 subroutine get_slave_list (lord, slaves, n_slave)
   import
   implicit none
