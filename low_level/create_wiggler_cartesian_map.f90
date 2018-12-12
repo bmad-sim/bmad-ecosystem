@@ -14,7 +14,7 @@
 
 subroutine create_wiggler_cartesian_map (ele, cart_map)
 
-use bmad_interface
+use bmad_interface, dummy => create_wiggler_cartesian_map
 
 implicit none
 
