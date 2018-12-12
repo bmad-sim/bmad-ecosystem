@@ -31,7 +31,7 @@ subroutine ele_synrad_power (branch, ie, orb, direction, power, walls, gen)
 
   type (branch_struct), target :: branch
   type (coord_struct) orb(0:)
-  type (ele_struct), pointer :: ele
+  type (ele_struct), pointer :: ele, field_ele
   type (walls_struct), target :: walls
   type (wall_struct), pointer :: negative_x_wall, positive_x_wall
   type (ray_struct), allocatable, target :: fan(:)
@@ -92,7 +92,8 @@ subroutine ele_synrad_power (branch, ie, orb, direction, power, walls, gen)
   if (ele%key == wiggler$) then
 
     ! If periodic wiggler, do n_slices per pole
-    if (ele%sub_key == periodic_type$) then
+    field_ele => pointer_to_field_ele(ele, 1)
+    if (field_ele%field_calc == planar_model$ .or. field_ele%field_calc == helical_model$) then
       if (ele%value(b_max$) == 0) return
       if (ele%value(n_pole$) == 0) then
         call out_io (s_warn$, r_name, '"N_Pole" for Wiggler = 0.', &

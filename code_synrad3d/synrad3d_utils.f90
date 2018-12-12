@@ -44,7 +44,7 @@ type (ele_struct) ele_here
 type (coord_struct) :: photon
 type (em_field_struct) :: field
 
-real(rp) s_offset, k_wig, g_max, l_small, gx, gy
+real(rp) s_offset, k_wig, g_max, l_small, gx, gy, g(3)
 real(rp), save :: s_old_offset = 0
 
 integer ix_ele
@@ -80,67 +80,9 @@ s_old_offset = s_offset
 
 ! Calc the photon's g_bend value (inverse bending radius at src pt) 
 
-select case (ele%key)
-case (sbend$)  
-
-  ! sbends are easy
-  gx = ele%value(g$) + ele%value(g_err$)
-  gy = 0
-  if (ele%value(roll$) /= 0) then
-    gy = gx * sin(ele%value(roll$))
-    gx = gx * cos(ele%value(roll$))
-  endif
-
-case (quadrupole$, sol_quad$, elseparator$, sad_mult$)
-
-  ! for quads or sol_quads, get the bending radius
-  ! from the change in x' and y' over a small 
-  ! distance in the element
-
-  l_small = 1e-2      ! something small
-  ele_here%value(l$) = l_small
-  call make_mat6 (ele_here, branch%param, orb_here, orb_here)
-  call track1 (orb_here, ele_here, branch%param, orb1)
-  orb1%vec = orb1%vec - orb_here%vec
-  gx = orb1%vec(2) / l_small
-  gy = orb1%vec(4) / l_small
-
-case (wiggler$)
-
-  if (ele%sub_key == periodic_type$) then
-
-    ! for periodic wigglers, get the max g_bend from 
-    ! the max B field of the wiggler, then scale it 
-    ! by the cos of the position along the poles
-
-    k_wig = twopi * ele%value(n_pole$) / (2 * ele%value(l$))
-    g_max = c_light * ele%value(b_max$) / (ele%value(p0c$) * (1 + orb_here%vec(6)))
-    gx = g_max * sin (k_wig * s_offset)
-    gy = 0
-    orb_here%vec(1) = (g_max / k_wig) * sin (k_wig * s_offset)
-    orb_here%vec(2) = (g_max / k_wig) * cos (k_wig * s_offset)
-
-  else
-
-    ! for mapped wigglers, find the B field at the source point
-    ! Note: assumes particles are relativistic!!
-
-    call em_field_calc (ele_here, branch%param, ele_here%value(l$), orb_here, .false., field)
-    gx = field%b(2) * c_light / (ele%value(p0c$) * (1 + orb_here%vec(6)))
-    gy = field%b(1) * c_light / (ele%value(p0c$) * (1 + orb_here%vec(6)))
-
-  endif
-
-case default
-
-  ! for mapped wigglers, find the B field at the source point
-  ! Note: assumes particles are relativistic!!
-
-  call em_field_calc (ele_here, branch%param, ele_here%value(l$), orb_here, .false., field)
-  gx = field%b(2) * c_light / (ele%value(p0c$) * (1 + orb_here%vec(6)))
-  gy = field%b(1) * c_light / (ele%value(p0c$) * (1 + orb_here%vec(6)))
-
-end select
+call g_bending_strength_from_em_field(ele, branch%param, ele_here%value(l$), orb_here, .false., g)
+gx = g(1)
+gy = g(2)
 
 end subroutine sr3d_get_emission_pt_params 
 
@@ -419,6 +361,7 @@ use nrtype
 use nr, only: polint
 
 type (ele_struct) ele
+type (ele_struct), pointer :: field_ele
 type (coord_struct) orb0, orb_end, orb_end1
 type (branch_struct), pointer ::branch
 type (em_field_struct) field
@@ -450,8 +393,9 @@ branch => pointer_to_branch(ele)
 
 !
 
-is_special_wiggler = ((ele%key == wiggler$ .or. ele%key == undulator$) .and. &
-                                    ele%sub_key == periodic_type$ .and. ele%tracking_method == taylor$)
+field_ele => pointer_to_field_ele(ele, 1)
+is_special_wiggler = ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%tracking_method == taylor$ .and. &
+                                  (field_ele%field_calc == planar_model$ .or. field_ele%field_calc == helical_model$))
 
 if (is_special_wiggler) then
   tm_saved = ele%tracking_method  
@@ -468,7 +412,7 @@ j_min_test = 3
 j_max = 14
 
 if (ele%key == wiggler$ .or. ele%key == undulator$) then
-  if (ele%sub_key == periodic_type$) then
+  if (field_ele%field_calc == planar_model$ .or. field_ele%field_calc == helical_model$) then
     j_min_test = 3 + log(max(1.0_rp, ele%value(n_pole$))) / log(2.0_rp)
     j_max = j_min_test + 8
   else
@@ -498,7 +442,7 @@ do j = 1, j_max
   do n = 1, n_pts
     z_pos = l_ref + (n-1) * del_z
 
-    ! bmad_standard will not properly do partial tracking through a periodic_type wiggler so
+    ! bmad_standard will not properly do partial tracking through a planar or helical wiggler so
     ! use special calculation.
 
     if (((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%tracking_method /= custom$)) then

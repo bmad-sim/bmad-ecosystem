@@ -31,13 +31,13 @@ implicit none
 
 type (branch_struct), target :: branch
 type (coord_struct) :: orb(0:*)
-type (coord_struct), save :: orb0, orb1, orb2
+type (coord_struct), save :: orb0
 type (ele_struct), pointer :: ele0, ele
 type (ele_struct), save :: runt_ele, d_ele
 type (ray_struct) :: ray
 type (em_field_struct) :: field
 
-real(rp) l_offset, k_wig, g_max, l_small
+real(rp) l_offset, g(3)
 real(rp), save :: l_start = 0
 integer direction, ix_ele
 integer, save :: ix_ele_old = -1
@@ -67,65 +67,13 @@ ix_ele_old = ix_ele
 
 ! set the ray's g_bend value (inverse bending radius at src pt) 
 
-orb1 = orb0
+call g_bending_strength_from_em_field (ele, branch%param, l_offset, orb0, .false., g)
+ray%g_bend = norm2(g)
 
-select case (ele%key)
-case (sbend$)
-
-  ! sbends are easy
-  ray%g_bend = abs(ele%value(g$) + ele%value(g_err$))
-
-! for quads or sol_quads, get the bending radius
-! from the change in x' and y' over a small 
-! distance in the element
-
-case (quadrupole$, sol_quad$, sad_mult$, elseparator$)
-  call transfer_ele (runt_ele, d_ele)
-  l_small = 1e-2      ! something small
-  d_ele%value(l$) = l_small
-  d_ele%value(fringe_at$) = none$
-  call make_mat6 (d_ele, branch%param, orb1, orb1)
-  call track1 (orb1, d_ele, branch%param, orb2)
-  orb2%vec = orb2%vec - orb1%vec
-  ray%g_bend = sqrt(orb2%vec(2)**2 + orb2%vec(4)**2) / l_small
-
-! wiggler, undulator
-
-case (wiggler$, undulator$)
-
-  if (ele%sub_key == periodic_type$) then
-
-    ! for periodic wigglers, get the max g_bend from 
-    ! the max B field of the wiggler, then scale it 
-    ! by the cos of the position along the poles
-    ! Note: assumes particles are relativistic!!
-    k_wig = twopi * ele%value(n_pole$) / (2 * ele%value(l$))
-
-    g_max = c_light * ele%value(b_max$) / (ele%value(p0c$))
-    ray%g_bend = abs(g_max * cos (k_wig * l_offset))
-    orb1%vec(2) = orb1%vec(2) + (g_max / k_wig) * sin (k_wig * l_offset)
-
-  else  ! map type
-
-    ! for mapped wigglers, find the B field at the source point
-    ! and extract the g_bend
-    ! Note: assumes particles are relativistic!!
-    call em_field_calc (runt_ele, branch%param, l_offset, orb1, .false., field)
-
-    ray%g_bend = sqrt(sum(field%b(1:2)**2)) * c_light / ele%value(p0c$)
-
-  endif
-
-case default
-
-  print *, 'ERROR: UNKNOWN ELEMENT HERE ', ele%name
-
-end select
-
-ray%start%vec(1) = orb1%vec(1)
-ray%start%vec(2) = direction * orb1%vec(2)
-ray%start%vec(3) = orb1%vec(3)
-ray%start%vec(4) = direction * orb1%vec(4)
+ray%start%vec(1) = orb0%vec(1)
+ray%start%vec(2) = direction * orb0%vec(2)
+ray%start%vec(3) = orb0%vec(3)
+ray%start%vec(4) = direction * orb0%vec(4)
 ray%start%vec(5) = l_offset
 ray%start%vec(6) = direction * sqrt (1 - ray%start%vec(2)**2 - ray%start%vec(4)**2)
 ray%start%ix_ele = ix_ele
