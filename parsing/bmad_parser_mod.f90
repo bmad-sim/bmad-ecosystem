@@ -1155,7 +1155,7 @@ if (attrib_word == 'CARTESIAN_MAP') then
     call parse_cartesian_map(ele%cartesian_map(i_ptr), ele, lat, delim, delim_found, err_flag)
   endif
 
-  if (ele%key == wiggler$ .or. ele%key == undulator$) ele%sub_key = map_type$
+  if (ele%key == wiggler$ .or. ele%key == undulator$) ele%field_calc = fieldmap$
   return
 endif
 
@@ -1208,7 +1208,7 @@ if (attrib_word == 'CYLINDRICAL_MAP') then
     call parse_cylindrical_map(cl_map, ele, lat, delim, delim_found, err_flag)
   endif
 
-  if (ele%key == wiggler$ .or. ele%key == undulator$) ele%sub_key = map_type$
+  if (ele%key == wiggler$ .or. ele%key == undulator$) ele%field_calc = fieldmap$
   return
 endif
 
@@ -1263,7 +1263,7 @@ if (attrib_word == 'GRID_FIELD') then
     call parse_grid_field(g_field, ele, lat, delim, delim_found, err_flag)
   endif
 
-  if (ele%key == wiggler$ .or. ele%key == undulator$) ele%sub_key = map_type$
+  if (ele%key == wiggler$ .or. ele%key == undulator$) ele%field_calc = fieldmap$
   return
 endif
 
@@ -1316,7 +1316,7 @@ if (attrib_word == 'TAYLOR_FIELD') then
     call parse_taylor_field(t_field, ele, lat, delim, delim_found, err_flag)
   endif
 
-  if (ele%key == wiggler$ .or. ele%key == undulator$) ele%sub_key = map_type$
+  if (ele%key == wiggler$ .or. ele%key == undulator$) ele%field_calc = fieldmap$
   return
 endif
 
@@ -1436,7 +1436,6 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
     return
   endif
 
-  ele%sub_key = map_type$
   ele%field_calc = fieldmap$
   return
 
@@ -6041,10 +6040,10 @@ case (rfcavity$)
               ('BOTH RF_FREQUENCY AND HARMON SET FOR RFCAVITY: ' // ele%name, &
                'SETTING OF HARMON WILL BE IGNORED!', level = s_warn$)
 
-! for a periodic_type wiggler n_pole is a dependent attribute
+! for a planar and helical wigglers n_pole is a dependent attribute
 
 case (wiggler$, undulator$)
-  if (ele%sub_key == periodic_type$) then
+  if (ele%field_calc == planar_model$ .or. ele%field_calc == helical_model$) then
 
     if (ele%value(l_pole$) == 0 .and. ele%value(n_pole$) /= 0) then
       ele%value(l_pole$) = ele%value(l$) / ele%value(n_pole$) 

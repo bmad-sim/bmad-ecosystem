@@ -32,15 +32,10 @@
 !     l_chord$ = 2 * sin(Angle$/2) / G$
 !     rho$     = 1 / G$
 !
-! WIGGLER (map_type):
-!     B_MAX$    
-!     k1$  = -0.5 * (c_light * b_max$ / p0c$)**2
-!     rho$ = p0c$ / (c_light * b_max$)
-!
-! WIGGLER (periodic_type):
-!     k1$  = -0.5 * (c_light * b_max$ / p0c$)**2
-!     rho$ = p0c$ / (c_light * b_max$)
-!     n_pole$ = L$ / l_pole$
+! WIGGLER:
+!     k1_pseudo$  = -0.5 * (c_light * b_max$ / p0c$)**2
+!     g_max$      = b_max$ * c_light / p0c$
+!     n_pole$     = L$ / l_pole$
 !
 ! Modules needed:
 !   use bmad
@@ -71,7 +66,6 @@ type (ele_struct), pointer :: lord, slave, slave2
 type (coord_struct) start, end
 type (em_field_struct) field
 type (branch_struct), pointer :: branch
-type (cartesian_map_term1_struct), pointer :: term
 type (photon_surface_struct), pointer :: surface
 
 real(rp) factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time
@@ -558,9 +552,9 @@ case (solenoid$)
 
 case (wiggler$, undulator$) 
 
-  ! Calculate b_max for map_type wigglers. 
+  ! Calculate b_max for fieldmap wigglers. 
 
-  if (ele%sub_key == map_type$ .and. val(b_max$) == 0 .and. val(p0c$) > 0) then
+  if (ele%field_calc == fieldmap$ .and. val(b_max$) == 0 .and. val(p0c$) > 0) then
     is_on = ele%is_on  ! Save
     polarity = val(polarity$)
     ele%is_on = .true.
@@ -577,61 +571,17 @@ case (wiggler$, undulator$)
   endif
 
   if (val(p0c$) == 0) then
-    val(k1$) = 0
+    val(g_max$) = 0
+    val(k1_pseudo$) = 0
   else
-    val(k1$) = -0.5 * (c_light * val(b_max$) / val(p0c$))**2
-  endif
-
-  if (val(b_max$) == 0) then
-    val(rho$) = 0
-  else
-    val(rho$) = val(p0c$) / (c_light * val(b_max$))
+    val(g_max$) = c_light * val(b_max$) / val(p0c$)
+    val(k1_pseudo$) = -0.5 * val(g_max$)**2
   endif
 
   if (val(l_pole$) == 0) then
     val(n_pole$) = 0
   else
     val(n_pole$) = val(l$) / val(l_pole$)
-  endif
-
-  ! Periodic_type wigglers have a single term %cylindrical_map(1)%ptr%term(1) for use with tracking, etc.
-  ! The phase of this term is set so that tracking with a particle starting
-  ! on-axis ends on-axis. For this to be true, there must be an integer number
-  ! of poles.
-
-  ! For super_slave and sliced elements, the phi_z is set by the position with respect to the lord in
-  ! the routine makeup_super_slave1 and so should not be touched here.
-
-  if (ele%sub_key == periodic_type$ .and. ele%slave_status /= super_slave$ .and. &
-      ele%slave_status /= multipass_slave$ .and. ele%slave_status /= slice_slave$) then
-    if (.not. associated(ele%cartesian_map)) then
-      allocate (ele%cartesian_map(1))
-      allocate (ele%cartesian_map(1)%ptr)
-      allocate (ele%cartesian_map(1)%ptr%term(1))
-      ele%cartesian_map(1)%master_parameter = polarity$
-      write (ele%cartesian_map(1)%ptr%file, '(a, i0, a, i0)') 'attribute_bookkeeper:', &
-                                                       ele%ix_branch, '>>', ele%ix_ele ! Unique name
-    endif
-
-    term => ele%cartesian_map(1)%ptr%term(1)
-    if (val(l$) == 0) then
-      term%ky = 0
-    else
-      if (val(n_pole$) == 0) then
-        call out_io (s_error$, r_name, 'NUMBER OF POLES NOT SET FOR WIGGLER: ' // trim(ele%name))
-        term%ky = pi / val(l$)
-      else
-        term%ky = pi * val(n_pole$) / val(l$)
-      endif
-    endif
-    term%coef   = val(b_max$)
-    term%kx     = 0
-    term%kz     = term%ky
-    term%x0     = 0
-    term%y0     = 0
-    term%phi_z  = -term%kz * val(l$) / 2 
-    term%family = family_y$
-    term%form   = hyper_y$
   endif
 
 end select

@@ -34,10 +34,7 @@
 !   type_floor_coords -- Logical, optional: If True then print the global ("floor")
 !                          coordinates at the exit end of the element.
 !                          Default is False.
-!   type_field        -- Logical, optional: If True then print:
-!                          Wiggler terms for a a map_type wiggler or
-!                          RF field info for a lcavity or rfcavity, etc.
-!                          Default is False.
+!   type_field        -- Logical, optional: If True then print field maps. Default is False.
 !   type_wall         -- Logical, optional: If True then print wall info. Default is False.
 !
 ! Output       

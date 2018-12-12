@@ -104,7 +104,7 @@ end subroutine
 !   use element_modeling_mod
 !
 ! Input:
-!   wiggler       -- Ele_struct: Map_type wiggler to match to.
+!   wiggler       -- Ele_struct: Planar model wiggler to match to.
 !   wig_model_com -- Wiggler_modeling_common_struct: Global variable that can be used
 !                      to set weights and step sizes for the optimization.
 !
@@ -155,7 +155,7 @@ endif
 c => wig_model_com
 g_factor = c_light / wiggler%value(p0c$)
 
-if (wiggler%sub_key == map_type$) then
+if (wiggler%field_calc == fieldmap$) then
 
   here%vec = 0
   i_max = nint(wiggler%value(l$) / c%integration_ds)

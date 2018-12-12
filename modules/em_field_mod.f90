@@ -121,10 +121,10 @@ type (spline_struct) spline
 
 real(rp), optional :: rf_time
 real(rp) :: x, y, time, s_pos, s_body, s_lab, s_lab2, z, ff, dk(3,3), ref_charge, f_p0c
-real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), Ex, Ey, amp
+real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, ch_x, ch_y, sh_x, sh_y, coef, fd(3), Ex, Ey, amp
 real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, sgn_z, kx, ky, dkm(2,2), cos_ks, sin_ks
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, a_amp, inte
-real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start, f
+real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start, f, kk
 real(rp) radius, phi, t_ref, tilt, omega, freq0, freq, B_phi_coef, z_center
 real(rp) sx_over_kx, sy_over_ky, sz_over_kz, rot2(2,2)
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), pot
@@ -135,7 +135,7 @@ real(rp) phi0_autoscale, field_autoscale, ds, beta_ref, ds_small
 complex(rp) exp_kz, expt, dEp, dEr, E_rho, E_phi, E_z, B_rho, B_phi, B_z
 complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm, q
 
-integer i, j, m, n, ix, trig_x, trig_y, status, im, iz0, iz1, izp, field_calc, ix_pole_max
+integer i, j, m, n, ix, trig_x, trig_y, status, im, iz0, iz1, izp, ix_pole_max
 
 logical :: local_ref_frame
 logical, optional :: calc_dfield, calc_potential, err_flag, use_overlap, grid_allow_s_out_of_bounds, err_print_out_of_bounds
@@ -308,10 +308,7 @@ endif
 !----------------------------------------------------------------------------
 ! field_calc methods
 
-field_calc = ele%field_calc
-if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%sub_key == periodic_type$) field_calc = fieldmap$
-
-select case (field_calc)
+select case (ele%field_calc)
   
 !----------------------------------------------------------------------------
 ! Bmad_standard field calc 
@@ -574,7 +571,7 @@ case (bmad_standard$)
 
   case(wiggler$, undulator$)
 
-    ! Should not be here. Field_calc switched to field_map$ above.
+    ! Should not be here. 
     call out_io (s_fatal$, r_name, 'BOOKKEEPING ERROR. PLEASE GET HELP. FOR: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
     if (present(err_flag)) err_flag = .true.
@@ -675,6 +672,56 @@ case (bmad_standard$)
         field%b(2) = field%b(2) - (ele%value(Hkick$) * cos(tilt) + ele%value(vkick$) * sin(tilt)) * f_p0c / ele%value(l$)
       endif
     end select
+  endif
+
+!----------------------------------------------------------------------------
+! planar_model
+
+case(planar_model$)
+
+  kk = pi * ele%value(n_pole$) / ele%value(l$)
+  ch_y = cosh(kk * y)
+  sh_y = sinh(kk * y)
+  c_z = cos(kk * (s_body - ele%value(l$)/2))
+  s_z = sin(kk * (s_body - ele%value(l$)/2))
+
+  field%B(2) =  ele%value(b_max$) * ch_y * c_z
+  field%B(3) = -ele%value(b_max$) * sh_y * s_z
+
+  if (do_df_calc) then
+    dfield_computed = .true.
+    field%db(2,2) =  kk * ele%value(b_max$) * sh_y * c_z
+    field%db(2,3) = -kk * ele%value(b_max$) * ch_y * s_z
+    field%db(3,2) = -kk * ele%value(b_max$) * ch_y * s_z
+    field%db(3,3) = -kk * ele%value(b_max$) * sh_y * c_z
+  endif
+
+!----------------------------------------------------------------------------
+! helical_model
+
+case(helical_model$)
+
+  kk = pi * ele%value(n_pole$) / ele%value(l$)
+  ch_x = cosh(kk * x)
+  sh_x = sinh(kk * x)
+  ch_y = cosh(kk * y)
+  sh_y = sinh(kk * y)
+  c_z = cos(kk * (s_body - ele%value(l$)/2))
+  s_z = sin(kk * (s_body - ele%value(l$)/2))
+
+  field%B(1) =  ele%value(b_max$) * ch_x * s_z
+  field%B(2) = -ele%value(b_max$) * ch_y * c_z
+  field%B(3) =  ele%value(b_max$) * (sh_x * c_z - sh_y * s_z)
+
+  if (do_df_calc) then
+    dfield_computed = .true.
+    field%db(1,1) =  kk * ele%value(b_max$) * sh_x * s_z
+    field%db(1,3) =  kk * ele%value(b_max$) * ch_x * c_z
+    field%db(2,2) = -kk * ele%value(b_max$) * sh_y * c_z
+    field%db(2,3) =  kk * ele%value(b_max$) * ch_y * s_z
+    field%db(3,1) =  kk * ele%value(b_max$) * ch_x * c_z
+    field%db(3,2) = -kk * ele%value(b_max$) * ch_y * s_z
+    field%db(3,3) = -kk * ele%value(b_max$) * (sh_x * s_z + sh_y * c_z)
   endif
 
 !----------------------------------------------------------------------------

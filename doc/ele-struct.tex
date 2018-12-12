@@ -87,7 +87,7 @@ The complete structure is shown in this and the following figure.}
   real(rp), pointer :: b_pole_elec(:)          ! Electrostatic multipoles.
   real(rp), pointer :: custom(:)               ! Custom attributes
   integer key                    ! key value
-  integer sub_key                ! EG for wigglers: map_type$, periodic_type$
+  integer sub_key                ! Records bend input type (rbend$, sbend$).
   integer ix_ele                 ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
   integer ix_branch              ! Index in lat%branch(:) array [0 => In lat%ele(:)].
   integer lord_status            ! overlay_lord$, etc.
@@ -235,20 +235,12 @@ Note: The call to \vn{init_ele} is needed for any \vn{ele_struct} defined
 outside of a \vn{lat_struct} structure.
 
 \index{wiggler}\index{rbend}\index{sbend}\index{ele_struct!\%sub_key}
-The \vn{%sub_key} component is only used for \vn{Wiggler}, \vn{Rbend} and
-\vn{Sbend} elements. For \vn{Wiggler} elements, \vn{%sub_key} is either set to
-\begin{example}
-  map_type$ or
-  periodic_type$
-\end{example}
-depending upon the type of wiggler. For bend elements,
-when a lattice file is parsed (\sref{s:lat.readin}), 
-all \vn{rbend} elements are converted into
-\vn{sbend} elements (\sref{s:bend}). To keep track of what the original definition
-of the element was, the \vn{%sub_key} component will be set to \vn{sbend\$} or
-\vn{rbend\$} whatever is appropriate. In the case of bends, the \vn{%sub_key} component
-does not affect any calculations and is only used in the routines that recreate
-lattice files from a \vn{lat_struct} (\sref{s:lat.write}).
+The \vn{%sub_key} component is only used for bend element.  When a lattice file is parsed,
+(\sref{s:lat.readin}), all \vn{rbend} elements are converted into \vn{sbend} elements
+(\sref{s:bend}). To keep track of what the original definition of the element was, the \vn{%sub_key}
+component will be set to \vn{sbend\$} or \vn{rbend\$} whatever is appropriate. 
+The \vn{%sub_key} component does not affect any calculations and is only used in the routines that
+recreate lattice files from a \vn{lat_struct} (\sref{s:lat.write}).
 
 %--------------------------------------------------------------------------
 \section{The \%value(:) array}
@@ -256,16 +248,12 @@ lattice files from a \vn{lat_struct} (\sref{s:lat.write}).
 \index{ele_struct!attribute values}
 
 \index{ele_struct!\%value(:)}
-Most of the real valued attributes of an element are held in the
-\vn{%value(:)} array. For example, the value of the \vn{k1} attribute
-for a quadrupole element is stored in \vn{%value(k1\$)} where
-\vn{k1\$} is an integer parameter that \bmad defines. 
-In general, to get the correct index
-in \vn{%value(:)} for a given attribute, add a ``\$" as a
-suffix. To convert from an attribute name to its index in the
-\vn{%value} array use the \Hyperref{r:attribute.index}{attribute_index} 
-routine.  To go back
-from an index in the \vn{%value} array to a name use the
+Most of the real valued attributes of an element are held in the \vn{%value(:)} array. For example,
+the value of the \vn{k1} attribute for a quadrupole element is stored in \vn{%value(k1\$)} where
+\vn{k1\$} is an integer parameter that \bmad defines.  In general, to get the correct index in
+\vn{%value(:)} for a given attribute, add a ``\$" as a suffix. To convert from an attribute name to
+its index in the \vn{%value} array use the \Hyperref{r:attribute.index}{attribute_index} routine.
+To go back from an index in the \vn{%value} array to a name use the
 \Hyperref{r:attribute.name}{attribute_name} routine. Example:
 \begin{example}
   type (ele_struct) ele

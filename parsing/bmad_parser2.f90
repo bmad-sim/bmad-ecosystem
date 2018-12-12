@@ -590,7 +590,7 @@ do i = 1, ele_num
 
   select case (ele%key)
   case (wiggler$, undulator$)
-    if (ele%sub_key == periodic_type$) then
+    if (ele%field_calc == planar_model$ .or. ele%field_calc == helical_model$) then
       if (ele%value(l_pole$) == 0 .and. ele%value(n_pole$) /= 0) then
         ele%value(l_pole$) = ele%value(l$) / ele%value(n_pole$) 
       endif

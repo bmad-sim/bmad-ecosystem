@@ -50,7 +50,6 @@ implicit none
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: field_ele
-type (ele_pointer_struct), allocatable :: field_eles(:)
 type (coord_struct) :: start_orb, end_orb, start_orb_saved
 type (lat_param_struct)  param
 type (track_struct), optional :: track
@@ -66,15 +65,14 @@ real(rp), parameter :: z0 = 0, z1 = 1
 real(rp) gamma_0, fact_d, fact_f, this_ran, g2, g3, ddAz__dx_dy
 real(rp) dE_p, dpx, dpy, mc2, z_offset, orient_dir, rel_tracking_charge, charge_dir
 real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * h_bar_planck * c_light / (24 * sqrt_3)
-real(rp), allocatable :: dz_offset(:)
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
-integer i, n_step, n_field, key
+integer i, n_step, key
 integer ix_pole_max, ix_elec_max
 
 integer num_wig_terms  ! number of wiggler terms
 
-logical make_matrix, calculate_mat6, err, do_offset
+logical make_matrix, calculate_mat6, err, do_offset, allocated_map
 logical, optional :: offset_ele
 
 character(16) :: r_name = 'symp_lie_bmad'
@@ -107,6 +105,7 @@ err = .false.
 orient_dir = ele%orientation * end_orb%direction
 rel_tracking_charge = rel_tracking_charge_to_mass(end_orb, param)
 charge_dir = rel_tracking_charge * orient_dir
+allocated_map = .false.
 
 ! element offset 
 
@@ -154,19 +153,21 @@ select case (ele%key)
 
 Case (wiggler$, undulator$)
 
-  call get_field_ele_list (ele, field_eles, dz_offset, n_field)
-  do i = 1, n_field
-    field_ele => field_eles(i)%ele
-    if (field_ele%key == ele%key) exit
-  enddo
-
+  field_ele => pointer_to_field_ele(ele, 1, z_offset)
   if (size(field_ele%cartesian_map) > 1) then
     call out_io (s_fatal$, r_name, 'ELEMENT: ' // ele%name, 'HAS MULTIPLE CARTESIAN MAPS. SYMP_LIE_PTC CAN ONLY HANDLE ONE.')
     if (global_com%exit_on_error) call err_exit
     return
   endif
 
-  ct_map => field_ele%cartesian_map(1)
+  if (size(field_ele%cartesian_map) == 0) then  ! Only if wiggler or undulator
+    allocate (ct_map)
+    call create_wiggler_cartesian_map(field_ele, ct_map)
+    allocated_map = .true.
+  else
+    ct_map => field_ele%cartesian_map(1)
+  endif
+
   if (ct_map%field_type /= magnetic$) then
     call out_io (s_fatal$, r_name, 'ELEMENT: ' // ele%name, 'HAS A CARTESIAN MAP THAT IS NOT MAGNETIC. SYMP_LIE_PTC CAN NOT HANDLE THIS.')
     if (global_com%exit_on_error) call err_exit
@@ -174,8 +175,6 @@ Case (wiggler$, undulator$)
   endif
 
   wig_term => ct_map%ptr%term
-  z_offset = dz_offset(i)
-
   num_wig_terms = size(wig_term)
 
   allocate (tm(num_wig_terms))
@@ -408,6 +407,11 @@ endif
 
 end_orb%p0c = ele%value(p0c$)
 
+if (allocated_map) then
+  deallocate (ct_map%ptr)
+  deallocate (ct_map)
+endif
+
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 contains
@@ -433,6 +437,11 @@ else
   if (end_orb%vec(3) > 0) then ; end_orb%state = lost_pos_y_aperture$
   else;                          end_orb%state = lost_neg_y_aperture$
   endif
+endif
+
+if (allocated_map) then
+  deallocate (ct_map%ptr)
+  deallocate (ct_map)
 endif
 
 err = .true.

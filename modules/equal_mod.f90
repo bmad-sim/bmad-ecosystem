@@ -109,52 +109,10 @@ endif
 ! location from ele_in's so that the elements are separate.
 ! Exceptions: %em_field%mode%cylindrical_map, %em_field%mode%grid.
 
-! %cartesian_map exception: The problem with having ele_out%cartesian_map and ele_in%cartesian_map point
-! to the same memory location is when we have a periodic_wiggler and ele_out is not a slave of ele_in. 
-! In this case, the wiggler field depends upon the setting of
-! ele%value(b_max$) and ele%value(l_pole$) so sharing the same memeory location would
-! lead to trouble if these attributes are modified in one element but not the other.
+! %cartesian_map
 
-! If the memory allocated for the wiggler field for ele_out and ele_in are different
-! then must adjust the number of links and deallocate if necessary.
-
-! Note: A periodic_type wiggler always has one cartesian_map createded in attribute_bookkeeper.
-
-if ((ele_out%key == wiggler$ .or. ele_out%key == undulator$) .and. ele_out%sub_key == periodic_type$ .and. &
-    ele_save%slave_status /= super_slave$ .and. ele_save%slave_status /= multipass_slave$ .and. &
-    ele_save%slave_status /= slice_slave$) then
-
-  if (associated(ele_save%cartesian_map)) then
-    if (size(ele_save%cartesian_map) /= 1 .or. .not. associated(ele_in%cartesian_map)) then
-      call unlink_fieldmap (cartesian_map = ele_save%cartesian_map)
-    endif
-  endif
-
-  nullify(ele_out%cartesian_map)
-
-  if (associated(ele_in%cartesian_map)) then
-    n2 = size(ele_in%cartesian_map(1)%ptr%term)  ! Should be 1
-
-    if (associated(ele_save%cartesian_map)) then
-      ele_out%cartesian_map => ele_save%cartesian_map
-      if (associated(ele_out%cartesian_map(1)%ptr, ele_in%cartesian_map(1)%ptr)) &
-                            ele_out%cartesian_map(1)%ptr%n_link = ele_out%cartesian_map(1)%ptr%n_link - 1
-    else
-      allocate(ele_out%cartesian_map(1))
-    endif
-
-    ele_out%cartesian_map = ele_in%cartesian_map
-    allocate(ele_out%cartesian_map(1)%ptr)
-    allocate(ele_out%cartesian_map(1)%ptr%term(n2))
-    ele_out%cartesian_map(1)%ptr%term = ele_in%cartesian_map(1)%ptr%term
-    write (ele_out%cartesian_map(1)%ptr%file, '(a, i0, a, i0)') 'ele_equal_ele:', &
-                                                       ele_out%ix_branch, '>>', ele_out%ix_ele ! Unique name
-  endif
-
-else
-  ele_out%cartesian_map => ele_save%cartesian_map ! Reinstate for transfer call 
-  call transfer_fieldmap (ele_in, ele_out, cartesian_map$)
-endif
+ele_out%cartesian_map => ele_save%cartesian_map ! Reinstate for transfer call 
+call transfer_fieldmap (ele_in, ele_out, cartesian_map$)
 
 ! %ac_kick
 

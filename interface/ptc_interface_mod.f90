@@ -3199,7 +3199,6 @@ type (cartesian_map_struct), pointer :: cm
 type (cylindrical_map_struct), pointer :: cy
 type (fibre), pointer :: ptc_fibre
 type (keywords) ptc_key
-type (ele_pointer_struct), allocatable :: field_eles(:)
 type (work) energy_work
 type (tree_element), pointer :: arbre(:)
 type (c_damap) ptc_c_damap
@@ -3210,10 +3209,9 @@ type (em_taylor_term_struct), pointer :: tm
 type(taylor), allocatable :: pancake_field(:,:)
 type (taylor) ptc_taylor
 
-real(rp), allocatable :: dz_offset(:)
 real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, norm, rel_charge, k1l, t1
 real(rp) dx, dy, cos_t, sin_t, coef, coef_e, coef_b, kick_magnitude, ap_lim(2), ap_dxy(2), e1, e2
-real(rp) beta0, beta1, ref0(6), ref1(6), fh
+real(rp) beta0, beta1, ref0(6), ref1(6), fh, dz_offset
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
@@ -3222,10 +3220,10 @@ real(rp) ld, hd, lc, hc, angc, xc, dc
 complex(rp) k_0
 
 integer, optional :: integ_order, steps
-integer i, ii, j, k, m, n, key, n_term, exception, n_field, ix, met, net, ap_type, ap_pos, ns
+integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos, ns, n_map
 integer np, max_order, ix_pole_max, exact_model_saved
 
-logical use_offsets, kill_spin_fringe, onemap, found
+logical use_offsets, kill_spin_fringe, onemap, found, is_planar_wiggler
 logical, optional :: for_layout, use_hard_edge_drifts, kill_layout
 
 character(16) :: r_name = 'ele_to_fibre'
@@ -3310,21 +3308,6 @@ ptc_key%list%kill_exi_spin = (ix == entrance_end$ .or. ix == no_end$ .or. kill_s
 
 !
 
-ele2 => ele
-s_rel = 0
-if (ele%field_calc == refer_to_lords$) then
-  call get_field_ele_list (ele, field_eles, dz_offset, n_field)
-  do i = 1, n_field
-    ele2 => field_eles(i)%ele
-    if (ele2%key == ele%key) then
-      s_rel = dz_offset(i)
-      exit
-    endif
-  enddo
-endif
-
-!
-
 key = ele%key
 if (ele%is_on) then
   val => ele%value
@@ -3333,6 +3316,7 @@ else
 endif
 
 if (key == sbend$ .and. ele%value(l$) == 0) key = kicker$
+ele2 => pointer_to_field_ele(ele, 1, s_rel)
 if (ele2%field_calc == fieldmap$ .and. ele2%tracking_method /= bmad_standard$) key = wiggler$
 
 select case (key)
@@ -3568,8 +3552,9 @@ call ele_to_ptc_magnetic_an_bn (ele, param, ptc_key%list%k, ptc_key%list%ks, ptc
 
 ! field map
 
-if ((ele2%field_calc == fieldmap$ .and. ele%tracking_method /= bmad_standard$) &
-                                            .or. ele2%key == wiggler$ .or. ele2%key == undulator$) then
+is_planar_wiggler = ((ele2%key == wiggler$ .or. ele2%key == undulator$) .and. ele%field_calc == planar_model$) 
+ 
+if ((ele2%field_calc == fieldmap$ .and. ele%tracking_method /= bmad_standard$) .or. is_planar_wiggler) then
 
   if (associated(ele2%grid_field)) then
     call out_io (s_fatal$, r_name, 'PTC TRACKING IS NOT ABLE TO USE GRID_FIELDS. FOR ELEMENT: ' // ele%name)
@@ -3577,12 +3562,12 @@ if ((ele2%field_calc == fieldmap$ .and. ele%tracking_method /= bmad_standard$) &
     return
   endif
 
-  n = 0
-  if (associated(ele2%cylindrical_map)) n = n + size(ele2%cylindrical_map)
-  if (associated(ele2%cartesian_map)) n = n + size(ele2%cartesian_map)
-  if (associated(ele2%taylor_field)) n = n + size(ele2%taylor_field)
+  n_map = 0
+  if (associated(ele2%cylindrical_map)) n_map = n_map + size(ele2%cylindrical_map)
+  if (associated(ele2%cartesian_map)) n_map = n_map + size(ele2%cartesian_map)
+  if (associated(ele2%taylor_field)) n_map = n_map + size(ele2%taylor_field)
 
-  if (n /= 1) then
+  if (n_map /= 1 .and. .not. (n_map == 0 .and. is_planar_wiggler)) then
     call out_io (s_fatal$, r_name, 'PTC TRACKING IS ONLY ABLE TO HANDLE A SINGLE FIELD MAP IN AN ELEMENT.', &
                                    'ELEMENT HAS MULTIPLE FIELD MAPS: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
@@ -3896,16 +3881,14 @@ call find_energy (energy_work, p0c =  1d-9 * ele%value(p0c$))
 ptc_fibre = energy_work
 
 ! FieldMap cartesian_map element. 
-! Include all wiggler elements even periodic_type with field_calc = bmad_standard$
+! Include all wiggler elements even planar_model with field_calc = bmad_standard$
 
 if ((associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$) .or. ele2%key == wiggler$ .or. ele2%key == undulator$) then
-
-  cm => ele2%cartesian_map(1)
-
-  if (size(ele2%cartesian_map) /= 1) then
-    call out_io (s_fatal$, r_name, 'PTC IS NOT ABLE TO HANDLE MORE THAN ONE CARTESIAN_MAP. FOR ELEMENT: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
-    return
+  if (n_map == 0 .and. is_planar_wiggler) then
+    allocate(cm)
+    call create_wiggler_cartesian_map(ele2, cm)
+  else
+    cm => ele2%cartesian_map(1)
   endif
 
   if (cm%field_type == electric$) then
@@ -3947,6 +3930,10 @@ if ((associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$) .or. ele
 
   call copy (ptc_fibre%mag, ptc_fibre%magp)
 
+  if (n == 0 .and. is_planar_wiggler) then
+    deallocate(cm%ptr)
+    deallocate(cm)
+  endif
 endif
 
 ! Misalignments and patches...

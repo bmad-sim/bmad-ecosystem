@@ -258,7 +258,7 @@ case (taylor$)   ! start with unit matrix
   endif
 
 case (wiggler$, undulator$) 
-  ele%sub_key = periodic_type$
+  ele%field_calc = planar_model$
   ele%value(polarity$) = 1.0
 
 end select

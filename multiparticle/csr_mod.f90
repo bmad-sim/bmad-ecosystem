@@ -165,8 +165,9 @@ endif
 
 bunch_end = bunch_start
 
-if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%sub_key == periodic_type$) then
-  call out_io (s_error$, r_name, 'CALCULATION OF CSR EFFECTS IN PERIODIC TYPE WIGGLERS IS INVALID SINCE', &
+if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. &
+                                (ele%field_calc == planar_model$ .or. ele%field_calc == helical_model$)) then
+  call out_io (s_error$, r_name, 'CALCULATION OF CSR EFFECTS IN PLANAR OR HELICAL MODEL WIGGLERS IS INVALID SINCE', &
                                  'WIGGLER TRACKING USES AN EFFECTIVE KICK THAT IS AN AVERAGE OVER MANY PERIODS.', &
                                  'FOR: ' // ele%name)
 endif

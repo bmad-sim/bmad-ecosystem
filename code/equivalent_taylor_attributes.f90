@@ -45,8 +45,8 @@ if (ele_taylor%value(integrator_order$) /= ele2%value(integrator_order$)) return
 vmask = .true.
 vmask(delta_ref_time$) = .false.
 vmask(ref_time_start$) = .false.
-if ((ele_taylor%key == wiggler$ .or. ele_taylor%key == undulator$) .and. ele_taylor%sub_key == map_type$) then
-  vmask( [k1$, rho$, b_max$] ) = .false.  ! These are dependent attributes.
+if ((ele_taylor%key == wiggler$ .or. ele_taylor%key == undulator$) .and. ele_taylor%field_calc == fieldmap$) then
+  vmask( [k1$, g_max$, b_max$] ) = .false.  ! These are dependent attributes.
 endif
 if (.not. ele_taylor%taylor_map_includes_offsets) then
   vmask( [x_offset$, y_offset$, z_offset$, tilt$, x_pitch$, &

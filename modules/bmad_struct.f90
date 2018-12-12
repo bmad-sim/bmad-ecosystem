@@ -17,7 +17,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 226
+integer, parameter :: bmad_inc_version$ = 227
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -101,9 +101,8 @@ character(16), parameter :: ptc_integration_type_name(0:3) = [&
 
 ! sbend$ and rbend$ are from key definitions.
 
-integer, parameter :: map_type$ = 1, periodic_type$ = 3
-character(16), parameter :: sub_key_name(0:18) = ['GARBAGE!     ', 'Map          ', &
-    'SBend        ', 'Periodic     ', 'GARBAGE!     ', 'GARBAGE!     ', &
+character(16), parameter :: sub_key_name(0:18) = ['GARBAGE!     ', 'GARBAGE!     ', &
+    'SBend        ', 'GARBAGE!     ', 'GARBAGE!     ', 'GARBAGE!     ', &
     'GARBAGE!     ', 'GARBAGE!     ', 'GARBAGE!     ', 'GARBAGE!     ', &
     'GARBAGE!     ', 'GARBAGE!     ', 'GARBAGE!     ', 'GARBAGE!     ', &
     'GARBAGE!     ', 'GARBAGE!     ', 'GARBAGE!     ', 'GARBAGE!     ', &
@@ -113,10 +112,11 @@ character(16), parameter :: sub_key_name(0:18) = ['GARBAGE!     ', 'Map         
 ! Note: refer_to_lords is an "internal" value which is not valid for use in a lattice file.
 !   The period in "Refer_to_Lords." is used to prevent sets in the lattice file.
 
-integer, parameter :: fieldmap$ = 2, Refer_to_lords$ = 4, no_field$ = 5
+integer, parameter :: fieldmap$ = 2, planar_model$ = 3, Refer_to_lords$ = 4, no_field$ = 5
+integer, parameter :: helical_model$ = 6
 character(16), parameter :: field_calc_name(0:7) = &
-    ['GARBAGE!       ', 'Bmad_Standard  ', 'FieldMap       ', 'GARBAGE!       ', &
-     'Refer_to_Lords.', 'No_Field       ', 'GARBAGE!       ', 'Custom         ']
+    ['GARBAGE!       ', 'Bmad_Standard  ', 'FieldMap       ', 'Planar_Model   ', &
+     'Refer_to_Lords.', 'No_Field       ', 'Helical_Model  ', 'Custom         ']
 
 ! Crystal sub_key values.
 
@@ -1060,7 +1060,7 @@ type ele_struct
   real(rp), pointer :: custom(:) => null()                     ! Custom attributes.
   real(rp), pointer :: r(:,:,:) => null()                      ! For general use. Not used by Bmad.
   integer :: key = 0                              ! key value 
-  integer :: sub_key = 0                          ! For wigglers: map_type$, periodic_type$
+  integer :: sub_key = 0                          ! Records bend input type.
   integer :: ix_ele = -1                          ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
   integer :: ix_branch = 0                        ! Index in lat%branch(:) array [0 => In lat%ele(:)].
   integer :: lord_status = not_a_lord$            ! Type of lord element this is. overlay_lord$, etc.
@@ -1380,11 +1380,11 @@ integer, parameter :: l$ = 1                          ! Assumed unique. Do not a
 integer, parameter :: tilt$ = 2, roll$ = 2, n_part$ = 2 ! Important: tilt$ = roll$
 integer, parameter :: ref_tilt$ = 3, rf_frequency$ = 3, direction$ = 3
 integer, parameter :: kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3
-integer, parameter :: rf_frequency_err$ = 4, k1$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
+integer, parameter :: rf_frequency_err$ = 4, k1$ = 4, k1_pseudo$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coordinates$ = 4
 integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, drift_id$ = 5
 integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5
-integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_branch$ = 6
+integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_branch$ = 6, g_max$ = 6
 integer, parameter :: g$ = 6, bragg_angle_in$ = 6, symmetry$ = 6, field_scale_factor$ = 6
 integer, parameter :: g_err$ = 7, n_pole$ = 7, bbi_const$ = 7, osc_amplitude$ = 7
 integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, sad_flag$ = 7
