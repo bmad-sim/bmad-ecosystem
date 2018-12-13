@@ -559,6 +559,7 @@ type tao_global_struct
   integer :: n_top10_merit = 10          ! Number of top merit constraints to print.
   integer :: srdt_gen_n_slices = 10      ! number times to slice elements for summation RDT calculation
   integer :: srdt_sxt_n_slices = 20      ! number times to slice sextupoles for summation RDT calculation
+  logical :: srdt_use_cache = .true.     ! create cache for SRDT calculations.  Can use lots of memory if srdt_*_n_slices large.
   character(16) :: random_engine = 'pseudo'         ! Non-beam random number engine
   character(16) :: random_gauss_converter = 'exact' ! Non-beam
   character(16) :: track_type    = 'single'         ! or 'beam'  
@@ -721,6 +722,8 @@ type tao_scratch_space_struct
   real(rp), allocatable :: axis1(:), axis2(:), axis3(:)
   real(rp), allocatable :: x(:), y(:)
   real(rp), allocatable :: y_value(:)
+  complex(rp), allocatable :: srdt_cache(:,:,:)
+  real(rp) :: srdt_mat_stash(6,6) = 0.0d0
 end type
 
 type (tao_scratch_space_struct), save, target :: scratch

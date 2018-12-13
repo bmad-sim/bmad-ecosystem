@@ -1640,15 +1640,6 @@ case ('srdt.')
     case('h11110')
       temp_cplx = tao_branch%srdt%h11110
       term_cplx = .true.
-    case('nux_Jx')
-      datum_value = tao_branch%srdt%nux_Jx
-      term_cplx = .false.
-    case('nux_Jy')
-      datum_value = tao_branch%srdt%nux_Jy
-      term_cplx = .false.
-    case('nuy_Jy')
-      datum_value = tao_branch%srdt%nuy_Jy
-      term_cplx = .false.
     case default
       call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', 'data_type not found in summation_rdt_struct', .true.)
       term_found = .false.

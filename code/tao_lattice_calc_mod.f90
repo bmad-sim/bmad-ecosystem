@@ -57,7 +57,7 @@ integer iuni, j, ib, ix, n_max, iu, it, id, ix_ele0
 character(20) :: r_name = "tao_lattice_calc"
 character(20) track_type, name
 
-logical calc_ok, this_calc_ok, err, rf_on
+logical calc_ok, this_calc_ok, err, rf_on, mat_changed
 
 ! Lattice bookkeeping
 
@@ -241,7 +241,21 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
     endif
 
     if ( u%calc%srdt_for_data .gt. 0 ) then
-      call srdt_calc(tao_lat%lat, tao_branch%srdt, u%calc%srdt_for_data, s%global%srdt_gen_n_slices, s%global%srdt_sxt_n_slices)
+      if ( u%calc%srdt_for_data .ge. 2 ) then
+        mat_changed = any(abs(scratch%srdt_mat_stash - tao_lat%lat%param%t1_no_RF) .gt. 1.0e-8)
+        if( s%global%srdt_use_cache .and. mat_changed) then
+          call make_srdt_cache(tao_lat%lat, s%global%srdt_gen_n_slices, s%global%srdt_sxt_n_slices, scratch%srdt_cache)
+          if(.not. allocated(scratch%srdt_cache)) s%global%srdt_use_cache = .false. !there was insufficient memory available.
+          scratch%srdt_mat_stash = tao_lat%lat%param%t1_no_RF
+        endif
+        if(allocated(scratch%srdt_cache)) then
+          call srdt_calc_with_cache(tao_lat%lat, tao_branch%srdt, u%calc%srdt_for_data, s%global%srdt_gen_n_slices, s%global%srdt_sxt_n_slices, scratch%srdt_cache)
+        else
+          call srdt_calc(tao_lat%lat, tao_branch%srdt, u%calc%srdt_for_data, s%global%srdt_gen_n_slices, s%global%srdt_sxt_n_slices)
+        endif
+      else
+        call srdt_calc(tao_lat%lat, tao_branch%srdt, u%calc%srdt_for_data, s%global%srdt_gen_n_slices, s%global%srdt_sxt_n_slices)
+      endif
     endif
     
     ! PTC one-turn-map and normal form calc. Only for rings. 
