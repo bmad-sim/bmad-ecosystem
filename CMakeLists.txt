@@ -9,7 +9,7 @@ set(SRC_DIRS
 set (EXE_SPECS 
   cmake.ansga2
   cmake.aspea2
-  cmake.srdt_lsq_soln
+#  cmake.srdt_lsq_soln
 #  cmake.ptc_flat_file_to_bmad
 #  cmake.make_a_matching_knob
 #  cmake.wake_fit
