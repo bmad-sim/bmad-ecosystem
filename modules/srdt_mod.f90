@@ -31,14 +31,11 @@ type summation_rdt_struct
   complex(rp) h22000 
   complex(rp) h00220 
   complex(rp) h11110 
-  real(rp) nux_Jx
-  real(rp) nuy_Jy
-  real(rp) nux_Jy
 end type
 
 character(6), parameter :: srdt_first(8) = [ 'h20001', 'h00201', 'h10002', 'h21000', 'h30000', 'h10110', 'h10020', 'h10200' ]
-character(6), parameter :: srdt_second(14) = [ 'h31000', 'h40000', 'h20110', 'h11200', 'h20020', 'h20200', 'h00310', \
-                                               'h00400', 'h22000', 'h00220', 'h11110', 'nux_Jx', 'nuy_Jy', 'nux_Jy' ]
+character(6), parameter :: srdt_second(11) = [ 'h31000', 'h40000', 'h20110', 'h11200', 'h20020', 'h20200', 'h00310', \
+                                               'h00400', 'h22000', 'h00220', 'h11110' ]
 
 type sliced_eles_struct
   integer ix
@@ -54,10 +51,10 @@ private make_slices
 contains
 
 !+ 
-! Subroutine srdt_calc(lat, srdt, order, n_slices_gen_opt, n_slices_sext_opt)
+! Subroutine srdt_calc(lat, srdt, order, n_slices_gen_opt, n_slices_sxt_opt)
 !
 ! Calculate summation RDT terms up to order=1 or order=2 while slicing sextupoles 
-! n_slices_sext_opt times and all other elements n_slices_gen_opt times.
+! n_slices_sxt_opt times and all other elements n_slices_gen_opt times.
 !
 ! These formulas are documented in "The Sextupole Scheme for the Swiss Light Source (SLS): An Analytic Approach"
 ! by Johan Bengtsson.  SLS Note 9/97.
@@ -69,26 +66,25 @@ contains
 !   lat                -- lat_struct: lattice with Twiss parameters calculated.
 !   order              -- integer: 1 to calculate only first order terms.  2 to also calculate 2nd order terms.
 !   n_slices_gen_opt   -- integer, optional: number of times to slice elements other than sextupoles.  Default is 10.
-!   n_slices_sext_opt  -- integer, optional: nubmer of times to slice sextupoles.  Default is 20.
+!   n_slices_sxt_opt  -- integer, optional: nubmer of times to slice sextupoles.  Default is 20.
 !
 ! Output:
 !   srdt               -- summation_rdt_struct: contains complex RDT strengths.
 !-
 
-subroutine srdt_calc (lat, srdt_sums, order, n_slices_sext_opt, n_slices_gen_opt, per_ele_out)
+subroutine srdt_calc (lat, srdt_sums, order, n_slices_gen_opt, n_slices_sxt_opt, per_ele_out)
 
 implicit none
 
 type(lat_struct) lat
 type(summation_rdt_struct) srdt_sums
 integer order
-integer, optional :: n_slices_sext_opt
 integer, optional :: n_slices_gen_opt
+integer, optional :: n_slices_sxt_opt
 
 type(sliced_eles_struct), allocatable :: eles(:)
 type(summation_rdt_struct), allocatable, optional :: per_ele_out(:)
 
-real(rp) pinux, pinuy
 real(rp) dmux, dmuy, prod, sqrtprod, sgn
 
 integer pass, w, i, j, ns
@@ -97,10 +93,7 @@ integer n_slices_gen
 integer nK2
 
 n_slices_gen = integer_option(10, n_slices_gen_opt)
-n_slices_sext = integer_option(20, n_slices_sext_opt)
-
-pinux = lat%ele(lat%n_ele_track)%a%phi/2.0d0
-pinuy = lat%ele(lat%n_ele_track)%b%phi/2.0d0
+n_slices_sext = integer_option(20, n_slices_sxt_opt)
 
 call make_slices(lat, eles, n_slices_gen, n_slices_sext)
 
@@ -145,9 +138,6 @@ srdt_sums%h10002 =  srdt_sums%h10002 / 2.0
 srdt_sums%h22000 = 0
 srdt_sums%h00220 = 0
 srdt_sums%h11110 = 0
-srdt_sums%nux_Jy = 0
-srdt_sums%nuy_Jy = 0
-srdt_sums%nux_Jx = 0
 srdt_sums%h31000 = 0
 srdt_sums%h40000 = 0
 srdt_sums%h20110 = 0
@@ -161,15 +151,8 @@ if(order .ge. 2) then
     if( eles(i)%good_k2 ) then
       do j=1,w
         if( eles(j)%good_k2 ) then
-          dmux = eles(i)%phi_a-eles(j)%phi_a
-          dmuy = eles(i)%phi_b-eles(j)%phi_b
           prod = eles(i)%k2l*eles(j)%k2l
 
-          !srdt_sums%nux_Jx = srdt_sums%nux_Jx + prod * (eles(i)%beta_a*eles(j)%beta_a)**(3./2.)*(3.0*res(i,j,1,0)+res(i,j,3,0))
-          !srdt_sums%nux_Jy = srdt_sums%nux_Jy + prod * (eles(i)%beta_a*eles(j)%beta_a)**(1./2.)*eles(i)%beta_b*( &
-          !                                              2.0*eles(j)%beta_a*res(i,j,1,0)-eles(j)%beta_b*res(i,j,1,2)+eles(j)%beta_b*res(i,j,1,-2))
-          !srdt_sums%nuy_Jy = srdt_sums%nuy_Jy + prod * (eles(i)%beta_a*eles(j)%beta_a)**(1./2.)*eles(i)%beta_b*eles(j)%beta_b*( &
-          !                                              4.0*res(i,j,1,0)+res(i,j,1,2)+res(i,j,1,-2) )
           if(i /= j) then
             if( i < j ) then
               sgn = 1
@@ -204,9 +187,6 @@ if(order .ge. 2) then
       enddo
     endif
   enddo
-  srdt_sums%nux_Jx =  srdt_sums%nux_Jx / (-16.0) / pi
-  srdt_sums%nux_Jy =  srdt_sums%nux_Jy / 8.0 / pi
-  srdt_sums%nuy_Jy =  srdt_sums%nuy_Jy / (-16.0) / pi
   srdt_sums%h22000 =  srdt_sums%h22000 * i_imag / 64.0
   srdt_sums%h11110 =  srdt_sums%h11110 * i_imag / 16.0
   srdt_sums%h00220 =  srdt_sums%h00220 * i_imag / 64.0
@@ -245,21 +225,241 @@ if(present(per_ele_out)) then
     per_ele_out(i)%h11110 = sum(eles(:)%srdt%h11110, mask=eles(:)%ix==i)
   enddo
 endif
-  contains
-  function res(i,j,nx,ny) result(r)
-    implicit none
 
-    real(rp) r
-    integer i, j, nx, ny
-    real(rp) arg_px, arg_py, arg_ux, arg_uy
+end subroutine
 
-    arg_px = nx*(eles(i)%phi_a-eles(j)%phi_a)
-    arg_py = ny*(eles(i)%phi_b-eles(j)%phi_b)
-    arg_ux = nx*pinux
-    arg_uy = ny*pinuy
+!+
+!-
+subroutine srdt_calc_with_cache(lat, srdt_sums, order, n_slices_gen_opt, n_slices_sxt_opt, cache, per_ele_out)
 
-    r = cos(abs(arg_px+arg_py)-arg_ux-arg_uy)/sin(arg_ux+arg_uy)
-  end function
+implicit none
+
+type(lat_struct) lat
+type(summation_rdt_struct) srdt_sums
+integer order
+integer, optional :: n_slices_gen_opt
+integer, optional :: n_slices_sxt_opt
+complex(rp), allocatable :: cache(:,:,:)
+type(summation_rdt_struct), allocatable, optional :: per_ele_out(:)
+
+type(sliced_eles_struct), allocatable :: eles(:)
+integer, allocatable :: ixK2(:)
+real(rp) sgn
+real(rp) prod
+
+integer pass, w, i, j, ns
+integer xi, xj, wK2
+integer n_slices_gen, n_slices_sxt
+
+n_slices_gen = integer_option(10, n_slices_gen_opt)
+n_slices_sxt = integer_option(20, n_slices_sxt_opt)
+
+if(.not. allocated(cache)) then
+  call srdt_calc(lat, srdt_sums, order, n_slices_gen_opt, n_slices_sxt_opt, per_ele_out)
+else
+  call make_slices(lat, eles, n_slices_gen, n_slices_sxt)
+
+  w = size(eles)
+
+  ! Calculate first order terms.
+  eles(:)%srdt%h11001 = (eles(:)%k1l-2.0*eles(:)%k2l*eles(:)%eta_a)*eles(:)%beta_a
+  eles(:)%srdt%h00111 = (eles(:)%k1l-2.0*eles(:)%k2l*eles(:)%eta_a)*eles(:)%beta_b
+  eles(:)%srdt%h20001 = (eles(:)%k1l-2.0*eles(:)%k2l*eles(:)%eta_a)*eles(:)%beta_a * eles(:)%e2a
+  eles(:)%srdt%h00201 = (eles(:)%k1l-2.0*eles(:)%k2l*eles(:)%eta_a)*eles(:)%beta_b * eles(:)%e2b
+  eles(:)%srdt%h10002 = (eles(:)%k1l-eles(:)%k2l*eles(:)%eta_a)*eles(:)%eta_a*sqrt(eles(:)%beta_a) * eles(:)%ea
+  eles(:)%srdt%h21000 = eles(:)%k2l*eles(:)%beta_a**(3./2.) * eles(:)%ea
+  eles(:)%srdt%h30000 = eles(:)%k2l*eles(:)%beta_a**(3./2.) * eles(:)%e3a
+  eles(:)%srdt%h10110 = eles(:)%k2l*eles(:)%beta_a**(1./2.)*eles(:)%beta_b * eles(:)%ea
+  eles(:)%srdt%h10020 = eles(:)%k2l*eles(:)%beta_a**(1./2.)*eles(:)%beta_b * eles(:)%ea/eles(:)%e2b
+  eles(:)%srdt%h10200 = eles(:)%k2l*eles(:)%beta_a**(1./2.)*eles(:)%beta_b * eles(:)%ea*eles(:)%e2b
+
+  srdt_sums%h11001 = sum(eles(1:size(eles))%srdt%h11001) 
+  srdt_sums%h00111 = sum(eles(1:size(eles))%srdt%h00111) 
+  srdt_sums%h20001 = sum(eles(1:size(eles))%srdt%h20001) 
+  srdt_sums%h00201 = sum(eles(1:size(eles))%srdt%h00201) 
+  srdt_sums%h10002 = sum(eles(1:size(eles))%srdt%h10002) 
+  srdt_sums%h21000 = sum(eles(1:size(eles))%srdt%h21000) 
+  srdt_sums%h30000 = sum(eles(1:size(eles))%srdt%h30000) 
+  srdt_sums%h10110 = sum(eles(1:size(eles))%srdt%h10110) 
+  srdt_sums%h10020 = sum(eles(1:size(eles))%srdt%h10020) 
+  srdt_sums%h10200 = sum(eles(1:size(eles))%srdt%h10200) 
+
+  srdt_sums%h11001 =  srdt_sums%h11001 / 4.0
+  srdt_sums%h00111 = -srdt_sums%h00111 / 4.0
+  srdt_sums%h21000 = -srdt_sums%h21000 / 8.0
+  srdt_sums%h30000 = -srdt_sums%h30000 / 24.0
+  srdt_sums%h10110 =  srdt_sums%h10110 / 4.0
+  srdt_sums%h10020 =  srdt_sums%h10020 / 8.0
+  srdt_sums%h10200 =  srdt_sums%h10200 / 8.0
+  srdt_sums%h20001 =  srdt_sums%h20001 / 8.0
+  srdt_sums%h00201 = -srdt_sums%h00201 / 8.0
+  srdt_sums%h10002 =  srdt_sums%h10002 / 2.0
+
+  !Calculate second order terms
+  srdt_sums%h22000 = 0
+  srdt_sums%h00220 = 0
+  srdt_sums%h11110 = 0
+  srdt_sums%h31000 = 0
+  srdt_sums%h40000 = 0
+  srdt_sums%h20110 = 0
+  srdt_sums%h11200 = 0
+  srdt_sums%h20020 = 0
+  srdt_sums%h20200 = 0
+  srdt_sums%h00310 = 0
+  srdt_sums%h00400 = 0
+  if(order .ge. 2) then
+    wK2 = count(eles(:)%good_k2)
+    allocate(ixK2(wK2))
+    ixK2 = pack([(i,i=1,w)],eles(:)%good_k2)
+    do xj=1,wK2
+      do xi=1,wK2
+        prod = eles(ixK2(xi))%k2l*eles(ixK2(xj))%k2l
+        srdt_sums%h22000 = srdt_sums%h22000 + prod*cache(1,xi,xj)
+        srdt_sums%h00220 = srdt_sums%h00220 + prod*cache(2,xi,xj)
+        srdt_sums%h11110 = srdt_sums%h11110 + prod*cache(3,xi,xj)
+        srdt_sums%h31000 = srdt_sums%h31000 + prod*cache(4,xi,xj)
+        srdt_sums%h40000 = srdt_sums%h40000 + prod*cache(5,xi,xj)
+        srdt_sums%h20110 = srdt_sums%h20110 + prod*cache(6,xi,xj)
+        srdt_sums%h11200 = srdt_sums%h11200 + prod*cache(7,xi,xj)
+        srdt_sums%h20020 = srdt_sums%h20020 + prod*cache(8,xi,xj)
+        srdt_sums%h20200 = srdt_sums%h20200 + prod*cache(9,xi,xj)
+        srdt_sums%h00310 = srdt_sums%h00310 + prod*cache(10,xi,xj)
+        srdt_sums%h00400 = srdt_sums%h00400 + prod*cache(11,xi,xj)
+      enddo
+    enddo
+    srdt_sums%h22000 =  srdt_sums%h22000 * i_imag / 64.0
+    srdt_sums%h11110 =  srdt_sums%h11110 * i_imag / 16.0
+    srdt_sums%h00220 =  srdt_sums%h00220 * i_imag / 64.0
+    srdt_sums%h31000 =  srdt_sums%h31000 * i_imag / 32.0
+    srdt_sums%h40000 =  srdt_sums%h40000 * i_imag / 64.0
+    srdt_sums%h20110 =  srdt_sums%h20110 * i_imag / 32.0
+    srdt_sums%h11200 =  srdt_sums%h11200 * i_imag / 32.0
+    srdt_sums%h20020 =  srdt_sums%h20020 * i_imag / 64.0
+    srdt_sums%h20200 =  srdt_sums%h20200 * i_imag / 64.0
+    srdt_sums%h00310 =  srdt_sums%h00310 * i_imag / 32.0
+    srdt_sums%h00400 =  srdt_sums%h00400 * i_imag / 64.0
+  endif
+
+  if(present(per_ele_out)) then
+    allocate(per_ele_out(lat%n_ele_track))
+    do i=1,lat%n_ele_track
+      per_ele_out(i)%h20001 = sum(eles(:)%srdt%h20001, mask=eles(:)%ix==i)
+      per_ele_out(i)%h00201 = sum(eles(:)%srdt%h00201, mask=eles(:)%ix==i)
+      per_ele_out(i)%h10002 = sum(eles(:)%srdt%h10002, mask=eles(:)%ix==i)
+      per_ele_out(i)%h21000 = sum(eles(:)%srdt%h21000, mask=eles(:)%ix==i)
+      per_ele_out(i)%h30000 = sum(eles(:)%srdt%h30000, mask=eles(:)%ix==i)
+      per_ele_out(i)%h10110 = sum(eles(:)%srdt%h10110, mask=eles(:)%ix==i)
+      per_ele_out(i)%h10020 = sum(eles(:)%srdt%h10020, mask=eles(:)%ix==i)
+      per_ele_out(i)%h10200 = sum(eles(:)%srdt%h10200, mask=eles(:)%ix==i)
+
+      per_ele_out(i)%h31000 = sum(eles(:)%srdt%h31000, mask=eles(:)%ix==i)
+      per_ele_out(i)%h40000 = sum(eles(:)%srdt%h40000, mask=eles(:)%ix==i)
+      per_ele_out(i)%h20110 = sum(eles(:)%srdt%h20110, mask=eles(:)%ix==i)
+      per_ele_out(i)%h11200 = sum(eles(:)%srdt%h11200, mask=eles(:)%ix==i)
+      per_ele_out(i)%h20020 = sum(eles(:)%srdt%h20020, mask=eles(:)%ix==i)
+      per_ele_out(i)%h20200 = sum(eles(:)%srdt%h20200, mask=eles(:)%ix==i)
+      per_ele_out(i)%h00310 = sum(eles(:)%srdt%h00310, mask=eles(:)%ix==i)
+      per_ele_out(i)%h00400 = sum(eles(:)%srdt%h00400, mask=eles(:)%ix==i)
+      per_ele_out(i)%h22000 = sum(eles(:)%srdt%h22000, mask=eles(:)%ix==i)
+      per_ele_out(i)%h00220 = sum(eles(:)%srdt%h00220, mask=eles(:)%ix==i)
+      per_ele_out(i)%h11110 = sum(eles(:)%srdt%h11110, mask=eles(:)%ix==i)
+    enddo
+  endif
+endif
+end subroutine
+
+!+
+!-
+subroutine make_srdt_cache(lat,n_slices_gen,n_slices_sxt,cache)
+
+  implicit none
+
+  type(lat_struct) lat
+  integer n_slices_gen, n_slices_sxt
+  complex(rp), allocatable :: cache(:,:,:)
+
+  type(sliced_eles_struct), allocatable :: eles(:)
+  real(rp) sqrtprod
+  integer ierr
+  integer i,j,sgn
+  integer xi, xj
+  integer w, wK2
+
+  character(15) :: r_name = 'make_srdt_cache'
+
+  call make_slices(lat,eles,n_slices_gen,n_slices_sxt)
+
+  w = size(eles)
+  wK2 = count(eles(:)%good_K2)
+
+  if(.not. allocated(cache)) then
+    write(*,'(a,f15.3,a)') "Allocating approximately ", wK2*wK2*11.*2.*rp/(1024.**3), " GB for SRDT cache."
+    allocate(cache(11,wK2,wK2),stat=ierr)
+    if(ierr /= 0) then
+      call out_io (s_warn$, r_name, 'Insufficient memory available to make SRDT cache for specified n_slices_gen and n_slices_sxt.', &
+                                    'Will proceed without cache.  Calculation may be much slower.', &
+                                    'Consider reducing n_slices_gen and n_slices_sxt.')
+      return
+    endif 
+  elseif( size(cache(1,:,1)) .ne. wK2) then
+    deallocate(cache)
+    allocate(cache(11,wK2,wK2))
+  endif
+
+  cache = (0.0d0,0.0d0)
+  xi = 0
+  do i=1,size(eles)
+    if( eles(i)%good_k2 ) then
+      xi = xi + 1
+      xj = 0
+      do j=1,size(eles)
+        if( eles(j)%good_k2 ) then
+          xj = xj + 1
+          if(i /= j) then
+            if( i < j ) then
+              sgn = 1
+            elseif( i > j ) then
+              sgn = -1
+            endif
+            ! cache(1 ,:,:)  h22000
+            ! cache(2 ,:,:)  h00220
+            ! cache(3 ,:,:)  h11110
+            ! cache(4 ,:,:)  h31000
+            ! cache(5 ,:,:)  h40000
+            ! cache(6 ,:,:)  h20110
+            ! cache(7 ,:,:)  h11200
+            ! cache(8 ,:,:)  h20020
+            ! cache(9 ,:,:)  h20200
+            ! cache(10,:,:)  h00310
+            ! cache(11,:,:)  h00400
+
+            sqrtprod = sqrt(eles(i)%beta_a*eles(j)%beta_a)
+            cache(1,xi,xj)  = sgn*(eles(i)%beta_a*eles(j)%beta_a)**(3./2.) * ( eles(i)%e3a/eles(j)%e3a + 3.0*eles(i)%ea/eles(j)%ea )
+            cache(2,xi,xj)  = sgn*(eles(i)%beta_a*eles(j)%beta_a)**(1./2.) * (eles(i)%beta_b*eles(j)%beta_b) * ( &
+                            eles(i)%ea/eles(j)%ea*eles(i)%e2b/eles(j)%e2b + 4.0*eles(i)%ea/eles(j)%ea - eles(j)%ea/eles(i)%ea*eles(i)%e2b/eles(j)%e2b )
+            cache(3,xi,xj)  = sgn*sqrt(eles(i)%beta_a*eles(j)%beta_a)*eles(i)%beta_b * ( &
+                            eles(j)%beta_a*( eles(j)%ea/eles(i)%ea - eles(i)%ea/eles(j)%ea ) + &
+                            eles(j)%beta_b*( eles(i)%ea/eles(j)%ea*eles(i)%e2b/eles(j)%e2b + eles(j)%ea/eles(i)%ea*eles(i)%e2b/eles(j)%e2b ) )
+            cache(4,xi,xj)  = sgn*(eles(i)%beta_a*eles(j)%beta_a)**(3./2.) * eles(i)%e3a/eles(j)%ea !2Qx
+            cache(5,xi,xj)  = sgn*(eles(i)%beta_a*eles(j)%beta_a)**(3./2.) * eles(i)%e3a*eles(j)%ea !4Qx
+            cache(6,xi,xj)  = sgn*sqrtprod*eles(i)%beta_b * &
+                            ( eles(j)%beta_a*( eles(j)%e3a/eles(i)%ea - eles(i)%ea*eles(j)%ea ) + &
+                            2.0*eles(j)%beta_b*eles(i)%ea*eles(j)%ea*eles(i)%e2b/eles(j)%e2b ) 
+            cache(7,xi,xj)  = sgn*sqrtprod*eles(i)%beta_b * &
+                            ( eles(j)%beta_a*( eles(j)%ea/eles(i)%ea*eles(i)%e2b - eles(i)%ea/eles(j)%ea*eles(i)%e2b ) + &
+                            2.0*eles(j)%beta_b*( eles(i)%ea/eles(j)%ea*eles(i)%e2b + eles(j)%ea/eles(i)%ea*eles(i)%e2b ) )
+            cache(8,xi,xj)  = sgn*sqrtprod*eles(i)%beta_b * &
+                            ( eles(j)%beta_a*eles(j)%e3a/eles(i)%ea/eles(i)%e2b - (eles(j)%beta_a+4.0*eles(j)%beta_b)*eles(i)%ea*eles(j)%ea/eles(i)%e2b )
+            cache(9,xi,xj)  = sgn*sqrtprod*eles(i)%beta_b * &
+                            ( eles(j)%beta_a*eles(j)%e3a/eles(i)%ea*eles(i)%e2b - (eles(j)%beta_a-4.0*eles(j)%beta_b)*eles(i)%ea*eles(j)%ea*eles(i)%e2b )
+            cache(10,xi,xj) = sgn*sqrtprod*eles(i)%beta_b*eles(j)%beta_b * &
+                            ( eles(i)%ea/eles(j)%ea*eles(i)%e2b - eles(j)%ea/eles(i)%ea*eles(i)%e2b )
+            cache(11,xi,xj) = sgn*sqrtprod*eles(i)%beta_b*eles(j)%beta_b * eles(i)%ea/eles(j)%ea*eles(i)%e2b*eles(j)%e2b
+          endif
+        endif
+      enddo
+    endif
+  enddo
 end subroutine
 
 !+
@@ -276,7 +476,7 @@ end subroutine
 ! Input:
 !   lat                -- lat_struct: lattice with Twiss parameters calculated.
 !   n_slices_gen_opt   -- integer: number of times to slice elements other than sextupoles.
-!   n_slices_sext_opt  -- integer: nubmer of times to slice sextupoles.
+!   n_slices_sxt_opt  -- integer: nubmer of times to slice sextupoles.
 !   var_indexes(:)     -- integer: make sure that good_K2 slices are made for these elements.
 ! Output:
 !   eles               -- sliced_eles_struct: lattice parameters needed for driving term calculations.
@@ -319,7 +519,7 @@ subroutine make_slices(lat,eles,n_slices_gen,n_slices_sext,var_indexes)
       call multipole_ele_to_kt(lat%ele(i), .true., ix_pole_max, knl, tilt, magnetic$, include_kicks$)
       if( (ix_pole_max .ge. 1) .or. any(i==var_indexes_use) ) then
         k1l = knl(1)
-        if( (ix_pole_max .ge. 2) .or. any(i==var_indexes_use) ) then
+        if( ((ix_pole_max .ge. 2) .and. (abs(knl(2)) .gt. 1.0d-8)) .or. any(i==var_indexes_use) ) then
           k2l = knl(2) / 2.0  ! Convention shown in Eqn. 8 of Bengsston paper: moments divided by n.
           good_k2 = .true.
         else
@@ -391,7 +591,7 @@ subroutine make_slices(lat,eles,n_slices_gen,n_slices_sext,var_indexes)
 end subroutine
 
 !+
-! Subroutine srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_sext_opt, n_slices_gen_opt, chrom_set_x_opt, chrom_set_y_opt)
+! Subroutine srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_gen_opt, n_slices_sxt_opt, chrom_set_x_opt, chrom_set_y_opt)
 !
 ! Given lat, finds K2 moments that set the chromaticity and zeros-out the real
 ! and complex parts of the first order driving terms, that minimizes the sum of the squares
@@ -407,20 +607,20 @@ end subroutine
 !   lat                -- lat_struct: lattice with Twiss parameters calculated.
 !   var_indexes(:)     -- integer: indexes in lat%ele that are K2 variables.  Must be sorted smallest index to largest index.
 !   n_slices_gen_opt   -- integer, optional: number of times to slice elements other than sextupoles.  Default is 10.
-!   n_slices_sext_opt  -- integer, optional: nubmer of times to slice sextupoles.  Default is 20.
+!   n_slices_sxt_opt  -- integer, optional: nubmer of times to slice sextupoles.  Default is 20.
 !   chrom_set_x_opt    -- real(rp), optional: what to set x chromaticity to.  Default zero.
 !   chrom_set_y_opt    -- real(rp), optional: what to set y chromaticity to.  Default zero.
 ! Output:
 !   ls_soln(1:size(var_indexes))  -- real(rp): contains K2 for the indexes in var_indexes
 !-
-subroutine srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_sext_opt, n_slices_gen_opt, chrom_set_x_opt, chrom_set_y_opt)
+subroutine srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_gen_opt, n_slices_sxt_opt, chrom_set_x_opt, chrom_set_y_opt)
 
   implicit none
 
   type(lat_struct) lat
   integer var_indexes(:)
   real(rp) ls_soln(:)
-  integer, optional :: n_slices_sext_opt
+  integer, optional :: n_slices_sxt_opt
   integer, optional :: n_slices_gen_opt
   real(rp), optional :: chrom_set_x_opt, chrom_set_y_opt
 
@@ -444,7 +644,7 @@ subroutine srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_sext_opt, n_sli
   character(17) :: r_name = 'srdt_lsq_solution'
  
   n_slices_gen = integer_option(10, n_slices_gen_opt)
-  n_slices_sext = integer_option(20, n_slices_sext_opt)
+  n_slices_sext = integer_option(20, n_slices_sxt_opt)
   chrom_set_x = real_option(0.0d0, chrom_set_x_opt)
   chrom_set_y = real_option(0.0d0, chrom_set_y_opt)
 
