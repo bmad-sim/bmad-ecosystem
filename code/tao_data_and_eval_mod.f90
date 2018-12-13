@@ -1677,7 +1677,11 @@ case ('normal.')
   endif
   
   ! Do nothing it the map wasn't made
-  if (.not. associated(normal_form%ele_origin) ) return
+  if (.not. associated(normal_form%ele_origin) ) then
+    valid_value = .false.
+    if (present(why_invalid)) why_invalid = 'PTC one-turn map not calculated.'
+    return
+  endif
 
   ! Expect: taylor.#.######
   ! Example: normal.dhdj.2.000001 is the b-mode chromaticity
