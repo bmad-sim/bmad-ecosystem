@@ -225,19 +225,18 @@ end type
 ! One for Cbar12, and one for Cbar22.
 
 type tao_plot_struct
-  character(40) :: name = ' '                 ! Identifying name
-  character(100) :: description = ''          ! Descriptive string.
-  type (tao_graph_struct), allocatable :: graph(:)
-                                              ! individual graphs of a plot
-  type (qp_axis_struct) x                     ! X-axis parameters.
-  type (tao_plot_region_struct), pointer :: r ! pointer to parent.
-  integer :: n_curve_pts = -1                 ! Overrides s%plot_page%n_curve_pts.
-  character(8) :: type = 'normal'             ! or 'wave'
-  character(16) :: x_axis_type = ''           ! 'index', 'ele_index', 's', 'none', 'floor', or 'phase_space'
-  logical :: autoscale_x = .false.            ! Horizontal autoscale.
-  logical :: autoscale_y = .false.            ! Vertical autoscale.
-  logical :: autoscale_gang_x = .true.        ! scale cmd scales graphs together?
-  logical :: autoscale_gang_y = .true.        ! scale cmd scales graphs together?
+  character(40) :: name = ' '                      ! Identifying name
+  character(100) :: description = ''               ! Descriptive string.
+  type (tao_graph_struct), allocatable :: graph(:) ! individual graphs of a plot
+  type (qp_axis_struct) :: x = qp_axis_struct()    ! X-axis parameters.
+  type (tao_plot_region_struct), pointer :: r => null() ! pointer to parent.
+  integer :: n_curve_pts = -1                      ! Overrides s%plot_page%n_curve_pts.
+  character(8) :: type = 'normal'                  ! or 'wave'
+  character(16) :: x_axis_type = ''                ! 'index', 'ele_index', 's', 'none', 'floor', or 'phase_space'
+  logical :: autoscale_x = .false.                 ! Horizontal autoscale.
+  logical :: autoscale_y = .false.                 ! Vertical autoscale.
+  logical :: autoscale_gang_x = .true.             ! scale cmd scales graphs together?
+  logical :: autoscale_gang_y = .true.             ! scale cmd scales graphs together?
   logical :: list_with_show_plot_command = .true.  ! False used for default plots to shorten the output of "show plot"
   logical :: phantom = .false.                     ! True used to insert info into output of "show plot"
 end type
