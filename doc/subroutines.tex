@@ -609,6 +609,14 @@ Routine to take the inverse of a square matrix.
 \item[mat_make_unit (mat)] \Newline 
      routine to create a unit matrix.
 
+\index[routine]{mat_pseudoinverse}
+\label{r:mat.make.pseudoinverse}
+\item[make_pseudoinverse(mat,mat_pinv,svd_condition,print_err,ok)]
+Routine to make the Moore-Penrose pseudoinverse of a rectangular matrix via
+LAPACK DGESDD routine for singular value decomposition.  If svd_condition
+is specified, then only those singular values where
+s(i)/s(1) > svd_condition are used to construct the pseudoinverse.
+
 \index[routine]{mat_rotation}
 \label{r:mat.rotation}
 \item[mat_rotation (mat, angle, bet_1, bet_2, alph_1, alph_2)] \Newline 
