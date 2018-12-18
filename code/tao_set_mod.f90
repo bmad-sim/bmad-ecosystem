@@ -1282,13 +1282,12 @@ character(*), parameter :: r_name = 'tao_set_plot_cmd'
 
 integer iset, iw, iu
 integer i, j, ix, ios
-logical err
-logical logic, error
+logical err_flag, found
 
 !
 
-call tao_find_plots (err, plot_name, 'REGION', plot = plot)
-if (err) return
+call tao_find_plots (err_flag, plot_name, 'REGION', plot = plot)
+if (err_flag) return
 
 if (.not. allocated(plot)) then
   call out_io (s_error$, r_name, 'PLOT OR PLOT NOT SPECIFIED')
@@ -1304,22 +1303,26 @@ if (ix /= 0) then
   sub_comp = component(ix+1:)
 endif
 
+found = .false.
+
 do i = 1, size(plot)
 
   select case (comp)
 
     case ('n_curve_pts')
-      call tao_set_integer_value (plot(i)%p%n_curve_pts, component, value_str, error)
+      call tao_set_integer_value (plot(i)%p%n_curve_pts, component, value_str, err_flag)
 
     case ('autoscale_x')
-      call tao_set_logical_value (plot(i)%p%autoscale_x, component, value_str, error)
+      call tao_set_logical_value (plot(i)%p%autoscale_x, component, value_str, err_flag)
 
     case ('autoscale_y')
-      call tao_set_logical_value (plot(i)%p%autoscale_y, component, value_str, error)
+      call tao_set_logical_value (plot(i)%p%autoscale_y, component, value_str, err_flag)
 
     case ('visible')
-      call tao_set_logical_value (plot(i)%p%r%visible, component, value_str, error)
+      if (.not. associated(plot(i)%p%r)) cycle
+      call tao_set_logical_value (plot(i)%p%r%visible, component, value_str, err_flag)
       call tao_turn_on_special_calcs_if_needed_for_plotting()
+      found = .true.
 
     case ('component')
       do j = 1, size(plot(i)%p%graph)
@@ -1327,7 +1330,7 @@ do i = 1, size(plot)
       enddo
 
     case ('x')
-      call tao_set_qp_axis_struct('x', sub_comp, plot(i)%p%x, value_str, error)
+      call tao_set_qp_axis_struct('x', sub_comp, plot(i)%p%x, value_str, err_flag)
       if (allocated(plot(i)%p%graph)) then
         do j = 1, size(plot(i)%p%graph)
           plot(i)%p%graph(i)%x = plot(i)%p%x
@@ -1341,6 +1344,12 @@ do i = 1, size(plot)
   end select
 
 enddo
+
+!
+
+if (comp == 'visible' .and. .not. found) then
+  call out_io (s_error$, r_name, 'NO PLOT ASSOCIATED WITH: ' // plot_name)
+endif
 
 end subroutine tao_set_plot_cmd
 
