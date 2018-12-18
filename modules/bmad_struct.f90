@@ -1176,9 +1176,8 @@ end type
 
 ! RD = Resonance Driving term
 
-type :: rd_term_struct
-  integer :: F_index = 0  !used to index complex vector field.  Only for dhdj
-  integer :: j(6) = 0
+type :: h_struct
+  character(8) :: c = ''
   complex(rp) :: c_val = 0
 end type
 
@@ -1192,42 +1191,9 @@ type normal_form_struct
                                            ! A1 and L are linear, and c maps to the phasor basis: h+ = x + i p, h- = x - i p
   type (ele_struct), pointer :: ele_origin => null()  ! Element at which the on-turn map was created.
                                            ! See subroutines: normal_form_taylors and normal_form_complex_taylors
-  type(rd_term_struct) :: rd_term(32) = [ &
-                          rd_term_struct(0, [2,1,0,0,0,0], (0.0d0,0.0d0)), rd_term_struct(0, [3,0,0,0,0,0], (0.0d0,0.0d0)), &
-                          rd_term_struct(0, [1,0,1,1,0,0], (0.0d0,0.0d0)), rd_term_struct(0, [1,0,0,2,0,0], (0.0d0,0.0d0)), &
-                          rd_term_struct(0, [1,0,2,0,0,0], (0.0d0,0.0d0)), rd_term_struct(0, [2,0,0,0,0,1], (0.0d0,0.0d0)), &
-                          rd_term_struct(0, [0,0,2,0,0,1], (0.0d0,0.0d0)), rd_term_struct(0, [1,0,0,0,0,2], (0.0d0,0.0d0)), &
-                          rd_term_struct(0, [3,1,0,0,0,0], (0.0d0,0.0d0)), rd_term_struct(0, [0,0,3,1,0,0], (0.0d0,0.0d0)), &
-                          rd_term_struct(0, [1,1,2,0,0,0], (0.0d0,0.0d0)), rd_term_struct(0, [2,0,1,1,0,0], (0.0d0,0.0d0)), &
-                          rd_term_struct(1, [1,1,0,0,0,0], (0.0d0,0.0d0)), rd_term_struct(2, [0,0,1,1,0,0], (0.0d0,0.0d0)), &
-                          rd_term_struct(1, [0,0,1,1,0,0], (0.0d0,0.0d0)), rd_term_struct(0, [2,0,2,0,0,0], (0.0d0,0.0d0)), &
-                          rd_term_struct(0, [2,0,0,2,0,0], (0.0d0,0.0d0)), rd_term_struct(0, [4,0,0,0,0,0], (0.0d0,0.0d0)), &
-                          rd_term_struct(0, [0,0,4,0,0,0], (0.0d0,0.0d0)), rd_term_struct(1, [0,0,0,0,0,1], (0.0d0,0.0d0)), &
-                          rd_term_struct(1, [0,0,0,0,0,2], (0.0d0,0.0d0)), rd_term_struct(1, [0,0,0,0,0,3], (0.0d0,0.0d0)), &
-                          rd_term_struct(2, [0,0,0,0,0,1], (0.0d0,0.0d0)), rd_term_struct(2, [0,0,0,0,0,2], (0.0d0,0.0d0)), &
-                          rd_term_struct(2, [0,0,0,0,0,3], (0.0d0,0.0d0)), rd_term_struct(3, [0,0,0,0,0,1], (0.0d0,0.0d0)), &
-                          rd_term_struct(3, [0,0,0,0,0,2], (0.0d0,0.0d0)), rd_term_struct(3, [0,0,0,0,0,3], (0.0d0,0.0d0)), &
-                          rd_term_struct(3, [0,0,0,0,0,4], (0.0d0,0.0d0)), rd_term_struct(0, [2,2,0,0,0,0], (0.0d0,0.0d0)), &
-                          rd_term_struct(0, [0,0,2,2,0,0], (0.0d0,0.0d0)), rd_term_struct(0, [1,1,1,1,0,0], (0.0d0,0.0d0))]
+  type(h_struct), allocatable :: h(:)
 end type
 
-character(8), parameter :: rd_term_name(32) = [ &
-                       '0.210000', '0.300000', '0.101100', '0.100200', '0.102000', '0.200001', '0.002001', '0.100002', &
-                       '0.310000', '0.003100', '0.112000', '0.201100', '1.110000', '2.001100', '1.001100', '0.202000', &
-                       '0.200200', '0.400000', '0.004000', '1.000001', '1.000002', '1.000003', '2.000001', '2.000002', &
-                       '2.000003', '3.000001', '3.000002', '3.000003', '3.000004', '0.220000', '0.002200', '0.111100']
-
-character(100), parameter :: rd_term_descrip(32) = [character(100) :: &
-                       'Qx', '3Qx', 'Qx', 'Qx-2Qy', 'Qx+2Qy', 'Synchro-betatron resonances ???', &
-                       'Momentum-dependence of beta functions ???', '2nd order dispersion', '2Qx', &
-                       '2Qy', '2Qy', '2Qx', 'Horizontal ADTS', 'Vertical ADTS', 'Cross ADTS', '2Qx+2Qy', &
-                       '2Qx-2Qy', '4Qx', '4Qy', 'chrom x', '2nd order chrom x', '3rd order chrom x', &
-                       'chrom y', '2nd order chrom y', '3rd order chrom y', &
-                       'dz/dp: first order momentum compaction (related by negative sign)', &
-                       'd2z/dp2: second order momentum compaction (related by negative sign)', &
-                       'd3z/dp3: third order momentum compaction (related by negative sign)', &
-                       'd3z/dp3: third order momentum compaction (related by negative sign)', &
-                       'Drives dQx/d(2Jx)', 'Drives dQy/d(2Jy)', 'Drives dQx/d(2Jy)']
 
 !
 
