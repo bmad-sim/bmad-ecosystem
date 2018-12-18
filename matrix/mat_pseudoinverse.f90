@@ -1,5 +1,5 @@
 !+
-! Subroutine make_pseudoinverse(A,Ap,svd_condition)
+! Subroutine make_pseudoinverse(A,Ap,svd_condition,print_err,ok)
 !
 ! Makes Monroe-Penrose pseudoinverse of a matrix A.
 !
