@@ -42,6 +42,7 @@ if (where == '*' .and. who == 'none') then
   do i = 1, size(s%plot_page%region)
     s%plot_page%region(i)%visible = .false.
     s%plot_page%region(i)%plot%name = ''
+    s%plot_page%region(i)%plot%r => null()
   enddo
   return
 endif
@@ -55,6 +56,7 @@ if (err) return
 if (who == 'none') then
   region%visible = .false.
   region%plot%name = ''
+  region%plot%r => null()
   return
 endif
 
