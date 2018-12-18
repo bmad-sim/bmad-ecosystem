@@ -17,7 +17,23 @@ def parse_tao_lat_ele_list(lines):
     return ix
 
 
-
+def pytype(type):
+    """
+    Returns python type for type =  REAL, INT, STR, ENUM, LOGIC
+    """
+    if type == 'REAL':
+        f = float
+    elif type == 'INT':
+        f = int
+    elif type == 'STR':
+        f = str
+    elif type == 'ENUM':
+        f = str     
+    elif type == 'LOGIC':
+        f = bool              
+    else:
+        raise ValueError ('Unknown type: '+type)
+    return f
 
 def parse_tao_python_data1(line):
     """
@@ -34,18 +50,7 @@ def parse_tao_python_data1(line):
     """
     dat = {}
     name, type, setable, val  = line.split(';')
-    if type == 'REAL':
-        f = float
-    elif type == 'INT':
-        f = int
-    elif type == 'STR':
-        f = str
-    elif type == 'ENUM':
-        f = str     
-    elif type == 'LOGIC':
-        f = bool              
-    else:
-        raise ValueError ('Unknown type: '+type)
+    f = pytype(type)
     return {name:f(val)}
 
 def parse_tao_python_data(lines):
@@ -56,3 +61,51 @@ def parse_tao_python_data(lines):
     for l in lines:
         dat.update(parse_tao_python_data1(l))
     return dat
+    
+    
+    
+def simple_lat_table(tao, ix_universe=1, ix_branch=0, which='model', who='twiss'):
+    """
+    Takes the tao object, and returns columns of parameters associated with lattice elements
+     "which" is one of:
+       model
+       base
+       design
+     and "who" is one of:
+       general         ! ele%xxx compnents where xxx is "simple" component (not a structure nor an array, nor allocatable, nor pointer).
+       parameters      ! parameters in ele%value array
+       multipole       ! nonzero multipole components.
+       floor           ! floor coordinates.
+       twiss           ! twiss parameters at exit end.
+       orbit           ! orbit at exit end.
+     Example:
+    
+    
+    """
+    # Form list of ele names
+    cmd = 'python lat_ele_list '+str(ix_universe)+'@'+str(ix_branch)
+    lines = tao.cmd(cmd)
+    # initialize 
+    ele_table = {}
+    for x in lines:
+        ix, name = x.split(';')
+        # Single element information
+        cmd = 'python lat_ele1 '+str(ix_universe)+'@'+str(ix_branch)+'>>'+str(ix)+'|'+which+' '+who
+        lines2=tao.cmd(cmd)
+        # Parse, setting types correctly
+        ele = parse_tao_python_data(lines2)
+        # Add name and index
+        ele['name'] = name
+        ele['ix_ele'] = int(ix)
+        
+        # Add data to columns 
+        for key in ele:
+            if key not in ele_table:
+                ele_table[key] = [ele[key]]
+            else:
+                ele_table[key].append(ele[key])
+        
+        # Stop at the end ele
+        if name == 'END': 
+            break
+    return ele_table    
