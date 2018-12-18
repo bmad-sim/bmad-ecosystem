@@ -39,7 +39,7 @@ real(rp) default_weight, def_weight        ! default merit function weight
 real(rp) default_spin_n0(3), def_spin_n0(3)
 
 integer ios, iu, i, j, j1, k, ix, n_uni, num
-integer n, iostat, n_loc
+integer n, iostat, n_loc, n_hterms
 integer n_d1_data, ix_ele, ix_min_data, ix_max_data, ix_d1_data
 
 integer :: n_d2_data(lbound(s%u, 1) : ubound(s%u, 1))
@@ -51,6 +51,7 @@ character(40) name,  universe, d_typ, use_same_lat_eles_as
 character(40) default_merit_type, default_data_source, def_merit_type, def_data_source
 character(100) search_for_lat_eles
 character(200) line, default_data_type, def_data_type
+character(8), allocatable :: h_strings(:)
 
 logical err, free, gang
 logical :: good_unis(lbound(s%u, 1) : ubound(s%u, 1))
@@ -129,6 +130,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 enddo
 
 ! Init data
+
+n_hterms = 0
 
 do 
   mask(:) = .true.      ! set defaults
@@ -241,6 +244,11 @@ do
 enddo
 
 close (iu)
+
+allocate(s%u(1)%model%lat%branch(0)%normal_form_no_rf%h(n_hterms))
+allocate(s%u(1)%model%lat%branch(0)%normal_form_with_rf%h(n_hterms))
+s%u(1)%model%lat%branch(0)%normal_form_no_rf%h(:)%c = h_strings(1:n_hterms)
+s%u(1)%model%lat%branch(0)%normal_form_with_rf%h(:)%c = h_strings(1:n_hterms)
 
 ! Custom data setup?
 
@@ -520,6 +528,18 @@ do j = n1, n2
   if (dat%data_type(1:9) == 'unstable_') dat%data_type(9:9) = '.'
 
   u%calc%srdt_for_data = max(u%calc%srdt_for_data, tao_srdt_calc_needed(dat%data_type, dat%data_source))
+
+  if (dat%data_type(1:9)  == 'normal.h.') then
+    if(dat%data_source == 'lat') then
+      if (dat%ix_branch /= 0 .or. dat%d1%d2%ix_uni /= 1) then
+        call out_io (s_fatal$, r_name, 'EVALUATING A DATUM OF TYPE: ' // dat%data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
+        call err_exit
+      endif
+      n_hterms = n_hterms + 1
+      call re_allocate(h_strings, 2*n_hterms, .false.)
+      h_strings(n_hterms) = dat%data_type(10:17)
+    endif
+  endif
 
   if (tao_rad_int_calc_needed(dat%data_type, dat%data_source)) then
     u%calc%rad_int_for_data = .true. 

@@ -1679,7 +1679,8 @@ case ('normal.')
   ! Do nothing it the map wasn't made
   if (.not. associated(normal_form%ele_origin) ) then
     valid_value = .false.
-    if (present(why_invalid)) why_invalid = 'PTC one-turn map not calculated.'
+    !if (present(why_invalid)) why_invalid = 'PTC one-turn map not calculated.'
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  PTC one-turn map not calculated.', exterminate=.true.)
     return
   endif
 
@@ -1689,21 +1690,17 @@ case ('normal.')
   ! Get position of first number. 
   iz = index(sub_data_type, '.') + 1
   
-  ! Component i
-
-  if(sub_data_type(1:4) == 'rdt.') then
-    !datum%data_type is similar to normal.rdt.0.210000.r
+  if(sub_data_type(1:2) == 'h.') then
     valid_value = .true.
     term_found = .false.
-    do i=1, size(normal_form%rd_term)
-      !see bmad_struct.90 for dictionary of terms.
-      if(sub_data_type(5:12) == rd_term_name(i)) then
-        temp_cplx = normal_form%rd_term(i)%c_val
+    do i=1, size(normal_form%h)
+      if(sub_data_type(3:10) == normal_form%h(i)%c) then
+        temp_cplx = normal_form%h(i)%c_val
         term_found = .true.
       endif
     enddo
     if(term_found) then
-      select case (sub_data_type(14:14))
+      select case (sub_data_type(10:10))
         case('r')
           datum_value = real(temp_cplx)
         case('i')

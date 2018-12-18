@@ -2695,12 +2695,11 @@ case ('normal_form')
       call type_complex_taylors (normal_form%F, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
     case ('L    ')
       call type_complex_taylors (normal_form%L, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)      
-    case ('rdts ')
-      do i=1, size(normal_form%rd_term)
-        write(lines(i),'(i4,"   ",A,"   (",f20.10,", ",f20.10,")   ",a)') normal_form%rd_term(i)%F_index, rd_term_name(i), &
-                                                                          normal_form%rd_term(i)%c_val, rd_term_descrip(i)
+    case ('h    ')
+      do i=1, size(normal_form%h)
+        write(lines(i),'(A,"   (",f20.10,", ",f20.10,")   ")') normal_form%h(i)%c, normal_form%h(i)%c_val
       enddo
-      nl = size(normal_form%rd_term)
+      nl = size(normal_form%h)
     case default 
       nl=nl+1; lines(nl) = 'bad normal_form map: '//trim(attrib0)
       nl=nl+1; lines(nl) = 'Must be one of: M A A_inv dhdj F L'
