@@ -9,7 +9,7 @@
 ! Input:
 !   A(:,:)        -- Real(rp): Input matrix array
 !   svd_condition -- Real(rp), optional: use only those singular values where
-!                                        s(i)/s(1) > svd_condition from the pseudoinverse.
+!                                        s(i)/s(1) > svd_condition for the pseudoinverse.
 !   print_err     -- Logical, optional: If true, print info return from dgesdd if nonzero.
 !   ok            -- Logical, optional: True if pseudoinverse calculated OK.  Else false.
 ! Output:
