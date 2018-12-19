@@ -22,7 +22,7 @@ type (ele_struct) ele
 type (lat_param_struct) param
 type (coord_struct) orbit
 
-real(rp) r(3), dir, rr, p2
+real(rp) r(3), rv(2), rr, p2
 
 character(*), parameter :: r_name = 'init_a_photon_from_a_photon_init_ele'
 
@@ -56,14 +56,14 @@ else
     call point_photon_emission (ele, param, orbit, +1, twopi)
 
   case (uniform$)
-    call ran_uniform(dir)
-    dir = 2 * dir - 1
-    orbit%vec(2:4:2) = [ele%value(x_pitch$), ele%value(y_pitch$)] + dir * [ele%value(sig_vx$), ele%value(sig_vy$)]
+    call ran_uniform(rv)
+    rv = 2 * rv - 1
+    orbit%vec(2:4:2) = [ele%value(x_pitch$), ele%value(y_pitch$)] + rv * [ele%value(sig_vx$), ele%value(sig_vy$)]
     orbit%vec(6) = sqrt(1 - orbit%vec(2)**2 - orbit%vec(4)**2)
 
   case (gaussian$)
-    call ran_gauss(dir)
-    orbit%vec(2:4:2) = [ele%value(x_pitch$), ele%value(y_pitch$)] + dir * [ele%value(sig_vx$), ele%value(sig_vy$)]
+    call ran_gauss(rv)
+    orbit%vec(2:4:2) = [ele%value(x_pitch$), ele%value(y_pitch$)] + rv * [ele%value(sig_vx$), ele%value(sig_vy$)]
     orbit%vec(6) = sqrt(1 - orbit%vec(2)**2 - orbit%vec(4)**2)
 
   end select
