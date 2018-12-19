@@ -48,6 +48,7 @@ solely meant for \bmad internal use.
   Transfer Maps: Routines Called by make_mat6 & \ref{r:mat6}           \\
   Transfer Maps: Complex Taylor Maps          & \ref{r:ctaylor}        \\
   Transfer Maps: Taylor Maps                  & \ref{r:taylor}         \\
+  Transfer Maps: Driving Terms                & \ref{r:driving.terms}  \\
   Tracking: Tracking and Closed Orbit         & \ref{r:track}          \\
   Tracking: Low Level Routines                & \ref{r:low.track}      \\
   Tracking: Mad Routines                      & \ref{r:mad}            \\
@@ -2022,6 +2023,11 @@ Routine to kill the layouts associated with a Bmad lattice.
 \item[kind_name (this_kind)] \Newline
 Function to return the name of a PTC kind. 
 
+\index[routine]{normal_form_rd_terms}
+\label{r:normal.form.rd.terms}
+\item[normal_form_rd_terms(normal_form, rf_on, order)] \Newline
+Calculates driving terms \`a la \cite{b:bengtsson} from the one-turn map.
+
 \index[routine]{real_8_to_taylor}
 \label{r:real.8.to.taylor}
 \item[real_8_to_taylor (y8, beta0, beta1, bmad_taylor)] \Newline
@@ -3070,6 +3076,50 @@ Routine to output a Bmad taylor map.
 \end{description}
 
 %------------------------------------------------------------------------
+
+\section{Transfer Maps: Driving Terms}
+\label{r:driving.terms}   
+\index{driving terms!list of routines}
+
+\begin{description}
+
+\index[routine]{srdt_calc}
+\label{r:srdt.calc}
+\item[srdt_calc (lat, srdt_sums, order, n_slices_gen_opt, n_slices_sxt_opt, per_ele_out)] \Newline
+Calculates driving terms using summations over sextupole moments like those in \cite{b:bengtsson}
+and \cite{b:wang}.  Often called resonance driving terms (RDTs), though strictly speaking not all terms
+drive resonances.
+Terms that are first and second order in sextupole moment are included.
+See srdt_mod for a list of available driving terms.
+
+\index[routine]{make_srdt_cache}
+\label{r:make.srdt.cache}
+\item[make_srdt_cache(lat,n_slices_gen,n_slices_sxt,cache)] \Newline
+Used to speed up calculation of the 2nd order driving terms.
+Makes an $N_{k2}\times N_{k2}\times 11$ array that contains the precomputed
+cross-products of the linear optics at each sextupole moment.  
+
+\index[routine]{srdt_calc_with_cache}
+\label{r:srdt.calc.with.cache}
+\item[\protect\parbox{6in}{srdt_calc_with_cache(lat, srdt_sums, order, n_slices_gen_opt, n_slices_sxt_opt,\\
+            cache, per_ele_out)}] \Newline
+Same as \ref{r:srdt.calc}, but makes use of a cache precomputed by \ref{r:make.srdt.cache} to speed
+up the calculations.
+
+\index[routine]{srdt_lsq_solution}
+\label{r:srdt.lsq.solution}
+\item[\protect\parbox{6in}{srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_gen_opt, n_slices_sxt_opt,\\
+            chrom_set_x_opt, chrom_set_y_opt)}] \Newline
+Given a lattice and the indices of the sextupole moments to use as variables, finds the least squares solution
+to the sextupole moments that minimize the 1st order driving terms.  If there are more variables than driving
+terms, then the solution sets the driving terms to zero and minimizes the sum of the squares of the variables.  
+If there are fewer
+variables than driving terms, then the solution is that which minimizes the sum of the squares of the driving terms.
+
+\end{description}
+
+%------------------------------------------------------------------------
+
 \section{Tracking and Closed Orbit}
 \label{r:track}    
 \index{tracking!list of routines}
