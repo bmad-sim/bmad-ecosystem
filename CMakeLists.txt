@@ -1,15 +1,10 @@
-set (LIBNAME util_programs)
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
-
 
 set(SRC_DIRS 
   modules
 )
 
 set (EXE_SPECS 
-  cmake.ansga2
-  cmake.aspea2
-#  cmake.srdt_lsq_soln
 #  cmake.ptc_flat_file_to_bmad
 #  cmake.make_a_matching_knob
 #  cmake.wake_fit
@@ -26,9 +21,5 @@ set (EXE_SPECS
 #  cmake.sad_to_bmad_postprocess
   cmake.cartesian_map_fit
 )
-
-if($ENV{ACC_ENABLE_MPI})
-  list(APPEND EXE_SPECS "cmake.moga")
-endif()
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
