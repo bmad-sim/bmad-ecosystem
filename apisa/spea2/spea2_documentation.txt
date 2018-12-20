@@ -1,0 +1,167 @@
+========================================================================
+PISA  (www.tik.ee.ethz.ch/pisa/)
+========================================================================
+Computer Engineering (TIK)
+ETH Zurich	 
+========================================================================
+SPEA2 - Strength Pareto Evolutionary Algorithm
+
+Implementation in C++ for the selector side.
+
+Documentation
+  
+file: spea2_documentation.txt
+author: Marco Laumanns, laumanns@tik.ee.ethz.ch
+last change: $date$
+modified: Ivan Bazarov, bazarov@cornell.edu
+========================================================================
+
+
+
+The Optimizer
+=============
+
+SPEA2 in an elitist multiobjective evolutionary algorithm which
+incorporates a fine-grained fitness assignment strategy, a density
+estimation technique, and an enhanced archive truncation method. SPEA2
+is an improved version of the Strength Pareto EA and described in:
+
+@TechReport{ZLT2001a,
+  author = 	 "Eckart Zitzler and Marco Laumanns and Lothar Thiele",
+  title = 	 "{SPEA2}: Improving the {S}trength {P}areto
+                  {E}volutionary {A}lgorithm", 
+  institution =  "Computer Engineering and Networks Laboratory (TIK), Swiss
+		  Federal Institute of Technology (ETH) Zurich",
+  year = 	 2001,
+  number =	 103,
+  address =	 "Gloriastrasse 35, CH-8092 Zurich, Switzerland",
+  month =	 "May"
+}
+
+@InProceedings{ZLT2002a,
+  author =       {Eckart Zitzler and Marco Laumanns and Lothar Thiele},
+  title =        {{SPEA2}: Improving the Strength Pareto Evolutionary
+		  Algorithm for Multiobjective Optimization},
+  booktitle =    {Evolutionary Methods for Design, Optimisation and
+                  Control with Application to Industrial
+                  Problems. Proceedings of the EUROGEN2001 Conference,
+                  Athens, Greece, September 19-21, 2001},
+  pages =        {95--100},
+  year =         2002,
+  editor =       {K.C. Giannakoglou and D.T. Tsahalis and J. Periaux
+                  and K.D. Papaliliou and T. Fogarty},
+  address =      {Barcelona, Spain},
+  publisher =    {International Center for Numerical Methos in
+                  Engineering (CIMNE)}
+}
+
+In the k-th nearest neighbor density estimator is generalized to arbitrary k
+in comparison with the initial PISA implementation. Its value is supplied
+in 'spea2_param.txt' file with 'SQRT' switch instructing to set k = sqrt(M),
+where M is the population size. Furthermore, inequality constraints (g(x) >= 0)
+are handled through constrain-dominance concept.
+
+The truncation method is implemented efficiently which leads to an
+average time complexity of O(M^2), contrarily to the remark in the
+footnote 2 on page 8 of the TechReport ZLT2001a. This is achieved by a
+lazy evaluation of the k-th nearest neighbors. Normally, the
+individuals' k-th nearest neighbors are already different for very low
+k values, thus the more distant neighbors are only calculated when
+they are actually used and not in advance. Hence, an a priori
+computation, sorting and update of the nearest neighbor lists is
+avoided.
+
+
+
+The Parameters
+==============
+
+SPEA2 uses the following values for the common parameters.
+These parameters are specified in 'APISA_cfg'.
+
+initial_population_size (size of the initial population)
+parent_set_size         (number of parent individuals)
+offspring_set_size      (number of offspring individuals, has to be equal to mu)
+objectives              (number of objectives)
+constraints             (number of constraints)
+
+'APISA_cfg' is a PISA_configuration file.
+
+SPEA2 takes three local parameter which is given in a parameter
+file. The name of this parameter file is passed to SPEA2 as command
+line argument. (See 'spea2_param.txt' for an example.)
+
+seed         (seed for the random number generator)
+tournament   (tournament size for mating selection)
+k_neighbor   (k-th neighbor; if 'SQRT' sets k = sqrt(M) population size)
+verbose      (YES/NO; reports the size of the first nondominated front)
+
+Source Files
+============
+
+The source code for SPEA2 is divided into four files:
+
+'spea2.hpp' is the header file.
+
+'spea2.cpp' contains the main function and implements the control flow.
+
+'spea2_io.cpp' implements the file i/o functions.
+
+'spea2_functions.cpp' implements all other functions including the
+selection.
+
+Additionally a Makefile, a APISA_cfg file with common parameters and a
+spea2_param.txt file with local parameters are contained in the tar file.
+
+Depending on whether you compile on Windows or on Unix (any OS having
+<unistd.h>) uncomment the according '#define' in the 'spea2.h' file.
+
+
+
+Usage
+=====
+
+Start SPEA2 with the following arguments:
+
+spea2 paramfile filenamebase poll
+
+paramfile: specifies the name of the file containing the local
+parameters (e.g. spea2_param.txt)
+
+filenamebase: specifies the name (and optionally the directory) of the
+communication files. The filenames of the communication files and the
+configuration file are built by appending 'sta', 'var', 'sel','ini',
+'arc' and 'cfg' to the filenamebase. This gives the following names for
+the 'APISA_' filenamebase:
+
+APISA_cfg - configuration file
+APISA_ini - initial population
+APISA_sel - individuals selected for variation
+APISA_var - variated individuals (offspring)
+APISA_arc - individuals in the archive
+
+
+Caution: the filenamebase must be consistent with the name of
+the configuration file and the filenamebase specified for the SPEA2
+module.
+
+poll: gives the value for the polling time in seconds (e.g. 0.5). This
+      polling time must be larger than 0.01 seconds.
+
+
+
+Limitations
+===========
+
+None limitations are known so far.
+
+
+
+Stopping and Resetting
+======================
+
+The behaviour in state 5 and 9 is not determined by the interface but
+by each variator module specifically. SPEA2 behaves as follows:
+
+state 5 (= variator terminated): set state to 6 (terminate as well).
+state 9 (= variator resetted): set state to 10 (reset as well).

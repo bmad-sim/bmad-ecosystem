@@ -1,0 +1,22 @@
+#!/bin/bash
+#$ -cwd
+#$ -N moga
+#$ -pe sge_pe 32
+#$ -q all.q
+#$ -l s_rt=22:39:00,h_rt=22:59:30
+#$ -m abe -M mpe5@cornell.edu
+
+kinit -k -t /home/ehrlichm/etc/mpe5-keytab mpe5
+
+source /nfs/opt/intel/parallel_studio_xe_2017_update7/compilers_and_libraries_2017.7.259/linux/bin/compilervars.sh intel64
+pushd /nfs/acc/user/ehrlichm/openmp_bmad; . util/dist_source_me; popd
+export LD_LIBRARY_PATH=/nfs/acc/user/ehrlichm/openmp_bmad/production/lib:$LD_LIBRARY_PATH
+
+# For informational purposes
+cat $PE_HOSTFILE | awk '{print $1" "$2}' > nodes.list
+
+rm -f PISA_sta
+
+/nfs/acc/user/ehrlichm/openmp_bmad/production/bin/aspea2 a_spea2_param.txt PISA_ 1.0 > a_spea.stdout 2>&1 &
+/nfs/acc/user/ehrlichm/openmp_bmad/production/bin/orterun /nfs/acc/user/ehrlichm/openmp_bmad/production/bin/moga common.in PISA_ 1.0
+

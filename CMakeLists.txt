@@ -9,24 +9,34 @@ set (SRC_DIRS
   code_synrad
   code_synrad3d
   synrad3d/custom
+  modules
 )
 
 set (EXE_SPECS
+  #cmake.nsga2
+  #cmake.spea2
+  #cmake.envelope_ibs
+  #cmake.srdt_lsq_soln
   cmake.long_term_tracking
   cmake.frequency_map
-  cmake.bbu
+  cmake.frequency_map_mpi
+  #cmake.bbu
   cmake.dynamic_aperture
   cmake.ibs_linac
   cmake.ibs_ring
-  cmake.spin_stroboscope
-  cmake.synrad
-  cmake.synrad3d
-  cmake.synrad_aperture_to_wall
+  #cmake.spin_stroboscope
+  #cmake.synrad
+  #cmake.synrad3d
+  #cmake.synrad_aperture_to_wall
   cmake.tune_plane_res_plot
 )
 
-#set (FFLAGS "-openmp")
-#set (LINK_FLAGS "-openmp")
+set (FFLAGS "-qopenmp")
+set (LINK_FLAGS "-qopenmp")
+
+if($ENV{ACC_ENABLE_MPI})
+  list(APPEND EXE_SPECS "cmake.moga")
+endif()
 
 #set (FFLAGS "-pg")  # For profiling
 #set (CFLAGS "-pg")
