@@ -870,6 +870,58 @@ Energy normalized projected emittance. The normalization is the standard gamma f
 \Endeq
 
   %----------------------
+  \item[normal.h.<monomial>.\{r,i,a\}] \Newline
+Resonance driving terms \`a la \cite{b:bengtsson}.  For example: \vn{h210000}.
+These are the coefficients of the complex polynomial $h$ in Eqn.~\ref{normalform1}.
+The suffix \vn{.r}, \rn{.i}, and \rn{.a} specifies the real part, imaginary part, or absolute value.
+
+The order of the term is the sum of the digits in its monomial.  For example, \vn{h210000} is 3rd order
+and \vn{h201100} is 4th order.  If the term order exceeds the map order, then the term will
+be populated with zero.  The map order is set in the lattice file using
+\vn{parameter[taylor_order] = <order>} or in \vn{tao.init} using 
+\vn{bmad_com{\%}taylor_order = <order>}.  The order set in \vn{tao.init} overrides that in the lattice
+file.
+
+Commonly optimized terms and their effect on the map are located in Tab.~\ref{t:dts}.  These terms are typically
+minimized for dynamic aperture optimization.
+
+\begin{table}[htb]
+\centering
+\begin{tabular}{lll}
+  \toprule
+  Term  & Effect \\
+  \midrule
+  $h_{110001}$  &  horizontal chromaticity \\
+  $h_{001101}$  &  vertical chromaticity   \\
+  $h_{200001}$  &  vertical sychrobetatron resonance    \\
+  $h_{002001}$  &  horizontal synchrobetatron resonance \\
+  $h_{100002}$  &  second order dispersion \\
+  $h_{210000}$  &  drives $Q_x$            \\
+  $h_{300000}$  &  drives $3Q_x$           \\
+  $h_{101100}$  &  drives $Q_x$            \\
+  $h_{100200}$  &  drives $Q_x-2Q_y$       \\
+  $h_{102000}$  &  drives $Q_x+2Q_y$       \\
+  $h_{220000}$  &  $\partial Q_x/\partial J_x$ \\
+  $h_{111100}$  &  $\partial Q_{x,y}/\partial J_{y,x}$ \\
+  $h_{002200}$  &  $\partial Q_y/\partial J_y$ \\
+  $h_{310000}$  &  drives $2Q_x$  \\
+  $h_{112000}$  &  drives $2Q_y$  \\
+  $h_{400000}$  &  drives $4Q_x$  \\
+  $h_{200200}$  &  drives $2Q_x-2Q_y$ \\
+  $h_{201100}$  &  drives $2Q_x$ \\
+  $h_{202000}$  &  drives $2Q_x+2Q_y$ \\
+  $h_{003100}$  &  drives $2Q_y$ \\
+  $h_{004000}$  &  drives $4Q_y$ \\
+  \bottomrule
+\end{tabular}
+\caption[Common Driving Terms.]
+{Driving terms and their effect on the map.}
+\label{t:dts}
+\end{table}
+
+
+
+  %----------------------
   \item[normal.<type>.$i$.<monomial>] \Newline
 Components of the normal form decomposition of the one-turn-map $M$ for a ring. 
 Possible settings for \vn{type} is
@@ -1189,6 +1241,40 @@ manual. For a lattice with a closed geometry, the calculated spin is the closed 
 with the amplitude of the spin set at unity.
 
   %----------------------
+  \item[srdt.h<monomial>.\{r,i,a\}] \Newline
+  Resonance driving term summations based on summations supplied in \cite{b:bengtsson} (3rd order)
+  and \cite{b:wang} (4th order).  The 3rd order monomials for which summations have been implemented
+  are \vn{h11001}, \vn{h00111}, \vn{h20001}, \vn{h00201}, \vn{h10002}, \vn{h21000},
+\vn{h30000}, \vn{h10110}, \vn{h10020}, and \vn{h10200}.  The 4th order monomials are
+\vn{h31000}, \vn{h40000}, \vn{h20110}, \vn{h11200}, \vn{h20020}, \vn{h20200}, \vn{h00310}, 
+\vn{h00400}, \vn{h22000}, \vn{h00220}, and \vn{h11110}.
+
+  Suffixes \vn{.r}, \vn{.i}, and \vn{.a} signify the real part, imaginary part, or absolute value.
+
+  For higher orders and monomials for which summations are not available, see the \Newline
+  \vn{normal.h.<monomial>.\{r,i,a\}} data type.
+  Additional details on driving terms are listed there and in Tab.~\ref{t:dts}
+
+  Three \vn{tao.init} \vn{tao_params} are important for \vn{srdt} data.  They are,
+  \begin{example}
+  global{\%}srdt_use_cache = \{.true. (default), .false.\}
+  global{\%}srdt_sxt_n_slices= <integer, default 20>
+  global{\%}srdt_gen_n_slices= <integer, default 10>
+  \end{example}
+
+  \vn{srdt_sxt_n_slices} and \vn{srdt_gen_n_slices} set the number of steps to take through
+  sextupole and non-sextupole elements, respectively.  More steps improve accuracy, but are slower
+  and increase the size of the srdt cache.
+
+  \vn{srdt_use_cache} generates a cache of the cross-products of the linear optics quantities used
+  for the srdt summations.  Provided the linear optics are not changing, using the cache can greatly 
+  speed up subsequent srdt calculations (i.e. during optimization of sextupole moments).  
+  Note that whenever the linear optics change, e.g. a quadrupole
+  is adjusted, the cache must be regenerated.  Also note that the cache can be rather large and grows as
+  with the squares of \vn{srdt_sxt_n_slices} and \vn{srdt_gen_n_slices}.  If there is insufficient RAM available, \vn{tao} will
+  generate a warning message and revert to a \vn{srdt_use_cache=.false.} state.
+
+  %----------------------
   \item[t.$ijk$,  tt.$ijklm\ldots$ \hspace{0.2in} $1 \le i,j,k,\ldots \le 6$] \Newline
 Taylor map components between two points.  The difference between \vn{t.$ijk$} and
 \vn{tt.$ijklm\ldots$} is that \vn{t.$ijk$} is restricted to exactly three indices and
@@ -1396,12 +1482,10 @@ squared.
   norm_apparent_emit.x, .y            & Normalized apparent emittance             & beam, lat   & No  \\ \hline
   norm_emit.a, .b, .c                 & Normalized beam emittance                 & beam, lat   & No  \\ \hline 
   norm_emit.x, .y, .z                 & Normalized projected emittance            & beam, lat   & No  \\ \hline 
-  normal.<type>.$i$.<monomial>        & Normal Form map component                 & lat         & No  \\ \hline
-
+  normal.<type>.$i$.<monomial>        & Normal form map component                 & lat         & No  \\ \hline
+  normal.h.<monomial>                 & Normal form driving term                  & lat         & No  \\ \hline
   null                                & Data without model evaluation             & lat, beam   & No  \\ \hline
-  
   orbit.e_tot                         & Beam energy (eV)                          & beam, lat   & Yes \\ \hline
-
   orbit.x, .y, .z                     & Orbit position                            & beam, lat   & Yes \\ \hline 
   orbit.px, .py, .pz                  & Orbit Momenta                             & beam, lat   & Yes \\ \hline 
   orbit.amp_a, .amp_b                 & Orbit amplitude                           & lat         & Yes \\ \hline 
@@ -1465,6 +1549,7 @@ squared.
 
   spin_g_matrix.$ij$ \hspace{10pt} $1 \le i \le 2, 1 \le j \le 6$ \\
                                       & Spin G-matrix components                  & lat         & No  \\ \hline
+  srdt.h<monomial>.\{r,i,a\}          & Normal form driving terms calculated by summation & lat & No \\ \hline
 
   time                                & Particle time (sec)                       & beam, lat   & Yes \\ \hline
   t.$ijk$ \hspace{10pt} $1 \le i,j,k \le 6$
