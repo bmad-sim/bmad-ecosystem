@@ -1,0 +1,2 @@
+alias da set universe 1 dynamic_aperture_calc [[1]]
+alias run set universe 1 dynamic_aperture_calc off; run_optimizer [[1]]
