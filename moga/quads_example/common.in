@@ -1,0 +1,121 @@
+ &general
+    lat_file = 'dc12a_alt3.bmad'
+    use_hybrid = .true.
+ /
+ &da
+    tracking_method = 1
+    n_turn   = 200
+    n_adts   = 200
+    n_angle = 7
+    dE(1) = 0.0
+    dE(2) = -0.03
+    dE(3) =  0.03
+    track_dims = 4
+    init_len = 0.002
+    adts_x_min = 37.0
+    adts_x_max = 38.0
+    adts_y_min = 10.0
+    adts_y_max = 11.0
+ /
+
+ &nl_moga
+    generate_feasible_seeds_only = -1   ! -1 to disable
+    moga_output_file = 'moga_results.out'
+    initial_pop = 'random'
+    seed = 912
+    max_gen = 900
+
+    set_chrom_x = -5.0
+    set_chrom_y = -5.0
+
+    !breeder parameters
+    breeder_params%cross_p = 0.8
+    breeder_params%mutate_p = 0.0769
+    breeder_params%eta = 0.8
+
+    !constraints
+    linear_vec_cutoff = 0.0020
+    co_limit = 0.0040
+    fp_dE_neg = -0.05
+    fp_dE_pos = 0.05
+    n_fp_steps = 51
+    chrom_mode = 'traces'
+    tr_a_min = -2.0
+    tr_a_max = 2.0
+    tr_b_min = -2.0
+    tr_b_max = 2.0
+    x_fp_min = 37.0
+    x_fp_max = 38.0
+    y_fp_min = 10.0
+    y_fp_max = 11.0
+
+    !variables
+    !              type    name       property   l cons     u cons    l init    u init    mutate width
+    mags_in(1)   = 'l',    'g1',       'a',        -0.02,     0.02,     -0.02,    0.02,   0.007
+    mags_in(2)   = 'l',    'g1',       'b',        -0.02,     0.02,     -0.02,    0.02,   0.007
+    mags_in(3)   = 'c',    'sd',      'k2',      -1000.0,   1000.0,   -1000.0,  1000.0,   300.0
+    mags_in(4)   = 'c',    'sfh',     'k2',      -1000.0,   1000.0,   -1000.0,  1000.0,   300.0
+    mags_in(5)   = 'c',    'sfxh',    'k2',      -1000.0,   1000.0,   -1000.0,  1000.0,   300.0
+    mags_in(6)   = 'c',    'sdx',     'k2',      -1000.0,   1000.0,   -1000.0,  1000.0,   300.0
+    mags_in(7)   = 'h',    'sxx_mh',  'k2',      -1000.0,   1000.0,   -1000.0,  1000.0,   300.0
+    mags_in(8)   = 'h',    'sxy_mh',  'k2',      -1000.0,   1000.0,   -1000.0,  1000.0,   300.0
+    mags_in(9)   = 'h',    'syy_mh',  'k2',      -1000.0,   1000.0,   -1000.0,  1000.0,   300.0
+    mags_in(10)   = 'h',    'ocxx',   'k3l',     -3000.0,   3000.0,   -3000.0,  3000.0,   600.0
+    mags_in(11)  = 'h',    'oyy_m',   'k3l',     -3000.0,   3000.0,   -3000.0,  3000.0,   600.0
+    mags_in(12)  = 'h',    'oxy_m',   'k3l',     -3000.0,   3000.0,   -3000.0,  3000.0,   600.0
+    mags_in(13)  = 'h',    'oxx_m',   'k3l',     -3000.0,   3000.0,   -3000.0,  3000.0,   600.0
+ /
+ &fp
+    pz_min = -0.05
+    pz_max =  0.05
+    n_pz = 31
+ /
+ &touschek
+    tracking_method = 1
+    use_line = 'perrf'
+    periodicity = 12
+    !aperture_file = 'aperture.dat'
+    rf_bucket = 0.05
+    n_turn = 1000
+    dims = 6
+    current = 0.001
+    bunch_length = -1 !0.00261
+    horizontal_emittance = -1
+    vertical_emittance = 10.0e-12
+    stepping = 'by_ix'
+    n_ma_locs = 1000
+ /
+ &adts
+   use_bounds_file = .true.
+   x_min = -0.01
+   x_max =  0.01
+   y_min =  0.00
+   y_max =  0.01
+   n_steps = 60
+ /
+ &da_raster
+   use_linear_bounds = .true.
+   x_min = -0.008
+   x_max =  0.008
+   y_min = 0.0
+   y_max = 0.01
+   pz_min = -0.06
+   pz_max =  0.06
+   nx = 25
+   ny = 25
+   npz = 256
+   calc_tunes = 'no'
+ /
+ &evaluator
+    plot_periodicity = 12
+    makeLats = .true.
+    plotOnly = .false.
+    doNDP = .false.
+    doLA = .true.
+    doDA = .false.
+    doRA = .true.
+    doTL = .false.
+    doFP = .true.
+    doADTS = .true.
+ /
+

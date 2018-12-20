@@ -1,0 +1,3 @@
+seed        11
+tournament  2
+verbose     YES
