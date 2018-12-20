@@ -13,10 +13,10 @@ set (SRC_DIRS
 )
 
 set (EXE_SPECS
-  #cmake.nsga2
-  #cmake.spea2
+  #cmake.ansga2
+  #cmake.aspea2
   #cmake.envelope_ibs
-  #cmake.srdt_lsq_soln
+  cmake.srdt_lsq_soln
   cmake.long_term_tracking
   cmake.frequency_map
   cmake.frequency_map_mpi
@@ -31,8 +31,8 @@ set (EXE_SPECS
   cmake.tune_plane_res_plot
 )
 
-set (FFLAGS "-qopenmp")
-set (LINK_FLAGS "-qopenmp")
+#set (FFLAGS "-qopenmp")
+#set (LINK_FLAGS "-qopenmp")
 
 if($ENV{ACC_ENABLE_MPI})
   list(APPEND EXE_SPECS "cmake.moga")
