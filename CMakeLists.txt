@@ -19,15 +19,15 @@ set (EXE_SPECS
   cmake.srdt_lsq_soln
   cmake.long_term_tracking
   cmake.frequency_map
-  cmake.frequency_map_mpi
-  #cmake.bbu
+  #cmake.frequency_map_mpi
+  cmake.bbu
   cmake.dynamic_aperture
   cmake.ibs_linac
   cmake.ibs_ring
-  #cmake.spin_stroboscope
-  #cmake.synrad
-  #cmake.synrad3d
-  #cmake.synrad_aperture_to_wall
+  cmake.spin_stroboscope
+  cmake.synrad
+  cmake.synrad3d
+  cmake.synrad_aperture_to_wall
   cmake.tune_plane_res_plot
 )
 
