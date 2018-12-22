@@ -4222,7 +4222,7 @@ A \vn{wiggler} or \vn{undulator} element is basically a periodic array of altern
 The difference between \vn{wigglers} and \vn{undulators} is in the x-ray emission spectrum.
 Charged particle tracking will be the same. 
 
-Henceforth, the term ``wiggler'' will denote either a \vn{wiggler} or \vn{undulator}
+Henceforth, the term ``\vn{wiggler}'' will denote either a \vn{wiggler} or \vn{undulator}
 
 General \vn{wiggler} attributes are:
 \begin{center}
@@ -4244,10 +4244,11 @@ General \vn{wiggler} attributes are:
 \toffset
 See \sref{s:list.wiggler} for a full list of element attributes.
 
-There are three types of wigglers. Those that that are described using a magnetic field map
-(``\vn{map type}''), those that are described assuming a periodic field (``\vn{periodic type}''),
-and those that use a custom field. \vn{periodic type} wigglers are have their \vn{field_calc}
-attribute \vn{s:field.calc} set to one of:
+There are three types of wigglers. Wigglers that are described using a magnetic field map are called
+``\vn{map type}'' wigglers and are discussed in \sref{s:wiggler.map}. Wigglers that are described
+assuming a periodic field are called ``\vn{periodic type}'' wigglers and are described in
+\sref{s:wiggler.periodic}. Wigglers that use a custom field have their. \vn{periodic type} wigglers are have
+their \vn{field_calc} attribute \sref{s:field.calc} set to one of:
 \begin{example}
   planer_model    ! Default
   helical_model
@@ -4389,12 +4390,12 @@ lattice computations. \vn{x_ray_line_len} is deprecated. Use a \vn{photon_fork} 
 instead.
 
 %-----------------------------------------------------
-\subsection{Old Syntax for Wiggler Cartesian Map}
+\subsection{Old Wiggler Cartesian Map Syntax}
 \label{s:old.wiggler}
 
-When the wiggler model was first developed, the only \vn{map type} available was a Cartesian map (\sref{s:fieldmap}).
-The syntax for specifying a this Cartesian map
-was different from what it is currently. The old syntax for a Cartiesian map term was:
+When the wiggler model was first developed, the only \vn{map type} available was a Cartesian map
+(\sref{s:fieldmap}).  The syntax for specifying a this Cartesian map was different from what it is
+currently. The old syntax for a Cartiesian map term was:
 \Begineq
   \text{term(i)} = \{C, k_x, k_y, k_z, \phi_z \}
 \Endeq

@@ -2022,7 +2022,7 @@ end function next_in_branch
 !   coord_state -- integer: coord%state value
 !
 ! Output:
-!   state_str   -- character(20): String representation.
+!   state_str   -- character(12): String representation.
 !-
 
 function coord_state_name (coord_state) result (state_str)
@@ -2030,7 +2030,7 @@ function coord_state_name (coord_state) result (state_str)
 implicit none
 
 integer coord_state
-character(20) state_str
+character(12) state_str
 
 !
 
@@ -2042,7 +2042,7 @@ case (lost_neg_x_aperture$);   state_str = 'Hit -X Side'
 case (lost_pos_x_aperture$);   state_str = 'Hit +X Side'
 case (lost_neg_y_aperture$);   state_str = 'Hit -Y Side'
 case (lost_pos_y_aperture$);   state_str = 'Hit +Y Side'
-case (lost_pz_aperture$);       state_str = 'Hit Z Side'
+case (lost_pz_aperture$);      state_str = 'Hit Z Side'
 case default;                  state_str = 'UNKNOWN!'
 end select
 
