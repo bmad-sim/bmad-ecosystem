@@ -1,37 +1,45 @@
-\chapter{Introduction to Bmad Programming}
+\chapter{An Example Bmad Based Program}
 \label{c:program.info}
 
-To get the general feel for how \bmad works before
-getting into the nitty--gritty details in subsequent chapters, this
-chapter analyzes an example test program.
+To get the general feel for how \bmad works before getting into the nitty--gritty details in
+subsequent chapters, this chapter analyzes an example test program.
+
+%-----------------------------------------------------------------------------
+\section{Programming Setup}
+\label{s:prog.setup}
+
+Information on how to setup your work envirnoment for the compiling and linking of programs can be
+obtained from the \bmad web site at:
+\hfill\break
+\hspace*{0.3in}
+\url{https://www.classe.cornell.edu/bmad}
+
+In particular, instructions for compling, linking, and running of the example program can be
+obtained from the web page: 
+\hfill\break 
+\hspace*{0.3in}
+\url{https://www.classe.cornell.edu/bmad} 
+\hfill\break 
+See the section titled \vn{Example Compiling/Linking and Running of a Bmad Based Program}.
 
 %-----------------------------------------------------------------------------
 \section{A First Program}
 \label{s:first.program}
 \index{programming!example program}
 
-Consider the example program shown in \fig{f:program}.  This program
-is provided with \bmad in the directory:
+Consider the example program shown in \fig{f:program}. The source code for this program is provided
+with \bmad in the directory:
 \begin{example}
   \$ACC_ROOT_DIR/examples/simple_bmad_program
 \end{example}
-The executable is at:
-\begin{example}
-  \$ACC_ROOT_DIR/production/bin/simple_bmad_program
-\end{example}
-When you run the program, be in the \vn{examples/simple_bmad_program} directory since
-the program will look for the \vn{lat.bmad} lattice file that is there.
+[Note: \vn{\$ACC_ROOT_DIR} is the root directory of the \bmad \vn{Distribution} when you are running
+``off-site'' and is root directory of the \vn{Release} when you are running ``on-site''.]
 
 \begin{figure}[htp]
-\index[routine]{bmad_parser}
-\index[routine]{twiss_at_start}
-\index[routine]{twiss_propagate_all}
-\index[routine]{lat_ele_locator}
-\index[routine]{type_ele}
-\index{ele_struct}
-\index{lat_struct}
-\index{ele_pointer_struct}
-\index{geometry}
+\index[routine]{bmad_parser}\index[routine]{twiss_at_start}
+\index[routine]{twiss_propagate_all}\index[routine]{lat_ele_locator}
+\index[routine]{type_ele}\index{ele_struct}\index{lat_struct}
+\index{ele_pointer_struct}\index{geometry}
 \begin{listing}{1}
 program test
 
@@ -93,20 +101,16 @@ end program
 \section{Explanation of the Simple_Bmad_Program}
 
 \index{lat_struct!example use of}
-A line by line explanation of the example program follows. The \vn{use
-bmad} statement at line 3 defines the \bmad structures and defines the
-interfaces (argument lists) for the \bmad subroutines. In particular,
-the \vn{lat} variable (line 5), which is of type \vn{lat_struct}
-(\sref{s:lat.struct}), holds all of the lattice information: The list
-of elements, their attributes, etc.  The setting of
-\vn{bmad_com%auto_bookkeeper} to \vn{False} in line 13 enables the
-``intelligent'' bookkeeping of lattice attributes as discussed in
-\sref{s:lat.bookkeeping}). The call to
-\Hyperref{r:bmad.parser}{bmad_parser} (line 17) causes the lattice
-file \vn{lat.bmad} to be parsed and the lattice information is stored
-the \vn{lat} variable. Note: To get a listing of the \vn{lat_struct}
-components or to find out more about \vn{bmad_parser} use the
-\vn{getf} command as discussed in \sref{s:getf}.
+A line by line explanation of the example program follows. The \vn{use bmad} statement at line 3
+defines the \bmad structures and defines the interfaces (argument lists) for the \bmad
+subroutines. In particular, the \vn{lat} variable (line 5), which is of type \vn{lat_struct}
+(\sref{s:lat.struct}), holds all of the lattice information: The list of elements, their attributes,
+etc.  The setting of \vn{bmad_com%auto_bookkeeper} to \vn{False} in line 13 enables the
+``intelligent'' bookkeeping of lattice attributes as discussed in \sref{s:lat.bookkeeping}). The
+call to \Hyperref{r:bmad.parser}{bmad_parser} (line 17) causes the lattice file \vn{lat.bmad} to be
+parsed and the lattice information is stored the \vn{lat} variable. Note: To get a listing of the
+\vn{lat_struct} components or to find out more about \vn{bmad_parser} use the \vn{getf} command as
+discussed in \sref{s:getf}.
 
 The routine \Hyperref{r:lat.ele.locator}{lat_ele_locator} (\sref{s:lat.ele.find}) is used in line
 19 to find the element in the lattice with the name \vn{CLEO_SOL}. Line 20 defines a pointer
@@ -135,28 +139,21 @@ using the transfer matrices of the individual elements, calculates the Twiss par
 elements. Notice that if the lattice is not circular, The starting Twiss parameters will need to
 have been defined in the lattice file.
 
-\index{ele_struct!\%x}
-\index{ele_struct!\%key}
-\index{ele_struct!\%s}
-\index{lat_struct!\%ele(:)}
-The program is now ready output some information. Lines 24 through 28
-of the program print information on the first 11 elements in the
-lattice.  The do-loop is over the array \vn{lat%ele(:)}.  Each element
-of the array holds the information about an individual lattice element
-as explained in Chapter~\ref{c:lat.struct}. The \vn{lat%ele(0)}
-element is basically a marker element to denote the beginning of the
-array (\sref{c:sequence}). Using the pointer \vn{ele} to point to the
-individual elements (line 37) makes for a cleaner syntax and reduces
-typing. The table that is produced is shown in lines 1 through 12 of
-\fig{f:output}.  The first column is the element index $i$. The
-second column, \vn{ele%name}, is the name of the element. The third
-column, key_name(ele%key), is the name of the element
-class. \vn{ele%key} is an integer denoting what type of element
-(quadrupole, wiggler, etc.) it is.  \vn{key_name} is an array that
-translates the integer key of an element to a printable string. The
-fourth column, \vn{ele%s}, is the longitudinal position at the exit
-end of the element. Finally, the last column, \vn{ele%x%beta}, is the
-$a$--mode (nearly horizontal mode) beta function.
+\index{ele_struct!\%x}\index{ele_struct!\%key}
+\index{ele_struct!\%s}\index{lat_struct!\%ele(:)}
+The program is now ready output some information. Lines 24 through 28 of the program print
+information on the first 11 elements in the lattice.  The do-loop is over the array \vn{lat%ele(:)}.
+Each element of the array holds the information about an individual lattice element as explained in
+Chapter~\ref{c:lat.struct}. The \vn{lat%ele(0)} element is basically a marker element to denote the
+beginning of the array (\sref{c:sequence}). Using the pointer \vn{ele} to point to the individual
+elements (line 37) makes for a cleaner syntax and reduces typing. The table that is produced is
+shown in lines 1 through 12 of \fig{f:output}.  The first column is the element index $i$. The
+second column, \vn{ele%name}, is the name of the element. The third column, key_name(ele%key), is
+the name of the element class. \vn{ele%key} is an integer denoting what type of element (quadrupole,
+wiggler, etc.) it is.  \vn{key_name} is an array that translates the integer key of an element to a
+printable string. The fourth column, \vn{ele%s}, is the longitudinal position at the exit end of the
+element. Finally, the last column, \vn{ele%x%beta}, is the $a$--mode (nearly horizontal mode) beta
+function.
 
 The \Hyperref{r:type.ele}{type_ele} routine on line 47 of the program is used to type out the
 \vn{CLEO_SOL}'s attributes and other information as shown on lines 14 through 41 of the output (more
@@ -177,51 +174,38 @@ to define the element order looks like
   cesr: line = (IP_L0, d001, DET_00W, d002, Q00W, d003, ...)
   use, cesr
 \end{example}
-If you compare this to the listing of the elements in
-\fig{f:output} you will find differences. For example, element
-\#2 in the program listing is named \vn{CLEO_SOL\B3}. From the
-definition of the \vn{cesr} line this should be \vn{d001} which, if
-you look up its definition in \vn{layout.bmad} is a drift.  The
-difference between lattice file and output is due to the presence
-the \vn{CLEO_SOL} element which appears in \vn{lat.bmad}:
+If you compare this to the listing of the elements in \fig{f:output} you will find differences. For
+example, element \#2 in the program listing is named \vn{CLEO_SOL\B3}. From the definition of the
+\vn{cesr} line this should be \vn{d001} which, if you look up its definition in \vn{layout.bmad} is
+a drift.  The difference between lattice file and output is due to the presence the \vn{CLEO_SOL}
+element which appears in \vn{lat.bmad}:
 \begin{example}
   ks_solenoid    := -1.0e-9 * clight * solenoid_tesla / beam[energy]
   cleo_sol: solenoid, l = 3.51, ks = ks_solenoid, superimpose 
 \end{example}
 \index{superimpose!example}
-The solenoid is 3.51 meters long
-and it is superimposed upon the lattice with its center at $s = 0$ (this
-is the default if the position is not specified). 
-When \vn{bmad_parser} constructs the lattice list of elements
-the superposition of \vn{IP_L0}, which is a zero--length marker, with the
-solenoid does not modify \vn{IP_L0}. The superposition of the
-\vn{d001} drift with the solenoid gives a solenoid with the same
-length as the drift. Since this is a ``new'' element, \vn{bmad_parser}
-makes up a name that reflects that it is basically a section of the
-solenoid it came from.  Next, since the \vn{CLEO_SOL} element happens to
-only cover
-part of the \vn{Q00W} quadrupole, \vn{bmad_parser} breaks the
-quadrupole into two pieces. The piece that is inside the solenoid is a
-\vn{sol_quad} and the piece outside the solenoid is a regular
-quadrupole. See \sref{s:super} for more details. Since the
-center of the \vn{CLEO_SOL} is at $s = 0$, half of it extends to
-negative $s$. In this situation, \vn{bmad_parser} will wrap this half
-back and superimpose it on the elements at the end of the lattice list
-near $s = s_{lat}$ where $s_{lat}$ is the length of the lattice.  As
-explained in Chapter~\ref{c:lat.struct}, the lattice list that is used
-for tracking extends from \vn{lat%ele(0)} through \vn{lat%ele(n)}
-where \vn{n = lat%n_ele_track}. The \vn{CLEO_SOL} element is put in the
-section of \vn{lat%ele(n)} with \vn{n > lat%n_ele_track} since it is
-not an element to be tracked through. The \vn{Q00W} quadrupole also
-gets put in this part of the list.  The bookkeeping information that
-the \vn{cleo_sol\B3} element is derived from the \vn{cleo_sol} is put
-in the \vn{cleo_sol} element as shown in lines 33 through 41 of the
-output.  It is now possible in the program to vary, say, the strength
-of the \vn{ks} attribute of the \vn{CLEO_SOL} and have the \vn{ks}
-attributes of the dependent (``\vn{super_slave}'') elements updated
-with one subroutine call. For example, the following code increases the
-solenoid strength by 1\%
-\Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper}
+The solenoid is 3.51 meters long and it is superimposed upon the lattice with its center at $s = 0$
+(this is the default if the position is not specified).  When \vn{bmad_parser} constructs the
+lattice list of elements the superposition of \vn{IP_L0}, which is a zero--length marker, with the
+solenoid does not modify \vn{IP_L0}. The superposition of the \vn{d001} drift with the solenoid
+gives a solenoid with the same length as the drift. Since this is a ``new'' element,
+\vn{bmad_parser} makes up a name that reflects that it is basically a section of the solenoid it
+came from.  Next, since the \vn{CLEO_SOL} element happens to only cover part of the \vn{Q00W}
+quadrupole, \vn{bmad_parser} breaks the quadrupole into two pieces. The piece that is inside the
+solenoid is a \vn{sol_quad} and the piece outside the solenoid is a regular quadrupole. See
+\sref{s:super} for more details. Since the center of the \vn{CLEO_SOL} is at $s = 0$, half of it
+extends to negative $s$. In this situation, \vn{bmad_parser} will wrap this half back and
+superimpose it on the elements at the end of the lattice list near $s = s_{lat}$ where $s_{lat}$ is
+the length of the lattice.  As explained in Chapter~\ref{c:lat.struct}, the lattice list that is
+used for tracking extends from \vn{lat%ele(0)} through \vn{lat%ele(n)} where \vn{n =
+lat%n_ele_track}. The \vn{CLEO_SOL} element is put in the section of \vn{lat%ele(n)} with \vn{n >
+lat%n_ele_track} since it is not an element to be tracked through. The \vn{Q00W} quadrupole also
+gets put in this part of the list.  The bookkeeping information that the \vn{cleo_sol\B3} element is
+derived from the \vn{cleo_sol} is put in the \vn{cleo_sol} element as shown in lines 33 through 41
+of the output.  It is now possible in the program to vary, say, the strength of the \vn{ks}
+attribute of the \vn{CLEO_SOL} and have the \vn{ks} attributes of the dependent
+(``\vn{super_slave}'') elements updated with one subroutine call. For example, the following code
+increases the solenoid strength by 1\% \Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper}
 \Hyperref{r:lat.ele.locator}{lat_ele_locator}
 \begin{example}
   call lat_ele_locator ('CLEO_SOL', lat, eles, n_loc, err)
@@ -232,7 +216,7 @@ solenoid strength by 1\%
 automatically called when transfer matrices are remade so the direct call
 to \vn{control_bookkeeper} may not be necessary.
 
-Running the program gives the output as shown in \fig{f:output}.
+Running the program (\sref{s:prog.setup}) gives the output as shown in \fig{f:output}.
 
 \begin{figure}[ht]
 \small
