@@ -58,6 +58,7 @@ subroutine attribute_bookkeeper (ele, force_bookkeeping)
 use s_fitting, only: check_bend
 use bookkeeper_mod, except_dummy => attribute_bookkeeper
 use xraylib_interface, except_dummy2 => attribute_bookkeeper
+use super_recipes_mod, only: super_brent
 
 implicit none
 
@@ -69,13 +70,13 @@ type (branch_struct), pointer :: branch
 type (photon_surface_struct), pointer :: surface
 
 real(rp) factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time
-real(rp) w_inv(3,3), len_old, f
+real(rp) w_inv(3,3), len_old, f, dl, b_max, zmin
 real(rp), pointer :: val(:), tt
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), eps6
 real(rp) kick_magnitude, bend_factor, quad_factor, radius0, step_info(7), dz_dl_max_err
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), n_particles
 
-integer i, n, n_div, ixm, ix_pole_max, particle, geometry
+integer i, n, n_div, ixm, ix_pole_max, particle, geometry, i_max
 
 character(20) ::  r_name = 'attribute_bookkeeper'
 
@@ -562,10 +563,16 @@ case (wiggler$, undulator$)
     start%vec = 0
     val(b_max$) = 0
     n = nint(val(num_steps$))
+    dl = val(l$) / n
     do i = 0, n
-      call em_field_calc (ele, branch%param, i * val(l$) / n, start, .true., field, rf_time = 0.0_rp)
-      val(b_max$) = max(val(b_max$), sqrt(sum(field%b**2)))
+      b_max = -wiggler_field(i * dl)
+      if (val(b_max$) > b_max) cycle
+      val(b_max$) = b_max
+      i_max = i      
     enddo
+    if (i_max /= 0 .and. i_max /= n) then
+      val(b_max$) = -super_brent((i_max-1)*dl, i_max*dl, (i_max+1)*dl, wiggler_field, 1.0e-8_rp, 0.0_rp, zmin)
+    endif
     ele%is_on = is_on
     val(polarity$) = polarity
   endif
@@ -683,6 +690,20 @@ enddo
  
 ele%bookkeeping_state%attributes = ok$
 ele%old_value = val
+
+!----------------------------------------------------
+contains
+
+function wiggler_field (z) result (b_field)
+
+real(rp), intent(in) :: z
+real(rp) b_field
+
+
+call em_field_calc (ele, branch%param, z, start, .true., field, rf_time = 0.0_rp)
+b_field = -norm2(field%b)
+
+end function wiggler_field
 
 end subroutine attribute_bookkeeper
 
