@@ -674,10 +674,10 @@ end subroutine tao_set_wave_cmd
 !+
 ! Subroutine tao_set_beam_cmd (who, value_str, err)
 !
-! Routine to set beam_start variables
+! Routine to set various beam parameters.
 ! 
 ! Input:
-!   who       -- Character(*): which beam_start variable to set
+!   who       -- Character(*): which parameter to set.
 !   value_str -- Character(*): Value to set to.
 !
 ! Output:
@@ -689,7 +689,7 @@ subroutine tao_set_beam_cmd (who, value_str)
 type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable, save, target :: eles(:)
 type (ele_struct), pointer :: ele
-
+type (beam_struct), pointer :: beam
 integer ix, iu, n_loc
 logical, allocatable :: this_u(:)
 logical err
@@ -703,24 +703,40 @@ character(*), parameter :: r_name = 'tao_set_beam_cmd'
 call tao_pick_universe (remove_quotes(who), who2, this_u, err); if (err) return
 
 call match_word (who2, [character(20):: 'track_start', 'track_end', 'all_file', 'position0_file', 'saved_at', &
-                    'beam_track_start', 'beam_track_end', 'beam_all_file', 'beam_position0_file', 'beam_saved_at'], &
-                    ix, matched_name=switch)
+                    'beam_track_start', 'beam_track_end', 'beam_all_file', 'beam_position0_file', 'beam_saved_at', &
+                    'beginning'], ix, matched_name=switch)
 
 do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(iu)) cycle
   u => s%u(iu)
 
   select case (switch)
+  case ('beginning')
+    call tao_locate_elements (value_str, u%ix_uni, eles, err, multiple_eles_is_err = .true.)
+    ele => eles(1)%ele
+    beam => u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
+    if (.not. allocated(beam%bunch)) then
+      call out_io (s_error$, r_name, 'BEAM NOT SAVED AT: ' // who, 'NOTHING DONE.')
+      err = .true.
+      return
+    endif
+    u%beam%beam_at_start = beam
+
   case ('track_start', 'beam_track_start')
     call set_this_track(u%beam%track_start, u%beam%ix_track_start)
+
   case ('track_end', 'beam_track_end')
     call set_this_track(u%beam%track_end, u%beam%ix_track_end)
+
   case ('all_file', 'beam_all_file')
     u%beam%all_file = value_str
+
   case ('position0_file', 'beam_position0_file')
     u%beam%position0_file = value_str
+    u%beam%init_position0 = .true.
+
   case ('saved_at', 'beam_saved_at')
-    call tao_locate_elements (value_str, u%ix_uni, eles, err, ignore_blank = .false.)
+    call tao_locate_elements (value_str, u%ix_uni, eles, err)
     if (err) then
       call out_io (s_error$, r_name, 'BAD BEAM_SAVED_AT STRING: ' // value_str)
     else
@@ -730,6 +746,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
       enddo
     endif
     u%beam%saved_at = value_str
+
   case default
     call out_io (s_fatal$, r_name, 'PARAMETER NOT RECOGNIZED: ' // who2)
     return
@@ -770,7 +787,7 @@ end subroutine tao_set_beam_cmd
 !+
 ! Subroutine tao_set_beam_start_cmd (who, value_str)
 !
-! Routine to set beam_start variables
+! Routine to set beam_start variables.
 ! 
 ! Input:
 !   who       -- Character(*): which beam_start variable to set

@@ -859,7 +859,10 @@ logical err, init_ok
 
 init_ok = .false.
 
-if (s%com%use_saved_beam_in_tracking) return
+if (s%com%use_saved_beam_in_tracking) then
+  init_ok = .true.
+  return
+endif
 
 ! if injecting into a branch then use the branch point as the starting distribution.
 
@@ -910,7 +913,11 @@ if (u%beam%position0_file /= "") then
   return
 endif
 
-! Only reinit beam has not already been initialized or if commanded via %init_beam_position0.
+! If init is via a call to init_beam_distribution: If the distribution is generated with the help of a random 
+! number generator a different distribution is generated on each time init_beam_distribution is called. 
+! This is a problem if, say, we are looking at changes to the beam transport due to changes in lattice parameters. 
+! Of course if, for example, the beam_init structure is modified then we do want a distribution recalc.
+! So only reinit the distribution if the distribution has not already been initialized or if commanded via %init_position0.
 
 if (u%beam%init_position0 .or. .not. allocated(beam%bunch)) then
   if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.

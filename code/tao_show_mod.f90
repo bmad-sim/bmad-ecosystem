@@ -2762,7 +2762,8 @@ case ('particle')
   show_all = .false.
   show_lost = .false.
   ele_name = ''
-  ix_ele = 0
+  ix_ele = -1
+  ix_p = 1
 
   do
 
@@ -2783,12 +2784,14 @@ case ('particle')
       ele_name = what2(:ix_word)
       call string_trim (what2(ix_word+1:), what2, ix_word)
 
-      call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
-      if (err) return
-      call tao_locate_elements (ele_name, ix_u, eles, err)
-      if (err) return
-      ix_ele = eles(1)%ele%ix_ele
-      ix_branch = eles(1)%ele%ix_branch
+      if (ele_name /= 'init') then
+        call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
+        if (err) return
+        call tao_locate_elements (ele_name, ix_u, eles, err)
+        if (err) return
+        ix_ele = eles(1)%ele%ix_ele
+        ix_branch = eles(1)%ele%ix_branch
+      endif
 
     case ('-particle')
       read (what2(:ix_word), *, iostat = ios) ix_p
@@ -2835,26 +2838,37 @@ case ('particle')
 
   ! check
 
-  if (.not. allocated(uni_branch%ele(ix_ele)%beam%bunch)) then
-    call out_io (s_error$, r_name, 'BUNCH NOT ASSOCIATED WITH THIS ELEMENT.')
-    return
-  endif
-
-  if (nb < 1 .or. nb > size(uni_branch%ele(ix_ele)%beam%bunch)) then
+  if (nb < 1 .or. nb > size(u%beam%beam_at_start%bunch)) then
     call out_io (s_error$, r_name, 'BUNCH INDEX OUT OF RANGE: \i0\ ', i_array = [ nb ])
     return
   endif
 
-  bunch => uni_branch%ele(ix_ele)%beam%bunch(nb)
+  !
+
+  if (ix_ele == -1) then
+    bunch => u%beam%beam_at_start%bunch(nb)
+
+  else
+    if (.not. allocated(uni_branch%ele(ix_ele)%beam%bunch)) then
+      call out_io (s_error$, r_name, 'BUNCH NOT ASSOCIATED WITH THIS ELEMENT.')
+      return
+    endif
+    bunch => uni_branch%ele(ix_ele)%beam%bunch(nb)
+  endif
 
   ! show all
 
   if (show_all) then
-    nl=nl+1; write(lines(nl), *) 'Element:', ix_ele, '  ', branch%ele(ix_ele)%name
-    nl=nl+1; write(lines(nl), '(a, 6(12x, a))') '  Ix', '  x', 'px', '  y', 'py', '  z', 'pz'
+    if (ix_ele == -1) then
+      nl=nl+1; write(lines(nl), *) 'Initial Distribution'
+    else
+      nl=nl+1; write(lines(nl), *) 'Element:', ix_ele, '  ', branch%ele(ix_ele)%name
+    endif
+    nl=nl+1; write(lines(nl), '(a, 6(13x, a), 7x, a)') '  Ix', ' X', 'px', ' y', 'py', ' z', 'pz', 'State'
     do i = 1, size(bunch%particle)
       if (nl == size(lines)) call re_allocate (lines, nl+100, .false.)
-      nl=nl+1; write(lines(nl), '(i6, 6es15.7)') i, (bunch%particle(i)%vec(j), j = 1, 6)
+      nl=nl+1; write(lines(nl), '(i6, 6es15.7, 2x, a)') i, (bunch%particle(i)%vec(j), j = 1, 6), &
+                                                       adjustr(coord_state_name(bunch%particle(i)%state))
     enddo
     result_id = 'particle:lost'
     return
@@ -2867,7 +2881,11 @@ case ('particle')
     return
   endif
 
-  nl=nl+1; write(lines(nl), imt) 'At lattice element:', ix_ele
+  if (ix_ele == -1) then
+    nl=nl+1; write(lines(nl), imt) 'Initial Distribtion'
+  else
+    nl=nl+1; write(lines(nl), imt) 'At lattice element:', ix_ele
+  endif
   nl=nl+1; write(lines(nl), imt) 'Bunch:       ', nb
   nl=nl+1; write(lines(nl), imt) 'Particle:    ', ix_p
   nl=nl+1; write(lines(nl), lmt) 'Is Alive?    ', bunch%particle(ix_p)%state == alive$

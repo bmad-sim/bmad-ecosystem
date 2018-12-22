@@ -476,10 +476,10 @@ case ('set')
 
   call tao_cmd_split (cmd_line, 2, cmd_word, .false., err, '=')
 
-  call match_word (cmd_word(1), [character(16) :: 'branch', 'data', 'var', 'lattice', 'global', 'plot_page', &
+  call match_word (cmd_word(1), [character(16) :: 'branch', 'data', 'var', 'lattice', 'global', &
     'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
     'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'beam_start', &
-    'ran_state', 'symbolic_number', 'beam'], ix, .true., matched_name = set_word)
+    'plot_page', 'ran_state', 'symbolic_number', 'beam', 'particle_start'], ix, .true., matched_name = set_word)
   if (ix < 1) then
     call out_io (s_error$, r_name, 'NOT RECOGNIZED OR AMBIGUOUS: ' // cmd_word(1))
     goto 9000
@@ -488,8 +488,9 @@ case ('set')
   cmd_line = cmd_word(2)
   select case (set_word)
   case ('ran_state'); n_word = 2; n_eq = 1
-  case ('beam', 'beam_init', 'bmad_com', 'csr_param', 'data', 'global', 'lattice', 'default', 'beam_start', 'var', &
-        'opti_de_param', 'wave', 'floor_plan', 'lat_layout', 'geodesic_lm', 'key', 'symbolic_number'); n_word = 3; n_eq = 2
+  case ('beam', 'beam_init', 'bmad_com', 'csr_param', 'data', 'global', 'lattice', 'default', &
+        'opti_de_param', 'wave', 'floor_plan', 'lat_layout', 'geodesic_lm', 'key', 'symbolic_number', &
+        'var', 'beam_start', 'particle_start'); n_word = 3; n_eq = 2
   case ('universe'); n_word = 3; n_eq = 10
   case ('plot_page'); n_word = 4; n_eq = 2
   case ('branch', 'curve', 'element', 'graph', 'plot'); n_word = 4; n_eq = 3
@@ -507,7 +508,7 @@ case ('set')
     call tao_set_beam_cmd (cmd_word(1), cmd_word(3))
   case ('beam_init')
     call tao_set_beam_init_cmd (cmd_word(1), cmd_word(3))
-  case ('beam_start')
+  case ('beam_start', 'particle_start')
     call tao_set_beam_start_cmd (cmd_word(1), cmd_word(3))
   case ('bmad_com')
     call tao_set_bmad_com_cmd (cmd_word(1), cmd_word(3))
