@@ -22,7 +22,7 @@ end of the line is ignored.  Example:
 
 This chapter uses the following special characters to define the command line syntax:
 \begin{example}
-  \{\}        ! Identifies an optional argument. 
+  \{\}        ! Identifies an optional argument.
               !   Arguments now enclosed in brackets are required
   <>        ! Indicates a non-literal argument.
 \end{example}
@@ -800,7 +800,7 @@ variables, etc. Format:
   set beam_init \{n@\}<component> = <value>                   ! \sref{s:set.beam.init}
   set beam_start \{n@\}<coordinate> = <value>                 ! \sref{s:set.beam.start}
   set bmad_com <component> = <value>                        ! \sref{s:set.bmad.com}
-  set branch <branch> <component> = <value>
+  set branch <branch> <component> = <value>                 ! \sref{s:set.branch}
   set csr_param <component> = <value>                       ! \sref{s:set.csr.param}
   set curve <curve> <component> = <value>                   ! \sref{s:set.curve}
   set data <data_name>|<component> = <value>                ! \sref{s:set.data}
@@ -812,8 +812,9 @@ variables, etc. Format:
   set graph <graph> <component> = <value>                   ! \sref{s:set.graph}
   set key <key> = <command>                                 ! \sref{s:set.key}
   set lat_layout <component> = <value>                      ! \sref{s:set.lat.layout}
-  set lattice \{n@\}<destination\_lat> = <source\_lat>          ! \sref{s:set.lattice}
+  set lattice \{n@\}<destination_lat> = <source_lat>          ! \sref{s:set.lattice}
   set opti_de_param <component> = <value>                   ! \sref{s:set.opti.de.param}
+  set particle_start \{n@\}<coordinate> = <value>             ! \sref{s:set.particle.start}
   set plot <plot> <parameter> = <value>                     ! \sref{s:set.plot}
   set plot_page <parameter> = <value1> \{<value2>\}           ! \sref{s:set.plot.page}
   set ran_state = <random_number_generator_state>           ! \sref{s:set.ran.state}
@@ -872,14 +873,23 @@ Format:
 The \vn{set beam} command sets beam parameters such as the initial and final tracking positions.
 Use the \vn{show beam} command (\sref{s:show}) to see the current values.
 
+Additionally, if \vn{<component>} is set to \vn{beginning}, and \vn{<value>} is set to the name
+or index of a lattice element where particle positions of the tracked beam has been stored, the initial
+distribution of the beam at the beginning of the lattice will be set to the distribution at the indicated
+element. This is useful to track the beam over many turns.
+
 The optional \vn{n@} allows the specification of the universe or universes the set is applied
 to. The current default universe (\sref{s:universe}) will be used if no universe is given. 
+
+Also see the commands: \vn{set beam_init} and \vn{set beam_start}.
 
 Examples:
 \begin{example}
   set beam 2@track_start = q10w  ! Set the tracking start at element Q10W in universe 2.
   set beam saved_at = "Q*, B*"   ! Save beam parameters (sigma matrix, etc.) at elements
                                  !  whose names begin with "Q" or "B".
+  set beam beginning = end       ! Set the inital beam distribution equal to the distribution at
+                                 !  the lattice element named "end".
 \end{example}
 
 %% set beam_init --------------------------------------------------------------
@@ -892,12 +902,19 @@ Format:
   set beam_init \{n@\}<component> = <value>
 \end{example}
 
-The \vn{set beam_init} command sets components of the \vn{beam_init} structure (\sref{s:beam.init})
-as well as \vn{beam_track_start} and \vn{beam_track_end} parameters (\sref{s:beam.init}).
+The \vn{set beam_init} command sets components of the \vn{beam_init} structure (\sref{s:beam.init}).
+Additionally, the \vn{set beam_init} command can set the parameters (\sref{s:beam.init})
+\begin{example}
+  beam_track_start  and
+  beam_track_end
+\end{example}
 
 The optional \vn{n@} allows the specification of the universe or universes the set is applied
-to. The current default universe (\sref{s:universe}) will be used if no universe is given. Use the
-\vn{show beam} command (\sref{s:show}) to see the current values.
+to. The current default universe (\sref{s:universe}) will be used if no universe is given. 
+
+Use the \vn{show beam} command (\sref{s:show}) to see the current values.
+
+Also see the commands: \vn{set beam} and \vn{set beam_start}.
 
 Examples:
 \begin{example}
@@ -915,6 +932,8 @@ Format:
 \begin{example}
   set beam_start \{n@\}<coordinate> = <value>
 \end{example}
+The \vn{set beam_start} command sets the starting centroid coordinates for beam tracking as well
+as the starting coordinates for single particle tracking.
 
 The optional \vn{n@} universe specification (\sref{s:universe}) may be used to specify the universe
 or universes to apply the set command to.
@@ -934,6 +953,8 @@ For closed lattices only the \vn{pz} component is applicable. For lattices that 
 \vn{t} coordinate must be varied instead of \vn{pz}.
 
 To see the values for \vn{beam_start} use the command \vn{show element 0}.
+
+Also see the commands: \vn{set beam} and \vn{set beam_init}.
 
 Examples:
 \begin{example}
@@ -1326,6 +1347,13 @@ Example:
 \begin{example}
   set opti_de_param binomial_cross = T  ! Use binomial crossovers 
 \end{example}
+
+%% set particle_start --------------------------------------------------------------
+
+\subsection{set particle_start}
+\label{s:set.particle.start}
+
+Same as \vn{set beam_start}. See section~\sref{s:set.beam.start} for more details.
 
 %% set plot --------------------------------------------------------------
 
@@ -2284,9 +2312,11 @@ Syntax:
 \end{example}
 
 
-Shows individual particle information. The default for the optional \vn{-bunch} index is
-set by the global variable \vn{global%bunch_to_plot}. The default \vn{-element} is 0 (the
-starting position). Also see \vn{show beam}.
+Shows individual particle information except if the the \vn{-lost} or \vn{-all} options are used. 
+
+The default for the optional \vn{-bunch} index is set by the global variable
+\vn{global%bunch_to_plot}. The default \vn{-element} is \vn{init} which is the initial beam
+distribution. The default \vn{-particle} to show is the particle with index 1.
 
 The \vn{-lost} option shows which particles are lost during beam tracking. Note: Using the
 \vn{-lost} option results in one line printed for each lost particle. It is thus meant for
@@ -2294,11 +2324,13 @@ use with bunches with a small number of particles.
 
 The \vn{-all} option shows all particles at the given element.
 
+Also see \vn{show beam}.
+
 Examples:
 \begin{example}
   show part -bun 3 -part 47 -ele 8 ! Shows information on particle #47 of 
                                    !   bunch #3 at lattice element #8.
-  show part -bun 47 -part 8        ! Same as above except the default bunch is used.
+  show part -part 47 -ele 8        ! Same as above except the default bunch is used.
   show part -lost -bun 3           ! Show lost particle positions for bunch #3
 \end{example}
 

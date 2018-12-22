@@ -2,7 +2,8 @@
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_locate_elements (ele_list, ix_universe, eles, err, lat_type, ignore_blank, print_err, ix_dflt_branch) 
+! Subroutine tao_locate_elements (ele_list, ix_universe, eles, err, lat_type, ignore_blank, 
+!                                                           print_err, ix_dflt_branch, multiple_eles_is_err) 
 !
 ! Subroutine to find the lattice elements in the lattice
 ! corresponding to the ele_list argument. 
@@ -21,6 +22,8 @@
 !   ix_dflt_branch -- Integer, optional: If present and positive then use this as the branch index 
 !                       for elements specified using an integer index (EG: "43").
 !                       If not present or -1 the default branch is branch 0.
+!   multiple_eles_is_err
+!                  -- logical, optional: If present and True then matching to more than one element is an error.
 !
 ! Output:
 !   eles  -- ele_pointer_struct(:), allocatable: Array of elements in the model lat. 
@@ -28,7 +31,7 @@
 !-
 
 subroutine tao_locate_elements (ele_list, ix_universe, eles, err, lat_type, ignore_blank, &
-                                                                 print_err, above_ubound_is_err, ix_dflt_branch)
+                                           print_err, above_ubound_is_err, ix_dflt_branch, multiple_eles_is_err)
 
 use tao_interface, dummy => tao_locate_elements
 
@@ -46,7 +49,7 @@ character(200) ele_name
 character(20) :: r_name = 'tao_locate_elements'
 
 logical err, printit
-logical, optional :: ignore_blank, print_err, above_ubound_is_err
+logical, optional :: ignore_blank, print_err, above_ubound_is_err, multiple_eles_is_err
 
 ! 
 
@@ -58,7 +61,10 @@ call re_allocate_eles (eles, 0, exact = .true.)
 call str_upcase (ele_name, ele_list)
 call string_trim (ele_name, ele_name, ix)
 
-if (ix == 0 .and. logic_option(.false., ignore_blank)) return
+if (ix == 0 .and. logic_option(.false., ignore_blank)) then
+  err = .false.
+  return
+endif
 
 if (ix == 0) then
   if (printit) call out_io (s_error$, r_name, 'ELEMENT NAME IS BLANK')
@@ -78,6 +84,13 @@ if (n_loc == 0) then
   err = .true.
   return
 endif
+
+if (logic_option(.false., multiple_eles_is_err) .and. n_loc > 1) then
+  if (printit) call out_io (s_error$, r_name, 'MULTIPLE ELEMENTS FOUND MATCHING: ' // ele_list)
+  err = .true.
+  return
+endif
+
 
 call re_allocate_eles (eles, n_loc, .true., .true.)
 
