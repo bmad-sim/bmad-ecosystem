@@ -576,7 +576,14 @@ if (nc == n_pa_curve) then
   return
 endif
 
-if (.not. allocated(da%scan(1)%aperture)) then
+err = .false.
+if (allocated(da%scan)) then
+  if (.not. allocated(da%scan(1)%aperture)) err = .true.
+else
+  err = .true.
+endif
+
+if (err) then
   write (graph%why_invalid, '(a, i0)') 'DYNAMIC APERTURE NOT CALCULATED FOR UNIVERSE ', u%ix_uni
   return
 endif
