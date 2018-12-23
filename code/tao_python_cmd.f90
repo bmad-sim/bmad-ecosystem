@@ -964,6 +964,15 @@ case ('plot_graph')
   nl=incr(nl); write (li(nl), lmt) 'draw_grid;LOGIC;T;',                      g%draw_grid
   nl=incr(nl); write (li(nl), lmt) 'draw_only_good_user_data_or_vars;LOGIC;T;', g%draw_only_good_user_data_or_vars
 
+  nl=incr(nl); write (li(nl), amt) 'x.label;STR;T;',                         g%x%label
+  nl=incr(nl); write (li(nl), rmt) 'x.max;REAL;T;',                          g%x%max
+  nl=incr(nl); write (li(nl), rmt) 'x.min;REAL;T;',                          g%x%min
+  nl=incr(nl); write (li(nl), imt) 'x.major_div;INT;T;',                     g%x%major_div
+  nl=incr(nl); write (li(nl), imt) 'x.major_div_nominal;INT;T;',             g%x%major_div_nominal
+  nl=incr(nl); write (li(nl), imt) 'x.places;INT;T;',                        g%x%places
+  nl=incr(nl); write (li(nl), lmt) 'x.draw_label;LOGIC;T;',                  g%x%draw_label
+  nl=incr(nl); write (li(nl), lmt) 'x.draw_numbers;LOGIC;T;',                g%x%draw_numbers
+
   nl=incr(nl); write (li(nl), amt) 'y.label;STR;T;',                         g%y%label
   nl=incr(nl); write (li(nl), rmt) 'y.max;REAL;T;',                          g%y%max
   nl=incr(nl); write (li(nl), rmt) 'y.min;REAL;T;',                          g%y%min
@@ -1033,6 +1042,7 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), amt)  'line.pattern;STR;T;',                    qp_line_pattern_name(cur%line%pattern)
 
   nl=incr(nl); write (li(nl), amt)  'symbol.type;STR;T;',                     qp_symbol_type_name(cur%symbol%type)
+  nl=incr(nl); write (li(nl), amt)  'symbol.color;STR;T;',                    qp_color_name(cur%symbol%color)
   nl=incr(nl); write (li(nl), rmt)  'symbol.height;REAL;T;',                  cur%symbol%height
   nl=incr(nl); write (li(nl), amt)  'symbol.fill_pattern;STR;T;',             qp_fill_name(cur%symbol%fill_pattern)
   nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               cur%symbol%line_width
