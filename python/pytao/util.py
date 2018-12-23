@@ -108,4 +108,4 @@ def simple_lat_table(tao, ix_universe=1, ix_branch=0, which='model', who='twiss'
         # Stop at the end ele
         if name == 'END': 
             break
-    return ele_table    
+    return ele_table
