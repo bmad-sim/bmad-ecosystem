@@ -6043,12 +6043,12 @@ case (rfcavity$)
 ! for a planar and helical wigglers n_pole is a dependent attribute
 
 case (wiggler$, undulator$)
-  if (ele%field_calc == planar_model$ .or. ele%field_calc == helical_model$) then
+  if (ele%field_calc == int_garbage$) ele%field_calc = planar_model$
 
+  if (ele%field_calc == planar_model$ .or. ele%field_calc == helical_model$) then
     if (ele%value(l_pole$) == 0 .and. ele%value(n_pole$) /= 0) then
       ele%value(l_pole$) = ele%value(l$) / ele%value(n_pole$) 
     endif
-
   endif
 
 !

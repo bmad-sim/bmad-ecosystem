@@ -685,22 +685,23 @@ an element. How the EM fields are calculated is determined by the \vn{field_calc
 element.  For all lattice elements, except \vn{wigglers} and \vn{undulators}, possible values for
 \vn{field_calc} are:
 \begin{example}
-  bmad_standard     ! This is the default
-  custom
+  bmad_standard     ! This is the default except for custom elements
+  custom            ! Default for custom elements.
   fieldmap
 \end{example}
-For \vn{wigglers} and \vn{undulators}, possible values for
-\vn{field_calc} are:
+For \vn{wigglers} and \vn{undulators}, possible values for \vn{field_calc} are:
 \begin{example}
-  planer_model   ! Default
+  planar_model
   helical_model
   custom
   fieldmap
 \end{example}
 \index{custom}\index{runge_kutta}
-Note that with \vn{bmad_standard} tracking, the setting of \vn{field_calc} is ignored except in the
-case of \vn{wigglers} and \vn{undulators} where \vn{field_calc} must be set to either
-\vn{planer_model} or \vn{helical_model}.
+For historical reasons, the default setting for \vn{field_calc} for \vn{wigglers} and
+\vn{undulators} is \vn{planar_model} except if there is a field map present (\sref{s:fieldmap}) in
+which case the default is \vn{fieldmap}.  Note that with \vn{bmad_standard} tracking, the setting of
+\vn{field_calc} is ignored except in the case of \vn{wigglers} and \vn{undulators} where
+\vn{field_calc} must be set to either \vn{planar_model} or \vn{helical_model}.
 
 \vn{Custom} means that the field calculations are done outside of the \bmad software. A program
 doing \vn{custom} field calculations will need the appropriate custom routine (\sref{s:custom.ele}).
