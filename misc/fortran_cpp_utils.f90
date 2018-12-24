@@ -55,13 +55,22 @@ end interface
 !
 ! Overloaded function to translate a vector from Fortran form to C form.
 ! Overloads:
-!   bool_fvec2vec (bool_f_vec, n) result (bool_c_vec)
+!   bool_fvec2vec  (bool_f_vec, n)  result (bool_c_vec)
+!   int_fvec2vec   (int_f_vec, n)   result (int_c_vec)
+!   cmplx_fvec2vec (cmplx_f_vec, n) result (cmplx_c_vec)
+!   real_fvec2vec  (real_f_vec, n)  result (real_c_vec)
 !
 ! Input:
-!   bool_f_vec(:)  -- Logical: Input vector
+!   bool_f_vec(:)  -- logical: Input vector
+!   int_f_vec(:)   -- integer: Input vector
+!   cmplx_f_vec(:) -- complex: Input vector
+!   real_f_vec(:)  -- real(rp): Input vector
 !
 ! Output:
-!   bool_c_vec(:)  -- Logical(c_bool): Output array 
+!   bool_c_vec(:)  -- logical(c_bool): Output array 
+!   int_c_vec(:)   -- integer(c_int): Output array 
+!   cmplx_c_vec(:) -- complex(c_double_complex): Output array 
+!   real_c_vec(:)  -- real(c_double): Output array 
 !-
 
 interface fvec2vec
@@ -85,7 +94,7 @@ end interface
 ! Overloaded functions:
 !   real_mat2vec   (real_mat)   result (real_vec)
 !   int_mat2vec    (int_mat)    result (int_vec)
-!   cmplx_mat2vec (cmplx_mat) result (cmplx_vec)
+!   cmplx_mat2vec  (cmplx_mat)  result (cmplx_vec)
 !   bool_mat2vec   (bool_mat)   result (bool_vec)
 !
 ! Modules needed:
