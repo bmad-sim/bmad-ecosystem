@@ -888,7 +888,7 @@ Examples:
   set beam 2@track_start = q10w  ! Set the tracking start at element Q10W in universe 2.
   set beam saved_at = "Q*, B*"   ! Save beam parameters (sigma matrix, etc.) at elements
                                  !  whose names begin with "Q" or "B".
-  set beam beginning = end       ! Set the inital beam distribution equal to the distribution at
+  set beam beginning = end       ! Set the initial beam distribution equal to the distribution at
                                  !  the lattice element named "end".
 \end{example}
 
@@ -1360,24 +1360,36 @@ Same as \vn{set beam_start}. See section~\sref{s:set.beam.start} for more detail
 \subsection{set plot}
 \label{s:set.plot}
 
-Format:
+The \vn{set plot} command set various parameters of a plot. Format:
 \begin{example}
   set plot <plot_or_region> <parameter> = <value>
 \end{example}
 
-For \vn{set plot}, \vn{<component>}s that can be set are:
+The \vn{<parameters>}s that can be set are:
 \begin{example}
-  autoscale_x = <logical>
-  autoscale_y = <logical>
-  visible     = <logical>
-  component   = <string>    ! \sref{s:plot.data}
+  autoscale_x        = <logical>
+  autoscale_y        = <logical>
+  visible            = <logical>
+  component          = <string>    ! \sref{s:plot.data}
+  x%<axis_component> = <value>
+  n_curve_pts        = <integer>
 \end{example}
+Use the \vn{show plot <plot_name>} to see the settings of various parameters. See the
+section~\sref{s:template} for information on the plotting parameters.
+
 
 The \vn{visible} parameter hides a plot but keeps the plot associated with the associate region. If
 the plot window is not enabled (\vn{-noplot} option used at startup), the \vn{visible} parameter is
 used by \tao to decide whether to calculate the points needed for plotting curves (saves time if the
-computation is not needed). This is relevant when \tao is interfaced to a \vn{gui}
+computation is not needed). This is relevant when \tao is interfaced to a \vn{GUI}
 (\sref{s:gui.plot}).
+
+The \vn{n_curve_pts} parameters sets the number of points to use for drawing ``smooth''
+curves. This overrides the setting of \vn{plot_page%n_plot_pts} (\sref{s:init.plot}). Warning: \tao
+will cache intermediate calculations used to compute a smooth curve to use in the computation of
+other smooth curves. \tao will only do this for curves that have \vn{plot_page%n_curve_pts} number
+of points. Depending upon the circumstances, setting \vn{plot%n_curve_pts} for individual plots may
+slow down plotting calculations significantly.
 
 Note: If the \vn{component} parameter is set, the \vn{<value>} is stored in each of the graphs of
 the plot since the \vn{component} attribute is associated with individual graphs and not the plot as
@@ -1391,7 +1403,8 @@ a whole. Other commands that involve \vn{component} are:
 Example:
 \begin{example}
   set plot orbit visible = F        ! Hide orbit plot
-  set plot beta component = design  ! 
+  set plot beta component = design  ! Plot the design value.
+  set plot x%draw_label = False     ! Do not draw x-axis label.
 \end{example}
 
 %% set plot_page --------------------------------------------------------------
@@ -3100,7 +3113,7 @@ Example:
 \begin{example}
   x_scale                 ! Autoscale all x-axes.
   x_scale * 0 100         ! Scale all x-axes to go from 0 to 100.
-  x_scale orbit -10 10    ! This "wraps araound" the beginning of the lattice.
+  x_scale orbit -10 10    ! This "wraps around" the beginning of the lattice.
 \end{example}
 
 %% xy_scale --------------------------------------------------------------
