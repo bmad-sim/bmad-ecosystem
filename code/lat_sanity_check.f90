@@ -128,7 +128,44 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     ele => branch%ele(i_t)
     str_ix_ele = '(' // trim(ele_loc_to_string(ele)) // ')'
 
-    ! autoscale phase needs an AC field
+    ! Check some ranges
+
+    if (ele%field_calc < 1 .or. ele%field_calc > ubound(field_calc_name, 1)) then
+      call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'HAS FIELD_CALC SETTING OUT OF RANGE: \i0\ ', i_array = [ele%field_calc])
+      err_flag = .true.
+    endif
+
+    if (ele%tracking_method < 1 .or. ele%tracking_method > ubound(tracking_method_name, 1)) then
+      call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'HAS TRACKING_METHOD SETTING OUT OF RANGE: \i0\ ', i_array = [ele%tracking_method])
+      err_flag = .true.
+    endif
+
+    if (ele%spin_tracking_method < 1 .or. ele%spin_tracking_method > ubound(spin_tracking_method_name, 1)) then
+      call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'HAS SPIN_TRACKING_METHOD SETTING OUT OF RANGE: \i0\ ', i_array = [ele%spin_tracking_method])
+      err_flag = .true.
+    endif
+
+    if (ele%mat6_calc_method < 1 .or. ele%mat6_calc_method > ubound(mat6_calc_method_name, 1)) then
+      call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'HAS MAT6_CALC_METHOD SETTING OUT OF RANGE: \i0\ ', i_array = [ele%mat6_calc_method])
+      err_flag = .true.
+    endif
+
+    if (ele%ptc_integration_type < 1 .or. ele%ptc_integration_type > ubound(ptc_integration_type_name, 1)) then
+      call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'HAS PTC_INTEGRATION_TYPE SETTING OUT OF RANGE: \i0\ ', i_array = [ele%ptc_integration_type])
+      err_flag = .true.
+    endif
+
+    ! Autoscale phase needs an AC field
 
     if (attribute_index(ele, 'AUTOSCALE_PHASE')/= 0 .and. &
                 is_true(ele%value(autoscale_phase$)) .and. ele%field_calc == fieldmap$) then

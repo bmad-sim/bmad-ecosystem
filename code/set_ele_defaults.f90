@@ -258,7 +258,7 @@ case (taylor$)   ! start with unit matrix
   endif
 
 case (wiggler$, undulator$) 
-  ele%field_calc = planar_model$
+  ele%field_calc = int_garbage$
   ele%value(polarity$) = 1.0
 
 end select

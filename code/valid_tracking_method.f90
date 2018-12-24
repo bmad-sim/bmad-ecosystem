@@ -283,17 +283,18 @@ case (vkicker$)
   end select
 
 case (wiggler$, undulator$)
-  if (ele%field_calc == fieldmap$) then
+  ! %field_calc = int_garbage during parsing. Must accept any possible mat6_calc_method in this case.
+  if (ele%field_calc == fieldmap$ .or. ele%field_calc == int_garbage$) then
     select case (method)
     case (symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, boris$, time_runge_kutta$, custom$)
       is_valid = .true.
     end select
-  elseif (ele%field_calc == planar_model$) then
+  elseif (ele%field_calc == planar_model$ .or. ele%field_calc == int_garbage$) then
     select case (method)
     case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, time_runge_kutta$, custom$)
       is_valid = .true.
     end select
-  elseif (ele%field_calc == helical_model$) then
+  elseif (ele%field_calc == helical_model$ .or. ele%field_calc == int_garbage$) then
     select case (method)
     case (bmad_standard$, runge_kutta$, linear$, symp_lie_bmad$, time_runge_kutta$, custom$)
       is_valid = .true.
