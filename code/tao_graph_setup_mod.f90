@@ -1961,7 +1961,9 @@ endif
 ! Only cache plot data if the number of points is equal to s%plot_page%n_curve_pts
 
 if (curve%data_source == 'lat') then
-  if (tao_branch%plot_cache_valid .and. tao_branch%cache_x_min == x1 .and. &
+  if (size(curve%x_line) /= s%plot_page%n_curve_pts) then
+    cache_status = cache_off$
+  elseif (tao_branch%plot_cache_valid .and. tao_branch%cache_x_min == x1 .and. &
             tao_branch%cache_x_max == x2 .and. tao_branch%cache_n_pts == size(curve%x_line)) then
     cache_status = using_cache$
 
