@@ -5,13 +5,22 @@ use fortran_cpp_utils
 
 implicit none
 
+type tao_c_interface_common_struct
+  real(c_double), allocatable :: c_re(:)
+  integer(c_int), allocatable :: c_int(:)
+  character(c_char) :: c_line(n_char_show+1) 
+  integer(c_int) :: n_re = 0, n_int = 0
+end type
+
+type (tao_c_interface_common_struct), target, save :: tao_c_interface_com
+
 contains
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! function tao_c_init_tao (c_str) bind(c) result (err)
+! Function tao_c_init_tao (c_str) bind(c) result (err)
 !
 ! Function to initialize Tao.
 !
@@ -37,13 +46,14 @@ call out_io_print_and_capture_setup (print_on = .false., capture_state = 'BUFFER
 call to_f_str (c_str, f_str)
 call tao_top_level(command = trim(f_str), errcode = errcode)
 err = errcode
+
 end function tao_c_init_tao
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! function tao_c_command (c_str) bind(c) result (err)
+! Function tao_c_command (c_str) bind(c) result (err)
 !
 ! Function to send a command to Tao from C. 
 !
@@ -68,15 +78,16 @@ integer(c_int) :: err
 call to_f_str (c_str, f_str)
 call tao_top_level(command = trim(f_str), errcode = errcode)
 err = errcode
+
 end function tao_c_command
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! function tao_c_out_io_buffer_num_lines() bind(c) result (n_lines)
+! Function tao_c_out_io_buffer_num_lines() bind(c) result (n_lines)
 !
-! Function to access out_io_buffer%n_lines from C
+! Function to access string buffer out_io_buffer%n_lines number of lines from C.
 !
 ! Modules needed:
 !   use tao_c_interface_mod
@@ -91,15 +102,64 @@ integer(c_int) ::  n_lines
 !
 
 n_lines = out_io_buffer_num_lines()
-end function
+
+end function tao_c_out_io_buffer_num_lines
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! function tao_c_out_io_buffer_get_line(n) bind(c) result (c_string_ptr)
+! Function tao_c_real_array_size() bind(c) result (n_size)
 !
-! Function to access out_io_buffer%line(n) from C
+! Function to access tao_c_interface_com%n_re number of items in the real array from C.
+!
+! Modules needed:
+!   use tao_c_interface_mod
+!
+! Output:
+!   n_size -- integer(c_int): C access to tao_c_interface_com%n_re.
+!-
+
+function tao_c_real_array_size() bind(c) result (n_size)
+integer(c_int) ::  n_size
+
+!
+
+n_size = tao_c_interface_com%n_re
+
+end function tao_c_real_array_size
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+ 
+! Function tao_c_integer_array_size() bind(c) result (n_size)
+!
+! Function to access tao_c_interface_com%n_int number of items in the integer array from C.
+!
+! Modules needed:
+!   use tao_c_interface_mod
+!
+! Output:
+!   n_size -- integer(c_int): C access to out_int_array%n_size
+!-
+
+function tao_c_integer_array_size() bind(c) result (n_size)
+integer(c_int) ::  n_size
+
+!
+
+n_size = tao_c_interface_com%n_int
+
+end function tao_c_integer_array_size
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+ 
+! Function tao_c_out_io_buffer_get_line(n) bind(c) result (c_string_ptr)
+!
+! Function to access string buffer out_io_buffer%line(n) from C.
 !
 ! Modules needed:
 !   use tao_c_interface_mod
@@ -113,15 +173,14 @@ end function
 
 function tao_c_out_io_buffer_get_line(n) bind(c) result (c_string_ptr)
 type(c_ptr) :: c_string_ptr
-character(c_char), target, save :: c_line(n_char_show+1) 
 integer(c_int), value :: n
 integer :: i
 
 !
 
 i = n
-c_line = c_string(out_io_buffer_get_line(i))
-c_string_ptr = c_loc(c_line(1)) ! must point to (1) to avoid gfortran compiler error
+tao_c_interface_com%c_line = c_string(out_io_buffer_get_line(i))
+c_string_ptr = c_loc(tao_c_interface_com%c_line(1)) ! must point to (1) to avoid gfortran compiler error
 
 end function tao_c_out_io_buffer_get_line
 
@@ -129,14 +188,68 @@ end function tao_c_out_io_buffer_get_line
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
+! Function tao_c_get_real_array() bind(c) result (array_ptr)
+!
+! Function to get the buffered real array from C.
+!
+! Modules needed:
+!   use tao_c_interface_mod
+!
+! Output:
+!   array_ptr -- type(c_ptr): C pointer to the real array.
+!-
+
+function tao_c_get_real_array() bind(c) result (array_ptr)
+type(c_ptr) :: array_ptr
+integer :: i
+
+!
+
+array_ptr = c_loc(tao_c_interface_com%c_re(1))
+
+end function tao_c_get_real_array
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+ 
+! Function tao_c_get_integer_array() bind(c) result (array_ptr)
+!
+! Function to get the buffered integer array from C.
+!
+! Modules needed:
+!   use tao_c_interface_mod
+!
+! Output:
+!   array_ptr -- type(c_ptr): C pointer to the real array.
+!-
+
+function tao_c_get_integer_array() bind(c) result (array_ptr)
+type(c_ptr) :: array_ptr
+integer :: i
+
+!
+
+array_ptr = c_loc(tao_c_interface_com%c_int(1))
+
+end function tao_c_get_integer_array
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+ 
 ! Subroutine tao_c_out_io_buffer_reset() bind(c)
 !
-! Routine to reset the out_io buffer.
+! Routine to reset the buffer.
 !-
 
 subroutine tao_c_out_io_buffer_reset() bind(c)
 
 call out_io_buffer_reset()
+if (allocated(tao_c_interface_com%c_re))  deallocate (tao_c_interface_com%c_re)
+if (allocated(tao_c_interface_com%c_int)) deallocate (tao_c_interface_com%c_int)
+tao_c_interface_com%n_re = 0
+tao_c_interface_com%n_int = 0
 
 end subroutine tao_c_out_io_buffer_reset
 
