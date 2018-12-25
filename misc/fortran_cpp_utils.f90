@@ -599,6 +599,7 @@ implicit none
 character(len=*), intent(in) :: f_string
 character(len=1,kind=c_char), dimension(len_trim(f_string)+1) :: c_string
 call to_c_str (f_string, c_string)
+
 end function c_string
 
 !-----------------------------------------------------------------------------
@@ -684,6 +685,8 @@ implicit none
 integer n, i
 real(rp) f_vec(:)
 real(c_double), target :: c_vec(n)
+
+!
 
 forall (i = 1:n) c_vec(i) = f_vec(i)
 
