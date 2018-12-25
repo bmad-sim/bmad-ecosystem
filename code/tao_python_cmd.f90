@@ -1051,12 +1051,12 @@ case ('plot_curve')
 ! Points used to construct a smooth line for a plot curve.
 ! Command syntax:
 !   python plot_line <region_name>.<graph_name>.<curve_name> {x-or-y}
-! Optional {x-or-y} may be set to "x" or "y" to get the smooth line points x or y component put on the real array buffer.
+! Optional {x-or-y} may be set to "x" or "y" to get the smooth line points x or y component put into the real array buffer.
 ! Note: The plot must come from a region, and not a template, since no template plots have associated line data.
 ! Examples:
-!   python plot_line beta.g.a       ! String array output.
-!   python plot_line beta.g.a x     ! x-component of line points loaded to the real array buffer.
-!   python plot_line beta.g.a y     ! y-component of line points loaded to the real array buffer.
+!   python plot_line r13.g.a       ! String array output.
+!   python plot_line r13.g.a x     ! x-component of line points loaded into the real array buffer.
+!   python plot_line r13.g.a y     ! y-component of line points loaded into the real array buffer.
 
 case ('plot_line')
 
@@ -1072,6 +1072,13 @@ case ('plot_line')
   endif
 
   cur => curve(1)%c
+  if (.not. allocated(cur%x_line)) then
+    nl=incr(nl); li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": No line associated with curve')
+    call end_stuff()
+    return
+  endif
+      
   n = size(cur%x_line)
 
   select case (who)
@@ -1091,13 +1098,6 @@ case ('plot_line')
     endif
 
   case ('')
-    if (.not. allocated(cur%x_line)) then
-      nl=incr(nl); li(nl) = 'INVALID'
-      call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": No line associated with curve')
-      call end_stuff()
-      return
-    endif
-      
     call re_allocate_lines (nl+n+100)
     do i = 1, n
       nl=incr(nl); write (li(nl), '(i0, 2(a, es24.16))') i, ';', cur%x_line(i), ';', cur%y_line(i)
@@ -1113,11 +1113,18 @@ case ('plot_line')
 !----------------------------------------------------------------------
 ! Locations to draw symbols for a plot curve.
 ! Command syntax:
-!   python plot_symbol <region_name>.<graph_name>.<curve_name>
+!   python plot_symbol <region_name>.<graph_name>.<curve_name> {x-or-y}
+! Optional {x-or-y} may be set to "x" or "y" to get the symbol x or y positions put into the real array buffer.
 ! Note: The plot must come from a region, and not a template, since no template plots have associated symbol data.
+! Examples:
+!   python plot_symbol r13.g.a       ! String array output.
+!   python plot_symbol r13.g.a x     ! x-component of the symbol positions loaded into the real array buffer.
+!   python plot_symbol r13.g.a y     ! y-component of the symbol positions loaded into the real array buffer.
 
 case ('plot_symbol')
 
+  call string_trim(line(ix_line+1:), who, ix2)
+  line = line(1:ix_line)
   call tao_find_plots (err, line, 'COMPLETE', curve = curve)
 
   if (.not. allocated(curve) .or. size(curve) /= 1) then
@@ -1128,18 +1135,42 @@ case ('plot_symbol')
   endif
 
   cur => curve(1)%c
-
   if (.not. allocated(cur%x_symb)) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": No line associated with curve')
     call end_stuff()
     return
   endif
-    
-  call re_allocate_lines (size(cur%x_symb)+100)
-  do i = 1, size(cur%x_symb)
-    nl=incr(nl); write (li(nl), '(2(i0, a), 2(es24.16, a))') i, ';', cur%ix_symb(i), ';', cur%x_symb(i), ';', cur%y_symb(i)
-  enddo
+
+  n = size(cur%x_symb)
+
+  select case (who)
+  case ('x', 'y')
+    if (.not. allocated(tao_c_interface_com%c_re)) allocate (tao_c_interface_com%c_re(n))
+    if (size(tao_c_interface_com%c_re) < n) then
+      deallocate (tao_c_interface_com%c_re)
+      allocate (tao_c_interface_com%c_re(n)) 
+    endif
+
+    tao_c_interface_com%n_re = n
+
+    if (who == 'x') then
+      tao_c_interface_com%c_re(1:n) = cur%x_symb
+    else
+      tao_c_interface_com%c_re(1:n) = cur%y_symb
+    endif
+
+  case ('')
+    call re_allocate_lines (size(cur%x_symb)+100)
+    do i = 1, size(cur%x_symb)
+      nl=incr(nl); write (li(nl), '(2(i0, a), 2(es24.16, a))') i, ';', cur%ix_symb(i), ';', cur%x_symb(i), ';', cur%y_symb(i)
+    enddo
+
+  case default
+    nl=incr(nl); li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": word after curve name not "x" nor "y"')
+    call end_stuff()
+  end select
 
 !----------------------------------------------------------------------
 ! Info on a given plot.

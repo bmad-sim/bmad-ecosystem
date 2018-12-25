@@ -91,7 +91,7 @@ tao.init("command line args here...")
 
   #----------
   # Get integer array output. 
-  # Only python commands that load the real array buffer can be used with this method.
+  # Only python commands that load the integer array buffer can be used with this method.
   def cmd_integer (self, cmd):
     self.so_lib.tao_c_command(cmd.encode('utf-8'))
     n = self.so_lib.tao_c_integer_array_size()
