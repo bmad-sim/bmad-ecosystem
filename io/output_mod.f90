@@ -765,7 +765,7 @@ end subroutine out_io_print_and_capture_setup
 !+
 ! Subroutine out_io_buffer_reset ()
 !
-! Routine to initialize the capture internal buffer.
+! Routine to initialize the buffer used for capturing output.
 !-
 
 subroutine out_io_buffer_reset ()
