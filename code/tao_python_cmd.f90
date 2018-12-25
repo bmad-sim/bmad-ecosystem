@@ -28,6 +28,8 @@ use tao_interface, dummy => tao_python_cmd
 use tao_command_mod, only: tao_next_switch, tao_cmd_split
 use tao_init_data_mod, only: tao_point_d1_to_data
 use tao_init_variables_mod, only: tao_point_v1_to_var
+use iso_c_binding
+use tao_c_interface_mod, only: tao_c_interface_com
 use location_encode_mod
 use attribute_mod
 use twiss_and_track_mod, only: twiss_and_track_at_s
@@ -96,7 +98,7 @@ character(20) :: cmd_names(32)= [ &
 real(rp) s_pos
 
 integer :: i, j, k, ie, iu, nn, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i1, i2
-integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_universe, ix_d2
+integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_d2
 integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta
 
 logical :: err, print_flag, opened, doprint, free
@@ -108,6 +110,8 @@ character(20) switch
 line = input_str
 doprint = .true.
 opened = .false.
+tao_c_interface_com%n_re = 0
+tao_c_interface_com%n_int = 0
 
 do
   call tao_next_switch (line, ['-append ', '-write  ', '-noprint'], .false., switch, err, ix)
@@ -169,7 +173,7 @@ select case (command)
 
 case ('beam_init')
 
-  u => point_to_uni(.false., err); if (err) return
+  u => point_to_uni(line, .false., err); if (err) return
   beam_init => u%beam%beam_init
 
   nl=incr(nl); write (li(nl), amt) 'file_name;STR;F;',                         beam_init%file_name
@@ -205,8 +209,8 @@ case ('beam_init')
 
 case ('branch1')
 
-  u => point_to_uni(.true., err); if (err) return
-  ix_branch = parse_branch(.false., err); if (err) return
+  u => point_to_uni(line, .true., err); if (err) return
+  ix_branch = parse_branch(line, .false., err); if (err) return
   branch => u%design%lat%branch(ix_branch)
 
   nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                              branch%name
@@ -235,9 +239,9 @@ case ('branch1')
 
 case ('bunch1')  
 
-  u => point_to_uni(.true., err); if (err) return
-  tao_lat => point_to_tao_lat(err); if (err) return
-  ele => point_to_ele(err); if (err) return
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err); if (err) return
+  ele => point_to_ele(line, err); if (err) return
 
   bunch_params => tao_lat%tao_branch(ele%ix_branch)%bunch_params(ele%ix_ele)
 
@@ -500,7 +504,7 @@ case ('data_d2')
 
 case ('data_general')
 
-  u => point_to_uni(.false., err); if (err) return
+  u => point_to_uni(line, .false., err); if (err) return
 
   do i = 1, u%n_d2_data_used
     d2_ptr => u%d2_data(i)
@@ -686,8 +690,8 @@ case ('help')
 
 case ('lat_ele_list')
 
-  u => point_to_uni(.true., err); if (err) return
-  ix_branch = parse_branch(.false., err); if (err) return
+  u => point_to_uni(line, .true., err); if (err) return
+  ix_branch = parse_branch(line, .false., err); if (err) return
   branch => u%design%lat%branch(ix_branch)
 
   call re_allocate_lines (branch%n_ele_max+100)
@@ -716,13 +720,9 @@ case ('lat_ele_list')
 
 case ('lat_ele1')
 
-  ix = index(line, ' ')
-  call string_trim(line(ix:), who, ix2)
-  who = line(1:ix)
-
-  u => point_to_uni(.true., err); if (err) return
-  tao_lat => point_to_tao_lat(err, which); if (err) return
-  ele => point_to_ele(err); if (err) return
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
 
   select case (who)
   case ('general')
@@ -837,7 +837,7 @@ case ('lat_ele1')
 
 case ('lat_general')
 
-  u => point_to_uni(.false., err); if (err) return
+  u => point_to_uni(line, .false., err); if (err) return
   
   lat => u%design%lat
   do i = 0, ubound(lat%branch, 1)
@@ -867,10 +867,10 @@ case ('lat_param_units')
 
 case ('orbit_at_s')
 
-  u => point_to_uni(.true., err); if (err) return
-  tao_lat => point_to_tao_lat(err); if (err) return
-  ix_branch = parse_branch(.true., err); if (err) return
-  s_pos = parse_real(err); if (err) return
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err); if (err) return
+  ix_branch = parse_branch(line, .true., err); if (err) return
+  s_pos = parse_real(line, err); if (err) return
 
   call twiss_and_track_at_s (tao_lat%lat, s_pos, orb = tao_lat%tao_branch(ix_branch)%orbit, orb_at_s = orb, ix_branch = ix_branch)
   call orbit_out (orb)
@@ -994,7 +994,7 @@ case ('plot_graph')
 !----------------------------------------------------------------------
 ! Curve information for a plot
 ! Command syntax:
-!   pyton curve <curve_name>
+!   pyton plot_curve <curve_name>
 
 case ('plot_curve')
 
@@ -1050,11 +1050,18 @@ case ('plot_curve')
 !----------------------------------------------------------------------
 ! Points used to construct a smooth line for a plot curve.
 ! Command syntax:
-!   python plot_line <region_name>.<graph_name>.<curve_name>
-! Note: The plot must come from a region, and not a template, since on plots associated with a resion of line data.
+!   python plot_line <region_name>.<graph_name>.<curve_name> {x-or-y}
+! Optional {x-or-y} may be set to "x" or "y" to get the smooth line points x or y component put on the real array buffer.
+! Note: The plot must come from a region, and not a template, since no template plots have associated line data.
+! Examples:
+!   python plot_line beta.g.a       ! String array output.
+!   python plot_line beta.g.a x     ! x-component of line points loaded to the real array buffer.
+!   python plot_line beta.g.a y     ! y-component of line points loaded to the real array buffer.
 
 case ('plot_line')
 
+  call string_trim(line(ix_line+1:), who, ix2)
+  line = line(1:ix_line)
   call tao_find_plots (err, line, 'COMPLETE', curve = curve)
 
   if (.not. allocated(curve) .or. size(curve) /= 1) then
@@ -1065,24 +1072,49 @@ case ('plot_line')
   endif
 
   cur => curve(1)%c
+  n = size(cur%x_line)
 
-  if (.not. allocated(cur%x_line)) then
+  select case (who)
+  case ('x', 'y')
+    if (.not. allocated(tao_c_interface_com%c_re)) allocate (tao_c_interface_com%c_re(n))
+    if (size(tao_c_interface_com%c_re) < n) then
+      deallocate (tao_c_interface_com%c_re)
+      allocate (tao_c_interface_com%c_re(n)) 
+    endif
+
+    tao_c_interface_com%n_re = n
+
+    if (who == 'x') then
+      tao_c_interface_com%c_re(1:n) = cur%x_line
+    else
+      tao_c_interface_com%c_re(1:n) = cur%y_line
+    endif
+
+  case ('')
+    if (.not. allocated(cur%x_line)) then
+      nl=incr(nl); li(nl) = 'INVALID'
+      call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": No line associated with curve')
+      call end_stuff()
+      return
+    endif
+      
+    call re_allocate_lines (nl+n+100)
+    do i = 1, n
+      nl=incr(nl); write (li(nl), '(i0, 2(a, es24.16))') i, ';', cur%x_line(i), ';', cur%y_line(i)
+    enddo
+
+  case default
     nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": No line associated with curve')
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": word after curve name not "x" nor "y"')
     call end_stuff()
-    return
-  endif
-    
-  call re_allocate_lines (nl+size(cur%x_line)+100)
-  do i = 1, size(cur%x_line)
-    nl=incr(nl); write (li(nl), '(i0, 2(a, es24.16))') i, ';', cur%x_line(i), ';', cur%y_line(i)
-  enddo
+  end select
+
 
 !----------------------------------------------------------------------
 ! Locations to draw symbols for a plot curve.
 ! Command syntax:
 !   python plot_symbol <region_name>.<graph_name>.<curve_name>
-! Note: The plot must come from a region, and not a template, since on plots associated with a resion of line data.
+! Note: The plot must come from a region, and not a template, since no template plots have associated symbol data.
 
 case ('plot_symbol')
 
@@ -1198,10 +1230,10 @@ case ('species_to_str')
 
 case ('twiss_at_s')
 
-  u => point_to_uni(.true., err); if (err) return
-  tao_lat => point_to_tao_lat(err); if (err) return
-  ix_branch = parse_branch(.true., err); if (err) return
-  s_pos = parse_real(err); if (err) return
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err); if (err) return
+  ix_branch = parse_branch(line, .true., err); if (err) return
+  s_pos = parse_real(line, err); if (err) return
 
   call twiss_and_track_at_s (tao_lat%lat, s_pos, this_ele, tao_lat%tao_branch(ix_branch)%orbit, ix_branch = ix_branch)
   call twiss_out (this_ele%a, 'a')
@@ -1215,7 +1247,7 @@ case ('twiss_at_s')
 
 case ('universe')
 
-  u => point_to_uni(.false., err); if (err) return
+  u => point_to_uni(line, .false., err); if (err) return
   
   nl=incr(nl); write (li(nl), imt) 'ix_uni;INT;F;',                           u%ix_uni
   nl=incr(nl); write (li(nl), imt) 'n_d2_data_used;INT;F;',                   u%n_d2_data_used
@@ -1452,6 +1484,8 @@ contains
 
 subroutine end_stuff()
 
+integer i
+
 if (doprint) call out_io (s_blank$, r_name, li(1:nl))
 
 if (opened) then
@@ -1466,27 +1500,30 @@ end subroutine
 !----------------------------------------------------------------------
 ! contains
 
-function point_to_uni (has_ampersand, err) result (u)
+function point_to_uni (line, compound_word, err) result (u)
 
 type (tao_universe_struct), pointer :: u
-logical has_ampersand, err
+integer ix, ix_universe
+logical compound_word, err
+character(*) line
 character(40) str
+
+! A compound_word is something like "2@q10w" or "q10w". A non-compound word is something like "2" which 
+! just represents a universe index.
 
 nullify(u)
 err = .false.
 
-if (has_ampersand) then
+if (compound_word) then
   ix = index(line, '@')
   if (ix == 0) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Missing "@"')
-    call end_stuff()
-    err = .true.
-    return
+    str = '1' ! Use universe 1 as a default.
+  else
+    str = line(1:ix-1)
+    line = line(ix+1:)
   endif
-  str = line(1:ix-1)
-  line = line(ix+1:)
 else
+  ! In this case line is just a universe number
   str = line
 endif
 
@@ -1531,17 +1568,19 @@ end subroutine re_allocate_lines
 !----------------------------------------------------------------------
 ! contains
 
-function point_to_tao_lat (err, which) result (tao_lat)
+function point_to_tao_lat (line, err, which, who) result (tao_lat)
 
 type (tao_lattice_struct), pointer :: tao_lat
-character(*), optional :: which
 logical err
+character(*) line
+character(*), optional :: which, who
+
 
 err = .false.
 nullify(tao_lat)
 
 call string_trim(line, line, ix)
-call string_trim(line(ix+1:), who, i)
+if (present(who)) call string_trim(line(ix+1:), who, i)
 line = line(1:ix)
 
 ix = index(line, '|')
@@ -1573,9 +1612,10 @@ end function point_to_tao_lat
 !----------------------------------------------------------------------
 ! contains
 
-function point_to_ele (err) result (ele)
+function point_to_ele (line, err) result (ele)
 
 type (ele_struct), pointer :: ele
+character(*) line
 logical err
 
 !
@@ -1598,10 +1638,11 @@ end function point_to_ele
 !----------------------------------------------------------------------
 ! contains
 
-function parse_branch (has_separator, err) result (ix_branch)
+function parse_branch (line, has_separator, err) result (ix_branch)
 
 integer ix_branch
 logical has_separator, err
+character(*) line
 character(40) str
 
 !
@@ -1641,10 +1682,11 @@ end function parse_branch
 !----------------------------------------------------------------------
 ! contains
 
-function parse_real (err) result (a_real)
+function parse_real (line, err) result (a_real)
 
 real(rp) a_real
 logical err
+character(*) line
 
 a_real = string_to_real (line, real_garbage$, err)
 if (err .or. a_real == real_garbage$) then

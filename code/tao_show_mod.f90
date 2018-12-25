@@ -4,6 +4,8 @@ use tao_interface
 use tao_data_and_eval_mod
 use tao_top10_mod
 use tao_lattice_calc_mod
+use iso_c_binding
+use tao_c_interface_mod, only: tao_c_interface_com
 use wall3d_mod
 
 type show_common_struct
@@ -232,7 +234,7 @@ character(100) file_name, name, why_invalid, attrib0
 character(120) header, str
 character(200), allocatable :: alloc_lines(:)
 
-character(16) :: show_what, show_names(38) = [ &
+character(16) :: show_what, show_names(39) = [ &
    'data            ', 'variable        ', 'global          ', 'alias           ', 'top10           ', &
    'optimizer       ', 'element         ', 'lattice         ', 'constraints     ', 'plot            ', &
    'beam            ', 'tune            ', 'graph           ', 'curve           ', 'particle        ', &
@@ -240,7 +242,7 @@ character(16) :: show_what, show_names(38) = [ &
    'branch          ', 'use             ', 'taylor_map      ', 'value           ', 'wave            ', &
    'twiss_and_orbit ', 'building_wall   ', 'wall            ', 'normal_form     ', 'dynamic_aperture', &
    'matrix          ', 'field           ', 'wake_elements   ', 'history         ', 'symbolic_numbers', &
-   'merit           ', 'track           ', 'spin            ']
+   'merit           ', 'track           ', 'spin            ', 'c_buffer        ']
 
 integer :: data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
@@ -617,6 +619,29 @@ case ('building_wall')
   enddo
 
   result_id = show_what
+
+!----------------------------------------------------------------------
+! c_buffer
+! This is useful for debugging python interface.
+
+case ('c_buffer')
+
+  nl=nl+1; write (lines(nl), imt) 'N_re:  ', tao_c_interface_com%n_re
+  nl=nl+1; write (lines(nl), imt) 'N_int: ', tao_c_interface_com%n_int
+
+  do i = 1, min(tao_c_interface_com%n_re, 3)
+    nl=nl+1; write (lines(nl), '(a, i0, es12.4)') 'Real:  ', i, tao_c_interface_com%c_re(i)
+  enddo
+  do i = max(tao_c_interface_com%n_re-3, 4), tao_c_interface_com%n_re
+    nl=nl+1; write (lines(nl), '(a, i0, es12.4)') 'Real:  ', i, tao_c_interface_com%c_re(i)
+  enddo
+
+  do i = 1, min(tao_c_interface_com%n_int, 3)
+    nl=nl+1; write (lines(nl), '(a, i0, i12)') 'Int:  ', i, tao_c_interface_com%c_int(i)
+  enddo
+  do i = max(tao_c_interface_com%n_int-3, 4), tao_c_interface_com%n_int
+    nl=nl+1; write (lines(nl), '(a, i0, i12)') 'Int:  ', i, tao_c_interface_com%c_int(i)
+  enddo
 
 !----------------------------------------------------------------------
 ! constraints
