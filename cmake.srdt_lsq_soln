@@ -5,7 +5,7 @@ set (SRC_FILES
 )
 
 set (LINK_LIBS
-  util_programs
+  bsim
   bmad
   sim_utils
   recipes_f-90_LEPP
@@ -15,7 +15,7 @@ set (LINK_LIBS
   gslcblas
   xrlf03
   xrl
-	lapack95
+  lapack95
   lapack
   blas
 )
