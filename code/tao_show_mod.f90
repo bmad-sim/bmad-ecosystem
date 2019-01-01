@@ -229,9 +229,8 @@ character(24) :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
 character(40) ele_name, sub_name, ele1_name, ele2_name, aname
 character(40) replacement_for_blank
 character(60) nam, attrib_list(20), attrib
-character(100) :: word1, fmt, fmt2, fmt3, switch
-character(100) file_name, name, why_invalid, attrib0
-character(120) header, str
+character(100) :: word1, fmt, fmt2, fmt3, switch, why_invalid
+character(200) header, str, attrib0, file_name, name
 character(200), allocatable :: alloc_lines(:)
 
 character(16) :: show_what, show_names(39) = [ &
