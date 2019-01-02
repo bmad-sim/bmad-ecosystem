@@ -222,7 +222,7 @@ do it = 1, n_table, 1
     write (1, *) '\section{Kickers: Hkicker and Vkicker Element Attributes}'
     write (1, *) '\label{s:list.hvkicker}'
   case (wiggler$)
-    write (1, *) '\section{:Wiggler and Undulator Element Attributes}'
+    write (1, *) '\section{Wiggler and Undulator Element Attributes}'
     write (1, *) '\label{s:list.wiggler}'
   case default
     write (1, *) '\section{', trim(tab%name), ' Element Element Attributes}'
