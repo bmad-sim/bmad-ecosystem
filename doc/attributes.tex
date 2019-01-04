@@ -1178,15 +1178,16 @@ its surface differently.]
 The coordinate system used for characterizing the curvature of a surface is the element reference
 frame as shown in \fig{f:surface}). This coordinate system has the $z$ axis pointing towards the
 interior of the element, and the $x$ axis in the plane defined by the entrance and exit reference
-orbit. In this coordinate system, the surface is an ellipsoid plus a fourth order polynomial
-in $x$ and $y$:
+orbit. In this coordinate system, the surface is an ellipsoid plus a fourth order polynomial in $x$
+and $y$ plus a possible ``figure error'' contribution $z_\text{fig}$ defined by a surface grid:
 \Begineq
   {-z} = \frac{1}{g_z} \, \left[ 1 - \sqrt{1 - \sign(g_x) \, (g_x \, x)^2 - \sign(g_y) \, (g_y \, y)^2} \right] + 
-  \sum_{2 \le i+j \le 6} c_{ij} \, x^i \, y^j
+  \sum_{2 \le i+j \le 6} c_{ij} \, x^i \, y^j - z_\text{fig}
   \label{xs2ij4}
 \Endeq
-where the $c_{ij}$ parameterize the fourth order polynomial and $g_x, g_y$, and $g_z$ parameterize
-the ellipsoid with $\sign$ being the sign function
+$z_\text{fig}$ is discussed in section~\sref{s:surf.grid} and is only present when the surface grid
+\vn{type} is set to \vn{Figure_Error}.  In \Eq{xs2ij4} the $c_{ij}$ coefficients parameterize the fourth order
+polynomial and $g_x, g_y$, and $g_z$ parameterize the ellipsoid with $\sign$ being the sign function
 \Begineq
   \sign(g_i) \equiv \begin{cases} 1 & g_i > 0 \\ -1 & g_i < 0 \end{cases}
 \Endeq
@@ -1267,12 +1268,17 @@ elements. The general syntax is:
 \begin{example}
   surface = \{
     grid = \{                
-      type = <type_name>,                ! Crystals: Off, Segmented, or H_Misalign
+      type = <type_name>,                ! Off, Segmented, Figure_Error, or H_Misalign
       ix_bounds = (<ix_min>, <ix_max>),  ! Min/max index bounds in x-direction
       iy_bounds = (<iy_min>, <iy_max>),  ! Min/max index bounds in y-direction
       r0 = (<x0>, <y0>),                 ! (x,y) coordinates at grid origin
       dr = (<dx>, <dy>),                 ! width and height of pixels.
-      pt(<i>,<j>) = (<x_pitch>, <y_pitch>, <x_pitch_rms>, <x_pitch_rms>),
+      ! Grid points used with type = H_Misalign:
+      pt(<i>,<j>) = (<dz_dx>, <dz_dy>, <dz_dx_rms>, <dz_dy_rms>)
+      ! Grid points used with type = Figure_Error:
+      pt(<i>,<j>) = (<z>, <dz_dx>, <dz_dy>),    ! or
+      pt(<i>,<j>) = <z>, 
+                                         
           \} \}
 \end{example}
 Example:
@@ -1300,44 +1306,56 @@ height. Thus the center of the $(i,j)$ pixel is:
   (x,y) = (r0(1), r0(2)) + (i*dr(1), j*dr(2))
 \end{example}
 
-The \vn{type} component of the grid is used for
-\vn{crystal} elements only. Possible \vn{type} values are:
+There are several types of grids. What type of grid is determined by the \vn{type} component
+Possible \vn{type} values are:
 \begin{example}
+  Figure_Error       ! Mesh defines the surface figure error.
   H_Misalign         ! Misalignment of crystal H vector
   Off                ! Ignore grid
   Segmented          ! Surface is a matrix of flat rectangles
 \end{example}
-\vn{H_Misalign} misaligns the $H$ vector which is the normal to the
-diffracting planes of the the crystal (\sref{s:crystal.tracking}).
-When using \vn{H_Misalign}, each \vn{pt(i,j)} component gives the
-misalignment of $H$ for the corresponding pixel. For an individual
-photon, the misalignt of $H$ will be
-\begin{example}
-  x_pitch_tot = <x_pitch> + r1 * <x_pitch_rms>
-  y_pitch_tot = <y_pitch> + r2 * <y_pitch_rms>
-\end{example}
-where \vn{x_pitch_tot} and \vn{y_pitch_tot} are the rotational
-misalignment (\sref{s:offset}) used in the calculation, the quantities
-in brackets \vn{<...>} are components of \vn{pt}, and \vn{r1} and
-\vn{r2} are Gaussian distributed random numbers with unit rms. These
-random numbers are regenerated for each photon. Note: \vn{pt} is only
-used with \vn{H_Misalign}.
 
-When the \vn{type} component is set to \vn{Segmented}, the crystal
-surface is modeled as a grid of flat ``rectangles'' (the actual shape
-is very close but not quite rectangular). Using a segmented crystal
-only makes sense when the crystal is curved. There is one rectangle
-for each pixel. Each rectangle has an extent in the $(x,y)$ transverse
-dimensions equal to the extent of the corresponding pixel. The $z$
-coordinate of the vertices of the rectangular are adjusted so that 
+\begin{description}
+\item[Figure_Error] \Newline
+With \vn{type} set to \vn{Figure_Error}, a figure error, $z_\text{fig}$ is added to the surface
+curvature as shown in \Eq{xs2ij4}. $z_\text{fig}$ is determined by a spline interpolation of the $z$
+values of the grid of points defined by \vn{pt(<i>,<j>)}. For each point \vn{pt(<i>,<j>)}, the $z$
+value along with the $dz_dx$ and $dz_dy$ slopes can be specified or only the $z$ value needs to be
+specified. With the later option the slopes will be computed by taking finite differences of nearest
+neighbors.
+%
+\item[H_Misalign] \Newline
+\vn{H_Misalign} is used with crystals only. \vn{H_Misalign} misaligns the $H$ vector which is the
+normal to the diffracting planes of the the crystal (\sref{s:crystal.tracking}).  When using
+\vn{H_Misalign}, each \vn{pt(i,j)} component gives the misalignment of $H$ for the corresponding
+pixel. For an individual photon, the misalignt of $H$ will be
 \begin{example}
-  1) The rectangle is flat
-  2) The rectangle contacts the unsegmented surface two diagonally opposite vertices.
-  3) The other two diagonnaly opposite vertices will be as close as possible in the
+  dz_dx_tot = <dz_dx> + r1 * <dz_dx_rms>
+  dz_dy_tot = <dz_dy> + r2 * <dz_dy_rms>
+\end{example}
+where \vn{dz_dx_tot} and \vn{dz_dy_tot} are the rotational misalignment (\sref{s:offset}) used
+in the calculation, the quantities in brackets \vn{<...>} are components of \vn{pt}, and \vn{r1} and
+\vn{r2} are Gaussian distributed random numbers with unit rms. These random numbers are regenerated
+for each photon. Note: \vn{pt} is only used with \vn{H_Misalign}.
+%
+\item[Off] \Newline
+When the \vn{type} component is set to \vn{Off}, the grid will not be used.
+%
+\item[Segmented] \Newline
+When the \vn{type} component is set to \vn{Segmented}, the crystal surface is modeled as a grid of
+flat ``rectangles'' (the actual shape is very close but not quite rectangular). Using a segmented
+surface only makes sense when the surface is curved (see \Eq{xs2ij4}). There is one rectangle for
+each pixel. Each rectangle has an extent in the $(x,y)$ transverse dimensions equal to the extent of
+the corresponding pixel. \Eq{xs2ij4} is used to calculate the $z$ coordinate of the vertices of a given
+rectangle and then these $z$ values are adjusted so that
+\begin{example}
+  1) The rectangle is flat (the verticies all lie on a plane).
+  2) The rectangle contacts the unsegmented surface (\Eq{xs2ij4}) at two diagonally opposite vertices.
+  3) The other two diagonaly opposite vertices will be as close as possible in the
      least squares sense from the unsegmented surface.
 \end{example}
-
-When the \vn{type} component is set to \vn{Off}, the grid will not be used.
+Note: The \vn{pt} component is not used here.
+\begin{description}
 
 %-----------------------------------------------------------------
 \section{Walls: Vacuum Chamber, Capillary and Mask}

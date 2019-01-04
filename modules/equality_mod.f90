@@ -98,13 +98,15 @@ logical is_eq
 
 is_eq = .true.
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%x_pitch == f2%x_pitch)
+is_eq = is_eq .and. (f1%dz_dx == f2%dz_dx)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%y_pitch == f2%y_pitch)
+is_eq = is_eq .and. (f1%dz_dy == f2%dz_dy)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%x_pitch_rms == f2%x_pitch_rms)
+is_eq = is_eq .and. (f1%dz_dx_rms == f2%dz_dx_rms)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%y_pitch_rms == f2%y_pitch_rms)
+is_eq = is_eq .and. (f1%dz_dy_rms == f2%dz_dy_rms)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%dz2_dxdy == f2%dz2_dxdy)
 
 end function eq_surface_orientation
 

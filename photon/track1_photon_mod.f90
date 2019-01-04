@@ -1185,7 +1185,7 @@ integer ix, iy
 
 logical set
 
-! Compute the slope of the crystal at that the point of impact.
+! Compute the slope of the surface at that the point of impact.
 ! curve_rot transforms from standard body element coords to body element coords at point of impact.
 
 s => ele%photon%surface
@@ -1273,12 +1273,11 @@ endif
 ! Make small angle approximation
 
 orient => s%grid%pt(ij(1), ij(2))%orientation
-if (orient%x_pitch == 0 .and. orient%y_pitch == 0 .and. orient%x_pitch_rms == 0 .and. orient%y_pitch_rms == 0) return
 
-h_vec(1:2) = h_vec(1:2) + [orient%x_pitch, orient%y_pitch]
-if (orient%x_pitch_rms /= 0 .or. orient%y_pitch /= 0) then
+h_vec(1:2) = h_vec(1:2) + [orient%dz_dx, orient%dz_dy]
+if (orient%dz_dx_rms /= 0 .or. orient%dz_dy /= 0) then
   call ran_gauss (r)
-  h_vec(1:2) = h_vec(1:2) + [orient%x_pitch_rms, orient%y_pitch_rms] * r
+  h_vec(1:2) = h_vec(1:2) + [orient%dz_dx_rms, orient%dz_dy_rms] * r
 endif
 
 h_vec(3) = sqrt(1 - h_vec(1)**2 - h_vec(2)**2)

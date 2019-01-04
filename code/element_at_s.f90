@@ -92,7 +92,10 @@ logical choose_max, err
 ix_ele = 0
 call check_if_s_in_bounds (branch, s, err, ss)
 if (present(err_flag)) err_flag = err
-if (err) return
+if (err) then
+  if (s > branch%ele(branch%n_ele_track)%s) ix_ele = branch%n_ele_track + 1
+  return
+endif
 
 ! Start of branch case
 
