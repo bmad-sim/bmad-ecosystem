@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_hook_init_data (do_standard_setup) 
+! Subroutine tao_hook_init_data () 
 !
 ! Hook routine to initialize data.
 !-
