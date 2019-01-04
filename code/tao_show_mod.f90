@@ -202,7 +202,13 @@ type show_lat_column_struct
   real(rp) :: scale_factor = 1
 end type
 
+type show_lat_column_info_struct
+  integer attrib_type
+  character(40) attrib_name  ! Is Upper case
+end type
+
 type (show_lat_column_struct) column(60)
+type (show_lat_column_info_struct) col_info(60) 
 type (tao_expression_info_struct), allocatable, save :: info(:)
 
 real(rp) phase_units, s_pos, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, dt, angle, r
@@ -2257,6 +2263,18 @@ case ('lattice')
     endif
   enddo
 
+  ! Compute some column info
+
+  do i = 1, size(column)
+    name = column(i)%name
+
+    if (name(1:7) == 'ele::#[' .and. index(name, ']') /= 0) then
+      ix = index(name, ']')-1
+      col_info(i)%attrib_name = upcase(name(8:ix))
+      col_info(i)%attrib_type = attribute_type(col_info(i)%attrib_name)
+    endif
+  enddo
+
   ! Find elements to use
 
   if (allocated (picked_ele)) deallocate (picked_ele)
@@ -2485,7 +2503,7 @@ case ('lattice')
   line_loop: do ie = 0, branch%n_ele_max
     if (.not. picked_ele(ie)) cycle
 
-    if (size(lines) < nl+100) call re_allocate (lines, nl+200, .false.)
+    if (size(lines) < nl+100) call re_allocate (lines, 2*nl, .false.)
 
     ! Add separator line to distinguish lord vs slave elements
 
@@ -2508,8 +2526,8 @@ case ('lattice')
       name = column(i)%name
 
       if (name(1:7) == 'ele::#[' .and. index(name, ']') /= 0) then
-        sub_name = upcase(name(8:index(name, ']')-1))
-        a_type = attribute_type(sub_name)
+        sub_name = col_info(i)%attrib_name
+        a_type = col_info(i)%attrib_type
 
         ! Note: a_type = real$ is handled later...
         select case (a_type)
