@@ -111,7 +111,7 @@ character(20) switch
 line = input_str
 doprint = .true.
 opened = .false.
-tao_c_interface_com%n_re = 0
+tao_c_interface_com%n_real = 0
 tao_c_interface_com%n_int = 0
 
 do
@@ -929,7 +929,7 @@ case ('lat_list')
     case ('orbit.beta')
       value = orbit%beta
     case ('orbit.state')
-      nl=incr(nl); write (li(nl), '(i0)') orbit%state
+      value = orbit%state
     case ('orbit.energy')
       value = (1 + orbit%vec(6)) * orbit%p0c
     case ('orbit.pc')
@@ -980,21 +980,38 @@ case ('lat_list')
       n = n + 1
       if (n > size(re_array)) call re_allocate(re_array, 2*n)
       re_array(n) = value
+
     else
-      nl=incr(nl); write (li(nl), '(es24.16)') value
+      if (who == 'orbit.state') then
+        nl=incr(nl); write (li(nl), '(i0)') nint(value)
+      else
+        nl=incr(nl); write (li(nl), '(es24.16)') value
+      endif
     endif
 
   enddo
 
   if (use_real_array_buffer) then
-    if (.not. allocated(tao_c_interface_com%c_re)) allocate (tao_c_interface_com%c_re(n))
-    if (size(tao_c_interface_com%c_re) < n) then
-      deallocate (tao_c_interface_com%c_re)
-      allocate (tao_c_interface_com%c_re(n)) 
-    endif
+    if (who == 'orbit.state') then
+      if (.not. allocated(tao_c_interface_com%c_int)) allocate (tao_c_interface_com%c_int(n))
+      if (size(tao_c_interface_com%c_int) < n) then
+        deallocate (tao_c_interface_com%c_int)
+        allocate (tao_c_interface_com%c_int(n)) 
+      endif
 
-    tao_c_interface_com%n_re = n
-    tao_c_interface_com%c_re(1:n) = re_array(1:n)
+      tao_c_interface_com%n_int = n
+      tao_c_interface_com%c_int(1:n) = nint(re_array(1:n))
+
+    else
+      if (.not. allocated(tao_c_interface_com%c_real)) allocate (tao_c_interface_com%c_real(n))
+      if (size(tao_c_interface_com%c_real) < n) then
+        deallocate (tao_c_interface_com%c_real)
+        allocate (tao_c_interface_com%c_real(n)) 
+      endif
+
+      tao_c_interface_com%n_real = n
+      tao_c_interface_com%c_real(1:n) = re_array(1:n)
+    endif
   endif
 
 !----------------------------------------------------------------------
@@ -1236,18 +1253,18 @@ case ('plot_line')
 
   select case (who)
   case ('x', 'y')
-    if (.not. allocated(tao_c_interface_com%c_re)) allocate (tao_c_interface_com%c_re(n))
-    if (size(tao_c_interface_com%c_re) < n) then
-      deallocate (tao_c_interface_com%c_re)
-      allocate (tao_c_interface_com%c_re(n)) 
+    if (.not. allocated(tao_c_interface_com%c_real)) allocate (tao_c_interface_com%c_real(n))
+    if (size(tao_c_interface_com%c_real) < n) then
+      deallocate (tao_c_interface_com%c_real)
+      allocate (tao_c_interface_com%c_real(n)) 
     endif
 
-    tao_c_interface_com%n_re = n
+    tao_c_interface_com%n_real = n
 
     if (who == 'x') then
-      tao_c_interface_com%c_re(1:n) = cur%x_line
+      tao_c_interface_com%c_real(1:n) = cur%x_line
     else
-      tao_c_interface_com%c_re(1:n) = cur%y_line
+      tao_c_interface_com%c_real(1:n) = cur%y_line
     endif
 
   case ('')
@@ -1299,18 +1316,18 @@ case ('plot_symbol')
 
   select case (who)
   case ('x', 'y')
-    if (.not. allocated(tao_c_interface_com%c_re)) allocate (tao_c_interface_com%c_re(n))
-    if (size(tao_c_interface_com%c_re) < n) then
-      deallocate (tao_c_interface_com%c_re)
-      allocate (tao_c_interface_com%c_re(n)) 
+    if (.not. allocated(tao_c_interface_com%c_real)) allocate (tao_c_interface_com%c_real(n))
+    if (size(tao_c_interface_com%c_real) < n) then
+      deallocate (tao_c_interface_com%c_real)
+      allocate (tao_c_interface_com%c_real(n)) 
     endif
 
-    tao_c_interface_com%n_re = n
+    tao_c_interface_com%n_real = n
 
     if (who == 'x') then
-      tao_c_interface_com%c_re(1:n) = cur%x_symb
+      tao_c_interface_com%c_real(1:n) = cur%x_symb
     else
-      tao_c_interface_com%c_re(1:n) = cur%y_symb
+      tao_c_interface_com%c_real(1:n) = cur%y_symb
     endif
 
   case ('')

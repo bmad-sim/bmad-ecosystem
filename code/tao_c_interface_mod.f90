@@ -6,10 +6,10 @@ use fortran_cpp_utils
 implicit none
 
 type tao_c_interface_common_struct
-  real(c_double), allocatable :: c_re(:)
+  real(c_double), allocatable :: c_real(:)
   integer(c_int), allocatable :: c_int(:)
   character(c_char) :: c_line(n_char_show+1) 
-  integer(c_int) :: n_re = 0, n_int = 0
+  integer(c_int) :: n_real = 0, n_int = 0
 end type
 
 type (tao_c_interface_common_struct), target, save :: tao_c_interface_com
@@ -111,13 +111,13 @@ end function tao_c_out_io_buffer_num_lines
 !+ 
 ! Function tao_c_real_array_size() bind(c) result (n_size)
 !
-! Function to access tao_c_interface_com%n_re number of items in the real array from C.
+! Function to access tao_c_interface_com%n_real number of items in the real array from C.
 !
 ! Modules needed:
 !   use tao_c_interface_mod
 !
 ! Output:
-!   n_size -- integer(c_int): C access to tao_c_interface_com%n_re.
+!   n_size -- integer(c_int): C access to tao_c_interface_com%n_real.
 !-
 
 function tao_c_real_array_size() bind(c) result (n_size)
@@ -125,7 +125,7 @@ integer(c_int) ::  n_size
 
 !
 
-n_size = tao_c_interface_com%n_re
+n_size = tao_c_interface_com%n_real
 
 end function tao_c_real_array_size
 
@@ -205,7 +205,7 @@ integer :: i
 
 !
 
-array_ptr = c_loc(tao_c_interface_com%c_re(1))
+array_ptr = c_loc(tao_c_interface_com%c_real(1))
 
 end function tao_c_get_real_array
 
@@ -246,9 +246,9 @@ end function tao_c_get_integer_array
 subroutine tao_c_out_io_buffer_reset() bind(c)
 
 call out_io_buffer_reset()
-if (allocated(tao_c_interface_com%c_re))  deallocate (tao_c_interface_com%c_re)
+if (allocated(tao_c_interface_com%c_real))  deallocate (tao_c_interface_com%c_real)
 if (allocated(tao_c_interface_com%c_int)) deallocate (tao_c_interface_com%c_int)
-tao_c_interface_com%n_re = 0
+tao_c_interface_com%n_real = 0
 tao_c_interface_com%n_int = 0
 
 end subroutine tao_c_out_io_buffer_reset

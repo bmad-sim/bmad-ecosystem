@@ -631,14 +631,14 @@ case ('building_wall')
 
 case ('c_buffer')
 
-  nl=nl+1; write (lines(nl), imt) 'N_re:  ', tao_c_interface_com%n_re
-  nl=nl+1; write (lines(nl), imt) 'N_int: ', tao_c_interface_com%n_int
+  nl=nl+1; write (lines(nl), imt) 'N_real: ', tao_c_interface_com%n_real
+  nl=nl+1; write (lines(nl), imt) 'N_int:  ', tao_c_interface_com%n_int
 
-  do i = 1, min(tao_c_interface_com%n_re, 3)
-    nl=nl+1; write (lines(nl), '(a, i0, es12.4)') 'Real:  ', i, tao_c_interface_com%c_re(i)
+  do i = 1, min(tao_c_interface_com%n_real, 3)
+    nl=nl+1; write (lines(nl), '(a, i0, es12.4)') 'Real:  ', i, tao_c_interface_com%c_real(i)
   enddo
-  do i = max(tao_c_interface_com%n_re-3, 4), tao_c_interface_com%n_re
-    nl=nl+1; write (lines(nl), '(a, i0, es12.4)') 'Real:  ', i, tao_c_interface_com%c_re(i)
+  do i = max(tao_c_interface_com%n_real-3, 4), tao_c_interface_com%n_real
+    nl=nl+1; write (lines(nl), '(a, i0, es12.4)') 'Real:  ', i, tao_c_interface_com%c_real(i)
   enddo
 
   do i = 1, min(tao_c_interface_com%n_int, 3)
