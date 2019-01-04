@@ -721,6 +721,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
       return
     endif
     u%beam%beam_at_start = beam
+    u%calc%lattice = .true.
 
   case ('track_start', 'beam_track_start')
     call set_this_track(u%beam%track_start, u%beam%ix_track_start)
