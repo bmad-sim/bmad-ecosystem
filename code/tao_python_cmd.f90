@@ -85,15 +85,15 @@ character(200) line, file_name
 character(20), allocatable :: name_list(:)
 character(20) cmd, command, who, which, v_str
 character(20) :: r_name = 'tao_python_cmd'
-character(20) :: cmd_names(33)= [ &
-  'beam_init      ', 'branch1        ', 'bunch1         ', &
-  'data_create    ', 'data_destroy   ', 'data_general   ', 'data_d2        ', 'data_d1        ', 'data1          ', &
-  'enum           ', 'global         ', 'help           ', &
-  'lat_ele_list   ', 'lat_ele1       ', 'lat_general    ', 'lat_list', 'lat_param_units', &
-  'orbit_at_s     ', &
-  'plot_list      ', 'plot1          ', 'plot_graph     ', 'plot_curve     ', 'plot_line      ', 'plot_symbol    ', &
-  'species_to_int ', 'species_to_str ', 'twiss_at_s     ', 'universe       ', &
-  'var_create     ', 'var_destroy    ', 'var_general    ', 'var_v1         ', 'var1           ']
+character(20) :: cmd_names(33)= [character(20) :: &
+  'beam_init', 'branch1', 'bunch1', &
+  'data_create', 'data_destroy', 'data_general', 'data_d2', 'data_d1', 'data1', &
+  'enum', 'global', 'help', &
+  'lat_ele_list', 'lat_ele1', 'lat_general', 'lat_list', 'lat_param_units', &
+  'orbit_at_s', &
+  'plot_list', 'plot1', 'plot_graph', 'plot_curve', 'plot_line', 'plot_symbol', &
+  'species_to_int', 'species_to_str', 'twiss_at_s', 'universe', &
+  'var_create', 'var_destroy', 'var_general', 'var_v1', 'var1']
 
 real(rp) s_pos, value
 real(rp), allocatable :: re_array(:)
