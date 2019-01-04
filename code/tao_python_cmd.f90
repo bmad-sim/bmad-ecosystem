@@ -868,7 +868,7 @@ case ('lat_general')
 !     orbit.state,     ! Note: state is an integer. alive$ = 1, anything else is lost.
 !     orbit.energy, orbit.pc,
 !     ele.a.beta, ele.a.alpha, ele.a.eta, ele.a.etap, ele.a.gamma, ele.a.phi,
-!     ele.b.beta, ele.b.blpha, ele.b.eta, ele.b.etap, ele.b.gamma, ele.b.phi,
+!     ele.b.beta, ele.b.alpha, ele.b.eta, ele.b.etap, ele.b.gamma, ele.b.phi,
 !     ele.x.eta, ele.x.etap,
 !     ele.y.eta, ele.y.etap,
 !     ele.s, ele.l
@@ -948,7 +948,7 @@ case ('lat_list')
       value = ele%a%phi
     case ('ele.b.beta')
       value = ele%b%beta
-    case ('ele.b.blpha')
+    case ('ele.b.alpha')
       value = ele%b%alpha
     case ('ele.b.eta')
       value = ele%b%eta
