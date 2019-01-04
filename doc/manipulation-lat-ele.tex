@@ -170,7 +170,7 @@ recognized) of the pointer components will be associated. For example:
   ...
   call pointer_to_attribute (ele, 'A3_ELEC', .true., attrib_ptr, err)
   attrib_ptr%r = 0.34
-  call set_flags_for_changed_attribute (ele, attrib_ptr%r)
+  call attribute_set_bookkeeping (ele, 'A3_ELEC', err_flag, attrib_ptr)
   call lattice_bookkeeper (lat)  ! Bookkeeping needed due to parameter change 
 \end{example}
 Also see the example program in \sref{s:first.program}.

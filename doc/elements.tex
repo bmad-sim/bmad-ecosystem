@@ -4245,8 +4245,8 @@ General \vn{wiggler} attributes are:
 See \sref{s:list.wiggler} for a full list of element attributes.
 
 There are three types of wigglers. Wigglers that are described using a magnetic field map are called
-``\vn{map type}'' wigglers and are discussed in \sref{s:wiggler.map}. Wigglers that are described
-assuming a periodic field are called ``\vn{periodic type}'' wigglers and are described in
+``\vn{map type}'' and are discussed in \sref{s:wiggler.map}. Wigglers that are described
+assuming a periodic field are called ``\vn{periodic type}'' and are described in
 \sref{s:wiggler.periodic}. The third type of wiggler has a custom field. The different wiggler types
 are distinguished by the setting of the element's \vn{field_calc} parameter as discussed in
 section~\sref{s:field.calc}. For example:
@@ -4255,21 +4255,18 @@ section~\sref{s:field.calc}. For example:
 \end{example}
 In this example \vn{wig1} is a map type wiggler. 
 
-%-----------------------------------------------------
-\subsection{Map Type Wigglers}
-\label{s:wiggler.map}
-
-\vn{Map type} wigglers are modeled using a field map as described in section~\vn{s:fieldmap}.
-\vn{Map type} wigglers have their \vn{field_calc} parameter set to \vn{fieldmap} and \vn{field_calc}
-will, for historic purposes default to \vn{fieldmap} if there is a field map present.
-
-\index{polarity}
-\index{term (for a wiggler)}
-Attributes specific to \vn{map type} \vn{wigglers} element are:
+\index{polarity}\index{b_max}\index{l_pole}\index{n_pole}\index{polarity}
+\index{k1_pseudo}\index{g_max}
+Attributes specific to wiggler and undulator elements are: 
 \begin{example}
-  b_max    = <Real>   ! Maximum magnetic field (in T) on the wiggler centerline. 
-                      !   Dependent attribute (\sref{s:depend}).
-  polarity = <Real>   ! For scaling the field.
+  b_max      = <Real>  ! Maximum magnetic field (in T) on the wiggler centerline. 
+  l_pole     = <Real>  ! Wiggler pole length. The period is then 2 * l_pole.
+  n_pole     = <Real>  ! The number of poles (L / L_POLE). 
+                       !   A settable Dependent attribute (\sref{s:depend}).
+  polarity   = <Real>  ! For scaling the field.
+  k1_pseudo            ! Pseudo K1 value. A Dependent attribute (\sref{s:depend}).
+  g_max                ! Maximum bending strength. Dependent attribute.
+  x_ray_line_len = <Real> ! Deprecated.
 \end{example}
 
 The \vn{polarity} value is used to scale the magnetic field. By
@@ -4279,6 +4276,31 @@ default, \vn{polarity} has a value of 1.0.  Example:
 \end{example}
 In this example the wiggler field is defined by a Cartesian map (\sref{s:cart.map}) and the field is
 reversed from what it would be with \vn{polarity} set to 1.
+
+\index{x_ray_line_len}
+\vn{x_ray_line_len} is the length of an associated x-ray synchrotron light line measured from the
+exit end of the element. This is used for machine geometry calculations and is irrelevant for
+lattice computations. \vn{x_ray_line_len} is deprecated. Use a \vn{photon_fork} (\sref{s:fork})
+with an attached lattice branch instead.
+
+
+\checkthisout
+Tracking a particle through a wiggler is always done so that if the particle starts on-axis with no
+momentum offsets, there is no change in the $z$ coordinate even though the actual trajectory through
+the wiggler does not follow the straight line reference trajectory.
+
+
+
+%-----------------------------------------------------
+\subsection{Map Type Wigglers}
+\label{s:wiggler.map}
+
+\vn{Map type} wigglers are modeled using a field map as described in section~\sref{s:fieldmap}.
+\vn{Map type} wigglers have their \vn{field_calc} parameter set to \vn{fieldmap}. Note: For historic
+reasons, unlike other types of elements, \vn{field_calc} will default to \vn{fieldmap} if there is a
+field map present in a \vn{wiggler}.
+
+
 
 The \vn{b_max} attribute for a \vn{map type} \vn{wiggler} is set by \bmad to be the maximum field
 on-axis computed for \vn{polarity} = 1.
@@ -4298,17 +4320,8 @@ type} wigglers have their \vn{field_calc} parameter set to one of
 For historic purposes, if there is no fieldmap defined for the element (that is, it is not a \vn{map
 type} wiggler), and \vn{field_calc} is not set, then \vn{field_calc} will default to \vn{planar_model}.
 
-Attributes specific to \vn{periodic type} wigglers the attributes are: 
-\index{b_max}\index{n_pole}
-\index{k1}\index{rho}
-\begin{example}
-  b_max      = <Real>  ! Maximum magnetic field (in T) on the wiggler centerline. 
-  l_pole     = <Real>  ! Wiggler pole length. The period is then 2 * l_pole.
-  n_pole     = <Real>  ! The number of poles (L / L_POLE). 
-                       !   A settable Dependent attribute (\sref{s:depend}).
-  k1_pseudo            ! Pseudo K1 value. A Dependent attribute (\sref{s:depend}).
-  g_max                ! Maximum bending strength. Dependent attribute.
-\end{example}
+
+!!!!!!
 Notice that here \vn{b_max} is an independent parameter to be set in the lattice file and not
 a dependent parameter which is calculated by \bmad.
 
@@ -4322,8 +4335,8 @@ For the \vn{planar_model}, wigglers use a simplified model where the wiggler has
 poles and the magnetic field components are
 \begin{alignat}{1}
   B_y &= \hphantom{-} \text{b_max} \, \cosh(k_z \, y) \, \cos(k_z \, z + \phi_z) \CRNO
-  B_x &= 0
-  B_z &=             -\text{b_max} \, \sinh(k_z \, y) \, \sin(k_z \, z + \phi_z) 
+  B_x &= 0 \\
+  B_z &=             -\text{b_max} \, \sinh(k_z \, y) \, \sin(k_z \, z + \phi_z) \nonumber
   \label{bbkykz}
 \end{alignat}
 where the input parameter $\vn{b_max}$ is the maximum field on the centerline and $k$ is
@@ -4386,26 +4399,6 @@ octupole. Vertical motion is calculated using a kick-drift-kick model.
 
 Note: When using Taylor maps and symplectic tracking with a
 \vn{periodic} type wiggler, the number of poles must be even.
-
-
-
-%-----------------------------------------------------
-\subsection{Common Wiggler Parameters}
-
-Tracking a particle through a wiggler is always done so that if the particle starts on-axis with no
-momentum offsets, there is no change in the $z$ coordinate even though the actual trajectory through
-the wiggler does not follow the straight line reference trajectory.
-
-\index{x_ray_line_len}
-All wigglers have the following attributes:
-\begin{example}
-  x_ray_line_len = <Real> ! Deprecated.
-  polarity       = <Real> ! Used to scale the field strength.
-\end{example}
-\vn{x_ray_line_len} is the length of an associated x-ray synchrotron light line measured from the
-exit end of the element. This is used for machine geometry calculations and is irrelevant for
-lattice computations. \vn{x_ray_line_len} is deprecated. Use a \vn{photon_fork} (\sref{s:fork})
-instead.
 
 %-----------------------------------------------------
 \subsection{Old Wiggler Cartesian Map Syntax}

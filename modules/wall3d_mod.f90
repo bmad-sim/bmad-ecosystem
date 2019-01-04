@@ -1571,6 +1571,7 @@ do iw = 1, size(branch%wall3d)
 
     ie0 = element_at_s(branch, wall%section(i0)%s, .false.)
     ie1 = element_at_s(branch, wall%section(i)%s, .true.)
+    if (ie1 > branch%n_ele_track) ie1 = branch%n_ele_track  ! Can happen if wall overhangs end of branch.
 
     ele => branch%ele(ie0)
 

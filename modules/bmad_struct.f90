@@ -809,7 +809,7 @@ end type
 ! Rule: This structure is always allocated in the ele_struct for elements that can utilize it.
 
 type surface_orientation_struct
-  real(rp) :: x_pitch = 0, y_pitch = 0, x_pitch_rms = 0, y_pitch_rms = 0
+  real(rp) :: dz_dx = 0, dz_dy = 0, dz_dx_rms = 0, dz_dy_rms = 0, dz2_dxdy = 0
 end type
 
 type surface_grid_pt_struct

@@ -71,7 +71,6 @@ if (err_flag) then
   call out_io (s_fatal$, r_name, &
         'S-POSITION \es20.12\ PAST EDGE OF LATTICE. ' , &
         'PAST LATTICE EDGE AT: \es20.12\ ', r_array = [s, s_bound])
-  if (global_com%exit_on_error) call err_exit
 endif
 
 if (present(translated_s)) translated_s = ss
