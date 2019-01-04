@@ -2035,12 +2035,8 @@ endif
 
 string = match_str
 ix = index(string, '::')
-if (ix == 0) then
-  key = 0
-else
-  if (string(:ix-1) == "*") then
-    key = 0
-  else
+if (ix /= 0) then
+  if (string(:ix-1) /= "*") then
     key = key_name_to_key_index (string(:ix-1), .true.)
     if (key < 1) then
       nl=incr(nl); li(nl) = 'INVALID'
@@ -2049,13 +2045,14 @@ else
       err = .true.
       return
     endif
-  endif
-  string = string(ix+2:)
-endif
 
-if (ele%key /= key) then
-  is_a_match = .false.
-  return
+    if (ele%key /= key) then
+      is_a_match = .false.
+      return
+    endif
+  endif
+
+  string = string(ix+2:)
 endif
 
 ! 
