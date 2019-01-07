@@ -272,12 +272,13 @@ endif
 ! Multipoles
 
 if (associated(ele%a_pole) .or. associated(ele%a_pole_elec)) then
-  nl=nl+1; write (li(nl), '(a, l1)')   'Multipoles_on:    ', ele%multipoles_on 
+  nl=nl+1; write (li(nl), '(a, l1)')          'MULTIPOLES_ON =    ', ele%multipoles_on 
 endif
 
 if (associated(ele%a_pole)) then
   if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
-    nl=nl+1; write (li(nl), '(a, l1)') 'Scale_Multipoles: ', ele%scale_multipoles
+    nl=nl+1; write (li(nl), '(a, l1, 2x, a)') 'SCALE_MULTIPOLES = ', ele%scale_multipoles, &
+                                                                     '! Multipoles scaled by the magnet strength?'
   endif
 
   if (associated(branch)) param = branch%param
