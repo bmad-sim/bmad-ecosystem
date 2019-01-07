@@ -297,7 +297,7 @@ follows:
 \index{beta_a}\index{beta_b}\index{alpha_a}\index{alpha_b}
 \vn{sig_x}, \vn{sig_y} are the transverse sigmas of the strong beam
 at $s_0$ which is the $s$-position where the \vn{beambeam} element is located. 
-For calculating the the sigmas of any given slice, \vn{sig_x} and \vn{sig_y} 
+For calculating the sigmas of any given slice, \vn{sig_x} and \vn{sig_y} 
 are extrapolated using the Twiss parameters at $s_0$. The Twiss parameters
 at $s_0$ are set by \vn{beta_a}, \vn{beta_b}, \vn{alpha_a}, and \vn{alpha_b}.
 If \vn{beta_a} is zero (the default), the $a$-mode Twiss parameters as 
@@ -1575,7 +1575,7 @@ Rules:
   \begin{itemize}
   \item
 If an \vn{origin_ele} is specified, the position of this element must
-to calculated before the the position of the \vn{fiducial} element is
+to calculated before the position of the \vn{fiducial} element is
 calculated (\sref{s:ref}). This means, the \vn{origin_ele} must be in
 a prior lattice branch from the branch the \vn{fiducial} element is in
 or the \vn{origin_ele} in the same branch as the \vn{fiducial} element
@@ -1653,7 +1653,7 @@ Attributes specific to a \vn{floor_shift} elements are:
 \end{example}
 
 The \vn{floor_shift} element sets the reference orbit at the exit end of the \vn{floor_shift}
-element as follows: Start with the the reference orbit at the \vn{origin_ele} reference point (see
+element as follows: Start with the reference orbit at the \vn{origin_ele} reference point (see
 below). This coordinate system is shifted using the offset, pitch and tilt parameters of the
 \vn{floor_shift} element. The shifted coordinate system is used as the coordinate system at the exit
 end of the \vn{floor_shift} element. The reference position transformation through a
@@ -1674,7 +1674,7 @@ a \vn{taylor} type element.
 
 If an \vn{origin_ele} is not specified, the default \vn{origin_ele} is the lattice element before
 the \vn{floor_shift} element.  If an \vn{origin_ele} is specified, \bmad needs to be able to
-calculate the position of this element before the the position of the \vn{fiducial} element is
+calculate the position of this element before the position of the \vn{fiducial} element is
 calculated. See the discussion of the \vn{origin_ele} for \vn{fiducial} elements
 (\sref{s:fiducial}).  Notice that if the \vn{origin_ele} is specified, and is different from the
 element upstream from the \vn{floor_shift} element, the coordinates at the exit end of the
@@ -1816,7 +1816,7 @@ will, by default, connect to the downstream end of the \vn{x_line}. The default 
 
 It is important to note that the setting of \vn{direction} does not change the placement of elements
 in the forked line. That is, the global position (\sref{s:global}) of any element is unaffected by
-the setting of \vn{direction}. To shift the the global position of a forked line, \vn{patch}
+the setting of \vn{direction}. To shift the global position of a forked line, \vn{patch}
 elements must be used. In fact, the \vn{direction} parameter is merely an indicator to a program on
 how to treat particle propagation. The \vn{direction} parameter is not used in any calculation done
 by \bmad.
@@ -2171,7 +2171,7 @@ value. An example will make this clear:
 When a program reads the lattice file, initially the value of \vn{q[k1]} will be 0.5 as set
 in the definition of \vn{q}. Later, during lattice expansion (\sref{s:expand}), the group elements
 are added to the lattice. When the group element \vn{gr} is added, the fact that \vn{old_a} and
-\vn{a} are different causes the the value of \vn{q[k1]} to be modified. The delta value is
+\vn{a} are different causes the value of \vn{q[k1]} to be modified. The delta value is
 \begin{example}
   delta = 0.1*a^2 - 0.1*old_a^2
         = 0.3
@@ -3244,7 +3244,7 @@ Attributes specific to a \vn{patch} elements are:
 \end{example}
 \index{x_offset}
 
-A straight line element like a \vn{drift} or a \vn{quadrupole} has the the exit face
+A straight line element like a \vn{drift} or a \vn{quadrupole} has the exit face
 parallel to the entrance face. With a \vn{patch} element, the entrance and exit faces can
 be arbitrarily oriented with respect to one another as shown in \fig{f:patch}A. The length
 \vn{l} of a \vn{patch} is a dependent (\sref{s:depend}) parameter and is the longitudinal

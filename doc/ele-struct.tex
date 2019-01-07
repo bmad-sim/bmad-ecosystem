@@ -515,7 +515,7 @@ This matrix is stored in \vn{%mat6(6,6)} and the
 zeroth order vector is stored in \vn{%vec0(6)}. The reference orbit at
 the upstream end of the element about
 which the transfer matrix is computed is stored in \vn{%map_ref_orb_in}
-and the the reference orbit at the downstream end is stored in \vn{%map_ref_orb_out}.
+and the reference orbit at the downstream end is stored in \vn{%map_ref_orb_out}.
 In the calculation of the transfer map, the vector \vn{%vec0} is set so that
 \begin{example}
   map_ref_orb_out = %mat6 * map_ref_orbit_in + %vec0
@@ -722,7 +722,7 @@ actual frequency in the input file. \Hyperref{r:bmad.parser}{bmad_parser} will s
 \vn{%freq} to \vn{%freq_in} except when the \vn{lr_freq_spread} attribute
 is non-zero in which case \vn{bmad_parser} will vary \vn{%freq} as
 explained in \sref{s:lcav}. \vn{%polarized} is a logical that
-indicates whether the the mode has a polarization angle. If so, then
+indicates whether the mode has a polarization angle. If so, then
 \vn{%angle} is the polarization angle.
 
 %--------------------------------------------------------------------------
