@@ -1,7 +1,7 @@
 \chapter{Electromagnetic Fields}
 
 %-----------------------------------------------------------------
-\section{Magnetic Static Multipole Fields}
+\section{Magnetostatic Multipole Fields}
 \label{s:mag.field}
 \index{magnetic fields|hyperbf}
 
@@ -28,10 +28,12 @@ magnetic multipole components
 \Begineq
   K_nL \equiv \frac{q \, L \, B_n}{P_0}
 \Endeq
-where $q$ is the charge of the reference particle (in units of the elementary charge), $L$
-is the element length, and $P_0$ is the reference momentum (in units of eV/c).  Note that
-$P_0/q$ is sometimes written as $B\rho$. This is just an old notation where $\rho$ is the
-bending radius of a particle with the reference energy in a field of strength $B$.
+where $q$ is the charge of the reference particle (in units of the elementary charge), $L$ is the
+element length, and $P_0$ is the reference momentum (in units of eV/c).  Note that $P_0/q$ is
+sometimes written as $B\rho$. This is just an old notation where $\rho$ is the bending radius of a
+particle with the reference energy in a field of strength $B$. Notice that $P_0$ is the local
+reference momentum at the element which may not be the same as the reference energy at the beginning
+of the lattice if there are \vn{lcavity} elements (\sref{s:lcavity}) present.
 
 The kicks $\Delta p_x$ and $\Delta p_y$ that a
 particle experiences going through a multipole field is
@@ -108,28 +110,29 @@ or
   K_n L &= n! \, \sqrt{a_n^2 + b_n^2} \\
   \tan[(n+1) \theta_n] &= \frac{-a_n}{b_n}
 \end{align}
-To convert a normal magnet (a magnet with no skew component) into a skew
-magnet (a magnet with no normal component) the magnet should be rotated
-about its longitudinal axis with a rotation angle of
+To convert a normal magnet (a magnet with no skew component) into a skew magnet (a magnet with no
+normal component) the magnet should be rotated about its longitudinal axis with a rotation angle of
 \Begineq
   (n+1) \theta_n = \frac{\pi}{2}
 \Endeq
-For example, a normal quadrupole rotated by $45^\circ$ becomes a
-skew quadrupole.
+For example, a normal quadrupole rotated by $45^\circ$ becomes a skew quadrupole.
 
-\index{r0_mag}
-\index{F (multipole scale factor)}
-The actual $a_n$, $b_n$ values used in particle tracking are scaled from the input values given in
-the lattice file. There are two scale factors that are applied. The first scale factor is used if
-the \vn{field_master} attribute (\sref{s:field.master}) is True (default is False) for an element so
-that the multipole values specified in the lattice file are not reference energy normalized
+The multipole fields can be ``\vn{reference energy}'' scaled and/or ``\vn{element strength}''
+scaled.  Scaling here means that the $a_n$ and $b_n$ values used in tracking are scaled from the
+input values given in the lattice file.
+
+\vn{Reference energy} scaling is applied if the \vn{field_master} attribute (\sref{s:field.master})
+is True for an element so that the multipole values specified in the lattice file are not reference
+energy normalized
 \Begineq
   \bigl[ a_n, b_n \bigr] \longrightarrow
   \bigl[ a_n, b_n \bigr] \cdot \frac{q}{P_0}
   \label{ababq}
 \Endeq
 
-The second scaling is applied when the multipoles are associated with a non
+\index{r0_mag}
+\index{F (multipole scale factor)}
+\vn{Element strength} scaling is applied when the multipoles are associated with a non
 \vn{AB_Multipole} element and if the \vn{scale_multipoles} attribute (\sref{s:multip}) is
 \vn{True}. This scaling uses a measurement radius $r_0$ and a scale factor $F$:
 \Begineq
@@ -171,7 +174,7 @@ $\gamma_p$ term is
 \end{table}
 
 %-----------------------------------------------------------------
-\section{Electric Static Multipole Fields}
+\section{Electrostatic Multipole Fields}
 \label{s:elec.field}
 \index{electric fields}
 

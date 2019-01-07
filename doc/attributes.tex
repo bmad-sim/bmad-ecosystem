@@ -1317,18 +1317,19 @@ Possible \vn{type} values are:
 
 \begin{description}
 \item[Figure_Error] \Newline
-With \vn{type} set to \vn{Figure_Error}, a figure error, $z_\text{fig}$ is added to the surface
-curvature as shown in \Eq{xs2ij4}. $z_\text{fig}$ is determined by a spline interpolation of the $z$
-values of the grid of points defined by \vn{pt(<i>,<j>)}. For each point \vn{pt(<i>,<j>)}, the $z$
-value along with the $dz_dx$ and $dz_dy$ slopes can be specified or only the $z$ value needs to be
-specified. With the later option the slopes will be computed by taking finite differences of nearest
-neighbors.
+With the \vn{type} parameter set to \vn{Figure_Error}, a figure error, $z_\text{fig}$ is added to
+the surface curvature as shown in \Eq{xs2ij4}. $z_\text{fig}$ is determined by a spline
+interpolation of the $z$ values of the grid of points defined by \vn{pt(<i>,<j>)}. For each point
+\vn{pt(<i>,<j>)}, the $z$ value along with the $dz_dx$ and $dz_dy$ slopes can be specified or only
+the $z$ value needs to be specified. With the later option the slopes will be computed by taking
+finite differences of nearest neighbors.
 %
 \item[H_Misalign] \Newline
-\vn{H_Misalign} is used with crystals only. \vn{H_Misalign} misaligns the $H$ vector which is the
-normal to the diffracting planes of the the crystal (\sref{s:crystal.tracking}).  When using
-\vn{H_Misalign}, each \vn{pt(i,j)} component gives the misalignment of $H$ for the corresponding
-pixel. For an individual photon, the misalignt of $H$ will be
+A setting of the \vn{type} attribute to \vn{H_Misalign} is used with crystals only. With
+\vn{H_Misalign}, the grid defines misalignment of the $H$ vector which is the normal to the
+diffracting planes of the crystal (\sref{s:crystal.tracking}).  When using \vn{H_Misalign}, each
+\vn{pt(i,j)} component gives the misalignment of $H$ for the corresponding pixel. For an individual
+photon, the misalignt of $H$ will be
 \begin{example}
   dz_dx_tot = <dz_dx> + r1 * <dz_dx_rms>
   dz_dy_tot = <dz_dy> + r2 * <dz_dy_rms>
@@ -1355,7 +1356,7 @@ rectangle and then these $z$ values are adjusted so that
      least squares sense from the unsegmented surface.
 \end{example}
 Note: The \vn{pt} component is not used here.
-\begin{description}
+\end{description}
 
 %-----------------------------------------------------------------
 \section{Walls: Vacuum Chamber, Capillary and Mask}
