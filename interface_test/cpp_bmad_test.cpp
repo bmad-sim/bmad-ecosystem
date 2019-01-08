@@ -144,16 +144,19 @@ void set_CPP_surface_orientation_test_pattern (CPP_surface_orientation& C, int i
   int rhs, offset = 100 * ix_patt;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 1 + offset; C.x_pitch = rhs;
+  rhs = 1 + offset; C.dz_dx = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 2 + offset; C.y_pitch = rhs;
+  rhs = 2 + offset; C.dz_dy = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.x_pitch_rms = rhs;
+  rhs = 3 + offset; C.dz_dx_rms = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 4 + offset; C.y_pitch_rms = rhs;
+  rhs = 4 + offset; C.dz_dy_rms = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 5 + offset; C.dz2_dxdy = rhs;
 
 
 }

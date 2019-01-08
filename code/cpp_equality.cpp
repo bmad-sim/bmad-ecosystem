@@ -102,10 +102,11 @@ template bool is_all_equal (const CPP_spin_polar_MATRIX&, const CPP_spin_polar_M
 
 bool operator== (const CPP_surface_orientation& x, const CPP_surface_orientation& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.x_pitch == y.x_pitch);
-  is_eq = is_eq && (x.y_pitch == y.y_pitch);
-  is_eq = is_eq && (x.x_pitch_rms == y.x_pitch_rms);
-  is_eq = is_eq && (x.y_pitch_rms == y.y_pitch_rms);
+  is_eq = is_eq && (x.dz_dx == y.dz_dx);
+  is_eq = is_eq && (x.dz_dy == y.dz_dy);
+  is_eq = is_eq && (x.dz_dx_rms == y.dz_dx_rms);
+  is_eq = is_eq && (x.dz_dy_rms == y.dz_dy_rms);
+  is_eq = is_eq && (x.dz2_dxdy == y.dz2_dxdy);
   return is_eq;
 };
 

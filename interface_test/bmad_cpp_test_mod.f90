@@ -277,13 +277,15 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 offset = 100 * ix_patt
 
 !! f_side.test_pat[real, 0, NOT]
-rhs = 1 + offset; F%x_pitch = rhs
+rhs = 1 + offset; F%dz_dx = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 2 + offset; F%y_pitch = rhs
+rhs = 2 + offset; F%dz_dy = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%x_pitch_rms = rhs
+rhs = 3 + offset; F%dz_dx_rms = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 4 + offset; F%y_pitch_rms = rhs
+rhs = 4 + offset; F%dz_dy_rms = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 5 + offset; F%dz2_dxdy = rhs
 
 end subroutine set_surface_orientation_test_pattern
 

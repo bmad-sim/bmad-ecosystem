@@ -82,27 +82,29 @@ extern "C" void surface_orientation_to_c (const Opaque_surface_orientation_class
 
 // c_side.to_f2_arg
 extern "C" void surface_orientation_to_f2 (Opaque_surface_orientation_class*, c_Real&, c_Real&,
-    c_Real&, c_Real&);
+    c_Real&, c_Real&, c_Real&);
 
 extern "C" void surface_orientation_to_f (const CPP_surface_orientation& C, Opaque_surface_orientation_class* F) {
 
   // c_side.to_f2_call
-  surface_orientation_to_f2 (F, C.x_pitch, C.y_pitch, C.x_pitch_rms, C.y_pitch_rms);
+  surface_orientation_to_f2 (F, C.dz_dx, C.dz_dy, C.dz_dx_rms, C.dz_dy_rms, C.dz2_dxdy);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void surface_orientation_to_c2 (CPP_surface_orientation& C, c_Real& z_x_pitch,
-    c_Real& z_y_pitch, c_Real& z_x_pitch_rms, c_Real& z_y_pitch_rms) {
+extern "C" void surface_orientation_to_c2 (CPP_surface_orientation& C, c_Real& z_dz_dx, c_Real&
+    z_dz_dy, c_Real& z_dz_dx_rms, c_Real& z_dz_dy_rms, c_Real& z_dz2_dxdy) {
 
   // c_side.to_c2_set[real, 0, NOT]
-  C.x_pitch = z_x_pitch;
+  C.dz_dx = z_dz_dx;
   // c_side.to_c2_set[real, 0, NOT]
-  C.y_pitch = z_y_pitch;
+  C.dz_dy = z_dz_dy;
   // c_side.to_c2_set[real, 0, NOT]
-  C.x_pitch_rms = z_x_pitch_rms;
+  C.dz_dx_rms = z_dz_dx_rms;
   // c_side.to_c2_set[real, 0, NOT]
-  C.y_pitch_rms = z_y_pitch_rms;
+  C.dz_dy_rms = z_dz_dy_rms;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.dz2_dxdy = z_dz2_dxdy;
 }
 
 //--------------------------------------------------------------------

@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 226;
+  const int BMAD_INC_VERSION = 227;
   const int N_POLE_MAXX = 21;
   const int OLD_CONTROL_VAR_OFFSET = 1000;
   const int VAR_OFFSET = 2000;
@@ -36,8 +36,8 @@ namespace Bmad {
   const int TIME_RUNGE_KUTTA = 15;
   const int N_METHODS = 15;
   const int DRIFT_KICK = 1, MATRIX_KICK = 2, RIPKEN_KICK = 3;
-  const int MAP_TYPE = 1, PERIODIC_TYPE = 3;
-  const int FIELDMAP = 2, REFER_TO_LORDS = 4, NO_FIELD = 5;
+  const int FIELDMAP = 2, PLANAR_MODEL = 3, REFER_TO_LORDS = 4, NO_FIELD = 5;
+  const int HELICAL_MODEL = 6;
   const int BRAGG = 1, LAUE = 2;
   const int UNIFORM = 1, GAUSSIAN = 2, SPHERICAL = 3;
   const int MINOR_SLAVE = 1, SUPER_SLAVE = 2, FREE = 3;
@@ -56,7 +56,7 @@ namespace Bmad {
   const int UNSTABLE_A = 5, UNSTABLE_B = 6;
   const int XFER_MAT_CALC_FAILURE = 7, TWISS_PROPAGATE_FAILURE = 8, NO_CLOSED_ORBIT = 9;
   const int INCLUDE_KICKS = 1, INCLUDE_KICKS_EXCEPT_K1 = 2;
-  const int ASCII = 1, BINARY = 2, HDF5 = 3;
+  const int ASCII = 1, BINARY = 2, HDF5 = 3, ONE_FILE = 4;
   const int NUM_ELE_ATTRIB = 80;
   const int X_POLARIZATION = 2, Y_POLARIZATION = 3;
   const int OFF = 1, ON = 2;
@@ -82,7 +82,7 @@ namespace Bmad {
   const int LOST_NEG_Y_APERTURE = 5, LOST_POS_Y_APERTURE = 6;
   const int LOST_PZ_APERTURE = 7;
   const int LINEAR_LEADING = 2, LINEAR_TRAILING = 3;
-  const int X_FAMILY = 1, Y_FAMILY = 2, QU_FAMILY = 3, SQ_FAMILY = 4;
+  const int FAMILY_Y = 1, FAMILY_X = 2, FAMILY_QU = 3, FAMILY_SQ = 4;
   const int HYPER_Y = 1, HYPER_XY = 2, HYPER_X = 3;
   const int SUPER_OK = 0, STALE = 2;
   const int ATTRIBUTE_GROUP = 1, CONTROL_GROUP = 2, FLOOR_POSITION_GROUP = 3;
@@ -105,7 +105,6 @@ namespace Bmad {
   const int PHOTON_INIT = 53, SAMPLE = 54, DETECTOR = 55, SAD_MULT = 56, MASK = 57;
   const int AC_KICKER = 58, LENS = 59;
   const int N_KEY = 59;
-  const int N_PART = 2, TAYLOR_ORDER = 3;
   const int VAL1=11, VAL2=12, VAL3=13, VAL4=14, VAL5=15,
             VAL6=16, VAL7=17, VAL8=18, VAL9=19, VAL10=20, VAL11=21,
             VAL12=22;
@@ -130,14 +129,14 @@ namespace Bmad {
   const int FINT = 21, FINTX = 22, HGAP = 23, HGAPX = 24, H1 = 25, H2 = 26;
   const int RADIUS = 3, TRANSMISSION_COEF = 4, FOCAL_STRENGTH = 5;
   const int L = 1;
-  const int TILT = 2, ROLL = 2;
+  const int TILT = 2, ROLL = 2, N_PART = 2;
   const int REF_TILT = 3, RF_FREQUENCY = 3, DIRECTION = 3;
-  const int KICK = 3, X_GAIN_ERR = 3;
-  const int RF_FREQUENCY_ERR = 4, K1 = 4, HARMON = 4, H_DISPLACE = 4, Y_GAIN_ERR = 4;
+  const int KICK = 3, X_GAIN_ERR = 3, TAYLOR_ORDER = 3;
+  const int RF_FREQUENCY_ERR = 4, K1 = 4, K1_PSEUDO = 4, HARMON = 4, H_DISPLACE = 4, Y_GAIN_ERR = 4;
   const int CRITICAL_ANGLE_FACTOR = 4, TILT_CORR = 4, REF_COORDINATES = 4;
   const int GRAZE_ANGLE = 5, K2 = 5, B_MAX = 5, V_DISPLACE = 5, DRIFT_ID = 5;
   const int KS = 5, FLEXIBLE = 5, CRUNCH = 5, REF_ORBIT_FOLLOWS = 5;
-  const int GRADIENT = 6, K3 = 6, NOISE = 6, NEW_BRANCH = 6;
+  const int GRADIENT = 6, K3 = 6, NOISE = 6, NEW_BRANCH = 6, IX_BRANCH = 6, G_MAX = 6;
   const int G = 6, BRAGG_ANGLE_IN = 6, SYMMETRY = 6, FIELD_SCALE_FACTOR = 6;
   const int G_ERR = 7, N_POLE = 7, BBI_CONST = 7, OSC_AMPLITUDE = 7;
   const int GRADIENT_ERR = 7, CRITICAL_ANGLE = 7, SAD_FLAG = 7;

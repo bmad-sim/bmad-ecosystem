@@ -513,16 +513,18 @@ class Opaque_surface_orientation_class {};  // Opaque class for pointers to corr
 
 class CPP_surface_orientation {
 public:
-  Real x_pitch;
-  Real y_pitch;
-  Real x_pitch_rms;
-  Real y_pitch_rms;
+  Real dz_dx;
+  Real dz_dy;
+  Real dz_dx_rms;
+  Real dz_dy_rms;
+  Real dz2_dxdy;
 
   CPP_surface_orientation() :
-    x_pitch(0.0),
-    y_pitch(0.0),
-    x_pitch_rms(0.0),
-    y_pitch_rms(0.0)
+    dz_dx(0.0),
+    dz_dy(0.0),
+    dz_dx_rms(0.0),
+    dz_dy_rms(0.0),
+    dz2_dxdy(0.0)
     {}
 
   ~CPP_surface_orientation() {
