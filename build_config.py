@@ -103,6 +103,7 @@ release_build_list = [
                 '/packages/forest',
                 '/trunk/src/sim_utils',
                 '/trunk/src/bmad',
+                '/trunk/src/cpp_bmad_interface',
                 '/CESR/CESR_libs/cesr_utils',
                 '/CESR/CESR_libs/genplt',
                 '/CESR/CESR_libs/mpmnet',
