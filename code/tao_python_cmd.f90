@@ -81,7 +81,7 @@ character(*) input_str
 character(n_char_show), allocatable :: li(:) 
 character(24) imt, rmt, lmt, amt, iamt, vamt, vrmt, vrmt2
 character(40) max_loc, ele_name, name1(40), name2(40), a_name, name
-character(200) line, file_name
+character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
 character(20) cmd, command, who, which, v_str
 character(20) :: r_name = 'tao_python_cmd'
@@ -99,7 +99,7 @@ real(rp) s_pos, value
 real(rp), allocatable :: re_array(:)
 
 integer :: i, j, k, ie, iu, nn, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i1, i2
-integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_d2
+integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_d2, n_who
 integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta
 
 logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer
@@ -861,7 +861,7 @@ case ('lat_general')
 !     model
 !     base
 !     design
-!   {who} is one of:
+!   {who} is a comma deliminated list of:
 !     orbit.spin.1, orbit.spin.2, orbit.spin.3,
 !     orbit.vec.1, orbit.vec.2, orbit.vec.3, orbit.vec.4, orbit.vec.5, orbit.vec.6,
 !     orbit.t, orbit.beta,
@@ -875,19 +875,20 @@ case ('lat_general')
 !   {elements} is a string to match element names to. 
 !     Use "*" to match to all elements.
 !     Use the prefix "track:" to exclude lord elements.
-! Note: To output through the real array buffer, add the prefix "real:" to {who}
+! Note: To output through the real array buffer, add the prefix "real:" to {who}. In this
+! case, {who} must only contain a single item
 !
 ! Examples:
-!   python lat_list 3@0>>track:Q*|base orbit.vec.2
-!   python lat_list 3@0>>Q*|base real:orbit.vec.2
+!   python lat_list 3@0>>track:Q*|base ele.s,orbit.vec.2
+!   python lat_list 3@0>>Q*|base real:ele.s    ! Only a single item permitted with real buffer out.
 
 case ('lat_list')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, who = who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, who = all_who); if (err) return
   use_real_array_buffer = (who(1:5) == 'real:')
   if (use_real_array_buffer) then
-    who = who(6:)
+    all_who = all_who(6:)
     call re_allocate(re_array, 1000)
   endif
   ix_branch = parse_branch(line, .true., err); if (err) return
@@ -895,6 +896,25 @@ case ('lat_list')
   ele_name = upcase(line)
   track_only = (ele_name(1:6) == 'TRACK:') 
   if (track_only) ele_name = ele_name(7:)
+
+  n_who = 0
+  do
+    ix = index(all_who, ',')
+    n_who = n_who + 1
+    if (ix == 0) then
+      name1(n_who) = all_who
+      exit
+    else
+      name1(n_who) = all_who(1:ix-1)
+      all_who = all_who(ix+1:)
+    endif
+  enddo
+
+  if (use_real_array_buffer .and. n_who /= 1) then
+    nl=incr(nl); li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, 'python lat_list: Number of "who" must be 1 for real buffered output.')
+    return
+  endif
 
   n = 0
   do ie = 1, branch%n_ele_max
@@ -905,89 +925,99 @@ case ('lat_list')
     matched = match_ele_name(ele_name, ele, err); if (err) return
     if (.not. matched) cycle
 
-    select case (who)
-    case ('orbit.spin.1')
-      value = orbit%spin(1)
-    case ('orbit.spin.2')
-      value = orbit%spin(2)
-    case ('orbit.spin.3')
-      value = orbit%spin(3)
-    case ('orbit.vec.1')
-      value = orbit%vec(1)
-    case ('orbit.vec.2')
-      value = orbit%vec(2)
-    case ('orbit.vec.3')
-      value = orbit%vec(3)
-    case ('orbit.vec.4')
-      value = orbit%vec(4)
-    case ('orbit.vec.5')
-      value = orbit%vec(5)
-    case ('orbit.vec.6')
-      value = orbit%vec(6)
-    case ('orbit.t')
-      value = orbit%t
-    case ('orbit.beta')
-      value = orbit%beta
-    case ('orbit.state')
-      value = orbit%state
-    case ('orbit.energy')
-      value = (1 + orbit%vec(6)) * orbit%p0c
-    case ('orbit.pc')
-      call convert_pc_to ((1 + orbit%vec(6)) * orbit%p0c, orbit%species, E_tot = value)
-    case ('ele.a.beta')
-      value = ele%a%beta
-    case ('ele.a.alpha')
-      value = ele%a%alpha
-    case ('ele.a.eta')
-      value = ele%a%eta
-    case ('ele.a.etap')
-      value = ele%a%etap
-    case ('ele.a.gamma')
-      value = ele%a%gamma
-    case ('ele.a.phi')
-      value = ele%a%phi
-    case ('ele.b.beta')
-      value = ele%b%beta
-    case ('ele.b.alpha')
-      value = ele%b%alpha
-    case ('ele.b.eta')
-      value = ele%b%eta
-    case ('ele.b.etap')
-      value = ele%b%etap
-    case ('ele.b.gamma')
-      value = ele%b%gamma
-    case ('ele.b.phi')
-      value = ele%b%phi
-    case ('ele.x.eta')
-      value = ele%x%eta
-    case ('ele.x.etap')
-      value = ele%x%etap
-    case ('ele.y.eta')
-      value = ele%y%eta
-    case ('ele.y.etap')
-      value = ele%y%etap
-    case ('ele.s')
-      value = ele%s
-    case ('ele.l')
-      value = ele%value(l$)
-    case default
-      nl=incr(nl); li(nl) = 'INVALID'
-      call out_io (s_error$, r_name, 'python lat_ele1 {ele}|{which} {who}: Bad {who}: ' // who)
-      return
-    end select
+    do i = 1, n_who
+      select case (name1(i))
+      case ('orbit.spin.1')
+        value = orbit%spin(1)
+      case ('orbit.spin.2')
+        value = orbit%spin(2)
+      case ('orbit.spin.3')
+        value = orbit%spin(3)
+      case ('orbit.vec.1')
+        value = orbit%vec(1)
+      case ('orbit.vec.2')
+        value = orbit%vec(2)
+      case ('orbit.vec.3')
+        value = orbit%vec(3)
+      case ('orbit.vec.4')
+        value = orbit%vec(4)
+      case ('orbit.vec.5')
+        value = orbit%vec(5)
+      case ('orbit.vec.6')
+        value = orbit%vec(6)
+      case ('orbit.t')
+        value = orbit%t
+      case ('orbit.beta')
+        value = orbit%beta
+      case ('orbit.state')
+        value = orbit%state
+      case ('orbit.energy')
+        value = (1 + orbit%vec(6)) * orbit%p0c
+      case ('orbit.pc')
+        call convert_pc_to ((1 + orbit%vec(6)) * orbit%p0c, orbit%species, E_tot = value)
+      case ('ele.a.beta')
+        value = ele%a%beta
+      case ('ele.a.alpha')
+        value = ele%a%alpha
+      case ('ele.a.eta')
+        value = ele%a%eta
+      case ('ele.a.etap')
+        value = ele%a%etap
+      case ('ele.a.gamma')
+        value = ele%a%gamma
+      case ('ele.a.phi')
+        value = ele%a%phi
+      case ('ele.b.beta')
+        value = ele%b%beta
+      case ('ele.b.alpha')
+        value = ele%b%alpha
+      case ('ele.b.eta')
+        value = ele%b%eta
+      case ('ele.b.etap')
+        value = ele%b%etap
+      case ('ele.b.gamma')
+        value = ele%b%gamma
+      case ('ele.b.phi')
+        value = ele%b%phi
+      case ('ele.x.eta')
+        value = ele%x%eta
+      case ('ele.x.etap')
+        value = ele%x%etap
+      case ('ele.y.eta')
+        value = ele%y%eta
+      case ('ele.y.etap')
+        value = ele%y%etap
+      case ('ele.s')
+        value = ele%s
+      case ('ele.l')
+        value = ele%value(l$)
+      case default
+        nl=incr(nl); li(nl) = 'INVALID'
+        call out_io (s_error$, r_name, 'python lat_ele1 {ele}|{which} {who}: Bad {who}: ' // who)
+        return
+      end select
 
-    if (use_real_array_buffer) then
-      n = n + 1
-      if (n > size(re_array)) call re_allocate(re_array, 2*n)
-      re_array(n) = value
+      if (use_real_array_buffer) then
+        n = n + 1
+        if (n > size(re_array)) call re_allocate(re_array, 2*n)
+        re_array(n) = value
 
-    else
-      if (who == 'orbit.state') then
-        nl=incr(nl); write (li(nl), '(i0)') nint(value)
       else
-        nl=incr(nl); write (li(nl), '(es24.16)') value
+        if (who == 'orbit.state') then
+          if (i == 1) then
+            nl=incr(nl); write (li(nl), '(i0)') nint(value)
+          else
+            write (li(nl), '(2a, i0)') trim(li(nl)), ';', nint(value)
+          endif
+        else
+          if (i == 1) then
+            nl=incr(nl); write (li(nl), '(es24.16)') value
+          else
+            write (li(nl), '(2a, es24.16)') trim(li(nl)), ';', value
+          endif
+        endif
       endif
-    endif
+    enddo
 
   enddo
 
