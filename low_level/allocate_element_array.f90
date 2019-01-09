@@ -14,7 +14,7 @@
 ! Input:
 !   ele(:)      -- Ele_struct, pointer: Element array.
 !   upper_bound -- Integer, Optional: Optional desired upper bound.
-!                    Default: 1.3*ubound(ele(:)) or 100 if ele is not allocated.
+!                    Default: 1.3*ubound(ele(:)) or 10 if ele is not allocated.
 !   init_ele0   -- Logical, optional: If present and True and ele(:) array has not been allocated then set:
 !                     ele(0)%name = 'BEGINNING'
 !                     ele(0)%key = beginning_ele$
