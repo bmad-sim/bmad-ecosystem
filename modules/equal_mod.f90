@@ -389,6 +389,7 @@ type (lat_struct), intent(in), target :: lat_in
 type (branch_struct), pointer :: branch_out
 type (control_struct), pointer :: c_in, c_out
 integer i, n, nb, ne, ie, n_out, n_in
+logical do_alloc
 
 ! Kill allociated PTC layouts if they exist
 
@@ -408,8 +409,14 @@ nb = ubound(lat_in%branch, 1)
 call allocate_branch_array (lat_out, nb)
 
 do i = 0, nb
-  ne = min(lat_in%branch(i)%n_ele_max+10, ubound(lat_in%branch(i)%ele, 1))
-  call allocate_lat_ele_array (lat_out, ne, i)
+  do_alloc = .true.
+  if (associated(lat_out%branch(i)%ele)) then
+    if (ubound(lat_out%branch(i)%ele, 1) >= lat_in%branch(i)%n_ele_max) do_alloc = .false.
+  endif
+  if (do_alloc) then
+    ne = min(lat_in%branch(i)%n_ele_max+10, ubound(lat_in%branch(i)%ele, 1))
+    call allocate_lat_ele_array (lat_out, ne, i)
+  endif
   branch_out => lat_out%branch(i)
   branch_out = lat_in%branch(i)
   branch_out%lat => lat_out
@@ -553,13 +560,21 @@ implicit none
 type (branch_struct), intent(inout) :: branch1
 type (branch_struct), intent(in) :: branch2
 integer i, n
+logical do_alloc
 
 !
 
-n = min(branch2%n_ele_max+10, ubound(branch2%ele, 1))
+do_alloc = .true.
+if (associated(branch1%ele)) then
+  if (ubound(branch1%ele, 1) >= branch2%n_ele_max) do_alloc = .false.
+endif
 
-call allocate_element_array (branch1%ele, n)
-do i = 0, n
+if (do_alloc) then
+  n = min(branch2%n_ele_max+10, ubound(branch2%ele, 1))
+  call allocate_element_array (branch1%ele, n)
+endif
+
+do i = 0, branch2%n_ele_max
   branch1%ele(i)  = branch2%ele(i)
 enddo
 

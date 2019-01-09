@@ -12,7 +12,7 @@
 !   lat         -- Lat_struct: Lattice with element array.
 !     %branch(ix_branch)%ele(:)  -- Element array to reallocate.
 !   upper_bound -- Integer, Optional: Optional desired upper bound.
-!                    Default: 1.3*ubound(ele(:)) or 100 if ele is not allocated.
+!                    Default: 1.3*ubound(ele(:)) or 10 if ele is not allocated.
 !   ix_branch   -- Integer, optional: Branch index. Default is 0.
 !
 ! Output:
