@@ -906,7 +906,7 @@ case ('lat_list')
       exit
     else
       name1(n_who) = all_who(1:ix-1)
-      all_who = all_who(ix+1:)
+      all_who = adjustl(all_who(ix+1:))
     endif
   enddo
 
