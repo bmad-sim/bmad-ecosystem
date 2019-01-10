@@ -531,13 +531,14 @@ endif
 if (delim == '(' .and. .not. (word == 'TERM' .and. how == def$)) then
   word2 = trim(word) // '('
   call get_next_word (word, ix_word, '=', delim, delim_found)
+  word = trim(word2) // word
 
   if (.not. delim_found) then
     call parser_error ('NO "=" SIGN FOUND', 'FOR ELEMENT: ' // ele%name)
     return
   endif
 
-  call pointer_to_attribute (ele, trim(word2) // word, how == def$, a_ptr, err_flag, .false.)
+  call pointer_to_attribute (ele, word, how == def$, a_ptr, err_flag, .false.)
 
   if (err_flag .or. .not. associated(a_ptr%r)) then
     call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
@@ -3958,12 +3959,12 @@ integer i, ix_name, ix1, ix2
 
 character(*) name
 character(27), parameter :: letters = '\ABCDEFGHIJKLMNOPQRSTUVWXYZ' 
-character(44), parameter :: valid_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_[]().#'
+character(45), parameter :: valid_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_[]().#%'
 character(1), parameter :: tab = achar(9)
 
 logical OK, is_valid
 
-! check for blank spaces
+! Check for blank spaces
 
 is_valid = .false.
 
@@ -3974,7 +3975,7 @@ do i = 1, min(ix_name, len(name))
   endif
 enddo
 
-! check for name too long
+! Check for name too long
 
 if (ix_name > len(name)) then
    call parser_error ('NAME TOO LONG: ' // name)
@@ -3982,14 +3983,15 @@ if (ix_name > len(name)) then
   return
 endif
 
-! check for name too short
+! Check for name too short
 
 if (ix_name == 0) then
   call parser_error ('BLANK NAME')
   return
 endif
 
-! check for invalid characters in name
+! Check for invalid characters in name.
+! Example valid: "Q1[GRID_FIELD(1)%FIELD_SCALE]"
 
 OK = .true.
 if (index(letters, name(1:1)) == 0) OK = .false.
