@@ -109,10 +109,10 @@ parsing_loop: do
   if (i_op > 1) op0 = op(i_op-1) ! If parsed "mass_of(" then op(i_op) corresponds to "("
   select case (op0)
   case (mass_of$, charge_of$, anomalous_moment_of$, species$) 
-    call get_next_chunk (word, ix_word, '()', delim, delim_found)
+    call get_next_chunk (parse_line, word, ix_word, '()', delim, delim_found)
     var_type = species_const$
   case default
-    call get_next_chunk (word, ix_word, '+-*/()^,:} ', delim, delim_found)
+    call get_next_chunk (parse_line, word, ix_word, '[]+-*/()^,:} ', delim, delim_found)
   end select
 
   if (delim == '*' .and. word(1:1) == '*') then
@@ -150,17 +150,24 @@ parsing_loop: do
 
   if (split) then
     word = word(:ix_word) // delim
-    call get_next_chunk (word2, ix_word2, '+-*/()^,:}', delim, delim_found)
+    call get_next_chunk (parse_line, word2, ix_word2, '+-*/()^,:}', delim, delim_found)
     word = word(:ix_word+1) // word2
     ix_word = ix_word + ix_word2
   endif
 
-  ! Something like "lcav[lr(2).freq]" will get split on the "("
+  ! Something like "lcav[lr(2).freq]" will get split on the "["
 
-  if (delim == '(' .and. index(word, '[LR') /= 0) then
-    call get_next_chunk (word2, ix_word2, '+-*/(^,:}', delim, delim_found)
-    word = word(:ix_word) // '(' // word2
-    ix_word = ix_word + ix_word2 + 1
+  if (delim == '[') then
+    call get_next_chunk (parse_line, word2, ix_word2, ']', delim, delim_found)
+    if (delim /= ']') then
+      err_str = 'No "]" found to match "["'
+      return
+    endif
+    word = word(:ix_word) // '[' // trim(word2) // ']'
+    ix_word = ix_word + ix_word2 + 2
+    call get_next_chunk (parse_line, word2, ix_word2, '+-*/()^,:} ', delim, delim_found)
+    word = word(:ix_word) // word2
+    ix_word = ix_word + ix_word2
   endif
 
   !---------------------------
@@ -252,7 +259,7 @@ parsing_loop: do
       endif
       zero_arg_function_pending = .false.
     else
-      call push_numeric_or_var(err); if (err) return
+      call push_numeric_or_var(word, err); if (err) return
     endif
 
     do
@@ -268,7 +275,7 @@ parsing_loop: do
 
       i_op = i - 1
 
-      call get_next_chunk (word, ix_word, '+-*/()^,:}', delim, delim_found)
+      call get_next_chunk (parse_line, word, ix_word, '+-*/()^,:}', delim, delim_found)
       if (ix_word /= 0) then
         err_str = 'UNEXPECTED CHARACTERS ON RHS AFTER ")"'
         return
@@ -294,7 +301,7 @@ parsing_loop: do
       endif
       return
     endif
-    call push_numeric_or_var (err); if (err) return
+    call push_numeric_or_var (word, err); if (err) return
   endif
 
   ! If we are here then we have an operation that is waiting to be identified
@@ -364,9 +371,9 @@ err_flag = .false.
 !-------------------------------------------------------------------------
 contains
 
-subroutine get_next_chunk (word, ix_word, delim_list, delim, delim_found)
+subroutine get_next_chunk (parse_line, word, ix_word, delim_list, delim, delim_found)
 
-character(*) word, delim_list, delim
+character(*) parse_line, word, delim_list, delim
 
 integer ix_word
 
@@ -382,10 +389,11 @@ end subroutine get_next_chunk
 !-------------------------------------------------------------------------
 ! contains
 
-subroutine push_numeric_or_var (err)
+subroutine push_numeric_or_var (word, err)
 
 logical err
 integer ios, ix
+character(*) word
 
 !
 
