@@ -1732,6 +1732,7 @@ if (err) return
 do i = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(i)) cycle
   call set_this_branch(s%u(i), err)
+  s%u(i)%calc%lattice = .true.
   if (err) return
 enddo
 
