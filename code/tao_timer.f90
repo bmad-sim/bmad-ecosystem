@@ -32,7 +32,7 @@ case ('read')
   if (dtime > 1000) then
     call out_io (s_info$, r_name, 'Time (min): \f11.2\ ', dtime/60)
   else
-    call out_io (s_info$, r_name, 'Time (sec): \f11.1\ ', dtime)
+    call out_io (s_info$, r_name, 'Time (sec): \f11.2\ ', dtime)
   endif
 
 case ('beam')
