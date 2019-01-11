@@ -24,8 +24,8 @@ character(*), optional :: cmd_arg(:)
 character(200) full_name
 character(*), parameter :: r_name = 'tao_call_cmd'
 
-integer iu, nl
-type (tao_command_file_struct) :: cmd_file(0:s%com%cmd_file_level)
+integer iu, nl, nl0
+type (tao_command_file_struct), allocatable :: tmp_cmd_file(:)
 
 ! PTC call
 
@@ -45,22 +45,24 @@ endif
 
 ! Open the command file and store the unit number
 
-nl = s%com%cmd_file_level + 1
+nl0 = s%com%cmd_file_level
+nl = nl0 + 1
 s%com%cmd_file_level = nl
 
 ! reallocate cmd_file array
 
-if (nl > 1) cmd_file = s%com%cmd_file
+if (ubound(s%com%cmd_file, 1) < nl) then
+  call move_alloc (s%com%cmd_file, tmp_cmd_file)
+  allocate (s%com%cmd_file(0:nl))
+  s%com%cmd_file(0:nl0) = tmp_cmd_file
+endif
 
-if (allocated (s%com%cmd_file)) deallocate (s%com%cmd_file)
-allocate (s%com%cmd_file(0:nl))
+!
 
-if (nl > 1) s%com%cmd_file(0:nl-1) = cmd_file
-  
 iu = lunget()
 call tao_open_file (file_name, iu, full_name, s_error$)
 if (iu == 0) then ! open failed
-  s%com%cmd_file_level = nl - 1
+  s%com%cmd_file_level = nl0
   return
 endif
 

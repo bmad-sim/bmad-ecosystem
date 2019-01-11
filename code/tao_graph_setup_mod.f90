@@ -226,7 +226,7 @@ end subroutine tao_graph_data_slice_setup
 ! the string "|" + component will be added at the end of str_out.
 !
 ! Input:
-!   templace    -- character(*): String template.
+!   template    -- character(*): String template.
 !   curve       -- tao_curve_struct: curve%ele_ref_name is substituted for all instances of "#ref".
 !   graph       -- tao_graph_struct: 
 !
