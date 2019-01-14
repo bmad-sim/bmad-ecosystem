@@ -4283,29 +4283,6 @@ exit end of the element. This is used for machine geometry calculations and is i
 lattice computations. \vn{x_ray_line_len} is deprecated. Use a \vn{photon_fork} (\sref{s:fork})
 with an attached lattice branch instead.
 
-
-Tracking a particle through a wiggler is always done so that if the particle starts on-axis with no
-momentum offsets, there is no change in the $z$ coordinate even though the actual trajectory through
-the wiggler does not follow the straight line reference trajectory.
-
-
-
-%-----------------------------------------------------
-\subsection{Map Type Wigglers}
-\label{s:wiggler.map}
-
-\vn{Map type} wigglers are modeled using a field map as described in section~\sref{s:fieldmap}.
-\vn{Map type} wigglers have their \vn{field_calc} parameter set to \vn{fieldmap}. Note: For historic
-reasons, unlike other types of elements, \vn{field_calc} will default to \vn{fieldmap} if there is a
-field map present in a \vn{wiggler}.
-
-
-
-The \vn{b_max} attribute for a \vn{map type} \vn{wiggler} is set by \bmad to be the maximum field
-on-axis computed for \vn{polarity} = 1.
-
-Note: There is no \vn{bmad_standard} tracking for a \vn{map_type} \vn{wiggler}. 
-
 %-----------------------------------------------------
 \subsection{Periodic Type Wigglers}
 \label{s:wiggler.periodic}
@@ -4318,11 +4295,6 @@ type} wigglers have their \vn{field_calc} parameter set to one of
 \end{example}
 For historic purposes, if there is no fieldmap defined for the element (that is, it is not a \vn{map
 type} wiggler), and \vn{field_calc} is not set, then \vn{field_calc} will default to \vn{planar_model}.
-
-
-!!!!!!
-Notice that here \vn{b_max} is an independent parameter to be set in the lattice file and not
-a dependent parameter which is calculated by \bmad.
 
 Example:
 \begin{example}
@@ -4385,6 +4357,12 @@ method.
 
 
 
+Tracking a particle through a wiggler is always done so that if the particle starts on-axis with no
+momentum offsets, there is no change in the $z$ coordinate even though the actual trajectory through
+the wiggler does not follow the straight line reference trajectory.
+
+
+
 With \vn{bmad_standard} tracking (\sref{s:tkm}), particle transport used a simplified model where
 the motion is averaged over many periods. For the \vn{planar_model}, the horizontal motion looks
 like a drift. For the
@@ -4398,6 +4376,21 @@ octupole. Vertical motion is calculated using a kick-drift-kick model.
 
 Note: When using Taylor maps and symplectic tracking with a
 \vn{periodic} type wiggler, the number of poles must be even.
+
+%-----------------------------------------------------
+\subsection{Map Type Wigglers}
+\label{s:wiggler.map}
+
+\vn{Map type} wigglers are modeled using a field map as described in section~\sref{s:fieldmap}.
+\vn{Map type} wigglers have their \vn{field_calc} parameter set to \vn{fieldmap}. Note: For historic
+reasons, unlike other types of elements, \vn{field_calc} will default to \vn{fieldmap} if there is a
+field map present in a \vn{wiggler}.
+
+Unlike \vn{periodic type} wigglers, the \vn{b_max} attribute for a \vn{map type} \vn{wiggler} 
+is a dependent attribute and is 
+set by \bmad to be the maximum field on-axis computed for \vn{polarity} = 1.
+
+Note: There is no \vn{bmad_standard} tracking for a \vn{map_type} \vn{wiggler}. 
 
 %-----------------------------------------------------
 \subsection{Old Wiggler Cartesian Map Syntax}
