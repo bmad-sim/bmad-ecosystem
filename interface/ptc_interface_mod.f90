@@ -3552,7 +3552,7 @@ call ele_to_ptc_magnetic_an_bn (ele, param, ptc_key%list%k, ptc_key%list%ks, ptc
 
 ! field map
 
-is_planar_wiggler = ((ele2%key == wiggler$ .or. ele2%key == undulator$) .and. ele%field_calc == planar_model$) 
+is_planar_wiggler = ((ele2%key == wiggler$ .or. ele2%key == undulator$) .and. ele2%field_calc == planar_model$) 
  
 if ((ele2%field_calc == fieldmap$ .and. ele%tracking_method /= bmad_standard$) .or. is_planar_wiggler) then
 
