@@ -685,6 +685,7 @@ case(planar_model$)
   c_z = cos(kk * (s_body - ele%value(l$)/2))
   s_z = sin(kk * (s_body - ele%value(l$)/2))
 
+  field%B(1) =  0
   field%B(2) =  ele%value(b_max$) * ch_y * c_z
   field%B(3) = -ele%value(b_max$) * sh_y * s_z
 
@@ -709,16 +710,16 @@ case(helical_model$)
   c_z = cos(kk * (s_body - ele%value(l$)/2))
   s_z = sin(kk * (s_body - ele%value(l$)/2))
 
-  field%B(1) =  ele%value(b_max$) * ch_x * s_z
-  field%B(2) = -ele%value(b_max$) * ch_y * c_z
+  field%B(1) = -ele%value(b_max$) * ch_x * s_z
+  field%B(2) =  ele%value(b_max$) * ch_y * c_z
   field%B(3) =  ele%value(b_max$) * (sh_x * c_z - sh_y * s_z)
 
   if (do_df_calc) then
     dfield_computed = .true.
-    field%db(1,1) =  kk * ele%value(b_max$) * sh_x * s_z
-    field%db(1,3) =  kk * ele%value(b_max$) * ch_x * c_z
-    field%db(2,2) = -kk * ele%value(b_max$) * sh_y * c_z
-    field%db(2,3) =  kk * ele%value(b_max$) * ch_y * s_z
+    field%db(1,1) = -kk * ele%value(b_max$) * sh_x * s_z
+    field%db(1,3) = -kk * ele%value(b_max$) * ch_x * c_z
+    field%db(2,2) =  kk * ele%value(b_max$) * sh_y * c_z
+    field%db(2,3) = -kk * ele%value(b_max$) * ch_y * s_z
     field%db(3,1) =  kk * ele%value(b_max$) * ch_x * c_z
     field%db(3,2) = -kk * ele%value(b_max$) * ch_y * s_z
     field%db(3,3) = -kk * ele%value(b_max$) * (sh_x * s_z + sh_y * c_z)

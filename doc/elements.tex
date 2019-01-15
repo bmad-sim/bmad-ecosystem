@@ -4305,77 +4305,66 @@ This defines a periodic type wiggler with \vn{field_type} defaulting to \vn{plan
 For the \vn{planar_model}, wigglers use a simplified model where the wiggler has infinitely wide
 poles and the magnetic field components are
 \begin{alignat}{1}
-  B_y &= \hphantom{-} \text{b_max} \, \cosh(k_z \, y) \, \cos(k_z \, z + \phi_z) \CRNO
-  B_x &= 0 \\
-  B_z &=             -\text{b_max} \, \sinh(k_z \, y) \, \sin(k_z \, z + \phi_z) \nonumber
+  B_x &=  0 \CRNO
+  B_y &= \hphantom{-}\text{b_max} \, \cosh(k_z \, y) \, \cos(k_z \, z + \phi_z) \\
+  B_z &=            -\text{b_max} \, \sinh(k_z \, y) \, \sin(k_z \, z + \phi_z) \nonumber
   \label{bbkykz}
 \end{alignat}
-where the input parameter $\vn{b_max}$ is the maximum field on the centerline and $k$ is
-given in terms of the pole length (\vn{l_pole}) by
+where $z$ is the distance from the beginning of the wiggler, the input parameter $\vn{b_max}$ is the
+maximum field on the centerline, and $k$ is given in terms of the pole length (\vn{l_pole}) by
 \Begineq
   k_z = \frac{\pi}{l_{\text{pole}}}
 \Endeq
 Here the phase $\phi_z$ is chosen so that $B_y$ is symmetric about the center of the wiggler
 \Begineq
   \phi_z = \frac{-k_y \, L}{2}
+  \label{pkl2}
 \Endeq
+The \vn{helical_model} for the field is
+\begin{alignat}{1}
+  B_x &=            -\text{b_max} \, \cosh(k_z \, x) \, \sin(k_z \, z + \phi_z)  \\
+  B_y &= \hphantom{-}\text{b_max} \, \cosh(k_z \, y) \, \cos(k_z \, z + \phi_z) \CRNO
+  B_z &= \hphantom{-}\text{b_max} \, (\sinh(k_z \, x) \, \cos(k_z \, z + \phi_z) -
+                                      \sinh(k_z \, y) \, \sin(k_z \, z + \phi_z) \nonumber
+  \label{bbkykz}
+\end{alignat}
 
-This type of With \vn{bmad_standard} tracking and transfer matrix
-calculations the vertical focusing is assumed small so averaged over a period the horizontal motion
-looks like a drift and the vertical motion is modeled as a combination focusing quadrupole and
-focusing octupole giving a kick\cite{b:corbett}
+With \vn{field_calc} set to \vn{planar_model}, and with \vn{bmad_standard} tracking
+(\sref{c:methods}), the vertical focusing is assumed small so averaged over a period the horizontal
+motion looks like a drift and the vertical motion is modeled as a combination focusing quadrupole
+and focusing octupole giving a kick\cite{b:corbett}
 \Begineq
   \frac{dp_y}{dz} = k1 \left( y + \frac{2}{3} \, k_z^2 \, y^3 \right)
 \Endeq
 where
 \begin{alignat}{2}
-  g_max &= \frac{e \, B_{\max}}{P_0 \, (1 + p_z)} \\
-  k1 &= \frac{-1}{2} \, g_max^2 
+  g_\text{max} &= \frac{e \, B_{\max}}{P_0 \, (1 + p_z)} \\
+  \text{k1_pseudo} &= \frac{-1}{2} \, g_\text{max}^2 
 \end{alignat}
-with $k1_\text{pseudo}$ being the linear focusing constant. Notice that the focusing is only in
-the vertical plane.
+with \vn{k1_pseudo} (a dependent element attribute) being the linear focusing constant. Notice that the focusing
+is only in the vertical plane. The subscript \vn{pseudo} is used to remind the user that this is not the same
+as the \vn{k1} attribute of a quadrupole since the focusing is only in one plane.
 
+With \vn{field_calc} set to \vn{helical_model}, and with \vn{bmad_standard} tracking, the vertical
+transport is the same as with the \vn{planar_model} and the horizontal transport is the same as the
+vertical.
 
-With \vn{periodic type} wigglers and \vn{bmad_standard}
-tracking, the phase $\phi_z$ in \Eqs{bbkykz} is irrelevant. When the
-tracking involves Taylor maps and symplectic integration, the phase is
-important. Here the phase is chosen so that $B_y$ is symmetric about
-the center of the wiggler
-\Begineq
-  \phi_z = \frac{-k_y \, L}{2}
-\Endeq
-With this choice, a particle that enters the wiggler on-axis will
-leave the wiggler on-axis provided there is an even number of poles.
+With \vn{field_calc} set to \vn{planar_model} and \vn{bmad_standard} tracking, the phase $\phi_z$ in
+\Eqs{pkl2} is irrelevant. When the tracking involves Taylor maps and symplectic integration, the
+choice of phase is such that, with an even number of poles, a particle that enters the wiggler
+on-axis will leave the wiggler on-axis provided there is an even number of poles. Notice that with
+\vn{field_calc} set to \vn{helical_model} it is not possible to set the phase so that a particle
+that enters the wiggler on-axis will leave the wiggler on-axis. 
 
-When using a tracking through a periodic wiggler with a tracking
-method that integrates through the magnetic field (\sref{s:integ}),
-The magnetic field is approximated using a single wiggler \vn{term} as
-if the wiggler were a \vn{map type} wiggler. This wiggler model has
-unphysical end effects and will give results that are different from
-the results obtained when using the \vn{bmad_standard} tracking
-method. 
-
-
+When using a tracking through a periodic wiggler with a tracking method that integrates through the
+magnetic field (\sref{s:integ}), The magnetic field is approximated using a single wiggler \vn{term}
+as if the wiggler were a \vn{map type} wiggler. This wiggler model has unphysical end effects and
+will give results that are different from the results obtained when using the \vn{bmad_standard}
+tracking method.
 
 Tracking a particle through a wiggler is always done so that if the particle starts on-axis with no
 momentum offsets, there is no change in the $z$ coordinate even though the actual trajectory through
 the wiggler does not follow the straight line reference trajectory.
-
-
-
-With \vn{bmad_standard} tracking (\sref{s:tkm}), particle transport used a simplified model where
-the motion is averaged over many periods. For the \vn{planar_model}, the horizontal motion looks
-like a drift. For the
-
-It is assumed that there is an integer number
-of periods in the oscillation so that the exit horizontal coordinates
-can be calculated from the initial coordinates using the equations for
-a drift. The vertical motion is a quadratic superimposed with a
-octupole. Vertical motion is calculated using a kick-drift-kick model.
-
-
-Note: When using Taylor maps and symplectic tracking with a
-\vn{periodic} type wiggler, the number of poles must be even.
 
 %-----------------------------------------------------
 \subsection{Map Type Wigglers}
@@ -4396,9 +4385,9 @@ Note: There is no \vn{bmad_standard} tracking for a \vn{map_type} \vn{wiggler}.
 \subsection{Old Wiggler Cartesian Map Syntax}
 \label{s:old.wiggler}
 
-When the wiggler model was first developed, the only \vn{map type} available was a Cartesian map
-(\sref{s:fieldmap}).  The syntax for specifying a this Cartesian map was different from what it is
-currently. The old syntax for a Cartiesian map term was:
+When the wiggler model was first developed, the only type of map that could be used for \vn{map
+type} wigglers was a Cartesian map (\sref{s:fieldmap}). The syntax for specifying this Cartesian
+map was different from what it is currently. The old syntax for a Cartiesian map term was:
 \Begineq
   \text{term(i)} = \{C, k_x, k_y, k_z, \phi_z \}
 \Endeq

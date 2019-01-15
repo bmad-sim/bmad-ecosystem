@@ -264,79 +264,62 @@ by \vn{minor} lords (\vn{overlay_lord}s, \vn{group_lord}s, or \vn{girder_lord}s)
 A \vn{free} element is an element with no lords.
   \end{description}
 
-For historical reasons, each \vn{branch} in a lattice has a
-\vn{tracking section} and a \vn{lord section} and the \vn{tracking
-section} is always the first (lower) part of the element array and the
-\vn{lord section} inhabits the second (upper) part of the array.  All
-the \vn{lord} elements are put in the \vn{lord section} of branch 0
-and all the other \vn{lord sections} of all the other branches are
-empty.
+For historical reasons, each \vn{branch} in a lattice has a \vn{tracking section} and a \vn{lord
+section} and the \vn{tracking section} is always the first (lower) part of the element array and the
+\vn{lord section} inhabits the second (upper) part of the array.  All the \vn{lord} elements are put
+in the \vn{lord section} of branch 0 and all the other \vn{lord sections} of all the other branches
+are empty.
 
-As a side note, \'Etienne Forest's PTC code (\sref{s:ptc.intro}) uses separate
-structures to separate the physical element, which PTC calls an
-\vn{element} from the particle track which PTC call a \vn{fibre}.
-[Actually, PTC has two structures for the physical element,
-\vn{element} and \vn{elementp}. The latter being the ``polymorph''
-version.] This \vn{element} and \vn{fibre} combination corresponds to
-\bmad \vn{multipass_lord} and \vn{multipass_slave} elements. PTC does
-not handle overlapping fields as \bmad does with \vn{superposition}
-(\sref{s:super}).
+As a side note, \'Etienne Forest's PTC code (\sref{s:ptc.intro}) uses separate structures to
+separate the physical element, which PTC calls an \vn{element} from the particle track which PTC
+call a \vn{fibre}.  [Actually, PTC has two structures for the physical element, \vn{element} and
+\vn{elementp}. The latter being the ``polymorph'' version.] This \vn{element} and \vn{fibre}
+combination corresponds to \bmad \vn{multipass_lord} and \vn{multipass_slave} elements. PTC does not
+handle overlapping fields as \bmad does with \vn{superposition} (\sref{s:super}).
 
 %---------------------------------------------------------------------------
 \section{PTC: Polymorphic Tracking Code}
 \label{s:ptc.intro}
 \index{PTC}
 
-\'Etienne Forest\cite{b:forest} has written what is actually two
-software libraries: FPP and PTC.  FPP stands for ``Fully Polymorphic
-Package.'' What this library does is implement Taylor maps (aka
-Truncated Power Series Algebra or TPSA) and Lie algebraic
-operations. Thus in FPP you can define a Hamiltonian and then generate
-the Taylor map for this Hamiltonian. FPP is very general. It can work
-with an arbitrary number of dimensions.  FPP, however, is a purely
-mathematical package in the sense that it knows nothing about
-accelerator physics. That is, it does not know about bends,
-quadrupoles or any other kind of element, it has no conception of a
-lattice (a string of elements), it doesn't know anything about Twiss
-parameters, etc. This is where PTC (Polymorphic Tracking Code) comes
-in. PTC implements the high energy physics stuff and uses FPP as
-the engine to do the Lie algebraic calculations.  For the purposes of
-this manual, PTC and FPP are generally considered one package and the
-combined PTC/FPP will be referred to as simply ``PTC''.
-For programmers, interface documentation can be found in
-chapter~\sref{c:ptc}.
+\'Etienne Forest\cite{b:forest} has written what is actually two software libraries: FPP and PTC.
+FPP stands for ``Fully Polymorphic Package.'' What this library does is implement Taylor maps (aka
+Truncated Power Series Algebra or TPSA) and Lie algebraic operations. Thus in FPP you can define a
+Hamiltonian and then generate the Taylor map for this Hamiltonian. FPP is very general. It can work
+with an arbitrary number of dimensions.  FPP, however, is a purely mathematical package in the sense
+that it knows nothing about accelerator physics. That is, it does not know about bends, quadrupoles
+or any other kind of element, it has no conception of a lattice (a string of elements), it doesn't
+know anything about Twiss parameters, etc. This is where PTC (Polymorphic Tracking Code) comes
+in. PTC implements particle tracking and uses FPP as the engine to do the Lie algebraic
+calculations.  For the purposes of this manual, PTC and FPP are generally considered one package and
+the combined PTC/FPP will be referred to as simply ``PTC''.  For programmers, interface
+documentation can be found in chapter~\sref{c:ptc}.
 
 \index{PTC!single element mode}
-\bmad interfaces to PTC in two ways: One way, called ``single
-element'' mode, uses PTC on a per element basis. In this case, the
-method used for tracking a given element can be selected on an
-element-by-element basis so non-PTC tracking methods can be mixed with
-PTC tracking methods to optimize speed and accuracy. [PTC tends to be
-accurate but slow.] The advantage of single element mode is the
-flexibility it affords. The disadvantage is that it precludes using
-PTC's analysis tools which rely on the entire lattice being tracked
-via PTC. Such tools include normal form analysis beam envelope
-tracking, etc.
+\bmad interfaces to PTC in two ways: One way, called ``single element'' mode, uses PTC on a per
+element basis. In this case, the method used for tracking a given element can be selected on an
+element-by-element basis so non-PTC tracking methods can be mixed with PTC tracking methods to
+optimize speed and accuracy. [PTC tends to be accurate but slow.] The advantage of single element
+mode is the flexibility it affords. The disadvantage is that it precludes using PTC's analysis tools
+which rely on the entire lattice being tracked via PTC. Such tools include normal form analysis beam
+envelope tracking, etc.
 
 \index{PTC!whole lattice mode}
-The alternative to single element mode is ``whole lattice'' mode where
-a series of PTC \vn{layout}s (equivalent to a \bmad branch) are
-created from a \bmad lattice. Whether single element or whole lattice
-mode (or both) is used is determined by the program being run.
+The alternative to single element mode is ``whole lattice'' mode where a series of PTC \vn{layout}s
+(equivalent to a \bmad branch) are created from a \bmad lattice. Whether single element or whole
+lattice mode (or both) is used is determined by the program being run.
 
 %---------------------------------------------------------------------------
 \section{Tao: Tool for Accelerator Optics Program}
 \label{s:tao.intro}
 \index{Tao}
 
-The strength of \bmad is that, as a subroutine library, it provides a
-flexible framework from which sophisticated simulation programs may
-easily be developed.  The weakness of \bmad comes from its strength:
-\bmad cannot be used straight out of the box. Someone must put the
-pieces together into a program. To partially remedy this problem, the
-\tao program\cite{b:tao} has been developed at Cornell. \tao, which uses
-\bmad as its simulation engine, is a general purpose program for
-simulating high energy particle beams in accelerators and storage rings.
-Thus \bmad combined with \tao represents the best of both worlds: The
-flexibility of a software library with the ease of use of a program.
+The strength of \bmad is that, as a subroutine library, it provides a flexible framework from which
+sophisticated simulation programs may easily be developed.  The weakness of \bmad comes from its
+strength: \bmad cannot be used straight out of the box. Someone must put the pieces together into a
+program. To partially remedy this problem, the \tao program\cite{b:tao} has been developed at
+Cornell. \tao, which uses \bmad as its simulation engine, is a general purpose program for
+simulating particle beams in accelerators and storage rings.  Thus \bmad combined with \tao
+represents the best of both worlds: The flexibility of a software library with the ease of use of a
+program.
 
