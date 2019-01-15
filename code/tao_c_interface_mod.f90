@@ -7,7 +7,7 @@ implicit none
 
 type tao_c_interface_common_struct
   real(c_double), allocatable :: c_real(:)
-  integer(c_int), allocatable :: c_int(:)
+  integer(c_int), allocatable :: c_integer(:)
   character(c_char) :: c_line(n_char_show+1) 
   integer(c_int) :: n_real = 0, n_int = 0
 end type
@@ -230,7 +230,7 @@ integer :: i
 
 !
 
-array_ptr = c_loc(tao_c_interface_com%c_int(1))
+array_ptr = c_loc(tao_c_interface_com%c_integer(1))
 
 end function tao_c_get_integer_array
 
@@ -247,7 +247,7 @@ subroutine tao_c_out_io_buffer_reset() bind(c)
 
 call out_io_buffer_reset()
 if (allocated(tao_c_interface_com%c_real))  deallocate (tao_c_interface_com%c_real)
-if (allocated(tao_c_interface_com%c_int)) deallocate (tao_c_interface_com%c_int)
+if (allocated(tao_c_interface_com%c_integer)) deallocate (tao_c_interface_com%c_integer)
 tao_c_interface_com%n_real = 0
 tao_c_interface_com%n_int = 0
 

@@ -141,10 +141,11 @@ call string_trim(plot_file_array, plot_file_array, ix)
 plot_file = plot_file_array(1:ix)
 
 call out_io (s_blank$, r_name, '*Init: Opening Plotting File: ' // plot_file)
-call tao_open_file (plot_file, iu, full_file_name, s_fatal$)
+call tao_open_file (plot_file, iu, full_file_name, s_error$)
 if (iu == 0) then
-  call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE: ' // plot_file, 'WILL EXIT HERE...')
-  call err_exit
+  call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE: ' // plot_file)
+  call tao_setup_default_plotting()
+  return
 endif
 
 call out_io (s_blank$, r_name, 'Init: Reading tao_plot_page namelist')
