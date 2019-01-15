@@ -642,10 +642,10 @@ case ('c_buffer')
   enddo
 
   do i = 1, min(tao_c_interface_com%n_int, 3)
-    nl=nl+1; write (lines(nl), '(a, i0, i12)') 'Int:  ', i, tao_c_interface_com%c_int(i)
+    nl=nl+1; write (lines(nl), '(a, i0, i12)') 'Int:  ', i, tao_c_interface_com%c_integer(i)
   enddo
   do i = max(tao_c_interface_com%n_int-3, 4), tao_c_interface_com%n_int
-    nl=nl+1; write (lines(nl), '(a, i0, i12)') 'Int:  ', i, tao_c_interface_com%c_int(i)
+    nl=nl+1; write (lines(nl), '(a, i0, i12)') 'Int:  ', i, tao_c_interface_com%c_integer(i)
   enddo
 
 !----------------------------------------------------------------------

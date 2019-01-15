@@ -1023,14 +1023,14 @@ case ('lat_list')
 
   if (use_real_array_buffer) then
     if (who == 'orbit.state') then
-      if (.not. allocated(tao_c_interface_com%c_int)) allocate (tao_c_interface_com%c_int(n))
-      if (size(tao_c_interface_com%c_int) < n) then
-        deallocate (tao_c_interface_com%c_int)
-        allocate (tao_c_interface_com%c_int(n)) 
+      if (.not. allocated(tao_c_interface_com%c_integer)) allocate (tao_c_interface_com%c_integer(n))
+      if (size(tao_c_interface_com%c_integer) < n) then
+        deallocate (tao_c_interface_com%c_integer)
+        allocate (tao_c_interface_com%c_integer(n)) 
       endif
 
       tao_c_interface_com%n_int = n
-      tao_c_interface_com%c_int(1:n) = nint(re_array(1:n))
+      tao_c_interface_com%c_integer(1:n) = nint(re_array(1:n))
 
     else
       if (.not. allocated(tao_c_interface_com%c_real)) allocate (tao_c_interface_com%c_real(n))
