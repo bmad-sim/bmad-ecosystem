@@ -22,7 +22,7 @@ type wiggler_modeling_common_struct
   real(rp) :: integral_g3_wgt = 1d4
   real(rp) :: x_wgt           = 1d10
   real(rp) :: mat6_wgt        = 1d6
-  real(rp) :: drift_len_wgt     = 1d5 
+  real(rp) :: drift_len_wgt   = 1d5 
   real(rp) :: g_step   = 1d-8  ! Step size for calculating derivatives
   real(rp) :: k_step   = 1d-7  ! Step size for calculating derivatives
   real(rp) :: len_step = 1d-6  ! Step size for calculating derivatives

@@ -69,8 +69,7 @@ case (ab_multipole$, sad_mult$, beambeam$, sbend$, patch$, quadrupole$, drift$, 
       elseparator$, rfcavity$, lcavity$, match$, multipole$, octupole$, sextupole$, &
       sol_quad$, solenoid$, taylor$, wiggler$, undulator$)
   tm = ele%tracking_method
-  field_ele => ele
-  if (ele%field_calc == refer_to_lords$) field_ele => pointer_to_lord(ele, 1)
+  field_ele => pointer_to_field_ele(ele, 1)
   if (key /= wiggler$ .or. field_ele%field_calc /= fieldmap$)   ele%tracking_method = bmad_standard$
   call track1 (start_orb, ele, param, end_orb, mat6 = ele%mat6, make_matrix = .true.)
   ele%tracking_method = tm
