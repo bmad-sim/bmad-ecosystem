@@ -22,6 +22,7 @@ implicit none
 
 type (coord_struct) :: orbit
 type (ele_struct), target :: ele
+type (ele_struct), pointer :: field_ele
 type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
@@ -60,6 +61,7 @@ else
 endif
 
 k1_factor = -abs(rel_tracking_charge_to_mass(orbit, param)) * 0.5 * (c_light * ele%value(b_max$) / ele%value(p0c$))**2
+field_ele => pointer_to_field_ele(ele, 1)
 
 !
 
@@ -90,13 +92,13 @@ do i = 1, n_step
     m43 = k3l * rel_p * k_z**2 * orbit%vec(3)**2
     m46 = -k3l * k_z**2 * orbit%vec(3)**3 / 3
     mat6(4,:) = mat6(4,:) + m43 * mat6(3,:) + m46 * mat6(6,:)
-    if (ele%field_calc == helical_model$) then
+    if (field_ele%field_calc == helical_model$) then
       mat6(2,:) = mat6(2,:) + m43 * mat6(1,:) + m46 * mat6(6,:)
     endif
   endif
 
   orbit%vec(4) = orbit%vec(4) + k3l * rel_p * k_z**2 * orbit%vec(3)**3 / 3
-  if (ele%field_calc == helical_model$) then
+  if (field_ele%field_calc == helical_model$) then
     orbit%vec(2) = orbit%vec(2) + k3l * rel_p * k_z**2 * orbit%vec(1)**3 / 3
   endif
 
@@ -104,7 +106,7 @@ do i = 1, n_step
 
   if (logic_option(.false., make_matrix)) call mat_make_unit (kmat)
 
-  if (ele%field_calc == helical_model$) then
+  if (field_ele%field_calc == helical_model$) then
     call quad_mat2_calc (k1,     step_len, rel_p, kmat(1:2,1:2), dz_x, ddz_x)
   else
     call quad_mat2_calc (0.0_rp, step_len, rel_p, kmat(1:2,1:2), dz_x, ddz_x)
@@ -155,13 +157,13 @@ do i = 1, n_step
     m43 = k3l * rel_p * k_z**2 * orbit%vec(3)**2
     m46 = -k3l * k_z**2 * orbit%vec(3)**3 / 3
     mat6(4,:) = mat6(4,:) + m43 * mat6(3,:) + m46 * mat6(6,:)
-    if (ele%field_calc == helical_model$) then
+    if (field_ele%field_calc == helical_model$) then
       mat6(2,:) = mat6(2,:) + m43 * mat6(1,:) + m46 * mat6(6,:)
     endif
   endif
 
   orbit%vec(4) = orbit%vec(4) + k3l * rel_p * k_z**2 * orbit%vec(3)**3 / 3
-  if (ele%field_calc == helical_model$) then
+  if (field_ele%field_calc == helical_model$) then
     orbit%vec(2) = orbit%vec(2) + k3l * rel_p * k_z**2 * orbit%vec(1)**3 / 3
   endif
 

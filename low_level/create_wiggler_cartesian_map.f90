@@ -71,8 +71,8 @@ if (ele%field_calc == planar_model$) then
   term%family = family_y$
   term%form   = hyper_y$
 
-elseif (ele%field_calc == planar_model$) then
-  if (.not. allocated(cart_map%ptr%term)) allocate (cart_map%ptr%term(1))
+elseif (ele%field_calc == helical_model$) then
+  if (.not. allocated(cart_map%ptr%term)) allocate (cart_map%ptr%term(2))
   if (size(cart_map%ptr%term) /= 2) then
     deallocate (cart_map%ptr%term)
     allocate (cart_map%ptr%term(2))
