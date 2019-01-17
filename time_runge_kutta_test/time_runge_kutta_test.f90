@@ -69,8 +69,8 @@ ele%tracking_method = time_runge_kutta$
 call track1 (start_orb, ele, lat%param, end_orb3, track=track)
 
 do i=1, track%n_pt
-  orb = track%orb(i)
-  field = track%field(i)
+  orb = track%pt(i)%orb
+  field = track%pt(i)%field
   write(*, '(5es18.10)') orb%t, orb%s, orb%vec(5), orb%vec(6), field%E(3)
 enddo
 
@@ -78,7 +78,7 @@ lat%ele%tracking_method = runge_kutta$
 call track1 (start_orb, ele, lat%param, end_orb4, track=track)
 
 do i=1, track%n_pt
-  orb = track%orb(i)
+  orb = track%pt(i)%orb
   call convert_particle_coordinates_s_to_t (orb, orb%vec(5), ele%orientation)
   write(*, '(5es18.10)') orb%t, orb%s, orb%vec(5), orb%vec(6) , field%E(3)
 enddo
