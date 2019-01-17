@@ -22,16 +22,28 @@ type (em_field_struct) field
 type (ele_pointer_struct), allocatable :: eles(:)
 
 real(rp) value
-integer i, j, inc_version, n_loc
-character(200) digested_file
+integer i, j, inc_version, n_loc, nargs
+character(200) digested_file, lat_file
 character(1) delim
 logical err, delim_found
 
-! 
+!
 
-open (1, file = 'output.now')
+nargs = cesr_iargc()
+
+if (nargs > 0) then
+  call cesr_getarg(1, lat_file)
+  print *, 'Using ', trim(lat_file)
+
+  bmad_com%auto_bookkeeper = .false.
+
+  call bmad_parser(lat_file, lat)
+  stop
+endif
 
 !
+
+open (1, file = 'output.now')
 
 call bmad_parser ('control.bmad', lat)
 do i = 1, 3
