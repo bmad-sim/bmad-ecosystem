@@ -344,10 +344,12 @@ case ('CMAT_12');         a_ptr%r => ele%c_mat(1,2)
 case ('CMAT_21');         a_ptr%r => ele%c_mat(2,1)
 case ('CMAT_22');         a_ptr%r => ele%c_mat(2,2)
 case ('S');               a_ptr%r => ele%s
-case ('LORD_STATUS');                    a_ptr%i => ele%lord_status
-case ('SLAVE_STATUS');                   a_ptr%i => ele%slave_status
-case ('REF_TIME')
-  a_ptr%r => ele%ref_time
+case ('LORD_STATUS');     a_ptr%i => ele%lord_status
+case ('SLAVE_STATUS');    a_ptr%i => ele%slave_status
+case ('REF_TIME');        a_ptr%r => ele%ref_time
+case ('KEY');             a_ptr%i => ele%key
+case ('N_SLAVE');         a_ptr%i => ele%n_slave
+case ('N_LORD');          a_ptr%i => ele%n_lord
 case ('LR_FREQ_SPREAD')
   if (.not. associated(ele%wake)) then
     if (.not. do_allocation) goto 9100
@@ -403,7 +405,7 @@ endif
 
 ix_a = attribute_index (ele, a_name)
 if (present(ix_attrib)) ix_attrib = ix_a
-if (ix_a < 1 .and. a_name /= 'KEY') goto 9000 ! Error message and return
+if (ix_a < 1) goto 9000 ! Error message and return
 
 ! "Normal" indexed attribute
 
@@ -566,7 +568,6 @@ case ('REF_ORBIT_FOLLOWS');              a_ptr%r => ele%value(ref_orbit_follows$
 case ('REF_COORDINATES');                a_ptr%r => ele%value(ref_coordinates$)
 case ('SPIN_TRACKING_METHOD');           a_ptr%i => ele%spin_tracking_method
 case ('TRACKING_METHOD');                a_ptr%i => ele%tracking_method
-case ('KEY');                            a_ptr%i => ele%key
 ! No corresponding attribute in element.
 case ('TAYLOR_ORDER')
 case ('PTC_EXACT_MODEL')
