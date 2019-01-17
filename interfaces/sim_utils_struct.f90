@@ -191,8 +191,9 @@ end function is_false
 !   a_ptr -- all_pointer_struct: Pointer to a variable
 !
 ! Output:
-!   value -- real(rp): Value. Set to real_garbage$ if number of pointer components of a_ptr that
-!             are associated is not 1.
+!   value -- real(rp): Value pointed to by a_ptr. Set to true$ or false$ if a_ptr%l is associated. 
+!                      Set to real_garbage$ if the number of pointer components of a_ptr that
+!                      are associated is not 1 (that is, value is not unique).
 !-
 
 function value_of_all_ptr (a_ptr) result (value)
@@ -213,7 +214,7 @@ endif
 
 if (associated(a_ptr%i)) then
   n = n + 1
-  value = a_ptr%r
+  value = a_ptr%i
 endif
 
 if (associated(a_ptr%l)) then
