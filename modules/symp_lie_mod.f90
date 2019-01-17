@@ -52,7 +52,7 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: field_ele
 type (coord_struct) :: start_orb, end_orb, start_orb_saved
 type (lat_param_struct)  param
-type (track_struct), optional :: track
+type (track_struct), optional, target :: track
 type (cartesian_map_struct), pointer :: ct_map
 type (cartesian_map_term1_struct), pointer :: wig_term(:)
 type (cartesian_map_term1_struct), pointer :: wt
@@ -454,24 +454,24 @@ end subroutine err_set
 
 subroutine save_this_track_pt ()
 
-integer ix
+type (track_point_struct), pointer :: tp
 
 !
 
-call save_a_step (track, ele, param, .true., end_orb, s)
+call save_a_step (track, ele, param, .true., end_orb, s, mat6 = ele%mat6)
+
+tp => track%pt(track%n_pt)
 
 if (calculate_mat6) then
-  ix = track%n_pt
-  track%map(ix)%mat6 = ele%mat6
-  if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (track%map(ix)%mat6, ele%value(tilt_tot$))
-  call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, track%map(ix)%mat6)
-  track%map(ix)%vec0 = track%orb(ix)%vec - matmul (track%map(ix)%mat6, start_orb_saved%vec)
+  tp%mat6 = ele%mat6
+  if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (tp%mat6, ele%value(tilt_tot$))
+  call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, tp%mat6)
+  tp%vec0 = tp%orb%vec - matmul (tp%mat6, start_orb_saved%vec)
 endif
 
 if (bmad_com%convert_to_kinetic_momentum) then
-  ix = track%n_pt
-  track%orb(ix)%vec(2) = track%orb(ix)%vec(2) - Ax()
-  track%orb(ix)%vec(4) = track%orb(ix)%vec(4) - Ay()
+  tp%orb%vec(2) = tp%orb%vec(2) - Ax()
+  tp%orb%vec(4) = tp%orb%vec(4) - Ay()
 endif
 
 end subroutine save_this_track_pt

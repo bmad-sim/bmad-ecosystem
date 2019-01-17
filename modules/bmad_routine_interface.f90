@@ -1304,12 +1304,14 @@ subroutine reallocate_expression_stack (stack, n, exact)
   logical, optional :: exact
 end subroutine
 
-subroutine reference_energy_correction (ele, orbit, particle_at)
+subroutine reference_energy_correction (ele, orbit, particle_at, mat6, make_matrix)
   import
   implicit none
   type (ele_struct) :: ele
   type (coord_struct) :: orbit
+  real(rp), optional :: mat6(6,6)
   integer particle_at
+  logical, optional :: make_matrix
 end subroutine
 
 function rel_tracking_charge_to_mass (orbit, param) result (rel_charge)
@@ -1426,7 +1428,7 @@ subroutine s_calc (lat)
   type (lat_struct) lat
 end subroutine
 
-subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, rf_time)
+subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, mat6, make_matrix, rf_time)
   import
   implicit none
   type (track_struct) track
@@ -1434,9 +1436,9 @@ subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_fie
   type (lat_param_struct), intent(in) :: param
   type (coord_struct) orb
   real(rp) s_rel
-  real(rp), optional :: rf_time
+  real(rp), optional :: mat6(6,6), rf_time
   logical local_ref_frame
-  logical, optional :: save_field
+  logical, optional :: save_field, make_matrix
 end subroutine
 
 recursive subroutine set_ele_status_stale (ele, status_group, set_slaves)
@@ -1497,6 +1499,12 @@ subroutine set_status_flags (bookkeeping_state, stat)
   implicit none
   type (bookkeeping_state_struct) bookkeeping_state
   integer stat
+end subroutine
+
+subroutine set_tracking_method_for_element_slice(ele)
+  import
+  implicit none
+  type (ele_struct) ele
 end subroutine
 
 subroutine save_bunch_track (bunch, ele, s_travel)
@@ -1897,7 +1905,7 @@ subroutine track1_linear (start_orb, ele, param, end_orb)
   type (lat_param_struct) :: param
 end subroutine
 
-subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)
+subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) :: start_orb
@@ -1906,6 +1914,8 @@ subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)
   type (lat_param_struct), target :: param
   logical err_flag
   type (track_struct), optional :: track
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
 end subroutine
 
 subroutine track1_spin (start_orb, ele, param, end_orb, make_quaternion)

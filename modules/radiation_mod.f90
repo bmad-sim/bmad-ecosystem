@@ -160,7 +160,6 @@ if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == em_field$) th
       ele%tracking_method = track_method_saved
 
       if (global_com%be_thread_safe) then
-        deallocate(track%orb, track%field, track%map)
         deallocate(track)
       endif
     endif
@@ -226,26 +225,25 @@ subroutine calc_g (track, g2, g3)
 
 type (track_struct) track
 real(rp) g2, g3, g2_here, g3_here, g(3), f, s0
-integer j, n0, n1
+integer j, n1
 
 ! g2 is the average g^2 over the element for an on-energy particle.
 
-track%orb(:)%vec(6) = 0  ! on-energy
+track%pt(:)%orb%vec(6) = 0  ! on-energy
 
 g2 = 0; g3 = 0
 
-n0 = lbound(track%orb, 1)
 n1 = track%n_pt
 s0 = ele%s_start
 
-do j = n0, n1
+do j = 0, n1
 
-  call g_bending_strength_from_em_field (ele, param, track%orb(j)%s - s0, track%orb(j), .false., g)
+  call g_bending_strength_from_em_field (ele, param, track%pt(j)%orb%s - s0, track%pt(j)%orb, .false., g)
 
   g2_here = g(1)**2 + g(2)**2 ! = g_x^2 + g_y^2
   g3_here = sqrt(g2_here)**3
 
-  if (j == n0 .or. j == n1) then
+  if (j == 0 .or. j == n1) then
     g2_here = g2_here / 2
     g3_here = g3_here / 2
   endif
@@ -255,8 +253,8 @@ do j = n0, n1
 
 enddo
 
-g2 = g2 / (n1 - n0 + 1)
-g3 = g3 / (n1 - n0 + 1)
+g2 = g2 / (n1 + 1)
+g3 = g3 / (n1 + 1)
 
 end subroutine calc_g
 

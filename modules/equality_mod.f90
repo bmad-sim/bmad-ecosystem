@@ -27,7 +27,7 @@ interface operator (==)
   module procedure eq_photon_target, eq_photon_material, eq_photon_element, eq_wall3d_vertex, eq_wall3d_section
   module procedure eq_wall3d, eq_control, eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init
   module procedure eq_beam_init, eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode
-  module procedure eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_track_map, eq_track
+  module procedure eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_track_point, eq_track
   module procedure eq_synch_rad_common, eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele
   module procedure eq_ele, eq_complex_taylor_term, eq_complex_taylor, eq_branch, eq_lat
   module procedure eq_bunch, eq_bunch_params, eq_beam, eq_aperture_data, eq_aperture_param
@@ -2108,22 +2108,28 @@ end function eq_em_field
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_track_map (f1, f2) result (is_eq)
+elemental function eq_track_point (f1, f2) result (is_eq)
 
 implicit none
 
-type(track_map_struct), intent(in) :: f1, f2
+type(track_point_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
 
 is_eq = .true.
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%s_body == f2%s_body)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%orb == f2%orb)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%field == f2%field)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%vec0 == f2%vec0)
 !! f_side.equality_test[real, 2, NOT]
 is_eq = is_eq .and. all(f1%mat6 == f2%mat6)
 
-end function eq_track_map
+end function eq_track_point
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -2139,23 +2145,11 @@ logical is_eq
 
 is_eq = .true.
 !! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%orb) .eqv. allocated(f2%orb))
+is_eq = is_eq .and. (allocated(f1%pt) .eqv. allocated(f2%pt))
 if (.not. is_eq) return
-if (allocated(f1%orb)) is_eq = all(shape(f1%orb) == shape(f2%orb))
+if (allocated(f1%pt)) is_eq = all(shape(f1%pt) == shape(f2%pt))
 if (.not. is_eq) return
-if (allocated(f1%orb)) is_eq = all(f1%orb == f2%orb)
-!! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%field) .eqv. allocated(f2%field))
-if (.not. is_eq) return
-if (allocated(f1%field)) is_eq = all(shape(f1%field) == shape(f2%field))
-if (.not. is_eq) return
-if (allocated(f1%field)) is_eq = all(f1%field == f2%field)
-!! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%map) .eqv. allocated(f2%map))
-if (.not. is_eq) return
-if (allocated(f1%map)) is_eq = all(shape(f1%map) == shape(f2%map))
-if (.not. is_eq) return
-if (allocated(f1%map)) is_eq = all(f1%map == f2%map)
+if (allocated(f1%pt)) is_eq = all(f1%pt == f2%pt)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%ds_save == f2%ds_save)
 !! f_side.equality_test[integer, 0, NOT]

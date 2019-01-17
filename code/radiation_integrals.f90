@@ -337,13 +337,13 @@ if (use_cache .or. init_cache) then
       call symp_lie_bmad (ele2, branch%param, orb_start, orb_end, make_matrix = .true., track = track)
       do k = 0, track%n_pt
         c_pt => cache_ele%pt(k)
-        z_here = track%orb(k)%s - ele2%s_start
-        orb_end = track%orb(k)
+        z_here = track%pt(k)%orb%s - ele2%s_start
+        orb_end = track%pt(k)%orb
         call calc_wiggler_g_params (ele2, branch%param, z_here, orb_end, c_pt)
-        c_pt%mat6 = track%map(k)%mat6
-        c_pt%vec0 = track%map(k)%vec0
+        c_pt%mat6 = track%pt(k)%mat6
+        c_pt%vec0 = track%pt(k)%vec0
         c_pt%ref_orb_in  = orb_start
-        c_pt%ref_orb_out = track%orb(k)
+        c_pt%ref_orb_out = track%pt(k)%orb
       enddo
 
     ! All else...
