@@ -24,7 +24,7 @@
 !
 ! Input:
 !   start_orb  -- coord_struct: Starting position.
-!   ele        -- ele_struct: Element.
+!   ele        -- ele_struct: Lattice element.
 !   param      -- lat_param_struct: Lattice parameters.
 !
 ! Output:
@@ -44,6 +44,7 @@ implicit none
 type (coord_struct) :: start_orb
 type (coord_struct) :: end_orb
 type (ele_struct) :: ele
+type (ele_struct), pointer :: lord
 type (lat_param_struct) :: param
 type (track_struct), optional :: track
 
@@ -51,7 +52,7 @@ logical err_flag, finished
 
 character(*), parameter :: r_name = 'track1_custom'
 
-!
+! 
 
 call out_io (s_fatal$, r_name, 'THIS DUMMY ROUTINE SHOULD NOT HAVE BEEN CALLED IN THE FIRST PLACE.')
 err_flag = .true.
@@ -60,5 +61,15 @@ err_flag = .true.
 
 end_orb = start_orb
 end_orb%s = ele%s 
+
+! If ele represents a section of the entire element and the element has internal structure (not uniform
+! longitudinally), then it will be important to know the position of ele relative to the entire element.
+! The entire element will be the lord:
+
+if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
+  lord => pointer_to_lord(ele, 1)
+  ! Now [lord%s_start, lord%s] is the position of the entire element.
+endif
+
 
 end subroutine

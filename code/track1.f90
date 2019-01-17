@@ -20,7 +20,7 @@
 !   ignore_radiation
 !               -- Logical, optional: If present and True then do not include radiation
 !                  effects along with space charge effects. 
-!   mat6(6,6)   -- Real(rp), optional: Transfer matrix before the element. Only used with bmad_standard tracking.
+!   mat6(6,6)   -- Real(rp), optional: Transfer matrix before the element.
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !
 ! Output:
@@ -32,7 +32,7 @@
 !   err_flag    -- Logical, optional: Set true if there is an error. False otherwise.
 !                    Note: The particle getting lost (EG hitting an aperture) is *not* an error.
 !                    An error is something like start_orb not being properly initialized.
-!   mat6(6,6)   -- Real(rp), optional: Transfer matrix including the element. Only used with bmad_standard tracking.
+!   mat6(6,6)   -- Real(rp), optional: Transfer matrix including the element.
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !-
 
@@ -66,8 +66,7 @@ logical err, do_extra, finished, radiation_included, do_spin_tracking, time_RK_t
 
 if (present(err_flag)) err_flag = .true.
 start2_orb = start_orb
-time_RK_tracking = (ele%tracking_method == time_runge_kutta$ .or. &
-                                                  ele%tracking_method == fixed_step_time_runge_kutta$)
+time_RK_tracking = (ele%tracking_method == time_runge_kutta$ .or. ele%tracking_method == fixed_step_time_runge_kutta$)
 
 do_extra = .not. logic_option(.false., ignore_radiation)
 
@@ -195,7 +194,7 @@ case (bmad_standard$)
   if (err) return
 
 case (runge_kutta$, fixed_step_runge_kutta$) 
-  call track1_runge_kutta (start2_orb, ele, param, end_orb, err, track)
+  call track1_runge_kutta (start2_orb, ele, param, end_orb, err, track, mat6, make_matrix)
   if (err) return
 
 case (linear$) 

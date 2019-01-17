@@ -18,20 +18,14 @@ contains
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine odeint_bmad (orbit, ele, param, s1_body, s2_body, err_flag, track)
+! Subroutine odeint_bmad (orbit, ele, param, s1_body, s2_body, err_flag, track, mat6, make_matrix)
 ! 
 ! Subroutine to do Runge Kutta tracking. This routine is adapted from Numerical
 ! Recipes.  See the NR book for more details.
 !
 ! Notice that this routine has an two tolerances: 
-!   bmad_com%rel_tol_adaptive_trackingrel_tol 
-!   bmad_com%abs_tol_adaptive_trackingrel_tol 
-! %rel_tol is scalled by the step size to to able to relate it to the final accuracy.
-!
-! Essentually (assuming random errors) one of these conditions holds:
-!      %error in tracking < rel_tol
-! or
-!     absolute error in tracking < abs_tol
+!   bmad_com%rel_tol_adaptive_tracking
+!   bmad_com%abs_tol_adaptive_tracking
 !
 ! Note: For elements where the reference energy is not constant (lcavity, etc.), and 
 ! with elements where the reference particle does not follow the reference trajectory (wigglers for example),
@@ -40,10 +34,6 @@ contains
 ! Input: 
 !   orbit      -- Coord_struct: Starting coords: (x, px, y, py, z, delta) in element body coords.
 !   ele        -- Ele_struct: Element to track through.
-!     %tracking_method -- Determines which subroutine to use to calculate the 
-!                         field. Note: BMAD does no supply em_field_custom.
-!                           == custom$ then use em_field_custom
-!                           /= custom$ then use em_field_standard
 !   param      -- lat_param_struct: Lattice parameters.
 !   s1_body    -- Real: Starting point relative to physical entrance.
 !   s2_body    -- Real: Ending point relative physical entrance.
@@ -55,7 +45,7 @@ contains
 !   track     -- Track_struct, optional: Structure holding the track information.
 !-
 
-subroutine odeint_bmad (orbit, ele, param, s1_body, s2_body, err_flag, track)
+subroutine odeint_bmad (orbit, ele, param, s1_body, s2_body, err_flag, track, mat6, make_matrix)
 
 use nr, only: zbrent
 
@@ -69,11 +59,13 @@ type (track_struct), optional :: track
 type (fringe_edge_info_struct) fringe_info
 
 real(rp), intent(in) :: s1_body, s2_body
+real(rp), optional :: mat6(6,6)
 real(rp) :: ds, ds_did, ds_next, s_body, s_last, ds_saved, s_edge_body
 real(rp) :: old_s, ds_zbrent, dist_to_wall, ds_tiny
 
 integer :: n_step, s_dir, nr_max, n_step_max
 
+logical, optional :: make_matrix
 logical err_flag, err, at_hard_edge, track_spin, too_large
 
 character(*), parameter :: r_name = 'odeint_bmad'
@@ -98,7 +90,7 @@ endif
 ! For elements where the reference energy is changing the reference energy in the body is 
 ! taken, by convention, to be the reference energy at the exit end.
 
-call reference_energy_correction (ele, orbit, first_track_edge$)
+call reference_energy_correction (ele, orbit, first_track_edge$, mat6, make_matrix)
 
 ! If the element is using a hard edge model then need to stop at the hard edges
 ! to apply the appropriate hard edge kick.
@@ -110,7 +102,7 @@ if (ele%key == patch$) s_edge_body = s2_body
 ! Save initial point
 
 if (present(track)) then
-  call save_a_step (track, ele, param, .true., orbit, s_body, .true.)
+  call save_a_step (track, ele, param, .true., orbit, s_body, .true., mat6, make_matrix)
   s_last = s_body
 endif
 
@@ -133,11 +125,11 @@ do n_step = 1, n_step_max
     if ((s_body-s_edge_body)*s_dir < -ds_tiny) exit
 
     old_orbit = orbit
-    call apply_element_edge_kick (orbit, fringe_info, ele, param, track_spin)
+    call apply_element_edge_kick (orbit, fringe_info, ele, param, track_spin, mat6, make_matrix)
     ! If there has been a kick then record
     if (present(track) .and. any(old_orbit%vec /= orbit%vec)) then
-      if (s_body /= s_last) call save_a_step (track, ele, param, .true., old_orbit, s_body, .true.)
-      call save_a_step (track, ele, param, .true., orbit, s_body, .true.)
+      if (s_body /= s_last) call save_a_step (track, ele, param, .true., old_orbit, s_body, .true., mat6, make_matrix)
+      call save_a_step (track, ele, param, .true., orbit, s_body, .true., mat6, make_matrix)
       s_last = s_body
     endif
 
@@ -152,8 +144,8 @@ do n_step = 1, n_step_max
   ! to have the field = 0 due to being outside).
 
   if ((s_body-s2_body)*s_dir > -ds_tiny) then
-    if (present(track)) call save_a_step (track, ele, param, .true., orbit, s_body-ds_tiny*s_dir, .true.)
-    call reference_energy_correction (ele, orbit, second_track_edge$)
+    if (present(track)) call save_a_step (track, ele, param, .true., orbit, s_body-ds_tiny*s_dir, .true., mat6, make_matrix)
+    call reference_energy_correction (ele, orbit, second_track_edge$, mat6, make_matrix)
     err_flag = .false.
     return
   end if
@@ -171,7 +163,7 @@ do n_step = 1, n_step_max
 
   old_orbit = orbit
   old_s = s_body
-  call rk_adaptive_step (ele, param, orbit, s_body, ds, abs(s2_body-s1_body), ds_did, ds_next, err)
+  call rk_adaptive_step (ele, param, orbit, s_body, ds, abs(s2_body-s1_body), ds_did, ds_next, err, mat6, make_matrix)
   if (err) return
 
   ! Check x/y limit apertures
@@ -206,7 +198,7 @@ do n_step = 1, n_step_max
 
   if (present(track)) then
     if (track%ds_save <= 0 .or. (abs(s_body-s_last) > track%ds_save)) then
-      call save_a_step (track, ele, param, .true., orbit, s_body, .true.)
+      call save_a_step (track, ele, param, .true., orbit, s_body, .true., mat6, make_matrix)
       s_last = s_body
     endif
 
@@ -295,33 +287,37 @@ end subroutine odeint_bmad
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
 !+
-! Subroutine rk_adaptive_step (ele, param, orb, s, ds_try, ds_did, ds_next, err_flag)
+! Subroutine rk_adaptive_step (ele, param, orb, s, ds_try, ds_did, ds_next, err_flag, mat6, make_matrix)
 !
 ! Private routine used by odeint_bmad.
 ! Not meant for general use
 !-
 
-subroutine rk_adaptive_step (ele, param, orb, s, ds_try, ds12, ds_did, ds_next, err_flag)
+subroutine rk_adaptive_step (ele, param, orb, s, ds_try, ds12, ds_did, ds_next, err_flag, mat6, make_matrix)
 
 implicit none
 
 type (ele_struct) ele
 type (lat_param_struct) param
-type (coord_struct) orb, orb_new
+type (coord_struct) orb, orb_new, start, end1, end2
 
 real(rp), intent(inout) :: s
 real(rp), intent(in)    :: ds_try
 real(rp), intent(out)   :: ds_did, ds_next
+real(rp), optional :: mat6(6,6)
 
 real(rp) :: dr_ds(10), r_scal(10), rel_tol, abs_tol
-real(rp) :: err_max, ds, ds_temp, p2
+real(rp) :: err_max, ds, ds_temp, p2, dmat(6,6)
 real(rp) :: r_err(10), r_temp(10), pol
 real(rp) :: sqrt_N, rel_pc, t_new, ds12
 real(rp), parameter :: safety = 0.9_rp, p_grow = -0.2_rp
 real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89d-4
 real(rp), parameter :: tiny = 1.0e-30_rp
 
+integer i
+
 logical err_flag
+logical, optional :: make_matrix
 character(20), parameter :: r_name = 'rk_adaptive_step'
 
 ! Init. Note:
@@ -380,6 +376,35 @@ end do
 
 !
 
+if (logic_option(.false., make_matrix)) then
+  do i = 1, 6
+    start = orb
+    start%vec(6) = start%vec(6)
+    start%vec(i) = start%vec(i) + bmad_com%d_orb(i)
+    call adjust_start(orb, start)
+    call track1 (start, ele, param, end2)
+    if (end2%state /= alive$) then
+      call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING (+). MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
+      return
+    endif
+
+    start = orb
+    start%vec(6) = start%vec(6)
+    start%vec(i) = start%vec(i) - bmad_com%d_orb(i)
+    call adjust_start(orb, start)
+    call track1 (start, ele, param, end1)
+    if (end1%state /= alive$) then
+      call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING (-). MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
+      return
+    endif
+
+    dmat(1:6, i) = (end2%vec - end1%vec) / (2 * bmad_com%d_orb(i))
+    mat6 = matmul(dmat, mat6)
+  enddo
+endif
+
+!
+
 if (ele%tracking_method == fixed_step_runge_kutta$) then
   ds_next = ele%value(ds_step$) * sign_of(ds)
 elseif (err_max > err_con) then
@@ -395,6 +420,23 @@ orb_new%s = orb%s + ds * ele%orientation
 
 orb = orb_new
 err_flag = .false.
+
+!--------------------------------------------
+contains
+
+subroutine adjust_start (start0, start)
+
+type (coord_struct) start0, start
+
+call convert_pc_to (start%p0c * (1 + start%vec(6)), start%species, beta = start%beta)
+
+if (start0%beta == 0) then
+  start%t = start0%t + start%vec(5) / (c_light * start%beta)
+else
+  start%t = start0%t + start%vec(5) / (c_light * start%beta) - start0%vec(5) / (c_light * start0%beta)
+endif
+
+end subroutine adjust_start
 
 end subroutine rk_adaptive_step
 

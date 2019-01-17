@@ -201,11 +201,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   if ( present(track) ) then
     !Check if we are past a save time, or if exited
     if (track%ds_save <= 0 .or. (rf_time - t_save) * t_dir >= 0 .or. exit_flag) then
-      call save_a_step (track, ele, param, .true., orb, s_body)
-      ! Query the local field to save
-      call em_field_calc (ele, param, s_body, orb, .true., saved_field, .false., err_flag, rf_time = rf_time)
-      if (err_flag) return
-      track%field(track%n_pt) = saved_field
+      call save_a_step (track, ele, param, .true., orb, s_body, .true., rf_time = rf_time)
       ! Set next save time 
       t_save = rf_time + dt_save
     end if

@@ -1,27 +1,30 @@
 !+
-! Subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)
+! Subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track, mat6, make_matrix)
 !
 ! Subroutine to do tracking using Runge-Kutta integration. 
 ! The core Runge-Kutta routine used here is odeint_bmad which is a modified version of odeint from Numerical Recipes.
 ! See the "Numerical Recipes in F90" book.
 !
 ! Input:
-!   start_orb  -- Coord_struct: Starting coords.
-!   ele        -- Ele_struct
-!   param      -- lat_param_struct: Lattice parameters.
+!   start_orb   -- Coord_struct: Starting coords.
+!   ele         -- Ele_struct
+!   param       -- lat_param_struct: Lattice parameters.
+!   mat6(6,6)   -- Real(rp), optional: Transfer matrix before the element.
+!   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !
 !   bmad_com -- Bmad common block (not an argument).
-!     %rel_tol_adaptive_tracking -- Relative tolerance. Default is 1d-6.
-!     %abs_tol_adaptive_tracking -- Absolute tolerance. Default is 1d-7.
+!     %rel_tol_adaptive_tracking -- Relative tolerance. Default is 1d-8.
+!     %abs_tol_adaptive_tracking -- Absolute tolerance. Default is 1d-10.
 !     %max_num_runge_kutta_step  -- Maximum number of steps before particle is considered lost.
 !
 ! Output:
-!   end_orb    -- Coord_struct: Ending coords.
-!   err_flag   -- Logical: Set True if there is an error. False otherwise.
-!   track      -- Track_struct, optional: Structure holding the track information.
+!   end_orb     -- Coord_struct: Ending coords.
+!   err_flag    -- Logical: Set True if there is an error. False otherwise.
+!   track       -- Track_struct, optional: Structure holding the track information.
+!   mat6(6,6)   -- Real(rp), optional: Transfer matrix propagated through the element.
 !- 
 
-subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)
+subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track, mat6, make_matrix)
 
 use runge_kutta_mod, except_dummy => track1_runge_kutta
 
@@ -32,9 +35,11 @@ type (lat_param_struct), target, intent(inout) :: param
 type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
 
+real(rp), optional :: mat6(6,6)
 real(rp) rel_tol, abs_tol, beta_ref, s0_body, s1_body, ds_ref, dref_time
 
 logical err_flag, set_spin
+logical, optional :: make_matrix
 
 character(*), parameter :: r_name = 'track1_runge_kutta'
 
@@ -67,7 +72,8 @@ if (ele%key == patch$) then
     end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s1_body) * end_orb%beta / beta_ref 
   endif
 else
-  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., set_spin = set_spin)
+  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., &
+                                      set_spin = set_spin, mat6 = mat6, make_matrix = make_matrix)
   if (ele%orientation*end_orb%direction == 1) then
     s0_body = 0; s1_body = ele%value(l$)
   else
@@ -84,13 +90,14 @@ if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. bmad_com%use_hard_edge
                           'WILL NOT BE ACCURATE SINCE THE LENGTH IS LESS THAN THE HARD EDGE MODEL LENGTH.')
 endif
 
-call odeint_bmad (end_orb, ele, param, s0_body, s1_body, err_flag, track)
+call odeint_bmad (end_orb, ele, param, s0_body, s1_body, err_flag, track, mat6, make_matrix)
 if (err_flag) return
 
 ! convert to lab coords.
 
 if (ele%key /= patch$) then
-  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_spin = set_spin)
+  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., &
+                                        set_spin = set_spin, mat6 = mat6, make_matrix = make_matrix)
 endif
 
 end subroutine

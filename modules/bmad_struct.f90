@@ -1603,17 +1603,18 @@ integer, parameter :: grid_field_dimension(2) = [2, 3]
 
 ! Structure for saving the track through an element.
 
-type track_map_struct
-  real(rp) vec0(6)        ! 0th order part of xfer map from the beginning.
-  real(rp) mat6(6,6)      ! 1st order part of xfer map (transfer matrix).
+type track_point_struct
+  real(rp) s_body                                 ! Longitudinal coords within the element body.
+  type (coord_struct) orb                         ! An array of track points indexed from 0 (%orb(0:)).
+  type (em_field_struct) field                    ! An array of em fields indexed from 0 (%field(0:)).
+  real(rp) vec0(6)                                ! 0th order part of xfer map from the beginning.
+  real(rp) mat6(6,6)                              ! 1st order part of xfer map (transfer matrix).
 end type
 
 ! Valid track%orb(:) points in range 0:track%n_pt
 
 type track_struct
-  type (coord_struct), allocatable :: orb(:)      ! An array of track points indexed from 0 (%orb(0:)).
-  type (em_field_struct), allocatable:: field(:)  ! An array of em fields indexed from 0 (%field(0:)).
-  type (track_map_struct), allocatable :: map(:)  ! An array of linear maps indexed from 0.
+  type (track_point_struct), allocatable :: pt(:) ! Array of track points indexed from 0.
   real(rp) :: ds_save = 1d-3                      ! Min distance between points. Not positive => Save at all points.
   integer :: n_pt = -1                            ! Track upper bound for %orb(0:), etc. arrays.
   integer :: n_bad = 0                            ! Number of bad steps when adaptive tracking is done.

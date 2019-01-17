@@ -5,6 +5,7 @@ use File::Find;
 $found_one = 0;
 
 find (\&searchit, './modules');
+find (\&searchit, './custom');
 find (\&searchit, './parsing');
 find (\&searchit, './photon');
 find (\&searchit, './interface');
