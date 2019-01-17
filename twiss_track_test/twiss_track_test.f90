@@ -102,10 +102,10 @@ enddo
 
 ix_cache = 0
 call radiation_integrals (lat, orb, mode2, ix_cache, 0, rad_int2)
-call ri_out('rad_int_no_wig_cache.dat', rad_int2)
+call ri_out(lat, 'rad_int_no_wig_cache.dat', rad_int2)
 
 call radiation_integrals (lat, orb, mode, rad_int_by_ele = rad_int)
-call ri_out('rad_int_no_wig_no_cache.dat', rad_int)
+call ri_out(lat, 'rad_int_no_wig_no_cache.dat', rad_int)
 
 call ri_diff('no_wig')
 
@@ -196,10 +196,10 @@ call twiss_propagate_all (lat)
 ix_cache = 0
 call set_on_off (rfcavity$, lat, on$)
 call radiation_integrals (lat, orb, mode2, ix_cache, 0, rad_int2)
-call ri_out('rad_int_wig_cache.dat', rad_int2)
+call ri_out(lat, 'rad_int_wig_cache.dat', rad_int2)
 
 call radiation_integrals (lat, orb, mode, rad_int_by_ele = rad_int)
-call ri_out('rad_int_wig_no_cache.dat', rad_int)
+call ri_out(lat, 'rad_int_wig_no_cache.dat', rad_int)
 
 call ri_diff('wig')
 
@@ -267,9 +267,11 @@ end subroutine
 !----------------------------------------------------------------------------------
 ! contains
 
-subroutine ri_out (file_name, rad_int)
+subroutine ri_out (lat, file_name, rad_int)
 
-type (rad_int_all_ele_struct) rad_int
+type (lat_struct) lat
+type (rad_int_all_ele_struct), target :: rad_int
+type (rad_int1_struct), pointer :: r1
 character(*) file_name
 integer i
 
@@ -277,14 +279,13 @@ integer i
 
 open (1, file = file_name)
 
-write (1, '(a)') '             I1          I2          I3          I4a         I4b         I5a         I5b'
+write (1, '(45x, a)') 'I1          I2          I3          I4a         I4b         I5a         I5b'
 do i = 1, lat%n_ele_track
-  if (all([rad_int%ele%i1, rad_int%ele%i2, rad_int%ele%i3, &
-                        rad_int%ele(i)%i4a, rad_int%ele(i)%i4b, rad_int%ele(i)%i5a, rad_int%ele(i)%i5b] == 0)) cycle
-  write (1, '(i4, 7es12.3)') i, rad_int%ele(i)%i1, rad_int%ele(i)%i2, rad_int%ele(i)%i3, &
-                        rad_int%ele(i)%i4a, rad_int%ele(i)%i4b, rad_int%ele(i)%i5a, rad_int%ele(i)%i5b
+  r1 => rad_int%ele(i)
+  if (all([r1%i1, r1%i2, r1%i3, r1%i4a, r1%i4b, r1%i5a, r1%i5b] == 0)) cycle
+  write (1, '(i4, 2x, a30, 7es12.3)') i, lat%ele(i)%name, r1%i1, r1%i2, r1%i3, r1%i4a, r1%i4b, r1%i5a, r1%i5b
 enddo
-write (1, '(a)') '             I1          I2          I3          I4a         I4b         I5a         I5b'
+write (1, '(45x, a)') 'I1          I2          I3          I4a         I4b         I5a         I5b'
 
 close (1)
 
