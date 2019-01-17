@@ -7062,18 +7062,18 @@ end subroutine set_em_field_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_track_map (ok)
+subroutine test1_f_track_point (ok)
 
 implicit none
 
-type(track_map_struct), target :: f_track_map, f2_track_map
+type(track_point_struct), target :: f_track_point, f2_track_point
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_track_map (c_track_map, c_ok) bind(c)
+  subroutine test_c_track_point (c_track_point, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_track_map
+    type(c_ptr), value :: c_track_point
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -7081,77 +7081,83 @@ end interface
 !
 
 ok = .true.
-call set_track_map_test_pattern (f2_track_map, 1)
+call set_track_point_test_pattern (f2_track_point, 1)
 
-call test_c_track_map(c_loc(f2_track_map), c_ok)
+call test_c_track_point(c_loc(f2_track_point), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_track_map_test_pattern (f_track_map, 4)
-if (f_track_map == f2_track_map) then
-  print *, 'track_map: C side convert C->F: Good'
+call set_track_point_test_pattern (f_track_point, 4)
+if (f_track_point == f2_track_point) then
+  print *, 'track_point: C side convert C->F: Good'
 else
-  print *, 'track_map: C SIDE CONVERT C->F: FAILED!'
+  print *, 'track_point: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_track_map
+end subroutine test1_f_track_point
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_track_map (c_track_map, c_ok) bind(c)
+subroutine test2_f_track_point (c_track_point, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_track_map
-type(track_map_struct), target :: f_track_map, f2_track_map
+type(c_ptr), value ::  c_track_point
+type(track_point_struct), target :: f_track_point, f2_track_point
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call track_map_to_f (c_track_map, c_loc(f_track_map))
+call track_point_to_f (c_track_point, c_loc(f_track_point))
 
-call set_track_map_test_pattern (f2_track_map, 2)
-if (f_track_map == f2_track_map) then
-  print *, 'track_map: F side convert C->F: Good'
+call set_track_point_test_pattern (f2_track_point, 2)
+if (f_track_point == f2_track_point) then
+  print *, 'track_point: F side convert C->F: Good'
 else
-  print *, 'track_map: F SIDE CONVERT C->F: FAILED!'
+  print *, 'track_point: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_track_map_test_pattern (f2_track_map, 3)
-call track_map_to_c (c_loc(f2_track_map), c_track_map)
+call set_track_point_test_pattern (f2_track_point, 3)
+call track_point_to_c (c_loc(f2_track_point), c_track_point)
 
-end subroutine test2_f_track_map
+end subroutine test2_f_track_point
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_track_map_test_pattern (F, ix_patt)
+subroutine set_track_point_test_pattern (F, ix_patt)
 
 implicit none
 
-type(track_map_struct) F
+type(track_point_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
 
 offset = 100 * ix_patt
 
+!! f_side.test_pat[real, 0, NOT]
+rhs = 1 + offset; F%s_body = rhs
+!! f_side.test_pat[type, 0, NOT]
+call set_coord_test_pattern (F%orb, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_em_field_test_pattern (F%field, ix_patt)
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%vec0,1); lb1 = lbound(F%vec0,1) - 1
-  rhs = 100 + jd1 + 1 + offset
+  rhs = 100 + jd1 + 4 + offset
   F%vec0(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 2, NOT]
 do jd1 = 1, size(F%mat6,1); lb1 = lbound(F%mat6,1) - 1
 do jd2 = 1, size(F%mat6,2); lb2 = lbound(F%mat6,2) - 1
-  rhs = 100 + jd1 + 10*jd2 + 2 + offset
+  rhs = 100 + jd1 + 10*jd2 + 5 + offset
   F%mat6(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
 
-end subroutine set_track_map_test_pattern
+end subroutine set_track_point_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -7237,41 +7243,21 @@ offset = 100 * ix_patt
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
-  if (allocated(F%orb)) deallocate (F%orb)
+  if (allocated(F%pt)) deallocate (F%pt)
 else
-  if (.not. allocated(F%orb)) allocate (F%orb(-1:1))
-  do jd1 = 1, size(F%orb,1); lb1 = lbound(F%orb,1) - 1
-    call set_coord_test_pattern (F%orb(jd1+lb1), ix_patt+jd1)
-  enddo
-endif
-!! f_side.test_pat[type, 1, ALLOC]
-
-if (ix_patt < 3) then
-  if (allocated(F%field)) deallocate (F%field)
-else
-  if (.not. allocated(F%field)) allocate (F%field(-1:1))
-  do jd1 = 1, size(F%field,1); lb1 = lbound(F%field,1) - 1
-    call set_em_field_test_pattern (F%field(jd1+lb1), ix_patt+jd1)
-  enddo
-endif
-!! f_side.test_pat[type, 1, ALLOC]
-
-if (ix_patt < 3) then
-  if (allocated(F%map)) deallocate (F%map)
-else
-  if (.not. allocated(F%map)) allocate (F%map(-1:1))
-  do jd1 = 1, size(F%map,1); lb1 = lbound(F%map,1) - 1
-    call set_track_map_test_pattern (F%map(jd1+lb1), ix_patt+jd1)
+  if (.not. allocated(F%pt)) allocate (F%pt(-1:1))
+  do jd1 = 1, size(F%pt,1); lb1 = lbound(F%pt,1) - 1
+    call set_track_point_test_pattern (F%pt(jd1+lb1), ix_patt+jd1)
   enddo
 endif
 !! f_side.test_pat[real, 0, NOT]
-rhs = 7 + offset; F%ds_save = rhs
+rhs = 3 + offset; F%ds_save = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 8 + offset; F%n_pt = rhs
+rhs = 4 + offset; F%n_pt = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 9 + offset; F%n_bad = rhs
+rhs = 5 + offset; F%n_bad = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 10 + offset; F%n_ok = rhs
+rhs = 6 + offset; F%n_ok = rhs
 
 end subroutine set_track_test_pattern
 

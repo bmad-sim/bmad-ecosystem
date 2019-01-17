@@ -1191,23 +1191,24 @@ template bool is_all_equal (const CPP_em_field_MATRIX&, const CPP_em_field_MATRI
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_track_map& x, const CPP_track_map& y) {
+bool operator== (const CPP_track_point& x, const CPP_track_point& y) {
   bool is_eq = true;
+  is_eq = is_eq && (x.s_body == y.s_body);
+  is_eq = is_eq && (x.orb == y.orb);
+  is_eq = is_eq && (x.field == y.field);
   is_eq = is_eq && is_all_equal(x.vec0, y.vec0);
   is_eq = is_eq && is_all_equal(x.mat6, y.mat6);
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_track_map_ARRAY&, const CPP_track_map_ARRAY&);
-template bool is_all_equal (const CPP_track_map_MATRIX&, const CPP_track_map_MATRIX&);
+template bool is_all_equal (const CPP_track_point_ARRAY&, const CPP_track_point_ARRAY&);
+template bool is_all_equal (const CPP_track_point_MATRIX&, const CPP_track_point_MATRIX&);
 
 //--------------------------------------------------------------
 
 bool operator== (const CPP_track& x, const CPP_track& y) {
   bool is_eq = true;
-  is_eq = is_eq && is_all_equal(x.orb, y.orb);
-  is_eq = is_eq && is_all_equal(x.field, y.field);
-  is_eq = is_eq && is_all_equal(x.map, y.map);
+  is_eq = is_eq && is_all_equal(x.pt, y.pt);
   is_eq = is_eq && (x.ds_save == y.ds_save);
   is_eq = is_eq && (x.n_pt == y.n_pt);
   is_eq = is_eq && (x.n_bad == y.n_bad);

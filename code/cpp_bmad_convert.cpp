@@ -2912,25 +2912,34 @@ extern "C" void em_field_to_c2 (CPP_em_field& C, c_RealArr z_e, c_RealArr z_b, c
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_track_map
+// CPP_track_point
 
-extern "C" void track_map_to_c (const Opaque_track_map_class*, CPP_track_map&);
+extern "C" void track_point_to_c (const Opaque_track_point_class*, CPP_track_point&);
 
 // c_side.to_f2_arg
-extern "C" void track_map_to_f2 (Opaque_track_map_class*, c_RealArr, c_RealArr);
+extern "C" void track_point_to_f2 (Opaque_track_point_class*, c_Real&, const CPP_coord&, const
+    CPP_em_field&, c_RealArr, c_RealArr);
 
-extern "C" void track_map_to_f (const CPP_track_map& C, Opaque_track_map_class* F) {
+extern "C" void track_point_to_f (const CPP_track_point& C, Opaque_track_point_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
   Real z_mat6[6*6]; matrix_to_vec(C.mat6, z_mat6);
 
   // c_side.to_f2_call
-  track_map_to_f2 (F, &C.vec0[0], z_mat6);
+  track_point_to_f2 (F, C.s_body, C.orb, C.field, &C.vec0[0], z_mat6);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void track_map_to_c2 (CPP_track_map& C, c_RealArr z_vec0, c_RealArr z_mat6) {
+extern "C" void track_point_to_c2 (CPP_track_point& C, c_Real& z_s_body, const
+    Opaque_coord_class* z_orb, const Opaque_em_field_class* z_field, c_RealArr z_vec0,
+    c_RealArr z_mat6) {
 
+  // c_side.to_c2_set[real, 0, NOT]
+  C.s_body = z_s_body;
+  // c_side.to_c2_set[type, 0, NOT]
+  coord_to_c(z_orb, C.orb);
+  // c_side.to_c2_set[type, 0, NOT]
+  em_field_to_c(z_field, C.field);
   // c_side.to_c2_set[real, 1, NOT]
   C.vec0 << z_vec0;
   // c_side.to_c2_set[real, 2, NOT]
@@ -2944,60 +2953,32 @@ extern "C" void track_map_to_c2 (CPP_track_map& C, c_RealArr z_vec0, c_RealArr z
 extern "C" void track_to_c (const Opaque_track_class*, CPP_track&);
 
 // c_side.to_f2_arg
-extern "C" void track_to_f2 (Opaque_track_class*, const CPP_coord**, Int, const CPP_em_field**,
-    Int, const CPP_track_map**, Int, c_Real&, c_Int&, c_Int&, c_Int&);
+extern "C" void track_to_f2 (Opaque_track_class*, const CPP_track_point**, Int, c_Real&,
+    c_Int&, c_Int&, c_Int&);
 
 extern "C" void track_to_f (const CPP_track& C, Opaque_track_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
-  int n1_orb = C.orb.size();
-  const CPP_coord** z_orb = NULL;
-  if (n1_orb != 0) {
-    z_orb = new const CPP_coord*[n1_orb];
-    for (int i = 0; i < n1_orb; i++) z_orb[i] = &C.orb[i];
-  }
-  // c_side.to_f_setup[type, 1, ALLOC]
-  int n1_field = C.field.size();
-  const CPP_em_field** z_field = NULL;
-  if (n1_field != 0) {
-    z_field = new const CPP_em_field*[n1_field];
-    for (int i = 0; i < n1_field; i++) z_field[i] = &C.field[i];
-  }
-  // c_side.to_f_setup[type, 1, ALLOC]
-  int n1_map = C.map.size();
-  const CPP_track_map** z_map = NULL;
-  if (n1_map != 0) {
-    z_map = new const CPP_track_map*[n1_map];
-    for (int i = 0; i < n1_map; i++) z_map[i] = &C.map[i];
+  int n1_pt = C.pt.size();
+  const CPP_track_point** z_pt = NULL;
+  if (n1_pt != 0) {
+    z_pt = new const CPP_track_point*[n1_pt];
+    for (int i = 0; i < n1_pt; i++) z_pt[i] = &C.pt[i];
   }
 
   // c_side.to_f2_call
-  track_to_f2 (F, z_orb, n1_orb, z_field, n1_field, z_map, n1_map, C.ds_save, C.n_pt, C.n_bad,
-      C.n_ok);
+  track_to_f2 (F, z_pt, n1_pt, C.ds_save, C.n_pt, C.n_bad, C.n_ok);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
- delete[] z_orb;
-  // c_side.to_f_cleanup[type, 1, ALLOC]
- delete[] z_field;
-  // c_side.to_f_cleanup[type, 1, ALLOC]
- delete[] z_map;
+ delete[] z_pt;
 }
 
 // c_side.to_c2_arg
-extern "C" void track_to_c2 (CPP_track& C, Opaque_coord_class** z_orb, Int n1_orb,
-    Opaque_em_field_class** z_field, Int n1_field, Opaque_track_map_class** z_map, Int n1_map,
-    c_Real& z_ds_save, c_Int& z_n_pt, c_Int& z_n_bad, c_Int& z_n_ok) {
+extern "C" void track_to_c2 (CPP_track& C, Opaque_track_point_class** z_pt, Int n1_pt, c_Real&
+    z_ds_save, c_Int& z_n_pt, c_Int& z_n_bad, c_Int& z_n_ok) {
 
   // c_side.to_c2_set[type, 1, ALLOC]
-  C.orb.resize(n1_orb);
-  for (int i = 0; i < n1_orb; i++) coord_to_c(z_orb[i], C.orb[i]);
-
-  // c_side.to_c2_set[type, 1, ALLOC]
-  C.field.resize(n1_field);
-  for (int i = 0; i < n1_field; i++) em_field_to_c(z_field[i], C.field[i]);
-
-  // c_side.to_c2_set[type, 1, ALLOC]
-  C.map.resize(n1_map);
-  for (int i = 0; i < n1_map; i++) track_map_to_c(z_map[i], C.map[i]);
+  C.pt.resize(n1_pt);
+  for (int i = 0; i < n1_pt; i++) track_point_to_c(z_pt[i], C.pt[i]);
 
   // c_side.to_c2_set[real, 0, NOT]
   C.ds_save = z_ds_save;

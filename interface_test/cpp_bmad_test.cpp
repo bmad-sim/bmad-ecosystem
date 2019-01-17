@@ -4769,54 +4769,63 @@ extern "C" void test_c_em_field (Opaque_em_field_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_track_map (CPP_track_map&, bool&);
+extern "C" void test2_f_track_point (CPP_track_point&, bool&);
 
-void set_CPP_track_map_test_pattern (CPP_track_map& C, int ix_patt) {
+void set_CPP_track_point_test_pattern (CPP_track_point& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 1 + offset; C.s_body = rhs;
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_coord_test_pattern(C.orb, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_em_field_test_pattern(C.field, ix_patt);
+
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.vec0.size(); i++)
-    {int rhs = 101 + i + 1 + offset; C.vec0[i] = rhs;}
+    {int rhs = 101 + i + 4 + offset; C.vec0[i] = rhs;}
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.mat6.size(); i++)  for (unsigned int j = 0; j < C.mat6[0].size(); j++) 
-    {int rhs = 101 + i + 10*(j+1) + 2 + offset; C.mat6[i][j] = rhs;}
+    {int rhs = 101 + i + 10*(j+1) + 5 + offset; C.mat6[i][j] = rhs;}
 
 }
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_track_map (Opaque_track_map_class* F, bool& c_ok) {
+extern "C" void test_c_track_point (Opaque_track_point_class* F, bool& c_ok) {
 
-  CPP_track_map C, C2;
+  CPP_track_point C, C2;
 
   c_ok = true;
 
-  track_map_to_c (F, C);
-  set_CPP_track_map_test_pattern (C2, 1);
+  track_point_to_c (F, C);
+  set_CPP_track_point_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " track_map: C side convert F->C: Good" << endl;
+    cout << " track_point: C side convert F->C: Good" << endl;
   } else {
-    cout << " track_map: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " track_point: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_track_map_test_pattern (C2, 2);
+  set_CPP_track_point_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_track_map (C2, c_ok2);
+  test2_f_track_point (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_track_map_test_pattern (C, 3);
+  set_CPP_track_point_test_pattern (C, 3);
   if (C == C2) {
-    cout << " track_map: F side convert F->C: Good" << endl;
+    cout << " track_point: F side convert F->C: Good" << endl;
   } else {
-    cout << " track_map: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " track_point: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_track_map_test_pattern (C2, 4);
-  track_map_to_f (C2, F);
+  set_CPP_track_point_test_pattern (C2, 4);
+  track_point_to_f (C2, F);
 
 }
 
@@ -4831,39 +4840,23 @@ void set_CPP_track_test_pattern (CPP_track& C, int ix_patt) {
 
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
-    C.orb.resize(0);
+    C.pt.resize(0);
   else {
-    C.orb.resize(3);
-    for (unsigned int i = 0; i < C.orb.size(); i++)  {set_CPP_coord_test_pattern(C.orb[i], ix_patt+i+1);}
-  }
-
-  // c_side.test_pat[type, 1, ALLOC]
-  if (ix_patt < 3) 
-    C.field.resize(0);
-  else {
-    C.field.resize(3);
-    for (unsigned int i = 0; i < C.field.size(); i++)  {set_CPP_em_field_test_pattern(C.field[i], ix_patt+i+1);}
-  }
-
-  // c_side.test_pat[type, 1, ALLOC]
-  if (ix_patt < 3) 
-    C.map.resize(0);
-  else {
-    C.map.resize(3);
-    for (unsigned int i = 0; i < C.map.size(); i++)  {set_CPP_track_map_test_pattern(C.map[i], ix_patt+i+1);}
+    C.pt.resize(3);
+    for (unsigned int i = 0; i < C.pt.size(); i++)  {set_CPP_track_point_test_pattern(C.pt[i], ix_patt+i+1);}
   }
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.ds_save = rhs;
+  rhs = 3 + offset; C.ds_save = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 8 + offset; C.n_pt = rhs;
+  rhs = 4 + offset; C.n_pt = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 9 + offset; C.n_bad = rhs;
+  rhs = 5 + offset; C.n_bad = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 10 + offset; C.n_ok = rhs;
+  rhs = 6 + offset; C.n_ok = rhs;
 
 
 }

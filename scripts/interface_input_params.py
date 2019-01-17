@@ -87,7 +87,7 @@ struct_list = [
     'linac_normal_mode_struct',
     'normal_modes_struct',
     'em_field_struct',
-    'track_map_struct',
+    'track_point_struct',
     'track_struct',
     'synch_rad_common_struct',
     'csr_parameter_struct',

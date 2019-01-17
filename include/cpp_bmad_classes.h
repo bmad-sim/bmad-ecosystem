@@ -356,10 +356,10 @@ typedef valarray<CPP_em_field>          CPP_em_field_ARRAY;
 typedef valarray<CPP_em_field_ARRAY>    CPP_em_field_MATRIX;
 typedef valarray<CPP_em_field_MATRIX>   CPP_em_field_TENSOR;
 
-class CPP_track_map;
-typedef valarray<CPP_track_map>          CPP_track_map_ARRAY;
-typedef valarray<CPP_track_map_ARRAY>    CPP_track_map_MATRIX;
-typedef valarray<CPP_track_map_MATRIX>   CPP_track_map_TENSOR;
+class CPP_track_point;
+typedef valarray<CPP_track_point>          CPP_track_point_ARRAY;
+typedef valarray<CPP_track_point_ARRAY>    CPP_track_point_MATRIX;
+typedef valarray<CPP_track_point_MATRIX>   CPP_track_point_TENSOR;
 
 class CPP_track;
 typedef valarray<CPP_track>          CPP_track_ARRAY;
@@ -2806,29 +2806,35 @@ bool operator== (const CPP_em_field&, const CPP_em_field&);
 
 
 //--------------------------------------------------------------------
-// CPP_track_map
+// CPP_track_point
 
-class Opaque_track_map_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_track_point_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_track_map {
+class CPP_track_point {
 public:
+  Real s_body;
+  CPP_coord orb;
+  CPP_em_field field;
   Real_ARRAY vec0;
   Real_MATRIX mat6;
 
-  CPP_track_map() :
+  CPP_track_point() :
+    s_body(0.0),
+    orb(),
+    field(),
     vec0(0.0, 6),
     mat6(Real_ARRAY(0.0, 6), 6)
     {}
 
-  ~CPP_track_map() {
+  ~CPP_track_point() {
   }
 
 };   // End Class
 
-extern "C" void track_map_to_c (const Opaque_track_map_class*, CPP_track_map&);
-extern "C" void track_map_to_f (const CPP_track_map&, Opaque_track_map_class*);
+extern "C" void track_point_to_c (const Opaque_track_point_class*, CPP_track_point&);
+extern "C" void track_point_to_f (const CPP_track_point&, Opaque_track_point_class*);
 
-bool operator== (const CPP_track_map&, const CPP_track_map&);
+bool operator== (const CPP_track_point&, const CPP_track_point&);
 
 
 //--------------------------------------------------------------------
@@ -2838,18 +2844,14 @@ class Opaque_track_class {};  // Opaque class for pointers to corresponding fort
 
 class CPP_track {
 public:
-  CPP_coord_ARRAY orb;
-  CPP_em_field_ARRAY field;
-  CPP_track_map_ARRAY map;
+  CPP_track_point_ARRAY pt;
   Real ds_save;
   Int n_pt;
   Int n_bad;
   Int n_ok;
 
   CPP_track() :
-    orb(CPP_coord_ARRAY(CPP_coord(), 0)),
-    field(CPP_em_field_ARRAY(CPP_em_field(), 0)),
-    map(CPP_track_map_ARRAY(CPP_track_map(), 0)),
+    pt(CPP_track_point_ARRAY(CPP_track_point(), 0)),
     ds_save(1e-3),
     n_pt(-1),
     n_bad(0),
