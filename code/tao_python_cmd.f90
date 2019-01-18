@@ -237,19 +237,47 @@ case ('branch1')
 !----------------------------------------------------------------------
 ! Bunch parameters at the exit end of a given lattice element.
 ! Command syntax:
-!   python bunch1 {ix_universe}@{ix_branch}>>{ix_ele}|{which}
+!   python bunch1 {ix_universe}@{ix_branch}>>{ix_ele}|{which} coordinate
 ! where {which} is one of:
 !   model
 !   base
 !   design
+!
+! Optional coordinate is one of:
+! x, px, y, py, z, pz, 's', 't'
+! and will return an array. 
+!
+!
+
 
 case ('bunch1')  
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  print *, 'which: ', which
+  print *, 'who: ', who
   ele => point_to_ele(line, err); if (err) return
+  beam => u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
+  ! 
+  
+  !save_beam flag: u%uni_branch(<branch-index>)%ele(<ele-index>)%save_beam
+  
+  select case (who)
+  case ('x', 'px', 'y', 'py', 'z', 'pz', 's', 't') 
+    call coord_out(beam, who)
+    return
+  case ('')
+    bunch_params => tao_lat%tao_branch(ele%ix_branch)%bunch_params(ele%ix_ele)
+    ! Continues below
+  case default
+    nl=incr(nl); li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": coordinate not "x", "px", etc. ')
+    call end_stuff()
+    return
+  end select
 
-  bunch_params => tao_lat%tao_branch(ele%ix_branch)%bunch_params(ele%ix_ele)
+
+
 
   call twiss_out(bunch_params%x, 'x', .true.)
   call twiss_out(bunch_params%y, 'y', .true.)
@@ -285,6 +313,9 @@ case ('bunch1')
   nl=incr(nl); write (li(nl), imt) 'n_particle_tot;INT;F;',                    bunch_params%n_particle_tot
   nl=incr(nl); write (li(nl), imt) 'n_particle_live;INT;F;',                   bunch_params%n_particle_live
   nl=incr(nl); write (li(nl), imt) 'n_particle_lost_in_ele;INT;F;',            bunch_params%n_particle_lost_in_ele
+  
+  
+  nl=incr(nl); write (li(nl), lmt) 'beam_saved;LOGIC;T;',                      allocated(beam%bunch)
 
 !----------------------------------------------------------------------
 ! List of datums in a given data d1 array.
@@ -838,10 +869,12 @@ case ('lat_ele1')
   end select  
 
 !----------------------------------------------------------------------
-! Lattice element list.
+! Lattice general
 ! Command syntax:
 !   python lat_general {ix_universe}
-
+!
+! Output syntax:
+!   branch_index;branch_name;n_ele_track;n_ele_max
 case ('lat_general')
 
   u => point_to_uni(line, .false., err); if (err) return
@@ -1966,6 +1999,65 @@ nl=incr(nl); write (li(nl), amt) 'species;STR;F;',                           spe
 nl=incr(nl); write (li(nl), amt) 'location;STR;F;',                          location_name(orbit%location)
 
 end subroutine orbit_out
+
+!----------------------------------------------------------------------
+! contains
+
+subroutine coord_out(beam, coordinate)
+type (beam_struct), pointer :: beam
+type (bunch_struct), pointer :: bunch
+character(20) coordinate
+integer :: i_vec
+
+print *, 'coord_out: ', coordinate
+if (.not. allocated(beam%bunch)) then
+    print *, 'no beam'
+    return
+endif
+
+! TODO: generalize to n bunches
+bunch => beam%bunch(1)
+
+! Allocate scratch 
+n = size(bunch%particle)
+if (.not. allocated(tao_c_interface_com%c_real)) allocate (tao_c_interface_com%c_real(n))
+if (size(tao_c_interface_com%c_real) < n) then
+  deallocate (tao_c_interface_com%c_real)
+  allocate (tao_c_interface_com%c_real(n)) 
+endif
+! Set scratch size
+tao_c_interface_com%n_real = n
+
+! Add data
+select case (coordinate)
+case ('x')
+  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(1)
+case ('px')
+  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(2)
+case ('y')
+  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(3)
+case ('py')
+  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(4)
+case ('z')
+  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(5)
+case ('pz')
+  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(6)      
+case ('s')
+  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%s
+case ('t')
+  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%t
+
+case default
+  nl=incr(nl); li(nl) = 'INVALID'
+  call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": coordinate not "x", "px", etc. ')
+  call end_stuff()
+  return
+end select
+
+
+end subroutine
+
+
 
 !----------------------------------------------------------------------
 ! contains
