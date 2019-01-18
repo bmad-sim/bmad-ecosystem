@@ -244,7 +244,7 @@ case ('branch1')
 !   design
 !
 ! Optional coordinate is one of:
-! x, px, y, py, z, pz, 's', 't'
+! x, px, y, py, z, pz, 's', 't', 'charge', 'p0c'
 ! and will return an array. 
 !
 !
@@ -263,7 +263,7 @@ case ('bunch1')
   !save_beam flag: u%uni_branch(<branch-index>)%ele(<ele-index>)%save_beam
   
   select case (who)
-  case ('x', 'px', 'y', 'py', 'z', 'pz', 's', 't') 
+  case ('x', 'px', 'y', 'py', 'z', 'pz', 's', 't', 'charge', 'p0c') 
     call coord_out(beam, who)
     return
   case ('')
@@ -2046,6 +2046,10 @@ case ('s')
   tao_c_interface_com%c_real(1:n) = bunch%particle(:)%s
 case ('t')
   tao_c_interface_com%c_real(1:n) = bunch%particle(:)%t
+case ('charge')
+  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%charge
+case ('p0c')
+  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%p0c
 
 case default
   nl=incr(nl); li(nl) = 'INVALID'
