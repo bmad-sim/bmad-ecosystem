@@ -1,5 +1,14 @@
 
 
+def parse_bool(s):
+    x = s.upper()[0]
+    if x == 'T':
+        return True
+    elif x == 'F':
+        return False
+    else:
+        raise ValueError ('Unknown bool: '+s) 
+
 
 def parse_tao_lat_ele_list(lines):
     """
@@ -35,7 +44,7 @@ def pytype(type):
         raise ValueError ('Unknown type: '+type)
     return f
 
-def parse_tao_python_data1(line):
+def parse_tao_python_data1(line, clean_key=True):
     """
     Parses most common data output from a Tao>python command
     <component_name>;<type>;<is_variable>;<component_value>
@@ -46,20 +55,29 @@ def parse_tao_python_data1(line):
     parses to:
         {'eta_x':9.0969865321048662E+00}
     
+    If clean key, the key will be cleaned up by replacing '.' with '_' for use as class attributes.
+    
     See: tao_python_cmd.f90
     """
     dat = {}
     name, type, setable, val  = line.split(';')
     f = pytype(type)
-    return {name:f(val)}
+    if f == bool:
+        val = parse_bool(val)
+    else:
+        val = f(val)  
+    if clean_key:
+        name = name.replace('.', '_')
+        
+    return {name:val}
 
-def parse_tao_python_data(lines):
+def parse_tao_python_data(lines, clean_key=True):
     """
     returns dict with data
     """
     dat = {}
     for l in lines:
-        dat.update(parse_tao_python_data1(l))
+        dat.update(parse_tao_python_data1(l, clean_key))
     return dat
     
     
