@@ -18,7 +18,8 @@ tao = pytao.Tao()
 tao.init("command line args here...")
   """
 
-  #----------
+  #---------------------------------------------
+
   def __init__(self, init='', so_lib = ''):
     if so_lib == '':
       BASE_DIR=os.environ['ACC_ROOT_DIR'] + '/production/lib/'
@@ -29,7 +30,7 @@ tao.init("command line args here...")
       elif os.path.isfile(BASE_DIR + 'libtao.dll'):
         self.so_lib = ctypes.CDLL(BASE_DIR + 'libtao.dll')
       else:
-        raise ValueError ('Shared object library not found in: ' + BASE_DIR + '/production/lib')
+        raise ValueError ('Shared object libtao library not found in: ' + BASE_DIR)
     else:
       self.so_lib = ctypes.CDLL(so_lib)
 
@@ -50,16 +51,18 @@ tao.init("command line args here...")
         cmd = '-init '+init
         self.init(cmd)
 
-  #----------
+  #---------------------------------------------
   # Used by init and cmd routines
+
   def get_output(self):
     n_lines = self.so_lib.tao_c_out_io_buffer_num_lines()
     lines = [self.so_lib.tao_c_out_io_buffer_get_line(i).decode('utf-8') for i in range(1, n_lines+1)]
     self.so_lib.tao_c_out_io_buffer_reset()
     return lines
  
-  #----------
+  #---------------------------------------------
   # Init Tao
+
   def init(self, cmd):
     if not self.initialized:
         self.so_lib.tao_c_init_tao(cmd.encode('utf-8'))
@@ -72,15 +75,17 @@ tao.init("command line args here...")
         return self.get_output()
         
  
-  #----------
+  #---------------------------------------------
   # Send a command to Tao and return the output
+
   def cmd(self, cmd):
     self.so_lib.tao_c_command(cmd.encode('utf-8'))
     return self.get_output()
 
-  #----------
+  #---------------------------------------------
   # Get real array output. 
   # Only python commands that load the real array buffer can be used with this method.
+
   def cmd_real (self, cmd):
     self.so_lib.tao_c_command(cmd.encode('utf-8'))
     n = self.so_lib.tao_c_real_array_size()
@@ -89,9 +94,10 @@ tao.init("command line args here...")
     for re in self.so_lib.tao_c_get_real_array().contents: array.append(re)
     return array
 
-  #----------
+  #---------------------------------------------
   # Get integer array output. 
   # Only python commands that load the integer array buffer can be used with this method.
+
   def cmd_integer (self, cmd):
     self.so_lib.tao_c_command(cmd.encode('utf-8'))
     n = self.so_lib.tao_c_integer_array_size()
@@ -100,7 +106,8 @@ tao.init("command line args here...")
     for inte in self.so_lib.tao_c_get_integer_array().contents: array.append(inte)
     return array
 
-  #----------
+  #---------------------------------------------
+
   def register_cell_magic(self):
     """
     Registers a cell magic in Jupyter notebooks

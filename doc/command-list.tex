@@ -888,6 +888,7 @@ Examples:
   set beam 2@track_start = q10w  ! Set the tracking start at element Q10W in universe 2.
   set beam saved_at = "Q*, B*"   ! Save beam parameters (sigma matrix, etc.) at elements
                                  !  whose names begin with "Q" or "B".
+  set beam not_saved_at = Q10W   ! Do not save beam parameters at element "Q10W".
   set beam beginning = end       ! Set the initial beam distribution equal to the distribution at
                                  !  the lattice element named "end".
 \end{example}
@@ -1688,11 +1689,12 @@ Syntax:
   show beam \{<element_name_or_index>\}
 \end{example}
 
-If \vn{<element_name_or_index>} is absent, \vn{show beam} shows parameters used with beam
-tracking including the number of particles in a bunch, etc.  If
-\vn{<element_name_or_index>} is present, \vn{show beam} will show beam parameters at the
-selected element. Also see \vn{show particle}.  Use the \vn{set beam_init} command to set
-values of the \vn{beam_init} structure.
+If \vn{<element_name_or_index>} is absent, \vn{show beam} shows parameters used with beam tracking
+including the number of particles in a bunch, etc.
+
+If \vn{<element_name_or_index>} is present, \vn{show beam} will show beam parameters at the selected
+element. Also see \vn{show particle}.  Use the \vn{set beam_init} command to set values of the
+\vn{beam_init} structure.
 
 %% show branch --------------------------------------------------------------
 

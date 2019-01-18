@@ -692,7 +692,7 @@ type (ele_struct), pointer :: ele
 type (beam_struct), pointer :: beam
 integer ix, iu, n_loc
 logical, allocatable :: this_u(:)
-logical err
+logical err, logic
 
 character(*) who, value_str
 character(20) switch, who2
@@ -704,7 +704,7 @@ call tao_pick_universe (remove_quotes(who), who2, this_u, err); if (err) return
 
 call match_word (who2, [character(20):: 'track_start', 'track_end', 'all_file', 'position0_file', 'saved_at', &
                     'beam_track_start', 'beam_track_end', 'beam_all_file', 'beam_position0_file', 'beam_saved_at', &
-                    'beginning'], ix, matched_name=switch)
+                    'beginning', 'not_saved_at'], ix, matched_name=switch)
 
 do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(iu)) cycle
@@ -736,14 +736,16 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     u%beam%position0_file = value_str
     u%beam%init_position0 = .true.
 
-  case ('saved_at', 'beam_saved_at')
+  case ('saved_at', 'beam_saved_at', 'not_saved_at')
     call tao_locate_elements (value_str, u%ix_uni, eles, err)
     if (err) then
       call out_io (s_error$, r_name, 'BAD BEAM_SAVED_AT STRING: ' // value_str)
     else
+      logic = .true.
+      if (switch == 'not_saved_at') logic = .false.
       do ix = 1, size(eles)
         ele => eles(ix)%ele
-        u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam = .true.
+        u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam = logic
       enddo
     endif
     u%beam%saved_at = value_str
