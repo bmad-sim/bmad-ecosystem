@@ -1,5 +1,6 @@
 import os
 import ctypes
+import numpy as np
 
 #--------------------------------------
 
@@ -90,11 +91,21 @@ tao.init("command line args here...")
     self.so_lib.tao_c_command(cmd.encode('utf-8'))
     n = self.so_lib.tao_c_real_array_size()
     self.so_lib.tao_c_get_real_array.restype = ctypes.POINTER(ctypes.c_double * n)
-    array = []
-    for re in self.so_lib.tao_c_get_real_array().contents: array.append(re)
-    return array
+    
+    # Old way:
+    #array = []
+    #for re in self.so_lib.tao_c_get_real_array().contents: array.append(re)
+    #return array
 
-  #---------------------------------------------
+    #NumPy way:
+    # This is a pointer to the scratch space. 
+    array = np.ctypeslib.as_array(
+        (ctypes.c_double * n).from_address(ctypes.addressof(self.so_lib.tao_c_get_real_array().contents)))
+    # Return a copy
+    return np.copy(array)
+    
+    
+  #----------
   # Get integer array output. 
   # Only python commands that load the integer array buffer can be used with this method.
 
