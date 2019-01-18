@@ -45,6 +45,5 @@ alias beamoff set global track_type = single
 alias beamon set global track_type = beam
 beamon
 
-sp touch ~/xxx
 
 
