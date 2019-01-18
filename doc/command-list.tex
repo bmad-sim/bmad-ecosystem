@@ -868,15 +868,24 @@ Where \vn{<value>} may be one of:
 Format:
 \begin{example}
   set beam \{n@\}<component> = <value>
+  set beam \{n@\}beginning = <ele-name>
+  set beam \{n@\}add_saved_at = <ele-list>
+  set beam \{n@\}subtract_saved_at = <ele-list>
 \end{example}
 
 The \vn{set beam} command sets beam parameters such as the initial and final tracking positions.
 Use the \vn{show beam} command (\sref{s:show}) to see the current values.
 
-Additionally, if \vn{<component>} is set to \vn{beginning}, and \vn{<value>} is set to the name
-or index of a lattice element where particle positions of the tracked beam has been stored, the initial
+For the \vn{set beam beginning <ele-name>} command, the element specified by \vn{<ele-name>} must be
+an element where particle positions of the tracked beam have been stored. With this command, the initial
 distribution of the beam at the beginning of the lattice will be set to the distribution at the indicated
 element. This is useful to track the beam over many turns.
+
+The \vn{set beam \{n@\}add_saved_at} command adds to the list of elements where the beam distribution is 
+saved at. 
+
+The \vn{set beam \{n@\}subtract_saved_at} command subtracts from the list of elements where the beam distribution is 
+saved at. 
 
 The optional \vn{n@} allows the specification of the universe or universes the set is applied
 to. The current default universe (\sref{s:universe}) will be used if no universe is given. 
@@ -888,7 +897,7 @@ Examples:
   set beam 2@track_start = q10w  ! Set the tracking start at element Q10W in universe 2.
   set beam saved_at = "Q*, B*"   ! Save beam parameters (sigma matrix, etc.) at elements
                                  !  whose names begin with "Q" or "B".
-  set beam not_saved_at = Q10W   ! Do not save beam parameters at element "Q10W".
+  set beam add_saved_at = S10    ! Save beam parameters at element "S10" as well.
   set beam beginning = end       ! Set the initial beam distribution equal to the distribution at
                                  !  the lattice element named "end".
 \end{example}

@@ -736,19 +736,35 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     u%beam%position0_file = value_str
     u%beam%init_position0 = .true.
 
-  case ('saved_at', 'beam_saved_at', 'not_saved_at')
+  case ('saved_at', 'beam_saved_at')
     call tao_locate_elements (value_str, u%ix_uni, eles, err)
     if (err) then
       call out_io (s_error$, r_name, 'BAD BEAM_SAVED_AT STRING: ' // value_str)
-    else
-      logic = .true.
-      if (switch == 'not_saved_at') logic = .false.
-      do ix = 1, size(eles)
-        ele => eles(ix)%ele
-        u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam = logic
-      enddo
+      return
     endif
     u%beam%saved_at = value_str
+
+    do ix = 0, ubound(u%uni_branch, 1)
+      u%uni_branch(ix)%ele(:)%save_beam = .false.
+    enddo
+
+    do ix = 1, size(eles)
+      ele => eles(ix)%ele
+      u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam = .true.
+    enddo
+
+  case ('add_saved_at', 'subtract_saved_at')
+    call tao_locate_elements (value_str, u%ix_uni, eles, err)
+    if (err) then
+      call out_io (s_error$, r_name, 'BAD BEAM_SAVED_AT STRING: ' // value_str)
+      return
+    endif
+
+    logic = (switch == 'add_saved_at')
+    do ix = 1, size(eles)
+      ele => eles(ix)%ele
+      u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam = logic
+    enddo
 
   case default
     call out_io (s_fatal$, r_name, 'PARAMETER NOT RECOGNIZED: ' // who2)
