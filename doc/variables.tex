@@ -187,22 +187,24 @@ in \Sref{s:var.token}.
 
 Use the \vn{show var} (\sref{s:show}) command to see variable information
 
-When using optimization for lattice correction or lattice design
-(\sref{c:opti}), Individual variables can be excluded from the process
-using the \vn{veto} (\sref{s:veto}), \vn{restore} (\sref{s:restore}),
-and \vn{use} (\sref{s:use}) commands. These set the \vn{good_user}
-component of a variable. This, combined with the setting \vn{exists},
-\vn{good_var}, and \vn{good_opt} determine the setting of
-\vn{useit_opt} which is the component that determines if the datum is
-used in the computation of the merit function. 
+When using optimization for lattice correction or lattice design (\sref{c:opti}), Individual
+variables can be excluded from the process using the \vn{veto} (\sref{s:veto}), \vn{restore}
+(\sref{s:restore}), and \vn{use} (\sref{s:use}) commands. These set the \vn{good_user} component of
+a variable. This, combined with the setting \vn{exists}, \vn{good_var}, and \vn{good_opt} determine
+the setting of \vn{useit_opt} which is the component that determines if the datum is used in the
+computation of the merit function.
 \begin{example}
-  useit_plot = exists \& good_user \& good_opt \& good_var
+  useit_opt = exists \& good_user \& good_opt \& good_var
 \end{example}
 The settings of everything but \vn{good_user} and \vn{good_opt} is determined by \tao
 
-If the \vn{useit_plot} component is True, the variable is used when when plotting
-variables and is not used when \vn{useit_plot} is False. \vn{useit_plot} is set
-by \tao using the state of three other components:
+For a given \vn{graph} that potentially will use a given variable for plotting, 
+the \vn{useit_plot} component is set to True if the variable is actually used for plotting.
+\vn{useit_plot} is set by \tao using the prescription:
 \begin{example}
-  useit_plot = exists \& good_plot \& good_user
+  useit_plot = exists \& good_plot \& good_var \& 
+                            (good_user | graph:draw_only_good_user_data_or_vars)
 \end{example}
+Since \vn{useit_plot} is set on a graph by graph basis, If multipole graphs that use a particular
+variable are to be plotted, The setting of \vn{useit_plot} at the end of plotting will just be
+the setting for the last graph that was plotted.

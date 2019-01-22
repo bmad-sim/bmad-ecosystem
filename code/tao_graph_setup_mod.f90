@@ -1454,15 +1454,7 @@ case ('data')
 
   ! make sure %useit_plot up-to-date & count the number of data points
 
-  call tao_data_useit_plot_calc (curve, graph, d1_ptr%d) 
-  if (plot%x_axis_type == 's') then
-    ! veto non-regular elements when plotting s
-    do m = lbound(d1_ptr%d,1), ubound(d1_ptr%d,1)
-      if (d1_ptr%d(m)%ix_ele > model_lat%branch(d1_ptr%d(m)%ix_branch)%n_ele_track) then
-        d1_ptr%d(m)%useit_plot = .false.
-      endif
-    enddo
-  endif
+  call tao_data_useit_plot_calc (curve, graph, d1_ptr%d, plot%x_axis_type == 's') 
   n_dat = count (d1_ptr%d%useit_plot)       
 
   ! resize the curve data arrays
@@ -2619,20 +2611,16 @@ end subroutine tao_calc_data_at_s
 ! Subroutine to set the data for plotting.
 !
 ! Input:
-!   graph   -- tao_graph_struct
-!   curve   -- tao_curve_struct
-!
+!   graph             -- tao_graph_struct
+!   curve             -- tao_curve_struct
+!   check_s_position  -- logical, optional: If present and True then 
+!                           veto data that does not have an s-position.
 ! Output:
 !   data     -- Tao_data_struct:
 !     %useit_plot -- True if good for plotting.
-!                  = %exists & %good_plot (w/o measured & reference data)
-!                  = %exists & %good_plot & %good_user & %good_meas (w/ meas data)
-!                  = %exists & %good_plot & %good_user & %good_ref (w/ reference data)
-!                  = %exists & %good_plot & %good_user & %good_meas & %good_ref 
-!                                                        (w/ measured & reference data)
 !-
 
-subroutine tao_data_useit_plot_calc (curve, graph, data)
+subroutine tao_data_useit_plot_calc (curve, graph, data, check_s_position)
 
 implicit none
 
@@ -2640,6 +2628,7 @@ type (tao_curve_struct) curve
 type (tao_graph_struct) graph
 type (tao_data_struct) data(:)
 character(60) component
+logical, optional :: check_s_position
 
 !
 
@@ -2650,6 +2639,10 @@ data%useit_plot = data%exists .and. data%good_plot .and. &
 if (index(component, 'meas') /= 0)   data%useit_plot = data%useit_plot .and. data%good_meas
 if (index(component, 'ref') /= 0)    data%useit_plot = data%useit_plot .and. data%good_ref
 if (index(component, 'model') /= 0)  data%useit_plot = data%useit_plot .and. data%good_model
+
+if (logic_option(.false., check_s_position)) then
+  data%useit_plot = data%useit_plot .and. (data%s /= real_garbage$)
+endif
 
 end subroutine tao_data_useit_plot_calc
 

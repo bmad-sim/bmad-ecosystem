@@ -140,7 +140,9 @@ case ('beam')
     enddo 
 
     if (new_file) then
-      call out_io (s_error$, r_name, 'NO ALLOCATED BEAM FOUND!')
+      call out_io (s_error$, r_name, 'BEAM NOT SAVED AT THIS ELEMENT.', &
+                    'CHECK THE SETTING OF THE BEAM_SAVED_AT COMPONENT OF THE TAO_BEAM_INIT NAMELIST.', &
+                    'ANOTHER POSSIBILITY IS THAT GLOBAL%TRACK_TYPE = "single" SO NO BEAM TRACKING HAS BEEN DONE.')
     else
       call out_io (s_info$, r_name, 'Writen: ' // file_name)
     endif
