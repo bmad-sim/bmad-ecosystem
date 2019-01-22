@@ -257,10 +257,24 @@ Longitudinal $s$-position of the lattice element.
 Offset of the evaluation point when there is an associated lattice element (\sref{s:dat.eval}).
   \item[useit_opt] \Newline
 Datum is possibly valid for optimization. \vn{useit_opt} is set by \tao using the other
-\vn{logicals} components. A datum is used in the optimization if both \vn{useit_opt} and
-\vn{good_meas} are true.
+\vn{logicals} components using the prescription:
+\begin{example}
+  useit_opt = exists \& useit_opt \& good_user \& good_meas \& 
+              good_ref (if reference data is used in optimization)
+\end{example}
+%
   \item[useit_plot] \Newline
-Datum is valid for plotting
+Set \vn{True} if the datum is valid for plotting for a particular graph. This component gets
+reevaluated for each \vn{graph} that potentially uses the datum so the value observed after plotting is
+refreshed is simply the value as calculated for the last \vn{graph} considered. The value for \vn{useit_plot}
+is evaluated using other logical components using the preseciption:
+\begin{example}
+  useit_plot = exists \& good_plot \& 
+                  (good_user | graph:draw_only_good_user_data_or_vars) \&
+                  good_meas (if measured data is being plotted) \& 
+                  good_ref (if reference data is being plotted) \&
+                  good_model (if model data is being plotted)
+\end{example}
   \item[weight] \Newline
 Weight used in evaluating the contribution of the datum to the merit function (\sref{s:lattice.correction}).
 \end{description}

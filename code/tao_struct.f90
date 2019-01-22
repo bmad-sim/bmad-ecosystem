@@ -356,7 +356,7 @@ type tao_data_struct
   real(rp) :: weight = 0                   ! Weight for the merit function term.
   real(rp) :: invalid_value = 0            ! Value used in merit calc if good_model = False.
   real(rp) :: merit = 0                    ! Merit function term value: weight * delta^2
-  real(rp) :: s = 0                        ! longitudinal position of ele.
+  real(rp) :: s = real_garbage$            ! longitudinal position of ele.
   real(rp) :: s_offset = 0                 ! Offset of the evaluation point.
   type (spin_axis_struct) :: spin_axis = spin_axis_struct()  ! For spin g-matrix calculations.
   logical :: err_message_printed = .false. ! Used to prevent zillions of error messages being generated
