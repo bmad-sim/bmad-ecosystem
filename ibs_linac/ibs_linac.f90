@@ -26,7 +26,7 @@ type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 type (coord_struct) :: orb0
 type (coord_struct), allocatable :: orbit(:)
-type (rad_int_all_ele_struct), target :: rad_int_ele
+type (rad_int_all_ele_struct), target :: rad_int_by_ele
 type (normal_modes_struct) :: normal_mode
 type (rad_int1_struct), pointer :: rad_int1
 type (beam_init_struct) :: beam_init
@@ -39,7 +39,7 @@ real(rp) :: delta_sigma_energy, delta_emit_a, delta_emit_b, rad_delta_eV2, gamma
 real(rp), parameter :: c_q = 3.84e-13
 real(rp) :: initial_slice_energy_spread_eV, energy_spread_eV, sigma_z
 
-integer :: ix, status
+integer :: ix, status, ix_branch
 integer :: namelist_file, n_char
 
 character(100) :: lat_name, lat_path, base_name, in_file
@@ -50,7 +50,7 @@ logical :: radiation_damping_on, radiation_fluctuations_on, ISR_energy_spread_on
 logical :: err, use_beam, verbose, ibs_affects_bunch, ibs_on
 
 namelist / ibs_linac_params / &
-    lat_name, ibs_formula, &
+    lat_name, ibs_formula, ix_branch, &
     use_beam, beam_init, radiation_damping_on, radiation_fluctuations_on, &
     ISR_energy_spread_on, ibs_affects_bunch, ibs_on, &
     initial_slice_energy_spread_eV, verbose
@@ -68,6 +68,7 @@ verbose = .false.
 beam_init%n_bunch = 1
 ibs_affects_bunch = .false.
 ibs_on = .true.
+ix_branch = 0
 
 !Read namelist
 in_file = 'ibs_linac.in'
@@ -89,7 +90,7 @@ n_char= SplitFileName(lat_name, lat_path, base_name)
 
 !Parse Lattice
 call bmad_parser (lat_name, lat)
-!branch => lat%branch(0)
+branch => lat%branch(ix_branch)
 
 !--------------------
 ! Radiation 
@@ -105,10 +106,10 @@ if (status /= ok$) then
 endif
 
 if (verbose) print *, 'radiation_integrals'
-call radiation_integrals (lat, orbit, normal_mode, rad_int_by_ele = rad_int_ele)
+call radiation_integrals (lat, orbit, normal_mode, rad_int_by_ele = rad_int_by_ele)
 
 ! Set element 0
-ele => lat%ele(0)
+ele => branch%ele(0)
 
 call init_beam_distribution (ele, lat%param, beam_init, beam)
 
@@ -162,7 +163,7 @@ write (*, '(9a15)') 'm', '1', 'mm-mrad', 'mm-mrad', 'fs', 'eV', 'mm-mrad', 'mm-m
 
 do ix=1, lat%n_ele_track
   ele => lat%ele(ix)
-  rad_int1 => rad_int_ele%ele(ix)
+  rad_int1 => rad_int_by_ele%branch(ix_branch)%ele(ix)
   call convert_total_energy_to(ele%value(e_tot$), lat%param%particle, gamma)
   
   if (use_beam) then

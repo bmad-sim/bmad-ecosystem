@@ -20,7 +20,8 @@ type (ele_struct), pointer :: ele
 type (lat_struct), target :: lat
 type (coord_struct), allocatable :: orb(:)
 type (coord_struct) orbit_here, orbit, orb1
-type (rad_int_all_ele_struct) rad_int_ele
+type (rad_int_all_ele_struct), target :: rad_int_by_ele
+type (rad_int_branch_struct), pointer :: rad_int_branch
 type (normal_modes_struct) modes
 type (branch_struct), pointer :: branch
 type (wall3d_struct), pointer :: wall3d
@@ -293,13 +294,14 @@ if (status /= ok$) stop
   
 ! Find out much radiation is produced
 
-call radiation_integrals (lat, orb, modes, rad_int_by_ele = rad_int_ele, ix_branch = branch%ix_branch)
+call radiation_integrals (lat, orb, modes, ix_branch = branch%ix_branch, rad_int_by_ele = rad_int_by_ele)
+rad_int_branch => rad_int_by_ele%branch(ix_branch)
 
 if (ix_ele_track_end > ix_ele_track_start) then
-  i0_tot = sum(rad_int_ele%ele(ix_ele_track_start+1:ix_ele_track_end)%i0)
+  i0_tot = sum(rad_int_branch%ele(ix_ele_track_start+1:ix_ele_track_end)%i0)
 else
-  i0_tot = sum(rad_int_ele%ele(ix_ele_track_start+1:branch%n_ele_track)%i0) + &
-           sum(rad_int_ele%ele(1:ix_ele_track_end)%i0)
+  i0_tot = sum(rad_int_branch%ele(ix_ele_track_start+1:branch%n_ele_track)%i0) + &
+           sum(rad_int_branch%ele(1:ix_ele_track_end)%i0)
 endif
 
 allocate (i0_eff(0:branch%n_ele_max))
@@ -308,7 +310,7 @@ i0_eff = 0
 if (e_init_filter_min > 0 .or. e_init_filter_max > 0 .or. &
         vert_angle_init_filter_min > -pi/2 .or. vert_angle_init_filter_max < pi/2) then
   do i = 1, branch%n_ele_track
-    if (rad_int_ele%ele(i)%i0 == 0) cycle
+    if (rad_int_branch%ele(i)%i0 == 0) cycle
     i0_eff(i) = i0_eff_calc(branch%ele(i), orb(i), e_init_filter_min, e_init_filter_max, &
                          vert_angle_init_filter_min, vert_angle_init_filter_max, vert_angle_symmetric_init_filter)
   enddo
@@ -321,7 +323,7 @@ if (e_init_filter_min > 0 .or. e_init_filter_max > 0 .or. &
 
 else
   i0_tot_eff = i0_tot
-  i0_eff = rad_int_ele%ele%i0
+  i0_eff = rad_int_branch%ele%i0
 endif
 
 ! Print some info
@@ -571,7 +573,7 @@ else
 
     if (iu_lat_file > 0) then
       write (iu_lat_file, '(i6, 2x, a20, a16, f10.3, f8.3, f10.1, i9, f8.3)') ix_ele, ele%name, &
-              key_name(ele%key), ele%s, ele%value(l$), rad_int_ele%ele(ix_ele)%i0, n_phot, ds
+              key_name(ele%key), ele%s, ele%value(l$), rad_int_branch%ele(ix_ele)%i0, n_phot, ds
     endif
 
     ! Loop over all photon generating points.
