@@ -7768,6 +7768,100 @@ end subroutine set_rad_int1_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
+subroutine test1_f_rad_int_branch (ok)
+
+implicit none
+
+type(rad_int_branch_struct), target :: f_rad_int_branch, f2_rad_int_branch
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_rad_int_branch (c_rad_int_branch, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_rad_int_branch
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_rad_int_branch_test_pattern (f2_rad_int_branch, 1)
+
+call test_c_rad_int_branch(c_loc(f2_rad_int_branch), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_rad_int_branch_test_pattern (f_rad_int_branch, 4)
+if (f_rad_int_branch == f2_rad_int_branch) then
+  print *, 'rad_int_branch: C side convert C->F: Good'
+else
+  print *, 'rad_int_branch: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_rad_int_branch
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_rad_int_branch (c_rad_int_branch, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_rad_int_branch
+type(rad_int_branch_struct), target :: f_rad_int_branch, f2_rad_int_branch
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call rad_int_branch_to_f (c_rad_int_branch, c_loc(f_rad_int_branch))
+
+call set_rad_int_branch_test_pattern (f2_rad_int_branch, 2)
+if (f_rad_int_branch == f2_rad_int_branch) then
+  print *, 'rad_int_branch: F side convert C->F: Good'
+else
+  print *, 'rad_int_branch: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_rad_int_branch_test_pattern (f2_rad_int_branch, 3)
+call rad_int_branch_to_c (c_loc(f2_rad_int_branch), c_rad_int_branch)
+
+end subroutine test2_f_rad_int_branch
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_rad_int_branch_test_pattern (F, ix_patt)
+
+implicit none
+
+type(rad_int_branch_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%ele)) deallocate (F%ele)
+else
+  if (.not. allocated(F%ele)) allocate (F%ele(-1:1))
+  do jd1 = 1, size(F%ele,1); lb1 = lbound(F%ele,1) - 1
+    call set_rad_int1_test_pattern (F%ele(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+
+end subroutine set_rad_int_branch_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
 subroutine test1_f_rad_int_all_ele (ok)
 
 implicit none
@@ -7848,11 +7942,11 @@ offset = 100 * ix_patt
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
-  if (allocated(F%ele)) deallocate (F%ele)
+  if (allocated(F%branch)) deallocate (F%branch)
 else
-  if (.not. allocated(F%ele)) allocate (F%ele(-1:1))
-  do jd1 = 1, size(F%ele,1); lb1 = lbound(F%ele,1) - 1
-    call set_rad_int1_test_pattern (F%ele(jd1+lb1), ix_patt+jd1)
+  if (.not. allocated(F%branch)) allocate (F%branch(-1:1))
+  do jd1 = 1, size(F%branch,1); lb1 = lbound(F%branch,1) - 1
+    call set_rad_int_branch_test_pattern (F%branch(jd1+lb1), ix_patt+jd1)
   enddo
 endif
 

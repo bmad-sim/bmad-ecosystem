@@ -386,6 +386,11 @@ typedef valarray<CPP_rad_int1>          CPP_rad_int1_ARRAY;
 typedef valarray<CPP_rad_int1_ARRAY>    CPP_rad_int1_MATRIX;
 typedef valarray<CPP_rad_int1_MATRIX>   CPP_rad_int1_TENSOR;
 
+class CPP_rad_int_branch;
+typedef valarray<CPP_rad_int_branch>          CPP_rad_int_branch_ARRAY;
+typedef valarray<CPP_rad_int_branch_ARRAY>    CPP_rad_int_branch_MATRIX;
+typedef valarray<CPP_rad_int_branch_MATRIX>   CPP_rad_int_branch_TENSOR;
+
 class CPP_rad_int_all_ele;
 typedef valarray<CPP_rad_int_all_ele>          CPP_rad_int_all_ele_ARRAY;
 typedef valarray<CPP_rad_int_all_ele_ARRAY>    CPP_rad_int_all_ele_MATRIX;
@@ -3122,16 +3127,40 @@ bool operator== (const CPP_rad_int1&, const CPP_rad_int1&);
 
 
 //--------------------------------------------------------------------
+// CPP_rad_int_branch
+
+class Opaque_rad_int_branch_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_rad_int_branch {
+public:
+  CPP_rad_int1_ARRAY ele;
+
+  CPP_rad_int_branch() :
+    ele(CPP_rad_int1_ARRAY(CPP_rad_int1(), 0))
+    {}
+
+  ~CPP_rad_int_branch() {
+  }
+
+};   // End Class
+
+extern "C" void rad_int_branch_to_c (const Opaque_rad_int_branch_class*, CPP_rad_int_branch&);
+extern "C" void rad_int_branch_to_f (const CPP_rad_int_branch&, Opaque_rad_int_branch_class*);
+
+bool operator== (const CPP_rad_int_branch&, const CPP_rad_int_branch&);
+
+
+//--------------------------------------------------------------------
 // CPP_rad_int_all_ele
 
 class Opaque_rad_int_all_ele_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_rad_int_all_ele {
 public:
-  CPP_rad_int1_ARRAY ele;
+  CPP_rad_int_branch_ARRAY branch;
 
   CPP_rad_int_all_ele() :
-    ele(CPP_rad_int1_ARRAY(CPP_rad_int1(), 0))
+    branch(CPP_rad_int_branch_ARRAY(CPP_rad_int_branch(), 0))
     {}
 
   ~CPP_rad_int_all_ele() {

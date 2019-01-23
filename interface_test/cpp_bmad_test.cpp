@@ -5338,9 +5338,9 @@ extern "C" void test_c_rad_int1 (Opaque_rad_int1_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_rad_int_all_ele (CPP_rad_int_all_ele&, bool&);
+extern "C" void test2_f_rad_int_branch (CPP_rad_int_branch&, bool&);
 
-void set_CPP_rad_int_all_ele_test_pattern (CPP_rad_int_all_ele& C, int ix_patt) {
+void set_CPP_rad_int_branch_test_pattern (CPP_rad_int_branch& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
@@ -5350,6 +5350,62 @@ void set_CPP_rad_int_all_ele_test_pattern (CPP_rad_int_all_ele& C, int ix_patt) 
   else {
     C.ele.resize(3);
     for (unsigned int i = 0; i < C.ele.size(); i++)  {set_CPP_rad_int1_test_pattern(C.ele[i], ix_patt+i+1);}
+  }
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_rad_int_branch (Opaque_rad_int_branch_class* F, bool& c_ok) {
+
+  CPP_rad_int_branch C, C2;
+
+  c_ok = true;
+
+  rad_int_branch_to_c (F, C);
+  set_CPP_rad_int_branch_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " rad_int_branch: C side convert F->C: Good" << endl;
+  } else {
+    cout << " rad_int_branch: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_rad_int_branch_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_rad_int_branch (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_rad_int_branch_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " rad_int_branch: F side convert F->C: Good" << endl;
+  } else {
+    cout << " rad_int_branch: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_rad_int_branch_test_pattern (C2, 4);
+  rad_int_branch_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_rad_int_all_ele (CPP_rad_int_all_ele&, bool&);
+
+void set_CPP_rad_int_all_ele_test_pattern (CPP_rad_int_all_ele& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.branch.resize(0);
+  else {
+    C.branch.resize(3);
+    for (unsigned int i = 0; i < C.branch.size(); i++)  {set_CPP_rad_int_branch_test_pattern(C.branch[i], ix_patt+i+1);}
   }
 
 

@@ -1343,9 +1343,20 @@ template bool is_all_equal (const CPP_rad_int1_MATRIX&, const CPP_rad_int1_MATRI
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_rad_int_all_ele& x, const CPP_rad_int_all_ele& y) {
+bool operator== (const CPP_rad_int_branch& x, const CPP_rad_int_branch& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.ele, y.ele);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_rad_int_branch_ARRAY&, const CPP_rad_int_branch_ARRAY&);
+template bool is_all_equal (const CPP_rad_int_branch_MATRIX&, const CPP_rad_int_branch_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_rad_int_all_ele& x, const CPP_rad_int_all_ele& y) {
+  bool is_eq = true;
+  is_eq = is_eq && is_all_equal(x.branch, y.branch);
   return is_eq;
 };
 

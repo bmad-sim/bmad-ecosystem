@@ -3293,15 +3293,14 @@ extern "C" void rad_int1_to_c2 (CPP_rad_int1& C, c_Real& z_i0, c_Real& z_i1, c_R
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_rad_int_all_ele
+// CPP_rad_int_branch
 
-extern "C" void rad_int_all_ele_to_c (const Opaque_rad_int_all_ele_class*, CPP_rad_int_all_ele&);
+extern "C" void rad_int_branch_to_c (const Opaque_rad_int_branch_class*, CPP_rad_int_branch&);
 
 // c_side.to_f2_arg
-extern "C" void rad_int_all_ele_to_f2 (Opaque_rad_int_all_ele_class*, const CPP_rad_int1**,
-    Int);
+extern "C" void rad_int_branch_to_f2 (Opaque_rad_int_branch_class*, const CPP_rad_int1**, Int);
 
-extern "C" void rad_int_all_ele_to_f (const CPP_rad_int_all_ele& C, Opaque_rad_int_all_ele_class* F) {
+extern "C" void rad_int_branch_to_f (const CPP_rad_int_branch& C, Opaque_rad_int_branch_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
   int n1_ele = C.ele.size();
   const CPP_rad_int1** z_ele = NULL;
@@ -3311,19 +3310,55 @@ extern "C" void rad_int_all_ele_to_f (const CPP_rad_int_all_ele& C, Opaque_rad_i
   }
 
   // c_side.to_f2_call
-  rad_int_all_ele_to_f2 (F, z_ele, n1_ele);
+  rad_int_branch_to_f2 (F, z_ele, n1_ele);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_ele;
 }
 
 // c_side.to_c2_arg
-extern "C" void rad_int_all_ele_to_c2 (CPP_rad_int_all_ele& C, Opaque_rad_int1_class** z_ele,
-    Int n1_ele) {
+extern "C" void rad_int_branch_to_c2 (CPP_rad_int_branch& C, Opaque_rad_int1_class** z_ele, Int
+    n1_ele) {
 
   // c_side.to_c2_set[type, 1, ALLOC]
   C.ele.resize(n1_ele);
   for (int i = 0; i < n1_ele; i++) rad_int1_to_c(z_ele[i], C.ele[i]);
+
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// CPP_rad_int_all_ele
+
+extern "C" void rad_int_all_ele_to_c (const Opaque_rad_int_all_ele_class*, CPP_rad_int_all_ele&);
+
+// c_side.to_f2_arg
+extern "C" void rad_int_all_ele_to_f2 (Opaque_rad_int_all_ele_class*, const
+    CPP_rad_int_branch**, Int);
+
+extern "C" void rad_int_all_ele_to_f (const CPP_rad_int_all_ele& C, Opaque_rad_int_all_ele_class* F) {
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_branch = C.branch.size();
+  const CPP_rad_int_branch** z_branch = NULL;
+  if (n1_branch != 0) {
+    z_branch = new const CPP_rad_int_branch*[n1_branch];
+    for (int i = 0; i < n1_branch; i++) z_branch[i] = &C.branch[i];
+  }
+
+  // c_side.to_f2_call
+  rad_int_all_ele_to_f2 (F, z_branch, n1_branch);
+
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_branch;
+}
+
+// c_side.to_c2_arg
+extern "C" void rad_int_all_ele_to_c2 (CPP_rad_int_all_ele& C, Opaque_rad_int_branch_class**
+    z_branch, Int n1_branch) {
+
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.branch.resize(n1_branch);
+  for (int i = 0; i < n1_branch; i++) rad_int_branch_to_c(z_branch[i], C.branch[i]);
 
 }
 

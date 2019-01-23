@@ -93,6 +93,7 @@ struct_list = [
     'csr_parameter_struct',
     'bmad_common_struct',
     'rad_int1_struct',
+    'rad_int_branch_struct',
     'rad_int_all_ele_struct',
     'ele_struct',
     'complex_taylor_term_struct',
