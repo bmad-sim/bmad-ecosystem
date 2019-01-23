@@ -412,7 +412,7 @@ complex(rp) temp_cplx
 real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) 
 
 integer i, j, k, m, n, k_old, ix, ie, is, iz, ix_ele, ix_start, ix_ref
-integer n_size, ix0, which, expnt(6), n_track, n_max
+integer n_size, ix0, which, expnt(6), n_track, n_max, ix_branch
 
 character(*), optional :: why_invalid
 character(6) expn_str
@@ -465,17 +465,17 @@ endif
 ele => tao_pointer_to_datum_ele (lat, datum%ele_name, datum%ix_ele, datum, valid_value, why_invalid)
 if (.not. valid_value) return
 ix_ele = -1
-if (associated(ele)) ix_ele = ele%ix_ele
+if (associated(ele)) ix_ele = tao_tracking_ele_index(ele, datum, ix_branch)
 
 ele_ref => tao_pointer_to_datum_ele (lat, datum%ele_ref_name, datum%ix_ele_ref, datum, valid_value, why_invalid)
 if (.not. valid_value) return
 ix_ref = -1
-if (associated(ele_ref)) ix_ref = ele_ref%ix_ele
+if (associated(ele_ref)) ix_ref = tao_tracking_ele_index(ele_ref, datum)
 
 ele_start => tao_pointer_to_datum_ele (lat, datum%ele_start_name, datum%ix_ele_start, datum, valid_value, why_invalid)
 if (.not. valid_value) return
 ix_start = ix_ele
-if (associated(ele_start)) ix_start = ele_start%ix_ele
+if (associated(ele_start)) ix_start = tao_tracking_ele_index(ele_start, datum)
 
 ! Some inits
 
@@ -484,8 +484,8 @@ valid_value = .false.
 datum_value = 0           ! default
 datum%ix_ele_merit = -1   ! default
 
-branch => lat%branch(datum%ix_branch)
-tao_branch => tao_lat%tao_branch(datum%ix_branch)
+branch => lat%branch(ix_branch)
+tao_branch => tao_lat%tao_branch(ix_branch)
 orbit => tao_branch%orbit
 bunch_params => tao_branch%bunch_params
 
@@ -564,7 +564,7 @@ endif
 
 !---------------------------------------------------
 
-if (datum%s_offset /= 0 .or. datum%eval_point == anchor_center$) then
+if (datum%s_offset /= 0 .or. datum%eval_point == anchor_center$ .or. datum%eval_point == anchor_beginning$) then
   if (data_source /= 'lat') then
     call tao_set_invalid (datum, 'CANNOT USE A BEAM DATA_SOURCE WITH A FINITE S_OFFSET OR EVAL_POINT = CENTER.', why_invalid, .true.)
     return
@@ -578,8 +578,8 @@ if (datum%s_offset /= 0 .or. datum%eval_point == anchor_center$) then
   select case (datum%eval_point)
   case (anchor_beginning$)
     ! Here tao_pointer_to_datum_ele has pointed ele to the element before the element specified in the datum.
-    s_eval = ele%s + datum%s_offset
-    if (associated(ele_ref)) s_eval_ref = ele%s
+    s_eval = ele%s_start + datum%s_offset
+    if (associated(ele_ref)) s_eval_ref = ele%s_start
   case (anchor_center$)
     s_eval = (ele%s_start + ele%s) / 2 + datum%s_offset
     if (associated(ele_ref)) s_eval_ref = (ele%s_start + ele%s) / 2
@@ -1663,7 +1663,7 @@ case ('srdt.')
 case ('normal.')
 
   ! Fetches normal_form components.
-  if (datum%ix_branch /= 0) then
+  if (branch%ix_branch /= 0) then
     call out_io (s_fatal$, r_name, 'TRANSFER MAP CALC NOT YET MODIFIED FOR BRANCHES.')
     return
   endif
@@ -1789,7 +1789,7 @@ case ('momentum_compaction')
 
   if (ix_ref < 0) then
     ix_ref = 0
-    ele_ref => lat%branch(datum%ix_branch)%ele(ix_ref)
+    ele_ref => lat%branch(branch%ix_branch)%ele(ix_ref)
   endif
 
   orb0 => orbit(ix_ref)
@@ -1800,7 +1800,7 @@ case ('momentum_compaction')
   eta_vec(2) = eta_vec(2) * one_pz + orb0%vec(2) / one_pz
   eta_vec(4) = eta_vec(4) * one_pz + orb0%vec(4) / one_pz
 
-  call transfer_matrix_calc (lat, mat6, vec0, ix_ref, ix_start, datum%ix_branch)
+  call transfer_matrix_calc (lat, mat6, vec0, ix_ref, ix_start, branch%ix_branch)
 
   do i = ix_start, ix_ele
     s_len = branch%ele(i)%s - branch%ele(ix_ref)%s
@@ -2250,7 +2250,7 @@ case ('r.')
   j = tao_read_this_index (datum%data_type, 4); if (j == 0) return
 
   if (ix_ref < 0) ix_ref = 0
-  call transfer_matrix_calc (lat, mat6, vec0, ix_ref, ix_start, datum%ix_branch)
+  call transfer_matrix_calc (lat, mat6, vec0, ix_ref, ix_start, branch%ix_branch)
 
   k = ix_start
   do 
@@ -2270,7 +2270,7 @@ case ('r56_compaction')
 
   if (ix_ref < 0) then
     ix_ref = 0
-    ele_ref => lat%branch(datum%ix_branch)%ele(ix_ref)
+    ele_ref => lat%branch(branch%ix_branch)%ele(ix_ref)
   endif
 
   orb0 => orbit(ix_ref)
@@ -2281,7 +2281,7 @@ case ('r56_compaction')
   eta_vec(2) = eta_vec(2) * one_pz + orb0%vec(2) / one_pz
   eta_vec(4) = eta_vec(4) * one_pz + orb0%vec(4) / one_pz
 
-  call transfer_matrix_calc (lat, mat6, vec0, ix_ref, ix_start, datum%ix_branch)
+  call transfer_matrix_calc (lat, mat6, vec0, ix_ref, ix_start, branch%ix_branch)
 
   do i = ix_start, ix_ele
     value_vec(i) = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
@@ -2490,7 +2490,7 @@ case ('rel_floor.')
 
   case ('rel_floor.x', 'rel_floor.y', 'rel_floor.z')
 
-    if (ix_ref < 0) ele_ref => lat%branch(datum%ix_branch)%ele(0)
+    if (ix_ref < 0) ele_ref => lat%branch(branch%ix_branch)%ele(0)
 
     call floor_angles_to_w_mat (-ele_ref%floor%theta, -ele_ref%floor%phi, -ele_ref%floor%psi, w0_mat)
 
@@ -2516,7 +2516,7 @@ case ('rel_floor.')
 
   case ('rel_floor.theta', 'rel_floor.phi', 'rel_floor.psi')
 
-    if (ix_ref < 0) ele_ref => lat%branch(datum%ix_branch)%ele(0)
+    if (ix_ref < 0) ele_ref => lat%branch(branch%ix_branch)%ele(0)
 
     call floor_angles_to_w_mat (-ele_ref%floor%theta, -ele_ref%floor%phi, -ele_ref%floor%psi, w0_mat)
 
@@ -2778,7 +2778,7 @@ case ('tune.')
 !-----------
 
 case ('t.', 'tt.')
-  if (datum%ix_branch /= 0) then
+  if (branch%ix_branch /= 0) then
     call out_io (s_fatal$, r_name, 'TRANSFER MAP CALC NOT YET MODIFIED FOR BRANCHES.')
     return
   endif
@@ -3013,7 +3013,7 @@ case ('wall.')
 case ('wire.')  
   if (data_source == 'lat') goto 8000  ! Error message and return
   read (datum%data_type(6:), '(a)') angle
-  datum_value = tao_do_wire_scan (ele, angle, u%uni_branch(datum%ix_branch)%ele(ix_ele)%beam)
+  datum_value = tao_do_wire_scan (ele, angle, u%uni_branch(branch%ix_branch)%ele(ix_ele)%beam)
   valid_value = .true.
   
 case default
@@ -3025,7 +3025,7 @@ end select
 ! End stuff
 
 if (datum%ix_ele_merit > -1) then
-  datum%s = lat%branch(datum%ix_branch)%ele(datum%ix_ele_merit)%s
+  datum%s = branch%ele(datum%ix_ele_merit)%s
 elseif (associated(ele)) then
   datum%s = ele%s
 endif
@@ -3079,9 +3079,9 @@ valid_value = .true.
 
 n_track = branch%n_ele_track
 ix_start = -1; ix_ref = -1; ix_ele = -1
-if (associated(ele)) ix_ele = ele%ix_ele
-if (associated(ele_ref)) ix_ref = ele_ref%ix_ele
-if (associated(ele_start)) ix_start = ele_start%ix_ele
+if (associated(ele)) ix_ele = tao_tracking_ele_index(ele, datum)
+if (associated(ele_ref)) ix_ref = tao_tracking_ele_index(ele_ref, datum)
+if (associated(ele_start)) ix_start = tao_tracking_ele_index(ele_start, datum)
 
 if (ix_ele < 0) then
   datum%exists = .false.
@@ -3253,9 +3253,40 @@ endif
 datum%ix_ele_merit = ix_m
 if (ref_value /= 0) deallocate (vec_ptr)
 
+end subroutine tao_load_this_datum
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+
+function tao_tracking_ele_index(ele, datum, ix_branch) result (ix_ele)
+
+type (ele_struct), pointer :: ele, ele2
+type (tao_data_struct) datum
+integer ix_ele
+integer, optional :: ix_branch
+
 !
 
-end subroutine tao_load_this_datum
+select case (ele%lord_status)
+case (super_lord$, overlay_lord$, group_lord$)
+  if (datum%eval_point == anchor_beginning$) then
+    ele2 => pointer_to_slave(ele, 1)
+    ele2 => pointer_to_next_ele(ele2, -1)
+  else
+    ele2 => pointer_to_slave(ele, ele%n_slave)
+  endif
+  return
+
+case default
+  ele2 => ele
+  if (datum%eval_point == anchor_beginning$) ele2 => pointer_to_next_ele(ele, -1)
+end select
+
+ix_ele = ele2%ix_ele
+ix_branch = ele2%ix_branch
+
+end function tao_tracking_ele_index
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3511,32 +3542,18 @@ endif
 
 ele => pointer_to_ele (lat, ix_ele, datum%ix_branch)
 
-if (ix_ele <= n_track) then
-  if (datum%eval_point == anchor_beginning$) ele => pointer_to_next_ele(ele, -1)
-  return
-endif
-
-if (ele%lord_status == super_lord$ .or. ele%lord_status == overlay_lord$ .or. ele%lord_status == group_lord$) then
-  if (datum%data_type(1:8) == 'rad_int1') return  ! Since rad_int1 is integraged radiation integral over the element.
-  if (datum%eval_point == anchor_beginning$) then
-    ele => pointer_to_slave(ele, 1)
-    ele => pointer_to_next_ele(ele, -1)
-  else
-    ele => pointer_to_slave(ele, ele%n_slave)
-  endif
-  return
-endif
-
-valid = .false.
-call out_io (s_error$, r_name, &
-            'ELEMENT: ' // trim(lat%ele(ix_ele)%name) // &
-            '    WHICH IS A: ' // control_name(lat%ele(ix_ele)%lord_status), &
+if (ele%lord_status == multipass_lord$ .or. ele%lord_status == girder_lord$) then
+  call out_io (s_error$, r_name, &
+            'ELEMENT: ' // trim(ele%name) // &
+            '    WHICH IS A: ' // control_name(ele%lord_status), &
             'CANNOT BE USED IN DEFINING A DATUM SINCE IT DOES NOT HAVE ', &
             '   A DEFINITE LOCATION IN THE LATTICE.', &
             'FOR DATUM: ' // tao_datum_name(datum) )
-call tao_set_invalid (datum, 'NO DEFINITE LOCATION IN LATTICE FOR: ' // tao_datum_name(datum), why_invalid, .true.)
+  call tao_set_invalid (datum, 'NO DEFINITE LOCATION IN LATTICE FOR: ' // tao_datum_name(datum), why_invalid, .true.)
+  return
+endif
 
-end function
+end function tao_pointer_to_datum_ele
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
