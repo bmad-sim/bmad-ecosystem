@@ -280,7 +280,7 @@ integer i
 open (1, file = file_name)
 
 write (1, '(45x, a)') 'I1          I2          I3          I4a         I4b         I5a         I5b'
-do i = 1, lat%n_ele_track
+do i = 1, lat%n_ele_max
   r1 => rad_int%branch(0)%ele(i)
   if (all([r1%i1, r1%i2, r1%i3, r1%i4a, r1%i4b, r1%i5a, r1%i5b] == 0)) cycle
   write (1, '(i4, 2x, a30, 7es12.3)') i, lat%ele(i)%name, r1%i1, r1%i2, r1%i3, r1%i4a, r1%i4b, r1%i5a, r1%i5b
