@@ -260,15 +260,16 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     call tao_single_track (u, tao_lat, this_calc_ok, ib)
 
     call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
-                          tao_branch%modes, tao_branch%ix_rad_int_cache, ib, tao_branch%rad_int)
+                          tao_branch%modes, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int)
 
     tao_branch%modes_rf_on = tao_branch%modes
-    tao_branch%rad_int_rf_on = tao_branch%rad_int
     if (branch%param%geometry == closed$) then
       call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, &
                          tao_branch%b%chrom, err, low_E_lat=tao_branch%low_E_lat, high_E_lat=tao_branch%high_E_lat)
     endif
   enddo
+
+  tao_lat%rad_int_rf_on = tao_lat%rad_int
 enddo
 
 ! Turn off RF. But first calculate the synchrotron tune.
