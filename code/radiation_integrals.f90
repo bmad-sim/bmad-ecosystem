@@ -66,7 +66,7 @@
 !                   ix_cache is set to a unique number. Otherwise ix_cache 
 !                   is not changed.
 !   rad_int_by_ele  -- Rad_int_all_ele_struct, optional: Radiation integrals element by element. 
-!     %ele(0:branch%n_ele_max) -- Array of rad_int1_struct structures, one for each element in the branch.
+!     %branch(ix_branch)%ele(0:) -- Array of rad_int1_struct structures, one for each element in the branch.
 !       %i0              -- I0 integral for the element. See the Bmad manual.
 !       %i1              -- I1 integral for the element.
 !       %i2              -- I2 integral for the element.
@@ -107,8 +107,9 @@ type (coord_struct), target :: orbit(0:), orb_start, orb_end, orb_end1
 type (normal_modes_struct) mode
 type (bmad_common_struct) bmad_com_save
 type (track_struct) :: track
-type (rad_int_all_ele_struct), optional :: rad_int_by_ele
-type (rad_int_all_ele_struct), target :: rad_int_all
+type (rad_int_all_ele_struct), optional, target :: rad_int_by_ele
+type (rad_int_branch_struct), target :: rad_int_branch
+type (rad_int_branch_struct), pointer :: rad_int_b_ptr
 type (rad_int_info_struct) :: ri_info
 type (rad_int_cache_struct), pointer :: cache
 type (rad_int_cache1_struct), pointer :: cache_ele ! pointer to cache in use
@@ -128,7 +129,7 @@ real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt
 
 
 integer, optional :: ix_cache, ix_branch
-integer i, j, k, n, ip, ir, key2, n_step, ix_pole_max
+integer i, j, k, n, ib, ip, ir, key2, n_step, ix_pole_max
 
 character(*), parameter :: r_name = 'radiation_integrals'
 
@@ -136,8 +137,29 @@ logical do_alloc, use_cache, init_cache, cache_only_wig, err, hybrid_warning_giv
 logical, parameter :: t = .true., f = .false.
 
 !---------------------------------------------------------------------
-! Init
-! To make the calculation go faster turn off radiation fluctuations and damping
+! Allocate rad_int_by_ele
+
+if (present(rad_int_by_ele)) then
+  if (allocated(rad_int_by_ele%branch)) then
+    if (ubound(rad_int_by_ele%branch, 1) /= ubound(lat%branch, 1)) deallocate (rad_int_by_ele%branch)
+    if (allocated(rad_int_by_ele%branch)) then
+      do ib = 0, ubound(lat%branch, 1)
+        if (ubound(rad_int_by_ele%branch(ib)%ele, 1) == lat%branch(ib)%n_ele_max) cycle
+        deallocate (rad_int_by_ele%branch(ib)%ele)
+        allocate (rad_int_by_ele%branch(ib)%ele(0:lat%branch(ib)%n_ele_max))
+      enddo
+    endif
+  endif
+
+  if (.not. allocated(rad_int_by_ele%branch)) then
+    allocate(rad_int_by_ele%branch(0:ubound(lat%branch, 1)))
+    do ib = 0, ubound(lat%branch, 1)
+      allocate (rad_int_by_ele%branch(ib)%ele(0:lat%branch(ib)%n_ele_max))
+    enddo
+  endif
+endif
+
+! Photon branches do not have associated radiation integrals.
 
 if (present(ix_branch)) then
   branch => lat%branch(ix_branch)
@@ -145,31 +167,15 @@ else
   branch => lat%branch(0)
 endif
 
-if (allocated(rad_int_all%ele)) then
-  if (ubound(rad_int_all%ele, 1) < branch%n_ele_max) then 
-    deallocate (rad_int_all%ele)
-    do_alloc = .true.
-  else
-    do_alloc = .false.
-  endif
-else
-  do_alloc = .true.
-endif
-
-if (do_alloc) then
-  allocate (rad_int_all%ele(0:branch%n_ele_max))
-endif
-
-rad_int_all%ele(:) = rad_int1_struct()
-
 if (branch%param%particle == photon$) then
   mode = normal_modes_struct()
-  if (present(rad_int_by_ele)) call move_alloc (rad_int_all%ele, rad_int_by_ele%ele)
   return
 endif
 
+! Init
+! To make the calculation go faster turn off radiation fluctuations and damping
 
-!
+allocate (rad_int_branch%ele(0:branch%n_ele_max))
 
 ri_info%branch => branch
 ri_info%orbit => orbit
@@ -177,8 +183,6 @@ ri_info%orbit => orbit
 m65 = 0
 mode%rf_voltage = 0
 int_tot = rad_int1_struct()
-
-!
 
 bmad_com_save = bmad_com
 bmad_com%radiation_fluctuations_on = .false.
@@ -434,7 +438,7 @@ do ir = 1, branch%n_ele_track
   endif
 
   ri_info%ele => ele
-  rad_int1 => rad_int_all%ele(ir)
+  rad_int1 => rad_int_branch%ele(ir)
 
   nullify (ri_info%cache_ele)
   if (use_cache) then
@@ -510,7 +514,7 @@ do ir = 1, branch%n_ele_track
   field_ele => pointer_to_field_ele(ele, 1)
 
   ri_info%ele => ele
-  rad_int1 => rad_int_all%ele(ir)
+  rad_int1 => rad_int_branch%ele(ir)
 
   nullify (ri_info%cache_ele)
   if (use_cache) then
@@ -574,46 +578,22 @@ mode%lin%i5b_E6 = 0
 
 factor = 2 * const_q * classical_radius_factor / (3 * mc2)
 
-rad_int_all%ele%i4z = rad_int_all%ele%i4a + rad_int_all%ele%i4b
+rad_int_branch%ele%i4z = rad_int_branch%ele%i4a + rad_int_branch%ele%i4b
 
 do i = 0, branch%n_ele_track
   gamma = branch%ele(i)%value(e_tot$) / mc2
   gamma4 = gamma**4
   gamma6 = gamma4 * gamma**2
-  rad_int_all%ele(i)%lin_i2_E4  = rad_int_all%ele(i)%i2 * gamma4
-  rad_int_all%ele(i)%lin_i3_E7  = rad_int_all%ele(i)%i3 * gamma6 * gamma
-  rad_int_all%ele(i)%lin_i5a_E6 = rad_int_all%ele(i)%i5a * gamma6
-  rad_int_all%ele(i)%lin_i5b_E6 = rad_int_all%ele(i)%i5b * gamma6
-  mode%lin%i2_E4  = mode%lin%i2_E4  + rad_int_all%ele(i)%lin_i2_E4
-  mode%lin%i3_E7  = mode%lin%i3_E7  + rad_int_all%ele(i)%lin_i3_E7
-  mode%lin%i5a_E6 = mode%lin%i5a_E6 + rad_int_all%ele(i)%lin_i5a_E6
-  mode%lin%i5b_E6 = mode%lin%i5b_E6 + rad_int_all%ele(i)%lin_i5b_E6
-  rad_int_all%ele(i)%lin_norm_emit_a = branch%a%emit * gamma + factor * mode%lin%i5a_E6
-  rad_int_all%ele(i)%lin_norm_emit_b = branch%b%emit * gamma + factor * mode%lin%i5b_E6
-enddo
-
-do i = branch%n_ele_track+1, branch%n_ele_max
-  ele => branch%ele(i)
-  if (ele%lord_status /= super_lord$) cycle
-  do j = 1, ele%n_slave
-    slave => pointer_to_slave(ele, j)
-    k = slave%ix_ele
-    rad_int_all%ele(i)%i0 = rad_int_all%ele(i)%i0 + rad_int_all%ele(k)%i0
-    rad_int_all%ele(i)%i1 = rad_int_all%ele(i)%i1 + rad_int_all%ele(k)%i1
-    rad_int_all%ele(i)%i2 = rad_int_all%ele(i)%i2 + rad_int_all%ele(k)%i2
-    rad_int_all%ele(i)%i3 = rad_int_all%ele(i)%i3 + rad_int_all%ele(k)%i3
-    rad_int_all%ele(i)%i4a = rad_int_all%ele(i)%i4a + rad_int_all%ele(k)%i4a
-    rad_int_all%ele(i)%i4b = rad_int_all%ele(i)%i4b + rad_int_all%ele(k)%i4b
-    rad_int_all%ele(i)%i4z = rad_int_all%ele(i)%i4z + rad_int_all%ele(k)%i4z
-    rad_int_all%ele(i)%i5a = rad_int_all%ele(i)%i5a + rad_int_all%ele(k)%i5a
-    rad_int_all%ele(i)%i5b = rad_int_all%ele(i)%i5b + rad_int_all%ele(k)%i5b
-    rad_int_all%ele(i)%i6b = rad_int_all%ele(i)%i6b + rad_int_all%ele(k)%i6b
-    rad_int_all%ele(i)%n_steps = rad_int_all%ele(i)%n_steps + rad_int_all%ele(k)%n_steps
-    rad_int_all%ele(i)%lin_i2_E4 = rad_int_all%ele(i)%lin_i2_E4 + rad_int_all%ele(k)%lin_i2_E4
-    rad_int_all%ele(i)%lin_i3_E7 = rad_int_all%ele(i)%lin_i3_E7 + rad_int_all%ele(k)%lin_i3_E7
-    rad_int_all%ele(i)%lin_i5a_E6 = rad_int_all%ele(i)%lin_i5a_E6 + rad_int_all%ele(k)%lin_i5a_E6
-    rad_int_all%ele(i)%lin_i5b_E6 = rad_int_all%ele(i)%lin_i5b_E6 + rad_int_all%ele(k)%lin_i5b_E6
-  enddo
+  rad_int_branch%ele(i)%lin_i2_E4  = rad_int_branch%ele(i)%i2 * gamma4
+  rad_int_branch%ele(i)%lin_i3_E7  = rad_int_branch%ele(i)%i3 * gamma6 * gamma
+  rad_int_branch%ele(i)%lin_i5a_E6 = rad_int_branch%ele(i)%i5a * gamma6
+  rad_int_branch%ele(i)%lin_i5b_E6 = rad_int_branch%ele(i)%i5b * gamma6
+  mode%lin%i2_E4  = mode%lin%i2_E4  + rad_int_branch%ele(i)%lin_i2_E4
+  mode%lin%i3_E7  = mode%lin%i3_E7  + rad_int_branch%ele(i)%lin_i3_E7
+  mode%lin%i5a_E6 = mode%lin%i5a_E6 + rad_int_branch%ele(i)%lin_i5a_E6
+  mode%lin%i5b_E6 = mode%lin%i5b_E6 + rad_int_branch%ele(i)%lin_i5b_E6
+  rad_int_branch%ele(i)%lin_norm_emit_a = branch%a%emit * gamma + factor * mode%lin%i5a_E6
+  rad_int_branch%ele(i)%lin_norm_emit_b = branch%b%emit * gamma + factor * mode%lin%i5b_E6
 enddo
 
 mode%lin%sig_E1 = mc2 * sqrt (2 * factor * mode%lin%i3_E7)
@@ -686,10 +666,40 @@ mode%z%emittance = mode%sig_z * mode%sigE_E
 
 bmad_com = bmad_com_save
 
-if (present(rad_int_by_ele)) call move_alloc (rad_int_all%ele, rad_int_by_ele%ele)
-
 call deallocate_ele_pointers(ele2)
 call deallocate_ele_pointers(ele_start)
 call deallocate_ele_pointers(ele_end)
+
+! Fill in rad_int_by_ele
+
+if (present(rad_int_by_ele)) then
+  rad_int_b_ptr => rad_int_by_ele%branch(branch%ix_branch)
+  call move_alloc (rad_int_branch%ele, rad_int_b_ptr%ele)
+
+  do i = branch%n_ele_track+1, branch%n_ele_max
+    ele => branch%ele(i)
+    if (ele%lord_status /= super_lord$) cycle
+    do j = 1, ele%n_slave
+      slave => pointer_to_slave(ele, j)
+      ib = slave%ix_branch
+      k = slave%ix_ele
+      rad_int_b_ptr%ele(i)%i0 = rad_int_b_ptr%ele(i)%i0 + rad_int_by_ele%branch(ib)%ele(k)%i0
+      rad_int_b_ptr%ele(i)%i1 = rad_int_b_ptr%ele(i)%i1 + rad_int_by_ele%branch(ib)%ele(k)%i1
+      rad_int_b_ptr%ele(i)%i2 = rad_int_b_ptr%ele(i)%i2 + rad_int_by_ele%branch(ib)%ele(k)%i2
+      rad_int_b_ptr%ele(i)%i3 = rad_int_b_ptr%ele(i)%i3 + rad_int_by_ele%branch(ib)%ele(k)%i3
+      rad_int_b_ptr%ele(i)%i4a = rad_int_b_ptr%ele(i)%i4a + rad_int_by_ele%branch(ib)%ele(k)%i4a
+      rad_int_b_ptr%ele(i)%i4b = rad_int_b_ptr%ele(i)%i4b + rad_int_by_ele%branch(ib)%ele(k)%i4b
+      rad_int_b_ptr%ele(i)%i4z = rad_int_b_ptr%ele(i)%i4z + rad_int_by_ele%branch(ib)%ele(k)%i4z
+      rad_int_b_ptr%ele(i)%i5a = rad_int_b_ptr%ele(i)%i5a + rad_int_by_ele%branch(ib)%ele(k)%i5a
+      rad_int_b_ptr%ele(i)%i5b = rad_int_b_ptr%ele(i)%i5b + rad_int_by_ele%branch(ib)%ele(k)%i5b
+      rad_int_b_ptr%ele(i)%i6b = rad_int_b_ptr%ele(i)%i6b + rad_int_by_ele%branch(ib)%ele(k)%i6b
+      rad_int_b_ptr%ele(i)%n_steps = rad_int_b_ptr%ele(i)%n_steps + rad_int_by_ele%branch(ib)%ele(k)%n_steps
+      rad_int_b_ptr%ele(i)%lin_i2_E4 = rad_int_b_ptr%ele(i)%lin_i2_E4 + rad_int_by_ele%branch(ib)%ele(k)%lin_i2_E4
+      rad_int_b_ptr%ele(i)%lin_i3_E7 = rad_int_b_ptr%ele(i)%lin_i3_E7 + rad_int_by_ele%branch(ib)%ele(k)%lin_i3_E7
+      rad_int_b_ptr%ele(i)%lin_i5a_E6 = rad_int_b_ptr%ele(i)%lin_i5a_E6 + rad_int_by_ele%branch(ib)%ele(k)%lin_i5a_E6
+      rad_int_b_ptr%ele(i)%lin_i5b_E6 = rad_int_b_ptr%ele(i)%lin_i5b_E6 + rad_int_by_ele%branch(ib)%ele(k)%lin_i5b_E6
+    enddo
+  enddo
+endif
 
 end subroutine

@@ -1899,10 +1899,14 @@ type rad_int1_struct
   real(rp) :: n_steps         = 0 ! number of qromb steps needed
 end type
 
-! Structure for an array of rad_int1_structs for a single branch
+! Structures for a lattice of rad_int1_structs
+
+type rad_int_branch_struct
+  type (rad_int1_struct), allocatable :: ele(:) ! Array is indexed from 0
+end type
 
 type rad_int_all_ele_struct
-  type (rad_int1_struct), allocatable :: ele(:) ! Array is indexed from 0
+  type (rad_int_branch_struct), allocatable :: branch(:) ! Array is indexed from 0
 end type
 
 contains

@@ -30,15 +30,16 @@ type (rad_int_all_ele_struct) rad_int_by_ele
 
 real(rp) depol_rate, gamma
 real(rp), parameter :: factor = 55.0_rp * sqrt(3.0_rp) * classical_radius_factor * h_bar_planck / 144.0_rp
-integer ie
+integer ie, ib
 
 !
 
 depol_rate = 0
+ib = branch%ix_branch
 
 do ie = 1, branch%n_ele_track
   ele => branch%ele(ie)
-  depol_rate = depol_rate + 0.5_rp * rad_int_by_ele%ele(ie)%i3 * ele%value(l$) * &
+  depol_rate = depol_rate + 0.5_rp * rad_int_by_ele%branch(ib)%ele(ie)%i3 * ele%value(l$) * &
                   (norm2(match_info(ie-1)%dn_ddelta) + norm2(match_info(ie)%dn_ddelta))
                     
 enddo
