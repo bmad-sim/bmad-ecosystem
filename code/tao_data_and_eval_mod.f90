@@ -3279,7 +3279,6 @@ case (super_lord$, overlay_lord$, group_lord$)
   else
     ele2 => pointer_to_slave(ele, ele%n_slave)
   endif
-  return
 
 case default
   ele2 => ele
@@ -3287,7 +3286,7 @@ case default
 end select
 
 ix_ele = ele2%ix_ele
-ix_branch = ele2%ix_branch
+if (present(ix_branch)) ix_branch = ele2%ix_branch
 
 end function tao_tracking_ele_index
 
