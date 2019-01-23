@@ -2254,11 +2254,11 @@ case ('lattice')
   do i = 1, size(column)
     if (index(column(i)%name, 'rad_int') /= 0) then
       ix = ix_branch
-      call radiation_integrals (u%model%lat, tao_branch%orbit, tao_branch%modes, tao_branch%ix_rad_int_cache, ix, tao_branch%rad_int)
+      call radiation_integrals (u%model%lat, tao_branch%orbit, tao_branch%modes, tao_branch%ix_rad_int_cache, ix, u%model%rad_int)
       call radiation_integrals (u%design%lat, design_tao_branch%orbit, design_tao_branch%modes, &
-                                                            design_tao_branch%ix_rad_int_cache, ix, design_tao_branch%rad_int)
+                                                            design_tao_branch%ix_rad_int_cache, ix, u%design%rad_int)
       call radiation_integrals (u%base%lat, u%base%tao_branch(ix)%orbit, u%base%tao_branch(ix)%modes, &
-                                                  u%base%tao_branch(ix)%ix_rad_int_cache, ix, u%base%tao_branch(ix)%rad_int)
+                                                  u%base%tao_branch(ix)%ix_rad_int_cache, ix, u%base%rad_int)
       exit
     endif
   enddo

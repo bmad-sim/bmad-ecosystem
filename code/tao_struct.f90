@@ -761,11 +761,9 @@ type tao_lattice_branch_struct
   real(rp) :: cache_x_min = 0, cache_x_max = 0
   integer :: cache_n_pts = 0
   type (normal_modes_struct) modes             ! Synchrotron integrals stuff
-  type (rad_int_all_ele_struct) rad_int
   type (tao_lat_mode_struct) a, b
   integer ix_rad_int_cache                     ! Radiation integrals cache index.
   type (normal_modes_struct) modes_rf_on       ! Synchrotron integrals stuff
-  type (rad_int_all_ele_struct) rad_int_rf_on
 end type
 
 ! Structure to hold a single lat_struct (model, base, or design) in
@@ -774,6 +772,8 @@ end type
 type tao_lattice_struct
   character(8) :: name                         ! "model", "base", or "design".
   type (lat_struct) lat                        ! lattice structures
+  type (rad_int_all_ele_struct) rad_int
+  type (rad_int_all_ele_struct) rad_int_rf_on
   type (tao_lattice_branch_struct), allocatable :: tao_branch(:)
 end type
 
