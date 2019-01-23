@@ -10,7 +10,7 @@ type (ele_struct) ele, ele0, ele1
 type (coord_struct), allocatable :: orb(:), orb2(:)
 type (coord_struct) orb0, orb1
 type (normal_modes_struct) mode, mode2
-type (rad_int_all_ele_struct) rad_int, rad_int2, rad_int3
+type (rad_int_all_ele_struct), target :: rad_int, rad_int2, rad_int3
 
 real(rp) chrom_x, chrom_y, delta_e
 real(rp) m6(6,6), dorb(6), dt, rf_freq
@@ -281,7 +281,7 @@ open (1, file = file_name)
 
 write (1, '(45x, a)') 'I1          I2          I3          I4a         I4b         I5a         I5b'
 do i = 1, lat%n_ele_track
-  r1 => rad_int%ele(i)
+  r1 => rad_int%branch(0)%ele(i)
   if (all([r1%i1, r1%i2, r1%i3, r1%i4a, r1%i4b, r1%i5a, r1%i5b] == 0)) cycle
   write (1, '(i4, 2x, a30, 7es12.3)') i, lat%ele(i)%name, r1%i1, r1%i2, r1%i3, r1%i4a, r1%i4b, r1%i5a, r1%i5b
 enddo
@@ -298,13 +298,13 @@ subroutine ri_diff(str)
 
 character(*) str
 
-call ri_diff1('Cache Diff: I1-' // str, rad_int%ele%i1,  rad_int2%ele%i1)
-call ri_diff1('Cache Diff: I2-' // str, rad_int%ele%i2,  rad_int2%ele%i2)
-call ri_diff1('Cache Diff: I3-' // str, rad_int%ele%i3,  rad_int2%ele%i3)
-call ri_diff1('Cache Diff: I4a-' // str, rad_int%ele%i4a, rad_int2%ele%i4a)
-call ri_diff1('Cache Diff: I4b-' // str, rad_int%ele%i4b, rad_int2%ele%i4b)
-call ri_diff1('Cache Diff: I5a-' // str, rad_int%ele%i5a, rad_int2%ele%i5a)
-call ri_diff1('Cache Diff: I5b-' // str, rad_int%ele%i5b, rad_int2%ele%i5b)
+call ri_diff1('Cache Diff: I1-' // str, rad_int%branch(0)%ele%i1,  rad_int2%branch(0)%ele%i1)
+call ri_diff1('Cache Diff: I2-' // str, rad_int%branch(0)%ele%i2,  rad_int2%branch(0)%ele%i2)
+call ri_diff1('Cache Diff: I3-' // str, rad_int%branch(0)%ele%i3,  rad_int2%branch(0)%ele%i3)
+call ri_diff1('Cache Diff: I4a-' // str, rad_int%branch(0)%ele%i4a, rad_int2%branch(0)%ele%i4a)
+call ri_diff1('Cache Diff: I4b-' // str, rad_int%branch(0)%ele%i4b, rad_int2%branch(0)%ele%i4b)
+call ri_diff1('Cache Diff: I5a-' // str, rad_int%branch(0)%ele%i5a, rad_int2%branch(0)%ele%i5a)
+call ri_diff1('Cache Diff: I5b-' // str, rad_int%branch(0)%ele%i5b, rad_int2%branch(0)%ele%i5b)
 
 end subroutine
 
