@@ -466,6 +466,7 @@ endif
 ele => tao_pointer_to_datum_ele (lat, datum%ele_name, datum%ix_ele, datum, valid_value, why_invalid)
 if (.not. valid_value) return
 ix_ele = -1
+ix_branch = datum%ix_branch
 if (associated(ele)) ix_ele = tao_tracking_ele_index(ele, datum, ix_branch)
 
 ele_ref => tao_pointer_to_datum_ele (lat, datum%ele_ref_name, datum%ix_ele_ref, datum, valid_value, why_invalid)
