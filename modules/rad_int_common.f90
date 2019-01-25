@@ -16,6 +16,7 @@ use em_field_mod
 integer, parameter :: no_cache$ = 0, cache_with_misalign$ = 1, cache_no_misalign$ = 2
 
 type rad_int_track_point_struct
+  real(rp) :: s_body = 0
   real(rp) :: mat6(6,6) = 0
   real(rp) :: vec0(6) = 0
   type (coord_struct) :: ref_orb_in = coord_struct()
@@ -25,9 +26,10 @@ type rad_int_track_point_struct
   real(rp) :: dgy_dx = 0, dgy_dy = 0  ! bending strength gradiant
 end type
 
+! Note: The points may not be evenly spaced.
+
 type rad_int_cache1_struct
   type (rad_int_track_point_struct), allocatable :: pt(:)
-  real(rp) del_z
   integer :: cache_type = no_cache$
 end type
 
@@ -309,12 +311,12 @@ if (associated(info%cache_ele)) then
 
   ! find cached point info near present z position
 
-  del_z = info%cache_ele%del_z
-  i0 = int(z_here/del_z)
+  call bracket_index(info%cache_ele%pt%s_body, 0, ubound(info%cache_ele%pt, 1), z_here, i0)
+  i0 = min(i0, ubound(info%cache_ele%pt, 1)-1)
+  i1 = i0 + 1
+  del_z = info%cache_ele%pt(i1)%s_body - info%cache_ele%pt(i0)%s_body 
   f1 = (z_here - del_z*i0) / del_z 
   f0 = 1 - f1
-  i1 = i0 + 1
-  if (i1 > ubound(info%cache_ele%pt, 1)) i1 = i0  ! can happen with roundoff
   pt0 = info%cache_ele%pt(i0)
   pt1 = info%cache_ele%pt(i1)
 

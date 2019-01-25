@@ -21,7 +21,7 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine symp_lie_bmad (ele, param, start_orb, end_orb, make_matrix, track, offset_ele)
+! Subroutine symp_lie_bmad (ele, param, start_orb, end_orb, mat6, make_matrix, track, offset_ele)
 !
 ! Subroutine to track through an element (which gives the 0th order map) 
 ! and optionally make the 6x6 transfer matrix (1st order map) as well.
@@ -29,22 +29,22 @@ contains
 ! Input:
 !   ele          -- Ele_struct: Element with transfer matrix
 !   param        -- lat_param_struct: Parameters are needed for some elements.
-!   start_orb    -- Coord_struct: Coordinates at the beginning of element. 
+!   start_orb    -- Coord_struct: Coordinates at the beginning of element.
+!   mat6(6,6)    -- real(rp), optional: Transfer matrix before the element.
 !   make_matrix  -- Logical: If True then make the 6x6 transfer matrix.
 !   offset_ele   -- Logical, optional: Offset the element using ele%value(x_offset$), etc.
 !                     Default is True.
 !
 ! Output:
-!   ele        -- Ele_struct: Element with transfer matrix.
-!     %mat6(6,6)  -- 6x6 transfer matrix.
-!     %vec0(6)    -- 0th order part of the transfer matrix.
-!   end_orb    -- Coord_struct: Coordinates at the end of element.
-!   track      -- Track_struct, optional: Structure holding the track information.
+!   ele         -- Ele_struct: Element with transfer matrix.
+!   end_orb     -- Coord_struct: Coordinates at the end of element.
+!   track       -- Track_struct, optional: Structure holding the track information.
 !                   When tracking through multiple elements, the trajectory in an element
 !                   is appended to the existing trajectory. To reset: Set track%n_pt = -1.
+!   mat6(6,6)   -- real(rp), optional: Transfer matrix propagated through the element.
 !-
 
-subroutine symp_lie_bmad (ele, param, start_orb, end_orb, make_matrix, track, offset_ele)
+subroutine symp_lie_bmad (ele, param, start_orb, end_orb, track, mat6, make_matrix, offset_ele)
 
 implicit none
 
@@ -59,6 +59,7 @@ type (cartesian_map_term1_struct), pointer :: wt
 type (wiggler_computations_struct), allocatable, target :: tm(:)
 type (wiggler_computations_struct), pointer :: tm2(:)
 
+real(rp), optional :: mat6(6,6)
 real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6), kmat6(6,6), Ax_saved, Ay_saved
 real(rp) g_x, g_y, k1, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch
 real(rp), parameter :: z0 = 0, z1 = 1
@@ -72,14 +73,14 @@ integer ix_pole_max, ix_elec_max
 
 integer num_wig_terms  ! number of wiggler terms
 
-logical make_matrix, calculate_mat6, err, do_offset, allocated_map
-logical, optional :: offset_ele
+logical calculate_mat6, err, do_offset, allocated_map
+logical, optional :: make_matrix, offset_ele
 
 character(16) :: r_name = 'symp_lie_bmad'
 
 ! init
 
-calculate_mat6 = (make_matrix .or. synch_rad_com%i_calc_on)
+calculate_mat6 = logic_option(.false., make_matrix)
 
 start_orb_saved = start_orb
 end_orb = start_orb
@@ -97,7 +98,7 @@ rel_E2 = rel_E**2
 rel_E3 = rel_E**3
 
 if (calculate_mat6) then
-  call mat_make_unit(ele%mat6)
+  call mat_make_unit(mat6)
 endif
 
 err = .false.
@@ -112,10 +113,10 @@ allocated_map = .false.
 call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks_except_k1$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
-if (do_offset) call offset_particle (ele, param, set$, end_orb, mat6 = ele%mat6, make_matrix = calculate_mat6)
+if (do_offset) call offset_particle (ele, param, set$, end_orb, mat6 = mat6, make_matrix = calculate_mat6)
 
-if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, end_orb, magnetic$, 1.0_rp/2,   ele%mat6, calculate_mat6)
-if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, end_orb, electric$, ele%value(l$)/2, ele%mat6, calculate_mat6)
+if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, end_orb, magnetic$, 1.0_rp/2,   mat6, calculate_mat6)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, end_orb, electric$, ele%value(l$)/2, mat6, calculate_mat6)
 
 ! init
 
@@ -236,8 +237,8 @@ Case (wiggler$, undulator$)
 
     if (calculate_mat6) then
       ddAz__dx_dy = ddAz_dx_dy()
-      ele%mat6(2,1:6) = ele%mat6(2,1:6) + ds * (ddAz_dx_dx() * ele%mat6(1,1:6) + ddAz__dx_dy  * ele%mat6(3,1:6))
-      ele%mat6(4,1:6) = ele%mat6(4,1:6) + ds * (ddAz__dx_dy  * ele%mat6(1,1:6) + ddAz_dy_dy() * ele%mat6(3,1:6))
+      mat6(2,1:6) = mat6(2,1:6) + ds * (ddAz_dx_dx() * mat6(1,1:6) + ddAz__dx_dy  * mat6(3,1:6))
+      mat6(4,1:6) = mat6(4,1:6) + ds * (ddAz__dx_dy  * mat6(1,1:6) + ddAz_dy_dy() * mat6(3,1:6))
     endif 
 
     ! Drift_2
@@ -334,8 +335,8 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
     ks = ele%value(ks$) * rel_tracking_charge
   end select
 
-  call hard_multipole_edge_kick (ele, param, first_track_edge$, end_orb, ele%mat6, calculate_mat6)
-  call soft_quadrupole_edge_kick (ele, param, first_track_edge$, end_orb, ele%mat6, calculate_mat6)
+  call hard_multipole_edge_kick (ele, param, first_track_edge$, end_orb, mat6, calculate_mat6)
+  call soft_quadrupole_edge_kick (ele, param, first_track_edge$, end_orb, mat6, calculate_mat6)
 
   ! loop over all steps
 
@@ -358,8 +359,8 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
 
   enddo
 
-  call soft_quadrupole_edge_kick (ele, param, second_track_edge$, end_orb, ele%mat6, calculate_mat6)
-  call hard_multipole_edge_kick (ele, param, second_track_edge$, end_orb, ele%mat6, calculate_mat6)
+  call soft_quadrupole_edge_kick (ele, param, second_track_edge$, end_orb, mat6, calculate_mat6)
+  call hard_multipole_edge_kick (ele, param, second_track_edge$, end_orb, mat6, calculate_mat6)
 
 !----------------------------------------------------------------------------
 ! unknown element
@@ -374,10 +375,10 @@ end select
 !----------------------------------------------------------------------------
 ! element offset
 
-if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, end_orb, magnetic$, 1.0_rp/2,        ele%mat6, calculate_mat6)
-if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, end_orb, electric$, ele%value(l$)/2, ele%mat6, calculate_mat6)
+if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, end_orb, magnetic$, 1.0_rp/2,        mat6, calculate_mat6)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, end_orb, electric$, ele%value(l$)/2, mat6, calculate_mat6)
 
-if (do_offset) call offset_particle (ele, param, unset$, end_orb, mat6 = ele%mat6, make_matrix = calculate_mat6)
+if (do_offset) call offset_particle (ele, param, unset$, end_orb, mat6 = mat6, make_matrix = calculate_mat6)
 
 ! Correct z-position for wigglers, etc. 
 
@@ -386,14 +387,14 @@ end_orb%vec(5) = end_orb%vec(5) + z_patch
 end_orb%t = start_orb_saved%t + ele%value(delta_ref_time$) + (start_orb_saved%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)
 
 if (calculate_mat6) then
-  ele%mat6(5,6) = ele%mat6(5,6) + ele%value(delta_ref_time$) * c_light * &
+  mat6(5,6) = mat6(5,6) + ele%value(delta_ref_time$) * c_light * &
                 (mass_of(param%particle)/ele%value(p0c$))**2 * (end_orb%beta / (1 + end_orb%vec(6)))**3
 endif
 
 ! calc vec0
 
 if (calculate_mat6) then
-  ele%vec0(1:5) = end_orb%vec(1:5) - matmul (ele%mat6(1:5,1:6), start_orb_saved%vec)
+  ele%vec0(1:5) = end_orb%vec(1:5) - matmul (mat6(1:5,1:6), start_orb_saved%vec)
   ele%vec0(6) = 0
 endif
 
@@ -458,12 +459,12 @@ type (track_point_struct), pointer :: tp
 
 !
 
-call save_a_step (track, ele, param, .true., end_orb, s, mat6 = ele%mat6)
+call save_a_step (track, ele, param, .true., end_orb, s, mat6 = mat6)
 
 tp => track%pt(track%n_pt)
 
 if (calculate_mat6) then
-  tp%mat6 = ele%mat6
+  tp%mat6 = mat6
   if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (tp%mat6, ele%value(tilt_tot$))
   call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, tp%mat6)
   tp%vec0 = tp%orb%vec - matmul (tp%mat6, start_orb_saved%vec)
@@ -489,8 +490,8 @@ end_orb%vec(5) = end_orb%vec(5) - ds2 * end_orb%vec(2)**2 / (2*rel_E2)
 end_orb%s = end_orb%s + ds2 * end_orb%direction
 
 if (do_mat6) then
-  ele%mat6(1,1:6) = ele%mat6(1,1:6) + (ds2 / rel_E)               * ele%mat6(2,1:6) - (ds2*end_orb%vec(2)/rel_E2)    * ele%mat6(6,1:6) 
-  ele%mat6(5,1:6) = ele%mat6(5,1:6) - (ds2*end_orb%vec(2)/rel_E2) * ele%mat6(2,1:6) + (ds2*end_orb%vec(2)**2/rel_E3) * ele%mat6(6,1:6)
+  mat6(1,1:6) = mat6(1,1:6) + (ds2 / rel_E)               * mat6(2,1:6) - (ds2*end_orb%vec(2)/rel_E2)    * mat6(6,1:6) 
+  mat6(5,1:6) = mat6(5,1:6) - (ds2*end_orb%vec(2)/rel_E2) * mat6(2,1:6) + (ds2*end_orb%vec(2)**2/rel_E3) * mat6(6,1:6)
 endif
 
 end subroutine apply_p_x 
@@ -507,8 +508,8 @@ end_orb%vec(3) = end_orb%vec(3) + ds2 * end_orb%vec(4) / rel_E
 end_orb%vec(5) = end_orb%vec(5) - ds2 * end_orb%vec(4)**2 / (2*rel_E2)
 
 if (do_mat6) then
-  ele%mat6(3,1:6) = ele%mat6(3,1:6) + (ds2 / rel_E)               * ele%mat6(4,1:6) - (ds2*end_orb%vec(4)/rel_E2)    * ele%mat6(6,1:6) 
-  ele%mat6(5,1:6) = ele%mat6(5,1:6) - (ds2*end_orb%vec(4)/rel_E2) * ele%mat6(4,1:6) + (ds2*end_orb%vec(4)**2/rel_E3) * ele%mat6(6,1:6)
+  mat6(3,1:6) = mat6(3,1:6) + (ds2 / rel_E)               * mat6(4,1:6) - (ds2*end_orb%vec(4)/rel_E2)    * mat6(6,1:6) 
+  mat6(5,1:6) = mat6(5,1:6) - (ds2*end_orb%vec(4)/rel_E2) * mat6(4,1:6) + (ds2*end_orb%vec(4)**2/rel_E3) * mat6(6,1:6)
 endif      
 
 end subroutine apply_p_y
@@ -527,8 +528,8 @@ end_orb%vec(2) = end_orb%vec(2)
 end_orb%vec(4) = end_orb%vec(4) 
 
 if (do_mat6) then
-  ele%mat6(2,1:6) = ele%mat6(2,1:6) 
-  ele%mat6(4,1:6) = ele%mat6(4,1:6) 
+  mat6(2,1:6) = mat6(2,1:6) 
+  mat6(4,1:6) = mat6(4,1:6) 
 endif      
 
 !
@@ -541,8 +542,8 @@ end_orb%vec(2) = end_orb%vec(2)
 end_orb%vec(4) = end_orb%vec(4) 
 
 if (do_mat6) then
-  ele%mat6(2,1:6) = ele%mat6(2,1:6)
-  ele%mat6(4,1:6) = ele%mat6(4,1:6)
+  mat6(2,1:6) = mat6(2,1:6)
+  mat6(4,1:6) = mat6(4,1:6)
 endif  
 
 end subroutine rf_drift1
@@ -561,8 +562,8 @@ end_orb%vec(2) = end_orb%vec(2) + end_orb%vec(3) * ks_tot_2   !  vec(2) - Ax
 end_orb%vec(4) = end_orb%vec(4) + end_orb%vec(1) * ks_tot_2   !  vec(4) - dint_Ax_dy
 
 if (do_mat6) then
-  ele%mat6(2,1:6) = ele%mat6(2,1:6) + ks_tot_2 * ele%mat6(3,1:6)
-  ele%mat6(4,1:6) = ele%mat6(4,1:6) + ks_tot_2 * ele%mat6(1,1:6)
+  mat6(2,1:6) = mat6(2,1:6) + ks_tot_2 * mat6(3,1:6)
+  mat6(4,1:6) = mat6(4,1:6) + ks_tot_2 * mat6(1,1:6)
 endif      
 
 !
@@ -575,8 +576,8 @@ end_orb%vec(2) = end_orb%vec(2) - end_orb%vec(3) * ks_tot_2   !  vec(2) + Ax
 end_orb%vec(4) = end_orb%vec(4) - end_orb%vec(1) * ks_tot_2   !  vec(4) + dint_Ax_dy
 
 if (do_mat6) then
-  ele%mat6(2,1:6) = ele%mat6(2,1:6) - ks_tot_2 * ele%mat6(3,1:6)
-  ele%mat6(4,1:6) = ele%mat6(4,1:6) - ks_tot_2 * ele%mat6(1,1:6)
+  mat6(2,1:6) = mat6(2,1:6) - ks_tot_2 * mat6(3,1:6)
+  mat6(4,1:6) = mat6(4,1:6) - ks_tot_2 * mat6(1,1:6)
 endif  
 
 end subroutine bsq_drift1
@@ -595,8 +596,8 @@ end_orb%vec(2) = end_orb%vec(2) - end_orb%vec(3) * ks_tot_2   !  vec(2) - dint_A
 end_orb%vec(4) = end_orb%vec(4) - end_orb%vec(1) * ks_tot_2   !  vec(4) - Ay
 
 if (do_mat6) then
-  ele%mat6(2,1:6) = ele%mat6(2,1:6) - ks_tot_2 * ele%mat6(3,1:6)
-  ele%mat6(4,1:6) = ele%mat6(4,1:6) - ks_tot_2 * ele%mat6(1,1:6)
+  mat6(2,1:6) = mat6(2,1:6) - ks_tot_2 * mat6(3,1:6)
+  mat6(4,1:6) = mat6(4,1:6) - ks_tot_2 * mat6(1,1:6)
 endif      
 
 !
@@ -609,8 +610,8 @@ end_orb%vec(2) = end_orb%vec(2) + end_orb%vec(3) * ks_tot_2   !  vec(2) + dint_A
 end_orb%vec(4) = end_orb%vec(4) + end_orb%vec(1) * ks_tot_2   !  vec(4) + Ay
 
 if (do_mat6) then
-  ele%mat6(2,1:6) = ele%mat6(2,1:6) + ks_tot_2 * ele%mat6(3,1:6)
-  ele%mat6(4,1:6) = ele%mat6(4,1:6) + ks_tot_2 * ele%mat6(1,1:6)
+  mat6(2,1:6) = mat6(2,1:6) + ks_tot_2 * mat6(3,1:6)
+  mat6(4,1:6) = mat6(4,1:6) + ks_tot_2 * mat6(1,1:6)
 endif  
 
 end subroutine bsq_drift2
@@ -630,8 +631,8 @@ dpy = k1_norm * (end_orb%vec(3) - y_q) - k1_skew * end_orb%vec(1) - g_y
 end_orb%vec(4) = end_orb%vec(4) + ds * dpy  ! dAz_dy
 
 if (do_mat6) then
-  ele%mat6(2,1:6) = ele%mat6(2,1:6) - ds * k1_norm * ele%mat6(1,1:6) - ds * k1_skew * ele%mat6(3,1:6)
-  ele%mat6(4,1:6) = ele%mat6(4,1:6) - ds * k1_skew * ele%mat6(1,1:6) + ds * k1_norm * ele%mat6(3,1:6)
+  mat6(2,1:6) = mat6(2,1:6) - ds * k1_norm * mat6(1,1:6) - ds * k1_skew * mat6(3,1:6)
+  mat6(4,1:6) = mat6(4,1:6) - ds * k1_skew * mat6(1,1:6) + ds * k1_norm * mat6(3,1:6)
 endif 
 
 end subroutine bsq_kick
@@ -652,8 +653,8 @@ end_orb%vec(4) = end_orb%vec(4) + sgn * dint_Ax_dy()
 
 if (do_mat6) then
   dAx__dy = dAx_dy()
-  ele%mat6(2,1:6) = ele%mat6(2,1:6) + sgn * (dAx_dx() * ele%mat6(1,1:6) + dAx__dy          * ele%mat6(3,1:6))
-  ele%mat6(4,1:6) = ele%mat6(4,1:6) + sgn * (dAx__dy  * ele%mat6(1,1:6) + ddint_Ax_dy_dy() * ele%mat6(3,1:6))
+  mat6(2,1:6) = mat6(2,1:6) + sgn * (dAx_dx() * mat6(1,1:6) + dAx__dy          * mat6(3,1:6))
+  mat6(4,1:6) = mat6(4,1:6) + sgn * (dAx__dy  * mat6(1,1:6) + ddint_Ax_dy_dy() * mat6(3,1:6))
 endif      
 
 end subroutine apply_wig_exp_int_ax
@@ -674,8 +675,8 @@ end_orb%vec(4) = end_orb%vec(4) + sgn * Ay_saved
 
 if (do_mat6) then
   dAy__dx = dAy_dx()
-  ele%mat6(2,1:6) = ele%mat6(2,1:6) + sgn * (ddint_Ay_dx_dx() * ele%mat6(1,1:6) + dAy__dx  * ele%mat6(3,1:6))
-  ele%mat6(4,1:6) = ele%mat6(4,1:6) + sgn * (dAy__dx          * ele%mat6(1,1:6) + dAy_dy() * ele%mat6(3,1:6))
+  mat6(2,1:6) = mat6(2,1:6) + sgn * (ddint_Ay_dx_dx() * mat6(1,1:6) + dAy__dx  * mat6(3,1:6))
+  mat6(4,1:6) = mat6(4,1:6) + sgn * (dAy__dx          * mat6(1,1:6) + dAy_dy() * mat6(3,1:6))
 endif      
 
 end subroutine apply_wig_exp_int_ay
@@ -1415,26 +1416,6 @@ dE_p = (1 + end_orb%vec(6)) * (fact_d * g2 + fact_f * sqrt(g3) * this_ran) * syn
 end_orb%vec(2) = end_orb%vec(2) - (end_orb%vec(2) - Ax_saved) * dE_p
 end_orb%vec(4) = end_orb%vec(4) - (end_orb%vec(4) - Ay_saved) * dE_p
 end_orb%vec(6) = end_orb%vec(6) - dE_p * (1 + end_orb%vec(6))
-
-! synch_ran_com%i_calc_on is, by default, False but a program can set this to True for testing purposes.
-
-if (synch_rad_com%i_calc_on) then
-  synch_rad_com%i2 = synch_rad_com%i2 + g2 * ds
-  synch_rad_com%i3 = synch_rad_com%i3 + g3 * ds
-  if (associated(ele%branch)) then
-    temp_ele%mat6 = ele%mat6
-    temp_ele%vec0(1:5) = end_orb%vec(1:5) - matmul (ele%mat6(1:5,1:6), start_orb_saved%vec)
-    temp_ele%vec0(6) = 0
-    temp_ele%map_ref_orb_in = start_orb_saved
-    temp_ele%map_ref_orb_out = end_orb
-    ele0 => ele%branch%ele(ele%ix_ele-1)
-    call twiss_propagate1 (ele0, temp_ele)
-    synch_rad_com%i5a = synch_rad_com%i5a + g3 * ds * (temp_ele%a%gamma * temp_ele%a%eta**2 + &
-          2 * temp_ele%a%alpha * temp_ele%a%eta * temp_ele%a%etap + temp_ele%a%beta * temp_ele%a%etap**2)
-    synch_rad_com%i5b = synch_rad_com%i5b + g3 * ds * (temp_ele%b%gamma * temp_ele%b%eta**2 + &
-          2 * temp_ele%b%alpha * temp_ele%b%eta * temp_ele%b%etap + temp_ele%b%beta * temp_ele%b%etap**2)
-  endif
-endif
 
 end subroutine radiation_kick
 

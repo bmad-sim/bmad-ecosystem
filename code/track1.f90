@@ -210,7 +210,7 @@ case (symp_map$)
   if (present(track)) call add_to_track()
 
 case (symp_lie_bmad$) 
-  call symp_lie_bmad (ele, param, start2_orb, end_orb, .false., track)
+  call symp_lie_bmad (ele, param, start2_orb, end_orb, track, mat6, make_matrix)
 
 case (symp_lie_ptc$)
   call track1_symp_lie_ptc (start2_orb, ele, param, end_orb, track)

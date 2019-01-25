@@ -9,7 +9,7 @@
 !   start_orb   -- Coord_struct: Starting coords.
 !   ele         -- Ele_struct
 !   param       -- lat_param_struct: Lattice parameters.
-!   mat6(6,6)   -- Real(rp), optional: Transfer matrix before the element.
+!   mat6(6,6)   -- real(rp), optional: Transfer matrix before the element.
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !
 !   bmad_com -- Bmad common block (not an argument).
@@ -18,10 +18,10 @@
 !     %max_num_runge_kutta_step  -- Maximum number of steps before particle is considered lost.
 !
 ! Output:
-!   end_orb     -- Coord_struct: Ending coords.
-!   err_flag    -- Logical: Set True if there is an error. False otherwise.
-!   track       -- Track_struct, optional: Structure holding the track information.
-!   mat6(6,6)   -- Real(rp), optional: Transfer matrix propagated through the element.
+!   end_orb     -- coord_struct: Ending coords.
+!   err_flag    -- logical: Set True if there is an error. False otherwise.
+!   track       -- track_struct, optional: Structure holding the track information.
+!   mat6(6,6)   -- real(rp), optional: Transfer matrix propagated through the element.
 !- 
 
 subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track, mat6, make_matrix)
