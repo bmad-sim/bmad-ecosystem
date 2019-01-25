@@ -342,24 +342,6 @@ orbit%vec(2) = orbit%vec(2) * (1 - dE_p)
 orbit%vec(4) = orbit%vec(4) * (1 - dE_p)
 orbit%vec(6) = orbit%vec(6)  - dE_p * (1 + orbit%vec(6))
 
-! This is useful for debugging.
-
-if (synch_rad_com%i_calc_on) then
-  synch_rad_com%i2 = synch_rad_com%i2 + g2 * s_len
-  synch_rad_com%i3 = synch_rad_com%i3 + g3 * s_len
-  if (associated(ele%branch)) then
-    if (edge == start_edge$) then
-      ele0 => ele%branch%ele(ele%ix_ele-1)
-    else
-      ele0 => ele
-    endif
-    synch_rad_com%i5a = synch_rad_com%i5a + g3 * s_len * (ele0%a%gamma * ele0%a%eta**2 + &
-                  2 * ele0%a%alpha * ele0%a%eta * ele0%a%etap + ele0%a%beta * ele0%a%etap**2)
-    synch_rad_com%i5b = synch_rad_com%i5b + g3 * s_len * (ele0%b%gamma * ele0%b%eta**2 + &
-                  2 * ele0%b%alpha * ele0%b%eta * ele0%b%etap + ele0%b%beta * ele0%b%etap**2)
-  endif
-endif
-
 ! Sokolov-Ternov Spin flip?
 
 if (bmad_com%spin_tracking_on .and. bmad_com%spin_sokolov_ternov_flipping_on) then

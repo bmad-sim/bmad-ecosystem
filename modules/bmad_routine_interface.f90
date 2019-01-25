@@ -1501,12 +1501,6 @@ subroutine set_status_flags (bookkeeping_state, stat)
   integer stat
 end subroutine
 
-subroutine set_tracking_method_for_element_slice(ele)
-  import
-  implicit none
-  type (ele_struct) ele
-end subroutine
-
 subroutine save_bunch_track (bunch, ele, s_travel)
   import
   implicit none

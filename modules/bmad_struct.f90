@@ -1725,7 +1725,6 @@ type synch_rad_common_struct
   real(rp) :: scale = 1.0               ! used to scale the radiation
   real(rp) :: i2 = 0, i3 = 0            ! radiation integrals
   real(rp) :: i5a = 0, i5b = 0
-  logical :: i_calc_on = .false.        ! For calculating i2 and i3    
 end type
 
 type (synch_rad_common_struct), save :: synch_rad_com

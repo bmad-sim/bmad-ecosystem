@@ -8,7 +8,7 @@
 ! unstable. That is, you have a negative damping partition number.
 !
 ! The calculation can spend a significant amount of time calculating the integrals.
-! To speed up this calculation the ix_cache argument can be used to stash values for 
+! To speed up this calculation, the ix_cache argument can be used to stash values for 
 ! the bending radius, etc. so that repeated calls to radiation_integrals consumes less time.
 ! To use caching: 
 !   1) First call radiation_integrals with ix_cache set to 0. 
@@ -18,15 +18,14 @@
 !   2) Subsequent calls to radiation_integrals should just pass the value of 
 !      ix_cache that has been assigned.
 ! A new cache, with a unique value for ix_cache, is created each time 
-! radiation_integrals is called with ix_cache = 0. This is useful if there
-! are multiple lattices. To release the memory
-! associated with a cache call release_rad_int_cache(ix_cache).
+! radiation_integrals is called with ix_cache = 0. This is useful if there are multiple lattices. 
+! To release the memory associated with a cache call release_rad_int_cache(ix_cache).
 !
 ! NOTE: The validity of the cache is dependent upon the orbit and parameters like the
 ! quadrupole strengths not varying too much but is independent of variations in
 ! the Twiss parameters. 
 !
-! RECOMMENDATION: Do not use caching of non-wiggler elements unless you need it.
+! Recommendation: Do not use caching of non-wiggler elements unless you need it.
 !
 ! Modules needed:
 !   use bmad
@@ -94,7 +93,6 @@
 subroutine radiation_integrals (lat, orbit, mode, ix_cache, ix_branch, rad_int_by_ele)
 
 use radiation_mod, except_dummy1 => radiation_integrals
-use symp_lie_mod, except_dummy2 => radiation_integrals
 use transfer_map_mod, except_dummy3 => radiation_integrals
 
 implicit none
@@ -106,30 +104,30 @@ type (ele_struct) :: ele2, ele_start, ele_end
 type (coord_struct), target :: orbit(0:), orb_start, orb_end, orb_end1
 type (normal_modes_struct) mode
 type (bmad_common_struct) bmad_com_save
-type (track_struct) :: track
+type (track_struct), target :: track
+type (track_point_struct), pointer :: tp
 type (rad_int_all_ele_struct), optional, target :: rad_int_by_ele
 type (rad_int_branch_struct), target :: rad_int_branch
 type (rad_int_branch_struct), pointer :: rad_int_b_ptr
 type (rad_int_info_struct) :: ri_info
 type (rad_int_cache_struct), pointer :: cache
 type (rad_int_cache1_struct), pointer :: cache_ele ! pointer to cache in use
-type (rad_int_track_point_struct), pointer :: c_pt
+type (rad_int_track_point_struct), pointer :: c_pt, cp0, cp
 type (rad_int_track_point_struct) pt
+type (rad_int_track_point_struct), allocatable :: pt_temp(:)
 type (rad_int1_struct) int_tot
 type (rad_int1_struct), pointer :: rad_int1
 type (rad_int_cache_struct), allocatable :: cache_temp(:)
 
-real(rp) i1, i2, i3, i4a, i4b, i4z, i5a, i5b, i6b, m65, G_max
+real(rp) i1, i2, i3, i4a, i4b, i4z, i5a, i5b, i6b, m65, G_max, gx_err, gy_err, del_z
 real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f, ds_step
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), dk(2,2), kx, ky, beta_min
-real(rp) v(4,4), v_inv(4,4), del_z, z_here, z_start, mc2, gamma, gamma4, gamma6
+real(rp) v(4,4), v_inv(4,4), z_here, z_start, mc2, gamma, gamma4, gamma6
 real(rp) kz, fac, c, s, factor, g2, g_x0, dz, z1, const_q, mat6(6,6), vec0(6)
-! Cf: Sands Eq 5.46 pg 124.
-real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) 
-
+real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) ! Cf: Sands Eq 5.46 pg 124.
 
 integer, optional :: ix_cache, ix_branch
-integer i, j, k, n, ib, ip, ir, key2, n_step, ix_pole_max
+integer i, j, k, n, ix, ixe, ib, ip, ir, key2, n_step, ix_pole_max
 
 character(*), parameter :: r_name = 'radiation_integrals'
 
@@ -270,7 +268,6 @@ if (init_cache) then
   cache%c_ele%cache_type = no_cache$
 
   branch%ele%bookkeeping_state%rad_int = stale$
-
 endif
 
 ! Now cache the information.
@@ -278,10 +275,9 @@ endif
 ! Only need to update the cache if ele%bookkeeping_state%rad_int has been altered.
 
 if (use_cache .or. init_cache) then
+  do ixe = 1, branch%n_ele_track
 
-  do i = 1, branch%n_ele_track
-
-    ele => branch%ele(i)
+    ele => branch%ele(ixe)
     if (ele%value(l$) == 0) cycle
     field_ele => pointer_to_field_ele(ele, 1)
 
@@ -295,124 +291,113 @@ if (use_cache .or. init_cache) then
       if (ele%value(hkick$) == 0 .or. ele%value(vkick$) == 0) cycle
     end select
 
-    cache_ele => cache%c_ele(i)
+    cache_ele => cache%c_ele(ixe)
     cache_ele%cache_type = cache_no_misalign$
 
-    if (branch%ele(i)%bookkeeping_state%rad_int /= stale$) cycle
-    branch%ele(i)%bookkeeping_state%rad_int = ok$
+    if (branch%ele(ixe)%bookkeeping_state%rad_int /= stale$) cycle
+    branch%ele(ixe)%bookkeeping_state%rad_int = ok$
 
     ! Calculation is effectively done in element reference frame with ele2 having
     ! no offsets.
 
-    ele2 = branch%ele(i)
+    ele2 = branch%ele(ixe)
     key2 = ele2%key
-    if (key2 == undulator$) key2 = wiggler$
+    if (key2 == undulator$ .or. key2 == em_field$) key2 = wiggler$
 
     call zero_ele_offsets (ele2)
-    orb_start = orbit(i-1)
-    call offset_particle (branch%ele(i), branch%param, set$, orb_start, set_hvkicks = .false.)
-
-    if (key2 == wiggler$ .and. field_ele%field_calc /= fieldmap$) then
-      n_step = max(nint(10 * ele2%value(l$) / ele2%value(l_pole$)), 1)
-      del_z = ele2%value(l$) / n_step
-      ! taylor will not properly do partial track through a non-fieldmap wiggler so
-      ! switch to symp_lie_bmad type tracking.
-      if (ele2%tracking_method == taylor$) then
-        ele2%tracking_method = symp_lie_bmad$  
-        ele2%mat6_calc_method = symp_lie_bmad$  
-      endif
-    else
-      beta_min = min(ele2%a%beta, ele2%b%beta, branch%ele(i-1)%a%beta, branch%ele(i-1)%b%beta)
-      ds_step = min(ele2%value(ds_step$), beta_min / 10)
-      call compute_even_steps (ds_step, ele2%value(l$), bmad_com%default_ds_step, del_z, n_step)
-    endif
-
-    cache_ele%del_z = del_z
-    if (allocated(cache_ele%pt)) then
-      if (ubound(cache_ele%pt, 1) < n_step) deallocate (cache_ele%pt)
-    endif
-    if (.not. allocated (cache_ele%pt)) allocate (cache_ele%pt(0:n_step))
+    orb_start = orbit(ixe-1)
+    call offset_particle (branch%ele(ixe), branch%param, set$, orb_start, set_hvkicks = .false.)
+    call set_tracking_method_for_element_integration(ele2)
 
     !------------------------------------
-    ! 
+    ! For tracking methods that go step-by-step, simply track through the element to get the cache info.
+    ! This is faster than evaluating at a set of given cache points.
 
-    if (key2 == wiggler$ .and. field_ele%field_calc == fieldmap$ .and. ele2%tracking_method /= custom$) then
+    if (ele2%tracking_method == runge_kutta$ .or. ele2%tracking_method == time_runge_kutta$ .or. ele2%tracking_method == symp_lie_bmad$) then
       track%n_pt = -1
-      call symp_lie_bmad (ele2, branch%param, orb_start, orb_end, make_matrix = .true., track = track)
-      do k = 0, track%n_pt
-        c_pt => cache_ele%pt(k)
-        z_here = track%pt(k)%orb%s - ele2%s_start
-        orb_end = track%pt(k)%orb
-        call calc_wiggler_g_params (ele2, branch%param, z_here, orb_end, c_pt)
-        c_pt%mat6 = track%pt(k)%mat6
-        c_pt%vec0 = track%pt(k)%vec0
-        c_pt%ref_orb_in  = orb_start
-        c_pt%ref_orb_out = track%pt(k)%orb
+      call mat_make_unit(mat6)
+      call track1 (orb_start, ele2, branch%param, orb_end, track, mat6 = mat6, make_matrix = .true.)
+      call allocate_cache(cache_ele, track%n_pt)
+      do i = 0, track%n_pt
+        cache_ele%pt(i)%ref_orb_in  = orb_start
+        call cache_from_symp_lie_track(cache_ele%pt(i), track, i, max(0, i-1), min(track%n_pt, i+1))
       enddo
 
     ! All else...
     else  
+      beta_min = min(ele2%a%beta, ele2%b%beta, branch%ele(ixe-1)%a%beta, branch%ele(ixe-1)%b%beta)
+      n_step = nint(ele%value(l$) / min(ele2%value(ds_step$), beta_min / 10, abs(ele2%value(l$))/2))
+      n_step = min(n_step, nint(1000*ele2%value(l$)))   ! So del_z is at least 1 mm 
+      n_step = max(n_step, 3)
+      del_z = ele2%value(l$) / n_step
+      call allocate_cache(cache_ele, n_step)
 
       z_start = 0
-      ele_start = branch%ele(i-1)
-      dz = min (1e-3_rp, cache_ele%del_z/3)
-      cache_ele%pt(:)%ref_orb_in  = orb_start
+      ele_start = branch%ele(ixe-1)
+      dz = min (1e-4_rp, del_z/3)
       call mat_make_unit (mat6)
       vec0 = 0
 
       do k = 0, n_step
-
-        z_here = k * cache_ele%del_z
+        z_here = k * del_z
         z1 = z_here + dz
         if (z1 > ele2%value(l$)) z1 = max(0.0_rp, z_here - dz)
-
-        c_pt => cache_ele%pt(k)
-
-        call twiss_and_track_intra_ele (ele2, branch%param, z_start, z_here, .true., .false., orb_start, orb_end,  ele_start, ele_end)
-        call twiss_and_track_intra_ele (ele2, branch%param, z_start, z1,     .true., .false., orb_start, orb_end1, ele_start)
-
+        call cache_this_point (z_here, orb_start, ele2, mat6, vec0, cache_ele%pt(k), orb_end, ele_end)
         z_start = z1
         orb_start = orb_end
         ele_start = ele_end
+      enddo
 
-        call concat_transfer_mat (ele_end%mat6, ele_end%vec0, mat6, vec0, mat6, vec0)
-        c_pt%mat6 = mat6
-        c_pt%vec0 = vec0
-        c_pt%ref_orb_out = orb_end
+      ! Make sure we have enough cache points. If del_z < 10^-3 we have enough points or 
+      ! if the difference of the integrated gx and gy averaged over the element using a cubic fit to each interval
+      ! versus using a linear fit is within 10^-4.
 
-        if (ele%key == wiggler$ .and. field_ele%field_calc /= fieldmap$ .and. ele%tracking_method == bmad_standard$) then
-          call calc_wiggler_g_params (ele2, branch%param, z_here, orb_end, c_pt)
+      outer_loop: do
+        if (del_z < 1d-3) exit
 
+        gx_err = 0
+        gy_err = 0
+        do k = 1, n_step-2  ! Ignore end intervals in error estimate.
+          ! gx_err and gy_err are the difference between a linear fit and a cubic fit modulo a factor of 12
+          ! which is put in at the end.
+          gx_err = gx_err + abs(-cache_ele%pt(k-1)%g_x0 + cache_ele%pt(k)%g_x0 + &
+                                          cache_ele%pt(k+1)%g_x0 - cache_ele%pt(k+2)%g_x0)
+          gy_err = gy_err + abs(-cache_ele%pt(k-1)%g_y0 + cache_ele%pt(k)%g_y0 + &
+                                          cache_ele%pt(k+1)%g_y0 - cache_ele%pt(k+2)%g_y0)
+        enddo
+        if (gx_err < 12 * 1d-4 * (n_step - 2) .and. gx_err < 12 * 1d-4 * (n_step - 2)) exit
+
+        ! Need more points...
+        if (ubound(cache_ele%pt, 1) < 2*n_step) then
+          call move_alloc(cache_ele%pt, pt_temp)
+          allocate (cache_ele%pt(0:2*n_step))
+          cache_ele%pt(0:2*n_step:2) = pt_temp
+          deallocate(pt_temp)
         else
-          c_pt%g_x0 = -(orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_here)
-          c_pt%g_y0 = -(orb_end1%vec(4) - orb_end%vec(4)) / (z1 - z_here)
-          c_pt%dgx_dx = 0
-          c_pt%dgx_dy = 0
-          c_pt%dgy_dx = 0
-          c_pt%dgy_dy = 0
-
-          if (key2 == quadrupole$ .or. key2 == sol_quad$ .or. key2 == bend_sol_quad$) then
-            c_pt%dgx_dx =  ele2%value(k1$)
-            c_pt%dgy_dy = -ele2%value(k1$)
-
-          elseif (key2 == sbend$) then
-            c_pt%g_x0   =  c_pt%g_x0 + ele2%value(g$)
-            c_pt%dgx_dx =  ele2%value(k1$)
-            c_pt%dgy_dy = -ele2%value(k1$)
-          endif
+          cache_ele%pt(0:2*n_step:2) = cache_ele%pt(0:n_step)
         endif
 
-        call multipole_ele_to_ab (ele2, .false., ix_pole_max, a_pole, b_pole)
-        do ip = 0, ix_pole_max
-          if (a_pole(ip) == 0 .and. b_pole(ip) == 0) cycle
-          call ab_multipole_kick (a_pole(ip), b_pole(ip), ip, branch%param%particle, ele2%orientation, orb_end, kx, ky, dk)
-          c_pt%dgx_dx = c_pt%dgx_dx - dk(1,1) / ele2%value(l$)
-          c_pt%dgx_dy = c_pt%dgx_dy - dk(1,2) / ele2%value(l$)
-          c_pt%dgy_dx = c_pt%dgy_dx - dk(2,1) / ele2%value(l$)
-          c_pt%dgy_dy = c_pt%dgy_dy - dk(2,2) / ele2%value(l$)
-        enddo
+        n_step = 2*n_step
+        del_z = del_z / 2
+        dz = min (1e-4_rp, del_z/3)
 
-      enddo
+        do k = 1, n_step, 2
+          z_here = k * del_z
+          z1 = z_here + dz
+          if (z1 > ele2%value(l$)) z1 = max(0.0_rp, z_here - dz)
+          cp0 => cache_ele%pt(k-1)
+          cp => cache_ele%pt(k)
+          z_start = cp0%ref_orb_out%s - ele%s_start
+          orb_start = cp0%ref_orb_out
+          mat6 = cp0%mat6
+          vec0 = cp0%vec0
+          ele_start%map_ref_orb_in   = orb_start
+          ele_start%map_ref_orb_out  = cp0%ref_orb_out
+          ele_start%time_ref_orb_in  = orb_start
+          ele_start%time_ref_orb_out = cp0%ref_orb_out        
+          call cache_this_point (z_here, orb_start, ele2, mat6, vec0, cache_ele%pt(k), orb_end, ele_end)
+        enddo
+      enddo outer_loop
     endif
 
   enddo
@@ -701,5 +686,155 @@ if (present(rad_int_by_ele)) then
     enddo
   enddo
 endif
+
+!------------------------------------------------------------------------
+contains
+
+subroutine cache_this_point (z_here, orb_start, ele2, mat6, vec0, c_pt, orb_end, ele_end)
+
+type (ele_struct) ele2
+type (rad_int_track_point_struct) :: c_pt
+type (coord_struct) orb_start, orb_end
+type (ele_struct) ele_end
+
+real(rp) mat6(6,6), vec0(6), z_here
+
+!
+
+c_pt%s_body = z_here
+
+call twiss_and_track_intra_ele (ele2, branch%param, z_start, z_here, .true., .false., orb_start, orb_end,  ele_start, ele_end)
+call twiss_and_track_intra_ele (ele2, branch%param, z_start, z1,     .true., .false., orb_start, orb_end1, ele_start)
+
+call concat_transfer_mat (ele_end%mat6, ele_end%vec0, mat6, vec0, mat6, vec0)
+c_pt%mat6 = mat6
+c_pt%vec0 = vec0
+c_pt%ref_orb_in = orb_start
+c_pt%ref_orb_out = orb_end
+
+if ((ele2%key == wiggler$ .or. ele2%key == undulator$) .and. &
+            (ele2%field_calc == planar_model$ .or. ele2%field_calc == helical_model$) .and. ele2%tracking_method == bmad_standard$) then
+  call calc_wiggler_g_params (ele2, branch%param, z_here, orb_end, c_pt)
+
+else
+  c_pt%g_x0 = -(orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_here)
+  c_pt%g_y0 = -(orb_end1%vec(4) - orb_end%vec(4)) / (z1 - z_here)
+  c_pt%dgx_dx = 0
+  c_pt%dgx_dy = 0
+  c_pt%dgy_dx = 0
+  c_pt%dgy_dy = 0
+
+  if (key2 == quadrupole$ .or. key2 == sol_quad$ .or. key2 == bend_sol_quad$) then
+    c_pt%dgx_dx =  ele2%value(k1$)
+    c_pt%dgy_dy = -ele2%value(k1$)
+
+  elseif (key2 == sbend$) then
+    c_pt%g_x0   =  c_pt%g_x0 + ele2%value(g$)
+    c_pt%dgx_dx =  ele2%value(k1$)
+    c_pt%dgy_dy = -ele2%value(k1$)
+  endif
+endif
+
+call multipole_ele_to_ab (ele2, .false., ix_pole_max, a_pole, b_pole)
+do ip = 0, ix_pole_max
+  if (a_pole(ip) == 0 .and. b_pole(ip) == 0) cycle
+  call ab_multipole_kick (a_pole(ip), b_pole(ip), ip, branch%param%particle, ele2%orientation, orb_end, kx, ky, dk)
+  c_pt%dgx_dx = c_pt%dgx_dx - dk(1,1) / ele2%value(l$)
+  c_pt%dgx_dy = c_pt%dgx_dy - dk(1,2) / ele2%value(l$)
+  c_pt%dgy_dx = c_pt%dgy_dx - dk(2,1) / ele2%value(l$)
+  c_pt%dgy_dy = c_pt%dgy_dy - dk(2,2) / ele2%value(l$)
+enddo
+
+end subroutine cache_this_point
+
+!------------------------------------------------------------------------
+! contains
+
+subroutine cache_from_symp_lie_track (c_pt, track, ix, ix0, ix1)
+
+type (rad_int_track_point_struct) :: c_pt
+type (track_struct) track
+
+integer ix, ix0, ix1
+real(rp) dorb(6), dmat(6,6), denom
+
+!
+
+c_pt%s_body      = track%pt(ix)%s_body
+c_pt%ref_orb_out = track%pt(ix)%orb
+c_pt%mat6        = track%pt(ix)%mat6
+c_pt%vec0        = track%pt(ix)%vec0
+call calc_wiggler_g_params (ele2, branch%param, c_pt%s_body, c_pt%ref_orb_out, c_pt)
+
+end subroutine cache_from_symp_lie_track
+
+!------------------------------------------------------------------------
+! contains
+
+subroutine allocate_cache (cache_ele, n_pt)
+
+type (rad_int_cache1_struct) :: cache_ele
+integer n_pt
+
+!
+
+if (allocated(cache_ele%pt)) then
+  if (ubound(cache_ele%pt, 1) < n_pt) deallocate (cache_ele%pt)
+endif
+if (.not. allocated (cache_ele%pt)) allocate (cache_ele%pt(0:n_pt))
+
+end subroutine allocate_cache
+
+!------------------------------------------------------------------------
+! contains
+
+subroutine set_tracking_method_for_element_integration(ele)
+
+implicit none
+
+type (ele_struct) ele
+
+! The Taylor symp_map tracking methods must be changed since it is not possible to partially track with these.
+! The symp_lie_ptc tracking method is slow so change this method also.
+
+select case (ele%tracking_method)
+case (taylor$, symp_map$, symp_lie_ptc$)
+  if (ele%field_calc == fieldmap$ .and. associated(ele%cartesian_map)) then
+    ele%tracking_method = symp_lie_bmad$
+  else
+    select case (ele%key)
+    case (wiggler$, undulator$, em_field$)
+      ele%tracking_method = runge_kutta$
+    case default
+      ele%tracking_method = bmad_standard$
+    end select
+  endif
+end select
+
+!
+
+select case (ele%mat6_calc_method)
+case (taylor$, symp_map$, symp_lie_ptc$)
+  if (ele%field_calc == fieldmap$ .and. associated(ele%cartesian_map)) then
+    ele%mat6_calc_method = symp_lie_bmad$
+  else
+    select case (ele%key)
+    case (wiggler$, undulator$, em_field$)
+      ele%mat6_calc_method = tracking$
+    case default
+      ele%mat6_calc_method = bmad_standard$
+    end select
+  endif
+end select
+
+!
+
+!if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%tracking_method == bmad_standard$ .and. &
+!    (ele%field_calc == planar_model$ .or. ele%field_calc == helical_model$)) then
+!  ele%tracking_method = symp_lie_bmad$
+!  ele%mat6_calc_method = tracking$
+!endif
+
+end subroutine
 
 end subroutine

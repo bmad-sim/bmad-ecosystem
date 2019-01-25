@@ -2184,8 +2184,6 @@ is_eq = is_eq .and. (f1%i3 == f2%i3)
 is_eq = is_eq .and. (f1%i5a == f2%i5a)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%i5b == f2%i5b)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%i_calc_on .eqv. f2%i_calc_on)
 
 end function eq_synch_rad_common
 

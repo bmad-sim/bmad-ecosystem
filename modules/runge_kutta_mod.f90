@@ -32,17 +32,20 @@ contains
 ! the calculation of z is "off" while the particle is inside the element. At the ends there is no problem.
 !
 ! Input: 
-!   orbit      -- Coord_struct: Starting coords: (x, px, y, py, z, delta) in element body coords.
-!   ele        -- Ele_struct: Element to track through.
-!   param      -- lat_param_struct: Lattice parameters.
-!   s1_body    -- Real: Starting point relative to physical entrance.
-!   s2_body    -- Real: Ending point relative physical entrance.
+!   orbit        -- coord_struct: Starting coords: (x, px, y, py, z, delta) in element body coords.
+!   ele          -- Ele_struct: Element to track through.
+!   param        -- lat_param_struct: Lattice parameters.
+!   s1_body      -- real: Starting point relative to physical entrance.
+!   s2_body      -- real: Ending point relative physical entrance.
+!   mat6(6,6)    -- real(rp), optional: Transfer matrix before the element.
+!   make_matrix  -- logical, optional: If True then make the 6x6 transfer matrix.
 !
 ! Output:
-!   orbit     -- Coord_struct: Ending coords: (x, px, y, py, z, delta) in element body coords.
-!   err_flag  -- Logical: Set True if there is an error. False otherwise. Note: a particle getting
-!                  lost, for example hitting an aperture, is *not* an error.
-!   track     -- Track_struct, optional: Structure holding the track information.
+!   orbit       -- Coord_struct: Ending coords: (x, px, y, py, z, delta) in element body coords.
+!   err_flag    -- Logical: Set True if there is an error. False otherwise. Note: a particle getting
+!                    lost, for example hitting an aperture, is *not* an error.
+!   track       -- Track_struct, optional: Structure holding the track information.
+!   mat6(6,6)   -- real(rp), optional: Transfer matrix propagated through the element.
 !-
 
 subroutine odeint_bmad (orbit, ele, param, s1_body, s2_body, err_flag, track, mat6, make_matrix)
