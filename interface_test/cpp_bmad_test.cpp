@@ -4921,9 +4921,6 @@ void set_CPP_synch_rad_common_test_pattern (CPP_synch_rad_common& C, int ix_patt
   // c_side.test_pat[real, 0, NOT]
   rhs = 5 + offset; C.i5b = rhs;
 
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 6 + offset; C.i_calc_on = (rhs % 2 == 0);
-
 
 }
 

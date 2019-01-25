@@ -2886,15 +2886,13 @@ public:
   Real i3;
   Real i5a;
   Real i5b;
-  Bool i_calc_on;
 
   CPP_synch_rad_common() :
     scale(1.0),
     i2(0.0),
     i3(0.0),
     i5a(0.0),
-    i5b(0.0),
-    i_calc_on(false)
+    i5b(0.0)
     {}
 
   ~CPP_synch_rad_common() {

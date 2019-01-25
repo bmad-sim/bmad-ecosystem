@@ -7352,8 +7352,6 @@ rhs = 3 + offset; F%i3 = rhs
 rhs = 4 + offset; F%i5a = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 5 + offset; F%i5b = rhs
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 6 + offset; F%i_calc_on = (modulo(rhs, 2) == 0)
 
 end subroutine set_synch_rad_common_test_pattern
 

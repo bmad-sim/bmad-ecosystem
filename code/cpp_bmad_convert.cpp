@@ -2998,18 +2998,18 @@ extern "C" void synch_rad_common_to_c (const Opaque_synch_rad_common_class*, CPP
 
 // c_side.to_f2_arg
 extern "C" void synch_rad_common_to_f2 (Opaque_synch_rad_common_class*, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Bool&);
+    c_Real&, c_Real&, c_Real&);
 
 extern "C" void synch_rad_common_to_f (const CPP_synch_rad_common& C, Opaque_synch_rad_common_class* F) {
 
   // c_side.to_f2_call
-  synch_rad_common_to_f2 (F, C.scale, C.i2, C.i3, C.i5a, C.i5b, C.i_calc_on);
+  synch_rad_common_to_f2 (F, C.scale, C.i2, C.i3, C.i5a, C.i5b);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void synch_rad_common_to_c2 (CPP_synch_rad_common& C, c_Real& z_scale, c_Real& z_i2,
-    c_Real& z_i3, c_Real& z_i5a, c_Real& z_i5b, c_Bool& z_i_calc_on) {
+    c_Real& z_i3, c_Real& z_i5a, c_Real& z_i5b) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.scale = z_scale;
@@ -3021,8 +3021,6 @@ extern "C" void synch_rad_common_to_c2 (CPP_synch_rad_common& C, c_Real& z_scale
   C.i5a = z_i5a;
   // c_side.to_c2_set[real, 0, NOT]
   C.i5b = z_i5b;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.i_calc_on = z_i_calc_on;
 }
 
 //--------------------------------------------------------------------

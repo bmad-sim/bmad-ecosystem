@@ -1228,7 +1228,6 @@ bool operator== (const CPP_synch_rad_common& x, const CPP_synch_rad_common& y) {
   is_eq = is_eq && (x.i3 == y.i3);
   is_eq = is_eq && (x.i5a == y.i5a);
   is_eq = is_eq && (x.i5b == y.i5b);
-  is_eq = is_eq && (x.i_calc_on == y.i_calc_on);
   return is_eq;
 };
 
