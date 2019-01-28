@@ -223,7 +223,6 @@ case ('BUNCH')
 
   do n = 1, size(bunch%particle)
     p => bunch%particle(n)
-    p%vec = p%vec + closed_orb(ix_ele_start)%vec
     if (add_closed_orbit_to_init_position) p%vec = p%vec + closed_orb(ix_ele_start)%vec
   enddo
 
@@ -233,6 +232,7 @@ case ('BUNCH')
   ! 
 
   call write_tracking_data (0)
+  time0 = time
 
   do i_turn = 1, n_turns
     if (use_1_turn_map) then
