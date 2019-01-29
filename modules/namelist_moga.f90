@@ -30,6 +30,8 @@ real(rp) tr_a_min, tr_a_max
 real(rp) tr_b_min, tr_b_max
 real(rp) fp_dE_neg, fp_dE_pos
 real(rp) la_overshoot
+real(rp) work_pt_x_min, work_pt_x_max
+real(rp) work_pt_y_min, work_pt_y_max
 integer n_fp_steps
 type(mag_struct) mags_in(max_mags)
 
@@ -44,6 +46,10 @@ namelist / nl_moga /       moga_output_file, &
                         co_limit, &
                         linear_vec_cutoff, &
                         la_overshoot, &
+                        work_pt_x_min, &
+                        work_pt_x_max, &
+                        work_pt_y_min, &
+                        work_pt_y_max, &
                         x_fp_min, &
                         x_fp_max, &
                         y_fp_min, &

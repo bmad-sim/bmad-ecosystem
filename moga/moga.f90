@@ -25,6 +25,7 @@ program moga
   type (custom_aperture_scan_struct) da_block_linear
   type (coord_struct), allocatable :: co(:)
   type (coord_struct), allocatable :: orb(:)
+  type(normal_modes_struct) mode
 
   integer i,j,k
   integer n_dE
@@ -32,6 +33,7 @@ program moga
   integer time_stamp(8)
   integer n_aperture_test
   integer rsize
+  integer ix_cache
   integer, allocatable :: seed_arr(:)
 
   real(rp) metric
@@ -43,12 +45,14 @@ program moga
   real(rp) str_cons
   real(rp) min_dist_to_coup
   real(rp) delta_e
+  real(rp), parameter :: TME = 50.0d-12
 
   logical linear_ok
   logical feasible
   logical err_flag, mat_err
   logical first_loop
   logical mat_ok
+  logical good_wp
 
   character*60 in_file
   character*100 thin_file
@@ -205,7 +209,7 @@ program moga
 
   ! parse shared config params
   call pisa_cfg_parser(prefix, alpha, mu, lambda, dim, con_read)
-  con = 7
+  con = 9
 
   ! check shared parameters meet program limitations
   if( con_read /= con ) then
@@ -222,6 +226,11 @@ program moga
     write(*,*) "this program can handle only even mu."
     call mpi_finalize(mpierr)
     error stop
+  endif
+  if ( dim .eq. 3) then
+    write(*,*) "DA-objectives only"
+  elseif( dim .eq. 4) then
+    write(*,*) "DA and emittance objectives"
   endif
 
 
@@ -247,6 +256,16 @@ program moga
       ring%ele(i)%value(y1_limit$) = 1.0
       ring%ele(i)%value(y2_limit$) = 1.0
       ring%ele(i)%aperture_type = elliptical$
+    endif
+  enddo
+
+  !FOO 
+  do i=1,ring%n_ele_track
+    if( ring%ele(i)%value(x1_limit$) .lt. 1e-4 ) then
+      ring%ele(i)%value(x1_limit$) = 0.05 
+      ring%ele(i)%value(x2_limit$) = 0.05 
+      ring%ele(i)%value(y1_limit$) = 0.05 
+      ring%ele(i)%value(y2_limit$) = 0.05 
     endif
   enddo
 
@@ -501,16 +520,18 @@ program moga
 
     !make new output files, write header
     open(unit=21, iostat=iostat, file=moga_output_file, access='append')
-    write(21,'(a6,50a19)') '# id', (trim(l_mags(i)%name)//'['//trim(l_mags(i)%property)//']',i=1,n_linear), (trim(c_mags(i)%name),i=1,n_chrom), (trim(h_mags(i)%name),i=1,n_harmo), "o1", "o2", "o3", "feasible"
+    write(21,'(a6,50a19)') '# id', (trim(l_mags(i)%name)//'['//trim(l_mags(i)%property)//']',i=1,n_linear), &
+                                   (trim(c_mags(i)%name),i=1,n_chrom), (trim(h_mags(i)%name),i=1,n_harmo), "o1", "o2", "o3", "o4", "feasible"
     close(21)
     open(unit=21, iostat=iostat, file=thin_file, access='append')
-    write(21,'(a6,50a10)') '# id', (trim(l_mags(i)%name)//'['//trim(l_mags(i)%property)//']',i=1,n_linear), (trim(c_mags(i)%name),i=1,n_chrom), (trim(h_mags(i)%name),i=1,n_harmo), "o1", "o2", "o3", "feasible"
+    write(21,'(a6,50a10)') '# id', (trim(l_mags(i)%name)//'['//trim(l_mags(i)%property)//']',i=1,n_linear), &
+                                   (trim(c_mags(i)%name),i=1,n_chrom), (trim(h_mags(i)%name),i=1,n_harmo), "o1", "o2", "o3", "o4", "feasible"
     close(21)
     open(unit=22, iostat=iostat, file='constraint_report.out', access='append')
     write(22,'(a6,30a18)') '# id', 'max|k2|', 'mats@+de', 'mats@-de', 'co@-de', 'co@+de', 'fp@-de', 'fp@+de'
     close(22)
     open(unit=22, iostat=iostat, file='objective_report.out', access='append')
-    write(22,'(a6,10a18)') '# id', 'o1', 'o2', 'o3'
+    write(22,'(a6,10a18)') '# id', 'o1', 'o2', 'o3', 'o4'
     close(22)
     open(unit=23, iostat=iostat, file='offspring_report.out', access='append')
     write(23,'(a6,30a18)') '# gen', '% surviving', '% feasible'
@@ -650,214 +671,246 @@ program moga
       endif
       call mpi_recv(vars, n_vars, MPI_DOUBLE_PRECISION, 0, 2, MPI_COMM_WORLD, mpistatus, mpierr)
 
-      objs(1) = 1.0d0
-      objs(2) = 1.0d0
-      objs(3) = 1.0d0
+      objs(:) = 1.0d0
 
+      ! Variable bound constraints
+      cons(1)  = -1.0    !sextupole strengths
+      ! Off-energy constraints
+      cons(2)  = -1.0    ! closed orbit and mats exist out to -de
+      cons(3)  = -1.0    ! closed orbit and mats exist out to +de
+      cons(4)  = -1.0    !nonlinear dispersion out to -de
+      cons(5)  = -1.0    !nonlinear dispersion out to +de
+      cons(6)  = -1.0    !off-energy tunes or traces
+      cons(7)  = -1.0    !off-energy tunes or traces
+      ! On-energy constraints
+      cons(8)  = -1.0 !x working point bounds
+      cons(9)  = -1.0 !y working point bounds
+      good_wp = .true.
       if(n_linear .gt. 0) then
         call set_magnet_strengths(l_mags,ring,vars(1:n_linear))
-        call crm_build(ring, crm, err_flag)
+        call clear_lat_1turn_mats(ring)
+        co(0)%vec(:) = 0.0d0
+        call twiss_and_track(ring,co,status)
+        if( status == ok$ ) then
+          nu_x = ring%ele(ring%n_ele_track)%a%phi/twopi
+          nu_y = ring%ele(ring%n_ele_track)%b%phi/twopi
+          if( nu_x .lt. work_pt_x_min ) cons(8) = (nu_x - work_pt_x_min)/work_pt_x_min
+          if( nu_x .gt. work_pt_x_max ) cons(8) = (work_pt_x_max - nu_x)/work_pt_x_max
+          if( nu_y .lt. work_pt_y_min ) cons(9) = (nu_y - work_pt_y_min)/work_pt_y_min
+          if( nu_y .gt. work_pt_y_max ) cons(9) = (work_pt_y_max - nu_y)/work_pt_y_max
+
+          !whenever linear optics change, rebuild chromaticity response matrix
+          call crm_build(ring, crm, err_flag)
+          write(*,*) 'FOO working point stable.  Tunes: ', nu_x, nu_y
+        else
+          !linear optics at working point are unstable. bad working point.
+          good_wp = .false.
+        endif
       endif
 
-      !- calculate K2 values
-      call omega_to_k2(vars(1+n_linear:n_linear+n_omega),crm,k2)
-      call set_magnet_strengths(c_mags,ring,k2)
+      if(good_wp) then 
+        !- calculate K2 values
+        call omega_to_k2(vars(1+n_linear:n_linear+n_omega),crm,k2)
+        call set_magnet_strengths(c_mags,ring,k2)
 
-      call set_magnet_strengths(h_mags,ring,vars(1+n_linear+n_omega:n_linear+n_harmo+n_omega))
+        call set_magnet_strengths(h_mags,ring,vars(1+n_linear+n_omega:n_linear+n_harmo+n_omega))
 
-      vars_phys(1:n_linear) = vars(1:n_linear)
-      vars_phys(1+n_linear:n_linear+n_chrom) = k2
-      vars_phys(1+n_linear+n_chrom:n_linear+n_chrom+n_harmo) = vars(1+n_linear+n_omega:n_linear+n_harmo+n_omega)
+        vars_phys(1:n_linear) = vars(1:n_linear)
+        vars_phys(1+n_linear:n_linear+n_chrom) = k2
+        vars_phys(1+n_linear+n_chrom:n_linear+n_chrom+n_harmo) = vars(1+n_linear+n_omega:n_linear+n_harmo+n_omega)
 
-      !- screen magnet strengths
-      cons(1) = -10.0    !sextupole moments
-      str_cons = 0.00000001d0
-      do i=1, n_linear
-        if(vars(i) .lt. l_mags(i)%lb) then
-          str_cons = str_cons + (vars(i) - l_mags(i)%lb)/(abs(l_mags(i)%ub)+abs(l_mags(i)%lb))
-        elseif(vars(i) .gt. l_mags(i)%ub) then
-          str_cons = str_cons + (l_mags(i)%ub - vars(i))/(abs(l_mags(i)%ub)+abs(l_mags(i)%lb))
-        endif
-      enddo
-      do i=1, n_chrom
-        if(k2(i) .lt. c_mags(i)%lb) then
-          str_cons = str_cons + (k2(i) - c_mags(i)%lb)/(abs(c_mags(i)%ub)+abs(c_mags(i)%lb))
-        elseif(k2(i) .gt. c_mags(i)%ub) then
-          str_cons = str_cons + (c_mags(i)%ub - k2(i))/(abs(c_mags(i)%ub)+abs(c_mags(i)%lb))
-        endif
-      enddo
-      do i=1, n_harmo
-        if(vars(i+n_linear+n_omega) .lt. h_mags(i)%lb) then
-          str_cons = str_cons + (vars(i+n_linear+n_omega) - h_mags(i)%lb)/(abs(h_mags(i)%ub)+abs(h_mags(i)%lb))
-        elseif(vars(i+n_linear+n_omega) .gt. h_mags(i)%ub) then
-          str_cons = str_cons + (h_mags(i)%ub - vars(i+n_linear+n_omega))/(abs(h_mags(i)%ub)+abs(h_mags(i)%lb))
-        endif
-      enddo
-      cons(1) = str_cons
-
-      cons(2) = 0.000001 ! closed orbit and mats exist out to -de
-      cons(3) = 0.000001 ! closed orbit and mats exist out to +de
-      cons(4) = 1.0    !nonlinear dispersion out to -de
-      cons(5) = 1.0    !nonlinear dispersion out to +de
-      cons(6) = 1.0    !tunes or traces
-      cons(7) = 1.0    !tunes or traces
-      do i=1,2  ! i==1: negative de.  i==2: positive de.
-        call clear_lat_1turn_mats(ring)
-        fp_flag = .false.
-        do j=1,n_fp_steps
-          !calculate closed orbit and optics at energy offset
-          co(0)%vec = 0.0d0
-          if(i==1) then !negative, fp_de_neg assumed to be a negative number
-            delta_e = fp_de_neg/n_fp_steps*j
-          elseif(i==2) then !positive
-            delta_e = fp_de_pos/n_fp_steps*j
+        !- screen magnet strengths
+        str_cons = 0.00000001d0
+        do i=1, n_linear
+          if(vars(i) .lt. l_mags(i)%lb) then
+            str_cons = str_cons + (vars(i) - l_mags(i)%lb)/(abs(l_mags(i)%ub)+abs(l_mags(i)%lb))
+          elseif(vars(i) .gt. l_mags(i)%ub) then
+            str_cons = str_cons + (l_mags(i)%ub - vars(i))/(abs(l_mags(i)%ub)+abs(l_mags(i)%lb))
           endif
-          co(0)%vec(6) = delta_e
-          call twiss_and_track(ring,co,status)
+        enddo
+        do i=1, n_chrom
+          if(k2(i) .lt. c_mags(i)%lb) then
+            str_cons = str_cons + (k2(i) - c_mags(i)%lb)/(abs(c_mags(i)%ub)+abs(c_mags(i)%lb))
+          elseif(k2(i) .gt. c_mags(i)%ub) then
+            str_cons = str_cons + (c_mags(i)%ub - k2(i))/(abs(c_mags(i)%ub)+abs(c_mags(i)%lb))
+          endif
+        enddo
+        do i=1, n_harmo
+          if(vars(i+n_linear+n_omega) .lt. h_mags(i)%lb) then
+            str_cons = str_cons + (vars(i+n_linear+n_omega) - h_mags(i)%lb)/(abs(h_mags(i)%ub)+abs(h_mags(i)%lb))
+          elseif(vars(i+n_linear+n_omega) .gt. h_mags(i)%ub) then
+            str_cons = str_cons + (h_mags(i)%ub - vars(i+n_linear+n_omega))/(abs(h_mags(i)%ub)+abs(h_mags(i)%lb))
+          endif
+        enddo
+        cons(1) = str_cons
 
-          !calculate closed orbit & mat OK constraints.
-          if( any(status==(/no_closed_orbit$, xfer_mat_calc_failure$/)) .or. ( (status /= ok$).and.(status .gt. 0) ) ) then
-            mat_ok = .false.
-            if(i==1) then
-              cons(2) = cons(2) - 2.0/n_fp_steps
-            elseif(i==2) then
-              cons(3) = cons(3) - 2.0/n_fp_steps
+        cons(2)  = 0.000001 ! closed orbit and mats exist out to -de
+        cons(3)  = 0.000001 ! closed orbit and mats exist out to +de
+        do i=1,2  ! i==1: negative de.  i==2: positive de.
+          call clear_lat_1turn_mats(ring)
+          fp_flag = .false.
+          do j=1,n_fp_steps
+            !calculate closed orbit and optics at energy offset
+            co(0)%vec = 0.0d0
+            if(i==1) then !negative, fp_de_neg assumed to be a negative number
+              delta_e = fp_de_neg/n_fp_steps*j
+            elseif(i==2) then !positive
+              delta_e = fp_de_pos/n_fp_steps*j
             endif
-          else
-            mat_ok = .true.
-          endif
+            co(0)%vec(6) = delta_e
+            call twiss_and_track(ring,co,status)
 
-
-          !calculate closed orbit amplitude constraints.
-          if(mat_ok) then
-            co_screen_x = abs(co(1)%vec(1)-etax_base(1)*delta_e)
-            co_screen_y = abs(co(1)%vec(3)-etay_base(1)*delta_e)
-            do k=2,ring%n_ele_track
-              if( .not. any(ring%ele(k)%key == (/wiggler$, marker$/)) ) then
-                co_screen_x = max(co_screen_x,abs(co(k)%vec(1)-etax_base(k)*delta_e))
-                co_screen_y = max(co_screen_y,abs(co(k)%vec(3)-etay_base(k)*delta_e))
+            !calculate closed orbit & mat OK constraints.
+            if( any(status==(/no_closed_orbit$, xfer_mat_calc_failure$/)) .or. ( (status /= ok$).and.(status .gt. 0) ) ) then
+              mat_ok = .false.
+              if(i==1) then
+                cons(2) = cons(2) - 1.0/n_fp_steps
+              elseif(i==2) then
+                cons(3) = cons(3) - 1.0/n_fp_steps
               endif
-            enddo
-            co_screen = (co_limit - max(co_screen_x,co_screen_y)) / co_limit
-            if(i==1) then
-              cons(4) = min(cons(4), co_screen)
-            elseif(i==2) then
-              cons(5) = min(cons(5), co_screen)
+            else
+              mat_ok = .true.
             endif
-          endif
 
-          !calculate trace or tunes constraints.
-          if(chrom_mode == 'trace') then ! screen matrix traces
+
+            !calculate closed orbit amplitude constraints.
             if(mat_ok) then
-              tr_a = ring%param%t1_no_RF(1,1)+ring%param%t1_no_RF(2,2)
-              tr_b = ring%param%t1_no_RF(3,3)+ring%param%t1_no_RF(4,4)
-              cons(6) = min(tr_a-tr_a_min,cons(6))
-              cons(6) = min(tr_a_max-tr_a,cons(6))
-              cons(7) = min(tr_b-tr_b_min,cons(7))
-              cons(7) = min(tr_b_max-tr_b,cons(7))
-            endif
-          elseif(chrom_mode == 'tunes') then !screen tunes
-            if (.not. fp_flag) then
-              if(mat_ok) then
-                nu_x = ring%ele(ring%n_ele_track)%a%phi/twopi
-                nu_y = ring%ele(ring%n_ele_track)%b%phi/twopi
-                if(nu_x .gt. x_fp_max) fp_flag = .true.
-                if(nu_x .lt. x_fp_min) fp_flag = .true.
-                if(nu_y .gt. y_fp_max) fp_flag = .true.
-                if(nu_y .lt. y_fp_min) fp_flag = .true.
-              else
-                fp_flag = .true.
+              co_screen_x = abs(co(1)%vec(1)-etax_base(1)*delta_e)
+              co_screen_y = abs(co(1)%vec(3)-etay_base(1)*delta_e)
+              do k=2,ring%n_ele_track
+                if( .not. any(ring%ele(k)%key == (/wiggler$, marker$/)) ) then
+                  co_screen_x = max(co_screen_x,abs(co(k)%vec(1)-etax_base(k)*delta_e))
+                  co_screen_y = max(co_screen_y,abs(co(k)%vec(3)-etay_base(k)*delta_e))
+                endif
+              enddo
+              co_screen = (co_limit - max(co_screen_x,co_screen_y)) / co_limit
+              if(i==1) then
+                cons(4) = min(cons(4), co_screen)
+              elseif(i==2) then
+                cons(5) = min(cons(5), co_screen)
               endif
-              if(fp_flag) then
-                if(i==1) then !negative chromatic footprint constraint
-                  cons(6) = -1.0*(1.0 - (j-1.0)/n_fp_steps)
-                elseif(i==2) then !positive chromatic footprint constraint
-                  cons(7) = -1.0*(1.0 - (j-1.0)/n_fp_steps)
+            endif
+
+            !calculate trace or off-energy tunes constraints.
+            if(chrom_mode == 'trace') then ! screen matrix traces
+              !FOO if(mat_ok) then
+              if(status == ok$) then
+                tr_a = ring%param%t1_no_RF(1,1)+ring%param%t1_no_RF(2,2)
+                tr_b = ring%param%t1_no_RF(3,3)+ring%param%t1_no_RF(4,4)
+                write(*,*) "FOO tr_a, tr_b: ", tr_a, tr_b
+                cons(6) = min(tr_a-tr_a_min,cons(6))
+                cons(6) = min(tr_a_max-tr_a,cons(6))
+                cons(7) = min(tr_b-tr_b_min,cons(7))
+                cons(7) = min(tr_b_max-tr_b,cons(7))
+              endif
+            elseif(chrom_mode == 'tunes') then !screen tunes
+              if (.not. fp_flag) then
+                if(mat_ok) then
+                  nu_x = ring%ele(ring%n_ele_track)%a%phi/twopi
+                  nu_y = ring%ele(ring%n_ele_track)%b%phi/twopi
+                  if(nu_x .gt. x_fp_max) fp_flag = .true.
+                  if(nu_x .lt. x_fp_min) fp_flag = .true.
+                  if(nu_y .gt. y_fp_max) fp_flag = .true.
+                  if(nu_y .lt. y_fp_min) fp_flag = .true.
+                else
+                  fp_flag = .true.
+                endif
+                if(fp_flag) then
+                  if(i==1) then !negative chromatic footprint constraint
+                    cons(6) = -1.0*(1.0 - (j-1.0)/n_fp_steps)
+                  elseif(i==2) then !positive chromatic footprint constraint
+                    cons(7) = -1.0*(1.0 - (j-1.0)/n_fp_steps)
+                  endif
                 endif
               endif
-            endif
-          else
-            write(*,*) "FATAL: Unknown chrom_mode."
-            call mpi_finalize(mpierr)
-            error stop
-          endif
-        enddo
-      enddo
-
-      ! feasible if all constraints met, otherwise infeasible
-      feasible = all( cons(:) .ge. 0.0d0 )
-
-      ! tracking study begins here
-      ! if lattice is infeasible, then the optimizer ignores the objectives, so no point in tracking if infeasible.
-      if( feasible .and. (generate_feasible_seeds_only .lt. 0) ) then
-
-        do i=1,n_de
-          ! calculate linear aperture (dynamic aperture assuming linear optics)
-          co(0)%vec = 0.0d0
-          co(0)%vec(6) = de(i)
-          call clear_lat_1turn_mats(ring)
-          call twiss_and_track(ring,co,status)
-
-          !if(.not. lin_lat_unstable) then
-          if(status == ok$) then
-            da_block_linear%param%closed_orbit = co(0)
-            if(use_hybrid) then
-              call make_hybrid_lat(ring, ring_use)
             else
-              ring_use = ring
+              write(*,*) "FATAL: Unknown chrom_mode."
+              call mpi_finalize(mpierr)
+              error stop
             endif
-            call linear_aperture(ring_use,da_block_linear)
-
-            ! screen for small linear dynamic aperture dimension
-            linear_ok = .true.
-            do j=1,n_angle
-              linear_vec = sqrt( (da_block_linear%aperture(j)%x-co(0)%vec(1))**2 + &
-                                 (da_block_linear%aperture(j)%y-co(0)%vec(3))**2)
-              if(linear_vec .lt. linear_vec_cutoff) then
-                write(*,*) "linear aperture too small: ", linear_vec
-                linear_ok = .false.
-              endif
-            enddo
-          else
-            linear_ok = .false.
-          endif
-
-          if( linear_ok ) then
-            !calculate dynamic aperture
-
-            ! only the on-energy adts is constrained
-            da_config%param%n_adts = -1
-            if(i==1) da_config%param%n_adts = n_adts
-
-            da_config%param%closed_orbit%vec = co(0)%vec
-            call custom_dynamic_aperture_scan(ring_use, da_config, .false.)
-          endif
-
-
-          ! total up objective values
-          if( .not. linear_ok  ) then
-            write(*,*) "linear lattice is not stable."
-            metric = 1.0d0
-          elseif( lat_unstable ) then
-            write(*,*) "lattice is not stable."
-            metric = 1.0d0
-          else
-            metric = 0.0d0
-            do j=1,n_angle
-              linear_vec = sqrt( (da_block_linear%aperture(j)%x-co(0)%vec(1))**2 + &
-                                 (da_block_linear%aperture(j)%y-co(0)%vec(3))**2 )
-              da_vec = sqrt( (da_config%aperture(j)%x-co(0)%vec(1))**2 + &
-                             (da_config%aperture(j)%y-co(0)%vec(3))**2 )
-              delta = (linear_vec - da_vec)/linear_vec/sqrt(1.0d0*n_angle)
-              if(delta .lt. 0) then
-                delta = 0.0d0  !no contribution from exceeding physical aperture
-              endif
-              metric = metric + delta**2
-            enddo
-          endif
-
-          objs(i) = metric
+          enddo
         enddo
+
+        ! feasible if all constraints met, otherwise infeasible
+        feasible = all( cons(:) .ge. 0.0d0 )
+
+        ! tracking study begins here
+        ! if lattice is infeasible, then the optimizer ignores the objectives, so no point in tracking if infeasible.
+        if( feasible .and. (generate_feasible_seeds_only .lt. 0) ) then
+          if( dim .eq. 4) then
+            ix_cache = -1
+            call radiation_integrals(ring, co, mode, ix_cache)
+            objs(4) = (TME - mode%a%emittance) / TME
+          endif
+
+
+          do i=1,n_de
+            ! calculate linear aperture (dynamic aperture assuming linear optics)
+            co(0)%vec = 0.0d0
+            co(0)%vec(6) = de(i)
+            call clear_lat_1turn_mats(ring)
+            call twiss_and_track(ring,co,status)
+
+            !if(.not. lin_lat_unstable) then
+            if(status == ok$) then
+              da_block_linear%param%closed_orbit = co(0)
+              if(use_hybrid) then
+                call make_hybrid_lat(ring, ring_use)
+              else
+                ring_use = ring
+              endif
+              call linear_aperture(ring_use,da_block_linear)
+
+              ! screen for small linear dynamic aperture dimension
+              linear_ok = .true.
+              do j=1,n_angle
+                linear_vec = sqrt( (da_block_linear%aperture(j)%x-co(0)%vec(1))**2 + &
+                                   (da_block_linear%aperture(j)%y-co(0)%vec(3))**2)
+                if(linear_vec .lt. linear_vec_cutoff) then
+                  write(*,*) "linear aperture too small: ", linear_vec
+                  linear_ok = .false.
+                endif
+              enddo
+            else
+              linear_ok = .false.
+            endif
+
+            if( linear_ok ) then
+              !calculate dynamic aperture
+
+              ! only the on-energy adts is constrained
+              da_config%param%n_adts = -1
+              if(i==1) da_config%param%n_adts = n_adts
+
+              da_config%param%closed_orbit%vec = co(0)%vec
+              call custom_dynamic_aperture_scan(ring_use, da_config, .false.)
+            endif
+
+            ! total up objective values
+            if( .not. linear_ok  ) then
+              write(*,*) "linear lattice is not stable."
+              metric = 1.0d0
+            elseif( lat_unstable ) then
+              write(*,*) "lattice is not stable."
+              metric = 1.0d0
+            else
+              metric = 0.0d0
+              do j=1,n_angle
+                linear_vec = sqrt( (da_block_linear%aperture(j)%x-co(0)%vec(1))**2 + &
+                                   (da_block_linear%aperture(j)%y-co(0)%vec(3))**2 )
+                da_vec = sqrt( (da_config%aperture(j)%x-co(0)%vec(1))**2 + &
+                               (da_config%aperture(j)%y-co(0)%vec(3))**2 )
+                delta = (linear_vec - da_vec)/linear_vec/sqrt(1.0d0*n_angle)
+                if(delta .lt. 0) then
+                  delta = 0.0d0  !no contribution from exceeding physical aperture
+                endif
+                metric = metric + delta**2
+              enddo
+            endif
+
+            objs(i) = metric
+          enddo
+        endif
       endif
     enddo
   endif
