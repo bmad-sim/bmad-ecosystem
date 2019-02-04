@@ -613,13 +613,14 @@ end subroutine
 ! Output:
 !   ls_soln(1:size(var_indexes))  -- real(rp): contains K2 for the indexes in var_indexes
 !-
-subroutine srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_gen_opt, n_slices_sxt_opt, chrom_set_x_opt, chrom_set_y_opt)
+subroutine srdt_lsq_solution(lat, var_indexes, var_names, ls_soln, n_slices_gen_opt, n_slices_sxt_opt, chrom_set_x_opt, chrom_set_y_opt)
 
   implicit none
 
   type(lat_struct) lat
   integer var_indexes(:)
-  real(rp) ls_soln(:)
+  character(40) var_names(200)
+  real(rp), allocatable :: ls_soln(:)
   integer, optional :: n_slices_sxt_opt
   integer, optional :: n_slices_gen_opt
   real(rp), optional :: chrom_set_x_opt, chrom_set_y_opt
@@ -627,11 +628,12 @@ subroutine srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_gen_opt, n_slic
   type(sliced_eles_struct), allocatable :: eles(:)
   type(sliced_eles_struct), allocatable :: K2eles(:)
 
-  integer i,j,w,nK2,nvar
+  integer i,j,w,nK2,nvar, nnames
   integer, allocatable :: k2mask(:), mags(:)
 
   real(rp), allocatable :: A(:,:), Ap(:,:)
-  real(rp) B(18), C(18)
+  real(rp), allocatable :: As(:,:), Asp(:,:)
+  real(rp) B(18), C(18), V(18), Weights(18)
   real(rp), allocatable :: ls_soln_sliced(:)
   real(rp) chrom_set_x, chrom_set_y
 
@@ -642,6 +644,7 @@ subroutine srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_gen_opt, n_slic
 
   character(8) err_str
   character(17) :: r_name = 'srdt_lsq_solution'
+  character(40), allocatable :: A_names(:)
  
   n_slices_gen = integer_option(10, n_slices_gen_opt)
   n_slices_sext = integer_option(20, n_slices_sxt_opt)
@@ -663,30 +666,34 @@ subroutine srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_gen_opt, n_slic
   allocate(mask(nvar))
   allocate(mags(nvar))
 
-  ! A is a matrix of the coefficients of the sextupoles s.t. A.K2vec = RDTs
+  Weights=1.0d0
+  Weights(1) = 1d4
+  Weights(2) = 1d4
+
+  ! A is a matrix of the coefficients of the sextupole moments that are valid variables s.t. A.K2vec = RDTs
   ! The columns of A are condensed such that each column corresponds to one physical sextupole. That is,
   ! the contributions from each slice are added together.
   do i=1,nvar
     mask = k2eles(:)%ix==var_indexes(i)
     if(count(mask) .gt. 0) then
-      A(1 ,i) = sum(k2eles(:)%l*(-2.0)*k2eles(:)%eta_a*k2eles(:)%beta_a,mask=mask)/4.0   ! chrom_x
-      A(2 ,i) = sum(k2eles(:)%l*(-2.0)*k2eles(:)%eta_a*k2eles(:)%beta_b,mask=mask)/(-4.0)   ! chrom_y
-      A(3 ,i) = sum(k2eles(:)%l* real(-2.0*k2eles(:)%eta_a*k2eles(:)%beta_a * k2eles(:)%e2a),mask=mask)/8.0  !h20001
-      A(4 ,i) = sum(k2eles(:)%l*aimag(-2.0*k2eles(:)%eta_a*k2eles(:)%beta_a * k2eles(:)%e2a),mask=mask)/8.0
-      A(5 ,i) = sum(k2eles(:)%l* real( 2.0*k2eles(:)%eta_a*k2eles(:)%beta_b * k2eles(:)%e2b),mask=mask)/(-8.0)  !h00201
-      A(6 ,i) = sum(k2eles(:)%l*aimag( 2.0*k2eles(:)%eta_a*k2eles(:)%beta_b * k2eles(:)%e2b),mask=mask)/(-8.0)
-      A(7 ,i) = sum(k2eles(:)%l* real(k2eles(:)%eta_a*k2eles(:)%eta_a*sqrt(k2eles(:)%beta_a) * k2eles(:)%ea),mask=mask)/2.0 !h10002
-      A(8 ,i) = sum(k2eles(:)%l*aimag(k2eles(:)%eta_a*k2eles(:)%eta_a*sqrt(k2eles(:)%beta_a) * k2eles(:)%ea),mask=mask)/2.0
-      A(9 ,i) = sum(k2eles(:)%l* real(k2eles(:)%beta_a**(3./2.) * k2eles(:)%ea),mask=mask)/(-8.0)  !h21000
-      A(10,i) = sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(3./2.) * k2eles(:)%ea),mask=mask)/(-8.0)
-      A(11,i) = sum(k2eles(:)%l* real(k2eles(:)%beta_a**(3./2.) * k2eles(:)%e3a),mask=mask)/(-24.0)  !h30000
-      A(12,i) = sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(3./2.) * k2eles(:)%e3a),mask=mask)/(-24.0)
-      A(13,i) = sum(k2eles(:)%l* real(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea),mask=mask)/4.0  !h10110
-      A(14,i) = sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea),mask=mask)/4.0
-      A(15,i) = sum(k2eles(:)%l* real(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea/k2eles(:)%e2b),mask=mask)/8.0 !h10020
-      A(16,i) = sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea/k2eles(:)%e2b),mask=mask)/8.0
-      A(17,i) = sum(k2eles(:)%l* real(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea*k2eles(:)%e2b),mask=mask)/8.0 !h10200
-      A(18,i) = sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea*k2eles(:)%e2b),mask=mask)/8.0
+      A(1 ,i) = Weights(1)*sum(k2eles(:)%l*(-2.0)*k2eles(:)%eta_a*k2eles(:)%beta_a,mask=mask)/4.0   ! chrom_x
+      A(2 ,i) = Weights(2)*sum(k2eles(:)%l*(-2.0)*k2eles(:)%eta_a*k2eles(:)%beta_b,mask=mask)/(-4.0)   ! chrom_y
+      A(3 ,i) = Weights(3)*sum(k2eles(:)%l* real(-2.0*k2eles(:)%eta_a*k2eles(:)%beta_a * k2eles(:)%e2a),mask=mask)/8.0  !h20001
+      A(4 ,i) = Weights(4)*sum(k2eles(:)%l*aimag(-2.0*k2eles(:)%eta_a*k2eles(:)%beta_a * k2eles(:)%e2a),mask=mask)/8.0
+      A(5 ,i) = Weights(5)*sum(k2eles(:)%l* real( 2.0*k2eles(:)%eta_a*k2eles(:)%beta_b * k2eles(:)%e2b),mask=mask)/(-8.0)  !h00201
+      A(6 ,i) = Weights(6)*sum(k2eles(:)%l*aimag( 2.0*k2eles(:)%eta_a*k2eles(:)%beta_b * k2eles(:)%e2b),mask=mask)/(-8.0)
+      A(7 ,i) = Weights(7)*sum(k2eles(:)%l* real(k2eles(:)%eta_a*k2eles(:)%eta_a*sqrt(k2eles(:)%beta_a) * k2eles(:)%ea),mask=mask)/2.0 !h10002
+      A(8 ,i) = Weights(8)*sum(k2eles(:)%l*aimag(k2eles(:)%eta_a*k2eles(:)%eta_a*sqrt(k2eles(:)%beta_a) * k2eles(:)%ea),mask=mask)/2.0
+      A(9 ,i) = Weights(9)*sum(k2eles(:)%l* real(k2eles(:)%beta_a**(3./2.) * k2eles(:)%ea),mask=mask)/(-8.0)  !h21000
+      A(10,i) = Weights(10)*sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(3./2.) * k2eles(:)%ea),mask=mask)/(-8.0)
+      A(11,i) = Weights(11)*sum(k2eles(:)%l* real(k2eles(:)%beta_a**(3./2.) * k2eles(:)%e3a),mask=mask)/(-24.0)  !h30000
+      A(12,i) = Weights(12)*sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(3./2.) * k2eles(:)%e3a),mask=mask)/(-24.0)
+      A(13,i) = Weights(13)*sum(k2eles(:)%l* real(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea),mask=mask)/4.0  !h10110
+      A(14,i) = Weights(14)*sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea),mask=mask)/4.0
+      A(15,i) = Weights(15)*sum(k2eles(:)%l* real(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea/k2eles(:)%e2b),mask=mask)/8.0 !h10020
+      A(16,i) = Weights(16)*sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea/k2eles(:)%e2b),mask=mask)/8.0
+      A(17,i) = Weights(17)*sum(k2eles(:)%l* real(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea*k2eles(:)%e2b),mask=mask)/8.0 !h10200
+      A(18,i) = Weights(18)*sum(k2eles(:)%l*aimag(k2eles(:)%beta_a**(1./2.)*k2eles(:)%beta_b * k2eles(:)%ea*k2eles(:)%e2b),mask=mask)/8.0
     else
       write(*,*) var_indexes(i) 
       write(err_str,'(i8)') var_indexes(i)
@@ -695,6 +702,28 @@ subroutine srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_gen_opt, n_slic
       return
     endif
   enddo
+
+  !condense A based on variable names
+  allocate(A_names(nvar))
+  A_names = lat%ele(var_indexes)%name
+  nnames = 0
+  do i=1,size(var_names)
+    if(var_names(i) == '') then
+      exit
+    endif
+    nnames = nnames + 1
+  enddo
+  allocate(As(18,nnames))
+  allocate(Asp(nnames,18))
+  do i=1,nnames
+    mask = A_names==var_names(i)
+    do j=1,18
+      As(j,i) = sum(A(j,:),mask=mask) !FOO /count(mask)
+    enddo
+  enddo
+  call make_pseudoinverse(As,Asp)
+
+  !call make_pseudoinverse(A,Ap)
 
   ! C is a vector of the contributions to the DTs from those elements with valid K2 that are not variables. 
   C=0.0d0
@@ -721,8 +750,6 @@ subroutine srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_gen_opt, n_slic
     endif
   enddo
 
-  call make_pseudoinverse(A,Ap)
-
   ! B is a vector of the K1 contributions to the DTs.
   B(1:18) = 0.0d0
   B(1) = -chrom_set_x+sum(eles(:)%k1l*eles(:)%beta_a)/4.0
@@ -734,7 +761,17 @@ subroutine srdt_lsq_solution(lat, var_indexes, ls_soln, n_slices_gen_opt, n_slic
   B(7) = sum(real(-eles(:)%k1l*eles(:)%eta_a*sqrt(eles(:)%beta_a) * eles(:)%ea))/2.0
   B(8) = sum(aimag(-eles(:)%k1l*eles(:)%eta_a*sqrt(eles(:)%beta_a) * eles(:)%ea))/2.0
 
-  ls_soln = 2.0*matmul(Ap,-B-C) 
+  do i=1,18
+    V(i) = Weights(i)*(-B(i)-C(i))
+  enddo
+
+  !ls_soln = 2.0*matmul(Ap,-B-C) 
+  allocate(ls_soln(nnames))
+  ls_soln = 2.0*matmul(Asp,V) 
 end subroutine
 
 end module
+
+
+
+
