@@ -47,14 +47,14 @@ enddo
 call name_to_list(lat,var_names)
 nVar = count(lat%ele(:)%select)
 allocate(var_indexes(nVar))
-allocate(ls_soln(nVar))
 var_indexes = pack([(i,i=0,lat%n_ele_track)],lat%ele(:)%select)
 
-call srdt_lsq_solution(lat, var_indexes, ls_soln, gen_slices, sxt_slices, chrom_x, chrom_y)
+call srdt_lsq_solution(lat, var_indexes, var_names, ls_soln, gen_slices, sxt_slices, chrom_x, chrom_y)
 
 open(45,file='srdt_lsq_soln.var')
-do i=1,nVar
-  write(45,'(a,a,es16.8)') trim(lat%ele(var_indexes(i))%name), '[k2]=', ls_soln(i)
+do i=1,size(ls_soln)
+  !write(45,'(a,a,es16.8)') trim(lat%ele(var_indexes(i))%name), '[k2]=', ls_soln(i)
+  write(45,'(a,a,es16.8)') trim(var_names(i)), '[k2]=', ls_soln(i)
 enddo
 close(45)
 
