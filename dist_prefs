@@ -86,6 +86,20 @@ export ACC_ENABLE_MPI="N"
 
 
 #-----------------------------------------------------------
+# Setting the variable ACC_ENABLE_BUILTIN_MPI here to "Y"
+# will enforce using the system installed OpenMPI. 
+#
+# REQUIRES: ACC_ENABLE_MPI="Y"
+#
+# NOTE: To enable this option, OpenMPI must already be 
+#       installed on your system and be compatible with the
+#       requested Fortran compiler, or it will be built
+#       from included source code in this distribution.
+#-----------------------------------------------------------
+export ACC_FORCE_BUILTIN_MPI="N"
+
+
+#-----------------------------------------------------------
 # Setting the variable ACC_ENABLE_GFORTRAN_OPTIMIZATION here 
 # to "Y" will force gfortran -O2 optimization during the 
 # production build, "N" will disable. The default depends 
