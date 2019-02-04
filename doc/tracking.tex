@@ -49,6 +49,7 @@ longitudinal position in the lattice. The definition of the
     real(rp) phase(2)   ! Photon (x, y) phase.
     real(rp) charge     ! charge in a particle (Coul).
     real(rp) path_len   ! path length (used by coherent photons).
+    real(rp) r          ! For general use. Not used by Bmad.
     real(rp) p0c        ! For non-photons: Reference momentum. Negative -> going backwards.
                         !     For photons: Photon momentum (not reference).
     real(rp) beta       ! Velocity / c_light. 
@@ -77,54 +78,50 @@ element and with \vn{direction} = -1 the particle will be traveling towards the 
 (\sref{s:ref.construct}).
 
 \item{\%field_x, \%field_y} \Newline
-The \vn{%field_x} and \vn{%field_y} components are for photon
-tracking and are in units of field/sqrt(cross-section-area). That is,
-the square of these units is an intensity. It is up to individual
-programs to define an overall scaling factor for the intensity if
-desired.
+The \vn{%field_x} and \vn{%field_y} components are for photon tracking and are in units of
+field/sqrt(cross-section-area). That is, the square of these units is an intensity. It is up to
+individual programs to define an overall scaling factor for the intensity if desired.
 
 \item{\%ix_ele} \Newline
-The \vn{%ix_ele} component gives the index of the element in the
-\vn{lat%branch(ib)%ele(:)} array that was tracked through. If the
-element tracked through is not associated with a lattice, \vn{%ix_ele}
-is set to -1. When initializing a \vn{coord_struct} (see below),
-\vn{%ix_ele} will be initialized to \vn{not_set\$}.
+The \vn{%ix_ele} component gives the index of the element in the \vn{lat%branch(ib)%ele(:)} array
+that was tracked through. If the element tracked through is not associated with a lattice,
+\vn{%ix_ele} is set to -1. When initializing a \vn{coord_struct} (see below), \vn{%ix_ele} will be
+initialized to \vn{not_set\$}.
 
 \item{\%ix_user} \Newline
-The \vn{%ix_user} component is for use by code outside of the \bmad library.
-\bmad does not use this component.
+The \vn{%ix_user} component is for use by code outside of the \bmad library.  This component will
+not be modified by \bmad.
 
 \item{\%location} \Newline
-The \vn{%location} component indicates where a particle is
-longitudinally with respect to the element being
-tracked. \vn{%location} will be on of:
+The \vn{%location} component indicates where a particle is longitudinally with respect to the
+element being tracked. \vn{%location} will be on of:
 \begin{example}
   entrance_end\$
   inside\$
   exit_end\$
 \end{example}
-\vn{entrance_end\$} indicates that the particle is at the element's
-entrance ($-s$) end and \vn{exit_end\$} indicates that the particle is
-at the element's exit ($+s$) end.  \vn{inside\$} indicates that the
-particle is in between. If the element has edge fields (for example,
-the \vn{e1} and \vn{e2} edge fields of a bend), a particle at the
-\vn{entrance_end\$} or \vn{exit_end\$} is considered to be just
-outside the element.
+\vn{entrance_end\$} indicates that the particle is at the element's entrance ($-s$) end and
+\vn{exit_end\$} indicates that the particle is at the element's exit ($+s$) end.  \vn{inside\$}
+indicates that the particle is in between. If the element has edge fields (for example, the \vn{e1}
+and \vn{e2} edge fields of a bend), a particle at the \vn{entrance_end\$} or \vn{exit_end\$} is
+considered to be just outside the element.
 
 \item{\%p0c} \Newline
-For charged-particles, the reference momentum in eV is stored in the
-\vn{%p0c} component. For photons, \vn{%p0c} is the actual (not
-reference) momentum. For charged-particles, \vn{%p0c} may be negative
-if the particle is traveling backwards longitudinally. For photons,
-\vn{%vec(6)} ($\beta_z$) will be negative if the photon is going
-backward.
+For charged-particles, the reference momentum in eV is stored in the \vn{%p0c} component. For
+photons, \vn{%p0c} is the actual (not reference) momentum. For charged-particles, \vn{%p0c} may be
+negative if the particle is traveling backwards longitudinally. For photons, \vn{%vec(6)}
+($\beta_z$) will be negative if the photon is going backward.
+
+\item{\%r} \Newline
+The \vn{%r} component is for use by code outside of the \bmad library. \bmad will not modify this
+component.
 
 \item{\%s} \Newline
-The \vn{%s} component gives the absolute $s$-position of the particle. When tracking through
-an element (say with Runge-Kutta tracking), and when the particle coordinates is expressed in
-element body coordinates (\sref{s:lab.body.transform}), the $s$-position at any point within 
-the element, by definition, is independent of any misalignments the element has as long as 
-the element is not reversed. If the element is reversed, the $s$-position is reversed as well.
+The \vn{%s} component gives the absolute $s$-position of the particle. When tracking through an
+element (say with Runge-Kutta tracking), and when the particle coordinates is expressed in element
+body coordinates (\sref{s:lab.body.transform}), the $s$-position at any point within the element, by
+definition, is independent of any misalignments the element has as long as the element is not
+reversed. If the element is reversed, the $s$-position is reversed as well.
 
 \item{\%spin(3)} \Newline
 The \vn{%spin(3)} component gives a particle's $(x, y, z)$ spin vector (\sref{s:spin.dyn}).
@@ -141,20 +138,16 @@ The \vn{%state} component will be one of:
   lost_pos_y_aperture\$
   lost_z_aperture\$
 \end{example}
-The \vn{not_set\$} setting indicates that the \vn{coord_struct} has
-not yet been used in tracking. The \vn{alive\$} setting indicates that
-the particle is alive. If a particle is ``dead'', the \vn{%state}
-component will be set to one of the other settings. The
-\vn{lost_neg_x_aperture\$} setting indicates that the particle was
-lost at an aperture on the $-x$ side of the element. The
-\vn{lost_z_aperture\$} setting is used to indicate that the particle
-tried to ``turn around''. This can happen, for example, with strong
-magnetic fields or when a particle has been decelerated too much.  The
-reason why the particle is marked lost in this case is due to the fact
-that $s$-based tracking algorithms cannot handle particles that
-reverse direction. The exception is that the \vn{time_runge_kutta}
-(\sref{s:tkm}) tracking method can handle particle reversal so in this
-case, particles will not be declared lost if they reverse direction.
+The \vn{not_set\$} setting indicates that the \vn{coord_struct} has not yet been used in
+tracking. The \vn{alive\$} setting indicates that the particle is alive. If a particle is ``dead'',
+the \vn{%state} component will be set to one of the other settings. The \vn{lost_neg_x_aperture\$}
+setting indicates that the particle was lost at an aperture on the $-x$ side of the element. The
+\vn{lost_z_aperture\$} setting is used to indicate that the particle tried to ``turn around''. This
+can happen, for example, with strong magnetic fields or when a particle has been decelerated too
+much.  The reason why the particle is marked lost in this case is due to the fact that $s$-based
+tracking algorithms cannot handle particles that reverse direction. The exception is that the
+\vn{time_runge_kutta} (\sref{s:tkm}) tracking method can handle particle reversal so in this case,
+particles will not be declared lost if they reverse direction.
 
 The \vn{lost\$} setting is used when neither of the other
 \vn{lost_*_aperture\$} settings are not appropriate. For example,
