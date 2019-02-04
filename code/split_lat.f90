@@ -231,6 +231,8 @@ if (ele%slave_status == super_slave$) then
     ! as a lord to ele1
 
     lord => pointer_to_lord(ele, j, ctl)
+    ix_attrib = ctl%ix_attrib
+
     if (.not. has_overlap(ele1, lord)) then
       lord%value(lord_pad1$) = lord%value(lord_pad1$) - ele1%value(l$)
       cycle
@@ -241,7 +243,6 @@ if (ele%slave_status == super_slave$) then
     call add_lattice_control_structs (lord, n_add_slave = 1)
 
     n_ic2 = n_ic2 + 1
-    ix_attrib = ctl%ix_attrib
 
     ix2 = lord%ix1_slave+lord%n_slave-1
     lat%control(ix2)%slave = lat_ele_loc_struct(ix_split, ix_branch)
