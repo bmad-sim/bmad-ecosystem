@@ -5,7 +5,6 @@ set (SRC_FILES
 )
 
 set (LINK_LIBS
-  util_programs
   bmad
   sim_utils
   recipes_f-90_LEPP
