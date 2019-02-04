@@ -46,6 +46,8 @@ program moga
   real(rp) min_dist_to_coup
   real(rp) delta_e
   real(rp), parameter :: TME = 50.0d-12
+  real(rp) log_tr_a_min, log_tr_a_max
+  real(rp) log_tr_b_min, log_tr_b_max
 
   logical linear_ok
   logical feasible
@@ -175,6 +177,10 @@ program moga
   if(master) call check_params_bomb()
 
   ! process parameters
+  log_tr_a_min = log(tr_a_min/2.0d0)
+  log_tr_a_max = log(tr_a_max/2.0d0)
+  log_tr_b_min = log(tr_b_min/2.0d0)
+  log_tr_b_max = log(tr_a_max/2.0d0)
   n_linear = 0
   n_chrom = 0
   n_harmo = 0
@@ -701,7 +707,6 @@ program moga
 
           !whenever linear optics change, rebuild chromaticity response matrix
           call crm_build(ring, crm, err_flag)
-          write(*,*) 'FOO working point stable.  Tunes: ', nu_x, nu_y
         else
           !linear optics at working point are unstable. bad working point.
           good_wp = .false.
@@ -793,15 +798,15 @@ program moga
 
             !calculate trace or off-energy tunes constraints.
             if(chrom_mode == 'trace') then ! screen matrix traces
-              !FOO if(mat_ok) then
-              if(status == ok$) then
-                tr_a = ring%param%t1_no_RF(1,1)+ring%param%t1_no_RF(2,2)
-                tr_b = ring%param%t1_no_RF(3,3)+ring%param%t1_no_RF(4,4)
+              if(mat_ok) then
+                !Take logs of traces, because unstable modes can have huge traces.
+                tr_a = log( (ring%param%t1_no_RF(1,1)+ring%param%t1_no_RF(2,2))/2.0d0)
+                tr_b = log( (ring%param%t1_no_RF(3,3)+ring%param%t1_no_RF(4,4))/2.0d0)
                 write(*,*) "FOO tr_a, tr_b: ", tr_a, tr_b
-                cons(6) = min(tr_a-tr_a_min,cons(6))
-                cons(6) = min(tr_a_max-tr_a,cons(6))
-                cons(7) = min(tr_b-tr_b_min,cons(7))
-                cons(7) = min(tr_b_max-tr_b,cons(7))
+                cons(6) = min(tr_a-log_tr_a_min,cons(6))
+                cons(6) = min(log_tr_a_max-tr_a,cons(6))
+                cons(7) = min(tr_b-log_tr_b_min,cons(7))
+                cons(7) = min(log_tr_b_max-tr_b,cons(7))
               endif
             elseif(chrom_mode == 'tunes') then !screen tunes
               if (.not. fp_flag) then
