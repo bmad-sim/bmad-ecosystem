@@ -60,11 +60,12 @@ y_min = y_min_in
 y_max = y_max_in
 
 ! If the where argument is blank or '*', then scale all plots.
+! Exception: lat_layout
 
 if (len_trim(where) == 0 .or. where == '*' .or. where == 'all') then
   do j = 1, size(s%plot_page%region)
     if (.not. s%plot_page%region(j)%visible) cycle
-    call tao_scale_plot (s%plot_page%region(j)%plot, y_min, y_max, axis, gang)
+    call tao_scale_plot (s%plot_page%region(j)%plot, y_min, y_max, axis, gang, .true.)
   enddo
   return
 endif
@@ -93,7 +94,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 
-subroutine tao_scale_plot (plot, y_min_in, y_max_in, axis, gang)
+subroutine tao_scale_plot (plot, y_min_in, y_max_in, axis, gang, skip_lat_layout)
 
 type (tao_plot_struct), target :: plot
 type (tao_graph_struct), pointer :: graph
@@ -107,6 +108,7 @@ character(16) this_axis
 character(16) :: r_name = 'tao_scale_plot'
 integer i, p1, p2
 
+logical, optional :: skip_lat_layout
 logical do_gang
 
 ! Use local vars in case the actual args are something like graph%y%min, etc.
@@ -124,6 +126,7 @@ y_range = [1d30, -1d30]
 y2_range = [1d30, -1d30]
 
 do i = 1, size(plot%graph)
+  if (logic_option(.false., skip_lat_layout) .and. plot%graph(i)%type == 'lat_layout') cycle
   call tao_scale_graph (plot%graph(i), y_min, y_max, axis, y_range, y2_range)
 enddo
 
