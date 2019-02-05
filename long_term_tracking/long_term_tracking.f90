@@ -26,15 +26,16 @@ integer i, ip, n, ie, output_every_n_turns, ix_branch, ix_ele_end
 integer iu_out, iu_snap, n_loc, track_state, i_turn
 
 logical err_flag, rfcavity_on, use_1_turn_map, one_tracking_data_file, add_closed_orbit_to_init_position
-logical include_initial_position, err, is_lost
+logical output_initial_position, err, is_lost
 
 character(20) simulation_mode
 character(40) ele_start_name, fmt
-character(200) lat_file, init_file, tracking_data_file
+character(200) lat_file, init_file, tracking_data_file, common_master_input_file, input_map_file, output_map_file
 
 namelist / params / lat_file, n_turns, ele_start_name, map_order, beam_init, one_tracking_data_file, random_seed, &
                   rfcavity_on, output_every_n_turns, bmad_com, add_closed_orbit_to_init_position, &
-                  simulation_mode, use_1_turn_map, tracking_data_file, timer_print_dtime, include_initial_position
+                  simulation_mode, use_1_turn_map, tracking_data_file, timer_print_dtime, output_initial_position, &
+                  common_master_input_file, input_map_file, output_map_file
 
 ! Parse command line
 
@@ -50,7 +51,7 @@ endif
 ! Read parameters
 
 random_seed = 0
-include_initial_position = .false.
+output_initial_position = .false.
 timer_print_dtime = 120
 map_order = -1
 ele_start_name = ''
@@ -60,6 +61,9 @@ random_seed = 0
 add_closed_orbit_to_init_position = .true.
 tracking_data_file = ''
 one_tracking_data_file = .false.
+common_master_input_file = ''
+input_map_file = ''
+output_map_file = ''
 
 print '(2a)', 'Initialization file: ', trim(init_file)
 
@@ -67,9 +71,22 @@ open (1, file = init_file, status = 'old')
 read (1, nml = params)
 close (1)
 
+if (common_master_input_file /= '') then
+  print '(2a)', 'Using common_master_input_file: ', trim(common_master_input_file)
+
+  open (1, file = common_master_input_file, status = 'old')
+  read (1, nml = params)
+  close (1)
+
+  open (1, file = init_file, status = 'old')
+  read (1, nml = params)
+  close (1)
+endif
+
 ! Lattice init
 
 call ran_seed_put (random_seed)
+
 call bmad_parser (lat_file, lat)
 
 ! Read the master input file again so that bmad_com parameters set in the file
@@ -105,21 +122,27 @@ branch => lat%branch(ix_branch)
 ix_ele_end = ix_ele_start - 1
 if (ix_ele_end == 0) ix_ele_end = branch%n_ele_track
 
+call twiss_and_track (lat, closed_orb, ix_branch = ix_branch)
+
 ! Init 1-turn map.
 
 if ((use_1_turn_map .or. simulation_mode == 'CHECK') .and. simulation_mode /= 'STAT') then
-  if (.not. rfcavity_on) print *, 'RF will not be turned OFF since 1-turn map is in use!'
-  call run_timer ('START')
-  call lat_to_ptc_layout (lat)
-  call ptc_setup_map_with_radiation (map_with_rad, ele_start, ele_start, map_order = map_order)
-  call run_timer ('READ', time)
-  print '(a, f8.2)', '1-turn map setup time (min)', time/60
-
+  if (input_map_file == '') then
+    if (.not. rfcavity_on) print *, 'RF will not be turned OFF since 1-turn map is in use!'
+    call run_timer ('START')
+    call lat_to_ptc_layout (lat)
+    call ptc_setup_map_with_radiation (map_with_rad, ele_start, ele_start, map_order = map_order)
+    call run_timer ('READ', time)
+    print '(a, f8.2)', '1-turn map setup time (min)', time/60
+  else
+    call ptc_read_map_with_radiation(input_map_file, map_with_rad)
+    print '(2a)', '1-turn map file read in from file: ', trim(input_map_file)
+  endif
 else
   if (.not. rfcavity_on) call set_on_off (rfcavity$, lat, off$)
 endif
 
-call twiss_and_track (lat, closed_orb, ix_branch = ix_branch)
+if (output_map_file /= '')  call ptc_write_map_with_radiation(output_map_file, map_with_rad)
 
 ! Print some info.
 
@@ -151,7 +174,7 @@ case ('CHECK')
   orb_1_turn = orb_init
   orb(ix_ele_start) = orb_init
 
-  call ptc_track_map_with_radiation (orb_1_turn, map_with_rad, .true., .true.)
+  call ptc_track_map_with_radiation (orb_1_turn, map_with_rad)
   call track_many (lat, orb, ix_ele_start, ix_ele_start, 1, ix_branch, track_state)
 
   print *, 'Phase Space:'
@@ -186,7 +209,7 @@ case ('SINGLE')
   do i_turn = 1, n_turns
     if (use_1_turn_map) then
       orb_1_turn = orb(ix_ele_start)
-      call ptc_track_map_with_radiation (orb_1_turn, map_with_rad, .true., .true.)
+      call ptc_track_map_with_radiation (orb_1_turn, map_with_rad)
       is_lost = orbit_too_large(orb_1_turn)
       orb(ix_ele_start) = orb_1_turn
     else
@@ -237,7 +260,7 @@ case ('BUNCH')
   do i_turn = 1, n_turns
     if (use_1_turn_map) then
       do ip = 1, size(bunch%particle)
-        call ptc_track_map_with_radiation (bunch%particle(ip), map_with_rad, .true., .true.)
+        call ptc_track_map_with_radiation (bunch%particle(ip), map_with_rad)
       enddo
     else
       call track_bunch (lat, bunch, ele_start, ele_start, err_flag)
@@ -345,7 +368,7 @@ if (iu_snap == 0) then
   iu_snap = lunget()
   open (iu_snap, file = file_name, recl = 300)
 
-  if (include_initial_position) then
+  if (output_initial_position) then
     write (iu_snap, '(2a)') '#                  |                                  Start  * 10^3                              |                Start            ', &
                                             '|                                       End  * 10^3                              |                 End'
     write (iu_snap, '(2a)') '#      Ix     Turn |        x           px            y           py            z           pz   |     spin_x    spin_y    spin_z  ', &
@@ -359,11 +382,11 @@ endif
 do ip = 1, size(bunch%particle)
   p0 => bunch_init%particle(ip)
   p => bunch%particle(ip)
-  if (include_initial_position) then
+  if (output_initial_position) then
     write (iu_snap, '(i9, i9, 2(a, 3x, 3f10.6, 4x), a)') ip, nn, reals_to_table_row(1d3*p0%vec, 13, 7, 1), &
                               p0%spin, reals_to_table_row(1d3*p%vec, 13, 7, 1), p%spin, trim(coord_state_name(p%state))
   else
-    write (iu_snap, '(i9, i9, a, 3x, 3f10.6, 4x, a)')  ip, nn, reals_to_table_row(1d3*p%vec, 13, 7, 1), p%spin, coord_state_name(p%state)
+    write (iu_snap, '(i9, i9, a, 3x, 3f10.6, 4x, a)')  ip, nn, reals_to_table_row(1d3*p%vec, 13, 7, 1), p%spin, trim(coord_state_name(p%state))
   endif
 enddo
 

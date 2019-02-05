@@ -67,7 +67,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ October 10, 2018}
+\date{David Sagan \\ February 5, 2019}
 \begin{document}
 \maketitle
 
@@ -237,12 +237,15 @@ The master input file holds the parameters needed for running the long term trac
 master input file must contain a single namelist (\sref{s:namelist}) named \vn{params}.  Example:
 \begin{code}
 &params
+  common_master_input_file = ""
   simulation_mode = "BUNCH"
   lat_file   =  "lat.bmad"     ! Bmad lattice file
+  input_map_file = ''
+  output_map_file = ''
 
   tracking_data_file  = "snap.dat"
   output_every_n_turns = 200
-  include_initial_position = False
+  output_initial_position = False
 
   ele_start_name     = ""
   n_turns            = 1000
@@ -282,33 +285,56 @@ is detailed in the Bmad reference manual. Note: \vn{bmad_com} parameters can be 
 lattice file. \vn{Bmad_com} parameter set in the master input file will take precedence over
 parameters set in the lattice file.
 %
+\item[common_master_input_file] \Newline
+The \vn{common_master_input_file} is used in situations where you want to run multipole simulations
+with multiple initialization files and where most parameters are the same across all the
+simulations. In this case, an initialization file containing the parameters that are the same can be
+created along with individual initialization files one for each simulation. The individual files
+should set \vn{common_master_input_file} to the name of the common file and the individual files
+should only set the parameters that are different for that simulation. Parameter values set in the
+individual files will override values set in the common file. Using a common master input file means
+that there is only one file to modify when common parameters are changed as opposed to having to
+modify all the initialization files. If \vn{common_master_input_file} is set to blank (the default),
+no common file is used
+%
 \item[ele_start_name] \Newline
 Name or element index of the element to start the tracking. Examples:
 \begin{code}
   ele_start_name = "Q3##2"   ! 2nd element named Q3 in the lattice.
   ele_start_name = 37        ! 37th element in the lattice.
 \end{code}
-The default is to start at the beginning of the lattice. Notice that the tracking starts at the downstream
-end of the element so the first element tracked through is the element after the chosen one.
+The default is to start at the beginning of the lattice. Notice that the tracking starts at the
+downstream end of the element so the first element tracked through is the element after the chosen
+one.
+%
+\item[input_map_file] \Newline
+If not blank (the default), the program will read in the 1-turn map from \vn{input_map_file}. Also
+see \vn{output_map_file}.
 %
 \item[lat_file] \Newline
 Name of the Bmad lattice file to use.
 %
-\item[include_initial_position] \Newline
-Used with \vn{simulation_mode} set to \vn{"BUNCH"}. If \vn{include_initial_position} is set to \vn{True},
-additional columns will be added to the output tracking data file to show the initial particle
-position and spin. Default is \vn{False}. See Section~\sref{s:out.dat}.
-%
 \item[map_order] \Newline
-Order of the 1-turn map. See Section~\sref{s:track.modes}. The default is what is set in the lattice file
-and if not set in the lattice file the default is 3
+Order of the 1-turn map. See Section~\sref{s:track.modes}. The default is what is set in the lattice
+file and if not set in the lattice file the default is 3. Note: \vn{map_order} is only used when
+generating a map.  When a map is read in from a file, the order of this map is independent of the
+current setting of \vn{map_order}.
+%
+\item[output_initial_position] \Newline
+Used with \vn{simulation_mode} set to \vn{"BUNCH"}. If \vn{output_initial_position} is set to
+\vn{True}, additional columns will be added to the output tracking data file to show the initial
+particle position and spin. Default is \vn{False}. See Section~\sref{s:out.dat}.
+%
+\item[output_map_file] \Newline
+If not blank (the default), the program will save the 1-turn map in \vn{output_map_file}. Also
+see \vn{input_map_file}.
 %
 \item[n_turns] \Newline
 Number of turns to track. See Section~\sref{s:track.modes}.
 %
 \item[one_tracking_data_file]
-If set to \vn{True}, all the tracking data will be put in one file. Only relevant for \vn{"BEAM"} tracking.
-See Section~\sref{s:out.dat}.
+If set to \vn{True}, all the tracking data will be put in one file. Only relevant for \vn{"BEAM"}
+tracking.  See Section~\sref{s:out.dat}.
 %
 \item[random_seed] \Newline
 The random number seed used by the random number generator. If set to 0, the
@@ -362,7 +388,7 @@ turns. However, if \vn{output_every_n_turns} is set to 0, tracking data is recor
 at the start and end of the tracking. If \vn{output_every_n_turns} is set to -1,
 tracking data is only recorded at the end of tracking.
 
-If \vn{include_initial_position} is set to \vn{True}, additional columns will be added to the output
+If \vn{output_initial_position} is set to \vn{True}, additional columns will be added to the output
 tracking data file to show the initial particle position and spin.
 
 
