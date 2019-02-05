@@ -242,6 +242,7 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
 
 character(*) name
+character(40) branch_name
 character(*), parameter :: r_name = 'lat_ele1_locator'
 
 integer, optional :: ix_dflt_branch
@@ -298,13 +299,18 @@ endif
 
 ixp = index(name, '>>')
 if (ixp > 0) then
-  branch => pointer_to_branch (name(1:ixp-1), lat)
-  if (.not. associated(branch)) then
-    err = .false.
-    return
-  endif
-  ix_branch = branch%ix_branch
+  branch_name = name(1:ixp-1)
   name = name(ixp+2:)
+  if (index(branch_name, '*') == 0 .and. index(branch_name, '%') == 0) then
+    branch => pointer_to_branch (branch_name, lat)
+    if (.not. associated(branch)) then
+      err = .false.
+      return
+    endif
+    ix_branch = branch%ix_branch
+  else
+    ix_branch = -2
+  endif
 endif
 
 ! Read integer if present
@@ -317,43 +323,49 @@ if (is_integer(name)) then
   endif
   if (.not. allocated(eles)) allocate (eles(1))
   if (ix_branch == -1) ix_branch = 0
-  if (.not. above_ub_is_err .and. ix_ele > lat%branch(ix_branch)%n_ele_max) then
-    ix_ele = lat%branch(ix_branch)%n_ele_max
-  elseif (ix_ele < 0 .or. ix_ele > lat%branch(ix_branch)%n_ele_max) then
-    call out_io (s_error$, r_name, 'ELEMENT LOCATION INDEX OUT OF RANGE: ' // name)
-    return
+  if (ix_branch > -1) then
+    if (.not. above_ub_is_err .and. ix_ele > lat%branch(ix_branch)%n_ele_max) then
+      ix_ele = lat%branch(ix_branch)%n_ele_max
+    elseif (ix_ele < 0 .or. ix_ele > lat%branch(ix_branch)%n_ele_max) then
+      call out_io (s_error$, r_name, 'ELEMENT LOCATION INDEX OUT OF RANGE: ' // name)
+      return
+    endif
   endif
-  eles(1)%ele => lat%branch(ix_branch)%ele(ix_ele)
-  eles(1)%loc = lat_ele_loc_struct(ix_ele, ix_branch)
-  n_loc = 1
-  err = .false.
-  return
+  do_match_wild = .false.
+else
+  do_match_wild = (index(name, "*") /= 0 .or. index(name, "%") /= 0) 
+  ix_ele = -1
 endif
-
-! We have a "class::name" construct if there is a "::" in the string
-! or a wild card "*" or "%".
-
-do_match_wild = .false.  
-if (index(name, "*") /= 0 .or. index(name, "%") /= 0) do_match_wild = .true.
 
 ! search for matches
 
 do k = lbound(lat%branch, 1), ubound(lat%branch, 1)
+  branch => lat%branch(k)
   n_dup = 0
-  if (ix_branch /= -1 .and. k /= ix_branch) cycle
-  do i = 0, lat%branch(k)%n_ele_max
-    ele => lat%branch(k)%ele(i)
+  if (ix_branch == -2) then
+    if (.not. match_wild(branch%name, branch_name)) cycle
+  else
+    if (ix_branch /= -1 .and. k /= ix_branch) cycle
+  endif
+
+  do i = 0, branch%n_ele_max
+    ele => branch%ele(i)
     if ((key /= 0 .and. ele%key /= key) .and. (ele%key /= sbend$ .or. ele%sub_key /= key)) cycle
-    if (do_match_wild) then
+
+    if (ix_ele > -1) then
+      if (i /= ix_ele) cycle
+    elseif (do_match_wild) then
       if (.not. match_wild(ele%name, name)) cycle
     else
       if (ele%name /= name) cycle
     endif
+
     if (ix_dup > 0) then
       n_dup = n_dup + 1
       if (n_dup > ix_dup) exit 
       if (n_dup /= ix_dup) cycle
     endif
+
     n_loc = n_loc + 1
     if (.not. allocated(eles) .or. size(eles) < n_loc) call re_allocate_eles (eles, 2*n_loc, .true.)
     eles(n_loc)%ele => ele
