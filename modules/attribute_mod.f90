@@ -1162,6 +1162,7 @@ call init_attribute_name1 (kicker$, grid_field$,                    'GRID_FIELD'
 call init_attribute_name1 (kicker$, taylor_field$,                  'TAYLOR_FIELD')
 call init_attribute_name1 (kicker$, ptc_canonical_coords$,          'PTC_CANONICAL_COORDS')
 
+call init_attribute_name1 (ac_kicker$, interpolation$,                 'INTERPOLATION')
 call init_attribute_name1 (ac_kicker$, r0_mag$,                        'R0_MAG')
 call init_attribute_name1 (ac_kicker$, r0_elec$,                       'R0_ELEC')
 call init_attribute_name1 (ac_kicker$, field_master$,                  'FIELD_MASTER')
@@ -1745,7 +1746,7 @@ case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', 'SAD_N_DIV
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPOLES', &
       'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', 'HIGHER_ORDER_FRINGE_TYPE', &
       'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', 'DEFAULT_TRACKING_SPECIES', &
-      'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', &
+      'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', 'INTERPOLATION', &
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE', 'CAVITY_TYPE', &
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
       'LORD_STATUS', 'PHOTON_TYPE', 'ELE_ORIGIN', 'REF_ORIGIN')
@@ -2215,13 +2216,15 @@ case ('EXACT_MULTIPOLES')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, exact_multipoles_name, lbound(exact_multipoles_name, 1))
   if (present(is_default)) is_default = (ix_attrib_val == off$)
 
-case ('PHOTON_TYPE')
-  call get_this_attrib_name (attrib_val_name, ix_attrib_val, photon_type_name, lbound(photon_type_name, 1))
-  if (present(is_default)) is_default = (ix_attrib_val == incoherent$)
-
 case ('FIELD_CALC')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, field_calc_name, lbound(field_calc_name, 1))
   if (present(is_default)) is_default = (ix_attrib_val == bmad_standard$)
+
+case ('FRINGE_AT')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, end_at_name, lbound(end_at_name, 1))
+  if (present(is_default)) then
+    is_default = (ix_attrib_val == both_ends$)
+  endif
 
 case ('FRINGE_TYPE')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, fringe_type_name, lbound(fringe_type_name, 1))
@@ -2236,12 +2239,20 @@ case ('FRINGE_TYPE')
     end select
   endif
 
-case ('PTC_FRINGE_GEOMETRY')
-  call get_this_attrib_name (attrib_val_name, ix_attrib_val, ptc_fringe_geometry_name, lbound(ptc_fringe_geometry_name, 1))
-  if (present(is_default)) is_default = (ix_attrib_val == x_invariant$)
-
 case ('GEOMETRY')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, geometry_name, lbound(geometry_name, 1))
+
+case ('HIGHER_ORDER_FRINGE_TYPE')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, higher_order_fringe_type_name, lbound(higher_order_fringe_type_name, 1))
+  if (present(is_default)) then
+    is_default = (ix_attrib_val == none$)
+  endif
+
+case ('INTERPOLATION')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, interpolation_name, lbound(interpolation_name, 1))
+  if (present(is_default)) then
+    is_default = (ix_attrib_val == spline$)
+  endif
 
 case ('KEY')
     call get_this_attrib_name (attrib_val_name, ix_attrib_val, key_name, lbound(key_name, 1))
@@ -2251,6 +2262,13 @@ case ('LORD_STATUS')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, control_name, lbound(control_name, 1))  
   if (present(is_default)) is_default = .false.
   
+case ('MAT6_CALC_METHOD')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, mat6_calc_method_name, lbound(mat6_calc_method_name, 1))
+  if (present(is_default)) then
+    call default_ele(ele, ele2)
+    is_default = (ix_attrib_val == ele2%mat6_calc_method)
+  endif
+
 case ('MODE')
   if (ele%key == diffraction_plate$ .or. ele%key == sample$ .or. ele%key == mask$) then
     call get_this_attrib_name (attrib_val_name, ix_attrib_val, mode_name, lbound(mode_name, 1))
@@ -2264,28 +2282,17 @@ case ('MODE')
     endif
   endif
 
-case ('FRINGE_AT')
-  call get_this_attrib_name (attrib_val_name, ix_attrib_val, end_at_name, lbound(end_at_name, 1))
-  if (present(is_default)) then
-    is_default = (ix_attrib_val == both_ends$)
-  endif
-
-case ('HIGHER_ORDER_FRINGE_TYPE')
-  call get_this_attrib_name (attrib_val_name, ix_attrib_val, higher_order_fringe_type_name, lbound(higher_order_fringe_type_name, 1))
-  if (present(is_default)) then
-    is_default = (ix_attrib_val == none$)
-  endif
-
-case ('MAT6_CALC_METHOD')
-  call get_this_attrib_name (attrib_val_name, ix_attrib_val, mat6_calc_method_name, lbound(mat6_calc_method_name, 1))
-  if (present(is_default)) then
-    call default_ele(ele, ele2)
-    is_default = (ix_attrib_val == ele2%mat6_calc_method)
-  endif
-
 case ('ORIGIN_ELE_REF_PT')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, ref_pt_name, lbound(ref_pt_name, 1))
     if (present(is_default)) is_default = (ix_attrib_val == center_pt$)
+
+case ('PTC_FRINGE_GEOMETRY')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, ptc_fringe_geometry_name, lbound(ptc_fringe_geometry_name, 1))
+  if (present(is_default)) is_default = (ix_attrib_val == x_invariant$)
+
+case ('PHOTON_TYPE')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, photon_type_name, lbound(photon_type_name, 1))
+  if (present(is_default)) is_default = (ix_attrib_val == incoherent$)
 
 case ('PARTICLE')
   attrib_val_name = species_name(ix_attrib_val)

@@ -166,6 +166,7 @@ Attributes specific to a \vn{ac_kicker} element are:
   t_offset   = <Real>                                      ! Time offset of field waveform.
   amp_vs_time = \{(<t1>, <A1>), (<t2>, <A2>), ...\}          ! Field amplitude vs Time.
   frequencies = \{(<f1>, <A1>, <phi1>), (<f2>, <A2>, <phi2>), ...\} ! Frequency components.
+  integration = <switch>                                   ! linear or spline (default).
 \end{example}
 Note: The units of the phases \vn{phi} with the \vn{frequencies} attribute are \vn{radians/2pi}.
 
@@ -186,9 +187,15 @@ attribute. Example:
           amp_vs_time = \{(-1.2e-6, 0.02), ... \} 
 \end{example}
 The element in this example is an AC quadrupole kicker. The times (in seconds) must be in ascending
-order and no two times may be the same. \bmad uses a cubic spline fit
-to interpolate between the time points. For times outside of the range specified by
-\vn{amp_vs_time}, the amplitude is taken to be zero.
+order and no two times may be the same. The method used to interpolate between the time points is
+determined by the setting of the \vn{interpolate} paramter which may be one of
+\begin{example}
+  linear      ! Linear interpolation.
+  spline      ! Cubic spline interpolation.
+\end{example}
+For times before of the range specified by \vn{amp_vs_time}, the amplitude is taken to be the
+amplitude of the first point of the range. Similarly, for times after the the range specified by
+\vn{amp_vs_time}, the amplitude is taken to be the amplitude of the last point of the range.
 
 The second way to specify $A(t)$ is to specify the frequencies in the $A(t)$ spectrum using the
 \vn{frequencies} attribute:
@@ -200,7 +207,8 @@ Example:
   mk: ac_kicker, l = 0.3, field_calc = fieldmap, cartesian_map = \{...\},
           frequencies = \{(3.4e6, 0.34, 0.12), ...\}
 \end{example}
-Note: The units of the phases \vn{phi} with the \vn{frequencies} attribute are \vn{radians/2pi}.
+When using a frequency spectrum, the \vn{interpolate} attribute is ignored. Note: The units of the
+phases \vn{phi} with the \vn{frequencies} attribute are \vn{radians/2pi}.
 
 Note: The calculated field will only obey Maxwell's equations in the limit that the time variation
 of the field is ``slow'':
