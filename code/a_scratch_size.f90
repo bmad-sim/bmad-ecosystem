@@ -185,7 +185,7 @@ module precision_constants
   real(dp) :: lmax=1.e38_dp
   logical(lp) :: printdainfo=my_false
   integer   lielib_print(15)
-  DATA lielib_print /0,0,0,0,0,0,0,0,0,0,0,1,0,1,1/
+  DATA lielib_print /0,0,0,1,0,0,0,0,0,0,0,1,0,1,1/
   integer :: SECTOR_NMUL_MAX=22
   INTEGER, target :: SECTOR_NMUL = 11
  
@@ -203,7 +203,7 @@ module precision_constants
   !  lielib_print(1)=1   lieinit prints info
   !  lielib_print(2)=1   expflo warning if no convergence
   !  lielib_print(3)=1   Shows details in flofacg
-  !  lielib_print(4)=1   tunes and damping
+  !  lielib_print(4)=1   prints thin layout information
   !  lielib_print(5)=1  order in orbital normal form
   !  lielib_print(6)=1  symplectic condition
   !  lielib_print(7)=-1  go manual in normal form  (use auto command in fpp)

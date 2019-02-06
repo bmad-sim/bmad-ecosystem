@@ -1032,16 +1032,18 @@ endif ! jumpnot
     real(dp) normb,norm,x0_begin(size_tree),xr(6),normbb
     integer i,j,k,ier,is
     logical, optional  :: spin,stoch,rad
-    logical  spin0,stoch0,rad0
+    logical  spin0,stoch0,rad0,doit
     type(quaternion) qu
 
     spin0=.true.
     stoch0=.true.
     rad0=.true.
- 
+
     if(present(spin)) spin0=spin
     if(present(stoch)) stoch0=stoch
     if(present(rad)) rad0=rad
+    doit=rad0.or.stoch0
+
 !    nrmax=1000
    check_stable_zhe=.true.
        xs%u=.false.
@@ -1077,12 +1079,20 @@ x0_begin=0.0_dp
    !   x(7:12)=x(1:6)  remove4/9/2018
 
 
+if(doit) then
 
      do i=1,6
       x(i)=x(i)-t(1)%fix0(i)
       x0(i)=x0(i)-t(1)%fix0(i)
       x0_begin(i)=x0_begin(i)-t(1)%fix0(i)
      enddo
+else
+     do i=1,6
+      x(i)=x(i)-t(3)%fix0(i)
+      x0(i)=x0(i)-t(3)%fix0(i)
+      x0_begin(i)=x0_begin(i)-t(3)%fix0(i)
+     enddo
+endif
       x(7:12)=x(1:6)
       x0_begin(7:12)= x0_begin(1:6)
 
@@ -1222,13 +1232,21 @@ else
 
 
 
-
-
+if(doit) then
 
  
          do i=1,6
            x(i)=x(i)+t(1)%fix(i)
          enddo
+else
+ 
+         do i=1,6
+           x(i)=x(i)+t(3)%fix(i)
+         enddo
+endif
+
+
+
 
     do i=1,6
       xs%x(i)=x(i)
