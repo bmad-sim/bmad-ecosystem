@@ -24,7 +24,7 @@ module pointer_lattice
   character(255), private :: file_zher,filezhe, name_zhe
   integer, private :: k_zhe,number_zhe_maps
   integer last_npara 
-  integer :: i_layout=0,i_layout_t=1
+  integer :: i_layout=0,i_layout_t=1,pos_layout=1
   integer my_lost_position
   private thin
   real(dp) thin
@@ -51,7 +51,7 @@ module pointer_lattice
   real(dp), allocatable :: a_f(:),a_f0(:),yfit(:),dyfit(:,:)
   integer sizeind1
   logical :: onefunc = .true.,skipzero=.false.,skipcomplex=.true.
- 
+ type(probe), pointer :: xs0g(:) => null()
 
    
   INTERFACE SCRIPT
@@ -200,8 +200,10 @@ endif
     type(fibre),pointer ::p,f1,f2,ft
     ! TRACKING RAYS
     INTEGER IBN,N_name
-    REAL(DP) X(6),DT(3),x_ref(6),sc,NLAM,A1,B1,HPHA,B_TESLA,CUR1,CUR2
-    REAL(DP)VOLT,PHASE
+    REAL(DP) X(6),DT(3),sc,NLAM,A1,B1,HPHA,B_TESLA,CUR1,CUR2
+    REAL(DP)VOLT,PHASE,x_ref(6),x_ref0(6)
+    type(internal_state) state0
+    logical do_state0
     INTEGER HARMONIC_NUMBER
     ! changing magnet
     logical(lp) bend_like
@@ -414,6 +416,9 @@ endif
           enddo
        case('USER1')
          call my_user_routine1
+       case('SPINTWISSCAS')
+           read(mf,*) no,noca   !  order and general canonise
+         call SMALL_CODE_TWISS(my_ering,no,noca)
        case('SETORBITPHASORTIME','ORBITTIME')
           read(mf,*) xsmt
           xsm0t=xsmt
@@ -711,6 +716,13 @@ endif
          CALL print(MY_ESTATE,K)
        case("PRINTSTATEONSCREEN")
          CALL print(MY_ESTATE,6)
+
+       case("KILLPROBE","KILLPROBES")
+        deallocate(xs0g)
+        nullify(xs0g)
+       case("READPROBE","READPROBES")
+        read(mf,*) file_zher
+        call  read_ptc_rays(file_zher)
 
        case('BERZ','GERMANIC','MARTIN')
           CALL change_package(2)
@@ -1352,8 +1364,12 @@ endif
       !    endif
        case('MAPSFORZHE')
           READ(MF,*) i11,I22,number_zhe_maps ,hgap ! position  i1=i2 one turn map,  fact is precision of stochastic kick
-          READ(MF,*) MY_A_NO   ! ORDER OF THE MAP  
+          READ(MF,*) MY_A_NO,do_state0   ! ORDER OF THE MAP  
           READ(MF,*) filename
+          state0=my_estate-radiation0-envelope0
+          if(do_state0) then
+           do_state0=my_estate%radiation.or.my_estate%envelope
+          endif
           if(.not.associated(my_ering%t)) call make_node_layout(my_ering)
           if(i11==i22) i22=i11+my_ering%n
           di12=float(i22-i11)/number_zhe_maps
@@ -1389,10 +1405,15 @@ endif
 
 
 if(.not.my_estate%envelope) hgap=-1
- if(my_a_no>0)            call FIND_ORBIT_x(x_ref,my_estate,1.d-7,fibre1=f1)
+            call FIND_ORBIT_x(x_ref,my_estate,1.d-7,fibre1=f1)
+ if(do_state0)            call FIND_ORBIT_x(x_ref0,state0,1.d-7,fibre1=f1)
 
-              call fill_tree_element_line_zhe(my_estate,f1,f2,iabs(MY_A_NO),x_ref,file_zher,stochprec=hgap) 
+ if(do_state0)   then
+              call fill_tree_element_line_zhe0(state0,my_estate,f1,f2,MY_A_NO,x_ref0,x_ref,file_zher,stochprec=hgap) 
 
+ else
+              call fill_tree_element_line_zhe(my_estate,f1,f2,MY_A_NO,x_ref,file_zher,stochprec=hgap) 
+ endif
 
 write(6,*) " State used "
           call print(my_estate,6)
@@ -3687,6 +3708,36 @@ enddo
 enddo
 call kill(a,b)
 end subroutine create_phi
+
+subroutine read_ptc_rays(filename)
+implicit none
+character(*) filename
+integer mf,nr,i
+type(probe) r0
+real(dp) X(6)
+
+call kanalnummer(mf,filename)
+r0=0
+X=0
+R0=X
+
+read(mf,*) nr,r0%nac
+
+allocate(xs0g(nr))
+
+do i=1,r0%nac
+ read(mf,*) r0%ac(i)%om
+ read(mf,*) r0%ac(i)%x
+enddo
+
+do i=1,nr
+ xs0g(i)=0
+ xs0g(i)=r0
+ read(mf,*) xs0g(i)%x
+enddo
+close(mf)
+
+end subroutine read_ptc_rays
 
 
 
