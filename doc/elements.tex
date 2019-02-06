@@ -4031,8 +4031,10 @@ Example:
 \label{s:taylor}
 \index{taylor|hyperbf}
 
-A \vn{taylor} is a Taylor map (\sref{s:taylor.phys}). This can be used
-in place of the \mad \vn{matrix} element.
+A \vn{taylor} is a Taylor map (\sref{s:taylor.phys}) that maps the input orbital phase space and
+possibly spin coordinates of a particle at the entrance end of the element to the output orbital and
+spin coordinates at the exit end of the element. This can be used in place of the \mad \vn{matrix}
+element.
 
 General \vn{taylor} attributes are:
 \begin{center} 
@@ -4072,59 +4074,95 @@ taylor term.  Notice that the first form (above) uses a comma ``,'' to separate 
 \vn{<coef>} from \vn{<e1>}, while the second form uses a vertical bar ``|'' to separate
 \vn{<coef>} from \vn{<n1>}.
 
-A Taylor term has a coefficient \vn{<coef>} which is a real number,
-integer exponents \vn{<e1>}, \vn{<n1>}, etc., and \vn{<out>} signifies
-which output variable the Taylor term is associated with.  For orbital
-phase space variables \vn{<Out>} is an integer in the range 1 to 6
-with \vn{<out>} = 1 for $x$, etc. For terms associated with spin,
-\vn{<out>} is a two character string with each character being
-one of ``\vn{x}'', ``\vn{y}'', or ``\vn{z}''. 
-
-For orbital phase space variables a term in a Taylor map is of the form
+The orbital $(x, p_x, y, p_y, z, p_z)$ part of the Taylor map, $\Cal M$, maps input orbital coordinates
+$\bfr(\In)$ to the output orbital coordinates $\bfr(\Out)$
 \Begineq
-  r_j(\Out) = C \cdot \Pi_{i = 1}^6 \, \delta r_i^{e_i}
+  \bfr(\Out) = \calbf{M}(\bfr(\In))
+  \label{rmr}
 \Endeq
-where $C$ is the coefficient, $\bfr = (x, p_x, y, p_y, z, p_z)$ and $\delta \bfr = \bfr(\In) -
-\bfr_\Ref$ with $\bfr_\Ref$ begin the reference orbit. A term in a Taylor map can be specified by
-one of two forms as shown above. The first form specifies the six exponents $e_i$ using the integers
-\vn{<e1>} corresponding to $e_1$, \vn{<e2>} corresponding to $e_2$, etc.  For example, a term in a
-Taylor map that was
+Notice that Stern-Gerlach effects are ignored so that the output coordinates are independent of the
+spin. $\calbf{M}$ has six components $\Cal M_j$ one for each output coordinate $r_j(\Out)$
 \Begineq
-  p_y(\Out) = 2.73 \cdot \delta y^2(\In) \, \delta p_z(\In)
+  r_j(\Out) = \Cal{M}_j(\bfr(\In))
+  \label{rmr2}
+\Endeq
+Each $\Cal{M}_j$ is made up of a number of terms
+\Begineq
+  \Cal{M}_j = \sum_{k = 1}^{N_j} M_{jk}
+\Endeq
+and each term $M_{jk}$ is a polynomial in the input orbital coordinates with respect to the reference orbit.
+\Begineq
+  M_{jk}(\bfr(\In)) = C_{jk} \cdot \Pi_{i = 1}^6 \, \delta r_i^{e_{ijk}}
+  \label{mcpd}
+\Endeq
+where $C_{jk}$ is the coefficient for the term, the $e_{ijk}$ are integer exponents, and $\delta
+\bfr = \bfr(\In) - \bfr_\Ref$ with $\bfr_\Ref$ with being the reference orbit.
+
+A term in a Taylor map can be specified by one of three forms as shown above. The first form is
+\begin{example}
+  \{<out>: <coef>, <e1> <e2> <e3> <e4> <e5> <e6>\}
+\end{example}
+\vn{<Out>} is an integer in the range 1 to 6 corresponding to the index $j$ in \Eq{mcpd} (\vn{<out>}
+= 1 for $x$, etc.). \vn{<coef>} corresponds to $C_{jk}$ in \Eq{mcpd}, and \vn{<e1>}, \vn{<e2>},
+\vn{<e3>}, \vn{<e4>}, \vn{<e5>}, and \vn{<e6>} correspond to $e_{ijk}, i = 1 \ldots 6$.
+For example, a term in a Taylor map that was
+\Begineq
+  p_y(\Out) = 2.73 \cdot \delta y^2(\In) \, \delta p_z(\In) + \ldots
 \Endeq
 would be written as
 \begin{example}
   \{4: 2.73, 0 0 2 0 0 1\}
 \end{example}
 
-The second form for specifying a Taylor term uses a set of integers \vn{<n1>},
-\vn{<n2>}, etc. Each integer must be between 1 and 6 inclusive. The value of 
-the $i$\Th exponent $e_i$ is equal to the number of integers that are equal
-to $i$. For example, the term of the above example would be written using
-the second form as
+The second form for specifying a Taylor term uses the syntax:
+\begin{example}
+  \{<out>: <coef> | <n1> <n2> ...\}
+\end{example}
+The set of integers \vn{<n1>}, \vn{<n2>} each must be between 1 and 6 inclusive. The value of the
+$i$\Th exponent $e_{ijk}$ in \Eq{mcpd} is equal to the number of integers that are equal to $i$. For
+example, the term of the above example would be written using the second form as
 \begin{example}
   \{4: 2.73 | 336\}
 \end{example}
-Notice that with the second form, spaces between exponent terms is optional.
+Notice that with the second form, spaces between exponent integers is optional.
 
-The third form is like the second form. For example, the term of the above examples
-would be written using the third form as:
+The third form is like the second form and has the syntax:
+\begin{example}
+  tt<out><n1><n2>...  = <Coef>                      ! Taylor term. Third form.
+\end{example}
+For example, the term of the above examples would be written using the third form as:
 \begin{example}
   tt4336 = 2.73
 \end{example}
 
-The spin (\sref{s:spin.dyn}) part of the transport map (\sref{s:spin.map}) is described using
-quaternions (\sref{s:quat}). The syntax for the spin part uses the first or second forms as
-described above. The four components of a quaternion are labeled (\vn{S1}, \vn{Sx}, \vn{Sy},
-\vn{Sz}).  An individual Taylor term is of the form:
+The spin (\sref{s:spin.dyn}) part of the transport map $\calbf{Q}$ (\sref{s:spin.map}) gives the
+spin rotation quaternion $\bfq$ (\sref{s:quat}) as a function of input orbital coordinates (the form of the
+T-BMT equation assures that $\calbf{Q}$ cannot depend upon the spin coordinates):
 \Begineq
-  S_j = C \cdot \Pi_{i = 1}^6 \, \delta r_i^{e_i}(\In)
+  \bfq = \calbf{Q}(\bfr(\In))
 \Endeq
-For example
+$\bfq$ has four components and in analogy to \Eq{rmr2} one writes
+\Begineq
+  q_j = \Cal{Q}_j(\bfr(\In))
+  \label{qqr}
+\Endeq
+Each $\Cal{Q}_j$ is made up of a number of terms
+\Begineq
+  \Cal{Q}_j = \sum_{k = 1}^{N_j} Q_{jk}
+\Endeq
+and each term $Q_{jk}$ is a polynomial in the input orbital coordinates with respect to the reference orbit.
+\Begineq
+  Q_{jk}(\bfr(\In)) = C_{jk} \cdot \Pi_{i = 1}^6 \, \delta r_i^{e_{ijk}}
+  \label{qcpd}
+\Endeq
+
+Rather than using an integer index, the four components of a quaternion are labeled (\vn{S1},
+\vn{Sx}, \vn{Sy}, \vn{Sz}). The syntax for the spin part uses the first or second forms as
+described above. For example
 \begin{example}
   \{Sx: 0.43 | 13 \}
 \end{example}
-is equivalent to
+is equivalent to the term
 \Begineq
   S_x = 0.43 \cdot \delta x(\In) \, \delta y(\In)
 \Endeq

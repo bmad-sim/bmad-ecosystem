@@ -11,7 +11,7 @@ developed by Martin Berz\cite{b:berz}.
 \begin{description}
 \item[FPP] \Newline
 The ``Fully Polymorphic Package'' (\vn{FPP}) library implements Differential Algebra (DA)
-for the manipulation of Taylor maps. \vn{FPP} is purly mathematical in nature. It has no
+for the manipulation of Taylor maps. \vn{FPP} is purely mathematical in nature. It has no
 knowledge of accelerators, magnetic fields, particle tracking etc.
 
 \item[PTC] \Newline
@@ -67,7 +67,7 @@ PTC to a different order reinitializes PTC's internal memory so one must be care
 wants to change the order in mid program.
 
 %--------------------------------------------------------------------------
-\section{PTC Structures Compaired to Bmad's}
+\section{PTC Structures Compared to Bmad's}
 \label{s:ptc.structures}
 
 \bmad uses a \vn{lat_struct} structure to hold the information on a machine and a
@@ -152,7 +152,7 @@ of the \vn{layout}. The beginning \vn{fibre} will correspond to
 \vn{fibre}s and \vn{branch%ele} elements. The exception is where a
 ``hard edge'' model is used for tracking. In this case, there will be
 three \vn{fibre}s for the \bmad element: Two drift \vn{fibre}s with a
-\vn{fibre} of the appropriate type inbetween.  In this case,
+\vn{fibre} of the appropriate type in between.  In this case,
 \vn{ele%ptc_fibre} will point to the last (drift) \vn{fibre}.
   \end{enumerate}
 
@@ -225,7 +225,7 @@ drift like are:
   rcollimator 
 \end{example}
 
-When tracking, there is a tradeoff between step size and integrator order. Higher order
+When tracking, there is a trade-off between step size and integrator order. Higher order
 means fewer steps are needed to get the same accuracy. But one higher order step is
 computationally more intensive then one lower order step so what is the optimum order and
 number of steps is dependent upon various factors like magnet strength and how fast the
