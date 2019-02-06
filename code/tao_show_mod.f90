@@ -1138,7 +1138,7 @@ case ('derivative')
   if (word2 == '') word2 = '*'
 
   call tao_find_data (err, word1, d_array = d_array);  if (err) return
-  call tao_find_var (err, word2(:ix_word), v_array = v_array);  if (err) return
+  call tao_find_var (err, word2, v_array = v_array);  if (err) return
 
   call tao_dmodel_dvar_calc(do_calc, err);  if (err) return
 
