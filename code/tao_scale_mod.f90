@@ -109,7 +109,7 @@ character(16) :: r_name = 'tao_scale_plot'
 integer i, p1, p2
 
 logical, optional :: skip_lat_layout
-logical do_gang
+logical do_gang, found_one
 
 ! Use local vars in case the actual args are something like graph%y%min, etc.
 
@@ -125,10 +125,14 @@ if (.not. allocated (plot%graph)) return
 y_range = [1d30, -1d30]
 y2_range = [1d30, -1d30]
 
+found_one = .false.
 do i = 1, size(plot%graph)
   if (logic_option(.false., skip_lat_layout) .and. plot%graph(i)%type == 'lat_layout') cycle
+  found_one = .true.
   call tao_scale_graph (plot%graph(i), y_min, y_max, axis, y_range, y2_range)
 enddo
+
+if (.not. found_one) return
 
 ! if auto scale was done...
 
