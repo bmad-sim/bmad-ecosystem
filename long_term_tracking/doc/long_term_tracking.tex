@@ -67,7 +67,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ February 5, 2019}
+\date{David Sagan \\ February 6, 2019}
 \begin{document}
 \maketitle
 
@@ -105,7 +105,7 @@ default is ``\vn{long_term_tracking.init}''.
 
 Example input files are in the directory:
 \begin{code}
-  $sACC_ROOT_DIR/bsim/long_turn_tracking/example
+  $ACC_ROOT_DIR/bsim/long_turn_tracking/example
 \end{code}
 
 %------------------------------------------------------------------
@@ -181,18 +181,35 @@ In all cases, tracking will start at the lattice element set by \vn{ele_start_na
 \label{s:track.modes}
 
 Tracking can be done on an element-by-element basis or using a one-turn map that includes radiation
-damping and excitation. [The map is a two step process: One step is to apply a map that has the
-1-turn transport including radiation damping and the other step to to apply, using a random number
-generator, a transformation that simulates the radiation excitation.] 
+damping and excitation and includes both orbital and spin transport. The map is actually three maps
+rolled into one. One map is a map with out radiation, another map simulates radiation damping, and
+the third map, with the help of a random number generator, is used to include radiation excitation.
+radiation damping and/or excitation will or will not be included in tracking depending upon the settings
+of (\sref{s:input}):
+\begin{code}
+  bmad_com%radiation_damping_on
+  bmad_com%radiation_excitation_on
+\end{code}
 
 What tracking mode is used is determined by the \vn{use_1_turn_map} logical (\sref{s:input}).  If a
-map is used, the order of the map is given by \vn{map_order}. Larger map order will mean better
+map is used, the order of the map is given by \vn{map_order} parameter. A larger map order will mean better
 accuracy at the expense of more computation time. Tracking using a map will be extremely quick
 compared to element-by-element tracking. However, map tracking can be inaccurate if the map order
 is too small or the particle amplitude is too large.
 
-Long term particle tracking starts from the lattice element specified by \vn{ele_start_name} and proceeds
-for \vn{n_turns} number of turns.
+Maps can be saved to a file for later use. Saved maps always include the radiation excitation
+component map independent of the setting of \vn{bmad_com%radiation_excitation_on}. Thus, when a
+saved map is used for tracking, whether radiation excitation is included is determined by the
+setting of \vn{bmad_com%radiation_excitation_on} at the time the map file is read in independent of
+the setting at the time the map file is created. Radiation damping is handled differently. The
+radiation damping component map depends on the setting of \vn{bmad_com%radiation_damping_on}. Thus,
+when a saved map is used for tracking, radiation damping is included only if
+\vn{bmad_com%radiation_damping_on} was set True both at the time the map file was created and when
+the map file is read back in. The reason why radiation damping is handled differently from radiation
+excitation is due to the fact that the spin tracking part of the map is always created with respect
+to the closed orbit and the closed orbit will be different if radiation damping is on versus
+off. [The closed orbit is always calculated ignoring radiation fluctuations though.] If you don't
+care about spin tracking, it generally makes sense to always create maps that have damping.
 
 %------------------------------------------------------------------
 \Section{Fortran Namelist}
@@ -282,7 +299,7 @@ This sets the initial beam distribution. See Section~\sref{s:init.pos}.
 The \vn{bmad_com} structure contains various parameters that affect tracking. For example, whether
 radiation damping and fluctuations are included in tracking. A full list of \vn{bmad_com} parameters
 is detailed in the Bmad reference manual. Note: \vn{bmad_com} parameters can be set in the Bmad
-lattice file. \vn{Bmad_com} parameter set in the master input file will take precedence over
+lattice file as well. \vn{Bmad_com} parameter set in the master input file will take precedence over
 parameters set in the lattice file.
 %
 \item[common_master_input_file] \Newline
@@ -308,8 +325,8 @@ downstream end of the element so the first element tracked through is the elemen
 one.
 %
 \item[input_map_file] \Newline
-If not blank (the default), the program will read in the 1-turn map from \vn{input_map_file}. Also
-see \vn{output_map_file}.
+If not blank, the program will read in the 1-turn map from \vn{input_map_file}. Also
+see \vn{output_map_file}. The default value of \vn{input_map_file} is blank.
 %
 \item[lat_file] \Newline
 Name of the Bmad lattice file to use.
@@ -326,8 +343,9 @@ Used with \vn{simulation_mode} set to \vn{"BUNCH"}. If \vn{output_initial_positi
 particle position and spin. Default is \vn{False}. See Section~\sref{s:out.dat}.
 %
 \item[output_map_file] \Newline
-If not blank (the default), the program will save the 1-turn map in \vn{output_map_file}. Also
-see \vn{input_map_file}.
+If not blank , the program will save the 1-turn map in \vn{output_map_file}. The saved map will be affected
+by the setting of \vn{bmad_com%radiation_damping_on}. See \sref{s:track.modes} for more details.
+The default value of \vn{output_map_file} is blank. Also see \vn{input_map_file}.
 %
 \item[n_turns] \Newline
 Number of turns to track. See Section~\sref{s:track.modes}.
