@@ -1,4 +1,4 @@
-\chapter{Tao Line Mode Commands}
+\chapter{Tao Commands}
 \label{c:command}
 
 \tao has two \vn{modes} for entering commands. In \vn{Line Mode}, described in this
@@ -1825,19 +1825,36 @@ Examples:
 
 Syntax:
 \begin{example}
-  show derivative <data_name(s)> <var_name(s)>
+  show derivative \{-derivative_recalc\} \{<data_name(s)>\} \{<var_name(s)>\}
 \end{example}
 
-
 \index{lm}\index{svd}
-Shows the derivative dModel_Value/dVariable. This derivative is used by the optimizers
+Shows the derivative dData_Model_Value/dVariable. This derivative is used by the optimizers
 \vn{lm} and \vn{svd}. Note: Wild card characters can be used to show multiple derivatives.
+Default values for \vn{<data_name(s)>} and \vn{<var_name(s)>} is "*" (all data or variables).
+
+The \vn{-derivative_recalc} forces a recalculation of the derivative matrix. This is exactly the
+same as using \vn{derivative} command (\sref{s:deriv}) before the \vn{show derivative} command.
+
+Note: Derivatives are only calculated for data and variables that are used in an optimization.  That
+is, derivatives are only calculated for data and variables whose \vn{useit_opt} component (see
+\sref{s:data.anatomy} and \sref{c:var}) is True.
+
+The output of this command is a number of lines that look like:
+\begin{example}
+  Data                Variable               Derivative   ix_dat  ix_var
+  k.22a[98]           v_steer[92]           -7.63151E+01    1584     214
+  k.22a[98]           v_steer[93]           -1.81810E+00    1584     215
+\end{example}
+The first and second columns are the datum and variable names, the third column is the derivative,
+and the last two columns are the indexes of where the derivative is stored in \tao's internal
+derivative matrix. These last two columns are for debugging purposes and can be ignored.
 
 Example:
 \begin{example}
-  show deriv orbit.x[23] k1[34] ! Show dModel_Value/dVariable Derivative.
-  show deriv * *                ! Show all derivatives. Warning! The output 
-                                ! may be large.
+  show deriv orbit.x[2] k1[3] ! Show dModel_Value/dVariable Derivative.
+  show deriv                  ! Show all derivatives. Warning! The output may be large.
+
 \end{example}
 
 %% show dynamic_aperture --------------------------------------------------------------
