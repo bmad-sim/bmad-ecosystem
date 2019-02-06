@@ -235,7 +235,7 @@ character(24) :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
 character(40) ele_name, sub_name, ele1_name, ele2_name, aname
 character(40) replacement_for_blank
 character(60) nam, attrib_list(20), attrib
-character(100) :: word1, fmt, fmt2, fmt3, switch, why_invalid
+character(100) :: word1, word2, fmt, fmt2, fmt3, switch, why_invalid
 character(200) header, str, attrib0, file_name, name
 character(200), allocatable :: alloc_lines(:)
 
@@ -1110,10 +1110,10 @@ case ('derivative')
 
   do_calc = .false.
   word1 = ''
-  what2 = ''
+  word2 = ''
 
   do
-    call tao_next_switch (what2, ['-derivative_recalc'], .false., switch, err, ix_s2)
+    call tao_next_switch (what2, ['-derivative_recalc'], .true., switch, err, ix_s2)
 
     if (err) return
     if (switch == '') exit
@@ -1125,8 +1125,8 @@ case ('derivative')
     case default
       if (word1 == '') then
         word1 = switch
-      elseif (what2 == '') then
-        what2 = switch
+      elseif (word2 == '') then
+        word2 = switch
       else
         call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // attrib0)
         return
@@ -1135,14 +1135,10 @@ case ('derivative')
   enddo
 
   if (word1 == '') word1 = '*'
-  if (what2 == '') what2 = '*'
+  if (word2 == '') word2 = '*'
 
-  call tao_find_data (err, word1, d_array = d_array)
-  if (err) return
-
-  call string_trim(what2(ix_word+1:), what2, ix_word)
-  call tao_find_var(err, what2(:ix_word), v_array = v_array) 
-  if (err) return
+  call tao_find_data (err, word1, d_array = d_array);  if (err) return
+  call tao_find_var (err, word2(:ix_word), v_array = v_array);  if (err) return
 
   call tao_dmodel_dvar_calc(do_calc, err);  if (err) return
 
