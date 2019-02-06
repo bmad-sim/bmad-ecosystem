@@ -1157,7 +1157,7 @@ case ('derivative')
   call re_allocate (lines, nl+i1*i2+10, .false.)
 
   found = .false.
-  nl=nl+1; lines(nl) = 'Data                Variable               Derivative   ix_dat  ix_var'
+  nl=nl+1; lines(nl) = 'Data                          Variable                         Derivative   ix_dat  ix_var'
   do id = 1, size(d_array)
     do iv = 1, size(v_array)
       d_ptr => d_array(id)%d
@@ -1166,7 +1166,7 @@ case ('derivative')
       jd = d_ptr%ix_dmodel
       jv = v_ptr%ix_dvar
       if (jd > 0 .and. jv > 0) then
-        nl=nl+1; write(lines(nl), '(2a20, es14.5, 2i6)') tao_datum_name(d_ptr), &
+        nl=nl+1; write(lines(nl), '(2a30, es14.5, 2i6)') tao_datum_name(d_ptr), &
                                   tao_var1_name(v_ptr), u%dModel_dVar(jd, jv), jd, jv
         found = .true.
       endif
