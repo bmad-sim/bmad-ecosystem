@@ -131,7 +131,7 @@ if ((use_1_turn_map .or. simulation_mode == 'CHECK') .and. simulation_mode /= 'S
     if (.not. rfcavity_on) print *, 'RF will not be turned OFF since 1-turn map is in use!'
     call run_timer ('START')
     call lat_to_ptc_layout (lat)
-    call ptc_setup_map_with_radiation (map_with_rad, ele_start, ele_start, map_order = map_order)
+    call ptc_setup_map_with_radiation (map_with_rad, ele_start, ele_start, map_order, bmad_com%radiation_damping_on)
     call run_timer ('READ', time)
     print '(a, f8.2)', '1-turn map setup time (min)', time/60
   else
