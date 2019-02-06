@@ -257,7 +257,7 @@ integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min
 integer, allocatable :: ix_c(:)
 
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format
-logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited, show_labels
+logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_attributes, print_ran_state, err_flag
 logical print_global, print_optimization, print_bmad_com, print_csr_param, print_ptc, print_position
@@ -523,7 +523,6 @@ case ('branch')
   sub_name = ''
 
   do 
-
     call tao_next_switch (what2, ['-universe'], .false., switch, err, ix_s2)
 
     if (err) return
@@ -1109,10 +1108,34 @@ case ('data')
 
 case ('derivative')
 
-  if (word1 == '') then
-    word1 = '*'
-    what2 = '*'
-  endif
+  do_calc = .false.
+  word1 = ''
+  what2 = ''
+
+  do
+    call tao_next_switch (what2, ['-derivative_recalc'], .false., switch, err, ix_s2)
+
+    if (err) return
+    if (switch == '') exit
+
+    select case (switch)
+    case ('-derivative_recalc')
+      do_calc = .true.  
+
+    case default
+      if (word1 == '') then
+        word1 = switch
+      elseif (what2 == '') then
+        what2 = switch
+      else
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // attrib0)
+        return
+      endif
+    end select
+  enddo
+
+  if (word1 == '') word1 = '*'
+  if (what2 == '') what2 = '*'
 
   call tao_find_data (err, word1, d_array = d_array)
   if (err) return
@@ -1120,6 +1143,8 @@ case ('derivative')
   call string_trim(what2(ix_word+1:), what2, ix_word)
   call tao_find_var(err, what2(:ix_word), v_array = v_array) 
   if (err) return
+
+  call tao_dmodel_dvar_calc(do_calc, err);  if (err) return
 
   i1 = 0
   do id = 1, size(d_array)
@@ -1136,6 +1161,7 @@ case ('derivative')
   call re_allocate (lines, nl+i1*i2+10, .false.)
 
   found = .false.
+  nl=nl+1; lines(nl) = 'Data                Variable               Derivative   ix_dat  ix_var'
   do id = 1, size(d_array)
     do iv = 1, size(v_array)
       d_ptr => d_array(id)%d
@@ -1144,7 +1170,7 @@ case ('derivative')
       jd = d_ptr%ix_dmodel
       jv = v_ptr%ix_dvar
       if (jd > 0 .and. jv > 0) then
-        nl=nl+1; write(lines(nl), '(2a20, es14.5, 2i5)') tao_datum_name(d_ptr), &
+        nl=nl+1; write(lines(nl), '(2a20, es14.5, 2i6)') tao_datum_name(d_ptr), &
                                   tao_var1_name(v_ptr), u%dModel_dVar(jd, jv), jd, jv
         found = .true.
       endif
@@ -1152,7 +1178,8 @@ case ('derivative')
   enddo
 
   if (.not. found) then
-    nl=nl+1; write(lines(nl), '(a)') 'No Derivative(s) Found'
+    nl=nl+1; lines(nl) = 'No Derivative(s) Found. Note: Derivatives are only calculated by Tao for'
+    nl=nl+1; lines(nl) = 'Data and variables that are used in an optimization.'
   endif
   
   result_id = show_what
