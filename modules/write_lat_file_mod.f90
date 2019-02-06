@@ -932,7 +932,7 @@ do ib = 0, ubound(lat%branch, 1)
     if (has_attribute (ele, 'PHYSICAL_SOURCE') .and. ele%component_name /= '') line = trim(line) // ', physical_source = ' // ele%component_name 
 
 
-    call write_lat_line (line, iu, .false.)  
+    call write_lat_line (line, iu, .false.)
 
     ! Encode taylor map. Hybrid elements do not have default terms.
 

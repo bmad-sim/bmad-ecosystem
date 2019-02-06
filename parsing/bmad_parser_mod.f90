@@ -1704,6 +1704,10 @@ case ('HIGHER_ORDER_FRINGE_TYPE')
   call get_switch (attrib_word, higher_order_fringe_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(higher_order_fringe_type$) = ix
 
+case ('INTERPOLATION')
+  call get_switch (attrib_word, interpolation_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  ele%value(interpolation$) = ix
+
 case ('MAT6_CALC_METHOD')
   call get_switch (attrib_word, mat6_calc_method_name(1:), switch, err_flag, ele, delim, delim_found); if (err_flag) return
   if (.not. valid_mat6_calc_method (ele, not_set$, switch)) then

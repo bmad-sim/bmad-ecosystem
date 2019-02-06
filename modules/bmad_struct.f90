@@ -1355,7 +1355,7 @@ integer, parameter :: g$ = 6, bragg_angle_in$ = 6, symmetry$ = 6, field_scale_fa
 integer, parameter :: g_err$ = 7, n_pole$ = 7, bbi_const$ = 7, osc_amplitude$ = 7
 integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, sad_flag$ = 7
 integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$ = 7
-integer, parameter :: rho$ = 8, delta_e_ref$ = 8, diffraction_limited$ = 8
+integer, parameter :: rho$ = 8, delta_e_ref$ = 8, diffraction_limited$ = 8, interpolation$ = 8
 integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8, voltage$ = 8 
 integer, parameter :: eps_step_scale$ = 9, voltage_err$ = 9
 integer, parameter :: fringe_type$ = 10
