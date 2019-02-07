@@ -646,7 +646,8 @@ do
       call track_beam (lat, beam, branch%ele(j-1), ele, too_many_lost, centroid = tao_branch%orbit)
     endif
 
-    if (uni_ele(j)%save_beam .or. ele%key == fork$ .or. ele%key == photon_fork$) uni_ele(j)%beam = beam
+    if (uni_ele(j)%save_beam .or. j == ie1 .or. j == ie2 .or. &
+                      ele%key == fork$ .or. ele%key == photon_fork$) uni_ele(j)%beam = beam
   endif
  
   ! Lost particles

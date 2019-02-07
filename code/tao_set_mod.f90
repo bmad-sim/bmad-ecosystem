@@ -690,7 +690,9 @@ type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable, save, target :: eles(:)
 type (ele_struct), pointer :: ele
 type (beam_struct), pointer :: beam
-integer ix, iu, n_loc
+
+integer ix, iu, n_loc, ie
+
 logical, allocatable :: this_u(:)
 logical err, logic
 
@@ -748,6 +750,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
       u%uni_branch(ix)%ele(:)%save_beam = .false.
     enddo
 
+    ! Note: Beam will automatically be saved at fork elements and at the ends of the beam tracking.
     do ix = 1, size(eles)
       ele => eles(ix)%ele
       u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam = .true.

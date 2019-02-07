@@ -313,16 +313,11 @@ u%beam%all_file = beam_all_file
 call init_coord(u%design%tao_branch(0)%orbit(0), beam_init%center, u%design%lat%ele(0), downstream_end$)
 
 ! Find where to save the beam at.
-! Always save at branch points.
+! Note: Beam will automatically be saved at fork elements and at the ends of the beam tracking.
 
 do i = 0, ubound(u%model%lat%branch, 1)
   branch => u%design%lat%branch(i)
   u%uni_branch(i)%ele%save_beam = .false.
-  u%uni_branch(i)%ele(0)%save_beam = .true.
-  u%uni_branch(i)%ele(branch%n_ele_track)%save_beam = .true.
-  do j = 1, ubound(branch%ele, 1)
-    if (branch%ele(j)%key == fork$) u%uni_branch(i)%ele(j)%save_beam = .true.
-  enddo
 enddo
 
 if (beam_saved_at /= '') then
