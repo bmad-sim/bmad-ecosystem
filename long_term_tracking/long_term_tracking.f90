@@ -15,7 +15,7 @@ type (coord_struct), allocatable :: closed_orb(:), orb(:)
 type (coord_struct), pointer :: p
 type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable :: eles(:)
-type (tree_element_zhe) map_with_rad(3)
+type (ptc_map_with_rad_struct) map_with_rad
 type (normal_modes_struct) modes
 type (rad_int_all_ele_struct) rad_int_ele
 
@@ -127,6 +127,7 @@ call twiss_and_track (lat, closed_orb, ix_branch = ix_branch)
 ! Init 1-turn map.
 
 if ((use_1_turn_map .or. simulation_mode == 'CHECK') .and. simulation_mode /= 'STAT') then
+  use_1_turn_map = .true.
   if (input_map_file == '') then
     if (.not. rfcavity_on) print *, 'RF will not be turned OFF since 1-turn map is in use!'
     call run_timer ('START')
@@ -136,9 +137,13 @@ if ((use_1_turn_map .or. simulation_mode == 'CHECK') .and. simulation_mode /= 'S
     print '(a, f8.2)', '1-turn map setup time (min)', time/60
   else
     call ptc_read_map_with_radiation(input_map_file, map_with_rad)
-    print '(2a)', '1-turn map file read in from file: ', trim(input_map_file)
+    print '(2a)',    '1-turn map file read in from file: ', trim(input_map_file)
+    print '(2a)',    'Lattice file used for map:         ', trim(map_with_rad%lattice_file)
+    print '(a, l1)', 'Map saved with radiation damping:  ', map_with_rad%radiation_damping_on
   endif
+
 else
+  use_1_turn_map = .false.
   if (.not. rfcavity_on) call set_on_off (rfcavity$, lat, off$)
 endif
 
@@ -152,11 +157,12 @@ print '(a, a)',  'simulation_mode: ', simulation_mode
 print '(a, i8)', 'n_particle = ', beam_init%n_particle
 print '(a, i8)', 'n_bunch    = ', beam_init%n_bunch
 print '(a, i8)', 'n_turns    = ', n_turns
-print *, 'bmad_com%max_aperture_limit: ', bmad_com%max_aperture_limit
-print *, 'bmad_com%aperture_limit_on:  ', bmad_com%aperture_limit_on
 print *, 'Radiation Damping:           ', bmad_com%radiation_damping_on
 print *, 'Stochastic Fluctuations:     ', bmad_com%radiation_fluctuations_on
 print *, 'Spin_tracking_on:            ', bmad_com%spin_tracking_on
+if (use_1_turn_map) then
+  print '(a, i0)', 'Map order:                         ', map_with_rad%map_order
+endif
 print *, '--------------------------------------'
 
 call run_timer ('START')
@@ -202,8 +208,9 @@ case ('SINGLE')
   iu_out = lunget()
   if (tracking_data_file == '') tracking_data_file = 'single.dat'
   open(iu_out, file = tracking_data_file, recl = 200)
-  write (iu_out, '(a)') ' #                                             * 10^3                                  |'           
-  write (iu_out, '(a)') ' #Turn           x           px            y           py            z           pz    |   spin_x    spin_y    spin_z'
+  call write_this_header(iu_out, beam_init, map_with_rad, n_turns, simulation_mode)
+  write (iu_out, '(a)') '#      |                                       * 10^3                                  |'           
+  write (iu_out, '(a)') '# Turn |         x           px            y           py            z           pz    |   spin_x    spin_y    spin_z'
   write (iu_out, fmt) 0, reals_to_table_row(1d3*orb(ix_ele_start)%vec, 13, 7, 1), orb(ix_ele_start)%spin
 
   do i_turn = 1, n_turns
@@ -254,7 +261,7 @@ case ('BUNCH')
 
   ! 
 
-  call write_tracking_data (0)
+  call write_tracking_data (0, map_with_rad)
   time0 = time
 
   do i_turn = 1, n_turns
@@ -273,7 +280,7 @@ case ('BUNCH')
       time0 = time
     endif
 
-    call write_tracking_data (i_turn)
+    call write_tracking_data (i_turn, map_with_rad)
   end do
 
   close(iu_snap)
@@ -338,8 +345,9 @@ print '(a, f8.2)', 'Tracking time (min)', time/60
 !------------------------------------------------------------------------------------------
 contains
 
-subroutine write_tracking_data (nn)
+subroutine write_tracking_data (nn, map_with_rad)
 
+type (ptc_map_with_rad_struct) map_with_rad
 type (coord_struct), pointer :: p, p0
 integer nn, ix, ip, j
 character(200) file_name
@@ -367,6 +375,7 @@ if (iu_snap == 0) then
 
   iu_snap = lunget()
   open (iu_snap, file = file_name, recl = 300)
+  call write_this_header(iu_snap, beam_init, map_with_rad, n_turns, simulation_mode)
 
   if (output_initial_position) then
     write (iu_snap, '(2a)') '#                  |                                  Start  * 10^3                              |                Start            ', &
@@ -396,5 +405,36 @@ if (.not. one_tracking_data_file) then
 endif
 
 end subroutine write_tracking_data
+
+!------------------------------------------------------------------------------------------
+! contains
+
+subroutine write_this_header(iu, beam_init, map_with_rad, n_turns, simulation_mode)
+
+type (beam_init_struct) beam_init
+type (ptc_map_with_rad_struct) map_with_rad
+
+integer iu, n_turns
+
+character(20) simulation_mode
+
+!
+
+write (iu,  '(a, a)')    '# lattice = ', trim(lat_file)
+write (iu,  '(a, a)')    '# simulation_mode = ', simulation_mode
+write (iu,  '(a, i8)')   '# n_particle             = ', beam_init%n_particle
+write (iu,  '(a, i8)')   '# n_bunch                = ', beam_init%n_bunch
+write (iu,  '(a, i8)')   '# n_turns                = ', n_turns
+write (iu,  '(a, l1)')   '# Radiation_Damping      = ', bmad_com%radiation_damping_on
+write (iu,  '(a, l1)')   '# Radiation_Fluctuations = ', bmad_com%radiation_fluctuations_on
+write (iu,  '(a, l1)')   '# Spin_tracking_on       = ', bmad_com%spin_tracking_on
+if (use_1_turn_map) then
+  write (iu,  '(a, i0)') '# Map order              = ', map_with_rad%map_order
+else
+  write (iu, '(a)') '#'
+endif
+write (iu, '(a)') '#'
+
+end subroutine write_this_header
 
 end program
