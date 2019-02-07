@@ -784,7 +784,7 @@ end type
 
 type tao_element_struct
   type (beam_struct) beam         ! Beam distribution at element.
-  logical save_beam               ! Save beam here?
+  logical save_beam               ! Save beam here? Beam also saved at fork elements and at track ends.
 end type
 
 ! Information for a particular lattice branch of a particular universe.

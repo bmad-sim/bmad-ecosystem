@@ -249,12 +249,12 @@ character(16) :: show_what, show_names(39) = [ &
    'matrix          ', 'field           ', 'wake_elements   ', 'history         ', 'symbolic_numbers', &
    'merit           ', 'track           ', 'spin            ', 'c_buffer        ']
 
-integer :: data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width
+integer data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
-integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, n_print, show_index, ju, ios1, ios2, i_uni, ix_remove
+integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, n_print, show_index, ju, ios1, ios2, i_uni
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print_lords, ix_word
-integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min
-integer, allocatable :: ix_c(:)
+integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_remove, n_remove_found
+integer, allocatable :: ix_c(:), ix_remove(:)
 
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc
@@ -1887,7 +1887,8 @@ case ('lattice')
   undef_str = '---'
   print_lords = maybe$
   what_to_print = 'standard'
-  ix_remove = -1
+  allocate (ix_remove(size(column)))
+  n_remove = 0
   lat_type = model$
   n_attrib = 0
   attrib0 = ''
@@ -1900,7 +1901,7 @@ case ('lattice')
   do
     call tao_next_switch (what2, [character(28):: &
         '-branch', '-blank_replacement', '-lords', '-middle', '-tracking_elements', '-0undef', &
-        '-no_label_lines', '-no_tail_lines', '-custom', '-s', '-radiation_integrals', '-remove_line_if_zeo', &
+        '-no_label_lines', '-no_tail_lines', '-custom', '-s', '-radiation_integrals', '-remove_line_if_zero', &
         '-base', '-design', '-floor_coords', '-orbit', '-attribute', '-all', '-no_slaves', '-energy', &
         '-spin', '-undef0', '-no_super_slaves', '-sum_radiation_integrals'], &
             .true., switch, err, ix_s2)
@@ -2003,8 +2004,9 @@ case ('lattice')
       what_to_print = 'sum_rad_int'
 
     case ('-remove_line_if_zero')
-      read (what2(1:ix_s2), *, iostat = ios) ix_remove
-      if (ios /= 0 .or. ix_remove < 1 .or. ix_remove > size(column)) then
+      n_remove = n_remove + 1
+      read (what2(1:ix_s2), *, iostat = ios) ix_remove(n_remove)
+      if (ios /= 0 .or. ix_remove(n_remove) < 1 .or. ix_remove(n_remove) > size(column)) then
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-remove_line_if_zero" argument'
         return
       endif
@@ -2256,12 +2258,12 @@ case ('lattice')
 
   ! remove_line_if_zero bookkeeping. Ignore space lines (name = 'x')
 
-  if (ix_remove > 0) then
+  do ix = 1, n_remove
     j = 0
     do i = 1, size(column)
       if (column(i)%name == 'x') cycle
       j = j + 1
-      if (j == ix_remove) then
+      if (j == ix_remove(ix)) then
         column(i)%remove_line_if_zero = .true.
         exit
       endif
@@ -2270,7 +2272,7 @@ case ('lattice')
         return
       endif
     enddo
-  endif
+  enddo
 
   ! Need to compute radiation integrals?
 
@@ -2522,8 +2524,11 @@ case ('lattice')
     endif
   endif
 
+  !--------------------------------------------------------------------------------------------
+  ! Loop over all rows
+
   ie0 = branch%n_ele_max
-  line_loop: do ie = 0, branch%n_ele_max
+  row_loop: do ie = 0, branch%n_ele_max
     if (.not. picked_ele(ie)) cycle
 
     if (size(lines) < nl+100) call re_allocate (lines, 2*nl, .false.)
@@ -2535,11 +2540,14 @@ case ('lattice')
     endif
     ie0 = ie
 
-    !
+    !---------------------------------------------------------------------------------------------
+    ! Loop over all columns
 
     line = ''
     nc = 1
     ele => branch%ele(ie)
+    n_remove_found = 0
+
     do i = 1, size(column)
         
       if (i > 1) then
@@ -2627,7 +2635,7 @@ case ('lattice')
         call tao_evaluate_expression (name, 1, .false., value, info, err, .false., &
                                                   dflt_component = lat_type_name(lat_type))
         if (err .or. .not. allocated(value) .or. size(value) /= 1) then
-          if (column(i)%remove_line_if_zero) cycle line_loop
+          if (column(i)%remove_line_if_zero) n_remove_found = n_remove_found + 1
           if (undef_uses_column_format .and. index(column(i)%format, 'A') == 0) then
             if (index(column(i)%format, 'I') /= 0) then
               write (line(nc:), column(i)%format, iostat = ios) 0
@@ -2653,11 +2661,11 @@ case ('lattice')
 
         elseif (index(column(i)%format, 'I') /= 0) then
           write (line(nc:), column(i)%format, iostat = ios) nint(value(1))
-          if (column(i)%remove_line_if_zero .and. nint(value(1)) == 0) cycle line_loop
+          if (column(i)%remove_line_if_zero .and. nint(value(1)) == 0) n_remove_found = n_remove_found + 1
 
         else
           call write_real (line(nc:), column(i)%format, value(1) * column(i)%scale_factor)
-          if (column(i)%remove_line_if_zero .and. value(1) == 0) cycle line_loop
+          if (column(i)%remove_line_if_zero .and. value(1) == 0) n_remove_found = n_remove_found + 1
         endif
       endif
 
@@ -2670,9 +2678,12 @@ case ('lattice')
 
     enddo
 
+    if (n_remove > 0 .and. n_remove_found == n_remove) cycle
     nl=nl+1; lines(nl) = line
 
-  enddo line_loop
+  enddo row_loop
+
+  !-----------------------------------------------------------------------------------------------
 
   if (print_tail_lines) then
     nl=nl+1; lines(nl) = line2
