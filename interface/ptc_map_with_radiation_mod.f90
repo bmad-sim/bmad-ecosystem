@@ -5,6 +5,16 @@ module ptc_map_with_radiation_mod
 use ptc_layout_mod
 use duan_zhe_map, only: tree_element_zhe => tree_element, probe_zhe => probe, track_tree_probe_complex_zhe, zhe_ini
 
+type ptc_map_with_rad_struct
+  type (tree_element_zhe) sub_map(3)
+  character(200) lattice_file     ! Name of the lattice file
+  integer map_order
+  logical radiation_damping_on
+  integer ix_branch
+  integer ix_ele_start            ! Start point for making the map
+  integer ix_ele_end              ! End point for making the map
+end type
+
 contains
 
 !-------------------------------------------------------------------------------------------
@@ -40,7 +50,7 @@ contains
 !                          To the extent that the damping is small the shift in the spin map will be small.
 !
 ! Output:
-!   map_with_rad(3) -- tree_element_zhe: Transport map.
+!   map_with_rad    -- ptc_map_with_rad_struct: Transport map.
 !   err_flag        -- logical, optional: Set True if there is an error such as not associated PTC layout.
 !-
 
@@ -50,7 +60,7 @@ use pointer_lattice
 
 implicit none
 
-type (tree_element_zhe) map_with_rad(3)
+type (ptc_map_with_rad_struct) map_with_rad
 type (ele_struct) ele1
 type (ele_struct), optional :: ele2
 type (coord_struct), optional :: orbit1
@@ -63,7 +73,7 @@ type (tree_element) tree_map(3)
 real(rp) orb(6), orb0(6)
 
 integer, optional :: map_order
-integer order, val_save
+integer val_save
 
 logical, optional :: err_flag, map_with_damping
 
@@ -78,21 +88,25 @@ use_bmad_units = .true.
 
 if (logic_option(.true., map_with_damping)) then
   state = default + radiation0 + envelope0
+  map_with_rad%radiation_damping_on = .true.
 else
   state = default + envelope0
+  map_with_rad%radiation_damping_on = .false.
 endif
 state0 = default
 
 if (bmad_com%spin_tracking_on) state = state + spin0
 if (.not. rf_is_on(ele1%branch)) state = state + nocavity0
 
-order = integer_option(ptc_com%taylor_order_ptc, map_order)
-if (order < 1) order = ptc_com%taylor_order_ptc
+map_with_rad%map_order = integer_option(ptc_com%taylor_order_ptc, map_order)
+if (map_with_rad%map_order < 1) map_with_rad%map_order = ptc_com%taylor_order_ptc
 
-call init_all(state, order, 0)
+call init_all(state, map_with_rad%map_order, 0)
 
 branch => pointer_to_branch(ele1)
 ptc_layout => branch%ptc%m_t_layout
+map_with_rad%ix_branch = branch%ix_branch
+map_with_rad%lattice_file = branch%lat%input_file_name
 
 if (.not. associated(ptc_layout)) then
   call out_io (s_fatal$, r_name, 'NO ASSOCIATED PTC LAYOUT PRESENT!')
@@ -101,10 +115,14 @@ if (.not. associated(ptc_layout)) then
 endif
 
 f1 => pointer_to_ptc_ref_fibre(ele1)
+map_with_rad%ix_ele_start = ele1%ix_ele
+
 if (present(ele2)) then
   f2 => pointer_to_ptc_ref_fibre(ele2)
+  map_with_rad%ix_ele_end = ele2%ix_ele
 else
   f2 => f1
+  map_with_rad%ix_ele_end = ele1%ix_ele
 endif
 
 if (present(orbit1)) then
@@ -118,10 +136,10 @@ endif
 
 call set_ptc_quiet(0, set$, val_save)
 !!call fill_tree_element_line_zhe(state, f1, f2, order, orb, stochprec = 1d-10, sagan_tree = tree_map)
-call fill_tree_element_line_zhe0(state0, state, f1, f2, order, orb0, orb, stochprec = 1d-10, sagan_tree = tree_map)
+call fill_tree_element_line_zhe0(state0, state, f1, f2, map_with_rad%map_order, orb0, orb, stochprec = 1d-10, sagan_tree = tree_map)
 call set_ptc_quiet(0, unset$, val_save)
 
-call copy_this_tree (tree_map, map_with_rad)
+call copy_this_tree (tree_map, map_with_rad%sub_map)
 
 use_bmad_units = .false. ! Since Zhe stuff is standalone this will not affect the use of map_with_rad.
 if (present(err_flag)) err_flag = .false.
@@ -129,7 +147,7 @@ if (present(err_flag)) err_flag = .false.
 !----------------------------------------------------------------------------------
 contains
 
-subroutine copy_this_tree(t,u)
+subroutine copy_this_tree(t, u)
 
 implicit none
 type(tree_element) :: t(3)
@@ -174,7 +192,7 @@ end subroutine ptc_setup_map_with_radiation
 !
 ! Input:
 !   orbit            -- coord_struct: Starting orbit.
-!   map_with_rad(3)  -- tree_element_zhe: Map with radiation included.
+!   map_with_rad     -- ptc_map_with_rad_struct: Map with radiation included.
 !   rad_damp         -- logical, optional: Override the setting of bmad_com%radiation_damping_on
 !   rad_fluct        -- logical, optional: Override the setting of bmad_com%radiation_fluctuations_on
 !   
@@ -191,7 +209,7 @@ use duan_zhe_map, only: assignment(=), C_VERBOSE_ZHE
 implicit none
 
 type (coord_struct) orbit
-type (tree_element_zhe) map_with_rad(3)
+type (ptc_map_with_rad_struct) map_with_rad
 type (probe_zhe) z_probe
 
 logical, optional :: rad_damp, rad_fluct
@@ -208,7 +226,7 @@ C_VERBOSE_ZHE = .false.
 z_probe = orbit%vec
 z_probe%q%x = [1, 0, 0, 0]
 
-call track_tree_probe_complex_zhe (map_with_rad, z_probe, bmad_com%spin_tracking_on, damp, fluct)
+call track_tree_probe_complex_zhe (map_with_rad%sub_map, z_probe, bmad_com%spin_tracking_on, damp, fluct)
 if (z_probe%u) orbit%state = lost$   ! %u = T => "unstable".
 
 orbit%vec = z_probe%x
@@ -224,16 +242,16 @@ end subroutine ptc_track_map_with_radiation
 !+
 ! Subroutine ptc_write_map_with_radiation(file_name, map_with_rad)
 !
-! Routine to create a binary file containing a tree_element_zhe map
+! Routine to create a binary file containing a ptc_map_with_rad_struct map
 !
 ! Input:
 !   file_name        -- character(*): Name of binary file.
-!   map_with_rad(3)  -- tree_element_zhe: Map with radiation included.
+!   map_with_rad     -- ptc_map_with_rad_struct: Map with radiation included.
 !-
 
 subroutine ptc_write_map_with_radiation(file_name, map_with_rad)
 
-type (tree_element_zhe), target :: map_with_rad(3)
+type (ptc_map_with_rad_struct), target :: map_with_rad
 type (tree_element_zhe), pointer :: t
 
 integer i, j, k, iu
@@ -244,8 +262,12 @@ character(*) file_name
 iu = lunget()
 open (iu, file = file_name, form = 'unformatted')
 
+write (iu) map_with_rad%lattice_file
+write (iu) map_with_rad%map_order, map_with_rad%radiation_damping_on, &
+            map_with_rad%ix_branch, map_with_rad%ix_ele_start, map_with_rad%ix_ele_end
+
 do k = 1, 3
-  t => map_with_rad(k)
+  t => map_with_rad%sub_map(k)
   call write_real1(t%cc)
   call write_real1(t%fixr)
   call write_real1(t%fix)
@@ -311,18 +333,18 @@ end subroutine ptc_write_map_with_radiation
 !+
 ! Subroutine ptc_read_map_with_radiation(file_name, map_with_rad)
 !
-! Routine to read a binary file containing a tree_element_zhe map
+! Routine to read a binary file containing a ptc_map_with_rad_struct map
 !
 ! Input:
 !   file_name        -- character(*): Name of binary file.
 !
 ! Output:
-!   map_with_rad(3)  -- tree_element_zhe: Map with radiation included.
+!   map_with_rad     -- ptc_map_with_rad_struct: Map with radiation included.
 !-
 
 subroutine ptc_read_map_with_radiation(file_name, map_with_rad)
 
-type (tree_element_zhe), target :: map_with_rad(3)
+type (ptc_map_with_rad_struct), target :: map_with_rad
 type (tree_element_zhe), pointer :: t
 
 integer i, j, k, iu
@@ -333,8 +355,12 @@ character(*) file_name
 iu = lunget()
 open (iu, file = file_name, form = 'unformatted', status = 'old')
 
+read (iu) map_with_rad%lattice_file
+read (iu) map_with_rad%map_order, map_with_rad%radiation_damping_on, &
+            map_with_rad%ix_branch, map_with_rad%ix_ele_start, map_with_rad%ix_ele_end
+
 do k = 1, 3
-  t => map_with_rad(k)
+  t => map_with_rad%sub_map(k)
   call read_real1(t%cc)
   call read_real1(t%fixr)
   call read_real1(t%fix)
@@ -411,25 +437,25 @@ end subroutine ptc_read_map_with_radiation
 !+
 ! Subroutine ptc_kill_map_with_radiation(map_with_rad)
 !
-! Routine to kill a binary file containing a tree_element_zhe map
+! Routine to kill a binary file containing a ptc_map_with_rad_struct map
 !
 ! Input:
-!   map_with_rad(3)  -- tree_element_zhe: Map with radiation included.
+!   map_with_rad     -- ptc_map_with_rad_struct: Map with radiation included.
 !
 ! Output:
-!   map_with_rad(3)  -- tree_element_zhe: Deallocated map.
+!   map_with_rad     -- ptc_map_with_rad_struct: Deallocated map.
 !-
 
 subroutine ptc_kill_map_with_radiation(map_with_rad)
 
-type (tree_element_zhe), target :: map_with_rad(3)
+type (ptc_map_with_rad_struct), target :: map_with_rad
 type (tree_element_zhe), pointer :: t
 integer k
 
 !
 
 do k = 1, 3
-  t => map_with_rad(k)
+  t => map_with_rad%sub_map(k)
   deallocate(t%cc)
   deallocate(t%fixr)
   deallocate(t%fix)
