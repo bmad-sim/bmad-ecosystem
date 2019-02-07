@@ -4113,13 +4113,13 @@ A term in a Taylor map can be specified by one of three forms as shown above. Th
 \vn{<Out>} is an integer in the range 1 to 6 corresponding to the index $j$ in \Eq{mcpd} (\vn{<out>}
 = 1 for $x$, etc.). \vn{<coef>} corresponds to $C_{jk}$ in \Eq{mcpd}, and \vn{<e1>}, \vn{<e2>},
 \vn{<e3>}, \vn{<e4>}, \vn{<e5>}, and \vn{<e6>} correspond to $e_{ijk}, i = 1 \ldots 6$.
-For example, a term in a Taylor map that was
+For example, the Taylor map 
 \Begineq
-  p_y(\Out) = 2.73 \cdot \delta y^2(\In) \, \delta p_z(\In) + \ldots
+  p_y(\Out) = 0.9 \cdot \delta x + 2.73 \cdot \delta y^2(\In) \, \delta p_z(\In) + \ldots
 \Endeq
 would be written as
 \begin{example}
-  \{4: 2.73, 0 0 2 0 0 1\}
+  \{4: 0.9: 1 0 0 0 0 0\}, \{4: 2.73, 0 0 2 0 0 1\}, ...
 \end{example}
 
 The second form for specifying a Taylor term uses the syntax:
@@ -4128,9 +4128,9 @@ The second form for specifying a Taylor term uses the syntax:
 \end{example}
 The set of integers \vn{<n1>}, \vn{<n2>} each must be between 1 and 6 inclusive. The value of the
 $i$\Th exponent $e_{ijk}$ in \Eq{mcpd} is equal to the number of integers that are equal to $i$. For
-example, the term of the above example would be written using the second form as
+example, the above Taylor map would be written using the second form as
 \begin{example}
-  \{4: 2.73 | 336\}
+  \{4: 0.9 | 1\}, \{4: 2.73 | 336\}, ...
 \end{example}
 Notice that with the second form, spaces between exponent integers is optional.
 
@@ -4138,9 +4138,9 @@ The third form is like the second form and has the syntax:
 \begin{example}
   tt<out><n1><n2>...  = <Coef>                      ! Taylor term. Third form.
 \end{example}
-For example, the term of the above examples would be written using the third form as:
+For example, the Taylor map above would be written using the third form as:
 \begin{example}
-  tt4336 = 2.73
+  tt41 = 0.9, tt4336 = 2.73, ...
 \end{example}
 
 The spin (\sref{s:spin.dyn}) part of the transport map $\calbf{Q}$ (\sref{s:spin.map}) gives the
