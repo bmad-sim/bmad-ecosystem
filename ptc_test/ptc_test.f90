@@ -24,7 +24,7 @@ type (real_8) y8(6)
 type (branch_struct), pointer :: branch, branch2
 type (track_struct) orb_track
 type (em_field_struct) field
-type (tree_element_zhe) map_with_rad(3)
+type (ptc_map_with_rad_struct) map_with_rad
 
 real(rp) diff_mat(6,6), diff_vec(6)
 real(rp) vec_bmad(6), vec_ptc(6), vec_bmad2(6), beta0, beta1 
