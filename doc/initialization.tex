@@ -830,9 +830,9 @@ the \vn{tao_params} namelist above, for example,
 \vn{beam_saved_at} is used to specify at what elements the beam particle positions are saved
 at. Note that, independent of the setting of \vn{beam_saved_at}, beam statistics (like the beam
 sigma matrix) are always saved at each lattice element. Element list format, as explained in
-\sref{s:ele.list.format}, is used to specify a list of elements for \vn{beam_saved_at}. The
-\vn{BEGINNING} element (with index 0 in the lattice list) and the last element are automatically
-saved.
+\sref{s:ele.list.format}, is used to specify a list of elements for \vn{beam_saved_at}. The beam is
+automatically saved at the beginning position and end position of beam tracking and at \vn{fork} and
+\vn{photon_fork} elements.
 \begin{example}
   &tao_beam_init
     beam_saved_at = "marker::m* *34w*" ! Save beam at all markers starting with "m"
