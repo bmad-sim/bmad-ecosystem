@@ -97,7 +97,8 @@ skip = .true.
 
 if (ele%slave_status == multipass_slave$ .or. ele%slave_status == super_slave$) return
 select case (ele%key)
-case (beginning_ele$, patch$, marker$, match$, null_ele$, floor_shift$, group$, overlay$)
+case (beginning_ele$, patch$, match$, null_ele$, floor_shift$, &
+      group$, overlay$, fork$, photon_fork$)
   return
 end select
 
@@ -145,15 +146,17 @@ call floor_w_mat_to_angles (w_mat, p%theta, p%phi, p%psi)
 
 
 
-write(line, '(2a, i0, a, 6(es14.6, a), 2a, es14.6, a)') trim(ele%name), c,  ele%ix_ele, c, &
+write(line, '(2a, i0, a, 6(es16.8, a), 2a, es16.8, a)') trim(ele%name), c,  ele%ix_ele, c, &
                     p%r(1), c, p%r(2), c, p%r(3), c, p%theta, c, p%phi, c, p%psi, c, &
                     trim(key_name(ele%key)), c, ele%value(l$)
 
 select case (ele%key)
+case (pipe$)
+  write (line, '(a, 3(a, es16.8))') trim(line), c, ele%value(x1_limit$), c, ele%value(y1_limit$), c, 0.002_rp
 case (sbend$)
-  write (line, '(a, 3(a, es14.6))') trim(line), c, ele%value(angle$), c, ele%value(e1$), c, ele%value(e2$)
+  write (line, '(a, 3(a, es16.8))') trim(line), c, ele%value(angle$), c, ele%value(e1$), c, ele%value(e2$)
 case (crystal$, detector$, mirror$, multilayer_mirror$, diffraction_plate$, mask$)
-  write (line, '(a, 3(a, es14.6))') trim(line), c, ele%value(x1_limit$), c, ele%value(y1_limit$), c, 1e-3_rp
+  write (line, '(a, 3(a, es16.8))') trim(line), c, ele%value(x1_limit$), c, ele%value(y1_limit$), c, 1e-3_rp
 case default
   write (line, '(2a)') trim(line), ', 0.0, 0.0, 0.0'
 end select
