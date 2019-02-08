@@ -359,6 +359,26 @@ file, branches are not formed until the lattice is expanded
 (\sref{s:expand}). Therefore an \vn{expand_lattice} statement is
 required before full names can be used in statements.
 
+After lattice expansion (\sref{s:expand}), when setting element attributes (\sref{s:lat.attribs}, a
+comma deliminated list of names can be used. Each item in a list is either the name of an element or
+an element range. An element range has the syntax:
+\begin{example}
+  {key::}ele1:ele2
+\end{example}
+where
+\begin{example}
+  key      = Optional key name ("quadrupole", "sbend", etc.)
+  ele1     = Starting element of the range.
+  ele2     = Ending element of the range. 
+\end{example}
+For example:
+\begin{example}
+  3,15:17          ! Elements with index 3, 15, 16, and 17 in branch 0.
+  2>>45:51         ! Elements 45 through 51 of branch 2.
+  q1:q5            ! Elements between q1 and q5.
+  sbend::q1:q5     ! All sbend elements between q1 and q5.
+\end{example}
+
 %---------------------------------------------------------------------------
 \section{Lattice Element Attributes}
 \label{s:lat.attribs}
@@ -382,39 +402,37 @@ Element attributes can be set or used in an algebraic expression:
   b01w[L] = b01w[rho] / 12          ! OK to reset an attribute value.
   my_const = b01w[rho] / b01w[L]    ! Use of attribute values in an expression.
 \end{example}
-Notice that there can be no space between the element name and the
-\vn{[} opening bracket.  
+Notice that there can be no space between the element name and the \vn{[} opening bracket.
 
-Chapter \cref{c:elements} lists the attributes appropriate for each
-element class.
+Chapter \cref{c:elements} lists the attributes appropriate for each element class.
 
-When setting an attribute value, if more than one element has the
-\vn{element_name} then {\it all} such elements will be set. When
-setting an attribute value, if \vn{element_name} is the name of a type
-of element, all elements of that type will be set. For example
+When setting an attribute value, if more than one element has the \vn{element_name} then {\it all}
+such elements will be set. When setting an attribute value, if \vn{element_name} is the name of a
+type of element, all elements of that type will be set. For example
 \begin{example}
   q_arc[k1] = 0.234                      ! Set all elements named Q_ARC. 
   rfcavity::*[voltage] = 3.7             ! Set all RFcavity elements.
 \end{example}
 
-The wild cards \vn{``*''}, and \vn{``\%''} can be used to can be used
-(\sref{s:ele.names}). Examples:
+To set an attribute for multiple element at one time, The wild cards \vn{``*''}, and \vn{``\%''} can
+be used in element names (\sref{s:ele.names}). Examples:
 \begin{example}
   *[tracking_method] = bmad_standard  ! Matches all elements.
   quadrupole::Q*[k1] = 0.234    ! Matches all quadrupoles with names beginning with Q.
   Q%1[k1] = 0.234               ! Matches to "Q01" but not "Q001".
 \end{example}
 \index{beginning element}
-Unlike when there are no wild cards used in a name, it is not an error
-if a name with wild cards does not match to any element.
-Note: A name with wild cards will never match to the \vn{BEGINNING} element (\sref{s:use}).
+Unlike when there are no wild cards used in a name, it is not an error if a name with wild cards
+does not match to any element.  Note: A name with wild cards will never match to the \vn{BEGINNING}
+element (\sref{s:use}).
 
-After lattice expansion (\sref{s:expand}), the attributes of specific elements
-may be set using the syntax as discussed in Section \sref{s:ele.names}. Example:
+After lattice expansion (\sref{s:expand}), the attributes of specific elements may be set using the
+syntax as discussed in Section \sref{s:ele.names}. Example:
 \begin{example}
   expand_lattice              ! Expand the lattice.
   97[x_offset] = 0.0023       ! Set x_offset attribute of 97th element
   b2>>si_cryst##2[tilt] = 0.1 ! Tilt the 2nd instance of "si_cryst" in branch "b2" 
+  5:32[x_limit] = 0.3         ! Sets elements with indexs 5 through 32 in branch 0.
 \end{example}
 
 %---------------------------------------------------------------------------

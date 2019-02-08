@@ -198,7 +198,7 @@ contains
 !                         called post lattice parsing, setting ele%field_master is *not* wanted.
 !
 ! Output
-!   ele          -- ele_struct: Element whos attribute this is.
+!   ele          -- ele_struct: Element whose attribute this is.
 !   delim        -- character(1): Delimiter found where the parsing of the input line stops.
 !   delim_found  -- logical: Delimiter found? False if end of input command.
 !   err_flag     -- logical: Set True if there is a problem parsing the input.

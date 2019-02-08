@@ -157,11 +157,13 @@ parsing_loop: do
     ix_word = 8
   endif
 
-  ! If input line is something like "quadrupole::*[k1] = ..." then shift delim from ":" to "["
+  ! If input line is something like "quadrupole::*[k1] = ..." or "q1:q2[x_limit] = ..." then shift delim from ":" to "[".
+  ! Careful: Do not want to shift delim for something like "q:quad, l = d[l]"
 
-  if (delim == ':' .and. bp_com%parse_line(1:1) == ':') then
+  if (delim == ':' .or. delim == ',') then
     ix = index(bp_com%parse_line, '[')
-    if (ix /= 0) then
+    ix2 = index(bp_com%parse_line, '=')
+    if (ix /= 0 .and. ix2 /= 0 .and. ix < ix2) then
       word_1 = trim(word_1) // ':' // bp_com%parse_line(:ix-1)
       bp_com%parse_line = bp_com%parse_line(ix+1:)
       delim = '['
