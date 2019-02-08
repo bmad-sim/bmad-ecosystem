@@ -6,10 +6,9 @@
 !
 ! Routine to locate all the elements in a lattice that corresponds to loc_str. 
 !
-! If there are multiple elements of the same name, pointers to all such elements
-! are returned.
+! If there are multiple elements of the same name, pointers to all such elements are returned.
 !
-! loc_str is a list of element names.
+! loc_str is a list of element names or element ranges.
 ! A space or a comma delimits the elements.
 !
 ! An element name can be of the form
@@ -33,9 +32,10 @@
 !
 ! Examples:
 !   "quad::x_br>>q*"   All quadrupoles of branch "x_br" whose name begins with "q"
-!   "3,5:7"            Elements with index 3, 5, 6, and 7 in branch 0.
+!   "3,15:17"          Elements with index 3, 15, 16, and 17 in branch 0.
 !   "2>>45:51"         Elements 45 through 51 of branch 2.
-!   "q1:q5"            Elements between "q1" and "q5"
+!   "q1:q5"            Elements between "q1" and "q5".
+!   "sbend::q1:q5"     All sbend elements between "q1" and "q5".
 !   "marker::a*##2"    2^nd marker element in each branch whose name begins with "a".
 !
 ! Note: Elements in the eles(:) array will be in the same order as they appear in the lattice with the 
