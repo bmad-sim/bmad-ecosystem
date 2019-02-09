@@ -2259,15 +2259,14 @@ show a discontinuity due to the discontinuity of the reference orbit.
 The color of a drawn beam orbit is controlled by \vn{graph%floor_plan_orbit_color}. The
 default color is 'RED'.
 
-Alternatively, the global coordinates at the start of the lattice can
-be defined in the lattice file and this can rotate the floor plan.
-Unless there is an offset specified in the lattice file, a lattice
-will start at $(x, y) = (0, 0)$. Assuming that the machine lies in the
-horizontal plane with no negative bends, the reference orbit will
-start out pointing in the negative $x$ direction and will circle
-clockwise in the $(x, y)$ plane.
+Alternatively, the global coordinates at the start of the lattice can be defined in the lattice file
+and this can rotate the floor plan.  Unless there is an offset specified in the lattice file, a
+lattice will start at $(x, y) = (0, 0)$. Assuming that the machine lies in the horizontal plane with
+no negative bends, the reference orbit will start out pointing in the negative $x$ direction and
+will circle clockwise in the $(x, y)$ plane.
 
-If \vn{graph%ix_universe} is set to -2, all universes are plotted.
+If \vn{graph%ix_universe} is set to -1 the current viewed universe is used.  If
+\vn{graph%ix_universe} is set to -2, all universes are plotted.
 
 Example Floor Plan template:
 \begin{example}
@@ -2599,9 +2598,6 @@ Dynamic aperture curves can have the following \vn{%data_type}:
   'dynamic_aperture_centered' ! points are centered (relative to) the reference orbit
   'physical_aperture'         ! draws the physical aperture based on x1_limit, etc. 
 \end{example}
-
-
-
 
 %-----------------------------------------------------------------
 \subsection{Drawing a Histogram}

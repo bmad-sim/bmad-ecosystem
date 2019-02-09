@@ -578,7 +578,7 @@ do  ! Loop over plot files
         grph%ix_universe = -1
       endif
 
-      if (grph%ix_universe < -1 .or. grph%ix_universe > ubound(s%u, 1)) then
+      if (grph%ix_universe < -2 .or. grph%ix_universe > ubound(s%u, 1)) then
         call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', & 
                                        'OUT OF RANGE FOR PLOT:GRAPH: ' // graph_name, 'IN FILE: ' // plot_file, &
                                        i_array = [grph%ix_universe] )
