@@ -190,6 +190,8 @@ of (\sref{s:input}):
   bmad_com%radiation_damping_on
   bmad_com%radiation_excitation_on
 \end{code}
+Note: When tracking with a map, the RF cavities must be powered so that there are synchrotron
+oscillations.
 
 What tracking mode is used is determined by the \vn{use_1_turn_map} logical (\sref{s:input}).  If a
 map is used, the order of the map is given by \vn{map_order} parameter. A larger map order will mean better
@@ -257,12 +259,12 @@ master input file must contain a single namelist (\sref{s:namelist}) named \vn{p
   common_master_input_file = ""
   simulation_mode = "BUNCH"
   lat_file   =  "lat.bmad"     ! Bmad lattice file
-  input_map_file = ''
-  output_map_file = ''
+  map_file = 'order5.map'
 
   tracking_data_file  = "snap.dat"
   output_every_n_turns = 200
   output_initial_position = False
+  sigma_matrix_data_file = "sigma.dat"
 
   ele_start_name     = ""
   n_turns            = 1000
@@ -324,12 +326,17 @@ The default is to start at the beginning of the lattice. Notice that the trackin
 downstream end of the element so the first element tracked through is the element after the chosen
 one.
 %
-\item[input_map_file] \Newline
-If not blank, the program will read in the 1-turn map from \vn{input_map_file}. Also
-see \vn{output_map_file}. The default value of \vn{input_map_file} is blank.
-%
 \item[lat_file] \Newline
 Name of the Bmad lattice file to use.
+%
+\item[map_file] \Newline
+If not blank, the program will read in the 1-turn map from \vn{map_file}. To create a map file and
+save it to a file, prepend the file name with "WRITE:". Example:
+\begin{code}
+  map_file = 'WRITE:order5.map'
+\end{code}
+This will create a map file called "\vn{order5.map}". The saved map will be affected by the setting
+of \vn{bmad_com%radiation_damping_on}. See \sref{s:track.modes} for more details.
 %
 \item[map_order] \Newline
 Order of the 1-turn map. See Section~\sref{s:track.modes}. The default is what is set in the lattice
@@ -341,11 +348,6 @@ current setting of \vn{map_order}.
 Used with \vn{simulation_mode} set to \vn{"BUNCH"}. If \vn{output_initial_position} is set to
 \vn{True}, additional columns will be added to the output tracking data file to show the initial
 particle position and spin. Default is \vn{False}. See Section~\sref{s:out.dat}.
-%
-\item[output_map_file] \Newline
-If not blank , the program will save the 1-turn map in \vn{output_map_file}. The saved map will be affected
-by the setting of \vn{bmad_com%radiation_damping_on}. See \sref{s:track.modes} for more details.
-The default value of \vn{output_map_file} is blank. Also see \vn{input_map_file}.
 %
 \item[n_turns] \Newline
 Number of turns to track. See Section~\sref{s:track.modes}.
@@ -361,6 +363,17 @@ system clock will be used. That is, if set to 0, the output results will vary fr
 \item[rfcavity_on] \Newline
 If set to \vn{False}, the voltage on all RF cavity elements will be turned off. Default is \vn{True}.
 If 1-turn map tracking is used, the RF voltage may not be turned off.
+%
+\item[sigma_matrix_data_file] \Newline
+String specifying the name of the file to create to hold the calculated sigma matrix. If blank (the
+default), no sigma matrix file will be created. The 6x6 sigma matrix $\boldsymbol{\sigma}$ is a
+measure of the beam size defined by
+\begin{equation}
+  \sigma_{ij} = \left< r_i \, r_j \right>
+\end{equation}
+where $\bf r$ is the particle phase space vector and $<\ldots>$ denotes an average over all
+particles (which will be only one if the \vn{simulation_mode} is set to "SINGLE") and over all
+turns.
 %
 \item[simulation_mode] \Newline
 Sets the simulation mode for the program. See Section~\sref{s:sim.modes}.
