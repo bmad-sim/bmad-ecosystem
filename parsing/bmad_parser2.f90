@@ -67,7 +67,7 @@ character(280) parse_line_save, call_file
 logical, optional :: make_mats6, err_flag
 logical parsing, found, delim_found, xsif_called, err, key_here
 logical end_of_file, finished, good_attrib, wildcards_permitted, integer_permitted
-logical wild_here, wild_and_key0
+logical multiple_eles_here, heterogeneous_ele_list
 
 ! Init...
 
@@ -319,16 +319,18 @@ parsing_loop: do
 
     if (any(word_1 == key_name)) then   ! If Old style "quadrupole[k1] = ..." syntax
       name = word_1 // '::*'
-      wild_here = .true.
+      multiple_eles_here = .true.
     else
       name = word_1
     endif
 
-    wild_here = (index(word_1, '*') /= 0 .or. index(word_1, '%') /= 0) ! Wild card character found
+    multiple_eles_here = (index(word_1, '*') /= 0 .or. index(word_1, '%') /= 0 .or. &
+                 index(word_1, ',') /= 0 .or. index(word_1, ':') /= 0) ! Wild card character or range found
     key = 0
     ix = index(name, '::')
     if (ix /= 0) key = key_name_to_key_index (word_1(1:ix-1))
-    wild_and_key0 = (wild_here .and. key == 0)
+    ! OK if a homogeneous list is labeled heterogeneous. But not vice versa.
+    heterogeneous_ele_list = (multiple_eles_here .and. index(word_1, ',') == 0 .and. key == 0)    
 
     ! When setting an attribute for all elements then suppress error printing.
 
@@ -350,11 +352,11 @@ parsing_loop: do
         if (word_1 /= ele%name) cycle
       endif
 
-      if (wild_and_key0 .and. attribute_index(ele, word_2) == 0) cycle
+      if (heterogeneous_ele_list .and. attribute_index(ele, word_2) == 0) cycle
 
       bp_com%parse_line = parse_line_save
       found = .true.
-      call parser_set_attribute (redef$, ele, delim, delim_found, err, check_free = .true., wild_and_key0 = wild_and_key0)
+      call parser_set_attribute (redef$, ele, delim, delim_found, err, check_free = .true., heterogeneous_ele_list = heterogeneous_ele_list)
       if (.not. err .and. delim_found) then
         call parser_error ('BAD DELIMITER: ' // delim)
         exit
@@ -368,7 +370,7 @@ parsing_loop: do
     ! If bmad_parser2 has been called from bmad_parser then check if the
     ! element was just not used in the lattice. If so then just ignore it.
 
-    if (.not. found .and. .not. wild_here) then
+    if (.not. found .and. .not. multiple_eles_here) then
       if (bp_com%bmad_parser_calling) then
         do i = 0, bp_com%old_lat%n_ele_max
           if (bp_com%old_lat%ele(i)%name == word_1) cycle parsing_loop

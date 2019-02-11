@@ -79,7 +79,7 @@ character(280) parse_line_save, line, use_line_str
 logical, optional :: make_mats6, digested_read_ok, err_flag
 logical delim_found, arg_list_found, xsif_called, wild_here
 logical end_of_file, ele_found, match_found, err, finished, exit_on_error
-logical detected_expand_lattice_cmd, multipass, wild_and_key0, do_energy_bookkeeping
+logical detected_expand_lattice_cmd, multipass, heterogeneous_ele_list, do_energy_bookkeeping
 logical auto_bookkeeper_saved, is_photon_fork, created_new_branch
 
 ! see if digested file is open and current. If so read in and return.
@@ -480,7 +480,7 @@ parsing_loop: do
       cycle parsing_loop
     endif
 
-    wild_and_key0 = (key == 0 .and. wild_here)
+    heterogeneous_ele_list = (key == 0 .and. wild_here)
 
     do i = 0, n_max
       ele => in_lat%ele(i)
@@ -491,10 +491,10 @@ parsing_loop: do
           ele%key == def_bmad_com$) cycle
       if (.not. match_wild(ele%name, trim(name))) cycle
       ! 
-      if (wild_and_key0 .and. attribute_index(ele, word_2) < 1) cycle
+      if (heterogeneous_ele_list .and. attribute_index(ele, word_2) < 1) cycle
       bp_com%parse_line = parse_line_save
       ele_found = .true.
-      call parser_set_attribute (redef$, ele, delim, delim_found, err, plat%ele(ele%ixx), wild_and_key0 = wild_and_key0)
+      call parser_set_attribute (redef$, ele, delim, delim_found, err, plat%ele(ele%ixx), heterogeneous_ele_list = heterogeneous_ele_list)
       if (bp_com%fatal_error_flag) exit parsing_loop
       if (err .or. delim_found) then
         if (.not. err .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim)
