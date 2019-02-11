@@ -16,7 +16,8 @@
 !
 ! Input:
 !   real_arr(:) -- real(rp): Array of real numbers.
-!   width       -- integer: width of number field. The output string will have length size(real_arr) * width.
+!   width       -- integer: width of number field including blanks. 
+!                     The output string will have length size(real_arr) * width.
 !                     Minimum width is n_decimal+n_blank+3 if real_arr can have negative numbers.
 !                     Making width larger will increase the crossover point between when numbers are encoded as 
 !                     floating point and when numbers are encoded as fixed point.
@@ -24,7 +25,7 @@
 !   n_blank     -- integer, optional: Minimum number of blank spaces between numbers. Default is 2.
 !
 ! Output:
-!   str         -- character(width): String representation of real_arr. The length will be of str is size(real_arr) * width.
+!   str         -- character(width): String representation of real_arr. The length of str = size(real_arr) * width.
 !-
 
 function reals_to_table_row (real_arr, width, n_decimal, n_blank) result (str)
