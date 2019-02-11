@@ -177,7 +177,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, wild_and_key0, set_field_master)
+! Subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, heterogeneous_ele_list, set_field_master)
 !
 ! Subroutine used by bmad_parser and bmad_parser2 to get the value of
 ! an attribute from the input file and set the appropriate value in an element.
@@ -185,14 +185,14 @@ contains
 ! This subroutine is not intended for general use.
 !
 ! Input:
-!   how           -- integer: Either def$ if the element is being construct from scratch or
-!                      redef$ if the element has already been formed and this is part of a
-!                      "ele_name[attrib_name] = value" construct.
-!   check_free    -- logical, optional: If present and True then an error will be generated
-!                       if the attribute is not free to vary. Used by bmad_parser2.
-!   wild_and_key0 -- logical, optional: If True (default = False), calling routine is working on
-!                       something like "*[tracking_method] = runge_kutta". In this case, 
-!                       runge_kutta may not be valid for ele but this is not an error.
+!   how              -- integer: Either def$ if the element is being construct from scratch or redef$ if the element has
+!                         already been formed and this is part of a "ele_name[attrib_name] = value" construct.
+!   check_free       -- logical, optional: If present and True then an error will be generated
+!                          if the attribute is not free to vary. Used by bmad_parser2.
+!   heterogeneous_ele_list 
+!                    -- logical, optional: If True (default = False), we are parsing something like something like 
+!                           "*[tracking_method] = runge_kutta". 
+!                         In this case, runge_kutta may not be valid for this ele but this is not an error.
 !   set_field_master -- logical, optional: If True (the default) set ele%field_master = T if the
 !                         attribute to be set is something like B_FIELD_ERR. If this routine is being
 !                         called post lattice parsing, setting ele%field_master is *not* wanted.
@@ -206,7 +206,7 @@ contains
 !                     information that cannot be stored in the ele argument.
 !-
 
-subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, wild_and_key0, set_field_master)
+subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, heterogeneous_ele_list, set_field_master)
 
 use random_mod
 use wall3d_mod
@@ -249,9 +249,9 @@ character(40), allocatable :: name_list(:)
 character(1) delim, delim1, delim2
 character(80) str, err_str, line
 
-logical delim_found, err_flag, logic, set_done, end_of_file, do_evaluate, wild_key0
+logical delim_found, err_flag, logic, set_done, end_of_file, do_evaluate, hetero_list
 logical is_attrib, err_flag2, old_style_input, ok
-logical, optional :: check_free, wild_and_key0, set_field_master
+logical, optional :: check_free, heterogeneous_ele_list, set_field_master
 
 ! Get next WORD.
 ! If an overlay or group element then word is just an attribute to control
@@ -263,7 +263,7 @@ lat => ele%branch%lat
 
 ! Taylor
 
-wild_key0 = logic_option(.false., wild_and_key0)
+hetero_list = logic_option(.false., heterogeneous_ele_list)
 
 if ((ele%key == taylor$ .or. ele%key == hybrid$) .and. delim == '{' .and. word == '') then
 
@@ -387,7 +387,7 @@ if (ele%key == overlay$ .or. ele%key == group$) then
   !
 
   if (i < 1) then
-    if (wild_key0) then
+    if (hetero_list) then
       err_flag = .false.
       return
     endif
@@ -1711,7 +1711,7 @@ case ('INTERPOLATION')
 case ('MAT6_CALC_METHOD')
   call get_switch (attrib_word, mat6_calc_method_name(1:), switch, err_flag, ele, delim, delim_found); if (err_flag) return
   if (.not. valid_mat6_calc_method (ele, not_set$, switch)) then
-    if (wild_key0) then
+    if (hetero_list) then
       err_flag = .false.
     else
       err_flag = .true.
@@ -1802,7 +1802,7 @@ case ('SPIN_TRACKING_METHOD')
   call get_switch (attrib_word, spin_tracking_method_name(1:), switch, err_flag, ele, delim, delim_found)
   if (err_flag) return
   if (.not. valid_spin_tracking_method (ele, switch)) then
-    if (wild_key0) then
+    if (hetero_list) then
       err_flag = .false.
     else
       call parser_error ('NOT A VALID SPIN_TRACKING_METHOD: ' // word, &
@@ -1819,7 +1819,7 @@ case ('TRACKING_METHOD')
   call get_switch (attrib_word, tracking_method_name(1:), switch, err_flag, ele, delim, delim_found)
   if (err_flag) return
   if (.not. valid_tracking_method (ele, not_set$, switch)) then
-    if (wild_key0) then
+    if (hetero_list) then
       err_flag = .false.
     else
       call parser_error ('NOT A VALID TRACKING_METHOD: ' // bp_com%last_word, &
@@ -2024,7 +2024,7 @@ if (logic_option(.false., check_free)) then
 else
   attrib_info = attribute_info(ele, attribute_index(ele, attrib_name))
   if (attrib_info%type == dependent$) then
-    if (.not. wild_key0) then
+    if (.not. hetero_list) then
       call parser_error ('DEPENDENT ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, &
                          'FOR: ' // ele%name)
     endif
