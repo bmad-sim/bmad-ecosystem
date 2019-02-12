@@ -31,7 +31,7 @@
 ! Output:
 !   orbit_end  -- Coord_struct, optional: End phase space coordinates. 
 !                   If present then the orbit_start argument must also be present.
-!   ele_end   -- Ele_struct, optional: Holds the ending Twiss parameters at l_end.
+!   ele_end   -- Ele_struct, optional: Holds the ending Twiss parameters at l_end (except for photons).
 !                  The map (ele_end%mat6, ele_end%vec0) is map from l_start to l_end.
 !                  If present then the ele_start argument must also be present.
 !   err       -- Logical, optional: Set True if there is a problem like 
@@ -54,7 +54,7 @@ type (ele_struct), target :: runt
 type (ele_struct), pointer :: ele_p, slave
 
 real(rp) l_start, l_end, mat6(6,6), vec0(6), l0, l1, s_start, s_end
-integer ie
+integer ie, species
 
 logical track_upstream_end, track_downstream_end, do_upstream, do_downstream, err_flag
 logical track_up, track_down
@@ -116,7 +116,13 @@ endif
 ! Now track. 
 ! Must take care if orbit_start and orbit_end are the same actual argument so use temporary orb_at_end.
 
-if (present(ele_end)) then
+if (present(orbit_start)) then
+  species = orbit_start%species
+else
+  species = default_tracking_species(param)
+endif
+
+if (present(ele_end) .and. species /= photon$) then
   if (present(orbit_start)) then
     call make_mat6 (ele_p, param, orbit_start, orb_at_end, err_flag = err_flag)
     if (present(orbit_end)) then
