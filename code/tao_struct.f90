@@ -212,6 +212,7 @@ type tao_graph_struct
   logical :: limited = .false.                ! True if at least one data point past graph bounds.
   logical :: draw_axes = .true.               ! Draw axes, labels, etc?
   logical :: correct_xy_distortion = .true.   ! T -> Shrink one axis in floor plan so x-scale = y-scale.
+  logical :: floor_plan_flip_label_side = .false.      ! Draw element label on other side of element?
   logical :: floor_plan_size_is_absolute = .false.     ! Are shape sizes in meters or window pixels?
   logical :: floor_plan_draw_only_first_pass = .false. ! Draw only first pass with multipass elements?
   logical :: draw_curve_legend = .true.       ! Legend for displaying curve info.
@@ -576,6 +577,7 @@ type tao_global_struct
   logical :: derivative_uses_design = .false.     ! Derivative calc uses design lattice instead of model?
   logical :: disable_smooth_line_calc             ! Global disable of the smooth line calculation.
   logical :: draw_curve_off_scale_warn = .true.   ! Display warning on graphs?
+  logical :: force_plot_data_calc = .false.       ! Always calc plot curve points even with %plot_on = F?
   logical :: label_lattice_elements = .true.      ! For lat_layout plots
   logical :: label_keys = .true.                  ! For lat_layout plots
   logical :: lattice_calc_on = .true.             ! Turn on/off beam and single particle calculations.
@@ -586,10 +588,10 @@ type tao_global_struct
   logical :: optimizer_var_limit_warn = .true.    ! Warn when vars reach a limit with optimization.
   logical :: orm_analysis = .false.               ! ORM using MDSA? 
   logical :: plot_on = .true.                     ! Do plotting?
-  logical :: force_plot_data_calc = .false.       ! Always calc plot curve points even with %plot_on = F?
   logical :: rf_on = .false.                      ! RFcavities on or off? Does not affect lcavities.
-  logical :: single_step = .false.                ! For debugging. Single step through a command file?
-  logical :: stop_on_error = .true.               ! For debugging: True prevents tao from exiting on an error.
+  logical :: silent_run = .false.                 ! Suppress terminal output when running a command file?
+  logical :: single_step = .false.                ! For debugging and demonstrations: Single step through a command file?
+  logical :: stop_on_error = .true.               ! For debugging: False prevents tao from exiting on an error.
   logical :: svd_retreat_on_merit_increase = .true.
   logical :: var_limits_on = .true.               ! Respect the variable limits?
   logical :: wait_for_CR_in_single_mode = .false. ! For use with a python GUI. 
@@ -648,7 +650,7 @@ type tao_common_struct
   logical :: noplot_arg_set        = .false.
   logical :: init_tao_file_arg_set = .false.
   logical :: log_startup = .false.             ! '-log_startup' command line argument.
-  logical :: print_to_terminal = .true.        ! Print command prompt to the terminal?
+  logical :: print_to_terminal = .true.        ! Print command prompt to the terminal? For use with GUIs.
   logical :: quiet = .false.                      ! Print commands on terminal when running a command file?
   character(100) :: cmd                        ! Used for the cmd history
   character(16) :: init_name = 'Tao'           ! label for initialization          
@@ -672,7 +674,7 @@ type tao_common_struct
   character(160) :: hook_startup_file = ''       ! To be set by tao_hook_parse_command_args
   character(160) :: hook_var_file = ''           ! To be set by tao_hook_parse_command_args
   character(160) :: hook_building_wall_file = '' ! To be set by tao_hook_parse_command_args
-  character(200) :: saved_cmd_line = ''          ! Saved part of command line when there are mulitple commands on a line 
+  character(200) :: saved_cmd_line = ''          ! Saved part of command line when there are mulitple commands on a line
   character(16) :: plot_geometry = ''            ! '-geometry' command line argument.
   character(80) :: single_mode_buffer = ''
   character(40) :: unique_name_suffix

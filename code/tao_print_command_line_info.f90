@@ -38,6 +38,7 @@ call out_io (s_blank$, r_name, [ &
         '  -noplot                          # Do not open a plotting window                        ', &
         '  -plot <plot_file>                # Plotting initialization file                         ', &
         '  -rf_on                           # Keep RF on (Default is to turn off)                  ', &
+        '  -silent_run                      # Suppress terminal output when running a command file?', &
         '  -startup <starup_command_file>   # Commands to run after parsing Tao init file          ', &
         '  -var <var_file>                  # Define variables for plotting and optimization       '])
 

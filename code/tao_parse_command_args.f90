@@ -54,7 +54,7 @@ do
   call match_word (arg0, [character(40):: '-?', '-init', '-noinit', '-beam_all', '-beam0', &
         '-noplot', '-lat', '-log_startup', '-beam', '-var', '-data', '-building_wall', '-plot', &
         '-startup', 'help', '-help', '?', '-geometry', '-rf_on', '-debug', '-disable_smooth_line_calc', &
-        '-color_prompt', '-no_stopping', '-hook_init_file', '-gui_mode', '-beam_position0'], &
+        '-color_prompt', '-no_stopping', '-hook_init_file', '-beam_position0', '-silent_run'], &
               ix, .true., matched_name=switch)
 
   select case (switch)
@@ -91,6 +91,7 @@ do
 
   case ('-debug')
     s%global%debug_on = .true.
+    s%global%stop_on_error = .false.
 
   case ('-geometry')
     call get_next_arg (s%com%plot_geometry)
@@ -123,8 +124,8 @@ do
   case ('-plot')
     call get_next_arg (s%com%plot_file)
 
-  case ('-gui_mode')
-    call out_io (s_error$, r_name, 'NOTE: -gui_mode NO LONGER DOES ANYTHING!')
+  case ('-silent_run')
+    call tao_silent_run_set(.true.)
 
   case ('-startup')
     call get_next_arg (s%com%startup_file)

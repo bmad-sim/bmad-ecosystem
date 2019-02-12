@@ -140,12 +140,19 @@ only for the duration of the execution of the file).
 
 Command loops can be implemented in a command file. See Section~\sref{s:do} for more details.
 
-Other useful commands to put in a command file are to speed up execution are:
+Other useful commands to put in a command file to speed up execution are:
 \begin{example}
   set global lattice_calc_on = F   ! Stop lattice calculations (\sref{s:lat.calc}).
   set global plot_on = F           ! Halt replotting
 \end{example}
-If set, at the end of the command file these logicals should be toggled back to True.
+If set then at the end of the command file these logicals should be toggled back to True.
+
+To suppress the output when running a command file use the command:
+\begin{example}
+  set global silent_run = T
+\end{example}
+Note: \vn{silent_run} is automatically set to False at the end when a command file exits back to the
+command line level.
 
 Examples:
 \begin{example}

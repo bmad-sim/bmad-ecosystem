@@ -696,6 +696,12 @@ subroutine tao_setup_key_table ()
   implicit none
 end subroutine
 
+subroutine tao_silent_run_set (set)
+  import
+  implicit none
+  logical set
+end subroutine
+
 subroutine tao_single_mode (char)
   implicit none
   character(1) :: char

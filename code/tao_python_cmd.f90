@@ -1182,6 +1182,7 @@ case ('plot_graph')
   nl=incr(nl); write (li(nl), rmt) 'x_axis_scale_factor;REAL;T;',             g%x_axis_scale_factor
   nl=incr(nl); write (li(nl), rmt) 'symbol_size_scale;REAL;T;',               g%symbol_size_scale
   nl=incr(nl); write (li(nl), rmt) 'floor_plan_rotation;REAL;T;',             g%floor_plan_rotation
+  nl=incr(nl); write (li(nl), lmt) 'floor_plan_flip_axis_side;LOGIC;T;',      g%floor_plan_flip_label_side
   nl=incr(nl); write (li(nl), rmt) 'floor_plan_orbit_scale;REAL;T;',          g%floor_plan_orbit_scale
   nl=incr(nl); write (li(nl), imt) 'ix_branch;INT;T;',                        g%ix_branch
   nl=incr(nl); write (li(nl), imt) 'ix_universe;INT;T;',                      g%ix_universe

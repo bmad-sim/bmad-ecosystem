@@ -368,6 +368,8 @@ case ('rf_on')
     endif
   enddo
   s%u%calc%lattice = .true.
+case ('silent_run')
+  call tao_silent_run_set(s%global%silent_run)
 case ('track_type')
   if (value_str /= 'single' .and. value_str /= 'beam') then
     call out_io (s_error$, r_name, 'BAD VALUE. MUST BE "single" OR "beam".')
@@ -1166,8 +1168,7 @@ case ('ix_ele_ref')
                                 this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
 
 case ('ix_universe')
-  call tao_set_integer_value (this_curve%ix_universe, component, &
-                                            value_str, error, -2, ubound(s%u, 1))
+  call tao_set_integer_value (this_curve%ix_universe, component, value_str, error, -2, ubound(s%u, 1))
   if (error) return
   call tao_locate_elements (this_curve%ele_ref_name, tao_curve_ix_uni(this_curve), eles, error, ignore_blank = .true.)
   if (size(eles) == 0) return
@@ -1177,13 +1178,12 @@ case ('ix_universe')
                                      this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
 
 case ('ix_branch') 
-  call tao_set_integer_value (this_curve%ix_branch, component, value_str, error)
+  call tao_set_integer_value (this_curve%ix_branch, component, value_str, error, 0, ubound(s%u(i_uni)%model%lat%branch, 1))
 
 case ('ix_bunch')
   u => tao_pointer_to_universe (tao_curve_ix_uni(this_curve))
   if (.not. associated(u)) return
-  call tao_set_integer_value (this_curve%ix_bunch, component, &
-                        value_str, error, -1, u%beam%beam_init%n_bunch)
+  call tao_set_integer_value (this_curve%ix_bunch, component, value_str, error, -1, u%beam%beam_init%n_bunch)
 
 case ('symbol_every')
   call tao_set_integer_value (this_curve%symbol_every, component, value_str, error, 0, 1000000)
@@ -1501,6 +1501,8 @@ case ('floor_plan_size_is_absolute')
   call tao_set_logical_value(this_graph%floor_plan_size_is_absolute, component, value, error)
 case ('floor_plan_draw_only_first_pass')
   call tao_set_logical_value(this_graph%floor_plan_draw_only_first_pass, component, value, error)
+case ('floor_plan_flip_label_side')
+  call tao_set_logical_value(this_graph%floor_plan_flip_label_side, component, value, error)
 case ('floor_plan_rotation')
   call tao_set_real_value(this_graph%floor_plan_rotation, component, value, error, dflt_uni = this_graph%ix_universe)
 case ('floor_plan_orbit_scale')

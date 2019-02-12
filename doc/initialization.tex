@@ -442,6 +442,7 @@ type tao_global_struct
   logical svd_retreat_on_merit_increase = T    
   logical var_limits_on = T             ! Respect the variable limits?
   logical only_limit_opt_vars = F       ! Apply limits only if variable is used in optimization?
+  logical silent_run = F                ! Suppress terminal output when running a command file?
   logical single_step = F               ! Single step through a command file?
   logical stop_on_error = T             ! For debugging: True -> Tao will not exiting on an error.
   logical optimizer_allow_user_abort = T ! See below.
@@ -540,9 +541,16 @@ The rf cavities in circular lattices can be be toggled on or off using the
 \vn{global%rf_on} switch. The default is False. Notice that with the RF off, the beam
 energy will be independent of the closed orbit which is not the case when the RF is on.
 
+  \item{\vn{global%silent_run}} \Newline
+For use with command files. If set True, output to the terminal during command file running will be
+suppressed (except for warning and error messages) until the command file (or files) returns to the
+command line level at wich point \vn{global%silent_run} is automatically reset to False. That is,
+\vn{global%silent_run} must be set to True each time it is desired to run a command file(s)
+silently.
+
   \item{\vn{global%single_step}} \Newline
 For use with command files. If set True, this is equivalent to putting a "pause -1" after
-each line in a command file. Useful for debugging.
+each line in a command file. Useful for debugging or for talk demonstrations. 
 
   \item{\vn{global%track_type}} \Newline
 The setting of the \vn{global%track_type} parameter can be
@@ -760,7 +768,7 @@ is set, the \vn{beam_init} component is ignored and the initial particle distrib
 from the file. This is documented in the \bmad manual in the \vn{Beam Initialization} chapter.
 Note: When the particle coordinates are read in from the \vn{beam_position0_file}, the centroid will be
 shifted by the setting of \vn{beam_init%center}.  To vary the centroid of the beam on the \tao
-command line, the \vn{set beam_init%center} command (\sref{s:set}) can be used.
+command line, the \vn{set beam_init center} command (\sref{s:set}) can be used.
 
 \vn{ix_universe} refers to the universe index.  See the \bmad documentation on the
 \vn{beam_init_struct} for what the \vn{beam_init} parameters refer to. The charge per particle is
@@ -1741,7 +1749,7 @@ namelists should be placed directly after their respective
 \index{graph!type}\index{graph!box}\index{graph!title}\index{graph!margin}
 \index{graph!y2}\index{graph!n_curve}\index{graph!clip}\index{graph!component}
 \index{graph!symbol_size_scale}
-\index{graph!floor_plan_rotation}
+\index{graph!floor_plan_rotation}\index{graph!floor_plan_flip_label_side}
 \index{graph!floor_plan_view}
 \index{curve!data_type}\index{curve!data_source}
 \index{curve!x_axis_units_factor}\index{curve!y_axis_units_factor}
@@ -1774,6 +1782,7 @@ namelists should be placed directly after their respective
     graph%floor_plan_view        = <string>    ! View plane for floor plan plot. default = 'zx'
     graph%floor_plan_orbit_scale = <real>      ! Scale for drawing orbits. Default: 0 -> Do not draw.
     graph%floor_plan_orbit_color = <string>    ! Color of orbit. Default = 'RED'
+    graph%floor_plan_flip_label_side      = <logical> ! Draw element label on other side of element?
     graph%floor_plan_size_is_absolute     = <logical> ! Shape sizes scaled to absolute dimensions?
     graph%floor_plan_draw_only_first_pass = <logical> ! Draw only first pass with multipass elements?
     graph%draw_only_good_user_data_or_vars     ! Veto data or variables with good_user = F?
@@ -2244,9 +2253,14 @@ An overall rotation of the floor plan can be controlled by setting
 rotations. Example: (\sref{s:init.plot})
 \begin{example}
   &tao_plot_page
+    ...
     graph%floor_plan_rotation = 0.5  ! Rotate 180 degrees
   /
 \end{example}
+
+If element labels are to be drawn, on which side the labels are drawn can be flipped by setting 
+\vn{graph%floor_plan_flip_label_side} to True.
+
 
 The beam orbit can be drawn upon the floor plan. This is done by setting
 \vn{graph%floor_plan_orbit_scale} to something nonzero. A value of zero suppresses the
@@ -2342,11 +2356,11 @@ For Example:
     ele_shape(1) = "quadrupole::q*"         "box"      "red"     0.75  "name"  
     ele_shape(2) = "quadrupole::*"          "xbox"     "red"     0.75  "none" 
     ele_shape(3) = "sbend::sb*"             "box"      "blue"    0.37  "none"
-    ele_shape(3) = "sbend::*"               "box"      "blue"    0.37  "none"  
-    ele_shape(4) = "wiggler::*"             "xbox"     "green"   0.50  "name"
-    ele_shape(5) = "var::quad_k1"           "circle"   "purple"  0.25  "name"
-    ele_shape(6) = "data::orbit.x|design"   "vvar_box" "orange"  0.25  "name"
-    ele_shape(7) = "wall::building"         "-"        "black"    0    "-"
+    ele_shape(4) = "sbend::*"               "box"      "blue"    0.37  "none"  
+    ele_shape(5) = "wiggler::*"             "xbox"     "green"   0.50  "name"
+    ele_shape(6) = "var::quad_k1"           "circle"   "purple"  0.25  "name"
+    ele_shape(7) = "data::orbit.x|design"   "vvar_box" "orange"  0.25  "name"
+    ele_shape(8) = "wall::building"         "-"        "black"    0    "-"
     ele_shape(3)%multi = T
     ele_shape(5:6)%line_width = 5, 6
   /
