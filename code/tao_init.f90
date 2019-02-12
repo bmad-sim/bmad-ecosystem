@@ -190,7 +190,7 @@ do i = 1, s%n_var_used
                 '       VARIABLE:  ' // tao_var1_name(var), &
                 '       ELEMENT:   ' // var%ele_name, &
                 '       ATTRIBUTE: ' // var%attrib_name)
-      if (s%global%stop_on_error) call err_exit
+      var%exists = .false.
     endif
   enddo
 enddo

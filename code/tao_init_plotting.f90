@@ -542,6 +542,7 @@ do  ! Loop over plot files
       grph%draw_curve_legend                = graph%draw_curve_legend
       grph%floor_plan_view                  = graph%floor_plan_view
       grph%floor_plan_orbit_color           = graph%floor_plan_orbit_color
+      grph%floor_plan_flip_label_side       = graph%floor_plan_flip_label_side
       grph%floor_plan_rotation              = graph%floor_plan_rotation
       grph%floor_plan_orbit_scale           = graph%floor_plan_orbit_scale
       grph%floor_plan_size_is_absolute      = graph%floor_plan_size_is_absolute
@@ -568,14 +569,11 @@ do  ! Loop over plot files
       if (.not. s%com%common_lattice .and. grph%ix_universe == 0) then
         call out_io (s_error$, r_name, [&
             '**********************************************************', &
-            '**********************************************************', &
-            '**********************************************************', &
             '***** SYNTAX CHANGE: GRAPH%IX_UNIVERSE = 0           *****', &
             '***** NEEDS TO BE CHANGED TO: GRAPH%IX_UNIVERSE = -1 *****', &
-            '**********************************************************', &
-            '**********************************************************', &
             '**********************************************************'] )
         grph%ix_universe = -1
+        stop
       endif
 
       if (grph%ix_universe < -2 .or. grph%ix_universe > ubound(s%u, 1)) then
@@ -653,17 +651,14 @@ do  ! Loop over plot files
         if (.not. curve(j)%draw_interpolated_curve) then
           call out_io (s_error$, r_name, [&
             '**********************************************************', &
-            '**********************************************************', &
-            '**********************************************************', &
             '***** SYNTAX CHANGE:                                 *****', &
             '*****         CURVE%DRAW_INTERPOLATED_CURVE          *****', &
             '***** NEEDS TO BE CHANGED TO:                        *****', &
             '*****         CURVE%SMOOTH_LINE_CALC                 *****', &
             '***** TAO WILL RUN NORMALLY FOR NOW...               *****', &
-            '**********************************************************', &
-            '**********************************************************', &
             '**********************************************************'] )
           crv%smooth_line_calc = .false.
+          stop
         endif
 
         ! Convert old syntax to new
@@ -716,14 +711,11 @@ do  ! Loop over plot files
         if (.not. s%com%common_lattice .and. crv%ix_universe == 0) then
           call out_io (s_error$, r_name, [&
             '**********************************************************', &
-            '**********************************************************', &
-            '**********************************************************', &
             '***** SYNTAX CHANGE: CURVE%IX_UNIVERSE = 0           *****', &
             '***** NEEDS TO BE CHANGED TO: CURVE%IX_UNIVERSE = -1 *****', &
-            '**********************************************************', &
-            '**********************************************************', &
             '**********************************************************'] )
           crv%ix_universe = -1
+          stop
         endif
 
 
