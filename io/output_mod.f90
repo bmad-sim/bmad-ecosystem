@@ -24,9 +24,12 @@ integer, parameter :: s_important$ = 10 ! An important message.
 
 ! Where to direct output as a function of message status flag index.
 
-type out_io_mod_com_struct
+type out_io_output_direct_struct
   logical :: print_and_capture(-1:10) = .true.
   integer :: file_unit(-1:10) = -1
+end type
+
+type out_io_mod_com_struct
   integer :: indent_num(-1:10) = [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
   logical :: print_on = .true.
   logical :: capture_lines_null_terminated = .true.
@@ -36,6 +39,7 @@ type out_io_mod_com_struct
 end type
 
 type (out_io_mod_com_struct), save, private :: out_io_com
+type (out_io_output_direct_struct), save, private :: out_io_direct
 
 private out_io_line6, out_io_int, out_io_real, out_io_logical
 private header_io, find_format, out_io_lines, insert_numbers, out_io_line_out
@@ -135,7 +139,7 @@ contains
 !
 ! Once set for a given status level, the settings remain until the next call to 
 ! output_direct that cover the same status level.
-! 
+!
 ! Modules needed:
 !   use output_mod
 !
@@ -161,8 +165,8 @@ integer i
 !
 
 do i = integer_option(s_blank$, min_level), integer_option(s_important$, max_level)
-  if (present(print_and_capture)) out_io_com%print_and_capture(i) = print_and_capture
-  if (present(file_unit))           out_io_com%file_unit(i)  = file_unit
+  if (present(print_and_capture)) out_io_direct%print_and_capture(i) = print_and_capture
+  if (present(file_unit))         out_io_direct%file_unit(i)  = file_unit
 enddo
 
 end subroutine output_direct
@@ -201,15 +205,15 @@ if (logic_option(.true., indent)) line_out = blank(1:out_io_com%indent_num(level
 
 ! Output to file
 
-if (out_io_com%file_unit(level) > -1) write (out_io_com%file_unit(level), '(a)') trim(line_out)
+if (out_io_direct%file_unit(level) > -1) write (out_io_direct%file_unit(level), '(a)') trim(line_out)
 
 ! Output to terminal
 
-if (out_io_com%print_and_capture(level) .and. out_io_com%print_on) write (*, '(a)') trim(line_out)
+if (out_io_direct%print_and_capture(level) .and. out_io_com%print_on) write (*, '(a)') trim(line_out)
 
 ! Output for program capture
 
-if (out_io_com%print_and_capture(level) .and. out_io_com%capture_state == 'BUFFERED') then
+if (out_io_direct%print_and_capture(level) .and. out_io_com%capture_state == 'BUFFERED') then
   if (out_io_com%capture_lines_null_terminated) line_out = trim(line_out) // char(0)
   out_io_com%n_buffer_lines = out_io_com%n_buffer_lines + 1
   if (.not. allocated(out_io_com%buffer)) allocate (out_io_com%buffer(20))
@@ -217,7 +221,7 @@ if (out_io_com%print_and_capture(level) .and. out_io_com%capture_state == 'BUFFE
   out_io_com%buffer(out_io_com%n_buffer_lines) = line_out
 endif
 
-if (out_io_com%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') then
+if (out_io_direct%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') then
   if (out_io_com%capture_lines_null_terminated) line_out = trim(line_out) // char(0)
   call out_io_line(trim(line_out))
 endif
@@ -262,7 +266,7 @@ else
   call out_io_line_out (line, level, logic_option(.true., insert_tag_line))
 endif
 
-if (out_io_com%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
+if (out_io_direct%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
 
 end subroutine out_io_real
 
@@ -304,7 +308,7 @@ else
   call out_io_line_out(line, level, logic_option(.true., insert_tag_line))
 endif
 
-if (out_io_com%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
+if (out_io_direct%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
 
 end subroutine out_io_int
 
@@ -346,7 +350,7 @@ else
   call out_io_line_out(line, level, logic_option(.true., insert_tag_line))
 endif
 
-if (out_io_com%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
+if (out_io_direct%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
 
 end subroutine out_io_logical
 
@@ -391,7 +395,7 @@ if (present(line4)) call insert_numbers (level, fmt, nr, ni, nl, line4, r_array,
 if (present(line5)) call insert_numbers (level, fmt, nr, ni, nl, line5, r_array, i_array, l_array, insert_tag_line)
 if (present(line6)) call insert_numbers (level, fmt, nr, ni, nl, line6, r_array, i_array, l_array, insert_tag_line)
 
-if (out_io_com%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
+if (out_io_direct%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
 
 end subroutine
 
@@ -430,7 +434,7 @@ do i = 1, size(lines)
   call insert_numbers (level, fmt, nr, ni, nl, lines(i), r_array, i_array, l_array, insert_tag_line)
 enddo
 
-if (out_io_com%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
+if (out_io_direct%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
 
 end subroutine out_io_lines
 
@@ -639,7 +643,7 @@ logical, optional :: insert_tag_line
 
 ! call out_io_called if wanted
 
-if (out_io_com%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') then
+if (out_io_direct%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') then
   if (out_io_com%capture_lines_null_terminated) then
     call out_io_called(level, trim(routine_name) // char(0))
   else
