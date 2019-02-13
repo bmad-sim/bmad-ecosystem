@@ -35,7 +35,6 @@ the plot page) is broken up.
   region(9)%name = 'r00'
   region(9)%location = 0.0, 1.0, 0.0, 1.0
 
-
   ! 2-plot layout
   region(10)%name = 'top2'
   region(10)%location = 0.0, 1.0, 0.5, .95
@@ -43,13 +42,8 @@ the plot page) is broken up.
   region(11)%name = 'middle2'
   region(11)%location = 0.0, 1.0, 0.1, 0.45
 
-
-
-  place(1) = 'r00', 'zphase'
-
+  place(1) = 'r00', 'floor'
 /
-
-
 
 !------------------ layout ------
 &tao_template_plot
