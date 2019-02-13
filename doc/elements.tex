@@ -166,7 +166,7 @@ Attributes specific to a \vn{ac_kicker} element are:
   t_offset   = <Real>                                      ! Time offset of field waveform.
   amp_vs_time = \{(<t1>, <A1>), (<t2>, <A2>), ...\}          ! Field amplitude vs Time.
   frequencies = \{(<f1>, <A1>, <phi1>), (<f2>, <A2>, <phi2>), ...\} ! Frequency components.
-  integration = <switch>                                   ! linear or spline (default).
+  interpolation = <switch>                                   ! linear or spline (default).
 \end{example}
 Note: The units of the phases \vn{phi} with the \vn{frequencies} attribute are \vn{radians/2pi}.
 
@@ -191,7 +191,7 @@ order and no two times may be the same. The method used to interpolate between t
 determined by the setting of the \vn{interpolate} paramter which may be one of
 \begin{example}
   linear      ! Linear interpolation.
-  spline      ! Cubic spline interpolation.
+  spline      ! Cubic spline interpolation (default).
 \end{example}
 For times before of the range specified by \vn{amp_vs_time}, the amplitude is taken to be the
 amplitude of the first point of the range. Similarly, for times after the the range specified by

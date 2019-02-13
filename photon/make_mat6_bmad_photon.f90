@@ -1,7 +1,7 @@
 !+
 ! Subroutine make_mat6_bmad_photon (ele, param, start_orb, end_orb, err)
 !
-! Subroutine to make the 6x6 transfer matrix for an element. 
+! Subroutine to make the 6x6 transfer matrix for a photon.
 !
 ! Input:
 !   ele       -- Ele_struct: Element with transfer matrix

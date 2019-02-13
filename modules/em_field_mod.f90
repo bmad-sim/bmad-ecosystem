@@ -1427,11 +1427,7 @@ end select
 
 if (ele%key == ac_kicker$) then
 
-  if (present(rf_time)) then
-    a_amp = ac_kicker_amp (ele, rf_time)
-  else
-    a_amp = ac_kicker_amp (ele, particle_rf_time(orbit, ele, .true., s_body))
-  endif
+  a_amp = ac_kicker_amp (ele, orbit%t)
 
   field%E = a_amp * field%E
   field%B = a_amp * field%B
