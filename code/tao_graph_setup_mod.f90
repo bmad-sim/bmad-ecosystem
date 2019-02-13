@@ -361,18 +361,28 @@ do k = 1, size(graph%curve)
     beam => u%uni_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%beam
     ele => u%model%lat%branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)
     if (.not. allocated(beam%bunch)) then
-      call out_io (s_abort$, r_name, 'NO ALLOCATED BEAM WITH PHASE_SPACE PLOTTING.')
+      call out_io (s_abort$, r_name, 'NO BEAM AT ELEMENT: ' // trim(ele%name), &
+                    'CANNOT DO PHASE_SPACE PLOTTING FOR CURVE: ' // tao_curve_name(curve))
       if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')
+      curve%g%why_invalid = 'NO BEAM AT ELEMENT'
       return
     endif
 
     if (curve%ix_bunch == 0) then
       n = 0
-      do ib = 1,  size(beam%bunch)
+      do ib = 1, size(beam%bunch)
         n = n + count(beam%bunch(ib)%particle%state == alive$)
       enddo
     else
       n = count(beam%bunch(curve%ix_bunch)%particle%state == alive$)
+    endif
+
+    if (n == 0) then
+      call out_io (s_abort$, r_name, 'NO LIVE BEAM PARTICLES PRESENT AT ELEMENT: ' // trim(ele%name), &
+                    'CANNOT DO PHASE_SPACE PLOTTING FOR CURVE: ' // tao_curve_name(curve))
+      if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')
+      curve%g%why_invalid = 'NO LIVE BEAM PARTICLES PRESENT'
+      return
     endif
 
     call re_allocate (curve%ix_symb, n)
@@ -421,13 +431,13 @@ do k = 1, size(graph%curve)
     if (.not. associated(d1_x)) then
       call out_io (s_error$, r_name, &
               'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // curve%data_type_x, &
-              'FOR CURVE: ' // curve%name)
+              'FOR CURVE: ' // tao_curve_name(curve))
       return
     endif
     if (.not. associated(d1_y)) then
       call out_io (s_error$, r_name, &
               'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // curve%data_type, &
-              'FOR CURVE: ' // curve%name)
+              'FOR CURVE: ' // tao_curve_name(curve))
       return
     endif
 
@@ -435,7 +445,7 @@ do k = 1, size(graph%curve)
                                         ubound(d1_x%d, 1) /= ubound(d1_y%d, 1)) then 
       call out_io (s_error$, r_name, &
               'BOUNDS FOR X-AXIS AND Y-AXIS DATA OF PHASE SPACE PLOTTING MISMATCHED.', &
-              'FOR CURVE: ' // curve%name)
+              'FOR CURVE: ' // tao_curve_name(curve))
       return
     endif
 
@@ -507,7 +517,7 @@ do k = 1, size(graph%curve)
   else
     call out_io (s_abort$, r_name, &
         'INVALID CURVE%DATA_SOURCE: ' // curve%data_source, &
-        'FOR CURVE: '// curve%name)
+        'FOR CURVE: '// tao_curve_name(curve))
     return
   endif
 
@@ -913,7 +923,7 @@ do k = 1, size(graph%curve)
     if (.not. associated(d1)) then
       call out_io (s_error$, r_name, &
               'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // curve%data_type, &
-              'FOR CURVE: ' // curve%name)
+              'FOR CURVE: ' // tao_curve_name(curve))
       return
     endif
 
@@ -925,7 +935,7 @@ do k = 1, size(graph%curve)
   else
     call out_io (s_abort$, r_name, &
         'INVALID CURVE%DATA_SOURCE: ' // curve%data_source, &
-        'FOR CURVE: '// curve%name)
+        'FOR CURVE: '// tao_curve_name(curve))
     return
   endif
 
