@@ -142,10 +142,9 @@ namelist contains the variables:
     init_name          = "<init_name>"  ! Default = "Tao"
   /
 \end{example}
-Rule: A file name obtained from the \tao root initialization file (as opposed to
-being present on the command line) is always relative to the directory
-that the \tao root initialization file lives in. Example: If \tao is started from
-the system command line like:
+Rule: A file name obtained from the \tao root initialization file (as opposed to being present on
+the command line) is always relative to the directory that the \tao root initialization file lives
+in. Example: If \tao is started from the system command line like:
 \begin{example}
     tao -data data.cl -init ../tao.init
 \end{example}
@@ -164,22 +163,18 @@ Then, relative to the current working directory, the files used will be
   var_file:  "/nfs/var.in"  ! Absolute paths are never modified.
 \end{example}
 
-\vn{init_name} is for naming the initialization. This is useful to
-distinguish between multiple initialization files with custom versions
-of \tao. The other parameters specify which files to find the other
-initialization namelists. The \vn{plot_file} variable can be an array
-of plot files. 
+\vn{init_name} is for naming the initialization. This is useful to distinguish between multiple
+initialization files with custom versions of \tao. The other parameters specify which files to find
+the other initialization namelists. The \vn{plot_file} variable can be an array of plot files.
 
 \tao will open an execute a command file (\sref{s:command.files}) at startup if it exists.  The
 default name is \vn{tao.startup} but this name can be changed by setting the \vn{startup_file}
 component in the \vn{tao_start} namelist.
 
-The following sections describe each of these initialization namelists
-and their locations are listed in table~\ref{t:init.files}. Note: If
-\vn{plot_file} specifies multiple files, the \vn{tao_plot_page},
-\vn{lat_layout_drawing} and \vn{floor_plan_drawing}
-namelists are taken from the first file on the list. All files,
-however, can contain \vn{tao_template_plot} and
+The following sections describe each of these initialization namelists and their locations are
+listed in table~\ref{t:init.files}. Note: If \vn{plot_file} specifies multiple files, the
+\vn{tao_plot_page}, \vn{lat_layout_drawing} and \vn{floor_plan_drawing} namelists are taken from the
+first file on the list. All files, however, can contain \vn{tao_template_plot} and
 \vn{tao_template_graph} namelists.
 
 \index{tao_design_lattice}\index{tao_params}
@@ -213,7 +208,7 @@ however, can contain \vn{tao_template_plot} and
 \section{Lattice Initialization}\index{initialization!lattice}
 \label{s:init.lat} 
 
-In the \vn{tao_start} namelist (\sref{s:init.global}, the \vn{lattice_file} variable gives the name
+In the \vn{tao_start} namelist (\sref{s:init.global}), the \vn{lattice_file} variable gives the name
 of the file that contains the \vn{tao_design_lattice} namelist. The default, if \vn{lattice_file} is
 not present is to look in the \tao root initialization file. The \vn{tao_design_lattice} namelist
 defines where the lattice input files are. The variables that are set in the \vn{tao_design_lattice}
@@ -234,11 +229,9 @@ namelist are:
   /
 \end{example}
 
-\vn{n_universes} is the number of universes to be created not counting
-the possible common universe created when using \vn{CBL} analysis. The
-default is 1.  \vn{design_lattice(i)} gives the lattice file name for
-universe \vn{i}.  
-The syntax for \vn{<lattice_file>} is:
+\vn{n_universes} is the number of universes to be created not counting the possible common universe
+created when using \vn{CBL} analysis. The default is 1.  \vn{design_lattice(i)} gives the lattice
+file name for universe \vn{i}.  The syntax for \vn{<lattice_file>} is:
 \begin{example}
   \{<parser>::\}<lattice_file>\{@<use_line>\}
 \end{example}
