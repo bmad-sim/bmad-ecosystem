@@ -1419,6 +1419,7 @@ For rings, the dynamic aperture can be calculated if \vn{tao_dynamic_aperture} i
 
 \begin{example}
   &tao_dynamic_aperture
+   da_init(ix_uni)%ix_branch = 1         ! Lattice branch to use. 0 = default value.
    da_init(ix_uni)%pz = 0, 0.01, ...     ! List of particle energies to use
    da_init(ix_uni)%n_angle = 64          ! Number of angles in scan of each energy
    da_init(ix_uni)%min_angle = 0         ! Starting scan angle.
