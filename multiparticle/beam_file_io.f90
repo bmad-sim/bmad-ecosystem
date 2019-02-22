@@ -33,6 +33,7 @@ integer j, iu, ib, ip
 integer, optional :: file_format
 
 character(*) file_name
+character(200) full_name
 character(*), parameter :: r_name = 'write_beam_file'
 
 logical, optional :: new_file
@@ -40,20 +41,21 @@ logical, optional :: new_file
 !
 
 iu = lunget()
+call fullfilename (file_name, full_name)
 
 if (integer_option(hdf5$, file_format) == binary$) then
   if (logic_option(.true., new_file)) then
-    open (iu, file = file_name, form = 'unformatted')
+    open (iu, file = full_name, form = 'unformatted')
     write (iu) '!BIN::3'
   else
-    open (iu, file = file_name, form = 'unformatted', access = 'append')
+    open (iu, file = full_name, form = 'unformatted', access = 'append')
   endif
 elseif (integer_option(hdf5$, file_format) == ascii$) then
   if (logic_option(.true., new_file)) then
-    open (iu, file = file_name)
+    open (iu, file = full_name)
     write (iu, '(a)') '!ASCII::3'
   else
-    open (iu, file = file_name, access = 'append')
+    open (iu, file = full_name, access = 'append')
   endif
 else
   call out_io (s_fatal$, r_name, 'HDF5 FORMAT NOT YET SUPPORTED!')
@@ -139,18 +141,25 @@ real(rp) vec(6), sum_charge, bunch_charge
 complex(rp) spinor(2)
 
 character(*) file_name
+character(200) full_name
 character(300) line, line_in
 character(8) file_type
-character(16) :: r_name = 'read_beam_file'
+character(*), parameter :: r_name = 'read_beam_file'
 
-logical err_flag, error, in_parens, set_from_beam_init
+logical err_flag, error, in_parens, set_from_beam_init, valid
 
 ! Open file and determine whether the file is binary or ascii
 
 err_flag = .true.
 
 iu = lunget()
-open (iu, file = file_name, status = 'old', iostat = ios)
+call fullfilename(file_name, full_name, valid)
+if (.not. valid) then
+  call out_io (s_error$, r_name, 'NOT A VALID FILE NAME:' // file_name)
+  return
+endif
+
+open (iu, file = full_name, status = 'old', iostat = ios)
 if (ios /= 0) then
   call out_io (s_error$, r_name, 'CANNOT OPEN BEAM FILE!')
   return
@@ -173,7 +182,7 @@ endif
 
 if (file_type(1:3) == 'BIN') then
   close (iu)
-  open (iu, file = file_name, form = 'unformatted', status = 'old')
+  open (iu, file = full_name, form = 'unformatted', status = 'old')
 endif
 
 ! Read header info
@@ -290,6 +299,7 @@ do i = 1, n_bunch
         if (.not. remove_first_number (line, ix_word, '', in_parens)) return
       enddo
 
+      if (ix_word == 0) goto 8000
       read (line, *, iostat = ios) p(j)%charge
       if (ios /= 0 .or. ix_word == 0) then
         call this_error_out ('ERROR READING PARTICLE CHARGE', 'IN LINE: ' // trim(line_in))
