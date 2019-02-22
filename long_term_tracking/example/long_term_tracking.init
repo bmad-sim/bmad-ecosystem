@@ -12,7 +12,7 @@
   tracking_data_file = 'snap.dat'
   one_tracking_data_file = F
   output_every_n_turns = 20
-  include_initial_position = F
+  output_initial_position = F
 
   bmad_com%spin_tracking_on = T         ! See Bmad manual for bmad_com parameters.
   bmad_com%radiation_damping_on = F
