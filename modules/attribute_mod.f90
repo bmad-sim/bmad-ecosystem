@@ -2527,7 +2527,7 @@ subroutine set_custom_attribute_name (custom_name, err_flag, custom_index)
 implicit none
 
 integer, optional :: custom_index
-integer i, ix, ix_custom, key, ix_check
+integer i, ix, ix_custom, key, ix_key
 character(*) custom_name
 character(40) custom_str, a_str
 character(*), parameter :: r_name = 'set_custom_attribute_name'
@@ -2572,10 +2572,10 @@ if (ix_custom < 0 .or. ix_custom > custom_attribute_num$) then
 endif
 
 if (ix_custom == 0) then
-  ix_check = key
-  if (ix_check == 0) ix_check = null_ele$
+  ix_key = key
+  if (ix_key == 0) ix_key = null_ele$
   do i = 1, custom_attribute_num$
-    if (attribute_name(key, ix_custom) /= null_name$) cycle
+    if (attribute_name(ix_key, i+custom_attribute0$) /= null_name$) cycle
     call set_it (i)
     return
   enddo
