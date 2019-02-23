@@ -473,7 +473,7 @@ case ('beam')
     endif
 
 
-    nl=nl+1; lines(nl) = 'Cashed bunch parameters:'
+    nl=nl+1; lines(nl) = 'Cached bunch parameters:'
     nl=nl+1; write(lines(nl), imt)  '  Parameters for bunch:       ', n
     nl=nl+1; write(lines(nl), imt)  '  Particles surviving:        ', n_live
     nl=nl+1; write(lines(nl), imt)  '  Particles lost:             ', n_tot - n_live

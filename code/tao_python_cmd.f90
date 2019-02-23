@@ -254,8 +254,6 @@ case ('bunch1')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
-  print *, 'which: ', which
-  print *, 'who: ', who
   ele => point_to_ele(line, err); if (err) return
   beam => u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
   ! 
@@ -2010,7 +2008,6 @@ type (bunch_struct), pointer :: bunch
 character(20) coordinate
 integer :: i_vec
 
-print *, 'coord_out: ', coordinate
 if (.not. allocated(beam%bunch)) then
     print *, 'no beam'
     return
