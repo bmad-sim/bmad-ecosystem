@@ -18,14 +18,15 @@ use tao_interface, dummy => tao_call_cmd
 
 implicit none
 
+type (tao_command_file_struct), allocatable :: tmp_cmd_file(:)
 
 character(*) file_name
 character(*), optional :: cmd_arg(:)
-character(200) full_name
+character(200) full_name, basename
 character(*), parameter :: r_name = 'tao_call_cmd'
 
-integer iu, nl, nl0
-type (tao_command_file_struct), allocatable :: tmp_cmd_file(:)
+integer iu, nl, nl0, ix
+logical err, is_relative, valid
 
 ! PTC call
 
@@ -59,15 +60,28 @@ endif
 
 !
 
+call fullfilename (file_name, full_name, valid)
+ix = splitfilename (full_name, s%com%cmd_file(nl)%dir, basename, is_relative)
+if (is_relative) then
+  call append_subdirectory (s%com%cmd_file(nl0)%dir, s%com%cmd_file(nl)%dir, s%com%cmd_file(nl)%dir, err)
+  if (err) then
+    s%com%cmd_file_level = nl0
+    call tao_abort_command_file()
+    return
+  endif
+  call append_subdirectory (s%com%cmd_file(nl0)%dir, full_name, full_name, err)
+endif
+
 iu = lunget()
-call tao_open_file (file_name, iu, full_name, s_error$)
+call tao_open_file (full_name, iu, full_name, s_error$)
 if (iu == 0) then ! open failed
   s%com%cmd_file_level = nl0
+  call tao_abort_command_file()
   return
 endif
 
 s%com%cmd_file(nl)%ix_unit = iu
-s%com%cmd_file(nl)%name = file_name
+s%com%cmd_file(nl)%full_name = full_name
 
 ! Save command arguments.
 
