@@ -605,7 +605,8 @@ type tao_alias_struct
 end type
 
 type tao_command_file_struct
-  character(200) name
+  character(200) :: full_name = ''
+  character(200) :: dir = './'
   integer :: ix_unit
   character(40) cmd_arg(9)          ! Command file arguments.
   logical :: paused = .false.       ! Is the command file paused?

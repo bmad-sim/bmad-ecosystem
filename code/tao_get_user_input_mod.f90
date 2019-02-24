@@ -153,7 +153,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
     do
       read (s%com%cmd_file(n_level)%ix_unit, '(a)', end = 8000, iostat = ios) cmd_out
       if (ios /= 0) then
-        call out_io (s_error$, r_name, 'CANNOT READ LINE FROM FILE: ' // s%com%cmd_file(n_level)%name)
+        call out_io (s_error$, r_name, 'CANNOT READ LINE FROM FILE: ' // s%com%cmd_file(n_level)%full_name)
         goto 8000
       endif
 
