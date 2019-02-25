@@ -917,7 +917,7 @@ case ('lat_list')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, who = all_who); if (err) return
-  use_real_array_buffer = (who(1:5) == 'real:')
+  use_real_array_buffer = (all_who(1:5) == 'real:')
   if (use_real_array_buffer) then
     all_who = all_who(6:)
     call re_allocate(re_array, 1000)
