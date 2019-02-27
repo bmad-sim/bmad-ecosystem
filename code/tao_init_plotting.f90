@@ -54,7 +54,8 @@ integer graph_index, color, i_graph, ic
 
 character(*) plot_file_in
 character(len(plot_file_in)) plot_file_array
-character(100) plot_file, graph_name, full_file_name
+character(100) plot_file, full_file_name
+character(100) graph_name
 character(80) label
 character(40) str
 character(*), parameter :: r_name = 'tao_init_plotting'
