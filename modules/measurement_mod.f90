@@ -20,33 +20,44 @@ contains
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine check_if_ele_is_monitor (ele, err)
+! Function ele_is_monitor (ele, print_warning) result (is_monitor)
 !
-! Routine to check that the element is either an instrument, monitor, or marker.
-! This routine is private and not meant for general use.
+! Routine to check that an element is either a detector, instrument, monitor, or marker. 
+! These are the elements where measurement errors can be defined.
+!
+! Input:
+!   ele           -- ele_struct: Lattice element.
+!   print_warning -- logical, optional: If True print a warning message if the
+!                     element not a monitor like element. Default is True.
+!
+! Output:
+!   is_monitor    -- logical: Set True if the element is a monitor like element.
 !-
 
-subroutine check_if_ele_is_monitor (ele, err)
+function ele_is_monitor (ele, print_warning) result (is_monitor)
 
 implicit none
 
 type (ele_struct) ele
-logical err
-character(40) :: r_name = 'check_if_ele_is_monitor'
+logical, optional :: print_warning
+logical is_monitor
+character(*), parameter :: r_name = 'ele_is_monitor'
 
 !
 
 select case (ele%key)
 case (monitor$, instrument$, marker$, detector$) 
-  err = .false.
+  is_monitor = .true.
 case default
-  call out_io (s_error$, r_name, &
+  if (logic_option(.true., print_warning)) then
+    call out_io (s_error$, r_name, &
                 'MONITOR CALCULATION CALLED FOR ELEMENT THAT IS NEITHER', &
                 'A MONITOR, INSTRUMENT, MARKER, NOR DETECTOR: ' // ele%name)
-  err = .true.
+  endif
+  is_monitor = .false.
 end select
 
-end subroutine check_if_ele_is_monitor
+end function ele_is_monitor
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -167,7 +178,7 @@ reading = 0.0
 
 err = .true.
 
-call check_if_ele_is_monitor (ele, error); if (error) return
+if (.not. ele_is_monitor(ele)) return
 if (.not. ele%is_on) return
 
 call compute_bpm_transformation_numbers (ele)
@@ -252,7 +263,7 @@ reading = 0.0
 err = .true.
 
 if (.not. ele%is_on) return
-call check_if_ele_is_monitor (ele, error); if (error) return
+if (.not. ele_is_monitor(ele)) return
 
 if (ele%value(noise$) /= 0) then
   if (ele%value(de_eta_meas$) == 0) then
@@ -339,7 +350,7 @@ reading%K_12b = 0
 err = .true.
 
 if (.not. ele%is_on) return
-call check_if_ele_is_monitor (ele, error); if (error) return
+if (.not. ele_is_monitor(ele)) return
 
 call compute_bpm_transformation_numbers (ele)
 
