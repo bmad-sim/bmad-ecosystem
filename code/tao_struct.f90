@@ -656,25 +656,25 @@ type tao_common_struct
   character(100) :: cmd                        ! Used for the cmd history
   character(16) :: init_name = 'Tao'           ! label for initialization          
   character(200) :: lat_file = ''              ! '-lat'         command line argument.
-  character(160) :: init_tao_file = 'tao.init' ! '-init'        command line argument.
+  character(200) :: init_tao_file = 'tao.init' ! '-init'        command line argument.
   character(200) :: init_tao_file_path = ''    ! Path part of init_tao_file
-  character(160) :: beam_file = ''             ! '-beam'          command line argument.
-  character(160) :: beam_all_file = ''         ! '-beam_all'      command line argument.
-  character(160) :: beam_position0_file  = ''  ! '-beam_position0'         command line argument.
-  character(160) :: data_file = ''             ! '-data'          command line argument.
-  character(160) :: plot_file = ''             ! '-plot'          command line argument.
-  character(160) :: startup_file = ''          ! '-startup'       command line argument.
-  character(160) :: var_file = ''              ! '-var'           command line argument.
-  character(160) :: building_wall_file = ''    ! '-building_wall' command line argument.
-  character(160) :: hook_init_file = ''        ! '-hook_init_file' command line argument
+  character(200) :: beam_file = ''             ! '-beam'          command line argument.
+  character(200) :: beam_all_file = ''         ! '-beam_all'      command line argument.
+  character(200) :: beam_position0_file  = ''  ! '-beam_position0'         command line argument.
+  character(200) :: data_file = ''             ! '-data'          command line argument.
+  character(200) :: plot_file = ''             ! '-plot'          command line argument.
+  character(200) :: startup_file = ''          ! '-startup'       command line argument.
+  character(200) :: var_file = ''              ! '-var'           command line argument.
+  character(200) :: building_wall_file = ''    ! '-building_wall' command line argument.
+  character(200) :: hook_init_file = ''        ! '-hook_init_file' command line argument
 
   character(200) :: hook_lat_file = ''           ! To be set by tao_hook_parse_command_args
-  character(160) :: hook_beam_file = ''          ! To be set by tao_hook_parse_command_args
-  character(160) :: hook_data_file = ''          ! To be set by tao_hook_parse_command_args
-  character(160) :: hook_plot_file = ''          ! To be set by tao_hook_parse_command_args
-  character(160) :: hook_startup_file = ''       ! To be set by tao_hook_parse_command_args
-  character(160) :: hook_var_file = ''           ! To be set by tao_hook_parse_command_args
-  character(160) :: hook_building_wall_file = '' ! To be set by tao_hook_parse_command_args
+  character(200) :: hook_beam_file = ''          ! To be set by tao_hook_parse_command_args
+  character(200) :: hook_data_file = ''          ! To be set by tao_hook_parse_command_args
+  character(200) :: hook_plot_file = ''          ! To be set by tao_hook_parse_command_args
+  character(200) :: hook_startup_file = ''       ! To be set by tao_hook_parse_command_args
+  character(200) :: hook_var_file = ''           ! To be set by tao_hook_parse_command_args
+  character(200) :: hook_building_wall_file = '' ! To be set by tao_hook_parse_command_args
   character(200) :: saved_cmd_line = ''          ! Saved part of command line when there are mulitple commands on a line
   character(16) :: plot_geometry = ''            ! '-geometry' command line argument.
   character(80) :: single_mode_buffer = ''
@@ -808,8 +808,8 @@ type tao_beam_struct
   integer :: ix_track_end = -1           ! Element end index of tracking
   logical :: init_position0 = .false.    ! Init beam
   character(40) :: track_start = '', track_end = ''
-  character(160) :: all_file = ''             ! Input beam data file for entire lattice.
-  character(160) :: position0_file    = ''    ! Input beam data file at the start of the lattice.
+  character(200) :: all_file = ''             ! Input beam data file for entire lattice.
+  character(200) :: position0_file    = ''    ! Input beam data file at the start of the lattice.
   character(160) saved_at
 end type
 

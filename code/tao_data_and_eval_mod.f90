@@ -368,7 +368,7 @@ recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid
 
 use ptc_interface_mod, only: taylor_inverse
 use twiss_and_track_mod, only: twiss_and_track_at_s
-use measurement_mod, only: to_orbit_reading, to_eta_reading
+use measurement_mod, only: to_orbit_reading, to_eta_reading, ele_is_monitor
 use geometry_mod, only: floor_angles_to_w_mat, floor_w_mat_to_angles
 
 type (tao_universe_struct), target :: u
@@ -423,6 +423,7 @@ character(40) head_data_type, sub_data_type, data_source, name, dflt_dat_index
 character(300) str
 
 logical found, valid_value, err, taylor_is_complex, use_real_part, compute_floor, term_found, term_cplx
+logical particle_lost
 logical, allocatable, save :: good(:)
 
 ! If does not exist
@@ -803,8 +804,36 @@ case ('bpm_orbit.')
   end select
 
   if (data_source == 'beam') goto 9000  ! Set error message and return
-  call to_orbit_reading (orbit(ix_ele), ele, which, datum_value, err)
-  valid_value = .not. (err .or. (tao_branch%track_state /= moving_forward$ .and. ix_ele > tao_branch%track_state))
+
+  valid_value = .true.
+  particle_lost = .false.
+
+  do i = ix_start, ix_ele
+    if (i /= ix_ele .and. .not. ele_is_monitor(branch%ele(i), .false.)) then
+      value_vec(i) = 0
+      cycle
+    endif
+    call to_orbit_reading (orbit(i), branch%ele(i), which, value_vec(i), err)
+    particle_lost = particle_lost .or. (tao_branch%track_state /= moving_forward$ .and. i > tao_branch%track_state)
+    valid_value = valid_value .and. .not. err
+  enddo
+
+  if (ix_ref > -1) then
+    call to_orbit_reading (orbit(ix_ref), branch%ele(ix_ref), which, value_vec(ix_ref), err)
+    particle_lost = particle_lost .or. (tao_branch%track_state /= moving_forward$ .and. ix_ref > tao_branch%track_state)
+    valid_value = valid_value .and. .not. err
+  endif
+
+  if (particle_lost) then
+    call tao_set_invalid (datum, 'CANNOT EVALUATE DUE TO PARTICLE LOSS', why_invalid, .true.)
+    return
+  elseif (.not. valid_value) then
+    call tao_set_invalid (datum, 'NO VALID MONITOR ELEMENT', why_invalid, .true.)
+    return
+  endif
+
+  call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+
 
 !-----------
 
