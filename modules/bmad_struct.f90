@@ -44,6 +44,7 @@ integer, parameter :: n_pole_maxx = 21  ! maximum multipole order
 
 integer, parameter :: old_control_var_offset$ = 1000  ! For indexing into ele%control%var(:) array
 integer, parameter :: var_offset$ = 2000              ! Important: var_offset$ > old_control_var_offset$
+integer, parameter :: n_var_max$ = 999                ! Maximum number of variables per controller.
 integer, parameter :: taylor_offset$ = 1000000000     ! Taylor term index offset.
 
 type expression_atom_struct
@@ -2077,14 +2078,14 @@ logical is_attrib
 
 select case (which)
 case (control_var$)
-  is_attrib = (ix_attrib > var_offset$ .and. ix_attrib < var_offset$+20)
+  is_attrib = (ix_attrib > var_offset$ .and. ix_attrib < var_offset$ + n_var_max$)
   
 case (old_control_var$)
-  is_attrib = (ix_attrib > old_control_var_offset$ .and. ix_attrib < old_control_var_offset$+20)
+  is_attrib = (ix_attrib > old_control_var_offset$ .and. ix_attrib < old_control_var_offset$ + n_var_max$)
 
 case (all_control_var$)
-  is_attrib = ((ix_attrib > var_offset$ .and. ix_attrib < var_offset$+20) .or. &
-               (ix_attrib > old_control_var_offset$ .and. ix_attrib < old_control_var_offset$+20))
+  is_attrib = ((ix_attrib > var_offset$ .and. ix_attrib < var_offset$ + n_var_max$) .or. &
+               (ix_attrib > old_control_var_offset$ .and. ix_attrib < old_control_var_offset$ + n_var_max$))
 
 case (multipole$)
   is_attrib = (ix_attrib >= k0l$ .and. ix_attrib <= t21$)
