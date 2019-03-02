@@ -461,6 +461,17 @@ subroutine query_string (query_str, upcase, return_str, ix, ios)
   logical upcase
 end subroutine
 
+function quote(str) result (q_str)
+  character(*) str
+  character(:), allocatable :: q_str
+end function
+
+function quoten(str, delim) result (q_str)
+  character(*) str(:)
+  character(*), optional :: delim
+  character(:), allocatable :: q_str
+end function
+
 function real_to_string (real_num, width, n_signif, n_decimal) result (str)
   import
   implicit none
