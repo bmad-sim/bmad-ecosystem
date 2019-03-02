@@ -355,7 +355,7 @@ type tao_data_struct
   real(rp) :: base_value = 0               ! The value as calculated from the base model.
   real(rp) :: delta_merit = 0              ! Diff used to calculate the merit function term 
   real(rp) :: weight = 0                   ! Weight for the merit function term.
-  real(rp) :: invalid_value = 0            ! Value used in merit calc if good_model = False.
+  real(rp) :: invalid_value = 0            ! Value used in merit calc if good_model = F (or possibly good_design & good_base).
   real(rp) :: merit = 0                    ! Merit function term value: weight * delta^2
   real(rp) :: s = real_garbage$            ! longitudinal position of ele.
   real(rp) :: s_offset = 0                 ! Offset of the evaluation point.
@@ -660,7 +660,7 @@ type tao_common_struct
   character(200) :: init_tao_file_path = ''    ! Path part of init_tao_file
   character(200) :: beam_file = ''             ! '-beam'          command line argument.
   character(200) :: beam_all_file = ''         ! '-beam_all'      command line argument.
-  character(200) :: beam_position0_file  = ''  ! '-beam_position0'         command line argument.
+  character(200) :: beam_init_file_name  = ''  ! '-beam_init_file_name' command line argument.
   character(200) :: data_file = ''             ! '-data'          command line argument.
   character(200) :: plot_file = ''             ! '-plot'          command line argument.
   character(200) :: startup_file = ''          ! '-startup'       command line argument.
@@ -802,14 +802,13 @@ end type
 ! Beam information for a particular universe 
 
 type tao_beam_struct
-  type (beam_init_struct) :: beam_init        ! Beam distrubution at beginning of lattice
-  type (beam_struct) beam_at_start            ! Initial
-  integer :: ix_track_start = 0          ! Element start index of tracking
-  integer :: ix_track_end = -1           ! Element end index of tracking
-  logical :: init_position0 = .false.    ! Init beam
+  type (beam_init_struct) :: beam_init            ! Beam distrubution at beginning of lattice
+  type (beam_struct) beam_at_start                ! Initial
+  integer :: ix_track_start = 0                   ! Element start index of tracking
+  integer :: ix_track_end = -1                    ! Element end index of tracking
+  logical :: init_starting_distribution = .false. ! Init beam
   character(40) :: track_start = '', track_end = ''
   character(200) :: all_file = ''             ! Input beam data file for entire lattice.
-  character(200) :: position0_file    = ''    ! Input beam data file at the start of the lattice.
   character(160) saved_at
 end type
 

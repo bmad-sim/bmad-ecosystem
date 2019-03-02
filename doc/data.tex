@@ -200,11 +200,16 @@ Not used by \tao. Can be used with custom code.
   \item[good_base] \Newline
 Set by \tao. Is the \vn{base} value valid?
   \item[good_design] \Newline
-Set by \tao. Is the \vn{design} value valid?
+Set by \tao. Is the value as calculated from the \vn{design} lattice valid? For example, if the
+datum is the particle orbit at some BPM in a ring and if it is not possible to compute the orbit at
+the BPM due to the lattice being ustable then \vn{good_design} will be False.
   \item[good_meas] \Newline
 Set by \tao. Is the \vn{meas} value valid?
   \item[good_model] \Newline
-Set by the user. Is the \vn{meas} value valid?
+Set by the user. Is the value as calculated from the \vn{model} lattice valid? For example, if the
+datum is the particle orbit at some BPM in a lattice with open geometry and if it is not possible to
+compute the orbit at the BPM due to the particle being lost upstream of the element then
+\vn{good_model} will be False.
   \item[good_opt] \Newline
 Set by the user. Is the datum valid for optimization?
   \item[good_plot] \Newline
@@ -214,7 +219,9 @@ Set by the user. Is the \vn{ref} value valid?
   \item[good_user] \Newline
 Set by the user. Is the datum valid for optimization or plotting?
   \item[invalid] \Newline
-The value used for \vn{delta_merit} if good_model = False. 
+The value used in the computation of \vn{delta_merit} one of the following three conditions is
+True: 1) if \vn{good_model} = False, or 2) if \vn{good_base} is False when the global \vn{opt_with_base}
+is True, or 3) if \vn{good_design} is False when the global \vn{opt_with_ref} is True.
   \item[ix_branch] \Newline
 The index of the lattice branch that contains \vn{ele}, \vn{ref_ele}, and \vn{start_ele}.
   \item[ix_ele] \Newline
@@ -256,11 +263,14 @@ Longitudinal $s$-position of the lattice element.
   \item[s_offset] \Newline
 Offset of the evaluation point when there is an associated lattice element (\sref{s:dat.eval}).
   \item[useit_opt] \Newline
-Datum is possibly valid for optimization. \vn{useit_opt} is set by \tao using the other
+Datum is used for optimization. \vn{useit_opt} is set by \tao using the other
 \vn{logicals} components using the prescription:
 \begin{example}
   useit_opt = exists \& useit_opt \& good_user \& good_meas \& 
               good_ref (if reference data is used in optimization)
+Notice that if, for example, \vn{good_model} is False then the datum will still be used for optimization but
+in this case the \vn{invalid} value set by the user will be used in the computation for \vn{delta_merit} in
+place of a value computed from lattice.
 \end{example}
 %
   \item[useit_plot] \Newline
@@ -354,49 +364,40 @@ specifying \vn{ele_start_name} \sref{s:init.data}) is not compatible with a fini
 \section{Datums in Optimization}
 \label{s:datum.opt}
 
-When using optimization for lattice correction or lattice design
-(\sref{c:opti}), Individual datums can be excluded from the process
-using the \vn{veto} (\sref{s:veto}), \vn{restore} (\sref{s:restore}),
-and \vn{use} (\sref{s:use}) commands. These set the \vn{good_user}
-component of a datum. This, combined with the setting \vn{exists},
-\vn{good_meas}, \vn{good_ref}, and \vn{good_opt}
-determine the setting of \vn{useit_opt} which is the component that
-determines if the datum is used in the computation of the merit
-function. The settings of everything but \vn{good_user} is determined
-by \tao
+When using optimization for lattice correction or lattice design (\sref{c:opti}), Individual datums
+can be excluded from the process using the \vn{veto} (\sref{s:veto}), \vn{restore}
+(\sref{s:restore}), and \vn{use} (\sref{s:use}) commands. These set the \vn{good_user} component of
+a datum. This, combined with the setting \vn{exists}, \vn{good_meas}, \vn{good_ref}, and
+\vn{good_opt} determine the setting of \vn{useit_opt} which is the component that determines if the
+datum is used in the computation of the merit function. The settings of everything but
+\vn{good_user} is determined by \tao
 
-The \vn{exists} component is set by \tao to True if the datum exists
-and False otherwise. A datum may not exist if the type of datum
-requires the designation of an associated element but the
-\vn{ele_name} component is blank. For example, a \vn{d1_data} array
-set up to hold orbit data may use a numbering scheme that fits the
-lattice so that , say, datum number 34 in the array does not
+The \vn{exists} component is set by \tao to True if the datum exists and False otherwise. A datum
+may not exist if the type of datum requires the designation of an associated element but the
+\vn{ele_name} component is blank. For example, a \vn{d1_data} array set up to hold orbit data may
+use a numbering scheme that fits the lattice so that , say, datum number 34 in the array does not
 correspond to an existing BPM.
 
-The \vn{good_model} component is set according to whether a datum
-value can be computed from the \vn{model} lattice. For example, If a
-circular lattice is unstable, the beta function and the closed orbit
-cannot be computed. Similarly, the \vn{good_design} and \vn{good_base}
-components mark whether the \vn{design} and \vn{base} values
-respectively are valid.
+The \vn{good_model} component is set according to whether a datum value can be computed from the
+\vn{model} lattice. For example, If a circular lattice is unstable, the beta function and the closed
+orbit cannot be computed. Similarly, the \vn{good_design} and \vn{good_base} components mark whether
+the \vn{design} and \vn{base} values respectively are valid.
 
-When doing optimization, the \vn{delta_merit} component is set to the
-\vn{delta} value used in computing the contribution to the merit
-function (\sref{s:generalized.design}). If the datum's value cannot be
-computed, that is, \vn{good_model} is False, or, if the design or base
-values are being used in the merit calculation, \vn{good_base} or
-\vn{good_design} is False, then the \vn{invalid} component is used for
-\vn{delta_merit}.
+The \vn{delta_merit} component of a datum is set to the \vn{delta} value used in computing the
+contribution to the merit function (\sref{s:generalized.design}). If it is not possible to compute
+the datum value, then the \vn{invalid} component is used for the computation of \vn{delta_merit}.
+It is not possible to compute the datum value if one of the following three conditions is True: 1)
+\vn{good_model} is False, 2) \vn{good_design} is False and the global \vn{opt_with_ref} is True, or
+3) \vn{good_base} is False and the global \vn{opt_with_base} is True.
 
-\vn{good_meas} is set True if the \vn{meas} component value is set in
-the data initialization file (\sref{s:init.data}) or is set using the
-\vn{set} command (\sref{s:set}). Similarly, \vn{good_ref} is set True
-if the \vn{ref} component has been set. \vn{good_ref} only affects the
-setting of \vn{useit_opt} if the optimization is using reference data
-as set by the global variable \vn{opt_with_ref} (\sref{s:globals}).
+\vn{good_meas} is set True if the \vn{meas} component value is set in the data initialization file
+(\sref{s:init.data}) or is set using the \vn{set} command (\sref{s:set}). Similarly, \vn{good_ref}
+is set True if the \vn{ref} component has been set. \vn{good_ref} only affects the setting of
+\vn{useit_opt} if the optimization is using reference data as set by the global variable
+\vn{opt_with_ref} (\sref{s:globals}).
 
-Finally \vn{good_opt} is meant for use in custom versions of \tao
-(\sref{c:custom.tao}) and is always left True by the standard \tao code.
+Finally \vn{good_opt} is meant for use in custom versions of \tao (\sref{c:custom.tao}) and is
+always left True by the standard \tao code.
 
 Example of using a \vn{show data} (\sref{s:show}) to check the logicals
 in a datum:
@@ -419,9 +420,9 @@ in a datum:
   %useit_plot        =  F
   %useit_opt         =  F
 \end{example}
-Here \vn{useit_opt} is False since \vn{good_meas} is False and
-\vn{good_meas} is False since the \vn{meas} value of the datum (not
-shown) was not set in the \tao initialization file.
+Here \vn{useit_opt} is False since \vn{good_meas} is False and \vn{good_meas} is False since the
+\vn{meas} value of the datum (not shown) was not set in the \tao initialization file or set using
+the \vn{set} command.
 
 %------------------------------------------------------------------------
 \section{Data_source}

@@ -141,12 +141,13 @@ character(*) init_file
 character(40) :: r_name = 'tao_init_beams'
 character(40) track_start, track_end, beam_track_start, beam_track_end
 character(160) beam_saved_at
-character(200) file_name, beam0_file, beam_position0_file, beam_all_file
+character(200) file_name, beam0_file, beam_init_file_name, beam_all_file
+character(200) beam_position0_file           ! old style_syntax
 character(60), target :: save_beam_at(100)   ! old style syntax
 
 logical err
 
-namelist / tao_beam_init / ix_universe, beam0_file, beam_all_file, beam_init, &
+namelist / tao_beam_init / ix_universe, beam0_file, beam_all_file, beam_init, beam_init_file_name, &
             beam_saved_at, track_start, track_end, beam_track_start, beam_track_end, beam_position0_file
          
 !-----------------------------------------------------------------------
@@ -166,7 +167,7 @@ if (iu == 0) then
 endif
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
-  s%u(i)%beam%position0_file = s%com%beam_position0_file
+  s%u(i)%beam%beam_init%file_name = s%com%beam_init_file_name
   s%u(i)%beam%all_file = s%com%beam_all_file
   s%u(i)%beam%track_start    = ''
   s%u(i)%beam%track_end      = ''
@@ -178,27 +179,14 @@ do
 
   ! defaults
   ix_universe = -1
-  beam_init%distribution_type = ''
-  beam_init%a_norm_emit   = 0.0
-  beam_init%b_norm_emit   = 0.0
-  beam_init%a_emit        = 0.0
-  beam_init%b_emit        = 0.0
-  beam_init%dPz_dz        = 0.0
-  beam_init%center(:)     = 0.0
-  beam_init%bunch_charge  = 0.0
-  beam_init%dt_bunch      = 0
-  beam_init%sig_z         = 0.0
-  beam_init%sig_e         = 0.0
-  beam_init%renorm_center = .true.
-  beam_init%renorm_sigma  = .true.
-  beam_init%n_bunch       = 1
-  beam_init%n_particle    = -1
+  beam_init = beam_init_struct()
   beam_saved_at = ''
   save_beam_at  = ''
   track_start = ''        ! Old style
   track_end = ''          ! Old style
   beam_track_start = ''
   beam_track_end = ''
+  beam_init_file_name = ''
   beam0_file = ''
   beam_position0_file = ''
   beam_all_file = ''
@@ -214,8 +202,22 @@ do
     enddo
   endif
 
-  if (beam0_file /= '')                beam_position0_file = beam0_file
-  if (s%com%beam_position0_file /= '') beam_position0_file = s%com%beam_position0_file        ! From the command line
+  if (beam0_file /= '') then
+    beam_init_file_name = beam0_file
+    call out_io (s_important$, r_name, &
+          'Note: Parameter beam0_file in the tao_beam_init structure has been replaced by beam_init_file_name.', &
+          'This is just a warning. Tao will run normally...')
+  endif
+
+  if (beam_position0_file /= '') then
+    beam_init_file_name = beam_position0_file
+    call out_io (s_important$, r_name, &
+          'Note: Parameter beam_position0_file in the tao_beam_init structure has been replaced by beam_init_file_name.', &
+          'This is just a warning. Tao will run normally...')
+  endif
+
+  if (s%com%beam_init_file_name /= '') beam_init_file_name = s%com%beam_init_file_name 
+
   if (s%com%beam_all_file /= '') beam_all_file = s%com%beam_all_file  ! From the command line
   if (track_start /= '') beam_track_start = track_start   ! For backwards compatibility
   if (track_end /= '')   beam_track_end   = track_end     ! For backwards compatibility
@@ -308,9 +310,8 @@ if (beam_track_end /= '') then
 endif
 
 u%beam%beam_init = beam_init
-u%beam%position0_file = beam_position0_file
+u%beam%beam_init%file_name = beam_init_file_name
 u%beam%all_file = beam_all_file
-call init_coord(u%design%tao_branch(0)%orbit(0), beam_init%center, u%design%lat%ele(0), downstream_end$)
 
 ! Find where to save the beam at.
 ! Note: Beam will automatically be saved at fork elements and at the ends of the beam tracking.
@@ -337,16 +338,8 @@ u%beam%saved_at = beam_saved_at
 ! If beam_all_file is set, read in the beam distributions.
 
 if (u%beam%all_file /= '') then
-! Need to recode...
-!  s%com%use_saved_beam_in_tracking = .true.
-!  call read_beam_file (beam_all_file, uni_branch0%ele(j)%beam, u%beam%beam_init, .false., err)
-!  if (err) call err_exit
-!  do
-!    if (j == -1) exit
-!    call tao_read_beam (uni_branch0%ele(j)%beam, err)
-!    if (err) call err_exit
-!  enddo  
-!  call out_io (s_info$, r_name, 'Read beam_all file: ' // u%beam%all_file)
+  call out_io (s_fatal$, r_name, 'beam_all_file not yet implemented. Please contact David Sagan...')
+  stop
 endif
 
 if (allocated(eles)) deallocate (eles)
@@ -362,6 +355,10 @@ end subroutine tao_init_beams
 !+
 ! Subroutine tao_init_dynamic_aperture (init_file)
 !
+! Routine to initalize dynamic aperture simulations.
+!
+! Input:
+!   init_file   -- character(*): File setting dynamic_aperture parameters.
 !-
 
 subroutine tao_init_dynamic_aperture(init_file)

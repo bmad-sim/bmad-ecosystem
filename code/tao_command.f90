@@ -152,12 +152,12 @@ case ('change')
   elseif (index('element', trim(cmd_word(1))) == 1) then
     call tao_cmd_split (cmd_word(2), 3, cmd_word, .false., err); if (err) goto 9000
     call tao_change_ele (cmd_word(1), cmd_word(2), cmd_word(3))
-  elseif (index(trim(cmd_word(1)), 'beam_start') /= 0) then     ! Could be "2@beam_start"
+  elseif (index(trim(cmd_word(1)), 'particle_start') /= 0) then     ! Could be "2@particle_start"
     word = cmd_word(1)
     call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) goto 9000
     call tao_change_ele (word, cmd_word(1), cmd_word(2))
   else
-    call out_io (s_error$, r_name, 'Change who? (should be: "element", "beam_start", or "variable")')
+    call out_io (s_error$, r_name, 'Change who? (should be: "element", "particle_start", or "variable")')
   endif
 
 
@@ -211,7 +211,7 @@ case ('cut_ring')
 
   lat%param%geometry = open$
   u%calc%lattice = .true.
-  u%model%lat%beam_start%vec = 0
+  u%model%lat%particle_start%vec = 0
   call tao_lattice_calc (ok)
 
   return
@@ -397,7 +397,7 @@ case ('reinitialize')
 
   case ('beam') 
     do i = lbound(s%u, 1), ubound(s%u, 1)
-      s%u(i)%beam%init_position0 = .true.
+      s%u(i)%beam%init_starting_distribution = .true.
       s%u(i)%calc%lattice = .true.
     enddo
 
@@ -478,8 +478,8 @@ case ('set')
 
   call match_word (cmd_word(1), [character(16) :: 'branch', 'data', 'var', 'lattice', 'global', &
     'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
-    'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'beam_start', &
-    'plot_page', 'ran_state', 'symbolic_number', 'beam', 'particle_start'], ix, .true., matched_name = set_word)
+    'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'particle_start', &
+    'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start'], ix, .true., matched_name = set_word)
   if (ix < 1) then
     call out_io (s_error$, r_name, 'NOT RECOGNIZED OR AMBIGUOUS: ' // cmd_word(1))
     goto 9000
@@ -509,7 +509,8 @@ case ('set')
   case ('beam_init')
     call tao_set_beam_init_cmd (cmd_word(1), cmd_word(3))
   case ('beam_start', 'particle_start')
-    call tao_set_beam_start_cmd (cmd_word(1), cmd_word(3))
+    if (set_word == 'beam_start') call out_io (s_warn$, r_name, 'Note: "beam_start" is now named "particle_start".')
+    call tao_set_particle_start_cmd (cmd_word(1), cmd_word(3))
   case ('bmad_com')
     call tao_set_bmad_com_cmd (cmd_word(1), cmd_word(3))
   case ('branch')

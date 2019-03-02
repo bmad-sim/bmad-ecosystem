@@ -12,9 +12,9 @@ beginning[eta_x]    = -0.0232471665
 beginning[etap_x]   = 0.133020692
 beginning[beta_b]   = 0.5844819822
 beginning[alpha_b]  = 1.7413371069
-beam_start[x]  = -0.0128497944
-beam_start[px] = -0.0351727014
-beam_start[pz] = -0.577297164
+particle_start[x]  = -0.0128497944
+particle_start[px] = -0.0351727014
+particle_start[pz] = -0.577297164
  
 !-------------------------------------------------------
  

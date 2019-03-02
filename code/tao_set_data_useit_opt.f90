@@ -1,8 +1,7 @@
 !+
 ! subroutine tao_set_data_useit_opt (data)
 !
-! Routine to set the %data%useit_opt logicals which
-! determine which data will be used by an optimizer.
+! Routine to set the %data%useit_opt logicals which determine which data can be used by an optimizer.
 !
 ! Input:
 !   data(:)   -- Tao_data_struct, optional: Data to work on.

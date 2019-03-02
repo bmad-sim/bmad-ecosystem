@@ -85,8 +85,8 @@ character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
 character(20) cmd, command, who, which, v_str
 character(20) :: r_name = 'tao_python_cmd'
-character(20) :: cmd_names(33)= [character(20) :: &
-  'beam_init', 'branch1', 'bunch1', &
+character(20) :: cmd_names(34)= [character(20) :: &
+  'beam_init', 'branch1', 'bunch1', 'bmad_com', &
   'data_create', 'data_destroy', 'data_general', 'data_d2', 'data_d1', 'data1', &
   'enum', 'global', 'help', &
   'lat_ele_list', 'lat_ele1', 'lat_general', 'lat_list', 'lat_param_units', &
@@ -201,7 +201,7 @@ case ('beam_init')
   nl=incr(nl); write (li(nl), amt) 'species;STR;T;',                           beam_init%species
   nl=incr(nl); write (li(nl), lmt) 'init_spin;LOGIC;T;',                       beam_init%init_spin
   nl=incr(nl); write (li(nl), lmt) 'full_6d_coupling_calc;LOGIC;T;',           beam_init%full_6D_coupling_calc
-  nl=incr(nl); write (li(nl), lmt) 'use_lattice_center;LOGIC;T;',              beam_init%use_lattice_center
+  nl=incr(nl); write (li(nl), lmt) 'use_particle_start_for_center;LOGIC;T;',   beam_init%use_particle_start_for_center
   nl=incr(nl); write (li(nl), lmt) 'use_t_coords;LOGIC;T;',                    beam_init%use_t_coords
   nl=incr(nl); write (li(nl), lmt) 'use_z_as_t;LOGIC;T;',                      beam_init%use_z_as_t
 
@@ -232,7 +232,6 @@ case ('branch1')
   nl=incr(nl); write (li(nl), imt) 'param.geometry;INT;F;',                          branch%param%geometry
   nl=incr(nl); write (li(nl), imt) 'param.ixx;INT;F;',                               branch%param%ixx
   nl=incr(nl); write (li(nl), lmt) 'param.stable;LOGIC;F;',                          branch%param%stable
-  nl=incr(nl); write (li(nl), lmt) 'param.backwards_time_tracking;LOGIC;F;',         branch%param%backwards_time_tracking
 
 !----------------------------------------------------------------------
 ! Bunch parameters at the exit end of a given lattice element.
@@ -246,9 +245,6 @@ case ('branch1')
 ! Optional coordinate is one of:
 ! x, px, y, py, z, pz, 's', 't', 'charge', 'p0c'
 ! and will return an array. 
-!
-!
-
 
 case ('bunch1')  
 
@@ -274,9 +270,6 @@ case ('bunch1')
     return
   end select
 
-
-
-
   call twiss_out(bunch_params%x, 'x', .true.)
   call twiss_out(bunch_params%y, 'y', .true.)
   call twiss_out(bunch_params%z, 'z', .true.)
@@ -297,6 +290,7 @@ case ('bunch1')
     nl=incr(nl); write (li(nl), vrmt) 'rel_max_', i, ';REAL;F;',               bunch_params%rel_max(i) 
     nl=incr(nl); write (li(nl), vrmt) 'centroid_vec_', i, ';REAL;F;',          bunch_params%centroid%vec(i) 
   enddo
+
   nl=incr(nl); write (li(nl), rmt) 'centroid_t;REAL;F;',                       bunch_params%centroid%t
   nl=incr(nl); write (li(nl), rmt) 'centroid_p0c;REAL;F;',                     bunch_params%centroid%p0c
   nl=incr(nl); write (li(nl), rmt) 'centroid_beta;REAL;F;',                    bunch_params%centroid%beta
@@ -304,16 +298,63 @@ case ('bunch1')
   nl=incr(nl); write (li(nl), imt) 'direction;INT;F;',                         bunch_params%centroid%direction
   nl=incr(nl); write (li(nl), amt) 'species;STR;F;',                           species_name(bunch_params%centroid%species)
   nl=incr(nl); write (li(nl), amt) 'location;STR;F;',                          location_name(bunch_params%centroid%location)
-  
-
   nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                                bunch_params%s
   nl=incr(nl); write (li(nl), rmt) 'charge_live;REAL;F;',                      bunch_params%charge_live
   nl=incr(nl); write (li(nl), imt) 'n_particle_tot;INT;F;',                    bunch_params%n_particle_tot
   nl=incr(nl); write (li(nl), imt) 'n_particle_live;INT;F;',                   bunch_params%n_particle_live
   nl=incr(nl); write (li(nl), imt) 'n_particle_lost_in_ele;INT;F;',            bunch_params%n_particle_lost_in_ele
-  
-  
   nl=incr(nl); write (li(nl), lmt) 'beam_saved;LOGIC;T;',                      allocated(beam%bunch)
+
+!----------------------------------------------------------------------
+! Bmad_com structure components
+! Command syntax:
+!   python bmad_com
+
+case ('bmad_com')
+
+  nl=incr(nl); write (li(nl), rmt) 'max_aperture_limit;REAL;T;',                 bmad_com%max_aperture_limit
+  nl=incr(nl); write (li(nl), rmt) 'd_orb;REAL;T;',                              bmad_com%d_orb
+  nl=incr(nl); write (li(nl), rmt) 'default_ds_step;REAL;T;',                    bmad_com%default_ds_step
+  nl=incr(nl); write (li(nl), rmt) 'significant_length;REAL;T;',                 bmad_com%significant_length
+  nl=incr(nl); write (li(nl), rmt) 'rel_tol_tracking;REAL;T;',                   bmad_com%rel_tol_tracking
+  nl=incr(nl); write (li(nl), rmt) 'abs_tol_tracking;REAL;T;',                   bmad_com%abs_tol_tracking
+  nl=incr(nl); write (li(nl), rmt) 'rel_tol_adaptive_tracking;REAL;T;',          bmad_com%rel_tol_adaptive_tracking
+  nl=incr(nl); write (li(nl), rmt) 'abs_tol_adaptive_tracking;REAL;T;',          bmad_com%abs_tol_adaptive_tracking
+  nl=incr(nl); write (li(nl), rmt) 'init_ds_adaptive_tracking;REAL;T;',          bmad_com%init_ds_adaptive_tracking
+  nl=incr(nl); write (li(nl), rmt) 'min_ds_adaptive_tracking;REAL;T;',           bmad_com%min_ds_adaptive_tracking
+  nl=incr(nl); write (li(nl), rmt) 'fatal_ds_adaptive_tracking;REAL;T;',         bmad_com%fatal_ds_adaptive_tracking
+  nl=incr(nl); write (li(nl), rmt) 'autoscale_amp_abs_tol;REAL;T;',              bmad_com%autoscale_amp_abs_tol
+  nl=incr(nl); write (li(nl), rmt) 'autoscale_amp_rel_tol;REAL;T;',              bmad_com%autoscale_amp_rel_tol
+  nl=incr(nl); write (li(nl), rmt) 'autoscale_phase_tol;REAL;T;',                bmad_com%autoscale_phase_tol
+  nl=incr(nl); write (li(nl), rmt) 'electric_dipole_moment;REAL;T;',             bmad_com%electric_dipole_moment
+  nl=incr(nl); write (li(nl), rmt) 'ptc_cut_factor;REAL;T;',                     bmad_com%ptc_cut_factor
+  nl=incr(nl); write (li(nl), rmt) 'sad_eps_scale;REAL;T;',                      bmad_com%sad_eps_scale
+  nl=incr(nl); write (li(nl), rmt) 'sad_amp_max;REAL;T;',                        bmad_com%sad_amp_max
+  nl=incr(nl); write (li(nl), imt) 'sad_n_div_max;INT;T;',                       bmad_com%sad_n_div_max
+  nl=incr(nl); write (li(nl), imt) 'taylor_order;INT;T;',                        bmad_com%taylor_order
+  nl=incr(nl); write (li(nl), imt) 'runge_kutta_order;INT;T;',                   bmad_com%runge_kutta_order
+  nl=incr(nl); write (li(nl), imt) 'default_integ_order;INT;T;',                 bmad_com%default_integ_order
+  nl=incr(nl); write (li(nl), imt) 'ptc_max_fringe_order;INT;T;',                bmad_com%ptc_max_fringe_order
+  nl=incr(nl); write (li(nl), imt) 'max_num_runge_kutta_step;INT;T;',            bmad_com%max_num_runge_kutta_step
+  nl=incr(nl); write (li(nl), lmt) 'rf_phase_below_transition_ref;LOGIC;T;',     bmad_com%rf_phase_below_transition_ref
+  nl=incr(nl); write (li(nl), lmt) 'use_hard_edge_drifts;LOGIC;T;',              bmad_com%use_hard_edge_drifts
+  nl=incr(nl); write (li(nl), lmt) 'sr_wakes_on;LOGIC;T;',                       bmad_com%sr_wakes_on
+  nl=incr(nl); write (li(nl), lmt) 'lr_wakes_on;LOGIC;T;',                       bmad_com%lr_wakes_on
+  nl=incr(nl); write (li(nl), lmt) 'mat6_track_symmetric;LOGIC;T;',              bmad_com%mat6_track_symmetric
+  nl=incr(nl); write (li(nl), lmt) 'auto_bookkeeper;LOGIC;T;',                   bmad_com%auto_bookkeeper
+  nl=incr(nl); write (li(nl), lmt) 'space_charge_on;LOGIC;T;',                   bmad_com%space_charge_on
+  nl=incr(nl); write (li(nl), lmt) 'coherent_synch_rad_on;LOGIC;T;',             bmad_com%coherent_synch_rad_on
+  nl=incr(nl); write (li(nl), lmt) 'spin_tracking_on;LOGIC;T;',                  bmad_com%spin_tracking_on
+  nl=incr(nl); write (li(nl), lmt) 'backwards_time_tracking_on;LOGIC;T;',        bmad_com%backwards_time_tracking_on
+  nl=incr(nl); write (li(nl), lmt) 'spin_sokolov_ternov_flipping_on;LOGIC;T;',   bmad_com%spin_sokolov_ternov_flipping_on
+  nl=incr(nl); write (li(nl), lmt) 'radiation_damping_on;LOGIC;T;',              bmad_com%radiation_damping_on
+  nl=incr(nl); write (li(nl), lmt) 'radiation_fluctuations_on;LOGIC;T;',         bmad_com%radiation_fluctuations_on
+  nl=incr(nl); write (li(nl), lmt) 'conserve_taylor_maps;LOGIC;T;',              bmad_com%conserve_taylor_maps
+  nl=incr(nl); write (li(nl), lmt) 'absolute_time_tracking_default;LOGIC;T;',    bmad_com%absolute_time_tracking_default
+  nl=incr(nl); write (li(nl), lmt) 'convert_to_kinetic_momentum;LOGIC;T;',       bmad_com%convert_to_kinetic_momentum
+  nl=incr(nl); write (li(nl), lmt) 'aperture_limit_on;LOGIC;T;',                 bmad_com%aperture_limit_on
+  nl=incr(nl); write (li(nl), lmt) 'ptc_print_info_messages;LOGIC;T;',           bmad_com%ptc_print_info_messages
+  nl=incr(nl); write (li(nl), lmt) 'debug;LOGIC;T;',                             bmad_com%debug
 
 !----------------------------------------------------------------------
 ! List of datums in a given data d1 array.

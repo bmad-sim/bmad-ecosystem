@@ -368,7 +368,7 @@ do i = 1, s%n_var_used
   con(nc)%loc_start = ''
   con(nc)%loc_ele = ''
 
-  if (var%slave(1)%ix_ele < 0) then  ! EG beam_start
+  if (var%slave(1)%ix_ele < 0) then  ! EG particle_start
     con(nc)%loc_ele = '0'
   else
     branch => u%model%lat%branch(var%slave(1)%ix_branch)

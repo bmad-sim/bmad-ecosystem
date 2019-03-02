@@ -1207,7 +1207,7 @@ if (s%global%label_keys) then
     do ixv = 1, size(var%slave)
       if (var%slave(ixv)%ix_uni /= isu) cycle
       ixe = var%slave(ixv)%ix_ele
-      if (var%ele_name == 'BEAM_START') ixe = 0
+      if (var%ele_name == 'PARTICLE_START') ixe = 0
       ele => pointer_to_ele(lat, ixe, var%slave(ixv)%ix_branch)
       if (ele%n_slave /= 0 .and. ele%lord_status /= super_lord$) then
         do j = 1, ele%n_slave

@@ -295,9 +295,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u%model%name  = 'model'
   u%base%name   = 'base'
 
-  u%model%tao_branch(0)%orb0  = u%model%lat%beam_start
-  u%design%tao_branch(0)%orb0 = u%design%lat%beam_start
-  u%base%tao_branch(0)%orb0   = u%base%lat%beam_start
+  u%model%tao_branch(0)%orb0  = u%model%lat%particle_start
+  u%design%tao_branch(0)%orb0 = u%design%lat%particle_start
+  u%base%tao_branch(0)%orb0   = u%base%lat%particle_start
 
   ! Check for match element with match_end = True
 
