@@ -1055,7 +1055,7 @@ bool operator== (const CPP_beam_init& x, const CPP_beam_init& y) {
   is_eq = is_eq && (x.species == y.species);
   is_eq = is_eq && (x.init_spin == y.init_spin);
   is_eq = is_eq && (x.full_6d_coupling_calc == y.full_6d_coupling_calc);
-  is_eq = is_eq && (x.use_lattice_center == y.use_lattice_center);
+  is_eq = is_eq && (x.use_particle_start_for_center == y.use_particle_start_for_center);
   is_eq = is_eq && (x.use_t_coords == y.use_t_coords);
   is_eq = is_eq && (x.use_z_as_t == y.use_z_as_t);
   return is_eq;
@@ -1080,7 +1080,6 @@ bool operator== (const CPP_lat_param& x, const CPP_lat_param& y) {
   is_eq = is_eq && (x.ixx == y.ixx);
   is_eq = is_eq && (x.stable == y.stable);
   is_eq = is_eq && (x.live_branch == y.live_branch);
-  is_eq = is_eq && (x.backwards_time_tracking == y.backwards_time_tracking);
   is_eq = is_eq && (x.bookkeeping_state == y.bookkeeping_state);
   is_eq = is_eq && (x.beam_init == y.beam_init);
   return is_eq;
@@ -1298,6 +1297,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.space_charge_on == y.space_charge_on);
   is_eq = is_eq && (x.coherent_synch_rad_on == y.coherent_synch_rad_on);
   is_eq = is_eq && (x.spin_tracking_on == y.spin_tracking_on);
+  is_eq = is_eq && (x.backwards_time_tracking_on == y.backwards_time_tracking_on);
   is_eq = is_eq && (x.spin_sokolov_ternov_flipping_on == y.spin_sokolov_ternov_flipping_on);
   is_eq = is_eq && (x.radiation_damping_on == y.radiation_damping_on);
   is_eq = is_eq && (x.radiation_fluctuations_on == y.radiation_fluctuations_on);
@@ -1546,7 +1546,7 @@ bool operator== (const CPP_lat& x, const CPP_lat& y) {
   is_eq = is_eq && is_all_equal(x.branch, y.branch);
   is_eq = is_eq && is_all_equal(x.control, y.control);
   is_eq = is_eq && is_all_equal(x.surface, y.surface);
-  is_eq = is_eq && (x.beam_start == y.beam_start);
+  is_eq = is_eq && (x.particle_start == y.particle_start);
   is_eq = is_eq && (x.pre_tracker == y.pre_tracker);
   is_eq = is_eq && is_all_equal(x.custom, y.custom);
   is_eq = is_eq && (x.version == y.version);

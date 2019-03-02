@@ -6319,7 +6319,7 @@ rhs = 29 + offset; F%init_spin = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 30 + offset; F%full_6d_coupling_calc = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 31 + offset; F%use_lattice_center = (modulo(rhs, 2) == 0)
+rhs = 31 + offset; F%use_particle_start_for_center = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 32 + offset; F%use_t_coords = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
@@ -6440,8 +6440,6 @@ rhs = 10 + offset; F%ixx = rhs
 rhs = 11 + offset; F%stable = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 12 + offset; F%live_branch = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 13 + offset; F%backwards_time_tracking = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[type, 0, NOT]
 call set_bookkeeping_state_test_pattern (F%bookkeeping_state, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
@@ -7624,23 +7622,25 @@ rhs = 32 + offset; F%coherent_synch_rad_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 33 + offset; F%spin_tracking_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 34 + offset; F%spin_sokolov_ternov_flipping_on = (modulo(rhs, 2) == 0)
+rhs = 34 + offset; F%backwards_time_tracking_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 35 + offset; F%radiation_damping_on = (modulo(rhs, 2) == 0)
+rhs = 35 + offset; F%spin_sokolov_ternov_flipping_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 36 + offset; F%radiation_fluctuations_on = (modulo(rhs, 2) == 0)
+rhs = 36 + offset; F%radiation_damping_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 37 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
+rhs = 37 + offset; F%radiation_fluctuations_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 38 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
+rhs = 38 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 39 + offset; F%convert_to_kinetic_momentum = (modulo(rhs, 2) == 0)
+rhs = 39 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 40 + offset; F%aperture_limit_on = (modulo(rhs, 2) == 0)
+rhs = 40 + offset; F%convert_to_kinetic_momentum = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 41 + offset; F%ptc_print_info_messages = (modulo(rhs, 2) == 0)
+rhs = 41 + offset; F%aperture_limit_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 42 + offset; F%debug = (modulo(rhs, 2) == 0)
+rhs = 42 + offset; F%ptc_print_info_messages = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 43 + offset; F%debug = (modulo(rhs, 2) == 0)
 
 end subroutine set_bmad_common_test_pattern
 
@@ -8883,7 +8883,7 @@ else
   enddo
 endif
 !! f_side.test_pat[type, 0, NOT]
-call set_coord_test_pattern (F%beam_start, ix_patt)
+call set_coord_test_pattern (F%particle_start, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
 call set_pre_tracker_test_pattern (F%pre_tracker, ix_patt)
 !! f_side.test_pat[real, 1, ALLOC]

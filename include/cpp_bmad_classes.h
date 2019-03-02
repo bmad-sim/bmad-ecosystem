@@ -2495,7 +2495,7 @@ public:
   string species;
   Bool init_spin;
   Bool full_6d_coupling_calc;
-  Bool use_lattice_center;
+  Bool use_particle_start_for_center;
   Bool use_t_coords;
   Bool use_z_as_t;
 
@@ -2530,7 +2530,7 @@ public:
     species(),
     init_spin(true),
     full_6d_coupling_calc(false),
-    use_lattice_center(false),
+    use_particle_start_for_center(false),
     use_t_coords(false),
     use_z_as_t(false)
     {}
@@ -2565,7 +2565,6 @@ public:
   Int ixx;
   Bool stable;
   Bool live_branch;
-  Bool backwards_time_tracking;
   CPP_bookkeeping_state bookkeeping_state;
   CPP_beam_init beam_init;
 
@@ -2582,7 +2581,6 @@ public:
     ixx(0),
     stable(false),
     live_branch(true),
-    backwards_time_tracking(false),
     bookkeeping_state(),
     beam_init()
     {}
@@ -3002,6 +3000,7 @@ public:
   Bool space_charge_on;
   Bool coherent_synch_rad_on;
   Bool spin_tracking_on;
+  Bool backwards_time_tracking_on;
   Bool spin_sokolov_ternov_flipping_on;
   Bool radiation_damping_on;
   Bool radiation_fluctuations_on;
@@ -3046,6 +3045,7 @@ public:
     space_charge_on(false),
     coherent_synch_rad_on(false),
     spin_tracking_on(false),
+    backwards_time_tracking_on(false),
     spin_sokolov_ternov_flipping_on(false),
     radiation_damping_on(false),
     radiation_fluctuations_on(false),
@@ -3515,7 +3515,7 @@ public:
   CPP_branch_ARRAY branch;
   CPP_control_ARRAY control;
   CPP_photon_reflect_surface_ARRAY surface;
-  CPP_coord beam_start;
+  CPP_coord particle_start;
   CPP_pre_tracker pre_tracker;
   Real_ARRAY custom;
   Int version;
@@ -3545,7 +3545,7 @@ public:
     branch(CPP_branch_ARRAY(CPP_branch(), 0)),
     control(CPP_control_ARRAY(CPP_control(), 0)),
     surface(CPP_photon_reflect_surface_ARRAY(CPP_photon_reflect_surface(), 0)),
-    beam_start(),
+    particle_start(),
     pre_tracker(),
     custom(0.0, 0),
     version(-1),

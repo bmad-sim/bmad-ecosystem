@@ -4217,7 +4217,7 @@ void set_CPP_beam_init_test_pattern (CPP_beam_init& C, int ix_patt) {
   rhs = 30 + offset; C.full_6d_coupling_calc = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 31 + offset; C.use_lattice_center = (rhs % 2 == 0);
+  rhs = 31 + offset; C.use_particle_start_for_center = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
   rhs = 32 + offset; C.use_t_coords = (rhs % 2 == 0);
@@ -4308,9 +4308,6 @@ void set_CPP_lat_param_test_pattern (CPP_lat_param& C, int ix_patt) {
 
   // c_side.test_pat[logical, 0, NOT]
   rhs = 12 + offset; C.live_branch = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 13 + offset; C.backwards_time_tracking = (rhs % 2 == 0);
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_bookkeeping_state_test_pattern(C.bookkeeping_state, ix_patt);
@@ -5168,31 +5165,34 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   rhs = 33 + offset; C.spin_tracking_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 34 + offset; C.spin_sokolov_ternov_flipping_on = (rhs % 2 == 0);
+  rhs = 34 + offset; C.backwards_time_tracking_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 35 + offset; C.radiation_damping_on = (rhs % 2 == 0);
+  rhs = 35 + offset; C.spin_sokolov_ternov_flipping_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 36 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
+  rhs = 36 + offset; C.radiation_damping_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 37 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
+  rhs = 37 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 38 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
+  rhs = 38 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 39 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
+  rhs = 39 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 40 + offset; C.aperture_limit_on = (rhs % 2 == 0);
+  rhs = 40 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 41 + offset; C.ptc_print_info_messages = (rhs % 2 == 0);
+  rhs = 41 + offset; C.aperture_limit_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 42 + offset; C.debug = (rhs % 2 == 0);
+  rhs = 42 + offset; C.ptc_print_info_messages = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 43 + offset; C.debug = (rhs % 2 == 0);
 
 
 }
@@ -6169,7 +6169,7 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   }
 
   // c_side.test_pat[type, 0, NOT]
-  set_CPP_coord_test_pattern(C.beam_start, ix_patt);
+  set_CPP_coord_test_pattern(C.particle_start, ix_patt);
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_pre_tracker_test_pattern(C.pre_tracker, ix_patt);
