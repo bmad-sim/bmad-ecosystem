@@ -178,9 +178,6 @@ endif
 print '(a)', '--------------------------------------'
 print '(a, a)',  'lattice:         ', trim(lat_file)
 print '(a, a)',  'simulation_mode: ', simulation_mode
-print '(a, i8)', 'n_particle = ', beam_init%n_particle
-print '(a, i8)', 'n_bunch    = ', beam_init%n_bunch
-print '(a, i8)', 'n_turns    = ', n_turns
 print '(a, l1)', 'Radiation Damping:           ', bmad_com%radiation_damping_on
 print '(a, l1)', 'Stochastic Fluctuations:     ', bmad_com%radiation_fluctuations_on
 print '(a, l1)', 'Spin_tracking_on:            ', bmad_com%spin_tracking_on
@@ -287,6 +284,9 @@ case ('BUNCH')
 
   call init_bunch_distribution (ele_start, lat%param, beam_init, ix_branch, bunch, err_flag)
   if (err_flag) stop
+
+  print '(a, i8)',   'beam_init%n_particle   = ', beam_init%n_particle
+  print '(a, i8)',   'n_particle             = ', size(bunch%particle)
 
   do n = 1, size(bunch%particle)
     p => bunch%particle(n)
@@ -468,8 +468,8 @@ character(20) simulation_mode
 
 write (iu,  '(3a)')      '# lattice = "', trim(lat_file), '"'
 write (iu,  '(3a)')      '# simulation_mode = "', trim(simulation_mode), '"'
-write (iu,  '(a, i8)')   '# n_particle             = ', beam_init%n_particle
-write (iu,  '(a, i8)')   '# n_bunch                = ', beam_init%n_bunch
+write (iu,  '(a, i8)')   '# beam_init%n_particle   = ', beam_init%n_particle
+write (iu,  '(a, i8)')   '# n_particle             = ', size(bunch%particle)
 write (iu,  '(a, i8)')   '# n_turns                = ', n_turns
 write (iu,  '(a, l1)')   '# Radiation_Damping      = ', bmad_com%radiation_damping_on
 write (iu,  '(a, l1)')   '# Radiation_Fluctuations = ', bmad_com%radiation_fluctuations_on
