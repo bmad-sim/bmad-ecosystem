@@ -31,7 +31,7 @@ calc_fshift_for = 'ptc'        # Or 'bmad'
 ignore_marker_offsets = False
 
 # Header_lines is for putting in custom stuff into the Bmad lattice file.
-# For example, setting beam_start[...], etc.
+# For example, setting particle_start[...], etc.
 
 header_lines = ''' ''' 
 

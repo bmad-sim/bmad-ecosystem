@@ -66,7 +66,7 @@ open (1, file = input_file)
 read (1, nml = scan_params)
 close (1)
 
-start_orb_desc = "Starting orbit: (" // trim(adjustl(convert_to_string(lat%beam_start%vec(1)))) // "," // trim(adjustl(convert_to_string(lat%beam_start%vec(2)))) // "," // trim(adjustl(convert_to_string(lat%beam_start%vec(3)))) // "," // trim(adjustl(convert_to_string(lat%beam_start%vec(4)))) // "," // trim(adjustl(convert_to_string(lat%beam_start%vec(5)))) // "," // trim(adjustl(convert_to_string(lat%beam_start%vec(6)))) // ")"
+start_orb_desc = "Starting orbit: (" // trim(adjustl(convert_to_string(lat%particle_start%vec(1)))) // "," // trim(adjustl(convert_to_string(lat%particle_start%vec(2)))) // "," // trim(adjustl(convert_to_string(lat%particle_start%vec(3)))) // "," // trim(adjustl(convert_to_string(lat%particle_start%vec(4)))) // "," // trim(adjustl(convert_to_string(lat%particle_start%vec(5)))) // "," // trim(adjustl(convert_to_string(lat%particle_start%vec(6)))) // ")"
 
 ! Make a list of methods to use
 
@@ -148,11 +148,11 @@ DO i = 1, size(is_valid)
       ptr_array(1)%r = scan_start + (j-1) * step_size    
       if (j == 1 .and. i == linear$) then
         ele%tracking_method = ix_base
-        call make_mat6 (ele, lat%param, lat%beam_start)
+        call make_mat6 (ele, lat%param, lat%particle_start)
         ele%tracking_method = i
       endif
-      call init_coord (lat%beam_start, lat%beam_start, ele = ele, element_end = upstream_end$)
-      call track1 (lat%beam_start, ele, lat%param, end_orb)
+      call init_coord (lat%particle_start, lat%particle_start, ele = ele, element_end = upstream_end$)
+      call track1 (lat%particle_start, ele, lat%param, end_orb)
       method(k)%step(j)%vec = end_orb%vec
       write (1,'(es24.15,es24.15,es24.15,es24.15,es24.15,es24.15,es24.15)',advance='no') ptr_array(1)%r, end_orb%vec
       write (1,*)
