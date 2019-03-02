@@ -5,12 +5,12 @@ parameter[lattice_type] = linear_lattice
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
-beam_start[x]  = 0.001 ! Horizontal position.
-beam_start[px] = 0.002 ! Horizontal momentum.
-beam_start[y]  = 0.003 ! Vertical position.
-beam_start[py] = 0.004 ! Vertical momentum.
-beam_start[z]  = 0.000 ! Longitudinal position.
-beam_start[pz] = 0.005 ! Longitudinal momentum (energy deviation).
+particle_start[x]  = 0.001 ! Horizontal position.
+particle_start[px] = 0.002 ! Horizontal momentum.
+particle_start[y]  = 0.003 ! Vertical position.
+particle_start[py] = 0.004 ! Vertical momentum.
+particle_start[z]  = 0.000 ! Longitudinal position.
+particle_start[pz] = 0.005 ! Longitudinal momentum (energy deviation).
 
 quad: quadrupole, l = 0.5, k1 = 0.2, num_steps = 1000
 
@@ -24,7 +24,7 @@ end_file
   !output_file = 'test' 
   base_method = 'bmad_standard'
   veto_methods(1) = 'symp_map'
-  element_to_vary = 'BEAM_START'
+  element_to_vary = 'PARTICLE_START'
   attrib_to_vary = 'PX'
   scan_start = 0.
   scan_end = 0.1

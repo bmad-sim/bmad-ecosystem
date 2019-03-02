@@ -184,7 +184,7 @@ do it = 1, n_table, 1
   tab%name = key_name(tab%key)
 
   if (tab%key == def_bmad_com$) cycle
-  if (tab%key == def_beam_start$) cycle
+  if (tab%key == def_particle_start$) cycle
   if (tab%key == def_mad_beam$) cycle
   if (tab%key == def_parameter$) cycle
   if (tab%key == line_ele$) cycle
