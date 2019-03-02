@@ -272,7 +272,7 @@ do i = 1, lat%n_ic_max
   read (d_unit, err = 9050) lat%ic(i)
 enddo
 
-read (d_unit, err = 9060) lat%beam_start
+read (d_unit, err = 9060) lat%particle_start
 
 ! Read PTC info
 
@@ -327,6 +327,7 @@ if (found_it) then
   if (extra%space_charge_on_set)                bmad_com%space_charge_on                 = bmad_com_read%space_charge_on
   if (extra%coherent_synch_rad_on_set)          bmad_com%coherent_synch_rad_on           = bmad_com_read%coherent_synch_rad_on
   if (extra%spin_tracking_on_set)               bmad_com%spin_tracking_on                = bmad_com_read%spin_tracking_on
+  if (extra%backwards_time_tracking_on_set)     bmad_com%backwards_time_tracking_on      = bmad_com_read%backwards_time_tracking_on
   if (extra%spin_sokolov_ternov_flipping_on_set)  bmad_com%spin_sokolov_ternov_flipping_on   = bmad_com_read%spin_sokolov_ternov_flipping_on
   if (extra%radiation_damping_on_set)           bmad_com%radiation_damping_on            = bmad_com_read%radiation_damping_on
   if (extra%radiation_fluctuations_on_set)      bmad_com%radiation_fluctuations_on       = bmad_com_read%radiation_fluctuations_on

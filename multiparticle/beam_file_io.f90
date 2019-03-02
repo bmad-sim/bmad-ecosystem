@@ -102,31 +102,27 @@ end subroutine write_beam_file
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine read_beam_file (file_name, beam, beam_init, set_from_beam_init, err_flag)
+! Subroutine read_beam_file (file_name, beam, beam_init, err_flag)
 !
 ! Subroutine to read in a beam definition file.
-! If set_from_beam_init is True, the following components of beam_init are used to rescale the beam:
+! If non_zero, the following components of beam_init are used to rescale the beam:
 !     %n_bunch
 !     %n_particle
 !     %bunch_charge
-! If set_from_beam_init is False, the above components of beam_init are set to the appropriate
-! values found in the beam file.
 ! 
 ! Modules needed:
 !   use beam_file_io
 !
 ! Input:
 !   file_name           -- character(*): Name of beam file.
-!   set_from_beam_init  -- logical: See above.
 !   beam_init           -- beam_init_struct: See above.
 !
 ! Output:
 !   beam        -- Beam_struct: Structure holding the beam information.
-!   beam_init   -- beam_init_struct: See above.
 !   err_flag    -- Logical: Set True if there is an error. False otherwise.
 !+ 
 
-subroutine read_beam_file (file_name, beam, beam_init, set_from_beam_init, err_flag)
+subroutine read_beam_file (file_name, beam, beam_init, err_flag)
 
 type (beam_struct), target :: beam
 type (beam_init_struct) beam_init
@@ -146,7 +142,7 @@ character(300) line, line_in
 character(8) file_type
 character(*), parameter :: r_name = 'read_beam_file'
 
-logical err_flag, error, in_parens, set_from_beam_init, valid
+logical err_flag, error, in_parens, valid
 
 ! Open file and determine whether the file is binary or ascii
 
@@ -167,7 +163,7 @@ endif
 
 read (iu, '(a80)') line
 if (index(line, '!BINARY') /= 0) then
-  call this_error_out ('OLD STYLE BEAM0 FILE NOT SUPPORTED...')
+  call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'OLD STYLE BEAM0 FILE NOT SUPPORTED...')
   return
 elseif (index(line, '!BIN::2') /= 0) then 
   file_type = 'BIN::2'
@@ -200,13 +196,8 @@ endif
 
 n_particle_lines = n_particle
 
-if (set_from_beam_init) then
-  if (beam_init%n_bunch > 0) n_bunch = beam_init%n_bunch
-  if (beam_init%n_particle > 0) n_particle = beam_init%n_particle
-else
-  beam_init%n_bunch = n_bunch
-  beam_init%n_particle = n_particle
-endif
+if (beam_init%n_bunch > 0) n_bunch = beam_init%n_bunch
+if (beam_init%n_particle > 0) n_particle = beam_init%n_particle
 
 ! Allocate space
 
@@ -216,7 +207,6 @@ call reallocate_beam (beam, n_bunch, n_particle)
 ! so add the default values
 
 do i = 1, n_bunch
-
   bunch => beam%bunch(i)
   p => bunch%particle
   p = orb_init   ! init with default params
@@ -225,19 +215,19 @@ do i = 1, n_bunch
 
     read (iu, '(a)', iostat = ios) line
     if (ios /= 0 .or. index(upcase(line), 'BEGIN_BUNCH') == 0) then
-      call this_error_out ('NO "BEGIN_BUNCH" MARKER FOUND')
+      call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'NO "BEGIN_BUNCH" MARKER FOUND')
       return
     endif
 
     read (iu, *, iostat = ios) line
     if (is_real(line, .true.)) then
-      call this_error_out ('OLD STYLE FORMAT DOES NOT INCLUDE BUNCH SPECIES', 'PLEASE CORRECT.')
+      call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'OLD STYLE FORMAT DOES NOT INCLUDE BUNCH SPECIES', 'PLEASE CORRECT.')
       return
     endif
 
     ix = species_id(line)
     if (ix == invalid$) then
-      call this_error_out ('BAD SPECIES NAME: ' // trim(line))
+      call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'BAD SPECIES NAME: ' // trim(line))
       return
     endif
     bunch%particle%species = ix
@@ -245,26 +235,21 @@ do i = 1, n_bunch
 
     read (iu, *, iostat = ios) bunch%charge_tot
     if (ios /= 0) then
-      call this_error_out ('ERROR READING BUNCH')
+      call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'ERROR READING BUNCH')
       return
     endif
-
     
-    if (set_from_beam_init) then
-      bunch_charge = beam_init%bunch_charge
-    else
-      bunch_charge = bunch%charge_tot
-    endif
+    if (beam_init%bunch_charge /= 0) bunch_charge = beam_init%bunch_charge
 
     read (iu, *, iostat = ios) bunch%z_center
     if (ios /= 0) then
-      call this_error_out ('ERROR READING BUNCH Z_CENTER')
+      call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'ERROR READING BUNCH Z_CENTER')
       return
     endif
 
     read (iu, *, iostat = ios) bunch%t_center
     if (ios /= 0) then
-      call this_error_out ('ERROR READING BUNCH T_CENTER')
+      call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'ERROR READING BUNCH T_CENTER')
       return
     endif
 
@@ -272,11 +257,10 @@ do i = 1, n_bunch
     ! particle coord loop
 
     j = 0
-    do 
-
+    do
       read (iu, '(a)', iostat = ios) line
       if (ios /= 0) then
-        call this_error_out ('ERROR READING PARTICLE COORDINATE LINE')
+        call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'ERROR READING PARTICLE COORDINATE LINE')
         return
       endif
       line_in = line ! save for error messages
@@ -293,7 +277,7 @@ do i = 1, n_bunch
       do k = 1, 6
         read (line, *, iostat = ios) p(j)%vec(k)
         if (ios /= 0) then
-          call this_error_out ('ERROR READING PARTICLE COORDINATES', 'IN LINE: ' // trim(line_in))
+          call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'ERROR READING PARTICLE COORDINATES', 'IN LINE: ' // trim(line_in))
           return
         endif
         if (.not. remove_first_number (line, ix_word, '', in_parens)) return
@@ -302,7 +286,7 @@ do i = 1, n_bunch
       if (ix_word == 0) goto 8000
       read (line, *, iostat = ios) p(j)%charge
       if (ios /= 0 .or. ix_word == 0) then
-        call this_error_out ('ERROR READING PARTICLE CHARGE', 'IN LINE: ' // trim(line_in))
+        call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'ERROR READING PARTICLE CHARGE', 'IN LINE: ' // trim(line_in))
         return
       endif
       if (.not. remove_first_number (line, ix_word, '', in_parens)) return
@@ -310,7 +294,7 @@ do i = 1, n_bunch
       if (ix_word == 0) goto 8000
       read (line, *, iostat = ios) p(j)%state
       if (ios /= 0) then
-        call this_error_out ('ERROR READING PARTICLE "STATE"', 'IN LINE: ' // trim(line_in))
+        call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'ERROR READING PARTICLE "STATE"', 'IN LINE: ' // trim(line_in))
         return
       endif
       if (.not. remove_first_number (line, ix_word, '', in_parens)) return
@@ -331,7 +315,7 @@ do i = 1, n_bunch
       endif
 
       if (ios /= 0) then
-        call this_error_out ('ERROR READING PARTICLE SPIN', 'IN LINE: ' // trim(line_in))
+        call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'ERROR READING PARTICLE SPIN', 'IN LINE: ' // trim(line_in))
         return
       endif
 
@@ -339,7 +323,7 @@ do i = 1, n_bunch
       if (ix_word == 0) goto 8000
       read (line, *, iostat = ios) p(j)%ix_ele
       if (ios /= 0) then
-        call this_error_out ('ERROR READING ELEMENT INDEX', 'IN LINE: ' // trim(line_in))
+        call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'ERROR READING ELEMENT INDEX', 'IN LINE: ' // trim(line_in))
         return
       endif
       if (.not. remove_first_number (line, ix_word, '', in_parens)) return
@@ -347,19 +331,17 @@ do i = 1, n_bunch
       if (ix_word == 0) goto 8000
       read (line, *, iostat = ios) p(j)%location
       if (ios /= 0) then
-        call this_error_out ('ERROR READING PARTICLE LOCATION', 'IN LINE: ' // trim(line_in))
+        call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'ERROR READING PARTICLE LOCATION', 'IN LINE: ' // trim(line_in))
         return
       endif
       if (.not. remove_first_number (line, ix_word, '', in_parens)) return
 
       8000 continue
       if (in_parens .or. ix_word /= 0) then
-        call this_error_out ('UNMATCHED PARENTHESIS IN LINE: ' // trim(line_in))
+        call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'UNMATCHED PARENTHESIS IN LINE: ' // trim(line_in))
         return
       endif
-
     enddo
-
 
   !------------------------------------------------------------------------------------
   ! Binary file
@@ -369,12 +351,11 @@ do i = 1, n_bunch
     p%species = species
 
     if (ios /= 0) then
-      call this_error_out ('ERROR READING BUNCH PARAMETERS')
+      call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'ERROR READING BUNCH PARAMETERS')
       return
     endif
 
     do j = 1, n_particle_lines
-      if (j > n_particle) exit
       if (file_type == 'BIN::3') then
         read (iu, iostat = ios) p(j)%vec, p(j)%charge, p(j)%state, p(j)%spin, ix_ele, p(j)%location
       else
@@ -382,10 +363,18 @@ do i = 1, n_bunch
         p(j)%spin = spinor_to_vec(spinor)
       endif
       if (ios /= 0) then
-        call this_error_out ('ERROR READING PARTICLE COORDINATES')
+        call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'ERROR READING PARTICLE COORDINATES')
         return
       endif
+      if (j == n_particle) exit
     enddo
+  endif
+
+  if (j < n_particle) then
+    call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), &
+            'NUMBER OF PARTICLES DEFINED IN THE FILE \i0\ IS LESS THAN THE NUMBER OF DESIRED PARTICLES \i0\.', &
+            i_array = [j, n_particle])
+    return
   endif
 
   if (bunch_charge /= 0) bunch%charge_tot = bunch_charge
@@ -452,7 +441,7 @@ expect = parens_expected
 if (expect(1:1) == '(') then
   if (line(1:1) == '(') then
     if (in_parens) then
-      call this_error_out ('NESTED PARENTHESES FOUND', 'IN LINE: ' // trim(line_in))
+      call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'NESTED PARENTHESES FOUND', 'IN LINE: ' // trim(line_in))
       return
     endif
     in_parens = .true.
@@ -482,7 +471,7 @@ if (expect(1:1) == 'x') expect = expect(2:)
 if (expect(1:1) == ')') then
   if (line(1:1) == ')') then
     if (.not. in_parens) then
-      call this_error_out ('MISMATCHED PARENTHESES ")" FOUND', 'IN LINE: ' // trim(line_in))
+      call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'MISMATCHED PARENTHESES ")" FOUND', 'IN LINE: ' // trim(line_in))
       return
     endif
     in_parens = .false.
@@ -498,7 +487,7 @@ endif
 if (expect(1:1) == '(') then
   if (line(1:1) == '(') then
     if (in_parens) then
-      call this_error_out ('NESTED PARENTHESES FOUND', 'IN LINE: ' // trim(line_in))
+      call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'NESTED PARENTHESES FOUND', 'IN LINE: ' // trim(line_in))
       return
     endif
     in_parens = .true.
@@ -511,25 +500,13 @@ endif
 !
 
 if (line(1:1) == ',') then
-  call this_error_out ('MISPLACED COMMA FOUND', 'IN LINE: ' // trim(line_in))
+  call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'MISPLACED COMMA FOUND', 'IN LINE: ' // trim(line_in))
   return
 endif
 
 pop_ok = .true.
 
 end function remove_first_number
-
-!---------------------------------------------------------------------------------------------------
-! contains
-
-subroutine this_error_out (what, what2)
-
-character(*) what
-character(*), optional :: what2
-
-call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), what, what2)
-
-end subroutine this_error_out
 
 end subroutine read_beam_file
 

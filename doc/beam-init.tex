@@ -10,7 +10,7 @@ A \bmad based program has two standard ways to specify the initial distribution 
 using a \vn{beam_init_struct} \vn{structure} (\sref{s:struct}) which holds parameters (for
 example, the beam emittances) from which a distribution of particles can be constructed. The
 \vn{beam_init_struct} structure is explained in Section~\sref{s:beam.init.struct}. The other way is to
-specify the inital beam distribution via a file that has the individual particle positions. This is
+specify the initial beam distribution via a file that has the individual particle positions. This is
 covered in Section~\sref{s:beam.init.file}.
 
 %-----------------------------------------------------------------
@@ -23,35 +23,34 @@ The \vn{beam_init_struct} \vn{structure} (\sref{s:struct}) holds parameters whic
 initialize a beam. The parameters of this structure are:
 \begin{example}
   type beam_init_struct
-    character(200) :: file_name = ''       ! Initialization file name.
-    character distribution_type(3)         ! "ELLIPSE", "KV", "GRID", "" (default).
+    character(200) :: file_name = ''           ! Initialization file name.
+    character distribution_type(3)             ! "ELLIPSE", "KV", "GRID", "" (default).
     type (ellipse_beam_init_struct) ellipse(3) ! For ellipse beam distribution
     type (kv_beam_init_struct) KV              ! For KV beam distribution
     type (grid_beam_init_struct) grid(3)       ! For grid beam distribution
-    !!! The following are for Random distributions
-    character random_engine          ! "pseudo" (default) or "quasi". 
-    character random_gauss_converter ! "exact" (default) or "quick". 
-    real random_sigma_cutoff = -1    ! -1 => no cutoff used.
-    real center_jitter(6) = 0.0      ! Bunch center rms jitter
-    real emit_jitter(2)   = 0.0      ! %RMS a and b mode bunch emittance jitter
-    real sig_z_jitter     = 0.0      ! bunch length RMS jitter 
-    real sig_e_jitter     = 0.0      ! energy spread RMS jitter 
+    character random_engine              ! "pseudo" (default) or "quasi". 
+    character random_gauss_converter     ! "exact" (default) or "quick". 
+    logical use_particle_start_for_center = F ! Use particle_start instead of center?
+    real center(6) = 0                   ! Bench center offset.
+    real center_jitter(6) = 0.0          ! Bunch center rms jitter
+    real emit_jitter(2)   = 0.0          ! %RMS a and b-mode emittance jitter
+    real sig_z_jitter     = 0.0          ! bunch length RMS jitter 
+    real sig_e_jitter     = 0.0          ! energy spread RMS jitter 
+    real random_sigma_cutoff = -1        ! -1 => no cutoff used.
     integer n_particle = 0               ! Number of simulated particles per bunch.
     logical renorm_center = T            ! Renormalize centroid?
     logical renorm_sigma = T             ! Renormalize sigma?
-    !!! The following are used  by all distribution types
-    real(rp) spin(3)                 ! Spin (x, y, z)
-    real a_norm_emit                 ! a-mode normalized emittance (= \(\gamma\,\epsilon\))
-    real b_norm_emit                 ! b-mode normalized emittance (= \(\gamma\,\epsilon\))
-    real a_emit                      ! a-mode emittance (= \(\gamma\,\epsilon\))
-    real b_emit                      ! b-mode emittance (= \(\gamma\,\epsilon\))
-    real dPz_dz = 0                  ! Correlation of Pz with long position.
-    real center(6) = 0               ! Bench center offset.
-    real dt_bunch                    ! Time between bunches.
-    real sig_z                       ! Z sigma in m.
-    real sig_e                       ! dE/E (pz) sigma.
-    real bunch_charge                ! Charge in a bunch.
-    integer n_bunch = 1                  ! Number of bunches.
+    real(rp) spin(3)                     ! Spin (x, y, z)
+    real a_norm_emit                     ! a-mode normalized emittance (= \(\gamma\,\epsilon\))
+    real b_norm_emit                     ! b-mode normalized emittance (= \(\gamma\,\epsilon\))
+    real a_emit                          ! a-mode emittance (= \(\gamma\,\epsilon\))
+    real b_emit                          ! b-mode emittance (= \(\gamma\,\epsilon\))
+    real dPz_dz = 0                      ! Correlation of Pz with long position.
+    real dt_bunch                        ! Time between bunches.
+    real sig_z                           ! Z sigma in m.
+    real sig_e                           ! dE/E (pz) sigma.
+    real bunch_charge                    ! Charge in a bunch.
+    integer n_bunch = 0                  ! Number of bunches.
     character species                    ! Species. Default is reference particle.
     logical full_6D_coupling_calc = F    ! Use 6x6 1-turn matrix to match distribution?  
     logical use_t_coords = F        ! If true, the distributions will be 
@@ -66,11 +65,10 @@ nominal center of the bunch. Therefore, if there are multiple bunches, and there
 cavity whose frequency is not commensurate with the spacing between bunches, absolute time
 tracking (\sref{s:rf.time}) must be used.
 
-
 \begin{description}
 \item[\%file_name] \Newline
 \vn{%file_name} sets the name of the file to be read in containing the particle coordinates.  Input
-from a file is triggered if not-blank. The format of the file is discused in
+from a file is triggered if not-blank. The format of the file is discussed in
 Section~\sref{s:beam.init.file}.
 %
 \item[\%a_emit, \%b_emit, \%a_norm_emit, \%b_norm_emit] \Newline
@@ -78,16 +76,26 @@ Normalized and unnormalized emittances. Either \vn{a_norm_emit} or \vn{a_emit}
 may be set but not both. similarly, either \vn{b_norm_emit} or
 \vn{b_emit} may be set but not both.
 \item[\%bunch_charge] \Newline
+The \vn{%bunch_charge} paramter sets the charge of a bunch. If reading from a file, the bunch
+charge will be set to the value of \vn{%bunch_charge} except if \vn{%bunch_charge} has a value
+of zero in which case the bunch charge as specified in the file is used.
 %
 \item[\%center(6)] \Newline
+The \vn{%center} parameter is used to offset the center position of a bunch when the
+\vn{%use_particle_start_for_center} is set to False. See the description of
+\vn{%use_particle_start_for_center} below for more details.
 %
 \item[\%center_jitter, \%emit_jitter, \%sig_z_jitter, \%sig_e_jitter] \Newline
 These components can be used to provide a bunch-to-bunch 
 random variation in the emittance and bunch center.
 %
 \item[\%distribution_type(3)] \Newline
-The \vn{%distributeion_type(:)} array determines what algorithms are used to generate
-the particle distribution for a bunch. \vn{%distributeion_type(1)} sets the distribution 
+The \vn{%distribution_type(:)} array determines what algorithms are used to generate
+the particle distribution for a bunch. Note: If \vn{%file_name} is not blank, the
+beam distribution will be read from the appropriate file and \vn{%distribution_type}
+will be ignored.
+
+\vn{%distributeion_type(1)} sets the distribution 
 type for the $(x, p_x)$ 2D phase space, etc. 
 Possibilities for \vn{%distributeion_type(:)} are:
 \begin{example}
@@ -187,11 +195,19 @@ are:
 \end{example}
 %
 \item[\%n_bunch] \Newline
-The number of bunches in the beam is set by \vn{n_bunch}. Default is one.
+The number of bunches in the beam is set by \vn{n_bunch}. If reading the distribution from a file,
+if \vn{%n_bunch} is zero, the number of bunches created is the number of defined in the file and if
+\vn{%n_bunch} is not zero, the number created is \vn{%n_bunch}. It is an error if \vn{%n_bunch} is
+greater than the number of bunches defined in the file. If not reading from a file, if \vn{%n_bunch}
+is zero, one bunch is created.
 %
 \item[\%n_particle] \Newline
-Number of particles generated when the \vn{%distribution_type} is \vn{"RAN_GAUSS"}.
-Ignored for other distribution types.
+Number of particles generated when the \vn{%distribution_type} is \vn{"RAN_GAUSS"}. Ignored for
+other distribution types. When reading the distribution from a file, if \vn{%n_particle} is zero,
+the number of particles in a bunch will be the number of particles defined in the file.  If
+\vn{%n_particle} is non-zero when reading from a file, the number of particles in a bunch will be
+\vn{%n_particle}. It is an error if \vn{%n_particle} is non-zero and the number of particles defined
+in the file is less than \vn{%n_particle}.
 %
 \item[\%random_engine] \Newline
 This component sets the algorithm to use in generating a uniform distribution
@@ -224,27 +240,23 @@ Name of the species tracked. If not set then the default tracking particle type 
 \item[\%spin] \Newline
 Particle spin in Cartesian $(x, y, z)$ coordinates.
 %
-\item[\%use_lattice_center] \Newline
-If \vn{%use_lattice_center} is set to \vn{True} (default is \vn{False}), 
-the center of the bunch is determined by the 
-\vn{beam_start} (\sref{s:beam.start}) setting in the lattice file rather than the 
-setting of \vn{%center} in the \vn{beam_init_struct}.
+\item[\%use_particle_start_for_center] \Newline
+If \vn{%use_particle_start_for_center} is set to \vn{True} (default is \vn{False}), the center of
+the bunch is determined by (\vn{particle_start[x]}, \vn{particle_start[px]}, $\ldots$,
+\vn{particle_start[pz]}) (\sref{s:beam.start}) setting in the lattice file rather than the setting
+of \vn{%center} in the \vn{beam_init_struct}. In this case, \vn{%center} is a dependent parameter
+and will be set to the value of \vn{particle_start}.
 %
 \item[\%use_t_coords, \%use_z_as_t] \Newline 
-If \vn{use_t_coords} is true, then the
-distributions are taken as describing particles in $t$-coordinates
-(\sref{s:time.phase.space}).  Furthermore, if \vn{use_z_as_t} is true,
-then the $z$ coordinates from the distribution will be taken as
-describing the time coordinates. For example, particles may originate
-at a cathode at the same $s$, but different times.  If false, then the
-$z$ coordinate from the distribution describes particles at the same
-time but different $s$ positions, and each particle gets
-\vn{%location=inside\$}. In this case, the bunch will need to be
-tracked with a tracking method that can handle inside particles, such
-as \vn{time_runge_kutta}.  All particles are finally converted to
-proper $s$-coordinate distributions for Bmad to use.
+If \vn{use_t_coords} is true, then the distributions are taken as describing particles in
+$t$-coordinates (\sref{s:time.phase.space}).  Furthermore, if \vn{use_z_as_t} is true, then the $z$
+coordinates from the distribution will be taken as describing the time coordinates. For example,
+particles may originate at a cathode at the same $s$, but different times.  If false, then the $z$
+coordinate from the distribution describes particles at the same time but different $s$ positions,
+and each particle gets \vn{%location=inside\$}. In this case, the bunch will need to be tracked with
+a tracking method that can handle inside particles, such as \vn{time_runge_kutta}.  All particles
+are finally converted to proper $s$-coordinate distributions for Bmad to use.
 \end{description}
-
 
 %-----------------------------------------------------------------
 \section{File Based Beam Initialization}
@@ -254,7 +266,9 @@ proper $s$-coordinate distributions for Bmad to use.
 A beam initialization file specifies the coordinates of all the particles in a beam. If a \bmad
 based program uses a \vn{beam_init_struct} (\sref{s:beam.init.file}) for inputting initialization
 parameters, the file name for file based beam initialization can be set using the \vn{%file_name}
-component of the structure.
+component of the structure. Also the bunch charge, bunch number, and number of particles per bunch
+can be set in the \vn{beam_init_struct}. Additionally, the bunch centroid can be offset by setting
+\vn{beam_init%center} and \vn{beam_init%center_jitter}.
 
 There are two formats for the beam initialization file: ASCII and binary. Currently, the binary file
 format is undergoing revision and will not be discussed here. The ASCII file format is:
@@ -265,11 +279,11 @@ format is undergoing revision and will not be discussed here. The ASCII file for
   [bunch loop: ib = 1 to n_bunch]
     BEGIN_BUNCH    ! Marker to mark the beginning of a bunch specification block.
     <species_name> ! Species of particle
-    <bunch_charge> ! Charge of bunch. 0 => Use <particle_charge>.
+    <bunch_charge> ! Charge of bunch. 0 => Use <macro_charge>.
     <z_center>     ! z position at center of bunch.
     <t_center>     ! t position at center of bunch.
     [particle loop: Stop when END_BUNCH marker found]
-      <x> <px> <y> <py> <z> <pz> <charge> <state> <spin_x> <spin_y> <spin_z> 
+      <x> <px> <y> <py> <z> <pz> <macro_charge> <state> <spin_x> <spin_y> <spin_z> 
     [end particle loop]
     END_BUNCH      ! Marker to mark the end of the bunch specification block
   [end bunch loop]
@@ -295,13 +309,21 @@ Example:
   END_BUNCH
 \end{example}
 
-The first line of the file gives \vn{ix_ele}, the index of the lattice element at which the
-distribution was created. This is ignored when the file is Read. The second line gives
-\vn{<n_bunch>}, the number of bunches. The third line gives \vn{n_particle} the number of particles
-in a bunch. After this, there are \vn{<n_bunch>} blocks of data, one for each bunch. Each one of
+The first line of the file gives \vn{<ix_ele>}, the index of the lattice element at which the
+distribution was created. This is ignored when the file is Read. 
+
+The second line gives \vn{<n_bunch>}, the number of bunches. This can be overridden by a non-zero
+setting of \vn{beam_init%n_bunch}.
+
+The third line gives \vn{<n_particle>} the number of particles in a bunch. The actual number rows
+specifying particle coordinates may be more then \vn{<n_particle>}. In this case, particles will be
+discarded so that the beam has \vn{<n_particle>} particles.  The setting of \vn{<n_particle>} can be
+overridden by a non-zero setting of \vn{beam_init%n_particle}.
+
+After this, there are \vn{<n_bunch>} blocks of data, one for each bunch. Each one of
 these blocks starts with a \vn{BEGIN_BUNCH} line to mark the beginning of the block and ends with a
-\vn{END_BUNCH} marker line. In between, the first four lines give the \vn{species} name,
-\vn{bunch_charge}, \vn{z_center}, and \vn{t_center} values. The \vn{species} name may be one of:
+\vn{END_BUNCH} marker line. In between, the first four lines give the \vn{<species_name>} name,
+\vn{<bunch_charge>}, \vn{<z_center>}, and \vn{<t_center>} values. The \vn{<species_name>} name may be one of:
 \begin{example}
   positron  ! default
   electron
@@ -312,11 +334,12 @@ these blocks starts with a \vn{BEGIN_BUNCH} line to mark the beginning of the bl
   photon
 \end{example}
 
-The lines following the \vn{t_center} line specify particle coordinates. One line for each particle.
+The lines following the \vn{<t_center>} line specify particle coordinates. One line for each particle.
 Only the first six numbers, which are the phase space coordinates, need to be specified for each
-particle. If \vn{<particle_charge>} is not present, or is zero, it defaults to
-\vn{bunch_charge/n_particle}. The \vn{<state>} parameter indicates whether a particle is alive or
-dead. Values are
+particle. If the \vn{<macro_charge>} column is not present, or is zero, it defaults to
+\vn{<bunch_charge>/<n_particle>}. 
+
+The \vn{<state>} parameter indicates whether a particle is alive or dead. Values are
 \begin{example}
   1     ! Alive
   2-7   ! Dead
@@ -324,16 +347,15 @@ dead. Values are
 
 The particle spin is specified by $x$, $y$ and $z$ components.
 
-The number rows specifying particle coordinates may be more then \vn{<n_particle>}. In this case,
-particles will be discarded so that the beam has \vn{<n_particle>} particles. If
-\vn{beam_init%n_particle}, if set in the \tao input file, this will override the setting of
-\vn{<n_particle>} in the beam file.
+Each particle has an associated \vn{<macro_charge>}. If \vn{<bunch_charge>} is set to a non-zero
+value, the charge of all the particles will be scaled by a factor to make the total macro charge
+equal to \vn{<bunch_charge>}. The macro charge is ignored in tracking. The charge of the particle
+used in tracking is the charge as calculated for the particle species. On the other hand, the macro
+charge is used to calculate such things as the total charge in a particular region or the field
+produced by a particle. That is, the macro charge acts as a weighting factor for a particle when the
+particle's field or the particle's effect on other particles is calculated.
 
-Each particle has an associated \vn{<particle_charge>}. If \vn{<bunch_charge>} is set to a non-zero
-value, the charge of all the particles will be scaled by a factor to make the bunch charge equal to
-\vn{<bunch_charge>}. Additionally, if \vn{beam_init%bunch_charge} is set in the \tao input file,
-this will override the setting of \vn{bunch_charge} in the beam file.
-
-\index{change}\index{beam_start}\index{beam_init}
-When the particle coordinates are read in from the \vn{beam0_file}, the centroid will be shifted by
-the setting of \vn{beam_init%center}.
+\index{change}\index{beam_init}
+When the particle coordinates are read in the centroid will be shifted by the setting of
+\vn{beam_init%center} (unless \vn{beam_init%use_particle_start_for_center} is set True) and
+\vn{beam_init%center_jitter}.

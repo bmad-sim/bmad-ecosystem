@@ -78,7 +78,7 @@ case (custom$)
   ele%tracking_method  = custom$
   ele%field_calc       = custom$
 
-case (def_beam_start$)
+case (def_particle_start$)
 
 case (def_mad_beam$)
   ele%value(particle$) = positron$

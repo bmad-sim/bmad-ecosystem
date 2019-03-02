@@ -239,18 +239,18 @@ if (lat%param%geometry /= closed$) then
   if (ele%c_mat(2,2) /= 0) write (iu, '(2a)') 'beginning[cmat_22]  = ', trim(re_str(ele%c_mat(2,2)))
 endif
 
-! beam_start
+! particle_start
 
-if (lat%beam_start%vec(1) /= 0) write (iu, '(2a)') 'beam_start[x]  = ', trim(re_str(lat%beam_start%vec(1)))
-if (lat%beam_start%vec(2) /= 0) write (iu, '(2a)') 'beam_start[px] = ', trim(re_str(lat%beam_start%vec(2)))
-if (lat%beam_start%vec(3) /= 0) write (iu, '(2a)') 'beam_start[y]  = ', trim(re_str(lat%beam_start%vec(3)))
-if (lat%beam_start%vec(4) /= 0) write (iu, '(2a)') 'beam_start[py] = ', trim(re_str(lat%beam_start%vec(4)))
-if (lat%beam_start%vec(5) /= 0) write (iu, '(2a)') 'beam_start[z]  = ', trim(re_str(lat%beam_start%vec(5)))
-if (lat%beam_start%vec(6) /= 0) write (iu, '(2a)') 'beam_start[pz] = ', trim(re_str(lat%beam_start%vec(6)))
+if (lat%particle_start%vec(1) /= 0) write (iu, '(2a)') 'particle_start[x]  = ', trim(re_str(lat%particle_start%vec(1)))
+if (lat%particle_start%vec(2) /= 0) write (iu, '(2a)') 'particle_start[px] = ', trim(re_str(lat%particle_start%vec(2)))
+if (lat%particle_start%vec(3) /= 0) write (iu, '(2a)') 'particle_start[y]  = ', trim(re_str(lat%particle_start%vec(3)))
+if (lat%particle_start%vec(4) /= 0) write (iu, '(2a)') 'particle_start[py] = ', trim(re_str(lat%particle_start%vec(4)))
+if (lat%particle_start%vec(5) /= 0) write (iu, '(2a)') 'particle_start[z]  = ', trim(re_str(lat%particle_start%vec(5)))
+if (lat%particle_start%vec(6) /= 0) write (iu, '(2a)') 'particle_start[pz] = ', trim(re_str(lat%particle_start%vec(6)))
 
-if (lat%beam_start%spin(1) /= 0) write (iu, '(2a)') 'beam_start[spin_x] = ', trim(re_str(lat%beam_start%spin(1)))
-if (lat%beam_start%spin(2) /= 0) write (iu, '(2a)') 'beam_start[spin_y] = ', trim(re_str(lat%beam_start%spin(2)))
-if (lat%beam_start%spin(3) /= 1) write (iu, '(2a)') 'beam_start[spin_z] = ', trim(re_str(lat%beam_start%spin(3)))
+if (lat%particle_start%spin(1) /= 0) write (iu, '(2a)') 'particle_start[spin_x] = ', trim(re_str(lat%particle_start%spin(1)))
+if (lat%particle_start%spin(2) /= 0) write (iu, '(2a)') 'particle_start[spin_y] = ', trim(re_str(lat%particle_start%spin(2)))
+if (lat%particle_start%spin(3) /= 1) write (iu, '(2a)') 'particle_start[spin_z] = ', trim(re_str(lat%particle_start%spin(3)))
 
 ! Named constants
 

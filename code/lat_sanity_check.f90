@@ -47,8 +47,8 @@ if (any(lat%ele(:)%key == lcavity$) .and. lat%param%geometry /= open$) then
   call out_io (s_fatal$, r_name, 'THERE IS A LCAVITY BUT THE GEOMETRY IS NOT SET TO OPEN!')
 endif
 
-if (lat%beam_start%direction /= -1 .and. lat%beam_start%direction /= 1) then
-  call out_io (s_fatal$, r_name, 'BEAM_START DIRECTION IS NOT -1 NOR 1. IT IS: \i0\ ', lat%beam_start%direction)
+if (lat%particle_start%direction /= -1 .and. lat%particle_start%direction /= 1) then
+  call out_io (s_fatal$, r_name, 'PARTICLE_START DIRECTION IS NOT -1 NOR 1. IT IS: \i0\ ', lat%particle_start%direction)
   err_flag = .true.
 endif
 

@@ -1875,7 +1875,7 @@ is_eq = is_eq .and. (f1%init_spin .eqv. f2%init_spin)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%full_6d_coupling_calc .eqv. f2%full_6d_coupling_calc)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%use_lattice_center .eqv. f2%use_lattice_center)
+is_eq = is_eq .and. (f1%use_particle_start_for_center .eqv. f2%use_particle_start_for_center)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%use_t_coords .eqv. f2%use_t_coords)
 !! f_side.equality_test[logical, 0, NOT]
@@ -1920,8 +1920,6 @@ is_eq = is_eq .and. (f1%ixx == f2%ixx)
 is_eq = is_eq .and. (f1%stable .eqv. f2%stable)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%live_branch .eqv. f2%live_branch)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%backwards_time_tracking .eqv. f2%backwards_time_tracking)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%bookkeeping_state == f2%bookkeeping_state)
 !! f_side.equality_test[type, 0, NOT]
@@ -2316,6 +2314,8 @@ is_eq = is_eq .and. (f1%space_charge_on .eqv. f2%space_charge_on)
 is_eq = is_eq .and. (f1%coherent_synch_rad_on .eqv. f2%coherent_synch_rad_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%spin_tracking_on .eqv. f2%spin_tracking_on)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%backwards_time_tracking_on .eqv. f2%backwards_time_tracking_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%spin_sokolov_ternov_flipping_on .eqv. f2%spin_sokolov_ternov_flipping_on)
 !! f_side.equality_test[logical, 0, NOT]
@@ -2851,7 +2851,7 @@ if (associated(f1%surface)) is_eq = all(shape(f1%surface) == shape(f2%surface))
 if (.not. is_eq) return
 if (associated(f1%surface)) is_eq = all(f1%surface == f2%surface)
 !! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%beam_start == f2%beam_start)
+is_eq = is_eq .and. (f1%particle_start == f2%particle_start)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%pre_tracker == f2%pre_tracker)
 !! f_side.equality_test[real, 1, ALLOC]
