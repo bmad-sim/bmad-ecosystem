@@ -529,6 +529,13 @@ subroutine tao_open_file (file, iunit, file_name, error_severity, binary)
   logical, optional :: binary
 end subroutine
 
+function tao_optimization_status (datum) result (why_str)
+  import
+  implicit none
+  type (tao_data_struct) :: datum
+  character(60) why_str
+end function
+
 subroutine tao_orbit_value (component, orbit, value, err)
   import
   implicit none

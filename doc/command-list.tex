@@ -23,7 +23,7 @@ end of the line is ignored.  Example:
 This chapter uses the following special characters to define the command line syntax:
 \begin{example}
   \{\}        ! Identifies an optional argument.
-              !   Arguments now enclosed in brackets are required
+            !   Arguments now enclosed in brackets are required
   <>        ! Indicates a non-literal argument.
 \end{example}
 
@@ -170,7 +170,7 @@ The \vn{change} command changes element attribute values or variable values in t
 \begin{example}
   change element <element_list> <attribute> \{prefix>\} <number>
   change \{-silent\} variable <name>[<locations>] \{<prefix>\} <number>
-  change  \{n@\}beam_start <coordinate> \{prefix>\} <number>
+  change  \{n@\}particle_start <coordinate> \{prefix>\} <number>
 \end{example}
 
 \vskip 10pt 
@@ -193,13 +193,15 @@ If \vn{<prefix>} is present, it may be one of
 Element list format (\sref{s:ele.list.format}), without any embedded blanks, is used for
 the \vn{<element_list>} argument.
 
-For \vn{change beam_start}, The optional \vn{n@} universe specification
+For \vn{change particle_start}, The optional \vn{n@} universe specification
 (\sref{s:universe}) may be used to specify the universe or universes to apply the change
 command to.
 
-For lattices with an open geometry, \vn{change beam_start <coordinate> <number>} can be
-used to vary the starting coordinates for single particle tracking or the centroid
-coordinates for beam tracking. Here \vn{<coordinate>} is one of:
+For lattices with an open geometry, \vn{change particle_start <coordinate> <number>} can be used to
+vary the starting coordinates for single particle tracking. If the
+\vn{use_particle_start_for_center} of the \vn{beam_init} structure (\sref{s:beam.init}) is set to
+True, \vn{particle_start} will also vary the centroid coordinates for beam tracking. Here
+\vn{<coordinate>} is one of:
 \begin{example}
   x, px, y, py, z, pz, t
 \end{example}
@@ -230,7 +232,7 @@ Examples:
   change ele quadrupole::* k1 d 1.2e-2 ! Set the k1 strength of all quadrupole elements.
   change var steering[34:36] @1e-3     ! set the steering strength #34-36 to 0.001
   change var steering[*] \%10           ! vary all steering strengths by 10\%
-  change 2@beam_start x @0.001         ! set beginning x position in universe 2 to 1 mm.
+  change 2@particle_start x @0.001     ! set beginning x position in universe 2 to 1 mm.
 \end{example}
 
 
@@ -309,7 +311,7 @@ starting at \vn{<l_bound>} and stopping before \vn{<var>} is greater than \vn{<u
 Example:
 \begin{example}
   do j = 0, 10, 2
-    set beam_start pz = 1e-3 * [[j]]
+    set particle_start pz = 1e-3 * [[j]]
     ...
   enddo
 \end{example}
@@ -805,7 +807,7 @@ variables, etc. Format:
 \begin{example}
   set beam \{n@\}<component> = <value>                        ! \sref{s:set.beam}
   set beam_init \{n@\}<component> = <value>                   ! \sref{s:set.beam.init}
-  set beam_start \{n@\}<coordinate> = <value>                 ! \sref{s:set.beam.start}
+  set particle_start \{n@\}<coordinate> = <value>             ! \sref{s:set.beam.start}
   set bmad_com <component> = <value>                        ! \sref{s:set.bmad.com}
   set branch <branch> <component> = <value>                 ! \sref{s:set.branch}
   set csr_param <component> = <value>                       ! \sref{s:set.csr.param}
@@ -897,7 +899,7 @@ saved at.
 The optional \vn{n@} allows the specification of the universe or universes the set is applied
 to. The current default universe (\sref{s:universe}) will be used if no universe is given. 
 
-Also see the commands: \vn{set beam_init} and \vn{set beam_start}.
+Also see the commands: \vn{set beam_init} and \vn{set particle_start}.
 
 Examples:
 \begin{example}
@@ -931,7 +933,7 @@ to. The current default universe (\sref{s:universe}) will be used if no universe
 
 Use the \vn{show beam} command (\sref{s:show}) to see the current values.
 
-Also see the commands: \vn{set beam} and \vn{set beam_start}.
+Also see the commands: \vn{set beam} and \vn{set particle_start}.
 
 Examples:
 \begin{example}
@@ -940,22 +942,22 @@ Examples:
   set beam_init beam_track_end = q10w ! Set beam_track_end parameter.
 \end{example}
 
-%% set beam_start --------------------------------------------------------------
+%% set particle_start --------------------------------------------------------------
 
-\subsection{set beam_start}
+\subsection{set particle_start}
 \label{s:set.beam.start}
 
 Format:
 \begin{example}
-  set beam_start \{n@\}<coordinate> = <value>
+  set particle_start \{n@\}<coordinate> = <value>
 \end{example}
-The \vn{set beam_start} command sets the starting centroid coordinates for beam tracking as well
+The \vn{set particle_start} command sets the starting centroid coordinates for beam tracking as well
 as the starting coordinates for single particle tracking.
 
 The optional \vn{n@} universe specification (\sref{s:universe}) may be used to specify the universe
 or universes to apply the set command to.
 
-For lattices with an open geometry, \vn{set beam_start <coordinate> <number>} can be used to vary
+For lattices with an open geometry, \vn{set particle_start <coordinate> <number>} can be used to vary
 the starting coordinates for single particle tracking or the centroid coordinates for beam
 tracking. Here \vn{<coordinate>} is one of:
 \begin{example}
@@ -969,13 +971,13 @@ For closed lattices only the \vn{pz} component is applicable. For lattices that 
 \vn{e_gun} (which necessarily implies that the lattice has an open geometry), the time
 \vn{t} coordinate must be varied instead of \vn{pz}.
 
-To see the values for \vn{beam_start} use the command \vn{show element 0}.
+To see the values for \vn{particle_start} use the command \vn{show element 0}.
 
 Also see the commands: \vn{set beam} and \vn{set beam_init}.
 
 Examples:
 \begin{example}
-  set beam_start 2@x = 0.001         ! set beginning x position in universe 2 to 1 mm.
+  set particle_start 2@x = 0.001         ! set beginning x position in universe 2 to 1 mm.
 \end{example}
 
 %% set bmad_com --------------------------------------------------------------
@@ -1370,7 +1372,7 @@ Example:
 \subsection{set particle_start}
 \label{s:set.particle.start}
 
-Same as \vn{set beam_start}. See section~\sref{s:set.beam.start} for more details.
+Same as \vn{set particle_start}. See section~\sref{s:set.beam.start} for more details.
 
 %% set plot --------------------------------------------------------------
 
@@ -2096,12 +2098,12 @@ The \vn{-all} switch shows all tracking and lord elements.
 
 The \vn{-orbit} switch will show the particle's phase space orbit which is the closed orbit if the
 lattice has a closed geometry and is the orbit beginning from the specified starting position for
-lattices with an open geometry. Use \vn{set beam_start} to vary the starting position in this
+lattices with an open geometry. Use \vn{set particle_start} to vary the starting position in this
 case. If the \vn{-spin} switch is also present, the particle's spin will also be displayed.
 
 The \vn{-spin} switch will show the particle's spin which is the invariant spin if the lattice has a
 closed geometry and is the spin beginning from the specified starting spin for lattices with an open
-geometry. Use \vn{set beam_start} to vary the starting spin in this case. If the \vn{-orbit} switch
+geometry. Use \vn{set particle_start} to vary the starting spin in this case. If the \vn{-orbit} switch
 is also present, the particle's phase space orbit will also be displayed.
 
 The \vn{-radiation_integrals} switch, if present, will display the radiation integrals for each

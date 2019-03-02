@@ -3,4 +3,4 @@
 call, file = ffag.bmad
 call, file = extra.bmad
 
-call, file = beam_start3.bmad
+call, file = particle_start3.bmad

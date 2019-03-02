@@ -357,7 +357,6 @@ case ('beam')
     fmt = '(3a, i0, a)'
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'General beam components (set by "set beam ..."):'
-    nl=nl+1; write(lines(nl), amt) 'position0_file         = ', quote(u%beam%position0_file)
     nl=nl+1; write(lines(nl), amt) 'all_file               = ', quote(u%beam%all_file)
     nl=nl+1; write(lines(nl), amt) 'saved_at               = ', quote(u%beam%saved_at)
     nl=nl+1; write(lines(nl), fmt) 'track_start            = ', quote(u%beam%track_start), &
@@ -373,11 +372,20 @@ case ('beam')
       nl=nl+1; write(lines(nl), amt) 'bunch_species             = ', species_name(beam%bunch(1)%particle(1)%species)
     endif
 
-    if (u%beam%all_file == '' .and. u%beam%position0_file == '') then
+    if (u%beam%all_file == '' .and. u%beam%beam_init%file_name == '') then
       beam_init => u%beam%beam_init
       nl=nl+1; lines(nl) = 'beam_init components (set by "set beam_init ..."):'
+      nl=nl+1; write(lines(nl), amt) '  %file_name              = ', quote(beam_init%file_name)
       nl=nl+1; write(lines(nl), amt) '  %distribution_type      = ', quoten(beam_init%distribution_type)
-      nl=nl+1; write(lines(nl), rmt) '  %center                 = ', beam_init%center
+      nl=nl+1; write(lines(nl), lmt) '  %use_particle_start_for_center = ', beam_init%use_particle_start_for_center
+      if (beam_init%use_particle_start_for_center) then
+        nl=nl+1; write(lines(nl), '(a, es16.8, 3x, a)') '  %center                 = ', beam_init%center, '! Slaved to particle_start'
+      else
+        nl=nl+1; write(lines(nl), '(a, es16.8, 3x, a)') '  %center                 = ', beam_init%center, '! Independent of slaved particle_start'
+      endif
+      nl=nl+1; write(lines(nl), rmt) '  %center_jitter          = ', beam_init%center_jitter
+      nl=nl+1; write(lines(nl), imt) '  %n_particle             = ', beam_init%n_particle
+      nl=nl+1; write(lines(nl), rmt) '  %bunch_charge           = ', beam_init%bunch_charge
       nl=nl+1; write(lines(nl), rmt) '  %a_norm_emit            = ', beam_init%a_norm_emit
       nl=nl+1; write(lines(nl), rmt) '  %b_norm_emit            = ', beam_init%b_norm_emit
       nl=nl+1; write(lines(nl), rmt) '  %a_emit                 = ', beam_init%a_emit
@@ -386,7 +394,6 @@ case ('beam')
       nl=nl+1; write(lines(nl), rmt) '  %dt_bunch               = ', beam_init%dt_bunch
       nl=nl+1; write(lines(nl), rmt) '  %sig_z                  = ', beam_init%sig_z
       nl=nl+1; write(lines(nl), rmt) '  %sig_e                  = ', beam_init%sig_e
-      nl=nl+1; write(lines(nl), rmt) '  %center_jitter          = ', beam_init%center_jitter
       nl=nl+1; write(lines(nl), rmt) '  %emit_jitter            = ', beam_init%emit_jitter
       nl=nl+1; write(lines(nl), rmt) '  %sig_z_jitter           = ', beam_init%sig_z_jitter
       nl=nl+1; write(lines(nl), rmt) '  %sig_e_jitter           = ', beam_init%sig_e_jitter
@@ -948,7 +955,8 @@ case ('data')
     nl=nl+1; write(lines(nl), lmt)    '%good_opt          = ', d_ptr%good_opt
     nl=nl+1; write(lines(nl), lmt)    '%good_plot         = ', d_ptr%good_plot
     nl=nl+1; write(lines(nl), lmt)    '%useit_plot        = ', d_ptr%useit_plot
-    nl=nl+1; write(lines(nl), lmt)    '%useit_opt         = ', d_ptr%useit_opt
+    nl=nl+1; write(lines(nl), '(a, l1, 3x, a)')    '%useit_opt         = ', &
+                                      d_ptr%useit_opt, tao_optimization_status(d_ptr)
 
     if (d_ptr%exists) then
       u => s%u(d_ptr%d1%d2%ix_uni)
@@ -3916,7 +3924,6 @@ case ('universe')
   nl=nl+1; write(lines(nl), lmt) '%calc%track            = ', u%calc%track
   nl=nl+1; write(lines(nl), lmt) '%calc%spin_matrices    = ', u%calc%spin_matrices
   nl=nl+1; write(lines(nl), lmt) '%is_on                 = ', u%is_on
-  nl=nl+1; write(lines(nl), amt) '%beam_position0_file   = ', quote(trim(u%beam%position0_file))
   nl=nl+1; write(lines(nl), amt) '%beam_all_file         = ', quote(trim(u%beam%all_file))
   nl=nl+1; write(lines(nl), amt) '%beam%saved_at:        = ', quote(trim(u%beam%saved_at))
   nl=nl+1; lines(nl) = ''
@@ -4909,89 +4916,5 @@ line = ''
 line(wid-ix+1:) = num_str
 
 end subroutine write_real
-
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!+
-! Function quote(str) result (q_str)
-!
-! Function to put double quote marks (") around a string.
-! The string will be trimmed of trailing blanks.
-!
-! Input:
-!   str     -- character(*): Input string
-!
-! Output:
-!   q_str   -- character(:), allocatable: String with quote marks.
-!-
-
-function quote(str) result (q_str)
-character(*) str
-character(:), allocatable :: q_str
-integer n
-
-!
-
-n = len_trim(str) + 2
-allocate(character(n) :: q_str)
-q_str = '"' // trim(str) // '"'
-
-end function quote
-
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!+
-! Function quoten(str, delim) result (q_str)
-!
-! Function to put double quote marks (") around each string in an array and
-! return the concatenated string with a delimitor between the strings.
-!
-! Input:
-!   str(:)  -- character(*): Input string array
-!   delim   -- character(*), optional: Delimitor between strings. Default is a blank space.
-! Output:
-!   q_str   -- character(:), allocatable: String with quote marks.
-!-
-
-function quoten(str, delim) result (q_str)
-
-character(*) str(:)
-character(*), optional :: delim
-character(:), allocatable :: q_str
-integer i, n, ns
-
-!
-
-ns = size(str)
-n = 0
-do i = 1, ns
-  n = n + len_trim(str(i)) + 2
-enddo
-
-if (present(delim)) then
-  n = n + (ns-1) * len(delim)
-else
-  n = n + (ns-1)
-endif
-
-allocate(character(n) :: q_str)
-
-n = 0
-do i = 1, ns
-  q_str = q_str(:n-1) // '"' // trim(str(i)) // '"'
-  n = n + len_trim(str(i)) + 2
-  if (i == ns) exit
-  if (present(delim)) then
-    q_str = q_str(:n-1) // delim
-    n = n + len(delim)
-  else
-    q_str = q_str(:n-1) // ' '
-    n = n + 1
-  endif
-enddo
-
-end function quoten
 
 end module

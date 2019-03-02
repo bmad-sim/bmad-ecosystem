@@ -672,7 +672,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. good_unis(iu)) cycle
   lat => s%u(iu)%model%lat
 
-  if (var%ele_name == 'BEAM_START') then
+  if (var%ele_name == 'PARTICLE_START') then
     call tao_pointer_to_var_in_lattice2 (var, iu, err)
     if (err) return
     found = .true.

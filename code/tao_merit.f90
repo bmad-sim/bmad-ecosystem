@@ -101,10 +101,7 @@ do j = 1, s%n_var_used
 
 enddo
 
-!----------------------------------------
-! Merit contribution from the data:
-
-!----------------------------------------
+!----------------------------------------------------------------------
 ! Merit contribution from the data:
 
 if (s%com%common_lattice) iu0 = ix_common_uni$

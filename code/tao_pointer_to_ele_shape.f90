@@ -108,7 +108,7 @@ do k = 1, size(ele_shape)
       endif
       do j2 = 1, size(var%slave)
         if (var%slave(j2)%ix_uni /= ix_uni) cycle
-        if (var%ele_name == 'BEAM_START') then
+        if (var%ele_name == 'PARTICLE_START') then
           if (ele%ix_branch /= 0 .or. ele%ix_ele /= 0) cycle
         else
           if (ele%ix_branch /= var%slave(j2)%ix_branch .or. ele%ix_ele /=  var%slave(j2)%ix_ele) cycle

@@ -184,7 +184,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
           n_max = max(n_max, ubound(d2_dat%d1(id)%d, 1))
         enddo
         call reallocate_coord (orb, branch%n_ele_max)
-        orb(0) = tao_lat%lat%beam_start
+        orb(0) = tao_lat%lat%particle_start
         do it = 0, n_max
           do id = 1, size(d2_dat%d1)
             d1_dat => d2_dat%d1(id)
@@ -380,7 +380,7 @@ if (u%calc%track) then
 
     if (err) then
       ! In desperation try a different starting point
-      call init_coord (orbit(0), lat%beam_start, branch%ele(0), downstream_end$, orbit(0)%species)
+      call init_coord (orbit(0), lat%particle_start, branch%ele(0), downstream_end$, orbit(0)%species)
       call closed_orbit_calc (lat, tao_branch%orbit, i_dim, 1, ix_branch, err_flag = err, print_err = .false.)
     endif
 
@@ -885,42 +885,17 @@ if (ix_branch > 0) then
 endif
 
 ! Init for main branch...
-! If there is an init file then read from the file
-
-ix_ele0 = u%beam%ix_track_start
-beam_init => u%beam%beam_init
-beam => u%beam%beam_at_start
-
-if (u%beam%position0_file /= "") then
-  if (u%beam%init_position0 .or. .not. allocated(beam%bunch)) then
-    call read_beam_file (u%beam%position0_file, beam, beam_init, .true., err); if (err) return
-    do i = 1, size(beam%bunch)
-      do j = 1, size(beam%bunch(i)%particle)
-        orbit => beam%bunch(i)%particle(j)
-        orbit%vec = orbit%vec + model%lat%beam_start%vec
-        if (orbit%state /= alive$) cycle  ! Don't want init_coord to raise the dead.
-        call init_coord (orbit, orbit, branch%ele(ix_ele0), downstream_end$, branch%param%particle, +1, orbit%p0c, beam%bunch(i)%t_center)
-      enddo
-    enddo
-    u%beam%init_position0 = .false.
-  endif
-
-  if (tao_no_beam_left (beam, branch%param%particle)) then
-    call out_io (s_warn$, r_name, "Not enough particles or no charge/intensity for beam init!")
-    return
-  endif
-
-  init_ok = .true.
-  return
-endif
-
 ! If init is via a call to init_beam_distribution: If the distribution is generated with the help of a random 
 ! number generator a different distribution is generated on each time init_beam_distribution is called. 
 ! This is a problem if, say, we are looking at changes to the beam transport due to changes in lattice parameters. 
 ! Of course if, for example, the beam_init structure is modified then we do want a distribution recalc.
-! So only reinit the distribution if the distribution has not already been initialized or if commanded via %init_position0.
+! So only reinit the distribution if the distribution has not already been initialized or if commanded via %init_starting_distribution.
 
-if (u%beam%init_position0 .or. .not. allocated(beam%bunch)) then
+if (u%beam%init_starting_distribution .or. .not. allocated(beam%bunch) .or. u%beam%beam_init%file_name /= "") then
+  ix_ele0 = u%beam%ix_track_start
+  beam_init => u%beam%beam_init
+  beam => u%beam%beam_at_start
+
   if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.
   call init_beam_distribution (branch%ele(ix_ele0), branch%param, beam_init, beam, err)
   if (err) then
@@ -928,12 +903,16 @@ if (u%beam%init_position0 .or. .not. allocated(beam%bunch)) then
     return
   endif
 
+  if (beam%bunch(1)%charge_tot == 0) then
+    call out_io (s_warn$, r_name, 'Total beam charge is zero. Set beam_init%bunch_charge to change this.')
+  endif
+
   if (tao_no_beam_left(beam, branch%param%particle)) then
     call out_io (s_warn$, r_name, "Not enough particles or no charge/intensity for beam init!")
     return
   endif
 
-  u%beam%init_position0 = .false.
+  u%beam%init_starting_distribution = .false.
 endif
 
 init_ok = .true.

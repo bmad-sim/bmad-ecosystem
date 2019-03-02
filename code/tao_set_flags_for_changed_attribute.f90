@@ -8,7 +8,7 @@
 !   u        -- tao_universe_sturct: Universe containing the lattice.
 !   ele_name -- character(*): Associated "element" of the changed parameter.
 !   ele_ptr  -- ele_struct, pointer, optional: Pointer to the element. 
-!                 May be null, for example, if ele_name = "BEAM_START".
+!                 May be null, for example, if ele_name = "PARTICLE_START".
 !   val_ptr  -- real(rp):, pointer, optional: Pointer to the attribute that was changed.
 !-
 
@@ -26,24 +26,24 @@ real(rp), pointer, optional :: val_ptr
 
 character(*) ele_name
 
-! Beam_start. 
+! particle_start.
 
-if (ele_name == 'BEAM_START') then
-  u%beam%beam_init%center             = u%model%lat%beam_start%vec
+if (ele_name == 'PARTICLE_START') then
+  if (u%beam%beam_init%use_particle_start_for_center) u%beam%beam_init%center = u%model%lat%particle_start%vec
 
-  u%model%tao_branch(0)%orbit(0)%vec  = u%model%lat%beam_start%vec
-  u%model%tao_branch(0)%orb0%vec      = u%model%lat%beam_start%vec
+  u%model%tao_branch(0)%orbit(0)%vec  = u%model%lat%particle_start%vec
+  u%model%tao_branch(0)%orb0%vec      = u%model%lat%particle_start%vec
 
-  u%model%tao_branch(0)%orbit(0)%t    = u%model%lat%beam_start%t
-  u%model%tao_branch(0)%orb0%t        = u%model%lat%beam_start%t
+  u%model%tao_branch(0)%orbit(0)%t    = u%model%lat%particle_start%t
+  u%model%tao_branch(0)%orb0%t        = u%model%lat%particle_start%t
 
-  u%model%tao_branch(0)%orbit(0)%p0c  = u%model%lat%beam_start%p0c
-  u%model%tao_branch(0)%orb0%p0c      = u%model%lat%beam_start%p0c
+  u%model%tao_branch(0)%orbit(0)%p0c  = u%model%lat%particle_start%p0c
+  u%model%tao_branch(0)%orb0%p0c      = u%model%lat%particle_start%p0c
 
-  u%model%tao_branch(0)%orbit(0)%spin = u%model%lat%beam_start%spin
-  u%model%tao_branch(0)%orb0%spin     = u%model%lat%beam_start%spin
+  u%model%tao_branch(0)%orbit(0)%spin = u%model%lat%particle_start%spin
+  u%model%tao_branch(0)%orb0%spin     = u%model%lat%particle_start%spin
 
-  u%beam%init_position0 = .true.
+  u%beam%init_starting_distribution = .true.
 endif
 
 !

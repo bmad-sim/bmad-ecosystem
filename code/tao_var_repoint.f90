@@ -33,7 +33,7 @@ do i = 1, size(s%var)
     sl => var%slave(j)
     u => s%u(sl%ix_uni)
 
-    ! Something like 'BEAM_START' will not have an associated lattice element.
+    ! Something like 'PARTICLE_START' will not have an associated lattice element.
     if (sl%ix_ele < 0) then
       call pointers_to_attribute (u%model%lat, var%ele_name, var%attrib_name, .true., all_ptr, err)
       sl%model_value => all_ptr(1)%r

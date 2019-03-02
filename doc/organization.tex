@@ -290,11 +290,11 @@ the end orbit matches the beginning orbit. A problem arises if the
 tracked particle is lost before it reaches the end of the lattice
 since \tao has no good way to calculate how to adjust the beginning
 orbit to prevent the particle from getting lost. In this case, \tao,
-in desperation, will try the orbit specified by \vn{beam_start} in the
+in desperation, will try the orbit specified by \vn{particle_start} in the
 \bmad lattice file (see the \bmad manual for more details on setting
-\vn{beam_start}). Note: \vn{beam_start} can be varied while running
-\tao using the \vn{set beam_start} (\sref{s:set}) or \vn{change
-beam_start} (\sref{s:change}) commands.
+\vn{particle_start}). Note: \vn{particle_start} can be varied while running
+\tao using the \vn{set particle_start} (\sref{s:set}) or \vn{change
+particle_start} (\sref{s:change}) commands.
 
 If the recalculation takes a significant amount of time, the recalculation may be suppressed using
 the \vn{set global lattice_calc_on} command (\sref{s:set.global}) or the \vn{set universe} command

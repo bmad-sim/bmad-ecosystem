@@ -51,10 +51,11 @@ do
   if (i_arg == n_arg) exit
   call get_next_arg (arg0)
 
-  call match_word (arg0, [character(40):: '-?', '-init', '-noinit', '-beam_all', '-beam0', &
+  call match_word (arg0, [character(41):: '-?', '-init', '-noinit', '-beam_all', '-beam0', &
         '-noplot', '-lat', '-log_startup', '-beam', '-var', '-data', '-building_wall', '-plot', &
         '-startup', 'help', '-help', '?', '-geometry', '-rf_on', '-debug', '-disable_smooth_line_calc', &
-        '-color_prompt', '-no_stopping', '-hook_init_file', '-beam_position0', '-silent_run'], &
+        '-color_prompt', '-no_stopping', '-hook_init_file', '-beam_position0', '-silent_run', &
+        '-beam_init_file_name'], &
               ix, .true., matched_name=switch)
 
   select case (switch)
@@ -74,8 +75,12 @@ do
   case ('-beam_all')
     call get_next_arg (s%com%beam_all_file)
 
-  case ('-beam_position0', '-beam0')
-    call get_next_arg (s%com%beam_position0_file)
+  case ('-beam_position0', '-beam0', '-beam_init_file_name')
+    call get_next_arg (s%com%beam_init_file_name)
+    if (switch /= '-beam_init_file_name') then
+      call out_io (s_warn$, r_name, 'Note: Switch: ' // quote(switch) // &
+                                ' has been replaced with "-beam_init_file_name"')
+    endif
 
   case ('-building_wall')
     call get_next_arg (s%com%building_wall_file)

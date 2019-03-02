@@ -706,8 +706,8 @@ character(*), parameter :: r_name = 'tao_set_beam_cmd'
 
 call tao_pick_universe (remove_quotes(who), who2, this_u, err); if (err) return
 
-call match_word (who2, [character(20):: 'track_start', 'track_end', 'all_file', 'position0_file', 'saved_at', &
-                    'beam_track_start', 'beam_track_end', 'beam_all_file', 'beam_position0_file', 'beam_saved_at', &
+call match_word (who2, [character(20):: 'track_start', 'track_end', 'all_file', 'saved_at', &
+                    'beam_track_start', 'beam_track_end', 'beam_all_file', 'beam_init_file_name', 'beam_saved_at', &
                     'beginning', 'not_saved_at'], ix, matched_name=switch)
 
 do iu = lbound(s%u, 1), ubound(s%u, 1)
@@ -736,9 +736,9 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   case ('all_file', 'beam_all_file')
     u%beam%all_file = value_str
 
-  case ('position0_file', 'beam_position0_file')
-    u%beam%position0_file = value_str
-    u%beam%init_position0 = .true.
+  case ('beam_init_file_name')
+    u%beam%beam_init%file_name = value_str
+    u%beam%init_starting_distribution = .true.
 
   case ('saved_at', 'beam_saved_at')
     call tao_locate_elements (value_str, u%ix_uni, eles, err)
@@ -809,19 +809,19 @@ end subroutine tao_set_beam_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_beam_start_cmd (who, value_str)
+! Subroutine tao_set_particle_start_cmd (who, value_str)
 !
-! Routine to set beam_start variables.
+! Routine to set particle_start variables.
 ! 
 ! Input:
-!   who       -- Character(*): which beam_start variable to set
+!   who       -- Character(*): which particle_start variable to set
 !   value_str -- Character(*): Value to set to.
 !
 ! Output:
-!    s%beam_start  -- Beam_start variables structure.
+!    s%particle_start  -- Beam_start variables structure.
 !-
 
-subroutine tao_set_beam_start_cmd (who, value_str)
+subroutine tao_set_particle_start_cmd (who, value_str)
 
 type (tao_universe_struct), pointer :: u
 type (all_pointer_struct), allocatable :: a_ptr(:)
@@ -835,7 +835,7 @@ integer ix, iu
 character(*) who, value_str
 character(40) who2, name
 
-character(*), parameter :: r_name = 'tao_set_beam_start_cmd'
+character(*), parameter :: r_name = 'tao_set_particle_start_cmd'
 
 logical, allocatable :: this_u(:)
 logical err, free
@@ -853,7 +853,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(iu)) cycle
   u => s%u(iu)
 
-  call pointers_to_attribute (u%model%lat, 'BEAM_START', who2, .true., a_ptr, err, .true.)
+  call pointers_to_attribute (u%model%lat, 'PARTICLE_START', who2, .true., a_ptr, err, .true.)
   if (err) return
 
   if (u%model%lat%param%geometry == closed$) then
@@ -871,10 +871,10 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   ! Set value
 
   a_ptr(1)%r = set_val(1)
-  call tao_set_flags_for_changed_attribute (u, 'BEAM_START')
+  call tao_set_flags_for_changed_attribute (u, 'PARTICLE_START')
 enddo
 
-end subroutine tao_set_beam_start_cmd
+end subroutine tao_set_particle_start_cmd
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -975,8 +975,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   if (ios == 0) then
     u%beam%beam_init = beam_init
-    u%beam%init_position0 = .true.  ! Force reinit
-    u%model%lat%beam_start%vec = u%beam%beam_init%center
+    u%beam%init_starting_distribution = .true.  ! Force reinit
+    if (u%beam%beam_init%use_particle_start_for_center) u%beam%beam_init%center = u%model%lat%particle_start%vec
     u%calc%lattice = .true.
   else
     call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')

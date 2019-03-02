@@ -236,7 +236,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   ! Can vary beam energy with RF off even in rings.
   ! Or when doing multi_turn_orbit data taking.
 
-  if (e_name == 'BEAM_START') then
+  if (e_name == 'PARTICLE_START') then
     if (u%model%lat%param%geometry == closed$) then
       free = .false.
       write (name, '(i0, a)') iu, '@multi_turn_orbit'
@@ -251,8 +251,8 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   endif
 
   if (all(.not. free)) then
-    if (e_name == 'BEAM_START' .and. a_name == 'PZ') then
-      call out_io (s_error$, r_name, 'BEAM_START[PZ] NOT FREE TO VARY SINCE RF IS ON AND THE LATTICE IS CLOSED')
+    if (e_name == 'PARTICLE_START' .and. a_name == 'PZ') then
+      call out_io (s_error$, r_name, 'PARTICLE_START[PZ] NOT FREE TO VARY SINCE RF IS ON AND THE LATTICE IS CLOSED')
     else
       call out_io (s_error$, r_name, 'ATTRIBUTE NOT FREE TO VARY. NOTHING DONE')
     endif
@@ -293,7 +293,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     ! Record change but only for the first 10 variables.
 
     if (nl < 11) then
-      name = 'BEAM_START'
+      name = 'PARTICLE_START'
       if (associated(eles(i)%ele)) name = eles(i)%ele%name
       nl=nl+1; write (lines(nl), fmt) old_value(i), m_ptr(i)%r, &
                               old_value(i)-d_ptr(i)%r, m_ptr(i)%r-d_ptr(i)%r, &

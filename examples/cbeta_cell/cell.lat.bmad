@@ -8,7 +8,7 @@ BEGINNING[ALPHA_B] = 0
 PARAMETER[particle] = electron
 
 !call, file = ../energy0.bmad
- call, file = beam_start5.bmad
+ call, file = particle_start5.bmad
 
 !parameter[absolute_time_tracking] = T
 

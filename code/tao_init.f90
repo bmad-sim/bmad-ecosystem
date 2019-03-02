@@ -183,7 +183,7 @@ do i = 1, s%n_var_used
   do j = 1, size(var%slave)
     var_slave => var%slave(j)
     u => s%u(var_slave%ix_uni)
-    if (var_slave%ix_ele < 0) cycle  ! Do not check EG "beam_start".
+    if (var_slave%ix_ele < 0) cycle  ! Do not check EG "particle_start".
     if (.not. attribute_free (var_slave%ix_ele, var_slave%ix_branch, var%attrib_name, u%model%lat)) then
       call out_io (s_abort$, r_name, &
                 'ERROR: VARIABLE TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY.', &
@@ -282,7 +282,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. s%global%rf_on) then
         call out_io (s_info$, r_name, "Note: global%rf_on = False  -->  RFCavities will be turned off in lattices")
         call set_on_off (rfcavity$, u%model%lat, off$, ix_branch = ib)
-        u%model%tao_branch(0)%orb0 = u%model%lat%beam_start
+        u%model%tao_branch(0)%orb0 = u%model%lat%particle_start
       endif
     endif
   enddo
