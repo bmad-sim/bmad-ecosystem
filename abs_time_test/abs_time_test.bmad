@@ -5,9 +5,9 @@ beginning[beta_b]  = 12
 parameter[geometry] = open
 beginning[p0c]  = 2e5
 
-beam_start[x] = 0e-4
-beam_start[px] = 1e-4
-beam_start[z] = 1e-4
+particle_start[x] = 0e-4
+particle_start[px] = 1e-4
+particle_start[z] = 1e-4
 
 !
 

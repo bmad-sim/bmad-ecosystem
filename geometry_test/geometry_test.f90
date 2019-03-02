@@ -41,7 +41,7 @@ local = floor_position_struct(r0_vec, w_unit, 0.0_rp, 0.0_rp, 0.0_rp)
 branch => lat%branch(0)
 
 do i = 1, lat%n_ele_max
-  local%r = lat%beam_start%vec(1:5:2)
+  local%r = lat%particle_start%vec(1:5:2)
 
   if (branch%ele(i)%orientation == 1) then
     f0 = branch%ele(i-1)%floor
@@ -62,7 +62,7 @@ do i = 1, lat%n_ele_max
     f0 = branch%ele(i-1)%floor
   endif
 
-  local%r = lat%beam_start%vec(1:5:2)
+  local%r = lat%particle_start%vec(1:5:2)
   local%r(3) = local%r(3) + lat%ele(i)%value(l$)
 
   floor = coords_local_curvilinear_to_floor(local, branch%ele(i), .true., calculate_angles = .true.)
@@ -74,13 +74,13 @@ enddo
 
 do i = 1, lat%n_ele_max
   floor = branch%ele(i-1)%floor
-  floor2 = coords_relative_to_floor(floor, lat%beam_start%vec(1:5:2))
+  floor2 = coords_relative_to_floor(floor, lat%particle_start%vec(1:5:2))
   floor%r = floor2%r
   local = coords_floor_to_curvilinear(floor, branch%ele(lat%n_ele_max), ele1, status)
   write (1, '(a, i0, a, i4, 3f13.8, 2x, 3f13.8, i6)') '"Floor-to-curvi-up ', i, '" ABS 0 ', ele1%ix_ele, local%r, &
                                                        local%theta, local%phi, local%psi, status
   floor = branch%ele(i)%floor
-  floor2 = coords_relative_to_floor(floor, lat%beam_start%vec(1:5:2))
+  floor2 = coords_relative_to_floor(floor, lat%particle_start%vec(1:5:2))
   floor%r = floor2%r
   local = coords_floor_to_curvilinear(floor, branch%ele(0), ele1, status)
   write (1, '(a, i0, a, i4, 3f13.8, 2x, 3f13.8, i6)') '"Floor-to-curvi-dn ', i, '" ABS 0 ', ele1%ix_ele, local%r, &
@@ -91,13 +91,13 @@ enddo
 
 do i = 1, lat%n_ele_max
   floor = branch%ele(i-1)%floor
-  floor2 = coords_relative_to_floor(floor, lat%beam_start%vec(1:5:2))
+  floor2 = coords_relative_to_floor(floor, lat%particle_start%vec(1:5:2))
   floor%r = floor2%r
   local = coords_floor_to_local_curvilinear(floor, branch%ele(i), status)
   write (1, '(a, i0, a, 3f13.8, 2x, 3f13.8, i6)') '"Floor-to-loc-up ', i, '" ABS 0 ', local%r, &
                                                        local%theta, local%phi, local%psi, status
   floor = branch%ele(i)%floor
-  floor2 = coords_relative_to_floor(floor, lat%beam_start%vec(1:5:2))
+  floor2 = coords_relative_to_floor(floor, lat%particle_start%vec(1:5:2))
   floor%r = floor2%r
   local = coords_floor_to_local_curvilinear(floor, branch%ele(i), status)
   write (1, '(a, i0, a, 3f13.8, 2x, 3f13.8, i6)') '"Floor-to-loc-dn ', i, '" ABS 0 ', local%r, &

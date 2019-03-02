@@ -92,7 +92,7 @@ call sr_trans_wake_particle (ele, p1)
 
 ! Add in a second wake
 
-p1%vec(5) = z0 + lat%beam_start%vec(5)
+p1%vec(5) = z0 + lat%particle_start%vec(5)
 call sr_long_wake_particle (ele, p1)
 call sr_trans_wake_particle (ele, p1)
 

@@ -30,7 +30,7 @@ do ip = 1, 3
   ele => lat%ele(ip)
   if (ele%key == marker$) cycle
 !  if (ele%key /= patch$) cycle
-  call init_coord (start_orb, lat%beam_start, ele, upstream_end$)
+  call init_coord (start_orb, lat%particle_start, ele, upstream_end$)
   call track1 (start_orb, ele, lat%param, end_orb)
   write (1, '(3a, 6es14.6)') '"', trim(ele%name), '" ABS 0', end_orb%vec
   if (ele%key == patch$) then

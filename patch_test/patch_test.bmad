@@ -4,12 +4,12 @@ parameter[geometry] = open
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
-beam_start[x]  = -0.001
-beam_start[px] = 0.002 
-beam_start[y]  = 0.00
-beam_start[py] = 0.00
-beam_start[z]  = 0.00
-beam_start[pz] = 0.00
+particle_start[x]  = -0.001
+particle_start[px] = 0.002 
+particle_start[y]  = 0.00
+particle_start[py] = 0.00
+particle_start[z]  = 0.00
+particle_start[pz] = 0.00
 
 q1: quadrupole, l = 1, k1 = 0.4, tracking_method = runge_kutta, x_pitch = 0.002
 q2: quadrupole, l = 1, k1 = 0.4, tracking_method = runge_kutta, x_pitch = 0.002
