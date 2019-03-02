@@ -113,8 +113,8 @@ ele%value(ix_branch$)    = -1
 ele%ixx = 2                    ! Pointer to plat%ele() array
 
 ele => lat%ele(n_max+3)
-call init_ele (ele, def_beam_start$, 0, n_max+3, lat%branch(0))
-ele%name = 'BEAM_START'
+call init_ele (ele, def_particle_start$, 0, n_max+3, lat%branch(0))
+ele%name = 'PARTICLE_START'
 ele%ixx  = 3                    ! Pointer to plat%ele() array
 
 ele => lat%ele(n_max+4)
@@ -317,6 +317,8 @@ parsing_loop: do
 
     ! 
 
+    if (word_1 == 'BEAM_START') word_1 = 'PARTICLE_START'   ! For backwards compatibility
+
     if (any(word_1 == key_name)) then   ! If Old style "quadrupole[k1] = ..." syntax
       name = word_1 // '::*'
       multiple_eles_here = .true.
@@ -348,7 +350,7 @@ parsing_loop: do
 
       ! No wild card matches permitted for these
       if (ele%name == 'BEGINNING' .or. ele%name == 'BEAM' .or. &
-          ele%name == 'PARAMETER' .or. ele%name == 'BEAM_START' .or. ele%name == 'BMAD_COM') then
+          ele%name == 'PARAMETER' .or. ele%name == 'PARTICLE_START' .or. ele%name == 'BMAD_COM') then
         if (word_1 /= ele%name) cycle
       endif
 

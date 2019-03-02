@@ -17,7 +17,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 227
+integer, parameter :: bmad_inc_version$ = 228
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -462,7 +462,7 @@ type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: spin(3) = 0         ! Spin.
   real(rp) :: field(2) = 0        ! Photon E-field intensity (x,y).
   real(rp) :: phase(2) = 0        ! Photon E-field phase (x,y)
-  real(rp) :: charge = 0          ! Macro charge (Coul) of particle. 
+  real(rp) :: charge = 0          ! Macroparticle weight (in Coulombs).
   real(rp) :: path_len = 0        ! path length (used by coherent photons).
   real(rp) :: r = 0               ! For general use. Not used by Bmad. 
   real(rp) :: p0c = 0             ! For non-photons: Reference momentum.
@@ -938,19 +938,17 @@ type beam_init_struct
   type (ellipse_beam_init_struct) :: ellipse(3) = ellipse_beam_init_struct() ! Ellipse beam distribution
   type (kv_beam_init_struct) :: KV = kv_beam_init_struct()                   ! KV beam distribution
   type (grid_beam_init_struct) :: grid(3) = grid_beam_init_struct()          ! Grid beam distribution
-  !!! The following are for Random distributions
   real(rp) :: center_jitter(6) = 0.0  ! Bunch center rms jitter
   real(rp) :: emit_jitter(2)   = 0.0  ! a and b bunch emittance rms jitter normalized to emittance
   real(rp) :: sig_z_jitter     = 0.0  ! bunch length RMS jitter 
   real(rp) :: sig_e_jitter     = 0.0  ! energy spread RMS jitter 
-  integer :: n_particle = 0           ! Number of random particles per bunch.
+  integer :: n_particle = 0           ! Number of particles per bunch.
   logical :: renorm_center = .true.   ! Renormalize centroid?
   logical :: renorm_sigma = .true.    ! Renormalize sigma?
   character(16) :: random_engine = 'pseudo' ! Or 'quasi'. Random number engine to use. 
   character(16) :: random_gauss_converter = 'exact'  
                                             ! Or 'quick'. Uniform to gauss conversion method.
   real(rp) :: random_sigma_cutoff = -1      ! Cut-off in sigmas.
-  !!! The following are used  by all distribution types
   real(rp) :: a_norm_emit = 0                ! a-mode normalized emittance (emit * gamma)
   real(rp) :: b_norm_emit = 0                ! b-mode normalized emittance (emit * gamma)
   real(rp) :: a_emit = 0                     ! a-mode emittance
@@ -960,13 +958,13 @@ type beam_init_struct
   real(rp) :: dt_bunch = 0                   ! Time between bunches.
   real(rp) :: sig_z = 0                      ! Z sigma in m.
   real(rp) :: sig_e = 0                      ! e_sigma in dE/E.
-  real(rp) :: bunch_charge = 1               ! charge (Coul) in a bunch. Default is something non-zero.
-  integer :: n_bunch = 1                     ! Number of bunches.
+  real(rp) :: bunch_charge = 0               ! charge (Coul) in a bunch.
+  integer :: n_bunch = 0                     ! Number of bunches.
   character(16) :: species = ""              ! "positron", etc. "" => use referece particle.
   logical :: init_spin     = .true.          ! Not used. Deprecated.
   logical :: full_6D_coupling_calc = .false. ! Use V from 6x6 1-turn mat to match distribution?  
                                              !   Else use 4x4 1-turn mat used.
-  logical :: use_lattice_center = .false.    ! Use beam_start[...] in lattice rather than beam_init%center(:)?
+  logical :: use_particle_start_for_center = .false. ! Slave beam_init%center(:) to lat%particle_start[...]?
   logical :: use_t_coords = .false.          ! If true, the distributions will be taken as in t-coordinates  
   logical :: use_z_as_t   = .false.          ! Only used if  use_t_coords = .true.
                                              !   If true,  z describes the t distribution 
@@ -1113,8 +1111,6 @@ type control_struct
 end type
 
 ! lat_param_struct should be called branch_param_struct [Present name is an historical artifact.]
-! Note that backwards_time_tracking is put in the lat_param_struct rather than begin a global
-! for multithreaded applications.
 
 integer, parameter :: incoherent$ = 1, coherent$ = 2
 character(16), parameter :: photon_type_name(1:2) = ['Incoherent', 'Coherent  ']
@@ -1133,7 +1129,6 @@ type lat_param_struct
   integer :: ixx = 0                           ! Integer for general use
   logical :: stable = .false.                  ! is closed lat stable?
   logical :: live_branch = .true.              ! Should tracking be done on the branch?
-  logical :: backwards_time_tracking = .false. ! Internal variable. Do not set.  
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct()
                                                ! Overall status for the branch.
   type (beam_init_struct) :: beam_init = beam_init_struct() ! For beam initialization.
@@ -1247,7 +1242,7 @@ type lat_struct
   type (branch_struct), allocatable :: branch(:)   ! Branch(0:) array
   type (control_struct), allocatable :: control(:) ! Control list
   type (photon_reflect_surface_struct), pointer :: surface(:) => null()
-  type (coord_struct) beam_start                  ! Starting coords
+  type (coord_struct) particle_start              ! Starting particle_coords
   type (pre_tracker_struct) pre_tracker           ! For OPAL/IMPACT-T
   real(rp), allocatable :: custom(:)              ! Custom attributes.
   integer :: version = -1                         ! Version number
@@ -1275,7 +1270,7 @@ integer, parameter :: def_mad_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23, pa
 integer, parameter :: def_parameter$ = 26, null_ele$ = 27, beginning_ele$ = 28, line_ele$ = 29
 integer, parameter :: match$ = 30, monitor$ = 31, instrument$ = 32, hkicker$ = 33, vkicker$ = 34
 integer, parameter :: rcollimator$ = 35, ecollimator$ = 36, girder$ = 37, bend_sol_quad$ = 38
-integer, parameter :: def_beam_start$ = 39, photon_fork$ = 40, fork$ = 41, mirror$ = 42, crystal$ = 43
+integer, parameter :: def_particle_start$ = 39, photon_fork$ = 40, fork$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46, e_gun$ = 47, em_field$ = 48
 integer, parameter :: floor_shift$ = 49, fiducial$ = 50, undulator$ = 51, diffraction_plate$ = 52
 integer, parameter :: photon_init$ = 53, sample$ = 54, detector$ = 55, sad_mult$ = 56, mask$ = 57
@@ -1285,21 +1280,21 @@ integer, parameter :: ac_kicker$ = 58, lens$ = 59
 
 integer, parameter :: n_key$ = 59
 character(20), parameter :: key_name(n_key$) = [ &
-    'Drift            ', 'Sbend            ', 'Quadrupole       ', 'Group            ', &
-    'Sextupole        ', 'Overlay          ', 'Custom           ', 'Taylor           ', &
-    'RFcavity         ', 'ELseparator      ', 'BeamBeam         ', 'Wiggler          ', &
-    'Sol_Quad         ', 'Marker           ', 'Kicker           ', 'Hybrid           ', &
-    'Octupole         ', 'Rbend            ', 'Multipole        ', 'Bend_sol_        ', &
-    'Def_Mad_Beam     ', 'AB_multipole     ', 'Solenoid         ', 'Patch            ', &
-    'Lcavity          ', 'Def_Parameter    ', 'Null_Ele         ', 'Beginning_Ele    ', &
-    'Line_Ele         ', 'Match            ', 'Monitor          ', 'Instrument       ', &
-    'Hkicker          ', 'Vkicker          ', 'Rcollimator      ', 'Ecollimator      ', &
-    'Girder           ', 'Bend_Sol_Quad    ', 'Def_Beam_Start   ', 'Photon_Fork      ', &
-    'Fork             ', 'Mirror           ', 'Crystal          ', 'Pipe             ', &
-    'Capillary        ', 'Multilayer_Mirror', 'E_Gun            ', 'EM_Field         ', &
-    'Floor_Shift      ', 'Fiducial         ', 'Undulator        ', 'Diffraction_Plate', &
-    'Photon_Init      ', 'Sample           ', 'Detector         ', 'Sad_Mult         ', &
-    'Mask             ', 'AC_Kicker        ', 'Lens             ']
+    'Drift             ', 'Sbend             ', 'Quadrupole        ', 'Group             ', &
+    'Sextupole         ', 'Overlay           ', 'Custom            ', 'Taylor            ', &
+    'RFcavity          ', 'ELseparator       ', 'BeamBeam          ', 'Wiggler           ', &
+    'Sol_Quad          ', 'Marker            ', 'Kicker            ', 'Hybrid            ', &
+    'Octupole          ', 'Rbend             ', 'Multipole         ', 'Bend_sol_         ', &
+    'Def_Mad_Beam      ', 'AB_multipole      ', 'Solenoid          ', 'Patch             ', &
+    'Lcavity           ', 'Def_Parameter     ', 'Null_Ele          ', 'Beginning_Ele     ', &
+    'Line_Ele          ', 'Match             ', 'Monitor           ', 'Instrument        ', &
+    'Hkicker           ', 'Vkicker           ', 'Rcollimator       ', 'Ecollimator       ', &
+    'Girder            ', 'Bend_Sol_Quad     ', 'Def_Particle_start', 'Photon_Fork       ', &
+    'Fork              ', 'Mirror            ', 'Crystal           ', 'Pipe              ', &
+    'Capillary         ', 'Multilayer_Mirror ', 'E_Gun             ', 'EM_Field          ', &
+    'Floor_Shift       ', 'Fiducial          ', 'Undulator         ', 'Diffraction_Plate ', &
+    'Photon_Init       ', 'Sample            ', 'Detector          ', 'Sad_Mult          ', &
+    'Mask              ', 'AC_Kicker         ', 'Lens              ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -1369,7 +1364,7 @@ integer, parameter :: fq1$ = 16, sig_z$ = 16, graze_angle_out$ = 16
 integer, parameter :: fq2$ = 17, sig_vx$ = 17
 integer, parameter :: sig_vy$ = 18, autoscale_amplitude$ = 18
 integer, parameter :: sig_e$ = 19, autoscale_phase$ = 19
-integer, parameter :: d1_thickness$ = 20, default_tracking_species$ = 20, direction_beam_start$ = 20, sig_e2$ = 20
+integer, parameter :: d1_thickness$ = 20, default_tracking_species$ = 20, direction_particle_start$ = 20, sig_e2$ = 20
 integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20, constant_ref_energy$ = 20
 integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
 integer, parameter :: e_loss$ = 21, dks_ds$ = 21, gap$ = 21, spin_x$ = 21, E_center$ = 21
@@ -1780,6 +1775,7 @@ type extra_parsing_info_struct
   logical :: space_charge_on_set                    = .false.
   logical :: coherent_synch_rad_on_set              = .false.
   logical :: spin_tracking_on_set                   = .false.
+  logical :: backwards_time_tracking_on_set         = .false.
   logical :: spin_sokolov_ternov_flipping_on_set    = .false.
   logical :: radiation_damping_on_set               = .false.
   logical :: radiation_fluctuations_on_set          = .false.
@@ -1809,52 +1805,52 @@ character(16), parameter :: ptc_field_geometry_name(0:3) = [ &
 ! Remember: Change extra_parsing_info_struct if bmad_common_struct changed.
 
 type bmad_common_struct
-  real(rp) :: max_aperture_limit = 1d3            ! Max Aperture.
-  real(rp) :: d_orb(6)           = 1d-5           ! Orbit deltas for the mat6 via tracking calc.
-  real(rp) :: default_ds_step    = 0.2_rp         ! Integration step size.  
-  real(rp) :: significant_length = 1d-10          ! meter 
-  real(rp) :: rel_tol_tracking = 1d-8                 ! Closed orbit relative tolerance.
-  real(rp) :: abs_tol_tracking = 1d-10                ! Closed orbit absolute tolerance.
-  real(rp) :: rel_tol_adaptive_tracking = 1d-8        ! Runge-Kutta tracking relative tolerance.
-  real(rp) :: abs_tol_adaptive_tracking = 1d-10       ! Runge-Kutta tracking absolute tolerance.
-  real(rp) :: init_ds_adaptive_tracking = 1d-3        ! Initial step size
-  real(rp) :: min_ds_adaptive_tracking = 0            ! Min step size to take.
-  real(rp) :: fatal_ds_adaptive_tracking = 1d-8       ! If actual step size is below this particle is lost.
-  real(rp) :: autoscale_amp_abs_tol = 0.1_rp          ! Autoscale absolute amplitude tolerance (eV).
-  real(rp) :: autoscale_amp_rel_tol = 1d-6            ! Autoscale relative amplitude tolerance
-  real(rp) :: autoscale_phase_tol = 1d-5              ! Autoscale phase tolerance.
-  real(rp) :: electric_dipole_moment = 0              ! Particle's EDM. Call set_ptc to transfer value to PTC.
-  real(rp) :: ptc_cut_factor = 0.006                  ! Cut factor for PTC tracking
-  real(rp) :: sad_eps_scale = 5.0d-3                  ! Used in sad_mult step length calc.
-  real(rp) :: sad_amp_max = 5.0d-2                    ! Used in sad_mult step length calc.
-  integer :: sad_n_div_max = 1000                     ! Used in sad_mult step length calc.
-  integer :: taylor_order = 0                         ! Input Taylor order for maps. 
-                                                      !   0 -> default = ptc%taylor_order_saved
-                                                      !   ptc_com%taylor_order_ptc gives actual order in use. 
-  integer :: runge_kutta_order = 4                    ! Runge Kutta order.
-  integer :: default_integ_order = 2                  ! PTC integration order. 
-  integer :: ptc_max_fringe_order = 2                 ! PTC max fringe order (2  = > Quadrupole !). 
-                                                      !   Must call set_ptc after changing.
-  integer :: max_num_runge_kutta_step = 10000         ! Maximum number of RK steps before particle is considered lost.
-  logical :: rf_phase_below_transition_ref = .false.     ! Autoscale uses below transition stable point for RFCavities?
-  logical :: use_hard_edge_drifts = .true.            ! Insert drifts when tracking through cavity?
-  logical :: sr_wakes_on = .true.                     ! Short range wakefields?
-  logical :: lr_wakes_on = .true.                     ! Long range wakefields
-  logical :: mat6_track_symmetric = .true.            ! symmetric offsets
-  logical :: auto_bookkeeper = .true.                 ! Automatic bookkeeping?
-  logical :: space_charge_on = .false.                ! Space charge switch
-  logical :: coherent_synch_rad_on = .false.          ! csr 
-  logical :: spin_tracking_on = .false.               ! spin tracking?
-  logical :: spin_sokolov_ternov_flipping_on = .false.  ! Spin flipping during synchrotron radiation emission?
-  logical :: radiation_damping_on = .false.           ! Damping toggle.
-  logical :: radiation_fluctuations_on = .false.      ! Fluctuations toggle.
-  logical :: conserve_taylor_maps = .true.            ! Enable bookkeeper to set ele%taylor_map_includes_offsets = F?
-  logical :: absolute_time_tracking_default = .false. ! Default for lat%absolute_time_tracking
-  logical :: convert_to_kinetic_momentum = .false.    ! Cancel kicks due to finite vector potential when doing symplectic tracking?
-                                                      !   Set to True to test symp_lie_bmad against runge_kutta.
-  logical :: aperture_limit_on = .true.               ! use apertures in tracking?
-  logical :: ptc_print_info_messages = .false.        ! Allow PTC to print informational messages (which can clutter the output)?
-  logical :: debug = .false.                          ! Used for code debugging.
+  real(rp) :: max_aperture_limit = 1d3                 ! Max Aperture.
+  real(rp) :: d_orb(6)           = 1d-5                ! Orbit deltas for the mat6 via tracking calc.
+  real(rp) :: default_ds_step    = 0.2_rp              ! Integration step size.  
+  real(rp) :: significant_length = 1d-10               ! meter 
+  real(rp) :: rel_tol_tracking = 1d-8                  ! Closed orbit relative tolerance.
+  real(rp) :: abs_tol_tracking = 1d-10                 ! Closed orbit absolute tolerance.
+  real(rp) :: rel_tol_adaptive_tracking = 1d-8         ! Runge-Kutta tracking relative tolerance.
+  real(rp) :: abs_tol_adaptive_tracking = 1d-10        ! Runge-Kutta tracking absolute tolerance.
+  real(rp) :: init_ds_adaptive_tracking = 1d-3         ! Initial step size
+  real(rp) :: min_ds_adaptive_tracking = 0             ! Min step size to take.
+  real(rp) :: fatal_ds_adaptive_tracking = 1d-8        ! If actual step size is below this particle is lost.
+  real(rp) :: autoscale_amp_abs_tol = 0.1_rp           ! Autoscale absolute amplitude tolerance (eV).
+  real(rp) :: autoscale_amp_rel_tol = 1d-6             ! Autoscale relative amplitude tolerance
+  real(rp) :: autoscale_phase_tol = 1d-5               ! Autoscale phase tolerance.
+  real(rp) :: electric_dipole_moment = 0               ! Particle's EDM. Call set_ptc to transfer value to PTC.
+  real(rp) :: ptc_cut_factor = 0.006                   ! Cut factor for PTC tracking
+  real(rp) :: sad_eps_scale = 5.0d-3                   ! Used in sad_mult step length calc.
+  real(rp) :: sad_amp_max = 5.0d-2                     ! Used in sad_mult step length calc.
+  integer :: sad_n_div_max = 1000                      ! Used in sad_mult step length calc.
+  integer :: taylor_order = 0                          ! Input Taylor order. 0 -> default = ptc%taylor_order_saved
+                                                       !   ptc_com%taylor_order_ptc gives actual order in use. 
+  integer :: runge_kutta_order = 4                     ! Runge Kutta order.
+  integer :: default_integ_order = 2                   ! PTC integration order. 
+  integer :: ptc_max_fringe_order = 2                  ! PTC max fringe order (2  = > Quadrupole !). 
+                                                       !   Must call set_ptc after changing.
+  integer :: max_num_runge_kutta_step = 10000          ! Maximum number of RK steps before particle is considered lost.
+  logical :: rf_phase_below_transition_ref = .false.   ! Autoscale uses below transition stable point for RFCavities?
+  logical :: use_hard_edge_drifts = .true.             ! Insert drifts when tracking through cavity?
+  logical :: sr_wakes_on = .true.                      ! Short range wakefields?
+  logical :: lr_wakes_on = .true.                      ! Long range wakefields
+  logical :: mat6_track_symmetric = .true.             ! symmetric offsets
+  logical :: auto_bookkeeper = .true.                  ! Automatic bookkeeping?
+  logical :: space_charge_on = .false.                 ! Space charge switch
+  logical :: coherent_synch_rad_on = .false.           ! csr 
+  logical :: spin_tracking_on = .false.                ! spin tracking?
+  logical :: backwards_time_tracking_on = .false.      ! Track backwards in time?
+  logical :: spin_sokolov_ternov_flipping_on = .false. ! Spin flipping during synchrotron radiation emission?
+  logical :: radiation_damping_on = .false.            ! Damping toggle.
+  logical :: radiation_fluctuations_on = .false.       ! Fluctuations toggle.
+  logical :: conserve_taylor_maps = .true.             ! Enable bookkeeper to set ele%taylor_map_includes_offsets = F?
+  logical :: absolute_time_tracking_default = .false.  ! Default for lat%absolute_time_tracking
+  logical :: convert_to_kinetic_momentum = .false.     ! Cancel kicks due to finite vector potential when doing symplectic tracking?
+                                                       !   Set to True to test symp_lie_bmad against runge_kutta.
+  logical :: aperture_limit_on = .true.                ! use apertures in tracking?
+  logical :: ptc_print_info_messages = .false.         ! Allow PTC to print informational messages (which can clutter the output)?
+  logical :: debug = .false.                           ! Used for code debugging.
 end type
   
 type (bmad_common_struct), save, target :: bmad_com

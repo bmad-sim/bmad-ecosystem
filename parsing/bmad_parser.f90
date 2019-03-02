@@ -188,8 +188,8 @@ call find_indexx (ele%name, in_name, 0, in_indexx, n_max, ix, add_to_list = .tru
 ix_param_ele = 2
 
 ele => in_lat%ele(3)
-ele%name = 'BEAM_START'           ! For beam starting parameters 
-ele%key = def_beam_start$
+ele%name = 'PARTICLE_START'           ! For beam starting parameters 
+ele%key = def_particle_start$
 call find_indexx (ele%name, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
 
 ele => in_lat%ele(4)
@@ -433,6 +433,8 @@ parsing_loop: do
 
     ! If just a name then we can look this up
 
+    if (word_1 == 'BEAM_START') word_1 = 'PARTICLE_START'   ! For backwards compatibility
+
     if (ixc == 0 .and. key == -1 .and. .not. wild_here) then    
       call find_indexx (word_1, in_name, 0, in_indexx, n_max, ix)
       if (ix == -1) then
@@ -487,7 +489,7 @@ parsing_loop: do
       if (key /= 0 .and. ele%key /= key) cycle
       ! No wild card matches permitted for these.
       if (ele%key == beginning_ele$ .or. ele%key == def_mad_beam$ .or. &
-          ele%key == def_parameter$ .or. ele%key == def_beam_start$ .or. &
+          ele%key == def_parameter$ .or. ele%key == def_particle_start$ .or. &
           ele%key == def_bmad_com$) cycle
       if (.not. match_wild(ele%name, trim(name))) cycle
       ! 
@@ -808,7 +810,7 @@ branch_loop: do i_loop = 1, n_branch_max
     lat%ele(0)%orientation      = lat%ele(1)%orientation
     lat%version                 = bmad_inc_version$
     lat%input_file_name         = full_lat_file_name             ! save input file  
-    lat%beam_start              = in_lat%beam_start
+    lat%particle_start              = in_lat%particle_start
     lat%a                       = in_lat%a
     lat%b                       = in_lat%b
     lat%z                       = in_lat%z
@@ -1210,9 +1212,9 @@ if (err) then
   return
 endif
 
-! Correct beam_start info
+! Correct particle_start info
 
-call init_coord (lat%beam_start, lat%beam_start, lat%ele(0), downstream_end$, E_photon = lat%beam_start%p0c, shift_vec6 = .false.)
+call init_coord (lat%particle_start, lat%particle_start, lat%ele(0), downstream_end$, E_photon = lat%particle_start%p0c, shift_vec6 = .false.)
 
 !-------------------------------------------------------------------------
 ! Print lattice info if debug is on
@@ -1318,7 +1320,7 @@ logical err, added
 
 !
 
-if (word_1 == 'BEGINNING' .or. word_1 == 'BEAM' .or. word_1 == 'BEAM_START' .or. word_1 == 'END') then
+if (word_1 == 'BEGINNING' .or. word_1 == 'BEAM' .or. word_1 == 'PARTICLE_START' .or. word_1 == 'END') then
   call parser_error ('ELEMENT NAME CORRESPONDS TO A RESERVED WORD: ' // word_1)
   err = .true.
   return

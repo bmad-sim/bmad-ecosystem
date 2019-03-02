@@ -252,13 +252,13 @@ superposition (\sref{s:super}) and multipass (\sref{s:multipass})
 slave elements.
 
 \index{reserved names}
-\index{beam}\index{beam_start}\index{beginning}
+\index{beam}\index{particle_start}\index{beginning}
 \index{end}\index{parameter}\index{root}
 There is a short list of names that cannot be used as an element name. 
 These reserved names are:
 \begin{example}
   beam
-  beam_start
+  particle_start
   beginning
   debug_marker
   end
@@ -1198,7 +1198,7 @@ of output. The syntax is
 \end{example}
 Valid \vn{<switches>} are
 \begin{example}
-  beam_start          ! Print the beam_start information.
+  particle_start      ! Print the particle_start information.
   const               ! Print table of constants defined in the lattice file.
   ele <n1> <n2> ...   ! Print full info on selected elements.
   lattice             ! Print a list of lattice element information.

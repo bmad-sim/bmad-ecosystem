@@ -505,12 +505,12 @@ if (ibeta0_ptr /= 0) then
   ele%x%etap  = ele%a%etap 
   ele%y%eta   = ele%b%eta  
   ele%y%etap  = ele%b%etap 
-  lat%beam_start%vec(1) =  pdata(dat_indx+10)
-  lat%beam_start%vec(2) =  pdata(dat_indx+11)
-  lat%beam_start%vec(3) =  pdata(dat_indx+12)
-  lat%beam_start%vec(4) =  pdata(dat_indx+13)
-  lat%beam_start%vec(5) =  pdata(dat_indx+14)
-  lat%beam_start%vec(6) =  pdata(dat_indx+15)
+  lat%particle_start%vec(1) =  pdata(dat_indx+10)
+  lat%particle_start%vec(2) =  pdata(dat_indx+11)
+  lat%particle_start%vec(3) =  pdata(dat_indx+12)
+  lat%particle_start%vec(4) =  pdata(dat_indx+13)
+  lat%particle_start%vec(5) =  pdata(dat_indx+14)
+  lat%particle_start%vec(6) =  pdata(dat_indx+15)
   ele%value(e_tot$) = pdata(dat_indx+26) * 1d9
 
   if (ele%a%beta /= 0) ele%a%gamma = (1 + ele%a%alpha**2) / ele%a%beta

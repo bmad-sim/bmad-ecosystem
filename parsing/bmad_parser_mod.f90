@@ -430,10 +430,10 @@ if (word == 'SPINOR_POLARIZATION' .or. word == 'SPINOR_PHI' .or. word == 'SPINOR
   return
 endif
 
-! beam_start and bmad_com element can have attributes that are not part of the element so
+! particle_start and bmad_com element can have attributes that are not part of the element so
 ! Need to use pointers_to_attribute.
 
-if (key == def_beam_start$ .or. key == def_bmad_com$) then
+if (key == def_particle_start$ .or. key == def_bmad_com$) then
   name = ele%name
   if (ele%name == 'PARAMETER') name = 'BMAD_COM'
 
@@ -485,7 +485,7 @@ if (key == def_beam_start$ .or. key == def_bmad_com$) then
   elseif (associated(a_ptrs(1)%i)) then
     call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag) 
     if (err_flag) return
-    if (associated(a_ptrs(1)%i, lat%beam_start%direction) .and. nint(value) /= -1 .and. nint(value) /= 1) then
+    if (associated(a_ptrs(1)%i, lat%particle_start%direction) .and. nint(value) /= -1 .and. nint(value) /= 1) then
       call parser_error ('VALUE OF BEAM_SART[DIRECTION] MUST BE -1 OR 1.')
       return
     endif
@@ -509,6 +509,7 @@ if (key == def_beam_start$ .or. key == def_bmad_com$) then
     if (associated(a_ptrs(1)%l, bmad_com%space_charge_on))                bp_com%extra%space_charge_on_set                 = .true.
     if (associated(a_ptrs(1)%l, bmad_com%coherent_synch_rad_on))          bp_com%extra%coherent_synch_rad_on_set           = .true.
     if (associated(a_ptrs(1)%l, bmad_com%spin_tracking_on))               bp_com%extra%spin_tracking_on_set                = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%backwards_time_tracking_on))     bp_com%extra%backwards_time_tracking_on_set      = .true.
     if (associated(a_ptrs(1)%l, bmad_com%radiation_damping_on))           bp_com%extra%radiation_damping_on_set            = .true.
     if (associated(a_ptrs(1)%l, bmad_com%radiation_fluctuations_on))      bp_com%extra%radiation_fluctuations_on_set       = .true.
     if (associated(a_ptrs(1)%l, bmad_com%conserve_taylor_maps))           bp_com%extra%conserve_taylor_maps_set            = .true.
@@ -6858,11 +6859,11 @@ if (ix /= 0) then
   found = .true.
 endif
 
-if (index(debug_line, 'BEAM_START') /= 0) then
+if (index(debug_line, 'PARTICLE_START') /= 0) then
   print *
   print *, '----------------------------------------'
-  print *, 'beam_start:'
-  print '(3x, 6es13.4)', lat%beam_start%vec      
+  print *, 'particle_start:'
+  print '(3x, 6es13.4)', lat%particle_start%vec      
   found = .true.
 endif
 

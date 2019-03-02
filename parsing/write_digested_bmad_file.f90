@@ -169,7 +169,7 @@ do i = 1, lat%n_ic_max
   write (d_unit) lat%ic(i)
 enddo
 
-write (d_unit) lat%beam_start
+write (d_unit) lat%particle_start
 
 ! Write PTC info
 

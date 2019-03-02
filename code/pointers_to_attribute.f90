@@ -6,7 +6,7 @@
 !
 ! Note: If, for example, ele_name = 'BMAD_COM', there is not corresponding lattice element and
 !   therefore eles will have size 0 on output.
-! Note: ele_name = 'BEAM_START' corresponds to the lat%beam_start substructure. 
+! Note: ele_name = 'PARTICLE_START' corresponds to the lat%particle_start substructure. 
 ! Note: ele_name can be a list of element indices. For example:
 !           ele_name = "3:5"
 !  This sets elements 3, 4, and 5 in the lat%ele(:) array.
@@ -36,7 +36,7 @@
 !   err_flag     -- Logical: Set True if attribtute not found.
 !   eles(:)      -- Ele_pointer_struct, optional, allocatable: Array of element pointers.
 !                     size(eles) = size(ptr_array). If there are no associated lattice 
-!                     elements (EG if ele_name = 'BEAM_START'), eles(i)%ele will be null.
+!                     elements (EG if ele_name = 'PARTICLE_START'), eles(i)%ele will be null.
 !                     
 !   ix_attrib    -- Integer, optional: If applicable then this is the index to the 
 !                     attribute in the ele%value(:) array.
@@ -50,7 +50,7 @@ use bmad_interface, except_dummy => pointers_to_attribute
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), target :: beam_start
+type (ele_struct), target :: particle_start
 type (all_pointer_struct), allocatable :: ptr_array(:)
 type (all_pointer_struct), allocatable :: ptrs(:)
 type (ele_pointer_struct), optional, allocatable :: eles(:)
@@ -136,6 +136,7 @@ case ('BMAD_COM')
   case ('SPACE_CHARGE_ON');                 ptr_array(1)%l => bmad_com%space_charge_on
   case ('COHERENT_SYNCH_RAD_ON');           ptr_array(1)%l => bmad_com%coherent_synch_rad_on
   case ('SPIN_TRACKING_ON');                ptr_array(1)%l => bmad_com%spin_tracking_on
+  case ('BACKWARDS_TIME_TRACKING_ON');      ptr_array(1)%l => bmad_com%backwards_time_tracking_on
   case ('SPIN_SOKOLOV_TERNOV_FLIPPING_ON'); ptr_array(1)%l => bmad_com%spin_sokolov_ternov_flipping_on
   case ('RADIATION_DAMPING_ON');            ptr_array(1)%l => bmad_com%radiation_damping_on
   case ('RADIATION_FLUCTUATIONS_ON');       ptr_array(1)%l => bmad_com%radiation_fluctuations_on
@@ -156,14 +157,14 @@ case ('BMAD_COM')
 
   return
 
-! like beam_start
+! like particle_start
 
-case ('BEAM_START')
+case ('PARTICLE_START')
 
   call re_allocate (ptr_array, 1)
   if (present(eles)) call re_allocate_eles (eles, 1)
 
-  ix = attribute_index (beam_start, attrib_name)
+  ix = attribute_index (particle_start, attrib_name)
   if (ix < 1) then
     if (do_print) call out_io (s_error$, r_name, &
            'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
@@ -175,38 +176,38 @@ case ('BEAM_START')
   if (present(ix_attrib)) ix_attrib = ix
   select case (ix)
   case (x$)
-    ptr_array(1)%r => lat%beam_start%vec(1)
+    ptr_array(1)%r => lat%particle_start%vec(1)
   case (px$)
-    ptr_array(1)%r => lat%beam_start%vec(2)
+    ptr_array(1)%r => lat%particle_start%vec(2)
   case (y$)
-    ptr_array(1)%r => lat%beam_start%vec(3)
+    ptr_array(1)%r => lat%particle_start%vec(3)
   case (py$)
-    ptr_array(1)%r => lat%beam_start%vec(4)
+    ptr_array(1)%r => lat%particle_start%vec(4)
   case (z$)
-    ptr_array(1)%r => lat%beam_start%vec(5)
+    ptr_array(1)%r => lat%particle_start%vec(5)
   case (pz$)
-    ptr_array(1)%r => lat%beam_start%vec(6)
+    ptr_array(1)%r => lat%particle_start%vec(6)
   case (field_x$)
-    ptr_array(1)%r => lat%beam_start%field(1)
+    ptr_array(1)%r => lat%particle_start%field(1)
   case (field_y$)
-    ptr_array(1)%r => lat%beam_start%field(2)
+    ptr_array(1)%r => lat%particle_start%field(2)
   case (phase_x$)
-    ptr_array(1)%r => lat%beam_start%phase(1)
+    ptr_array(1)%r => lat%particle_start%phase(1)
   case (phase_y$)
-    ptr_array(1)%r => lat%beam_start%phase(2)
+    ptr_array(1)%r => lat%particle_start%phase(2)
   case (t$)
-    ptr_array(1)%r => lat%beam_start%t
+    ptr_array(1)%r => lat%particle_start%t
   case (e_photon$)
-    ptr_array(1)%r => lat%beam_start%p0c
-  case (direction_beam_start$)
-    ptr_array(1)%i => lat%beam_start%direction
+    ptr_array(1)%r => lat%particle_start%p0c
+  case (direction_particle_start$)
+    ptr_array(1)%i => lat%particle_start%direction
 
   case (spin_x$)
-    ptr_array(1)%r => lat%beam_start%spin(1)
+    ptr_array(1)%r => lat%particle_start%spin(1)
   case (spin_y$)
-    ptr_array(1)%r => lat%beam_start%spin(2)
+    ptr_array(1)%r => lat%particle_start%spin(2)
   case (spin_z$)
-    ptr_array(1)%r => lat%beam_start%spin(3)
+    ptr_array(1)%r => lat%particle_start%spin(3)
 
   case (emittance_a$)
     ptr_array(1)%r => lat%a%emit

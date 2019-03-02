@@ -591,7 +591,7 @@ do i = lbound(param_node%children, 1), ubound(param_node%children, 1)
   call str_upcase (class_str, child_node%name)
   select case (class_str)
   case ('BEGINNING');  param_ele%key = beginning_ele$
-  case ('BEAM_START'); param_ele%key = def_beam_start$
+  case ('PARTICLE_START'); param_ele%key = def_particle_start$
   case ('PARAMETER');  param_ele%key = def_parameter$
   case default
     call parser_error ('BAD PARAMETER GROUP: ', node = child_node)
@@ -602,7 +602,7 @@ do i = lbound(param_node%children, 1), ubound(param_node%children, 1)
   value_str = child_node%attributes(ix0_att)%value
 
   select case (class_str)
-  case ('BEGINNING', 'BEAM_START')
+  case ('BEGINNING', 'PARTICLE_START')
     call pointers_to_attribute (lat, class_str, param_str, .true., ptrs, err_flag)
     if (err_flag) cycle
     ptrs(1)%r = value

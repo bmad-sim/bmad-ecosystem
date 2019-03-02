@@ -22,7 +22,7 @@ type lat_struct
   type (branch_struct), allocatable :: branch(:)   ! Branch(0:) array
   type (control_struct), allocatable :: control(:) ! Control list
   type (photon_reflect_surface_struct), pointer :: surface(:) => null()
-  type (coord_struct) beam_start          ! Starting coords
+  type (coord_struct) particle_start      ! Starting coords
   type (pre_tracker_struct) pre_tracker   ! For OPAL/IMPACT-T
   real(rp), allocatable :: custom(:)      ! Custom attributes.
   integer version                         ! Version number
@@ -803,13 +803,13 @@ around which the existing transfer matrix was computed has shifted.
 for all elements whose transfer matrices are recomputed.
 
 %----------------------------------------------------------------------------
-\section{Beam_start Component}
+\section{particle_start Component}
 \label{s:lat.beam.start}
 
-\index{beam_start}
-\index{lat_struct!\%beam_start}
-The \vn{lat%beam_start} component is a \vn{coord_struct} structure for
-holding the information obtained from \vn{beam_start} statements
+\index{particle_start}
+\index{lat_struct!\%particle_start}
+The \vn{lat%particle_start} component is a \vn{coord_struct} structure for
+holding the information obtained from \vn{particle_start} statements
 (\sref{s:beam.start}) in a \bmad lattice file.
 
 This component is not used in any standard \bmad calculation. It is up

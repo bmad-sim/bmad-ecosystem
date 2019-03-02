@@ -327,7 +327,7 @@ gamma_0 = ele%value(e_tot$) / mc2
 fact_d = 0
 if (bmad_com%radiation_damping_on) then
   fact_d = damp_const * q_charge2 * gamma_0**3 * g2 * s_len / mc2
-  if (param%backwards_time_tracking) fact_d = -fact_d
+  if (bmad_com%backwards_time_tracking_on) fact_d = -fact_d
 endif
 
 fact_f = 0

@@ -12,7 +12,7 @@ use geometry_mod
 ! Routine to calculate the twiss parameters, transport matrices and orbit.
 !
 ! This routine is an overloaded name for:
-!   twiss_and_track_branch (lat, orb, status, ix_branch, use_beam_start)
+!   twiss_and_track_branch (lat, orb, status, ix_branch, use_particle_start)
 !   twiss_and_track_all (lat, orb_array, status)
 !
 ! The essential difference between these two procedures is that
@@ -32,7 +32,7 @@ use geometry_mod
 !   use bmad
 !
 ! Input:
-!   lat                  -- lat_struct: lattice.
+!   lat                 -- lat_struct: lattice.
 !     %param%geometry      -- Used to determine if lattice is open or closed.
 !   orb(0:)             -- Coord_struct, allocatable: Orbit to be computed
 !     orb(0)            -- Initial conditions to be used for an open geometry lattices.
@@ -40,12 +40,12 @@ use geometry_mod
 !   orb_array(0:)       -- Coord_array_struct, allocatable: Array of orbit arrays.
 !     orb_array(0)%orbit(0) -- Used as the starting point for an open lattice.
 !   ix_branch           -- Integer, optional: Branch to track.
-!   use_beam_start      -- logical, optional: If True, use lat%beam_start instead of orb(0)
+!   use_particle_start  -- logical, optional: If True, use lat%particle_start instead of orb(0)
 !                            as the initial coords for open geometry lattices. Default is False.
 !
 ! Output:
 !   lat                -- lat_struct: Lat with computed twiss parameters.
-!     %param%stable   -- Set true or false.
+!     %param%stable          -- Set true or false.
 !     %param%unstable_factor -- unstable growth rate (= 0 if stable)
 !   orb(0:)            -- Coord_struct: Computed orbit.
 !   orb_array(0:)      -- Coord_array_struct: Array of orbit arrays.
@@ -71,7 +71,7 @@ contains
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine twiss_and_track_branch (lat, orb, status, ix_branch, use_beam_start)
+! Subroutine twiss_and_track_branch (lat, orb, status, ix_branch, use_particle_start)
 !
 ! Subroutine to calculate the twiss parameters, transport matrices and orbit.
 !
@@ -79,7 +79,7 @@ contains
 ! See twiss_and_track for more details.
 !-
 
-subroutine twiss_and_track_branch (lat, orb, status, ix_branch, use_beam_start)
+subroutine twiss_and_track_branch (lat, orb, status, ix_branch, use_particle_start)
 
 implicit none
 
@@ -90,14 +90,14 @@ type (coord_struct), allocatable :: orb(:)
 integer, optional :: status, ix_branch
 integer ib, status2
 
-logical, optional :: use_beam_start
+logical, optional :: use_particle_start
 
 !
 
 ib = integer_option(0, ix_branch)
 call reallocate_coord (orb, lat%branch(ib)%n_ele_max)
-if (logic_option(.false., use_beam_start)) &
-                    call init_coord (orb(0), lat%beam_start, lat%branch(ib)%ele(0), downstream_end$)
+if (logic_option(.false., use_particle_start)) &
+                    call init_coord (orb(0), lat%particle_start, lat%branch(ib)%ele(0), downstream_end$)
 call twiss_and_track1 (lat, orb, ib, status2)
 if (present(status)) status = status2
 

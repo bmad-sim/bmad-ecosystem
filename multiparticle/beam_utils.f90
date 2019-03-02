@@ -8,7 +8,7 @@ use bmad_interface
 
 private init_random_distribution, init_grid_distribution
 private init_ellipse_distribution, init_kv_distribution
-private combine_bunch_distributions, calc_this_emit
+private combine_bunch_distributions, calc_this_emit, read_bunch_end_calc
 
 contains
 
@@ -241,7 +241,6 @@ type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p
 
-real(rp) :: beta_vel
 integer i_bunch, i, n, n_kv
 logical, optional :: err_flag
 logical err_here
@@ -252,34 +251,26 @@ character(22) :: r_name = "init_beam_distribution"
 
 if (present(err_flag)) err_flag = .true.
 
-! Special init from file
+! Init from file
 
 if (beam_init%file_name /= '') then
-  call read_beam_file (beam_init%file_name, beam, beam_init, .false., err_here)
+  call read_beam_file (beam_init%file_name, beam, beam_init, err_here)
   if (err_here) then
     call out_io (s_abort$, r_name, "Problem with beam file: "//beam_init%file_name)
     return
   endif
+
   do i_bunch = 1, size(beam%bunch)
-    bunch => beam%bunch(i_bunch)
-    do i = 1, size(bunch%particle)
-      p => bunch%particle(i)
-      p%s = ele%s
-      call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), p%species, beta = beta_vel)
-      p%t = ele%ref_time - p%vec(5) / (beta_vel * c_light)
-      call init_coord (p, p, ele, downstream_end$, species_id(beam_init%species))
-    enddo
+    call read_bunch_end_calc(beam%bunch(i_bunch), beam_init, ele)
   enddo
+
   if (present(err_flag)) err_flag = .false.
   return
 endif
 
-! Normal init
+! Non-file init
 
-call reallocate_beam (beam, beam_init%n_bunch, 0)
-
-! Loop over all bunches
-! Note z_center is negative and t_center is posive for trailing bunches.
+call reallocate_beam (beam, max(beam_init%n_bunch, 1), 0)
 
 do i_bunch = 1, size(beam%bunch)
   bunch => beam%bunch(i_bunch)
@@ -346,6 +337,7 @@ implicit none
 type (ele_struct) ele
 type (ele_struct) twiss_ele
 type (lat_param_struct) param
+type (beam_struct) beam
 type (beam_init_struct), target :: beam_init
 type (bunch_struct), target :: bunch
 type (coord_struct) p_temp
@@ -363,15 +355,33 @@ integer :: n_kv     ! counts how many phase planes are of KV type
 integer :: ix_kv(3) ! indices (1,2,3) of the two KV planes or 0 if uninitialized
 
 character(16) old_engine, old_converter  
-character(22) :: r_name = "init_bunch_distribution"
+character(*), parameter :: r_name = "init_bunch_distribution"
 
 logical, optional :: err_flag
 logical ok, correct_for_coupling(6)
 logical ran_gauss_here, err
 
-! Checking that |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
+! 
 
 if (present(err_flag)) err_flag = .true.
+
+! Read from file?
+
+if (beam_init%file_name /= '') then
+  call read_beam_file (beam_init%file_name, beam, beam_init, err)
+  if (err) then
+    call out_io (s_abort$, r_name, "Problem with beam file: "//beam_init%file_name)
+    return
+  endif
+  bunch = beam%bunch(1)
+
+  call read_bunch_end_calc (bunch, beam_init, ele)
+
+  if (present(err_flag)) err_flag = .false.
+  return
+endif
+
+! Checking that |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
 
 if (abs(beam_init%dPz_dz * beam_init%sig_z) > beam_init%sig_e) then
   call out_io (s_abort$, r_name, "|dpz_dz| MUST be < mode%sigE_E / mode%sig_z")
@@ -486,16 +496,15 @@ enddo
 
 ! recenter the bunch and include beam jitter
 
-if (beam_init%use_lattice_center) then
+if (beam_init%use_particle_start_for_center) then
   if (.not. associated (ele%branch)) then
-    call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_LATTICE_CENTER = T.')
+    call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_PARTICLE_START_FOR_CENTER = T.')
     return
   endif
   if (.not. associated (ele%branch%lat)) then
-    call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_LATTICE_CENTER = T.')
+    call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_PARTICLE_START_FOR_CENTER = T.')
     return
   endif
-  beam_init%center = ele%branch%lat%beam_start%vec
 endif
 
 call ran_gauss(ran)
@@ -1814,5 +1823,62 @@ this_sigma = this_sigma / charge_live
 end function exp_calc
 
 end subroutine find_bunch_sigma_matrix 
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine read_bunch_end_calc (bunch, beam_init, ele)
+!
+! Private routine to do the dependent parameter bookkeeping after reading in particle positions from a file.
+!
+! Input:
+!   bunch     -- bunch_struct: Structure with info from the beam file.
+!   beam_init -- beam_init_struct: Displace the centroid?
+!   ele       -- ele_struct: Lattice element to initalize at.
+!
+! Output:
+!   bunch     -- bunch_struct: Bunch after dependent parameter bookkeeping.
+!-
+
+subroutine read_bunch_end_calc (bunch, beam_init, ele)
+
+type (bunch_struct), target :: bunch
+type (beam_init_struct) beam_init
+type (ele_struct) ele
+type (coord_struct), pointer :: p
+
+real(rp) center(6), ran
+integer i
+character(*), parameter :: r_name = 'read_bunch_end_calc'
+
+!
+
+call ran_gauss(ran)
+if (beam_init%use_particle_start_for_center) then
+  if (.not. associated (ele%branch)) then
+    call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_PARTICLE_START_FOR_CENTER = T.')
+    return
+  endif
+  if (.not. associated (ele%branch%lat)) then
+    call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_PARTICLE_START_FOR_CENTER = T.')
+    return
+  endif
+  beam_init%center = ele%branch%lat%particle_start%vec
+endif
+
+center = beam_init%center + beam_init%center_jitter * ran
+
+do i = 1, size(bunch%particle)
+  p => bunch%particle(i)
+  p%vec = p%vec + center
+  p%s = ele%s
+  call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), p%species, beta = p%beta)
+  p%t = ele%ref_time - p%vec(5) / (p%beta * c_light)
+  if (p%state /= alive$) cycle  ! Don't want init_coord to raise the dead.
+  call init_coord (p, p, ele, downstream_end$, p%species, +1)
+enddo
+
+end subroutine read_bunch_end_calc
 
 end module
