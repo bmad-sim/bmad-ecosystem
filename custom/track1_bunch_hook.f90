@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_bunch_hook (bunch_start, lat, ele, bunch_end, err, centroid, direction)
+! Subroutine track1_bunch_hook (bunch_start, lat, ele, bunch_end, err, centroid, direction, finished)
 !
 ! Routine that can be customized for tracking a bunch through a single element.
 !
