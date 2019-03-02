@@ -620,7 +620,7 @@ else
 
   ! Track through physical source ele and gather data
 
-  call init_coord (orb, lat%beam_start, physical_source_ele, upstream_end$)
+  call init_coord (orb, lat%particle_start, physical_source_ele, upstream_end$)
   twiss_ele = pointer_to_next_ele (physical_source_ele, -1)
   ds = physical_source_ele%value(l$) / n_slice
   s_now = 0
@@ -822,8 +822,8 @@ do
 
   call lux_generate_photon (photon%orb(0), lux_param, lux_com)
   if (lux_param%debug) then
-    call init_coord (photon%orb(0), lat%beam_start, t_branch%ele(0), downstream_end$, photon$, &
-                                        1, t_branch%ele(0)%value(E_tot$) * (1 + lat%beam_start%vec(6)))
+    call init_coord (photon%orb(0), lat%particle_start, t_branch%ele(0), downstream_end$, photon$, &
+                                        1, t_branch%ele(0)%value(E_tot$) * (1 + lat%particle_start%vec(6)))
   endif
 
   call track_all (lat, photon%orb, t_branch%ix_branch, track_state)
