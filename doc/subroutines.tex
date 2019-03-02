@@ -308,6 +308,11 @@ a custom element.
 \item[time_runge_kutta_periodic_kick_hook (orbit, z_phase, ele, param, stop_time, init_needed)] \Newline 
 Custom routine to add a kick to a particle at periodic times.
 
+\index[routine]{track1_bunch_hook}
+\label{r:track1.bunch.hook}
+\item[track1_bunch_hook (bunch_start, lat, ele, bunch_end, err, centroid, direction, finished)] \Newline 
+Routine that can be customized for tracking a bunch through a single element.
+
 \index[routine]{track1_custom}
 \label{r:track1.custom}
     \item[track1_custom (start_orb, ele, param, end_orb, err_flag, finished, track)] \Newline

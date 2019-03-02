@@ -214,7 +214,7 @@ There are three \vn{hook} routines that are available:
   \Hyperref{r:ele.geometry.hook}{ele_geometry_hook}
   \Hyperref{r:ele.to.fibre.hook}{ele_to_fibre_hook}
   \Hyperref{r:time.runge.kutta.periodic.kick.hook}{time_runge_kutta_periodic_kick_hook}
-  \Hyperref{r:track1.beam.hook}{track1_beam_hook}
+  \Hyperref{r:track1.bunch.hook}{track1_bunch_hook}
   \Hyperref{r:track1.preprocess}{track1_preprocess}
   \Hyperref{r:track1.postprocess}{track1_postprocess}
   \Hyperref{r:track1.wake.hook}{track1_wake_hook}
@@ -238,7 +238,7 @@ for example, to add the kick due to a passing beam ! on a residual gas ion that 
 tracked. See the documentation in the file \vn{time_runge_kutta_periodic_kick_hook.f90}
 for more details.
 
-The \vn{track1_beam_hook} routine can be used for custom beam tracking through an element.
+The \vn{track1_bunch_hook} routine can be used for custom bunch tracking through an element.
 
 The \vn{track1_preprocess} and \vn{track1_postprocess} routines are called by the
 \Hyperref{r:track1}{track1} routine. [Additionally, if the element being tracked through has its
