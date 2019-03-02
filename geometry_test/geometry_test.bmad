@@ -4,8 +4,8 @@ parameter[geometry] = open
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
-beam_start[z] = pi/2
-beam_start[x] = 1
+particle_start[z] = pi/2
+particle_start[x] = 1
 
 d: drift, l = 1
 p1: patch, z_offset = 1, x_pitch = pi

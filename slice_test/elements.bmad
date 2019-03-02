@@ -7,15 +7,15 @@ parameter[geometry] = open
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
-beam_start[x]  = 0.001 ! Horizontal position.
-beam_start[px] = 0.002 ! Horizontal momentum.
-beam_start[y]  = 0.003 ! Vertical position.
-beam_start[py] = 0.004 ! Vertical momentum.
-beam_start[z]  = 0.005 ! Longitudinal position.
-beam_start[pz] = 0.006 ! Longitudinal momentum (energy deviation).
-beam_start[spin_x] = 0.3
-beam_start[spin_y] = 0.4
-beam_start[spin_z] = 0.5
+particle_start[x]  = 0.001 ! Horizontal position.
+particle_start[px] = 0.002 ! Horizontal momentum.
+particle_start[y]  = 0.003 ! Vertical position.
+particle_start[py] = 0.004 ! Vertical momentum.
+particle_start[z]  = 0.005 ! Longitudinal position.
+particle_start[pz] = 0.006 ! Longitudinal momentum (energy deviation).
+particle_start[spin_x] = 0.3
+particle_start[spin_y] = 0.4
+particle_start[spin_z] = 0.5
 
 
 

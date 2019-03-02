@@ -46,14 +46,14 @@ if (print_extra) then
   endif
 endif
 
-if (any(lat%beam_start%spin /= 0)) then
+if (any(lat%particle_start%spin /= 0)) then
   bmad_com%spin_tracking_on = .true.
 endif
 
 open (1, file = 'output.now')
 
 if (print_extra) then
-  print '(a, t36, 7es18.10)', 'Start:', lat%beam_start%vec
+  print '(a, t36, 7es18.10)', 'Start:', lat%particle_start%vec
   print *
 endif
 
@@ -88,7 +88,7 @@ do ib = 0, ubound(lat%branch, 1)
       if (.not. valid_tracking_method(ele, branch%param%particle, j)) cycle
       if (j == symp_map$ .or. j == custom$) cycle
       if (j == mad$) cycle   ! Ignore MAD
-      if (j == taylor$ .and. lat%beam_start%direction == -1) cycle
+      if (j == taylor$ .and. lat%particle_start%direction == -1) cycle
       if (p_sign == -1 .and. (j == taylor$ .or. j == linear$)) cycle
       ele%tracking_method = j
 
@@ -103,15 +103,15 @@ do ib = 0, ubound(lat%branch, 1)
       if (j == linear$) then
         ele%tracking_method = symp_lie_ptc$
         if(ele%key == beambeam$ .or. ele%key == ac_kicker$) ele%tracking_method = bmad_standard$
-        if (lat%beam_start%direction == 1) then
-          call make_mat6 (ele, branch%param, lat%beam_start)
+        if (lat%particle_start%direction == 1) then
+          call make_mat6 (ele, branch%param, lat%particle_start)
         else  ! Can happen with a test lattice file
           call make_mat6 (ele, branch%param)
         endif
         ele%tracking_method = j
       endif
 
-      start_orb = lat%beam_start
+      start_orb = lat%particle_start
 
       if (p_sign == -1) then
         start_orb%direction = -1

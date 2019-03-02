@@ -21,7 +21,7 @@ call bmad_parser ('coord_test.bmad', lat)
 
 open (1, file = 'output.now')
 
-orb0%vec = lat%beam_start%vec
+orb0%vec = lat%particle_start%vec
 ele => lat%ele(1)
 call init_coord (orbit, orb0%vec, ele, upstream_end$, ele%branch%param%particle)
 call offset_particle (ele, lat%param, set$, orbit)

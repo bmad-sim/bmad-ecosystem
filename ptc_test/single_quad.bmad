@@ -9,16 +9,16 @@ parameter[geometry] = open
 parameter[p0c]                    = 2.998e8
 parameter[ptc_exact_model] = T
 
-beam_start[spin_x] = 0.
-beam_start[spin_y] = 0.
-beam_start[spin_z] = 0.5
+particle_start[spin_x] = 0.
+particle_start[spin_y] = 0.
+particle_start[spin_z] = 0.5
 
-beam_start[x]  = 1e-3
-beam_start[px] = 0e-3
-beam_start[y]  = 2e-3
-beam_start[py] = 0e-4
-beam_start[z]  = 0
-beam_start[pz] = 0
+particle_start[x]  = 1e-3
+particle_start[px] = 0e-3
+particle_start[y]  = 2e-3
+particle_start[py] = 0e-4
+particle_start[z]  = 0
+particle_start[pz] = 0
 
 qq: quad, l = 0.1, k1 = 1,
   cylindrical_map = {

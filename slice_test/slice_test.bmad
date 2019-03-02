@@ -1,7 +1,7 @@
 no_digested
 
-beam_start[x] = 1e-4
-beam_start[px] = 0e-4
+particle_start[x] = 1e-4
+particle_start[px] = 0e-4
 
 ! Branch 0
 

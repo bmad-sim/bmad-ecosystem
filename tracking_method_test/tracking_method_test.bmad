@@ -6,15 +6,15 @@ parameter[geometry] = open
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
-beam_start[x]  = 0.001
-beam_start[px] = 0.002
-beam_start[y]  = 0.003
-beam_start[py] = 0.004
-beam_start[z]  = 0.005
-beam_start[pz] = 0.006
-beam_start[spin_x] = 0.3
-beam_start[spin_y] = 0.4
-beam_start[spin_z] = 0.5
+particle_start[x]  = 0.001
+particle_start[px] = 0.002
+particle_start[y]  = 0.003
+particle_start[py] = 0.004
+particle_start[z]  = 0.005
+particle_start[pz] = 0.006
+particle_start[spin_x] = 0.3
+particle_start[spin_y] = 0.4
+particle_start[spin_z] = 0.5
 
 
 ab_multipole1:     ab_multipole, a2 = 1e2, b2 = 1e2, x_offset = 0.02, tilt = 0.1

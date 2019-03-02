@@ -46,7 +46,7 @@ call bmad_parser (lat_file, lat)
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
   if (ele%value(l$) == 0) cycle
-  call init_coord (start_orb, lat%beam_start, ele, upstream_end$, lat%param%particle)
+  call init_coord (start_orb, lat%particle_start, ele, upstream_end$, lat%param%particle)
   call track1 (start_orb, ele, lat%param, end_orb)
   call make_mat6 (ele, lat%param, start_orb)
   xmat = ele%mat6
@@ -196,7 +196,7 @@ write (1, '(a, 3es18.9)') '"bend-slice:floor-ang2" ABS 1e-10', end_ele%floor%the
 
 branch => lat%branch(2)
 call reallocate_coord (ref_orb, lat, branch%ix_branch)
-ref_orb = lat%beam_start
+ref_orb = lat%particle_start
 
 s1 = 0.5_rp
 s2 = 2.5_rp
@@ -305,7 +305,7 @@ write (1, '(a, 6f17.12)') '"Dd:vec0_c(:)"   ABS  1e-10', vec0_c - vec0_d
 ! Test branch 3
 
 branch => lat%branch(3)
-call init_coord (start_orb, lat%beam_start, branch%ele(0), downstream_end$)
+call init_coord (start_orb, lat%particle_start, branch%ele(0), downstream_end$)
 
 s_end = branch%ele(1)%s
 orbit = start_orb

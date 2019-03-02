@@ -46,7 +46,7 @@ open (1, file = 'output.now')
 
 !
 
-call init_coord (orb0, lat%beam_start, lat%ele(0), downstream_end$)
+call init_coord (orb0, lat%particle_start, lat%ele(0), downstream_end$)
 call ptc_transfer_map_with_spin (lat%branch(0), t_ele%taylor, t_ele%spin_taylor, orb0, err_flag, 0, 1)
 
 orb_start = orb0

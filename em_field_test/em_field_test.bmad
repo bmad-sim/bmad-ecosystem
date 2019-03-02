@@ -4,12 +4,12 @@ parameter[geometry] = open
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
-beam_start[x]  = 0.1
-beam_start[px] = 0.0
-beam_start[y]  = 0.3
-beam_start[py] = 0.0
-beam_start[z]  = 0.5
-beam_start[pz] = 0.0
+particle_start[x]  = 0.1
+particle_start[px] = 0.0
+particle_start[y]  = 0.3
+particle_start[py] = 0.0
+particle_start[z]  = 0.5
+particle_start[pz] = 0.0
 
 
 drift1:            drift, l = 4.5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1

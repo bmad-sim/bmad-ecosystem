@@ -29,7 +29,7 @@ do i = 1, 6
 enddo
 
 call reallocate_coord (orb, lat)
-orb(0) = lat%beam_start
+orb(0) = lat%particle_start
 call track_all (lat, orb)
 write (1, '(a, 6f14.8)') '"track" ABS 1E-7', orb(lat%n_ele_track)%vec
 

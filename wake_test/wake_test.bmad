@@ -6,7 +6,7 @@ parameter[geometry] = open
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
-beam_start[z] = -0.001
+particle_start[z] = -0.001
 
 p1: pipe, L = 1
 p1[sr_wake_file] = 'short_range.wake'

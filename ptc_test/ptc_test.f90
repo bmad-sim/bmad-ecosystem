@@ -95,11 +95,11 @@ call bmad_parser ('single_quad.bmad', lat)
 
 ele => lat%ele(1)
 call ele_to_fibre(ele, ele%ptc_fibre, lat%param, .true.)
-x(1) = lat%beam_start%vec(1)
-x(3) = lat%beam_start%vec(3)
-z = lat%beam_start%vec(5)
+x(1) = lat%particle_start%vec(1)
+x(3) = lat%particle_start%vec(3)
+z = lat%particle_start%vec(5)
 call b_e_field(ele%ptc_fibre%mag%ab, x, z, e_pot, e_field_ptc, b_pot, b_field_ptc, a, da)
-call em_field_calc (ele, lat%param, z, lat%beam_start, .true., field)
+call em_field_calc (ele, lat%param, z, lat%particle_start, .true., field)
 
 print '(a, 3f14.6)','B PTC:  ', b_field_ptc * ele%value(p0c$) / c_light
 print '(a, 3f14.6)','B Bmad: ', field%b

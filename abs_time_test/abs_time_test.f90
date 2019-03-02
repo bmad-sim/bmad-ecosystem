@@ -15,7 +15,7 @@ logical err_flag
 call bmad_parser ('abs_time_test.bmad', lat)
 
 call reallocate_coord (orb1, lat%n_ele_max)
-call init_coord (orb1(0), lat%beam_start, lat%ele(0), downstream_end$)
+call init_coord (orb1(0), lat%particle_start, lat%ele(0), downstream_end$)
 call track_all (lat, orb1)
 
 lat%absolute_time_tracking = .true.
@@ -23,7 +23,7 @@ lat%absolute_time_tracking = .true.
 call lattice_bookkeeper (lat)
 
 call reallocate_coord (orb2, lat%n_ele_max)
-call init_coord (orb2(0), lat%beam_start, lat%ele(0), downstream_end$)
+call init_coord (orb2(0), lat%particle_start, lat%ele(0), downstream_end$)
 call track_all (lat, orb2)
 
 !

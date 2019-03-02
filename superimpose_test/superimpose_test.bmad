@@ -3,7 +3,7 @@ parameter[e_tot] = 1e6
 parameter[geometry] = open
 beginning[beta_a] = 10
 beginning[beta_b] = 10
-beam_start[y] = 1e-3
+particle_start[y] = 1e-3
 
 s1: sextupole, k2 = 1, l = 2, b1 = 0.01
 s2: sextupole, k2 = 2, l = 2, b1 = 0.02, superimpose, offset = 2

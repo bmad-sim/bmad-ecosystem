@@ -4,7 +4,7 @@ parameter[lattice]                = g_2
 parameter[particle]               = antimuon
 parameter[geometry] = open
 parameter[p0c]                    = 3.094353005E9
-beam_start[px] = 1.5e-3
+particle_start[px] = 1.5e-3
 
 infa:    drift,  l=2,
          tracking_method = bmad_standard, mat6_calc_method = bmad_standard, ds_step=0.001,

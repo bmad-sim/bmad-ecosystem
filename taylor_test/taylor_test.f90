@@ -26,13 +26,13 @@ open (1, file = 'output.now', recl = 200)
 !ele1 => lat%ele(1)
 !ele1%tracking_method = taylor$
 !call attribute_bookkeeper (ele1, lat%param, .true.)  ! So taylor map will not be killed in tracking
-!call ele_to_taylor (ele1, lat%param, lat%beam_start)
+!call ele_to_taylor (ele1, lat%param, lat%particle_start)
 !
 !call concat_ele_taylor(ele1%taylor, ele2, ele2%taylor)
 
 !
 
-call transfer_map_calc (lat, t_map, err, 0, lat%n_ele_track, lat%beam_start, 0, .true.)
+call transfer_map_calc (lat, t_map, err, 0, lat%n_ele_track, lat%particle_start, 0, .true.)
 
 do i = 1, 6
   call sort_taylor_terms (t_map(i), t, 1e-20_rp)
@@ -42,7 +42,7 @@ do i = 1, 6
   write (1, *)
 enddo
 
-call transfer_map_from_s_to_s (lat, t_map, 0.1_rp, lat%param%total_length-2.0_rp, lat%beam_start)
+call transfer_map_from_s_to_s (lat, t_map, 0.1_rp, lat%param%total_length-2.0_rp, lat%particle_start)
 
 do i = 1, 6
   call sort_taylor_terms (t_map(i), t, 1e-20_rp)

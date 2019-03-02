@@ -148,7 +148,7 @@ logical :: err_flag
 !-------------------------------------------------------------------
 ! Forward tracking
 
-call init_coord (orb_0f, lat%beam_start, ele, upstream_end$)
+call init_coord (orb_0f, lat%particle_start, ele, upstream_end$)
 
 call make_mat6(ele, ele%branch%param, orb_0f)
 call track1 (orb_0f, ele, ele%branch%param, orb_1f)

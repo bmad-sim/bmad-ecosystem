@@ -37,7 +37,7 @@ open (1, file = 'output.now')
 
 call bmad_parser (lat_file, lat)
 ele => lat%ele(2)
-start_orb = lat%beam_start
+start_orb = lat%particle_start
 
 ele%tracking_method = runge_kutta$
 call track1(start_orb, lat%ele(2), lat%param, end_orb)

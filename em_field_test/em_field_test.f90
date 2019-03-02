@@ -63,7 +63,7 @@ do ib = 0, ubound(lat%branch, 1)
       cycle
     endif
 
-    call init_coord (orb, lat%beam_start, ele, inside$)
+    call init_coord (orb, lat%particle_start, ele, inside$)
     orb%vec(2) = 0
     orb%vec(4) = 0
     orb%vec(6) = 0
