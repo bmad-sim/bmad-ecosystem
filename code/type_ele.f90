@@ -912,7 +912,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
 
   if (ele%n_slave_field /= 0) then
     nl=nl+1; li(nl) = "This element's field overlaps:"
-    nl=nl+1; li(nl) = '   Index   Name                                Type             S'
+    nl=nl+1; li(nl) = '   Index   Name                                      Type       S'
     do i = 1, ele%n_slave_field
       slave => pointer_to_slave(ele, ele%n_slave+i)
       nl=nl+1; write (li(nl), '(a8, t12, a30, a16, f10.3)') &
