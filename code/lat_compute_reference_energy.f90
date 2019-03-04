@@ -489,7 +489,7 @@ case (crystal$, mirror$, multilayer_mirror$, diffraction_plate$, photon_init$, m
 case (patch$)
   ! Ignore flexible patch error messages that can be generated.
   if (is_true(ele%value(flexible$))) then
-    call ele_geometry(ele0%floor, ele, ele%floor, ignore_patch_err = .true.)
+    call ele_geometry(ele0%floor, ele, ignore_patch_err = .true.)
   endif
 
   if (ele%is_on .and. ele%value(e_tot_offset$) /= 0) then
