@@ -891,11 +891,11 @@ endif
 ! Of course if, for example, the beam_init structure is modified then we do want a distribution recalc.
 ! So only reinit the distribution if the distribution has not already been initialized or if commanded via %init_starting_distribution.
 
-if (u%beam%init_starting_distribution .or. .not. allocated(beam%bunch) .or. u%beam%beam_init%file_name /= "") then
-  ix_ele0 = u%beam%ix_track_start
-  beam_init => u%beam%beam_init
-  beam => u%beam%beam_at_start
+ix_ele0 = u%beam%ix_track_start
+beam_init => u%beam%beam_init
+beam => u%beam%beam_at_start
 
+if (u%beam%init_starting_distribution .or. .not. allocated(beam%bunch) .or. u%beam%beam_init%file_name /= "") then
   if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.
   call init_beam_distribution (branch%ele(ix_ele0), branch%param, beam_init, beam, err)
   if (err) then
