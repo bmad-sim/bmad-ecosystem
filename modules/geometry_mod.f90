@@ -34,15 +34,15 @@ type (ele_struct), pointer :: ele, lord, slave, b_ele, ele0, ele2
 type (branch_struct), pointer :: branch
 type (floor_position_struct) dummy
 
-integer i, i2, n, ix2, ie, ib, ie0
+integer i, i2, ix2, ie, ib, ie0
 logical stale
 
 character(16), parameter :: r_name = 'lat_geometry'
 
 !
 
-do n = 0, ubound(lat%branch, 1)
-  branch => lat%branch(n)
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
 
   if (bmad_com%auto_bookkeeper) then
     stale = .true.
@@ -58,7 +58,7 @@ do n = 0, ubound(lat%branch, 1)
   do i = 1, branch%n_ele_track
     ele => branch%ele(i)
     if (ele%key /= fiducial$) cycle
-    call ele_geometry (dummy, ele, ele%floor, set_ok = .true.)
+    call ele_geometry (dummy, ele)
 
     do i2 = i+1, branch%n_ele_track
       ele2 => branch%ele(i2)
@@ -68,7 +68,7 @@ do n = 0, ubound(lat%branch, 1)
         if (global_com%exit_on_error) call err_exit
         exit
       endif
-      call ele_geometry (branch%ele(i2-1)%floor, ele2, ele2%floor, set_ok = .true.)
+      call ele_geometry (branch%ele(i2-1)%floor, ele2)
     enddo
 
     branch%ele(i-1)%floor = ele%floor  ! Save time
@@ -102,11 +102,11 @@ do n = 0, ubound(lat%branch, 1)
   if (branch%ele(ie0)%bookkeeping_state%floor_position == stale$) branch%ele(ie0)%bookkeeping_state%floor_position = ok$
 
   do i = ie0+1, branch%n_ele_track
-    call propagate_geometry(i, 1, stale)
+    call propagate_geometry(i, ib, 1, stale)
   enddo
 
   do i = ie0-1, 0, -1
-    call propagate_geometry(i, -1, stale)
+    call propagate_geometry(i, ib, -1, stale)
   enddo
 
   branch%param%bookkeeping_state%floor_position = ok$
@@ -143,12 +143,11 @@ enddo
 !---------------------------------------------------
 contains
 
-subroutine propagate_geometry (ie, dir, stale)
+subroutine propagate_geometry (ie, ib, dir, stale)
 
 type (floor_position_struct) floor0
 type (ele_pointer_struct), allocatable, target :: chain_ele(:)
-type (ele_struct), pointer :: this_ele
-integer ie, dir, ix, ix_pass, n_links, k
+integer ie, ib, dir, ix, ix_pass, n_links, k
 logical stale
 
 !
@@ -174,54 +173,13 @@ if (ele%ix_ele == 0) ele%value(floor_set$) = true$
 floor0 = ele%floor
 
 if (dir == 1) then
-  call ele_geometry (branch%ele(ie-1)%floor, ele, ele%floor, 1.0_rp, set_ok = .true.)
+  call ele_geometry (branch%ele(ie-1)%floor, ele)
 else
   call ele_geometry (branch%ele(ie+1)%floor, branch%ele(ie+1), ele%floor, -1.0_rp)
+  ele%bookkeeping_state%floor_position = ok$
 endif
 
 stale = (.not. (ele%floor == floor0))
-
-! target branch only needs to be recomputed if target branch index is greater than present branch.
-
-if (ele%key == fork$ .or. ele%key == photon_fork$) then
-  ib = nint(ele%value(ix_to_branch$))
-  if (ib > n) then
-    ix = nint(ele%value(ix_to_element$))
-    lat%branch(ib)%ele(ix)%bookkeeping_state%floor_position = stale$
-    lat%branch(ib)%param%bookkeeping_state%floor_position = stale$
-  endif
-endif
-
-!
-
-call multipass_chain(ele, ix_pass, n_links, chain_ele)
-if (ix_pass > 0) then
-  do k = ix_pass+1, n_links
-    this_ele => chain_ele(k)%ele
-    this_ele%bookkeeping_state%floor_position = stale$
-    lat%branch(this_ele%ix_branch)%param%bookkeeping_state%floor_position = stale$
-  enddo
-endif
-
-if (ele%slave_status == super_slave$) then
-  do k = 1, ele%n_lord
-    lord => pointer_to_lord(ele, k)
-    if (lord%lord_status /= super_lord$) exit
-    lord%bookkeeping_state%floor_position = stale$
-    if (lord%slave_status == multipass_slave$) then
-      lord => pointer_to_lord(lord, 1)  ! multipass lord
-      lord%bookkeeping_state%floor_position = stale$
-    endif
-  enddo
-
-elseif (ele%slave_status == multipass_slave$) then
-  lord => pointer_to_lord(ele, 1)
-  lord%bookkeeping_state%floor_position = stale$
-endif
-
-!
-
-ele%bookkeeping_state%floor_position = ok$
 
 end subroutine propagate_geometry
 
@@ -244,7 +202,7 @@ do i = 1, ele%n_lord
   call girder_lord_geometry (lord)
 enddo
 
-call ele_geometry (dummy, ele, ele%floor, set_ok = .true.)
+call ele_geometry (dummy, ele)
 
 end subroutine girder_lord_geometry
 
@@ -254,7 +212,7 @@ end subroutine lat_geometry
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine ele_geometry (floor_start, ele, floor, len_scale, set_ok, ignore_patch_err)
+! Subroutine ele_geometry (floor_start, ele, floor_end, len_scale, ignore_patch_err)
 !
 ! Routine to calculate the global (floor) coordinates of an element given the
 ! global coordinates of the preceeding element. This is the same as the MAD convention.
@@ -272,27 +230,30 @@ end subroutine lat_geometry
 !                          1.0_rp => Output is geometry at end of element (default).
 !                          0.5_rp => Output is geometry at center of element. 
 !                         -1.0_rp => Used to propagate geometry in reverse.
-!   set_ok           -- logical, optional: If present and True, set ele%bookkeeping_state%floor_position = T.
 !   ignore_patch_err -- logical, optional: If present and True, ignore flexible patch errors.
 !                         This is used by ele_compute_ref_energy_and_time to suppress unnecessary messages.
 !
 ! Output:
-!   floor       -- floor_position_struct: Floor position at downstream end.
+!   floor_end        -- floor_position_struct, optional: Output floor position. If not present then 
+!                         ele%floor will be used and ele%bookkeeping_state%floor_position will be set to ok$.
 !     %r(3)              -- X, Y, Z Floor position at end of element
 !     %w(3,3)            -- W matrix corresponding to orientation angles
 !     %theta, phi, %psi  -- Orientation angles 
 !-
 
-recursive subroutine ele_geometry (floor_start, ele, floor, len_scale, set_ok, ignore_patch_err)
+recursive subroutine ele_geometry (floor_start, ele, floor_end, len_scale, ignore_patch_err)
 
 use multipole_mod
 
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: ele0, ele00, slave0, slave1, ele2
-type (floor_position_struct) floor_start, floor, this_floor, old_floor, floor0
+type (ele_struct), pointer :: ele0, ele00, slave0, slave1, ele2, this_ele, lord
+type (floor_position_struct), optional, target :: floor_end
+type (floor_position_struct) :: floor_start, this_floor, old_floor, floor0
+type (floor_position_struct), pointer :: floor
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_pointer_struct), allocatable, target :: chain_ele(:)
 type (lat_param_struct) param
+type (lat_struct), pointer :: lat
 
 real(rp), optional :: len_scale
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dtheta
@@ -301,16 +262,25 @@ real(rp) chord_len, angle, ang, leng, rho, len_factor
 real(rp) theta, phi, psi, tlt, dz(3), z0(3), z_cross(3), eps
 real(rp) :: w_mat(3,3), w_mat_inv(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
 
-integer i, key, n_loc, ix_pass, n_links, ix_pole_max
+integer i, k, key, n_loc, ix_pass, n_links, ix_pole_max, ib_to, ix
 
-logical err, doit, finished, has_multipole_rot_tilt
-logical, optional :: set_ok, ignore_patch_err
+logical err, doit, finished, has_multipole_rot_tilt, ele_floor_geometry_calc
+logical, optional :: ignore_patch_err
 
 character(*), parameter :: r_name = 'ele_geometry'
 
-! Custom geometry
+! Only set ele%bookkeeping_state%floor_position = ok$ if computing ele%floor.
 
-if (logic_option(.false., set_ok)) ele%bookkeeping_state%floor_position = ok$
+if (present(floor_end)) then
+  floor => floor_end
+  ele_floor_geometry_calc = .false.
+else
+  floor => ele%floor
+  ele_floor_geometry_calc = .true.
+  ele%bookkeeping_state%floor_position = ok$
+endif
+
+! Custom geometry
 
 call ele_geometry_hook (floor0, ele, floor, finished, len_scale)
 if (finished) return
@@ -329,7 +299,7 @@ if (ele%key == crystal$) then
   endif
 endif
 
-old_floor = ele%floor
+old_floor = floor
 floor0 = floor_start  ! Use floor0 in case actual args floor = floor_start
 
 theta   = floor0%theta
@@ -471,10 +441,6 @@ if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
     call update_floor_angles(floor, floor0)
   endif
 
-  if (logic_option(.false., set_ok) .and. (any(floor%r /= old_floor%r) .or. &
-        floor%theta /= old_floor%theta .or. floor%phi /= old_floor%phi .or. floor%psi /= old_floor%psi)) then
-    call set_ele_status_stale (ele, control_group$, .false.)
-  endif
   return
 endif   ! Fiducial, girder, floor_shift
 
@@ -624,7 +590,7 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
         w_mat_inv = transpose(w_mat)
         ele%value(l$) = w_mat_inv(3,1) * ele%value(x_offset$) + w_mat_inv(3,2) * ele%value(y_offset$) + &
                         w_mat_inv(3,3) * ele%value(z_offset$)
-        if (ele_value_has_changed(ele, [l$], [bmad_com%significant_length], .true.)) then
+        if (ele_floor_geometry_calc .and. ele_value_has_changed(ele, [l$], [bmad_com%significant_length], .true.)) then
           call set_ele_status_stale (ele, s_position_group$)
         endif
 
@@ -706,11 +672,54 @@ endif
 floor%w = w_mat 
 call update_floor_angles(floor, floor0)
 
+! End bookkeeping
+
 eps = bmad_com%significant_length
-if (logic_option(.false., set_ok) .and. (any(abs(floor%r - old_floor%r) > eps) .or. &
+if (ele_floor_geometry_calc .and. (any(abs(floor%r - old_floor%r) > eps) .or. &
               abs(floor%theta - old_floor%theta) > eps .or. abs(floor%phi - old_floor%phi) > eps .or. &
               abs(floor%psi - old_floor%psi) > eps)) then
-  call set_ele_status_stale (ele, control_group$, .false.)
+
+  ! If element is associated with a lattice...
+
+  if (associated(ele%branch)) then
+    lat => ele%branch%lat
+
+    ! Fork target branch only needs to be recomputed if target branch index is greater than present branch.
+    if (ele%key == fork$ .or. ele%key == photon_fork$) then
+      ib_to = nint(ele%value(ix_to_branch$))
+      if (ib_to > ele%ix_branch) then
+        ix = nint(ele%value(ix_to_element$))
+        lat%branch(ib_to)%ele(ix)%bookkeeping_state%floor_position = stale$
+        lat%branch(ib_to)%param%bookkeeping_state%floor_position = stale$
+      endif
+    endif
+
+    call multipass_chain(ele, ix_pass, n_links, chain_ele)
+    if (ix_pass > 0) then
+      do k = ix_pass+1, n_links
+        this_ele => chain_ele(k)%ele
+        this_ele%bookkeeping_state%floor_position = stale$
+        lat%branch(this_ele%ix_branch)%param%bookkeeping_state%floor_position = stale$
+      enddo
+    endif
+
+    if (ele%slave_status == super_slave$) then
+      do k = 1, ele%n_lord
+        lord => pointer_to_lord(ele, k)
+        if (lord%lord_status /= super_lord$) exit
+        lord%bookkeeping_state%floor_position = stale$
+        if (lord%slave_status == multipass_slave$) then
+          lord => pointer_to_lord(lord, 1)  ! multipass lord
+          lord%bookkeeping_state%floor_position = stale$
+        endif
+      enddo
+
+    elseif (ele%slave_status == multipass_slave$) then
+      lord => pointer_to_lord(ele, 1)
+      lord%bookkeeping_state%floor_position = stale$
+    endif
+
+  endif
 endif
 
 end subroutine ele_geometry
