@@ -612,11 +612,11 @@ type cartesian_map_term_struct
 end type
 
 type cartesian_map_struct
-  real(rp) :: field_scale = 1      ! Factor to scale the fields by
-  real(rp) :: r0(3) = 0            ! Field origin offset.
-  integer :: master_parameter = 0  ! Master parameter in ele%value(:) array to use for scaling the field.
+  real(rp) :: field_scale = 1        ! Factor to scale the fields by
+  real(rp) :: r0(3) = 0              ! Field origin offset.
+  integer :: master_parameter = 0    ! Master parameter in ele%value(:) array to use for scaling the field.
   integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
-  integer :: field_type = magnetic$
+  integer :: field_type = magnetic$  ! or electric$
   type (cartesian_map_term_struct), pointer :: ptr
 end type
 
@@ -664,7 +664,7 @@ type grid_field_struct
   integer :: harmonic = 0          ! Harmonic of fundamental
   real(rp) :: phi0_fieldmap = 0    ! Mode oscillates as: twopi * (f * t + phi0_fieldmap)
   real(rp) :: field_scale = 1      ! Factor to scale the fields by
-  integer :: field_type = mixed$
+  integer :: field_type = mixed$   ! or magnetic$ or electric$
   integer :: master_parameter = 0  ! Master parameter in ele%value(:) array to use for scaling the field.
   integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
   real(rp) :: dr(3) = 0   ! Grid spacing.
@@ -700,11 +700,11 @@ end type
 
 type taylor_field_struct
   integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
-  integer :: field_type = magnetic$
-  real(rp) :: dz = 0               ! Plane spacing.
-  real(rp) :: r0(3) = 0            ! field origin relative to ele_anchor_pt.
-  real(rp) :: field_scale = 1      ! Factor to scale the fields by
-  integer :: master_parameter = 0  ! Master parameter in ele%value(:) array to use for scaling the field.
+  integer :: field_type = magnetic$  ! or electric$
+  real(rp) :: dz = 0                 ! Plane spacing.
+  real(rp) :: r0(3) = 0              ! field origin relative to ele_anchor_pt.
+  real(rp) :: field_scale = 1        ! Factor to scale the fields by
+  integer :: master_parameter = 0    ! Master parameter in ele%value(:) array to use for scaling the field.
   logical :: curved_ref_frame = .false.
   logical :: canonical_tracking = .false.
   type (taylor_field_plane_struct), pointer :: ptr
