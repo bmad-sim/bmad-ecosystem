@@ -1105,7 +1105,7 @@ type control_struct
   type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
   type (lat_ele_loc_struct) :: slave = lat_ele_loc_struct()
   type (lat_ele_loc_struct) :: lord = lat_ele_loc_struct()
-  character(40) :: attribute     ! Name of attribute controlled.
+  character(40) :: attribute     ! Name of attribute controlled. Set to "FIELD_OVERLAPS" for field overlaps.
   ! DO NOT USE %IX_ATTRIB. WILL BE EVENTUALLY DELETED IN FAVOR OF %ATTRIBUTE.
   integer :: ix_attrib = 0       ! Index of attribute controlled. 
 end type
@@ -1251,7 +1251,7 @@ type lat_struct
   integer :: n_control_max = 0                    ! Last index used in control_array
   integer :: n_ic_max = 0                         ! Last index used in ic_array
   integer :: input_taylor_order = 0               ! As set in the input file
-  integer, allocatable :: ic(:)                   ! Index to %control(:)
+  integer, allocatable :: ic(:)                   ! Index to %control(:) from slaves.
   integer :: photon_type = incoherent$            ! Or coherent$. For X-ray simulations.
   logical :: absolute_time_tracking = .false.     ! Use abs. time for RF phase? Call autoscale if toggled.
   logical :: ptc_uses_hard_edge_drifts = .false.  ! Does associated ptc layout have hard edge model drifts?
@@ -2097,7 +2097,7 @@ end function is_attribute
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Function pointer_to_slave (lord, ix_slave, control, field_overlap_ptr) result (slave_ptr)
+! Function pointer_to_slave (lord, ix_slave, control, field_overlap_ptr, ix_lord_back, ix_control, ix_ic) result (slave_ptr)
 !
 ! Function to point to a slave of a lord.
 !
@@ -2114,19 +2114,23 @@ end function is_attribute
 !   num_lords
 !
 ! Input:
-!   lord               -- Ele_struct: Lord element
-!   ix_slave           -- Integer: Index of the slave. 
+!   lord               -- ele_struct: Lord element
+!   ix_slave           -- integer: Index of the slave in the list of slaves controled by the lord.. 
 !   field_overlap_ptr  -- logical, optional: Slave pointed to restricted to be a field overlap slave?
 !                           Default is False.
 !
 ! Output:
-!   slave_ptr  -- Ele_struct, pointer: Pointer to the slave.
-!                   Nullified if there is an error.
-!   control    -- control_struct, pointer, optional: Pointer to control info for this lord/slave relationship.
-!                   Nullified if there is an error.
+!   slave_ptr      -- ele_struct, pointer: Pointer to the slave.
+!                       Nullified if there is an error.
+!   control        -- control_struct, pointer, optional: Pointer to control info for this lord/slave relationship.
+!                       Nullified if there is an error.
+!   ix_lord_back   -- integer, optional: Index back to the lord. That is, pointer_to_lord(slave_ptr, ix_lord_back)
+!                       will point back to the lord. Set to -1 if there is an error.
+!   ix_control     -- integer, optional: Index in lat%control(:) array the control argument is at.
+!   ix_ic          -- integer, optional: Index of the lat%ic(:) element associated with the control argument.
 !-
 
-function pointer_to_slave (lord, ix_slave, control, field_overlap_ptr) result (slave_ptr)
+function pointer_to_slave (lord, ix_slave, control, field_overlap_ptr, ix_lord_back, ix_control, ix_ic) result (slave_ptr)
 
 implicit none
 
@@ -2136,12 +2140,17 @@ type (ele_struct), pointer :: slave_ptr
 type (control_struct), pointer :: con
 type (lat_struct), pointer :: lat
 
-integer ix_slave, icon, ixs
+integer, optional :: ix_lord_back, ix_control, ix_ic
+integer i, ix, ix_slave, icon, ixs
 logical, optional :: field_overlap_ptr
 
 !
 
 ixs = ix_slave
+if (present(ix_control)) ix_control = -1
+if (present(ix_ic)) ix_ic = -1
+if (present(ix_lord_back)) ix_lord_back = -1
+
 if (logic_option(.false., field_overlap_ptr)) ixs = ixs + lord%n_slave
 
 if (ixs > lord%n_slave+lord%n_slave_field .or. ix_slave < 1) then
@@ -2155,6 +2164,18 @@ icon = lord%ix1_slave + ixs - 1
 con => lat%control(icon)
 slave_ptr => lat%branch(con%slave%ix_branch)%ele(con%slave%ix_ele)
 if (present(control)) control => con
+if (present(ix_control)) ix_control = icon
+
+if (present(ix_ic) .or. present(ix_lord_back)) then
+  do i = 1, slave_ptr%n_lord + slave_ptr%n_lord_field
+    ix = slave_ptr%ic1_lord + i - 1
+    if (lat%ic(ix) == icon) then
+      if (present(ix_ic)) ix_ic = ix
+      if (present(ix_lord_back)) ix_lord_back = i
+      exit
+    endif
+  enddo
+endif
 
 end function pointer_to_slave
 

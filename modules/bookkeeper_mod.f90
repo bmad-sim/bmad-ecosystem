@@ -320,7 +320,7 @@ endif
 ! In the loop over all multipass_slaves, only modify the multipass_lord once
 
 if (ele%slave_status == multipass_slave$) then
-  my_lord => pointer_to_lord(ele, 1, ix_slave = ix_slave)
+  my_lord => pointer_to_lord(ele, 1, ix_slave_back = ix_slave)
   if (ix_slave == 1) call group_change_this (my_lord, attrib_name, ctl, 1);  if (err_flag) return
 endif
 
@@ -587,7 +587,7 @@ enddo
 
 if (n_major_lords < 2) then
 
-  lord => pointer_to_lord (slave, ix_lord, ix_slave = ix_order)
+  lord => pointer_to_lord (slave, ix_lord, ix_slave_back = ix_order)
 
   is_first = (ix_order == 1)
   is_last  = (ix_order == lord%n_slave)
@@ -617,7 +617,7 @@ if (n_major_lords < 2) then
 
   do j = 1, slave%n_lord
     if (j == ix_lord) cycle  ! Do not double count
-    lord => pointer_to_lord (slave, j, ix_slave = ix_order)
+    lord => pointer_to_lord (slave, j, ix_slave_back = ix_order)
     slave%value(hkick$) = slave%value(hkick$) + lord%value(hkick$)
     slave%value(vkick$) = slave%value(vkick$) + lord%value(vkick$)
     slave%value(bl_hkick$) = slave%value(bl_hkick$) + lord%value(bl_hkick$)
@@ -674,7 +674,7 @@ n_major_lords = 0
 
 do j = 1, slave%n_lord
 
-  lord => pointer_to_lord(slave, j, ix_slave = ix_order)
+  lord => pointer_to_lord(slave, j, ix_slave_back = ix_order)
   if (lord%lord_status /= super_lord$) cycle
 
   is_first = (ix_order == 1)
