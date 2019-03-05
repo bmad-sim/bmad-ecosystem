@@ -171,9 +171,10 @@ type (all_pointer_struct) a_ptr
 type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
 type (lat_struct), pointer :: lat, design_lat
-type (ele_struct), pointer :: ele, ele1, ele2
+type (ele_struct), pointer :: ele, ele1, ele2, slave, lord
 type (ele_struct), target :: ele3, ele0
 type (em_field_struct) field
+type (control_struct), pointer :: contl
 type (bunch_struct), pointer :: bunch
 type (wake_struct), pointer :: wake
 type (wake_lr_mode_struct), pointer :: lr_mode
@@ -247,11 +248,11 @@ character(16) :: show_what, show_names(39) = [ &
    'branch          ', 'use             ', 'taylor_map      ', 'value           ', 'wave            ', &
    'twiss_and_orbit ', 'building_wall   ', 'wall            ', 'normal_form     ', 'dynamic_aperture', &
    'matrix          ', 'field           ', 'wake_elements   ', 'history         ', 'symbolic_numbers', &
-   'merit           ', 'track           ', 'spin            ', 'c_buffer        ']
+   'merit           ', 'track           ', 'spin            ', 'internal        ']
 
 integer data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
-integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, n_print, show_index, ju, ios1, ios2, i_uni
+integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, n_print, show_index, ju, ios1, ios2, i_uni, i_con, i_ic
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print_lords, ix_word
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_remove, n_remove_found
 integer, allocatable :: ix_c(:), ix_remove(:)
@@ -630,29 +631,6 @@ case ('building_wall')
   enddo
 
   result_id = show_what
-
-!----------------------------------------------------------------------
-! c_buffer
-! This is useful for debugging python interface.
-
-case ('c_buffer')
-
-  nl=nl+1; write (lines(nl), imt) 'N_real: ', tao_c_interface_com%n_real
-  nl=nl+1; write (lines(nl), imt) 'N_int:  ', tao_c_interface_com%n_int
-
-  do i = 1, min(tao_c_interface_com%n_real, 3)
-    nl=nl+1; write (lines(nl), '(a, i0, es12.4)') 'Real:  ', i, tao_c_interface_com%c_real(i)
-  enddo
-  do i = max(tao_c_interface_com%n_real-3, 4), tao_c_interface_com%n_real
-    nl=nl+1; write (lines(nl), '(a, i0, es12.4)') 'Real:  ', i, tao_c_interface_com%c_real(i)
-  enddo
-
-  do i = 1, min(tao_c_interface_com%n_int, 3)
-    nl=nl+1; write (lines(nl), '(a, i0, i12)') 'Int:  ', i, tao_c_interface_com%c_integer(i)
-  enddo
-  do i = max(tao_c_interface_com%n_int-3, 4), tao_c_interface_com%n_int
-    nl=nl+1; write (lines(nl), '(a, i0, i12)') 'Int:  ', i, tao_c_interface_com%c_integer(i)
-  enddo
 
 !----------------------------------------------------------------------
 ! constraints
@@ -1851,6 +1829,81 @@ case ('hom')
     nl=nl+1; lines(nl) = ' '
   enddo
   nl=nl+1; lines(nl) = '       #        Freq         R/Q           Q   m  Polarization_Angle'
+
+  result_id = show_what
+
+!----------------------------------------------------------------------
+! Internal
+! Used for debugging purposes
+
+case ('internal')
+
+  call tao_next_switch (what2, [character(16):: '-python_buffer', '-control'], .true., switch, err, ix_s2)
+  select case (switch)
+
+  ! Format: show -python_buffer
+  ! This is useful for debugging the real and integer array passing which is used in the python interface.
+  case ('-python_buffer')
+
+    nl=nl+1; write (lines(nl), imt) 'N_real: ', tao_c_interface_com%n_real
+    nl=nl+1; write (lines(nl), imt) 'N_int:  ', tao_c_interface_com%n_int
+
+    do i = 1, min(tao_c_interface_com%n_real, 3)
+      nl=nl+1; write (lines(nl), '(a, i0, es12.4)') 'Real:  ', i, tao_c_interface_com%c_real(i)
+    enddo
+    do i = max(tao_c_interface_com%n_real-3, 4), tao_c_interface_com%n_real
+      nl=nl+1; write (lines(nl), '(a, i0, es12.4)') 'Real:  ', i, tao_c_interface_com%c_real(i)
+    enddo
+
+    do i = 1, min(tao_c_interface_com%n_int, 3)
+      nl=nl+1; write (lines(nl), '(a, i0, i12)') 'Int:  ', i, tao_c_interface_com%c_integer(i)
+    enddo
+    do i = max(tao_c_interface_com%n_int-3, 4), tao_c_interface_com%n_int
+      nl=nl+1; write (lines(nl), '(a, i0, i12)') 'Int:  ', i, tao_c_interface_com%c_integer(i)
+    enddo
+
+  ! Format: show -control <element-name>
+  ! Lattice lord/slave control info.
+  case ('-control')
+    call tao_locate_elements (what2, -1, eles, err)
+    if (err .or. size(eles) == 0) then
+      nl=nl+1; lines(nl) = 'Cannot find lattice element: ' // what2
+      return
+    endif
+
+    ele => eles(1)%ele
+    nl=nl+1; lines(nl) = 'For element: (' // trim(ele_loc_to_string(ele)) // ')  ' // ele%name
+    fmt = '(4x, a14, i6, i8, i10, 4x, a10, a)'
+
+    if (ele%n_slave + ele%n_slave_field /= 0) then 
+      nl=nl+1; lines(nl) = 'Slaves: Type         %ic  %control  ix_back   Slave'
+      do i = 1, ele%n_slave + ele%n_slave_field
+        slave => pointer_to_slave (ele, i, contl, .false., j, i_con, i_ic)
+        if (i <= ele%n_slave) then
+          nl=nl+1; write (lines(nl), fmt) &
+                      control_name(ele%lord_status), i_ic, i_con, j, ele_loc_to_string(slave, .true.), trim(slave%name)
+        else
+          nl=nl+1; write (lines(nl), fmt)  &
+                                    'Field_Overlap', i_ic, i_con, j, ele_loc_to_string(slave, .true.), trim(slave%name)
+        endif
+      enddo
+    endif
+
+    if (ele%n_lord + ele%n_lord_field /= 0) then 
+      nl=nl+1; lines(nl) = 'Lords:  Type         %ic  %control  ix_back   Lord'
+      do i = 1, ele%n_lord + ele%n_lord_field
+        lord => pointer_to_lord (ele, i, contl, j, .false., i_con, i_ic)
+        if (i <= ele%n_lord) then
+          nl=nl+1; write (lines(nl), fmt) &
+                      control_name(lord%lord_status), i_ic, i_con, j, ele_loc_to_string(lord, .true.), trim(lord%name)
+        else
+          nl=nl+1; write (lines(nl), fmt)  &
+                                     'Field_Overlap', i_ic, i_con, j, ele_loc_to_string(lord, .true.), trim(lord%name)
+        endif
+      enddo
+    endif
+
+  end select
 
   result_id = show_what
 

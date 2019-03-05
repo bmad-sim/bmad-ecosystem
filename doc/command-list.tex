@@ -1633,6 +1633,7 @@ Format:
   graph ...             ! Show plot graph info \sref{s:show.graph}.
   history ...           ! Show command history \sref{s:show.history}.
   hom                   ! Show Higher Order Mode info \sref{s:show.hom}.
+  internal ...          ! Used for code debugging {s:show.internal}.
   key_bindings          ! Show single mode key bindings \sref{s:show.key}.
   lattice ...           ! Show lattice info \sref{s:show.lattice}.
   matrix ...            ! Show transport matrix \sref{s:show.matrix}.
@@ -2058,6 +2059,16 @@ Syntax:
 
 Shows long--range higher order mode information for linac accelerating
 cavities.
+
+%% show hom --------------------------------------------------------------
+
+\subsection{show internal}
+\label{s:show.internal}
+
+The \vn{show internal} command is for printing parameter values that are internal to \tao. This
+command is used for code debugging and not useful (nor understandable) to non-programmers. Note to
+programmers: Further information is contained in the code that executes the \vn{show internal}
+command.
 
 %% show key_bindings  --------------------------------------------------------------
 
