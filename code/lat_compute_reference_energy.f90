@@ -238,7 +238,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$ .or. ele%slave_status == multipass_slave$) then 
       do ixl = 1, ele%n_lord
-        lord => pointer_to_lord (ele, ixl, ix_slave = ix_slave)
+        lord => pointer_to_lord (ele, ixl, ix_slave_back = ix_slave)
         if (ix_slave /= 1) cycle
         if (lord%lord_status /= super_lord$ .and. lord%lord_status /= multipass_lord$) cycle
 

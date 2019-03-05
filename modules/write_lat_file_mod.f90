@@ -3285,7 +3285,7 @@ do
   ! plus a marker with an offset
 
   if (ele%slave_status == super_slave$) then
-    lord => pointer_to_lord(ele, 1, ix_slave = ix)
+    lord => pointer_to_lord(ele, 1, ix_slave_back = ix)
     ele1 => pointer_to_next_ele(ele)
     ele2 => pointer_to_slave(lord, lord%n_slave)
     if (lord%n_slave == 2 .and. ele1%key == marker$ .and. &

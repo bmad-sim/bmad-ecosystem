@@ -51,7 +51,7 @@ type ele_index_temp
 end type
 type (ele_index_temp), allocatable :: ibr(:)
 
-integer i, j, ib, ix, i1, i2
+integer i, j, ib, ix, i1, i2, icon
 integer :: ic(lat%n_ic_max), control(lat%n_control_max), control_to_ic(lat%n_control_max)
 
 logical, optional :: check_sanity
@@ -232,7 +232,8 @@ do ib = 0, ubound(lat%branch, 1)
     do j = i1, i2
       if (ic(j) == -1) cycle
       if (ele%ic1_lord == 0) ele%ic1_lord = ic(j)
-      ctl => lat%control(ic(j))
+      icon = lat%ic(ic(j))
+      ctl => lat%control(icon)
       if (ctl%attribute == 'FIELD_OVERLAPS') then
         ele%n_lord_field = ele%n_lord_field + 1
       else

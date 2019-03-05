@@ -355,7 +355,7 @@ if (logic_option(.false., create_jumbo_slave)) then
     slave => branch%ele(ix1_split+1)
     if (slave%slave_status /= super_slave$) exit
     do i = 1, slave%n_lord
-      lord => pointer_to_lord(slave, i, ix_slave = ix)
+      lord => pointer_to_lord(slave, i, ix_slave_back = ix)
       if (ix == 1) cycle
       slave2 => pointer_to_slave(lord, 1)
       ix1_split = slave2%ix_ele - 1
@@ -368,7 +368,7 @@ if (logic_option(.false., create_jumbo_slave)) then
     slave => branch%ele(ix2_split)
     if (slave%slave_status /= super_slave$) exit
     do i = 1, slave%n_lord
-      lord => pointer_to_lord(slave, i, ix_slave = ix)
+      lord => pointer_to_lord(slave, i, ix_slave_back = ix)
       if (ix == lord%n_slave) cycle
       slave2 => pointer_to_slave(lord, lord%n_slave)
       ix2_split = slave2%ix_ele

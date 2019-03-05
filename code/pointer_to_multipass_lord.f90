@@ -56,7 +56,7 @@ if (present(ix_pass)) ix_pass = -1
 !
 
 if (ele%slave_status == multipass_slave$) then
-  multi_lord => pointer_to_lord(ele, 1, ix_slave = ix_pass)
+  multi_lord => pointer_to_lord(ele, 1, ix_slave_back = ix_pass)
   if (present(super_lord) .and. ele%lord_status == super_lord$) super_lord => ele
   return
 endif
@@ -73,7 +73,7 @@ endif
 
 if (present(super_lord)) super_lord => sup_lord
 if (sup_lord%slave_status /= multipass_slave$) return
-multi_lord => pointer_to_lord(sup_lord, 1, ix_slave = ix_pass)
+multi_lord => pointer_to_lord(sup_lord, 1, ix_slave_back = ix_pass)
 
 end function pointer_to_multipass_lord
 

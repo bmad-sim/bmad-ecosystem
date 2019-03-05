@@ -141,7 +141,7 @@ if (i_ele < 0) then
       orb_start%vec = 0  ! Default if no previous slave found.
       if (ele%slave_status == super_slave$) then
         do ild = 1, ele%n_lord
-          lord => pointer_to_lord(ele, ild, ix_slave = ix_slave)
+          lord => pointer_to_lord(ele, ild, ix_slave_back = ix_slave)
           if (lord%lord_status /= super_lord$) cycle
           if (ix_slave == 1) cycle  ! If first one then no preceeding slave
           slave0 => pointer_to_slave(lord, ix_slave-1) ! slave before this element.
