@@ -255,7 +255,7 @@ case ('SINGLE')
     if (is_lost) then
       ele => branch%ele(track_state)
       print '(a, i0, 8a)', 'Particle lost at turn: ', i_turn
-      if (.not. use_1_turn_map) print '(5a)', 'Lost at element: ', trim(ele%name), ' (', ele_loc_to_string(ele), '), State: ', coord_state_name(orb(track_state)%state)
+      if (.not. use_1_turn_map) print '(5a)', 'Lost at element: ', trim(ele%name), ' (', ele_location(ele), '), State: ', coord_state_name(orb(track_state)%state)
       exit
     endif
 
