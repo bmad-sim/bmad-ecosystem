@@ -562,7 +562,7 @@ function ele_has_offset (ele) result (has_offset)
   logical has_offset
 end function
 
-function ele_loc_to_string (ele, show_branch0) result (str)
+function ele_location (ele, show_branch0) result (str)
   import
   implicit none
   type (ele_struct) ele

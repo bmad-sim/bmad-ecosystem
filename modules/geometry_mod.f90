@@ -571,7 +571,7 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
 
         if (ele2%bookkeeping_state%floor_position == stale$ .and. .not. logic_option(.true., ignore_patch_err)) then
           call out_io (s_fatal$, r_name, 'ELEMENT AFTER FLEXIBLE PATCH: ' // trim(ele%name) // &
-                                                          '  (' // trim(ele_loc_to_string(ele)) // ')', &
+                                                          '  (' // trim(ele_location(ele)) // ')', &
                                          'DOES NOT HAVE A WELL DEFINED POSITION')
           if (global_com%exit_on_error) call err_exit
         endif

@@ -1,5 +1,5 @@
 !+
-! Function ele_loc_to_string (ele, show_branch0) result (str)
+! Function ele_location (ele, show_branch0) result (str)
 !
 ! Routine to encode an element's location into a string.
 ! Example output:
@@ -19,7 +19,7 @@
 !   str(10)     -- Character: Output string. Left justified.
 !-
 
-function ele_loc_to_string (ele, show_branch0) result (str)
+function ele_location (ele, show_branch0) result (str)
 
 use bmad_struct
 
@@ -38,5 +38,5 @@ else
   write (str, '(i0, a, i0)') ele%ix_branch, '>>', ele%ix_ele
 endif
 
-end function ele_loc_to_string 
+end function ele_location 
 

@@ -380,6 +380,7 @@ endif
 ! A slave's field_master = T irregardless of the lord's setting.
 ! This is to make attribute_bookkeeper compute the correct normalized field strength.
 
+slave%field_calc             = refer_to_lords$
 slave%value(E_tot_start$)    = slave_val(E_tot_start$)
 slave%value(p0c_start$)      = slave_val(p0c_start$)
 slave%value(e_tot$)          = slave_val(e_tot$)
