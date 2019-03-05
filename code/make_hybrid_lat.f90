@@ -242,6 +242,7 @@ do ib = 0, ubound(lat_out%branch, 1)
         ele_out%value(p0c$)      = ele_in%value(p0c$)
         ele_out%tracking_method  = taylor$
         ele_out%mat6_calc_method = taylor$
+        ele_out%field_calc       = bmad_standard$
 
         ix_hyb = ix_hyb + 1
 

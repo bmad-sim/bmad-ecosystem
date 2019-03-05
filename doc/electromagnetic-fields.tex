@@ -659,7 +659,7 @@ $\theta$ and $\rho$ are expanded in a Taylor series in $x$ and $y$.
 For RF fields, the \vn{cylindrical} mode parameterization used by \bmad essentially
 follows Abell\cite{b:rf.abell}. The electric field is written in the form
 \Begineq
-  \bfE(\bfr) = \sum_{j=1}^M \, \bfE_j(\bfr) \, e^{-i \, (\omega_j \, t + \theta_{0j})}
+  \bfE(\bfr) = \sum_{j=1}^M \, \bfE_j(\bfr) \, e^{-i \, (\omega_j \, t + \phi_{0j})}
   \label{eseei}
 \Endeq
 where $M$ is the number of modes. Each mode satisfies the vector Helmholtz
@@ -761,22 +761,20 @@ where $E_{\rho c}$, $E_{\theta s}$, and $E_{z c}$ are defined by
   E_z(R, \theta, z)    &= E_{z c}(R, z)    \, \cos(m \, \theta - \theta_{0m}) \nonumber
 \end{align}
 
-The above mode decomposition was done in the gauge where the scalar
-potential $\psi$ is zero. The electric and magnetic fields are thus
-related to the vector potential $\bfA$ via
+The above mode decomposition was done in the gauge where the scalar potential $\psi$ is zero. The
+electric and magnetic fields are thus related to the vector potential $\bfA$ via
 \Begineq
   \bfE = -\partial_t \, \bfA, \qquad \bfB = \nabla \times \bfA
 \Endeq
-Using \Eq{eseei}, the vector potential can be obtained from the
-electric field via
+Using \Eq{eseei}, the vector potential can be obtained from the electric field via
 \Begineq
   \bfA_j = \frac{-i \, \bfE_j}{\omega_j}
   \label{aiew}
 \Endeq
  
-Symplectic tracking through the RF field is discussed in
-Section~\sref{s:symp.track}.  For the fundamental accelerating mode,
-The vector potential can be analytically integrated using the identity
+Symplectic tracking through the RF field is discussed in Section~\sref{s:symp.track}.  For the
+fundamental accelerating mode, the vector potential can be analytically integrated using the
+identity
 \Begineq
   \int dx \,\frac{x \, I_1 (a \, \sqrt{x^2+y^2})}{\sqrt{x^2+y^2}}  = 
   \frac{1}{a} \, I_0 (a \, \sqrt{x^2+y^2})
@@ -788,14 +786,14 @@ The vector potential can be analytically integrated using the identity
 \index{taylor field modeling}
 
 \bmad has a number of \vn{field map} models that can be used to model electric or magnetic fields
-(\sref{s:fieldmap}). One model involves a set of Taylor maps. This model is restricted to
-modeling DC fields. In a lattice file, the \vn{Taylor} field model is specified using the
-\vn{taylor_field} attribute as exaplined in Sec.~\sref{s:taylor.field}.
+(\sref{s:fieldmap}). One model involves a set of Taylor maps. This model is restricted to modeling
+DC fields. In a lattice file, the \vn{Taylor} field model is specified using the \vn{taylor_field}
+attribute as exaplined in Sec.~\sref{s:taylor.field}.
 
-The Taylor field model specifies the field using a set of Taylor maps. Each map defines
-the field in the transverse $(x, y)$ plane at constant longitudinal $z$: That is, each
-Taylor map is comprised of three Taylor series, one for each field component, and each
-Taylor series is a polynomial in $x$ and $y$:
+The Taylor field model specifies the field using a set of Taylor maps. Each map defines the field in
+the transverse $(x, y)$ plane at constant longitudinal $z$: That is, each Taylor map is comprised of
+three Taylor series, one for each field component, and each Taylor series is a polynomial in $x$ and
+$y$:
 \Begineq
   \Bf B = (B_x(x,y;i), B_y(x,y;i), B_z(x,y;i))
 \Endeq

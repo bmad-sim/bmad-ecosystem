@@ -205,7 +205,10 @@ if (ele%field_calc == refer_to_lords$) then
     case (overlay$, group$, girder$); cycle
     end select
 
-    offset = offset + ele%s_start - this_ele%s_start
+    if (this_ele%lord_status /= multipass_lord$) then
+      offset = offset + ele%s_start - this_ele%s_start
+    endif
+
     call iterate_over_field_eles (this_ele, ixf, ix_field_ele, field_ele, offset)
     if (associated(field_ele)) return
   enddo
@@ -251,12 +254,10 @@ integer n_field_ele
 n_field_ele = 0
 
 do
-  n_field_ele = n_field_ele + 1
-  f_ele => pointer_to_field_ele(ele, n_field_ele)
+  f_ele => pointer_to_field_ele(ele, n_field_ele+1)
   if (.not. associated(f_ele)) exit
+  n_field_ele = n_field_ele + 1
 enddo
-
-n_field_ele = n_field_ele - 1
 
 end function num_field_eles
 

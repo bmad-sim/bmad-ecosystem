@@ -164,8 +164,7 @@ if (present(used_eles)) then
 endif
 
 !----------------------------------------------------------------------------
-! super_slave, and slice_slave, have their field info stored in the associated lord elements.
-! Note: multipass_slave elements do store their own field info. This should be changed.
+! super_slave, multipass_slave, and slice_slave, have their field info stored in the associated lord elements.
 
 if (ele%field_calc == refer_to_lords$) then
   if (.not. present(used_eles)) allocate (used_list(ele%n_lord+5))
@@ -190,11 +189,18 @@ if (ele%field_calc == refer_to_lords$) then
 
     if (lord%field_calc == no_field$) cycle   ! Group, overlay and girder elements do not have fields.
 
-    ds = ele%s_start - lord%s_start
-    s_lab2 = s_lab + ds
-    beta_ref = lord%value(p0c$) / lord%value(e_tot$)
-    lab_orb%vec(5) = z - c_light * orbit%beta * &
-        ((ele%value(ref_time_start$) - lord%value(ref_time_start$)) - ds / (beta_ref * c_light))
+    ! Multipass_lords do not have a well defined global position so take the lord position equal to the slave position.
+    ! This is justified if all the slaves have the same position as they should in a realistic lattice.
+    if (lord%lord_status == multipass_lord$) then
+      s_lab2 = s_lab
+      lord%floor = ele%floor  ! Needed if there is field overlap.
+    else
+      ds = ele%s_start - lord%s_start
+      s_lab2 = s_lab + ds
+      beta_ref = lord%value(p0c$) / lord%value(e_tot$)
+      lab_orb%vec(5) = z - c_light * orbit%beta * &
+          ((ele%value(ref_time_start$) - lord%value(ref_time_start$)) - ds / (beta_ref * c_light))
+    endif
 
     if (present(used_eles)) then
       do j = 1, size(used_eles)
@@ -1965,7 +1971,7 @@ if (i0 < ig0 .or. i0 >= ig1) then
 
   if (orb2%state == alive$ .and. logic_option(.true., err_print_out_of_bounds)) then
     call out_io (s_error$, r_name, '\i0\D GRID_FIELD INTERPOLATION INDEX OUT OF BOUNDS: I\i0\ = \i0\ (POSITION = \f12.6\)', &
-                                 'FOR ELEMENT: ' // ele%name // '  (' // trim(ele_loc_to_string(ele)) // ')', &
+                                 'FOR ELEMENT: ' // ele%name // '  (' // trim(ele_location(ele)) // ')', &
                                  'PARTICLE POSITION: \3F12.6\ ', &
                                  'SETTING FIELD TO ZERO', i_array = [grid_dim, ix_x, i0], &
                                  r_array = [x, orbit%vec(1), orbit%vec(3), orbit%s-ele%s_start])

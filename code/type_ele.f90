@@ -54,7 +54,7 @@ use indexx_mod
 implicit none
 
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: lord, slave, ele0
+type (ele_struct), pointer :: lord, slave, ele0, lord2
 type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 type (floor_position_struct) :: floor, f0, floor2
@@ -724,11 +724,11 @@ endif
 
 if (associated(lat) .and. logic_option(.true., type_control)) then
 
+  ! Print info on element's lords
+
   if (li(nl) /= '') then
     nl=nl+1; li(nl) = ' '
   endif
-
-  ! Print info on element's lords
 
   if (ele%slave_status <= 0) then
     nl=nl+1; write (li(nl), '(a)') 'Slave_status: BAD! PLEASE SEEK HELP!', ele%slave_status
@@ -754,7 +754,13 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     do i = 1, ele%n_lord
       lord => pointer_to_lord(ele, i)
       if (lord%lord_status /= super_lord$) cycle
-      nl=nl+1; write (li(nl), '(i8, 3x, a, t45, a)') lord%ix_ele, trim(lord%name), trim(key_name(lord%key))
+      if (lord%slave_status == multipass_slave$) then
+        lord2 => pointer_to_lord(lord, 1)
+        nl=nl+1; write (li(nl), '(i8, 3x, a, t45, 3a, 2x, a)') lord%ix_ele, trim(lord%name), trim(key_name(lord%key)), &
+                      '   --> Multipass_slave of: ', trim(ele_location(lord2)), lord2%name
+      else
+        nl=nl+1; write (li(nl), '(i8, 3x, a, t45, a)') lord%ix_ele, trim(lord%name), trim(key_name(lord%key))
+      endif
     enddo
   end select
 
@@ -793,22 +799,41 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       nl=nl+1; write (li(nl), '(i8, 3x, a32, a18, 2x, a20, a)') &
             lord%ix_ele, lord%name, a_name, key_name(lord%key), trim(expression_str)
     enddo
-    nl=nl+1; li(nl) = ''
   endif
 
   !
 
-  if (ele%n_lord_field /= 0) then
-    nl=nl+1; li(nl) = 'Elements whose fields overlap this one:'
-    nl=nl+1; li(nl) = '   Index   Name                               Type                   S'
+  has_it = .false.
+  nl=nl+1; li(nl) = ' '
+  nl=nl+1; li(nl) = 'Elements whose fields overlap this one:'
+  nl=nl+1; li(nl) = '   Index   Name                               Type'
+
+  if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
+    do i = 1, ele%n_lord
+      lord => pointer_to_lord(ele, i)
+      if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
+      do j = 1, lord%n_lord_field
+        has_it = .true.
+        lord2 => pointer_to_lord(lord, lord%n_lord+i)
+        nl=nl+1; write (li(nl), '(a8, t12, a35, a16, f10.3)') &
+                      trim(ele_location(lord2)), lord2%name, key_name(lord2%key)
+      enddo
+    enddo
+  else
     do i = 1, ele%n_lord_field
-      lord => pointer_to_lord(ele, ele%n_lord+i)
+      has_it = .true.
+      lord2 => pointer_to_lord(lord, lord%n_lord+i)
       nl=nl+1; write (li(nl), '(a8, t12, a35, a16, f10.3)') &
-                    trim(ele_loc_to_string(lord)), lord%name, key_name(lord%key), lord%s
+                    trim(ele_location(lord2)), lord2%name, key_name(lord2%key)
+
     enddo
   endif
 
+  if (.not. has_it) nl = nl - 3
+
   ! Print info on elements slaves.
+
+  nl=nl+1; li(nl) = ' '
 
   if (ele%lord_status <= 0) then
     nl=nl+1; write (li(nl), '(a)') 'Lord_status: BAD!', ele%lord_status
@@ -873,7 +898,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       do i = 1, ele%n_slave
         slave => pointer_to_slave (ele, i)
         nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a)') &
-                    trim(ele_loc_to_string(slave)), slave%name(1:n_char), key_name(slave%key)
+                    trim(ele_location(slave)), slave%name(1:n_char), key_name(slave%key)
       enddo
 
     case default
@@ -903,22 +928,39 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
           write (expression_str, '(es12.4, 4x, a)') ctl%value, '<Knots>'
         endif
 
-        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a, 4x, a)') trim(ele_loc_to_string(slave)), slave%name(1:n_char), a_name, attrib_val_str, trim(expression_str)
+        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a, 4x, a)') trim(ele_location(slave)), slave%name(1:n_char), a_name, attrib_val_str, trim(expression_str)
       enddo
     end select
   endif
 
-  !
+  ! Print elements that are field overlapped.
 
-  if (ele%n_slave_field /= 0) then
-    nl=nl+1; li(nl) = "This element's field overlaps:"
-    nl=nl+1; li(nl) = '   Index   Name                                      Type       S'
+  has_it = .false.
+  nl=nl+1; li(nl) = ' '
+  nl=nl+1; li(nl) = "This element's field overlaps:"
+  nl=nl+1; li(nl) = '   Index   Name                                      Type '
+
+  if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
+    do i = 1, ele%n_lord
+      lord => pointer_to_lord(ele, i)
+      if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
+      do j = 1, lord%n_slave_field
+        has_it = .true.
+        slave => pointer_to_slave(ele, ele%n_slave+i)
+        nl=nl+1; write (li(nl), '(a8, t12, a30, a16, f10.3)') &
+                      trim(ele_location(slave)), slave%name, trim(key_name(slave%key))
+      enddo
+    enddo
+  else
     do i = 1, ele%n_slave_field
+      has_it = .true.
       slave => pointer_to_slave(ele, ele%n_slave+i)
       nl=nl+1; write (li(nl), '(a8, t12, a30, a16, f10.3)') &
-                    trim(ele_loc_to_string(slave)), slave%name, trim(key_name(slave%key)), slave%s
+                    trim(ele_location(slave)), slave%name, trim(key_name(slave%key))
     enddo
   endif
+
+  if (.not. has_it) nl = nl - 3
 
 endif
 
