@@ -1467,7 +1467,7 @@ case ('expression:')
         call tao_set_invalid (datum, 'NO ASSOCIATED ELEMENT' // datum%data_type(12:))
         return
       endif
-      str = str(1:ix+4) // trim(ele_loc_to_string(ele)) // str(ix+6:)
+      str = str(1:ix+4) // trim(ele_location(ele)) // str(ix+6:)
     enddo
 
     call tao_evaluate_expression (str, 0, .false., expression_value_vec, info, err, .true., &

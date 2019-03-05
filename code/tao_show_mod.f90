@@ -1400,7 +1400,7 @@ case ('element')
     call re_allocate (lines, nl+size(eles), .false.)
     do i = 2, size(eles)
       nl=nl+1; write(lines(nl), '(2a)') &
-                'NOTE: There is another element with the same name at: ', trim(ele_loc_to_string(eles(i)%ele))
+                'NOTE: There is another element with the same name at: ', trim(ele_location(eles(i)%ele))
     enddo
   endif
 
@@ -1872,7 +1872,7 @@ case ('internal')
     endif
 
     ele => eles(1)%ele
-    nl=nl+1; lines(nl) = 'For element: (' // trim(ele_loc_to_string(ele)) // ')  ' // ele%name
+    nl=nl+1; lines(nl) = 'For element: (' // trim(ele_location(ele)) // ')  ' // ele%name
     fmt = '(4x, a14, i6, i8, i10, 4x, a10, a)'
 
     if (ele%n_slave + ele%n_slave_field /= 0) then 
@@ -1881,10 +1881,10 @@ case ('internal')
         slave => pointer_to_slave (ele, i, contl, .false., j, i_con, i_ic)
         if (i <= ele%n_slave) then
           nl=nl+1; write (lines(nl), fmt) &
-                      control_name(ele%lord_status), i_ic, i_con, j, ele_loc_to_string(slave, .true.), trim(slave%name)
+                      control_name(ele%lord_status), i_ic, i_con, j, ele_location(slave, .true.), trim(slave%name)
         else
           nl=nl+1; write (lines(nl), fmt)  &
-                                    'Field_Overlap', i_ic, i_con, j, ele_loc_to_string(slave, .true.), trim(slave%name)
+                                    'Field_Overlap', i_ic, i_con, j, ele_location(slave, .true.), trim(slave%name)
         endif
       enddo
     endif
@@ -1895,10 +1895,10 @@ case ('internal')
         lord => pointer_to_lord (ele, i, contl, j, .false., i_con, i_ic)
         if (i <= ele%n_lord) then
           nl=nl+1; write (lines(nl), fmt) &
-                      control_name(lord%lord_status), i_ic, i_con, j, ele_loc_to_string(lord, .true.), trim(lord%name)
+                      control_name(lord%lord_status), i_ic, i_con, j, ele_location(lord, .true.), trim(lord%name)
         else
           nl=nl+1; write (lines(nl), fmt)  &
-                                     'Field_Overlap', i_ic, i_con, j, ele_loc_to_string(lord, .true.), trim(lord%name)
+                                     'Field_Overlap', i_ic, i_con, j, ele_location(lord, .true.), trim(lord%name)
         endif
       enddo
     endif
@@ -2672,7 +2672,7 @@ case ('lattice')
 
       if (name == '#' .or. name == '#index') then
         if (ele%ix_branch /= ix_branch) then
-          aname = ele_loc_to_string(ele, .true.)
+          aname = ele_location(ele, .true.)
           line(nc:) = adjustr(aname(1:column(i)%width))
         else
           write (line(nc:), column(i)%format, iostat = ios) ele%ix_ele
@@ -4456,7 +4456,7 @@ case ('wake_elements')
       wake => ele%wake
 
       nl=nl+1; write(lines(nl), '(a5, 2x, a20, 2x, a15, 3x, l1, 13x, l1, 13x, l1)') &
-        ele_loc_to_string(ele, .true.), ele%name, key_name(ele%key), &
+        ele_location(ele, .true.), ele%name, key_name(ele%key), &
         allocated(wake%sr_long%mode), allocated(wake%sr_trans%mode), allocated(wake%lr_mode)
     enddo
   enddo
@@ -4532,7 +4532,7 @@ case ('wall')
 
     wall_sec => wall%section(ix_sec)
     ele => pointer_to_ele(lat, wall_sec%ix_ele, wall_sec%ix_branch)
-    nl=nl+1; write(lines(nl), '(5a)')            'ele:    ', trim(ele%name), '   (', trim(ele_loc_to_string(ele)), ')'
+    nl=nl+1; write(lines(nl), '(5a)')            'ele:    ', trim(ele%name), '   (', trim(ele_location(ele)), ')'
     nl=nl+1; write(lines(nl), '(2a)')            'type:   ', trim(wall3d_section_type_name(wall_sec%type))
     nl=nl+1; write(lines(nl), '(a, f14.6)')      'S:      ', wall_sec%s
     nl=nl+1; write(lines(nl), '(3(a, f10.6))')  ' r0:     (', wall_sec%r0(1), ',', wall_sec%r0(2), ')'
@@ -4596,7 +4596,7 @@ case ('wall')
     
     call calc_wall_radius (wall%section(i)%v, cos(angle), sin(angle), r, z)
     nl=nl+1; write(lines(nl), '(i6, f14.6, a10, a20, a14, f14.3)') i, wall_sec%s, &
-                trim(ele_loc_to_string(ele)), trim(ele%name), trim(wall3d_section_type_name(wall_sec%type)), 1000*r
+                trim(ele_location(ele)), trim(ele%name), trim(wall3d_section_type_name(wall_sec%type)), 1000*r
   enddo
 
   nl=nl+1; lines(nl) = '    Ix             S    ix_ele                 Ele          Type   Radius (mm)'
