@@ -657,9 +657,9 @@ $\theta$ and $\rho$ are expanded in a Taylor series in $x$ and $y$.
 \index{rf fields|hyperbf}
 
 For RF fields, the \vn{cylindrical} mode parameterization used by \bmad essentially
-follows Abell\cite{b:rf.abell}. The electric field is written in the form
+follows Abell\cite{b:rf.abell}. The electric field is the real part of the complex field
 \Begineq
-  \bfE(\bfr) = \sum_{j=1}^M \, \bfE_j(\bfr) \, e^{-i \, (\omega_j \, t + \phi_{0j})}
+  \bfE(\bfr) = \sum_{j=1}^M \, \bfE_j(\bfr) \, \exp[{-2\, \pi \, i \, (f_j \, t + \phi_{0j})}]
   \label{eseei}
 \Endeq
 where $M$ is the number of modes. Each mode satisfies the vector Helmholtz
@@ -668,7 +668,7 @@ equation
   \nabla^2 \bfE_j + k_{tj}^2 \, \bfE_j = 0
   \label{bke}
 \Endeq
-where $k_{tj} = \omega_j/c$ with $\omega_j$ being the mode frequency.
+where $k_{tj} = 2 \, \pi \, f/c$ with $f_j$ being the mode frequency.
 
 The individual modes vary azimuthally as $\cos(m \, \theta - \theta_0)$ where $m$ is a non-negative
 integer.  [in this and in subsequent equations, the mode index $j$ has been dropped.]  For the $m =
@@ -768,7 +768,7 @@ electric and magnetic fields are thus related to the vector potential $\bfA$ via
 \Endeq
 Using \Eq{eseei}, the vector potential can be obtained from the electric field via
 \Begineq
-  \bfA_j = \frac{-i \, \bfE_j}{\omega_j}
+  \bfA_j = \frac{-i \, \bfE_j}{2 \, \pi \, f_j}
   \label{aiew}
 \Endeq
  

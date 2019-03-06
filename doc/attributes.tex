@@ -2260,13 +2260,10 @@ associated error parameter. The elements that have associated error parameters a
   B_field       B_field_err           Sbemd, Rbend
 \end{example}
   \item[phi0_fieldmap] \Newline
-For AC fields, \vn{phi0_fieldmap} is the phase of the field map field relative to the
-fundamental mode. [Note: Documentation on the phase of the fundamental mode is given in
-the appropriate section for the type of element under consideration (\vn{e_gun},
-\vn{lcavity}, etc.).] The phase \vn{phi0_fieldmap} is relative to the fundamental
-frequency and not the frequency of the field map mode. That is, the ``zero crossing'' time
-of the field map is shifted by \vn{phi0_fieldmap}/$f_0$ where $f_0$ is the fundamental
-mode frequency.
+For AC fields, \vn{phi0_fieldmap} is the phase of the field map field relative to the fundamental
+mode. The phase \vn{phi0_fieldmap} is relative to the fundamental frequency and not the frequency of
+the field map mode. That is, the ``zero crossing'' point of the field map is shifted by a time
+\vn{phi0_fieldmap}/$f_0$ where $f_0$ is the fundamental mode frequency.
   \item[r0] \Newline
 The \vn{r0} attribute is the $(x0, y0, z0)$ vector specifying the offset of the origin point
 that defines the field relative to the \vn{anchor} point defined by \vn{ele_anchor_pt}.
@@ -2398,8 +2395,25 @@ The longitudinal length of the field is
 \begin{equation}
   L_{\text{field}} = \frac{N - 1}{dz}
 \end{equation}
-this may be different from the length \vn{l} specified for the
-element.
+this may be different from the length \vn{l} specified for the element.
+
+For AC fields, the time $t$ in \Eq{eseei} is computed depending upon whether \vn{absolute time
+tracking} or \vn{relative time tracking} is being used as discussed in \sref{s:rf.time}. For
+\vn{rfcavity} elements, the phase factor $\phi_{0j}$ in \Eq{eseei} is computed by
+\begin{example}
+  \(\phi_{0j}\) = harmonic(j) * [0.25 - (phi0 + phi0_multipass + phi0_err + 
+                                                  phi0_autoscale + phi0_fieldmap(j))] 
+\end{example}
+where \vn{phi0_fieldmap(j)} and \vn{harmonic(j)} are specific to the j\Th grid field
+while the other factors are element parameters and so will be the same for all grid field
+maps of a given element. For non \vn{rfcavity} elements the phase is
+\begin{example}
+  \(\phi_{0j}\) = harmonic(j) * [phi0 + phi0_multipass + phi0_err + 
+                                                  phi0_autoscale + phi0_fieldmap(j)]
+\end{example}
+where \vn{phi0_fieldmap(j)} and \vn{harmonic(j)} are specific to the j\Th cylindrical field map
+while the other factors are element parameters and so will be the same for all cylindrical field
+maps of a given element.
 
 Example:
 \begin{example}
@@ -2456,21 +2470,37 @@ Sec.~\sref{s:fieldmap.com}.
 
 For \vn{field_type} set to \vn{electric} or \vn{magnetic}, the field is DC. That is, For
 \vn{field_type} set to \vn{electric} or \vn{magnetic}, the value of \vn{harmonic} must be
-0. For \vn{field_type} set to \vn{mixed}, the field may be DC or AC. In this case, the
-individual field components are complex.  the syntax for specifying a complex number is:
+0. For \vn{field_type} set to \vn{mixed}, the field may be DC or AC. 
+
+For AC fields, the individual field components are complex.  the syntax for specifying a complex
+number is:
 \begin{example}
   (<Re>, <Im>)
 \end{example}
-where \vn{<Re>} and \vn{<Im>} are the real and imaginary parts of the
-component and the fields $[\bfE, \bfB]$ vary in time as 
-\Begineq
-  [\bfE, \bfB] = \Re \Bigl( [\bfE_r + i \, \bfE_i, \bfB_r + i \, \bfB_i]  e^{-i \, \omega \, t} \Bigr)
-\Endeq
-where $\bfE_r$, $\bfE_i$, $\bfB_r$, and $\bfB_i$ are the real and imaginary components as specified
-in the \vn{grid_field} structure.  Example:
+Example:
 \begin{example}
   pt(0, 0, -7) = ((0.34, -4.3), (2.37, 9.34), ...)  ! Complex field
   pt(0, 0, -7) = (0.12, -0.33, ...)                 ! Imaginary components are zero
+\end{example}
+
+The actual fields $\bfE$ and $\bfB$ are computed from the complex fields $\bfE_c$ and $\bfB_c$ via
+\Begineq
+  \bfE = \Re \Bigl[ \bfE_c \exp \left( -2 \, \pi \, i \, (\phi_t + \phi_\text{ref}) \right) \Bigr]
+\Endeq
+with a similar equation for $\bfB$. $\phi_t$ is the part of the phase due to when the particle
+arrives at the cavity and depends upon whether \vn{absolute time tracking} or \vn{relative time
+tracking} is being used as discussed in \sref{s:rf.time}. The phase $\phi_{\text{ref}}$ for the
+$j$\Th grid field in an \vn{rfcavity} element is
+\begin{example}
+  \(\phi_\text{ref,j}\) = harmonic(j) * [0.25 - (phi0 + phi0_multipass + phi0_err + 
+                                                  phi0_autoscale + phi0_fieldmap(j))] 
+\end{example}
+where \vn{phi0_fieldmap(j)} and \vn{harmonic(j)} are specific to the j\Th grid field
+while the other factors are element parameters and so will be the same for all grid field
+maps of a given element. For non \vn{rfcavity} elements the phase is
+\begin{example}
+  \(\phi_\text{ref,j}\) = harmonic(j) * [phi0 + phi0_multipass + phi0_err + 
+                                                  phi0_autoscale + phi0_fieldmap(j)]
 \end{example}
 
 The \vn{geometry} switch sets the type of the grid and must come before

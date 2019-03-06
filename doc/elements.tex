@@ -554,7 +554,7 @@ an \vn{rbend} with \vn{e1} = \vn{e2} = 0 (see above).  This formula holds for bo
 positive and negative angles.
 
 Note: The correspondence between \vn{e1} and \vn{e2} and the
-corresponding SAD parameters is:
+corresponding parameters used in the SAD program \cite{b:sad} is:
 \begin{example}
   e1(Bmad) =  e1(SAD) * angle + ae1(SAD)
   e2(Bmad) =  e2(SAD) * angle + ae2(SAD)
@@ -2485,14 +2485,13 @@ where the total gradient is
 \begin{example}
   gradient_tot = (gradient + gradient_err) * field_autoscale
 \end{example}
-The phase $\phi_{\text{ref}}$ is
+$\phi_t$ is the part of the phase due to when the particle arrives at the cavity and depends upon
+whether \vn{absolute time tracking} or \vn{relative time tracking} is being used as discussed in
+\sref{s:rf.time}.  The phase $\phi_{\text{ref}}$ is
 \begin{example}
   \(\phi_{\text{ref}}\) = phi0 + phi0_multipass + phi0_err + phi0_autoscale
   \label{lcav.phi}
 \end{example}
-and $\phi_t$ is the part of the phase due to when the particle arrives
-at the cavity and depends upon whether \vn{absolute time tracking} or 
-\vn{relative time tracking} as discussed in \sref{s:rf.time}.
 
 \vn{phi0_multipass} is only to be used with multipass to shift the phase of the cavity from pass to
 pass. See \sref{s:multipass}.
@@ -3694,18 +3693,17 @@ where
   \(\phi_\text{ref}\) = phi0 + phi0_multipass + phi0_autoscale
   \label{rfcav.phi}
 \end{example}
-and $\phi_t$ is the part of the phase due to when the particle arrives
-at the cavity and depends upon whether \vn{absolute time tracking} or 
-\vn{relative time tracking} as discussed in \sref{s:rf.time}.
+and $\phi_t$ is the part of the phase due to when the particle arrives at the cavity and depends
+upon whether \vn{absolute time tracking} or \vn{relative time tracking} is being used as discussed
+in \sref{s:rf.time}.
 
-\vn{phi0_multipass} is only to be used to shift the phase with respect
-to a \vn{multipass} lord. See \sref{s:multipass}. \vn{e_charge} is the
-charge on an electron (Table~\ref{t:constants}). Notice that the
-energy kick is independent of the sign of the charge of the particle
+\vn{phi0_multipass} is only to be used to shift the phase with respect to a \vn{multipass} lord. See
+\sref{s:multipass}. \vn{e_charge} is the charge on an electron (Table~\ref{t:constants}). Notice
+that the energy kick is independent of the sign of the charge of the particle
 
-\vn{phi0_autoscale} and \vn{field_autoscale} are calculated by \bmad's auto-scale
-module. See Section~\sref{s:autoscale} for more details. Autoscaling can be toggled on/off
-by using the \vn{autoscale_phase} and \vn{autoscale_amplitude} toggles.
+\vn{phi0_autoscale} and \vn{field_autoscale} are calculated by \bmad's auto-scale module. See
+Section~\sref{s:autoscale} for more details. Autoscaling can be toggled on/off by using the
+\vn{autoscale_phase} and \vn{autoscale_amplitude} toggles.
 
 If \vn{harmon} is non--zero the \vn{rf_frequency} is calculated by
 \begin{example}
@@ -3723,13 +3721,11 @@ be modeled. In addition, if a field map is specified
 \index{RF field map}
 \index{runge_kutta!and field maps}\index{adaptive_runge_kutta!and field maps}
 \index{boris!and field maps}\index{symp_lie_bmad!and field maps}
-If a field map is specified (\sref{s:fieldmap}), tracking using an
-integrator is possible. A field map is only used for \vn{runge_kutta},
-\vn{adaptive_runge_kutta}, \vn{boris} and \vn{symp_lie_bmad} tracking
-(\sref{s:tkm}).  Only the fundamental mode has an analytical formula
-for the symplectic tracking. In the future, the other modes could be
-used with \vn{symp_lie_bmad} tracking using a field expansion about
-the centerline.
+If a field map is specified (\sref{s:fieldmap}), tracking using an integrator is possible. A field
+map is only used for \vn{runge_kutta}, \vn{adaptive_runge_kutta}, \vn{boris} and \vn{symp_lie_bmad}
+tracking (\sref{s:tkm}).  Only the fundamental mode has an analytical formula for the symplectic
+tracking. In the future, the other modes could be used with \vn{symp_lie_bmad} tracking using a
+field expansion about the centerline.
 
 The \vn{cavity_type} is the type of cavity being simulated. Possible
 settings are:
