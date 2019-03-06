@@ -259,13 +259,11 @@ func_set_bmad_env () {
 
 
 #-----------------------------------------------------------------
-# Function to add the distribution's util, bin and GNU Util bin
-# to user's PATH and LD_LIBRARY_PATH
+# Function to add the distribution's util and bin to user's PATH 
+# and LD_LIBRARY_PATH
 #-----------------------------------------------------------------
 func_add_bmad_path () {
 
-    GNU_UTIL_PROD_BIN=${DIST_BASE_DIR}/production/gnu_utilities/bin
-    GNU_UTIL_DEBUG_BIN=${DIST_BASE_DIR}/debug/gnu_utilities/bin
     BMAD_BIN_PROD_PATH=${DIST_BASE_DIR}/production/bin
     BMAD_BIN_DEBUG_PATH=${DIST_BASE_DIR}/debug/bin
     BMAD_LIB_PROD_PATH=${DIST_BASE_DIR}/production/lib
@@ -275,14 +273,7 @@ func_add_bmad_path () {
     USER_PATH=${PATH}
     USER_PATH_LIST=$(echo ${USER_PATH} | sed s/:/\ /g)
 
-    BMAD_DIRS=( ${BMAD_BIN_DEBUG_PATH} ${BMAD_BIN_PROD_PATH} ${GNU_UTIL_DEBUG_BIN} ${GNU_UTIL_PROD_BIN} ${DIST_UTIL} )
-
-    if [ ! -d ${GNU_UTIL_DEBUG_BIN} ] ; then
-	BMAD_DIRS=( ${BMAD_BIN_DEBUG_PATH} ${BMAD_BIN_PROD_PATH} ${GNU_UTIL_PROD_BIN} ${DIST_UTIL} )
-	if [ ! -d ${GNU_UTIL_PROD_BIN} ] ; then
-	    BMAD_DIRS=( ${BMAD_BIN_DEBUG_PATH} ${BMAD_BIN_PROD_PATH} ${DIST_UTIL} )
-	fi
-    fi
+    BMAD_DIRS=( ${BMAD_BIN_DEBUG_PATH} ${BMAD_BIN_PROD_PATH} ${DIST_UTIL} )
 
     for BMAD_DIR in ${BMAD_DIRS[@]}
     do
