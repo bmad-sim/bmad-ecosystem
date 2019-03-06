@@ -12,12 +12,20 @@
 
 func_set_base_env () {
 
-    if [ "${ACC_PLOT_PACKAGE}" == "plplot" ] ; then
-	export CMAKE_UTIL="cmake-3.6.2"
+    if [ "${ACC_PLOT_PACKAGE}" == "plplot" ] ; then	
+	if [ ${DIST_BUILD} ] ; then
+	    export CMAKE_UTIL="cmake-3.7.2" # Minimum required for PLplot 5.14.0 12-Dec-2018
+	else
+	    export CMAKE_UTIL="cmake-3.6.2"
+	fi
     else
-	[ "${ACC_CMAKE_VERSION}" ] \
-	    && export CMAKE_UTIL="cmake-${ACC_CMAKE_VERSION}" \
-	    || export CMAKE_UTIL="cmake-2.8.5"
+	if [ ${DIST_BUILD} ] ; then
+	    export CMAKE_UTIL="cmake-3.7.2" # Minimum required for PLplot 5.14.0 12-Dec-2018
+	else
+	    [ "${ACC_CMAKE_VERSION}" ] \
+		&& export CMAKE_UTIL="cmake-${ACC_CMAKE_VERSION}" \
+		|| export CMAKE_UTIL="cmake-2.8.5"
+	fi
     fi
 
     export ACC_LIB_TOOLS_WIKI='https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc#A_42Libraries_and_Tools_Needed_for_Compiling_42'
@@ -208,32 +216,43 @@ func_check_gcc_version () {
 
 	GCC_MAJOR_VER=$(gcc --version | head -1 | cut -d')' -f2 | cut -c 2)
 	GCC_MINOR_VER=$(gcc --version | head -1 | cut -d')' -f2 | cut -c 4)
+	unset GCC_VERSION_OK
 
 	if ( [ "${FC}" == "gfortran" ] ) ; then
 
+	    if ( [ "${GCC_MAJOR_VER}" -ge 5 ] && [ "${GCC_MINOR_VER}" -ge 3 ] ) ; then
+		export GCC_VERSION_OK=TRUE
+	    fi
+	    
             if ( [ "${GCC_MAJOR_VER}" -lt 5 ] ) ; then
 		echo -e "\nPlease upgrade your version of GCC or set your PATH to where a minimum 5.3 version of GCC is located.\n"
 		exit 69
 	    elif ( [ "${GCC_MAJOR_VER}" -eq 5 ] && [ "${GCC_MINOR_VER}" -lt 3 ] ) ; then
+
 		if ( [ $(ls -1 /opt/rh | grep devtoolset &> /dev/null ; echo $?) -eq 0 ] ) ; then 
+
 		    DEVTOOLSET_DIR=/opt/rh/devtoolset
-		    if [ -d "${DEVTOOLSET_DIR}-4" ] ; then
-			. ${DEVTOOLSET_DIR}-4/enable
-			echo -e "\nEnabling GCC from the Red Hat Developer Toolset Distribution in ${DEVTOOLSET_DIR}-4"
-		    elif [ -d "${DEVTOOLSET_DIR}-6" ] ; then
-			. ${DEVTOOLSET_DIR}-6/enable
-			echo -e "\nEnabling GCC from the Red Hat Developer Toolset Distribution in ${DEVTOOLSET_DIR}-6"
-		    elif [ -d "${DEVTOOLSET_DIR}-7" ] ; then
-			. ${DEVTOOLSET_DIR}-7/enable
-			echo -e "\nEnabling GCC from the Red Hat Developer Toolset Distribution in ${DEVTOOLSET_DIR}-7"
-		    else
-			echo -e "\nPlease upgrade to Red Hat Developer Toolset 4 or set your PATH to where a minimum 5.3 version of GNU GCC is located.\n"
-			exit 69
+
+		    AVAIL_DEV=()
+
+		    for ((NUM=4 ; NUM < 10 ; NUM++))
+		    {
+			[ -d "${DEVTOOLSET_DIR}-${NUM}" ] && AVAIL_DEV=("${AVAIL_DEV[@]}" "${NUM}")
+		    }
+		    
+		    if [ -d "${DEVTOOLSET_DIR}-${AVAIL_DEV[0]}" ] ; then
+			source ${DEVTOOLSET_DIR}-${AVAIL_DEV[0]}/enable
+			echo -e "\nEnabling GCC/gfortran from the Red Hat Developer Toolset"
+			echo -e "in ${DEVTOOLSET_DIR}-${AVAIL_DEV[0]}"
+			export GCC_VERSION_OK=TRUE
 		    fi
 		else
-		    echo -e "\nPlease upgrade your version of GNU GCC or set your PATH to where a minimum 5.3 version of GNU GCC is located.\n"
+	    	    echo -e "\nPlease upgrade to Red Hat Developer Toolset 4 or set your PATH to where a minimum 5.3 version of GNU GCC is located.\n"
 		    exit 69
 		fi
+	    elif [ "${GCC_VERSION_OK}" != "TRUE" ] ; then
+		echo -e "\nPlease upgrade your version of GNU GCC or set your PATH to where a minimum 5.3 version of GNU GCC is located.\n"
+		exit 69
 	    fi
 	fi
 	
@@ -323,7 +342,34 @@ func_install_utilities () {
 	    fi
 
 	    #[ "${ARGUMENTS[1]}" == "-test" ] && gmake check
-	    [ -e ${UTIL_DIR}/bin/${UTIL_NAME} ] && echo -e "Success!" && func_display_build_time
+
+	    if [ -e ${UTIL_DIR}/bin/${UTIL_NAME} ] ; then
+		echo -e "Success!"
+		func_display_build_time
+
+		# If cmake is built, copy to bin and share directories
+		if [ ${UTIL_NAME} == "cmake" ] ; then
+
+		    [ ! -d ${OUTPUT_DIR}/bin ] && mkdir -p ${OUTPUT_DIR}/bin
+		    cp ${UTIL_DIR}/bin/${UTIL_NAME} ${OUTPUT_DIR}/bin
+
+		    [ ! -d ${OUTPUT_DIR}/share ] && mkdir -p ${OUTPUT_DIR}/share
+		    [ ${CMAKE_VER_DIR} ] || CMAKE_VER_DIR=$(echo ${CMAKE_UTIL} | cut -d- -f2 | cut -d. -f1,2)
+		    rsync -aq ${UTIL_DIR}/share/${UTIL_NAME}-${CMAKE_VER_DIR}/ ${OUTPUT_DIR}/share/${UTIL_NAME}-${CMAKE_VER_DIR}/
+
+		    [ `hash -l >& /dev/null ; echo $?` -eq 0 ] && hash -r || rehash
+
+		    if [ -d ${OTHER_OUTPUT_DIR} ] ; then
+
+			[ ! -d ${OTHER_OUTPUT_DIR}/bin ] && mkdir -p ${OTHER_OUTPUT_DIR}/bin
+			cp ${UTIL_DIR}/bin/${UTIL_NAME} ${OTHER_OUTPUT_DIR}/bin
+
+			[ -d ${OTHER_OUTPUT_DIR}/share ] && mkdir -p ${OTHER_OUTPUT_DIR}/share
+			rsync -aq ${UTIL_DIR}/share/${UTIL_NAME}-${CMAKE_VER_DIR}/ ${OTHER_OUTPUT_DIR}/share/${UTIL_NAME}-${CMAKE_VER_DIR}/
+		    fi
+		fi
+	    fi
+
 	    #rm -rf ${UTIL_DIR}/src/${UTIL}*
             cd ${WORK_DIR}
 
