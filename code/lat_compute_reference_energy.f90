@@ -672,8 +672,21 @@ case (lcavity$)
     has_changed = .true.
   endif
 
-  if (ele%value(gradient_err$) /= 0) then
+  if (ele%value(gradient_err$) /= 0 .or. ele%value(voltage_err$) /= 0) then
     ele%value(gradient_err$) = 0
+    ele%value(voltage_err$) = 0
+    has_changed = .true.
+  endif
+
+case (e_gun$)
+  if (ele%value(phi0_err$) /= 0) then
+    ele%value(phi0_err$) = 0
+    has_changed = .true.
+  endif
+
+  if (ele%value(gradient_err$) /= 0 .or. ele%value(voltage_err$) /= 0) then
+    ele%value(gradient_err$) = 0
+    ele%value(voltage_err$) = 0
     has_changed = .true.
   endif
 
