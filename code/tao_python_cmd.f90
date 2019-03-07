@@ -944,6 +944,7 @@ case ('lat_general')
 !     ele.x.eta, ele.x.etap,
 !     ele.y.eta, ele.y.etap,
 !     ele.s, ele.l
+!     ele.e_tot, ele.p0c
 !   {elements} is a string to match element names to. 
 !     Use "*" to match to all elements.
 !     Use the prefix "track:" to exclude lord elements.
@@ -1051,6 +1052,10 @@ case ('lat_list')
         value = ele%b%gamma
       case ('ele.b.phi')
         value = ele%b%phi
+      case ('ele.e_tot')
+        value = ele%value(e_tot$)
+      case ('ele.p0c')
+        value = ele%value(p0c$)
       case ('ele.x.eta')
         value = ele%x%eta
       case ('ele.x.etap')
