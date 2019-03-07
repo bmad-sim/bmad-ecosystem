@@ -29,7 +29,8 @@ end type
 ! Note: The points may not be evenly spaced.
 
 type rad_int_cache1_struct
-  type (rad_int_track_point_struct), allocatable :: pt(:)
+  type (rad_int_track_point_struct), allocatable :: pt(:)   ! pt(0:n_pt)
+  integer :: n_pt = -1              ! Upper bound of pt(0:n_pt)
   integer :: cache_type = no_cache$
 end type
 
@@ -311,8 +312,9 @@ if (associated(info%cache_ele)) then
 
   ! find cached point info near present z position
 
-  call bracket_index(info%cache_ele%pt%s_body, 0, ubound(info%cache_ele%pt, 1), z_here, i0)
-  i0 = min(i0, ubound(info%cache_ele%pt, 1)-1)
+  n_pt = info%cache_ele%n_pt
+  call bracket_index(info%cache_ele%pt(0:n_pt)%s_body, 0, n_pt, z_here, i0)
+  i0 = min(i0, n_pt-1)
   i1 = i0 + 1
   del_z = info%cache_ele%pt(i1)%s_body - info%cache_ele%pt(i0)%s_body 
   f1 = (z_here - del_z*i0) / del_z 

@@ -378,6 +378,7 @@ if (use_cache .or. init_cache) then
         endif
 
         n_step = 2*n_step
+        cache_ele%n_pt = n_step
         del_z = del_z / 2
         dz = min (1e-4_rp, del_z/3)
 
@@ -778,9 +779,12 @@ integer n_pt
 
 !
 
+cache_ele%n_pt = n_pt
+
 if (allocated(cache_ele%pt)) then
   if (ubound(cache_ele%pt, 1) < n_pt) deallocate (cache_ele%pt)
 endif
+
 if (.not. allocated (cache_ele%pt)) allocate (cache_ele%pt(0:n_pt))
 
 end subroutine allocate_cache
