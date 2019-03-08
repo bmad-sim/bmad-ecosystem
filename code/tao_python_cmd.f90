@@ -217,21 +217,21 @@ case ('branch1')
 
   u => point_to_uni(line, .true., err); if (err) return
   ix_branch = parse_branch(line, .false., err); if (err) return
-  branch => u%design%lat%branch(ix_branch)
+  branch => u%model%lat%branch(ix_branch)
 
   nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                              branch%name
   nl=incr(nl); write (li(nl), imt) 'ix_branch;INT;F;',                         branch%ix_branch
   nl=incr(nl); write (li(nl), imt) 'ix_from_branch;INT;F;',                    branch%ix_from_branch
   nl=incr(nl); write (li(nl), imt) 'ix_from_ele;INT;F;',                       branch%ix_from_ele
 
-  nl=incr(nl); write (li(nl), rmt) 'param.n_part;REAL;F;',                           branch%param%n_part
-  nl=incr(nl); write (li(nl), rmt) 'param.total_length;REAL;F;',                     branch%param%total_length
-  nl=incr(nl); write (li(nl), rmt) 'param.unstable_factor;REAL;F;',                  branch%param%unstable_factor
-  nl=incr(nl); write (li(nl), amt) 'param.particle;STR;F;',                          species_name(branch%param%particle)
-  nl=incr(nl); write (li(nl), amt) 'param.default_tracking_species;INT;F;',          species_name(branch%param%default_tracking_species)
-  nl=incr(nl); write (li(nl), imt) 'param.geometry;INT;F;',                          branch%param%geometry
-  nl=incr(nl); write (li(nl), imt) 'param.ixx;INT;F;',                               branch%param%ixx
-  nl=incr(nl); write (li(nl), lmt) 'param.stable;LOGIC;F;',                          branch%param%stable
+  nl=incr(nl); write (li(nl), rmt) 'param.n_part;REAL;F;',                     branch%param%n_part
+  nl=incr(nl); write (li(nl), rmt) 'param.total_length;REAL;F;',               branch%param%total_length
+  nl=incr(nl); write (li(nl), rmt) 'param.unstable_factor;REAL;F;',            branch%param%unstable_factor
+  nl=incr(nl); write (li(nl), amt) 'param.particle;STR;F;',                    species_name(branch%param%particle)
+  nl=incr(nl); write (li(nl), amt) 'param.default_tracking_species;INT;F;',    species_name(branch%param%default_tracking_species)
+  nl=incr(nl); write (li(nl), imt) 'param.geometry;INT;F;',                    branch%param%geometry
+  nl=incr(nl); write (li(nl), imt) 'param.ixx;INT;F;',                         branch%param%ixx
+  nl=incr(nl); write (li(nl), lmt) 'param.stable;LOGIC;F;',                    branch%param%stable
 
 !----------------------------------------------------------------------
 ! Bunch parameters at the exit end of a given lattice element.
@@ -769,7 +769,7 @@ case ('lat_ele_list')
 
   u => point_to_uni(line, .true., err); if (err) return
   ix_branch = parse_branch(line, .false., err); if (err) return
-  branch => u%design%lat%branch(ix_branch)
+  branch => u%model%lat%branch(ix_branch)
 
   call re_allocate_lines (branch%n_ele_max+100)
 
@@ -918,7 +918,7 @@ case ('lat_general')
 
   u => point_to_uni(line, .false., err); if (err) return
   
-  lat => u%design%lat
+  lat => u%model%lat
   do i = 0, ubound(lat%branch, 1)
     branch => lat%branch(i)
     nl=incr(nl); write (li(nl), '(i0, 3a, 2(i0, a))') i, ';', trim(branch%name), ';', branch%n_ele_track, ';', branch%n_ele_max
@@ -965,7 +965,7 @@ case ('lat_list')
     call re_allocate(re_array, 1000)
   endif
   ix_branch = parse_branch(line, .true., err); if (err) return
-  branch => u%design%lat%branch(ix_branch)
+  branch => tao_lat%lat%branch(ix_branch)
   ele_name = upcase(line)
   track_only = (ele_name(1:6) == 'TRACK:') 
   if (track_only) ele_name = ele_name(7:)
