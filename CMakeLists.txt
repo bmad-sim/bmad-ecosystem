@@ -23,10 +23,6 @@ SET (SRC_DIRS
   special_functions
   )
 
-if ($ENV{ACC_ENABLE_HDF5} MATCHES "Y")
-  list (APPEND SRC_DIRS "hdf5")
-endif ()
-
 ## Profiler flags - Note: This  is not compatible with the -fPIC flag, so -pg can't be set for the SHARED build.
 # SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 # SET (FFLAGS "-pg")  
