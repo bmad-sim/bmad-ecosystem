@@ -142,12 +142,15 @@ character(*) dataset_name
 !
 
 call h5gcreate_f(root_id, dataset_name, group_id, error)
+
 call h5ltset_attribute_double_f(root_id, dataset_name, 'value', [value], pmd_size_1, error)
 call h5ltset_attribute_int_f(root_id, dataset_name, 'shape', [v_size], pmd_size_1, error)
 
 call h5ltset_attribute_double_f(root_id, dataset_name, 'unitSI', [unit%unitSI], pmd_size_1, error)
 call h5ltset_attribute_double_f(root_id, dataset_name, 'unitDimension', unit%unitDimension, pmd_size_7, error)
 call h5ltset_attribute_string_f(root_id, dataset_name, 'unitSymbol', unit%unitSymbol, error)
+
+call h5gclose_f(group_id, error)
 
 end subroutine pmd_write_real_to_pseudo_dataset
 
