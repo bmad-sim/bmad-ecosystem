@@ -410,11 +410,15 @@ endif
 ! If ele is present...
 
 orb%ix_ele = -1
+orb%ix_branch = -1
 
 if (present(ele)) then
 
   orb%ix_ele = ele%ix_ele
-  if (ele%slave_status == slice_slave$) orb%ix_ele = ele%lord%ix_ele
+  if (ele%slave_status == slice_slave$) then
+    orb%ix_ele = ele%lord%ix_ele
+    orb%ix_branch = ele%lord%ix_branch
+  endif
 
   if (ele%key == beginning_ele$) orb%location = downstream_end$
 

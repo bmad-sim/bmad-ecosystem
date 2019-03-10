@@ -50,6 +50,15 @@ SET (SHARED_DEPS
   blas
   X11
   readline
+  #hdf5hl_fortran
+  #hdf5_hl
+  #df5_fortran
+  #hdf5
   )
+
+if ($ENV{ACC_ENABLE_HDF5} MATCHES "Y")
+  list (APPEND ${SHARED_DEPS} "hdf5hl_fortran  hdf5_hl hdf5_fortran hdf5")
+endif ()
+
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
