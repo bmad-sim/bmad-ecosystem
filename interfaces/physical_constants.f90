@@ -15,7 +15,9 @@ real(rp), parameter :: sqrt_3 = sqrt(3.0_rp)               ! 1.73205080756887729
 
 real(rp), parameter :: m_electron = 0.5109989461d6         ! Mass [eV]
 real(rp), parameter :: m_proton   = 0.9382720813d9         ! Mass [eV]
+real(rp), parameter :: m_neutron  = 0.9395654133d9         ! Mass [eV]
 real(rp), parameter :: m_muon     = 105.6583715d6          ! Mass [eV]
+
 
 real(rp), parameter :: e_mass = 1d-9 * m_electron          ! [GeV] FOR MAD COMPATIBILITY USE ONLY. USE M_ELECTRON INSTEAD.
 real(rp), parameter :: p_mass   = 1d-9 * m_proton          ! [GeV] FOR MAD COMPATIBILITY USE ONLY. USE M_PROTON INSTEAD.
@@ -55,11 +57,12 @@ real(rp), parameter :: anomalous_mag_moment_electron = 1.159652193d-3
 real(rp), parameter :: anomalous_mag_moment_proton   = 1.79284735d0
 real(rp), parameter :: anomalous_mag_moment_muon     = 1.1659208d-3  ! ~fine_structure_constant / twopi
 real(rp), parameter :: anomalous_mag_moment_deuteron = -0.1429872724d0
+real(rp), parameter :: anomalous_mag_moment_neutron  = -1.91304273d0
 
 ! Should make physical_const_list "parameter" but there is a gcc bug (in Version 7.1 at least)
 ! where if you pass physical_const_list%name to a routine there will be a crash.
 
-type (named_number_struct) :: physical_const_list(28) = [ &
+type (named_number_struct) :: physical_const_list(30) = [ &
                  named_number_struct('pi', pi), &
                  named_number_struct('twopi', twopi), &
                  named_number_struct('fourpi', fourpi), &
@@ -74,6 +77,7 @@ type (named_number_struct) :: physical_const_list(28) = [ &
                  named_number_struct('m_pion_charged', m_pion_charged), &
                  named_number_struct('m_proton', m_proton), &
                  named_number_struct('m_deuteron', m_deuteron), &
+                 named_number_struct('m_neutron', m_neutron), &
                  named_number_struct('c_light', c_light), &
                  named_number_struct('r_e', r_e), &
                  named_number_struct('r_p', r_p), &
@@ -86,6 +90,7 @@ type (named_number_struct) :: physical_const_list(28) = [ &
                  named_number_struct('fine_struct_const', fine_structure_constant), &
                  named_number_struct('anom_moment_electron', anomalous_mag_moment_electron), &
                  named_number_struct('anom_moment_proton', anomalous_mag_moment_proton), &
+                 named_number_struct('anom_moment_neutron', anomalous_mag_moment_neutron), &
                  named_number_struct('anom_moment_muon', anomalous_mag_moment_muon), &
                  named_number_struct('anom_moment_deuteron', anomalous_mag_moment_deuteron)]
 

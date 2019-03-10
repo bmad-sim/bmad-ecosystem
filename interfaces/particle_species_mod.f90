@@ -47,39 +47,45 @@ character(*), parameter :: invalid_name = 'INVALID!'
 ! Fundamental particles.
 ! Note: It is convenient to always define an "antiparticle" with reversed sign even though it does not exit in practice. Example: anti_deuteron$.
 
-integer, parameter :: deuteron$   = 8     
-integer, parameter :: ref_particle$ = 6, anti_ref_particle$ = 7
-integer, parameter :: pion_0$     = +5
-integer, parameter :: pion_plus$  = +4
-integer, parameter :: antimuon$   = +3
-integer, parameter :: proton$     = +2
-integer, parameter :: positron$   = +1
-integer, parameter :: photon$     =  0
-integer, parameter :: electron$   = -1
-integer, parameter :: antiproton$ = -2
-integer, parameter :: muon$       = -3
-integer, parameter :: pion_minus$ = -4
-integer, parameter :: anti_deuteron$ = -5
-
-character(20), parameter:: fundamental_species_name(-5:8) = [character(20):: 'Anti_Deuteron', &
-                'Pion-            ', 'Muon             ', 'Antiproton       ', 'Electron         ', &
-                'Photon           ', 'Positron         ', 'Proton           ', 'Antimuon         ', &
-                'Pion+            ', 'Pion0            ', 'Ref_Particle     ', 'Anti_Ref_Particle', &
-                'Deuteron         ']
+integer, parameter :: pion_0$            = +8
+integer, parameter :: ref_particle$      = +7
+integer, parameter :: neutron            = +6
+integer, parameter :: deuteron$          = +5
+integer, parameter :: pion_plus$         = +4
+integer, parameter :: antimuon$          = +3
+integer, parameter :: proton$            = +2
+integer, parameter :: positron$          = +1
+integer, parameter :: photon$            =  0
+integer, parameter :: electron$          = -1
+integer, parameter :: antiproton$        = -2
+integer, parameter :: muon$              = -3
+integer, parameter :: pion_minus$        = -4
+integer, parameter :: anti_deuteron$     = -5
+integer, parameter :: anti_neutron       = -6
+integer, parameter :: anti_ref_particle$ = -7
 
 
-integer, parameter :: charge_of_fundamental(-5:8) = [-1, -1, -1, -1, -1, 0, 1, 1, 1, 1, 0, 0, 0, 1]
+character(20), parameter:: fundamental_species_name(-7:8) = [character(20):: 'Anti_Ref_Particle', 'Anti_Neutron     ', &
+              'Anti_Deuteron    ', 'Pion-            ', 'Muon             ', 'Antiproton       ', 'Electron         ', &
+              'Photon           ', 'Positron         ', 'Proton           ', 'Antimuon         ', 'Pion+            ', &
+              'Deuteron         ', 'Neutron          ', 'Ref_Particle     ', 'Pion0            ']
 
-real(rp), parameter :: mass_of_fundamental(-5:8) = [m_deuteron, m_pion_charged, m_muon, m_proton, m_electron, 0.0_rp, &
-                                m_electron, m_proton, m_muon, m_pion_charged, m_pion_0, 0.0_rp, 0.0_rp, &
-                                m_deuteron]
+character(20), parameter:: openPMD_fundamental_species_name(-7:8) = [character(20):: 'Garbage!         ', 'anti-neutron     ', &
+                      'anti-deuteron    ', 'pion-            ', 'muon             ', 'anti-proton      ', 'electron         ', &
+                      'photon           ', 'positron         ', 'proton           ', 'anti-muon        ', 'pion+            ', &
+                      'deuteron         ', 'neutron          ', 'Garbage!         ', 'pion0            ']
 
-real(rp), parameter :: anomalous_moment_of_fundamental(-5:8) = [anomalous_mag_moment_deuteron, 0.0_rp, anomalous_mag_moment_muon, &
-                        anomalous_mag_moment_proton, anomalous_mag_moment_electron, 0.0_rp, &
-                        anomalous_mag_moment_electron, anomalous_mag_moment_proton, &
-                        anomalous_mag_moment_muon, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, anomalous_mag_moment_deuteron]
+integer, parameter :: charge_of_fundamental(-7:8) = [0, 0, -1, -1, -1, -1, -1, 0, 1, 1, 1, 1, 1, 0, 0, 0]
 
-integer, parameter :: antiparticle(-5:8) = [8, 4, 3, 2, 1, 0, -1, -2, -3, -4, 5, 7, 6, -5]
+real(rp), parameter :: mass_of_fundamental(-7:8) = [0.0_rp, m_neutron, m_deuteron, m_pion_charged, m_muon, m_proton, m_electron, 0.0_rp, &
+                                m_electron, m_proton, m_muon, m_pion_charged, m_deuteron, m_neutron, 0.0_rp, m_pion_0]
+
+real(rp), parameter :: anomalous_moment_of_fundamental(-7:8) = [0.0_rp, anomalous_mag_moment_neutron, anomalous_mag_moment_deuteron, &
+                        0.0_rp, anomalous_mag_moment_muon, anomalous_mag_moment_proton, anomalous_mag_moment_electron, 0.0_rp, &
+                        anomalous_mag_moment_electron, anomalous_mag_moment_proton, anomalous_mag_moment_muon, &
+                        0.0_rp, anomalous_mag_moment_deuteron, anomalous_mag_moment_neutron, 0.0_rp, 0.0_rp]
+
+integer, parameter :: antiparticle(-7:8) = [7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, 8]
 
 !----------------------
 ! Atoms
@@ -717,6 +723,37 @@ case default
 end select
 
 end function species_name
+
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!+
+! Function openpmd_species_name (species) result(name)
+!
+! Routine to return the openPMD name of a particle species given the integer index.
+!
+! Input:
+!   species -- Integer: Species ID.
+!
+! Output:
+!   name    -- Character(20): Name of the species.
+!               Will return 'INVALID!' (= invalid_name) if index is not valid.
+!-
+
+function openpmd_species_name(species) result(name)
+
+integer :: species
+character(20) :: name
+
+!
+
+if (species >= lbound(fundamental_species_name, 1) .and. species <= ubound(fundamental_species_name, 1)) then
+  name = openpmd_fundamental_species_name(species)
+else
+  name = 'Garbage!'
+endif
+
+end function openpmd_species_name
 
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
