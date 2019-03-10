@@ -17,7 +17,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 228
+integer, parameter :: bmad_inc_version$ = 229
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -470,6 +470,7 @@ type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: beta = -1           ! Velocity / c_light.
   integer :: ix_ele = -1          ! Index of element particle was tracked through.
                                   !   May be -1 if element is not associated with a lattice.
+  integer :: ix_branch = -1       ! Index the lattice branch the particle is in.
   integer :: ix_user = -1         ! For general use, not used by Bmad.
   integer :: state = not_set$     ! alive$, lost$, lost_neg_x_aperture$, etc.
   integer :: direction = 1        ! Sign of longitudinal direction of motion (ds/dt). = +/- 1.

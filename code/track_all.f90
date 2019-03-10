@@ -61,6 +61,7 @@ if (orbit(0)%state == not_set$) call init_coord(orbit(0), orbit(0)%vec, branch%e
 if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
 orbit(0)%ix_ele   = 0
+orbit(0)%ix_branch = ix_br
 orbit(0)%location = downstream_end$
 
 if (orbit(0)%species /= photon$) then
