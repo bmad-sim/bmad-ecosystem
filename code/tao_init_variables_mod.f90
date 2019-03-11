@@ -239,7 +239,7 @@ do
           call err_exit
         endif
 
-        call tao_var_stuffit2 (good_unis, v1_var_ptr%v(j))
+        call tao_var_stuffit2 (good_unis, v1_var_ptr%v(j), var_file)
       enddo
     endif
 
@@ -256,7 +256,7 @@ do
         good_unis = .false.
         good_unis(i) = .true.
         do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
-          call tao_var_stuffit2 (good_unis, v1_var_ptr%v(j))
+          call tao_var_stuffit2 (good_unis, v1_var_ptr%v(j), var_file)
         enddo
       endif
     enddo
@@ -643,7 +643,7 @@ end subroutine tao_allocate_v1_var
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 
-subroutine tao_var_stuffit2 (good_unis, var)
+subroutine tao_var_stuffit2 (good_unis, var, var_file)
 
 implicit none
 
@@ -655,8 +655,10 @@ type (all_pointer_struct), allocatable :: a_ptr(:)
 
 integer i, j, n, n1, n2, ie, iu, ib
 
-character(20) :: r_name = 'tao_var_stuffit2'
 logical err, good_unis(lbound(s%u, 1):), found
+
+character(*) var_file
+character(*), parameter :: r_name = 'tao_var_stuffit2'
 
 ! 
 
@@ -671,6 +673,12 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
   if (.not. good_unis(iu)) cycle
   lat => s%u(iu)%model%lat
+
+  if (var%ele_name == 'BEAM_START') then
+    var%ele_name = 'PARTICLE_START'
+    call out_io (s_warn$, r_name, 'NOTE: "beam_start" should be changed to "particle_start" in: ' // var_file, &
+                                  'Tao will run normally for now but the name "beam_start" is deprecated.')
+  endif
 
   if (var%ele_name == 'PARTICLE_START') then
     call tao_pointer_to_var_in_lattice2 (var, iu, err)
