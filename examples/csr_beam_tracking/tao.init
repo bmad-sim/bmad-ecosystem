@@ -32,7 +32,6 @@
 
 !----MODE X ----
 &tao_beam_init
-  beam_init%use_lattice_center = T
   beam_init%n_particle = 1000
   beam_init%random_engine = 'quasi'
   !beam_init%random_engine = 'pseudo'
