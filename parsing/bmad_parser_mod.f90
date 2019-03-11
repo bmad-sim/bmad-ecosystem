@@ -5110,7 +5110,9 @@ if (present(ref_ele)) then
     if (abs(super_ele%value(l$)) < eps .and. (ele1%iyy /= 0 .or. ele2%iyy /= 0)) return ! At multipass edge is OK
     if (ele1%iyy == 0 .or. ele2%iyy == 0) then
       call parser_error ('SUPERIMPOSE OF: ' // super_ele%name, &
-           'USES MULTIPASS REFERENCE ELEMENT BUT OFFSET PLACES IT OUT OF THE MULTIPASS REGION!')
+                         'WITH REFERENCE ELEMENT: ' // trim(ref_ele%name) // ' IN BRANCH \i0\ ', &
+                         'USES MULTIPASS REFERENCE ELEMENT BUT OFFSET PLACES IT OUT OF THE MULTIPASS REGION!', &
+                          i_array = [branch%ix_branch])
       return
     endif
 
@@ -5118,7 +5120,9 @@ if (present(ref_ele)) then
     if (abs(super_ele%value(l$)) < eps .and. (ele1%iyy == 0 .or. ele2%iyy == 0)) return  ! At multipass edge is OK
     if (ele1%iyy /= 0 .or. ele2%iyy /= 0) then
       call parser_error ('SUPERIMPOSE OF: ' // super_ele%name, &
-                         'USES NON-MULTIPASS REFERENCE ELEMENT BUT OFFSET PLACES IT IN A MULTIPASS REGION!')
+                         'WITH REFERENCE ELEMENT: ' // trim(ref_ele%name) // ' IN BRANCH \i0\ ', &
+                         'USES NON-MULTIPASS REFERENCE ELEMENT BUT OFFSET PLACES IT IN A MULTIPASS REGION!', &
+                          i_array = [branch%ix_branch])
       return
     endif
   endif
