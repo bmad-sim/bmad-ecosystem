@@ -6,7 +6,7 @@
 !
 ! Input:
 !   str(:)  -- character(*): Input string array
-!   delim   -- character(*), optional: Delimitor between strings. Default is a blank space.
+!   delim   -- character(*), optional: Delimitor between strings. Default is two blank spaces.
 ! Output:
 !   q_str   -- character(:), allocatable: String with quote marks.
 !-
@@ -29,22 +29,22 @@ enddo
 if (present(delim)) then
   n = n + (ns-1) * len(delim)
 else
-  n = n + (ns-1)
+  n = n + (ns-1) * 2
 endif
 
 allocate(character(n) :: q_str)
 
 n = 0
 do i = 1, ns
-  q_str = q_str(:n-1) // '"' // trim(str(i)) // '"'
+  q_str = q_str(:n) // '"' // trim(str(i)) // '"'
   n = n + len_trim(str(i)) + 2
   if (i == ns) exit
   if (present(delim)) then
-    q_str = q_str(:n-1) // delim
+    q_str = q_str(:n) // delim
     n = n + len(delim)
   else
-    q_str = q_str(:n-1) // ' '
-    n = n + 1
+    q_str = q_str(:n) // '  '
+    n = n + 2
   endif
 enddo
 
