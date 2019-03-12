@@ -3,7 +3,7 @@ module openpmd_interface
 use h5lt
 use hdf5
 use iso_fortran_env
-use physical_constants
+use sim_utils
 
 implicit none
 
@@ -75,7 +75,7 @@ integer(HID_T) :: id
 character(*) :: name, string
 integer error
 !
-call h5ltset_attribute_string_f(id, '.', name, trim(string), error)
+call H5LTset_attribute_string_f(id, '.', name, trim(string), error)
 end subroutine pmd_write_string_attrib
 
 !------------------------------------------------------------------------------------------
@@ -88,7 +88,7 @@ character(*) :: name
 integer :: i
 integer error
 !
-call h5ltset_attribute_int_f(id, '.', name, [i], h5_size_1, error)
+call H5LTset_attribute_int_f(id, '.', name, [i], h5_size_1, error)
 end subroutine pmd_write_integer_attrib
 
 !------------------------------------------------------------------------------------------
@@ -100,7 +100,7 @@ integer(HID_T) :: id
 character(*) :: name
 real(rp) :: x
 integer error
-call h5ltset_attribute_double_f(id, '.', name, [x], h5_size_1, error)
+call H5LTset_attribute_double_f(id, '.', name, [x], h5_size_1, error)
 end subroutine pmd_write_real_attrib
 
 !------------------------------------------------------------------------------------------
@@ -111,9 +111,10 @@ subroutine pmd_write_real_vector_to_dataset(root_id, dataset_name, bmad_name, un
 
 type (pmd_unit_struct) unit
 real(rp) vector(:), v_max, v_min
-integer error
+integer err
 integer(HID_T) :: root_id, v_size
 character(*) dataset_name, bmad_name
+logical error
 
 !
 
@@ -128,10 +129,10 @@ endif
 !
 
 v_size = size(vector)
-call h5ltmake_dataset_double_f(root_id, dataset_name, 1, [v_size], vector, error)    
+call H5LTmake_dataset_double_f(root_id, dataset_name, 1, [v_size], vector, err)    
 
-call h5ltset_attribute_double_f(root_id, dataset_name, 'minValue', [v_min], h5_size_1, error)
-call h5ltset_attribute_double_f(root_id, dataset_name, 'maxValue', [v_max], h5_size_1, error)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'minValue', [v_min], h5_size_1, err)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'maxValue', [v_max], h5_size_1, err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
@@ -146,19 +147,20 @@ subroutine pmd_write_real_to_pseudo_dataset(root_id, dataset_name, bmad_name, un
 type (pmd_unit_struct) unit
 integer(HID_T) :: root_id, group_id
 real(rp) value
-integer error, v_size
+integer v_size, err
 character(*) dataset_name, bmad_name
+logical error
 
 !
 
-call h5gcreate_f(root_id, dataset_name, group_id, error)
+call h5gcreate_f(root_id, dataset_name, group_id, err)
 
-call h5ltset_attribute_double_f(root_id, dataset_name, 'value', [value], h5_size_1, error)
-call h5ltset_attribute_int_f(root_id, dataset_name, 'shape', [v_size], h5_size_1, error)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'value', [value], h5_size_1, err)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', [v_size], h5_size_1, err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
-call h5gclose_f(group_id, error)
+call h5gclose_f(group_id, err)
 
 end subroutine pmd_write_real_to_pseudo_dataset
 
@@ -170,9 +172,10 @@ subroutine pmd_write_int_vector_to_dataset(root_id, dataset_name, bmad_name, uni
 
 type (pmd_unit_struct) unit
 integer vector(:), v_max, v_min
-integer error
+integer err
 integer(HID_T) :: root_id, v_size
 character(*) dataset_name, bmad_name
+logical error
 
 !
 
@@ -187,10 +190,10 @@ endif
 !
 
 v_size = size(vector)
-call h5ltmake_dataset_int_f(root_id, dataset_name, 1, [v_size], vector, error)    
+call H5LTmake_dataset_int_f(root_id, dataset_name, 1, [v_size], vector, err)    
 
-call h5ltset_attribute_int_f(root_id, dataset_name, 'minValue', [v_min], h5_size_1, error)
-call h5ltset_attribute_int_f(root_id, dataset_name, 'maxValue', [v_max], h5_size_1, error)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'minValue', [v_min], h5_size_1, err)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'maxValue', [v_max], h5_size_1, err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
@@ -205,19 +208,20 @@ subroutine pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, uni
 type (pmd_unit_struct) unit
 integer(HID_T) :: root_id, group_id
 integer value
-integer error, v_size
+integer err, v_size
 character(*) dataset_name, bmad_name
+logical error
 
 !
 
-call h5gcreate_f(root_id, dataset_name, group_id, error)
+call h5gcreate_f(root_id, dataset_name, group_id, err)
 
-call h5ltset_attribute_int_f(root_id, dataset_name, 'value', [value], h5_size_1, error)
-call h5ltset_attribute_int_f(root_id, dataset_name, 'shape', [v_size], h5_size_1, error)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'value', [value], h5_size_1, err)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', [v_size], h5_size_1, err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
-call h5gclose_f(group_id, error)
+call h5gclose_f(group_id, err)
 
 end subroutine pmd_write_int_to_pseudo_dataset
 
@@ -229,14 +233,66 @@ subroutine pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, e
 
 type (pmd_unit_struct) unit
 integer(HID_T) :: root_id
-integer error
+integer err
+logical error
 character(*) dataset_name, bmad_name
 
-if (bmad_name /= '') call h5ltset_attribute_string_f(root_id, dataset_name, 'localName', bmad_name, error)
-call h5ltset_attribute_double_f(root_id, dataset_name, 'unitSI', [unit%unitSI], h5_size_1, error)
-call h5ltset_attribute_double_f(root_id, dataset_name, 'unitDimension', [unit%unitDimension], h5_size_7, error)
-call h5ltset_attribute_string_f(root_id, dataset_name, 'unitSymbol', unit%unitSymbol, error)
+if (bmad_name /= '') call H5LTset_attribute_string_f(root_id, dataset_name, 'localName', bmad_name, err)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'unitSI', [unit%unitSI], h5_size_1, err)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'unitDimension', [unit%unitDimension], h5_size_7, err)
+call H5LTset_attribute_string_f(root_id, dataset_name, 'unitSymbol', unit%unitSymbol, err)
 
 end subroutine pmd_write_units_to_dataset 
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine pmd_read_attribute_string (root_id, obj_name, attrib_name, string, error, print_err)
+
+integer(HID_T) :: root_id
+integer(SIZE_T) type_size
+integer(HSIZE_T) dims(3)
+integer status
+integer type_class, err
+
+character(*) attrib_name, obj_name
+logical error, print_err
+
+character(:), allocatable :: string
+character(200) :: str
+character(*), parameter :: r_name = 'pmd_read_attribute_string'
+
+!
+
+call H5LTget_attribute_info_f (root_id, obj_name, attrib_name, dims, type_class, type_size, err)
+if (.true.) then
+   
+  err = .false.
+else
+  err = .true.
+  if (print_err) then
+    call out_io (s_error$, r_name, 'ATTRIBUTE IS NOT PRESENT: ' // attrib_name)
+  endif
+endif
+
+end subroutine pmd_read_attribute_string
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine pmd_get_next_sub_group (root_id, index, group_id)
+
+integer(HID_T) :: root_id, group_id
+integer index
+
+!
+
+! iexist = H5LTfind_dataset_f (root_id, )
+
+end subroutine pmd_get_next_sub_group
+
+
 
 end module

@@ -9,7 +9,9 @@ contains
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 
-subroutine hdf5_write_beam (file_name, bunches, lat)
+subroutine hdf5_write_beam (file_name, bunches, lat, error)
+
+implicit none
 
 type (bunch_struct), target :: bunches(:)
 type (bunch_struct), pointer :: bunch
@@ -27,6 +29,8 @@ integer, allocatable :: ivec(:)
 character(*) file_name
 character(20) date_time, root_path, bunch_path, particle_path
 character(100) this_path
+
+logical error
 
 ! Open a new file using default properties.
 
@@ -82,9 +86,9 @@ do ib = 1, size(bunches)
   ! Position. The z-position (as opposed to z-cononical = %vec(5)) is always zero by construction.
 
   call h5gcreate_f(b_id, 'position', z_id, h5_err)
-  call pmd_write_real_vector_to_dataset(z_id, 'x', 'x', unit_m, p(:)%vec(1), h5_err)
-  call pmd_write_real_vector_to_dataset(z_id, 'y', 'y', unit_m, p(:)%vec(3), h5_err)
-  call pmd_write_real_to_pseudo_dataset(z_id, 'z', 'z', unit_m, 0.0_rp, size(p), h5_err)
+  call pmd_write_real_vector_to_dataset(z_id, 'x', 'x', unit_m, p(:)%vec(1), error)
+  call pmd_write_real_vector_to_dataset(z_id, 'y', 'y', unit_m, p(:)%vec(3), error)
+  call pmd_write_real_to_pseudo_dataset(z_id, 'z', 'z', unit_m, 0.0_rp, size(p), error)
   call h5gclose_f(z_id, h5_err)
 
   ! Momentum
@@ -95,13 +99,13 @@ do ib = 1, size(bunches)
   call h5gcreate_f(b_id, 'momentum', z_id, h5_err)
 
   rvec = (p(:)%vec(2) * p(:)%p0c) / p_live%p0c
-  call pmd_write_real_vector_to_dataset(z_id, 'x', 'px', unit, rvec, h5_err)
+  call pmd_write_real_vector_to_dataset(z_id, 'x', 'px', unit, rvec, error)
 
   rvec = (p(:)%vec(4) * p(:)%p0c) / p_live%p0c
-  call pmd_write_real_vector_to_dataset(z_id, 'y', 'py', unit, rvec, h5_err)
+  call pmd_write_real_vector_to_dataset(z_id, 'y', 'py', unit, rvec, error)
 
   rvec = p(:)%direction * (sqrt((1 + p(:)%vec(6))**2 - p(:)%vec(2)**2 - p(:)%vec(4)**2) * p(:)%p0c) / p_live%p0c
-  call pmd_write_real_vector_to_dataset(z_id, 'z', 'ps', unit, rvec, h5_err)
+  call pmd_write_real_vector_to_dataset(z_id, 'z', 'ps', unit, rvec, error)
 
   call h5gclose_f(z_id, h5_err)
 
@@ -109,9 +113,9 @@ do ib = 1, size(bunches)
 
   if (p(1)%species /= photon$) then
     call h5gcreate_f(b_id, 'spin', z_id, h5_err)
-    call pmd_write_real_vector_to_dataset(z_id, 'x', 'Sx', unit_1, p(:)%spin(1), h5_err)
-    call pmd_write_real_vector_to_dataset(z_id, 'y', 'Sy', unit_1, p(:)%spin(2), h5_err)
-    call pmd_write_real_vector_to_dataset(z_id, 'z', 'Sz', unit_1, p(:)%spin(3), h5_err)
+    call pmd_write_real_vector_to_dataset(z_id, 'x', 'Sx', unit_1, p(:)%spin(1), error)
+    call pmd_write_real_vector_to_dataset(z_id, 'y', 'Sy', unit_1, p(:)%spin(2), error)
+    call pmd_write_real_vector_to_dataset(z_id, 'z', 'Sz', unit_1, p(:)%spin(3), error)
     call h5gclose_f(z_id, h5_err)
   endif
 
@@ -120,32 +124,32 @@ do ib = 1, size(bunches)
   if (p(1)%species == photon$) then
     call h5gcreate_f(b_id, 'photonPolarization', z_id, h5_err)
     call h5gcreate_f(z_id, 'x', z2_id, h5_err)
-    call pmd_write_real_vector_to_dataset(z2_id, 'amplitude', 'Field Amp_x', unit_1, p(:)%field(1), h5_err)
-    call pmd_write_real_vector_to_dataset(z2_id, 'phase', 'Field Phase_x', unit_1, p(:)%phase(1), h5_err)
+    call pmd_write_real_vector_to_dataset(z2_id, 'amplitude', 'Field Amp_x', unit_1, p(:)%field(1), error)
+    call pmd_write_real_vector_to_dataset(z2_id, 'phase', 'Field Phase_x', unit_1, p(:)%phase(1), error)
     call h5gclose_f(z2_id, h5_err)
     call h5gcreate_f(z_id, 'y', z2_id, h5_err)
-    call pmd_write_real_vector_to_dataset(z2_id, 'amplitude', 'Field Amp_y', unit_1, p(:)%field(2), h5_err)
-    call pmd_write_real_vector_to_dataset(z2_id, 'phase', 'Field Phase_y', unit_1, p(:)%phase(2), h5_err)
+    call pmd_write_real_vector_to_dataset(z2_id, 'amplitude', 'Field Amp_y', unit_1, p(:)%field(2), error)
+    call pmd_write_real_vector_to_dataset(z2_id, 'phase', 'Field Phase_y', unit_1, p(:)%phase(2), error)
     call h5gclose_f(z2_id, h5_err)
     call h5gclose_f(z_id, h5_err)
 
-    call pmd_write_real_vector_to_dataset(b_id, 'pathLength', 'Path Length', unit_m, p(:)%field(2), h5_err)
+    call pmd_write_real_vector_to_dataset(b_id, 'pathLength', 'Path Length', unit_m, p(:)%field(2), error)
   endif
 
   !
 
-  call pmd_write_real_vector_to_dataset(b_id, 'sPosition', 's', unit_m, p(:)%s, h5_err)
+  call pmd_write_real_vector_to_dataset(b_id, 'sPosition', 's', unit_m, p(:)%s, error)
 
   rvec = -p(:)%vec(5) * p(:)%beta * c_light
-  call pmd_write_real_vector_to_dataset(b_id, 'time', 't - t_ref', unit_sec, rvec, h5_err)
-  call pmd_write_real_vector_to_dataset(b_id, 'timeOffset', 't_ref', unit_sec, p(:)%t - rvec, h5_err)
-  call pmd_write_real_vector_to_dataset(b_id, 'speed', 'beta', unit_c_light, p(:)%beta, h5_err)
-  call pmd_write_real_vector_to_dataset(b_id, 'weight', 'macro-charge', unit_1, p(:)%charge, h5_err)
-  call pmd_write_real_vector_to_dataset(b_id, 'momentumOffset', 'p0c', unit_eV, p(:)%p0c, h5_err)
+  call pmd_write_real_vector_to_dataset(b_id, 'time', 't - t_ref', unit_sec, rvec, error)
+  call pmd_write_real_vector_to_dataset(b_id, 'timeOffset', 't_ref', unit_sec, p(:)%t - rvec, error)
+  call pmd_write_real_vector_to_dataset(b_id, 'speed', 'beta', unit_c_light, p(:)%beta, error)
+  call pmd_write_real_vector_to_dataset(b_id, 'weight', 'macro-charge', unit_1, p(:)%charge, error)
+  call pmd_write_real_vector_to_dataset(b_id, 'momentumOffset', 'p0c', unit_eV, p(:)%p0c, error)
 
-  call pmd_write_int_vector_to_dataset(b_id, 'particleStatus', 'state', unit_1, p(:)%state, h5_err)
-  call pmd_write_int_vector_to_dataset(b_id, 'branchIndex', 'ix_branch', unit_1, p(:)%state, h5_err)
-  call pmd_write_int_vector_to_dataset(b_id, 'elementIndex', 'ix_ele', unit_1, p(:)%state, h5_err)
+  call pmd_write_int_vector_to_dataset(b_id, 'particleStatus', 'state', unit_1, p(:)%state, error)
+  call pmd_write_int_vector_to_dataset(b_id, 'branchIndex', 'ix_branch', unit_1, p(:)%state, error)
+  call pmd_write_int_vector_to_dataset(b_id, 'elementIndex', 'ix_ele', unit_1, p(:)%state, error)
 
   do i = 1, size(p)
     select case (p(i)%location)
@@ -154,7 +158,7 @@ do ib = 1, size(bunches)
     case (inside$);         ivec(i) =  1
     end select
   enddo
-  call pmd_write_int_vector_to_dataset(b_id, 'locationInElement', 'location', unit_1, p(:)%location, h5_err)
+  call pmd_write_int_vector_to_dataset(b_id, 'locationInElement', 'location', unit_1, p(:)%location, error)
 
 
   call h5gclose_f(b_id, h5_err)
@@ -169,7 +173,50 @@ end subroutine hdf5_write_beam
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 
-!subroutine hdf5_write_beam (file_name, bunches, lat)
+subroutine hdf5_read_beam (file_name, bunches, pmd_header, error)
 
+implicit none
+
+type (bunch_struct), allocatable, target :: bunches(:)
+type (pmd_header_struct) pmd_header
+type (bunch_struct), pointer :: bunch
+type (coord_struct), pointer :: p(:)
+type (lat_struct) lat
+type (pmd_unit_struct) unit
+
+real(rp), allocatable :: rvec(:)
+real(rp) factor
+
+integer(HID_T) f_id, g_id, z_id, z2_id, r_id, b_id
+integer i, ib, ix, h5_err
+integer, allocatable :: ivec(:)
+
+character(*) file_name
+
+logical error, err
+
+!
+
+error = .true.
+
+call h5open_f(h5_err)  ! Init Fortran interface
+call h5fopen_f(file_name, H5F_ACC_RDONLY_F, f_id, h5_err)
+
+call pmd_read_attribute_string (f_id, '/', 'openPMD', pmd_header%openPMD, err, .true.);                    if (err) return
+call pmd_read_attribute_string (f_id, '/', 'openPMDextension', pmd_header%openPMDextension, err, .true.);  if (err) return
+call pmd_read_attribute_string (f_id, '/', 'basePath', pmd_header%basePath, err, .true.);                  if (err) return
+call pmd_read_attribute_string (f_id, '/', 'particlesPath', pmd_header%particlesPath, err, .true.);        if (err) return
+call pmd_read_attribute_string (f_id, '/', 'software', pmd_header%software, err, .false.)
+call pmd_read_attribute_string (f_id, '/', 'softwareVersion', pmd_header%softwareVersion, err, .false.)
+call pmd_read_attribute_string (f_id, '/', 'date', pmd_header%date, err, .false.)
+call pmd_read_attribute_string (f_id, '/', 'latticeFile', pmd_header%latticeFile, err, .false.)
+call pmd_read_attribute_string (f_id, '/', 'latticeName', pmd_header%latticeName, err, .false.)
+call pmd_read_attribute_string (f_id, '/', 'xxx', pmd_header%latticeName, err, .false.)
+
+call h5fclose_f(f_id, h5_err)
+
+error = .false.
+
+end subroutine hdf5_read_beam
 
 end module hdf5_bunch_mod
