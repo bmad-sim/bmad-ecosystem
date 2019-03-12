@@ -157,7 +157,7 @@ endif
 
 open (iu, file = full_name, status = 'old', iostat = ios)
 if (ios /= 0) then
-  call out_io (s_error$, r_name, 'CANNOT OPEN BEAM FILE!')
+  call out_io (s_error$, r_name, 'CANNOT OPEN BEAM FILE: ' // quote(file_name))
   return
 endif
 

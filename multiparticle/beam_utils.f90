@@ -256,7 +256,7 @@ if (present(err_flag)) err_flag = .true.
 if (beam_init%file_name /= '') then
   call read_beam_file (beam_init%file_name, beam, beam_init, err_here)
   if (err_here) then
-    call out_io (s_abort$, r_name, "Problem with beam file: "//beam_init%file_name)
+    call out_io (s_abort$, r_name, "PROBLEM READING BEAM FILE: "// quote(beam_init%file_name))
     return
   endif
 
