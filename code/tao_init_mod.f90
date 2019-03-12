@@ -141,8 +141,9 @@ character(*) init_file
 character(40) :: r_name = 'tao_init_beams'
 character(40) track_start, track_end, beam_track_start, beam_track_end
 character(160) beam_saved_at
-character(200) file_name, beam0_file, beam_init_file_name, beam_all_file
-character(200) beam_position0_file           ! old style_syntax
+character(200) file_name, beam0_file, beam_all_file
+character(200) beam_init_file_name           ! old style syntax
+character(200) beam_position0_file           ! old style syntax
 character(60), target :: save_beam_at(100)   ! old style syntax
 
 logical err
@@ -167,7 +168,7 @@ if (iu == 0) then
 endif
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
-  s%u(i)%beam%beam_init%file_name = s%com%beam_init_file_name
+  s%u(i)%beam%beam_init%file_name = ''
   s%u(i)%beam%all_file = s%com%beam_all_file
   s%u(i)%beam%track_start    = ''
   s%u(i)%beam%track_end      = ''
@@ -203,20 +204,27 @@ do
   endif
 
   if (beam0_file /= '') then
-    beam_init_file_name = beam0_file
+    beam_init%file_name = beam0_file
     call out_io (s_important$, r_name, &
-          'Note: Parameter beam0_file in the tao_beam_init structure has been replaced by beam_init_file_name.', &
-          'This is just a warning. Tao will run normally...')
+          'Note: Parameter beam0_file in the tao_beam_init structure has been replaced by beam_init%file_name.', &
+          'PLEASE MODIFY YOU INPUT FILE. This is just a warning. Tao will run normally...')
   endif
 
   if (beam_position0_file /= '') then
-    beam_init_file_name = beam_position0_file
+    beam_init%file_name = beam_position0_file
     call out_io (s_important$, r_name, &
-          'Note: Parameter beam_position0_file in the tao_beam_init structure has been replaced by beam_init_file_name.', &
-          'This is just a warning. Tao will run normally...')
+          'Note: Parameter beam_position0_file in the tao_beam_init structure has been replaced by beam_init%file_name.', &
+          'PLEASE MODIFY YOU INPUT FILE. This is just a warning. Tao will run normally...')
   endif
 
-  if (s%com%beam_init_file_name /= '') beam_init_file_name = s%com%beam_init_file_name 
+  if (beam_init_file_name /= '') then
+    beam_init%file_name = beam_position0_file
+    call out_io (s_important$, r_name, &
+          'Note: Parameter beam_init_file_name in the tao_beam_init structure has been replaced by beam_init%file_name.', &
+          'PLEASE MODIFY YOU INPUT FILE. This is just a warning. Tao will run normally...')
+  endif
+
+  if (s%com%beam_init_file_name /= '') beam_init%file_name = s%com%beam_init_file_name 
 
   if (s%com%beam_all_file /= '') beam_all_file = s%com%beam_all_file  ! From the command line
   if (track_start /= '') beam_track_start = track_start   ! For backwards compatibility
@@ -244,7 +252,7 @@ do
         'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
   if (ix_universe == -1) then
     do i = lbound(s%u, 1), ubound(s%u, 1)
-      call init_beam(s%u(i))
+      call init_beam(s%u(i), beam_init)
     enddo
   else
     if (ix_universe < lbound(s%u, 1) .or. ix_universe > ubound(s%u, 1)) then
@@ -252,7 +260,7 @@ do
             'BAD IX_UNIVERSE IN TAO_BEAM_INIT NAMELIST: \i0\ ', ix_universe)
       call err_exit
     endif
-    call init_beam(s%u(ix_universe))
+    call init_beam(s%u(ix_universe), beam_init)
   endif
 
 enddo
@@ -265,11 +273,12 @@ contains
 
 ! Initialize the beams. Determine which element to track beam to
 
-subroutine init_beam (u)
+subroutine init_beam (u, beam_init)
 
 use beam_file_io
 
 type (tao_universe_struct), target :: u
+type (beam_init_struct) beam_init
 type (ele_pointer_struct), allocatable, save, target :: eles(:)
 type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
@@ -310,7 +319,6 @@ if (beam_track_end /= '') then
 endif
 
 u%beam%beam_init = beam_init
-u%beam%beam_init%file_name = beam_init_file_name
 u%beam%all_file = beam_all_file
 
 ! Find where to save the beam at.
