@@ -380,9 +380,9 @@ case ('beam')
       nl=nl+1; write(lines(nl), amt) '  %distribution_type      = ', quoten(beam_init%distribution_type)
       nl=nl+1; write(lines(nl), lmt) '  %use_particle_start_for_center = ', beam_init%use_particle_start_for_center
       if (beam_init%use_particle_start_for_center) then
-        nl=nl+1; write(lines(nl), '(a, es16.8, 3x, a)') '  %center                 = ', beam_init%center, '! Slaved to particle_start'
+        nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  %center                 = ', beam_init%center, '! Slaved to particle_start'
       else
-        nl=nl+1; write(lines(nl), '(a, es16.8, 3x, a)') '  %center                 = ', beam_init%center, '! Independent of slaved particle_start'
+        nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  %center                 = ', beam_init%center, '! Independent of slaved particle_start'
       endif
       nl=nl+1; write(lines(nl), rmt) '  %center_jitter          = ', beam_init%center_jitter
       nl=nl+1; write(lines(nl), imt) '  %n_particle             = ', beam_init%n_particle
