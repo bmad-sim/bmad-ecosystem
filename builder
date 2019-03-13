@@ -120,11 +120,12 @@ def build_directory( dir, statlist, target ):
     else:
         use_gcc482 = ''
 
+    ACC_SET_GMAKE_JOBS = '4'
+
     if 'cbpmfio' in dir:
         ACC_SET_GMAKE_JOBS = '2'
-    else:
-        ACC_SET_GMAKE_JOBS = '4'
-    
+    if 'xetec' in dir:
+        ACC_SET_GMAKE_JOBS = '2' 
 
     ACC_ENABLE_FPIC = 'N'
 
