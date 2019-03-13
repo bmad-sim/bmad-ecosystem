@@ -42,7 +42,7 @@ if (arg > 700) then
   i_bes = 1d300  ! Something large.
   return
 elseif (m <= ubound(arg_min, 1)) then
-  if (arg < arg_min(m)) then
+  if (abs(arg) < arg_min(m)) then
     i_bes = 0
     return
   endif
