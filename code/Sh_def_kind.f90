@@ -17329,22 +17329,22 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
       IF(EL%P%DIR==1) THEN
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
-         if(el%XPrime) call conv_to_xp(el,x,k,0)
+         if(el%XPrime.and.conversion_xprime_in_abell) call conv_to_xp(el,x,k,0)
       ELSE
-         if(el%XPrime) call conv_to_px(el,x,k,0)
+         if(el%XPrime.and.conversion_xprime_in_abell) call conv_to_px(el,x,k,0)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
       ENDIF
     else
     d(1)=-EL%P%DIR*el%xc ;d(3)=el%dc;d(2)=-EL%P%DIR*el%vc;
       IF(EL%P%DIR==1) THEN
-        if(el%XPrime)  call conv_to_px(el,x,k,1)
+        if(el%XPrime.and.conversion_xprime_in_abell)  call conv_to_px(el,x,k,1)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
       ELSE
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
-        if(el%XPrime)  call conv_to_xp(el,x,k,1)
+         if(el%XPrime.and.conversion_xprime_in_abell)  call conv_to_xp(el,x,k,1)
       ENDIF
     endif
     else  !<------ Sector geometry
@@ -17353,9 +17353,9 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
       IF(EL%P%DIR==1) THEN
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
-        if(el%XPrime) call conv_to_xp(el,x,k,0)
+       if(el%XPrime.and.conversion_xprime_in_abell) call conv_to_xp(el,x,k,0)
       ELSE
-        if(el%XPrime) call conv_to_px(el,x,k,0)
+         if(el%XPrime.and.conversion_xprime_in_abell) call conv_to_px(el,x,k,0)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
       ENDIF
@@ -17364,13 +17364,13 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
 
     d(1)=-EL%P%DIR*el%xc ;d(3)=el%dc;d(2)=-EL%P%DIR*el%vc;
       IF(EL%P%DIR==1) THEN
-       if(el%XPrime)  call conv_to_px(el,x,k,1)
+         if(el%XPrime.and.conversion_xprime_in_abell)  call conv_to_px(el,x,k,1)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
       ELSE
          CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
-        if(el%XPrime)  call conv_to_xp(el,x,k,1)
+         if(el%XPrime.and.conversion_xprime_in_abell) call conv_to_xp(el,x,k,1)
       ENDIF
     endif
     endif
@@ -17391,22 +17391,22 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
       IF(EL%P%DIR==1) THEN
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
-         if(el%XPrime) call conv_to_xp(el,x,k,0)
+         if(el%XPrime.and.conversion_xprime_in_abell)call conv_to_xp(el,x,k,0)
       ELSE
-         if(el%XPrime) call conv_to_px(el,x,k,0)
+         if(el%XPrime.and.conversion_xprime_in_abell)call conv_to_px(el,x,k,0)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
       ENDIF
     else
     d(1)=-EL%P%DIR*el%xc ;d(3)=el%dc;d(2)=-EL%P%DIR*el%vc;
       IF(EL%P%DIR==1) THEN
-        if(el%XPrime)  call conv_to_px(el,x,k,1)
+         if(el%XPrime.and.conversion_xprime_in_abell) call conv_to_px(el,x,k,1)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
       ELSE
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
-        if(el%XPrime)  call conv_to_xp(el,x,k,1)
+         if(el%XPrime.and.conversion_xprime_in_abell) call conv_to_xp(el,x,k,1)
       ENDIF
     endif
     else  !<------ Sector geometry
@@ -17415,9 +17415,9 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
       IF(EL%P%DIR==1) THEN
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
-        if(el%XPrime) call conv_to_xp(el,x,k,0)
+         if(el%XPrime.and.conversion_xprime_in_abell)call conv_to_xp(el,x,k,0)
       ELSE
-        if(el%XPrime) call conv_to_px(el,x,k,0)
+         if(el%XPrime.and.conversion_xprime_in_abell)call conv_to_px(el,x,k,0)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
       ENDIF
@@ -17426,13 +17426,13 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
 
     d(1)=-EL%P%DIR*el%xc ;d(3)=el%dc;d(2)=-EL%P%DIR*el%vc;
       IF(EL%P%DIR==1) THEN
-       if(el%XPrime)  call conv_to_px(el,x,k,1)
+         if(el%XPrime.and.conversion_xprime_in_abell)call conv_to_px(el,x,k,1)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
       ELSE
          CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
-        if(el%XPrime)  call conv_to_xp(el,x,k,1)
+         if(el%XPrime.and.conversion_xprime_in_abell) call conv_to_xp(el,x,k,1)
       ENDIF
     endif
     endif
