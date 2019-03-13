@@ -250,31 +250,59 @@ end subroutine pmd_write_units_to_dataset
 
 subroutine pmd_read_attribute_string (root_id, obj_name, attrib_name, string, error, print_err)
 
-integer(HID_T) :: root_id
+integer(HID_T) :: root_id, a_id, type_id
 integer(SIZE_T) type_size
 integer(HSIZE_T) dims(3)
-integer status
+integer status, h5_err, class
 integer type_class, err
 
-character(*) attrib_name, obj_name
-logical error, print_err
+logical error, print_err, exists
 
+character(*) attrib_name, obj_name
 character(:), allocatable :: string
 character(200) :: str
 character(*), parameter :: r_name = 'pmd_read_attribute_string'
 
 !
 
-call H5LTget_attribute_info_f (root_id, obj_name, attrib_name, dims, type_class, type_size, err)
-if (.true.) then
-   
-  err = .false.
-else
-  err = .true.
+err = .false.
+
+call H5Aexists_f (root_id, attrib_name, exists, h5_err)
+if (.not. exists .or. h5_err == -1) then
+  error = .true.
   if (print_err) then
     call out_io (s_error$, r_name, 'ATTRIBUTE IS NOT PRESENT: ' // attrib_name)
   endif
+  return
 endif
+
+call H5LTget_attribute_info_f (root_id, obj_name, attrib_name, dims, type_class, type_size, err)
+type_id = type_class
+call H5Tget_class_f(type_id, class, h5_err)
+print *, H5T_STRING, H5T_C_S1, type_class, class, type_size
+if (err < 0) then
+  if (print_err) then
+    call out_io (s_error$, r_name, 'CANNOT GET ATTRIBUTE INFO: ' // attrib_name)
+  endif
+  return
+endif
+
+call H5Aopen_f(root_id, attrib_name, a_id, h5_err)
+call H5Aget_type_f(a_id, type_id, h5_err)
+call H5Tget_class_f(type_id, class, h5_err)
+print *, type_id, class
+
+
+allocate(character(type_size) :: string)
+call H5LTget_attribute_string_f(root_id, obj_name, attrib_name, string, err)
+if (err < 0) then
+  if (print_err) then
+    call out_io (s_error$, r_name, 'CANNOT READ ATTRIBUTE: ' // attrib_name)
+  endif
+  return
+endif
+
+err = .false.
 
 end subroutine pmd_read_attribute_string
 

@@ -2859,7 +2859,7 @@ end subroutine taylor_propagate1
 subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, orbital_taylor, spin_taylor)
 
 use s_tracking
-use mad_like, only: real_8, fibre, ring_l, survey, make_node_layout
+use mad_like, only: real_8, fibre, ring_l, survey, make_node_layout, CONVERSION_XPRIME_IN_ABELL
 use ptc_spin, only: track_probe_x, track_probe
 use s_family, only: survey
 use madx_ptc_module, only: bmadl, use_bmad_units
@@ -2888,6 +2888,8 @@ logical use_offsets, err_flag
 character(16) :: r_name = 'ele_to_taylor'
 
 !
+
+CONVERSION_XPRIME_IN_ABELL = (.not. bmad_com%convert_to_kinetic_momentum) ! Only affects cylindrical map eles
 
 use_bmad_units = .true.
 ndpt_bmad = 1  ! Indicates that delta is in position 6 and not 5
@@ -2992,6 +2994,8 @@ ndpt_bmad = 0
 if (associated (ele%ptc_genfield%field)) call kill_ptc_genfield (ele%ptc_genfield%field)
 
 call set_ele_status_stale (ele, mat6_group$)
+
+CONVERSION_XPRIME_IN_ABELL = .true. ! Reset to normal.
 
 end subroutine ele_to_taylor
 

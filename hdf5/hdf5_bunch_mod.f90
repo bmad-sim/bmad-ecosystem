@@ -203,6 +203,7 @@ call h5open_f(h5_err)  ! Init Fortran interface
 call h5fopen_f(file_name, H5F_ACC_RDONLY_F, f_id, h5_err)
 
 call pmd_read_attribute_string (f_id, '/', 'openPMD', pmd_header%openPMD, err, .true.);                    if (err) return
+print *, quote(pmd_header%openPMD)
 call pmd_read_attribute_string (f_id, '/', 'openPMDextension', pmd_header%openPMDextension, err, .true.);  if (err) return
 call pmd_read_attribute_string (f_id, '/', 'basePath', pmd_header%basePath, err, .true.);                  if (err) return
 call pmd_read_attribute_string (f_id, '/', 'particlesPath', pmd_header%particlesPath, err, .true.);        if (err) return
@@ -211,7 +212,6 @@ call pmd_read_attribute_string (f_id, '/', 'softwareVersion', pmd_header%softwar
 call pmd_read_attribute_string (f_id, '/', 'date', pmd_header%date, err, .false.)
 call pmd_read_attribute_string (f_id, '/', 'latticeFile', pmd_header%latticeFile, err, .false.)
 call pmd_read_attribute_string (f_id, '/', 'latticeName', pmd_header%latticeName, err, .false.)
-call pmd_read_attribute_string (f_id, '/', 'xxx', pmd_header%latticeName, err, .false.)
 
 call h5fclose_f(f_id, h5_err)
 

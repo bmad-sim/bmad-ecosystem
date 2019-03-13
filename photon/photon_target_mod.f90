@@ -15,11 +15,14 @@ contains
 !
 ! Routine to calculate and store the parmeters needed for photon targeting.
 !
+! Photon initialization with targeting is done by the routine init_a_photon_from_a_photon_init_ele
+! Which is called by init_coord. 
+!
 ! Input:
 !   ele       -- ele_struct: Source element to setup.
 !
 ! Output:
-!   ele       -- ele_struct: Source element with target parameters setup.
+!   ele       -- ele_struct: Source element with target parameters setup in ele%photon%target.
 !-
 
 subroutine photon_target_setup (ele)
