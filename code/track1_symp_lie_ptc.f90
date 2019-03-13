@@ -22,7 +22,7 @@ subroutine track1_symp_lie_ptc (start_orb, ele, param, end_orb, track)
 
 use ptc_interface_mod, except_dummy => track1_symp_lie_ptc
 use ptc_spin, only: probe, assignment(=), operator(+), internal_state, SPIN0, TOTALPATH0, &
-                                                            DEFAULT, track_probe, track_probe_x
+                                              DEFAULT, track_probe, track_probe_x, CONVERSION_XPRIME_IN_ABELL
 use s_tracking, only: DEFAULT, alloc_fibre, integration_node
 use mad_like, only: fibre, kill
 
@@ -44,6 +44,8 @@ integer i, stm
 character(20) :: r_name = 'track1_symp_lie_ptc'
 
 ! call the PTC routines to track through the fibre.
+
+CONVERSION_XPRIME_IN_ABELL = (.not. bmad_com%convert_to_kinetic_momentum) ! Only affects cylindrical map eles
 
 beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
 beta1 = ele%value(p0c$) / ele%value(e_tot$)
@@ -131,6 +133,8 @@ else
   end_orb%t = start2_orb%t + ele%value(delta_ref_time$) + &
                           start2_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
 endif
+
+CONVERSION_XPRIME_IN_ABELL = .true. ! Reset to normal.
 
 !---------------------------------------------------------------------
 contains
