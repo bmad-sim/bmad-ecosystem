@@ -3182,7 +3182,7 @@ endif
  type(internal_state) state
 type(c_fourier_index) , pointer ::p
  integer i,j,n(2),count
- real(dp) x(6),phi(2)
+ real(dp) x(6),phi(2) ,xr(6)
 type(c_ray) cray
 
 CALL FIND_ORBIT(r,fq%closed_orbit,fq%pos,fq%STATE,c_1d_5)  ! (3)
@@ -3193,7 +3193,7 @@ write(6,'(6(1x,g20.13))')fq%closed_orbit
 
 state=fq%state+spin0
 
-
+fq%phi_ini=0
 call init_all(STATE,fq%no,0)
 
 call alloc(c_map,id_s)
@@ -3208,7 +3208,8 @@ xs=xs0 + id_s
 
 c_map=xs
 call  c_normal(c_map,c_n,dospin=my_true) 
-
+write(6,*) "c_n%tune(1:2),c_n%spin_tune"
+write(6,*) c_n%tune(1:2),c_n%spin_tune
 fq%mux=c_n%tune(1)*twopi 
 fq%muy=c_n%tune(2)*twopi 
 
@@ -3218,12 +3219,26 @@ fq%ai=c_n%atot**(-1)
  
 
 x=0
-
 x(1)= fq%rx
 x(3)= fq%ry 
-if(fq%no==1) then
+!!! etienne cornell !!!!
 
- x(1:4)=matmul(fq%a,x(1:4)) 
+xr=x-fq%closed_orbit
+
+
+
+if(fq%no==1) then
+!!! etienne cornell !!!!
+xr(1:4)=matmul(fq%ai,xr(1:4))
+ fq%rx=sqrt(xr(1)**2+xr(2)**2)
+ fq%ry=sqrt(xr(3)**2+xr(4)**2)
+ 
+ fq%phi_ini(1)=atan2(-xr(2),xr(1))
+ fq%phi_ini(2)=atan2(-xr(4),xr(3))
+ 
+ 
+!!! etienne cornell !!!!
+! x(1:4)=matmul(fq%a,x(1:4)) 
 else
  cray%x=0
  cray%x(1:6)=x(1:6)
@@ -3245,10 +3260,10 @@ do i=0,fq%nphix
 do j=0,fq%nphiy
 x=0
 
-x(1)= fq%rx*cos(i*fq%dphix)
-x(2)=-fq%rx*sin(i*fq%dphix)
-x(3)= fq%ry*cos(j*fq%dphiy)
-x(4)=-fq%ry*sin(j*fq%dphiy)
+x(1)= fq%rx*cos(i*fq%dphix+fq%phi_ini(1))
+x(2)=-fq%rx*sin(i*fq%dphix+fq%phi_ini(1))
+x(3)= fq%ry*cos(j*fq%dphiy+fq%phi_ini(2))
+x(4)=-fq%ry*sin(j*fq%dphiy+fq%phi_ini(2))
 
 if(fq%no==1) then
  x(1:4)=matmul(fq%a,x(1:4)) 
@@ -3270,7 +3285,7 @@ x=x+fq%closed_orbit
 XS0%x=x
 XS0%q=1.0_dp
 
- CALL propagate(r,XS0,STATE,FIBRE1=1) 
+ CALL propagate(r,XS0,STATE,FIBRE1=fq%pos) 
  
 fq%qd(i,j)=XS0%q
  
@@ -3295,7 +3310,7 @@ XS0%x=fq%x(1:6,0)+fq%closed_orbit
  
 do i=0,fq%nray
 
- CALL propagate(r,XS0,STATE,FIBRE1=1) 
+ CALL propagate(r,XS0,STATE,FIBRE1=fq%pos) 
  if(i/=fq%nray) then
   fq%x(1:6,i+1)=xs0%x-fq%closed_orbit
   fq%x(5:6,i+1)=0
