@@ -132,18 +132,34 @@ endif
 
 select case (sliced_ele%tracking_method)
 case (taylor$, symp_map$, symp_lie_ptc$)
-  select case (sliced_ele%key)
-  case (wiggler$, undulator$); sliced_ele%tracking_method = symp_lie_bmad$
-  case default;                sliced_ele%tracking_method = bmad_standard$
-  end select
+  if (sliced_ele%field_calc == fieldmap$) then
+    select case (sliced_ele%key)
+    case (wiggler$, undulator$); sliced_ele%tracking_method = symp_lie_bmad$
+    case default;                sliced_ele%tracking_method = symp_lie_ptc$
+    end select
+  else
+    select case (sliced_ele%key)
+    case (wiggler$, undulator$); sliced_ele%tracking_method = symp_lie_bmad$
+    case (em_field$);            sliced_ele%tracking_method = symp_lie_ptc$
+    case default;                sliced_ele%tracking_method = bmad_standard$
+    end select
+  endif
 end select
 
 select case (sliced_ele%mat6_calc_method)
 case (taylor$, symp_map$, symp_lie_ptc$)
-  select case (sliced_ele%key)
-  case (wiggler$, undulator$); sliced_ele%mat6_calc_method = symp_lie_bmad$
-  case default;                sliced_ele%mat6_calc_method = bmad_standard$
-  end select
+  if (sliced_ele%field_calc == fieldmap$) then
+    select case (sliced_ele%key)
+    case (wiggler$, undulator$); sliced_ele%tracking_method = symp_lie_bmad$
+    case default;                sliced_ele%tracking_method = symp_lie_ptc$
+    end select
+  else
+    select case (sliced_ele%key)
+    case (wiggler$, undulator$); sliced_ele%tracking_method = symp_lie_bmad$
+    case (em_field$);            sliced_ele%tracking_method = symp_lie_ptc$
+    case default;                sliced_ele%tracking_method = bmad_standard$
+    end select
+  endif
 end select
 
 sliced_ele%field_calc = refer_to_lords$
