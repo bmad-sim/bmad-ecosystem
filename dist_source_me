@@ -92,7 +92,7 @@ func_check_fortran_version () {
     IFORT_REQ_VER=17.0.7.259
 
     # Version derived from "ifort -V"
-    IFORT_MIN_VER=20160204
+    IFORT_MIN_VER=20180403
 
 
     func_echo_fortran () {
