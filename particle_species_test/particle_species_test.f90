@@ -51,12 +51,41 @@ open (1, file = 'output.now')
 ! call write_mass_and_charge(species)
 
 call print_all(example_names, .true.)
-call print_all(fundamental_species_name, .false.)
 call print_all(atomic_name, .true.)
 call print_all(molecular_name, .true.)
 
+call check_fundamental('ref_particle', ref_particle$, 0.0_rp, 0, 0.0_rp, anti_ref_particle$)
+call check_fundamental('anti_ref_particle', anti_ref_particle$, 0.0_rp, 0, 0.0_rp, ref_particle$)
+call check_fundamental('deuteron', deuteron$, m_deuteron, +1, anomalous_mag_moment_deuteron, anti_deuteron$)
+call check_fundamental('pion0', pion_0$, m_pion_0, 0, 0.0_rp, pion_0$)
+call check_fundamental('pion+', pion_plus$, m_pion_charged, +1, 0.0_rp, pion_minus$)
+call check_fundamental('antimuon', antimuon$, m_muon, +1, anomalous_mag_moment_muon, muon$)
+call check_fundamental('proton', proton$, m_proton, +1, anomalous_mag_moment_proton, antiproton$)
+call check_fundamental('positron', positron$, m_electron, +1, anomalous_mag_moment_electron, electron$)
+call check_fundamental('photon', photon$, 0.0_rp, 0, 0.0_rp, photon$)
+call check_fundamental('electron', electron$, m_electron, -1, anomalous_mag_moment_electron, positron$)
+call check_fundamental('antiproton', antiproton$, m_proton, -1, anomalous_mag_moment_proton, proton$)
+call check_fundamental('muon', muon$, m_muon, -1, anomalous_mag_moment_muon, antimuon$)
+call check_fundamental('pion-', pion_minus$, m_pion_charged, -1, 0.0_rp, pion_plus$)
+call check_fundamental('anti_deuteron', anti_deuteron$, m_deuteron, -1, anomalous_mag_moment_deuteron, deuteron$)
+
+
 !---------------------------------------------------------------------------
 contains
+
+subroutine check_fundamental (name, id, m_part, charge, anom_mag_moment, anti_part)
+character(*) name
+integer id, charge, anti_part
+real(rp) m_part, anom_mag_moment
+
+write (1, '(3a, t30, a, 5l1, a)') '"', name, '"', 'STR   "', upcase(name) == upcase(species_name(id)), m_part == mass_of(id), &
+               charge == charge_of(id), anom_mag_moment == anomalous_moment_of(id), anti_part == antiparticle(id), '"' 
+
+
+end subroutine
+
+!---------------------------------------------------------------------------
+! contains
 
 subroutine print_all(p_array, convert_to_amu)
 integer :: i, species
