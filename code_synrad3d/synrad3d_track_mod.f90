@@ -632,7 +632,8 @@ propagation_loop: do
 
     if (stop_at_check_pt) then
       ixs = photon%now%ix_wall_section
-      if (wall3d%section(ixs)%s >= s_stop) then
+      ! Note: wall3d%section(ixs)%s may be > now_orb%s when wrapping around 0.
+      if (wall3d%section(ixs)%s >= s_stop .and. wall3d%section(ixs)%s < now_orb%s) then
         s_stop = wall3d%section(ixs)%s
         if (s_stop /= ele%s_start) stop_location = inside$
         check_section_here = .true.
