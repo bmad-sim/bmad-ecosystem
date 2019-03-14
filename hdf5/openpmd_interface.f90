@@ -277,20 +277,18 @@ if (.not. exists .or. h5_err == -1) then
 endif
 
 call H5LTget_attribute_info_f (root_id, obj_name, attrib_name, dims, type_class, type_size, err)
-type_id = type_class
-call H5Tget_class_f(type_id, class, h5_err)
-print *, H5T_STRING, H5T_C_S1, type_class, class, type_size
 if (err < 0) then
   if (print_err) then
     call out_io (s_error$, r_name, 'CANNOT GET ATTRIBUTE INFO: ' // attrib_name)
   endif
   return
 endif
-
-call H5Aopen_f(root_id, attrib_name, a_id, h5_err)
-call H5Aget_type_f(a_id, type_id, h5_err)
-call H5Tget_class_f(type_id, class, h5_err)
-print *, type_id, class
+if (type_class /= H5T_STRING_F) then
+  if (print_err) then
+    call out_io (s_error$, r_name, 'CANNOT ATTRIBUTE: ' // attrib_name, 'IS NOT A STRING!')
+  endif
+  return
+endif
 
 
 allocate(character(type_size) :: string)

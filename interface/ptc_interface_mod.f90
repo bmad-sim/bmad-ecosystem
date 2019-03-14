@@ -3225,7 +3225,7 @@ complex(rp) k_0
 
 integer, optional :: integ_order, steps
 integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos, ns, n_map
-integer np, max_order, ix_pole_max, exact_model_saved
+integer np, max_order, ix_pole_max, exact_model_saved, nn
 
 logical use_offsets, kill_spin_fringe, onemap, found, is_planar_wiggler
 logical, optional :: for_layout, use_hard_edge_drifts, kill_layout
@@ -3586,7 +3586,7 @@ if (associated(ele2%cylindrical_map) .and. ele2%field_calc == fieldmap$) then
   ptc_key%magnet = 'abell_dragt'
   n_abell = 0
   do i = 1, size(ele%cylindrical_map)
-    n_abell = max(n_abell, size(ele%cylindrical_map(i)%ptr%term))
+    n_abell = max(2, n_abell, size(ele%cylindrical_map(i)%ptr%term))
   enddo
   m_abell = maxval(ele%cylindrical_map%m)
 endif
@@ -3743,6 +3743,11 @@ if (associated(ele2%cylindrical_map) .and. ele2%field_calc == fieldmap$) then
     enddo
 
     if (found) then
+      if (cy%r0(1) /= 0 .or. cy%r0(2) /= 0) then
+        call out_io (s_error$, r_name, 'TRANSVERSE R0 OFFSETS NOT YET IMPLEMENTED FOR PTC TRACKING FOR: ' // ele%name)
+        if (global_com%exit_on_error) call err_exit
+        return
+      endif
       coef_e = cy%field_scale * master_parameter_value(cy%master_parameter, ele)
       if (ele%key == lcavity$ .or. ele%key == rfcavity$) coef_e = coef_e * ele%value(field_autoscale$)
       coef_b = coef_e * c_light / ele%value(p0c$)
@@ -3762,14 +3767,20 @@ if (associated(ele2%cylindrical_map) .and. ele2%field_calc == fieldmap$) then
         k_0 = -I_imaginary * twopi * (cy%r0(3) + ele%value(l$)) / (n * cy%dz)
       end select
 
-      do ii = 1, n
-        k = ii - 1 + lbound(ptc_fibre%magp%ab%b, 2)
-        if (ii <= n/2) then
-          ptc_fibre%mag%ab%b(m,k) = coef_b * exp(k_0*(ii-n/2-1)) * cy%ptr%term(ii+n/2)%b_coef
-          ptc_fibre%mag%ab%e(m,k) = coef_e * exp(k_0*(ii-n/2-1)) * cy%ptr%term(ii+n/2)%e_coef
+      nn = max(n, 2)  ! n = 1 is a singular case so treat it as n = 2
+      do ii = 1, nn
+        if (ii == 2 .and. n == 1) then
+          k = ii - 1 - nn  ! = -1
+          ptc_fibre%mag%ab%b(m,k) = 0
+          ptc_fibre%mag%ab%e(m,k) = 0
+        elseif (ii <= nn/2) then
+          k = ii - 1 
+          ptc_fibre%mag%ab%b(m,k) = coef_b * exp(k_0*k) * cy%ptr%term(ii)%b_coef
+          ptc_fibre%mag%ab%e(m,k) = coef_e * exp(k_0*k) * cy%ptr%term(ii)%e_coef
         else
-          ptc_fibre%mag%ab%b(m,k) = coef_b * exp(k_0*(ii-n/2-1)) * cy%ptr%term(ii-n/2)%b_coef
-          ptc_fibre%mag%ab%e(m,k) = coef_e * exp(k_0*(ii-n/2-1)) * cy%ptr%term(ii-n/2)%e_coef
+          k = ii - 1 - nn
+          ptc_fibre%mag%ab%b(m,k) = coef_b * exp(k_0*k) * cy%ptr%term(ii)%b_coef
+          ptc_fibre%mag%ab%e(m,k) = coef_e * exp(k_0*k) * cy%ptr%term(ii)%e_coef
         endif
       enddo
       !! ptc_fibre%mag%ab%b(m,:) = [cy%ptr%term(n/2+1:n)%b_coef, cy%ptr%term(1:n/2)%b_coef] * coef

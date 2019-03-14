@@ -1095,8 +1095,10 @@ case(fieldmap$)
       do n = 1, size(cl_map%ptr%term)
 
         cl_term => cl_map%ptr%term(n)
+        if (cl_term%e_coef == 0 .and. cl_term%b_coef == 0) cycle
+
         k_zn = twopi * (n - 1) / (size(cl_map%ptr%term) * cl_map%dz)
-        if (2 * n > size(cl_map%ptr%term)) k_zn = k_zn - twopi / cl_map%dz
+        if (n > 1 .and. 2 * n > size(cl_map%ptr%term)) k_zn = k_zn - twopi / cl_map%dz
 
         cos_ks = cos(k_zn * z)
         sin_ks = sin(k_zn * z)
