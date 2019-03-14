@@ -89,7 +89,7 @@ func_check_fortran_version () {
 
     # Set minimum Fortran compiler versions 
     GCC_REQ_VER=5.3
-    IFORT_REQ_VER=16.0.2.181
+    IFORT_REQ_VER=17.0.7.259
 
     # Version derived from "ifort -V"
     IFORT_MIN_VER=20160204

@@ -21,7 +21,7 @@
 #          5.3 and later.
 #
 #    NOTE: ifort support is limited to version
-#          16.0.2.181 and later.
+#          17.0.7.259 and later.
 #
 # Supported options are:
 #   "ifort"
