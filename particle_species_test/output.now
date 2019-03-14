@@ -14,35 +14,6 @@
 "#12C+:mass" ABS  1E-10     12.000000000
 "#12C+:charge" ABS  0      1
  
-"Anti_Deuteron:mass" ABS  1E-10     1.8756129280E+09
-"Anti_Deuteron:charge" ABS  0     -1
-"Pion-:mass" ABS  1E-10     1.3957018000E+08
-"Pion-:charge" ABS  0     -1
-"Muon:mass" ABS  1E-10     1.0565837150E+08
-"Muon:charge" ABS  0     -1
-"Antiproton:mass" ABS  1E-10     9.3827208130E+08
-"Antiproton:charge" ABS  0     -1
-"Electron:mass" ABS  1E-10     5.1099894610E+05
-"Electron:charge" ABS  0     -1
-"Photon:mass" ABS  1E-10     0.0000000000E+00
-"Photon:charge" ABS  0      0
-"Positron:mass" ABS  1E-10     5.1099894610E+05
-"Positron:charge" ABS  0      1
-"Proton:mass" ABS  1E-10     9.3827208130E+08
-"Proton:charge" ABS  0      1
-"Antimuon:mass" ABS  1E-10     1.0565837150E+08
-"Antimuon:charge" ABS  0      1
-"Pion+:mass" ABS  1E-10     1.3957018000E+08
-"Pion+:charge" ABS  0      1
-"Pion0:mass" ABS  1E-10     1.3497660000E+08
-"Pion0:charge" ABS  0      0
-"Ref_Particle:mass" ABS  1E-10     0.0000000000E+00
-"Ref_Particle:charge" ABS  0      0
-"Anti_Ref_Particle:mass" ABS  1E-10     0.0000000000E+00
-"Anti_Ref_Particle:charge" ABS  0      0
-"Deuteron:mass" ABS  1E-10     1.8756129280E+09
-"Deuteron:charge" ABS  0      1
- 
 "H:mass" ABS  1E-10      1.007840000
 "H:charge" ABS  0      0
 "He:mass" ABS  1E-10      4.002602000
@@ -316,3 +287,17 @@
 "C2H4:charge" ABS  0      0
 "C2H5:mass" ABS  1E-10     29.061500000
 "C2H5:charge" ABS  0      0
+"ref_particle"               STR   "TTTTT"
+"anti_ref_particle"          STR   "TTTTT"
+"deuteron"                   STR   "TTTTT"
+"pion0"                      STR   "TTTTT"
+"pion+"                      STR   "TTTTT"
+"antimuon"                   STR   "TTTTT"
+"proton"                     STR   "TTTTT"
+"positron"                   STR   "TTTTT"
+"photon"                     STR   "TTTTT"
+"electron"                   STR   "TTTTT"
+"antiproton"                 STR   "TTTTT"
+"muon"                       STR   "TTTTT"
+"pion-"                      STR   "TTTTT"
+"anti_deuteron"              STR   "TTTTT"
