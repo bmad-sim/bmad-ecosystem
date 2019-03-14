@@ -239,13 +239,6 @@ do
 
   if (ios < 0 .and. ix_universe == -1) exit  ! Exit on end-of-file and no namelist read
 
-  ! Error checking
-
-  if (beam_init%n_bunch < 1) then
-    call out_io (s_fatal$, r_name, 'BEAM_INIT%N_BUNCH NOT PROPERLY SET.')
-    call err_exit
-  endif
-
   ! init
 
   call out_io (s_blank$, r_name, &
