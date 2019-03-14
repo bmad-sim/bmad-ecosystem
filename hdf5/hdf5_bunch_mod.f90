@@ -58,7 +58,7 @@ endif
 
 ! Loop over bunches
 
-call h5gcreate_f(f_id, trim(root_path), r_id, h5_err)
+call h5gcreate_f(f_id, trim(root_path), r_id, h5_err) ! Not actually needed if root_path = '/'
 
 do ib = 1, size(bunches)
   bunch => bunches(ib)
@@ -195,15 +195,16 @@ character(*) file_name
 
 logical error, err
 
-!
+! Init
 
 error = .true.
 
 call h5open_f(h5_err)  ! Init Fortran interface
 call h5fopen_f(file_name, H5F_ACC_RDONLY_F, f_id, h5_err)
 
+! Get header info
+
 call pmd_read_attribute_string (f_id, '/', 'openPMD', pmd_header%openPMD, err, .true.);                    if (err) return
-print *, quote(pmd_header%openPMD)
 call pmd_read_attribute_string (f_id, '/', 'openPMDextension', pmd_header%openPMDextension, err, .true.);  if (err) return
 call pmd_read_attribute_string (f_id, '/', 'basePath', pmd_header%basePath, err, .true.);                  if (err) return
 call pmd_read_attribute_string (f_id, '/', 'particlesPath', pmd_header%particlesPath, err, .true.);        if (err) return
@@ -212,6 +213,17 @@ call pmd_read_attribute_string (f_id, '/', 'softwareVersion', pmd_header%softwar
 call pmd_read_attribute_string (f_id, '/', 'date', pmd_header%date, err, .false.)
 call pmd_read_attribute_string (f_id, '/', 'latticeFile', pmd_header%latticeFile, err, .false.)
 call pmd_read_attribute_string (f_id, '/', 'latticeName', pmd_header%latticeName, err, .false.)
+
+! Find root group
+
+ix = index(pmd_header%basePath, '%T')
+
+
+! Loop over all bunches
+
+
+
+!
 
 call h5fclose_f(f_id, h5_err)
 
