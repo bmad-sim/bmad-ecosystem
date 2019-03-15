@@ -265,11 +265,10 @@ character(*), parameter :: r_name = 'pmd_read_attribute_string'
 
 !
 
-err = .false.
+error = .true.
 
 call H5Aexists_f (root_id, attrib_name, exists, h5_err)
 if (.not. exists .or. h5_err == -1) then
-  error = .true.
   if (print_err) then
     call out_io (s_error$, r_name, 'ATTRIBUTE IS NOT PRESENT: ' // attrib_name)
   endif
@@ -300,7 +299,7 @@ if (err < 0) then
   return
 endif
 
-err = .false.
+error = .false.
 
 end subroutine pmd_read_attribute_string
 

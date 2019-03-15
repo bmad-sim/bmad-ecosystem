@@ -238,8 +238,7 @@ do i = 1, n_bunch
       call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'ERROR READING BUNCH')
       return
     endif
-    
-    if (beam_init%bunch_charge /= 0) bunch_charge = beam_init%bunch_charge
+    if (beam_init%bunch_charge /= 0) bunch%charge_tot = beam_init%bunch_charge
 
     read (iu, *, iostat = ios) bunch%z_center
     if (ios /= 0) then
@@ -377,7 +376,6 @@ do i = 1, n_bunch
     return
   endif
 
-  if (bunch_charge /= 0) bunch%charge_tot = bunch_charge
   sum_charge = sum(p(:)%charge)
   if (bunch%charge_tot == 0) then
     bunch%charge_tot = sum_charge
