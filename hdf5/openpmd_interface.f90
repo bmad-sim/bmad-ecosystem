@@ -107,6 +107,38 @@ end subroutine pmd_write_real_attrib
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 
+subroutine pmd_find_group(f_id, group_name, g_id, error, print_error)
+
+integer(HID_T) f_id, g_id
+integer h5_err
+
+logical error, print_error
+logical exists
+
+character(*) group_name
+character(*), parameter :: r_name = 'pmd_find_group'
+
+!
+
+error = .true.
+call H5Lexists_f(f_id, group_name, exists, h5_err, H5P_DEFAULT_F)
+if (.not. exists) then
+  if (print_error) then
+    call out_io (s_error$, r_name, 'GROUP DOES NOT EXIST: ' // quote(group_name))
+  endif
+  return
+endif
+ 
+call H5Gopen_f (f_id, group_name, g_id, h5_err, H5P_DEFAULT_F)
+if (h5_err == -1) return
+error = .false.
+
+end subroutine pmd_find_group
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
 subroutine pmd_write_real_vector_to_dataset(root_id, dataset_name, bmad_name, unit, vector, error)
 
 type (pmd_unit_struct) unit
@@ -289,7 +321,6 @@ if (type_class /= H5T_STRING_F) then
   return
 endif
 
-
 allocate(character(type_size) :: string)
 call H5LTget_attribute_string_f(root_id, obj_name, attrib_name, string, err)
 if (err < 0) then
@@ -302,22 +333,5 @@ endif
 error = .false.
 
 end subroutine pmd_read_attribute_string
-
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-
-subroutine pmd_get_next_sub_group (root_id, index, group_id)
-
-integer(HID_T) :: root_id, group_id
-integer index
-
-!
-
-! iexist = H5LTfind_dataset_f (root_id, )
-
-end subroutine pmd_get_next_sub_group
-
-
 
 end module

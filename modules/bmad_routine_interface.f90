@@ -1348,7 +1348,8 @@ subroutine reallocate_beam (beam, n_bunch, n_particle)
   import
   implicit none
   type (beam_struct) beam
-  integer n_bunch, n_particle
+  integer n_bunch
+  integer, optional :: n_particle
 end subroutine
 
 subroutine reallocate_bunch (bunch, n_particle)
