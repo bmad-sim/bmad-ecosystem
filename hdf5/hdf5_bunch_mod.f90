@@ -333,12 +333,11 @@ bunch => beam%bunch(n_bunch)
 call pmd_find_group(root_id, g_name, g_id, error, .true.)
 call pmd_find_group(g_id, pmd_header%particlesPath, g2_id, error, .true.);  if (error) return
 
-! Number of particles
+! Get attributes.
+
+! Loop over all sub-groups/datasets.
 
 
-! 
-
-call pmd_read_real_attrib(g2_id, 'speciesType', 
 
 end function  hdf5_read_bunch
 
