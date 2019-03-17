@@ -1039,11 +1039,11 @@ if (size(m_info%lord) /= 0) then
   ! in the first pass region but not contiguous in some higher pass region, 
   ! we need to break the first pass region into two.
 
+  ix_r = 0
   do ib = 0, ubound(lat%branch, 1)
     branch => lat%branch(ib)
     mult_ele => mult_lat%branch(ib)%ele
 
-    ix_r = 0
     in_multi_region = .false.
 
     do ie = 1, branch%n_ele_track
