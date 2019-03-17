@@ -56,8 +56,8 @@ type multipass_region_lat_struct
   type (multipass_region_branch_struct), allocatable :: branch(:)
 end type
 
-type (multipass_region_lat_struct), target :: m_region
-type (multipass_region_ele_struct), pointer :: e_region(:)
+type (multipass_region_lat_struct), target :: mult_lat
+type (multipass_region_ele_struct), pointer :: mult_ele(:)
 
 type (ele_attribute_struct) attrib
 type (lat_struct), target :: lat
@@ -1015,13 +1015,13 @@ enddo  ! branch loop
 
 ! Multipass stuff...
 
-allocate (m_region%branch(0:ubound(lat%branch, 1)))
+allocate (mult_lat%branch(0:ubound(lat%branch, 1)))
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  allocate (m_region%branch(ib)%ele(branch%n_ele_max))
-  m_region%branch(ib)%ele(:)%ix_region = 0
-  m_region%branch(ib)%ele(:)%region_start_pt = .false.
-  m_region%branch(ib)%ele(:)%region_stop_pt   = .false.
+  allocate (mult_lat%branch(ib)%ele(branch%n_ele_max))
+  mult_lat%branch(ib)%ele(:)%ix_region = 0
+  mult_lat%branch(ib)%ele(:)%region_start_pt = .false.
+  mult_lat%branch(ib)%ele(:)%region_stop_pt   = .false.
 enddo
 
 call multipass_all_info (lat, m_info)
@@ -1041,7 +1041,7 @@ if (size(m_info%lord) /= 0) then
 
   do ib = 0, ubound(lat%branch, 1)
     branch => lat%branch(ib)
-    e_region => m_region%branch(ib)%ele
+    mult_ele => mult_lat%branch(ib)%ele
 
     ix_r = 0
     in_multi_region = .false.
@@ -1050,16 +1050,18 @@ if (size(m_info%lord) /= 0) then
       ele => branch%ele(ie)
       e_info => m_info%branch(ib)%ele(ie)
       ix_pass = e_info%ix_pass
+
       if (ix_pass /= 1) then  ! Not a first pass region
-        if (in_multi_region) e_region(ie-1)%region_stop_pt = .true.
+        if (in_multi_region) mult_ele(ie-1)%region_stop_pt = .true.
         in_multi_region = .false.
         cycle
       endif
+
       ! If start of a new region...
       if (.not. in_multi_region) then  
         ix_r = ix_r + 1
-        e_region(ie)%ix_region = ix_r
-        e_region(ie)%region_start_pt = .true.
+        mult_ele(ie)%ix_region = ix_r
+        mult_ele(ie)%region_start_pt = .true.
         in_multi_region = .true.
         ix_lord = e_info%ix_lord(1)
         ix_super = e_info%ix_super(1)
@@ -1084,17 +1086,17 @@ if (size(m_info%lord) /= 0) then
 
       if (need_new_region) then
         ix_r = ix_r + 1
-        e_region(ie-1)%region_stop_pt = .true.
-        e_region(ie)%region_start_pt = .true.
+        mult_ele(ie-1)%region_stop_pt = .true.
+        mult_ele(ie)%region_start_pt = .true.
       endif
 
       ss1 => ss2
-      e_region(ie)%ix_region = ix_r
+      mult_ele(ie)%ix_region = ix_r
     enddo
 
   enddo
 
-  if (in_multi_region) e_region(branch%n_ele_track)%region_stop_pt = .true.
+  if (in_multi_region) mult_ele(branch%n_ele_track)%region_stop_pt = .true.
 
   ! Each 1st pass region is now a valid multipass line.
   ! Write out this info.
@@ -1104,38 +1106,45 @@ if (size(m_info%lord) /= 0) then
 
   do ib = 0, ubound(lat%branch, 1)
     branch => lat%branch(ib)
-    e_region => m_region%branch(ib)%ele
+    mult_ele => mult_lat%branch(ib)%ele
 
-    ix_r = 0
     in_multi_region = .false.
 
     do ie = 1, branch%n_ele_track
-
       ele => branch%ele(ie)
-      if (ie == ele%branch%n_ele_track .and. ele%name == 'END' .and. ele%key == marker$) cycle
-
       ix_pass = m_info%branch(ib)%ele(ie)%ix_pass
       if (ix_pass /= 1) cycle 
 
-      if (m_region%branch(ib)%ele(ie)%region_start_pt) then
-        if (ix_r > 0) then
-          line = line(:len_trim(line)-1) // ')'
-          call write_lat_line (line, iu, .true.)
+      if (mult_ele(ie)%region_start_pt) then
+        if (in_multi_region) then
+          call out_io (s_error$, r_name, 'MULTIPASS BOOKKEEPING ERROR #1! PLEASE REPORT THIS!')
         endif
-        ix_r = ix_r + 1
+        in_multi_region = .true.
+        ix_r = mult_ele(ie)%ix_region
         write (iu, '(a)')
         write (line, '(a, i2.2, a)') 'multi_line_', ix_r, ': line[multipass] = ('
       endif
 
+      if (mult_ele(ie)%ix_region /= ix_r) then
+        call out_io (s_error$, r_name, 'MULTIPASS BOOKKEEPING ERROR #2! PLEASE REPORT THIS!')
+      endif
+
       call write_line_element (line, iu, ele, lat)
 
+      if (mult_ele(ie)%region_stop_pt) then
+        line = line(:len_trim(line)-1) // ')'
+        call write_lat_line (line, iu, .true.)
+        in_multi_region = .false.
+      endif
     enddo
-  enddo
 
-  line = line(:len_trim(line)-1) // ')'
-  call write_lat_line (line, iu, .true.)
+    if (in_multi_region) then
+      call out_io (s_error$, r_name, 'MULTIPASS BOOKKEEPING ERROR #3! PLEASE REPORT THIS!')
+    endif
 
-end if
+  enddo  ! ib branch loop
+
+endif
 
 ! Lines for all the branches.
 ! If we get into a multipass region then name in the main_line list is "multi_line_nn".
@@ -1167,13 +1176,13 @@ do ib = 0, ubound(lat%branch, 1)
       ix1 = m_info%lord(ix_lord)%slave(j,ix_super)%ele%ix_ele
       exit
     enddo
-    e_region => m_region%branch(ib)%ele
-    ix_r = e_region(ix1)%ix_region
+    mult_ele => mult_lat%branch(ib)%ele
+    ix_r = mult_ele(ix1)%ix_region
 
     ! If entering new multipass region
     if (.not. in_multi_region) then
       in_multi_region = .true.
-      if (e_region(ix1)%region_start_pt) then
+      if (mult_ele(ix1)%region_start_pt) then
         write (line, '(2a, i2.2, a)') trim(line), ' multi_line_', ix_r, ','
         look_for = 'stop'
       else
@@ -1182,8 +1191,8 @@ do ib = 0, ubound(lat%branch, 1)
       endif
     endif
 
-    if (look_for == 'start' .and. e_region(ix1)%region_start_pt .or. &
-        look_for == 'stop' .and. e_region(ix1)%region_stop_pt) then 
+    if (look_for == 'start' .and. mult_ele(ix1)%region_start_pt .or. &
+        look_for == 'stop' .and. mult_ele(ix1)%region_stop_pt) then 
       in_multi_region = .false.
     endif
 
@@ -1278,7 +1287,7 @@ enddo
 
 close(iu)
 deallocate (names, an_indexx)
-deallocate (m_region%branch)
+deallocate (mult_lat%branch)
 
 if (present(err)) err = .false.
 
