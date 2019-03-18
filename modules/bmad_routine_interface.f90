@@ -611,12 +611,13 @@ subroutine find_element_ends (ele, ele1, ele2, ix_multipass)
   integer, optional :: ix_multipass
 end subroutine
 
-subroutine find_matching_fieldmap (file_name, ele, t_type, match_ele, ix_field)
+subroutine find_matching_fieldmap (file_name, ele, t_type, match_ele, ix_field, ignore_slaves)
   import
   implicit none
   type (ele_struct), target :: ele
   type (ele_struct), pointer :: match_ele
   integer t_type, ix_field
+  logical, optional :: ignore_slaves
   character(*) file_name
 end subroutine
 

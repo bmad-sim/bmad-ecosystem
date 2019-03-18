@@ -566,7 +566,7 @@ do ib = 0, ubound(lat%branch, 1)
       do im = 1, size(ele%cartesian_map)
         ct_map => ele%cartesian_map(im)
 
-        call find_matching_fieldmap (ct_map%ptr%file, ele, cartesian_map$, ele2, ix_ptr) 
+        call find_matching_fieldmap (ct_map%ptr%file, ele, cartesian_map$, ele2, ix_ptr, ignore_slaves = .true.) 
 
         if (integer_option(binary$, output_form) == one_file$) then
           line = trim(line) // ', cartesian_map ='
@@ -601,7 +601,7 @@ do ib = 0, ubound(lat%branch, 1)
       do im = 1, size(ele%cylindrical_map)
         cl_map => ele%cylindrical_map(im)
 
-        call find_matching_fieldmap (cl_map%ptr%file, ele, cylindrical_map$, ele2, ix_ptr) 
+        call find_matching_fieldmap (cl_map%ptr%file, ele, cylindrical_map$, ele2, ix_ptr, ignore_slaves = .true.) 
 
         if (integer_option(binary$, output_form) == one_file$) then
           line = trim(line) // ', cylindrical_map ='
@@ -636,7 +636,7 @@ do ib = 0, ubound(lat%branch, 1)
         g_field => ele%grid_field(im)
 
         ! First find out out if an file has been written
-        call find_matching_fieldmap (g_field%ptr%file, ele, grid_field$, ele2, ix_ptr) 
+        call find_matching_fieldmap (g_field%ptr%file, ele, grid_field$, ele2, ix_ptr, ignore_slaves = .true.) 
 
         if (integer_option(binary$, output_form) == one_file$) then
           line = trim(line) // ', grid_field_map ='
@@ -671,7 +671,7 @@ do ib = 0, ubound(lat%branch, 1)
         t_field => ele%taylor_field(im)
 
         ! First find out out if an file has been written
-        call find_matching_fieldmap (t_field%ptr%file, ele, taylor_field$, ele2, ix_ptr) 
+        call find_matching_fieldmap (t_field%ptr%file, ele, taylor_field$, ele2, ix_ptr, ignore_slaves = .true.) 
 
         if (integer_option(binary$, output_form) == one_file$) then
           line = trim(line) // ', taylor_field_map ='
@@ -1462,7 +1462,7 @@ write (iu9, '(2x, 3a)')       'field_type        = ', trim(em_field_type_name(g_
 write (iu9, '(2x, a, i0, a)') 'harmonic          = ', g_field%harmonic, ','
 write (iu9, '(2x, 3a)')       'phi0_fieldmap     = ', trim(re_str(g_field%phi0_fieldmap)), ','
 write (iu9, '(2x, 4a)')       'dr                = ', trim(array_re_str(g_field%dr(1:n))), ','
-write (iu9, '(2x, 4a)')       'r0                = ', trim(array_re_str(g_field%r0(1:n))), ','
+write (iu9, '(2x, 4a)')       'r0                = ', trim(array_re_str(g_field%r0)), ','
 write (iu9, '(2x, a, l1, a)') 'curved_ref_frame  = ', g_field%curved_ref_frame, ','
 
 end_str = '),'
