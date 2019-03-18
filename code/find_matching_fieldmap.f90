@@ -1,13 +1,14 @@
 !+
-! Subroutine find_matching_fieldmap (file_name, ele, fm_type, match_ele, ix_field)
+! Subroutine find_matching_fieldmap (file_name, ele, fm_type, match_ele, ix_field, ignore_slaves)
 !
 ! Routine to find an equivalent fieldmap to the one given.
 ! Only lattice elements before ele are searched.
 !
 ! Input:
-!   file_name   -- character(*): File name associated with field to match to.
-!   ele         -- ele_struct: Element holding the field to be matched.
-!   fm_type     -- integer: Type of fieldmap: cartesian_map$, cylindircal_map$, grid_field$, or taylor_field$
+!   file_name     -- character(*): File name associated with field to match to.
+!   ele           -- ele_struct: Element holding the field to be matched.
+!   fm_type       -- integer: Type of fieldmap: cartesian_map$, cylindircal_map$, grid_field$, or taylor_field$
+!   ignore_slaves -- logical, optional: If True, ignore any multipass slaves. Default is False.
 !
 ! Output:
 !   match_ele   -- ele_struct, pointer: Pointer to element with matched field. Nullified if no match found.
@@ -15,7 +16,7 @@
 !                   Set to -1 if no match found.
 !-
 
-subroutine find_matching_fieldmap (file_name, ele, fm_type, match_ele, ix_field)
+subroutine find_matching_fieldmap (file_name, ele, fm_type, match_ele, ix_field, ignore_slaves)
 
 use bmad_struct
 
@@ -28,6 +29,8 @@ type (lat_struct), pointer :: lat
 integer fm_type, ix_field
 integer ib, ie
 
+logical, optional :: ignore_slaves
+
 character(*) file_name
 
 !
@@ -39,6 +42,7 @@ do ib = 0, ele%ix_branch
 
     if (ib == ele%ix_branch .and. ie == ele%ix_ele) exit
     match_ele => lat%branch(ib)%ele(ie)
+    if (logic_option(.false., ignore_slaves) .and. match_ele%slave_status == multipass_slave$) cycle
 
     select case (fm_type)
     case (cartesian_map$)
