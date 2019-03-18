@@ -741,11 +741,11 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     lord => pointer_to_lord(ele, 1)
     nl=nl+1; write (li(nl), '(3a, i0, a)') 'Associated Multipass_Lord: ', trim(lord%name), '  (Index: ', lord%ix_ele, ')'
     nl=nl+1; li(nl) = 'Other slaves of this Lord:'
-    nl=nl+1; li(nl) = '   Index   Name'
+    nl=nl+1; li(nl) = '     Index   Name'
     do i = 1, lord%n_slave
       slave => pointer_to_slave(lord, i)
       if (slave%ix_ele == ele%ix_ele .and. slave%ix_branch == ele%ix_branch) cycle
-      nl=nl+1; write (li(nl), '(i8, 3x, a)') slave%ix_ele, trim(slave%name)
+      nl=nl+1; write (li(nl), '(a, 3x, a)') adjustr(ele_location(slave)), trim(slave%name)
     enddo
 
   case (super_slave$)
@@ -966,8 +966,15 @@ endif
 
 ! Encode Twiss info
 
+if (associated(branch) .and. ele%lord_status == not_a_lord$) then
+  if (.not. branch%param%live_branch) then
+    nl=nl+1; li(nl) = ''
+    nl=nl+1; li(nl) = 'NOTE: Branch containing element is not live (branch''s live_branch parameter has been set to False).'
+  endif
+endif
+
 if (integer_option(radians$, twiss_out) /= 0 .and. ele%a%beta /= 0) then
-  nl=nl+1; li(nl) = ' '
+  nl=nl+1; li(nl) = ''
   nl=nl+1; li(nl) = 'Twiss at end of element:'
   call type_twiss (ele, twiss_out, .false., li(nl+1:), nl2)
   nl = nl + nl2
