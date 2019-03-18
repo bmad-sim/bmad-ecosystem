@@ -57,7 +57,7 @@ type multipass_region_lat_struct
 end type
 
 type (multipass_region_lat_struct), target :: mult_lat
-type (multipass_region_ele_struct), pointer :: mult_ele(:)
+type (multipass_region_ele_struct), pointer :: mult_ele(:), m_ele
 
 type (ele_attribute_struct) attrib
 type (lat_struct), target :: lat
@@ -105,7 +105,7 @@ character(2), parameter :: spin_quat_name(0:3) = ['S1', 'Sx', 'Sy', 'Sz']
 character(*), parameter :: r_name = 'write_bmad_lattice_file'
 
 integer, optional :: output_form
-integer i, j, k, n, ix, iu, im, ix_ptr, iu2, iuw, ios, ixs, n_sr, n_lr, ix1, ie, ib, ic
+integer i, j, k, n, ix, iu, im, ix_ptr, iu2, iuw, ios, ixs, n_sr, n_lr, ie1, ie, ib, ib1, ic
 integer unit(6), n_names, ix_match, ie2, id1, id2, id3, j1, j2, ip, it
 integer ix_slave, ix_ss, ix_l, ix_r, ix_pass
 integer ix_lord, ix_super, default_val, imax, ibr
@@ -178,7 +178,7 @@ if (lat%title /= ' ')            write (iu, '(4a)')    'title, "', trim(lat%titl
 if (lat%lattice /= ' ')          write (iu, '(4a)')    'parameter[lattice]     = "', trim(lat%lattice), '"'
 
 write (iu, '(4a)') 'parameter[geometry] = ', geometry_name(lat%param%geometry)
-
+if (.not. lat%param%live_branch) write (iu, '(a)') 'parameter[live_branch] = F'
 if (lat%input_taylor_order /= 0) write (iu, '(a, i0)') 'parameter[taylor_order] = ', lat%input_taylor_order
 
 write (iu, '(a)')
@@ -321,6 +321,8 @@ do ib = 0, ubound(lat%branch, 1)
       write (iu, '(2(a, i0), 2a)') 'slave_drift_', ib, '_', ele%ix_ele, ': drift, l = ', trim(re_str(ele%value(l$)))
       cycle
     endif
+
+    if (ix_pass > 0) cycle
 
     ! Do not write anything for elements that have a duplicate name.
 
@@ -1171,18 +1173,15 @@ do ib = 0, ubound(lat%branch, 1)
 
     ix_lord = e_info%ix_lord(1)
     ix_super = e_info%ix_super(1)
-    do j = 1, ubound(m_info%lord(ix_lord)%slave, 1)
-      if (m_info%lord(ix_lord)%slave(j,ix_super)%ele%ix_branch /= ib) cycle
-      ix1 = m_info%lord(ix_lord)%slave(j,ix_super)%ele%ix_ele
-      exit
-    enddo
-    mult_ele => mult_lat%branch(ib)%ele
-    ix_r = mult_ele(ix1)%ix_region
+    ie1 = m_info%lord(ix_lord)%slave(1,ix_super)%ele%ix_ele
+    ib1 = m_info%lord(ix_lord)%slave(1,ix_super)%ele%ix_branch
+    m_ele => mult_lat%branch(ib1)%ele(ie1)
+    ix_r = m_ele%ix_region
 
     ! If entering new multipass region
     if (.not. in_multi_region) then
       in_multi_region = .true.
-      if (mult_ele(ix1)%region_start_pt) then
+      if (m_ele%region_start_pt) then
         write (line, '(2a, i2.2, a)') trim(line), ' multi_line_', ix_r, ','
         look_for = 'stop'
       else
@@ -1191,8 +1190,8 @@ do ib = 0, ubound(lat%branch, 1)
       endif
     endif
 
-    if (look_for == 'start' .and. mult_ele(ix1)%region_start_pt .or. &
-        look_for == 'stop' .and. mult_ele(ix1)%region_stop_pt) then 
+    if (look_for == 'start' .and. m_ele%region_start_pt .or. &
+        look_for == 'stop' .and. m_ele%region_stop_pt) then 
       in_multi_region = .false.
     endif
 
@@ -1209,7 +1208,8 @@ do ib = 0, ubound(lat%branch, 1)
   write (iu, '(3a)') trim(branch%name), '[geometry] = ', trim(geometry_name(branch%param%geometry))
   if (branch%param%default_tracking_species /= ref_particle$) write (iu, '(3a)') trim(branch%name), &
                         '[default_tracking_species] = ', trim(species_name(branch%param%default_tracking_species))
- 
+  if (.not. branch%param%live_branch) write (iu, '(2a)') trim(branch%name), '[live_branch] = F'
+
   if (branch%ix_from_branch > -1) then
     branch2 => lat%branch(branch%ix_from_branch)
     if (branch2%param%particle == branch%param%particle) cycle
