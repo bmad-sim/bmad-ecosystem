@@ -139,6 +139,43 @@ end subroutine pmd_find_group
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 
+function pmd_num_attributes(root_id) result (num)
+
+integer(HID_T) :: root_id
+integer num, h5_err
+
+!
+
+call H5Aget_num_attrs_f (root_id, num, h5_err)
+
+end function pmd_num_attributes
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine pmd_get_attribute_by_index(root_id, attr_indx, attr_id, attr_name)
+
+integer(HID_T) root_id, attr_id
+integer(SIZE_T) nam_len
+integer attr_indx, h5_err
+
+character(*) attr_name
+
+!
+
+call H5Aopen_by_idx_f (root_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, int(attr_indx-1, HSIZE_T), &
+                                                                 attr_id, h5_err, aapl_id=H5P_DEFAULT_F)
+nam_len = len(attr_name)
+call H5Aget_name_f(attr_id, nam_len, attr_name, h5_err)
+call H5Aclose_f(attr_id, h5_err)
+
+end subroutine pmd_get_attribute_by_index
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
 subroutine pmd_write_real_vector_to_dataset(root_id, dataset_name, bmad_name, unit, vector, error)
 
 type (pmd_unit_struct) unit
