@@ -57,7 +57,8 @@ SET (SHARED_DEPS
   )
 
 if ($ENV{ACC_ENABLE_HDF5} MATCHES "Y")
-  list (APPEND ${SHARED_DEPS} "hdf5hl_fortran  hdf5_hl hdf5_fortran hdf5")
+  list (APPEND SHARED_DEPS hdf5hl_fortran hdf5_fortran hdf5_hl hdf5)
+  message ("Deps: ${SHARED_DEPS}")
 endif ()
 
 
