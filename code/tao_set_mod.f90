@@ -322,13 +322,13 @@ case default
 end select
 if (value_str(1:1) == "'" .or. value_str(1:1) == '"') needs_quotes = .false.
 
-write (iu, *) '&params'
+write (iu, '(a)') '&params'
 if (needs_quotes) then
-  write (iu, *) ' global%' // trim(who) // ' = "' // trim(value_str) // '"'
+  write (iu, '(a)') ' global%' // trim(who) // ' = "' // trim(value_str) // '"'
 else
-  write (iu, *) ' global%' // trim(who) // ' = ' // trim(value_str)
+  write (iu, '(a)') ' global%' // trim(who) // ' = ' // trim(value_str)
 endif
-write (iu, *) '/'
+write (iu, '(a)') '/'
 write (iu, *)
 rewind (iu)
 global = s%global  ! set defaults
@@ -421,9 +421,9 @@ if (ios /= 0) then
   return
 endif
 
-write (iu, *) '&params'
-write (iu, *) ' local_csr_param%' // trim(who) // ' = ' // trim(value_str)
-write (iu, *) '/'
+write (iu, '(a)') '&params'
+write (iu, '(a)') ' local_csr_param%' // trim(who) // ' = ' // trim(value_str)
+write (iu, '(a)') '/'
 rewind (iu)
 local_csr_param = csr_param  ! set defaults
 read (iu, nml = params, iostat = ios)
@@ -475,9 +475,9 @@ if (ios /= 0) then
   return
 endif
 
-write (iu, *) '&params'
-write (iu, *) ' this_bmad_com%' // trim(who) // ' = ' // trim(value_str)
-write (iu, *) '/'
+write (iu, '(a)') '&params'
+write (iu, '(a)') ' this_bmad_com%' // trim(who) // ' = ' // trim(value_str)
+write (iu, '(a)') '/'
 rewind (iu)
 this_bmad_com = bmad_com  ! set defaults
 read (iu, nml = params, iostat = ios)
@@ -533,9 +533,9 @@ if (ios /= 0) then
   return
 endif
 
-write (iu, *) '&params'
-write (iu, *) ' this_geodesic_lm%' // trim(who) // ' = ' // trim(value_str)
-write (iu, *) '/'
+write (iu, '(a)') '&params'
+write (iu, '(a)') ' this_geodesic_lm%' // trim(who) // ' = ' // trim(value_str)
+write (iu, '(a)') '/'
 rewind (iu)
 this_geodesic_lm = geodesic_lm_param  ! set defaults
 read (iu, nml = params, iostat = ios)
@@ -588,9 +588,9 @@ if (ios /= 0) then
   return
 endif
 
-write (iu, *) '&params'
-write (iu, *) ' opti_de_param%' // trim(who) // ' = ' // trim(value_str)
-write (iu, *) '/'
+write (iu, '(a)') '&params'
+write (iu, '(a)') ' opti_de_param%' // trim(who) // ' = ' // trim(value_str)
+write (iu, '(a)') '/'
 rewind (iu)
 read (iu, nml = params, iostat = ios)
 close (iu)
@@ -648,9 +648,9 @@ endif
 ix_a = [s%wave%ix_a1, s%wave%ix_a2]
 ix_b = [s%wave%ix_b1, s%wave%ix_b2]
 
-write (iu, *) '&params'
-write (iu, *) trim(who) // ' = ' // trim(value_str)
-write (iu, *) '/'
+write (iu, '(a)') '&params'
+write (iu, '(a)') trim(who) // ' = ' // trim(value_str)
+write (iu, '(a)') '/'
 rewind (iu)
 wave = s%wave  ! set defaults
 read (iu, nml = params, iostat = ios)
@@ -956,9 +956,9 @@ if (ios /= 0) then
   return
 endif
 
-write (iu, *) '&params'
-write (iu, *) ' beam_init%' // trim(who2) // ' = ' // trim(value_str)
-write (iu, *) '/'
+write (iu, '(a)') '&params'
+write (iu, '(a)') ' beam_init%' // trim(who2) // ' = ' // trim(value_str)
+write (iu, '(a)') '/'
 
 !
 
@@ -1063,9 +1063,9 @@ if (ios /= 0) then
   return
 endif
 
-write (iu, *) '&params'
-write (iu, *) ' plot_page%' // trim(component) // ' = ' // trim(value_str)
-write (iu, *) '/'
+write (iu, '(a)') '&params'
+write (iu, '(a)') ' plot_page%' // trim(component) // ' = ' // trim(value_str)
+write (iu, '(a)') '/'
 rewind (iu)
 
 call tao_set_plotting (plot_page, s%plot_page, .false., .true.)
@@ -2790,13 +2790,13 @@ if (ios /= 0) then
   return
 endif
 
-write (iu, *) '&params'
+write (iu, '(a)') '&params'
 if (needs_quotes) then
-  write (iu, *) trim(str) // ' = "' // trim(value_str) // '"'
+  write (iu, '(a)') trim(str) // ' = "' // trim(value_str) // '"'
 else
-  write (iu, *) trim(str) // ' = ' // trim(value_str)
+  write (iu, '(a)') trim(str) // ' = ' // trim(value_str)
 endif
-write (iu, *) '/'
+write (iu, '(a)') '/'
 write (iu, *)
 rewind (iu)
 read (iu, nml = params, iostat = ios)
