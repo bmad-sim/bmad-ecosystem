@@ -235,7 +235,8 @@ call pmd_find_group(f_id, pmd_header%basePath(1:it), z_id, err, .true.)
 
 n_bunch = 0
 idx = 0
-call H5Literate_f (z_id, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_funloc(hdf5_count_bunches), C_NULL_PTR, state, h5_err)
+c_func_ptr = c_funloc(hdf5_count_bunches)
+call H5Literate_f (z_id, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_func_ptr, C_NULL_PTR, state, h5_err)
 
 call reallocate_beam(beam, n_bunch)
 
