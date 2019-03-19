@@ -39,7 +39,7 @@ call h5fcreate_f (file_name, H5F_ACC_TRUNC_F, f_id, h5_err)
 
 ! Write some header stuff
 
-call date_and_time_stamp (date_time, .true.)
+call date_and_time_stamp (date_time, .true., .true.)
 root_path = '/bunch/'
 bunch_path = '%T/'
 particle_path = 'particles/'
@@ -235,6 +235,7 @@ call pmd_find_group(f_id, pmd_header%basePath(1:it), z_id, err, .true.)
 ! Count bunches
 
 n_bunch = 0
+!!call 
 idx = 0
 c_func_ptr = c_funloc(hdf5_count_bunches)
 call H5Literate_f (z_id, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_func_ptr, C_NULL_PTR, state, h5_err)
