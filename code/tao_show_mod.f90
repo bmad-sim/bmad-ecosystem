@@ -373,57 +373,55 @@ case ('beam')
       nl=nl+1; write(lines(nl), amt) 'bunch_species             = ', species_name(beam%bunch(1)%particle(1)%species)
     endif
 
-    if (u%beam%all_file == '' .and. u%beam%beam_init%file_name == '') then
-      beam_init => u%beam%beam_init
-      nl=nl+1; lines(nl) = 'beam_init components (set by "set beam_init ..."):'
-      nl=nl+1; write(lines(nl), amt) '  %file_name              = ', quote(beam_init%file_name)
-      nl=nl+1; write(lines(nl), amt) '  %distribution_type      = ', quoten(beam_init%distribution_type)
-      nl=nl+1; write(lines(nl), lmt) '  %use_particle_start_for_center = ', beam_init%use_particle_start_for_center
-      if (beam_init%use_particle_start_for_center) then
-        nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  %center                 = ', beam_init%center, '! Slaved to particle_start'
-      else
-        nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  %center                 = ', beam_init%center, '! Independent of slaved particle_start'
+    beam_init => u%beam%beam_init
+    nl=nl+1; lines(nl) = 'beam_init components (set by "set beam_init ..."):'
+    nl=nl+1; write(lines(nl), amt) '  %file_name              = ', quote(beam_init%file_name)
+    nl=nl+1; write(lines(nl), amt) '  %distribution_type      = ', quoten(beam_init%distribution_type)
+    nl=nl+1; write(lines(nl), lmt) '  %use_particle_start_for_center = ', beam_init%use_particle_start_for_center
+    if (beam_init%use_particle_start_for_center) then
+      nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  %center                 = ', beam_init%center, '! Slaved to particle_start'
+    else
+      nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  %center                 = ', beam_init%center, '! Independent of slaved particle_start'
+    endif
+    nl=nl+1; write(lines(nl), rmt) '  %center_jitter          = ', beam_init%center_jitter
+    nl=nl+1; write(lines(nl), imt) '  %n_particle             = ', beam_init%n_particle
+    nl=nl+1; write(lines(nl), rmt) '  %bunch_charge           = ', beam_init%bunch_charge
+    nl=nl+1; write(lines(nl), rmt) '  %a_norm_emit            = ', beam_init%a_norm_emit
+    nl=nl+1; write(lines(nl), rmt) '  %b_norm_emit            = ', beam_init%b_norm_emit
+    nl=nl+1; write(lines(nl), rmt) '  %a_emit                 = ', beam_init%a_emit
+    nl=nl+1; write(lines(nl), rmt) '  %b_emit                 = ', beam_init%b_emit
+    nl=nl+1; write(lines(nl), rmt) '  %dPz_dz                 = ', beam_init%dPz_dz
+    nl=nl+1; write(lines(nl), rmt) '  %dt_bunch               = ', beam_init%dt_bunch
+    nl=nl+1; write(lines(nl), rmt) '  %sig_z                  = ', beam_init%sig_z
+    nl=nl+1; write(lines(nl), rmt) '  %sig_e                  = ', beam_init%sig_e
+    nl=nl+1; write(lines(nl), rmt) '  %emit_jitter            = ', beam_init%emit_jitter
+    nl=nl+1; write(lines(nl), rmt) '  %sig_z_jitter           = ', beam_init%sig_z_jitter
+    nl=nl+1; write(lines(nl), rmt) '  %sig_e_jitter           = ', beam_init%sig_e_jitter
+    nl=nl+1; write(lines(nl), rmt) '  %spin                   = ', beam_init%spin
+    nl=nl+1; write(lines(nl), lmt) '  %renorm_center          = ', beam_init%renorm_center
+    nl=nl+1; write(lines(nl), lmt) '  %renorm_sigma           = ', beam_init%renorm_sigma
+    nl=nl+1; write(lines(nl), amt) '  %random_engine          = ', quote(beam_init%random_engine)
+    nl=nl+1; write(lines(nl), amt) '  %random_gauss_converter = ', quote(beam_init%random_gauss_converter)
+    nl=nl+1; write(lines(nl), f3mt)'  %random_sigma_cutoff    = ', beam_init%random_sigma_cutoff
+    fmt = '(a, i1, a, es16.8)'
+    do i = 1, 3
+      if (beam_init%distribution_type(i) == 'ELLIPSE') then
+        nl=nl+1; write(lines(nl), iimt) '  %ellipse(', i, ')%part_per_ellipse  = ', beam_init%ellipse(i)%part_per_ellipse
+        nl=nl+1; write(lines(nl), iimt) '  %ellipse(', i, ')%n_ellipse         = ', beam_init%ellipse(i)%n_ellipse
+        nl=nl+1; write(lines(nl), irmt) '  %ellipse(', i, ')%sigma_cutoff      = ', beam_init%ellipse(i)%sigma_cutoff
+      elseif (beam_init%distribution_type(i) == 'GRID') then
+        nl=nl+1; write(lines(nl), iimt) '  %grid(', i, ')%n_x            = ', beam_init%grid(i)%n_x
+        nl=nl+1; write(lines(nl), iimt) '  %grid(', i, ')%n_px           = ', beam_init%grid(i)%n_px
+        nl=nl+1; write(lines(nl), irmt) '  %grid(', i, ')%x_min          = ', beam_init%grid(i)%x_min
+        nl=nl+1; write(lines(nl), irmt) '  %grid(', i, ')%x_max          = ', beam_init%grid(i)%x_max
+        nl=nl+1; write(lines(nl), irmt) '  %grid(', i, ')%px_min         = ', beam_init%grid(i)%px_min
+        nl=nl+1; write(lines(nl), irmt) '  %grid(', i, ')%px_max         = ', beam_init%grid(i)%px_max
       endif
-      nl=nl+1; write(lines(nl), rmt) '  %center_jitter          = ', beam_init%center_jitter
-      nl=nl+1; write(lines(nl), imt) '  %n_particle             = ', beam_init%n_particle
-      nl=nl+1; write(lines(nl), rmt) '  %bunch_charge           = ', beam_init%bunch_charge
-      nl=nl+1; write(lines(nl), rmt) '  %a_norm_emit            = ', beam_init%a_norm_emit
-      nl=nl+1; write(lines(nl), rmt) '  %b_norm_emit            = ', beam_init%b_norm_emit
-      nl=nl+1; write(lines(nl), rmt) '  %a_emit                 = ', beam_init%a_emit
-      nl=nl+1; write(lines(nl), rmt) '  %b_emit                 = ', beam_init%b_emit
-      nl=nl+1; write(lines(nl), rmt) '  %dPz_dz                 = ', beam_init%dPz_dz
-      nl=nl+1; write(lines(nl), rmt) '  %dt_bunch               = ', beam_init%dt_bunch
-      nl=nl+1; write(lines(nl), rmt) '  %sig_z                  = ', beam_init%sig_z
-      nl=nl+1; write(lines(nl), rmt) '  %sig_e                  = ', beam_init%sig_e
-      nl=nl+1; write(lines(nl), rmt) '  %emit_jitter            = ', beam_init%emit_jitter
-      nl=nl+1; write(lines(nl), rmt) '  %sig_z_jitter           = ', beam_init%sig_z_jitter
-      nl=nl+1; write(lines(nl), rmt) '  %sig_e_jitter           = ', beam_init%sig_e_jitter
-      nl=nl+1; write(lines(nl), rmt) '  %spin                   = ', beam_init%spin
-      nl=nl+1; write(lines(nl), lmt) '  %renorm_center          = ', beam_init%renorm_center
-      nl=nl+1; write(lines(nl), lmt) '  %renorm_sigma           = ', beam_init%renorm_sigma
-      nl=nl+1; write(lines(nl), amt) '  %random_engine          = ', quote(beam_init%random_engine)
-      nl=nl+1; write(lines(nl), amt) '  %random_gauss_converter = ', quote(beam_init%random_gauss_converter)
-      nl=nl+1; write(lines(nl), f3mt)'  %random_sigma_cutoff    = ', beam_init%random_sigma_cutoff
-      fmt = '(a, i1, a, es16.8)'
-      do i = 1, 3
-        if (beam_init%distribution_type(i) == 'ELLIPSE') then
-          nl=nl+1; write(lines(nl), iimt) '  %ellipse(', i, ')%part_per_ellipse  = ', beam_init%ellipse(i)%part_per_ellipse
-          nl=nl+1; write(lines(nl), iimt) '  %ellipse(', i, ')%n_ellipse         = ', beam_init%ellipse(i)%n_ellipse
-          nl=nl+1; write(lines(nl), irmt) '  %ellipse(', i, ')%sigma_cutoff      = ', beam_init%ellipse(i)%sigma_cutoff
-        elseif (beam_init%distribution_type(i) == 'GRID') then
-          nl=nl+1; write(lines(nl), iimt) '  %grid(', i, ')%n_x            = ', beam_init%grid(i)%n_x
-          nl=nl+1; write(lines(nl), iimt) '  %grid(', i, ')%n_px           = ', beam_init%grid(i)%n_px
-          nl=nl+1; write(lines(nl), irmt) '  %grid(', i, ')%x_min          = ', beam_init%grid(i)%x_min
-          nl=nl+1; write(lines(nl), irmt) '  %grid(', i, ')%x_max          = ', beam_init%grid(i)%x_max
-          nl=nl+1; write(lines(nl), irmt) '  %grid(', i, ')%px_min         = ', beam_init%grid(i)%px_min
-          nl=nl+1; write(lines(nl), irmt) '  %grid(', i, ')%px_max         = ', beam_init%grid(i)%px_max
-        endif
-      enddo
-      if (any(beam_init%distribution_type == 'KV')) then
-        nl=nl+1; write(lines(nl), imt) '  %kv%part_per_phi(1:2) = ', beam_init%kv%part_per_phi
-        nl=nl+1; write(lines(nl), imt) '  %kv%n_i2              = ', beam_init%kv%n_i2
-        nl=nl+1; write(lines(nl), rmt) '  %kv%a                 = ', beam_init%kv%a
-      endif
+    enddo
+    if (any(beam_init%distribution_type == 'KV')) then
+      nl=nl+1; write(lines(nl), imt) '  %kv%part_per_phi(1:2) = ', beam_init%kv%part_per_phi
+      nl=nl+1; write(lines(nl), imt) '  %kv%n_i2              = ', beam_init%kv%n_i2
+      nl=nl+1; write(lines(nl), rmt) '  %kv%a                 = ', beam_init%kv%a
     endif
 
     nl=nl+1; lines(nl) = ''
