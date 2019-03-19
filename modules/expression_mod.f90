@@ -71,7 +71,7 @@ real(rp) value
 character(*) string, err_str
 character(1) delim, old_delim
 character(80) word, word2
-character(200) parse_line
+character(300) parse_line
 
 
 logical delim_found, split, zero_arg_function_pending
@@ -719,7 +719,7 @@ end subroutine evaluate_expression_stack
 !   polish    -- logical, optional, Construct expression in reverse polish? Default is False.
 !
 ! Output:
-!   str       -- character(200): Expression in string form.
+!   str       -- character(300): Expression in string form.
 !-
 
 function expression_stack_to_string (stack, polish) result (str)
@@ -728,7 +728,7 @@ type (expression_atom_struct), target :: stack(:)
 type (expression_atom_struct), pointer :: atom, atom2
 type (expression_atom_struct) s2(20)
 
-character(200) str
+character(300) str
 character(200) s2_name(20)
 
 integer i, i2, ix

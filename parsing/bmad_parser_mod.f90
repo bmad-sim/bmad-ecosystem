@@ -2830,7 +2830,7 @@ character(*) err_str
 character(*), optional :: end_delims
 character(*), optional :: string_out, string_in
 character(1) delim
-character(200) str
+character(300) str
 character(100) err_str2
 character(200) word, str_in
 
