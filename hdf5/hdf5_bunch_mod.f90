@@ -180,6 +180,7 @@ end subroutine hdf5_write_beam
 subroutine hdf5_read_beam (file_name, beam, pmd_header, error)
 
 use iso_c_binding
+use fortran_cpp_utils
 
 implicit none
 
@@ -231,7 +232,7 @@ endif
 
 call pmd_find_group(f_id, pmd_header%basePath(1:it), z_id, err, .true.)
 
-! Loop over all bunches
+! Count bunches
 
 n_bunch = 0
 idx = 0
@@ -240,13 +241,15 @@ call H5Literate_f (z_id, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_func_ptr, C_NULL
 
 call reallocate_beam(beam, n_bunch)
 
+! Loop over all bunches
+
 cv_ptr = c_loc(beam)
 c_func_ptr = c_funloc(hdf5_read_bunch)
 idx = 0
 n_bunch = 0
 call H5Literate_f (z_id, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_func_ptr, cv_ptr, state, h5_err)
 
-!
+! And end
 
 call h5fclose_f(f_id, h5_err)
 error = .false.
@@ -264,11 +267,6 @@ return
 contains
 
 function hdf5_count_bunches (g_id, g_name, info, c_point) result (stat) bind(C)
-
-use iso_c_binding
-use fortran_cpp_utils
-
-implicit none
 
 type(c_ptr) info
 type(c_ptr) c_point
@@ -297,24 +295,21 @@ end function  hdf5_count_bunches
 
 function hdf5_read_bunch (root_id, g_name_c, info, dummy_c_ptr) result (stat) bind(C)
 
-use iso_c_binding
-use fortran_cpp_utils
-
-implicit none
-
 type(c_ptr) info
 type(c_ptr) dummy_c_ptr
 type(H5O_info_t) :: infobuf 
 type(bunch_struct), pointer :: bunch
+type(c_funptr) c_func_ptr
 
 integer(hid_t), value :: root_id
-integer(hid_t) g_id, g2_id
-integer stat, h5_stat
+integer(hid_t) g_id, g2_id, a_id
+integer(HSIZE_T) idx
+integer stat, h5_stat, ia
 
 logical error
 
 character(1) :: g_name_c(*)
-character(100) g_name
+character(100) g_name, a_name
 
 ! Return if not a group
 
@@ -331,16 +326,63 @@ print *, trim(g_name)
 n_bunch = n_bunch + 1
 bunch => beam%bunch(n_bunch)
 
-call pmd_find_group(root_id, g_name, g_id, error, .true.)
+call pmd_find_group(root_id, g_name, g_id, error, .true.);  if (error) return
 call pmd_find_group(g_id, pmd_header%particlesPath, g2_id, error, .true.);  if (error) return
 
 ! Get attributes.
 
-! Loop over all sub-groups/datasets.
+do ia = 1, pmd_num_attributes (g2_id)
+  call pmd_get_attribute_by_index(g2_id, ia, a_id, a_name)
+  print *, trim(a_name)
+enddo
+
+! Loop over all datasets.
+
+idx = 0
+c_func_ptr = c_funloc(hdf5_read_bunch_datasets)
+call H5Literate_f (g2_id, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_func_ptr, C_NULL_PTR, state, h5_err)
 
 
 
 end function  hdf5_read_bunch
+
+!------------------------------------------------------------------------------------------
+! contains
+
+function hdf5_read_bunch_datasets (root_id, name_c, info, dummy_c_ptr) result (stat) bind(C)
+
+type(c_ptr) info
+type(c_ptr) dummy_c_ptr
+type(H5O_info_t) :: infobuf 
+type(bunch_struct), pointer :: bunch
+
+integer(hid_t), value :: root_id
+integer stat, h5_stat
+
+character(1) :: name_c(*)
+character(100) name
+
+!
+
+stat = 0
+
+call to_f_str(name_c, name)
+call H5Oget_info_by_name_f(root_id, name, infobuf, h5_stat)
+
+if (infobuf%type == H5O_TYPE_GROUP_F)THEN
+  print '(2a)', "Group: ", trim(name)
+else if(infobuf%type == H5O_TYPE_DATASET_F)THEN
+  print '(2a)', "Dataset: ", trim(name)
+else if(infobuf%type == H5O_TYPE_NAMED_DATATYPE_F)THEN
+  print '(2a)', "Datatype: ", trim(name)
+else
+  print '(2a)', "Unknown: ", trim(name)
+endif
+
+bunch => beam%bunch(n_bunch)
+
+end function hdf5_read_bunch_datasets
+
 
 end subroutine hdf5_read_beam
 
