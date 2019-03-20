@@ -897,6 +897,8 @@ case ('lat_ele1')
     free = attribute_free(ele, 'BETA_A', .false.) .and. (which == 'model')
     call twiss_out (ele%a, 'a', can_vary = free)
     call twiss_out (ele%b, 'b', can_vary = free)
+    call xy_disp_out (ele%x, 'x', can_vary = free)
+    call xy_disp_out (ele%y, 'y', can_vary = free)
 
   case ('orbit')
     call orbit_out (tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele))
@@ -2141,6 +2143,30 @@ if (logic_option(.false., emit_out)) then
 endif
 
 end subroutine twiss_out
+
+
+
+subroutine xy_disp_out (xy_disp, suffix, can_vary)
+! Similar to twiss_out
+type (xy_disp_struct) xy_disp
+character(*) suffix
+character(20) fmt
+character(8) v_str
+logical, optional ::  can_vary
+
+if (logic_option(.false., can_vary)) then
+  v_str = ';REAL;T;'
+else
+  v_str = ';REAL;F;'
+endif
+
+fmt = '(3a, es24.16)'
+
+nl=incr(nl); write (li(nl), fmt) 'eta_', suffix, v_str,                           xy_disp%eta
+nl=incr(nl); write (li(nl), fmt) 'etap_', suffix, v_str,                          xy_disp%etap
+
+end subroutine xy_disp_out
+
 
 !----------------------------------------------------------------------
 ! contains
