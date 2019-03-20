@@ -82,10 +82,10 @@ function cross_product (a, b) result (c)
   real(rp) c(3)
 end function
 
-subroutine date_and_time_stamp (string, numeric_month)
+subroutine date_and_time_stamp (string, numeric_month, include_zone)
   implicit none
   character(*) string
-  logical, optional :: numeric_month
+  logical, optional :: numeric_month, include_zone
 end subroutine
 
 function determinant (mat) result (det)
