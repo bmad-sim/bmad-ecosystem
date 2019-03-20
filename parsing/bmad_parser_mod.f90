@@ -148,8 +148,8 @@ type bp_common_struct
   character(200) line1_file_name           ! Name of file from which %input_line1 was read
   character(200) line2_file_name           ! Name of file from which %input_line2 was read
   character(n_parse_line) parse_line       ! Current part of input string not yet parsed.
-  character(n_parse_line) input_line1      ! Line before current line. For debug messages.
-  character(n_parse_line) input_line2      ! Current line. For debug messages.
+  character(n_parse_line+20) input_line1   ! Line before current line. For debug messages.
+  character(n_parse_line+20) input_line2   ! Current line. For debug messages.
   character(40) :: parser_name = ''        ! Blank means not in bmad_parser nor bmad_parser2.
   character(100) :: last_word              ! Last word to be parsed
   logical :: bmad_parser_calling = .false. ! used for expand_lattice
@@ -2560,7 +2560,7 @@ recursive subroutine load_parse_line (action, ix_start, end_of_file)
 
 implicit none
 
-integer ix_start, ix, n
+integer ix_start, ix, n, ios
 
 character(*) action
 character(n_parse_line+20) :: line
@@ -2582,7 +2582,7 @@ endif
 end_of_file = .false.
 flush_this = .false.
 
-! If 'new_command' then will need to must lines that are part of the rest of the current command. 
+! If 'new_command' then will need to flush lines that are part of the rest of the current command. 
 ! This will happen when there has been an error and the entire command was not parsed.
 
 if (action == 'new_command' .and. .not. have_saved_line) then
@@ -2602,10 +2602,12 @@ do
     line = saved_line
     have_saved_line = .false.
   else
-    read (bp_com%current_file%f_unit, '(a)', end = 9000) line
+    read (bp_com%current_file%f_unit, '(a)', end = 9000, iostat = ios) line
+    if (ios /= 0) then
+      call parser_error ('ERROR READING INPUT LINE.', '[PERHAPS THE LINE HAS TOO MANY CHARACTERS.]', line)
+      return
+    endif
     bp_com%current_file%i_line = bp_com%current_file%i_line + 1
-    if (line(n_parse_line-ix_start-20:) /= ' ') &
-      call parser_error ('INPUT LINE HAS TOO MANY CHARACTERS:', line)
   endif
 
   ! %input_line1 and %input_line2 are for error messages if needed.
@@ -2662,6 +2664,12 @@ enddo
 ! now simply append the line to %parse_line starting at ix_start
 
 call str_substitute (line)
+line = adjustl(line)
+if (len_trim(line) + ix_start > n_parse_line) then
+  call parser_error ('INPUT LINE HAS TOO MANY CHARACTERS:', line)
+  return
+endif
+
 bp_com%parse_line(ix_start:) = line
 
 ! Flush this line if needed
