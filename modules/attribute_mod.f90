@@ -915,6 +915,7 @@ call init_attribute_name1 (def_parameter$, live_branch$,              'LIVE_BRAN
 call init_attribute_name1 (def_parameter$, geometry$,                 'GEOMETRY')
 call init_attribute_name1 (def_parameter$, lattice_type$,             'LATTICE_TYPE') ! For backwards compatibility
 call init_attribute_name1 (def_parameter$, lattice$,                  'LATTICE')
+call init_attribute_name1 (def_parameter$, machine$,                  'MACHINE')
 call init_attribute_name1 (def_parameter$, taylor_order$,             'TAYLOR_ORDER')
 call init_attribute_name1 (def_parameter$, ran_seed$,                 'RAN_SEED')
 call init_attribute_name1 (def_parameter$, n_part$,                   'N_PART')
@@ -1755,7 +1756,8 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPO
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PHYSICAL_SOURCE', &
-     'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'REFERENCE', 'TO_LINE', 'TO_ELEMENT', 'ORIGIN_ELE', 'NAME')
+     'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'REFERENCE', 'TO_LINE', 'TO_ELEMENT', 'ORIGIN_ELE', 'NAME', &
+     'MACHINE')
   attrib_type = is_string$
 
 case ('CARTESIAN_MAP', 'CYLINDRICAL_MAP', 'FIELD_OVERLAPS', 'GRID_FIELD', 'LR_WAKE_SPLINE', 'REF_ORBIT', &

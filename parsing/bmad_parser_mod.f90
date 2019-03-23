@@ -1563,7 +1563,7 @@ case ('FIELD_OVERLAPS')
     enddo
   endif
 
-case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
+case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', 'MACHINE', &
      'TO_LINE', 'TO_ELEMENT', 'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'ORIGIN_ELE', 'PHYSICAL_SOURCE')
   call bmad_parser_string_attribute_set (ele, attrib_word, delim, delim_found, pele = pele)
 
@@ -3247,9 +3247,13 @@ case ('ALIAS')
   ele%alias = type_name
 case ('CRYSTAL_TYPE', 'MATERIAL_TYPE', 'PHYSICAL_SOURCE')
   ele%component_name = type_name
-case ('DESCRIP', 'LATTICE')
+case ('DESCRIP')
   if (.not. associated(ele%descrip)) allocate (ele%descrip) 
   ele%descrip = type_name
+case ('LATTICE')
+  ele%branch%lat%lattice = type_name
+case ('MACHINE')
+  ele%branch%lat%machine = type_name
 case ('LR_WAKE_FILE') 
   call read_lr_wake (ele, type_name)
 case ('MATERIAL', 'CLEAR_MATERIAL', 'OPAQUE_MATERIAL')

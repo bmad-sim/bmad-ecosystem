@@ -28,7 +28,8 @@ to the \vn{root} branch. The variables that can be set by \vn{parameter} are
   parameter[electric_dipole_moment]   = <Real>     ! Particle electric dipole moment.
   parameter[live_branch]              = <Logical>  ! Is branch fit for tracking?
   parameter[geometry]                 = <Switch>   ! Open or closed
-  parameter[lattice]                  = <String>   ! Lattice name 
+  parameter[lattice]                  = <String>   ! Lattice name.
+  parameter[machine]                  = <String>   ! Machine name.
   parameter[n_part]                   = <Real>     ! Number of particles in a bunch.
   parameter[no_end_marker]            = <Logical>  ! Default: False.
   parameter[p0c]                      = <Real>     ! Reference momentum.
@@ -65,6 +66,8 @@ problems with a zero reference momentum at the beginning of the element.
   \item[{parameter[custom_attributeN]}] \Newline
 Here \vn{N} is an integer between 1 and 40.
 For more information on defining custom attributes, see \sref{s:cust.att}.
+  \index{machine}
+Name of the machine the lattice simulates. Example: "LHC".
   \index{live_branch}
   \item[{parameter[live_branch]}] \Newline
 Setting \vn{live_branch} to \vn{False} (default is \vn{True}) indicates to a program that
