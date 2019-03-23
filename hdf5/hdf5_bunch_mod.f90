@@ -1,7 +1,61 @@
 module hdf5_bunch_mod
 
-use openpmd_interface
+use hdf5_interface
 use bmad_interface
+use iso_fortran_env
+
+! Common units
+
+type pmd_unit_struct
+ character(8) :: unitSymbol = ''     ! Native units name. EG 'eV'
+ real(rp) :: unitSI = 0              ! Conversion to SI
+ real(rp) :: unitDimension(7) = 0    ! SI Base Exponents
+end type
+
+real(rp), parameter :: dim_1(7)              = [0,0,0,0,0,0,0]
+real(rp), parameter :: dim_length(7)         = [1,0,0,0,0,0,0]
+real(rp), parameter :: dim_mass(7)           = [0,1,0,0,0,0,0]
+real(rp), parameter :: dim_time(7)           = [0,0,1,0,0,0,0]
+real(rp), parameter :: dim_current(7)        = [0,0,0,1,0,0,0]
+real(rp), parameter :: dim_temperture(7)     = [0,0,0,0,1,0,0]
+real(rp), parameter :: dim_mol(7)            = [0,0,0,0,0,1,0]
+real(rp), parameter :: dim_luminous(7)       = [0,0,0,0,0,0,1]
+real(rp), parameter :: dim_charge(7)         = [0,0,1,1,0,0,0]
+real(rp), parameter :: dim_elec_potential(7) = [1,1,-3,-1,0,0,0]
+real(rp), parameter :: dim_velocity(7)       = [1,0,-1,0,0,0,0]
+real(rp), parameter :: dim_energy(7)         = [2,1,-2,0,0,0,0]
+real(rp), parameter :: dim_momentum(7)       = [1,1,-1,0,0,0,0]
+
+type(pmd_unit_struct), parameter :: unit_1        = pmd_unit_struct('', 1.0_rp, dim_1)
+type(pmd_unit_struct), parameter :: unit_m        = pmd_unit_struct('m', 1.0_rp, dim_length)
+type(pmd_unit_struct), parameter :: unit_kg       = pmd_unit_struct('kg', 1.0_rp, dim_mass)
+type(pmd_unit_struct), parameter :: unit_sec      = pmd_unit_struct('sec', 1.0_rp, dim_time)
+type(pmd_unit_struct), parameter :: unit_amp      = pmd_unit_struct('Amp', 1.0_rp, dim_current)
+type(pmd_unit_struct), parameter :: unit_K        = pmd_unit_struct('K', 1.0_rp, dim_temperture)
+type(pmd_unit_struct), parameter :: unit_mol      = pmd_unit_struct('mol', 1.0_rp, dim_mol)
+type(pmd_unit_struct), parameter :: unit_cd       = pmd_unit_struct('cd', 1.0_rp, dim_luminous)
+type(pmd_unit_struct), parameter :: unit_Coulomb  = pmd_unit_struct('Coulomb', 1.0_rp, dim_charge)
+type(pmd_unit_struct), parameter :: unit_charge   = pmd_unit_struct('charge #', e_charge, dim_charge)
+type(pmd_unit_struct), parameter :: unit_V_per_m  = pmd_unit_struct('V/m', 1.0_rp, dim_elec_potential)
+type(pmd_unit_struct), parameter :: unit_c_light  = pmd_unit_struct('vel/c', c_light, dim_velocity)
+type(pmd_unit_struct), parameter :: unit_m_per_s  = pmd_unit_struct('m/s', 1.0_rp, dim_velocity)
+type(pmd_unit_struct), parameter :: unit_eV       = pmd_unit_struct('eV', e_charge, dim_energy)
+type(pmd_unit_struct), parameter :: unit_eV_per_c = pmd_unit_struct('eV/c', e_charge/c_light, dim_momentum)
+
+! Header information
+
+type pmd_header_struct
+  character(:), allocatable :: openPMD
+  character(:), allocatable :: openPMDextension
+  character(:), allocatable :: basePath
+  character(:), allocatable :: particlesPath
+  character(:), allocatable :: author          != 'anonymous'
+  character(:), allocatable :: software        != 'Bmad'
+  character(:), allocatable :: softwareVersion ! = 'Revision XXX'
+  character(:), allocatable :: date            ! = ''
+  character(:), allocatable :: latticeFile
+  character(:), allocatable :: latticeName
+end type
 
 contains
 
@@ -40,20 +94,20 @@ call h5fcreate_f (file_name, H5F_ACC_TRUNC_F, f_id, h5_err)
 ! Write some header stuff
 
 call date_and_time_stamp (date_time, .true., .true.)
-root_path = '/bunch/'
+root_path = '/data/'
 bunch_path = '%T/'
 particle_path = 'particles/'
 
-call pmd_write_string_attrib(f_id, 'openPMD', '2.0.0')
-call pmd_write_string_attrib(f_id, 'openPMDextension', 'BeamPhysics; SpeciesType')
-call pmd_write_string_attrib(f_id, 'basePath', trim(root_path) // trim(bunch_path))
-call pmd_write_string_attrib(f_id, 'particlesPath', trim(particle_path))
-call pmd_write_string_attrib(f_id, 'software', 'Bmad')
-call pmd_write_string_attrib(f_id, 'softwareVersion', '1.0')
-call pmd_write_string_attrib(f_id, 'date', date_time)
-call pmd_write_string_attrib(f_id, 'latticeFile', lat%input_file_name)
+call hdf5_write_string_attrib(f_id, 'openPMD', '2.0.0')
+call hdf5_write_string_attrib(f_id, 'openPMDextension', 'BeamPhysics;SpeciesType')
+call hdf5_write_string_attrib(f_id, 'basePath', trim(root_path) // trim(bunch_path))
+call hdf5_write_string_attrib(f_id, 'particlesPath', trim(particle_path))
+call hdf5_write_string_attrib(f_id, 'software', 'Bmad')
+call hdf5_write_string_attrib(f_id, 'softwareVersion', '1.0')
+call hdf5_write_string_attrib(f_id, 'date', date_time)
+call hdf5_write_string_attrib(f_id, 'latticeFile', lat%input_file_name)
 if (lat%lattice /= '') then
-  call pmd_write_string_attrib(f_id, 'latticeName', lat%lattice)
+  call hdf5_write_string_attrib(f_id, 'latticeName', lat%lattice)
 endif
 
 ! Loop over bunches
@@ -76,9 +130,10 @@ do ib = 1, size(bunches)
   call h5gcreate_f(r_id, trim(this_path), b_id, h5_err)
   call h5gcreate_f(b_id, particle_path, b2_id, h5_err)
 
-  call pmd_write_string_attrib(b2_id, 'speciesType', openpmd_species_name(p(1)%species))
-  call pmd_write_real_attrib(b2_id, 'totalCharge', bunch%charge_tot)
-  call pmd_write_real_attrib(b2_id, 'chargeLive', bunch%charge_live)
+  call hdf5_write_string_attrib(b2_id, 'speciesType', openpmd_species_name(p(1)%species))
+  call hdf5_write_real_attrib(b2_id, 'totalCharge', bunch%charge_tot)
+  call hdf5_write_real_attrib(b2_id, 'chargeLive', bunch%charge_live)
+  call hdf5_write_integer_attrib(b2_id, 'numParticles', size(bunch%particle))
   
   p_live => p(1)    ! In case everyone is dead.
   do i = 1, size(p)
@@ -109,9 +164,11 @@ do ib = 1, size(bunches)
   call pmd_write_real_vector_to_dataset(z_id, 'y', 'py', unit, rvec, error)
 
   rvec = p(:)%direction * (sqrt((1 + p(:)%vec(6))**2 - p(:)%vec(2)**2 - p(:)%vec(4)**2) * p(:)%p0c) / p_live%p0c
-  call pmd_write_real_vector_to_dataset(z_id, 'z', 'ps', unit, rvec, error)
+  call pmd_write_real_vector_to_dataset(z_id, 'z', 'pz', unit, rvec, error)
 
   call h5gclose_f(z_id, h5_err)
+
+  call pmd_write_real_vector_to_dataset (b2_id, 'referenceMomentum', 'p0c', unit_eV, p(:)%p0c, error)
 
   ! Spin.
 
@@ -149,20 +206,26 @@ do ib = 1, size(bunches)
   call pmd_write_real_vector_to_dataset(b2_id, 'timeOffset', 't_ref', unit_sec, p(:)%t - rvec, error)
   call pmd_write_real_vector_to_dataset(b2_id, 'speed', 'beta', unit_c_light, p(:)%beta, error)
   call pmd_write_real_vector_to_dataset(b2_id, 'weight', 'macro-charge', unit_1, p(:)%charge, error)
-  call pmd_write_real_vector_to_dataset(b2_id, 'momentumOffset', 'p0c', unit_eV, p(:)%p0c, error)
 
   call pmd_write_int_vector_to_dataset(b2_id, 'particleStatus', 'state', unit_1, p(:)%state, error)
-  call pmd_write_int_vector_to_dataset(b2_id, 'branchIndex', 'ix_branch', unit_1, p(:)%state, error)
-  call pmd_write_int_vector_to_dataset(b2_id, 'elementIndex', 'ix_ele', unit_1, p(:)%state, error)
+  call pmd_write_int_vector_to_dataset(b2_id, 'branchIndex', 'ix_branch', unit_1, p(:)%ix_branch, error)
+  call pmd_write_int_vector_to_dataset(b2_id, 'elementIndex', 'ix_ele', unit_1, p(:)%ix_ele, error)
+
+  if (.not. is_fundamental_species(p(1)%species)) then
+    do i = 1, size(p)
+      ivec = charge_of(p(i)%species)
+    enddo
+    call pmd_write_int_vector_to_dataset(b2_id, 'chargeState', 'particle charge', unit_1, ivec, error)
+  endif
 
   do i = 1, size(p)
     select case (p(i)%location)
     case (upstream_end$);   ivec(i) = -1
-    case (downstream_end$); ivec(i) =  0
-    case (inside$);         ivec(i) =  1
+    case (inside$);         ivec(i) =  0
+    case (downstream_end$); ivec(i) =  1
     end select
   enddo
-  call pmd_write_int_vector_to_dataset(b2_id, 'locationInElement', 'location', unit_1, p(:)%location, error)
+  call pmd_write_int_vector_to_dataset(b2_id, 'locationInElement', 'location', unit_1, ivec, error)
 
   call h5gclose_f(b2_id, h5_err)
   call h5gclose_f(b_id, h5_err)
@@ -188,6 +251,7 @@ type (beam_struct), target :: beam
 type (pmd_header_struct) pmd_header
 type (lat_struct) lat
 type (pmd_unit_struct) unit
+type(H5O_info_t) :: infobuf 
 type(c_ptr) cv_ptr
 type(c_funptr) c_func_ptr
 
@@ -196,11 +260,13 @@ real(rp) factor
 
 integer(HID_T) f_id, g_id, z_id, z2_id, r_id, b_id
 integer(HSIZE_T) idx
-integer i, ib, ix, is, it, state, h5_err, n_bunch
+integer(SIZE_T) g_size
+integer i, ik, ib, ix, is, it, state, h5_err, n_bunch, storage_type, n_links, max_corder, h5_stat
 integer, allocatable :: ivec(:)
 
 character(*) file_name
 character(*), parameter :: r_name = 'hdf5_read_beam'
+character(100) c_name, name
 logical error, err
 
 ! Init
@@ -212,17 +278,18 @@ call h5fopen_f(file_name, H5F_ACC_RDONLY_F, f_id, h5_err)
 
 ! Get header info
 
-call pmd_read_attribute_string (f_id, '/', 'openPMD', pmd_header%openPMD, err, .true.);                    if (err) return
-call pmd_read_attribute_string (f_id, '/', 'openPMDextension', pmd_header%openPMDextension, err, .true.);  if (err) return
-call pmd_read_attribute_string (f_id, '/', 'basePath', pmd_header%basePath, err, .true.);                  if (err) return
-call pmd_read_attribute_string (f_id, '/', 'particlesPath', pmd_header%particlesPath, err, .true.);        if (err) return
-call pmd_read_attribute_string (f_id, '/', 'software', pmd_header%software, err, .false.)
-call pmd_read_attribute_string (f_id, '/', 'softwareVersion', pmd_header%softwareVersion, err, .false.)
-call pmd_read_attribute_string (f_id, '/', 'date', pmd_header%date, err, .false.)
-call pmd_read_attribute_string (f_id, '/', 'latticeFile', pmd_header%latticeFile, err, .false.)
-call pmd_read_attribute_string (f_id, '/', 'latticeName', pmd_header%latticeName, err, .false.)
+call hdf5_get_attribute_string (f_id, 'openPMD', pmd_header%openPMD, err, .true.);                    if (err) return
+call hdf5_get_attribute_string (f_id, 'openPMDextension', pmd_header%openPMDextension, err, .true.);  if (err) return
+call hdf5_get_attribute_string (f_id, 'basePath', pmd_header%basePath, err, .true.);                  if (err) return
+call hdf5_get_attribute_string (f_id, 'particlesPath', pmd_header%particlesPath, err, .true.);        if (err) return
+call hdf5_get_attribute_string (f_id, 'software', pmd_header%software, err, .false.)
+call hdf5_get_attribute_string (f_id, 'softwareVersion', pmd_header%softwareVersion, err, .false.)
+call hdf5_get_attribute_string (f_id, 'date', pmd_header%date, err, .false.)
+call hdf5_get_attribute_string (f_id, 'latticeFile', pmd_header%latticeFile, err, .false.)
+call hdf5_get_attribute_string (f_id, 'latticeName', pmd_header%latticeName, err, .false.)
 
 ! Find root group
+! Note: Right now it is assumed that the basepath uses "/%T/" to sort bunches.
 
 it = index(pmd_header%basePath, '/%T/')
 if (it /= len_trim(pmd_header%basePath) - 3) then
@@ -230,22 +297,32 @@ if (it /= len_trim(pmd_header%basePath) - 3) then
   return
 endif
 
-call pmd_find_group(f_id, pmd_header%basePath(1:it), z_id, err, .true.)
+call hdf5_find_group(f_id, pmd_header%basePath(1:it), z_id, err, .true.)
 
 ! Count bunches
 
 n_bunch = 0
-!!call 
-idx = 0
-c_func_ptr = c_funloc(hdf5_count_bunches)
-call H5Literate_f (z_id, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_func_ptr, C_NULL_PTR, state, h5_err)
+call H5Gget_info_f (z_id, storage_type, n_links, max_corder, h5_err)
+do idx = 0, n_links-1
+  call H5Lget_name_by_idx_f (z_id, '.', H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_name, h5_err, g_size)
+  call to_f_str(c_name, name)
+  call H5Oget_info_by_name_f(z_id, name, infobuf, h5_stat)
+  if (infobuf%type /= H5O_TYPE_GROUP_F) cycle    ! Ignore non-group elements.
+  if (.not. is_integer(name)) then    ! This assumes basepath uses "/%T/" to designate different bunches.
+    call out_io (s_warn$, r_name, 'NAME OF DIRECTORY IN PATH IS NOT AN INTEGER: ' // quote(name))
+    cycle
+  endif
+  n_bunch = n_bunch + 1
+enddo
 
 call reallocate_beam(beam, n_bunch)
 
-! Loop over all bunches
+! Loop over all bunches.
+! Note: There is a GCC compiler bug where, if building shared, there is an error if 
+! "c_funloc(pmd_read_bunch)" is used as the actual arg to H5Literate_f in place of c_fun_ptr.
 
 cv_ptr = c_loc(beam)
-c_func_ptr = c_funloc(hdf5_read_bunch)
+c_func_ptr = c_funloc(pmd_read_bunch)
 idx = 0
 n_bunch = 0
 call H5Literate_f (z_id, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_func_ptr, cv_ptr, state, h5_err)
@@ -267,52 +344,32 @@ return
 !------------------------------------------------------------------------------------------
 contains
 
-function hdf5_count_bunches (g_id, g_name, info, c_point) result (stat) bind(C)
-
-type(c_ptr) info
-type(c_ptr) c_point
-type(H5O_info_t) :: infobuf 
-
-integer(hid_t), value :: g_id
-integer stat, h5_stat
-
-character(1) :: g_name(*)
-character(100) group_name
-
-!
-
-stat = 0
-
-call to_f_str(g_name, group_name)
-call H5Oget_info_by_name_f(g_id, group_name, infobuf, h5_stat)
-
-if (infobuf%type /= H5O_TYPE_GROUP_F) return
-n_bunch = n_bunch + 1
-
-end function  hdf5_count_bunches
-
-!------------------------------------------------------------------------------------------
-! contains
-
-function hdf5_read_bunch (root_id, g_name_c, info, dummy_c_ptr) result (stat) bind(C)
+function pmd_read_bunch (root_id, g_name_c, info, dummy_c_ptr) result (stat) bind(C)
 
 type(c_ptr) info
 type(c_ptr) dummy_c_ptr
 type(H5O_info_t) :: infobuf 
 type(bunch_struct), pointer :: bunch
+type (coord_struct), pointer :: p
 type(c_funptr) c_func_ptr
 
+real(rp) charge_factor
+real(rp), allocatable :: dt(:)
+
 integer(hid_t), value :: root_id
-integer(hid_t) g_id, g2_id, a_id
+integer(hid_t) g_id, g2_id, g3_id, g4_id, a_id
 integer(HSIZE_T) idx
-integer stat, h5_stat, ia
+integer n, stat, h5_stat, ia, ip, species
+integer, allocatable :: charge_state(:)
 
 logical error
 
 character(1) :: g_name_c(*)
+character(:), allocatable :: string
 character(100) g_name, a_name
+character(*), parameter :: r_name = 'pmd_read_bunch'
 
-! Return if not a group
+! Return if not a group with the proper name
 
 stat = 0
 
@@ -320,37 +377,164 @@ call to_f_str(g_name_c, g_name)
 call H5Oget_info_by_name_f(root_id, g_name, infobuf, h5_stat)
 
 if (infobuf%type /= H5O_TYPE_GROUP_F) return
+if (.not. is_integer(g_name)) return     ! This assumes basepath uses "/%T/" to designate different bunches.
 
 !
 
 print *, trim(g_name)
 n_bunch = n_bunch + 1
 bunch => beam%bunch(n_bunch)
+bunch%charge_tot = 0
+bunch%charge_live = 0
 
-call pmd_find_group(root_id, g_name, g_id, error, .true.);  if (error) return
-call pmd_find_group(g_id, pmd_header%particlesPath, g2_id, error, .true.);  if (error) return
+call hdf5_find_group(root_id, g_name, g_id, error, .true.);  if (error) return
+call hdf5_find_group(g_id, pmd_header%particlesPath, g2_id, error, .true.);  if (error) return
+
+! Get number of particles.
+
+n = hdf5_get_attribute_int(g2_id, 'numParticles', error, .true.)
+if (error) return
+call reallocate_bunch(bunch, n)
+bunch%particle = coord_struct()
+allocate (dt(n), charge_state(n))
 
 ! Get attributes.
 
-do ia = 1, pmd_num_attributes (g2_id)
-  call pmd_get_attribute_by_index(g2_id, ia, a_id, a_name)
-  print *, trim(a_name)
+charge_factor = 0
+species = int_garbage$  ! Garbage number
+charge_state = 0
+
+do ia = 1, hdf5_num_attributes (g2_id)
+  call hdf5_get_attribute_by_index(g2_id, ia, a_id, a_name)
+  print *, 'Attribute: ', trim(a_name)
+  select case (a_name)
+  case ('speciesType')
+    call hdf5_get_attribute_string(g2_id, a_name, string, error, .true.);  if (error) return
+    species = species_id_from_openpmd(string, 0)
+  case ('numParticles')
+    ! Nothing to be done
+  case ('totalCharge')
+    bunch%charge_tot = hdf5_get_attribute_real(g2_id, a_name, error, .true.);  if (error) return
+  case ('chargeLive')
+    bunch%charge_live = hdf5_get_attribute_real(g2_id, a_name, error, .true.);  if (error) return
+  case ('chargeUnitSI')
+    charge_factor = hdf5_get_attribute_real(g2_id, a_name, error, .true.);  if (error) return
+  case default
+    call out_io (s_warn$, r_name, 'Unknown bunch attribute: ', quote(a_name))
+  end select
 enddo
+
+if (charge_factor == 0 .and. (bunch%charge_live /= 0 .or. bunch%charge_tot /= 0)) then
+  call out_io (s_error$, r_name, 'chargeUnitSI is not set for bunch')
+else
+  bunch%charge_live = bunch%charge_live * charge_factor
+  bunch%charge_tot = bunch%charge_tot * charge_factor
+endif
 
 ! Loop over all datasets.
 
-idx = 0
-c_func_ptr = c_funloc(hdf5_read_bunch_datasets)
-call H5Literate_f (g2_id, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_func_ptr, C_NULL_PTR, state, h5_err)
+call H5Gget_info_f (g2_id, storage_type, n_links, max_corder, h5_err)
+do idx = 0, n_links-1
+  call H5Lget_name_by_idx_f (g2_id, '.', H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_name, h5_err, g_size)
+  call to_f_str(c_name, name)
+  call H5Oget_info_by_name_f(g2_id, name, infobuf, h5_stat)
+  print *, 'Group: ', trim(name)
+  select case (name)
+  case ('spin')
+    call pmd_read_real_dataset(g2_id, 'spin/x', bunch%particle%spin(1), error)
+    call pmd_read_real_dataset(g2_id, 'spin/y', bunch%particle%spin(2), error)
+    call pmd_read_real_dataset(g2_id, 'spin/z', bunch%particle%spin(3), error)
+  case ('position')
+    call pmd_read_real_dataset(g2_id, 'position/x', bunch%particle%vec(1), error)
+    call pmd_read_real_dataset(g2_id, 'position/y', bunch%particle%vec(3), error)
+    call pmd_read_real_dataset(g2_id, 'position/z', bunch%particle%vec(5), error)
+  case ('momentum')
+    call pmd_read_real_dataset(g2_id, 'momentum/x', bunch%particle%vec(2), error)
+    call pmd_read_real_dataset(g2_id, 'momentum/y', bunch%particle%vec(4), error)
+    call pmd_read_real_dataset(g2_id, 'momentum/z', bunch%particle%vec(6), error)
+  case ('referenceMomentum')
+    call pmd_read_real_dataset(g2_id, 'referenceMomentum', bunch%particle%p0c, error)
+  case ('photonPolarization')
+    call hdf5_find_group(g2_id, 'photonPolarization', g3_id, error, .true.)
+    call hdf5_find_group(g3_id, 'x/amplitude', g4_id, error, .false.)
+    if (error) then
+      call pmd_read_real_dataset(g3_id, 'x/real', bunch%particle%field(1), error)
+      call pmd_read_real_dataset(g3_id, 'x/imaginary', bunch%particle%phase(1), error)
+      call to_amp_phase(bunch%particle%field(1), bunch%particle%phase(1))
+      call pmd_read_real_dataset(g3_id, 'y/real', bunch%particle%field(2), error)
+      call pmd_read_real_dataset(g3_id, 'y/imaginary', bunch%particle%phase(2), error)
+      call to_amp_phase(bunch%particle%field(2), bunch%particle%phase(2))
+    else
+      call pmd_read_real_dataset(g3_id, 'x/amplitude', bunch%particle%field(1), error)
+      call pmd_read_real_dataset(g3_id, 'x/phase', bunch%particle%phase(1), error)
+      call pmd_read_real_dataset(g3_id, 'x/amplitude', bunch%particle%field(2), error)
+      call pmd_read_real_dataset(g3_id, 'x/phase', bunch%particle%phase(2), error)
+    endif
+  case ('sPosition')
+    call pmd_read_real_dataset(g2_id, name, bunch%particle%s, error)
+  case ('time')
+    call pmd_read_real_dataset(g2_id, name, bunch%particle%t, error)
+  case ('timeOffset')
+    call pmd_read_real_dataset(g2_id, name, dt, error)
+  case ('speed')
+    call pmd_read_real_dataset(g2_id, name, bunch%particle%beta, error)
+    bunch%particle%beta = bunch%particle%beta / c_light
+  case ('weight')
+    call pmd_read_real_dataset(g2_id, name, bunch%particle%charge, error)
+  case ('particleStatus')
+    call pmd_read_int_dataset(g2_id, name, bunch%particle%state, error)
+  case ('chargeState')
+    call pmd_read_int_dataset(g2_id, name, charge_state, error)
+  case ('branchIndex')
+    call pmd_read_int_dataset(g2_id, name, bunch%particle%ix_branch, error)
+  case ('elementIndex')
+    call pmd_read_int_dataset(g2_id, name, bunch%particle%ix_ele, error)
+  case ('locationInElement')
+    call pmd_read_int_dataset(g2_id, name, bunch%particle%location, error)
+    do ip = 1, size(bunch%particle)
+      p => bunch%particle(ip)
+      select case(p%location)
+      case (-1);    p%location = upstream_end$
+      case ( 0);    p%location = inside$
+      case ( 1);    p%location = downstream_end$
+      end select
+    enddo
+  end select
+enddo
 
+do ip = 1, size(bunch%particle)
+  p => bunch%particle(ip)
+  p%vec(5) = -dt(ip) / (p%beta * c_light)
+  p%t = p%t + dt(ip)
 
+  p%species = set_species_charge(species, charge_state(ip))
+enddo
 
-end function  hdf5_read_bunch
+end function  pmd_read_bunch
 
 !------------------------------------------------------------------------------------------
 ! contains
 
-function hdf5_read_bunch_datasets (root_id, name_c, info, dummy_c_ptr) result (stat) bind(C)
+subroutine to_amp_phase(re_amp, im_phase)
+
+real(rp) re_amp(:), im_phase(:)
+real(rp) amp
+integer i
+
+!
+
+do i = 1, size(re_amp)
+  amp = norm2([re_amp(i), im_phase(i)])
+  im_phase(i) = atan2(im_phase(i), re_amp(i))
+  re_amp(i) = amp
+enddo
+
+end subroutine
+
+!------------------------------------------------------------------------------------------
+! contains
+
+function pmd_read_bunch_datasets (root_id, name_c, info, dummy_c_ptr) result (stat) bind(C)
 
 type(c_ptr) info
 type(c_ptr) dummy_c_ptr
@@ -382,9 +566,186 @@ endif
 
 bunch => beam%bunch(n_bunch)
 
-end function hdf5_read_bunch_datasets
+end function pmd_read_bunch_datasets
 
 
 end subroutine hdf5_read_beam
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine pmd_write_real_vector_to_dataset(root_id, dataset_name, bmad_name, unit, vector, error)
+
+type (pmd_unit_struct) unit
+real(rp) vector(:), v_max, v_min
+integer err
+integer(HID_T) :: root_id, v_size
+character(*) dataset_name, bmad_name
+logical error
+
+!
+
+v_max = maxval(vector)
+v_min = minval(vector)
+
+if (v_max == v_min) then
+  call pmd_write_real_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, v_max, size(vector), error) 
+  return
+endif
+
+!
+
+v_size = size(vector)
+call H5LTmake_dataset_double_f(root_id, dataset_name, 1, [v_size], vector, err)    
+
+call H5LTset_attribute_double_f(root_id, dataset_name, 'minValue', [v_min], h5_size_1, err)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'maxValue', [v_max], h5_size_1, err)
+
+call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+
+end subroutine pmd_write_real_vector_to_dataset
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine pmd_write_real_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_size, error)
+
+type (pmd_unit_struct) unit
+integer(HID_T) :: root_id, group_id
+real(rp) value
+integer v_size, err
+character(*) dataset_name, bmad_name
+logical error
+
+!
+
+call h5gcreate_f(root_id, dataset_name, group_id, err)
+
+call H5LTset_attribute_double_f(root_id, dataset_name, 'value', [value], h5_size_1, err)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', [v_size], h5_size_1, err)
+
+call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+
+call h5gclose_f(group_id, err)
+
+end subroutine pmd_write_real_to_pseudo_dataset
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine pmd_write_int_vector_to_dataset(root_id, dataset_name, bmad_name, unit, vector, error)
+
+type (pmd_unit_struct) unit
+integer vector(:), v_max, v_min
+integer err
+integer(HID_T) :: root_id, v_size
+character(*) dataset_name, bmad_name
+logical error
+
+!
+
+v_max = maxval(vector)
+v_min = minval(vector)
+
+if (v_max == v_min) then
+  call pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, v_max, size(vector), error) 
+  return
+endif
+
+!
+
+v_size = size(vector)
+call H5LTmake_dataset_int_f(root_id, dataset_name, 1, [v_size], vector, err)    
+
+call H5LTset_attribute_int_f(root_id, dataset_name, 'minValue', [v_min], h5_size_1, err)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'maxValue', [v_max], h5_size_1, err)
+
+call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+
+end subroutine pmd_write_int_vector_to_dataset
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_size, error)
+
+type (pmd_unit_struct) unit
+integer(HID_T) :: root_id, group_id
+integer value
+integer err, v_size
+character(*) dataset_name, bmad_name
+logical error
+
+!
+
+call h5gcreate_f(root_id, dataset_name, group_id, err)
+
+call H5LTset_attribute_int_f(root_id, dataset_name, 'value', [value], h5_size_1, err)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', [v_size], h5_size_1, err)
+
+call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+
+call h5gclose_f(group_id, err)
+
+end subroutine pmd_write_int_to_pseudo_dataset
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+
+type (pmd_unit_struct) unit
+integer(HID_T) :: root_id
+integer err
+logical error
+character(*) dataset_name, bmad_name
+
+if (bmad_name /= '') call H5LTset_attribute_string_f(root_id, dataset_name, 'localName', bmad_name, err)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'unitSI', [unit%unitSI], h5_size_1, err)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'unitDimension', [unit%unitDimension], h5_size_7, err)
+call H5LTset_attribute_string_f(root_id, dataset_name, 'unitSymbol', unit%unitSymbol, err)
+
+end subroutine pmd_write_units_to_dataset 
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine pmd_read_int_dataset(root_id, name, attrib_value, error)
+
+integer(HID_T) :: root_id
+
+integer attrib_value(:)
+
+logical error
+
+character(*) name
+
+!
+
+end subroutine pmd_read_int_dataset
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine pmd_read_real_dataset(root_id, name, attrib_value, error)
+
+integer(HID_T) :: root_id
+
+real(rp) attrib_value(:)
+
+logical error
+
+character(*) name
+
+!
+
+end subroutine pmd_read_real_dataset
 
 end module hdf5_bunch_mod
