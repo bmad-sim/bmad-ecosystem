@@ -3171,10 +3171,11 @@ endif
 !!!!!!!  stuff sodomite !!!!!!!
 
 
- subroutine data_normal_form_fourier_c_quaternion(fq,r)
+ subroutine data_normal_form_fourier_c_quaternion(fq,r,xi)
  implicit none
  type(layout), target :: r
  type(c_quaternion_fourier) fq
+ real(dp), optional :: xi(6)
  type(c_damap) c_map,id_s
  type(c_normal_form) c_n
  type(probe_8) xs
@@ -3225,7 +3226,9 @@ x(3)= fq%ry
 
 xr=x-fq%closed_orbit
 
-
+if(present(xi)) then
+xr=xi
+endif
 
 if(fq%no==1) then
 !!! etienne cornell !!!!
