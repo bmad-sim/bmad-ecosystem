@@ -378,6 +378,8 @@ is_eq = is_eq .and. (f1%beta == f2%beta)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
 !! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_branch == f2%ix_branch)
+!! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_user == f2%ix_user)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%state == f2%state)
@@ -2804,6 +2806,8 @@ is_eq = .true.
 is_eq = is_eq .and. (f1%use_name == f2%use_name)
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%lattice == f2%lattice)
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%machine == f2%machine)
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%input_file_name == f2%input_file_name)
 !! f_side.equality_test[character, 0, NOT]

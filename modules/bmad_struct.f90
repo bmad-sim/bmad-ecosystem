@@ -901,7 +901,7 @@ type bunch_struct
   real(rp) :: z_center = 0    ! Longitudinal center of bunch (m). Note: Generally, z_center of 
                               !   bunch #1 is 0 and z_center of the other bunches is negative.
   real(rp) :: t_center = 0    ! Center of bunch creation time relative to head bunch.
-  integer :: ix_ele = 0       ! Element this bunch is at.
+  integer :: ix_ele = 0       ! Nominal element this bunch is at. But, EG, dead particles can be someplace else.
   integer :: ix_bunch = 0     ! Bunch index. Head bunch = 1, etc.
   integer :: n_live = 0
 end type
