@@ -4,22 +4,27 @@
 ! This module defines the differnet types of particles that Bmad knows about along
 ! with masses, etc.
 !
-! ID number for fundamental particles. These parameters are provided for backwards compatibility.
-! In general, use species_id(name) to get the ID number.
-! IMPORTANT: The particular integers used for IDs can change. 
-! Do use hard coded numbers in your code. For example, the association of positrons with ID = 1 is not assured.
-
-! If |species| < 1000 -> Use elementary particle mapping (electron$ = -1, etc.)
+! IMPORTANT: DO USE HARD CODED ID NUMBERS IN YOUR CODE!! 
+! For example, the association of positrons with ID = 1 is not assured.
+! In general, use species_id(name) to get the species ID number or you can use positron$, 
+! proton$, etc, for particles that have named paramters (see below for a list).
+!
+! Decoding of species integer:
+! If |species| < 1000: Use elementary particle mapping (electron$ = -1, etc.)
 ! Else if |species| > 1000 mapping is:
-! integer species = CCPPMMMM (Hex)
+! Write in hex: species = CCPPMMMM (Hex)
 ! Where:
-! CC   = Charge (2 Hex digits up to +/- 127)
-! PP   = Particle ID (2 Hex digits).
-!         if 0 < PPP < 200 --> Atom with PPP = # Protons 
-!         if PPP = 200     --> Molecule of unknown type.
-!         if PPP > 200     --> Molecule with PPP = Species ID  [EG: nh2$ = 201, etc.]
-! MMMM = For atoms: MMMM = number of nucleons (4 Hex digits).
-!        For Molecules: 100*Mass (That is, resolution is hundredths of an AMU). 0 => Use default.
+! CC   = Charge (2 Hex digits with range [-127, 127]). Set to 0 for fundamental particles.
+! PP   = Particle ID (2 Hex digits with range [0, 255]).
+!         if PP = 0                --> Used for fundamental particles.
+!         if 0 < PP < 200 (C8 Hex) --> Atom with PP = # Protons 
+!         if PP = 200 (C8 Hex)     --> Molecule of unknown type.
+!         if PP > 200 (C8 Hex)     --> "Named" molecule. See molecular_name array below for a list. 
+!                                      In this case PP = Species ID. EG: nh2$ = 201, etc.
+! MMMM (4 Hex digits):
+!        For fundamental particles (where CC = PP = 0): Particle integer ID. 
+!        For atoms: Number of nucleons .
+!        For Molecules: 100*Mass (That is, resolution is hundredths of an AMU). 0 = Use default (only valid for "Named" molecules).
 !
 ! Example external input names:
 !   NH3+            Molecule                           01 201 00000
@@ -45,7 +50,8 @@ character(*), parameter :: invalid_name = 'INVALID!'
 
 !----------------------
 ! Fundamental particles.
-! Note: It is convenient to always define an "antiparticle" with reversed sign even though it does not exit in practice. Example: anti_deuteron$.
+! Note: It is convenient for debugging to define an "antiparticle" with reversed sign even though it does not exit in practice. 
+! Example: anti_deuteron$.
 
 integer, parameter :: pion_0$            = +8
 integer, parameter :: ref_particle$      = +7
@@ -394,7 +400,7 @@ contains
 !   charge  -- integer: Charge of the particle.
 !
 ! Output:
-!   species -- Integer: Species ID. Will return invalid$ if name is not valid.
+!   species -- integer: Species ID. Will return invalid$ if name is not valid.
 !-
 
 function species_of (mass, charge) result(species)
@@ -427,7 +433,7 @@ end function species_of
 !   name    -- Character(20): Name of the species.
 !
 ! Output:
-!   species -- Integer: Species ID. Will return invalid$ if name is not valid.
+!   species -- integer: Species ID. Will return invalid$ if name is not valid.
 !                       Will return not_set$ if name is blank
 !-
 
@@ -637,7 +643,7 @@ end function species_id
 ! Routine to return the name of a particle species given the integer index.
 !
 ! Input:
-!   species -- Integer: Species ID.
+!   species -- integer: Species ID.
 !
 ! Output:
 !   name    -- Character(20): Name of the species.
@@ -663,7 +669,7 @@ end select
 
 !
 
-if (species >= lbound(fundamental_species_name, 1) .and. species <= ubound(fundamental_species_name, 1)) then
+if (is_fundamental_species(species)) then
   name = fundamental_species_name(species)
   return
 endif
@@ -728,29 +734,74 @@ end function species_name
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !+
-! Function openpmd_species_name (species) result(name)
+! Function species_id_from_openpmd (pmd_name, charge) result(species)
 !
-! Routine to return the openPMD name of a particle species given the integer index.
+! Routine to return the Bmad species ID given the openPMD species name and given particle charge.
+! Note: If pmd_name corresponds to a fundamental particle, the charge argument is ignored.
 !
 ! Input:
-!   species -- Integer: Species ID.
+!   pmd_name      -- character(*): OpenPMD species name.
+!   charge        -- integer: Species charge. Ignored for fundamental particles.
 !
 ! Output:
-!   name    -- Character(20): Name of the species.
-!               Will return 'INVALID!' (= invalid_name) if index is not valid.
+!   species       -- integer: Bmad spicies ID number.
 !-
 
-function openpmd_species_name(species) result(name)
+function species_id_from_openpmd (pmd_name, charge) result(species)
 
-integer :: species
-character(20) :: name
+integer charge, species
+integer i
+character(*) pmd_name
 
+! Fundamental particle
+
+do i = lbound(fundamental_species_name, 1), ubound(fundamental_species_name, 1) 
+  if (pmd_name /= openPMD_fundamental_species_name(i)) cycle
+  species = i
+  return
+enddo
+
+! All else. In this case pmd_name corresponds to the Bmad name of a neutral particle.
+
+species = set_species_charge(species_id(pmd_name), charge)
+
+end function species_id_from_openpmd
+
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!+
+! Function openpmd_species_name (species) result(pmd_name)
 !
+! Routine to return the openPMD name of a particle species given the Bmad species ID.
+! Note: the pmd_name does not include the particle charge. For example, if species
+! corresponds to He+ then the pmd_name will be "He".
+!
+! Input:
+!   species   -- integer: Bmad species ID number.
+!
+! Output:
+!   pmd_name  -- Character(20): Name of the species.
+!                Will return 'INVALID!' (= invalid_name) if index is not valid.
+!-
 
-if (species >= lbound(fundamental_species_name, 1) .and. species <= ubound(fundamental_species_name, 1)) then
-  name = openpmd_fundamental_species_name(species)
+function openpmd_species_name(species) result(pmd_name)
+
+integer :: species, ix
+character(20) :: pmd_name
+
+! Fundamental particles
+
+if (is_fundamental_species(species)) then
+  pmd_name = openpmd_fundamental_species_name(species)
+
+! All else just remove any charge suffix. EG: "H-" -> "H".
 else
-  name = 'Garbage!'
+  pmd_name = species_name(species)
+  ix = index(pmd_name, '+')
+  if (ix /= 0) pmd_name = pmd_name(1:ix-1)
+  ix = index(pmd_name, '-')
+  if (ix /= 0) pmd_name = pmd_name(1:ix-1)
 endif
 
 end function openpmd_species_name
@@ -761,10 +812,10 @@ end function openpmd_species_name
 !+
 ! Function anomalous_moment_of (species) result (moment)
 !
-! Routine to return the anomolous moment
+! Routine to return the anomolous moment for fundamental species type. Otherwise returns 0.
 !
 ! Input:
-!   species -- Integer: Species ID.
+!   species -- integer: Species ID.
 !
 ! Output:
 !   moment  -- real(rp) 
@@ -775,7 +826,7 @@ integer :: species
 real(rp) :: moment
 !
 
-if (species >= lbound(fundamental_species_name, 1) .and. species <= ubound(fundamental_species_name, 1)) then
+if (is_fundamental_species(species)) then
 	moment = anomalous_moment_of_fundamental(species)
 	return
 endif
@@ -793,7 +844,7 @@ end function anomalous_moment_of
 ! Routine to return the charge, in units of e+, of a particle.
 !
 ! Input:
-!   species -- Integer: Species ID.
+!   species -- integer: Species ID.
 !
 ! Output:
 !   charge -- integer: particle charge.
@@ -804,7 +855,7 @@ integer :: charge, species
 character(*), parameter :: r_name = 'charge_of'
 !
 
-if (species >= lbound(fundamental_species_name, 1) .and. species <= ubound(fundamental_species_name, 1)) then
+if (is_fundamental_species(species)) then
 	charge = charge_of_fundamental(species)
 	return
 endif
@@ -831,7 +882,7 @@ end function charge_of
 ! Routine to return the mass, in units of eV/c^2, of a particle.
 !
 ! Input:
-!   species -- Integer: Species ID.
+!   species -- integer: Species ID.
 !
 ! Output:
 !   mass -- real(rp): particle mass. Set to real_garbage$ if species value is invalid.
@@ -847,7 +898,7 @@ character(*), parameter :: r_name = 'mass_of'
 
 mass = real_garbage$
 
-if (species >= lbound(fundamental_species_name, 1) .and. species <= ubound(fundamental_species_name, 1)) then
+if (is_fundamental_species(species)) then
 	mass = mass_of_fundamental(species)
 	return
 endif
@@ -908,7 +959,7 @@ end function mass_of
 ! Routine to return the charge (in units of e+) to mass (units of eV/c^2) ration of a particle.
 !
 ! Input:
-!   species -- Integer: Species ID.
+!   species -- integer: Species ID.
 !
 ! Output:
 !   charge_mass_ratio -- real(rp): particle charge to mass ratio.
@@ -926,6 +977,67 @@ character(*), parameter :: r_name = 'charge_to_mass_of'
 charge_mass_ratio = charge_of(species) / mass_of(species)
 
 end function charge_to_mass_of
+
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!+
+! Function set_species_charge(species_in, charge) result(species_charged)
+!
+! Routine to return the ID for a particle of the same type as species_in but with a different charge.
+! Exception: If species_in corresponds to a fundamental particle, the charge argument is ignored and
+! species_charged will be set equal to species_in.
+!
+! Input:
+!   species_in      -- integer: Input species.
+!   charge          -- integer: Charge to set species_charged to.
+!
+! Output:
+!   species_charged -- integer: Species of the same type as species_in but with different charge.
+!-
+
+function set_species_charge(species_in, charge) result(species_charged)
+
+integer species_in, charge, species_charged
+character(*), parameter :: r_name = 'set_species_charge'
+
+!
+
+if (is_fundamental_species(species_in)) then
+  species_charged = species_in
+  return
+endif
+
+species_charged = species_in +  z'1000000' * (charge - species_in / z'1000000')
+
+end function set_species_charge
+
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!+
+! Function is_fundamental_species(species) result (is_fundamental)
+!
+! Routine to return True if species argument corresponds to a fundamental particle.
+!
+! Input:
+!   species     -- integer: Spicies ID.
+!
+! Output:
+!   is_fundamental  -- logical: Set True if species corresponds to a fundamental particle.
+!-
+
+elemental function is_fundamental_species(species) result (is_fundamental)
+
+integer, intent(in) :: species
+logical is_fundamental
+
+!
+
+is_fundamental = (lbound(fundamental_species_name, 1) <= species .and. &
+                                species <= ubound(fundamental_species_name, 1)) 
+
+end function is_fundamental_species
 
 end module
 
