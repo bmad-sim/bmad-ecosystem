@@ -473,22 +473,22 @@ extern "C" void coord_to_c (const Opaque_coord_class*, CPP_coord&);
 // c_side.to_f2_arg
 extern "C" void coord_to_f2 (Opaque_coord_class*, c_RealArr, c_Real&, c_Real&, c_RealArr,
     c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&,
-    c_Int&, c_Int&, c_Int&);
+    c_Int&, c_Int&, c_Int&, c_Int&);
 
 extern "C" void coord_to_f (const CPP_coord& C, Opaque_coord_class* F) {
 
   // c_side.to_f2_call
   coord_to_f2 (F, &C.vec[0], C.s, C.t, &C.spin[0], &C.field[0], &C.phase[0], C.charge,
-      C.path_len, C.r, C.p0c, C.beta, C.ix_ele, C.ix_user, C.state, C.direction, C.species,
-      C.location);
+      C.path_len, C.r, C.p0c, C.beta, C.ix_ele, C.ix_branch, C.ix_user, C.state, C.direction,
+      C.species, C.location);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void coord_to_c2 (CPP_coord& C, c_RealArr z_vec, c_Real& z_s, c_Real& z_t, c_RealArr
     z_spin, c_RealArr z_field, c_RealArr z_phase, c_Real& z_charge, c_Real& z_path_len, c_Real&
-    z_r, c_Real& z_p0c, c_Real& z_beta, c_Int& z_ix_ele, c_Int& z_ix_user, c_Int& z_state,
-    c_Int& z_direction, c_Int& z_species, c_Int& z_location) {
+    z_r, c_Real& z_p0c, c_Real& z_beta, c_Int& z_ix_ele, c_Int& z_ix_branch, c_Int& z_ix_user,
+    c_Int& z_state, c_Int& z_direction, c_Int& z_species, c_Int& z_location) {
 
   // c_side.to_c2_set[real, 1, NOT]
   C.vec << z_vec;
@@ -514,6 +514,8 @@ extern "C" void coord_to_c2 (CPP_coord& C, c_RealArr z_vec, c_Real& z_s, c_Real&
   C.beta = z_beta;
   // c_side.to_c2_set[integer, 0, NOT]
   C.ix_ele = z_ix_ele;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.ix_branch = z_ix_branch;
   // c_side.to_c2_set[integer, 0, NOT]
   C.ix_user = z_ix_user;
   // c_side.to_c2_set[integer, 0, NOT]
@@ -4000,7 +4002,7 @@ extern "C" void branch_to_c2 (CPP_branch& C, c_Char z_name, c_Int& z_ix_branch, 
 extern "C" void lat_to_c (const Opaque_lat_class*, CPP_lat&);
 
 // c_side.to_f2_arg
-extern "C" void lat_to_f2 (Opaque_lat_class*, c_Char, c_Char, c_Char, c_Char, const
+extern "C" void lat_to_f2 (Opaque_lat_class*, c_Char, c_Char, c_Char, c_Char, c_Char, const
     CPP_expression_atom**, Int, const CPP_mode_info&, const CPP_mode_info&, const
     CPP_mode_info&, const CPP_lat_param&, const CPP_bookkeeping_state&, const CPP_ele&, const
     CPP_ele**, Int, const CPP_branch**, Int, const CPP_control**, Int, const
@@ -4058,12 +4060,12 @@ extern "C" void lat_to_f (const CPP_lat& C, Opaque_lat_class* F) {
   }
 
   // c_side.to_f2_call
-  lat_to_f2 (F, C.use_name.c_str(), C.lattice.c_str(), C.input_file_name.c_str(),
-      C.title.c_str(), z_constant, n1_constant, C.a, C.b, C.z, C.param, C.lord_state,
-      C.ele_init, z_ele, n1_ele, z_branch, n1_branch, z_control, n1_control, z_surface,
-      n1_surface, C.particle_start, C.pre_tracker, z_custom, n1_custom, C.version,
-      C.n_ele_track, C.n_ele_max, C.n_control_max, C.n_ic_max, C.input_taylor_order, z_ic,
-      n1_ic, C.photon_type, C.absolute_time_tracking, C.ptc_uses_hard_edge_drifts);
+  lat_to_f2 (F, C.use_name.c_str(), C.lattice.c_str(), C.machine.c_str(),
+      C.input_file_name.c_str(), C.title.c_str(), z_constant, n1_constant, C.a, C.b, C.z,
+      C.param, C.lord_state, C.ele_init, z_ele, n1_ele, z_branch, n1_branch, z_control,
+      n1_control, z_surface, n1_surface, C.particle_start, C.pre_tracker, z_custom, n1_custom,
+      C.version, C.n_ele_track, C.n_ele_max, C.n_control_max, C.n_ic_max, C.input_taylor_order,
+      z_ic, n1_ic, C.photon_type, C.absolute_time_tracking, C.ptc_uses_hard_edge_drifts);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_constant;
@@ -4078,8 +4080,8 @@ extern "C" void lat_to_f (const CPP_lat& C, Opaque_lat_class* F) {
 }
 
 // c_side.to_c2_arg
-extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Char
-    z_input_file_name, c_Char z_title, Opaque_expression_atom_class** z_constant, Int
+extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Char z_machine,
+    c_Char z_input_file_name, c_Char z_title, Opaque_expression_atom_class** z_constant, Int
     n1_constant, const Opaque_mode_info_class* z_a, const Opaque_mode_info_class* z_b, const
     Opaque_mode_info_class* z_z, const Opaque_lat_param_class* z_param, const
     Opaque_bookkeeping_state_class* z_lord_state, const Opaque_ele_class* z_ele_init,
@@ -4095,6 +4097,8 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
   C.use_name = z_use_name;
   // c_side.to_c2_set[character, 0, NOT]
   C.lattice = z_lattice;
+  // c_side.to_c2_set[character, 0, NOT]
+  C.machine = z_machine;
   // c_side.to_c2_set[character, 0, NOT]
   C.input_file_name = z_input_file_name;
   // c_side.to_c2_set[character, 0, NOT]

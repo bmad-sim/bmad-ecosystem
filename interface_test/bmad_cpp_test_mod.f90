@@ -1235,15 +1235,17 @@ rhs = 11 + offset; F%beta = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 12 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 13 + offset; F%ix_user = rhs
+rhs = 13 + offset; F%ix_branch = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 14 + offset; F%state = rhs
+rhs = 14 + offset; F%ix_user = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 15 + offset; F%direction = rhs
+rhs = 15 + offset; F%state = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 16 + offset; F%species = rhs
+rhs = 16 + offset; F%direction = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 17 + offset; F%location = rhs
+rhs = 17 + offset; F%species = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 18 + offset; F%location = rhs
 
 end subroutine set_coord_test_pattern
 
@@ -8813,12 +8815,16 @@ do jd1 = 1, len(F%lattice)
   F%lattice(jd1:jd1) = char(ichar("a") + modulo(100+2+offset+jd1, 26))
 enddo
 !! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%machine)
+  F%machine(jd1:jd1) = char(ichar("a") + modulo(100+3+offset+jd1, 26))
+enddo
+!! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%input_file_name)
-  F%input_file_name(jd1:jd1) = char(ichar("a") + modulo(100+3+offset+jd1, 26))
+  F%input_file_name(jd1:jd1) = char(ichar("a") + modulo(100+4+offset+jd1, 26))
 enddo
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%title)
-  F%title(jd1:jd1) = char(ichar("a") + modulo(100+4+offset+jd1, 26))
+  F%title(jd1:jd1) = char(ichar("a") + modulo(100+5+offset+jd1, 26))
 enddo
 !! f_side.test_pat[type, 1, ALLOC]
 
@@ -8893,22 +8899,22 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%custom)) allocate (F%custom(-1:1))
   do jd1 = 1, size(F%custom,1); lb1 = lbound(F%custom,1) - 1
-    rhs = 100 + jd1 + 23 + offset
+    rhs = 100 + jd1 + 24 + offset
     F%custom(jd1+lb1) = rhs
   enddo
 endif
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 25 + offset; F%version = rhs
+rhs = 26 + offset; F%version = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 26 + offset; F%n_ele_track = rhs
+rhs = 27 + offset; F%n_ele_track = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 27 + offset; F%n_ele_max = rhs
+rhs = 28 + offset; F%n_ele_max = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 28 + offset; F%n_control_max = rhs
+rhs = 29 + offset; F%n_control_max = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 29 + offset; F%n_ic_max = rhs
+rhs = 30 + offset; F%n_ic_max = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 30 + offset; F%input_taylor_order = rhs
+rhs = 31 + offset; F%input_taylor_order = rhs
 !! f_side.test_pat[integer, 1, ALLOC]
 
 if (ix_patt < 3) then
@@ -8916,16 +8922,16 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%ic)) allocate (F%ic(-1:1))
   do jd1 = 1, size(F%ic,1); lb1 = lbound(F%ic,1) - 1
-    rhs = 100 + jd1 + 31 + offset
+    rhs = 100 + jd1 + 32 + offset
     F%ic(jd1+lb1) = rhs
   enddo
 endif
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 33 + offset; F%photon_type = rhs
+rhs = 34 + offset; F%photon_type = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 34 + offset; F%absolute_time_tracking = (modulo(rhs, 2) == 0)
+rhs = 35 + offset; F%absolute_time_tracking = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 35 + offset; F%ptc_uses_hard_edge_drifts = (modulo(rhs, 2) == 0)
+rhs = 36 + offset; F%ptc_uses_hard_edge_drifts = (modulo(rhs, 2) == 0)
 
 end subroutine set_lat_test_pattern
 

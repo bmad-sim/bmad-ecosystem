@@ -240,6 +240,7 @@ bool operator== (const CPP_coord& x, const CPP_coord& y) {
   is_eq = is_eq && (x.p0c == y.p0c);
   is_eq = is_eq && (x.beta == y.beta);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
+  is_eq = is_eq && (x.ix_branch == y.ix_branch);
   is_eq = is_eq && (x.ix_user == y.ix_user);
   is_eq = is_eq && (x.state == y.state);
   is_eq = is_eq && (x.direction == y.direction);
@@ -1533,6 +1534,7 @@ bool operator== (const CPP_lat& x, const CPP_lat& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.use_name == y.use_name);
   is_eq = is_eq && (x.lattice == y.lattice);
+  is_eq = is_eq && (x.machine == y.machine);
   is_eq = is_eq && (x.input_file_name == y.input_file_name);
   is_eq = is_eq && (x.title == y.title);
   is_eq = is_eq && is_all_equal(x.constant, y.constant);

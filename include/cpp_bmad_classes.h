@@ -800,6 +800,7 @@ public:
   Real p0c;
   Real beta;
   Int ix_ele;
+  Int ix_branch;
   Int ix_user;
   Int state;
   Int direction;
@@ -819,6 +820,7 @@ public:
     p0c(0.0),
     beta(-1),
     ix_ele(-1),
+    ix_branch(-1),
     ix_user(-1),
     state(Bmad::NOT_SET),
     direction(1),
@@ -2525,8 +2527,8 @@ public:
     dt_bunch(0.0),
     sig_z(0.0),
     sig_e(0.0),
-    bunch_charge(1),
-    n_bunch(1),
+    bunch_charge(0.0),
+    n_bunch(0),
     species(),
     init_spin(true),
     full_6d_coupling_calc(false),
@@ -3502,6 +3504,7 @@ class CPP_lat {
 public:
   string use_name;
   string lattice;
+  string machine;
   string input_file_name;
   string title;
   CPP_expression_atom_ARRAY constant;
@@ -3532,6 +3535,7 @@ public:
   CPP_lat() :
     use_name(),
     lattice(),
+    machine(),
     input_file_name(),
     title(),
     constant(CPP_expression_atom_ARRAY(CPP_expression_atom(), 0)),

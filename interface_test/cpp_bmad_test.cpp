@@ -776,19 +776,22 @@ void set_CPP_coord_test_pattern (CPP_coord& C, int ix_patt) {
   rhs = 12 + offset; C.ix_ele = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 13 + offset; C.ix_user = rhs;
+  rhs = 13 + offset; C.ix_branch = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 14 + offset; C.state = rhs;
+  rhs = 14 + offset; C.ix_user = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 15 + offset; C.direction = rhs;
+  rhs = 15 + offset; C.state = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 16 + offset; C.species = rhs;
+  rhs = 16 + offset; C.direction = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 17 + offset; C.location = rhs;
+  rhs = 17 + offset; C.species = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 18 + offset; C.location = rhs;
 
 
 }
@@ -6103,13 +6106,17 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   for (unsigned int i = 0; i < C.lattice.size(); i++)
     {int rhs = 101 + i + 2 + offset; C.lattice[i] = 'a' + rhs % 26;}
   // c_side.test_pat[character, 0, NOT]
+  C.machine.resize(40);
+  for (unsigned int i = 0; i < C.machine.size(); i++)
+    {int rhs = 101 + i + 3 + offset; C.machine[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[character, 0, NOT]
   C.input_file_name.resize(200);
   for (unsigned int i = 0; i < C.input_file_name.size(); i++)
-    {int rhs = 101 + i + 3 + offset; C.input_file_name[i] = 'a' + rhs % 26;}
+    {int rhs = 101 + i + 4 + offset; C.input_file_name[i] = 'a' + rhs % 26;}
   // c_side.test_pat[character, 0, NOT]
   C.title.resize(80);
   for (unsigned int i = 0; i < C.title.size(); i++)
-    {int rhs = 101 + i + 4 + offset; C.title[i] = 'a' + rhs % 26;}
+    {int rhs = 101 + i + 5 + offset; C.title[i] = 'a' + rhs % 26;}
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
     C.constant.resize(0);
@@ -6180,25 +6187,25 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   else {
     C.custom.resize(3);
     for (unsigned int i = 0; i < C.custom.size(); i++)
-      {int rhs = 101 + i + 23 + offset; C.custom[i] = rhs;}  }
+      {int rhs = 101 + i + 24 + offset; C.custom[i] = rhs;}  }
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 25 + offset; C.version = rhs;
+  rhs = 26 + offset; C.version = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 26 + offset; C.n_ele_track = rhs;
+  rhs = 27 + offset; C.n_ele_track = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 27 + offset; C.n_ele_max = rhs;
+  rhs = 28 + offset; C.n_ele_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 28 + offset; C.n_control_max = rhs;
+  rhs = 29 + offset; C.n_control_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 29 + offset; C.n_ic_max = rhs;
+  rhs = 30 + offset; C.n_ic_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 30 + offset; C.input_taylor_order = rhs;
+  rhs = 31 + offset; C.input_taylor_order = rhs;
 
   // c_side.test_pat[integer, 1, ALLOC]
   if (ix_patt < 3) 
@@ -6206,16 +6213,16 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   else {
     C.ic.resize(3);
     for (unsigned int i = 0; i < C.ic.size(); i++)
-      {int rhs = 101 + i + 31 + offset; C.ic[i] = rhs;}  }
+      {int rhs = 101 + i + 32 + offset; C.ic[i] = rhs;}  }
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 33 + offset; C.photon_type = rhs;
+  rhs = 34 + offset; C.photon_type = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 34 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
+  rhs = 35 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 35 + offset; C.ptc_uses_hard_edge_drifts = (rhs % 2 == 0);
+  rhs = 36 + offset; C.ptc_uses_hard_edge_drifts = (rhs % 2 == 0);
 
 
 }
