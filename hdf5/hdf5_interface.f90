@@ -10,11 +10,26 @@ implicit none
 
 integer(hsize_t), parameter :: h5_size_1 = 1
 integer(hsize_t), parameter :: h5_size_7 = 7
+integer, parameter :: H5O_TYPE_ATTRIBUTE_F = 123
+
+! %element_type identifies the type of element (group, dataset or attribute) can be:
+!   H5O_TYPE_GROUP_F
+!   H5O_TYPE_DATASET_F
+!   H5O_TYPE_ATTRIBUTE_F   ! Defined by bmad. Not by HDF5.
+!   anything else is not useful.
+!
+! %data_type identifies the type of the underlying data. Not relavent for groups. can be:
+!   H5T_FLOAT_F
+!   H5T_INTEGER_F
+!   H5T_STRING_F
+!   anything else is not useful.
 
 type hdf5_info_struct
-  integer :: type_class = -1
-  integer(HSIZE_T) :: dimension(3) = 0   ! Dimensions. EG: Scaler attributes are [1, 0, 0].
-  integer(SIZE_T) :: size
+  integer :: element_type = -1         ! Type of the element. See above.
+  integer :: data_type = -1            ! Type of associated data. Not used for groups. See above.
+  integer(HSIZE_T) :: data_dim(3) = 0  ! Dimensions. Not used for groups. EG: Scaler data has [1, 0, 0].
+  integer(SIZE_T) :: data_size = -1    ! Size of datums. Not used for groups. For strings size = # of characters.
+  integer :: num_attributes = -1       ! Number of associated attributes. Used for groups and datasets only.
 end type
 
 contains
@@ -59,8 +74,9 @@ end subroutine hdf5_write_real_attrib
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+! Note: Use H5Gclose_f to close the group.
 
-subroutine hdf5_find_group(f_id, group_name, g_id, error, print_error)
+function hdf5_open_group (f_id, group_name, error, print_error) result (g_id)
 
 integer(HID_T) f_id, g_id
 integer h5_err
@@ -69,7 +85,7 @@ logical error, print_error
 logical exists
 
 character(*) group_name
-character(*), parameter :: r_name = 'hdf5_find_group'
+character(*), parameter :: r_name = 'hdf5_open_group'
 
 !
 
@@ -86,7 +102,87 @@ call H5Gopen_f (f_id, group_name, g_id, h5_err, H5P_DEFAULT_F)
 if (h5_err == -1) return
 error = .false.
 
-end subroutine hdf5_find_group
+end function hdf5_open_group
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+function hdf5_open_object(f_id, object_name, info, error, print_error) result (obj_id)
+
+type (hdf5_info_struct) info
+
+integer(HID_T) f_id, obj_id
+integer h5_err
+
+logical error, print_error
+
+character(*) object_name
+character(*), parameter :: r_name = 'hdf5_open_object'
+
+!
+
+if (info%element_type == H5O_TYPE_DATASET_F) then
+  obj_id = hdf5_open_dataset (f_id, object_name, error, print_error) 
+elseif (info%element_type == H5O_TYPE_GROUP_F) then
+  obj_id = hdf5_open_group(f_id, object_name, error, print_error) 
+endif
+
+end function hdf5_open_object
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine hdf5_close_object(obj_id, info)
+
+type (hdf5_info_struct) info
+
+integer(HID_T) obj_id
+integer h5_err
+
+!
+
+if (info%element_type == H5O_TYPE_DATASET_F) then
+  call H5Dclose_f(obj_id, h5_err)
+elseif (info%element_type == H5O_TYPE_GROUP_F) then
+  call H5Gclose_f(obj_id, h5_err)
+endif
+
+end subroutine hdf5_close_object
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+! Note: Use H5Dclose_f to close the group.
+
+function hdf5_open_dataset (f_id, dataset_name, error, print_error) result (ds_id)
+
+integer(HID_T) f_id, ds_id
+integer h5_err
+
+logical error, print_error
+logical exists
+
+character(*) dataset_name
+character(*), parameter :: r_name = 'hdf5_open_dataset'
+
+!
+
+error = .true.
+call H5Lexists_f(f_id, dataset_name, exists, h5_err, H5P_DEFAULT_F)
+if (.not. exists) then
+  if (print_error) then
+    call out_io (s_error$, r_name, 'DATASET DOES NOT EXIST: ' // quote(dataset_name))
+  endif
+  return
+endif
+ 
+call H5Dopen_f (f_id, dataset_name, ds_id, h5_err, H5P_DEFAULT_F)
+if (h5_err == -1) return
+error = .false.
+
+end function hdf5_open_dataset
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
@@ -153,7 +249,8 @@ if (.not. exists .or. h5_err == -1) then
   return
 endif
 
-call H5LTget_attribute_info_f(root_id, '.', attrib_name, info%dimension, info%type_class, info%size, h5_err)
+call H5LTget_attribute_info_f(root_id, '.', attrib_name, info%data_dim, info%data_type, info%data_size, h5_err)
+info%element_type = H5O_TYPE_ATTRIBUTE_F
 
 if (h5_err < 0) then
   if (print_error) call out_io (s_error$, r_name, 'CANNOT FILE ATTRIBUTE: ' // attrib_name)
@@ -187,7 +284,7 @@ attrib_value = 0
 
 info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
 
-if (info%type_class == H5T_INTEGER_F) then
+if (info%data_type == H5T_INTEGER_F) then
   call H5LTget_attribute_int_f(root_id, '.', attrib_name, a_val, h5_err)
   attrib_value = a_val(1)
 else
@@ -224,7 +321,7 @@ error = .true.
 
 info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
 
-if (info%type_class == H5T_INTEGER_F .or. info%type_class == H5T_FLOAT_F) then
+if (info%data_type == H5T_INTEGER_F .or. info%data_type == H5T_FLOAT_F) then
   call H5LTget_attribute_double_f(root_id, '.', attrib_name, a_val, h5_err)
   attrib_value = a_val(1)
 else
@@ -260,14 +357,14 @@ attrib_value = 0
 
 info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
 
-if (info%type_class /= H5T_STRING_F) then
+if (info%data_type /= H5T_STRING_F) then
   if (print_error) then
     call out_io (s_error$, r_name, 'ATTRIBUTE: ' // attrib_name, 'IS NOT A STRING!')
   endif
   return
 endif
 
-allocate(character(info%size) :: string)
+allocate(character(info%data_size) :: string)
 call H5LTget_attribute_string_f(root_id, '.', attrib_name, string, h5_err)
 if (h5_err < 0) then
   if (print_error) then
@@ -279,5 +376,37 @@ endif
 error = .false.
 
 end subroutine hdf5_get_attribute_string
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+function hdf5_get_object_info (root_id, name, error, print_error) result (info)
+
+type (hdf5_info_struct) info
+type (H5O_info_t) :: infobuf 
+
+integer(hid_t), value :: root_id
+integer stat, h5_err
+
+character(*) name
+
+logical error, print_error
+
+!
+
+error = .true.
+
+call H5Oget_info_by_name_f(root_id, name, infobuf, h5_err)
+info%element_type = infobuf%type
+info%num_attributes = infobuf%num_attrs
+
+if (info%element_type == H5O_TYPE_DATASET_F) then
+  call H5LTget_dataset_info_f(root_id, name, info%data_dim, info%data_type, info%data_size, h5_err)
+endif
+
+error = .false.
+
+end function hdf5_get_object_info
 
 end module
