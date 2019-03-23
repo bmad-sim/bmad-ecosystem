@@ -476,8 +476,10 @@ else
   call make_v_mats(ele, v_mat, v_inv)
 endif
 
-bunch%charge_tot = beam_init%bunch_charge
 bunch%ix_ele = ele%ix_ele
+bunch%charge_tot = beam_init%bunch_charge
+bunch%charge_live = beam_init%bunch_charge
+bunch%n_live = size(bunch%particle)
 
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)

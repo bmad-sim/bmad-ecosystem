@@ -924,13 +924,11 @@ select case (i_style)
     
     ! Use the mean time as a reference 
     orb_ref%t = sum( bunch%particle(:)%t *  bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$)) / charge_alive
-    ! Old: 
-    !orb_ref%t = branch%ele(bunch%ix_ele)%ref_time
     
     ! For now just use the first particle to copy information:
     orb = bunch%particle(1)
     orb_ref%s = orb%s
-    orb_ref%ix_ele = bunch%ix_ele
+    orb_ref%ix_ele = orb%ix_ele
     orb_ref%p0c = orb%p0c
     orb_ref%species = orb%species
     a_species_id = astra_species_id(orb_ref%species)

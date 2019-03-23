@@ -384,6 +384,10 @@ do i = 1, n_bunch
   else
     p%charge = p%charge * bunch%charge_tot / sum_charge
   endif
+
+  bunch%charge_live = sum(p%charge, (p%state == alive$))
+  bunch%n_live = count(p%state == alive$)
+
 enddo
 
 close (iu)
