@@ -9542,6 +9542,7 @@ endif
       sol=-(sol.d.1) 
       j=0
       j(1)=i
+ 
       cker=(sol.sub.j)
       df=df-cker*dreal(-z**(I+1)/(I+1))
       f=f+df
