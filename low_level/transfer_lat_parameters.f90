@@ -27,6 +27,7 @@ type (lat_struct) :: lat_out
 !
 
 lat_out%use_name                  = lat_in%use_name
+lat_out%machine                   = lat_in%machine
 lat_out%lattice                   = lat_in%lattice
 lat_out%input_file_name           = lat_in%input_file_name
 lat_out%title                     = lat_in%title

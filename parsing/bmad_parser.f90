@@ -837,11 +837,9 @@ branch_loop: do i_loop = 1, n_branch_max
     ! The lattice name from a "parameter[lattice] = ..." line is 
     ! stored the param_ele%descrip string
 
-    if (associated(param_ele%descrip)) then
-      lat%lattice = param_ele%descrip
-      deallocate (param_ele%descrip)
-    endif
-
+    lat%lattice = in_lat%lattice
+    lat%machine = in_lat%machine
+    
     ! Set live_branch.
 
     val = param_ele%value(live_branch$)

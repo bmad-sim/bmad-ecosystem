@@ -17,7 +17,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 229
+integer, parameter :: bmad_inc_version$ = 230
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1232,6 +1232,7 @@ end type
 type lat_struct
   character(40) :: use_name = ''                   ! Name of lat given by USE statement
   character(40) :: lattice = ''                    ! Lattice
+  character(40) :: machine = ''                    ! Name of the machine the lattice is for ("LHC", etc).
   character(200) :: input_file_name = ''           ! Name of the lattice input file
   character(80) :: title = ''                      ! General title
   type (expression_atom_struct), allocatable :: constant(:)  ! Constants defined in the lattice
@@ -1459,7 +1460,7 @@ integer, parameter :: eta_y$ = 83, electric_dipole_moment$ = 83, lr_self_wake_on
 integer, parameter :: etap_x$ = 84, lr_wake_file$ = 84, px_ref$ = 84, elliptical_curvature_x$ = 84
 integer, parameter :: etap_y$ = 85, lr_freq_spread$ = 85, y_ref$ = 85, elliptical_curvature_y$ = 85
 integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86, py_ref$ = 86, elliptical_curvature_z$ = 86
-integer, parameter :: aperture_type$ = 87, eta_z$ = 87
+integer, parameter :: aperture_type$ = 87, eta_z$ = 87, machine$ = 87
 integer, parameter :: taylor_map_includes_offsets$ = 88, cmat_11_begin$ = 88, surface_attrib$ = 88
 integer, parameter :: csr_calc_on$ = 89, cmat_12_begin$ = 89, var$ = 89, z_ref$ = 89
 integer, parameter :: cmat_21_begin$ = 90, pz_ref$ = 90

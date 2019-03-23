@@ -175,7 +175,7 @@ enddo
 ! we read (and write) the lat in pieces since it is
 ! too big to write in one piece
 
-read (d_unit, err = 9030) lat%use_name, lat%lattice, lat%input_file_name, lat%title
+read (d_unit, err = 9030) lat%use_name, lat%machine, lat%lattice, lat%input_file_name, lat%title
 read (d_unit, err = 9030) lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track
 read (d_unit, err = 9030) lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, lat%n_ic_max
 read (d_unit, err = 9030) lat%input_taylor_order, lat%absolute_time_tracking, lat%photon_type
