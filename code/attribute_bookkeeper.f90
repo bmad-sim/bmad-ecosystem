@@ -347,6 +347,9 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
         val(num_steps$) = 10
         val(ds_step$) = abs(val(l$)) / val(num_steps$) 
       endif
+      if (val(rf_frequency$) /= 0 .and. nint(val(longitudinal_mode$)) == 1) then
+        val(wall_radius$) = 2.40482555769577_rp * c_light / (twopi * val(rf_frequency$))
+      endif
     end select
   endif
 

@@ -404,6 +404,15 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       err_flag = .true.
     endif
 
+    if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. &
+          (nint(ele%value(longitudinal_mode$)) /= 0 .and. nint(ele%value(longitudinal_mode$)) /= 1)) then
+      call out_io (s_fatal$, r_name, &
+                    'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                    'WHICH IS AN LCAVITY OR RF CAVITY HAS LONGITUDINAL_MODE SET TO SOMETHING NOT 0 OR 1: \i0\ ', &
+                    i_array = [nint(ele%value(longitudinal_mode$))] )
+      err_flag = .true.
+    endif
+
     ! Check that a true rbend has e1 + e2 = angle.
 
     if (ele%key == sbend$ .and. nint(ele%value(ptc_field_geometry$)) == true_rbend$) then
