@@ -75,19 +75,19 @@ type (lat_struct) lat
 real(rp), allocatable :: rvec(:)
 
 integer(HID_T) f_id, g_id, z_id, z2_id, r_id, b_id, b2_id
-integer i, n, ib, ix, h5_err
+integer i, n, ib, ix, h5_err, h_err
 integer, allocatable :: ivec(:)
 
 character(*) file_name
 character(20) date_time, root_path, bunch_path, particle_path, fmt
 character(100) this_path
+character(*), parameter :: r_name = 'hdf5_write_beam'
 
-logical error
+logical error, err
 
 ! Open a new file using default properties.
 
-call h5open_f(h5_err)  ! Init Fortran interface
-call h5fcreate_f (file_name, H5F_ACC_TRUNC_F, f_id, h5_err)
+call hdf5_open_file (file_name, .false., f_id, err);  if (err) return
 
 ! Write some header stuff
 
@@ -96,6 +96,7 @@ root_path = '/data/'
 bunch_path = '%T/'
 particle_path = 'particles/'
 
+call hdf5_write_string_attrib(f_id, 'fileType', 'openPMD')
 call hdf5_write_string_attrib(f_id, 'openPMD', '2.0.0')
 call hdf5_write_string_attrib(f_id, 'openPMDextension', 'BeamPhysics;SpeciesType')
 call hdf5_write_string_attrib(f_id, 'basePath', trim(root_path) // trim(bunch_path))
@@ -400,6 +401,7 @@ integer(HID_T) f_id, g_id, z_id, z2_id, r_id, b_id
 integer(HSIZE_T) idx
 integer(SIZE_T) g_size
 integer i, ik, ib, ix, is, it, state, h5_err, n_bunch, storage_type, n_links, max_corder, h5_stat
+integer h_err
 integer, allocatable :: ivec(:)
 
 character(*) file_name
@@ -411,8 +413,7 @@ logical error, err
 
 error = .true.
 
-call h5open_f(h5_err)  ! Init Fortran interface
-call h5fopen_f(file_name, H5F_ACC_RDONLY_F, f_id, h5_err)
+call hdf5_open_file (file_name, .true., f_id, err);  if (err) return
 
 ! Get header info
 
@@ -520,7 +521,6 @@ if (.not. is_integer(g_name)) return     ! This assumes basepath uses "/%T/" to 
 
 !
 
-print *, trim(g_name)
 n_bunch = n_bunch + 1
 bunch => beam%bunch(n_bunch)
 bunch%charge_tot = 0
@@ -545,7 +545,6 @@ charge_state = 0
 
 do ia = 1, hdf5_num_attributes (g2_id)
   call hdf5_get_attribute_by_index(g2_id, ia, a_id, a_name)
-  print *, 'Attribute: ', trim(a_name)
   select case (a_name)
   case ('speciesType')
     call hdf5_get_attribute_string(g2_id, a_name, string, error, .true.);  if (error) return
@@ -577,7 +576,6 @@ do idx = 0, n_links-1
   call H5Lget_name_by_idx_f (g2_id, '.', H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_name, h5_err, g_size)
   call to_f_str(c_name, name)
   call H5Oget_info_by_name_f(g2_id, name, infobuf, h5_stat)
-  print *, 'Group: ', trim(name)
   select case (name)
   case ('spin')
     call pmd_read_real_dataset(g2_id, 'spin/x', 1.0_rp, bunch%particle%spin(1), error)
