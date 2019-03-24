@@ -32,6 +32,20 @@ type hdf5_info_struct
   integer :: num_attributes = -1       ! Number of associated attributes. Used for groups and datasets only.
 end type
 
+interface hdf5_read_dataset_int
+  module procedure h5lt_read_dataset_int_kind_4_rank_0
+  module procedure h5lt_read_dataset_int_kind_4_rank_1
+  module procedure h5lt_read_dataset_int_kind_4_rank_2
+  module procedure h5lt_read_dataset_int_kind_4_rank_3
+end interface
+
+interface hdf5_read_dataset_double
+  module procedure h5lt_read_dataset_double_kind_8_rank_0
+  module procedure h5lt_read_dataset_double_kind_8_rank_1
+  module procedure h5lt_read_dataset_double_kind_8_rank_2
+  module procedure h5lt_read_dataset_double_kind_8_rank_3
+end interface
+
 contains
 
 !------------------------------------------------------------------------------------------
@@ -408,5 +422,133 @@ endif
 error = .false.
 
 end function hdf5_get_object_info
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+  SUBROUTINE h5lt_read_dataset_double_kind_8_rank_0(loc_id,dset_name,buf,dims,errcode)
+    IMPLICIT NONE
+    INTEGER(hid_t)  , INTENT(IN) :: loc_id
+    CHARACTER(LEN=*), INTENT(IN) :: dset_name
+    INTEGER(hsize_t), DIMENSION(*), INTENT(in) :: dims
+    REAL(KIND=8),INTENT(INout), TARGET :: buf
+    INTEGER :: errcode 
+    TYPE(C_PTR) :: f_ptr
+    INTEGER(size_t) :: namelen
+    f_ptr = C_LOC(buf               )
+    namelen = LEN(dset_name)
+    errcode = h5ltread_dataset_c(loc_id,namelen,dset_name,H5T_NATIVE_DOUBLE,f_ptr)
+  END SUBROUTINE h5lt_read_dataset_double_kind_8_rank_0
+
+  SUBROUTINE h5lt_read_dataset_double_kind_8_rank_1(loc_id,dset_name,buf,dims,errcode)
+    IMPLICIT NONE
+    INTEGER(hid_t)  , INTENT(IN) :: loc_id
+    CHARACTER(LEN=*), INTENT(IN) :: dset_name
+    INTEGER(hsize_t), DIMENSION(*), INTENT(in) :: dims
+    REAL(KIND=8),INTENT(INout), DIMENSION(dims(1)), TARGET :: buf
+    INTEGER :: errcode 
+    TYPE(C_PTR) :: f_ptr
+    INTEGER(size_t) :: namelen
+    f_ptr = C_LOC(buf(1)            )
+    namelen = LEN(dset_name)
+    errcode = h5ltread_dataset_c(loc_id,namelen,dset_name,H5T_NATIVE_DOUBLE,f_ptr)
+  END SUBROUTINE h5lt_read_dataset_double_kind_8_rank_1
+
+  SUBROUTINE h5lt_read_dataset_double_kind_8_rank_2(loc_id,dset_name,buf,dims,errcode)
+    IMPLICIT NONE
+    INTEGER(hid_t)  , INTENT(IN) :: loc_id
+    CHARACTER(LEN=*), INTENT(IN) :: dset_name
+    INTEGER(hsize_t), DIMENSION(*), INTENT(in) :: dims
+    REAL(KIND=8),INTENT(INout), DIMENSION(dims(1),dims(2)), TARGET :: buf
+    INTEGER :: errcode 
+    TYPE(C_PTR) :: f_ptr
+    INTEGER(size_t) :: namelen
+    f_ptr = C_LOC(buf(1,1)          )
+    namelen = LEN(dset_name)
+    errcode = h5ltread_dataset_c(loc_id,namelen,dset_name,H5T_NATIVE_DOUBLE,f_ptr)
+  END SUBROUTINE h5lt_read_dataset_double_kind_8_rank_2
+
+  SUBROUTINE h5lt_read_dataset_double_kind_8_rank_3(loc_id,dset_name,buf,dims,errcode)
+    IMPLICIT NONE
+    INTEGER(hid_t)  , INTENT(IN) :: loc_id
+    CHARACTER(LEN=*), INTENT(IN) :: dset_name
+    INTEGER(hsize_t), DIMENSION(*), INTENT(in) :: dims
+    REAL(KIND=8),INTENT(INout), DIMENSION(dims(1),dims(2),dims(3)), TARGET :: buf
+    INTEGER :: errcode 
+    TYPE(C_PTR) :: f_ptr
+    INTEGER(size_t) :: namelen
+    f_ptr = C_LOC(buf(1,1,1)        )
+    namelen = LEN(dset_name)
+    errcode = h5ltread_dataset_c(loc_id,namelen,dset_name,H5T_NATIVE_DOUBLE,f_ptr)
+  END SUBROUTINE h5lt_read_dataset_double_kind_8_rank_3
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+  SUBROUTINE h5lt_read_dataset_int_kind_4_rank_0(loc_id,dset_name, buf,dims,errcode)
+    IMPLICIT NONE
+    INTEGER(hid_t)  , INTENT(IN) :: loc_id
+    CHARACTER(LEN=*), INTENT(IN) :: dset_name
+    INTEGER(hsize_t), DIMENSION(*), INTENT(in) :: dims
+    INTEGER(KIND=4),INTENT(INout), TARGET :: buf
+    INTEGER :: errcode 
+    TYPE(C_PTR) :: f_ptr
+    INTEGER(size_t) :: namelen
+    INTEGER(hid_t) :: type_id
+    f_ptr = C_LOC(buf               )
+    namelen = LEN(dset_name)
+    type_id = h5kind_to_type(KIND(buf               ), H5_INTEGER_KIND)
+    errcode = h5ltread_dataset_c(loc_id, namelen, dset_name, type_id, f_ptr)
+  END SUBROUTINE h5lt_read_dataset_int_kind_4_rank_0
+
+  SUBROUTINE h5lt_read_dataset_int_kind_4_rank_1(loc_id,dset_name, buf,dims,errcode)
+    IMPLICIT NONE
+    INTEGER(hid_t)  , INTENT(IN) :: loc_id
+    CHARACTER(LEN=*), INTENT(IN) :: dset_name
+    INTEGER(hsize_t), DIMENSION(*), INTENT(in) :: dims
+    INTEGER(KIND=4),INTENT(INout), DIMENSION(dims(1)), TARGET :: buf
+    INTEGER :: errcode 
+    TYPE(C_PTR) :: f_ptr
+    INTEGER(size_t) :: namelen
+    INTEGER(hid_t) :: type_id
+    f_ptr = C_LOC(buf(1)            )
+    namelen = LEN(dset_name)
+    type_id = h5kind_to_type(KIND(buf(1)            ), H5_INTEGER_KIND)
+    errcode = h5ltread_dataset_c(loc_id, namelen, dset_name, type_id, f_ptr)
+  END SUBROUTINE h5lt_read_dataset_int_kind_4_rank_1
+
+  SUBROUTINE h5lt_read_dataset_int_kind_4_rank_2(loc_id,dset_name, buf,dims,errcode)
+    IMPLICIT NONE
+    INTEGER(hid_t)  , INTENT(IN) :: loc_id
+    CHARACTER(LEN=*), INTENT(IN) :: dset_name
+    INTEGER(hsize_t), DIMENSION(*), INTENT(in) :: dims
+    INTEGER(KIND=4),INTENT(INout), DIMENSION(dims(1),dims(2)), TARGET :: buf
+    INTEGER :: errcode 
+    TYPE(C_PTR) :: f_ptr
+    INTEGER(size_t) :: namelen
+    INTEGER(hid_t) :: type_id
+    f_ptr = C_LOC(buf(1,1)          )
+    namelen = LEN(dset_name)
+    type_id = h5kind_to_type(KIND(buf(1,1)          ), H5_INTEGER_KIND)
+    errcode = h5ltread_dataset_c(loc_id, namelen, dset_name, type_id, f_ptr)
+  END SUBROUTINE h5lt_read_dataset_int_kind_4_rank_2
+
+  SUBROUTINE h5lt_read_dataset_int_kind_4_rank_3(loc_id,dset_name, buf,dims,errcode)
+    IMPLICIT NONE
+    INTEGER(hid_t)  , INTENT(IN) :: loc_id
+    CHARACTER(LEN=*), INTENT(IN) :: dset_name
+    INTEGER(hsize_t), DIMENSION(*), INTENT(in) :: dims
+    INTEGER(KIND=4),INTENT(INout), DIMENSION(dims(1),dims(2),dims(3)), TARGET :: buf
+    INTEGER :: errcode 
+    TYPE(C_PTR) :: f_ptr
+    INTEGER(size_t) :: namelen
+    INTEGER(hid_t) :: type_id
+    f_ptr = C_LOC(buf(1,1,1)        )
+    namelen = LEN(dset_name)
+    type_id = h5kind_to_type(KIND(buf(1,1,1)        ), H5_INTEGER_KIND)
+    errcode = h5ltread_dataset_c(loc_id, namelen, dset_name, type_id, f_ptr)
+  END SUBROUTINE h5lt_read_dataset_int_kind_4_rank_3
 
 end module

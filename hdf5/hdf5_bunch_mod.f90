@@ -71,10 +71,8 @@ type (bunch_struct), target :: bunches(:)
 type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p(:), p_live
 type (lat_struct) lat
-type (pmd_unit_struct) unit
 
 real(rp), allocatable :: rvec(:)
-real(rp) factor
 
 integer(HID_T) f_id, g_id, z_id, z2_id, r_id, b_id, b2_id
 integer i, n, ib, ix, h5_err
@@ -133,6 +131,7 @@ do ib = 1, size(bunches)
   call hdf5_write_string_attrib(b2_id, 'speciesType', openpmd_species_name(p(1)%species))
   call hdf5_write_real_attrib(b2_id, 'totalCharge', bunch%charge_tot)
   call hdf5_write_real_attrib(b2_id, 'chargeLive', bunch%charge_live)
+  call hdf5_write_real_attrib(b2_id, 'chargeUnitSI', 1.0_rp)
   call hdf5_write_integer_attrib(b2_id, 'numParticles', size(bunch%particle))
   
   p_live => p(1)    ! In case everyone is dead.
@@ -152,23 +151,21 @@ do ib = 1, size(bunches)
 
   ! Momentum
 
-  factor = p_live%p0c * e_charge / c_light
-  unit = pmd_unit_struct('', factor, dim_momentum)
-
   call h5gcreate_f(b2_id, 'momentum', z_id, h5_err)
 
-  rvec = (p(:)%vec(2) * p(:)%p0c) / p_live%p0c
-  call pmd_write_real_vector_to_dataset(z_id, 'x', 'px', unit, rvec, error)
+  rvec = p(:)%vec(2) * p(:)%p0c
+  call pmd_write_real_vector_to_dataset(z_id, 'x', 'px * p0c', unit_ev_per_c, rvec, error)
 
-  rvec = (p(:)%vec(4) * p(:)%p0c) / p_live%p0c
-  call pmd_write_real_vector_to_dataset(z_id, 'y', 'py', unit, rvec, error)
+  rvec = p(:)%vec(4) * p(:)%p0c
+  call pmd_write_real_vector_to_dataset(z_id, 'y', 'py * p0c', unit_ev_per_c, rvec, error)
 
-  rvec = p(:)%direction * (sqrt((1 + p(:)%vec(6))**2 - p(:)%vec(2)**2 - p(:)%vec(4)**2) * p(:)%p0c) / p_live%p0c
-  call pmd_write_real_vector_to_dataset(z_id, 'z', 'pz', unit, rvec, error)
+  rvec = p(:)%direction * (sqrt((1 + p(:)%vec(6))**2 - p(:)%vec(2)**2 - p(:)%vec(4)**2) * p(:)%p0c)
+  call pmd_write_real_vector_to_dataset(z_id, 'z', 'ps * p0c', unit_ev_per_c, rvec, error)
 
   call h5gclose_f(z_id, h5_err)
 
-  call pmd_write_real_vector_to_dataset (b2_id, 'referenceMomentum', 'p0c', unit_eV, p(:)%p0c, error)
+  call pmd_write_real_vector_to_dataset (b2_id, 'totalMomentumOffset', 'p0c', unit_eV_per_c, p(:)%p0c, error)
+  call pmd_write_real_vector_to_dataset (b2_id, 'totalMomentum', 'pz * p0c', unit_eV_per_c, p(:)%vec(6)*p(:)%p0c, error)
 
   ! Spin.
 
@@ -201,7 +198,7 @@ do ib = 1, size(bunches)
 
   call pmd_write_real_vector_to_dataset(b2_id, 'sPosition', 's', unit_m, p(:)%s, error)
 
-  rvec = -p(:)%vec(5) * p(:)%beta * c_light
+  rvec = -p(:)%vec(5) / (p(:)%beta * c_light)  ! t - t_ref
   call pmd_write_real_vector_to_dataset(b2_id, 'time', 't - t_ref', unit_sec, rvec, error)
   call pmd_write_real_vector_to_dataset(b2_id, 'timeOffset', 't_ref', unit_sec, p(:)%t - rvec, error)
   call pmd_write_real_vector_to_dataset(b2_id, 'speed', 'beta', unit_c_light, p(:)%beta, error)
@@ -594,9 +591,10 @@ do idx = 0, n_links-1
     f = e_charge / c_light
     call pmd_read_real_dataset(g2_id, 'momentum/x', f, bunch%particle%vec(2), error)
     call pmd_read_real_dataset(g2_id, 'momentum/y', f, bunch%particle%vec(4), error)
-    call pmd_read_real_dataset(g2_id, 'momentum/z', f, bunch%particle%vec(6), error)
-  case ('referenceMomentum')
-    call pmd_read_real_dataset(g2_id, 'referenceMomentum', f, bunch%particle%p0c, error)
+  case ('totalMomentumOffset')
+    call pmd_read_real_dataset(g2_id, name, f, bunch%particle%p0c, error)
+  case ('totalMomentum')
+    call pmd_read_real_dataset(g2_id, name, f, bunch%particle%vec(6), error)
   case ('photonPolarization')
     g3_id = hdf5_open_group(g2_id, 'photonPolarization', error, .true.)
     g4_id = hdf5_open_group(g3_id, 'x/amplitude', error, .false.)
@@ -618,12 +616,11 @@ do idx = 0, n_links-1
   case ('sPosition')
     call pmd_read_real_dataset(g2_id, name, 1.0_rp, bunch%particle%s, error)
   case ('time')
-    call pmd_read_real_dataset(g2_id, name, 1.0_rp, bunch%particle%t, error)
-  case ('timeOffset')
     call pmd_read_real_dataset(g2_id, name, 1.0_rp, dt, error)
+  case ('timeOffset')
+    call pmd_read_real_dataset(g2_id, name, 1.0_rp, bunch%particle%t, error)
   case ('speed')
     call pmd_read_real_dataset(g2_id, name, c_light, bunch%particle%beta, error)
-    bunch%particle%beta = bunch%particle%beta / c_light
   case ('weight')
     call pmd_read_real_dataset(g2_id, name, 1.0_rp, bunch%particle%charge, error)
   case ('particleStatus')
@@ -652,10 +649,11 @@ call H5Gclose_f(g_id, h5_err)
 
 do ip = 1, size(bunch%particle)
   p => bunch%particle(ip)
-  p%vec(5) = -dt(ip) / (p%beta * c_light)
+  p%vec(5) = -p%beta * c_light * dt(ip)
   p%t = p%t + dt(ip)
   p%vec(2) = p%vec(2) / p%p0c
   p%vec(4) = p%vec(4) / p%p0c
+  p%vec(6) = p%vec(6) / p%p0c
   p%species = set_species_charge(species, charge_state(ip))
 enddo
 
@@ -720,7 +718,8 @@ if (info%element_type == H5O_TYPE_DATASET_F) then
     return
   endif
 
-  call H5LTread_dataset_int_f(root_id, name, value, info%data_dim, h5_err)
+  ! call H5LTread_dataset_int_f(root_id, name, value, info%data_dim, h5_err)
+  call hdf5_read_dataset_int(root_id, name, value, info%data_dim, h5_err)
 
 !
 
@@ -769,7 +768,8 @@ if (info%element_type == H5O_TYPE_DATASET_F) then
     return
   endif
 
-  call H5LTread_dataset_double_f(root_id, name, value, info%data_dim, h5_err)
+  ! call H5LTread_dataset_double_f(root_id, name, value, info%data_dim, h5_err)
+  call hdf5_read_dataset_double(root_id, name, value, info%data_dim, h5_err)
 
 !
 
@@ -779,6 +779,8 @@ else  ! Must be a "constant record component" as defined by the openPMD standard
 endif
 
 !
+
+if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) value = value * (conversion_factor / unit_si)
 
 call hdf5_close_object(obj_id, info)
 
