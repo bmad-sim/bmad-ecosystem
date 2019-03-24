@@ -87,7 +87,7 @@ logical error, err
 
 ! Open a new file using default properties.
 
-call hdf5_open_file (file_name, .false., f_id, err);  if (err) return
+call hdf5_open_file (file_name, 'WRITE', f_id, err);  if (err) return
 
 ! Write some header stuff
 
@@ -96,17 +96,17 @@ root_path = '/data/'
 bunch_path = '%T/'
 particle_path = 'particles/'
 
-call hdf5_write_string_attrib(f_id, 'fileType', 'openPMD')
-call hdf5_write_string_attrib(f_id, 'openPMD', '2.0.0')
-call hdf5_write_string_attrib(f_id, 'openPMDextension', 'BeamPhysics;SpeciesType')
-call hdf5_write_string_attrib(f_id, 'basePath', trim(root_path) // trim(bunch_path))
-call hdf5_write_string_attrib(f_id, 'particlesPath', trim(particle_path))
-call hdf5_write_string_attrib(f_id, 'software', 'Bmad')
-call hdf5_write_string_attrib(f_id, 'softwareVersion', '1.0')
-call hdf5_write_string_attrib(f_id, 'date', date_time)
-call hdf5_write_string_attrib(f_id, 'latticeFile', lat%input_file_name)
+call hdf5_write_attribute_string(f_id, 'fileType', 'openPMD')
+call hdf5_write_attribute_string(f_id, 'openPMD', '2.0.0')
+call hdf5_write_attribute_string(f_id, 'openPMDextension', 'BeamPhysics;SpeciesType')
+call hdf5_write_attribute_string(f_id, 'basePath', trim(root_path) // trim(bunch_path))
+call hdf5_write_attribute_string(f_id, 'particlesPath', trim(particle_path))
+call hdf5_write_attribute_string(f_id, 'software', 'Bmad')
+call hdf5_write_attribute_string(f_id, 'softwareVersion', '1.0')
+call hdf5_write_attribute_string(f_id, 'date', date_time)
+call hdf5_write_attribute_string(f_id, 'latticeFile', lat%input_file_name)
 if (lat%lattice /= '') then
-  call hdf5_write_string_attrib(f_id, 'latticeName', lat%lattice)
+  call hdf5_write_attribute_string(f_id, 'latticeName', lat%lattice)
 endif
 
 ! Loop over bunches
@@ -129,11 +129,11 @@ do ib = 1, size(bunches)
   call h5gcreate_f(r_id, trim(this_path), b_id, h5_err)
   call h5gcreate_f(b_id, particle_path, b2_id, h5_err)
 
-  call hdf5_write_string_attrib(b2_id, 'speciesType', openpmd_species_name(p(1)%species))
-  call hdf5_write_real_attrib(b2_id, 'totalCharge', bunch%charge_tot)
-  call hdf5_write_real_attrib(b2_id, 'chargeLive', bunch%charge_live)
-  call hdf5_write_real_attrib(b2_id, 'chargeUnitSI', 1.0_rp)
-  call hdf5_write_integer_attrib(b2_id, 'numParticles', size(bunch%particle))
+  call hdf5_write_attribute_string(b2_id, 'speciesType', openpmd_species_name(p(1)%species))
+  call hdf5_write_attribute_real(b2_id, 'totalCharge', bunch%charge_tot)
+  call hdf5_write_attribute_real(b2_id, 'chargeLive', bunch%charge_live)
+  call hdf5_write_attribute_real(b2_id, 'chargeUnitSI', 1.0_rp)
+  call hdf5_write_attribute_int(b2_id, 'numParticles', size(bunch%particle))
   
   p_live => p(1)    ! In case everyone is dead.
   do i = 1, size(p)
@@ -282,8 +282,8 @@ endif
 v_size = size(vector)
 call H5LTmake_dataset_double_f(root_id, dataset_name, 1, [v_size], vector, err)    
 
-call H5LTset_attribute_double_f(root_id, dataset_name, 'minValue', [v_min], h5_size_1, err)
-call H5LTset_attribute_double_f(root_id, dataset_name, 'maxValue', [v_max], h5_size_1, err)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'minValue', [v_min], 1_hz, err)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'maxValue', [v_max], 1_hz, err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
@@ -306,8 +306,8 @@ logical error
 
 call h5gcreate_f(root_id, dataset_name, group_id, err)
 
-call H5LTset_attribute_double_f(root_id, dataset_name, 'value', [value], h5_size_1, err)
-call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', [v_size], h5_size_1, err)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'value', [value], 1_hz, err)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', [v_size], 1_hz, err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
@@ -343,8 +343,8 @@ endif
 v_size = size(vector)
 call H5LTmake_dataset_int_f(root_id, dataset_name, 1, [v_size], vector, err)    
 
-call H5LTset_attribute_int_f(root_id, dataset_name, 'minValue', [v_min], h5_size_1, err)
-call H5LTset_attribute_int_f(root_id, dataset_name, 'maxValue', [v_max], h5_size_1, err)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'minValue', [v_min], 1_hz, err)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'maxValue', [v_max], 1_hz, err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
@@ -367,8 +367,8 @@ logical error
 
 call h5gcreate_f(root_id, dataset_name, group_id, err)
 
-call H5LTset_attribute_int_f(root_id, dataset_name, 'value', [value], h5_size_1, err)
-call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', [v_size], h5_size_1, err)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'value', [value], 1_hz, err)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', [v_size], 1_hz, err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
@@ -389,8 +389,8 @@ logical error
 character(*) dataset_name, bmad_name
 
 if (bmad_name /= '') call H5LTset_attribute_string_f(root_id, dataset_name, 'localName', bmad_name, err)
-call H5LTset_attribute_double_f(root_id, dataset_name, 'unitSI', [unit%unitSI], h5_size_1, err)
-call H5LTset_attribute_double_f(root_id, dataset_name, 'unitDimension', [unit%unitDimension], h5_size_7, err)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'unitSI', [unit%unitSI], 1_hz, err)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'unitDimension', [unit%unitDimension], 7_hz, err)
 call H5LTset_attribute_string_f(root_id, dataset_name, 'unitSymbol', unit%unitSymbol, err)
 
 end subroutine pmd_write_units_to_dataset 
@@ -433,19 +433,19 @@ logical error, err
 
 error = .true.
 
-call hdf5_open_file (file_name, .true., f_id, err);  if (err) return
+call hdf5_open_file (file_name, 'READ', f_id, err);  if (err) return
 
 ! Get header info
 
-call hdf5_get_attribute_string (f_id, 'openPMD', pmd_header%openPMD, err, .true.);                    if (err) return
-call hdf5_get_attribute_string (f_id, 'openPMDextension', pmd_header%openPMDextension, err, .true.);  if (err) return
-call hdf5_get_attribute_string (f_id, 'basePath', pmd_header%basePath, err, .true.);                  if (err) return
-call hdf5_get_attribute_string (f_id, 'particlesPath', pmd_header%particlesPath, err, .true.);        if (err) return
-call hdf5_get_attribute_string (f_id, 'software', pmd_header%software, err, .false.)
-call hdf5_get_attribute_string (f_id, 'softwareVersion', pmd_header%softwareVersion, err, .false.)
-call hdf5_get_attribute_string (f_id, 'date', pmd_header%date, err, .false.)
-call hdf5_get_attribute_string (f_id, 'latticeFile', pmd_header%latticeFile, err, .false.)
-call hdf5_get_attribute_string (f_id, 'latticeName', pmd_header%latticeName, err, .false.)
+call hdf5_read_attribute_string (f_id, 'openPMD', pmd_header%openPMD, err, .true.);                    if (err) return
+call hdf5_read_attribute_string (f_id, 'openPMDextension', pmd_header%openPMDextension, err, .true.);  if (err) return
+call hdf5_read_attribute_string (f_id, 'basePath', pmd_header%basePath, err, .true.);                  if (err) return
+call hdf5_read_attribute_string (f_id, 'particlesPath', pmd_header%particlesPath, err, .true.);        if (err) return
+call hdf5_read_attribute_string (f_id, 'software', pmd_header%software, err, .false.)
+call hdf5_read_attribute_string (f_id, 'softwareVersion', pmd_header%softwareVersion, err, .false.)
+call hdf5_read_attribute_string (f_id, 'date', pmd_header%date, err, .false.)
+call hdf5_read_attribute_string (f_id, 'latticeFile', pmd_header%latticeFile, err, .false.)
+call hdf5_read_attribute_string (f_id, 'latticeName', pmd_header%latticeName, err, .false.)
 
 ! Find root group
 ! Note: Right now it is assumed that the basepath uses "/%T/" to sort bunches.
@@ -551,7 +551,7 @@ g2_id = hdf5_open_group(g_id, pmd_header%particlesPath, error, .true.);  if (err
 
 ! Get number of particles.
 
-n = hdf5_get_attribute_int(g2_id, 'numParticles', error, .true.)
+n = hdf5_read_attribute_int(g2_id, 'numParticles', error, .true.)
 if (error) return
 call reallocate_bunch(bunch, n)
 bunch%particle = coord_struct()
@@ -567,16 +567,16 @@ do ia = 1, hdf5_num_attributes (g2_id)
   call hdf5_get_attribute_by_index(g2_id, ia, a_id, a_name)
   select case (a_name)
   case ('speciesType')
-    call hdf5_get_attribute_string(g2_id, a_name, string, error, .true.);  if (error) return
+    call hdf5_read_attribute_string(g2_id, a_name, string, error, .true.);  if (error) return
     species = species_id_from_openpmd(string, 0)
   case ('numParticles')
     ! Nothing to be done
   case ('totalCharge')
-    bunch%charge_tot = hdf5_get_attribute_real(g2_id, a_name, error, .true.);  if (error) return
+    bunch%charge_tot = hdf5_read_attribute_real(g2_id, a_name, error, .true.);  if (error) return
   case ('chargeLive')
-    bunch%charge_live = hdf5_get_attribute_real(g2_id, a_name, error, .true.);  if (error) return
+    bunch%charge_live = hdf5_read_attribute_real(g2_id, a_name, error, .true.);  if (error) return
   case ('chargeUnitSI')
-    charge_factor = hdf5_get_attribute_real(g2_id, a_name, error, .true.);  if (error) return
+    charge_factor = hdf5_read_attribute_real(g2_id, a_name, error, .true.);  if (error) return
   case default
     call out_io (s_warn$, r_name, 'Unknown bunch attribute: ', quote(a_name))
   end select
@@ -732,7 +732,7 @@ character(*), parameter :: r_name = 'pmd_read_int_dataset'
 info = hdf5_get_object_info(root_id, name, error, .true.)
 obj_id = hdf5_open_object(root_id, name, info, error, .true.)
 
-unit_si = hdf5_get_attribute_real(obj_id, 'unitSI', error, .true.);  if (error) return
+unit_si = hdf5_read_attribute_real(obj_id, 'unitSI', error, .true.);  if (error) return
 if (abs(unit_si - 1.0_rp) > 1d-6) then
   call out_io (s_error$, r_name, 'CONVERSION TO SI OF A VALUE OTHER THAN 1 DOES NOT MAKE SENSE.', &
                                   'FOR BUNCH PARAMETER: ' // name)
@@ -752,7 +752,7 @@ if (info%element_type == H5O_TYPE_DATASET_F) then
 !
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
-  value = hdf5_get_attribute_int(obj_id, 'value', error, .true.)
+  value = hdf5_read_attribute_int(obj_id, 'value', error, .true.)
 
 endif
 
@@ -786,7 +786,7 @@ character(*), parameter :: r_name = 'pmd_read_real_dataset'
 info = hdf5_get_object_info(root_id, name, error, .true.)
 obj_id = hdf5_open_object(root_id, name, info, error, .true.)
 
-unit_si = hdf5_get_attribute_real(obj_id, 'unitSI', error, .true.);  if (error) return
+unit_si = hdf5_read_attribute_real(obj_id, 'unitSI', error, .true.);  if (error) return
 
 !
 
@@ -802,7 +802,7 @@ if (info%element_type == H5O_TYPE_DATASET_F) then
 !
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
-  value = hdf5_get_attribute_real(obj_id, 'value', error, .true.)
+  value = hdf5_read_attribute_real(obj_id, 'value', error, .true.)
 
 endif
 

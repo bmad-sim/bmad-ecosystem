@@ -8,8 +8,7 @@ implicit none
 
 ! Misc
 
-integer(hsize_t), parameter :: h5_size_1 = 1
-integer(hsize_t), parameter :: h5_size_7 = 7
+integer, parameter :: hz = hsize_t
 integer, parameter :: H5O_TYPE_ATTRIBUTE_F = 123
 
 ! %element_type identifies the type of element (group, dataset or attribute) can be:
@@ -46,44 +45,138 @@ interface hdf5_read_dataset_double
   module procedure h5lt_read_dataset_double_kind_8_rank_3
 end interface
 
+interface hdf5_write_attribute_real
+  module procedure hdf5_write_attribute_real_rank0
+  module procedure hdf5_write_attribute_real_rank1
+end interface
+
+interface hdf5_read_attribute_real
+  module procedure hdf5_read_attribute_real_rank0
+  module procedure hdf5_read_attribute_real_rank1
+end interface
+
+interface hdf5_write_attribute_int
+  module procedure hdf5_write_attribute_int_rank0
+  module procedure hdf5_write_attribute_int_rank1
+end interface
+
+interface hdf5_read_attribute_int
+  module procedure hdf5_read_attribute_int_rank0
+  module procedure hdf5_read_attribute_int_rank1
+end interface
+
 contains
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 
-subroutine hdf5_write_string_attrib(id, name, string)
+subroutine hdf5_write_attribute_string(id, name, string)
 integer(HID_T) :: id
 character(*) :: name, string
 integer error
 !
 call H5LTset_attribute_string_f(id, '.', name, trim(string), error)
-end subroutine hdf5_write_string_attrib
+end subroutine hdf5_write_attribute_string
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 
-subroutine hdf5_write_integer_attrib(id, name, i)
+subroutine hdf5_write_attribute_int_rank0(id, name, ival)
 integer(HID_T) :: id
 character(*) :: name
-integer :: i
+integer :: ival
 integer error
 !
-call H5LTset_attribute_int_f(id, '.', name, [i], h5_size_1, error)
-end subroutine hdf5_write_integer_attrib
+call H5LTset_attribute_int_f(id, '.', name, [ival], 1_hz, error)
+end subroutine hdf5_write_attribute_int_rank0
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 
-subroutine hdf5_write_real_attrib(id, name, x)
+subroutine hdf5_write_attribute_int_rank1(id, name, ival)
+integer(HID_T) :: id
+integer(HSIZE_T) iz 
+character(*) :: name
+integer :: ival(:)
+integer error
+!
+iz = size(ival)
+call H5LTset_attribute_int_f(id, '.', name, ival, iz, error)
+end subroutine hdf5_write_attribute_int_rank1
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine hdf5_write_attribute_real_rank0(id, name, rval)
 integer(HID_T) :: id
 character(*) :: name
-real(rp) :: x
+real(rp) :: rval
 integer error
-call H5LTset_attribute_double_f(id, '.', name, [x], h5_size_1, error)
-end subroutine hdf5_write_real_attrib
+call H5LTset_attribute_double_f(id, '.', name, [rval], 1_hz, error)
+end subroutine hdf5_write_attribute_real_rank0
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine hdf5_write_attribute_real_rank1(id, name, rval)
+integer(HID_T) :: id
+integer(HSIZE_T) iz 
+character(*) :: name
+real(rp) :: rval(:)
+integer error
+iz = size(rval)
+call H5LTset_attribute_double_f(id, '.', name, rval, iz, error)
+end subroutine hdf5_write_attribute_real_rank1
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+! At end call file close: 
+!   call h5fclose_f(file_id, h5_err)  ! h5_err is integer
+
+subroutine hdf5_open_file (file_name, action, file_id, error)
+
+integer(HID_T) file_id
+integer h5_err, h_err
+
+logical error
+
+character(*) file_name, action
+character(*), parameter :: r_name = 'hdf5_open_file'
+
+!
+
+error = .true.
+
+call h5open_f(h5_err)  ! Init Fortran interface
+
+call H5Eset_auto_f(0, h5_err)   ! Run silent
+
+if (action == 'READ') then
+  call h5fopen_f(file_name, H5F_ACC_RDONLY_F, file_id, h5_err)
+elseif (action == 'WRITE') then
+  call h5fcreate_f (file_name, H5F_ACC_TRUNC_F, file_id, h5_err)
+else
+  call out_io(s_fatal$, r_name, 'BAD ACTION ARGUMENT! ' // quote(action))
+  stop
+endif
+
+call H5Eset_auto_f(1, h_err)    ! Reset
+CALL h5eclear_f(h_err)
+
+if (h5_err < 0) then
+  call out_io (s_error$, r_name, 'CANNOT OPEN FILE FOR READING: ' // file_name)
+  return
+endif
+
+error = .false.
+
+end subroutine hdf5_open_file
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
@@ -279,18 +372,36 @@ end function hdf5_attribute_info
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 
-function hdf5_get_attribute_int(root_id, attrib_name, error, print_error) result (attrib_value)
+function hdf5_read_attribute_int_rank0(root_id, attrib_name, error, print_error) result (attrib_value)
 
-type (hdf5_info_struct) info
-
-integer(HID_T) root_id, a_id
-integer attrib_value
-integer h5_err, type_class, a_val(10)
+integer(HID_T) root_id
+integer attrib_value, a_val(1)
 
 logical error, print_error
 
 character(*) attrib_name
-character(*), parameter :: r_name = 'hdf5_get_attribute_int'
+
+a_val = hdf5_read_attribute_int_rank1(root_id, attrib_name, 1_hz, error, print_error)
+attrib_value = a_val(1)
+
+end function hdf5_read_attribute_int_rank0
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+function hdf5_read_attribute_int_rank1(root_id, attrib_name, a_size, error, print_error) result (attrib_value)
+
+type (hdf5_info_struct) info
+
+integer(HID_T) root_id, a_id
+integer a_size, attrib_value(a_size)
+integer h5_err
+
+logical error, print_error
+
+character(*) attrib_name
+character(*), parameter :: r_name = 'hdf5_read_attribute_int_rank1'
 
 !
 
@@ -299,8 +410,7 @@ attrib_value = 0
 info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
 
 if (info%data_type == H5T_INTEGER_F) then
-  call H5LTget_attribute_int_f(root_id, '.', attrib_name, a_val, h5_err)
-  attrib_value = a_val(1)
+  call H5LTget_attribute_int_f(root_id, '.', attrib_name, attrib_value, h5_err)
 else
   if (print_error) call out_io (s_error$, r_name, 'ATTRIBUTE IS NOT OF INTEGER TYPE: ' // attrib_name)
   return
@@ -308,25 +418,47 @@ endif
 
 error = .false.
 
-end function hdf5_get_attribute_int
+end function hdf5_read_attribute_int_rank1
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 
-function hdf5_get_attribute_real(root_id, attrib_name, error, print_error) result (attrib_value)
+function hdf5_read_attribute_real_rank0(root_id, attrib_name, error, print_error) result (attrib_value)
 
-type (hdf5_info_struct) info
-
-integer(HID_T) root_id, a_id
+integer(HID_T) root_id
 integer h5_err
 
-real(rp) attrib_value, a_val(10)
+real(rp) attrib_value, val(1)
 
 logical error, print_error
 
 character(*) attrib_name
-character(*), parameter :: r_name = 'hdf5_get_attribute_real'
+
+!
+
+val = hdf5_read_attribute_real_rank1(root_id, attrib_name, 1_hz, error, print_error)
+attrib_value = val(1)
+
+end function hdf5_read_attribute_real_rank0
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+function hdf5_read_attribute_real_rank1(root_id, attrib_name, a_size, error, print_error) result (attrib_value)
+
+type (hdf5_info_struct) info
+
+integer(HID_T) root_id, a_id
+integer a_size, h5_err
+
+real(rp) attrib_value(a_size) 
+
+logical error, print_error
+
+character(*) attrib_name
+character(*), parameter :: r_name = 'hdf5_read_attribute_real_rank1'
 
 !
 
@@ -336,8 +468,7 @@ error = .true.
 info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
 
 if (info%data_type == H5T_INTEGER_F .or. info%data_type == H5T_FLOAT_F) then
-  call H5LTget_attribute_double_f(root_id, '.', attrib_name, a_val, h5_err)
-  attrib_value = a_val(1)
+  call H5LTget_attribute_double_f(root_id, '.', attrib_name, attrib_value, h5_err)
 else
   if (print_error) call out_io (s_error$, r_name, 'ATTRIBUTE IS NOT OF REAL TYPE: ' // attrib_name)
   return
@@ -345,13 +476,13 @@ endif
 
 error = .false.
 
-end function hdf5_get_attribute_real
+end function hdf5_read_attribute_real_rank1
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 
-subroutine hdf5_get_attribute_string(root_id, attrib_name, string, error, print_error)
+subroutine hdf5_read_attribute_string(root_id, attrib_name, string, error, print_error)
 
 type (hdf5_info_struct) info
 
@@ -363,7 +494,7 @@ logical error, print_error
 
 character(*) attrib_name
 character(:), allocatable :: string
-character(*), parameter :: r_name = 'hdf5_get_attribute_string'
+character(*), parameter :: r_name = 'hdf5_read_attribute_string'
 
 !
 
@@ -389,7 +520,7 @@ endif
 
 error = .false.
 
-end subroutine hdf5_get_attribute_string
+end subroutine hdf5_read_attribute_string
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
@@ -422,48 +553,6 @@ endif
 error = .false.
 
 end function hdf5_get_object_info
-
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-! At end call file close: 
-!   call h5fclose_f(file_id, h5_err)  ! h5_err is integer
-
-subroutine hdf5_open_file (file_name, readonly, file_id, error)
-
-integer(HID_T) file_id
-integer h5_err, h_err
-
-logical readonly, error
-
-character(*) file_name
-character(*), parameter :: r_name = 'hdf5_open_file'
-
-!
-
-error = .true.
-
-call h5open_f(h5_err)  ! Init Fortran interface
-
-call H5Eset_auto_f(0, h5_err)   ! Run silent
-
-if (readonly) then
-  call h5fopen_f(file_name, H5F_ACC_RDONLY_F, file_id, h5_err)
-else
-  call h5fcreate_f (file_name, H5F_ACC_TRUNC_F, file_id, h5_err)
-endif
-
-call H5Eset_auto_f(1, h_err)    ! Reset
-CALL h5eclear_f(h_err)
-
-if (h5_err < 0) then
-  call out_io (s_error$, r_name, 'CANNOT OPEN FILE FOR READING: ' // file_name)
-  return
-endif
-
-error = .false.
-
-end subroutine hdf5_open_file
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
