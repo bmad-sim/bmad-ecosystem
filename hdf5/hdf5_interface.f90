@@ -426,6 +426,48 @@ end function hdf5_get_object_info
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+! At end call file close: 
+!   call h5fclose_f(file_id, h5_err)  ! h5_err is integer
+
+subroutine hdf5_open_file (file_name, readonly, file_id, error)
+
+integer(HID_T) file_id
+integer h5_err, h_err
+
+logical readonly, error
+
+character(*) file_name
+character(*), parameter :: r_name = 'hdf5_open_file'
+
+!
+
+error = .true.
+
+call h5open_f(h5_err)  ! Init Fortran interface
+
+call H5Eset_auto_f(0, h5_err)   ! Run silent
+
+if (readonly) then
+  call h5fopen_f(file_name, H5F_ACC_RDONLY_F, file_id, h5_err)
+else
+  call h5fcreate_f (file_name, H5F_ACC_TRUNC_F, file_id, h5_err)
+endif
+
+call H5Eset_auto_f(1, h_err)    ! Reset
+CALL h5eclear_f(h_err)
+
+if (h5_err < 0) then
+  call out_io (s_error$, r_name, 'CANNOT OPEN FILE FOR READING: ' // file_name)
+  return
+endif
+
+error = .false.
+
+end subroutine hdf5_open_file
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
 
   SUBROUTINE h5lt_read_dataset_double_kind_8_rank_0(loc_id,dset_name,buf,dims,errcode)
     IMPLICIT NONE
