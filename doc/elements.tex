@@ -2466,12 +2466,13 @@ The attributes specific to an \vn{lcavity} are
   e_loss          = <Real>    ! Loss parameter for short range wake fields (V/Coul).
   rf_frequency    = <Real>    ! Rf frequency (Hz).
   voltage                     ! Cavity voltage. Dependent attribute (\sref{s:depend}).
-  n_cell          = <Integer> ! Number of cavity cells. Default is 1.
+  n_cell          = <Int>     ! Number of cavity cells. Default is 1.
+  longitudinal_mode = <Int>   ! Longitudinal mode. Default is 1. May be 0 or 1.
+  wall_radius     = <Real>    ! Wall radius. Dependent attribute (\sref{s:depend}).
 \end{example}
 
-The dependent variable \vn{voltage} attribute can be used in place of
-\vn{gradient} as discussed in \sref{s:depend}.  \vn{voltage} is a
-dependent attribute and is defined to be
+The dependent variable \vn{voltage} attribute can be used in place of \vn{gradient} as discussed in
+\sref{s:depend}.  \vn{voltage} is a dependent attribute and is defined to be
 \begin{example}
   voltage = gradient * L
 \end{example}
@@ -2496,9 +2497,9 @@ whether \vn{absolute time tracking} or \vn{relative time tracking} is being used
 \vn{phi0_multipass} is only to be used with multipass to shift the phase of the cavity from pass to
 pass. See \sref{s:multipass}.
 
-\vn{phi0_autoscale} and \vn{field_autoscale} are calculated by \bmad's auto-scale
-module. See Section~\sref{s:autoscale} for more details. Autoscaling can be toggled on/off
-by using the \vn{autoscale_phase} and \vn{autoscale_amplitude} toggles.
+\vn{phi0_autoscale} and \vn{field_autoscale} are calculated by \bmad's auto-scale module. See
+Section~\sref{s:autoscale} for more details. Autoscaling can be toggled on/off by using the
+\vn{autoscale_phase} and \vn{autoscale_amplitude} toggles.
 
 The energy change of the reference particle is just the energy change for a 
 particle with $z = 0$ and no phase or gradient errors. Thus
@@ -2514,20 +2515,17 @@ sign. Essentially the MAD8 documentation gives
 \end{example}
 This is incorrect. 
 
-When short-range wake fields are being simulated, with
-\vn{bmad_com%sr_wakes_on = True} (\sref{s:bmad.com}), the
-\vn{e_loss} attribute can be used to modify the gradient in order to
-maintain a constant average energy gain. That is, \vn{e_loss} can be
-used to simulate the effect of a feedback circuit that attempts to
-maintain the average energy of the bunch after the element constant.
-The energy kick is then
+When short-range wake fields are being simulated, with \vn{bmad_com%sr_wakes_on = True}
+(\sref{s:bmad.com}), the \vn{e_loss} attribute can be used to modify the gradient in order to
+maintain a constant average energy gain. That is, \vn{e_loss} can be used to simulate the effect of
+a feedback circuit that attempts to maintain the average energy of the bunch after the element
+constant.  The energy kick is then
 \begin{example}
   dE(with wake) = dE + e_loss * n_part * e_charge 
 \end{example}
-\vn{n_part} is set using the \vn{parameter} statement (\sref{s:param})
-and represents the number of particles in a bunch. \vn{e_charge} is
-the charge on an electron (Table~\ref{t:constants}). Notice that the
-\vn{e_loss} term is independent of the sign of the charge of the particle.
+\vn{n_part} is set using the \vn{parameter} statement (\sref{s:param}) and represents the number of
+particles in a bunch. \vn{e_charge} is the charge on an electron (Table~\ref{t:constants}). Notice
+that the \vn{e_loss} term is independent of the sign of the charge of the particle.
 
 The \vn{cavity_type} is the type of cavity being simulated. Possible
 settings are:
@@ -2536,23 +2534,24 @@ settings are:
   standing_wave    ! Default
   traveling_wave
 \end{example}
-The \vn{cavity_type} switch is ignored if a field map is used.
-With the \vn{standing_wave} setting, the transverse trajectory through
-an \vn{lcavity} is modeled using equations developed by Rosenzweig and
-Serafini\cite{b:rosenzweig} modified to give the correct phase-space
-area at non ultra-relativistic energies.  See Section
-\sref{s:lcavity.std} for more details.  Note: The transfer matrix for
-an \vn{lcavity} with finite \vn{gradient} is never symplectic. See
-\sref{s:phase.space}. In addition, couplers (\sref{s:rf.coupler}) and
-HOM wakes (\sref{s:wakes}) can be modeled.
+The \vn{cavity_type} switch is ignored if a field map is used.  With the \vn{standing_wave} setting,
+the transverse trajectory through an \vn{lcavity} is modeled using equations developed by Rosenzweig
+and Serafini\cite{b:rosenzweig} modified to give the correct phase-space area at non
+ultra-relativistic energies.  See Section \sref{s:lcavity.std} for more details.  Note: The transfer
+matrix for an \vn{lcavity} with finite \vn{gradient} is never symplectic. See
+\sref{s:phase.space}. In addition, couplers (\sref{s:rf.coupler}) and HOM wakes (\sref{s:wakes}) can
+be modeled.
 
-When using \vn{runge_kutta} tracking (\sref{s:tkm})
-through a field map (\sref{s:fieldmap}), the \vn{bmad_standard} field
-is \vn{n_cell} half wave resonators.
+When using \vn{runge_kutta} tracking (\sref{s:tkm}) through a field map (\sref{s:fieldmap}), the
+\vn{bmad_standard} field is \vn{n_cell} half-wave resonators (\sref{s:rf.fields}). The longitudinal
+mode is set by the \vn{longitudinal_mode} parameter. The default setting for \vn{longitudinal_mode}
+is 1 the possible values are 0 or 1. If the mode is set to 0, the \vn{wall_radius} dependent
+parameter is calculated using \Eq{rk}. If the mode is 1, the wall radius is treated as infinite.
 
 Example:
 \begin{example}
-  lwf: lcavity, l = 2.3, rf_frequency = 500e6, voltage = 20e6
+  lwf: lcavity, l = 2.3, rf_frequency = 500e6, voltage = 20e6,
+         longitudinal_mode = 1
 \end{example}
 
 {\em Note: The default \vn{bmad_standard} tracking for \vn{lcavity}
