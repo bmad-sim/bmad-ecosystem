@@ -38,16 +38,11 @@ interface hdf5_read_dataset_int
   module procedure h5lt_read_dataset_int_kind_4_rank_3
 end interface
 
-interface hdf5_read_dataset_double
+interface hdf5_read_dataset_real
   module procedure h5lt_read_dataset_double_kind_8_rank_0
   module procedure h5lt_read_dataset_double_kind_8_rank_1
   module procedure h5lt_read_dataset_double_kind_8_rank_2
   module procedure h5lt_read_dataset_double_kind_8_rank_3
-end interface
-
-interface hdf5_write_attribute_real
-  module procedure hdf5_write_attribute_real_rank0
-  module procedure hdf5_write_attribute_real_rank1
 end interface
 
 interface hdf5_read_attribute_real
@@ -55,14 +50,33 @@ interface hdf5_read_attribute_real
   module procedure hdf5_read_attribute_real_rank1
 end interface
 
-interface hdf5_write_attribute_int
-  module procedure hdf5_write_attribute_int_rank0
-  module procedure hdf5_write_attribute_int_rank1
-end interface
-
 interface hdf5_read_attribute_int
   module procedure hdf5_read_attribute_int_rank0
   module procedure hdf5_read_attribute_int_rank1
+end interface
+
+interface hdf5_write_dataset_int
+  module procedure hdf5_write_dataset_int_kind_4_rank_0
+  module procedure hdf5_write_dataset_int_kind_4_rank_1
+  module procedure hdf5_write_dataset_int_kind_4_rank_2
+  module procedure hdf5_write_dataset_int_kind_4_rank_3
+end interface
+
+interface hdf5_write_dataset_real
+  module procedure hdf5_write_dataset_real_kind_8_rank_0
+  module procedure hdf5_write_dataset_real_kind_8_rank_1
+  module procedure hdf5_write_dataset_real_kind_8_rank_2
+  module procedure hdf5_write_dataset_real_kind_8_rank_3
+end interface
+
+interface hdf5_write_attribute_real
+  module procedure hdf5_write_attribute_real_rank0
+  module procedure hdf5_write_attribute_real_rank1
+end interface
+
+interface hdf5_write_attribute_int
+  module procedure hdf5_write_attribute_int_rank0
+  module procedure hdf5_write_attribute_int_rank1
 end interface
 
 contains
@@ -372,6 +386,38 @@ end function hdf5_attribute_info
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 
+function hdf5_object_info (root_id, name, error, print_error) result (info)
+
+type (hdf5_info_struct) info
+type (H5O_info_t) :: infobuf 
+
+integer(hid_t), value :: root_id
+integer stat, h5_err
+
+character(*) name
+
+logical error, print_error
+
+!
+
+error = .true.
+
+call H5Oget_info_by_name_f(root_id, name, infobuf, h5_err)
+info%element_type = infobuf%type
+info%num_attributes = infobuf%num_attrs
+
+if (info%element_type == H5O_TYPE_DATASET_F) then
+  call H5LTget_dataset_info_f(root_id, name, info%data_dim, info%data_type, info%data_size, h5_err)
+endif
+
+error = .false.
+
+end function hdf5_object_info
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
 function hdf5_read_attribute_int_rank0(root_id, attrib_name, error, print_error) result (attrib_value)
 
 integer(HID_T) root_id
@@ -526,33 +572,173 @@ end subroutine hdf5_read_attribute_string
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 
-function hdf5_get_object_info (root_id, name, error, print_error) result (info)
+subroutine hdf5_write_dataset_real_kind_8_rank_0 (root_id, dataset_name, value, error)
 
-type (hdf5_info_struct) info
-type (H5O_info_t) :: infobuf 
-
-integer(hid_t), value :: root_id
-integer stat, h5_err
-
-character(*) name
-
-logical error, print_error
+integer(HID_T) root_id, v_size(1)
+integer h5_err
+real(rp) value
+real(rp) vector(1)
+logical error
+character(*) dataset_name
 
 !
 
 error = .true.
-
-call H5Oget_info_by_name_f(root_id, name, infobuf, h5_err)
-info%element_type = infobuf%type
-info%num_attributes = infobuf%num_attrs
-
-if (info%element_type == H5O_TYPE_DATASET_F) then
-  call H5LTget_dataset_info_f(root_id, name, info%data_dim, info%data_type, info%data_size, h5_err)
-endif
-
+v_size = 1
+call H5LTmake_dataset_double_f(root_id, dataset_name, 1, [v_size], vector, h5_err);  if (h5_err < 0) return
+value = vector(1)
 error = .false.
 
-end function hdf5_get_object_info
+end subroutine hdf5_write_dataset_real_kind_8_rank_0
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine hdf5_write_dataset_real_kind_8_rank_1 (root_id, dataset_name, value, error)
+
+integer(HID_T) root_id, v_size(1)
+integer h5_err
+real(rp) value(:)
+logical error
+character(*) dataset_name
+
+!
+
+error = .true.
+v_size = size(value)
+call H5LTmake_dataset_double_f(root_id, dataset_name, 1, v_size, value, h5_err);  if (h5_err < 0) return
+error = .false.
+
+end subroutine hdf5_write_dataset_real_kind_8_rank_1
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine hdf5_write_dataset_real_kind_8_rank_2 (root_id, dataset_name, value, error)
+
+integer(HID_T) root_id, v_size(2)
+integer h5_err
+real(rp) value(:,:)
+logical error
+character(*) dataset_name
+
+!
+
+error = .true.
+v_size = [size(value, 1), size(value, 2)]
+call H5LTmake_dataset_double_f(root_id, dataset_name, 2, v_size, value, h5_err);  if (h5_err < 0) return
+error = .false.
+
+end subroutine hdf5_write_dataset_real_kind_8_rank_2
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine hdf5_write_dataset_real_kind_8_rank_3 (root_id, dataset_name, value, error)
+
+integer(HID_T) root_id, v_size(3)
+integer h5_err
+real(rp) value(:,:,:)
+logical error
+character(*) dataset_name
+
+!
+
+error = .true.
+v_size = [size(value, 1), size(value, 2), size(value, 3)]
+call H5LTmake_dataset_double_f(root_id, dataset_name, 3, v_size, value, h5_err);  if (h5_err < 0) return
+error = .false.
+
+end subroutine hdf5_write_dataset_real_kind_8_rank_3
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine hdf5_write_dataset_int_kind_4_rank_0 (root_id, dataset_name, value, error)
+
+integer(HID_T) root_id, v_size(1)
+integer h5_err
+integer value
+integer vector(1)
+logical error
+character(*) dataset_name
+
+!
+
+error = .true.
+v_size = 1
+call H5LTmake_dataset_int_f(root_id, dataset_name, 1, v_size, vector, h5_err);  if (h5_err < 0) return
+value = vector(1)
+error = .false.
+
+end subroutine hdf5_write_dataset_int_kind_4_rank_0
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine hdf5_write_dataset_int_kind_4_rank_1 (root_id, dataset_name, value, error)
+
+integer(HID_T) root_id, v_size(1)
+integer h5_err
+integer value(:)
+logical error
+character(*) dataset_name
+
+!
+
+error = .true.
+v_size = size(value)
+call H5LTmake_dataset_int_f(root_id, dataset_name, 1, v_size, value, h5_err);  if (h5_err < 0) return
+error = .false.
+
+end subroutine hdf5_write_dataset_int_kind_4_rank_1
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine hdf5_write_dataset_int_kind_4_rank_2 (root_id, dataset_name, value, error)
+
+integer(HID_T) root_id, v_size(2)
+integer h5_err
+integer value(:,:)
+logical error
+character(*) dataset_name
+
+!
+
+error = .true.
+v_size = [size(value, 1), size(value, 2)]
+call H5LTmake_dataset_int_f(root_id, dataset_name, 2, v_size, value, h5_err);  if (h5_err < 0) return
+error = .false.
+
+end subroutine hdf5_write_dataset_int_kind_4_rank_2
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine hdf5_write_dataset_int_kind_4_rank_3 (root_id, dataset_name, value, error)
+
+integer(HID_T) root_id, v_size(3)
+integer h5_err
+integer value(:,:,:)
+logical error
+character(*) dataset_name
+
+!
+
+error = .true.
+v_size = [size(value, 1), size(value, 2), size(value, 3)]
+call H5LTmake_dataset_int_f(root_id, dataset_name, 3, v_size, value, h5_err);  if (h5_err < 0) return
+error = .false.
+
+end subroutine hdf5_write_dataset_int_kind_4_rank_3
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------

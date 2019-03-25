@@ -46,23 +46,24 @@ call hdf5_open_file (file_name, 'WRITE', f_id, err);  if (err) return
 call hdf5_write_attribute_string(f_id, 'fileType', 'Bmad:cartesian_map')
 call hdf5_write_attribute_string(f_id, 'file_name', file_name)
 call hdf5_write_attribute_string(f_id, 'master_parameter', attribute_name(ele, cart_map%master_parameter))
-call hdf5_write_real_attrib(f_id, 'field_scale', cart_map%field_scale)
-call hdf5_write_real_attrib(f_id, 'r0', cart_map%r0)
-call hdf5_write_int_attrib(f_id, 'ele_anchor_pt', cart_map%ele_anchor_pt)
-call hdf5_write_int_attrib(f_id, 'field_type', cart_map%field_type)
+call hdf5_write_attribute_real(f_id, 'field_scale', cart_map%field_scale)
+call hdf5_write_attribute_real(f_id, 'r0', cart_map%r0)
+call hdf5_write_attribute_int(f_id, 'ele_anchor_pt', cart_map%ele_anchor_pt)
+call hdf5_write_attribute_int(f_id, 'field_type', cart_map%field_type)
+call hdf5_write_attribute_int(f_id, 'n_term', size(cart_map%ptr%term))
 
-call hdf5_
+call hdf5_write_dataset_real(f_id, 'term%coef',  cart_map%ptr%term%coef, err)
+call hdf5_write_dataset_real(f_id, 'term%kx',    cart_map%ptr%term%kx, err)
+call hdf5_write_dataset_real(f_id, 'term%ky',    cart_map%ptr%term%ky, err)
+call hdf5_write_dataset_real(f_id, 'term%kz',    cart_map%ptr%term%kz, err)
+call hdf5_write_dataset_real(f_id, 'term%x0',    cart_map%ptr%term%x0, err)
+call hdf5_write_dataset_real(f_id, 'term%y0',    cart_map%ptr%term%y0, err)
+call hdf5_write_dataset_real(f_id, 'term%phi_z', cart_map%ptr%term%phi_z, err)
+call hdf5_write_dataset_int(f_id, 'term%family', cart_map%ptr%term%family, err)
+call hdf5_write_dataset_int(f_id, 'term%form',   cart_map%ptr%term%form, err)
 
 call h5fclose_f(f_id, h5_err)
 err_flag = .false.
-return
-
-!
-
-9000 continue
-call out_io (s_error$, r_name, 'ERROR WRITING FIELDMAP STRUCTURE. FILE: ' // file_name)
-call h5fclose_f(f_id, h5_err)
-return
 
 end subroutine hdf5_write_cartesian_map
 
@@ -105,14 +106,6 @@ call hdf5_open_file (file_name, 'READ', f_id, err);  if (err) return
 
 call h5fclose_f(f_id, h5_err)
 err_flag = .false.
-return
-
-!
-
-9000 continue
-call out_io (s_error$, r_name, 'ERROR READING BINARY FIELDMAP FILE. FILE: ' // file_name)
-call h5fclose_f(f_id, h5_err)
-return
 
 end subroutine hdf5_read_cartesian_map
 
@@ -156,14 +149,6 @@ call hdf5_open_file (file_name, 'WRITE', f_id, err);  if (err) return
 
 call h5fclose_f(f_id, h5_err)
 err_flag = .false.
-return
-
-!
-
-9000 continue
-call out_io (s_error$, r_name, 'ERROR READING BINARY FIELDMAP FILE. FILE: ' // file_name)
-call h5fclose_f(f_id, h5_err)
-return
 
 end subroutine hdf5_write_cylindrical_map
 
@@ -206,14 +191,6 @@ call hdf5_open_file (file_name, 'READ', f_id, err);  if (err) return
 
 call h5fclose_f(f_id, h5_err)
 err_flag = .false.
-return
-
-!
-
-9000 continue
-call out_io (s_error$, r_name, 'ERROR READING BINARY FIELDMAP FILE. FILE: ' // file_name)
-call h5fclose_f(f_id, h5_err)
-return
 
 end subroutine hdf5_read_cylindrical_map
 
@@ -257,14 +234,6 @@ call hdf5_open_file (file_name, 'WRITE', f_id, err);  if (err) return
 
 call h5fclose_f(f_id, h5_err)
 err_flag = .false.
-return
-
-!
-
-9000 continue
-call out_io (s_error$, r_name, 'ERROR WRITING FIELDMAP STRUCTURE. FILE: ' // file_name)
-call h5fclose_f(f_id, h5_err)
-return
 
 end subroutine hdf5_write_grid_field
 
@@ -307,14 +276,6 @@ call hdf5_open_file (file_name, 'READ', f_id, err);  if (err) return
 
 call h5fclose_f(f_id, h5_err)
 err_flag = .false.
-return
-
-!
-
-9000 continue
-call out_io (s_error$, r_name, 'ERROR READING BINARY FIELDMAP FILE. FILE: ' // file_name)
-call h5fclose_f(f_id, h5_err)
-return
 
 end subroutine hdf5_read_grid_field
 
@@ -358,14 +319,6 @@ call hdf5_open_file (file_name, 'WRITE', f_id, err);  if (err) return
 
 call h5fclose_f(f_id, h5_err)
 err_flag = .false.
-return
-
-!
-
-9000 continue
-call out_io (s_error$, r_name, 'ERROR WRITING FIELDMAP STRUCTURE. FILE: ' // file_name)
-call h5fclose_f(f_id, h5_err)
-return
 
 end subroutine hdf5_write_taylor_field
 
@@ -408,14 +361,6 @@ call hdf5_open_file (file_name, 'READ', f_id, err);  if (err) return
 
 call h5fclose_f(f_id, h5_err)
 err_flag = .false.
-return
-
-!
-
-9000 continue
-call out_io (s_error$, r_name, 'ERROR READING BINARY FIELDMAP FILE. FILE: ' // file_name)
-call h5fclose_f(f_id, h5_err)
-return
 
 end subroutine hdf5_read_taylor_field
 
