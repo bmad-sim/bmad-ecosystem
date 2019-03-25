@@ -729,7 +729,7 @@ character(*), parameter :: r_name = 'pmd_read_int_dataset'
 
 !
 
-info = hdf5_get_object_info(root_id, name, error, .true.)
+info = hdf5_object_info(root_id, name, error, .true.)
 obj_id = hdf5_open_object(root_id, name, info, error, .true.)
 
 unit_si = hdf5_read_attribute_real(obj_id, 'unitSI', error, .true.);  if (error) return
@@ -783,7 +783,7 @@ character(*), parameter :: r_name = 'pmd_read_real_dataset'
 
 !
 
-info = hdf5_get_object_info(root_id, name, error, .true.)
+info = hdf5_object_info(root_id, name, error, .true.)
 obj_id = hdf5_open_object(root_id, name, info, error, .true.)
 
 unit_si = hdf5_read_attribute_real(obj_id, 'unitSI', error, .true.);  if (error) return
@@ -797,7 +797,7 @@ if (info%element_type == H5O_TYPE_DATASET_F) then
   endif
 
   ! call H5LTread_dataset_double_f(root_id, name, value, info%data_dim, h5_err)
-  call hdf5_read_dataset_double(root_id, name, value, info%data_dim, h5_err)
+  call hdf5_read_dataset_real(root_id, name, value, info%data_dim, h5_err)
 
 !
 
