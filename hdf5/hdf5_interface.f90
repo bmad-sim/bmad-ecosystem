@@ -427,7 +427,7 @@ logical error, print_error
 
 character(*) attrib_name
 
-a_val = hdf5_read_attribute_int_rank1(root_id, attrib_name, 1_hz, error, print_error)
+a_val = hdf5_read_attribute_int_rank1(root_id, attrib_name, 1, error, print_error)
 attrib_value = a_val(1)
 
 end function hdf5_read_attribute_int_rank0
@@ -483,7 +483,7 @@ character(*) attrib_name
 
 !
 
-val = hdf5_read_attribute_real_rank1(root_id, attrib_name, 1_hz, error, print_error)
+val = hdf5_read_attribute_real_rank1(root_id, attrib_name, 1, error, print_error)
 attrib_value = val(1)
 
 end function hdf5_read_attribute_real_rank0

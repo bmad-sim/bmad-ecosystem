@@ -1041,7 +1041,7 @@ call init_attribute_name1 (group$, s_position$,                     'S_POSITION'
 call init_attribute_name1 (group$, x_knot$,                         'X_KNOT')
 
 call init_attribute_name1 (lcavity$, longitudinal_mode$,            'LONGITUDINAL_MODE')
-call init_attribute_name1 (lcavity$, wall_radius$,                  'WALL_RADIUS$', dependent$)
+call init_attribute_name1 (lcavity$, wall_radius$,                  'WALL_RADIUS', dependent$)
 call init_attribute_name1 (lcavity$, field_autoscale$,              'FIELD_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (lcavity$, autoscale_amplitude$,          'AUTOSCALE_AMPLITUDE')
 call init_attribute_name1 (lcavity$, autoscale_phase$,              'AUTOSCALE_PHASE')
@@ -1290,7 +1290,7 @@ call init_attribute_name1 (patch$, downstream_ele_dir$,             'DOWNSTREAM_
 call init_attribute_name1 (patch$, ref_coordinates$,                'REF_COORDINATES')
 
 call init_attribute_name1 (rfcavity$, longitudinal_mode$,           'LONGITUDINAL_MODE')
-call init_attribute_name1 (rfcavity$, wall_radius$,                 'WALL_RADIUS$', dependent$)
+call init_attribute_name1 (rfcavity$, wall_radius$,                 'WALL_RADIUS', dependent$)
 call init_attribute_name1 (rfcavity$, field_autoscale$,             'FIELD_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (rfcavity$, autoscale_amplitude$,         'AUTOSCALE_AMPLITUDE')
 call init_attribute_name1 (rfcavity$, autoscale_phase$,             'AUTOSCALE_PHASE')

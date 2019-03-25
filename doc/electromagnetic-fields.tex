@@ -63,7 +63,7 @@ horizontal focusing and vertical defocusing. The general form is
              (-1)^{m} \, x^{n-2m-1} \, y^{2m+1}
 \end{align}
 where $\lfloor\alpha\rfloor$ means round down to the integer equal to or less than $\alpha$ and 
-$a \choose b$ (``a choose b'') denotes a binomial coefficient.
+$\binom{a}{b}$ (``a choose b'') denotes a binomial coefficient.
 
 \index{multipole!KnL, Tn|hyperbf}
 So far only the normal components of the field have been
@@ -244,7 +244,7 @@ and in the form
              (-1)^{p} \, F_{n-2p}(\rw) \, \yw^{2p+1}
   \label{pspn2}
 \Endeq
-where $a \choose b$ (``a choose b'') denotes a binomial coefficient, $n$ is the order
+where $\binom{a}{b}$ (``a choose b'') denotes a binomial coefficient, $n$ is the order
 number which can range from 0 to infinity, $\lfloor\alpha\rfloor$ means round down to the
 integer equal to or less than $\alpha$. [Notice that here $n$ is related to $m$ in
 McMillian's paper by $m = n + 1$. Also note that the $\phi^r$ and $\phi^i$ here have a
@@ -828,8 +828,47 @@ account the coordinate curvature.
 \label{s:rf.fields}
 \index{RF fields|hyperbf}
 
+The following describes the how RF fields are calculated when the the \vn{field_calc}
+attribute of an RF element is set to \vn{bmad_standard}.
 
+The traveling wave model for RF cavities the field, in cylindrical coordinates is
+\begin{align}
+  E_s(r, \phi, s, t) &= G \, \cos\bigl( k \, s - \omega \, t + 2 \, \pi \, \phi \bigr) \CRNO
+  E_r(r, \phi, s, t) &= \frac{1}{2} \, G \, k \, r \, \sin\bigl( k \, s - \omega \, t + 2 \, \pi \, \phi \bigr) \\
+  B_\phi(r, \phi, s, t) &= \frac{1}{2 \, c} \, G \, k \, r \, \sin\bigl( k \, s - \omega \, t + 2 \, \pi \, \phi \bigr) \nonumber
+  \label{egot}
+\end{align}
+where $G$ is the accelerating gradiant, $k = c / \omega$ is the wave number with $\omega$ beging the
+RF frequency.
 
+For standing wave cavities, the RF fields are modeled as $N$ half-wave pillbox cells, each having a
+length of $\lambda/2$ where $\lambda = 2 \, \pi / k$ is the wavelength. If the length of the RF
+element is not equal to the length of $N$ cells, the active region is centered in the element and
+the regions to either side are field free.\footnote{If the length of the cavity is less than $N$
+cells the field free region has a negative length. This is equivalent to a drift element with
+negative length and does not cause any problems during tracking.}
+
+The field in the standing wave pillbox is modeled either with a $p = 0$ or $p = 1$ longitudinal mode
+as detailed in Chapter 3, Section VI of reference \cite{b:lee}. The $p = 1$ longitudinal mode (which
+is the default if the longitudinal mode is not set in the element), models the fields with the transverse wall at
+infinity. In this case, the fields are
+\begin{align}
+  E_s(r, \phi, s, t)    &= 2 \, G \,                         \cos(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi) \CRNO
+  E_r(r, \phi, s, t)    &= G \, k \, r \,                    \sin(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi) \\
+  B_\phi(r, \phi, s, t) &= \frac{-1}{c} \, G \, \, k \, r \, \cos(k \, s) \, \sin(\omega \, t + 2 \, \pi \, \phi) \nonumber
+  \label{egot2}
+\end{align}
+The overall factor of 2 in the equation is present to ensure that an ultra-relativistic particle
+entering with $\phi = 0$ will experience an average gradiant equal to $G$.
+
+For the $p = 0$ longitudinal mode, the fields are modeled using a TM$_{010}$ mode giving a wall
+radius at $r_{wall} = 2.405 / k$ and the fields are
+\begin{align}
+  E_s(r, \phi, s, t)    &= \frac{\pi}{2} \,      G \, J_0(k \, r) \sin(\omega \, t + 2 \, \pi \, \phi) \\
+  B_\phi(r, \phi, s, t) &= \frac{\pi}{2 \, c} \, G \, J_1(k \, r) \cos(\omega \, t + 2 \, \pi \, \phi) \nonumber
+  \label{egot3}
+\end{align}
+where $J_0$ and $J_1$ are Bessel functions.
 
 %-----------------------------------------------------------------
 \section{Wake fields}
