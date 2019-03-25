@@ -51,7 +51,6 @@ short_method_name(linear$)            = 'LIN'
 short_method_name(symp_map$)          = 'SM'
 short_method_name(taylor$)            = 'TAY'
 short_method_name(symp_lie_bmad$)     = 'SLB'
-short_method_name(boris$)             = 'BOR'
 short_method_name(mad$)               = 'MAD'
 short_method_name(time_runge_kutta$)  = 'TRK'
 
