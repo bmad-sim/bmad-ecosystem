@@ -8,7 +8,6 @@
 module bmad
 
 use fringe_mod
-use boris_mod
 use dynamic_aperture_mod
 use bookkeeper_mod
 use radiation_mod

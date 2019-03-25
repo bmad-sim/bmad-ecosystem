@@ -586,7 +586,7 @@ program by setting the \vn{%tracking_method} attribute of an element
 \begin{example}
   type (ele_struct) ele
   ...
-  ele%tracking_method = boris$  ! for boris tracking
+  ele%tracking_method = symp_lie_ptc$  ! for symp_lie_ptc, tracking
   print *, 'Tracking_method: ', calc_method_name(ele%tracking_method)
 \end{example}
 To form the corresponding parameter to a given tracking method just
@@ -605,7 +605,7 @@ For determining what tracking methods are valid for a given element,
 use \Hyperref{r:valid.tracking.method}{valid_tracking_method} and
 \Hyperref{r:valid.mat6.calc.method}{valid_mat6_calc_method} functions
 \begin{example}
-  print *, 'Method is valid: ', valid_tracking_method(ele, boris\$)
+  print *, 'Method is valid: ', valid_tracking_method(ele, symp_lie_ptc\$)
 \end{example}
 
 \index{synchrotron radiation!calculating}

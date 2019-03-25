@@ -1,7 +1,7 @@
 !+
 ! Subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_spin, mat6, make_matrix, rf_time, apply_sol_fringe)
 !
-! Subroutine, used with runge_kutta and boris tracking, to track through the edge fringe field of an element.
+! Subroutine, used with runge_kutta tracking, to track through the edge fringe field of an element.
 ! This routine is used and with the bmad_standard field_calc where the field can have an abrubt, 
 ! unphysical termination of the field at the edges of the element.
 !
