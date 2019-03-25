@@ -2546,7 +2546,7 @@ an \vn{lcavity} with finite \vn{gradient} is never symplectic. See
 \sref{s:phase.space}. In addition, couplers (\sref{s:rf.coupler}) and
 HOM wakes (\sref{s:wakes}) can be modeled.
 
-When using \vn{boris} or \vn{runge_kutta}, tracking (\sref{s:tkm})
+When using \vn{runge_kutta} tracking (\sref{s:tkm})
 through a field map (\sref{s:fieldmap}), the \vn{bmad_standard} field
 is \vn{n_cell} half wave resonators.
 
@@ -3719,10 +3719,10 @@ be modeled. In addition, if a field map is specified
 (\sref{s:fieldmap}), tracking using an integrator is possible.
 
 \index{RF field map}
-\index{runge_kutta!and field maps}\index{adaptive_runge_kutta!and field maps}
-\index{boris!and field maps}\index{symp_lie_bmad!and field maps}
+\index{runge_kutta!and field maps}
+\index{symp_lie_bmad!and field maps}
 If a field map is specified (\sref{s:fieldmap}), tracking using an integrator is possible. A field
-map is only used for \vn{runge_kutta}, \vn{adaptive_runge_kutta}, \vn{boris} and \vn{symp_lie_bmad}
+map is only used for \vn{runge_kutta}, \vn{fixed_step_runge_kutta}, and \vn{symp_lie_bmad}
 tracking (\sref{s:tkm}).  Only the fundamental mode has an analytical formula for the symplectic
 tracking. In the future, the other modes could be used with \vn{symp_lie_bmad} tracking using a
 field expansion about the centerline.

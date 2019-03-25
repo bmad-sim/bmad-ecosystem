@@ -6,36 +6,6 @@
 !
 ! Note: This routine does not do any other bookkeeping. Consider using
 ! control_bookkeeper or lattice_bookkeeper instead.
-! 
-! Note: The following is an old, incomplete list.
-!
-! BEAMBEAM:   
-!     bbi_const$ = param%n_part * charge$ * classical_radius_factor /
-!                           (2 * pi * p0c$ * (sig_x$ + sig_y$)
-! CRYSTAL:
-!     bragg_angle_in$
-!     bragg_angle_out$
-!     tilt_corr$
-!
-! ELSEPARATOR:
-!     e_field$ = sqrt(hkick$**2 + vkick$**2) * p0c$ / l$
-!     voltage$ = e_field$ * gap$ 
-!
-! LCAVITY:    
-!     voltage$ = gradient$ * L$ 
-! 
-! RFCAVITY:   
-!     harmon$  = rf_frequency$ / T0
-!
-! SBEND:      
-!     angle$   = L$ * G$
-!     l_chord$ = 2 * sin(Angle$/2) / G$
-!     rho$     = 1 / G$
-!
-! WIGGLER:
-!     k1_pseudo$  = -0.5 * (c_light * b_max$ / p0c$)**2
-!     g_max$      = b_max$ * c_light / p0c$
-!     n_pole$     = L$ / l_pole$
 !
 ! Modules needed:
 !   use bmad

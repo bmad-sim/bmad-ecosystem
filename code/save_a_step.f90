@@ -1,7 +1,7 @@
 !+
 ! Subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, mat6, make_matrix, rf_time)
 !
-! Routine used by Runge-Kutta and Boris tracking routines to save
+! Routine used by the Runge-Kutta tracking routine to save
 ! the trajectory through an element.
 !
 ! Note: It is assumed by this routine that here(:) is the orbit in local 

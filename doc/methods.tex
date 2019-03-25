@@ -24,9 +24,9 @@ basis using the attributes:
 \end{example}
 Example:
 \begin{example}
-  q2: quadrupole, tracking_method = boris
-  q2[tracking_method] = boris
-  quadrupole::*[tracking_method] = boris
+  q2: quadrupole, tracking_method = symp_lie_ptc
+  q2[tracking_method] = symp_lie_ptc
+  quadrupole::*[tracking_method] = symp_lie_ptc
 \end{example}
 The first two lines of this example have exactly the same effect in
 terms of setting the \vn{tracking_method}. The third line shows how to
@@ -69,14 +69,6 @@ walls of an RF cavity due to the large electromagnetic fields.
 \end{figure}
 
 \begin{description}
-
-\index{boris!tracking_method}
-\item[\vn{Boris}]
-Second order Boris Integration\cite{b:boris}. Like \vn{Runge_Kutta},
-\vn{Boris} does tracking by integrating the equation of
-motion. \vn{Boris} handles both electric and magnetic fields and does
-not assume that the particle is ultra--relativistic. \vn{Boris} preserves
-conserved quantities more accurately than \vn{Runge_Kutta}.
 
 \index{bmad_standard!tracking_method}
 \item[\vn{Bmad_Standard}]
@@ -204,7 +196,6 @@ different from using \vn{absolute time tracking} as explained in \sref{s:rf.time
 \rule{0pt}{80pt} 
 {\em Element Class} &
 \begin{sideways}\vn{Bmad_Standard}\end{sideways} &
-\begin{sideways}\vn{Boris}\end{sideways} &
 \begin{sideways}\vn{Custom}\end{sideways} &
 \begin{sideways}\vn{Linear}\end{sideways} &
 \begin{sideways}\vn{MAD}\end{sideways} &
@@ -217,46 +208,46 @@ different from using \vn{absolute time tracking} as explained in \sref{s:rf.time
 \begin{sideways}\vn{Fixed_Step_Time_Runge_Kutta}\end{sideways}
 \begin{sideways}\vn{Time_Runge_Kutta}\end{sideways} &
 \\ \midrule
-%                               BS   B   C   L   M   RK    SLB   SLP   SM     T   TRK
-  \vn{ab_multipole}            & D &   & X & X &   &     &     &  X  &  X  &  X  &    \\  
-  \vn{ac_kicker}               & D & X & X & X &   &  X  &     &     &     &     & X  \\  
-  \vn{beambeam}                & D &   & X & X &   &     &     &     &     &     &    \\  
-  \vn{bend_sol_quad}           &   &   & X &   &   &     &  D  &     &     &     &    \\  
-  \vn{capillary}               & D &   & X &   &   &     &     &     &     &     &    \\  
-  \vn{crystal}                 & D &   & X &   &   &     &     &     &     &     &    \\  
-  \vn{custom}                  &   & X & D & X &   &  X  &     &     &     &     & X  \\  
-  \vn{drift}                   & D & X & X & X & X &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{e_gun}                   &   &   & X &   &   &     &     &     &     &     & D  \\  
-  \vn{ecollimator}             & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{elseparator}             & D & X & X & X & X &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{em_field}                &   & X & X &   &   &  D  &     &  X  &  X  &  X  & X  \\  
-  \vn{floor_shift}             & D &   & X &   &   &     &     &     &     &     &    \\  
-  \vn{hkicker}                 & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{instrument}              & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{kicker}                  & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{lcavity}                 & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{marker}                  & D &   & X & X &   &     &     &  X  &  X  &  X  &    \\  
-  \vn{match}                   & D &   & X &   &   &     &     &     &     &  X  &    \\ 
-  \vn{monitor}                 & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{mirror}                  & D &   & X &   &   &     &     &     &     &     &    \\  
-  \vn{multipole}               & D &   & X & X &   &     &     &  X  &  X  &  X  &    \\  
-  \vn{multilayer}              & D &   & X &   &   &     &     &     &     &     &    \\  
-  \vn{octupole}                & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
-  \vn{patch}                   & D &   & X &   &   &  X  &     &  X  &     &  X  &    \\ 
-  \vn{quadrupole}              & D & X & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
-  \vn{rbend}                   & D &   & X & X & X &     &     &  X  &  X  &  X  &    \\ 
-  \vn{rcollimator}             & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
-  \vn{rfcavity}                & D & X & X & X & X &  X  &     &  X  &  X  &  X  & X  \\ 
-  \vn{sad_mult}                & D &   & X & X &   &     &     &  X  &  X  &  X  &    \\
-  \vn{sample}                  & D &   & X &   &   &     &     &     &     &     &    \\
-  \vn{sbend}                   & D &   & X & X & X &  X  &     &  X  &  X  &  X  & X  \\ 
-  \vn{sextupole}               & D & X & X & X & X &  X  &     &  X  &  X  &  X  & X  \\ 
-  \vn{solenoid}                & D & X & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
-  \vn{sol_quad}                & D & X & X & X &   &  X  &  X  &  X  &  X  &  X  & X  \\ 
-  \vn{taylor}                  &   &   & X & X &   &     &     &  X  &     &  D  &    \\ 
-  \vn{vkicker}                 & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
-  \vn{wiggler} (map type)      &   & X & X & X &   &  X  &  X  &  X  &  X  &  X  & X  \\
-  \vn{wiggler} (periodic type) & D & X & X & X &   &X$^a$&X$^a$&X$^a$&X$^a$&X$^a$&    \\ \bottomrule
+%                               BS   C   L   M   RK    SLB   SLP   SM     T   TRK
+  \vn{ab_multipole}            & D & X & X &   &     &     &  X  &  X  &  X  &    \\  
+  \vn{ac_kicker}               & D & X & X &   &  X  &     &     &     &     & X  \\  
+  \vn{beambeam}                & D & X & X &   &     &     &     &     &     &    \\  
+  \vn{bend_sol_quad}           &   & X &   &   &     &  D  &     &     &     &    \\  
+  \vn{capillary}               & D & X &   &   &     &     &     &     &     &    \\  
+  \vn{crystal}                 & D & X &   &   &     &     &     &     &     &    \\  
+  \vn{custom}                  &   & D & X &   &  X  &     &     &     &     & X  \\  
+  \vn{drift}                   & D & X & X & X &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{e_gun}                   &   & X &   &   &     &     &     &     &     & D  \\  
+  \vn{ecollimator}             & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{elseparator}             & D & X & X & X &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{em_field}                &   & X &   &   &  D  &     &  X  &  X  &  X  & X  \\  
+  \vn{floor_shift}             & D & X &   &   &     &     &     &     &     &    \\  
+  \vn{hkicker}                 & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{instrument}              & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{kicker}                  & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{lcavity}                 & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{marker}                  & D & X & X &   &     &     &  X  &  X  &  X  &    \\  
+  \vn{match}                   & D & X &   &   &     &     &     &     &  X  &    \\ 
+  \vn{monitor}                 & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{mirror}                  & D & X &   &   &     &     &     &     &     &    \\  
+  \vn{multipole}               & D & X & X &   &     &     &  X  &  X  &  X  &    \\  
+  \vn{multilayer}              & D & X &   &   &     &     &     &     &     &    \\  
+  \vn{octupole}                & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
+  \vn{patch}                   & D & X &   &   &  X  &     &  X  &     &  X  &    \\ 
+  \vn{quadrupole}              & D & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
+  \vn{rbend}                   & D & X & X & X &     &     &  X  &  X  &  X  &    \\ 
+  \vn{rcollimator}             & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
+  \vn{rfcavity}                & D & X & X & X &  X  &     &  X  &  X  &  X  & X  \\ 
+  \vn{sad_mult}                & D & X & X &   &     &     &  X  &  X  &  X  &    \\
+  \vn{sample}                  & D & X &   &   &     &     &     &     &     &    \\
+  \vn{sbend}                   & D & X & X & X &  X  &     &  X  &  X  &  X  & X  \\ 
+  \vn{sextupole}               & D & X & X & X &  X  &     &  X  &  X  &  X  & X  \\ 
+  \vn{solenoid}                & D & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
+  \vn{sol_quad}                & D & X & X &   &  X  &  X  &  X  &  X  &  X  & X  \\ 
+  \vn{taylor}                  &   & X & X &   &     &     &  X  &     &  D  &    \\ 
+  \vn{vkicker}                 & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
+  \vn{wiggler} (map type)      &   & X & X &   &  X  &  X  &  X  &  X  &  X  & X  \\
+  \vn{wiggler} (periodic type) & D & X & X &   &X$^a$&X$^a$&X$^a$&X$^a$&X$^a$&    \\ \bottomrule
    \multicolumn{12}{l}{$^a$See \sref{s:wiggler.periodic} for more details} \\
 \end{tabular}
 }
@@ -486,7 +477,7 @@ more details.
 \index{tracking!mat6_calc_method}
 \item[\vn{Tracking}] \Newline
 How spin is tracked here will depend also on the setting of \vn{tracking_method}. If
-\vn{tracking_method} is set to \vn{boris}, \vn{runge_kutta}, or \vn{time_runge_kutta} the spin will
+\vn{tracking_method} is set to \vn{runge_kutta} or \vn{time_runge_kutta} the spin will
 be tracked along with the phase space particle coordinates using the local fields. For
 \vn{tracking_method} set to \vn{symp_lie_ptc}, the spin tracking will use \vn{PTC}.  For all other
 \vn{tracking_method}s, the spin will be tracked using the ``\vn{bmad_standard}'' spin tracking
@@ -607,10 +598,8 @@ and symplectic integration. The latter two methods involve using the
 PTC library (\sref{s:ptc.intro}).
 
 The methods that do not involve Taylor maps are
-\index{boris!and Taylor maps}
 \index{runge_kutta!and Taylor maps}
 \begin{example}
-  boris
   fixed_step_runge_kutta
   fixed_step_time_runge_kutta
   runge_kutta
@@ -645,18 +634,18 @@ Example:
 \index{ds_step}\index{num_steps}
 
 \index{taylor}\index{symp_lie_ptc}\index{symp_lie_bmad}
-\index{runge_kutta}\index{boris}
+\index{runge_kutta}
 One way to create a transfer map through an element is to divide the
 element up into slices and then to propagate the transfer map slice by
-slice.  There are several ways to do this integration. The \vn{boris}
-and \vn{runge_kutta} methods integrate the equations of motion to
+slice.  There are several ways to do this integration. The
+\vn{runge_kutta} type methods integrate the equations of motion to
 give the 0\Th order Taylor map which just represents a particle's
 orbit.  Symplectic integration\index{symplectic!integration} using Lie
 algebraic techniques, on the other hand, can generate Taylor maps to
 any order.  The \vn{ds_step} attribute determines the slice thickness.
 Alternatively, \vn{num_steps} attribute can be used in place of
 \vn{ds_step} to specify the number of slices.
-This is applicable to \vn{Boris}, \vn{symp_lie_bmad}, and
+This is applicable to \vn{symp_lie_bmad} and
 \vn{symp_lie_ptc} integration.
 
 \index{ds_step}
@@ -682,8 +671,8 @@ doesn't hurt) but for slower tracking.
 \label{s:field.calc}
 \index{field_calc}
 
-\index{runge_kutta}\index{boris}
-The \vn{boris}, and \vn{runge_kutta} tracking all use as input the electric and magnetic fields of
+\index{runge_kutta}
+The \vn{runge_kutta} type tracking methods all use as input the electric and magnetic fields of
 an element. How the EM fields are calculated is determined by the \vn{field_calc} attribute for an
 element.  For all lattice elements, except \vn{wigglers} and \vn{undulators}, possible values for
 \vn{field_calc} are:
@@ -721,20 +710,6 @@ control algorithm shortens the step and tries again. A field that does not obey 
 can fool the control algorithm into thinking that the error is always larger than the allowed
 tolerance for any finite step size. A typical situation is where the field has an unphysical step
 across some boundary.
-
-%-----------------------------------------------------------------
-\subsection{Boris Integration}
-\label{s:boris.integ}
-\index{boris integration}
-
-\index{boris}
-The phase space coordinates used with \vn{boris} tracking are not the standard \bmad
-coordinates. Rather what is used is
-\begin{example}
-    (x, p_x/p_0, y, p_y/p_0, s-ct, dE/(cP_0))
-\end{example}
-At high energy $s-ct = z$ which is the distance of the particle from the reference particle and $c
-\, P_0 = v \, E_0/C = E_0$ so that $dE/cP_0 = dE/E$ giving the standard \bmad coordinates.
 
 %-----------------------------------------------------------------
 \subsection{PTC Integration}
