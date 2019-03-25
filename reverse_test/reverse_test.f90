@@ -91,7 +91,6 @@ do ib = 0, ubound(lat%branch, 1)
       if (im == mad$) cycle
       if (im == symp_map$) cycle
       if (im == custom$) cycle
-      if (im == boris$) cycle
       if (im == taylor$ .and. ele%key == rfcavity$) cycle
       if (im == taylor$ .and. ele%key == lcavity$) cycle
       if (im == symp_lie_ptc$ .and. ele%key == patch$) cycle

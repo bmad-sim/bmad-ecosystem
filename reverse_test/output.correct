@@ -65,12 +65,6 @@
 "DRIFT1@Taylor:dspin_r_orient"                     ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
 "DRIFT1@Taylor:dspin_b_track"                      ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
  
-"DRIFT1@Boris:dorb_r_orient"                       ABS 1E-6   -2.0058E-18  5.4210E-20 -4.5536E-18  5.9631E-19 -1.8475E-16  5.5511E-17 -1.2302E-16
-"DRIFT1@Boris:dorb_b_track"                        ABS 1E-6    6.9231E-04  5.4210E-20 -3.1154E-03  5.9631E-19  4.5000E+00  5.5511E-17 -4.5000E+00
-"DRIFT1@Boris:xmat_r"                              ABS 1E-6    2.2204E-11
-"DRIFT1@Boris:dspin_r_orient"                      ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
-"DRIFT1@Boris:dspin_b_track"                       ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
- 
 "DRIFT1@Time_Runge_Kutta:dorb_r_orient"            ABS 1E-6    4.9331E-18  5.4210E-20  6.5052E-19  5.9631E-19 -8.9425E-16  5.5511E-17  8.6891E-16
 "DRIFT1@Time_Runge_Kutta:dorb_b_track"             ABS 1E-6    4.9331E-18  5.4210E-20  1.5179E-18  5.9631E-19 -9.0000E+00  5.5511E-17  9.9193E-16
 "DRIFT1@Time_Runge_Kutta:xmat_r"                   ABS 1E-6    4.1182E-11
@@ -106,12 +100,6 @@
 "ECOLLIMATOR1@Taylor:xmat_r"                       ABS 1E-6    4.3200E-06
 "ECOLLIMATOR1@Taylor:dspin_r_orient"               ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
 "ECOLLIMATOR1@Taylor:dspin_b_track"                ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
- 
-"ECOLLIMATOR1@Boris:dorb_r_orient"                 ABS 1E-6   -8.9447E-18  5.4210E-20 -1.9516E-18  5.9631E-19 -1.8475E-16  5.5511E-17  9.9193E-16
-"ECOLLIMATOR1@Boris:dorb_b_track"                  ABS 1E-6    6.9231E-04  5.4210E-20 -3.1154E-03  5.9631E-19  4.5000E+00  5.5511E-17 -4.5000E+00
-"ECOLLIMATOR1@Boris:xmat_r"                        ABS 1E-6    2.2204E-11
-"ECOLLIMATOR1@Boris:dspin_r_orient"                ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
-"ECOLLIMATOR1@Boris:dspin_b_track"                 ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
  
 "ECOLLIMATOR1@Time_Runge_Kutta:dorb_r_orient"      ABS 1E-6   -5.4752E-18  5.4210E-20 -1.5179E-18  5.9631E-19  1.2134E-15  5.5511E-17 -9.9193E-16
 "ECOLLIMATOR1@Time_Runge_Kutta:dorb_b_track"       ABS 1E-6   -5.4752E-18  5.4210E-20 -1.5179E-18  5.9631E-19 -9.0000E+00  5.5511E-17  0.0000E+00
@@ -149,12 +137,6 @@
 "ELSEPARATOR1@Taylor:dspin_r_orient"               ABS 1E-6    1.0634E-01  1.0741E-02 -9.2350E-02
 "ELSEPARATOR1@Taylor:dspin_b_track"                ABS 1E-6    2.8551E-05 -2.3058E-05  1.6822E-06
  
-"ELSEPARATOR1@Boris:dorb_r_orient"                 ABS 1E-6   -2.0058E-18  3.2526E-19  6.5052E-19  2.7105E-19 -3.2266E-16  1.6653E-16  0.0000E+00
-"ELSEPARATOR1@Boris:dorb_b_track"                  ABS 1E-6    7.3897E-03  8.2918E-03 -2.4435E-03  8.3194E-04  4.5000E+00  1.9512E-05 -4.5000E+00
-"ELSEPARATOR1@Boris:xmat_r"                        ABS 1E-6    9.0955E-11
-"ELSEPARATOR1@Boris:dspin_r_orient"                ABS 1E-6    7.4801E-11 -3.1962E-11 -1.9311E-11
-"ELSEPARATOR1@Boris:dspin_b_track"                 ABS 1E-6    1.9304E-02  8.4540E-06 -1.2108E-02
- 
 "ELSEPARATOR1@Time_Runge_Kutta:dorb_r_orient"      ABS 1E-6    5.5311E-16  4.0333E-15 -2.5268E-15  4.0414E-16  3.6495E-12 -1.6653E-16 -3.6503E-12
 "ELSEPARATOR1@Time_Runge_Kutta:dorb_b_track"       ABS 1E-6    5.5311E-16  4.0333E-15 -2.5268E-15  4.0414E-16 -9.0000E+00 -1.6653E-16 -3.6503E-12
 "ELSEPARATOR1@Time_Runge_Kutta:xmat_r"             ABS 1E-6    4.2828E-07
@@ -190,12 +172,6 @@
 "ELSEPARATOR2@Taylor:xmat_r"                       ABS 1E-6    2.9065E-03
 "ELSEPARATOR2@Taylor:dspin_r_orient"               ABS 1E-6   -1.0616E-02  1.0562E-01 -9.9238E-02
 "ELSEPARATOR2@Taylor:dspin_b_track"                ABS 1E-6   -1.9026E-05  1.3341E-05  1.1308E-06
- 
-"ELSEPARATOR2@Boris:dorb_r_orient"                 ABS 1E-6    4.9331E-18 -8.1315E-20  2.3852E-18  8.1315E-19  7.0256E-17  1.6653E-16  0.0000E+00
-"ELSEPARATOR2@Boris:dorb_b_track"                  ABS 1E-6    2.0350E-05 -8.3195E-04  3.5818E-03  8.2917E-03  4.5000E+00  1.6883E-05 -4.5000E+00
-"ELSEPARATOR2@Boris:xmat_r"                        ABS 1E-6    9.1189E-11
-"ELSEPARATOR2@Boris:dspin_r_orient"                ABS 1E-6    2.0145E-13  5.6667E-12 -4.6545E-12
-"ELSEPARATOR2@Boris:dspin_b_track"                 ABS 1E-6   -1.3416E-06  1.9244E-02 -1.6021E-02
  
 "ELSEPARATOR2@Time_Runge_Kutta:dorb_r_orient"      ABS 1E-6   -2.9761E-17 -1.3553E-19 -7.1557E-18  1.6263E-19  7.1653E-15 -1.6653E-16 -7.9354E-15
 "ELSEPARATOR2@Time_Runge_Kutta:dorb_b_track"       ABS 1E-6   -2.9761E-17 -1.3553E-19 -7.1557E-18  1.6263E-19 -9.0000E+00 -1.6653E-16 -7.9354E-15
@@ -233,12 +209,6 @@
 "HKICKER1@Taylor:dspin_r_orient"                   ABS 1E-6    1.0635E-01  1.0739E-02 -9.2351E-02
 "HKICKER1@Taylor:dspin_b_track"                    ABS 1E-6    1.0641E-01  1.0676E-02 -9.2354E-02
  
-"HKICKER1@Boris:dorb_r_orient"                     ABS 1E-6   -1.7222E-02  9.9500E-03 -1.7279E-03  9.9829E-04 -6.9752E-05  5.5511E-17  6.9752E-05
-"HKICKER1@Boris:dorb_b_track"                      ABS 1E-6    7.3894E-03  8.2917E-03 -2.4434E-03  8.3192E-04  4.5000E+00  5.5511E-17 -4.5000E+00
-"HKICKER1@Boris:xmat_r"                            ABS 1E-6    1.3248E-02
-"HKICKER1@Boris:dspin_r_orient"                    ABS 1E-6   -8.8202E-07  1.5002E-07  4.0920E-07
-"HKICKER1@Boris:dspin_b_track"                     ABS 1E-6    1.9307E-02  8.3045E-06 -1.2110E-02
- 
 "HKICKER1@Time_Runge_Kutta:dorb_r_orient"          ABS 1E-6    9.4170E-16  6.7072E-15 -4.1982E-15  6.7334E-16  6.0619E-12  4.9960E-16 -6.0627E-12
 "HKICKER1@Time_Runge_Kutta:dorb_b_track"           ABS 1E-6    9.4170E-16  6.7072E-15 -4.1982E-15  6.7334E-16 -9.0000E+00  4.9960E-16 -6.0627E-12
 "HKICKER1@Time_Runge_Kutta:xmat_r"                 ABS 1E-6    4.4191E-07
@@ -274,12 +244,6 @@
 "INSTRUMENT1@Taylor:xmat_r"                        ABS 1E-6    2.0002E-12
 "INSTRUMENT1@Taylor:dspin_r_orient"                ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
 "INSTRUMENT1@Taylor:dspin_b_track"                 ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
- 
-"INSTRUMENT1@Boris:dorb_r_orient"                  ABS 1E-6   -4.0658E-20  0.0000E+00 -1.6263E-19  0.0000E+00  0.0000E+00  5.5511E-17  0.0000E+00
-"INSTRUMENT1@Boris:dorb_b_track"                   ABS 1E-6    6.9231E-04  0.0000E+00  1.3846E-03  0.0000E+00  4.5000E+00  5.5511E-17 -4.5000E+00
-"INSTRUMENT1@Boris:xmat_r"                         ABS 1E-6    2.4980E-11
-"INSTRUMENT1@Boris:dspin_r_orient"                 ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
-"INSTRUMENT1@Boris:dspin_b_track"                  ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
  
 "INSTRUMENT1@Time_Runge_Kutta:dorb_r_orient"       ABS 1E-6   -6.7763E-20  0.0000E+00 -2.7105E-19  0.0000E+00 -1.8605E-15 -1.6653E-16  0.0000E+00
 "INSTRUMENT1@Time_Runge_Kutta:dorb_b_track"        ABS 1E-6    8.1315E-20  0.0000E+00  5.4210E-20  0.0000E+00 -9.0000E+00 -1.6653E-16  0.0000E+00
@@ -317,12 +281,6 @@
 "KICKER1@Taylor:dspin_r_orient"                    ABS 1E-6    5.6281E-02  6.8943E-02 -1.0865E-01
 "KICKER1@Taylor:dspin_b_track"                     ABS 1E-6    5.6338E-02  6.8900E-02 -1.0865E-01
  
-"KICKER1@Boris:dorb_r_orient"                      ABS 1E-6   -9.2962E-03  5.3710E-03 -1.1370E-02  6.5690E-03 -5.2859E-05  5.5511E-17  5.2859E-05
-"KICKER1@Boris:dorb_b_track"                       ABS 1E-6    4.3074E-03  4.4759E-03  1.3061E-03  5.4742E-03  4.5000E+00  5.5511E-17 -4.5000E+00
-"KICKER1@Boris:xmat_r"                             ABS 1E-6    8.7463E-03
-"KICKER1@Boris:dspin_r_orient"                     ABS 1E-6   -3.8410E-07 -2.6431E-07  4.4190E-07
-"KICKER1@Boris:dspin_b_track"                      ABS 1E-6    1.1529E-02  1.1542E-02 -1.6696E-02
- 
 "KICKER1@Time_Runge_Kutta:dorb_r_orient"           ABS 1E-6    1.3511E-15  5.3146E-15 -6.1672E-15  6.5024E-15  8.8988E-12  1.6098E-15 -8.8996E-12
 "KICKER1@Time_Runge_Kutta:dorb_b_track"            ABS 1E-6    1.3511E-15  5.3146E-15 -6.1672E-15  6.5024E-15 -9.0000E+00  1.6098E-15 -8.8996E-12
 "KICKER1@Time_Runge_Kutta:xmat_r"                  ABS 1E-6    3.7905E-07
@@ -358,12 +316,6 @@
 "MONITOR1@Taylor:xmat_r"                           ABS 1E-6    2.0002E-12
 "MONITOR1@Taylor:dspin_r_orient"                   ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
 "MONITOR1@Taylor:dspin_b_track"                    ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
- 
-"MONITOR1@Boris:dorb_r_orient"                     ABS 1E-6   -4.0658E-20  0.0000E+00 -1.6263E-19  0.0000E+00  0.0000E+00  5.5511E-17  0.0000E+00
-"MONITOR1@Boris:dorb_b_track"                      ABS 1E-6    6.9231E-04  0.0000E+00  1.3846E-03  0.0000E+00  4.5000E+00  5.5511E-17 -4.5000E+00
-"MONITOR1@Boris:xmat_r"                            ABS 1E-6    2.4980E-11
-"MONITOR1@Boris:dspin_r_orient"                    ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
-"MONITOR1@Boris:dspin_b_track"                     ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
  
 "MONITOR1@Time_Runge_Kutta:dorb_r_orient"          ABS 1E-6   -6.7763E-20  0.0000E+00 -2.7105E-19  0.0000E+00 -1.8605E-15 -1.6653E-16  0.0000E+00
 "MONITOR1@Time_Runge_Kutta:dorb_b_track"           ABS 1E-6    8.1315E-20  0.0000E+00  5.4210E-20  0.0000E+00 -9.0000E+00 -1.6653E-16  0.0000E+00
@@ -424,12 +376,6 @@
 "OCTUPOLE1@Taylor:xmat_r"                          ABS 1E-6    9.5434E-01
 "OCTUPOLE1@Taylor:dspin_r_orient"                  ABS 1E-6   -4.6570E-03  1.5313E-02 -9.8101E-03
 "OCTUPOLE1@Taylor:dspin_b_track"                   ABS 1E-6   -6.2461E-03  1.4752E-02 -8.3787E-03
- 
-"OCTUPOLE1@Boris:dorb_r_orient"                    ABS 1E-6    6.1255E-04 -4.0628E-04 -2.3122E-03  1.3046E-03 -1.8896E-06  5.5511E-17  1.8896E-06
-"OCTUPOLE1@Boris:dorb_b_track"                     ABS 1E-6    1.3282E-04 -3.3506E-04 -2.2909E-03  1.1261E-03  4.5000E+00  5.5511E-17 -4.5000E+00
-"OCTUPOLE1@Boris:xmat_r"                           ABS 1E-6    8.7948E-01
-"OCTUPOLE1@Boris:dspin_r_orient"                   ABS 1E-6   -1.6376E-03  6.4791E-04  4.6091E-04
-"OCTUPOLE1@Boris:dspin_b_track"                    ABS 1E-6   -1.6044E-03  2.8983E-03 -1.3688E-03
  
 "OCTUPOLE1@Time_Runge_Kutta:dorb_r_orient"         ABS 1E-6   -3.4496E-11  2.5717E-12 -5.3976E-11  2.4344E-12 -3.8635E-14  3.3862E-15  3.9677E-14
 "OCTUPOLE1@Time_Runge_Kutta:dorb_b_track"          ABS 1E-6   -3.4496E-11  2.5717E-12 -5.3976E-11  2.4344E-12 -9.0000E+00  3.3862E-15  4.7613E-14
@@ -497,12 +443,6 @@
 "QUADRUPOLE1@Symp_Lie_Bmad:dspin_r_orient"         ABS 1E-6    3.3307E-16 -6.6613E-16  4.4409E-16
 "QUADRUPOLE1@Symp_Lie_Bmad:dspin_b_track"          ABS 1E-6    4.9960E-16 -1.6653E-16  0.0000E+00
  
-"QUADRUPOLE1@Boris:dorb_r_orient"                  ABS 1E-6    6.5850E-04 -4.6962E-04 -1.3807E-02  5.9682E-02 -3.2233E-04  5.5511E-17  3.2233E-04
-"QUADRUPOLE1@Boris:dorb_b_track"                   ABS 1E-6    1.7495E-04 -5.1938E-03  4.9486E-03  4.9977E-02  6.0001E-01  5.5511E-17 -6.0001E-01
-"QUADRUPOLE1@Boris:xmat_r"                         ABS 1E-6    1.2004E+00
-"QUADRUPOLE1@Boris:dspin_r_orient"                 ABS 1E-6   -1.5477E-02  1.9081E-02 -6.6261E-03
-"QUADRUPOLE1@Boris:dspin_b_track"                  ABS 1E-6    8.0639E-02  6.2066E-02 -1.2369E-01
- 
 "QUADRUPOLE1@Time_Runge_Kutta:dorb_r_orient"       ABS 1E-6    2.3145E-13 -5.5204E-13 -2.1956E-11  4.9125E-13  5.3559E-12  2.7006E-13 -5.3564E-12
 "QUADRUPOLE1@Time_Runge_Kutta:dorb_b_track"        ABS 1E-6    2.3145E-13 -5.5204E-13 -2.1956E-11  4.9125E-13 -1.2000E+00  2.7006E-13 -5.3485E-12
 "QUADRUPOLE1@Time_Runge_Kutta:xmat_r"              ABS 1E-6    5.6640E-07
@@ -544,12 +484,6 @@
 "QUADRUPOLE2@Symp_Lie_Bmad:xmat_r"                 ABS 1E-6    4.1633E-16
 "QUADRUPOLE2@Symp_Lie_Bmad:dspin_r_orient"         ABS 1E-6   -4.9960E-16  5.5511E-16 -3.3307E-16
 "QUADRUPOLE2@Symp_Lie_Bmad:dspin_b_track"          ABS 1E-6    1.6653E-16  2.2204E-16 -6.6613E-16
- 
-"QUADRUPOLE2@Boris:dorb_r_orient"                  ABS 1E-6    4.7542E-04  4.6898E-04  1.3794E-02 -5.9665E-02 -3.1307E-04  5.5511E-17  3.1307E-04
-"QUADRUPOLE2@Boris:dorb_b_track"                   ABS 1E-6    2.9345E-04 -4.6288E-03 -5.7811E-03 -4.9890E-02  6.0001E-01  5.5511E-17 -6.0001E-01
-"QUADRUPOLE2@Boris:xmat_r"                         ABS 1E-6    1.2004E+00
-"QUADRUPOLE2@Boris:dspin_r_orient"                 ABS 1E-6   -2.4127E-02  2.0992E-02 -3.3513E-03
-"QUADRUPOLE2@Boris:dspin_b_track"                  ABS 1E-6   -6.2064E-02 -1.1909E-01  1.0372E-01
  
 "QUADRUPOLE2@Time_Runge_Kutta:dorb_r_orient"       ABS 1E-6   -3.1613E-13  1.6226E-13  2.2679E-11 -6.3173E-13  8.1462E-12  2.8116E-13 -8.1497E-12
 "QUADRUPOLE2@Time_Runge_Kutta:dorb_b_track"        ABS 1E-6   -3.1613E-13  1.6226E-13  2.2679E-11 -6.3173E-13 -1.2000E+00  2.8116E-13 -8.1418E-12
@@ -593,12 +527,6 @@
 "QUADRUPOLE3@Symp_Lie_Bmad:dspin_r_orient"         ABS 1E-6   -5.5511E-17 -5.5511E-17 -2.2204E-16
 "QUADRUPOLE3@Symp_Lie_Bmad:dspin_b_track"          ABS 1E-6   -5.5511E-17 -5.5511E-17 -2.2204E-16
  
-"QUADRUPOLE3@Boris:dorb_r_orient"                  ABS 1E-6    6.0038E-18  2.7105E-20  4.8789E-19  7.0473E-19  4.7705E-17  5.5511E-17  0.0000E+00
-"QUADRUPOLE3@Boris:dorb_b_track"                   ABS 1E-6    9.2308E-05  2.7105E-20 -4.1538E-04  7.0473E-19  6.0000E-01  5.5511E-17 -6.0000E-01
-"QUADRUPOLE3@Boris:xmat_r"                         ABS 1E-6    2.9923E-12
-"QUADRUPOLE3@Boris:dspin_r_orient"                 ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
-"QUADRUPOLE3@Boris:dspin_b_track"                  ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
- 
 "QUADRUPOLE3@Time_Runge_Kutta:dorb_r_orient"       ABS 1E-6    6.0038E-18  2.7105E-20  4.8789E-19  7.0473E-19 -2.3107E-15  5.5511E-17  0.0000E+00
 "QUADRUPOLE3@Time_Runge_Kutta:dorb_b_track"        ABS 1E-6    6.0038E-18  2.7105E-20  4.8789E-19  7.0473E-19 -1.2000E+00  5.5511E-17  7.9354E-15
 "QUADRUPOLE3@Time_Runge_Kutta:xmat_r"              ABS 1E-6    1.8961E-10
@@ -640,12 +568,6 @@
 "QUADRUPOLE4@Symp_Lie_Bmad:xmat_r"                 ABS 1E-6    2.1748E-07
 "QUADRUPOLE4@Symp_Lie_Bmad:dspin_r_orient"         ABS 1E-6   -1.1506E-09  1.2237E-09 -2.8865E-10
 "QUADRUPOLE4@Symp_Lie_Bmad:dspin_b_track"          ABS 1E-6   -1.1506E-09  1.2237E-09 -2.8865E-10
- 
-"QUADRUPOLE4@Boris:dorb_r_orient"                  ABS 1E-6    6.5438E-04 -3.9487E-04 -1.3807E-02  5.9682E-02 -3.2161E-04  5.5511E-17  3.2231E-04
-"QUADRUPOLE4@Boris:dorb_b_track"                   ABS 1E-6    1.7704E-04 -5.1303E-03  4.9485E-03  4.9975E-02  6.0001E-01  5.5511E-17 -6.0001E-01
-"QUADRUPOLE4@Boris:xmat_r"                         ABS 1E-6    1.2007E+00
-"QUADRUPOLE4@Boris:dspin_r_orient"                 ABS 1E-6   -1.5483E-02  1.9074E-02 -6.6166E-03
-"QUADRUPOLE4@Boris:dspin_b_track"                  ABS 1E-6    8.0668E-02  6.2050E-02 -1.2370E-01
  
 "QUADRUPOLE4@Time_Runge_Kutta:dorb_r_orient"       ABS 1E-6    3.6907E-10 -2.0347E-10 -4.1648E-10  8.6062E-10 -1.3711E-12  2.6829E-13  1.3728E-12
 "QUADRUPOLE4@Time_Runge_Kutta:dorb_b_track"        ABS 1E-6    3.6907E-10 -2.0347E-10 -4.1648E-10  8.6062E-10 -1.2000E+00  2.6829E-13  1.3808E-12
@@ -689,12 +611,6 @@
 "QUADRUPOLE5@Symp_Lie_Bmad:dspin_r_orient"         ABS 1E-6   -1.0432E-09 -1.0804E-09  1.4902E-09
 "QUADRUPOLE5@Symp_Lie_Bmad:dspin_b_track"          ABS 1E-6   -1.0432E-09 -1.0804E-09  1.4902E-09
  
-"QUADRUPOLE5@Boris:dorb_r_orient"                  ABS 1E-6    4.7139E-04  5.4410E-04  1.3794E-02 -5.9665E-02 -3.1235E-04  5.5511E-17  3.1306E-04
-"QUADRUPOLE5@Boris:dorb_b_track"                   ABS 1E-6    2.9475E-04 -4.5657E-03 -5.7809E-03 -4.9888E-02  6.0001E-01  5.5511E-17 -6.0001E-01
-"QUADRUPOLE5@Boris:xmat_r"                         ABS 1E-6    1.2007E+00
-"QUADRUPOLE5@Boris:dspin_r_orient"                 ABS 1E-6   -2.4120E-02  2.0998E-02 -3.3604E-03
-"QUADRUPOLE5@Boris:dspin_b_track"                  ABS 1E-6   -6.2043E-02 -1.1912E-01  1.0373E-01
- 
 "QUADRUPOLE5@Time_Runge_Kutta:dorb_r_orient"       ABS 1E-6    3.2493E-10 -1.7187E-10  3.7106E-10 -7.6665E-10 -6.4701E-13  2.7983E-13  6.4277E-13
 "QUADRUPOLE5@Time_Runge_Kutta:dorb_b_track"        ABS 1E-6    3.2493E-10 -1.7187E-10  3.7106E-10 -7.6665E-10 -1.2000E+00  2.7983E-13  6.4277E-13
 "QUADRUPOLE5@Time_Runge_Kutta:xmat_r"              ABS 1E-6    2.1190E-07
@@ -731,12 +647,6 @@
 "RCOLLIMATOR1@Taylor:dspin_r_orient"               ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
 "RCOLLIMATOR1@Taylor:dspin_b_track"                ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
  
-"RCOLLIMATOR1@Boris:dorb_r_orient"                 ABS 1E-6   -8.9447E-18  5.4210E-20 -1.9516E-18  5.9631E-19 -1.8475E-16  5.5511E-17  0.0000E+00
-"RCOLLIMATOR1@Boris:dorb_b_track"                  ABS 1E-6    6.9231E-04  5.4210E-20 -3.1154E-03  5.9631E-19  4.5000E+00  5.5511E-17 -4.5000E+00
-"RCOLLIMATOR1@Boris:xmat_r"                        ABS 1E-6    2.2204E-11
-"RCOLLIMATOR1@Boris:dspin_r_orient"                ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
-"RCOLLIMATOR1@Boris:dspin_b_track"                 ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
- 
 "RCOLLIMATOR1@Time_Runge_Kutta:dorb_r_orient"      ABS 1E-6   -5.4752E-18  5.4210E-20 -1.5179E-18  5.9631E-19 -7.7022E-16  5.5511E-17  0.0000E+00
 "RCOLLIMATOR1@Time_Runge_Kutta:dorb_b_track"       ABS 1E-6   -5.4752E-18  5.4210E-20 -1.5179E-18  5.9631E-19 -9.0000E+00  5.5511E-17  0.0000E+00
 "RCOLLIMATOR1@Time_Runge_Kutta:xmat_r"             ABS 1E-6    8.4410E-10
@@ -767,12 +677,6 @@
 "RFCAVITY1@Linear:dspin_r_orient"                  ABS 1E-6    1.3911E-04 -1.6110E-06 -8.2204E-05
 "RFCAVITY1@Linear:dspin_b_track"                   ABS 1E-6    2.6380E-04  4.4471E-06 -1.6193E-04
  
-"RFCAVITY1@Boris:dorb_r_orient"                    ABS 1E-6   -6.9843E-05  4.0354E-05  1.3986E-06 -8.0807E-07 -1.1418E-08  7.5560E-09  1.1418E-08
-"RFCAVITY1@Boris:dorb_b_track"                     ABS 1E-6    6.7130E-04  1.1922E-04 -3.1174E-03  1.7663E-06  4.5000E+00  2.2650E-08 -4.5000E+00
-"RFCAVITY1@Boris:xmat_r"                           ABS 1E-6    2.4394E-03
-"RFCAVITY1@Boris:dspin_r_orient"                   ABS 1E-6    4.6981E-04 -5.7008E-05 -2.3656E-04
-"RFCAVITY1@Boris:dspin_b_track"                    ABS 1E-6   -9.2345E-04  6.1442E-05  5.0380E-04
- 
 "RFCAVITY1@Time_Runge_Kutta:dorb_r_orient"         ABS 1E-6   -3.5518E-05  2.0175E-05  6.9184E-07 -3.9316E-07 -5.5268E-09 -2.2085E-11  5.5268E-09
 "RFCAVITY1@Time_Runge_Kutta:dorb_b_track"          ABS 1E-6    1.2144E-06  4.9399E-09  1.5457E-08 -2.3469E-08 -9.0000E+00 -1.2509E-06 -1.9152E-10
 "RFCAVITY1@Time_Runge_Kutta:xmat_r"                ABS 1E-6    1.2189E-03
@@ -802,12 +706,6 @@
 "RFCAVITY2@Linear:xmat_r"                          ABS 1E-6    2.1304E-03
 "RFCAVITY2@Linear:dspin_r_orient"                  ABS 1E-6    1.3911E-04 -1.6112E-06 -8.2202E-05
 "RFCAVITY2@Linear:dspin_b_track"                   ABS 1E-6    2.6379E-04  4.4465E-06 -1.6193E-04
- 
-"RFCAVITY2@Boris:dorb_r_orient"                    ABS 1E-6   -6.9843E-05  4.0354E-05  1.3986E-06 -8.0808E-07 -1.1419E-08  7.5856E-09  1.1419E-08
-"RFCAVITY2@Boris:dorb_b_track"                     ABS 1E-6    6.7285E-04  1.2011E-04 -3.1173E-03  1.8553E-06  4.5000E+00 -3.1403E-07 -4.5000E+00
-"RFCAVITY2@Boris:xmat_r"                           ABS 1E-6    2.4394E-03
-"RFCAVITY2@Boris:dspin_r_orient"                   ABS 1E-6    4.6981E-04 -5.7008E-05 -2.3656E-04
-"RFCAVITY2@Boris:dspin_b_track"                    ABS 1E-6   -9.2340E-04  6.1442E-05  5.0378E-04
  
 "RFCAVITY2@Time_Runge_Kutta:dorb_r_orient"         ABS 1E-6   -3.5518E-05  2.0175E-05  6.9184E-07 -3.9316E-07 -5.5278E-09  3.7278E-09  5.5278E-09
 "RFCAVITY2@Time_Runge_Kutta:dorb_b_track"          ABS 1E-6    1.2144E-06  4.9510E-09  1.5455E-08 -2.3468E-08 -9.0000E+00 -1.2509E-06 -1.9196E-10
@@ -1097,12 +995,6 @@
 "SEXTUPOLE1@Taylor:dspin_r_orient"                 ABS 1E-6    2.9137E-04 -1.7731E-02  1.3513E-02
 "SEXTUPOLE1@Taylor:dspin_b_track"                  ABS 1E-6    2.4241E-04 -1.7725E-02  1.3537E-02
  
-"SEXTUPOLE1@Boris:dorb_r_orient"                   ABS 1E-6   -3.6845E-06  2.3470E-05  3.4389E-04 -1.4911E-03 -9.2005E-08  5.5511E-17  9.2005E-08
-"SEXTUPOLE1@Boris:dorb_b_track"                    ABS 1E-6    9.5310E-05  9.3514E-06 -5.7209E-04 -1.4152E-03  6.0000E-01  5.5511E-17 -6.0000E-01
-"SEXTUPOLE1@Boris:xmat_r"                          ABS 1E-6    5.9824E-02
-"SEXTUPOLE1@Boris:dspin_r_orient"                  ABS 1E-6   -3.4627E-05  1.9846E-05  4.8971E-06
-"SEXTUPOLE1@Boris:dspin_b_track"                   ABS 1E-6   -3.3623E-04 -8.3558E-04  8.6863E-04
- 
 "SEXTUPOLE1@Time_Runge_Kutta:dorb_r_orient"        ABS 1E-6   -2.2992E-16 -1.5992E-16  3.9244E-15  1.2770E-15 -1.0260E-12  9.4369E-16  1.0237E-12
 "SEXTUPOLE1@Time_Runge_Kutta:dorb_b_track"         ABS 1E-6   -2.2992E-16 -1.5992E-16  3.9244E-15  1.2770E-15 -1.2000E+00  9.4369E-16  1.0237E-12
 "SEXTUPOLE1@Time_Runge_Kutta:xmat_r"               ABS 1E-6    2.8116E-07
@@ -1144,12 +1036,6 @@
 "SOLENOID1@Symp_Lie_Bmad:xmat_r"                   ABS 1E-6    6.6613E-16
 "SOLENOID1@Symp_Lie_Bmad:dspin_r_orient"           ABS 1E-6   -4.4409E-15  3.8303E-15  2.2204E-16
 "SOLENOID1@Symp_Lie_Bmad:dspin_b_track"            ABS 1E-6    2.7756E-15 -2.2760E-15  1.1102E-16
- 
-"SOLENOID1@Boris:dorb_r_orient"                    ABS 1E-6    2.9273E-18 -1.1628E-17  1.7672E-17 -4.4994E-18 -7.6328E-17  5.5511E-17  0.0000E+00
-"SOLENOID1@Boris:dorb_b_track"                     ABS 1E-6    3.8513E-02 -2.6936E-02  2.1302E-02 -2.3388E-02  2.6005E+00  5.5511E-17 -2.6005E+00
-"SOLENOID1@Boris:xmat_r"                           ABS 1E-6    3.1461E-11
-"SOLENOID1@Boris:dspin_r_orient"                   ABS 1E-6    5.5511E-17 -1.1102E-16 -1.6653E-16
-"SOLENOID1@Boris:dspin_b_track"                    ABS 1E-6    1.1802E-01  8.3489E-02 -8.0249E-01
  
 "SOLENOID1@Time_Runge_Kutta:dorb_r_orient"         ABS 1E-6   -1.0449E-10  2.0451E-12  4.0901E-12  5.2246E-11 -8.4990E-12  1.9361E-12  8.4989E-12
 "SOLENOID1@Time_Runge_Kutta:dorb_b_track"          ABS 1E-6   -1.0449E-10  2.0451E-12  4.0901E-12  5.2246E-11 -5.2000E+00  1.9361E-12  8.4989E-12
@@ -1193,12 +1079,6 @@
 "SOLENOID2@Symp_Lie_Bmad:dspin_r_orient"           ABS 1E-6    2.2204E-16 -2.2204E-16  3.3307E-16
 "SOLENOID2@Symp_Lie_Bmad:dspin_b_track"            ABS 1E-6    2.2204E-16 -2.2204E-16  3.3307E-16
  
-"SOLENOID2@Boris:dorb_r_orient"                    ABS 1E-6   -1.0950E-17  2.7105E-20  3.2526E-19  4.8789E-19 -1.1276E-16  5.5511E-17  0.0000E+00
-"SOLENOID2@Boris:dorb_b_track"                     ABS 1E-6    4.0000E-04 -2.5200E-15 -1.8000E-03 -5.5885E-16  2.6000E+00  5.5511E-17 -2.6000E+00
-"SOLENOID2@Boris:xmat_r"                           ABS 1E-6    1.5090E-11
-"SOLENOID2@Boris:dspin_r_orient"                   ABS 1E-6    0.0000E+00  0.0000E+00  0.0000E+00
-"SOLENOID2@Boris:dspin_b_track"                    ABS 1E-6    8.8707E-14 -5.9175E-14 -5.8842E-15
- 
 "SOLENOID2@Time_Runge_Kutta:dorb_r_orient"         ABS 1E-6   -1.7889E-17  5.4210E-20  3.2526E-19  4.8789E-19 -4.3550E-15  5.5511E-17  0.0000E+00
 "SOLENOID2@Time_Runge_Kutta:dorb_b_track"          ABS 1E-6   -1.7889E-17  5.4210E-20  3.2526E-19  4.8789E-19 -5.2000E+00  5.5511E-17  7.9354E-15
 "SOLENOID2@Time_Runge_Kutta:xmat_r"                ABS 1E-6    2.6901E-10
@@ -1240,12 +1120,6 @@
 "SOL_QUAD1@Symp_Lie_Bmad:xmat_r"                   ABS 1E-6    9.3259E-15
 "SOL_QUAD1@Symp_Lie_Bmad:dspin_r_orient"           ABS 1E-6   -2.9976E-15  1.7764E-15  1.1102E-16
 "SOL_QUAD1@Symp_Lie_Bmad:dspin_b_track"            ABS 1E-6   -4.4409E-15  2.6645E-15  3.3307E-16
- 
-"SOL_QUAD1@Boris:dorb_r_orient"                    ABS 1E-6    1.4618E-01 -1.1195E-01  3.0416E-02  1.1022E-02  6.0110E-04  5.5511E-17 -6.0110E-04
-"SOL_QUAD1@Boris:dorb_b_track"                     ABS 1E-6    1.0521E-01 -8.2160E-02  8.7364E-03  9.2884E-02  2.6019E+00  5.5511E-17 -2.6019E+00
-"SOL_QUAD1@Boris:xmat_r"                           ABS 1E-6    4.2201E+00
-"SOL_QUAD1@Boris:dspin_r_orient"                   ABS 1E-6   -2.8444E-01  2.6570E-01 -2.6209E-01
-"SOL_QUAD1@Boris:dspin_b_track"                    ABS 1E-6   -8.6595E-01 -1.3917E-02 -3.2495E-01
  
 "SOL_QUAD1@Time_Runge_Kutta:dorb_r_orient"         ABS 1E-6   -2.6491E-10  8.3177E-13 -2.7964E-11  2.7331E-11 -1.2864E-11  1.2443E-11  1.2863E-11
 "SOL_QUAD1@Time_Runge_Kutta:dorb_b_track"          ABS 1E-6   -2.6491E-10  8.3177E-13 -2.7964E-11  2.7331E-11 -5.2000E+00  1.2443E-11  1.2863E-11
@@ -1289,12 +1163,6 @@
 "SOL_QUAD2@Symp_Lie_Bmad:dspin_r_orient"           ABS 1E-6   -2.7756E-15  6.1062E-16  1.3323E-15
 "SOL_QUAD2@Symp_Lie_Bmad:dspin_b_track"            ABS 1E-6   -4.6074E-15  7.7716E-16  2.5535E-15
  
-"SOL_QUAD2@Boris:dorb_r_orient"                    ABS 1E-6   -2.1292E-07  8.4481E-07 -1.6255E-06  1.4074E-06 -2.5374E-08  5.5511E-17  2.5374E-08
-"SOL_QUAD2@Boris:dorb_b_track"                     ABS 1E-6    3.8514E-02 -2.6936E-02  2.1302E-02 -2.3388E-02  2.6005E+00  5.5511E-17 -2.6005E+00
-"SOL_QUAD2@Boris:xmat_r"                           ABS 1E-6    3.8928E-05
-"SOL_QUAD2@Boris:dspin_r_orient"                   ABS 1E-6   -5.8171E-06 -8.7140E-06  1.0461E-05
-"SOL_QUAD2@Boris:dspin_b_track"                    ABS 1E-6    1.1801E-01  8.3482E-02 -8.0251E-01
- 
 "SOL_QUAD2@Time_Runge_Kutta:dorb_r_orient"         ABS 1E-6   -1.0448E-10  2.1770E-12  4.3533E-12  5.2240E-11  5.8485E-12  1.9352E-12 -5.8484E-12
 "SOL_QUAD2@Time_Runge_Kutta:dorb_b_track"          ABS 1E-6   -1.0448E-10  2.1770E-12  4.3533E-12  5.2240E-11 -5.2000E+00  1.9352E-12 -5.8564E-12
 "SOL_QUAD2@Time_Runge_Kutta:xmat_r"                ABS 1E-6    4.3429E-07
@@ -1330,12 +1198,6 @@
 "VKICKER1@Taylor:xmat_r"                           ABS 1E-6    2.9089E-03
 "VKICKER1@Taylor:dspin_r_orient"                   ABS 1E-6   -1.0616E-02  1.0562E-01 -9.9239E-02
 "VKICKER1@Taylor:dspin_b_track"                    ABS 1E-6   -1.0595E-02  1.0560E-01 -9.9237E-02
- 
-"VKICKER1@Boris:dorb_r_orient"                     ABS 1E-6    1.7279E-03 -9.9833E-04 -1.7222E-02  9.9500E-03 -7.1603E-05  5.5511E-17  7.1603E-05
-"VKICKER1@Boris:dorb_b_track"                      ABS 1E-6   -9.3883E-05 -9.4842E-04  4.7203E-03  9.4525E-03  4.5000E+00  5.5511E-17 -4.5000E+00
-"VKICKER1@Boris:xmat_r"                            ABS 1E-6    1.3248E-02
-"VKICKER1@Boris:dspin_r_orient"                    ABS 1E-6   -1.7731E-08 -7.0929E-07  5.7807E-07
-"VKICKER1@Boris:dspin_b_track"                     ABS 1E-6   -3.9836E-07  5.8378E-03 -4.7264E-03
  
 "VKICKER1@Time_Runge_Kutta:dorb_r_orient"          ABS 1E-6    4.9331E-18  2.7105E-20 -2.1684E-19  8.1315E-19  1.5101E-14  5.5511E-17 -1.5871E-14
 "VKICKER1@Time_Runge_Kutta:dorb_b_track"           ABS 1E-6    4.9331E-18  8.1315E-20 -2.1684E-19  2.7105E-19 -9.0000E+00  5.5511E-17 -1.5871E-14
@@ -1420,12 +1282,6 @@
 "WIGGLER_MAP1@Symp_Lie_Bmad:xmat_r"                ABS 1E-6    6.6613E-16
 "WIGGLER_MAP1@Symp_Lie_Bmad:dspin_r_orient"        ABS 1E-6    9.9920E-16  2.2204E-16 -7.2164E-16
 "WIGGLER_MAP1@Symp_Lie_Bmad:dspin_b_track"         ABS 1E-6    9.9920E-16  2.2204E-16 -7.2164E-16
- 
-"WIGGLER_MAP1@Boris:dorb_r_orient"                 ABS 1E-6    3.9255E-06 -1.1343E-04 -1.1983E-12  3.8144E-11  4.3266E-10  5.5511E-17 -4.3262E-10
-"WIGGLER_MAP1@Boris:dorb_b_track"                  ABS 1E-6    1.3189E-05 -1.0993E-04  3.0769E-05  6.0057E-11  1.0000E-01  5.5511E-17 -1.0000E-01
-"WIGGLER_MAP1@Boris:xmat_r"                        ABS 1E-6    3.0196E-06
-"WIGGLER_MAP1@Boris:dspin_r_orient"                ABS 1E-6   -2.3404E-12  3.2582E-11 -2.4662E-11
-"WIGGLER_MAP1@Boris:dspin_b_track"                 ABS 1E-6   -4.1065E-05  5.0323E-09  2.4633E-05
  
 "WIGGLER_MAP1@Time_Runge_Kutta:dorb_r_orient"      ABS 1E-6   -4.4158E-07  7.2823E-13  8.1311E-14 -1.0608E-12 -5.9835E-11  2.7756E-16  5.9833E-11
 "WIGGLER_MAP1@Time_Runge_Kutta:dorb_b_track"       ABS 1E-6   -1.0035E-14 -4.8880E-15 -7.1107E-16  1.0842E-19 -2.0000E-01  2.7756E-16  2.3013E-12
