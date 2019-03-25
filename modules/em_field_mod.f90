@@ -375,7 +375,7 @@ case (bmad_standard$)
   ! For standing wave cavity:
   ! Use N_cell half-wave pillbox formulas for TM_011 mode with infinite wall radius.
   ! See S.Y. Lee, "Accelerator Physics"
-  !   E_s   = 2 * gradient * cos(k s) * cos(omega t + phase)
+  !   E_s   = 2 * gradient *         cos(k s) * cos(omega t + phase)
   !   E_r   =     gradient * k * r * sin(k s) * cos(omega t + phase)
   !   B_phi =    -gradient * k * r * cos(k s) * sin(omega t + phase) / c_light
   ! For traveling wave cavity:
