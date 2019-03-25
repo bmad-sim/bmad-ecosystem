@@ -1,6 +1,7 @@
 program tracking_method_test
 
 use bmad
+use tpsa
 
 implicit none
 
@@ -17,7 +18,7 @@ integer :: i, j, ib, nargs, isn
 logical print_extra
  
 !
-
+!switch_bessel = .false.
 global_com%exit_on_error = .false.
 
 fmt = '(a, t49, a, 7es18.10)'
@@ -34,8 +35,6 @@ if (nargs > 0) then
   fmt = '(a, t49, a, 7es14.6)'
 endif
 
-call bmad_parser (lat_file, lat, .false.)
-
 if (print_extra) then
   if (lat%param%geometry == open$) then
     bmad_com%convert_to_kinetic_momentum = .false.
@@ -45,6 +44,8 @@ if (print_extra) then
     print *, '*** Note: wiggler end kicks cancelled (so like RUNGE_KUTTA tracking).'
   endif
 endif
+
+call bmad_parser (lat_file, lat, .false.)
 
 if (any(lat%particle_start%spin /= 0)) then
   bmad_com%spin_tracking_on = .true.
