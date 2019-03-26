@@ -273,6 +273,13 @@ function isatty(ii) result (t_type) bind(c)
   integer(c_int) :: t_type
 end function
 
+function J_bessel(m, arg) result (j_bes)
+  import
+  implicit none
+  integer m
+  real(rp) arg, j_bes
+end function
+
 subroutine linear_fit (x, y, n_data, a, b, sig_a, sig_b)
   import
   implicit none
