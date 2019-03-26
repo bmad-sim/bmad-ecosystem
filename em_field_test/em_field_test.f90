@@ -16,14 +16,15 @@ type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 type (coord_struct) :: orb, dorb, orb2
-type (em_field_struct) field0, fp, fm, ff
+type (em_field_struct) field0, fp, fm, ff, ftp, ftm
 
-real(rp) del, ds, dr_ds_kick(11), dr_ds_track(11) 
+real(rp) del, rf_time, ds, dt, dr_ds_kick(11), dr_ds_track(11), dE_dt(3), dB_dt(3)
 integer i, ib, ie, j, nargs
-logical err, print_extra
+logical err, print_extra, rf_on
+
 character(100) lat_file
 
-namelist / params / del
+namelist / params / del, rf_time
 
 !
 
@@ -43,6 +44,7 @@ endif
 
 call bmad_parser (lat_file, lat)
 
+rf_time = 1.0
 open (1, file = lat_file)
 read (1, nml = params)
 close (1)
@@ -68,21 +70,21 @@ do ib = 0, ubound(lat%branch, 1)
     orb%vec(4) = 0
     orb%vec(6) = 0
 
-    call em_field_calc (ele, branch%param, orb%vec(5), orb, .false., field0, .true., err, .true.)
+    call em_field_calc (ele, branch%param, orb%vec(5), orb, .false., field0, .true., err, .true., rf_time = rf_time)
 
     ff = em_field_struct()
 
     do i = 1, 3
       if (i == 3) then
-        call em_field_calc (ele, lat%param, orb%vec(5)+del, orb, .false., fp, .false., err, .true., rf_time = 1.0_rp)
-        call em_field_calc (ele, lat%param, orb%vec(5)-del, orb, .false., fm, .false., err, .true., rf_time = 1.0_rp)
+        call em_field_calc (ele, lat%param, orb%vec(5)+del, orb, .false., fp, .false., err, .true., rf_time = rf_time)
+        call em_field_calc (ele, lat%param, orb%vec(5)-del, orb, .false., fm, .false., err, .true., rf_time = rf_time)
       else
         j = 2*i - 1
         dorb = orb
         dorb%vec(j) = orb%vec(j) + del
-        call em_field_calc (ele, lat%param, dorb%vec(5), dorb, .false., fp, .false., err, .true., rf_time = 1.0_rp)
+        call em_field_calc (ele, lat%param, dorb%vec(5), dorb, .false., fp, .false., err, .true., rf_time = rf_time)
         dorb%vec(j) = orb%vec(j) - del
-        call em_field_calc (ele, lat%param, dorb%vec(5), dorb, .false., fm, .false., err, .true., rf_time = 1.0_rp)
+        call em_field_calc (ele, lat%param, dorb%vec(5), dorb, .false., fm, .false., err, .true., rf_time = rf_time)
       endif
 
       ff%dE(:,i) = (fp%e - fm%e) / (2 * del)
@@ -99,6 +101,16 @@ do ib = 0, ubound(lat%branch, 1)
         ff%B(2) = ff%B(2) + (fp%A(1) - fm%A(1)) / (2 * del)
       end select
     enddo
+
+    rf_on = .false.
+    if (ele%key == rfcavity$ .or. ele%key == lcavity$) then
+      dt = 1e-4_rp / ele%value(rf_frequency$)
+      call em_field_calc (ele, lat%param, dorb%vec(5), orb, .false., ftp, .false., err, .true., rf_time = rf_time+dt)
+      call em_field_calc (ele, lat%param, dorb%vec(5), orb, .false., ftm, .false., err, .true., rf_time = rf_time-dt)
+      dE_dt = (ftp%E - ftm%E) / (2 * dt) / c_light**2
+      dB_dt = (ftp%B - ftm%B) / (2 * dt)
+      rf_on = .true.
+    endif
 
     !
 
@@ -139,12 +151,29 @@ do ib = 0, ubound(lat%branch, 1)
         print '(3es14.6)', field0%B(i), ff%B(i), field0%B(i) - ff%B(i)
       enddo
 
+      if (any(field0%E /= 0)) then
+        print *
+        print *, 'From em_field and taking differences:'
+        print '(a, 3es14.6)', 'E:            ', field0%E
+        print '(a, 3es14.6)', 'E Grad:       ', ff%dE(1,1),  ff%dE(2,2),  ff%dE(3,3)
+        print '(a, 3es14.6)', 'E Curl:       ', ff%dE(2,3) - ff%dE(3,2),  ff%dE(1,3) - ff%dE(3,1), ff%dE(2,1) - ff%dE(1,2)
+        if (rf_on) then
+          print '(a, 3es14.6)', 'E Curl+dB/dt: ', ff%dE(3,2) - ff%dE(2,3) + dB_dt(1), &
+                                                 ff%dE(1,3) - ff%dE(3,1) + dB_dt(2), ff%dE(2,1) - ff%dE(1,2) + dB_dt(3)
+        endif
+        print '(a, 3es14.6)', 'E Div:  ', ff%dE(1,1) + ff%dE(2,2) + ff%dE(3,3)
+      endif
+
       print *
       print *, 'From em_field and taking differences:'
-      print '(a, 3es14.6)', 'B:      ', field0%b
-      print '(a, 3es14.6)', 'B Grad: ', ff%dB(1,1),  ff%dB(2,2),  ff%dB(3,3)
-      print '(a, 3es14.6)', 'B Curl: ', ff%dB(2,3) - ff%dB(3,2),  ff%dB(3,1) - ff%dB(1,3), ff%dB(1,2) - ff%dB(2,1)
-      print '(a, 3es14.6)', 'B Div:  ', ff%dB(1,1) + ff%dB(2,2) + ff%dB(3,3)
+      print '(a, 3es14.6)', 'B:            ', field0%B
+      print '(a, 3es14.6)', 'B Grad:       ', ff%dB(1,1),  ff%dB(2,2),  ff%dB(3,3)
+      print '(a, 3es14.6)', 'B Curl:        ', ff%dB(3,2) - ff%dB(2,3),  ff%dB(1,3) - ff%dB(3,1), ff%dB(2,1) - ff%dB(1,2)
+      if (rf_on) then
+        print '(a, 3es14.6)', 'B Curl-dE/dt: ', ff%dB(3,2) - ff%dB(2,3) - dE_dt(1), &
+                                                 ff%dB(1,3) - ff%dB(3,1) - dE_dt(2), ff%dB(2,1) - ff%dB(1,2) - dE_dt(3)
+      endif
+      print '(a, 3es14.6)', 'B Div:        ', ff%dB(1,1) + ff%dB(2,2) + ff%dB(3,3)
     endif
 
     write (1, '(3a, 3es16.8)') '"', trim(ele%name), ':B" REL 1E-6', field0%B
