@@ -1,5 +1,5 @@
 !+
-! Function J_bessel(m, arg) result (j_bes)
+! Function J_bessel(n, arg) result (j_bes)
 !
 ! Function to evaluate the bessel function J_n.
 !
@@ -7,21 +7,21 @@
 !   use sim_utils
 !
 ! Input:
-!   m    -- Integer: Bessel order.
+!   n    -- Integer: Bessel order.
 !   arg  -- Real(rp): Bessel argument.
 !
 ! Output:
 !   j_bes -- Real: Bessel value.
 !-
 
-function J_bessel(m, arg) result (j_bes)
+function J_bessel(n, arg) result (j_bes)
 
 use physical_constants
 use fgsl
 
 implicit none
 
-integer m
+integer n
 real(rp) arg, j_bes
 real(rp), parameter :: arg_min(0:50) = &
             [0.0_rp, 0.0_rp, 10.0_rp**(-153), 10.0_rp**(-101), 10.0_rp**(-76), 10.0_rp**(-60), &  !  0 -  5
@@ -35,19 +35,19 @@ real(rp), parameter :: arg_min(0:50) = &
                10.0_rp**(-05), 10.0_rp**(-05), 10.0_rp**(-05), 10.0_rp**(-05), 10.0_rp**(-05), &      ! 41 - 45
                10.0_rp**(-05), 10.0_rp**(-04), 10.0_rp**(-04), 10.0_rp**(-04), 10.0_rp**(-04)]        ! 46 - 50
 
-! Note: The GSL bessel function does not properly trap overflow!
+! Note: The GSL j_bessel function does not properly trap underflow!
 
-if (m <= ubound(arg_min, 1)) then
-  if (abs(arg) < arg_min(m)) then
+if (n <= ubound(arg_min, 1)) then
+  if (abs(arg) < arg_min(n)) then
     j_bes = 0
     return
   endif
 endif
 
-select case(m)
+select case(n)
 case (0);     j_bes = fgsl_sf_bessel_jc0(arg)
 case (1);     j_bes = fgsl_sf_bessel_jc1(arg)
-case default; j_bes = fgsl_sf_bessel_jcn(m, arg)
+case default; j_bes = fgsl_sf_bessel_jcn(n, arg)
 end select
 
 end function J_bessel
