@@ -102,6 +102,13 @@ subroutine display_size_and_resolution (ix_screen, x_size, y_size, x_res, y_res)
   integer ix_screen
 end subroutine
 
+function dJ_bessel(m, arg) result (dj_bes)
+  import
+  implicit none
+  integer m
+  real(rp) arg, dj_bes
+end function
+
 subroutine doubleup_quotes (str_in, str_out, quote)
   character(*) str_in
   character(*) str_out
