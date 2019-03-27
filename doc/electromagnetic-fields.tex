@@ -843,10 +843,8 @@ RF frequency.
 
 For standing wave cavities, the RF fields are modeled as $N$ half-wave pillbox cells, each having a
 length of $\lambda/2$ where $\lambda = 2 \, \pi / k$ is the wavelength. If the length of the RF
-element is not equal to the length of $N$ cells, the active region is centered in the element and
-the regions to either side are field free.\footnote{If the length of the cavity is less than $N$
-cells the field free region has a negative length. This is equivalent to a drift element with
-negative length and does not cause any problems during tracking.}
+element is not equal to the length of $N$ cells, the ``active region'' is centered in the element and
+the regions to either side are treated as field free.
 
 The field in the standing wave pillbox is modeled either with a $p = 0$ or $p = 1$ longitudinal mode
 as detailed in Chapter 3, Section VI of reference \cite{b:lee}. The $p = 1$ longitudinal mode (which
