@@ -121,7 +121,7 @@ end type
 !
 
 integer, parameter :: line$ = 1001, list$ = 1002, element$ = 1003
-integer, parameter :: replacement_line$ = 1004
+integer, parameter :: replacement_line$ = 1004, line_slice$ = 1005
 integer, parameter :: def$ = 1, redef$ = 2
 
 !------------------------------------------------
@@ -5207,17 +5207,16 @@ implicit none
 
 type (seq_struct), target :: sequence(:)
 type (seq_struct), pointer :: seq, sub_seq
-type (seq_ele_struct), pointer :: s_ele(:)
-type (seq_ele_struct), pointer :: s_ele2(:)
-type (seq_ele_struct), pointer :: this_ele
+type (seq_ele_struct), pointer :: seq_ele_arr(:)
+type (seq_ele_struct), pointer :: seq_ele_arr2(:)
+type (seq_ele_struct), pointer :: s_ele
 type (lat_struct) lat
 
-integer ix_ele, iseq_tot, ix_word, ix, i, n, ios, rcount
+integer ix_ele, iseq_tot, ix_word, ix_word2, ix, i, n, ios, rcount
 integer, save :: ix_internal = 0
 
-character(40) word
 character(1) delim, c_delim
-character(40) str
+character(40) str, word, word2
 character(n_parse_line) parse_line_saved
 
 logical delim_found, replacement_line_here, c_delim_found
@@ -5225,7 +5224,7 @@ logical err_flag, top_level
 
 ! init
 
-allocate (s_ele(ubound(lat%ele, 1)))
+allocate (seq_ele_arr(ubound(lat%ele, 1)))
 
 ! save info on what file we are parsing for error messages.
 
@@ -5237,31 +5236,28 @@ seq%ix_line = bp_com%current_file%i_line
 
 call get_next_word(word, ix_word, ':=(),', delim, delim_found, .true.)
 
-if (delim /= '(') call parser_error  &
-      ('EXPECTING "(", GOT: ' // delim, 'FOR LINE: ' // seq%name)
-if (ix_word /= 0)  call parser_error  &
-      ('EXTRANEOUS STUFF BEFORE "(", GOT: ' // word,  &
-      'FOR LINE: ' // seq%name)
+if (delim /= '(') call parser_error ('EXPECTING "(", GOT: ' // delim, 'FOR LINE: ' // seq%name)
+if (ix_word /= 0)  call parser_error ('EXTRANEOUS STUFF BEFORE "(", GOT: ' // word, 'FOR LINE: ' // seq%name)
 
 ! now parse list proper
 
 ix_ele = 1
-this_ele => s_ele(ix_ele)
+s_ele => seq_ele_arr(ix_ele)
 
 do 
 
-  call get_next_word (word, ix_word, ':=(,)[]*', delim, delim_found, .true.)
+  call get_next_word (word, ix_word, ':=(,)[]*@', delim, delim_found, .true.)
 
-  this_ele%rep_count = 1
+  s_ele%rep_count = 1
 
   if (word(1:1) == '-') then
-    this_ele%ele_order_reflect = .true.
+    s_ele%ele_order_reflect = .true.
     word = word(2:)
     ix_word = ix_word - 1
   endif
 
   if (word(1:1) == '-') then
-    this_ele%ele_orientation = -1
+    s_ele%ele_orientation = -1
     word = word(2:)
     ix_word = ix_word - 1
   endif
@@ -5273,11 +5269,11 @@ do
       call parser_error ('MALFORMED REPETION COUNT FOUND IN SEQUENCE: ' // seq%name)
       return
     endif
-    this_ele%rep_count = rcount
+    s_ele%rep_count = rcount
     call get_next_word (word, ix_word, ':=(,)[]*', delim, delim_found, .true.)
   endif
 
-  this_ele%name = word
+  s_ele%name = word
   if (word /= ' ') then
     if (.not. verify_valid_name (word, ix_word)) return
   endif
@@ -5285,7 +5281,7 @@ do
   ! Check for line tag
 
   if (delim == '[') then
-    call get_next_word (this_ele%tag, ix_word, '[]:=(,)', delim, delim_found, .true.)
+    call get_next_word (s_ele%tag, ix_word, '[]:=(,)', delim, delim_found, .true.)
     if (delim /= ']') then
       call parser_error ('NO MATCHING "]" FOUND FOR OPENING "[" IN SEQUENCE: ' // seq%name)
       return
@@ -5305,10 +5301,10 @@ do
   if (delim == '(') then ! subline or replacement line
 
     ! if a subline...
-    if (this_ele%name == '') then  
+    if (s_ele%name == '') then  
       ix_internal = ix_internal + 1
       write (str, '(a, i3.3)') '#Internal', ix_internal   ! unique name 
-      this_ele%name = str
+      s_ele%name = str
       iseq_tot = iseq_tot + 1
       sub_seq => sequence(iseq_tot) 
       sub_seq%name = str
@@ -5316,10 +5312,9 @@ do
       sub_seq%multipass = seq%multipass
       if (sub_seq%type == replacement_line$) then
         ix = size (seq%dummy_arg)
-        allocate (sub_seq%dummy_arg(ix), &
-              sub_seq%corresponding_actual_arg(ix), this_ele%actual_arg(ix))
+        allocate (sub_seq%dummy_arg(ix), sub_seq%corresponding_actual_arg(ix), s_ele%actual_arg(ix))
         sub_seq%dummy_arg = seq%dummy_arg
-        this_ele%actual_arg = seq%dummy_arg
+        s_ele%actual_arg = seq%dummy_arg
       endif
       bp_com%parse_line = '(' // bp_com%parse_line
       call parse_line_or_list (sequence, iseq_tot, lat, .false.)
@@ -5327,7 +5322,7 @@ do
     ! else this is a replacement line
     else    
       replacement_line_here = .true.
-      call get_sequence_args (this_ele%name, this_ele%actual_arg, delim, err_flag)
+      call get_sequence_args (s_ele%name, s_ele%actual_arg, delim, err_flag)
       if (err_flag) return
     endif
 
@@ -5337,36 +5332,54 @@ do
                word, 'IN THE SEQUENCE: ' // seq%name)
   endif
 
-  if (this_ele%name == ' ') call parser_error &
-            ('SUB-ELEMENT NAME IS BLANK FOR LINE/LIST: ' // seq%name)
+  ! Check for line slice
+
+  if (delim == '@') then
+    allocate(s_ele%actual_arg(2))
+    s_ele%type = line_slice$
+    call get_next_word (s_ele%actual_arg(1), ix_word2, '&', delim, delim_found, .false.) 
+    if (delim /= '&') then
+      call parser_error ('NO "&" FOUND AFTER "@" FOR ELEMENT SLICE: ' // s_ele%name)
+      return
+    endif
+    if (.not. verify_valid_name(s_ele%actual_arg(1), ix_word2)) return
+    call get_next_word (s_ele%actual_arg(2), ix_word2, ',)', delim, delim_found, .false.) 
+    if (.not. delim_found) then 
+      call parser_error ('NO DELIMITOR FOUND AFTER "&" FOR ELEMENT SLICE: ' // s_ele%name)
+      return
+    endif
+    if (.not. verify_valid_name(s_ele%actual_arg(2), ix_word2)) return
+  endif
+
+  if (s_ele%name == ' ') call parser_error ('SUB-ELEMENT NAME IS BLANK FOR LINE/LIST: ' // seq%name)
 
   ! if a replacement line then look for element in argument list
 
-  this_ele%ix_arg = 0
+  s_ele%ix_arg = 0
   if (seq%type == replacement_line$) then
     do i = 1, size(seq%dummy_arg)
-      if (seq%dummy_arg(i) == this_ele%name) then
-        this_ele%ix_arg = i
+      if (seq%dummy_arg(i) == s_ele%name) then
+        s_ele%ix_arg = i
         exit
       endif
     enddo
   endif
 
-! 
+  ! 
 
-  n = size(s_ele)
+  n = size(seq_ele_arr)
   ix_ele = ix_ele + 1
 
   if (ix_ele > n) then
-    allocate (s_ele2(n))      
-    s_ele2 = s_ele(1:n)
-    deallocate (s_ele)
-    allocate (s_ele(n+1000))
-    s_ele(1:n) = s_ele2
-    deallocate(s_ele2)
+    allocate (seq_ele_arr2(n))      
+    seq_ele_arr2 = seq_ele_arr(1:n)
+    deallocate (seq_ele_arr)
+    allocate (seq_ele_arr(n+1000))
+    seq_ele_arr(1:n) = seq_ele_arr2
+    deallocate(seq_ele_arr2)
   endif
 
-  this_ele => s_ele(ix_ele)
+  s_ele => seq_ele_arr(ix_ele)
 
   if (delim == ')') exit
 
@@ -5391,10 +5404,10 @@ ix_ele = ix_ele - 1
 allocate (seq%ele(ix_ele))
 
 do i = 1, ix_ele
-  seq%ele(i) = s_ele(i)
+  seq%ele(i) = seq_ele_arr(i)
 enddo
 
-deallocate (s_ele)
+deallocate (seq_ele_arr)
 
 end subroutine parse_line_or_list
 
@@ -6357,7 +6370,7 @@ end subroutine parser_identify_fork_to_element
 !   n_ele_use     -- integer: Number of elements in the finished line.
 !   expanded_line(:) -- character(*), allocatable, optional: If present, lat argument will be
 !                         ignored and expanded_line will have the expanded line.
-!                         This arg is used for girder lords.
+!                         This arg is used for girder lords and line slices.
 !-
 
 subroutine parser_expand_line (lat, use_name, sequence, in_name, &
@@ -6412,6 +6425,8 @@ do k = 1, iseq_tot
 
     s_ele => sequence(k)%ele(i)
     name = s_ele%name
+
+    if (s_ele%type == line_slice$) cycle
 
     if (s_ele%ix_arg > 0) then   ! dummy arg
       s_ele%type = element$
@@ -6599,6 +6614,7 @@ line_expansion: do
       call parser_error ('NESTED LINES EXCEED STACK DEPTH! SUSPECT INFINITE LOOP!')
       if (global_com%exit_on_error) call err_exit
     endif
+
     if (s_ele%type == replacement_line$) then
       seq2 => sequence(s_ele%ix_ele)
       if (size(seq2%dummy_arg) /= size(s_ele%actual_arg)) then

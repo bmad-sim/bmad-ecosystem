@@ -2466,6 +2466,7 @@ The attributes specific to an \vn{lcavity} are
   e_loss          = <Real>    ! Loss parameter for short range wake fields (V/Coul).
   rf_frequency    = <Real>    ! Rf frequency (Hz).
   voltage                     ! Cavity voltage. Dependent attribute (\sref{s:depend}).
+  l_hard_edge     = <Real>    ! Active region length. Dependent attribute (\sref{s:depend}).
   n_cell          = <Int>     ! Number of cavity cells. Default is 1.
   longitudinal_mode = <Int>   ! Longitudinal mode. Default is 1. May be 0 or 1.
   wall_radius     = <Real>    ! Wall radius. Dependent attribute (\sref{s:depend}).
@@ -2542,23 +2543,34 @@ matrix for an \vn{lcavity} with finite \vn{gradient} is never symplectic. See
 \sref{s:phase.space}. In addition, couplers (\sref{s:rf.coupler}) and HOM wakes (\sref{s:wakes}) can
 be modeled.
 
-When using \vn{runge_kutta} tracking (\sref{s:tkm}) through a field map (\sref{s:fieldmap}), the
-\vn{bmad_standard} field is \vn{n_cell} half-wave resonators (\sref{s:rf.fields}). The longitudinal
-mode is set by the \vn{longitudinal_mode} parameter. The default setting for \vn{longitudinal_mode}
-is 1 the possible values are 0 or 1. If the mode is set to 0, the \vn{wall_radius} dependent
-parameter is calculated using \Eq{rk}. If the mode is 1, the wall radius is treated as infinite.
+When an element's \vn{tracking_method} is set to \vn{runge_kutta} (\sref{s:tkm}), the ``active
+region'' over which there is a finite field is \vn{n_cell} half-wave pillbox resonators where each
+pillbox has length $\lambda/2$ (\sref{s:rf.fields}). The default setting for \vn{n_cell} is 1. The
+dependent parameter \vn{l_hard_edge} is set to the length of the active region. The active region
+should have a length less than the length of the element. If the length of the element is not equal
+to the active region, the active region is centered in the element and the regions to either side
+are treated as field free.
+
+When an element's \vn{tracking_method} is set to \vn{runge_kutta}, the fields used with
+\vn{field_calc} set to \vn{bmad_standard} is described in Section~(\sref{s:rf.fields}). With
+\vn{cavity_type} set to \vn{standing_wave}, the longitudinal mode is set by the
+\vn{longitudinal_mode} parameter. The possible values are 0 or 1 and the default setting is 1. If
+the mode is set to 0, the \vn{wall_radius} dependent parameter is calculated using \Eq{rk}. If the
+mode is 1, the wall radius is infinite and in this case \vn{wall_radius} is set to zero.
+
+Note: When an element's \vn{tracking_method} is set to \vn{bmad_standard}, settings for \vn{n_cell},
+and \vn{longitudinal_mode} are ignored.
 
 Example:
 \begin{example}
   lwf: lcavity, l = 2.3, rf_frequency = 500e6, voltage = 20e6,
-         longitudinal_mode = 1
+         tracking_method = runge_kutta, n_cell = 3, longitudinal_mode = 1
 \end{example}
 
-{\em Note: The default \vn{bmad_standard} tracking for \vn{lcavity}
-elements when the velocity $\beta$ is significantly different from 1
-can only be considered as a rough approximation. Indeed, the only
-accurate way to simulate a cavity in this situation is by integrating
-through the actual field [Cf.~Runge Kutta tracking (\sref{s:tkm})]}
+{\em Note: The default \vn{bmad_standard} tracking for \vn{lcavity} elements when the velocity
+$\beta$ is significantly different from 1 can only be considered as a rough approximation. Indeed,
+the only accurate way to simulate a cavity in this situation is by integrating through the actual
+field [Cf.~Runge Kutta tracking (\sref{s:tkm})]}
 
 %-----------------------------------------------------------------
 \section{Lens}

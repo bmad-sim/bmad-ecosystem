@@ -69,8 +69,7 @@ character(*), optional :: use_line
 
 character(1) delim
 character(16), parameter :: r_name = 'bmad_parser'
-character(40) word_2, name
-character(40) this_name, word_1, this_branch_name
+character(40) word_1, word_2, name, this_name, this_branch_name
 character(40), allocatable ::  in_name(:), seq_name(:), names(:)
 character(80) debug_line
 character(200) full_lat_file_name, digested_file, call_file
@@ -594,7 +593,7 @@ parsing_loop: do
     sequence(iseq_tot)%name = word_1
     sequence(iseq_tot)%multipass = multipass
 
-    call new_element_init (in_lat, err)
+    call new_element_init (word_1, in_lat, err)
     ele => in_lat%ele(n_max)
 
     if (delim /= '=') call parser_error ('EXPECTING: "=" BUT GOT: ' // delim)
@@ -619,7 +618,7 @@ parsing_loop: do
   !-------------------------------------------------------
   ! If not line or list then must be an element
 
-  call new_element_init (in_lat, err)
+  call new_element_init (word_1, in_lat, err)
   if (err) cycle parsing_loop
 
   ! Check for valid element key name or if element is part of a element key.
@@ -1311,15 +1310,16 @@ end subroutine parser_end_stuff
 !---------------------------------------------------------------------
 ! contains
 
-subroutine new_element_init (lat0, err)
+subroutine new_element_init (word1, lat0, err)
 
 type (lat_struct) lat0
 logical err, added
+character(*) word1
 
 !
 
-if (word_1 == 'BEGINNING' .or. word_1 == 'BEAM' .or. word_1 == 'PARTICLE_START' .or. word_1 == 'END') then
-  call parser_error ('ELEMENT NAME CORRESPONDS TO A RESERVED WORD: ' // word_1)
+if (word1 == 'BEGINNING' .or. word1 == 'BEAM' .or. word1 == 'PARTICLE_START' .or. word1 == 'END') then
+  call parser_error ('ELEMENT NAME CORRESPONDS TO A RESERVED WORD: ' // word1)
   err = .true.
   return
 endif
@@ -1334,10 +1334,10 @@ if (n_max >= ubound(lat0%ele, 1)) then
   call allocate_plat (plat, ubound(lat0%ele, 1))
 endif
 
-lat0%ele(n_max+1)%name = word_1
-call find_indexx (word_1, in_name, 0, in_indexx, n_max, ix, add_to_list = .true., has_been_added = added)
+lat0%ele(n_max+1)%name = word1
+call find_indexx (word1, in_name, 0, in_indexx, n_max, ix, add_to_list = .true., has_been_added = added)
 if (.not. added) then
-  call parser_error ('DUPLICATE ELEMENT, LINE, OR LIST NAME: ' // word_1)
+  call parser_error ('DUPLICATE ELEMENT, LINE, OR LIST NAME: ' // word1)
 endif
 
 lat0%ele(n_max)%ixx = n_max  ! Pointer to plat%ele() array
