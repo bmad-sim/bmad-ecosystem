@@ -125,7 +125,7 @@ def build_directory( dir, statlist, target ):
     if 'cbpmfio' in dir:
         ACC_SET_GMAKE_JOBS = '2'
     if 'xetec' in dir:
-        ACC_SET_GMAKE_JOBS = '2' 
+        ACC_SET_GMAKE_JOBS = '1' 
 
     ACC_ENABLE_FPIC = 'N'
 
