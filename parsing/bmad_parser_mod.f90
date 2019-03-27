@@ -27,7 +27,7 @@ private parse_grid_field, parse_cylindrical_map, parser_get_integer, parser_get_
 
 type seq_ele_struct
   character(40) name                     ! name of element, subline, or sublist
-  character(40), pointer :: actual_arg(:) => null()
+  character(40), allocatable :: actual_arg(:)
   character(40) :: tag = ''              ! tag name.
   integer :: type = 0                    ! LINE$, REPLACEMENT_LINE$, LIST$, ELEMENT$
   integer :: ix_ele = 0                  ! if an element: pointer to ELE array
@@ -40,9 +40,9 @@ end type
 
 type seq_struct
   character(40) name                ! name of sequence
-  type (seq_ele_struct), pointer :: ele(:) => null()
-  character(40), pointer :: dummy_arg(:) => null()
-  character(40), pointer :: corresponding_actual_arg(:) => null()
+  type (seq_ele_struct), allocatable :: ele(:)
+  character(40), allocatable :: dummy_arg(:)
+  character(40), allocatable :: corresponding_actual_arg(:)
   integer type                      ! LINE$, REPLACEMENT_LINE$ or LIST$
   integer ix                        ! current index of element in %ele
   integer indexx                    ! alphabetical order sorted index
@@ -5161,7 +5161,7 @@ implicit none
 
 integer n_arg, ix_word
 
-character(*), pointer :: arg_list(:)
+character(*), allocatable :: arg_list(:)
 character(*) seq_name
 character(1) delim
 character(40) name(20), word
@@ -5185,6 +5185,7 @@ do
 enddo
 
 err_flag = .false.
+if (allocated(arg_list)) deallocate(arg_list)
 allocate (arg_list(n_arg))
 arg_list = name(1:n_arg)
 
@@ -5205,7 +5206,7 @@ recursive subroutine parse_line_or_list (sequence, iseq_tot, lat, top_level)
 
 implicit none
 
-type (seq_struct), target :: sequence(:)
+type (seq_struct), allocatable, target :: sequence(:)
 type (seq_struct), pointer :: seq, sub_seq
 type (seq_ele_struct), pointer :: seq_ele_arr(:)
 type (seq_ele_struct), pointer :: seq_ele_arr2(:)
@@ -5306,6 +5307,7 @@ do
       write (str, '(a, i3.3)') '#Internal', ix_internal   ! unique name 
       s_ele%name = str
       iseq_tot = iseq_tot + 1
+      if (iseq_tot > size(sequence)) call reallocate_sequence(sequence, 2*iseq_tot)
       sub_seq => sequence(iseq_tot) 
       sub_seq%name = str
       sub_seq%type = seq%type
@@ -6219,8 +6221,8 @@ end subroutine form_digested_bmad_file_name
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_add_branch (fork_ele, lat, sequence, in_name, in_indexx, &
-                                    seq_name, seq_indexx, no_end_marker, in_lat, plat, created_new_branch, new_branch_name)
+subroutine parser_add_branch (fork_ele, lat, sequence, in_name, in_indexx, seq_name, &
+                                    seq_indexx, no_end_marker, in_lat, plat, created_new_branch, new_branch_name)
 
 implicit none
 
@@ -6228,7 +6230,7 @@ type (lat_struct), target :: lat, in_lat
 type (parser_lat_struct) plat
 type (ele_struct) fork_ele
 type (ele_struct), pointer :: target_ele
-type (seq_struct), target :: sequence(:)
+type (seq_struct), allocatable, target :: sequence(:)
 type (branch_struct), pointer :: branch
 
 integer, allocatable :: seq_indexx(:), in_indexx(:)
@@ -6254,8 +6256,8 @@ if (fork_ele%value(new_branch$) == 0) then ! Branch back if
 endif
 
 if (created_new_branch) then
-  call parser_expand_line (lat, fork_ele%component_name, sequence, in_name, &
-                                in_indexx, seq_name, seq_indexx, in_lat, n_ele_use, no_end_marker)
+  call parser_expand_line (fork_ele%component_name, sequence, in_name, &
+                                in_indexx, seq_name, seq_indexx, no_end_marker, n_ele_use, lat, in_lat)
 
   nb = ubound(lat%branch, 1)
   fork_ele%value(ix_to_branch$) = nb
@@ -6347,13 +6349,15 @@ end subroutine parser_identify_fork_to_element
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_expand_line (lat, use_name, sequence, in_name, &
-!                in_indexx, seq_name, seq_indexx, in_lat, n_ele_use, no_end_marker, expanded_line)
+! Subroutine parser_expand_line (lat, use_name, sequence, in_name, in_indexx, &
+!               seq_name, seq_indexx, no_end_marker, n_ele_use, lat, in_lat, expanded_line)
 !
 ! Subroutine to do line expansion.
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
+!
+! Note: Either lat and in_lat must be present or expanded_line must be present.
 !
 ! Input:
 !   use_name      -- character(*): Root line to expand.
@@ -6362,25 +6366,25 @@ end subroutine parser_identify_fork_to_element
 !   in_indexx(:)  -- integer: Index array of for the element names.
 !   seq_name(:)   -- character(*): Array of sequence names.
 !   seq_indexx(:) -- integer: Index array for the sequence names.
-!   in_lat        -- lat_struct: Lattice with array of elements defined in the lattice file.
 !   no_end_marker -- logical: Put a marker named "end" at the end of the branch?
+!   in_lat        -- lat_struct, optional: Lattice with array of elements defined in the lattice file.
 !
 ! Output:
-!   lat           -- lat_struct: Lattice with new line. Except if expanded_line is present.
 !   n_ele_use     -- integer: Number of elements in the finished line.
+!   lat           -- lat_struct, optional: Lattice with new line. Except if expanded_line is present.
 !   expanded_line(:) -- character(*), allocatable, optional: If present, lat argument will be
 !                         ignored and expanded_line will have the expanded line.
 !                         This arg is used for girder lords and line slices.
 !-
 
-subroutine parser_expand_line (lat, use_name, sequence, in_name, &
-               in_indexx, seq_name, seq_indexx, in_lat, n_ele_use, no_end_marker, expanded_line)
+recursive subroutine parser_expand_line (use_name, sequence, in_name, in_indexx, &
+               seq_name, seq_indexx, no_end_marker, n_ele_use, lat, in_lat, expanded_line)
 
 implicit none
 
-type (lat_struct), target :: lat, in_lat
+type (lat_struct), optional, target :: lat, in_lat
 type (ele_struct), pointer :: ele_line(:), ele, ele2
-type (seq_struct), target :: sequence(:)
+type (seq_struct), allocatable, target :: sequence(:)
 type (seq_ele_struct), pointer :: s_ele, this_seq_ele
 type (seq_stack_struct) stack(40)
 type (seq_struct), pointer :: seq, seq2
@@ -6390,21 +6394,25 @@ type (branch_struct), pointer :: branch
 type (used_seq_struct), allocatable ::  used_line(:)
 
 integer, allocatable :: seq_indexx(:), in_indexx(:)
-integer iseq_tot, i_lev, i_use, n_ele_use, n_max
+integer iseq_tot, i_lev, i_use, n_ele_use, n_name_tot
 integer i, j, k, n, ix, ix_multipass, ix_branch, flip
 
 character(*), allocatable ::  in_name(:), seq_name(:)
 character(*), allocatable, optional :: expanded_line(:)
 character(*) use_name
 character(40) name
+character(40), allocatable :: my_line(:)
 
 logical no_end_marker
 
 ! find line corresponding to the "use" statement.
 
 iseq_tot = size(seq_indexx)
-n_max = in_lat%n_ele_max
-allocate (used_line(n_max))
+allocate (used_line(1000))
+
+do n_name_tot = 0, size(in_name)-1
+  if (in_name(n_name_tot+1) == '') exit
+enddo
 
 call find_indexx (use_name, seq_name, seq_indexx, iseq_tot, i_use)
 if (i_use == 0) then
@@ -6437,7 +6445,7 @@ do k = 1, iseq_tot
 
     call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
     if (j == 0) then  ! if not an sequence, it must be an element
-      call find_indexx (name, in_name, 0, in_indexx, n_max, j)
+      call find_indexx (name, in_name, 0, in_indexx, n_name_tot, j)
       if (j < 0) then  ! if not an element, I don't know what it is
         s_ele%ix_ele = -1       ! Struggle on for now...
         s_ele%type = element$
@@ -6450,8 +6458,7 @@ do k = 1, iseq_tot
       s_ele%type = sequence(j)%type
       if (s_ele%type == list$ .and. s_ele%ele_order_reflect) call parser_error ( &
                           'A REFLECTION WITH A LIST IS NOT ALLOWED IN: '  &
-                          // sequence(k)%name, 'FOR LIST: ' // s_ele%name, &
-                          seq = sequence(k))
+                          // sequence(k)%name, 'FOR LIST: ' // s_ele%name, seq = sequence(k))
       if (sequence(k)%type == list$) &
                 call parser_error ('A REPLACEMENT LIST: ' // sequence(k)%name, &
                 'HAS A NON-ELEMENT MEMBER: ' // s_ele%name)
@@ -6534,7 +6541,7 @@ line_expansion: do
       s_ele%ix_ele = j
       s_ele%type = sequence(j)%type
     else  ! Must be an element
-      call find_indexx (name, in_name, 0, in_indexx, n_max, j)
+      call find_indexx (name, in_name, 0, in_indexx, n_name_tot, j)
       if (j == 0) then  ! if not an element then I don't know what it is
         call parser_error ('CANNOT FIND DEFINITION FOR: ' // name, &
                           'IN LINE: ' // seq%name, seq = seq)
@@ -6545,6 +6552,20 @@ line_expansion: do
       s_ele%type = element$
     endif
     
+  endif
+
+  ! If a line slice then expand the line and create a new sequence
+
+  if (s_ele%type == line_slice$) then
+    call parser_expand_line (s_ele%name, sequence, in_name, in_indexx, &
+               seq_name, seq_indexx, no_end_marker, n_ele_use, expanded_line = my_line)
+    iseq_tot = iseq_tot + 1
+    if (iseq_tot > size(sequence)) call reallocate_sequence(sequence, 2*iseq_tot)
+    seq => sequence(iseq_tot)
+    seq%file_name = 'Internal'
+    seq%ix_line = 0
+    
+
   endif
 
   ! if an element
@@ -6624,7 +6645,7 @@ line_expansion: do
       endif
       arg_loop: do i = 1, size(seq2%dummy_arg)
         seq2%corresponding_actual_arg(i) = s_ele%actual_arg(i)
-        if (associated(seq%dummy_arg)) then
+        if (allocated(seq%dummy_arg)) then
           do j = 1, size(seq%dummy_arg)
             if (seq2%corresponding_actual_arg(i) == seq%dummy_arg(j)) then
               seq2%corresponding_actual_arg(i) = seq%corresponding_actual_arg(j)
@@ -8737,5 +8758,28 @@ do n = 0, ubound(lat%branch, 1)
 enddo
 
 end subroutine parser_init_custom_elements
+
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!+
+! Subroutine reallocate_sequence (sequence, n_seq)
+!-
+
+subroutine reallocate_sequence (sequence, n_seq)
+
+implicit none
+
+type (seq_struct), target, allocatable :: sequence(:), temp_seq(:)
+integer n_seq, n
+
+!
+
+n = size(sequence)
+call move_alloc (sequence, temp_seq)
+allocate(sequence(n_seq))
+sequence(1:n) = temp_seq
+
+end subroutine reallocate_sequence
 
 end module
