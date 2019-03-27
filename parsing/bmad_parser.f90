@@ -45,7 +45,7 @@ type (lat_struct), target :: lat, in_lat
 type (ele_struct) this_ele
 type (ele_struct), pointer :: ele, slave, lord, ele2, ele0, mad_beam_ele, param_ele
 type (ele_struct), save :: marker_ele
-type (seq_struct), target, allocatable :: sequence(:), temp_seq(:)
+type (seq_struct), target, allocatable :: sequence(:)
 type (branch_struct), pointer :: branch0, branch
 type (parser_lat_struct), target :: plat
 type (parser_ele_struct), pointer :: pele
@@ -138,6 +138,7 @@ if (present(digested_read_ok)) digested_read_ok = .false.
 call init_lat (lat, 1)
 call init_lat (in_lat, 1000)
 allocate (in_indexx(0:1000), in_name(0:1000))
+in_name = ''
 
 call allocate_plat (plat, ubound(in_lat%ele, 1))
 
@@ -582,18 +583,12 @@ parsing_loop: do
 
   if (word_2(:ix_word) == 'LINE' .or. word_2(:ix_word) == 'LIST') then
     iseq_tot = iseq_tot + 1
-    if (iseq_tot > size(sequence)-1) then
-      n = size(sequence)
-      call move_alloc (sequence, temp_seq)
-      allocate(sequence(2*n))
-      sequence(1:n) = temp_seq
-      deallocate(temp_seq)
-    endif
+    if (iseq_tot > size(sequence)-1) call reallocate_sequence(sequence, 2*iseq_tot)
 
     sequence(iseq_tot)%name = word_1
     sequence(iseq_tot)%multipass = multipass
 
-    call new_element_init (word_1, in_lat, err)
+    call new_element_init (word_1, in_lat, in_name, err)
     ele => in_lat%ele(n_max)
 
     if (delim /= '=') call parser_error ('EXPECTING: "=" BUT GOT: ' // delim)
@@ -618,7 +613,7 @@ parsing_loop: do
   !-------------------------------------------------------
   ! If not line or list then must be an element
 
-  call new_element_init (word_1, in_lat, err)
+  call new_element_init (word_1, in_lat, in_name, err)
   if (err) cycle parsing_loop
 
   ! Check for valid element key name or if element is part of a element key.
@@ -774,8 +769,8 @@ branch_loop: do i_loop = 1, n_branch_max
       use_line_str = use_line_str(ix+1:)
     endif
 
-    call parser_expand_line (lat, this_branch_name, sequence, in_name, in_indexx, seq_name, seq_indexx, &
-                                                            in_lat, n_ele_use, is_true(param_ele%value(no_end_marker$)))
+    call parser_expand_line (this_branch_name, sequence, in_name, in_indexx, seq_name, seq_indexx, &
+                                         is_true(param_ele%value(no_end_marker$)), n_ele_use, lat, in_lat)
     if (bp_com%fatal_error_flag) then
       call parser_end_stuff (in_lat, .false.)
       return
@@ -1036,8 +1031,8 @@ do i = 1, n_max
     if (j > n_slave) exit
     call find_indexx(pele%control(j)%name, seq_name, seq_indexx, size(seq_name), k, k2)
     if (k == 0) cycle
-    call parser_expand_line (lat, pele%control(j)%name, sequence, in_name, in_indexx, &
-                                         seq_name, seq_indexx, in_lat, n_ele_use, .false., names)
+    call parser_expand_line (pele%control(j)%name, sequence, in_name, in_indexx, &
+                                         seq_name, seq_indexx, .false., n_ele_use, expanded_line = names)
     ! Put elements from the line expansion into the slave list.
 
     call move_alloc(pele%control, pcon)
@@ -1255,23 +1250,9 @@ bmad_com%auto_bookkeeper = auto_bookkeeper_saved
 ! deallocate pointers
 
 if (logic_option (.true., do_dealloc)) then
-
-  do i = 1, size(sequence(:))
-    if (associated (sequence(i)%dummy_arg)) &
-              deallocate(sequence(i)%dummy_arg, sequence(i)%corresponding_actual_arg)
-    if (associated (sequence(i)%ele)) then
-      do j = 1, size(sequence(i)%ele)
-        if (associated (sequence(i)%ele(j)%actual_arg)) &
-                              deallocate(sequence(i)%ele(j)%actual_arg)
-      enddo
-      deallocate(sequence(i)%ele)
-    endif
-  enddo
-
   if (allocated (seq_indexx))            deallocate (seq_indexx, seq_name)
   if (allocated (in_indexx))             deallocate (in_indexx, in_name)
   if (allocated (bp_com%lat_file_names)) deallocate (bp_com%lat_file_names)
-
 endif
 
 if (bp_com%error_flag) then
@@ -1310,11 +1291,12 @@ end subroutine parser_end_stuff
 !---------------------------------------------------------------------
 ! contains
 
-subroutine new_element_init (word1, lat0, err)
+subroutine new_element_init (word1, lat0, in_name, err)
 
 type (lat_struct) lat0
 logical err, added
 character(*) word1
+character(*), allocatable ::  in_name(:)
 
 !
 
@@ -1329,7 +1311,7 @@ err = .false.
 n_max = n_max
 if (n_max >= ubound(lat0%ele, 1)) then
   call allocate_lat_ele_array (lat0)
-  call re_allocate2 (in_name, 0, ubound(lat0%ele, 1))
+  call re_allocate2 (in_name, 0, ubound(lat0%ele, 1), init_val = '')
   call re_allocate2 (in_indexx, 0, ubound(lat0%ele, 1))
   call allocate_plat (plat, ubound(lat0%ele, 1))
 endif
