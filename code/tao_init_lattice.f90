@@ -26,6 +26,7 @@ type (branch_struct), pointer :: branch
 
 character(*) namelist_file
 character(200) full_input_name
+character(80) save_str
 character(40) unique_name_suffix, suffix
 character(20) :: r_name = 'tao_init_lattice'
 
@@ -33,7 +34,7 @@ integer i, j, k, n, iu, ios, version, ix, key, n_universes, ib, ie
 
 logical custom_init, combine_consecutive_elements_of_like_name
 logical common_lattice, alternative_lat_file_exists
-logical err, err1, err2, err3
+logical err, err1, err2
 
 namelist / tao_design_lattice / design_lattice, &
        combine_consecutive_elements_of_like_name, unique_name_suffix, &
@@ -224,28 +225,15 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! Element range?
 
   if (design_lat%use_element_range(1) /= '') then
-    lat => u%design%lat
-    call pointer_to_this_ele (1, design_lat%use_element_range(1), err1, ele1)
-    call pointer_to_this_ele (2, design_lat%use_element_range(2), err2, ele2)
+    design_lat%slice_lattice = design_lat%use_element_range
+    call out_io (s_warn$, 'In the tao_design_lattice namelist in the init file: ' // namelist_file, &
+                '"design_lattice(i)%use_element_range" is now "design_lattice(i)%slice_lattice".', &
+                'Please modify your file.')
+  endif
 
-    err3 = (ubound(u%design%lat%branch, 1) > 0)
-    if (err3) then
-      call out_io (s_fatal$, r_name, 'USE_ELEMENT_RANGE ERROR. CURRENTLY RANGES CAN ONLY BE USED WITH LATTICES WITH A SINGLE BRANCH')
-      if (s%global%stop_on_error) stop
-    endif
-
-    if (.not. err1 .and. .not. err2 .and. .not. err3) then
-      if (ele1%ix_ele > ele2%ix_ele) then
-        call out_io (s_fatal$, r_name, 'USE_ELEMENET_RANGE_ERROR. END ELEMENT1 IS AFTER END ELEMENT2: ' // &
-                          trim(design_lat%use_element_range(1)) // ', ' // trim(design_lat%use_element_range(2)))
-        if (s%global%stop_on_error) stop
-
-      else
-        lat%ele(1:ele1%ix_ele-1)%key = -1
-        lat%ele(ele2%ix_ele+1:lat%n_ele_track)%key = -1
-        call remove_eles_from_lat (lat)
-      endif
-    endif
+  if (design_lat%slice_lattice(1) /= '') then
+    save_str = trim(design_lat%use_element_range(1)) // ':' // trim(design_lat%use_element_range(2))
+    call slice_lattice (u%design%lat, save_str, err)
   endif
 
   ! Call bmad_parser2 if wanted
@@ -372,14 +360,14 @@ logical err
 call lat_ele_locator (ele_name, u%design%lat, eles, n_loc, err)
 
 if (err .or. n_loc == 0) then
-  call out_io (s_fatal$, r_name, 'USE_ELEMENT_RANGE ERROR. CANNOT FIND ELEMENT IN LATTICE: ' // ele_name)
+  call out_io (s_fatal$, r_name, 'SLICE_LATTICE ERROR. CANNOT FIND ELEMENT IN LATTICE: ' // ele_name)
   if (s%global%stop_on_error) stop
   err = .true.
   return
 endif
 
 if (n_loc > 1) then
-  call out_io (s_fatal$, r_name, 'USE_ELEMENT_RANGE ERROR. MULTIPLE ELEMENTS IN LATTICE: ' // ele_name)
+  call out_io (s_fatal$, r_name, 'SLICE_LATTICE ERROR. MULTIPLE ELEMENTS IN LATTICE: ' // ele_name)
   if (s%global%stop_on_error) stop
   err = .true.
   return
@@ -391,8 +379,8 @@ if (ele%lord_status == super_lord$) then
   if (ix_range == 2) ele => pointer_to_slave(ele, ele%n_slave)
 endif
 
-if (ele%ix_ele > u%design%lat%n_ele_track) then
-  call out_io (s_fatal$, r_name, 'USE_ELEMENT_RANGE ERROR. ELEMENT IN: ' // ele_name)
+if (ele%lord_status /= not_a_lord$) then
+  call out_io (s_fatal$, r_name, 'SLICE_LATTICE ERROR. ELEMENT IN: ' // ele_name)
   if (s%global%stop_on_error) stop
   err = .true.
   return
