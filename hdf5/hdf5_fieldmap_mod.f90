@@ -31,7 +31,7 @@ type (cartesian_map_struct), target :: cart_map
 type (ele_struct) ele
 
 integer(HID_T) f_id
-integer i, j, h5_err
+integer h5_err
 logical err_flag, err
 
 character(*) file_name
@@ -43,24 +43,24 @@ character(*), parameter :: r_name = 'hdf5_write_cartesian_map'
 err_flag = .true.
 call hdf5_open_file (file_name, 'WRITE', f_id, err);  if (err) return
 
-call hdf5_write_attribute_string(f_id, 'fileType', 'Bmad:cartesian_map')
-call hdf5_write_attribute_string(f_id, 'file_name', file_name)
-call hdf5_write_attribute_string(f_id, 'master_parameter', attribute_name(ele, cart_map%master_parameter))
-call hdf5_write_attribute_real(f_id, 'field_scale', cart_map%field_scale)
-call hdf5_write_attribute_real(f_id, 'r0', cart_map%r0)
-call hdf5_write_attribute_int(f_id, 'ele_anchor_pt', cart_map%ele_anchor_pt)
-call hdf5_write_attribute_int(f_id, 'field_type', cart_map%field_type)
-call hdf5_write_attribute_int(f_id, 'n_term', size(cart_map%ptr%term))
+call hdf5_write_attribute_string(f_id, 'fileType',         'Bmad:cartesian_map', err)
+call hdf5_write_attribute_string(f_id, 'file_name',        file_name, err)
+call hdf5_write_attribute_string(f_id, 'master_parameter', attribute_name(ele, cart_map%master_parameter), err)
+call hdf5_write_attribute_real(f_id,   'field_scale',      cart_map%field_scale, err)
+call hdf5_write_attribute_real(f_id,   'r0',               cart_map%r0, err)
+call hdf5_write_attribute_int(f_id,    'ele_anchor_pt',    cart_map%ele_anchor_pt, err)
+call hdf5_write_attribute_int(f_id,    'field_type',       cart_map%field_type, err)
+call hdf5_write_attribute_int(f_id,    'n_term',           size(cart_map%ptr%term), err)
 
-call hdf5_write_dataset_real(f_id, 'term%coef',  cart_map%ptr%term%coef, err)
-call hdf5_write_dataset_real(f_id, 'term%kx',    cart_map%ptr%term%kx, err)
-call hdf5_write_dataset_real(f_id, 'term%ky',    cart_map%ptr%term%ky, err)
-call hdf5_write_dataset_real(f_id, 'term%kz',    cart_map%ptr%term%kz, err)
-call hdf5_write_dataset_real(f_id, 'term%x0',    cart_map%ptr%term%x0, err)
-call hdf5_write_dataset_real(f_id, 'term%y0',    cart_map%ptr%term%y0, err)
-call hdf5_write_dataset_real(f_id, 'term%phi_z', cart_map%ptr%term%phi_z, err)
-call hdf5_write_dataset_int(f_id, 'term%family', cart_map%ptr%term%family, err)
-call hdf5_write_dataset_int(f_id, 'term%form',   cart_map%ptr%term%form, err)
+call hdf5_write_dataset_real(f_id, 'term%coef',   cart_map%ptr%term%coef, err)
+call hdf5_write_dataset_real(f_id, 'term%kx',     cart_map%ptr%term%kx, err)
+call hdf5_write_dataset_real(f_id, 'term%ky',     cart_map%ptr%term%ky, err)
+call hdf5_write_dataset_real(f_id, 'term%kz',     cart_map%ptr%term%kz, err)
+call hdf5_write_dataset_real(f_id, 'term%x0',     cart_map%ptr%term%x0, err)
+call hdf5_write_dataset_real(f_id, 'term%y0',     cart_map%ptr%term%y0, err)
+call hdf5_write_dataset_real(f_id, 'term%phi_z',  cart_map%ptr%term%phi_z, err)
+call hdf5_write_dataset_int(f_id,  'term%family', cart_map%ptr%term%family, err)
+call hdf5_write_dataset_int(f_id,  'term%form',   cart_map%ptr%term%form, err)
 
 call h5fclose_f(f_id, h5_err)
 err_flag = .false.
@@ -92,17 +92,41 @@ type (cartesian_map_struct), target :: cart_map
 type (ele_struct) ele
 
 integer(HID_T) f_id
-integer i, j, nt, iver, h5_err
+integer i, j, nt, iver, h5_err, n_term
 logical err_flag, err
 
 character(*) file_name
-character(40) master_name
+character(40) master_name, file_type
 character(*), parameter :: r_name = 'hdf5_read_cartesian_map'
 
 !
 
 err_flag = .true.
+allocate (cart_map%ptr)
+
 call hdf5_open_file (file_name, 'READ', f_id, err);  if (err) return
+
+call hdf5_read_attribute_string(f_id, 'fileType',         file_type, err, .true.)
+call hdf5_read_attribute_string(f_id, 'file_name',        cart_map%ptr%file, err, .true.)
+call hdf5_read_attribute_string(f_id, 'master_parameter', master_name, err, .true.)
+call hdf5_read_attribute_real(f_id,   'field_scale',      cart_map%field_scale, err, .true.)
+call hdf5_read_attribute_real(f_id,   'r0',               cart_map%r0, err, .true.)
+call hdf5_read_attribute_int(f_id,    'ele_anchor_pt',    cart_map%ele_anchor_pt, err, .true.)
+call hdf5_read_attribute_int(f_id,    'field_type',       cart_map%field_type, err, .true.)
+call hdf5_read_attribute_int(f_id,    'n_term',           n_term, err, .true.)
+
+cart_map%master_parameter = attribute_index(ele, master_name)
+allocate (cart_map%ptr%term(n_term))
+
+call hdf5_read_dataset_real(f_id, 'term%coef',   cart_map%ptr%term%coef, err)
+call hdf5_read_dataset_real(f_id, 'term%kx',     cart_map%ptr%term%kx, err)
+call hdf5_read_dataset_real(f_id, 'term%ky',     cart_map%ptr%term%ky, err)
+call hdf5_read_dataset_real(f_id, 'term%kz',     cart_map%ptr%term%kz, err)
+call hdf5_read_dataset_real(f_id, 'term%x0',     cart_map%ptr%term%x0, err)
+call hdf5_read_dataset_real(f_id, 'term%y0',     cart_map%ptr%term%y0, err)
+call hdf5_read_dataset_real(f_id, 'term%phi_z',  cart_map%ptr%term%phi_z, err)
+call hdf5_read_dataset_int(f_id,  'term%family', cart_map%ptr%term%family, err)
+call hdf5_read_dataset_int(f_id,  'term%form',   cart_map%ptr%term%form, err)
 
 call h5fclose_f(f_id, h5_err)
 err_flag = .false.
