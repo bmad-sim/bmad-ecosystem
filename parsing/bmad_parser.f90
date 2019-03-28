@@ -298,12 +298,20 @@ parsing_loop: do
   endif
 
   !-------------------------------------------
+  ! SLICE_LATTICE
+
+  if (word_1(:ix_word) == 'SLICE_LATTICE') then
+    call parser_error ('A SLICE_LATTICE COMMAND CAN ONLY BE USED AFTER A LATTICE_EXPANSION COMMAND.')
+    cycle parsing_loop
+  endif
+
+  !-------------------------------------------
   ! USE command...
 
   if (word_1(:ix_word) == 'USE') then
     lat%use_name = ''
     do
-      if (delim /= ',') call parser_error ('MISSING COMMA IN "USE" STATEMENT.')
+      if (delim /= ',' .and. delim /= ' ') call parser_error ('MISSING COMMA IN "USE" STATEMENT.')
       call get_next_word(word_2, ix_word, ':(=,)', delim, delim_found, .true.)
       if (ix_word == 0) then 
         call parser_error ('CONFUSED "USE" STATEMENT', '')
@@ -780,7 +788,7 @@ branch_loop: do i_loop = 1, n_branch_max
   else
     ele => branch_ele(1)%ele
     call parser_add_branch (ele, lat, sequence, in_name, in_indexx, seq_name, seq_indexx, &
-                                      is_true(param_ele%value(no_end_marker$)), in_lat, plat, created_new_branch, this_branch_name)
+                       is_true(param_ele%value(no_end_marker$)), in_lat, plat, created_new_branch, this_branch_name)
     is_photon_fork = (ele%key == photon_fork$)
     n_branch_ele = n_branch_ele - 1
     branch_ele(1:n_branch_ele) = branch_ele(2:n_branch_ele+1)
@@ -804,7 +812,7 @@ branch_loop: do i_loop = 1, n_branch_max
     lat%ele(0)%orientation      = lat%ele(1)%orientation
     lat%version                 = bmad_inc_version$
     lat%input_file_name         = full_lat_file_name             ! save input file  
-    lat%particle_start              = in_lat%particle_start
+    lat%particle_start          = in_lat%particle_start
     lat%a                       = in_lat%a
     lat%b                       = in_lat%b
     lat%z                       = in_lat%z

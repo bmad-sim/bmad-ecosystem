@@ -1,6 +1,3 @@
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
 !+
 ! Subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch)
 !
@@ -29,6 +26,11 @@
 !   ele2     = Ending element of the range. 
 !   step     = Optional step increment Default is 1. 
 ! Note: ele1 and ele2 must be in the same branch.
+! If ele1 or ele2 is a super_lord, the elements in the range are determined by the position of the
+! super_slave elements. For example, if loc_str is "Q1:Q1" and Q1 is *not* a super_lord, the eles
+! list will simply be Q1. If Q1 is a super_lord, the eles list will be the super_slaves of Q1.
+! It is an error if ele1 or ele2 is a multipass_lord. Also it is is an error for ele1 or ele2
+! to be an overlay, group, or girder if the number of slaves is not one. 
 !
 ! Examples:
 !   "quad::x_br>>q*"   All quadrupoles of branch "x_br" whose name begins with "q"
@@ -156,7 +158,11 @@ do
   ! Handle range construct...
   ! Each item in the construct must represent only one element.
 
-  if (n_loc2 /= 1) then
+  if (n_loc2 == 0) then
+    call out_io (s_error$, r_name, 'NO ELEMENT ASSOCIATED WITH: ' // name, &
+                                   'THIS IS NOT PERMITTED IN A RANGE CONSTRUCT: ' // loc_str)
+    return
+  elseif (n_loc2 > 1) then
     call out_io (s_error$, r_name, 'MULTIPLE ELEMENTS ASSOCIATED WITH: ' // name, &
                                    'THIS IS NOT PERMITTED IN A RANGE CONSTRUCT: ' // loc_str)
     return
@@ -178,6 +184,9 @@ do
 
   if (in_range > 1) then
     ele_end => eles2(1)%ele
+    ele_start => find_this_end(ele_start, entrance_end$, err); if (err) return
+    ele_end => find_this_end(ele_end, exit_end$, err);  if (err) return
+
     if (ele_start%ix_branch /= ele_end%ix_branch) then
       call out_io (s_error$, r_name, 'ERROR: ELEMENTS NOT OF THE SAME BRANCH IN RANGE: ' // loc_str)
       return
@@ -232,7 +241,7 @@ contains
 ! Note: This routine is private and meant to be used only by lat_ele_locator
 !-
 
-subroutine lat_ele1_locator (name, lat, eles, n_loc, err, above_ub_is_err, ix_dflt_branch)
+subroutine lat_ele1_locator (name_in, lat, eles, n_loc, err, above_ub_is_err, ix_dflt_branch)
 
 implicit none
 
@@ -241,8 +250,8 @@ type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
 
-character(*) name
-character(40) branch_name
+character(*) name_in
+character(40) branch_name, name
 character(*), parameter :: r_name = 'lat_ele1_locator'
 
 integer, optional :: ix_dflt_branch
@@ -256,6 +265,7 @@ logical :: above_ub_is_err
 
 err = .true.
 n_loc = 0
+name = name_in
 
 ! key::name construct
 
@@ -376,5 +386,67 @@ enddo
 err = .false.
 
 end subroutine lat_ele1_locator
+
+!---------------------------------------------------------------------------
+! contains
+
+function find_this_end(ele, which_end, err) result (end_ele)
+
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: end_ele, orig_ele
+integer which_end
+logical err
+
+!
+
+err = .true.
+orig_ele => ele
+end_ele => ele
+
+do
+  select case (end_ele%lord_status)
+  case (overlay_lord$, group_lord$, girder_lord$)
+    if (end_ele%n_slave /= 1) then
+      call out_io (s_error$, r_name, &
+          'FOR ELEMENT: ' // orig_ele%name, 'WHICH IS PART OF A RANGE CONSTRUCT IN: ' // loc_str, &
+          'THE PROBLEM IS THAT THIS ELEMENT IS A OVERLAY, GROUP OR GIRDER LORD AND DOES ', &
+          'NOT HAVE A UNIQUE NON-MULTIPASS_LORD SLAVE ELEMENT.')
+      return
+    endif
+    end_ele => pointer_to_slave(end_ele, 1)
+
+  case (multipass_lord$)
+    if (orig_ele%lord_status == multipass_lord$) then
+      call out_io (s_error$, r_name, &
+          'FOR ELEMENT: ' // orig_ele%name, 'WHICH IS PART OF A RANGE CONSTRUCT IN: ' // loc_str, &
+          'THE PROBLEM IS THAT THIS ELEMENT IS A OVERLAY, GROUP OR GIRDER LORD AND DOES ', &
+          'NOT HAVE A UNIQUE NON-MULTIPASS_LORD SLAVE ELEMENT.')
+    else
+      call out_io (s_error$, r_name, &
+          'FOR ELEMENT: ' // orig_ele%name, 'WHICH IS PART OF A RANGE CONSTRUCT IN: ' // loc_str, &
+          'THE PROBLEM IS THAT THIS ELEMENT IS A MULTIPASS_LORD.')
+    endif
+    return
+
+  case (super_lord$)
+    if (which_end == entrance_end$) then
+      end_ele => pointer_to_slave(end_ele, 1)
+    else
+      end_ele => pointer_to_slave(end_ele, end_ele%n_slave)
+    endif
+    exit
+
+  case (not_a_lord$)
+    exit
+
+  case default
+    call out_io (s_fatal$, r_name, 'INTERNAL ERR. PLEASE REPORT!')
+    stop
+  end select
+enddo
+
+err = .false.
+
+end function find_this_end
 
 end subroutine lat_ele_locator

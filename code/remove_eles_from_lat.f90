@@ -13,8 +13,6 @@
 ! Individual lat%control(i) elements, along with the corresponding lat%ic(j), can 
 ! be removed by setting:
 !     lat%control(i)%attribute = 'REMOVE'
-! In this case, the appropriate lord%n_slave value must have been adjusted for 
-! the appropriate lord element.
 !
 ! Important: To save computation time, lattice_bookkeeper is not called by this routine.
 ! If you use this routine you should call lattice_bookkeeper after all lattice adjustments have been made.
