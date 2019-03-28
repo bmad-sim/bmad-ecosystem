@@ -188,7 +188,7 @@ attribute. Example:
 \end{example}
 The element in this example is an AC quadrupole kicker. The times (in seconds) must be in ascending
 order and no two times may be the same. The method used to interpolate between the time points is
-determined by the setting of the \vn{interpolate} paramter which may be one of
+determined by the setting of the \vn{interpolate} parameter which may be one of
 \begin{example}
   linear      ! Linear interpolation.
   spline      ! Cubic spline interpolation (default).
@@ -2550,7 +2550,9 @@ When an element's \vn{tracking_method} is set to \vn{runge_kutta}, the fields us
 \vn{cavity_type} set to \vn{standing_wave}, the longitudinal mode is set by the
 \vn{longitudinal_mode} parameter. The possible values are 0 or 1 and the default setting is 1. If
 the mode is set to 0, the \vn{wall_radius} dependent parameter is calculated using \Eq{rk}. If the
-mode is 1, the wall radius is infinite and in this case \vn{wall_radius} is set to zero.
+mode is 1, the wall radius is infinite and in this case \vn{wall_radius} is set to zero. For the
+mode set to 0, the number of cells, \vn{n_cell}, is restricted to one since, in this case, if there
+were to be more than one cell, alternating cells would alternately accelerate and decelerate.
 
 Note: When an element's \vn{tracking_method} is set to \vn{bmad_standard}, settings for \vn{n_cell},
 and \vn{longitudinal_mode} are ignored.

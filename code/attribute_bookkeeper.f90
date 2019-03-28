@@ -315,12 +315,7 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
     case (lcavity$, rfcavity$)
       if (val(l$) /= 0) then
         val(num_steps$) = 10
-        val(ds_step$) = abs(val(l$)) / val(num_steps$) 
-      endif
-      if (val(rf_frequency$) /= 0 .and. nint(val(longitudinal_mode$)) == 1) then
-        val(wall_radius$) = 2.40482555769577_rp * c_light / (twopi * val(rf_frequency$))
-      else
-        val(wall_radius$) = 0
+        val(ds_step$) = abs(val(l$)) / val(num_steps$)
       endif
     end select
   endif
@@ -435,6 +430,14 @@ case (lcavity$)
     val(voltage_err$) = val(gradient_err$) * val(l$)
   endif
 
+  if (nint(val(longitudinal_mode$)) == 1) val(n_cell$) = 1
+
+  if (val(rf_frequency$) /= 0 .and. nint(val(longitudinal_mode$)) == 1) then
+    val(wall_radius$) = 2.40482555769577_rp * c_light / (twopi * val(rf_frequency$))
+  else
+    val(wall_radius$) = 0
+  endif
+
   if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$ .and. nint(ele%value(cavity_type$)) == standing_wave$) then
     val(l_hard_edge$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
   endif
@@ -475,6 +478,14 @@ case (rfcavity$)
     val(gradient$) = 1d30    ! Something large
   else
     val(gradient$) = val(voltage$) / val(l$)
+  endif
+
+  if (nint(val(longitudinal_mode$)) == 1) val(n_cell$) = 1
+
+  if (val(rf_frequency$) /= 0 .and. nint(val(longitudinal_mode$)) == 1) then
+    val(wall_radius$) = 2.40482555769577_rp * c_light / (twopi * val(rf_frequency$))
+  else
+    val(wall_radius$) = 0
   endif
 
 ! sad_mult
