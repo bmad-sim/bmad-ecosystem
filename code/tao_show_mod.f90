@@ -3979,6 +3979,7 @@ case ('universe')
   nl=nl+1; write(lines(nl), amt) '%beam%saved_at:        = ', quote(trim(u%beam%saved_at))
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), amt) 'Lattice name:           ', quote(lat%lattice)
+  nl=nl+1; write(lines(nl), amt) 'Machine name:           ', quote(lat%machine)
   nl=nl+1; write(lines(nl), amt) 'Used line in lat file:  ', quote(lat%use_name)
   nl=nl+1; write(lines(nl), amt) 'Lattice file name:      ', quote(lat%input_file_name)
   nl=nl+1; write(lines(nl), amt) 'Reference species:      ', species_name(branch%param%particle)

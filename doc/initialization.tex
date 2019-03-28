@@ -225,7 +225,7 @@ namelist are:
     design_lattice(i)%one_turn_map_calc = <logical>     ! Default = False
     design_lattice(i)%dynamic_aperture_calc = <logical> ! Default = False
     design_lattice(i)%reverse_tracking = <logical>      ! Default = False
-    design_lattice(i)%use_element_range = "<ele1>", "<ele2>"             
+    design_lattice(i)%slice_lattice = "<ele1>", "<ele2>"             
   /
 \end{example}
 
@@ -250,21 +250,21 @@ of the lattice to the beginning. The sign of the charge of the tracked particle 
 reversed from the setting in the lattice file. This is useful for simulating beams that go in the
 backward direction.
 
-The \vn{%use_element_range} parameter specifies two elements (labeled here \vn{<ele1>} and
-\vn{<ele2>}) to be used to pare down the lattice so that the only elements in the pared down lattice
-are the elements in the range from \vn{<ele1>} to \vn{<ele2} inclusive plus any lord elements that
-control elements in this range. The names \vn{<ele1>} and \vn{<ele2>} can be either an element names
-or an element index (\sref{s:ele.list.format}). Currently, only lattices with a single branch can
-be used with \vn{%use_element_range}. \vn{%use_element_range} can be used to minimize calculational
-overhead when only part of the lattice needs to be used.
+The \vn{%slice_lattice} parameter specifies two elements (labeled here \vn{<ele1>} and \vn{<ele2>})
+to be used to pare down the lattice so that the only elements in the pared down lattice are the
+elements in the range from \vn{<ele1>} to \vn{<ele2} inclusive plus any lord elements that control
+elements in this range. This is identical to putting the following command in the lattice file
+\begin{example}
+  slice_lattice <ele1> : <ele2>
+\end{example}
+See the \bmad manual for more details about the \vn{slice_lattice} command.
 
 Example:
 \begin{example}
   &tao_design_lattice
     n_universe = 4
     design_lattice(1) = "this.lat"              ! Default: Bmad format lattice file.
-    design_lattice(1)%use_element_range = "Q1", "Q2"  ! Lattice will be all 
-                                                ! elements in the range [Q1, Q2]
+    design_lattice(1)%slice_lattice = "Q1", "Q2" ! Discard element outside range [Q1:Q2]
     design_lattice(2) = "xsif::that.lat", "floor_coords.bmad"
                                                 ! XSIF file. For universe \#2 
     design_lattice(3) = "third.lat@my_line"     ! Specify a different line.
@@ -280,53 +280,41 @@ lattice file'' called \vn{floor_coords.bmad} which will be parsed after the ``pr
 post lattice expansion.  See the \bmad manual manual for a discussion of lattice expansion. A
 secondary lattice file must be in Bmad standard format. This can be especially useful if
 \vn{lattice_file} is not a bmad file. For example, a \vn{lattice2_file} can be used to set non-zero
-floor coordinates to an XSIF lattice file. Note: If a \vn{%use_element_range} parameter is used with
-a secondary lattice file then the paring specified by \vn{%use_element_range} is applied before
+floor coordinates to an XSIF lattice file. Note: If a \vn{%slice_lattice} parameter is used with
+a secondary lattice file then the paring specified by \vn{%slice_lattice} is applied before
 the secondary lattice file is parsed.
 
-If there is no \vn{design_lattice} specified for a given universe then
-the last \vn{design_lattice} is used. Thus, in the above example,
-universes 4 use the same lattice as universe 3.
+If there is no \vn{design_lattice} specified for a given universe then the last \vn{design_lattice}
+is used. Thus, in the above example, universes 4 use the same lattice as universe 3.
 
-The \vn{design_lattice(i)%one_turn_map_calc} sets whether a
-one-turn-map calculation for a ring using PTC will be done. If the
-calculation is made, the \vn{normal.} data type is populated.  See
-Eq.~\ref{normalform1} and Eq.~\ref{normalform2}. After startup, the
-map calculation can be toggled on/off by using the \vn{set universe
-one_turn_map_calc} command (\sref{s:set}).
+The \vn{design_lattice(i)%one_turn_map_calc} sets whether a one-turn-map calculation for a ring
+using PTC will be done. If the calculation is made, the \vn{normal.} data type is populated.  See
+Eq.~\ref{normalform1} and Eq.~\ref{normalform2}. After startup, the map calculation can be toggled
+on/off by using the \vn{set universe one_turn_map_calc} command (\sref{s:set}).
 
-The \vn{design_lattice(i)%dynamic_aperture} component sets whether the
-dynamic aperture calculation (\sref{s:dynamicaperture}) will be
-done. After startup, this calculation can be toggled on/off by
+The \vn{design_lattice(i)%dynamic_aperture} component sets whether the dynamic aperture calculation
+(\sref{s:dynamicaperture}) will be done. After startup, this calculation can be toggled on/off by
 using the \vn{set universe dynamic_aperture_calc} command (\sref{s:set}).
 
-Normally, a lattice file will specify which ``line'' will be used to
-specify the lattice. Occasionally, it is convenient to override this
-specification and to use a different line. To do this in \tao, the
-name of the line to be used to specify the lattice can be appended to
-the lattice file name. Thus, in the example above, universe 3 will
-have the lattice specified by the line ``my\_line'' from the lattice
-``third.lat''.
+Normally, a lattice file will specify which ``line'' will be used to specify the
+lattice. Occasionally, it is convenient to override this specification and to use a different
+line. To do this in \tao, the name of the line to be used to specify the lattice can be appended to
+the lattice file name. Thus, in the example above, universe 3 will have the lattice specified by the
+line ``my\_line'' from the lattice ``third.lat''.
 
-\vn{global%combine_consecutive_elements_of_like_name} takes a lattice
-and combines all pairs of consecutive elements that have the same name
-and attributes. Why is this useful? Some programs, not based on \bmad,
-cannot generate the Twiss parameters inside the element. If the Twiss
-parameters at the center of an element are desired, a lattice where the
-element has been split into two identical pieces is needed. This,
-however, makes tasks like setting up lattice optimization
-cumbersome. Note: The recombination of like elements happens when the
-lattice is read in during initialization.
+\vn{global%combine_consecutive_elements_of_like_name} takes a lattice and combines all pairs of
+consecutive elements that have the same name and attributes. Why is this useful? Some programs, not
+based on \bmad, cannot generate the Twiss parameters inside the element. If the Twiss parameters at
+the center of an element are desired, a lattice where the element has been split into two identical
+pieces is needed. This, however, makes tasks like setting up lattice optimization cumbersome. Note:
+The recombination of like elements happens when the lattice is read in during initialization.
 
-\vn{unique_name_suffix} is used to append a unique character string to
-element names that are not unique. \vn{unique_name_suffix} uses
-element list format (\sref{s:ele.list.format}). The class is used to
-restrict which elements can have their names changed. The \vn{name}
-part is used as a suffix. This suffix must have a single \vn{``?''}
-character.  When this suffix is applied to an element's name, a unique
-integer is inserted in place of the \vn{``?''}. For example, if
-\vn{unique_name_suffix} is \vn{"quad::\#\#?"}, and if the following
-quadrupoles are in the lattice:
+\vn{unique_name_suffix} is used to append a unique character string to element names that are not
+unique. \vn{unique_name_suffix} uses element list format (\sref{s:ele.list.format}). The class is
+used to restrict which elements can have their names changed. The \vn{name} part is used as a
+suffix. This suffix must have a single \vn{``?''}  character.  When this suffix is applied to an
+element's name, a unique integer is inserted in place of the \vn{``?''}. For example, if
+\vn{unique_name_suffix} is \vn{"quad::\#\#?"}, and if the following quadrupoles are in the lattice:
 \begin{example}
         QA    QB    QX    QA    QB     QB
 \end{example}
