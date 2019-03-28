@@ -198,8 +198,8 @@ if (present(ix2_match)) ix2_match = ix2
 
 if (logic_option(.false., add_to_list) .and. ix_match < n_min) then
   if (n_max + 1 > size(str_index%name)) then
-    call re_allocate2(str_index%name, n_min, 2*n_max-n_min) 
-    call re_allocate2(str_index%indexx, n_min, 2*n_max-n_min) 
+    call re_allocate2(str_index%name, n_min, 2*n_max-n_min)
+    call re_allocate2(str_index%indexx, n_min, 2*n_max-n_min)
   endif
   if (present(has_been_added)) has_been_added = .true.
   str_index%indexx(ix2+1:n_max+1) = str_index%indexx(ix2:n_max)
