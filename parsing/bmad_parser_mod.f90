@@ -121,7 +121,7 @@ end type
 !
 
 integer, parameter :: line$ = 1001, list$ = 1002, element$ = 1003
-integer, parameter :: replacement_line$ = 1004, line_slice$ = 1005
+integer, parameter :: replacement_line$ = 1004
 integer, parameter :: def$ = 1, redef$ = 2
 
 !------------------------------------------------
@@ -5334,25 +5334,6 @@ do
                word, 'IN THE SEQUENCE: ' // seq%name)
   endif
 
-  ! Check for line slice
-
-  if (delim == '@') then
-    allocate(s_ele%actual_arg(2))
-    s_ele%type = line_slice$
-    call get_next_word (s_ele%actual_arg(1), ix_word2, '&', delim, delim_found, .false.) 
-    if (delim /= '&') then
-      call parser_error ('NO "&" FOUND AFTER "@" FOR ELEMENT SLICE: ' // s_ele%name)
-      return
-    endif
-    if (.not. verify_valid_name(s_ele%actual_arg(1), ix_word2)) return
-    call get_next_word (s_ele%actual_arg(2), ix_word2, ',)', delim, delim_found, .false.) 
-    if (.not. delim_found) then 
-      call parser_error ('NO DELIMITOR FOUND AFTER "&" FOR ELEMENT SLICE: ' // s_ele%name)
-      return
-    endif
-    if (.not. verify_valid_name(s_ele%actual_arg(2), ix_word2)) return
-  endif
-
   if (s_ele%name == ' ') call parser_error ('SUB-ELEMENT NAME IS BLANK FOR LINE/LIST: ' // seq%name)
 
   ! if a replacement line then look for element in argument list
@@ -6374,7 +6355,7 @@ end subroutine parser_identify_fork_to_element
 !   lat           -- lat_struct, optional: Lattice with new line. Except if expanded_line is present.
 !   expanded_line(:) -- character(*), allocatable, optional: If present, lat argument will be
 !                         ignored and expanded_line will have the expanded line.
-!                         This arg is used for girder lords and line slices.
+!                         This arg is used for girder lords.
 !-
 
 recursive subroutine parser_expand_line (use_name, sequence, in_name, in_indexx, &
@@ -6433,8 +6414,6 @@ do k = 1, iseq_tot
 
     s_ele => sequence(k)%ele(i)
     name = s_ele%name
-
-    if (s_ele%type == line_slice$) cycle
 
     if (s_ele%ix_arg > 0) then   ! dummy arg
       s_ele%type = element$
@@ -6554,23 +6533,11 @@ line_expansion: do
     
   endif
 
-  ! If a line slice then expand the line and create a new sequence
-
-  if (s_ele%type == line_slice$) then
-    call parser_expand_line (s_ele%name, sequence, in_name, in_indexx, &
-               seq_name, seq_indexx, no_end_marker, n_ele_use, expanded_line = my_line)
-    iseq_tot = iseq_tot + 1
-    if (iseq_tot > size(sequence)) call reallocate_sequence(sequence, 2*iseq_tot)
-    seq => sequence(iseq_tot)
-    seq%file_name = 'Internal'
-    seq%ix_line = 0
-    
-
-  endif
-
-  ! if an element
+  ! Select type
 
   select case (s_ele%type)
+
+  ! If an element
 
   case (element$, list$) 
 

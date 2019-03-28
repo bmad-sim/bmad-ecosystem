@@ -1831,35 +1831,29 @@ by \bmad.
 
 \index{beginning_ele}\index{fiducial}\index{fork}\index{photon_fork}
 \index{marker}\index{to_element}
-The \vn{to_element} attribute for a forking element is used to
-designate the element of the target branch that the forking element
-connects to. To keep things conceptually simple, the \vn{to_element}
-must be a ``marker-like'' element which has zero length and unit
-transfer matrix. Possible \vn{to_element} types are:
+The \vn{to_element} attribute for a forking element is used to designate the element of the target
+branch that the forking element connects to. To keep things conceptually simple, the \vn{to_element}
+must be a ``marker-like'' element which has zero length and unit transfer matrix. Possible
+\vn{to_element} types are:
 \begin{example}
   beginning_ele
   fiducial
   fork and photon_fork
   marker
 \end{example}
-When the \vn{to_element} is not specified, the default is to connect
-to the beginning of the target branch if \vn{direction} is 1 and to
-connect to the end of the target branch if \vn{direction} is -1. In
-this case, there is never a problem connecting to the beginning of the
-target branch since all branches have a \vn{beginning_ele} element at
-the beginning. When connecting to the end of the target branch the
-last element in the target branch must be a marker-like element. Note
-that, by default, a marker element is placed at the end of all
-branches (\sref{s:branch.construct})
+When the \vn{to_element} is not specified, the default is to connect to the beginning of the target
+branch if \vn{direction} is 1 and to connect to the end of the target branch if \vn{direction} is
+-1. In this case, there is never a problem connecting to the beginning of the target branch since
+all branches have a \vn{beginning_ele} element at the beginning. When connecting to the end of the
+target branch the last element in the target branch must be a marker-like element. Note that, by
+default, a marker element is placed at the end of all branches (\sref{s:branch.construct})
 
-The reference energy of a target branch line, needs to be set using
-line parameter statements (\sref{s:beginning}). The default reference
-particle type of a branch line will be a \vn{photon} is using a
-\vn{photon_fork} or will be the same type of particle as the base
-branch if a \vn{fork} element is used.
+The reference energy of a target branch line, needs to be set using line parameter statements
+(\sref{s:beginning}). The default reference particle type of a branch line will be a \vn{photon} is
+using a \vn{photon_fork} or will be the same type of particle as the base branch if a \vn{fork}
+element is used.
 
-Example showing an injection line branching to a ring which, in turn,
-branches to two x-ray lines:
+Example showing an injection line branching to a ring which, in turn, branches to two x-ray lines:
 \begin{example}
   inj: line = (..., br_ele, ...)            ! Define the injection line
   use, inj                                  ! Injection line is the root
@@ -1870,28 +1864,28 @@ branches to two x-ray lines:
   x_line[E_tot] = 1e3
 \end{example}
 
-The \vn{new_branch} attribute is, by default, \vn{True} which means
-that the lattice branch created out of the \vn{to_line} line is
-distinct from other lattice branches of the same name. Thus, in the
-above example, the two lattice branches made from the \vn{x_line} will
-be distinct. If \vn{new_branch} is set to \vn{False}, a new lattice
-branch will not be created if a lattice branch created from the same
-line already exists. This is useful, for example, when a chicane line
-branches off from the main line and then branches back to it.
+The \vn{new_branch} attribute is, by default, \vn{True} which means that the lattice branch created
+out of the \vn{to_line} line is distinct from other lattice branches of the same name. Thus, in the
+above example, the two lattice branches made from the \vn{x_line} will be distinct. If
+\vn{new_branch} is set to \vn{False}, a new lattice branch will not be created if a lattice branch
+created from the same line already exists. This is useful, for example, when a chicane line branches
+off from the main line and then branches back to it.
 
-When a lattice is expanded (\sref{s:expand}), the branches defined by
-the \vn{use} statement (\sref{s:use}) are searched for fork elements
-that branch to new target branches. If found, the appropriate branches are
-instantiated and the process repeated until there are no more branches
-to be instantiated. This process does {\em not} go in reverse. That is
-the lines defined in a lattice file are not searched for fork elements
-that have target instantiated branches. For example, if, in the above example,
-the use statement was:
+When a lattice is expanded (\sref{s:expand}), the branches defined by the \vn{use} statement
+(\sref{s:use}) are searched for fork elements that branch to new target branches. If found, the
+appropriate branches are instantiated and the process repeated until there are no more branches to
+be instantiated. This process does {\em not} go in reverse. That is the lines defined in a lattice
+file are not searched for fork elements that have target instantiated branches. For example, if, in
+the above example, the use statement was:
 \begin{example}
   use, x_line
 \end{example}
-then only the \vn{x_line} would be instantiated and the lines \vn{inj} and
-\vn{ring} would be ignored.
+then only the \vn{x_line} would be instantiated and the lines \vn{inj} and \vn{ring} would be
+ignored.
+
+How to analyze a lattice with multiple branches can be somewhat complex and will vary from program
+to program. For example, some programs will simply ignore everything except the root branch. Hopefully
+any program documentation will clarify the matter.
 
 %-----------------------------------------------------------------
 \section{Girder}

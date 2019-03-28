@@ -1,29 +1,24 @@
-\chapter{Lattice File Overview}
+\chapter{Lattice Files}
 \label{c:lat.file}
 \index{lattice files|hyperbf}
 
 \index{Bmad!lattice file format}
-A lattice (\sref{c:lat.concepts}) defines the sequence of elements
-that a particle will travel through along with the attributes (length,
-strength, orientation, etc.) of the elements.  A lattice file (or
-files) is a file that is used to describe an accelerator or storage
-ring. 
+A lattice (\sref{c:lat.concepts}) defines the sequence of elements that a particle will travel
+through along with the attributes (length, strength, orientation, etc.) of the elements.  A lattice
+file (or files) is a file that is used to describe an accelerator or storage ring.
 
 %---------------------------------------------------------------------------
 \section{Bmad Lattice File Format}
 \label{s:lattice.file.formats}
 
-The syntax that a \bmad standard lattice file must conform to is
-modeled after the lattice input format of the \mad program.
-Essentially, a \bmad lattice file is similar to a \mad lattice file
-except that a \bmad file has no ``action'' commands (action commands
-tell the program to calculate the Twiss parameters, do tracking,
-etc.).  Since \bmad is a software library, interacting with the user
-to determine what actions a program should take is left to the program
-and is not part of \bmad (although the \bmad library provides the
-routines to perform many of the standard calculations). A program is
-not required to use the \bmad parser routines but, if it does, the
-following chapters describe how to construct a valid lattice file.
+The syntax that a \bmad standard lattice file must conform to is modeled after the lattice input
+format of the \mad program.  Essentially, a \bmad lattice file is similar to a \mad lattice file
+except that a \bmad file has no ``action'' commands (action commands tell the program to calculate
+the Twiss parameters, do tracking, etc.).  Since \bmad is a software library, interacting with the
+user to determine what actions a program should take is left to the program and is not part of \bmad
+(although the \bmad library provides the routines to perform many of the standard calculations). A
+program is not required to use the \bmad parser routines but, if it does, the following chapters
+describe how to construct a valid lattice file.
 
 %---------------------------------------------------------------------------
 \section{MAD, SAD, and XSIF Lattice Files}
@@ -241,15 +236,12 @@ For example:
 \index{element!names}
 
 \index{element!name}\index{superimpose}\index{multipass}
-A valid element name may be up to 40 characters in length. The first
-character of the name must be a letter [A-Z]. After that, the rest of
-the name can contain only letters, digits [0-9], underscore ``_'',
-period ``.'', backslash ``\B'', or a hash mark ``\#''. It is best to
-avoid these last three symbols since \bmad uses them to denote
-``relationships''.  Periods are used for tagging (\sref{s:tag}), and
-backslash and hash marks are used for to compose names for
-superposition (\sref{s:super}) and multipass (\sref{s:multipass})
-slave elements.
+A valid element name may be up to 40 characters in length. The first character of the name must be a
+letter [A-Z]. After that, the rest of the name can contain only letters, digits [0-9], underscore
+``_'', period ``.'', backslash ``\B'', or a hash mark ``\#''. It is best to avoid these last three
+symbols since \bmad uses them to denote ``relationships''.  Periods are used for tagging
+(\sref{s:tag}), and backslash and hash marks are used for to compose names for superposition
+(\sref{s:super}) and multipass (\sref{s:multipass}) slave elements.
 
 \index{reserved names}
 \index{beam}\index{particle_start}\index{beginning}
@@ -1150,17 +1142,44 @@ Add group (\sref{s:group}) and overlay (\sref{s:overlay}) control elements.
 \end{enumerate}
 
 \index{secondary lattice file}
-A lattice file where all the statements are post lattice expansion
-valid is called a ``\vn{secondary lattice file}''.  To promote
-flexibility, \bmad has methods for parsing lattices in a two step
-process: First, a ``primary'' lattice file that defines the basic
-lattice is read. After the primary lattice has been parsed and lattice
-expansion has been done, the second step is to read in one or more
-secondary lattice files. Such secondary lattice files can be used, for
-example, to set such things as element misalignments. The point here
-is that there are no calls (\sref{s:call}) of the secondary files in
-the primary file so the primary lattice file does not have to get
-modified when different secondary files are to be used.
+A lattice file where all the statements are post lattice expansion valid is called a ``\vn{secondary
+lattice file}''.  To promote flexibility, \bmad has methods for parsing lattices in a two step
+process: First, a ``primary'' lattice file that defines the basic lattice is read. After the primary
+lattice has been parsed and lattice expansion has been done, the second step is to read in one or
+more secondary lattice files. Such secondary lattice files can be used, for example, to set such
+things as element misalignments. The point here is that there are no calls (\sref{s:call}) of the
+secondary files in the primary file so the primary lattice file does not have to get modified when
+different secondary files are to be used.
+
+%--------------------------------------------------------------------------
+\section{Slice_Lattice Statement}
+
+The \vn{slice_lattice} statement is used to remove elements from the lattice. The \vn{slice_lattice}
+statement must come after lattice expansion (\sref{s:expand}).  The syntax of the \vn{slice_lattice}
+statement is
+\begin{example}
+  slice_lattice <element-list>
+\end{example}
+where \vn{<element-list>} is a list of elements (\sref{s:ele.names}). For example
+\begin{example}
+  expand_lattice           ! Lattice expansion must happen first
+  slice_lattice q1##2:357
+\end{example}
+In this example, all elements outside of the range from element \vn{q1\#\#2} (the second instance of
+\vn{q1} in the lattice) to element with index number 357 are discarded. The exception is that lord
+elements (\sref{s:lord.slave}) of any elements that remain are also not discarded and the
+\vn{beginning} element at the start of any branch is also retained.
+
+The \vn{slice_lattice} is useful when analysis of only part of the lattice is desired and the
+analysis of the entire lattice can take a significant amount of time. For a lattice with an open
+geometry, if elements are discarded from the beginning of the lattice, the Twiss parameters and
+reference energy may have to be adjusted. Example:
+\begin{example}
+  slice_lattice q1##2:357
+  beginning[beta_a] = 10.3256  ! Reset the beginning Twiss
+  beginning[p0c] = 1e7         ! Reset the beginning ref energy
+  ... etc ...
+\end{example}
 
 %--------------------------------------------------------------------------
 \section{Debugging Statements}

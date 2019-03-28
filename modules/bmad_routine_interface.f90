@@ -1557,6 +1557,14 @@ function significant_difference (value1, value2, abs_tol, rel_tol) result (is_di
   logical is_different
 end function
 
+subroutine slice_lattice (lat, ele_list, error)
+  import
+  implicit none
+  type (lat_struct) lat
+  character(*) ele_list
+  logical error
+end subroutine
+
 subroutine sol_quad_mat6_calc (ks, k1, s_len, ele, orbit, mat6, make_matrix)
   import
   implicit none

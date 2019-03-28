@@ -50,7 +50,7 @@ type (branch_struct), pointer :: branch
 
 real(rp) v1, v2
 
-integer ix_word, i, j, n, ix, ix1, ix2, n_plat_ele, ixx, ele_num, ix_word_1
+integer ix_word, i, j, n, ix, ix1, ix2, n_plat_ele, ixx, ix_word_1
 integer key, n_max_old, n_loc, n_def_ele, is, is2, ib, ie
 integer, pointer :: n_max
 integer, allocatable :: lat_indexx(:)
@@ -58,11 +58,11 @@ integer, allocatable :: lat_indexx(:)
 character(*) lat_file
 character(1) delim 
 character(16) :: r_name = 'bmad_parser2'
-character(32) word_1
+character(40) word_1, slice_start, slice_end
 character(40) word_2, name, this_name, old_parser_name
 character(40), allocatable :: lat_name(:)
 character(80) debug_line
-character(280) parse_line_save, call_file
+character(280) parse_line_save, string, extra_ele_names
 
 logical, optional :: make_mats6, err_flag
 logical parsing, found, delim_found, xsif_called, err, key_here
@@ -93,7 +93,7 @@ endif
 !
 
 n_max => lat%n_ele_max
-n_def_ele = 5 + size(lat%branch)
+n_def_ele = 4 + size(lat%branch)
 call allocate_plat (plat, n_def_ele)
 if (ubound(lat%ele, 1) < n_max + n_def_ele) call allocate_lat_ele_array(lat, n_max+n_def_ele+100)
 
@@ -103,6 +103,7 @@ ele%name = 'BEAM'              ! For MAD compatibility.
 ele%value(n_part$)     = real_garbage$
 ele%value(particle$)   = real_garbage$
 ele%ixx = 1                    ! Pointer to plat%ele() array
+extra_ele_names = ele%name 
 
 ele => lat%ele(n_max+2)
 call init_ele (ele, def_parameter$, 0, n_max+2, lat%branch(0))
@@ -111,28 +112,27 @@ ele%value(n_part$)       = real_garbage$
 ele%value(particle$)     = real_garbage$
 ele%value(ix_branch$)    = -1
 ele%ixx = 2                    ! Pointer to plat%ele() array
+extra_ele_names = trim(extra_ele_names) // ', ' // ele%name
 
 ele => lat%ele(n_max+3)
 call init_ele (ele, def_particle_start$, 0, n_max+3, lat%branch(0))
 ele%name = 'PARTICLE_START'
 ele%ixx  = 3                    ! Pointer to plat%ele() array
+extra_ele_names = trim(extra_ele_names) // ', ' // ele%name
 
 ele => lat%ele(n_max+4)
 call init_ele (ele, def_bmad_com$, 0, n_max+4, lat%branch(0))
 ele%name = 'BMAD_COM'
 ele%ixx  = 4                    ! Pointer to plat%ele() array
-
-ele => lat%ele(n_max+5)
-call init_ele (ele, beginning_ele$, 0, n_max+5, lat%branch(0))
-ele%name = 'BEGINNING'
-ele%ixx  = 5                    ! Pointer to plat%ele() array
+extra_ele_names = trim(extra_ele_names) // ', ' // ele%name
 
 do i = 0, ubound(lat%branch, 1)
-  ele => lat%ele(n_max+6+i)
-  call init_ele(ele, line_ele$, 0, n_max+6+i, lat%branch(0))
+  ele => lat%ele(n_max+5+i)
+  call init_ele(ele, line_ele$, 0, n_max+5+i, lat%branch(0))
   ele%name = lat%branch(i)%name
   ele%value(ix_branch$) = i
-  ele%ixx = 6 + i
+  ele%ixx = 5 + i
+  extra_ele_names = trim(extra_ele_names) // ', ' // ele%name
 enddo
 
 n_plat_ele = n_def_ele
@@ -140,6 +140,8 @@ n_max_old = n_max
 n_max = n_max + n_def_ele
 
 if (.not. bp_com%bmad_parser_calling) call load_parse_line ('init', 1, end_of_file)
+allocate (lat2%ele(1))
+
 
 !-----------------------------------------------------------
 ! main parsing loop
@@ -151,7 +153,7 @@ parsing_loop: do
   ! get a line from the input file and parse out the first word
 
   call load_parse_line ('new_command', 1, end_of_file)  ! load an input line
-  call get_next_word (word_1, ix_word, '[:](,)=', delim, delim_found, .true.)
+  call get_next_word (word_1, ix_word, '[:](,)= ', delim, delim_found, .true.)
   if (end_of_file) then
     word_1 = 'END_FILE'
     ix_word = 8
@@ -206,6 +208,17 @@ parsing_loop: do
   endif
 
   !-------------------------------------------
+  ! SLICE_LATTICE
+
+  if (word_1(:ix_word) == 'SLICE_LATTICE') then
+    string = trim(bp_com%parse_line) // ', ' // trim(extra_ele_names)
+    call slice_lattice (lat, string, err)
+    if (err) call parser_error ('ERROR SLICING LATTICE USING: ' // bp_com%parse_line)
+    bp_com%parse_line = ''
+    cycle parsing_loop    
+  endif
+
+  !-------------------------------------------
   ! WRITE_DIGESTED
 
   if (word_1(:ix_word) == 'WRITE_DIGESTED') then
@@ -219,7 +232,7 @@ parsing_loop: do
   ! CALL command
 
   if (word_1(:ix_word) == 'CALL') then
-    call get_called_file(delim, call_file, xsif_called, err)
+    call get_called_file(delim, string, xsif_called, err)
     if (err) return
     cycle parsing_loop
   endif
@@ -245,19 +258,6 @@ parsing_loop: do
       endif
     enddo
 
-    cycle parsing_loop
-  endif
-
-  !-------------------------------------------
-  ! LATTICE command
-
-  if (word_1(:ix_word) == 'LATTICE') then
-    if ((delim /= ':' .or. bp_com%parse_line(1:1) /= '=') .and. (delim /= '=')) then
-      call parser_error ('"LATTICE" NOT FOLLOWED BY ":="')
-    else
-      if (delim == ':') bp_com%parse_line = bp_com%parse_line(2:)  ! trim off '='
-      call get_next_word (lat%lattice, ix_word, ',', delim, delim_found, .true.)
-    endif
     cycle parsing_loop
   endif
 
@@ -429,10 +429,9 @@ parsing_loop: do
   !-------------------------------------------------------
   ! if none of the above then must be an element
 
-  n_max = n_max + 1
-  if (n_max > ubound(lat%ele, 1)) call allocate_lat_ele_array(lat)
-  ele => lat%ele(n_max)
-
+  ele => lat2%ele(1)
+  ele = ele_struct()
+  ele%branch => lat%branch(0)  ! To fool set_element_attribute
   ele%name = word_1
 
   n_plat_ele = n_plat_ele + 1     ! next free slot
@@ -443,7 +442,7 @@ parsing_loop: do
   pele%lat_file = bp_com%current_file%full_name
   pele%ix_line_in_file = bp_com%current_file%i_line
 
-  do i = 1, n_max-1
+  do i = 1, n_max
     if (ele%name == lat%ele(i)%name) then
       call parser_error ('DUPLICATE ELEMENT NAME ' // ele%name)
       exit
@@ -499,7 +498,6 @@ parsing_loop: do
     if (key /= girder$ .and. .not. delim_found) then
       call parser_error ('NO CONTROL ATTRIBUTE GIVEN AFTER CLOSING "}"',  &
                     'FOR ELEMENT: ' // ele%name)
-      n_max = n_max - 1
       cycle parsing_loop
     endif
   endif
@@ -511,13 +509,11 @@ parsing_loop: do
     elseif (delim /= ',') then
       call parser_error ('EXPECTING: "," BUT GOT: ' // delim,  &
                     'FOR ELEMENT: ' // ele%name)
-      n_max = n_max - 1
       cycle parsing_loop
     else
       call parser_set_attribute (def$, ele, delim, delim_found, err, pele)
       call set_flags_for_changed_attribute (ele)
       if (err) then
-        n_max = n_max - 1
         cycle parsing_loop
       endif
     endif
@@ -525,11 +521,43 @@ parsing_loop: do
 
   ! Element must be a group, overlay, or superimpose element
 
-  if (key /= overlay$ .and. key /= group$ .and. ele%lord_status /= super_lord$) then
+  call settable_dep_var_bookkeeping (ele)
+
+  select case (ele%key)
+  case (wiggler$, undulator$)
+    if (ele%field_calc == planar_model$ .or. ele%field_calc == helical_model$) then
+      if (ele%value(l_pole$) == 0 .and. ele%value(n_pole$) /= 0) then
+        ele%value(l_pole$) = ele%value(l$) / ele%value(n_pole$) 
+      endif
+    endif
+  end select
+
+  call drift_multipass_name_correction(lat) ! In case superimposing upon multipass elements.
+
+  if (ele%lord_status == super_lord$) then
+    ixx = ele%ixx
+    call parser2_add_superimpose (lat, ele, plat%ele(ixx), in_lat)
+
+  elseif (key == overlay$ .or. key == group$ .or. key == girder_lord$) then
+    call parser_add_lord (lat2, 1, plat, lat)
+
+  else
     call parser_error ('ELEMENT MUST BE AN OVERLAY, SUPERIMPOSE, ' //  'OR GROUP: ' // word_1)
-    n_max = n_max - 1
     cycle parsing_loop
   endif
+
+  pele => plat%ele(ele%ixx)
+  if (.not. allocated(pele%field_overlaps)) cycle
+  call lat_ele_locator (ele%name, lat, eles, n)
+  if (n < 1) cycle
+
+  do j = 1, size(pele%field_overlaps)
+    call create_field_overlap (lat, ele%name, pele%field_overlaps(j), err)
+    if (err) then
+      call parser_error ('CANNOT FIND ELEMENT: ' // pele%field_overlaps(j), &
+                         'WHICH HAS FIELD OVERLAP FROM ELEMENT: ' // ele%name)
+    endif
+  enddo
 
 enddo parsing_loop
 
@@ -573,70 +601,18 @@ enddo
 if (mad_beam_ele%value(n_part$) /= real_garbage$)  lat%param%n_part = mad_beam_ele%value(n_part$)
 if (param_ele%value(n_part$) /= real_garbage$)     lat%param%n_part = param_ele%value(n_part$)
 
-! Transfer the new elements to a safe_place and reset lat%n_max
+! Remove BEAM and other elements that were temporarily put in as well as null elements.
 
-ele_num = n_max - n_max_old - n_def_ele
-allocate (lat2%ele(1:ele_num))
-lat2%ele(1:ele_num) = lat%ele(n_max_old+n_def_ele+1:n_max)
-n_max = n_max_old 
-
-! Do bookkeeping for settable dependent variables.
-
-do i = 1, ele_num
-  ele => lat2%ele(i)
-  call settable_dep_var_bookkeeping (ele)
+call lat_ele_locator(extra_ele_names, lat, eles, n_loc, err)
+do i = 1, n_loc
+  eles(i)%ele%key = -1
 enddo
-
-! Put in the new elements...
-! First put in superimpose elements
-
-do i = 1, ele_num
-  ele => lat2%ele(i)
-  if (ele%lord_status /= super_lord$) cycle
-
-  select case (ele%key)
-  case (wiggler$, undulator$)
-    if (ele%field_calc == planar_model$ .or. ele%field_calc == helical_model$) then
-      if (ele%value(l_pole$) == 0 .and. ele%value(n_pole$) /= 0) then
-        ele%value(l_pole$) = ele%value(l$) / ele%value(n_pole$) 
-      endif
-    endif
-  end select
-
-  ixx = ele%ixx
-  call parser2_add_superimpose (lat, ele, plat%ele(ixx), in_lat)
-enddo
-
-call drift_multipass_name_correction(lat) ! In case superimposing upon multipass elements.
-
-! Go through and create the overlay, girder, and group lord elements.
-
-call parser_add_lord (lat2, ele_num, plat, lat)
-
-! put in field overlap
-
-do i = 1, ele_num
-  lord => lat2%ele(i)
-  pele => plat%ele(lord%ixx)
-  if (.not. allocated(pele%field_overlaps)) cycle
-  call lat_ele_locator (lord%name, lat, eles, n)
-  if (n < 1) cycle
-
-  do j = 1, size(pele%field_overlaps)
-    call create_field_overlap (lat, lord%name, pele%field_overlaps(j), err)
-    if (err) then
-      call parser_error ('CANNOT FIND ELEMENT: ' // pele%field_overlaps(j), &
-                         'WHICH HAS FIELD OVERLAP FROM ELEMENT: ' // lord%name)
-    endif
-  enddo
-enddo
-
-! Remove elements as needed
 
 do i = 1, lat%n_ele_max
   if (lat%ele(i)%key == null_ele$) lat%ele(i)%key = -1 ! mark for deletion
 enddo
-call remove_eles_from_lat (lat)  ! remove all null_ele elements.
+
+call remove_eles_from_lat(lat)
 
 ! Some bookkeeping
 
@@ -665,7 +641,7 @@ if (bp_com%error_flag .and. global_com%exit_on_error) then
   stop
 endif
 
-if (allocated(lat_name))        deallocate (lat_name, lat_indexx)
+if (allocated(lat_name)) deallocate (lat_name, lat_indexx)
 
 call deallocate_lat_pointers (lat2)
 
