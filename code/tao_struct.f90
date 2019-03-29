@@ -648,26 +648,12 @@ type tao_common_struct
   logical :: parse_cmd_args        = .true.   ! Used by custom programs to control Tao init
   logical :: optimizer_running     = .false. 
   logical :: have_datums_using_expressions = .false.
-  logical :: noplot_arg_set        = .false.
-  logical :: init_tao_file_arg_set = .false.
-  logical :: log_startup = .false.             ! '-log_startup' command line argument.
   logical :: print_to_terminal = .true.        ! Print command prompt to the terminal? For use with GUIs.
-  logical :: quiet = .false.                      ! Print commands on terminal when running a command file?
+  logical :: quiet = .false.                   ! Print commands on terminal when running a command file?
   character(100) :: cmd                        ! Used for the cmd history
   character(16) :: init_name = 'Tao'           ! label for initialization          
-  character(200) :: lat_file = ''              ! '-lat'         command line argument.
-  character(200) :: init_tao_file = 'tao.init' ! '-init'        command line argument.
-  character(200) :: init_tao_file_path = ''    ! Path part of init_tao_file
-  character(200) :: beam_file = ''             ! '-beam'          command line argument.
-  character(200) :: beam_all_file = ''         ! '-beam_all'      command line argument.
-  character(200) :: beam_init_file_name  = ''  ! '-beam_init_file_name' command line argument.
-  character(200) :: data_file = ''             ! '-data'          command line argument.
-  character(200) :: plot_file = ''             ! '-plot'          command line argument.
-  character(200) :: startup_file = ''          ! '-startup'       command line argument.
-  character(200) :: var_file = ''              ! '-var'           command line argument.
-  character(200) :: building_wall_file = ''    ! '-building_wall' command line argument.
-  character(200) :: hook_init_file = ''        ! '-hook_init_file' command line argument
-
+  character(200) :: hook_init_arg = ''         ! -hook_init_file command line argument
+  character(200) :: hook_init_file = ''        ! 
   character(200) :: hook_lat_file = ''           ! To be set by tao_hook_parse_command_args
   character(200) :: hook_beam_file = ''          ! To be set by tao_hook_parse_command_args
   character(200) :: hook_data_file = ''          ! To be set by tao_hook_parse_command_args
@@ -676,7 +662,28 @@ type tao_common_struct
   character(200) :: hook_var_file = ''           ! To be set by tao_hook_parse_command_args
   character(200) :: hook_building_wall_file = '' ! To be set by tao_hook_parse_command_args
   character(200) :: saved_cmd_line = ''          ! Saved part of command line when there are mulitple commands on a line
-  character(16) :: plot_geometry = ''            ! '-geometry' command line argument.
+  character(200) :: init_tao_file_path = ''      ! Path part of init_tao_file
+  character(200) :: lat_file = ''                ! -lat           command line argument.
+  character(200) :: init_tao_file = ''           ! -init          command line argument.
+  character(200) :: beam_file = ''               ! -beam          command line argument.
+  character(200) :: beam_all_file = ''           ! -beam_all      command line argument.
+  character(200) :: beam_init_file_name  = ''    ! -beam_init_file_name command line argument.
+  character(200) :: data_file = ''               ! -data          command line argument.
+  character(200) :: plot_file = ''               ! -plot          command line argument.
+  character(200) :: startup_file = ''            ! -startup       command line argument.
+  character(200) :: var_file = ''                ! -var           command line argument.
+  character(200) :: building_wall_file = ''      ! -building_wall command line argument.
+  character(16) :: plot_geometry = ''            ! -geometry command line argument.
+  character(80) :: slice_lattice = ''            ! -slice_lattice     command line argument.
+  character(12) :: log_startup = ''              ! -log_startup       command line argument
+  character(12) :: no_stopping = ''              ! -no_stopping       command line argument
+  character(12) :: noplot = ''                   ! -noplot            command line argument
+  character(12) :: debug_on = ''                 ! -debug             command line argument
+  character(12) :: disable_smooth_line_calc = '' ! -disable_smooth_line_calc
+  character(12) :: rf_on = ''                    ! -rf_on             command line argument
+  character(12) :: prompt_color_arg              ! -prompt_color      command line argument
+  character(12) :: silent_run = ''               ! -silent_run        command line argument
+  character(12) :: noinit = ''                   ! -noinit            command line argument
   character(80) :: single_mode_buffer = ''
   character(40) :: unique_name_suffix
   character(16) :: valid_plot_who(10)            ! model, base, ref etc...

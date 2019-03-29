@@ -225,7 +225,7 @@ namelist are:
     design_lattice(i)%one_turn_map_calc = <logical>     ! Default = False
     design_lattice(i)%dynamic_aperture_calc = <logical> ! Default = False
     design_lattice(i)%reverse_tracking = <logical>      ! Default = False
-    design_lattice(i)%slice_lattice = "<ele1>", "<ele2>"             
+    design_lattice(i)%slice_lattice = "<element_list>"             
   /
 \end{example}
 
@@ -250,12 +250,12 @@ of the lattice to the beginning. The sign of the charge of the tracked particle 
 reversed from the setting in the lattice file. This is useful for simulating beams that go in the
 backward direction.
 
-The \vn{%slice_lattice} parameter specifies two elements (labeled here \vn{<ele1>} and \vn{<ele2>})
-to be used to pare down the lattice so that the only elements in the pared down lattice are the
-elements in the range from \vn{<ele1>} to \vn{<ele2} inclusive plus any lord elements that control
-elements in this range. This is identical to putting the following command in the lattice file
+The \vn{%slice_lattice} parameter specifies a list of elements
+to be used to pare down the lattice so that the only elements that appear in the list are keept in the lattice.
+In addition, any lord elements that control
+elements in the list are also retianed. This is identical to putting the following command in the lattice file
 \begin{example}
-  slice_lattice <ele1> : <ele2>
+  slice_lattice <element_list>
 \end{example}
 See the \bmad manual for more details about the \vn{slice_lattice} command.
 

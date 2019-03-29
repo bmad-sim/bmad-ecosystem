@@ -333,8 +333,7 @@ case ('alias')
   lines(1) = 'Aliases:'
   nl = 1
   do i = 1, s%com%n_alias
-    nl=nl+1; lines(nl) = trim(s%com%alias(i)%name) // ' = "' // &
-                                    trim(s%com%alias(i)%expanded_str) // '"'
+    nl=nl+1; lines(nl) = trim(s%com%alias(i)%name) // ' = "' // trim(s%com%alias(i)%expanded_str) // '"'
   enddo
   
   result_id = show_what
@@ -1548,17 +1547,35 @@ case ('global')
     nl=nl+1; write(lines(nl), imt) 'default_universe:            = ', s%com%default_universe
     nl=nl+1; write(lines(nl), imt) 'default_branch:              = ', s%com%default_branch
     nl=nl+1; write(lines(nl), lmt) 'common_lattice               = ', s%com%common_lattice
-    nl=nl+1; write(lines(nl), amt) 's%com%building_wall_file     = ', quote(s%com%building_wall_file)
-    nl=nl+1; write(lines(nl), amt) 's%com%data_file              = ', quote(s%com%data_file)
-    nl=nl+1; write(lines(nl), amt) 's%com%hook_init_file         = ', quote(s%com%hook_init_file)
-    nl=nl+1; write(lines(nl), amt) 's%com%init_tao_file          = ', quote(s%com%init_tao_file)
-    nl=nl+1; write(lines(nl), amt) 's%com%lat_file               = ', quote(s%com%lat_file)
-    nl=nl+1; write(lines(nl), amt) 's%com%plot_file              = ', quote(s%com%plot_file)
-    nl=nl+1; write(lines(nl), amt) 's%com%var_file               = ', quote(s%com%var_file)
-    nl=nl+1; write(lines(nl), amt) 's%com%startup_file           = ', quote(s%com%startup_file)
-    nl=nl+1; write(lines(nl), lmt) 's%com%combine_consecutive_elements_of_like_name = ', &
+    nl=nl+1; write(lines(nl), imt) 'Number paused command files  = ', count(s%com%cmd_file%paused)
+    nl=nl+1; write(lines(nl), amt) 'unique_name_suffix           = ', quote(s%com%unique_name_suffix)
+    nl=nl+1; write(lines(nl), lmt) 'Combine_consecutive_elements_of_like_name = ', &
                                                 s%com%combine_consecutive_elements_of_like_name
-    nl=nl+1; write(lines(nl), imt) 'Number paused command files    = ', count(s%com%cmd_file%paused)
+
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; lines(nl) = 'Tao command line startup arguments:'
+    call write_this_arg (nl, lines, '-beam', s%com%beam_file)
+    call write_this_arg (nl, lines, '-beam_all', s%com%beam_all_file)
+    call write_this_arg (nl, lines, '-beam_init_file_name', s%com%beam_init_file_name)
+    call write_this_arg (nl, lines, '-building_wall', s%com%building_wall_file)
+    call write_this_arg (nl, lines, '-prompt_color', s%com%prompt_color_arg)
+    call write_this_arg (nl, lines, '-data', s%com%data_file)
+    call write_this_arg (nl, lines, '-disable_smooth_line_calc', s%com%disable_smooth_line_calc)
+    call write_this_arg (nl, lines, '-debug', s%com%debug_on)
+    call write_this_arg (nl, lines, '-geometry', s%com%plot_geometry)
+    call write_this_arg (nl, lines, '-hook_init_file', s%com%hook_init_arg)
+    call write_this_arg (nl, lines, '-init', s%com%init_tao_file)
+    call write_this_arg (nl, lines, '-lat', s%com%lat_file)
+    call write_this_arg (nl, lines, '-log_startup', s%com%log_startup)
+    call write_this_arg (nl, lines, '-no_stopping', s%com%no_stopping)
+    call write_this_arg (nl, lines, '-noinit', s%com%noinit)
+    call write_this_arg (nl, lines, '-noplot', s%com%noplot)
+    call write_this_arg (nl, lines, '-plot', s%com%plot_file)
+    call write_this_arg (nl, lines, '-rf_on', s%com%rf_on)
+    call write_this_arg (nl, lines, '-silent_run', s%com%silent_run)
+    call write_this_arg (nl, lines, '-slice_lattice', s%com%slice_lattice)
+    call write_this_arg (nl, lines, '-startup', s%com%startup_file)
+    call write_this_arg (nl, lines, '-var', s%com%var_file)
   endif
 
   if (print_ran_state) then
@@ -4888,6 +4905,19 @@ enddo
 ix_line = ix_line + 2
 
 end subroutine write_track_info
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+! contains
+
+subroutine write_this_arg (nl, lines, str, value)
+integer nl
+character(*), allocatable :: lines(:)
+character(*) str, value
+!
+if (value == '') return
+nl=nl+1; write(lines(nl), '(a, t30, a, 1x, a)') str, '=', trim(value)
+end subroutine write_this_arg
 
 end subroutine tao_show_this
 

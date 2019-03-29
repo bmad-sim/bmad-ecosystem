@@ -68,7 +68,7 @@ if (name1 /= '') s%plot_page%plot_display_type = name1
 ! Only print error messages. Not standard ones.
 
 iu_log = -1
-if (s%com%log_startup) then
+if (s%com%log_startup /= '') then
   iu_log = lunget()
   open (iu_log, file = 'tao_init.log', action = 'write', iostat = ios)
   if (ios == 0) then
@@ -92,35 +92,47 @@ endif
 err_flag = .true.
 
 iu = 0
-if (s%com%init_tao_file /= '') then
-  call tao_open_file (s%com%init_tao_file, iu, file_name, s_blank$)
+if (s%com%noinit == '') then
+  init_tao_file = 'tao.init'
+  if (s%com%init_tao_file /= '') init_tao_file = s%com%init_tao_file
+else
+  init_tao_file = ''
+endif
+
+if (init_tao_file /= '') then
+  call tao_open_file (init_tao_file, iu, file_name, s_blank$)
   if (iu == 0) then ! If open failure
-    call out_io (s_info$, r_name, 'Tao initialization file not found.')
-    if ((s%com%lat_file == '' .and. s%com%hook_lat_file == '') .or. s%com%init_tao_file_arg_set) then
+    if (s%com%init_tao_file == '') then
+      call out_io (s_info$, r_name, 'Tao initialization file not found.')
+      init_tao_file = ''
+    else
       call output_direct (-1, print_and_capture=s%com%print_to_terminal)
-      call out_io (s_blank$, r_name, &
-              'Note: To run Tao, you either need a Tao initialization file or', &
-              '  use a lattice file using the syntax "tao -lat <lat_file_name>".', &
-              '  See the Tao manual for more details...')
-      call tao_print_command_line_info
+      call out_io (s_abort$, r_name, 'TAO INITIALIZATION FILE NOT FOUND.')
       stop
     endif
-    s%com%init_tao_file = ''
   endif
+endif
+
+if (iu == 0 .and. (s%com%lat_file == '' .and. s%com%hook_lat_file == '')) then
+  call output_direct (-1, print_and_capture=s%com%print_to_terminal)
+  call out_io (s_blank$, r_name, &
+          'Note: To run Tao, you either need a Tao initialization file or', &
+          '  use a lattice file using the syntax "tao -lat <lat_file_name>".', &
+          '  See the Tao manual for more details...')
+  call tao_print_command_line_info
+  stop
 endif
 
 ! Set defaults.
 ! n_universes is present to accomodate files with the old syntax.
 
-init_tao_file = s%com%init_tao_file
-
+n_universes        = 1                  ! set default
+init_name          = "Tao"              ! set default
 plot_file          = 'NOT SET!'         ! set default
 data_file          = 'NOT SET!'         ! set default
 var_file           = 'NOT SET!'         ! set default
 beam_file          = 'NOT SET!'         ! set default
 building_wall_file = 'NOT SET!'       
-n_universes        = 1                  ! set default
-init_name          = "Tao"              ! set default
 startup_file       = 'NOT SET!'       
 hook_init_file     = 'NOT SET!'
 
@@ -152,7 +164,7 @@ call set_this_file_name (var_file,  init_tao_file, s%com%var_file, s%com%hook_va
 call set_this_file_name (beam_file, init_tao_file, s%com%beam_file, s%com%hook_beam_file)
 call set_this_file_name (building_wall_file, '',   s%com%building_wall_file, s%com%hook_building_wall_file)
 call set_this_file_name (startup_file, 'tao.startup', s%com%startup_file, s%com%hook_startup_file)
-call set_this_file_name (hook_init_file, 'tao_hook.init', s%com%hook_init_file, '')
+call set_this_file_name (hook_init_file, 'tao_hook.init', s%com%hook_init_arg, '')
 s%com%hook_init_file = hook_init_file
 
 ! Tao inits.
@@ -480,6 +492,7 @@ end subroutine deallocate_everything
 subroutine set_this_file_name (file_name, default_name, tao_com_name, hook_name)
 
 character(*) file_name, default_name, tao_com_name, hook_name
+character(200) name
 
 ! Order of preference. Highest used first:
 !   1) Name has been set on the command line.
@@ -487,15 +500,14 @@ character(*) file_name, default_name, tao_com_name, hook_name
 !   3) Name has been set via a hook routine.
 !   4) Default_name.
 
-if (tao_com_name /= '') then
-  file_name  = tao_com_name
-elseif (file_name == 'NOT SET!' .and. tao_com_name /= '') then
-  file_name = tao_com_name
-elseif (file_name == 'NOT SET!' .and. hook_name /= '') then
-  file_name = hook_name
-elseif (file_name == 'NOT SET!') then
-  file_name = default_name
-elseif (file_name_is_relative(file_name)) then
+name = default_name
+if (hook_name /= '') name = hook_name
+if (tao_com_name /= '') name  = tao_com_name
+if (default_name /= '') name = default_name
+if (file_name /= 'NOT SET!') name = file_name
+file_name = name
+
+if (file_name_is_relative(file_name)) then
   file_name = trim(s%com%init_tao_file_path) // trim(file_name)
 endif
 

@@ -26,7 +26,6 @@ type (branch_struct), pointer :: branch
 
 character(*) namelist_file
 character(200) full_input_name
-character(80) save_str
 character(40) unique_name_suffix, suffix
 character(20) :: r_name = 'tao_init_lattice'
 
@@ -225,15 +224,16 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! Element range?
 
   if (design_lat%use_element_range(1) /= '') then
-    design_lat%slice_lattice = design_lat%use_element_range
+    design_lat%slice_lattice = trim(design_lat%use_element_range(1)) // ':' // trim(design_lat%use_element_range(2))
     call out_io (s_warn$, 'In the tao_design_lattice namelist in the init file: ' // namelist_file, &
                 '"design_lattice(i)%use_element_range" is now "design_lattice(i)%slice_lattice".', &
                 'Please modify your file.')
   endif
 
-  if (design_lat%slice_lattice(1) /= '') then
-    save_str = trim(design_lat%use_element_range(1)) // ':' // trim(design_lat%use_element_range(2))
-    call slice_lattice (u%design%lat, save_str, err)
+  if (s%com%slice_lattice /= '') design_lat%slice_lattice = s%com%slice_lattice
+
+  if (design_lat%slice_lattice /= '') then
+    call slice_lattice (u%design%lat, design_lat%slice_lattice, err)
   endif
 
   ! Call bmad_parser2 if wanted

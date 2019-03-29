@@ -55,19 +55,10 @@ do
         '-noplot', '-lat', '-log_startup', '-beam', '-var', '-data', '-building_wall', '-plot', &
         '-startup', 'help', '-help', '?', '-geometry', '-rf_on', '-debug', '-disable_smooth_line_calc', &
         '-color_prompt', '-no_stopping', '-hook_init_file', '-beam_position0', '-silent_run', &
-        '-beam_init_file_name'], &
+        '-beam_init_file_name', '-slice_lattice', '-prompt_color'], &
               ix, .true., matched_name=switch)
 
   select case (switch)
-
-  case ('-init')
-    call get_next_arg (s%com%init_tao_file)
-    s%com%init_tao_file_arg_set = .true.
-    if (s%com%init_tao_file == '') then
-      call out_io (s_fatal$, r_name, 'NO TAO INIT FILE NAME ON COMMAND LINE.')
-      call err_exit
-    endif
-    ix = SplitFileName(s%com%init_tao_file, s%com%init_tao_file_path, base)
 
   case ('-beam')
     call get_next_arg (s%com%beam_file)
@@ -85,21 +76,19 @@ do
   case ('-building_wall')
     call get_next_arg (s%com%building_wall_file)
 
-  case ('-color_prompt')
-    s%global%prompt_color = 'BLUE'
-
   case ('-data')
     call get_next_arg (s%com%data_file)
 
   case ('-disable_smooth_line_calc')
-    s%global%disable_smooth_line_calc = .true.
+    s%com%disable_smooth_line_calc = '<present>'
 
   case ('-debug')
+    s%com%debug_on = '<present>'
     s%global%debug_on = .true.
     s%global%stop_on_error = .false.
 
   case ('-geometry')
-    call get_next_arg (s%com%plot_geometry)
+    call get_next_arg (s%com%plot_geometry, .true.)
 
   case ('help', '-help', '?', '-?')
     call tao_print_command_line_info
@@ -108,29 +97,40 @@ do
   case ('-hook_init_file')
     call get_next_arg (s%com%hook_init_file)
 
+  case ('-init')
+    call get_next_arg (s%com%init_tao_file)
+    ix = SplitFileName(s%com%init_tao_file, s%com%init_tao_file_path, base)
+
   case ('-lat')
     call get_next_arg (s%com%lat_file)
 
   case ('-log_startup')
-    s%com%log_startup = .true.
+    s%com%log_startup = '<present>'
 
   case ('-no_stopping')
-    s%global%stop_on_error = .false.
+    s%com%no_stopping = '<present>'
 
   case ('-noinit')
+    s%com%noinit = '<present>'
     s%com%init_tao_file = ''
 
   case ('-noplot')
-    s%com%noplot_arg_set = .true.
-
-  case ('-rf_on')
-    s%global%rf_on = .true.
+    s%com%noplot = '<present>'
 
   case ('-plot')
     call get_next_arg (s%com%plot_file)
 
+  case ('-prompt_color', '-color_prompt')
+    s%com%prompt_color_arg = ''
+
+  case ('-rf_on')
+    s%com%rf_on = '<present>'
+
   case ('-silent_run')
-    call tao_silent_run_set(.true.)
+    s%com%silent_run = '<present>'
+
+  case ('-slice_lattice')
+    call get_next_arg (s%com%slice_lattice, .true.)
 
   case ('-startup')
     call get_next_arg (s%com%startup_file)
@@ -151,9 +151,11 @@ enddo
 !-----------------------------
 contains
 
-subroutine get_next_arg(arg)
+subroutine get_next_arg(arg, may_have_blanks)
 
 character(*) arg
+character(40) sub
+logical, optional :: may_have_blanks
 
 !
 
@@ -170,6 +172,28 @@ if (present(cmd_line)) then
   if (cmd_words(i_arg+1) == '') n_arg = i_arg
 else
   call cesr_getarg(i_arg, arg)
+endif
+
+!
+
+if (logic_option(.false., may_have_blanks)) then
+  do
+    if (i_arg == n_arg) return
+
+    if (present(cmd_line)) then
+      sub = cmd_words(i_arg+1)
+    else
+      call cesr_getarg(i_arg+1, sub)
+    endif
+
+    if (sub(1:1) == '-') return
+    arg = trim(arg) // sub
+    i_arg = i_arg + 1
+
+    if (present(cmd_line)) then
+      if (cmd_words(i_arg+1) == '') n_arg = i_arg
+    endif
+  enddo
 endif
 
 end subroutine get_next_arg
