@@ -51,7 +51,7 @@ SET (SHARED_DEPS
   X11
   readline
   hdf5hl_fortran
-  df5_fortran
+  hdf5_fortran
   hdf5_hl
   hdf5
 )
