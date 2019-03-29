@@ -1371,7 +1371,7 @@ integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20, cons
 integer, parameter :: longitudinal_mode$ = 20, sig_e2$ = 20
 integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
 integer, parameter :: e_loss$ = 21, dks_ds$ = 21, gap$ = 21, spin_x$ = 21, E_center$ = 21
-integer, parameter :: x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22, wall_radius$ = 22
+integer, parameter :: x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22
 integer, parameter :: spin_y$ = 22, E2_center$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spin_z$ = 23
 integer, parameter :: cavity_type$ = 23, beta_a$ = 23, E2_probability$ = 23
