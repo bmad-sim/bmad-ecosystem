@@ -1041,7 +1041,6 @@ call init_attribute_name1 (group$, s_position$,                     'S_POSITION'
 call init_attribute_name1 (group$, x_knot$,                         'X_KNOT')
 
 call init_attribute_name1 (lcavity$, longitudinal_mode$,            'LONGITUDINAL_MODE')
-call init_attribute_name1 (lcavity$, wall_radius$,                  'WALL_RADIUS', dependent$)
 call init_attribute_name1 (lcavity$, field_autoscale$,              'FIELD_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (lcavity$, autoscale_amplitude$,          'AUTOSCALE_AMPLITUDE')
 call init_attribute_name1 (lcavity$, autoscale_phase$,              'AUTOSCALE_PHASE')
@@ -1290,7 +1289,6 @@ call init_attribute_name1 (patch$, downstream_ele_dir$,             'DOWNSTREAM_
 call init_attribute_name1 (patch$, ref_coordinates$,                'REF_COORDINATES')
 
 call init_attribute_name1 (rfcavity$, longitudinal_mode$,           'LONGITUDINAL_MODE')
-call init_attribute_name1 (rfcavity$, wall_radius$,                 'WALL_RADIUS', dependent$)
 call init_attribute_name1 (rfcavity$, field_autoscale$,             'FIELD_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (rfcavity$, autoscale_amplitude$,         'AUTOSCALE_AMPLITUDE')
 call init_attribute_name1 (rfcavity$, autoscale_phase$,             'AUTOSCALE_PHASE')
@@ -1826,7 +1824,7 @@ case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTU
       'X_OFFSET', 'Y_OFFSET', 'X_OFFSET_CALIB', 'Y_OFFSET_CALIB', 'X_OFFSET_MULT', 'Y_OFFSET_MULT', &
       'X_OFFSET_TOT', 'Y_OFFSET_TOT', 'X_POSITION', 'Y_POSITION', 'X_QUAD', 'Y_QUAD', 'X_RAY_LINE_LEN', &
       'X_REF', 'Y_REF', 'Z', 'Z0', 'Z1', 'Z_OFFSET', 'Z_OFFSET_TOT', 'Z_POSITION', 'Z_REF', &
-      'X_GAIN_CALIB', 'Y_GAIN_CALIB', 'X_GAIN_ERR', 'Y_GAIN_ERR', 'WALL_RADIUS')
+      'X_GAIN_CALIB', 'Y_GAIN_CALIB', 'X_GAIN_ERR', 'Y_GAIN_ERR')
   attrib_units = 'm'
 
 
