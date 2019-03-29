@@ -32,42 +32,50 @@ The syntax of the command line for running \tao is:
 where \vn{EXE-DIRECTORY} is the directory where the tao executable lives. If this directory is
 listed in your \vn{PATH} environmental variable then the directory specification may be omitted.
 The optional arguments are:
-  \begin{description}
-  \item[\vn{-beam <beam_file>}] \Newline
+%
+\begin{description}
+%
+\item[\vn{-beam <beam_file>}] \Newline
 Overrides the \vn{beam_file} (\sref{s:init.global}) specified in the
 \tao initialization file.
+%
   \item[\vn{-beam_all <all_beam_file>}] \Newline
 Overrides the \vn{beam_all_file} (\sref{s:beam.init}) specified in the
 \vn{tao_beam_init} namelist.
-  \item[\vn{-beam_init_file_name <file_name>}] \Newline
+%
+\item[\vn{-beam_init_file_name <file_name>}] \Newline
 Overrides the \vn{beam_init%file_name} (\sref{s:beam.init}) specified in the
 \vn{tao_beam_init} namelist.
-  \item[\vn{-building_wall <wall_file>}] \Newline
+%
+\item[\vn{-building_wall <wall_file>}] \Newline
 Overrides the \vn{building_wall_file} (\sref{s:init.global}) 
 specified in the \tao initialization file.
-  \item[\vn{-color_prompt}] \Newline
-Sets the prompt string color to red. For different colors, use the
-\vn{set global prompt_color} command (\sref{s:set}).
-  \item[\vn{-data <data_file>}] \Newline
+%
+\item[\vn{-data <data_file>}] \Newline
 Overrides the \vn{data_file} (\sref{s:init.global}) specified in the
 \tao initialization file.
-  \item[\vn{-disable_smooth_line_calc}] \Newline
+%
+\item[\vn{-disable_smooth_line_calc}] \Newline
 Disable computation of the ``smooth curves'' used in plotting. 
 This can be used to speed up \tao as discussed in \sref{s:plot.data}.
-  \item[\vn{-geometry <width>x<height>}] \Newline
+%
+\item[\vn{-geometry <width>x<height>}] \Newline
 Overrides the plot window geometry. \vn{<width>} and \vn{<height>}
 are in Points. This is equivalent to setting \vn{plot_page%size}
 in the \vn{tao_plot_page} namelist \sref{s:init.plot}.
-  \item[\vn{-hook_init_file}] \Newline
+%
+\item[\vn{-hook_init_file}] \Newline
 Specifies an input file for customized versions of Tao. Default file
 name is \vn{tao_hook.init}.
-  \item[\vn{-init <tao_init_file>}] \Newline
+%
+\item[\vn{-init <tao_init_file>}] \Newline
 replaces the default \tao initialization file name
 (\vn{tao.init}). Note: A \tao initialization file is actually not
 needed. If no \tao initialization file is used, the use of the
 \vn{-lat} switch is mandatory and \tao will use a set of default plot
 templates for plotting.
-  \item[\vn{-lat <bmad_or_xsif_lattice_file>}] \Newline
+%
+\item[\vn{-lat <bmad_or_xsif_lattice_file>}] \Newline
 Overrides the \vn{design_lattice}
 lattice file specified in the \tao initialization file
 (\sref{s:init.lat}). Example:
@@ -80,27 +88,43 @@ Do not put any spaces in between. Example:
 \begin{example}
   tao -lat xsif::slac.lat|cesr.bmad
 \end{example}
-  \item[\vn{-log_startup}]
+%
+\item[\vn{-log_startup}]
 If there is a problem with \tao is started, \vn{-log_startup} can be used
 to create a log file of the initialization process.
-  \item[\vn{-no_stopping}] \Newline
+%
+\item[\vn{-no_stopping}] \Newline
 For debugging purposes. Prevents \tao from stopping where there is a fatal error.
-  \item[\vn{-noinit}] \Newline
+%
+\item[\vn{-noinit}] \Newline
 Suppresses use of a \tao initialization file. In this case the use of
 the \vn{-lat} switch is mandatory and \tao will use a set of default
 plot templates for plotting.
-  \item[\vn{-noplot}] \Newline
+%
+\item[\vn{-noplot}] \Newline
 Suppresses the opening of the plot window.
-  \item[\vn{-plot <plot_file>}] \Newline
+%
+\item[\vn{-plot <plot_file>}] \Newline
 Overrides the \vn{plot_file} (\sref{s:init.global}) specified in the
 \tao initialization file.
-  \item[\vn{-rf_on}]
+%
+\item[\vn{-prompt_color}] \Newline
+Sets the prompt string color to Blue. For different colors, use the
+\vn{set global prompt_color} command (\sref{s:set}).
+%
+\item[\vn{-rf_on}]
 Leaves \vn{rfcavity} elements on. Normally \tao turns off these elements
 since Twiss and dispersion calculations do not make sense with them on.
-  \item[\vn{-startup <startup_command_file>}]
+%
+\item[\vn{-slice_lattice <element_list>}]
+If present, discard from the lattice all lattice elements that are not in the \vn{<element_list>}.
+Overrides the setting of \vn{design_lattice(i)%slice_lattice}.
+%
+\item[\vn{-startup <startup_command_file>}]
 Overrides the \vn{startup_file} (\sref{s:init.global}) specified in the
 \tao initialization file.
-  \item[\vn{-var <var_file>}] \Newline
+%
+\item[\vn{-var <var_file>}] \Newline
 Overrides the \vn{var_file} (\sref{s:init.global}) specified in the
 \tao initialization file.
 
