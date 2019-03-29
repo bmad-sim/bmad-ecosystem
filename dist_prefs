@@ -141,11 +141,3 @@ export ACC_ENABLE_FPIC="N"
 # value is "2" and cannot be set lower than "1"
 #-----------------------------------------------------------
 export ACC_SET_GMAKE_JOBS="2"
-
-
-#-----------------------------------------------------------
-# Setting the variable ACC_ENABLE_HDF5="Y" here will enable 
-# building of HDF5 libraries.
-#-----------------------------------------------------------
-export ACC_ENABLE_HDF5="Y"
-
