@@ -594,6 +594,8 @@ too_many_lost = .false.
 
 tao_branch%bunch_params(:)%n_particle_lost_in_ele = 0
 tao_branch%bunch_params(:)%n_particle_live = 0
+tao_branch%bunch_params(:)%n_particle_live = 0
+tao_branch%bunch_params(:)%twiss_valid = .false.
 
 ! Transfer wakes from  design
 
