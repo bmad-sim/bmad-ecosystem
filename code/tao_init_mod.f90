@@ -108,11 +108,11 @@ call ran_seed_put (s%global%random_seed)
 call ran_engine (s%global%random_engine)
 call ran_gauss_converter (s%global%random_gauss_converter, s%global%random_sigma_cutoff)
 
-if (s%com%rf_on /= '')       s%global%rf_on = .true.
-if (s%com%silent_run /= '')  s%global%silent_run = .true.
-if (s%com%no_stopping /= '') s%global%stop_on_error = .false.
-if (s%com%noplot /= '')      s%global%plot_on = .false.
-if (s%com%disable_smooth_line_calc /= '') s%global%disable_smooth_line_calc = .true.
+s%global%rf_on = (s%com%rf_on_arg /= '')
+s%global%silent_run = (s%com%silent_run_arg /= '')
+s%global%stop_on_error = (s%com%no_stopping_arg == '')
+s%global%plot_on = (s%com%noplot_arg == '')
+s%global%disable_smooth_line_calc = (s%com%disable_smooth_line_calc_arg /= '')
 if (s%com%prompt_color_arg /= '') s%global%prompt_color = s%com%prompt_color_arg
 
 end subroutine end_bookkeeping
@@ -174,7 +174,7 @@ endif
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%beam%beam_init%file_name = ''
-  s%u(i)%beam%all_file = s%com%beam_all_file
+  s%u(i)%beam%all_file = s%com%beam_all_arg
   s%u(i)%beam%track_start    = ''
   s%u(i)%beam%track_end      = ''
   s%u(i)%beam%ix_track_start = 0
@@ -229,9 +229,9 @@ do
           'PLEASE MODIFY YOU INPUT FILE. This is just a warning. Tao will run normally...')
   endif
 
-  if (s%com%beam_init_file_name /= '') beam_init%file_name = s%com%beam_init_file_name 
+  if (s%com%beam_init_file_name_arg /= '') beam_init%file_name = s%com%beam_init_file_name_arg
 
-  if (s%com%beam_all_file /= '') beam_all_file = s%com%beam_all_file  ! From the command line
+  if (s%com%beam_all_arg /= '') beam_all_file = s%com%beam_all_arg  ! From the command line
   if (track_start /= '') beam_track_start = track_start   ! For backwards compatibility
   if (track_end /= '')   beam_track_end   = track_end     ! For backwards compatibility
 

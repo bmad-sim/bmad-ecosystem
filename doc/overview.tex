@@ -130,6 +130,14 @@ Overrides the \vn{var_file} (\sref{s:init.global}) specified in the
 
 \end{description}
 
+To negate an argument, use a two dash prefix instead of a single dash prefix. For example:
+\begin{example}
+  tao -noplot --noplot
+\end{example}
+The \vn{-noplot} argument turns off plotting and the following \vn{--noplot} argument negates the
+effect of \vn{-noplot} and turns plotting back on. This is useful with the \vn{reinit tao} command
+(\sref{s:reinit}) to negate saved command line argument settings.
+
 %----------------------------------------------------------------
 \section{Initializing Tao}
 \index{initializing!files}

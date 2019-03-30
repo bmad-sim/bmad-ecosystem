@@ -68,7 +68,7 @@ if (name1 /= '') s%plot_page%plot_display_type = name1
 ! Only print error messages. Not standard ones.
 
 iu_log = -1
-if (s%com%log_startup /= '') then
+if (s%com%log_startup_arg /= '') then
   iu_log = lunget()
   open (iu_log, file = 'tao_init.log', action = 'write', iostat = ios)
   if (ios == 0) then
@@ -92,9 +92,9 @@ endif
 err_flag = .true.
 
 iu = 0
-if (s%com%noinit == '') then
+if (s%com%noinit_arg == '') then
   init_tao_file = 'tao.init'
-  if (s%com%init_tao_file /= '') init_tao_file = s%com%init_tao_file
+  if (s%com%init_arg /= '') init_tao_file = s%com%init_arg
 else
   init_tao_file = ''
 endif
@@ -102,7 +102,7 @@ endif
 if (init_tao_file /= '') then
   call tao_open_file (init_tao_file, iu, file_name, s_blank$)
   if (iu == 0) then ! If open failure
-    if (s%com%init_tao_file == '') then
+    if (s%com%init_arg == '') then
       call out_io (s_info$, r_name, 'Tao initialization file not found.')
       init_tao_file = ''
     else
@@ -113,7 +113,7 @@ if (init_tao_file /= '') then
   endif
 endif
 
-if (iu == 0 .and. (s%com%lat_file == '' .and. s%com%hook_lat_file == '')) then
+if (iu == 0 .and. (s%com%lat_arg == '' .and. s%com%hook_lat_file == '')) then
   call output_direct (-1, print_and_capture=s%com%print_to_terminal)
   call out_io (s_blank$, r_name, &
           'Note: To run Tao, you either need a Tao initialization file or', &
@@ -158,13 +158,13 @@ endif
 
 ! Set
 
-call set_this_file_name (plot_file, init_tao_file, s%com%plot_file, s%com%hook_plot_file)
-call set_this_file_name (data_file, init_tao_file, s%com%data_file, s%com%hook_data_file)
-call set_this_file_name (var_file,  init_tao_file, s%com%var_file, s%com%hook_var_file)
-call set_this_file_name (beam_file, init_tao_file, s%com%beam_file, s%com%hook_beam_file)
-call set_this_file_name (building_wall_file, '',   s%com%building_wall_file, s%com%hook_building_wall_file)
-call set_this_file_name (startup_file, 'tao.startup', s%com%startup_file, s%com%hook_startup_file)
-call set_this_file_name (hook_init_file, 'tao_hook.init', s%com%hook_init_arg, '')
+call set_this_file_name (plot_file, init_tao_file, s%com%plot_arg, s%com%hook_plot_file)
+call set_this_file_name (data_file, init_tao_file, s%com%data_arg, s%com%hook_data_file)
+call set_this_file_name (var_file,  init_tao_file, s%com%var_arg, s%com%hook_var_file)
+call set_this_file_name (beam_file, init_tao_file, s%com%beam_arg, s%com%hook_beam_file)
+call set_this_file_name (building_wall_file, '',   s%com%building_wall_arg, s%com%hook_building_wall_file)
+call set_this_file_name (startup_file, 'tao.startup', s%com%startup_arg, s%com%hook_startup_file)
+call set_this_file_name (hook_init_file, 'tao_hook.init', s%com%hook_init_file_arg, '')
 s%com%hook_init_file = hook_init_file
 
 ! Tao inits.
@@ -508,7 +508,7 @@ if (file_name /= 'NOT SET!') name = file_name
 file_name = name
 
 if (file_name_is_relative(file_name)) then
-  file_name = trim(s%com%init_tao_file_path) // trim(file_name)
+  file_name = trim(s%com%init_arg_path) // trim(file_name)
 endif
 
 end subroutine set_this_file_name
