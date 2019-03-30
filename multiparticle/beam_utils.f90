@@ -1391,6 +1391,8 @@ character(*), parameter :: r_name = "calc_bunch_params"
 
 ! Init
 
+bunch_params%twiss_valid = .false.  ! Assume the worst
+
 if (bunch%charge_tot == 0) then
   call out_io (s_error$, r_name, 'CHARGE OF PARTICLES IN BUNCH NOT SET. CALCULATION CANNOT BE DONE.')
   err = .true.
@@ -1441,6 +1443,13 @@ if (charge_live == 0) then
   call zero_plane (bunch_params%c)
   err = .false.
   return
+else
+  ! Get s-position from first live particle
+  do i = 1, size(bunch%particle)
+    if (bunch%particle(i)%state /= alive$) cycle
+    bunch_params%s = bunch%particle(i)%s
+    exit
+  enddo
 endif
 
 bunch_params%centroid%charge     = charge_live
@@ -1457,6 +1466,10 @@ if (bmad_com%spin_tracking_on) call calc_spin_params (bunch, bunch_params)
 
 avg_energy = sum((1+bunch%particle%vec(6)) * charge, mask = (bunch%particle%state == alive$))
 avg_energy = avg_energy * bunch%particle(1)%p0c / charge_live
+
+! Rather arbitrary cutoff: If less than 12 particles, calculation of sigma matrix, etc is declared invalid
+
+if (bunch_params%n_particle_live < 12) return
 
 ! Convert to geometric coords and find the sigma matrix
 
@@ -1544,6 +1557,8 @@ bunch_params%b%etap = n_real(4,5)*n_real(6,5) + n_real(4,6)*n_real(6,6)
 
 bunch_params%c%eta  = n_real(5,5)*n_real(6,5) + n_real(5,6)*n_real(6,6)
 bunch_params%c%etap = n_real(6,5)*n_real(6,5) + n_real(6,6)*n_real(6,6)
+
+bunch_params%twiss_valid = .true.
 
 !----------------------------------------------------------------------
 contains

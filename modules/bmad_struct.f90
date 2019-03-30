@@ -973,6 +973,7 @@ type beam_init_struct
 end type
 
 ! The routines calc_bunch_params and calc_bunch_params_slice calculate bunch parameters.
+! Note: If, for example, there is only one particle, %twiss_valid = False but centroid calc is OK.
 
 type bunch_params_struct
   type (coord_struct) :: centroid = coord_struct()  ! Lab frame
@@ -987,6 +988,7 @@ type bunch_params_struct
   integer :: n_particle_tot = 0          ! Total number of particles
   integer :: n_particle_live = 0         ! Number of non-lost particles
   integer :: n_particle_lost_in_ele = 0  ! Number lost in element (not calculated by Bmad)
+  logical :: twiss_valid = .false.       ! Is the data here valid? 
 end type
 
 !-------------------------------------------------------------------------
