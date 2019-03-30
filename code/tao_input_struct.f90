@@ -274,8 +274,8 @@ plot_input%delete_overlapping_plots     = plot_page%delete_overlapping_plots
 
 ! Plot window geometry specified on cmd line?
 
-if (use_cmd_line_geom .and. s%com%plot_geometry /= '') then
-   str = s%com%plot_geometry
+if (use_cmd_line_geom .and. s%com%geometry_arg /= '') then
+   str = s%com%geometry_arg
    ix = index(str, 'x')
    if (ix == 0) then
      call out_io (s_error$, r_name, 'Malformed -geometry argument. No "x" present: ' // str)
