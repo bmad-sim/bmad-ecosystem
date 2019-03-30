@@ -640,7 +640,7 @@ case ('alpha.')
     if (data_source == 'lat') then
       call tao_load_this_datum (branch%ele(:)%a%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     elseif (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%a%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%a%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       valid_value = valid_value .and. (bunch_params(ix_ele)%a%norm_emit /= 0)
       if (.not. valid_value) call tao_set_invalid (datum, 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!', why_invalid)
     endif
@@ -649,7 +649,7 @@ case ('alpha.')
     if (data_source == 'lat') then
       call tao_load_this_datum (branch%ele(:)%b%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     elseif (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%b%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%b%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       valid_value = valid_value .and. (bunch_params(ix_ele)%b%norm_emit /= 0)
       if (.not. valid_value) call tao_set_invalid (datum, 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!', why_invalid)
     endif
@@ -706,12 +706,13 @@ case ('apparent_emit.', 'norm_apparent_emit.')
     if (ix_ref > -1) then
       if (data_source == 'lat') then
         value_vec(ix_ref) = tao_lat_emit_calc (y_plane$, apparent_emit$, branch%ele(ix_ref), tao_branch%modes)
+        call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
       else
         value_vec(ix_ref) = tao_beam_emit_calc (y_plane$, apparent_emit$, branch%ele(i), bunch_params(ix_ref))
+        call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       endif
     endif
 
-    call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
     if (datum%data_type == 'norm_apparent_emit.y') then
       call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
@@ -733,7 +734,7 @@ case ('beta.')
 
   case ('beta.x')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%x%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%x%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       if (bunch_params(ix_ele)%x%norm_emit == 0) then
         valid_value = .false.
         call tao_set_invalid (datum, 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!', why_invalid)
@@ -744,7 +745,7 @@ case ('beta.')
     
   case ('beta.y')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%y%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%y%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       if (bunch_params(ix_ele)%y%norm_emit == 0) then
         valid_value = .false.
         call tao_set_invalid (datum, 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!', why_invalid)
@@ -755,7 +756,7 @@ case ('beta.')
 
   case ('beta.z')
     if (data_source == 'lat') goto 8000  ! Error message and return
-    call tao_load_this_datum (bunch_params(:)%z%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%z%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     if (bunch_params(ix_ele)%z%norm_emit == 0) then
       valid_value = .false.
       call tao_set_invalid (datum, 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!', why_invalid)
@@ -765,7 +766,7 @@ case ('beta.')
     if (data_source == 'lat') then
       call tao_load_this_datum (branch%ele(:)%a%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     elseif (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%a%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%a%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       if (bunch_params(ix_ele)%a%norm_emit == 0) then
         valid_value = .false.
         call tao_set_invalid (datum, 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!', why_invalid)
@@ -776,7 +777,7 @@ case ('beta.')
     if (data_source == 'lat') then
       call tao_load_this_datum (branch%ele(:)%b%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     elseif (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%b%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%b%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       if (bunch_params(ix_ele)%b%norm_emit == 0) then
         valid_value = .false.
         call tao_set_invalid (datum, 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!', why_invalid)
@@ -933,9 +934,9 @@ case ('bunch_max.', 'bunch_min.')
   
   select case (datum%data_type(1:10))
   case ('bunch_max.')
-    call tao_load_this_datum (bunch_params(:)%rel_max(i), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%rel_max(i), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
   case ('bunch_min.')
-    call tao_load_this_datum (bunch_params(:)%rel_min(i), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%rel_min(i), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
   end select
 
 !-----------
@@ -946,19 +947,19 @@ case ('c_mat.')
 
   case ('c_mat.11')
     if (data_source == 'beam') goto 9000  ! Set error message and return
-    call tao_load_this_datum (branch%ele(:)%c_mat(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+    call tao_load_this_datum (branch%ele(:)%c_mat(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
   case ('c_mat.12')
     if (data_source == 'beam') goto 9000  ! Set error message and return
-    call tao_load_this_datum (branch%ele(:)%c_mat(1,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+    call tao_load_this_datum (branch%ele(:)%c_mat(1,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
   case ('c_mat.21')
     if (data_source == 'beam') goto 9000  ! Set error message and return
-    call tao_load_this_datum (branch%ele(:)%c_mat(2,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+    call tao_load_this_datum (branch%ele(:)%c_mat(2,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
   case ('c_mat.22')
     if (data_source == 'beam') goto 9000  ! Set error message and return
-    call tao_load_this_datum (branch%ele(:)%c_mat(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+    call tao_load_this_datum (branch%ele(:)%c_mat(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
@@ -974,19 +975,19 @@ case ('cbar.')
 
   case ('cbar.11')
     if (data_source == 'beam') goto 9000  ! Set error message and return
-    call tao_load_this_datum (scratch%cc%cbar(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%cbar(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
   case ('cbar.12')
     if (data_source == 'beam') goto 9000  ! Set error message and return
-    call tao_load_this_datum (scratch%cc%cbar(1,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%cbar(1,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
   case ('cbar.21')
     if (data_source == 'beam') goto 9000  ! Set error message and return
-    call tao_load_this_datum (scratch%cc%cbar(2,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%cbar(2,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
   case ('cbar.22')
     if (data_source == 'beam') goto 9000  ! Set error message and return
-    call tao_load_this_datum (scratch%cc%cbar(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%cbar(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
@@ -1130,16 +1131,16 @@ case ('dpx_dx')
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     else
       call tao_load_this_datum (tao_branch%linear%sigma(1,2) / tao_branch%linear%sigma(1,1), &
-                          ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+                          ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
   else
     if (ix_start == ix_ele) then
       if (ix_ref > -1) value_vec(ix_ref) = bunch_params(ix_ref)%sigma(1,2) / bunch_params(ix_ref)%sigma(1,1)
       value_vec(ix_ele) = bunch_params(ix_ele)%sigma(1,2) / bunch_params(ix_ele)%sigma(1,1)
-      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     else
       call tao_load_this_datum (bunch_params%sigma(1,2) / bunch_params%sigma(1,1), &
-                          ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+                          ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
   endif
 
@@ -1157,10 +1158,10 @@ case ('dpy_dy')
     if (ix_start == ix_ele) then
       if (ix_ref > -1) value_vec(ix_ref) =  bunch_params(ix_ref)%sigma(3,4) / bunch_params(ix_ref)%sigma(3,3)
       value_vec(ix_ele) = bunch_params(ix_ele)%sigma(3,4) / bunch_params(ix_ele)%sigma(3,3)
-      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     else
       call tao_load_this_datum (bunch_params%sigma(3,4) / bunch_params%sigma(3,3), &
-                          ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+                          ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
   endif
 
@@ -1178,10 +1179,10 @@ case ('dpz_dz')
     if (ix_start == ix_ele) then
       if (ix_ref > -1) value_vec(ix_ref) =  bunch_params(ix_ref)%sigma(5,6) / bunch_params(ix_ref)%sigma(5,5)
       value_vec(ix_ele) = bunch_params(ix_ele)%sigma(5,6) / bunch_params(ix_ele)%sigma(5,5)
-      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     else
       call tao_load_this_datum (bunch_params%sigma(5,6) / bunch_params%sigma(5,5), &
-                          ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+                          ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
   endif
 
@@ -1241,7 +1242,7 @@ case ('element_attrib.')
     endif
   endif
 
-  call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, good = good)
+  call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, good)
 
 !-----------
 
@@ -1265,7 +1266,7 @@ case ('emit.', 'norm_emit.')
       endif
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     elseif (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%x%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%x%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
     if (datum%data_type == 'norm_emit.x') datum_value = datum_value * gamma
@@ -1280,7 +1281,7 @@ case ('emit.', 'norm_emit.')
       endif
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     elseif (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%y%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%y%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
     if (datum%data_type == 'norm_emit.y') datum_value = datum_value * gamma
@@ -1289,7 +1290,7 @@ case ('emit.', 'norm_emit.')
     if (data_source == 'lat') then
       return
     elseif (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%z%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%z%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
     if (datum%data_type == 'norm_emit.y') datum_value = datum_value * gamma
@@ -1309,7 +1310,7 @@ case ('emit.', 'norm_emit.')
         valid_value = .true.
       endif
     elseif (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%a%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%a%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
     if (datum%data_type == 'norm_emit.a') datum_value = datum_value * gamma
@@ -1329,7 +1330,7 @@ case ('emit.', 'norm_emit.')
         valid_value = .true.
       endif
     elseif (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%b%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%b%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
     if (datum%data_type == 'norm_emit.b') datum_value = datum_value * gamma
@@ -1338,7 +1339,7 @@ case ('emit.', 'norm_emit.')
     if (data_source == 'lat') then
       return
     elseif (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%c%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%c%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
     if (datum%data_type == 'norm_emit.y') datum_value = datum_value * gamma
@@ -1357,7 +1358,7 @@ case ('eta.')
 
   case ('eta.a')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%a%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%a%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       valid_value = .true.
     else
       call tao_load_this_datum (branch%ele(:)%a%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -1365,7 +1366,7 @@ case ('eta.')
 
   case ('eta.b')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%b%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%b%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       valid_value = .true.
     else
       call tao_load_this_datum (branch%ele(:)%b%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -1373,7 +1374,7 @@ case ('eta.')
 
   case ('eta.x')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%x%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%x%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       valid_value = .true.
     else
       call tao_load_this_datum (branch%ele(:)%x%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -1381,7 +1382,7 @@ case ('eta.')
 
   case ('eta.y')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%y%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%y%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       valid_value = .true.
     else
       call tao_load_this_datum (branch%ele(:)%y%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -1389,7 +1390,7 @@ case ('eta.')
 
   case ('eta.z')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%z%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%z%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       valid_value = .true.
     else
       call tao_load_this_datum (branch%ele(:)%z%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -1409,7 +1410,7 @@ case ('etap.')
 
   case ('etap.a')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%a%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%a%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       valid_value = .true.
     else
       call tao_load_this_datum (branch%ele(:)%a%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -1417,7 +1418,7 @@ case ('etap.')
 
   case ('etap.b')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%b%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%b%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       valid_value = .true.
     else
       call tao_load_this_datum (branch%ele(:)%b%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -1425,7 +1426,7 @@ case ('etap.')
 
   case ('etap.x')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%x%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%x%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       valid_value = .true.
     else
       call tao_load_this_datum (branch%ele(:)%x%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -1433,7 +1434,7 @@ case ('etap.')
 
   case ('etap.y')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%y%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%y%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       valid_value = .true.
     else
       call tao_load_this_datum (branch%ele(:)%y%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -1560,7 +1561,7 @@ case ('gamma.')
     if (data_source == 'lat') then
       call tao_load_this_datum (branch%ele(:)%a%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     elseif (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%a%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%a%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       valid_value = valid_value .and. (bunch_params(ix_ele)%a%norm_emit /= 0)
       call tao_set_invalid (datum, 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!', why_invalid)
     endif
@@ -1569,14 +1570,14 @@ case ('gamma.')
     if (data_source == 'lat') then
       call tao_load_this_datum (branch%ele(:)%b%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     elseif (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%b%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%b%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       valid_value = valid_value .and. (bunch_params(ix_ele)%b%norm_emit /= 0)
       call tao_set_invalid (datum, 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!', why_invalid)
     endif
 
   case ('gamma.z')
     if (data_source == 'lat') goto 8000  ! Error message and return
-    call tao_load_this_datum (bunch_params(:)%z%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%z%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
 
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
@@ -1592,16 +1593,16 @@ case ('k.')
 
   case ('k.11b')
     if (data_source == 'beam') goto 9000  ! Set error message and return
-    call tao_load_this_datum (scratch%cc%k_11a, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%k_11a, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
   case ('k.12a')
     if (data_source == 'beam') goto 9000  ! Set error message and return
-    call tao_load_this_datum (scratch%cc%k_12a, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%k_12a, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
   case ('k.12b')
     if (data_source == 'beam') goto 9000  ! Set error message and return
-    call tao_load_this_datum (scratch%cc%k_12b, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%k_12b, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
   case ('k.22a')
     if (data_source == 'beam') goto 9000  ! Set error message and return
-    call tao_load_this_datum (scratch%cc%k_22b, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%k_22b, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
@@ -1891,61 +1892,61 @@ case ('orbit.')
 
   case ('orbit.x')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params%centroid%vec(1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params%centroid%vec(1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
     else
       call tao_load_this_datum (orbit(:)%vec(1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
 
   case ('orbit.y')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params%centroid%vec(3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params%centroid%vec(3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
     else
       call tao_load_this_datum (orbit(:)%vec(3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
 
   case ('orbit.z')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params%centroid%vec(5), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params%centroid%vec(5), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
     else
       call tao_load_this_datum (orbit(:)%vec(5), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
 
   case ('orbit.px')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params%centroid%vec(2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params%centroid%vec(2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
     else
       call tao_load_this_datum (orbit(:)%vec(2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
 
   case ('orbit.py')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params%centroid%vec(4), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params%centroid%vec(4), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
     else
       call tao_load_this_datum (orbit(:)%vec(4), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
 
   case ('orbit.pz')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params%centroid%vec(6), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params%centroid%vec(6), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
     else
       call tao_load_this_datum (orbit(:)%vec(6), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
 
   case ('orbit.amp_a')
     if (data_source == 'beam') goto 9000  ! Set error message and return
-    call tao_load_this_datum (scratch%cc%amp_a, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%amp_a, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0, orbit)
 
   case ('orbit.amp_b')
     if (data_source == 'beam') goto 9000  ! Set error message and return
-    call tao_load_this_datum (scratch%cc%amp_b, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%amp_b, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0, orbit)
 
   case ('orbit.norm_amp_a')
     if (data_source == 'beam') goto 9000  ! Set error message and return
-    call tao_load_this_datum (scratch%cc%amp_na, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%amp_na, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0, orbit)
 
   case ('orbit.norm_amp_b')
     if (data_source == 'beam') goto 9000  ! Set error message and return
-    call tao_load_this_datum (scratch%cc%amp_nb, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%amp_nb, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0, orbit)
 
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
@@ -2081,14 +2082,14 @@ case ('photon.')
 
   case ('photon.intensity_x')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%centroid%field(1)**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%centroid%field(1)**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
     else
       call tao_load_this_datum (orbit(:)%field(1)**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
 
   case ('photon.intensity_y')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%centroid%field(2)**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%centroid%field(2)**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
     else
       call tao_load_this_datum (orbit(:)%field(2)**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -2096,7 +2097,7 @@ case ('photon.')
   case ('photon.intensity')
     if (data_source == 'beam') then
       call tao_load_this_datum (bunch_params(:)%centroid%field(1)**2+bunch_params(:)%centroid%field(2)**2, &
-                                                                      ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+                                                                      ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
     else
       call tao_load_this_datum (orbit(:)%field(1)**2 + orbit(:)%field(2)**2, ele_ref, ele_start, ele, &
                                                                            datum_value, valid_value, datum, branch, why_invalid)
@@ -2590,9 +2591,9 @@ case ('sigma.')
   j = index('123456', datum%data_type(8:8))
   if (i > 0 .and. j > 0) then
     if (data_source == 'lat') then
-      call tao_load_this_datum (tao_branch%linear%sigma(i,j), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+      call tao_load_this_datum (tao_branch%linear%sigma(i,j), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
     else
-      call tao_load_this_datum (bunch_params(:)%sigma(i,j), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%sigma(i,j), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
     return
   endif
@@ -2601,53 +2602,53 @@ case ('sigma.')
 
   case ('sigma.x')
     if (data_source == 'lat') then
-      call tao_load_this_datum (tao_branch%linear%sigma(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+      call tao_load_this_datum (tao_branch%linear%sigma(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
       datum_value = sqrt(datum_value)
     else
-      call tao_load_this_datum (bunch_params(:)%sigma(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%sigma(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       datum_value = sqrt(datum_value)
     endif
 
   case ('sigma.px')  
     if (data_source == 'lat') then
-      call tao_load_this_datum (tao_branch%linear%sigma(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+      call tao_load_this_datum (tao_branch%linear%sigma(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
       datum_value = sqrt(datum_value)
     else
-      call tao_load_this_datum (bunch_params(:)%sigma(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%sigma(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       datum_value = sqrt(datum_value)
     endif
 
   case ('sigma.y')  
     if (data_source == 'lat') then
-      call tao_load_this_datum (tao_branch%linear%sigma(3,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+      call tao_load_this_datum (tao_branch%linear%sigma(3,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
       datum_value = sqrt(datum_value)
     else
-      call tao_load_this_datum (bunch_params(:)%sigma(3,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%sigma(3,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       datum_value = sqrt(datum_value)
     endif
     
   case ('sigma.py')  
     if (data_source == 'lat') then
-      call tao_load_this_datum (tao_branch%linear%sigma(4,4), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+      call tao_load_this_datum (tao_branch%linear%sigma(4,4), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
       datum_value = sqrt(datum_value)
     else
-      call tao_load_this_datum (bunch_params(:)%sigma(4,4), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%sigma(4,4), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       datum_value = sqrt(datum_value)
     endif
     
   case ('sigma.z')
     if (data_source == 'lat') then
-      call tao_load_this_datum (tao_branch%linear%sigma(5,5), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+      call tao_load_this_datum (tao_branch%linear%sigma(5,5), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
       datum_value = sqrt(datum_value)
     else
-      call tao_load_this_datum (bunch_params(:)%sigma(5,5), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%sigma(5,5), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       datum_value = sqrt(datum_value)
     endif
 
   case ('sigma.pz')  
     if (data_source == 'lat') then
       if (lat%param%geometry == closed$) then
-        call tao_load_this_datum (tao_branch%linear%sigma(6,6), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit)
+        call tao_load_this_datum (tao_branch%linear%sigma(6,6), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
         datum_value = sqrt(datum_value)
       else
         if (ix_ele == -1) ix_ele = branch%n_ele_track
@@ -2656,7 +2657,7 @@ case ('sigma.')
         valid_value = .true.
       endif
     else
-      call tao_load_this_datum (bunch_params(:)%sigma(6,6), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%sigma(6,6), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       datum_value = sqrt(datum_value)
     endif
     
@@ -2664,14 +2665,14 @@ case ('sigma.')
     if (data_source == 'lat') then
       call tao_load_this_datum (tao_branch%linear%sigma(1,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     else
-      call tao_load_this_datum (bunch_params(:)%sigma(1,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%sigma(1,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
   case ('sigma.Lxy')  
     if (data_source == 'lat') then
       call tao_load_this_datum (tao_branch%linear%sigma(1,4) - tao_branch%linear%sigma(2,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     else
-      call tao_load_this_datum (bunch_params(:)%sigma(1,4) - bunch_params(:)%sigma(2,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%sigma(1,4) - bunch_params(:)%sigma(2,3), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
   case default
@@ -2781,7 +2782,7 @@ case ('s_position')
 
 case ('time')
   if (data_source == 'beam') then
-    call tao_load_this_datum (bunch_params%centroid%t, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    call tao_load_this_datum (bunch_params%centroid%t, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
   else
     call tao_load_this_datum (orbit(:)%t, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
   endif
@@ -2956,7 +2957,7 @@ case ('velocity', 'velocity.')
 
   case ('velocity')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params%centroid%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      call tao_load_this_datum (bunch_params%centroid%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
     else
       call tao_load_this_datum (orbit(:)%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -2964,7 +2965,7 @@ case ('velocity', 'velocity.')
   case ('velocity.x')
     if (data_source == 'beam') then
       call tao_load_this_datum (bunch_params%centroid%vec(2)*(1+bunch_params%centroid%vec(6))*bunch_params%centroid%beta, &
-                        ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+                        ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
     else
       call tao_load_this_datum (orbit(:)%vec(2)*(1+orbit(:)%vec(6))*orbit(:)%beta, &
                         ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -2973,7 +2974,7 @@ case ('velocity', 'velocity.')
   case ('velocity.y')
     if (data_source == 'beam') then
       call tao_load_this_datum (bunch_params%centroid%vec(4)*(1+bunch_params%centroid%vec(6))*bunch_params%centroid%beta, &
-                        ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+                        ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
     else
       call tao_load_this_datum (orbit(:)%vec(4)*(1+orbit(:)%vec(6))*orbit(:)%beta, &
                         ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -2982,7 +2983,7 @@ case ('velocity', 'velocity.')
   case ('velocity.z')
     if (data_source == 'beam') then
       call tao_load_this_datum (sqrt(1 - (bunch_params%centroid%vec(2)*(1+bunch_params%centroid%vec(6)))**2 - (bunch_params%centroid%vec(4)*(1+bunch_params%centroid%vec(6)))**2)*(1+bunch_params%centroid%vec(6))*bunch_params%centroid%beta, &
-                        ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+                        ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
     else
       call tao_load_this_datum (sqrt(1 - (orbit(:)%vec(2)*(1+orbit(:)%vec(6)))**2 - (orbit(:)%vec(4)*(1+orbit(:)%vec(6)))**2)*(1+orbit(:)%vec(6))*orbit(:)%beta, &
                         ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
@@ -3087,7 +3088,7 @@ end subroutine tao_evaluate_a_datum
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 
-subroutine tao_load_this_datum (vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit, good)
+subroutine tao_load_this_datum (vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, good, orbit)
 
 type (tao_data_struct) datum
 type (branch_struct) branch

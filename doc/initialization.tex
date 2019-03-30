@@ -250,21 +250,24 @@ of the lattice to the beginning. The sign of the charge of the tracked particle 
 reversed from the setting in the lattice file. This is useful for simulating beams that go in the
 backward direction.
 
-The \vn{%slice_lattice} parameter specifies a list of elements
-to be used to pare down the lattice so that the only elements that appear in the list are keept in the lattice.
-In addition, any lord elements that control
-elements in the list are also retianed. This is identical to putting the following command in the lattice file
+The \vn{%slice_lattice} parameter specifies a list of elements to be used to pare down the lattice
+so that the only elements that appear in the list are keept in the lattice.  In addition, any lord
+elements that control elements in the list are also retianed. This is identical to putting a
+\vn{slice_lattice} command directly in the lattice file. For example:
 \begin{example}
-  slice_lattice <element_list>
+  design_lattice(1)%slice_lattice = "Q1:35"
 \end{example}
-See the \bmad manual for more details about the \vn{slice_lattice} command.
+In this example, everthing outside of the range from element \vn{Q1} to the element with index 35
+will be discarded.  See the \bmad manual for more details about the \vn{slice_lattice} command.
+Note: There is also a \vn{-slice_lattice} initalization argument (\sref{s:command.line} that can be
+used.
 
 Example:
 \begin{example}
   &tao_design_lattice
     n_universe = 4
     design_lattice(1) = "this.lat"              ! Default: Bmad format lattice file.
-    design_lattice(1)%slice_lattice = "Q1", "Q2" ! Discard element outside range [Q1:Q2]
+    design_lattice(1)%slice_lattice = "Q1:Q2"   ! Discard element outside range [Q1:Q2]
     design_lattice(2) = "xsif::that.lat", "floor_coords.bmad"
                                                 ! XSIF file. For universe \#2 
     design_lattice(3) = "third.lat@my_line"     ! Specify a different line.
