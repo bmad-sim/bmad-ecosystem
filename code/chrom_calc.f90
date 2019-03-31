@@ -44,6 +44,7 @@ type (branch_struct), pointer :: branch, branch2
 real(rp) :: high_tune_x, high_tune_y, low_tune_x, low_tune_y
 real(rp) :: pz0, delta_e, chrom_x, chrom_y
 real(rp), optional :: pz
+real time0, time1
 
 integer, optional :: ix_branch
 integer nt, stat, ix_br
@@ -52,6 +53,8 @@ logical, optional, intent(out) :: err_flag
 logical err, used_this_lat
 
 ! Init setup
+
+call cpu_time(time0)
 
 ix_br = integer_option(0, ix_branch)
 branch => lat%branch(ix_br)
@@ -140,5 +143,8 @@ chrom_x = (high_tune_x - low_tune_x) / (2 * delta_e)
 chrom_y = (high_tune_y - low_tune_y) / (2 * delta_e)
 
 if (present(err_flag)) err_flag = .false.
+
+call cpu_time(time1)
+if (bmad_com%debug) print '(a, f12.2)', 'chrom_calc execution time:', time1 - time0
 
 end subroutine

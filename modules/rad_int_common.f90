@@ -317,8 +317,13 @@ if (associated(info%cache_ele)) then
   i0 = min(i0, n_pt-1)
   i1 = i0 + 1
   del_z = info%cache_ele%pt(i1)%s_body - info%cache_ele%pt(i0)%s_body 
-  f1 = (z_here - del_z*i0) / del_z 
-  f0 = 1 - f1
+  if (del_z == 0) then
+    f1 = 1
+    f0 = 0
+  else
+    f1 = (z_here - del_z*i0) / del_z 
+    f0 = 1 - f1
+  endif
   pt0 = info%cache_ele%pt(i0)
   pt1 = info%cache_ele%pt(i1)
 

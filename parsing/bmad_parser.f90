@@ -84,6 +84,7 @@ logical auto_bookkeeper_saved, is_photon_fork, created_new_branch
 ! see if digested file is open and current. If so read in and return.
 ! Note: The name of the digested file depends upon the real precision.
 
+call cpu_time(bp_com%time0)
 auto_bookkeeper_saved = bmad_com%auto_bookkeeper
 bmad_com%auto_bookkeeper = .true.  
 
@@ -242,8 +243,8 @@ parsing_loop: do
 
   if (word_1(:ix_word) == 'PARSER_DEBUG') then
     debug_line = bp_com%parse_line
-    bp_com%write_digested = .false.
-    call out_io (s_info$, r_name, 'Found in file: "PARSER_DEBUG". Debug is now on', 'Note: No digested file will be made.')
+    bp_com%parse_line = ''
+    call out_io (s_info$, r_name, 'Found in file: "PARSER_DEBUG". Debug is now on')
     cycle parsing_loop
   endif
 
@@ -1143,6 +1144,8 @@ endif
 ! Must do this before calling bmad_parser2 since after an expand_lattice command the lattice 
 ! file may contain references to dependent element parameters that are computed in lattice_bookkeeper.
 
+call cpu_time(bp_com%time1)
+
 call set_flags_for_changed_attribute(lat)
 call lattice_bookkeeper (lat, err)
 if (err) then
@@ -1201,8 +1204,12 @@ call parser_init_custom_elements (lat)
 ! lat_make_mat6 since if there is a match element, there is an error raised 
 ! here since the Twiss parameters have not been set. But this is expected. 
 
+call cpu_time(bp_com%time2)
+
 bmad_com%auto_bookkeeper = auto_bookkeeper_saved  ! potentially saves time with lat_make_mat6
 if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, ix_branch = -1) 
+
+call cpu_time(bp_com%time3)
 
 !
 
