@@ -212,11 +212,11 @@ if (i_ele < 0) then
     slave1 => pointer_to_slave(lord, lord%n_slave)
     i0 = slave0%ix_ele; i1 = slave1%ix_ele
 
-    if (.not. bmad_com%auto_bookkeeper .and. ele%bookkeeping_state%mat6 /= stale$) then
+    if (.not. bmad_com%auto_bookkeeper .and. lord%bookkeeping_state%mat6 /= stale$) then
       if (present(ref_orb)) then
-        if (all(ref_orb(i0-1)%vec == ele%map_ref_orb_in%vec)) cycle
+        if (all(ref_orb(i0-1)%vec == lord%map_ref_orb_in%vec)) cycle
       else
-        if (all(ele%map_ref_orb_in%vec == 0)) cycle
+        if (all(lord%map_ref_orb_in%vec == 0)) cycle
       endif
     endif
 
