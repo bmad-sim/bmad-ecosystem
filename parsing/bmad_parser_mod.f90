@@ -165,6 +165,7 @@ type bp_common_struct
   logical :: print_err = .true.  ! Print error messages?
   logical :: use_local_lat_file = .false.
   logical :: used_line_set_by_calling_routine = .false.
+  real time0, time1, time2, time3            ! For timing parsing
 end type
 
 !
@@ -6789,6 +6790,15 @@ character(*) debug_line
 
 found = .false.
 call str_upcase (debug_line, debug_line)
+
+if (index(debug_line, 'TIME') /= 0) then
+  print *
+  print *, '----------------------------------------'
+  print '(a, f12.2)', 'Parse time:               ', bp_com%time0 - bp_com%time1
+  print '(a, f12.2)', 'Lattice Bookkeeping time: ', bp_com%time1 - bp_com%time2
+  print '(a, f12.2)', 'Make_mat6 calc time:      ', bp_com%time2 - bp_com%time3
+  found = .true.
+endif
 
 if (index(debug_line, 'SEQ') /= 0 .and. present(sequence)) then
   print *

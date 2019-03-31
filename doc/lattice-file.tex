@@ -1215,10 +1215,8 @@ be parsed when a program is run. The \vn{write_digested} statement will cancel a
 The \vn{no_superimpose} statement is used to suppress superpositions
 (\sref{s:super}). This is useful for debugging purposes.
 
-The \vn{parser_debug} statement will cause information about the
-lattice to be printed out at the terminal. It is recommended that this
-statement be used with small test lattices since it can generate a lot
-of output. The syntax is
+The \vn{parser_debug} statement will cause information about the lattice to be printed out at the
+terminal. The syntax is
 \begin{example}
   parser_debug <switches>
 \end{example}
@@ -1231,6 +1229,7 @@ Valid \vn{<switches>} are
   lord                ! Print full information on all lord elements.
   seq                 ! Print sequence information.
   slave               ! Print full information on all slave elements.
+  time                ! Print timing information.
 \end{example}
 Here $<n1>$, $<n2>$, etc. are the index of the selected elements in
 the lattice.  Example

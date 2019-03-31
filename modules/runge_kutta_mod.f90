@@ -48,7 +48,7 @@ contains
 !   mat6(6,6)   -- real(rp), optional: Transfer matrix propagated through the element.
 !-
 
-subroutine odeint_bmad (orbit, ele, param, s1_body, s2_body, err_flag, track, mat6, make_matrix)
+recursive subroutine odeint_bmad (orbit, ele, param, s1_body, s2_body, err_flag, track, mat6, make_matrix)
 
 use nr, only: zbrent
 
@@ -296,13 +296,13 @@ end subroutine odeint_bmad
 ! Not meant for general use
 !-
 
-subroutine rk_adaptive_step (ele, param, orb, s, ds_try, ds12, ds_did, ds_next, err_flag, mat6, make_matrix)
+recursive subroutine rk_adaptive_step (ele, param, orb, s, ds_try, ds12, ds_did, ds_next, err_flag, mat6, make_matrix)
 
 implicit none
 
 type (ele_struct) ele
 type (lat_param_struct) param
-type (coord_struct) orb, orb_new, start, end1, end2
+type (coord_struct) orb, orb_new, end1, end2
 
 real(rp), intent(inout) :: s
 real(rp), intent(in)    :: ds_try
@@ -317,7 +317,7 @@ real(rp), parameter :: safety = 0.9_rp, p_grow = -0.2_rp
 real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89d-4
 real(rp), parameter :: tiny = 1.0e-30_rp
 
-integer i
+integer ii
 
 logical err_flag
 logical, optional :: make_matrix
@@ -380,30 +380,30 @@ end do
 !
 
 if (logic_option(.false., make_matrix)) then
-  do i = 1, 6
-    start = orb
-    start%vec(6) = start%vec(6)
-    start%vec(i) = start%vec(i) + bmad_com%d_orb(i)
-    call adjust_start(orb, start)
-    call track1 (start, ele, param, end2)
-    if (end2%state /= alive$) then
+  do ii = 1, 6
+    end2 = orb
+    end2%vec(6) = end2%vec(6)
+    end2%vec(ii) = end2%vec(ii) + bmad_com%d_orb(ii)
+    call adjust_start(orb, end2)
+    call odeint_bmad (end2, ele, param, s, s+ds, err_flag)
+    if (end2%state /= alive$ .or. err_flag) then
       call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING (+). MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
       return
     endif
 
-    start = orb
-    start%vec(6) = start%vec(6)
-    start%vec(i) = start%vec(i) - bmad_com%d_orb(i)
-    call adjust_start(orb, start)
-    call track1 (start, ele, param, end1)
-    if (end1%state /= alive$) then
+    end1 = orb
+    end1%vec(6) = end1%vec(6)
+    end1%vec(ii) = end1%vec(ii) - bmad_com%d_orb(ii)
+    call adjust_start(orb, end1)
+    call odeint_bmad (end1, ele, param, s, s+ds, err_flag)
+    if (end1%state /= alive$ .or. err_flag) then
       call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING (-). MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
       return
     endif
 
-    dmat(1:6, i) = (end2%vec - end1%vec) / (2 * bmad_com%d_orb(i))
-    mat6 = matmul(dmat, mat6)
+    dmat(1:6, ii) = (end2%vec - end1%vec) / (2 * bmad_com%d_orb(ii))
   enddo
+  mat6 = matmul(dmat, mat6)
 endif
 
 !
@@ -422,7 +422,6 @@ s = s + ds
 orb_new%s = orb%s + ds * ele%orientation
 
 orb = orb_new
-err_flag = .false.
 
 !--------------------------------------------
 contains
@@ -447,7 +446,7 @@ end subroutine rk_adaptive_step
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine rk_step1 (ele, param, orb, dr_ds1, s, ds, orb_new, r_err, err, print_err)
+recursive subroutine rk_step1 (ele, param, orb, dr_ds1, s, ds, orb_new, r_err, err, print_err)
 
 implicit none
 
@@ -601,7 +600,7 @@ end subroutine rk_step1
 !   err         -- Logical: Set True if there is an error.
 !-
 
-subroutine kick_vector_calc (ele, param, s_body, orbit, dr_ds, err, print_err)
+recursive subroutine kick_vector_calc (ele, param, s_body, orbit, dr_ds, err, print_err)
 
 implicit none
 

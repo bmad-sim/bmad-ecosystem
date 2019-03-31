@@ -125,6 +125,7 @@ real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), dk(2,2), kx, ky, beta_min
 real(rp) v(4,4), v_inv(4,4), z_here, z_start, mc2, gamma, gamma4, gamma6
 real(rp) kz, fac, c, s, factor, g2, g_x0, dz, z1, const_q, mat6(6,6), vec0(6)
 real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) ! Cf: Sands Eq 5.46 pg 124.
+real time0, time1
 
 integer, optional :: ix_cache, ix_branch
 integer i, j, k, n, ix, ixe, ib, ip, ir, key2, n_step, ix_pole_max
@@ -136,6 +137,8 @@ logical, parameter :: t = .true., f = .false.
 
 !---------------------------------------------------------------------
 ! Allocate rad_int_by_ele
+
+call cpu_time(time0)
 
 if (present(rad_int_by_ele)) then
   if (allocated(rad_int_by_ele%branch)) then
@@ -187,6 +190,8 @@ bmad_com%radiation_fluctuations_on = .false.
 bmad_com%radiation_damping_on = .false.
 bmad_com%space_charge_on = .false.
 bmad_com%convert_to_kinetic_momentum = .true.
+bmad_com%rel_tol_adaptive_tracking = 1d-6
+bmad_com%abs_tol_adaptive_tracking = 1d-8
 
 call init_ele (ele2)
 call init_ele (ele_start)
@@ -320,7 +325,7 @@ if (use_cache .or. init_cache) then
       call allocate_cache(cache_ele, track%n_pt)
       do i = 0, track%n_pt
         cache_ele%pt(i)%ref_orb_in  = orb_start
-        call cache_from_symp_lie_track(cache_ele%pt(i), track, i, max(0, i-1), min(track%n_pt, i+1))
+        call cache_fill(cache_ele%pt(i), track, i, max(0, i-1), min(track%n_pt, i+1))
       enddo
 
     ! All else...
@@ -688,6 +693,9 @@ if (present(rad_int_by_ele)) then
   enddo
 endif
 
+call cpu_time(time1)
+if (bmad_com%debug) print '(a, f12.2)', 'radiation_integrals execution time:', time1 - time0
+
 !------------------------------------------------------------------------
 contains
 
@@ -751,7 +759,7 @@ end subroutine cache_this_point
 !------------------------------------------------------------------------
 ! contains
 
-subroutine cache_from_symp_lie_track (c_pt, track, ix, ix0, ix1)
+subroutine cache_fill (c_pt, track, ix, ix0, ix1)
 
 type (rad_int_track_point_struct) :: c_pt
 type (track_struct) track
@@ -767,7 +775,7 @@ c_pt%mat6        = track%pt(ix)%mat6
 c_pt%vec0        = track%pt(ix)%vec0
 call calc_wiggler_g_params (ele2, branch%param, c_pt%s_body, c_pt%ref_orb_out, c_pt)
 
-end subroutine cache_from_symp_lie_track
+end subroutine cache_fill
 
 !------------------------------------------------------------------------
 ! contains
