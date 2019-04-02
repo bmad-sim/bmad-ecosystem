@@ -93,6 +93,8 @@ type ri_array_struct
   real(rp) sum(num_int)
 end type
 
+real(rp) d_err(num_int)
+
 type (ri_array_struct) ri_array(0:4) ! ri_array(n) holds info for the integrals for a particular step.
 type (ele_struct), pointer :: ele
 type (coord_struct) start, end
@@ -212,20 +214,20 @@ do j = 1, j_max
 
   if (j < j_min_test) cycle
 
-  converged = .true.
   d_max = 0
 
   do n = 1, num_int
     if (.not. do_int(n)) cycle
     call polint (ri_array(1:j1)%h, ri_array(1:j1)%sum(n), 0.0_rp, rad_int_vec(n), dint(n))
-    d0(n) = eps_int * abs(rad_int_vec(n)) + eps_sum * abs(int_tot_vec(n))
-    if (abs(dint(n)) > d0(n))  converged = .false.
-    if (d0(n) /= 0) d_max = max(d_max, abs(dint(n)) / d0(n))
+    d0(n) = eps_int * abs(rad_int_vec(n)) + eps_sum * abs(int_tot_vec(n)) + 1d-30
+    d_err(n) = abs(dint(n)) / d0(n)
+    d_max = max(d_max, d_err(n))
   enddo
 
   ! If we have convergance or we are giving up (when j = j_max) then 
   ! stuff the results in the proper places.
 
+  converged = (d_max <= 1)
   if (converged .or. j == j_max) then
 
     rad_int1%n_steps = j
@@ -316,16 +318,16 @@ if (associated(info%cache_ele)) then
   call bracket_index(info%cache_ele%pt(0:n_pt)%s_body, 0, n_pt, z_here, i0)
   i0 = min(i0, n_pt-1)
   i1 = i0 + 1
-  del_z = info%cache_ele%pt(i1)%s_body - info%cache_ele%pt(i0)%s_body 
+  pt0 = info%cache_ele%pt(i0)
+  pt1 = info%cache_ele%pt(i1)
+  del_z = pt1%s_body - pt0%s_body 
   if (del_z == 0) then
     f1 = 1
     f0 = 0
   else
-    f1 = (z_here - del_z*i0) / del_z 
+    f1 = (z_here - pt0%s_body) / del_z 
     f0 = 1 - f1
   endif
-  pt0 = info%cache_ele%pt(i0)
-  pt1 = info%cache_ele%pt(i1)
 
   orb0%vec = matmul(pt0%mat6, orb_start%vec) + pt0%vec0
   orb1%vec = matmul(pt1%mat6, orb_start%vec) + pt1%vec0
