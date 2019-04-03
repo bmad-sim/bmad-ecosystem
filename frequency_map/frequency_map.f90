@@ -17,7 +17,7 @@ integer i, j, k, s, n, Npts, asum
 integer ix
 integer n_turn
 integer ios, track_state
-integer i_x, i_y, i_z, iq
+integer i_z, iq
 integer i_a, i_b, n_a, n_b
 integer n_z
 integer ix_pn, ix_dot
@@ -187,7 +187,7 @@ do i_z = 0,n_z-1
     endif
     if( grid_type == 'xy' ) then
       do i_a = 0,n_a-1
-        start_coord%vec(1) = x0 + dx * i_x
+        start_coord%vec(1) = x0 + dx * i_a
         n = n + 1
         grid_pts(n,:) = start_coord%vec(:)
         write(800,'(3es14.5)') start_coord%vec(1), start_coord%vec(3), start_coord%vec(5)
