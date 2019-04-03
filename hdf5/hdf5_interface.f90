@@ -92,7 +92,7 @@ integer h5_err
 logical error
 !
 error = .true.
-call H5LTset_attribute_string_f(id, '.', name, trim(string), h5_err); if (h5_err) return
+call H5LTset_attribute_string_f(id, '.', name, trim(string), h5_err); if (h5_err < 0) return
 error = .false.
 end subroutine hdf5_write_attribute_string
 
@@ -108,7 +108,7 @@ integer h5_err
 logical error
 !
 error = .true.
-call H5LTset_attribute_int_f(id, '.', name, [ival], 1_hz, h5_err); if (h5_err) return
+call H5LTset_attribute_int_f(id, '.', name, [ival], 1_hz, h5_err); if (h5_err < 0) return
 error = .false.
 end subroutine hdf5_write_attribute_int_rank_0
 
@@ -126,7 +126,7 @@ logical error
 !
 error = .true.
 iz = size(ival)
-call H5LTset_attribute_int_f(id, '.', name, ival, iz, h5_err); if (h5_err) return
+call H5LTset_attribute_int_f(id, '.', name, ival, iz, h5_err); if (h5_err < 0) return
 error = .false.
 end subroutine hdf5_write_attribute_int_rank_1
 
@@ -142,7 +142,7 @@ integer h5_err
 logical error
 !
 error = .true.
-call H5LTset_attribute_double_f(id, '.', name, [rval], 1_hz, h5_err); if (h5_err) return
+call H5LTset_attribute_double_f(id, '.', name, [rval], 1_hz, h5_err); if (h5_err < 0) return
 error = .false.
 end subroutine hdf5_write_attribute_real_rank_0
 
@@ -160,7 +160,7 @@ logical error
 !
 error = .true.
 iz = size(rval)
-call H5LTset_attribute_double_f(id, '.', name, rval, iz, h5_err); if (h5_err) return
+call H5LTset_attribute_double_f(id, '.', name, rval, iz, h5_err); if (h5_err < 0) return
 error = .false.
 end subroutine hdf5_write_attribute_real_rank_1
 
