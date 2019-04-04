@@ -113,9 +113,16 @@ tao.init("command line args here...")
     self.so_lib.tao_c_command(cmd.encode('utf-8'))
     n = self.so_lib.tao_c_integer_array_size()
     self.so_lib.tao_c_get_integer_array.restype = ctypes.POINTER(ctypes.c_int * n)
-    array = []
-    for inte in self.so_lib.tao_c_get_integer_array().contents: array.append(inte)
-    return array
+    #array = []
+    #for inte in self.so_lib.tao_c_get_integer_array().contents: array.append(inte)
+    #return array
+    #NumPy way:
+    # This is a pointer to the scratch space. 
+    array = np.ctypeslib.as_array(
+        (ctypes.c_int * n).from_address(ctypes.addressof(self.so_lib.tao_c_get_integer_array().contents)))
+    # Return a copy
+    return np.copy(array)    
+    
 
   #---------------------------------------------
 
