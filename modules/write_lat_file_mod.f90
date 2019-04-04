@@ -120,7 +120,7 @@ logical x_lim_good, y_lim_good, is_default, need_new_region, err_flag, has_been_
 
 do i = 1, size(ele_default)
   call init_ele (ele_default(i), i)
-  call set_ele_defaults (ele_default(i))
+  call set_ele_defaults (ele_default(i), .false.)
 enddo
 
 ! Count the number of foreign wake files

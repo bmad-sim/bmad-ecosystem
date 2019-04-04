@@ -395,8 +395,20 @@ endif
 
 !
 
+if (associated(a_ptr, ele%value(ds_step$))) then
+  if (ele%key == e_gun$ .or. ele%key == lcavity$ .or. &
+                      (ele%key == em_field$ .and. is_false(ele%value(constant_ref_energy$)))) then
+    call set_ele_status_stale (ele, ref_energy_group$)
+  endif
+  return
+endif
+
 if (associated(a_ptr, ele%value(num_steps$))) then
   if (dep_set .and. ele%value(num_steps$) /= 0) ele%value(ds_step$) = abs(ele%value(l$)) / ele%value(num_steps$)
+  if (ele%key == e_gun$ .or. ele%key == lcavity$ .or. &
+                      (ele%key == em_field$ .and. is_false(ele%value(constant_ref_energy$)))) then
+    call set_ele_status_stale (ele, ref_energy_group$)
+  endif
   return
 endif
 
