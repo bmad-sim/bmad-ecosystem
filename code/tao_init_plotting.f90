@@ -880,7 +880,7 @@ type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_
 type (tao_plot_struct), allocatable :: temp_template(:)
 type (tao_plot_region_struct), allocatable :: temp_region(:)
 type (tao_plot_struct), pointer :: plot
-type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
+type (tao_ele_shape_struct) :: dflt_lat_layout(26) = [&
       tao_ele_shape_struct('FORK::*',              'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., 1, fork$, '*'), &
       tao_ele_shape_struct('CRYSTAL::*',           'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., 1, crystal$, '*'), &
       tao_ele_shape_struct('DETECTOR::*',          'BOX',    'BLACK',   0.30_rp, 'name', .true.,   .false., 1, detector$, '*'), &
@@ -895,6 +895,7 @@ type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
       tao_ele_shape_struct('MONITOR::*',           'BOX',    'BLACK',   0.30_rp, 'name', .false.,  .false., 1, monitor$, '*'), &
       tao_ele_shape_struct('MULTILAYER_MIRROR::*', 'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., 1, multilayer_mirror$, '*'), &
       tao_ele_shape_struct('OCTUPOLE::*',          'BOX',    'BLACK',   0.30_rp, 'name', .false.,  .false., 1, octupole$, '*'), &
+      tao_ele_shape_struct('PATCH::*',             'BOX',    'YELLOW',  0.25_rp, 'none', .false.,  .false., 1, patch$, '*'), &
       tao_ele_shape_struct('PHOTON_FORK::*',       'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., 1, photon_fork$, '*'), &
       tao_ele_shape_struct('QUADRUPOLE::*',        'XBOX',   'MAGENTA', 0.37_rp, 'name', .true.,   .false., 1, quadrupole$, '*'), &
       tao_ele_shape_struct('RCOLLIMATOR::*',       'XBOX',   'BLUE',    0.20_rp, 'name', .false.,  .false., 1, rcollimator$, '*'), &
