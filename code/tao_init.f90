@@ -44,7 +44,7 @@ character(16) init_name
 integer i, j, i2, j2, n_universes, iu, ix, n_arg, ib, ip, ios, stat
 integer iu_log
 
-logical err, calc_ok, valid_value, this_calc_ok
+logical err, calc_ok, valid_value, this_calc_ok, using_default
 logical :: err_flag
 
 namelist / tao_start / startup_file, building_wall_file, hook_init_file, &
@@ -352,15 +352,22 @@ enddo
 ! Look for a startup file
 
 if (startup_file /= '') then
+  using_default = (startup_file == 'tao.startup')
   call tao_open_file (startup_file, iu, file_name, -1)
-  if (iu /= 0) then
+  if (iu == 0 .and. using_default) then ! If default
+    startup_file = trim(s%com%init_arg_path) // 'tao.startup'
+    call tao_open_file (startup_file, iu, file_name, -1)
+  endif
+
+  if (iu == 0 .and. .not. using_default) then
+    call out_io (s_error$, r_name, 'Tao startup file not found: ' // file_name)
+
+  elseif (iu /= 0) then
     close (iu)
     call out_io (s_blank$, r_name, 'Using startup file: ' // file_name)
     s%com%cmd_from_cmd_file = .false.
     call tao_cmd_history_record ('call ' // startup_file)
     call tao_call_cmd (file_name)
-  else if (startup_file /= 'tao.startup') then  ! If not default
-    call out_io (s_error$, r_name, 'Tao startup file not found: ' // file_name)
   endif
 endif
 
@@ -501,16 +508,21 @@ character(200) name
 !   3) Name has been set via a hook routine.
 !   4) Default_name.
 
-name = default_name
-if (default_name /= '') name = default_name
-if (hook_name /= '') name = hook_name
-if (file_name /= 'NOT SET!') name = file_name
-if (arg_name /= '') name  = arg_name
+if (arg_name /= '') then
+  name  = arg_name
+elseif (file_name /= 'NOT SET!') then
+  name = file_name
+  if (file_name_is_relative(name)) name = trim(s%com%init_arg_path) // trim(name)
+elseif (hook_name /= '') then
+  name = hook_name
+elseif (default_name /= '') then
+  name = default_name
+else
+  name = default_name
+endif
+
 file_name = name
 
-if (file_name_is_relative(file_name)) then
-  file_name = trim(s%com%init_arg_path) // trim(file_name)
-endif
 
 end subroutine set_this_file_name
 
