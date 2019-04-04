@@ -257,7 +257,7 @@ case ('bunch1')
   !save_beam flag: u%uni_branch(<branch-index>)%ele(<ele-index>)%save_beam
   
   select case (who)
-  case ('x', 'px', 'y', 'py', 'z', 'pz', 's', 't', 'charge', 'p0c') 
+  case ('x', 'px', 'y', 'py', 'z', 'pz', 's', 't', 'charge', 'p0c', 'state') 
     call coord_out(beam, who)
     return
   case ('')
@@ -2066,13 +2066,11 @@ bunch => beam%bunch(1)
 
 ! Allocate scratch 
 n = size(bunch%particle)
-if (.not. allocated(tao_c_interface_com%c_real)) allocate (tao_c_interface_com%c_real(n))
-if (size(tao_c_interface_com%c_real) < n) then
-  deallocate (tao_c_interface_com%c_real)
-  allocate (tao_c_interface_com%c_real(n)) 
-endif
-! Set scratch size
-tao_c_interface_com%n_real = n
+call reallocate_c_real_scratch(n)
+
+! Integer scr
+
+
 
 ! Add data
 select case (coordinate)
@@ -2096,6 +2094,10 @@ case ('charge')
   tao_c_interface_com%c_real(1:n) = bunch%particle(:)%charge
 case ('p0c')
   tao_c_interface_com%c_real(1:n) = bunch%particle(:)%p0c
+case ('state')
+  call reallocate_c_integer_scratch(n)
+  tao_c_interface_com%c_integer(1:n) = bunch%particle(:)%state
+
 
 case default
   nl=incr(nl); li(nl) = 'INVALID'
@@ -2105,6 +2107,30 @@ case default
 end select
 
 
+end subroutine
+
+
+!----------------------------------------------------------------------
+! contains
+
+subroutine reallocate_c_real_scratch(n)
+integer :: n
+if (.not. allocated(tao_c_interface_com%c_real)) allocate (tao_c_interface_com%c_real(n))
+if (size(tao_c_interface_com%c_real) < n) then
+  deallocate (tao_c_interface_com%c_real)
+  allocate (tao_c_interface_com%c_real(n)) 
+endif
+tao_c_interface_com%n_real = n
+end subroutine
+
+subroutine reallocate_c_integer_scratch(n)
+integer :: n
+if (.not. allocated(tao_c_interface_com%c_integer)) allocate (tao_c_interface_com%c_integer(n))
+if (size(tao_c_interface_com%c_integer) < n) then
+  deallocate (tao_c_interface_com%c_integer)
+  allocate (tao_c_interface_com%c_integer(n)) 
+endif
+tao_c_interface_com%n_int = n
 end subroutine
 
 
