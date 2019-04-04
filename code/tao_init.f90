@@ -474,7 +474,7 @@ end subroutine deallocate_everything
 ! contains
 
 !+
-! Subroutine set_this_file_name (file_name, default_name, tao_com_name, hook_name)
+! Subroutine set_this_file_name (file_name, default_name, arg_name, hook_name)
 !
 ! Routine to set the name of the file based on the file name set from various sources.
 !
@@ -482,16 +482,17 @@ end subroutine deallocate_everything
 !   file_name     -- character(*): The file name as set in the tao init file.
 !                       If it has not been set then file_name = 'NOT SET!'.
 !   default_name  -- character(*): Default name if no other name is present.
-!   tao_com_name  -- character(*): Name from s%com structure. This name is from the startup command line.
+!   arg_name      -- character(*): This name is from the startup command line.
 !   hook_name     -- character(*): Name as set by the tao_hook_parse_command_args routine.
+!                       Essentially the hook name overrides the default name.
 !
 ! Output:
 !   file_name     -- character(*): File name.
 !-
 
-subroutine set_this_file_name (file_name, default_name, tao_com_name, hook_name)
+subroutine set_this_file_name (file_name, default_name, arg_name, hook_name)
 
-character(*) file_name, default_name, tao_com_name, hook_name
+character(*) file_name, default_name, arg_name, hook_name
 character(200) name
 
 ! Order of preference. Highest used first:
@@ -501,10 +502,10 @@ character(200) name
 !   4) Default_name.
 
 name = default_name
-if (hook_name /= '') name = hook_name
-if (tao_com_name /= '') name  = tao_com_name
 if (default_name /= '') name = default_name
+if (hook_name /= '') name = hook_name
 if (file_name /= 'NOT SET!') name = file_name
+if (arg_name /= '') name  = arg_name
 file_name = name
 
 if (file_name_is_relative(file_name)) then
