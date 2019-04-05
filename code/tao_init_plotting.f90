@@ -87,8 +87,8 @@ s%com%init_plot_needed = .false.
 init_axis%min = 0
 init_axis%max = 0
 
-place%region = ' '
-region%name  = ' '       ! a region exists only if its name is not blank 
+place%region = ''
+region%name  = ''       ! a region exists only if its name is not blank 
 include_default_plots = .true.
 
 plot_page = plot_page_default
@@ -97,7 +97,7 @@ plot_page%title(2)%y = 0.97
 plot_page%size = [500, 600]
 plot_page%border = qp_rect_struct(0.001_rp, 0.001_rp, 0.001_rp, 0.001_rp, '%PAGE')
 
-default_plot%name = ' '
+default_plot%name = ''
 default_plot%description = ''
 default_plot%x_axis_type = 'index'
 default_plot%x = init_axis
@@ -164,30 +164,29 @@ call tao_set_plotting (plot_page, s%plot_page, .true.)
 
 ! title
 
-forall (i = 1:size(s%plot_page%title), (s%plot_page%title(i)%string .ne. ' ')) &
-            s%plot_page%title(i)%draw_it = .true.
+forall (i = 1:size(s%plot_page%title), (s%plot_page%title(i)%string /= '')) s%plot_page%title(i)%draw_it = .true.
 
 ! Plot window geometry specified on cmd line?
 
 if (s%com%geometry_arg /= '') then
-   str = s%com%geometry_arg
-   ix = index(str, 'x')
-   if (ix == 0) then
-     call out_io (s_error$, r_name, 'MALFORMED -geometry ARGUMENT. NO "x" PRESENT: ' // str, 'IN FILE: ' // plot_file)
-   else
-     if (.not. is_integer(str(1:ix-1)) .or. .not. is_integer(str(ix+1:))) then
-       call out_io (s_error$, r_name, 'MALFORMED -geometry ARGUMENT: ' // str, 'IN FILE: ' // plot_file)
-     else
-       read (str(:ix-1), *) plot_page%size(1)
-       read (str(ix+1:), *) plot_page%size(2)
-     endif
-   endif
- endif
+  str = s%com%geometry_arg
+  ix = index(str, 'x')
+  if (ix == 0) then
+    call out_io (s_error$, r_name, 'MALFORMED -geometry ARGUMENT. NO "x" PRESENT: ' // str, 'IN FILE: ' // plot_file)
+  else
+    if (.not. is_integer(str(1:ix-1)) .or. .not. is_integer(str(ix+1:))) then
+      call out_io (s_error$, r_name, 'MALFORMED -geometry ARGUMENT: ' // str, 'IN FILE: ' // plot_file)
+    else
+      read (str(:ix-1), *) plot_page%size(1)
+      read (str(ix+1:), *) plot_page%size(2)
+    endif
+  endif
+endif
  
 ! allocate a s%plot_page%plot structure for each region defined and
 ! transfer the info from the input region structure.
 
-n = count(region%name /= ' ')
+n = count(region%name /= '')
 allocate (s%plot_page%region(n))
 
 do i = 1, n
@@ -734,10 +733,10 @@ do  ! Loop over plot files
         ! to be the beginning element.
 
         ! if ix_ele_ref has been set ...
-        if (crv%ele_ref_name == ' ' .and. crv%ix_ele_ref >= 0) then 
+        if (crv%ele_ref_name == '' .and. crv%ix_ele_ref >= 0) then 
           crv%ele_ref_name = s%u(i_uni)%design%lat%ele(crv%ix_ele_ref)%name ! find the name
         ! if ele_ref_name has been set ...
-        elseif (crv%ele_ref_name /= ' ') then
+        elseif (crv%ele_ref_name /= '') then
           call tao_locate_elements (crv%ele_ref_name, i_uni, eles, err, ignore_blank = .true.) ! find the index
           crv%ix_ele_ref = eles(1)%ele%ix_ele
           crv%ix_branch  = eles(1)%ele%ix_branch
