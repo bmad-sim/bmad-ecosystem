@@ -2996,6 +2996,11 @@ case ('particle')
 
   ! check
 
+  if (.not. allocated(u%beam%beam_at_start%bunch)) then
+    call out_io (s_error$, r_name, 'NO BEAM TRACKING HAS BEEN DONE.')
+    return
+  endif
+
   if (nb < 1 .or. nb > size(u%beam%beam_at_start%bunch)) then
     call out_io (s_error$, r_name, 'BUNCH INDEX OUT OF RANGE: \i0\ ', i_array = [ nb ])
     return
