@@ -913,13 +913,14 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
 
         iv = ctl%ix_attrib
         a_name = attribute_name(slave, iv)
-        if (iv > num_ele_attrib$) then  ! Special group construct: accordion_edge$, start_edge$, end_edge$, or s_position$
-          write (attrib_val_str, '(es12.4)') val
-        else
+        select case (a_name)
+        case ('ACCORDION_EDGE', 'START_EDGE', 'END_EDGE', 'S_POSITION')  ! Special group constructs
+          attrib_val_str = ' ----'
+        case default
           call pointer_to_attribute (slave, a_name, .false., a_ptr, err_flag)
           attrib_val_str = ' ----'
           if (associated(a_ptr%r)) write (attrib_val_str, '(es12.4)') a_ptr%r
-        endif
+        end select
 
         if (allocated(ctl%stack)) then
           a_str = expression_stack_to_string (ctl%stack)
