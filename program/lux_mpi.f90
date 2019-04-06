@@ -1,8 +1,3 @@
-!To do:
-!  *) Code: lux_add_in_slave_data
-!  *) Add files: lux/examples/run_lux_mpi.sh
-!  *) Make sure lux/examples/lux.init works.
-
 program lux_mpi
 
 use lux_module
@@ -92,7 +87,7 @@ if (lux_com%mpi_rank == master_rank) then
     ! Get data from a slave
     call print_this ('Master: Waiting for a Slave...')
     call mpi_recv (slave_grid%pt, data_size, MPI_REAL8, MPI_ANY_SOURCE, results_tag, MPI_COMM_WORLD, stat, ierr)
-    call lux_add_in_slave_data (slave_grid%pt, lux_param, lux_com, lux_data)
+    call lux_add_in_mpi_slave_data (slave_grid%pt, lux_param, lux_com, lux_data)
     slave_rank = stat(MPI_SOURCE)
     call print_this ('Master: Gathered data from Slave: ', slave_rank)
 

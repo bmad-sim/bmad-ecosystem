@@ -11,4 +11,7 @@ set (LINK_LIBS
   ${PLOT_LINK_LIBS}
   recipes_f-90_LEPP
   forest
+  fgsl
+  gsl
+  gslcblas
 )

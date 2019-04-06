@@ -12,7 +12,8 @@ use input_mod
 
 implicit none
 
-!
+! Break a bend or a wiggler into longitudinal slices. To save time, if the photons from a given slice will not 
+! make it to the detector, do not emit photons from that slice.
 
 type lux_bend_slice_struct
   type (ele_struct) ele
@@ -53,6 +54,7 @@ type lux_param_struct
   logical :: reject_dead_at_det_photon1 = .false.
   logical :: scale_initial_field_to_1 = .true.
   logical :: track_bunch = .false.
+  logical :: normalization_includes_pixel_area = .true.
 end type
 
 type lux_photon_struct
@@ -954,7 +956,7 @@ end subroutine lux_track_photons
 !   lux_com%lat%detec_ele%photon%surface%grid%pt
 !-
 
-subroutine lux_add_in_slave_data (slave_pt, lux_param, lux_com, lux_data)
+subroutine lux_add_in_mpi_slave_data (slave_pt, lux_param, lux_com, lux_data)
 
 type (lux_param_struct) lux_param
 type (lux_common_struct), target :: lux_com
@@ -971,7 +973,7 @@ lux_data%n_track_tot   = lux_data%n_track_tot   + lux_com%n_photon_stop1
 lux_data%n_live        = lux_data%n_live        + sum(slave_pt%n_photon)
 lux_data%n_lost        = lux_data%n_lost        + lux_com%n_photon_stop1 - sum(slave_pt%n_photon)
 
-end subroutine lux_add_in_slave_data 
+end subroutine lux_add_in_mpi_slave_data 
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -1051,7 +1053,10 @@ intens_tot_x = 0
 intens_tot_y = 0
 intens_tot = 0
 
-normalization = lux_param%intensity_normalization_coef / (lux_data%n_track_tot * detec_grid%dr(1) * detec_grid%dr(2))
+normalization = lux_param%intensity_normalization_coef / lux_data%n_track_tot 
+if (lux_param%normalization_includes_pixel_area) then
+  normalization = normalization / (detec_grid%dr(1) * detec_grid%dr(2))
+endif
 
 if (lux_param%det_pix_out_file /= '') then
   open (3, file = lux_param%det_pix_out_file, recl = 300)
@@ -1069,21 +1074,23 @@ if (lux_param%det_pix_out_file /= '') then
   enddo
   enddo
 
-  write (3, '(3a)')                 'master_input_file   = "', trim(lux_param%param_file), '"'
-  write (3, '(3a)')                 'lattice_file        = "', trim(lux_param%lattice_file), '"'
-  write (3, '(a, es14.6)')          'normalization       =', normalization
-  write (3, '(a, es16.5)')          'intensity_x_unnorm  =', sum(detec_grid%pt(:,:)%intensity_x)
-  write (3, '(a, es16.5)')          'intensity_x_norm    =', sum(detec_grid%pt(:,:)%intensity_x) * normalization
-  write (3, '(a, es16.5)')          'intensity_y_unnorm  =', sum(detec_grid%pt(:,:)%intensity_y)
-  write (3, '(a, es16.5)')          'intensity_y_norm    =', sum(detec_grid%pt(:,:)%intensity_y) * normalization
-  write (3, '(a, es16.5)')          'intensity_unnorm    =', sum(detec_grid%pt(:,:)%intensity)
-  write (3, '(a, es16.5)')          'intensity_norm      =', sum(detec_grid%pt(:,:)%intensity) * normalization
-  write (3, '(a, f10.6)')           'dx_pixel            =', detec_grid%dr(1)
-  write (3, '(a, f10.6)')           'dy_pixel            =', detec_grid%dr(2)
-  write (3, '(a, i8)')              'nx_active_min       =', nx_active_min
-  write (3, '(a, i8)')              'nx_active_max       =', nx_active_max
-  write (3, '(a, i8)')              'ny_active_min       =', ny_active_min
-  write (3, '(a, i8)')              'ny_active_max       =', ny_active_max
+  write (3, '(2a)')           'master_parameter_file                       = ', quote(lux_param%param_file)
+  write (3, '(2a)')           'lux_param%lattice_file                      = ', quote(lux_param%lattice_file)
+  write (3, '(a, es12.4)')    'lux_param%intensity_normalization_coef      =', lux_param%intensity_normalization_coef
+  write (3, '(a, l2)')        'lux_param%normalization_includes_pixel_area =', lux_param%normalization_includes_pixel_area
+  write (3, '(a, es14.6)')    'normalization       =', normalization
+  write (3, '(a, es16.5)')    'intensity_x_unnorm  =', sum(detec_grid%pt(:,:)%intensity_x)
+  write (3, '(a, es16.5)')    'intensity_x_norm    =', sum(detec_grid%pt(:,:)%intensity_x) * normalization
+  write (3, '(a, es16.5)')    'intensity_y_unnorm  =', sum(detec_grid%pt(:,:)%intensity_y)
+  write (3, '(a, es16.5)')    'intensity_y_norm    =', sum(detec_grid%pt(:,:)%intensity_y) * normalization
+  write (3, '(a, es16.5)')    'intensity_unnorm    =', sum(detec_grid%pt(:,:)%intensity)
+  write (3, '(a, es16.5)')    'intensity_norm      =', sum(detec_grid%pt(:,:)%intensity) * normalization
+  write (3, '(a, f10.6)')     'dx_pixel            =', detec_grid%dr(1)
+  write (3, '(a, f10.6)')     'dy_pixel            =', detec_grid%dr(2)
+  write (3, '(a, i8)')        'nx_active_min       =', nx_active_min
+  write (3, '(a, i8)')        'nx_active_max       =', nx_active_max
+  write (3, '(a, i8)')        'ny_active_min       =', ny_active_min
+  write (3, '(a, i8)')        'ny_active_max       =', ny_active_max
 
   params_out = lux_param%bmad_parameters_out
   param_loop: do 

@@ -19,7 +19,7 @@
 \newcommand{\Begineq}{\begin{equation}}
 \newcommand{\Endeq}{\end{equation}}
 \newcommand{\CRNO}{\nonumber \\}
-
+\newcommand{\Eq}[1]{{Eq.~(\protect\ref{#1})}}
 \newcommand\ttcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
 \newcommand\dottcmd[1]{\texttt{#1}\endgroup}
 \newcommand{\vn}{\ttcmd}   
@@ -60,7 +60,7 @@
 
 \title{Lux Program}
 \author{D. Sagan, K. Finkelstein}
-\date{Revision 1.5 \\ August 28, 2018}
+\date{Revision 1.6 \\ March 12, 2019}
 
 %---------------------------------------------------------------------------------
 
@@ -95,7 +95,7 @@ local area
 
 \lux is built using the same build system based on \vn{CMake} that is
 used for building Bmad. To build the single threaded version of \lux,
-go to the \lux directory and use the \vn{mk} and/or the \vn{mkd}
+go to the \vn{lux} directory and use the \vn{mk} and/or the \vn{mkd}
 command to build production and/or debug executables (See the
 documentation of the Bmad build system for more details).
 
@@ -190,6 +190,7 @@ An example is:
 
     lux_param%scale_initial_field_to_1 = False
     lux_param%intensity_normalization_coef = 1e6 ! photon intensities norm.
+    lux_param%normalization_includes_pixel_area = T
 
     lux_param%stop_total_intensity = 10          ! Cumulative intensity to stop at.
     lux_param%stop_num_photons = 1e8             ! Max number of photons to track.
@@ -269,7 +270,7 @@ Cutoff intensity below which a photon will not be included in
 the photon1_out file (\sref{s:photon1.file}).
 
   \item[\vn{lux_param\%intensity_normalization_coef}] \Newline
-Coefficient used to normalize the photon intensity with (\sref{s:det}).
+Coefficient used to normalize the photon intensity with (\sref{s:photon.descrip}).
 
   \item[\vn{lux_param\%lattice_file}] \Newline
 Name of the input file that defines the X-ray optics setup from source
@@ -289,6 +290,10 @@ sending back data to the master process:
 The value 0.1 is the default. Changing this number can affect
 running time but the running time should be fairly insensitive
 to the value of \vn{%mpi_run_size}.
+
+  \item[\vn{lux_param\%normalization_includes_pixel_area}] \Newline
+Does the factor used for computing the normalized photon intensity (\sref{s:photon.descrip}) include
+the pixel area of the detector?
 
   \item[\vn{lux_param\%photon_init_element}] \Newline
 Name of the lattice element that is the source of the photons (\sref{s:lat.file}).
@@ -327,14 +332,13 @@ the random number generator. If set to 0, the system clock will be used so that 
 output results will vary from run to run. Not used if the \vn{random_engine} is set to \vn{quasi}.
 
   \item[\vn{lux_param\%reject_dead_at_det_photon1}] \Newline
-If \vn{reject_dead_to_det_photon1} is set to True, do not print to the
-photon_out file any photons that do not reach the detector. This switch
-is only relevant when the lattice element at which the photon positions
-are being evaluated is not the detector (\sref{s:photon1.file}).
+If \vn{reject_dead_to_det_photon1} is set to True, do not print to the photon_out file any photons
+that do not reach the detector. This switch is only relevant when the lattice element at which the
+photon positions are being evaluated is not the detector (\sref{s:photon1.file}).
 
   \item[\vn{lux_param\%scale_initial_field_to_1}] \Newline
-Scale the field so that $E_x^2 + E_y^2 = 1$ Only used if at least
-one field component is non-zero.
+Scale the field so that $E_x^2 + E_y^2 = 1$? Default is True. Only used if at least one field
+component is non-zero. See \sref{s:photon.descrip} for more details.
 
   \item[\vn{lux_param\%stop_num_photons}] \Newline
 Maximum number of photons to track (\sref{s:det}).
@@ -527,31 +531,37 @@ interesting). $(v_x/c, v_y/c, v_z/c)$ is the photon velocity normalized to 1.
 Generally photons that make it to the detector will have $v_z/c$ close to
 1 and $v_x/c$ and $v_y/c$ small.
 
-The photon phases \vn{phase_x} and \vn{phase_y} are only relevant with
-coherent tracking set in the lattice by the
-\vn{parameter[photon_type]}. See the Bmad manual for more details.
+The photon phases \vn{phase_x} and \vn{phase_y} are only relevant with coherent tracking set in the
+lattice by the \vn{parameter[photon_type]}. See the Bmad manual for more details.
 
 The unnormalized intensity of a photon is:
 \begin{example}
   I(unnormalized) = e_field_x^2 + e_field_y^2
 \end{example}
+Initially, the intensity of a photon is set to 1 if \vn{lux_param%scale_initial_field_to_1} is set
+to True (the default). Photons can loose intensity, for example when diffracting off of a crystal.
 
-To properly normalize the light intensity of the detector pixels in
-the output files, a normalization factor $f_n$ is applied.
+To properly normalize the light intensity of the detector pixels in the output files, a
+normalization factor $f_n$ is applied.
 \Begineq
   I (\mbox{normalized}) = f_n I (\mbox{unnormalized}) 
 \Endeq
-$f_n$ is constructed so that the normalized intensity will be
-independent of the number of simulation photons and independent of the
-detector pixel size. Explicitly:
+If \vn{lux_param%normalization_includes_pixel_area} is set to True (the default), $f_n$ is
+constructed so that the normalized intensity will be independent of the number of simulation photons
+generated and independent of the detector pixel size. Explicitly:
 \Begineq
   f_n = \frac{C_f}{A_{pix} \, N_p}
+  \label{fcan}
 \Endeq
-where $A_{pix}$ is the area of the pixels, $N_p$ is the number of
-photons tracked, and $C_f$ is a normalization coefficient set by the
-\vn{intensity_normalization_coef} parameter in the master input file,
-$C_f$ can be used, for example, to scale the output numbers to
-correspond to actual measured values.
+where $A_{pix}$ is the area of a pixel, $N_p$ is the number of photons tracked, and $C_f$ is a
+normalization coefficient set by the \vn{intensity_normalization_coef} parameter in the master input
+file, $C_f$ can be used, for example, to scale the output numbers to correspond to actual measured
+values. If \vn{lux_param%normalization_includes_pixel_area} is set to False, $f_n$ in \Eq{fcan} is
+constructed to only normalize the number of photons generated:
+\Begineq
+  f_n = \frac{C_f}{N_p}
+  \label{fcan2}
+\Endeq
 
 %------------------------------------------------------------------
 \subsection{Photon Polarization Initialization}

@@ -1,3 +1,7 @@
+# To build production exe use the command:
+#   ./build_mpi mk
+# Or use "mkd" to build the debug exe.
+
 export ACC_ENABLE_MPI=Y
 $@
 unset ACC_ENABLE_MPI
