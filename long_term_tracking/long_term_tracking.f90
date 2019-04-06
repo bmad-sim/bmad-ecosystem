@@ -89,6 +89,7 @@ endif
 
 ! Lattice init
 
+bmad_com%auto_bookkeeper = .false.
 call ran_seed_put (random_seed)
 
 call bmad_parser (lat_file, lat)
@@ -365,7 +366,7 @@ case ('STAT')
   ring_length = branch%param%total_length
   call chrom_calc(lat, 1.0d-6, chrom_x, chrom_y, err_flag, ix_branch = ix_branch)
   call calc_z_tune (lat)
-  call radiation_integrals (lat, orb, modes, rad_int_by_ele = rad_int_ele, ix_branch = ix_branch)
+  call radiation_integrals (lat, closed_orb, modes, rad_int_by_ele = rad_int_ele, ix_branch = ix_branch)
 
   print *, 'Momentum Compaction:', modes%synch_int(1)/ring_length
   print *, 'dE/E=', modes%sigE_E

@@ -2,11 +2,10 @@ module synrad_struct
 
 use bmad_interface
 
-! The wall is specified by an array of points with straight lines (faces)
-! between the points. the face between point i-1 and the point i is
-! associated with the structure for point i. If a face represents an opening
-! in the wall (eg the openings for the chess beam lines) then that face is
-! call a phantom.
+! The wall is specified by an array of points with straight lines (faces) between the points. 
+! the face between point i-1 and the point i is associated with the structure for point i.
+! If a face represents an opening in the wall (eg the openings for the chess beam 
+! lines) then that face is call a phantom.
 
 ! The "triangle" point is constructed so that the (possibly curved) wall 
 ! associated with a wall point wall%pt(i) is containd within the triangle 
