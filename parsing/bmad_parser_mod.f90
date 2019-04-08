@@ -6171,6 +6171,13 @@ character(200) name, full_name
 
 integer ix
 
+! Singular case
+
+if (lat_file == '') then
+  digested_file = ''
+  return
+endif
+
 ! Get the full_lat_file name
 
 call fullfilename (lat_file, name)

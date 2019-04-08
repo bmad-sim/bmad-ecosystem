@@ -3,7 +3,8 @@ module ptc_map_with_radiation_mod
 ! Etienne wanted the "zhe" stuff to be standalone and so duplicated structures in 
 
 use ptc_layout_mod
-use duan_zhe_map, only: tree_element_zhe => tree_element, probe_zhe => probe, track_tree_probe_complex_zhe, zhe_ini
+use duan_zhe_map, only: tree_element_zhe => tree_element, probe_zhe => probe, track_tree_probe_complex_zhe, &
+                        zhe_ini, zhe_iseed
 
 type ptc_map_with_rad_struct
   type (tree_element_zhe) sub_map(3)
@@ -476,5 +477,32 @@ do k = 1, 3
 enddo
 
 end subroutine ptc_kill_map_with_radiation
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine ptc_set_map_with_radiation_ran_seed (iseed)
+!
+! Routine to set the random number seed used for the radiation excitation part of the map.
+!
+! Input:
+!   iseed -- Integer: 0 -> Use system clock.
+!-
+
+subroutine ptc_set_map_with_radiation_ran_seed (iseed)
+
+integer iseed, v(10)
+
+!
+
+if (iseed == 0) then
+  call date_and_time (values = v)
+  zhe_iseed = v(1) + v(2) + 11*v(3) + 111*v(5) + 1111*v(6) + 11111*v(7) + 111111*v(8)
+else
+  zhe_iseed = iseed
+endif
+
+end subroutine ptc_set_map_with_radiation_ran_seed
 
 end module

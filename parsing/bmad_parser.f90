@@ -99,6 +99,15 @@ bp_com%use_local_lat_file = .false.
 debug_line = ''
 err = .false.
 
+if (lat_file == '') then
+  call parser_error('lattice file name is blank!')
+  if (global_com%exit_on_error) then
+    call out_io (s_fatal$, r_name, 'BMAD_PARSER FINISHED. EXITING ON ERRORS')
+    stop
+  endif
+  return
+endif
+
 if (.not. bp_com%always_parse) then
   call form_digested_bmad_file_name (lat_file, digested_file, full_lat_file_name, use_line)
   call read_digested_bmad_file (digested_file, lat, digested_version, err, .true.)
