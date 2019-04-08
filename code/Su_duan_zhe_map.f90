@@ -18,7 +18,7 @@ implicit none
    logical :: c_verbose_zhe = .false.
  complex(dp), parameter :: i_ = ( 0.0_dp,1.0_dp )    ! cmplx(zero,one,kind=dp)
   integer,parameter::lno=200,lnv=100
-  integer :: zhe_ISEED=1000,nrmax_used
+  integer, public :: zhe_ISEED=1000,nrmax_used
 private subq,unarysubq,addq,unaryADDq,absq,absq2,mulq,divq,ranf
 private EQUALq,EQUALqr,EQUALqi,powq,printq ,invq
 real(dp),parameter::pi=3.141592653589793238462643383279502e0_dp
