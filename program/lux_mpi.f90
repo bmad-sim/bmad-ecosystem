@@ -48,6 +48,14 @@ end if
 master_rank = 0
 num_slaves = lux_com%mpi_n_proc - 1
 
+if (num_slaves < 1) then
+  print *, 'ONLY ONE PROCESS EXISTS! WILL RUN SERIAL...'
+  call lux_run_serial()
+  call mpi_finalize(ierr)
+  stop
+endif
+
+!-------------------------------
 ! Init Lux
 
 lux_com%using_mpi = .true.
@@ -58,12 +66,6 @@ allocate (slave_grid%pt(size(detec_grid%pt, 1), size(detec_grid%pt, 1)))
 
 ! storage_size returns size in bytes per point
 data_size = size(detec_grid%pt, 1) * size(detec_grid%pt, 2) * storage_size(detec_grid%pt) / 8
-
-if (num_slaves < 1) then
-  print *, 'ONLY ONE PROCESS EXISTS!'
-  call mpi_finalize(ierr)
-  stop
-ENDIF
 
 results_tag = 1000
 is_done_tag = 1001
