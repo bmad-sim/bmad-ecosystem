@@ -92,7 +92,8 @@ type (lat_struct), target ::  lat
 type (ele_struct), pointer :: ele, ele_start
 type (branch_struct), pointer :: branch
 type (coord_struct), allocatable, target ::  closed_orb(:), co_saved(:)
-type (coord_struct), pointer :: orb_start, orb_end
+type (coord_struct), pointer :: c_orb(:), s_orb, e_orb
+type (coord_struct), pointer :: start_orb, end_orb
 type (bmad_common_struct) bmad_com_saved
 type (super_mrqmin_storage_struct) storage
 
@@ -108,7 +109,8 @@ real(rp) t1(6,6), del_co(6), t11_inv(6,6), i1_int, del_orb(6)
 real(rp) :: amp_co(6), amp_del(6), dt, amp, dorb(6), start_orb_t1(6)
 real(rp) z0, dz, z_here, this_amp, dz_norm, max_eigen, min_max_eigen, z_original, betas(2)
 real(rp) a_lambda, chisq, old_chisq, rf_freq, svec(3), mat3(3,3), rf_wavelen, dz_step
-real(rp), allocatable :: on_off_state(:), vec0(:), dvec(:), weight(:), a(:), merit_vec(:), dy_da(:,:)
+real(rp), allocatable, target :: on_off_state(:), vec0(:), dvec(:), weight(:), a_vec(:), merit_vec(:), dy_da(:,:)
+real(rp), pointer :: av(:)
 
 integer, optional :: direction, ix_branch, i_dim
 integer i, j, ie, i2, i_loop, n_dim, n_ele, i_max, dir, track_state, n, status, j_max
@@ -157,11 +159,11 @@ else
   ix_ele_end   = 0
 endif
 
-orb_start => closed_orb(ix_ele_start)
-orb_end   => closed_orb(ix_ele_end)
+start_orb => closed_orb(ix_ele_start)
+end_orb   => closed_orb(ix_ele_end)
 ele_start => branch%ele(ix_ele_start)
 
-call init_coord (orb_start, orb_start, ele_start, start_end$, orb_start%species, dir)
+call init_coord (start_orb, start_orb, ele_start, start_end$, start_orb%species, dir)
 
 !----------------------------------------------------------------------
 ! Further init
@@ -200,7 +202,7 @@ case (4, 5)
     if (dir == 1) branch%param%t1_no_RF = t1
   endif
 
-  orb_start%vec(5) = 0
+  start_orb%vec(5) = 0
 
   if (n_dim == 5) then  ! crude I1 integral calculation
     i1_int = 0
@@ -240,7 +242,7 @@ case (6)
     rf_freq = min(rf_freq, abs(ele%value(rf_frequency$)))
   enddo
 
-  z_original = orb_start%vec(5) 
+  z_original = start_orb%vec(5) 
   rf_wavelen = c_light * (branch%ele(ix_ele_start)%value(p0c$) / branch%ele(ix_ele_start)%value(e_tot$)) / rf_freq
 
 ! Error
@@ -258,15 +260,20 @@ end select
 ! Because of nonlinearities we may need to iterate to find the solution
 
 allocate(co_saved(0:ubound(closed_orb, 1)))
-allocate(vec0(n_dim), dvec(n_dim), weight(n_dim), a(n_dim), maska(n_dim), merit_vec(n_dim), dy_da(n_dim,n_dim))
+allocate(vec0(n_dim), dvec(n_dim), weight(n_dim), a_vec(n_dim), maska(n_dim), merit_vec(n_dim), dy_da(n_dim,n_dim))
 vec0 = 0
 maska = .false.
 stable_orbit_found = .false.
 a_lambda = -1
 old_chisq = 1d30   ! Something large
-a = orb_start%vec(1:n_dim)
-if (n_dim == 5) a(5) = orb_start%vec(6)
+a_vec = start_orb%vec(1:n_dim)
+if (n_dim == 5) a_vec(5) = start_orb%vec(6)
 try_lmdif = .true.
+
+c_orb => closed_orb   ! Used to get around ifort bug
+s_orb => start_orb    ! Used to get around ifort bug
+e_orb => end_orb      ! Used to get around ifort bug
+av    => a_vec        ! Used to get around ifort bug
 
 !
 
@@ -275,21 +282,21 @@ i_max = 100
 
 do i_loop = 1, i_max
 
-  weight(1:n_dim) = 1 / (abs(a) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)**2
+  weight(1:n_dim) = 1 / (abs(a_vec) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)**2
   weight(1:4) = weight(1:4) * [1/sqrt(betas(1)), sqrt(betas(1)), 1/sqrt(betas(2)), sqrt(betas(2))]
 
-  call super_mrqmin (vec0, weight, a, chisq, co_func, storage, a_lambda, status)
+  call super_mrqmin (vec0, weight, a_vec, chisq, co_func, storage, a_lambda, status)
 
   if ((branch%param%unstable_factor /= 0 .and. try_lmdif) .or. a_lambda > 1d8) then  ! Particle lost. Try lmdif since lmdif does not need derivatives
     call initial_lmdif()
     do i2 = 1, i_max/4
-      call co_func(a, dvec, dy_da, status)
+      call co_func(a_vec, dvec, dy_da, status)
       do j = 1, n_dim
         merit_vec(j) = sqrt(weight(j)) * dvec(j)
       enddo
-      call suggest_lmdif (a, merit_vec, bmad_com%rel_tol_tracking, i_max, at_end)
+      call suggest_lmdif (a_vec, merit_vec, bmad_com%rel_tol_tracking, i_max, at_end)
     enddo
-    call co_func(a, dvec, dy_da, status)
+    call co_func(a_vec, dvec, dy_da, status)
     if (status /= 0) then
       if (printit) call out_io (s_error$, r_name, 'CANNOT FIND STABLE ORBIT.', 'USING BRANCH: ' // branch_name(branch))
       call end_cleanup
@@ -315,22 +322,22 @@ do i_loop = 1, i_max
   endif
 
   if (i_loop == 1 .and. .not. stable_orbit_found) then
-    a(1:4) = 0  ! Desperation move.
+    a_vec(1:4) = 0  ! Desperation move.
   elseif (i_loop == 2 .and. .not. stable_orbit_found) then
     if (printit) call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING!!', 'ABORTING CLOSED ORBIT SEARCH.', &
                                    'USING BRANCH: ' // branch_name(branch))
     call end_cleanup
     return
   else
-    amp_co = abs(orb_start%vec)
-    dorb = orb_end%vec - orb_start%vec
+    amp_co = abs(start_orb%vec)
+    dorb = end_orb%vec - start_orb%vec
 
     if (n_dim == 6) then
-      a(5) = modulo2 (a(5), rf_wavelen / 2)   ! Keep z within 1/2 wavelength of original value
+      a_vec(5) = modulo2 (a_vec(5), rf_wavelen / 2)   ! Keep z within 1/2 wavelength of original value
 
       if (branch%lat%absolute_time_tracking) then
-        dt = (orb_end%t - orb_start%t) - nint((orb_end%t - orb_start%t) * rf_freq) / rf_freq
-        dorb(5) = -orb_end%beta * c_light * dt
+        dt = (end_orb%t - start_orb%t) - nint((end_orb%t - start_orb%t) * rf_freq) / rf_freq
+        dorb(5) = -end_orb%beta * c_light * dt
       endif
     endif
 
@@ -392,7 +399,7 @@ do i_loop = 1, i_max
       endif
 
       if (all(abs(del_co(1:n_dim)) < 1e-2)) then
-        a = a + del_co(1:n_dim)
+        a_vec = a_vec + del_co(1:n_dim)
       endif
     endif
   endif
@@ -406,7 +413,7 @@ do i_loop = 1, i_max
     min_max_eigen = eigen_val_z(t1)
     if (min_max_eigen - 1 > 1d-5) then    ! Is unstable
       j_max = 0
-      z0 = a(5)
+      z0 = a_vec(5)
       dz = rf_wavelen / 8
       do j = -3, 4
         z_here = z0 + j * dz
@@ -417,8 +424,8 @@ do i_loop = 1, i_max
       enddo
 
       ! Reset
-      a(5) = z0 + j_max * dz
-      call max_eigen_calc(a(5), max_eigen)
+      a_vec(5) = z0 + j_max * dz
+      call max_eigen_calc(a_vec(5), max_eigen)
 
       ! If z needs to be shifted, reset super_mrqmin
       if (j_max /= 0) then
@@ -458,12 +465,12 @@ enddo
 if (bmad_com_saved%spin_tracking_on) then
   bmad_com%spin_tracking_on = .true.
   do i = 1, 3
-    orb_start%spin = 0
-    orb_start%spin(i) = 1
+    start_orb%spin = 0
+    start_orb%spin(i) = 1
     call track_many (lat, closed_orb, ix_ele_start, ix_ele_end, dir, branch%ix_branch, track_state)
-    mat3(:,i) = orb_end%spin
+    mat3(:,i) = end_orb%spin
   enddo
-  call w_mat_to_axis_angle(mat3, orb_start%spin, branch%param%spin_tune)
+  call w_mat_to_axis_angle(mat3, start_orb%spin, branch%param%spin_tune)
   call track_many (lat, closed_orb, ix_ele_start, ix_ele_end, dir, branch%ix_branch, track_state)
 endif
 
@@ -497,8 +504,8 @@ logical err
 
 !
 
-orb_start%vec(5) = z_set
-call init_coord (orb_start, orb_start, ele_start, start_end$, orb_start%species, dir)
+start_orb%vec(5) = z_set
+call init_coord (start_orb, start_orb, ele_start, start_end$, start_orb%species, dir)
 
 call track_many (lat, closed_orb, ix_ele_start, ix_ele_end, dir, branch%ix_branch, track_state)
 
@@ -545,7 +552,7 @@ integer status, i
 ! To avoid this, veto any step where z changes by more than lambda_rf/10.
 
 if (n_dim == 6) then
-  dz_step = abs(a_try(5)-a(5)) / (rf_wavelen / 10)
+  dz_step = abs(a_try(5)-a_vec(5)) / (rf_wavelen / 10)
   if (dz_step > 1) then
     status = 1  ! Veto step
     return
@@ -555,23 +562,23 @@ endif
 !
 
 if (n_dim == 5) then
-  orb_start%vec(1:4) = a_try(1:4)
-  orb_start%vec(6)   = a_try(5)
+  start_orb%vec(1:4) = a_try(1:4)
+  start_orb%vec(6)   = a_try(5)
 else
-  orb_start%vec(1:n_dim) = a_try
+  start_orb%vec(1:n_dim) = a_try
 endif
 
-call init_coord (orb_start, orb_start, ele_start, start_end$, orb_start%species, dir)
+call init_coord (start_orb, start_orb, ele_start, start_end$, start_orb%species, dir)
 call track_many (lat, closed_orb, ix_ele_start, ix_ele_end, dir, branch%ix_branch, track_state)
 
 !
 
 status = 0
-del_orb = orb_end%vec - orb_start%vec
+del_orb = end_orb%vec - start_orb%vec
 
 if (n_dim == 6 .and. branch%lat%absolute_time_tracking) then
-  dt = (orb_end%t - orb_start%t) - nint((orb_end%t - orb_start%t) * rf_freq) / rf_freq
-  del_orb(5) = -orb_end%beta * c_light * dt
+  dt = (end_orb%t - start_orb%t) - nint((end_orb%t - start_orb%t) * rf_freq) / rf_freq
+  del_orb(5) = -end_orb%beta * c_light * dt
 endif
 
 if (track_state == moving_forward$) then
@@ -613,12 +620,12 @@ if (dir == 1) then
 
 else
   call track_many (branch%lat, closed_orb, branch%n_ele_track, 0, dir, branch%ix_branch, track_state)
-  start_saved = orb_start
-  end_saved   = orb_end
+  start_saved = start_orb
+  end_saved   = end_orb
 
   delta = 1d-6
   do i = 1, 6
-    orb_start%vec(i) = start_saved%vec(i) + delta
+    start_orb%vec(i) = start_saved%vec(i) + delta
     call track_many (branch%lat, closed_orb, branch%n_ele_track, 0, dir, branch%ix_branch, track_state)
     if (track_state /= moving_forward$) then 
       call out_io (s_error$, r_name, 'PARTICLE LOST TRACKING BACKWARDS. [POSSIBLE CAUSE: WRONG PARTICLE SPECIES.]', &
@@ -627,16 +634,16 @@ else
       err = .true.
       return
     endif 
-    t1(:,i) = (orb_end%vec - end_saved%vec) / delta
-    orb_start%vec = start_saved%vec
+    t1(:,i) = (end_orb%vec - end_saved%vec) / delta
+    start_orb%vec = start_saved%vec
   enddo
 endif
 
-start_orb_t1 = orb_start%vec
+start_orb_t1 = start_orb%vec
 
 !
 
-call twiss_from_mat6 (t1, orb_start%vec, ele0, stable, growth_rate, stat, .false.)
+call twiss_from_mat6 (t1, start_orb%vec, ele0, stable, growth_rate, stat, .false.)
 if (stat == ok$) then
   betas = [ele0%a%beta, ele0%b%beta]
 else

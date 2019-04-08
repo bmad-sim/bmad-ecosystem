@@ -184,8 +184,8 @@ do
 
   if (in_range > 1) then
     ele_end => eles2(1)%ele
-    ele_start => find_this_end(ele_start, entrance_end$, err); if (err) return
-    ele_end => find_this_end(ele_end, exit_end$, err);  if (err) return
+    ele_start => find_this_end(ele_start, entrance_end$, err2); if (err2) return
+    ele_end => find_this_end(ele_end, exit_end$, err2);  if (err2) return
 
     if (ele_start%ix_branch /= ele_end%ix_branch) then
       call out_io (s_error$, r_name, 'ERROR: ELEMENTS NOT OF THE SAME BRANCH IN RANGE: ' // loc_str)
