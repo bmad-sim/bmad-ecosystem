@@ -67,7 +67,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ February 6, 2019}
+\date{David Sagan \\ April 8, 2019}
 \begin{document}
 \maketitle
 
@@ -135,12 +135,12 @@ No data files are produced in this mode.
 %
 \item["SINGLE"] \Newline
 In this mode a single particle is tracked for \vn{n_turns} turns. The name of the data file is set
-by the \vn{tracking_data_file} parameter (\sref{s:input}). The particle position will be output every
+by the \vn{particle_output_file} parameter (\sref{s:input}). The particle position will be output every
 
 %
 \item["BUNCH"] \Newline
 In this mode a particle bunch is tracked for \vn{n_turns} turns. The output data file(s) format is
-described in Section~\sref{s:out.dat}.
+described in Section~\sref{s:part.out}.
 %
 \item["STAT"] \Newline
 In this mode statistics about the lattice are calculated. No long term tracking is done.
@@ -174,7 +174,6 @@ with beam particle positions, set the \vn{beam_init} structure appropriately. Ex
 \end{code}
 
 In all cases, tracking will start at the lattice element set by \vn{ele_start_name}.
-
 
 %------------------------------------------------------------------
 \Section{Particle Tracking}
@@ -248,6 +247,8 @@ Logical values are specified by \vn{True} or \vn{False} or can be
 abbreviated \vn{T} or \vn{F}. Avoid using the dots (periods) that one
 needs in Fortran code.
 
+\newpage
+
 %------------------------------------------------------------------
 \Section{Master Input File}
 \label{s:input}
@@ -256,24 +257,31 @@ The master input file holds the parameters needed for running the long term trac
 master input file must contain a single namelist (\sref{s:namelist}) named \vn{params}.  Example:
 \begin{code}
 &params
-  common_master_input_file = ""
-  simulation_mode = "BUNCH"
+  ! Input files
   lat_file   =  "lat.bmad"     ! Bmad lattice file
   map_file = 'order5.map'
+  common_master_input_file = ""
 
-  tracking_data_file  = "snap.dat"
+  ! Output parameters
+  particle_output_file = "snap.dat"
+  averages_output_file = "average.dat"  
+  sigma_matrix_output_file = "sigma.dat"
   output_every_n_turns = 200
   output_initial_position = False
-  sigma_matrix_data_file = "sigma.dat"
+  print_on_dead_loss = -1
+  merge_particle_output_files = False
 
+  ! Simulation parameters
+  simulation_mode = "BUNCH"
   ele_start_name     = ""
   n_turns            = 1000
   map_order          = 5
   rfcavity_on        = True
   use_1-turn_map     = True
   timer_print_dtime  = 300
-  ran_seed           = 0
+  random_seed        = 0
   add_closed_orbit_to_init_position = True
+  dead_cutoff = -1
 
   bmad_com%spin_tracking_on = T         ! See Bmad manual for 
   bmad_com%radiation_damping_on = F     !    bmad_com parameters.
@@ -288,7 +296,95 @@ master input file must contain a single namelist (\sref{s:namelist}) named \vn{p
 /
 \end{code}
 
-Namelist parameters:
+\newpage
+
+The namelist parameters can be divided into three categories: Input files, output parameters, and
+simulation parameters.
+
+%----------------------------------------------------
+\subsection{Input Files}
+
+The input files that can be specified in the \vn{params} namelist of the master input file are:
+\begin{description}
+\item[common_master_input_file] \Newline
+The \vn{common_master_input_file} is used in situations where you want to run multipole simulations
+with multiple initialization files and where most parameters are the same across all the
+simulations. In this case, an initialization file containing the parameters that are the same can be
+created along with individual initialization files one for each simulation. The individual files
+should set \vn{common_master_input_file} to the name of the common file and the individual files
+should only set the parameters that are different for that simulation. Parameter values set in the
+individual files will override values set in the common file. Using a common master input file means
+that there is only one file to modify when common parameters are changed as opposed to having to
+modify all the initialization files. If \vn{common_master_input_file} is set to blank (the default),
+no common file is used
+%
+\item[lat_file] \Newline
+Name of the Bmad lattice file to use. This name is required.
+%
+\item[map_file] \Newline
+If not blank, the program will read in the 1-turn map from \vn{map_file}. To create a map file and
+save it to a file, prepend the file name with "WRITE:". Example:
+\begin{code}
+  map_file = 'WRITE:order5.map'
+\end{code}
+This will create a map file called "\vn{order5.map}". The saved map will be affected by the setting
+of \vn{bmad_com%radiation_damping_on}. See \sref{s:track.modes} for more details.
+\end{description}
+
+%----------------------------------------------------
+\subsection{Output Parameters}
+
+\begin{description}
+\item[averages_output_file] \Newline
+Used with \vn{simulation_mode} set to \vn{"BUNCH"}. The name of the file that contain orbital and
+spin positions averaged over all the particles of the bunch.  Each line in the file represents the
+averages at the end of a turn and a new line is added every \vn{ouput_every_n_turns} number of
+turns. If \vn{averages_output_file} is blank, no averages file is produced. Data is always recorded
+when the beam is at the \vn{ele_start_name} position independent of where the lattice begins and
+ends.
+%
+\item[merge_particle_output_files] \Newline
+If set to \vn{True}, all the particle data will be put in one \vn{particle_output_file} file. Only
+relevant for \vn{"BEAM"} tracking.  See Section~\sref{s:part.out}.
+%
+\item[output_every_n_turns] \Newline
+Sets the number of turns between files specified by \vn{averages_output_file} and
+\vn{particle_output_file}.
+%
+\item[output_initial_position] \Newline
+Used with \vn{simulation_mode} set to \vn{"BUNCH"}. If \vn{output_initial_position} is set to
+\vn{True}, additional columns will be added to the output tracking data file to show the initial
+particle position and spin. Default is \vn{False}. See Section~\sref{s:part.out}.
+%
+\item[particle_output_file] \Newline
+Used with \vn{simulation_mode} set to \vn{"BUNCH"}. The name of the file or files that are created
+to hold the particle positions. If \vn{merge_particle_output_files} is set to False, a file is
+created every \vn{ouput_every_n_turns} turns.  If \vn{merge_particle_ouput_files} is set to True,
+the files are combined into one. See Section~\sref{s:part.out} for more details. If
+\vn{particle_ouput_file} is blank, no particle output file is created.
+%
+\item[print_on_dead_loss] \Newline
+After each turn, the number of particles that are still living (have not hit an aperture) are
+counted and if the percentage of particles that have died, counting from the last time a message was
+printed, is larger than \vn{print_on_dead_loss}, a message is printed. For example, if
+\vn{print_on_dead_loss} is set to 0.01, every time the beam loses 1\% of the particles a message is printed.
+Default is -1 which will cause a message printed every turn where there is particle loss.
+%
+\item[sigma_matrix_output_file] \Newline
+String specifying the name of the file to create to hold the calculated sigma matrix. If blank (the
+default), no sigma matrix file will be created. The 6x6 sigma matrix $\boldsymbol{\sigma}$ is a
+measure of the beam size defined by
+\begin{equation}
+  \sigma_{ij} = \left< r_i \, r_j \right>
+\end{equation}
+where $\bf r$ is the particle phase space vector and $<\ldots>$ denotes an average over all
+particles (which will be only one if the \vn{simulation_mode} is set to "SINGLE") and over all
+turns.
+\end{description}
+
+%----------------------------------------------------
+\subsection{Simulation Parameters}
+
 \begin{description}
 \item[add_closed_orbit_to_init_position] \Newline
 If set \vn{True} (the default), initial particle positions are set equal to the input particle positions
@@ -304,17 +400,10 @@ is detailed in the Bmad reference manual. Note: \vn{bmad_com} parameters can be 
 lattice file as well. \vn{Bmad_com} parameter set in the master input file will take precedence over
 parameters set in the lattice file.
 %
-\item[common_master_input_file] \Newline
-The \vn{common_master_input_file} is used in situations where you want to run multipole simulations
-with multiple initialization files and where most parameters are the same across all the
-simulations. In this case, an initialization file containing the parameters that are the same can be
-created along with individual initialization files one for each simulation. The individual files
-should set \vn{common_master_input_file} to the name of the common file and the individual files
-should only set the parameters that are different for that simulation. Parameter values set in the
-individual files will override values set in the common file. Using a common master input file means
-that there is only one file to modify when common parameters are changed as opposed to having to
-modify all the initialization files. If \vn{common_master_input_file} is set to blank (the default),
-no common file is used
+\item[dead_cutoff] \Newline
+Sets the cutoff for the number of dead particles below which the simulation will stop. For example,
+if \vn{dead_cutoff} is set to 0.01, when 1\% of the beam has been lost the simulation will stop. The
+default value for \vn{dead_cutoff} is zero.
 %
 \item[ele_start_name] \Newline
 Name or element index of the element to start the tracking. Examples:
@@ -326,35 +415,14 @@ The default is to start at the beginning of the lattice. Notice that the trackin
 downstream end of the element so the first element tracked through is the element after the chosen
 one.
 %
-\item[lat_file] \Newline
-Name of the Bmad lattice file to use.
-%
-\item[map_file] \Newline
-If not blank, the program will read in the 1-turn map from \vn{map_file}. To create a map file and
-save it to a file, prepend the file name with "WRITE:". Example:
-\begin{code}
-  map_file = 'WRITE:order5.map'
-\end{code}
-This will create a map file called "\vn{order5.map}". The saved map will be affected by the setting
-of \vn{bmad_com%radiation_damping_on}. See \sref{s:track.modes} for more details.
-%
 \item[map_order] \Newline
 Order of the 1-turn map. See Section~\sref{s:track.modes}. The default is what is set in the lattice
 file and if not set in the lattice file the default is 3. Note: \vn{map_order} is only used when
 generating a map.  When a map is read in from a file, the order of this map is independent of the
 current setting of \vn{map_order}.
 %
-\item[output_initial_position] \Newline
-Used with \vn{simulation_mode} set to \vn{"BUNCH"}. If \vn{output_initial_position} is set to
-\vn{True}, additional columns will be added to the output tracking data file to show the initial
-particle position and spin. Default is \vn{False}. See Section~\sref{s:out.dat}.
-%
 \item[n_turns] \Newline
 Number of turns to track. See Section~\sref{s:track.modes}.
-%
-\item[one_tracking_data_file]
-If set to \vn{True}, all the tracking data will be put in one file. Only relevant for \vn{"BEAM"}
-tracking.  See Section~\sref{s:out.dat}.
 %
 \item[random_seed] \Newline
 The random number seed used by the random number generator. If set to 0, the
@@ -364,26 +432,8 @@ system clock will be used. That is, if set to 0, the output results will vary fr
 If set to \vn{False}, the voltage on all RF cavity elements will be turned off. Default is \vn{True}.
 If 1-turn map tracking is used, the RF voltage may not be turned off.
 %
-\item[sigma_matrix_data_file] \Newline
-String specifying the name of the file to create to hold the calculated sigma matrix. If blank (the
-default), no sigma matrix file will be created. The 6x6 sigma matrix $\boldsymbol{\sigma}$ is a
-measure of the beam size defined by
-\begin{equation}
-  \sigma_{ij} = \left< r_i \, r_j \right>
-\end{equation}
-where $\bf r$ is the particle phase space vector and $<\ldots>$ denotes an average over all
-particles (which will be only one if the \vn{simulation_mode} is set to "SINGLE") and over all
-turns.
-%
 \item[simulation_mode] \Newline
 Sets the simulation mode for the program. See Section~\sref{s:sim.modes}.
-%
-\item[tracking_data_file] \Newline
-String specifying the name of the file or files that are created to hold the tracking
-data. See Section~\sref{s:out.dat}. Default is \vn{"tracking.dat"}.
-%
-\item[output_every_n_turns] \Newline
-With Sets the number of turns between when tracking data is recorded. See Section~\sref{s:out.dat}.
 %
 \item[timer_print_dtime] \Newline
 The program will print a tracking status message every so often. The nominal time between status
@@ -395,33 +445,32 @@ tracking (\sref{s:track.modes}).
 \end{description}
 
 %------------------------------------------------------------------
-\Section{Output Data Format for BUNCH Tracking}
-\label{s:out.dat}
+\Section{Particle Data Output Format}
+\label{s:part.out}
 
-The following describes the output data file format when the \vn{simulation_mode} is set to
-\vn{"BUNCH"}.
+The following describes the particle data output format. Particle data is outputted when the
+\vn{simulation_mode} is set to \vn{"BUNCH"}.
 
-Tracking data is always recorded when the beam is at the \vn{ele_start_name} position independent of
+Particle data is always recorded when the beam is at the \vn{ele_start_name} position independent of
 where the lattice begins and ends.
 
-With \vn{one_tracking_data_file} set to \vn{False}, an output data file will be produced every
+With \vn{merge_particle_output_files} set to \vn{False}, an output data file will be produced every
 \vn{output_every_n_turns} turns. Each line in this file records a particle's orbital and
-spin position. The name of the data file is derived from the \vn{tracking_data_file} string using
-the following rules: If \vn{tracking_data_file} contains a hash character ''\#'', the data file name
+spin position. The name of the data file is derived from the \vn{particle_output_file} string using
+the following rules: If \vn{particle_output_file} contains a hash character ''\#'', the data file name
 is formed by substituting the turn number for the hash token. If there is no hash character, the
-data file name is formed by appending the turn number to the \vn{tracking_data_file} string.
+data file name is formed by appending the turn number to the \vn{particle_output_file} string.
 
-With \vn{one_tracking_data_file} set to \vn{True}, instead of generating multiple files, all data is
-put into one file whose name is given by \vn{tracking_data_file}.
+With \vn{merge_particle_output_files} set to \vn{True}, instead of generating multiple files, all data is
+put into one file whose name is given by \vn{particle_output_file}.
 
-Nominally tracking data is recorded every \vn{output_every_n_turns} number of
-turns. However, if \vn{output_every_n_turns} is set to 0, tracking data is recorded only
+Nominally particle data is recorded every \vn{output_every_n_turns} number of
+turns. However, if \vn{output_every_n_turns} is set to 0, particle data is recorded only
 at the start and end of the tracking. If \vn{output_every_n_turns} is set to -1,
-tracking data is only recorded at the end of tracking.
+particle data is only recorded at the end of tracking.
 
 If \vn{output_initial_position} is set to \vn{True}, additional columns will be added to the output
-tracking data file to show the initial particle position and spin.
-
+particle data file to show the initial particle position and spin.
 
 %------------------------------------------------------------------
 \begin{thebibliography}{9}
