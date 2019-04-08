@@ -19,25 +19,27 @@ type (ptc_map_with_rad_struct) map_with_rad
 type (normal_modes_struct) modes
 type (rad_int_all_ele_struct) rad_int_ele
 
-real(rp) time0, time, timer_print_dtime, chrom_x, chrom_y, ring_length
-real(rp) average(6), sigma(6,6)
+real(rp) time0, time, timer_print_dtime, chrom_x, chrom_y, ring_length, dead_cutoff
+real(rp) average(6), sigma(6,6), print_on_dead_loss
 
-integer ix_ele_start, n_turns, random_seed, map_order
-integer i, ip, n, ie, output_every_n_turns, ix_branch, ix_ele_end
-integer iu_out, n_loc, track_state, i_turn, n_sum
+integer ix_ele_start, n_turns, random_seed, map_order, n_turn_sigma_average
+integer i, ip, n, ie, output_every_n_turns, ix_branch, ix_ele_end, iu_ave
+integer iu_out, n_loc, track_state, i_turn, n_sum, n_live, n_live_old, n_print_dead_loss
 
-logical err_flag, rfcavity_on, use_1_turn_map, one_tracking_data_file, add_closed_orbit_to_init_position
-logical output_initial_position, err, is_lost
+logical err_flag, rfcavity_on, use_1_turn_map, add_closed_orbit_to_init_position
+logical output_initial_position, err, is_lost, merge_particle_output_files
 
-character(20) simulation_mode, map_mode
+character(20) simulation_mode, map_mode, one_tracking_data_file
 character(40) ele_start_name, fmt
-character(200) lat_file, init_file, tracking_data_file, common_master_input_file
-character(200) sigma_matrix_data_file, input_map_file, output_map_file, map_file
+character(200) lat_file, init_file, tracking_data_file, common_master_input_file, particle_output_file
+character(200) sigma_matrix_output_file, input_map_file, output_map_file, map_file, averages_output_file
 
 namelist / params / lat_file, n_turns, ele_start_name, map_order, beam_init, one_tracking_data_file, random_seed, &
-                  rfcavity_on, output_every_n_turns, bmad_com, add_closed_orbit_to_init_position, &
-                  simulation_mode, use_1_turn_map, tracking_data_file, timer_print_dtime, output_initial_position, &
-                  common_master_input_file, input_map_file, output_map_file, sigma_matrix_data_file, map_file
+                rfcavity_on, output_every_n_turns, bmad_com, add_closed_orbit_to_init_position, dead_cutoff, &
+                simulation_mode, use_1_turn_map, tracking_data_file, timer_print_dtime, output_initial_position, &
+                common_master_input_file, input_map_file, output_map_file, sigma_matrix_output_file, map_file, &
+                print_on_dead_loss, averages_output_file, merge_particle_output_files, n_turn_sigma_average, &
+                particle_output_file
 
 ! Parse command line
 
@@ -46,12 +48,14 @@ init_file = 'long_term_tracking.init'
 if (cesr_iargc() == 1) then
   call cesr_getarg(1, init_file)
 elseif (cesr_iargc() > 1) then
-  print *, 'Extra stuff on the command line!? Stopping here.'
+  print '(a)', 'Extra stuff on the command line!? Stopping here.'
   stop
 endif
 
 ! Read parameters
 
+dead_cutoff = 0
+print_on_dead_loss = -1
 random_seed = 0
 output_initial_position = .false.
 timer_print_dtime = 120
@@ -59,15 +63,18 @@ map_order = -1
 ele_start_name = ''
 rfcavity_on = .true.
 output_every_n_turns = -1
+n_turn_sigma_average = -1
 random_seed = 0
 add_closed_orbit_to_init_position = .true.
 tracking_data_file = ''
-one_tracking_data_file = .false.
+one_tracking_data_file = ''
 common_master_input_file = ''
 input_map_file = ''
 output_map_file = ''
-sigma_matrix_data_file = ''
+sigma_matrix_output_file = ''
 map_file = ''
+particle_output_file = ''
+merge_particle_output_files = .false.
 
 print '(2a)', 'Initialization file: ', trim(init_file)
 
@@ -87,6 +94,18 @@ if (common_master_input_file /= '') then
   close (1)
 endif
 
+if (tracking_data_file /= '') then
+  print '(a)', 'The "tracking_data_file" file has been renamed to "particle_output_file".'
+  print '(a)', 'Please make the change in your input file.'
+  stop
+endif
+
+if (one_tracking_data_file /= '') then
+  print '(a)', 'The "one_tracking_data_file" has been renamed to "merge_particle_output_files".'
+  print '(a)', 'Please make the change in your input file.'
+  stop
+endif
+
 ! Lattice init
 
 bmad_com%auto_bookkeeper = .false.
@@ -104,9 +123,9 @@ close (1)
 !
 
 if (input_map_file /= '' .or. output_map_file /= '') then
-  print *, 'Note: "input_map_file and "output_map_file" parameters no longer exist.'
-  print *, 'Use the "map_file" parameter instead.'
-  print *, 'Stopping here.'
+  print '(a)', 'Note: "input_map_file and "output_map_file" parameters no longer exist.'
+  print '(a)', 'Use the "map_file" parameter instead.'
+  print '(a)', 'Stopping here.'
   stop
 endif
 
@@ -128,12 +147,12 @@ if (ele_start_name == '') Then
 else
   call lat_ele_locator (ele_start_name, lat, eles, n_loc, err)
   if (err .or. n_loc == 0) then
-    print *, 'Starting element not found: ', trim(ele_start_name)
+    print '(2a)', 'Starting element not found: ', trim(ele_start_name)
     stop
   endif
   if (n_loc > 1) then
-    print *, 'Multiple elements found with name: ', trim(ele_start_name)
-    print *, 'Will stop here.'
+    print '(2a)', 'Multiple elements found with name: ', trim(ele_start_name)
+    print '(a)', 'Will stop here.'
     stop
   endif
   ele_start => eles(1)%ele
@@ -157,7 +176,8 @@ if (map_mode == 'write' .or. ((use_1_turn_map .or. simulation_mode == 'CHECK') .
     print '(2a)',    'Lattice file used for map:         ', trim(map_with_rad%lattice_file)
     print '(a, l1)', 'Map saved with radiation damping:  ', map_with_rad%radiation_damping_on
   else
-    if (.not. rfcavity_on) print *, 'RF will not be turned OFF since 1-turn map is in use!'
+    if (.not. rfcavity_on) print '(a)', 'RF will not be turned OFF since 1-turn map is in use!'
+    print '(a)', 'Creating map file...'
     call run_timer ('START')
     call lat_to_ptc_layout (lat)
     call ptc_setup_map_with_radiation (map_with_rad, ele_start, ele_start, map_order, bmad_com%radiation_damping_on)
@@ -232,8 +252,8 @@ case ('SINGLE')
 
   fmt = '(i6, 6es16.8, 3x, 3f10.6)'
   iu_out = lunget()
-  if (tracking_data_file == '') tracking_data_file = 'single.dat'
-  open(iu_out, file = tracking_data_file, recl = 200)
+  if (particle_output_file == '') particle_output_file = 'single.dat'
+  open(iu_out, file = particle_output_file, recl = 200)
   call write_this_header(iu_out, beam_init, map_with_rad, n_turns, simulation_mode)
   write (iu_out, '(a)') '# Turn |            x              px               y              py               z              pz    |   spin_x    spin_y    spin_z'
   write (iu_out, fmt) 0, orb(ix_ele_start)%vec, orb(ix_ele_start)%spin
@@ -260,18 +280,18 @@ case ('SINGLE')
       exit
     endif
 
-    if (sigma_matrix_data_file /= '') then
+    if (sigma_matrix_output_file /= '') then
       average = average + orb_end%vec
       sigma = sigma + outer_product(orb_end%vec, orb_end%vec)
       n_sum = n_sum + 1
     endif
   enddo
 
-  print '(2a)', 'Tracking data file: ', trim(tracking_data_file)
+  print '(2a)', 'Particle output file: ', trim(particle_output_file)
   close (iu_out)
 
-  if (sigma_matrix_data_file /= '') then
-    call write_sigma_file (sigma_matrix_data_file, n_sum, average, sigma)
+  if (sigma_matrix_output_file /= '') then
+    call write_sigma_file (sigma_matrix_output_file, n_sum, average, sigma)
   endif
 
 !-----------------------------------------
@@ -281,26 +301,36 @@ case ('BUNCH')
 
   ! Init
 
-  if (tracking_data_file == '') tracking_data_file = 'tracking.dat'
-
   call init_bunch_distribution (ele_start, lat%param, beam_init, ix_branch, bunch, err_flag)
   if (err_flag) stop
 
-  print '(a, i8)',   'beam_init%n_particle   = ', beam_init%n_particle
   print '(a, i8)',   'n_particle             = ', size(bunch%particle)
+
+  iu_ave = 0
+  if (averages_output_file /= '') then
+    print '(a)', 'Averages_output_file: ', trim(averages_output_file)
+    iu_ave = lunget()
+    open (iu_ave, file = averages_output_file, recl = 200)
+    write (iu_ave, '(a1, a8, a9, a14, 3a14, 6a14)') '#', 'Turn', 'N_live', 'Polarization', &
+                       '<Sx>', '<Sy>', '<Sz>', '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>'
+  endif
 
   do n = 1, size(bunch%particle)
     p => bunch%particle(n)
     if (add_closed_orbit_to_init_position) p%vec = p%vec + closed_orb(ix_ele_start)%vec
   enddo
 
+  n_print_dead_loss = max(1, nint(print_on_dead_loss * size(bunch%particle)))
   allocate(bunch_init%particle(size(bunch%particle)))
   bunch_init%particle = bunch%particle
+  n_live_old = size(bunch%particle)
 
   ! 
 
-  call write_tracking_data (0, map_with_rad)
-  time0 = time
+  call write_particle_data (0, bunch, map_with_rad)
+  call write_averaged_data (0, bunch)
+
+  time0 = 0
 
   do i_turn = 1, n_turns
     if (use_1_turn_map) then
@@ -311,12 +341,27 @@ case ('BUNCH')
       call track_bunch (lat, bunch, ele_start, ele_start, err_flag)
     endif
 
-    if (sigma_matrix_data_file /= '') then
-      do ip = 1, size(bunch%particle)
-        average = average + bunch%particle(ip)%vec
-        sigma = sigma + outer_product(bunch%particle(ip)%vec, bunch%particle(ip)%vec)
-        n_sum = n_sum + 1
-      enddo
+    n_live = count(bunch%particle%state == alive$)
+    if ((n_live - n_live_old) >= n_print_dead_loss) then
+      print '(a, i0, a, i0)', 'Number dead on turn ', i_turn, ': ', size(bunch%particle) - n_live
+      n_live_old = n_live
+    endif
+
+    if (size(bunch%particle) - n_live > dead_cutoff * size(bunch%particle)) then
+      print '(a)', 'Particle loss greater than set by dead_cutoff. Stopping now.'
+      exit
+    endif
+
+    if (sigma_matrix_output_file /= '') then
+      if (n_turn_sigma_average < 0 .or. n_turns - i_turn < n_turn_sigma_average) then
+        do ip = 1, size(bunch%particle)
+          p => bunch%particle(ip)
+          if (p%state /= alive$) cycle
+          average = average + p%vec
+          sigma = sigma + outer_product(p%vec, p%vec)
+          n_sum = n_sum + 1
+        enddo
+      endif
     endif
 
     call run_timer('READ', time)
@@ -326,13 +371,14 @@ case ('BUNCH')
       time0 = time
     endif
 
-    call write_tracking_data (i_turn, map_with_rad)
+    call write_particle_data (i_turn, bunch, map_with_rad)
+    call write_averaged_data (i_turn, bunch)
   end do
 
-  print '(2a)', 'Tracking data file: ', trim(tracking_data_file)
+  print '(2a)', 'Tracking data file: ', trim(particle_output_file)
 
-  if (sigma_matrix_data_file /= '') then
-    call write_sigma_file (sigma_matrix_data_file, n_sum, average, sigma)
+  if (sigma_matrix_output_file /= '') then
+    call write_sigma_file (sigma_matrix_output_file, n_sum, average, sigma)
   endif
 
 !-----------------------------------------
@@ -371,16 +417,16 @@ case ('STAT')
   print *, 'Momentum Compaction:', modes%synch_int(1)/ring_length
   print *, 'dE/E=', modes%sigE_E
   print *, 'sig_z(m)=', modes%sig_z
-  print *,'emit_I  (m)     : ',  modes%a%emittance
-  print *,'emit_II (m)     : ',  modes%b%emittance
-  print *,'emit_III(m)     : ',  modes%z%emittance
-  print*, 'QI =',ele%a%phi/twopi
-  print*, 'QII=',ele%b%phi/twopi
-  print *,'QIII      : ', lat%z%tune / twopi
-  print*, '# of elements: ', lat%n_ele_track
-  print*, 'L=',ring_length
-  print*, 'dQI =',chrom_x
-  print*, 'dQII=',chrom_y
+  print *, 'emit_I  (m): ',  modes%a%emittance
+  print *, 'emit_II (m): ',  modes%b%emittance
+  print *, 'emit_III(m): ',  modes%z%emittance
+  print *, 'QI =',ele%a%phi/twopi
+  print *, 'QII=',ele%b%phi/twopi
+  print *, 'QIII: ', lat%z%tune / twopi
+  print *, '# of elements: ', lat%n_ele_track
+  print *, 'L=',ring_length
+  print *, 'dQI =',chrom_x
+  print *, 'dQII=',chrom_y
 
 !-----------------------------------------
 ! Unknown
@@ -395,32 +441,34 @@ print '(a, f8.2)', 'Tracking time (min)', time/60
 !------------------------------------------------------------------------------------------
 contains
 
-subroutine write_tracking_data (nn, map_with_rad)
+subroutine write_particle_data (i_turn, bunch, map_with_rad)
 
+type (bunch_struct), target :: bunch
 type (ptc_map_with_rad_struct) map_with_rad
 type (coord_struct), pointer :: p, p0
-integer nn, ix, ip, j
+integer i_turn, ix, ip, j
 integer, save :: iu_snap = 0
 character(200) file_name
 character(40) fmt
 
 !
 
-if (output_every_n_turns == -1 .and. nn /= n_turns) return
-if (output_every_n_turns == 0 .and. nn /= 0 .and. nn /= n_turns) return
-if (output_every_n_turns > 0 .and. modulo(nn, output_every_n_turns) /= 0) return
+if (particle_output_file == '') return
+if (output_every_n_turns == -1 .and. i_turn /= n_turns) return
+if (output_every_n_turns == 0 .and. i_turn /= 0 .and. i_turn /= n_turns) return
+if (output_every_n_turns > 0 .and. modulo(i_turn, output_every_n_turns) /= 0) return
 
 if (iu_snap == 0) then
-  if (one_tracking_data_file) then
-    file_name = tracking_data_file
+  if (merge_particle_output_files) then
+    file_name = particle_output_file
   else
     j = int(log10(real(n_turns, rp)) + 1 + 1d-10)
     write (fmt, '(a, i0, a, i0, a)') '(a, i', j, '.', j, ', a)'
-    ix = index(tracking_data_file, '#')
+    ix = index(particle_output_file, '#')
     if (ix == 0) then
-      write (file_name, fmt) trim(tracking_data_file), nn
+      write (file_name, fmt) trim(particle_output_file), i_turn
     else
-      write (file_name, fmt) tracking_data_file(1:ix-1), nn, trim(tracking_data_file(ix+1:))
+      write (file_name, fmt) particle_output_file(1:ix-1), i_turn, trim(particle_output_file(ix+1:))
     endif
   endif
 
@@ -440,18 +488,18 @@ do ip = 1, size(bunch%particle)
   p0 => bunch_init%particle(ip)
   p => bunch%particle(ip)
   if (output_initial_position) then
-    write (iu_snap, '(i9, i9, 2(6es16.8, 3x, 3f10.6, 4x), a)') ip, nn, p0%vec, p0%spin, p%vec, p%spin, trim(coord_state_name(p%state))
+    write (iu_snap, '(i9, i9, 2(6es16.8, 3x, 3f10.6, 4x), a)') ip, i_turn, p0%vec, p0%spin, p%vec, p%spin, trim(coord_state_name(p%state))
   else
-    write (iu_snap, '(i9, i9, 6es16.8, 3x, 3f10.6, 4x, a)')  ip, nn, p%vec, p%spin, trim(coord_state_name(p%state))
+    write (iu_snap, '(i9, i9, 6es16.8, 3x, 3f10.6, 4x, a)')  ip, i_turn, p%vec, p%spin, trim(coord_state_name(p%state))
   endif
 enddo
 
-if (.not. one_tracking_data_file) then
+if (.not. merge_particle_output_files) then
   close(iu_snap)
   iu_snap = 0
 endif
 
-end subroutine write_tracking_data
+end subroutine write_particle_data
 
 !------------------------------------------------------------------------------------------
 ! contains
@@ -489,11 +537,49 @@ end subroutine write_this_header
 !------------------------------------------------------------------------------------------
 ! contains
 
-subroutine write_sigma_file (data_file, n_sum, average, sigma)
+subroutine write_averaged_data (i_turn, bunch)
+
+type (bunch_struct) bunch
+real(rp) average(6), s_ave(3)
+integer i, i_turn, n_live
+
+!
+
+if (iu_ave == 0) return
+if (output_every_n_turns == -1 .and. i_turn /= n_turns) return
+if (output_every_n_turns == 0 .and. i_turn /= 0 .and. i_turn /= n_turns) return
+if (output_every_n_turns > 0 .and. modulo(i_turn, output_every_n_turns) /= 0) return
+
+n_live = count(bunch%particle%state == alive$)
+
+do i = 1, 6
+  average(i) = sum(bunch%particle%vec(i), bunch%particle%state == alive$) / n_live
+enddo
+
+do i = 1, 3
+  s_ave(i) = sum(bunch%particle%spin(i), bunch%particle%state == alive$) / n_live
+enddo
+
+write (iu_ave, '(i9, i9, f14.9, 2x, 3f14.9, 2x, 6es14.6)') i_turn, n_live, norm2(s_ave), s_ave, average
+
+end subroutine write_averaged_data
+
+!------------------------------------------------------------------------------------------
+! contains
+
+subroutine write_sigma_file (output_file, n_sum, average, sigma)
 
 real(rp) average(6), sigma(6,6)
 integer i, n_sum
-character(*) data_file
+character(*) output_file
+
+!
+
+if (n_sum == 0) then
+  write (1, '(a, i0)') '# n_turn_sigma_average = ', n_turn_sigma_average
+  write (1, '(a)') '# NO DATA TO AVERAGE OVER!'
+  return
+endif
 
 !
 
@@ -501,8 +587,9 @@ average = average / n_sum
 sigma = sigma / n_sum - outer_product(average, average)
 
 
-open (1, file = sigma_matrix_data_file)
+open (1, file = sigma_matrix_output_file)
 
+write (1, '(a, i0)') '# n_turn_sigma_average = ', n_turn_sigma_average
 write (1, '(a)') '# Average:'
 write (1, '(5x, 6es16.8)') average
 write (1, *)
@@ -513,7 +600,7 @@ enddo
 
 close (1)
 
-print '(2a)', 'Sigma matrix data file: ', trim(sigma_matrix_data_file)
+print '(2a)', 'Sigma matrix data file: ', trim(sigma_matrix_output_file)
 
 end subroutine write_sigma_file
 

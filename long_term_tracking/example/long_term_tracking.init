@@ -1,18 +1,23 @@
 &params
-  simulation_mode = 'SINGLE'
 
   lat_file = 'simple_ring.bmad'         ! Lattice file
   ele_start_name = ''                   ! Where to start in the lattice
+  common_master_input_file = ''
+
+  particle_output_file = 'snap.dat'
+  averages_output_file = 'ave.dat'
+  merge_particle_output_files = F
+  output_every_n_turns = 20
+  output_initial_position = F
+
+  simulation_mode = 'BUNCH'
   n_turns = 100                         ! Number of turns to track
   rfcavity_on = T
   use_1_turn_map = T
   map_order = 1
   random_seed = 0                       ! Random number seed. 0 => use system clock.
-
-  tracking_data_file = 'snap.dat'
-  one_tracking_data_file = F
-  output_every_n_turns = 20
-  output_initial_position = F
+  timer_print_dtime = 300
+  add_closed_orbit_to_init_position = T
 
   bmad_com%spin_tracking_on = T         ! See Bmad manual for bmad_com parameters.
   bmad_com%radiation_damping_on = F
