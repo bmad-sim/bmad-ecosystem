@@ -891,7 +891,7 @@ end function charge_of
 function mass_of (species) result (mass)
 
 real(rp) mass
-integer species, n_nuc, pp
+integer species, n_nuc, pp, charge
 character(*), parameter :: r_name = 'mass_of'
 
 ! Fundamental particle
@@ -922,13 +922,14 @@ if (pp<200) then
     mass = atom(pp)%mass(0) * atomic_mass_unit
   else
     ! Isotope
-    mass = atom(pp)%mass( n_nuc - atom(pp)%i_offset )  
+    mass = atom(pp)%mass(n_nuc - atom(pp)%i_offset)  
     if (mass == no_iso) then
       call out_io (s_abort$, r_name, 'ISOTOPE MASS NOT KNOWN FOR SPECIES: \i0\ ', species)
       if (global_com%exit_on_error) call err_exit
       return
     endif
-    mass = mass * atomic_mass_unit 
+    charge = species / z'1000000'  ! Charge encoded in first two hex digits of species.
+    mass = mass * atomic_mass_unit - charge * m_electron
   endif
   return
 endif

@@ -485,7 +485,7 @@ r_state%am = nearest(1.0,-1.0) / im_nr_ran
 
 if (seed == 0) then
   call date_and_time (values = v)
-  r_state%seed = v(2) + 11*v(3) + 111*v(5) + 1111*v(6) + 11111*v(7) + 111111*v(8)
+  r_state%seed = v(1) + v(2) + 11*v(3) + 111*v(5) + 1111*v(6) + 11111*v(7) + 111111*v(8)
 else
   r_state%seed = seed
 endif
