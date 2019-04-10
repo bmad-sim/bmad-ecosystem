@@ -116,11 +116,11 @@ logical unit_found, write_term, found, in_multi_region, expand_branch_out
 logical x_lim_good, y_lim_good, is_default, need_new_region, err_flag, has_been_added
 
 ! Init...
-! Init default parameters
+! Init default parameters.
 
 do i = 1, size(ele_default)
   call init_ele (ele_default(i), i)
-  call set_ele_defaults (ele_default(i), .false.)
+  call deallocate_ele_pointers(ele_default(i))   ! don't need.
 enddo
 
 ! Count the number of foreign wake files
