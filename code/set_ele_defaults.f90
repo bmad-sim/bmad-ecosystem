@@ -69,8 +69,8 @@ case (crystal$)
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
   if (logic_option(.true., do_allocate)) then
-    if (.not. associated(ele%photon)) allocate(ele%photon)
-    ele%photon = photon_element_struct()
+    if (associated(ele%photon)) deallocate(ele%photon)
+    allocate(ele%photon)
   endif
 
 case (custom$)  
@@ -93,8 +93,8 @@ case (def_parameter$)
 case (detector$)
   ele%aperture_type = auto_aperture$
   if (logic_option(.true., do_allocate)) then
-    if (.not. associated(ele%photon)) allocate(ele%photon)
-    ele%photon = photon_element_struct()
+    if (associated(ele%photon)) deallocate(ele%photon)
+    allocate(ele%photon)
   endif
 
 case (diffraction_plate$)
