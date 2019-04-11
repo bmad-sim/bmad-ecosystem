@@ -103,8 +103,8 @@ case (diffraction_plate$)
   ele%offset_moves_aperture = .true.
   ele%value(mode$) = transmission$
   if (logic_option(.true., do_allocate)) then
-    if (.not. associated(ele%photon)) allocate(ele%photon)
-    ele%photon = photon_element_struct()
+    if (associated(ele%photon)) deallocate(ele%photon)
+    allocate(ele%photon)
   endif
 
 case (e_gun$)
@@ -166,23 +166,24 @@ case (mask$)
   ele%offset_moves_aperture = .true.
   ele%value(mode$) = transmission$
   if (logic_option(.true., do_allocate)) then
-    if (.not. associated(ele%photon)) allocate(ele%photon)
-    ele%photon = photon_element_struct()
+    if (associated(ele%photon)) deallocate(ele%photon)
+    allocate(ele%photon)
   endif
 
 case (mirror$)
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
   if (logic_option(.true., do_allocate)) then
-    if (.not. associated(ele%photon)) allocate(ele%photon)
+    if (associated(ele%photon)) deallocate(ele%photon)
+    allocate(ele%photon)
   endif
 
 case (multilayer_mirror$)
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
   if (logic_option(.true., do_allocate)) then
-    if (.not. associated(ele%photon)) allocate(ele%photon)
-    ele%photon = photon_element_struct()
+    if (associated(ele%photon)) deallocate(ele%photon)
+    allocate(ele%photon)
   endif
 
 case (multipole$, ab_multipole$)
@@ -206,8 +207,8 @@ case (photon_init$)
   ele%value(transverse_sigma_cut$) = 3
   ele%value(E_center_relative_to_ref$) = true$
   if (logic_option(.true., do_allocate)) then
-    if (.not. associated(ele%photon)) allocate(ele%photon)
-    ele%photon = photon_element_struct()
+    if (associated(ele%photon)) deallocate(ele%photon)
+    allocate(ele%photon)
   endif
 
 case (rbend$, sbend$)
@@ -243,8 +244,8 @@ case (sample$)
   ele%aperture_at = surface$
   ele%value(mode$) = reflection$
   if (logic_option(.true., do_allocate)) then
-    if (.not. associated(ele%photon)) allocate(ele%photon)
-    ele%photon = photon_element_struct()
+    if (associated(ele%photon)) deallocate(ele%photon)
+    allocate(ele%photon)
   endif
 
 case (taylor$)   ! start with unit matrix
