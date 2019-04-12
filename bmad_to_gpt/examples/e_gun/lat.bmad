@@ -15,7 +15,7 @@ parameter[p0c] = 0
 in.mar.beg: marker
 
 in.gun: E_GUN, L = 0.15, field_calc = fieldmap, tracking_method = time_runge_kutta,
-  mat6_calc_method = tracking,
+  mat6_calc_method = tracking, autoscale_phase = F,
   grid_field = call::in.gun_grid.bmad
 
 in.gun[voltage] = 250e3 !Voltage in V
