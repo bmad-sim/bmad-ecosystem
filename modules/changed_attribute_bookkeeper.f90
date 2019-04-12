@@ -499,7 +499,7 @@ case (lcavity$, e_gun$)
 
   if (associated(a_ptr, ele%value(gradient$)) .or. associated(a_ptr, ele%value(phi0$)) .or. &
       associated(a_ptr, ele%value(voltage$)) .or. associated(a_ptr, ele%value(rf_frequency$)) .or. &
-      associated(a_ptr, ele%value(phi0_autoscale$))) then
+      associated(a_ptr, ele%value(phi0_autoscale$)) .or. associated(a_ptr, ele%value(field_autoscale$))) then
     call set_ele_status_stale (ele, ref_energy_group$)
   endif
 
