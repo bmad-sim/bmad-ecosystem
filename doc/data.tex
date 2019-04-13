@@ -827,13 +827,18 @@ of the associated lattice elements \vn{Q01} for the first datum, etc.
   \item[floor.x, .y, .z] \Newline
 Position of the element in the global ``floor'' coordinate system. This is the nominal
 position ignoring any misalignments. See the \bmad manual for details on the global
-coordinate system. See also \vn{rel_floor.} and \vn{will.}.
+coordinate system. See also \vn{rel_floor.}, \vn{floor_orbit.}, and \vn{will.}.
 
   %----------------------
   \item[floor.theta, .phi, .psi] \Newline
 Orientation of the element in the global ``floor'' coordinate system. This is the nominal
 position ignoring any misalignments. See the \bmad manual for details on the global
-coordinate system. See also \vn{rel_floor.}.
+coordinate system. See also \vn{rel_floor.} and \vn{floor_orbit.}.
+
+  %----------------------
+  \item[floor_orbit.x, .y, .z] \Newline
+Position of the element in the global ``floor'' coordinate system. See the \bmad manual for details
+on the global coordinate system. See also \vn{floor.}.
 
   %----------------------
   \item[gamma.a, .b] \Newline
@@ -1490,8 +1495,10 @@ squared.
   etap.a, .b                          & $a$ \& $b$-mode dispersion derivative     & beam, lat   & Yes \\ \hline 
   expression:<expression>             & See text above                            & lat         & No  \\ \hline 
 
-  floor.x, .y, .z                     & Global (``floor'') position               & lat         & Yes \\ \hline 
-  floor.theta, .phi, .psi             & Global (``floor'') orientation            & lat         & Yes \\ \hline 
+  floor.x, .y, .z                     & Element global (``floor'') position       & lat         & Yes \\ \hline 
+  floor.theta, .phi, .psi             & Element global (``floor'') orientation    & lat         & Yes \\ \hline 
+
+  floor_orbit.x, .y, .z               & global (``floor'') position of orbit      & beam, lat   & Yes \\ \hline 
 
   gamma.a, .b                         & Normal-mode gamma function                & lat         & Yes \\ \hline 
 
