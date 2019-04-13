@@ -8,7 +8,7 @@ implicit none
 
 integer, parameter :: var_num$ = 101, lat_num$ = 102, data_num$ = 103, ele_num$ = 104
 
-private tao_scratch_values_calc
+private tao_scratch_values_calc, tao_eval_floor_orbit
 
 contains
 
@@ -1550,6 +1550,24 @@ case ('floor.')
     return
 
   end select
+
+!-----------
+
+case ('floor_orbit.')
+
+  value_vec(ix_ele) = tao_eval_floor_orbit (datum, ele, orbit(ix_ele), bunch_params(ix_ele), valid_value, why_invalid)
+  if (.not. valid_value) return
+  if (associated(ele_ref)) value_vec(ix_ref) = tao_eval_floor_orbit (datum, ele_ref, orbit(ix_ref), bunch_params(ix_ref), valid_value, why_invalid)
+  if (.not. valid_value) return
+
+  if (associated(ele_start)) then
+    do ie = ix_start, ix_ele - 1
+      value_vec(ie) = tao_eval_floor_orbit (datum, branch%ele(ie), orbit(ie), bunch_params(ie), valid_value, why_invalid)
+      if (.not. valid_value) return
+    enddo
+  endif
+
+  call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
 !-----------
 
@@ -4752,5 +4770,66 @@ endif
 if (logic_option(.false., exterminate)) datum%exists = .false. 
 
 end subroutine tao_set_invalid
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function tao_eval_floor_orbit (datum, ele, orbit, bunch_params, valid_value, why_invalid) result (value)
+!
+! Routine to evaluate a floor_orbit datum at a given element.
+! This routine is private and not for general use.
+!
+! Input:
+!   datum         -- tao_data_sturct: Datum info
+!   ele           -- ele_struct: Lattice element to evaluate at.
+!   orbit         -- coord_struct: Particle orbit at element.
+!   bunch_params  -- bunch_params_struct: Bunch parameters at element.
+!
+! Output:
+!   valid_value   -- logical: Was able to evalute the datum?
+!   why_invalid   -- character(*): If not valid, why not.
+!   value         -- real(rp): Datum value.
+!-
+
+function tao_eval_floor_orbit (datum, ele, orbit, bunch_params, valid_value, why_invalid) result (value)
+
+type (tao_data_struct) datum
+type (ele_struct) ele
+type (coord_struct) orbit
+type (bunch_params_struct) bunch_params
+type (floor_position_struct) position
+
+real(rp) value, vec(6), p(3)
+logical valid_value
+character(*) why_invalid
+
+!
+
+valid_value = .false.
+
+if (datum%data_source == 'lat') then
+  vec = bunch_params%centroid%vec
+else
+  vec = orbit%vec
+endif
+
+position%r = [vec(1), vec(3), ele%value(l$)]
+position = coords_local_curvilinear_to_floor (position, ele, .false.)
+
+!
+
+select case (datum%data_type)
+case ('floor_orbit.x');   value = position%r(1)
+case ('floor_orbit.y');   value = position%r(2)
+case ('floor_orbit.z');   value = position%r(3)
+case default
+  call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+  return
+end select
+
+valid_value = .true.
+
+end function tao_eval_floor_orbit
 
 end module tao_data_and_eval_mod

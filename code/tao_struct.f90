@@ -149,7 +149,7 @@ type tao_curve_struct
   real(rp), allocatable :: x_line(:)     ! Coords for drawing a curve
   real(rp), allocatable :: y_line(:) 
   real(rp), allocatable :: y2_line(:)    ! Second array needed for beam chamber curve. 
-  integer, allocatable :: ix_line(:)     ! Branch index for multi lattice branch curves.
+  integer, allocatable :: ix_line(:)     ! Used by wave and aperture curves.
   real(rp), allocatable :: x_symb(:)     ! Coords for drawing the symbols
   real(rp), allocatable :: y_symb(:) 
   real(rp), allocatable :: z_symb(:) 
