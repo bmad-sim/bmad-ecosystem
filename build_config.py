@@ -142,6 +142,7 @@ release_build_list = [
                 '/CESR/CESR_progs/magstat',
                 '/CESR/CESR_services/simcon',
                 '/trunk/src/tao',
+                '/trunk/src/lux',
                 '/trunk/src/bmadz',
                 '/trunk/src/bsim',
                 '/CESR/CESR_progs/synchv',
