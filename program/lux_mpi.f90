@@ -74,6 +74,7 @@ is_done_tag = 1001
 ! Master collects the work of the slaves
 
 if (lux_com%mpi_rank == master_rank) then
+  print '(a, i0)', 'Number of processes (including Master): ', lux_com%mpi_n_proc
   call print_mpi_info ('Master: Starting...')
 
   allocate (slave_is_done(num_slaves))

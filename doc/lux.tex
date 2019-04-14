@@ -60,7 +60,7 @@
 
 \title{Lux Program}
 \author{D. Sagan, K. Finkelstein}
-\date{Revision 1.6 \\ March 12, 2019}
+\date{Revision 1.7 \\ April 13, 2019}
 
 %---------------------------------------------------------------------------------
 
@@ -74,34 +74,23 @@
 \section{Introduction} 
 \label{s:intro}
 
-\lux is a program for Monte Carlo simulations of X-rays using either
-coherent or incoherent ray tracing. \lux works by generating
-photons at a source element and tracking them through to a
-detector. \lux uses the Bmad subroutine library\cite{b:bmad} for
-tracking and lattice bookkeeping.
+\lux is a program for Monte Carlo simulations of X-rays using either coherent or incoherent ray
+tracing. \lux works by generating photons at a source element and tracking them through to a
+detector. \lux uses the Bmad subroutine library\cite{b:bmad} for tracking and lattice bookkeeping.
 
-\lux comes in two versions: A single threaded version whose executable
-is called \vn{lux} and an parallel compute version using MPI whose
-executable is called \vn{mpi_lux}.
+\lux comes in two versions: A single threaded version whose executable is called \vn{lux} and an
+parallel compute version using MPI whose executable is called \vn{lux_mpi}.
 
 %------------------------------------------------------------------
 \section{Building \lux} 
 \label{s:build}
 
-Chances are that a \lux executable is already built for you to use. If
-you do need to build \lux, first copy the \vn{lux} directory (ask your
-local Bmad guru where this directory resides if you need to) to your
-local area 
-
-\lux is built using the same build system based on \vn{CMake} that is
-used for building Bmad. To build the single threaded version of \lux,
-go to the \vn{lux} directory and use the \vn{mk} and/or the \vn{mkd}
-command to build production and/or debug executables (See the
-documentation of the Bmad build system for more details).
-
-To build the parallel version of \lux, go to the \lux directory and
-use the \vn{./build_mpi mk} and/or the \vn{./build_mpi mkd} command to
-build production and/or debug executables.
+Chances are that a \lux executable is already built for you to use. \lux is a standard program that
+comes with Bmad Distributions (see the online documentation on the Bmad build system for more
+details). If the mpi version of \lux has not been built, or if you want to recompile from scratch,
+use the \vn{mk_mpi} command in the \vn{lux} directory to build both the multi and non-multi
+processor versions. [Ask your local Bmad guru where the \vn{lux} directory resides. You may need to
+make a local copy of the \vn{lux} directory.]
 
 %------------------------------------------------------------------
 \section{Running \lux} 
