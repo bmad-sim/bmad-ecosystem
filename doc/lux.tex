@@ -79,18 +79,10 @@ tracing. \lux works by generating photons at a source element and tracking them 
 detector. \lux uses the Bmad subroutine library\cite{b:bmad} for tracking and lattice bookkeeping.
 
 \lux comes in two versions: A single threaded version whose executable is called \vn{lux} and an
-parallel compute version using MPI whose executable is called \vn{lux_mpi}.
-
-%------------------------------------------------------------------
-\section{Building \lux} 
-\label{s:build}
-
-Chances are that a \lux executable is already built for you to use. \lux is a standard program that
-comes with Bmad Distributions (see the online documentation on the Bmad build system for more
-details). If the mpi version of \lux has not been built, or if you want to recompile from scratch,
-use the \vn{mk_mpi} command in the \vn{lux} directory to build both the multi and non-multi
-processor versions. [Ask your local Bmad guru where the \vn{lux} directory resides. You may need to
-make a local copy of the \vn{lux} directory.]
+parallel compute version using MPI whose executable is called \vn{lux_mpi}. [Note to Distribution
+maintainers: The single threaded version will always be built when compiling the Distribution. The
+MPI version can be built by building the Distribution with MPI enabled or by using the
+\vn{mk_mpi} command in the \vn{lux} directory.]
 
 %------------------------------------------------------------------
 \section{Running \lux} 

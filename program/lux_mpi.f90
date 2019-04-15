@@ -1,11 +1,11 @@
 program lux_mpi
 
 use lux_module
-! use mpi
+use mpi
 
 implicit none
 
-include 'mpif.h'
+!! include 'mpif.h'
 
 type (lux_param_struct) lux_param
 type (lux_common_struct), target :: lux_com
