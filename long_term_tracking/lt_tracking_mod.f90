@@ -1,10 +1,20 @@
-module long_term_tracking_mod
+!+
+! Module lt_tracking_mod
+!
+! Routines used by the long_term_tracking program.
+!-
+
+module lt_tracking_mod
 
 use beam_mod
 use twiss_and_track_mod
 use ptc_map_with_radiation_mod
 
 implicit none
+
+integer, parameter :: master_rank$ = 0
+integer, parameter :: results_tag$ = 1000
+integer, parameter :: is_done_tag$ = 1001
 
 type ltt_params_struct
   type (ele_struct), pointer :: ele_start
@@ -29,7 +39,30 @@ type ltt_params_struct
   logical :: add_closed_orbit_to_init_position = .true.
   logical :: output_initial_position = .false.
   logical :: merge_particle_output_files = .false.
+  integer :: mpi_rank  = master_rank$
+  integer :: mpi_n_proc = 1                    ! Number of processeses including master
+  integer :: mpi_num_runs = 10                 ! Number of runs a slave process will take on average.
+  integer :: mpi_n_particles_per_run = 0        ! Number of particles per run.
+  logical :: using_mpi = .false.
+  logical :: debug = .false.
 end type
+
+type ltt_sum_data_struct
+  integer :: i_turn = 0
+  integer :: n_live = 0
+  real(rp) :: orb_sum(6) = 0    ! Orbit average
+  real(rp) :: spin_sum(3) = 0   ! Spin
+end type
+
+interface
+  subroutine ltt_mpi_slave_send_data (lttp, sum_data_arr)
+  import
+  implicit none
+  type (ltt_params_struct) lttp
+  type (ltt_sum_data_struct) :: sum_data_arr(:)
+  end subroutine
+end interface
+
 
 contains
 
@@ -46,7 +79,7 @@ type (beam_init_struct) beam_init
 
 real(rp) timer_print_dtime, dead_cutoff, print_on_dead_loss
 
-integer n_turns, random_seed, map_order, n_turn_sigma_average, output_every_n_turns
+integer n_turns, random_seed, map_order, n_turn_sigma_average, output_every_n_turns, ir
 
 logical rfcavity_on, use_1_turn_map, add_closed_orbit_to_init_position
 logical output_initial_position, merge_particle_output_files
@@ -99,7 +132,9 @@ map_file = ''
 particle_output_file = ''
 merge_particle_output_files = .false.
 
-print '(2a)', 'Initialization file: ', trim(init_file)
+if (.not. lttp%using_mpi .or. lttp%mpi_rank == master_rank$) then
+  print '(2a)', 'Initialization file: ', trim(init_file)
+endif
 
 open (1, file = init_file, status = 'old', action = 'read')
 read (1, nml = params)
@@ -132,8 +167,15 @@ endif
 ! Lattice init
 
 bmad_com%auto_bookkeeper = .false.
+
 call ran_seed_put (random_seed)
 call ptc_set_map_with_radiation_ran_seed(random_seed)
+
+if (lttp%using_mpi) then
+  call ran_seed_get (ir)
+  call ran_seed_put (ir + 10 * lttp%mpi_rank)
+  call ptc_set_map_with_radiation_ran_seed(ir + 10 * lttp%mpi_rank)
+endif
 
 call bmad_parser (lat_file, lat)
 
@@ -198,7 +240,7 @@ real(rp) time
 
 integer n_loc, ix_ele_start, ix_ele_end, ix_branch
 
-logical err
+logical err, ok
 
 character(20) map_mode
 
@@ -207,10 +249,26 @@ character(20) map_mode
 if (lttp%map_file(1:6) == 'WRITE:') then
   lttp%map_file = lttp%map_file(7:)
   map_mode = 'write'
+  if (lttp%mpi_rank /= master_rank$) map_mode = 'read'  ! Master has created the file
+
 elseif (lttp%map_file == '') then
-  map_mode = 'create'
+  if (lttp%using_mpi) then
+    lttp%map_file = 'map.dat'
+    map_mode = 'write'
+    if (lttp%mpi_rank /= master_rank$) map_mode = 'read'  ! Master has created the file
+  else
+    map_mode = 'create'
+  endif
+  
 else
-  map_mode = 'read'
+  inquire (file = lttp%map_file, exist = ok)
+  if (ok) then
+    map_mode = 'read'
+  else
+    map_mode = 'write'
+    print *, 'Map_file does not exist: ', trim(lttp%map_file)
+    print *, 'A map_file will be created.'
+  endif
 endif
 
 !
@@ -245,9 +303,11 @@ if (map_mode == 'write' .or. ((lttp%use_1_turn_map .or. lttp%simulation_mode == 
   lttp%use_1_turn_map = .true.
   if (map_mode == 'read') then
     call ptc_read_map_with_radiation(lttp%map_file, map_with_rad)
-    print '(2a)',    'Map read in from file: ', trim(lttp%map_file)
-    print '(2a)',    'Lattice file used for map:         ', trim(map_with_rad%lattice_file)
-    print '(a, l1)', 'Map saved with radiation damping:  ', map_with_rad%radiation_damping_on
+    if (lttp%mpi_rank == master_rank$) then
+      print '(2a)',    'Map read in from file: ', trim(lttp%map_file)
+      print '(2a)',    'Lattice file used for map:         ', trim(map_with_rad%lattice_file)
+      print '(a, l1)', 'Map saved with radiation damping:  ', map_with_rad%radiation_damping_on
+    endif
   else
     if (.not. lttp%rfcavity_on) print '(a)', 'RF will not be turned OFF since 1-turn map is in use!'
     print '(a)', 'Creating map file...'
@@ -308,7 +368,7 @@ type (coord_struct) orb_end, orb_init
 
 integer track_state, ix_ele_start
 
-!
+! Run serial in check mode.
 
 ix_ele_start = lttp%ele_start%ix_ele
 call init_coord (orb_init, beam_init%center, lttp%ele_start, downstream_end$, spin = beam_init%spin)
@@ -356,7 +416,7 @@ logical is_lost
 
 character(40) fmt
 
-!
+! Run serial in single mode.
 
 n_sum = 0
 sigma = 0
@@ -429,11 +489,13 @@ type (coord_struct), allocatable :: closed_orb(:), orb(:)
 type (ptc_map_with_rad_struct) map_with_rad
 type (bunch_struct), target :: bunch, bunch_init
 type (coord_struct), pointer :: p
+type (ltt_sum_data_struct), allocatable, target :: sum_data_arr(:)
+type (ltt_sum_data_struct), pointer :: sd
 
 real(rp) time0, time
 real(rp) average(6), sigma(6,6)
 
-integer n, n_sum, ix_ele_start, n_print_dead_loss, i_turn, iu_ave
+integer n, n_sum, ix_ele_start, n_print_dead_loss, i_turn
 integer ip, n_live_old, n_live
 
 logical err_flag
@@ -445,19 +507,11 @@ sigma = 0
 average = 0
 ix_ele_start = lttp%ele_start%ix_ele
 
+if (lttp%using_mpi) beam_init%n_particle = lttp%mpi_n_particles_per_run
 call init_bunch_distribution (lttp%ele_start, lat%param, beam_init, lttp%ele_start%ix_branch, bunch, err_flag)
 if (err_flag) stop
 
-print '(a, i8)',   'n_particle             = ', size(bunch%particle)
-
-iu_ave = 0
-if (lttp%averages_output_file /= '') then
-  print '(a)', 'Averages_output_file: ', trim(lttp%averages_output_file)
-  iu_ave = lunget()
-  open (iu_ave, file = lttp%averages_output_file, recl = 200)
-  write (iu_ave, '(a1, a8, a9, a14, 3a14, 6a14)') '#', 'Turn', 'N_live', 'Polarization', &
-                     '<Sx>', '<Sy>', '<Sz>', '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>'
-endif
+if (lttp%mpi_rank == master_rank$) print '(a, i8)',   'n_particle             = ', size(bunch%particle)
 
 do n = 1, size(bunch%particle)
   p => bunch%particle(n)
@@ -471,8 +525,8 @@ n_live_old = size(bunch%particle)
 
 ! 
 
-call ltt_write_particle_data (lttp, 0, bunch, map_with_rad)
-call ltt_write_averaged_data (lttp, iu_ave, 0, bunch)
+if (.not. lttp%using_mpi) call ltt_write_particle_data (lttp, 0, bunch, map_with_rad)
+call ltt_calc_bunch_sums (lttp, 0, bunch, sum_data_arr)
 
 time0 = 0
 
@@ -491,7 +545,7 @@ do i_turn = 1, lttp%n_turns
     n_live_old = n_live
   endif
 
-  if (size(bunch%particle) - n_live > lttp%dead_cutoff * size(bunch%particle)) then
+  if (size(bunch%particle) - n_live > lttp%dead_cutoff * size(bunch%particle) .and. .not. lttp%using_mpi) then
     print '(a)', 'Particle loss greater than set by dead_cutoff. Stopping now.'
     exit
   endif
@@ -515,14 +569,20 @@ do i_turn = 1, lttp%n_turns
     time0 = time
   endif
 
-  call ltt_write_particle_data (lttp, i_turn, bunch, map_with_rad)
-  call ltt_write_averaged_data (lttp, iu_ave, i_turn, bunch)
+  if (.not. lttp%using_mpi) call ltt_write_particle_data (lttp, i_turn, bunch, map_with_rad)
+  call ltt_calc_bunch_sums (lttp, i_turn, bunch, sum_data_arr)
 end do
 
-print '(2a)', 'Tracking data file: ', trim(lttp%particle_output_file)
+if (lttp%mpi_rank == master_rank$) print '(2a)', 'Tracking data file: ', trim(lttp%particle_output_file)
 
-if (lttp%sigma_matrix_output_file /= '') then
+if (lttp%sigma_matrix_output_file /= '' .and. .not. lttp%using_mpi) then
   call ltt_write_sigma_file (lttp, n_sum, average, sigma)
+endif
+
+if (lttp%using_mpi) then
+  call ltt_mpi_slave_send_data (lttp, sum_data_arr)
+else
+  call ltt_write_bunch_averages(lttp, sum_data_arr)
 endif
 
 end subroutine ltt_run_bunch_mode
@@ -545,7 +605,7 @@ real(rp) chrom_x, chrom_y, ring_length
 integer i
 logical err_flag
 
-!
+! Run serial in stat mode.
 
 branch => lat%branch(lttp%ele_start%ix_branch)
 
@@ -660,7 +720,6 @@ endif
 
 end subroutine ltt_write_particle_data
 
-
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -697,34 +756,87 @@ end subroutine ltt_write_this_header
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_averaged_data (lttp, iu_ave, i_turn, bunch)
+subroutine ltt_calc_bunch_sums (lttp, i_turn, bunch, sum_data_arr)
 
 type (ltt_params_struct) lttp
 type (bunch_struct) bunch
-real(rp) average(6), s_ave(3)
-integer i, i_turn, n_live, iu_ave
+type (ltt_sum_data_struct), allocatable, target :: sum_data_arr(:)
+type (ltt_sum_data_struct), pointer :: sd
+
+integer i, ix, i_turn
 
 !
 
-if (iu_ave == 0) return
-if (lttp%output_every_n_turns == -1 .and. i_turn /= lttp%n_turns) return
-if (lttp%output_every_n_turns == 0 .and. i_turn /= 0 .and. i_turn /= lttp%n_turns) return
-if (lttp%output_every_n_turns > 0 .and. modulo(i_turn, lttp%output_every_n_turns) /= 0) return
+if (lttp%averages_output_file == '') return
 
-n_live = count(bunch%particle%state == alive$)
+select case (lttp%output_every_n_turns)
+case (-1)
+  if (i_turn /= lttp%n_turns) return
+  if (.not. allocated(sum_data_arr)) allocate (sum_data_arr(1))
+  sd => sum_data_arr(1)
+
+case (0)
+  if (i_turn /= 0 .and. i_turn /= lttp%n_turns) return
+  if (.not. allocated(sum_data_arr)) allocate (sum_data_arr(0:1))
+  ix = i_turn/lttp%output_every_n_turns
+  sd => sum_data_arr(ix)
+
+case default
+  if (modulo(i_turn, lttp%output_every_n_turns) /= 0) return
+  if (.not. allocated(sum_data_arr)) allocate (sum_data_arr(0:lttp%n_turns / lttp%output_every_n_turns))
+  ix = i_turn/lttp%output_every_n_turns
+  sd => sum_data_arr(ix)
+end select
+
+!
+
+sd%n_live = count(bunch%particle%state == alive$)
+sd%i_turn = i_turn
 
 do i = 1, 6
-  average(i) = sum(bunch%particle%vec(i), bunch%particle%state == alive$) / n_live
+  sd%orb_sum(i) = sum(bunch%particle%vec(i), bunch%particle%state == alive$) 
 enddo
 
 do i = 1, 3
-  s_ave(i) = sum(bunch%particle%spin(i), bunch%particle%state == alive$) / n_live
+  sd%spin_sum(i) = sum(bunch%particle%spin(i), bunch%particle%state == alive$)
 enddo
 
-write (iu_ave, '(i9, i9, f14.9, 2x, 3f14.9, 2x, 6es14.6)') i_turn, n_live, norm2(s_ave), s_ave, average
+end subroutine ltt_calc_bunch_sums
 
-end subroutine ltt_write_averaged_data
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
 
+subroutine ltt_write_bunch_averages (lttp, sum_data_arr)
+
+type (ltt_params_struct) lttp
+type (ltt_sum_data_struct), target :: sum_data_arr(:)
+type (ltt_sum_data_struct), pointer :: sd
+
+integer iu, ix
+
+!
+
+if (lttp%averages_output_file == '') return
+
+print '(a)', 'Averages_output_file: ', trim(lttp%averages_output_file)
+iu = lunget()
+open (iu, file = lttp%averages_output_file, recl = 200)
+write (iu, '(a1, a8, a9, a14, 3a14, 6a14)') '#', 'Turn', 'N_live', 'Polarization', &
+                     '<Sx>', '<Sy>', '<Sz>', '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>'
+
+!
+
+do ix = lbound(sum_data_arr, 1) , ubound(sum_data_arr, 1)
+  sd => sum_data_arr(ix)
+  if (sd%n_live == 0) exit
+  write (iu, '(i9, i9, f14.9, 2x, 3f14.9, 2x, 6es14.6)') sd%i_turn, sd%n_live, &
+                        norm2(sd%spin_sum/sd%n_live), sd%spin_sum/sd%n_live, sd%orb_sum/sd%n_live
+enddo
+
+close (iu)
+
+end subroutine ltt_write_bunch_averages
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -750,7 +862,6 @@ endif
 average = average / n_sum
 sigma = sigma / n_sum - outer_product(average, average)
 
-
 open (1, file = lttp%sigma_matrix_output_file)
 
 write (1, '(a, i0)') '# n_turn_sigma_average = ', lttp%n_turn_sigma_average
@@ -767,5 +878,26 @@ close (1)
 print '(2a)', 'Sigma matrix data file: ', trim(lttp%sigma_matrix_output_file)
 
 end subroutine ltt_write_sigma_file
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine print_mpi_info (lttp, line, do_print)
+
+type (ltt_params_struct) lttp
+
+character(*) line
+character(20) dtime
+logical, optional :: do_print
+
+!
+
+if (.not. logic_option(lttp%debug, do_print)) return
+
+call date_and_time_stamp (dtime)
+print '(a, 2x, i0, 2a)', dtime, lttp%mpi_rank, ': ', trim(line)
+
+end subroutine print_mpi_info
 
 end module
