@@ -81,36 +81,33 @@ detector. \lux uses the Bmad subroutine library\cite{b:bmad} for tracking and la
 \lux comes in two versions: A single threaded version whose executable is called \vn{lux} and an
 parallel compute version using MPI whose executable is called \vn{lux_mpi}. [Note to Distribution
 maintainers: The single threaded version will always be built when compiling the Distribution. The
-MPI version can be built by building the Distribution with MPI enabled or by using the
-\vn{mk_mpi} command in the \vn{lux} directory.]
+MPI version is built by building the Distribution with MPI enabled. See the documentation on the Bmad
+web site for more details.]
 
 %------------------------------------------------------------------
 \section{Running \lux} 
 \label{s:run}
 
-Syntax for invoking the single threaded version of \lux:
+See the documentation for setting up the Bmad environmental variables at
 \begin{example}
- <path-to-lux-exe>/lux \{-silent\} \{<master-input-file-name>\}
+  \url{https://wiki.classe.cornell.edu/ACC/ACL/RunningPrograms}
 \end{example}
-The \vn{<master-input-file-name>} optional argument is used to set the
-master input file name. The default is ``\vn{lux.init}''. 
 
-The \vn{-silent} optional argument suppresses the terminal output that
-\lux generates at the end of a run. This is useful to avoid long
-output when \lux is run repeatedly via a script.
+Once the Bmad environmental variables have bee set, the syntax for invoking the single threaded
+version of \lux is
+\begin{example}
+  lux \{-silent\} \{<master-input-file-name>\}
+\end{example}
+The \vn{<master-input-file-name>} optional argument is used to set the master input file name. The
+default is ``\vn{lux.init}''.
+
+The \vn{-silent} optional argument suppresses the terminal output that \lux generates at the end of
+a run. This is useful to avoid long output when \lux is run repeatedly via a script.
 
 Example input files are in the \vn{lux/examples} subdirectory.
 
-To run the parallel version of \lux, a script \vn{run_lux_mpi.sh} for
-running on the Laboratory compute farm is provided in
-\vn{lux/examples} subdirectory. [For non-Cornell people, ask your
-local MPI guru for help.] To run on the Lab compute farm, copy this
-script into a local directory, modify as needed (at minimum you will
-need to set where the \lux executable is and how many nodes you want
-to use in this script), and then start \lux with the command:
-\begin{example}
-  qsub run_lux_mpi.sh
-\end{example}
+To run the parallel version of \lux, see the documentation on running programs on the Bmad web site
+for more details.
 
 Note that two input files are always required to run \lux: The master input file
 (\sref{s:master.file}) and the Bmad lattice file (\sref{s:lat.file}).
@@ -718,18 +715,13 @@ of the photon energy with respect to \vn{E_ave}.
 \subsection{Pixel-By-Pixel File}
 \label{s:pbp.file}
 
-The first data file has the \vn{det_pix_out_file} parameter as the
-file name. This file contains pixel-by-pixel information.  The
-intensity of a pixel is the accumulated intensity of the photons
-hitting the pixel. Only pixels whose intensity is non-zero and whose
-intensity is greater than
-\vn{lux_param%intensity_min_det_pixel_cutoff} are recorded in the
-output file. This cutoff is relative to the intensity of the pixel
-with the highest intensity.
-\vn{lux_param%intensity_min_det_pixel_cutoff} is useful for keeping
-the data file sizes small.
-Each row in this file represents a single pixel. The columns in this
-file are:
+The first data file has the \vn{det_pix_out_file} parameter as the file name. This file contains
+pixel-by-pixel information.  The intensity of a pixel is the accumulated intensity of the photons
+hitting the pixel. Only pixels whose intensity is non-zero and whose intensity is greater than
+\vn{lux_param%intensity_min_det_pixel_cutoff} are recorded in the output file. This cutoff is
+relative to the intensity of the pixel with the highest intensity.
+\vn{lux_param%intensity_min_det_pixel_cutoff} is useful for keeping the data file sizes small.  Each
+row in this file represents a single pixel. The columns in this file are:
 \begin{example}
   ix_pix            ! $x$-axis index
   iy_pix            ! $y$-axis index
@@ -780,9 +772,9 @@ plots is illustrated in the Bmad manual in the \vn{Lattice Examples} chapter.
 There is a python script for making an intensity plot of the
 \vn{det_pix_out_file} in:
 \begin{example}
-  lux/plot/det_pix_plot.py
+  $ACC_ROOT_DIR/lux/plot/det_pix_plot.py
 \end{example}
-Here \vn{lux} is the root directory for the \lux program (\sref{s:build}).
+
 
 The script needs Python3 to run. You can invoke the script using the command
 \begin{example}

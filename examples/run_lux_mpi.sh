@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# The following is for using the Cornell Compute Farm for running lux_mpi.
+# For Off-Site work see the documentation for running programs on the Bmad Web site
+#		https://wiki.classe.cornell.edu/ACC/ACL/RunningPrograms
+
+# To use this script, use the command:
+#   qsub run_lux_mpi.sh
+# Further documentation is at:
+#		https://wiki.classe.cornell.edu/Computing/GridEngine
+
 # Set shell, but the default is /bin/bash
 #$ -S /bin/bash
 
