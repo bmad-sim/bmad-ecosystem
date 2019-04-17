@@ -36,6 +36,7 @@ set (EXE_SPECS
 
 if($ENV{ACC_ENABLE_MPI})
   list(APPEND EXE_SPECS "cmake.moga")
+  list(APPEND EXE_SPECS "cmake.long_term_tracking_mpi")
 endif()
 
 #set (FFLAGS "-pg")  # For profiling

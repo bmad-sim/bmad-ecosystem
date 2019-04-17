@@ -67,7 +67,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ April 8, 2019}
+\date{David Sagan \\ April 16, 2019}
 \begin{document}
 \maketitle
 
@@ -84,15 +84,23 @@ The \ltt program is built atop the the Bmad software library \cite{b:bmad}. The 
 developed at Cornell, has been developed for modeling relativistic charged particles in storage
 rings and Linacs, as well as modeling photons in x-ray beam lines.
 
+\ltt comes in two versions: A single threaded version whose executable is called
+\vn{long_term_tracking} and an parallel compute version using MPI whose executable is called
+\vn{long_term_tracking_mpi}. [Note to Distribution maintainers: The single threaded version will
+always be built when compiling the Distribution. The MPI version can be built by building the
+Distribution with MPI enabled. See the documentation on the Bmad web site for more details.]
+
 %------------------------------------------------------------------
 \Section{Running the Long Term Tracking Program} 
 \label{s:run}
 
-Ask your local Bmad Guru how to setup the proper environmental variables for running the long term
-tracking program. This is the same setup as needed for compiling Bmad programs so if you have done
-any Bmad based compiling you are all set. 
+See the documentation for setting up the Bmad environmental variables at
+\begin{example}
+  \url{https://wiki.classe.cornell.edu/ACC/ACL/RunningPrograms}
+\end{example}
 
-Syntax for invoking the \ltt program:
+Once the Bmad environmental variables have bee set, the syntax for invoking the single threaded
+version of the \ltt program is:
 \begin{code}
   long_term_tracking {<master_input_file_name>}
 \end{code}
@@ -107,6 +115,9 @@ Example input files are in the directory:
 \begin{code}
   $ACC_ROOT_DIR/bsim/long_turn_tracking/example
 \end{code}
+
+To run the parallel version of \ltt, see the documentation on running programs on the Bmad web site
+for more details.
 
 %------------------------------------------------------------------
 \Section{Simulation Modes}

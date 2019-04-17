@@ -101,43 +101,4 @@ subroutine linear_aperture(ring,da_config)
   enddo
 end subroutine
 
-subroutine linear_ma(ring,ma)
-  use bmad
-  use touschek_mod
-
-  implicit none
-
-  type(lat_struct) ring
-  type (momentum_aperture_struct), allocatable :: ma(:)
-
-  type(ele_struct) ele_at_s
-
-  integer i
-  integer n_ma
-
-  real(rp) local_ma1, local_ma2, local_ma
-  real(rp) x
-
-  logical, allocatable :: mask_x(:)
-  logical err
-
-  n_ma = size(ma)
-
-  allocate(mask_x(1:ring%n_ele_track))
-  mask_x = abs(ring%ele(1:ring%n_ele_track)%value(x1_limit$)) > 0.0001
-
-  do i=1, n_ma
-    call twiss_and_track_at_s(ring, ma(i)%s, ele_at_s)
-    x = ele_at_s%a%gamma*ele_at_s%a%eta**2 + 2*ele_at_s%a%alpha*ele_at_s%a%eta*ele_at_s%a%etap + ele_at_s%a%beta*ele_at_s%a%etap**2
-    local_ma1 = minval( ring%ele(1:ring%n_ele_track)%value(x1_limit$) / abs( sqrt(x)*sqrt(ring%ele(1:ring%n_ele_track)%a%beta)+ring%ele(1:ring%n_ele_track)%a%eta ), mask_x )
-    local_ma2 = minval( ring%ele(1:ring%n_ele_track)%value(x1_limit$) / abs(-sqrt(x)*sqrt(ring%ele(1:ring%n_ele_track)%a%beta)+ring%ele(1:ring%n_ele_track)%a%eta ), mask_x )
-    local_ma = min(local_ma1,local_ma2)
-    ma(i)%neg = -local_ma
-    ma(i)%pos =  local_ma
-  enddo
-
-  deallocate(mask_x)
-
-end subroutine
-
 end module
