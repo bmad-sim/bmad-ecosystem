@@ -54,16 +54,6 @@ type ltt_sum_data_struct
   real(rp) :: spin_sum(3) = 0   ! Spin
 end type
 
-interface
-  subroutine ltt_mpi_slave_send_data (lttp, sum_data_arr)
-  import
-  implicit none
-  type (ltt_params_struct) lttp
-  type (ltt_sum_data_struct) :: sum_data_arr(:)
-  end subroutine
-end interface
-
-
 contains
 
 !-------------------------------------------------------------------------------------------
@@ -480,7 +470,7 @@ end subroutine ltt_run_single_mode
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_run_bunch_mode (lttp, lat, beam_init, closed_orb, map_with_rad)
+subroutine ltt_run_bunch_mode (lttp, lat, beam_init, closed_orb, map_with_rad, sum_data_array)
 
 type (ltt_params_struct) lttp
 type (lat_struct) lat
@@ -489,6 +479,7 @@ type (coord_struct), allocatable :: closed_orb(:), orb(:)
 type (ptc_map_with_rad_struct) map_with_rad
 type (bunch_struct), target :: bunch, bunch_init
 type (coord_struct), pointer :: p
+type (ltt_sum_data_struct), allocatable, optional :: sum_data_array(:)
 type (ltt_sum_data_struct), allocatable, target :: sum_data_arr(:)
 type (ltt_sum_data_struct), pointer :: sd
 
@@ -580,7 +571,8 @@ if (lttp%sigma_matrix_output_file /= '' .and. .not. lttp%using_mpi) then
 endif
 
 if (lttp%using_mpi) then
-  call ltt_mpi_slave_send_data (lttp, sum_data_arr)
+  if (allocated(sum_data_array)) deallocate (sum_data_array)
+  call move_alloc (sum_data_arr, sum_data_array)
 else
   call ltt_write_bunch_averages(lttp, sum_data_arr)
 endif

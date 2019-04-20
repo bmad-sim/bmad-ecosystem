@@ -160,7 +160,11 @@ case ('BUNCH')
       ! Init the output arrays
       call print_mpi_info (lttp, 'Slave: Tracking Particles...')
 
-      call ltt_run_bunch_mode(lttp, lat, beam_init, closed_orb, map_with_rad)  ! Beam tracking
+      ! Run
+      call ltt_run_bunch_mode(lttp, lat, beam_init, closed_orb, map_with_rad, sd_arr)  ! Beam tracking
+      data_size = size(sd_arr) * storage_size(sd_arr(1)) / 8
+      call print_mpi_info (lttp, 'Slave: Sending Data...')
+      call mpi_send (sd_arr, data_size, MPI_BYTE, master_rank$, results_tag$, MPI_COMM_WORLD, ierr)
 
       ! Query Master if more tracking needed
       call print_mpi_info (lttp, 'Slave: Query to master...')
@@ -178,28 +182,4 @@ end select
 !
 
 end program
-
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-
-subroutine ltt_mpi_slave_send_data (lttp, sum_data_arr)
-
-use lt_tracking_mod
-use mpi
-
-implicit none
-
-type (ltt_params_struct) lttp
-type (ltt_sum_data_struct) :: sum_data_arr(:)
-integer data_size, ierr
-
-!
-
-data_size = size(sum_data_arr) * storage_size(sum_data_arr(1)) / 8
-call print_mpi_info (lttp, 'Slave: Sending Data...')
-call mpi_send (sum_data_arr, data_size, MPI_BYTE, master_rank$, results_tag$, MPI_COMM_WORLD, ierr)
-
-end subroutine ltt_mpi_slave_send_data
-
 

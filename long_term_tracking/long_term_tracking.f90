@@ -34,14 +34,3 @@ print '(a, f8.2)', 'Tracking time (min)', time/60
 
 end program
 
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-! The non-mpi version of this routine is just a dummy to satisfy the linker
-
-subroutine ltt_mpi_slave_send_data (lttp, sum_data)
-use lt_tracking_mod
-type (ltt_params_struct) lttp
-type (ltt_sum_data_struct) sum_data
-end subroutine ltt_mpi_slave_send_data
-
