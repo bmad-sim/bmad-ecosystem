@@ -129,7 +129,6 @@ program moga
 
   logical rf_on
   logical ok, err
-  logical lat_unstable, lin_lat_unstable
   logical slaves_done
 
   ! reduce number of error messages
@@ -265,15 +264,14 @@ program moga
     endif
   enddo
 
-  !FOO 
-  do i=1,ring%n_ele_track
-    if( ring%ele(i)%value(x1_limit$) .lt. 1e-4 ) then
-      ring%ele(i)%value(x1_limit$) = 0.05 
-      ring%ele(i)%value(x2_limit$) = 0.05 
-      ring%ele(i)%value(y1_limit$) = 0.05 
-      ring%ele(i)%value(y2_limit$) = 0.05 
-    endif
-  enddo
+  !do i=1,ring%n_ele_track
+  !  if( ring%ele(i)%value(x1_limit$) .lt. 1e-4 ) then
+  !    ring%ele(i)%value(x1_limit$) = 0.05 
+  !    ring%ele(i)%value(x2_limit$) = 0.05 
+  !    ring%ele(i)%value(y1_limit$) = 0.05 
+  !    ring%ele(i)%value(y2_limit$) = 0.05 
+  !  endif
+  !enddo
 
   n_aperture_test = 0
   do i=1,ring%n_ele_track
@@ -319,7 +317,7 @@ program moga
   crm%l_mags => l_mags
   crm%c_mags => c_mags
   call crm_build(ring, crm, err_flag)
-  !if(master)  write(*,*) "FOO crm: ", crm%ApC
+  !if(master)  write(*,*) "crm: ", crm%ApC
   if(err_flag) then
     write(*,*) "could not build chromaticity matrices at program start.  aborting."
     call mpi_finalize(mpierr)
@@ -437,8 +435,6 @@ program moga
           pool(i)%x(j+n_linear+n_omega) = r*(h_mags(j)%uir-h_mags(j)%lir) + h_mags(j)%lir
         enddo
         pool(i)%name = i
-        !call omega_to_k2(pool(i)%x(1+n_linear:n_linear+n_omega),crm,k2) !FOO
-        !write(9876,'(a,200f10.5)') "FOO k2: ", k2
       enddo
     elseif ( trim(initial_pop) .ne. '' ) then
       call read_initial_population(pool, alpha, n_linear, n_chrom, n_harmo, initial_pop, ring, crm, err_flag)
@@ -802,7 +798,6 @@ program moga
                 !Take logs of traces, because unstable modes can have huge traces.
                 tr_a = log( (ring%param%t1_no_RF(1,1)+ring%param%t1_no_RF(2,2))/2.0d0)
                 tr_b = log( (ring%param%t1_no_RF(3,3)+ring%param%t1_no_RF(4,4))/2.0d0)
-                write(*,*) "FOO tr_a, tr_b: ", tr_a, tr_b
                 cons(6) = min(tr_a-log_tr_a_min,cons(6))
                 cons(6) = min(log_tr_a_max-tr_a,cons(6))
                 cons(7) = min(tr_b-log_tr_b_min,cons(7))
@@ -856,7 +851,6 @@ program moga
             call clear_lat_1turn_mats(ring)
             call twiss_and_track(ring,co,status)
 
-            !if(.not. lin_lat_unstable) then
             if(status == ok$) then
               da_block_linear%param%closed_orbit = co(0)
               if(use_hybrid) then
@@ -894,9 +888,6 @@ program moga
             ! total up objective values
             if( .not. linear_ok  ) then
               write(*,*) "linear lattice is not stable."
-              metric = 1.0d0
-            elseif( lat_unstable ) then
-              write(*,*) "lattice is not stable."
               metric = 1.0d0
             else
               metric = 0.0d0
