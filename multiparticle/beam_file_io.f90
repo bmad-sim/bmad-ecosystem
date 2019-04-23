@@ -1,6 +1,7 @@
 module beam_file_io
 
 use equal_mod
+use hdf5_bunch_mod
 
 implicit none
 
@@ -10,26 +11,24 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine write_beam_file (file_name, ele, beam, new_file, file_format)
+! Subroutine write_beam_file (file_name, beam, new_file, file_format)
 !
 ! Routine to write a beam file.
 !
 ! Input:
 !   file_name     -- character(*): Name of file.
-!   ele           -- ele_struct: Element at which beam is at.
 !   beam          -- beam_struct: Beam to write
 !   new_file      -- logical, optional: New file or append? Default = True.
 !   file_format   -- logical, optional: binary$, ascii$, or hdf5$ (default).
 !-
 
-subroutine write_beam_file (file_name, ele, beam, new_file, file_format)
+subroutine write_beam_file (file_name, beam, new_file, file_format)
 
-type (ele_struct) ele
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p
 
-integer j, iu, ib, ip
+integer j, iu, ib, ip, ix_ele
 integer, optional :: file_format
 
 character(*) file_name
@@ -37,6 +36,7 @@ character(200) full_name
 character(*), parameter :: r_name = 'write_beam_file'
 
 logical, optional :: new_file
+logical error, append
 
 !
 
@@ -50,6 +50,7 @@ if (integer_option(hdf5$, file_format) == binary$) then
   else
     open (iu, file = full_name, form = 'unformatted', access = 'append')
   endif
+
 elseif (integer_option(hdf5$, file_format) == ascii$) then
   if (logic_option(.true., new_file)) then
     open (iu, file = full_name)
@@ -57,15 +58,17 @@ elseif (integer_option(hdf5$, file_format) == ascii$) then
   else
     open (iu, file = full_name, access = 'append')
   endif
+
 else
-  call out_io (s_fatal$, r_name, 'HDF5 FORMAT NOT YET SUPPORTED!')
-  call err_exit
+  append = .not. new_file
+  call hdf5_write_beam(file_name, beam%bunch, append, error)
+  return
 endif
 
 !
 
 if (integer_option(hdf5$, file_format) == binary$) then
-  write (iu) ele%ix_ele, size(beam%bunch), size(beam%bunch(1)%particle)
+  write (iu) 0, size(beam%bunch), size(beam%bunch(1)%particle)  ! 0 was ix_ele
   do ib = 1, size(beam%bunch)
     bunch => beam%bunch(ib)
     write (iu) bunch%particle(1)%species, bunch%charge_tot, bunch%z_center, bunch%t_center, size(bunch%particle)
@@ -75,7 +78,7 @@ if (integer_option(hdf5$, file_format) == binary$) then
     enddo
   enddo
 elseif (integer_option(hdf5$, file_format) == ascii$) then
-  write (iu, *) ele%ix_ele, '  ! ix_ele' 
+  write (iu, *) beam%bunch(1)%particle(1)%ix_ele, '  ! ix_ele' 
   write (iu, *) size(beam%bunch), '  ! n_bunch'
   write (iu, *) size(beam%bunch(1)%particle), '  ! n_particle'
   do ib = 1, size(beam%bunch)
@@ -129,8 +132,9 @@ type (beam_init_struct) beam_init
 type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p(:)
 type (coord_struct) orb_init
+type (pmd_header_struct) pmd_header
 
-integer i, j, k, ix, iu, ix_word, ios, ix_ele, species
+integer i, j, k, n, ix, iu, ix_word, ios, ix_ele, species
 integer n_bunch, n_particle, n_particle_lines, ix_lost
 
 real(rp) vec(6), sum_charge, bunch_charge
@@ -144,17 +148,27 @@ character(*), parameter :: r_name = 'read_beam_file'
 
 logical err_flag, error, in_parens, valid
 
-! Open file and determine whether the file is binary or ascii
+!
 
 err_flag = .true.
 
-iu = lunget()
 call fullfilename(file_name, full_name, valid)
 if (.not. valid) then
   call out_io (s_error$, r_name, 'NOT A VALID FILE NAME:' // file_name)
   return
 endif
 
+! HDF5 file
+
+n = len_trim(full_name)
+if (full_name(n-4:n) == '.hdf5' .or. full_name(n-2:n) == '.h5') then
+  call hdf5_read_beam (full_name, beam, pmd_header, err_flag)
+  return
+endif
+
+! Open file and determine whether the file is binary or ascii
+
+iu = lunget()
 open (iu, file = full_name, status = 'old', iostat = ios)
 if (ios /= 0) then
   call out_io (s_error$, r_name, 'CANNOT OPEN BEAM FILE: ' // quote(file_name))

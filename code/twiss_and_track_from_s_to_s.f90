@@ -143,7 +143,13 @@ do
     return
   endif
 
+  ix_ele = modulo(ix_ele, branch%n_ele_track) + 1
+
   if (present(ele_end)) then
+    if (logic_option(.false., compute_floor_coords)) call ele_geometry (ele_end%floor, ele_track, ele_end%floor)
+
+    if (orbit_start%species == photon$) cycle
+
     call transfer_twiss (ele_end, ele_here)
     ele_here%mat6 = ele_end%mat6
     ele_here%vec0 = ele_end%vec0
@@ -153,19 +159,17 @@ do
     ele_end%map_ref_orb_in  = ele_track%map_ref_orb_in   ! Needed for dispersion calc.
     ele_end%map_ref_orb_out = ele_track%map_ref_orb_out  ! Needed for dispersion calc.
     call twiss_propagate1 (ele_here, ele_end, err_flag)
-    if (logic_option(.false., compute_floor_coords)) call ele_geometry (ele_end%floor, ele_track, ele_end%floor)
     if (present(err)) err = err_flag
     if (err_flag) return
     ele_end%vec0 = matmul(ele_end%mat6, ele_here%vec0) + ele_track%vec0
     ele_end%mat6 = matmul(ele_end%mat6, ele_here%mat6)
   endif
 
-  ix_ele = modulo(ix_ele, branch%n_ele_track) + 1
 enddo
 
 ! Track to s_true_end
 
-if (present(ele_end)) then
+if (present(ele_end) .and. orbit_start%species /= photon$) then
   ele_here%mat6 = ele_end%mat6
   ele_here%vec0 = ele_end%vec0
 endif
@@ -175,7 +179,7 @@ if (ds /= 0) then
   call twiss_and_track_intra_ele (branch%ele(ix_end), branch%param, 0.0_rp, ds, .true., .true., &
                                   orbit_end, orbit_end, ele_end, ele_end, err, compute_floor_coords)
 
-  if (present(ele_end)) then
+  if (present(ele_end) .and. orbit_start%species /= photon$) then
     ele_end%vec0 = matmul(ele_end%mat6, ele_here%vec0) + ele_end%vec0
     ele_end%mat6 = matmul(ele_end%mat6, ele_here%mat6)
   endif

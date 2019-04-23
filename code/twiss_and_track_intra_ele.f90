@@ -145,6 +145,10 @@ elseif (present(orbit_end)) then  ! and not present(ele_start)
   call track1 (orbit_end, ele_p, param, orbit_end)
   orbit_end%ix_ele = ele%ix_ele  ! Since ele_p%ix_ele gets set to -2 to indicate it is a slice.
   if (.not. do_downstream) orbit_end%location = inside$
+  if (present(ele_end)) then
+    if (logic_option(.false., compute_floor_coords)) call ele_geometry (ele_start%floor, ele_p, ele_p%floor)
+    call transfer_ele(ele_p, ele_end, .true.)
+  endif
 endif
 
 if (present(err)) err = .false.

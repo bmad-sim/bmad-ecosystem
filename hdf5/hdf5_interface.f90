@@ -1,3 +1,12 @@
+!+
+! Module hdf5_interface
+!
+! Interface routines for HDF5.
+!
+! HDF5 (Hierarchical Data Format version 5) is a set of file format design to store large amounts of data.
+! See the web documentation on HDF5 for more info.
+!-
+
 module hdf5_interface
 
 use h5lt
@@ -26,7 +35,7 @@ integer, parameter :: H5O_TYPE_ATTRIBUTE_F = 123
 type hdf5_info_struct
   integer :: element_type = -1         ! Type of the element. See above.
   integer :: data_type = -1            ! Type of associated data. Not used for groups. See above.
-  integer(HSIZE_T) :: data_dim(3) = 0  ! Dimensions. Not used for groups. EG: Scaler data has [1, 0, 0].
+  integer(hsize_t) :: data_dim(3) = 0  ! Dimensions. Not used for groups. EG: Scaler data has [1, 0, 0].
   integer(SIZE_T) :: data_size = -1    ! Size of datums. Not used for groups. For strings size = # of characters.
   integer :: num_attributes = -1       ! Number of associated attributes. Used for groups and datasets only.
 end type
@@ -84,98 +93,181 @@ contains
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_write_attribute_string(root_id, attrib_name, string, error)
+!
+! Routine to create an HDF5 attribute whose value is a string.
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of the group or dataset the attribute is to be put in.
+!   attrib_name   -- character(*): Name of the attribute.
+!   string        -- character(*): String attribute value.
+!   error         -- logical Set True if there is an error. False otherwise.
+!-
 
-subroutine hdf5_write_attribute_string(id, name, string, error)
-integer(HID_T) :: id
-character(*) :: name, string
+subroutine hdf5_write_attribute_string(root_id, attrib_name, string, error)
+
+integer(hid_t) :: root_id
+character(*) :: attrib_name, string
 integer h5_err
 logical error
 !
 error = .true.
-call H5LTset_attribute_string_f(id, '.', name, trim(string), h5_err); if (h5_err < 0) return
+call H5LTset_attribute_string_f(root_id, '.', attrib_name, trim(string), h5_err); if (h5_err < 0) return
 error = .false.
+
 end subroutine hdf5_write_attribute_string
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_write_attribute_int_rank_0(root_id, attrib_name, ival, error)
+!
+! Routine to create an attribute with a scalar integer value.
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of the group or dataset the attribute is to be put in.
+!   attrib_name   -- character(*): Name of the attribute.
+!   ival          -- integer: Integer value of the attribute.
+!   error         -- logical Set True if there is an error. False otherwise.
+!-
 
-subroutine hdf5_write_attribute_int_rank_0(id, name, ival, error)
-integer(HID_T) :: id
-character(*) :: name
+subroutine hdf5_write_attribute_int_rank_0(root_id, attrib_name, ival, error)
+
+integer(hid_t) :: root_id
+character(*) :: attrib_name
 integer :: ival
 integer h5_err
 logical error
 !
 error = .true.
-call H5LTset_attribute_int_f(id, '.', name, [ival], 1_hz, h5_err); if (h5_err < 0) return
+call H5LTset_attribute_int_f(root_id, '.', attrib_name, [ival], 1_hz, h5_err); if (h5_err < 0) return
 error = .false.
+
 end subroutine hdf5_write_attribute_int_rank_0
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_write_attribute_int_rank_1(root_id, attrib_name, ival, error)
+!
+! Routine to create an attribute with a vector integer value.
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of the group or dataset the attribute is to be put in.
+!   attrib_name   -- character(*): Name of the attribute.
+!   ival(:)       -- integer: Integer array attribute value.
+!   error         -- logical Set True if there is an error. False otherwise.
+!-
 
-subroutine hdf5_write_attribute_int_rank_1(id, name, ival, error)
-integer(HID_T) :: id
-integer(HSIZE_T) iz 
-character(*) :: name
+subroutine hdf5_write_attribute_int_rank_1(root_id, attrib_name, ival, error)
+
+integer(hid_t) :: root_id
+integer(hsize_t) iz 
+character(*) :: attrib_name
 integer :: ival(:)
 integer h5_err
 logical error
 !
 error = .true.
 iz = size(ival)
-call H5LTset_attribute_int_f(id, '.', name, ival, iz, h5_err); if (h5_err < 0) return
+call H5LTset_attribute_int_f(root_id, '.', attrib_name, ival, iz, h5_err); if (h5_err < 0) return
 error = .false.
+
 end subroutine hdf5_write_attribute_int_rank_1
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_write_attribute_real_rank_0(root_id, attrib_name, rval, error)
+!
+! Routine to create an attribute with a scalar real value.
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of the group or dataset the attribute is to be put in.
+!   attrib_name   -- character(*): Name of the attribute.
+!   rval          -- real(rp): real value of the attribute.
+!   error         -- logical Set True if there is an error. False otherwise.
+!-
 
-subroutine hdf5_write_attribute_real_rank_0(id, name, rval, error)
-integer(HID_T) :: id
-character(*) :: name
+subroutine hdf5_write_attribute_real_rank_0(root_id, attrib_name, rval, error)
+
+integer(hid_t) :: root_id
+character(*) :: attrib_name
 real(rp) :: rval
 integer h5_err
 logical error
 !
 error = .true.
-call H5LTset_attribute_double_f(id, '.', name, [rval], 1_hz, h5_err); if (h5_err < 0) return
+call H5LTset_attribute_double_f(root_id, '.', attrib_name, [rval], 1_hz, h5_err); if (h5_err < 0) return
 error = .false.
+
 end subroutine hdf5_write_attribute_real_rank_0
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_write_attribute_real_rank_1(root_id, attrib_name, rval, error)
+!
+! Routine to create an attribute with a real vector value.
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of the group or dataset the attribute is to be put in.
+!   attrib_name   -- character(*): Name of the attribute.
+!   rval(:)       -- real(rp): real vector value of the attribute.
+!   error         -- logical Set True if there is an error. False otherwise.
+!-
 
-subroutine hdf5_write_attribute_real_rank_1(id, name, rval, error)
-integer(HID_T) :: id
-integer(HSIZE_T) iz 
-character(*) :: name
+subroutine hdf5_write_attribute_real_rank_1(root_id, attrib_name, rval, error)
+
+integer(hid_t) :: root_id
+integer(hsize_t) iz 
+character(*) :: attrib_name
 real(rp) :: rval(:)
 integer h5_err
 logical error
 !
 error = .true.
 iz = size(rval)
-call H5LTset_attribute_double_f(id, '.', name, rval, iz, h5_err); if (h5_err < 0) return
+call H5LTset_attribute_double_f(root_id, '.', attrib_name, rval, iz, h5_err); if (h5_err < 0) return
 error = .false.
+
 end subroutine hdf5_write_attribute_real_rank_1
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
-! At end call file close: 
-!   call h5fclose_f(file_id, h5_err)  ! h5_err is integer
+!+
+! Subroutine hdf5_open_file (file_name, action, file_id, error)
+!
+! Routine to open an HDF5 file.
+!
+! Note: To close the file When finished use:
+!   call h5fclose_f(file_name, h5_err)  ! h5_err is an integer
+!
+! Input:
+!   file_name   -- character(*): Name of the file
+!   action      -- character(*): Possibilities are:
+!                     'READ'    -- Read only.
+!                     'WRITE'   -- New file for writing to.
+!                     'APPEND'  -- If file exists, open file for reading/writing. 
+!                                  If file does not exist, create new file.
+!
+! Output:
+!   file_id     -- integer(hid_t): File handle.
+!   error       -- logical: Set True if there is an error. False otherwise.
+!-
 
 subroutine hdf5_open_file (file_name, action, file_id, error)
 
-integer(HID_T) file_id
+integer(hid_t) file_id
 integer h5_err, h_err
 
-logical error
+logical error, exist
 
 character(*) file_name, action
 character(*), parameter :: r_name = 'hdf5_open_file'
@@ -188,14 +280,25 @@ call h5open_f(h5_err)  ! Init Fortran interface
 
 call H5Eset_auto_f(0, h5_err)   ! Run silent
 
-if (action == 'READ') then
+select case (action)
+case ('READ')
   call h5fopen_f(file_name, H5F_ACC_RDONLY_F, file_id, h5_err)
-elseif (action == 'WRITE') then
+
+case ('WRITE')
   call h5fcreate_f (file_name, H5F_ACC_TRUNC_F, file_id, h5_err)
-else
+
+case ('APPEND')
+  inquire (file = file_name, exist = exist)
+  if (exist) then
+    call h5fopen_f(file_name, H5F_ACC_RDWR_F, file_id, h5_err)
+  else
+    call h5fcreate_f (file_name, H5F_ACC_TRUNC_F, file_id, h5_err)
+  endif
+
+case default
   call out_io(s_fatal$, r_name, 'BAD ACTION ARGUMENT! ' // quote(action))
   stop
-endif
+end select
 
 call H5Eset_auto_f(1, h_err)    ! Reset
 CALL h5eclear_f(h_err)
@@ -212,45 +315,29 @@ end subroutine hdf5_open_file
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
-! Note: Use H5Gclose_f to close the group.
-
-function hdf5_open_group (f_id, group_name, error, print_error) result (g_id)
-
-integer(HID_T) f_id, g_id
-integer h5_err
-
-logical error, print_error
-logical exists
-
-character(*) group_name
-character(*), parameter :: r_name = 'hdf5_open_group'
-
+!+
+! Function hdf5_open_object(root_id, object_name, info, error, print_error) result (obj_id)
 !
+! Routine to open an existing group or dataset.
+!
+! Note: Use hdf5_close_object to close the object.
+!
+! Input:
+!   root_id     -- integer(hid_t): ID of the group containing the object to be opened.
+!   object_name -- character(*): Name of the object to be opened
+!   info        -- hdf5_info_struct: Information on the object.
+!   print_error -- logical: Print an error message if there is an error?
+!
+! Output:
+!   error       -- logical: Set True if there is an error. False otherwise.
+!   obj_id      -- integer(hid_t): Object ID.
+!-
 
-error = .true.
-call H5Lexists_f(f_id, group_name, exists, h5_err, H5P_DEFAULT_F)
-if (.not. exists) then
-  if (print_error) then
-    call out_io (s_error$, r_name, 'GROUP DOES NOT EXIST: ' // quote(group_name))
-  endif
-  return
-endif
- 
-call H5Gopen_f (f_id, group_name, g_id, h5_err, H5P_DEFAULT_F)
-if (h5_err == -1) return
-error = .false.
-
-end function hdf5_open_group
-
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-
-function hdf5_open_object(f_id, object_name, info, error, print_error) result (obj_id)
+function hdf5_open_object(root_id, object_name, info, error, print_error) result (obj_id)
 
 type (hdf5_info_struct) info
 
-integer(HID_T) f_id, obj_id
+integer(hid_t) root_id, obj_id
 integer h5_err
 
 logical error, print_error
@@ -261,9 +348,9 @@ character(*), parameter :: r_name = 'hdf5_open_object'
 !
 
 if (info%element_type == H5O_TYPE_DATASET_F) then
-  obj_id = hdf5_open_dataset (f_id, object_name, error, print_error) 
+  obj_id = hdf5_open_dataset (root_id, object_name, error, print_error) 
 elseif (info%element_type == H5O_TYPE_GROUP_F) then
-  obj_id = hdf5_open_group(f_id, object_name, error, print_error) 
+  obj_id = hdf5_open_group(root_id, object_name, error, print_error) 
 endif
 
 end function hdf5_open_object
@@ -271,12 +358,24 @@ end function hdf5_open_object
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_close_object(obj_id, info)
+!
+! Routine to close a group or dataset.
+!
+! Note: Use hdf5_open_object to open the object.
+!
+! Input:
+!   obj_id      -- integer(hid_t): Object ID.
+!   info        -- hdf5_info_struct: Information on the object. 
+!                     Obtained when hdf5_open_object was called.
+!-
 
 subroutine hdf5_close_object(obj_id, info)
 
 type (hdf5_info_struct) info
 
-integer(HID_T) obj_id
+integer(hid_t) obj_id
 integer h5_err
 
 !
@@ -292,11 +391,77 @@ end subroutine hdf5_close_object
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
-! Note: Use H5Dclose_f to close the group.
+!+
+! Function hdf5_open_group (root_id, group_name, error, print_error) result (g_id)
+!
+! Rouine to open an existing group.
+!
+! Notes: 
+!   Use H5Gclose_f to close the group.
+!   Use H5Gcreate_f to create a new group.
+!
+! Input:
+!   root_id     -- integer(hid_t): ID of the Parent group containing the group to be opened.
+!   group_name  -- character(*): Name of the group to be opened.
+!   print_error -- logical: Print an error message if there is an error?
+!
+! Output:
+!   error       -- logical: Set True if there is an error. False otherwise.
+!   g_id        -- integer(hid_t): Group ID.
+!-
 
-function hdf5_open_dataset (f_id, dataset_name, error, print_error) result (ds_id)
+function hdf5_open_group (root_id, group_name, error, print_error) result (g_id)
 
-integer(HID_T) f_id, ds_id
+integer(hid_t) root_id, g_id
+integer h5_err
+
+logical error, print_error
+logical exists
+
+character(*) group_name
+character(*), parameter :: r_name = 'hdf5_open_group'
+
+!
+
+error = .true.
+call H5Lexists_f(root_id, group_name, exists, h5_err, H5P_DEFAULT_F)
+if (.not. exists) then
+  if (print_error) then
+    call out_io (s_error$, r_name, 'GROUP DOES NOT EXIST: ' // quote(group_name))
+  endif
+  return
+endif
+ 
+call H5Gopen_f (root_id, group_name, g_id, h5_err, H5P_DEFAULT_F)
+if (h5_err == -1) return
+error = .false.
+
+end function hdf5_open_group
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Function hdf5_open_dataset(root_id, dataset_name, info, error, print_error) result (obj_id)
+!
+! Routine to open an existing group or dataset.
+!
+! Note: Use H5Dclose_f close the dataset.
+!
+! Input:
+!   root_id     -- integer(hid_t): ID of the group containing the dataset to be opened.
+!   dataset_name -- character(*): Name of the dataset to be opened
+!   info        -- hdf5_info_struct: Information on the dataset.
+!   print_error -- logical: Print an error message if there is an error?
+!
+! Output:
+!   error       -- logical: Set True if there is an error. False otherwise.
+!   obj_id      -- integer(hid_t): Dataset ID.
+!-
+
+function hdf5_open_dataset (root_id, dataset_name, error, print_error) result (ds_id)
+
+integer(hid_t) root_id, ds_id
 integer h5_err
 
 logical error, print_error
@@ -308,7 +473,7 @@ character(*), parameter :: r_name = 'hdf5_open_dataset'
 !
 
 error = .true.
-call H5Lexists_f(f_id, dataset_name, exists, h5_err, H5P_DEFAULT_F)
+call H5Lexists_f(root_id, dataset_name, exists, h5_err, H5P_DEFAULT_F)
 if (.not. exists) then
   if (print_error) then
     call out_io (s_error$, r_name, 'DATASET DOES NOT EXIST: ' // quote(dataset_name))
@@ -316,7 +481,7 @@ if (.not. exists) then
   return
 endif
  
-call H5Dopen_f (f_id, dataset_name, ds_id, h5_err, H5P_DEFAULT_F)
+call H5Dopen_f (root_id, dataset_name, ds_id, h5_err, H5P_DEFAULT_F)
 if (h5_err == -1) return
 error = .false.
 
@@ -325,10 +490,23 @@ end function hdf5_open_dataset
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Function hdf5_num_attributes(root_id) result (num)
+!
+! Routine to return the number of attributes associated with a group or dataset.
+!
+! Also see: hdf5_get_attribute_by_index
+!
+! Input:
+!   root_id     -- integer(hid_t): Group or dataset ID number.
+!
+! Output:
+!   num         -- integer: Number of attributes in the group or dataset.
+!-
 
 function hdf5_num_attributes(root_id) result (num)
 
-integer(HID_T) :: root_id
+integer(hid_t) :: root_id
 integer num, h5_err
 
 !
@@ -340,10 +518,24 @@ end function hdf5_num_attributes
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_get_attribute_by_index(root_id, attrib_indx, attrib_id, attrib_name)
+!
+! Routine to return the ID and name of an attribute given the attribute's index number.
+! This routine is useful for looping over all the attributes in a group or dataset.
+!
+! Input:
+!   root_id       -- integer(hid_t): ID number of the group or dataset containing the attribute.
+!   attrib_indx   -- integer: Attribute index. Will be in the range 1 to hdf5_num_attributes.
+!
+! Output:
+!   attrib_id     -- integer(hid_t): ID number of the attribute.
+!   attrib_name   -- character(*): Name of the attribute.
+!-
 
 subroutine hdf5_get_attribute_by_index(root_id, attrib_indx, attrib_id, attrib_name)
 
-integer(HID_T) root_id, attrib_id
+integer(hid_t) root_id, attrib_id
 integer(SIZE_T) nam_len
 integer attrib_indx, h5_err
 
@@ -362,12 +554,26 @@ end subroutine hdf5_get_attribute_by_index
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Function hdf5_attribute_info(root_id, attrib_name, error, print_error) result (info)
+!
+! Routine to return information on an attribute given the attribute name and encomposing group.
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of group or dataset containing the attribute.
+!   attrib_name   -- character(*): Name of the attribute.
+!   print_error   -- logical: If true, print an error message if there is a problem.
+!
+! Output:
+!   error         -- logical: Set true if there is an error. False otherwise.
+!   info          -- hdf5_info_struct: Information on the attribute.
+!-
 
 function hdf5_attribute_info(root_id, attrib_name, error, print_error) result (info)
 
 type (hdf5_info_struct) info
 
-integer(HID_T) root_id, a_id
+integer(hid_t) root_id, a_id
 integer h5_err
 
 logical error, print_error, exists
@@ -402,8 +608,22 @@ end function hdf5_attribute_info
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Function hdf5_object_info (root_id, obj_name, error, print_error) result (info)
+!
+! Routine to get information on an object (group or dataset).
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of group containing the object in question.
+!   obj_name      -- character(*): Name of the object.
+!   print_error   -- logical: If true, print an error message if there is a problem.
+!
+! Output:
+!   error         -- logical: Set true if there is an error. False otherwise.
+!   info          -- hdf5_info_struct: Information on the object.
+!-
 
-function hdf5_object_info (root_id, name, error, print_error) result (info)
+function hdf5_object_info (root_id, obj_name, error, print_error) result (info)
 
 type (hdf5_info_struct) info
 type (H5O_info_t) :: infobuf 
@@ -411,7 +631,7 @@ type (H5O_info_t) :: infobuf
 integer(hid_t), value :: root_id
 integer stat, h5_err
 
-character(*) name
+character(*) obj_name
 
 logical error, print_error
 
@@ -419,12 +639,12 @@ logical error, print_error
 
 error = .true.
 
-call H5Oget_info_by_name_f(root_id, name, infobuf, h5_err)
+call H5Oget_info_by_name_f(root_id, obj_name, infobuf, h5_err)
 info%element_type = infobuf%type
 info%num_attributes = infobuf%num_attrs
 
 if (info%element_type == H5O_TYPE_DATASET_F) then
-  call H5LTget_dataset_info_f(root_id, name, info%data_dim, info%data_type, info%data_size, h5_err)
+  call H5LTget_dataset_info_f(root_id, obj_name, info%data_dim, info%data_type, info%data_size, h5_err)
 endif
 
 error = .false.
@@ -434,10 +654,25 @@ end function hdf5_object_info
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_read_attribute_int_rank_0(root_id, attrib_name, attrib_value, error, print_error)
+!
+! Routine to read an scaler (rank 0) integer attribute value.
+! Overloaded by: hdf5_read_attribute_int
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of group or dataset containing the attribute.
+!   attrib_name   -- character(*): Name of the attribute.
+!   print_error   -- logical: If true, print an error message if there is a problem.
+!
+! Output:
+!   error         -- logical: Set true if there is an error. False otherwise.
+!   attrib_value  -- integer: Value of the attribute.
+!-
 
 subroutine hdf5_read_attribute_int_rank_0(root_id, attrib_name, attrib_value, error, print_error)
 
-integer(HID_T) root_id
+integer(hid_t) root_id
 integer attrib_value, a_val(1)
 
 logical error, print_error
@@ -452,12 +687,27 @@ end subroutine hdf5_read_attribute_int_rank_0
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_read_attribute_int_rank_0(root_id, attrib_name, attrib_value, error, print_error)
+!
+! Routine to read a vector (rank 1) integer attribute array.
+! Overloaded by: hdf5_read_attribute_int
+!
+! Input:
+!   root_id         -- integer(hid_t): ID of group or dataset containing the attribute.
+!   attrib_name     -- character(*): Name of the attribute.
+!   print_error     -- logical: If true, print an error message if there is a problem.
+!
+! Output:
+!   error           -- logical: Set true if there is an error. False otherwise.
+!   attrib_value(:) -- integer: Value of the attribute.
+!-
 
 subroutine hdf5_read_attribute_int_rank_1(root_id, attrib_name, attrib_value, error, print_error)
 
 type (hdf5_info_struct) info
 
-integer(HID_T) root_id, a_id
+integer(hid_t) root_id, a_id
 integer attrib_value(:)
 integer h5_err
 
@@ -486,10 +736,25 @@ end subroutine hdf5_read_attribute_int_rank_1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_read_attribute_real_rank_0(root_id, attrib_name, attrib_value, error, print_error)
+!
+! Routine to read an scaler (rank 0) real attribute value.
+! Overloaded by: hdf5_read_attribute_real
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of group or dataset containing the attribute.
+!   attrib_name   -- character(*): Name of the attribute.
+!   print_error   -- logical: If true, print an error message if there is a problem.
+!
+! Output:
+!   error         -- logical: Set true if there is an error. False otherwise.
+!   attrib_value  -- real(rp): Value of the attribute.
+!-
 
 subroutine hdf5_read_attribute_real_rank_0(root_id, attrib_name, attrib_value, error, print_error)
 
-integer(HID_T) root_id
+integer(hid_t) root_id
 integer h5_err
 
 real(rp) attrib_value, val(1)
@@ -508,12 +773,27 @@ end subroutine hdf5_read_attribute_real_rank_0
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_read_attribute_real_rank_1(root_id, attrib_name, attrib_value, error, print_error)
+!
+! Routine to read a vector (rank 1) real attribute array
+! Overloaded by: hdf5_read_attribute_real
+!
+! Input:
+!   root_id         -- integer(hid_t): ID of group or dataset containing the attribute.
+!   attrib_name     -- character(*): Name of the attribute.
+!   print_error     -- logical: If true, print an error message if there is a problem.
+!
+! Output:
+!   error           -- logical: Set true if there is an error. False otherwise.
+!   attrib_value(:) -- real(rp): Value array of the attribute.
+!-
 
 subroutine hdf5_read_attribute_real_rank_1(root_id, attrib_name, attrib_value, error, print_error)
 
 type (hdf5_info_struct) info
 
-integer(HID_T) root_id, a_id
+integer(hid_t) root_id, a_id
 integer h5_err
 
 real(rp) attrib_value(:) 
@@ -544,12 +824,27 @@ end subroutine hdf5_read_attribute_real_rank_1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_read_attribute_alloc_string(root_id, attrib_name, string, error, print_error)
+!
+! Routine to read a string attribute.
+! Also see: hdf5_read_attribute_string
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of group or dataset containing the attribute.
+!   attrib_name   -- character(*): Name of the attribute.
+!   print_error   -- logical: If true, print an error message if there is a problem.
+!
+! Output:
+!   error         -- logical: Set true if there is an error. False otherwise.
+!   string        -- character(:), allocatable: Variable length string to hold the attribute value.
+!-
 
 subroutine hdf5_read_attribute_alloc_string(root_id, attrib_name, string, error, print_error)
 
 type (hdf5_info_struct) info
 
-integer(HID_T) root_id, a_id
+integer(hid_t) root_id, a_id
 integer attrib_value
 integer h5_err
 
@@ -588,12 +883,27 @@ end subroutine hdf5_read_attribute_alloc_string
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_read_attribute_string(root_id, attrib_name, string, error, print_error)
+!
+! Routine to read a string attribute.
+! Also see: hdf5_read_attribute_alloc_string
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of group or dataset containing the attribute.
+!   attrib_name   -- character(*): Name of the attribute.
+!   print_error   -- logical: If true, print an error message if there is a problem.
+!
+! Output:
+!   error         -- logical: Set true if there is an error. False otherwise.
+!   string        -- character(*): String to hold the attribute value.
+!-
 
 subroutine hdf5_read_attribute_string(root_id, attrib_name, string, error, print_error)
 
 type (hdf5_info_struct) info
 
-integer(HID_T) root_id, a_id
+integer(hid_t) root_id, a_id
 integer attrib_value
 integer h5_err
 
@@ -631,10 +941,22 @@ end subroutine hdf5_read_attribute_string
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_write_dataset_real_rank_0(root_id, dataset_name, value, error)
+!
+! Routine to create a dataset with one real value.
+! Overloaded by: interface hdf5_write_dataset_real
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of the group the dataset is to be put in.
+!   dataset_name  -- character(*): Name of the dataset.
+!   value         -- real(rp): Dataset value.
+!   error         -- logical Set True if there is an error. False otherwise.
+!-
 
 subroutine hdf5_write_dataset_real_rank_0 (root_id, dataset_name, value, error)
 
-integer(HID_T) root_id, v_size(1)
+integer(hid_t) root_id, v_size(1)
 integer h5_err
 real(rp) value
 real(rp) vector(1)
@@ -654,10 +976,22 @@ end subroutine hdf5_write_dataset_real_rank_0
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_write_dataset_real_rank_1(root_id, dataset_name, value, error)
+!
+! Routine to create a dataset with an array of real values.
+! Overloaded by: interface hdf5_write_dataset_real
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of the group the dataset is to be put in.
+!   dataset_name  -- character(*): Name of the dataset.
+!   value(:)      -- real(rp): Dataset value array.
+!   error         -- logical Set True if there is an error. False otherwise.
+!-
 
 subroutine hdf5_write_dataset_real_rank_1 (root_id, dataset_name, value, error)
 
-integer(HID_T) root_id, v_size(1)
+integer(hid_t) root_id, v_size(1)
 integer h5_err
 real(rp) value(:)
 logical error
@@ -675,10 +1009,22 @@ end subroutine hdf5_write_dataset_real_rank_1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_write_dataset_real_rank_2(root_id, dataset_name, value, error)
+!
+! Routine to create a dataset with a matrix of real values.
+! Overloaded by: interface hdf5_write_dataset_real
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of the group the dataset is to be put in.
+!   dataset_name  -- character(*): Name of the dataset.
+!   value(:,:)    -- real(rp): Dataset value matrix.
+!   error         -- logical Set True if there is an error. False otherwise.
+!-
 
 subroutine hdf5_write_dataset_real_rank_2 (root_id, dataset_name, value, error)
 
-integer(HID_T) root_id, v_size(2)
+integer(hid_t) root_id, v_size(2)
 integer h5_err
 real(rp) value(:,:)
 logical error
@@ -696,10 +1042,22 @@ end subroutine hdf5_write_dataset_real_rank_2
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_write_dataset_real_rank_3(root_id, dataset_name, value, error)
+!
+! Routine to create a dataset with a 3D array of real values.
+! Overloaded by: interface hdf5_write_dataset_real
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of the group the dataset is to be put in.
+!   dataset_name  -- character(*): Name of the dataset.
+!   value(:,:,:)  -- real(rp): Dataset values
+!   error         -- logical Set True if there is an error. False otherwise.
+!-
 
 subroutine hdf5_write_dataset_real_rank_3 (root_id, dataset_name, value, error)
 
-integer(HID_T) root_id, v_size(3)
+integer(hid_t) root_id, v_size(3)
 integer h5_err
 real(rp) value(:,:,:)
 logical error
@@ -717,10 +1075,22 @@ end subroutine hdf5_write_dataset_real_rank_3
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_write_dataset_int_rank_0(root_id, dataset_name, value, error)
+!
+! Routine to create a dataset with one integer value.
+! Overloaded by: interface hdf5_write_dataset_int
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of the group the dataset is to be put in.
+!   dataset_name  -- character(*): Name of the dataset.
+!   value         -- integer: Dataset value.
+!   error         -- logical Set True if there is an error. False otherwise.
+!-
 
 subroutine hdf5_write_dataset_int_rank_0 (root_id, dataset_name, value, error)
 
-integer(HID_T) root_id, v_size(1)
+integer(hid_t) root_id, v_size(1)
 integer h5_err
 integer value
 integer vector(1)
@@ -740,10 +1110,22 @@ end subroutine hdf5_write_dataset_int_rank_0
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_write_dataset_int_rank_1(root_id, dataset_name, value, error)
+!
+! Routine to create a dataset with an array of integer values.
+! Overloaded by: interface hdf5_write_dataset_int
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of the group the dataset is to be put in.
+!   dataset_name  -- character(*): Name of the dataset.
+!   value(:)      -- integer: Dataset value array.
+!   error         -- logical Set True if there is an error. False otherwise.
+!-
 
 subroutine hdf5_write_dataset_int_rank_1 (root_id, dataset_name, value, error)
 
-integer(HID_T) root_id, v_size(1)
+integer(hid_t) root_id, v_size(1)
 integer h5_err
 integer value(:)
 logical error
@@ -761,10 +1143,22 @@ end subroutine hdf5_write_dataset_int_rank_1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_write_dataset_int_rank_2(root_id, dataset_name, value, error)
+!
+! Routine to create a dataset with a matrix of integer values.
+! Overloaded by: interface hdf5_write_dataset_int
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of the group the dataset is to be put in.
+!   dataset_name  -- character(*): Name of the dataset.
+!   value(:,:)    -- integer: Dataset value matrix.
+!   error         -- logical Set True if there is an error. False otherwise.
+!-
 
 subroutine hdf5_write_dataset_int_rank_2 (root_id, dataset_name, value, error)
 
-integer(HID_T) root_id, v_size(2)
+integer(hid_t) root_id, v_size(2)
 integer h5_err
 integer value(:,:)
 logical error
@@ -782,10 +1176,22 @@ end subroutine hdf5_write_dataset_int_rank_2
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_write_dataset_int_rank_3(root_id, dataset_name, value, error)
+!
+! Routine to create a dataset with a 3D array of integer values.
+! Overloaded by: interface hdf5_write_dataset_int
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of the group the dataset is to be put in.
+!   dataset_name  -- character(*): Name of the dataset.
+!   value(:,:,:)  -- integer: Dataset values
+!   error         -- logical Set True if there is an error. False otherwise.
+!-
 
 subroutine hdf5_write_dataset_int_rank_3 (root_id, dataset_name, value, error)
 
-integer(HID_T) root_id, v_size(3)
+integer(hid_t) root_id, v_size(3)
 integer h5_err
 integer value(:,:,:)
 logical error
