@@ -92,12 +92,14 @@ case ('beam')
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit
 
-    call tao_next_switch (word(ix_word), ['-ascii', '-at   '], .true., switch, err, ix)
+    call tao_next_switch (word(ix_word), [character(8):: '-ascii', '-at', '-binary', '-hdf5'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
     case ('');       exit
-    case ('-ascii'); file_format = ascii$
+    case ('-ascii');  file_format = ascii$
+    case ('-binary'); file_format = binary$
+    case ('-hdf5');   file_format = hdf5$
     case ('-at')
       ix_word = ix_word + 1
       call tao_locate_elements (word(ix_word), s%com%default_universe, eles, err)
@@ -112,7 +114,23 @@ case ('beam')
     end select
   enddo
 
-  if (file_name0 == '') file_name0 = 'beam_#.dat'
+  if (file_format == hdf5$) then
+    if (file_name0 == '') then
+      file_name0 = 'beam_#.hdf5'
+    else
+      n = len_trim(file_name0)
+      if (file_name0(n-2:n) /= '.h5' .and. file_name0(n-4:n) /= '.hdf5') then
+        file_name0 = trim(file_name0) // '.hdf5'
+      endif
+    endif
+
+  elseif (file_name0 == '') then
+    if (file_format == ascii$) then
+      file_name0 = 'beam_#.dat'
+    else
+      file_name0 = 'beam_#.bin'
+    endif
+  endif
 
   if (.not. at_switch) then
     call out_io (s_error$, r_name, 'YOU NEED TO SPECIFY "-at".')
@@ -135,7 +153,7 @@ case ('beam')
       beam => u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
       if (.not. allocated(beam%bunch)) cycle
 
-      call write_beam_file (file_name, ele, beam, new_file, file_format)
+      call write_beam_file (file_name, beam, new_file, file_format)
       new_file = .false.
     enddo 
 
