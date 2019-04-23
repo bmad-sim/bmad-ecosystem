@@ -100,13 +100,13 @@ l2[geometry] = open
 
 !-----------
 
-l3: line = (crystal1, mirror1, multilayer_mirror1)
+l3: line = (crystal1, crystal2, mirror1, multilayer_mirror1)
 
 l3[e_tot] = 1e4
 l3[geometry] = open
 l3[particle] = photon
 
-r0 = 1
+r0 = 10
 
 crystal1: crystal, crystal_type = 'Si(444)', b_param = -1.1, tilt = 0.1, psi_angle = 0.11,
   x_offset = 0.001, x_pitch = 1e-4, y_offset = 0.002, y_pitch = 2e-4,
@@ -114,6 +114,13 @@ crystal1: crystal, crystal_type = 'Si(444)', b_param = -1.1, tilt = 0.1, psi_ang
 	curvature_x2_y0 = 1 / (2*r0), curvature_x3_y0 = -1 / (12*r0^3),
 	curvature_x2_y2 = 1 / (6*r0^3), mat6_calc_method = tracking,
   spherical_curvature = 0.1
+
+crystal2: crystal, crystal_type = 'Si(122)', b_param = 1.1, tilt = 0.1, psi_angle = 0.11,
+  x_offset = 0.001, x_pitch = 1e-4, y_offset = 0.002, y_pitch = 2e-4,
+	curvature_x0_y2 =  1 / (2 *r0), curvature_x0_y3 = 1 / (10*r0^2),
+	curvature_x2_y0 = 1 / (2*r0), curvature_x3_y0 = -1 / (12*r0^3),
+	curvature_x2_y2 = 1 / (6*r0^3), mat6_calc_method = tracking,
+  spherical_curvature = 0.1, thickness = 1e-3
 
 multilayer_mirror1: multilayer_mirror, material_type = 'W:B4C', n_cell = 100, 
   d1_thickness = 1e-9, d2_thickness = 1.5e-9, tilt = 0.01, 

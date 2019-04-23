@@ -11,8 +11,8 @@
 "NH3@M37.5-:charge" ABS  0     -1
 "C+:mass" ABS  1E-10     12.009600000
 "C+:charge" ABS  0      1
-"#12C+:mass" ABS  1E-10     12.000000000
-"#12C+:charge" ABS  0      1
+"#12C+3:mass" ABS  1E-10     11.998354260
+"#12C+3:charge" ABS  0      3
  
 "H:mass" ABS  1E-10      1.007840000
 "H:charge" ABS  0      0
