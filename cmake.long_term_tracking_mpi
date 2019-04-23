@@ -20,4 +20,8 @@ set (LINK_LIBS
   fgsl
   gsl
   gslcblas
+  hdf5hl_fortran
+  hdf5_fortran
+  hdf5_hl
+  hdf5
 )
