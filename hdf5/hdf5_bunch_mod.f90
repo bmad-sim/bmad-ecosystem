@@ -57,20 +57,42 @@ type pmd_header_struct
   character(:), allocatable :: latticeName
 end type
 
+!
+
+private pmd_write_real_vector_to_dataset, pmd_write_real_to_pseudo_dataset
+private pmd_write_int_vector_to_dataset, pmd_write_int_to_pseudo_dataset
+private pmd_write_units_to_dataset 
+private pmd_read_int_dataset, pmd_read_real_dataset
+
 contains
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_write_beam (file_name, bunches, append, error)
+!
+! Routine to write particle positions of a beam to an HDF5 binary file.
+! See also hdf5_read_beam.
+!
+! Input:
+!   file_name     -- character(*): Name of the file to create.
+!   bunches(:)    -- bunch_struct: Array of bunches. 
+!                       Use "[bunch]" if you have a single bunch.
+!                       use "beam%bunch" if you have beam_struct instance.
+!   append        -- logical: If True then append if the file already exists.
+!
+! Output:
+!   error         -- logical: Set True if there is an error. False otherwise.
+!-
 
-subroutine hdf5_write_beam (file_name, bunches, lat, error)
+subroutine hdf5_write_beam (file_name, bunches, append, error)
 
 implicit none
 
 type (bunch_struct), target :: bunches(:)
 type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p(:), p_live
-type (lat_struct) lat
 
 real(rp), allocatable :: rvec(:)
 
@@ -83,7 +105,7 @@ character(20) date_time, root_path, bunch_path, particle_path, fmt
 character(100) this_path
 character(*), parameter :: r_name = 'hdf5_write_beam'
 
-logical error, err
+logical append, error, err
 
 ! Open a new file using default properties.
 
@@ -104,10 +126,10 @@ call hdf5_write_attribute_string(f_id, 'particlesPath', trim(particle_path), err
 call hdf5_write_attribute_string(f_id, 'software', 'Bmad', err)
 call hdf5_write_attribute_string(f_id, 'softwareVersion', '1.0', err)
 call hdf5_write_attribute_string(f_id, 'date', date_time, err)
-call hdf5_write_attribute_string(f_id, 'latticeFile', lat%input_file_name, err)
-if (lat%lattice /= '') then
-  call hdf5_write_attribute_string(f_id, 'latticeName', lat%lattice, err)
-endif
+!! call hdf5_write_attribute_string(f_id, 'latticeFile', lat%input_file_name, err)
+!! if (lat%lattice /= '') then
+!!   call hdf5_write_attribute_string(f_id, 'latticeName', lat%lattice, err)
+!! endif
 
 ! Loop over bunches
 
@@ -257,6 +279,11 @@ end subroutine hdf5_write_beam
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_write_real_vector_to_dataset(root_id, dataset_name, bmad_name, unit, vector, error)
+!
+! Private routine used by hdf5_write_beam.
+!-
 
 subroutine pmd_write_real_vector_to_dataset(root_id, dataset_name, bmad_name, unit, vector, error)
 
@@ -292,6 +319,11 @@ end subroutine pmd_write_real_vector_to_dataset
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_write_real_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_size, error)
+!
+! Private routine used by hdf5_write_beam.
+!-
 
 subroutine pmd_write_real_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_size, error)
 
@@ -318,6 +350,11 @@ end subroutine pmd_write_real_to_pseudo_dataset
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_write_int_vector_to_dataset(root_id, dataset_name, bmad_name, unit, vector, error)
+!
+! Private routine used by hdf5_write_beam.
+!-
 
 subroutine pmd_write_int_vector_to_dataset(root_id, dataset_name, bmad_name, unit, vector, error)
 
@@ -353,6 +390,11 @@ end subroutine pmd_write_int_vector_to_dataset
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_size, error)
+!
+! Private routine used by hdf5_write_beam.
+!-
 
 subroutine pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_size, error)
 
@@ -379,6 +421,11 @@ end subroutine pmd_write_int_to_pseudo_dataset
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+!
+! Private routine used by hdf5_write_beam.
+!-
 
 subroutine pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
@@ -395,9 +442,23 @@ call H5LTset_attribute_string_f(root_id, dataset_name, 'unitSymbol', unit%unitSy
 
 end subroutine pmd_write_units_to_dataset 
 
-!==========================================================================================
-!==========================================================================================
-!==========================================================================================
+!===============================================================================================
+!===============================================================================================
+!===============================================================================================
+!+
+! Subroutine hdf5_read_beam (file_name, beam, pmd_header, error)
+!
+! Routine to read a beam data file. 
+! See also hdf5_write_beam
+!
+! Input:
+!   file_name         -- character(*): Name of the beam data file.
+!
+! Output:
+!   beam              -- beam_struct: Particle positions.
+!   pmd_header        -- pmd_header_struct: Extra info like file creation date.
+!   error             -- logical: Set True if there is a read error. False otherwise.
+!-
 
 subroutine hdf5_read_beam (file_name, beam, pmd_header, error)
 
@@ -408,7 +469,6 @@ implicit none
 
 type (beam_struct), target :: beam
 type (pmd_header_struct) pmd_header
-type (lat_struct) lat
 type (pmd_unit_struct) unit
 type(H5O_info_t) :: infobuf 
 type(c_ptr) cv_ptr
@@ -711,6 +771,11 @@ end subroutine hdf5_read_beam
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_read_int_dataset(root_id, name, value, error)
+!
+! Private routine used by hdf5_read_beam.
+!-
 
 subroutine pmd_read_int_dataset(root_id, name, value, error)
 
@@ -764,6 +829,11 @@ end subroutine pmd_read_int_dataset
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_read_real_dataset(root_id, name, conversion_factor, value, error)
+!
+! Private routine used by hdf5_read_beam.
+!-
 
 subroutine pmd_read_real_dataset(root_id, name, conversion_factor, value, error)
 
