@@ -38,6 +38,10 @@ SET (SHARED_DEPS
   X11
   readline
   gomp
+  hdf5hl_fortran
+  hdf5_fortran
+  hdf5_hl
+  hdf5
   )
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
