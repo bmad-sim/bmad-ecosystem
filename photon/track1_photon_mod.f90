@@ -160,7 +160,7 @@ type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
 type (wall3d_section_struct), pointer :: sec
 
-real(rp) w_to_surface(3,3), vz0
+real(rp) vz0
 real(rp) wavelength, thickness, absorption, phase_shift
 
 integer ix_sec
@@ -246,7 +246,7 @@ type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
 
-real(rp) w_to_surface(3,3), absorption, phase_shift
+real(rp) w_surface(3,3), absorption, phase_shift
 
 logical err_flag
 
@@ -254,12 +254,10 @@ character(*), parameter :: r_name = 'track1_sample'
 
 !
 
-call track_to_surface (ele, orbit, curved_surface_rot = .false.)
+call track_to_surface (ele, orbit)
 if (orbit%state /= alive$) return
 
-if (ele%photon%surface%has_curvature) then
-  call rotate_for_curved_surface (ele, orbit, set$, w_to_surface)
-endif
+if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
 
 ! Check aperture
 
@@ -273,7 +271,7 @@ endif
 select case (nint(ele%value(mode$)))
 case (reflection$)
 
-  call point_photon_emission (ele, param, orbit, -1, fourpi, w_to_surface)
+  call point_photon_emission (ele, param, orbit, -1, fourpi, w_surface)
 
 case (transmission$)
   call photon_absorption_and_phase_shift (ele%component_name, orbit%p0c, absorption, phase_shift, err_flag)
@@ -292,9 +290,7 @@ end select
 
 ! Rotate back to uncurved element coords
 
-if (ele%photon%surface%has_curvature) then
-  call rotate_for_curved_surface (ele, orbit, unset$)
-endif
+if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
 
 end subroutine track1_sample
 
@@ -507,7 +503,7 @@ type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
 
-real(rp) wavelength
+real(rp) wavelength, w_surface(3,3)
 real(rp), pointer :: val(:)
 
 character(*), parameter :: r_name = 'track1_mirror'
@@ -519,6 +515,8 @@ wavelength = c_light * h_planck / orbit%p0c
 
 call track_to_surface (ele, orbit)
 if (orbit%state /= alive$) return
+
+if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
 
 ! Check aperture
 
@@ -533,9 +531,7 @@ orbit%vec(6) = -orbit%vec(6)
 
 ! Rotate back to uncurved element coords
 
-if (ele%photon%surface%has_curvature) then
-  call rotate_for_curved_surface (ele, orbit, unset$)
-endif
+if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
 
 end subroutine track1_mirror
 
@@ -563,7 +559,7 @@ type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
 
-real(rp) wavelength, kz_air
+real(rp) wavelength, kz_air, w_surface(3,3)
 real(rp), pointer :: val(:)
 
 complex(rp) zero, xi_1, xi_2, kz1, kz2, c1, c2
@@ -577,6 +573,8 @@ wavelength = c_light * h_planck / orbit%p0c
 
 call track_to_surface (ele, orbit)
 if (orbit%state /= alive$) return
+
+if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
 
 ! Check aperture
 
@@ -609,9 +607,7 @@ orbit%vec(6) = -orbit%vec(6)
 
 ! Rotate back to uncurved element coords
 
-if (ele%photon%surface%has_curvature) then
-  call rotate_for_curved_surface (ele, orbit, unset$)
-endif
+if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
 
 !-----------------------------------------------------------------------------------------------
 contains
@@ -709,7 +705,7 @@ type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
 type (crystal_param_struct) cp
 
-real(rp) h_bar(3), e_tot, pc, p_factor, field1, field2
+real(rp) h_bar(3), e_tot, pc, p_factor, field1, field2, w_surface(3,3)
 real(rp) gamma_0, gamma_h, dr1(3), dr2(3)
 
 character(*), parameter :: r_name = 'track1_cyrstal'
@@ -741,6 +737,8 @@ cp%cap_gamma = r_e * cp%wavelength**2 / (pi * ele%value(v_unitcell$))
 
 call track_to_surface (ele, orbit)
 if (orbit%state /= alive$) return
+
+if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
 
 cp%old_vvec = orbit%vec(2:6:2)
 
@@ -800,9 +798,7 @@ else
   if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) orbit%vec(2:6:2) = cp%new_vvec
 endif
 
-if (ele%photon%surface%has_curvature) then
-  call rotate_for_curved_surface (ele, orbit, unset$)
-endif
+if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
 
 end subroutine track1_crystal
 
@@ -1024,14 +1020,12 @@ end subroutine e_field_calc
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine track_to_surface (ele, orbit, curved_surface_rot)
+! Subroutine track_to_surface (ele, orbit)
 !
 ! Routine to track a photon to the surface of the element.
 !
-! If the surface is curved, the photon's velocity coordinates are rotated so that 
-! orbit%vec(6) is maintained to be normal to the local surface and pointed inward.
-!
-! Notice that, to save time, the photon's position is not rotated when there is a curved surface.
+! After calling this routine, if the surface is curved, the routine rotate_for_curved_surface should
+! be called to rotate the photon's velocity coordinates to the local surface coordinate system.
 !
 ! Input:
 !   ele                 -- ele_struct: Element
@@ -1106,8 +1100,6 @@ if (ele%photon%surface%has_curvature) then
   orbit%vec(1:5:2) = s_len * orbit%vec(2:6:2) + orbit%vec(1:5:2)
   orbit%t = orbit%t + s_len / c_light
 
-  if (logic_option(.true., curved_surface_rot)) call rotate_for_curved_surface (ele, orbit, set$)
-
 else
   s_len = -orbit%vec(5) / orbit%vec(6)
   orbit%vec(1:5:2) = orbit%vec(1:5:2) + s_len * orbit%vec(2:6:2) ! Surface is at z = 0
@@ -1161,15 +1153,20 @@ end subroutine track_to_surface
 ! Routine to rotate just the velocity coords between element body coords and effective 
 ! body coords ("curved body coords") with respect to the surface at the point of photon impact.
 !
+! To rotate the photon coords back to the the element body coords, the inverse of the rotation 
+! matrix usedto transform from element body coords is needed. Thus rot_mat must be saved between 
+! calls to this routine with set = True and set = False.
+!
 ! Input:
-!   ele      -- ele_struct: reflecting element
-!   orbit    -- coord_struct: Photon position.
-!   set      -- Logical: True -> Transform body to curved body. 
-!                        False -> Transform curved body to body.
+!   ele          -- ele_struct: reflecting element
+!   orbit        -- coord_struct: Photon position.
+!   set          -- Logical: True -> Transform body coords to local curved body coords. 
+!                            False -> Transform local curved body to body coords.
+!   rot_mat(3,3) -- real(rp): When set = False, rotation matrix calculated from previous call with set = True.
 !
 ! Output:
 !   orbit        -- coord_struct: Photon position.
-!   rot_mat(3,3) -- real(rp), optional: rotation matrix applied to 
+!   rot_mat(3,3) -- real(rp): When set = True, calculated rotation matrix.
 !-
 
 subroutine rotate_for_curved_surface (ele, orbit, set, rot_mat)
@@ -1178,12 +1175,20 @@ type (ele_struct), target :: ele
 type (coord_struct) orbit
 type (photon_surface_struct), pointer :: s
 
-real(rp), optional :: rot_mat(3,3)
-real(rp) curve_rot(3,3), angle
+real(rp) rot_mat(3,3)
+real(rp) rot(3,3), angle
 real(rp) slope_y, slope_x, x, y, zt, g(3)
 integer ix, iy
 
 logical set
+
+! Transform from local curved to body coords.
+
+if (.not. set) then
+  rot = transpose(rot_mat)
+  orbit%vec(2:6:2) = matmul(rot, orbit%vec(2:6:2))
+  return
+endif
 
 ! Compute the slope of the surface at that the point of impact.
 ! curve_rot transforms from standard body element coords to body element coords at point of impact.
@@ -1217,16 +1222,17 @@ else
   endif
 endif
 
-if (slope_x == 0 .and. slope_y == 0) return
+if (slope_x == 0 .and. slope_y == 0) then
+  call mat_make_unit(rot_mat)
+  return
+endif
 
 ! Compute rotation matrix and goto body element coords at point of photon impact
 
-angle = atan2(sqrt(slope_x**2 + slope_y**2), 1.0_rp)
-if (set) angle = -angle
-call axis_angle_to_w_mat ([slope_y, -slope_x, 0.0_rp], angle, curve_rot)
+angle = -atan2(sqrt(slope_x**2 + slope_y**2), 1.0_rp)
+call axis_angle_to_w_mat ([slope_y, -slope_x, 0.0_rp], angle, rot_mat)
 
-orbit%vec(2:6:2) = matmul(curve_rot, orbit%vec(2:6:2))
-if (present(rot_mat)) rot_mat = curve_rot
+orbit%vec(2:6:2) = matmul(rot_mat, orbit%vec(2:6:2))
 
 end subroutine rotate_for_curved_surface
 

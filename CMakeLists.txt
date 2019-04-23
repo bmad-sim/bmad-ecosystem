@@ -18,11 +18,8 @@ SET (SRC_DIRS
   photon
   parsing
   low_level
+  hdf5
   )
-
-if ($ENV{ACC_ENABLE_HDF5} MATCHES "Y")
-  list (APPEND SRC_DIRS "hdf5")
-endif ()
 
 # For profiling... - Note: This is not compatible with the -fPIC flag, so -pg can't be set for SHARED build.
 # SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
