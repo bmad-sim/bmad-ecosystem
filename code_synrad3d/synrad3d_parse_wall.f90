@@ -110,7 +110,7 @@ type (sr3d_branch_overlap_struct), allocatable :: branch_overlap(:)
 
 real(rp) s_branch, r0(2), max_r1, max_r2, max_r
 
-integer i, j, k, n, ix, iu, im, iw, it, iss, ns, ios, ib, ie, ix0, ix2, i2
+integer i, j, k, n, ix, iu, im, iw, it, iss, ns, ios, ib, ie, ix0, ix2, i2, nv
 integer, allocatable :: n_sub_sec(:), ix_sort(:)
 integer n_shape, n_repeat, n_surface, last_type, n_overlap
 integer m_max, n_add, n_sub, ix_ele0, ix_ele1, ix_bend, ix_patch, ix_b, ix_p
@@ -335,20 +335,20 @@ do i = 1, n_shape
   ! Count number of vertices and calc angles.
 
   sec3d => shape(i)
-  do n = 1, size(v)
-    if (v(n)%x == 0 .and. v(n)%y == 0 .and. v(n)%radius_x == 0) exit
+  do nv = 1, size(v)
+    if (v(nv)%x == 0 .and. v(nv)%y == 0 .and. v(nv)%radius_x == 0) exit
   enddo
 
-  if (any(v(n:)%x /= 0) .or. any(v(n:)%y /= 0) .or. &
-      any(v(n:)%radius_x /= 0) .or. any(v(n:)%radius_y /= 0)) then
+  if (any(v(nv:)%x /= 0) .or. any(v(nv:)%y /= 0) .or. &
+      any(v(nv:)%radius_x /= 0) .or. any(v(nv:)%radius_y /= 0)) then
     call out_io (s_fatal$, r_name, 'MALFORMED SHAPE:' // name)
     call err_exit
   endif
 
-  allocate(sec3d%v(n-1))
-  sec3d%v = v(1:n-1)
+  allocate(sec3d%v(nv-1))
+  sec3d%v = v(1:nv-1)
   sec3d%r0 = r0
-  sec3d%n_vertex_input = n-1    
+  sec3d%n_vertex_input = nv-1
 
   sec3d%absolute_vertices_input = absolute_vertices
 
@@ -596,7 +596,7 @@ do ib = 0, ubound(lat%branch, 1)
   do iw = 1, n_sub
     wall3d => branch%wall3d(iw)
     last_type = normal$
-    n = 0
+    n_sec = 0
     do iss = 1, size(wall3d%section)
       it = wall3d%section(iss)%type
       if (it == normal$) cycle
@@ -610,10 +610,10 @@ do ib = 0, ubound(lat%branch, 1)
       endif
 
       last_type = it
-      n = n + 1
+      n_sec = n_sec + 1
     enddo
 
-    if (mod(n, 2) == 1) then
+    If (mod(n_sec, 2) == 1) then
       call out_io (s_fatal$, r_name, 'NUMBER OF START SECTIONS NOT EQUAL TO NUMBER OF END SECTIONS IN SUBCHAMBER: ' // wall3d%name)
       call err_exit
     endif
@@ -639,11 +639,14 @@ do ib = 0, ubound(lat%branch, 1)
 
   do i = 1, size(branch%wall3d)
     wall3d => branch%wall3d(i)
-    n = ubound(wall3d%section, 1)
+    n_sec = ubound(wall3d%section, 1)
+
+    ! Last section gets shifted to lattice end if it is beyound.
+    if (wall3d%section(n_sec)%s > s_branch) wall3d%section(n_sec)%s = s_branch
 
     ! For an open lattice geometry, subchambers must either stop or have cross section at end of lattice.
     if (chamber_end_geometry == open$) then
-      if (n == 1) then
+      if (n_sec == 1) then
         call out_io (s_fatal$, r_name, 'subchamber named "' // trim(wall3d%name) // '" has only one section.')
         call err_exit
       endif
@@ -656,26 +659,16 @@ do ib = 0, ubound(lat%branch, 1)
         call err_exit
       endif
 
-      if (wall3d%section(n)%type /= wall_end$ .and. abs(wall3d%section(n)%s - s_branch) > 0.01) then
+      if (wall3d%section(n_sec)%type /= wall_end$ .and. abs(wall3d%section(n_sec)%s - s_branch) > 0.01) then
         call out_io (s_info$, r_name, &
               'subchamber named "' // trim(wall3d%name) // '" ends at: \f12.4\ ', &
               'And not at lattice end of: \f12.4\ ', &
               '[But last point is always adjusted to have s = s_branch]', &
-              r_array = [wall3d%section(n)%s, s_branch])
+              r_array = [wall3d%section(n_sec)%s, s_branch])
       endif
 
-      if (wall3d%section(n)%type /= wall_end$) wall3d%section(n)%s = s_branch
+      if (wall3d%section(n_sec)%type /= wall_end$) wall3d%section(n_sec)%s = s_branch
 
-    ! For a closed lattice check if last section s-position pas lattice end
-    else
-      if (wall3d%section(n)%s - s_branch > 0.01) then
-        call out_io (s_info$, r_name, &
-              'subchamber named "' // trim(wall3d%name) // '" ends at: \f12.4\ ', &
-              'And not at lattice end of: \f12.4\ ', &
-              'Will adjust to have s = s_branch', &
-              r_array = [wall3d%section(n)%s, s_branch])
-        wall3d%section(n)%s = s_branch
-      endif
     endif
   enddo
 
@@ -763,8 +756,8 @@ do ib = 0, ubound(lat%branch, 1)
       endif
 
       if (sec3d%name(1:6) /= 'ADDED:') then
-        n = len(sec3d%name)
-        sec3d%name = 'ADDED:' // sec3d%name(1:n-6)
+        j = len(sec3d%name)
+        sec3d%name = 'ADDED:' // sec3d%name(1:j-6)
       endif
 
       call out_io (s_info$, r_name, 'Extra section added to separate bend and patch at s = \f10.2\ ', r_array = [sec3d%s])
