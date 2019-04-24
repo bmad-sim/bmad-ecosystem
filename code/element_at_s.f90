@@ -99,8 +99,8 @@ endif
 
 ! Start of branch case
 
-if (.not. choose_max .and. s == branch%ele(0)%s) then
-  if (present(s_eff)) s_eff = s
+if (.not. choose_max .and. ss == branch%ele(0)%s) then
+  if (present(s_eff)) s_eff = ss
   if (present(position)) then
     position%ix_ele = ix_ele
     position%s = s
@@ -147,16 +147,16 @@ if (choose_max) then
   do
     if (n3 == branch%n_ele_track) exit
     n3 = n3 + 1
-    if (branch%ele(n3)%s_start <= s) ix_ele = n3
-    if (branch%ele(n3)%s_start > s + 2) exit
+    if (branch%ele(n3)%s_start <= ss) ix_ele = n3
+    if (branch%ele(n3)%s_start > ss + 2) exit
   enddo
 
 else
   do
     if (n3 == 0) exit
     n3 = n3 - 1
-    if (branch%ele(n3)%s > s) ix_ele = n3
-    if (branch%ele(n3)%s_start < s - 2) exit
+    if (branch%ele(n3)%s > ss) ix_ele = n3
+    if (branch%ele(n3)%s_start < ss - 2) exit
   enddo
 endif
 
