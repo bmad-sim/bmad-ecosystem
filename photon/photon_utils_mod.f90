@@ -255,7 +255,7 @@ eta = (cp%b_eff * cp%dtheta_sin_2theta + pms%f_0 * cp%cap_gamma * (1.0_rp - cp%b
 eta1 = sqrt(eta**2 + sign_of(cp%b_eff))
 f_cmp = abs(p_factor) * sqrt_b * cp%cap_gamma * pms%f_hkl / 2
 
-xi_0k_b =  f_cmp * sign_of(cp%b_eff) / (eta + eta1)     ! = f_cmp * (eta - eta1)  beta branch xi
+xi_0k_b = -f_cmp * sign_of(cp%b_eff) / (eta + eta1)     ! = f_cmp * (eta - eta1)  beta branch xi
 xi_hk_b = -f_cmp * (eta + eta1) / cp%b_eff              ! = f_cmp / (abs(cp%b_eff) * (eta - eta1))
 
 xi_0k_a = f_cmp * (eta + eta1)                          ! alpha branch xi

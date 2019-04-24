@@ -11,14 +11,11 @@ contains
 ! Subroutine setup_ultra_rel_space_charge_calc (calc_on, lattice, n_part, mode, closed_orb)
 !
 ! Routine to initialize constants needed by the ultra relativistic space charge 
-! tracking routine track1_space_charge. This routine must be called if 
+! tracking routine track1_ultra_rel_space_charge. This setup routine must be called if 
 ! the lattice or any of the other input parameters are changed.
 !
-! Modules needed:
-!   use space_charge_mod
-!
 ! Input:
-!   calc_on    -- Logical: True turns on the space charge calculation.
+!   calc_on    -- Logical: Turns on or off the space charge calculation.
 !   lattice    -- lat_struct: Lattice for tracking.
 !   n_part     -- Real(rp): Number of actual particles in a bunch. Used to compute the bunch charge.
 !   mode       -- normal_modes_struct: Structure holding the beam info.
@@ -43,7 +40,7 @@ type (twiss_struct), pointer :: a, b
 type (xy_disp_struct), pointer :: x, y
 
 real(rp) c11, c12, c22, g, g2, xx_ave, xy_ave, yy_ave, phi, n_part
-real(rp) xx_rot_ave, yy_rot_ave, a_emit, b_emit, length, g3, mc2
+real(rp) xx_rot_ave, yy_rot_ave, a_emit, b_emit, length, g3, mc2, q2
 
 integer i, m
 logical calc_on
@@ -52,9 +49,14 @@ logical calc_on
 
 bmad_com%space_charge_on = calc_on
 
-! Allocate space in the common block.
+if (present(closed_orb)) then
+  mc2 = mass_of(closed_orb(0)%species)
+  q2 = charge_of(closed_orb(0)%species)
+else
+  mc2 = mass_of(lattice%param%particle)
+  q2 = charge_of(lattice%param%particle)
+endif
 
-!------------------------------
 ! Loop over all lattice elements
 
 do i = 1, lattice%n_ele_track
@@ -128,14 +130,13 @@ do i = 1, lattice%n_ele_track
 ! The extra factor of 4pi comes from the normalization of 
 !   the bbi_kick routine used in track1_space_charge.
 
-  mc2 = mass_of(lattice%param%particle)
   g3 = (ele%value(p0c$) / mc2)**3
-  sc%kick_const = length * classical_radius_factor * n_part / &
-      (sqrt(twopi**3) * g3 * mc2 * (sc%sig_x + sc%sig_y) * mode%sig_z)
+  sc%kick_const = length * classical_radius_factor * n_part * q2 / &
+                   (sqrt(twopi**3) * g3 * mc2 * (sc%sig_x + sc%sig_y) * mode%sig_z)
 
 enddo
 
-end subroutine
+end subroutine setup_ultra_rel_space_charge_calc 
 
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
@@ -143,14 +144,10 @@ end subroutine
 !+
 ! Subroutine track1_ultra_rel_space_charge (ele, param, orbit)
 !
-! Routine to apply the ultra-relative space charge kick to a particle at the end of 
-! an element. The routine setup_space_charge_calc must be called
-! initially before any tracking is done. This routine assumes a Gaussian 
-! bunch and is only valid with relativistic particles where the effect
-! of the space charge is small.
-!
-! Modules needed:
-!   use space_charge_mod
+! Routine to apply the ultra-relative space charge kick to a particle at the end of an element. 
+! The routine setup_ultra_rel_space_charge_calc must be called initially before any tracking is done. 
+! This routine assumes a Gaussian bunch and is only valid with relativistic particles where the 
+! effect of the space charge is small.
 !
 ! Input:
 !   orbit   -- Coord_struct: Starting position
@@ -194,14 +191,14 @@ call bbi_kick (x_rel, y_rel, sc%sig_y/sc%sig_x, kx_rot, ky_rot)
 kx = kx_rot * sc%cos_phi - ky_rot * sc%sin_phi
 ky = kx_rot * sc%sin_phi + ky_rot * sc%cos_phi
 
-kick_const = sc%kick_const * exp(-0.5 * (orbit%vec(5)/sc%sig_z)**2) 
+kick_const = sc%kick_const * exp(-0.5 * (orbit%vec(5)/sc%sig_z)**2) / (1 + orbit%vec(6))**3
 
 ! The negative sign is due to the bbi kick assuming beams of opposite sign.
 
 orbit%vec(2) = orbit%vec(2) - kick_const * kx
 orbit%vec(4) = orbit%vec(4) - kick_const * ky
 
-end subroutine
+end subroutine track1_ultra_rel_space_charge 
 
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
@@ -253,6 +250,6 @@ call tilt_mat6(sc_kick_mat, -sc%phi)
 
 ele%mat6 = matmul (sc_kick_mat, ele%mat6)
 
-end subroutine
+end subroutine make_mat6_ultra_rel_space_charge
 
 end module
