@@ -21,7 +21,7 @@
 
 subroutine crystal_attribute_bookkeeper (ele)
 
-use bmad_struct
+use photon_utils_mod
 
 implicit none
 
