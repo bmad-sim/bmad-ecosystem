@@ -4,6 +4,13 @@ use bmad_interface
 
 implicit none
 
+! This is for passing info into the crystal_diffraction_field_calc routine
+
+type :: crystal_param_struct
+  real(rp) cap_gamma, dtheta_sin_2theta, b_eff, wavelength
+  real(rp) old_vvec(3), new_vvec(3)
+end type
+
 contains
 
 !-----------------------------------------------------------------------------------------------
@@ -190,6 +197,224 @@ else
   seg%z0 = seg%z0 + coef_yy
 endif
 
-end Subroutine init_surface_segment 
+end subroutine init_surface_segment 
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Subroutine crystal_diffraction_field_calc (cp, orbit, ele, param, p_factor, do_branch_calc, e_field, e_phase, dr)
+!
+! Routine to compute position where crystal reflects in crystal coordinates.
+!
+! Input:
+!   cp             -- crystal_param_struct: Crystal parameters.
+!   orbit          -- coord_struct: Initial orbit.
+!   ele            -- ele_struct: Crystal element.
+!   param          -- lat_param_struct: 
+!   p_factor       -- Real(rp): Polarization factor.
+!   do_branch_calc -- Logical: Calculate probability of branching to alpha or beta branches?
+!   e_phase        -- Real(rp): Input field phase.
+!
+! Output:
+!   orbit          -- coord_struct: Position is shifted for Laue diffraction.
+!   e_field        -- Real(rp): Output field amplitude assuming initial field is 1.
+!   e_phase        -- Real(rp): Output field phase.
+!   dr(3)          -- Real(rp): (x,y,z) orbit change.
+!-
+
+subroutine crystal_diffraction_field_calc (cp, orbit, ele, param, p_factor, do_branch_calc, e_field, e_phase, dr)
+
+implicit none
+
+type (crystal_param_struct) cp
+type (coord_struct) orbit
+type (ele_struct), target :: ele
+type (lat_param_struct) param
+type (photon_material_struct), pointer :: pms
+
+real(rp) p_factor, e_field, e_phase, sqrt_b, delta1_0_a, delta1_H_a, delta1_0_b, delta1_H_b
+real(rp) s_alpha(3), s_beta(3), dr_alpha(3), dr_beta(3), k_0_a(3), k_h_a(3), k_0_b(3), k_h_b(3), dr(3)
+real(rp) kr, k0_im, denom, thickness
+real(rp), save :: r_ran
+
+complex(rp) e_rel, e_rel_a, e_rel_b, eta, eta1, f_cmp, xi_0k_a, xi_hk_a, xi_0k_b, xi_hk_b
+complex(rp) E_hat_alpha, E_hat_beta, E_hat, exp_factor_a, exp_factor_b
+complex(rp), save :: E_hat_alpha_saved, E_hat_beta_saved
+
+logical to_alpha_branch, do_branch_calc
+
+! Construct xi_0k = xi_0 / k and xi_hk = xi_h / k
+
+pms => ele%photon%material
+sqrt_b = sqrt(abs(cp%b_eff))
+
+eta = (cp%b_eff * cp%dtheta_sin_2theta + pms%f_0 * cp%cap_gamma * (1.0_rp - cp%b_eff)/2) / &
+                                              (cp%cap_gamma * abs(p_factor) * sqrt_b * pms%f_hkl) 
+eta1 = sqrt(eta**2 + sign(1.0_rp, cp%b_eff))
+f_cmp = abs(p_factor) * sqrt_b * cp%cap_gamma * pms%f_hkl / 2
+
+xi_0k_b = f_cmp * (eta - eta1)                         ! beta branch xi
+xi_hk_b = f_cmp / (abs(cp%b_eff) * (eta - eta1))
+
+xi_0k_a = f_cmp * (eta + eta1)                         ! alpha branch xi
+xi_hk_a = f_cmp / (abs(cp%b_eff) * (eta + eta1))
+
+!---------------
+! Bragg calc
+
+if (ele%value(b_param$) < 0) then 
+  if (abs(eta+eta1) > abs(eta-eta1)) then  ! beta branch excited
+    e_rel = -2.0_rp * xi_0k_b / (p_factor * cp%cap_gamma * pms%f_hbar)
+  else                                     ! alpha branch excited
+    e_rel = -2.0_rp * xi_0k_a / (p_factor * cp%cap_gamma * pms%f_hbar)
+  endif
+
+  ! Factor of sqrt_b comes from geometrical change in the transverse width of the photon beam
+
+  if (photon_type(ele) == coherent$) then
+    e_field = abs(e_rel) / abs(cp%b_eff)
+    e_phase = atan2(aimag(e_rel), real(e_rel)) + e_phase
+  else
+    e_field = abs(e_rel) / sqrt_b
+    e_phase = atan2(aimag(e_rel), real(e_rel)) + e_phase
+  endif
+
+!---------------
+! Laue calc
+
+else 
+
+  thickness = ele%value(thickness$)
+  e_rel_a = -2.0_rp * xi_0k_a / (p_factor * cp%cap_gamma * pms%f_hbar)
+  e_rel_b = -2.0_rp * xi_0k_b / (p_factor * cp%cap_gamma * pms%f_hbar)
+
+  ! Alpha branch
+
+  delta1_0_a = real(xi_0k_a) + (1 - cp%cap_gamma * real(pms%f_0) / 2)
+  k_0_a = [cp%old_vvec(1), cp%old_vvec(2), sqrt(delta1_0_a**2 - cp%old_vvec(1)**2 - cp%old_vvec(2)**2)] / cp%wavelength
+
+  delta1_H_a = real(xi_hk_a) + (1 - cp%cap_gamma * real(pms%f_0) / 2)
+  k_H_a = [cp%new_vvec(1), cp%new_vvec(2), sqrt(delta1_H_a**2 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)] / cp%wavelength
+
+  s_alpha = k_0_a + abs(e_rel_a)**2 * k_H_a
+  dr_alpha = thickness * s_alpha / s_alpha(3)
+
+  if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
+    k0_im = (delta1_H_a / cp%wavelength)**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - aimag(xi_0k_a)) / k_0_a(3)
+    exp_factor_a = exp(-twopi * k0_im * thickness) * e_rel_a * e_rel_b / (e_rel_b - e_rel_a)
+  else
+    k0_im = (delta1_0_a / cp%wavelength)**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_a)) / k_0_a(3)
+    exp_factor_a = exp(-twopi * k0_im * thickness) * e_rel_b / (e_rel_b - e_rel_a)
+  endif
+
+  ! Beta branch
+
+  delta1_0_b = real(xi_0k_b) + (1 - cp%cap_gamma * real(pms%f_0) / 2)
+  k_0_b = [cp%old_vvec(1), cp%old_vvec(2), sqrt(delta1_0_b**2 - cp%old_vvec(1)**2 - cp%old_vvec(2)**2)] / cp%wavelength
+
+  delta1_H_b = real(xi_hk_b) + (1 - cp%cap_gamma * real(pms%f_0) / 2)
+  k_H_b = [cp%new_vvec(1), cp%new_vvec(2), sqrt(delta1_H_b**2 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)] / cp%wavelength
+
+  s_beta = k_0_b + abs(e_rel_b)**2 * k_H_b
+  dr_beta = thickness * s_beta / s_beta(3)
+
+  if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
+    k0_im = (delta1_H_b / cp%wavelength)**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_b)) / k_0_b(3)
+    exp_factor_b = exp(-twopi * k0_im * thickness) * e_rel_a * e_rel_b / (e_rel_b - e_rel_a)
+  else
+    k0_im = (delta1_H_b / cp%wavelength)**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_b)) / k_0_b(3)
+    exp_factor_b = exp(-twopi * k0_im * thickness) * e_rel_a / (e_rel_b - e_rel_a)
+  endif
+
+  ! If crystal is too thick then mark particle as lost
+
+  if (exp_factor_a == 0 .and. exp_factor_b == 0) then
+    orbit%state = lost$
+    e_field = 0
+    return
+  endif
+
+  !--------------------------
+  ! Calculate phase and field
+
+  if (photon_type(ele) == coherent$) then
+
+
+    if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
+      kr = -twopi * dot_product(k_h_a, dr_alpha)
+      E_hat_alpha = cmplx(cos(kr), sin(kr), rp) * exp_factor_a 
+
+      kr = -twopi * dot_product(k_h_b, dr_beta)
+      E_hat_beta  = -cmplx(cos(kr), sin(kr), rp) * exp_factor_b
+
+    else
+      kr = -twopi * dot_product(k_0_a, dr_alpha)
+      E_hat_alpha = cmplx(cos(kr), sin(kr), rp) * exp_factor_a
+
+      kr = -twopi * dot_product(k_0_b, dr_beta)
+      E_hat_beta  = cmplx(cos(kr), sin(kr), rp) * exp_factor_b
+    endif
+
+    ! Calculate branching numbers (first pass only)
+
+    if (do_branch_calc) then
+      call ran_uniform(r_ran)
+      E_hat_alpha_saved = E_hat_alpha
+      E_hat_beta_saved = E_hat_beta
+    endif
+
+    ! And branch
+
+    denom = abs(E_hat_beta_saved) + abs(E_hat_alpha_saved)
+    if (r_ran < abs(E_hat_alpha_saved) / denom) then ! alpha branch
+      e_field = denom * abs(E_hat_alpha) / abs(E_hat_alpha_saved)
+      e_phase = e_phase + atan2(aimag(E_hat_alpha), real(E_hat_alpha))
+      dr = dr_alpha
+    else
+      e_field = denom * abs(E_hat_beta) / abs(E_hat_beta_saved)
+      e_phase = e_phase + atan2(aimag(E_hat_beta), real(E_hat_beta))
+      dr = dr_beta
+    endif
+
+  ! Incoherent
+
+  else
+
+    ! Take dr as average
+
+    dr = (dr_alpha * abs(exp_factor_a) + dr_beta * abs(exp_factor_b)) / (abs(exp_factor_a) + abs(exp_factor_b))
+
+    ! Alpha branch 
+
+    if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
+      kr = -twopi * dot_product(k_h_a, dr)
+      E_hat_alpha = cmplx(cos(kr), sin(kr), rp) * exp_factor_a 
+    else
+      kr = -twopi * dot_product(k_0_a, dr)
+      E_hat_alpha = cmplx(cos(kr), sin(kr), rp) * exp_factor_a 
+    endif
+
+    ! Beta branch
+
+    if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
+      kr = -twopi * dot_product(k_h_B, dr)
+      E_hat_beta  = -cmplx(cos(kr), sin(kr), rp) * exp_factor_b 
+    else
+      kr = -twopi * dot_product(k_0_b, dr)
+      E_hat_beta  = -cmplx(cos(kr), sin(kr), rp) * exp_factor_b 
+    endif
+
+    E_hat = E_hat_alpha + E_hat_beta
+    e_field = abs(E_hat)
+    e_phase = e_phase + atan2(aimag(E_hat), real(E_hat))
+    dr = (dr_alpha * abs(E_hat_alpha) + dr_beta * abs(E_hat_beta)) / (abs(E_hat_alpha) + abs(E_hat_beta))
+  endif
+
+endif
+
+end subroutine crystal_diffraction_field_calc
+
+
 
 end module

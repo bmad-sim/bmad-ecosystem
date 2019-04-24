@@ -802,11 +802,10 @@ Energy flow used to determine the reference orbit for Laue diffraction.
 \subsection{Laue Reference Orbit}
 \label{s:laue.ref}
 
-For Laue diffraction, with the reference orbit following the
-\vn{undiffracted} beam, the reference orbit at the exit surface is
-just the extension of the reference orbit at the entrance
-surface. Since the reference orbit's direction is $\bfkbar_0$.  the
-reference orbit displacement vector $\bfL$ (cf.~\Eq{vwlv}) is given by
+For Laue diffraction, with the reference orbit following the \vn{undiffracted} beam, the reference
+orbit at the exit surface is just the extension of the reference orbit at the entrance
+surface. Since the reference orbit's direction is $\bfkbar_0$.  the reference orbit displacement
+vector $\bfL$ (cf.~\Eq{vwlv}) is given by
 \Begineq
   \bfL = \frac{t^2}{d\bfkbar_0 \dotproduct \Bf t} \, d\bfkbar_0
   \qquad \text{[undiffracted]}
@@ -817,38 +816,31 @@ where
     0 \\ 0 \\ t
   \end{pmatrix}
 \Endeq
-with $t$ being the crystal thickness and the $z$-axis pointing into
-the crystal as illustrated in \fig{f:crystal.energy}. The $\bfS$
-roatation matrix (\Eq{wws}) for the undiffracted beam referece will be
-the unit matrix.
+with $t$ being the crystal thickness and the $z$-axis pointing into the crystal as illustrated in
+\fig{f:crystal.energy}. The $\bfS$ roatation matrix (\Eq{wws}) for the undiffracted beam referece
+will be the unit matrix.
 
-With the reference orbit following the \vn{forward_diffracted} or
-\vn{Bragg_diffracted} beam, the displacement vector $\bfL$ follows the
-energy flow associated with the tie points labeled $A$ or $B$ in
-\fig{f:crystal.energy}. These tie points are defined by the
-intersection of the dispersion surfaces and the vector $\Bf n$
-originating from the point $T$ as shown in the figure.  The energy
-flow is perpendicular to the dispersion surface and it can be shown
-that since, by construction, $\Bf n$ goes through the $Q$ point and
-since the dispersion surfaces are hyperbolies, the energy flow from
-$A$ and $B$ tie points are colinear. The direction of the energy flow
-is given by:
+With the reference orbit following the \vn{forward_diffracted} or \vn{Bragg_diffracted} beam, the
+displacement vector $\bfL$ follows the energy flow associated with the tie points labeled $A$ or $B$
+in \fig{f:crystal.energy}. These tie points are defined by the intersection of the dispersion
+surfaces and the vector $\Bf n$ originating from the point $T$ as shown in the figure.  The energy
+flow is perpendicular to the dispersion surface and it can be shown that since, by construction,
+$\Bf n$ goes through the $Q$ point, and since the dispersion surfaces are hyperbolies, the energy
+flows from $A$ and $B$ tie points are colinear. The direction of the energy flow is given by:
 \Begineq
   \bfKbar_f = \xi_H \, \bfKbar_H + \xi_0 \, \bfKbar_0
 \Endeq
+where $\xi_H$ and $\xi_0$ are given by \cite{b:batterman} Eq.~(18) (See section \sref{s:bragg.track below).
 $\bfL$ is thus
 \Begineq
   \bfL = \frac{t^2}{\bfKbar_f \dotproduct \Bf t} \, \bfKbar_f
 \Endeq
-where $\Bf t$ is a vector whose length is the thickness of the crystal
-oriented perpendicular to the crystal surfaces (that is, in the $z$
-direction of the local coordinate system). At the exit surface, if the
-reference orbit is following the \vn{forward_diffracted} beam, the
-orientation of the \vn{element exit} coordinates will be the same as
-the orientation of the \vn{element entrance} coordinates. That is,
-$\bfS$ (\Eq{wws}) is the unit matrix.  If the reference orbit is
-following the \vn{Bragg diffracted} beam, $\bfS$ is the same as for
-Bragg diffraction
+where $\Bf t$ is a vector whose length is the thickness of the crystal oriented perpendicular to the
+crystal surfaces (that is, in the $z$ direction of the local coordinate system). At the exit
+surface, if the reference orbit is following the \vn{forward_diffracted} beam, the orientation of
+the \vn{element exit} coordinates will be the same as the orientation of the \vn{element entrance}
+coordinates. That is, $\bfS$ (\Eq{wws}) is the unit matrix.  If the reference orbit is following the
+\vn{Bragg diffracted} beam, $\bfS$ is the same as for Bragg diffraction
 \Begineq
   \bfS = 
   \begin{pmatrix}
@@ -861,19 +853,17 @@ Bragg diffraction
 %-------------------------------------------------------------------------
 \subsection{Crystal Surface Reflections and Refractions}
 
-\begin{figure}[tb]
-  \centering
-  %%%        \includegraphics[width=5in]{crystal-surface-reflect.pdf}
-  \caption[Reflection from a crystal surface.]
-{Reflection from a crystal surface.}
-  \label{f:crystal-reflect}
-\end{figure}
+%%%\begin{figure}[tb]
+%%%  \centering
+%%%  \includegraphics[width=5in]{crystal-surface-reflect.pdf}
+%%%  \caption[Reflection from a crystal surface.]
+%%%{Reflection from a crystal surface.}
+%%%  \label{f:crystal-reflect}
+%%%\end{figure}
 
 
-There are corrections to the field amplitude and phase when a photon
-reflects or refracts from the surface of a crystal. The situation is
-illustrated in \fig{f:crystal-reflect}. A plane wave in incident on a
-crystal surface with
+There are corrections to the field amplitude and phase when a photon reflects or refracts from the
+surface of a crystal. A plane wave is incident on a crystal surface with
 \Begineq
   E = \what E_0 \, \exp(i \, \bfk_0 \, \bfr)
 \Endeq
@@ -881,14 +871,12 @@ An outgoing plane wave has a field
 \Begineq
   E = \what E_1 \, \exp(i \, \bfk_1 \, \bfr)
 \Endeq
-A simulation of this condition will start with a number of photons
-with wave vector $\bfk_0$ and electric field . After reflecting from
-the surface, the photons will have wave vector $\bfk_1$. Now imagine a
-set of $N$ photons that flow through an area $dA_0$ before being
-reflected from the surface. 
+A simulation of this condition will start with a number of photons with wave vector $\bfk_0$ and
+electric field $E_0$. After reflecting from the surface, the photons will have wave vector
+$\bfk_1$. Now imagine a set of $N$ photons that flow through an planar area $dA_0$, perpendicular to
+the incoming beam, before being reflected from the surface.
 
-Since the electric field is $\what E_0$, for incoherent photon
-tracking
+Since the electric field is $\what E_0$, when tracking incoherent photons
 \Begineq
   \what E_0^2 = \frac{\alpha_p \, E_0^2 \, N}{dA_0}
 \Endeq
