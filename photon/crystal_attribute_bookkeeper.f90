@@ -21,7 +21,7 @@
 
 subroutine crystal_attribute_bookkeeper (ele)
 
-use photon_utils_mod
+use photon_utils_mod, dummy => crystal_attribute_bookkeeper
 
 implicit none
 
