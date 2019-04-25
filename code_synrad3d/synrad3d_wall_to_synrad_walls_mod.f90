@@ -47,27 +47,31 @@ end subroutine synrad3d_wall_to_synrad_walls
 
 subroutine calc_this_side (dir, branch, seg_len_max, wall)
 
+use super_recipes_mod, only: super_zbrent
+
 type (branch_struct), target :: branch
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: sec
 type (wall_struct) :: wall
 
 real(rp) seg_len_max
-real(rp) x, x2, x_this, s, len_sec
+real(rp) x, x2, x_this, s, len_sec, x_this0, x_this1
 real(rp) :: dx_max = 1d-3, ds_small = 1d-9
 
 integer dir
-integer is, ip, iw, iw0, iw2, ix, ia, n
-integer n_seg, iw_max, idel, ix_pt
+integer is, ip, iw, iw0, iw1, iw2, ix, ia, n
+integer n_seg, iw_max, idel, ix_pt, status
 
-logical no_wall_here
+logical no_wall_here, no_wall_here0, no_wall_here1
 
 ! Add section points but only if they are on the outside of the chamber
+
+wall%n_pt_max = -1
 
 do iw = 1, size(branch%wall3d)
   wall3d => branch%wall3d(iw)
 
-  sec_loop: do is = 1, ubound(branch%wall3d(iw)%section, 1)
+  sec_loop: do is = 1, ubound(wall3d%section, 1)
     sec => branch%wall3d(iw)%section(is)
 
     x = calc_this_x (branch, iw, sec%s, dir, no_wall_here)
@@ -76,6 +80,7 @@ do iw = 1, size(branch%wall3d)
     ! Check if point is on the outside. 
 
     do iw2 = 1, size(branch%wall3d)
+      if (iw2 == iw) cycle
       x_this = calc_this_x (branch, iw2, sec%s, dir, no_wall_here)
       if (no_wall_here) cycle
       if (x * dir < x_this * dir) cycle sec_loop
@@ -85,7 +90,7 @@ do iw = 1, size(branch%wall3d)
 
     ix_pt = 0
     if (allocated(wall%pt)) then
-      call bracket_index (wall%pt%s, 0, ubound(wall%pt, 1), sec%s, ix_pt)
+      call bracket_index (wall%pt%s, 0, wall%n_pt_max, sec%s, ix_pt)
       ix_pt = ix_pt+1
     endif
 
@@ -116,74 +121,66 @@ do iw = 1, size(branch%wall3d)
   enddo sec_loop
 enddo
 
-! Add extra points if needed in between section points where the outside of the chamber
+! Add an extra point in between section points where the outside of the chamber
 ! transitions from one sub-chamber to another.
 
 ip = -1
 do
   ip = ip + 1
-  if (ip+1 > ubound(wall%pt, 1)) exit
+  if (ip+1 > wall%n_pt_max) exit
   if (abs(wall%pt(ip+1)%s - wall%pt(ip)%s) < 1e3*ds_small) cycle
-  ! %ix_seg is being used temperarily as sub-chamber index
+
+  ! %ix_seg is being used temperarily as sub-chamber index. See add_this_point.
   iw0 = wall%pt(ip)%ix_seg
+  iw1 = wall%pt(ip+1)%ix_seg
+  if (iw1 == iw0) cycle
 
-  len_sec = sqrt((wall%pt(ip)%s - wall%pt(ip+1)%s)**2 + (wall%pt(ip)%x - wall%pt(ip+1)%x)**2)
-  n_seg = 1 + 10 * len_sec / seg_len_max 
-  do ia = 0, n_seg
-    s = wall%pt(ip)%s + ia * (wall%pt(ip+1)%s - wall%pt(ip)%s) / n_seg
-    if (ia == 0) s = s + 1d-10
-    if (ia == n_seg) s = s - 1d-10
+  ! Test the center point to see if both walls extend into the region between the two sections.
 
-    x = 0
-    iw_max = -1
-    do iw2 = 1, size(branch%wall3d)
-      x_this = calc_this_x (branch, iw2, s, dir, no_wall_here)
-      if (no_wall_here) cycle
-      if (x_this * dir < x * dir) cycle
-      x = x_this
-      iw_max = iw2
-    enddo
+  s = (wall%pt(ip)%s + wall%pt(ip+1)%s) / 2
+  x_this0 = calc_this_x (branch, iw0, s, dir, no_wall_here0)
+  x_this1 = calc_this_x (branch, iw1, s, dir, no_wall_here1)
 
-    if (iw_max /= iw0 .and. iw_max /= -1) then
-      call add_this_point (wall, ip+1, s, x, '', iw_max, wall%pt(ip+1)%phantom)
-      exit
-    endif
-  enddo
-enddo
+  if (no_wall_here0 .and. no_wall_here1) then
+    print *, 'Confused wall3d to wall conversion. Please report this!'
+    stop
+ 
+  else if (no_wall_here0) then
+    s = wall%pt(ip)%s + 1d-10
+    x = calc_this_x (branch, iw1, s, dir, no_wall_here)
+    call add_this_point (wall, ip+1, s, x, '', iw1, wall%pt(ip+1)%phantom)
 
-! Add extra points if needed in between in case the outside of the chamber is not
-! a straight line
+  else if (no_wall_here1) then
+    s = wall%pt(ip+1)%s - 1d-10
+    x = calc_this_x (branch, iw0, s, dir, no_wall_here)
+    call add_this_point (wall, ip+1, s, x, '', iw0, wall%pt(ip)%phantom)
 
-ip = -1
-do
+  ! If both walls extend into the region find where the walls intersect and add a point there.
+  else
+    s = super_zbrent(dwall_func, wall%pt(ip)%s, wall%pt(ip+1)%s, 0.0_rp, 1e-9_rp, status)
+    x = calc_this_x (branch, iw0, s, dir, no_wall_here)
+    call add_this_point (wall, ip+1, s, x, '', iw0, wall%pt(ip)%phantom)
+  endif
+
   ip = ip + 1
-  if (ip+1 > ubound(wall%pt, 1)) exit
-  if (abs(wall%pt(ip+1)%s - wall%pt(ip)%s) < 1d3*ds_small) cycle
-  len_sec = sqrt((wall%pt(ip+1)%s - wall%pt(ip)%s)**2 + (wall%pt(ip+1)%x - wall%pt(ip)%x)**2)
-  n_seg = 1 + len_sec / seg_len_max
-  do ia = 1, n_seg - 1
-    s = wall%pt(ip)%s + ia * (wall%pt(ip+1)%s - wall%pt(ip)%s) / n_seg
-
-    x = 0
-    do iw2 = 1, size(branch%wall3d)
-      x_this = calc_this_x (branch, iw2, s, dir, no_wall_here)
-      if (no_wall_here) cycle
-      if (x_this * dir < x * dir) cycle
-      x = x_this
-      iw_max = iw2
-    enddo
-
-    x2 = wall%pt(ip)%x + (s - wall%pt(ip)%s) * (wall%pt(ip+1)%x - wall%pt(ip)%x) / (wall%pt(ip+1)%s - wall%pt(ip)%s)
-    if (abs(x - x2) > dx_max) then
-      call add_this_point (wall, ip+1, s, x, '', iw_max, wall%pt(ip+1)%phantom)
-      exit
-    endif
-  enddo
 enddo
+
+!----------------------------------
+contains
+
+function dwall_func (s, status) result (value)
+
+real(rp), intent(in) :: s
+real(rp) value
+integer status
+logical no_wall_here
 
 !
 
-wall%n_pt_max = ubound(wall%pt, 1)
+value = calc_this_x(branch, iw1, s, dir, no_wall_here) - calc_this_x(branch, iw0, s, dir, no_wall_here)
+status = 0
+
+end function dwall_func
 
 end subroutine calc_this_side
 
@@ -204,20 +201,25 @@ character(*) name
 !
 
 if (.not. allocated(wall%pt)) then
-  allocate (wall%pt(0:0))
-else
-  n = ubound(wall%pt, 1)
+  allocate (wall%pt(0:10))
+elseif (wall%n_pt_max == ubound(wall%pt, 1)) then
+  n = wall%n_pt_max
   call move_alloc(wall%pt, pt)
-  allocate(wall%pt(0:n+1))
+  allocate(wall%pt(0:2*n))
   wall%pt(0:ix_pt-1) = pt(0:ix_pt-1)
   wall%pt(ix_pt+1:) = pt(ix_pt:)
+else
+  n = wall%n_pt_max
+  wall%pt(ix_pt+1:n+1) = wall%pt(ix_pt:n)
 endif
+
 
 wall%pt(ix_pt)%s = s
 wall%pt(ix_pt)%x = x
 wall%pt(ix_pt)%name = name
 wall%pt(ix_pt)%ix_seg = ix_wall  ! Temp storage of sub-chamber index
 wall%pt(ix_pt)%phantom = phantom
+wall%n_pt_max = wall%n_pt_max + 1
 
 end subroutine add_this_point
 
