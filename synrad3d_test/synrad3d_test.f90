@@ -3,6 +3,7 @@ program synrad3d_test
 use synrad3d_track_mod
 use synrad3d_parse_wall
 use photon_reflection_mod
+use synrad_mod
 
 implicit none
 
@@ -12,9 +13,11 @@ type (coord_struct) p
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 type (ele_struct), pointer :: ele
 type (wall3d_section_struct), pointer :: section(:)
+type (walls_struct), target :: walls
+type (wall_struct), pointer :: wall
 
 real(rp) vel
-integer ios, num_ignored, n_photon
+integer i, ios, num_ignored, n_photon
 
 logical is_inside, err, absorbed
 
@@ -22,7 +25,21 @@ character(100) old_wall_file, wall_file
 
 namelist / in / p, wall_file
 
-! Init
+!
+
+open (1, file = 'output.now')
+
+! Conversion to synrad wall test
+
+call bmad_parser('lat0.bmad', lat)
+call synrad_read_vac_wall_geometry ('synrad3d::lat0.wall', 0.1_rp, lat%branch(0), walls, err)
+
+wall => walls%negative_x_wall
+do i = 0, wall%n_pt_max
+  write (1, '(a, i0, a, 2f16.10)') '"Synrad-Wall', i, '"  ABS 1E-12', wall%pt(i)%s, wall%pt(i)%x 
+enddo
+
+! Init lattice
 
 call bmad_parser('lat.bmad', lat)
 
@@ -34,7 +51,6 @@ allocate (wall_hit(0:1))
 ! Specular reflection test...
 
 old_wall_file = 'xxx' 
-open (1, file = 'output.now')
 open (2, file = 'specular.input')
 
 n_photon = 0
