@@ -1104,10 +1104,10 @@ if (lux_param%det_pix_out_file /= '') then
   enddo
   enddo
 
-  write (3, '(2a)')           'master_parameter_file                       = ', quote(lux_param%param_file)
-  write (3, '(2a)')           'lux_param%lattice_file                      = ', quote(lux_param%lattice_file)
-  write (3, '(a, es12.4)')    'lux_param%intensity_normalization_coef      =', lux_param%intensity_normalization_coef
-  write (3, '(a, l2)')        'lux_param%normalization_includes_pixel_area =', lux_param%normalization_includes_pixel_area
+  write (3, '(2a)')           'master_parameter_file             = ', quote(lux_param%param_file)
+  write (3, '(2a)')           'lattice_file                      = ', quote(lux_param%lattice_file)
+  write (3, '(a, es12.4)')    'intensity_normalization_coef      =', lux_param%intensity_normalization_coef
+  write (3, '(a, l2)')        'normalization_includes_pixel_area =', lux_param%normalization_includes_pixel_area
   write (3, '(a, es14.6)')    'normalization       =', normalization
   write (3, '(a, es16.5)')    'intensity_x_unnorm  =', sum(detec_grid%pt(:,:)%intensity_x)
   write (3, '(a, es16.5)')    'intensity_x_norm    =', sum(detec_grid%pt(:,:)%intensity_x) * normalization
