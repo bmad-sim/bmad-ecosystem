@@ -521,9 +521,12 @@ value of \vn{0} (the default) causes the seed number to be picked based upon the
 clock. Use the \vn{show global} command to see what the seed number is.
 
   \item{\vn{global%rf_on}} \Newline
-The rf cavities in circular lattices can be be toggled on or off using the
-\vn{global%rf_on} switch. The default is False. Notice that with the RF off, the beam
-energy will be independent of the closed orbit which is not the case when the RF is on.
+The rf cavities in circular lattices can be be toggled on or off using the \vn{global%rf_on}
+switch. The default is False. Notice that with the RF off, the beam energy will be independent of
+the closed orbit which is not the case when the RF is on.  Note: If you want to see orbit changes
+with RF frequency changes then you will need to set \vn{parameter[absolute_time_tracking]} to
+True. See the ``Relative Versus Absolute Time Tracking'' section in the\bmad manual for more
+details.
 
   \item{\vn{global%silent_run}} \Newline
 For use with command files. If set True, output to the terminal during command file running will be
