@@ -58,12 +58,12 @@ substituted. A possible
   help          & \sref{s:help}     & timer         & \sref{s:timer}    \\ \hline
   misalign      & \sref{s:misalign} & use           & \sref{s:use}      \\ \hline 
   pause         & \sref{s:pause}    & veto          & \sref{s:veto}     \\ \hline 
-  place         & \sref{s:place}    & value         & \sref{s:value}    \\ \hline
-  plot          & \sref{s:plot}     & wave          & \sref{s:wave}     \\ \hline
-  ptc           & \sref{s:ptc}      & write         & \sref{s:write}    \\ \hline 
-  python        & \sref{s:python}   & x_axis        & \sref{s:x.axis}   \\ \hline 
-  quiet         & \sref{s:quiet}    & x_scale       & \sref{s:x.scale}  \\ \hline 
-  quit          & \sref{s:quit}     & xy_scale      & \sref{s:xy.scale} \\ \hline
+  place         & \sref{s:place}    & wave          & \sref{s:wave}     \\ \hline
+  plot          & \sref{s:plot}     & write         & \sref{s:write}    \\ \hline 
+  ptc           & \sref{s:ptc}      & x_axis        & \sref{s:x.axis}   \\ \hline 
+  python        & \sref{s:python}   & x_scale       & \sref{s:x.scale}  \\ \hline 
+  quiet         & \sref{s:quiet}    & xy_scale      & \sref{s:xy.scale} \\ \hline
+  quit          & \sref{s:quit}     &               &                   \\ \hline
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -1372,7 +1372,8 @@ Also see the commands: \vn{set beam} and \vn{set beam_init}.
 
 Examples:
 \begin{example}
-  set particle_start 2@x = 0.001         ! set beginning x position in universe 2 to 1 mm.
+  set particle_start 2@x = 0.001         ! Set beginning x position in universe 2 to 1 mm.
+  set particle_start field_x = 1         ! Set photon field
 \end{example}
 
 %% set plot --------------------------------------------------------------
@@ -2882,12 +2883,6 @@ Examples:
   use data *                   ! use all data in the default universe.
   use data *@*                 ! use all data in all universes.
 \end{example}
-
-%% value --------------------------------------------------------------
-\section{value}\index{commands!value}
-\label{s:value}
-
-The \vn{value} command is used to evaluate a value.  This command is in development...
 
 %% veto --------------------------------------------------------------
 

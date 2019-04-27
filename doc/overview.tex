@@ -113,8 +113,10 @@ Sets the prompt string color to Blue. For different colors, use the
 \vn{set global prompt_color} command (\sref{s:set}).
 %
 \item[\vn{-rf_on}]
-Leaves \vn{rfcavity} elements on. Normally \tao turns off these elements
-since Twiss and dispersion calculations do not make sense with them on.
+Leaves \vn{rfcavity} elements on. Normally \tao turns off these elements since Twiss and dispersion
+calculations do not make sense with them on.  Note: If you want to see orbit changes with RF
+frequency changes then you will need to set \vn{parameter[absolute_time_tracking]} to True. See the
+``Relative Versus Absolute Time Tracking'' section in the\bmad manual for more details.
 %
 \item[\vn{-slice_lattice <element_list>}]
 If present, discard from the lattice all lattice elements that are not in the \vn{<element_list>}.
