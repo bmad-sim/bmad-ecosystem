@@ -4719,7 +4719,7 @@ contains
         master=localmaster
        else
         iscmul%r=0.0_dp
-        iscmul%kind=1
+        iscmul%     kind=1
        endif
     case(m3)
        if(knob) then
