@@ -463,7 +463,7 @@ c_idall=0
           do j=ii,i-1
              sum = sum-a(i,j)*b(j)
           enddo
-       else if (sum.ne.0.0_dp) then
+       else if (abs(sum).ne.0.0_dp) then
           ii = i
        endif
        b(i)=sum

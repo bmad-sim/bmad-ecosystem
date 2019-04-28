@@ -815,9 +815,12 @@ CONTAINS
 
 !          ENDDO
           lda_used=lda_old
-          call print_curv("Maxwellian_bend_for_ptc.txt",S_B_from_V)
-          call print_curv_elec("Maxwellian_bend_for_ptc_electric.txt",s_e)
-      !    call print_curv_elec("Maxwellian_bend_mag_from_pot.txt",S_B_from_V)
+          if (global_verbose ) then
+            call print_curv("Maxwellian_bend_for_ptc.txt",S_B_from_V)
+            call print_curv_elec("Maxwellian_bend_for_ptc_electric.txt",s_e)
+           !call print_curv_elec("Maxwellian_bend_mag_from_pot.txt",S_B_from_V)
+          endif
+          
        endif
 
        firsttime_coef=.FALSE.
@@ -1505,8 +1508,31 @@ ND1=ND1+n_acc
     if(use_complex_in_ptc) call c_init(NO1c,nd1,np1+ndel,ndpt1,n_acc,ptc=my_false)  ! PTC false because we will not use the real FPP for acc modulation
     n_rf=n_acc
  
-
   END  subroutine S_init
+
+  subroutine kill_map_cp()
+    implicit none
+
+    if(associated(dz_8)) then
+      call kill(dz_8)
+      deallocate(dz_8)
+      nullify(dz_8)
+    endif
+    
+    if(associated(dz_t)) then
+      call kill(dz_t)
+      deallocate(dz_t)
+      nullify(dz_t)
+    endif    
+
+    
+    if(associated(dz_c)) then
+      call kill(dz_c)
+      deallocate(dz_c)
+      nullify(dz_c)
+    endif    
+
+  end subroutine kill_map_cp
 
 
   subroutine init_default(STATE,NO1,NP1)
