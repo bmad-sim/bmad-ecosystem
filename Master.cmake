@@ -303,12 +303,13 @@ ENDIF ()
 
 IF (${DISTRIBUTION_BUILD})
     SET (ACC_LINK_FLAGS ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS} ${PLOT_LINK_FLAGS})
-    IF ($ENV{ACC_ENABLE_HDF5})
-      SET (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -DCESR_HDF5")
-    ENDIF ()
 ELSE ()
     SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++ -lactivemq-cpp ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS} ${PLOT_LINK_FLAGS}")
 ENDIF ()
+
+if (FORTRAN_COMPILER MATCHES "gfortran")
+ list (APPEND ACC_LINK_FLAGS "-ldl")
+endif()
 
 IF (${MSYS})
     SET (ACC_LINK_FLAGS)
