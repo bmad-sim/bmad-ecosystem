@@ -124,8 +124,8 @@ for more details.
 \label{s:sim.modes}
 
 There are a number of simulation ``modes'' which determine what is done by the program. The
-simulation mode is set by the \vn{simulation_mode} parameter in the master input file
-(\sref{s:input}).  Possible settings of \vn{simulation_mode} are:
+simulation mode is set by the \vn{ltt%simulation_mode} parameter in the master input file
+(\sref{s:input}).  Possible settings of \vn{ltt%simulation_mode} are:
 \begin{code}
   "CHECK"   ! Quick map check.
   "SINGLE"  ! Single particle tracking.
@@ -145,12 +145,12 @@ methods. even if the map is completely accurate.
 No data files are produced in this mode.
 %
 \item["SINGLE"] \Newline
-In this mode a single particle is tracked for \vn{n_turns} turns. The name of the data file is set
-by the \vn{particle_output_file} parameter (\sref{s:input}). The particle position will be output every
+In this mode a single particle is tracked for \vn{ltt%n_turns} turns. The name of the data file is set
+by the \vn{ltt%particle_output_file} parameter (\sref{s:input}). The particle position will be output every
 
 %
 \item["BUNCH"] \Newline
-In this mode a particle bunch is tracked for \vn{n_turns} turns. The output data file(s) format is
+In this mode a particle bunch is tracked for \vn{ltt%n_turns} turns. The output data file(s) format is
 described in Section~\sref{s:part.out}.
 %
 \item["STAT"] \Newline
@@ -169,22 +169,22 @@ Three data files are produced:
 \Section{Initial Particle Positions}
 \label{s:init.pos}
 
-When the \vn{simulation_mode} (\sref{s:sim.modes}) is set to \vn{"SINGLE"} or \vn{"CHECK"}, the
+When the \vn{ltt%simulation_mode} (\sref{s:sim.modes}) is set to \vn{"SINGLE"} or \vn{"CHECK"}, the
 initial particle position is determined by the \vn{beam_init%center} and \vn{beam_init%spin}
 components of the \vn{beam_init} structure (\sref{s:input}) in the master input file. If the
-\vn{add_closed_orbit_to_init_position} logical is set to \vn{True}, the closed orbit position is added to
+\vn{ltt%add_closed_orbit_to_init_position} logical is set to \vn{True}, the closed orbit position is added to
 \vn{beam_init%center} to get the initial particle position.
 
-When the \vn{simulation_mode} is set to \vn{"BUNCH"}, the initial particle positions are calculated
+When the \vn{ltt%simulation_mode} is set to \vn{"BUNCH"}, the initial particle positions are calculated
 using the \vn{beam_init} structure as discussed in the \vn{Beam Initialization} chapter of the Bmad
-manual. Like the other modes, if the \vn{add_closed_orbit_to_init_position} logical is set to
+manual. Like the other modes, if the \vn{ltt%add_closed_orbit_to_init_position} logical is set to
 \vn{True}, the closed orbit position is added to the initial particle positions. To read in a file
 with beam particle positions, set the \vn{beam_init} structure appropriately. Example:
 \begin{code}
   beam_init%file_name = 'beam_particle_file.init'
 \end{code}
 
-In all cases, tracking will start at the lattice element set by \vn{ele_start_name}.
+In all cases, tracking will start at the lattice element set by \vn{ltt%ele_start_name}.
 
 %------------------------------------------------------------------
 \Section{Particle Tracking}
@@ -203,8 +203,8 @@ of (\sref{s:input}):
 Note: When tracking with a map, the RF cavities must be powered so that there are synchrotron
 oscillations.
 
-What tracking mode is used is determined by the \vn{use_1_turn_map} logical (\sref{s:input}).  If a
-map is used, the order of the map is given by \vn{map_order} parameter. A larger map order will mean better
+What tracking mode is used is determined by the \vn{ltt%use_1_turn_map} logical (\sref{s:input}).  If a
+map is used, the order of the map is given by \vn{ltt%map_order} parameter. A larger map order will mean better
 accuracy at the expense of more computation time. Tracking using a map will be extremely quick
 compared to element-by-element tracking. However, map tracking can be inaccurate if the map order
 is too small or the particle amplitude is too large.
@@ -269,34 +269,36 @@ master input file must contain a single namelist (\sref{s:namelist}) named \vn{p
 \begin{code}
 &params
   ! Input files
-  lat_file   =  "lat.bmad"     ! Bmad lattice file
-  map_file = 'order5.map'
-  common_master_input_file = ""
+  ltt%lat_file   =  "lat.bmad"     ! Bmad lattice file
+  ltt%map_file = 'order5.map'
+  ltt%common_master_input_file = ""
 
   ! Output parameters
-  particle_output_file = "snap.dat"
-  averages_output_file = "average.dat"  
-  sigma_matrix_output_file = "sigma.dat"
-  output_every_n_turns = 200
-  output_initial_position = False
-  print_on_dead_loss = -1
-  merge_particle_output_files = False
+  ltt%particle_output_file = "snap.dat"
+  ltt%averages_output_file = "average.dat"  
+  ltt%sigma_matrix_output_file = "sigma.dat"
+  ltt%output_every_n_turns = 200
+  ltt%output_initial_position = False
+  ltt%print_on_dead_loss = -1
+  ltt%merge_particle_output_files = False
 
   ! Simulation parameters
-  simulation_mode = "BUNCH"
-  ele_start_name     = ""
-  n_turns            = 1000
-  map_order          = 5
-  rfcavity_on        = True
-  use_1-turn_map     = True
-  timer_print_dtime  = 300
-  random_seed        = 0
-  add_closed_orbit_to_init_position = True
-  dead_cutoff = -1
+  ltt%simulation_mode = "BUNCH"
+  ltt%ele_start_name     = ""
+  ltt%n_turns            = 1000
+  ltt%map_order          = 5
+  ltt%rfcavity_on        = True
+  ltt%use_1-turn_map     = True
+  ltt%timer_print_dtime  = 300
+  ltt%random_seed        = 0
+  ltt%add_closed_orbit_to_init_position = True
+  ltt%dead_cutoff = -1
+  ltt%b_emittance = 1e-9                 ! Used with space charge calc.
 
-  bmad_com%spin_tracking_on = T         ! See Bmad manual for 
-  bmad_com%radiation_damping_on = F     !    bmad_com parameters.
+  bmad_com%spin_tracking_on = T          ! See Bmad manual for 
+  bmad_com%radiation_damping_on = F      !    bmad_com parameters.
   bmad_com%radiation_fluctuations_on = F 
+  bmad_com%space_charge_on = F
 
   beam_init%n_particle = 10
   beam_init%spin = 0, 1, 0        ! See Bmad manual for 
@@ -333,7 +335,7 @@ no common file is used
 Name of the Bmad lattice file to use. This name is required.
 %
 \item[map_file] \Newline
-If not blank, the program will read in the 1-turn map from \vn{map_file}. To create a map file and
+If not blank, the program will read in the 1-turn map from \vn{ltt%map_file}. To create a map file and
 save it to a file, prepend the file name with "WRITE:". Example:
 \begin{code}
   map_file = 'WRITE:order5.map'
@@ -346,42 +348,42 @@ of \vn{bmad_com%radiation_damping_on}. See \sref{s:track.modes} for more details
 \subsection{Output Parameters}
 
 \begin{description}
-\item[averages_output_file] \Newline
-Used with \vn{simulation_mode} set to \vn{"BUNCH"}. The name of the file that contain orbital and
+\item[ltt\%averages_output_file] \Newline
+Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. The name of the file that contain orbital and
 spin positions averaged over all the particles of the bunch.  Each line in the file represents the
-averages at the end of a turn and a new line is added every \vn{ouput_every_n_turns} number of
-turns. If \vn{averages_output_file} is blank, no averages file is produced. Data is always recorded
-when the beam is at the \vn{ele_start_name} position independent of where the lattice begins and
+averages at the end of a turn and a new line is added every \vn{ltt%ouput_every_n_turns} number of
+turns. If \vn{ltt%averages_output_file} is blank, no averages file is produced. Data is always recorded
+when the beam is at the \vn{ltt%ele_start_name} position independent of where the lattice begins and
 ends.
 %
-\item[merge_particle_output_files] \Newline
-If set to \vn{True}, all the particle data will be put in one \vn{particle_output_file} file. Only
+\item[ltt\%merge_particle_output_files] \Newline
+If set to \vn{True}, all the particle data will be put in one \vn{ltt%particle_output_file} file. Only
 relevant for \vn{"BEAM"} tracking.  See Section~\sref{s:part.out}.
 %
-\item[output_every_n_turns] \Newline
-Sets the number of turns between files specified by \vn{averages_output_file} and
-\vn{particle_output_file}.
+\item[ltt\%output_every_n_turns] \Newline
+Sets the number of turns between files specified by \vn{ltt%averages_output_file} and
+\vn{ltt%particle_output_file}.
 %
-\item[output_initial_position] \Newline
-Used with \vn{simulation_mode} set to \vn{"BUNCH"}. If \vn{output_initial_position} is set to
+\item[ltt\%output_initial_position] \Newline
+Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. If \vn{ltt%output_initial_position} is set to
 \vn{True}, additional columns will be added to the output tracking data file to show the initial
 particle position and spin. Default is \vn{False}. See Section~\sref{s:part.out}.
 %
-\item[particle_output_file] \Newline
-Used with \vn{simulation_mode} set to \vn{"BUNCH"}. The name of the file or files that are created
-to hold the particle positions. If \vn{merge_particle_output_files} is set to False, a file is
-created every \vn{ouput_every_n_turns} turns.  If \vn{merge_particle_ouput_files} is set to True,
+\item[ltt\%particle_output_file] \Newline
+Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. The name of the file or files that are created
+to hold the particle positions. If \vn{ltt%merge_particle_output_files} is set to False, a file is
+created every \vn{ltt%ouput_every_n_turns} turns.  If \vn{ltt%merge_particle_ouput_files} is set to True,
 the files are combined into one. See Section~\sref{s:part.out} for more details. If
-\vn{particle_ouput_file} is blank, no particle output file is created.
+\vn{ltt%particle_ouput_file} is blank, no particle output file is created.
 %
-\item[print_on_dead_loss] \Newline
+\item[ltt\%print_on_dead_loss] \Newline
 After each turn, the number of particles that are still living (have not hit an aperture) are
 counted and if the percentage of particles that have died, counting from the last time a message was
-printed, is larger than \vn{print_on_dead_loss}, a message is printed. For example, if
-\vn{print_on_dead_loss} is set to 0.01, every time the beam loses 1\% of the particles a message is printed.
+printed, is larger than \vn{ltt%print_on_dead_loss}, a message is printed. For example, if
+\vn{ltt%print_on_dead_loss} is set to 0.01, every time the beam loses 1\% of the particles a message is printed.
 Default is -1 which will cause a message printed every turn where there is particle loss.
 %
-\item[sigma_matrix_output_file] \Newline
+\item[ltt\%sigma_matrix_output_file] \Newline
 String specifying the name of the file to create to hold the calculated sigma matrix. If blank (the
 default), no sigma matrix file will be created. The 6x6 sigma matrix $\boldsymbol{\sigma}$ is a
 measure of the beam size defined by
@@ -389,7 +391,7 @@ measure of the beam size defined by
   \sigma_{ij} = \left< r_i \, r_j \right>
 \end{equation}
 where $\bf r$ is the particle phase space vector and $<\ldots>$ denotes an average over all
-particles (which will be only one if the \vn{simulation_mode} is set to "SINGLE") and over all
+particles (which will be only one if the \vn{ltt%simulation_mode} is set to "SINGLE") and over all
 turns.
 \end{description}
 
@@ -397,26 +399,31 @@ turns.
 \subsection{Simulation Parameters}
 
 \begin{description}
-\item[add_closed_orbit_to_init_position] \Newline
+\item[ltt\%a_emittance, ltt\%b_emittance] \Newline
+Emittances used in the high energy space charge calculation (\sref{s:space.charge}). If set to zero
+(the default), the emittance as calculated via radiation integrals will be used.
+
+\item[ltt\%add_closed_orbit_to_init_position] \Newline
 If set \vn{True} (the default), initial particle positions are set equal to the input particle positions
 plus the closed orbit position. See Section~\sref{s:init.pos}.
 %
-\item[beam_init] \Newline
+\item[beam_init\%...] \Newline
 This sets the initial beam distribution. See Section~\sref{s:init.pos}.
 %
-\item[bmad_com] \Newline
+\item[bmad_com\%...] \Newline
 The \vn{bmad_com} structure contains various parameters that affect tracking. For example, whether
 radiation damping and fluctuations are included in tracking. A full list of \vn{bmad_com} parameters
-is detailed in the Bmad reference manual. Note: \vn{bmad_com} parameters can be set in the Bmad
-lattice file as well. \vn{Bmad_com} parameter set in the master input file will take precedence over
-parameters set in the lattice file.
+is detailed in the Bmad reference manual. The \vn{bmad_com%space_charge_on} logical can be used to
+turn on/off ultra-relativistic space charge effects. See section~\sref{s:space.charge} for more
+details. Note: \vn{bmad_com} parameters can be set in the Bmad lattice file as well. \vn{Bmad_com}
+parameter set in the master input file will take precedence over parameters set in the lattice file.
 %
-\item[dead_cutoff] \Newline
+\item[ltt\%dead_cutoff] \Newline
 Sets the cutoff for the number of dead particles below which the simulation will stop. For example,
-if \vn{dead_cutoff} is set to 0.01, when 1\% of the beam has been lost the simulation will stop. The
-default value for \vn{dead_cutoff} is zero.
+if \vn{ltt%dead_cutoff} is set to 0.01, when 1\% of the beam has been lost the simulation will stop. The
+default value for \vn{ltt%dead_cutoff} is zero.
 %
-\item[ele_start_name] \Newline
+\item[ltt\%ele_start_name] \Newline
 Name or element index of the element to start the tracking. Examples:
 \begin{code}
   ele_start_name = "Q3##2"   ! 2nd element named Q3 in the lattice.
@@ -426,61 +433,76 @@ The default is to start at the beginning of the lattice. Notice that the trackin
 downstream end of the element so the first element tracked through is the element after the chosen
 one.
 %
-\item[map_order] \Newline
+\item[ltt\%map_order] \Newline
 Order of the 1-turn map. See Section~\sref{s:track.modes}. The default is what is set in the lattice
-file and if not set in the lattice file the default is 3. Note: \vn{map_order} is only used when
+file and if not set in the lattice file the default is 3. Note: \vn{ltt%map_order} is only used when
 generating a map.  When a map is read in from a file, the order of this map is independent of the
-current setting of \vn{map_order}.
+current setting of \vn{ltt%map_order}.
 %
-\item[n_turns] \Newline
+\item[ltt\%n_turns] \Newline
 Number of turns to track. See Section~\sref{s:track.modes}.
 %
-\item[random_seed] \Newline
+\item[ltt\%random_seed] \Newline
 The random number seed used by the random number generator. If set to 0, the
 system clock will be used. That is, if set to 0, the output results will vary from run to run.
 %
-\item[rfcavity_on] \Newline
+\item[ltt\%rfcavity_on] \Newline
 If set to \vn{False}, the voltage on all RF cavity elements will be turned off. Default is \vn{True}.
 If 1-turn map tracking is used, the RF voltage may not be turned off.
 %
-\item[simulation_mode] \Newline
+\item[ltt\%simulation_mode] \Newline
 Sets the simulation mode for the program. See Section~\sref{s:sim.modes}.
 %
-\item[timer_print_dtime] \Newline
+\item[ltt\%timer_print_dtime] \Newline
 The program will print a tracking status message every so often. The nominal time between status
-messages is set by \vn{timer_print_dtime} which is a number in seconds.
+messages is set by \vn{ltt%timer_print_dtime} which is a number in seconds.
 %
-\item[use_1_turn_map] \Newline
+\item[ltt\%use_1_turn_map] \Newline
 If set \vn{True} (the default) use a 1-turn map for tracking as opposed to element-by-element
 tracking (\sref{s:track.modes}).
 \end{description}
+
+%------------------------------------------------------------------
+\Section{simulations with Ultra-Relativistic Space Charge Effects}
+\label{s:space.charge}
+
+A space charge kick can be applied in the simulation. The space charge kick is calculated using an
+approximation suitable at ultra-relativistic energies. The kick is turned on by setting
+the logical \vn{bmad_com%space_charge_on} to \vn{True} (default is \vn{False}. See the Bmad
+manual documentation on \vn{bmad_com%space_charge_on} for more details.
+
+The $a$ and $b$ mode emittances are used as input to the space charge calculation. [If there is no
+coupling, the $a$ mode corresponds to the ``horizontal'' mode and the $b$ mode corresponds to the
+``vertical'' mode.] These emittance can be sepcified by setting \vn{ltt%a_emittance} and/or
+\vn{ltt%b_emittance}. If set to zero (the default), an emittance is calculated using a radiation
+integral calculation. Additionaly, the longitudinal beam size is calculated via radiation integrals.
 
 %------------------------------------------------------------------
 \Section{Particle Data Output Format}
 \label{s:part.out}
 
 The following describes the particle data output format. Particle data is outputted when the
-\vn{simulation_mode} is set to \vn{"BUNCH"}.
+\vn{ltt%simulation_mode} is set to \vn{"BUNCH"}.
 
-Particle data is always recorded when the beam is at the \vn{ele_start_name} position independent of
+Particle data is always recorded when the beam is at the \vn{ltt%ele_start_name} position independent of
 where the lattice begins and ends.
 
-With \vn{merge_particle_output_files} set to \vn{False}, an output data file will be produced every
-\vn{output_every_n_turns} turns. Each line in this file records a particle's orbital and
-spin position. The name of the data file is derived from the \vn{particle_output_file} string using
-the following rules: If \vn{particle_output_file} contains a hash character ''\#'', the data file name
+With \vn{ltt%merge_particle_output_files} set to \vn{False}, an output data file will be produced every
+\vn{ltt%output_every_n_turns} turns. Each line in this file records a particle's orbital and
+spin position. The name of the data file is derived from the \vn{ltt%particle_output_file} string using
+the following rules: If \vn{ltt%particle_output_file} contains a hash character ''\#'', the data file name
 is formed by substituting the turn number for the hash token. If there is no hash character, the
-data file name is formed by appending the turn number to the \vn{particle_output_file} string.
+data file name is formed by appending the turn number to the \vn{ltt%particle_output_file} string.
 
-With \vn{merge_particle_output_files} set to \vn{True}, instead of generating multiple files, all data is
-put into one file whose name is given by \vn{particle_output_file}.
+With \vn{ltt%merge_particle_output_files} set to \vn{True}, instead of generating multiple files, all data is
+put into one file whose name is given by \vn{ltt%particle_output_file}.
 
-Nominally particle data is recorded every \vn{output_every_n_turns} number of
-turns. However, if \vn{output_every_n_turns} is set to 0, particle data is recorded only
-at the start and end of the tracking. If \vn{output_every_n_turns} is set to -1,
+Nominally particle data is recorded every \vn{ltt%output_every_n_turns} number of
+turns. However, if \vn{ltt%output_every_n_turns} is set to 0, particle data is recorded only
+at the start and end of the tracking. If \vn{ltt%output_every_n_turns} is set to -1,
 particle data is only recorded at the end of tracking.
 
-If \vn{output_initial_position} is set to \vn{True}, additional columns will be added to the output
+If \vn{ltt%output_initial_position} is set to \vn{True}, additional columns will be added to the output
 particle data file to show the initial particle position and spin.
 
 %------------------------------------------------------------------

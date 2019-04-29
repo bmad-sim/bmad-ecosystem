@@ -9,6 +9,7 @@ module lt_tracking_mod
 use beam_mod
 use twiss_and_track_mod
 use ptc_map_with_radiation_mod
+use space_charge_mod
 
 implicit none
 
@@ -17,7 +18,7 @@ integer, parameter :: results_tag$ = 1000
 integer, parameter :: is_done_tag$ = 1001
 
 type ltt_params_struct
-  type (ele_struct), pointer :: ele_start
+  type (lat_ele_loc_struct) :: start
   character(20) :: simulation_mode = ''
   character(40) :: ele_start_name = ''
   character(200) :: lat_file = ''
@@ -27,13 +28,15 @@ type ltt_params_struct
   character(200) :: map_file = ''
   character(200) :: averages_output_file = ''
   integer :: n_turns = -1
-  integer :: random_seed = -1
+  integer :: random_seed = 0
   integer :: map_order = -1
   integer :: n_turn_sigma_average = -1
   integer :: output_every_n_turns = -1
   real(rp) :: print_on_dead_loss = -1
   real(rp) :: timer_print_dtime = 120
   real(rp) :: dead_cutoff = 0
+  real(rp) :: a_emittance = 0   ! Used for space charge calculation.
+  real(rp) :: b_emittance = 0   ! Used for space charge calculation.
   logical :: rfcavity_on = .true.
   logical :: use_1_turn_map = .false.
   logical :: add_closed_orbit_to_init_position = .true.
@@ -42,7 +45,7 @@ type ltt_params_struct
   integer :: mpi_rank  = master_rank$
   integer :: mpi_n_proc = 1                    ! Number of processeses including master
   integer :: mpi_num_runs = 10                 ! Number of runs a slave process will take on average.
-  integer :: mpi_n_particles_per_run = 0        ! Number of particles per run.
+  integer :: mpi_n_particles_per_run = 0       ! Number of particles per run.
   logical :: using_mpi = .false.
   logical :: debug = .false.
 end type
@@ -60,31 +63,16 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
+subroutine ltt_init_params(ltt, lat, beam_init)
 
-subroutine ltt_init_params(lttp, lat, beam_init)
-
-type (ltt_params_struct) lttp
+type (ltt_params_struct) ltt
 type (lat_struct) lat
 type (beam_init_struct) beam_init
 
-real(rp) timer_print_dtime, dead_cutoff, print_on_dead_loss
+integer ir
+character(200) init_file
 
-integer n_turns, random_seed, map_order, n_turn_sigma_average, output_every_n_turns, ir
-
-logical rfcavity_on, use_1_turn_map, add_closed_orbit_to_init_position
-logical output_initial_position, merge_particle_output_files
-
-character(20) simulation_mode, map_mode, one_tracking_data_file
-character(40) ele_start_name
-character(200) lat_file, init_file, tracking_data_file, common_master_input_file, particle_output_file
-character(200) sigma_matrix_output_file, input_map_file, output_map_file, map_file, averages_output_file
-
-namelist / params / lat_file, n_turns, ele_start_name, map_order, beam_init, one_tracking_data_file, random_seed, &
-                rfcavity_on, output_every_n_turns, bmad_com, add_closed_orbit_to_init_position, dead_cutoff, &
-                simulation_mode, use_1_turn_map, tracking_data_file, timer_print_dtime, output_initial_position, &
-                common_master_input_file, input_map_file, output_map_file, sigma_matrix_output_file, map_file, &
-                print_on_dead_loss, averages_output_file, merge_particle_output_files, n_turn_sigma_average, &
-                particle_output_file
+namelist / params / bmad_com, beam_init, ltt
 
 ! Parse command line
 
@@ -99,30 +87,7 @@ endif
 
 ! Read parameters
 
-use_1_turn_map = .false.
-dead_cutoff = 0
-print_on_dead_loss = -1
-random_seed = 0
-output_initial_position = .false.
-timer_print_dtime = 120
-map_order = -1
-ele_start_name = ''
-rfcavity_on = .true.
-output_every_n_turns = -1
-n_turn_sigma_average = -1
-random_seed = 0
-add_closed_orbit_to_init_position = .true.
-tracking_data_file = ''
-one_tracking_data_file = ''
-common_master_input_file = ''
-input_map_file = ''
-output_map_file = ''
-sigma_matrix_output_file = ''
-map_file = ''
-particle_output_file = ''
-merge_particle_output_files = .false.
-
-if (.not. lttp%using_mpi .or. lttp%mpi_rank == master_rank$) then
+if (.not. ltt%using_mpi .or. ltt%mpi_rank == master_rank$) then
   print '(2a)', 'Initialization file: ', trim(init_file)
 endif
 
@@ -130,10 +95,12 @@ open (1, file = init_file, status = 'old', action = 'read')
 read (1, nml = params)
 close (1)
 
-if (common_master_input_file /= '') then
-  print '(2a)', 'Using common_master_input_file: ', trim(common_master_input_file)
+call upcase_string(ltt%simulation_mode)
 
-  open (1, file = common_master_input_file, status = 'old', action = 'read')
+if (ltt%common_master_input_file /= '') then
+  print '(2a)', 'Using common_master_input_file: ', trim(ltt%common_master_input_file)
+
+  open (1, file = ltt%common_master_input_file, status = 'old', action = 'read')
   read (1, nml = params)
   close (1)
 
@@ -142,32 +109,20 @@ if (common_master_input_file /= '') then
   close (1)
 endif
 
-if (tracking_data_file /= '') then
-  print '(a)', 'The "tracking_data_file" file has been renamed to "particle_output_file".'
-  print '(a)', 'Please make the change in your input file.'
-  stop
-endif
-
-if (one_tracking_data_file /= '') then
-  print '(a)', 'The "one_tracking_data_file" has been renamed to "merge_particle_output_files".'
-  print '(a)', 'Please make the change in your input file.'
-  stop
-endif
-
 ! Lattice init
 
 bmad_com%auto_bookkeeper = .false.
 
-call ran_seed_put (random_seed)
-call ptc_set_map_with_radiation_ran_seed(random_seed)
+call ran_seed_put (ltt%random_seed)
+call ptc_set_map_with_radiation_ran_seed(ltt%random_seed)
 
-if (lttp%using_mpi) then
+if (ltt%using_mpi) then
   call ran_seed_get (ir)
-  call ran_seed_put (ir + 10 * lttp%mpi_rank)
-  call ptc_set_map_with_radiation_ran_seed(ir + 10 * lttp%mpi_rank)
+  call ran_seed_put (ir + 10 * ltt%mpi_rank)
+  call ptc_set_map_with_radiation_ran_seed(ir + 10 * ltt%mpi_rank)
 endif
 
-call bmad_parser (lat_file, lat)
+call bmad_parser (ltt%lat_file, lat)
 
 ! Read the master input file again so that bmad_com parameters set in the file
 ! take precedence over bmad_com parameters set in the lattice file.
@@ -175,41 +130,6 @@ call bmad_parser (lat_file, lat)
 open (1, file = init_file, status = 'old', action = 'read')
 read (1, nml = params)  
 close (1)
-
-!
-
-if (input_map_file /= '' .or. output_map_file /= '') then
-  print '(a)', 'Note: "input_map_file and "output_map_file" parameters no longer exist.'
-  print '(a)', 'Use the "map_file" parameter instead.'
-  print '(a)', 'Stopping here.'
-  stop
-endif
-
-!
-
-lttp%simulation_mode                     = simulation_mode
-lttp%ele_start_name                      = ele_start_name
-lttp%lat_file                            = lat_file
-lttp%common_master_input_file            = common_master_input_file
-lttp%particle_output_file                = particle_output_file
-lttp%sigma_matrix_output_file            = sigma_matrix_output_file
-lttp%map_file                            = map_file
-lttp%averages_output_file                = averages_output_file
-lttp%n_turns                             = n_turns
-lttp%random_seed                         = random_seed
-lttp%map_order                           = map_order
-lttp%n_turn_sigma_average                = n_turn_sigma_average
-lttp%output_every_n_turns                = output_every_n_turns
-lttp%timer_print_dtime                   = timer_print_dtime
-lttp%dead_cutoff                         = dead_cutoff
-lttp%print_on_dead_loss                  = print_on_dead_loss
-lttp%rfcavity_on                         = rfcavity_on
-lttp%use_1_turn_map                      = use_1_turn_map
-lttp%add_closed_orbit_to_init_position   = add_closed_orbit_to_init_position
-lttp%output_initial_position             = output_initial_position
-lttp%merge_particle_output_files         = merge_particle_output_files
-
-call upcase_string(lttp%simulation_mode)
 
 end subroutine ltt_init_params
 
@@ -225,10 +145,11 @@ type (ptc_map_with_rad_struct) map_with_rad
 type (ele_pointer_struct), allocatable :: eles(:)
 type (coord_struct), allocatable :: closed_orb(:), orb(:)
 type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele_start
 
 real(rp) time
 
-integer n_loc, ix_ele_start, ix_ele_end, ix_branch
+integer n_loc, ix_ele_end, ix_ele_start, ix_branch
 
 logical err, ok
 
@@ -264,7 +185,7 @@ endif
 !
 
 if (lttp%ele_start_name == '') Then
-  lttp%ele_start => lat%ele(0)
+  lttp%start = lat_ele_loc_struct(0, 0)
 else
   call lat_ele_locator (lttp%ele_start_name, lat, eles, n_loc, err)
   if (err .or. n_loc == 0) then
@@ -276,11 +197,12 @@ else
     print '(a)', 'Will stop here.'
     stop
   endif
-  lttp%ele_start => eles(1)%ele
+  lttp%start = lat_ele_loc_struct(eles(1)%ele%ix_ele, eles(1)%ele%ix_branch)
 endif
 
-ix_ele_start = lttp%ele_start%ix_ele
-ix_branch = lttp%ele_start%ix_branch
+ix_ele_start = lttp%start%ix_ele
+ix_branch = lttp%start%ix_branch
+ele_start => pointer_to_ele(lat, lttp%start)
 branch => lat%branch(ix_branch)
 ix_ele_end = ix_ele_start - 1
 if (ix_ele_end == 0) ix_ele_end = branch%n_ele_track
@@ -303,7 +225,7 @@ if (map_mode == 'write' .or. ((lttp%use_1_turn_map .or. lttp%simulation_mode == 
     print '(a)', 'Creating map file...'
     call run_timer ('START')
     call lat_to_ptc_layout (lat)
-    call ptc_setup_map_with_radiation (map_with_rad, lttp%ele_start, lttp%ele_start, lttp%map_order, bmad_com%radiation_damping_on)
+    call ptc_setup_map_with_radiation (map_with_rad, ele_start, ele_start, lttp%map_order, bmad_com%radiation_damping_on)
     call run_timer ('READ', time)
     print '(a, f8.2)', 'Map setup time (min)', time/60
     if (map_mode == 'write') then
@@ -355,22 +277,25 @@ type (ptc_map_with_rad_struct) map_with_rad
 type (beam_init_struct) beam_init
 type (coord_struct), allocatable :: closed_orb(:), orb(:)
 type (coord_struct) orb_end, orb_init
+type (ele_struct), pointer :: ele_start
 
 integer track_state, ix_ele_start
 
 ! Run serial in check mode.
 
-ix_ele_start = lttp%ele_start%ix_ele
-call init_coord (orb_init, beam_init%center, lttp%ele_start, downstream_end$, spin = beam_init%spin)
+ix_ele_start = lttp%start%ix_ele
+ele_start => pointer_to_ele(lat, lttp%start)
+
+call init_coord (orb_init, beam_init%center, ele_start, downstream_end$, spin = beam_init%spin)
 call reallocate_coord(orb, lat)
 
 if (lttp%add_closed_orbit_to_init_position) orb_init%vec = orb_init%vec + closed_orb(ix_ele_start)%vec
 
 orb_end = orb_init
-orb(lttp%ele_start%ix_ele) = orb_init
+orb(ix_ele_start) = orb_init
 
 call ptc_track_map_with_radiation (orb_end, map_with_rad)
-call track_many (lat, orb, lttp%ele_start%ix_ele, lttp%ele_start%ix_ele, 1, lttp%ele_start%ix_branch, track_state)
+call track_many (lat, orb, ix_ele_start, ix_ele_start, 1, lttp%start%ix_branch, track_state)
 
 print '(a)', 'Phase Space at Track End:'
 print '(a, 6f14.8)', '1-turn map tracking:', orb_end%vec
@@ -399,6 +324,7 @@ type (coord_struct), allocatable :: closed_orb(:), orb(:)
 type (coord_struct) orb_end
 type (ele_struct), pointer :: ele
 type (ptc_map_with_rad_struct) map_with_rad
+type (ele_struct), pointer :: ele_start
 
 real(rp) average(6), sigma(6,6)
 integer n_sum, ix_ele_start, iu_out, i_turn, track_state, ix_branch
@@ -411,12 +337,15 @@ character(40) fmt
 n_sum = 0
 sigma = 0
 average = 0
-ix_ele_start = lttp%ele_start%ix_ele
-ix_branch = lttp%ele_start%ix_branch
+ix_ele_start = lttp%start%ix_ele
+ix_branch = lttp%start%ix_branch
+ele_start => pointer_to_ele(lat, lttp%start)
 branch => lat%branch(ix_branch)
 
+call ltt_setup_space_charge(lttp, lat, beam_init, closed_orb)
+
 call reallocate_coord (orb, lat)
-call init_coord (orb(ix_ele_start), beam_init%center, lttp%ele_start, downstream_end$, lat%param%particle, spin = beam_init%spin)
+call init_coord (orb(ix_ele_start), beam_init%center, ele_start, downstream_end$, lat%param%particle, spin = beam_init%spin)
 
 if (lttp%add_closed_orbit_to_init_position) orb(ix_ele_start)%vec = orb(ix_ele_start)%vec + closed_orb(ix_ele_start)%vec
 
@@ -482,6 +411,7 @@ type (coord_struct), pointer :: p
 type (ltt_sum_data_struct), allocatable, optional :: sum_data_array(:)
 type (ltt_sum_data_struct), allocatable, target :: sum_data_arr(:)
 type (ltt_sum_data_struct), pointer :: sd
+type (ele_struct), pointer :: ele_start
 
 real(rp) time0, time
 real(rp) average(6), sigma(6,6)
@@ -496,11 +426,14 @@ logical err_flag
 n_sum = 0
 sigma = 0
 average = 0
-ix_ele_start = lttp%ele_start%ix_ele
+ix_ele_start = lttp%start%ix_ele
+ele_start => pointer_to_ele (lat, lttp%start)
 
 if (lttp%using_mpi) beam_init%n_particle = lttp%mpi_n_particles_per_run
-call init_bunch_distribution (lttp%ele_start, lat%param, beam_init, lttp%ele_start%ix_branch, bunch, err_flag)
+call init_bunch_distribution (ele_start, lat%param, beam_init, lttp%start%ix_branch, bunch, err_flag)
 if (err_flag) stop
+
+call ltt_setup_space_charge(lttp, lat, beam_init, closed_orb)
 
 if (lttp%mpi_rank == master_rank$) print '(a, i8)',   'n_particle             = ', size(bunch%particle)
 
@@ -527,7 +460,7 @@ do i_turn = 1, lttp%n_turns
       call ptc_track_map_with_radiation (bunch%particle(ip), map_with_rad)
     enddo
   else
-    call track_bunch (lat, bunch, lttp%ele_start, lttp%ele_start, err_flag)
+    call track_bunch (lat, bunch, ele_start, ele_start, err_flag)
   endif
 
   n_live = count(bunch%particle%state == alive$)
@@ -599,7 +532,7 @@ logical err_flag
 
 ! Run serial in stat mode.
 
-branch => lat%branch(lttp%ele_start%ix_branch)
+branch => lat%branch(lttp%start%ix_branch)
 
 open(unit=20,file="twiss.dat")
 open(unit=21,file="coupling.dat")
@@ -644,6 +577,42 @@ print *, 'dQI =',chrom_x
 print *, 'dQII=',chrom_y
 
 end subroutine ltt_run_stat_mode
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_setup_space_charge(lttp, lat, beam_init, closed_orb)
+
+type (ltt_params_struct) lttp
+type (lat_struct) lat
+type (beam_init_struct) beam_init
+type (coord_struct) :: closed_orb(0:)
+type (normal_modes_struct) mode
+real(rp) n_particle
+
+!
+
+if (.not. bmad_com%space_charge_on) return
+
+if (lttp%use_1_turn_map) then
+  print *, 'NOTE: Space effects are not present when using a 1-turn map for tracking!'
+  return
+endif
+
+if (.not. lttp%rfcavity_on) then
+  print *, 'NOTE: RF is not on. Cannot calculate a longitudinal bunch length.'
+  print *, '      Therefore no space charge kick will be applied.'
+  return
+endif
+
+call radiation_integrals(lat, closed_orb, mode, ix_branch = lttp%start%ix_branch)
+if (lttp%a_emittance /= 0) mode%a%emittance = lttp%a_emittance
+if (lttp%b_emittance /= 0) mode%b%emittance = lttp%b_emittance
+n_particle = abs(beam_init%bunch_charge / (e_charge * charge_of(closed_orb(0)%species)))
+call setup_ultra_rel_space_charge_calc (.true., lat, n_particle, mode, closed_orb)
+
+end subroutine ltt_setup_space_charge
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
