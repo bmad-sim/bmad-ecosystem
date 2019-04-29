@@ -114,7 +114,7 @@ ele => branch%ele(0)
 call init_beam_distribution (ele, lat%param, beam_init, beam)
 
 if (upcase(beam_init%distribution_type(1)) == 'FILE') then
-  write (*, '(2a)') 'Using particles from beam_file: ', beam_init%file_name
+  write (*, '(2a)') 'Using particles from beam_file: ', beam_init%position_file
 endif
 
 bunch => beam%bunch(1)
