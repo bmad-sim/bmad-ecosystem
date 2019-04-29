@@ -928,11 +928,12 @@ type grid_beam_init_struct
   real(rp) :: x_min = 0      ! Lower x limit.
   real(rp) :: x_max = 0      ! Upper x limit.
   real(rp) :: px_min = 0     ! Lower px limit.
-  real(rp) :: px_max = 0     ! Upper px limit,
+  real(rp) :: px_max = 0     ! Upper px limit.
 end type
 
 type beam_init_struct
-  character(200) :: file_name = ''           ! Beam initalization file.
+  character(200) :: position_file = ''       ! File with particle positions.
+  character(200) :: file_name = ''           ! Old name for position file.
   character(16) :: distribution_type(3) = '' ! distribution type (in x-px, y-py, and z-pz planes)
                                              ! "ELLIPSE", "KV", "GRID", "FILE", "", or "RAN_GAUSS" 
   real(rp) :: spin(3) = 0                    ! Spin (x, y, z)

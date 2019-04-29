@@ -102,7 +102,7 @@ one instance (\sref{c:param.structs}) of this structure and this instance has th
     logical lr_wakes_on = T                     ! Long range wake fields
     logical mat6_track_symmetric = T            ! symmetric offsets
     logical auto_bookkeeper = T                 ! Automatic bookkeeping?
-    logical space_charge_on = F                 ! Space charge switch
+    logical space_charge_on = F                 ! Ultra-relativistic space charge switch
     logical coherent_synch_rad_on = F           ! csr 
     logical spin_tracking_on = F                ! spin tracking?
     logical spin_sokolov_ternov_flipping_on = F ! Spin flipping during radiation emission?
@@ -246,8 +246,8 @@ Toggle to turn off whether the transfer matrix from tracking routine
 minus \vn{%d_orb} values or only tracks 7 particles to save time but is less accurate..
 
 \item[\vn{\%space_charge_on}] \Newline
-Toggle to turn on or off the high energy space charge effect in particle tracking
-(\sref{s:space.charge}). This is not to be confused with the space charge component of
+Toggle to turn on or off the ultra-relativistice space charge effect in particle tracking
+(\sref{s:space.charge}). Computationally, this is separate from the space charge component of
 coherent synchrotron radiation (\sref{s:csr}).
 
 \item[\vn{\%coherent_synch_rad_on}] \Newline

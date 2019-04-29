@@ -253,10 +253,16 @@ if (present(err_flag)) err_flag = .true.
 
 ! Init from file
 
-if (beam_init%file_name /= '') then
-  call read_beam_file (beam_init%file_name, beam, beam_init, err_here)
+if (beam_init%file_name /= '') then   ! Old name
+  call out_io (s_warn$, r_name, 'Note: beam_init%file_name has been changed to beam_init%position_file.', 'Please change this in your file.')
+  beam_init%position_file = beam_init%file_name
+  beam_init%file_name = ''
+endif
+
+if (beam_init%position_file /= '') then
+  call read_beam_file (beam_init%position_file, beam, beam_init, err_here)
   if (err_here) then
-    call out_io (s_abort$, r_name, "PROBLEM READING BEAM FILE: "// quote(beam_init%file_name))
+    call out_io (s_abort$, r_name, "PROBLEM READING BEAM POSITION FILE: "// quote(beam_init%position_file))
     return
   endif
 
@@ -367,10 +373,16 @@ if (present(err_flag)) err_flag = .true.
 
 ! Read from file?
 
-if (beam_init%file_name /= '') then
-  call read_beam_file (beam_init%file_name, beam, beam_init, err)
+if (beam_init%file_name /= '') then   ! Old name
+  call out_io (s_warn$, r_name, 'Note: beam_init%file_name has been changed to beam_init%position_file.', 'Please change this in your file.')
+  beam_init%position_file = beam_init%file_name
+  beam_init%file_name = ''
+endif
+
+if (beam_init%position_file /= '') then
+  call read_beam_file (beam_init%position_file, beam, beam_init, err)
   if (err) then
-    call out_io (s_abort$, r_name, "Problem with beam file: "//beam_init%file_name)
+    call out_io (s_abort$, r_name, "PROBLEM READING BEAM POSITION FILE: "//beam_init%position_file)
     return
   endif
   bunch = beam%bunch(1)

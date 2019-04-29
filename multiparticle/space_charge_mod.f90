@@ -19,8 +19,8 @@ contains
 !   lattice    -- lat_struct: Lattice for tracking.
 !   n_part     -- Real(rp): Number of actual particles in a bunch. Used to compute the bunch charge.
 !   mode       -- normal_modes_struct: Structure holding the beam info.
-!     %a%emittance  -- a-mode emitance.
-!     %b%emittance  -- b-mode emittance.
+!     %a%emittance  -- a-mode unnormalized emittance.
+!     %b%emittance  -- b-mode unnormalized emittance.
 !     %sig_z        -- Real(rp): Bunch length.
 !     %sigE_E       -- Real(rp): Sigma_E/E relative energy spread
 !   closed_orb(0:) -- Coord_struct, optional: Closed orbit. If not present
