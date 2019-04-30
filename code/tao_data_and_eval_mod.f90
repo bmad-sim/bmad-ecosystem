@@ -4825,6 +4825,7 @@ case ('floor_orbit.y');   value = position%r(2)
 case ('floor_orbit.z');   value = position%r(3)
 case default
   call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+  value = 0
   return
 end select
 

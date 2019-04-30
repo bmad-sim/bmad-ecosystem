@@ -62,7 +62,7 @@ do
         '-noplot', '-lat', '-log_startup', '-beam', '-var', '-data', '-building_wall', '-plot', &
         '-startup', 'help', '-help', '?', '-geometry', '-rf_on', '-debug', '-disable_smooth_line_calc', &
         '-color_prompt', '-no_stopping', '-hook_init_file', '-beam_position0', '-silent_run', &
-        '-beam_init_file_name', '-slice_lattice', '-prompt_color'], &
+        '-beam_init_file_name', '-slice_lattice', '-prompt_color', '-beam_init_position_file'], &
               ix, .true., matched_name=switch)
 
   if (negate) switch = '-' // switch
@@ -78,11 +78,12 @@ do
     call get_next_arg (s%com%beam_all_arg)
 
   case ('-beam_position0', '-beam0', '-beam_init_file_name')
-    call get_next_arg (s%com%beam_init_file_name_arg)
-    if (switch /= '-beam_init_file_name') then
-      call out_io (s_warn$, r_name, 'Note: Switch: ' // quote(switch) // &
-                                ' has been replaced with "-beam_init_file_name"')
-    endif
+    call get_next_arg (s%com%beam_init_position_file_arg)
+    call out_io (s_warn$, r_name, 'Note: Switch: ' // quote(switch) // &
+                                ' has been replaced with "-beam_init_position_file"')
+
+  case ('-beam_init_position_file')
+    call get_next_arg (s%com%beam_init_position_file_arg)
 
   case ('-building_wall')
     call get_next_arg (s%com%building_wall_arg)
@@ -162,7 +163,8 @@ do
   case ('--beam');                                s%com%beam_arg = ''
   case ('--beam_all');                            s%com%beam_all_arg = ''
   case ('--beam_position0', '--beam0', '--beam_init_file_name'); 
-                                                  s%com%beam_init_file_name_arg = ''
+                                                  s%com%beam_init_position_file_arg = ''
+  case ('--beam_init_position_file');             s%com%beam_init_position_file_arg = ''
   case ('--building_wall');                       s%com%building_wall_arg = ''
   case ('--data');                                s%com%data_arg = ''
   case ('--disable_smooth_line_calc');            s%com%disable_smooth_line_calc_arg = ''

@@ -667,7 +667,7 @@ type tao_common_struct
   character(200) :: init_arg = ''                ! -init              command line argument.
   character(200) :: beam_arg = ''                ! -beam              command line argument.
   character(200) :: beam_all_arg = ''            ! -beam_all          command line argument.
-  character(200) :: beam_init_file_name_arg = '' ! -beam_init_file_name command line argument.
+  character(200) :: beam_init_position_file_arg = '' ! -beam_init_position_file command line argument.
   character(200) :: data_arg = ''                ! -data              command line argument.
   character(200) :: plot_arg = ''                ! -plot              command line argument.
   character(200) :: startup_arg = ''             ! -startup           command line argument.

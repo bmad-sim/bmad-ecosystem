@@ -18,8 +18,8 @@ call out_io (s_blank$, r_name, [ &
         'Syntax:                                                                                      ', &
         '  <path-to-tao-exe-directory>/tao {OPTIONS}                                                  ', &
         'Options are:                                                                                 ', &
-        '  -beam <beam_file>                 # Beam init params (beam size, starting point, etc.)     ', &
-        '  -beam_init_file_name <file_name>  # File with beam initial particle positions              ', &
+        '  -beam <beam_file>                 # File containing the tao_beam_init namelist.            ', &
+        '  -beam_init_file_name <file_name>  # File containing initial particle positions.            ', &
         '  -beam_all <all_beam_file>         # Beam info from previous tracking                       ', &
         '  -building_wall <wall_file>        # Define the building tunnel wall                        ', &
         '  -color_prompt                     # Set color of prompt string to blue                     ', &

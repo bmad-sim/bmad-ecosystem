@@ -179,7 +179,7 @@ case ('beam_init')
   u => point_to_uni(line, .false., err); if (err) return
   beam_init => u%beam%beam_init
 
-  nl=incr(nl); write (li(nl), amt) 'file_name;STR;F;',                         beam_init%file_name
+  nl=incr(nl); write (li(nl), amt) 'position_file;STR;F;',                     beam_init%position_file
   nl=incr(nl); write (li(nl), rmt) 'sig_z_jitter;REAL;T;',                     beam_init%sig_z_jitter
   nl=incr(nl); write (li(nl), rmt) 'sig_e_jitter;REAL;T;',                     beam_init%sig_e_jitter
   nl=incr(nl); write (li(nl), imt) 'n_particle;INT;T;',                        beam_init%n_particle
