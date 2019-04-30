@@ -69,7 +69,7 @@ function z_at_surface (ele, x, y, status) result (z)
 type (ele_struct), target :: ele
 type (photon_surface_struct), pointer :: surf
 
-real(rp) x, y, z, g(3), f
+real(rp) x, y, z, g(3), gs, f
 integer status, ix, iy
 
 !
@@ -92,13 +92,27 @@ else
   enddo
   enddo
 
-  g = surf%spherical_curvature + surf%elliptical_curvature
-  f = -sign_of(g(1)) * (g(1) * x)**2 - sign_of(g(2)) * (g(2) * y)**2
-  if (f < -1) then
-    status = 1
-    return
+
+  g = surf%elliptical_curvature
+  if (g(3) /= 0) then
+    f = -((g(1) * x)**2 + (g(2) * y)**2)
+    if (f < -1) then
+      status = 1
+      return
+    endif
+    z = z + sqrt_one(f) / g(3)
   endif
-  if (g(3) /= 0) z = z + sqrt_one(f) / g(3)
+
+  gs = surf%spherical_curvature
+  if (gs /= 0) then
+    f = -((gs * x)**2 + (gs * y)**2)
+    if (f < -1) then
+      status = 1
+      return
+    endif
+    z = z + sqrt_one(f) / gs
+  endif
+
 endif
 
 end function z_at_surface
@@ -126,8 +140,8 @@ type (ele_struct), target :: ele
 type (photon_surface_struct), pointer :: s
 type (segmented_surface_struct), pointer :: seg
 
-real(rp) x, y, zt, x0, y0, dx, dy, coef_xx, coef_xy, coef_yy, coef_diag, g(3)
-integer ix, iy, sx, sy
+real(rp) x, y, zt, x0, y0, dx, dy, coef_xx, coef_xy, coef_yy, coef_diag, g(3), gs
+integer ix, iy
 
 ! Only redo the cacluation if needed
 
@@ -167,16 +181,26 @@ do iy = 0, ubound(s%curvature_xy, 2) - ix
 enddo
 enddo
 
-g = s%spherical_curvature + s%elliptical_curvature
+g = s%elliptical_curvature
 if (g(3) /= 0) then
-  sx = sign_of(g(1)); sy = sign_of(g(2))
-  zt = sqrt(1 - sx * (x0 * g(1))**2 - sy * (y0 * g(2))**2)
-  seg%z0 = seg%z0 + sqrt_one(-sx * (g(1) * x)**2 - sy * (g(2) * y)**2) / g(3)
-  seg%slope_x = seg%slope_x - x0 * sx * g(1)**2 / (g(3) * zt)
-  seg%slope_y = seg%slope_y - y0 * sy * g(2)**2 / (g(3) * zt)
-  coef_xx = coef_xx - (sx * g(1)**2 / zt - (x0 * g(1)**2)**2 / zt**3) / (2 * g(3))
-  coef_yy = coef_yy - (sy * g(2)**2 / zt - (y0 * g(2)**2)**2 / zt**3) / (2 * g(3))
-  coef_xy = coef_xy - (x0 * y0 * sx * sy * (g(1) * g(2))**2 / zt**3) / (g(3))
+  zt = sqrt(1 - (x0 * g(1))**2 - (y0 * g(2))**2)
+  seg%z0 = seg%z0 + sqrt_one(-(g(1) * x)**2 - (g(2) * y)**2) / g(3)
+  seg%slope_x = seg%slope_x - x0 * g(1)**2 / (g(3) * zt)
+  seg%slope_y = seg%slope_y - y0 * g(2)**2 / (g(3) * zt)
+  coef_xx = coef_xx - (g(1)**2 / zt - (x0 * g(1)**2)**2 / zt**3) / (2 * g(3))
+  coef_yy = coef_yy - (g(2)**2 / zt - (y0 * g(2)**2)**2 / zt**3) / (2 * g(3))
+  coef_xy = coef_xy - (x0 * y0 * (g(1) * g(2))**2 / zt**3) / (g(3))
+endif
+
+gs = s%spherical_curvature
+if (gs /= 0) then
+  zt = sqrt(1 - (x0 * gs)**2 - (y0 * gs)**2)
+  seg%z0 = seg%z0 + sqrt_one(-(gs * x)**2 - (gs * y)**2) / gs
+  seg%slope_x = seg%slope_x - x0 * gs**2 / (gs * zt)
+  seg%slope_y = seg%slope_y - y0 * gs**2 / (gs * zt)
+  coef_xx = coef_xx - (gs**2 / zt - (x0 * gs**2)**2 / zt**3) / (2 * gs)
+  coef_yy = coef_yy - (gs**2 / zt - (y0 * gs**2)**2 / zt**3) / (2 * gs)
+  coef_xy = coef_xy - (x0 * y0 * (gs * gs)**2 / zt**3) / (gs)
 endif
 
 ! Correct for fact that segment is supported at the corners of the segment and the segment is flat.

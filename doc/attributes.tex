@@ -1180,32 +1180,27 @@ frame as shown in \fig{f:surface}). This coordinate system has the $z$ axis poin
 interior of the element, and the $x$ axis in the plane defined by the entrance and exit reference
 orbit. In this coordinate system, the surface is an ellipsoid plus a fourth order polynomial in $x$
 and $y$ plus a possible ``figure error'' contribution $z_\text{fig}$ defined by a surface grid:
-\Begineq
-  {-z} = \frac{1}{g_z} \, \left[ 1 - \sqrt{1 - \sign(g_x) \, (g_x \, x)^2 - \sign(g_y) \, (g_y \, y)^2} \right] + 
-  \sum_{2 \le i+j \le 6} c_{ij} \, x^i \, y^j - z_\text{fig}
+\begin{align}
+  {-z} &= \frac{1}{g_z} \, \left[ 1 - \sqrt{1 - (g_x \, x)^2 - (g_y \, y)^2} \right] + \\
   \label{xs2ij4}
-\Endeq
+  &\qquad \qquad \frac{1}{g_{sp}} \, \left[ 1 - \sqrt{1 - (g_{sp} \, x)^2 - (g_{sp} \, y)^2} \right] + 
+  \sum_{2 \le i+j \le 6} c_{ij} \, x^i \, y^j - z_\text{fig} \nonumber
+\end{align}
 $z_\text{fig}$ is discussed in section~\sref{s:surf.grid} and is only present when the surface grid
-\vn{type} is set to \vn{Figure_Error}.  In \Eq{xs2ij4} the $c_{ij}$ coefficients parameterize the fourth order
-polynomial and $g_x, g_y$, and $g_z$ parameterize the ellipsoid with $\sign$ being the sign function
-\Begineq
-  \sign(g_i) \equiv \begin{cases} 1 & g_i > 0 \\ -1 & g_i < 0 \end{cases}
-\Endeq
-If $g_z$ is zero, the first term on the RHS of \Eq{xs2ij4} is ignored. If $g_x$, $g_y$, and $g_z$
-are the same value $g$ then the ellipsoid is a sphere with radius $1/g$ The ellipsoid parameters are
-set for an element by setting the element parameters
+\vn{type} is set to \vn{Figure_Error}. In \Eq{xs2ij4} the $c_{ij}$ coefficients parameterize the
+fourth order polynomial, $g_{sp}$ parameterize the spherical curvature, and $g_x, g_y$, and $g_z$
+parameterize ellipsoid curvature. [In principle, the spherical curvature is not needed since the
+elliptical curvature is more general. In practice, it is sometimes convieneint to be able to specify spherical
+curvature.]  If $g_z$ is zero, the elliptical curvature is ignored. If $g_z$ or $g_{sp}$ is
+positive, the curvature is concave towards the incoming photon. If negative the curvature is convex.
+The spherical and ellipsoid parameters are set for an element by setting the element parameters
 \begin{example}
-  spherical_curvature    = <Real>
-  elliptical_curvature_x = <Real>
-  elliptical_curvature_y = <Real>
-  elliptical_curvature_z = <Real>
+  spherical_curvature    = <Real>   ! \(g_{sp}\)
+  elliptical_curvature_x = <Real>   ! \(g_{x}\)
+  elliptical_curvature_y = <Real>   ! \(g_{y}\)
+  elliptical_curvature_z = <Real>   ! \(g_{z}\)
 \end{example}
-and the correspondence between the ellipsoid parameters of \Eq{xs2ij4} and these parameters is:
-\begin{example}
-  \(g_x\) = elliptical_curvature_x + spherical_curvature
-  \(g_y\) = elliptical_curvature_y + spherical_curvature
-  \(g_z\) = elliptical_curvature_z + spherical_curvature
-\end{example}
+
 The polynomial coefficients $c_{ij}$ are set in the lattice file by setting the
 element attributes
 \index{surface curveture}
