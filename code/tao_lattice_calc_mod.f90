@@ -897,7 +897,7 @@ ix_ele0 = u%beam%ix_track_start
 beam_init => u%beam%beam_init
 beam => u%beam%beam_at_start
 
-if (u%beam%init_starting_distribution .or. .not. allocated(beam%bunch) .or. u%beam%beam_init%file_name /= "") then
+if (u%beam%init_starting_distribution .or. .not. allocated(beam%bunch) .or. u%beam%beam_init%position_file /= "") then
   call init_beam_distribution (branch%ele(ix_ele0), branch%param, beam_init, beam, err)
   if (err) then
     call out_io (s_fatal$, r_name, 'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)

@@ -707,7 +707,7 @@ The syntax of the \vn{tao_beam_init} namelist is:
     beam_saved_at               = "<ele_list>" ! Where to save the beam info.
     beam_track_start            = "<ele_name>" ! Beam tracking start element name or index.
     beam_track_end              = "<ele_name>" ! Beam tracking end element name or index.
-    beam_init%file_name         = <string>     ! Beam position init file.
+    beam_init%position_file     = <string>     ! Beam position init file.
     beam_init%distribution_type(3) = "<type>"  ! "ELLIPSE", "KV", "GRID", "" (default)
     beam_init%ellipse(3)%...    = ...          ! Parameters for an ellipse type distribution.
     beam_init%KV%...            = ...          ! Parameters for a KV distribution
@@ -742,17 +742,18 @@ The syntax of the \vn{tao_beam_init} namelist is:
   /
 \end{example}
 
-The \vn{beam_init} parameter is an instance of a \vn{beam_init_struct} structure which holds parameters (for
-example, the beam emittances) from which a distribution of particles can be constructed. Documentation on this
-can be found in the \bmad manual in the \vn{Beam Initialization} chapter. In particular, 
-\vn{beam_init%file_name} if it is non-blank, specifies a file (which can be created with the \vn{write
-beam -at <ele_name>} command) which contains a beam's particle coordinates which are to be used at
-the start of the lattice.  Note: The file name can be overridden by using the \vn{-beam_init_file_name} argument
-on the command line (\sref{s:command.line}). The file can either be in binary format (binary files
-can be created by the \vn{write beam} command), or written in ASCII.
-Note: When the particle coordinates are read in from the \vn{beam_init%file_name} file, the centroid will be
-shifted by the setting of \vn{beam_init%center}.  To vary the centroid of the beam on the \tao
-command line, the \vn{set beam_init center} command (\sref{s:set}) can be used.
+The \vn{beam_init} parameter is an instance of a \vn{beam_init_struct} structure which holds
+parameters (for example, the beam emittances) from which a distribution of particles can be
+constructed. Documentation on this can be found in the \bmad manual in the \vn{Beam Initialization}
+chapter. In particular, \vn{beam_init%position_file} if it is non-blank, specifies a file (which can
+be created with the \vn{write beam -at <ele_name>} command) which contains a beam's particle
+coordinates which are to be used at the start of the lattice.  Note: The file name can be overridden
+by using the \vn{-beam_init_position_file} argument on the command line (\sref{s:command.line}). The
+file can either be in binary format (binary files can be created by the \vn{write beam} command), or
+written in ASCII.  Note: When the particle coordinates are read in from the
+\vn{beam_init%position_file} file, the centroid will be shifted by the setting of
+\vn{beam_init%center}.  To vary the centroid of the beam on the \tao command line, the \vn{set
+beam_init center} command (\sref{s:set}) can be used.
 
 \vn{ix_universe} refers to the universe index.  See the \bmad documentation on the
 \vn{beam_init_struct} for what the \vn{beam_init} parameters refer to. The charge per particle is
@@ -773,9 +774,9 @@ lattice becomes long. The file name can be overridden by using the
 \vn{-beam_all} argument on the command line
 (\sref{s:command.line}). Note: \tao will set the variable
 \vn{use_saved_beam_in_tracking} to \vn{True} to prevent actual
-tracking.  Note: A \vn{beam_all_file} will supersede  \vn{beam_init%file_name}
+tracking.  Note: A \vn{beam_all_file} will supersede  \vn{beam_init%position_file}
 
-When \vn{beam_init%file_name} is blank, the Twiss parameters at the beginning of the lattice are used in
+When \vn{beam_init%position_file} is blank, the Twiss parameters at the beginning of the lattice are used in
 initializing the beam distribution.  For circular lattices the Twiss parameters will be found from
 the closed orbit, and the emittance will be calculated using the \bmad routine
 \vn{radiation_integrals}.

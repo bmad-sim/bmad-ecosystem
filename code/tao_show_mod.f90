@@ -374,7 +374,7 @@ case ('beam')
 
     beam_init => u%beam%beam_init
     nl=nl+1; lines(nl) = 'beam_init components (set by "set beam_init ..."):'
-    nl=nl+1; write(lines(nl), amt) '  %file_name              = ', quote(beam_init%file_name)
+    nl=nl+1; write(lines(nl), amt) '  %position_file          = ', quote(beam_init%position_file)
     nl=nl+1; write(lines(nl), amt) '  %distribution_type      = ', quoten(beam_init%distribution_type)
     nl=nl+1; write(lines(nl), lmt) '  %use_particle_start_for_center = ', beam_init%use_particle_start_for_center
     if (beam_init%use_particle_start_for_center) then
@@ -1556,7 +1556,7 @@ case ('global')
     nl=nl+1; lines(nl) = 'Tao command line startup arguments:'
     call write_this_arg (nl, lines, '-beam', s%com%beam_arg)
     call write_this_arg (nl, lines, '-beam_all', s%com%beam_all_arg)
-    call write_this_arg (nl, lines, '-beam_init_file_name', s%com%beam_init_file_name_arg)
+    call write_this_arg (nl, lines, '-beam_init_position_file', s%com%beam_init_position_file_arg)
     call write_this_arg (nl, lines, '-building_wall', s%com%building_wall_arg)
     call write_this_arg (nl, lines, '-prompt_color', s%com%prompt_color_arg)
     call write_this_arg (nl, lines, '-data', s%com%data_arg)
@@ -2658,7 +2658,7 @@ case ('lattice')
           case (is_real$)
             call err_exit  ! Should not be here. write (line(nc:), column(i)%format, iostat = ios) a_ptr%r
           case (is_integer$)
-            if (associated(a_ptr%l)) then
+            if (associated(a_ptr%i)) then
               write (line(nc:), column(i)%format, iostat = ios) a_ptr%i
             else  ! Must be stored as a real
               write (line(nc:), column(i)%format, iostat = ios) nint(a_ptr%r)

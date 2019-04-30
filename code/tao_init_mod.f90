@@ -174,6 +174,7 @@ endif
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%beam%beam_init%file_name = ''
+  s%u(i)%beam%beam_init%position_file = ''
   s%u(i)%beam%all_file = s%com%beam_all_arg
   s%u(i)%beam%track_start    = ''
   s%u(i)%beam%track_end      = ''
@@ -209,27 +210,34 @@ do
   endif
 
   if (beam0_file /= '') then
-    beam_init%file_name = beam0_file
+    beam_init%position_file = beam0_file
     call out_io (s_important$, r_name, &
-          'Note: Parameter beam0_file in the tao_beam_init structure has been replaced by beam_init%file_name.', &
-          'PLEASE MODIFY YOU INPUT FILE. This is just a warning. Tao will run normally...')
+          'Note: Parameter beam0_file in the tao_beam_init structure has been replaced by beam_init%position_file.', &
+          'PLEASE MODIFY YOUR INPUT FILE. This is just a warning. Tao will run normally...')
   endif
 
   if (beam_position0_file /= '') then
-    beam_init%file_name = beam_position0_file
+    beam_init%position_file = beam_position0_file
     call out_io (s_important$, r_name, &
-          'Note: Parameter beam_position0_file in the tao_beam_init structure has been replaced by beam_init%file_name.', &
-          'PLEASE MODIFY YOU INPUT FILE. This is just a warning. Tao will run normally...')
+          'Note: Parameter beam_position0_file in the tao_beam_init structure has been replaced by beam_init%position_file.', &
+          'PLEASE MODIFY YOUR INPUT FILE. This is just a warning. Tao will run normally...')
   endif
 
   if (beam_init_file_name /= '') then
-    beam_init%file_name = beam_position0_file
+    beam_init%position_file = beam_init_file_name
     call out_io (s_important$, r_name, &
-          'Note: Parameter beam_init_file_name in the tao_beam_init structure has been replaced by beam_init%file_name.', &
-          'PLEASE MODIFY YOU INPUT FILE. This is just a warning. Tao will run normally...')
+          'Note: Parameter beam_init_file_name in the tao_beam_init structure has been replaced by beam_init%position_file.', &
+          'PLEASE MODIFY YOUR INPUT FILE. This is just a warning. Tao will run normally...')
   endif
 
-  if (s%com%beam_init_file_name_arg /= '') beam_init%file_name = s%com%beam_init_file_name_arg
+  if (beam_init%file_name /= '') then
+    beam_init%position_file = beam_init%position_file
+    call out_io (s_important$, r_name, &
+          'Note: Parameter beam_init%file_name in the tao_beam_init structure has been replaced by beam_init%position_file.', &
+          'PLEASE MODIFY YOUR INPUT FILE. This is just a warning. Tao will run normally...')
+  endif
+
+  if (s%com%beam_init_position_file_arg /= '') beam_init%position_file = s%com%beam_init_position_file_arg
 
   if (s%com%beam_all_arg /= '') beam_all_file = s%com%beam_all_arg  ! From the command line
   if (track_start /= '') beam_track_start = track_start   ! For backwards compatibility
