@@ -137,7 +137,7 @@ end function super_rtsafe
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function super_zbrent (func, x1, x2, rel_tol, status) result (x_zero)
+! Function super_zbrent (func, x1, x2, rel_tol, abs_tol, status) result (x_zero)
 !
 ! Routine to find the root of a function.
 ! The tolerance is:
