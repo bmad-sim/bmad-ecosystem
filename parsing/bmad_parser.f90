@@ -417,8 +417,8 @@ parsing_loop: do
 
   if (delim == '[') then
 
-    call get_next_word (word_2, ix_word, ']', delim, delim_found, .true.)
-    if (.not. delim_found) then
+    call get_next_word (word_2, ix_word, '][=', delim, delim_found, .true.)
+    if (delim /= ']') then
       call parser_error ('OPENING "[" FOUND WITHOUT MATCHING "]"')
       cycle parsing_loop
     endif
