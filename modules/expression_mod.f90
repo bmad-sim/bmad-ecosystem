@@ -150,9 +150,20 @@ parsing_loop: do
 
   if (split) then
     word = word(:ix_word) // delim
+    do i = 1, len(parse_line)
+      if (index('0123456789', parse_line(i:i)) /= 0) cycle
+      word = word(:ix_word+1) // parse_line(1:i-1)
+      parse_line = parse_line(i:)
+      ix_word = ix_word + i
+      exit
+    enddo
+
     call get_next_chunk (parse_line, word2, ix_word2, '+-*/()^,:}', delim, delim_found)
-    word = word(:ix_word+1) // word2
-    ix_word = ix_word + ix_word2
+    if (ix_word2 /= 0) then
+      err_str = 'Malformed number: ' // trim(word) // word2
+      return
+    endif
+
   endif
 
   ! Something like "lcav[lr(2).freq]" will get split on the "["
