@@ -4247,8 +4247,10 @@ type (lat_ele_loc_struct) m_slaves(:)
 
 integer i, j, k, n, i1, ix, ixc, ixic, ix_lord, ixb, ixb2, ix_n
 integer n_multipass, ic, ix_l1, ix_l0, ix_pass, n_links, lmax
+integer, allocatable :: indx(:)
 
 character(40) base_name
+character(40), allocatable :: names(:)
 character(100) slave2_name
 
 ! Count slaves.
@@ -4304,7 +4306,8 @@ do i = 1, n_multipass
   ixic = slave%ic1_lord
   lat%ic(ixic) = ixc
   ! If slave is a super_lord then create the appropriate super_slave names
-  i1 = 0
+
+  allocate (names(slave%n_slave), indx(slave%n_slave))
   do j = 1, slave%n_slave
     if (slave%orientation == 1) then
       slave2 => pointer_to_slave(slave, j)
@@ -4312,22 +4315,45 @@ do i = 1, n_multipass
       slave2 => pointer_to_slave(slave, slave%n_slave+1-j)
     endif
 
-    if (slave2%n_lord == 1) then
-      i1 = i1 + 1
-      write (slave2%name, '(2a, i0, a, i0)') trim(lord%name), '\', i, '#', i1      ! '
-    else
-      slave2_name = ''
-      lmax = len(slave2%name) - 2
-      do k = 1, slave2%n_lord
-        lord2 => pointer_to_lord(slave2, k)
-        if (lord2%n_lord > 0) lord2 => pointer_to_lord(lord2, 1)
-        slave2_name = trim(slave2_name) // trim(lord2%name) // '\'     ! '
-        if (len_trim(slave2_name) > lmax) exit
-      enddo
-      if (len_trim(slave2_name) > lmax) slave2_name = slave2_name(1:lmax) // '\'   ! '
-      write (slave2%name, '(a, i0)') trim(slave2_name), i  
-    endif
+    slave2_name = ''
+    lmax = len(slave2%name) - 2
+    do k = 1, slave2%n_lord
+      lord2 => pointer_to_lord(slave2, k)
+      if (lord2%n_lord > 0) lord2 => pointer_to_lord(lord2, 1)
+      slave2_name = trim(slave2_name) // trim(lord2%name) // '\'     ! '
+      if (len_trim(slave2_name) > lmax) exit
+    enddo
+    if (len_trim(slave2_name) > lmax) slave2_name = slave2_name(1:lmax) // '\ '
+    write (slave2%name, '(a, i0)') trim(slave2_name), i
+
+    names(j) = slave2_name
   enddo
+
+  ! If a name is not unique then add "#NNN" suffix
+  call indexx(names, indx)
+  j = 0
+  outer_loop: do 
+    j = j + 1
+    if (j >= slave%n_slave) exit
+    if (names(indx(j)) /= names(indx(j+1))) cycle  ! Is unique name
+    do i1 = 0, slave%n_slave
+      if (j + i1 > slave%n_slave) exit outer_loop
+      if (names(indx(j)) /= names(indx(j+i1))) then
+        j = j + i1
+        exit
+      endif
+
+      if (slave%orientation == 1) then
+        slave2 => pointer_to_slave(slave, indx(j+i1))
+      else
+        slave2 => pointer_to_slave(slave, slave%n_slave+1-indx(j+i1))
+      endif
+      write (slave2%name, '(2a, i0)') trim(slave2%name), '#', i1+1
+    enddo
+  enddo outer_loop
+
+  deallocate(names, indx)
+
 enddo
 
 !
