@@ -865,7 +865,7 @@ end type
 type photon_target_struct
   logical :: deterministic_grid = .false.     ! Use ix/iy_grid instead of random number?  
   integer :: ix_grid = 0, iy_grid = 0         ! Grid pt to go to if deterministic_grid = T.
-  integer :: type = off$                      ! or rectangular$, or grid$
+  integer :: type = off$                      ! or rectangular$, or grided$
   integer :: n_corner = 0
   type (lat_ele_loc_struct) :: ele_loc = lat_ele_loc_struct()
   type (target_point_struct) :: corner(8) = target_point_struct()

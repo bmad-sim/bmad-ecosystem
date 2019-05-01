@@ -505,7 +505,7 @@ integer i, j, ix, ix_lord, ix_order, ix_slave, n_major_lords, at
 real(rp) tilt, k_x, k_y, x_kick, y_kick, ks, k1, coef
 real(rp) x_o, y_o, x_p, y_p, s_slave, s_del, k2, k3, c, s
 real(rp) sin_n, cos_n, a(0:n_pole_maxx), b(0:n_pole_maxx)
-real(rp) knl(0:n_pole_maxx), t(0:n_pole_maxx), value(num_ele_attrib$)
+real(rp) knl(0:n_pole_maxx), t(0:n_pole_maxx), value(num_ele_attrib$), old_value(num_ele_attrib$)
 real(rp) sum_1, sum_2, sum_3, sum_4, ks_sum, ks_xp_sum, ks_xo_sum
 real(rp) ks_yp_sum, ks_yo_sum, l_slave, r_off(4), leng, offset
 real(rp) t_1(4), t_2(4), T_end(4,4), mat4(4,4), mat4_inv(4,4), beta(4)
@@ -569,10 +569,6 @@ if (slave%key == em_field$) then
   return
 endif
 
-!
-
-call set_ele_status_stale (slave, attribute_group$)
-
 !-----------------------------------------------------------------------
 ! A "major" super_lord is something other than a pipe.
 ! If only one "major" super_lord for this super_slave: just transfer attributes except length
@@ -589,6 +585,7 @@ enddo
 if (n_major_lords < 2) then
 
   lord => pointer_to_lord (slave, ix_lord, ix_slave_back = ix_order)
+  old_value = slave%value
 
   is_first = (ix_order == 1)
   is_last  = (ix_order == lord%n_slave)
@@ -625,6 +622,7 @@ if (n_major_lords < 2) then
     slave%value(bl_vkick$) = slave%value(bl_vkick$) + lord%value(bl_vkick$)
   enddo
 
+  if (any(slave%value /= old_value)) call set_ele_status_stale (slave, attribute_group$)
   return
 
 endif
@@ -632,7 +630,7 @@ endif
 !-----------------------------------------------------------------------
 ! Multiple super_lords for this super_slave: 
 ! combine the lord elements.
-                                         
+
 k_x = 0
 k_y = 0
 x_kick = 0
@@ -648,6 +646,8 @@ ks_yp_sum = 0
 ks_yo_sum = 0
 
 !
+
+old_value = slave%value
 
 value = 0
 value(l$)                = slave%value(l$)
@@ -1094,6 +1094,9 @@ end select
 ! Coupler and aperture calc.
 
 if (slave%key == lcavity$ .or. slave%key == rfcavity$) call compute_slave_coupler (slave)
+if (all(slave%value == old_value)) return
+
+call set_ele_status_stale (slave, attribute_group$)
 
 if (slave%field_master) then
   slave%field_master = .false.   ! So attribute_bookkeeper will do the right thing.
@@ -1133,7 +1136,7 @@ end subroutine makeup_super_slave
 subroutine makeup_super_slave1 (slave, lord, offset, param, include_upstream_end, include_downstream_end, err_flag)
 
 type (ele_struct), target :: slave, lord
-type (ele_struct), pointer :: slave2
+type (ele_struct), pointer :: slave2, lord2
 type (lat_param_struct) param
 type (floor_position_struct) from_pos, to_pos, init_pos
 
@@ -1141,9 +1144,9 @@ real(rp) offset, s_del, coef, lord_ang, slave_ang, angle
 real(rp) value(num_ele_attrib$), cos_a, sin_a, dr(3), w_mat(3,3)
 real(rp) off(3), rot(3), cos_t, sin_t, m_trans(3,3)
 real(rp) xp, yp, roll, r_roll, tilt, dx, dy, len_slave, len_lord
-real(rp) w_inv(3,3), dl
+real(rp) w_inv(3,3), dl, vel
 
-integer i, ifr
+integer i, ifr, ixs
 logical include_upstream_end, include_downstream_end, err_flag, include_entrance, include_exit, err2_flag
 logical has_fringe
 character(24) :: r_name = 'makeup_super_slave1'
@@ -1334,9 +1337,18 @@ if (lord%key == patch$) then
   ! In this case, do not try to compute things since will get a divide by zero.
 
   if (lord%value(p0c$) /= 0) then
-    call ele_compute_ref_energy_and_time (lord, slave, param, err2_flag)
-  endif
+    vel = c_light * value(p0c$) / value(E_tot$)
 
+    lord2 => pointer_to_lord(slave, 1, ix_slave_back = ixs)
+    if (ixs == 1) then
+      value(ref_time_start$) = value(ref_time_start$)
+    else
+      slave2 => pointer_to_slave(lord, ixs-1)
+      value(ref_time_start$) = slave2%value(ref_time_start$)
+    endif
+    value(delta_ref_time$) = value(t_offset$) + value(l$) / vel
+    slave%ref_time = value(ref_time_start$) + value(delta_ref_time$)
+  endif
 endif
 
 !

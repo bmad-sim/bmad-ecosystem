@@ -41,6 +41,9 @@ character(*), parameter :: r_name = 'photon_target_setup '
 
 ! Init
 
+if (.not. associated(ele%photon)) allocate(ele%photon)
+target => ele%photon%target
+
 if (ele%lord_status == super_lord$) then
   ap_ele => pointer_to_slave (ele, 1)
 else
@@ -71,8 +74,7 @@ do
   end select
 
   if (is_bending_element .or. ap_ele%ix_ele == branch%n_ele_track) then
-    call out_io (s_fatal$, r_name, 'NO ELEMENT WITH APERTURE FOUND DOWNSTREAM FROM: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
+    target%type = off$
     return
   endif
 
@@ -80,10 +82,6 @@ enddo
 
 ! get aperture corners...
 ! Target info is stored in ele%photon%target so allocate ele%photon if needed.
-
-if (.not. associated(ele%photon)) allocate(ele%photon)
-
-target => ele%photon%target
 
 grid_defined = .false.
 if (associated(ap_ele%photon)) then
