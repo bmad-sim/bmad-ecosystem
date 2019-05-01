@@ -189,7 +189,7 @@ are calculating what you really want them to calculate.
 To help with the details, all \bmad subroutines have in their source (.f90)
 files a comment block that explains the arguments needed by the
 subroutines and explains what the subroutine does. To help quickly
-access these comments, there are two Perl scripts that are supplied
+access these comments, there are two Python scripts that are supplied
 with the \bmad distribution that are invoked with the commands
 \vn{listf} and \vn{getf}.
 
@@ -240,9 +240,37 @@ the command \vn{getf relative_tracking_charge} is:
   !-
   function relative_tracking_charge (orbit, param) result (rel_charge)
 \end{example}
-The first line again shows in what file the subroutine is located.
-The rest of the output explains what the routine does and how it
-can be called.
+The first line again shows in what file the subroutine is located. The rest of the output explains
+what the routine does and how it can be called.
+
+The \vn{getf} command can also be used to search for global integer and real parameter constants. For example
+\begin{example}
+  getf c_light
+\end{example}
+will give the result:
+\begin{example}
+  File: ../sim_utils/interfaces/physical_constants.f90
+      real(rp), parameter :: c_light = 2.99792458d8              ! speed of light
+\end{example}
+[Global constants are contants defined in a module that have global scope (defined before the
+\vn{contains} statement).] For parameters whose name ends with a dollar sign ``\vn{\$}'' character
+(\sref{s:prog.conventions}, the dollar sign suffix may be omitted in the search string. For example
+the search
+\begin{example}
+  getf quadrupole
+\end{example}
+will give the result
+\begin{example}
+  File: ../../bmad/modules/bmad_struct.f90
+      integer, parameter :: drift$ = 1, sbend$ = 2, quadrupole$ = 3, group$ = 4, ...
+\end{example}
+Since the dollar sign is a special character for the Python regexp module used by \vn{getf}, to
+include a dollar sign in the search string the dollar sign must be prefixed by three back
+slashes. Thus the search
+\begin{example}
+  getf quadrupole\B\B\B$
+\end{example}
+will also locate the value of \vn{quadrupole\$}.
 
 The \vn{listf} command is like the \vn{getf} command except that only
 the file name where a routine or structure is found is printed.
@@ -309,6 +337,7 @@ respectively.
 
 %-----------------------------------------------------------------------------
 \section{Programming Conventions}
+\label{s:prog.conventions}
 \index{programming!conventions}
 
 \bmad subroutines follow the following conventions:
@@ -317,8 +346,8 @@ respectively.
 
 \index{\$!character to denote a parameter}
 \item[A ``\$'' suffix denotes a parameter:] 
-A ``\$'' at the end of a name denotes an 
-integer parameter. For example, in the above program, to check
+A dollar sign ``\$'' at the end of a name denotes an 
+parameter. For example, in the above program, to check
 whether an element is a quadrupole one would write:
 \begin{verbatim}
   if (lat%ele(i)%key == quadrupole$) ...
@@ -335,7 +364,12 @@ That is, one should never write
 For one, using the name makes the code clearer. However, more
 importantly, the integer value of the parameters may at times be
 shuffled for practical internal reasons. The use of the integer value
-could thus lead to disastrous results.  
+could thus lead to disastrous results. 
+
+By convention all names ending in ``\$'' are parameters. And most ``dollar sign'' parameters are
+integers but there are exceptions. For example, the parameter \vn{real_garbage\$} is a real number.
+To find the value of a dollar sign parameter, the \vn{getf} or \vn{listf} (\sref{s:getf}) commands
+can be used.
 
 \index{structures}
 \item[Structure names have a ``_struct'' suffix:]
