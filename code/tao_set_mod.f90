@@ -300,12 +300,7 @@ endif
 
 ! open a scratch file for a namelist read
 
-iu = lunget()
-open (iu, status = 'scratch', iostat = ios)
-if (ios /= 0) then
-  call out_io (s_error$, r_name, 'CANNOT OPEN A SCRATCH FILE!')
-  return
-endif
+iu = tao_open_scratch_file (err);  if (err) return
 
 needs_quotes = .false.
 select case (who)
@@ -333,7 +328,7 @@ write (iu, *)
 rewind (iu)
 global = s%global  ! set defaults
 read (iu, nml = params, iostat = ios)
-close (iu)
+close (iu, status = 'delete')
 
 if (ios /= 0) then
   call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
@@ -414,12 +409,7 @@ namelist / params / local_csr_param
 
 ! open a scratch file for a namelist read
 
-iu = lunget()
-open (iu, status = 'scratch', iostat = ios)
-if (ios /= 0) then
-  call out_io (s_error$, r_name, 'CANNOT OPEN A SCRATCH FILE!')
-  return
-endif
+iu = tao_open_scratch_file (err);  if (err) return
 
 write (iu, '(a)') '&params'
 write (iu, '(a)') ' local_csr_param%' // trim(who) // ' = ' // trim(value_str)
@@ -427,7 +417,7 @@ write (iu, '(a)') '/'
 rewind (iu)
 local_csr_param = csr_param  ! set defaults
 read (iu, nml = params, iostat = ios)
-close (iu)
+close (iu, status = 'delete')
 
 if (ios /= 0) then
   call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
@@ -468,12 +458,7 @@ namelist / params / this_bmad_com
 
 ! open a scratch file for a namelist read
 
-iu = lunget()
-open (iu, status = 'scratch', iostat = ios)
-if (ios /= 0) then
-  call out_io (s_error$, r_name, 'CANNOT OPEN A SCRATCH FILE!')
-  return
-endif
+iu = tao_open_scratch_file (err);  if (err) return
 
 write (iu, '(a)') '&params'
 write (iu, '(a)') ' this_bmad_com%' // trim(who) // ' = ' // trim(value_str)
@@ -481,7 +466,7 @@ write (iu, '(a)') '/'
 rewind (iu)
 this_bmad_com = bmad_com  ! set defaults
 read (iu, nml = params, iostat = ios)
-close (iu)
+close (iu, status = 'delete')
 
 call tao_data_check (err)
 if (err) return
@@ -526,12 +511,7 @@ namelist / params / this_geodesic_lm
 
 ! open a scratch file for a namelist read
 
-iu = lunget()
-open (iu, status = 'scratch', iostat = ios)
-if (ios /= 0) then
-  call out_io (s_error$, r_name, 'CANNOT OPEN A SCRATCH FILE!')
-  return
-endif
+iu = tao_open_scratch_file (err);  if (err) return
 
 write (iu, '(a)') '&params'
 write (iu, '(a)') ' this_geodesic_lm%' // trim(who) // ' = ' // trim(value_str)
@@ -539,7 +519,7 @@ write (iu, '(a)') '/'
 rewind (iu)
 this_geodesic_lm = geodesic_lm_param  ! set defaults
 read (iu, nml = params, iostat = ios)
-close (iu)
+close (iu, status = 'delete')
 
 call tao_data_check (err)
 if (err) return
@@ -581,19 +561,14 @@ namelist / params / opti_de_param
 
 ! open a scratch file for a namelist read
 
-iu = lunget()
-open (iu, status = 'scratch', iostat = ios)
-if (ios /= 0) then
-  call out_io (s_error$, r_name, 'CANNOT OPEN A SCRATCH FILE!')
-  return
-endif
+iu = tao_open_scratch_file (err);  if (err) return
 
 write (iu, '(a)') '&params'
 write (iu, '(a)') ' opti_de_param%' // trim(who) // ' = ' // trim(value_str)
 write (iu, '(a)') '/'
 rewind (iu)
 read (iu, nml = params, iostat = ios)
-close (iu)
+close (iu, status = 'delete')
 
 if (ios /= 0) then
   call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
@@ -636,14 +611,9 @@ namelist / params / ix_a, ix_b
 
 ! open a scratch file for a namelist read
 
-err = .true.
+iu = tao_open_scratch_file (err);  if (err) return
 
-iu = lunget()
-open (iu, status = 'scratch', iostat = ios)
-if (ios /= 0) then
-  call out_io (s_error$, r_name, 'CANNOT OPEN A SCRATCH FILE!')
-  return
-endif
+err = .true.
 
 ix_a = [s%wave%ix_a1, s%wave%ix_a2]
 ix_b = [s%wave%ix_b1, s%wave%ix_b2]
@@ -654,7 +624,7 @@ write (iu, '(a)') '/'
 rewind (iu)
 wave = s%wave  ! set defaults
 read (iu, nml = params, iostat = ios)
-close (iu)
+close (iu, status = 'delete')
 
 if (ios /= 0) then
   call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
@@ -954,12 +924,7 @@ end select
 
 ! open a scratch file for a namelist read
 
-iu = lunget()
-open (iu, status = 'scratch', iostat = ios)
-if (ios /= 0) then
-  call out_io (s_error$, r_name, 'CANNOT OPEN A SCRATCH FILE!')
-  return
-endif
+iu = tao_open_scratch_file (err);  if (err) return
 
 write (iu, '(a)') '&params'
 write (iu, '(a)') ' beam_init%' // trim(who2) // ' = ' // trim(value_str)
@@ -990,7 +955,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
 enddo
 
-close (iu)
+close (iu, status = 'delete') 
 deallocate (picked_uni)
 
 end subroutine tao_set_beam_init_cmd
@@ -1025,7 +990,7 @@ character(24) :: r_name = 'tao_set_plot_page_cmd'
 
 real(rp) x, y
 integer iu, ios
-logical error
+logical err
 
 
 namelist / params / plot_page
@@ -1061,12 +1026,7 @@ end select
 ! For everything else...
 ! open a scratch file for a namelist read
 
-iu = lunget()
-open (iu, status = 'scratch', iostat = ios)
-if (ios /= 0) then
-  call out_io (s_error$, r_name, 'CANNOT OPEN A SCRATCH FILE!')
-  return
-endif
+iu = tao_open_scratch_file (err);  if (err) return
 
 write (iu, '(a)') '&params'
 write (iu, '(a)') ' plot_page%' // trim(component) // ' = ' // trim(value_str)
@@ -1076,7 +1036,7 @@ rewind (iu)
 call tao_set_plotting (plot_page, s%plot_page, .false., .true.)
 
 read (iu, nml = params, iostat = ios)
-close (iu)
+close (iu, status = 'delete')
 
 if (ios /= 0) then
   call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
@@ -1143,7 +1103,7 @@ type (tao_universe_branch_struct), pointer :: uni_branch
 type (ele_pointer_struct), allocatable :: eles(:)
 
 integer ix, i_branch
-logical error
+logical err
 character(40) name
 
 !
@@ -1158,7 +1118,7 @@ this_graph => this_curve%g
 select case (component)
 
 case ('ele_ref_name')
-  call tao_locate_elements (value_str, i_uni, eles, error, ignore_blank = .true.)
+  call tao_locate_elements (value_str, i_uni, eles, err, ignore_blank = .true.)
   if (size(eles) == 0) return
   this_curve%ele_ref_name = upcase(value_str)
   this_curve%ix_ele_ref = eles(1)%ele%ix_ele
@@ -1167,15 +1127,15 @@ case ('ele_ref_name')
   
 case ('ix_ele_ref')
   call tao_set_integer_value (this_curve%ix_ele_ref, component, &
-                    value_str, error, 0, s%u(i_uni)%model%lat%branch(i_branch)%n_ele_max)
+                    value_str, err, 0, s%u(i_uni)%model%lat%branch(i_branch)%n_ele_max)
   this_curve%ele_ref_name = s%u(i_uni)%model%lat%ele(this_curve%ix_ele_ref)%name
   call tao_ele_to_ele_track (tao_curve_ix_uni(this_curve), i_branch, &
                                 this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
 
 case ('ix_universe')
-  call tao_set_integer_value (this_curve%ix_universe, component, value_str, error, -2, ubound(s%u, 1))
-  if (error) return
-  call tao_locate_elements (this_curve%ele_ref_name, tao_curve_ix_uni(this_curve), eles, error, ignore_blank = .true.)
+  call tao_set_integer_value (this_curve%ix_universe, component, value_str, err, -2, ubound(s%u, 1))
+  if (err) return
+  call tao_locate_elements (this_curve%ele_ref_name, tao_curve_ix_uni(this_curve), eles, err, ignore_blank = .true.)
   if (size(eles) == 0) return
   this_curve%ix_ele_ref = eles(1)%ele%ix_ele
   this_curve%ix_branch  = eles(1)%ele%ix_branch
@@ -1183,51 +1143,51 @@ case ('ix_universe')
                                      this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
 
 case ('ix_branch') 
-  call tao_set_integer_value (this_curve%ix_branch, component, value_str, error, 0, ubound(s%u(i_uni)%model%lat%branch, 1))
+  call tao_set_integer_value (this_curve%ix_branch, component, value_str, err, 0, ubound(s%u(i_uni)%model%lat%branch, 1))
 
 case ('ix_bunch')
   u => tao_pointer_to_universe (tao_curve_ix_uni(this_curve))
   if (.not. associated(u)) return
-  call tao_set_integer_value (this_curve%ix_bunch, component, value_str, error, -1, u%beam%beam_init%n_bunch)
+  call tao_set_integer_value (this_curve%ix_bunch, component, value_str, err, -1, u%beam%beam_init%n_bunch)
 
 case ('symbol_every')
-  call tao_set_integer_value (this_curve%symbol_every, component, value_str, error, 0, 1000000)
+  call tao_set_integer_value (this_curve%symbol_every, component, value_str, err, 0, 1000000)
 
 case ('symbol_size')
-  call tao_set_real_value (this_curve%symbol%height, component, value_str, error)
+  call tao_set_real_value (this_curve%symbol%height, component, value_str, err)
 
 case ('symbol_color')
-  call tao_set_switch_value (this_curve%symbol%color, component, value_str, qp_color_name, error)
+  call tao_set_switch_value (this_curve%symbol%color, component, value_str, qp_color_name, err)
 
 case ('symbol_type')
-  call tao_set_switch_value (this_curve%symbol%type, component, value_str, qp_symbol_type_name, error)
+  call tao_set_switch_value (this_curve%symbol%type, component, value_str, qp_symbol_type_name, err)
 
 case ('smooth_line_calc')
-  call tao_set_logical_value (this_curve%smooth_line_calc, component, value_str, error)
+  call tao_set_logical_value (this_curve%smooth_line_calc, component, value_str, err)
 
 case ('line_color')
-  call tao_set_switch_value (this_curve%line%color, component, value_str, qp_color_name, error)
+  call tao_set_switch_value (this_curve%line%color, component, value_str, qp_color_name, err)
 
 case ('component')
   this_curve%component = remove_quotes(value_str)
 
 case ('draw_line')
-  call tao_set_logical_value (this_curve%draw_line, component, value_str, error)
+  call tao_set_logical_value (this_curve%draw_line, component, value_str, err)
 
 case ('draw_symbols')
-  call tao_set_logical_value (this_curve%draw_symbols, component, value_str, error)
+  call tao_set_logical_value (this_curve%draw_symbols, component, value_str, err)
 
 case ('draw_symbol_index')
-  call tao_set_logical_value (this_curve%draw_symbol_index, component, value_str, error)
+  call tao_set_logical_value (this_curve%draw_symbol_index, component, value_str, err)
 
 case ('use_y2')
-  call tao_set_logical_value (this_curve%use_y2, component, value_str, error)
+  call tao_set_logical_value (this_curve%use_y2, component, value_str, err)
 
 case ('use_z_color')
-  call tao_set_logical_value (this_curve%use_z_color, component, value_str, error)
+  call tao_set_logical_value (this_curve%use_z_color, component, value_str, err)
   
 case ('autoscale_z_color')
-  call tao_set_logical_value (this_curve%autoscale_z_color, component, value_str, error)  
+  call tao_set_logical_value (this_curve%autoscale_z_color, component, value_str, err)  
 
 case ('data_source')
   this_curve%data_source = value_str
@@ -1245,30 +1205,30 @@ case ('data_type_z')
   this_curve%data_type_z = value_str
 
 case ('z_color0')
-  call tao_set_real_value (this_curve%z_color0, component, value_str, error, dflt_uni = i_uni)
+  call tao_set_real_value (this_curve%z_color0, component, value_str, err, dflt_uni = i_uni)
 
 case ('z_color1')
-  call tao_set_real_value (this_curve%z_color1, component, value_str, error, dflt_uni = i_uni) 
+  call tao_set_real_value (this_curve%z_color1, component, value_str, err, dflt_uni = i_uni) 
 
 case ('hist%number')
   this_curve%hist%width = 0
-  call tao_set_integer_value (this_curve%hist%number, component, value_str, error, min_val = 0)
+  call tao_set_integer_value (this_curve%hist%number, component, value_str, err, min_val = 0)
 
 case ('hist%density_normalized')
-  call tao_set_logical_value (this_curve%hist%density_normalized, component, value_str, error)
+  call tao_set_logical_value (this_curve%hist%density_normalized, component, value_str, err)
   
 case ('hist%weight_by_charge')
-  call tao_set_logical_value (this_curve%hist%weight_by_charge, component, value_str, error)
+  call tao_set_logical_value (this_curve%hist%weight_by_charge, component, value_str, err)
   
 case ('hist%center')  
-  call tao_set_real_value (this_curve%hist%center, component, value_str, error, dflt_uni = i_uni)
+  call tao_set_real_value (this_curve%hist%center, component, value_str, err, dflt_uni = i_uni)
   
 case ('hist%width')  
   this_curve%hist%number = 0
-  call tao_set_real_value (this_curve%hist%width, component, value_str, error, dflt_uni = i_uni)  
+  call tao_set_real_value (this_curve%hist%width, component, value_str, err, dflt_uni = i_uni)  
   
 case ('y_axis_scale_factor')
-  call tao_set_real_value (this_curve%y_axis_scale_factor, component, value_str, error, dflt_uni = i_uni)
+  call tao_set_real_value (this_curve%y_axis_scale_factor, component, value_str, err, dflt_uni = i_uni)
 
 case default
   call out_io (s_error$, r_name, "BAD CURVE COMPONENT")
@@ -2788,12 +2748,7 @@ endif
 
 ! open a scratch file for a namelist read
 
-iu = lunget()
-open (iu, status = 'scratch', iostat = ios)
-if (ios /= 0) then
-  call out_io (s_error$, r_name, 'CANNOT OPEN A SCRATCH FILE!')
-  return
-endif
+iu = tao_open_scratch_file (err);  if (err) return
 
 write (iu, '(a)') '&params'
 if (needs_quotes) then
@@ -2805,7 +2760,7 @@ write (iu, '(a)') '/'
 write (iu, *)
 rewind (iu)
 read (iu, nml = params, iostat = ios)
-close (iu)
+close (iu, status = 'delete')
 
 if (ios /= 0) then
   call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
