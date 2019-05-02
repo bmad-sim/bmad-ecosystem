@@ -46,10 +46,13 @@ if (ele_name == 'PARTICLE_START') then
   u%beam%init_starting_distribution = .true.
 endif
 
-!
+! If the beginning element is modified, need to reinit any beam distribution.
 
 if (present(ele_ptr)) then
-  if (associated(ele_ptr)) call set_flags_for_changed_attribute (ele_ptr, val_ptr)
+  if (associated(ele_ptr)) then
+    if (ele_ptr%ix_ele == 0) u%beam%init_starting_distribution = .true.
+    if (present(val_ptr)) call set_flags_for_changed_attribute (ele_ptr, val_ptr)
+  endif
 endif
 
 u%calc%lattice = .true.

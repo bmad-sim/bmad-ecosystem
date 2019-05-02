@@ -2361,8 +2361,7 @@ if (attribute_type(upcase(attribute), eles(1)%ele) == is_real$) then
       return
     endif
     a_ptr%r = set_val(i)
-    call set_flags_for_changed_attribute (eles(i)%ele, a_ptr%r)
-    s%u(eles(i)%id)%calc%lattice = .true.
+    call tao_set_flags_for_changed_attribute (s%u(eles(i)%id), eles(i)%ele%name, eles(i)%ele, a_ptr%r)
   enddo
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
@@ -2433,7 +2432,7 @@ n_set = 0
 do i = 1, size(eles)
   u => s%u(eles(i)%id)
   call set_ele_attribute (eles(i)%ele, trim(attribute) // '=' // trim(val_str), err, .false.)
-  u%calc%lattice = .true.
+  call tao_set_flags_for_changed_attribute (u, eles(i)%ele%name, eles(i)%ele)
   if (.not. err) n_set = n_set + 1
 enddo
 
@@ -2442,9 +2441,10 @@ enddo
 if (n_set == 0) then
   u => s%u(eles(1)%id)
   call set_ele_attribute (eles(1)%ele, trim(attribute) // '=' // trim(val_str),  err)
-  u%calc%lattice = .true.
   return
 endif
+
+! End stuff
 
 if (n_set /= size(eles)) then
   call out_io (s_info$, r_name, 'Set successful for \i0\ elements out of \i0\ ', i_array = [n_set, size(eles)])
