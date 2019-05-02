@@ -561,6 +561,9 @@ parsing_loop: do
 
 enddo parsing_loop
 
+call adjust_super_slave_names (lat, lat%n_ele_track+1, lat%n_ele_max)
+
+
 !---------------------------------------------------------------
 ! Now we have read everything in
 

@@ -1338,14 +1338,7 @@ if (lord%key == patch$) then
 
   if (lord%value(p0c$) /= 0) then
     vel = c_light * value(p0c$) / value(E_tot$)
-
-    lord2 => pointer_to_lord(slave, 1, ix_slave_back = ixs)
-    if (ixs == 1) then
-      value(ref_time_start$) = value(ref_time_start$)
-    else
-      slave2 => pointer_to_slave(lord, ixs-1)
-      value(ref_time_start$) = slave2%value(ref_time_start$)
-    endif
+    value(ref_time_start$) = lord%value(ref_time_start$) + offset / vel
     value(delta_ref_time$) = value(t_offset$) + value(l$) / vel
     slave%ref_time = value(ref_time_start$) + value(delta_ref_time$)
   endif

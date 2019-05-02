@@ -146,7 +146,6 @@ contains
 subroutine propagate_geometry (ie, ib, dir, stale)
 
 type (floor_position_struct) floor0
-type (ele_pointer_struct), allocatable, target :: chain_ele(:)
 integer ie, ib, dir, ix, ix_pass, n_links, k
 logical stale
 
@@ -552,7 +551,7 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
     if (is_true(ele%value(flexible$)) .and. ele%ix_ele > 0) then
       doit = .true.
       if (ele%lord_status == multipass_lord$) doit = .false.
-      call multipass_chain (ele, ix_pass, n_links, chain_ele)
+      call multipass_chain (ele, ix_pass, n_links)
       if (ix_pass > 1) doit = .false.
 
       if (doit) then

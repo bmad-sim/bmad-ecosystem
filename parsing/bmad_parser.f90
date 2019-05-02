@@ -980,6 +980,8 @@ branch_loop: do i_loop = 1, n_branch_max
     call s_calc (lat)  ! calc longitudinal distances of new branch elements
   enddo
 
+  call adjust_super_slave_names (lat, lat%n_ele_track+1, lat%n_ele_max)
+
   ! For bookkeeping purposes, null_ele elements with %sub_key = drift$ were created from drifts that were superimposed upon.
   ! Change these to %sub_key = 0 so they will be ignored if parser_add_superimpose is called for other lattice branches.
 
