@@ -529,6 +529,12 @@ subroutine tao_open_file (file, iunit, file_name, error_severity, binary)
   logical, optional :: binary
 end subroutine
 
+Function tao_open_scratch_file (err) result (iu)
+  implicit none
+  integer iu
+  logical err
+end function
+
 function tao_optimization_status (datum) result (why_str)
   import
   implicit none
