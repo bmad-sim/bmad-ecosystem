@@ -2,7 +2,7 @@ module superimpose_mod
 
 use bmad_interface
 
-private delete_underscore, adjust_super_slave_names, adjust_drift_names, split_this_lat
+private delete_underscore, adjust_drift_names, split_this_lat
 
 contains
 
@@ -11,7 +11,7 @@ contains
 !-----------------------------------------------------------------------------------------
 !+
 ! Subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out,
-      !                                     save_null_drift, create_jumbo_slave, ix_insert)
+      !                        save_null_drift, create_jumbo_slave, ix_insert, mangle_slave_names)
 !
 ! Routine to superimpose an element. If the element can be inserted
 ! into the lat without making a super_lord element then this will be done.
@@ -28,33 +28,34 @@ contains
 !   use bmad
 !
 ! Input:
-!   lat              -- lat_struct: Lat to modify.
-!   super_ele_in     -- ele_struct: Element to superimpose.
-!         %s            -- Position of end of element.
-!                          Negative distances mean distance from the end.
-!   ix_branch        -- integer: Branch index to put element.
-!   save_null_drift  -- logical, optional: Save a copy of a drift to be split as a null_ele?
-!                         This is useful if further superpositions might use this drift as a 
-!                         reference element. After all superpositions are done, 
-!                         remove_eles_from_lat can be called to remove all null_eles.
-!                         Default is False.
-!   create_jumbo_slave
-!                   -- logical, optional: Default is False. If True then super_slaves
-!                       that are created that have super_ele_in as their super_lord are
-!                       em_field elements.
-!   ix_insert       -- integer, optional: If present and positive, and super_ele_in has zero length,
-!                       use ix_insert as the index to insert super_ele_in at. ix_insert is useful when superposing 
-!                       next to another element that has zero or negative length (EG a patch) and you want 
-!                       to make sure that the superimposed element is on the correct side of the element.
+!   lat                 -- lat_struct: Lat to modify.
+!   super_ele_in        -- ele_struct: Element to superimpose.
+!         %s               -- Position of end of element.
+!                             Negative distances mean distance from the end.
+!   ix_branch           -- integer: Branch index to put element.
+!   save_null_drift     -- logical, optional: Save a copy of a drift to be split as a null_ele?
+!                            This is useful if further superpositions might use this drift as a 
+!                            reference element. After all superpositions are done, 
+!                            remove_eles_from_lat can be called to remove all null_eles.
+!                            Default is False.
+!   create_jumbo_slave  -- logical, optional: Default is False. If True then super_slaves
+!                           that are created that have super_ele_in as their super_lord are
+!                           em_field elements.
+!   ix_insert           -- integer, optional: If present and positive, and super_ele_in has zero length,
+!                           use ix_insert as the index to insert super_ele_in at. ix_insert is useful when superposing 
+!                           next to another element that has zero or negative length (EG a patch) and you want 
+!                           to make sure that the superimposed element is on the correct side of the element.
+!   mangle_slave_names  -- logical, optional: If True (default) adjust slave names appropriately. Name
+!                           mangeling can take time so bmad_parser will do this all at once at the end.
 !
 ! Output:
-!   lat           -- lat_struct: Modified lat.
-!   err_flag      -- logical: Set True if there is an error. False otherwise
-!   super_ele_out -- ele_struct, pointer, optional: Pointer to the super element in the lattice.
+!   lat             -- lat_struct: Modified lat.
+!   err_flag        -- logical: Set True if there is an error. False otherwise
+!   super_ele_out   -- ele_struct, pointer, optional: Pointer to the super element in the lattice.
 !-
 
 subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, &
-                                                  save_null_drift, create_jumbo_slave, ix_insert)
+                                     save_null_drift, create_jumbo_slave, ix_insert, mangle_slave_names)
 
 implicit none
 
@@ -76,7 +77,7 @@ integer i, j, jj, k, ix, ix2, n, i2, ic, n_con, ixs, ix_branch, ii
 integer ix1_split, ix2_split, ix_super, ix_super_con, ix_ic
 integer ix_slave, ixn, ixc, ix_1lord, ix_lord_max_old
 
-logical, optional :: save_null_drift, create_jumbo_slave
+logical, optional :: save_null_drift, create_jumbo_slave, mangle_slave_names
 logical err_flag, setup_lord, split1_done, split2_done, all_drift, err, zero_length_lord
 
 character(100) name
@@ -162,7 +163,7 @@ if (super_saved%value(l$) == 0) then
   call insert_element (lat, super_saved, ix1_split+1, ix_branch)
   ix_super = ix1_split + 1
   if (present(super_ele_out)) super_ele_out => branch%ele(ix_super)
-  call adjust_super_slave_names (lat, lat%n_ele_track+1, lat%n_ele_max)
+  if (logic_option(.true., mangle_slave_names)) call adjust_super_slave_names (lat, lat%n_ele_track+1, lat%n_ele_max)
   call adjust_drift_names (lat, branch%ele(ix1_split))
   err_flag = .false.
   return
@@ -602,7 +603,7 @@ endif
 ! Bookkeeping and adjust names
 ! Do name adjust first in case there is a bookkeeping error
 
-call adjust_super_slave_names (lat, ix_lord_max_old+1, lat%n_ele_max)
+if (logic_option(.true., mangle_slave_names)) call adjust_super_slave_names (lat, ix_lord_max_old+1, lat%n_ele_max)
 call adjust_drift_names (lat, branch%ele(ix1_split))
 call adjust_drift_names (lat, branch%ele(ix2_split+1))
 

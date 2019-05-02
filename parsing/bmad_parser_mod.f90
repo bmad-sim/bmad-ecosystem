@@ -4514,18 +4514,27 @@ if (err) then
   return
 endif
 
-if (pele%ix_ref_multipass /= 0) then ! throw out elements that are the same physical element
-  i = 1
-  do
-    if (i > n_loc) exit
-    if (eles(i)%ele%iyy == pele%ix_ref_multipass) then
-      i = i + 1
-    else
-      eles(i:n_loc-1) = eles(i+1:n_loc)  ! Remove
-      n_loc = n_loc - 1
-    endif
-  enddo
-endif
+! Throw out super_slave elements.
+! Throw out elements that are the same physical element.
+
+i = 1
+do
+  if (i > n_loc) exit
+
+  if (eles(i)%ele%slave_status == super_slave$) then
+    eles(i:n_loc-1) = eles(i+1:n_loc)  ! Remove
+    n_loc = n_loc - 1
+    cycle
+  endif
+
+  if (pele%ix_ref_multipass /= 0 .and. eles(i)%ele%iyy /= pele%ix_ref_multipass) then
+    eles(i:n_loc-1) = eles(i+1:n_loc)  ! Remove
+    n_loc = n_loc - 1
+    cycle
+  endif
+
+  i = i + 1
+enddo
 
 ! Group and overlay elements may have not yet been transfered from in_lat to lat.
 ! So search in_lat for a match if there has not been a match using lat. 
@@ -4568,7 +4577,7 @@ if (n_loc == 0) then
   endif
 endif
 
-! If a ref element is outside is outside, and the superposition offset puts the super_ele into a multipass
+! If a ref element is outside, and the superposition offset puts the super_ele into a multipass
 ! region, must add further superpositions to keep the multipass regions on separate passes looking the same.
 ! shift the ref element to the multipass region.
 
@@ -4669,8 +4678,8 @@ super_ele%iyy = ref_ele%iyy   ! Multipass info
 call check_for_superimpose_problem (branch, super_ele, err_flag, ref_ele); if (err_flag) return
 call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
 super_ele%name = super_ele_saved%name(:ix)            
-call add_superimpose (lat, super_ele, branch%ix_branch, err_flag, super_ele_out, &
-   save_null_drift = .true., create_jumbo_slave = pele%create_jumbo_slave, ix_insert = ix_insert)
+call add_superimpose (lat, super_ele, branch%ix_branch, err_flag, super_ele_out, save_null_drift = .true., &
+              create_jumbo_slave = pele%create_jumbo_slave, ix_insert = ix_insert, mangle_slave_names = .false.)
 if (err_flag) bp_com%error_flag = .true.
 call control_bookkeeper (lat, super_ele_out)
 
@@ -4736,6 +4745,21 @@ if (err) then
                      'FOR SUPERPOSITION OF: ' // super_ele_saved%name, pele = pele)
   return
 endif
+
+! Throw out super_slave elements.
+
+i = 1
+do
+  if (i > n_loc) exit
+
+  if (eles(i)%ele%slave_status == super_slave$) then
+    eles(i:n_loc-1) = eles(i+1:n_loc)  ! Remove
+    n_loc = n_loc - 1
+    cycle
+  endif
+
+  i = i + 1
+enddo
 
 ! The superimpose may reference elements that were defined but not used in the construction of the lattice
 ! by bmad_parser. If so, this is not an error and just do not do the superposition.
@@ -4875,8 +4899,8 @@ if (ref_ele%lord_status == multipass_lord$) then
     slave => pointer_to_slave(ref_ele, j)
     branch => pointer_to_branch(slave)
     call compute_super_lord_s (slave, super_ele, pele2, ix_insert)
-    call add_superimpose (lat, super_ele, branch%ix_branch, err_flag, super_ele_out, &
-             save_null_drift = .false., create_jumbo_slave = pele2%create_jumbo_slave, ix_insert = ix_insert) 
+    call add_superimpose (lat, super_ele, branch%ix_branch, err_flag, super_ele_out, save_null_drift = .false., &
+                 create_jumbo_slave = pele2%create_jumbo_slave, ix_insert = ix_insert, mangle_slave_names = .false.) 
     if (err_flag) bp_com%error_flag = .true.
     super_ele_out%iyy = n_super  ! Is unique
   enddo
@@ -4940,8 +4964,8 @@ else
   call check_for_superimpose_problem (branch, super_ele, err_flag, ref_ele); if (err_flag) return
   call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
   super_ele%name = super_ele_saved%name(:ix)            
-  call add_superimpose (lat, super_ele, branch%ix_branch, err_flag, super_ele_out, &
-     save_null_drift = .true., create_jumbo_slave = pele2%create_jumbo_slave, ix_insert = ix_insert)
+  call add_superimpose (lat, super_ele, branch%ix_branch, err_flag, super_ele_out, save_null_drift = .true., &
+              create_jumbo_slave = pele2%create_jumbo_slave, ix_insert = ix_insert, mangle_slave_names = .false.)
   if (err_flag) bp_com%error_flag = .true.
   call control_bookkeeper (lat, super_ele_out)
 endif
