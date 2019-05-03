@@ -58,9 +58,9 @@ do
     negate = .false.
   endif
 
-  call match_word (arg1, [character(41):: '-?', '-init', '-noinit', '-beam_all', '-beam0', &
-        '-noplot', '-lat', '-log_startup', '-beam', '-var', '-data', '-building_wall', '-plot', &
-        '-startup', 'help', '-help', '?', '-geometry', '-rf_on', '-debug', '-disable_smooth_line_calc', &
+  call match_word (arg1, [character(41):: '-?', '-init_file', '-noinit', '-beam_all_file', '-beam0', &
+        '-noplot', '-lattice_file', '-log_startup', '-beam_file', '-var_file', '-data_file', '-building_wall_file', '-plot_file', &
+        '-startup_file', 'help', '-help', '?', '-geometry', '-rf_on', '-debug', '-disable_smooth_line_calc', &
         '-color_prompt', '-no_stopping', '-hook_init_file', '-beam_position0', '-silent_run', &
         '-beam_init_file_name', '-slice_lattice', '-prompt_color', '-beam_init_position_file'], &
               ix, .true., matched_name=switch)
@@ -71,11 +71,11 @@ do
 
   select case (switch)
 
-  case ('-beam')
-    call get_next_arg (s%com%beam_arg)
+  case ('-beam_file')
+    call get_next_arg (s%com%beam_file_arg)
 
-  case ('-beam_all')
-    call get_next_arg (s%com%beam_all_arg)
+  case ('-beam_all_file')
+    call get_next_arg (s%com%beam_all_file_arg)
 
   case ('-beam_position0', '-beam0', '-beam_init_file_name')
     call get_next_arg (s%com%beam_init_position_file_arg)
@@ -85,11 +85,11 @@ do
   case ('-beam_init_position_file')
     call get_next_arg (s%com%beam_init_position_file_arg)
 
-  case ('-building_wall')
-    call get_next_arg (s%com%building_wall_arg)
+  case ('-building_wall_file')
+    call get_next_arg (s%com%building_wall_file_arg)
 
-  case ('-data')
-    call get_next_arg (s%com%data_arg)
+  case ('-data_file')
+    call get_next_arg (s%com%data_file_arg)
 
   case ('-disable_smooth_line_calc')
     s%com%disable_smooth_line_calc_arg = '<present>'
@@ -109,12 +109,12 @@ do
   case ('-hook_init_file')
     call get_next_arg (s%com%hook_init_file_arg)
 
-  case ('-init')
-    call get_next_arg (s%com%init_arg)
-    ix = SplitFileName(s%com%init_arg, s%com%init_arg_path, base)
+  case ('-init_file')
+    call get_next_arg (s%com%init_file_arg)
+    ix = SplitFileName(s%com%init_file_arg, s%com%init_file_arg_path, base)
 
-  case ('-lat')
-    call get_next_arg (s%com%lat_arg)
+  case ('-lattice_file')
+    call get_next_arg (s%com%lattice_file_arg)
     s%com%noinit_arg = ''
 
   case ('-log_startup')
@@ -125,13 +125,13 @@ do
 
   case ('-noinit')
     s%com%noinit_arg = '<present>'
-    s%com%init_arg = ''
+    s%com%init_file_arg = ''
 
   case ('-noplot')
     s%com%noplot_arg = '<present>'
 
-  case ('-plot')
-    call get_next_arg (s%com%plot_arg)
+  case ('-plot_file')
+    call get_next_arg (s%com%plot_file_arg)
 
   case ('-prompt_color', '-color_prompt')
     s%com%prompt_color_arg = ''
@@ -145,11 +145,11 @@ do
   case ('-slice_lattice')
     call get_next_arg (s%com%slice_lattice_arg, .true.)
 
-  case ('-startup')
-    call get_next_arg (s%com%startup_arg)
+  case ('-startup_file')
+    call get_next_arg (s%com%startup_file_arg)
 
-  case ('-var')
-    call get_next_arg (s%com%var_arg)
+  case ('-var_file')
+    call get_next_arg (s%com%var_file_arg)
 
   case default
     call out_io (s_error$, r_name, 'BAD COMMAND LINE ARGUMENT: ' // arg0)
@@ -160,30 +160,30 @@ do
 
   ! Negate cases
 
-  case ('--beam');                                s%com%beam_arg = ''
-  case ('--beam_all');                            s%com%beam_all_arg = ''
+  case ('--beam_file');                           s%com%beam_file_arg = ''
+  case ('--beam_all_file');                       s%com%beam_all_file_arg = ''
   case ('--beam_position0', '--beam0', '--beam_init_file_name'); 
                                                   s%com%beam_init_position_file_arg = ''
   case ('--beam_init_position_file');             s%com%beam_init_position_file_arg = ''
-  case ('--building_wall');                       s%com%building_wall_arg = ''
-  case ('--data');                                s%com%data_arg = ''
+  case ('--building_wall_file');                  s%com%building_wall_file_arg = ''
+  case ('--data_file');                           s%com%data_file_arg = ''
   case ('--disable_smooth_line_calc');            s%com%disable_smooth_line_calc_arg = ''
-  case ('--debug');  s%com%debug_arg = '';  s%global%debug_on = .false.;  s%global%stop_on_error = .true.
+  case ('--debug');        s%com%debug_arg = '';  s%global%debug_on = .false.;  s%global%stop_on_error = .true.
   case ('--geometry');                            s%com%geometry_arg = ''
   case ('--hook_init_file');                      s%com%hook_init_file_arg = ''
-  case ('--init');                                s%com%init_arg = ''; s%com%init_arg_path = ''
-  case ('--lat');                                 s%com%lat_arg = ''
+  case ('--init_file');                           s%com%init_file_arg = ''; s%com%init_file_arg_path = ''
+  case ('--lattice_file');                        s%com%lattice_file_arg = ''
   case ('--log_startup');                         s%com%log_startup_arg = ''
   case ('--no_stopping');                         s%com%no_stopping_arg = ''
   case ('--noinit');                              s%com%noinit_arg = ''
   case ('--noplot');                              s%com%noplot_arg = ''
-  case ('--plot');                                s%com%plot_arg = ''
+  case ('--plot_file');                           s%com%plot_file_arg = ''
   case ('--prompt_color', '--color_prompt');      s%com%prompt_color_arg = ''
   case ('--rf_on');                               s%com%rf_on_arg = ''
   case ('--silent_run');                          s%com%silent_run_arg = ''
   case ('--slice_lattice');                       s%com%slice_lattice_arg = ''
-  case ('--startup');                             s%com%startup_arg = ''
-  case ('--var');                                 s%com%var_arg = ''
+  case ('--startup_file');                        s%com%startup_file_arg = ''
+  case ('--var_file');                            s%com%var_file_arg = ''
   end select
 
 enddo

@@ -35,23 +35,23 @@ The optional arguments are:
 %
 \begin{description}
 %
-\item[\vn{-beam <beam_file>}] \Newline
+\item[\vn{-beam_file <file_name>}] \Newline
 Sets the name of the file containing the \vn{tao_beam_init} namelist (\sref{s:beam.init}).
 Overrides the setting of \vn{beam_file} (\sref{s:init.global}) specified in the \tao initialization
 file.
 %
-\item[\vn{-beam_all <all_beam_file>}] \Newline
+\item[\vn{-beam_all_file <file_name>}] \Newline
 Overrides the setting of \vn{beam_all_file} (\sref{s:beam.init}) specified in the \vn{tao_beam_init} namelist.
 %
 \item[\vn{-beam_init_position_file <file_name>}] \Newline
 Specifies the file containing initial particle positions.  Overrides the setting of
 \vn{beam_init%position_file} (\sref{s:beam.init}) specified in the \vn{tao_beam_init} namelist.
 %
-\item[\vn{-building_wall <wall_file>}] \Newline
+\item[\vn{-building_wall_file <file_name>}] \Newline
 Overrides the \vn{building_wall_file} (\sref{s:init.global}) 
 specified in the \tao initialization file.
 %
-\item[\vn{-data <data_file>}] \Newline
+\item[\vn{-data_file <file_name>}] \Newline
 Overrides the \vn{data_file} (\sref{s:init.global}) specified in the
 \tao initialization file.
 %
@@ -68,14 +68,14 @@ in the \vn{tao_plot_page} namelist \sref{s:init.plot}.
 Specifies an input file for customized versions of Tao. Default file
 name is \vn{tao_hook.init}.
 %
-\item[\vn{-init <tao_init_file>}] \Newline
+\item[\vn{-init_file <file_name>}] \Newline
 replaces the default \tao initialization file name
 (\vn{tao.init}). Note: A \tao initialization file is actually not
 needed. If no \tao initialization file is used, the use of the
-\vn{-lat} switch is mandatory and \tao will use a set of default plot
+\vn{-lattice_file} switch is mandatory and \tao will use a set of default plot
 templates for plotting.
 %
-\item[\vn{-lat <bmad_or_xsif_lattice_file>}] \Newline
+\item[\vn{-lattice_file <file_name>}] \Newline
 Overrides the \vn{design_lattice}
 lattice file specified in the \tao initialization file
 (\sref{s:init.lat}). Example:
@@ -98,13 +98,13 @@ For debugging purposes. Prevents \tao from stopping where there is a fatal error
 %
 \item[\vn{-noinit}] \Newline
 Suppresses use of a \tao initialization file. In this case the use of
-the \vn{-lat} switch is mandatory and \tao will use a set of default
+the \vn{-lattice_file} switch is mandatory and \tao will use a set of default
 plot templates for plotting.
 %
 \item[\vn{-noplot}] \Newline
 Suppresses the opening of the plot window.
 %
-\item[\vn{-plot <plot_file>}] \Newline
+\item[\vn{-plot_file <file_name>}] \Newline
 Overrides the \vn{plot_file} (\sref{s:init.global}) specified in the
 \tao initialization file.
 %
@@ -122,11 +122,11 @@ frequency changes then you will need to set \vn{parameter[absolute_time_tracking
 If present, discard from the lattice all lattice elements that are not in the \vn{<element_list>}.
 Overrides the setting of \vn{design_lattice(i)%slice_lattice}.
 %
-\item[\vn{-startup <startup_command_file>}]
+\item[\vn{-startup_file <file_name>}]
 Overrides the \vn{startup_file} (\sref{s:init.global}) specified in the
 \tao initialization file.
 %
-\item[\vn{-var <var_file>}] \Newline
+\item[\vn{-var_file <file_name>}] \Newline
 Overrides the \vn{var_file} (\sref{s:init.global}) specified in the
 \tao initialization file.
 

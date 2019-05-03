@@ -175,7 +175,7 @@ endif
 do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%beam%beam_init%file_name = ''
   s%u(i)%beam%beam_init%position_file = ''
-  s%u(i)%beam%all_file = s%com%beam_all_arg
+  s%u(i)%beam%all_file = s%com%beam_all_file_arg
   s%u(i)%beam%track_start    = ''
   s%u(i)%beam%track_end      = ''
   s%u(i)%beam%ix_track_start = 0
@@ -239,7 +239,7 @@ do
 
   if (s%com%beam_init_position_file_arg /= '') beam_init%position_file = s%com%beam_init_position_file_arg
 
-  if (s%com%beam_all_arg /= '') beam_all_file = s%com%beam_all_arg  ! From the command line
+  if (s%com%beam_all_file_arg /= '') beam_all_file = s%com%beam_all_file_arg  ! From the command line
   if (track_start /= '') beam_track_start = track_start   ! For backwards compatibility
   if (track_end /= '')   beam_track_end   = track_end     ! For backwards compatibility
 
