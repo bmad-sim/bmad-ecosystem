@@ -124,7 +124,7 @@ with the \vn{multi} structure component for \vn{ele_shape(3)}.
 \index{single_mode_file}\index{startup_file}\index{startup_single_mode}
 \index{beam_file}\index{hook_init_file}
 The initialization starts with the \vn{root} \tao initialization file. The default name for this
-file is \vn{tao.init} but this default may be overridden when \tao is started using the \vn{-init}
+file is \vn{tao.init} but this default may be overridden when \tao is started using the \vn{-init_file}
 switch (\sref{s:command.line}). The first namelist block read in from the root initialization file is a
 \vn{tao_start} namelist. This block is optional (in which case the defaults are used).  This
 namelist contains the variables:
@@ -771,7 +771,7 @@ particle coordinates of the tracked beam at every element. This causes
 \tao to use the data from the file in lieu of actual tracking. This
 can be helpful when the time for \tao to track a bunch through the
 lattice becomes long. The file name can be overridden by using the
-\vn{-beam_all} argument on the command line
+\vn{-beam_all_file} argument on the command line
 (\sref{s:command.line}). Note: \tao will set the variable
 \vn{use_saved_beam_in_tracking} to \vn{True} to prevent actual
 tracking.  Note: A \vn{beam_all_file} will supersede  \vn{beam_init%position_file}

@@ -3,6 +3,16 @@ from tkinter import messagebox
 import sys
 
 #---------------------------------------------------------------
+# List window 
+
+class tao_list_window(tk.Toplevel):
+
+  def __init__(self, root, title, list, *args, **kwargs):
+    tk.Toplevel.__init__(self, root, *args, **kwargs)
+    self.title(title)
+
+
+#---------------------------------------------------------------
 # Root window 
 
 class tao_root_window(tk.Tk):
@@ -47,7 +57,7 @@ class tao_root_window(tk.Tk):
     init_frame.pack()
     beam_str = tk.Entry(init_frame)
     beam_str.pack()
-    b = tk.Button(init_frame, text = "Red")
+    b = tk.Button(init_frame, text = "Tao Init", command = self.tao_init)
     b.pack()
       
     # Bindings
@@ -55,6 +65,10 @@ class tao_root_window(tk.Tk):
     self.bind_all("<Control-q>", self.quit_cmd)
     self.bind_all('<Return>', self.return_event)
 
+  #-------------------------
+
+  def tao_init(self):
+    window = tao_list_window(self, 'Tao Init', [])
 
 
   #-------------------------

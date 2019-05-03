@@ -44,7 +44,7 @@ namelist / tao_design_lattice / design_lattice, &
 design_lattice = tao_design_lat_input()
 design_lat = tao_design_lat_input()
 
-alternative_lat_file_exists = (s%com%hook_lat_file /= '' .or. s%com%lat_arg /= '')
+alternative_lat_file_exists = (s%com%hook_lat_file /= '' .or. s%com%lattice_file_arg /= '')
 
 ! Read lattice info
 
@@ -124,8 +124,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   !   Specified by hook code.
 
   design_lat = design_lattice(i)
-  if (s%com%lat_arg /= '') then
-    design_lat%file = s%com%lat_arg
+  if (s%com%lattice_file_arg /= '') then
+    design_lat%file = s%com%lattice_file_arg
     design_lat%language = ''
     design_lat%file2 = ''
   elseif (s%com%hook_lat_file /= '' .and. design_lat%file == '') then
@@ -185,7 +185,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! is relative, then it is relative to the directory where the tao init file is.
 
   if (.not. alternative_lat_file_exists .and. file_name_is_relative(design_lat%file)) &
-                design_lat%file = trim(s%com%init_arg_path) // design_lat%file 
+                design_lat%file = trim(s%com%init_file_arg_path) // design_lat%file 
 
   ! Read in the design lattice. 
   ! A blank means use the lattice form universe 1.

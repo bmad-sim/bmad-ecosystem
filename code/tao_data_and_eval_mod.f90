@@ -4809,9 +4809,9 @@ character(*) why_invalid
 valid_value = .false.
 
 if (datum%data_source == 'lat') then
-  vec = bunch_params%centroid%vec
-else
   vec = orbit%vec
+else
+  vec = bunch_params%centroid%vec
 endif
 
 position%r = [vec(1), vec(3), ele%value(l$)]
