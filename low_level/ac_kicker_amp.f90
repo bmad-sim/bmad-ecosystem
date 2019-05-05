@@ -5,26 +5,35 @@
 !
 ! Input:
 !   ele     -- ele_struct: ac_kicker element.
-!   time    -- real(rp): Time to evaluate the amplitude at.
+!   orbit   -- coord_struct: Contains the time to evaluate the amplitude at.
 !
 ! Output:
 !   ac_amp  -- real(rp): Amplitude. Will be set to 1 if the element is not an ac_kicker.
 !-
 
-function ac_kicker_amp(ele, time) result (ac_amp)
+function ac_kicker_amp(ele, orbit) result (ac_amp)
 
 use bmad_interface, dummy => ac_kicker_amp
 
 implicit none
 
 type (ele_struct), target :: ele
+type (coord_struct) orbit
 type (ele_struct), pointer :: lord
 type (ac_kicker_struct), pointer :: ac
-real(rp) t, time, ac_amp, f
+real(rp) t, time, ac_amp, f, dt_ds0
 integer i, n, ix
 
 character(*), parameter :: r_name = 'ac_kicker_amp'
+
 !
+
+if (absolute_time_tracking(ele)) then
+  time = orbit%t
+else
+  dt_ds0 = ele%value(E_tot$) / (c_light * ele%value(p0c$)) ! Reference velocity
+  time = ele%value(ref_time_start$) + dt_ds0 * (orbit%s - ele%s_start) - orbit%vec(5) / (c_light * orbit%beta)
+endif
 
 ac_amp = 1
 if (ele%key /= ac_kicker$) return

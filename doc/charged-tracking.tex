@@ -20,13 +20,11 @@ Generally, it will be assumed that tracking is in the forward direction.
 
 \index{relative time tracking}\index{absolute time tracking}
 \index{lcavity}\index{rfcavity}\index{em_field}
-Unlike other elements, the kick given a particle going through an
-\vn{lcavity}, \vn{rfcavity}, or possibly an \vn{em_field} element
-depends upon the time that the particle enters the element relative to
-some ``RF clock''. \bmad has two modes for calculating this time
-called ``\vn{relative time tracking}'' and ``\vn{absolute time
-tracking}''. The switch to set the type of tracking for a lattice is
-\vn{parameter[absolute_time_tracking]} (\sref{s:param}).
+Unlike other elements, the kick given a particle going through an \vn{lcavity}, \vn{rfcavity}, or
+possibly an \vn{em_field} element depends upon the time that the particle enters the element
+relative to some ``RF clock''. \bmad has two modes for calculating this time called ``\vn{relative
+time tracking}'' and ``\vn{absolute time tracking}''. The switch to set the type of tracking for a
+lattice is \vn{parameter[absolute_time_tracking]} (\sref{s:param}).
 
 The phase of the RF, $\phi_\text{rf}$, is determined by
 \Begineq
@@ -91,12 +89,11 @@ is thus, by necessity, tied to the absolute time. The exception is that a wake a
 fundamental mode (that is, has the same frequency as the fundamental mode) will always use relative
 time if the fundamental is using relative time and vice versa.
 
-Do not confuse absolute time tracking with the \vn{time_runge_kutta}
-tracking method (\sref{s:tkm}). The \vn{time_runge_kutta} method uses
-time as the independent variable instead of $z$. Absolute time
-tracking just means that the RF phase is dependent upon the time
-instead of $z$. It is perfectly possible to use absolute time
-tracking with code that uses $z$ as the independent variable.
+Do not confuse absolute time tracking with the \vn{time_runge_kutta} tracking method
+(\sref{s:tkm}). The \vn{time_runge_kutta} method uses time as the independent variable instead of
+$z$. Absolute time tracking just means that the RF phase is dependent upon the time instead of
+$z$. It is perfectly possible to use absolute time tracking with code that uses $z$ as the
+independent variable.
 
 %-------------------------------------------------------------------------
 %-------------------------------------------------------------------------
@@ -104,30 +101,28 @@ tracking with code that uses $z$ as the independent variable.
 \label{s:ele.coords}
 
 \index{element coordinates}
-The general procedure for tracking through an element makes use of
-\vn{element reference} coordinates (also called just \vn{element}
-coordinates). Without any offsets, pitches or tilt (\sref{s:offset}), henceforth
-called ``misalignments'', the \vn{element} coordinates are the same
-as the \vn{laboratory reference} coordinates (or simply \vn{laboratory}
-coordinates) (\sref{s:ref}). The \vn{element} coordinates stay fixed
-relative to the element. Therefore, if the element is misaligned, the
-\vn{element coordinates} will follow as the element shifts in the
+The general procedure for tracking through an element makes use of \vn{element reference}
+coordinates (also called just \vn{element} coordinates). Without any offsets, pitches or tilt
+(\sref{s:offset}), henceforth called ``misalignments'', the \vn{element} coordinates are the same as
+the \vn{laboratory reference} coordinates (or simply \vn{laboratory} coordinates)
+(\sref{s:ref}). The \vn{element} coordinates stay fixed relative to the element. Therefore, if the
+element is misaligned, the \vn{element coordinates} will follow as the element shifts in the
 laboratory frame as shown in \fig{f:ele.coord}.
 
 Tracking a particle through an element is a three step process:
 \begin{enumerate}
 \item
-At the entrance end of the element, transform from the \vn{laboratory}
-coordinates to the entrance \vn{element} coordinates.
+At the entrance end of the element, transform from the \vn{laboratory} coordinates to the entrance
+\vn{element} coordinates.
 \item
 Track through the element ignoring any misalignments. 
 \item
-At the exit end of the element, transform from the exit \vn{element}
-reference frame to the \vn{laboratory} reference frame.
+At the exit end of the element, transform from the exit \vn{element} reference frame to the
+\vn{laboratory} reference frame.
 \end{enumerate}
 
-The transformation between \vn{laboratory} and \vn{element} reference
-frames is given in \sref{s:straight.mis} and \sref{s:bend.mis}.
+The transformation between \vn{laboratory} and \vn{element} reference frames is given in
+\sref{s:straight.mis} and \sref{s:bend.mis}.
 
 %-------------------------------------------------------------------------
 
@@ -136,9 +131,8 @@ frames is given in \sref{s:straight.mis} and \sref{s:bend.mis}.
   \includegraphics[width=5in]{coord-offset.pdf}
   \caption[Element Coordinate System.]
   {
-\vn{Element} coordinates are coordinates attached to the physical
-element (solid green outline). The \vn{laboratory} coordinates are
-fixed at the nominal position of the element (red dashed outline).
+\vn{Element} coordinates are coordinates attached to the physical element (solid green outline). The
+\vn{laboratory} coordinates are fixed at the nominal position of the element (red dashed outline).
   }
   \label{f:ele.coord}.
 \end{figure}
@@ -152,10 +146,9 @@ in \fig{f:local.coords} is (\cite{b:ruth})
   H_t = \wt\psi + \left[ \left( \frac{p_s - a_s}{1 + g\, x} \right)^2 + \wt m^2 + 
   (p_x - a_x)^2 + (p_y - a_y)^2 \right]^{1/2}
 \Endeq
-where $(p_x, p_y, p_s/(1+gx))$ are the momentum normalized by $P_0$,
-$\rho$ being the local radius of curvature of the reference particle,
-and $\wt m$, $\Bf a$ and $\wt\psi$ are the normalized mass, vector, and scalar
-potentials:
+where $(p_x, p_y, p_s/(1+gx))$ are the momentum normalized by $P_0$, $\rho$ being the local radius
+of curvature of the reference particle, and $\wt m$, $\Bf a$ and $\wt\psi$ are the normalized mass,
+vector, and scalar potentials:
 \Begineq
   \wt m = \frac{m \, c^2}{c \, P_0} \qquad
   \left( a_x, a_y, \frac{a_s}{1+g \, x} \right) = \frac{q \, \Bf A}{P_0 \, c} \qquad 

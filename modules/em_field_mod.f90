@@ -1448,7 +1448,7 @@ end select
 
 if (ele%key == ac_kicker$) then
 
-  a_amp = ac_kicker_amp (ele, orbit%t)
+  a_amp = ac_kicker_amp (ele, orbit)
 
   field%E = a_amp * field%E
   field%B = a_amp * field%B

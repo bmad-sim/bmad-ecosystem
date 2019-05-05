@@ -175,9 +175,12 @@ field is calculated in two steps:
 \begin{enumerate}
 \item Calculate the field the same as for a \vn{kicker} element (\sref{s:kicker}).
 \item Scale the field by the function $A(t-t_0)$ where $t$ is the time and $t_0$ is set
-by the \vn{t_offset} attribute. 
+by the \vn{t_offset} attribute.
 \end{enumerate}
-The time is calculated, like the RF cavities, using either relative or absolute time (\sref{s:rf.time}).
+The time is calculated, like the RF cavities, using either relative or absolute time
+(\sref{s:rf.time}).  Note that if a particle is tracked for multiple turns in a closed lattice with
+relative time tracking, the field of an \vn{ac_kicker} element is independent of which turn it is and
+only depends upon the phase space $z$ coordinate.
 
 There are two ways to specify the dimensionless time variation $A(t)$ of the field. One way is to
 specify points on the $A(t)$ curve using the \vn{amp_vs_time}

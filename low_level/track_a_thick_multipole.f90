@@ -88,7 +88,7 @@ if (orbit%state /= alive$) return
 
 ! Multipole kicks. Notice that the magnetic multipoles have already been normalized by the length.
 
-ac_amp = ac_kicker_amp(ele, orbit%t)
+ac_amp = ac_kicker_amp(ele, orbit)
 
 if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, ac_amp*r_step/2,   mat6, make_matrix)
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, ac_amp*step_len/2, mat6, make_matrix)
@@ -105,7 +105,7 @@ do i = 1, n_step
   endif
 
   s_pos = i * step_len / n_step
-  ac_amp = ac_kicker_amp(ele, orbit%t)
+  ac_amp = ac_kicker_amp(ele, orbit)
 
   if (i == n_step) then
     if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, ac_amp*r_step/2,   mat6, make_matrix)
