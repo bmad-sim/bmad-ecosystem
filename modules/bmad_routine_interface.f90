@@ -15,12 +15,12 @@ function absolute_time_tracking (ele) result (is_abs_time)
   logical is_abs_time
 end function
 
-function ac_kicker_amp(ele, time) result (ac_amp)
+function ac_kicker_amp(ele, orbit) result (ac_amp)
   import
   implicit none
   type (ele_struct) ele
-  type (ac_kicker_struct), pointer :: ac
-  real(rp) time, ac_amp
+  type (coord_struct) orbit
+  real(rp) ac_amp
 end function
 
 subroutine add_lattice_control_structs (ele, n_add_slave, n_add_lord, n_add_slave_field, n_add_lord_field, add_at_end)
