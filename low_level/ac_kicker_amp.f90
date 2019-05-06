@@ -21,18 +21,28 @@ type (ele_struct), target :: ele
 type (coord_struct) orbit
 type (ele_struct), pointer :: lord
 type (ac_kicker_struct), pointer :: ac
+type (ele_struct), pointer :: ref_ele
+type (ele_pointer_struct), allocatable :: chain(:)
+
 real(rp) t, time, ac_amp, f, dt_ds0
-integer i, n, ix
+integer i, n, ix, ix_pass, n_links
 
 character(*), parameter :: r_name = 'ac_kicker_amp'
 
 !
 
 if (absolute_time_tracking(ele)) then
-  time = orbit%t
+  time = orbit%t - ref_ele%value(ref_time_start$)
+
 else
+  ref_ele => ele
+  if (ref_ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) ref_ele => pointer_to_lord (ref_ele, 1)
+
+  call multipass_chain(ref_ele, ix_pass, n_links, chain)
+  if (ix_pass > 1) ref_ele => chain(1)%ele
+
   dt_ds0 = ele%value(E_tot$) / (c_light * ele%value(p0c$)) ! Reference velocity
-  time = ele%value(ref_time_start$) + dt_ds0 * (orbit%s - ele%s_start) - orbit%vec(5) / (c_light * orbit%beta)
+  time = dt_ds0 * (orbit%s - ref_ele%s_start) - orbit%vec(5) / (c_light * orbit%beta)
 endif
 
 ac_amp = 1
