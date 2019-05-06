@@ -3455,6 +3455,8 @@ case ('taylor_map', 'matrix')
 
   ix_branch = s%com%default_branch
   by_s = .false.
+  print_ptc = .false.
+
   if (show_what == 'matrix') then
     n_order = 1
   else
@@ -3464,10 +3466,12 @@ case ('taylor_map', 'matrix')
   attrib0 = ''
 
   do
-    call tao_next_switch (what2, ['-order', '-s    '], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(8):: '-order', '-s', '-ptc'], .true., switch, err, ix)
     if (err) return
     if (switch == '') exit
     select case (switch)
+    case ('-ptc')
+      print_ptc = .true.
     case ('-s')
       by_s = .true.
     case ('-order')
@@ -3497,6 +3501,11 @@ case ('taylor_map', 'matrix')
     return
   endif
 
+  if (by_s .and. print_ptc) then
+    nl=1; lines(1) = 'ERROR: "-ptc" AND "-s" SWITCHES CANNOT BOTH BE PRESENT.'
+    return
+  endif
+
   ! By s
 
   if (by_s) then
@@ -3523,9 +3532,12 @@ case ('taylor_map', 'matrix')
     endif
 
     call twiss_and_track_at_s (lat, s1, ele0, u%model%tao_branch(ix_branch)%orbit, orb, ix_branch)
-    if (n_order > 1) then
+
+    if (n_order > 1 .or. print_ptc) then
       call transfer_map_from_s_to_s (lat, taylor, s1, s2, orb, ix_branch, &
                                                         one_turn = .true., concat_if_possible = s%global%concatenate_maps)
+      call taylor_to_mat6(taylor, u%model%tao_branch(ix_branch)%orbit(ix1)%vec, vec0, mat6)
+
     else
       call mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orb, ix_branch, one_turn = .true.)
     endif
@@ -3600,13 +3612,16 @@ case ('taylor_map', 'matrix')
       nl=nl+1; lines(nl) = '    to:   ' // trim(branch%ele(ix2)%name)
     endif
 
-    if (n_order > 1) then
+    if (n_order > 1 .or. print_ptc) then
       call transfer_map_calc (lat, taylor, err, ix1, ix2, u%model%tao_branch(ix_branch)%orbit(ix1), &
                                                       one_turn = .true., concat_if_possible = s%global%concatenate_maps)
       if (err) then
         nl = 1; lines(1) = 'TAYLOR MAP TERMP OVERFLOW.'
         return
       endif
+
+      call taylor_to_mat6(taylor, u%model%tao_branch(ix_branch)%orbit(ix1)%vec, vec0, mat6)
+
     else
       call transfer_matrix_calc (lat, mat6, vec0, ix1, ix2, ix_branch, one_turn = .true.)
     endif
