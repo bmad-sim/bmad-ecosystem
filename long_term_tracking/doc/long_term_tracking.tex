@@ -102,14 +102,15 @@ See the documentation for setting up the Bmad environmental variables at
 Once the Bmad environmental variables have bee set, the syntax for invoking the single threaded
 version of the \ltt program is:
 \begin{code}
-  long_term_tracking {<master_input_file_name>}
+  long_term_tracking {-write} {<master_input_file_name>}
 \end{code}
 Example:
 \begin{code}
   long_term_tracking my_input_file.init
 \end{code}
 The \vn{<master_input_file_name>} optional argument is used to set the master input file name. The
-default is ``\vn{long_term_tracking.init}''.
+default is ``\vn{long_term_tracking.init}''. If the optional \vn{-write} switch is present, the
+1-turn map will be written to a file.
 
 Example input files are in the directory:
 \begin{code}
@@ -203,11 +204,12 @@ of (\sref{s:input}):
 Note: When tracking with a map, the RF cavities must be powered so that there are synchrotron
 oscillations.
 
-What tracking mode is used is determined by the \vn{ltt%use_1_turn_map} logical (\sref{s:input}).  If a
-map is used, the order of the map is given by \vn{ltt%map_order} parameter. A larger map order will mean better
-accuracy at the expense of more computation time. Tracking using a map will be extremely quick
-compared to element-by-element tracking. However, map tracking can be inaccurate if the map order
-is too small or the particle amplitude is too large.
+What tracking mode is used is determined by the \vn{ltt%tracking_method} switch (\sref{s:input})
+which is used to determine if tracking is done using a map or not. If a map is used, the order of
+the map is given by \vn{ltt%map_order} parameter. A larger map order will mean better accuracy at
+the expense of more computation time. Tracking using a map will be extremely quick compared to
+element-by-element tracking. However, map tracking can be inaccurate if the map order is too small
+or the particle amplitude is too large.
 
 Maps can be saved to a file for later use. Saved maps always include the radiation excitation
 component map independent of the setting of \vn{bmad_com%radiation_excitation_on}. Thus, when a
@@ -283,12 +285,12 @@ master input file must contain a single namelist (\sref{s:namelist}) named \vn{p
   ltt%merge_particle_output_files = False
 
   ! Simulation parameters
-  ltt%simulation_mode = "BUNCH"
+  ltt%simulation_mode    = "BUNCH"
+  ltt%tracking_method    = 'STANDARD'
   ltt%ele_start_name     = ""
   ltt%n_turns            = 1000
   ltt%map_order          = 5
   ltt%rfcavity_on        = True
-  ltt%use_1-turn_map     = True
   ltt%timer_print_dtime  = 300
   ltt%random_seed        = 0
   ltt%add_closed_orbit_to_init_position = True
@@ -319,7 +321,7 @@ simulation parameters.
 
 The input files that can be specified in the \vn{params} namelist of the master input file are:
 \begin{description}
-\item[common_master_input_file] \Newline
+\item[ttl%common_master_input_file] \Newline
 The \vn{common_master_input_file} is used in situations where you want to run multipole simulations
 with multiple initialization files and where most parameters are the same across all the
 simulations. In this case, an initialization file containing the parameters that are the same can be
@@ -331,17 +333,17 @@ that there is only one file to modify when common parameters are changed as oppo
 modify all the initialization files. If \vn{common_master_input_file} is set to blank (the default),
 no common file is used
 %
-\item[lat_file] \Newline
+\item[ttl%lat_file] \Newline
 Name of the Bmad lattice file to use. This name is required.
 %
-\item[map_file] \Newline
-If not blank, the program will read in the 1-turn map from \vn{ltt%map_file}. To create a map file and
-save it to a file, prepend the file name with "WRITE:". Example:
-\begin{code}
-  map_file = 'WRITE:order5.map'
-\end{code}
-This will create a map file called "\vn{order5.map}". The saved map will be affected by the setting
+\item[ttl%map_file] \Newline
+If the \vn{-write} switch is present on the command line when the long_term_tracking program in
+involked, the 1-turn map is created and written to a file whose name is given by
+\vn{ttl%map_file}. If \vn{ttl%map_file} is blank, a default name will be constructed.
+The saved map will be affected by the setting
 of \vn{bmad_com%radiation_damping_on}. See \sref{s:track.modes} for more details.
+
+If the \vn{-write} switch is not present, the 1-turn map is read in from \vn{ttl%map_file} if it exists.
 \end{description}
 
 %----------------------------------------------------
@@ -457,7 +459,15 @@ Sets the simulation mode for the program. See Section~\sref{s:sim.modes}.
 The program will print a tracking status message every so often. The nominal time between status
 messages is set by \vn{ltt%timer_print_dtime} which is a number in seconds.
 %
-\item[ltt\%use_1_turn_map] \Newline
+\item[ltt\%tracking_method] \Newline
+String switch which sets how particles are tracked. Possible settings are:
+\begin{code}
+  "standard"    ! Standard
+  "ptc"
+  "map"
+\end{code}
+
+\etcetc...
 If set \vn{True} (the default) use a 1-turn map for tracking as opposed to element-by-element
 tracking (\sref{s:track.modes}).
 \end{description}
