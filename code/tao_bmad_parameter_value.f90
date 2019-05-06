@@ -24,6 +24,7 @@ implicit none
 type (ele_struct) ele
 type (coord_struct) orbit
 type (bpm_phase_coupling_struct) bpm_data
+type (floor_position_struct) position
 
 real(rp) value, cbar(2,2), f, amp_a, amp_b, amp_na, amp_nb
 
@@ -155,6 +156,16 @@ case ('floor.')
   case ('floor.theta');      value = ele%floor%theta
   case ('floor.phi');        value = ele%floor%phi
   case ('floor.psi');        value = ele%floor%psi
+  case default;              err_flag = .true.
+  end select
+
+case ('floor_orbit.')
+  position%r = [orbit%vec(1), orbit%vec(3), ele%value(l$)]
+  position = coords_local_curvilinear_to_floor (position, ele, .false.)
+  select case (dat_name)
+  case ('floor_orbit.x');          value = position%r(1)
+  case ('floor_orbit.y');          value = position%r(2)
+  case ('floor_orbit.z');          value = position%r(3)
   case default;              err_flag = .true.
   end select
 

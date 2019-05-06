@@ -11,7 +11,7 @@
 !   INT
 !   REAL
 !   LOGIC
-!   ENUM
+!   ENUM     ! Enumerated number
 !
 ! {variable} indicates if the component can be varied. It is one of:
 !   T

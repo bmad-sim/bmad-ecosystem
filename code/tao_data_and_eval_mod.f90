@@ -567,7 +567,8 @@ if (data_source == 'beam' .and. s%global%track_type /= 'beam') then
   return
 endif
 
-!---------------------------------------------------
+!-------------------------------------------------------------
+! Case where evaluation point not at the end of the element.
 
 if (datum%s_offset /= 0 .or. datum%eval_point == anchor_center$ .or. datum%eval_point == anchor_beginning$) then
   if (data_source /= 'lat') then
