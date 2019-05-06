@@ -226,7 +226,8 @@ if (lttp%need_map .and. map_file_exists) then
   if (lttp%mpi_rank == master_rank$) then
     print '(2a)',   'Map read in from file: ', trim(lttp%map_file)
     print '(2a)',   'Lattice file used for map:         ', trim(rad_map%lattice_file)
-    if (rad_map%radiation_damping_on /= bmad_com%radiation_damping_on .or. rad_map%map_order /= lttp%map_order) then
+    if (rad_map%radiation_damping_on .neqv. bmad_com%radiation_damping_on .or. &
+                                                            rad_map%map_order .neqv. lttp%map_order) then
       print '(a)',  'Map in file does not have the same map order or radiation_damping_on setting as in input files.'
       print '(a)',  'Will make a new map...'
     else
