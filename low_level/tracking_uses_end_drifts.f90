@@ -36,9 +36,9 @@ has_drifts = .false.
 if (.not. logic_option(bmad_com%use_hard_edge_drifts, use_hard_edge_model)) return
 
 select case (ele%key)
-case (lcavity$, rfcavity$, solenoid$)
-    if (ele%field_calc == bmad_standard$) has_drifts = .true.
-    if (ele%value(l_hard_edge$) == ele%value(l$)) has_drifts = .false.
+case (lcavity$, rfcavity$)
+  if (ele%field_calc == bmad_standard$) has_drifts = .true.
+  if (ele%value(l_hard_edge$) >= ele%value(l$)) has_drifts = .false. ! Avoid creating negative length end drifts 
 end select
 
 end function tracking_uses_end_drifts

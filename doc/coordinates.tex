@@ -2,20 +2,21 @@
 \index{coordinates|hyperbf}
 
 \bmad uses three coordinate systems as illustrated in \fig{f:coords}. First, the \vn{global} (also
-called ``\vn{floor}'') coordinates are independent of the accelerator. Thus such things as the 
-building the accelerator is in may be described using \vn{global} coordinates. 
+called ``\vn{floor}'') coordinates are independent of the accelerator. Thus such things as the
+building the accelerator is in may be described using \vn{global} coordinates.
 
 It is not convenient to describe the position of the beam using the \vn{global} coordinate system so
-a ``\vn{local}'' coordinate system is used (\sref{s:local.coords}). 
-This curvilinear coordinate system defines the nominal position of the lattice elements.
-The relationship between the \vn{local} and \vn{global} coordinate systems is described in \sref{s:global}.
+a ``\vn{local}'' coordinate system is used (\sref{s:local.coords}).  This curvilinear coordinate
+system defines the nominal position of the lattice elements.  The relationship between the
+\vn{local} and \vn{global} coordinate systems is described in \sref{s:global}.
 
-The ``nominal'' position of a lattice element is the position of the element without what are called ``misalignments''
-(that is, position and orientation shifts). Each lattice element has ``\vn{element body}'' coordinates which are attached
-to the physical element. That is, the electric and magnetic fields of an element are described with respect to \vn{element} coordinates.
-If there are no misalignments, the \vn{element} coordinates are aligned with the \vn{local}
-coordinates. With misalignments, \vn{element} and \vn{local} coordinates will not coincide.
-The transformation between \vn{local} and \vn{element} coordinates is given in \sref{s:lab.body.transform}.
+The ``nominal'' position of a lattice element is the position of the element without what are called
+``misalignments'' (that is, position and orientation shifts). Each lattice element has ``\vn{element
+body}'' coordinates which are attached to the physical element. That is, the electric and magnetic
+fields of an element are described with respect to \vn{element} coordinates.  If there are no
+misalignments, the \vn{element} coordinates are aligned with the \vn{local} coordinates. With
+misalignments, \vn{element} and \vn{local} coordinates will not coincide.  The transformation
+between \vn{local} and \vn{element} coordinates is given in \sref{s:lab.body.transform}.
 
 When discussing \vn{local} vs \vn{element} coordinates, it can be less confusing to use the name
 ``\vn{laboratory}'' cordinates instead of \vn{local} coordinates.
@@ -24,11 +25,10 @@ When discussing \vn{local} vs \vn{element} coordinates, it can be less confusing
   \centering
   \includegraphics[width=5in]{coordinates.pdf}
   \caption[The three coordinate system used by \bmad.]
-{The three coordinate systems used by \bmad:
-The \vn{global} (or ``\vn{floor}'') coordinate system is independent of the accelerator.
-The \vn{local} curvilinear coordinate system follows the bends of the accelerator. 
-Each lattice element has \vn{element body} coordinates which, if the element is not ``misaligned''
-is the same as the \vn{local} coordinates.}
+{The three coordinate systems used by \bmad: The \vn{global} (or ``\vn{floor}'') coordinate system
+is independent of the accelerator.  The \vn{local} curvilinear coordinate system follows the bends
+of the accelerator.  Each lattice element has \vn{element body} coordinates which, if the element is
+not ``misaligned'' is the same as the \vn{local} coordinates.}
   \label{f:coords}
 \end{figure}
 
@@ -47,59 +47,45 @@ is the same as the \vn{local} coordinates.}
   \centering
   \includegraphics[height=8.4cm]{local-coords.pdf}
   \caption[The local Reference System.]
-{The local reference coordinate system. By construction, a particle's
-$z$ coordinate is zero.  This is not to be confused with the phase
-space $z$ coordinate (\sref{s:phase.space}). The curvature vector
-$\bfg$ lies in the $x$-$y$ plane and has a magnitude of $1/\rho$ where
-$\rho$ is the bending radius. The $z$-axis will normally be parallel
-to the $s$-axis but for \vn{reversed} elements it will be antiparallel.
-}
+{The local reference coordinate system. By construction, a particle's $z$ coordinate is zero.  This
+is not to be confused with the phase space $z$ coordinate (\sref{s:phase.space}). The curvature
+vector $\bfg$ lies in the $x$-$y$ plane and has a magnitude of $1/\rho$ where $\rho$ is the bending
+radius. The $z$-axis will normally be parallel to the $s$-axis but for \vn{reversed} elements it
+will be antiparallel.  }
   \label{f:local.coords}
 \end{figure}
 
-The \vn{local reference orbit} is the curved path used to define a
-coordinate system for describing a particle's position as shown in
-\fig{f:local.coords}. The reference orbit is also used for orientating
-lattice elements in space. At a given time $t$, a particle's position
-can be described by a point on the reference orbit a distance $s$
-relative to the reference orbit's zero position plus a transverse
-offset. This point on the reference orbit is used as the origin of the
-local $(x, y, z)$ coordinate system with the $z$--axis tangent to the
-reference orbit. The $z$--axis will generally be pointing in the
-direction of increasing $s$ but, as discussed in detail below, will
-point counter to $s$ for elements that are \vn{reversed}. The $x$ and
-$y$--axes are perpendicular to the reference orbit. As will be shown
-later, If the lattice has no vertical bends, the $y$--axis is in the
-vertical direction and the $x$--axis is in the horizontal
-plane. Notice that, by construction, the particle is always at $z =
-0$. The coordinate system so constructed is called the \vn{``local
-coordinate system''} or sometimes the \vn{``laboratory coordinate
-system''} when there is need to distinguish it from the \vn{``element
-coordinate system''} (\sref{s:ele.coords}) which is attached to
-the physical element.
+The \vn{local reference orbit} is the curved path used to define a coordinate system for describing
+a particle's position as shown in \fig{f:local.coords}. The reference orbit is also used for
+orientating lattice elements in space. At a given time $t$, a particle's position can be described
+by a point on the reference orbit a distance $s$ relative to the reference orbit's zero position
+plus a transverse offset. This point on the reference orbit is used as the origin of the local $(x,
+y, z)$ coordinate system with the $z$--axis tangent to the reference orbit. The $z$--axis will
+generally be pointing in the direction of increasing $s$ but, as discussed in detail below, will
+point counter to $s$ for elements that are \vn{reversed}. The $x$ and $y$--axes are perpendicular to
+the reference orbit. As will be shown later, If the lattice has no vertical bends, the $y$--axis is
+in the vertical direction and the $x$--axis is in the horizontal plane. Notice that, by
+construction, the particle is always at $z = 0$. The coordinate system so constructed is called the
+\vn{``local coordinate system''} or sometimes the \vn{``laboratory coordinate system''} when there
+is need to distinguish it from the \vn{``element coordinate system''} (\sref{s:ele.coords}) which is
+attached to the physical element.
 
-There is a separate reference orbit for each branch
-(\sref{s:branch.def}) of a lattice. When there are multiple branches,
-the reference orbit of a branch must not depend upon the configuration
-of branches later on in the array of branches in the lattice. As a
-consequence, the reference orbits of the branches can be calculated
-one at a time starting with the first branch.
+There is a separate reference orbit for each branch (\sref{s:branch.def}) of a lattice. When there
+are multiple branches, the reference orbit of a branch must not depend upon the configuration of
+branches later on in the array of branches in the lattice. As a consequence, the reference orbits of
+the branches can be calculated one at a time starting with the first branch.
 
 \index{x_offset}\index{y_offset}
 \index{x_pitch}\index{y_pitch}\index{wiggler}
-Notice that, in a \vn{wiggler}, the reference orbit, which is a
-straight line, does {\em not} correspond to the orbit that any actual
-particle could travel. Typically the physical element is
-centered with respect to the reference curve. However, by specifying offsets, 
-pitches or a tilt (See \sref{s:offset}), the physical element may be
-arbitrarily shifted with respect to its reference curve. Shifting a
-physical magnet with respect to its reference curve generally means
-that the reference curve does {\em not} correspond to the orbit that
-any actual particle could travel.
+Notice that, in a \vn{wiggler}, the reference orbit, which is a straight line, does {\em not}
+correspond to the orbit that any actual particle could travel. Typically the physical element is
+centered with respect to the reference curve. However, by specifying offsets, pitches or a tilt (See
+\sref{s:offset}), the physical element may be arbitrarily shifted with respect to its reference
+curve. Shifting a physical magnet with respect to its reference curve generally means that the
+reference curve does {\em not} correspond to the orbit that any actual particle could travel.
 
-Do not confuse this reference orbit (which defines the local
-coordinate system) with the reference orbit about which the transfer
-maps are calculated (\sref{s:twiss}). The former is fixed by the
+Do not confuse this reference orbit (which defines the local coordinate system) with the reference
+orbit about which the transfer maps are calculated (\sref{s:twiss}). The former is fixed by the
 lattice while the latter can be any arbitrary orbit.
 
 %-----------------------------------------------------------------------------
@@ -114,14 +100,12 @@ lattice while the latter can be any arbitrary orbit.
   \begin{figure}[tb]
   \centering
   \includegraphics{element-coord-frame.pdf}
-\caption[Element LEGO blocks.]{Element reference frame LEGO
-blocks. Shown are the blocks along with the entrance and exit
-reference frames. The physical element may be displaced in the local
-coordinate frame using offsets, tilt, and pitches. A) For straight
-line elements the two frames are colinear. B) For bends elements, the
-two frames are rotated with respect to each other. C) For \vn{patch}
-and \vn{floor_shift} elements the exit frame may be arbitrarily
-positioned with respect to the entrance.}
+\caption[Element LEGO blocks.]{Element reference frame LEGO blocks. Shown are the blocks along with
+the entrance and exit reference frames. The physical element may be displaced in the local
+coordinate frame using offsets, tilt, and pitches. A) For straight line elements the two frames are
+colinear. B) For bends elements, the two frames are rotated with respect to each other. C) For
+\vn{patch} and \vn{floor_shift} elements the exit frame may be arbitrarily positioned with respect
+to the entrance.}
   \label{f:ele.coord.frame}
   \end{figure}
 
@@ -131,14 +115,12 @@ positioned with respect to the entrance.}
   \centering
   \includegraphics{element-stream.pdf}
   \caption[Element LEGO block concatenation.]{
-Element LEGO block concatenation. A) The reference orbit is
-constructed by concatenating the LEGO blocks together. B) For normal
-(non-reversed) elements the $z$-axis is parallel with the $s$-axis. C)
-For \vn{reversed} elements the $z$-axis is antiparallel with the
-$s$-axis. By definition, the ``entrance'' and ``exit'' ends of an
-element are fixed relative to the element (relative to the $z$-axis)
-while the ``upstream'' and ``downstream'' ends are fixed relative to
-the $s$-axis.}
+Element LEGO block concatenation. A) The reference orbit is constructed by concatenating the LEGO
+blocks together. B) For normal (non-reversed) elements the $z$-axis is parallel with the
+$s$-axis. C) For \vn{reversed} elements the $z$-axis is antiparallel with the $s$-axis. By
+definition, the ``entrance'' and ``exit'' ends of an element are fixed relative to the element
+(relative to the $z$-axis) while the ``upstream'' and ``downstream'' ends are fixed relative to the
+$s$-axis.}
   \label{f:stream}
 \end{figure}
 
@@ -147,75 +129,56 @@ the $s$-axis.}
 \index{sbend}\index{rbend}
 \index{crystal}\index{mirror}\index{entrance_end}
 \index{exit_end}\index{patch}\index{floor_shift}
-Another way of thinking about the reference orbit is to imagine that
-each element has assigned to it a local coordinate reference frame
-assigned to it in the shape of a LEGO block\footnote{Thanks to Dan
-Abell for this analogy.} as shown in \fig{f:ele.coord.frame}.  Every
-block has an ``\vn{entrance}'' and an ``\vn{exit}'' reference frame.
-For most types of elements, the LEGO block for the element is
-``straight'' as shown in \fig{f:ele.coord.frame}A. That is, the
-reference curve through the block is a straight line segment and the
-length of the block is the length of the element. For a \vn{bend}
-(\sref{s:bend}), the reference curve through the block is a segment of
-a circular arc as shown in \fig{f:ele.coord.frame}B. With a zero
-\vn{ref_tilt}, the rotation axis between the entrance and exit frames of a
-bend is the $y$-axis (\sref{s:global}). For \vn{patch}
-(\sref{s:patch}), and \vn{floor_shift} (\sref{s:floor.ele}) elements,
-the exit face can can arbitrarily oriented with respect to the
-entrance end. In this case, the reference orbit between the entrance
-and exit faces is not defined.
+Another way of thinking about the reference orbit is to imagine that each element has assigned to it
+a local coordinate reference frame assigned to it in the shape of a LEGO block\footnote{Thanks to
+Dan Abell for this analogy.} as shown in \fig{f:ele.coord.frame}.  Every block has an
+``\vn{entrance}'' and an ``\vn{exit}'' reference frame.  For most types of elements, the LEGO block
+for the element is ``straight'' as shown in \fig{f:ele.coord.frame}A. That is, the reference curve
+through the block is a straight line segment and the length of the block is the length of the
+element. For a \vn{bend} (\sref{s:bend}), the reference curve through the block is a segment of a
+circular arc as shown in \fig{f:ele.coord.frame}B. With a zero \vn{ref_tilt}, the rotation axis
+between the entrance and exit frames of a bend is the $y$-axis (\sref{s:global}). For \vn{patch}
+(\sref{s:patch}), and \vn{floor_shift} (\sref{s:floor.ele}) elements, the exit face can can
+arbitrarily oriented with respect to the entrance end. In this case, the reference orbit between the
+entrance and exit faces is not defined.
 
 \index{root branch}
-Assuming for the moment that there are no \vn{fiducial} elements
-present, the construction of the reference orbit starts at the
-beginning element of a branch. If the branch is a \vn{root} branch
-(\sref{s:lattice.def}), The orientation of the beginning element can
-be set via the appropriate positioning statements
-(\sref{s:beginning}). If the branch is not a \vn{root} branch, the
-position of the beginning element is determined by the position of the
-\vn{fork} or \vn{photon_fork} element from which the branch forks
-from.
+Assuming for the moment that there are no \vn{fiducial} elements present, the construction of the
+reference orbit starts at the beginning element of a branch. If the branch is a \vn{root} branch
+(\sref{s:lattice.def}), The orientation of the beginning element can be set via the appropriate
+positioning statements (\sref{s:beginning}). If the branch is not a \vn{root} branch, the position
+of the beginning element is determined by the position of the \vn{fork} or \vn{photon_fork} element
+from which the branch forks from.
 
-Once the beginning element in a branch is positioned, succeeding
-element LEGO blocks are concatenated together as illustrated in
-\fig{f:stream}A. When a block is joined, the end of the block that is
-mated to the previous block is called the ``\vn{upstream}'' end and
-the other end which will be mated to the following block is called the
-``\vn{downstream}'' end.  Normally, the \vn{entrance} end of a block
-is used as the \vn{upstream} end the \vn{exit} end is used as the
-\vn{downstream} end as shown in \fig{f:stream}B. However, for
-\vn{reversed} elements (\sref{s:ele.reverse}), the \vn{upstream} end
-is the \vn{exit} end of the block and vice versa. To put it another
-way, the \vn{entrance} and \vn{exit} end of the blocks reference the
-physical element. Thus, for example, the \vn{e1} edge of a bend
-(\sref{s:bend}) is always at the \vn{entrance} face and the \vn{e2} is
-always at the \vn{exit}face. Also the field of a wiggler is
-(\sref{s:wiggler}) is referenced to $z = 0$ which is at the
-\vn{entrance} end. The \vn{upstream} and \vn{downstream} ends, on the
-other hand, are referenced to the reference orbit and the
-\vn{downstream} end always is at a larger $s$ position relative to the
-\vn{upstream} end.
+Once the beginning element in a branch is positioned, succeeding element LEGO blocks are
+concatenated together as illustrated in \fig{f:stream}A. When a block is joined, the end of the
+block that is mated to the previous block is called the ``\vn{upstream}'' end and the other end
+which will be mated to the following block is called the ``\vn{downstream}'' end.  Normally, the
+\vn{entrance} end of a block is used as the \vn{upstream} end the \vn{exit} end is used as the
+\vn{downstream} end as shown in \fig{f:stream}B. However, for \vn{reversed} elements
+(\sref{s:ele.reverse}), the \vn{upstream} end is the \vn{exit} end of the block and vice versa. To
+put it another way, the \vn{entrance} and \vn{exit} end of the blocks reference the physical
+element. Thus, for example, the \vn{e1} edge of a bend (\sref{s:bend}) is always at the
+\vn{entrance} face and the \vn{e2} is always at the \vn{exit}face. Also the field of a wiggler is
+(\sref{s:wiggler}) is referenced to $z = 0$ which is at the \vn{entrance} end. The \vn{upstream} and
+\vn{downstream} ends, on the other hand, are referenced to the reference orbit and the
+\vn{downstream} end always is at a larger $s$ position relative to the \vn{upstream} end.
 
-In all cases, when a LEGO block is joined to the previous block, the
-coordinate system at the mating end of the block (the \vn{upstream}
-end) will be aligned with the mating end of the previous block (the
-\vn{downstream} end). The situation where one of the blocks is
-reversed and the other one not, and neither is a \vn{patch} nor
-\vn{floor_shift} element, does not make physical sense since a
-particle which is moving downstream, when it comes to the face joining
-the blocks will have to magically reverse direction in order to travel
-through the next block. Thus, to have normal and reversed elements in
-a branch, \vn{reflection} \vn{patches} must be used in between.
-Whether it makes physical sense to put a \vn{patch} element next to
-another element is more complicated. This depends upon whether the
-other element is reversed or not and whether the \vn{patch} is
-reversed, whether the \vn{patch} is \vn{reflecting}, and the sign of
-\vn{z_offset} for the \vn{patch}. The basic criterion is that a
-particle leaving one block must enter the next. See
+In all cases, when a LEGO block is joined to the previous block, the coordinate system at the mating
+end of the block (the \vn{upstream} end) will be aligned with the mating end of the previous block
+(the \vn{downstream} end). The situation where one of the blocks is reversed and the other one not,
+and neither is a \vn{patch} nor \vn{floor_shift} element, does not make physical sense since a
+particle which is moving downstream, when it comes to the face joining the blocks will have to
+magically reverse direction in order to travel through the next block. Thus, to have normal and
+reversed elements in a branch, \vn{reflection} \vn{patches} must be used in between.  Whether it
+makes physical sense to put a \vn{patch} element next to another element is more complicated. This
+depends upon whether the other element is reversed or not and whether the \vn{patch} is reversed,
+whether the \vn{patch} is \vn{reflecting}, and the sign of \vn{z_offset} for the \vn{patch}. The
+basic criterion is that a particle leaving one block must enter the next. See
 Section~\sref{s:ex.patch} for an example.
 
-If there are \vn{fiducial} elements, the local reference frame is
-constructed beginning at these elements.
+If there are \vn{fiducial} elements, the local reference frame is constructed beginning at these
+elements.
 
 %-----------------------------------------------------------------------------
 
@@ -223,11 +186,10 @@ constructed beginning at these elements.
   \centering
   \includegraphics[width=5in]{patch-problem.pdf}
   \caption[The local reference coordinates in a \vn{patch} element.]
-{The local reference coordinates in a \vn{patch} element. The
-\vn{patch} element, shown schematically as an irregular quadrilateral,
-is sandwiched between elements \vn{ele_a} and \vn{ele_b}. \vn{L} is
-the length of the \vn{patch}. In this example, the \vn{patch} has a
-finite \vn{x_pitch}.}
+{The local reference coordinates in a \vn{patch} element. The \vn{patch} element, shown
+schematically as an irregular quadrilateral, is sandwiched between elements \vn{ele_a} and
+\vn{ele_b}. \vn{L} is the length of the \vn{patch}. In this example, the \vn{patch} has a finite
+\vn{x_pitch}.}
   \label{f:patch.prob}
 \end{figure}
 
@@ -237,50 +199,37 @@ finite \vn{x_pitch}.}
 \label{s:patch.prob}
 \index{patch}
 
-Generally, if a particle is reasonably near the reference orbit, there
-is a one-to-one mapping between the particle's position and $(x, y,
-s)$ coordinates. A \vn{patch} (\sref{s:patch}) elements with a
-non-zero \vn{x_pitch} or non-zero \vn{y_pitch} breaks the one-to-one
-mapping. This is illustrated in \fig{f:patch.prob}.  The \vn{patch}
-element, shown schematically as an, irregular quadrilateral, is
-sandwiched between elements \vn{ele_a} and \vn{ele_b}. The local
-coordinate system with origin at $\alpha$ are the coordinates at the
-end of \vn{ele_a}. The coordinates at the end of the \vn{patch} has
-its origin labeled $\gamma$. By convention, the length of the patch
-\vn{L} is taken to be the longitudinal distance from $\alpha$ to
-$\gamma$ with the \vn{patch}'s exit coordinates defining the
-longitudinal direction. The ``beginning'' point of the \vn{patch} on
-the reference orbit a distance \vn{L} from point $\gamma$ is labeled
-$\beta$ in the figure.
+Generally, if a particle is reasonably near the reference orbit, there is a one-to-one mapping
+between the particle's position and $(x, y, s)$ coordinates. A \vn{patch} (\sref{s:patch}) elements
+with a non-zero \vn{x_pitch} or non-zero \vn{y_pitch} breaks the one-to-one mapping. This is
+illustrated in \fig{f:patch.prob}.  The \vn{patch} element, shown schematically as an, irregular
+quadrilateral, is sandwiched between elements \vn{ele_a} and \vn{ele_b}. The local coordinate system
+with origin at $\alpha$ are the coordinates at the end of \vn{ele_a}. The coordinates at the end of
+the \vn{patch} has its origin labeled $\gamma$. By convention, the length of the patch \vn{L} is
+taken to be the longitudinal distance from $\alpha$ to $\gamma$ with the \vn{patch}'s exit
+coordinates defining the longitudinal direction. The ``beginning'' point of the \vn{patch} on the
+reference orbit a distance \vn{L} from point $\gamma$ is labeled $\beta$ in the figure.
 
-In the local $(x, y, s)$ coordinate system a particle at $\alpha$ will
-have some value $s = s_0$. A particle at point $\beta$ will have the
-same value $s = s_0$ and a particle at $\gamma$ will have $s = s_1 =
-s_0 + L$. A particle at point $r_a$ in \fig{f:patch.prob} illustrates
-the problem of assigning $(x, y, s)$ coordinates to a given
-position. If the particle is considered to be within the region of
-\vn{ele_a}, the particle's $s$ position will be $s_{a2}$ which is
-greater than the value $s_0$ at the exit end of the element. This
-contradicts the expectation that particles within \vn{ele_a} will have
-$s \le s_0$.  If, on the other hand, the particle is considered to be
-within the \vn{patch} region, the particle's $s$ position will be
-$s_{a1}$ which is less than the value $s_0$ at the entrance to the
-patch. This contradicts the expectation that a particles within the
+In the local $(x, y, s)$ coordinate system a particle at $\alpha$ will have some value $s = s_0$. A
+particle at point $\beta$ will have the same value $s = s_0$ and a particle at $\gamma$ will have $s
+= s_1 = s_0 + L$. A particle at point $r_a$ in \fig{f:patch.prob} illustrates the problem of
+assigning $(x, y, s)$ coordinates to a given position. If the particle is considered to be within
+the region of \vn{ele_a}, the particle's $s$ position will be $s_{a2}$ which is greater than the
+value $s_0$ at the exit end of the element. This contradicts the expectation that particles within
+\vn{ele_a} will have $s \le s_0$.  If, on the other hand, the particle is considered to be within
+the \vn{patch} region, the particle's $s$ position will be $s_{a1}$ which is less than the value
+$s_0$ at the entrance to the patch. This contradicts the expectation that a particles within the
 \vn{patch} will have $s \ge s_0$.
 
-To resolve this problem, \bmad considers a particle at position $r_a$
-to be within the \vn{patch} region. This means that there is, in
-theory, no lower limit to the $s$-position that a particle in the
-\vn{patch} region can have. This also implies that there is a
-discontinuity in the $s$-position of a particle crossing the exit face
-of \vn{ele1}. Typically, when particles are translated from the exit
-face of one element to the exit face of the next, this \vn{patch}
-problem does not appear. It only appears when the track between faces
-is considered.
+To resolve this problem, \bmad considers a particle at position $r_a$ to be within the \vn{patch}
+region. This means that there is, in theory, no lower limit to the $s$-position that a particle in
+the \vn{patch} region can have. This also implies that there is a discontinuity in the $s$-position
+of a particle crossing the exit face of \vn{ele1}. Typically, when particles are translated from the
+exit face of one element to the exit face of the next, this \vn{patch} problem does not appear. It
+only appears when the track between faces is considered.
 
-Notice that a particle at position $r_b$ in \fig{f:patch.prob} can
-simultaneously be considered to be in either \vn{ele_a} or the
-\vn{patch}. While this creates an ambiguity it does not complicate
+Notice that a particle at position $r_b$ in \fig{f:patch.prob} can simultaneously be considered to
+be in either \vn{ele_a} or the \vn{patch}. While this creates an ambiguity it does not complicate
 tracking.
 
 %-----------------------------------------------------------------------------
@@ -288,51 +237,51 @@ tracking.
 \label{s:global}
 \index{global coordinates|hyperbf}
 
-The Cartesian \vn{global} coordinate system, also called the `floor''
-coordinate system, is the coordinate system ``attached to the earth''
-that is used to describe the local coordinate system. Following the
-\mad\ convention, the \vn{global} coordinate axis are labeled $(X, Y,
-Z)$. Conventionally, $Y$ is the ``vertical'' coordinate and $(X, Z)$
-are the ``horizontal'' coordinates. To describe how the local
-coordinate system is oriented within the global coordinate system,
-each point on the $s$-axis of the local coordinate system is
-characterized by its $(X, Y, Z)$ position and by three angles $\theta$,
-$\phi$, and $\psi$ that describe the orientation of the local coordinate axes
-as shown in \fig{f:global.coords}. These three angles are defined as
+The Cartesian \vn{global} coordinate system, also called the `floor'' coordinate system, is the
+coordinate system ``attached to the earth'' that is used to describe the local coordinate
+system. Following the \mad\ convention, the \vn{global} coordinate axis are labeled $(X, Y,
+Z)$. Conventionally, $Y$ is the ``vertical'' coordinate and $(X, Z)$ are the ``horizontal''
+coordinates. To describe how the local coordinate system is oriented within the global coordinate
+system, each point on the $s$-axis of the local coordinate system is characterized by its $(X, Y,
+Z)$ position and by three angles $\theta(s)$, $\phi(s)$, and $\psi(s)$ that describe the orientation
+of the local coordinate axes as shown in \fig{f:global.coords}. These three angles are defined as
 follows:
 \begin{description}
-\item[$\theta$ Azimuth angle:] Angle in the $(X, Z)$ plane 
-between the $Z$--axis and the projection of the $z$--axis onto the
-$(X, Z)$ plane. A positive angle of $\theta = \pi/2$ corresponds to the
-projected $z$--axis pointing in the positive $X$ direction.
-\item[$\phi$ Pitch (elevation) angle:] Angle between the $z$--axis 
-and the $(X,Z)$ plane. A positive angle of $\phi = \pi/2$ corresponds to
-the $z$--axis pointing in the positive $Y$ direction.
-\item[$\psi$ Roll angle:] Angle of the $x$--axis with respect 
-to the line formed by the
-intersection of the $(X, Z)$ plane with the $(x, y)$ plane. A
-positive $\psi$ forms a right--handed screw with the $z$--axis.
+%
+\item[$\theta(s)$ Azimuth angle:] 
+Angle in the $(X, Z)$ plane between the $Z$--axis and the projection of the $z$--axis onto the $(X,
+Z)$ plane. A positive angle of $\theta = \pi/2$ corresponds to the projected $z$--axis pointing in
+the positive $X$ direction.
+%
+\item[$\phi(s)$ Pitch (elevation) angle:] 
+Angle between the $z$--axis and the $(X,Z)$ plane.  A positive angle of $\phi = \pi/2$ corresponds
+to the $z$--axis pointing in the positive $Y$ direction.
+%
+\item[$\psi(s)$ Roll angle:] 
+Angle of the $x$--axis with respect to the line formed by the intersection of the $(X, Z)$ plane
+with the $(x, y)$ plane. A positive $\psi$ forms a right--handed screw with the $z$--axis.
 \end{description}
 
 \begin{figure}[tb]
-\centering
-\includegraphics{global-coords.pdf}
-\caption[The Global Coordinate System]{The Global Coordinate System.}
-\label{f:global.coords}
+  \centering
+  \includegraphics{global-coords.pdf}
+  \caption[The Global Coordinate System]{
+The local (reference) coordinate system (purple), which is a function of $s$ along the reference
+orbit, is described in the global coordinate system (black) by a position $(X(s), Y(s), Z(s))$ and
+and by angles $\theta(s)$, $\phi(s)$, and $\psi(s)$.
+  }
+  \label{f:global.coords}
 \end{figure}
 
 \index{beginning statement}
 \index{reference orbit!origin in global coordinates}
 \index{global coordinates!reference orbit origin}
-By default, at $s = 0$, the reference orbit's origin coincides with
-the $(X, Y, Z)$ origin and the $x$, $y$, and $z$ axes correspond to
-the $X$, $Y$, and $Z$ axes respectively. $\theta$ decreases as one
-follows the reference orbit when going through a horizontal bend with
-a positive bending angle. This corresponds to $x$ pointing radially
-outward. Without any vertical bends, the $Y$ and $y$ axes will
-coincide, and $\phi$ and $\psi$ will both be zero. The \vn{beginning}
-statement (\sref{s:beginning}) in a lattice file can be use to
-override these defaults.
+By default, at $s = 0$, the reference orbit's origin coincides with the $(X, Y, Z)$ origin and the
+$x$, $y$, and $z$ axes correspond to the $X$, $Y$, and $Z$ axes respectively. $\theta$ decreases as
+one follows the reference orbit when going through a horizontal bend with a positive bending
+angle. This corresponds to $x$ pointing radially outward. Without any vertical bends, the $Y$ and
+$y$ axes will coincide, and $\phi$ and $\psi$ will both be zero. The \vn{beginning} statement
+(\sref{s:beginning}) in a lattice file can be use to override these defaults.
 
 \index{MAD}
 Following \mad, the global position of an element is characterized by
@@ -343,10 +292,9 @@ a vector $\bfV$
     X \\ Y \\ Z 
   \end{pmatrix}
 \Endeq
-The orientation of an element is described by a unitary rotation matrix $\bfW$. The column
-vectors of $\bfW$ are the unit vectors spanning the local coordinate axes in the order
-$(x, y, z)$. $\bfW$ can be expressed in terms of the orientation angles $\theta$, $\phi$,
-and $\psi$ via the formula
+The orientation of an element is described by a unitary rotation matrix $\bfW$. The column vectors
+of $\bfW$ are the unit vectors spanning the local coordinate axes in the order $(x, y, z)$. $\bfW$
+can be expressed in terms of the orientation angles $\theta$, $\phi$, and $\psi$ via the formula
 \Begineq
   \bfW = \bfR_{y}(\theta) \; \bfR_{-x}(\phi) \; \bfR_{z}(\psi)
   \label{wwww}
@@ -373,11 +321,11 @@ where
   \end{pmatrix}
   \label{wtt0t}
 \Endeq
-Notice that $\bfR_{-x}(\phi)$, for positive $\phi$, represents a
-rotation around the negative $x$-axis.
+Notice that $\bfR_{-x}(\phi)$, for positive $\phi$, represents a rotation around the negative
+$x$-axis.
 
-An alternative representation of the $\bfW$ matrix (or any other rotation matrix) is to
-specify the axis $\Bf u$ (normalized to 1) and angle of rotation $\beta$
+An alternative representation of the $\bfW$ matrix (or any other rotation matrix) is to specify the
+axis $\Bf u$ (normalized to 1) and angle of rotation $\beta$
 \Begineq
   \bfW = \begin{pmatrix}
     \cos \beta + u_x^2 \left(1 - \cos \beta \right) & 

@@ -7,7 +7,7 @@ use duan_zhe_map, only: tree_element_zhe => tree_element, probe_zhe => probe, tr
                         zhe_ini, zhe_iseed
 
 type ptc_map_with_rad_struct
-  type (tree_element_zhe) sub_map(3)
+  type (tree_element_zhe) sub_map(3)    ! Type tree_element in PTC
   character(200) lattice_file     ! Name of the lattice file
   integer map_order
   logical radiation_damping_on
@@ -131,8 +131,17 @@ if (present(orbit1)) then
 else
   orb = 0
   call find_orbit_x(orb, STATE, 1.0d-8, fibre1 = f1)
+  if (.not. check_stable) then
+    call out_io (s_error$, r_name, 'CANNOT FIND CLOSED ORBIT WHEN TRCKING WITH RADIATION IN PTC!')
+    return
+  endif
+
   orb0 = 0
   call find_orbit_x(orb0, STATE0, 1.0d-8, fibre1 = f1)
+  if (.not. check_stable) then
+    call out_io (s_error$, r_name, 'CANNOT FIND CLOSED ORBIT WHEN TRCKING WITHOUT RADIATION IN PTC!')
+    return
+  endif
 endif
 
 call set_ptc_quiet(0, set$, val_save)

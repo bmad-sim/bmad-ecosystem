@@ -97,14 +97,12 @@ tracking the particles or antiparticles.
   \index{e_tot}\index{p0c}
   \index{lcavity}\index{patch}
   \item[{parameter[e_tot], parameter[p0c]}] \Newline
-The \vn{parameter[e_tot]} and \vn{parameter[p0c]} are the reference
-total energy and momentum at the start of the lattice. Each element
-in a lattice has an individual reference \vn{e_tot} and \vn{p0c} attributes
-which are dependent parameters. The reference energy and momentum will only
-change between \vn{LCavity} or \vn{Patch} elements. The starting
-reference energy, if not set, will be set to 1000 time the particle
-rest energy.  Note: \vn{beginning[e_tot]} and \vn{beginning[p0c]} (\sref{s:beginning}) are
-equivalent to \vn{parameter[e_tot]} and \vn{parameter[p0c]}.
+The \vn{parameter[e_tot]} and \vn{parameter[p0c]} are the reference total energy and momentum at the
+start of the lattice. Each element in a lattice has an individual reference \vn{e_tot} and \vn{p0c}
+attributes which are dependent parameters. The reference energy and momentum will only change
+between \vn{LCavity} or \vn{Patch} elements. The starting reference energy, if not set, will be set
+to 1000 time the particle rest energy.  Note: \vn{beginning[e_tot]} and \vn{beginning[p0c]}
+(\sref{s:beginning}) are equivalent to \vn{parameter[e_tot]} and \vn{parameter[p0c]}.
   \index{electric_dipole_moment}
   \item[{parameter[electric_dipole_moment]}] \Newline
 The \vn{electric_dipole_moment} sets the electric dipole moment value $\eta$ for use
@@ -117,24 +115,23 @@ Valid \vn{geometry} settings are
   closed  ! Default w/o LCavity element present.
   open    ! Default if LCavity elements present.
 \end{example}
-A machine with a \vn{closed} geometry is something like a storage ring
-where the particle beam recirculates through the machine.  A machine
-with an \vn{open} geometry is something like a linac.  In this case,
-the initial Twiss parameters need to be specified in the lattice
-file. If the \vn{geometry} is not specified, \vn{closed} is the
-default. The exception is that if there is an \vn{Lcavity} element
-present or the reference particle is a photon, \vn{open} will be the
-default.
+A machine with a \vn{closed} geometry is something like a storage ring where the particle beam
+recirculates through the machine.  A machine with an \vn{open} geometry is something like a linac.
+In this case, if the reference particle is not a photon, the initial Twiss parameters need to be
+specified in the lattice file using the \vn{beginning} statement (\sref{s:beginning}). If the
+\vn{geometry} is not specified, \vn{closed} is the default. The exception is that if there is an
+\vn{Lcavity} element present or the reference particle is a photon, \vn{open} will be the default.
 
-Notice that by specifying a \vn{closed} geometry it {\em does} not
-mean that the downstream end of the last element of the lattice has
-the same global coordinates (\sref{s:global}) as the global
-coordinates at the beginning. Setting the geometry to \vn{closed}
-simply signals to a program to compute closed orbits and periodic
-Twiss parameters as opposed to calculating orbits and Twiss parameters
-based upon initial orbit and Twiss parameters at the beginning of the
-lattice. And indeed, it is sometimes convenient to treat lattices as
-closed even though there is no closure in the global coordinate sense.
+Notice that by specifying a \vn{closed} geometry it {\em does} not mean that the downstream end of
+the last element of the lattice has the same global coordinates (\sref{s:global}) as the global
+coordinates at the beginning. Setting the geometry to \vn{closed} simply signals to a program to
+compute closed orbits and periodic Twiss parameters as opposed to calculating orbits and Twiss
+parameters based upon initial orbit and Twiss parameters at the beginning of the lattice. And
+indeed, it is sometimes convenient to treat lattices as closed even though there is no closure in
+the global coordinate sense. For example, when a machine has a number of repeating
+``super-periods'', it may be convenient to only use one period in a simulation. Since \bmad ignores
+closure in the global coorindate sense, it is up to the user to ensure that a lattice is closed in
+the global sense if that is desired.
 
 Note: \vn{geometry} used to be called \vn{lattice_type}, \vn{closed}
 used to be called \vn{circular_lattice} and \vn{open} used to be
