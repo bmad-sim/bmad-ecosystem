@@ -3437,10 +3437,17 @@ case (rfcavity$, lcavity$)
     ptc_key%list%cavity_totalpath = 1  ! 
   case (standing_wave$)
     ptc_key%magnet = 'rfcavity'
-    ptc_key%list%volt = 2d-6 * e_accel_field(ele, voltage$)
-    ptc_key%list%n_bessel = -1   ! Triggers Bmad compatible cavity.
     ptc_key%list%cavity_totalpath = 1  ! 
-    if (ptc_key%nstep == 1) ptc_key%nstep = 1  ! Bug with nstep = 1.
+    if (ptc_key%nstep == 1) ptc_key%nstep = 5  ! Avoid bug with nstep = 1.
+    ! If an element has a length that is less than the pillbox length then avoid drifts with negative
+    ! length and use a "fake" RF cavity model. 
+    if (tracking_uses_end_drifts(ele)) then  ! Has end drifts means end drifts have positive length.
+      ptc_key%list%n_bessel = -1   ! pillbox cavity.
+      ptc_key%list%volt = 2d-6 * e_accel_field(ele, voltage$)
+    else
+      ptc_key%list%n_bessel = 1 ! Fake model
+      ptc_key%list%volt = 1d-6 * e_accel_field(ele, voltage$)
+    endif
   case (ptc_standard$)
     ptc_key%magnet = 'rfcavity'
     ptc_key%list%volt = 1d-6 * e_accel_field(ele, voltage$)
