@@ -237,7 +237,8 @@ if (lttp%need_map .and. map_file_exists) then
   else
     ! Wait until master has created proper map if needed
     do
-      if (rad_map%radiation_damping_on == bmad_com%radiation_damping_on .and. rad_map%map_order == lttp%map_order) exit
+      if (rad_map%radiation_damping_on .eqv. bmad_com%radiation_damping_on .and. &
+                                                            rad_map%map_order .eqv. lttp%map_order) exit
       call milli_sleep(1000)
       call ptc_read_map_with_radiation(lttp%map_file, rad_map)
     enddo
