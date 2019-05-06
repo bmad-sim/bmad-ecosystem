@@ -20,6 +20,7 @@ integer, parameter :: is_done_tag$ = 1001
 type ltt_params_struct
   type (lat_ele_loc_struct) :: start
   character(20) :: simulation_mode = ''
+  character(20) :: tracking_method = 'STANDARD'
   character(40) :: ele_start_name = ''
   character(200) :: lat_file = ''
   character(200) :: common_master_input_file = ''
@@ -38,7 +39,6 @@ type ltt_params_struct
   real(rp) :: a_emittance = 0   ! Used for space charge calculation.
   real(rp) :: b_emittance = 0   ! Used for space charge calculation.
   logical :: rfcavity_on = .true.
-  logical :: use_1_turn_map = .false.
   logical :: add_closed_orbit_to_init_position = .true.
   logical :: output_initial_position = .false.
   logical :: merge_particle_output_files = .false.
@@ -48,6 +48,8 @@ type ltt_params_struct
   integer :: mpi_n_particles_per_run = 0       ! Number of particles per run.
   logical :: using_mpi = .false.
   logical :: debug = .false.
+  logical :: need_map = .false.     ! Internal var
+  logical :: write_map = .false.
 end type
 
 type ltt_sum_data_struct
@@ -69,21 +71,33 @@ type (ltt_params_struct) ltt
 type (lat_struct) lat
 type (beam_init_struct) beam_init
 
-integer ir
-character(200) init_file
+integer ir, i
+character(200) init_file, arg
 
 namelist / params / bmad_com, beam_init, ltt
 
 ! Parse command line
 
-init_file = 'long_term_tracking.init'
+init_file = ''
 
-if (cesr_iargc() == 1) then
-  call cesr_getarg(1, init_file)
-elseif (cesr_iargc() > 1) then
-  print '(a)', 'Extra stuff on the command line!? Stopping here.'
-  stop
-endif
+i = 0
+do while (i < cesr_iargc())
+  i = i + 1
+  call cesr_getarg(i, arg)
+  select case (arg)
+  case ('-write')
+    ltt%write_map = .true.
+  case default
+    if (init_file /= '') then
+      print '(2a)', 'Extra stuff on the command line: ', quote(arg)
+      print '(a)',  'Stopping here.'
+      stop
+    endif
+    init_file = arg
+  end select
+end do
+
+if (init_file == '') init_file = 'long_term_tracking.init'
 
 ! Read parameters
 
@@ -131,17 +145,31 @@ open (1, file = init_file, status = 'old', action = 'read')
 read (1, nml = params)  
 close (1)
 
+! map file logic
+
+if (ltt%map_file(1:6) == 'WRITE:') then
+  ltt%map_file = ltt%map_file(7:)
+  ltt%write_map = .true.
+endif
+
+if (ltt%write_map) ltt%need_map = .true.
+if (ltt%tracking_method == 'MAP') ltt%need_map = .true.
+if (ltt%simulation_mode == 'CHECK') ltt%need_map = .true.
+if (ltt%simulation_mode == 'STAT') ltt%need_map = .false.
+
+if (ltt%need_map .and. ltt%map_file == '') write (ltt%map_file, '(a, i0, a)') 'Order', ltt%map_order, '.map'
+
 end subroutine ltt_init_params
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_init_tracking(lttp, lat, closed_orb, map_with_rad)
+subroutine ltt_init_tracking(lttp, lat, closed_orb, rad_map)
 
 type (ltt_params_struct) lttp
 type (lat_struct), target :: lat
-type (ptc_map_with_rad_struct) map_with_rad
+type (ptc_map_with_rad_struct) rad_map
 type (ele_pointer_struct), allocatable :: eles(:)
 type (coord_struct), allocatable :: closed_orb(:), orb(:)
 type (branch_struct), pointer :: branch
@@ -151,36 +179,7 @@ real(rp) time
 
 integer n_loc, ix_ele_end, ix_ele_start, ix_branch
 
-logical err, ok
-
-character(20) map_mode
-
-!
-
-if (lttp%map_file(1:6) == 'WRITE:') then
-  lttp%map_file = lttp%map_file(7:)
-  map_mode = 'write'
-  if (lttp%mpi_rank /= master_rank$) map_mode = 'read'  ! Master has created the file
-
-elseif (lttp%map_file == '') then
-  if (lttp%using_mpi) then
-    lttp%map_file = 'map.dat'
-    map_mode = 'write'
-    if (lttp%mpi_rank /= master_rank$) map_mode = 'read'  ! Master has created the file
-  else
-    map_mode = 'create'
-  endif
-  
-else
-  inquire (file = lttp%map_file, exist = ok)
-  if (ok) then
-    map_mode = 'read'
-  else
-    map_mode = 'write'
-    print *, 'Map_file does not exist: ', trim(lttp%map_file)
-    print *, 'A map_file will be created.'
-  endif
-endif
+logical err, map_file_exists
 
 !
 
@@ -211,32 +210,51 @@ call twiss_and_track (lat, closed_orb, ix_branch = ix_branch)
 
 ! Init 1-turn map.
 
-if (map_mode == 'write' .or. ((lttp%use_1_turn_map .or. lttp%simulation_mode == 'CHECK') .and. lttp%simulation_mode /= 'STAT')) then
-  lttp%use_1_turn_map = .true.
-  if (map_mode == 'read') then
-    call ptc_read_map_with_radiation(lttp%map_file, map_with_rad)
-    if (lttp%mpi_rank == master_rank$) then
-      print '(2a)',    'Map read in from file: ', trim(lttp%map_file)
-      print '(2a)',    'Lattice file used for map:         ', trim(map_with_rad%lattice_file)
-      print '(a, l1)', 'Map saved with radiation damping:  ', map_with_rad%radiation_damping_on
-    endif
+inquire (file = lttp%map_file, exist = map_file_exists)
+
+if (.not. lttp%rfcavity_on) then
+  if (lttp%need_map) then
+    print '(a)', 'RF will not be turned OFF since 1-turn map is in use!'
   else
-    if (.not. lttp%rfcavity_on) print '(a)', 'RF will not be turned OFF since 1-turn map is in use!'
-    print '(a)', 'Creating map file...'
-    call run_timer ('START')
-    call lat_to_ptc_layout (lat)
-    call ptc_setup_map_with_radiation (map_with_rad, ele_start, ele_start, lttp%map_order, bmad_com%radiation_damping_on)
-    call run_timer ('READ', time)
-    print '(a, f8.2)', 'Map setup time (min)', time/60
-    if (map_mode == 'write') then
-      call ptc_write_map_with_radiation(lttp%map_file, map_with_rad)
-      print '(2a)', 'Created map file: ', trim(lttp%map_file)
-    endif
+    if (.not. lttp%rfcavity_on) call set_on_off (rfcavity$, lat, off$)
+  endif
 endif
 
-else
-  lttp%use_1_turn_map = .false.
-  if (.not. lttp%rfcavity_on) call set_on_off (rfcavity$, lat, off$)
+if (lttp%need_map .and. map_file_exists) then
+  call ptc_read_map_with_radiation(lttp%map_file, rad_map)
+
+  if (lttp%mpi_rank == master_rank$) then
+    print '(2a)',   'Map read in from file: ', trim(lttp%map_file)
+    print '(2a)',   'Lattice file used for map:         ', trim(rad_map%lattice_file)
+    if (rad_map%radiation_damping_on /= bmad_com%radiation_damping_on .or. rad_map%map_order /= lttp%map_order) then
+      print '(a)',  'Map in file does not have the same map order or radiation_damping_on setting as in input files.'
+      print '(a)',  'Will make a new map...'
+    else
+      lttp%need_map = .false.
+    endif
+
+  else
+    ! Wait until master has created proper map if needed
+    do
+      if (rad_map%radiation_damping_on == bmad_com%radiation_damping_on .and. rad_map%map_order == lttp%map_order) exit
+      call milli_sleep(1000)
+      call ptc_read_map_with_radiation(lttp%map_file, rad_map)
+    enddo
+  endif
+endif
+
+if (lttp%need_map) then
+  print '(a)', 'Creating map...'
+  call run_timer ('START')
+  call lat_to_ptc_layout (lat)
+  call ptc_setup_map_with_radiation (rad_map, ele_start, ele_start, lttp%map_order, bmad_com%radiation_damping_on)
+  call run_timer ('READ', time)
+  print '(a, f8.2)', 'Map setup time (min)', time/60
+endif
+
+if (lttp%write_map) then
+  call ptc_write_map_with_radiation(lttp%map_file, rad_map)
+  print '(2a)', 'Created map file: ', trim(lttp%map_file)
 endif
 
 end subroutine ltt_init_tracking
@@ -245,10 +263,10 @@ end subroutine ltt_init_tracking
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_print_inital_info (lttp, map_with_rad)
+subroutine ltt_print_inital_info (lttp, rad_map)
 
 type (ltt_params_struct) lttp
-type (ptc_map_with_rad_struct) map_with_rad
+type (ptc_map_with_rad_struct) rad_map
 
 ! Print some info.
 
@@ -258,8 +276,8 @@ print '(a, a)',  'simulation_mode: ', lttp%simulation_mode
 print '(a, l1)', 'Radiation Damping:           ', bmad_com%radiation_damping_on
 print '(a, l1)', 'Stochastic Fluctuations:     ', bmad_com%radiation_fluctuations_on
 print '(a, l1)', 'Spin_tracking_on:            ', bmad_com%spin_tracking_on
-if (lttp%use_1_turn_map) then
-  print '(a, i0)', 'Map order:          ', map_with_rad%map_order
+if (lttp%need_map) then
+  print '(a, i0)', 'Map order:          ', rad_map%map_order
 endif
 print '(a)', '--------------------------------------'
 
@@ -269,11 +287,11 @@ end subroutine ltt_print_inital_info
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_run_check_mode (lttp, lat, map_with_rad, beam_init, closed_orb)
+subroutine ltt_run_check_mode (lttp, lat, rad_map, beam_init, closed_orb)
 
 type (ltt_params_struct) lttp
 type (lat_struct), target :: lat
-type (ptc_map_with_rad_struct) map_with_rad
+type (ptc_map_with_rad_struct) rad_map
 type (beam_init_struct) beam_init
 type (coord_struct), allocatable :: closed_orb(:), orb(:)
 type (coord_struct) orb_end, orb_init
@@ -294,17 +312,21 @@ if (lttp%add_closed_orbit_to_init_position) orb_init%vec = orb_init%vec + closed
 orb_end = orb_init
 orb(ix_ele_start) = orb_init
 
-call ptc_track_map_with_radiation (orb_end, map_with_rad)
+call ptc_track_map_with_radiation (orb_end, rad_map)
 call track_many (lat, orb, ix_ele_start, ix_ele_start, 1, lttp%start%ix_branch, track_state)
 
-print '(a)', 'Phase Space at Track End:'
-print '(a, 6f14.8)', '1-turn map tracking:', orb_end%vec
+print '(a, 6f14.8)', 'Map closed orbit at start: ', rad_map%sub_map(1)%fix0
+print '(a, 6f14.8)', 'Bmad closed orbit at start:', closed_orb(ix_ele_start)%vec
+
+print *
+print '(a)', 'Phase Space at Track End (Bmad closed orbit used with map tracking:'
+print '(a, 6f14.8)', 'Map tracking:       ', orb_end%vec
 print '(a, 6f14.8)', 'Ele-by-ele tracking:', orb(ix_ele_start)%vec
 print '(a, 6f14.8)', 'Diff:               ', orb_end%vec - orb(ix_ele_start)%vec
 
 print *
 print '(a)', 'Spin at Track End:'
-print '(a, 6f14.8)', '1-turn map tracking:', orb_end%spin
+print '(a, 6f14.8)', 'Map tracking:       ', orb_end%spin
 print '(a, 6f14.8)', 'Ele-by-ele tracking:', orb(ix_ele_start)%spin
 print '(a, 6f14.8)', 'Diff:               ', orb_end%spin - orb(ix_ele_start)%spin
 
@@ -314,7 +336,7 @@ end subroutine ltt_run_check_mode
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_run_single_mode (lttp, lat, beam_init, closed_orb, map_with_rad)
+subroutine ltt_run_single_mode (lttp, lat, beam_init, closed_orb, rad_map)
 
 type (ltt_params_struct) lttp
 type (lat_struct), target :: lat
@@ -323,7 +345,7 @@ type (beam_init_struct) beam_init
 type (coord_struct), allocatable :: closed_orb(:), orb(:)
 type (coord_struct) orb_end
 type (ele_struct), pointer :: ele
-type (ptc_map_with_rad_struct) map_with_rad
+type (ptc_map_with_rad_struct) rad_map
 type (ele_struct), pointer :: ele_start
 
 real(rp) average(6), sigma(6,6)
@@ -347,26 +369,39 @@ call ltt_setup_space_charge(lttp, lat, beam_init, closed_orb)
 call reallocate_coord (orb, lat)
 call init_coord (orb(ix_ele_start), beam_init%center, ele_start, downstream_end$, lat%param%particle, spin = beam_init%spin)
 
-if (lttp%add_closed_orbit_to_init_position) orb(ix_ele_start)%vec = orb(ix_ele_start)%vec + closed_orb(ix_ele_start)%vec
+if (lttp%add_closed_orbit_to_init_position) then
+  select case (lttp%tracking_method)
+  case ('MAP');       orb(ix_ele_start)%vec = orb(ix_ele_start)%vec + rad_map%sub_map(1)%fix0
+  case ('STANDARD');  orb(ix_ele_start)%vec = orb(ix_ele_start)%vec + closed_orb(ix_ele_start)%vec
+  case ('PTC');       call err_exit  ! Not yet implemented 
+  end select
+endif
 
 fmt = '(i6, 6es16.8, 3x, 3f10.6)'
 iu_out = lunget()
 if (lttp%particle_output_file == '') lttp%particle_output_file = 'single.dat'
 open(iu_out, file = lttp%particle_output_file, recl = 200)
-call ltt_write_this_header(lttp, iu_out, map_with_rad, 1)
+call ltt_write_this_header(lttp, iu_out, rad_map, 1)
 write (iu_out, '(a)') '# Turn |            x              px               y              py               z              pz    |   spin_x    spin_y    spin_z'
 write (iu_out, fmt) 0, orb(ix_ele_start)%vec, orb(ix_ele_start)%spin
 
 do i_turn = 1, lttp%n_turns
-  if (lttp%use_1_turn_map) then
+  select case (lttp%tracking_method)
+  case ('MAP')
     orb_end = orb(ix_ele_start)
-    call ptc_track_map_with_radiation (orb_end, map_with_rad)
+    call ptc_track_map_with_radiation (orb_end, rad_map)
     is_lost = orbit_too_large(orb_end)
-  else
+  case ('STANDARD')
     call track_many (lat, orb, ix_ele_start, ix_ele_start, 1, ix_branch, track_state)
     is_lost = (track_state /= moving_forward$)
     orb_end = orb(ix_ele_start)
-  endif
+  case ('PTC')
+    print *, 'Not yet implemented...'
+    stop
+  case default
+    print *, 'Unknown tracking_method: ' // lttp%tracking_method
+    stop
+  end select
 
   if (lttp%output_every_n_turns > 0 .and. modulo(i_turn, lttp%output_every_n_turns) == 0) then
     write (iu_out, fmt) i_turn, orb_end%vec, orb_end%spin
@@ -375,7 +410,7 @@ do i_turn = 1, lttp%n_turns
   if (is_lost) then
     ele => branch%ele(track_state)
     print '(a, i0, 8a)', 'Particle lost at turn: ', i_turn
-    if (.not. lttp%use_1_turn_map) print '(5a)', 'Lost at element: ', trim(ele%name), ' (', ele_location(ele), '), State: ', coord_state_name(orb(track_state)%state)
+    if (lttp%tracking_method /= 'MAP') print '(5a)', 'Lost at element: ', trim(ele%name), ' (', ele_location(ele), '), State: ', coord_state_name(orb(track_state)%state)
     exit
   endif
 
@@ -399,13 +434,13 @@ end subroutine ltt_run_single_mode
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_run_bunch_mode (lttp, lat, beam_init, closed_orb, map_with_rad, sum_data_array)
+subroutine ltt_run_bunch_mode (lttp, lat, beam_init, closed_orb, rad_map, sum_data_array)
 
 type (ltt_params_struct) lttp
 type (lat_struct) lat
 type (beam_init_struct) beam_init
 type (coord_struct), allocatable :: closed_orb(:), orb(:)
-type (ptc_map_with_rad_struct) map_with_rad
+type (ptc_map_with_rad_struct) rad_map
 type (bunch_struct), target :: bunch, bunch_init
 type (coord_struct), pointer :: p
 type (ltt_sum_data_struct), allocatable, optional :: sum_data_array(:)
@@ -439,7 +474,13 @@ if (lttp%mpi_rank == master_rank$) print '(a, i8)',   'n_particle             = 
 
 do n = 1, size(bunch%particle)
   p => bunch%particle(n)
-  if (lttp%add_closed_orbit_to_init_position) p%vec = p%vec + closed_orb(ix_ele_start)%vec
+  if (lttp%add_closed_orbit_to_init_position) then
+    select case (lttp%tracking_method)
+    case ('MAP');       p%vec = p%vec + rad_map%sub_map(1)%fix0
+    case ('STANDARD');  p%vec = p%vec + closed_orb(ix_ele_start)%vec
+    case ('PTC');       call err_exit  ! Not yet implemented 
+    end select
+  endif
 enddo
 
 n_print_dead_loss = max(1, nint(lttp%print_on_dead_loss * size(bunch%particle)))
@@ -449,19 +490,27 @@ n_live_old = size(bunch%particle)
 
 ! 
 
-if (.not. lttp%using_mpi) call ltt_write_particle_data (lttp, 0, bunch, map_with_rad)
+if (.not. lttp%using_mpi) call ltt_write_particle_data (lttp, 0, bunch, rad_map)
 call ltt_calc_bunch_sums (lttp, 0, bunch, sum_data_arr)
 
 time0 = 0
 
 do i_turn = 1, lttp%n_turns
-  if (lttp%use_1_turn_map) then
+  select case (lttp%tracking_method)
+  case ('MAP')
     do ip = 1, size(bunch%particle)
-      call ptc_track_map_with_radiation (bunch%particle(ip), map_with_rad)
+      call ptc_track_map_with_radiation (bunch%particle(ip), rad_map)
+      if (lttp%debug .and. ip == 1) print '(i6, 6f15.9)', i_turn, bunch%particle(ip)%vec
     enddo
-  else
+  case ('STANDARD')
     call track_bunch (lat, bunch, ele_start, ele_start, err_flag)
-  endif
+  case ('PTC')
+    print *, 'Not yet implemented...'
+    stop
+  case default
+    print *, 'Unknown tracking_method: ' // lttp%tracking_method
+    stop
+  end select
 
   n_live = count(bunch%particle%state == alive$)
   if ((n_live - n_live_old) >= n_print_dead_loss) then
@@ -493,7 +542,7 @@ do i_turn = 1, lttp%n_turns
     time0 = time
   endif
 
-  if (.not. lttp%using_mpi) call ltt_write_particle_data (lttp, i_turn, bunch, map_with_rad)
+  if (.not. lttp%using_mpi) call ltt_write_particle_data (lttp, i_turn, bunch, rad_map)
   call ltt_calc_bunch_sums (lttp, i_turn, bunch, sum_data_arr)
 end do
 
@@ -595,7 +644,7 @@ real(rp) n_particle
 
 if (.not. bmad_com%space_charge_on) return
 
-if (lttp%use_1_turn_map) then
+if (lttp%tracking_method == 'MAP') then
   print *, 'NOTE: Space effects are not present when using a 1-turn map for tracking!'
   return
 endif
@@ -618,11 +667,11 @@ end subroutine ltt_setup_space_charge
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_particle_data (lttp, i_turn, bunch, map_with_rad)
+subroutine ltt_write_particle_data (lttp, i_turn, bunch, rad_map)
 
 type (ltt_params_struct) lttp
 type (bunch_struct), target :: bunch, bunch_init
-type (ptc_map_with_rad_struct) map_with_rad
+type (ptc_map_with_rad_struct) rad_map
 type (coord_struct), pointer :: p, p0
 
 integer i_turn, ix, ip, j
@@ -654,7 +703,7 @@ if (iu_snap == 0) then
 
   iu_snap = lunget()
   open (iu_snap, file = file_name, recl = 300)
-  call ltt_write_this_header(lttp, iu_snap, map_with_rad, size(bunch%particle))
+  call ltt_write_this_header(lttp, iu_snap, rad_map, size(bunch%particle))
 
   if (lttp%output_initial_position) then
     write (iu_snap, '(2a)') '#      Ix     Turn | Start:    x              px               y              py               z              pz         spin_x    spin_y    spin_z  ', &
@@ -685,10 +734,10 @@ end subroutine ltt_write_particle_data
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_this_header(lttp, iu, map_with_rad, n_particle)
+subroutine ltt_write_this_header(lttp, iu, rad_map, n_particle)
 
 type (ltt_params_struct) lttp
-type (ptc_map_with_rad_struct) map_with_rad
+type (ptc_map_with_rad_struct) rad_map
 
 integer iu, n_particle
 
@@ -701,9 +750,9 @@ write (iu,  '(a, i8)')   '# n_turns                = ', lttp%n_turns
 write (iu,  '(a, l1)')   '# Radiation_Damping      = ', bmad_com%radiation_damping_on
 write (iu,  '(a, l1)')   '# Radiation_Fluctuations = ', bmad_com%radiation_fluctuations_on
 write (iu,  '(a, l1)')   '# Spin_tracking_on       = ', bmad_com%spin_tracking_on
-if (lttp%use_1_turn_map) then
+if (lttp%tracking_method == 'MAP') then
   write (iu, '(3a)')     '# Map_file               = "', trim(lttp%map_file), '"'
-  write (iu, '(a, i0)')  '# Map_order              = ', map_with_rad%map_order
+  write (iu, '(a, i0)')  '# Map_order              = ', rad_map%map_order
 else
   write (iu, '(a)') '#'
   write (iu, '(a)') '#'
