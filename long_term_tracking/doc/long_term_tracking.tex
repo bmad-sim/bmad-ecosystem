@@ -67,7 +67,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ April 16, 2019}
+\date{David Sagan \\ May 6, 2019}
 \begin{document}
 \maketitle
 
@@ -206,10 +206,11 @@ oscillations.
 
 What tracking mode is used is determined by the \vn{ltt%tracking_method} switch (\sref{s:input})
 which is used to determine if tracking is done using a map or not. If a map is used, the order of
-the map is given by \vn{ltt%map_order} parameter. A larger map order will mean better accuracy at
-the expense of more computation time. Tracking using a map will be extremely quick compared to
-element-by-element tracking. However, map tracking can be inaccurate if the map order is too small
-or the particle amplitude is too large.
+the map (the degree at which the Taylor series comprising the map are truncated) is given by
+\vn{ltt%map_order} parameter. A larger map order will mean better accuracy at the expense of more
+computation time. Tracking using a map will be extremely quick compared to element-by-element
+tracking. However, map tracking can be inaccurate if the map order is too small or the particle
+amplitude is too large.
 
 Maps can be saved to a file for later use. Saved maps always include the radiation excitation
 component map independent of the setting of \vn{bmad_com%radiation_excitation_on}. Thus, when a
@@ -321,7 +322,7 @@ simulation parameters.
 
 The input files that can be specified in the \vn{params} namelist of the master input file are:
 \begin{description}
-\item[ttl%common_master_input_file] \Newline
+\item[ttl\%common_master_input_file] \Newline
 The \vn{common_master_input_file} is used in situations where you want to run multipole simulations
 with multiple initialization files and where most parameters are the same across all the
 simulations. In this case, an initialization file containing the parameters that are the same can be
@@ -333,17 +334,20 @@ that there is only one file to modify when common parameters are changed as oppo
 modify all the initialization files. If \vn{common_master_input_file} is set to blank (the default),
 no common file is used
 %
-\item[ttl%lat_file] \Newline
+\item[ttl\%lat_file] \Newline
 Name of the Bmad lattice file to use. This name is required.
 %
-\item[ttl%map_file] \Newline
+\item[ttl\%map_file] \Newline
 If the \vn{-write} switch is present on the command line when the long_term_tracking program in
 involked, the 1-turn map is created and written to a file whose name is given by
-\vn{ttl%map_file}. If \vn{ttl%map_file} is blank, a default name will be constructed.
-The saved map will be affected by the setting
-of \vn{bmad_com%radiation_damping_on}. See \sref{s:track.modes} for more details.
+\vn{ttl%map_file}. If \vn{ttl%map_file} is blank, a default name will be constructed. The saved map
+will be affected by the setting of \vn{bmad_com%radiation_damping_on}. See \sref{s:track.modes} for
+more details.
 
-If the \vn{-write} switch is not present, the 1-turn map is read in from \vn{ttl%map_file} if it exists.
+If the \vn{-write} switch is not present, the 1-turn map is read in from \vn{ttl%map_file} if it
+exists.  If the order of the map that is read in does not agree with the setting of
+\vn{ttl%map_order} or the map's \vn{radiation_damping_on} setting does not agree with the setting of
+\vn{bmad_com%radiation_damping_on}, the map is ignored and a new one generated for use in tracking.
 \end{description}
 
 %----------------------------------------------------
@@ -460,16 +464,14 @@ The program will print a tracking status message every so often. The nominal tim
 messages is set by \vn{ltt%timer_print_dtime} which is a number in seconds.
 %
 \item[ltt\%tracking_method] \Newline
-String switch which sets how particles are tracked. Possible settings are:
+String switch which sets how particles are tracked when the \vn{simulation_mode} is set to
+"\vn{BUNCH}" or "\vn{SINGLE}". Possible settings are:
 \begin{code}
-  "standard"    ! Standard
-  "ptc"
-  "map"
+  "STANDARD"    ! Element-by-element tracking. Default
+  "MAP"         ! 1-turn map tracking.
 \end{code}
-
-\etcetc...
-If set \vn{True} (the default) use a 1-turn map for tracking as opposed to element-by-element
-tracking (\sref{s:track.modes}).
+If set to "\vn{STANDARD}" (the default), tracking is element-by-element. If set to "\vn{MAP}", use a
+1-turn map for tracking (\sref{s:track.modes}).
 \end{description}
 
 %------------------------------------------------------------------

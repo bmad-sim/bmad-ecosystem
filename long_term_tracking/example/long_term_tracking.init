@@ -11,9 +11,9 @@
   ltt%output_initial_position = F
 
   ltt%simulation_mode = 'BUNCH'
+  ltt%tracking_method = "MAP"
   ltt%n_turns = 100                         ! Number of turns to track
   ltt%rfcavity_on = T
-  ltt%use_1_turn_map = T
   ltt%map_order = 1
   ltt%random_seed = 0                       ! Random number seed. 0 => use system clock.
   ltt%timer_print_dtime = 300
