@@ -956,7 +956,7 @@ do i = 1, size(taylor_in)
     if (sum(taylor%term(j)%expn) <= order) n = n + 1
   enddo
 
-  call init_taylor_series (taylor_out(i), n)
+  call init_taylor_series (taylor_out(i), n, .true.)
 
   n = 0
   do j = 1, size(taylor%term)
