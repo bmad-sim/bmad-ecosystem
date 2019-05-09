@@ -308,14 +308,17 @@ end subroutine type_taylors
 !+
 ! Subroutine taylor_make_unit (bmad_taylor, ref_orbit)
 !
-! Subroutine to make the unit Taylor map around the reference orbit:
-!       r(out) = Map * r(in) = r(in) - ref_orbit
+! Subroutine to make the "unit" Taylor map around the reference orbit:
+!   r(out) = Map * dr(in) = dr(in) + ref_orbit = r(in) 
+! were
+!   dr(in) = r(in) - ref_orbit
 !
 ! Input:
 !   ref_orbit(6)    -- real(rp), optional: Reference orbit. Taken to be zero if not present.
 !
 ! Output:
-!   bmad_taylor(6)  -- taylor_struct: Unit Taylor map .
+!   bmad_taylor(6)  -- taylor_struct: Unit Taylor map.
+!     %ref            -- Set to the reference orbit.
 !-
 
 subroutine taylor_make_unit (bmad_taylor, ref_orbit)
@@ -326,14 +329,29 @@ type (taylor_struct) bmad_taylor(:)
 real(rp), optional :: ref_orbit(:)
 integer i
 
-do i = 1, size(bmad_taylor)
-  call init_taylor_series (bmad_taylor(i), 1)
-  bmad_taylor(i)%term(1)%coef = 1.0
-  bmad_taylor(i)%term(1)%expn = 0
-  bmad_taylor(i)%term(1)%expn(i) = 1
-enddo
+!
 
-if (present(ref_orbit)) bmad_taylor%ref = ref_orbit
+if (present(ref_orbit)) then
+  bmad_taylor%ref = ref_orbit
+else
+  bmad_taylor%ref = 0
+endif
+
+do i = 1, size(bmad_taylor)
+  if (bmad_taylor(i)%ref == 0) then
+    call init_taylor_series (bmad_taylor(i), 1)
+    bmad_taylor(i)%term(1)%coef = 1.0
+    bmad_taylor(i)%term(1)%expn = 0
+    bmad_taylor(i)%term(1)%expn(i) = 1
+  else
+    call init_taylor_series (bmad_taylor(i), 2, .true.)
+    bmad_taylor(i)%term(1)%coef = bmad_taylor(i)%ref
+    bmad_taylor(i)%term(1)%expn = 0
+    bmad_taylor(i)%term(2)%coef = 1.0
+    bmad_taylor(i)%term(2)%expn = 0
+    bmad_taylor(i)%term(2)%expn(i) = 1
+  endif
+enddo
 
 end subroutine taylor_make_unit
 
