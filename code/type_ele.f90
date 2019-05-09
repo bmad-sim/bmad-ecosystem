@@ -229,11 +229,17 @@ do i = 1, num_ele_attrib$
     endif
 
   elseif (index(a_name, 'ANGLE') /= 0 .and. a_name /= 'CRITICAL_ANGLE_FACTOR') then
-    units = ' deg'
-    if (a_name == 'DBRAGG_ANGLE_DE') units = ' deg/eV'
+    units = 'deg'
+    if (a_name == 'DBRAGG_ANGLE_DE') units = 'deg/eV'
     if (.not. type_zero .and. ele%value(i) == 0) cycle
-    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, f10.4, a)') &
+    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, f12.4, 1x, a)') &
                  i, a_name(1:n_att), '=', ele%value(i), attrib%units, ele%value(i) * 180 / pi, trim(units)
+
+  elseif (a_name(1:12) == 'DARWIN_WIDTH') then
+    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, f12.4, 1x, a)') &
+                i, a_name(1:n_att), '=', ele%value(i), attrib%units, ele%value(i) / ele%value(dbragg_angle_de$), 'eV'
+
+
   else
     attrib_type = attribute_type(a_name)
     if (is_a_tot_attribute(ele, i)) cycle

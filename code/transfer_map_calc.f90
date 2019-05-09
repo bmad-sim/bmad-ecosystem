@@ -88,8 +88,7 @@ i2 = integer_option(branch%n_ele_track, ix2)
 err_flag = .false.
 
 if (unit_start_this) then
-  call taylor_make_unit (t_map)
-  if (present(ref_orb)) t_map%ref = ref_orb%vec
+  call taylor_make_unit (t_map, ref_orb%vec)
 endif
 
 if (i1 == i2 .and. (lat%param%geometry == open$ .or. .not. logic_option (.false., one_turn))) return
