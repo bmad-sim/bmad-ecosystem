@@ -4595,19 +4595,18 @@ if (n_loc == 1) then
         pele%ele_pt = anchor_end$
         pele%offset = super_ele%s - ele_at_s%s
         pele%ix_ref_multipass = ele_at_s%iyy
-        ! If in bmad_parser then multipass bookkeeping has not been done yet and ele_at_s%name is
-        ! the name of the multipass_lord (something like "Q1". If in bmad_parser2 then multipass bookkeeping
-        ! has been done and ele_at_s%name is the slave name like "Q1\2".
+        ! multipass bookkeeping has not been done yet and ele_at_s%name is
+        ! the name of the multipass_lord (something like "Q1". 
         call lat_ele_locator (ele_at_s%name, lat, eles, n_loc, err)
 
         i = 1 ! throw out elements that are the same physical element
         do
           if (i > n_loc) exit
-          if (eles(i)%ele%iyy == pele%ix_ref_multipass) then
-            i = i + 1
-          else
+          if (eles(i)%ele%iyy /= pele%ix_ref_multipass .or. eles(i)%ele%slave_status == super_slave$) then
             eles(i:n_loc-1) = eles(i+1:n_loc)  ! Remove
             n_loc = n_loc - 1
+          else
+            i = i + 1
           endif
         enddo
       endif

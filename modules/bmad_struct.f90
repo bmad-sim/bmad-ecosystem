@@ -17,7 +17,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 231
+integer, parameter :: bmad_inc_version$ = 232
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -661,13 +661,14 @@ type grid_field_pt_struct
 end type
 
 type grid_field_struct
-  integer :: geometry = 0          ! Type of grid structure
-  integer :: harmonic = 0          ! Harmonic of fundamental
-  real(rp) :: phi0_fieldmap = 0    ! Mode oscillates as: twopi * (f * t + phi0_fieldmap)
-  real(rp) :: field_scale = 1      ! Factor to scale the fields by
-  integer :: field_type = mixed$   ! or magnetic$ or electric$
-  integer :: master_parameter = 0  ! Master parameter in ele%value(:) array to use for scaling the field.
+  integer :: geometry = 0             ! Type of grid: xy$, or rotationally_symmetric_rz$
+  integer :: harmonic = 0             ! Harmonic of fundamental for AC fields.
+  real(rp) :: phi0_fieldmap = 0       ! Mode oscillates as: twopi * (f * t + phi0_fieldmap)
+  real(rp) :: field_scale = 1         ! Factor to scale the fields by
+  integer :: field_type = mixed$      ! or magnetic$ or electric$
+  integer :: master_parameter = 0     ! Master parameter in ele%value(:) array to use for scaling the field.
   integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
+  integer :: interpolation_order = 1  ! Possibilities are 1 or 3.
   real(rp) :: dr(3) = 0   ! Grid spacing.
   real(rp) :: r0(3) = 0   ! Field origin relative to ele_anchor_pt.
   logical :: curved_ref_frame = .false.

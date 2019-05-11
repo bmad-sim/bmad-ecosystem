@@ -606,7 +606,7 @@ if (n_grid > 0) then
     read (d_unit, err = 9120) g_field%field_scale, g_field%master_parameter, &
                 g_field%ele_anchor_pt, g_field%phi0_fieldmap, g_field%dr, &
                 g_field%r0, g_field%harmonic, g_field%geometry, &
-                g_field%curved_ref_frame, g_field%field_type
+                g_field%curved_ref_frame, g_field%field_type, g_field%interpolation_order
     read (d_unit, err = 9120) ix_ele, ix_branch, ix_ptr, lb, ub
 
     if (ix_ele > 0) then
