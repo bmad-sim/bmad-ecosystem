@@ -434,7 +434,7 @@ do i = 1, n_grid
   write (d_unit) g_field%field_scale, g_field%master_parameter, &
                 g_field%ele_anchor_pt, g_field%phi0_fieldmap, g_field%dr, &
                 g_field%r0, g_field%harmonic, g_field%geometry, &
-                g_field%curved_ref_frame, g_field%field_type
+                g_field%curved_ref_frame, g_field%field_type, g_field%interpolation_order
 
   call find_matching_fieldmap (g_field%ptr%file, ele, grid_field$, ele2, ix_ptr) 
   if (ix_ptr > 0) then
