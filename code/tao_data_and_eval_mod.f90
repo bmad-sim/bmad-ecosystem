@@ -3697,7 +3697,7 @@ type (tao_expression_info_struct), allocatable :: info(:)
 
 integer, optional :: dflt_uni
 integer i_lev, i_op, i, ios, n, n_size, n__size
-integer op(200), ix_word, i_delim, i2, ix, ix_word2, ixb
+integer op(100), n_comma(100), ix_word, i_delim, i2, ix, ix_word2, ixb
 
 real(rp), allocatable :: value(:)
 
@@ -3905,6 +3905,7 @@ parsing_loop: do
         call pushit (op, i_op, atan$)
       case ('atan2') 
         call pushit (op, i_op, atan2$)
+        n_comma(i_op) = 0
       case ('abs') 
         call pushit (op, i_op, abs$)
       case ('sqrt') 
@@ -4033,12 +4034,14 @@ parsing_loop: do
     i_delim = r_parens$
   case ('^')
     i_delim = power$
-  case (',', '}')
+  case (',')
+    i_delim = comma$
+  case ('}')
     i_delim = no_delim$
     call out_io (s_error$, r_name, &
                       'DELIMITOR FOUND OUT OF PLACE: ' // delim, &
                       'IN EXPRESSION: ' // expression)
-      return
+    return
   case default
     if (delim_found) then
       if (delim == ' ') then
@@ -4056,22 +4059,33 @@ parsing_loop: do
   ! to the STK stack
 
   do i = i_op, 1, -1
-    if (expression_eval_level(op(i)) >= expression_eval_level(i_delim)) then
-      if (op(i) == l_parens$) then
-        if (i > 1 .and. op(max(1,i-1)) == atan2$ .and. delim == ',') cycle parsing_loop
-        call out_io (s_warn$, r_name, 'UNMATCHED "(" IN EXPRESSION: ' // expression)
-        return
+    if (expression_eval_level(op(i)) < expression_eval_level(i_delim)) exit
+
+    if (op(i) == l_parens$) then
+      if (i > 1 .and. op(max(1,i-1)) == atan2$ .and. i_delim == comma$) then
+        if (n_comma(i-1) /= 0) then
+          call out_io (s_warn$, r_name, 'TOO MANY COMMAS IN ATAN2 CONSTRUCT IN EXPRESSION: ' // expression)
+          return
+        endif
+        n_comma(i-1) = n_comma(i-1) + 1
+        i_op = i
+        cycle parsing_loop
       endif
-      call pushit (stk%type, i_lev, op(i))
-    else
-      exit
+      call out_io (s_warn$, r_name, 'UNMATCHED "(" IN EXPRESSION: ' // expression)
+      return
     endif
+
+    if (op(i) == atan2$ .and. n_comma(i) /= 1) then
+      call out_io (s_warn$, r_name, 'MALFORMED ATAN2 ARGUMENT IN EXPRESSION: ' // expression)
+      return
+    endif
+    call pushit (stk%type, i_lev, op(i))
   enddo
 
   ! put the pending operation on the OP stack
 
   i_op = i
-  if (i_delim == no_delim$) then
+  if (i_delim == no_delim$ .or. i_delim == comma$) then
     exit parsing_loop
   else
     call pushit (op, i_op, i_delim)
