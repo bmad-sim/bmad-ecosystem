@@ -525,22 +525,23 @@ if (associated(ele%grid_field)) then
       endif
 
       nl=nl+1; write (li(nl), '(a, i0)')      '  Mode #:', i
-      nl=nl+1; write (li(nl), '(2a)')         '    From file:        ', trim(g_field%ptr%file)
-      nl=nl+1; write (li(nl), '(2a)')         '    field_type:       ', em_field_type_name(g_field%field_type)
-      nl=nl+1; write (li(nl), '(2a)')         '    geometry:         ', grid_field_geometry_name(g_field%geometry)
-      nl=nl+1; write (li(nl), '(2a)')         '    master_parameter: ', trim(name)
-      nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt:    ', anchor_pt_name(g_field%ele_anchor_pt)
-      nl=nl+1; write (li(nl), '(a, i0)')      '    harmonic:         ', g_field%harmonic
-      nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:      ', g_field%field_scale
-      nl=nl+1; write (li(nl), '(a, es16.8)')  '    phi0_fieldmap:    ', g_field%phi0_fieldmap
-      nl=nl+1; write (li(nl), '(a, l1)')      '    curved_ref_frame  ', g_field%curved_ref_frame
-      nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:           ', g_field%ptr%n_link
-      nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    dr:               ', g_field%dr
-      nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r0:               ', g_field%r0
-      nl=nl+1; write (li(nl), '(a, 3i14)')    '    Index_max:        ', ubound(g_field%ptr%pt)
-      nl=nl+1; write (li(nl), '(a, 3i14)')    '    Index_min:        ', lbound(g_field%ptr%pt)
-      nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_max:            ', ubound(g_field%ptr%pt)*g_field%dr + g_field%r0
-      nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_min:            ', lbound(g_field%ptr%pt)*g_field%dr + g_field%r0
+      nl=nl+1; write (li(nl), '(2a)')         '    From file:          ', trim(g_field%ptr%file)
+      nl=nl+1; write (li(nl), '(2a)')         '    field_type:         ', em_field_type_name(g_field%field_type)
+      nl=nl+1; write (li(nl), '(2a)')         '    geometry:           ', grid_field_geometry_name(g_field%geometry)
+      nl=nl+1; write (li(nl), '(2a)')         '    master_parameter:   ', trim(name)
+      nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt:      ', anchor_pt_name(g_field%ele_anchor_pt)
+      nl=nl+1; write (li(nl), '(a, i0)')      '    harmonic:           ', g_field%harmonic
+      nl=nl+1; write (li(nl), '(a, i0)')      '    interpolation_order ', g_field%interpolation_order
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:        ', g_field%field_scale
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '    phi0_fieldmap:      ', g_field%phi0_fieldmap
+      nl=nl+1; write (li(nl), '(a, l1)')      '    curved_ref_frame    ', g_field%curved_ref_frame
+      nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:             ', g_field%ptr%n_link
+      nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    dr:                 ', g_field%dr
+      nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r0:                 ', g_field%r0
+      nl=nl+1; write (li(nl), '(a, 3i14)')    '    Index_max:          ', ubound(g_field%ptr%pt)
+      nl=nl+1; write (li(nl), '(a, 3i14)')    '    Index_min:          ', lbound(g_field%ptr%pt)
+      nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_max:              ', ubound(g_field%ptr%pt)*g_field%dr + g_field%r0
+      nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_min:              ', lbound(g_field%ptr%pt)*g_field%dr + g_field%r0
     enddo
   else
     nl=nl+1; write (li(nl), '(a, i5)') 'Number of Grid_field modes:', size(ele%grid_field)

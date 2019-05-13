@@ -296,7 +296,7 @@ if (.not. open_binary_file(file_name, 'WRITE', iu, r_name, 1)) return
 write (iu, err = 9000) g_field%field_scale, attribute_name(ele, g_field%master_parameter), &
                 g_field%ele_anchor_pt, g_field%phi0_fieldmap, g_field%dr, &
                 g_field%r0, g_field%harmonic, g_field%geometry, &
-                g_field%curved_ref_frame, g_field%field_type
+                g_field%curved_ref_frame, g_field%field_type, g_field%interpolation_order
 
 f_name = file_name
 write (iu, err = 9000) lbound(g_field%ptr%pt), ubound(g_field%ptr%pt), f_name
@@ -359,7 +359,7 @@ if (.not. open_binary_file(file_name, 'READ', iu, r_name, iver)) return
 read (iu, err = 9000) g_field%field_scale, master_name, &
                 g_field%ele_anchor_pt, g_field%phi0_fieldmap, g_field%dr, &
                 g_field%r0, g_field%harmonic, g_field%geometry, &
-                g_field%curved_ref_frame, g_field%field_type
+                g_field%curved_ref_frame, g_field%field_type, g_field%interpolation_order
 g_field%master_parameter = attribute_index(ele, master_name)
 
 allocate (g_field%ptr)

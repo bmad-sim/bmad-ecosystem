@@ -653,6 +653,15 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     if (associated(ele%grid_field)) then
       do iw = 1, size(ele%grid_field)
         g_field => ele%grid_field(iw)
+
+        if (g_field%interpolation_order /= 1 .and. g_field%interpolation_order /= 3) then
+          call out_io (s_fatal$, r_name, &
+                'GRID_FIELD IN ELEMENT: ' // ele%name, &
+                'HAS INTERPOLATION_ORDER VALUE THAT IS NOT 1 OR 3: \i0\ ', i_array = [g_field%interpolation_order])
+          err_flag = .true.
+        endif
+
+
         if (g_field%harmonic == 0) then
           if (g_field%phi0_fieldmap /= 0) then
             call out_io (s_fatal$, r_name, &
