@@ -1282,7 +1282,7 @@ case(fieldmap$)
 
       case (xyz$)
       
-        call grid_field_linear_interpolate(ele, local_orb, g_field, g_pt, err, x, y, z, &
+        call grid_field_interpolate(ele, local_orb, g_field, g_pt, err, x, y, z, &
                     allow_s_out_of_bounds = grid_allow_s_out_of_bounds, err_print_out_of_bounds = err_print_out_of_bounds)
         if (err) then
           if (present(err_flag)) err_flag = .true.
@@ -1301,7 +1301,7 @@ case(fieldmap$)
 
         r = sqrt(x**2 + y**2)
 
-        call grid_field_linear_interpolate(ele, local_orb, g_field, g_pt, err, r, z, &
+        call grid_field_interpolate(ele, local_orb, g_field, g_pt, err, r, z, &
                      allow_s_out_of_bounds = grid_allow_s_out_of_bounds, err_print_out_of_bounds = err_print_out_of_bounds)
         if (err) then
           if (global_com%exit_on_error) call err_exit
@@ -1533,7 +1533,7 @@ integer i
 !
 
 do i = 1, size(x)
-  call grid_field_linear_interpolate(ele, local_orb, g_field, g_pt, err, x(i), z, &
+  call grid_field_interpolate(ele, local_orb, g_field, g_pt, err, x(i), z, &
               allow_s_out_of_bounds = .true., err_print_out_of_bounds = err_print_out_of_bounds)
   rb_field(i) = x(i) * expt * g_pt%b(3)
 enddo
@@ -1731,7 +1731,7 @@ end subroutine rotate_em_field
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine grid_field_linear_interpolate (ele, orbit, grid, field, err_flag, x1, x2, x3, &
+! Subroutine grid_field_interpolate (ele, orbit, grid, field, err_flag, x1, x2, x3, &
 !                                                              allow_s_out_of_bounds, err_print_out_of_bounds)
 !
 ! Subroutine to interpolate the E and B fields on a rectilinear grid.
@@ -1754,7 +1754,7 @@ end subroutine rotate_em_field
 !   field    -- grid_field_pt_struct: Interpolated field (complex)
 !-
 
-subroutine grid_field_linear_interpolate (ele, orbit, grid, g_field, err_flag, x1, x2, x3, &
+subroutine grid_field_interpolate (ele, orbit, grid, g_field, err_flag, x1, x2, x3, &
                                                                 allow_s_out_of_bounds, err_print_out_of_bounds)
 
 type (ele_struct) ele
@@ -1767,7 +1767,7 @@ real(rp) rel_x1, rel_x2, rel_x3, r2_x1
 integer i1, i2, i3, grid_dim, allow_s, lbnd, ubnd, nn
 logical err_flag
 logical, optional :: allow_s_out_of_bounds, err_print_out_of_bounds
-character(32), parameter :: r_name = 'grid_field_linear_interpolate'
+character(*), parameter :: r_name = 'grid_field_interpolate'
 
 integer, parameter :: allow_tiny$ = 1, allow_some$ = 2, allow_all$ = 3
 
@@ -1804,37 +1804,27 @@ case (2)
     nn = 3
   endif
 
-  if (i2 == lbnd - 1) then  ! Just outside entrance end
-    g_field%E(1:nn) = (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%E(1:nn) &
-                    + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%E(1:nn) 
-
-    g_field%B(1:nn) = (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%B(1:nn) &
-                    + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%B(1:nn)  
-
-    if (grid%geometry == rotationally_symmetric_rz$) then
-      g_field%E(3) = (1-r2_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%E(3) &
-                   + (r2_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%E(3) 
-
-      g_field%B(3) = (1-r2_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%B(3) &
-                   + (r2_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%B(3)  
+  if (i2 == lbnd - 1 .or. i2 == ubnd) then  ! Just outside entrance end or just outside exit end
+    if (i2 == lbnd - 1) then
+      i2 = lbnd
+      rel_x2 = 1 - rel_x2
     endif
 
-  elseif (i2 == ubnd) then  ! Just outside exit end
-    g_field%E(1:nn) = (1-rel_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%E(1:nn) &
-                    + (rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%E(1:nn)
+    g_field%E(1:nn) = (1-rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1,   i2, 1)%E(1:nn) &
+                    + (rel_x1)*(1-rel_x2)     * grid%ptr%pt(i1+1, i2, 1)%E(1:nn) 
 
-    g_field%B(1:nn) = (1-rel_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%B(1:nn) &
-                    + (rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%B(1:nn)
+    g_field%B(1:nn) = (1-rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1,   i2, 1)%B(1:nn) &
+                    + (rel_x1)*(1-rel_x2)     * grid%ptr%pt(i1+1, i2, 1)%B(1:nn)  
 
     if (grid%geometry == rotationally_symmetric_rz$) then
-      g_field%E(3) = (1-r2_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%E(3) &
-                   + (r2_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%E(3)
+      g_field%E(3) = (1-r2_x1)*(1-rel_x2)   * grid%ptr%pt(i1,   i2, 1)%E(3) &
+                   + (r2_x1)*(1-rel_x2)     * grid%ptr%pt(i1+1, i2, 1)%E(3) 
 
-      g_field%B(3) = (1-r2_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%B(3) &
-                   + (r2_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%B(3)
+      g_field%B(3) = (1-r2_x1)*(1-rel_x2)   * grid%ptr%pt(i1,   i2, 1)%B(3) &
+                   + (r2_x1)*(1-rel_x2)     * grid%ptr%pt(i1+1, i2, 1)%B(3)  
     endif
 
-  elseif (lbnd <= i2 .and. i2 < ubnd) then   ! Inside
+  else  ! Inside
     g_field%E(1:nn) = (1-rel_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%E(1:nn) &
                     + (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%E(1:nn) &
                     + (rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%E(1:nn) &
@@ -1873,29 +1863,23 @@ case (3)
     
   ! Do trilinear interpolation. If just outside longitudinally, interpolate between grid edge and zero.
 
-  if (i3 == lbnd - 1) then  ! Just outside entrance end
-    g_field%E(:) = (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%ptr%pt(i1,   i2,   i3+1)%E(:) &
-                 + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%ptr%pt(i1,   i2+1, i3+1)%E(:) &
-                 + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%ptr%pt(i1+1, i2,   i3+1)%E(:) &
-                 + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%ptr%pt(i1+1, i2+1, i3+1)%E(:)               
-               
-    g_field%B(:) = (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%ptr%pt(i1,   i2,   i3+1)%B(:) &
-                 + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%ptr%pt(i1,   i2+1, i3+1)%B(:) &
-                 + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%ptr%pt(i1+1, i2,   i3+1)%B(:) &
-                 + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%ptr%pt(i1+1, i2+1, i3+1)%B(:)
+  if (i3 == lbnd - 1 .or. i3 == ubnd) then  ! Just outside entrance end or just outside exit end
+    if (i3 == lbnd - 1) then
+      i3 = lbnd
+      rel_x3 = 1 - rel_x3
+    endif
 
-  elseif (i3 == ubnd) then  ! Just outside exit end
-    g_field%E(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%ptr%pt(i1,   i2,   i3  )%E(:) &
-                 + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%ptr%pt(i1,   i2+1, i3  )%E(:) &
-                 + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%ptr%pt(i1+1, i2,   i3  )%E(:) &
-                 + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%ptr%pt(i1+1, i2+1, i3  )%E(:)
+    g_field%E(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3)   * grid%ptr%pt(i1,   i2,   i3)%E(:) &
+                 + (1-rel_x1)*(rel_x2)  *(1-rel_x3)   * grid%ptr%pt(i1,   i2+1, i3)%E(:) &
+                 + (rel_x1)  *(1-rel_x2)*(1-rel_x3)   * grid%ptr%pt(i1+1, i2,   i3)%E(:) &
+                 + (rel_x1)  *(rel_x2)  *(1-rel_x3)   * grid%ptr%pt(i1+1, i2+1, i3)%E(:)               
                
-    g_field%B(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%ptr%pt(i1,   i2,   i3  )%B(:) &
-                 + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%ptr%pt(i1,   i2+1, i3  )%B(:) &
-                 + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%ptr%pt(i1+1, i2,   i3  )%B(:) &
-                 + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%ptr%pt(i1+1, i2+1, i3  )%B(:) 
+    g_field%B(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3)   * grid%ptr%pt(i1,   i2,   i3)%B(:) &
+                 + (1-rel_x1)*(rel_x2)  *(1-rel_x3)   * grid%ptr%pt(i1,   i2+1, i3)%B(:) &
+                 + (rel_x1)  *(1-rel_x2)*(1-rel_x3)   * grid%ptr%pt(i1+1, i2,   i3)%B(:) &
+                 + (rel_x1)  *(rel_x2)  *(1-rel_x3)   * grid%ptr%pt(i1+1, i2+1, i3)%B(:)
 
-  elseif (lbnd <= i3 .and. i3 < ubnd) then   ! Inside
+  else    ! Inside
     g_field%E(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%ptr%pt(i1,   i2,   i3  )%E(:) &
                  + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%ptr%pt(i1,   i2+1, i3  )%E(:) &
                  + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%ptr%pt(i1+1, i2,   i3  )%E(:) &
@@ -1995,7 +1979,7 @@ endif
 
 end subroutine get_this_index 
 
-end subroutine grid_field_linear_interpolate
+end subroutine grid_field_interpolate
 
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------

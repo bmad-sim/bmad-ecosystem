@@ -7533,7 +7533,10 @@ do
     call parse_evaluate_value (ele%name, g_field%field_scale, lat, delim, delim_found, err_flag, ',}')
 
   case ('HARMONIC')
-    call parser_get_integer (g_field%harmonic, word, ix_word, delim, delim_found, err_flag, 'BAD GRID_FIELD HARMONIC CONSTRUCT', 'IN ELEMENT: ' // ele%name)
+    call parser_get_integer (g_field%harmonic, word, ix_word, delim, delim_found, err_flag, 'CANNOT READ GRID_FIELD HARMONIC NUMBER', 'IN ELEMENT: ' // ele%name)
+
+  case ('INTERPOLATION_ORDER')
+    call parser_get_integer (g_field%interpolation_order, word, ix_word, delim, delim_found, err_flag, 'CANNOT READ INTERPOLATION_ORDER NUMBER', 'IN ELEMENT: ' // ele%name)
 
   case ('MASTER_PARAMETER')
     call get_next_word (word, ix_word, ',}', delim, delim_found)

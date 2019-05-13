@@ -18,18 +18,18 @@ integer, parameter :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22, atan2$ =
 integer, parameter :: factorial$ = 24, int$ = 25, nint$ = 26, floor$ = 27, ceiling$ = 28
 integer, parameter :: numeric$ = 29, variable$ = 30
 integer, parameter :: mass_of$ = 31, charge_of$ = 32, anomalous_moment_of$ = 33, species$ = 34, species_const$ = 35
-integer, parameter :: sinc$ = 36
+integer, parameter :: sinc$ = 36, comma$ = 37
 
-character(20), parameter :: expression_op_name(36) = [character(20) :: '+', '-', '*', '/', &
+character(20), parameter :: expression_op_name(37) = [character(20) :: '+', '-', '*', '/', &
                                     '(', ')', '^', '-', '+', '', 'sin', 'cos', 'tan', &
                                     'asin', 'acos', 'atan', 'abs', 'sqrt', 'log', 'exp', 'ran', &
                                     'ran_gauss', 'atan2', 'factorial', 'int', 'nint', 'floor', 'ceiling', &
                                     '?!+Numeric', '?!+Variable', 'mass_of', 'charge_of', 'anomalous_moment_of', &
-                                    'species', '?!+Species', 'sinc']
+                                    'species', '?!+Species', 'sinc', ',']
 
 
-integer, parameter :: expression_eval_level(36) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
+integer, parameter :: expression_eval_level(37) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 0]
 
 private pushit
 
@@ -64,7 +64,7 @@ subroutine expression_string_to_stack (string, stack, n_stack, err_flag, err_str
 type (expression_atom_struct), allocatable :: stack(:)
 
 integer i_op, i, var_type
-integer op(200), ix_word, i_delim, i2, ix_word2, n_stack, op0
+integer op(100), ix_word, i_delim, i2, ix_word2, n_stack, op0, n_comma(100)
 
 real(rp) value
 
@@ -207,6 +207,7 @@ parsing_loop: do
         call pushit (op, i_op, atan$)
       case ('ATAN2') 
         call pushit (op, i_op, atan2$)
+        n_comma(i_op) = 0
       case ('ABS') 
         call pushit (op, i_op, abs$)
       case ('SQRT') 
@@ -270,7 +271,7 @@ parsing_loop: do
       endif
       zero_arg_function_pending = .false.
     else
-      call push_numeric_or_var(word, err); if (err) return
+      call push_numeric_or_var(word, err, op, i_op); if (err) return
     endif
 
     do
@@ -312,7 +313,7 @@ parsing_loop: do
       endif
       return
     endif
-    call push_numeric_or_var (word, err); if (err) return
+    call push_numeric_or_var (word, err, op, i_op); if (err) return
   endif
 
   ! If we are here then we have an operation that is waiting to be identified
@@ -330,7 +331,9 @@ parsing_loop: do
     i_delim = divide$
   case ('^')
     i_delim = power$
-  case (',', '}', ':', ')')   ! End of expression delims
+  case (',')
+    i_delim = comma$
+  case ('}', ':', ')')   ! End of expression delims
     i_delim = no_delim$
   case default
     err_str = 'MALFORMED EXPRESSION'
@@ -341,22 +344,34 @@ parsing_loop: do
   ! to the STACK stack
 
   do i = i_op, 1, -1
-    if (expression_eval_level(op(i)) >= expression_eval_level(i_delim)) then
-      if (op(i) == l_parens$) then
-        if (i > 1 .and. op(max(1,i-1)) == atan2$ .and. delim == ',') cycle parsing_loop
-        err_str = 'UNMATCHED "("'
-        return
+    if (expression_eval_level(op(i)) < expression_eval_level(i_delim)) exit
+
+    if (op(i) == l_parens$) then
+      if (i > 1 .and. op(max(1,i-1)) == atan2$ .and. i_delim == comma$) then
+        if (n_comma(i-1) /= 0) then
+          err_str = 'TOO MANY COMMAS IN ATAN2 CONSTRUCT'
+          return
+        endif
+        n_comma(i-1) = n_comma(i-1) + 1
+        i_op = i
+        cycle parsing_loop
       endif
-      call pushit_stack (stack, n_stack, op(i))
-    else
-      exit
+      err_str = 'UNMATCHED "("'
+      return
     endif
+
+    if (op(i) == atan2$ .and. n_comma(i) /= 1) then
+      err_str = 'MALFORMED ATAN2 ARGUMENT'
+      return
+    endif
+    call pushit_stack (stack, n_stack, op(i))
   enddo
+
+  i_op = i
 
   ! put the pending operation on the OP stack
 
-  i_op = i
-  if (i_delim == no_delim$) then
+  if (i_delim == no_delim$ .or. i_delim == comma$) then
     exit parsing_loop
   else
     call pushit (op, i_op, i_delim)
@@ -400,10 +415,10 @@ end subroutine get_next_chunk
 !-------------------------------------------------------------------------
 ! contains
 
-subroutine push_numeric_or_var (word, err)
+subroutine push_numeric_or_var (word, err, op, i_op)
 
 logical err
-integer ios, ix
+integer op(:), i_op, ios, ix
 character(*) word
 
 !

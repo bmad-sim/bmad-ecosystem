@@ -6,6 +6,7 @@ module bmad_struct
 
 use random_mod
 use spline_mod
+use cubic_interpolation_mod
 
 use definition, only: genfield, fibre, layout
 
@@ -673,6 +674,8 @@ type grid_field_struct
   real(rp) :: r0(3) = 0   ! Field origin relative to ele_anchor_pt.
   logical :: curved_ref_frame = .false.
   type (grid_field_pt_struct), pointer :: ptr
+  type (bicubic_coef_struct) bi_coef(4, 3)    ! Save computed coefs for faster tracking
+  type (tricubic_coef_struct) tri_coef(4, 3)  ! Save computed coefs for faster tracking
 end type
 
 ! The Taylor field is a set of evenly spaced planes.
