@@ -8,6 +8,7 @@ import re
 import os
 import sys
 import time
+import math
 
 num_tests = 0
 num_failures = 0
@@ -240,7 +241,7 @@ for test_dir in test_dir_list:
     #----------------------------------------------
     # Real test
 
-    elif now_end[0] == 'ABS' or now_end[0] == 'REL':
+    elif now_end[0] == 'ABS' or now_end[0] == 'REL' or now_end[0] == 'VEC_REL':
       now2_split = now_split[2].strip().split()
       correct2_split = correct_split[2].strip().split()[2:]   # [2:] -> Throw away EG: "ABS 2E-7"
       
@@ -259,6 +260,14 @@ for test_dir in test_dir_list:
       bad_at = -1
       bad_diff_val  = 0
 
+      if tol_type == 'VEC_REL':
+        vec_amp = 0
+        for ix, (now1, correct1) in enumerate(list(zip(now2_split, correct2_split))):
+          now_val = float(now1)
+          correct_val = float(correct1)
+          vec_amp += ((abs(now_val) + abs(correct_val)) / 2) ** 2
+        vec_amp = math.sqrt(vec_amp)
+
       for ix, (now1, correct1) in enumerate(list(zip(now2_split, correct2_split))):
         now_val = float(now1)
         correct_val = float(correct1)
@@ -266,6 +275,7 @@ for test_dir in test_dir_list:
         abs_val = (abs(now_val) + abs(correct_val)) / 2
         factor = 1
         if tol_type == 'REL': factor = abs_val
+        if tol_type == 'VEC_REL': factor = vec_amp
 
         if diff_val > factor * tol_val and diff_val > bad_diff_val: 
           bad_at = ix

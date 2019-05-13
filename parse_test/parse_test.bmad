@@ -117,7 +117,7 @@ ov1: overlay = {aa}, hkick
 ov2: overlay = {aa:-2}, hkick
 gr1: group = {aa:-vkick^2/c_light*xxx/mass_of(proton)}, var = {vkick}, vkick = 1e-10
 gr2: group = {aa[k1]:k1, aa[tilt]:tilt}, var = {k1, tilt}
-gr3: group = {aa:-vkick^2*mass_of(proton)}, var = {vkick}, vkick = 1e-6
+gr3: group = {aa:-vkick^2*mass_of(proton)}, var = {vkick}, vkick = 1e-6 * atan2(1,2)
 
 b*[k1] = 1
 *[tracking_method] = runge_kutta

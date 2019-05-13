@@ -8,28 +8,47 @@ use bmad
 use random_mod
 use nr
 use naff_mod
+use cubic_interpolation_mod
 
 implicit none
 
 type (spline_struct) a_spline(6)
 type (coord_struct) orbit
+type (field_at_3D_box_struct) f_grid
+type (tricubic_coef_struct) t_coef
 
 complex(rp) cdata(32)
 complex(rp) amp(3)
-integer i, which, where, n_freq, mult, power, width, digits
+integer i, j, k, which, where, n_freq, mult, power, width, digits
 logical match, ok
 character(40) str, sub1, sub2, sub3
 character(2) code
 
 real(rp) array(4), dE, freq(3)
 real(rp) sig1, sig2, sig3, quat(0:3), omega(3), axis2(3), angle2
-real(rp) phi1, phi2, phi3, y1, dy1, y2, dy2
+real(rp) phi1, phi2, phi3, y1, dy1, y2, dy2, dx, dy, dz
 real(rp) vec3(3), vec3a(3), vec3b(3), vec3c(3), axis(3), angle, w_mat(3,3), unit_mat(3,3)
 complex(rp) amp1, amp2, amp3
 
 !
 
 open (1, file = 'output.now')
+
+! Tricubic interpolation
+
+f_grid%pt(0,0,0) = field1_at_3D_pt_struct(1.2_rp, 1.4_rp, 1.6_rp, 1.8_rp, 2.2_rp, 3.2_rp, 4.2_rp, 5.2_rp)
+f_grid%pt(1,0,0) = field1_at_3D_pt_struct(2.3_rp, 2.5_rp, 2.7_rp, 2.9_rp, 3.3_rp, 4.3_rp, 5.3_rp, 6.3_rp)
+f_grid%pt(0,1,0) = field1_at_3D_pt_struct(3.4_rp, 3.6_rp, 3.8_rp, 4.4_rp, 5.4_rp, 6.4_rp, 7.4_rp, 8.4_rp)
+f_grid%pt(1,1,0) = field1_at_3D_pt_struct(4.5_rp, 5.5_rp, 6.5_rp, 7.5_rp, 8.5_rp, 9.5_rp, 0.5_rp, 1.5_rp)
+f_grid%pt(0,0,1) = field1_at_3D_pt_struct(5.6_rp, 6.6_rp, 7.6_rp, 8.6_rp, 9.6_rp, 0.6_rp, 1.6_rp, 2.6_rp)
+f_grid%pt(1,0,1) = field1_at_3D_pt_struct(6.7_rp, 7.7_rp, 8.7_rp, 9.7_rp, 0.7_rp, 1.7_rp, 2.7_rp, 3.7_rp)
+f_grid%pt(0,1,1) = field1_at_3D_pt_struct(7.8_rp, 8.8_rp, 9.8_rp, 0.8_rp, 1.8_rp, 2.8_rp, 3.8_rp, 4.8_rp)
+f_grid%pt(1,1,1) = field1_at_3D_pt_struct(8.9_rp, 9.9_rp, 0.9_rp, 1.9_rp, 2.9_rp, 3.9_rp, 4.9_rp, 5.9_rp)
+
+call tricubic_interpolation_coefs(f_grid, t_coef)
+
+write (1, '(a, f12.8)') '"Tricubic Interpolation1" REL 1E-10', tricubic_eval(0.4_rp, 0.5_rp, 0.6_rp, t_coef)
+write (1, '(a, f12.8)') '"Tricubic Interpolation2" REL 1E-10', tricubic_eval(0.5_rp, 0.1_rp, 0.7_rp, t_coef)
 
 ! Akima spline test
 

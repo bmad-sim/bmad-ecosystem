@@ -66,7 +66,8 @@ do i = 1, lat%n_ele_track
   call em_field_calc (ele, lat%param, 0.1_rp, orb, .false., field, .true., rf_time = 1.0_rp)
   write (1, '(3a, 6es17.8)') '"Field:', trim(ele%name), '"    REL 1e-7', field%E, field%B
   do j = 1, 3
-    write (1, '(3a, i0, a, 6es17.8)') '"dField:', trim(ele%name), '-', j, '" REL 1e-7', field%dE(j,:), field%dB(j,:)
+    write (1, '(3a, i0, a, 6es17.8)') '"dE:', trim(ele%name), '-', j, '" VEC_REL 1e-8', field%dE(j,:)
+    write (1, '(3a, i0, a, 6es17.8)') '"dB:', trim(ele%name), '-', j, '" VEC_REL 1e-8', field%dB(j,:)
   enddo
   write (1, *)
 enddo
@@ -84,7 +85,8 @@ do i = 1, lat%n_ele_track
   call em_field_calc (ele, lat%param, 0.1_rp, orb, .false., field, .true., rf_time = 1.0_rp)
   write (1, '(3a, 6es16.8)') '"Field2:', trim(ele%name), '"    REL 1e-7', field%E, field%B
   do j = 1, 3
-    write (1, '(3a, i0, a, 6es16.8)') '"dField2:', trim(ele%name), '-', j, '" REL 1e-7', field%dE(j,:), field%dB(j,:)
+    write (1, '(3a, i0, a, 6es16.8)') '"dE2:', trim(ele%name), '-', j, '" VEC_REL 1e-8', field%dE(j,:)
+    write (1, '(3a, i0, a, 6es16.8)') '"dB2:', trim(ele%name), '-', j, '" VEC_REL 1e-8', field%dB(j,:)
   enddo
   write (1, *)
 enddo
