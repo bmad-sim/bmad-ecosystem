@@ -35,14 +35,14 @@ end type
 
 type field_at_2D_box_struct
   type (field1_at_2D_pt_struct) pt(0:1, 0:1)
+  integer :: i_box(2) = int_garbage$  ! index at lower box corner.
 end type
 
 ! Coefficients needed to evaluate bicubic interpolation.
 
 type bicubic_coef_struct
-  ! (ix, iy) = index of grid element coefs are for.
-  integer :: ix = int_garbage$, iy = int_garbage$
   real(rp) :: coef(0:3,0:3) = 0 ! Coefs
+  integer :: i_box(2) = int_garbage$  ! index at lower box corner.
 end type
 
 !--------------------------------------------
@@ -62,14 +62,14 @@ end type
 
 type cmplx_field_at_2D_box_struct
   type (cmplx_field1_at_2D_pt_struct) pt(0:1, 0:1)
+  integer :: i_box(2) = int_garbage$  ! index at lower box corner.
 end type
 
 ! Coefficients needed to evaluate bicubic interpolation.
 
 type bicubic_cmplx_coef_struct
-  ! (ix, iy) = index of grid element coefs are for.
-  integer :: ix = int_garbage$, iy = int_garbage$
   complex(rp) :: coef(0:3,0:3) = 0 ! Coefs
+  integer :: i_box(2) = int_garbage$  ! index at lower box corner.
 end type
 
 !--------------------------------------------
@@ -90,14 +90,14 @@ end type
 
 type field_at_3D_box_struct
   type (field1_at_3D_pt_struct) pt(0:1, 0:1, 0:1)
+  integer :: i_box(3) = int_garbage$  ! index at lower box corner.
 end type
 
 ! Coefficients needed to evaluate tricubic interpolation.
 
 type tricubic_coef_struct
-  ! (ix, iy, iz) = index of grid element coefs are for.
-  integer :: ix = int_garbage$, iy = int_garbage$, iz = int_garbage$
   real(rp) :: coef(0:3,0:3,0:3) = 0 ! Coefs
+  integer :: i_box(3) = int_garbage$  ! index at lower box corner.
 end type
 
 !--------------------------------------------
@@ -118,14 +118,14 @@ end type
 
 type cmplx_field_at_3D_box_struct
   type (cmplx_field1_at_3D_pt_struct) pt(0:1, 0:1, 0:1)
+  integer :: i_box(3) = int_garbage$  ! index at lower box corner.
 end type
 
 ! Coefficients needed to evaluate tricubic interpolation.
 
 type tricubic_cmplx_coef_struct
-  ! (ix, iy, iz) = index of grid element coefs are for.
-  integer :: ix = int_garbage$, iy = int_garbage$, iz = int_garbage$
   complex(rp) :: coef(0:3,0:3,0:3) = 0 ! Coefs
+  integer :: i_box(3) = int_garbage$  ! index at lower box corner.
 end type
 
 !---------------------------------------------------------
@@ -276,6 +276,8 @@ real(rp) field(ig0(1):, ig0(2):)
 real(rp) f(-1:2, -1:2)
 
 integer i, j, ix, iy, ixx, iyy, ix0, ix1, iy0, iy1
+integer ixe, idx, xdir, iye, idy, ydir
+
 logical err_flag
 
 character(*) extrapolation
@@ -285,28 +287,30 @@ character(*) extrapolation
 ig1 = ubound(field)
 err_flag = .true.
 
+field_at_box%i_box = [ix, iy]
+
 if (any(ig0 >= ig1)) return
 
+ix0 = ig0(1); ix1 = ig1(1)
+iy0 = ig0(2); iy1 = ig1(2)
+
 if (extrapolation == 'NONE') then
-  if (ix < ig0(1) .or. ix >= ig1(1)) return
-  if (iy < ig0(2) .or. iy >= ig1(2)) return
+  if (ix < ix0 .or. ix >= ix1) return
+  if (iy < iy0 .or. iy >= iy1) return
 else
-  if (ix < ig0(1) - 1 .or. ix > ig1(1)) return
-  if (iy < ig0(2) - 1 .or. iy > ig1(2)) return
+  if (ix < ix0 - 1 .or. ix > ix1) return
+  if (iy < iy0 - 1 .or. iy > iy1) return
 endif
 
 err_flag = .false.
 
 ! Setup g mini-grid
 
-ix0 = ig0(1); ix1 = ig1(1)
-iy0 = ig0(2); iy1 = ig1(2)
-
 do i = -1, 2
 do j = -1, 2
   ixx = ix + i
   iyy = iy + j
-  if (ix >= ix0 .and. ix <= ix1 .and. iy >= iy0 .and. iy <= iy1) then
+  if (ixx >= ix0 .and. ixx <= ix1 .and. iyy >= iy0 .and. iyy <= iy1) then
     f(i,j) = field(ixx, iyy)
     cycle
   endif
@@ -316,29 +320,41 @@ do j = -1, 2
     f(i,j) = 0
 
   case ('LINEAR')
-    if (ixx == ix0-1 .and. iyy == iy0-1) then
-      f(i,j) = 3 * field(ixx+1, iyy+1) - field(ixx+2, iyy+1) - field(ixx+1, iyy+2)
-    elseif (ixx == ix0-1 .and. iyy == iy1+1) then
-      f(i,j) = 3 * field(ixx+1, iyy-1) - field(ixx+2, iyy-1) - field(ixx+1, iyy-2)
-    elseif (ixx == ix1+1 .and. iyy == iy0-1) then
-      f(i,j) = 3 * field(ixx-1, iyy+1) - field(ixx-2, iyy+1) - field(ixx-1, iyy+2)
-    elseif (ixx == ix1+1 .and. iyy == iy1+1) then
-      f(i,j) = 3 * field(ixx-1, iyy-1) - field(ixx-2, iyy-1) - field(ixx-1, iyy-2)
-    elseif (ixx == ix0) then
-      f(i,j) = 2 * field(ixx+1, iyy) - field(ixx+2, iyy)
-    elseif (ixx == ix1) then
-      f(i,j) = 2 * field(ixx-1, iyy) - field(ixx-2, iyy)
-    elseif (iyy == iy0) then
-      f(i,j) = 2 * field(ixx, iyy+1) - field(ixx, iyy+2)
-    elseif (iyy == iy1) then
-      f(i,j) = 2 * field(ixx, iyy-1) - field(ixx, iyy-2)
+    if (ixx < ix0) then
+      ixe = ix0
+      idx = ix0 - ixx
+      xdir = 1
+    elseif (ixx > ix1) then
+      ixe = ix1
+      idx = ixx - ix1
+      xdir = -1
+    else
+      ixe = ixx
+      idx = 0
+      xdir = 0
     endif
 
+    if (iyy < iy0) then
+      iye = iy0
+      idy = iy0 - iyy
+      ydir = 1
+    elseif (iyy > iy1) then
+      iye = iy1
+      idy = iyy - iy1
+      ydir = -1
+    else
+      iye = iyy
+      idy = 0
+      ydir = 0
+    endif
+
+    f(i,j) = field(ixe,iye) + idx * (field(ixe,iye) - field(ixe+xdir,iye)) + idy * (field(ixe,iye) - field(ixe,iye+ydir))
+
   case ('CONSTANT')
-    if (ixx == ix0-1) ixx = ix0
-    if (ixx == ix1+1) ixx = ix1
-    if (iyy == iy0-1) iyy = iy0
-    if (iyy == iy1+1) iyy = iy1
+    if (ixx < ix0) ixx = ix0
+    if (ixx > ix1) ixx = ix1
+    if (iyy < iy0) iyy = iy0
+    if (iyy > iy1) iyy = iy1
     f(i,j) = field(ixx, iyy)
   end select
 enddo
@@ -387,6 +403,8 @@ real(rp) field_array(16)
 integer i, j, ij
 
 !
+
+bi_coef%i_box = field_at_box%i_box
 
 do i = 0, 1
 do j = 0, 1
@@ -520,6 +538,8 @@ real(rp) field(ig0(1):, ig0(2):, ig0(3):)
 real(rp) f(-1:2, -1:2, -1:2)
 
 integer i, j, k, ix, iy, iz, ixx, iyy, izz, ix0, ix1, iy0, iy1, iz0, iz1
+integer ixe, idx, xdir, iye, idy, ydir, ize, idz, zdir
+
 logical err_flag
 
 character(*) extrapolation
@@ -529,25 +549,27 @@ character(*) extrapolation
 ig1 = ubound(field)
 err_flag = .true.
 
+field_at_box%i_box = [ix, iy, iz]
+
 if (any(ig0 >= ig1)) return
 
+ix0 = ig0(1); ix1 = ig1(1)
+iy0 = ig0(2); iy1 = ig1(2)
+iz0 = ig0(3); iz1 = ig1(3)
+
 if (extrapolation == 'NONE') then
-  if (ix < ig0(1) .or. ix >= ig1(1)) return
-  if (iy < ig0(2) .or. iy >= ig1(2)) return
-  if (iz < ig0(2) .or. iz >= ig1(2)) return
+  if (ix < ix0 .or. ix >= ix1) return
+  if (iy < iy0 .or. iy >= iy1) return
+  if (iz < iz0 .or. iz >= iz1) return
 else
-  if (ix < ig0(1) - 1 .or. ix > ig1(1)) return
-  if (iy < ig0(2) - 1 .or. iy > ig1(2)) return
-  if (iz < ig0(2) - 1 .or. iz > ig1(2)) return
+  if (ix < ix0 - 1 .or. ix > ix1) return
+  if (iy < iy0 - 1 .or. iy > iy1) return
+  if (iz < iz0 - 1 .or. iz > iz1) return
 endif
 
 err_flag = .false.
 
 ! Setup g mini-grid
-
-ix0 = ig0(1); ix1 = ig1(1)
-iy0 = ig0(2); iy1 = ig1(2)
-iz0 = ig0(3); iz1 = ig1(3)
 
 do i = -1, 2
 do j = -1, 2
@@ -555,7 +577,7 @@ do k = -1, 2
   ixx = ix + i
   iyy = iy + j
   izz = iz + k
-  if (ix >= ix0 .and. ix <= ix1 .and. iy >= iy0 .and. iy <= iy1 .and. iz >= iz0 .and. iz <= iz1) then
+  if (ixx >= ix0 .and. ixx <= ix1 .and. iyy >= iy0 .and. iyy <= iy1 .and. izz >= iz0 .and. izz <= iz1) then
     f(i,j,k) = field(ixx, iyy, izz)
     cycle
   endif
@@ -565,43 +587,58 @@ do k = -1, 2
     f(i,j,k) = 0
 
   case ('LINEAR')
-    if (ixx == ix0-1 .and. iyy == iy0-1 .and. izz == iz0-1) then
-      f(i,j,k) = 4 * field(ixx+1, iyy+1, izz+1) - field(ixx+2, iyy+1, izz+1) - field(ixx+1, iyy+2, izz+1) - field(ixx+1, iyy+1, izz+2)
-    elseif (ixx == ix0-1 .and. iyy == iy0-1 .and. izz == iz1+1) then
-      f(i,j,k) = 4 * field(ixx+1, iyy+1, izz-1) - field(ixx+2, iyy+1, izz-1) - field(ixx+1, iyy+2, izz-1) - field(ixx+1, iyy+1, izz-2)
-    elseif (ixx == ix0-1 .and. iyy == iy1+1 .and. izz == iz0-1) then
-      f(i,j,k) = 4 * field(ixx+1, iyy-1, izz+1) - field(ixx+2, iyy-1, izz+1) - field(ixx+1, iyy-2, izz+1) - field(ixx+1, iyy-1, izz+2)
-    elseif (ixx == ix0-1 .and. iyy == iy1+1 .and. izz == iz1+1) then
-      f(i,j,k) = 4 * field(ixx+1, iyy-1, izz-1) - field(ixx+2, iyy-1, izz-1) - field(ixx+1, iyy-2, izz-1) - field(ixx+1, iyy-1, izz-2)
-    elseif (ixx == ix1+1 .and. iyy == iy0-1 .and. izz == iz0-1) then
-      f(i,j,k) = 4 * field(ixx-1, iyy+1, izz+1) - field(ixx-2, iyy+1, izz+1) - field(ixx-1, iyy+2, izz+1) - field(ixx-1, iyy+1, izz+2)
-    elseif (ixx == ix1+1 .and. iyy == iy0-1 .and. izz == iz1+1) then
-      f(i,j,k) = 4 * field(ixx-1, iyy+1, izz-1) - field(ixx-2, iyy+1, izz-1) - field(ixx-1, iyy+2, izz-1) - field(ixx-1, iyy+1, izz-2)
-    elseif (ixx == ix1+1 .and. iyy == iy1+1 .and. izz == iz0-1) then
-      f(i,j,k) = 4 * field(ixx-1, iyy-1, izz+1) - field(ixx-2, iyy-1, izz+1) - field(ixx-1, iyy-2, izz+1) - field(ixx-1, iyy-1, izz+2)
-    elseif (ixx == ix1+1 .and. iyy == iy1+1 .and. izz == iz1+1) then
-      f(i,j,k) = 4 * field(ixx-1, iyy-1, izz-1) - field(ixx-2, iyy-1, izz-1) - field(ixx-1, iyy-2, izz-1) - field(ixx-1, iyy-1, izz-2)
-    elseif (ixx == ix0) then
-      f(i,j,k) = 2 * field(ixx+1, iyy, izz) - field(ixx+2, iyy, izz)
-    elseif (ixx == ix1) then
-      f(i,j,k) = 2 * field(ixx-1, iyy, izz) - field(ixx-2, iyy, izz)
-    elseif (iyy == iy0) then
-      f(i,j,k) = 2 * field(ixx, iyy+1, izz) - field(ixx, iyy+2, izz)
-    elseif (iyy == iy1) then
-      f(i,j,k) = 2 * field(ixx, iyy-1, izz) - field(ixx, iyy-2, izz)
-    elseif (izz == iz0) then
-      f(i,j,k) = 2 * field(ixx, iyy, izz+1) - field(ixx, iyy, izz+2)
-    elseif (izz == iz1) then
-      f(i,j,k) = 2 * field(ixx, iyy, izz-1) - field(ixx, iyy, izz-2)
+    if (ixx < ix0) then
+      ixe = ix0
+      idx = ix0 - ixx
+      xdir = 1
+    elseif (ixx > ix1) then
+      ixe = ix1
+      idx = ixx - ix1
+      xdir = -1
+    else
+      ixe = ixx
+      idx = 0
+      xdir = 0
     endif
 
+    if (iyy < iy0) then
+      iye = iy0
+      idy = iy0 - iyy
+      ydir = 1
+    elseif (iyy > iy1) then
+      iye = iy1
+      idy = iyy - iy1
+      ydir = -1
+    else
+      iye = iyy
+      idy = 0
+      ydir = 0
+    endif
+
+    if (izz < iz0) then
+      ize = iz0
+      idz = iz0 - izz
+      zdir = 1
+    elseif (izz > iz1) then
+      ize = iz1
+      idz = izz - iz1
+      zdir = -1
+    else
+      ize = izz
+      idz = 0
+      zdir = 0
+    endif
+
+    f(i,j,k) = field(ixe,iye,ize) + idx * (field(ixe,iye,ize) - field(ixe+xdir,iye,ize)) + &
+              idy * (field(ixe,iye,ize) - field(ixe,iye+ydir,ize)) + idz * (field(ixe,iye,ize) - field(ixe,iye,ize+zdir))
+
   case ('CONSTANT')
-    if (ixx == ix0-1) ixx = ix0
-    if (ixx == ix1+1) ixx = ix1
-    if (iyy == iy0-1) iyy = iy0
-    if (iyy == iy1+1) iyy = iy1
-    if (izz == iz0-1) izz = iz0
-    if (izz == iz1+1) izz = iz1
+    if (ixx < ix0) ixx = ix0
+    if (ixx > ix1) ixx = ix1
+    if (iyy < iy0) iyy = iy0
+    if (iyy > iy1) iyy = iy1
+    if (izz < iz0) izz = iz0
+    if (izz > iz1) izz = iz1
     f(i,j,k) = field(ixx, iyy, izz)
   end select
 enddo
@@ -616,7 +653,7 @@ do k = 0, 1
   field_at_box%pt(i,j,k)%f = f(i, j, k)
   field_at_box%pt(i,j,k)%df_dx = (f(i+1, j, k) - f(i-1, j, k)) / 2
   field_at_box%pt(i,j,k)%df_dy = (f(i, j+1, k) - f(i, j-1, k)) / 2
-  field_at_box%pt(i,j,k)%df_dz = (f(i, j, k+1) - f(i, j, k+1)) / 2
+  field_at_box%pt(i,j,k)%df_dz = (f(i, j, k+1) - f(i, j, k-1)) / 2
   field_at_box%pt(i,j,k)%d2f_dxdy = (f(i+1, j+1, k) - f(i+1, j-1, k) - f(i-1, j+1, k) + f(i-1, j-1, k)) / 4
   field_at_box%pt(i,j,k)%d2f_dxdz = (f(i+1, j, k+1) - f(i+1, j, k-1) - f(i-1, j, k+1) + f(i-1, j, k-1)) / 4
   field_at_box%pt(i,j,k)%d2f_dydz = (f(i, j+1, k+1) - f(i, j+1, k-1) - f(i, j-1, k+1) + f(i, j-1, k-1)) / 4
@@ -658,6 +695,8 @@ real(rp) field_array(64)
 integer i, j, k, ijk
 
 !
+
+tri_coef%i_box = field_at_box%i_box
 
 do i = 0, 1
 do j = 0, 1
@@ -816,6 +855,8 @@ complex(rp) field(ig0(1):, ig0(2):)
 complex(rp) f(-1:2, -1:2)
 
 integer i, j, ix, iy, ixx, iyy, ix0, ix1, iy0, iy1
+integer ixe, idx, xdir, iye, idy, ydir
+
 logical err_flag
 
 character(*) extrapolation
@@ -825,28 +866,30 @@ character(*) extrapolation
 ig1 = ubound(field)
 err_flag = .true.
 
+field_at_box%i_box = [ix, iy]
+
 if (any(ig0 >= ig1)) return
 
+ix0 = ig0(1); ix1 = ig1(1)
+iy0 = ig0(2); iy1 = ig1(2)
+
 if (extrapolation == 'NONE') then
-  if (ix < ig0(1) .or. ix >= ig1(1)) return
-  if (iy < ig0(2) .or. iy >= ig1(2)) return
+  if (ix < ix0 .or. ix >= ix1) return
+  if (iy < iy0 .or. iy >= iy1) return
 else
-  if (ix < ig0(1) - 1 .or. ix > ig1(1)) return
-  if (iy < ig0(2) - 1 .or. iy > ig1(2)) return
+  if (ix < ix0 - 1 .or. ix > ix1) return
+  if (iy < iy0 - 1 .or. iy > iy1) return
 endif
 
 err_flag = .false.
 
 ! Setup g mini-grid
 
-ix0 = ig0(1); ix1 = ig1(1)
-iy0 = ig0(2); iy1 = ig1(2)
-
 do i = -1, 2
 do j = -1, 2
   ixx = ix + i
   iyy = iy + j
-  if (ix >= ix0 .and. ix <= ix1 .and. iy >= iy0 .and. iy <= iy1) then
+  if (ixx >= ix0 .and. ixx <= ix1 .and. iyy >= iy0 .and. iyy <= iy1) then
     f(i,j) = field(ixx, iyy)
     cycle
   endif
@@ -856,29 +899,41 @@ do j = -1, 2
     f(i,j) = 0
 
   case ('LINEAR')
-    if (ixx == ix0-1 .and. iyy == iy0-1) then
-      f(i,j) = 3 * field(ixx+1, iyy+1) - field(ixx+2, iyy+1) - field(ixx+1, iyy+2)
-    elseif (ixx == ix0-1 .and. iyy == iy1+1) then
-      f(i,j) = 3 * field(ixx+1, iyy-1) - field(ixx+2, iyy-1) - field(ixx+1, iyy-2)
-    elseif (ixx == ix1+1 .and. iyy == iy0-1) then
-      f(i,j) = 3 * field(ixx-1, iyy+1) - field(ixx-2, iyy+1) - field(ixx-1, iyy+2)
-    elseif (ixx == ix1+1 .and. iyy == iy1+1) then
-      f(i,j) = 3 * field(ixx-1, iyy-1) - field(ixx-2, iyy-1) - field(ixx-1, iyy-2)
-    elseif (ixx == ix0) then
-      f(i,j) = 2 * field(ixx+1, iyy) - field(ixx+2, iyy)
-    elseif (ixx == ix1) then
-      f(i,j) = 2 * field(ixx-1, iyy) - field(ixx-2, iyy)
-    elseif (iyy == iy0) then
-      f(i,j) = 2 * field(ixx, iyy+1) - field(ixx, iyy+2)
-    elseif (iyy == iy1) then
-      f(i,j) = 2 * field(ixx, iyy-1) - field(ixx, iyy-2)
+    if (ixx < ix0) then
+      ixe = ix0
+      idx = ix0 - ixx
+      xdir = 1
+    elseif (ixx > ix1) then
+      ixe = ix1
+      idx = ixx - ix1
+      xdir = -1
+    else
+      ixe = ixx
+      idx = 0
+      xdir = 0
     endif
 
+    if (iyy < iy0) then
+      iye = iy0
+      idy = iy0 - iyy
+      ydir = 1
+    elseif (iyy > iy1) then
+      iye = iy1
+      idy = iyy - iy1
+      ydir = -1
+    else
+      iye = iyy
+      idy = 0
+      ydir = 0
+    endif
+
+    f(i,j) = field(ixe,iye) + idx * (field(ixe,iye) - field(ixe+xdir,iye)) + idy * (field(ixe,iye) - field(ixe,iye+ydir))
+
   case ('CONSTANT')
-    if (ixx == ix0-1) ixx = ix0
-    if (ixx == ix1+1) ixx = ix1
-    if (iyy == iy0-1) iyy = iy0
-    if (iyy == iy1+1) iyy = iy1
+    if (ixx < ix0) ixx = ix0
+    if (ixx > ix1) ixx = ix1
+    if (iyy < iy0) iyy = iy0
+    if (iyy > iy1) iyy = iy1
     f(i,j) = field(ixx, iyy)
   end select
 enddo
@@ -927,6 +982,8 @@ complex(rp) field_array(16)
 integer i, j, ij
 
 !
+
+bi_coef%i_box = field_at_box%i_box
 
 do i = 0, 1
 do j = 0, 1
@@ -1062,6 +1119,8 @@ complex(rp) field(ig0(1):, ig0(2):, ig0(3):)
 complex(rp) f(-1:2, -1:2, -1:2)
 
 integer i, j, k, ix, iy, iz, ixx, iyy, izz, ix0, ix1, iy0, iy1, iz0, iz1
+integer ixe, idx, xdir, iye, idy, ydir, ize, idz, zdir
+
 logical err_flag
 
 character(*) extrapolation
@@ -1071,25 +1130,27 @@ character(*) extrapolation
 ig1 = ubound(field)
 err_flag = .true.
 
+field_at_box%i_box = [ix, iy, iz]
+
 if (any(ig0 >= ig1)) return
 
+ix0 = ig0(1); ix1 = ig1(1)
+iy0 = ig0(2); iy1 = ig1(2)
+iz0 = ig0(3); iz1 = ig1(3)
+
 if (extrapolation == 'NONE') then
-  if (ix < ig0(1) .or. ix >= ig1(1)) return
-  if (iy < ig0(2) .or. iy >= ig1(2)) return
-  if (iz < ig0(2) .or. iz >= ig1(2)) return
+  if (ix < ix0 .or. ix >= ix1) return
+  if (iy < iy0 .or. iy >= iy1) return
+  if (iz < iz0 .or. iz >= iz1) return
 else
-  if (ix < ig0(1) - 1 .or. ix > ig1(1)) return
-  if (iy < ig0(2) - 1 .or. iy > ig1(2)) return
-  if (iz < ig0(2) - 1 .or. iz > ig1(2)) return
+  if (ix < ix0 - 1 .or. ix > ix1) return
+  if (iy < iy0 - 1 .or. iy > iy1) return
+  if (iz < iz0 - 1 .or. iz > iz1) return
 endif
 
 err_flag = .false.
 
 ! Setup g mini-grid
-
-ix0 = ig0(1); ix1 = ig1(1)
-iy0 = ig0(2); iy1 = ig1(2)
-iz0 = ig0(3); iz1 = ig1(3)
 
 do i = -1, 2
 do j = -1, 2
@@ -1097,7 +1158,7 @@ do k = -1, 2
   ixx = ix + i
   iyy = iy + j
   izz = iz + k
-  if (ix >= ix0 .and. ix <= ix1 .and. iy >= iy0 .and. iy <= iy1 .and. iz >= iz0 .and. iz <= iz1) then
+  if (ixx >= ix0 .and. ixx <= ix1 .and. iyy >= iy0 .and. iyy <= iy1 .and. izz >= iz0 .and. izz <= iz1) then
     f(i,j,k) = field(ixx, iyy, izz)
     cycle
   endif
@@ -1107,43 +1168,58 @@ do k = -1, 2
     f(i,j,k) = 0
 
   case ('LINEAR')
-    if (ixx == ix0-1 .and. iyy == iy0-1 .and. izz == iz0-1) then
-      f(i,j,k) = 4 * field(ixx+1, iyy+1, izz+1) - field(ixx+2, iyy+1, izz+1) - field(ixx+1, iyy+2, izz+1) - field(ixx+1, iyy+1, izz+2)
-    elseif (ixx == ix0-1 .and. iyy == iy0-1 .and. izz == iz1+1) then
-      f(i,j,k) = 4 * field(ixx+1, iyy+1, izz-1) - field(ixx+2, iyy+1, izz-1) - field(ixx+1, iyy+2, izz-1) - field(ixx+1, iyy+1, izz-2)
-    elseif (ixx == ix0-1 .and. iyy == iy1+1 .and. izz == iz0-1) then
-      f(i,j,k) = 4 * field(ixx+1, iyy-1, izz+1) - field(ixx+2, iyy-1, izz+1) - field(ixx+1, iyy-2, izz+1) - field(ixx+1, iyy-1, izz+2)
-    elseif (ixx == ix0-1 .and. iyy == iy1+1 .and. izz == iz1+1) then
-      f(i,j,k) = 4 * field(ixx+1, iyy-1, izz-1) - field(ixx+2, iyy-1, izz-1) - field(ixx+1, iyy-2, izz-1) - field(ixx+1, iyy-1, izz-2)
-    elseif (ixx == ix1+1 .and. iyy == iy0-1 .and. izz == iz0-1) then
-      f(i,j,k) = 4 * field(ixx-1, iyy+1, izz+1) - field(ixx-2, iyy+1, izz+1) - field(ixx-1, iyy+2, izz+1) - field(ixx-1, iyy+1, izz+2)
-    elseif (ixx == ix1+1 .and. iyy == iy0-1 .and. izz == iz1+1) then
-      f(i,j,k) = 4 * field(ixx-1, iyy+1, izz-1) - field(ixx-2, iyy+1, izz-1) - field(ixx-1, iyy+2, izz-1) - field(ixx-1, iyy+1, izz-2)
-    elseif (ixx == ix1+1 .and. iyy == iy1+1 .and. izz == iz0-1) then
-      f(i,j,k) = 4 * field(ixx-1, iyy-1, izz+1) - field(ixx-2, iyy-1, izz+1) - field(ixx-1, iyy-2, izz+1) - field(ixx-1, iyy-1, izz+2)
-    elseif (ixx == ix1+1 .and. iyy == iy1+1 .and. izz == iz1+1) then
-      f(i,j,k) = 4 * field(ixx-1, iyy-1, izz-1) - field(ixx-2, iyy-1, izz-1) - field(ixx-1, iyy-2, izz-1) - field(ixx-1, iyy-1, izz-2)
-    elseif (ixx == ix0) then
-      f(i,j,k) = 2 * field(ixx+1, iyy, izz) - field(ixx+2, iyy, izz)
-    elseif (ixx == ix1) then
-      f(i,j,k) = 2 * field(ixx-1, iyy, izz) - field(ixx-2, iyy, izz)
-    elseif (iyy == iy0) then
-      f(i,j,k) = 2 * field(ixx, iyy+1, izz) - field(ixx, iyy+2, izz)
-    elseif (iyy == iy1) then
-      f(i,j,k) = 2 * field(ixx, iyy-1, izz) - field(ixx, iyy-2, izz)
-    elseif (izz == iz0) then
-      f(i,j,k) = 2 * field(ixx, iyy, izz+1) - field(ixx, iyy, izz+2)
-    elseif (izz == iz1) then
-      f(i,j,k) = 2 * field(ixx, iyy, izz-1) - field(ixx, iyy, izz-2)
+    if (ixx < ix0) then
+      ixe = ix0
+      idx = ix0 - ixx
+      xdir = 1
+    elseif (ixx > ix1) then
+      ixe = ix1
+      idx = ixx - ix1
+      xdir = -1
+    else
+      ixe = ixx
+      idx = 0
+      xdir = 0
     endif
 
+    if (iyy < iy0) then
+      iye = iy0
+      idy = iy0 - iyy
+      ydir = 1
+    elseif (iyy > iy1) then
+      iye = iy1
+      idy = iyy - iy1
+      ydir = -1
+    else
+      iye = iyy
+      idy = 0
+      ydir = 0
+    endif
+
+    if (izz < iz0) then
+      ize = iz0
+      idz = iz0 - izz
+      zdir = 1
+    elseif (izz > iz1) then
+      ize = iz1
+      idz = izz - iz1
+      zdir = -1
+    else
+      ize = izz
+      idz = 0
+      zdir = 0
+    endif
+
+    f(i,j,k) = field(ixe,iye,ize) + idx * (field(ixe,iye,ize) - field(ixe+xdir,iye,ize)) + &
+              idy * (field(ixe,iye,ize) - field(ixe,iye+ydir,ize)) + idz * (field(ixe,iye,ize) - field(ixe,iye,ize+zdir))
+
   case ('CONSTANT')
-    if (ixx == ix0-1) ixx = ix0
-    if (ixx == ix1+1) ixx = ix1
-    if (iyy == iy0-1) iyy = iy0
-    if (iyy == iy1+1) iyy = iy1
-    if (izz == iz0-1) izz = iz0
-    if (izz == iz1+1) izz = iz1
+    if (ixx < ix0) ixx = ix0
+    if (ixx > ix1) ixx = ix1
+    if (iyy < iy0) iyy = iy0
+    if (iyy > iy1) iyy = iy1
+    if (izz < iz0) izz = iz0
+    if (izz > iz1) izz = iz1
     f(i,j,k) = field(ixx, iyy, izz)
   end select
 enddo
@@ -1158,7 +1234,7 @@ do k = 0, 1
   field_at_box%pt(i,j,k)%f = f(i, j, k)
   field_at_box%pt(i,j,k)%df_dx = (f(i+1, j, k) - f(i-1, j, k)) / 2
   field_at_box%pt(i,j,k)%df_dy = (f(i, j+1, k) - f(i, j-1, k)) / 2
-  field_at_box%pt(i,j,k)%df_dz = (f(i, j, k+1) - f(i, j, k+1)) / 2
+  field_at_box%pt(i,j,k)%df_dz = (f(i, j, k+1) - f(i, j, k-1)) / 2
   field_at_box%pt(i,j,k)%d2f_dxdy = (f(i+1, j+1, k) - f(i+1, j-1, k) - f(i-1, j+1, k) + f(i-1, j-1, k)) / 4
   field_at_box%pt(i,j,k)%d2f_dxdz = (f(i+1, j, k+1) - f(i+1, j, k-1) - f(i-1, j, k+1) + f(i-1, j, k-1)) / 4
   field_at_box%pt(i,j,k)%d2f_dydz = (f(i, j+1, k+1) - f(i, j+1, k-1) - f(i, j-1, k+1) + f(i, j-1, k-1)) / 4
@@ -1200,6 +1276,8 @@ complex(rp) field_array(64)
 integer i, j, k, ijk
 
 !
+
+tri_coef%i_box = field_at_box%i_box
 
 do i = 0, 1
 do j = 0, 1
