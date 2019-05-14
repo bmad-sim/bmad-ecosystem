@@ -26,7 +26,7 @@
 !   orbit_start          -- Coord_struct, optional: Starting phase space coordinates at l_start.
 !   ele_start            -- Ele_struct, optional: Holds the starting Twiss parameters at l_start.
 !   compute_floor_coords -- logical, optional: If present and True then the global "floor" coordinates 
-!                             will be calculated and put in ele_end%floor.
+!                             (without misalignments) will be calculated and put in ele_end%floor.
 !
 ! Output:
 !   orbit_end  -- Coord_struct, optional: End phase space coordinates. 

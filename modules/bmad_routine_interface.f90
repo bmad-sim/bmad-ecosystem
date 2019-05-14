@@ -261,6 +261,14 @@ subroutine check_if_s_in_bounds (branch, s, err_flag, translated_s)
   logical err_flag
 end subroutine
 
+subroutine choose_quads_for_set_tune (lat, dk1, regex_mask)
+  import
+  implicit none
+  type (lat_struct) lat
+  character(40), optional :: regex_mask
+  real(rp), allocatable, intent(inout) :: dk1(:)
+end subroutine
+
 subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, &
                        pz, low_E_lat, high_E_lat, low_E_orb, high_E_orb, ix_branch)
   import

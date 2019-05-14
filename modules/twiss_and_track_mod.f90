@@ -271,8 +271,8 @@ end subroutine twiss_and_track1
 !                        This can speed things up when the present s-position is in the middle 
 !                        of a long complicated element and the tracking (EG: Runge-Kutta) is slow. 
 !   compute_floor_coords
-!                   -- logical, optional: If present and True then the global "floor" coordinates will be 
-!                        calculated and put in ele_at_s%floor.
+!                   -- logical, optional: If present and True then the global "floor" coordinates (without
+!                        misalignments) will be calculated and put in ele_at_s%floor.
 !
 ! Output:
 !   ele_at_s  -- Ele_struct, optional: Element structure holding the Twiss parameters.
