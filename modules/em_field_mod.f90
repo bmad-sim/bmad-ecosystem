@@ -1759,17 +1759,25 @@ subroutine grid_field_interpolate (ele, orbit, grid, g_field, err_flag, x1, x2, 
 
 type (ele_struct) ele
 type (coord_struct) orbit
-type (grid_field_struct) :: grid
+type (grid_field_struct), target :: grid
 type (grid_field_pt1_struct), intent(out) :: g_field
+type (cmplx_field_at_2D_box_struct) field2_at_box
+type (cmplx_field_at_3D_box_struct) field3_at_box
+type (bicubic_cmplx_coef_struct), pointer :: bi_coef(:,:)    ! Save computed coefs for faster tracking
+type (tricubic_cmplx_coef_struct), pointer :: tri_coef(:,:)  ! Save computed coefs for faster tracking
+
 real(rp) :: x1
 real(rp), optional :: x2, x3
 real(rp) rel_x1, rel_x2, rel_x3, r2_x1
-integer i1, i2, i3, grid_dim, allow_s, lbnd, ubnd, nn
+
+integer i, n, i1, i2, i3, grid_dim, allow_s, lbnd, ubnd, nn
+integer, parameter :: allow_tiny$ = 1, allow_some$ = 2, allow_all$ = 3
+
 logical err_flag
 logical, optional :: allow_s_out_of_bounds, err_print_out_of_bounds
-character(*), parameter :: r_name = 'grid_field_interpolate'
 
-integer, parameter :: allow_tiny$ = 1, allow_some$ = 2, allow_all$ = 3
+character(*), parameter :: r_name = 'grid_field_interpolate'
+character(40) extrapolation
 
 ! Pick appropriate dimension 
 
@@ -1792,6 +1800,43 @@ case (2)
   if (i2 < lbnd - 1 .or. i2 > ubnd) return 
 
   call get_this_index(x1, 1, i1, rel_x1, err_flag, allow_tiny$); if (err_flag) return
+
+  ! BiCubic interpolation
+
+  if (grid%interpolation_order == 3) then
+    ! Look for coefs already calculated
+    n = size(grid%bi_coef, 1)
+    do i = 1, n
+      if (any(grid%bi_coef(i,1,1)%i_box /= [i1, i2])) cycle
+      bi_coef => grid%bi_coef(i,:,:)
+      exit
+    enddo
+
+    if (i == n+1) then
+      if (i1 == 1) then
+        extrapolation = 'SYMMETRIC:ZERO'
+      else
+        extrapolation = 'LINEAR:ZERO'
+      endif
+
+      grid%bi_coef(1:n-1,:,:) = grid%bi_coef(2:n,:,:)
+      bi_coef => grid%bi_coef(4,:,:)
+
+      do i = 1, 3
+        call bicubic_compute_cmplx_field_at_2D_box(grid%ptr%pt(:,:,1)%B(i), lbound(grid%ptr%pt), i1, i2, extrapolation, field2_at_box, err_flag)
+        call bicubic_interpolation_cmplx_coefs (field2_at_box, bi_coef(1,i))
+        call bicubic_compute_cmplx_field_at_2D_box(grid%ptr%pt(:,:,1)%E(i), lbound(grid%ptr%pt), i1, i2, extrapolation, field2_at_box, err_flag)
+        call bicubic_interpolation_cmplx_coefs (field2_at_box, bi_coef(2,i))
+      enddo
+    endif
+
+    do i = 1, 3
+      g_field%B(i) = bicubic_cmplx_eval(rel_x1, rel_x2, bi_coef(1,i))
+      g_field%E(i) = bicubic_cmplx_eval(rel_x1, rel_x2, bi_coef(2,i))
+    enddo
+
+    return
+  endif
 
   ! Do bilinear interpolation. If just outside longitudinally, interpolate between grid edge and zero.
   ! If using rotationally_symmetric_rz$ then the z component of the fields are even in r.
@@ -1860,7 +1905,40 @@ case (3)
 
   call get_this_index(x1, 1, i1, rel_x1, err_flag, allow_tiny$); if (err_flag) return
   call get_this_index(x2, 2, i2, rel_x2, err_flag, allow_tiny$); if (err_flag) return
-    
+
+  ! TriCubic interpolation
+
+  if (grid%interpolation_order == 3) then
+    ! Look for coefs already calculated
+    n = size(grid%tri_coef, 1)
+    do i = 1, n
+      if (any(grid%tri_coef(i,1,1)%i_box /= [i1, i2, i3])) cycle
+      tri_coef => grid%tri_coef(i,:,:)
+      exit
+    enddo
+
+    if (i == n+1) then
+      extrapolation = 'LINEAR:LINEAR:ZERO'
+
+      grid%tri_coef(1:n-1,:,:) = grid%tri_coef(2:n,:,:)
+      tri_coef => grid%tri_coef(4,:,:)
+
+      do i = 1, 3
+        call tricubic_compute_cmplx_field_at_3D_box(grid%ptr%pt%B(i), lbound(grid%ptr%pt), i1, i2, i3, extrapolation, field3_at_box, err_flag)
+        call tricubic_interpolation_cmplx_coefs (field3_at_box, tri_coef(1,i))
+        call tricubic_compute_cmplx_field_at_3D_box(grid%ptr%pt%E(i), lbound(grid%ptr%pt), i1, i2, i3, extrapolation, field3_at_box, err_flag)
+        call tricubic_interpolation_cmplx_coefs (field3_at_box, tri_coef(2,i))
+      enddo
+    endif
+
+    do i = 1, 3
+      g_field%B(i) = tricubic_cmplx_eval(rel_x1, rel_x2, rel_x3, tri_coef(1,i))
+      g_field%E(i) = tricubic_cmplx_eval(rel_x1, rel_x2, rel_x3, tri_coef(2,i))
+    enddo
+
+    return
+  endif
+
   ! Do trilinear interpolation. If just outside longitudinally, interpolate between grid edge and zero.
 
   if (i3 == lbnd - 1 .or. i3 == ubnd) then  ! Just outside entrance end or just outside exit end
