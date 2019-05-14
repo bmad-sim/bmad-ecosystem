@@ -19,7 +19,6 @@ set (EXE_SPECS
   cmake.srdt_lsq_soln
   cmake.long_term_tracking
   cmake.frequency_map
-  #cmake.frequency_map_mpi
   cmake.bbu
   cmake.dynamic_aperture
   cmake.ibs_linac
@@ -37,6 +36,8 @@ set (EXE_SPECS
 if($ENV{ACC_ENABLE_MPI})
   list(APPEND EXE_SPECS "cmake.moga")
   list(APPEND EXE_SPECS "cmake.long_term_tracking_mpi")
+  list(APPEND EXE_SPECS "cmake.aperture_by_tracking")
+  list(APPEND EXE_SPECS "cmake.touschek_background")
 endif()
 
 #set (FFLAGS "-pg")  # For profiling

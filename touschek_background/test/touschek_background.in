@@ -1,0 +1,43 @@
+&parameters
+  lat_file = 'test_cerl_modea.lat'
+  aperture_file = 'aperture_by_s.out'
+
+  !start_stop_type = 1 !1=by s, 2=by element name
+  !s_prod_start = 839.2
+  !s_prod_end = 839.3  !a negative number here means lat%param%total_length
+  !s_lost_start = 0.
+  !s_lost_end = 1219.6  !a negative number here means lat%param%total_length
+
+  start_stop_type = 2
+  name_prod_start = 'sa.mar.beg'
+  name_prod_end   = 'sa.mar.end'
+  name_lost_start = 'sa.mar.beg'
+  name_lost_end   = 'sa.mar.end'
+  !name_lost_start = 'sa.celle.mar.beg'
+  !name_lost_end   = 'sa.celle.mar.end'
+  !name_lost_start = 'sa.celld07.mar.beg'
+  !name_lost_end   = 'sa.celld07.mar.end'
+
+  do_ibs = .false.
+  count_col_losses = 1 ! 0=no, 1=non-zero-length only, 2 = yes
+  a_emittance = 3.0E-7
+  b_emittance = 3.0E-7
+  bunch_charge = 77.0E-12
+  bunch_length = 6.0093947965E-04
+  energy_spread_eV = 35.E3    !injected energy spread in eV
+  test_collimator = 0.0025    !radius of test collimator used for potential collimator profile
+  collimate = .false.  !Add zero-length collimators according to collimators.in
+                       !If this is true, then collimators.in must exist
+
+  traj_snapshot = .false.
+  snapshot_start_slix = 316
+  snapshot_stop_slix = 371
+  N_test_part = 50
+  !N_test_part = 1
+  N_data_points = 8
+  distParam = 0.9999 ! must be < 1.0, closer to 1 concentrates touschek sampling curve data points
+                     ! towards momentum aperture.  0.999 is good place to start
+  ignore_thresh = 1.0E-5 !if a slice produced less than this rate of touschek particles per bunch per meter,
+                         !then it is skipped
+  histogram_orbit = .false.
+&end

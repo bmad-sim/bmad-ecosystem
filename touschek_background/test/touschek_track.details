@@ -1,0 +1,13 @@
+ Lattice File: 
+ test_cerl_modea.lat                                                            
+                      
+ Halo:  F
+Number of data points:    8
+Number of test particles:   50
+Total Integrated current (#e-):      1.2260
+  Beam Pipe Collisions:      1.2260
+  Zero Energy in Linac:      0.0000
+Energy deposited into beam pipe (eV):  6.13234E+09
+ Number of test particles:             26900
+   Number lost to beam pipe:           26864
+   Number lost to zero energy:             0
