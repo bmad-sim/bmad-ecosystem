@@ -473,7 +473,7 @@ type coord_struct                 ! Particle coordinates at a single point
                                   !   May be -1 if element is not associated with a lattice.
   integer :: ix_branch = -1       ! Index the lattice branch the particle is in.
   integer :: ix_user = -1         ! For general use, not used by Bmad.
-  integer :: state = not_set$     ! alive$, lost$, lost_neg_x_aperture$, etc.
+  integer :: state = not_set$     ! alive$, lost$, lost_neg_x_aperture$, lost_pz_aperture$, etc.
   integer :: direction = 1        ! Sign of longitudinal direction of motion (ds/dt). = +/- 1.
                                   !  This is independent of the element orientation. See manual.
   integer :: species = not_set$   ! positron$, proton$, etc.  

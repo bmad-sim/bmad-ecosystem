@@ -436,8 +436,9 @@ physical ends will be displaced from upstream and downstream ends. See
 
 \index{ele_struct!\%floor}
 \index{floor_position_struct}
-The \vn{%floor} component gives the global ``floor'' coordinates (\sref{s:global})
-at the downstream end of the element. The components of the \vn{%floor} structure are
+The \vn{%floor} component gives the ``laboratory'' global ``floor'' coordinates (\sref{s:global})
+at the downstream end of the element. These coordinates are computed without misalignments.
+That is, the coordinates are not ``body'' coordinates. The components of the \vn{%floor} structure are
 \begin{example}
   type floor_position_struct
     real(rp) r(3)               ! Offset from origin

@@ -1,27 +1,26 @@
 !+
 ! Subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
 !
-! Subroutine to Q_tune a lat. Program will set the tunes to
-! within 0.001 radian (0.06 deg).
+! Subroutine to Q_tune a lat. Program will set the tunes to within 0.001 radian (0.06 deg).
 ! Note: The tune is computed with reference to the closed orbit.
 !                                    
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!   phi_a_set -- Real(rp): Horizontal set tune (radians)
-!   phi_b_set -- Real(rp): Vertical set tune (radians)
-!   dk1(:)    -- Real(rp): Relative amount to vary a quad in tuning.
-!                  That is, the variation will be proportional to dk1.
-!                  dk1(i) relates to lat%ele(i). Those quads with a
-!                  positive dk1(i) will be varied as one group and the
-!                  quads with negative dk1(i) will be varied as another group.
+!   phi_a_set -- real(rp): Horizontal set tune (radians)
+!   phi_b_set -- real(rp): Vertical set tune (radians)
+!   dk1(:)    -- real(rp): Relative amount to vary a quad in tuning. That is, the variation will 
+!                  be proportional to dk1. dk1(i) relates to element lat%ele(i). Those quads with a
+!                  positive dk1(i) will be varied as one group and the quads with negative dk1(i)
+!                  will be varied as another group. The routine choose_quads_for_set_tune can be
+!                  used to calculate values for dk1.
 !   orb(0)%vec(6) -- Coord_struct: If RF is off: Energy dE/E at which the tune is computed.
 !
 ! Output:
 !   lat      -- lat_struct: Q_tuned lat
-!   orb(0:)  -- Coord_struct: New closed orbit.
-!   ok       -- Logical: Set True if everything is ok. False otherwise.
+!   orb(0:)  -- coord_struct: New closed orbit.
+!   ok       -- logical: Set True if everything is ok. False otherwise.
 !-
 
 subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)

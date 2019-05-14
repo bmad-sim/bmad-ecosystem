@@ -213,8 +213,12 @@ end subroutine lat_geometry
 !+
 ! Subroutine ele_geometry (floor_start, ele, floor_end, len_scale, ignore_patch_err)
 !
-! Routine to calculate the global (floor) coordinates of an element given the
-! global coordinates of the preceeding element. This is the same as the MAD convention.
+! Routine to calculate the non-misaligned global (floor) coordinates of an element given 
+! the non-misaligned global coordinates of the preceeding element. 
+!
+! The coordinates are computed without misalignments. That is, the coordinates are the "laboratory" 
+! coordinates and not the "body" coordinates. To compute coordinates with misalignments use
+! the routine ele_geometry_with_misalignments.
 !
 ! floor0 will correspond to the coordinates at the upstream end of the element
 ! and floor will correspond to the coordinates at the downstream end.
@@ -722,6 +726,75 @@ if (ele_floor_geometry_calc .and. (any(abs(floor%r - old_floor%r) > eps) .or. &
 endif
 
 end subroutine ele_geometry
+
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!+
+! Function ele_geometry_with_misalignments (ele, s_offset) result (floor)
+!
+! Routine to calculate the element body coordinates (that is, coordinates with misalignments) 
+! for an element at some distance s_offset from the upstream end.
+!
+! Note: Elements without a defined length (girder, crystal, floor_shift, etc.) ignore s_offset.
+!
+! Input:
+!   ele       -- ele_struct: Lattice element under consideration.
+!   s_offset  -- real(rp), optional: Distance from the upstream end to compute the body coordinates.
+!                 Default is ele%value(l$) corresponding to the downstream end of the element.
+!
+! Output:
+!   floor     -- floor_position_struct: Floor position with misalignments
+!-
+
+function ele_geometry_with_misalignments (ele, s_offset) result (floor)
+
+type (ele_struct) ele
+type (ele_struct), pointer :: ele0
+type (floor_position_struct) floor, f0
+
+real(rp), optional :: s_offset
+real(rp) s_rel, s_mis(3,3)
+
+!
+
+select case (ele%key)
+
+  case (floor_shift$, group$, overlay$, hybrid$, beginning_ele$, match$, null_ele$, patch$)
+    ! These elements do not have offsets
+    floor = ele%floor
+
+  case (crystal$, mirror$, multilayer_mirror$)
+    ele0 => pointer_to_next_ele(ele, -1)
+    f0 = ele0%floor
+    call floor_angles_to_w_mat(ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$), s_mis)
+    f0%r = f0%r + matmul(f0%W, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)])
+    f0%W = matmul(f0%W, s_mis)
+    call floor_w_mat_to_angles (f0%W, f0%theta, f0%phi, f0%psi, f0)
+    call ele_geometry (f0, ele, floor, 0.5_rp)
+
+    ! Misalignments are referenced to beginning of element
+    floor = coords_relative_to_floor (ele0%floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
+                                        ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$))
+    call ele_geometry (floor, ele, floor)
+
+  case (girder$)
+    floor = coords_relative_to_floor (ele%floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
+                                        ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$)) 
+  case default
+    ! Misalignments referenced to center of element
+    call ele_geometry (ele%floor, ele, floor, -0.5_rp)
+    floor = coords_relative_to_floor (floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
+                                        ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$)) 
+    if (ele%value(l$) == 0) then
+      call ele_geometry (floor, ele, floor, 0.5_rp)
+    else
+      s_rel = real_option(ele%value(l$), s_offset) / ele%value(l$) - 0.5_rp
+    endif
+
+end select
+
+end function ele_geometry_with_misalignments
 
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
