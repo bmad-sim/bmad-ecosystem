@@ -246,6 +246,7 @@ contains
 ! The box spans from (ix, iy) to (ix+1, iy+1).
 !
 ! Note: The grid size must be at least 2 x 2.
+! Note: this routine assumes that the grid points are evenly spaced.
 !
 ! The grid box is "just outside" the grid if some of the box points are within the grid region and some are outside.
 ! In this case, the extrapolation argument is used to determine how the field is calculated at outside box points.
@@ -253,18 +254,22 @@ contains
 ! The output of this routine can be used in the routine bicubic_interpolation_coefs.
 !
 ! Input:
-!   field(:,:)      -- real(rp): Field at grid points.
-!   ig0(2)          -- integer: grid lower bounds.
-!   ix, iy          -- integer: Grid box lower bounds
-!   extrapolation   -- character(*): Used if the grid box is just outside of the grid.
-!                       = 'NONE'      ! No extrapolation and err_flag is set to True.
-!                       = 'ZERO'      ! Assume field and derivatives are zero at the outside box points.
-!                       = 'LINEAR'    ! Linear extrapolation to the outside box points.
-!                       = 'CONSTANT'  ! Constant field is assumed outside the grid.
+!   field(:,:)    -- real(rp): Field at grid points.
+!   ig0(2)        -- integer: grid lower bounds.
+!   ix, iy        -- integer: Grid box lower bounds
+!   extrapolation -- character(*): Used if the grid box is just outside of the grid.
+!                     = 'NONE'      ! No extrapolation and err_flag is set to True.
+!                     = 'ZERO'      ! Assume field and derivatives are zero at the outside box points.
+!                     = 'LINEAR'    ! Linear extrapolation to the outside box points.
+!                     = 'CONSTANT'  ! Constant field is assumed outside the grid.
+!                     = 'SYMMETRIC' ! Grid is assumed symmetric at grid boundary. That is, zero first 
+!                                   !   derivative at boundary in direction perpendicular to the boundary.
+!                     = <extrap_x>:<extrap_y>  ! Combination of extrapolations. For example 'ZERO:LINEAR'.
+!                                   !  <extrap_x> applies to +/- x grid edges and <extrap_y> applies to +/- y grid edges.
 !
 ! Output:
-!   field_at_box    -- field_at_2D_box_struct: Field and derivatives.
-!   err_flag        -- logical: Set True if there is an error such as the box is not in or just outside the grid.
+!   field_at_box  -- field_at_2D_box_struct: Field and derivatives.
+!   err_flag      -- logical: Set True if there is an error such as the box is not in or just outside the grid.
 !-
 
 subroutine bicubic_compute_field_at_2D_box (field, ig0, ix, iy, extrapolation, field_at_box, err_flag)
@@ -275,14 +280,24 @@ integer ig0(2), ig1(2)
 real(rp) field(ig0(1):, ig0(2):)
 real(rp) f(-1:2, -1:2)
 
-integer i, j, ix, iy, ixx, iyy, ix0, ix1, iy0, iy1
+integer i, j, ix, iy, ixx, iyy, ix0, ix1, iy0, iy1, n
 integer ixe, idx, xdir, iye, idy, ydir
 
 logical err_flag
 
 character(*) extrapolation
+character(12) extrap, extrap_x, extrap_y
 
 ! Init
+
+n = index(extrapolation, ':')
+if (n == 0) then
+  extrap_x = extrapolation
+  extrap_y = extrapolation
+else
+  extrap_x = extrapolation(1:n-1)
+  extrap_y = extrapolation(n+1:)
+endif
 
 ig1 = ubound(field)
 err_flag = .true.
@@ -294,13 +309,10 @@ if (any(ig0 >= ig1)) return
 ix0 = ig0(1); ix1 = ig1(1)
 iy0 = ig0(2); iy1 = ig1(2)
 
-if (extrapolation == 'NONE') then
-  if (ix < ix0 .or. ix >= ix1) return
-  if (iy < iy0 .or. iy >= iy1) return
-else
-  if (ix < ix0 - 1 .or. ix > ix1) return
-  if (iy < iy0 - 1 .or. iy > iy1) return
-endif
+if (ix < ix0 - 1 .or. ix > ix1) return
+if (iy < iy0 - 1 .or. iy > iy1) return
+if (extrap_x == 'NONE' .and. (ix < ix0 .or. ix >= ix1)) return
+if (extrap_y == 'NONE' .and. (iy < iy0 .or. iy >= iy1)) return
 
 err_flag = .false.
 
@@ -315,11 +327,17 @@ do j = -1, 2
     cycle
   endif
 
-  select case (extrapolation)
+  if (ixx < ix0 .or. ixx > ix1) then
+    extrap = extrap_x
+  elseif (iyy < iy0 .or. iyy > iy1) then
+    extrap = extrap_y
+  endif
+
+  select case (extrap)
   case ('ZERO')
     f(i,j) = 0
 
-  case ('LINEAR')
+  case ('LINEAR', 'SYMMETRIC')
     if (ixx < ix0) then
       ixe = ix0
       idx = ix0 - ixx
@@ -348,7 +366,11 @@ do j = -1, 2
       ydir = 0
     endif
 
-    f(i,j) = field(ixe,iye) + idx * (field(ixe,iye) - field(ixe+xdir,iye)) + idy * (field(ixe,iye) - field(ixe,iye+ydir))
+    if (extrap == 'LINEAR') then
+      f(i,j) = field(ixe,iye) + idx * (field(ixe,iye) - field(ixe+xdir,iye)) + idy * (field(ixe,iye) - field(ixe,iye+ydir))
+    else
+      f(i,j) = field(ixe+xdir*idx, iye+ydir*idy) 
+    endif
 
   case ('CONSTANT')
     if (ixx < ix0) ixx = ix0
@@ -508,6 +530,7 @@ end function bicubic_eval
 ! The box spans from (ix, iy, iz) to (ix+1, iy+1, iz+1).
 !
 ! Note: The grid size must be at least 2 x 2 x 2.
+! Note: this routine assumes that the grid points are evenly spaced.
 !
 ! The grid box is "just outside" the grid if some of the box points are within the grid region and some are outside.
 ! In this case, the extrapolation argument is used to determine how the field is calculated at outside box points.
@@ -515,18 +538,22 @@ end function bicubic_eval
 ! The output of this routine can be used in the routine tricubic_interpolation_coefs.
 !
 ! Input:
-!   field(:,:,:)    -- real(rp): Field at grid points.
-!   ig0(3)          -- integer: grid lower bounds.
-!   ix, iy, iz      -- integer: Grid box lower bounds
-!   extrapolation   -- character(*): Used if the grid box is just outside of the grid.
-!                       = 'NONE'      ! No extrapolation and err_flag is set to True.
-!                       = 'ZERO'      ! Assume field and derivatives are zero at the outside box points.
-!                       = 'LINEAR'    ! Linear extrapolation to the outside box points.
-!                       = 'CONSTANT'  ! Constant field is assumed outside the grid.
+!   field(:,:,:)  -- real(rp): Field at grid points.
+!   ig0(3)        -- integer: grid lower bounds.
+!   ix, iy, iz    -- integer: Grid box lower bounds
+!   extrapolation -- character(*): Used if the grid box is just outside of the grid.
+!                     = 'NONE'      ! No extrapolation and err_flag is set to True.
+!                     = 'ZERO'      ! Assume field and derivatives are zero at the outside box points.
+!                     = 'LINEAR'    ! Linear extrapolation to the outside box points.
+!                     = 'CONSTANT'  ! Constant field is assumed outside the grid.
+!                     = 'SYMMETRIC' ! Grid is assumed symmetric at grid boundary. That is, zero first 
+!                                   !   derivative at boundary in direction perpendicular to the boundary.
+!                     = <extrap_x>:<extrap_y>:<extrap_z>  ! Combination of extrapolations. 
+!                                   !  For example 'ZERO:LINEAR:LINEAR'. <extrap_x> applies to +/- x grid edges, etc.
 !
 ! Output:
-!   field_at_box    -- field_at_3D_box_struct: Field and derivatives.
-!   err_flag        -- logical: Set True if there is an error such as the box is not in or just outside the grid.
+!   field_at_box  -- field_at_3D_box_struct: Field and derivatives.
+!   err_flag      -- logical: Set True if there is an error such as the box is not in or just outside the grid.
 !-
 
 subroutine tricubic_compute_field_at_3D_box (field, ig0, ix, iy, iz, extrapolation, field_at_box, err_flag)
@@ -537,17 +564,33 @@ integer ig0(3), ig1(3)
 real(rp) field(ig0(1):, ig0(2):, ig0(3):)
 real(rp) f(-1:2, -1:2, -1:2)
 
-integer i, j, k, ix, iy, iz, ixx, iyy, izz, ix0, ix1, iy0, iy1, iz0, iz1
+integer i, j, k, ix, iy, iz, ixx, iyy, izz, ix0, ix1, iy0, iy1, iz0, iz1, n
 integer ixe, idx, xdir, iye, idy, ydir, ize, idz, zdir
 
 logical err_flag
 
 character(*) extrapolation
+character(12) extrap, extrap_x, extrap_y, extrap_z
 
 ! Init
 
-ig1 = ubound(field)
 err_flag = .true.
+
+n = index(extrapolation, ':')
+if (n == 0) then
+  extrap_x = extrapolation
+  extrap_y = extrapolation
+  extrap_z = extrapolation
+else
+  extrap_x = extrapolation(1:n-1)
+  extrap_y = extrapolation(n+1:)
+  n = index(extrap_y, ':')
+  if (n == 0) return
+  extrap_z = extrap_y(n+1:)
+  extrap_y = extrap_y(1:n-1)
+endif
+
+ig1 = ubound(field)
 
 field_at_box%i_box = [ix, iy, iz]
 
@@ -557,15 +600,12 @@ ix0 = ig0(1); ix1 = ig1(1)
 iy0 = ig0(2); iy1 = ig1(2)
 iz0 = ig0(3); iz1 = ig1(3)
 
-if (extrapolation == 'NONE') then
-  if (ix < ix0 .or. ix >= ix1) return
-  if (iy < iy0 .or. iy >= iy1) return
-  if (iz < iz0 .or. iz >= iz1) return
-else
-  if (ix < ix0 - 1 .or. ix > ix1) return
-  if (iy < iy0 - 1 .or. iy > iy1) return
-  if (iz < iz0 - 1 .or. iz > iz1) return
-endif
+if (ix < ix0 - 1 .or. ix > ix1) return
+if (iy < iy0 - 1 .or. iy > iy1) return
+if (iz < iz0 - 1 .or. iz > iz1) return
+if (extrap_x == 'NONE' .and. (ix < ix0 .or. ix >= ix1)) return
+if (extrap_y == 'NONE' .and. (iy < iy0 .or. iy >= iy1)) return
+if (extrap_z == 'NONE' .and. (iz < iz0 .or. iz >= iz1)) return
 
 err_flag = .false.
 
@@ -582,11 +622,19 @@ do k = -1, 2
     cycle
   endif
 
-  select case (extrapolation)
+  if (ixx < ix0 .or. ixx > ix1) then
+    extrap = extrap_x
+  elseif (iyy < iy0 .or. iyy > iy1) then
+    extrap = extrap_y
+  elseif (izz < iz0 .or. izz > iz1) then
+    extrap = extrap_z
+  endif
+
+  select case (extrap)
   case ('ZERO')
     f(i,j,k) = 0
 
-  case ('LINEAR')
+  case ('LINEAR', 'SYMMETRIC')
     if (ixx < ix0) then
       ixe = ix0
       idx = ix0 - ixx
@@ -629,8 +677,12 @@ do k = -1, 2
       zdir = 0
     endif
 
-    f(i,j,k) = field(ixe,iye,ize) + idx * (field(ixe,iye,ize) - field(ixe+xdir,iye,ize)) + &
+    if (extrap == 'LINEAR') then
+      f(i,j,k) = field(ixe,iye,ize) + idx * (field(ixe,iye,ize) - field(ixe+xdir,iye,ize)) + &
               idy * (field(ixe,iye,ize) - field(ixe,iye+ydir,ize)) + idz * (field(ixe,iye,ize) - field(ixe,iye,ize+zdir))
+    else
+      f(i,j,k) = field(ixe+xdir*idx, iye+ydir*idy, ize+zdir*idz) 
+    endif
 
   case ('CONSTANT')
     if (ixx < ix0) ixx = ix0
@@ -825,6 +877,7 @@ end function tricubic_eval
 ! The box spans from (ix, iy) to (ix+1, iy+1).
 !
 ! Note: The grid size must be at least 2 x 2.
+! Note: this routine assumes that the grid points are evenly spaced.
 !
 ! The grid box is "just outside" the grid if some of the box points are within the grid region and some are outside.
 ! In this case, the extrapolation argument is used to determine how the field is calculated at outside box points.
@@ -832,18 +885,22 @@ end function tricubic_eval
 ! The output of this routine can be used in the routine bicubic_interpolation_coefs.
 !
 ! Input:
-!   field(:,:)      -- complex(rp): Field at grid points.
-!   ig0(2)          -- integer: grid lower bounds.
-!   ix, iy          -- integer: Grid box lower bounds
-!   extrapolation   -- character(*): Used if the grid box is just outside of the grid.
-!                       = 'NONE'      ! No extrapolation and err_flag is set to True.
-!                       = 'ZERO'      ! Assume field and derivatives are zero at the outside box points.
-!                       = 'LINEAR'    ! Linear extrapolation to the outside box points.
-!                       = 'CONSTANT'  ! Constant field is assumed outside the grid.
+!   field(:,:)    -- complex(rp): Field at grid points.
+!   ig0(2)        -- integer: grid lower bounds.
+!   ix, iy        -- integer: Grid box lower bounds
+!   extrapolation -- character(*): Used if the grid box is just outside of the grid.
+!                     = 'NONE'      ! No extrapolation and err_flag is set to True.
+!                     = 'ZERO'      ! Assume field and derivatives are zero at the outside box points.
+!                     = 'LINEAR'    ! Linear extrapolation to the outside box points.
+!                     = 'CONSTANT'  ! Constant field is assumed outside the grid.
+!                     = 'SYMMETRIC' ! Grid is assumed symmetric at grid boundary. That is, zero first 
+!                                   !   derivative at boundary in direction perpendicular to the boundary.
+!                     = <extrap_x>:<extrap_y>  ! Combination of extrapolations. For example 'ZERO:LINEAR'.
+!                                   !  <extrap_x> applies to +/- x grid edges and <extrap_y> applies to +/- y grid edges.
 !
 ! Output:
-!   field_at_box    -- cmplx_field_at_2D_box_struct: Field and derivatives.
-!   err_flag        -- logical: Set True if there is an error such as the box is not in or just outside the grid.
+!   field_at_box  -- cmplx_field_at_2D_box_struct: Field and derivatives.
+!   err_flag      -- logical: Set True if there is an error such as the box is not in or just outside the grid.
 !-
 
 subroutine bicubic_compute_cmplx_field_at_2D_box (field, ig0, ix, iy, extrapolation, field_at_box, err_flag)
@@ -854,14 +911,24 @@ integer ig0(2), ig1(2)
 complex(rp) field(ig0(1):, ig0(2):)
 complex(rp) f(-1:2, -1:2)
 
-integer i, j, ix, iy, ixx, iyy, ix0, ix1, iy0, iy1
+integer i, j, ix, iy, ixx, iyy, ix0, ix1, iy0, iy1, n
 integer ixe, idx, xdir, iye, idy, ydir
 
 logical err_flag
 
 character(*) extrapolation
+character(12) extrap, extrap_x, extrap_y
 
 ! Init
+
+n = index(extrapolation, ':')
+if (n == 0) then
+  extrap_x = extrapolation
+  extrap_y = extrapolation
+else
+  extrap_x = extrapolation(1:n-1)
+  extrap_y = extrapolation(n+1:)
+endif
 
 ig1 = ubound(field)
 err_flag = .true.
@@ -873,13 +940,10 @@ if (any(ig0 >= ig1)) return
 ix0 = ig0(1); ix1 = ig1(1)
 iy0 = ig0(2); iy1 = ig1(2)
 
-if (extrapolation == 'NONE') then
-  if (ix < ix0 .or. ix >= ix1) return
-  if (iy < iy0 .or. iy >= iy1) return
-else
-  if (ix < ix0 - 1 .or. ix > ix1) return
-  if (iy < iy0 - 1 .or. iy > iy1) return
-endif
+if (ix < ix0 - 1 .or. ix > ix1) return
+if (iy < iy0 - 1 .or. iy > iy1) return
+if (extrap_x == 'NONE' .and. (ix < ix0 .or. ix >= ix1)) return
+if (extrap_y == 'NONE' .and. (iy < iy0 .or. iy >= iy1)) return
 
 err_flag = .false.
 
@@ -894,11 +958,17 @@ do j = -1, 2
     cycle
   endif
 
-  select case (extrapolation)
+  if (ixx < ix0 .or. ixx > ix1) then
+    extrap = extrap_x
+  elseif (iyy < iy0 .or. iyy > iy1) then
+    extrap = extrap_y
+  endif
+
+  select case (extrap)
   case ('ZERO')
     f(i,j) = 0
 
-  case ('LINEAR')
+  case ('LINEAR', 'SYMMETRIC')
     if (ixx < ix0) then
       ixe = ix0
       idx = ix0 - ixx
@@ -927,7 +997,11 @@ do j = -1, 2
       ydir = 0
     endif
 
-    f(i,j) = field(ixe,iye) + idx * (field(ixe,iye) - field(ixe+xdir,iye)) + idy * (field(ixe,iye) - field(ixe,iye+ydir))
+    if (extrap == 'LINEAR') then
+      f(i,j) = field(ixe,iye) + idx * (field(ixe,iye) - field(ixe+xdir,iye)) + idy * (field(ixe,iye) - field(ixe,iye+ydir))
+    else
+      f(i,j) = field(ixe+xdir*idx, iye+ydir*idy) 
+    endif
 
   case ('CONSTANT')
     if (ixx < ix0) ixx = ix0
@@ -1089,6 +1163,7 @@ end function bicubic_cmplx_eval
 ! The box spans from (ix, iy, iz) to (ix+1, iy+1, iz+1).
 !
 ! Note: The grid size must be at least 2 x 2 x 2.
+! Note: this routine assumes that the grid points are evenly spaced.
 !
 ! The grid box is "just outside" the grid if some of the box points are within the grid region and some are outside.
 ! In this case, the extrapolation argument is used to determine how the field is calculated at outside box points.
@@ -1096,18 +1171,22 @@ end function bicubic_cmplx_eval
 ! The output of this routine can be used in the routine tricubic_interpolation_coefs.
 !
 ! Input:
-!   field(:,:,:)    -- complex(rp): Field at grid points.
-!   ig0(3)          -- integer: grid lower bounds.
-!   ix, iy, iz      -- integer: Grid box lower bounds
-!   extrapolation   -- character(*): Used if the grid box is just outside of the grid.
-!                       = 'NONE'      ! No extrapolation and err_flag is set to True.
-!                       = 'ZERO'      ! Assume field and derivatives are zero at the outside box points.
-!                       = 'LINEAR'    ! Linear extrapolation to the outside box points.
-!                       = 'CONSTANT'  ! Constant field is assumed outside the grid.
+!   field(:,:,:)  -- complex(rp): Field at grid points.
+!   ig0(3)        -- integer: grid lower bounds.
+!   ix, iy, iz    -- integer: Grid box lower bounds
+!   extrapolation -- character(*): Used if the grid box is just outside of the grid.
+!                     = 'NONE'      ! No extrapolation and err_flag is set to True.
+!                     = 'ZERO'      ! Assume field and derivatives are zero at the outside box points.
+!                     = 'LINEAR'    ! Linear extrapolation to the outside box points.
+!                     = 'CONSTANT'  ! Constant field is assumed outside the grid.
+!                     = 'SYMMETRIC' ! Grid is assumed symmetric at grid boundary. That is, zero first 
+!                                   !   derivative at boundary in direction perpendicular to the boundary.
+!                     = <extrap_x>:<extrap_y>:<extrap_z>  ! Combination of extrapolations. 
+!                                   !  For example 'ZERO:LINEAR:LINEAR'. <extrap_x> applies to +/- x grid edges, etc.
 !
 ! Output:
-!   field_at_box    -- cmplx_field_at_3D_box_struct: Field and derivatives.
-!   err_flag        -- logical: Set True if there is an error such as the box is not in or just outside the grid.
+!   field_at_box  -- cmplx_field_at_3D_box_struct: Field and derivatives.
+!   err_flag      -- logical: Set True if there is an error such as the box is not in or just outside the grid.
 !-
 
 subroutine tricubic_compute_cmplx_field_at_3D_box (field, ig0, ix, iy, iz, extrapolation, field_at_box, err_flag)
@@ -1118,17 +1197,33 @@ integer ig0(3), ig1(3)
 complex(rp) field(ig0(1):, ig0(2):, ig0(3):)
 complex(rp) f(-1:2, -1:2, -1:2)
 
-integer i, j, k, ix, iy, iz, ixx, iyy, izz, ix0, ix1, iy0, iy1, iz0, iz1
+integer i, j, k, ix, iy, iz, ixx, iyy, izz, ix0, ix1, iy0, iy1, iz0, iz1, n
 integer ixe, idx, xdir, iye, idy, ydir, ize, idz, zdir
 
 logical err_flag
 
 character(*) extrapolation
+character(12) extrap, extrap_x, extrap_y, extrap_z
 
 ! Init
 
-ig1 = ubound(field)
 err_flag = .true.
+
+n = index(extrapolation, ':')
+if (n == 0) then
+  extrap_x = extrapolation
+  extrap_y = extrapolation
+  extrap_z = extrapolation
+else
+  extrap_x = extrapolation(1:n-1)
+  extrap_y = extrapolation(n+1:)
+  n = index(extrap_y, ':')
+  if (n == 0) return
+  extrap_z = extrap_y(n+1:)
+  extrap_y = extrap_y(1:n-1)
+endif
+
+ig1 = ubound(field)
 
 field_at_box%i_box = [ix, iy, iz]
 
@@ -1138,15 +1233,12 @@ ix0 = ig0(1); ix1 = ig1(1)
 iy0 = ig0(2); iy1 = ig1(2)
 iz0 = ig0(3); iz1 = ig1(3)
 
-if (extrapolation == 'NONE') then
-  if (ix < ix0 .or. ix >= ix1) return
-  if (iy < iy0 .or. iy >= iy1) return
-  if (iz < iz0 .or. iz >= iz1) return
-else
-  if (ix < ix0 - 1 .or. ix > ix1) return
-  if (iy < iy0 - 1 .or. iy > iy1) return
-  if (iz < iz0 - 1 .or. iz > iz1) return
-endif
+if (ix < ix0 - 1 .or. ix > ix1) return
+if (iy < iy0 - 1 .or. iy > iy1) return
+if (iz < iz0 - 1 .or. iz > iz1) return
+if (extrap_x == 'NONE' .and. (ix < ix0 .or. ix >= ix1)) return
+if (extrap_y == 'NONE' .and. (iy < iy0 .or. iy >= iy1)) return
+if (extrap_z == 'NONE' .and. (iz < iz0 .or. iz >= iz1)) return
 
 err_flag = .false.
 
@@ -1163,11 +1255,19 @@ do k = -1, 2
     cycle
   endif
 
-  select case (extrapolation)
+  if (ixx < ix0 .or. ixx > ix1) then
+    extrap = extrap_x
+  elseif (iyy < iy0 .or. iyy > iy1) then
+    extrap = extrap_y
+  elseif (izz < iz0 .or. izz > iz1) then
+    extrap = extrap_z
+  endif
+
+  select case (extrap)
   case ('ZERO')
     f(i,j,k) = 0
 
-  case ('LINEAR')
+  case ('LINEAR', 'SYMMETRIC')
     if (ixx < ix0) then
       ixe = ix0
       idx = ix0 - ixx
@@ -1210,8 +1310,12 @@ do k = -1, 2
       zdir = 0
     endif
 
-    f(i,j,k) = field(ixe,iye,ize) + idx * (field(ixe,iye,ize) - field(ixe+xdir,iye,ize)) + &
+    if (extrap == 'LINEAR') then
+      f(i,j,k) = field(ixe,iye,ize) + idx * (field(ixe,iye,ize) - field(ixe+xdir,iye,ize)) + &
               idy * (field(ixe,iye,ize) - field(ixe,iye+ydir,ize)) + idz * (field(ixe,iye,ize) - field(ixe,iye,ize+zdir))
+    else
+      f(i,j,k) = field(ixe+xdir*idx, iye+ydir*idy, ize+zdir*idz) 
+    endif
 
   case ('CONSTANT')
     if (ixx < ix0) ixx = ix0
