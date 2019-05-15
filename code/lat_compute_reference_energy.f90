@@ -441,7 +441,7 @@ case (lcavity$)
   ! So if there has been a shift in the end energy, track again.
 
   do i = 1, 2
-    call track_this_ele (.false., err); if (err) return
+    call track_this_ele (orb_start, orb_end, .false., err); if (err) return
     ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
     call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
     if (err) return
@@ -476,7 +476,7 @@ case (e_gun$)
   ele%value(E_tot$) = E_tot_start
   ele%value(p0c$) = p0c_start
 
-  call track_this_ele (.true., err); if (err) return
+  call track_this_ele (orb_start, orb_end, .true., err); if (err) return
   call calc_time_ref_orb_out
 
 case (crystal$, mirror$, multilayer_mirror$, diffraction_plate$, photon_init$, mask$)
@@ -539,7 +539,7 @@ case default
     endif
 
   else
-    call track_this_ele (.false., err); if (err) return
+    call track_this_ele (orb_start, orb_end, .false., err); if (err) return
     call calc_time_ref_orb_out
   endif
 
@@ -594,8 +594,9 @@ err_flag = .false.
 !---------------------------------------------------------------------------------
 contains
 
-subroutine track_this_ele (is_inside, error)
+subroutine track_this_ele (orb_start, orb_end, is_inside, error)
 
+type (coord_struct) orb_start, orb_end
 logical error, is_inside, auto_bookkeeper_saved
 
 ! Set auto_bookkeeper to prevent track1 calling attribute_bookkeeper which will overwrite
@@ -637,7 +638,7 @@ integer i
 logical changed, has_changed
 
 ! For reference energy tracking need to turn off any element offsets and kicks and zero any errors.
-! If the element is a super_slave then the errors must be zeroed in the super_lord elements also.
+! If the element is a super_slave or multipass_slave then the errors must be zeroed in the lord elements also.
 
 ele%old_value = ele%value
 saved_is_on = ele%is_on
@@ -646,7 +647,7 @@ ele%iyy = ele%tracking_method
 
 has_changed = .false.
 
-if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
+if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$ .or. ele%slave_status == multipass_slave$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (lord%lord_status == girder_lord$ .or. lord%lord_status == overlay_lord$ .or. lord%lord_status == group_lord$) cycle
