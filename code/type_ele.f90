@@ -1157,7 +1157,9 @@ if (logic_option(.false., type_floor_coords) .and. associated(ele%branch)) then
   nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Reference', ele%floor%r, ele%floor%theta, ele%floor%phi, ele%floor%psi, '! Position without misalignments'
   nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi, '! Position with offset/pitch/tilt misalignments'
 
-  if (ele%ix_ele /= 0 .or. branch%param%geometry == closed$) then
+  ! Note: If ele is a multipass_lord then ele0 does not exist
+
+  if (associated(ele0) .and. (ele%ix_ele /= 0 .or. branch%param%geometry == closed$)) then
     f0 = ele0%floor
     nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'delta Ref', floor%r-f0%r, floor%theta-f0%theta, floor%phi-f0%phi, floor%psi-f0%psi, &
                                                                                                        '! Delta with respect to last element'  
