@@ -824,16 +824,18 @@ In this example the values of the four datums will the integrated quadrupole str
 of the associated lattice elements \vn{Q01} for the first datum, etc.
 
   %----------------------
-  \item[floor.x, .y, .z] \Newline
-Position of the element in the global ``floor'' coordinate system. This is the nominal
-position ignoring any misalignments. See the \bmad manual for details on the global
-coordinate system. See also \vn{rel_floor.}, \vn{floor_orbit.}, and \vn{will.}.
+  \item[floor.x, .y, .z, .theta, .phi, .psi] \Newline
+Position and orientation of the element in the global ``floor'' coordinate system. This is the
+nominal position ignoring any misalignments. That is, this is the ``laboratory'' coordinates that
+define the curvilinear reference orbit. See the \bmad manual for details on the global coordinate
+system. Also see the documentation on \vn{floor_actual.} \vn{rel_floor.}, and \vn{floor_orbit.} datum types.
 
   %----------------------
-  \item[floor.theta, .phi, .psi] \Newline
-Orientation of the element in the global ``floor'' coordinate system. This is the nominal
-position ignoring any misalignments. See the \bmad manual for details on the global
-coordinate system. See also \vn{rel_floor.} and \vn{floor_orbit.}.
+  \item[floor_actual.x, .y, .z, .theta, .phi, .psi] \Newline
+Position and orientation of the element with misalignments in the global ``floor'' coordinate
+system.  That is, this is the ``element body'' coordinates''. See the \bmad manual for details on
+the global coordinate system. See also the documentation on \vn{floor.} \vn{rel_floor.}, and
+\vn{floor_orbit.} datum types.
 
   %----------------------
   \item[floor_orbit.x, .y, .z] \Newline
@@ -1497,6 +1499,9 @@ squared.
 
   floor.x, .y, .z                     & Element global (``floor'') position       & lat         & Yes \\ \hline 
   floor.theta, .phi, .psi             & Element global (``floor'') orientation    & lat         & Yes \\ \hline 
+
+  floor_actual.x, .y, .z              & Element misaligned global position        & lat         & Yes \\ \hline 
+  floor_actual.theta, .phi, .psi      & Element misaligned global orientation     & lat         & Yes \\ \hline 
 
   floor_orbit.x, .y, .z               & global (``floor'') position of orbit      & beam, lat   & Yes \\ \hline 
 

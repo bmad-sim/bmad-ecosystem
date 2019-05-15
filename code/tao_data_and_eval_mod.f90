@@ -8,7 +8,7 @@ implicit none
 
 integer, parameter :: var_num$ = 101, lat_num$ = 102, data_num$ = 103, ele_num$ = 104
 
-private tao_scratch_values_calc, tao_eval_floor_orbit
+private tao_scratch_values_calc, tao_eval_floor_orbit, tao_ele_geometry_with_misalignments
 
 contains
 
@@ -594,7 +594,7 @@ if (datum%s_offset /= 0 .or. datum%eval_point == anchor_center$ .or. datum%eval_
     if (associated(ele_ref)) s_eval_ref = ele%s
   end select
 
-  compute_floor = (head_data_type == 'floor.')
+  compute_floor = (head_data_type(1:5) == 'floor')
 
   call twiss_and_track_at_s (branch%lat, s_eval, ele_at_s, orbit, orb_at_s, branch%ix_branch, &
                                                                       err, compute_floor_coords = compute_floor)
@@ -1551,6 +1551,24 @@ case ('floor.')
     return
 
   end select
+
+!-----------
+
+case ('floor_actual.')
+
+  value_vec(ix_ele) = tao_ele_geometry_with_misalignments(datum, ele, valid_value, why_invalid)
+  if (.not. valid_value) return
+  if (associated(ele_ref)) value_vec(ix_ref) = tao_ele_geometry_with_misalignments(datum, ele_ref, valid_value, why_invalid)
+  if (.not. valid_value) return
+
+  if (associated(ele_start)) then
+    do ie = ix_start, ix_ele - 1
+      value_vec(ie) = tao_ele_geometry_with_misalignments(datum, branch%ele(ie), valid_value, why_invalid)
+      if (.not. valid_value) return
+    enddo
+  endif
+
+  call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
 !-----------
 
@@ -4785,6 +4803,58 @@ endif
 if (logic_option(.false., exterminate)) datum%exists = .false. 
 
 end subroutine tao_set_invalid
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function tao_ele_geometry_with_misalignments (datum, ele, valid_value, why_invalid) result (value)
+!
+! Routine to evaluate a floor position with misalignments at a given element.
+! This routine is private and not for general use.
+!
+! Input:
+!   datum         -- tao_data_sturct: Datum info
+!   ele           -- ele_struct: Lattice element to evaluate at.
+!
+! Output:
+!   valid_value   -- logical: Was able to evalute the datum?
+!   why_invalid   -- character(*): If not valid, why not.
+!   value         -- real(rp): Datum value.
+!-
+
+function tao_ele_geometry_with_misalignments (datum, ele, valid_value, why_invalid) result (value)
+
+type (tao_data_struct) datum
+type (ele_struct) ele
+type (floor_position_struct) position
+
+real(rp) value
+logical valid_value
+character(*) why_invalid
+
+!
+
+valid_value = .false.
+
+position = ele_geometry_with_misalignments(ele)
+
+select case (datum%data_type)
+case ('floor_orbit.x');       value = position%r(1)
+case ('floor_orbit.y');       value = position%r(2)
+case ('floor_orbit.z');       value = position%r(3)
+case ('floor_orbit.theta');   value = position%theta
+case ('floor_orbit.phi');     value = position%phi
+case ('floor_orbit.psi');     value = position%psi
+case default
+  call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+  value = 0
+  return
+end select
+
+valid_value = .true.
+
+end function tao_ele_geometry_with_misalignments
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

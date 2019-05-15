@@ -171,8 +171,8 @@ Table~\ref{t:delta}.
 \caption{The form of \vn{delta}}  
 \label{t:delta}
 \end{table}
-An exception occurs when using a \vn{common base lattice}
-(\sref{s:cbl}). In this case, the common universe does not have base
+An exception occurs when using a \vn{common root lattice}
+(\sref{s:crl}). In this case, the common universe does not have base
 or reference values associated with it. Thus all data and variables
 that are associated with the common universe calculate their
 \vn{delta} as if both \vn{opt_with_ref} and \vn{opt_with_base} were
@@ -409,9 +409,9 @@ as shown with the \vn{show merit -derivative} (\sref{s:show.merit}) or the
 \vn{show derivative} (\sref{s:show.derivative}) command.
 
 %------------------------------------------------------------------------
-\section{Common Base Lattice (CBL) Analysis}
-\label{s:cbl}
-\index{common base lattice}
+\section{Common Root Lattice (CRL) Analysis}
+\label{s:crl}
+\index{common root lattice}
 
 Some data analysis problems involve varying variables in a both the
 \vn{model} and \vn{base} lattices simultaneously. Such is the case
@@ -428,14 +428,14 @@ the data was taken. Conversely, the \vn{base} lattices in all the
 universes all correspond to the common condition without any steering
 variation.
 
-In \tao, this arrangement is called \vn{Common Base Lattice}
-(\vn{CBL}) analysis. To do a CBL analysis, the \vn{common_lattice}
+In \tao, this arrangement is called \vn{Common Root Lattice}
+(\vn{CRL}) analysis. To do a CRL analysis, the \vn{common_lattice}
 switch must be set at initialization time (\sref{s:init.lat}).  With
-\vn{CBL}, \tao will set up a \vn{``common''} universe with index 0.
+\vn{CRL}, \tao will set up a \vn{``common''} universe with index 0.
 The \vn{model} lattice of this common universe will be used as the
 \vn{base} lattice for all universes. 
 
-The variables (fit parameters) in a \vn{CBL} analysis can be divided
+The variables (fit parameters) in a \vn{CRL} analysis can be divided
 into two classes. One class consists of the parameters that were
 varied to get the data of the different universes. With \vn{ORM},
 these are the steering strengths. At initialization
@@ -445,13 +445,13 @@ a particular universe, that was varied to create the data for that
 universe. 
 
 The second class of variables consists of everything that is
-to be varied in the common base lattice. With \vn{ORM}, this generally
+to be varied in the common root lattice. With \vn{ORM}, this generally
 will include such things as quadrupole and BPM error tilts, etc. That
 is, parameters that did {\em not} change during data taking. The
 \tao variables that are created for these parameters will control
 parameters of the \vn{model} lattice in the common universe.
 
-To cut down on memory usage when using \vn{CBL} (the number of data
+To cut down on memory usage when using \vn{CRL} (the number of data
 sets, hence the number of universes, can be very large), \tao does
 not, except for the common \vn{model} lattice, reserve separate memory
 for each \vn{model} lattice. Rather, it reserves memory for a single
@@ -465,7 +465,7 @@ variable that associated with it. The \vn{change} command
 (\sref{s:change}) is thus restricted to always vary parameters in
 the common \vn{model} lattice.
 
-With \vn{CBL}, the \vn{opt_with_base} and \vn{opt_with_ref}
+With \vn{CRL}, the \vn{opt_with_base} and \vn{opt_with_ref}
 (\sref{s:generalized.design}) global logicals are generally set to
 True. Since \vn{opt_with_base}, and \vn{opt_with_ref} do not make
 sense when applied to the data in the common universe, The
