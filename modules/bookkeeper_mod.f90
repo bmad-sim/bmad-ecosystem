@@ -1291,9 +1291,10 @@ if (has_orientation_attributes(slave)) then
     value(tilt$)     = value(tilt_tot$)
     value(x_pitch$)  = value(x_pitch_tot$)
     value(y_pitch$)  = value(y_pitch_tot$)
-    value(x_offset$) = value(x_offset_tot$) + s_del * value(x_pitch_tot$)
-    value(y_offset$) = value(y_offset_tot$) + s_del * value(y_pitch_tot$)
-    value(z_offset$) = value(z_offset_tot$)
+    
+    value(x_offset$) = value(x_offset_tot$) + s_del * sin(value(x_pitch_tot$)) * cos(value(y_pitch_tot$))
+    value(y_offset$) = value(y_offset_tot$) + s_del * sin(value(y_pitch_tot$))
+    value(z_offset$) = value(z_offset_tot$) + s_del * (cos(value(x_pitch_tot$)) * cos(value(y_pitch_tot$)) - 1)
   endif
 endif
 

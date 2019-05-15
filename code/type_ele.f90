@@ -1129,47 +1129,27 @@ if (associated(ele%wake)) then
 
 endif
 
-! Encode Floor coords
+! Encode Floor coords. 
+! Elements not associated with a lattice do not have floor coords.
 
-if (logic_option(.false., type_floor_coords)) then
+if (logic_option(.false., type_floor_coords) .and. associated(ele%branch)) then
   ele0 => pointer_to_next_ele(ele, -1)
 
   select case (ele%key)
-  case (floor_shift$, group$, overlay$, hybrid$, beginning_ele$, match$, null_ele$, patch$)
-    ! These elements do not have offsets
-    floor = ele%floor
-
   case (crystal$, mirror$, multilayer_mirror$)
     call ele_geometry (ele0%floor, ele, floor2, 0.5_rp)
-
-    f0 = ele0%floor
-    call floor_angles_to_w_mat(ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$), s_mis)
-    f0%r = f0%r + matmul(f0%W, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)])
-    f0%W = matmul(f0%W, s_mis)
-    call floor_w_mat_to_angles (f0%W, f0%theta, f0%phi, f0%psi, f0)
-    call ele_geometry (f0, ele, floor, 0.5_rp)
+    floor = ele_geometry_with_misalignments (ele, 0.5_rp)
 
     nl=nl+1; li(nl) = ''
     nl=nl+1; li(nl) = 'Global Floor Coords at Surface of Element:'
     nl=nl+1; write (li(nl), '(a)')         '                   X           Y           Z       Theta         Phi         Psi'
     nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Reference', floor2%r, floor2%theta, floor2%phi, floor2%psi, '! Position without misalignments'
     nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi, '! Position with offset/pitch/tilt misalignments'
-
-    ! Misalignments are referenced to beginning of element
-    floor = coords_relative_to_floor (ele0%floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
-                                        ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$))
-    call ele_geometry (floor, ele, floor)
-
-  case (girder$)
-    floor = coords_relative_to_floor (ele%floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
-                                        ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$)) 
-  case default
-    ! Misalignments referenced to center of element
-    call ele_geometry (ele%floor, ele, floor, -0.5_rp)
-    floor = coords_relative_to_floor (floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
-                                        ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$)) 
-    call ele_geometry (floor, ele, floor, 0.5_rp)
   end select
+
+  !
+
+  floor = ele_geometry_with_misalignments (ele)
 
   nl=nl+1; li(nl) = ''
   nl=nl+1; li(nl) = 'Global Floor Coords at End of Element:'
@@ -1177,12 +1157,10 @@ if (logic_option(.false., type_floor_coords)) then
   nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Reference', ele%floor%r, ele%floor%theta, ele%floor%phi, ele%floor%psi, '! Position without misalignments'
   nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi, '! Position with offset/pitch/tilt misalignments'
 
-  if (associated(ele0)) then
-    if (ele%ix_ele /= 0 .or. branch%param%geometry == closed$) then
-      f0 = ele0%floor
-      nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'delta Ref', floor%r-f0%r, floor%theta-f0%theta, floor%phi-f0%phi, floor%psi-f0%psi, &
-                                                                                                         '! Delta with respect to last element'  
-    endif
+  if (ele%ix_ele /= 0 .or. branch%param%geometry == closed$) then
+    f0 = ele0%floor
+    nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'delta Ref', floor%r-f0%r, floor%theta-f0%theta, floor%phi-f0%phi, floor%psi-f0%psi, &
+                                                                                                       '! Delta with respect to last element'  
   endif
 endif
 
