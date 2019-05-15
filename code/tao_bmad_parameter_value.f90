@@ -25,7 +25,7 @@ implicit none
 type (ele_struct) ele
 type (coord_struct) orbit
 type (bpm_phase_coupling_struct) bpm_data
-type (floor_position_struct) position
+type (floor_position_struct) floor
 type (branch_struct), pointer :: branch
 type (em_field_struct) field, field0, field1
 
@@ -228,13 +228,25 @@ case ('floor.')
   case default;              err_flag = .true.
   end select
 
-case ('floor_orbit.')
-  position%r = [orbit%vec(1), orbit%vec(3), ele%value(l$)]
-  position = coords_local_curvilinear_to_floor (position, ele, .false.)
+case ('floor_actual.')
+  floor = ele_geometry_with_misalignments(ele)
   select case (data_type)
-  case ('floor_orbit.x');          value = position%r(1)
-  case ('floor_orbit.y');          value = position%r(2)
-  case ('floor_orbit.z');          value = position%r(3)
+  case ('floor_actual.x');          value = floor%r(1)
+  case ('floor_actual.y');          value = floor%r(2)
+  case ('floor_actual.z');          value = floor%r(3)
+  case ('floor_actual.theta');      value = floor%theta
+  case ('floor_actual.phi');        value = floor%phi
+  case ('floor_actual.psi');        value = floor%psi
+  case default;              err_flag = .true.
+  end select
+
+case ('floor_orbit.')
+  floor%r = [orbit%vec(1), orbit%vec(3), ele%value(l$)]
+  floor = coords_local_curvilinear_to_floor (floor, ele, .false.)
+  select case (data_type)
+  case ('floor_orbit.x');          value = floor%r(1)
+  case ('floor_orbit.y');          value = floor%r(2)
+  case ('floor_orbit.z');          value = floor%r(3)
   case default;              err_flag = .true.
   end select
 
