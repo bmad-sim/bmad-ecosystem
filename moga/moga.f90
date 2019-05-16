@@ -706,8 +706,12 @@ program moga
         else
           !linear optics at working point are unstable. bad working point.
           good_wp = .false.
+          vars_phys(1:n_linear) = vars(1:n_linear)
+          vars_phys(1+n_linear:n_linear+n_chrom) = 0.0d0
+          vars_phys(1+n_linear+n_chrom:n_linear+n_chrom+n_harmo) = vars(1+n_linear+n_omega:n_linear+n_harmo+n_omega)
         endif
       endif
+
 
       if(good_wp) then 
         !- calculate K2 values
