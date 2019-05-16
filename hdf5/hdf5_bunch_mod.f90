@@ -586,7 +586,7 @@ logical error
 
 character(1) :: g_name_c(*)
 character(:), allocatable :: string
-character(100) g_name, a_name
+character(100) g_name, a_name, name, c_name
 character(*), parameter :: r_name = 'pmd_read_bunch'
 
 ! Return if not a group with the proper name
@@ -655,8 +655,7 @@ f_ev = e_charge / c_light
 
 call H5Gget_info_f (g2_id, storage_type, n_links, max_corder, h5_err)
 do idx = 0, n_links-1
-  call H5Lget_name_by_idx_f (g2_id, '.', H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_name, h5_err, g_size)
-  call to_f_str(c_name, name)
+  call H5Lget_name_by_idx_f (g2_id, '.', H5_INDEX_NAME_F, H5_ITER_INC_F, idx, name, h5_err, g_size)
   call H5Oget_info_by_name_f(g2_id, name, infobuf, h5_stat)
   select case (name)
   case ('spin')
