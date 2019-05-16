@@ -164,6 +164,12 @@ program moga
     call write_state(prefix,0)
   endif
 
+  !Set default for parameters not likely to be set if user is not optimizing linear optics.
+  work_pt_x_min = 0.0d0
+  work_pt_x_max = 999.9d0
+  work_pt_y_min = 0.0d0
+  work_pt_y_max = 999.9d0
+
   ! parse parameters file and check for necessary initializations.
   use_hybrid = .false.  !default
   generate_feasible_seeds_only = -1
