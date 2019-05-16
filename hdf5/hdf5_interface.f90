@@ -1232,7 +1232,7 @@ SUBROUTINE hdf5_read_dataset_real_rank_1(loc_id,dset_name,buf,error)
   INTEGER(hid_t)  , INTENT(IN) :: loc_id
   CHARACTER(LEN=*), INTENT(IN) :: dset_name
   REAL(KIND=8),INTENT(INout), TARGET :: buf(:)
-  REAL(KIND=8) temp_buf(size(buf))
+  REAL(KIND=8), target :: temp_buf(size(buf))
   INTEGER :: h5_err 
   TYPE(C_PTR) :: f_ptr
   INTEGER(size_t) :: namelen
@@ -1250,7 +1250,7 @@ SUBROUTINE hdf5_read_dataset_real_rank_2(loc_id,dset_name,buf,error)
   INTEGER(hid_t)  , INTENT(IN) :: loc_id
   CHARACTER(LEN=*), INTENT(IN) :: dset_name
   REAL(KIND=8),INTENT(INout), TARGET :: buf(:,:)
-  REAL(KIND=8) temp_buf(size(buf,1),size(buf,2))
+  REAL(KIND=8), target :: temp_buf(size(buf,1),size(buf,2))
   INTEGER :: h5_err 
   TYPE(C_PTR) :: f_ptr
   INTEGER(size_t) :: namelen
@@ -1268,7 +1268,7 @@ SUBROUTINE hdf5_read_dataset_real_rank_3(loc_id,dset_name,buf,error)
   INTEGER(hid_t)  , INTENT(IN) :: loc_id
   CHARACTER(LEN=*), INTENT(IN) :: dset_name
   REAL(KIND=8),INTENT(INout), TARGET :: buf(:,:,:)
-  REAL(KIND=8) temp_buf(size(buf,1),size(buf,2),size(buf,3))
+  REAL(KIND=8), target :: temp_buf(size(buf,1),size(buf,2),size(buf,3))
   INTEGER :: h5_err 
   TYPE(C_PTR) :: f_ptr
   INTEGER(size_t) :: namelen
@@ -1308,7 +1308,7 @@ SUBROUTINE hdf5_read_dataset_int_rank_1(loc_id,dset_name, buf,error)
   INTEGER(hid_t)  , INTENT(IN) :: loc_id
   CHARACTER(LEN=*), INTENT(IN) :: dset_name
   INTEGER(KIND=4),INTENT(INout), TARGET :: buf(:)
-  INTEGER(KIND=4) temp_buf(size(buf))
+  INTEGER(KIND=4), target :: temp_buf(size(buf))
   INTEGER :: h5_err 
   TYPE(C_PTR) :: f_ptr
   INTEGER(size_t) :: namelen
@@ -1328,7 +1328,7 @@ SUBROUTINE hdf5_read_dataset_int_rank_2(loc_id,dset_name, buf,error)
   INTEGER(hid_t)  , INTENT(IN) :: loc_id
   CHARACTER(LEN=*), INTENT(IN) :: dset_name
   INTEGER(KIND=4),INTENT(INout), TARGET :: buf(:,:)
-  INTEGER(KIND=4) temp_buf(size(buf,1),size(buf,2))
+  INTEGER(KIND=4), target :: temp_buf(size(buf,1),size(buf,2))
   INTEGER :: h5_err 
   TYPE(C_PTR) :: f_ptr
   INTEGER(size_t) :: namelen
@@ -1348,7 +1348,7 @@ SUBROUTINE hdf5_read_dataset_int_rank_3(loc_id,dset_name, buf,error)
   INTEGER(hid_t)  , INTENT(IN) :: loc_id
   CHARACTER(LEN=*), INTENT(IN) :: dset_name
   INTEGER(KIND=4),INTENT(INout), TARGET :: buf(:,:,:)
-  INTEGER(KIND=4) temp_buf(size(buf,1),size(buf,2),size(buf,3))
+  INTEGER(KIND=4), target :: temp_buf(size(buf,1),size(buf,2),size(buf,3))
   INTEGER :: h5_err 
   TYPE(C_PTR) :: f_ptr
   INTEGER(size_t) :: namelen
