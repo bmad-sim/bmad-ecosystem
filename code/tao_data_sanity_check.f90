@@ -85,8 +85,8 @@ if (d_type == 'unstable.orbit' .or. d_type(1:7) == 'normal.' .or. d_type(1:5) ==
     return
   endif
 
-elseif (branch%param%geometry == closed$ .and. &
-            (d_type(1:12) == 'chrom.dtune.' .or. d_type(1:5) == 'damp.' .or. &
+elseif (branch%param%geometry == closed$ .and. (d_type == 'chrom.a' .or. d_type == 'chrom.b' .or. &
+             d_type(1:12) == 'chrom.dtune.' .or. d_type(1:5) == 'damp.' .or. &
              d_type(1:17) == 'multi_turn_orbit.' .or. d_type(1:5) == 'tune.' .or. &
              d_type(1:13) == 'unstable.ring' .or. index(d_type, 'emit.') /= 0)) then
   if (datum%ele_name /= '') then
@@ -96,8 +96,7 @@ elseif (branch%param%geometry == closed$ .and. &
     return
   endif
 
-elseif ((d_type(1:11) == 'expression:' .and. index(d_type, 'ele::#[') == 0) .or. &
-                                                       d_type(1:8) == 'rad_int.') then
+elseif ((d_type(1:11) == 'expression:' .and. index(d_type, 'ele::#[') == 0) .or. d_type(1:8) == 'rad_int.') then
   ! Do nothing
 
 else
