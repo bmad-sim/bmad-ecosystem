@@ -702,6 +702,8 @@ program moga
         if( status == ok$ ) then
           nu_x = ring%ele(ring%n_ele_track)%a%phi/twopi
           nu_y = ring%ele(ring%n_ele_track)%b%phi/twopi
+          cons(8) = 1.0d0
+          cons(9) = 1.0d0
           if( nu_x .lt. work_pt_x_min ) cons(8) = (nu_x - work_pt_x_min)/work_pt_x_min
           if( nu_x .gt. work_pt_x_max ) cons(8) = (work_pt_x_max - nu_x)/work_pt_x_max
           if( nu_y .lt. work_pt_y_min ) cons(9) = (nu_y - work_pt_y_min)/work_pt_y_min
