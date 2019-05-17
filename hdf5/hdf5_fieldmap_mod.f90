@@ -171,6 +171,8 @@ character(*), parameter :: r_name = 'hdf5_write_cylindrical_map'
 err_flag = .true.
 call hdf5_open_file (file_name, 'WRITE', f_id, err);  if (err) return
 
+
+
 call h5fclose_f(f_id, h5_err)
 err_flag = .false.
 

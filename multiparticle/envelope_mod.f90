@@ -325,16 +325,28 @@ subroutine make_V(M,V,abz_tunes)
   mat_tunes(1) = MyTan(aimag(eval(1)), real(eval(1)))
   mat_tunes(2) = MyTan(aimag(eval(3)), real(eval(3)))
   mat_tunes(3) = MyTan(aimag(eval(5)), real(eval(5)))
+
   call order_evecs_by_tune(Vinv, eval, mat_tunes, abz_tunes, err_flag)
-  if(err_flag) then
-    call out_io (s_fatal$, r_name, "order_evecs_by_tune failed to identify eigen modes. printing abz_tunes and mat_tunes.")
+  if (err_flag) then
+    call out_io (s_fatal$, r_name, "order_evecs_by_tune failed to identify eigen modes.")
     write(*,'(a,3f14.5)') "Tunes supplied to subroutine (abz_tunes):        ", abz_tunes
     write(*,'(a,3f14.5)') "Tunes obtained from one-turn matrix (mat_tunes): ", mat_tunes
     if (global_com%exit_on_error) call err_exit
     V = 0.0d0
     return
   endif
-  call normalize_evecs(Vinv)
+
+  call normalize_evecs(Vinv, err_flag)
+  if (err_flag) then
+    call out_io (s_fatal$, r_name, "Zero amplitude eigenvectors.")
+    write(*,'(a,3f14.5)') "Tunes supplied to subroutine (abz_tunes):        ", abz_tunes
+    write(*,'(a,3f14.5)') "Tunes obtained from one-turn matrix (mat_tunes): ", mat_tunes
+    if (global_com%exit_on_error) call err_exit
+    V = 0.0d0
+    return
+  endif
+
+
   V = mat_symp_conj_i(Vinv)
 contains
   function MyTan(y, x) result(arg)

@@ -38,7 +38,7 @@
 !   type_wall         -- Logical, optional: If True then print wall info. Default is False.
 !
 ! Output       
-!   lines(:)     -- Character(200), allocatable, optional :: Character array to hold the output. 
+!   lines(:)     -- Character(200), allocatable, optional: Character array to hold the output. 
 !                     If not present, the information is printed to the terminal.
 !   n_lines      -- Integer, optional: Number of lines in lines(:) that hold valid output.
 !                     n_lines must be present if lines(:) is. 
