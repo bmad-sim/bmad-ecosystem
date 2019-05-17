@@ -400,12 +400,12 @@ subroutine mat_symplectify (mat_in, mat_symp, p0_ratio, r_root)
   real(rp), intent(in), optional :: p0_ratio, r_root
 end subroutine
 
-subroutine mat_type (mat, nunit, header, num_form)
+subroutine mat_type (mat, nunit, header, num_form, lines, n_lines)
   import
   implicit none
   real(rp) mat(:,:)
-  integer, optional :: nunit
-  character(*), optional :: header, num_form
+  integer, optional :: nunit, n_lines
+  character(*), optional :: header, num_form, lines(:)
 end subroutine
 
 subroutine mat_make_unit (mat)
