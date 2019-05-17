@@ -1,0 +1,14 @@
+
+
+set global track_type = beam
+place r13 bunch_x_px
+place r23 bunch_x_pz
+place r33 dispersion
+
+! Color by pz
+set curve r13.g.c data_type_z = pz
+set curve r13.g.c use_z_color = T
+
+set curve r23.g.c data_type_z = pz
+set curve r23.g.c use_z_color = T
+

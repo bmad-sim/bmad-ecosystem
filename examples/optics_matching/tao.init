@@ -32,6 +32,36 @@ global%beam_timer_on = T
   /
 
 
+&tao_beam_init
+beam_init%n_particle = 0
+beam_init%random_engine = 'quasi' ! or 'pseudo'
+ix_universe = 1
+beam_saved_at =  "MARKER::*"
+beam_init%bunch_charge = 100.0e-12  
+beam_init%a_norm_emit = 1.0e-6
+beam_init%b_norm_emit = 1.0e-6
+beam_init%n_bunch = 1     
+beam_init%sig_e = 1e-3
+beam_init%sig_z = 0.00059958  ! 2 ps * cLight
+
+
+!---Ellipse
+beam_init%distribution_type = 'ellipse', 'ran_gauss', 'grid'
+beam_init%ellipse(1)%part_per_ellipse = 50
+beam_init%ellipse(1)%n_ellipse = 3
+beam_init%ellipse(1)%sigma_cutoff = 6
+
+beam_init%grid(3)%n_x = 1
+beam_init%grid(3)%n_px = 3
+beam_init%grid(3)%x_min = 0 
+beam_init%grid(3)%x_max = 0
+beam_init%grid(3)%px_min = -0.01 
+beam_init%grid(3)%px_max =  0.01
+/
+
+
+
+
 !------------------------Data--------------------------------------------
 !------------------------------------------------------------------------
 

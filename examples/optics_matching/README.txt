@@ -16,3 +16,11 @@ Also try varying things using single mode with the command:
 then use keys 1-6, Q-Y (see the manual for more details).
 
 
+
+
+
+Bunch tracking
+Try:
+call plot_beam.tao
+to make a bunch
+
