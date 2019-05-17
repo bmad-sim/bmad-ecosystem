@@ -524,7 +524,7 @@ endif
 call ran_gauss(ran)
 center = beam_init%center + beam_init%center_jitter * ran
 
-do i = 1, beam_init%n_particle
+do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   p%vec = p%vec + center
 enddo
