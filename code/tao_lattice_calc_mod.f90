@@ -344,6 +344,7 @@ real(rp) covar, radix, tune3(3), N_mat(6,6), D_mat(6,6), G_inv(6,6)
 
 integer i, ii, n, nn, ix_branch, status, ix_lost, i_dim
 
+character(80) :: lines(10)
 character(20) :: r_name = "tao_single_track"
 
 logical calc_ok, err, radiation_fluctuations_on
@@ -472,6 +473,14 @@ if (u%calc%beam_sigma_for_data .or. u%calc%beam_sigma_for_plotting) then
   if (branch%param%geometry == closed$) then
     call transfer_matrix_calc (lat, branch%param%t1_with_RF, ix_branch = ix_branch, one_turn=.true.)
     call make_N (branch%param%t1_with_RF, N_mat, err, tunes_out = tune3)
+    if (err) then
+      call mat_type (branch%param%t1_with_RF, &
+            header = 'SINGULAR ONE-TURN MATRIX WITH RF. WILL NOT BE ABLE TO COMPUTE SIGMAS.', &
+            lines = lines, n_lines = n)
+      call out_io (s_error$, r_name, lines(1:n))
+      return
+    endif
+  
     D_mat = 0
     D_mat(1,1) = beam_init%a_emit
     D_mat(2,2) = beam_init%a_emit
