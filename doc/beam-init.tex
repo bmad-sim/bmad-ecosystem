@@ -104,17 +104,15 @@ Possibilities for \vn{%distributeion_type(:)} are:
   "KV"                ! Kapchinsky-Vladimirsky distribution (\sref{s:kv.init})
   "GRID"              ! Uniform distribution.
 \end{example}
-Since the Kapchinsky-Vladimirsky distribution is for a 4D
-phase space, if the Kapchinsky-Vladimirsky distribution is used,
-\vn{"KV"} must appear exactly twice in the \vn{%distributeion_type(:)}
-array. 
+Since the Kapchinsky-Vladimirsky distribution is for a 4D phase space, if the Kapchinsky-Vladimirsky
+distribution is used, \vn{"KV"} must appear exactly twice in the \vn{%distributeion_type(:)} array.
 
-Unlike all other distribution types, the \vn{GRID} distribution is independent of the
-Twiss parameters at the point of generation.  For the non-\vn{GRID} distributions, the
-distributions are adjusted if there is local $x$-$y$ coupling (\sref{s:coupling}). For
-lattices with a closed geometry, if \vn{full_6D_coupling_calc} is set to \vn{True}, the
-full 6-dimensional coupling matrix is used. If \vn{False}, which is the default, The
-4-dimensional $\bfV$ matrix of \Eq{vgicc1} is used.
+Unlike all other distribution types, the \vn{GRID} distribution is independent of the Twiss
+parameters at the point of generation.  For the non-\vn{GRID} distributions, the distributions are
+adjusted if there is local $x$-$y$ coupling (\sref{s:coupling}). For lattices with a closed
+geometry, if \vn{full_6D_coupling_calc} is set to \vn{True}, the full 6-dimensional coupling matrix
+is used. If \vn{False}, which is the default, The 4-dimensional $\bfV$ matrix of \Eq{vgicc1} is
+used.
 
 Note: The total number particles generated is the product of the individual
 distributions. For example:
@@ -128,10 +126,9 @@ distributions. For example:
   bi%grid(3)%n_x = 20
   bi%grid(3)%n_px = 30
 \end{example}
-The total number of particles per bunch will be $32 \times 300 \times
-600$. The exception is that when \vn{RAN_GAUSS} is mixed with other
-distributions, the random distribution is overlaid with the other distributions
-instead of multiplying. For example:
+The total number of particles per bunch will be $32 \times 300 \times 600$. The exception is that
+when \vn{RAN_GAUSS} is mixed with other distributions, the random distribution is overlaid with the
+other distributions instead of multiplying. For example:
 \begin{example}
   type (beam_init_struct) bi
   bi%distribution_type = RAN_GAUSS", "ELLIPSE", "GRID"
@@ -140,9 +137,8 @@ instead of multiplying. For example:
   bi%grid(3)%n_x = 20
   bi%grid(3)%n_px = 30
 \end{example}
-Here the number of particle is $300 \times 600$. Notice that when
-\vn{RAN_GAUSS} is mixed with other distributions, the value of
-\vn{beam_init%n_particle} is ignored.
+Here the number of particle is $300 \times 600$. Notice that when \vn{RAN_GAUSS} is mixed with other
+distributions, the value of \vn{beam_init%n_particle} is ignored.
 %
 \item[\%full_6D_coupling_calc] \Newline
 If set \vn{True}, coupling between the transverse and longitudinal modes is taken into
