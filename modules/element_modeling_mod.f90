@@ -8,7 +8,7 @@
 ! series of bends and drifts.
 !
 ! At this point only the wiggler model has been implemented.
-! sol_quad and bend_sol_quad models will be coded as needed.
+! A sol_quad model will be coded as needed.
 !-
 
 module element_modeling_mod

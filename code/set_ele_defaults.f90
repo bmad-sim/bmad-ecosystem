@@ -53,10 +53,6 @@ case (beginning_ele$)
   ele%value(e_tot$) = -1
   ele%value(p0c$) = -1
 
-case (bend_sol_quad$) 
-  ele%mat6_calc_method = symp_lie_bmad$
-  ele%tracking_method  = symp_lie_bmad$
-
 case (fork$, photon_fork$)
   ele%value(direction$) = 1
   ele%value(particle$) = real_garbage$

@@ -882,13 +882,6 @@ do j = 1, slave%n_lord
     sum_3 = sum_3 + cos_n * (x_o + x_p * s_del) + sin_n * (y_o + y_p * s_del)
     sum_4 = sum_4 + sin_n * (x_o + x_p * s_del) - cos_n * (y_o + y_p * s_del)
 
-  ! bend_sol_quad
-
-  case (bend_sol_quad$)
-    call out_io (s_abort$, r_name, 'CODING NOT YET IMPLEMENTED FOR: ' // key_name(slave%key))
-    if (global_com%exit_on_error) call err_exit
-    err_flag = .true.
-
   ! Everything else
 
   case default
@@ -1078,12 +1071,6 @@ case (solenoid$, sol_quad$, quadrupole$)
     slave%value(y_offset$) = beta(3) + y_o_sol
     slave%value(y_pitch$)  = beta(4) + y_p_sol
   endif
-
-! bend_sol_quad
-
-case (bend_sol_quad$)
-  call out_io (s_abort$, r_name, 'CODING NOT YET IMPLEMENTED FOR A: ' // key_name(slave%key))
-  if (global_com%exit_on_error) call err_exit
 
 end select
 

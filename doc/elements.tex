@@ -11,11 +11,10 @@ available in \bmad.
 {\tt
 \begin{tabular}{llll} \toprule
   {\it Element}     & {\it Section}       & {\it Element}      & {\it Section}    \\ \midrule
-  AB_Multipole      & \ref{s:ab.m}        &  Match             & \ref{s:match}    \\ 
-  AC_Kicker         & \ref{s:ac.kick}     &  Monitor           & \ref{s:monitor}  \\
-  BeamBeam          & \ref{s:bbi}         &  Multipole         & \ref{s:mult}     \\
-  Beginning_Ele     & \ref{s:begin.ele}   &  Null_Ele          & \ref{s:null.ele} \\
-  Bend_Sol_Quad     & \ref{s:bsq}         &  Octupole          & \ref{s:oct}      \\
+  AB_Multipole      & \ref{s:ab.m}        &  Monitor           & \ref{s:monitor}  \\
+  AC_Kicker         & \ref{s:ac.kick}     &  Multipole         & \ref{s:mult}     \\
+  BeamBeam          & \ref{s:bbi}         &  Null_Ele          & \ref{s:null.ele} \\
+  Beginning_Ele     & \ref{s:begin.ele}   &  Octupole          & \ref{s:oct}      \\
   Custom            & \ref{s:custom}      &  Patch             & \ref{s:patch}    \\
   Drift             & \ref{s:drift}       &  Photon_Fork       & \ref{s:fork}     \\
   E_Gun             & \ref{s:e.gun}       &  Pipe              & \ref{s:monitor}  \\
@@ -31,7 +30,9 @@ available in \bmad.
   Kicker            & \ref{s:kicker}      &  Taylor            & \ref{s:taylor}   \\
   Lcavity           & \ref{s:lcav}        &  Undulator         & \ref{s:wiggler}  \\
   Marker            & \ref{s:mark}        &  VKicker           & \ref{s:hvkicker} \\  
-  Mask              & \ref{s:mask}        &  Wiggler           & \ref{s:wiggler}  \\ \bottomrule
+  Mask              & \ref{s:mask}        &  Wiggler           & \ref{s:wiggler}  \\
+  Match             & \ref{s:match}       &                    &                  \\ \bottomrule
+
 \end{tabular}
 }
 \caption{Table of element types suitable for use with charged particles.}
@@ -364,94 +365,6 @@ define any other \vn{beginning_ele} elements.
 \vn{beginning_ele} attributes are generally set using either \vn{parameter}
 (\sref{s:param}) or \vn{beginning} (\sref{s:beginning}) statements.
 In particular the initial energy may be set (\sref{s:energy}).
-
-%-----------------------------------------------------------------
-\section{Bend_Sol_Quad}
-\label{s:bsq}
-\index{bend_sol_quad|hyperbf}
-
-A \vn{bend_sol_quad} is a combination bend, solenoid, and quadrupole
-with the solenoid strength varying linearly with longitudinal position.
-This enables the simulation of solenoid edge fields. 
-
-General \vn{bend_sol_quad} attributes are:
-\begin{center}
-\tt
-\begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section          \\ \midrule
-  Mag \& Elec multipoles     & \ref{s:multip}    &                            &                  \\
-  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}        \\
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}   \\
-  Custom Attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}  \\
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}   \\
-  Fringe fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}     \\
-  Hkick \& Vkick             & \ref{s:kick}      & Field Maps                 & \ref{s:fieldmap} \\
-  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}  \\
-  \bottomrule
-\end{tabular}
-\end{center}
-\toffset
-
-\index{x_quad}\index{y_quad}\index{quad_tilt}\index{tilt}
-\index{dks_ds}\index{g}\index{bend_tilt}\index{angle}
-\index{rho}\index{k1}\index{ks}
-Attributes specific to a \vn{bend_sol_quad} element are:
-\begin{example}
-  g           = <Real>    ! Bend strength 1/rho
-  b_field     = <Real>    ! Design field strength (= P_0 g / q) (\sref{s:depend}).
-  angle       = <Real>    ! Bend angle. A settable dependent variable (\sref{s:depend})
-  rho         = <Real>    ! Bend radius. A settable dependent variable (\sref{s:depend})
-  bend_tilt   = <Real>    ! Bend tilt angle. See \sref{s:offset}.
-  k1          = <Real>    ! Quad strength.
-  b1_gradient = <Real>    ! Quadrupole Field strength.
-  x_quad      = <Real>    ! Quad horizontal offset.
-  y_quad      = <Real>    ! Quad vertical offset.
-  quad_tilt   = <Real>    ! Quad tilt. See \sref{s:offset}.
-  ks          = <Real>    ! Solenoid strength.
-  bs_field    = <Real>    ! Solenoid Field strength.
-  dks_ds      = <Real>    ! Solenoid field variation.      
-  tilt        = <Real>    ! Overall tilt. See \sref{s:offset}
-\end{example}
-See \sref{s:list.bend.sol.quad} for a full list of element attributes.
-
-The magnetic
-field is:
-\begin{alignat}{1}
-  \frac{q \, B_x}{P_0} &= -g_y + k_{1n} (y - y_q) - k_{1s} (x - x_q) - \frac{dks/ds}{2} \, x \CRNO
-  \frac{q \, B_y}{P_0} &=  g_x + k_{1n} (x - x_q) + k_{1s} (y - y_q) - \frac{dks/ds}{2} \, y \CR
-  \frac{q \, B_s}{P_0} &=  k_s + dks/ds                        \nonumber
-\end{alignat}
-The reference trajectory is along the solenoid centerline. The
-quadrupole field is offset from the solenoid by (\vn{x_quad},
-\vn{y_quad}). The quadrupole and bend have individual tilts
-\vn{quad_tilt} and \vn{bend_tilt} respectively.  \vn{tilt} gives an
-overall tilt. Thus the normal and skew quadrupole components $k_{1n}$,
-and $k_{1s}$ are given by
-\begin{example}
-  k_1n = k1 * cos (2*(tilt + quad_tilt))
-  k_1s = k1 * sin (2*(tilt + quad_tilt))
-\end{example}
-and the dipole bend components ($g_x$, $g_y$) are given by
-\begin{example}
-  g_x = g * cos (tilt + bend_tilt)
-  g_y = g * sin (tilt + bend_tilt)
-\end{example}
-Dipole edge fields have not been implemented since it is not clear
-where the entrance and exit faces (\sref{s:ref.construct}) of the bend
-should be and how they are aligned with the solenoid.
-
-To simulate a real solenoid you will need at least three
-\vn{bend_sol_quad} elements: The middle element is the body of the
-solenoid with the linear solenoid strength \vn{dks_ds} = 0 and the two
-end elements have nonzero \vn{dks_ds} to simulate the solenoid edges.
-
-Currently, tracking through a \vn{Bend_Sol_Quad} is via symplectic integration only.
-\vn{bmad_standard} tracking is not an option since there is a possibility in
-the future to implement tracking via a closed formula. 
-Example:
-\begin{example}
-  bsq: bend_sol_quad, l = 3.7, ks = -2.3, dks_ds = 4.7, g = 1/87
-\end{example}
 
 %-----------------------------------------------------------------
 \section{Bends: Rbend and Sbend}
@@ -3684,6 +3597,7 @@ Attributes specific to an \vn{rfcavity} are:
   voltage         = <Real>    ! Cavity voltage
   phi0            = <Real>    ! Cavity phase
   phi0_multipass  = <Real>    ! Phase variation with multipass
+  phi0_autoscale  = <Real>    ! Set by Bmad if autoscaling is turned on.
   gradient        = <Real>    ! Accelerating gradient (V/m). Dependent attribute (\sref{s:depend}).
 \end{example}
 
@@ -3709,6 +3623,8 @@ that the energy kick is independent of the sign of the charge of the particle
 \vn{phi0_autoscale} and \vn{field_autoscale} are calculated by \bmad's auto-scale module. See
 Section~\sref{s:autoscale} for more details. Autoscaling can be toggled on/off by using the
 \vn{autoscale_phase} and \vn{autoscale_amplitude} toggles.
+
+Note: Zero phase for $\phi_\text{ref}$ corresponds to the stable fixed point above transition.
 
 If \vn{harmon} is non--zero the \vn{rf_frequency} is calculated by
 \begin{example}
@@ -3991,7 +3907,7 @@ ends of the element due to the fringe fields there.
 
 Example:
 \begin{example}
-  cleo_sol: solenoid, l = 2.6, ks = 1.5e-9 * parameter[e_tot]
+  cleo_sol: solenoid, l = 2.6, ks = 1.5e-9 * parameter[p0c]
 \end{example}
 
 %-----------------------------------------------------------------
@@ -3999,7 +3915,9 @@ Example:
 \label{s:sq}
 \index{sol_quad|hyperbf}
 
-A \vn{sol_quad} is a combination solenoid/quadrupole.
+A \vn{sol_quad} is a combination solenoid/quadrupole. Alternatively, the \vn{sad_mult} element
+can also be used. The advantage of the \vn{sad_mult} element is that it can simulate a
+quadrupole field that is canted with respect to the solenoid field.
 
 General \vn{sol_quad} attributes are:
 \begin{center}
@@ -4032,7 +3950,7 @@ Attributes specific to a \vn{sol_quad} element are:
 
 Example:
 \begin{example}
-  sq02: sol_quad, l = 2.6, k1 = 0.632, ks = 1.5*beam[energy]
+  sq02: sol_quad, l = 2.6, k1 = 0.632, ks = 1.5e-9*parameter[p0c]
 \end{example}
 
 %-----------------------------------------------------------------

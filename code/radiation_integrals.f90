@@ -733,7 +733,7 @@ else
   c_pt%dgy_dx = 0
   c_pt%dgy_dy = 0
 
-  if (key2 == quadrupole$ .or. key2 == sol_quad$ .or. key2 == bend_sol_quad$) then
+  if (key2 == quadrupole$ .or. key2 == sol_quad$) then
     c_pt%dgx_dx =  ele2%value(k1$)
     c_pt%dgy_dy = -ele2%value(k1$)
 

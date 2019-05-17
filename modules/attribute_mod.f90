@@ -722,7 +722,7 @@ enddo
 do i = 1, n_key$
   select case (i)
   case (ac_kicker$, elseparator$, kicker$, octupole$, quadrupole$, sbend$, rbend$, &
-         sextupole$, solenoid$, sol_quad$, ab_multipole$, wiggler$, undulator$, bend_sol_quad$, &
+         sextupole$, solenoid$, sol_quad$, ab_multipole$, wiggler$, undulator$, &
          hkicker$, vkicker$, sad_mult$)
     attrib_array(i, a0$:a21$)%name = ['A0 ', &
                                    'A1 ', 'A2 ', 'A3 ', 'A4 ', 'A5 ', & 
@@ -1174,30 +1174,6 @@ call init_attribute_name1 (ac_kicker$, taylor_field$,                  'TAYLOR_F
 call init_attribute_name1 (ac_kicker$, amp_vs_time$,                   'AMP_VS_TIME')
 call init_attribute_name1 (ac_kicker$, frequencies$,                   'FREQUENCIES')
 call init_attribute_name1 (ac_kicker$, t_offset$,                      'T_OFFSET')
-
-call init_attribute_name1 (bend_sol_quad$, angle$,                  'ANGLE')
-call init_attribute_name1 (bend_sol_quad$, k1$,                     'K1')
-call init_attribute_name1 (bend_sol_quad$, b1_gradient$,            'B1_GRADIENT', quasi_free$)
-call init_attribute_name1 (bend_sol_quad$, g$,                      'G')
-call init_attribute_name1 (bend_sol_quad$, b_field$,                'B_FIELD', quasi_free$)
-call init_attribute_name1 (bend_sol_quad$, ks$,                     'KS')
-call init_attribute_name1 (bend_sol_quad$, bs_field$,               'BS_FIELD', quasi_free$)
-call init_attribute_name1 (bend_sol_quad$, dks_ds$,                 'DKS_DS')
-call init_attribute_name1 (bend_sol_quad$, quad_tilt$,              'QUAD_TILT')
-call init_attribute_name1 (bend_sol_quad$, bend_tilt$,              'BEND_TILT')
-call init_attribute_name1 (bend_sol_quad$, x_quad$,                 'X_QUAD')
-call init_attribute_name1 (bend_sol_quad$, y_quad$,                 'Y_QUAD')
-call init_attribute_name1 (bend_sol_quad$, rho$,                    'RHO')
-call init_attribute_name1 (bend_sol_quad$, r0_mag$,                 'R0_MAG')
-call init_attribute_name1 (bend_sol_quad$, r0_elec$,                'R0_ELEC')
-call init_attribute_name1 (bend_sol_quad$, field_master$,           'FIELD_MASTER')
-call init_attribute_name1 (bend_sol_quad$, cartesian_map$,          'CARTESIAN_MAP')
-call init_attribute_name1 (bend_sol_quad$, cylindrical_map$,        'CYLINDRICAL_MAP')
-call init_attribute_name1 (bend_sol_quad$, grid_field$,             'GRID_FIELD')
-call init_attribute_name1 (bend_sol_quad$, taylor_field$,           'TAYLOR_FIELD')
-call init_attribute_name1 (bend_sol_quad$, ptc_canonical_coords$,   'PTC_CANONICAL_COORDS')
-call init_attribute_name1 (bend_sol_quad$, E_tot_start$,            'E_tot_start', private$)
-call init_attribute_name1 (bend_sol_quad$, p0c_start$,              'p0c_start', private$)
 
 call init_attribute_name1 (custom$, val1$,                          'VAL1')
 call init_attribute_name1 (custom$, val2$,                          'VAL2')
@@ -2962,7 +2938,7 @@ case ('E_TOT', 'P0C')
                                                      .not. ele%field_master .and. ele%value(n_ref_pass$) == 0) then
     select case (ele%key)
     case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
-          hkicker$, vkicker$, kicker$, ac_kicker$, elseparator$, bend_sol_quad$, lcavity$, rfcavity$)
+          hkicker$, vkicker$, kicker$, ac_kicker$, elseparator$, lcavity$, rfcavity$)
       return  ! Is free
     end select
   endif

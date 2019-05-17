@@ -1278,14 +1278,12 @@ integer, parameter :: hybrid$ = 16, octupole$ = 17, rbend$ = 18, multipole$ = 19
 integer, parameter :: def_mad_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23, patch$ = 24, lcavity$ = 25
 integer, parameter :: def_parameter$ = 26, null_ele$ = 27, beginning_ele$ = 28, line_ele$ = 29
 integer, parameter :: match$ = 30, monitor$ = 31, instrument$ = 32, hkicker$ = 33, vkicker$ = 34
-integer, parameter :: rcollimator$ = 35, ecollimator$ = 36, girder$ = 37, bend_sol_quad$ = 38
+integer, parameter :: rcollimator$ = 35, ecollimator$ = 36, girder$ = 37
 integer, parameter :: def_particle_start$ = 39, photon_fork$ = 40, fork$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46, e_gun$ = 47, em_field$ = 48
 integer, parameter :: floor_shift$ = 49, fiducial$ = 50, undulator$ = 51, diffraction_plate$ = 52
 integer, parameter :: photon_init$ = 53, sample$ = 54, detector$ = 55, sad_mult$ = 56, mask$ = 57
 integer, parameter :: ac_kicker$ = 58, lens$ = 59
-
-! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
 integer, parameter :: n_key$ = 59
 character(20), parameter :: key_name(n_key$) = [ &
@@ -1293,12 +1291,12 @@ character(20), parameter :: key_name(n_key$) = [ &
     'Sextupole         ', 'Overlay           ', 'Custom            ', 'Taylor            ', &
     'RFcavity          ', 'ELseparator       ', 'BeamBeam          ', 'Wiggler           ', &
     'Sol_Quad          ', 'Marker            ', 'Kicker            ', 'Hybrid            ', &
-    'Octupole          ', 'Rbend             ', 'Multipole         ', 'Bend_sol_         ', &
+    'Octupole          ', 'Rbend             ', 'Multipole         ', 'GARBAGE!          ', &
     'Def_Mad_Beam      ', 'AB_multipole      ', 'Solenoid          ', 'Patch             ', &
     'Lcavity           ', 'Def_Parameter     ', 'Null_Ele          ', 'Beginning_Ele     ', &
     'Line_Ele          ', 'Match             ', 'Monitor           ', 'Instrument        ', &
     'Hkicker           ', 'Vkicker           ', 'Rcollimator       ', 'Ecollimator       ', &
-    'Girder            ', 'Bend_Sol_Quad     ', 'Def_Particle_start', 'Photon_Fork       ', &
+    'Girder            ', 'GARBAGE!          ', 'Def_Particle_start', 'Photon_Fork       ', &
     'Fork              ', 'Mirror            ', 'Crystal           ', 'Pipe              ', &
     'Capillary         ', 'Multilayer_Mirror ', 'E_Gun             ', 'EM_Field          ', &
     'Floor_Shift       ', 'Fiducial          ', 'Undulator         ', 'Diffraction_Plate ', &
@@ -1377,7 +1375,7 @@ integer, parameter :: d1_thickness$ = 20, default_tracking_species$ = 20, direct
 integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20, constant_ref_energy$ = 20
 integer, parameter :: longitudinal_mode$ = 20, sig_e2$ = 20
 integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
-integer, parameter :: e_loss$ = 21, dks_ds$ = 21, gap$ = 21, spin_x$ = 21, E_center$ = 21
+integer, parameter :: e_loss$ = 21, gap$ = 21, spin_x$ = 21, E_center$ = 21
 integer, parameter :: x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22
 integer, parameter :: spin_y$ = 22, E2_center$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spin_z$ = 23

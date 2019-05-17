@@ -82,38 +82,6 @@ create_jumbo_slave          & reference                   & x_offset            
  \vfill
  
  %---------------------------------
- \section{Bend_Sol_Quad Element Element Attributes}
- \label{s:list.bend.sol.quad}
- 
- \begin{tabular}{llll} \toprule
-a0 - a20, b0 - b20          & field_master                & offset                      & vkick                       \\
-alias                       & field_overlaps              & offset_moves_aperture       & wall                        \\
-angle                       & fringe_at                   & p0c                         & x1_limit                    \\
-aperture                    & fringe_type                 & ptc_canonical_coords        & x2_limit                    \\
-aperture_at                 & g                           & ptc_integration_type        & x_limit                     \\
-aperture_type               & grid_field                  & quad_tilt                   & x_offset                    \\
-b1_gradient                 & hkick                       & r0_elec                     & x_offset_tot                \\
-bend_tilt                   & integrator_order            & r0_mag                      & x_pitch                     \\
-bl_hkick                    & is_on                       & reference                   & x_pitch_tot                 \\
-bl_vkick                    & k1                          & ref_origin                  & x_quad                      \\
-bs_field                    & ks                          & rho                         & y1_limit                    \\
-b_field                     & l                           & scale_multipoles            & y2_limit                    \\
-cartesian_map               & lord_pad1                   & spin_fringe_on              & y_limit                     \\
-create_jumbo_slave          & lord_pad2                   & spin_tracking_method        & y_offset                    \\
-csr_calc_on                 & lr_freq_spread              & sr_wake_file                & y_offset_tot                \\
-cylindrical_map             & lr_self_wake_on             & superimpose                 & y_pitch                     \\
-delta_ref_time              & lr_wake_file                & symplectify                 & y_pitch_tot                 \\
-descrip                     & lr_wake_spline              & taylor_field                & y_quad                      \\
-dks_ds                      & l_hard_edge                 & taylor_map_includes_offsets & z_offset                    \\
-ds_step                     & mat6_calc_method            & tilt                        & z_offset_tot                \\
-ele_origin                  & multipoles_on               & tilt_tot                    &                             \\
-e_tot                       & num_steps                   & tracking_method             &                             \\
-field_calc                  & n_ref_pass                  & type                        &                             \\
- \bottomrule
- \end{tabular}
- \vfill
- 
- %---------------------------------
  \section{Capillary Element Element Attributes}
  \label{s:list.capillary}
  
@@ -415,6 +383,32 @@ delta_ref_time              & mat6_calc_method            & superimpose         
 descrip                     & new_branch                  & to_element                  & y_limit                     \\
 direction                   & offset                      & to_line                     &                             \\
 ele_origin                  & offset_moves_aperture       & tracking_method             &                             \\
+ \bottomrule
+ \end{tabular}
+ \vfill
+ 
+ %---------------------------------
+ \section{GARBAGE! Element Element Attributes}
+ \label{s:list.garbage!}
+ 
+ \begin{tabular}{llll} \toprule
+alias                       & hkick                       & ptc_integration_type        & x_limit                     \\
+aperture                    & integrator_order            & reference                   & x_offset                    \\
+aperture_at                 & is_on                       & ref_origin                  & x_offset_tot                \\
+aperture_type               & l                           & spin_fringe_on              & x_pitch                     \\
+bl_hkick                    & lord_pad1                   & spin_tracking_method        & x_pitch_tot                 \\
+bl_vkick                    & lord_pad2                   & sr_wake_file                & y1_limit                    \\
+create_jumbo_slave          & lr_freq_spread              & superimpose                 & y2_limit                    \\
+csr_calc_on                 & lr_self_wake_on             & symplectify                 & y_limit                     \\
+delta_ref_time              & lr_wake_file                & taylor_map_includes_offsets & y_offset                    \\
+descrip                     & lr_wake_spline              & tilt                        & y_offset_tot                \\
+ds_step                     & l_hard_edge                 & tilt_tot                    & y_pitch                     \\
+ele_origin                  & mat6_calc_method            & tracking_method             & y_pitch_tot                 \\
+e_tot                       & num_steps                   & type                        & z_offset                    \\
+field_calc                  & n_ref_pass                  & vkick                       & z_offset_tot                \\
+field_overlaps              & offset                      & wall                        &                             \\
+fringe_at                   & offset_moves_aperture       & x1_limit                    &                             \\
+fringe_type                 & p0c                         & x2_limit                    &                             \\
  \bottomrule
  \end{tabular}
  \vfill

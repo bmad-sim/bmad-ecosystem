@@ -825,7 +825,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         ele%value(e_tot$) == 0 .and. ele%value(n_ref_pass$) == 0) then
       select case (ele%key)
       case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
-            hkicker$, vkicker$, kicker$, elseparator$, bend_sol_quad$)
+            hkicker$, vkicker$, kicker$, elseparator$)
         call out_io (s_fatal$, r_name, &
               'FOR MULTIPASS LORD: ' // ele%name, &
               'N_REF_PASS, E_TOT, AND P0C ARE ALL ZERO AND FIELD_MASTER = FALSE!')
