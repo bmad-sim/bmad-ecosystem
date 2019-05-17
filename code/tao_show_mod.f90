@@ -366,7 +366,7 @@ case ('beam')
 
     beam => uni_branch%ele(u%beam%ix_track_start)%beam
     if (allocated(beam%bunch)) then
-      nl=nl+1; write(lines(nl), imt) 'n_particle                = ', size(beam%bunch(1)%particle)
+      nl=nl+1; write(lines(nl), imt) 'n_particle (actual)       = ', size(beam%bunch(1)%particle)
       nl=nl+1; write(lines(nl), imt) 'n_bunch                   = ', size(beam%bunch)
       nl=nl+1; write(lines(nl), rmt) 'bunch_charge_tot          = ', beam%bunch(1)%charge_tot
       nl=nl+1; write(lines(nl), amt) 'bunch_species             = ', species_name(beam%bunch(1)%particle(1)%species)
