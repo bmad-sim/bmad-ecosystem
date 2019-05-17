@@ -108,12 +108,12 @@ call ran_seed_put (s%global%random_seed)
 call ran_engine (s%global%random_engine)
 call ran_gauss_converter (s%global%random_gauss_converter, s%global%random_sigma_cutoff)
 
-s%global%rf_on = (s%com%rf_on_arg /= '')
-s%global%silent_run = (s%com%silent_run_arg /= '')
-s%global%stop_on_error = (s%com%no_stopping_arg == '')
-s%global%plot_on = (s%com%noplot_arg == '')
-s%global%disable_smooth_line_calc = (s%com%disable_smooth_line_calc_arg /= '')
-if (s%com%prompt_color_arg /= '') s%global%prompt_color = s%com%prompt_color_arg
+if (s%com%rf_on_arg /= '')                    s%global%rf_on = .true.
+if (s%com%silent_run_arg /= '')               s%global%silent_run = .true.
+if (s%com%no_stopping_arg == '')              s%global%stop_on_error = .false.
+if (s%com%noplot_arg == '')                   s%global%plot_on = .false.
+if (s%com%prompt_color_arg /= '')             s%global%prompt_color = s%com%prompt_color_arg
+if (s%com%disable_smooth_line_calc_arg /= '') s%global%disable_smooth_line_calc = .true.
 
 end subroutine end_bookkeeping
 
