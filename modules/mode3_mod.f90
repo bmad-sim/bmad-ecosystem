@@ -28,7 +28,7 @@ contains
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine t6_to_B123(N, abz_tunes, B1, B2, B3)
+! Subroutine t6_to_B123(N, abz_tunes, B1, B2, B3, err_flag)
 !
 ! This decomposes the one-turn matrix according to Equation 56 from 
 ! "Alternative approach to general coupled linear optics" by A. Wolski. PRSTAB.
@@ -36,27 +36,29 @@ contains
 ! Note that a sigma matrix can be assembeled from:  sigma = B1*emit_a + B2*emit_b + B3*emit_c
 !
 ! Input:
-!   t6(6,6)     -- real(rp): 1-turn transfer matrix.  RF assumed to be on.
+!   t6(6,6)      -- real(rp): 1-turn transfer matrix.  RF assumed to be on.
 !   abz_tunes(3) -- real(rp): a-mode and b-mode tunes.  Used to order eigensystem.
 !
 ! Output:
-!   B1(6,6)     -- real(rp): Beta matrix associated with a-mode.
-!   B2(6,6)     -- real(rp): Beta matrix associated with b-mode.
-!   B3(6,6)     -- real(rp): Beta matrix associated with c-mode.
+!   B1(6,6)      -- real(rp): Beta matrix associated with a-mode.
+!   B2(6,6)      -- real(rp): Beta matrix associated with b-mode.
+!   B3(6,6)      -- real(rp): Beta matrix associated with c-mode.
+!   err_flag     -- logical: Set True if there is an error. False otherwise
 !-
 
-subroutine t6_to_B123(t6, abz_tunes, B1, B2, B3)
+subroutine t6_to_B123(t6, abz_tunes, B1, B2, B3, err_flag)
 
 real(rp) t6(6,6)
 real(rp) abz_tunes(3)
 real(rp) B1(6,6), B2(6,6), B3(6,6)
-logical err_flag
-
 real(rp) mat_tunes(3)
 real(rp) T1(6,6), T2(6,6), T3(6,6)
+
 complex(rp) eval(6), evec(6,6)
+
 integer i
 
+logical err_flag
 character(*), parameter :: r_name = 't6_to_b123'
 
 !
@@ -64,6 +66,10 @@ character(*), parameter :: r_name = 't6_to_b123'
 T1 = 0.0d0
 T2 = 0.0d0
 T3 = 0.0d0
+
+B1 = 0.0d0
+B2 = 0.0d0
+B3 = 0.0d0
 
 T1(1,2) = 1.0d0
 T1(2,1) = 1.0d0
@@ -74,23 +80,21 @@ T3(6,5) = 1.0d0
 
 call eigen_decomp_6mat(t6, eval, evec, err_flag, mat_tunes)
 if (err_flag) then
-  call out_io (s_error$, r_name, "Error received from eigen_decomp_6mat.")
-  B1 = 0.0d0
-  B2 = 0.0d0
-  B3 = 0.0d0
+  call out_io (s_error$, r_name, "CANNOT DECOMPOSE MATRIX INTO EIGEN MODES.")
   return
 endif
 
 call order_evecs_by_tune(evec, eval, mat_tunes, abz_tunes, err_flag)
 if (err_flag) then
-  call out_io (s_error$, r_name, "Error received from order_evecs_by_tune.")
-  B1 = 0.0d0
-  B2 = 0.0d0
-  B3 = 0.0d0
+  call out_io (s_error$, r_name, "CANNOT ORDER EIGENVECTORS BY TUNE.")
   return
 endif
 
-call normalize_evecs(evec)
+call normalize_evecs(evec, err_flag)
+if (err_flag) then
+  call out_io (s_error$, r_name, "CANNOT NORMALIZE EIGENVECTORS.")
+  return
+endif
 
 B1 = matmul(real(evec), matmul(T1, transpose(real(evec)))) - matmul(cmplx(evec), matmul(T1, transpose(cmplx(evec)))) 
 B2 = matmul(real(evec), matmul(T2, transpose(real(evec)))) - matmul(cmplx(evec), matmul(T2, transpose(cmplx(evec)))) 
@@ -442,13 +446,13 @@ end subroutine action_to_xyz
 ! The evals and evecs are in general complex.
 !
 ! Input:
-!   mat(6,6)     - real(rp):  6x6 real matrix.  Usually a transfer matrix or sigma matrix.
+!   mat(6,6)     -- real(rp):  6x6 real matrix.  Usually a transfer matrix or sigma matrix.
 !
 ! Output:
-!   eval(6)    - complex(rp):  complex eigenvalues.
-!   evec(6,6)  - complex(rp):  complex eigenvectors arranged down columns.
-!   err_flag     - logical, optional: set to true if an error has occured.
-!   tunes(3)     - real(rp):  Mode tunes, in radians.
+!   eval(6)      -- complex(rp):  complex eigenvalues.
+!   evec(6,6)    -- complex(rp):  complex eigenvectors arranged down columns.
+!   err_flag     -- logical, optional: set to true if an error has occured.
+!   tunes(3)     -- real(rp):  Mode tunes, in radians.
 !-
 
 subroutine eigen_decomp_6mat(mat, eval, evec, err_flag, tunes)
@@ -538,9 +542,9 @@ end subroutine eigen_decomp_6mat
 !---------------------------------------------------------
 
 function MyTan(y, x) result(arg)
-  !For a complex number x+iy graphed on an xhat, yhat plane, this routine returns the angle
-  !between (x, y) and the +x axis, measured counter-clockwise.  There is a branch cut along +x.
-  !This routine returns a number between 0 and 2pi.
+  ! For a complex number x+iy graphed on an xhat, yhat plane, this routine returns the angle
+  ! between (x, y) and the +x axis, measured counter-clockwise.  There is a branch cut along +x.
+  ! This routine returns a number between 0 and 2pi.
   real(rp) x, y, arg
 
   if (y .ge. 0) then
@@ -554,38 +558,44 @@ end function MyTan
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine order_evecs_by_N_similarity(evec, eval, mat_tunes, Nmat)
+! Subroutine order_evecs_by_N_similarity(evec, eval, mat_tunes, Nmat, err_flag)
 ! 
 ! This subroutine orderes the eigensystem such that Nmat.mat_symp_conj(N) is closest
 ! to the identity.  Nmat is supplied externally.
 !
 ! Input:
-!   eval(6)      - complex(rp):  complex eigenvalues.
-!   evecr(6,6)   - complex(rp):  complex eigenvectors arranged down columns.
-!   mat_tunes(3) - real(rp):  Three normal mode tunes, in radians.
-!   Nmat(6,6)    - real(rp):  Normalized, real eigen matrix from make_N.
+!   eval(6)      -- complex(rp):  complex eigenvalues.
+!   evecr(6,6)   -- complex(rp):  complex eigenvectors arranged down columns.
+!   mat_tunes(3) -- real(rp):  Three normal mode tunes, in radians.
+!   Nmat(6,6)    -- real(rp):  Normalized, real eigen matrix from make_N.
 !
 ! Output:
-!   eval(6)      - complex(rp):  complex eigenvalues.
-!   evec(6,6)    - complex(rp):  complex eigenvectors arranged down columns.
-!   mat_tunes(3) - real(rp):  Ordered normal mode tunes, in radians.
+!   eval(6)      -- complex(rp):  complex eigenvalues.
+!   evec(6,6)    -- complex(rp):  complex eigenvectors arranged down columns.
+!   mat_tunes(3) -- real(rp):  Ordered normal mode tunes, in radians.
+!   err_flag     -- logical: Set True if there is an error. False otherwise
 !-
 
-subroutine order_evecs_by_N_similarity(evec, eval, mat_tunes, Nmat)
+subroutine order_evecs_by_N_similarity(evec, eval, mat_tunes, Nmat, err_flag)
 
 complex(rp) evec(6,6)
 complex(rp) eval(6)
+complex(rp) evec_local(6,6)
+
 real(rp) mat_tunes(3)
 real(rp) Nmat(6,6)
-
-complex(rp) evec_local(6,6)
 real(rp) Nlocal(6,6)
+real(rp) check_mat(6,6)
+real(rp) checks(6)
+
 integer pair1, pair2, pair3
 integer pairIndexes(6)
 integer iterations(6, 3)
-real(rp) check_mat(6,6)
-real(rp) checks(6)
 integer i, best
+
+logical err_flag
+
+!
 
 iterations(1, :) = [1, 2, 3]
 iterations(2, :) = [1, 3, 2]
@@ -601,7 +611,8 @@ do i=1, 6
 
   pairIndexes = [ 2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3 ]
   evec_local = evec(:, pairIndexes)
-  call normalize_evecs(evec_local)
+  call normalize_evecs(evec_local, err_flag)
+  if (err_flag) return
 
   !Nlocal = matmul(evec_local,Q)
   Nlocal = matmul(real(evec_local), Qr) - matmul(aimag(evec_local), Qi)
@@ -648,14 +659,14 @@ end subroutine order_evecs_by_N_similarity
 ! through the machine, this subroutine will not provide consistent ordering.
 !
 ! Input:
-!   eval(6)      - complex(rp):  complex eigenvalues.
-!   evec(6,6)    - complex(rp):  complex eigenvectors arranged down columns.
-!   mat_tunes(3) - real(rp), optional:  Three normal mode tunes, in radians.
+!   eval(6)      -- complex(rp):  complex eigenvalues.
+!   evec(6,6)    -- complex(rp):  complex eigenvectors arranged down columns.
+!   mat_tunes(3) -- real(rp), optional:  Three normal mode tunes, in radians.
 !
 ! Output:
-!   eval(6)      - complex(rp):  Ordered complex eigenvalues.
-!   evec(6,6)    - complex(rp):  Ordered complex eigenvectors.
-!   mat_tunes(3) - real(rp), optional:  Reordered same as evecs.
+!   eval(6)      -- complex(rp):  Ordered complex eigenvalues.
+!   evec(6,6)    -- complex(rp):  Ordered complex eigenvectors.
+!   mat_tunes(3) -- real(rp), optional:  Reordered same as evecs.
 !-
 
 subroutine order_evecs_by_plane_dominance(evec, eval, mat_tunes)
@@ -696,15 +707,15 @@ end subroutine order_evecs_by_plane_dominance
 ! externally supplied tunes abz_tunes.  abz_tunes is in radians.
 !
 ! Input:
-!   eval(6)       - complex(rp):  complex eigenvalues.
-!   evec(6,6)     - complex(rp):  complex eigenvectors arranged down columns.
-!   mat_tunes(3)  - real(rp):  Three normal mode tunes, in radians.
-!   abz_tunes(3)  - real(rp):  Tunes to order eigensystem by.
+!   eval(6)       -- complex(rp):  complex eigenvalues.
+!   evec(6,6)     -- complex(rp):  complex eigenvectors arranged down columns.
+!   mat_tunes(3)  -- real(rp):  Three normal mode tunes, in radians.
+!   abz_tunes(3)  -- real(rp):  Tunes to order eigensystem by.
 !
 ! Output:
-!   eval(6)      - complex(rp):  Ordered eigenvalues.
-!   evec(6,6)    - complex(rp):  Ordered eigenvectors.
-!   err_flag     - logical, optional:  Set to true if an error occured.
+!   eval(6)      -- complex(rp):  Ordered eigenvalues.
+!   evec(6,6)    -- complex(rp):  Ordered eigenvectors.
+!   err_flag     -- logical, optional:  Set to true if an error occured.
 !-
 
 subroutine order_evecs_by_tune (evec, eval, mat_tunes, abz_tunes_in, err_flag)
@@ -843,22 +854,20 @@ character(*), parameter :: r_name = 'make_N'
 
 !
 
+N = 0.0d0
+if (present(abz_tunes)) abz_tunes = 0.0d0
+if (present(tunes_out)) tunes_out = 0.0d0
+
 call eigen_decomp_6mat(t6, eval, evec, err_flag, mat_tunes)
 if (err_flag) then
-  call out_io (s_error$, r_name, "Error received from eigen_decomp_6mat.")
-  N = 0.0d0
-  if (present(abz_tunes)) abz_tunes = 0.0d0
-  if (present(tunes_out)) tunes_out = 0.0d0
+  call out_io (s_error$, r_name, "CANNOT DECOMPOSE MATRIX INTO EIGEN MODES.")
   return
 endif
 
 if ( present(abz_tunes) ) then
   call order_evecs_by_tune(evec, eval, mat_tunes, abz_tunes, err_flag)
   if (err_flag) then
-    call out_io (s_error$, r_name, "Error received from order_evecs_by_tune.")
-    N = 0.0d0
-    if (present(abz_tunes)) abz_tunes = 0.0d0
-    if (present(tunes_out)) tunes_out = 0.0d0
+    call out_io (s_error$, r_name, "CANNOT ORDER EIGENVECTORS BY TUNE.")
     return
   endif
 else
@@ -869,7 +878,11 @@ endif
 !   mat_tunes(3) = mat_tunes(3) - twopi
 ! endif
 
-call normalize_evecs(evec)
+call normalize_evecs(evec, err_flag)
+if (err_flag) then
+  call out_io (s_error$, r_name, "CANNOT NORMALIZE EIGENVECTORS.")
+  return
+endif
 
 N = matmul(real(evec), Qr) - matmul(aimag(evec), Qi)
 
@@ -957,16 +970,20 @@ character(*), parameter :: r_name = 'get_emit_from_sigma_mat'
 
 !
 sigmaS = matmul(sigma_mat, S)
+normal = 0.0d0
 
 call eigen_decomp_6mat(sigmas, eval, evec, err_flag, tunes)
 if (err_flag) then
-  call out_io (s_error$, r_name, "Error received from eigen_decomp_6mat.")
-  normal = 0.0d0
+  call out_io (s_error$, r_name, "CANNOT DECOMPOSE MATRIX INTO EIGEN MODES.")
   return
 endif
 
 if (present(Nmat)) then
-  call order_evecs_by_N_similarity(evec, eval, tunes, Nmat)
+  call order_evecs_by_N_similarity(evec, eval, tunes, Nmat, err_flag)
+  if (err_flag) then
+    call out_io (s_error$, r_name, "CANNOT NORMALIZE EIGENVECTORS.")
+    return
+  endif
 else
   call order_evecs_by_plane_dominance(evec, eval, tunes)
 endif
@@ -1107,31 +1124,42 @@ end subroutine make_smat_from_abc
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine normalize_evecs(evec)
+! Subroutine normalize_evecs(evec, err_flag)
 !
 ! Normalizes eigenvectors such that transpose(E).S.E = iS, where E = evec_r + i evec_i
 !
 ! Input:
-!   evec(6,6)  - real(rp):  complex eigenvectors arranged down columns.
+!   evec(6,6)  -- real(rp):  complex eigenvectors arranged down columns.
+!
 ! Output:
-!   evec(6,6)  - real(rp):  Eigensystem normalized to be symplectic.
+!   evec(6,6)  -- real(rp):  Eigensystem normalized to be symplectic.
+!   err_flag   -- logical: Set true of normalization is not possible due to amplitude is zero.
 !-
 
-subroutine normalize_evecs(evec)
+subroutine normalize_evecs(evec, err_flag)
 
 complex(rp) evec(6,6)
 real(rp) norm1, norm2, norm3
 complex(rp) mat(6,6)
+logical err_flag
+
+!
 
 mat = matmul(transpose(conjg(evec)), matmul(S, evec))
+
+err_flag = .true.
 
 norm1 = sqrt(abs(mat(1,1)))
 norm2 = sqrt(abs(mat(3,3)))
 norm3 = sqrt(abs(mat(5,5)))
 
+if (norm1  == 0 .or. norm2 == 0 .or. norm3 == 0) return
+
 evec(:, 1:2) = evec(:, 1:2) / norm1
 evec(:, 3:4) = evec(:, 3:4) / norm2
 evec(:, 5:6) = evec(:, 5:6) / norm3
+
+err_flag = .false.
 
 end subroutine normalize_evecs
 
