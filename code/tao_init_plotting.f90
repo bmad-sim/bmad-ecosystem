@@ -934,7 +934,7 @@ endif
 
 !---------------------------------
 
-n_plots = 80
+n_plots = 87
 
 if (allocated(s%plot_page%template)) then
   n = size(s%plot_page%template)
@@ -1459,64 +1459,131 @@ endif
 !---------------
 ! bunch_x_px, etc. plots
 
+np = np + 1
+plt => s%plot_page%template(np)
+plt%phantom = .true.
+plt%name = 'bunch_<R1>_<R2>'
+plt%description = 'Bunch phase space plot. <R1>, <R2> -> x, px, y, py, z, or pz. EG: bunch_z_pz'
+
 do i = 1, 6
 do j = 1, 6
 
   if (i == j) cycle
   name = 'bunch_' // trim(coord_name_lc(i)) // '_' // trim(coord_name_lc(j))
+  if (any(s%plot_page%template%name == name)) cycle
 
-  if (all(s%plot_page%template%name /= name)) then
-    np = np + 1
-    plt => s%plot_page%template(np)
+  np = np + 1
+  plt => s%plot_page%template(np)
 
-    nullify(plt%r)
-    if (allocated(plt%graph)) deallocate (plt%graph)
-    allocate (plt%graph(1))
-    allocate (plt%graph(1)%curve(1))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(1))
 
-    plt = default_plot_g1c1
-    plt%name                 = name
-    plt%description          = 'Bunch phase space'
-    plt%list_with_show_plot_command = .false.
-    plt%x_axis_type = 'phase_space'
-    plt%x%label = coord_name(i)
+  plt = default_plot_g1c1
+  plt%name                 = name
+  plt%description          = 'Bunch phase space'
+  plt%list_with_show_plot_command = .false.
+  plt%x_axis_type = 'phase_space'
+  plt%x%label = coord_name(i)
 
-    grph => plt%graph(1)
-    grph%p => plt
-    grph%type                = 'phase_space'
-    grph%title               = trim(coord_name(i)) // ' Vs ' // coord_name(j)
-    grph%x%label             = coord_name(i)
-    grph%y%label             = coord_name(j)
-    grph%x%major_div_nominal = 4
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%type                = 'phase_space'
+  grph%title               = trim(coord_name(i)) // ' Vs ' // coord_name(j)
+  grph%x%label             = coord_name(i)
+  grph%y%label             = coord_name(j)
+  grph%x%major_div_nominal = 4
 
-    crv => grph%curve(1)
-    crv%name         = 'c'
-    crv%g => grph
-    crv%data_source = 'beam'
-    crv%data_type_x  = coord_name_lc(i)
-    crv%data_type    = coord_name_lc(j)
-    crv%draw_symbols = .true.
-    crv%draw_line    = .false.
-    ie = s%u(1)%design%lat%n_ele_track
-    crv%ix_ele_ref = ie
-    crv%ix_ele_ref_track = ie
-    crv%ele_ref_name = s%u(1)%design%lat%ele(ie)%name
-    if (modulo(i,2) == 0) then
-      crv%units        = ''
-    else
-      crv%units        = 'm'
-    endif
+  crv => grph%curve(1)
+  crv%name         = 'c'
+  crv%g => grph
+  crv%data_source = 'beam'
+  crv%data_type_x  = coord_name_lc(i)
+  crv%data_type    = coord_name_lc(j)
+  crv%draw_symbols = .true.
+  crv%draw_line    = .false.
+  ie = s%u(1)%design%lat%n_ele_track
+  crv%ix_ele_ref = ie
+  crv%ix_ele_ref_track = ie
+  crv%ele_ref_name = s%u(1)%design%lat%ele(ie)%name
+  if (modulo(i,2) == 0) then
+    crv%units        = ''
+  else
+    crv%units        = 'm'
   endif
 
 enddo
 enddo
 
+!---------------
+! bunch_density_x, etc. plots
+
 np = np + 1
 plt => s%plot_page%template(np)
 plt%phantom = .true.
-plt%name = 'bunch_R1_R2'
-plt%description = 'Bunch phase space plot. R1, R2 -> x, px, y, py, z, or pz. EG: bunch_z_pz'
+plt%name = 'bunch_density_<R>'
+plt%description = 'Bunch density histogram. <R> -> x, px, y, py, z, or pz. EG: bunch_density_z'
 
+do i = 1, 6
+  name = 'bunch_density_' // trim(coord_name_lc(i))
+  if (any(s%plot_page%template%name == name)) cycle
+
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(1))
+
+  plt = default_plot_g1c1
+  plt%name                 = name
+  plt%description          = 'Bunch density histogram'
+  plt%list_with_show_plot_command = .false.
+  plt%x_axis_type = 'phase_space'
+  plt%x%label = coord_name(i)
+
+  grph => plt%graph(1)
+  grph%p => plt
+  graph%name               = coord_name(i)
+  grph%type                = 'histogram'
+  grph%title               = 'Bunch Density Histogram in ' // trim(coord_name(i)) 
+  grph%x%label             = coord_name(i)
+  grph%y%label             = 'Charge (nCoul)'
+  grph%x%major_div_nominal = 4
+  grph%x_axis_scale_factor = 1d3  ! mm
+
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%name         = 'c'
+  crv%data_source  = 'beam'
+  crv%data_type    = coord_name_lc(j)
+
+  crv%hist%density_normalized = .true.
+  crv%hist%weight_by_charge = .true.
+  crv%hist%number = 100
+
+  crv%draw_symbols = .true.
+  crv%symbol%type = 1
+
+  crv%draw_line    = .true.
+  crv%line%color = 4
+  crv%line%pattern = 2
+
+  crv%y_axis_scale_factor = 1e9   ! nCoul
+
+  ie = s%u(1)%design%lat%n_ele_track
+  crv%ix_ele_ref = ie
+  crv%ix_ele_ref_track = ie
+  crv%ele_ref_name = s%u(1)%design%lat%ele(ie)%name
+  if (modulo(i,2) == 0) then
+    crv%units        = ''
+  else
+    crv%units        = 'm'
+  endif
+
+enddo
 
 !---------------
 ! cbar plot
