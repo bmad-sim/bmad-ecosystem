@@ -3585,18 +3585,6 @@ do ix_ele = ie1, ie2
       enddo
 
     ! SAD
-    case (bend_sol_quad$)
-      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-      call multipole1_kt_to_ab (val(angle$), val(bend_tilt$), 0, a, b)
-      a_pole = a_pole + a;  b_pole = b_pole + b
-      call multipole1_kt_to_ab (val(k1$)*val(l$), val(quad_tilt$), 1, a, b)
-      a_pole = a_pole + a;  b_pole = b_pole + b
-      if (val(dks_ds$) /= 0) call out_io (s_error$, r_name, &
-                        'DKS_DS OF BEND_SOL_QUAD CANNOT BE CONVERTED FOR: ' // ele%name)
-      if (val(x_quad$) /= 0 .or. val(y_quad$) /= 0) call out_io (s_error$, r_name, &
-                        'X/Y_QUAD OF BEND_SOL_QUAD CANNOT BE CONVERTED FOR: ' // ele%name)
-
-    ! SAD
     case (ecollimator$)
       write (line_out, '(4a)') 'APERT ', trim(ele%name), ' = ('
       call value_to_line (line_out, val(x_offset$), 'DX', 'R', .true., .false.)

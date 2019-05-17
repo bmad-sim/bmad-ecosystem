@@ -76,12 +76,6 @@ case (beambeam$)
     is_valid = .true.
   end select
 
-case (bend_sol_quad$)
-  select case (method)
-  case (symp_lie_bmad$, custom$)
-    is_valid = .true.
-  end select
-
 case (crystal$, mirror$, multilayer_mirror$, capillary$, fiducial$)
   if (species == not_set$) then
     select case (method)

@@ -189,10 +189,6 @@ if (ele%field_master) then
     val(kick$) = factor * val(BL_kick$)
   case (vkicker$)
     val(kick$) = factor * val(BL_kick$)
-  case (bend_sol_quad$)
-    val(g$)  = factor * val(B_field$)
-    val(k1$) = factor * val(B1_gradient$)
-    val(ks$) = factor * val(Bs_field$)
   end select
 
   if (has_hkick_attributes(ele%key) .and. ele%key /= elseparator$) then
@@ -231,10 +227,6 @@ else
     val(BL_kick$) = factor * val(kick$)
   case (vkicker$) 
     val(BL_kick$) = factor * val(kick$)
-  case (bend_sol_quad$)
-    val(B_field$)     = factor * val(g$)
-    val(B1_gradient$) = factor * val(k1$)
-    val(Bs_field$)    = factor * val(ks$)
   end select
 
   if (has_hkick_attributes(ele%key) .and. ele%key /= elseparator$) then
@@ -338,10 +330,6 @@ endif
 if (attribute_index(ele, 'L_HARD_EDGE') /= 0) val(l_hard_edge$) = val(l$)
 
 select case (ele%key)
-
-! Bend_sol_quad
-
-case (bend_sol_quad$)
 
 ! BeamBeam
 

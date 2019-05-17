@@ -301,11 +301,11 @@ case (lcavity$, rfcavity$)
   enddo
 
 !----------------------------------------------------------------------------
-! solenoid, quadrupole, sol_quad, or bend_sol_quad
+! solenoid, quadrupole, or sol_quad
 ! Notice that we don't have to worry about a solenoid hard edge since we are
 ! using canonical coords so the hard edge is automatically included.
 
-case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
+case (solenoid$, quadrupole$, sol_quad$)
 
   g_x = 0
   g_y = 0
@@ -317,15 +317,6 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
   ks = 0
 
   select case (ele%key)
-  case (bend_sol_quad$)
-    g_x = ele%value(g$) * cos (ele%value(bend_tilt$)) * charge_dir
-    g_y = ele%value(g$) * sin (ele%value(bend_tilt$)) * charge_dir
-    k1_norm = ele%value(k1$) * cos (2 * ele%value(quad_tilt$)) * charge_dir
-    k1_skew = ele%value(k1$) * sin (2 * ele%value(quad_tilt$)) * charge_dir
-    x_q = ele%value(x_quad$)
-    y_q = ele%value(y_quad$)
-    ks = ele%value(ks$) * rel_tracking_charge
-    dks_ds = ele%value(dks_ds$) * charge_dir
   case (solenoid$)
     ks = ele%value(ks$) * rel_tracking_charge
   case (quadrupole$)

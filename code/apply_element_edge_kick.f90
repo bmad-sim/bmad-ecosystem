@@ -173,7 +173,7 @@ case (sbend$)
 ! Note: Cannot trust hard_ele%value(ks$) here since element may be superimposed with an lcavity.
 ! So use hard_ele%value(bs_field$).
 
-case (solenoid$, sol_quad$, bend_sol_quad$)
+case (solenoid$, sol_quad$)
   if (logic_option(.true., apply_sol_fringe)) then
     ! To make reverse tracking the same as forward tracking, use a symmetrical orbital-spin-orbital kick scheme.
     ks4 = at_sign * charge_of(orb%species) * hard_ele%value(bs_field$) * c_light / (4 * orb%p0c)

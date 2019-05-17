@@ -1343,9 +1343,6 @@ case (solenoid$)
 case (sol_quad$)
   call set_real (mag%b_sol, magp%b_sol, val(ks$))
 
-case (bend_sol_quad$)
-  call set_real (mag%b_sol, magp%b_sol, val(ks$))
-
 case (rfcavity$, lcavity$)
   phi_tot = twopi * (val(phi0$) + val(phi0_multipass$) + val(phi0_err$) + val(phi0_autoscale$))
   if (ele%key == lcavity$) phi_tot = pi / 2 - twopi * phi_tot

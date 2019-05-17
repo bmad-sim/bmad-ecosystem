@@ -68,12 +68,6 @@ case (beambeam$)
     is_valid = .true.
   end select
 
-case (bend_sol_quad$)
-  select case (mat6_calc_method)
-  case (symp_lie_bmad$, static$, tracking$, custom$)
-    is_valid = .true.
-  end select
-
 case (fork$, photon_fork$)
   select case (mat6_calc_method)
   case (bmad_standard$, static$, tracking$, custom$)

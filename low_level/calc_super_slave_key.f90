@@ -162,22 +162,11 @@ endif
 !
 
 select case (key1)
-
 case (quadrupole$,  solenoid$, sol_quad$) 
   select case (key2)
   case (quadrupole$);    slave%key = sol_quad$
   case (solenoid$);      slave%key = sol_quad$
   case (sol_quad$);      slave%key = sol_quad$
-  case (bend_sol_quad$); slave%key = bend_sol_quad$
-  case (sbend$);         slave%key = bend_sol_quad$
-  end select
-
-case (bend_sol_quad$)
-  select case (key2)
-  case (quadrupole$);    slave%key = bend_sol_quad$
-  case (solenoid$);      slave%key = bend_sol_quad$
-  case (sol_quad$);      slave%key = bend_sol_quad$
-  case (sbend$);         slave%key = bend_sol_quad$
   end select
 end select
 
