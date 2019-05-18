@@ -1476,6 +1476,8 @@ case ('floor_plan_orbit_color')
   this_graph%floor_plan_orbit_color = value
 case ('title')
   this_graph%title = value
+case ('type')
+  this_graph%type = value
 case ('y2_mirrors_y')
   call tao_set_logical_value (this_graph%y2_mirrors_y, component, value, error)
 case ('floor_plan_view')
