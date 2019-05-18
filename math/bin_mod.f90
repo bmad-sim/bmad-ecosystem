@@ -25,37 +25,39 @@ end type
 
 contains
 
-
-
-
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function density(bin_data, x, order) result(r)
+! Function bin_data_density (bin_data, x, order) result (r)
 ! 
-! Calculate the density of binned data at an arbitrary location x
-! Zero is returned if x is out of bounds of the binned data
+! Calculate the density of binned data at an arbitrary location x.
+! Zero is returned if x is out of bounds of the binned data.
 !
 ! Input: 
 !   bin_data    -- bin_struct: binned data
 !   x           -- real(rp): position to query
-!   order       -- integer, optional: interpolation order: 0 or 1 only
-!                                     Default: 1
+!   order       -- integer, optional: interpolation order: 0 or 1 only. Default: 1
+!
 ! Output:
 !   r           -- real(rp): density at x
 !-
-function density(bin_data, x, order) result(r)
+
+function bin_data_density (bin_data, x, order) result (r)
+
 type(bin_struct) :: bin_data
 real(rp) :: x, x1, r, r1, r2, rel_x
 integer, optional :: order
 integer :: ix1, ix2, ord
 character(30), parameter :: r_name = 'density'
 
-ord = integer_option(1, order)
-!Does the same thing: ord = merge(order, 1, present(order))
+!
 
+ord = integer_option(1, order)
+
+! Does the same thing: ord = merge(order, 1, present(order))
 ! Get nearest index
+
 ix1 = bin_index(x, bin_data%min, bin_data%delta)
 
 r1 = count_at_index(bin_data, ix1)/bin_data%delta
@@ -72,7 +74,7 @@ if (ord /= 1) then
 endif
 
 ! Get next nearest bin
-x1 = bin_x(ix1, bin_data%min, bin_data%delta)
+x1 = bin_x_center(ix1, bin_data%min, bin_data%delta)
 rel_x = abs(x-x1)/bin_data%delta
 ix2 = merge(ix1-1, ix1+1, x<x1)
 r2 = count_at_index(bin_data, ix2)/bin_data%delta
@@ -86,66 +88,64 @@ end function
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function bin(data, weight, min, max, n_bins) result (bin_data)
+! Function bin_data (data, weight, min, max, n_bins) result (binned_data)
 !  
 ! Bin centers are at [ x_min + 1/2*delta, x_min + 3/2*delta, ..., x_max - 1/2*delta ] 
 ! with delta  = (max-min)/n_bins
 !
 ! Input: 
 !   data(:)    -- real(rp): 1D data to bin
-!   weight(:)  -- real(rp), optional: 1D weights for each data. 
-!                                     Default: 1
-!   min        -- real(rp), optional: minimum considered.
-!                                     Default: minval(data)
-!   max        -- real(rp), optional: maximum considered.
-!                                     Default: maxval(data)
-!   n_bins     -- integer,  optional: number of bins. 
-!                                     Default: 2*size(data)^(1/3) (Rice's rule)
+!   weight(:)  -- real(rp), optional: 1D weights for each data. Default: 1
+!   min        -- real(rp), optional: minimum considered. Default: minval(data)
+!   max        -- real(rp), optional: maximum considered. Default: maxval(data)
+!   n_bins     -- integer,  optional: number of bins. Default: 2*size(data)^(1/3) (Rice's rule)
+!
 ! Output:
-!   bin_data   -- bin_struct: binned data
-!-  
-function bin(data, weight, min, max, n_bins) result (bin_data)
+!   binned_data   -- bin_struct: binned data.
+!-
+
+function bin_data (data, weight, min, max, n_bins) result (binned_data)
+
 implicit none
-type(bin_struct) :: bin_data
+type(bin_struct) :: binned_data
 real(rp) :: data(:)
 real(rp), optional :: weight(:), min, max
 integer, optional :: n_bins
 integer :: i, ix
 character(30), parameter :: r_name = 'bin'
 
-bin_data%min = real_option(minval(data), min)
-bin_data%max = real_option(maxval(data), max)
-bin_data%n = integer_option(n_bins_automatic(size(data)), n_bins)
+!
+
+binned_data%min = real_option(minval(data), min)
+binned_data%max = real_option(maxval(data), max)
+binned_data%n = integer_option(n_bins_automatic(size(data)), n_bins)
 
 ! Allocate and initialize 
-if (allocated(bin_data%count)) deallocate(bin_data%count)
-allocate(bin_data%count(bin_data%n))
-bin_data%count = 0
+if (allocated(binned_data%count)) deallocate(binned_data%count)
+allocate(binned_data%count(binned_data%n))
+binned_data%count = 0
 
 ! Step size
-bin_data%delta = (bin_data%max - bin_data%min)/bin_data%n
+binned_data%delta = (binned_data%max - binned_data%min)/binned_data%n
 
 ! Populate
 do i=lbound(data, 1), ubound(data, 1)
-  ix = bin_index(data(i), bin_data%min, bin_data%delta) 
-  if (ix < 1 .or. ix > bin_data%n) cycle ! Out of range
+  ix = bin_index(data(i), binned_data%min, binned_data%delta) 
+  if (ix < 1 .or. ix > binned_data%n) cycle ! Out of range
   if (present(weight))then
-    bin_data%count(ix) = bin_data%count(ix) + weight(i)
+    binned_data%count(ix) = binned_data%count(ix) + weight(i)
   else
-    bin_data%count(ix) = bin_data%count(ix) + 1.0_rp
+    binned_data%count(ix) = binned_data%count(ix) + 1.0_rp
   endif
 enddo
   
-end function
-
-
-
+end function bin_data
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function density_2d(bin_data, x, y, order) result(r0)
+! Function bin_data_density_2d (bin_data, x, y, order) result(r0)
 ! 
 ! Calculate the density of 2D binned data at an arbitrary location (x, y)
 ! Zero is returned if x or y is out of bounds of the binned data
@@ -159,12 +159,15 @@ end function
 ! Output:
 !   r0          -- real(rp): density at (x,y)
 !-
-function density_2d(bin_data, x, y, order) result(r0)
+function bin_data_density_2d (bin_data, x, y, order) result(r0)
+
 type(general_bin_struct) :: bin_data
 real(rp) :: x, y, x1, y1, r(4), r0, rel_x, rel_y
 integer, optional :: order
 integer :: i, ix(4), iy(4), ord, shift_x, shift_y
 character(30), parameter :: r_name = 'density_2d'
+
+!
 
 ord = integer_option(1, order)
 
@@ -189,8 +192,8 @@ if (ord /= 1) then
 endif
 
 ! Get nearest bin center
-x1  = bin_x(ix(1), bin_data%min(1), bin_data%delta(1))
-y1  = bin_x(iy(1), bin_data%min(2), bin_data%delta(2))
+x1  = bin_x_center(ix(1), bin_data%min(1), bin_data%delta(1))
+y1  = bin_x_center(iy(1), bin_data%min(2), bin_data%delta(2))
 
 ! Get indices of surrounding bins
 rel_x = (x - x1)/bin_data%delta(1)
@@ -220,7 +223,7 @@ r0 = (1-rel_x)*(1-rel_y)*r(1) + (rel_x)*(1-rel_y)*r(2) + (1-rel_x)*(rel_y)*r(3) 
 ! Scale for density
 r0 = r0/(bin_data%delta(1)*bin_data%delta(2))
 
-end function
+end function bin_data_density_2d
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -247,6 +250,7 @@ end function
 ! Output:
 !   bin_data   -- general_bin_struct: binned data, with %dim==2
 !- 
+
 function bin_2d(data1, data2, weight, min1, max1, min2, max2, n_bins1, n_bins2) result (bin_data)
 implicit none
 type(general_bin_struct) :: bin_data
@@ -255,6 +259,8 @@ real(rp), optional :: weight(:), min1, max1, min2, max2
 integer, optional :: n_bins1, n_bins2
 integer :: i, ix(2), index
 character(30), parameter :: r_name = 'bin_2d'
+
+!
 
 bin_data%dim = 2
 
@@ -303,27 +309,63 @@ enddo
 
 end function
 
-
-
-
-! 1D Helper functions
-
-! Helper function to locate the appropriate bin index
-function bin_index(x, min, delta) result(ix)
-real(rp) :: x, min, delta
-integer :: ix
-ix = ceiling( (x-min)/delta )
-end function
-
-! Helper function to locate the center of a bin
-function bin_x(index, x_min, delta) result(x)
-real(rp) :: x, x_min, delta
-integer :: index
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function bin_index(x, bin1_x_min, bin_delta) result (ix_bin)
 !
-x = (index-0.5_rp)*delta + x_min
-end function
+! Helper function to locate the appropriate histogram bin index.
+!
+! Input:
+!   x           -- real(rp): Input value to bin.
+!   bin1_x_min  -- real(rp): Minimum value of bin with index 1.
+!   bin_delta   -- real(rp): Bin width.
+!
+! Output:
+!   ix_bin      -- integer: Index of bin x is in.
+!-
 
+function bin_index (x, bin1_x_min, bin_delta) result(ix_bin)
+
+real(rp) :: x, bin1_x_min, bin_delta
+integer :: ix_bin
+
+ix_bin = ceiling((x-bin1_x_min)  / bin_delta)
+
+end function bin_index
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+! Function bin_x_center (ix_bin, bin1_x_min, bin_delta) result(x_center)
+!
+! Helper function to locate the center of a histogram bin.
+!
+! Input:
+!   ix_bin      -- integer: Index of bin under question.
+!   bin1_x_min  -- real(rp): Minimum value of bin with index 1.
+!   bin_delta   -- real(rp): Bin width.
+!
+! Output:
+!   ix_bin      -- int
+
+function bin_x_center (ix_bin, bin1_x_min, bin_delta) result(x_center)
+
+real(rp) :: x_center, bin1_x_min, bin_delta
+integer :: ix_bin
+
+!
+
+x_center = (ix_bin-0.5_rp) * bin_delta + bin1_x_min
+
+end function bin_x_center
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
 ! Wrapper to return zero if out of bounds
+
 function count_at_index(bin_data, index ) result(c)
 type(bin_struct) bin_data
 real(rp) :: c
@@ -336,7 +378,11 @@ else
 endif
 end function
 
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
 ! Function to automatically select the number of bins
+
 function n_bins_automatic(n_data) result(n)
 implicit none
 integer :: n_data, n
@@ -345,11 +391,11 @@ n = ceiling((2.0_rp*n_data)**(1.0/3.0))
 ! Sturges' rule: n = ceiling(1.0_rp + log(1.0_rp*n_data)/0.693147_rp)
 end function
 
-
-
-! General helper functions
-
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
 ! Function for looking up an index in the 1D count array
+
 function general_bin_index(bin_data, ix1, ix2, ix3) result (index)
 implicit none
 type(general_bin_struct) :: bin_data
@@ -360,7 +406,11 @@ if (present(ix2)) index = index + bin_data%n(1)*(ix2-1)
 if (present(ix3)) index = index + bin_data%n(1)*bin_data%n(2)*(ix3-1)
 end function
 
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
 ! Function for getting the count at a general index. Count will be 0 if out of bounds
+
 function general_bin_count(bin_data, ix1, ix2, ix3) result (count)
 implicit none
 type(general_bin_struct) :: bin_data
@@ -380,7 +430,11 @@ else
 endif
 end function
 
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
 ! Function for checking bounds
+
 function general_bin_index_in_bounds(bin_data, ix1, ix2, ix3) result(in_bounds)
 implicit none
 type(general_bin_struct) :: bin_data
@@ -396,7 +450,5 @@ if (present(ix2)) then
 endif
 if (ix1 < 1 .or. ix1 > bin_data%n(1) ) in_bounds = .false.
 end function
-
-
 
 end module
