@@ -14,21 +14,29 @@ implicit none
 
 type (spline_struct) a_spline(6)
 type (coord_struct) orbit
-type (field_at_3D_box_struct) f_grid
-type (tricubic_coef_struct) t_coef
-
-complex(rp) cdata(32)
-complex(rp) amp(3)
-integer i, j, k, which, where, n_freq, mult, power, width, digits
-logical match, ok
-character(40) str, sub1, sub2, sub3
-character(2) code
+type (field_at_3D_box_struct) box3_field
+type (field_at_2D_box_struct) box2_field
+type (bicubic_coef_struct) bi_coef
+type (tricubic_coef_struct) tri_coef
 
 real(rp) array(4), dE, freq(3)
 real(rp) sig1, sig2, sig3, quat(0:3), omega(3), axis2(3), angle2
 real(rp) phi1, phi2, phi3, y1, dy1, y2, dy2, dx, dy, dz
 real(rp) vec3(3), vec3a(3), vec3b(3), vec3c(3), axis(3), angle, w_mat(3,3), unit_mat(3,3)
+real(rp) field2(10:12, 20:22), field3(10:12, 20:22, 30:32), ff, df_dx, df_dy, df_dz, ff0, ff1
+real(rp) del, dff_dx, dff_dy, dff_dz, x, y, z
+
+integer i, j, k, ie, which, where, n_freq, mult, power, width, digits
+
+complex(rp) cdata(32)
+complex(rp) amp(3)
 complex(rp) amp1, amp2, amp3
+
+logical match, ok, err
+
+character(40) str, sub1, sub2, sub3
+character(2) code
+character(16) :: extrap(0:3) = [character(16):: 'ZERO', 'LINEAR', 'CONSTANT', 'SYMMETRIC']
 
 !
 
@@ -36,19 +44,62 @@ open (1, file = 'output.now')
 
 ! Tricubic interpolation
 
-f_grid%pt(0,0,0) = field1_at_3D_pt_struct(1.2_rp, 1.4_rp, 1.6_rp, 1.8_rp, 2.2_rp, 3.2_rp, 4.2_rp, 5.2_rp)
-f_grid%pt(1,0,0) = field1_at_3D_pt_struct(2.3_rp, 2.5_rp, 2.7_rp, 2.9_rp, 3.3_rp, 4.3_rp, 5.3_rp, 6.3_rp)
-f_grid%pt(0,1,0) = field1_at_3D_pt_struct(3.4_rp, 3.6_rp, 3.8_rp, 4.4_rp, 5.4_rp, 6.4_rp, 7.4_rp, 8.4_rp)
-f_grid%pt(1,1,0) = field1_at_3D_pt_struct(4.5_rp, 5.5_rp, 6.5_rp, 7.5_rp, 8.5_rp, 9.5_rp, 0.5_rp, 1.5_rp)
-f_grid%pt(0,0,1) = field1_at_3D_pt_struct(5.6_rp, 6.6_rp, 7.6_rp, 8.6_rp, 9.6_rp, 0.6_rp, 1.6_rp, 2.6_rp)
-f_grid%pt(1,0,1) = field1_at_3D_pt_struct(6.7_rp, 7.7_rp, 8.7_rp, 9.7_rp, 0.7_rp, 1.7_rp, 2.7_rp, 3.7_rp)
-f_grid%pt(0,1,1) = field1_at_3D_pt_struct(7.8_rp, 8.8_rp, 9.8_rp, 0.8_rp, 1.8_rp, 2.8_rp, 3.8_rp, 4.8_rp)
-f_grid%pt(1,1,1) = field1_at_3D_pt_struct(8.9_rp, 9.9_rp, 0.9_rp, 1.9_rp, 2.9_rp, 3.9_rp, 4.9_rp, 5.9_rp)
+do i = 10, 12
+do j = 20, 22
+ field2(i,j) = i + j
+do k = 30, 32
+ field3(i,j,k) = i + j + k
+enddo
+enddo
+enddo
 
-call tricubic_interpolation_coefs(f_grid, t_coef)
+del = 0.0001
+x = 0.1
+y = 0.2
+z = 0.3
 
-write (1, '(a, f12.8)') '"Tricubic Interpolation1" REL 1E-10', tricubic_eval(0.4_rp, 0.5_rp, 0.6_rp, t_coef)
-write (1, '(a, f12.8)') '"Tricubic Interpolation2" REL 1E-10', tricubic_eval(0.5_rp, 0.1_rp, 0.7_rp, t_coef)
+do i = 10, 12
+do j = 20, 22
+  ie = modulo(i + j, 4)
+  call bicubic_compute_field_at_2D_box(field2, lbound(field2), i, j, extrap(ie), box2_field, err)
+  call bicubic_interpolation_coefs(box2_field, bi_coef)
+  ff = bicubic_eval(x, y, bi_coef, df_dx, df_dy)
+  ff0 = bicubic_eval(x-del, y, bi_coef)
+  ff1 = bicubic_eval(x+del, y, bi_coef)
+  dff_dx = (ff1 - ff0) / (2 * del)
+  ff0 = bicubic_eval(x, y-del, bi_coef)
+  ff1 = bicubic_eval(x, y+del, bi_coef)
+  dff_dy = (ff1 - ff0) / (2 * del)
+  write (1, '(a, 2i3, a, 5f15.8, 4x, l1)') '"BiCubic', i, j, '" ABS 1E-10', ff, df_dx, df_dy
+enddo
+enddo
+
+print *
+
+do i = 9, 11
+do j = 19, 21
+do k = 29, 31
+  ie = modulo(i + j, 4)
+  call tricubic_compute_field_at_3D_box(field3, lbound(field3), i, j, k, extrap(ie), box3_field, err)
+  call tricubic_interpolation_coefs(box3_field, tri_coef)
+  ff = tricubic_eval(x, y, z, tri_coef, df_dx, df_dy, df_dz)
+  ff0 = tricubic_eval(x-del, y, z, tri_coef)
+  ff1 = tricubic_eval(x+del, y, z, tri_coef)
+  dff_dx = (ff1 - ff0) / (2 * del)
+  ff0 = tricubic_eval(x, y-del, z, tri_coef)
+  ff1 = tricubic_eval(x, y+del, z, tri_coef)
+  dff_dy = (ff1 - ff0) / (2 * del)
+  ff0 = tricubic_eval(x, y, z-del, tri_coef)
+  ff1 = tricubic_eval(x, y, z+del, tri_coef)
+  dff_dz = (ff1 - ff0) / (2 * del)
+  write (1, '(a, 2i3, a, 7f13.6, 4x, l1)') '"TriCubic', i, j, '" ABS 1E-10', ff, df_dx, df_dy, df_dz
+enddo
+enddo
+enddo
+
+
+
+
 
 ! Akima spline test
 
