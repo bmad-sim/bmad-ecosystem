@@ -294,6 +294,17 @@ if (graph%type == 'floor_plan') then
 
   curve_here = .true.
 
+elseif (graph%type == 'histogram') then
+  curve_here = .false.
+  do i = 1, size(graph%curve)
+    curve => graph%curve(i)
+    if (.not. allocated(curve%x_line)) cycle
+    curve_here = .true.
+    this_min = min(this_min, curve%hist%minimum)
+    this_max = max(this_max, curve%hist%maximum)
+  enddo
+  if (.not. curve_here) return
+
 else if (graph%p%x_axis_type == 's') then
   if (allocated(graph%curve)) then
     do i = 1, size(graph%curve)
