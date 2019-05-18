@@ -85,13 +85,21 @@ end select
 if (allocated (graph%curve)) then
   do i = 1, size(graph%curve)
     curve => graph%curve(i)
+
     if (allocated(curve%x_symb)) then
-        curve%x_symb = curve%x_symb * curve%g%x_axis_scale_factor
+        curve%x_symb = curve%x_symb * graph%x_axis_scale_factor
         curve%y_symb = curve%y_symb * curve%y_axis_scale_factor
     endif
+
     if (allocated(curve%x_line)) then
-      curve%x_line = curve%x_line * curve%g%x_axis_scale_factor
+      curve%x_line = curve%x_line * graph%x_axis_scale_factor
       curve%y_line = curve%y_line * curve%y_axis_scale_factor
+    endif
+
+    if (graph%type == 'histogram') then
+      curve%hist%minimum = curve%hist%minimum * graph%x_axis_scale_factor
+      curve%hist%maximum = curve%hist%maximum * graph%x_axis_scale_factor
+      curve%hist%width   = curve%hist%width * graph%x_axis_scale_factor
     endif
   enddo
 endif
@@ -941,11 +949,10 @@ do k = 1, size(graph%curve)
 
   ! Bin the data
 
-   ! Automatically scale data
   curve%hist%minimum = minval(data)
   curve%hist%maximum = maxval(data)
 
-  ! Automatically select the number of bins
+  ! Select the number of bins if needed
   if (curve%hist%number == 0) then
     if (curve%hist%width == 0) then
       curve%hist%number = n_bins_automatic(size((data)))
@@ -960,17 +967,20 @@ do k = 1, size(graph%curve)
   endif
    
   ! Shift for the center bin
-  bin_shift = curve%hist%center - bin_x(bin_index(curve%hist%center, curve%hist%minimum, curve%hist%width), &
-                              curve%hist%minimum, curve%hist%width)
-  curve%hist%minimum =  curve%hist%minimum + bin_shift         
-  curve%hist%maximum =  curve%hist%maximum + bin_shift           
-                                
-  if (curve%hist%width == 0 ) curve%hist%width = (curve%hist%maximum - curve%hist%minimum)/(curve%hist%number - 1)
+  bin_shift = curve%hist%center - bin_x_center(bin_index(curve%hist%center, curve%hist%minimum, curve%hist%width), &
+                                                                                 curve%hist%minimum, curve%hist%width)
+  if (bin_shift > 0) then
+    curve%hist%maximum =  curve%hist%maximum + 2 * bin_shift
+  else
+    curve%hist%minimum =  curve%hist%minimum + 2 * bin_shift
+  endif
+                            
+  curve%hist%width = (curve%hist%maximum - curve%hist%minimum)/(curve%hist%number - 1)
                             
   if (curve%hist%weight_by_charge) then
-    bins = bin(data, weight = weight, min = curve%hist%minimum, max = curve%hist%maximum, n_bins = curve%hist%number)
+    bins = bin_data (data, weight = weight, min = curve%hist%minimum, max = curve%hist%maximum, n_bins = curve%hist%number)
   else
-    bins = bin(data, min = curve%hist%minimum, max = curve%hist%maximum, n_bins = curve%hist%number)
+    bins = bin_data (data, min = curve%hist%minimum, max = curve%hist%maximum, n_bins = curve%hist%number)
            
   endif
   ! Set width actually used
@@ -980,7 +990,7 @@ do k = 1, size(graph%curve)
   allocate(curve%x_line(bins%n))
   allocate(curve%y_line(bins%n))
   do i=1, bins%n
-    curve%x_line(i) = bin_x(i, bins%min, bins%delta)
+    curve%x_line(i) = bin_x_center(i, bins%min, bins%delta)
     curve%y_line(i) = bins%count(i)
   enddo
   if (curve%hist%density_normalized) curve%y_line = curve%y_line/bins%delta
