@@ -35,8 +35,6 @@ namelist / bbu_params / bbu_param, beam_init, bmad_com
 ! Defaults for namelist
 beam_init%n_particle = 1
 
-
-
 select case (cesr_iargc())
 case (0)
   init_file = 'bbu.init'
@@ -64,12 +62,8 @@ endif
 
 ! Init and parse
 print *, 'Lattice file: ', trim(bbu_param%lat_filename)
-call bmad_parser (bbu_param%lat_filename, lat_in) !! lat_in is the parsed lattice
+call bmad_parser (bbu_param%lat_filename, lat_in) 
 
-
-!call run_timer ('START')
-
-!print *, 'lat2 file name is:', bbu_param%lat2_filename
 !For DR-scan, parse additional lattice (lat2) 
 if (bbu_param%lat2_filename /= '') then
   print *, 'DR-scan or Phase-scan, parsing: ',bbu_param%lat2_filename
@@ -118,22 +112,10 @@ if (bbu_param%hybridize) then
       cycle
     endif
 
-    !! Specify the element (names) to be kept from hybridization
-    !! Avoid choosing the patch elements 
-
-    !if(ele%name=='taylorW') then
-    !  ele%select = .true.
-    !  cycle
-    !endif    
-    
-    if(ele%key==8) then !! Taylor
+    if(ele%key == taylor$) then
       ele%select = .true.
       cycle
     endif    
-    
-    ! Any non-cavity elements are hybridized (unless user gives exemption above) 
-    ! If user chooses not to keep all cavities,
-    ! check and keep cavities with lr_wake
     
     if (ele%key /= lcavity$) cycle
     if (.not. bbu_param%keep_all_lcavities) then
@@ -151,49 +133,9 @@ if (bbu_param%hybridize) then
     print *, 'Wrote hybrid lattice: hybrid.digested'
   endif
 
-! If not hybridizing, keep the original lattice
-else
+else ! If not hybridizing, keep the original lattice
   lat = lat_in
 endif
-
-!!!!!!!!!!!!!!!!!!!!!  END OF HYBRIDIZATION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-!=========================================================================================
-!!!!!!!!   Helpful functions to investigate the (hybridized) lattice !!!!!!!!!!!!!!!
-!!!!!!!!   Only use these for debugging purpose, since they can slow down or even stop the program !!!!!!!!!! 
-
-!!! Print the element names of the hybridized lattice 
-!if (bbu_param%hybridize) then
-!  do i = 1, lat%n_ele_track
-!     print *, lat%ele(i)%name
-!  enddo
-!!!endif
-
-!!! Output the lattice file for the  hybridize lattice
-!call write_bmad_lattice_file('/home/wl528/nfs/lib_SL7/bsim/bbu/cbeta_test/Apr09_2018_1p_125um_1tb/test1/bbu_test/h0.dat', lat)
-
-!!! Output properties of hybridized elements, or the mat6s between all elements
-!!! of the hybridized lattice
-!! This line will stop the program during its 2nd run
-!open(newunit = file_unit, file = '/home/wl528/nfs/linux_lib/bsim/bbu/mat6.dat', status = "new", action= "write")
-!! This line will NOT stop the program. the file will be overwritten every BBU run
-!open(newunit = file_unit, file = '/home/wl528/nfs/linux_lib/bsim/bbu/mat6.dat')
-! do k = 1, lat%n_ele_track
-!   if (lat%ele(k)%key == 16) then     !!key=16 means the element is a hybrid 
-!     write(file_unit,"(A20)") "haha"
-!     write(file_unit, '(es18.8E2)') lat%ele(k)%value(L$)
-!     write(file_unit, '(es18.8E2)') lat%ele(k)%value(E_TOT_START$)
-!     write(file_unit, '(es18.8E2)') lat%ele(k)%value(DELTA_E$)
-!     write(file_unit, '(es18.8E2)') lat%ele(k)%value(delta_ref_time$)
-!
-!   endif
-!   !do i =1,6
-!   !  write(file_unit,'(6F14.7,1es18.8)')(lat%ele(k)%mat6(i,j),j=1,6), lat%ele(k)%vec0(i)
-   !enddo
- !enddo  
-!close (file_unit)
-
-!================================================================================================
 
 ! Keep the lattice ready to use?
 lat0 = lat 
@@ -201,8 +143,6 @@ lat0 = lat
 ! Define element at which tracking ends, if user didn't specify one
 if (bbu_param%ele_track_end.ne.' ') then
   call lat_ele_locator(bbu_param%ele_track_end,lat, eles, n_loc, err)
-  ! eles: (output) Ele_pointer_struct, allocatable: Array of matching elements
-  ! n_loc: (output) Number of locations found
   if(err) call err_exit
   if(n_loc.eq.0)then
     print '(2a)', 'No matching element found for ',bbu_param%ele_track_end  
@@ -221,33 +161,15 @@ if (bbu_param%ele_track_end.ne.' ') then
   bbu_param%ix_ele_track_end = ix
 endif
 
-!! Record cavity names in hom_info.txt
-!! hom_info.txt can be useful if the user intends to assign HOM files randomly
-!! to the cavities
+!! Record cavity info in hom_info.txt
 if (bbu_param%write_hom_info) then
   call rf_cav_names(lat)
 endif
 
 call check_rf_freq(lat, bbu_param%bunch_freq)
 
-!print *, 'bbu_setup running...'
 call bbu_setup (lat, beam_init%dt_bunch, bbu_param, bbu_beam)
 print *, 'bbu_setup complete !!!'
-
-!! This computes n_ele, which is not used at all?
-!n_ele = 0
-!do i = 1, size(bbu_beam%stage)
-!  j = bbu_beam%stage(i)%ix_ele_lr_wake ! j = index of THE lr_wake in stage i
-!  call multipass_chain (lat%ele(j), ix_pass, n_links = n)
-!  ! ix_pass  -- Integer: Multipass pass number of the input element ( can be an lr wake ). 
-!  !                        -1 if input element is not in a multipass section.
-!  ! n_links  -- Integer: Number of times the physical element is  passed through.
-!  !print *, ix_pass, n
-!  
-!  if (ix_pass /= 1 .and. n /= 0) cycle
-!  n_ele = n_ele + 1
-!enddo
-!  print *, n_ele
 
 beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
 
@@ -255,30 +177,20 @@ print '(a, 2i10)', 'Number of stages and elements in the tracking lattice: ' , s
 
 lat = lat0 ! Restore lr wakes
 
-!print *, 'bbu_track_all running...'
 call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_gain, growth_rate, lost, irep)
 print *, 'bbu_track_all complete !!!'
  
-!! these are not accurate
-!! These only tell the greatest hom voltage at the end period of tracking
-!print *, 'Target cavity number with max volt:', bbu_beam%ix_stage_voltage_max                             ! Target cavity (stage)
-!print *, 'Target hom wake number with max volt:', bbu_beam%stage(bbu_beam%ix_stage_voltage_max)%ix_hom_max  ! Target hom wake
-!print *,  bbu_beam%hom_voltage_max  
-
-!print *, 'LostBool:', lost                                            
 print *, 'HOM VOLT GAIN: ', hom_voltage_gain
 print *, 'growth_rate: ', growth_rate
+
 ! Output the BBU results, store them in "for_py.txt" to be analyzed by Python
 o = lunget() 
 open(o, file = 'for_py.txt', status = 'unknown')
 write(o,'(2a)') 'lostbool = ', logical_to_python(lost)  
 write(o,'(a, es18.8E3)') 'v_gain = ', hom_voltage_gain
-!!write(o,'(a,es14.6)') 'rel_tol = ', bbu_param%rel_tol 
 write(o,'(a,es14.6)') 'bunch_dt = ', beam_init%dt_bunch
 write(o,'(2a)') 'growth_rate_set = ', logical_to_python( .NOT.(growth_rate == real_garbage$))
 write(o,'(a, es14.6)') 'growth_rate = ', growth_rate
 close(o)
  
-!call run_timer ('STOP', time)
-
 end program
