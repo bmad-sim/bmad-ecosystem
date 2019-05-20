@@ -31,7 +31,7 @@ type (lat_param_struct) param
 type (coord_struct), pointer :: orb, orb_out
 integer key2
 
-real(rp), pointer :: mat6(:,:)
+real(rp) :: mat6(6,6)
 real(rp) v_mat(4,4), v_inv_mat(4,4), det, mat2_a(2,2), mat2_b(2,2)
 real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
 real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
@@ -88,7 +88,19 @@ endif
 !---------------------------------------------------------------------
 ! det_factor is a renormalization factor to handle non-symplectic errors.
 
-mat6 => ele2%mat6
+orb  => ele2%map_ref_orb_in
+orb_out => ele2%map_ref_orb_out
+rel_p1 = 1 + orb%vec(6)               ! reference energy 
+rel_p2 = 1 + orb_out%vec(6)
+
+mat6 = ele2%mat6
+if (bmad_com%twiss_normalize_off_energy) then
+  mat6(1:5:2, 2:6:2) = mat6(1:5:2, 2:6:2) * rel_p1
+  mat6(2:6:2, 1:5:2) = mat6(2:6:2, 1:5:2) / rel_p1
+  rel_p2 = rel_p2 / rel_p1
+  rel_p1 = 1
+endif
+
 det_factor = sqrt(determinant (mat6(1:4,1:4)))
 if (det_factor == 0) return  ! Can happen if matrix was never computed.
 
@@ -96,9 +108,9 @@ if (det_factor == 0) return  ! Can happen if matrix was never computed.
 ! if transfer matrix is not coupled...
 ! propagate c_mat coupling matrix and setup temporary element for propagation
 
-if (all(ele2%mat6(1:2,3:4) == 0)) then
-  mat2_a = ele2%mat6(1:2,1:2)
-  mat2_b = ele2%mat6(3:4,3:4) 
+if (all(mat6(1:2,3:4) == 0)) then
+  mat2_a = mat6(1:2,1:2)
+  mat2_b = mat6(3:4,3:4) 
 
   ele2%c_mat = matmul(matmul(mat2_a, ele1%c_mat), mat_symp_conj(mat2_b)) / det_factor ! conj == inverse
   ele2%gamma_c = ele1%gamma_c
@@ -181,11 +193,6 @@ endif
 ! p_z2 is p_z at end of ele2 assuming p_z = 1 at end of ele1.
 ! This is just 1.0 (except for RF cavities).
 
-orb  => ele2%map_ref_orb_in
-orb_out => ele2%map_ref_orb_out
-rel_p1 = 1 + orb%vec(6)               ! reference energy 
-rel_p2 = 1 + orb_out%vec(6)
-
 eta1_vec = [ele1%x%eta, ele1%x%etap * rel_p1, ele1%y%eta, ele1%y%etap * rel_p1, ele1%z%eta, 1.0_rp]
 
 ! For a circular ring, defining the dependence of z on pz is problematical.
@@ -201,7 +208,7 @@ if (key2 == rfcavity$) eta1_vec(5) = 0
 dpz2_dpz1 = dot_product(mat6(6,:), eta1_vec) 
 
 if (rel_p1 == 0) then
-  eta_vec(1:5) = matmul (ele2%mat6(1:5,:), eta1_vec) / dpz2_dpz1
+  eta_vec(1:5) = matmul (mat6(1:5,:), eta1_vec) / dpz2_dpz1
 else
   dpz2_dpz1 = dpz2_dpz1 + (mat6(6,2) * orb%vec(2) + mat6(6,4) * orb%vec(4)) / rel_p1
   deriv_rel = dpz2_dpz1 * rel_p1
@@ -210,7 +217,7 @@ else
   eta_vec(3) = (mat6(3,2) * orb%vec(2) + mat6(3,4) * orb%vec(4)) / deriv_rel
   eta_vec(4) = (mat6(4,2) * orb%vec(2) + mat6(4,4) * orb%vec(4)) / deriv_rel - orb_out%vec(4) / rel_p2
   eta_vec(5) = (mat6(5,2) * orb%vec(2) + mat6(5,4) * orb%vec(4)) / deriv_rel
-  eta_vec(1:5) = eta_vec(1:5) + matmul (ele2%mat6(1:5,:), eta1_vec) / dpz2_dpz1
+  eta_vec(1:5) = eta_vec(1:5) + matmul (mat6(1:5,:), eta1_vec) / dpz2_dpz1
 endif
 
 eta_vec(2) = eta_vec(2) / rel_p2
