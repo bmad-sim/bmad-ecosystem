@@ -731,7 +731,8 @@ ele%value = ele%old_value
 ele%is_on = saved_is_on
 ele%tracking_method = ele%iyy
 
-if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
+if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$  .or. &
+                                                                 ele%slave_status == multipass_slave$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (lord%lord_status == girder_lord$ .or. lord%lord_status == overlay_lord$ .or. lord%lord_status == group_lord$) cycle

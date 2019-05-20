@@ -95,8 +95,8 @@ rel_p2 = 1 + orb_out%vec(6)
 
 mat6 = ele2%mat6
 if (bmad_com%twiss_normalize_off_energy) then
-  mat6(1:5:2, 2:6:2) = mat6(1:5:2, 2:6:2) * rel_p1
-  mat6(2:6:2, 1:5:2) = mat6(2:6:2, 1:5:2) / rel_p1
+  mat6(:, 2:6:2) = mat6(:, 2:6:2) * rel_p1
+  mat6(2:6:2, :) = mat6(2:6:2, :) / rel_p2
   rel_p2 = rel_p2 / rel_p1
   rel_p1 = 1
 endif
