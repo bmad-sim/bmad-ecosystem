@@ -34,7 +34,7 @@ type (ele_struct) :: ele
 
 real(rp) :: mat6(:,:), orb0(:)
 real(rp) :: growth_rate
-real(rp) mat4(4,4), eta_vec(4), vec(4), rel_p
+real(rp) m6(6,6), mat4(4,4), eta_vec(4), vec(4), rel_p
 real(rp) u(4,4), v(4,4), ubar(4,4), vbar(4,4), g(4,4)
 real(rp) rate1, rate2, symp_err
 real(rp) :: symp_tol = 3.0d-3
@@ -48,7 +48,16 @@ character(20) :: r_name = 'twiss_from_mat6'
 
 ! init
 
-mat4 = mat6(1:4, 1:4)
+rel_p = 1 + orb0(6)
+m6 = mat6
+
+if (bmad_com%twiss_normalize_off_energy) then
+  m6(1:5:2, 2:6:2) = m6(1:5:2, 2:6:2) * rel_p
+  m6(2:6:2, 1:5:2) = m6(2:6:2, 1:5:2) / rel_p
+  rel_p = 1
+endif
+
+mat4 = m6(1:4, 1:4)
 
 if (maxval(abs(mat4)) > 1d10) then
   if (type_out) call out_io (s_error$, r_name, 'BAD 1-TURN MATRIX: UNSTABLE.', &
@@ -107,12 +116,10 @@ mat4 = -mat4
 forall (i = 1:4) mat4(i,i) = mat4(i,i) + 1
 call mat_inverse (mat4, mat4)
 
-rel_p = 1 + orb0(6)
-
-vec(1) = mat6(1,6) + (mat6(1,2) * orb0(2) + mat6(1,4) * orb0(4)) / rel_p
-vec(2) = mat6(2,6) + (mat6(2,2) * orb0(2) + mat6(2,4) * orb0(4) - orb0(2)) / rel_p
-vec(3) = mat6(3,6) + (mat6(3,2) * orb0(2) + mat6(3,4) * orb0(4)) / rel_p
-vec(4) = mat6(4,6) + (mat6(4,2) * orb0(2) + mat6(4,4) * orb0(4) - orb0(4)) / rel_p
+vec(1) = m6(1,6) + (m6(1,2) * orb0(2) + m6(1,4) * orb0(4)) / rel_p
+vec(2) = m6(2,6) + (m6(2,2) * orb0(2) + m6(2,4) * orb0(4) - orb0(2)) / rel_p
+vec(3) = m6(3,6) + (m6(3,2) * orb0(2) + m6(3,4) * orb0(4)) / rel_p
+vec(4) = m6(4,6) + (m6(4,2) * orb0(2) + m6(4,4) * orb0(4) - orb0(4)) / rel_p
 eta_vec = matmul(mat4, vec)
 
 eta_vec(2) = eta_vec(2) / rel_p

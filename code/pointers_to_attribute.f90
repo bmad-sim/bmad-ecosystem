@@ -142,6 +142,7 @@ case ('BMAD_COM')
   case ('RADIATION_FLUCTUATIONS_ON');       ptr_array(1)%l => bmad_com%radiation_fluctuations_on
   case ('CONSERVE_TAYLOR_MAPS');            ptr_array(1)%l => bmad_com%conserve_taylor_maps
   case ('ABSOLUTE_TIME_TRACKING_DEFAULT');  ptr_array(1)%l => bmad_com%absolute_time_tracking_default
+  case ('TWISS_NORMALIZE_OFF_ENERGY');      ptr_array(1)%l => bmad_com%twiss_normalize_off_energy
   case ('CONVERT_TO_KINETIC_MOMENTUM');     ptr_array(1)%l => bmad_com%convert_to_kinetic_momentum
   case ('APERTURE_LIMIT_ON');               ptr_array(1)%l => bmad_com%aperture_limit_on
   case ('PTC_PRINT_INFO_MESSAGES');         ptr_array(1)%l => bmad_com%ptc_print_info_messages

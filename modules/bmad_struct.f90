@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 232
+integer, parameter :: bmad_inc_version$ = 233
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1789,6 +1789,7 @@ type extra_parsing_info_struct
   logical :: radiation_fluctuations_on_set          = .false.
   logical :: conserve_taylor_maps_set               = .false.
   logical :: absolute_time_tracking_default_set     = .false.
+  logical :: twiss_normalize_off_energy_set         = .false.
   logical :: convert_to_kinetic_momentum_set        = .false.
   logical :: aperture_limit_on_set                  = .false.
   logical :: sad_eps_scale_set                      = .false.
@@ -1854,6 +1855,7 @@ type bmad_common_struct
   logical :: radiation_fluctuations_on = .false.       ! Fluctuations toggle.
   logical :: conserve_taylor_maps = .true.             ! Enable bookkeeper to set ele%taylor_map_includes_offsets = F?
   logical :: absolute_time_tracking_default = .false.  ! Default for lat%absolute_time_tracking
+  logical :: twiss_normalize_off_energy = .false.
   logical :: convert_to_kinetic_momentum = .false.     ! Cancel kicks due to finite vector potential when doing symplectic tracking?
                                                        !   Set to True to test symp_lie_bmad against runge_kutta.
   logical :: aperture_limit_on = .true.                ! use apertures in tracking?
