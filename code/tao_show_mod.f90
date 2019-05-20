@@ -4075,11 +4075,11 @@ case ('universe')
   endif
 
   nl=nl+1; lines(nl) = ''
-  nl=nl+1; write(lines(nl), '(23x, a)') '       X          |            Y'
-  nl=nl+1; write(lines(nl), '(23x, a)') 'Model     Design  |     Model     Design'
-  fmt  = '(1x, a16, 2es11.3, 2x, 2es11.3, 2x, a)'
-  fmt2 = '(1x, a16, 2f11.4, 2x, 2f11.4, 2x, a)'
-  fmt3 = '(1x, a16,        24x, 2es11.3, 2x, a)'
+  nl=nl+1; write(lines(nl), '(23x, a)') '         X            |              Y'
+  nl=nl+1; write(lines(nl), '(23x, a)') '  Model       Design  |       Model       Design'
+  fmt  = '(1x, a16, 2es13.5, 2x, 2es13.5, 2x, a)'
+  fmt2 = '(1x, a16, 2f13.6, 2x, 2f13.6, 2x, a)'
+  fmt3 = '(1x, a16,        28x, 2es13.5, 2x, a)'
   phase_units = 1 / twopi
   l_lat = branch%param%total_length
   gamma2 = (branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle))**2
@@ -4109,9 +4109,9 @@ case ('universe')
   endif
 
   nl=nl+1; lines(nl) = ''
-  nl=nl+1; write(lines(nl), '(23x, a)') 'Model     Design'
-  fmt  = '(1x, a16, 2es11.3, 3x, a)'
-  fmt2 = '(1x, a16, 2f11.5, 3x, a)'
+  nl=nl+1; write(lines(nl), '(23x, a)') '  Model       Design'
+  fmt  = '(1x, a16, 2es13.5, 3x, a)'
+  fmt2 = '(1x, a16, 2f13.7, 3x, a)'
 
   if (branch%param%geometry == closed$) then
     call calc_z_tune(lat, ix_branch)
@@ -4121,14 +4121,14 @@ case ('universe')
       if (.not. branch%z%stable) then
         str1 = '  Unstable'
       else
-        write (str1, '(f11.5)') -branch%z%tune/twopi
+        write (str1, '(f13.7)') -branch%z%tune/twopi
       endif
       if (.not. design_lat%z%stable) then
         str2 = '  Unstable'
       else
-        write (str2, '(f11.5)') -design_lat%z%tune/twopi
+        write (str2, '(f13.7)') -design_lat%z%tune/twopi
       endif
-      nl=nl+1; write(lines(nl), '(1x, a16, 2a11, 3x, a)') 'Z_tune:', str1, str2, '! The design value is calculated with RF on'
+      nl=nl+1; write(lines(nl), '(1x, a16, 2a13, 3x, a)') 'Z_tune:', str1, str2, '! The design value is calculated with RF on'
     endif
 
   else
@@ -4159,8 +4159,8 @@ case ('universe')
   if (branch%param%geometry == closed$) then
     pz1 = 0;  pz2 = 0
     do i = 1, branch%n_ele_track
-      pz1 = pz1 + branch%ele(i)%value(l$) * (design_tao_branch%orbit(i-1)%vec(6) + design_tao_branch%orbit(i)%vec(6)) / branch%param%total_length
-      pz2 = pz2 + branch%ele(i)%value(l$) * (tao_branch%orbit(i-1)%vec(6) + tao_branch%orbit(i)%vec(6)) / branch%param%total_length
+      pz1 = pz1 + branch%ele(i)%value(l$) * (tao_branch%orbit(i-1)%vec(6) + tao_branch%orbit(i)%vec(6)) / (2 * branch%param%total_length)
+      pz2 = pz2 + branch%ele(i)%value(l$) * (design_tao_branch%orbit(i-1)%vec(6) + design_tao_branch%orbit(i)%vec(6)) / (2 * branch%param%total_length)
     enddo
     nl=nl+1; write(lines(nl), fmt) '<pz>:', pz1, pz2, '! Average closed orbit pz (momentum deviation)'
   endif
