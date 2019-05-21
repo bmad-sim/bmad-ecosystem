@@ -45,12 +45,12 @@ real(rp) psv(1:6), psv_norm(1:6)
 
 complex(rp) eigen_val(6), eigen_vec(6,6)
 
-character*40 lattice, out_file_prefix
-character*180 lat_file, out_file
-character*80 line, last_line, file_name, prefix_name
-character*1 answer
-character*60 in_file
-character*2 grid_type ! 'xy' or 'rt' for rectangular or polar
+character(40) lattice, out_file_prefix
+character(180) lat_file, out_file
+character(80) line, last_line, file_name, prefix_name
+character(1) answer
+character(60) in_file
+character(2) grid_type ! 'xy' or 'rt' for rectangular or polar
 
 logical keep_trying/.true./, error
 logical write_orbit/.false./
@@ -174,9 +174,9 @@ enddo
 CALL mat_inverse(T,Tinv)
 
 !Write grid to file
-open(800,file='grid.dat')
+open(800, file='grid.dat')
 n = 0
-do i_z = 0,n_z-1
+do i_z = 0, n_z-1
   start_coord%vec(1:6) = 0.0
   start_coord%vec(6) = e0 + de * i_z
   do i_b = 0, n_b-1
@@ -220,8 +220,15 @@ do i = 1, Npts
   do j=1,n_turn
     call track_all(ring, co, 0, track_state)
     co(0)%vec = co(ring%n_ele_track)%vec
-    if((track_state /= moving_forward$) .or. (abs(co(0)%vec(5)) > 0.25*(c_light/rf_frequency))) then ! add check for whether particle z is increasing past RF bucket
-      WRITE(*,*) "Particle lost in turn ", j
+    ! for whether particle z is past RF bucket
+    if (track_state /= moving_forward$) then
+      n = track_state
+      print '(a, i8, 2a)', "Particle lost in turn ", j, ',  At element: ', trim(ring%ele(n)%name)
+      print '(a, 6f12.6)', 'Orbit at entrance to element particle lost at: ', co(n-1)%vec
+      exit
+    elseif (abs(co(0)%vec(5)) > 0.25*(c_light/rf_frequency)) then 
+      print '(a, i8)', "Particle outside of RF bucket in turn ", j
+      print '(a, f12.6, a, f12.6)', 'z_position: ', co(0)%vec(5), ',  RF wavelength: ', c_light/rf_frequency
       exit
     else
       psv = co(0)%vec - orb(0)%vec
