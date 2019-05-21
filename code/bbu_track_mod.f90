@@ -5,6 +5,7 @@ use beam_mod
 
 type bbu_stage_struct
   integer :: ix_ele_lr_wake   ! Element index of element with the wake 
+  integer :: ix_ele_stage_end ! Element at end of stage.
   integer :: ix_pass          ! Pass index when in multipass section
   integer :: ix_stage_pass1   ! Index of corresponding stage on first pass
   integer :: ix_head_bunch
@@ -23,7 +24,6 @@ type bbu_beam_struct
   integer ix_bunch_end        ! Index of the end bunch(:). -1 -> no bunches.
   integer n_bunch_in_lat      ! Number of bunches transversing the lattice.
   integer ix_stage_voltage_max
-  integer ix_last_stage_tracked
   real(rp) hom_voltage_max
   real(rp) time_now
   real(rp) one_turn_time
@@ -90,10 +90,10 @@ type (lat_struct), target :: lat
 type (bbu_beam_struct) bbu_beam
 type (beam_init_struct) beam_init
 type (bbu_param_struct) bbu_param
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: wake_ele
 type (ele_pointer_struct), allocatable, save :: chain_ele(:)
 
-integer i, j, k, ih, ix_pass, n_links, n_stage, ix_track_end
+integer i, j, k, ih, ixs, ix_pass, n_links, n_stage, ix_track_end
 
 real(rp) dt_bunch, rr(4)
 
@@ -105,14 +105,18 @@ if (dt_bunch == 0) then
   call err_exit
 endif
 
-
 ! Find all elements that have a lr wake.
-! This determines the number of stages
+! This determines the number of stages.
+
 n_stage = 0
 do i = 1, lat%n_ele_track
-  ele => lat%ele(i)
-  if (.not. associated(ele%wake)) cycle
-  if (size(ele%wake%lr_mode) == 0) cycle
+  wake_ele => lat%ele(i)
+  if (wake_ele%slave_status == super_slave$) then
+    wake_ele => pointer_to_lord(wake_ele, 1, ix_slave_back = ixs)
+    if (ixs /= wake_ele%n_slave) cycle  ! Only use the last slave of a super_lord
+  endif
+  if (.not. associated(wake_ele%wake)) cycle
+  if (size(wake_ele%wake%lr_mode) == 0) cycle
   n_stage = n_stage + 1
 enddo
 
@@ -132,6 +136,9 @@ allocate (bbu_beam%stage(n_stage))
 ! All stages, except the last one, end at an lcavity.
 
 ! bbu_beam%stage(i)%ix_ele_lr_wake holds the index in lat%ele(:) of the lcavity of the i^th stage.
+! bbu_beam%stage(i)%ix_ele_stage_end holds the index in lat%ele(:) of the last element of the i^th stage.
+! Normally these two are the same except when the lcavity is a super_lord. In this case %ix_ele_end_stage
+! will be the last super_slave.
 
 ! bbu_beam%stage(i)%ix_head_bunch holds the index in bbu_beam%bunch(:) of the head 
 ! bunch for the i^th stage.
@@ -142,18 +149,23 @@ bbu_beam%stage(1)%ix_head_bunch = 1
 
 j = 0   !The "stage" index
 do i = 1, lat%n_ele_track
-  ele => lat%ele(i)
-  if (.not. associated(ele%wake)) cycle
-  if (size(ele%wake%lr_mode) == 0) cycle
+  wake_ele => lat%ele(i)
+  if (wake_ele%slave_status == super_slave$) then
+    wake_ele => pointer_to_lord(wake_ele, 1, ix_slave_back = ixs)
+    if (ixs /= wake_ele%n_slave) cycle  ! Only consider the last slave of a super_lord
+  endif
+  if (.not. associated(wake_ele%wake)) cycle
+  if (size(wake_ele%wake%lr_mode) == 0) cycle
   j = j + 1
   
   !stage j holds the index of the "wake element", i
-  bbu_beam%stage(j)%ix_ele_lr_wake = i
+  bbu_beam%stage(j)%ix_ele_stage_end = i
+  bbu_beam%stage(j)%ix_ele_lr_wake = wake_ele%ix_ele
 
   ! Returns the chain of multipass elements that represent the SAME physical element 
   ! ix_pass: multipass number of the element, -1 if not a multipass element
   ! n_links: number of pass through the element
-  call multipass_chain (ele, ix_pass, n_links, chain_ele)
+  call multipass_chain (wake_ele, ix_pass, n_links, chain_ele)
   bbu_beam%stage(j)%ix_pass = ix_pass
 
   ! This fills out bbu_beam%stage(j)%ix_stage_pass1, the indes of the
@@ -178,8 +190,8 @@ do i = 1, lat%n_ele_track
 enddo
 
 ! Bunch init
-if (bbu_param%ix_ele_track_end == -1) bbu_param%ix_ele_track_end = bbu_beam%stage(n_stage)%ix_ele_lr_wake
-ix_track_end = bbu_param%ix_ele_track_end 
+if (bbu_param%ix_ele_track_end > 0) bbu_beam%stage(n_stage)%ix_ele_stage_end = bbu_param%ix_ele_track_end 
+ix_track_end = bbu_beam%stage(n_stage)%ix_ele_stage_end
 
 bbu_beam%n_bunch_in_lat = (lat%ele(ix_track_end)%ref_time / dt_bunch) + 1
 bbu_beam%one_turn_time = lat%ele(ix_track_end)%ref_time
@@ -188,8 +200,6 @@ if (allocated(bbu_beam%bunch)) deallocate (bbu_beam%bunch)
 allocate(bbu_beam%bunch(bbu_beam%n_bunch_in_lat+10))
 bbu_beam%ix_bunch_head = 1
 bbu_beam%ix_bunch_end = -1  ! Indicates: No bunches
-
-
 
 call re_allocate (bbu_beam%ix_ele_bunch, bbu_beam%n_bunch_in_lat+10)
 
@@ -204,7 +214,7 @@ subroutine bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_norma
 implicit none
 
 type (lat_struct) lat
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: end_ele
 type (bbu_beam_struct) bbu_beam
 type (bbu_param_struct) bbu_param
 type (beam_init_struct) beam_init
@@ -214,10 +224,11 @@ real(rp) hom_voltage0, hom_voltage_sum, r_period, r_period0, voltage
 real(rp) hom_voltage_normalized, growth_rate, orb(6)
 real(rp) max_x,rms_x,max_y,rms_y
 
-integer i, n, n_period, n_count, n_period_old, ix_ele,irep
+integer i, n, n_period, n_count, n_period_old, irep
 integer, save :: m = 0
 integer n_settling_period
-integer final_count 
+integer final_count, ix_stage_tracked
+
 real(rp) hom_voltage_normalized_final_sum, hom_voltage_normalized_final_avg
 
 
@@ -249,8 +260,8 @@ r_period = 0
 !open(29, file = '/home/wl528/nfs/linux_lib/bsim/bbu/examples/volt_v_turn.txt', status = 'unknown', access = 'append')
 
 bbu_beam%stage%time_at_wake_ele = 1e30  ! something large
-ix_ele = bbu_beam%stage(1)%ix_ele_lr_wake
-bbu_beam%stage(1)%time_at_wake_ele = bbu_beam%bunch(1)%t_center + lat%ele(ix_ele)%ref_time
+end_ele => lat%ele(bbu_beam%stage(1)%ix_ele_stage_end)
+bbu_beam%stage(1)%time_at_wake_ele = bbu_beam%bunch(1)%t_center + end_ele%ref_time
 
 ! Track...
 ! To decide whether things are stable or unstable we look at the HOM voltage integrated
@@ -270,14 +281,14 @@ print *, 'bbu_track_all loop begins, TEST CURRENT: ', bbu_param%current
 
 do
   ! Track the beam until beam loss or gain too small or large 
-  call bbu_track_a_stage (lat, bbu_beam, bbu_param, lost)
+  call bbu_track_a_stage (lat, bbu_beam, bbu_param, lost, ix_stage_tracked)
   if (lost) then
     print *, 'Beam is lost after tracking a stage. (HOM voltage computed might be garbage)'
     exit
   endif
 
   ! If the head bunch is finished then remove it and seed a new one.
-  if (bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_ele == bbu_param%ix_ele_track_end) then
+  if (ix_stage_tracked == size(bbu_beam%stage)) then
     call bbu_remove_head_bunch (bbu_beam)
     call bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
   endif
@@ -397,7 +408,7 @@ do
   ! Specifically, update bbu_beam%voltage_max after every track_a_stage
   ! and sum them over for each n_period
   ! The sum is reset when n_period ticks up by 1
-  call bbu_hom_voltage_calc (lat, bbu_beam, n_period)
+  call bbu_hom_voltage_calc (lat, bbu_beam, n_period, ix_stage_tracked)
   hom_voltage_sum = hom_voltage_sum + bbu_beam%hom_voltage_max
   n_count = n_count + 1 ! Number of track_a_stage in one period 
   !print *, 'period:', n_period   !For debug
@@ -425,7 +436,8 @@ end subroutine bbu_track_all
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 ! This routine tracks one bunch through one stage.
-subroutine bbu_track_a_stage (lat, bbu_beam, bbu_param, lost)
+
+subroutine bbu_track_a_stage (lat, bbu_beam, bbu_param, lost, ix_stage_tracked)
 
 implicit none
 
@@ -434,39 +446,36 @@ type (bbu_beam_struct), target :: bbu_beam
 type (bbu_param_struct) bbu_param
 type (wake_lr_mode_struct), pointer :: lr
 type (bbu_stage_struct), pointer :: this_stage
+type (ele_struct), pointer :: end_ele
 
 real(rp) min_time_at_wake_ele, time_at_wake_ele
 
-integer i, i_stage_min, ix_bunch, ix_ele, ie, ip
-integer ix_ele_start, ix_ele_end, j, ib, ib2
+integer i, ix_stage_tracked, ix_bunch, ix_ele, ie, ip
+integer ix_ele_start, j, ib, ib2
 
-character(20) :: r_name = 'bbu_track_a_stage'
+character(*), parameter :: r_name = 'bbu_track_a_stage'
 
 logical err, lost
 
 ! Look at each stage, track the bunch with the earliest time to finish, and track this stage.
-i_stage_min = minloc(bbu_beam%stage%time_at_wake_ele, 1)
-this_stage => bbu_beam%stage(i_stage_min)
-bbu_beam%time_now = this_stage%time_at_wake_ele
 
-! With the last stage, track to the end of the lattice
-ix_ele_end = this_stage%ix_ele_lr_wake
-if (i_stage_min == size(bbu_beam%stage)) ix_ele_end = bbu_param%ix_ele_track_end
-ie = bbu_param%ix_ele_track_end
-if (ie > 0 .and. ix_ele_end > ie) ix_ele_end = ie
+ix_stage_tracked = minloc(bbu_beam%stage%time_at_wake_ele, 1)
+this_stage => bbu_beam%stage(ix_stage_tracked)
+bbu_beam%time_now = this_stage%time_at_wake_ele
+end_ele => lat%ele(this_stage%ix_ele_stage_end)
 
 ib = this_stage%ix_head_bunch
 ix_ele_start = bbu_beam%bunch(ib)%ix_ele
 
 !! Print the bunch at the first stage to observe bunch_pattern ( for debug )
-!if (i_stage_min == 1) then
+!if (ix_stage_tracked == 1) then
 !  print *, '------------------------------------------------- \n'
 !  print *,'time_now(*1.3GHz): ',bbu_beam%time_now*(1.3*10**9)
 !endif
 
 ! Track the bunch
 !open(999, file = 'bunch_vec.txt', status = 'unknown')
-do j = ix_ele_start+1, ix_ele_end
+do j = ix_ele_start+1, end_ele%ix_ele
 
   call track1_bunch(bbu_beam%bunch(ib), lat, lat%ele(j), bbu_beam%bunch(ib), err)
 
@@ -503,9 +512,9 @@ endif
 ! If the next stage does not have any bunches waiting to go through then the
 ! tracked bunch becomes the head bunch for that stage.
 
-if (i_stage_min /= size(bbu_beam%stage)) then  ! If not last stage
-  if (bbu_beam%stage(i_stage_min+1)%ix_head_bunch == -1) &
-                      bbu_beam%stage(i_stage_min+1)%ix_head_bunch = ib
+if (ix_stage_tracked /= size(bbu_beam%stage)) then  ! If not last stage
+  if (bbu_beam%stage(ix_stage_tracked+1)%ix_head_bunch == -1) &
+                      bbu_beam%stage(ix_stage_tracked+1)%ix_head_bunch = ib
 endif
 
 ! If the bunch upstream from the tracked bunch is at the same stage as was tracked through,
@@ -529,20 +538,16 @@ ix_bunch = this_stage%ix_head_bunch
 if (ix_bunch < 0) then
   this_stage%time_at_wake_ele = 1e30  ! something large
 else
-  ix_ele = this_stage%ix_ele_lr_wake
-  this_stage%time_at_wake_ele = &
-                    bbu_beam%bunch(ix_bunch)%t_center + lat%ele(ix_ele)%ref_time
+  this_stage%time_at_wake_ele = bbu_beam%bunch(ix_bunch)%t_center + end_ele%ref_time
 endif
 
-if (i_stage_min /= size(bbu_beam%stage)) then  ! If not last stage
-  i = i_stage_min + 1
+if (ix_stage_tracked /= size(bbu_beam%stage)) then  ! If not last stage
+  i = ix_stage_tracked + 1
   ix_bunch = bbu_beam%stage(i)%ix_head_bunch
-  ix_ele = bbu_beam%stage(i)%ix_ele_lr_wake
-  bbu_beam%stage(i)%time_at_wake_ele = bbu_beam%bunch(ix_bunch)%t_center + lat%ele(ix_ele)%ref_time
+  end_ele => lat%ele(bbu_beam%stage(i)%ix_ele_stage_end)
+  bbu_beam%stage(i)%time_at_wake_ele = bbu_beam%bunch(ix_bunch)%t_center + end_ele%ref_time
 endif
 
-! Misc.
-bbu_beam%ix_last_stage_tracked = i_stage_min
 lost = .false.
 
 end subroutine bbu_track_a_stage
@@ -676,31 +681,33 @@ end subroutine bbu_remove_head_bunch
 !------------------------------------------------------------------------------
 ! Calculates voltage in mode with maximal amplitude
 ! Specifically, update bbu_beam%ix_stage_voltage_max and bbu_beam%hom_voltage_max 
-subroutine bbu_hom_voltage_calc (lat, bbu_beam, n_period)
+
+subroutine bbu_hom_voltage_calc (lat, bbu_beam, n_period, ix_stage_last_tracked)
 
 implicit none
 
 type (lat_struct), target :: lat
 type (bbu_beam_struct) bbu_beam
 type (wake_lr_mode_struct), pointer :: lr
+type (ele_struct), pointer :: wake_ele
 
 real(rp) hom_voltage_max, hom_voltage2
-
 real(rp) hom_voltage_test
+
 type (wake_lr_mode_struct), pointer :: lr_test
 
-integer i, j, i1, ixm, ix
+integer i, j, i1, ixm, ix_stage_last_tracked
 integer o, ix_test, n_period
 character(len=20) :: filename
 
 ! Only need to update the last stage tracked
 hom_voltage_max = -1
-i = bbu_beam%ix_last_stage_tracked
+i = ix_stage_last_tracked
 i1 = bbu_beam%stage(i)%ix_stage_pass1    ! Find the corresponding stage of 1st pass 
-ix = bbu_beam%stage(i1)%ix_ele_lr_wake   ! Find the wake element (cavity) of that corresponding stage
+wake_ele => lat%ele(bbu_beam%stage(i1)%ix_ele_lr_wake)   ! Find the wake element (cavity) of that corresponding stage
 !! Find which wake of the stage has the max voltage
-do j = 1, size(lat%ele(ix)%wake%lr_mode)  ! Number of lr wakes assigned to the cavity
-  lr => lat%ele(ix)%wake%lr_mode(j)
+do j = 1, size(wake_ele%wake%lr_mode)  ! Number of lr wakes assigned to the cavity
+  lr => wake_ele%wake%lr_mode(j)
   hom_voltage2 = max(lr%b_sin**2 + lr%b_cos**2, lr%a_sin**2 + lr%a_cos**2) 
   if (hom_voltage_max < hom_voltage2) then
     hom_voltage_max = hom_voltage2                 ! store the max voltage
@@ -755,20 +762,22 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 integer i
-character(25) cav_name
+
+!
 
 open(20, file = 'hom_info.txt', status = 'unknown')
 write(20,'(a15)') 'cavity_name'
 
-do i = 1, lat%n_ele_track
+do i = 1, lat%n_ele_max
   ele => lat%ele(i)
   if (ele%key /= lcavity$) cycle
-  if (ele%slave_status == multipass_slave$)  ele => pointer_to_lord(ele, 1)
-  cav_name = ele%name
-  write(20,'(a25)') trim(adjustl(cav_name))
+  if (ele%slave_status == super_slave$) cycle
+  if (ele%slave_status == multipass_slave$) cycle
+  write(20,'(a)') trim(ele%name)
 enddo
 
 end subroutine rf_cav_names
+
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
@@ -797,9 +806,10 @@ do i = 1, lat%n_ele_track
 enddo
 
 end subroutine check_rf_freq
-!------------------------------------------------------------------------------
 
 !------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
 subroutine write_bunch_by_bunch_info (lat, bbu_beam, bbu_param, this_stage)
 
 implicit none
@@ -812,6 +822,8 @@ type (wake_lr_mode_struct), pointer :: lr
 
 integer :: i, ios
 integer, save :: iu = 0
+
+!
 
 if (iu == 0) then
   iu = lunget()
@@ -831,6 +843,7 @@ end subroutine write_bunch_by_bunch_info
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
+
 function hom_voltage(lr_wake) result(voltage)
 implicit none
 type(wake_lr_mode_struct) lr_wake
@@ -842,6 +855,7 @@ end function
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
+
 function logical_to_python (logic) result (string)
 implicit none
 
