@@ -229,9 +229,6 @@ character(16) :: r_name = 'bbu_track_all'
 call bbu_setup (lat, beam_init%dt_bunch, bbu_param, bbu_beam)
 print *, 'bbu_setup complete.'
 
-call lattice_bookkeeper (lat)
-bmad_com%auto_bookkeeper = .false. ! To speed things up.
-
 !! Populate bunches into the lattice
 !print *,'Initial number of bunches:', size(bbu_beam%bunch)
 do i = 1, size(bbu_beam%bunch)
@@ -421,10 +418,6 @@ do
 !  enddo
 
 enddo
-
-! Finalize
-bmad_com%auto_bookkeeper = .true.
-
 
 end subroutine bbu_track_all
 
