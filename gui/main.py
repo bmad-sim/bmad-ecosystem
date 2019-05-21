@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
 import sys
+import os
+import string
 
 #---------------------------------------------------------------
 # List window 
@@ -18,7 +20,7 @@ class tao_list_window(tk.Toplevel):
 class tao_root_window(tk.Tk):
 
   def __init__(self, *args, **kwargs):
-    tk.Tk.__init__(self, *args, **kwargs)
+    tk.Tk.__init__(self)
 
     self.title("Tao")
     self.geometry('350x200')
@@ -44,14 +46,7 @@ class tao_root_window(tk.Tk):
 
     self.config(menu=menubar)
 
-    # Init
-
-    if len(sys.argv) > 1:
-      pass
-
-    else:
-      pass
-
+    # Init GUI
 
     init_frame = tk.Frame(self, width = 20, height = 10)
     init_frame.pack()
@@ -60,10 +55,18 @@ class tao_root_window(tk.Tk):
     b = tk.Button(init_frame, text = "Tao Init", command = self.tao_init)
     b.pack()
       
-    # Bindings
+    # Key bindings
 
     self.bind_all("<Control-q>", self.quit_cmd)
     self.bind_all('<Return>', self.return_event)
+
+    # Tao startup
+
+    ##sys.path.append(os.environ['ACC_ROOT_DIR'] + '/tao/python/tao_pexpect')
+    sys.path.append('/home/dcs16/linux_lib/tao/python/tao_pexpect')
+
+    import tao_pipe
+    self.pipe = tao_pipe.tao_io()
 
   #-------------------------
 
@@ -111,5 +114,5 @@ class tao_root_window(tk.Tk):
 #---------------------------------------------------------------
 
 if __name__ == "__main__":
-  root = tao_root_window()
+  root = tao_root_window(sys.argv)
   root.mainloop()

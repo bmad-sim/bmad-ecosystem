@@ -1,25 +1,31 @@
 """
 Class for piping in commands to Tao from python and for grabbing Tao output
 
-The module needs the pexpect module which can be downloaded from:
+This module needs the pexpect module which can be downloaded from:
   <http://sourceforge.net/projects/pexpect/>
 
 Example:
   import tao_pipe
-  pipe = tao_pipe.tao_io("../bin/tao -lat my_lat.bmad")  # Init
-  pipe.cmd("show top10")                                 # Issue a command
-  tao_output = pipe.output                               # Get the output of command
+  pipe = tao_pipe.tao_io("-lat my_lat.bmad")   # Init
+  pipe.cmd("show uni")                         # Issue a command & print output at terminal.
+  tao_output = pipe.cmd_in("show uni")         # Get the output of a command. No terminal output.
 """
 
 import pexpect
+import os
+import string
 
 class tao_io:
 
   #-----------------------------------------------------------------
-  # tao_exe = Exicutable file with any command line args.
+  # init_args  = Startup command line args.
+  # tao_exe    = Tao executable file name including path.
 
-  def __init__(self, tao_exe, expect_str = 'Tao>'):
-    self.pipe = pexpect.spawn (tao_exe)
+  def __init__(self, init_args = '', tao_exe = '', expect_str = 'Tao>'):
+    if tao_exe == '': tao_exe = '$ACC_EXE/tao'
+    init_string = tao_exe + ' ' + init_args
+    init_string = string.Template(init_string).substitute(os.environ) # Expand environmental variables.
+    self.pipe = pexpect.spawn (init_string, encoding='utf-8')
     self.expect_str = expect_str
     self.is_open = True
 
@@ -40,7 +46,7 @@ class tao_io:
 
     if not self.is_open: 
       print ('Not connected to Tao...')
-      return ""
+      return ''
 
     self.pipe.sendline (cmd_str)
     try:
@@ -57,7 +63,7 @@ class tao_io:
   #-----------------------------------------------------------------
   # tao_io.cmd method calls tao_io.cmd and prints the output, including 
   # the command and Tao prompt, to the terminal.
-  # Note: self.pipe.after will always be the expect string which is generally "Tao>"
+  # Note: self.pipe.after will always be the expect string which is generally 'Tao>'
 
   def cmd (self, cmd_str):
     self.cmd_in(cmd_str)
