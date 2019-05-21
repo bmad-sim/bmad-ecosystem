@@ -64,6 +64,8 @@ endif
 print *, 'Lattice file: ', trim(bbu_param%lat_filename)
 call bmad_parser (bbu_param%lat_filename, lat_in) 
 
+bmad_com%auto_bookkeeper = .false. ! To speed things up.
+
 !For DR-scan, parse additional lattice (lat2) 
 if (bbu_param%lat2_filename /= '') then
   print *, 'DR-scan or Phase-scan, parsing: ',bbu_param%lat2_filename
