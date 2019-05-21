@@ -10,8 +10,8 @@
 !
 ! Input:
 !   lat          -- lat_struct: Lat
-!   delta_e      -- Real(rp): Delta energy used for the calculation.
-!                      If 0 then default of 1.0d-4 is used.
+!   delta_e      -- Real(rp): +/- Delta energy used for the calculation. Notice that the energy difference
+!                     between high and low is 2 * delta_e. If 0 then default of 1.0d-4 is used.
 !   ix_branch    -- Integer, optional: Index of the lattice branch to use. Default is 0.
 !
 ! Output:
