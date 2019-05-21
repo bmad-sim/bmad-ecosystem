@@ -91,10 +91,10 @@ INTEGER n_snapshots
 INTEGER nslave
 INTEGER radcache
 INTEGER, ALLOCATABLE :: col_funits(:)
-CHARACTER*100 parameter_file
-CHARACTER*5 col_num_str
-CHARACTER*5 snap_file_str
-CHARACTER*121 snap_file_line
+CHARACTER(100) parameter_file
+CHARACTER(5) col_num_str
+CHARACTER(5) snap_file_str
+CHARACTER(121) snap_file_line
 REAL(rp) r_bucket
 REAL(rp) term
 LOGICAL err
@@ -123,14 +123,14 @@ INTEGER hist_bins
 INTEGER slix_lost_end
 INTEGER snapshot_start_slix
 INTEGER snapshot_stop_slix
-CHARACTER*100 lat_file
-CHARACTER*200 aperture_file
-CHARACTER*200 halo_aperture_file
-CHARACTER*200 coll_file
-CHARACTER*30 name_prod_start
-CHARACTER*30 name_prod_end
-CHARACTER*30 name_lost_start
-CHARACTER*30 name_lost_end
+CHARACTER(100) lat_file
+CHARACTER(200) aperture_file
+CHARACTER(200) halo_aperture_file
+CHARACTER(200) coll_file
+CHARACTER(30) name_prod_start
+CHARACTER(30) name_prod_end
+CHARACTER(30) name_lost_start
+CHARACTER(30) name_lost_end
 REAL(rp) test_collimator
 REAL(rp) bunch_charge
 REAL(rp) pz_min
@@ -241,7 +241,8 @@ logical :: use_beam, verbose
 ! Namelise parameters contains variables set by the .in file
 !-----------------------------------------------------------
 NAMELIST /parameters/ lat_file, &              ! the lattice file
-                      aperture_file, &         ! contains momentum aperture and location of slices
+                      aperture_file, &         ! Contains location of slices and pz momentum aperture. Format:
+                                               !  s-position   negative_pz_aperture  positive_pz_aperture 
                       halo_aperture_file, &    ! necessary if tracking for halo, rather than particle loss
                       halo, &                  ! if true, causes program to track particles with momentum deviations laying between
                                                ! the halo aperture and aperture for particle loss
@@ -513,6 +514,11 @@ IF(master) THEN
   DO i=1, n_slices
     READ(79,*) aperture_by_slice(i)%s, aperture_by_slice(i)%negative_aperture, aperture_by_slice(i)%positive_aperture
     slices(i)=aperture_by_slice(i)%s
+    if (slices(i) > lat%param%total_length .or. slices(i) < 0) then
+      print '(a, f13.3)', 'APERTURE S-POSITION FROM APERTURE_FILE OUT-OF-BOUNDS:', slices(i)
+      print '(2a)',       'FROM FILE: ', trim(aperture_file)
+      stop
+    endif
   ENDDO
   slices(n_slices) = MIN(slices(n_slices),lat%param%total_length-0.000001)
   CLOSE(79)
