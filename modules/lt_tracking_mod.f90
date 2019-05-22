@@ -56,7 +56,7 @@ type ltt_sum_data_struct
   integer :: i_turn = 0
   integer :: n_live = 0
   real(rp) :: orb_sum(6) = 0    ! Orbit average
-  real(rp) :: orb2_sum(6) = 0
+  real(rp) :: orb2_sum(6,6) = 0
   real(rp) :: spin_sum(3) = 0   ! Spin
 end type
 
@@ -428,7 +428,7 @@ print '(2a)', 'Particle output file: ', trim(lttp%particle_output_file)
 close (iu_out)
 
 if (lttp%sigma_matrix_output_file /= '') then
-  call ltt_write_sigma_file (lttp, n_sum, average, sigma)
+  call ltt_write_single_mode_sigma_file (lttp, n_sum, average, sigma)
 endif
 
 end subroutine ltt_run_single_mode
@@ -452,18 +452,14 @@ type (ltt_sum_data_struct), pointer :: sd
 type (ele_struct), pointer :: ele_start
 
 real(rp) time0, time
-real(rp) average(6), sigma(6,6)
 
-integer n, n_sum, ix_ele_start, n_print_dead_loss, i_turn
+integer n, ix_ele_start, n_print_dead_loss, i_turn
 integer ip, n_live_old, n_live
 
 logical err_flag
 
 ! Init
 
-n_sum = 0
-sigma = 0
-average = 0
 ix_ele_start = lttp%start%ix_ele
 ele_start => pointer_to_ele (lat, lttp%start)
 
@@ -526,18 +522,6 @@ do i_turn = 1, lttp%n_turns
     exit
   endif
 
-  if (lttp%sigma_matrix_output_file /= '') then
-    if (lttp%n_turn_sigma_average < 0 .or. lttp%n_turns - i_turn < lttp%n_turn_sigma_average) then
-      do ip = 1, size(bunch%particle)
-        p => bunch%particle(ip)
-        if (p%state /= alive$) cycle
-        average = average + p%vec
-        sigma = sigma + outer_product(p%vec, p%vec)
-        n_sum = n_sum + 1
-      enddo
-    endif
-  endif
-
   call run_timer('READ', time)
 
   if (time-time0 > lttp%timer_print_dtime) then
@@ -551,15 +535,12 @@ end do
 
 if (lttp%mpi_rank == master_rank$) print '(2a)', 'Tracking data file: ', trim(lttp%particle_output_file)
 
-if (lttp%sigma_matrix_output_file /= '' .and. .not. lttp%using_mpi) then
-  call ltt_write_sigma_file (lttp, n_sum, average, sigma)
-endif
-
 if (lttp%using_mpi) then
   if (allocated(sum_data_array)) deallocate (sum_data_array)
   call move_alloc (sum_data_arr, sum_data_array)
 else
   call ltt_write_bunch_averages(lttp, sum_data_arr)
+  call ltt_write_sigma_file (lttp, sum_data_arr)
 endif
 
 end subroutine ltt_run_bunch_mode
@@ -776,7 +757,7 @@ type (bunch_struct) bunch
 type (ltt_sum_data_struct), allocatable, target :: sum_data_arr(:)
 type (ltt_sum_data_struct), pointer :: sd
 
-integer i, ix, i_turn
+integer i, j, ix, i_turn
 
 !
 
@@ -808,7 +789,9 @@ sd%i_turn = i_turn
 
 do i = 1, 6
   sd%orb_sum(i) = sum(bunch%particle%vec(i), bunch%particle%state == alive$) 
-  sd%orb2_sum(i) = sum(bunch%particle%vec(i)**2, bunch%particle%state == alive$) 
+  do j = i, 6
+    sd%orb2_sum(i,j) = sum(bunch%particle%vec(i) * bunch%particle%vec(j), bunch%particle%state == alive$) 
+  enddo
 enddo
 
 do i = 1, 3
@@ -834,9 +817,9 @@ integer i, iu, ix
 
 if (lttp%averages_output_file == '') return
 
-print '(2a)', 'Averages_output_file: ', trim(lttp%averages_output_file)
 iu = lunget()
 open (iu, file = lttp%averages_output_file, recl = 300)
+
 write (iu, '(a1, a8, a9, a14, 3a14, 12a14)') '#', 'Turn', 'N_live', 'Polarization', &
                      '<Sx>', '<Sy>', '<Sz>', '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', &
                      'Sig_x', 'Sig_px', 'Sig_y', 'Sig_py', 'Sig_z', 'Sig_pz'
@@ -846,7 +829,7 @@ write (iu, '(a1, a8, a9, a14, 3a14, 12a14)') '#', 'Turn', 'N_live', 'Polarizatio
 do ix = lbound(sum_data_arr, 1) , ubound(sum_data_arr, 1)
   sd => sum_data_arr(ix)
   if (sd%n_live == 0) exit
-  sigma = sd%orb2_sum/sd%n_live - (sd%orb_sum/sd%n_live)**2
+  forall (i = 1:6) sigma(i) = sd%orb2_sum(i,i)/sd%n_live - (sd%orb_sum(i)/sd%n_live)**2
   sigma = sqrt(max(0.0_rp, sigma))
   write (iu, '(i9, i9, f14.9, 2x, 3f14.9, 2x, 12es14.6)') sd%i_turn, sd%n_live, &
           norm2(sd%spin_sum/sd%n_live), sd%spin_sum/sd%n_live, sd%orb_sum/sd%n_live, sigma
@@ -854,13 +837,60 @@ enddo
 
 close (iu)
 
+print '(2a)', 'Averages_output_file: ', trim(lttp%averages_output_file)
+
 end subroutine ltt_write_bunch_averages
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_sigma_file (lttp, n_sum, average, sigma)
+subroutine ltt_write_sigma_file (lttp, sum_data_arr)
+
+type (ltt_params_struct) lttp
+type (ltt_sum_data_struct), target :: sum_data_arr(:)
+type (ltt_sum_data_struct), pointer :: sd
+
+real(rp) sigma(21)
+integer ix, i, j, k, iu
+
+!
+
+if (lttp%sigma_matrix_output_file == '') return
+
+iu = lunget()
+open (iu, file = lttp%sigma_matrix_output_file, recl = 400)
+
+write (iu, '(a1, a8, a9, 21a14)') '#', 'Turn', 'N_live', &
+  '<x.x>', '<x.px>', '<x.y>', '<x.py>', '<x.z>', '<x.pz>', '<px.px>', '<px.y>', '<px.py>', '<px.z>', '<px.pz>', &
+  '<y.y>', '<y.py>', '<y.z>', '<y.pz>', '<py.py>', '<py.z>', '<py.pz>', '<z.z>', '<z.pz>', '<pz.pz>'
+
+!
+
+do ix = lbound(sum_data_arr, 1) , ubound(sum_data_arr, 1)
+  sd => sum_data_arr(ix)
+  if (sd%n_live == 0) exit
+  k = 0
+  do i = 1, 6
+  do j = i, 6
+    k = k + 1
+    sigma(k) = sd%orb2_sum(i,j) / sd%n_live - sd%orb_sum(i) * sd%orb_sum(j) / sd%n_live**2
+  enddo
+  enddo
+  write (iu, '(i9, i9, 2x, 21es14.6)') sd%i_turn, sd%n_live, (sigma(k), k = 1, 21)
+enddo
+
+close (iu)
+
+print '(2a)', 'Sigma matrix data file: ', trim(lttp%sigma_matrix_output_file)
+
+end subroutine ltt_write_sigma_file
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_write_single_mode_sigma_file (lttp, n_sum, average, sigma)
 
 type (ltt_params_struct) lttp
 
@@ -868,6 +898,10 @@ real(rp) average(6), sigma(6,6)
 integer i, n_sum
 
 !
+
+if (lttp%sigma_matrix_output_file == '') return
+
+open (1, file = lttp%sigma_matrix_output_file)
 
 if (n_sum == 0) then
   write (1, '(a, i0)') '# n_turn_sigma_average = ', lttp%n_turn_sigma_average
@@ -879,8 +913,6 @@ endif
 
 average = average / n_sum
 sigma = sigma / n_sum - outer_product(average, average)
-
-open (1, file = lttp%sigma_matrix_output_file)
 
 write (1, '(a, i0)') '# n_turn_sigma_average = ', lttp%n_turn_sigma_average
 write (1, '(a)') '# Average:'
@@ -895,7 +927,7 @@ close (1)
 
 print '(2a)', 'Sigma matrix data file: ', trim(lttp%sigma_matrix_output_file)
 
-end subroutine ltt_write_sigma_file
+end subroutine ltt_write_single_mode_sigma_file
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
