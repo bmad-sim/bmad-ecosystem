@@ -355,12 +355,12 @@ exists.  If the order of the map that is read in does not agree with the setting
 
 \begin{description}
 \item[ltt\%averages_output_file] \Newline
-Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. The name of the file that contain orbital and
-spin positions averaged over all the particles of the bunch.  Each line in the file represents the
-averages at the end of a turn and a new line is added every \vn{ltt%ouput_every_n_turns} number of
-turns. If \vn{ltt%averages_output_file} is blank, no averages file is produced. Data is always recorded
-when the beam is at the \vn{ltt%ele_start_name} position independent of where the lattice begins and
-ends.
+Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. The name of the file that contain orbital
+and spin positions averaged over all the particles of the bunch as well as the beam size sigmas.
+Each line in the file represents the averages at the end of a turn and a new line is added every
+\vn{ltt%ouput_every_n_turns} number of turns. If \vn{ltt%averages_output_file} is blank, no averages
+file is produced. Data is always recorded when the beam is at the \vn{ltt%ele_start_name} position
+independent of where the lattice begins and ends.
 %
 \item[ltt\%merge_particle_output_files] \Newline
 If set to \vn{True}, all the particle data will be put in one \vn{ltt%particle_output_file} file. Only
