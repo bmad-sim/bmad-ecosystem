@@ -855,7 +855,6 @@ character(*), parameter :: r_name = 'make_N'
 !
 
 N = 0.0d0
-if (present(abz_tunes)) abz_tunes = 0.0d0
 if (present(tunes_out)) tunes_out = 0.0d0
 
 call eigen_decomp_6mat(t6, eval, evec, err_flag, mat_tunes)
