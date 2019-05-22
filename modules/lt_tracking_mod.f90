@@ -56,6 +56,7 @@ type ltt_sum_data_struct
   integer :: i_turn = 0
   integer :: n_live = 0
   real(rp) :: orb_sum(6) = 0    ! Orbit average
+  real(rp) :: orb2_sum(6) = 0
   real(rp) :: spin_sum(3) = 0   ! Spin
 end type
 
@@ -807,6 +808,7 @@ sd%i_turn = i_turn
 
 do i = 1, 6
   sd%orb_sum(i) = sum(bunch%particle%vec(i), bunch%particle%state == alive$) 
+  sd%orb2_sum(i) = sum(bunch%particle%vec(i)**2, bunch%particle%state == alive$) 
 enddo
 
 do i = 1, 3
@@ -825,25 +827,29 @@ type (ltt_params_struct) lttp
 type (ltt_sum_data_struct), target :: sum_data_arr(:)
 type (ltt_sum_data_struct), pointer :: sd
 
-integer iu, ix
+real(rp) sigma(6)
+integer i, iu, ix
 
 !
 
 if (lttp%averages_output_file == '') return
 
-print '(a)', 'Averages_output_file: ', trim(lttp%averages_output_file)
+print '(2a)', 'Averages_output_file: ', trim(lttp%averages_output_file)
 iu = lunget()
-open (iu, file = lttp%averages_output_file, recl = 200)
-write (iu, '(a1, a8, a9, a14, 3a14, 6a14)') '#', 'Turn', 'N_live', 'Polarization', &
-                     '<Sx>', '<Sy>', '<Sz>', '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>'
+open (iu, file = lttp%averages_output_file, recl = 300)
+write (iu, '(a1, a8, a9, a14, 3a14, 12a14)') '#', 'Turn', 'N_live', 'Polarization', &
+                     '<Sx>', '<Sy>', '<Sz>', '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', &
+                     'Sig_x', 'Sig_px', 'Sig_y', 'Sig_py', 'Sig_z', 'Sig_pz'
 
 !
 
 do ix = lbound(sum_data_arr, 1) , ubound(sum_data_arr, 1)
   sd => sum_data_arr(ix)
   if (sd%n_live == 0) exit
-  write (iu, '(i9, i9, f14.9, 2x, 3f14.9, 2x, 6es14.6)') sd%i_turn, sd%n_live, &
-                        norm2(sd%spin_sum/sd%n_live), sd%spin_sum/sd%n_live, sd%orb_sum/sd%n_live
+  sigma = sd%orb2_sum/sd%n_live - (sd%orb_sum/sd%n_live)**2
+  sigma = sqrt(max(0.0_rp, sigma))
+  write (iu, '(i9, i9, f14.9, 2x, 3f14.9, 2x, 12es14.6)') sd%i_turn, sd%n_live, &
+          norm2(sd%spin_sum/sd%n_live), sd%spin_sum/sd%n_live, sd%orb_sum/sd%n_live, sigma
 enddo
 
 close (iu)
