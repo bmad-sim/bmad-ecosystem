@@ -220,9 +220,6 @@ end subroutine lat_to_ptc_layout
 ! In this case, ele%ptc_fibre will be set to point to the last PTC fibre. That is the 
 ! exit end of ele will correspond to the exit end of ele%ptc_fibre.
 !
-! Module Needed:
-!   use ptc_layout_mod
-!
 ! Input:
 !   branch                -- branch_struct: Input branch.
 !   use_hard_edge_drifts  -- logical, optional: Use bmad hard edge model for cavities, etc?
@@ -351,9 +348,6 @@ end subroutine branch_to_ptc_m_u
 ! 
 ! Routine to add a layout the a list of layouts.
 !
-! Module needed:
-!   use ptc_layout_mod
-!
 ! Input:
 !   branch_ptc_info  -- ptc_branch1_info_struct: List of layouts
 !   layout_end       -- layout: ptc layout
@@ -389,59 +383,64 @@ end subroutine add_ptc_layout_to_list
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ptc_one_turn_mat_and_closed_orbit_calc (branch, to_bmad_coords, pz)
+! Subroutine ptc_setup_tracking_with_damping_and_excitation (branch, include_damping, include_excitation, rad_state, closed_orb)
 !
-! Routine to compute the one turn matrices and closed orbit for a lattice branch with closed geometry.
-!
-! Note: PTC itself does not compute Twiss parameters. Use twiss_from_mat6 to compute this.
+! Routine to setup PTC tracking that includes radiation damping and stochastic excitation.
+! To track use the routine track_probe with rad_state as the state argument.
 !
 ! Input:
-!   branch            -- branch_struct: Lattice branch.
-!   to_bmad_coords    -- logical: If False then leave results in PTC phase space units.
-!                                 If True, convert to Bmad phase space units
-!   pz                -- real(rp), optional: energy offset around which to 
-!                          calculate the matrices if there is no RF.
-! Output:
-!   branch            -- branch_struct: Lattice branch containing the matrices.
-!     %ele(i)%fibre%i%m(6,6)    -- matrices.
-!     %ele(i)%fibre%i%fix0(6)   -- Closed orbit.
+!   branch              -- branch_struct: Lattice branch to setup.
+!   include_damping     -- logical: Include radiation damping?
+!   include_radiation   -- logical: Include radiation excitation?
+!
+!   rad_state           -- internal_state: Use with track_probe when tracking.
+!   closed_orb(6)       -- real(dp): Closed orbit at start of branch.
 !-
 
-subroutine ptc_one_turn_mat_and_closed_orbit_calc (branch, to_bmad_coords, pz)
+subroutine ptc_setup_tracking_with_damping_and_excitation (branch, include_damping, include_excitation, rad_state, closed_orb)
 
-use s_fitting_new, only: default, compute_linear_one_turn_maps, fibre, layout
+use s_fitting_new
 
-type (branch_struct), target :: branch
-type (fibre), pointer :: ptc_fibre
-type (layout), pointer :: ptc_layout
+type (branch_struct) branch
+type (internal_state) rad_state
+type (probe) prb
+type (probe_8) prb8
+type (c_damap) cda
 
-real(rp), optional :: pz
-real(rp) c_mat(6,6), c_mat_inv(6,6)
-integer i
-logical to_bmad_coords
+real(dp) closed_orb(6)
+logical include_damping, include_excitation
 
 !
 
-ptc_fibre => branch%ele(1)%ptc_fibre
-call compute_linear_one_turn_maps (ptc_fibre, DEFAULT, pz)
+use_bmad_units = .true.
 
-if (to_bmad_coords) then
-  ptc_layout => ptc_fibre%parent_layout
-  do i = 1, ptc_layout%n
-    call vec_ptc_to_bmad (ptc_fibre%i%fix0, ptc_fibre%beta0, ptc_fibre%i%fix0, c_mat)
-    call mat_inverse(c_mat, c_mat_inv)
-    ptc_fibre%i%m = matmul(matmul(c_mat, ptc_fibre%i%m), c_mat_inv)
-    ptc_fibre => ptc_fibre%next
-  enddo
+if (include_excitation) then
+  call alloc(prb8)
+  call alloc(cda) 
+
+  rad_state = DEFAULT + envelope0 + radiation0 
+  call find_orbit_x (branch%ptc%m_t_layout, closed_orb, rad_state, 1d-8, fibre1 = 1)
+
+  cda = 1
+  prb = closed_orb
+  prb8 = prb + cda
+  call track_probe (prb8, rad_state, fibre1 = branch%ele(1)%ptc_fibre)
+
+  call kill(prb8)
+  call kill(cda)
 endif
 
-end subroutine ptc_one_turn_mat_and_closed_orbit_calc
+rad_state = DEFAULT
+if (include_damping)    rad_state = rad_state + radiation0
+if (include_excitation) rad_state = rad_state + stochastic0
+
+end subroutine ptc_setup_tracking_with_damping_and_excitation
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ptc_transfer_mat_and_closed_orbit_calc (branch, to_bmad_coords, pz)
+! Subroutine ptc_one_turn_mat_and_closed_orbit_calc (branch, to_bmad_coords, pz)
 !
 ! Routine to compute the transfer matrices for the individual elements and closed orbit 
 ! for a lattice branch with closed geometry.
@@ -461,7 +460,7 @@ end subroutine ptc_one_turn_mat_and_closed_orbit_calc
 !     %ele(i)%fibre%i%fix(6)    -- Closed orbit at exit.
 !-
 
-subroutine ptc_transfer_mat_and_closed_orbit_calc (branch, to_bmad_coords, pz)
+subroutine ptc_one_turn_mat_and_closed_orbit_calc (branch, to_bmad_coords, pz)
 
 use s_fitting_new, only: default, compute_linear_one_magnet_maps, fibre, layout
 
@@ -490,7 +489,7 @@ if (to_bmad_coords) then
   enddo
 endif
 
-end subroutine ptc_transfer_mat_and_closed_orbit_calc
+end subroutine ptc_one_turn_mat_and_closed_orbit_calc
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -499,9 +498,6 @@ end subroutine ptc_transfer_mat_and_closed_orbit_calc
 ! Subroutine ptc_emit_calc (ele, norm_mode, sigma_mat, closed_orb)
 !
 ! Routine to calculate emittances, etc.
-!
-! Module Needed:
-!   use ptc_layout_mod
 !
 ! Input: 
 !   ele -- ele_struct: Element at which to evaluate the parameters.
@@ -618,9 +614,6 @@ end subroutine ptc_emit_calc
 ! is the downstream edge while a PTC fibre uses the upstream edge 
 ! for the reference.
 !
-! Module Needed:
-!   use patc_layout_mod
-!
 ! Input:
 !   ele   -- ele_struct: Bmad element
 !
@@ -729,14 +722,10 @@ end subroutine ptc_track_all
 ! This routine assumes the associated PTC layout has been crated 
 ! with lat_to_ptc_layout.
 !
-! Module Needed:
-!   use ptc_layout_mod
-!
 ! Input:
 !   branch          -- branch_struct: Branch of a lattice.
 !   radiation_damping_on
-!                   -- logical, optional: If True, radiation dampling is included in
-!                        the calculation. 
+!                   -- logical, optional: If True, radiation dampling is included in the calculation. 
 !                        Default is the setting of bmad_com%%radiation_damping_on.
 !
 ! Output:
@@ -792,9 +781,6 @@ end subroutine ptc_closed_orbit_calc
 !
 ! Routine to calculate the one turn map for a ring.
 ! Note: Use set_ptc(no_cavity = True/False) set turn on/off the RF cavities.
-!
-! Module Needed:
-!   use ptc_layout_mod
 !
 ! Input:
 !   ele     -- ele_struct: Element determining start/end position for one turn map.
@@ -898,9 +884,6 @@ end Subroutine ptc_one_turn_map_at_ele
 !  z_Floquet_out = RotationMatrix(phi_a, phi_b, phi_c) . z_Floquet_in
 !  z_Lab_out = A o z_Floquet_out
 !
-!
-! Module Needed:
-!   use ptc_layout_mod
 !
 ! Input: 
 !   one_turn_taylor -- taylor_struct      : one turn taylor map
@@ -1094,9 +1077,6 @@ end subroutine normal_form_complex_taylors
 ! rd_term_name, and rd_term_descrip for description of contents of
 ! normal_form%rd_term(:)
 !
-! Module Needed:
-!   use ptc_layout_mod
-!
 ! Input:
 !   normal_form%m  -- type(taylor_struct): one-turn taylor map
 !   rf_on          -- logical: perform calculation with RF on.
@@ -1226,9 +1206,6 @@ end subroutine set_ptc_verbose
 !
 ! Routine to create a PTC flat file lattice from a Bmad branch.
 !
-! Module Needed:
-!   use ptc_layout_mod
-!
 ! Input:
 !   file_name     -- character(*): Flat file name.
 !   branch        -- branch_struct: Branch containing a layout.
@@ -1254,9 +1231,6 @@ end subroutine write_ptc_flat_file_lattice
 ! Subroutine update_ptc_fibre_from_bmad (ele)
 !
 ! Routine to update a fibre when the associated Bmad ele has been modified.
-!
-! Module Needed:
-!   use ptc_layout_mod
 !
 ! Input:
 !   ele           -- ele_struct: Element with corresponding PTC fibre.
@@ -1478,9 +1452,6 @@ end subroutine update_ptc_fibre_from_bmad
 ! Routine to update a bmad lattice element when the associated PTC fibre has been modified.
 ! Remember to call lattice_bookkeeper after calling this routine.
 !
-! Module Needed:
-!   use ptc_layout_mod
-!
 ! Input:
 !   ele           -- ele_struct: Element with corresponding ele%ptc_fibre fibre.
 !
@@ -1683,9 +1654,6 @@ end subroutine update_bmad_ele_from_ptc
 !
 ! See the Bmad manual chapter on PTC for more details.
 !
-! Module needed:
-!   use ptc_interface_mod
-!
 ! Input:
 !   ptc_layout    -- layout:
 !   kl_max        -- real(rp): Maximum K1*L per tracking step.
@@ -1752,9 +1720,6 @@ end subroutine ptc_calculate_tracking_step_size
 ! Routine to resplit (that is, recalculate the number of integration steps for an element)
 ! For the fibres in all layouts. After doing a resplit, the tune (and any other relavent
 ! "adjustable" parameters) should be adjusted to the correct values.
-!
-! Module needed:
-!   use ptc_layout_mod
 !
 ! Input:
 !   dKL_max      -- real(rp): Maximum K1 * L quadrupole strength allowed for an integration step.

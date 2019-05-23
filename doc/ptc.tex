@@ -255,7 +255,27 @@ The default crossover limit points are
 The greater number for wigglers is a reflection of the fact that the wiggler field
 is not constant.
 
+%--------------------------------------------------------------------------
+\section{Internal_State}
+\label{s:ptc.state}
 
-%% PTC: defines real(8), real_8, probe, probe_8 
-%% FPP: defines damap and c_damap and gmap
-%% PTC only uses damap and c_damap for analysis not tracking.
+The \vn{internal_state} structure looks like:
+\begin{example}
+type internal_state
+   integer totalpath      ! total time or path length is used
+   logical(lp) time       ! Time is used instead of path length
+   logical(lp) radiation  ! Radiation damping (but not excitation) is turned on
+   logical(lp) nocavity   ! Cavity is turned into a drift
+   logical(lp) fringe     ! fringe fields are turned on (mainly for quadrupoles)
+   logical(lp) stochastic ! Random Stochastic kicks to x(5)
+   logical(lp) envelope   ! Stochastic envelope terms tracked in probe_8
+   logical(lp) para_in    ! If true, parameters in the map are included
+   logical(lp) only_4d    ! REAL_8 Taylor in (x,p_x,y,p_y)
+   logical(lp) delta      ! REAL_8 Taylor in (x,p_x,y,p_y,delta)
+   logical(lp) spin       ! Spin is tracked
+   logical(lp) modulation ! One modulated family tracked by probe
+   logical(lp) only_2d    ! REAL_8 Taylor in (x,p_x)
+   logical(lp) full_way   !
+end type internal_state
+\end{example}
+
