@@ -140,8 +140,10 @@ SUBROUTINE make_slices(lat,slice_method,end_s,start_s,slice_length,slices,n_slic
   ELSEIF(slice_method .eq. 'byelem') THEN
     !Slices coincide with element locations.
     n_slices = 1
+    !Count slices
     DO i=1,lat%n_ele_track
       if (lat%ele(i)%key == taylor$) cycle
+      if( lat%ele(i)%s .gt. end_s) exit
       IF(lat%ele(i)%value(l$) .gt. 0) THEN
         n_slices=n_slices+1
       ENDIF
@@ -150,13 +152,16 @@ SUBROUTINE make_slices(lat,slice_method,end_s,start_s,slice_length,slices,n_slic
     j=1
     slices(j) = 0.0
 
+    !Populate slices
     DO i=1,lat%n_ele_track-1
+      if (lat%ele(i)%key == taylor$) cycle
+      if( lat%ele(i)%s .gt. end_s) exit
       IF(lat%ele(i)%value(l$) .gt. 0.) THEN
         j=j+1
         slices(j) = lat%ele(i)%s
       ENDIF
     ENDDO
-    slices(n_slices) = lat%param%total_length
+    slices(n_slices) = end_s
   ELSE
     WRITE(*,*) "FATAL: unknown slice_method"
     STOP
@@ -179,12 +184,12 @@ SUBROUTINE check_if_lost_ring(lat,start_s,vec_start,vec_end,nturns, track_state)
   TYPE(ele_pointer_struct), ALLOCATABLE :: eles(:)
   INTEGER n_loc
   LOGICAL err
-  REAL(rp) freq, quarter_period
+  REAL(rp) freq, half_period
   INTEGER track_state
 
   CALL lat_ele_locator('rfcavity::*', lat, eles, n_loc, err)
   freq = eles(1)%ele%value(rf_frequency$)
-  quarter_period = c_light/freq/4.0
+  half_period = c_light/freq/2.0
 
   IF( .not.ALLOCATED(orb) ) ALLOCATE(orb(0:lat%n_ele_track))
 
@@ -201,7 +206,7 @@ SUBROUTINE check_if_lost_ring(lat,start_s,vec_start,vec_end,nturns, track_state)
         vec_end = orb(track_state)
         EXIT
       ELSE
-        IF(ABS(orb(lat%n_ele_track)%vec(5)) .gt. quarter_period) THEN
+        IF(ABS(orb(lat%n_ele_track)%vec(5)) .gt. half_period) THEN
           !particle is outside RF bucket
           vec_end = orb(lat%n_ele_track)
           vec_end%state = lost$
