@@ -14,7 +14,7 @@ type (ltt_sum_data_struct), allocatable, target :: sum_data_arr(:), sd_arr(:)
 type (ltt_sum_data_struct) sum_data
 type (ltt_sum_data_struct), pointer :: sd
 
-real(rp) time
+real(rp) del_time
 
 integer num_slaves, slave_rank, stat(MPI_STATUS_SIZE)
 integer ix, ierr, rc, leng, data_size, num_particles_left, storage_size
@@ -152,8 +152,8 @@ case ('BUNCH')
     call print_mpi_info (lttp, 'Master: All done!', .true.)
     call mpi_finalize(ierr)
 
-    call run_timer ('READ', time)
-    print '(a, f8.2)', 'Tracking time (min):', time/60
+    call run_timer ('READ', del_time)
+    print '(a, f8.2)', 'Tracking time (min):', del_time/60
 
   !-----------------------------------------
   else  ! Is a slave
