@@ -4840,12 +4840,12 @@ valid_value = .false.
 position = ele_geometry_with_misalignments(ele)
 
 select case (datum%data_type)
-case ('floor_orbit.x');       value = position%r(1)
-case ('floor_orbit.y');       value = position%r(2)
-case ('floor_orbit.z');       value = position%r(3)
-case ('floor_orbit.theta');   value = position%theta
-case ('floor_orbit.phi');     value = position%phi
-case ('floor_orbit.psi');     value = position%psi
+case ('floor_actual.x');       value = position%r(1)
+case ('floor_actual.y');       value = position%r(2)
+case ('floor_actual.z');       value = position%r(3)
+case ('floor_actual.theta');   value = position%theta
+case ('floor_actual.phi');     value = position%phi
+case ('floor_actual.psi');     value = position%psi
 case default
   call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
   value = 0
