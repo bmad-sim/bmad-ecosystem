@@ -22,7 +22,7 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine ptc_setup_map_with_radiation (map_with_rad, ele1, ele2, orbit1, map_order, map_with_damping, err_flag)
+! Subroutine ptc_setup_map_with_radiation (map_with_rad, ele1, ele2, orbit1, map_order, include_damping, err_flag)
 !
 ! Routine to construct a map including radiation damping and excitation.
 ! Note: The setting of bmad_com%radiation_damping_on will determine if damping is included in the map.
@@ -35,27 +35,27 @@ contains
 ! To read a saved map call ptc_read_map_with_radiation.
 !
 ! Input:
-!   ele1              -- ele_struct: The map starts at the exit end of ele1.
-!   ele2              -- ele_struct, optional: The map ends at the exit end of ele2. If not present, the 
-!                          1-turn map will be constructed.
-!   orbit1            -- coord_struct, optional: Orbit at ele1 about which the map is constructed.
-!                          If not present then the orbit will be computed using PTC tracking.
-!   map_order         -- integer, optional: Order of the map. 
-!                          If not present or less than 1, the currently set order is used.
-!   map_with_damping  -- logical, optional: If True (the default), the map will be constructed with radiation damping included.
-!                          If False, the map will not be constructed with radiation dampling included. 
-!                          Since radiation damping can always be turned off when tracking, if you are only concerned about
-!                          the orbital motion, there is no reason to create a map without damping. 
-!                          However, the spin map is constructed about the closed orbit so the spin map will be affected
-!                          by whether damping is on or not. 
-!                          To the extent that the damping is small the shift in the spin map will be small.
+!   ele1            -- ele_struct: The map starts at the exit end of ele1.
+!   ele2            -- ele_struct, optional: The map ends at the exit end of ele2. If not present, the 
+!                        1-turn map will be constructed.
+!   orbit1          -- coord_struct, optional: Orbit at ele1 about which the map is constructed.
+!                        If not present then the orbit will be computed using PTC tracking.
+!   map_order       -- integer, optional: Order of the map. 
+!                        If not present or less than 1, the currently set order is used.
+!   include_damping -- logical, optional: If True (default), the map will be constructed with radiation damping included.
+!                        If False, the map will not be constructed with radiation dampling included. 
+!                        Since radiation damping can always be turned off when tracking, if you are only concerned about
+!                        the orbital motion, there is no reason to create a map without damping. 
+!                        However, the spin map is constructed about the closed orbit so the spin map will be affected
+!                        by whether damping is on or not. 
+!                        To the extent that the damping is small the shift in the spin map will be small.
 !
 ! Output:
 !   map_with_rad    -- ptc_map_with_rad_struct: Transport map.
 !   err_flag        -- logical, optional: Set True if there is an error such as not associated PTC layout.
 !-
 
-subroutine ptc_setup_map_with_radiation (map_with_rad, ele1, ele2, map_order, map_with_damping, orbit1, err_flag)
+subroutine ptc_setup_map_with_radiation (map_with_rad, ele1, ele2, map_order, include_damping, orbit1, err_flag)
 
 use pointer_lattice
 
@@ -76,7 +76,7 @@ real(rp) orb(6), orb0(6)
 integer, optional :: map_order
 integer val_save
 
-logical, optional :: err_flag, map_with_damping
+logical, optional :: err_flag, include_damping
 
 character(*), parameter :: r_name = 'ptc_setup_map_with_radiation'
 
@@ -87,7 +87,7 @@ if (present(err_flag)) err_flag = .true.
 call zhe_ini(bmad_com%spin_tracking_on)
 use_bmad_units = .true.
 
-if (logic_option(.true., map_with_damping)) then
+if (logic_option(.true., include_damping)) then
   state = default + radiation0 + envelope0
   map_with_rad%radiation_damping_on = .true.
 else
