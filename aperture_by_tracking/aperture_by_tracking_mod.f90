@@ -179,12 +179,12 @@ SUBROUTINE check_if_lost_ring(lat,start_s,vec_start,vec_end,nturns, track_state)
   TYPE(ele_pointer_struct), ALLOCATABLE :: eles(:)
   INTEGER n_loc
   LOGICAL err
-  REAL(rp) freq, half_period
+  REAL(rp) freq, quarter_period
   INTEGER track_state
 
   CALL lat_ele_locator('rfcavity::*', lat, eles, n_loc, err)
   freq = eles(1)%ele%value(rf_frequency$)
-  half_period = c_light/freq/2.0
+  quarter_period = c_light/freq/4.0
 
   IF( .not.ALLOCATED(orb) ) ALLOCATE(orb(0:lat%n_ele_track))
 
@@ -201,7 +201,7 @@ SUBROUTINE check_if_lost_ring(lat,start_s,vec_start,vec_end,nturns, track_state)
         vec_end = orb(track_state)
         EXIT
       ELSE
-        IF(ABS(orb(lat%n_ele_track)%vec(5)) .gt. half_period) THEN
+        IF(ABS(orb(lat%n_ele_track)%vec(5)) .gt. quarter_period) THEN
           !particle is outside RF bucket
           vec_end = orb(lat%n_ele_track)
           vec_end%state = lost$
