@@ -10,7 +10,7 @@ use beam_mod
 use twiss_and_track_mod
 use ptc_map_with_radiation_mod
 use space_charge_mod
-use s_fitting_new, ptc_twopi => twopi
+use s_fitting_new, ptc_twopi => twopi, ptc_sqrt => sqrt
 
 implicit none
 
