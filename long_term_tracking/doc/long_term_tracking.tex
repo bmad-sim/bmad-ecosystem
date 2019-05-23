@@ -67,7 +67,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ May 6, 2019}
+\date{David Sagan \\ May 23, 2019}
 \begin{document}
 \maketitle
 
@@ -136,12 +136,9 @@ simulation mode is set by the \vn{ltt%simulation_mode} parameter in the master i
 
 \begin{description}
 \item["CHECK"] \Newline
-In this mode a particle is tracked for one turn using the 1-turn map and, using the exact same
+In this mode a particle is tracked for one turn using a 1-turn map and, using the exact same
 starting conditions, tracked element-by-element for one turn. The results are then printed to the
-terminal. This mode can be used to get a sense of how accurate the 1-turn map is. One thing to keep
-in mind that since the 1-turn map is computed using PTC (see the Bmad manual for an explanation of
-what PTC is), there will be differences if the element-by-element tracking is using non-PTC tracking
-methods. even if the map is completely accurate. 
+terminal. This mode can be used to get a sense of how accurate the 1-turn map is.
 
 No data files are produced in this mode.
 %
@@ -167,25 +164,40 @@ Three data files are produced:
 
 
 %------------------------------------------------------------------
-\Section{Initial Particle Positions}
-\label{s:init.pos}
+\Section{Using 1-turn Maps and PTC}
+\label{s:map}
 
-When the \vn{ltt%simulation_mode} (\sref{s:sim.modes}) is set to \vn{"SINGLE"} or \vn{"CHECK"}, the
-initial particle position is determined by the \vn{beam_init%center} and \vn{beam_init%spin}
-components of the \vn{beam_init} structure (\sref{s:input}) in the master input file. If the
-\vn{ltt%add_closed_orbit_to_init_position} logical is set to \vn{True}, the closed orbit position is added to
-\vn{beam_init%center} to get the initial particle position.
+The \ltt program uses the PTC/FPP library of \'Etienne Forest to handle Taylor maps to any arbitrary
+order. In particular, PTC is used for constructing the 1-turn map used for tracking when the
+\vn{ltt%tracking_method} parameter is set to "\vn{MAP}" (\sref{s:sim.params}). PTC tracking is also
+used when \vn{ltt%tracking_method} is set to "\vn{PTC}". In this case tracking is done
+element-by-element.
 
-When the \vn{ltt%simulation_mode} is set to \vn{"BUNCH"}, the initial particle positions are calculated
-using the \vn{beam_init} structure as discussed in the \vn{Beam Initialization} chapter of the Bmad
-manual. Like the other modes, if the \vn{ltt%add_closed_orbit_to_init_position} logical is set to
-\vn{True}, the closed orbit position is added to the initial particle positions. To read in a file
-with beam particle positions, set the \vn{beam_init} structure appropriately. Example:
-\begin{code}
-  beam_init%file_name = 'beam_particle_file.init'
-\end{code}
+There are a few points to keep in mind. First is that \vn{PTC} trackes through a lattice element
+step by step. This means that the setting of \vn{num_steps} (or equivalently \vn{ds_step}) for each
+element will affect the accuracy and speed of the computations. Bmad tries to choose reasonable
+default settings for the number of steps however the calculation is not perfect. To make sure that
+the number of steps is set properly, vary the number of steps and choose a step size (which will be
+different for different elements) such that the number of steps is minimal (to minimize computation
+time) while at the same time is large enough so that results do not change significantly if the
+number of steps is increased.
 
-In all cases, tracking will start at the lattice element set by \vn{ltt%ele_start_name}.
+Another thing to keep in mind is that whether a 1-turn map will give accurate results is dependent
+on a number of factors. One factor is the order of the map. Generally higher order is better but
+will take more computation time. But all maps with order larger than 1 will be limited to tracking
+partices that are far from any strong resonances. That is, if you are interested in tracking halo
+particles you probably should not be using a 1-turn map.
+
+In terms of speed, using a 1-turn map will be the fastest, using standard Bmad tracking will be much
+slower, and using PTC element-by-element tracking will be slowest.
+
+In terms of symplecticity, both the PTC tracking and the 1-turn map tracking will be symplectic.
+Bmad is not symplectic but the deviation from symplecticity is generally fairly small. If the
+radiation effects are large enough, the radiative stochastic noise will negate any non-symplectic
+effects and standard Bmad tracking can be used. A very rough rule of thumb is that if the damping times
+or the number of turns tracked are under 100,000 turns then Bmad standard tracking can be used.
+
+PTC element-by-element tracking cannot be done when using the MPI version of the \ltt program.
 
 %------------------------------------------------------------------
 \Section{Particle Tracking}
@@ -195,8 +207,8 @@ Tracking can be done on an element-by-element basis or using a one-turn map that
 damping and excitation and includes both orbital and spin transport. The map is actually three maps
 rolled into one. One map is a map with out radiation, another map simulates radiation damping, and
 the third map, with the help of a random number generator, is used to include radiation excitation.
-radiation damping and/or excitation will or will not be included in tracking depending upon the settings
-of (\sref{s:input}):
+radiation damping and/or excitation will or will not be included in tracking depending upon the
+settings of (\sref{s:input}):
 \begin{code}
   bmad_com%radiation_damping_on
   bmad_com%radiation_excitation_on
@@ -225,6 +237,27 @@ excitation is due to the fact that the spin tracking part of the map is always c
 to the closed orbit and the closed orbit will be different if radiation damping is on versus
 off. [The closed orbit is always calculated ignoring radiation fluctuations though.] If you don't
 care about spin tracking, it generally makes sense to always create maps that have damping.
+
+%------------------------------------------------------------------
+\Section{Initial Particle Positions}
+\label{s:init.pos}
+
+When the \vn{ltt%simulation_mode} (\sref{s:sim.modes}) is set to \vn{"SINGLE"} or \vn{"CHECK"}, the
+initial particle position is determined by the \vn{beam_init%center} and \vn{beam_init%spin}
+components of the \vn{beam_init} structure (\sref{s:input}) in the master input file. If the
+\vn{ltt%add_closed_orbit_to_init_position} logical is set to \vn{True}, the closed orbit position is added to
+\vn{beam_init%center} to get the initial particle position.
+
+When the \vn{ltt%simulation_mode} is set to \vn{"BUNCH"}, the initial particle positions are calculated
+using the \vn{beam_init} structure as discussed in the \vn{Beam Initialization} chapter of the Bmad
+manual. Like the other modes, if the \vn{ltt%add_closed_orbit_to_init_position} logical is set to
+\vn{True}, the closed orbit position is added to the initial particle positions. To read in a file
+with beam particle positions, set the \vn{beam_init} structure appropriately. Example:
+\begin{code}
+  beam_init%file_name = 'beam_particle_file.init'
+\end{code}
+
+In all cases, tracking will start at the lattice element set by \vn{ltt%ele_start_name}.
 
 %------------------------------------------------------------------
 \Section{Fortran Namelist}
@@ -287,7 +320,7 @@ master input file must contain a single namelist (\sref{s:namelist}) named \vn{p
 
   ! Simulation parameters
   ltt%simulation_mode    = "BUNCH"
-  ltt%tracking_method    = 'STANDARD'
+  ltt%tracking_method    = 'BMAD'
   ltt%ele_start_name     = ""
   ltt%n_turns            = 1000
   ltt%map_order          = 5
@@ -356,11 +389,12 @@ exists.  If the order of the map that is read in does not agree with the setting
 \begin{description}
 \item[ltt\%averages_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. The name of the file that contain orbital
-and spin positions averaged over all the particles of the bunch as well as the beam size sigmas.
-Each line in the file represents the averages at the end of a turn and a new line is added every
-\vn{ltt%ouput_every_n_turns} number of turns. If \vn{ltt%averages_output_file} is blank, no averages
-file is produced. Data is always recorded when the beam is at the \vn{ltt%ele_start_name} position
-independent of where the lattice begins and ends.
+and spin positions averaged over all the particles of the bunch as well as the six beam size sigmas
+($\sigma_x$, $\sigma_{px}$, etc.).  Each line in the file represents the averages at the end of a
+turn and a new line is added every \vn{ltt%ouput_every_n_turns} number of turns. If
+\vn{ltt%averages_output_file} is blank, no averages file is produced. Data is always recorded when
+the beam is at the \vn{ltt%ele_start_name} position independent of where the lattice begins and
+ends. Note: The file \vn{ltt%sigma_matrix_output_file} will show the full 6x6 sigma matrix.
 %
 \item[ltt\%merge_particle_output_files] \Newline
 If set to \vn{True}, all the particle data will be put in one \vn{ltt%particle_output_file} file. Only
@@ -390,19 +424,28 @@ printed, is larger than \vn{ltt%print_on_dead_loss}, a message is printed. For e
 Default is -1 which will cause a message printed every turn where there is particle loss.
 %
 \item[ltt\%sigma_matrix_output_file] \Newline
-String specifying the name of the file to create to hold the calculated sigma matrix. If blank (the
+String specifying the name of the file to create to hold the calculated 6x6 sigma matrix. If blank (the
 default), no sigma matrix file will be created. The 6x6 sigma matrix $\boldsymbol{\sigma}$ is a
 measure of the beam size defined by
 \begin{equation}
-  \sigma_{ij} = \left< r_i \, r_j \right>
+  \sigma_{ij} = \left< dr_i \, dr_j \right>
 \end{equation}
-where $\bf r$ is the particle phase space vector and $<\ldots>$ denotes an average over all
-particles (which will be only one if the \vn{ltt%simulation_mode} is set to "SINGLE") and over all
-turns.
+where $\bf dr$ is the deviation of the particle phase space position from the average and $<\ldots>$
+denotes an average over all particles. 
+
+With \vn{ltt%simulation_mode} set to \vn{"BUNCH"}, Each line in the file represents the averages at
+the end of a turn and a new line is added every \vn{ltt%ouput_every_n_turns} number of turns. With
+\vn{ltt%simulation_mode} set to "SINGLE"), The average is done over all the turns. Data is always
+recorded when the beam is at the \vn{ltt%ele_start_name} position independent of where the lattice
+begins and ends.
+
+Also see the \vn{ltt%averages_output_file} parameter.
+
 \end{description}
 
 %----------------------------------------------------
 \subsection{Simulation Parameters}
+\label{s:sim.params}
 
 \begin{description}
 \item[ltt\%a_emittance, ltt\%b_emittance] \Newline
@@ -467,11 +510,11 @@ messages is set by \vn{ltt%timer_print_dtime} which is a number in seconds.
 String switch which sets how particles are tracked when the \vn{simulation_mode} is set to
 "\vn{BUNCH}" or "\vn{SINGLE}". Possible settings are:
 \begin{code}
-  "STANDARD"    ! Element-by-element tracking. Default
   "MAP"         ! 1-turn map tracking.
+  "PTC"         ! Element-by-element tracking with PTC.
+  "BMAD"        ! Element-by-element tracking using Bmad. Default
 \end{code}
-If set to "\vn{STANDARD}" (the default), tracking is element-by-element. If set to "\vn{MAP}", use a
-1-turn map for tracking (\sref{s:track.modes}).
+See sections \sref{s:map} and \vn{s:track.modes} for more details.
 \end{description}
 
 %------------------------------------------------------------------
@@ -525,9 +568,10 @@ D. Sagan,
 ``Bmad: A Relativistic Charged Particle Simulation Library''
 Nuc.\ Instrum.\ \& Methods Phys.\ Res.\ A, {\bf 558}, pp 356-59 (2006).
 
+\bibitem{b:ptc}
+É. Forest, Y. Nogiwa, and F. Schmidt. The FPP and PTC libraries. In Int.\ Conf.\ Accel.\
+Phys pp 17–21, (2006).
+
 \end{thebibliography}
 
 \end{document}
-
-
-

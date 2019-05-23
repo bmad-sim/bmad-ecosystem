@@ -10,6 +10,7 @@ use beam_mod
 use twiss_and_track_mod
 use ptc_map_with_radiation_mod
 use space_charge_mod
+use s_fitting_new, ptc_twopi => twopi
 
 implicit none
 
@@ -20,7 +21,7 @@ integer, parameter :: is_done_tag$ = 1001
 type ltt_params_struct
   type (lat_ele_loc_struct) :: start
   character(20) :: simulation_mode = ''
-  character(20) :: tracking_method = 'STANDARD'
+  character(20) :: tracking_method = 'BMAD'
   character(40) :: ele_start_name = ''
   character(200) :: lat_file = ''
   character(200) :: common_master_input_file = ''
@@ -50,6 +51,13 @@ type ltt_params_struct
   logical :: debug = .false.
   logical :: need_map = .false.     ! Internal var
   logical :: write_map = .false.
+end type
+
+type ltt_internal_struct
+  ! Internal vars
+  type (internal_state) rad_state
+  type (coord_struct), allocatable :: bmad_closed_orb(:)
+  real(rp) ptc_closed_orb(6)
 end type
 
 type ltt_sum_data_struct
@@ -146,6 +154,13 @@ open (1, file = init_file, status = 'old', action = 'read')
 read (1, nml = params)  
 close (1)
 
+!
+
+if (ltt%tracking_method == 'STANDARD') then
+  ltt%tracking_method = 'BMAD'
+  print *, 'Note: LTT%TRACKING_METHOD = "STANDARD" has been renamed "BMAD". Will run normally...'
+endif
+
 ! map file logic
 
 if (ltt%map_file(1:6) == 'WRITE:') then
@@ -166,21 +181,28 @@ end subroutine ltt_init_params
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_init_tracking(lttp, lat, closed_orb, rad_map)
+subroutine ltt_init_tracking(lttp, lat, ltt_internal, rad_map)
 
 type (ltt_params_struct) lttp
 type (lat_struct), target :: lat
+type (ltt_internal_struct) ltt_internal
 type (ptc_map_with_rad_struct) rad_map
 type (ele_pointer_struct), allocatable :: eles(:)
-type (coord_struct), allocatable :: closed_orb(:), orb(:)
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele_start
 
-real(rp) time
+real(rp) time, closed_orb(6)
 
 integer n_loc, ix_ele_end, ix_ele_start, ix_branch
 
 logical err, map_file_exists
+
+!
+
+if (lttp%using_mpi .and. lttp%tracking_method == 'PTC') then
+  print '(a)', 'TRACKING_METHOD = PTC NOT ALLOWED WITH MPI VERSION OF THIS PROGRAM.'
+  stop
+endif
 
 !
 
@@ -207,7 +229,7 @@ branch => lat%branch(ix_branch)
 ix_ele_end = ix_ele_start - 1
 if (ix_ele_end == 0) ix_ele_end = branch%n_ele_track
 
-call twiss_and_track (lat, closed_orb, ix_branch = ix_branch)
+call twiss_and_track (lat, ltt_internal%bmad_closed_orb, ix_branch = ix_branch)
 
 ! Init 1-turn map.
 
@@ -221,7 +243,7 @@ if (.not. lttp%rfcavity_on) then
   endif
 endif
 
-if (lttp%need_map .and. map_file_exists) then
+if (lttp%need_map .and. map_file_exists .and. .not. lttp%write_map) then
   call ptc_read_map_with_radiation(lttp%map_file, rad_map)
 
   if (lttp%mpi_rank == master_rank$) then
@@ -260,6 +282,14 @@ if (lttp%write_map) then
   print '(2a)', 'Created map file: ', trim(lttp%map_file)
 endif
 
+! Init PTC layout if needed
+
+if (lttp%tracking_method == 'PTC' .or. lttp%simulation_mode == 'CHECK') then
+  if (.not. associated(lat%branch(0)%ptc%m_t_layout)) call lat_to_ptc_layout(lat)
+  call ptc_setup_tracking_with_damping_and_excitation(lat%branch(0), bmad_com%radiation_damping_on, &
+                                          bmad_com%radiation_fluctuations_on, ltt_internal%rad_state, ltt_internal%ptc_closed_orb)
+endif
+
 end subroutine ltt_init_tracking
 
 !-------------------------------------------------------------------------------------------
@@ -290,48 +320,69 @@ end subroutine ltt_print_inital_info
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_run_check_mode (lttp, lat, rad_map, beam_init, closed_orb)
+subroutine ltt_run_check_mode (lttp, lat, rad_map, beam_init, ltt_internal)
 
 type (ltt_params_struct) lttp
 type (lat_struct), target :: lat
 type (ptc_map_with_rad_struct) rad_map
 type (beam_init_struct) beam_init
-type (coord_struct), allocatable :: closed_orb(:), orb(:)
+type (ltt_internal_struct) ltt_internal
+type (coord_struct), allocatable :: orb(:)
 type (coord_struct) orb_end, orb_init
 type (ele_struct), pointer :: ele_start
+type (probe) prb
 
-integer track_state, ix_ele_start
+real(rp) ptc_track, ptc_spin(3)
+integer track_state, ix_ele_start, ix_branch
 
 ! Run serial in check mode.
 
 ix_ele_start = lttp%start%ix_ele
 ele_start => pointer_to_ele(lat, lttp%start)
+ix_branch = ele_start%ix_branch
 
 call init_coord (orb_init, beam_init%center, ele_start, downstream_end$, spin = beam_init%spin)
 call reallocate_coord(orb, lat)
 
-if (lttp%add_closed_orbit_to_init_position) orb_init%vec = orb_init%vec + closed_orb(ix_ele_start)%vec
+if (lttp%add_closed_orbit_to_init_position) orb_init%vec = orb_init%vec + ltt_internal%bmad_closed_orb(ix_ele_start)%vec
 
 orb_end = orb_init
 orb(ix_ele_start) = orb_init
 
 call ptc_track_map_with_radiation (orb_end, rad_map)
-call track_many (lat, orb, ix_ele_start, ix_ele_start, 1, lttp%start%ix_branch, track_state)
+call track_many (lat, orb, ix_ele_start, ix_ele_start, 1, ix_branch, track_state)
 
-print '(a, 6f14.8)', 'Map closed orbit at start: ', rad_map%sub_map(1)%fix0
-print '(a, 6f14.8)', 'Bmad closed orbit at start:', closed_orb(ix_ele_start)%vec
+prb = orb_init%vec
+prb%q%x = [1, 0, 0, 0]   ! Unit quaternion
+call track_probe (prb, ltt_internal%rad_state, fibre1 = lat%branch(ix_branch)%ele(1)%ptc_fibre)
+ptc_spin = rotate_vec_given_quat(prb%q%x, orb_init%spin)
+
+print '(a, 6f14.8)', 'Map closed orbit at start:  ', rad_map%sub_map(1)%fix0
+print '(a, 6f14.8)', 'Bmad closed orbit at start: ', ltt_internal%bmad_closed_orb(ix_ele_start)%vec
+
+print *
+print '(a, 6f14.8)', 'Starting orbit for tracking:', orb_init%vec
 
 print *
 print '(a)', 'Phase Space at Track End (Bmad closed orbit used with map tracking:'
-print '(a, 6f14.8)', 'Map tracking:       ', orb_end%vec
-print '(a, 6f14.8)', 'Ele-by-ele tracking:', orb(ix_ele_start)%vec
-print '(a, 6f14.8)', 'Diff:               ', orb_end%vec - orb(ix_ele_start)%vec
+print '(a, 6f14.8)', 'Map tracking:   ', orb_end%vec
+print '(a, 6f14.8)', 'Bmad tracking:  ', orb(ix_ele_start)%vec
+print '(a, 6f14.8)', 'PTC tracking:   ', prb%x
+print '(a, 6f14.8)', 'Diff Map - PTC:   ', orb_end%vec - prb%x
+print '(a, 6f14.8)', 'Diff Bmad - PTC:  ', orb(ix_ele_start)%vec - prb%x
+print '(a, 6f14.8)', 'Diff Bmad - Map:  ', orb(ix_ele_start)%vec - orb_end%vec
+
+print *
+print '(a, 6f14.8)', 'Initial spin: ', orb_init%spin
 
 print *
 print '(a)', 'Spin at Track End:'
-print '(a, 6f14.8)', 'Map tracking:       ', orb_end%spin
-print '(a, 6f14.8)', 'Ele-by-ele tracking:', orb(ix_ele_start)%spin
-print '(a, 6f14.8)', 'Diff:               ', orb_end%spin - orb(ix_ele_start)%spin
+print '(a, 6f14.8)', 'Map tracking: ', orb_end%spin
+print '(a, 6f14.8)', 'Bmad tracking:', orb(ix_ele_start)%spin
+print '(a, 6f14.8)', 'PTC tracking: ', ptc_spin
+print '(a, 6f14.8)', 'Diff Map - PTC: ', orb_end%spin - ptc_spin
+print '(a, 6f14.8)', 'Diff Bmad - PTC:', orb(ix_ele_start)%spin - ptc_spin
+print '(a, 6f14.8)', 'Diff Bmad - Map:', orb(ix_ele_start)%spin - orb_end%spin
 
 end subroutine ltt_run_check_mode
 
@@ -339,13 +390,14 @@ end subroutine ltt_run_check_mode
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_run_single_mode (lttp, lat, beam_init, closed_orb, rad_map)
+subroutine ltt_run_single_mode (lttp, lat, beam_init, ltt_internal,rad_map)
 
 type (ltt_params_struct) lttp
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (beam_init_struct) beam_init
-type (coord_struct), allocatable :: closed_orb(:), orb(:)
+type (ltt_internal_struct) ltt_internal
+type (coord_struct), allocatable :: orb(:)
 type (coord_struct) orb_end
 type (ele_struct), pointer :: ele
 type (ptc_map_with_rad_struct) rad_map
@@ -367,7 +419,7 @@ ix_branch = lttp%start%ix_branch
 ele_start => pointer_to_ele(lat, lttp%start)
 branch => lat%branch(ix_branch)
 
-call ltt_setup_space_charge(lttp, lat, beam_init, closed_orb)
+call ltt_setup_space_charge(lttp, lat, beam_init, ltt_internal)
 
 call reallocate_coord (orb, lat)
 call init_coord (orb(ix_ele_start), beam_init%center, ele_start, downstream_end$, lat%param%particle, spin = beam_init%spin)
@@ -375,7 +427,7 @@ call init_coord (orb(ix_ele_start), beam_init%center, ele_start, downstream_end$
 if (lttp%add_closed_orbit_to_init_position) then
   select case (lttp%tracking_method)
   case ('MAP');       orb(ix_ele_start)%vec = orb(ix_ele_start)%vec + rad_map%sub_map(1)%fix0
-  case ('STANDARD');  orb(ix_ele_start)%vec = orb(ix_ele_start)%vec + closed_orb(ix_ele_start)%vec
+  case ('BMAD');      orb(ix_ele_start)%vec = orb(ix_ele_start)%vec + ltt_internal%bmad_closed_orb(ix_ele_start)%vec
   case ('PTC');       call err_exit  ! Not yet implemented 
   end select
 endif
@@ -394,7 +446,7 @@ do i_turn = 1, lttp%n_turns
     orb_end = orb(ix_ele_start)
     call ptc_track_map_with_radiation (orb_end, rad_map)
     is_lost = orbit_too_large(orb_end)
-  case ('STANDARD')
+  case ('BMAD')
     call track_many (lat, orb, ix_ele_start, ix_ele_start, 1, ix_branch, track_state)
     is_lost = (track_state /= moving_forward$)
     orb_end = orb(ix_ele_start)
@@ -437,12 +489,13 @@ end subroutine ltt_run_single_mode
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_run_bunch_mode (lttp, lat, beam_init, closed_orb, rad_map, sum_data_array)
+subroutine ltt_run_bunch_mode (lttp, lat, beam_init, ltt_internal,rad_map, sum_data_array)
 
 type (ltt_params_struct) lttp
 type (lat_struct) lat
 type (beam_init_struct) beam_init
-type (coord_struct), allocatable :: closed_orb(:), orb(:)
+type (ltt_internal_struct) ltt_internal
+type (coord_struct), allocatable :: orb(:)
 type (ptc_map_with_rad_struct) rad_map
 type (bunch_struct), target :: bunch, bunch_init
 type (coord_struct), pointer :: p
@@ -450,11 +503,12 @@ type (ltt_sum_data_struct), allocatable, optional :: sum_data_array(:)
 type (ltt_sum_data_struct), allocatable, target :: sum_data_arr(:)
 type (ltt_sum_data_struct), pointer :: sd
 type (ele_struct), pointer :: ele_start
+type (probe) prb
 
 real(rp) time0, time
 
 integer n, ix_ele_start, n_print_dead_loss, i_turn
-integer ip, n_live_old, n_live
+integer ip, n_live_old, n_live, ix_branch
 
 logical err_flag
 
@@ -462,12 +516,13 @@ logical err_flag
 
 ix_ele_start = lttp%start%ix_ele
 ele_start => pointer_to_ele (lat, lttp%start)
+ix_branch = ele_start%ix_branch
 
 if (lttp%using_mpi) beam_init%n_particle = lttp%mpi_n_particles_per_run
 call init_bunch_distribution (ele_start, lat%param, beam_init, lttp%start%ix_branch, bunch, err_flag)
 if (err_flag) stop
 
-call ltt_setup_space_charge(lttp, lat, beam_init, closed_orb)
+call ltt_setup_space_charge(lttp, lat, beam_init, ltt_internal)
 
 if (lttp%mpi_rank == master_rank$) print '(a, i8)',   'n_particle             = ', size(bunch%particle)
 
@@ -476,8 +531,8 @@ do n = 1, size(bunch%particle)
   if (lttp%add_closed_orbit_to_init_position) then
     select case (lttp%tracking_method)
     case ('MAP');       p%vec = p%vec + rad_map%sub_map(1)%fix0
-    case ('STANDARD');  p%vec = p%vec + closed_orb(ix_ele_start)%vec
-    case ('PTC');       call err_exit  ! Not yet implemented 
+    case ('BMAD');      p%vec = p%vec + ltt_internal%bmad_closed_orb(ix_ele_start)%vec
+    case ('PTC');       p%vec = p%vec + ltt_internal%ptc_closed_orb
     end select
   endif
 enddo
@@ -499,13 +554,20 @@ do i_turn = 1, lttp%n_turns
   case ('MAP')
     do ip = 1, size(bunch%particle)
       call ptc_track_map_with_radiation (bunch%particle(ip), rad_map)
-      if (lttp%debug .and. ip == 1) print '(i6, 6f15.9)', i_turn, bunch%particle(ip)%vec
     enddo
-  case ('STANDARD')
+
+  case ('BMAD')
     call track_bunch (lat, bunch, ele_start, ele_start, err_flag)
+
   case ('PTC')
-    print *, 'Not yet implemented...'
-    stop
+    do ip = 1, size(bunch%particle)
+      prb = p%vec
+      prb%q%x = [1, 0, 0, 0]  ! Unit quaternion
+      call track_probe (prb, ltt_internal%rad_state, fibre1 = lat%branch(ix_branch)%ele(1)%ptc_fibre)
+      p%vec = prb%x
+      p%spin = rotate_vec_given_quat(prb%q%x, p%spin)
+    enddo
+
   case default
     print *, 'Unknown tracking_method: ' // lttp%tracking_method
     stop
@@ -549,11 +611,11 @@ end subroutine ltt_run_bunch_mode
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_run_stat_mode (lttp, lat, closed_orb)
+subroutine ltt_run_stat_mode (lttp, lat, ltt_internal)
 
 type (ltt_params_struct) lttp
 type (lat_struct), target :: lat
-type (coord_struct), allocatable :: closed_orb(:)
+type (ltt_internal_struct) ltt_internal
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 type (normal_modes_struct) modes
@@ -581,7 +643,7 @@ do i = 0, lat%n_ele_track
                     ele%a%beta, ele%b%beta, ele%a%alpha, ele%b%alpha, ele%a%phi, ele%b%phi, ele%a%eta,  ele%b%eta
   write(21,'(i4,2x,a16,2x,a,1x,f10.3,4(1x,f12.6))') i, ele%name, key_name(ele%key), &
                                       ele%s,ele%c_mat(1,1),ele%c_mat(1,2),ele%c_mat(2,1),ele%c_mat(2,2)
-  write(22,'(a,1x,f10.3,4(1x,f10.6))') ele%name, ele%s, closed_orb(i)%vec(1:5:2), closed_orb(i)%vec(6)
+  write(22,'(a,1x,f10.3,4(1x,f10.6))') ele%name, ele%s, ltt_internal%bmad_closed_orb(i)%vec(1:5:2), ltt_internal%bmad_closed_orb(i)%vec(6)
 enddo
 
 close(20)
@@ -593,7 +655,7 @@ close(22)
 ring_length = branch%param%total_length
 call chrom_calc(lat, 1.0d-6, chrom_x, chrom_y, err_flag, ix_branch = branch%ix_branch)
 call calc_z_tune (lat)
-call radiation_integrals (lat, closed_orb, modes, rad_int_by_ele = rad_int_ele, ix_branch = branch%ix_branch)
+call radiation_integrals (lat, ltt_internal%bmad_closed_orb, modes, rad_int_by_ele = rad_int_ele, ix_branch = branch%ix_branch)
 
 print *, 'Momentum Compaction:', modes%synch_int(1)/ring_length
 print *, 'dE/E=', modes%sigE_E
@@ -615,12 +677,12 @@ end subroutine ltt_run_stat_mode
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_setup_space_charge(lttp, lat, beam_init, closed_orb)
+subroutine ltt_setup_space_charge(lttp, lat, beam_init, ltt_internal)
 
 type (ltt_params_struct) lttp
 type (lat_struct) lat
 type (beam_init_struct) beam_init
-type (coord_struct) :: closed_orb(0:)
+type (ltt_internal_struct) ltt_internal
 type (normal_modes_struct) mode
 real(rp) n_particle
 
@@ -639,11 +701,11 @@ if (.not. lttp%rfcavity_on) then
   return
 endif
 
-call radiation_integrals(lat, closed_orb, mode, ix_branch = lttp%start%ix_branch)
+call radiation_integrals(lat, ltt_internal%bmad_closed_orb, mode, ix_branch = lttp%start%ix_branch)
 if (lttp%a_emittance /= 0) mode%a%emittance = lttp%a_emittance
 if (lttp%b_emittance /= 0) mode%b%emittance = lttp%b_emittance
-n_particle = abs(beam_init%bunch_charge / (e_charge * charge_of(closed_orb(0)%species)))
-call setup_ultra_rel_space_charge_calc (.true., lat, n_particle, mode, closed_orb)
+n_particle = abs(beam_init%bunch_charge / (e_charge * charge_of(ltt_internal%bmad_closed_orb(0)%species)))
+call setup_ultra_rel_space_charge_calc (.true., lat, n_particle, mode)
 
 end subroutine ltt_setup_space_charge
 
