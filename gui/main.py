@@ -62,8 +62,9 @@ class tao_root_window(tk.Tk):
 
     # Tao startup
 
-    ##sys.path.append(os.environ['ACC_ROOT_DIR'] + '/tao/python/tao_pexpect')
-    sys.path.append('/home/dcs16/linux_lib/tao/python/tao_pexpect')
+    sys.path.append(os.environ['ACC_ROOT_DIR'] + '/tao/python/tao_pexpect')
+    #SHOULD BE $DIST_BASE_DIR/tao/python/tao_pexpect
+    #sys.path.append('/home/dcs16/linux_lib/tao/python/tao_pexpect')
 
     import tao_pipe
     self.pipe = tao_pipe.tao_io()
