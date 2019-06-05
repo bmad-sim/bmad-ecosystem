@@ -240,7 +240,7 @@ character(100) :: word1, word2, fmt, fmt2, fmt3, switch, why_invalid
 character(200) header, str, attrib0, file_name, name
 character(200), allocatable :: alloc_lines(:)
 
-character(16) :: show_what, show_names(39) = [ &
+character(16) :: show_what, show_names(40) = [ &
    'data            ', 'variable        ', 'global          ', 'alias           ', 'top10           ', &
    'optimizer       ', 'element         ', 'lattice         ', 'constraints     ', 'plot            ', &
    'beam            ', 'tune            ', 'graph           ', 'curve           ', 'particle        ', &
@@ -248,7 +248,7 @@ character(16) :: show_what, show_names(39) = [ &
    'branch          ', 'use             ', 'taylor_map      ', 'value           ', 'wave            ', &
    'twiss_and_orbit ', 'building_wall   ', 'wall            ', 'normal_form     ', 'dynamic_aperture', &
    'matrix          ', 'field           ', 'wake_elements   ', 'history         ', 'symbolic_numbers', &
-   'merit           ', 'track           ', 'spin            ', 'internal        ']
+   'merit           ', 'track           ', 'spin            ', 'internal        ', 'control         ']
 
 integer data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
@@ -633,6 +633,24 @@ case ('constraints')
   call tao_show_constraints (0, '*')
   call tao_show_constraints (0, 'MERIT')
   result_id = show_what
+
+!----------------------------------------------------------------------
+! control
+
+case ('control')
+
+  ele_name = what2
+
+  call tao_locate_elements (ele_name, ix_u, eles, err, lat_type, multiple_eles_is_err = .true.)
+  if (err) return
+  u => s%u(ix_u)
+
+!Multipass_lord: 
+
+!Super_lord:     yyyy     quadrupole
+!Super_lord:     zzzz
+
+!Element:        xxxx     quadrupole  3>>4
 
 !----------------------------------------------------------------------
 ! curve
