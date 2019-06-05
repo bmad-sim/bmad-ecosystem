@@ -591,6 +591,7 @@ bool operator== (const CPP_grid_field& x, const CPP_grid_field& y) {
   is_eq = is_eq && (x.field_type == y.field_type);
   is_eq = is_eq && (x.master_parameter == y.master_parameter);
   is_eq = is_eq && (x.ele_anchor_pt == y.ele_anchor_pt);
+  is_eq = is_eq && (x.interpolation_order == y.interpolation_order);
   is_eq = is_eq && is_all_equal(x.dr, y.dr);
   is_eq = is_eq && is_all_equal(x.r0, y.r0);
   is_eq = is_eq && (x.curved_ref_frame == y.curved_ref_frame);
@@ -665,7 +666,7 @@ template bool is_all_equal (const CPP_floor_position_MATRIX&, const CPP_floor_po
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_space_charge& x, const CPP_space_charge& y) {
+bool operator== (const CPP_high_energy_space_charge& x, const CPP_high_energy_space_charge& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.closed_orb == y.closed_orb);
   is_eq = is_eq && (x.kick_const == y.kick_const);
@@ -678,8 +679,8 @@ bool operator== (const CPP_space_charge& x, const CPP_space_charge& y) {
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_space_charge_ARRAY&, const CPP_space_charge_ARRAY&);
-template bool is_all_equal (const CPP_space_charge_MATRIX&, const CPP_space_charge_MATRIX&);
+template bool is_all_equal (const CPP_high_energy_space_charge_ARRAY&, const CPP_high_energy_space_charge_ARRAY&);
+template bool is_all_equal (const CPP_high_energy_space_charge_MATRIX&, const CPP_high_energy_space_charge_MATRIX&);
 
 //--------------------------------------------------------------
 
@@ -1026,6 +1027,7 @@ template bool is_all_equal (const CPP_grid_beam_init_MATRIX&, const CPP_grid_bea
 
 bool operator== (const CPP_beam_init& x, const CPP_beam_init& y) {
   bool is_eq = true;
+  is_eq = is_eq && (x.position_file == y.position_file);
   is_eq = is_eq && (x.file_name == y.file_name);
   is_eq = is_eq && is_all_equal(x.distribution_type, y.distribution_type);
   is_eq = is_eq && is_all_equal(x.spin, y.spin);
@@ -1079,6 +1081,7 @@ bool operator== (const CPP_lat_param& x, const CPP_lat_param& y) {
   is_eq = is_eq && (x.default_tracking_species == y.default_tracking_species);
   is_eq = is_eq && (x.geometry == y.geometry);
   is_eq = is_eq && (x.ixx == y.ixx);
+  is_eq = is_eq && (x.high_energy_space_charge_on == y.high_energy_space_charge_on);
   is_eq = is_eq && (x.stable == y.stable);
   is_eq = is_eq && (x.live_branch == y.live_branch);
   is_eq = is_eq && (x.bookkeeping_state == y.bookkeeping_state);
@@ -1244,17 +1247,12 @@ bool operator== (const CPP_csr_parameter& x, const CPP_csr_parameter& y) {
   is_eq = is_eq && (x.n_bin == y.n_bin);
   is_eq = is_eq && (x.particle_bin_span == y.particle_bin_span);
   is_eq = is_eq && (x.n_shield_images == y.n_shield_images);
-  is_eq = is_eq && (x.ix1_ele_csr == y.ix1_ele_csr);
-  is_eq = is_eq && (x.ix2_ele_csr == y.ix2_ele_csr);
   is_eq = is_eq && (x.sc_min_in_bin == y.sc_min_in_bin);
-  is_eq = is_eq && (x.lcsr_component_on == y.lcsr_component_on);
-  is_eq = is_eq && (x.lsc_component_on == y.lsc_component_on);
-  is_eq = is_eq && (x.tsc_component_on == y.tsc_component_on);
   is_eq = is_eq && (x.lsc_kick_transverse_dependence == y.lsc_kick_transverse_dependence);
   is_eq = is_eq && (x.print_taylor_warning == y.print_taylor_warning);
+  is_eq = is_eq && (x.write_csr_wake == y.write_csr_wake);
   is_eq = is_eq && (x.use_csr_old == y.use_csr_old);
   is_eq = is_eq && (x.small_angle_approx == y.small_angle_approx);
-  is_eq = is_eq && (x.write_csr_wake == y.write_csr_wake);
   return is_eq;
 };
 
@@ -1295,8 +1293,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.lr_wakes_on == y.lr_wakes_on);
   is_eq = is_eq && (x.mat6_track_symmetric == y.mat6_track_symmetric);
   is_eq = is_eq && (x.auto_bookkeeper == y.auto_bookkeeper);
-  is_eq = is_eq && (x.space_charge_on == y.space_charge_on);
-  is_eq = is_eq && (x.coherent_synch_rad_on == y.coherent_synch_rad_on);
+  is_eq = is_eq && (x.csr_and_space_charge_on == y.csr_and_space_charge_on);
   is_eq = is_eq && (x.spin_tracking_on == y.spin_tracking_on);
   is_eq = is_eq && (x.backwards_time_tracking_on == y.backwards_time_tracking_on);
   is_eq = is_eq && (x.spin_sokolov_ternov_flipping_on == y.spin_sokolov_ternov_flipping_on);
@@ -1304,6 +1301,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.radiation_fluctuations_on == y.radiation_fluctuations_on);
   is_eq = is_eq && (x.conserve_taylor_maps == y.conserve_taylor_maps);
   is_eq = is_eq && (x.absolute_time_tracking_default == y.absolute_time_tracking_default);
+  is_eq = is_eq && (x.twiss_normalize_off_energy == y.twiss_normalize_off_energy);
   is_eq = is_eq && (x.convert_to_kinetic_momentum == y.convert_to_kinetic_momentum);
   is_eq = is_eq && (x.aperture_limit_on == y.aperture_limit_on);
   is_eq = is_eq && (x.ptc_print_info_messages == y.ptc_print_info_messages);
@@ -1400,9 +1398,9 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && ((x.rad_int_cache == NULL) == (y.rad_int_cache == NULL));
   if (!is_eq) return false;
   if (x.rad_int_cache != NULL) is_eq = (*x.rad_int_cache == *y.rad_int_cache);
-  is_eq = is_eq && ((x.space_charge == NULL) == (y.space_charge == NULL));
+  is_eq = is_eq && ((x.high_energy_space_charge == NULL) == (y.high_energy_space_charge == NULL));
   if (!is_eq) return false;
-  if (x.space_charge != NULL) is_eq = (*x.space_charge == *y.space_charge);
+  if (x.high_energy_space_charge != NULL) is_eq = (*x.high_energy_space_charge == *y.high_energy_space_charge);
   is_eq = is_eq && is_all_equal(x.taylor, y.taylor);
   is_eq = is_eq && is_all_equal(x.spin_taylor, y.spin_taylor);
   is_eq = is_eq && ((x.wake == NULL) == (y.wake == NULL));
@@ -1447,6 +1445,8 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && (x.mat6_calc_method == y.mat6_calc_method);
   is_eq = is_eq && (x.tracking_method == y.tracking_method);
   is_eq = is_eq && (x.spin_tracking_method == y.spin_tracking_method);
+  is_eq = is_eq && (x.csr_method == y.csr_method);
+  is_eq = is_eq && (x.space_charge_method == y.space_charge_method);
   is_eq = is_eq && (x.ptc_integration_type == y.ptc_integration_type);
   is_eq = is_eq && (x.field_calc == y.field_calc);
   is_eq = is_eq && (x.aperture_at == y.aperture_at);
@@ -1462,7 +1462,6 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && (x.logic == y.logic);
   is_eq = is_eq && (x.bmad_logic == y.bmad_logic);
   is_eq = is_eq && (x.select == y.select);
-  is_eq = is_eq && (x.csr_calc_on == y.csr_calc_on);
   is_eq = is_eq && (x.offset_moves_aperture == y.offset_moves_aperture);
   return is_eq;
 };
@@ -1606,6 +1605,7 @@ bool operator== (const CPP_bunch_params& x, const CPP_bunch_params& y) {
   is_eq = is_eq && (x.n_particle_tot == y.n_particle_tot);
   is_eq = is_eq && (x.n_particle_live == y.n_particle_live);
   is_eq = is_eq && (x.n_particle_lost_in_ele == y.n_particle_lost_in_ele);
+  is_eq = is_eq && (x.twiss_valid == y.twiss_valid);
   return is_eq;
 };
 

@@ -211,10 +211,10 @@ typedef valarray<CPP_floor_position>          CPP_floor_position_ARRAY;
 typedef valarray<CPP_floor_position_ARRAY>    CPP_floor_position_MATRIX;
 typedef valarray<CPP_floor_position_MATRIX>   CPP_floor_position_TENSOR;
 
-class CPP_space_charge;
-typedef valarray<CPP_space_charge>          CPP_space_charge_ARRAY;
-typedef valarray<CPP_space_charge_ARRAY>    CPP_space_charge_MATRIX;
-typedef valarray<CPP_space_charge_MATRIX>   CPP_space_charge_TENSOR;
+class CPP_high_energy_space_charge;
+typedef valarray<CPP_high_energy_space_charge>          CPP_high_energy_space_charge_ARRAY;
+typedef valarray<CPP_high_energy_space_charge_ARRAY>    CPP_high_energy_space_charge_MATRIX;
+typedef valarray<CPP_high_energy_space_charge_MATRIX>   CPP_high_energy_space_charge_TENSOR;
 
 class CPP_xy_disp;
 typedef valarray<CPP_xy_disp>          CPP_xy_disp_ARRAY;
@@ -1547,6 +1547,7 @@ public:
   Int field_type;
   Int master_parameter;
   Int ele_anchor_pt;
+  Int interpolation_order;
   Real_ARRAY dr;
   Real_ARRAY r0;
   Bool curved_ref_frame;
@@ -1560,6 +1561,7 @@ public:
     field_type(Bmad::MIXED),
     master_parameter(0),
     ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
+    interpolation_order(1),
     dr(0.0, 3),
     r0(0.0, 3),
     curved_ref_frame(false),
@@ -1704,11 +1706,11 @@ bool operator== (const CPP_floor_position&, const CPP_floor_position&);
 
 
 //--------------------------------------------------------------------
-// CPP_space_charge
+// CPP_high_energy_space_charge
 
-class Opaque_space_charge_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_high_energy_space_charge_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_space_charge {
+class CPP_high_energy_space_charge {
 public:
   CPP_coord closed_orb;
   Real kick_const;
@@ -1719,7 +1721,7 @@ public:
   Real cos_phi;
   Real sig_z;
 
-  CPP_space_charge() :
+  CPP_high_energy_space_charge() :
     closed_orb(),
     kick_const(0.0),
     sig_x(0.0),
@@ -1730,15 +1732,15 @@ public:
     sig_z(0.0)
     {}
 
-  ~CPP_space_charge() {
+  ~CPP_high_energy_space_charge() {
   }
 
 };   // End Class
 
-extern "C" void space_charge_to_c (const Opaque_space_charge_class*, CPP_space_charge&);
-extern "C" void space_charge_to_f (const CPP_space_charge&, Opaque_space_charge_class*);
+extern "C" void high_energy_space_charge_to_c (const Opaque_high_energy_space_charge_class*, CPP_high_energy_space_charge&);
+extern "C" void high_energy_space_charge_to_f (const CPP_high_energy_space_charge&, Opaque_high_energy_space_charge_class*);
 
-bool operator== (const CPP_space_charge&, const CPP_space_charge&);
+bool operator== (const CPP_high_energy_space_charge&, const CPP_high_energy_space_charge&);
 
 
 //--------------------------------------------------------------------
@@ -2467,6 +2469,7 @@ class Opaque_beam_init_class {};  // Opaque class for pointers to corresponding 
 
 class CPP_beam_init {
 public:
+  string position_file;
   string file_name;
   String_ARRAY distribution_type;
   Real_ARRAY spin;
@@ -2502,6 +2505,7 @@ public:
   Bool use_z_as_t;
 
   CPP_beam_init() :
+    position_file(),
     file_name(),
     distribution_type(String_ARRAY(string(), 3)),
     spin(0.0, 3),
@@ -2565,6 +2569,7 @@ public:
   Int default_tracking_species;
   Int geometry;
   Int ixx;
+  Bool high_energy_space_charge_on;
   Bool stable;
   Bool live_branch;
   CPP_bookkeeping_state bookkeeping_state;
@@ -2581,6 +2586,7 @@ public:
     default_tracking_species(Bmad::REF_PARTICLE),
     geometry(0),
     ixx(0),
+    high_energy_space_charge_on(false),
     stable(false),
     live_branch(true),
     bookkeeping_state(),
@@ -2919,17 +2925,12 @@ public:
   Int n_bin;
   Int particle_bin_span;
   Int n_shield_images;
-  Int ix1_ele_csr;
-  Int ix2_ele_csr;
   Int sc_min_in_bin;
-  Bool lcsr_component_on;
-  Bool lsc_component_on;
-  Bool tsc_component_on;
   Bool lsc_kick_transverse_dependence;
   Bool print_taylor_warning;
+  Bool write_csr_wake;
   Bool use_csr_old;
   Bool small_angle_approx;
-  Bool write_csr_wake;
 
   CPP_csr_parameter() :
     ds_track_step(0.0),
@@ -2938,17 +2939,12 @@ public:
     n_bin(0),
     particle_bin_span(2),
     n_shield_images(0),
-    ix1_ele_csr(-1),
-    ix2_ele_csr(-1),
     sc_min_in_bin(10),
-    lcsr_component_on(true),
-    lsc_component_on(true),
-    tsc_component_on(false),
     lsc_kick_transverse_dependence(false),
     print_taylor_warning(true),
+    write_csr_wake(false),
     use_csr_old(false),
-    small_angle_approx(true),
-    write_csr_wake(false)
+    small_angle_approx(true)
     {}
 
   ~CPP_csr_parameter() {
@@ -2999,8 +2995,7 @@ public:
   Bool lr_wakes_on;
   Bool mat6_track_symmetric;
   Bool auto_bookkeeper;
-  Bool space_charge_on;
-  Bool coherent_synch_rad_on;
+  Bool csr_and_space_charge_on;
   Bool spin_tracking_on;
   Bool backwards_time_tracking_on;
   Bool spin_sokolov_ternov_flipping_on;
@@ -3008,6 +3003,7 @@ public:
   Bool radiation_fluctuations_on;
   Bool conserve_taylor_maps;
   Bool absolute_time_tracking_default;
+  Bool twiss_normalize_off_energy;
   Bool convert_to_kinetic_momentum;
   Bool aperture_limit_on;
   Bool ptc_print_info_messages;
@@ -3044,8 +3040,7 @@ public:
     lr_wakes_on(true),
     mat6_track_symmetric(true),
     auto_bookkeeper(true),
-    space_charge_on(false),
-    coherent_synch_rad_on(false),
+    csr_and_space_charge_on(false),
     spin_tracking_on(false),
     backwards_time_tracking_on(false),
     spin_sokolov_ternov_flipping_on(false),
@@ -3053,6 +3048,7 @@ public:
     radiation_fluctuations_on(false),
     conserve_taylor_maps(true),
     absolute_time_tracking_default(false),
+    twiss_normalize_off_energy(false),
     convert_to_kinetic_momentum(false),
     aperture_limit_on(true),
     ptc_print_info_messages(false),
@@ -3202,7 +3198,7 @@ public:
   CPP_mode3* mode3;
   CPP_photon_element* photon;
   CPP_rad_int_ele_cache* rad_int_cache;
-  CPP_space_charge* space_charge;
+  CPP_high_energy_space_charge* high_energy_space_charge;
   CPP_taylor_ARRAY taylor;
   CPP_taylor_ARRAY spin_taylor;
   CPP_wake* wake;
@@ -3245,6 +3241,8 @@ public:
   Int mat6_calc_method;
   Int tracking_method;
   Int spin_tracking_method;
+  Int csr_method;
+  Int space_charge_method;
   Int ptc_integration_type;
   Int field_calc;
   Int aperture_at;
@@ -3260,7 +3258,6 @@ public:
   Bool logic;
   Bool bmad_logic;
   Bool select;
-  Bool csr_calc_on;
   Bool offset_moves_aperture;
 
   void class_init (const int key_) {
@@ -3307,7 +3304,7 @@ public:
     mode3(NULL),
     photon(NULL),
     rad_int_cache(NULL),
-    space_charge(NULL),
+    high_energy_space_charge(NULL),
     taylor(CPP_taylor_ARRAY(CPP_taylor(), 6)),
     spin_taylor(CPP_taylor_ARRAY(CPP_taylor(), 4)),
     wake(NULL),
@@ -3350,6 +3347,8 @@ public:
     mat6_calc_method(Bmad::BMAD_STANDARD),
     tracking_method(Bmad::BMAD_STANDARD),
     spin_tracking_method(Bmad::BMAD_STANDARD),
+    csr_method(Bmad::OFF),
+    space_charge_method(Bmad::OFF),
     ptc_integration_type(Bmad::MATRIX_KICK),
     field_calc(Bmad::BMAD_STANDARD),
     aperture_at(Bmad::DOWNSTREAM_END),
@@ -3365,7 +3364,6 @@ public:
     logic(false),
     bmad_logic(false),
     select(false),
-    csr_calc_on(true),
     offset_moves_aperture(false)
         {
       class_init(key);
@@ -3379,7 +3377,7 @@ public:
     delete mode3;
     delete photon;
     delete rad_int_cache;
-    delete space_charge;
+    delete high_energy_space_charge;
     delete wake;
   }
 
@@ -3638,6 +3636,7 @@ public:
   Int n_particle_tot;
   Int n_particle_live;
   Int n_particle_lost_in_ele;
+  Bool twiss_valid;
 
   CPP_bunch_params() :
     centroid(),
@@ -3655,7 +3654,8 @@ public:
     charge_live(0.0),
     n_particle_tot(0),
     n_particle_live(0),
-    n_particle_lost_in_ele(0)
+    n_particle_lost_in_ele(0),
+    twiss_valid(false)
     {}
 
   ~CPP_bunch_params() {

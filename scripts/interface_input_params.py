@@ -4,7 +4,7 @@ struct_def_files = [
     '../sim_utils/math/spline_mod.f90',
     '../bmad/modules/bmad_struct.f90', 
     '../bmad/modules/taylor_mod.f90',
-    '../bmad/multiparticle/csr_mod.f90',
+    '../bmad/space_charge/csr_mod.f90',
     '../bmad/modules/complex_taylor_mod.f90',
 ]
 
@@ -58,7 +58,7 @@ struct_list = [
     'taylor_field_plane_struct',
     'taylor_field_struct',
     'floor_position_struct',
-    'space_charge_struct',
+    'high_energy_space_charge_struct',
     'xy_disp_struct',
     'twiss_struct',
     'mode3_struct',
@@ -114,15 +114,17 @@ struct_list = [
 #   <struct>%<component_name>
 
 component_no_translate_list = set([
-    'fibre', 
-    'ptc_branch1_info_struct',
-    'layout',
-    'exact_bend_multipole_struct',
-    'ele_struct%ptc_genfield',
-    'ele_struct%lord',
-    'ele_struct%branch',
-    'branch_struct%lat',
-    'normal_form_struct',
+  'fibre', 
+  'ptc_branch1_info_struct',
+  'layout',
+  'exact_bend_multipole_struct',
+  'ele_struct%ptc_genfield',
+  'ele_struct%lord',
+  'ele_struct%branch',
+  'branch_struct%lat',
+  'normal_form_struct',
+  'grid_field_struct%bi_coef',
+  'grid_field_struct%tri_coef',
 ])
 
 # List of structure components links:

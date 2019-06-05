@@ -3536,24 +3536,26 @@ rhs = 5 + offset; F%field_type = rhs
 rhs = 6 + offset; F%master_parameter = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 7 + offset; F%ele_anchor_pt = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 8 + offset; F%interpolation_order = rhs
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%dr,1); lb1 = lbound(F%dr,1) - 1
-  rhs = 100 + jd1 + 8 + offset
+  rhs = 100 + jd1 + 9 + offset
   F%dr(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%r0,1); lb1 = lbound(F%r0,1) - 1
-  rhs = 100 + jd1 + 9 + offset
+  rhs = 100 + jd1 + 10 + offset
   F%r0(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 10 + offset; F%curved_ref_frame = (modulo(rhs, 2) == 0)
+rhs = 11 + offset; F%curved_ref_frame = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[type, 0, PTR]
 if (ix_patt < 3) then
   if (associated(F%ptr)) deallocate (F%ptr)
 else
   if (.not. associated(F%ptr)) allocate (F%ptr)
-  rhs = 11 + offset
+  rhs = 12 + offset
   call set_grid_field_pt_test_pattern (F%ptr, ix_patt)
 endif
 
@@ -3964,18 +3966,18 @@ end subroutine set_floor_position_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_space_charge (ok)
+subroutine test1_f_high_energy_space_charge (ok)
 
 implicit none
 
-type(space_charge_struct), target :: f_space_charge, f2_space_charge
+type(high_energy_space_charge_struct), target :: f_high_energy_space_charge, f2_high_energy_space_charge
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_space_charge (c_space_charge, c_ok) bind(c)
+  subroutine test_c_high_energy_space_charge (c_high_energy_space_charge, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_space_charge
+    type(c_ptr), value :: c_high_energy_space_charge
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -3983,58 +3985,58 @@ end interface
 !
 
 ok = .true.
-call set_space_charge_test_pattern (f2_space_charge, 1)
+call set_high_energy_space_charge_test_pattern (f2_high_energy_space_charge, 1)
 
-call test_c_space_charge(c_loc(f2_space_charge), c_ok)
+call test_c_high_energy_space_charge(c_loc(f2_high_energy_space_charge), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_space_charge_test_pattern (f_space_charge, 4)
-if (f_space_charge == f2_space_charge) then
-  print *, 'space_charge: C side convert C->F: Good'
+call set_high_energy_space_charge_test_pattern (f_high_energy_space_charge, 4)
+if (f_high_energy_space_charge == f2_high_energy_space_charge) then
+  print *, 'high_energy_space_charge: C side convert C->F: Good'
 else
-  print *, 'space_charge: C SIDE CONVERT C->F: FAILED!'
+  print *, 'high_energy_space_charge: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_space_charge
+end subroutine test1_f_high_energy_space_charge
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_space_charge (c_space_charge, c_ok) bind(c)
+subroutine test2_f_high_energy_space_charge (c_high_energy_space_charge, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_space_charge
-type(space_charge_struct), target :: f_space_charge, f2_space_charge
+type(c_ptr), value ::  c_high_energy_space_charge
+type(high_energy_space_charge_struct), target :: f_high_energy_space_charge, f2_high_energy_space_charge
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call space_charge_to_f (c_space_charge, c_loc(f_space_charge))
+call high_energy_space_charge_to_f (c_high_energy_space_charge, c_loc(f_high_energy_space_charge))
 
-call set_space_charge_test_pattern (f2_space_charge, 2)
-if (f_space_charge == f2_space_charge) then
-  print *, 'space_charge: F side convert C->F: Good'
+call set_high_energy_space_charge_test_pattern (f2_high_energy_space_charge, 2)
+if (f_high_energy_space_charge == f2_high_energy_space_charge) then
+  print *, 'high_energy_space_charge: F side convert C->F: Good'
 else
-  print *, 'space_charge: F SIDE CONVERT C->F: FAILED!'
+  print *, 'high_energy_space_charge: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_space_charge_test_pattern (f2_space_charge, 3)
-call space_charge_to_c (c_loc(f2_space_charge), c_space_charge)
+call set_high_energy_space_charge_test_pattern (f2_high_energy_space_charge, 3)
+call high_energy_space_charge_to_c (c_loc(f2_high_energy_space_charge), c_high_energy_space_charge)
 
-end subroutine test2_f_space_charge
+end subroutine test2_f_high_energy_space_charge
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_space_charge_test_pattern (F, ix_patt)
+subroutine set_high_energy_space_charge_test_pattern (F, ix_patt)
 
 implicit none
 
-type(space_charge_struct) F
+type(high_energy_space_charge_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
@@ -4058,7 +4060,7 @@ rhs = 7 + offset; F%cos_phi = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 8 + offset; F%sig_z = rhs
 
-end subroutine set_space_charge_test_pattern
+end subroutine set_high_energy_space_charge_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -6231,101 +6233,105 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 offset = 100 * ix_patt
 
 !! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%position_file)
+  F%position_file(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
+enddo
+!! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%file_name)
-  F%file_name(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
+  F%file_name(jd1:jd1) = char(ichar("a") + modulo(100+2+offset+jd1, 26))
 enddo
 !! f_side.test_pat[character, 1, NOT]
 do jd1 = lbound(F%distribution_type, 1), ubound(F%distribution_type, 1)
   do jd = 1, len(F%distribution_type(jd1))
-    F%distribution_type(jd1)(jd:jd) = char(ichar("a") + modulo(100+2+offset+10*jd+jd1, 26))
+    F%distribution_type(jd1)(jd:jd) = char(ichar("a") + modulo(100+3+offset+10*jd+jd1, 26))
   enddo
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%spin,1); lb1 = lbound(F%spin,1) - 1
-  rhs = 100 + jd1 + 3 + offset
+  rhs = 100 + jd1 + 4 + offset
   F%spin(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[type, 1, NOT]
 do jd1 = 1, size(F%ellipse,1); lb1 = lbound(F%ellipse,1) - 1
-  rhs = 100 + jd1 + 4 + offset
+  rhs = 100 + jd1 + 5 + offset
   call set_ellipse_beam_init_test_pattern (F%ellipse(jd1+lb1), ix_patt+jd1)
 enddo
 !! f_side.test_pat[type, 0, NOT]
 call set_kv_beam_init_test_pattern (F%kv, ix_patt)
 !! f_side.test_pat[type, 1, NOT]
 do jd1 = 1, size(F%grid,1); lb1 = lbound(F%grid,1) - 1
-  rhs = 100 + jd1 + 6 + offset
+  rhs = 100 + jd1 + 7 + offset
   call set_grid_beam_init_test_pattern (F%grid(jd1+lb1), ix_patt+jd1)
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%center_jitter,1); lb1 = lbound(F%center_jitter,1) - 1
-  rhs = 100 + jd1 + 7 + offset
+  rhs = 100 + jd1 + 8 + offset
   F%center_jitter(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%emit_jitter,1); lb1 = lbound(F%emit_jitter,1) - 1
-  rhs = 100 + jd1 + 8 + offset
+  rhs = 100 + jd1 + 9 + offset
   F%emit_jitter(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 9 + offset; F%sig_z_jitter = rhs
+rhs = 10 + offset; F%sig_z_jitter = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 10 + offset; F%sig_e_jitter = rhs
+rhs = 11 + offset; F%sig_e_jitter = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 11 + offset; F%n_particle = rhs
+rhs = 12 + offset; F%n_particle = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 12 + offset; F%renorm_center = (modulo(rhs, 2) == 0)
+rhs = 13 + offset; F%renorm_center = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 13 + offset; F%renorm_sigma = (modulo(rhs, 2) == 0)
+rhs = 14 + offset; F%renorm_sigma = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%random_engine)
-  F%random_engine(jd1:jd1) = char(ichar("a") + modulo(100+14+offset+jd1, 26))
+  F%random_engine(jd1:jd1) = char(ichar("a") + modulo(100+15+offset+jd1, 26))
 enddo
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%random_gauss_converter)
-  F%random_gauss_converter(jd1:jd1) = char(ichar("a") + modulo(100+15+offset+jd1, 26))
+  F%random_gauss_converter(jd1:jd1) = char(ichar("a") + modulo(100+16+offset+jd1, 26))
 enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 16 + offset; F%random_sigma_cutoff = rhs
+rhs = 17 + offset; F%random_sigma_cutoff = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 17 + offset; F%a_norm_emit = rhs
+rhs = 18 + offset; F%a_norm_emit = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 18 + offset; F%b_norm_emit = rhs
+rhs = 19 + offset; F%b_norm_emit = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 19 + offset; F%a_emit = rhs
+rhs = 20 + offset; F%a_emit = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 20 + offset; F%b_emit = rhs
+rhs = 21 + offset; F%b_emit = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 21 + offset; F%dpz_dz = rhs
+rhs = 22 + offset; F%dpz_dz = rhs
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%center,1); lb1 = lbound(F%center,1) - 1
-  rhs = 100 + jd1 + 22 + offset
+  rhs = 100 + jd1 + 23 + offset
   F%center(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 23 + offset; F%dt_bunch = rhs
+rhs = 24 + offset; F%dt_bunch = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 24 + offset; F%sig_z = rhs
+rhs = 25 + offset; F%sig_z = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 25 + offset; F%sig_e = rhs
+rhs = 26 + offset; F%sig_e = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 26 + offset; F%bunch_charge = rhs
+rhs = 27 + offset; F%bunch_charge = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 27 + offset; F%n_bunch = rhs
+rhs = 28 + offset; F%n_bunch = rhs
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%species)
-  F%species(jd1:jd1) = char(ichar("a") + modulo(100+28+offset+jd1, 26))
+  F%species(jd1:jd1) = char(ichar("a") + modulo(100+29+offset+jd1, 26))
 enddo
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 29 + offset; F%init_spin = (modulo(rhs, 2) == 0)
+rhs = 30 + offset; F%init_spin = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 30 + offset; F%full_6d_coupling_calc = (modulo(rhs, 2) == 0)
+rhs = 31 + offset; F%full_6d_coupling_calc = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 31 + offset; F%use_particle_start_for_center = (modulo(rhs, 2) == 0)
+rhs = 32 + offset; F%use_particle_start_for_center = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 32 + offset; F%use_t_coords = (modulo(rhs, 2) == 0)
+rhs = 33 + offset; F%use_t_coords = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 33 + offset; F%use_z_as_t = (modulo(rhs, 2) == 0)
+rhs = 34 + offset; F%use_z_as_t = (modulo(rhs, 2) == 0)
 
 end subroutine set_beam_init_test_pattern
 
@@ -6439,9 +6445,11 @@ rhs = 9 + offset; F%geometry = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 10 + offset; F%ixx = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 11 + offset; F%stable = (modulo(rhs, 2) == 0)
+rhs = 11 + offset; F%high_energy_space_charge_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 12 + offset; F%live_branch = (modulo(rhs, 2) == 0)
+rhs = 12 + offset; F%stable = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 13 + offset; F%live_branch = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[type, 0, NOT]
 call set_bookkeeping_state_test_pattern (F%bookkeeping_state, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
@@ -7449,27 +7457,17 @@ rhs = 5 + offset; F%particle_bin_span = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 6 + offset; F%n_shield_images = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 7 + offset; F%ix1_ele_csr = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 8 + offset; F%ix2_ele_csr = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 9 + offset; F%sc_min_in_bin = rhs
+rhs = 7 + offset; F%sc_min_in_bin = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 10 + offset; F%lcsr_component_on = (modulo(rhs, 2) == 0)
+rhs = 8 + offset; F%lsc_kick_transverse_dependence = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 11 + offset; F%lsc_component_on = (modulo(rhs, 2) == 0)
+rhs = 9 + offset; F%print_taylor_warning = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 12 + offset; F%tsc_component_on = (modulo(rhs, 2) == 0)
+rhs = 10 + offset; F%write_csr_wake = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 13 + offset; F%lsc_kick_transverse_dependence = (modulo(rhs, 2) == 0)
+rhs = 11 + offset; F%use_csr_old = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 14 + offset; F%print_taylor_warning = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 15 + offset; F%use_csr_old = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 16 + offset; F%small_angle_approx = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 17 + offset; F%write_csr_wake = (modulo(rhs, 2) == 0)
+rhs = 12 + offset; F%small_angle_approx = (modulo(rhs, 2) == 0)
 
 end subroutine set_csr_parameter_test_pattern
 
@@ -7618,23 +7616,23 @@ rhs = 29 + offset; F%mat6_track_symmetric = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 30 + offset; F%auto_bookkeeper = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 31 + offset; F%space_charge_on = (modulo(rhs, 2) == 0)
+rhs = 31 + offset; F%csr_and_space_charge_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 32 + offset; F%coherent_synch_rad_on = (modulo(rhs, 2) == 0)
+rhs = 32 + offset; F%spin_tracking_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 33 + offset; F%spin_tracking_on = (modulo(rhs, 2) == 0)
+rhs = 33 + offset; F%backwards_time_tracking_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 34 + offset; F%backwards_time_tracking_on = (modulo(rhs, 2) == 0)
+rhs = 34 + offset; F%spin_sokolov_ternov_flipping_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 35 + offset; F%spin_sokolov_ternov_flipping_on = (modulo(rhs, 2) == 0)
+rhs = 35 + offset; F%radiation_damping_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 36 + offset; F%radiation_damping_on = (modulo(rhs, 2) == 0)
+rhs = 36 + offset; F%radiation_fluctuations_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 37 + offset; F%radiation_fluctuations_on = (modulo(rhs, 2) == 0)
+rhs = 37 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 38 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
+rhs = 38 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 39 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
+rhs = 39 + offset; F%twiss_normalize_off_energy = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 40 + offset; F%convert_to_kinetic_momentum = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
@@ -8154,11 +8152,11 @@ else
 endif
 !! f_side.test_pat[type, 0, PTR]
 if (ix_patt < 3) then
-  if (associated(F%space_charge)) deallocate (F%space_charge)
+  if (associated(F%high_energy_space_charge)) deallocate (F%high_energy_space_charge)
 else
-  if (.not. associated(F%space_charge)) allocate (F%space_charge)
+  if (.not. associated(F%high_energy_space_charge)) allocate (F%high_energy_space_charge)
   rhs = 32 + offset
-  call set_space_charge_test_pattern (F%space_charge, ix_patt)
+  call set_high_energy_space_charge_test_pattern (F%high_energy_space_charge, ix_patt)
 endif
 !! f_side.test_pat[type, 1, NOT]
 do jd1 = 1, size(F%taylor,1); lb1 = lbound(F%taylor,1) - 1
@@ -8340,39 +8338,41 @@ rhs = 84 + offset; F%tracking_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 85 + offset; F%spin_tracking_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 86 + offset; F%ptc_integration_type = rhs
+rhs = 86 + offset; F%csr_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 87 + offset; F%field_calc = rhs
+rhs = 87 + offset; F%space_charge_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 88 + offset; F%aperture_at = rhs
+rhs = 88 + offset; F%ptc_integration_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 89 + offset; F%aperture_type = rhs
+rhs = 89 + offset; F%field_calc = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 90 + offset; F%orientation = rhs
+rhs = 90 + offset; F%aperture_at = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 91 + offset; F%aperture_type = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 92 + offset; F%orientation = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 91 + offset; F%symplectify = (modulo(rhs, 2) == 0)
+rhs = 93 + offset; F%symplectify = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 92 + offset; F%mode_flip = (modulo(rhs, 2) == 0)
+rhs = 94 + offset; F%mode_flip = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 93 + offset; F%multipoles_on = (modulo(rhs, 2) == 0)
+rhs = 95 + offset; F%multipoles_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 94 + offset; F%scale_multipoles = (modulo(rhs, 2) == 0)
+rhs = 96 + offset; F%scale_multipoles = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 95 + offset; F%taylor_map_includes_offsets = (modulo(rhs, 2) == 0)
+rhs = 97 + offset; F%taylor_map_includes_offsets = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 96 + offset; F%field_master = (modulo(rhs, 2) == 0)
+rhs = 98 + offset; F%field_master = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 97 + offset; F%is_on = (modulo(rhs, 2) == 0)
+rhs = 99 + offset; F%is_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 98 + offset; F%logic = (modulo(rhs, 2) == 0)
+rhs = 100 + offset; F%logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 99 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
+rhs = 101 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 100 + offset; F%select = (modulo(rhs, 2) == 0)
+rhs = 102 + offset; F%select = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 101 + offset; F%csr_calc_on = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 102 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
+rhs = 103 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
 
 end subroutine set_ele_test_pattern
 
@@ -9180,6 +9180,8 @@ rhs = 14 + offset; F%n_particle_tot = rhs
 rhs = 15 + offset; F%n_particle_live = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 16 + offset; F%n_particle_lost_in_ele = rhs
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 17 + offset; F%twiss_valid = (modulo(rhs, 2) == 0)
 
 end subroutine set_bunch_params_test_pattern
 
