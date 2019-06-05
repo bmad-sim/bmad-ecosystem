@@ -1,4 +1,4 @@
-module space_charge_mod
+module high_energy_space_charge_mod
 
 use bmad_interface
 
@@ -8,15 +8,15 @@ contains
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Subroutine setup_ultra_rel_space_charge_calc (calc_on, lattice, n_part, mode, closed_orb)
+! Subroutine setup_high_energy_space_charge_calc (calc_on, branch, n_part, mode, closed_orb)
 !
 ! Routine to initialize constants needed by the ultra relativistic space charge 
-! tracking routine track1_ultra_rel_space_charge. This setup routine must be called if 
+! tracking routine track1_high_energy_space_charge. This setup routine must be called if 
 ! the lattice or any of the other input parameters are changed.
 !
 ! Input:
 !   calc_on    -- Logical: Turns on or off the space charge calculation.
-!   lattice    -- lat_struct: Lattice for tracking.
+!   branch     -- branch_struct: Lattice for tracking.
 !   n_part     -- Real(rp): Number of actual particles in a bunch. Used to compute the bunch charge.
 !   mode       -- normal_modes_struct: Structure holding the beam info.
 !     %a%emittance  -- a-mode unnormalized emittance.
@@ -27,14 +27,14 @@ contains
 !                       the closed orbit is taken to be zero. 
 !-
 
-subroutine setup_ultra_rel_space_charge_calc (calc_on, lattice, n_part, mode, closed_orb)
+subroutine setup_high_energy_space_charge_calc (calc_on, branch, n_part, mode, closed_orb)
 
 implicit none
 
-type (lat_struct), target :: lattice
+type (branch_struct), target :: branch
 type (coord_struct), optional :: closed_orb(0:)
 type (normal_modes_struct) mode
-type (space_charge_struct), pointer :: sc
+type (high_energy_space_charge_struct), pointer :: sc
 type (ele_struct), pointer :: ele
 type (twiss_struct), pointer :: a, b
 type (xy_disp_struct), pointer :: x, y
@@ -47,23 +47,23 @@ logical calc_on
 
 ! Transfer some data to the common block for later use
 
-bmad_com%space_charge_on = calc_on
+branch%param%high_energy_space_charge_on = calc_on
 
 if (present(closed_orb)) then
   mc2 = mass_of(closed_orb(0)%species)
   q2 = charge_of(closed_orb(0)%species)
 else
-  mc2 = mass_of(lattice%param%particle)
-  q2 = charge_of(lattice%param%particle)
+  mc2 = mass_of(branch%param%particle)
+  q2 = charge_of(branch%param%particle)
 endif
 
-! Loop over all lattice elements
+! Loop over all branch elements
 
-do i = 1, lattice%n_ele_track
+do i = 1, branch%n_ele_track
 
-  ele => lattice%ele(i)
-  if (.not. associated(ele%space_charge)) allocate(ele%space_charge)
-  sc => ele%space_charge
+  ele => branch%ele(i)
+  if (.not. associated(ele%high_energy_space_charge)) allocate(ele%high_energy_space_charge)
+  sc => ele%high_energy_space_charge
 
   sc%sig_z = mode%sig_z
 
@@ -118,9 +118,9 @@ do i = 1, lattice%n_ele_track
 ! The length over which the space charge acts is taken to be half 
 ! the length of the element + half the length of the next element.
 
-  length = (ele%value(l$) + lattice%ele(i+1)%value(l$)) / 2
-  if (i == 1) length = ele%value(l$) + lattice%ele(i+1)%value(l$) / 2
-  if (i == lattice%n_ele_track) length = ele%value(l$) / 2
+  length = (ele%value(l$) + branch%ele(i+1)%value(l$)) / 2
+  if (i == 1) length = ele%value(l$) + branch%ele(i+1)%value(l$) / 2
+  if (i == branch%n_ele_track) length = ele%value(l$) / 2
 
 ! Calculate the kick constant.
 ! Taken from:
@@ -136,16 +136,16 @@ do i = 1, lattice%n_ele_track
 
 enddo
 
-end subroutine setup_ultra_rel_space_charge_calc 
+end subroutine setup_high_energy_space_charge_calc 
 
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Subroutine track1_ultra_rel_space_charge (ele, param, orbit)
+! Subroutine track1_high_energy_space_charge (ele, param, orbit)
 !
 ! Routine to apply the ultra-relative space charge kick to a particle at the end of an element. 
-! The routine setup_ultra_rel_space_charge_calc must be called initially before any tracking is done. 
+! The routine setup_high_energy_space_charge_calc must be called initially before any tracking is done. 
 ! This routine assumes a Gaussian bunch and is only valid with relativistic particles where the 
 ! effect of the space charge is small.
 !
@@ -158,23 +158,23 @@ end subroutine setup_ultra_rel_space_charge_calc
 !   orbit   -- Coord_struct: End position
 !-
 
-subroutine track1_ultra_rel_space_charge (ele, param, orbit)
+subroutine track1_high_energy_space_charge (ele, param, orbit)
 
 implicit none
 
 type (coord_struct) :: orbit
 type (ele_struct), target, intent(inout)  :: ele
 type (lat_param_struct), intent(inout) :: param
-type (space_charge_struct), pointer :: sc
+type (high_energy_space_charge_struct), pointer :: sc
 
 real(rp) x, y, x_rel, y_rel, kx_rot, ky_rot
 real(rp) kx, ky, kick_const
 
 ! Init
 
-if (.not. associated(ele%space_charge)) return
+if (.not. associated(ele%high_energy_space_charge)) return
 
-sc => ele%space_charge
+sc => ele%high_energy_space_charge
 
 ! Rotate into frame where beam is not tilted.
 
@@ -198,13 +198,13 @@ kick_const = sc%kick_const * exp(-0.5 * (orbit%vec(5)/sc%sig_z)**2) / (1 + orbit
 orbit%vec(2) = orbit%vec(2) - kick_const * kx
 orbit%vec(4) = orbit%vec(4) - kick_const * ky
 
-end subroutine track1_ultra_rel_space_charge 
+end subroutine track1_high_energy_space_charge 
 
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Subroutine make_mat6_ultra_rel_space_charge (ele, param)
+! Subroutine make_mat6_high_energy_space_charge (ele, param)
 !
 ! Routine to add the ultra relativistic space charge kick to the element transfer matrix.
 ! The routine setup_space_charge_calc must be called
@@ -223,21 +223,21 @@ end subroutine track1_ultra_rel_space_charge
 !   end   -- Coord_struct: End position
 !-
 
-subroutine make_mat6_ultra_rel_space_charge (ele, param)
+subroutine make_mat6_high_energy_space_charge (ele, param)
 
 implicit none
 
 type (ele_struct), target, intent(inout)  :: ele
 type (lat_param_struct), intent(inout) :: param
-type (space_charge_struct), pointer :: sc
+type (high_energy_space_charge_struct), pointer :: sc
 
 real(rp) kx_rot, ky_rot, kick_const, sc_kick_mat(6,6)
 
 ! Setup the space charge kick matrix and concatenate it with the 
 ! existing element transfer matrix.
 
-if (.not. associated(ele%space_charge)) return
-sc => ele%space_charge
+if (.not. associated(ele%high_energy_space_charge)) return
+sc => ele%high_energy_space_charge
 
 call mat_make_unit (sc_kick_mat)
 
@@ -250,6 +250,6 @@ call tilt_mat6(sc_kick_mat, -sc%phi)
 
 ele%mat6 = matmul (sc_kick_mat, ele%mat6)
 
-end subroutine make_mat6_ultra_rel_space_charge
+end subroutine make_mat6_high_energy_space_charge
 
 end module

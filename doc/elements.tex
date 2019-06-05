@@ -164,10 +164,11 @@ See \sref{s:list.ac.kicker} for a full list of element attributes.
 
 Attributes specific to a \vn{ac_kicker} element are:
 \begin{example}
-  t_offset   = <Real>                                      ! Time offset of field waveform.
-  amp_vs_time = \{(<t1>, <A1>), (<t2>, <A2>), ...\}          ! Field amplitude vs Time.
-  frequencies = \{(<f1>, <A1>, <phi1>), (<f2>, <A2>, <phi2>), ...\} ! Frequency components.
-  interpolation = <switch>                                   ! linear or spline (default).
+  t_offset        = <Real>                         ! Time offset of field waveform.
+  ref_time_offset = <Logic>                        ! Relative to the ref time? (Default: True).
+  interpolation   = <switch>                       ! spline (default) or linear.
+  amp_vs_time = \{(<t1>, <A1>), (<t2>, <A2>), ...\}  ! Field amplitude vs Time.
+  frequencies = \{(<f1>, <A1>, <phi1>), (<f2>, <A2>, <phi2>), ...\} ! Freq. components.
 \end{example}
 Note: The units of the phases \vn{phi} with the \vn{frequencies} attribute are \vn{radians/2pi}.
 
@@ -175,16 +176,19 @@ An \vn{ac_kicker} element is like a \vn{kicker} element except that the field va
 field is calculated in two steps:
 \begin{enumerate}
 \item Calculate the field the same as for a \vn{kicker} element (\sref{s:kicker}).
-\item Scale the field by the function $A(t-t_0)$ where $t$ is the time and $t_0$ is set
-by the \vn{t_offset} attribute.
+\item Scale the field using the funciton $A(\delta t)$. If \vn{ref_time_offset} is set to \vn{True} (the 
+default), $\delta t = t - t_0 - t_{ref}$ where $t$ is the time and $t_0$ is set by the \vn{t_offset}
+attribute, and $t_{ref}$ is the reference time at the entrance end of the element. If
+\vn{ref_time_offset} is set to \vn{False}, $\delta t = t - t_0$. Note: The time $t$ is always the
+absolute time
 \end{enumerate}
 The time is calculated, like the RF cavities, using either relative or absolute time
 (\sref{s:rf.time}).  Note that if a particle is tracked for multiple turns in a closed lattice with
 relative time tracking, the field of an \vn{ac_kicker} element is independent of which turn it is and
 only depends upon the phase space $z$ coordinate.
 
-There are two ways to specify the dimensionless time variation $A(t)$ of the field. One way is to
-specify points on the $A(t)$ curve using the \vn{amp_vs_time}
+There are two ways to specify the dimensionless time variation $A(\delta t)$ of the field. One way is to
+specify points on the $A(\delta t)$ curve using the \vn{amp_vs_time}
 attribute. Example:
 \begin{example}
   mk: ac_kicker, l = 0.3, scale_multipoles = F, b1 = 0.27, t_offset = 3.6e-8,
@@ -201,10 +205,10 @@ For times before of the range specified by \vn{amp_vs_time}, the amplitude is ta
 amplitude of the first point of the range. Similarly, for times after the the range specified by
 \vn{amp_vs_time}, the amplitude is taken to be the amplitude of the last point of the range.
 
-The second way to specify $A(t)$ is to specify the frequencies in the $A(t)$ spectrum using the
+The second way to specify $A(\delta t)$ is to specify the frequencies in the $A(t)$ spectrum using the
 \vn{frequencies} attribute:
 \Begineq
-  A(t) = \sum_i \, A_i \, \cos( 2 \, \pi (f_i \, t + \phi_i))
+  A(t) = \sum_i \, A_i \, \cos( 2 \, \pi (f_i \, \delta t + \phi_i))
 \Endeq
 Example:
 \begin{example}

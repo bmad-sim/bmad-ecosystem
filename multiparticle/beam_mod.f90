@@ -183,7 +183,7 @@ end subroutine track_bunch
 subroutine track1_bunch (bunch_start, lat, ele, bunch_end, err, centroid, direction)
 
 use csr_old_mod, only: track1_bunch_csr_old
-use csr_mod, only: track1_bunch_csr
+use track_csr_and_space_charge_mod, only: track1_bunch_csr
 use beam_utils, only: track1_bunch_hom
 
 implicit none
@@ -199,9 +199,13 @@ type (coord_struct), optional :: centroid(0:)
 integer, optional :: direction
 integer i, j, n, im, ix_pass, ixs, ix, n_links
 
-logical csr_on, err, finished
+logical csr_sc_on, err, finished
 
 character(*), parameter :: r_name = 'track1_bunch'
+
+! Init if needed
+
+call reallocate_bunch(bunch_end, size(bunch_start%particle))
 
 ! Custom tracking
 
@@ -210,8 +214,8 @@ if (finished) return
 
 !
 
-if (integer_option(1, direction) == -1 .and. bmad_com%coherent_synch_rad_on) then
-  call out_io (s_fatal$, r_name, 'BACKWARDS BUNCH TRACKING WITH CSR NOT ALLOWED.')
+if (integer_option(1, direction) == -1 .and. bmad_com%csr_and_space_charge_on) then
+  call out_io (s_fatal$, r_name, 'BACKWARDS BUNCH TRACKING WITH CSR/SPACE_CHARGE NOT ALLOWED.')
   if (global_com%exit_on_error) call err_exit
   return
 endif
@@ -220,11 +224,9 @@ endif
 !------------------------------------------------
 ! Tracking
 
-csr_on = bmad_com%coherent_synch_rad_on .and. ele%csr_calc_on
-if (csr_param%ix1_ele_csr > -1) csr_on = csr_on .and. (ele%ix_ele > csr_param%ix1_ele_csr) 
-if (csr_param%ix2_ele_csr > -1) csr_on = csr_on .and. (ele%ix_ele <= csr_param%ix2_ele_csr) 
+csr_sc_on = bmad_com%csr_and_space_charge_on .and. (ele%csr_method /= off$ .or. ele%space_charge_method /= off$)
 
-if (csr_on .and. ele%key /= match$) then
+if (csr_sc_on .and. ele%key /= match$) then
   if (csr_param%use_csr_old) then
     call track1_bunch_csr_old (bunch_start, lat, ele, bunch_end, err)
   else

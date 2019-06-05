@@ -172,11 +172,11 @@ else
   nl=nl+1; write (li(nl), *) 'Attribute values [Only non-zero/non-default values shown]:'
 endif
 
-n_att = n_attrib_string_max_len() + 2
-write (fmt_a, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, 3a)'
-write (fmt_i, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, i6)'
-write (fmt_l, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, l1)'
-write (fmt_r, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, es15.7)'
+n_att = n_attrib_string_max_len() + 1
+write (fmt_a, '(a, i0, a)') '(8x, a, t', n_att+9, ', a, 2x, 3a)'
+write (fmt_i, '(a, i0, a)') '(8x, a, t', n_att+9, ', a, i6)'
+write (fmt_l, '(a, i0, a)') '(8x, a, t', n_att+9, ', a, 2x, l1)'
+write (fmt_r, '(a, i0, a)') '(8x, a, t', n_att+9, ', a, 2x, es15.7)'
 
 
 do i = 1, num_ele_attrib$
@@ -346,11 +346,8 @@ endif
 
 ! Encode methods, etc.
 
-nl=nl+1; write (li(nl), *) ' '
-
-if (ele%key == beambeam$ .and. associated(branch)) then
-  nl=nl+1; write (li(nl), fmt_r) 'PARAMETER[N_PART]', '=', branch%param%n_part
-endif
+nl=nl+1; write (li(nl), *) ''
+nl2 = nl     ! For second column parameters
 
 if (attribute_name(ele, crystal_type$) == 'CRYSTAL_TYPE') then
   nl=nl+1; write (li(nl), fmt_a) 'CRYSTAL_TYPE', '=', ele%component_name
@@ -388,34 +385,44 @@ if (attribute_name(ele, ptc_integration_type$) == 'PTC_INTEGRATION_TYPE') then
                   'PTC_INTEGRATION_TYPE', '=', ptc_integration_type_name(ele%ptc_integration_type)
 endif
 
+! csr_method and space_charge_method not defined for multipass_lord elements.
+
+if (ele%lord_status /= multipass_lord$ .and. attribute_name(ele, csr_method$) == 'CSR_METHOD') then
+  nl=nl+1; write (li(nl), fmt_a) &
+                  'CSR_METHOD', '=', csr_method_name(ele%csr_method)
+endif
+
+if (ele%lord_status /= multipass_lord$ .and. attribute_name(ele, space_charge_method$) == 'SPACE_CHARGE_METHOD') then
+  nl=nl+1; write (li(nl), fmt_a) &
+                  'SPACE_CHARGE_METHOD', '=', space_charge_method_name(ele%space_charge_method)
+endif
+
 if (attribute_name(ele, field_calc$) == 'FIELD_CALC') then
   nl=nl+1; write (li(nl), fmt_a) 'FIELD_CALC', '=', field_calc_name(ele%field_calc)
 endif
 
-! Write aparture stuff if appropriate
+! Write second column parameters
+
+if (ele%key == beambeam$ .and. associated(branch)) then
+  call encode_second_column_parameter (li, nl2, nl, 'PARAMETER[N_PART]', re_val = branch%param%n_part)
+endif
 
 if (attribute_name(ele, aperture_at$) == 'APERTURE_AT' .and. ele%aperture_at /= 0) then
-  nl=nl+1; write (li(nl), fmt_a) 'APERTURE_AT', '=', aperture_at_name(ele%aperture_at)
-  nl=nl+1; write (li(nl), fmt_a) 'APERTURE_TYPE', '=', aperture_type_name(ele%aperture_type)
-  nl=nl+1; write (li(nl), fmt_l) 'OFFSET_MOVES_APERTURE', '=', ele%offset_moves_aperture
+  call encode_second_column_parameter (li, nl2, nl, 'APERTURE_AT', str_val = aperture_at_name(ele%aperture_at))
+  call encode_second_column_parameter (li, nl2, nl, 'APERTURE_TYPE', str_val = aperture_type_name(ele%aperture_type))
+  call encode_second_column_parameter (li, nl2, nl, 'OFFSET_MOVES_APERTURE', logic_val = ele%offset_moves_aperture)
 endif
 
 if (attribute_index(ele, 'SYMPLECTIFY') /= 0) then
-  nl=nl+1; write (li(nl), fmt_l) 'SYMPLECTIFY', '=', ele%symplectify
+  call encode_second_column_parameter (li, nl2, nl, 'SYMPLECTIFY', logic_val = ele%symplectify)
 endif
   
 if (attribute_index(ele, 'FIELD_MASTER') /= 0) then
-  nl=nl+1; write (li(nl), fmt_l) 'FIELD_MASTER', '=', ele%field_master
+  call encode_second_column_parameter (li, nl2, nl, 'FIELD_MASTER', logic_val = ele%field_master)
 endif
 
-if (attribute_index(ele, 'CSR_CALC_ON') /= 0) then
-  nl=nl+1; write (li(nl), fmt_l) 'CSR_CALC_ON', '=', ele%csr_calc_on
-endif
-
-if (ele%key /= overlay$ .and. ele%key /= group$) then
-  if (ele%orientation /= 1 .or. type_zero) then
-    nl=nl+1; write (li(nl), fmt_i) 'LONGITUDINAL ORIENTATION', '=', ele%orientation
-  endif
+if (ele%key /= overlay$ .and. ele%key /= group$ .and. type_zero) then
+  call encode_second_column_parameter (li, nl2, nl, 'LONGITUDINAL ORIENTATION', int_val = ele%orientation)
 endif
 
 ! Cartesian map
@@ -591,7 +598,7 @@ if (associated(ele%ac_kick) .and. logic_option(.false., type_field)) then
   nl=nl+1; li(nl) = ''
 
   if (allocated(ac%amp_vs_time)) then
-    nl=nl+1; li(nl) = '     Indx      Time     Amplitude'    
+    nl=nl+1; li(nl) = '     Indx      Time       Amplitude'    
     do i = 1, size(ac%amp_vs_time)
       nl=nl+1; write (li(nl), '(i9, 2es14.6)') i, ac%amp_vs_time(i)%time, ac%amp_vs_time(i)%amp
     enddo
@@ -1178,4 +1185,44 @@ else
   enddo
 endif
 
-end subroutine
+!----------------------------------------------------------------------------------------------------
+contains
+
+subroutine encode_second_column_parameter (li, nl2, nl, attrib_name, re_val, str_val, logic_val, int_val)
+
+integer nl2, nl, ix0
+integer, optional :: int_val
+real(rp), optional :: re_val
+logical, optional :: logic_val
+
+character(*), target :: li(:), attrib_name
+character(*), optional :: str_val
+character(200), pointer :: line
+character(40) value, name
+
+!
+
+nl2 = nl2 + 1
+line => li(nl2)
+
+if (nl < nl2) nl = nl2  ! In case number of second column parameters exceeds number of first column parameters.
+
+if (present(re_val)) then
+  write (value, '(es15.7)') re_val
+elseif (present(str_val)) then
+  value = str_val
+elseif (present(logic_val)) then
+  write (value, '(l1)') logic_val
+elseif (present(int_val)) then
+  write (value, '(i6)') int_val
+else
+  call err_exit
+endif
+
+name = attrib_name
+n = 8 + n_attrib_string_max_len() + 17 + 14
+write (line(n:), '(a26, a, 2x, a)') name, '=', value
+
+end subroutine encode_second_column_parameter 
+
+end subroutine type_ele

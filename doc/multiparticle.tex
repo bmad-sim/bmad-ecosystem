@@ -1,4 +1,31 @@
 \chapter{Multiparticle Simulation}
+\label{c:multi.sim}
+
+\index{macroparticles!tracking}
+\index{tracking!Macroparticles}
+\bmad has routines for tracking two types of objects called
+``\vn{particles}'' and ``\vn{macroparticles}''. \vn{Particles} are
+characterized by a six-vector representing the particle's phase space
+coordinates and a pair of complex numbers characterizing the
+particle's spin.  A macroparticle is like a particle with the
+addition of a $6\times 6$ ``sigma'' matrix characterizing the size of
+the macroparticle.
+
+Macroparticle tracking was implemented in \bmad in order to simulate
+particle bunches.  The idea was that far fewer macroparticles than
+particles would be needed to characterize a bunch. In practice, it was
+found that the complexity of handling the macroparticle sigma matrix
+more than offset the reduction in the number of particles
+needed. Hence, while the basic macroparticle tracking routines still
+exist, macroparticle tracking is not currently maintained and the use
+of this code is discouraged. However macroparticle tracking could be
+revived in the future if there is a demonstrated need for it.
+
+\index{beam}\index{bunch}
+Particle tracking can be divided into ``single particle'' tracking and
+``beam'' tracking. Single particle tracking is simply tracking a
+single particle. Beam tracking is tracking an ensemble of particles
+divided up into a number of bunches that make up a ``beam''.
 
 %-----------------------------------------------------------------
 \section{Bunch Initialization}
@@ -369,7 +396,7 @@ distribution where the energy width $dE_{mp}$ is
 \Endeq
 
 %-----------------------------------------------------------------   
-\section{Coherent Synchrotron Radiation}
+\section{Space Charge and Coherent Synchrotron Radiation}
 \label{s:csr}   
 \index{CSR|hyperbf}   
 
@@ -384,46 +411,52 @@ triangular density distribution.}
 \label{f:csr.bin}
 \end{figure}
 
-User settable parameters pertenent to the CSR simulation are listed in
-\sref{s:csr.params}.
+The electric field $\bfE$ felt by particle $A$ due to particle $B$ can be described using the
+Li\'{e}nard-Wiechert formula \cite{b:csr}. The field is singular as the distance between particles
+goes to zero so one approach to handling this is to decompose the field into two parts: One part,
+called the ``space charge'' (SC) or ``Coulomb'' term, $\bfE_{SC}$ is the field that would result if
+the particles where moving without acceleration along a straight line. The ``Coherent Synchrotron
+Radiation'' (CSR) term $\bfE_{CSR}$ is everything else $\bfE_{CSR} \equiv \bfE - \bfE_{SC}$.
+Generally, the longitudinal component of the SC kick is negligible compared to the CSR kick at large
+enough particle energies.
 
-\bmad simulates coherent synchrotron radiation using the formalism developed by
-Sagan\cite{b:csr} with the modification to be able to handle off-axis beams as
-discussed in Sagan and Mayes\cite{b:csr2}.
+The SC term is singular at small distances while the CSR term is not. This being the case, it is
+possible to model the CSR term using a 1-dimensional formalism where the beam is approximated as
+a line charge\cite{b:csr,b:csr2}. In this formalism, the CSR kick is strictly longitudinal. 
 
-The total kick received by a particle is divided into two parts: The
-space charge (SC) part and the coherent synchrotron radiation (CSR) part. \bmad further
-subdivides the SC kick into longitudinal (LSC) and transverse (TSC) parts. Notice that
-since the CSR kick is calculated using a 1-dimensional formalism, the CSR kick is strickly
-lonitudinal. By definition, the LSC component is the kick that would result if all
-particles were traveling in a straight line. The CSR component is what is left when the
-LSC kick is subtracted off from the total kick. Generally, the LSC kick is negligible
-compared to the CSR kick at large enough particle energies.
+Transport through a lattice element with SC and CSR involves a beam of particles. The lattice
+element is divided up into a number of slices. Transport through a slice is a two step process. The
+first step is to give all the particles a kick due to SC and CSR. The second step is transport of
+all particles from one slice to the next without any interaction between particles. User settable
+parameters pertinent to the CSR calculation are listed in \sref{s:csr.params}.
 
-Transport through a lattice element involves a beam of particles. The lattice element is
-divided up into a number of slices. Transport through a slice is a two step process. The
-first step is to give all the particles a kick due to the CSR. The second step is
-transport of all particles without any interaction between particles. Note that only the
-longitudinal CSR kick is implemented and transverse kicks are ignored.
+%-----------------------------------------------------------------   
+\subsection{1\_Dim CSR Calculation}
+\label{s:csr.1d}
 
-The particle-particle kick is calculated by dividing the bunch longitudinally into a
-number of bins. To smooth the computed bin densities, each particle of the bunch is
-considered to have a triangular density distribution as shown in \fig{f:csr.bin}.  The
-particle density of a bin is calculated by summing the contribution from all the
-particles. The contribution of a given particle to a given bin is calculated from the
-overlap of the particle's triangular density distribution with the bin. For the CSR kick,
-the density is actually calculated for a second set of staggered bins that have been
-offset by 1/2 the bin width with respect to the first set. This gives the density at the
-edges of the original set of bins. The density is considered to vary linearly between the
-computed density points. For a description of the parameters that affect the CSR
-calculation see Section~\sref{s:csr.params}.
+When an element's \vn{csr_method} is set to \vn{1_dim} (\sref{s:csr.sc.meth}), The 
+particle-particle CSR kick is calculated by dividing the bunch longitudinally into a number of
+bins. To smooth the computed bin densities, each particle of the bunch is considered to have a
+triangular density distribution as shown in \fig{f:csr.bin}.  The particle density of a bin is
+calculated by summing the contribution from all the particles. The contribution of a given particle
+to a given bin is calculated from the overlap of the particle's triangular density distribution with
+the bin. For the CSR kick, the density is actually calculated for a second set of staggered bins
+that have been offset by 1/2 the bin width with respect to the first set. This gives the density at
+the edges of the original set of bins. The density is considered to vary linearly between the
+computed density points. For a description of the parameters that affect the CSR calculation see
+Section~\sref{s:csr.params}.
 
-The space charge (SC) component of the CSR simulaiton is diveded into two parts: A
-longitudinal and a transverse part. The transverse part uses the same Bassetti--Erskine
-complex error function formula\cite{b:talman} as with the beam-beam interaction
-(\sref{s:beambeam.std}) except here, since all the particles are moving in the same
-direction, the kicks due to the electric and magnetic fields generated by a given particle
-tend to cancel
+%-----------------------------------------------------------------   
+\subsection{Slice Space Charge Calculation}
+\label{s:sc.slice}
+
+When an element's \vn{space_charge_method} is set to \vn{slice} (\sref{s:csr.sc.meth}), the
+calculation of the SC kick uses, the same particle binning as is used with the \vn{1_dim} CSR
+calculation (\sref{s:csr.1d}). The kick is divided into longitudinal and a transverse parts. The
+transverse part uses the same Bassetti--Erskine complex error function formula\cite{b:talman} as
+with the beam-beam interaction (\sref{s:beambeam.std}) except here, since all the particles are
+moving in the same direction, the kicks due to the electric and magnetic fields generated by a given
+particle tend to cancel
 \begin{align}
   K_y(\text{CS}) + i \, K_x(\text{CS}) &=
   \frac{r_e \, \rho(z)}{\gamma^3 \, e} \cdot
@@ -438,7 +471,7 @@ where $K(\text{CS})$ is the CS kick per unit length of travel of the beam, $\rho
 the density of particles per unit length evaluated at the $z$ position of the kicked
 particle, $e$ is the charge on the electron,  and $w$ is the complex error function.
 
-The longitudinal SC kick is given by Eq.~(31) of Sagan. 
+The longitudinal SC kick is given by Eq.~(31) of Sagan\cite{b:csr} 
 \begin{equation}
  d K_{\mbox{\tiny SC}} =
   \frac{ r_c m c^2 \, \mbox{sign}(\zeta)\rho(z')dz'}
@@ -465,15 +498,14 @@ the kick at the slice center planes is calculated, the kick given to a particle 
 calculated using linear interpolation.
 
 One mode for calculating the transverse SC kick which is computationally fast, ignores the
-transverse dependence of the kick and just evaluates the kick on the centerline $x = y =
-0$. The other simulation mode represents the kick due to a given slice using a Pad{\'e}
-approximant of form
+transverse dependence of the kick and just evaluates the kick on the beam centerline. The other
+simulation mode represents the kick due to a given slice using a Pad{\'e} approximant of form
 \begin{equation}
   \int_{\zeta_{ij}-dz_{slice}/2}^{\zeta_{ij}+dz_{slice}/2} d\zeta \, dK_{\mbox{\tiny SC}}
   \simeq \frac{1}{a_{00} + a_{20} x^2 + a_{40} x^4 + a_{02} y^2 + a_{04} y^4 + a_{22} x^2 \, y^2}
 \end{equation}
 the \vn{a_{mn}} are calculated from an analytic formula derived from integrating \Eq{kelsz}. The
-reason for using this form is that it is a resonable approximation even for very large $x$ or $y$ in
+reason for using this form is that it is a reasonable approximation even for very large $x$ or $y$ in
 that the actual and approximate kick both go to zero in this limit. That this Pad{\'e}
 approximant is reasonable is dependent upon the fact that all the $a_{mn}$ for a slice are either
 all positive or all negative. Kicks from different slices can be combined using standard
@@ -486,21 +518,47 @@ at the particle's $x$ and $y$, at the neighboring slices and then using linear i
 
 Note: Match elements (\sref{s:match}) can have orbit shifts which are not well handled by the CSR
 algorithm. For this reason, match elements are ignored in the CSR calculation.
- 
+
+%-----------------------------------------------------------------   
+\subsection{FFT_3D Space Charge Calculation}
+\label{s:sc.fft}
+
+When an element's \vn{space_charge_method} is set to \vn{fft_3d} (\sref{s:csr.sc.meth}), the space
+charge calculation uses code from the OpenSC package developed by Rob Ryne and Chris Mayes
+\cite{b:opensc}. The method works by calculating the field due to the particle on a 3D grid and then
+interpolating the field to the points where the particles are. This method will be able to handle
+lower energy bunches than the \vn{slice} method (\sref{s:sc.slice}) the disadvantage is that the
+\vn{fft_3d} method will be slower. Another point to keep in mind is that the \vn{fft_3d} method
+currently ignores image charge forces due to an emitting cathode and so will not be accruate for
+tracking at the very lowest energies near the emitter.
+
+Note: The mesh size is set by the \vn{bmad_com} parameter \vn{space_charge_mesh_size}
+(\sref{s:bmad.common}).
+
 %-----------------------------------------------------------------   
 \section{High Energy Space Charge}
-\label{s:space.charge}
+\label{s:he.space.charge}
 \index{CSR|hyperbf}
 
-\bmad has a code module for simulating the effect of space charge at high energies.  If a a \bmad
-based program has been constructed to use this module (the documentation for the problem should
-indicate if this is true), the ultra-relativistic space charge force can be turned on or off
-by setting the \vn{bmad_com[space_charge_on]} parameter (\sref{s:bmad.com}) (default is \vn{False}). 
+\bmad has a code module for simulating the effect of space charge (SC) at high energies. This is
+separate from the regular space charge calculation of \sref{s:csr}. Thus it should be noted that
+turning on of both the regular space charge and the high energy space charge in the same element
+will result in double counting of the space charge effect.
 
-It is important to note that the The high energy space charge module is separate from the module for
-the coherent synchrotron radiation calculation (\sref{s:csr}). Thus turning on of both the CSR space
-chage component and the high energy space charge will result in double counting of the space charge
-effect.
+The advantage of the high energy space charge algorithm is that the kick on a given particle is
+computed assuming a Gaussian beam with the beam size calculated using emittances supplied by the
+user. Thus the high energy space charge calculation can be done in single particle tracking
+(\sref{c:multi.sim}) as opposed to the beam tracking that must be used for the regular space charge
+calculation. The other advantage is that the high energy space charge calculation is quick since it
+is assumed that the kick is small enough so that the kick is only applied once per lattice
+element. The disadvantage of the high energy space charge calculation is that there is the
+assumption that the beam distribution is Gaussian which is generally acceptable for storage rings at
+relatively high energy but will not accurate in other situations.
+
+If a \bmad based program has been constructed to use the high energy space charge module (the
+documentation for the program should indicate if this is true), the high energy space charge force
+can be turned on or off by setting the \vn{parameter[high_energy_space_charge_on]} parameter
+(\sref{s:param}, \sref{s:beginning}). 
 
 The high energy space charge kick is computed assuming a gaussian bunch shape 
 \begin{align}
@@ -521,12 +579,6 @@ particles close to the bunch core the kick is linear with displacement giving ri
 The high energy space charge calculation ignores any CSR effects and ignores any longitudinal kicks
 and is thus not a good approximation at lower energies. See the discussion in \cite{b:csr} for more
 details.
-
-Note: Unlike the CSR calculation, The high energy space charge kick is computed using fixed
-emittances supplied by the user. That is the computation is not self-consistant. The advantage is
-that to calculate the high energy space charge kick, it is not necessary to track a bunch of
-particles in order to determine the bunch size, This being the case, the high energy space charge
-effect can be included when tracking single particles.
 
 
 

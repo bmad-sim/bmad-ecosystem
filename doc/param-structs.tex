@@ -57,16 +57,15 @@ this sets the \vn{max_aperture_limit} parameter of \vn{bmad_com}.
 \index{Bmad!general parameters|hyperbf}
 
 The \vn{bmad_common_struct} structure contains a set of global parameters. There is only
-one instance (\sref{c:param.structs}) of this structure and this instance has the name
+one global instance (\sref{c:param.structs}) of this structure and this instance has the name
 \vn{bmad_com}. The components of this structure along with the default values are:
 \index{max_aperture_limit}\index{d_orb(6)}
 \index{grad_loss_sr_wake}\index{default_ds_step}
 \index{rel_tol_tracking}\index{abs_tol_tracking}
 \index{rel_tol_adaptive_tracking}\index{abs_tol_adaptive_tracking}
 \index{taylor_order}\index{default_integ_order}
-\index{sr_wakes_on}\index{lr_wakes_on}
-\index{mat6_track_symmetric}\index{auto_bookkeeper}
-\index{space_charge_on}\index{coherent_synch_rad_on}
+\index{sr_wakes_on}\index{lr_wakes_on}\index{space_charge_mesh_size}
+\index{mat6_track_symmetric}\index{auto_bookkeeper}\index{csr_and_space_charge_on}
 \index{spin_tracking_on}\index{radiation_damping_on}\index{spin_sokolov_ternov_flipping_on}
 \index{radiation_fluctuations_on}\index{be_thread_safe}
 \index{absolute_time_tracking_default}
@@ -96,14 +95,14 @@ one instance (\sref{c:param.structs}) of this structure and this instance has th
     integer default_integ_order = 2             ! PTC integration order
     integer ptc_max_fringe_order = 2            ! PTC max fringe order (2 => Quadrupole !).
     integer max_num_runge_kutta_step = 10000    ! Max num RK steps before particle is lost.
+    integer space_charge_mesh_size = (32,32,64) ! Mesh size with fft_3d space charge calc.
     logical rf_phase_below_transition_ref = F   ! Autoscale around phase phi0 = 0.5
     logical use_hard_edge_drifts = T            ! Insert drifts when tracking through cavity?
     logical sr_wakes_on = T                     ! Short range wake fields?
     logical lr_wakes_on = T                     ! Long range wake fields
     logical mat6_track_symmetric = T            ! symmetric offsets
     logical auto_bookkeeper = T                 ! Automatic bookkeeping?
-    logical space_charge_on = F                 ! Ultra-relativistic space charge switch
-    logical coherent_synch_rad_on = F           ! csr 
+    logical csr_and_space_charge_on = F         ! CSR and space charge (separate from HE SC).
     logical spin_tracking_on = F                ! spin tracking?
     logical spin_sokolov_ternov_flipping_on = F ! Spin flipping during radiation emission?
     logical radiation_damping_on = F            ! Damping toggle.
@@ -127,155 +126,11 @@ Parameter description:
 \item[\vn{\%abs_tol_adaptive_tracking}] \Newline
 Absolute tolerance to use in adaptive tracking. This is used in
 \vn{runge-kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}).
-
+%
 \item[\vn{\%abs_tol_tracking}] \Newline
 Absolute tolerance to use in tracking. Specifically, Tolerance to use
 when finding the closed orbit.
-
-\item[\vn{\%aperture_limit_on]}] \Newline
-Aperture limits may be set for elements in the lattice
-(\sref{s:limit}). Setting \vn{aperture_limit_on} to \vn{False} will
-disable all set apertures. \vn{True} is the default.
-
-\item[\vn{\%auto_bookkeeper}] \Newline
-Toggles automatic or intelligent bookkeeping. See
-section~\sref{s:lat.bookkeeping} for more details.
-
-\item[\vn{\%autoscale_amp_abs_tol}] \Newline
-Used when \bmad autoscales (\sref{s:autoscale}) an elements field amplitude. This parameter sets the
-absolute tolerance for the autoscale amplitude parameter.
-
-\item[\vn{\%autoscale_amp_rel_tol}] \Newline
-Used when \bmad autoscales (\sref{s:autoscale}) an elements field amplitude. This parameter sets the
-relative tolerance for the autoscale amplitude parameter.
-
-\item[\vn{\%rf_phase_below_transition_ref}] \Newline
-Used when \bmad autoscales (\sref{s:autoscale}) an \vn{rfcavity} and when \bmad calculates the
-reference time through a cavity (which affects calculation of phase space $z$ via \Eq{zbctt}). 
-If True, the reference phase will be taken to be at
-\vn{phi0} = 0.5 which is appropriate for a ring below transition. Default is False in which
-case autoscaling will be around the phase \vn{phi0} = 0.
-
-
-\item[\vn{\%autoscale_phase_tol}] \Newline
-Used when \bmad autoscales (\sref{s:autoscale}) an elements AC phase. This parameter sets the
-absolute tolerance for the autoscale parameter.
-
-\item[\vn{\%d_orb}] \Newline 
-Sets the orbit displacement used in the routine that calculates the transfer matrix through an
-element via tracking. That is, when the \vn{mat6_calc_method} (\sref{s:xfer}) is set to
-\vn{tracking}. \vn{%d_orb} needs to be large enough to avoid significant round-off errors but not so
-large that nonlinearities will affect the results. The default value is $10^{-5}$. Also see
-\vn{%mat6_track_symmetric}.
-
-\item[\vn{\%default_ds_step}] \Newline
-Step size for tracking code \sref{c:methods} that uses a fixed step
-size. For example, \vn{symp_lie_ptc} tracking.
-
-\item[\vn{\%default_integ_order}] \Newline
-Order of the integrator used by \'Etienne Forest's PTC code (\sref{s:libs}).
-
-\item[\vn{\%electric_dipole_moment}] \Newline
-The electric dipole moment value used in tracking a particle's spin (\sref{s:spin.dyn}).
-
-\item[\vn{\%max_aperture_limit}] \Newline 
-Sets the maximum amplitude a particle can have
-during tracking. If this amplitude is exceeded, the particle is lost
-even if there is no element aperture set. Having a maximum aperture
-limit helps prevent numerical overflow in the tracking calculations.
-
-\item[\vn{\%max_num_runge_kutta_step}] \Newline 
-The maximum number of steps to take through an element with \vn{runge_kutta} or
-\vn{time_runge_kutta} tracking. The default value is 10,000. If the number of steps
-reaches this value, the particle being tracked is marked as lost and a warning message is
-issued. Under ``normal'' circumstances, a particle will take far fewer steps to track
-through an element. If a particle is not through an element after 10,000 steps, it
-generally indicates that there is a problem with how the field is defined. That is, the
-field does not obey Maxwell's Equations. Especially: discontinuities in the field can
-cause problems.
-
-\item[\vn{\%rel_tol_adaptive_tracking}] \Newline
-Relative tolerance to use in adaptive tracking. This is used in
-\vn{runge_kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}).
-
-\item[\vn{\%init_ds_adaptive_tracking}] \Newline
-Initial step to use for adaptive tracking. This is used in
-\vn{runge-kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}).
-
-\item[\vn{\%min_ds_adaptive_tracking}] \Newline
-This is used in \vn{runge-kutta} and \vn{time_runge_kutta} tracking
-(\sref{s:integ}). Minimum step size to use for adaptive tracking. If
-To be useful, \vn{%min_ds_adaptive_tracking} must be set larger than
-the value of \vn{%fatal_ds_adaptive_tracking}. In this case,
-particles are never lost due to taking too small a step.
-
-\item[\vn{\%fatal_ds_adaptive_tracking}] \Newline
-This is used in \vn{runge-kutta} and \vn{time_runge_kutta} tracking
-(\sref{s:integ}).  If the step size falls below the value set for
-\vn{%fatal_ds_adaptive_tracking}, a particle is considered lost.
-This prevents a program from ``hanging'' due to taking a large number
-of extremely small steps. The most common cause of small step size is
-an ``unphysical'' magnetic or electric field.
-
-\item[\vn{\%rel_tol_tracking}] \Newline
-Relative tolerance to use in tracking. Specifically, Tolerance to use
-when finding the closed orbit.
-
-\item[\vn{\%default_integ_order}] \Newline
-Order of the integrator used by \'Etienne Forest's PTC code (\sref{s:libs}).
-The order of the PTC integrator is like the order of a Newton-Cotes method.
-Higher order means the error term involves a higher order derivative of the field.
-
-\item{ptc_max_fringe_order} \Newline
-Maximum order for computing fringe field effects in PTC. 
-
-\item[\vn{\%significant_length}] \Newline
-Sets the scale to decide if two length values are significantly
-different. For example, The superposition code will not create any
-super_slave elements that have a length less then this.
-
-\item[\vn{\%sr_wakes_on}] \Newline
-Toggle for turning on or off short-range higher order mode wake field effects.
-
-\item[\vn{\%lr_wakes_on}] \Newline
-Toggle for turning on or off long-range higher order mode wake field effects.
-
-\item[\vn{\%mat6_track_symmetric}] \Newline
-Toggle to turn off whether the transfer matrix from tracking routine
-(\Hyperref{r:twiss.from.tracking}{twiss_from_tracking}) tracks 12 particles at both plus and
-minus \vn{%d_orb} values or only tracks 7 particles to save time but is less accurate..
-
-\item[\vn{\%space_charge_on}] \Newline
-Toggle to turn on or off the ultra-relativistice space charge effect in particle tracking
-(\sref{s:space.charge}). Computationally, this is separate from the space charge component of
-coherent synchrotron radiation (\sref{s:csr}).
-
-\item[\vn{\%coherent_synch_rad_on}] \Newline
-Toggle to turn on or off the coherent space charge calculation.
-
-\item[\vn{\%spin_sokolov_ternov_flipping_on}] \Newline
-This determines if the Sokolov-Ternov effect is included in a simulation.  The Sokolov-Ternov
-effect\cite{b:barber} is the self-polarization of charged particle beams due to asymmetric flipping
-of a particle's spin when the particle is bent in a magnetic field. Also, spin flipping will {\em
-not} be done if spin tracking is off or both radiation damping and excitation are off.
-
-\item[\vn{\%spin_tracking_on}] \Newline
-Determines if spin tracking is performed or not.
-
-\item[\vn{\%taylor_order}] \Newline
-Cutoff Taylor order of maps produced by \vn{sym_lie_ptc}.
-
-\item[\vn{\%radiation_damping_on}] \Newline
-Toggle to turn on or off effects due to radiation damping in particle tracking.
-
-\item[\vn{\%radiation_fluctuations_on}] \Newline
-Toggle to turn on or off effects due to radiation fluctuations in particle tracking.
-
-\item[\vn{\%conserve_taylor_maps}] \Newline
-Toggle to determine if the Taylor map for an element include any
-element ``misalignments''.  See Section~\sref{s:mapoff} for more
-details.
-
+%
 \item[\vn{\%absolute_time_tracking_default}] \Newline
 Default setting to be applied to a lattice if
 \vn{absolute_time_tracking} (\sref{s:param}) is not specified in a
@@ -287,10 +142,147 @@ To change between absolute and relative time tracking
 (\sref{s:rf.time}) after lattice file parsing, the
 \vn{%absolute_time_tracking} component of a \vn{lat_struct}
 (\sref{s:abs.time}) can be appropriately set.
-
+%
+\item[\vn{\%aperture_limit_on]}] \Newline
+Aperture limits may be set for elements in the lattice
+(\sref{s:limit}). Setting \vn{aperture_limit_on} to \vn{False} will
+disable all set apertures. \vn{True} is the default.
+%
+\item[\vn{\%auto_bookkeeper}] \Newline
+Toggles automatic or intelligent bookkeeping. See
+section~\sref{s:lat.bookkeeping} for more details.
+%
+\item[\vn{\%autoscale_amp_abs_tol}] \Newline
+Used when \bmad autoscales (\sref{s:autoscale}) an elements field amplitude. This parameter sets the
+absolute tolerance for the autoscale amplitude parameter.
+%
+\item[\vn{\%autoscale_amp_rel_tol}] \Newline
+Used when \bmad autoscales (\sref{s:autoscale}) an elements field amplitude. This parameter sets the
+relative tolerance for the autoscale amplitude parameter.
+%
+Used when \bmad autoscales (\sref{s:autoscale}) an elements AC phase. This parameter sets the
+absolute tolerance for the autoscale parameter.
+%
+\item[\vn{\%autoscale_phase_tol}] \Newline
+\item[\vn{\%init_ds_adaptive_tracking}] \Newline
+Initial step to use for adaptive tracking. This is used in
+\vn{runge-kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}).
+%
+\item[\vn{\%conserve_taylor_maps}] \Newline
+Toggle to determine if the Taylor map for an element include any
+element ``misalignments''.  See Section~\sref{s:mapoff} for more
+details.
+%
+\item[\vn{\%csr_and_space_charge_on}] \Newline
+Turn on or off the coherent synchrotron radiation and space charge calculations. (\sref{s:csr}).
+The space charge calculation here is not to be confused with the high energy space charge
+calculation (\sref{s:he.space.charge})
+%
+\item[\vn{\%d_orb}] \Newline 
+Sets the orbit displacement used in the routine that calculates the transfer matrix through an
+element via tracking. That is, when the \vn{mat6_calc_method} (\sref{s:xfer}) is set to
+\vn{tracking}. \vn{%d_orb} needs to be large enough to avoid significant round-off errors but not so
+large that nonlinearities will affect the results. The default value is $10^{-5}$. Also see
+\vn{%mat6_track_symmetric}.
+%
 \item[\vn{\%debug}] \Newline
 Used for communication between program units for debugging purposes.
-
+%
+\item[\vn{\%default_ds_step}] \Newline
+Step size for tracking code \sref{c:methods} that uses a fixed step
+size. For example, \vn{symp_lie_ptc} tracking.
+%
+\item[\vn{\%default_integ_order}] \Newline
+Order of the integrator used by \'Etienne Forest's PTC code (\sref{s:libs}).
+The order of the PTC integrator is like the order of a Newton-Cotes method.
+Higher order means the error term involves a higher order derivative of the field.
+%
+\item[\vn{\%electric_dipole_moment}] \Newline
+The electric dipole moment value used in tracking a particle's spin (\sref{s:spin.dyn}).
+%
+\item[\vn{\%fatal_ds_adaptive_tracking}] \Newline
+This is used in \vn{runge-kutta} and \vn{time_runge_kutta} tracking
+(\sref{s:integ}).  If the step size falls below the value set for
+\vn{%fatal_ds_adaptive_tracking}, a particle is considered lost.
+This prevents a program from ``hanging'' due to taking a large number
+of extremely small steps. The most common cause of small step size is
+an ``unphysical'' magnetic or electric field.
+%
+\item[\vn{\%lr_wakes_on}] \Newline
+Toggle for turning on or off long-range higher order mode wake field effects.
+%
+\item[\vn{\%mat6_track_symmetric}] \Newline
+Toggle to turn off whether the transfer matrix from tracking routine
+(\Hyperref{r:twiss.from.tracking}{twiss_from_tracking}) tracks 12 particles at both plus and minus
+\vn{%d_orb} values or only tracks 7 particles to save time but is less accurate..
+%
+\item[\vn{\%max_aperture_limit}] \Newline 
+Sets the maximum amplitude a particle can have during tracking. If this amplitude is exceeded, the
+particle is lost even if there is no element aperture set. Having a maximum aperture limit helps
+prevent numerical overflow in the tracking calculations.
+%
+\item[\vn{\%max_num_runge_kutta_step}] \Newline 
+The maximum number of steps to take through an element with \vn{runge_kutta} or
+\vn{time_runge_kutta} tracking. The default value is 10,000. If the number of steps reaches this
+value, the particle being tracked is marked as lost and a warning message is issued. Under
+``normal'' circumstances, a particle will take far fewer steps to track through an element. If a
+particle is not through an element after 10,000 steps, it generally indicates that there is a
+problem with how the field is defined. That is, the field does not obey Maxwell's
+Equations. Especially: discontinuities in the field can cause problems.
+%
+\item[\vn{\%min_ds_adaptive_tracking}] \Newline
+This is used in \vn{runge-kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}). Minimum step
+size to use for adaptive tracking. If To be useful, \vn{%min_ds_adaptive_tracking} must be set
+larger than the value of \vn{%fatal_ds_adaptive_tracking}. In this case, particles are never lost
+due to taking too small a step.
+%
+\item{ptc_max_fringe_order} \Newline
+Maximum order for computing fringe field effects in PTC. 
+%
+\item[\vn{\%rf_phase_below_transition_ref}] \Newline
+Used when \bmad autoscales (\sref{s:autoscale}) an \vn{rfcavity} and when \bmad calculates the
+reference time through a cavity (which affects calculation of phase space $z$ via \Eq{zbctt}).  If
+True, the reference phase will be taken to be at \vn{phi0} = 0.5 which is appropriate for a ring
+below transition. Default is False in which case autoscaling will be around the phase \vn{phi0} = 0.
+%
+\item[\vn{\%radiation_damping_on}] \Newline
+Toggle to turn on or off effects due to radiation damping in particle tracking.
+%
+\item[\vn{\%radiation_fluctuations_on}] \Newline
+Toggle to turn on or off effects due to radiation fluctuations in particle tracking.
+%
+\item[\vn{\%rel_tol_adaptive_tracking}] \Newline
+Relative tolerance to use in adaptive tracking. This is used in \vn{runge_kutta} and
+\vn{time_runge_kutta} tracking (\sref{s:integ}).
+%
+\item[\vn{\%rel_tol_tracking}] \Newline
+Relative tolerance to use in tracking. Specifically, Tolerance to use
+when finding the closed orbit.
+%
+\item[\vn{\%significant_length}] \Newline
+Sets the scale to decide if two length values are significantly different. For example, The
+superposition code will not create any super_slave elements that have a length less then this.
+%
+\item[\vn{\%space_charge_mesh_size}] \Newline
+The \vn{%space_charge_mesh_size} sets the size of the grid used when an element's
+\vn{space_charge_method} is set to \vn{fft_3d} (\sref{s:csr.sc.meth}). The value of this parameter is a
+3-element array $(n_x, n_y, n_z)$ giving the mesh size in the $x$, $y$, and $z$ directions
+respectively. Default values are $(32, 32, 64)$.
+%
+\item[\vn{\%sr_wakes_on}] \Newline
+Toggle for turning on or off short-range higher order mode wake field effects.
+%
+\item[\vn{\%spin_sokolov_ternov_flipping_on}] \Newline
+This determines if the Sokolov-Ternov effect is included in a simulation.  The Sokolov-Ternov
+effect\cite{b:barber} is the self-polarization of charged particle beams due to asymmetric flipping
+of a particle's spin when the particle is bent in a magnetic field. Also, spin flipping will {\em
+not} be done if spin tracking is off or both radiation damping and excitation are off.
+%
+\item[\vn{\%spin_tracking_on}] \Newline
+Determines if spin tracking is performed or not.
+%
+\item[\vn{\%taylor_order}] \Newline
+Cutoff Taylor order of maps produced by \vn{sym_lie_ptc}.
 \end{description}
 
 %-----------------------------------------------------------------
@@ -326,15 +318,14 @@ file.
 
 The Coherent Synchrotron Radiation (CSR) calculation is discussed in Section~\sref{s:csr}.
 
-Besides the parameters discussed below, the \vn{coherent_synch_rad_on} parameter in
-Section~\sref{s:bmad.com} must be set True to enable the CSR calculation. Additionally, tracking
-with \vn{CSR} will only be done through elements where the parameter \vn{csr_calc_on}
-(\sref{s:integ}) has been set to \vn{True}. This is done so that the computationally intensive
+Besides the parameters discussed below, the \vn{csr_and_space_charge_on} parameter of \vn{bmad_com}
+(\sref{s:bmad.com}) must be set True to enable the CSR calculation. Additionally, tracking
+with \vn{CSR} will only be done through elements where the parameter \vn{csr_method}
+(\sref{s:integ}) has been set to \vn{1_dim}. This is done so that the computationally intensive
 \vn{CSR} calculation can be restricted to places where the \vn{CSR} effect is significant.
 
-The CSR parameter structure has a \vn{type name}
-of \vn{csr_parameter_struct} and an \vn{instance name} of \vn{csr_param}.
-This structure has components
+The CSR parameter structure has a \vn{type name} of \vn{csr_parameter_struct} and an \vn{instance
+name} of \vn{csr_param}.  This structure has components
 \begin{example}
   type csr_parameter_struct 
     real(rp) ds_track_step = 0        ! Tracking step size
@@ -344,14 +335,7 @@ This structure has components
     integer n_bin = 0                 ! Number of bins used
     integer particle_bin_span = 2     ! Longitudinal particle length / dz_bin
     integer n_shield_images = 0       ! Chamber wall shielding. 0 = no shielding.
-    integer ix1_ele_csr = -1          ! Lattice element start index for CSR tracking.
-    integer ix2_ele_csr = -1          ! Lattice element stop index for CSR tracking.
     integer sc_min_in_bin = 10        ! Min number of particle needed to compute sigmas.
-    logical lcsr_component_on = T     ! Longitudinal csr component
-    logical lsc_component_on = T      ! Longitudinal space charge component
-    logical lsc_kick_transverse_dependence = F
-                                      ! Include longitudinal SC transverse dependence?
-    logical tsc_component_on = T      ! Transverse space charge component
     logical small_angle_approx = T    ! Use lcsr small angle approximation?
     logical print_taylor_warning = T  ! Print Taylor element warning?
     logical write_csr_wake = F        ! Write a CSR wake file?
@@ -379,7 +363,6 @@ See also the description of the parameter \vn{n_shield_images}.
 calculation and is used to prevent bins with only a few particles in
 them to give a large contribution to the kick when the computed
 transverse sigmas are abnormally low.
-
 %
 \item{n_bin} \Newline
 \vn{n_bin} is the number of bins used. The bind width is dynamically
@@ -389,7 +372,6 @@ values will slow the calculation while smaller values will lead to
 inaccuracies and loss of resolution. \vn{n_bin} should also not be set
 so large that the average number of particles in a bin is too small. 
 ``Typical'' values are in the range 100 --- 1000.
-
 %
 \item{particle_bin_span} \Newline
 \vn{particle_bin_span} is the width of a particle's triangular density
@@ -406,51 +388,19 @@ upon how strong the shielding is. Larger values give better accuracy
 at the expense of computation speed. ``Typical'' values are in the
 range 0 --- 5.
 %
-\item{ix1_ele_csr, ix2_ele_csr} \Newline
-These parameters set the region outside of which CSR effects are not included when tracking.  That
-is, CSR effects are ignored when tracking through a lattice element whose index in the lattice is
-less than \vn{ix1_ele_csr} or whose index is greater than \vn{ix2_ele_csr}. Within the region
-delimited by \vn{ix1_ele_csr} and \vn{ix2_ele_csr}, CSR effects will only be included when tracking
-through a given lattice element if the \vn{csr_calc_on} logical is set for that element. If
-\vn{ix1_ele_csr} is set to -1 (the default) then the region extends to the beginning of the lattice
-and if \vn{ix2_ele_csr} is set to -1 (the default) then the region extends to the end of the lattice.
-%
 \item{sc_min_in_bin} \Newline
 the \vn{sc_min_in_bin} parameter sets the minimum number of particle in a bin needed to
 compute the transverse beam sigmas for that bin. If the number of particles is less than
 this number, the beam sigmas are taken to be equal to the beam sigmas of a nearby bin
 where there are enough particle to compute the sigma. The beam sigmas are needed for the
 CS calculation but not need for the CSR calculation.
-
-%
-\item{lcsr_component_on} \Newline
-The \vn{lcsr_component_on} toggles on or off the (longitudinal) CSR kick. Note: Since \bmad
-uses a ``1-Dimensional'' model for the CSR kick, there is no transverse CSR kick in
-the model.
-
-%
-\item \vn{lsc_component_on} \Newline
-The \vn{lsc_component_on} parameter toggles on or off the longitudinal space charge kick.
-
-%
-\item{tsc_component_on} \Newline
-The \vn{tsc_component_on} parameter toggles on or off the transverse space charge kick.
-
-%
-\item{lsc_kick_transverse_dependence} \Newline
-The \vn{lsc_kick_transverse_dependence} parameter toggles on or off whether the longitudinal
-space charge kick is evaluated along the beam centerline (\vn{lsc_kick_transverse_dependence}
-set to False) or whether the transverse displacement of a particle is used with the calculation
-(\vn{lsc_kick_transverse_dependence} set to True). Simulating the transverse dependence to the
-longitudinal SC kick is more physical but will take more time.
 %
 \item{write_csr_wake} \Newline
 If True (default is False), an output file called \vn{csr_wake.dat} is created that contains a table
 of the CSR wake at each track step (the track step size is set by \vn{ds_track_step}). If tracking is 
-done through multiple lattice elements, the wake tables for the elemnts are appended to the file. This
+done through multiple lattice elements, the wake tables for the elements are appended to the file. This
 file is useful for visualization of the wake.
 \end{description}
-
 
 Note: \vn{Taylor} map elements (\sref{s:taylor}) that have a finite length cannot be
 subdivided for the CSR calculation. \bmad will ignore any \vn{taylor} elements present in

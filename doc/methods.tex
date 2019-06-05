@@ -580,11 +580,9 @@ method. ``X'' denotes an available method.}
 \index{symp_lie_bmad!and Taylor maps}
 \index{symp_lie_ptc!and Taylor maps}
 \index{taylor!and Taylor maps}
-``Integration methods'' are tracking methods that involve integrating
-through an element's magnetic and electric fields.  Integration
-methods are split into two classes: Those that can track Taylor maps and
-those that simply track a particle's position.  The Taylor map methods
-are
+``Integration methods'' are tracking methods that involve integrating through an element's magnetic
+and electric fields.  Integration methods are split into two classes: Those that can track Taylor
+maps and those that simply track a particle's position.  The Taylor map methods are
 \begin{example}
   symp_lie_bmad   ! Only to first order
   symp_lie_ptc    ! Uses PTC
@@ -604,26 +602,55 @@ The methods that do not involve Taylor maps are
 \end{example}
 
 \index{ds_step}\index{num_steps}\index{integrator_order}
-\index{field_calc}\index{csr_calc_on}
-there are a number of element attributes that can affect the
-calculation. They are
+\index{field_calc}\index{csr_method}\index{space_charge_method}
+there are a number of element attributes that can affect the calculation. They are
 \begin{example}
-  ds_step = <Real>              ! Integration step length (\sref{s:ds.step})
-  num_steps = <Integer>         ! Number of integration steps. (\sref{s:ds.step})
-  integrator_order = <Integer>  ! Integrator order (\sref{s:ptc.integ})
-  field_calc = <Switch>         ! How the field is calculated (\sref{s:field.calc})
-  csr_calc_on = <Logical>       ! Coherent Synchrotron Radiation on/off.
+  ds_step             = <Real>     ! Integration step length (\sref{s:ds.step})
+  num_steps           = <Integer>  ! Number of integration steps. (\sref{s:ds.step})
+  integrator_order    = <Integer>  ! Integrator order (\sref{s:ptc.integ})
+  field_calc          = <Switch>   ! How the field is calculated (\sref{s:field.calc})
 \end{example}
-
-The \vn{csr_calc_on} switch toggles on/off Coherent Synchrotron Radiation effects.  The default is
-True. CSR effects are only present if the program that is being run is setup to track bunches of
-particles (as opposed to single particle tracking).
 
 Example:
 \begin{example}
-  q1: quadrupole, l = 0.6, tracking_method = bmad_standard, &
+  q1: quadrupole, l = 0.6, tracking_method = bmad_standard, 
         mat6_calc_method = symp_lie_ptc, ds_step = 0.2, field_calc = custom
 \end{example}
+
+%-----------------------------------------------------------------
+\section{CSR and Space Charge Methods}
+\label{s:csr.sc.meth}
+\index{csr and space charge methods}
+
+When doing beam tracking through an element (\sref{c:multi.sim}), Coherent Synchrotron Radiation (CSR) and Space Charge (SC)
+effects can be included by setting the appropriate method switches in that element. These switches are:
+\begin{example}
+  csr_method          = <Switch>   ! Coherent Synchrotron Radiation 
+  space_charge_method = <Switch>   ! Space charge method
+\end{example}
+Note: For CSR or SC effects to be included in tracking the \vn{bmad_com} logical \vn{csr_and_space_charge_on} must be
+set to \vn{True} (\sref{s:bmad.common}). 
+
+The possible settings for \vn{csr_method} are
+\begin{example}
+  off             ! No CSR. Default.
+  1_dim           ! One dimensional calculation (\sref{s:csr.1d}).
+\end{example}
+
+The possible settings of \vn{space_charge_method} are
+\begin{example}
+  off             ! No SC. Default.
+  slice           ! SC using slices (\sref{s:sc.slice}).
+  fft_3d          ! SC using a 3D grid (\sref{s:sc.fft}).
+\end{example}
+
+Example:
+\begin{example}
+  q1: quadrupole, l = 0.6, csr_method = 1_dim, space_charge_method = slice, ...
+\end{example}
+
+Note: There is also high energy space charge calculation that can be used with single particle
+tracking and is discussed in \sref{s:he.space.charge}.
 
 %-----------------------------------------------------------------
 \subsection{ds_step and num_steps Parameters}

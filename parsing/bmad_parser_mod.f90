@@ -365,7 +365,7 @@ if (ele%key == overlay$ .or. ele%key == group$) then
     return
 
   case (x_knot$)
-    if (.not. parse_real_list2 (lat, 'ERROR PARSING X_KNOT POINTS FOR: ' // ele%name, ele%control%x_knot, n, 10, '{', ',', '}')) return
+    if (.not. parse_real_list2 (lat, 'ERROR PARSING X_KNOT POINTS FOR: ' // ele%name, ele%control%x_knot, n, delim, delim_found, 10, '{', ',', '}')) return
     call re_allocate(ele%control%x_knot, n)
     if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
     err_flag = .false.
@@ -424,11 +424,22 @@ if (ele%key == def_parameter$ .and. word == 'ELECTRIC_DIPOLE_MOMENT') key = def_
 if (ele%key == def_parameter$ .and. word == 'PTC_CUT_FACTOR') key = def_bmad_com$
 if (ele%key == def_parameter$ .and. word == 'USE_HARD_EDGE_DRIFTS') key = def_bmad_com$
 
-
 if (word == 'SPINOR_POLARIZATION' .or. word == 'SPINOR_PHI' .or. word == 'SPINOR_THETA' .or. word == 'SPINOR_XI') then
   call parser_error ('DUE TO BOOKKEEPING COMPLICATIONS, THE OLD SPINOR ATTRIBUTES NO LONGER EXIST: ' // word, &
                      'PLEASE CONVERT TO SPIN_X, SPIN_Y, SPIN_Z COMPONENTS.', 'FOR ELEMENT: ' // ele%name)
   return
+endif
+
+if (word == 'SPACE_CHARGE_ON') then
+  call parser_error ('Note: "bmad_com[SPACE_CHARGE_ON]" has been renamed "bmad_com[HIGH_ENERGY_SPACE_CHARGE_ON]"', &
+                     'Will run normally...', level = s_warn$)
+  word = 'HIGH_ENERGY_SPACE_CHARGE_ON'
+endif
+
+if (word == 'COHERENT_SYNCH_RAD_ON') then
+  call parser_error ('Note: "bmad_com[COHERENT_SYNCH_RAD_ON]" has been renamed "bmad_com[CSR_AND_SPACE_CHARGE_ON]"', &
+                     'Will run normally...', level = s_warn$)
+  word = 'LOW_ENERGY_SPACE_CHARGE_ON'
 endif
 
 ! particle_start and bmad_com element can have attributes that are not part of the element so
@@ -450,7 +461,7 @@ if (key == def_particle_start$ .or. key == def_bmad_com$) then
   endif
 
   call pointers_to_attribute (lat, name, word, .false., a_ptrs, err_flag, .false.)
-  if (err_flag .or. size(a_ptrs) /= 1) then
+  if (err_flag .or. size(a_ptrs) == 0) then
     call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
     return
   endif
@@ -458,6 +469,16 @@ if (key == def_particle_start$ .or. key == def_bmad_com$) then
   if (ele%key == def_parameter$ .and. word == 'APERTURE_LIMIT_ON') then
     call parser_error ('SYNTAX HAS CHANGED: PARAMETER[APERTURE_LIMIT_ON] = ... NEEDS TO BE REPLACED BY BMAD_COM[APERTURE_LIMIT_ON] = ...', &
                        'THIS IS A WARNING ONLY. THE PROGRAM WILL RUN NORMALLY.', level = s_warn$)
+  endif
+
+  if (name == 'D_ORB') then
+    if (.not. parse_real_list (lat, trim(ele%name) // ' ' // word, bmad_com%d_orb, .true., delim, delim_found)) return
+    bp_com%extra%d_orb_set = .true.
+    return
+  elseif (name == 'SPACE_CHARGE_MESH_SIZE') then
+    if (.not. parse_integer_list (trim(ele%name) // ' ' // word, lat, bmad_com%space_charge_mesh_size, .true., delim, delim_found)) return
+    bp_com%extra%space_charge_mesh_size_set = .true.
+    return
   endif
 
   if (associated(a_ptrs(1)%r)) then
@@ -481,7 +502,6 @@ if (key == def_particle_start$ .or. key == def_bmad_com$) then
     if (associated(a_ptrs(1)%r, bmad_com%ptc_cut_factor))                 bp_com%extra%ptc_cut_factor_set                  = .true.
     if (associated(a_ptrs(1)%r, bmad_com%sad_eps_scale))                  bp_com%extra%sad_eps_scale_set                   = .true.
     if (associated(a_ptrs(1)%r, bmad_com%sad_amp_max))                    bp_com%extra%sad_amp_max_set                     = .true.
-    if (name(1:5) == 'D_ORB')                                             bp_com%extra%d_orb_set                           = .true.
 
   elseif (associated(a_ptrs(1)%i)) then
     call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag) 
@@ -507,8 +527,7 @@ if (key == def_particle_start$ .or. key == def_bmad_com$) then
     if (associated(a_ptrs(1)%l, bmad_com%lr_wakes_on))                    bp_com%extra%lr_wakes_on_set                     = .true.
     if (associated(a_ptrs(1)%l, bmad_com%mat6_track_symmetric))           bp_com%extra%mat6_track_symmetric_set            = .true.
     if (associated(a_ptrs(1)%l, bmad_com%auto_bookkeeper))                bp_com%extra%auto_bookkeeper_set                 = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%space_charge_on))                bp_com%extra%space_charge_on_set                 = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%coherent_synch_rad_on))          bp_com%extra%coherent_synch_rad_on_set           = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%csr_and_space_charge_on))        bp_com%extra%csr_and_space_charge_on_set         = .true.
     if (associated(a_ptrs(1)%l, bmad_com%spin_tracking_on))               bp_com%extra%spin_tracking_on_set                = .true.
     if (associated(a_ptrs(1)%l, bmad_com%backwards_time_tracking_on))     bp_com%extra%backwards_time_tracking_on_set      = .true.
     if (associated(a_ptrs(1)%l, bmad_com%radiation_damping_on))           bp_com%extra%radiation_damping_on_set            = .true.
@@ -732,7 +751,7 @@ endif
 
 if (attrib_word == 'AMP_VS_TIME') then
   ac => ele%ac_kick
-  if (.not. parse_real_lists (lat, ele, trim(ele%name) // ' AMP_VS_TIME', table, 2)) return
+  if (.not. parse_real_lists (lat, ele, trim(ele%name) // ' AMP_VS_TIME', table, 2, delim, delim_found)) return
   if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
   n = size(table, 1)
   allocate (ac%amp_vs_time(n))
@@ -750,7 +769,7 @@ endif
 
 if (attrib_word == 'FREQUENCIES') then
   ac => ele%ac_kick
-  if (.not. parse_real_lists (lat, ele, trim(ele%name) // ' FREQUENCIES', table, 3)) return
+  if (.not. parse_real_lists (lat, ele, trim(ele%name) // ' FREQUENCIES', table, 3, delim, delim_found)) return
   if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
   n = size(table, 1)
   allocate (ac%frequencies(n))
@@ -918,7 +937,7 @@ if (attrib_word == 'WALL') then
           if (err_flag) return
 
         case ('R0')
-          if (.not. parse_real_list (lat, trim(ele%name) // ' SECTION R0', section%r0, .true.)) return
+          if (.not. parse_real_list (lat, trim(ele%name) // ' SECTION R0', section%r0, .true., delim, delim_found)) return
           if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
 
         ! Parse "V() = ..." constructs.
@@ -1040,13 +1059,13 @@ if (attrib_word == 'SURFACE') then
 
         select case (word)
         case ('DR')
-          if (.not. parse_real_list (lat, trim(ele%name) // ' GRID DR', surf%grid%dr, .true.)) return
+          if (.not. parse_real_list (lat, trim(ele%name) // ' GRID DR', surf%grid%dr, .true., delim, delim_found)) return
 
         case ('R0')
-          if (.not. parse_real_list (lat, trim(ele%name) // ' GRID R0', surf%grid%r0, .true.)) return
+          if (.not. parse_real_list (lat, trim(ele%name) // ' GRID R0', surf%grid%r0, .true., delim, delim_found)) return
 
         case ('IX_BOUNDS', 'IY_BOUNDS')
-          if (.not. parse_integer_list (trim(ele%name) // ' GRID ' // trim(word), lat, i_vec, .true.)) return
+          if (.not. parse_integer_list (trim(ele%name) // ' GRID ' // trim(word), lat, i_vec, .true., delim, delim_found)) return
           if (word == 'IX_BOUNDS') ix_bounds = i_vec
           if (word == 'IY_BOUNDS') iy_bounds = i_vec
 
@@ -1062,7 +1081,7 @@ if (attrib_word == 'SURFACE') then
 
         case ('PT')
           bp_com%parse_line = delim // bp_com%parse_line
-          if (.not. parse_integer_list (trim(ele%name) // ' GRID PT', lat, i_vec, .true.)) return
+          if (.not. parse_integer_list (trim(ele%name) // ' GRID PT', lat, i_vec, .true., delim, delim_found)) return
           if (.not. allocated(surf%grid%pt)) then
             call parser_error ('SURFACE PT_MAX MISSING', 'FOR: ' // ele%name)
             return
@@ -1072,7 +1091,7 @@ if (attrib_word == 'SURFACE') then
             return
           endif
           if (.not. expect_this ('=', .false., .false., 'IN GRID PT', ele, delim, delim_found)) return
-          if (.not. parse_real_list (lat, trim(ele%name) // 'IN GRID PT', r_vec(1:4), .true.)) return
+          if (.not. parse_real_list (lat, trim(ele%name) // 'IN GRID PT', r_vec(1:4), .true., delim, delim_found)) return
           surf%grid%pt(i_vec(1), i_vec(2))%orientation = surface_orientation_struct(r_vec(1), r_vec(2), r_vec(3), r_vec(4))
 
         case ('TYPE')
@@ -1570,7 +1589,7 @@ case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO'
   call bmad_parser_string_attribute_set (ele, attrib_word, delim, delim_found, pele = pele)
 
 case ('REF_ORBIT')
-  if (.not. parse_real_list (lat, ele%name // ' REF_ORBIT', ele%taylor%ref, .true.)) return
+  if (.not. parse_real_list (lat, ele%name // ' REF_ORBIT', ele%taylor%ref, .true., delim, delim_found)) return
   if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
 
 case ('PTC_MAX_FRINGE_ORDER')
@@ -1640,9 +1659,6 @@ case ('COUPLER_AT')
 case ('CREATE_JUMBO_SLAVE')
   if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
   call get_logical (attrib_word, pele%create_jumbo_slave, err_flag); if (err_flag) return
-
-case ('CSR_CALC_ON')
-  call get_logical (attrib_word, ele%csr_calc_on, err_flag); if (err_flag) return
 
 case ('DEFAULT_TRACKING_SPECIES')
   call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .false.)
@@ -1772,6 +1788,11 @@ case ('LIVE_BRANCH')
   j = nint(ele%value(ix_branch$)) 
   if (j >= 0) lat%branch(j)%param%live_branch = is_true(ele%value(live_branch$))
 
+case ('HIGH_ENERGY_SPACE_CHARGE_ON')
+  call get_logical_real (attrib_word, ele%value(high_energy_space_charge_on$), err_flag); if (err_flag) return
+  j = nint(ele%value(ix_branch$)) 
+  if (j >= 0) lat%branch(j)%param%high_energy_space_charge_on = is_true(ele%value(high_energy_space_charge_on$))
+
 case ('PHOTON_TYPE')
   call get_switch (attrib_word, photon_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   lat%photon_type = ix   ! photon_type has been set.
@@ -1831,6 +1852,16 @@ case ('TRACKING_METHOD')
     return
   endif
   ele%tracking_method = switch
+
+case ('CSR_METHOD')
+  call get_switch (attrib_word, csr_method_name(1:), switch, err_flag, ele, delim, delim_found)
+  if (err_flag) return
+  ele%csr_method = switch
+
+case ('SPACE_CHARGE_METHOD')
+  call get_switch (attrib_word, space_charge_method_name(1:), switch, err_flag, ele, delim, delim_found)
+  if (err_flag) return
+  ele%space_charge_method = switch
 
 case ('VELOCITY_DISTRIBUTION')
   call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
@@ -2019,8 +2050,7 @@ is_problem = .false.
 if (logic_option(.false., check_free)) then
   is_free = attribute_free (ele, attrib_name, bp_com%print_err)
   if (.not. is_free) then
-    call parser_error ('ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, &
-                                      'FOR: ' // ele%name)
+    call parser_error ('ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, 'FOR: ' // ele%name)
     err_flag = .true.
     is_problem = .true.
   endif
@@ -2028,8 +2058,7 @@ else
   attrib_info = attribute_info(ele, attribute_index(ele, attrib_name))
   if (attrib_info%type == dependent$) then
     if (.not. hetero_list) then
-      call parser_error ('DEPENDENT ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, &
-                         'FOR: ' // ele%name)
+      call parser_error ('DEPENDENT ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, 'FOR: ' // ele%name)
     endif
     is_problem = .true.
   endif
@@ -3875,7 +3904,7 @@ do
 
     ! If a list of knot y-values
     elseif (bp_com%parse_line(1:1) == '{') then   ! y_knot array
-      if (.not. parse_real_list2 (lat, 'ERROR PARSING Y KNOT POINTS FOR: ' // ele%name, y_val, n, 10, '{', ',', '}')) return
+      if (.not. parse_real_list2 (lat, 'ERROR PARSING Y KNOT POINTS FOR: ' // ele%name, y_val, n, delim, delim_found, 10, '{', ',', '}')) return
 
       if (n_slave > 1 .and. .not. allocated(y_knot)) then
         call parser_error ('MIXING FUNCTIONS WITH SPLINES NOT ALLOWED.', 'FOR ELEMENT: ' // ele%name)
@@ -7115,7 +7144,7 @@ do
 
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
-    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', ct_map%r0, .true.)) return
+    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', ct_map%r0, .true., delim, delim_found)) return
     if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
 
 
@@ -7322,7 +7351,7 @@ do
 
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
-    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', cl_map%r0, .true.)) return
+    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', cl_map%r0, .true., delim, delim_found)) return
     if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
 
   case ('M')
@@ -7582,13 +7611,13 @@ do
 
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
-    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', g_field%r0, .false.)) return
+    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', g_field%r0, .false., delim, delim_found)) return
     if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
 
     case ('DR')
     if (.not. equal_sign_here(ele, delim)) return
     ! expect ( 1.) or (1. , 2.) or (1., 2., 3.)
-    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID', g_field%dr, .false.)) return
+    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID', g_field%dr, .false., delim, delim_found)) return
     call get_next_word (word, ix_word, ',}', delim, delim_found)     
     if (word /= '') then
       call parser_error ('BAD INPUT AFTER DR DEFINITION: ' // word , &
@@ -7616,7 +7645,7 @@ do
 
     ! Get indices
     bp_com%parse_line = delim // bp_com%parse_line
-    if (.not. parse_integer_list (trim(ele%name) // ' GRID_FIELD PT', lat, array(pt_counter)%ix, .false.)) return
+    if (.not. parse_integer_list (trim(ele%name) // ' GRID_FIELD PT', lat, array(pt_counter)%ix, .false., delim, delim_found)) return
       
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
     call get_next_word (word2, ix_word2, '{}=,()', delim2, delim_found2)
@@ -7853,7 +7882,7 @@ do
 
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
-    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', t_field%r0, .true.)) return
+    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', t_field%r0, .true., delim, delim_found)) return
     if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
 
   case ('DZ')
@@ -8042,8 +8071,8 @@ end subroutine parse_taylor_field
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function parse_integer_list (err_str, lat, int_array, exact_size, open_delim, 
-!           separator, close_delim, default_value) result (is_ok)
+! Function parse_integer_list (err_str, lat, int_array, exact_size, delim, delim_found, open_delim, 
+!                                       separator, close_delim, default_value) result (is_ok)
 !
 ! Routine to parse a list of integers of the form:
 !    open_delim integer_1 separator integer_2 . . . close_delim
@@ -8053,8 +8082,8 @@ end subroutine parse_taylor_field
 ! See parse_integer_list2 for more details
 !-
 
-function parse_integer_list (err_str, lat, int_array, exact_size, open_delim, &
-                                    separator, close_delim, default_value) result (is_ok)
+function parse_integer_list (err_str, lat, int_array, exact_size, delim, delim_found, open_delim, &
+                                      separator, close_delim, default_value) result (is_ok)
 
 implicit none
 
@@ -8066,16 +8095,16 @@ integer, allocatable :: vec(:)
 
 integer num_found
 
-character(*) err_str
+character(*) err_str, delim
 character(*), optional :: open_delim, separator, close_delim
 
-logical is_ok, exact_size
+logical is_ok, exact_size, delim_found
 
 !
 
 is_ok = .false.
-if (.not. parse_integer_list2 (err_str, lat, vec, num_found, size(int_array), &
-                          open_delim, separator, close_delim, default_value)) return
+if (.not. parse_integer_list2 (err_str, lat, vec, num_found, delim, delim_found, size(int_array), &
+                               open_delim, separator, close_delim, default_value)) return
 
 if (num_found > size(int_array) .or. (exact_size .and. num_found < size(int_array))) then
   call parser_error (err_str)
@@ -8092,34 +8121,35 @@ end function parse_integer_list
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function parse_integer_list2 (err_str, lat, int_array, num_found, num_expected, open_delim, 
-!                               separator, close_delim, default_value) result (is_ok)
+! Function parse_integer_list2 (err_str, lat, int_array, num_found, delim, delim_found, num_expected, 
+!                                        open_delim, separator, close_delim, default_value) result (is_ok)
 !
 ! Routine to parse a list of integers of the form
 !    open_delim integer_1 separator integer_2 . . . close_delim
 ! Example:   (1, 2, 4, 8) 
 !
 ! Input:
-!  err_str       -- character(*): Error string to print if there is an error. 
-!  lat           -- lat_struct: lattice
-!  int_array(:)  -- Integer, allocatable: the array to be read in 
+!   err_str       -- character(*): Error string to print if there is an error. 
+!   lat           -- lat_struct: lattice
+!   int_array(:)  -- Integer, allocatable: the array to be read in 
 !
-!   Optional: 
-!   num_expected = 1     -- integer : number of expected arguments
-!                             Used to initialize int_array
-!   open_delim   = '('   -- character(1) : opening delimeter
-!   separator    = ','   -- character(1) : separating character
-!   close_delim  = ')'   -- character(1) : closing delimeter
-!   default_value = 0    -- real(rp) : inital assignment of int_array elements
+! Optional: 
+!   num_expected = 1     -- integer: number of expected arguments. Used to initialize int_array.
+!   open_delim   = '('   -- character(1): opening delimeter.
+!   separator    = ','   -- character(1): separating character.
+!   close_delim  = ')'   -- character(1): closing delimeter.
+!   default_value = 0    -- real(rp): inital assignment of int_array elements.
 !
 ! Output:
-!   is_ok                   -- logical: Set True if everything is ok
-!   int_array(1:num_found) --integer(rp) : Array of values
-!   num_found                  -- integer : number of elements
+!   is_ok                   -- logical: Set True if everything is ok.
+!   int_array(1:num_found)  -- integer(rp): Array of values.
+!   num_found               -- integer: number of elements.
+!   delim                   -- character(1): Delimiter found where the parsing of the input line stops.
+!   delim_found             -- logical: Delimiter found? False if end of input command.
 !-
 
-function parse_integer_list2 (err_str, lat, int_array, num_found, num_expected, open_delim, &
-                              separator, close_delim, default_value) result (is_ok)
+function parse_integer_list2 (err_str, lat, int_array, num_found, delim, delim_found, num_expected, &
+                                       open_delim, separator, close_delim, default_value) result (is_ok)
 
 
 type (lat_struct) lat
@@ -8203,8 +8233,8 @@ end function parse_integer_list2
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function parse_real_list (lat, err_str, real_array, exact_size, open_delim, 
-!           separator, close_delim, default_value) result (is_ok)
+! Function parse_real_list (lat, err_str, real_array, exact_size, delim, delim_found, open_delim, 
+!                                separator, close_delim, default_value) result (is_ok)
 !
 ! Routine to parse a list of reals of the form:
 !    open_delim real_1 separator real_2 . . . close_delim
@@ -8214,8 +8244,8 @@ end function parse_integer_list2
 ! Also see: parse_real_lists.
 !-
 
-function parse_real_list (lat, err_str, real_array, exact_size, open_delim, &
-                          separator, close_delim, default_value) result (is_ok)
+function parse_real_list (lat, err_str, real_array, exact_size, delim, delim_found, open_delim, &
+                               separator, close_delim, default_value) result (is_ok)
 
 implicit none
 
@@ -8227,15 +8257,15 @@ real(rp), allocatable :: vec(:)
 
 integer num_found
 
-character(*) err_str
+character(*) err_str, delim
 character(*), optional :: open_delim, separator, close_delim
 
-logical is_ok, exact_size
+logical is_ok, exact_size, delim_found
 
 !
 
 is_ok = .false.
-if (.not. parse_real_list2 (lat, err_str, vec, num_found, size(real_array), &
+if (.not. parse_real_list2 (lat, err_str, vec, num_found, delim, delim_found, size(real_array), &
                           open_delim, separator, close_delim, default_value)) return
 
 if (num_found > size(real_array) .or. (exact_size .and. num_found < size(real_array))) then
@@ -8253,7 +8283,7 @@ end function parse_real_list
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function parse_real_lists (lat, err_str, table, size2) result (is_ok)
+! Function parse_real_lists (lat, err_str, table, size2, delim, delim_found) result (is_ok)
 !
 ! Routine to parse a list of reals of the form:
 !    {(re_11, re_12, ..., re_1<size2>), (re_21, re_22, ...), ...} 
@@ -8265,7 +8295,7 @@ end function parse_real_list
 ! Also see: parse_real_lists.
 !-
 
-function parse_real_lists (lat, ele, err_str, table, size2) result (is_ok)
+function parse_real_lists (lat, ele, err_str, table, size2, delim, delim_found) result (is_ok)
 
 implicit none
 
@@ -8291,7 +8321,7 @@ if (.not. allocated(table)) allocate (table(100,size2))
 if (.not. expect_one_of ('{', .false., ele, delim, delim_found)) return
 nn = 0
 do
-  if (.not. parse_real_list2 (lat, err_str, vec, num_found, size2, '(', ',', ')')) return
+  if (.not. parse_real_list2 (lat, err_str, vec, num_found, delim, delim_found, size2, '(', ',', ')')) return
   if (num_found /= size2) then
     call parser_error (err_str)
     return
@@ -8313,8 +8343,8 @@ end function parse_real_lists
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function parse_real_list2 (lat, err_str, real_array, num_found, num_expected, open_delim, 
-!                            separator, close_delim, default_value) result (is_ok)
+! Function parse_real_list2 (lat, err_str, real_array, num_found, delim, delim_found, num_expected, 
+!                            open_delim, separator, close_delim, default_value) result (is_ok)
 !
 ! Routine to parse a list of reals of the form:
 !    open_delim real_1 separator real_2 . . . close_delim
@@ -8341,10 +8371,12 @@ end function parse_real_lists
 !   is_ok                   -- logical: Set True if everything is ok
 !   real_array(1:num_found) -- real(rp) : Array of values
 !   num_found               -- integer : number of elements
+!   delim                   -- character(1): Delimiter found where the parsing of the input line stops.
+!   delim_found             -- logical: Delimiter found? False if end of input command.
 !-
 
-function parse_real_list2 (lat, err_str, real_array, num_found, num_expected, open_delim, &
-          separator, close_delim, default_value) result (is_ok)
+function parse_real_list2 (lat, err_str, real_array, num_found, delim, delim_found, num_expected, &
+          open_delim, separator, close_delim, default_value) result (is_ok)
 
 ! Arguments
 

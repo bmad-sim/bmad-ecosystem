@@ -109,14 +109,12 @@ err = .true.
 ! And taylor elements get ignored.
 
 if (ele%value(l$) == 0 .or. ele%key == taylor$) then
-  ele%csr_calc_on = .false.
+  ele%csr_method = off$
+  ele%space_charge_method = off$
   call track1_bunch_hom (bunch_end, ele, lat%param, bunch_end)
   err = .false.
-  ! Only do warning if previous element needed
-  if (ele%key == taylor$ .and. csr_param%print_taylor_warning) then
-    ele0 => pointer_to_next_ele (ele, -1)
-    if (ele0%csr_calc_on) call out_io (s_warn$, r_name, &
-                        'CSR calc for taylor element not done: ' // ele%name)
+  if (ele%key == taylor$ .and. ele%value(l$) == 0 .and. csr_param%print_taylor_warning) then
+    call out_io (s_warn$, r_name, 'CSR calc for taylor element not done: ' // ele%name)
   endif
   return
 endif
@@ -156,7 +154,8 @@ do i = 0, n_step
 
   if (i /= 0) then
     call create_uniform_element_slice (ele, lat%param, i, n_step, runt, s_start, s_end)
-    runt%csr_calc_on = .false.
+    runt%csr_method = off$
+    runt%space_charge_method = off$
     call track1_bunch_hom (bunch_end, runt, lat%param, bunch_end)
   endif
 
@@ -174,7 +173,7 @@ do i = 0, n_step
     return
   endif
 
-  call csr_bin_particles (bunch_end%particle, bin)    
+  call csr_bin_particles (ele, bunch_end%particle, bin)    
 
   ! ns = 0 is the unshielded kick.
   ! For the shielding image currents never use the small angle approximation
@@ -207,7 +206,7 @@ do i = 0, n_step
 
   do j = 1, size(bunch_end%particle)
     if (bunch_end%particle(j)%state /= alive$) cycle
-    call csr_kick_calc (bin, bunch_end%particle(j))
+    call csr_kick_calc (ele, bin, bunch_end%particle(j))
   enddo
 
   call save_bunch_track (bunch_end, ele, s0_step)
@@ -242,7 +241,7 @@ end subroutine track1_bunch_csr_old
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine csr_bin_particles (particle, bin)
+! Subroutine csr_bin_particles (ele, particle, bin)
 !
 ! Routine to bin the particles longitudinally in s. 
 !
@@ -255,6 +254,7 @@ end subroutine track1_bunch_csr_old
 !   use csr_mod
 !
 ! Input:
+!   ele                  -- ele_struct: Element being tracked through.
 !   particle(:)          -- Coord_struct: Array of particles
 !   csr_param            -- Csr_parameter_struct: CSR common block (not an argument).
 !     %n_bin             -- Number of bins.
@@ -266,7 +266,7 @@ end subroutine track1_bunch_csr_old
 !     %bin1(1:) -- Array of bins.
 !-
 
-subroutine csr_bin_particles (particle, bin)
+subroutine csr_bin_particles (ele, particle, bin)
 
 implicit none
 
@@ -276,6 +276,7 @@ type this_local_struct   ! Temporary structure
   integer ib             ! bin index
 end type
 
+type (ele_struct) ele
 type (coord_struct), target :: particle(:)
 type (coord_struct), pointer :: p
 type (csr_bin_struct), target :: bin
@@ -294,8 +295,7 @@ character(20) :: r_name = 'csr_bin_particles'
 ! The right edge of bin%bin1(n_bin) is at z_max
 ! The first and last bins are empty.
 
-if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on .and. &
-    .not. csr_param%tsc_component_on .and. csr_param%n_shield_images == 0) return
+if (ele%space_charge_method /= slice$ .and. ele%csr_method /= one_dim$) return
 
 z_maxval = maxval(particle(:)%vec(5), mask = (particle(:)%state == alive$))
 z_minval = minval(particle(:)%vec(5), mask = (particle(:)%state == alive$))
@@ -540,7 +540,7 @@ n_bin = csr_param%n_bin
 ! CSR & Image charge kick
 
 if (bin%y2 == 0) then
-  if (csr_param%lcsr_component_on) then
+  if (ele%space_charge_method == slice$) then  ! Longitudinal component
     do i = 1, n_bin
       bin%bin1(i)%kick_csr = coef * dot_product(bin%kick1(i:1:-1)%I_int_csr, bin%bin1(1:i)%dcharge_density_dz)
     enddo
@@ -553,11 +553,11 @@ else  ! Image charge
   enddo
 endif
 
-! Space charge kick
+! Longitudinal space charge kick
 
-if (csr_param%lsc_component_on) then
+if (ele%space_charge_method == slice$) then  
   if (bin%y2 == 0) then
-    call lsc_y0_kick_calc (bin)
+    call lsc_y0_kick_calc (ele, bin)
   endif
 endif
 
@@ -647,7 +647,7 @@ end subroutine csr_bin_kicks
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine lsc_y0_kick_calc (bin)
+! Subroutine lsc_y0_kick_calc (ele, bin)
 !
 ! Routine to cache intermediate values needed for the lsc calculation.
 ! This routine is not for image currents.
@@ -656,6 +656,7 @@ end subroutine csr_bin_kicks
 !   use lsc_mod
 !
 ! Input:
+!   ele       -- ele_struct: Element being tracked through.
 !   bin       -- csr_bin_struct: Binned particle averages.
 !     %bin1(:)  -- bin array of particle averages.
 !
@@ -664,10 +665,11 @@ end subroutine csr_bin_kicks
 !     %bin1(:)%kick_lsc -- Integrated kick.
 !-
 
-subroutine lsc_y0_kick_calc (bin)
+subroutine lsc_y0_kick_calc (ele, bin)
 
 implicit none
 
+type (ele_struct) ele
 type (csr_bin_struct), target :: bin
 type (csr_bin1_struct), pointer :: bin1
 
@@ -693,7 +695,7 @@ if (sig_y_ave == 0 .or. sig_x_ave == 0) return  ! Symptom of not enough particle
 ! Compute the kick at the center of each bin
 
 bin%bin1(:)%kick_lsc = 0
-if (.not. csr_param%lsc_component_on) return
+if (ele%space_charge_method /= slice$) return
 
 do i = 1, csr_param%n_bin
   bin1 => bin%bin1(i)
@@ -1116,14 +1118,15 @@ end function z_calc_csr
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine csr_kick_calc (bin, particle)
+! Subroutine csr_kick_calc (ele, bin, particle)
 !
 ! Routine to calculate the longitudinal coherent synchrotron radiation kick.
 !
 ! Modules needed:
 !   use csr_mod
 !
-!   bin -- Csr_bin1_struct: Binned beam
+!   ele      -- ele_struct: Element being tracked through.
+!   bin      -- Csr_bin1_struct: Binned beam
 !   particle -- Coord_struct: Particle to kick.
 !     %vec(6) -- Initial particle energy.
 !
@@ -1132,10 +1135,11 @@ end function z_calc_csr
 !     %vec(6) -- Final particle energy.
 !-
 
-subroutine csr_kick_calc (bin, particle)
+subroutine csr_kick_calc (ele, bin, particle)
 
 implicit none
 
+type (ele_struct) ele
 type (csr_bin_struct), target :: bin
 type (coord_struct), target :: particle
 type (csr_bin1_struct), pointer :: bin1
@@ -1164,7 +1168,7 @@ vec(6) = vec(6) + r0 * bin%bin1(i0)%kick_csr + r1 * bin%bin1(i0+1)%kick_csr
 
 ! Longitudinal space charge
 
-if (csr_param%lsc_component_on) then
+if (ele%space_charge_method == slice$) then
   vec(6) = vec(6) + r0 * bin%bin1(i0)%kick_lsc + r1 * bin%bin1(i0+1)%kick_lsc
 endif
 
@@ -1176,7 +1180,7 @@ vec(5) = vec(5) * particle%beta / beta0
 
 ! Transverse space charge.
 
-if (csr_param%tsc_component_on) then
+if (ele%space_charge_method == slice$) then
   f0 = bin%kick_factor * bin%ds_track_step * r_e / (twopi * &
            bin%dz_bin * bin%rel_mass * e_charge * abs(charge_of(bin%particle)) * bin%gamma**3)
 

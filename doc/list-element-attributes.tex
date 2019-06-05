@@ -33,26 +33,26 @@ e_tot                       & reference                   & x2_limit            
  \label{s:list.ac.kicker}
  
  \begin{tabular}{llll} \toprule
-a0 - a20, b0 - b20          & frequencies                 & offset                      & t_offset                    \\
-alias                       & fringe_at                   & offset_moves_aperture       & vkick                       \\
-amp_vs_time                 & fringe_type                 & p0c                         & wall                        \\
-aperture                    & grid_field                  & ptc_integration_type        & x1_limit                    \\
-aperture_at                 & hkick                       & r0_elec                     & x2_limit                    \\
-aperture_type               & integrator_order            & r0_mag                      & x_limit                     \\
-bl_hkick                    & interpolation               & reference                   & x_offset                    \\
-bl_vkick                    & is_on                       & ref_origin                  & x_offset_tot                \\
-cartesian_map               & l                           & scale_multipoles            & x_pitch                     \\
-create_jumbo_slave          & lord_pad1                   & spin_fringe_on              & x_pitch_tot                 \\
-csr_calc_on                 & lord_pad2                   & spin_tracking_method        & y1_limit                    \\
-cylindrical_map             & lr_freq_spread              & sr_wake_file                & y2_limit                    \\
-delta_ref_time              & lr_self_wake_on             & superimpose                 & y_limit                     \\
-descrip                     & lr_wake_file                & symplectify                 & y_offset                    \\
-ds_step                     & lr_wake_spline              & taylor_field                & y_offset_tot                \\
-ele_origin                  & l_hard_edge                 & taylor_map_includes_offsets & y_pitch                     \\
-e_tot                       & mat6_calc_method            & tilt                        & y_pitch_tot                 \\
-field_calc                  & multipoles_on               & tilt_tot                    & z_offset                    \\
-field_master                & num_steps                   & tracking_method             & z_offset_tot                \\
-field_overlaps              & n_ref_pass                  & type                        &                             \\
+a0 - a20, b0 - b20          & frequencies                 & offset                      & type                        \\
+alias                       & fringe_at                   & offset_moves_aperture       & t_offset                    \\
+amp_vs_time                 & fringe_type                 & p0c                         & vkick                       \\
+aperture                    & grid_field                  & ptc_integration_type        & wall                        \\
+aperture_at                 & hkick                       & r0_elec                     & x1_limit                    \\
+aperture_type               & integrator_order            & r0_mag                      & x2_limit                    \\
+bl_hkick                    & interpolation               & reference                   & x_limit                     \\
+bl_vkick                    & is_on                       & ref_origin                  & x_offset                    \\
+cartesian_map               & l                           & scale_multipoles            & x_offset_tot                \\
+create_jumbo_slave          & lord_pad1                   & space_charge_method         & x_pitch                     \\
+csr_method                  & lord_pad2                   & spin_fringe_on              & x_pitch_tot                 \\
+cylindrical_map             & lr_freq_spread              & spin_tracking_method        & y1_limit                    \\
+delta_ref_time              & lr_self_wake_on             & sr_wake_file                & y2_limit                    \\
+descrip                     & lr_wake_file                & superimpose                 & y_limit                     \\
+ds_step                     & lr_wake_spline              & symplectify                 & y_offset                    \\
+ele_origin                  & l_hard_edge                 & taylor_field                & y_offset_tot                \\
+e_tot                       & mat6_calc_method            & taylor_map_includes_offsets & y_pitch                     \\
+field_calc                  & multipoles_on               & tilt                        & y_pitch_tot                 \\
+field_master                & num_steps                   & tilt_tot                    & z_offset                    \\
+field_overlaps              & n_ref_pass                  & tracking_method             & z_offset_tot                \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -133,25 +133,25 @@ diffraction_limited         & reference                   & wall                
  \label{s:list.custom}
  
  \begin{tabular}{llll} \toprule
-alias                       & lord_pad1                   & superimpose                 & wall                        \\
-aperture                    & lord_pad2                   & symplectify                 & x1_limit                    \\
-aperture_at                 & lr_freq_spread              & taylor_map_includes_offsets & x2_limit                    \\
-aperture_type               & lr_self_wake_on             & tilt                        & x_limit                     \\
-create_jumbo_slave          & lr_wake_file                & tilt_tot                    & x_offset                    \\
-csr_calc_on                 & lr_wake_spline              & tracking_method             & x_offset_tot                \\
-delta_e_ref                 & l_hard_edge                 & type                        & x_pitch                     \\
-delta_ref_time              & mat6_calc_method            & val1                        & x_pitch_tot                 \\
-descrip                     & num_steps                   & val10                       & y1_limit                    \\
-ds_step                     & n_ref_pass                  & val11                       & y2_limit                    \\
-ele_origin                  & offset                      & val12                       & y_limit                     \\
-e_tot                       & offset_moves_aperture       & val2                        & y_offset                    \\
-e_tot_start                 & p0c                         & val3                        & y_offset_tot                \\
-field_calc                  & p0c_start                   & val4                        & y_pitch                     \\
-field_master                & ptc_integration_type        & val5                        & y_pitch_tot                 \\
-field_overlaps              & reference                   & val6                        & z_offset                    \\
-integrator_order            & ref_origin                  & val7                        & z_offset_tot                \\
-is_on                       & spin_tracking_method        & val8                        &                             \\
-l                           & sr_wake_file                & val9                        &                             \\
+alias                       & lord_pad1                   & sr_wake_file                & val9                        \\
+aperture                    & lord_pad2                   & superimpose                 & wall                        \\
+aperture_at                 & lr_freq_spread              & symplectify                 & x1_limit                    \\
+aperture_type               & lr_self_wake_on             & taylor_map_includes_offsets & x2_limit                    \\
+create_jumbo_slave          & lr_wake_file                & tilt                        & x_limit                     \\
+csr_method                  & lr_wake_spline              & tilt_tot                    & x_offset                    \\
+delta_e_ref                 & l_hard_edge                 & tracking_method             & x_offset_tot                \\
+delta_ref_time              & mat6_calc_method            & type                        & x_pitch                     \\
+descrip                     & num_steps                   & val1                        & x_pitch_tot                 \\
+ds_step                     & n_ref_pass                  & val10                       & y1_limit                    \\
+ele_origin                  & offset                      & val11                       & y2_limit                    \\
+e_tot                       & offset_moves_aperture       & val12                       & y_limit                     \\
+e_tot_start                 & p0c                         & val2                        & y_offset                    \\
+field_calc                  & p0c_start                   & val3                        & y_offset_tot                \\
+field_master                & ptc_integration_type        & val4                        & y_pitch                     \\
+field_overlaps              & reference                   & val5                        & y_pitch_tot                 \\
+integrator_order            & ref_origin                  & val6                        & z_offset                    \\
+is_on                       & space_charge_method         & val7                        & z_offset_tot                \\
+l                           & spin_tracking_method        & val8                        &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -207,19 +207,19 @@ e_tot                       & spin_tracking_method        & x_pitch             
  \label{s:list.drift}
  
  \begin{tabular}{llll} \toprule
-alias                       & l                           & superimpose                 & x_pitch                     \\
-aperture                    & lord_pad1                   & symplectify                 & x_pitch_tot                 \\
-aperture_at                 & lord_pad2                   & taylor_map_includes_offsets & y1_limit                    \\
-aperture_type               & mat6_calc_method            & tilt                        & y2_limit                    \\
-create_jumbo_slave          & num_steps                   & tilt_tot                    & y_limit                     \\
-csr_calc_on                 & n_ref_pass                  & tracking_method             & y_offset                    \\
-delta_ref_time              & offset                      & type                        & y_offset_tot                \\
-descrip                     & offset_moves_aperture       & wall                        & y_pitch                     \\
-ds_step                     & p0c                         & x1_limit                    & y_pitch_tot                 \\
-ele_origin                  & ptc_integration_type        & x2_limit                    & z_offset                    \\
-e_tot                       & reference                   & x_limit                     & z_offset_tot                \\
-field_calc                  & ref_origin                  & x_offset                    &                             \\
-integrator_order            & spin_tracking_method        & x_offset_tot                &                             \\
+alias                       & l                           & spin_tracking_method        & x_offset_tot                \\
+aperture                    & lord_pad1                   & superimpose                 & x_pitch                     \\
+aperture_at                 & lord_pad2                   & symplectify                 & x_pitch_tot                 \\
+aperture_type               & mat6_calc_method            & taylor_map_includes_offsets & y1_limit                    \\
+create_jumbo_slave          & num_steps                   & tilt                        & y2_limit                    \\
+csr_method                  & n_ref_pass                  & tilt_tot                    & y_limit                     \\
+delta_ref_time              & offset                      & tracking_method             & y_offset                    \\
+descrip                     & offset_moves_aperture       & type                        & y_offset_tot                \\
+ds_step                     & p0c                         & wall                        & y_pitch                     \\
+ele_origin                  & ptc_integration_type        & x1_limit                    & y_pitch_tot                 \\
+e_tot                       & reference                   & x2_limit                    & z_offset                    \\
+field_calc                  & ref_origin                  & x_limit                     & z_offset_tot                \\
+integrator_order            & space_charge_method         & x_offset                    &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -229,26 +229,26 @@ integrator_order            & spin_tracking_method        & x_offset_tot        
  \label{s:list.elseparator}
  
  \begin{tabular}{llll} \toprule
-a0 - a20, b0 - b20          & gap                         & ptc_canonical_coords        & wall                        \\
-alias                       & grid_field                  & ptc_integration_type        & x1_limit                    \\
-aperture                    & hkick                       & r0_elec                     & x2_limit                    \\
-aperture_at                 & integrator_order            & r0_mag                      & x_limit                     \\
-aperture_type               & is_on                       & reference                   & x_offset                    \\
-cartesian_map               & l                           & ref_origin                  & x_offset_tot                \\
-create_jumbo_slave          & lord_pad1                   & scale_multipoles            & x_pitch                     \\
-csr_calc_on                 & lord_pad2                   & spin_fringe_on              & x_pitch_tot                 \\
-cylindrical_map             & lr_freq_spread              & spin_tracking_method        & y1_limit                    \\
-delta_ref_time              & lr_self_wake_on             & sr_wake_file                & y2_limit                    \\
-descrip                     & lr_wake_file                & superimpose                 & y_limit                     \\
-ds_step                     & lr_wake_spline              & symplectify                 & y_offset                    \\
-ele_origin                  & l_hard_edge                 & taylor_field                & y_offset_tot                \\
-e_field                     & mat6_calc_method            & taylor_map_includes_offsets & y_pitch                     \\
-e_tot                       & multipoles_on               & tilt                        & y_pitch_tot                 \\
-field_calc                  & num_steps                   & tilt_tot                    & z_offset                    \\
-field_master                & n_ref_pass                  & tracking_method             & z_offset_tot                \\
-field_overlaps              & offset                      & type                        &                             \\
-fringe_at                   & offset_moves_aperture       & vkick                       &                             \\
-fringe_type                 & p0c                         & voltage                     &                             \\
+a0 - a20, b0 - b20          & gap                         & ptc_canonical_coords        & voltage                     \\
+alias                       & grid_field                  & ptc_integration_type        & wall                        \\
+aperture                    & hkick                       & r0_elec                     & x1_limit                    \\
+aperture_at                 & integrator_order            & r0_mag                      & x2_limit                    \\
+aperture_type               & is_on                       & reference                   & x_limit                     \\
+cartesian_map               & l                           & ref_origin                  & x_offset                    \\
+create_jumbo_slave          & lord_pad1                   & scale_multipoles            & x_offset_tot                \\
+csr_method                  & lord_pad2                   & space_charge_method         & x_pitch                     \\
+cylindrical_map             & lr_freq_spread              & spin_fringe_on              & x_pitch_tot                 \\
+delta_ref_time              & lr_self_wake_on             & spin_tracking_method        & y1_limit                    \\
+descrip                     & lr_wake_file                & sr_wake_file                & y2_limit                    \\
+ds_step                     & lr_wake_spline              & superimpose                 & y_limit                     \\
+ele_origin                  & l_hard_edge                 & symplectify                 & y_offset                    \\
+e_field                     & mat6_calc_method            & taylor_field                & y_offset_tot                \\
+e_tot                       & multipoles_on               & taylor_map_includes_offsets & y_pitch                     \\
+field_calc                  & num_steps                   & tilt                        & y_pitch_tot                 \\
+field_master                & n_ref_pass                  & tilt_tot                    & z_offset                    \\
+field_overlaps              & offset                      & tracking_method             & z_offset_tot                \\
+fringe_at                   & offset_moves_aperture       & type                        &                             \\
+fringe_type                 & p0c                         & vkick                       &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -258,25 +258,26 @@ fringe_type                 & p0c                         & voltage             
  \label{s:list.em.field}
  
  \begin{tabular}{llll} \toprule
-alias                       & field_overlaps              & p0c                         & tracking_method             \\
-aperture                    & fringe_at                   & p0c_start                   & type                        \\
-aperture_at                 & fringe_type                 & phi0                        & wall                        \\
-aperture_type               & grid_field                  & phi0_autoscale              & x1_limit                    \\
-autoscale_amplitude         & integrator_order            & phi0_err                    & x2_limit                    \\
-autoscale_phase             & is_on                       & ptc_canonical_coords        & x_limit                     \\
-cartesian_map               & l                           & ptc_integration_type        & x_offset                    \\
-constant_ref_energy         & lord_pad1                   & reference                   & x_offset_tot                \\
-create_jumbo_slave          & lord_pad2                   & ref_origin                  & x_pitch                     \\
-csr_calc_on                 & lr_freq_spread              & rf_frequency                & x_pitch_tot                 \\
-cylindrical_map             & lr_self_wake_on             & spin_fringe_on              & y1_limit                    \\
-delta_ref_time              & lr_wake_file                & spin_tracking_method        & y2_limit                    \\
-descrip                     & lr_wake_spline              & sr_wake_file                & y_limit                     \\
-ds_step                     & l_hard_edge                 & superimpose                 & y_offset                    \\
-ele_origin                  & mat6_calc_method            & symplectify                 & y_offset_tot                \\
-e_tot                       & num_steps                   & taylor_field                & y_pitch                     \\
-e_tot_start                 & n_ref_pass                  & taylor_map_includes_offsets & y_pitch_tot                 \\
-field_autoscale             & offset                      & tilt                        & z_offset                    \\
-field_calc                  & offset_moves_aperture       & tilt_tot                    & z_offset_tot                \\
+alias                       & fringe_at                   & phi0                        & wall                        \\
+aperture                    & fringe_type                 & phi0_autoscale              & x1_limit                    \\
+aperture_at                 & grid_field                  & phi0_err                    & x2_limit                    \\
+aperture_type               & integrator_order            & ptc_canonical_coords        & x_limit                     \\
+autoscale_amplitude         & is_on                       & ptc_integration_type        & x_offset                    \\
+autoscale_phase             & l                           & reference                   & x_offset_tot                \\
+cartesian_map               & lord_pad1                   & ref_origin                  & x_pitch                     \\
+constant_ref_energy         & lord_pad2                   & rf_frequency                & x_pitch_tot                 \\
+create_jumbo_slave          & lr_freq_spread              & space_charge_method         & y1_limit                    \\
+csr_method                  & lr_self_wake_on             & spin_fringe_on              & y2_limit                    \\
+cylindrical_map             & lr_wake_file                & spin_tracking_method        & y_limit                     \\
+delta_ref_time              & lr_wake_spline              & sr_wake_file                & y_offset                    \\
+descrip                     & l_hard_edge                 & superimpose                 & y_offset_tot                \\
+ds_step                     & mat6_calc_method            & symplectify                 & y_pitch                     \\
+ele_origin                  & num_steps                   & taylor_field                & y_pitch_tot                 \\
+e_tot                       & n_ref_pass                  & taylor_map_includes_offsets & z_offset                    \\
+e_tot_start                 & offset                      & tilt                        & z_offset_tot                \\
+field_autoscale             & offset_moves_aperture       & tilt_tot                    &                             \\
+field_calc                  & p0c                         & tracking_method             &                             \\
+field_overlaps              & p0c_start                   & type                        &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -286,25 +287,26 @@ field_calc                  & offset_moves_aperture       & tilt_tot            
  \label{s:list.e.gun}
  
  \begin{tabular}{llll} \toprule
-alias                       & fringe_type                 & p0c                         & voltage                     \\
-aperture                    & gradient                    & phi0                        & voltage_err                 \\
-aperture_at                 & gradient_err                & phi0_autoscale              & wall                        \\
-aperture_type               & grid_field                  & phi0_err                    & x1_limit                    \\
-autoscale_amplitude         & integrator_order            & ptc_integration_type        & x2_limit                    \\
-autoscale_phase             & is_on                       & reference                   & x_limit                     \\
-cartesian_map               & l                           & ref_origin                  & x_offset                    \\
-create_jumbo_slave          & lord_pad1                   & rf_frequency                & x_offset_tot                \\
-csr_calc_on                 & lord_pad2                   & spin_fringe_on              & x_pitch                     \\
-cylindrical_map             & lr_freq_spread              & spin_tracking_method        & x_pitch_tot                 \\
-delta_ref_time              & lr_self_wake_on             & sr_wake_file                & y1_limit                    \\
-descrip                     & lr_wake_file                & superimpose                 & y2_limit                    \\
-ds_step                     & lr_wake_spline              & symplectify                 & y_limit                     \\
-ele_origin                  & l_hard_edge                 & taylor_field                & y_offset                    \\
-e_tot                       & mat6_calc_method            & taylor_map_includes_offsets & y_offset_tot                \\
-field_autoscale             & num_steps                   & tilt                        & y_pitch                     \\
-field_calc                  & n_ref_pass                  & tilt_tot                    & y_pitch_tot                 \\
-field_overlaps              & offset                      & tracking_method             & z_offset                    \\
-fringe_at                   & offset_moves_aperture       & type                        & z_offset_tot                \\
+alias                       & gradient                    & phi0_autoscale              & wall                        \\
+aperture                    & gradient_err                & phi0_err                    & x1_limit                    \\
+aperture_at                 & grid_field                  & ptc_integration_type        & x2_limit                    \\
+aperture_type               & integrator_order            & reference                   & x_limit                     \\
+autoscale_amplitude         & is_on                       & ref_origin                  & x_offset                    \\
+autoscale_phase             & l                           & rf_frequency                & x_offset_tot                \\
+cartesian_map               & lord_pad1                   & space_charge_method         & x_pitch                     \\
+create_jumbo_slave          & lord_pad2                   & spin_fringe_on              & x_pitch_tot                 \\
+csr_method                  & lr_freq_spread              & spin_tracking_method        & y1_limit                    \\
+cylindrical_map             & lr_self_wake_on             & sr_wake_file                & y2_limit                    \\
+delta_ref_time              & lr_wake_file                & superimpose                 & y_limit                     \\
+descrip                     & lr_wake_spline              & symplectify                 & y_offset                    \\
+ds_step                     & l_hard_edge                 & taylor_field                & y_offset_tot                \\
+ele_origin                  & mat6_calc_method            & taylor_map_includes_offsets & y_pitch                     \\
+e_tot                       & num_steps                   & tilt                        & y_pitch_tot                 \\
+field_autoscale             & n_ref_pass                  & tilt_tot                    & z_offset                    \\
+field_calc                  & offset                      & tracking_method             & z_offset_tot                \\
+field_overlaps              & offset_moves_aperture       & type                        &                             \\
+fringe_at                   & p0c                         & voltage                     &                             \\
+fringe_type                 & phi0                        & voltage_err                 &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -314,23 +316,23 @@ fringe_at                   & offset_moves_aperture       & type                
  \label{s:list.collimator}
  
  \begin{tabular}{llll} \toprule
-alias                       & hkick                       & ptc_integration_type        & x_limit                     \\
-aperture                    & integrator_order            & reference                   & x_offset                    \\
-aperture_at                 & is_on                       & ref_origin                  & x_offset_tot                \\
-aperture_type               & l                           & spin_fringe_on              & x_pitch                     \\
-bl_hkick                    & lord_pad1                   & spin_tracking_method        & x_pitch_tot                 \\
-bl_vkick                    & lord_pad2                   & sr_wake_file                & y1_limit                    \\
-create_jumbo_slave          & lr_freq_spread              & superimpose                 & y2_limit                    \\
-csr_calc_on                 & lr_self_wake_on             & symplectify                 & y_limit                     \\
-delta_ref_time              & lr_wake_file                & taylor_map_includes_offsets & y_offset                    \\
-descrip                     & lr_wake_spline              & tilt                        & y_offset_tot                \\
-ds_step                     & l_hard_edge                 & tilt_tot                    & y_pitch                     \\
-ele_origin                  & mat6_calc_method            & tracking_method             & y_pitch_tot                 \\
-e_tot                       & num_steps                   & type                        & z_offset                    \\
-field_calc                  & n_ref_pass                  & vkick                       & z_offset_tot                \\
-field_overlaps              & offset                      & wall                        &                             \\
-fringe_at                   & offset_moves_aperture       & x1_limit                    &                             \\
-fringe_type                 & p0c                         & x2_limit                    &                             \\
+alias                       & hkick                       & ptc_integration_type        & x2_limit                    \\
+aperture                    & integrator_order            & reference                   & x_limit                     \\
+aperture_at                 & is_on                       & ref_origin                  & x_offset                    \\
+aperture_type               & l                           & space_charge_method         & x_offset_tot                \\
+bl_hkick                    & lord_pad1                   & spin_fringe_on              & x_pitch                     \\
+bl_vkick                    & lord_pad2                   & spin_tracking_method        & x_pitch_tot                 \\
+create_jumbo_slave          & lr_freq_spread              & sr_wake_file                & y1_limit                    \\
+csr_method                  & lr_self_wake_on             & superimpose                 & y2_limit                    \\
+delta_ref_time              & lr_wake_file                & symplectify                 & y_limit                     \\
+descrip                     & lr_wake_spline              & taylor_map_includes_offsets & y_offset                    \\
+ds_step                     & l_hard_edge                 & tilt                        & y_offset_tot                \\
+ele_origin                  & mat6_calc_method            & tilt_tot                    & y_pitch                     \\
+e_tot                       & num_steps                   & tracking_method             & y_pitch_tot                 \\
+field_calc                  & n_ref_pass                  & type                        & z_offset                    \\
+field_overlaps              & offset                      & vkick                       & z_offset_tot                \\
+fringe_at                   & offset_moves_aperture       & wall                        &                             \\
+fringe_type                 & p0c                         & x1_limit                    &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -392,23 +394,23 @@ ele_origin                  & offset_moves_aperture       & tracking_method     
  \label{s:list.garbage!}
  
  \begin{tabular}{llll} \toprule
-alias                       & hkick                       & ptc_integration_type        & x_limit                     \\
-aperture                    & integrator_order            & reference                   & x_offset                    \\
-aperture_at                 & is_on                       & ref_origin                  & x_offset_tot                \\
-aperture_type               & l                           & spin_fringe_on              & x_pitch                     \\
-bl_hkick                    & lord_pad1                   & spin_tracking_method        & x_pitch_tot                 \\
-bl_vkick                    & lord_pad2                   & sr_wake_file                & y1_limit                    \\
-create_jumbo_slave          & lr_freq_spread              & superimpose                 & y2_limit                    \\
-csr_calc_on                 & lr_self_wake_on             & symplectify                 & y_limit                     \\
-delta_ref_time              & lr_wake_file                & taylor_map_includes_offsets & y_offset                    \\
-descrip                     & lr_wake_spline              & tilt                        & y_offset_tot                \\
-ds_step                     & l_hard_edge                 & tilt_tot                    & y_pitch                     \\
-ele_origin                  & mat6_calc_method            & tracking_method             & y_pitch_tot                 \\
-e_tot                       & num_steps                   & type                        & z_offset                    \\
-field_calc                  & n_ref_pass                  & vkick                       & z_offset_tot                \\
-field_overlaps              & offset                      & wall                        &                             \\
-fringe_at                   & offset_moves_aperture       & x1_limit                    &                             \\
-fringe_type                 & p0c                         & x2_limit                    &                             \\
+alias                       & hkick                       & ptc_integration_type        & x2_limit                    \\
+aperture                    & integrator_order            & reference                   & x_limit                     \\
+aperture_at                 & is_on                       & ref_origin                  & x_offset                    \\
+aperture_type               & l                           & space_charge_method         & x_offset_tot                \\
+bl_hkick                    & lord_pad1                   & spin_fringe_on              & x_pitch                     \\
+bl_vkick                    & lord_pad2                   & spin_tracking_method        & x_pitch_tot                 \\
+create_jumbo_slave          & lr_freq_spread              & sr_wake_file                & y1_limit                    \\
+csr_method                  & lr_self_wake_on             & superimpose                 & y2_limit                    \\
+delta_ref_time              & lr_wake_file                & symplectify                 & y_limit                     \\
+descrip                     & lr_wake_spline              & taylor_map_includes_offsets & y_offset                    \\
+ds_step                     & l_hard_edge                 & tilt                        & y_offset_tot                \\
+ele_origin                  & mat6_calc_method            & tilt_tot                    & y_pitch                     \\
+e_tot                       & num_steps                   & tracking_method             & y_pitch_tot                 \\
+field_calc                  & n_ref_pass                  & type                        & z_offset                    \\
+field_overlaps              & offset                      & vkick                       & z_offset_tot                \\
+fringe_at                   & offset_moves_aperture       & wall                        &                             \\
+fringe_type                 & p0c                         & x1_limit                    &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -446,24 +448,25 @@ descrip                     & start_edge                  & var                 
  \label{s:list.hvkicker}
  
  \begin{tabular}{llll} \toprule
-a0 - a20, b0 - b20          & fringe_at                   & offset                      & type                        \\
-alias                       & fringe_type                 & offset_moves_aperture       & wall                        \\
-aperture                    & grid_field                  & p0c                         & x1_limit                    \\
-aperture_at                 & integrator_order            & ptc_canonical_coords        & x2_limit                    \\
-aperture_type               & is_on                       & ptc_integration_type        & x_limit                     \\
-bl_kick                     & kick                        & reference                   & x_offset                    \\
-cartesian_map               & l                           & ref_origin                  & x_offset_tot                \\
-create_jumbo_slave          & lord_pad1                   & scale_multipoles            & x_pitch                     \\
-csr_calc_on                 & lord_pad2                   & spin_fringe_on              & x_pitch_tot                 \\
-cylindrical_map             & lr_freq_spread              & spin_tracking_method        & y1_limit                    \\
-delta_ref_time              & lr_self_wake_on             & sr_wake_file                & y2_limit                    \\
-descrip                     & lr_wake_file                & superimpose                 & y_limit                     \\
-ds_step                     & lr_wake_spline              & symplectify                 & y_offset                    \\
-ele_origin                  & l_hard_edge                 & taylor_field                & y_offset_tot                \\
-e_tot                       & mat6_calc_method            & taylor_map_includes_offsets & y_pitch                     \\
-field_calc                  & multipoles_on               & tilt                        & y_pitch_tot                 \\
-field_master                & num_steps                   & tilt_tot                    & z_offset                    \\
-field_overlaps              & n_ref_pass                  & tracking_method             & z_offset_tot                \\
+a0 - a20, b0 - b20          & fringe_type                 & p0c                         & x1_limit                    \\
+alias                       & grid_field                  & ptc_canonical_coords        & x2_limit                    \\
+aperture                    & integrator_order            & ptc_integration_type        & x_limit                     \\
+aperture_at                 & is_on                       & reference                   & x_offset                    \\
+aperture_type               & kick                        & ref_origin                  & x_offset_tot                \\
+bl_kick                     & l                           & scale_multipoles            & x_pitch                     \\
+cartesian_map               & lord_pad1                   & space_charge_method         & x_pitch_tot                 \\
+create_jumbo_slave          & lord_pad2                   & spin_fringe_on              & y1_limit                    \\
+csr_method                  & lr_freq_spread              & spin_tracking_method        & y2_limit                    \\
+cylindrical_map             & lr_self_wake_on             & sr_wake_file                & y_limit                     \\
+delta_ref_time              & lr_wake_file                & superimpose                 & y_offset                    \\
+descrip                     & lr_wake_spline              & symplectify                 & y_offset_tot                \\
+ds_step                     & l_hard_edge                 & taylor_field                & y_pitch                     \\
+ele_origin                  & mat6_calc_method            & taylor_map_includes_offsets & y_pitch_tot                 \\
+e_tot                       & multipoles_on               & tilt                        & z_offset                    \\
+field_calc                  & num_steps                   & tilt_tot                    & z_offset_tot                \\
+field_master                & n_ref_pass                  & tracking_method             &                             \\
+field_overlaps              & offset                      & type                        &                             \\
+fringe_at                   & offset_moves_aperture       & wall                        &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -490,26 +493,26 @@ descrip                     & p0c                         & type                
  \label{s:list.instrument}
  
  \begin{tabular}{llll} \toprule
-alias                       & hkick                       & ptc_integration_type        & x_limit                     \\
-aperture                    & integrator_order            & reference                   & x_offset                    \\
-aperture_at                 & is_on                       & ref_origin                  & x_offset_calib              \\
-aperture_type               & l                           & spin_fringe_on              & x_offset_tot                \\
-bl_hkick                    & lord_pad1                   & spin_tracking_method        & x_pitch                     \\
-bl_vkick                    & lord_pad2                   & sr_wake_file                & x_pitch_tot                 \\
-create_jumbo_slave          & lr_freq_spread              & superimpose                 & y1_limit                    \\
-crunch                      & lr_self_wake_on             & symplectify                 & y2_limit                    \\
-crunch_calib                & lr_wake_file                & taylor_map_includes_offsets & y_gain_calib                \\
-csr_calc_on                 & lr_wake_spline              & tilt                        & y_gain_err                  \\
-delta_ref_time              & l_hard_edge                 & tilt_calib                  & y_limit                     \\
-descrip                     & mat6_calc_method            & tilt_tot                    & y_offset                    \\
-de_eta_meas                 & noise                       & tracking_method             & y_offset_calib              \\
-ds_step                     & num_steps                   & type                        & y_offset_tot                \\
-ele_origin                  & n_ref_pass                  & vkick                       & y_pitch                     \\
-e_tot                       & n_sample                    & wall                        & y_pitch_tot                 \\
-field_calc                  & offset                      & x1_limit                    & z_offset                    \\
-field_overlaps              & offset_moves_aperture       & x2_limit                    & z_offset_tot                \\
-fringe_at                   & osc_amplitude               & x_gain_calib                &                             \\
-fringe_type                 & p0c                         & x_gain_err                  &                             \\
+alias                       & hkick                       & ptc_integration_type        & x_gain_err                  \\
+aperture                    & integrator_order            & reference                   & x_limit                     \\
+aperture_at                 & is_on                       & ref_origin                  & x_offset                    \\
+aperture_type               & l                           & space_charge_method         & x_offset_calib              \\
+bl_hkick                    & lord_pad1                   & spin_fringe_on              & x_offset_tot                \\
+bl_vkick                    & lord_pad2                   & spin_tracking_method        & x_pitch                     \\
+create_jumbo_slave          & lr_freq_spread              & sr_wake_file                & x_pitch_tot                 \\
+crunch                      & lr_self_wake_on             & superimpose                 & y1_limit                    \\
+crunch_calib                & lr_wake_file                & symplectify                 & y2_limit                    \\
+csr_method                  & lr_wake_spline              & taylor_map_includes_offsets & y_gain_calib                \\
+delta_ref_time              & l_hard_edge                 & tilt                        & y_gain_err                  \\
+descrip                     & mat6_calc_method            & tilt_calib                  & y_limit                     \\
+de_eta_meas                 & noise                       & tilt_tot                    & y_offset                    \\
+ds_step                     & num_steps                   & tracking_method             & y_offset_calib              \\
+ele_origin                  & n_ref_pass                  & type                        & y_offset_tot                \\
+e_tot                       & n_sample                    & vkick                       & y_pitch                     \\
+field_calc                  & offset                      & wall                        & y_pitch_tot                 \\
+field_overlaps              & offset_moves_aperture       & x1_limit                    & z_offset                    \\
+fringe_at                   & osc_amplitude               & x2_limit                    & z_offset_tot                \\
+fringe_type                 & p0c                         & x_gain_calib                &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -519,26 +522,26 @@ fringe_type                 & p0c                         & x_gain_err          
  \label{s:list.kicker}
  
  \begin{tabular}{llll} \toprule
-a0 - a20, b0 - b20          & fringe_type                 & p0c                         & v_displace                  \\
-alias                       & grid_field                  & ptc_canonical_coords        & wall                        \\
-aperture                    & hkick                       & ptc_integration_type        & x1_limit                    \\
-aperture_at                 & h_displace                  & r0_elec                     & x2_limit                    \\
-aperture_type               & integrator_order            & r0_mag                      & x_limit                     \\
-bl_hkick                    & is_on                       & reference                   & x_offset                    \\
-bl_vkick                    & l                           & ref_origin                  & x_offset_tot                \\
-cartesian_map               & lord_pad1                   & scale_multipoles            & x_pitch                     \\
-create_jumbo_slave          & lord_pad2                   & spin_fringe_on              & x_pitch_tot                 \\
-csr_calc_on                 & lr_freq_spread              & spin_tracking_method        & y1_limit                    \\
-cylindrical_map             & lr_self_wake_on             & sr_wake_file                & y2_limit                    \\
-delta_ref_time              & lr_wake_file                & superimpose                 & y_limit                     \\
-descrip                     & lr_wake_spline              & symplectify                 & y_offset                    \\
-ds_step                     & l_hard_edge                 & taylor_field                & y_offset_tot                \\
-ele_origin                  & mat6_calc_method            & taylor_map_includes_offsets & y_pitch                     \\
-e_tot                       & multipoles_on               & tilt                        & y_pitch_tot                 \\
-field_calc                  & num_steps                   & tilt_tot                    & z_offset                    \\
-field_master                & n_ref_pass                  & tracking_method             & z_offset_tot                \\
-field_overlaps              & offset                      & type                        &                             \\
-fringe_at                   & offset_moves_aperture       & vkick                       &                             \\
+a0 - a20, b0 - b20          & fringe_type                 & p0c                         & vkick                       \\
+alias                       & grid_field                  & ptc_canonical_coords        & v_displace                  \\
+aperture                    & hkick                       & ptc_integration_type        & wall                        \\
+aperture_at                 & h_displace                  & r0_elec                     & x1_limit                    \\
+aperture_type               & integrator_order            & r0_mag                      & x2_limit                    \\
+bl_hkick                    & is_on                       & reference                   & x_limit                     \\
+bl_vkick                    & l                           & ref_origin                  & x_offset                    \\
+cartesian_map               & lord_pad1                   & scale_multipoles            & x_offset_tot                \\
+create_jumbo_slave          & lord_pad2                   & space_charge_method         & x_pitch                     \\
+csr_method                  & lr_freq_spread              & spin_fringe_on              & x_pitch_tot                 \\
+cylindrical_map             & lr_self_wake_on             & spin_tracking_method        & y1_limit                    \\
+delta_ref_time              & lr_wake_file                & sr_wake_file                & y2_limit                    \\
+descrip                     & lr_wake_spline              & superimpose                 & y_limit                     \\
+ds_step                     & l_hard_edge                 & symplectify                 & y_offset                    \\
+ele_origin                  & mat6_calc_method            & taylor_field                & y_offset_tot                \\
+e_tot                       & multipoles_on               & taylor_map_includes_offsets & y_pitch                     \\
+field_calc                  & num_steps                   & tilt                        & y_pitch_tot                 \\
+field_master                & n_ref_pass                  & tilt_tot                    & z_offset                    \\
+field_overlaps              & offset                      & tracking_method             & z_offset_tot                \\
+fringe_at                   & offset_moves_aperture       & type                        &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -548,29 +551,30 @@ fringe_at                   & offset_moves_aperture       & vkick               
  \label{s:list.lcavity}
  
  \begin{tabular}{llll} \toprule
-alias                       & e_tot_start                 & num_steps                   & tilt_tot                    \\
-aperture                    & field_autoscale             & n_cell                      & tracking_method             \\
-aperture_at                 & field_calc                  & n_ref_pass                  & type                        \\
-aperture_type               & field_master                & offset                      & vkick                       \\
-autoscale_amplitude         & field_overlaps              & offset_moves_aperture       & voltage                     \\
-autoscale_phase             & fringe_at                   & p0c                         & voltage_err                 \\
-bl_hkick                    & fringe_type                 & p0c_start                   & wall                        \\
-bl_vkick                    & gradient                    & phi0                        & x1_limit                    \\
-cartesian_map               & gradient_err                & phi0_autoscale              & x2_limit                    \\
-cavity_type                 & grid_field                  & phi0_err                    & x_limit                     \\
-coupler_angle               & hkick                       & phi0_multipass              & x_offset                    \\
-coupler_at                  & integrator_order            & ptc_integration_type        & x_offset_tot                \\
-coupler_phase               & is_on                       & reference                   & x_pitch                     \\
-coupler_strength            & l                           & ref_origin                  & x_pitch_tot                 \\
-create_jumbo_slave          & longitudinal_mode           & rf_frequency                & y1_limit                    \\
-csr_calc_on                 & lord_pad1                   & spin_fringe_on              & y2_limit                    \\
-cylindrical_map             & lord_pad2                   & spin_tracking_method        & y_limit                     \\
-delta_ref_time              & lr_freq_spread              & sr_wake_file                & y_offset                    \\
-descrip                     & lr_self_wake_on             & superimpose                 & y_offset_tot                \\
-ds_step                     & lr_wake_file                & symplectify                 & y_pitch                     \\
-ele_origin                  & lr_wake_spline              & taylor_field                & y_pitch_tot                 \\
-e_loss                      & l_hard_edge                 & taylor_map_includes_offsets & z_offset                    \\
-e_tot                       & mat6_calc_method            & tilt                        & z_offset_tot                \\
+alias                       & field_autoscale             & n_ref_pass                  & type                        \\
+aperture                    & field_calc                  & offset                      & vkick                       \\
+aperture_at                 & field_master                & offset_moves_aperture       & voltage                     \\
+aperture_type               & field_overlaps              & p0c                         & voltage_err                 \\
+autoscale_amplitude         & fringe_at                   & p0c_start                   & wall                        \\
+autoscale_phase             & fringe_type                 & phi0                        & x1_limit                    \\
+bl_hkick                    & gradient                    & phi0_autoscale              & x2_limit                    \\
+bl_vkick                    & gradient_err                & phi0_err                    & x_limit                     \\
+cartesian_map               & grid_field                  & phi0_multipass              & x_offset                    \\
+cavity_type                 & hkick                       & ptc_integration_type        & x_offset_tot                \\
+coupler_angle               & integrator_order            & reference                   & x_pitch                     \\
+coupler_at                  & is_on                       & ref_origin                  & x_pitch_tot                 \\
+coupler_phase               & l                           & rf_frequency                & y1_limit                    \\
+coupler_strength            & longitudinal_mode           & space_charge_method         & y2_limit                    \\
+create_jumbo_slave          & lord_pad1                   & spin_fringe_on              & y_limit                     \\
+csr_method                  & lord_pad2                   & spin_tracking_method        & y_offset                    \\
+cylindrical_map             & lr_freq_spread              & sr_wake_file                & y_offset_tot                \\
+delta_ref_time              & lr_self_wake_on             & superimpose                 & y_pitch                     \\
+descrip                     & lr_wake_file                & symplectify                 & y_pitch_tot                 \\
+ds_step                     & lr_wake_spline              & taylor_field                & z_offset                    \\
+ele_origin                  & l_hard_edge                 & taylor_map_includes_offsets & z_offset_tot                \\
+e_loss                      & mat6_calc_method            & tilt                        &                             \\
+e_tot                       & num_steps                   & tilt_tot                    &                             \\
+e_tot_start                 & n_cell                      & tracking_method             &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -736,26 +740,26 @@ field_master                & ref_origin                  & x_limit             
  \label{s:list.octupole}
  
  \begin{tabular}{llll} \toprule
-a0 - a20, b0 - b20          & fringe_at                   & offset_moves_aperture       & vkick                       \\
-alias                       & fringe_type                 & p0c                         & wall                        \\
-aperture                    & grid_field                  & ptc_canonical_coords        & x1_limit                    \\
-aperture_at                 & hkick                       & ptc_integration_type        & x2_limit                    \\
-aperture_type               & integrator_order            & r0_elec                     & x_limit                     \\
-b3_gradient                 & is_on                       & r0_mag                      & x_offset                    \\
-bl_hkick                    & k3                          & reference                   & x_offset_tot                \\
-bl_vkick                    & l                           & ref_origin                  & x_pitch                     \\
-cartesian_map               & lord_pad1                   & scale_multipoles            & x_pitch_tot                 \\
-create_jumbo_slave          & lord_pad2                   & spin_fringe_on              & y1_limit                    \\
-csr_calc_on                 & lr_freq_spread              & spin_tracking_method        & y2_limit                    \\
-cylindrical_map             & lr_self_wake_on             & sr_wake_file                & y_limit                     \\
-delta_ref_time              & lr_wake_file                & superimpose                 & y_offset                    \\
-descrip                     & lr_wake_spline              & symplectify                 & y_offset_tot                \\
-ds_step                     & l_hard_edge                 & taylor_field                & y_pitch                     \\
-ele_origin                  & mat6_calc_method            & taylor_map_includes_offsets & y_pitch_tot                 \\
-e_tot                       & multipoles_on               & tilt                        & z_offset                    \\
-field_calc                  & num_steps                   & tilt_tot                    & z_offset_tot                \\
-field_master                & n_ref_pass                  & tracking_method             &                             \\
-field_overlaps              & offset                      & type                        &                             \\
+a0 - a20, b0 - b20          & fringe_at                   & offset_moves_aperture       & type                        \\
+alias                       & fringe_type                 & p0c                         & vkick                       \\
+aperture                    & grid_field                  & ptc_canonical_coords        & wall                        \\
+aperture_at                 & hkick                       & ptc_integration_type        & x1_limit                    \\
+aperture_type               & integrator_order            & r0_elec                     & x2_limit                    \\
+b3_gradient                 & is_on                       & r0_mag                      & x_limit                     \\
+bl_hkick                    & k3                          & reference                   & x_offset                    \\
+bl_vkick                    & l                           & ref_origin                  & x_offset_tot                \\
+cartesian_map               & lord_pad1                   & scale_multipoles            & x_pitch                     \\
+create_jumbo_slave          & lord_pad2                   & space_charge_method         & x_pitch_tot                 \\
+csr_method                  & lr_freq_spread              & spin_fringe_on              & y1_limit                    \\
+cylindrical_map             & lr_self_wake_on             & spin_tracking_method        & y2_limit                    \\
+delta_ref_time              & lr_wake_file                & sr_wake_file                & y_limit                     \\
+descrip                     & lr_wake_spline              & superimpose                 & y_offset                    \\
+ds_step                     & l_hard_edge                 & symplectify                 & y_offset_tot                \\
+ele_origin                  & mat6_calc_method            & taylor_field                & y_pitch                     \\
+e_tot                       & multipoles_on               & taylor_map_includes_offsets & y_pitch_tot                 \\
+field_calc                  & num_steps                   & tilt                        & z_offset                    \\
+field_master                & n_ref_pass                  & tilt_tot                    & z_offset_tot                \\
+field_overlaps              & offset                      & tracking_method             &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -822,26 +826,27 @@ e_field_y                   & sig_vy                      & x_limit             
  \label{s:list.quadrupole}
  
  \begin{tabular}{llll} \toprule
-a0 - a20, b0 - b20          & fq1                         & n_ref_pass                  & tracking_method             \\
-alias                       & fq2                         & offset                      & type                        \\
-aperture                    & fringe_at                   & offset_moves_aperture       & vkick                       \\
-aperture_at                 & fringe_type                 & p0c                         & wall                        \\
-aperture_type               & grid_field                  & ptc_canonical_coords        & x1_limit                    \\
-b1_gradient                 & hkick                       & ptc_integration_type        & x2_limit                    \\
-bl_hkick                    & integrator_order            & r0_elec                     & x_limit                     \\
-bl_vkick                    & is_on                       & r0_mag                      & x_offset                    \\
-cartesian_map               & k1                          & reference                   & x_offset_tot                \\
-create_jumbo_slave          & l                           & ref_origin                  & x_pitch                     \\
-csr_calc_on                 & lord_pad1                   & scale_multipoles            & x_pitch_tot                 \\
-cylindrical_map             & lord_pad2                   & spin_fringe_on              & y1_limit                    \\
-delta_ref_time              & lr_freq_spread              & spin_tracking_method        & y2_limit                    \\
-descrip                     & lr_self_wake_on             & sr_wake_file                & y_limit                     \\
-ds_step                     & lr_wake_file                & superimpose                 & y_offset                    \\
-ele_origin                  & lr_wake_spline              & symplectify                 & y_offset_tot                \\
-e_tot                       & l_hard_edge                 & taylor_field                & y_pitch                     \\
-field_calc                  & mat6_calc_method            & taylor_map_includes_offsets & y_pitch_tot                 \\
-field_master                & multipoles_on               & tilt                        & z_offset                    \\
-field_overlaps              & num_steps                   & tilt_tot                    & z_offset_tot                \\
+a0 - a20, b0 - b20          & fq2                         & offset_moves_aperture       & vkick                       \\
+alias                       & fringe_at                   & p0c                         & wall                        \\
+aperture                    & fringe_type                 & ptc_canonical_coords        & x1_limit                    \\
+aperture_at                 & grid_field                  & ptc_integration_type        & x2_limit                    \\
+aperture_type               & hkick                       & r0_elec                     & x_limit                     \\
+b1_gradient                 & integrator_order            & r0_mag                      & x_offset                    \\
+bl_hkick                    & is_on                       & reference                   & x_offset_tot                \\
+bl_vkick                    & k1                          & ref_origin                  & x_pitch                     \\
+cartesian_map               & l                           & scale_multipoles            & x_pitch_tot                 \\
+create_jumbo_slave          & lord_pad1                   & space_charge_method         & y1_limit                    \\
+csr_method                  & lord_pad2                   & spin_fringe_on              & y2_limit                    \\
+cylindrical_map             & lr_freq_spread              & spin_tracking_method        & y_limit                     \\
+delta_ref_time              & lr_self_wake_on             & sr_wake_file                & y_offset                    \\
+descrip                     & lr_wake_file                & superimpose                 & y_offset_tot                \\
+ds_step                     & lr_wake_spline              & symplectify                 & y_pitch                     \\
+ele_origin                  & l_hard_edge                 & taylor_field                & y_pitch_tot                 \\
+e_tot                       & mat6_calc_method            & taylor_map_includes_offsets & z_offset                    \\
+field_calc                  & multipoles_on               & tilt                        & z_offset_tot                \\
+field_master                & num_steps                   & tilt_tot                    &                             \\
+field_overlaps              & n_ref_pass                  & tracking_method             &                             \\
+fq1                         & offset                      & type                        &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -851,28 +856,28 @@ field_overlaps              & num_steps                   & tilt_tot            
  \label{s:list.rfcavity}
  
  \begin{tabular}{llll} \toprule
-alias                       & field_autoscale             & n_cell                      & type                        \\
-aperture                    & field_calc                  & n_ref_pass                  & vkick                       \\
-aperture_at                 & field_overlaps              & offset                      & voltage                     \\
-aperture_type               & fringe_at                   & offset_moves_aperture       & wall                        \\
-autoscale_amplitude         & fringe_type                 & p0c                         & x1_limit                    \\
-autoscale_phase             & gradient                    & phi0                        & x2_limit                    \\
-bl_hkick                    & grid_field                  & phi0_autoscale              & x_limit                     \\
-bl_vkick                    & harmon                      & phi0_multipass              & x_offset                    \\
-cartesian_map               & hkick                       & ptc_integration_type        & x_offset_tot                \\
-cavity_type                 & integrator_order            & reference                   & x_pitch                     \\
-coupler_angle               & is_on                       & ref_origin                  & x_pitch_tot                 \\
-coupler_at                  & l                           & rf_frequency                & y1_limit                    \\
-coupler_phase               & longitudinal_mode           & spin_fringe_on              & y2_limit                    \\
-coupler_strength            & lord_pad1                   & spin_tracking_method        & y_limit                     \\
-create_jumbo_slave          & lord_pad2                   & sr_wake_file                & y_offset                    \\
-csr_calc_on                 & lr_freq_spread              & superimpose                 & y_offset_tot                \\
-cylindrical_map             & lr_self_wake_on             & symplectify                 & y_pitch                     \\
-delta_ref_time              & lr_wake_file                & taylor_field                & y_pitch_tot                 \\
-descrip                     & lr_wake_spline              & taylor_map_includes_offsets & z_offset                    \\
-ds_step                     & l_hard_edge                 & tilt                        & z_offset_tot                \\
-ele_origin                  & mat6_calc_method            & tilt_tot                    &                             \\
-e_tot                       & num_steps                   & tracking_method             &                             \\
+alias                       & field_autoscale             & n_cell                      & tracking_method             \\
+aperture                    & field_calc                  & n_ref_pass                  & type                        \\
+aperture_at                 & field_overlaps              & offset                      & vkick                       \\
+aperture_type               & fringe_at                   & offset_moves_aperture       & voltage                     \\
+autoscale_amplitude         & fringe_type                 & p0c                         & wall                        \\
+autoscale_phase             & gradient                    & phi0                        & x1_limit                    \\
+bl_hkick                    & grid_field                  & phi0_autoscale              & x2_limit                    \\
+bl_vkick                    & harmon                      & phi0_multipass              & x_limit                     \\
+cartesian_map               & hkick                       & ptc_integration_type        & x_offset                    \\
+cavity_type                 & integrator_order            & reference                   & x_offset_tot                \\
+coupler_angle               & is_on                       & ref_origin                  & x_pitch                     \\
+coupler_at                  & l                           & rf_frequency                & x_pitch_tot                 \\
+coupler_phase               & longitudinal_mode           & space_charge_method         & y1_limit                    \\
+coupler_strength            & lord_pad1                   & spin_fringe_on              & y2_limit                    \\
+create_jumbo_slave          & lord_pad2                   & spin_tracking_method        & y_limit                     \\
+csr_method                  & lr_freq_spread              & sr_wake_file                & y_offset                    \\
+cylindrical_map             & lr_self_wake_on             & superimpose                 & y_offset_tot                \\
+delta_ref_time              & lr_wake_file                & symplectify                 & y_pitch                     \\
+descrip                     & lr_wake_spline              & taylor_field                & y_pitch_tot                 \\
+ds_step                     & l_hard_edge                 & taylor_map_includes_offsets & z_offset                    \\
+ele_origin                  & mat6_calc_method            & tilt                        & z_offset_tot                \\
+e_tot                       & num_steps                   & tilt_tot                    &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -928,32 +933,32 @@ elliptical_curvature_z      & spherical_curvature         & x_offset            
  \label{s:list.bend}
  
  \begin{tabular}{llll} \toprule
-a0 - a20, b0 - b20          & field_overlaps              & l_hard_edge                 & superimpose                 \\
-alias                       & fint                        & l_sagitta                   & symplectify                 \\
-angle                       & fintx                       & mat6_calc_method            & taylor_field                \\
-aperture                    & fringe_at                   & multipoles_on               & taylor_map_includes_offsets \\
-aperture_at                 & fringe_type                 & num_steps                   & tracking_method             \\
-aperture_type               & g                           & n_ref_pass                  & type                        \\
-b1_gradient                 & grid_field                  & offset                      & vkick                       \\
-b2_gradient                 & g_err                       & offset_moves_aperture       & wall                        \\
-bl_hkick                    & h1                          & p0c                         & x1_limit                    \\
-bl_vkick                    & h2                          & ptc_canonical_coords        & x2_limit                    \\
-b_field                     & hgap                        & ptc_field_geometry          & x_limit                     \\
-b_field_err                 & hgapx                       & ptc_fringe_geometry         & x_offset                    \\
-cartesian_map               & higher_order_fringe_type    & ptc_integration_type        & x_offset_tot                \\
-create_jumbo_slave          & hkick                       & r0_elec                     & x_pitch                     \\
-csr_calc_on                 & integrator_order            & r0_mag                      & x_pitch_tot                 \\
-cylindrical_map             & is_on                       & reference                   & y1_limit                    \\
-delta_ref_time              & k1                          & ref_origin                  & y2_limit                    \\
-descrip                     & k2                          & ref_tilt                    & y_limit                     \\
-ds_step                     & l                           & ref_tilt_tot                & y_offset                    \\
-e1                          & lord_pad1                   & rho                         & y_offset_tot                \\
-e2                          & lord_pad2                   & roll                        & y_pitch                     \\
-ele_origin                  & lr_freq_spread              & roll_tot                    & y_pitch_tot                 \\
-exact_multipoles            & lr_self_wake_on             & scale_multipoles            & z_offset                    \\
-e_tot                       & lr_wake_file                & spin_fringe_on              & z_offset_tot                \\
-field_calc                  & lr_wake_spline              & spin_tracking_method        &                             \\
-field_master                & l_chord                     & sr_wake_file                &                             \\
+a0 - a20, b0 - b20          & field_overlaps              & l_hard_edge                 & sr_wake_file                \\
+alias                       & fint                        & l_sagitta                   & superimpose                 \\
+angle                       & fintx                       & mat6_calc_method            & symplectify                 \\
+aperture                    & fringe_at                   & multipoles_on               & taylor_field                \\
+aperture_at                 & fringe_type                 & num_steps                   & taylor_map_includes_offsets \\
+aperture_type               & g                           & n_ref_pass                  & tracking_method             \\
+b1_gradient                 & grid_field                  & offset                      & type                        \\
+b2_gradient                 & g_err                       & offset_moves_aperture       & vkick                       \\
+bl_hkick                    & h1                          & p0c                         & wall                        \\
+bl_vkick                    & h2                          & ptc_canonical_coords        & x1_limit                    \\
+b_field                     & hgap                        & ptc_field_geometry          & x2_limit                    \\
+b_field_err                 & hgapx                       & ptc_fringe_geometry         & x_limit                     \\
+cartesian_map               & higher_order_fringe_type    & ptc_integration_type        & x_offset                    \\
+create_jumbo_slave          & hkick                       & r0_elec                     & x_offset_tot                \\
+csr_method                  & integrator_order            & r0_mag                      & x_pitch                     \\
+cylindrical_map             & is_on                       & reference                   & x_pitch_tot                 \\
+delta_ref_time              & k1                          & ref_origin                  & y1_limit                    \\
+descrip                     & k2                          & ref_tilt                    & y2_limit                    \\
+ds_step                     & l                           & ref_tilt_tot                & y_limit                     \\
+e1                          & lord_pad1                   & rho                         & y_offset                    \\
+e2                          & lord_pad2                   & roll                        & y_offset_tot                \\
+ele_origin                  & lr_freq_spread              & roll_tot                    & y_pitch                     \\
+exact_multipoles            & lr_self_wake_on             & scale_multipoles            & y_pitch_tot                 \\
+e_tot                       & lr_wake_file                & space_charge_method         & z_offset                    \\
+field_calc                  & lr_wake_spline              & spin_fringe_on              & z_offset_tot                \\
+field_master                & l_chord                     & spin_tracking_method        &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -963,26 +968,26 @@ field_master                & l_chord                     & sr_wake_file        
  \label{s:list.sextupole}
  
  \begin{tabular}{llll} \toprule
-a0 - a20, b0 - b20          & fringe_at                   & offset_moves_aperture       & vkick                       \\
-alias                       & fringe_type                 & p0c                         & wall                        \\
-aperture                    & grid_field                  & ptc_canonical_coords        & x1_limit                    \\
-aperture_at                 & hkick                       & ptc_integration_type        & x2_limit                    \\
-aperture_type               & integrator_order            & r0_elec                     & x_limit                     \\
-b2_gradient                 & is_on                       & r0_mag                      & x_offset                    \\
-bl_hkick                    & k2                          & reference                   & x_offset_tot                \\
-bl_vkick                    & l                           & ref_origin                  & x_pitch                     \\
-cartesian_map               & lord_pad1                   & scale_multipoles            & x_pitch_tot                 \\
-create_jumbo_slave          & lord_pad2                   & spin_fringe_on              & y1_limit                    \\
-csr_calc_on                 & lr_freq_spread              & spin_tracking_method        & y2_limit                    \\
-cylindrical_map             & lr_self_wake_on             & sr_wake_file                & y_limit                     \\
-delta_ref_time              & lr_wake_file                & superimpose                 & y_offset                    \\
-descrip                     & lr_wake_spline              & symplectify                 & y_offset_tot                \\
-ds_step                     & l_hard_edge                 & taylor_field                & y_pitch                     \\
-ele_origin                  & mat6_calc_method            & taylor_map_includes_offsets & y_pitch_tot                 \\
-e_tot                       & multipoles_on               & tilt                        & z_offset                    \\
-field_calc                  & num_steps                   & tilt_tot                    & z_offset_tot                \\
-field_master                & n_ref_pass                  & tracking_method             &                             \\
-field_overlaps              & offset                      & type                        &                             \\
+a0 - a20, b0 - b20          & fringe_at                   & offset_moves_aperture       & type                        \\
+alias                       & fringe_type                 & p0c                         & vkick                       \\
+aperture                    & grid_field                  & ptc_canonical_coords        & wall                        \\
+aperture_at                 & hkick                       & ptc_integration_type        & x1_limit                    \\
+aperture_type               & integrator_order            & r0_elec                     & x2_limit                    \\
+b2_gradient                 & is_on                       & r0_mag                      & x_limit                     \\
+bl_hkick                    & k2                          & reference                   & x_offset                    \\
+bl_vkick                    & l                           & ref_origin                  & x_offset_tot                \\
+cartesian_map               & lord_pad1                   & scale_multipoles            & x_pitch                     \\
+create_jumbo_slave          & lord_pad2                   & space_charge_method         & x_pitch_tot                 \\
+csr_method                  & lr_freq_spread              & spin_fringe_on              & y1_limit                    \\
+cylindrical_map             & lr_self_wake_on             & spin_tracking_method        & y2_limit                    \\
+delta_ref_time              & lr_wake_file                & sr_wake_file                & y_limit                     \\
+descrip                     & lr_wake_spline              & superimpose                 & y_offset                    \\
+ds_step                     & l_hard_edge                 & symplectify                 & y_offset_tot                \\
+ele_origin                  & mat6_calc_method            & taylor_field                & y_pitch                     \\
+e_tot                       & multipoles_on               & taylor_map_includes_offsets & y_pitch_tot                 \\
+field_calc                  & num_steps                   & tilt                        & z_offset                    \\
+field_master                & n_ref_pass                  & tilt_tot                    & z_offset_tot                \\
+field_overlaps              & offset                      & tracking_method             &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -992,26 +997,27 @@ field_overlaps              & offset                      & type                
  \label{s:list.sol.quad}
  
  \begin{tabular}{llll} \toprule
-a0 - a20, b0 - b20          & field_overlaps              & n_ref_pass                  & tracking_method             \\
-alias                       & fringe_at                   & offset                      & type                        \\
-aperture                    & fringe_type                 & offset_moves_aperture       & vkick                       \\
-aperture_at                 & grid_field                  & p0c                         & wall                        \\
-aperture_type               & hkick                       & ptc_canonical_coords        & x1_limit                    \\
-b1_gradient                 & integrator_order            & ptc_integration_type        & x2_limit                    \\
-bl_hkick                    & is_on                       & r0_elec                     & x_limit                     \\
-bl_vkick                    & k1                          & r0_mag                      & x_offset                    \\
-bs_field                    & ks                          & reference                   & x_offset_tot                \\
-cartesian_map               & l                           & ref_origin                  & x_pitch                     \\
-create_jumbo_slave          & lord_pad1                   & scale_multipoles            & x_pitch_tot                 \\
-csr_calc_on                 & lord_pad2                   & spin_fringe_on              & y1_limit                    \\
-cylindrical_map             & lr_freq_spread              & spin_tracking_method        & y2_limit                    \\
-delta_ref_time              & lr_self_wake_on             & sr_wake_file                & y_limit                     \\
-descrip                     & lr_wake_file                & superimpose                 & y_offset                    \\
-ds_step                     & lr_wake_spline              & symplectify                 & y_offset_tot                \\
-ele_origin                  & l_hard_edge                 & taylor_field                & y_pitch                     \\
-e_tot                       & mat6_calc_method            & taylor_map_includes_offsets & y_pitch_tot                 \\
-field_calc                  & multipoles_on               & tilt                        & z_offset                    \\
-field_master                & num_steps                   & tilt_tot                    & z_offset_tot                \\
+a0 - a20, b0 - b20          & fringe_at                   & offset_moves_aperture       & vkick                       \\
+alias                       & fringe_type                 & p0c                         & wall                        \\
+aperture                    & grid_field                  & ptc_canonical_coords        & x1_limit                    \\
+aperture_at                 & hkick                       & ptc_integration_type        & x2_limit                    \\
+aperture_type               & integrator_order            & r0_elec                     & x_limit                     \\
+b1_gradient                 & is_on                       & r0_mag                      & x_offset                    \\
+bl_hkick                    & k1                          & reference                   & x_offset_tot                \\
+bl_vkick                    & ks                          & ref_origin                  & x_pitch                     \\
+bs_field                    & l                           & scale_multipoles            & x_pitch_tot                 \\
+cartesian_map               & lord_pad1                   & space_charge_method         & y1_limit                    \\
+create_jumbo_slave          & lord_pad2                   & spin_fringe_on              & y2_limit                    \\
+csr_method                  & lr_freq_spread              & spin_tracking_method        & y_limit                     \\
+cylindrical_map             & lr_self_wake_on             & sr_wake_file                & y_offset                    \\
+delta_ref_time              & lr_wake_file                & superimpose                 & y_offset_tot                \\
+descrip                     & lr_wake_spline              & symplectify                 & y_pitch                     \\
+ds_step                     & l_hard_edge                 & taylor_field                & y_pitch_tot                 \\
+ele_origin                  & mat6_calc_method            & taylor_map_includes_offsets & z_offset                    \\
+e_tot                       & multipoles_on               & tilt                        & z_offset_tot                \\
+field_calc                  & num_steps                   & tilt_tot                    &                             \\
+field_master                & n_ref_pass                  & tracking_method             &                             \\
+field_overlaps              & offset                      & type                        &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -1021,26 +1027,26 @@ field_master                & num_steps                   & tilt_tot            
  \label{s:list.solenoid}
  
  \begin{tabular}{llll} \toprule
-a0 - a20, b0 - b20          & fringe_at                   & offset_moves_aperture       & vkick                       \\
-alias                       & fringe_type                 & p0c                         & wall                        \\
-aperture                    & grid_field                  & ptc_canonical_coords        & x1_limit                    \\
-aperture_at                 & hkick                       & ptc_integration_type        & x2_limit                    \\
-aperture_type               & integrator_order            & r0_elec                     & x_limit                     \\
-bl_hkick                    & is_on                       & r0_mag                      & x_offset                    \\
-bl_vkick                    & ks                          & reference                   & x_offset_tot                \\
-bs_field                    & l                           & ref_origin                  & x_pitch                     \\
-cartesian_map               & lord_pad1                   & scale_multipoles            & x_pitch_tot                 \\
-create_jumbo_slave          & lord_pad2                   & spin_fringe_on              & y1_limit                    \\
-csr_calc_on                 & lr_freq_spread              & spin_tracking_method        & y2_limit                    \\
-cylindrical_map             & lr_self_wake_on             & sr_wake_file                & y_limit                     \\
-delta_ref_time              & lr_wake_file                & superimpose                 & y_offset                    \\
-descrip                     & lr_wake_spline              & symplectify                 & y_offset_tot                \\
-ds_step                     & l_hard_edge                 & taylor_field                & y_pitch                     \\
-ele_origin                  & mat6_calc_method            & taylor_map_includes_offsets & y_pitch_tot                 \\
-e_tot                       & multipoles_on               & tilt                        & z_offset                    \\
-field_calc                  & num_steps                   & tilt_tot                    & z_offset_tot                \\
-field_master                & n_ref_pass                  & tracking_method             &                             \\
-field_overlaps              & offset                      & type                        &                             \\
+a0 - a20, b0 - b20          & fringe_at                   & offset_moves_aperture       & type                        \\
+alias                       & fringe_type                 & p0c                         & vkick                       \\
+aperture                    & grid_field                  & ptc_canonical_coords        & wall                        \\
+aperture_at                 & hkick                       & ptc_integration_type        & x1_limit                    \\
+aperture_type               & integrator_order            & r0_elec                     & x2_limit                    \\
+bl_hkick                    & is_on                       & r0_mag                      & x_limit                     \\
+bl_vkick                    & ks                          & reference                   & x_offset                    \\
+bs_field                    & l                           & ref_origin                  & x_offset_tot                \\
+cartesian_map               & lord_pad1                   & scale_multipoles            & x_pitch                     \\
+create_jumbo_slave          & lord_pad2                   & space_charge_method         & x_pitch_tot                 \\
+csr_method                  & lr_freq_spread              & spin_fringe_on              & y1_limit                    \\
+cylindrical_map             & lr_self_wake_on             & spin_tracking_method        & y2_limit                    \\
+delta_ref_time              & lr_wake_file                & sr_wake_file                & y_limit                     \\
+descrip                     & lr_wake_spline              & superimpose                 & y_offset                    \\
+ds_step                     & l_hard_edge                 & symplectify                 & y_offset_tot                \\
+ele_origin                  & mat6_calc_method            & taylor_field                & y_pitch                     \\
+e_tot                       & multipoles_on               & taylor_map_includes_offsets & y_pitch_tot                 \\
+field_calc                  & num_steps                   & tilt                        & z_offset                    \\
+field_master                & n_ref_pass                  & tilt_tot                    & z_offset_tot                \\
+field_overlaps              & offset                      & tracking_method             &                             \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -1073,27 +1079,28 @@ lord_pad2                   & symplectify                 & x_pitch_tot         
  \label{s:list.wiggler}
  
  \begin{tabular}{llll} \toprule
-a0 - a20, b0 - b20          & fringe_type                 & offset                      & tracking_method             \\
-alias                       & grid_field                  & offset_moves_aperture       & type                        \\
-aperture                    & g_max                       & p0c                         & vkick                       \\
-aperture_at                 & hkick                       & polarity                    & wall                        \\
-aperture_type               & integrator_order            & ptc_canonical_coords        & x1_limit                    \\
-bl_hkick                    & is_on                       & ptc_integration_type        & x2_limit                    \\
-bl_vkick                    & k1                          & r0_elec                     & x_limit                     \\
-b_max                       & l                           & r0_mag                      & x_offset                    \\
-cartesian_map               & lord_pad1                   & reference                   & x_offset_tot                \\
-create_jumbo_slave          & lord_pad2                   & ref_origin                  & x_pitch                     \\
-csr_calc_on                 & lr_freq_spread              & scale_multipoles            & x_pitch_tot                 \\
-cylindrical_map             & lr_self_wake_on             & spin_fringe_on              & x_ray_line_len              \\
-delta_ref_time              & lr_wake_file                & spin_tracking_method        & y1_limit                    \\
-descrip                     & lr_wake_spline              & sr_wake_file                & y2_limit                    \\
-ds_step                     & l_hard_edge                 & superimpose                 & y_limit                     \\
-ele_origin                  & l_pole                      & symplectify                 & y_offset                    \\
-e_tot                       & mat6_calc_method            & taylor_field                & y_offset_tot                \\
-field_calc                  & multipoles_on               & taylor_map_includes_offsets & y_pitch                     \\
-field_master                & num_steps                   & term                        & y_pitch_tot                 \\
-field_overlaps              & n_pole                      & tilt                        & z_offset                    \\
-fringe_at                   & n_ref_pass                  & tilt_tot                    & z_offset_tot                \\
+a0 - a20, b0 - b20          & grid_field                  & p0c                         & vkick                       \\
+alias                       & g_max                       & polarity                    & wall                        \\
+aperture                    & hkick                       & ptc_canonical_coords        & x1_limit                    \\
+aperture_at                 & integrator_order            & ptc_integration_type        & x2_limit                    \\
+aperture_type               & is_on                       & r0_elec                     & x_limit                     \\
+bl_hkick                    & k1                          & r0_mag                      & x_offset                    \\
+bl_vkick                    & l                           & reference                   & x_offset_tot                \\
+b_max                       & lord_pad1                   & ref_origin                  & x_pitch                     \\
+cartesian_map               & lord_pad2                   & scale_multipoles            & x_pitch_tot                 \\
+create_jumbo_slave          & lr_freq_spread              & space_charge_method         & x_ray_line_len              \\
+csr_method                  & lr_self_wake_on             & spin_fringe_on              & y1_limit                    \\
+cylindrical_map             & lr_wake_file                & spin_tracking_method        & y2_limit                    \\
+delta_ref_time              & lr_wake_spline              & sr_wake_file                & y_limit                     \\
+descrip                     & l_hard_edge                 & superimpose                 & y_offset                    \\
+ds_step                     & l_pole                      & symplectify                 & y_offset_tot                \\
+ele_origin                  & mat6_calc_method            & taylor_field                & y_pitch                     \\
+e_tot                       & multipoles_on               & taylor_map_includes_offsets & y_pitch_tot                 \\
+field_calc                  & num_steps                   & term                        & z_offset                    \\
+field_master                & n_pole                      & tilt                        & z_offset_tot                \\
+field_overlaps              & n_ref_pass                  & tilt_tot                    &                             \\
+fringe_at                   & offset                      & tracking_method             &                             \\
+fringe_type                 & offset_moves_aperture       & type                        &                             \\
  \bottomrule
  \end{tabular}
  \vfill

@@ -13,7 +13,7 @@ the lattice as a whole and not simply associated with a single element.
 \index{lattice}\index{geometry}\index{photon_type}\index{live_branch}
 \index{taylor_order}\index{e_tot}
 \index{p0c}\index{ran_seed}\index{absolute_time_tracking}
-\index{n_part}\index{no_end_marker}
+\index{n_part}\index{no_end_marker}\index{high_energy_space_charge_on}
 \index{ptc_exact_model}\index{ptc_exact_misalign}
 \vn{Parameter} statements are used to set a number of global variables.
 If multiple branches are present (\sref{s:branch.def}), these variables pertain
@@ -42,6 +42,7 @@ to the \vn{root} branch. The variables that can be set by \vn{parameter} are
   parameter[ran_seed]                 = <Integer>  ! Random number generator init.
   parameter[taylor_order]             = <Integer>  ! Default: 3
   parameter[use_hard_edge_drifts]     = <Logical>
+  parameter[high_energy_space_charge_on] = <logical>
 \end{example}
 
 \noindent
@@ -54,6 +55,7 @@ Examples
 \end{example}
 
   \begin{description}
+%
   \index{absolute_time_tracking}\index{lcavity}\index{rfcavity}
   \item[{parameter[absolute_time_tracking]}] \Newline
 The \vn{absolute_time_tracking} switch sets whether the clock for the \vn{lcavity} and
@@ -62,22 +64,25 @@ The \vn{absolute_time_tracking} switch sets whether the clock for the \vn{lcavit
 of \vn{True} mandates absolute time. The exception is that for an \vn{e_gun} element
 (\sref{s:e.gun}), absolute time tracking is always used in order to be able to avoid
 problems with a zero reference momentum at the beginning of the element.
+%
   \index{custom_attributeN}
   \item[{parameter[custom_attributeN]}] \Newline
 Here \vn{N} is an integer between 1 and 40.
 For more information on defining custom attributes, see \sref{s:cust.att}.
+%
   \index{machine}
 Name of the machine the lattice simulates. Example: "LHC".
+%
   \index{live_branch}
   \item[{parameter[live_branch]}] \Newline
-Setting \vn{live_branch} to \vn{False} (default is \vn{True}) indicates to a program that
-no tracking or other analysis of the root branch should be done. This can be useful if the
-lattice has multiple branches and analysis of the root branch is not necessary. Other
-branches can also be marked as alive/dead using line parameter statements
-(\sref{s:beginning}). Note that the \bmad library itself ignores the setting of
-\vn{live_branch} and it is up to the program being run to decide if this parameter is
-ignored or not. In particular, the \tao program (\sref{s:tao.intro}) {\em will} respect the
-setting of \vn{live_branch}.
+Setting \vn{live_branch} to \vn{False} (default is \vn{True}) indicates to a program that no
+tracking or other analysis of the root branch should be done. This can be useful if the lattice has
+multiple branches and analysis of the root branch is not necessary. Other branches can also be
+marked as alive/dead using line parameter statements (\sref{s:beginning}). Note that the \bmad
+library itself ignores the setting of \vn{live_branch} and it is up to the program being run to
+decide if this parameter is ignored or not. In particular, the \tao program (\sref{s:tao.intro})
+{\em will} respect the setting of \vn{live_branch}.
+%
   \index{default_tracking_species}
   \item[{parameter[default_tracking_species]}] \Newline
 The \vn{parameter[default_tracking_species]} switch establishes the
@@ -94,8 +99,8 @@ particle set by \vn{param[particle]}. In the case, for example,
 where there are particles going one way and antiparticles going the another,
 \vn{default_tracking_species} can be used to switch between
 tracking the particles or antiparticles.
-  \index{e_tot}\index{p0c}
-  \index{lcavity}\index{patch}
+%
+  \index{e_tot}\index{p0c}\index{lcavity}\index{patch}
   \item[{parameter[e_tot], parameter[p0c]}] \Newline
 The \vn{parameter[e_tot]} and \vn{parameter[p0c]} are the reference total energy and momentum at the
 start of the lattice. Each element in a lattice has an individual reference \vn{e_tot} and \vn{p0c}
@@ -103,12 +108,13 @@ attributes which are dependent parameters. The reference energy and momentum wil
 between \vn{LCavity} or \vn{Patch} elements. The starting reference energy, if not set, will be set
 to 1000 time the particle rest energy.  Note: \vn{beginning[e_tot]} and \vn{beginning[p0c]}
 (\sref{s:beginning}) are equivalent to \vn{parameter[e_tot]} and \vn{parameter[p0c]}.
+%
   \index{electric_dipole_moment}
   \item[{parameter[electric_dipole_moment]}] \Newline
-The \vn{electric_dipole_moment} sets the electric dipole moment value $\eta$ for use
-when tracking with spin (\sref{s:spin.dyn}). 
-  \index{geometry}\index{closed}\index{open}
-  \index{lcavity!and geometry}
+The \vn{electric_dipole_moment} sets the electric dipole moment value $\eta$ for use when tracking
+with spin (\sref{s:spin.dyn}).
+%
+  \index{geometry}\index{closed}\index{open}\index{lcavity!and geometry}
   \item[{parameter[geometry]}] \Newline
 Valid \vn{geometry} settings are
 \begin{example}
@@ -133,28 +139,34 @@ the global coordinate sense. For example, when a machine has a number of repeati
 closure in the global coorindate sense, it is up to the user to ensure that a lattice is closed in
 the global sense if that is desired.
 
-Note: \vn{geometry} used to be called \vn{lattice_type}, \vn{closed}
-used to be called \vn{circular_lattice} and \vn{open} used to be
-called \vn{linear_lattice}.
+Note: \vn{geometry} used to be called \vn{lattice_type}, \vn{closed} used to be called
+\vn{circular_lattice} and \vn{open} used to be called \vn{linear_lattice}.
+%
+\item[{high_energy_space_charge_on}] \Newline
+Toggle to turn on or off the ultra-relativistic space charge effect in particle tracking
+(\sref{s:he.space.charge}). Computationally, this is separate from the lower energy space charge and
+CSR calculation (\sref{s:csr}). Default is \vn{False}. Notice that including the high energy space
+charge can be done on a branch-by-branch basis (\sref{s:beginning}).
+%
   \index{lattice}
   \item[{parameter[lattice]}] \Newline
-Used to set the lattice name. The \vn{lattice} name is stored by \bmad
-for use by a program but it does not otherwise effect any \bmad
-routines.
+Used to set the lattice name. The \vn{lattice} name is stored by \bmad for use by a program but it
+does not otherwise effect any \bmad routines.
+%
   \index{n_part}\index{beambeam}\index{lcavity}
   \item[{parameter[n_part]}] \Newline
-The \vn{parameter[n_part]} is the number of particle in a bunch.
-it is used with \vn{BeamBeam} elements and is used to calculate the
-change in energy through an \vn{Lcavity}. See~\sref{s:lcav} for more
-details.
+The \vn{parameter[n_part]} is the number of particle in a bunch.  it is used with \vn{BeamBeam}
+elements and is used to calculate the change in energy through an \vn{Lcavity}. See~\sref{s:lcav}
+for more details.
+%
   \index{no_end_marker}\index{end element}
   \item[{parameter[no_end_marker]}] \Newline
 The \vn{parameter[no_end_marker]} is use to suppress the automatic inclusion
 of a marker named \vn{END} at the end of the lattice (\sref{s:branch.construct}). 
   \item[{parameter[p0c]}] \Newline
 See \vn{parameter[e_tot]}.
-  \index{particle}
-  \index{positron}\index{electron}\index{proton}\index{antiproton}\index{photon}
+%
+  \index{particle}\index{positron}\index{electron}\index{proton}\index{antiproton}\index{photon}
   \index{muon}\index{antimuon}\index{pion0}\index{pion-}\index{pion+}
   \item[{parameter[particle]}] \Newline
 The \vn{parameter[particle]} switch sets the reference species. The possible settings for
@@ -180,19 +192,18 @@ atomic symbol, \vn{\#nnn} is the number of nucleons, and \vn{ccc} is the charge.
   parameter[particle] = \#12C+3       ! Triply charged carbon-12
   parameter[particle] = He--          ! Doubly charged He.
 \end{example}
-If the number of nucleons is given, the appropriate weight for that isotope is used. If
-the number of nucleons is not present, the mass is an average weighted by the isotopic
-abundances of the element. The charge may be given by using the appropriate number of plus
-(+) or minus (-) signs or by using a plus or minus sign followed by a number. Thus
-``\vn{-{-}-}'' is equivalent to ``-3''. Names here are case sensitive. ``@M'' must be used
-and not ``@m'' for specifying the mass.
+If the number of nucleons is given, the appropriate weight for that isotope is used. If the number
+of nucleons is not present, the mass is an average weighted by the isotopic abundances of the
+element. The charge may be given by using the appropriate number of plus (+) or minus (-) signs or
+by using a plus or minus sign followed by a number. Thus ``\vn{-{-}-}'' is equivalent to
+``-3''. Names here are case sensitive. ``@M'' must be used and not ``@m'' for specifying the mass.
 
 Another group of particles are the ``known'' molecules. The syntax for these are:
 \begin{example}
   BBB\{@Mmmmm\}\{ccc\}
 \end{example}
-\vn{@Mmmmm} is the mass in AMU, \vn{ccc} is the charge, and \vn{BBB} is the molecular
-formula. The mass may to specified to hundredths of an AMU. The known molecules are:
+\vn{@Mmmmm} is the mass in AMU, \vn{ccc} is the charge, and \vn{BBB} is the molecular formula. The
+mass may to specified to hundredths of an AMU. The known molecules are:
 \begin{example}
 CO       CO2      
 D2       D2O      
@@ -209,63 +220,55 @@ Like with atoms, if the mass is not specified, the average isotopic mass is used
 \end{example}
 Like the atomic formulas, molecular formulas are case sensitive.
 
-The last group of particle are particles where only the mass and charge are specified.
-The syntax for these are:
+The last group of particle are particles where only the mass and charge are specified.  The syntax
+for these are:
 \begin{example}
   @Mmmmm\{ccc\}
 \end{example}
 
-The setting of the reference particle is
-used, for example, to determine the direction of the field in a magnet
-and given the normalized field strength (EG: \vn{k1} for a
-quadrupole).  Generally, the particles that by default are tracked
-through a lattice are the same as the reference particle. This default
-behavior can be altered by setting
-\vn{parameter[default_tracking_species]}.
-
+The setting of the reference particle is used, for example, to determine the direction of the field
+in a magnet and given the normalized field strength (EG: \vn{k1} for a quadrupole).  Generally, the
+particles that by default are tracked through a lattice are the same as the reference particle. This
+default behavior can be altered by setting \vn{parameter[default_tracking_species]}.
+%
   \index{photon_type}
   \item[{parameter[photon_type]}] \Newline
-The \vn{photon_type} switch is used to set the type of photons that
-are used in tracking. Possible settings are:
+The \vn{photon_type} switch is used to set the type of photons that are used in tracking. Possible
+settings are:
 \begin{example}
   incoherent    ! Default
   coherent 
 \end{example}
-The general rule is use incoherent tracking except when there is a
-\vn{diffraction_plate} element in the lattice. 
-
+The general rule is use incoherent tracking except when there is a \vn{diffraction_plate} element in
+the lattice.
+%
   \index{ptc_exact_model}\index{ptc_exact_misalign}
   \item[{parameter[ptc_exact_model]}] \Newline
-The \vn{ptc_exact_model} and \vn{ptc_exact_misalign} switches affect
-tracking using the \vn{PTC} library. See \sref{s:integ} for more
-details.
-
+The \vn{ptc_exact_model} and \vn{ptc_exact_misalign} switches affect tracking using the \vn{PTC}
+library. See \sref{s:integ} for more details.
+%
   \index{ptc_max_fringe_order}
   \item[{parameter[ptc_max_fringe_order]}] \Newline
-When using PTC tracking (\sref{s:ptc.intro}), the
-\vn{parameter[ptc_max_fringe_order]} determines the maximum order of
-the calculated fringe fields. The default is 2 which means that fringe
-fields due to a quadrupolar field. These fields are 3\Rd order in the
-transverse coordinates.
-
+When using PTC tracking (\sref{s:ptc.intro}), the \vn{parameter[ptc_max_fringe_order]} determines
+the maximum order of the calculated fringe fields. The default is 2 which means that fringe fields
+due to a quadrupolar field. These fields are 3\Rd order in the transverse coordinates.
+%
   \index{ran_seed}
   \item[{parameter[ran_seed]}] \Newline
 For more information on \vn{parameter[ran_seed]} see \sref{s:functions}.
-
+%
   \index{taylor_order}
   \item[{parameter[taylor_order]}] \Newline
-The Taylor order (\sref{s:taylor.phys}) is set by
-\vn{parameter[taylor_order]} and is the maximum order for a Taylor map.
-
+The Taylor order (\sref{s:taylor.phys}) is set by \vn{parameter[taylor_order]} and is the maximum
+order for a Taylor map.
+%
   \index{use_hard_edge_drifts}
   \item[{parameter[use_hard_edge_drifts]}] \Newline
-The \vn{use_hard_edge_drifts} switch determines if a ``hard edge''
-model of certain elements is used. For example, if \vn{runge_kutta}
-tracking is used for an \vn{rfcavity} or \vn{lcavity} using a standing
-wave model then the cavity length should be a multiple of the RF
-wavelength/2. To achieve this, during tracking, the cavity length is
-appropriately modified and drifts are inserted at either ends of the
-cavity to keep the total length constant. Default is \vn{True}.
+The \vn{use_hard_edge_drifts} switch determines if a ``hard edge'' model of certain elements is
+used. For example, if \vn{runge_kutta} tracking is used for an \vn{rfcavity} or \vn{lcavity} using a
+standing wave model then the cavity length should be a multiple of the RF wavelength/2. To achieve
+this, during tracking, the cavity length is appropriately modified and drifts are inserted at either
+ends of the cavity to keep the total length constant. Default is \vn{True}.
 
   \end{description}
 
@@ -420,15 +423,15 @@ any branch can be specified using a statement of the form
 \begin{example}
   line_name[parameter] = <Value>
 \end{example}
-This construct is called a \vn{line parameter} statement
-Here \vn{line_name} is the name of a line and \vn{parameter} is the
-name of a parameter. The parameters that can be set here are the same
-parameters that can be set with the \vn{beginning} statement with the additional
-parameters from the \vn{parameter} statement:
+This construct is called a \vn{line parameter} statement Here \vn{line_name} is the name of a line
+and \vn{parameter} is the name of a parameter. The parameters that can be set here are the same
+parameters that can be set with the \vn{beginning} statement with the additional parameters from the
+\vn{parameter} statement:
 \index{geometry}\index{particle}\index{default_tracking_species}
 \begin{example}
   default_tracking_species
   geometry
+  high_energy_space_charge_on
   live_branch
   particle
 \end{example}

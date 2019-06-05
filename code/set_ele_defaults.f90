@@ -44,6 +44,7 @@ case (ac_kicker$)
   allocate (ele%ac_kick)
   ele%mat6_calc_method = tracking$
   ele%value(interpolation$) = spline$
+  ele%value(ref_time_offset$) = true$
 
 case (beambeam$)
   ele%value(charge$) = -1
@@ -83,6 +84,7 @@ case (def_mad_beam$)
 case (def_parameter$)
   ele%value(geometry$) = real_garbage$
   ele%value(live_branch$) = real_garbage$
+  ele%value(high_energy_space_charge_on$) = real_garbage$
   ele%value(particle$) = positron$
   ele%value(default_tracking_species$) = real_garbage$
   ele%value(ix_branch$) = -1
@@ -154,6 +156,7 @@ case (line_ele$)
   ele%value(particle$) = real_garbage$
   ele%value(geometry$) = real_garbage$
   ele%value(live_branch$) = real_garbage$
+  ele%value(high_energy_space_charge_on$) = real_garbage$
   ele%value(default_tracking_species$) = real_garbage$
   ele%value(e_tot$) = -1
   ele%value(p0c$) = -1

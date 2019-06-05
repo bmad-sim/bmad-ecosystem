@@ -21,7 +21,7 @@ interface operator (==)
   module procedure eq_lat_ele_loc, eq_wake, eq_taylor_term, eq_taylor, eq_em_taylor_term
   module procedure eq_em_taylor, eq_cartesian_map_term1, eq_cartesian_map_term, eq_cartesian_map, eq_cylindrical_map_term1
   module procedure eq_cylindrical_map_term, eq_cylindrical_map, eq_grid_field_pt1, eq_grid_field_pt, eq_grid_field
-  module procedure eq_taylor_field_plane1, eq_taylor_field_plane, eq_taylor_field, eq_floor_position, eq_space_charge
+  module procedure eq_taylor_field_plane1, eq_taylor_field_plane, eq_taylor_field, eq_floor_position, eq_high_energy_space_charge
   module procedure eq_xy_disp, eq_twiss, eq_mode3, eq_bookkeeping_state, eq_rad_int_ele_cache
   module procedure eq_surface_grid_pt, eq_surface_grid, eq_segmented_surface, eq_target_point, eq_photon_surface
   module procedure eq_photon_target, eq_photon_material, eq_photon_element, eq_wall3d_vertex, eq_wall3d_section
@@ -1029,6 +1029,8 @@ is_eq = is_eq .and. (f1%field_type == f2%field_type)
 is_eq = is_eq .and. (f1%master_parameter == f2%master_parameter)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ele_anchor_pt == f2%ele_anchor_pt)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%interpolation_order == f2%interpolation_order)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%dr == f2%dr)
 !! f_side.equality_test[real, 1, NOT]
@@ -1153,11 +1155,11 @@ end function eq_floor_position
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_space_charge (f1, f2) result (is_eq)
+elemental function eq_high_energy_space_charge (f1, f2) result (is_eq)
 
 implicit none
 
-type(space_charge_struct), intent(in) :: f1, f2
+type(high_energy_space_charge_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -1180,7 +1182,7 @@ is_eq = is_eq .and. (f1%cos_phi == f2%cos_phi)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%sig_z == f2%sig_z)
 
-end function eq_space_charge
+end function eq_high_energy_space_charge
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -1817,6 +1819,8 @@ logical is_eq
 
 is_eq = .true.
 !! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%position_file == f2%position_file)
+!! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%file_name == f2%file_name)
 !! f_side.equality_test[character, 1, NOT]
 is_eq = is_eq .and. all(f1%distribution_type == f2%distribution_type)
@@ -1918,6 +1922,8 @@ is_eq = is_eq .and. (f1%default_tracking_species == f2%default_tracking_species)
 is_eq = is_eq .and. (f1%geometry == f2%geometry)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ixx == f2%ixx)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%high_energy_space_charge_on .eqv. f2%high_energy_space_charge_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%stable .eqv. f2%stable)
 !! f_side.equality_test[logical, 0, NOT]
@@ -2213,27 +2219,17 @@ is_eq = is_eq .and. (f1%particle_bin_span == f2%particle_bin_span)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_shield_images == f2%n_shield_images)
 !! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ix1_ele_csr == f2%ix1_ele_csr)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ix2_ele_csr == f2%ix2_ele_csr)
-!! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%sc_min_in_bin == f2%sc_min_in_bin)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%lcsr_component_on .eqv. f2%lcsr_component_on)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%lsc_component_on .eqv. f2%lsc_component_on)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%tsc_component_on .eqv. f2%tsc_component_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%lsc_kick_transverse_dependence .eqv. f2%lsc_kick_transverse_dependence)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%print_taylor_warning .eqv. f2%print_taylor_warning)
 !! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%write_csr_wake .eqv. f2%write_csr_wake)
+!! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%use_csr_old .eqv. f2%use_csr_old)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%small_angle_approx .eqv. f2%small_angle_approx)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%write_csr_wake .eqv. f2%write_csr_wake)
 
 end function eq_csr_parameter
 
@@ -2311,9 +2307,7 @@ is_eq = is_eq .and. (f1%mat6_track_symmetric .eqv. f2%mat6_track_symmetric)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%auto_bookkeeper .eqv. f2%auto_bookkeeper)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%space_charge_on .eqv. f2%space_charge_on)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%coherent_synch_rad_on .eqv. f2%coherent_synch_rad_on)
+is_eq = is_eq .and. (f1%csr_and_space_charge_on .eqv. f2%csr_and_space_charge_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%spin_tracking_on .eqv. f2%spin_tracking_on)
 !! f_side.equality_test[logical, 0, NOT]
@@ -2328,6 +2322,8 @@ is_eq = is_eq .and. (f1%radiation_fluctuations_on .eqv. f2%radiation_fluctuation
 is_eq = is_eq .and. (f1%conserve_taylor_maps .eqv. f2%conserve_taylor_maps)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%absolute_time_tracking_default .eqv. f2%absolute_time_tracking_default)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%twiss_normalize_off_energy .eqv. f2%twiss_normalize_off_energy)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%convert_to_kinetic_momentum .eqv. f2%convert_to_kinetic_momentum)
 !! f_side.equality_test[logical, 0, NOT]
@@ -2524,9 +2520,9 @@ if (.not. is_eq) return
 if (associated(f1%rad_int_cache)) is_eq = (f1%rad_int_cache == f2%rad_int_cache)
 !! f_side.equality_test[type, 0, PTR]
 
-is_eq = is_eq .and. (associated(f1%space_charge) .eqv. associated(f2%space_charge))
+is_eq = is_eq .and. (associated(f1%high_energy_space_charge) .eqv. associated(f2%high_energy_space_charge))
 if (.not. is_eq) return
-if (associated(f1%space_charge)) is_eq = (f1%space_charge == f2%space_charge)
+if (associated(f1%high_energy_space_charge)) is_eq = (f1%high_energy_space_charge == f2%high_energy_space_charge)
 !! f_side.equality_test[type, 1, NOT]
 is_eq = is_eq .and. all(f1%taylor == f2%taylor)
 !! f_side.equality_test[type, 1, NOT]
@@ -2643,6 +2639,10 @@ is_eq = is_eq .and. (f1%tracking_method == f2%tracking_method)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%spin_tracking_method == f2%spin_tracking_method)
 !! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%csr_method == f2%csr_method)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%space_charge_method == f2%space_charge_method)
+!! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ptc_integration_type == f2%ptc_integration_type)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%field_calc == f2%field_calc)
@@ -2672,8 +2672,6 @@ is_eq = is_eq .and. (f1%logic .eqv. f2%logic)
 is_eq = is_eq .and. (f1%bmad_logic .eqv. f2%bmad_logic)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%select .eqv. f2%select)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%csr_calc_on .eqv. f2%csr_calc_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%offset_moves_aperture .eqv. f2%offset_moves_aperture)
 
@@ -2978,6 +2976,8 @@ is_eq = is_eq .and. (f1%n_particle_tot == f2%n_particle_tot)
 is_eq = is_eq .and. (f1%n_particle_live == f2%n_particle_live)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_particle_lost_in_ele == f2%n_particle_lost_in_ele)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%twiss_valid .eqv. f2%twiss_valid)
 
 end function eq_bunch_params
 
