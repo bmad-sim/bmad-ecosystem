@@ -9,7 +9,7 @@ module lt_tracking_mod
 use beam_mod
 use twiss_and_track_mod
 use ptc_map_with_radiation_mod
-use space_charge_mod
+use high_energy_space_charge_mod
 use s_fitting_new, ptc_twopi => twopi, ptc_sqrt => sqrt
 
 implicit none
@@ -419,7 +419,7 @@ ix_branch = lttp%start%ix_branch
 ele_start => pointer_to_ele(lat, lttp%start)
 branch => lat%branch(ix_branch)
 
-call ltt_setup_space_charge(lttp, lat, beam_init, ltt_internal)
+call ltt_setup_high_energy_space_charge(lttp, branch, beam_init, ltt_internal)
 
 call reallocate_coord (orb, lat)
 call init_coord (orb(ix_ele_start), beam_init%center, ele_start, downstream_end$, lat%param%particle, spin = beam_init%spin)
@@ -522,7 +522,7 @@ if (lttp%using_mpi) beam_init%n_particle = lttp%mpi_n_particles_per_run
 call init_bunch_distribution (ele_start, lat%param, beam_init, lttp%start%ix_branch, bunch, err_flag)
 if (err_flag) stop
 
-call ltt_setup_space_charge(lttp, lat, beam_init, ltt_internal)
+call ltt_setup_high_energy_space_charge(lttp, lat%branch(ix_branch), beam_init, ltt_internal)
 
 if (lttp%mpi_rank == master_rank$) print '(a, i8)',   'n_particle             = ', size(bunch%particle)
 
@@ -677,10 +677,10 @@ end subroutine ltt_run_stat_mode
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_setup_space_charge(lttp, lat, beam_init, ltt_internal)
+subroutine ltt_setup_high_energy_space_charge(lttp, branch, beam_init, ltt_internal)
 
 type (ltt_params_struct) lttp
-type (lat_struct) lat
+type (branch_struct) branch
 type (beam_init_struct) beam_init
 type (ltt_internal_struct) ltt_internal
 type (normal_modes_struct) mode
@@ -688,7 +688,7 @@ real(rp) n_particle
 
 !
 
-if (.not. bmad_com%space_charge_on) return
+if (.not. branch%param%high_energy_space_charge_on) return
 
 if (lttp%tracking_method == 'MAP') then
   print *, 'NOTE: Space effects are not present when using a 1-turn map for tracking!'
@@ -701,13 +701,13 @@ if (.not. lttp%rfcavity_on) then
   return
 endif
 
-call radiation_integrals(lat, ltt_internal%bmad_closed_orb, mode, ix_branch = lttp%start%ix_branch)
+call radiation_integrals(branch%lat, ltt_internal%bmad_closed_orb, mode, ix_branch = branch%ix_branch)
 if (lttp%a_emittance /= 0) mode%a%emittance = lttp%a_emittance
 if (lttp%b_emittance /= 0) mode%b%emittance = lttp%b_emittance
 n_particle = abs(beam_init%bunch_charge / (e_charge * charge_of(ltt_internal%bmad_closed_orb(0)%species)))
-call setup_ultra_rel_space_charge_calc (.true., lat, n_particle, mode)
+call setup_high_energy_space_charge_calc (.true., branch, n_particle, mode)
 
-end subroutine ltt_setup_space_charge
+end subroutine ltt_setup_high_energy_space_charge
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
