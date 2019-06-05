@@ -7,11 +7,15 @@
 !   {component_name};{type};{variable};{component_value}
 !
 ! {type} is one of:
-!   STR
 !   INT
 !   REAL
 !   LOGIC
-!   ENUM     ! Enumerated number
+!   ENUM     ! String whose allowed values can be obtained using the "python enum" command.
+!   FILE     ! Name of file.
+!   CRYSTAL  ! Crystal name string. EG: "Si(111)"
+!   SPECIES  ! Species name string. EG: "H2SO4++"
+!   STR      ! String that does not fall into one of the above string categories.
+!   
 !
 ! {variable} indicates if the component can be varied. It is one of:
 !   T
@@ -179,7 +183,7 @@ case ('beam_init')
   u => point_to_uni(line, .false., err); if (err) return
   beam_init => u%beam%beam_init
 
-  nl=incr(nl); write (li(nl), amt) 'position_file;STR;F;',                     beam_init%position_file
+  nl=incr(nl); write (li(nl), amt) 'position_file;FILE;T;',                    beam_init%position_file
   nl=incr(nl); write (li(nl), rmt) 'sig_z_jitter;REAL;T;',                     beam_init%sig_z_jitter
   nl=incr(nl); write (li(nl), rmt) 'sig_e_jitter;REAL;T;',                     beam_init%sig_e_jitter
   nl=incr(nl); write (li(nl), imt) 'n_particle;INT;T;',                        beam_init%n_particle
@@ -198,7 +202,7 @@ case ('beam_init')
   nl=incr(nl); write (li(nl), rmt) 'sig_e;REAL;T;',                            beam_init%sig_e
   nl=incr(nl); write (li(nl), rmt) 'bunch_charge;REAL;T;',                     beam_init%bunch_charge
   nl=incr(nl); write (li(nl), imt) 'n_bunch;INT;T;',                           beam_init%n_bunch
-  nl=incr(nl); write (li(nl), amt) 'species;STR;T;',                           beam_init%species
+  nl=incr(nl); write (li(nl), amt) 'species;SPECIES;T;',                       beam_init%species
   nl=incr(nl); write (li(nl), lmt) 'init_spin;LOGIC;T;',                       beam_init%init_spin
   nl=incr(nl); write (li(nl), lmt) 'full_6d_coupling_calc;LOGIC;T;',           beam_init%full_6D_coupling_calc
   nl=incr(nl); write (li(nl), lmt) 'use_particle_start_for_center;LOGIC;T;',   beam_init%use_particle_start_for_center
@@ -219,19 +223,19 @@ case ('branch1')
   ix_branch = parse_branch(line, .false., err); if (err) return
   branch => u%model%lat%branch(ix_branch)
 
-  nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                              branch%name
-  nl=incr(nl); write (li(nl), imt) 'ix_branch;INT;F;',                         branch%ix_branch
-  nl=incr(nl); write (li(nl), imt) 'ix_from_branch;INT;F;',                    branch%ix_from_branch
-  nl=incr(nl); write (li(nl), imt) 'ix_from_ele;INT;F;',                       branch%ix_from_ele
+  nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                               branch%name
+  nl=incr(nl); write (li(nl), imt) 'ix_branch;INT;F;',                          branch%ix_branch
+  nl=incr(nl); write (li(nl), imt) 'ix_from_branch;INT;F;',                     branch%ix_from_branch
+  nl=incr(nl); write (li(nl), imt) 'ix_from_ele;INT;F;',                        branch%ix_from_ele
 
-  nl=incr(nl); write (li(nl), rmt) 'param.n_part;REAL;F;',                     branch%param%n_part
-  nl=incr(nl); write (li(nl), rmt) 'param.total_length;REAL;F;',               branch%param%total_length
-  nl=incr(nl); write (li(nl), rmt) 'param.unstable_factor;REAL;F;',            branch%param%unstable_factor
-  nl=incr(nl); write (li(nl), amt) 'param.particle;STR;F;',                    species_name(branch%param%particle)
-  nl=incr(nl); write (li(nl), amt) 'param.default_tracking_species;INT;F;',    species_name(branch%param%default_tracking_species)
-  nl=incr(nl); write (li(nl), imt) 'param.geometry;INT;F;',                    branch%param%geometry
-  nl=incr(nl); write (li(nl), imt) 'param.ixx;INT;F;',                         branch%param%ixx
-  nl=incr(nl); write (li(nl), lmt) 'param.stable;LOGIC;F;',                    branch%param%stable
+  nl=incr(nl); write (li(nl), rmt) 'param.n_part;REAL;F;',                      branch%param%n_part
+  nl=incr(nl); write (li(nl), rmt) 'param.total_length;REAL;F;',                branch%param%total_length
+  nl=incr(nl); write (li(nl), rmt) 'param.unstable_factor;REAL;F;',             branch%param%unstable_factor
+  nl=incr(nl); write (li(nl), amt) 'param.particle;SPECIES;T;',                 species_name(branch%param%particle)
+  nl=incr(nl); write (li(nl), amt) 'param.default_tracking_species;SPECIES;T;', species_name(branch%param%default_tracking_species)
+  nl=incr(nl); write (li(nl), imt) 'param.geometry;ENUM;T;',                    geometry_name(branch%param%geometry)
+  nl=incr(nl); write (li(nl), imt) 'param.ixx;INT;F;',                          branch%param%ixx
+  nl=incr(nl); write (li(nl), lmt) 'param.stable;LOGIC;F;',                     branch%param%stable
 
 !----------------------------------------------------------------------
 ! Bunch parameters at the exit end of a given lattice element.
@@ -296,8 +300,8 @@ case ('bunch1')
   nl=incr(nl); write (li(nl), rmt) 'centroid_beta;REAL;F;',                    bunch_params%centroid%beta
   nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;F;',                            bunch_params%centroid%ix_ele
   nl=incr(nl); write (li(nl), imt) 'direction;INT;F;',                         bunch_params%centroid%direction
-  nl=incr(nl); write (li(nl), amt) 'species;STR;F;',                           species_name(bunch_params%centroid%species)
-  nl=incr(nl); write (li(nl), amt) 'location;STR;F;',                          location_name(bunch_params%centroid%location)
+  nl=incr(nl); write (li(nl), amt) 'species;SPECIES;F;',                       species_name(bunch_params%centroid%species)
+  nl=incr(nl); write (li(nl), amt) 'location;ENUM;F;',                         location_name(bunch_params%centroid%location)
   nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                                bunch_params%s
   nl=incr(nl); write (li(nl), rmt) 'charge_live;REAL;F;',                      bunch_params%charge_live
   nl=incr(nl); write (li(nl), imt) 'n_particle_tot;INT;F;',                    bunch_params%n_particle_tot
@@ -342,8 +346,7 @@ case ('bmad_com')
   nl=incr(nl); write (li(nl), lmt) 'lr_wakes_on;LOGIC;T;',                       bmad_com%lr_wakes_on
   nl=incr(nl); write (li(nl), lmt) 'mat6_track_symmetric;LOGIC;T;',              bmad_com%mat6_track_symmetric
   nl=incr(nl); write (li(nl), lmt) 'auto_bookkeeper;LOGIC;T;',                   bmad_com%auto_bookkeeper
-  nl=incr(nl); write (li(nl), lmt) 'space_charge_on;LOGIC;T;',                   bmad_com%space_charge_on
-  nl=incr(nl); write (li(nl), lmt) 'coherent_synch_rad_on;LOGIC;T;',             bmad_com%coherent_synch_rad_on
+  nl=incr(nl); write (li(nl), lmt) 'csr_and_space_charge_on;LOGIC;T;',           bmad_com%csr_and_space_charge_on
   nl=incr(nl); write (li(nl), lmt) 'spin_tracking_on;LOGIC;T;',                  bmad_com%spin_tracking_on
   nl=incr(nl); write (li(nl), lmt) 'backwards_time_tracking_on;LOGIC;T;',        bmad_com%backwards_time_tracking_on
   nl=incr(nl); write (li(nl), lmt) 'spin_sokolov_ternov_flipping_on;LOGIC;T;',   bmad_com%spin_sokolov_ternov_flipping_on
@@ -563,8 +566,8 @@ case ('data_d2')
 
   nl=incr(nl); write (li(nl), imt) 'ix_d2_data;INT;F;',                       d2_ptr%ix_d2_data
   nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             d2_ptr%name
-  nl=incr(nl); write (li(nl), amt) 'data_file_name;STR;F;',                   d2_ptr%data_file_name
-  nl=incr(nl); write (li(nl), amt) 'ref_file_name;STR;F;',                    d2_ptr%ref_file_name
+  nl=incr(nl); write (li(nl), amt) 'data_file_name;FILE;F;',                  d2_ptr%data_file_name
+  nl=incr(nl); write (li(nl), amt) 'ref_file_name;FILE;F;',                   d2_ptr%ref_file_name
   nl=incr(nl); write (li(nl), amt) 'data_date;STR;T;',                        d2_ptr%data_date
   nl=incr(nl); write (li(nl), amt) 'ref_date;STR;T;',                         d2_ptr%ref_date
   nl=incr(nl); write (li(nl), imt) 'ix_uni;INT;F;',                           d2_ptr%ix_uni
@@ -698,7 +701,7 @@ case ('global')
   nl=incr(nl); write (li(nl), rmt) 'delta_e_chrom;REAL;T;',                   s%global%delta_e_chrom
   nl=incr(nl); write (li(nl), imt) 'n_opti_cycles;INT;T;',                    s%global%n_opti_cycles
   nl=incr(nl); write (li(nl), imt) 'n_opti_loops;INT;T;',                     s%global%n_opti_loops
-  nl=incr(nl); write (li(nl), imt) 'phase_units;INT;T;',                      s%global%phase_units
+  nl=incr(nl); write (li(nl), amt) 'phase_units;ENUM;T;',                      s%global%phase_units
   nl=incr(nl); write (li(nl), imt) 'bunch_to_plot;INT;T;',                    s%global%bunch_to_plot
   nl=incr(nl); write (li(nl), imt) 'random_seed;INT;T;',                      s%global%random_seed
   nl=incr(nl); write (li(nl), imt) 'n_top10_merit;INT;T;',                    s%global%n_top10_merit
@@ -709,7 +712,7 @@ case ('global')
   nl=incr(nl); write (li(nl), amt) 'prompt_color;STR;T;',                     s%global%prompt_color
   nl=incr(nl); write (li(nl), amt) 'optimizer;STR;T;',                        s%global%optimizer
   nl=incr(nl); write (li(nl), amt) 'print_command;STR;T;',                    s%global%print_command
-  nl=incr(nl); write (li(nl), amt) 'var_out_file;STR;T;',                     s%global%var_out_file
+  nl=incr(nl); write (li(nl), amt) 'var_out_file;FILE;T;',                    s%global%var_out_file
   nl=incr(nl); write (li(nl), lmt) 'opt_with_ref;LOGIC;T;',                   s%global%opt_with_ref
   nl=incr(nl); write (li(nl), lmt) 'opt_with_base;LOGIC;T;',                  s%global%opt_with_base
   nl=incr(nl); write (li(nl), lmt) 'label_lattice_elements;LOGIC;T;',         s%global%label_lattice_elements
@@ -835,7 +838,8 @@ case ('lat_ele1')
     nl=incr(nl); write (li(nl), lmt) 'taylor_map_includes_offsets;LOGIC;T;',    ele%taylor_map_includes_offsets
     nl=incr(nl); write (li(nl), lmt) 'field_master;LOGIC;T;',                   ele%field_master
     nl=incr(nl); write (li(nl), lmt) 'is_on;LOGIC;T;',                          ele%is_on
-    nl=incr(nl); write (li(nl), lmt) 'csr_calc_on;LOGIC;T;',                    ele%csr_calc_on
+    nl=incr(nl); write (li(nl), lmt) 'csr_method;ENUM;T;',                      csr_method_name(ele%csr_method)
+    nl=incr(nl); write (li(nl), lmt) 'space_charge_method;ENUM;T;',             space_charge_method_name(ele%space_charge_method)
     nl=incr(nl); write (li(nl), lmt) 'offset_moves_aperture;LOGIC;T;',          ele%offset_moves_aperture
 
   case ('parameters')
@@ -2042,7 +2046,7 @@ nl=incr(nl); write (li(nl), rmt) 'beta;REAL;F;',                             orb
 nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;F;',                            orbit%ix_ele
 nl=incr(nl); write (li(nl), amt) 'state;STR;F;',                             coord_state_name(orbit%state)
 nl=incr(nl); write (li(nl), imt) 'direction;INT;F;',                         orbit%direction
-nl=incr(nl); write (li(nl), amt) 'species;STR;F;',                           species_name(orbit%species)
+nl=incr(nl); write (li(nl), amt) 'species;SPECIES;F;',                       species_name(orbit%species)
 nl=incr(nl); write (li(nl), amt) 'location;STR;F;',                          location_name(orbit%location)
 
 end subroutine orbit_out

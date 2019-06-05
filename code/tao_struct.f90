@@ -732,7 +732,6 @@ type tao_scratch_space_struct
   real(rp), allocatable :: x(:), y(:)
   real(rp), allocatable :: y_value(:)
   complex(rp), allocatable :: srdt_cache(:,:,:)
-  real(rp) :: srdt_mat_stash(6,6) = 0.0d0
 end type
 
 type (tao_scratch_space_struct), save, target :: scratch
