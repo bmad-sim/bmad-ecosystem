@@ -2304,14 +2304,16 @@ case ('PARTICLE')
     endif
   endif
 
+case ('PHASE_UNITS')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, angle_units_name, lbound(angle_units_name, 1))
+  if (present(is_default)) is_default = (ix_attrib_val == radians$)
+
 case ('PTC_FIELD_GEOMETRY')
-  call get_this_attrib_name (attrib_val_name, ix_attrib_val, ptc_field_geometry_name, &
-                                                  lbound(ptc_field_geometry_name, 1))
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, ptc_field_geometry_name, lbound(ptc_field_geometry_name, 1))
   if (present(is_default)) is_default = (ix_attrib_val == sector$)
 
 case ('PTC_INTEGRATION_TYPE')
-  call get_this_attrib_name (attrib_val_name, ix_attrib_val, ptc_integration_type_name, &
-                                                  lbound(ptc_integration_type_name, 1))
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, ptc_integration_type_name, lbound(ptc_integration_type_name, 1))
   if (present(is_default)) is_default = (ix_attrib_val == matrix_kick$)
 
 case ('REF_COORDINATES')
