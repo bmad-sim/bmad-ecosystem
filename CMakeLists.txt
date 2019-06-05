@@ -7,6 +7,7 @@ set (EXE_SPECS
   cmake.bbu_test
   cmake.closed_orbit_test
   cmake.coord_test
+  cmake.csr_and_space_charge
   cmake.bookkeeper_test
   cmake.em_field_test
   cmake.field_test
