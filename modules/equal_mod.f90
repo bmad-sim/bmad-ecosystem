@@ -292,17 +292,17 @@ else
   if (associated (ele_save%mode3)) deallocate (ele_save%mode3)
 endif
 
-! %space_charge
+! %high_energy_space_charge
 
-if (associated(ele_in%space_charge)) then
-  if (associated (ele_save%space_charge)) then
-    ele_out%space_charge => ele_save%space_charge
+if (associated(ele_in%high_energy_space_charge)) then
+  if (associated (ele_save%high_energy_space_charge)) then
+    ele_out%high_energy_space_charge => ele_save%high_energy_space_charge
   else
-    allocate (ele_out%space_charge)
+    allocate (ele_out%high_energy_space_charge)
   endif
-  ele_out%space_charge = ele_in%space_charge
+  ele_out%high_energy_space_charge = ele_in%high_energy_space_charge
 else
-  if (associated (ele_save%space_charge)) deallocate (ele_save%space_charge)
+  if (associated (ele_save%high_energy_space_charge)) deallocate (ele_save%high_energy_space_charge)
 endif
 
 ! %wake

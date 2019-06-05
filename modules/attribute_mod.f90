@@ -11,12 +11,12 @@ implicit none
 ! Function attribute_free
 !
 ! Overloaded function for:
-!   Function attribute_free1 (ix_ele, attrib_name, lat,
-!                                err_print_flag, except_overlay, dependent_attribs_free) result (free)
-!   Function attribute_free2 (ele, attrib_name, 
-!                                err_print_flag, except_overlay, dependent_attribs_free) result (free)
-!   Function attribute_free3 (ix_ele, ix_branch, attrib_name, lat, 
-!                                err_print_flag, except_overlay) result (free)
+!   Function attribute_free1 (ix_ele, attrib_name, lat, err_print_flag, 
+!                                except_overlay, dependent_attribs_free, why_not_free) result (free)
+!   Function attribute_free2 (ele, attrib_name, err_print_flag, 
+!                                except_overlay, dependent_attribs_free, why_not_free) result (free)
+!   Function attribute_free3 (ix_ele, ix_branch, attrib_name, lat, err_print_flag, 
+!                                except_overlay, why_not_free) result (free)
 !
 ! Routine to check if an attribute is free to vary.
 !
@@ -47,8 +47,17 @@ implicit none
 !                               using intelligent bookkeeping.
 !
 ! Output:
-!   free   -- Logical: Set True if attribtute not found or attriubte
-!                     cannot be changed directly.
+!   free          -- logical: Set True if attribtute not found or attriubte
+!                       cannot be changed directly.
+!   why_not_free  -- integer, optional: Possibilities are:
+!                         field_master_dependent$  -> Dependent due to setting of ele%field_master.
+!                         dependent$               -> Not field_master_dependent$ but value is 
+!                                                       dependent upon the value of other attributes.
+!                         does_not_exist$          -> Attribute name is unrecognized or does not exist
+!                                                       for the type of element.
+!                         overlay_slave$           -> Attribute is controlled by an overlay lord.
+!                         super_slave$             -> Attribute is controlled by element's super_lord.
+!                         multipass_slave$         -> Attribute is controlled by element's multipass_lord.
 !-
 
 interface attribute_free
@@ -67,7 +76,11 @@ private check_this_attribute_free
 !   dependent$      -- Value calculated by Bmad. Cannot be user varied as an independent parameter.
 !   private$        -- Internal parameter used in calculations. Will not be displayed by type_ele.
 
-integer, parameter :: does_not_exist$ = -1, is_free$ = 1, quasi_free$ = 2, dependent$ = 3, private$ = 4
+! Define parameters for attrib_array()%type and why_not_free argument in attribute_free(...) 
+! Note: Slot 2 is reserved for super_slave$ and slot 9 is reserved for multipass_slave$
+
+integer, parameter :: does_not_exist$ = -1, is_free$ = 0, quasi_free$ = 1, dependent$ = 3, private$ = 4 
+integer, parameter :: overlay_slave$ = 5, field_master_dependent$ = 6
 
 type ele_attribute_struct
   character(40) :: name = null_name$
@@ -638,7 +651,8 @@ do i = 1, n_key$
   call init_attribute_name1 (i, num_steps$,           'NUM_STEPS', quasi_free$)
   call init_attribute_name1 (i, ds_step$,             'DS_STEP')
   call init_attribute_name1 (i, field_calc$,          'FIELD_CALC')
-  call init_attribute_name1 (i, csr_calc_on$,         'CSR_CALC_ON')
+  call init_attribute_name1 (i, csr_method$,          'CSR_METHOD')
+  call init_attribute_name1 (i, space_charge_method$, 'SPACE_CHARGE_METHOD')
   call init_attribute_name1 (i, n_ref_pass$,          'N_REF_PASS')
 
   if (i == drift$)        cycle
@@ -825,6 +839,7 @@ call init_attribute_name1 (line_ele$, live_branch$,                 'LIVE_BRANCH
 call init_attribute_name1 (line_ele$, geometry$,                    'GEOMETRY')
 call init_attribute_name1 (line_ele$, default_tracking_species$,    'DEFAULT_TRACKING_SPECIES')
 call init_attribute_name1 (line_ele$, ix_branch$,                   'ix_branch', private$)
+call init_attribute_name1 (line_ele$, high_energy_space_charge_on$, 'HIGH_ENERGY_SPACE_CHARGE_ON')
 
 call init_attribute_name1 (capillary$, l$,                          'L', dependent$)
 call init_attribute_name1 (capillary$, s_spline$,                   'S_SPLINE')
@@ -908,25 +923,26 @@ call init_attribute_name1 (def_particle_start$, sig_e$,                     'SIG
 call init_attribute_name1 (def_particle_start$, sig_z$,                     'SIG_Z')
 call init_attribute_name1 (def_particle_start$, direction_particle_start$,  'DIRECTION')
 
-call init_attribute_name1 (def_parameter$, ix_branch$,                'ix_branch', private$)
-call init_attribute_name1 (def_parameter$, e_tot$,                    'E_TOT')
-call init_attribute_name1 (def_parameter$, p0c$,                      'P0C')
-call init_attribute_name1 (def_parameter$, live_branch$,              'LIVE_BRANCH')
-call init_attribute_name1 (def_parameter$, geometry$,                 'GEOMETRY')
-call init_attribute_name1 (def_parameter$, lattice_type$,             'LATTICE_TYPE') ! For backwards compatibility
-call init_attribute_name1 (def_parameter$, lattice$,                  'LATTICE')
-call init_attribute_name1 (def_parameter$, machine$,                  'MACHINE')
-call init_attribute_name1 (def_parameter$, taylor_order$,             'TAYLOR_ORDER')
-call init_attribute_name1 (def_parameter$, ran_seed$,                 'RAN_SEED')
-call init_attribute_name1 (def_parameter$, n_part$,                   'N_PART')
-call init_attribute_name1 (def_parameter$, particle$,                 'PARTICLE')
-call init_attribute_name1 (def_parameter$, photon_type$,              'PHOTON_TYPE')
-call init_attribute_name1 (def_parameter$, no_end_marker$,            'NO_END_MARKER')
-call init_attribute_name1 (def_parameter$, absolute_time_tracking$,   'ABSOLUTE_TIME_TRACKING')
-call init_attribute_name1 (def_parameter$, ptc_exact_model$,          'PTC_EXACT_MODEL')
-call init_attribute_name1 (def_parameter$, ptc_exact_misalign$,       'PTC_EXACT_MISALIGN')
-call init_attribute_name1 (def_parameter$, default_tracking_species$, 'DEFAULT_TRACKING_SPECIES')
-call init_attribute_name1 (def_parameter$, electric_dipole_moment$,   'ELECTRIC_DIPOLE_MOMENT')
+call init_attribute_name1 (def_parameter$, ix_branch$,                    'ix_branch', private$)
+call init_attribute_name1 (def_parameter$, e_tot$,                        'E_TOT')
+call init_attribute_name1 (def_parameter$, p0c$,                          'P0C')
+call init_attribute_name1 (def_parameter$, live_branch$,                  'LIVE_BRANCH')
+call init_attribute_name1 (def_parameter$, geometry$,                     'GEOMETRY')
+call init_attribute_name1 (def_parameter$, lattice_type$,                 'LATTICE_TYPE') ! For backwards compatibility
+call init_attribute_name1 (def_parameter$, lattice$,                      'LATTICE')
+call init_attribute_name1 (def_parameter$, machine$,                      'MACHINE')
+call init_attribute_name1 (def_parameter$, taylor_order$,                 'TAYLOR_ORDER')
+call init_attribute_name1 (def_parameter$, ran_seed$,                     'RAN_SEED')
+call init_attribute_name1 (def_parameter$, n_part$,                       'N_PART')
+call init_attribute_name1 (def_parameter$, particle$,                     'PARTICLE')
+call init_attribute_name1 (def_parameter$, photon_type$,                  'PHOTON_TYPE')
+call init_attribute_name1 (def_parameter$, no_end_marker$,                'NO_END_MARKER')
+call init_attribute_name1 (def_parameter$, absolute_time_tracking$,       'ABSOLUTE_TIME_TRACKING')
+call init_attribute_name1 (def_parameter$, ptc_exact_model$,              'PTC_EXACT_MODEL')
+call init_attribute_name1 (def_parameter$, ptc_exact_misalign$,           'PTC_EXACT_MISALIGN')
+call init_attribute_name1 (def_parameter$, default_tracking_species$,     'DEFAULT_TRACKING_SPECIES')
+call init_attribute_name1 (def_parameter$, electric_dipole_moment$,       'ELECTRIC_DIPOLE_MOMENT')
+call init_attribute_name1 (def_parameter$, high_energy_space_charge_on$,  'HIGH_ENERGY_SPACE_CHARGE_ON')
 
 call init_attribute_name1 (detector$, l$,                             'L', dependent$)
 call init_attribute_name1 (detector$, E_tot_start$,                   'E_tot_start', private$)
@@ -1162,6 +1178,7 @@ call init_attribute_name1 (kicker$, taylor_field$,                  'TAYLOR_FIEL
 call init_attribute_name1 (kicker$, ptc_canonical_coords$,          'PTC_CANONICAL_COORDS')
 
 call init_attribute_name1 (ac_kicker$, interpolation$,                 'INTERPOLATION')
+call init_attribute_name1 (ac_kicker$, ref_time_offset$,               'REF_TIME_OFFSET')
 call init_attribute_name1 (ac_kicker$, r0_mag$,                        'R0_MAG')
 call init_attribute_name1 (ac_kicker$, r0_elec$,                       'R0_ELEC')
 call init_attribute_name1 (ac_kicker$, field_master$,                  'FIELD_MASTER')
@@ -1706,9 +1723,9 @@ endif
 select case (attrib_name)
 case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', &
       'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'AUTOSCALE_PHASE', 'GANG', &
-      'AUTOSCALE_AMPLITUDE', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
+      'AUTOSCALE_AMPLITUDE', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', 'HIGH_ENERGY_SPACE_CHARGE_ON', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
-      'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'SPIN_FRINGE_ON', &
+      'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'SPIN_FRINGE_ON', 'REF_TIME_OFFSET', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'DIFFRACTION_LIMITED', &
       'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'MATCH_END_INPUT', 'MATCH_END_ORBIT_INPUT', 'GEO', &
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE')
@@ -1726,7 +1743,7 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPO
       'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', 'INTERPOLATION', &
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE', 'CAVITY_TYPE', &
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
-      'LORD_STATUS', 'PHOTON_TYPE', 'ELE_ORIGIN', 'REF_ORIGIN')
+      'LORD_STATUS', 'PHOTON_TYPE', 'ELE_ORIGIN', 'REF_ORIGIN', 'CSR_METHOD', 'SPACE_CHARGE_METHOD')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PHYSICAL_SOURCE', &
@@ -1927,7 +1944,6 @@ case default
   endif
 
 end select
-
 
 end function attribute_units
 
@@ -2174,6 +2190,12 @@ case ('CAVITY_TYPE')
     is_default = (ix_attrib_val == default_value(ele, cavity_type$))
   endif
 
+case ('CSR_METHOD')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, csr_method_name, lbound(csr_method_name, 1))
+  if (present(is_default)) then
+    is_default = off$
+  endif
+
 case ('COUPLER_AT')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, end_at_name, lbound(end_at_name, 1))
   if (present(is_default)) is_default = (ix_attrib_val == downstream_end$)
@@ -2306,6 +2328,12 @@ case ('SLAVE_STATUS')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, control_name, lbound(control_name, 1))  
   if (present(is_default)) is_default = .false.
   
+case ('SPACE_CHARGE_METHOD')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, space_charge_method_name, lbound(space_charge_method_name, 1))
+  if (present(is_default)) then
+    is_default = off$
+  endif
+
 case ('SPATIAL_DISTRIBUTION')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, distribution_name, lbound(distribution_name, 1))
   if (present(is_default)) is_default = (ix_attrib_val == gaussian$)
@@ -2701,18 +2729,19 @@ end subroutine custom_ele_attrib_name_list
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function attribute_free1 (ix_ele, attrib_name, lat, err_print_flag, except_overlay, dependent_attribs_free) result (free)
+! Function attribute_free1 (ix_ele, attrib_name, lat, err_print_flag, except_overlay, dependent_attribs_free, why_not_free) result (free)
 !
 ! This function overloaded by attribute_free. See attribute_free for more details.
 !-
 
-function attribute_free1 (ix_ele, attrib_name, lat, err_print_flag, except_overlay, dependent_attribs_free) result (free)
+function attribute_free1 (ix_ele, attrib_name, lat, err_print_flag, except_overlay, dependent_attribs_free, why_not_free) result (free)
 
 implicit none
 
 type (lat_struct) :: lat
 
 integer ix_ele
+integer, optional :: why_not_free
 
 character(*) attrib_name
 
@@ -2721,7 +2750,7 @@ logical, optional :: err_print_flag, except_overlay, dependent_attribs_free
 
 !
 
-free = check_this_attribute_free (lat%ele(ix_ele), attrib_name, lat, err_print_flag, except_overlay, dependent_attribs_free)
+free = check_this_attribute_free (lat%ele(ix_ele), attrib_name, lat, err_print_flag, except_overlay, dependent_attribs_free, why_not_free)
 
 end function attribute_free1
 
@@ -2729,12 +2758,12 @@ end function attribute_free1
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function attribute_free2 (ele, attrib_name, err_print_flag, except_overlay, dependent_attribs_free) result (free)
+! Function attribute_free2 (ele, attrib_name, err_print_flag, except_overlay, dependent_attribs_free, why_not_free) result (free)
 !
 ! This function overloaded by attribute_free. See attribute_free for more details.
 !-
 
-function attribute_free2 (ele, attrib_name, err_print_flag, except_overlay, dependent_attribs_free) result (free)
+function attribute_free2 (ele, attrib_name, err_print_flag, except_overlay, dependent_attribs_free, why_not_free) result (free)
 
 implicit none
 
@@ -2742,6 +2771,8 @@ type (lat_struct), target :: lat
 type (ele_struct) ele
 
 character(*) attrib_name
+
+integer, optional :: why_not_free
 
 logical free
 logical, optional :: err_print_flag, except_overlay, dependent_attribs_free
@@ -2757,7 +2788,7 @@ endif
 
 ! init & check
 
-free = check_this_attribute_free (ele, attrib_name, ele%branch%lat, err_print_flag, except_overlay, dependent_attribs_free)
+free = check_this_attribute_free (ele, attrib_name, ele%branch%lat, err_print_flag, except_overlay, dependent_attribs_free, why_not_free)
 
 end function attribute_free2
 
@@ -2766,19 +2797,21 @@ end function attribute_free2
 !--------------------------------------------------------------------------
 !+
 ! Function attribute_free3 (ix_ele, ix_branch, attrib_name, lat, 
-!                                         err_print_flag, except_overlay, dependent_attribs_free) result (free)
+!                                   err_print_flag, except_overlay, dependent_attribs_free, why_not_free) result (free)
 !
 ! This function overloaded by attribute_free. See attribute_free for more details.
 !-
 
 function attribute_free3 (ix_ele, ix_branch, attrib_name, lat, &
-                                            err_print_flag, except_overlay, dependent_attribs_free) result (free)
+                                  err_print_flag, except_overlay, dependent_attribs_free, why_not_free) result (free)
 
 implicit none
 
 type (lat_struct) :: lat
 
 integer ix_ele, ix_branch
+integer, optional :: why_not_free
+
 character(*) attrib_name
 
 logical free
@@ -2787,7 +2820,7 @@ logical, optional :: err_print_flag, except_overlay, dependent_attribs_free
 !
 
 free = check_this_attribute_free (lat%branch(ix_branch)%ele(ix_ele), attrib_name, &
-                                             lat, err_print_flag, except_overlay, dependent_attribs_free)
+                                  lat, err_print_flag, except_overlay, dependent_attribs_free, why_not_free)
 
 end function attribute_free3
 
@@ -2796,7 +2829,7 @@ end function attribute_free3
 !--------------------------------------------------------------------------
 
 function check_this_attribute_free (ele, attrib_name, lat, err_print_flag, except_overlay, &
-                                                                      dependent_attribs_free) result (free)
+                                                           dependent_attribs_free, why_not_free) result (free)
 
 implicit none
 
@@ -2808,6 +2841,7 @@ type (ele_attribute_struct) attrib_info
 type (control_struct), pointer :: control
 type (all_pointer_struct) a_ptr
 
+integer, optional :: why_not_free
 integer ix_branch, i, ir, ix_attrib, ix, ic
 
 character(*) attrib_name
@@ -2834,7 +2868,7 @@ attrib_info = attribute_info(ele, ix_attrib)
 a_name = attribute_name (ele, ix_attrib)
 
 if (attrib_info%type == private$) then
-  call it_is_not_free (ele, ix_attrib, 'THIS ATTRIBUTE IS PRIVATE.')
+  call it_is_not_free (ele, ix_attrib, dependent$, 'THIS ATTRIBUTE IS PRIVATE.')
   return
 endif
 
@@ -2845,21 +2879,21 @@ if (attrib_info%type == does_not_exist$) then
   select case (attrib_name)
   case ('ALPHA_A', 'ALPHA_B', 'BETA_A', 'BETA_B', 'PHI_A', 'PHI_B', 'DPHI_A', 'DPHI_B', &
         'ETA_A', 'ETAP_A', 'ETA_B', 'ETAP_B')
-    call it_is_not_free (ele, ix_attrib, 'THIS ATTRIBUTE IS A COMPUTED PARAMETER.')
+    call it_is_not_free (ele, ix_attrib, dependent$, 'THIS ATTRIBUTE IS A COMPUTED PARAMETER.')
   case default
     ! Something like 'cartesian_map(1)%field_scale' does not have an attribute index
     call pointer_to_attribute (ele, attrib_name, .true., a_ptr, err_flag, .false.)
     if (.not. err_flag) return
-    call it_is_not_free (ele, ix_attrib, 'DOES NOT CORRESPOND TO A VALID ATTRIBUTE.', skip = .true.)
+    call it_is_not_free (ele, ix_attrib, does_not_exist$, 'DOES NOT CORRESPOND TO A VALID ATTRIBUTE.', skip = .true.)
   end select
   return
 endif
 
-! only one particular attribute of an overlay lord is allowed to be adjusted
+! Overlay or group lord check
 
 if (ele%key == overlay$ .or. ele%key == group$) then
   if (all(attrib_name /= ele%control%var%name)) then
-    call it_is_not_free (ele, ix_attrib, 'IS NOT A VALID CONTROL VARIABLE', skip = .true.)
+    call it_is_not_free (ele, ix_attrib, does_not_exist$, 'IS NOT A VALID CONTROL VARIABLE', skip = .true.)
   endif
   return
 endif
@@ -2867,7 +2901,7 @@ endif
 ! Here if checking something that is not an overlay or group lord... 
 
 if (attrib_info%type == dependent$) then
-  call it_is_not_free (ele, ix_attrib, 'THIS IS A DEPENDENT ATTRIBUTE.')
+  call it_is_not_free (ele, ix_attrib, dependent$, 'THIS IS A DEPENDENT ATTRIBUTE.')
   return
 endif
 
@@ -2880,7 +2914,7 @@ if (.not. do_except_overlay) then
 
     if (lord%key == overlay$) then
       if (control%ix_attrib == ix_attrib) then 
-        call it_is_not_free (ele, ix_attrib, 'IT IS CONTROLLED BY THE OVERLAY: ' // lord%name)
+        call it_is_not_free (ele, ix_attrib, overlay_slave$, 'IT IS CONTROLLED BY THE OVERLAY: ' // lord%name)
         return
       endif
     endif
@@ -2892,9 +2926,9 @@ endif
 
 if (ele%slave_status == super_slave$) then
   select case (a_name)
-  case ('L', 'CSR_CALC_ON')
+  case ('L', 'CSR_METHOD', 'SPACE_CHARGE_METHOD')
   case default
-    call it_is_not_free (ele, ix_attrib, 'THE ELEMENT IS A SUPER_SLAVE.', &
+    call it_is_not_free (ele, ix_attrib, super_slave$, 'THE ELEMENT IS A SUPER_SLAVE.', &
                                          '[ATTRIBUTES OF SUPER_SLAVE ELEMENTS ARE GENERALLY NOT FREE TO VARY.]')
   end select
   return
@@ -2905,7 +2939,7 @@ endif
 
 if (ele%slave_status == multipass_slave$) then
   select case (a_name)
-  case ('CSR_CALC_ON', 'DESCRIP', 'ALIAS', 'TYPE');     return
+  case ('CSR_METHOD', 'SPACE_CHARGE_METHOD', 'DESCRIP', 'ALIAS', 'TYPE');     return
   end select
 
   select case (ele%key)
@@ -2915,7 +2949,7 @@ if (ele%slave_status == multipass_slave$) then
     lord => pointer_to_lord(ele, 1)
   end select
 
-  call it_is_not_free (ele, ix_attrib, 'THE ELEMENT IS A MULTIPASS_SLAVE.', &
+  call it_is_not_free (ele, ix_attrib, multipass_slave$, 'THE ELEMENT IS A MULTIPASS_SLAVE.', &
                                        '[ATTRIBUTES OF MULTIPASS_SLAVE ELEMENTS ARE GENERALLY NOT FREE TO VARY.]')
 
   return
@@ -2925,10 +2959,10 @@ endif
 
 select case (a_name)
 case ('NUM_STEPS')
-  if (.not. dep_attribs_free) call it_is_not_free (ele, ix_attrib, 'THIS  IS A DEPENDENT ATTRIBUTE.')
+  if (.not. dep_attribs_free) call it_is_not_free (ele, ix_attrib, dependent$, 'THIS  IS A DEPENDENT ATTRIBUTE.')
   return
 
-case ('FIELD_SCALE', 'PHI0_FIELDMAP', 'CSR_CALC_ON')
+case ('FIELD_SCALE', 'PHI0_FIELDMAP', 'CSR_METHOD', 'SPACE_CHARGE_METHOD')
   return
 
 case ('E_TOT', 'P0C')
@@ -2943,7 +2977,7 @@ case ('E_TOT', 'P0C')
     end select
   endif
 
-  call it_is_not_free (ele, ix_attrib, 'THIS IS A DEPENDENT ATTRIBUTE.')
+  call it_is_not_free (ele, ix_attrib, dependent$, 'THIS IS A DEPENDENT ATTRIBUTE.')
   return
 end select
 
@@ -2973,7 +3007,7 @@ if (ele%key == sbend$ .and. ele%lord_status == multipass_lord$ .and. &
     ele%value(n_ref_pass$) == 0 .and. ix_attrib == p0c$) free = .true.
 
 if (.not. free) then
-  call it_is_not_free (ele, ix_attrib, 'THIS IS A DEPENDENT ATTRIBUTE.')
+  call it_is_not_free (ele, ix_attrib, dependent$, 'THIS IS A DEPENDENT ATTRIBUTE.')
   return
 endif
 
@@ -2982,7 +3016,7 @@ endif
 if (.not. dep_attribs_free) then
   free = field_attribute_free (ele, a_name)
   if (.not. free) then
-    call it_is_not_free (ele, ix_attrib, &
+    call it_is_not_free (ele, ix_attrib, field_master_dependent$, &
          "THIS IS A DEPENDENT ATTRIBUTE SINCE", &
          "THE ELEMENT'S FIELD_MASTER IS SET TO: " // on_off_logic (ele%field_master, 'True', 'False'))
     return
@@ -2992,11 +3026,11 @@ endif
 !-------------------------------------------------------
 contains
 
-subroutine it_is_not_free (ele, ix_attrib, l1, l2, skip)
+subroutine it_is_not_free (ele, ix_attrib, why, l1, l2, skip)
 
 type (ele_struct) ele
 
-integer ix_attrib, nl
+integer ix_attrib, why, nl
 
 character(*) l1
 character(*), optional :: l2
@@ -3008,6 +3042,7 @@ logical, optional :: skip
 !
 
 free = .false.
+if (present(why_not_free)) why_not_free = why
 
 if (.not. do_print) return
 

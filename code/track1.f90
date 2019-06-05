@@ -40,7 +40,7 @@ recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ig
 
 use bmad, except_dummy1 => track1
 use mad_mod, only: track1_mad
-use space_charge_mod, except_dummy2 => track1
+use high_energy_space_charge_mod, except_dummy2 => track1
 
 implicit none
 
@@ -278,7 +278,7 @@ endif
 
 ! space charge
 
-if (bmad_com%space_charge_on .and. do_extra) call track1_ultra_rel_space_charge (ele, param, end_orb)
+if (param%high_energy_space_charge_on .and. do_extra) call track1_high_energy_space_charge (ele, param, end_orb)
 
 ! check for particles outside aperture
 

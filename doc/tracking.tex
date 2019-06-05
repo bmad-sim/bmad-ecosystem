@@ -2,33 +2,6 @@
 \label{c:tracking}
 \index{tracking}
 
-\index{macroparticles!tracking}
-\index{tracking!Macroparticles}
-\bmad has routines for tracking two types of objects called
-``\vn{particles}'' and ``\vn{macroparticles}''. \vn{Particles} are
-characterized by a six-vector representing the particle's phase space
-coordinates and a pair of complex numbers characterizing the
-particle's spin.  A macroparticle is like a particle with the
-addition of a $6\times 6$ ``sigma'' matrix characterizing the size of
-the macroparticle.
-
-Macroparticle tracking was implemented in \bmad in order to simulate
-particle bunches.  The idea was that far fewer macroparticles than
-particles would be needed to characterize a bunch. In practice, it was
-found that the complexity of handling the macroparticle sigma matrix
-more than offset the reduction in the number of particles
-needed. Hence, while the basic macroparticle tracking routines still
-exist, macroparticle tracking is not currently maintained and the use
-of this code is discouraged. However macroparticle tracking could be
-revived in the future if there is a demonstrated need for it.
-
-\index{beam}\index{bunch}
-Particle tracking can be divided into ``single particle'' tracking and
-``beam'' tracking. Single particle tracking is simply tracking a
-single particle. Beam tracking is tracking an ensemble of particles
-divided up into a number of bunches that make up a ``beam''. Both
-types particle tracking are covered in this chapter.
-
 %----------------------------------------------------------------
 \section{The coord_struct}
 \label{s:coord.struct}

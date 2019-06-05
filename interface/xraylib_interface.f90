@@ -48,7 +48,7 @@ real(c_double) debye_temp_factor, f0, fp, fpp, rel_angle, q, E_kev
 
 complex(rp) f0_tot
 
-integer n, ix
+integer n, ix, int_err
 
 logical err_flag
 
@@ -56,7 +56,7 @@ character(*), parameter :: r_name = 'photon_absorption_and_phase_shift'
 
 !
 
-err_flag = .false.
+err_flag = .true.
 E_kev = Energy * 1d-3
 debye_temp_factor = 1.0          
 q = 0   
@@ -79,9 +79,14 @@ do n = 1, xraylib_z_max$
   if (material /= AtomicNumberToSymbol(n)) cycle
   volume = 1d-6 * AtomicWeight(n) / (N_avogadro * ElementDensity(n))
   factor = r_e * wavelength  / volume
-  call Atomic_Factors (n, E_kev, q, debye_temp_factor, f0, fp, fpp)
+  int_err =  Atomic_Factors (n, E_kev, q, debye_temp_factor, f0, fp, fpp)
+  if (int_err == 0) then
+    call out_io (s_error$, r_name, 'PROBLEM RETRIEVING FORM FACTORS FOR ELEMENT: ' // material)
+    return
+  endif
   phase_shift = factor * (f0 + fp)
   absorption = factor * fpp
+  err_flag = .false.
   return
 enddo
 
@@ -94,7 +99,11 @@ if (ix > -1) then
   f0_tot = 0
   do n = 1, compound%nElements
     number_fraction = compound%massFractions(n) / AtomicWeight(compound%elements(n))
-    call Atomic_Factors (compound%elements(n), E_kev, q, debye_temp_factor, f0, fp, fpp)
+    int_err = Atomic_Factors (compound%elements(n), E_kev, q, debye_temp_factor, f0, fp, fpp)
+    if (int_err == 0) then
+      call out_io (s_error$, r_name, 'PROBLEM RETRIEVING FORM FACTORS FOR ELEMENT IN COMPOUND: ' // material)
+      return
+    endif
     f0_tot = f0_tot + cmplx(f0 + fp, fpp, rp) * number_fraction
   enddo
 
@@ -103,15 +112,14 @@ if (ix > -1) then
   phase_shift = factor * real(f0_tot)
   absorption = factor * aimag(f0_tot)
 
-  call FreeCompoundDataNIST(compound)
+  !! call FreeCompoundDataNIST(compound)  Used in Version 3.1 but removed for 3.3
+  err_flag = .false.
   return
 endif
 
 ! Fail
 
-call out_io (s_fatal$, r_name, 'MATERIAL NOT RECOGNIZED: ' // trim(material))
-
-err_flag = .true.
+call out_io (s_error$, r_name, 'MATERIAL NOT RECOGNIZED: ' // trim(material))
 
 end subroutine photon_absorption_and_phase_shift
 
@@ -172,10 +180,10 @@ ix = index(ele%component_name, ':')
 if (ix == 0) return
 v => ele%value
 
-call load_layer_params (ele%component_name(1:ix-1), ele%photon%material%f0_m1, v(v1_unitcell$))
+call load_layer_params (ele%component_name(1:ix-1), ele%photon%material%f0_m1, v(v1_unitcell$), err_flag)
 if (err_flag) return
 
-call load_layer_params (ele%component_name(ix+1:), ele%photon%material%f0_m2, v(v2_unitcell$))
+call load_layer_params (ele%component_name(ix+1:), ele%photon%material%f0_m2, v(v2_unitcell$), err_flag)
 if (err_flag) return
 
 ! Calc graze angle. See Kohn Eq 36.
@@ -198,7 +206,7 @@ v(graze_angle$) = asin(sin_theta0 - del)
 !-----------------------------------------------------------------------------------------
 contains
 
-subroutine load_layer_params (material_name, f0, v_unitcell)
+subroutine load_layer_params (material_name, f0, v_unitcell, err_flag)
 
 type (crystal_struct), pointer :: cryst
 type (compoundDataNIST), pointer :: compound
@@ -209,8 +217,8 @@ real(c_double) energy, debye_temp_factor, f0_atom, fp, fpp, rel_angle, q
 
 complex(rp) f0
 
-
-integer n, n_atom
+integer n, n_atom, int_err
+logical err_flag
 
 character(*) material_name
 
@@ -219,6 +227,7 @@ character(*) material_name
 energy = ele%value(E_tot$) * 1d-3
 debye_temp_factor = 1.0
 q = 0
+err_flag = .true.
 
 ! Is this a crystal?
 
@@ -234,8 +243,13 @@ endif
 do n = 1, xraylib_z_max$
   if (material_name /= AtomicNumberToSymbol(n)) cycle
   v_unitcell = 1d-6 * AtomicWeight(n) / (N_avogadro * ElementDensity(n))
-  call Atomic_Factors (n, energy, q, debye_temp_factor, f0_atom, fp, fpp)
+  int_err = Atomic_Factors (n, energy, q, debye_temp_factor, f0_atom, fp, fpp)
+  if (int_err == 0) then
+    call out_io (s_error$, r_name, 'PROBLEM RETRIEVING FORM FACTORS FOR ELEMENT: ' // material_name)
+    return
+  endif
   f0 = cmplx(f0_atom + fp, fpp, rp)
+  err_flag = .false.
   return
 enddo
 
@@ -253,20 +267,24 @@ if (ix > -1) then
 
   do n = 1, compound%nElements
     number_fraction = compound%massFractions(n) / AtomicWeight(compound%elements(n))
-    call Atomic_Factors (compound%elements(n), energy, q, debye_temp_factor, f0_atom, fp, fpp)
+    int_err = Atomic_Factors (compound%elements(n), energy, q, debye_temp_factor, f0_atom, fp, fpp)
+    if (int_err == 0) then
+      call out_io (s_error$, r_name, 'PROBLEM RETRIEVING FORM FACTORS FOR ELEMENT IN COMPOUND: ' // material_name)
+      return
+    endif
     f0 = f0 + cmplx(f0_atom + fp, fpp, rp) * number_fraction
     number_fraction_min = min(number_fraction_min, number_fraction)
   enddo
   f0 = f0 / number_fraction_min
   v_unitcell = 1d-6 / (N_avogadro * compound%density)  / number_fraction_min
-  call FreeCompoundDataNIST(compound)
+  !! call FreeCompoundDataNIST(compound)  Used in Version 3.1 but removed for 3.3
+  err_flag = .false.
   return
 endif
 
 ! Fail
 
-call out_io (s_fatal$, r_name, 'MATERIAL NOT RECOGNIZED: ' // trim(material_name))
-if (global_com%exit_on_error) call err_exit
+call out_io (s_error$, r_name, 'MATERIAL NOT RECOGNIZED: ' // trim(material_name))
 
 end subroutine load_layer_params
 

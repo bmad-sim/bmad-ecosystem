@@ -4,12 +4,13 @@
 !   D. Sagan
 !-
 
-module csr_mod
+module track_csr_and_space_charge_mod
 
 use beam_utils
 use geometry_mod
 use spline_mod
 use nr, only: zbrent
+use open_spacecharge_mod
 
 ! csr_ele_info_struct holds info for a particular lattice element
 ! The centroid "chord" is the line from the centroid position at the element entrance to
@@ -85,6 +86,7 @@ type csr_struct           ! Structurture for binning particle averages
   type (csr_kick1_struct), allocatable :: kick1(:)          ! kick1(i) referes to the kick between two slices i bins apart.
   type (csr_ele_info_struct), allocatable :: eleinfo(:)     ! Element-by-element information.
   type (ele_struct), pointer :: kick_ele                    ! Element where the kick pt is == ele tracked through.
+  type (mesh3d_struct) :: mesh3d
 end type
 
 contains
@@ -96,9 +98,6 @@ contains
 ! Subroutine track1_bunch_csr (bunch_start, ele, centroid, bunch_end, err, s_start, s_end)
 !
 ! Routine to track a bunch of particles through an element with csr radiation effects.
-!
-! Modules needed:
-!   use csr_mod
 !
 ! Input:
 !   bunch_start  -- Bunch_struct: Starting bunch position.
@@ -118,14 +117,14 @@ subroutine track1_bunch_csr (bunch_start, ele, centroid, bunch_end, err, s_start
 implicit none
 
 type (bunch_struct), target :: bunch_start, bunch_end
-type (coord_struct), pointer :: pt
+type (coord_struct), pointer :: pt, c0
 type (ele_struct), target :: ele
 type (branch_struct), pointer :: branch
 type (ele_struct), save :: runt
 type (ele_struct), pointer :: ele0, s_ele
 type (csr_struct), target :: csr
 type (csr_ele_info_struct), pointer :: eleinfo
-type (coord_struct) :: centroid(0:)
+type (coord_struct), target :: centroid(0:)
 type (floor_position_struct) floor
 
 real(rp), optional :: s_start, s_end
@@ -144,18 +143,20 @@ err = .true.
 csr%kick_ele => ele    ! Element where the kick pt is == ele tracked through.
 branch => pointer_to_branch(ele)
 
+if (ele%space_charge_method == fft_3d$) then
+  c0 => centroid(ele%ix_ele)
+  call convert_pc_to((1+c0%vec(6)) * c0%p0c, c0%species, gamma = csr%mesh3d%gamma)
+  csr%mesh3d%nhi = bmad_com%space_charge_mesh_size
+endif
+
 ! No CSR for a zero length element.
 ! And taylor elements get ignored.
 
 if (ele%value(l$) == 0 .or. ele%key == taylor$) then
-  ele%csr_calc_on = .false.
   call track1_bunch_hom (bunch_end, ele, branch%param, bunch_end)
   err = .false.
-  ! Only do warning if previous element needed
-  if (ele%key == taylor$ .and. csr_param%print_taylor_warning) then
-    ele0 => pointer_to_next_ele (ele, -1)
-    if (ele0%csr_calc_on) call out_io (s_warn$, r_name, &
-                        'CSR calc for taylor element not done: ' // ele%name)
+  if (ele%key == taylor$ .and. ele%value(l$) == 0 .and. csr_param%print_taylor_warning) then
+    call out_io (s_warn$, r_name, 'CSR calc for taylor element not done: ' // ele%name)
   endif
   return
 endif
@@ -268,7 +269,6 @@ do i_step = 0, n_step
 
   if (i_step /= 0) then
     call create_uniform_element_slice (ele, branch%param, i_step, n_step, runt, s_start, s_end)
-    runt%csr_calc_on = .false.
     call track1_bunch_hom (bunch_end, runt, branch%param, bunch_end)
   endif
 
@@ -294,7 +294,7 @@ do i_step = 0, n_step
   csr%gamma2 = csr%gamma**2
   csr%rel_mass = mass_of(branch%param%particle) / m_electron 
 
-  call csr_bin_particles (bunch_end%particle, csr, err_flag); if (err_flag) return
+  call csr_bin_particles (ele, bunch_end%particle, csr, err_flag); if (err_flag) return
 
   csr%s_kick = s0_step
   csr%s_chord_kick = s_ref_to_s_chord (s0_step, csr%eleinfo(ele%ix_ele))
@@ -318,16 +318,13 @@ do i_step = 0, n_step
 
     csr%y_source = ns * csr_param%beam_chamber_height
 
-    call csr_bin_kicks (s0_step, csr, err_flag)
+    call csr_bin_kicks (ele, s0_step, csr, err_flag)
     if (err_flag) return
   enddo
 
-  ! loop over all particles and give them a kick
+  ! Give particles a kick
 
-  do j = 1, size(bunch_end%particle)
-    if (bunch_end%particle(j)%state /= alive$) cycle
-    call csr_kick_calc (csr, bunch_end%particle(j))
-  enddo
+  call csr_and_sc_apply_kicks (ele, csr, bunch_end%particle)
 
   call save_bunch_track (bunch_end, ele, s0_step)
 
@@ -365,7 +362,7 @@ end subroutine track1_bunch_csr
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine csr_bin_parcticles (particle, csr)
+! Subroutine csr_bin_parcticles (ele, particle, csr)
 !
 ! Routine to bin the particles longitudinally in s. 
 !
@@ -375,6 +372,7 @@ end subroutine track1_bunch_csr
 ! That is, particles will, in general, overlap multiple bins. 
 !
 ! Input:
+!   ele                  -- ele_struct: Element being tracked through.
 !   particle(:)          -- Coord_struct: Array of particles
 !   csr_param            -- Csr_parameter_struct: CSR common block (not an argument).
 !     %n_bin             -- Number of bins.
@@ -386,7 +384,7 @@ end subroutine track1_bunch_csr
 !     %slice(1:) -- Array of bins.
 !-
 
-subroutine csr_bin_particles (particle, csr, err_flag)
+subroutine csr_bin_particles (ele, particle, csr, err_flag)
 
 implicit none
 
@@ -396,6 +394,7 @@ type this_local_struct   ! Temporary structure
   integer ib             ! bin index
 end type
 
+type (ele_struct) ele
 type (coord_struct), target :: particle(:)
 type (coord_struct), pointer :: p
 type (csr_struct), target :: csr
@@ -418,8 +417,7 @@ character(*), parameter :: r_name = 'csr_bin_particles'
 
 err_flag = .false.
 
-if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on .and. &
-    .not. csr_param%tsc_component_on .and. csr_param%n_shield_images == 0) return
+if (ele%space_charge_method /= slice$ .and. ele%csr_method /= one_dim$) return
 
 n_bin_eff = csr_param%n_bin - 2 - (csr_param%particle_bin_span + 1)
 if (n_bin_eff < 1) then
@@ -644,11 +642,12 @@ end subroutine csr_bin_particles
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine csr_bin_kicks (ds_kick_pt, csr, err_flag)
+! Subroutine csr_bin_kicks (ele, ds_kick_pt, csr, err_flag)
 !
 ! Routine to cache intermediate values needed for the csr calculations.
 !
 ! Input:
+!   ele          -- ele_struct: Element being tracked through.
 !   ds_kick_pt   -- real(rp): Distance between the beginning of the element we are
 !                    tracking through and the kick point (which is within this element).
 !   csr          -- csr_struct: 
@@ -660,10 +659,11 @@ end subroutine csr_bin_particles
 !   err_flag     -- logical: Set True if there is an error. False otherwise
 !-
 
-subroutine csr_bin_kicks (ds_kick_pt, csr, err_flag)
+subroutine csr_bin_kicks (ele, ds_kick_pt, csr, err_flag)
 
 implicit none
 
+type (ele_struct) ele
 type (csr_struct), target :: csr
 type (branch_struct), pointer :: branch
 type (csr_kick1_struct), pointer :: kick1
@@ -716,7 +716,7 @@ n_bin = csr_param%n_bin
 ! CSR & Image charge kick
 
 if (csr%y_source == 0) then
-  if (csr_param%lcsr_component_on) then
+  if (ele%csr_method == one_dim$) then
     do i = 1, n_bin
       csr%slice(i)%kick_csr = coef * dot_product(csr%kick1(i:1:-1)%I_int_csr, csr%slice(1:i)%edge_dcharge_density_dz)
     enddo
@@ -729,12 +729,11 @@ else  ! Image charge
   enddo
 endif
 
-! Space charge kick
+! Longitudinal space charge kick
+! Note: image charges do not contribute to LSC.
 
-if (csr_param%lsc_component_on) then
-  if (csr%y_source == 0) then    ! image charges do not contribute to LSC.
-    call lsc_kick_params_calc (csr)
-  endif
+if (ele%space_charge_method == slice$ .and. csr%y_source == 0) then
+  call lsc_kick_params_calc (ele, csr)
 endif
 
 end subroutine csr_bin_kicks
@@ -982,7 +981,7 @@ end function s_source_calc
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine lsc_kick_params_calc (csr)
+! Subroutine lsc_kick_params_calc (ele, csr)
 !
 ! Routine to cache intermediate values needed for the lsc calculation.
 ! This routine is not for image currents.
@@ -991,6 +990,7 @@ end function s_source_calc
 !   use lsc_mod
 !
 ! Input:
+!   ele       -- Element_struct: Element to set up cache for.
 !   csr       -- csr_struct: 
 !     %slice(:)   -- bin array of particle averages.
 !
@@ -999,12 +999,13 @@ end function s_source_calc
 !     %slice(:)   -- bin array of particle averages.
 !-
 
-subroutine lsc_kick_params_calc (csr)
+subroutine lsc_kick_params_calc (ele, csr)
 
 use da2_mod
 
 implicit none
 
+type (ele_struct) ele
 type (csr_struct), target :: csr
 type (csr_bunch_slice_struct), pointer :: slice
 
@@ -1029,7 +1030,7 @@ sig_x_ave = dot_product(csr%slice(:)%sig_x, csr%slice(:)%charge) / charge_tot
 sig_y_ave = dot_product(csr%slice(:)%sig_y, csr%slice(:)%charge) / charge_tot
 
 if (sig_y_ave == 0 .or. sig_x_ave == 0) return  ! Symptom of not enough particles.
-if (.not. csr_param%lsc_component_on) return
+if (ele%space_charge_method /= slice$) return
 
 factor = csr%kick_factor * csr%actual_track_step * r_e / &
           (csr%rel_mass * e_charge * abs(charge_of(csr%species)) * csr%gamma)
@@ -1282,120 +1283,145 @@ end subroutine image_charge_kick_calc
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine csr_kick_calc (csr, particle)
+! Subroutine csr_and_sc_apply_kicks (ele, csr, particle)
 !
 ! Routine to calculate the longitudinal coherent synchrotron radiation kick.
 !
-!   csr  -- csr_struct: 
-!   particle -- coord_struct: Particle to kick.
-!     %vec(6) -- Initial particle energy.
+! Input:
+!   ele         -- ele_struct: Element being tracked through.
+!   csr         -- csr_struct: 
+!   particle(:) -- coord_struct: Particles to kick.
 !
 ! Output:
-!   particle -- Coord_struct: Particle to kick.
-!     %vec(6) -- Final particle energy.
+!   particle(:) -- Coord_struct: Particles with kick applied.
 !-
 
-subroutine csr_kick_calc (csr, particle)
+subroutine csr_and_sc_apply_kicks (ele, csr, particle)
 
 use da2_mod
 
 implicit none
 
+type (ele_struct) ele
 type (csr_struct), target :: csr
-type (coord_struct), target :: particle
+type (coord_struct), target :: particle(:)
+type (coord_struct), pointer :: p
 type (csr_bunch_slice_struct), pointer :: slice
 
 real(rp) zp, r1, r0, dz, dpz, kx, ky, f0, f, beta0, dpx, dpy, x, y, f_tot
-real(rp), pointer :: vec(:)
-integer i, i0, i_del
+real(rp) Evec(3), factor, pz0
+integer i, i0, i_del, ip
 
+! CSR kick
 ! We use a weighted average between %kick1(j)%I_csr and %kick1(j+1)%I_csr
 ! so that the integral varies smoothly as a function of particle%vec(5).
 
-if (.not. allocated(csr%slice)) return  ! True if kicks are turned off.
+if (ele%csr_method == one_dim$) then
+  do ip = 1, size(particle)
+    p => particle(ip)
+    zp = p%vec(5)
+    i0 = int((zp - csr%slice(1)%z_center) / csr%dz_slice) + 1
+    r1 = (zp - csr%slice(i0)%z_center) / csr%dz_slice
+    r0 = 1 - r1
 
-zp = particle%vec(5)
-i0 = int((zp - csr%slice(1)%z_center) / csr%dz_slice) + 1
-r1 = (zp - csr%slice(i0)%z_center) / csr%dz_slice
-r0 = 1 - r1
-vec => particle%vec
+    if (r1 < 0 .or. r1 > 1 .or. i0 < 1 .or. i0 >= csr_param%n_bin) then
+      print *, 'CSR INTERNAL ERROR!'
+      if (global_com%exit_on_error) call err_exit
+    endif
 
-if (r1 < 0 .or. r1 > 1 .or. i0 < 1 .or. i0 >= csr_param%n_bin) then
-  print *, 'CSR INTERNAL ERROR!'
-  if (global_com%exit_on_error) call err_exit
+    p%vec(6) = p%vec(6) + r0 * csr%slice(i0)%kick_csr + r1 * csr%slice(i0+1)%kick_csr
+  enddo
 endif
 
-vec(6) = vec(6) + r0 * csr%slice(i0)%kick_csr + r1 * csr%slice(i0+1)%kick_csr
+! Slice space charge kick
 
-! Longitudinal space charge
+if (ele%space_charge_method == slice$) then
+  do ip = 1, size(particle)
+    p => particle(ip)
 
-if (csr_param%lsc_component_on) then
+    if (csr_param%lsc_kick_transverse_dependence) then
+      x = p%vec(1)
+      y = p%vec(3)
+      dpz = 0
 
-  if (csr_param%lsc_kick_transverse_dependence) then
-    x = particle%vec(1)
-    y = particle%vec(3)
-    dpz = 0
+      slice => csr%slice(i0)
+      if (slice%coef_lsc_plus(0,0) /= 0)  dpz = dpz + r0 / da2_evaluate(slice%coef_lsc_plus, (x-csr%x0_bunch)**2, (y-csr%y0_bunch)**2)
+      if (slice%coef_lsc_minus(0,0) /= 0) dpz = dpz + r0 / da2_evaluate(slice%coef_lsc_minus, (x-csr%x0_bunch)**2, (y-csr%y0_bunch)**2)
+
+      slice => csr%slice(i0+1)
+      if (slice%coef_lsc_plus(0,0) /= 0)  dpz = dpz + r1 / da2_evaluate(slice%coef_lsc_plus, (x-csr%x0_bunch)**2, (y-csr%y0_bunch)**2)
+      if (slice%coef_lsc_minus(0,0) /= 0) dpz = dpz + r1 / da2_evaluate(slice%coef_lsc_minus, (x-csr%x0_bunch)**2, (y-csr%y0_bunch)**2)
+
+      p%vec(6) = p%vec(6) + dpz
+
+    else
+      p%vec(6) = p%vec(6) + r0 * csr%slice(i0)%kick_lsc + r1 * csr%slice(i0+1)%kick_lsc
+    endif
+
+    ! Must update beta and z due to the energy change
+
+    beta0 = p%beta
+    call convert_pc_to ((1+p%vec(6))* p%p0c, p%species, beta = p%beta)
+    p%vec(5) = p%vec(5) * p%beta / beta0
+
+    ! Transverse space charge. Like the beam-beam interaction but in this case everything is going
+    ! in the same general direction. In this case, the kicks due to the electric and magnetic fields
+    ! tend to cancel instead of add as in the bbi case.
+
+    f0 = csr%kick_factor * csr%actual_track_step * r_e / (twopi * &
+             csr%dz_slice * csr%rel_mass * e_charge * abs(charge_of(p%species)) * csr%gamma**3)
+
+    dpx = 0;  dpy = 0
 
     slice => csr%slice(i0)
-    if (slice%coef_lsc_plus(0,0) /= 0)  dpz = dpz + r0 / da2_evaluate(slice%coef_lsc_plus, (x-csr%x0_bunch)**2, (y-csr%y0_bunch)**2)
-    if (slice%coef_lsc_minus(0,0) /= 0) dpz = dpz + r0 / da2_evaluate(slice%coef_lsc_minus, (x-csr%x0_bunch)**2, (y-csr%y0_bunch)**2)
+    if (slice%sig_x /= 0 .and. slice%sig_y /= 0) then
+      call bbi_kick ((p%vec(1)-slice%x0)/slice%sig_x, (p%vec(3)-slice%y0)/slice%sig_y, slice%sig_y/slice%sig_x, kx, ky)
+      f = f0 * r0 * slice%charge / (slice%sig_x + slice%sig_y)
+      ! The kick is negative of the bbi kick. That is, the kick is outward.
+      dpx = -kx * f
+      dpy = -ky * f
+    endif
 
     slice => csr%slice(i0+1)
-    if (slice%coef_lsc_plus(0,0) /= 0)  dpz = dpz + r1 / da2_evaluate(slice%coef_lsc_plus, (x-csr%x0_bunch)**2, (y-csr%y0_bunch)**2)
-    if (slice%coef_lsc_minus(0,0) /= 0) dpz = dpz + r1 / da2_evaluate(slice%coef_lsc_minus, (x-csr%x0_bunch)**2, (y-csr%y0_bunch)**2)
+    if (slice%sig_x /= 0 .and. slice%sig_y /= 0) then
+      call bbi_kick ((p%vec(1)-slice%x0)/slice%sig_x, (p%vec(3)-slice%y0)/slice%sig_y, slice%sig_y/slice%sig_x, kx, ky)
+      f = f0 * r1 * slice%charge / (slice%sig_x + slice%sig_y)
+      ! The kick is negative of the bbi kick. That is, the kick is outward.
+      dpx = dpx - kx * f   
+      dpy = dpy - ky * f
+    endif
 
-    vec(6) = vec(6) + dpz
+    ! 1/2 of the kick is electric and this leads to an energy change.
+    ! The formula for p%vec(6) assumes that dpx and dpy are small so only the linear terms are kept.
 
-  else
-    vec(6) = vec(6) + r0 * csr%slice(i0)%kick_lsc + r1 * csr%slice(i0+1)%kick_lsc
-  endif
-
+    p%vec(2) = p%vec(2) + dpx
+    p%vec(4) = p%vec(4) + dpy
+    p%vec(6) = p%vec(6) + (dpx*p%vec(2) + dpy*p%vec(4)) / (2 * (1 + p%vec(6)))
+  enddo
 endif
 
-! Must update beta and z due to the energy change
+! Mesh Space charge kick
 
-beta0 = particle%beta
-call convert_pc_to ((1+vec(6))* particle%p0c, particle%species, beta = particle%beta)
-vec(5) = vec(5) * particle%beta / beta0
+if (ele%space_charge_method == fft_3d$) then
+  call deposit_particles (particle%vec(1), particle%vec(3), particle%vec(5), csr%mesh3d, qa=particle%charge)
+  call space_charge_freespace(csr%mesh3d)
 
-! Transverse space charge. Like the beam-beam interaction but in this case everything is going
-! in the same general direction. In this case, the kicks due to the electric and magnetic fields
-! tend to cancel instead of add as in the bbi case.
+  do i = 1, size(particle)
+    p => particle(i)
+    call interpolate_field(p%vec(1), p%vec(3), p%vec(5),  csr%mesh3d, E=Evec)
+    factor = csr%actual_track_step / (p%p0c  * p%beta) 
+    pz0 = sqrt( (1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2 ) ! * p0 
+    ! Considering magnetic field also, effectively reduces this force by 1/gamma^2
+    p%vec(2) = p%vec(2) + Evec(1)*factor / csr%mesh3d%gamma**2
+    p%vec(4) = p%vec(4) + Evec(2)*factor / csr%mesh3d%gamma**2
+    p%vec(6) = sqrt(p%vec(2)**2 + p%vec(4)**2 + (Evec(3)*factor + pz0)**2) -1.0_rp
+    ! Set beta
+    call convert_pc_to (p%p0c * (1 + p%vec(6)), p%species, beta = p%beta)
 
-if (csr_param%tsc_component_on) then
-  f0 = csr%kick_factor * csr%actual_track_step * r_e / (twopi * &
-           csr%dz_slice * csr%rel_mass * e_charge * abs(charge_of(particle%species)) * csr%gamma**3)
-
-  dpx = 0;  dpy = 0
-
-  slice => csr%slice(i0)
-  if (slice%sig_x /= 0 .and. slice%sig_y /= 0) then
-    call bbi_kick ((vec(1)-slice%x0)/slice%sig_x, (vec(3)-slice%y0)/slice%sig_y, slice%sig_y/slice%sig_x, kx, ky)
-    f = f0 * r0 * slice%charge / (slice%sig_x + slice%sig_y)
-    ! The kick is negative of the bbi kick. That is, the kick is outward.
-    dpx = -kx * f
-    dpy = -ky * f
-  endif
-
-  slice => csr%slice(i0+1)
-  if (slice%sig_x /= 0 .and. slice%sig_y /= 0) then
-    call bbi_kick ((vec(1)-slice%x0)/slice%sig_x, (vec(3)-slice%y0)/slice%sig_y, slice%sig_y/slice%sig_x, kx, ky)
-    f = f0 * r1 * slice%charge / (slice%sig_x + slice%sig_y)
-    ! The kick is negative of the bbi kick. That is, the kick is outward.
-    dpx = dpx - kx * f   
-    dpy = dpy - ky * f
-  endif
-
-  ! 1/2 of the kick is electric and this leads to an energy change.
-  ! The formula for vec(6) assumes that dpx and dpy are small so only the linear terms are kept.
-
-  vec(2) = vec(2) + dpx
-  vec(4) = vec(4) + dpy
-  vec(6) = vec(6) + (dpx*vec(2) + dpy*vec(4)) / (2 * (1 + vec(6)))
-
+  enddo
 endif
 
-end subroutine csr_kick_calc
+end subroutine csr_and_sc_apply_kicks
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

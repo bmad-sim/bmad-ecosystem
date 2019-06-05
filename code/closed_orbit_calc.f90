@@ -74,8 +74,10 @@
 ! Output:
 !   closed_orb(0:) -- Coord_struct, allocatable: Closed orbit. closed_orb(i)
 !                      is the orbit at the exit end of the ith element.
-!      %vec(6)             -- Closed orbit phase space
-!      %spin(3)            -- Closed orbit invariant spin if bmad_com%spin_tracking_on = T.
+!     %vec(6)             -- Closed orbit phase space
+!     %spin(3)            -- Closed orbit invariant spin if bmad_com%spin_tracking_on = T.
+!   lat            -- lat_struct:
+!     %branch(ix_branch)%param%spin_tune -- Spin tune if bmad_com%spin_tracking_on = T.
 !   err_flag       -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 

@@ -146,6 +146,10 @@ if (ele%lord_status == multipass_lord$) then
       ele%spin_tracking_method = a_ptr
     elseif (associated(a_ptr, ele%field_calc)) then
       ele%field_calc = a_ptr
+    elseif (associated(a_ptr, ele%csr_method)) then
+      ele%csr_method = a_ptr
+    elseif (associated(a_ptr, ele%space_charge_method)) then
+      ele%space_charge_method = a_ptr
     else
       exit
     endif

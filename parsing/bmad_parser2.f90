@@ -51,7 +51,7 @@ type (branch_struct), pointer :: branch
 real(rp) v1, v2
 
 integer ix_word, i, j, n, ix, ix1, ix2, n_plat_ele, ixx, ix_word_1
-integer key, n_max_old, n_loc, n_def_ele, is, is2, ib, ie
+integer key, n_max_old, n_loc, n_def_ele, is, is2, ib, ie, why_not_free
 integer, pointer :: n_max
 integer, allocatable :: lat_indexx(:)
 
@@ -354,7 +354,17 @@ parsing_loop: do
         if (word_1 /= ele%name) cycle
       endif
 
-      if (heterogeneous_ele_list .and. attribute_index(ele, word_2) == 0) cycle
+      ! When setting a hetero set of eles, cycle if not a valid attrib for this ele
+      if (heterogeneous_ele_list .and. attribute_index(ele, word_2) == 0) cycle  
+
+      if (multiple_eles_here .and. (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$)) then
+        if (.not. attribute_free(ele, word_2, .false., why_not_free = why_not_free)) then
+          if (why_not_free == super_slave$ .or. why_not_free == multipass_slave$) then
+            ele => pointer_to_lord(ele, 1)
+            if (ele%slave_status == multipass_slave$) ele => pointer_to_lord(ele, 1)
+          endif
+        endif
+      endif
 
       bp_com%parse_line = parse_line_save
       found = .true.
@@ -580,8 +590,9 @@ param_ele => eles(1)%ele
 
 if (param_ele%value(geometry$) /= real_garbage$)    lat%param%geometry = nint(param_ele%value(geometry$))
 if (param_ele%value(live_branch$) /= real_garbage$) lat%param%live_branch = is_true(param_ele%value(live_branch$))
-if (param_ele%value(default_tracking_species$) /= real_garbage$) &
-                      lat%param%default_tracking_species = nint(param_ele%value(default_tracking_species$))
+if (param_ele%value(default_tracking_species$) /= real_garbage$) lat%param%default_tracking_species = nint(param_ele%value(default_tracking_species$))
+if (param_ele%value(high_energy_space_charge_on$) /= real_garbage$) &
+                              lat%param%high_energy_space_charge_on = is_true(param_ele%value(high_energy_space_charge_on$))
 
 if (mad_beam_ele%value(particle$) /= real_garbage$)  lat%param%particle = nint(mad_beam_ele%value(particle$))
 if (param_ele%value(particle$) /= real_garbage$)     lat%param%particle = nint(param_ele%value(particle$))

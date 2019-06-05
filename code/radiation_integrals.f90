@@ -104,6 +104,7 @@ type (ele_struct) :: ele2, ele_start, ele_end
 type (coord_struct), target :: orbit(0:), orb_start, orb_end, orb_end1
 type (normal_modes_struct) mode
 type (bmad_common_struct) bmad_com_save
+type (lat_param_struct) branch_param_save
 type (track_struct), target :: track
 type (track_point_struct), pointer :: tp
 type (rad_int_all_ele_struct), optional, target :: rad_int_by_ele
@@ -188,10 +189,11 @@ int_tot = rad_int1_struct()
 bmad_com_save = bmad_com
 bmad_com%radiation_fluctuations_on = .false.
 bmad_com%radiation_damping_on = .false.
-bmad_com%space_charge_on = .false.
 bmad_com%convert_to_kinetic_momentum = .true.
 bmad_com%rel_tol_adaptive_tracking = 1d-6
 bmad_com%abs_tol_adaptive_tracking = 1d-8
+branch_param_save = branch%param
+branch%param%high_energy_space_charge_on = .false.
 
 call init_ele (ele2)
 call init_ele (ele_start)
@@ -656,6 +658,7 @@ endif
 mode%z%emittance = mode%sig_z * mode%sigE_E
 
 bmad_com = bmad_com_save
+branch%param = branch_param_save
 
 call deallocate_ele_pointers(ele2)
 call deallocate_ele_pointers(ele_start)

@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 233
+integer, parameter :: bmad_inc_version$ = 234
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -130,8 +130,8 @@ character(8), parameter :: diffraction_type_name(0:2) = ['GARBAGE!', 'Bragg   ',
 integer, parameter :: uniform$ = 1, gaussian$ = 2, spherical$ = 3
 character(12), parameter :: distribution_name(0:3) = ['GARBAGE! ', 'Uniform  ', 'Gaussian ', 'Spherical']
 
-! Control element logicals
-! Idea: Combine girder_lord, overlay_lord and group_lord -> control_lord
+! Control element logicals.
+! Note: super_slave$ and multipass_slave$ are also used as possible settings of the why_not_free argument in attribute_free(...) 
 
 integer, parameter :: minor_slave$ = 1, super_slave$ = 2, free$ = 3
 integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
@@ -245,6 +245,12 @@ integer, parameter :: save_state$ = 3, restore_state$ = 4, off_and_save$ = 5
 
 integer, parameter :: horizontally_pure$ = 2, vertically_pure$ = 3
 character(20), parameter :: exact_multipoles_name(3) = [character(20):: 'Off', 'Horizontally_Pure', 'Vertically_Pure']
+
+integer, parameter :: one_dim$ = 2
+character(8), parameter :: csr_method_name(2) = [character(8):: 'Off', '1_Dim']
+
+integer, parameter :: slice$ = 2, fft_3D$ = 3
+character(20), parameter :: space_charge_method_name(3) = [character(20):: 'Off', 'Slice', 'fft_3D']
 
 ! Pauli matrices
 
@@ -728,7 +734,7 @@ end type
 
 ! Space charge structure. This structure contains information about the beam as a whole.
 
-type space_charge_struct
+type high_energy_space_charge_struct
   type (coord_struct) closed_orb   ! beam orbit
   real(rp) kick_const
   real(rp) sig_x
@@ -1041,7 +1047,7 @@ type ele_struct
   type (photon_element_struct), pointer :: photon => null()
   type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() 
                                                                ! Radiation integral calc cached values 
-  type (space_charge_struct), pointer :: space_charge => null()
+  type (high_energy_space_charge_struct), pointer :: high_energy_space_charge => null()
   type (taylor_struct) :: taylor(6) = taylor_struct()          ! Phase space Taylor map.
   type (taylor_struct) :: spin_taylor(0:3) = taylor_struct()     ! Quaternion Spin Taylor map.
   type (wake_struct), pointer :: wake => null()                ! Wakes
@@ -1083,6 +1089,8 @@ type ele_struct
   integer :: mat6_calc_method = bmad_standard$    ! taylor$, symp_lie_ptc$, etc.
   integer :: tracking_method = bmad_standard$     ! taylor$, linear$, etc.
   integer :: spin_tracking_method = tracking$     ! symp_lie_ptc$, etc.
+  integer :: csr_method = off$                    ! or one_dim$
+  integer :: space_charge_method = off$           ! slice$, slice_longitudinal$, slice_transverse$, fft_3D$
   integer :: ptc_integration_type = matrix_kick$  ! drift_kick$, matrix_kick$, or ripken_kick$
   integer :: field_calc = bmad_standard$          ! no_field$, fieldmap$, refer_to_lords$, or custom$
   integer :: aperture_at = exit_end$              ! Aperture location: entrance_end$, ...
@@ -1099,7 +1107,6 @@ type ele_struct
   logical :: logic = .false.                 ! For general use. Not used by Bmad (except during lattice parsing).
   logical :: bmad_logic = .false.            ! For Bmad internal use only.
   logical :: select = .false.                ! For element selection. Used by make_hybrid_ring, etc.
-  logical :: csr_calc_on = .true.            ! Coherent synchrotron radiation calculation
   logical :: offset_moves_aperture = .false. ! element offsets affects aperture?
 contains
   procedure next_in_branch
@@ -1135,6 +1142,7 @@ type lat_param_struct
   integer :: default_tracking_species = ref_particle$  ! Default particle type to use in tracking.
   integer :: geometry = 0                      ! open$ or closed$
   integer :: ixx = 0                           ! Integer for general use
+  logical :: high_energy_space_charge_on = .false. ! 
   logical :: stable = .false.                  ! is closed lat stable?
   logical :: live_branch = .true.              ! Should tracking be done on the branch?
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct()
@@ -1347,7 +1355,7 @@ integer, parameter :: radius$ = 3, transmission_coef$ = 4, focal_strength$ = 5
 
 integer, parameter :: l$ = 1                          ! Assumed unique. Do not assign 1 to another attribute.
 integer, parameter :: tilt$ = 2, roll$ = 2, n_part$ = 2 ! Important: tilt$ = roll$
-integer, parameter :: ref_tilt$ = 3, rf_frequency$ = 3, direction$ = 3
+integer, parameter :: ref_tilt$ = 3, rf_frequency$ = 3, direction$ = 3, ref_time_offset$ = 3
 integer, parameter :: kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3
 integer, parameter :: rf_frequency_err$ = 4, k1$ = 4, k1_pseudo$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coordinates$ = 4
@@ -1379,7 +1387,7 @@ integer, parameter :: e_loss$ = 21, gap$ = 21, spin_x$ = 21, E_center$ = 21
 integer, parameter :: x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22
 integer, parameter :: spin_y$ = 22, E2_center$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spin_z$ = 23
-integer, parameter :: cavity_type$ = 23, beta_a$ = 23, E2_probability$ = 23
+integer, parameter :: cavity_type$ = 23, beta_a$ = 23, E2_probability$ = 23, high_energy_space_charge_on$ = 23
 integer, parameter :: phi0$ = 24, tilt_calib$ = 24, beta_b$ = 24, live_branch$ = 24, E_center_relative_to_ref$ = 24
 integer, parameter :: phi0_err$ = 25, current$ = 25, l_pole$ = 25, particle$ = 25
 integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25, alpha_a$ = 25, spatial_distribution$ = 25
@@ -1467,8 +1475,8 @@ integer, parameter :: etap_y$ = 85, lr_freq_spread$ = 85, y_ref$ = 85, elliptica
 integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86, py_ref$ = 86, elliptical_curvature_z$ = 86
 integer, parameter :: aperture_type$ = 87, eta_z$ = 87, machine$ = 87
 integer, parameter :: taylor_map_includes_offsets$ = 88, cmat_11_begin$ = 88, surface_attrib$ = 88
-integer, parameter :: csr_calc_on$ = 89, cmat_12_begin$ = 89, var$ = 89, z_ref$ = 89
-integer, parameter :: cmat_21_begin$ = 90, pz_ref$ = 90
+integer, parameter :: csr_method$ = 89, cmat_12_begin$ = 89, var$ = 89, z_ref$ = 89
+integer, parameter :: cmat_21_begin$ = 90, pz_ref$ = 90, space_charge_method$ = 90
 integer, parameter :: mat6_calc_method$ = 91, cmat_22_begin$ = 91
 integer, parameter :: tracking_method$  = 92, s_long$ = 92
 integer, parameter :: ref_time$ = 93, ptc_integration_type$ = 93
@@ -1707,17 +1715,12 @@ type csr_parameter_struct                  ! Common block for csr calc
   integer :: n_bin = 0                     ! Number of bins used
   integer :: particle_bin_span = 2         ! Longitudinal particle length / dz_bin
   integer :: n_shield_images = 0           ! Chamber wall shielding. 0 = no shielding.
-  integer :: ix1_ele_csr = -1              ! Start index for csr tracking
-  integer :: ix2_ele_csr = -1              ! Stop index for csr tracking
   integer :: sc_min_in_bin = 10            ! Minimum number of particles in a bin for sigmas to be valid.
-  logical :: lcsr_component_on = .true.    ! Longitudinal csr component
-  logical :: lsc_component_on = .true.     ! Longitudinal space charge component
-  logical :: tsc_component_on = .false.    ! Transverse space charge component
   logical :: lsc_kick_transverse_dependence = .false.
   logical :: print_taylor_warning = .true. ! Print warning if Taylor element is present?
+  logical :: write_csr_wake = .false.      ! Write the CSR wake to csr_wake.dat / old_csr_wake.dat? For diagnostics.
   logical :: use_csr_old = .false.         ! Use old CSR tracking? Should only be done for testing.
   logical :: small_angle_approx = .true.   ! Use small angle approximation? ONLY USED WITH OLD CSR.
-  logical :: write_csr_wake = .false.      ! Write the CSR wake to csr_wake.dat / old_csr_wake.dat?
 end type
 
 type (csr_parameter_struct), save, target :: csr_param
@@ -1755,6 +1758,7 @@ type extra_parsing_info_struct
   logical :: ran_function_was_called                = .false.
   logical :: deterministic_ran_function_was_called  = .false.
   logical :: d_orb_set                              = .false.
+  logical :: space_charge_mesh_size_set             = .false.
   logical :: max_aperture_limit_set                 = .false.
   logical :: default_ds_step_set                    = .false.
   logical :: significant_length_set                 = .false.
@@ -1780,8 +1784,7 @@ type extra_parsing_info_struct
   logical :: lr_wakes_on_set                        = .false.
   logical :: mat6_track_symmetric_set               = .false.
   logical :: auto_bookkeeper_set                    = .false.
-  logical :: space_charge_on_set                    = .false.
-  logical :: coherent_synch_rad_on_set              = .false.
+  logical :: csr_and_space_charge_on_set            = .false.
   logical :: spin_tracking_on_set                   = .false.
   logical :: backwards_time_tracking_on_set         = .false.
   logical :: spin_sokolov_ternov_flipping_on_set    = .false.
@@ -1832,6 +1835,7 @@ type bmad_common_struct
   real(rp) :: ptc_cut_factor = 0.006                   ! Cut factor for PTC tracking
   real(rp) :: sad_eps_scale = 5.0d-3                   ! Used in sad_mult step length calc.
   real(rp) :: sad_amp_max = 5.0d-2                     ! Used in sad_mult step length calc.
+  integer :: space_charge_mesh_size(3) = [32, 32, 64]  ! Gird size for fft_3d space charge calc.
   integer :: sad_n_div_max = 1000                      ! Used in sad_mult step length calc.
   integer :: taylor_order = 0                          ! Input Taylor order. 0 -> default = ptc%taylor_order_saved
                                                        !   ptc_com%taylor_order_ptc gives actual order in use. 
@@ -1846,8 +1850,7 @@ type bmad_common_struct
   logical :: lr_wakes_on = .true.                      ! Long range wakefields
   logical :: mat6_track_symmetric = .true.             ! symmetric offsets
   logical :: auto_bookkeeper = .true.                  ! Automatic bookkeeping?
-  logical :: space_charge_on = .false.                 ! Space charge switch
-  logical :: coherent_synch_rad_on = .false.           ! csr 
+  logical :: csr_and_space_charge_on = .false.         ! Space charge switch
   logical :: spin_tracking_on = .false.                ! spin tracking?
   logical :: backwards_time_tracking_on = .false.      ! Track backwards in time?
   logical :: spin_sokolov_ternov_flipping_on = .false. ! Spin flipping during synchrotron radiation emission?

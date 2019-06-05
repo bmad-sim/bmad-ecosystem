@@ -28,7 +28,7 @@ recursive subroutine make_mat6 (ele, param, start_orb, end_orb, err_flag)
 use symp_lie_mod, only: symp_lie_bmad
 use bookkeeper_mod, only: attribute_bookkeeper
 use mad_mod, only: make_mat6_mad
-use space_charge_mod, except_dummy => make_mat6
+use high_energy_space_charge_mod, except_dummy => make_mat6
 use equality_mod, only: operator(==)
 
 implicit none
@@ -134,7 +134,7 @@ endif
 
 ! Add space charge effects
 
-if (bmad_com%space_charge_on) call make_mat6_ultra_rel_space_charge (ele, param)
+if (param%high_energy_space_charge_on) call make_mat6_high_energy_space_charge (ele, param)
 
 ! symplectify if wanted
 

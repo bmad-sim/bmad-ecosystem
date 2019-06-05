@@ -19,6 +19,9 @@ contains
 ! a lat_struct. Optionally only part of the lattice can be generated.
 ! Also see: write_lattice_in_foreign_format
 !
+! Note: bmad_com parameters that are changed from their default value are
+! saved in the lattice file.
+!
 ! Modules needed:
 !   use write_lat_file_mod
 !
@@ -184,6 +187,7 @@ if (lat%input_taylor_order /= 0) write (iu, '(a, i0)') 'parameter[taylor_order] 
 write (iu, '(a)')
 write (iu, '(4a)')    'parameter[p0c]                    = ', trim(re_str(lat%ele(0)%value(p0c_start$)))
 write (iu, '(4a)')    'parameter[particle]               = ', trim(species_name(lat%param%particle))
+call write_if_logic_param_changed (lat%param%high_energy_space_charge_on, .false., 'parameter[high_energy_space_charge_on]')
 
 if (lat%param%n_part /= 0)             write (iu, '(2a)') 'parameter[n_part]                 = ', trim(re_str(lat%param%n_part))
 
@@ -197,17 +201,49 @@ if (lat%photon_type /= incoherent$) then
   write (iu, '(3a)') 'parameter[photon_type] = ', photon_type_name(lat%photon_type)
 endif
 
-if (bmad_com%aperture_limit_on .neqv. bmad_com_default%aperture_limit_on) &
-            write (iu, '(a, l1)') 'bmad_com[aperture_limit_on] = ', bmad_com%aperture_limit_on
+! Bmad_com
 
-if (bmad_com%use_hard_edge_drifts .neqv. bmad_com_default%use_hard_edge_drifts) &
-            write (iu, '(a, l1)') 'bmad_com[use_hard_edge_drifts] = ', bmad_com%use_hard_edge_drifts
-
-if (abs(bmad_com%ptc_cut_factor - bmad_com_default%ptc_cut_factor) >  bmad_com_default%ptc_cut_factor/1d6) &
-            write (iu, '(a, l1)') 'bmad_com[ptc_cut_factor] = ', bmad_com%ptc_cut_factor
-
-if (bmad_com%electric_dipole_moment /= 0) &
-            write (iu, '(a, l1)') 'bmad_com[electric_dipole_moment] = ', bmad_com%electric_dipole_moment
+call write_if_real_param_changed (bmad_com%max_aperture_limit, bmad_com_default%max_aperture_limit, 'bmad_com[max_aperture_limit]')
+call write_if_real_param_changed (bmad_com%default_ds_step, bmad_com_default%default_ds_step, 'bmad_com[default_ds_step]')
+call write_if_real_param_changed (bmad_com%significant_length, bmad_com_default%significant_length, 'bmad_com[significant_length]')
+call write_if_real_param_changed (bmad_com%rel_tol_tracking, bmad_com_default%rel_tol_tracking, 'bmad_com[rel_tol_tracking]')
+call write_if_real_param_changed (bmad_com%abs_tol_tracking, bmad_com_default%abs_tol_tracking, 'bmad_com[abs_tol_tracking]')
+call write_if_real_param_changed (bmad_com%rel_tol_adaptive_tracking, bmad_com_default%rel_tol_adaptive_tracking, 'bmad_com[rel_tol_adaptive_tracking]')
+call write_if_real_param_changed (bmad_com%abs_tol_adaptive_tracking, bmad_com_default%abs_tol_adaptive_tracking, 'bmad_com[abs_tol_adaptive_tracking]')
+call write_if_real_param_changed (bmad_com%init_ds_adaptive_tracking, bmad_com_default%init_ds_adaptive_tracking, 'bmad_com[init_ds_adaptive_tracking]')
+call write_if_real_param_changed (bmad_com%min_ds_adaptive_tracking, bmad_com_default%min_ds_adaptive_tracking, 'bmad_com[min_ds_adaptive_tracking]')
+call write_if_real_param_changed (bmad_com%fatal_ds_adaptive_tracking, bmad_com_default%fatal_ds_adaptive_tracking, 'bmad_com[fatal_ds_adaptive_tracking]')
+call write_if_real_param_changed (bmad_com%autoscale_amp_abs_tol, bmad_com_default%autoscale_amp_abs_tol, 'bmad_com[autoscale_amp_abs_tol]')
+call write_if_real_param_changed (bmad_com%autoscale_amp_rel_tol, bmad_com_default%autoscale_amp_rel_tol, 'bmad_com[autoscale_amp_rel_tol]')
+call write_if_real_param_changed (bmad_com%autoscale_phase_tol, bmad_com_default%autoscale_phase_tol, 'bmad_com[autoscale_phase_tol]')
+call write_if_real_param_changed (bmad_com%electric_dipole_moment, bmad_com_default%electric_dipole_moment, 'bmad_com[electric_dipole_moment]')
+call write_if_real_param_changed (bmad_com%ptc_cut_factor, bmad_com_default%ptc_cut_factor, 'bmad_com[ptc_cut_factor]')
+call write_if_real_param_changed (bmad_com%sad_eps_scale, bmad_com_default%sad_eps_scale, 'bmad_com[sad_eps_scale]')
+call write_if_real_param_changed (bmad_com%sad_amp_max, bmad_com_default%sad_amp_max, 'bmad_com[sad_amp_max]')
+call write_if_int_param_changed (bmad_com%sad_n_div_max, bmad_com_default%sad_n_div_max, 'bmad_com[sad_n_div_max]')
+call write_if_int_param_changed (bmad_com%taylor_order, bmad_com_default%taylor_order, 'bmad_com[taylor_order]')
+call write_if_int_param_changed (bmad_com%runge_kutta_order, bmad_com_default%runge_kutta_order, 'bmad_com[runge_kutta_order]')
+call write_if_int_param_changed (bmad_com%default_integ_order, bmad_com_default%default_integ_order, 'bmad_com[default_integ_order]')
+call write_if_int_param_changed (bmad_com%ptc_max_fringe_order, bmad_com_default%ptc_max_fringe_order, 'bmad_com[ptc_max_fringe_order]')
+call write_if_int_param_changed (bmad_com%max_num_runge_kutta_step, bmad_com_default%max_num_runge_kutta_step, 'bmad_com[max_num_runge_kutta_step]')
+call write_if_logic_param_changed (bmad_com%rf_phase_below_transition_ref, bmad_com_default%rf_phase_below_transition_ref, 'bmad_com[rf_phase_below_transition_ref]')
+call write_if_logic_param_changed (bmad_com%use_hard_edge_drifts, bmad_com_default%use_hard_edge_drifts, 'bmad_com[use_hard_edge_drifts]')
+call write_if_logic_param_changed (bmad_com%sr_wakes_on, bmad_com_default%sr_wakes_on, 'bmad_com[sr_wakes_on]')
+call write_if_logic_param_changed (bmad_com%lr_wakes_on, bmad_com_default%lr_wakes_on, 'bmad_com[lr_wakes_on]')
+call write_if_logic_param_changed (bmad_com%mat6_track_symmetric, bmad_com_default%mat6_track_symmetric, 'bmad_com[mat6_track_symmetric]')
+call write_if_logic_param_changed (bmad_com%auto_bookkeeper, bmad_com_default%auto_bookkeeper, 'bmad_com[auto_bookkeeper]')
+call write_if_logic_param_changed (bmad_com%csr_and_space_charge_on, bmad_com_default%csr_and_space_charge_on, 'bmad_com[csr_and_space_charge_on]')
+call write_if_logic_param_changed (bmad_com%spin_tracking_on, bmad_com_default%spin_tracking_on, 'bmad_com[spin_tracking_on]')
+call write_if_logic_param_changed (bmad_com%backwards_time_tracking_on, bmad_com_default%backwards_time_tracking_on, 'bmad_com[backwards_time_tracking_on]')
+call write_if_logic_param_changed (bmad_com%spin_sokolov_ternov_flipping_on, bmad_com_default%spin_sokolov_ternov_flipping_on, 'bmad_com[spin_sokolov_ternov_flipping_on]')
+call write_if_logic_param_changed (bmad_com%radiation_damping_on, bmad_com_default%radiation_damping_on, 'bmad_com[radiation_damping_on]')
+call write_if_logic_param_changed (bmad_com%radiation_fluctuations_on, bmad_com_default%radiation_fluctuations_on, 'bmad_com[radiation_fluctuations_on]')
+call write_if_logic_param_changed (bmad_com%conserve_taylor_maps, bmad_com_default%conserve_taylor_maps, 'bmad_com[conserve_taylor_maps]')
+call write_if_logic_param_changed (bmad_com%absolute_time_tracking_default, bmad_com_default%absolute_time_tracking_default, 'bmad_com[absolute_time_tracking_default]')
+call write_if_logic_param_changed (bmad_com%twiss_normalize_off_energy, bmad_com_default%twiss_normalize_off_energy, 'bmad_com[twiss_normalize_off_energy]')
+call write_if_logic_param_changed (bmad_com%convert_to_kinetic_momentum, bmad_com_default%convert_to_kinetic_momentum, 'bmad_com[convert_to_kinetic_momentum]')
+call write_if_logic_param_changed (bmad_com%aperture_limit_on, bmad_com_default%aperture_limit_on, 'bmad_com[aperture_limit_on]')
+call write_if_logic_param_changed (bmad_com%ptc_print_info_messages, bmad_com_default%ptc_print_info_messages, 'bmad_com[ptc_print_info_messages]')
 
 ele => lat%ele(0) 
 
@@ -901,6 +937,10 @@ do ib = 0, ubound(lat%branch, 1)
                                       line = trim(line) // ', tracking_method = ' // tracking_method_name(ele%tracking_method)
     if (has_attribute (ele, 'SPIN_TRACKING_METHOD') .and. (ele%spin_tracking_method /= ele_dflt%spin_tracking_method)) &
                                       line = trim(line) // ', spin_tracking_method = ' // spin_tracking_method_name(ele%spin_tracking_method)
+    if (has_attribute (ele, 'CSR_METHOD') .and. (ele%csr_method /= ele_dflt%csr_method)) &
+                                      line = trim(line) // ', csr_method = ' // csr_method_name(ele%csr_method)
+    if (has_attribute (ele, 'SPACE_CHARGE_METHOD') .and. (ele%space_charge_method /= ele_dflt%space_charge_method)) &
+                                      line = trim(line) // ', space_charge_method = ' // space_charge_method_name(ele%space_charge_method)
     if (has_attribute (ele, 'PTC_INTEGRATION_TYPE') .and. (ele%ptc_integration_type /= ele_dflt%ptc_integration_type)) &
                                       line = trim(line) // ', ptc_integration_type = ' // ptc_integration_type_name(ele%ptc_integration_type)
     if (has_attribute (ele, 'FIELD_CALC') .and. (ele%field_calc /= ele_dflt%field_calc)) &
@@ -923,8 +963,6 @@ do ib = 0, ubound(lat%branch, 1)
                                       write (line, '(2a, l1)') trim(line), ', multipoles_on = ', ele%multipoles_on
     if (has_attribute (ele, 'TAYLOR_MAP_INCLUDES_OFFSETS') .and. (ele%taylor_map_includes_offsets .neqv. ele_dflt%taylor_map_includes_offsets)) &
                                       write (line, '(2a, l1)') trim(line), ', taylor_map_includes_offsets = ', ele%taylor_map_includes_offsets
-    if (has_attribute (ele, 'CSR_CALC_ON') .and. (ele%csr_calc_on .neqv. ele_dflt%csr_calc_on)) &
-                                      write (line, '(2a, l1)') trim(line), ', csr_calc_on = ', ele%csr_calc_on
     if (has_attribute (ele, 'OFFSET_MOVES_APERTURE') .and. (ele%offset_moves_aperture .neqv. ele_dflt%offset_moves_aperture)) &
                                       write (line, '(2a, l1)') trim(line), ', offset_moves_aperture = ', ele%offset_moves_aperture
 
@@ -1219,6 +1257,7 @@ do ib = 0, ubound(lat%branch, 1)
 
   write (iu, '(3a)') trim(branch%name), '[particle] = ', trim(species_name(branch%param%particle))
   write (iu, '(3a)') trim(branch%name), '[p0c]      = ', trim(re_str(ele0%value(p0c$)))
+  call write_if_logic_param_changed (branch%param%high_energy_space_charge_on, .false., trim(branch%name) // '[high_energy_space_charge_on]')
 
   if (is_false (ele0%value(floor_set$))) then
     if (ele0%floor%r(1) /= 0)   write (iu, '(3a)') trim(branch%name), '[x_position]     = ', trim(re_str(ele0%floor%r(1)))
@@ -1293,6 +1332,51 @@ if (present(err)) err = .false.
 
 !--------------------------------------------------------------------------------
 contains
+
+subroutine write_if_real_param_changed (param_now, param_default, param_name)
+
+real(rp) param_now, param_default
+character(*) param_name
+
+!
+
+if (abs(param_now - param_default) < 1e-12 * (abs(param_now) + abs(param_default))) return
+write (iu, '(3a)') param_name, ' = ', trim(re_str(param_now))
+
+end subroutine write_if_real_param_changed
+
+!--------------------------------------------------------------------------------
+! contains
+
+subroutine write_if_int_param_changed (param_now, param_default, param_name)
+
+integer param_now, param_default
+character(*) param_name
+
+!
+
+if (param_now == param_default) return
+write (iu, '(2a, i0)') param_name, ' = ', param_now
+
+end subroutine write_if_int_param_changed
+
+!--------------------------------------------------------------------------------
+! contains
+
+subroutine write_if_logic_param_changed (param_now, param_default, param_name)
+
+logical param_now, param_default
+character(*) param_name
+
+!
+
+if (param_now .eqv. param_default) return
+write (iu, '(2a, l1)') param_name, ' = ', param_now
+
+end subroutine write_if_logic_param_changed
+
+!--------------------------------------------------------------------------------
+! contains
 
 subroutine write_expand_lat_header ()
 

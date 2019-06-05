@@ -118,7 +118,8 @@ The complete structure is shown in this and the following figure.}
   logical logic                  ! For general use. Not used by Bmad.
   logical bmad_logic             ! For Bmad internal use only.
   logical select                 ! For element selection. Used by make_hybrid_ring, etc.
-  logical csr_calc_on            ! Coherent synchrotron radiation calculation
+  logical csr_method             ! Coherent synchrotron radiation calculation
+  logical space_charge_method    ! Space charge method.
   logical offset_moves_aperture  ! element offsets affects aperture?          
 end type
 \end{verbatim}
@@ -794,7 +795,8 @@ map calculations.  These are:
   %multipoles_on
   %taylor_map_includes_offsets
   %is_on
-  %csr_calc_on
+  %csr_method
+  %space_charge_method
   %offset_moves_apaerture
 \end{example}
 See Chapter~\sref{c:tracking} for more details.

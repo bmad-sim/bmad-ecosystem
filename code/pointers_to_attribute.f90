@@ -82,9 +82,24 @@ select case (ele_name)
 
 case ('BMAD_COM')
 
+  select case (attrib_name)
+  case ('D_ORB')
+    call re_allocate (ptr_array, 6)
+    do i = 1, 6
+      ptr_array(i)%r => bmad_com%d_orb(i)
+    enddo
+    return
+  case ('SPACE_CHARGE_MESH_SIZE')
+    call re_allocate (ptr_array, 3)
+    do i = 1, 3
+      ptr_array(i)%i => bmad_com%space_charge_mesh_size(i)
+    enddo
+    return
+  end select
+
   if (attrib_name(1:5) == 'D_ORB') then
-    call string_trim(attrib_name(6:), str, ix)
-    if (str(1:1) /= '(')   err_flag = .true.
+    str = attrib_name(6:)
+    if (str(1:1) /= '(') err_flag = .true.
     call string_trim(str(2:), str, ix)
     n = index('123456', str(1:1))
     if (n == 0) err_flag = .true.
@@ -97,6 +112,22 @@ case ('BMAD_COM')
       return
     endif
   endif    
+
+  if (attrib_name(1:22) == 'SPACE_CHARGE_MESH_SIZE') then
+    str = attrib_name(23:)
+    if (str(1:1) /= '(') err_flag = .true.
+    call string_trim(str(2:), str, ix)
+    n = index('123', str(1:1))
+    if (n == 0) err_flag = .true.
+    call string_trim(str(2:), str, ix)
+    if (str /= ')') err_flag = .true.
+    if (.not. err_flag) then
+      call re_allocate (ptr_array, 1)
+      if (present(eles)) call re_allocate_eles (eles, 1)
+      ptr_array(1)%i => bmad_com%space_charge_mesh_size(n)
+      return
+    endif
+  endif
 
   call re_allocate (ptr_array, 1)
   if (present(eles)) call re_allocate_eles (eles, 1)
@@ -133,8 +164,7 @@ case ('BMAD_COM')
   case ('LR_WAKES_ON');                     ptr_array(1)%l => bmad_com%lr_wakes_on
   case ('MAT6_TRACK_SYMMETRIC');            ptr_array(1)%l => bmad_com%mat6_track_symmetric
   case ('AUTO_BOOKKEEPER');                 ptr_array(1)%l => bmad_com%auto_bookkeeper
-  case ('SPACE_CHARGE_ON');                 ptr_array(1)%l => bmad_com%space_charge_on
-  case ('COHERENT_SYNCH_RAD_ON');           ptr_array(1)%l => bmad_com%coherent_synch_rad_on
+  case ('CSR_AND_SPACE_CHARGE_ON');         ptr_array(1)%l => bmad_com%csr_and_space_charge_on
   case ('SPIN_TRACKING_ON');                ptr_array(1)%l => bmad_com%spin_tracking_on
   case ('BACKWARDS_TIME_TRACKING_ON');      ptr_array(1)%l => bmad_com%backwards_time_tracking_on
   case ('SPIN_SOKOLOV_TERNOV_FLIPPING_ON'); ptr_array(1)%l => bmad_com%spin_sokolov_ternov_flipping_on

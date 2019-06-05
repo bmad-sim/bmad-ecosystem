@@ -237,41 +237,55 @@ Running the program (\sref{s:prog.setup}) gives the output as shown in \fig{f:ou
  !---------------------------------------------------------
  ! Information on element: CLEO_SOL 
 
-  Element #         871
-  Element Name: CLEO_SOL
-  Key: SOLENOID
-  S:              1.7550
-  Ref_time:   0.0000E+00
- 
-  Attribute values [Only non-zero values shown]:
-      1   L                      =  3.5100000E+00
-      7   KS                     = -8.5023386E-02
-     32   P0C                    =  5.2890000E+09
-     33   E_TOT                  =  5.2890000E+09
-     34   BS_FIELD               = -1.5000000E+00
-     50   DS_STEP                =  2.0000000E-01
- 
-          TRACKING_METHOD        =  Bmad_Standard
-          MAT6_CALC_METHOD       =  Bmad_Standard
-          FIELD_CALC             =  Bmad_Standard
-          APERTURE_AT            =  Exit_End
-          OFFSET_MOVES_APERTURE  =  F
-          INTEGRATOR_ORDER:      =     2
-          NUM_STEPS              =    18
-          SYMPLECTIFY            =  F
-          FIELD_MASTER           =  F
-          CSR_CALC_ON            =  T
- 
- Lord_status:  SUPER_LORD
- Slave_status: NO_MAJOR_LORDS
- Slaves: Number:   6
-      Name                           Lat_index  Attribute           Coefficient
-      Q00E\CLEO_SOL                        865  --------              3.182E-01
-      CLEO_SOL#1                           866  --------              4.460E-03
-      CLEO_SOL#2                           868  --------              1.773E-01
-      CLEO_SOL#3                             2  --------              1.773E-01
-      CLEO_SOL#4                             4  --------              4.460E-03
-      Q00W\CLEO_SOL                          5  --------              3.182E-01
+ Element #              871
+ Element Name: CLEO_SOL
+ Key: Solenoid
+ S_start, S:    766.671421,      1.755000
+ Ref_time:  5.854050E-09
+
+ Attribute values [Only non-zero/non-default values shown]:
+  1   L                           =  3.5100000E+00 m
+  5   KS                          = -8.5023386E-02 1/m
+ 10   FRINGE_TYPE                 =  None (1)
+ 11   FRINGE_AT                   =  Both_Ends (3)
+ 13   SPIN_FRINGE_ON              =  T (1)
+ 31   L_HARD_EDGE                 =  3.5100000E+00 m
+ 47   PTC_CANONICAL_COORDS        =  1.0000000E+00
+ 49   BS_FIELD                    =  1.5000000E+00 T
+ 50   DELTA_REF_TIME              =  1.1708100E-08 sec
+ 53   P0C                         =  5.2890000E+09 eV      BETA            =  0.999999995
+ 54   E_TOT                       =  5.2890000E+09 eV      GAMMA           =  1.0350315E+04
+ 66   NUM_STEPS                   = 18
+ 67   DS_STEP                     =  2.0000000E-01 m
+
+      TRACKING_METHOD             =  Bmad_Standard       APERTURE_AT               =  Exit_End
+      MAT6_CALC_METHOD            =  Bmad_Standard       APERTURE_TYPE             =  Rectangular
+      SPIN_TRACKING_METHOD        =  Tracking            OFFSET_MOVES_APERTURE     =  F
+      PTC_INTEGRATION_TYPE        =  Matrix_Kick         SYMPLECTIFY               =  F
+      CSR_METHOD                  =  Off                 FIELD_MASTER              =  F
+      SPACE_CHARGE_METHOD         =  Off
+      FIELD_CALC                  =  Bmad_Standard
+
+Slave_status: Free
+
+Lord_status:  Super_Lord
+Slaves:
+   Index   Name           Type
+     865   Q00E\CLEO_SOL  Sol_Quad
+     866   CLEO_SOL#1     Solenoid
+     868   CLEO_SOL#2     Solenoid
+       2   CLEO_SOL#3     Solenoid
+       4   CLEO_SOL#4     Solenoid
+       5   Q00W\CLEO_SOL  Sol_Quad
+
+Twiss at end of element:
+                        A              B            Cbar                        C_mat
+Beta (m)         7.73293815    88.01448113  | -0.16691726   0.00910908     -0.05360747   0.23764236
+Alpha           -6.94661336    -1.53007417  |  2.24946759  -0.02027746      0.03925732   0.14506787
+Gamma (1/m)      6.36956306     0.03796110  |  Gamma_c =   1.00851669       Mode_Flip = F
+Phi (rad)        1.00744612     1.55387058            X              Y              Z
+Eta (m)         -0.08500243    -0.00073095    -0.08600823    -0.00846284     0.00029134
+Etap            -0.08439901    -0.00135097    -0.08534249    -0.00922386     1.00000000
 \end{listing}
 \caption{Output from the example program}
 \label{f:output}

@@ -51,7 +51,7 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%mode3)
   nullify (ele%photon)
   nullify (ele%rad_int_cache)
-  nullify (ele%space_charge)
+  nullify (ele%high_energy_space_charge)
   nullify (ele%wake)
   nullify (ele%wall3d)
   nullify (ele%r)
@@ -73,15 +73,15 @@ if (associated (ele%a_pole_elec) .and. logic_option(.true., dealloc_poles)) then
   deallocate (ele%a_pole_elec, ele%b_pole_elec)
 endif
 
-if (associated (ele%descrip))        deallocate (ele%descrip)
-if (associated (ele%control))        deallocate (ele%control)
-if (associated (ele%rad_int_cache))  deallocate (ele%rad_int_cache)
-if (associated (ele%r))              deallocate (ele%r)
-if (associated (ele%custom))         deallocate (ele%custom)
-if (associated (ele%photon))         deallocate (ele%photon)
-if (associated (ele%mode3))          deallocate (ele%mode3)
-if (associated (ele%wake))           deallocate (ele%wake)
-if (associated (ele%space_charge))   deallocate (ele%space_charge)
+if (associated (ele%descrip))                   deallocate (ele%descrip)
+if (associated (ele%control))                   deallocate (ele%control)
+if (associated (ele%rad_int_cache))             deallocate (ele%rad_int_cache)
+if (associated (ele%r))                         deallocate (ele%r)
+if (associated (ele%custom))                    deallocate (ele%custom)
+if (associated (ele%photon))                    deallocate (ele%photon)
+if (associated (ele%mode3))                     deallocate (ele%mode3)
+if (associated (ele%wake))                      deallocate (ele%wake)
+if (associated (ele%high_energy_space_charge))  deallocate (ele%high_energy_space_charge)
 
 call unlink_wall3d (ele%wall3d)
 
