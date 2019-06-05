@@ -686,6 +686,14 @@ case ('enum')
 ! Command syntax: 
 !   python global
 ! Output syntax is variable list form. See documentation at beginning of this file.
+!
+! Note: The follow is intentionally left out:
+!   force_plot_data_calc               
+!   optimizer_allow_user_abort	
+!   silent_run
+!   single_step
+!   prompt_color
+!   prompt_string
 
 case ('global')
 
@@ -701,15 +709,16 @@ case ('global')
   nl=incr(nl); write (li(nl), rmt) 'delta_e_chrom;REAL;T;',                   s%global%delta_e_chrom
   nl=incr(nl); write (li(nl), imt) 'n_opti_cycles;INT;T;',                    s%global%n_opti_cycles
   nl=incr(nl); write (li(nl), imt) 'n_opti_loops;INT;T;',                     s%global%n_opti_loops
-  nl=incr(nl); write (li(nl), amt) 'phase_units;ENUM;T;',                      s%global%phase_units
+  nl=incr(nl); write (li(nl), amt) 'phase_units;ENUM;T;',                     angle_units_name(s%global%phase_units)
   nl=incr(nl); write (li(nl), imt) 'bunch_to_plot;INT;T;',                    s%global%bunch_to_plot
   nl=incr(nl); write (li(nl), imt) 'random_seed;INT;T;',                      s%global%random_seed
   nl=incr(nl); write (li(nl), imt) 'n_top10_merit;INT;T;',                    s%global%n_top10_merit
+  nl=incr(nl); write (li(nl), imt) 'srdt_gen_n_slices;INT;T;',                s%global%srdt_gen_n_slices  
+  nl=incr(nl); write (li(nl), imt) 'srdt_xst_n_slices;INT;T;',                s%global%srdt_sxt_n_slices  
+  nl=incr(nl); write (li(nl), lmt) 'srdt_use_cache;INT;T;',                   s%global%srdt_use_cache
   nl=incr(nl); write (li(nl), amt) 'random_engine;STR;T;',                    s%global%random_engine
   nl=incr(nl); write (li(nl), amt) 'random_gauss_converter;STR;T;',           s%global%random_gauss_converter
   nl=incr(nl); write (li(nl), amt) 'track_type;STR;T;',                       s%global%track_type
-  nl=incr(nl); write (li(nl), amt) 'prompt_string;STR;T;',                    s%global%prompt_string
-  nl=incr(nl); write (li(nl), amt) 'prompt_color;STR;T;',                     s%global%prompt_color
   nl=incr(nl); write (li(nl), amt) 'optimizer;STR;T;',                        s%global%optimizer
   nl=incr(nl); write (li(nl), amt) 'print_command;STR;T;',                    s%global%print_command
   nl=incr(nl); write (li(nl), amt) 'var_out_file;FILE;T;',                    s%global%var_out_file
