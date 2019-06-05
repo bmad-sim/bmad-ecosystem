@@ -1,0 +1,18 @@
+beginning[beta_a]  =  0.3
+beginning[alpha_a] = -2.2
+beginning[beta_b]  =  0.34
+beginning[alpha_b] =  0.0
+beginning[eta_x]   =  -0.006
+beginning[etap_x]  =   0.067
+
+parameter[geometry] = open
+parameter[particle] = electron
+parameter[e_tot] = 42e6
+
+particle_start[x] = 2e-4
+particle_start[y] = 1e-4
+
+ben01: sbend, l = 0.1, b_field = 0.17, b1_gradient = -10
+
+lat: line = (ben01)
+use, lat
