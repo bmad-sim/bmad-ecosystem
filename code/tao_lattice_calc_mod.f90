@@ -240,21 +240,17 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       enddo
     endif
 
-    if ( u%calc%srdt_for_data .gt. 0 ) then
-      if ( u%calc%srdt_for_data .ge. 2 ) then
-        mat_changed = any(abs(scratch%srdt_mat_stash - tao_lat%lat%param%t1_no_RF) .gt. 1.0e-8)
-        if( s%global%srdt_use_cache .and. mat_changed) then
-          call make_srdt_cache(tao_lat%lat, s%global%srdt_gen_n_slices, s%global%srdt_sxt_n_slices, scratch%srdt_cache)
-          if(.not. allocated(scratch%srdt_cache)) s%global%srdt_use_cache = .false. !there was insufficient memory available.
-          scratch%srdt_mat_stash = tao_lat%lat%param%t1_no_RF
-        endif
-        if(allocated(scratch%srdt_cache)) then
+    if (u%calc%srdt_for_data > 0) then
+      if (u%calc%srdt_for_data >= 2) then
+        if (s%global%srdt_use_cache) then
           call srdt_calc_with_cache(tao_lat%lat, tao_branch%srdt, u%calc%srdt_for_data, s%global%srdt_gen_n_slices, s%global%srdt_sxt_n_slices, scratch%srdt_cache)
+          if(.not. allocated(scratch%srdt_cache)) s%global%srdt_use_cache = .false. ! there was insufficient memory available.
         else
-          call srdt_calc(tao_lat%lat, tao_branch%srdt, u%calc%srdt_for_data, s%global%srdt_gen_n_slices, s%global%srdt_sxt_n_slices)
+          call srdt_calc (tao_lat%lat, tao_branch%srdt, u%calc%srdt_for_data, s%global%srdt_gen_n_slices, s%global%srdt_sxt_n_slices)
         endif
+
       else
-        call srdt_calc(tao_lat%lat, tao_branch%srdt, u%calc%srdt_for_data, s%global%srdt_gen_n_slices, s%global%srdt_sxt_n_slices)
+        call srdt_calc (tao_lat%lat, tao_branch%srdt, u%calc%srdt_for_data, s%global%srdt_gen_n_slices, s%global%srdt_sxt_n_slices)
       endif
     endif
     
@@ -272,7 +268,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. associated(branch%ptc%m_t_layout)) call lat_to_ptc_layout (tao_lat%lat)
       
       ! Get one-turn-map
-      call ptc_one_turn_map_at_ele (normal_form%ele_origin, normal_form%m, pz = 0.0_rp )
+      call ptc_one_turn_map_at_ele (normal_form%ele_origin, normal_form%m, pz = 0.0_rp)
 
       ! ! Get A, A_inv, dhdj
       ! call normal_form_taylors(normal_form%m, rf_on, dhdj = normal_form%dhdj, &
@@ -708,7 +704,7 @@ do
     call run_timer ('READ', time)
     if (time - old_time > 60) then
       call out_io (s_blank$, r_name, 'Beam at Element: \i0\. Time: \i0\ min', &
-                          i_array = [j, nint(time/60)] )
+                          i_array = [j, nint(time/60)])
       old_time = time
     endif
   endif

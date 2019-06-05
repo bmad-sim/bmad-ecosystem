@@ -427,8 +427,7 @@ case ('beam')
     nl=nl+1; lines(nl) = 'bmad_com components (set by "set bmad_com ..."):'
     nl=nl+1; write(lines(nl), lmt) '  %sr_wakes_on                     = ', bmad_com%sr_wakes_on
     nl=nl+1; write(lines(nl), lmt) '  %lr_wakes_on                     = ', bmad_com%lr_wakes_on
-    nl=nl+1; write(lines(nl), lmt) '  %space_charge_on                 = ', bmad_com%space_charge_on
-    nl=nl+1; write(lines(nl), lmt) '  %coherent_synch_rad_on           = ', bmad_com%coherent_synch_rad_on
+    nl=nl+1; write(lines(nl), lmt) '  %csr_and_space_charge_on         = ', bmad_com%csr_and_space_charge_on
     nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on
     nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
     nl=nl+1; write(lines(nl), lmt) '  %radiation_damping_on            = ', bmad_com%radiation_damping_on
@@ -442,11 +441,8 @@ case ('beam')
     nl=nl+1; write(lines(nl), imt) '  %n_bin                = ', csr_param%n_bin
     nl=nl+1; write(lines(nl), imt) '  %particle_bin_span    = ', csr_param%particle_bin_span
     nl=nl+1; write(lines(nl), imt) '  %n_shield_images      = ', csr_param%n_shield_images
-    nl=nl+1; write(lines(nl), imt) '  %ix1_ele_csr          = ', csr_param%ix1_ele_csr
-    nl=nl+1; write(lines(nl), imt) '  %ix2_ele_csr          = ', csr_param%ix2_ele_csr
-    nl=nl+1; write(lines(nl), lmt) '  %lcsr_component_on    = ', csr_param%lcsr_component_on
-    nl=nl+1; write(lines(nl), lmt) '  %lsc_component_on     = ', csr_param%lsc_component_on
-    nl=nl+1; write(lines(nl), lmt) '  %tsc_component_on     = ', csr_param%tsc_component_on
+    
+    nl=nl+1; write(lines(nl), lmt) '  %use_csr_old          = ', csr_param%use_csr_old
     nl=nl+1; write(lines(nl), lmt) '  %small_angle_approx   = ', csr_param%small_angle_approx
 
   ! have element index
@@ -1619,8 +1615,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %lr_wakes_on                     = ', bmad_com%lr_wakes_on
     nl=nl+1; write(lines(nl), lmt) '  %mat6_track_symmetric            = ', bmad_com%mat6_track_symmetric
     nl=nl+1; write(lines(nl), lmt) '  %auto_bookkeeper                 = ', bmad_com%auto_bookkeeper
-    nl=nl+1; write(lines(nl), lmt) '  %space_charge_on                 = ', bmad_com%space_charge_on
-    nl=nl+1; write(lines(nl), lmt) '  %coherent_synch_rad_on           = ', bmad_com%coherent_synch_rad_on
+    nl=nl+1; write(lines(nl), lmt) '  %csr_and_space_charge_on         = ', bmad_com%csr_and_space_charge_on
     nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on
     nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
     nl=nl+1; write(lines(nl), lmt) '  %radiation_damping_on            = ', bmad_com%radiation_damping_on
@@ -1653,11 +1648,6 @@ case ('global')
     nl=nl+1; write(lines(nl), imt) '  %n_bin                = ', csr_param%n_bin
     nl=nl+1; write(lines(nl), imt) '  %particle_bin_span    = ', csr_param%particle_bin_span
     nl=nl+1; write(lines(nl), imt) '  %n_shield_images      = ', csr_param%n_shield_images
-    nl=nl+1; write(lines(nl), imt) '  %ix1_ele_csr          = ', csr_param%ix1_ele_csr
-    nl=nl+1; write(lines(nl), imt) '  %ix2_ele_csr          = ', csr_param%ix2_ele_csr
-    nl=nl+1; write(lines(nl), lmt) '  %lcsr_component_on    = ', csr_param%lcsr_component_on
-    nl=nl+1; write(lines(nl), lmt) '  %lsc_component_on     = ', csr_param%lsc_component_on
-    nl=nl+1; write(lines(nl), lmt) '  %tsc_component_on     = ', csr_param%tsc_component_on
     nl=nl+1; write(lines(nl), lmt) '  %print_taylor_warning = ', csr_param%print_taylor_warning
     nl=nl+1; write(lines(nl), lmt) '  %use_csr_old          = ', csr_param%use_csr_old    
     nl=nl+1; write(lines(nl), lmt) '  %small_angle_approx   = ', csr_param%small_angle_approx
@@ -4022,14 +4012,15 @@ case ('universe')
   nl=nl+1; write(lines(nl), amt) 'Lattice file name:      ', quote(lat%input_file_name)
   nl=nl+1; write(lines(nl), amt) 'Reference species:      ', species_name(branch%param%particle)
   if (branch%param%particle == photon$) then
-    nl=nl+1; write(lines(nl), amt) 'photon_type:            ', photon_type_name(lat%photon_type)
+    nl=nl+1; write(lines(nl), amt) 'photon_type:                 ', photon_type_name(lat%photon_type)
   endif
-  nl=nl+1; write(lines(nl), rmt) 'Reference energy:       ', branch%ele(0)%value(e_tot$)
-  nl=nl+1; write(lines(nl), rmt) 'Reference momentum:     ', branch%ele(0)%value(p0c$)
-  nl=nl+1; write(lines(nl), lmt) 'Absolute_Time_Tracking: ', lat%absolute_time_tracking
-  nl=nl+1; write(lines(nl), amt) 'photon_type:            ', photon_type_name(lat%photon_type)
-  nl=nl+1; write(lines(nl), amt) 'Geometry:               ', geometry_name(branch%param%geometry)
-  nl=nl+1; write(lines(nl), lmt) 'global%rf_on:           ', s%global%rf_on
+  nl=nl+1; write(lines(nl), rmt) 'Reference energy:            ', branch%ele(0)%value(e_tot$)
+  nl=nl+1; write(lines(nl), rmt) 'Reference momentum:          ', branch%ele(0)%value(p0c$)
+  nl=nl+1; write(lines(nl), lmt) 'Absolute_Time_Tracking:      ', lat%absolute_time_tracking
+  nl=nl+1; write(lines(nl), amt) 'photon_type:                 ', photon_type_name(lat%photon_type)
+  nl=nl+1; write(lines(nl), amt) 'Geometry:                    ', geometry_name(branch%param%geometry)
+  nl=nl+1; write(lines(nl), lmt) 'global%rf_on:                ', s%global%rf_on
+  nl=nl+1; write(lines(nl), lmt) 'high_energy_space_charge_on: ', branch%param%high_energy_space_charge_on
   nl=nl+1; write(lines(nl), imt) 'Elements used in tracking: From 1 through ', branch%n_ele_track
   if (branch%n_ele_max > branch%n_ele_track) then
     nl=nl+1; write(lines(nl), '(2(a, i0))') 'Lord elements:   ', &
@@ -4039,6 +4030,7 @@ case ('universe')
   endif
 
   nl=nl+1; write(lines(nl), '(a, f0.3)')   'Lattice branch length:      ', branch%param%total_length
+  nl=nl+1; write(lines(nl), '(a, f0.3)')   'Lattice branch transit time:', branch%ele(branch%n_ele_track)%ref_time - branch%ele(0)%ref_time
   if (branch%ele(0)%s /= 0) then
     nl=nl+1; write(lines(nl), '(a, 2(f0.3, a))') 'Lattice branch S-range:     [', &
                                                 branch%ele(0)%s, ', ', branch%ele(branch%n_ele_track)%s, ']'
