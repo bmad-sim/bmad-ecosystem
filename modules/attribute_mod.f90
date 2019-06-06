@@ -2333,7 +2333,7 @@ case ('SLAVE_STATUS')
 case ('SPACE_CHARGE_METHOD')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, space_charge_method_name, lbound(space_charge_method_name, 1))
   if (present(is_default)) then
-    is_default = off$
+    is_default = (ix_attrib_val == off$)
   endif
 
 case ('SPATIAL_DISTRIBUTION')
