@@ -89,14 +89,14 @@ character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
 character(20) cmd, command, who, which, v_str
 character(20) :: r_name = 'tao_python_cmd'
-character(20) :: cmd_names(34)= [character(20) :: &
+character(20) :: cmd_names(35)= [character(20) :: &
   'beam_init', 'branch1', 'bunch1', 'bmad_com', &
-  'data_create', 'data_destroy', 'data_general', 'data_d2', 'data_d1', 'data1', &
+  'data_create', 'data_destroy', 'data_d2_array', 'data_d1_array', 'data_d1', 'data1', &
   'enum', 'global', 'help', &
   'lat_ele_list', 'lat_ele1', 'lat_general', 'lat_list', 'lat_param_units', &
   'orbit_at_s', &
   'plot_list', 'plot1', 'plot_graph', 'plot_curve', 'plot_line', 'plot_symbol', &
-  'species_to_int', 'species_to_str', 'twiss_at_s', 'universe', &
+  'species_to_int', 'species_to_str', 'super_universe', 'twiss_at_s', 'universe', &
   'var_create', 'var_destroy', 'var_general', 'var_v1', 'var1']
 
 real(rp) s_pos, value
@@ -360,29 +360,6 @@ case ('bmad_com')
   nl=incr(nl); write (li(nl), lmt) 'debug;LOGIC;T;',                             bmad_com%debug
 
 !----------------------------------------------------------------------
-! List of datums in a given data d1 array.
-! Command syntax:
-!   python data_d1 {ix_universe}@{d2_name}.{d1_datum}
-! Use the "python data_d2 {name}" command to get a list of d1 arrays. 
-! Use the "python data1" command to get detailed information on a particular datum.
-! Example:
-!   python data_d1 1@orbit.x
-
-case ('data_d1')
-
-  call tao_find_data (err, line, d1_array = d1_array)
-
-  if (err .or. .not. allocated(d1_array)) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d1 data name.')
-    call end_stuff()
-    return
-  endif
-
-  d1_ptr => d1_array(1)%d1
-  nl=incr(nl); write (li(nl), '(2a, 2(i0, a))') trim(d1_ptr%name), ';', lbound(d1_ptr%d, 1), ';', ubound(d1_ptr%d, 1)
-
-!----------------------------------------------------------------------
 ! Create a d2 data structure along with associated d1 and data arrays.
 !
 ! Command syntax:
@@ -541,13 +518,13 @@ case ('data_destroy')
 call destroy_this_data(line)
 
 !----------------------------------------------------------------------
-! List of d1 arrays in a given data d2.
+! Information on a d2_datum.
 ! Command syntax:
-!   python data_d2 {d2_datum}
+!   python data_d1 {d2_datum}
 ! {d2_datum} should be of the form 
 !   {ix_uni}@{d2_datum_name}
 
-case ('data_d2')
+case ('data_d1')
 
   call tao_find_data (err, line, d2_array = d2_array)
 
@@ -560,10 +537,7 @@ case ('data_d2')
 
   d2_ptr => d2_array(1)%d2
 
-  do i = lbound(d2_ptr%d1, 1), ubound(d2_ptr%d1, 1)
-    nl=incr(nl); write (li(nl), '(a, i0, 2a)') 'd1[', i, '];STR;T;', d2_ptr%d1(i)%name
-  enddo
-
+  nl=incr(nl); write (li(nl), imt) 'n_d1;INT;F;',                             size(d2_ptr%d1)
   nl=incr(nl); write (li(nl), imt) 'ix_d2_data;INT;F;',                       d2_ptr%ix_d2_data
   nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             d2_ptr%name
   nl=incr(nl); write (li(nl), amt) 'data_file_name;FILE;F;',                  d2_ptr%data_file_name
@@ -577,11 +551,37 @@ case ('data_d2')
   nl=incr(nl); write (li(nl), lmt) 'ref_read_in;LOGIC;F;',                    d2_ptr%ref_read_in
 
 !----------------------------------------------------------------------
+! List of d1 arrays for a given data_d2.
+! Command syntax:
+!   python data_d1_array {d2_datum}
+! {d2_datum} should be of the form 
+!   {ix_uni}@{d2_datum_name}
+
+case ('data_d1_array')
+
+  call tao_find_data (err, line, d2_array = d2_array)
+
+  if (err .or. .not. allocated(d2_array)) then
+    nl=incr(nl); li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d2 data name')
+    call end_stuff()
+    return
+  endif
+
+  d2_ptr => d2_array(1)%d2
+  do i = lbound(d2_ptr%d1, 1), ubound(d2_ptr%d1, 1)
+    d1_ptr => d2_ptr%d1(i)
+    call location_encode (line, d1_ptr%d%useit_opt, d1_ptr%d%exists, lbound(d1_ptr%d, 1))
+    nl=incr(nl); write (li(nl), '(a, i0, 5a, i0, a, i0)') 'd1[', i, '];STR2;F;', trim(d1_ptr%name), ';', trim(line), ';', &
+                                                                                     lbound(d1_ptr%d, 1), ';', ubound(d1_ptr%d, 1)
+  enddo
+
+!----------------------------------------------------------------------
 ! Data d2 info for a given universe.
 ! Command syntax:
-!   python data_general {ix_universe}
+!   python data_d2_array {ix_universe}
 
-case ('data_general')
+case ('data_d2_array')
 
   u => point_to_uni(line, .false., err); if (err) return
 
@@ -715,7 +715,7 @@ case ('global')
   nl=incr(nl); write (li(nl), imt) 'n_top10_merit;INT;T;',                    s%global%n_top10_merit
   nl=incr(nl); write (li(nl), imt) 'srdt_gen_n_slices;INT;T;',                s%global%srdt_gen_n_slices  
   nl=incr(nl); write (li(nl), imt) 'srdt_xst_n_slices;INT;T;',                s%global%srdt_sxt_n_slices  
-  nl=incr(nl); write (li(nl), lmt) 'srdt_use_cache;LOGIC;T;',                   s%global%srdt_use_cache
+  nl=incr(nl); write (li(nl), lmt) 'srdt_use_cache;LOGIC;T;',                 s%global%srdt_use_cache
   nl=incr(nl); write (li(nl), amt) 'random_engine;STR;T;',                    s%global%random_engine
   nl=incr(nl); write (li(nl), amt) 'random_gauss_converter;STR;T;',           s%global%random_gauss_converter
   nl=incr(nl); write (li(nl), amt) 'track_type;STR;T;',                       s%global%track_type
@@ -1544,6 +1544,17 @@ case ('species_to_str')
   nl=incr(nl); write (li(nl), '(a)') trim(name)
 
 !----------------------------------------------------------------------
+! Super_Universe information
+! Command syntax:
+!   python super_universe
+
+case ('super_universe')
+
+  nl=incr(nl); write (li(nl), imt) 'n_universe;INT;F;',                ubound(s%u, 1)
+  nl=incr(nl); write (li(nl), imt) 'n_v1_var_used:INT;F',              s%n_v1_var_used
+  nl=incr(nl); write (li(nl), imt) 'n_var_used;INT;F;',                s%n_var_used
+
+!----------------------------------------------------------------------
 ! Twiss at given s position
 ! Command syntax:
 !   python twiss_at_s {ix_uni}@{ix_branch}>>{s}|{which}
@@ -2211,6 +2222,14 @@ end subroutine xy_disp_out
 ! contains
 
 subroutine destroy_this_data(d_name)
+
+type (tao_d2_data_struct), pointer :: d2_ptr
+type (tao_d1_data_struct), pointer :: d1_ptr
+type (tao_d2_data_array_struct), allocatable :: d2_array(:)
+type (tao_d1_data_array_struct), allocatable :: d1_array(:)
+type (tao_universe_struct), pointer :: u
+
+integer i, j, ix_d2, i1, n1, n_delta
 
 character(*) d_name
 
