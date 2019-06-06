@@ -4,7 +4,7 @@ from tkinter import filedialog
 import sys
 import os
 sys.path.append(os.environ['ACC_ROOT_DIR'] + '/tao/gui')
-from tk_tools import tk_tao_parameter
+from tao_widget import tk_tao_parameter
 from parameters import str_to_tao_param
 import string
 
@@ -117,7 +117,7 @@ class tao_root_window(tk.Tk):
 
   def tao_load(self,init_frame):
     from parameters import param_dict
-    tk_list = [] #Items: tk_tao_parameter()'s (see tk_tools.py)
+    tk_list = [] #Items: tk_tao_parameter()'s (see tao_widget.py)
     k = 0 #row number counter
     for param, tao_param in param_dict.items():
       tk_list.append(tk_tao_parameter(tao_param,init_frame))
@@ -234,7 +234,11 @@ class tao_root_window(tk.Tk):
     # STOP lattice calculation here
     self.pipe.cmd("set global lattice_calc_on = F")
     self.pipe.cmd("set global plot_on = F")
+    #Freeze input fields:
     for item in tao_list:
+      item.tk_wid.config(state="disabled")
+    for item in tao_list:
+      #Type casting and validation
       if item.param.type == 'INT':
         try:
           item.param.value = int(item.tk_var.get())
@@ -260,6 +264,9 @@ class tao_root_window(tk.Tk):
     #Now set lattice_calc_on and plot_on
     self.pipe.cmd("set global plot_on = " + plot_on)
     self.pipe.cmd("set global lattice_calc_on = " + lattice_calc_on)
+    #Re-enable input
+    for item in tao_list:
+      item.tk_wid.configure(state="normal")
 
 #---------------------------------------------------------------
 
