@@ -762,9 +762,15 @@ if (present (use_line)) then
 endif
 
 if (lat%use_name == blank_name$) then
-  call parser_error ('NO "USE" STATEMENT FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
-  call parser_end_stuff (in_lat)
-  return
+  if (iseq_tot == 1) then
+    call parser_error ('no "USE" statement found.', &
+                       'However since there is only one line, that will be used.', level = s_warn$)
+    lat%use_name = sequence(1)%name
+  else
+    call parser_error ('NO "USE" STATEMENT FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
+    call parser_end_stuff (in_lat)
+    return
+  endif
 endif
 
 use_line_str = lat%use_name

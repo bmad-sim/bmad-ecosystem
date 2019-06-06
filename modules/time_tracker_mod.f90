@@ -466,7 +466,7 @@ real(rp), parameter :: a2=0.2_rp, a3=0.3_rp, a4=0.6_rp, &
     dc3=c3-18575.0_rp/48384.0_rp, dc4=c4-13525.0_rp/55296.0_rp, &
     dc5=-277.0_rp/14336.0_rp, dc6=c6-0.25_rp
 
-real(rp) quat(0:3)
+real(rp) quat(0:3), dt_now
 logical err_flag
 logical, optional :: print_err
 
@@ -482,29 +482,34 @@ endif
 temp_orb = orb
 temp_z_phase = z_phase
 
-call transfer_this_orbit (temp_orb, temp_z_phase, orb, z_phase, b21*dt*dr_dt1)
-call em_field_kick_vector_time(ele, param, rf_time+a2*dt, temp_orb, temp_z_phase, dr_dt2, err_flag, print_err)
+dt_now = a2*dt
+call transfer_this_orbit (temp_orb, dt_now, temp_z_phase, orb, z_phase, b21*dt*dr_dt1)
+call em_field_kick_vector_time(ele, param, rf_time + dt_now, temp_orb, temp_z_phase, dr_dt2, err_flag, print_err)
 if (err_flag) return
 
-call transfer_this_orbit (temp_orb, temp_z_phase, orb, z_phase, dt*(b31*dr_dt1+b32*dr_dt2))
-call em_field_kick_vector_time(ele, param, rf_time+a3*dt, temp_orb, temp_z_phase, dr_dt3, err_flag, print_err)
+dt_now = a3*dt
+call transfer_this_orbit (temp_orb, dt_now, temp_z_phase, orb, z_phase, dt*(b31*dr_dt1+b32*dr_dt2))
+call em_field_kick_vector_time(ele, param, rf_time + dt_now, temp_orb, temp_z_phase, dr_dt3, err_flag, print_err)
 if (err_flag) return
 
-call transfer_this_orbit (temp_orb, temp_z_phase, orb, z_phase, dt*(b41*dr_dt1+b42*dr_dt2+b43*dr_dt3))
-call em_field_kick_vector_time(ele, param, rf_time+a4*dt, temp_orb, temp_z_phase, dr_dt4, err_flag, print_err)
+dt_now = a4*dt
+call transfer_this_orbit (temp_orb, dt_now, temp_z_phase, orb, z_phase, dt*(b41*dr_dt1+b42*dr_dt2+b43*dr_dt3))
+call em_field_kick_vector_time(ele, param, rf_time + dt_now, temp_orb, temp_z_phase, dr_dt4, err_flag, print_err)
 if (err_flag) return
 
-call transfer_this_orbit (temp_orb, temp_z_phase, orb, z_phase, dt*(b51*dr_dt1+b52*dr_dt2+b53*dr_dt3+b54*dr_dt4))
-call em_field_kick_vector_time(ele, param, rf_time+a5*dt, temp_orb, temp_z_phase, dr_dt5, err_flag, print_err)
+dt_now = a5*dt
+call transfer_this_orbit (temp_orb, dt_now, temp_z_phase, orb, z_phase, dt*(b51*dr_dt1+b52*dr_dt2+b53*dr_dt3+b54*dr_dt4))
+call em_field_kick_vector_time(ele, param, rf_time + dt_now, temp_orb, temp_z_phase, dr_dt5, err_flag, print_err)
 if (err_flag) return
 
-call transfer_this_orbit (temp_orb, temp_z_phase, orb, z_phase, dt*(b61*dr_dt1+b62*dr_dt2+b63*dr_dt3+b64*dr_dt4+b65*dr_dt5))
-call em_field_kick_vector_time(ele, param, rf_time+a6*dt, temp_orb, temp_z_phase, dr_dt6, err_flag, print_err)
+dt_now = a6*dt
+call transfer_this_orbit (temp_orb, dt_now, temp_z_phase, orb, z_phase, dt*(b61*dr_dt1+b62*dr_dt2+b63*dr_dt3+b64*dr_dt4+b65*dr_dt5))
+call em_field_kick_vector_time(ele, param, rf_time + dt_now, temp_orb, temp_z_phase, dr_dt6, err_flag, print_err)
 if (err_flag) return
 
 ! Output new orb and error vector
 
-call transfer_this_orbit (new_orb, new_z_phase, orb, z_phase, dt*(c1*dr_dt1+c3*dr_dt3+c4*dr_dt4+c6*dr_dt6)) 
+call transfer_this_orbit (new_orb, dt, new_z_phase, orb, z_phase, dt*(c1*dr_dt1+c3*dr_dt3+c4*dr_dt4+c6*dr_dt6)) 
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   quat =          omega_to_quat(dt*c1*dr_dt1(7:9))
@@ -528,14 +533,17 @@ r_err = dt*(dc1*dr_dt1+dc3*dr_dt3+dc4*dr_dt4+dc5*dr_dt5+dc6*dr_dt6)
 !------------------------------------------------------------------------------------------------
 contains
 
-subroutine transfer_this_orbit (out_orb, out_z_phase, in_orb, in_z_phase, dvec)
+subroutine transfer_this_orbit (out_orb, dt_now, out_z_phase, in_orb, in_z_phase, dvec)
 
 type (coord_struct) in_orb, out_orb
-real(rp) dvec(10), out_z_phase, in_z_phase
+real(rp) dvec(10), dt_now, out_z_phase, in_z_phase
 
 !
 
 out_orb%vec = in_orb%vec + dvec(1:6)
+out_orb%t = in_orb%t + dt_now
+out_orb%s = in_orb%s + ele%orientation * (out_orb%vec(5) - in_orb%vec(5))
+
 out_z_phase = in_z_phase + dvec(10)
 
 pc = sqrt(out_orb%vec(2)**2 + out_orb%vec(4)**2 + out_orb%vec(6)**2)

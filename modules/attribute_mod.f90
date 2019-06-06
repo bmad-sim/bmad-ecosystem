@@ -2193,7 +2193,7 @@ case ('CAVITY_TYPE')
 case ('CSR_METHOD')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, csr_method_name, lbound(csr_method_name, 1))
   if (present(is_default)) then
-    is_default = off$
+    is_default = (ix_attrib_val == off$)
   endif
 
 case ('COUPLER_AT')
