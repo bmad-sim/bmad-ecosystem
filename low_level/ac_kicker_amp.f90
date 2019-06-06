@@ -34,15 +34,10 @@ character(*), parameter :: r_name = 'ac_kicker_amp'
 ref_ele => ele
 if (ref_ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) ref_ele => pointer_to_lord (ref_ele, 1)
 
-if (absolute_time_tracking(ele)) then
+if (is_true(ele%value(ref_time_offset$))) then
   time = orbit%t - ref_ele%value(ref_time_start$)
-
 else
-  call multipass_chain(ref_ele, ix_pass, n_links, chain)
-  if (ix_pass > 1) ref_ele => chain(1)%ele
-
-  dt_ds0 = ele%value(E_tot$) / (c_light * ele%value(p0c$)) ! Reference velocity
-  time = dt_ds0 * (orbit%s - ref_ele%s_start) - orbit%vec(5) / (c_light * orbit%beta)
+  time = orbit%t
 endif
 
 ac_amp = 1

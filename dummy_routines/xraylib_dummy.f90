@@ -4,8 +4,11 @@
 ! Dummy module for the xraylib interface.
 !
 ! This can be used when the real xraylib is not easily available and X-rays are not being tracked.
+! To use: Compile this file along with any program files.
+!
+! Note: This module is NOT compiled into the Bmad library.
+! Note: This module is obsolete since xraylib is now part of the Bmad Distribution.
 !-
-
 
 module xraylib
 
@@ -66,8 +69,8 @@ real(c_double) density
 density = 0
 end function
 
-subroutine atomic_factors (n, E_kev, q, debye, f0, fp, fpp) 
-integer n
+function atomic_factors (n, E_kev, q, debye, f0, fp, fpp) result (int_err)
+integer n, int_err
 real(c_double) E_kev, q, debye, f0, fp, fpp
 end subroutine
 

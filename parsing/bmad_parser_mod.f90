@@ -4117,8 +4117,29 @@ end function verify_valid_name
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
+! Subroutine parser_error (what1, what2, what3, what4, seq, pele, stop_here, level, r_array, i_array)
+!
+! Routine to print an error message generated when parsing a lattice.
+!
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
+!
+! Input:
+!   what1       -- character(*): First line in error message.
+!   what2       -- character(*), optional: Second line in error message.
+!   what3       -- character(*), optional: Third line in error message.
+!   what4       -- character(*), optional: Fourth line in error message.
+!   seq         -- seq_struct, optional: Used when error is generated during reading of a lattice file.
+!                     Contains information such as file name, and line number where error was detected.
+!   pele        -- parser_ele_struct, optional: Used when error is associated with a lattice element.
+!                     Contains information on the lattice element.
+!   stop_here   -- logical, optional: If present and True then immediately stop. Used with severe errors.
+!   level       -- integer, optional: Possibilities are:
+!                     s_error$   -- Parser error (default). At end parser error argument will be set True.
+!                     s_warn$    -- Warning level.
+!                     s_info$    -- Informational message to be printed.
+!   r_array(:)  -- real(rp), optional: Real numbers to be encoded in error message. See out_io doc.
+!   i_array(:)  -- integer, optional: Integer numbers to be encoded in error message. See out_io doc.
 !-
 
 subroutine parser_error (what1, what2, what3, what4, seq, pele, stop_here, level, r_array, i_array)

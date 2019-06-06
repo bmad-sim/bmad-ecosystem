@@ -470,7 +470,7 @@ real(rp), parameter :: a2=0.2_rp, a3=0.3_rp, a4=0.6_rp, &
     dc3=c3-18575.0_rp/48384.0_rp, dc4=c4-13525.0_rp/55296.0_rp, &
     dc5=-277.0_rp/14336.0_rp, dc6=c6-0.25_rp
 
-real(rp) quat(0:3)
+real(rp) quat(0:3), s1
 logical err
 logical, optional :: print_err
 
@@ -481,27 +481,32 @@ if (err) return
 
 !
 
-call transfer_this_orbit (orb, b21*ds*dr_ds1, orb_temp(1), .true.)
-call kick_vector_calc(ele, param, s + a2*ds, orb_temp(1), dr_ds2, err, print_err)
+s1 = s + a2*ds
+call transfer_this_orbit (orb, s1, b21*ds*dr_ds1, orb_temp(1), .true.)
+call kick_vector_calc(ele, param, s1, orb_temp(1), dr_ds2, err, print_err)
 if (err) return
 
-call transfer_this_orbit (orb, ds*(b31*dr_ds1 + b32*dr_ds2), orb_temp(2), .true.)
-call kick_vector_calc(ele, param, s + a3*ds, orb_temp(2), dr_ds3, err, print_err)
+s1 = s + a3*ds
+call transfer_this_orbit (orb, s1, ds*(b31*dr_ds1 + b32*dr_ds2), orb_temp(2), .true.)
+call kick_vector_calc(ele, param, s1, orb_temp(2), dr_ds3, err, print_err)
 if (err) return
 
-call transfer_this_orbit (orb, ds*(b41*dr_ds1 + b42*dr_ds2 + b43*dr_ds3), orb_temp(3), .true.)
-call kick_vector_calc(ele, param, s + a4*ds, orb_temp(3), dr_ds4, err, print_err)
+s1 = s + a4*ds
+call transfer_this_orbit (orb, s1, ds*(b41*dr_ds1 + b42*dr_ds2 + b43*dr_ds3), orb_temp(3), .true.)
+call kick_vector_calc(ele, param, s1, orb_temp(3), dr_ds4, err, print_err)
 if (err) return
 
-call transfer_this_orbit (orb, ds*(b51*dr_ds1 + b52*dr_ds2 + b53*dr_ds3 + b54*dr_ds4), orb_temp(4), .true.)
-call kick_vector_calc(ele, param, s + a5*ds, orb_temp(4), dr_ds5, err, print_err)
+s1 = s + a5*ds
+call transfer_this_orbit (orb, s1, ds*(b51*dr_ds1 + b52*dr_ds2 + b53*dr_ds3 + b54*dr_ds4), orb_temp(4), .true.)
+call kick_vector_calc(ele, param, s1, orb_temp(4), dr_ds5, err, print_err)
 if (err) return
 
-call transfer_this_orbit (orb, ds*(b61*dr_ds1 + b62*dr_ds2 + b63*dr_ds3 + b64*dr_ds4 + b65*dr_ds5), orb_temp(5), .true.)
-call kick_vector_calc(ele, param, s + a6*ds, orb_temp(5), dr_ds6, err, print_err)
+s1 = s + a6*ds
+call transfer_this_orbit (orb, s1, ds*(b61*dr_ds1 + b62*dr_ds2 + b63*dr_ds3 + b64*dr_ds4 + b65*dr_ds5), orb_temp(5), .true.)
+call kick_vector_calc(ele, param, s1, orb_temp(5), dr_ds6, err, print_err)
 if (err) return
 
-call transfer_this_orbit (orb, ds*(c1*dr_ds1 + c3*dr_ds3 + c4*dr_ds4 + c6*dr_ds6), orb_new, .false.)
+call transfer_this_orbit (orb, s1, ds*(c1*dr_ds1 + c3*dr_ds3 + c4*dr_ds4 + c6*dr_ds6), orb_new, .false.)
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   quat =          omega_to_quat(ds*c1*dr_ds1(8:10))
@@ -516,10 +521,10 @@ r_err=ds*(dc1*dr_ds1 + dc3*dr_ds3 + dc4*dr_ds4 + dc5*dr_ds5 + dc6*dr_ds6)
 !----------------------------------------------------------
 contains
 
-subroutine transfer_this_orbit (orb_in, dvec, orb_out, all_transfer)
+subroutine transfer_this_orbit (orb_in, s1, dvec, orb_out, all_transfer)
 
 type (coord_struct) orb_in, orb_out
-real(rp) dvec(10), t_temp
+real(rp) dvec(10), t_temp, s1
 logical all_transfer
 
 !
@@ -527,6 +532,7 @@ logical all_transfer
 if (all_transfer) orb_out = orb_in
 orb_out%vec = orb_in%vec + dvec(1:6)
 orb_out%t = orb_in%t + dvec(7)
+orb_out%s = s1 + ele%s_start
 
 if (dvec(6) /= 0) then
   call convert_pc_to (orb_out%p0c * (1 + orb_out%vec(6)), param%particle, beta = orb_out%beta)

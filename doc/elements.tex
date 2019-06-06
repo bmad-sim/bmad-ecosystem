@@ -176,16 +176,12 @@ An \vn{ac_kicker} element is like a \vn{kicker} element except that the field va
 field is calculated in two steps:
 \begin{enumerate}
 \item Calculate the field the same as for a \vn{kicker} element (\sref{s:kicker}).
-\item Scale the field using the funciton $A(\delta t)$. If \vn{ref_time_offset} is set to \vn{True} (the 
-default), $\delta t = t - t_0 - t_{ref}$ where $t$ is the time and $t_0$ is set by the \vn{t_offset}
-attribute, and $t_{ref}$ is the reference time at the entrance end of the element. If
-\vn{ref_time_offset} is set to \vn{False}, $\delta t = t - t_0$. Note: The time $t$ is always the
-absolute time
+\item Scale the field using the function $A(\delta t)$. If \vn{ref_time_offset} is set to \vn{True} (the 
+default), $\delta t = t - t_0 - t_{ref}$ where $t$ is the time, $t_0$ is the value of the
+\vn{t_offset} attribute, and $t_{ref}$ is the reference time at the entrance end of the element. If
+\vn{ref_time_offset} is set to \vn{False}, $\delta t = t - t_0$. Note: Unlike RF cavity elements,
+the time $t$ here is always the absolute time (\sref{s:rf.time}) and not the relative time.
 \end{enumerate}
-The time is calculated, like the RF cavities, using either relative or absolute time
-(\sref{s:rf.time}).  Note that if a particle is tracked for multiple turns in a closed lattice with
-relative time tracking, the field of an \vn{ac_kicker} element is independent of which turn it is and
-only depends upon the phase space $z$ coordinate.
 
 There are two ways to specify the dimensionless time variation $A(\delta t)$ of the field. One way is to
 specify points on the $A(\delta t)$ curve using the \vn{amp_vs_time}
