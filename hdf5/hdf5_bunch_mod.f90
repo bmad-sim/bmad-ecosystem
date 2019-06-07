@@ -309,8 +309,8 @@ endif
 v_size = size(vector)
 call H5LTmake_dataset_double_f(root_id, dataset_name, 1, [v_size], vector, err)    
 
-call H5LTset_attribute_double_f(root_id, dataset_name, 'minValue', [v_min], 1_hz, err)
-call H5LTset_attribute_double_f(root_id, dataset_name, 'maxValue', [v_max], 1_hz, err)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
@@ -338,8 +338,8 @@ logical error
 
 call h5gcreate_f(root_id, dataset_name, group_id, err)
 
-call H5LTset_attribute_double_f(root_id, dataset_name, 'value', [value], 1_hz, err)
-call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', [v_size], 1_hz, err)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'value', [value], 1_size_t, err)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', [v_size], 1_size_t, err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
@@ -380,8 +380,8 @@ endif
 v_size = size(vector)
 call H5LTmake_dataset_int_f(root_id, dataset_name, 1, [v_size], vector, err)    
 
-call H5LTset_attribute_int_f(root_id, dataset_name, 'minValue', [v_min], 1_hz, err)
-call H5LTset_attribute_int_f(root_id, dataset_name, 'maxValue', [v_max], 1_hz, err)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
@@ -409,8 +409,8 @@ logical error
 
 call h5gcreate_f(root_id, dataset_name, group_id, err)
 
-call H5LTset_attribute_int_f(root_id, dataset_name, 'value', [value], 1_hz, err)
-call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', [v_size], 1_hz, err)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'value', [value], 1_size_t, err)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', [v_size], 1_size_t, err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
@@ -436,8 +436,8 @@ logical error
 character(*) dataset_name, bmad_name
 
 if (bmad_name /= '') call H5LTset_attribute_string_f(root_id, dataset_name, 'localName', bmad_name, err)
-call H5LTset_attribute_double_f(root_id, dataset_name, 'unitSI', [unit%unitSI], 1_hz, err)
-call H5LTset_attribute_double_f(root_id, dataset_name, 'unitDimension', [unit%unitDimension], 7_hz, err)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'unitSI', [unit%unitSI], 1_size_t, err)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'unitDimension', [unit%unitDimension], 7_size_t, err)
 call H5LTset_attribute_string_f(root_id, dataset_name, 'unitSymbol', unit%unitSymbol, err)
 
 end subroutine pmd_write_units_to_dataset 
