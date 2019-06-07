@@ -17,7 +17,6 @@ implicit none
 
 ! Misc
 
-integer, parameter :: hz = hsize_t
 integer, parameter :: H5O_TYPE_ATTRIBUTE_F = 123
 
 ! %element_type identifies the type of element (group, dataset or attribute) can be:
@@ -142,7 +141,7 @@ integer h5_err
 logical error
 !
 error = .true.
-call H5LTset_attribute_int_f(root_id, '.', attrib_name, [ival], 1_hz, h5_err); if (h5_err < 0) return
+call H5LTset_attribute_int_f(root_id, '.', attrib_name, [ival], 1_size_t, h5_err); if (h5_err < 0) return
 error = .false.
 
 end subroutine hdf5_write_attribute_int_rank_0
@@ -165,7 +164,7 @@ end subroutine hdf5_write_attribute_int_rank_0
 subroutine hdf5_write_attribute_int_rank_1(root_id, attrib_name, ival, error)
 
 integer(hid_t) :: root_id
-integer(hsize_t) iz 
+integer(size_t) iz 
 character(*) :: attrib_name
 integer :: ival(:)
 integer h5_err
@@ -202,7 +201,7 @@ integer h5_err
 logical error
 !
 error = .true.
-call H5LTset_attribute_double_f(root_id, '.', attrib_name, [rval], 1_hz, h5_err); if (h5_err < 0) return
+call H5LTset_attribute_double_f(root_id, '.', attrib_name, [rval], 1_size_t, h5_err); if (h5_err < 0) return
 error = .false.
 
 end subroutine hdf5_write_attribute_real_rank_0
@@ -225,7 +224,7 @@ end subroutine hdf5_write_attribute_real_rank_0
 subroutine hdf5_write_attribute_real_rank_1(root_id, attrib_name, rval, error)
 
 integer(hid_t) :: root_id
-integer(hsize_t) iz 
+integer(size_t) iz 
 character(*) :: attrib_name
 real(rp) :: rval(:)
 integer h5_err
@@ -536,7 +535,7 @@ end function hdf5_num_attributes
 subroutine hdf5_get_attribute_by_index(root_id, attrib_indx, attrib_id, attrib_name)
 
 integer(hid_t) root_id, attrib_id
-integer(SIZE_T) nam_len
+integer(size_t) nam_len
 integer attrib_indx, h5_err
 
 character(*) attrib_name
