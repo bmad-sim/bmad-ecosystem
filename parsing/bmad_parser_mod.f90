@@ -439,7 +439,7 @@ endif
 if (word == 'COHERENT_SYNCH_RAD_ON') then
   call parser_error ('Note: "bmad_com[COHERENT_SYNCH_RAD_ON]" has been renamed "bmad_com[CSR_AND_SPACE_CHARGE_ON]"', &
                      'Will run normally...', level = s_warn$)
-  word = 'LOW_ENERGY_SPACE_CHARGE_ON'
+  word = 'CSR_AND_SPACE_CHARGE_ON'
 endif
 
 ! particle_start and bmad_com element can have attributes that are not part of the element so
