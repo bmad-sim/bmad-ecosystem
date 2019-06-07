@@ -1343,13 +1343,13 @@ IF(master) THEN
     WRITE(output,*) "Halo: ", halo
     IF(collimate) WRITE(output,*) "     ", collimators(1:num_cols)
     WRITE(output, '(A,I4)') "Number of data points: ", N_data_points
-    WRITE(output, '(A,I4)') "Number of test particles: ", N_test_part
+    WRITE(output, '(A,I4)') "Number of test particles per Touschek curve: ", N_test_part
     WRITE(output, '(A,F11.4)') "Total Integrated current (#e-): ", total_current
     WRITE(output, '(A,F11.4)') "  Beam Pipe Collisions: ", pipe_current
     WRITE(output, '(A,F11.4)') "  Zero Energy in Linac: ", noenergy_current
     WRITE(output, '(A,ES12.5)')  "Energy deposited into beam pipe (eV): ", total_energy_deposited
 
-    WRITE(output,*) "Number of test particles:      ", number_of_test_particles
+    WRITE(output,*) "Total number of test particles generated:      ", number_of_test_particles
     WRITE(output,*) "  Number lost to beam pipe:    ", beam_pipe_loss_count
     WRITE(output,*) "  Number lost to zero energy:  ", bmad_zero_energy_count
   ENDDO
