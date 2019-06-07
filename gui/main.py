@@ -4,7 +4,7 @@ from tkinter import filedialog
 import sys
 import os
 sys.path.append(os.environ['ACC_ROOT_DIR'] + '/tao/gui')
-from tao_widget import tk_tao_parameter
+from tao_widget import *
 from parameters import str_to_tao_param
 import string
 
@@ -14,42 +14,156 @@ import string
 
 class tao_list_window(tk.Toplevel):
 
-  def __init__(self, root, title, tao_list, pipe, *args, **kwargs):
+  def __init__(self, root, title, *args, **kwargs):
     tk.Toplevel.__init__(self, root, *args, **kwargs)
     self.title(title)
 
     self.geometry('400x600')
 
-    outer_frame=tk.Frame(self)
-    self.button_frame=tk.Frame(self)
+    self.outer_frame=tk.Frame(self)
 
-    canvas=tk.Canvas(outer_frame)
-    frame=tk.Frame(canvas)
-    scrollbar=tk.Scrollbar(outer_frame,orient="vertical",command=canvas.yview)
+    canvas=tk.Canvas(self.outer_frame)
+    self.list_frame=tk.Frame(canvas)
+    scrollbar=tk.Scrollbar(self.outer_frame,orient="vertical",command=canvas.yview)
     canvas.configure(yscrollcommand=scrollbar.set)
 
     def scrollhelper(event):
       canvas.configure(scrollregion=canvas.bbox("all"),width=200,height=200)
-    frame.bind("<Configure>",scrollhelper)
+    self.list_frame.bind("<Configure>",scrollhelper)
 
-    #def mouse_scroll(event):
-    #  canvas.yview_scroll(direction,"units")
-    #outer_frame.bind_all("<MouseWheel>", mouse_scroll)
+    def mouse_scroll(event):
+      #canvas.yview_scroll(direction,"units")
+      if event.num == 4:
+        canvas.yview_scroll(-1,"units")
+      elif event.num == 5:
+        canvas.yview_scroll(1,"units")
 
-    outer_frame.pack(side="top",fill="both",expand=1)
-    self.button_frame.pack(side="bottom",fill="both",expand=0)
+    def bind_mouse(event):
+      self.outer_frame.bind_all("<Button-4>", mouse_scroll)
+      self.outer_frame.bind_all("<Button-5>", mouse_scroll)
+
+    def unbind_mouse(event):
+      self.outer_frame.unbind_all("<Button-4>")
+      self.outer_frame.unbind_all("<Button-5>")
+
+    self.outer_frame.bind("<Enter>", bind_mouse)
+    self.outer_frame.bind("<Leave>", unbind_mouse)
+
+    self.outer_frame.pack(side="top",fill="both",expand=1)
     scrollbar.pack(side="right",fill="y")
     canvas.pack(side="left",fill="both",expand=1)
-    canvas.create_window((0,0),window=frame,anchor='nw')
+    canvas.create_window((0,0),window=self.list_frame,anchor='nw')
 
+    
+#---------------------------------------------------------------
+# Parameter window
+class tao_parameter_window(tao_list_window):
+
+  def __init__(self, root, title, tao_list, pipe, *args, **kwargs):
+    tao_list_window.__init__(self, root, title, *args, **kwargs)
+    self.button_frame = tk.Frame(self)
+    self.button_frame.pack(side="top", fill="both", expand=0)
     self.tao_list = tao_list
     for k in range(len(self.tao_list)):
-      self.tao_list[k] = tk_tao_parameter(self.tao_list[k], frame, pipe)
-      tk.Label(frame,text=self.tao_list[k].param.name).grid(row=k,column=0,sticky="E")
+      self.tao_list[k] = tk_tao_parameter(self.tao_list[k], self.list_frame, pipe)
+      tk.Label(self.list_frame,text=self.tao_list[k].param.name).grid(row=k,column=0,sticky="E")
       self.tao_list[k].tk_wid.grid(row=k,column=1,sticky="W")
       k = k+1
-    
+ 
 
+#---------------------------------------------------------------
+# d2_data window
+
+class tao_d2_data_window(tao_list_window):
+
+  def __init__(self, root, pipe, *args, **kwargs):
+    tao_list_window.__init__(self, root, "Data", *args, **kwargs)
+    self.pipe = pipe
+    univ_list = self.pipe.cmd_in("python super_universe")
+    n_universe = str_to_tao_param(univ_list.splitlines()[0])
+    self.univ_frame = tk.Frame(self)
+    tk.Label(self.univ_frame, text="Universe: ", font=('Helvetica',12)).grid(row=0,column=0,sticky="E")
+    self.u_ix = tk.StringVar()
+    u_ix_list = []
+    for i in range(n_universe.value):
+      u_ix_list.append(str(i+1))
+    self.u_ix.set(u_ix_list[0])
+    u_ix_box = tk.OptionMenu(self.univ_frame, self.u_ix, *u_ix_list, command=self.refresh)
+    u_ix_box.grid(row=0,column=1,sticky="W")
+    self.univ_frame.pack(fill="both", expand=0)
+
+    # Poopulate self.list_frame
+    self.refresh(self.u_ix.get())
+
+
+  def refresh(self,u_ix):
+    '''
+    Clears self.list_frame and fills it with the current universe's 
+    d2/d1 data
+    '''
+    # Clear self.list_frame:
+    for child in self.list_frame.winfo_children():
+      child.destroy()
+    # Get this universe's d2_data
+    d2_data_list = self.pipe.cmd_in("python data_d2_array " + u_ix)
+    d2_data_list = d2_data_list.splitlines()
+    for d2_data_item in d2_data_list:
+      new_frame = d2_data_frame(self.list_frame, self.pipe, d2_data_item, u_ix)
+      new_frame.frame.pack()
+
+
+#---------------------------------------------------------------
+# d1_data window
+
+class tao_d1_data_window(tao_list_window):
+
+  def __init__(self, root, pipe, d1_data_name, u_ix, ix_lb, ix_ub, *args, **kwargs):
+    tao_list_window.__init__(self, root, d1_data_name, *args, **kwargs)
+    self.geometry('1500x600')
+    self.pipe = pipe
+    list_rows = []
+    # row counter: i-ix_lb
+    title_list = ["Index",
+        "d1_data_name", 
+        "Merit type", 
+        "Ref Element", 
+        "Start Element", 
+        "Element Name",
+        "Meas value",
+        "Model value",
+        "Design value",
+        "Useit_opt",
+        "Useit_plot",
+        "good_user",
+        "Weight"]
+    j = 0
+    for item in title_list:
+      tk.Label(self.list_frame, text=item).grid(row=0, column=j)
+      j=j+1
+    for i in range(ix_lb, ix_ub+1):
+      list_rows.append(d1_data_list_entry(self.list_frame, d1_data_name, i, u_ix, self.pipe))
+      j = 0 # column counter
+      for widget in list_rows[i-ix_lb].tk_list:
+        widget.grid(row=i-ix_lb+1, column=j)
+        j = j+1
+      tk.Button(self.list_frame, text="Edit...", command=self.open_datum_window_callback(d1_data_name, i, u_ix)).grid(row=i-ix_lb+1, column=j)
+
+  def open_datum_window_callback(self, d1_data_name, d1_data_ix, u_ix):
+    return lambda : self.open_datum_window(d1_data_name, d1_data_ix, u_ix)
+
+  def open_datum_window(self, d1_data_name, d1_data_ix, u_ix):
+    param_list = self.pipe.cmd_in("python data1 " + str(u_ix) + '@' + d1_data_name + '[' + str(d1_data_ix) + ']')
+    param_list = param_list.splitlines()
+    for i in range(len(param_list)):
+      print(param_list[i])
+      param_list[i]=str_to_tao_param(param_list[i])
+    win = tao_parameter_window(None, d1_data_name + '[' + str(d1_data_ix) + ']', param_list, self.pipe)
+
+
+#---------------------------------------------------------------
+# Variable Window
+
+#class tao_var_general_window(tk.Toplevel):
 
 #---------------------------------------------------------------
 # Root window 
@@ -60,7 +174,6 @@ class tao_root_window(tk.Tk):
     tk.Tk.__init__(self)
 
     self.title("Tao")
-    self.geometry('350x600')
     self.protocol("WM_DELETE_WINDOW", self.quit_cmd)
 
     # Menu bar
@@ -80,6 +193,7 @@ class tao_root_window(tk.Tk):
     window_menu.add_command(label = 'Plotting...', command = self.plotting_cmd)
     window_menu.add_command(label = 'Wave...', command = self.wave_cmd)
     window_menu.add_command(label = 'Global Variables...', command = self.set_global_vars_cmd)
+    window_menu.add_command(label = 'Data...', command = self.view_data_cmd)
     menubar.add_cascade(label = 'Window', menu = window_menu)
 
     self.config(menu=menubar)
@@ -89,10 +203,6 @@ class tao_root_window(tk.Tk):
     init_frame = tk.Frame(self, width = 20, height = 30)
     init_frame.pack()
     self.tao_load(init_frame)
-    #beam_str = tk.Entry(init_frame)
-    #beam_str.pack()
-    #b = tk.Button(init_frame, text = "Tao Init", command = self.tao_init)
-    #b.pack()
       
     # Key bindings
 
@@ -118,6 +228,8 @@ class tao_root_window(tk.Tk):
   def tao_load(self,init_frame):
     from parameters import param_dict
     tk_list = [] #Items: tk_tao_parameter()'s (see tao_widget.py)
+    init_frame.grid_columnconfigure(0, weight=1, uniform="test")
+    init_frame.grid_columnconfigure(1, weight=1, uniform="test")
     k = 0 #row number counter
     for param, tao_param in param_dict.items():
       tk_list.append(tk_tao_parameter(tao_param,init_frame))
@@ -213,10 +325,13 @@ class tao_root_window(tk.Tk):
     global_list = global_list.splitlines()
     for i in range(len(global_list)):
       global_list[i]=str_to_tao_param(global_list[i])
-    win = tao_list_window(None, "Global Variables", global_list, self.pipe)
+    win = tao_parameter_window(None, "Global Variables", global_list, self.pipe)
 
     b = tk.Button(win.button_frame, text="Set Global Variables", command=lambda : self.tao_set(win.tao_list))
     b.pack()
+
+  def view_data_cmd(self):
+    win = tao_d2_data_window(None, self.pipe)
 
   # Other callbacks
 
