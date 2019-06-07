@@ -1,5 +1,3 @@
-import tkinter as tk
-from tkinter import messagebox
 from collections import OrderedDict 
 import string
 
@@ -72,28 +70,4 @@ def str_to_tao_param(param_str):
     return tao_parameter(v[0],v[1],v[2],v[3])
 
 #-------------------------------------------------
-
-class vertical_param_frame(tk.Frame):
-
-  def __init__(self, param):
-    self.label = tk.Label(self, text = param.name)
-    self.label.grid(sticky="W", row=0, column=0)
-
-    if param.type == 'STR':
-      pass
-    elif param.type == 'FILE':
-      pass
-    elif param.type == 'INT':
-      self.value = int(param_value)
-    elif param.type == 'REAL':
-      self.value = float(param_value)
-    elif param.type == 'LOGIC':
-      self.value = (param_value == 'T')
-    elif param.type == 'ENUM':
-      self.value = param_value
-
-
-#-------------------------------------------------
-
 param_dict = tao_parameter_dict(startup_list)
-
