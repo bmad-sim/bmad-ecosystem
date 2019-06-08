@@ -714,6 +714,14 @@ type tao_spin_map_struct
   real(rp) :: mat8(8,8) = 0
 end type
 
+type tao_spin_polarization_struct
+  logical valid_value
+  character(60) why_invalid
+  real(rp) :: pol_limit = real_garbage$  ! Equalibrium Polarization calculated via the Derbenev-Kondratenko-Mane formula.
+  real(rp) :: pol_rate = real_garbage$   ! Polarization rate (1/sec).
+  real(rp) :: depol_rate = real_garbage$ ! Depolarization rate (1/sec).
+end type
+
 type tao_scratch_space_struct
   type (tao_beam_shake_struct), allocatable :: cc(:)
   type (ele_pointer_struct), allocatable :: eles(:)
@@ -726,6 +734,7 @@ type tao_scratch_space_struct
   type (tao_expression_info_struct), allocatable :: info(:)
   type (tao_expression_info_struct), allocatable :: info_x(:), info_y(:), info_ix(:)
   type (tao_spin_map_struct), allocatable :: spin_map(:)
+  type (tao_spin_polarization_struct) spin
   logical, allocatable :: picked(:)
   logical, allocatable :: this_u(:)
   real(rp), allocatable :: axis1(:), axis2(:), axis3(:)

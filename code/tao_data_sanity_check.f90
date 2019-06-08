@@ -23,6 +23,7 @@ type (tao_data_struct) datum
 type (branch_struct), pointer :: branch
 type (tao_universe_struct), pointer :: u
 
+integer has_associated_ele
 logical print_err, is_valid
 character(40) d_type
 character(*), parameter :: r_name = 'tao_data_sanity_check'
@@ -76,8 +77,12 @@ endif
 
 !
 
-if (d_type == 'unstable.orbit' .or. d_type(1:7) == 'normal.' .or. d_type(1:5) == 'srdt.' .or. &
-     d_type(1:18) == 'spin.polarization_' .or. d_type == 'spin.depolarization_rate') then
+has_associated_ele = tao_datum_has_associated_ele(d_type)
+
+if (has_associated_ele == maybe$) then
+  ! Do nothing
+
+elseif (has_associated_ele == no$) then
   if (datum%ele_name /= '') then
     call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // d_type, &
                                    'CANNOT HAVE AN ASSOCIATED ELEMENT: ' // datum%ele_name, &
@@ -85,10 +90,7 @@ if (d_type == 'unstable.orbit' .or. d_type(1:7) == 'normal.' .or. d_type(1:5) ==
     return
   endif
 
-elseif (branch%param%geometry == closed$ .and. (d_type == 'chrom.a' .or. d_type == 'chrom.b' .or. &
-             d_type(1:12) == 'chrom.dtune.' .or. d_type(1:5) == 'damp.' .or. &
-             d_type(1:17) == 'multi_turn_orbit.' .or. d_type(1:5) == 'tune.' .or. &
-             d_type(1:13) == 'unstable.ring' .or. index(d_type, 'emit.') /= 0)) then
+elseif (branch%param%geometry == closed$ .and. has_associated_ele == provisional$) then
   if (datum%ele_name /= '') then
     if (print_err) call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // d_type, &
                                                   'CANNOT HAVE AN ASSOCIATED ELEMENT IN A CIRCULAR LATTICE: ' // datum%ele_name, &
@@ -96,15 +98,9 @@ elseif (branch%param%geometry == closed$ .and. (d_type == 'chrom.a' .or. d_type 
     return
   endif
 
-elseif ((d_type(1:11) == 'expression:' .and. index(d_type, 'ele::#[') == 0) .or. d_type(1:8) == 'rad_int.') then
-  ! Do nothing
-
 else
   if (datum%ele_name == '') then
-    ! Datum is invalid but there is no error.
-    !if (print_err) call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // d_type, &
-    !                                              'MUST HAVE AN ASSOCIATED ELEMENT.', &
-    !                                              'FOR DATUM: ' // tao_datum_name(datum))
+    ! Datum is invalid but do not generate an error since this is a common situation.
     return
   endif
 endif

@@ -648,7 +648,7 @@ case ('data1')
   nl=incr(nl); write (li(nl), lmt) 'good_meas;LOGIC;T;',                      d_ptr%good_meas
   nl=incr(nl); write (li(nl), lmt) 'good_ref;LOGIC;T;',                       d_ptr%good_ref
   nl=incr(nl); write (li(nl), lmt) 'good_user;LOGIC;T;',                      d_ptr%good_user
-  nl=incr(nl); write (li(nl), lmt) 'good_opt;LOGIC;T;',                       d_ptr%good_opt
+  nl=incr(nl); write (li(nl), lmt) 'good_opt;LOGIC;F;',                       d_ptr%good_opt
   nl=incr(nl); write (li(nl), lmt) 'good_plot;LOGIC;T;',                      d_ptr%good_plot
   nl=incr(nl); write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     d_ptr%useit_plot
   nl=incr(nl); write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      d_ptr%useit_opt
@@ -771,6 +771,8 @@ case ('help')
   nl = nl + nl2
 
 !----------------------------------------------------------------------
+! ********* NOTE: COLWIN IS USING THIS!! *************
+!
 ! Lattice element list.
 ! Command syntax:
 !   python lat_ele {branch_name}
@@ -923,6 +925,8 @@ case ('lat_ele1')
   end select  
 
 !----------------------------------------------------------------------
+! ********* NOTE: COLWIN IS USING THIS!! *************
+!
 ! Lattice general
 ! Command syntax:
 !   python lat_general {ix_universe}
@@ -940,6 +944,8 @@ case ('lat_general')
   enddo
 
 !----------------------------------------------------------------------
+! ********* NOTE: COLWIN IS USING THIS!! *************
+!
 ! List of parameters at ends of lattice elements
 ! Command syntax:
 !   python lat_list {ix_uni}@{ix_branch}>>{elements}|{which} {who}
@@ -1341,6 +1347,8 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               cur%symbol%line_width
 
 !----------------------------------------------------------------------
+! ********* NOTE: COLWIN IS USING THIS!! *************
+!
 ! Points used to construct a smooth line for a plot curve.
 ! Command syntax:
 !   python plot_line {region_name}.{graph_name}.{curve_name} {x-or-y}

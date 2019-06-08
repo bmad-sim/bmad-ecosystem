@@ -181,6 +181,12 @@ subroutine tao_data_show_use (d2_data, lines, nl)
   integer, optional :: nl
 end subroutine
 
+function tao_datum_has_associated_ele (data_type) result (has_associated_ele)
+  implicit none
+  character(*) data_type
+  integer has_associated_ele
+end function
+
 function tao_datum_name(datum, show_universe) result (datum_name)
   import
   implicit none
@@ -739,14 +745,12 @@ subroutine tao_spin_g_matrix_calc (datum, u, ix_ref, ix_ele, spin_map, valid_val
 character(*) why_invalid
 end subroutine
 
-subroutine tao_spin_polarization_calc (branch, orbit, valid_value, why_invalid, pol_limit, pol_rate, depol_rate)
+subroutine tao_spin_polarization_calc (branch, orbit, spin_pol)
   import
   implicit none
   type (branch_struct), target :: branch
   type (coord_struct) :: orbit(0:)
-  real(rp), optional :: pol_limit, pol_rate, depol_rate
-  logical valid_value
-  character(*) why_invalid
+  type (tao_spin_polarization_struct) spin_pol
 end subroutine
 
 function tao_spin_matrices_calc_needed (data_type, data_source) result (do_calc)
