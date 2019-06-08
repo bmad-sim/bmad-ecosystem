@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_spin_polarization_calc (branch, valid_value, why_invalid, pol_limit, pol_rate, depol_rate)
+! Subroutine tao_spin_polarization_calc (branch, orbit, spin_pol)
 !
 ! Routine to calculate the spin equalibrium polarization in a ring along with the polarization rate and
 ! the depolarization rate due to emission of synchrotron radiation photons.
@@ -8,16 +8,13 @@
 !
 ! Input:
 !   branch        -- branch_struct: Lattice branch to analyze.
+!   orbit(0:)     -- coord_struct: Reference orbit
 !
 ! Output:
-!   valid_value   -- Logical: Set false when there is a problem. Set true otherwise.
-!   why_invalid   -- character(*), optional: Tells why datum value is invalid.
-!   pol_limit     -- real(rp): Equalibrium Polarization calculated via the Derbenev-Kondratenko-Mane formula.
-!   pol_rate,     -- real(rp): Polarization rate (1/sec).
-!   depol_rate    -- real(rp): Depolarization rate (1/sec).
+!   spin_pol      -- tao_spin_polarization_struct.
 !-
 
-subroutine tao_spin_polarization_calc (branch, orbit, valid_value, why_invalid, pol_limit, pol_rate, depol_rate)
+subroutine tao_spin_polarization_calc (branch, orbit, spin_pol)
 
 use tao_data_and_eval_mod, dummy => tao_spin_polarization_calc
 use radiation_mod
@@ -30,13 +27,13 @@ implicit none
 
 type (branch_struct), target :: branch
 type (coord_struct) :: orbit(0:)
+type (tao_spin_polarization_struct) spin_pol
 type (q_linear) :: q_1turn
 type (q_linear), pointer :: q1
 type (q_linear), target :: q_ele(branch%n_ele_track)
 type (ele_struct), pointer :: ele
 type (taylor_struct), pointer :: st
 
-real(rp), optional :: pol_limit, pol_rate, depol_rate
 real(rp) vec0(6), mat6(6,6), n0(3), l0(3), m0(3), mat3(3,3)
 real(rp) dn_ddelta(3), m_1turn(8,8)
 real(rp) quat0(0:3), quat_lnm_to_xyz(0:3), q0_lnm(0:3), qq(0:3)
@@ -51,12 +48,12 @@ integer ix1, ix2
 integer i, j, k, kk, n, p, ie
 integer pinfo, ipiv2(2), ipiv6(6)
 
-logical valid_value
 logical st_on, err
 
-character(*) why_invalid
 
 !
+
+spin_pol%valid_value = .true.
 
 q_1turn = 0
 do ie = 1, branch%n_ele_track
@@ -167,7 +164,7 @@ do ie = 0, branch%n_ele_track
 
   ele => branch%ele(ie)
   call calc_radiation_tracking_g_factors (ele, orbit(ie), branch%param, end_edge$, len2, g_x, g_y, g2, g3)
-  if (len2 /= 0) then
+  if (len2 /= 0 .and. g3 /= 0) then
     b_vec = [g_y, -g_x, 0.0_rp]
     b_vec = b_vec / norm2(b_vec)
 
@@ -180,7 +177,7 @@ do ie = 0, branch%n_ele_track
 
   ele => branch%ele(ie+1)
   call calc_radiation_tracking_g_factors (ele, orbit(ie), branch%param, start_edge$, len2, g_x, g_y, g2, g3)
-  if (len2 /= 0) then
+  if (len2 /= 0 .and. g3 /= 0) then
     b_vec = [g_y, -g_x, 0.0_rp]
     b_vec = b_vec / norm2(b_vec)
 
@@ -198,8 +195,8 @@ call convert_pc_to ((1 + orbit(0)%vec(6)) * orbit(0)%p0c, branch%param%particle,
 
 f = f_rate * gamma**5 * cm_ratio**2 / branch%param%total_length
 
-pol_limit = -f_limit * integral_bn / (integral_1minus + integral_dn_ddel)
-pol_rate = f * (integral_1minus + integral_dn_ddel)
-depol_rate = f * integral_dn_ddel
+spin_pol%pol_limit = -f_limit * integral_bn / (integral_1minus + integral_dn_ddel)
+spin_pol%pol_rate = f * (integral_1minus + integral_dn_ddel)
+spin_pol%depol_rate = f * integral_dn_ddel
 
 end subroutine tao_spin_polarization_calc

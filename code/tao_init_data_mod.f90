@@ -276,7 +276,7 @@ type (tao_data_struct), pointer :: dat
 
 real(rp), allocatable :: s(:)
 
-integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2, i_d1
+integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2, i_d1, has_associated_ele
 integer, allocatable :: ind(:)
 
 character(20) fmt
@@ -440,9 +440,17 @@ else
     enddo
   endif
 
+  ! If a global data type (no associated lattice element) then just construct a single datum.
+
   if (ix_max_data == int_garbage$) then
-    call out_io (s_error$, r_name, 'NO DATA FOUND FOR: ' // tao_d2_d1_name(d1_this))
-    return
+    has_associated_ele = tao_datum_has_associated_ele(tao_d2_d1_name(d1_this))
+    if (has_associated_ele == yes$) then
+      call out_io (s_error$, r_name, 'NO DATA FOUND FOR: ' // tao_d2_d1_name(d1_this))
+      return
+    else
+      ix_min_data = 1
+      ix_max_data = 1
+    endif
   endif
 
   n1 = u%n_data_used + 1

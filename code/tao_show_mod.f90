@@ -211,10 +211,11 @@ end type
 type (show_lat_column_struct) column(60)
 type (show_lat_column_info_struct) col_info(60) 
 type (tao_expression_info_struct), allocatable, save :: info(:)
+type (tao_spin_polarization_struct) spin_pol
 
 real(rp) phase_units, s_pos, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, dt, angle, r
 real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, pz2
-real(rp) pol_limit, pol_rate, depol_rate, g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del
+real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b
 real(rp), allocatable :: value(:)
 
@@ -3336,11 +3337,11 @@ case ('spin')
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Beginning spin:', orb%spin
     else
-      call tao_spin_polarization_calc (branch, tao_branch%orbit, valid_value, why_invalid, pol_limit, pol_rate, depol_rate)
+      call tao_spin_polarization_calc (branch, tao_branch%orbit, spin_pol)
       nl=nl+1; lines(nl) = ''
-      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarizaiton Limit:          ', pol_limit
-      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarizaiton Rate (1/sec):   ', pol_rate
-      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Depolarizaiton Rate (1/sec): ', depol_rate
+      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarizaiton Limit:          ', spin_pol%pol_limit
+      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarizaiton Rate (1/sec):   ', spin_pol%pol_rate
+      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Depolarizaiton Rate (1/sec): ', spin_pol%depol_rate
     endif
 
     if (allocated(scratch%spin_map)) then
