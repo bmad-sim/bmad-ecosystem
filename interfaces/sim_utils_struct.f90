@@ -48,7 +48,7 @@ integer, parameter :: x_axis$ = 1, y_axis$ = 2, z_axis$ = 3
 
 real(rp), parameter :: true$ = 1, false$ = 0
 integer, parameter :: true_int$ = 1, false_int$ = 0
-integer, parameter :: yes$ = 1, no$ = 0, maybe$ = 2
+integer, parameter :: yes$ = 1, no$ = 0, maybe$ = 2, provisional$ = 3
 
 ! Color escape sequences
 
