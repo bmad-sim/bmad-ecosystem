@@ -6,9 +6,6 @@ use tpsa
 implicit none
 
 type (lat_struct), target :: lat
-type (coord_struct) start_orb, end_orb, end_bs, end_ptc
-type (branch_struct), pointer :: branch
-type (track_struct) track
 
 character(200) :: line(10)
 character(40) :: lat_file  = 'tracking_method_test.bmad'
@@ -58,17 +55,21 @@ if (print_extra) then
   print *
 endif
 
-call track_it (1, 1)
-if (.not. print_extra) call track_it (1, -1)
+call track_it (lat, 1, 1)
+if (.not. print_extra) call track_it (lat, 1, -1)
 
 close(1)
 
 !------------------------------------------------
 contains
 
-subroutine track_it(d_sign, p_sign)
+subroutine track_it(lat, d_sign, p_sign)
 
+type (lat_struct), target :: lat
+type (coord_struct) start_orb, end_orb, end_bs, end_ptc
 type (ele_struct), pointer :: ele
+type (branch_struct), pointer :: branch
+type (track_struct) track
 integer d_sign, p_sign
 
 !
