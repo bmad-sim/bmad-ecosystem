@@ -9,7 +9,7 @@ import string
 
 class tk_tao_parameter():
   '''
-  Takes a tao_parameter (defined in parameters.py) and a 
+  Takes a tao_parameter (defined in parameters.py) and a
   tk frame, and creates an object containing the parameter and appropriate tk widget(s) for displaying and modifying the parameter and value
   '''
 
@@ -25,7 +25,7 @@ class tk_tao_parameter():
       self.tk_var = tk.StringVar()
       self.tk_var.set(self.param.value)
       options = enum_fetch(self.param.name,pipe)
-      self.tk_wid = tk.OptionMenu(frame, self.tk_var, *options) 
+      self.tk_wid = tk.OptionMenu(frame, self.tk_var, *options)
     elif self.param.type == 'FILE':
       self.tk_var = tk.StringVar()
       self.tk_var.set(self.param.value)
@@ -81,8 +81,6 @@ class d2_data_frame():
     Opens a window with detailed information for d2_data_name.d1_data_name
     '''
     from main import tao_d1_data_window
-    print(d2_data_name)
-    print(d1_data_name)
     win = tao_d1_data_window(None, pipe, d2_data_name + '.' + d1_data_name, u_ix, ix_lb, ix_ub)
 
 #-----------------------------------------------------------------
@@ -98,7 +96,7 @@ class d1_data_list_entry():
     self.name = d1_data_name
     self.name_label = tk.Label(master, text=d1_data_name)
     self.tk_list.append(self.name_label)
-    
+
     param_list = pipe.cmd_in("python data1 " + str(u_ix) + "@" + d1_data_name + "[" + str(self.index) + "]")
     self.param_dict = tao_parameter_dict(param_list.splitlines())
 
@@ -110,7 +108,7 @@ class d1_data_list_entry():
     self.tk_list.append(self.start_ele)
     self.ele_name = tk.Label(master, text=self.param_dict["ele_name"].value)
     self.tk_list.append(self.ele_name)
-    
+
     self.meas = tk_tao_parameter(self.param_dict["meas_value"], master, pipe)
     self.tk_list.append(self.meas.tk_wid)
     self.model = tk_tao_parameter(self.param_dict["model_value"], master, pipe)
