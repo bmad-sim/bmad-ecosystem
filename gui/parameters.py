@@ -1,4 +1,4 @@
-from collections import OrderedDict 
+from collections import OrderedDict
 import string
 
 startup_list = [
@@ -51,7 +51,7 @@ class tao_parameter():
     return self.type + ';' + str(self.can_vary) + ';' + str(self.value)
 
 # An item in the parameter list is a string that looks like:
-#        'lattice_file;STR;T;bmad.lat'   
+#        'lattice_file;STR;T;bmad.lat'
 
 def tao_parameter_dict(param_list):
     this_dict = OrderedDict()
