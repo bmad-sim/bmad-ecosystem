@@ -10,7 +10,7 @@ import string
 
 
 #---------------------------------------------------------------
-# List window 
+# List window
 
 class tao_list_window(tk.Toplevel):
 
@@ -54,7 +54,7 @@ class tao_list_window(tk.Toplevel):
     canvas.pack(side="left",fill="both",expand=1)
     canvas.create_window((0,0),window=self.list_frame,anchor='nw')
 
-    
+
 #---------------------------------------------------------------
 # Parameter window
 class tao_parameter_window(tao_list_window):
@@ -69,7 +69,7 @@ class tao_parameter_window(tao_list_window):
       tk.Label(self.list_frame,text=self.tao_list[k].param.name).grid(row=k,column=0,sticky="E")
       self.tao_list[k].tk_wid.grid(row=k,column=1,sticky="W")
       k = k+1
- 
+
 
 #---------------------------------------------------------------
 # d2_data window
@@ -98,7 +98,7 @@ class tao_d2_data_window(tao_list_window):
 
   def refresh(self,u_ix):
     '''
-    Clears self.list_frame and fills it with the current universe's 
+    Clears self.list_frame and fills it with the current universe's
     d2/d1 data
     '''
     # Clear self.list_frame:
@@ -124,10 +124,10 @@ class tao_d1_data_window(tao_list_window):
     list_rows = []
     # row counter: i-ix_lb
     title_list = ["Index",
-        "d1_data_name", 
-        "Merit type", 
-        "Ref Element", 
-        "Start Element", 
+        "d1_data_name",
+        "Merit type",
+        "Ref Element",
+        "Start Element",
         "Element Name",
         "Meas value",
         "Model value",
@@ -166,7 +166,7 @@ class tao_d1_data_window(tao_list_window):
 #class tao_var_general_window(tk.Toplevel):
 
 #---------------------------------------------------------------
-# Root window 
+# Root window
 
 class tao_root_window(tk.Tk):
 
@@ -203,7 +203,7 @@ class tao_root_window(tk.Tk):
     init_frame = tk.Frame(self, width = 20, height = 30)
     init_frame.pack()
     self.tao_load(init_frame)
-      
+
     # Key bindings
 
     self.bind_all("<Control-q>", self.quit_cmd)
@@ -243,7 +243,7 @@ class tao_root_window(tk.Tk):
 #        tk_dict[param] = [tk.StringVar()]
 #
 #        tk_dict[param].append(tk.Label(init_frame,text=param))
-#        
+#
 #        tk_dict[param].append(tk.Entry(init_frame, textvariable=tk_dict[param][0]))
 #      elif tao_param.type == 'FILE':
 #        tk_dict[param] = [tk.StringVar()]
@@ -278,10 +278,12 @@ class tao_root_window(tk.Tk):
           if tk_param.param.value:
             init_args = init_args + "-" + tk_param.param.name + " "
       # Run Tao, clear the init_frame, and draw the main frame
-      
-      sys.path.append(os.environ['ACC_ROOT_DIR'] + '/tao/python/tao_pexpect')
-      import tao_pipe
-      self.pipe = tao_pipe.tao_io(init_args)
+
+      from tao_interface import tao_interface
+      self.pipe = tao_interface(init_args)
+      #sys.path.append(os.environ['ACC_ROOT_DIR'] + '/tao/python/tao_pexpect')
+      #import tao_pipe
+      #self.pipe = tao_pipe.tao_io(init_args)
 
       init_frame.destroy()
       self.start_main()
@@ -323,6 +325,8 @@ class tao_root_window(tk.Tk):
   def set_global_vars_cmd(self):
     global_list = root.pipe.cmd_in("python global")
     global_list = global_list.splitlines()
+    global_list.pop(-1) # last line is blank
+    global_list.pop(-1)
     for i in range(len(global_list)):
       global_list[i]=str_to_tao_param(global_list[i])
     win = tao_parameter_window(None, "Global Variables", global_list, self.pipe)
@@ -373,8 +377,9 @@ class tao_root_window(tk.Tk):
       elif item.param.name == 'plot_on':
         plot_on = str(item.param.value)
       else:
+        #self.pipe.cmd("set global " + item.param.name + " = " + str(item.param.value))
         msg = self.pipe.cmd_in("set global " + item.param.name + " = " + str(item.param.value))
-        if msg !="":
+        if msg.find("ERROR") != -1:
           messagebox.showwarning(item.param.name,msg)
     #Now set lattice_calc_on and plot_on
     self.pipe.cmd("set global plot_on = " + plot_on)
