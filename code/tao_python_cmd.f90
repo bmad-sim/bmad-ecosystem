@@ -89,7 +89,7 @@ character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
 character(20) cmd, command, who, which, v_str
 character(20) :: r_name = 'tao_python_cmd'
-character(20) :: cmd_names(36) = [character(20) :: &
+character(20) :: cmd_names(37) = [character(20) :: &
   'beam_init', 'branch1', 'bunch1', 'bmad_com', &
   'data_create', 'data_destroy', 'data_d2_array', 'data_d1_array', 'data_d2', 'data_d_array', 'data', &
   'enum', 'global', 'help', &
@@ -97,7 +97,7 @@ character(20) :: cmd_names(36) = [character(20) :: &
   'orbit_at_s', &
   'plot_list', 'plot1', 'plot_graph', 'plot_curve', 'plot_line', 'plot_symbol', &
   'species_to_int', 'species_to_str', 'super_universe', 'twiss_at_s', 'universe', &
-  'var_create', 'var_destroy', 'var_general', 'var_v1', 'var1']
+  'var_create', 'var_destroy', 'var_general', 'var_v1_array', 'var_v_array', 'var']
 
 real(rp) s_pos, value
 real(rp), allocatable :: re_array(:)
@@ -270,7 +270,7 @@ case ('bunch1')
   case default
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": coordinate not "x", "px", etc. ')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   end select
 
@@ -388,7 +388,7 @@ case ('data_create')
   if (ix_line == 0) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": No d2 name given')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
 
@@ -398,7 +398,7 @@ case ('data_create')
   if (.not. is_integer(line)) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Number of d1 arrays missing or invalid')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
   read (line, *) n_d1
@@ -417,7 +417,7 @@ case ('data_create')
   if (ix_line /= 0 .or. i /= n_d1+1) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Malformed array of datum min/max for each d1.')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
 
@@ -441,7 +441,7 @@ case ('data_create')
 !!    nl=incr(nl); li(nl) = 'INVALID'
 !!    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Data with this name already exists.', &
 !!                                   'Destroy with "python data_destroy" first.')
-!!    call end_stuff()
+!!    call end_stuff(li, nl)
 !!    return
   endif
 
@@ -531,7 +531,7 @@ case ('data_d2')
   if (err .or. .not. allocated(d2_array)) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d2 data name')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
 
@@ -567,7 +567,7 @@ case ('data_d_array')
   if (.not. allocated(d_array)) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d1_datum name.')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
 
@@ -576,9 +576,9 @@ case ('data_d_array')
     if (.not. d_ptr%exists) cycle
     name = tao_constraint_type_name(d_ptr)
     nl=incr(nl); write(li(nl), '(i0, 9a, 3(es23.15, a), 3(l1, a), es23.15)') d_ptr%ix_d1, ';', trim(name), ';', &
-                   trim(d_ptr%ele_ref_name), ';', trim(d_ptr%ele_start_name), ';', &
-                   trim(d_ptr%ele_name), ';', d_ptr%meas_value, ';', d_ptr%model_value, ';', &
-                   d_ptr%design_value, ';', d_ptr%useit_opt, ';', d_ptr%useit_plot, ';', d_ptr%good_user, ';', d_ptr%weight
+                   trim(d_ptr%ele_ref_name), ';', trim(d_ptr%ele_start_name), ';', trim(d_ptr%ele_name), ';', &
+                   d_ptr%meas_value, ';', d_ptr%model_value, ';', d_ptr%design_value, ';', &
+                   d_ptr%useit_opt, ';', d_ptr%useit_plot, ';', d_ptr%good_user, ';', d_ptr%weight
   enddo
 
 
@@ -596,7 +596,7 @@ case ('data_d1_array')
   if (err .or. .not. allocated(d2_array)) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d2 data name')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
 
@@ -639,7 +639,7 @@ case ('data')
   if (.not. allocated(d_array) .or. size(d_array) /= 1) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid datum name.')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
 
@@ -700,7 +700,7 @@ case ('enum')
   if (.not. allocated(name_list)) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid switch name.')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1255,7 +1255,7 @@ case ('plot_graph')
   if (err .or. .not. allocated(graph)) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Bad graph name')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1335,7 +1335,7 @@ case ('plot_curve')
   if (err .or. .not. allocated(curve)) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid curve')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1401,7 +1401,7 @@ case ('plot_line')
   if (.not. allocated(curve) .or. size(curve) /= 1) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid curve')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1409,7 +1409,7 @@ case ('plot_line')
   if (.not. allocated(cur%x_line)) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": No line associated with curve')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
       
@@ -1440,7 +1440,7 @@ case ('plot_line')
   case default
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": word after curve name not "x" nor "y"')
-    call end_stuff()
+    call end_stuff(li, nl)
   end select
 
 
@@ -1464,7 +1464,7 @@ case ('plot_symbol')
   if (.not. allocated(curve) .or. size(curve) /= 1) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid curve')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1472,7 +1472,7 @@ case ('plot_symbol')
   if (.not. allocated(cur%x_symb)) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": No line associated with curve')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1503,7 +1503,7 @@ case ('plot_symbol')
   case default
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": word after curve name not "x" nor "y"')
-    call end_stuff()
+    call end_stuff(li, nl)
   end select
 
 !----------------------------------------------------------------------
@@ -1519,7 +1519,7 @@ case ('plot1')
   if (err) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Expect "r" or "t" at end.')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1557,7 +1557,7 @@ case ('species_to_int')
   if (n == invalid$ .or. line == '') then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid species name.')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1578,7 +1578,7 @@ case ('species_to_str')
   if (err .or. line == '' .or. name == invalid_name) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid species integer id number.')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1659,7 +1659,7 @@ case ('var_create')
   if (err .or. .not. is_integer(name1(2)) .or. .not. is_integer(name1(3))) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Is Malformed')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1715,7 +1715,7 @@ case ('var_destroy')
   if (err .or. .not. allocated(v1_array)) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid v1 var name')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1760,18 +1760,45 @@ case ('var_general')
   enddo
 
 !----------------------------------------------------------------------
+! List of variables for a given data_v1.
+! Command syntax:
+!   python var_v_array {v1_var}
+! Example:
+!   python var_v_array quad_k1
+
+case ('var_v_array')
+
+  call tao_find_var (err, line, v_array = v_array)
+
+  if (.not. allocated(v_array)) then
+    nl=incr(nl); li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid v1_var name')
+    call end_stuff(li, nl)
+    return
+  endif
+
+  do i = 1, size(v_array)
+    v_ptr => v_array(i)%v
+    if (.not. v_ptr%exists) cycle
+    nl=incr(nl); write(li(nl), '(i0, 3a, 3(es23.15, a), 2(l1, a), es23.15)') &
+                  v_ptr%ix_v1, ';', trim(tao_var_attrib_name(v_ptr)), ';', v_ptr%meas_value, ';', &
+                  v_ptr%model_value, ';', v_ptr%design_value, ';', v_ptr%useit_opt, ';', v_ptr%good_user, ';', v_ptr%weight
+  enddo
+
+
+!----------------------------------------------------------------------
 ! List of variables in a given variable v1 array
 ! Command syntax: 
-!   python var_v1 {v1_var}
+!   python var_v1_array {v1_var}
 
-case ('var_v1')
+case ('var_v1_array')
 
   call tao_find_var (err, line, v1_array = v1_array)
 
   if (err .or. .not. allocated(v1_array)) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid v1 name')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1791,17 +1818,17 @@ case ('var_v1')
 !----------------------------------------------------------------------
 ! Info on an individual variable
 ! Command syntax: 
-!   python var1 {var}
+!   python var {var}
 ! Output syntax is variable list form. See documentation at beginning of this file.
 
-case ('var1')
+case ('var')
 
   call tao_find_var (err, line, v_array = v_array)
 
   if (.not. allocated(v_array) .or. size(v_array) /= 1) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid variable name')
-    call end_stuff()
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1851,16 +1878,20 @@ case default
 
 end select
 
-call end_stuff()
+call end_stuff(li, nl)
 
 !----------------------------------------------------------------------
 ! return through scratch
 
 contains
 
-subroutine end_stuff()
+subroutine end_stuff(li, nl)
 
-integer i
+
+character(n_char_show), allocatable :: li(:) 
+integer nl, i
+
+!
 
 if (doprint) call out_io (s_blank$, r_name, li(1:nl))
 
@@ -1911,7 +1942,7 @@ u => tao_pointer_to_universe(ix_universe)
 if (.not. associated(u)) then
   nl=incr(nl); li(nl) = 'INVALID'
   call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": bad universe index')
-  call end_stuff()
+  call end_stuff(li, nl)
   err = .true.
 endif
 
@@ -1947,6 +1978,7 @@ end subroutine re_allocate_lines
 function point_to_tao_lat (line, err, which, who) result (tao_lat)
 
 type (tao_lattice_struct), pointer :: tao_lat
+integer ix
 logical err
 character(*) line
 character(*), optional :: which, who
@@ -2016,7 +2048,7 @@ end function point_to_ele
 
 function parse_branch (line, has_separator, err) result (ix_branch)
 
-integer ix_branch
+integer ix, ios, ix_branch
 logical has_separator, err
 character(*) line
 character(40) str
@@ -2031,7 +2063,7 @@ if (has_separator) then
   if (ix == 0) then
     nl=incr(nl); li(nl) = 'INVALID'
     call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Missing ">>"')
-    call end_stuff()
+    call end_stuff(li, nl)
     err = .true.
     return
   endif
@@ -2048,7 +2080,7 @@ if (ios /= 0) ix_branch = -999
 if (ix_branch < 0 .or. ix_branch > ubound(u%design%lat%branch, 1) .or. len_trim(str) == 0) then
   nl=incr(nl); li(nl) = 'INVALID'
   call out_io (s_error$, r_name, '"python ' // trim(input_str) // '" missing or out of range branch index')
-  call end_stuff()
+  call end_stuff(li, nl)
   err = .true.
   return
 endif
@@ -2068,7 +2100,7 @@ a_real = string_to_real (line, real_garbage$, err)
 if (err .or. a_real == real_garbage$) then
   nl=incr(nl); li(nl) = 'INVALID'
   call out_io (s_error$, r_name, '"python ' // trim(input_str) // '" Bad real number')
-  call end_stuff()
+  call end_stuff(li, nl)
   return
 endif
 
@@ -2167,7 +2199,7 @@ case ('state')
 case default
   nl=incr(nl); li(nl) = 'INVALID'
   call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": coordinate not "x", "px", etc. ')
-  call end_stuff()
+  call end_stuff(li, nl)
   return
 end select
 
@@ -2270,7 +2302,7 @@ type (tao_d2_data_array_struct), allocatable :: d2_array(:)
 type (tao_d1_data_array_struct), allocatable :: d1_array(:)
 type (tao_universe_struct), pointer :: u
 
-integer i, j, ix_d2, i1, n1, n_delta
+integer i, j, ix_d2, i1, i2, n1, n_delta
 
 character(*) d_name
 
@@ -2278,7 +2310,7 @@ call tao_find_data (err, d_name, d2_array = d2_array)
 if (err .or. .not. allocated(d2_array)) then
   nl=incr(nl); li(nl) = 'INVALID'
   call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d2 data name')
-  call end_stuff()
+  call end_stuff(li, nl)
   return
 endif
 
@@ -2353,7 +2385,7 @@ if (ix /= 0) then
     if (key < 1) then
       nl=incr(nl); li(nl) = 'INVALID'
       call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": BAD ELEMENT KEY: ' // string(:ix-1))
-      call end_stuff()
+      call end_stuff(li, nl)
       err = .true.
       return
     endif
