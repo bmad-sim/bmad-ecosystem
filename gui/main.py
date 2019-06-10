@@ -139,6 +139,7 @@ class tao_d1_data_window(tao_list_window):
     j = 0
     for item in title_list:
       tk.Label(self.list_frame, text=item).grid(row=0, column=j)
+      self.list_frame.grid_columnconfigure(j, pad=10)
       j=j+1
     for i in range(ix_lb, ix_ub+1):
       list_rows.append(d1_data_list_entry(self.list_frame, d1_data_name, i, u_ix, self.pipe))
@@ -146,7 +147,7 @@ class tao_d1_data_window(tao_list_window):
       for widget in list_rows[i-ix_lb].tk_list:
         widget.grid(row=i-ix_lb+1, column=j)
         j = j+1
-      tk.Button(self.list_frame, text="Edit...", command=self.open_datum_window_callback(d1_data_name, i, u_ix)).grid(row=i-ix_lb+1, column=j)
+      tk.Button(self.list_frame, text="View More...", command=self.open_datum_window_callback(d1_data_name, i, u_ix)).grid(row=i-ix_lb+1, column=j)
 
   def open_datum_window_callback(self, d1_data_name, d1_data_ix, u_ix):
     return lambda : self.open_datum_window(d1_data_name, d1_data_ix, u_ix)
@@ -155,9 +156,13 @@ class tao_d1_data_window(tao_list_window):
     param_list = self.pipe.cmd_in("python data1 " + str(u_ix) + '@' + d1_data_name + '[' + str(d1_data_ix) + ']')
     param_list = param_list.splitlines()
     for i in range(len(param_list)):
-      print(param_list[i])
       param_list[i]=str_to_tao_param(param_list[i])
     win = tao_parameter_window(None, d1_data_name + '[' + str(d1_data_ix) + ']', param_list, self.pipe)
+
+    set_str = "set data " + str(u_ix) + '@' + d1_data_name + '[' + str(d1_data_ix) + ']|'
+    b = tk.Button(win.button_frame, text="Apply changes", command=lambda : tao_set(win.tao_list,set_str, self.pipe))
+    b.pack()
+
 
 
 #---------------------------------------------------------------
@@ -175,6 +180,7 @@ class tao_root_window(tk.Tk):
 
     self.title("Tao")
     self.protocol("WM_DELETE_WINDOW", self.quit_cmd)
+    self.tk.call('tk', 'scaling', 1.0)
 
     # Menu bar
 
@@ -228,40 +234,46 @@ class tao_root_window(tk.Tk):
   def tao_load(self,init_frame):
     from parameters import param_dict
     tk_list = [] #Items: tk_tao_parameter()'s (see tao_widget.py)
-    init_frame.grid_columnconfigure(0, weight=1, uniform="test")
+    init_frame.grid_columnconfigure(0, weight=1, uniform="test", pad=10)
     init_frame.grid_columnconfigure(1, weight=1, uniform="test")
+
+    #Look for and read gui.init
+    try:
+      init_file = open('gui.init')
+    except:
+      pass
+    init_list = init_file.read()
+    init_list = init_list.splitlines()
+    init_dict = {}
+    for entry in init_list:
+      if entry.find(':') != -1:
+        name = entry[:entry.find(':')]
+        value = entry[entry.find(':')+1:]
+        init_dict[name] = value
     k = 0 #row number counter
     for param, tao_param in param_dict.items():
       tk_list.append(tk_tao_parameter(tao_param,init_frame))
+      #READ INIT FILE AND POSSIBLY SET VALUE
+      if tk_list[k].param.name in init_dict:
+        if tk_list[k].param.type == 'FILE':
+          #Check that a good filename has been given
+          try:
+            filename = init_dict[tk_list[k].param.name]
+            f = open(filename)
+            f.close()
+            tk_list[k].tk_var.set(filename)
+          except:
+            messagebox.showwarning(tk_list[k].param.name, "File not found: " + filename)
+        elif tk_list[k].param.type == 'LOGIC':
+          state = (init_dict[tk_list[k].param.name] == 'T') | (init_dict[tk_list[k].param.name] == 'True')
+          tk_list[k].tk_var.set(state)
       tk.Label(init_frame,text=param).grid(row=k,sticky="E")
       tk_list[k].tk_wid.grid(row=k, column=1, sticky="W")
       k = k+1
 
-#    for param, tao_param in param_dict.items():
-#      #create new entry in tk_dict and display it
-#      if tao_param.type == 'STR':
-#        tk_dict[param] = [tk.StringVar()]
-#
-#        tk_dict[param].append(tk.Label(init_frame,text=param))
-#
-#        tk_dict[param].append(tk.Entry(init_frame, textvariable=tk_dict[param][0]))
-#      elif tao_param.type == 'FILE':
-#        tk_dict[param] = [tk.StringVar()]
-#        tk_dict[param][0].set("Browse...")
-#
-#        tk_dict[param].append(tk.Label(init_frame,text=param))
-#
-#        tk_dict[param].append(tk.Button(init_frame,width=20,justify='left',wraplength=150,textvariable=tk_dict[param][0],command=self.open_file_callback(tk_dict,param) ))
-#      elif tao_param.type == 'LOGIC':
-#        tk_dict[param] = [tk.BooleanVar()]
-#
-#        tk_dict[param].append(tk.Label(init_frame,text=param))
-#
-#        tk_dict[param].append(tk.Checkbutton(init_frame,variable=tk_dict[param][0]))
-#        tk_dict[param][0].set(param_dict[param].value)
-
     def param_load(event=None):
       init_args = ""
+      tao_exe = ""
       for tk_param in tk_list:
         if tk_param.param.type in ['STR','ENUM']:
           tk_param.param.value = tk_param.tk_var.get()
@@ -272,7 +284,10 @@ class tao_root_window(tk.Tk):
           if tk_param.param.value == "Browse...":
             tk_param.param.value = ""
           if tk_param.param.value != "":
-            init_args = init_args + "-" + tk_param.param.name + " " + tk_param.param.value + " "
+            if tk_param.param.name == "Tao executable":
+              tao_exe = tk_param.param.value
+            else:
+              init_args = init_args + "-" + tk_param.param.name + " " + tk_param.param.value + " "
         elif tk_param.param.type == 'LOGIC':
           tk_param.param.value = tk_param.tk_var.get()
           if tk_param.param.value:
@@ -280,7 +295,7 @@ class tao_root_window(tk.Tk):
       # Run Tao, clear the init_frame, and draw the main frame
 
       from tao_interface import tao_interface
-      self.pipe = tao_interface(init_args)
+      self.pipe = tao_interface(init_args, tao_exe)
       #sys.path.append(os.environ['ACC_ROOT_DIR'] + '/tao/python/tao_pexpect')
       #import tao_pipe
       #self.pipe = tao_pipe.tao_io(init_args)
@@ -325,13 +340,11 @@ class tao_root_window(tk.Tk):
   def set_global_vars_cmd(self):
     global_list = root.pipe.cmd_in("python global")
     global_list = global_list.splitlines()
-    global_list.pop(-1) # last line is blank
-    global_list.pop(-1)
     for i in range(len(global_list)):
       global_list[i]=str_to_tao_param(global_list[i])
     win = tao_parameter_window(None, "Global Variables", global_list, self.pipe)
 
-    b = tk.Button(win.button_frame, text="Set Global Variables", command=lambda : self.tao_set(win.tao_list))
+    b = tk.Button(win.button_frame, text="Set Global Variables", command=lambda : tao_set(win.tao_list, "set global ", self.pipe))
     b.pack()
 
   def view_data_cmd(self):
@@ -345,48 +358,69 @@ class tao_root_window(tk.Tk):
   def global_vars_event(self, event):
     self.set_global_vars_cmd()
 
-  def tao_set(self,tao_list):
-    '''
-    Takes a list of tk_tao_parameters and makes a call to tao
-    to set the parameters to the values input by the user
-    '''
-    # STOP lattice calculation here
-    self.pipe.cmd("set global lattice_calc_on = F")
-    self.pipe.cmd("set global plot_on = F")
-    #Freeze input fields:
-    for item in tao_list:
-      item.tk_wid.config(state="disabled")
-    for item in tao_list:
-      #Type casting and validation
-      if item.param.type == 'INT':
-        try:
-          item.param.value = int(item.tk_var.get())
-        except ValueError:
-          messagebox.showwarning("Error",item.param.name + " must be an integer ")
-      elif item.param.type == 'REAL':
-        try:
-          item.param.value = float(item.tk_var.get())
-        except ValueError:
-          messagebox.showwarning("Error",item.param.name + " must be a real number")
-      else:
-        item.param.value = item.tk_var.get()
+#---------------------------------------------------
 
-      #Wait till the end to set lattice_calc_on and plot_on
-      if item.param.name == 'lattice_calc_on':
-        lattice_calc_on = str(item.param.value)
-      elif item.param.name == 'plot_on':
-        plot_on = str(item.param.value)
-      else:
-        #self.pipe.cmd("set global " + item.param.name + " = " + str(item.param.value))
-        msg = self.pipe.cmd_in("set global " + item.param.name + " = " + str(item.param.value))
-        if msg.find("ERROR") != -1:
-          messagebox.showwarning(item.param.name,msg)
-    #Now set lattice_calc_on and plot_on
-    self.pipe.cmd("set global plot_on = " + plot_on)
-    self.pipe.cmd("set global lattice_calc_on = " + lattice_calc_on)
-    #Re-enable input
-    for item in tao_list:
-      item.tk_wid.configure(state="normal")
+def tao_set(tao_list,set_str,pipe):
+  '''
+  Takes a list of tk_tao_parameters and makes a call to tao
+  to set the parameters to the values input by the user
+  set_str should be "set global ", "set data orbit.x[10]|", or whatever is appropriate
+  '''
+  # STOP lattice calculation here
+  pipe.cmd_in("set global lattice_calc_on = F")
+  pipe.cmd_in("set global plot_on = F")
+  #Freeze input fields:
+  for item in tao_list:
+    item.tk_wid.config(state="disabled")
+  update_dict = {} #Record of which variables were changed
+  for item in tao_list:
+    #Type casting and validation
+    if item.param.type == 'INT':
+      try:
+        new_val = int(item.tk_var.get())
+      except ValueError:
+        messagebox.showwarning("Error",item.param.name + " must be an integer ")
+        new_val = item.param.value
+    elif item.param.type == 'REAL':
+      try:
+        new_val = float(item.tk_var.get())
+      except ValueError:
+        messagebox.showwarning("Error",item.param.name + " must be a real number")
+        new_val = item.param.value
+    else:
+      new_val = item.tk_var.get()
+    #Check for any change
+    if new_val != item.param.value:
+      item.param.value = new_val
+      update_dict[item.param.name] = True
+    else:
+      update_dict[item.param.name] = False
+
+    #Wait till the end to set lattice_calc_on and plot_on
+    set_lattice_calc = False
+    set_plot = False
+    if item.param.name == 'lattice_calc_on':
+      lattice_calc_on = str(item.param.value)
+      set_lattice_calc = True
+    elif item.param.name == 'plot_on':
+      plot_on = str(item.param.value)
+      set_plot = True
+    elif update_dict[item.param.name]:
+      msg = pipe.cmd_in(set_str + item.param.name + " = " + str(item.param.value))
+      if msg.find("ERROR") != -1:
+        messagebox.showwarning(item.param.name,msg)
+  #Now set lattice_calc_on and plot_on
+  if set_plot:
+    pipe.cmd_in("set global plot_on = " + plot_on)
+  else:
+    pipe.cmd_in("set global plot_on = True")
+  if set_lattice_calc:
+    pipe.cmd_in("set global plot_on = " + lattice_calc_on)
+  else:
+    pipe.cmd_in("set global lattice_calc_on = True")
+  #Re-enable input
+  for item in tao_list:
+    item.tk_wid.configure(state="normal")
 
 #---------------------------------------------------------------
 
