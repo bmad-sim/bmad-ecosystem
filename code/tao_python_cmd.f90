@@ -715,7 +715,7 @@ case ('global')
   nl=incr(nl); write (li(nl), imt) 'random_seed;INT;T;',                      s%global%random_seed
   nl=incr(nl); write (li(nl), imt) 'n_top10_merit;INT;T;',                    s%global%n_top10_merit
   nl=incr(nl); write (li(nl), imt) 'srdt_gen_n_slices;INT;T;',                s%global%srdt_gen_n_slices  
-  nl=incr(nl); write (li(nl), imt) 'srdt_xst_n_slices;INT;T;',                s%global%srdt_sxt_n_slices  
+  nl=incr(nl); write (li(nl), imt) 'srdt_sxt_n_slices;INT;T;',                s%global%srdt_sxt_n_slices  
   nl=incr(nl); write (li(nl), lmt) 'srdt_use_cache;LOGIC;T;',                 s%global%srdt_use_cache
   nl=incr(nl); write (li(nl), amt) 'random_engine;STR;T;',                    s%global%random_engine
   nl=incr(nl); write (li(nl), amt) 'random_gauss_converter;STR;T;',           s%global%random_gauss_converter
