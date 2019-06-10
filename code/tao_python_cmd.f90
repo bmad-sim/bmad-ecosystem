@@ -619,7 +619,7 @@ case ('data1')
   nl=incr(nl); write (li(nl), amt) 'data_type;STR;T;',                        d_ptr%data_type
   nl=incr(nl); write (li(nl), amt) 'merit_type;STR;T;',                       d_ptr%merit_type
   nl=incr(nl); write (li(nl), amt) 'data_source;STR;T;',                      d_ptr%data_source
-  nl=incr(nl); write (li(nl), amt) 'eval_point;STR;T;',                       d_ptr%eval_point
+  nl=incr(nl); write (li(nl), amt) 'eval_point;ENUM;T;',                      anchor_pt_name(d_ptr%eval_point)
   nl=incr(nl); write (li(nl), imt) 'ix_bunch;INT;T;',                         d_ptr%ix_bunch
   nl=incr(nl); write (li(nl), imt) 'ix_branch;INT;T;',                        d_ptr%ix_branch
   nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;T;',                           d_ptr%ix_ele
@@ -663,6 +663,7 @@ case ('data1')
 case ('enum')
 
   name = upcase(line)
+  if (name == 'EVAL_POINT') name = 'ELE_ORIGIN'  ! Cheet since data%eval_point is not recognized by switch_attrib_value_name
   a_name = switch_attrib_value_name(name, 1.0_rp, this_ele, name_list = name_list)
   if (.not. allocated(name_list)) then
     nl=incr(nl); li(nl) = 'INVALID'
