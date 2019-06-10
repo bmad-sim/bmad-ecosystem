@@ -89,9 +89,9 @@ character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
 character(20) cmd, command, who, which, v_str
 character(20) :: r_name = 'tao_python_cmd'
-character(20) :: cmd_names(35)= [character(20) :: &
+character(20) :: cmd_names(36) = [character(20) :: &
   'beam_init', 'branch1', 'bunch1', 'bmad_com', &
-  'data_create', 'data_destroy', 'data_d2_array', 'data_d1_array', 'data_d1', 'data1', &
+  'data_create', 'data_destroy', 'data_d2_array', 'data_d1_array', 'data_d2', 'data_d_array', 'data', &
   'enum', 'global', 'help', &
   'lat_ele_list', 'lat_ele1', 'lat_general', 'lat_list', 'lat_param_units', &
   'orbit_at_s', &
@@ -160,11 +160,11 @@ endif
 
 amt = '(3a)'
 imt = '(a,i0,a)'
-rmt = '(a,es24.16,a)'
+rmt = '(a,es23.15,a)'
 lmt = '(a,l1,a)'
 vamt = '(a, i0, 3a)'
-vrmt = '(a, i0, a, es24.16)'
-vrmt2 = '(a, i0, i0, a, es24.16)'
+vrmt = '(a, i0, a, es23.15)'
+vrmt2 = '(a, i0, i0, a, es23.15)'
 
 nl = 0
 call re_allocate_lines (200)
@@ -520,11 +520,11 @@ call destroy_this_data(line)
 !----------------------------------------------------------------------
 ! Information on a d2_datum.
 ! Command syntax:
-!   python data_d1 {d2_datum}
+!   python data_d2 {d2_datum}
 ! {d2_datum} should be of the form 
 !   {ix_uni}@{d2_datum_name}
 
-case ('data_d1')
+case ('data_d2')
 
   call tao_find_data (err, line, d2_array = d2_array)
 
@@ -549,6 +549,38 @@ case ('data_d1')
   nl=incr(nl); write (li(nl), imt) 'ix_ref;INT;F;',                           d2_ptr%ix_ref
   nl=incr(nl); write (li(nl), lmt) 'data_read_in;LOGIC;F;',                   d2_ptr%data_read_in
   nl=incr(nl); write (li(nl), lmt) 'ref_read_in;LOGIC;F;',                    d2_ptr%ref_read_in
+
+!----------------------------------------------------------------------
+! List of datums for a given data_d1.
+! Command syntax:
+!   python data_d_array {d1_datum}
+! {d1_datum} should be for the form
+!   {ix_uni}@{d2_datum_name}.{d1_datum_name}
+! Example:
+!   python data_d_array 1@orbit.x
+
+case ('data_d_array')
+
+  
+  call tao_find_data (err, line, d_array = d_array)
+
+  if (.not. allocated(d_array)) then
+    nl=incr(nl); li(nl) = 'INVALID'
+    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d1_datum name.')
+    call end_stuff()
+    return
+  endif
+
+  do i = 1, size(d_array)
+    d_ptr => d_array(i)%d
+    if (.not. d_ptr%exists) cycle
+    name = tao_constraint_type_name(d_ptr)
+    nl=incr(nl); write(li(nl), '(i0, 9a, 3(es23.15, a), 3(l1, a), es23.15)') d_ptr%ix_d1, ';', trim(name), ';', &
+                   trim(d_ptr%ele_ref_name), ';', trim(d_ptr%ele_start_name), ';', &
+                   trim(d_ptr%ele_name), ';', d_ptr%meas_value, ';', d_ptr%model_value, ';', &
+                   d_ptr%design_value, ';', d_ptr%useit_opt, ';', d_ptr%useit_plot, ';', d_ptr%good_user, ';', d_ptr%weight
+  enddo
+
 
 !----------------------------------------------------------------------
 ! List of d1 arrays for a given data_d2.
@@ -594,13 +626,13 @@ case ('data_d2_array')
 !----------------------------------------------------------------------
 ! Individual datum info.
 ! Command syntax:
-!   python data1 {ix_universe}@{d2_name}.{d1_datum}[{dat_index}]
+!   python data {ix_universe}@{d2_name}.{d1_datum}[{dat_index}]
 ! Use the "python data-d1" command to get detailed info on a specific d1 array.
 ! Output syntax is variable list form. See documentation at beginning of this file.
 ! Example:
 !   python data_d1 1@orbit.x[10]
 
-case ('data1')
+case ('data')
 
   call tao_find_data (err, line, d_array = d_array)
 
@@ -869,7 +901,7 @@ case ('lat_ele1')
       case (is_integer$)
         nl=incr(nl); write (li(nl), '(2a, l1, a, i0)') trim(a_name), ';INT;', free, ';', nint(ele%value(i))
       case (is_real$)
-        nl=incr(nl); write (li(nl), '(2a, l1, a, es24.16)') trim(a_name), ';REAL;', free, ';', ele%value(i)
+        nl=incr(nl); write (li(nl), '(2a, l1, a, es23.15)') trim(a_name), ';REAL;', free, ';', ele%value(i)
       case (is_switch$)
         name = switch_attrib_value_name (a_name, ele%value(i), ele)
         nl=incr(nl); write (li(nl), '(2a, l1, 2a)')  trim(a_name), ';ENUM;', free, ';', trim(name)
@@ -906,8 +938,8 @@ case ('lat_ele1')
     endif
 
   case ('floor')
-    nl=incr(nl); write (li(nl), '(3(es24.16, a))') ele%floor%r(1), ';',ele%floor%r(2), ';', ele%floor%r(3) 
-    nl=incr(nl); write (li(nl), '(3(es24.16, a))') ele%floor%theta, ';',ele%floor%phi, ';', ele%floor%psi
+    nl=incr(nl); write (li(nl), '(3(es23.15, a))') ele%floor%r(1), ';',ele%floor%r(2), ';', ele%floor%r(3) 
+    nl=incr(nl); write (li(nl), '(3(es23.15, a))') ele%floor%theta, ';',ele%floor%phi, ';', ele%floor%psi
 
   case ('twiss')
     free = attribute_free(ele, 'BETA_A', .false.) .and. (which == 'model')
@@ -1110,9 +1142,9 @@ case ('lat_list')
           endif
         else
           if (i == 1) then
-            nl=incr(nl); write (li(nl), '(es24.16)') value
+            nl=incr(nl); write (li(nl), '(es23.15)') value
           else
-            write (li(nl), '(2a, es24.16)') trim(li(nl)), ';', value
+            write (li(nl), '(2a, es23.15)') trim(li(nl)), ';', value
           endif
         endif
       endif
@@ -1402,7 +1434,7 @@ case ('plot_line')
   case ('')
     call re_allocate_lines (nl+n+100)
     do i = 1, n
-      nl=incr(nl); write (li(nl), '(i0, 2(a, es24.16))') i, ';', cur%x_line(i), ';', cur%y_line(i)
+      nl=incr(nl); write (li(nl), '(i0, 2(a, es23.15))') i, ';', cur%x_line(i), ';', cur%y_line(i)
     enddo
 
   case default
@@ -1465,7 +1497,7 @@ case ('plot_symbol')
   case ('')
     call re_allocate_lines (size(cur%x_symb)+100)
     do i = 1, size(cur%x_symb)
-      nl=incr(nl); write (li(nl), '(2(i0, a), 2(es24.16, a))') i, ';', cur%ix_symb(i), ';', cur%x_symb(i), ';', cur%y_symb(i)
+      nl=incr(nl); write (li(nl), '(2(i0, a), 2(es23.15, a))') i, ';', cur%ix_symb(i), ';', cur%x_symb(i), ';', cur%y_symb(i)
     enddo
 
   case default
@@ -1748,7 +1780,7 @@ case ('var_v1')
   do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
     v_ptr => v1_ptr%v(i)
     if (.not. v_ptr%exists) cycle
-    nl=incr(nl); write (li(nl), '(2a, i0, 5a, 3(es24.16, a), 2 (l1, a))') trim(v1_ptr%name), '[', &
+    nl=incr(nl); write (li(nl), '(2a, i0, 5a, 3(es23.15, a), 2 (l1, a))') trim(v1_ptr%name), '[', &
                      v_ptr%ix_v1, '];', trim(v_ptr%ele_name), ';', trim(v_ptr%attrib_name), ';', &
                      v_ptr%meas_value, ';', v_ptr%model_value, ';', &
                      v_ptr%design_value, ';', v_ptr%good_user, ';', v_ptr%useit_opt
@@ -2185,7 +2217,7 @@ else
   v_str = ';REAL;F;'
 endif
 
-fmt = '(3a, es24.16)'
+fmt = '(3a, es23.15)'
 
 nl=incr(nl); write (li(nl), fmt) 'beta_', suffix, v_str,                          twiss%beta
 nl=incr(nl); write (li(nl), fmt) 'alpha_', suffix, v_str,                         twiss%alpha
@@ -2219,7 +2251,7 @@ else
   v_str = ';REAL;F;'
 endif
 
-fmt = '(3a, es24.16)'
+fmt = '(3a, es23.15)'
 
 nl=incr(nl); write (li(nl), fmt) 'eta_', suffix, v_str,                           xy_disp%eta
 nl=incr(nl); write (li(nl), fmt) 'etap_', suffix, v_str,                          xy_disp%etap
