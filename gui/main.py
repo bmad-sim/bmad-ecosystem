@@ -238,22 +238,30 @@ class tao_root_window(tk.Tk):
     init_frame.grid_columnconfigure(1, weight=1, uniform="test")
 
     #Look for and read gui.init
+    #gui.init should be in the same directory that
+    #main.py is run from
+    #each line should have the form
+    #parameter:value
+    #E.g. init_file:tao.init
+    #E.g. rf_on:T
     try:
       init_file = open('gui.init')
+      init_list = init_file.read()
+      init_list = init_list.splitlines()
     except:
       pass
-    init_list = init_file.read()
-    init_list = init_list.splitlines()
     init_dict = {}
     for entry in init_list:
-      if entry.find(':') != -1:
+      entry = entry.strip()
+      #Check for proper formatting and not a comment
+      if entry.find(':') != -1 & entry.find('#') != 0:
         name = entry[:entry.find(':')]
         value = entry[entry.find(':')+1:]
         init_dict[name] = value
     k = 0 #row number counter
     for param, tao_param in param_dict.items():
       tk_list.append(tk_tao_parameter(tao_param,init_frame))
-      #READ INIT FILE AND POSSIBLY SET VALUE
+      #Possibly set value from init file
       if tk_list[k].param.name in init_dict:
         if tk_list[k].param.type == 'FILE':
           #Check that a good filename has been given
