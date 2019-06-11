@@ -120,7 +120,8 @@ if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle,
 
 ! init
 
-call compute_even_steps (ele%value(ds_step$), ele%value(l$), bmad_com%default_ds_step, ds, n_step)
+n_step = max(nint(ele%value(num_steps$)), 1)
+ds = ele%value(l$) / n_step
 ds2 = ds / 2
 
 ! radiation damping and fluctuations...

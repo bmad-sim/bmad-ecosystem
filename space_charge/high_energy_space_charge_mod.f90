@@ -212,9 +212,6 @@ end subroutine track1_high_energy_space_charge
 ! bunch and is only valid with relativistic particles where the effect
 ! of the space charge is small.
 !
-! Modules needed:
-!   use space_charge_mod
-!
 ! Input:
 !   ele    -- Ele_struct: Element tracked through.
 !   param  -- lat_param_struct:

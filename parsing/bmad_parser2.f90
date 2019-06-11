@@ -552,7 +552,7 @@ parsing_loop: do
     call parser_add_lord (lat2, 1, plat, lat)
 
   else
-    call parser_error ('ELEMENT MUST BE AN OVERLAY, SUPERIMPOSE, ' //  'OR GROUP: ' // word_1)
+    call parser_error ('ELEMENTS DEFINED AFTER LATTICE EXPANSION MUST BE AN OVERLAY, SUPERIMPOSE, ' //  'OR GROUP TYPE ELEMENTS: ' // word_1)
     cycle parsing_loop
   endif
 

@@ -301,7 +301,7 @@ do i_loop = 1, i_max
     call co_func(a_vec, dvec, dy_da, status)
     if (status /= 0) then
       if (printit) call out_io (s_error$, r_name, 'CANNOT FIND STABLE ORBIT.', 'USING BRANCH: ' // branch_name(branch))
-      call end_cleanup
+      call end_cleanup(branch)
       return
     endif
     call this_t1_calc (branch, dir, .true., t1, betas, start_orb_t1, err); if (err) return
@@ -319,7 +319,7 @@ do i_loop = 1, i_max
 
   if (status < 0) then  
     if (printit) call out_io (s_error$, r_name, 'SINGULAR MATRIX ENCOUNTERED!', 'USING BRANCH: ' // branch_name(branch))
-    call end_cleanup
+    call end_cleanup(branch)
     return
   endif
 
@@ -328,7 +328,7 @@ do i_loop = 1, i_max
   elseif (i_loop == 2 .and. .not. stable_orbit_found) then
     if (printit) call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING!!', 'ABORTING CLOSED ORBIT SEARCH.', &
                                    'USING BRANCH: ' // branch_name(branch))
-    call end_cleanup
+    call end_cleanup(branch)
     return
   else
     amp_co = abs(start_orb%vec)
@@ -381,7 +381,7 @@ do i_loop = 1, i_max
     else
       call make_t11_inv (err)
       if (err) then
-        call end_cleanup
+        call end_cleanup(branch)
         return
       endif
 
@@ -419,7 +419,7 @@ do i_loop = 1, i_max
       dz = rf_wavelen / 8
       do j = -3, 4
         z_here = z0 + j * dz
-        call max_eigen_calc(z_here, max_eigen)
+        call max_eigen_calc(branch, z_here, max_eigen)
         if (max_eigen > min_max_eigen) cycle
         j_max = j
         min_max_eigen = max_eigen
@@ -427,7 +427,7 @@ do i_loop = 1, i_max
 
       ! Reset
       a_vec(5) = z0 + j_max * dz
-      call max_eigen_calc(a_vec(5), max_eigen)
+      call max_eigen_calc(branch, a_vec(5), max_eigen)
 
       ! If z needs to be shifted, reset super_mrqmin
       if (j_max /= 0) then
@@ -456,7 +456,7 @@ do i_loop = 1, i_max
               'Using branch: ' // branch_name(branch), &
               r_array = [maxval(amp_del(1:n_dim))])
     endif
-    call end_cleanup
+    call end_cleanup(branch)
     return
   endif
 
@@ -478,7 +478,7 @@ endif
 
 ! Cleanup
 
-call end_cleanup
+call end_cleanup(branch)
 if (present(err_flag)) err_flag = .false.
 
 !------------------------------------------------------------------------------
@@ -486,12 +486,14 @@ if (present(err_flag)) err_flag = .false.
 
 contains
 
-subroutine end_cleanup()
+subroutine end_cleanup(branch)
+
+type (branch_struct) branch
 
 bmad_com = bmad_com_saved  ! Restore
 
 if (n_dim == 4 .or. n_dim == 5) then
-  call set_on_off (rfcavity$, lat, restore_state$, ix_branch = branch%ix_branch, saved_values = on_off_state)
+  call set_on_off (rfcavity$, branch%lat, restore_state$, ix_branch = branch%ix_branch, saved_values = on_off_state)
 endif
 
 end subroutine
@@ -499,8 +501,9 @@ end subroutine
 !------------------------------------------------------------------------------
 ! contains
 
-subroutine max_eigen_calc(z_set, max_eigen)
+subroutine max_eigen_calc(branch, z_set, max_eigen)
 
+type (branch_struct) branch
 real(rp) z_set, max_eigen
 logical err
 
@@ -544,6 +547,8 @@ end function eigen_val_z
 
 subroutine co_func (a_try, y_fit, dy_da, status)
 
+type (branch_struct), pointer :: branch
+
 real(rp), intent(in) :: a_try(:)
 real(rp), intent(out) :: y_fit(:)
 real(rp), intent(out) :: dy_da(:, :)
@@ -552,6 +557,8 @@ integer status, i
 
 ! For i_dim = 6, if at peak of RF then delta z may be singularly large. 
 ! To avoid this, veto any step where z changes by more than lambda_rf/10.
+
+branch => lat%branch(integer_option(0, ix_branch))  ! To get around ifort compiler bug
 
 if (n_dim == 6) then
   dz_step = abs(a_try(5)-a_vec(5)) / (rf_wavelen / 10)
@@ -632,7 +639,7 @@ else
     if (track_state /= moving_forward$) then 
       call out_io (s_error$, r_name, 'PARTICLE LOST TRACKING BACKWARDS. [POSSIBLE CAUSE: WRONG PARTICLE SPECIES.]', &
                                      'USING BRANCH: ' // branch_name(branch))
-      call end_cleanup
+      call end_cleanup(branch)
       err = .true.
       return
     endif 
