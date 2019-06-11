@@ -35,9 +35,15 @@ class tao_parameter():
     elif param_type == 'FILE':
       self.value = param_value
     elif param_type == 'INT':
-      self.value = int(param_value)
+      try:
+        self.value = int(param_value)
+      except:
+        self.value = None
     elif param_type == 'REAL':
-      self.value = float(param_value)
+      try:
+        self.value = float(param_value)
+      except:
+        self.value = None
     elif param_type == 'LOGIC':
       self.value = (param_value == 'T')
     elif param_type == 'ENUM':
