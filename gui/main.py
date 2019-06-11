@@ -141,19 +141,50 @@ class tao_d1_data_window(tao_list_window):
       tk.Label(self.list_frame, text=item).grid(row=0, column=j)
       self.list_frame.grid_columnconfigure(j, pad=10)
       j=j+1
-    for i in range(ix_lb, ix_ub+1):
-      list_rows.append(d1_data_list_entry(self.list_frame, d1_data_name, i, u_ix, self.pipe))
-      j = 0 # column counter
-      for widget in list_rows[i-ix_lb].tk_list:
-        widget.grid(row=i-ix_lb+1, column=j)
-        j = j+1
-      tk.Button(self.list_frame, text="View More...", command=self.open_datum_window_callback(d1_data_name, i, u_ix)).grid(row=i-ix_lb+1, column=j)
+
+    d_list = self.pipe.cmd_in("python data_d_array " + u_ix + '@' + d1_data_name)
+    d_list = d_list.splitlines()
+    self.tao_list = [] #List of dicts holding the parameters that the user can set
+    #i = row counter, j = column counter
+    for i in range(ix_ub - ix_lb):
+      list_rows.append(d1_data_list_entry(self.list_frame, d_list[i]))
+      self.tao_list.append({})
+      for j in range(len(list_rows[i].tk_wids)):
+        if j == 6:
+          self.tao_list[i]["meas_value"] = list_rows[i].tk_tao_params["meas_value"]
+          self.tao_list[i]["meas_value"].tk_wid.grid(row=i+1, column=j)
+        elif j==9:
+          self.tao_list[i]["useit_opt"] = list_rows[i].tk_tao_params["useit_opt"]
+          self.tao_list[i]["useit_opt"].tk_wid.grid(row=i+1, column=j)
+        elif j==10:
+          self.tao_list[i]["useit_plot"] = list_rows[i].tk_tao_params["useit_plot"]
+          self.tao_list[i]["useit_plot"].tk_wid.grid(row=i+1, column=j)
+        elif j==11:
+          self.tao_list[i]["good_user"] = list_rows[i].tk_tao_params["good_user"]
+          self.tao_list[i]["good_user"].tk_wid.grid(row=i+1, column=j)
+        elif j==12:
+          self.tao_list[i]["weight"] = list_rows[i].tk_tao_params["weight"]
+          self.tao_list[i]["weight"].tk_wid.grid(row=i+1, column=j)
+        else:
+          list_rows[i].tk_wids[j].grid(row=i-ix_lb+1, column=j)
+        #if j == 9:
+        #  list_rows[i-ix_lb].tk_tao_params["useit_opt"].tk_wid.grid(row=i-ix_lb+1, column=j)
+        #  print(list_rows[i-ix_lb].tk_tao_params["useit_opt"].tk_var.get())
+        #elif j==10:
+        #  list_rows[i-ix_lb].tk_tao_params["useit_plot"].tk_wid.grid(row=i-ix_lb+1, column=j)
+        #  print(list_rows[i-ix_lb].tk_tao_params["useit_plot"].tk_var.get())
+        #elif j==11:
+        #  list_rows[i-ix_lb].tk_tao_params["good_user"].tk_wid.grid(row=i-ix_lb+1, column=j)
+        #  print(list_rows[i-ix_lb].tk_tao_params["good_user"].tk_var.get())
+        #else:
+        #  widget.grid(row=i-ix_lb+1, column=j)
+      tk.Button(self.list_frame, text="View More...", command=self.open_datum_window_callback(d1_data_name, i, u_ix)).grid(row=i+1, column=j+1)
 
   def open_datum_window_callback(self, d1_data_name, d1_data_ix, u_ix):
     return lambda : self.open_datum_window(d1_data_name, d1_data_ix, u_ix)
 
   def open_datum_window(self, d1_data_name, d1_data_ix, u_ix):
-    param_list = self.pipe.cmd_in("python data1 " + str(u_ix) + '@' + d1_data_name + '[' + str(d1_data_ix) + ']')
+    param_list = self.pipe.cmd_in("python data " + str(u_ix) + '@' + d1_data_name + '[' + str(d1_data_ix) + ']')
     param_list = param_list.splitlines()
     for i in range(len(param_list)):
       param_list[i]=str_to_tao_param(param_list[i])
@@ -256,7 +287,9 @@ class tao_root_window(tk.Tk):
       #Check for proper formatting and not a comment
       if entry.find(':') != -1 & entry.find('#') != 0:
         name = entry[:entry.find(':')]
+        name = name.strip()
         value = entry[entry.find(':')+1:]
+        value = value.strip()
         init_dict[name] = value
     k = 0 #row number counter
     for param, tao_param in param_dict.items():
@@ -292,7 +325,7 @@ class tao_root_window(tk.Tk):
           if tk_param.param.value == "Browse...":
             tk_param.param.value = ""
           if tk_param.param.value != "":
-            if tk_param.param.name == "Tao executable":
+            if tk_param.param.name == "tao_exe":
               tao_exe = tk_param.param.value
             else:
               init_args = init_args + "-" + tk_param.param.name + " " + tk_param.param.value + " "
