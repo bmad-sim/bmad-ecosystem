@@ -575,10 +575,11 @@ case ('data_d_array')
     d_ptr => d_array(i)%d
     if (.not. d_ptr%exists) cycle
     name = tao_constraint_type_name(d_ptr)
-    nl=incr(nl); write(li(nl), '(i0, 9a, 3(es23.15, a), 3(l1, a), es23.15)') d_ptr%ix_d1, ';', trim(name), ';', &
-                   trim(d_ptr%ele_ref_name), ';', trim(d_ptr%ele_start_name), ';', trim(d_ptr%ele_name), ';', &
-                   d_ptr%meas_value, ';', d_ptr%model_value, ';', d_ptr%design_value, ';', &
-                   d_ptr%useit_opt, ';', d_ptr%useit_plot, ';', d_ptr%good_user, ';', d_ptr%weight
+    nl=incr(nl); write(li(nl), '(i0, 11a, 3(es23.15, a), 3(l1, a), es23.15)') d_ptr%ix_d1, ';', &
+              trim(d_ptr%data_type), ';', trim(d_ptr%merit_type), ';', &
+              trim(d_ptr%ele_ref_name), ';', trim(d_ptr%ele_start_name), ';', trim(d_ptr%ele_name), ';', &
+              d_ptr%meas_value, ';', d_ptr%model_value, ';', d_ptr%design_value, ';', &
+              d_ptr%useit_opt, ';', d_ptr%useit_plot, ';', d_ptr%good_user, ';', d_ptr%weight
   enddo
 
 
