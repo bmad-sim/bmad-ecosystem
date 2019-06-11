@@ -127,6 +127,14 @@ class tao_d1_data_window(tao_list_window):
     self.ix_ub = ix_ub
     self.refresh()
 
+    self.button_frame = tk.Frame(self)
+    self.button_frame.pack(side="bottom", fill="both", expand=0)
+    b1 = tk.Button(self.button_frame, text="Apply Changes", command=self.apply)
+    b2 = tk.Button(self.button_frame, text="Discard Changes and Refresh", command=self.refresh)
+
+    b1.pack(side="left")
+    b2.pack(side="right")
+
   def refresh(self):
     # Clear self.list_frame:
     for child in self.list_frame.winfo_children():
@@ -154,26 +162,50 @@ class tao_d1_data_window(tao_list_window):
     #Bulk editing
     #Only meas_value, good user, and weight can vary
     tk.Label(self.list_frame, text="Bulk editing:").grid(row=1, column=0, columnspan=6)
+    tk.Label(self.list_frame, text="Check to apply:").grid(row=2, column=0, columnspan=6)
 
-    self.bulk_meas_value = tk_tao_parameter(str_to_tao_param("meas_value;REAL;T;"), self.list_frame)
-    self.bulk_meas_value.tk_wid.grid(row=1, column=6)
+    self.bulk_params = []
+    self.bulk_apply = []
 
-    self.bulk_good_user = tk_tao_parameter(str_to_tao_param("good_user;LOGIC;T;"), self.list_frame)
-    self.bulk_good_user.tk_wid.grid(row=1, column=11)
+    self.bulk_params.append(tk_tao_parameter(str_to_tao_param("meas_value;REAL;T;"), self.list_frame))
+    self.bulk_params[0].tk_wid.grid(row=1, column=6)
+    self.bulk_apply.append(tk_tao_parameter(str_to_tao_param("apply0;LOGIC;T;"), self.list_frame))
+    self.bulk_apply[0].tk_wid.grid(row=2, column=6)
 
-    self.bulk_weight = tk_tao_parameter(str_to_tao_param("weight;REAL;T;"), self.list_frame)
-    self.bulk_weight.tk_wid.grid(row=1, column=12)
+    self.bulk_params.append(tk_tao_parameter(str_to_tao_param("good_user;LOGIC;T;"), self.list_frame))
+    self.bulk_params[1].tk_wid.grid(row=1, column=11)
+    self.bulk_apply.append(tk_tao_parameter(str_to_tao_param("apply1;LOGIC;T;"), self.list_frame))
+    self.bulk_apply[1].tk_wid.grid(row=2, column=11)
 
+    self.bulk_params.append(tk_tao_parameter(str_to_tao_param("weight;REAL;T;"), self.list_frame))
+    self.bulk_params[2].tk_wid.grid(row=1, column=12)
+    self.bulk_apply.append(tk_tao_parameter(str_to_tao_param("apply2;LOGIC;T;"), self.list_frame))
+    self.bulk_apply[2].tk_wid.grid(row=2, column=12)
+
+    #Fetch and fill in the data
     self.list_rows = []
     d_list = self.pipe.cmd_in("python data_d_array " + self.u_ix + '@' + self.d1_data_name)
     d_list = d_list.splitlines()
     #i = row counter, j = column counter
-    #grid to row i+2 because row 0 is titles, row 1 is bulk editing widgets
+    #grid to row i+3 because row 0 is titles, row 1 is bulk editing widgets, row 2 is apply checkboxes
     for i in range(self.ix_ub - self.ix_lb):
       self.list_rows.append(d1_data_list_entry(self.list_frame, d_list[i]))
       for j in range(len(self.list_rows[i].tk_wids)):
-        self.list_rows[i].tk_wids[j].grid(row=i+2, column=j)
-      tk.Button(self.list_frame, text="View More...", command=self.open_datum_window_callback(i+self.ix_lb)).grid(row=i+2, column=j+1)
+        self.list_rows[i].tk_wids[j].grid(row=i+3, column=j)
+      tk.Button(self.list_frame, text="View More...", command=self.open_datum_window_callback(i+self.ix_lb)).grid(row=i+3, column=j+1)
+
+  def apply(self):
+    #Apply bulk changes
+    for i in range(len(self.bulk_params)):
+      if self.bulk_apply[i].tk_var.get():
+        set_str = "set data " + self.u_ix + '@' + self.d1_data_name + '|'# + self.bulk_params[i].param.name
+        tao_set([self.bulk_params[i]], set_str, self.pipe, overide=(i==1)) #overide is necessary for good_user
+
+    #Apply individual changes that are different from bulk changes
+    #TODO
+
+    #Refresh
+    self.refresh()
 
   def open_datum_window_callback(self, d1_data_ix):
     return lambda : self.open_datum_window(d1_data_ix)
@@ -403,11 +435,12 @@ class tao_root_window(tk.Tk):
 
 #---------------------------------------------------
 
-def tao_set(tao_list,set_str,pipe):
+def tao_set(tao_list,set_str,pipe, overide=False):
   '''
   Takes a list of tk_tao_parameters and makes a call to tao
   to set the parameters to the values input by the user
   set_str should be "set global ", "set data orbit.x[10]|", or whatever is appropriate
+  Use the overide option to run set commands even if no change has been made.
   '''
   # STOP lattice calculation here
   pipe.cmd_in("set global lattice_calc_on = F")
@@ -440,7 +473,7 @@ def tao_set(tao_list,set_str,pipe):
       item.param.value = new_val
       update_dict[item.param.name] = True
     else:
-      update_dict[item.param.name] = False
+      update_dict[item.param.name] = overide
 
     #Wait till the end to set lattice_calc_on and plot_on
     set_lattice_calc = False
