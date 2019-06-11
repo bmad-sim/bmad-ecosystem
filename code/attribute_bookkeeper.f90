@@ -46,7 +46,7 @@ real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), eps6
 real(rp) kick_magnitude, bend_factor, quad_factor, radius0, step_info(7), dz_dl_max_err
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), n_particles
 
-integer i, n, n_div, ixm, ix_pole_max, particle, geometry, i_max
+integer i, ix, n, n_div, ixm, ix_pole_max, particle, geometry, i_max
 
 character(20) ::  r_name = 'attribute_bookkeeper'
 
@@ -256,7 +256,7 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
       if (val(l_pole$) /= 0) val(ds_step$) = val(l_pole$) / 10
 
     case (sbend$, quadrupole$, sextupole$)
-      if (val(integrator_order$) == 0 .and. val(l$) /= 0) then
+      if (val(l$) /= 0) then
         bend_factor = sqrt(val(hkick$)**2 + val(vkick$)**2) / val(l$)
         radius0 = ele%value(r0_mag$)
         if (radius0 == 0) radius0 = 0.01   ! Use a 1 cm scale default
@@ -285,8 +285,14 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
         endif
 
         ! check_bend is a PTC routine
+        ix = nint(val(integrator_order$))
+        if (ix /= 2 .and. ix /= 4 .and. ix /= 6) val(integrator_order$) = 0  ! Reset if current value is not valid
         call check_bend (val(l$), quad_factor, bend_factor, dz_dl_max_err, step_info, ixm)
-        val(integrator_order$) = ixm
+        if (val(integrator_order$) == 0) then
+          val(integrator_order$) = ixm
+        else
+          ixm = val(integrator_order$)
+        endif
         val(num_steps$) = max(nint(step_info(ixm+1)), 1)
         val(ds_step$) = abs(val(l$)) / val(num_steps$)
       endif
@@ -298,8 +304,15 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
         else
           kick_magnitude = val(kick$) / val(l$)
         endif
+
+        ix = nint(val(integrator_order$))
+        if (ix /= 2 .and. ix /= 4 .and. ix /= 6) val(integrator_order$) = 0  ! Reset if current value is not valid
         call check_bend (val(l$), 0.0_rp, kick_magnitude, dz_dl_max_err, step_info, ixm)
-        val(integrator_order$) = ixm
+        if (val(integrator_order$) == 0) then
+          val(integrator_order$) = ixm
+        else
+          ixm = val(integrator_order$)
+        endif
         val(num_steps$) = max(nint(step_info(ixm+1)), 1)
         val(ds_step$) = abs(val(l$)) / val(num_steps$)
       endif

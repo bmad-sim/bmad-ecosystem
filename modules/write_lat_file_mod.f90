@@ -66,7 +66,7 @@ type (ele_attribute_struct) attrib
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch, branch2
 type (ele_struct), pointer :: ele, super, slave, lord, lord2, s1, s2, multi_lord, slave2, ele2, ele_dflt, ele0
-type (ele_struct), target :: ele_default(n_key$)
+type (ele_struct), target :: ele_default(n_key$), this_ele
 type (ele_pointer_struct), allocatable :: named_eles(:)
 type (control_struct), pointer :: ctl, ctl2
 type (taylor_term_struct) tm
@@ -877,7 +877,19 @@ do ib = 0, ubound(lat%branch, 1)
       if (.not. attribute_free (ele, attrib%name, .false., .true.)) cycle
       if ((attrib%name == 'P0C' .or. attrib%name == 'P0C_START') .and. &
                           (ele%lord_status /= multipass_lord$ .or. ele%value(n_ref_pass$) /= 0)) cycle
-      if (attrib%name == 'DS_STEP' .and. val == bmad_com%default_ds_step) cycle
+
+      ! Default for ds_step and integrator_order is determined by attribute_bookkeeper based upon the
+      ! settings of other parameters like the element's strength.
+      if (attrib%name == 'DS_STEP' .or. attrib%name == 'INTEGRATOR_ORDER') then
+        call transfer_ele (ele, this_ele) 
+        this_ele%value(ds_step$) = 0
+        this_ele%value(num_steps$) = 0
+        this_ele%value(integrator_order$) = 0
+        call attribute_bookkeeper (this_ele, .true.)
+        if (attrib%name == 'DS_STEP' .and. val == this_ele%value(ds_step$)) cycle
+        if (attrib%name == 'INTEGRATOR_ORDER' .and. val == this_ele%value(integrator_order$)) cycle        
+      endif
+
       if (attrib%name == 'E_TOT') cycle        ! Will use p0c instead.
       if (attrib%name == 'E_TOT_START') cycle  ! Will use p0c_start instead.
       if (attrib%name == null_name$) then
@@ -1848,7 +1860,7 @@ character(*) line
 integer i, iu
 logical end_is_neigh
 logical, save :: init = .true.
-integer, save :: max_char = 90
+integer, parameter :: max_char = 105
 character(1), optional :: continue_char
 
 !

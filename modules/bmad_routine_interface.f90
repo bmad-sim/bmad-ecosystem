@@ -328,13 +328,6 @@ subroutine combine_consecutive_elements (lat)
   type (lat_struct), target :: lat
 end subroutine
 
-subroutine compute_even_steps (ds_in, length, ds_default, ds_out, n_step)
-  import
-  implicit none
-  real(rp) ds_in, length, ds_default, ds_out
-  integer n_step
-end subroutine
-
 subroutine control_bookkeeper (lat, ele, err_flag)
   import
   implicit none
