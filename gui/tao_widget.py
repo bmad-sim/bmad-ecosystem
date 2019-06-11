@@ -19,7 +19,10 @@ class tk_tao_parameter():
 
     if self.param.type in ['STR', 'INT', 'REAL']:
       self.tk_var = tk.StringVar()
-      self.tk_var.set(str(self.param.value))
+      if self.param.value == None:
+        self.tk_var.set("")
+      else:
+        self.tk_var.set(str(self.param.value))
       self.tk_wid = tk.Entry(frame, textvariable=self.tk_var)
     elif self.param.type == 'ENUM':
       self.tk_var = tk.StringVar()
@@ -43,7 +46,9 @@ class tk_tao_parameter():
 
   def open_file(self):
     filename = filedialog.askopenfilename(title = "Select " + self.param.name)
-    self.tk_var.set(filename)
+    #Only set if the user has selected an actual file
+    if isinstance(filename, str) & (filename != ""):
+      self.tk_var.set(filename)
 
 #-----------------------------------------------------------------
 

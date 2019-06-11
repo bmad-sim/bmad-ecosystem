@@ -121,8 +121,17 @@ class tao_d1_data_window(tao_list_window):
     tao_list_window.__init__(self, root, d1_data_name, *args, **kwargs)
     self.geometry('1500x600')
     self.pipe = pipe
-    list_rows = []
-    # row counter: i-ix_lb
+    self.d1_data_name = d1_data_name
+    self.u_ix = u_ix
+    self.ix_lb = ix_lb
+    self.ix_ub = ix_ub
+    self.refresh()
+
+  def refresh(self):
+    # Clear self.list_frame:
+    for child in self.list_frame.winfo_children():
+      child.destroy()
+    # Row titles
     title_list = ["Index",
         "d1_data_name",
         "Merit type",
@@ -142,57 +151,47 @@ class tao_d1_data_window(tao_list_window):
       self.list_frame.grid_columnconfigure(j, pad=10)
       j=j+1
 
-    d_list = self.pipe.cmd_in("python data_d_array " + u_ix + '@' + d1_data_name)
+    #Bulk editing
+    #Only meas_value, good user, and weight can vary
+    tk.Label(self.list_frame, text="Bulk editing:").grid(row=1, column=0, columnspan=6)
+
+    self.bulk_meas_value = tk_tao_parameter(str_to_tao_param("meas_value;REAL;T;"), self.list_frame)
+    self.bulk_meas_value.tk_wid.grid(row=1, column=6)
+
+    self.bulk_good_user = tk_tao_parameter(str_to_tao_param("good_user;LOGIC;T;"), self.list_frame)
+    self.bulk_good_user.tk_wid.grid(row=1, column=11)
+
+    self.bulk_weight = tk_tao_parameter(str_to_tao_param("weight;REAL;T;"), self.list_frame)
+    self.bulk_weight.tk_wid.grid(row=1, column=12)
+
+    self.list_rows = []
+    d_list = self.pipe.cmd_in("python data_d_array " + self.u_ix + '@' + self.d1_data_name)
     d_list = d_list.splitlines()
-    self.tao_list = [] #List of dicts holding the parameters that the user can set
     #i = row counter, j = column counter
-    for i in range(ix_ub - ix_lb):
-      list_rows.append(d1_data_list_entry(self.list_frame, d_list[i]))
-      self.tao_list.append({})
-      for j in range(len(list_rows[i].tk_wids)):
-        if j == 6:
-          self.tao_list[i]["meas_value"] = list_rows[i].tk_tao_params["meas_value"]
-          self.tao_list[i]["meas_value"].tk_wid.grid(row=i+1, column=j)
-        elif j==9:
-          self.tao_list[i]["useit_opt"] = list_rows[i].tk_tao_params["useit_opt"]
-          self.tao_list[i]["useit_opt"].tk_wid.grid(row=i+1, column=j)
-        elif j==10:
-          self.tao_list[i]["useit_plot"] = list_rows[i].tk_tao_params["useit_plot"]
-          self.tao_list[i]["useit_plot"].tk_wid.grid(row=i+1, column=j)
-        elif j==11:
-          self.tao_list[i]["good_user"] = list_rows[i].tk_tao_params["good_user"]
-          self.tao_list[i]["good_user"].tk_wid.grid(row=i+1, column=j)
-        elif j==12:
-          self.tao_list[i]["weight"] = list_rows[i].tk_tao_params["weight"]
-          self.tao_list[i]["weight"].tk_wid.grid(row=i+1, column=j)
-        else:
-          list_rows[i].tk_wids[j].grid(row=i-ix_lb+1, column=j)
-        #if j == 9:
-        #  list_rows[i-ix_lb].tk_tao_params["useit_opt"].tk_wid.grid(row=i-ix_lb+1, column=j)
-        #  print(list_rows[i-ix_lb].tk_tao_params["useit_opt"].tk_var.get())
-        #elif j==10:
-        #  list_rows[i-ix_lb].tk_tao_params["useit_plot"].tk_wid.grid(row=i-ix_lb+1, column=j)
-        #  print(list_rows[i-ix_lb].tk_tao_params["useit_plot"].tk_var.get())
-        #elif j==11:
-        #  list_rows[i-ix_lb].tk_tao_params["good_user"].tk_wid.grid(row=i-ix_lb+1, column=j)
-        #  print(list_rows[i-ix_lb].tk_tao_params["good_user"].tk_var.get())
-        #else:
-        #  widget.grid(row=i-ix_lb+1, column=j)
-      tk.Button(self.list_frame, text="View More...", command=self.open_datum_window_callback(d1_data_name, i, u_ix)).grid(row=i+1, column=j+1)
+    #grid to row i+2 because row 0 is titles, row 1 is bulk editing widgets
+    for i in range(self.ix_ub - self.ix_lb):
+      self.list_rows.append(d1_data_list_entry(self.list_frame, d_list[i]))
+      for j in range(len(self.list_rows[i].tk_wids)):
+        self.list_rows[i].tk_wids[j].grid(row=i+2, column=j)
+      tk.Button(self.list_frame, text="View More...", command=self.open_datum_window_callback(i+self.ix_lb)).grid(row=i+2, column=j+1)
 
-  def open_datum_window_callback(self, d1_data_name, d1_data_ix, u_ix):
-    return lambda : self.open_datum_window(d1_data_name, d1_data_ix, u_ix)
+  def open_datum_window_callback(self, d1_data_ix):
+    return lambda : self.open_datum_window(d1_data_ix)
 
-  def open_datum_window(self, d1_data_name, d1_data_ix, u_ix):
-    param_list = self.pipe.cmd_in("python data " + str(u_ix) + '@' + d1_data_name + '[' + str(d1_data_ix) + ']')
+  def open_datum_window(self, d1_data_ix):
+    param_list = self.pipe.cmd_in("python data " + str(self.u_ix) + '@' + self.d1_data_name + '[' + str(d1_data_ix) + ']')
     param_list = param_list.splitlines()
     for i in range(len(param_list)):
       param_list[i]=str_to_tao_param(param_list[i])
-    win = tao_parameter_window(None, d1_data_name + '[' + str(d1_data_ix) + ']', param_list, self.pipe)
+    win = tao_parameter_window(None, self.d1_data_name + '[' + str(d1_data_ix) + ']', param_list, self.pipe)
 
-    set_str = "set data " + str(u_ix) + '@' + d1_data_name + '[' + str(d1_data_ix) + ']|'
-    b = tk.Button(win.button_frame, text="Apply changes", command=lambda : tao_set(win.tao_list,set_str, self.pipe))
+    set_str = "set data " + str(self.u_ix) + '@' + self.d1_data_name + '[' + str(d1_data_ix) + ']|'
+    b = tk.Button(win.button_frame, text="Apply changes", command=lambda : self.datum_set_callback(win.tao_list,set_str))
     b.pack()
+
+  def datum_set_callback(self, tao_list, set_str):
+    tao_set(tao_list, set_str, self.pipe)
+    self.refresh()
 
 
 
@@ -280,7 +279,7 @@ class tao_root_window(tk.Tk):
       init_list = init_file.read()
       init_list = init_list.splitlines()
     except:
-      pass
+      init_list = []
     init_dict = {}
     for entry in init_list:
       entry = entry.strip()
@@ -300,6 +299,9 @@ class tao_root_window(tk.Tk):
           #Check that a good filename has been given
           try:
             filename = init_dict[tk_list[k].param.name]
+            #Expand environment variables and ~
+            filename = os.path.expanduser(filename)
+            filename = os.path.expandvars(filename)
             f = open(filename)
             f.close()
             tk_list[k].tk_var.set(filename)
@@ -416,20 +418,23 @@ def tao_set(tao_list,set_str,pipe):
   update_dict = {} #Record of which variables were changed
   for item in tao_list:
     #Type casting and validation
-    if item.param.type == 'INT':
-      try:
-        new_val = int(item.tk_var.get())
-      except ValueError:
-        messagebox.showwarning("Error",item.param.name + " must be an integer ")
-        new_val = item.param.value
-    elif item.param.type == 'REAL':
-      try:
-        new_val = float(item.tk_var.get())
-      except ValueError:
-        messagebox.showwarning("Error",item.param.name + " must be a real number")
-        new_val = item.param.value
+    if item.tk_var.get() != "": #Skip empty boxes
+      if item.param.type == 'INT':
+        try:
+          new_val = int(item.tk_var.get())
+        except ValueError:
+          messagebox.showwarning("Error",item.param.name + " must be an integer ")
+          new_val = item.param.value
+      elif item.param.type == 'REAL':
+        try:
+          new_val = float(item.tk_var.get())
+        except ValueError:
+          messagebox.showwarning("Error",item.param.name + " must be a real number")
+          new_val = item.param.value
+      else:
+        new_val = item.tk_var.get()
     else:
-      new_val = item.tk_var.get()
+      new_val = item.param.value
     #Check for any change
     if new_val != item.param.value:
       item.param.value = new_val
@@ -459,9 +464,10 @@ def tao_set(tao_list,set_str,pipe):
     pipe.cmd_in("set global plot_on = " + lattice_calc_on)
   else:
     pipe.cmd_in("set global lattice_calc_on = True")
-  #Re-enable input
+  #Re-enable input for parameters that can vary
   for item in tao_list:
-    item.tk_wid.configure(state="normal")
+    if item.param.can_vary:
+      item.tk_wid.configure(state="normal")
 
 #---------------------------------------------------------------
 
