@@ -5,12 +5,12 @@ import sys
 import os
 sys.path.append(os.environ['ACC_ROOT_DIR'] + '/tao/gui')
 from parameters import tao_parameter_dict
+from parameters import tao_parameter
 import string
 
 class tk_tao_parameter():
   '''
-  Takes a tao_parameter (defined in parameters.py) and a
-  tk frame, and creates an object containing the parameter and appropriate tk widget(s) for displaying and modifying the parameter and value
+  Takes a tao_parameter (defined in parameters.py) and a tk frame, and creates an object containing the parameter and appropriate tk widget(s) for displaying and modifying the parameter and value
   '''
 
   def __init__(self, tao_parameter, frame, pipe=0):
@@ -85,46 +85,92 @@ class d2_data_frame():
 
 #-----------------------------------------------------------------
 class d1_data_list_entry():
+  '''Creates various tk widgets to display attributes of a single datum.  Takes one line of output from python data_d_array as input.
   '''
-  Creates various tk widgets to display attributes of a single datum
-  '''
-  def __init__(self, master, d1_data_name, d1_data_ix, u_ix, pipe):
-    self.tk_list = [] # holds all the tk widgets for convenience
-    self.index = d1_data_ix
-    self.ix_label = tk.Label(master, text=str(d1_data_ix))
-    self.tk_list.append(self.ix_label)
-    self.name = d1_data_name
-    self.name_label = tk.Label(master, text=d1_data_name)
-    self.tk_list.append(self.name_label)
+  def __init__(self, master, d_list):
+    d_list = d_list.split(';')
+    self.tk_wids = [] #Holds all the widgets
+    self.tk_tao_params = {} #Holds the tk_tao_parameters for items that are not labels
+    for i in range(6):
+      self.tk_wids.append(tk.Label(master, text=d_list[i]))
 
-    param_list = pipe.cmd_in("python data1 " + str(u_ix) + "@" + d1_data_name + "[" + str(self.index) + "]")
-    self.param_dict = tao_parameter_dict(param_list.splitlines())
+    #Meas value
+    meas_value = tao_parameter("meas_value", "REAL", "T", d_list[6])
+    self.tk_tao_params["meas_value"] = tk_tao_parameter(meas_value, master)
+    self.tk_wids.append(self.tk_tao_params["meas_value"].tk_wid)
 
-    self.merit_type = tk.Label(master, text=self.param_dict["merit_type"].value)
-    self.tk_list.append(self.merit_type)
-    self.ref_ele = tk.Label(master, text=self.param_dict["ele_ref_name"].value)
-    self.tk_list.append(self.ref_ele)
-    self.start_ele = tk.Label(master, text=self.param_dict["ele_start_name"].value)
-    self.tk_list.append(self.start_ele)
-    self.ele_name = tk.Label(master, text=self.param_dict["ele_name"].value)
-    self.tk_list.append(self.ele_name)
+    #Model value
+    model_value = tao_parameter("model_value", "REAL", "F", d_list[7])
+    self.tk_tao_params["model_value"] = tk_tao_parameter(model_value, master)
+    self.tk_wids.append(self.tk_tao_params["model_value"].tk_wid)
 
-    self.meas = tk_tao_parameter(self.param_dict["meas_value"], master, pipe)
-    self.tk_list.append(self.meas.tk_wid)
-    self.model = tk_tao_parameter(self.param_dict["model_value"], master, pipe)
-    self.tk_list.append(self.model.tk_wid)
-    self.design = tk_tao_parameter(self.param_dict["design_value"], master, pipe)
-    self.tk_list.append(self.design.tk_wid)
+    #Design value
+    design_value = tao_parameter("design_value", "REAL", "F", d_list[8])
+    self.tk_tao_params["design_value"] = tk_tao_parameter(design_value, master)
+    self.tk_wids.append(self.tk_tao_params["design_value"].tk_wid)
 
-    self.useit_opt = tk_tao_parameter(self.param_dict["useit_opt"], master, pipe)
-    self.tk_list.append(self.useit_opt.tk_wid)
-    self.useit_plot = tk_tao_parameter(self.param_dict["useit_plot"], master, pipe)
-    self.tk_list.append(self.useit_plot.tk_wid)
+    #Useit_opt and Useit_plot
+    useit_opt = tao_parameter("useit_opt", "LOGIC", "F", d_list[9])
+    self.tk_tao_params["useit_opt"] = tk_tao_parameter(useit_opt, master)
+    self.tk_wids.append(self.tk_tao_params["useit_opt"].tk_wid)
 
-    self.good_user = tk_tao_parameter(self.param_dict["good_user"],master, pipe)
-    self.tk_list.append(self.good_user.tk_wid)
-    self.weight = tk_tao_parameter(self.param_dict["weight"],master, pipe)
-    self.tk_list.append(self.weight.tk_wid)
+    useit_plot = tao_parameter("useit_plot", "LOGIC", "F", d_list[10])
+    self.tk_tao_params["useit_plot"] = tk_tao_parameter(useit_plot, master)
+    self.tk_wids.append(self.tk_tao_params["useit_plot"].tk_wid)
+
+    #Good User
+    good_user = tao_parameter("good_user", "LOGIC", "T", d_list[11])
+    self.tk_tao_params["good_user"] = tk_tao_parameter(good_user, master)
+    self.tk_wids.append(self.tk_tao_params["good_user"].tk_wid)
+    self.tk_wids[11].configure(command=lambda : print("you clicked the button"))
+
+    #Weight
+    weight = tao_parameter("weight", "REAL", "T", d_list[12])
+    self.tk_tao_params["weight"] = tk_tao_parameter(weight, master)
+    self.tk_wids.append(self.tk_tao_params["weight"].tk_wid)
+
+
+#class d1_data_list_entry():
+#  '''
+#  Creates various tk widgets to display attributes of a single datum
+#  '''
+#  def __init__(self, master, d1_data_name, d1_data_ix, u_ix, pipe):
+#    self.tk_list = [] # holds all the tk widgets for convenience
+#    self.index = d1_data_ix
+#    self.ix_label = tk.Label(master, text=str(d1_data_ix))
+#    self.tk_list.append(self.ix_label)
+#    self.name = d1_data_name
+#    self.name_label = tk.Label(master, text=d1_data_name)
+#    self.tk_list.append(self.name_label)
+#
+#    param_list = pipe.cmd_in("python data " + str(u_ix) + "@" + d1_data_name + "[" + str(self.index) + "]")
+#    self.param_dict = tao_parameter_dict(param_list.splitlines())
+#
+#    self.merit_type = tk.Label(master, text=self.param_dict["merit_type"].value)
+#    self.tk_list.append(self.merit_type)
+#    self.ref_ele = tk.Label(master, text=self.param_dict["ele_ref_name"].value)
+#    self.tk_list.append(self.ref_ele)
+#    self.start_ele = tk.Label(master, text=self.param_dict["ele_start_name"].value)
+#    self.tk_list.append(self.start_ele)
+#    self.ele_name = tk.Label(master, text=self.param_dict["ele_name"].value)
+#    self.tk_list.append(self.ele_name)
+#
+#    self.meas = tk_tao_parameter(self.param_dict["meas_value"], master, pipe)
+#    self.tk_list.append(self.meas.tk_wid)
+#    self.model = tk_tao_parameter(self.param_dict["model_value"], master, pipe)
+#    self.tk_list.append(self.model.tk_wid)
+#    self.design = tk_tao_parameter(self.param_dict["design_value"], master, pipe)
+#    self.tk_list.append(self.design.tk_wid)
+#
+#    self.useit_opt = tk_tao_parameter(self.param_dict["useit_opt"], master, pipe)
+#    self.tk_list.append(self.useit_opt.tk_wid)
+#    self.useit_plot = tk_tao_parameter(self.param_dict["useit_plot"], master, pipe)
+#    self.tk_list.append(self.useit_plot.tk_wid)
+#
+#    self.good_user = tk_tao_parameter(self.param_dict["good_user"],master, pipe)
+#    self.tk_list.append(self.good_user.tk_wid)
+#    self.weight = tk_tao_parameter(self.param_dict["weight"],master, pipe)
+#    self.tk_list.append(self.weight.tk_wid)
 
 #-----------------------------------------------------------------
 
