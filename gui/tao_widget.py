@@ -49,6 +49,8 @@ class tk_tao_parameter():
     #Only set if the user has selected an actual file
     if isinstance(filename, str) & (filename != ""):
       self.tk_var.set(filename)
+    else:
+      self.tk_var.set("Browse...")
 
 #-----------------------------------------------------------------
 
