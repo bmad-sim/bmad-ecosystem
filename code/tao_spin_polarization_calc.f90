@@ -165,10 +165,11 @@ do ie = 0, branch%n_ele_track
   ele => branch%ele(ie)
   call calc_radiation_tracking_g_factors (ele, orbit(ie), branch%param, end_edge$, len2, g_x, g_y, g2, g3)
   if (len2 /= 0 .and. g3 /= 0) then
-    b_vec = [g_y, -g_x, 0.0_rp]
-    b_vec = b_vec / norm2(b_vec)
-
-    integral_bn      = integral_bn      + len2 * g3 * dot_product(b_vec, n0 - dn_ddelta)
+    if (g_x /= 0 .or. g_y /= 0) then
+      b_vec = [g_y, -g_x, 0.0_rp]
+      b_vec = b_vec / norm2(b_vec)
+      integral_bn      = integral_bn + len2 * g3 * dot_product(b_vec, n0 - dn_ddelta)
+    endif
     integral_1minus  = integral_1minus  + len2 * g3 * (1 - (2.0_rp/9.0_rp) * dot_product(n0, s_vec)**2)
     integral_dn_ddel = integral_dn_ddel + len2 * g3 * (11.0_rp/18.0_rp) * dot_product(dn_ddelta, dn_ddelta)
   endif
@@ -178,10 +179,11 @@ do ie = 0, branch%n_ele_track
   ele => branch%ele(ie+1)
   call calc_radiation_tracking_g_factors (ele, orbit(ie), branch%param, start_edge$, len2, g_x, g_y, g2, g3)
   if (len2 /= 0 .and. g3 /= 0) then
-    b_vec = [g_y, -g_x, 0.0_rp]
-    b_vec = b_vec / norm2(b_vec)
-
-    integral_bn      = integral_bn      + len2 * g3 * dot_product(b_vec, n0 - dn_ddelta)
+    if (g_x /= 0 .or. g_y /= 0) then
+      b_vec = [g_y, -g_x, 0.0_rp]
+      b_vec = b_vec / norm2(b_vec)
+      integral_bn      = integral_bn + len2 * g3 * dot_product(b_vec, n0 - dn_ddelta)
+    endif
     integral_1minus  = integral_1minus  + len2 * g3 * (1 - (2.0_rp/9.0_rp) * dot_product(n0, s_vec)**2)
     integral_dn_ddel = integral_dn_ddel + len2 * g3 * (11.0_rp/18.0_rp) * dot_product(dn_ddelta, dn_ddelta)
   endif
