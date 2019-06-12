@@ -127,7 +127,6 @@ class d1_data_list_entry():
     good_user = tao_parameter("good_user", "LOGIC", "T", d_list[11])
     self.tk_tao_params["good_user"] = tk_tao_parameter(good_user, master)
     self.tk_wids.append(self.tk_tao_params["good_user"].tk_wid)
-    self.tk_wids[11].configure(command=lambda : print("you clicked the button"))
 
     #Weight
     weight = tao_parameter("weight", "REAL", "T", d_list[12])

@@ -37,6 +37,7 @@ class tao_list_window(tk.Toplevel):
         canvas.yview_scroll(-1,"units")
       elif event.num == 5:
         canvas.yview_scroll(1,"units")
+      #canvas.update_idletasks()
 
     def bind_mouse(event):
       self.outer_frame.bind_all("<Button-4>", mouse_scroll)
@@ -202,7 +203,43 @@ class tao_d1_data_window(tao_list_window):
         tao_set([self.bulk_params[i]], set_str, self.pipe, overide=(i==1)) #overide is necessary for good_user
 
     #Apply individual changes that are different from bulk changes
-    #TODO
+    for i in range(self.ix_ub - self.ix_lb):
+      set_list = []
+      set_str = "set data " + self.u_ix + '@' + self.d1_data_name + '[' + str(i+self.ix_lb) + ']|'
+      #Meas value
+      c1 = (self.list_rows[i].tk_tao_params["meas_value"].tk_var.get() != self.bulk_params[0].tk_var.get())
+      c2 = (not self.bulk_apply[0].tk_var.get())
+      try:
+        c3 = (float(self.list_rows[i].tk_tao_params["meas_value"].tk_var.get()) != self.list_rows[i].tk_tao_params["meas_value"].param.value)
+      except ValueError:
+        print("Casting failed")
+        print(self.list_rows[i].tk_tao_params["meas_value"].tk_var.get())
+        c3 = False
+      if (c1 | c2) & c3:
+        set_list.append(self.list_rows[i].tk_tao_params["meas_value"])
+
+      #Good user
+      c1 = (self.list_rows[i].tk_tao_params["good_user"].tk_var.get() != self.bulk_params[1].tk_var.get())
+      c2 = (not self.bulk_apply[1].tk_var.get())
+      try:
+        c3 = (bool(self.list_rows[i].tk_tao_params["good_user"].tk_var.get()) != self.list_rows[i].tk_tao_params["good_user"].param.value)
+      except:
+        c3 = False
+      if (c1 | c2) & c3:
+        set_list.append(self.list_rows[i].tk_tao_params["good_user"])
+
+      #Weight
+      c1 = (self.list_rows[i].tk_tao_params["weight"].tk_var.get() != self.bulk_params[2].tk_var.get())
+      c2 = (not self.bulk_apply[2].tk_var.get())
+      try:
+        c3 = (float(self.list_rows[i].tk_tao_params["weight"].tk_var.get()) != self.list_rows[i].tk_tao_params["weight"].param.value)
+      except:
+        c3 = False
+      if (c1 | c2) & c3:
+        set_list.append(self.list_rows[i].tk_tao_params["weight"])
+
+      if set_list != []:
+        tao_set(set_list, set_str, self.pipe)
 
     #Refresh
     self.refresh()
@@ -442,6 +479,9 @@ def tao_set(tao_list,set_str,pipe, overide=False):
   set_str should be "set global ", "set data orbit.x[10]|", or whatever is appropriate
   Use the overide option to run set commands even if no change has been made.
   '''
+  # Exit imediately if tao_list is empty
+  if tao_list == []:
+    return 0
   # STOP lattice calculation here
   pipe.cmd_in("set global lattice_calc_on = F")
   pipe.cmd_in("set global plot_on = F")
@@ -449,6 +489,8 @@ def tao_set(tao_list,set_str,pipe, overide=False):
   for item in tao_list:
     item.tk_wid.config(state="disabled")
   update_dict = {} #Record of which variables were changed
+  set_lattice_calc = False
+  set_plot = False
   for item in tao_list:
     #Type casting and validation
     if item.tk_var.get() != "": #Skip empty boxes
@@ -476,8 +518,6 @@ def tao_set(tao_list,set_str,pipe, overide=False):
       update_dict[item.param.name] = overide
 
     #Wait till the end to set lattice_calc_on and plot_on
-    set_lattice_calc = False
-    set_plot = False
     if item.param.name == 'lattice_calc_on':
       lattice_calc_on = str(item.param.value)
       set_lattice_calc = True
