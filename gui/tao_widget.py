@@ -64,6 +64,7 @@ class d2_data_frame():
     self.frame = tk.Frame(master)
     self.name = d2_data_name
     self.d1_data_list = []
+    self.d1_using_list = [] #holds using information
     self.d1_ix_lb_list = [] #holds index lower bounds
     self.d1_ix_ub_list = [] #holds index upper bounds
     d2_info = pipe.cmd_in("python data_d1_array " + u_ix + "@" + self.name)
@@ -71,12 +72,20 @@ class d2_data_frame():
     for item in d2_info:
       item = item.split(';')
       self.d1_data_list.append(item[3])
+      self.d1_using_list.append(item[4])
       self.d1_ix_lb_list.append(int(item[5]))
       self.d1_ix_ub_list.append(int(item[6]))
-    tk.Label(self.frame, text=self.name, font=('Helvetica', 12, 'bold')).grid(row=0)
+    tk.Label(self.frame, text=self.name, font=('Helvetica', 14, 'bold')).grid(row=0, column=0, columnspan=2)
+    tk.Label(self.frame, text="Indices", font=('Helvetica', 14)).grid(row=0, column=2)
+    tk.Label(self.frame, text="Using", font=('Helvetica', 14)).grid(row=0, column=3)
+    for i in range(4):
+      self.frame.grid_columnconfigure(i, pad=10)
     for i in range(len(self.d1_data_list)):
-      tk.Label(self.frame, text=self.d1_data_list[i], font=('Helvetica',12)).grid(row=i+1,column=0)
+      tk.Label(self.frame, text=self.d1_data_list[i], font=('Helvetica',14)).grid(row=i+1,column=0)
       tk.Button(self.frame, text="View...", font=('Helvetica',12), command=self.open_d1_callback(self.name, self.d1_data_list[i], pipe, self.d1_ix_lb_list[i], self.d1_ix_ub_list[i], u_ix)).grid(row=i+1,column=1)
+      mytext = str(self.d1_ix_lb_list[i]) + ":" + str(self.d1_ix_ub_list[i])
+      tk.Label(self.frame, text=mytext, font=('Helvetica',12)).grid(row=i+1, column=2)
+      tk.Label(self.frame, text=self.d1_using_list[i], font=('Helvetica',12)).grid(row=i+1, column=3)
 
   def open_d1_callback(self, d2_data_name, d1_data_name, pipe, ix_lb, ix_ub, u_ix):
     return lambda : self.open_d1(d2_data_name, d1_data_name, pipe, ix_lb, ix_ub, u_ix)
@@ -134,47 +143,6 @@ class d1_data_list_entry():
     self.tk_wids.append(self.tk_tao_params["weight"].tk_wid)
 
 
-#class d1_data_list_entry():
-#  '''
-#  Creates various tk widgets to display attributes of a single datum
-#  '''
-#  def __init__(self, master, d1_data_name, d1_data_ix, u_ix, pipe):
-#    self.tk_list = [] # holds all the tk widgets for convenience
-#    self.index = d1_data_ix
-#    self.ix_label = tk.Label(master, text=str(d1_data_ix))
-#    self.tk_list.append(self.ix_label)
-#    self.name = d1_data_name
-#    self.name_label = tk.Label(master, text=d1_data_name)
-#    self.tk_list.append(self.name_label)
-#
-#    param_list = pipe.cmd_in("python data " + str(u_ix) + "@" + d1_data_name + "[" + str(self.index) + "]")
-#    self.param_dict = tao_parameter_dict(param_list.splitlines())
-#
-#    self.merit_type = tk.Label(master, text=self.param_dict["merit_type"].value)
-#    self.tk_list.append(self.merit_type)
-#    self.ref_ele = tk.Label(master, text=self.param_dict["ele_ref_name"].value)
-#    self.tk_list.append(self.ref_ele)
-#    self.start_ele = tk.Label(master, text=self.param_dict["ele_start_name"].value)
-#    self.tk_list.append(self.start_ele)
-#    self.ele_name = tk.Label(master, text=self.param_dict["ele_name"].value)
-#    self.tk_list.append(self.ele_name)
-#
-#    self.meas = tk_tao_parameter(self.param_dict["meas_value"], master, pipe)
-#    self.tk_list.append(self.meas.tk_wid)
-#    self.model = tk_tao_parameter(self.param_dict["model_value"], master, pipe)
-#    self.tk_list.append(self.model.tk_wid)
-#    self.design = tk_tao_parameter(self.param_dict["design_value"], master, pipe)
-#    self.tk_list.append(self.design.tk_wid)
-#
-#    self.useit_opt = tk_tao_parameter(self.param_dict["useit_opt"], master, pipe)
-#    self.tk_list.append(self.useit_opt.tk_wid)
-#    self.useit_plot = tk_tao_parameter(self.param_dict["useit_plot"], master, pipe)
-#    self.tk_list.append(self.useit_plot.tk_wid)
-#
-#    self.good_user = tk_tao_parameter(self.param_dict["good_user"],master, pipe)
-#    self.tk_list.append(self.good_user.tk_wid)
-#    self.weight = tk_tao_parameter(self.param_dict["weight"],master, pipe)
-#    self.tk_list.append(self.weight.tk_wid)
 
 #-----------------------------------------------------------------
 

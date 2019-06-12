@@ -93,7 +93,7 @@ class tao_d2_data_window(tao_list_window):
     u_ix_box.grid(row=0,column=1,sticky="W")
     self.univ_frame.pack(fill="both", expand=0)
 
-    # Poopulate self.list_frame
+    # Populate self.list_frame
     self.refresh(self.u_ix.get())
 
 
@@ -120,7 +120,7 @@ class tao_d1_data_window(tao_list_window):
 
   def __init__(self, root, pipe, d1_data_name, u_ix, ix_lb, ix_ub, *args, **kwargs):
     tao_list_window.__init__(self, root, d1_data_name, *args, **kwargs)
-    self.geometry('1500x600')
+    self.geometry('1550x600')
     self.pipe = pipe
     self.d1_data_name = d1_data_name
     self.u_ix = u_ix
@@ -163,25 +163,29 @@ class tao_d1_data_window(tao_list_window):
     #Bulk editing
     #Only meas_value, good user, and weight can vary
     tk.Label(self.list_frame, text="Bulk editing:").grid(row=1, column=0, columnspan=6)
-    tk.Label(self.list_frame, text="Check to apply:").grid(row=2, column=0, columnspan=6)
+    tk.Label(self.list_frame, text="Click to fill:").grid(row=2, column=0, columnspan=6)
 
-    self.bulk_params = []
-    self.bulk_apply = []
+    self.bulk_params = [] #Holds the current bulk edit widgets
+    self.bulk_filled = [] #Holds the last value that was filled to the cells
+    self.bulk_apply = [] #Holds fill buttons
 
     self.bulk_params.append(tk_tao_parameter(str_to_tao_param("meas_value;REAL;T;"), self.list_frame))
     self.bulk_params[0].tk_wid.grid(row=1, column=6)
-    self.bulk_apply.append(tk_tao_parameter(str_to_tao_param("apply0;LOGIC;T;"), self.list_frame))
-    self.bulk_apply[0].tk_wid.grid(row=2, column=6)
+    self.bulk_filled.append(self.bulk_params[0].tk_var.get())
+    self.bulk_apply.append(tk.Button(self.list_frame, text="Fill...", command= lambda : self.fill(0)))
+    self.bulk_apply[0].grid(row=2, column=6)
 
     self.bulk_params.append(tk_tao_parameter(str_to_tao_param("good_user;LOGIC;T;"), self.list_frame))
     self.bulk_params[1].tk_wid.grid(row=1, column=11)
-    self.bulk_apply.append(tk_tao_parameter(str_to_tao_param("apply1;LOGIC;T;"), self.list_frame))
-    self.bulk_apply[1].tk_wid.grid(row=2, column=11)
+    self.bulk_filled.append(self.bulk_params[1].tk_var.get())
+    self.bulk_apply.append(tk.Button(self.list_frame, text="Fill...", command= lambda : self.fill(1)))
+    self.bulk_apply[1].grid(row=2, column=11)
 
     self.bulk_params.append(tk_tao_parameter(str_to_tao_param("weight;REAL;T;"), self.list_frame))
     self.bulk_params[2].tk_wid.grid(row=1, column=12)
-    self.bulk_apply.append(tk_tao_parameter(str_to_tao_param("apply2;LOGIC;T;"), self.list_frame))
-    self.bulk_apply[2].tk_wid.grid(row=2, column=12)
+    self.bulk_filled.append(self.bulk_params[2].tk_var.get())
+    self.bulk_apply.append(tk.Button(self.list_frame, text="Fill...", command= lambda : self.fill(2)))
+    self.bulk_apply[2].grid(row=2, column=12)
 
     #Fetch and fill in the data
     self.list_rows = []
@@ -195,11 +199,29 @@ class tao_d1_data_window(tao_list_window):
         self.list_rows[i].tk_wids[j].grid(row=i+3, column=j)
       tk.Button(self.list_frame, text="View More...", command=self.open_datum_window_callback(i+self.ix_lb)).grid(row=i+3, column=j+1)
 
+  def fill(self, index):
+    '''
+    Fills the meas_value, good_user, or weight column (determined by index) to the bulk edit value, saves the bulk edit value for efficient calls to tao_set, and clears the bulk edit box
+    '''
+    # Save the bulk parameter state
+    self.bulk_filled[index] = self.bulk_params[index].tk_var.get()
+    # Clear the bulk parameter widget
+    if index != 1:
+      self.bulk_params[index].tk_var.set("")
+    else:
+      self.bulk_params[index].tk_var.set(False)
+    # Fill the appropriate variable
+    p_names = ["meas_value", "good_user", "weight"]
+    for i in range(self.ix_ub - self.ix_lb):
+      self.list_rows[i].tk_tao_params[p_names[index]].tk_var.set(self.bulk_filled[index])
+
+
   def apply(self):
     #Apply bulk changes
     for i in range(len(self.bulk_params)):
-      if self.bulk_apply[i].tk_var.get():
-        set_str = "set data " + self.u_ix + '@' + self.d1_data_name + '|'# + self.bulk_params[i].param.name
+      if self.bulk_filled[i]:
+        set_str = "set data " + self.u_ix + '@' + self.d1_data_name + '|'
+        self.bulk_params[i].tk_var.set(self.bulk_filled[i])
         tao_set([self.bulk_params[i]], set_str, self.pipe, overide=(i==1)) #overide is necessary for good_user
 
     #Apply individual changes that are different from bulk changes
@@ -208,32 +230,30 @@ class tao_d1_data_window(tao_list_window):
       set_str = "set data " + self.u_ix + '@' + self.d1_data_name + '[' + str(i+self.ix_lb) + ']|'
       #Meas value
       c1 = (self.list_rows[i].tk_tao_params["meas_value"].tk_var.get() != self.bulk_params[0].tk_var.get())
-      c2 = (not self.bulk_apply[0].tk_var.get())
+      c2 = not bool(self.bulk_filled[0])
       try:
         c3 = (float(self.list_rows[i].tk_tao_params["meas_value"].tk_var.get()) != self.list_rows[i].tk_tao_params["meas_value"].param.value)
       except ValueError:
-        print("Casting failed")
-        print(self.list_rows[i].tk_tao_params["meas_value"].tk_var.get())
         c3 = False
       if (c1 | c2) & c3:
         set_list.append(self.list_rows[i].tk_tao_params["meas_value"])
 
       #Good user
       c1 = (self.list_rows[i].tk_tao_params["good_user"].tk_var.get() != self.bulk_params[1].tk_var.get())
-      c2 = (not self.bulk_apply[1].tk_var.get())
+      c2 = not bool(self.bulk_filled[1])
       try:
         c3 = (bool(self.list_rows[i].tk_tao_params["good_user"].tk_var.get()) != self.list_rows[i].tk_tao_params["good_user"].param.value)
-      except:
+      except ValueError:
         c3 = False
       if (c1 | c2) & c3:
         set_list.append(self.list_rows[i].tk_tao_params["good_user"])
 
       #Weight
       c1 = (self.list_rows[i].tk_tao_params["weight"].tk_var.get() != self.bulk_params[2].tk_var.get())
-      c2 = (not self.bulk_apply[2].tk_var.get())
+      c2 = not bool(self.bulk_filled[2])
       try:
         c3 = (float(self.list_rows[i].tk_tao_params["weight"].tk_var.get()) != self.list_rows[i].tk_tao_params["weight"].param.value)
-      except:
+      except ValueError:
         c3 = False
       if (c1 | c2) & c3:
         set_list.append(self.list_rows[i].tk_tao_params["weight"])
