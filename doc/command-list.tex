@@ -2444,13 +2444,14 @@ Examples:
 
 Syntax:
 \begin{example}
-  show spin
+  show spin \{-ref_element <ele_name_or_index>\} \{-element <ele_name_or_index>\} 
+                                    \{-n_axis <nx, ny, nz>\} \{l_axis <lx, ly, lz>\}
 \end{example}
 
 Show spin related information. In particular, show the spin G matrices (if any) used in calculations.
 
-Note: In a lattice with closed geometry, to see the closed orbit invariant spin at any element, use
-the \vn{show element} command.
+Note: To see the closed orbit invariant spin at any element, make sure spin tracking is on (if not,
+use: \vn{set bmad_com spin_tracking_on = T}), and then the \vn{show element} command will display $n_0$.
 
 Example:
 \begin{example}

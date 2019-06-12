@@ -1,9 +1,0 @@
-python modules needed:
-
-tkinter
-Using macports & python 3.6: sudo port install py36-tkinter
-
-
-pexpect
-
-matplotlib
