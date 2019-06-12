@@ -337,18 +337,61 @@ class tao_root_window(tk.Tk):
   # Tao startup
 
   def start_main(self):
-    main_frame = tk.Frame(self, width = 20, height = 30)
-    main_frame.pack()
+    self.main_frame = tk.Frame(self, width = 20, height = 30)
+    self.main_frame.pack()
     self.bind_all('<Return>', self.return_event)
     self.bind_all('<Control-g>', self.global_vars_event)
-    tao_command = tk.StringVar()
-    tk.Entry(main_frame, textvariable=tao_command).pack()
-    def run_command():
-      print(tao_command.get())
-      self.pipe.cmd(tao_command.get())
 
-    cmd_button = tk.Button(main_frame, text = "Run Command", command=run_command)
-    cmd_button.pack()
+    # Call
+    tk.Label(self.main_frame, text="Call command file:").grid(row=0, column=0)
+    self.call_file = tk_tao_parameter(str_to_tao_param("call_file;FILE;T;"), self.main_frame, self.pipe)
+    self.call_file.tk_wid.grid(row=0, column=1)
+    tk.Button(self.main_frame, text="Run").grid(row=0, column=2)
+
+    # Optimization
+    tk.Label(self.main_frame, text="Optimization:").grid(row=1, column=0)
+    tk.Button(self.main_frame, text="Setup").grid(row=1, column=1)
+    tk.Button(self.main_frame, text="Run").grid(row=1, column=2)
+
+    # Command line
+    self.cmd_frame = tk.Frame(self)
+    self.cmd_frame.pack(side="bottom", fill="x")
+    self.history = [] #holds the history
+    self.history.append([]) #Tao history
+    self.history.append([]) #Shell history
+    self.history.append([]) #Call history
+    tk.Button(self.cmd_frame, text="View History...").pack(side="top", fill="x")
+
+    self.command = tk_tao_parameter(str_to_tao_param("command;STR;T;"), self.cmd_frame, self.pipe)
+    self.command.tk_wid.pack(side="left", fill="x", expand=1)
+    tk.Button(self.cmd_frame, text="Run (System Shell)", command=self.tao_spawn).pack(side="right")
+    tk.Button(self.cmd_frame, text="Run (Tao)", command=self.tao_command).pack(side="right")
+
+  def tao_command(self):
+    '''
+    Runs the text in self.command at the Tao command line, appends it to the history, and clears self.command
+    '''
+    self.pipe.cmd(self.command.tk_var.get())
+    self.history[0].append(self.command.tk_var.get())
+    self.command.tk_var.set("")
+
+  def tao_spawn(self):
+    '''
+    Runs the text in self.command at the system command line, appends it to the history, and clears self.command
+    '''
+    cmd_txt = self.command.tk_var.get()
+    self.pipe.cmd("spawn " + cmd_txt)
+    self.history[1].append(cmd_txt)
+    self.command.tk_var.set("")
+
+  def tao_call(self):
+    '''
+    Runs the command file in self.call_file, appends it to the history, and clears self.call_file
+    '''
+    if self.call_file.tk_var.get() != "Browse...":
+      self.pipe.cmd("call " + self.call_file.tk_var.get())
+      self.history[2].append(self.call_file.tk_var.get())
+      self.call_file.tk_var.set("Browse...")
 
   def tao_load(self,init_frame):
     from parameters import param_dict
