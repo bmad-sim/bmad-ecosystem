@@ -2445,17 +2445,31 @@ Examples:
 Syntax:
 \begin{example}
   show spin \{-ref_element <ele_name_or_index>\} \{-element <ele_name_or_index>\} 
-                                    \{-n_axis <nx, ny, nz>\} \{l_axis <lx, ly, lz>\}
+                                    \{-n_axis <nx>, <ny>, <nz>\} \{-l_axis <lx>, <ly>, <lz>\}
 \end{example}
 
-Show spin related information. In particular, show the spin G matrices (if any) used in calculations.
-
+Show spin related information. 
 Note: To see the closed orbit invariant spin at any element, make sure spin tracking is on (if not,
 use: \vn{set bmad_com spin_tracking_on = T}), and then the \vn{show element} command will display $n_0$.
+
+If \vn{-element} is not present, \vn{show spin} will show various quantities including the
+equilibrium polarization, polarization rates, and any G matrices needed to evaluate datums that
+have been defined of type \vn{spin_g_matrix.}$ij$ (\sref{s:data.source}.
+
+If \vn{-element} is present, the output will be the 8x8 G-matrix from the downstream end of the
+element given by \vn{-ref_element} to the downstream end of the element given by \vn{-element}.
+If \vn{-ref_element} is not given, the default is to use the element before the element given
+by \vn{-element}. This gives the G-matrix for transport through the \vn{-element} element.
+The G-matrix is dependent upon the $(\Bf l, \Bf n, \Bf m)$ axes used to define the spin vector (see
+the \vn{SLIM Formalism} secton of the Spin chapter in the Bmad manual). The $\Bf n$ and $\Bf l$ axes
+can be specified using the \vn{-n_axis} and \vn{-l_axis} switches. The $\Bf m$ axis is calculated
+from knowledge of the other two axes. If not given, the axes will be taken to be what is computed from
+spin tracking. Note: Commas between axis components are optional.
 
 Example:
 \begin{example}
   show spin
+  show spin -ele Q10W -n 0,1,0 -l 1,0,0  ! G-matrix for Q10W
 \end{example}
 
 %% show symbolic_numbers --------------------------------------------------------------

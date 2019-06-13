@@ -89,9 +89,12 @@ character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
 character(20) cmd, command, who, which, v_str
 character(20) :: r_name = 'tao_python_cmd'
-character(20) :: cmd_names(37) = [character(20) :: &
+character(40) :: cmd_names(57) = [character(20) :: &
   'beam_init', 'branch1', 'bunch1', 'bmad_com', &
   'data_create', 'data_destroy', 'data_d2_array', 'data_d1_array', 'data_d2', 'data_d_array', 'data', &
+  'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', 'ele:cartesian_map', 'ele:cylindrical_map', &
+  'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
+  'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
   'enum', 'global', 'help', &
   'lat_ele_list', 'lat_ele1', 'lat_general', 'lat_list', 'lat_param_units', &
   'orbit_at_s', &
@@ -101,10 +104,13 @@ character(20) :: cmd_names(37) = [character(20) :: &
 
 real(rp) s_pos, value
 real(rp), allocatable :: re_array(:)
+real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
+real(rp) a2(0:n_pole_maxx), b2(0:n_pole_maxx)
+real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
 
 integer :: i, j, k, ie, iu, nn, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i1, i2
-integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_d2, n_who
-integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta
+integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_d2, n_who, ix_pole_max, attrib_type
+integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free
 
 logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer
 
@@ -685,6 +691,488 @@ case ('data')
   nl=incr(nl); write (li(nl), lmt) 'good_plot;LOGIC;T;',                      d_ptr%good_plot
   nl=incr(nl); write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     d_ptr%useit_plot
   nl=incr(nl); write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      d_ptr%useit_opt
+
+!----------------------------------------------------------------------
+! "Head" Element attributes
+! Command syntax:
+!   python ele:head {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:head')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+  nl=incr(nl); write (li(nl), imt) 'universe;INT;F;',                 u%ix_uni
+  nl=incr(nl); write (li(nl), imt) 'ix_branch;INT;F;',                ele%ix_branch
+  nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;F;',                   ele%ix_ele
+  
+  nl=incr(nl); write (li(nl), amt) 'key;INT;F;',                    key_name(ele%key)
+  nl=incr(nl); write (li(nl), amt) 'name;INT;F;',                   ele%name
+  nl=incr(nl); write (li(nl), amt) 'type;INT;T;',                   ele%type
+  nl=incr(nl); write (li(nl), amt) 'alias;INT;T;',                  ele%alias
+  nl=incr(nl); write (li(nl), amt) 'descrip;INT;T;',                ele%descrip
+  nl=incr(nl); write (li(nl), lmt) 'is_on;REAL;F;',                 ele%is_on
+
+
+  nl=incr(nl); write (li(nl), lmt) 'has:methods;LOGIC;F;',          (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$)
+  nl=incr(nl); write (li(nl), lmt) 'has:multipoles;LOGIC;F;',       (ele%key == multipole$ .or. attribute_name(ele, a0$) == 'A0')
+  nl=incr(nl); write (li(nl), lmt) 'has:multipoles_elec;LOGIC;F;',  (attribute_name(ele, a0_elec$) == 'A0_ELEC')
+  nl=incr(nl); write (li(nl), lmt) 'has:ac_kick;LOGIC;F;',          associated(ele%ac_kick)
+  nl=incr(nl); write (li(nl), lmt) 'has:cartesian_map;LOGIC;F;',    associated(ele%cartesian_map)
+  nl=incr(nl); write (li(nl), lmt) 'has:cylindrical_map;LOGIC;F;',  associated(ele%cylindrical_map)
+  nl=incr(nl); write (li(nl), lmt) 'has:taylor_field;LOGIC;F;',     associated(ele%taylor_field)
+  nl=incr(nl); write (li(nl), lmt) 'has:grid_field;LOGIC;F;',       associated(ele%grid_field)
+  nl=incr(nl); write (li(nl), lmt) 'has:taylor;LOGIC;F;',           associated(ele%taylor(1)%term)
+  nl=incr(nl); write (li(nl), lmt) 'has:spin_taylor;LOGIC;F;',      associated(ele%spin_taylor(1)%term)
+  nl=incr(nl); write (li(nl), lmt) 'has:wake;LOGIC;F;',             associated(ele%wake)
+  nl=incr(nl); write (li(nl), lmt) 'has:wall3d;LOGIC;F;',           associated(ele%wall3d)
+  nl=incr(nl); write (li(nl), lmt) 'has:control;LOGIC;F;',          associated(ele%control)
+  nl=incr(nl); write (li(nl), lmt) 'has:twiss;LOGIC;F;',            (ele%a%beta /= 0)
+  nl=incr(nl); write (li(nl), lmt) 'has:mat6;LOGIC;F;',             (attribute_name(ele, mat6_calc_method$) == 'MAT6_CALC_METHOD')
+  nl=incr(nl); write (li(nl), lmt) 'has:taylor_field;LOGIC;F;',     associated(ele%taylor_field)       
+  nl=incr(nl); write (li(nl), lmt) 'has:grid_field;LOGIC;F;',       associated(ele%grid_field)
+  nl=incr(nl); write (li(nl), lmt) 'has:floor;LOGIC;F;',            (ele%lord_status /= multipass_lord$)
+  nl=incr(nl); write (li(nl), lmt) 'has:photon;LOGIC;F;',           associated(ele%photon)
+  nl=incr(nl); write (li(nl), lmt) 'has:lord_slave;LOGIC;F;',       .true.
+
+!----------------------------------------------------------------------
+! Element methods
+! Command syntax:
+!   python ele:methods {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:methods')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+  if (attribute_name(ele, crystal_type$) == 'CRYSTAL_TYPE') then
+    nl=incr(nl); write (li(nl), amt) 'crystal_type;STR;T;', ele%component_name
+  endif
+
+  if (attribute_name(ele, material_type$) == 'MATERIAL_TYPE') then
+    nl=incr(nl); write (li(nl), amt) 'material_type;STR;T;', ele%component_name
+  endif
+
+  if (attribute_name(ele, origin_ele$) == 'ORIGIN_ELE') then
+    nl=incr(nl); write (li(nl), amt) 'origin_ele;STR;T;', '"', trim(ele%component_name)
+  endif
+
+  if (attribute_name(ele, physical_source$) == 'PHYSICAL_SOURCE') then
+    nl=incr(nl); write (li(nl), amt) 'physical_source;STR;T;', '"', trim(ele%component_name)
+  endif
+
+  if (attribute_name(ele, mat6_calc_method$) == 'mat6_calc_method') then
+    nl=incr(nl); write (li(nl), amt) 'mat6_calc_method;ENUM;T;', mat6_calc_method_name(ele%mat6_calc_method)
+  endif
+
+  if (attribute_name(ele, tracking_method$) == 'tracking_method') then
+    nl=incr(nl); write (li(nl), amt) 'tracking_method;ENUM;T;', tracking_method_name(ele%tracking_method)
+  endif
+
+  if (attribute_name(ele, spin_tracking_method$) == 'spin_tracking_method') then
+    nl=incr(nl); write (li(nl), amt) 'spin_tracking_method;ENUM;T;', spin_tracking_method_name(ele%spin_tracking_method)
+  endif
+
+  if (attribute_name(ele, csr_method$) == 'csr_method') then
+    nl=incr(nl); write (li(nl), amt) 'csr_method;ENUM;T;', csr_method_name(ele%csr_method)
+  endif
+
+  if (attribute_name(ele, space_charge_method$) == 'space_charge_method') then
+    nl=incr(nl); write (li(nl), amt) 'space_charge_method;ENUM;T;', space_charge_method_name(ele%space_charge_method)
+  endif
+
+  if (attribute_name(ele, ptc_integration_type$) == 'ptc_integration_type') then
+    nl=incr(nl); write (li(nl), amt) 'ptc_integration_type;ENUM;T;', ptc_integration_type_name(ele%ptc_integration_type)
+  endif
+
+  if (attribute_name(ele, field_calc$) == 'field_calc') then
+    nl=incr(nl); write (li(nl), amt) 'field_calc;ENUM;T;', field_calc_name(ele%field_calc)
+  endif
+
+  if (attribute_name(ele, aperture_at$) == 'aperture_at') then
+    nl=incr(nl); write (li(nl), amt) 'aperture_at;ENUM;T;', aperture_at_name(ele%aperture_at)
+  endif
+
+  if (attribute_name(ele, aperture_type$) == 'aperture_type') then
+    nl=incr(nl); write (li(nl), amt) 'aperture_type;ENUM;T;', aperture_type_name(ele%aperture_type)
+  endif
+
+  if (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$) then
+    nl=incr(nl); write (li(nl), imt) 'longitudinal_orientation;INT;F;',              ele%orientation
+  endif
+
+!----------------------------------------------------------------------
+! Element general attributes
+! Command syntax:
+!   python ele:gen_attribs {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:gen_attribs')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                   ele%s
+  nl=incr(nl); write (li(nl), rmt) 's_start;REAL;F;',             ele%s_start
+  nl=incr(nl); write (li(nl), rmt) 'ref_time;REAL;F;',            ele%ref_time
+
+  do i = 1, num_ele_attrib$
+    attrib = attribute_info(ele, i)
+    a_name = attrib%name
+    if (a_name == null_name$) cycle
+    if (attrib%type == private$) cycle
+
+    free = attribute_free (ele, a_name, .false., why_not_free = why_not_free)
+    if (.not. free .and. why_not_free == field_master_dependent$) free = .true.
+    attrib_type = attribute_type(a_name)
+
+    select case (attrib_type)
+    case (is_logical$)
+      nl=incr(nl); write (li(nl), '(2a, l1, a, l1)') trim(a_name), ';LOGIC;', free, ';', is_true(ele%value(i))
+    case (is_integer$)
+      nl=incr(nl); write (li(nl), '(2a, l1, a, i0)') trim(a_name), ';INT;', free, ';', nint(ele%value(i))
+    case (is_real$)
+      nl=incr(nl); write (li(nl), '(2a, l1, a, es23.15)') trim(a_name), ';REAL;', free, ';', ele%value(i)
+      nl=incr(nl); write (li(nl), '(4a)') 'units:', trim(a_name), ';STR;F;', attrib%units
+    case (is_switch$)
+      name = switch_attrib_value_name (a_name, ele%value(i), ele)
+      nl=incr(nl); write (li(nl), '(2a, l1, 2a)') trim(a_name), ';ENUM;', free, ';', trim(name)
+    end select
+  enddo
+
+!----------------------------------------------------------------------
+! Element multipoles
+! Command syntax:
+!   python ele:multipoles {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:multipoles')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+  nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T', ele%multipoles_on 
+  if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
+    nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T', ele%scale_multipoles
+  endif
+
+  if (associated(ele%a_pole)) then
+    a = 0; b = 0; a2 = 0; b2 = 0; knl = 0; tn = 0
+    if (ele%key == multipole$) then
+      call multipole_ele_to_ab (ele, .false., ix_pole_max, a,  b)
+      call multipole_ele_to_kt (ele, .true.,  ix_pole_max, knl, tn)
+    else
+      call multipole_ele_to_ab (ele, .false., ix_pole_max, a,  b)
+      call multipole_ele_to_ab (ele, .true.,  ix_pole_max, a2, b2)
+      call multipole_ele_to_kt (ele, .true.,  ix_pole_max, knl, tn)
+    endif
+
+    do i = 0, n_pole_maxx
+      if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
+
+      if (ele%key == multipole$) then
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'K', i, 'L;REAL;T;', ele%a_pole(i)
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'T', i, ';REAL;T;', ele%b_pole(i)
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'K', i, 'L (w/Tilt);REAL;F;', knl(i)
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'T', i, '(w/Tilt) ;REAL;F;', tn(i)
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'A', i, '(equiv);REAL;F;', a(i)
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'B', i, '(equiv);REAL;F;', b(i)
+
+      elseif (ele%key == ab_multipole$) then
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'A', i, ';REAL;T;', ele%a_pole(i)
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'B', i, ';REAL;T;', ele%b_pole(i)
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'A', i, '(w/Tilt);REAL;F;', a2(i)
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'B', i, '(w/Tilt);REAL;F;', b2(i)
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'K', i, 'L(equiv);REAL;F;', knl(i)
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'T', i, '(equiv) ;REAL;F;', tn(i)
+      else
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'A', i, ';REAL;T;', ele%a_pole(i)
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'B', i, ';REAL;T;', ele%b_pole(i)
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'A', i, '(Scaled);REAL;F;', a(i)
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'B', i, '(Scaled);REAL;F;', b(i)
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'A', i, '(w/Tilt);REAL;F;', a2(i)
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'B', i, '(w/Tilt);REAL;F;', b2(i)
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'K', i, 'L(equiv);REAL;F;', knl(i)
+        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'T', i, '(equiv) ;REAL;F;', tn(i)
+      endif
+    enddo
+  endif
+
+!----------------------------------------------------------------------
+! Element ac_kicker
+! Command syntax:
+!   python ele:ac_kicker {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:ac_kicker')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+!----------------------------------------------------------------------
+! Element cartesian_map
+! Command syntax:
+!   python ele:cartesian_map {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:cartesian_map')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+!----------------------------------------------------------------------
+! Element cylindrical_map
+! Command syntax:
+!   python ele:cylindrical_map {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:cylindrical_map')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+!----------------------------------------------------------------------
+! Element taylor
+! Command syntax:
+!   python ele:taylor {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:taylor')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+!----------------------------------------------------------------------
+! Element spin_taylor
+! Command syntax:
+!   python ele:spin_taylor {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:spin_taylor')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+!----------------------------------------------------------------------
+! Element wake
+! Command syntax:
+!   python ele:wake {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:wake')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+!----------------------------------------------------------------------
+! Element wall3d
+! Command syntax:
+!   python ele:wall3d {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:wall3d')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+!----------------------------------------------------------------------
+! Element twiss
+! Command syntax:
+!   python ele:twiss {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:twiss')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+!----------------------------------------------------------------------
+! Element control
+! Command syntax:
+!   python ele:control {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:control')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+!----------------------------------------------------------------------
+! Element mat6
+! Command syntax:
+!   python ele:mat6 {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:mat6')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+!----------------------------------------------------------------------
+! Element taylor_field
+! Command syntax:
+!   python ele:taylor_field {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:taylor_field')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+!----------------------------------------------------------------------
+! Element grid_field
+! Command syntax:
+!   python ele:grid_field {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:grid_field')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+!----------------------------------------------------------------------
+! Element floor
+! Command syntax:
+!   python ele:floor {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:floor')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+!----------------------------------------------------------------------
+! Element photon
+! Command syntax:
+!   python ele:photon {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:photon')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+!----------------------------------------------------------------------
+! Element lord_slave
+! Command syntax:
+!   python ele:lord_slave {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:lord_slave')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+!----------------------------------------------------------------------
+! Element electric multipoles
+! Command syntax:
+!   python ele:elec_multipoles {ele_id}
+! where {ele_id} is an element name or index.
+! Example:
+!   python element 3@1>>7
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:elec_multipoles')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+  nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T', ele%multipoles_on 
+  if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
+    nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T', ele%scale_multipoles
+  endif
+
+  if (associated(ele%a_pole_elec)) then
+    call multipole_ele_to_ab (ele, .false., ix_pole_max, a, b, electric$)
+
+    do i = 0, n_pole_maxx
+      if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
+
+      nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'A', i, '_elec;REAL;T;', ele%a_pole_elec(i)
+      nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'B', i, '_elec;REAL;T;', ele%b_pole_elec(i)
+      nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'A', i, '_elec(Scaled);REAL;F;', a(i)
+      nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'B', i, '_elec(Scaled);REAL;F;', b(i)
+    enddo
+  endif
 
 !----------------------------------------------------------------------
 ! List of possible values for enumerated numbers.
