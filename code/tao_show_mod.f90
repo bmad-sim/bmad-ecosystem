@@ -226,9 +226,10 @@ character(*), allocatable :: lines(:)
 character(*) result_id
 character(n_char_show) line, line1, line2, line3
 character(n_char_show) what2
-character(9) angle_str
 
-character(3) undef_str
+character(1) delim
+character(3) undef_str 
+character(9) angle_str
 character(16) velocity_fmt, momentum_fmt, e_field_fmt, b_field_fmt, position_fmt, energy_fmt, s_fmt
 character(16) spin_fmt, t_fmt, twiss_fmt, disp_fmt, str1, str2
 character(24) show_name, show2_name, what_to_print
@@ -263,7 +264,7 @@ logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limi
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_attributes, print_ran_state, err_flag
 logical print_global, print_optimization, print_bmad_com, print_csr_param, print_ptc, print_position
-logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field
+logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
 logical, allocatable :: picked_ele(:)
 
@@ -3310,18 +3311,18 @@ case ('spin')
         nl=nl+1; lines(nl) = 'CANNOT PARSE N AXIS: ' // what2
         return
       endif
-      call string_trim(what2(ix+1:), what2, ix)
-      call string_trim(what2(ix+1:), what2, ix)
-      call string_trim(what2(ix+1:), what2, ix)
+      call word_read(what2, ' ,', word1, ix, delim, delim_found, what2)
+      call word_read(what2, ' ,', word1, ix, delim, delim_found, what2)
+      call word_read(what2, ' ,', word1, ix, delim, delim_found, what2)
     case ('-l_axis')
       read (what2, *, iostat = ios) datum%spin_axis%l
       if (ios /= 0) then
         nl=nl+1; lines(nl) = 'CANNOT PARSE N AXIS: ' // what2
         return
       endif
-      call string_trim(what2(ix+1:), what2, ix)
-      call string_trim(what2(ix+1:), what2, ix)
-      call string_trim(what2(ix+1:), what2, ix)
+      call word_read(what2, ' ,', word1, ix, delim, delim_found, what2)
+      call word_read(what2, ' ,', word1, ix, delim, delim_found, what2)
+      call word_read(what2, ' ,', word1, ix, delim, delim_found, what2)
     end select
   enddo
 
