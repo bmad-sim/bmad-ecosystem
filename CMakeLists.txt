@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
 set (EXE_SPECS 
+  cmake.beam_file_translate_format
   cmake.ptc_flat_file_to_bmad
   cmake.make_a_matching_knob
   cmake.wake_fit
