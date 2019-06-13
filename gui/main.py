@@ -347,7 +347,6 @@ class tao_root_window(tk.Tk):
     self.menubar.entryconfig("Window", state="normal")
     self.main_frame = tk.Frame(self, width = 20, height = 30)
     self.main_frame.pack()
-    self.bind_all('<Return>', self.return_event)
     self.bind_all('<Control-g>', self.global_vars_event)
 
     # Call
@@ -371,17 +370,19 @@ class tao_root_window(tk.Tk):
     tk.Button(self.cmd_frame, text="View History...").pack(side="top", fill="x")
 
     self.command = tk_tao_parameter(str_to_tao_param("command;STR;T;"), self.cmd_frame, self.pipe)
+    self.command.tk_wid.bind("<Return>", self.tao_command)
     self.command.tk_wid.pack(side="left", fill="x", expand=1)
     tk.Button(self.cmd_frame, text="Run (System Shell)", command=self.tao_spawn).pack(side="right")
     tk.Button(self.cmd_frame, text="Run (Tao)", command=self.tao_command).pack(side="right")
 
-  def tao_command(self):
+  def tao_command(self, event=None):
     '''
     Runs the text in self.command at the Tao command line, appends it to the history, and clears self.command
     '''
-    self.pipe.cmd(self.command.tk_var.get())
-    self.history[0].append(self.command.tk_var.get())
-    self.command.tk_var.set("")
+    if self.command.tk_var.get() != "":
+      self.pipe.cmd(self.command.tk_var.get())
+      self.history[0].append(self.command.tk_var.get())
+      self.command.tk_var.set("")
 
   def tao_spawn(self):
     '''
@@ -536,9 +537,6 @@ class tao_root_window(tk.Tk):
     win = tao_d2_data_window(None, self.pipe)
 
   # Other callbacks
-
-  def return_event(self, event):
-    print("You hit return.")
 
   def global_vars_event(self, event):
     self.set_global_vars_cmd()
