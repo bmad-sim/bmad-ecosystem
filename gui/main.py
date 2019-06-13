@@ -133,8 +133,8 @@ class tao_d1_data_window(tao_list_window):
     b1 = tk.Button(self.button_frame, text="Apply Changes", command=self.apply)
     b2 = tk.Button(self.button_frame, text="Discard Changes and Refresh", command=self.refresh)
 
-    b1.pack(side="left")
     b2.pack(side="right")
+    b1.pack(side="right")
 
   def refresh(self):
     # Clear self.list_frame:
@@ -172,6 +172,7 @@ class tao_d1_data_window(tao_list_window):
 
     self.bulk_params.append(tk_tao_parameter(str_to_tao_param("meas_value;REAL;T;"), self.list_frame))
     self.bulk_params[0].tk_wid.grid(row=1, column=6)
+    self.bulk_params[0].tk_wid.bind("<Return>", lambda event : self.fill(0))
     self.bulk_filled.append(False)
     self.bulk_value.append(self.bulk_params[0].tk_var.get())
     self.bulk_apply.append(tk.Button(self.list_frame, text="Fill...", command= lambda : self.fill(0)))
@@ -179,6 +180,7 @@ class tao_d1_data_window(tao_list_window):
 
     self.bulk_params.append(tk_tao_parameter(str_to_tao_param("good_user;LOGIC;T;"), self.list_frame))
     self.bulk_params[1].tk_wid.grid(row=1, column=11)
+    self.bulk_params[1].tk_wid.bind("<Return>", lambda event : self.fill(1))
     self.bulk_filled.append(False)
     self.bulk_value.append(self.bulk_params[1].tk_var.get())
     self.bulk_apply.append(tk.Button(self.list_frame, text="Fill...", command= lambda : self.fill(1)))
@@ -186,10 +188,12 @@ class tao_d1_data_window(tao_list_window):
 
     self.bulk_params.append(tk_tao_parameter(str_to_tao_param("weight;REAL;T;"), self.list_frame))
     self.bulk_params[2].tk_wid.grid(row=1, column=12)
+    self.bulk_params[1].tk_wid.bind("<Return>", lambda event : self.fill(1))
     self.bulk_filled.append(False)
     self.bulk_value.append(self.bulk_params[2].tk_var.get())
     self.bulk_apply.append(tk.Button(self.list_frame, text="Fill...", command= lambda : self.fill(2)))
     self.bulk_apply[2].grid(row=2, column=12)
+
 
     #Fetch and fill in the data
     self.list_rows = []
@@ -203,7 +207,7 @@ class tao_d1_data_window(tao_list_window):
         self.list_rows[i].tk_wids[j].grid(row=i+3, column=j)
       tk.Button(self.list_frame, text="View More...", command=self.open_datum_window_callback(i+self.ix_lb)).grid(row=i+3, column=j+1)
 
-  def fill(self, index):
+  def fill(self, index, event=None):
     '''
     Fills the meas_value, good_user, or weight column (determined by index) to the bulk edit value, saves the bulk edit value for efficient calls to tao_set, and clears the bulk edit box
     '''
@@ -224,7 +228,6 @@ class tao_d1_data_window(tao_list_window):
   def apply(self):
     #Apply bulk changes
     for i in range(len(self.bulk_params)):
-      print(self.bulk_filled[i])
       if self.bulk_filled[i]:
         set_str = "set data " + self.u_ix + '@' + self.d1_data_name + '|'
         self.bulk_params[i].tk_var.set(self.bulk_value[i])
@@ -289,6 +292,28 @@ class tao_d1_data_window(tao_list_window):
     self.refresh()
 
 
+#---------------------------------------------------------------
+# Big window
+# Used for testing purposes
+class big_window(tao_list_window):
+  def __init__(self, *args, **kwargs):
+    tao_list_window.__init__(self, None, "Big window", *args, **kwargs)
+    self.geometry('1550x600')
+    self.refresh()
+
+    b = tk.Button(self, text="Refresh", command=self.refresh)
+    b.pack()
+
+  def refresh(self):
+    '''
+    Grid a bunch of widgets to the list frame
+    '''
+    for child in self.list_frame.winfo_children():
+      child.destroy()
+    import random
+    for i in range(100):
+      for j in range(10):
+        tk.Label(self.list_frame, text=str(random.random())).grid(row=i, column=j)
 
 #---------------------------------------------------------------
 # Variable Window
@@ -343,11 +368,15 @@ class tao_root_window(tk.Tk):
   # Tao startup
 
   def start_main(self):
+    self.unbind_all("<Return>")
+    self.lift()
+    self.focus_force()
     self.menubar.entryconfig("File", state="normal")
     self.menubar.entryconfig("Window", state="normal")
     self.main_frame = tk.Frame(self, width = 20, height = 30)
     self.main_frame.pack()
     self.bind_all('<Control-g>', self.global_vars_event)
+    self.bind_all('<Control-b>', self.big_window_event)
 
     # Call
     tk.Label(self.main_frame, text="Call command file:").grid(row=0, column=0)
@@ -360,20 +389,42 @@ class tao_root_window(tk.Tk):
     tk.Button(self.main_frame, text="Setup").grid(row=1, column=1)
     tk.Button(self.main_frame, text="Run").grid(row=1, column=2)
 
+    #TESTING: big window
+    tk.Button(self.main_frame, text="Big window", command=self.big_window_event).grid(row=2, column=0)
+
     # Command line
     self.cmd_frame = tk.Frame(self)
     self.cmd_frame.pack(side="bottom", fill="x")
     self.history = [] #holds the history
     self.history.append([]) #Tao history
+    self.history_pos = 0 #Used for scrolling in history on command line
     self.history.append([]) #Shell history
     self.history.append([]) #Call history
     tk.Button(self.cmd_frame, text="View History...").pack(side="top", fill="x")
 
     self.command = tk_tao_parameter(str_to_tao_param("command;STR;T;"), self.cmd_frame, self.pipe)
     self.command.tk_wid.bind("<Return>", self.tao_command)
+    self.command.tk_wid.bind("<Shift-Return>", self.tao_spawn)
+    self.command.tk_wid.bind("<Up>", self.hist_scroll_up)
+    self.command.tk_wid.bind("<Down>", self.hist_scroll_down)
     self.command.tk_wid.pack(side="left", fill="x", expand=1)
     tk.Button(self.cmd_frame, text="Run (System Shell)", command=self.tao_spawn).pack(side="right")
     tk.Button(self.cmd_frame, text="Run (Tao)", command=self.tao_command).pack(side="right")
+
+  def hist_scroll_up(self, event=None):
+    if len(self.history[0]) > self.history_pos: #if there's room left to scroll up in history
+      self.history_pos += 1
+      self.command.tk_var.set(self.history[0][-1*self.history_pos])
+      self.command.tk_wid.icursor(len(self.command.tk_var.get()))
+
+  def hist_scroll_down(self, event=None):
+    if self.history_pos > 0:
+      self.history_pos -= 1
+      if self.history_pos > 0:
+        self.command.tk_var.set(self.history[0][-1*self.history_pos])
+      else:
+        self.command.tk_var.set("")
+      self.command.tk_wid.icursor(len(self.command.tk_var.get()))
 
   def tao_command(self, event=None):
     '''
@@ -383,15 +434,18 @@ class tao_root_window(tk.Tk):
       self.pipe.cmd(self.command.tk_var.get())
       self.history[0].append(self.command.tk_var.get())
       self.command.tk_var.set("")
+    self.history_pos = 0
 
-  def tao_spawn(self):
+  def tao_spawn(self, event=None):
     '''
     Runs the text in self.command at the system command line, appends it to the history, and clears self.command
     '''
-    cmd_txt = self.command.tk_var.get()
-    self.pipe.cmd("spawn " + cmd_txt)
-    self.history[1].append(cmd_txt)
-    self.command.tk_var.set("")
+    if self.command.tk_var.get() != "":
+      cmd_txt = self.command.tk_var.get()
+      self.pipe.cmd("spawn " + cmd_txt)
+      self.history[1].append(cmd_txt)
+      self.command.tk_var.set("")
+    self.history_pos = 0
 
   def tao_call(self):
     '''
@@ -536,6 +590,9 @@ class tao_root_window(tk.Tk):
   def view_data_cmd(self):
     win = tao_d2_data_window(None, self.pipe)
 
+  def big_window_event(self, event=None):
+    win = big_window()
+
   # Other callbacks
 
   def global_vars_event(self, event):
@@ -552,7 +609,7 @@ def tao_set(tao_list,set_str,pipe, overide=False):
   '''
   # Exit imediately if tao_list is empty
   if tao_list == []:
-    return 0
+    pass
   # STOP lattice calculation here
   pipe.cmd_in("set global lattice_calc_on = F")
   pipe.cmd_in("set global plot_on = F")
