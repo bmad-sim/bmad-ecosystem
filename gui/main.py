@@ -166,24 +166,28 @@ class tao_d1_data_window(tao_list_window):
     tk.Label(self.list_frame, text="Click to fill:").grid(row=2, column=0, columnspan=6)
 
     self.bulk_params = [] #Holds the current bulk edit widgets
-    self.bulk_filled = [] #Holds the last value that was filled to the cells
+    self.bulk_filled = [] #Holds whether or not bulk filling has been used
+    self.bulk_value = [] #Holds the last value that was filled to the cells
     self.bulk_apply = [] #Holds fill buttons
 
     self.bulk_params.append(tk_tao_parameter(str_to_tao_param("meas_value;REAL;T;"), self.list_frame))
     self.bulk_params[0].tk_wid.grid(row=1, column=6)
-    self.bulk_filled.append(self.bulk_params[0].tk_var.get())
+    self.bulk_filled.append(False)
+    self.bulk_value.append(self.bulk_params[0].tk_var.get())
     self.bulk_apply.append(tk.Button(self.list_frame, text="Fill...", command= lambda : self.fill(0)))
     self.bulk_apply[0].grid(row=2, column=6)
 
     self.bulk_params.append(tk_tao_parameter(str_to_tao_param("good_user;LOGIC;T;"), self.list_frame))
     self.bulk_params[1].tk_wid.grid(row=1, column=11)
-    self.bulk_filled.append(self.bulk_params[1].tk_var.get())
+    self.bulk_filled.append(False)
+    self.bulk_value.append(self.bulk_params[1].tk_var.get())
     self.bulk_apply.append(tk.Button(self.list_frame, text="Fill...", command= lambda : self.fill(1)))
     self.bulk_apply[1].grid(row=2, column=11)
 
     self.bulk_params.append(tk_tao_parameter(str_to_tao_param("weight;REAL;T;"), self.list_frame))
     self.bulk_params[2].tk_wid.grid(row=1, column=12)
-    self.bulk_filled.append(self.bulk_params[2].tk_var.get())
+    self.bulk_filled.append(False)
+    self.bulk_value.append(self.bulk_params[2].tk_var.get())
     self.bulk_apply.append(tk.Button(self.list_frame, text="Fill...", command= lambda : self.fill(2)))
     self.bulk_apply[2].grid(row=2, column=12)
 
@@ -204,7 +208,8 @@ class tao_d1_data_window(tao_list_window):
     Fills the meas_value, good_user, or weight column (determined by index) to the bulk edit value, saves the bulk edit value for efficient calls to tao_set, and clears the bulk edit box
     '''
     # Save the bulk parameter state
-    self.bulk_filled[index] = self.bulk_params[index].tk_var.get()
+    self.bulk_value[index] = self.bulk_params[index].tk_var.get()
+    self.bulk_filled[index] = True
     # Clear the bulk parameter widget
     if index != 1:
       self.bulk_params[index].tk_var.set("")
@@ -213,15 +218,16 @@ class tao_d1_data_window(tao_list_window):
     # Fill the appropriate variable
     p_names = ["meas_value", "good_user", "weight"]
     for i in range(self.ix_ub - self.ix_lb):
-      self.list_rows[i].tk_tao_params[p_names[index]].tk_var.set(self.bulk_filled[index])
+      self.list_rows[i].tk_tao_params[p_names[index]].tk_var.set(self.bulk_value[index])
 
 
   def apply(self):
     #Apply bulk changes
     for i in range(len(self.bulk_params)):
+      print(self.bulk_filled[i])
       if self.bulk_filled[i]:
         set_str = "set data " + self.u_ix + '@' + self.d1_data_name + '|'
-        self.bulk_params[i].tk_var.set(self.bulk_filled[i])
+        self.bulk_params[i].tk_var.set(self.bulk_value[i])
         tao_set([self.bulk_params[i]], set_str, self.pipe, overide=(i==1)) #overide is necessary for good_user
 
     #Apply individual changes that are different from bulk changes
@@ -229,8 +235,8 @@ class tao_d1_data_window(tao_list_window):
       set_list = []
       set_str = "set data " + self.u_ix + '@' + self.d1_data_name + '[' + str(i+self.ix_lb) + ']|'
       #Meas value
-      c1 = (self.list_rows[i].tk_tao_params["meas_value"].tk_var.get() != self.bulk_params[0].tk_var.get())
-      c2 = not bool(self.bulk_filled[0])
+      c1 = (self.list_rows[i].tk_tao_params["meas_value"].tk_var.get() != self.bulk_value[0])
+      c2 = not self.bulk_filled[0]
       try:
         c3 = (float(self.list_rows[i].tk_tao_params["meas_value"].tk_var.get()) != self.list_rows[i].tk_tao_params["meas_value"].param.value)
       except ValueError:
@@ -239,8 +245,8 @@ class tao_d1_data_window(tao_list_window):
         set_list.append(self.list_rows[i].tk_tao_params["meas_value"])
 
       #Good user
-      c1 = (self.list_rows[i].tk_tao_params["good_user"].tk_var.get() != self.bulk_params[1].tk_var.get())
-      c2 = not bool(self.bulk_filled[1])
+      c1 = (self.list_rows[i].tk_tao_params["good_user"].tk_var.get() != self.bulk_value[1])
+      c2 = not self.bulk_filled[1]
       try:
         c3 = (bool(self.list_rows[i].tk_tao_params["good_user"].tk_var.get()) != self.list_rows[i].tk_tao_params["good_user"].param.value)
       except ValueError:
@@ -249,8 +255,8 @@ class tao_d1_data_window(tao_list_window):
         set_list.append(self.list_rows[i].tk_tao_params["good_user"])
 
       #Weight
-      c1 = (self.list_rows[i].tk_tao_params["weight"].tk_var.get() != self.bulk_params[2].tk_var.get())
-      c2 = not bool(self.bulk_filled[2])
+      c1 = (self.list_rows[i].tk_tao_params["weight"].tk_var.get() != self.bulk_value[2])
+      c2 = not self.bulk_filled[2]
       try:
         c3 = (float(self.list_rows[i].tk_tao_params["weight"].tk_var.get()) != self.list_rows[i].tk_tao_params["weight"].param.value)
       except ValueError:
@@ -303,25 +309,25 @@ class tao_root_window(tk.Tk):
 
     # Menu bar
 
-    menubar = tk.Menu(self)
+    self.menubar = tk.Menu(self)
 
-    file_menu = tk.Menu(menubar)
+    file_menu = tk.Menu(self.menubar)
     file_menu.add_command(label = 'Read...', command = self.read_cmd)
     file_menu.add_command(label = 'Write...', command = self.write_cmd)
     file_menu.add_command(label = 'Reinit...', command = self.reinit_cmd)
     file_menu.add_separator()
     file_menu.add_command(label = 'Quit', command = self.quit_cmd, accelerator = 'Ctrl+Q')
-    menubar.add_cascade(label = 'File', menu = file_menu)
+    self.menubar.add_cascade(label = 'File', menu = file_menu)
 
-    window_menu = tk.Menu(menubar)
+    window_menu = tk.Menu(self.menubar)
     window_menu.add_command(label = 'Optimizer...', command = self.optimizer_cmd)
     window_menu.add_command(label = 'Plotting...', command = self.plotting_cmd)
     window_menu.add_command(label = 'Wave...', command = self.wave_cmd)
     window_menu.add_command(label = 'Global Variables...', command = self.set_global_vars_cmd)
     window_menu.add_command(label = 'Data...', command = self.view_data_cmd)
-    menubar.add_cascade(label = 'Window', menu = window_menu)
+    self.menubar.add_cascade(label = 'Window', menu = window_menu)
 
-    self.config(menu=menubar)
+    self.config(menu=self.menubar)
 
     # Init GUI
 
@@ -337,6 +343,8 @@ class tao_root_window(tk.Tk):
   # Tao startup
 
   def start_main(self):
+    self.menubar.entryconfig("File", state="normal")
+    self.menubar.entryconfig("Window", state="normal")
     self.main_frame = tk.Frame(self, width = 20, height = 30)
     self.main_frame.pack()
     self.bind_all('<Return>', self.return_event)
@@ -346,7 +354,7 @@ class tao_root_window(tk.Tk):
     tk.Label(self.main_frame, text="Call command file:").grid(row=0, column=0)
     self.call_file = tk_tao_parameter(str_to_tao_param("call_file;FILE;T;"), self.main_frame, self.pipe)
     self.call_file.tk_wid.grid(row=0, column=1)
-    tk.Button(self.main_frame, text="Run").grid(row=0, column=2)
+    tk.Button(self.main_frame, text="Run", command=self.tao_call).grid(row=0, column=2)
 
     # Optimization
     tk.Label(self.main_frame, text="Optimization:").grid(row=1, column=0)
@@ -394,6 +402,8 @@ class tao_root_window(tk.Tk):
       self.call_file.tk_var.set("Browse...")
 
   def tao_load(self,init_frame):
+    self.menubar.entryconfig("File", state="disabled")
+    self.menubar.entryconfig("Window", state="disabled")
     from parameters import param_dict
     tk_list = [] #Items: tk_tao_parameter()'s (see tao_widget.py)
     init_frame.grid_columnconfigure(0, weight=1, uniform="test", pad=10)
