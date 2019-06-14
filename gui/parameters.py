@@ -18,7 +18,6 @@ startup_list = [
   'log_startup;LOGIC;T;F',
   'no_stopping;LOGIC;T;F',
   'rf_on;LOGIC;T;F',
-  'tao_exe;FILE;T;',
 ]
 
 #-------------------------------------------------

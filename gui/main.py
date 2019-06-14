@@ -18,7 +18,7 @@ class tao_list_window(tk.Toplevel):
     tk.Toplevel.__init__(self, root, *args, **kwargs)
     self.title(title)
 
-    self.geometry('400x600')
+    self.wm_geometry(newGeometry='400x600')
 
     self.outer_frame=tk.Frame(self)
 
@@ -28,7 +28,15 @@ class tao_list_window(tk.Toplevel):
     canvas.configure(yscrollcommand=scrollbar.set)
 
     def scrollhelper(event):
-      canvas.configure(scrollregion=canvas.bbox("all"),width=200,height=200)
+      canvas.configure(scrollregion=canvas.bbox("all")) #,width=200,height=200)
+      new_width = event.width + 15
+      old_geo = self.wm_geometry()
+      if old_geo[2] != '1':
+        new_geo = old_geo[old_geo.find('x'):old_geo.find('+')]
+        new_geo = str(new_width) + new_geo
+      else:
+        new_geo = str(new_width) + 'x500'
+      self.geometry(new_geo)
     self.list_frame.bind("<Configure>",scrollhelper)
 
     def mouse_scroll(event):
@@ -120,7 +128,7 @@ class tao_d1_data_window(tao_list_window):
 
   def __init__(self, root, pipe, d1_data_name, u_ix, ix_lb, ix_ub, *args, **kwargs):
     tao_list_window.__init__(self, root, d1_data_name, *args, **kwargs)
-    self.geometry('1550x600')
+    #self.geometry('1550x600')
     self.pipe = pipe
     self.d1_data_name = d1_data_name
     self.u_ix = u_ix
@@ -293,32 +301,106 @@ class tao_d1_data_window(tao_list_window):
 
 
 #---------------------------------------------------------------
-# Big window
-# Used for testing purposes
-class big_window(tao_list_window):
-  def __init__(self, *args, **kwargs):
-    tao_list_window.__init__(self, None, "Big window", *args, **kwargs)
-    self.geometry('1550x600')
-    self.refresh()
-
-    b = tk.Button(self, text="Refresh", command=self.refresh)
-    b.pack()
-
-  def refresh(self):
-    '''
-    Grid a bunch of widgets to the list frame
-    '''
-    for child in self.list_frame.winfo_children():
-      child.destroy()
-    import random
-    for i in range(100):
-      for j in range(10):
-        tk.Label(self.list_frame, text=str(random.random())).grid(row=i, column=j)
-
-#---------------------------------------------------------------
 # Variable Window
 
-#class tao_var_general_window(tk.Toplevel):
+class tao_var_general_window(tao_list_window):
+
+  def __init__(self, root, pipe, *args, **kwargs):
+    tao_list_window.__init__(self, root, "v1 Variables", *args, **kwargs)
+    self.pipe = pipe
+    self.list_frame.grid_columnconfigure(0, pad=10)
+    self.list_frame.grid_columnconfigure(1, pad=10)
+    self.list_frame.grid_columnconfigure(2, pad=10)
+    self.refresh()
+
+  def refresh(self):
+    for child in self.list_frame.winfo_children():
+      child.destroy()
+    v1_var_list = self.pipe.cmd_in("python var_general")
+    v1_var_list = v1_var_list.splitlines()
+    for i in range(len(v1_var_list)):
+      v1_var_list[i] = v1_var_list[i].split(';')
+
+    tk.Label(self.list_frame, text="Variable").grid(row=0, column=0, columnspan=2)
+    tk.Label(self.list_frame, text="Indices").grid(row=0, column=2)
+    tk.Label(self.list_frame, text="Using").grid(row=0, column=3)
+
+    i=1
+    for item in v1_var_list:
+      tk.Label(self.list_frame, text=item[0]).grid(row=i, column=0)
+      tk.Button(self.list_frame, text="View...").grid(row=i, column=1)
+      tk.Label(self.list_frame, text=item[1] + ':' + item[2]).grid(row=i, column=2)
+      i = i+1
+
+#---------------------------------------------------------------
+# History Window
+
+class tao_history_window(tao_list_window):
+
+  def __init__(self, *args, **kwargs):
+    tao_list_window.__init__(self, None, "History", *args, **kwargs)
+    #self.geometry('400x600')
+    self.refresh()
+
+  def refresh(self):
+    for child in self.list_frame.winfo_children():
+      child.destroy()
+
+    tk.Label(self.list_frame, text="Commands").grid(row=0, column=0)
+    #tk.Label(self.list_frame, text="System shell").grid(row=0, column=1)
+    tk.Label(self.list_frame, text="Command files").grid(row=0, column=1)
+
+    for j in range(len(root.history)):
+      ii = len(root.history[j]) #Actual row counter
+      for i in range(len(root.history[j])):
+        b = tk.Button(self.list_frame, text=root.history[j][i])
+        b.configure(command=self.re_run_callback(root.history[j][i], j))
+        b.bind("<Button-3>", self.re_run_callback(root.history[j][i], j+2))
+        b.grid(row=ii, column=j)
+        ii -= 1
+
+  def re_run(self, cmd_string, mode, event=None):
+    '''
+    Re-runs the given command or command file (cmd_string),
+    using the specified mode.
+    mode == 0 -> Run in Tao/system shell
+    mode == 1 -> Run in system shell
+    mode == 2 -> Re-run command file
+    Using modes 4, 5, and 6 simply respawns cmd_string in
+    the command line or call_file box, and does not run it
+    '''
+    if mode ==0:
+      root.command.tk_var.set(cmd_string)
+      root.tao_command()
+    elif mode == 1:
+      root.call_file.tk_var.set(cmd_string)
+      root.tao_call()
+    elif mode ==2:
+      root.command.tk_var.set(cmd_string)
+    elif mode == 3:
+      root.call_file.tk_var.set(cmd_string)
+    #if mode == 0:
+    #  root.command.tk_var.set(cmd_string)
+    #  root.tao_command()
+    #elif mode == 1:
+    #  root.command.tk_var.set(cmd_string)
+    #  root.tao_spawn()
+    #elif mode == 2:
+    #  root.call_file.tk_var.set(cmd_string)
+    #  root.tao_call()
+    #elif mode == 3:
+    #  root.command.tk_var.set(cmd_string)
+    #elif mode == 4:
+    #  root.command.tk_var.set(cmd_string)
+    #elif mode == 5:
+    #  root.call_file.tk_var.set(cmd_string)
+
+  def re_run_callback(self, cmd_string, mode, event=None):
+    '''
+    Formats a callback to self.re_run
+    '''
+    return lambda event=None : self.re_run(cmd_string, mode)
+
 
 #---------------------------------------------------------------
 # Root window
@@ -333,30 +415,31 @@ class tao_root_window(tk.Tk):
     self.tk.call('tk', 'scaling', 1.0)
 
     # Menu bar
+    self.menubar_init()
 
-    self.menubar = tk.Menu(self)
+    #self.menubar = tk.Menu(self)
 
-    file_menu = tk.Menu(self.menubar)
-    file_menu.add_command(label = 'Read...', command = self.read_cmd)
-    file_menu.add_command(label = 'Write...', command = self.write_cmd)
-    file_menu.add_command(label = 'Reinit...', command = self.reinit_cmd)
-    file_menu.add_separator()
-    file_menu.add_command(label = 'Quit', command = self.quit_cmd, accelerator = 'Ctrl+Q')
-    self.menubar.add_cascade(label = 'File', menu = file_menu)
+    #file_menu = tk.Menu(self.menubar)
+    #file_menu.add_command(label = 'Read...', command = self.read_cmd)
+    #file_menu.add_command(label = 'Write...', command = self.write_cmd)
+    #file_menu.add_command(label = 'Reinit...', command = self.reinit_cmd)
+    #file_menu.add_separator()
+    #file_menu.add_command(label = 'Quit', command = self.quit_cmd, accelerator = 'Ctrl+Q')
+    #self.menubar.add_cascade(label = 'File', menu = file_menu)
 
-    window_menu = tk.Menu(self.menubar)
-    window_menu.add_command(label = 'Optimizer...', command = self.optimizer_cmd)
-    window_menu.add_command(label = 'Plotting...', command = self.plotting_cmd)
-    window_menu.add_command(label = 'Wave...', command = self.wave_cmd)
-    window_menu.add_command(label = 'Global Variables...', command = self.set_global_vars_cmd)
-    window_menu.add_command(label = 'Data...', command = self.view_data_cmd)
-    self.menubar.add_cascade(label = 'Window', menu = window_menu)
+    #window_menu = tk.Menu(self.menubar)
+    #window_menu.add_command(label = 'Optimizer...', command = self.optimizer_cmd)
+    #window_menu.add_command(label = 'Plotting...', command = self.plotting_cmd)
+    #window_menu.add_command(label = 'Wave...', command = self.wave_cmd)
+    #window_menu.add_command(label = 'Global Variables...', command = self.set_global_vars_cmd)
+    #window_menu.add_command(label = 'Data...', command = self.view_data_cmd)
+    #self.menubar.add_cascade(label = 'Window', menu = window_menu)
 
-    self.config(menu=self.menubar)
+    #self.config(menu=self.menubar)
 
     # Init GUI
 
-    init_frame = tk.Frame(self, width = 20, height = 30)
+    init_frame = tk.Frame(self)
     init_frame.pack()
     self.tao_load(init_frame)
 
@@ -376,7 +459,6 @@ class tao_root_window(tk.Tk):
     self.main_frame = tk.Frame(self, width = 20, height = 30)
     self.main_frame.pack()
     self.bind_all('<Control-g>', self.global_vars_event)
-    self.bind_all('<Control-b>', self.big_window_event)
 
     # Call
     tk.Label(self.main_frame, text="Call command file:").grid(row=0, column=0)
@@ -389,18 +471,15 @@ class tao_root_window(tk.Tk):
     tk.Button(self.main_frame, text="Setup").grid(row=1, column=1)
     tk.Button(self.main_frame, text="Run").grid(row=1, column=2)
 
-    #TESTING: big window
-    tk.Button(self.main_frame, text="Big window", command=self.big_window_event).grid(row=2, column=0)
-
     # Command line
     self.cmd_frame = tk.Frame(self)
     self.cmd_frame.pack(side="bottom", fill="x")
     self.history = [] #holds the history
-    self.history.append([]) #Tao history
+    self.history.append([]) #Tao and shell history
     self.history_pos = 0 #Used for scrolling in history on command line
-    self.history.append([]) #Shell history
+    #self.history.append([]) #Shell history
     self.history.append([]) #Call history
-    tk.Button(self.cmd_frame, text="View History...").pack(side="top", fill="x")
+    tk.Button(self.cmd_frame, text="View History...", command=self.view_history_cmd).pack(side="top", fill="x")
 
     self.command = tk_tao_parameter(str_to_tao_param("command;STR;T;"), self.cmd_frame, self.pipe)
     self.command.tk_wid.bind("<Return>", self.tao_command)
@@ -435,6 +514,11 @@ class tao_root_window(tk.Tk):
       self.history[0].append(self.command.tk_var.get())
       self.command.tk_var.set("")
     self.history_pos = 0
+    #Try to refresh history window
+    try:
+      self.history_window.refresh()
+    except:
+      pass
 
   def tao_spawn(self, event=None):
     '''
@@ -442,10 +526,19 @@ class tao_root_window(tk.Tk):
     '''
     if self.command.tk_var.get() != "":
       cmd_txt = self.command.tk_var.get()
-      self.pipe.cmd("spawn " + cmd_txt)
-      self.history[1].append(cmd_txt)
-      self.command.tk_var.set("")
-    self.history_pos = 0
+      self.command.tk_var.set("spawn " + cmd_txt)
+      self.tao_command()
+    #if self.command.tk_var.get() != "":
+    #  cmd_txt = self.command.tk_var.get()
+    #  self.pipe.cmd("spawn " + cmd_txt)
+    #  self.history[1].append(cmd_txt)
+    #  self.command.tk_var.set("")
+    #self.history_pos = 0
+    ##Try to refresh history window
+    #try:
+    #  self.history_window.refresh()
+    #except:
+    #  pass
 
   def tao_call(self):
     '''
@@ -453,8 +546,35 @@ class tao_root_window(tk.Tk):
     '''
     if self.call_file.tk_var.get() != "Browse...":
       self.pipe.cmd("call " + self.call_file.tk_var.get())
-      self.history[2].append(self.call_file.tk_var.get())
+      self.history[1].append(self.call_file.tk_var.get())
       self.call_file.tk_var.set("Browse...")
+    #Try to refresh history window
+    try:
+      self.history_window.refresh()
+    except:
+      pass
+
+  def menubar_init(self):
+    self.menubar = tk.Menu(self)
+
+    file_menu = tk.Menu(self.menubar)
+    file_menu.add_command(label = 'Read...', command = self.read_cmd)
+    file_menu.add_command(label = 'Write...', command = self.write_cmd)
+    file_menu.add_command(label = 'Reinit...', command = self.reinit_cmd)
+    file_menu.add_separator()
+    file_menu.add_command(label = 'Quit', command = self.quit_cmd, accelerator = 'Ctrl+Q')
+    self.menubar.add_cascade(label = 'File', menu = file_menu)
+
+    window_menu = tk.Menu(self.menubar)
+    window_menu.add_command(label = 'Optimizer...', command = self.optimizer_cmd)
+    window_menu.add_command(label = 'Plotting...', command = self.plotting_cmd)
+    window_menu.add_command(label = 'Wave...', command = self.wave_cmd)
+    window_menu.add_command(label = 'Variables...', command = self.view_vars_cmd)
+    window_menu.add_command(label = 'Global Variables...', command = self.set_global_vars_cmd)
+    window_menu.add_command(label = 'Data...', command = self.view_data_cmd)
+    self.menubar.add_cascade(label = 'Window', menu = window_menu)
+
+    self.config(menu=self.menubar)
 
   def tao_load(self,init_frame):
     self.menubar.entryconfig("File", state="disabled")
@@ -475,6 +595,7 @@ class tao_root_window(tk.Tk):
       init_file = open('gui.init')
       init_list = init_file.read()
       init_list = init_list.splitlines()
+      init_file.close()
     except:
       init_list = []
     init_dict = {}
@@ -487,33 +608,73 @@ class tao_root_window(tk.Tk):
         value = entry[entry.find(':')+1:]
         value = value.strip()
         init_dict[name] = value
+      c1 = (name in ["tao_exe", "tao_lib"])
+      try:
+        c2 = (param_dict[name].type == 'FILE')
+      except KeyError:
+        c2 = False
+      if c1 | c2:
+        #Check that a good filename has been given
+        try:
+          filename = init_dict[name]
+          #Expand environment variables and ~
+          filename = os.path.expanduser(filename)
+          filename = os.path.expandvars(filename)
+          f = open(filename)
+          f.close()
+          init_dict[name] = filename
+        except:
+          messagebox.showwarning(tk_list[k].param.name, "File not found: " + filename)
+          init_dict.pop(name)
+          #Remove bad files from init dict
     k = 0 #row number counter
     for param, tao_param in param_dict.items():
       tk_list.append(tk_tao_parameter(tao_param,init_frame))
       #Possibly set value from init file
       if tk_list[k].param.name in init_dict:
         if tk_list[k].param.type == 'FILE':
-          #Check that a good filename has been given
-          try:
-            filename = init_dict[tk_list[k].param.name]
-            #Expand environment variables and ~
-            filename = os.path.expanduser(filename)
-            filename = os.path.expandvars(filename)
-            f = open(filename)
-            f.close()
-            tk_list[k].tk_var.set(filename)
-          except:
-            messagebox.showwarning(tk_list[k].param.name, "File not found: " + filename)
+          tk_list[k].tk_var.set(init_dict[tk_list[k].param.name])
         elif tk_list[k].param.type == 'LOGIC':
           state = (init_dict[tk_list[k].param.name] == 'T') | (init_dict[tk_list[k].param.name] == 'True')
           tk_list[k].tk_var.set(state)
       tk.Label(init_frame,text=param).grid(row=k,sticky="E")
       tk_list[k].tk_wid.grid(row=k, column=1, sticky="W")
       k = k+1
+    # Choosing whether to use pexpect or ctypes must be handled separately
+    tk.Label(init_frame, text="Choose interface").grid(row=k, sticky="E")
+    def swap_box(event=None):
+      if chosen_interface.get() == "pexpect":
+        ctype_label.grid_forget()
+        tao_lib.tk_wid.grid_forget()
+        pexp_label.grid(row=k+1, sticky="E")
+        tao_exe.tk_wid.grid(row=k+1, column=1, sticky="W")
+      elif chosen_interface.get() == "ctypes":
+        pexp_label.grid_forget()
+        tao_exe.tk_wid.grid_forget()
+        ctype_label.grid(row=k+1, sticky="E")
+        tao_lib.tk_wid.grid(row=k+1, column=1, sticky="W")
+
+    chosen_interface = tk.StringVar()
+    chosen_interface.set("pexpect")
+    if "chosen_interface" in init_dict:
+      if init_dict["chosen_interface"] in ["pexpect", "ctypes"]:
+        chosen_interface.set(init_dict["chosen_interface"])
+    tk.OptionMenu(init_frame, chosen_interface, "pexpect", "ctypes", command=swap_box).grid(row=k, column=1, sticky="W")
+    pexp_label = tk.Label(init_frame, text="Tao executable")
+    ctype_label = tk.Label(init_frame, text="Shared Library")
+    tao_exe = tk_tao_parameter(str_to_tao_param("tao_exe;FILE;T;"), init_frame)
+    if "tao_exe" in init_dict:
+      tao_exe.tk_var.set(init_dict["tao_exe"])
+    tao_lib = tk_tao_parameter(str_to_tao_param("tao_lib;FILE;T;"), init_frame)
+    if "tao_lib" in init_dict:
+      tao_exe.tk_var.set(init_dict["tao_exe"])
+    swap_box()
 
     def param_load(event=None):
+      if chosen_interface.get() == "ctypes":
+        messagebox.showwarning("Error", "ctypes is not currently supported.  Please use pexpect.")
+        return 0
       init_args = ""
-      tao_exe = ""
       for tk_param in tk_list:
         if tk_param.param.type in ['STR','ENUM']:
           tk_param.param.value = tk_param.tk_var.get()
@@ -524,28 +685,35 @@ class tao_root_window(tk.Tk):
           if tk_param.param.value == "Browse...":
             tk_param.param.value = ""
           if tk_param.param.value != "":
-            if tk_param.param.name == "tao_exe":
-              tao_exe = tk_param.param.value
-            else:
-              init_args = init_args + "-" + tk_param.param.name + " " + tk_param.param.value + " "
+            init_args = init_args + "-" + tk_param.param.name + " " + tk_param.param.value + " "
         elif tk_param.param.type == 'LOGIC':
           tk_param.param.value = tk_param.tk_var.get()
           if tk_param.param.value:
             init_args = init_args + "-" + tk_param.param.name + " "
       # Run Tao, clear the init_frame, and draw the main frame
-
       from tao_interface import tao_interface
-      self.pipe = tao_interface(init_args, tao_exe)
-      #sys.path.append(os.environ['ACC_ROOT_DIR'] + '/tao/python/tao_pexpect')
-      #import tao_pipe
-      #self.pipe = tao_pipe.tao_io(init_args)
+      if chosen_interface.get() == "pexpect":
+        mode = "pexpect"
+        if tao_exe.tk_var.get() == "Browse...":
+          tao_exe.tk_var.set("")
+        self.pipe = tao_interface(mode, init_args, tao_exe.tk_var.get())
+      elif chosen_interface.get() == "ctypes":
+        if tao_lib.tk_var.get() == "Browse...":
+          tao_lib.tk_var.set("")
+        mode = "ctypes"
+        self.pipe = tao_interface(mode, init_args, tao_lib.tk_var.get())
 
       init_frame.destroy()
       self.start_main()
 
     load_b = tk.Button(init_frame, text="Start Tao", command=param_load)
-    load_b.grid(row=k, columnspan=2)
+    load_b.grid(row=k+2, columnspan=2)
     self.bind_all("<Return>", param_load)
+
+    #Start Tao immediately if skip_setup is set true
+    if "skip_setup" in init_dict:
+      if init_dict["skip_setup"] in ['T', 'True']:
+        param_load()
 
   #-------------------------
   # Menu bar callbacks
@@ -557,7 +725,21 @@ class tao_root_window(tk.Tk):
     print ('Write called')
 
   def reinit_cmd(self):
-    print ('Reinit called')
+    '''
+    Quit Tao, destroy the main frame, and respawn the init frame
+    '''
+    result = messagebox.askquestion("Reinit", "This will close all windows and restart Tao.  Are you sure?", icon="warning")
+    if result != 'yes':
+      return
+
+    for child in root.winfo_children():
+      child.destroy()
+
+    self.pipe.cmd("quit")
+    self.menubar_init()
+    init_frame = tk.Frame(self)
+    init_frame.pack()
+    self.tao_load(init_frame)
 
   def quit_cmd(self, event = ''):
     result = messagebox.askquestion("Quit", "Are You Sure?", icon='warning')
@@ -587,16 +769,24 @@ class tao_root_window(tk.Tk):
     b = tk.Button(win.button_frame, text="Set Global Variables", command=lambda : tao_set(win.tao_list, "set global ", self.pipe))
     b.pack()
 
+  def view_vars_cmd(self):
+    win = tao_var_general_window(None, self.pipe)
+
   def view_data_cmd(self):
     win = tao_d2_data_window(None, self.pipe)
-
-  def big_window_event(self, event=None):
-    win = big_window()
 
   # Other callbacks
 
   def global_vars_event(self, event):
     self.set_global_vars_cmd()
+
+  def view_history_cmd(self):
+    #Just focus the existing history window, if it exists
+    try:
+      self.history_window.lift()
+      #self.history_window.force_focus()
+    except:
+      self.history_window = tao_history_window()
 
 #---------------------------------------------------
 
