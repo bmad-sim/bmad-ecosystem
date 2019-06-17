@@ -611,11 +611,11 @@ do ib = 0, ubound(lat%branch, 1)
 
         elseif (ix_ptr > 0) then  ! A file has been created so refer to that
 
-          call form_this_field_map_name(string, '.cartesian_map', ele2, ix_ptr, output_form)
+          call form_this_field_map_name(string, '.cartesian_map', ele2, ix_ptr, ascii$)
           write (line, '(3a)')  trim(line), ', cartesian_map = call::', trim(string)
 
         else
-          call form_this_field_map_name(string, '.cartesian_map', ele, im, output_form)
+          call form_this_field_map_name(string, '.cartesian_map', ele, im, ascii$)
           line = trim(line) // ', cartesian_map = call::' // trim(string)
           string = trim(path) // '/' // trim(string)
 
@@ -645,11 +645,11 @@ do ib = 0, ubound(lat%branch, 1)
           call write_this_cylindrical_map (iu, line)
 
         elseif (ix_ptr > 0) then
-          call form_this_field_map_name(string, '.cylindrical_map', ele2, ix_ptr, output_form)
+          call form_this_field_map_name(string, '.cylindrical_map', ele2, ix_ptr, ascii$)
           write (line, '(3a)')  trim(line), ', cylindrical_map = call::', trim(string)
 
         else
-          call form_this_field_map_name(string, '.cylindrical_map', ele, im, output_form)
+          call form_this_field_map_name(string, '.cylindrical_map', ele, im, ascii$)
           line = trim(line) // ', cylindrical_map = call::' // trim(string)
           string = trim(path) // '/' // trim(string)
 
@@ -715,11 +715,11 @@ do ib = 0, ubound(lat%branch, 1)
           call write_this_taylor_field_map (iu, line)
 
         elseif (ix_ptr > 0) then
-          call form_this_field_map_name(string, '.taylor_field', ele2, ix_ptr, output_form)
+          call form_this_field_map_name(string, '.taylor_field', ele2, ix_ptr, ascii$)
           write (line, '(3a)')  trim(line), ', taylor_field = call::', trim(string)
 
         else
-          call form_this_field_map_name(string, '.taylor_field', ele, im, output_form)
+          call form_this_field_map_name(string, '.taylor_field', ele, im, ascii$)
           line = trim(line) // ', taylor_field = call::' // trim(string)
           string = trim(path) // '/' // trim(string)
 
@@ -728,7 +728,7 @@ do ib = 0, ubound(lat%branch, 1)
           !else
             iu2 = lunget()
             open (iu2, file = string)
-            call write_this_taylor_field_map (iu)
+            call write_this_taylor_field_map (iu2)
             close (iu2)
           !endif
         endif

@@ -11,10 +11,11 @@ available in \bmad.
 {\tt
 \begin{tabular}{llll} \toprule
   {\it Element}     & {\it Section}       & {\it Element}      & {\it Section}    \\ \midrule
-  AB_Multipole      & \ref{s:ab.m}        &  Monitor           & \ref{s:monitor}  \\
-  AC_Kicker         & \ref{s:ac.kick}     &  Multipole         & \ref{s:mult}     \\
-  BeamBeam          & \ref{s:bbi}         &  Null_Ele          & \ref{s:null.ele} \\
-  Beginning_Ele     & \ref{s:begin.ele}   &  Octupole          & \ref{s:oct}      \\
+  AB_Multipole      & \ref{s:ab.m}        &  Match             & \ref{s:match}    \\ 
+  AC_Kicker         & \ref{s:ac.kick}     &  Monitor           & \ref{s:monitor}  \\
+  BeamBeam          & \ref{s:bbi}         &  Multipole         & \ref{s:mult}     \\
+  Beginning_Ele     & \ref{s:begin.ele}   &  Null_Ele          & \ref{s:null.ele} \\
+  Converter         & \ref{s:converter}   &  Octupole          & \ref{s:oct}      \\
   Custom            & \ref{s:custom}      &  Patch             & \ref{s:patch}    \\
   Drift             & \ref{s:drift}       &  Photon_Fork       & \ref{s:fork}     \\
   E_Gun             & \ref{s:e.gun}       &  Pipe              & \ref{s:monitor}  \\
@@ -30,9 +31,7 @@ available in \bmad.
   Kicker            & \ref{s:kicker}      &  Taylor            & \ref{s:taylor}   \\
   Lcavity           & \ref{s:lcav}        &  Undulator         & \ref{s:wiggler}  \\
   Marker            & \ref{s:mark}        &  VKicker           & \ref{s:hvkicker} \\  
-  Mask              & \ref{s:mask}        &  Wiggler           & \ref{s:wiggler}  \\
-  Match             & \ref{s:match}       &                    &                  \\ \bottomrule
-
+  Mask              & \ref{s:mask}        &  Wiggler           & \ref{s:wiggler}  \\ \bottomrule
 \end{tabular}
 }
 \caption{Table of element types suitable for use with charged particles.}
@@ -980,6 +979,33 @@ with respect to the photon energy and is given by the formula
 
 See Section~\sref{s:rowland} for an example lattice that can be used to simulate
 a Rowland circle spectrometer.
+
+%-----------------------------------------------------------------
+\section{Converter}
+\label{s:converter}
+\index{converter|hyperbf}
+
+A \vn{converter} element represents a target onto which particles are slammed in order to generate
+particles of a different type. For example, a tungsten plate which is bombarded with electrons to
+generate positrons. 
+
+Note: At this point in time, \vn{converter} elements are experimental and act like marker elements
+with \vn{bmad_standard} tracking.
+
+General \vn{custom} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{llll} \toprule
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \\
+  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \\
+  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
+  Integration settings       & \ref{s:integ}     & Superposition              & \ref{s:super}   \\
+                             &                   & Tracking \& transfer map   & \ref{c:methods} \\ 
+  \bottomrule
+\end{tabular}
+\end{center}
 
 %-----------------------------------------------------------------
 \section{Custom}
