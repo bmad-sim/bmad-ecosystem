@@ -80,7 +80,7 @@ case (ab_multipole$, sad_mult$, beambeam$, sbend$, patch$, quadrupole$, drift$, 
 !--------------------------------------------------------
 ! Marker, branch, photon_branch, etc.
 
-case (marker$, detector$, fork$, photon_fork$, floor_shift$, fiducial$, mask$) 
+case (marker$, detector$, fork$, photon_fork$, floor_shift$, fiducial$, mask$, converter$) 
   end_orb = start_orb
   call set_end_orb
 

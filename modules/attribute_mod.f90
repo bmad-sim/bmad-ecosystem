@@ -634,6 +634,7 @@ do i = 1, n_key$
   if (i == beambeam$)          cycle
   if (i == multipole$)         cycle 
   if (i == ab_multipole$)      cycle
+  if (i == converter$)         cycle
 
   call init_attribute_name1 (i, l$,                   'L')
 
@@ -847,6 +848,8 @@ call init_attribute_name1 (capillary$, n_slice_spline$,             'N_SLICE_SPL
 call init_attribute_name1 (capillary$, critical_angle_factor$,      'CRITICAL_ANGLE_FACTOR')
 call init_attribute_name1 (capillary$, e_tot_start$,                'e_tot_start', private$)
 call init_attribute_name1 (capillary$, p0c_start$,                  'p0c_start', private$)
+
+call init_attribute_name1 (converter$, l$,                          'L')
 
 call init_attribute_name1 (lens$, l$,                               'L')
 call init_attribute_name1 (lens$, radius$,                          'RADIUS')

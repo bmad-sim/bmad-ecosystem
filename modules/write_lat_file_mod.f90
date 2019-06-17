@@ -619,14 +619,14 @@ do ib = 0, ubound(lat%branch, 1)
           line = trim(line) // ', cartesian_map = call::' // trim(string)
           string = trim(path) // '/' // trim(string)
 
-          if (integer_option(binary$, output_form) == binary$) then
-            call write_binary_cartesian_map(string, ele, ct_map, err_flag)
-          else
+          !if (integer_option(binary$, output_form) == binary$) then
+          !  call write_binary_cartesian_map(string, ele, ct_map, err_flag)
+          !else
             iu2 = lunget()
             open (iu2, file = string)
             call write_this_cartesian_map (iu2)
             close (iu2)
-          endif
+          !endif
         endif
       enddo
     endif
@@ -653,14 +653,14 @@ do ib = 0, ubound(lat%branch, 1)
           line = trim(line) // ', cylindrical_map = call::' // trim(string)
           string = trim(path) // '/' // trim(string)
 
-          if (integer_option(binary$, output_form) == binary$) then
-            call write_binary_cylindrical_map(string, ele, cl_map, err_flag)
-          else
+          !if (integer_option(binary$, output_form) == binary$) then
+          !  call write_binary_cylindrical_map(string, ele, cl_map, err_flag)
+          !else
             iu2 = lunget()
             open (iu2, file = string)
             call write_this_cylindrical_map (iu2)
             close (iu2)
-          endif
+          !endif
         endif
       enddo
     endif
@@ -723,14 +723,14 @@ do ib = 0, ubound(lat%branch, 1)
           line = trim(line) // ', taylor_field = call::' // trim(string)
           string = trim(path) // '/' // trim(string)
 
-          if (integer_option(binary$, output_form) == binary$) then
-            call write_binary_taylor_field (string, ele, t_field, err_flag)
-          else
+          !if (integer_option(binary$, output_form) == binary$) then
+          !  call write_binary_taylor_field (string, ele, t_field, err_flag)
+          !else
             iu2 = lunget()
             open (iu2, file = string)
             call write_this_taylor_field_map (iu)
             close (iu2)
-          endif
+          !endif
         endif
       enddo
     endif
