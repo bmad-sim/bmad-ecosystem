@@ -126,7 +126,7 @@ case (em_field$)
     is_valid = .true.
   end select
 
-case (floor_shift$)
+case (floor_shift$, converter$)
   select case (method)
   case (bmad_standard$, custom$)
     is_valid = .true.

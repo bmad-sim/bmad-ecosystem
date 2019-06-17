@@ -322,20 +322,18 @@ if (associated(ele%a_pole)) then
     endif
 
   enddo
-
 endif
 
 ! Electric Multipoles
 
 if (associated(ele%a_pole_elec)) then
+  call multipole_ele_to_ab (ele, .false., ix_pole_max, a, b, electric$)
 
   do i = 0, n_pole_maxx
-    call multipole_ele_to_ab (ele, .false., ix_pole_max, a, b, electric$)
     if (ele%a_pole_elec(i) == 0 .and. ele%b_pole_elec(i) == 0) cycle
     nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'A', i, '_elec =', ele%a_pole_elec(i), 'A', i, '_elec(Scaled) =', a(i)
     nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'B', i, '_elec =', ele%b_pole_elec(i), 'B', i, '_elec(Scaled) =', b(i)
   enddo
-
 endif
 
 ! Encode on/off status etc.
@@ -421,7 +419,7 @@ if (attribute_index(ele, 'FIELD_MASTER') /= 0) then
   call encode_second_column_parameter (li, nl2, nl, 'FIELD_MASTER', logic_val = ele%field_master)
 endif
 
-if (ele%key /= overlay$ .and. ele%key /= group$ .and. type_zero) then
+if (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$ .and. type_zero) then
   call encode_second_column_parameter (li, nl2, nl, 'LONGITUDINAL ORIENTATION', int_val = ele%orientation)
 endif
 

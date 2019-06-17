@@ -1286,7 +1286,7 @@ integer, parameter :: hybrid$ = 16, octupole$ = 17, rbend$ = 18, multipole$ = 19
 integer, parameter :: def_mad_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23, patch$ = 24, lcavity$ = 25
 integer, parameter :: def_parameter$ = 26, null_ele$ = 27, beginning_ele$ = 28, line_ele$ = 29
 integer, parameter :: match$ = 30, monitor$ = 31, instrument$ = 32, hkicker$ = 33, vkicker$ = 34
-integer, parameter :: rcollimator$ = 35, ecollimator$ = 36, girder$ = 37
+integer, parameter :: rcollimator$ = 35, ecollimator$ = 36, girder$ = 37, converter$ = 38
 integer, parameter :: def_particle_start$ = 39, photon_fork$ = 40, fork$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46, e_gun$ = 47, em_field$ = 48
 integer, parameter :: floor_shift$ = 49, fiducial$ = 50, undulator$ = 51, diffraction_plate$ = 52
@@ -1295,21 +1295,18 @@ integer, parameter :: ac_kicker$ = 58, lens$ = 59
 
 integer, parameter :: n_key$ = 59
 character(20), parameter :: key_name(n_key$) = [ &
-    'Drift             ', 'Sbend             ', 'Quadrupole        ', 'Group             ', &
-    'Sextupole         ', 'Overlay           ', 'Custom            ', 'Taylor            ', &
-    'RFcavity          ', 'ELseparator       ', 'BeamBeam          ', 'Wiggler           ', &
-    'Sol_Quad          ', 'Marker            ', 'Kicker            ', 'Hybrid            ', &
-    'Octupole          ', 'Rbend             ', 'Multipole         ', 'GARBAGE!          ', &
-    'Def_Mad_Beam      ', 'AB_multipole      ', 'Solenoid          ', 'Patch             ', &
-    'Lcavity           ', 'Def_Parameter     ', 'Null_Ele          ', 'Beginning_Ele     ', &
-    'Line_Ele          ', 'Match             ', 'Monitor           ', 'Instrument        ', &
-    'Hkicker           ', 'Vkicker           ', 'Rcollimator       ', 'Ecollimator       ', &
-    'Girder            ', 'GARBAGE!          ', 'Def_Particle_start', 'Photon_Fork       ', &
-    'Fork              ', 'Mirror            ', 'Crystal           ', 'Pipe              ', &
-    'Capillary         ', 'Multilayer_Mirror ', 'E_Gun             ', 'EM_Field          ', &
-    'Floor_Shift       ', 'Fiducial          ', 'Undulator         ', 'Diffraction_Plate ', &
-    'Photon_Init       ', 'Sample            ', 'Detector          ', 'Sad_Mult          ', &
-    'Mask              ', 'AC_Kicker         ', 'Lens              ']
+    'Drift             ', 'Sbend             ', 'Quadrupole        ', 'Group             ', 'Sextupole         ', &
+    'Overlay           ', 'Custom            ', 'Taylor            ', 'RFcavity          ', 'ELseparator       ', &
+    'BeamBeam          ', 'Wiggler           ', 'Sol_Quad          ', 'Marker            ', 'Kicker            ', &
+    'Hybrid            ', 'Octupole          ', 'Rbend             ', 'Multipole         ', 'GARBAGE!          ', &
+    'Def_Mad_Beam      ', 'AB_multipole      ', 'Solenoid          ', 'Patch             ', 'Lcavity           ', &
+    'Def_Parameter     ', 'Null_Ele          ', 'Beginning_Ele     ', 'Line_Ele          ', 'Match             ', &
+    'Monitor           ', 'Instrument        ', 'Hkicker           ', 'Vkicker           ', 'Rcollimator       ', &
+    'Ecollimator       ', 'Girder            ', 'Converter         ', 'Def_Particle_start', 'Photon_Fork       ', &
+    'Fork              ', 'Mirror            ', 'Crystal           ', 'Pipe              ', 'Capillary         ', &
+    'Multilayer_Mirror ', 'E_Gun             ', 'EM_Field          ', 'Floor_Shift       ', 'Fiducial          ', &
+    'Undulator         ', 'Diffraction_Plate ', 'Photon_Init       ', 'Sample            ', 'Detector          ', &
+    'Sad_Mult          ', 'Mask              ', 'AC_Kicker         ', 'Lens              ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
