@@ -1,0 +1,469 @@
+import tkinter as tk
+from tkinter import messagebox
+from tkinter import filedialog
+import sys
+import os
+import copy
+sys.path.append(os.environ['ACC_ROOT_DIR'] + '/tao/gui')
+from tao_widget import *
+from parameters import str_to_tao_param
+from main import tao_set
+import string
+
+
+#-----------------------------------------------------
+# List window
+
+class tao_list_window(tk.Toplevel):
+
+  def __init__(self, root, title, *args, **kwargs):
+    tk.Toplevel.__init__(self, root, *args, **kwargs)
+    self.title(title)
+    self.root = root
+
+    self.wm_geometry(newGeometry='400x600')
+
+    self.outer_frame=tk.Frame(self)
+
+    canvas=tk.Canvas(self.outer_frame)
+    self.list_frame=tk.Frame(canvas)
+    scrollbar=tk.Scrollbar(self.outer_frame,orient="vertical",command=canvas.yview)
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    def scrollhelper(event):
+      canvas.configure(scrollregion=canvas.bbox("all")) #,width=200,height=200)
+      new_width = event.width + 15
+      old_geo = self.wm_geometry()
+      if old_geo[2] != '1':
+        new_geo = old_geo[old_geo.find('x'):old_geo.find('+')]
+        new_geo = str(new_width) + new_geo
+      else:
+        new_geo = str(new_width) + 'x500'
+      self.geometry(new_geo)
+    self.list_frame.bind("<Configure>",scrollhelper)
+
+    def mouse_scroll(event):
+      #canvas.yview_scroll(direction,"units")
+      if event.num == 4:
+        canvas.yview_scroll(-1,"units")
+      elif event.num == 5:
+        canvas.yview_scroll(1,"units")
+      #canvas.update_idletasks()
+
+    def bind_mouse(event):
+      self.outer_frame.bind_all("<Button-4>", mouse_scroll)
+      self.outer_frame.bind_all("<Button-5>", mouse_scroll)
+
+    def unbind_mouse(event):
+      self.outer_frame.unbind_all("<Button-4>")
+      self.outer_frame.unbind_all("<Button-5>")
+
+    self.outer_frame.bind("<Enter>", bind_mouse)
+    self.outer_frame.bind("<Leave>", unbind_mouse)
+
+    self.outer_frame.pack(side="top",fill="both",expand=1)
+    scrollbar.pack(side="right",fill="y")
+    canvas.pack(side="left",fill="both",expand=1)
+    canvas.create_window((0,0),window=self.list_frame,anchor='nw')
+
+
+#-----------------------------------------------------
+# Parameter window
+class tao_parameter_window(tao_list_window):
+
+  def __init__(self, root, title, tao_list, pipe, *args, **kwargs):
+    tao_list_window.__init__(self, root, title, *args, **kwargs)
+    self.button_frame = tk.Frame(self)
+    self.button_frame.pack(side="top", fill="both", expand=0)
+    self.tao_list = tao_list
+    for k in range(len(self.tao_list)):
+      self.tao_list[k] = tk_tao_parameter(self.tao_list[k], self.list_frame, pipe)
+      tk.Label(self.list_frame,text=self.tao_list[k].param.name).grid(row=k,column=0,sticky="E")
+      self.tao_list[k].tk_wid.grid(row=k,column=1,sticky="W")
+      k = k+1
+
+#-----------------------------------------------------
+# Table window
+class table_window(tao_list_window):
+  '''
+  Meant for showing large amounts of information in a table (e.g. d1_data and v1_vars).  Comes with bulk editing, detailed view of individual rows, and editing of individual parameters in the table.
+
+  Input parameters:
+  root: parent widget
+  pipe: the tao_interface object that allows interface with Tao
+  array_name: the name of the object this table displays (e.g. the name of the d1_datum or v1_variable)
+  title_list: the column titles, in order from left to right
+  bulk_template: a list with elements [tao_parameter, column], where tao_parameter is a generic copy of the parameter that will be bulk filled (i.e. initialized to "blank"), and column is the column number it should be gridded to (start counting from 0 on the left)
+  bulk_set_format: format string for the bulk set string, to be used with the str.format() method
+  set_format: format string for individual rows' set strings, to be used with the str.format() method
+    example format strings: "set data 1@{}|", "set data 1@{}[{}]|"
+  '''
+
+  def __init__(self, root, pipe, array_name, title_list, bulk_template, bulk_set_format, set_format, *args, **kwargs):
+    tao_list_window.__init__(self, root, array_name, *args, **kwargs)
+    self.pipe = pipe
+    self.array_name = array_name
+    self.title_list = title_list
+    self.bulk_template = bulk_template
+    self.bulk_set_format = bulk_set_format
+    self.set_format = set_format
+    self.refresh()
+
+    self.button_frame = tk.Frame(self)
+    self.button_frame.pack(side="bottom", fill="both", expand=0)
+    b1 = tk.Button(self.button_frame, text="Apply Changes", command=self.apply)
+    b2 = tk.Button(self.button_frame, text="Discard Changes and Refresh", command=self.refresh)
+
+    b2.pack(side="right")
+    b1.pack(side="right")
+
+  def refresh(self):
+    # Clear self.list_frame:
+    for child in self.list_frame.winfo_children():
+      child.destroy()
+
+    # Grid the column titles
+    j = 0
+    for item in self.title_list:
+      tk.Label(self.list_frame, text=item).grid(row=0, column=j)
+      self.list_frame.grid_columnconfigure(j, pad=10)
+      j=j+1
+
+    # Bulk editing
+    tk.Label(self.list_frame, text="Bulk editing:").grid(row=1, column=0, columnspan=self.bulk_template[0][1])
+    tk.Label(self.list_frame, text="Click to fill:").grid(row=2, column=0, columnspan=self.bulk_template[0][1])
+    #self.bulk_template[0][1] is the appropriate
+    #columnspan because these labels can fill all
+    #the space until the first bulk fill box
+
+    self.bulk_params = [] #Holds the current bulk edit widgets
+    self.bulk_filled = [] #Holds whether or not bulk filling has been used
+    self.bulk_value = [] #Holds the last value that was filled to the cells
+    self.bulk_apply = [] #Holds fill buttons
+
+    j=0
+    for item in self.bulk_template:
+      self.bulk_params.append(tk_tao_parameter(copy.copy(item[0]), self.list_frame, self.pipe))
+      self.bulk_params[j].tk_wid.grid(row=1, column=item[1])
+      self.bulk_params[j].tk_wid.bind("<Return>", self.fill_callback(j))
+      self.bulk_filled.append(False)
+      self.bulk_value.append(self.bulk_params[j].tk_var.get())
+      self.bulk_apply.append(tk.Button(self.list_frame, text="Fill...", command = self.fill_callback(j) ))
+      self.bulk_apply[j].grid(row=2, column=item[1])
+      j=j+1
+
+    #Fetch and fill in the data
+    # IT IS EXPECTED THAT SUBCLASSES WILL DEFINE
+    # self.row_num AND A METHOD FOR POPULATING
+    # self.list_rows, AND THEN CALL THIS METHOD
+    #i = row counter, j = column counter
+    #grid to row i+3 because row 0 is titles, row 1 is bulk editing widgets, row 2 is fill buttons
+    self.list_rows = []
+    for i in range(self.row_num):
+      self.list_rows.append(self.list_row_fetch(i))
+      for j in range(len(self.list_rows[i].tk_wids)):
+        self.list_rows[i].tk_wids[j].grid(row=i+3, column=j)
+      tk.Button(self.list_frame, text="View More...", command=self.open_detail_window_callback(self.list_rows[i].index)).grid(row=i+3, column=len(self.list_rows[i].tk_wids))
+
+  def fill(self, index, event=None):
+    '''
+    Fills the column specified by bulk_template[index][1] to the bulk edit value, saves the bulk edit value for efficient calls to tao_set, and clears the bulk edit box
+    '''
+    # Save the bulk parameter state
+    self.bulk_value[index] = self.bulk_params[index].tk_var.get()
+    self.bulk_filled[index] = True
+    # Clear the bulk parameter widget
+    if self.bulk_params[index].param.type in ['STR', 'INT', 'REAL']:
+      self.bulk_params[index].tk_var.set("")
+    elif self.bulk_params[index].param.type == 'LOGIC':
+      self.bulk_params[index].tk_var.set(False)
+    # Fill the appropriate variable
+    for i in range(len(self.list_rows)):
+      self.list_rows[i].tk_tao_params[self.bulk_template[index][0].name].tk_var.set(self.bulk_value[index])
+
+  def fill_callback(self, index, event=None):
+    return lambda event=None : self.fill(index)
+
+
+  def apply(self):
+    #Apply bulk changes
+    for i in range(len(self.bulk_params)):
+      if self.bulk_filled[i]:
+        set_str = self.bulk_set_format.format(self.array_name)
+        self.bulk_params[i].tk_var.set(self.bulk_value[i])
+        tao_set([self.bulk_params[i]], set_str, self.pipe, overide=(self.bulk_params[i].param.type=='LOGIC')) #overide is necessary for LOGIC parameters
+
+    #Apply individual changes that are different from bulk changes
+    for i in range(len(self.list_rows)):
+      set_list = []
+      #NOTE: it is expected that self.list_rows[i].index exist, and be equal to that row's index
+      set_str = self.set_format.format(self.array_name, self.list_rows[i].index)
+
+      #Find elements in row that need setting
+      for j in range(len(self.bulk_template)):
+        name = self.bulk_template[j][0].name
+        c1 = (self.list_rows[i].tk_tao_params[name].tk_var.get() != self.bulk_value[j])
+        c2 = not self.bulk_filled[j]
+        try:
+          if self.bulk_template[j][0].type == 'REAL':
+            c3 = (float(self.list_rows[i].tk_tao_params[name].tk_var.get()) != self.list_rows[i].tk_tao_params[name].param.value)
+          elif self.bulk_template[j][0].type == 'INT':
+            c3 = (int(self.list_rows[i].tk_tao_params[name].tk_var.get()) != self.list_rows[i].tk_tao_params[name].param.value)
+          elif self.bulk_template[j][0].type == 'STR':
+            c3 = (str(self.list_rows[i].tk_tao_params[name].tk_var.get()) != self.list_rows[i].tk_tao_params[name].param.value)
+          elif self.bulk_template[j][0].type == 'LOGIC':
+            c3 = (bool(self.list_rows[i].tk_tao_params[name].tk_var.get()) != self.list_rows[i].tk_tao_params[name].param.value)
+        except ValueError:
+          c3 = False
+        if (c1 | c2) & c3:
+          set_list.append(self.list_rows[i].tk_tao_params[name])
+
+      if set_list != []:
+        tao_set(set_list, set_str, self.pipe)
+
+    #Refresh
+    self.refresh()
+
+  def open_detail_window_callback(self, index):
+    return lambda : self.open_detail_window(index)
+
+  def open_detail_window(self, index):
+    # SUBCLASSES ARE EXPECTED TO DEFINE self.param_list
+    # FOR USE IN A tao_parameter_window, THEN CALL
+    # THIS METHOD
+    detail_title = self.array_name + '[' + str(index) + ']'
+    win = tao_parameter_window(self, detail_title, self.param_list, self.pipe)
+
+    set_str = self.set_format.format(self.array_name, index)
+    b = tk.Button(win.button_frame, text="Apply changes", command=lambda : self.detail_set_callback(win.tao_list,set_str))
+    b.pack()
+
+  def detail_set_callback(self, tao_list, set_str):
+    tao_set(tao_list, set_str, self.pipe)
+    self.refresh()
+
+
+#-----------------------------------------------------
+# d2_data window
+
+class tao_d2_data_window(tao_list_window):
+
+  def __init__(self, root, pipe, *args, **kwargs):
+    tao_list_window.__init__(self, root, "Data", *args, **kwargs)
+    self.pipe = pipe
+    univ_list = self.pipe.cmd_in("python super_universe")
+    n_universe = str_to_tao_param(univ_list.splitlines()[0])
+    self.univ_frame = tk.Frame(self)
+    tk.Label(self.univ_frame, text="Universe: ", font=('Helvetica',12)).grid(row=0,column=0,sticky="E")
+    self.u_ix = tk.StringVar()
+    u_ix_list = []
+    for i in range(n_universe.value):
+      u_ix_list.append(str(i+1))
+    self.u_ix.set(u_ix_list[0])
+    u_ix_box = tk.OptionMenu(self.univ_frame, self.u_ix, *u_ix_list, command=self.refresh)
+    u_ix_box.grid(row=0,column=1,sticky="W")
+    self.univ_frame.pack(fill="both", expand=0)
+
+    # Populate self.list_frame
+    self.refresh(self.u_ix.get())
+
+
+  def refresh(self,u_ix):
+    '''
+    Clears self.list_frame and fills it with the current universe's
+    d2/d1 data
+    '''
+    # Clear self.list_frame:
+    for child in self.list_frame.winfo_children():
+      child.destroy()
+    # Get this universe's d2_data
+    d2_data_list = self.pipe.cmd_in("python data_d2_array " + u_ix)
+    d2_data_list = d2_data_list.splitlines()
+    for d2_data_item in d2_data_list:
+      new_frame = d2_data_frame(self.list_frame, self.root, self.pipe, d2_data_item, u_ix)
+      new_frame.frame.pack()
+
+
+#-----------------------------------------------------
+# d1_data window
+
+class tao_d1_data_window(table_window):
+
+  def __init__(self, root, pipe, d1_data_name, u_ix, ix_lb, ix_ub, *args, **kwargs):
+    self.u_ix = u_ix
+    self.ix_lb = ix_lb
+    self.ix_ub = ix_ub
+    title_list = ["Index",
+        "d1_data_name",
+        "Merit type",
+        "Ref Element",
+        "Start Element",
+        "Element Name",
+        "Meas value",
+        "Model value",
+        "Design value",
+        "Useit_opt",
+        "Useit_plot",
+        "good_user",
+        "Weight"]
+    bulk_template = []
+    bulk_template.append([str_to_tao_param("meas_value;REAL;T;"), 6])
+    bulk_template.append([str_to_tao_param("good_user;LOGIC;T;"), 11])
+    bulk_template.append([str_to_tao_param("weight;REAL;T;"), 12])
+
+    bulk_set_format = "set data " + str(self.u_ix) + '@{}|'
+    set_format = "set data " + str(self.u_ix) + '@{}[{}]|'
+    table_window.__init__(self, root, pipe, d1_data_name, title_list, bulk_template, bulk_set_format, set_format, *args, **kwargs)
+
+  def refresh(self):
+    self.d_list = self.pipe.cmd_in("python data_d_array " + self.u_ix + '@' + self.array_name)
+    self.d_list = self.d_list.splitlines()
+    self.row_num = len(self.d_list)
+    table_window.refresh(self)
+
+  def list_row_fetch(self, index):
+    '''
+    Returns row number index to be appended to self.list_rows
+    '''
+    return d1_data_list_entry(self.list_frame, self.d_list[index])
+
+  def open_detail_window(self, index):
+    self.param_list = self.pipe.cmd_in("python data " + str(self.u_ix) + '@' + self.array_name + '[' + str(index) + ']')
+    self.param_list = self.param_list.splitlines()
+    for i in range(len(self.param_list)):
+      self.param_list[i]=str_to_tao_param(self.param_list[i])
+    table_window.open_detail_window(self, index)
+
+#-----------------------------------------------------
+# Variable Window
+
+class tao_var_general_window(tao_list_window):
+
+  def __init__(self, root, pipe, *args, **kwargs):
+    tao_list_window.__init__(self, root, "v1 Variables", *args, **kwargs)
+    self.pipe = pipe
+    self.list_frame.grid_columnconfigure(0, pad=10)
+    self.list_frame.grid_columnconfigure(1, pad=10)
+    self.list_frame.grid_columnconfigure(2, pad=10)
+    self.refresh()
+
+  def refresh(self):
+    for child in self.list_frame.winfo_children():
+      child.destroy()
+    v1_var_list = self.pipe.cmd_in("python var_general")
+    v1_var_list = v1_var_list.splitlines()
+    for i in range(len(v1_var_list)):
+      v1_var_list[i] = v1_var_list[i].split(';')
+
+    tk.Label(self.list_frame, text="Variable").grid(row=0, column=0, columnspan=2)
+    tk.Label(self.list_frame, text="Indices").grid(row=0, column=2)
+    tk.Label(self.list_frame, text="Using").grid(row=0, column=3)
+
+    i=1
+    for item in v1_var_list:
+      tk.Label(self.list_frame, text=item[0]).grid(row=i, column=0)
+      tk.Button(self.list_frame, text="View...", command=self.open_v1_callback(item[0])).grid(row=i, column=1)
+      tk.Label(self.list_frame, text=item[1] + ':' + item[2]).grid(row=i, column=2)
+      i = i+1
+
+  def open_v1_callback(self, v1_var_name):
+    return lambda : self.open_v1(v1_var_name)
+
+  def open_v1(self, v1_var_name):
+    win = tao_v1_var_window(self.root, self.pipe, v1_var_name)
+
+#-----------------------------------------------------
+# v1_var window
+
+class tao_v1_var_window(table_window):
+
+  def __init__(self, root, pipe, v1_var_name, *args, **kwargs):
+    title_list = ["Index",
+        "Name",
+        "Meas value",
+        "Model value",
+        "Design value",
+        "Useit_opt",
+        "good_user",
+        "Weight"]
+    bulk_template = []
+    bulk_template.append([str_to_tao_param("meas_value;REAL;T;"), 2])
+    bulk_template.append([str_to_tao_param("good_user;LOGIC;T;"), 6])
+    bulk_template.append([str_to_tao_param("weight;REAL;T;"), 7])
+
+    bulk_set_format = "set var {}|"
+    set_format = "set var {}[{}]|"
+    table_window.__init__(self, root, pipe, v1_var_name, title_list, bulk_template, bulk_set_format, set_format, *args, **kwargs)
+
+  def refresh(self):
+    self.v_list = self.pipe.cmd_in("python var_v_array " + self.array_name)
+    self.v_list = self.v_list.splitlines()
+    self.row_num = len(self.v_list)
+    table_window.refresh(self)
+
+  def list_row_fetch(self, index):
+    '''
+    Returns row number index to be appended to self.list_rows
+    '''
+    return v1_var_list_entry(self.list_frame, self.v_list[index])
+
+  def open_detail_window(self, index):
+    self.param_list = self.pipe.cmd_in("python var " + self.array_name + '[' + str(index) + ']')
+    self.param_list = self.param_list.splitlines()
+    for i in range(len(self.param_list)):
+      self.param_list[i]=str_to_tao_param(self.param_list[i])
+    table_window.open_detail_window(self, index)
+
+
+#-----------------------------------------------------
+# History Window
+
+class tao_history_window(tao_list_window):
+
+  def __init__(self, root, *args, **kwargs):
+    tao_list_window.__init__(self, root, "History", *args, **kwargs)
+    self.refresh()
+
+  def refresh(self):
+    for child in self.list_frame.winfo_children():
+      child.destroy()
+
+    tk.Label(self.list_frame, text="Commands").grid(row=0, column=0)
+    tk.Label(self.list_frame, text="Command files").grid(row=0, column=1)
+
+    for j in range(len(self.root.history)):
+      ii = len(self.root.history[j]) #Actual row counter
+      for i in range(len(self.root.history[j])):
+        b = tk.Button(self.list_frame, text=self.root.history[j][i])
+        b.configure(command=self.re_run_callback(self.root.history[j][i], j))
+        b.bind("<Button-3>", self.re_run_callback(self.root.history[j][i], j+2))
+        b.grid(row=ii, column=j)
+        ii -= 1
+
+  def re_run(self, cmd_string, mode, event=None):
+    '''
+    Re-runs the given command or command file (cmd_string),
+    using the specified mode.
+    mode == 0 -> Run in Tao/system shell
+    mode == 1 -> Run in system shell
+    mode == 2 -> Re-run command file
+    Using modes 4, 5, and 6 simply respawns cmd_string in
+    the command line or call_file box, and does not run it
+    '''
+    if mode ==0:
+      self.root.command.tk_var.set(cmd_string)
+      self.root.tao_command()
+    elif mode == 1:
+      self.root.call_file.tk_var.set(cmd_string)
+      self.root.tao_call()
+    elif mode ==2:
+      self.root.command.tk_var.set(cmd_string)
+    elif mode == 3:
+      self.root.call_file.tk_var.set(cmd_string)
+
+  def re_run_callback(self, cmd_string, mode, event=None):
+    '''
+    Formats a callback to self.re_run
+    '''
+    return lambda event=None : self.re_run(cmd_string, mode)
+

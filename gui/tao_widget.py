@@ -60,10 +60,13 @@ class d2_data_frame():
   self.frame = a tk frame that will hold all relevant widgets and labels
   self.name = holds the name of the d2_data this frame represents
   self.d1_data_list = list of all d1_data items contained by this d2_datum
+  NOTE: master should be the frame that this frame is gridded into
+  (usually a list_frame), while root should be the application root window
   '''
 
-  def __init__(self, master, pipe, d2_data_name, u_ix):
+  def __init__(self, master, root, pipe, d2_data_name, u_ix):
     self.frame = tk.Frame(master)
+    self.root = root
     self.name = d2_data_name
     self.d1_data_list = []
     self.d1_using_list = [] #holds using information
@@ -96,8 +99,8 @@ class d2_data_frame():
     '''
     Opens a window with detailed information for d2_data_name.d1_data_name
     '''
-    from main import tao_d1_data_window
-    win = tao_d1_data_window(None, pipe, d2_data_name + '.' + d1_data_name, u_ix, ix_lb, ix_ub)
+    from tao_windows import tao_d1_data_window
+    win = tao_d1_data_window(self.root, pipe, d2_data_name + '.' + d1_data_name, u_ix, ix_lb, ix_ub)
 
 #-----------------------------------------------------------------
 class d1_data_list_entry():
@@ -107,6 +110,7 @@ class d1_data_list_entry():
     d_list = d_list.split(';')
     self.tk_wids = [] #Holds all the widgets
     self.tk_tao_params = {} #Holds the tk_tao_parameters for items that are not labels
+    self.index = d_list[0]
     for i in range(6):
       self.tk_wids.append(tk.Label(master, text=d_list[i]))
 
@@ -144,7 +148,50 @@ class d1_data_list_entry():
     self.tk_tao_params["weight"] = tk_tao_parameter(weight, master)
     self.tk_wids.append(self.tk_tao_params["weight"].tk_wid)
 
+class v1_var_list_entry():
+  '''
+  Creates the widgets needed to display a single variable held in a v1_var array
+  v_list should be one row of output from
+  python var_v_array [variable name]
+  '''
+  def __init__(self, master, v_list):
+    v_list = v_list.split(';')
+    self.tk_wids = [] #Holds all the widgets
+    self.tk_tao_params = {} #Holds the tk_tao_parameters for items that are not labels
 
+    self.index = v_list[0]
+    for i in range(2):
+      self.tk_wids.append(tk.Label(master, text=v_list[i]))
+
+    # Meas value
+    meas_value = tao_parameter("meas_value", "REAL", "T", v_list[2])
+    self.tk_tao_params["meas_value"] = tk_tao_parameter(meas_value, master)
+    self.tk_wids.append(self.tk_tao_params["meas_value"].tk_wid)
+
+    # Model value
+    model_value = tao_parameter("model_value", "REAL", "F", v_list[3])
+    self.tk_tao_params["model_value"] = tk_tao_parameter(model_value, master)
+    self.tk_wids.append(self.tk_tao_params["model_value"].tk_wid)
+
+    # Design value
+    design_value = tao_parameter("design_value", "REAL", "F", v_list[4])
+    self.tk_tao_params["design_value"] = tk_tao_parameter(design_value, master)
+    self.tk_wids.append(self.tk_tao_params["design_value"].tk_wid)
+
+    # Useit_opt
+    useit_opt = tao_parameter("useit_opt", "LOGIC", "F", v_list[5])
+    self.tk_tao_params["useit_opt"] = tk_tao_parameter(useit_opt, master)
+    self.tk_wids.append(self.tk_tao_params["useit_opt"].tk_wid)
+
+    # good_user
+    good_user = tao_parameter("good_user", "LOGIC", "T", v_list[6])
+    self.tk_tao_params["good_user"] = tk_tao_parameter(good_user, master)
+    self.tk_wids.append(self.tk_tao_params["good_user"].tk_wid)
+
+    # Weight
+    weight = tao_parameter("weight", "REAL", "T", v_list[7])
+    self.tk_tao_params["weight"] = tk_tao_parameter(weight, master)
+    self.tk_wids.append(self.tk_tao_params["weight"].tk_wid)
 
 #-----------------------------------------------------------------
 
