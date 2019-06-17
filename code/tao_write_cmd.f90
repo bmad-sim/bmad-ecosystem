@@ -82,7 +82,7 @@ select case (action)
 
 case ('beam')
 
-  file_format = binary$
+  file_format = hdf5$
   is_open = .false.
   at_switch = .false.
   ix_word = 0
