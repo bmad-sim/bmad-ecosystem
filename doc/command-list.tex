@@ -3079,10 +3079,10 @@ only the information on variables that are currently used in the optimization is
 \vn{write beam} will create a file of the particle positions when beam tracking is being used. The
 \vn{-at} switch specifies at what elements the particle positions are written. Element list format
 (\sref{s:ele.list.format}), without any embedded blanks, is used for the \vn{<element_list>}
-argument to the \vn{-at} switch. The \vn{-ascii} switch is for writing text files. See the \vn{Beam
-Initialization} chapter in the \bmad manual for a discussion of the syntax. The default is to write
-with a compressed binary format. Note: Beam files can be used to initialize \tao
-(\sref{s:command.line}). Example
+argument to the \vn{-at} switch. The \vn{-ascii} switch is for writing ASCII text files instead of
+the default HDF5 files. See the \vn{Beam Initialization} chapter in the \bmad manual for a
+discussion of the syntax. The default is to write with a compressed binary format. Note: Beam files
+can be used to initialize \tao (\sref{s:command.line}). Example
 \begin{example}
   write beam -at *   ! Output beam at every element.
 \end{example}

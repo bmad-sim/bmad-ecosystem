@@ -3,18 +3,20 @@
 !
 ! Print information in a form easily parsed by a scripting program like python.
 !
-! Note: The syntax for "variable list form" is:
+! Note: The syntax for "parameter list form" is:
 !   {component_name};{type};{variable};{component_value}
 !
 ! {type} is one of:
 !   INT
 !   REAL
+!   REAL_ARR    ! Real array
 !   LOGIC
-!   ENUM     ! String whose allowed values can be obtained using the "python enum" command.
-!   FILE     ! Name of file.
-!   CRYSTAL  ! Crystal name string. EG: "Si(111)"
-!   SPECIES  ! Species name string. EG: "H2SO4++"
-!   STR      ! String that does not fall into one of the above string categories.
+!   ENUM        ! String whose allowed values can be obtained using the "python enum" command.
+!   FILE        ! Name of file.
+!   CRYSTAL     ! Crystal name string. EG: "Si(111)"
+!   SPECIES     ! Species name string. EG: "H2SO4++"
+!   ELE_PARAM   ! Lattice element parameter string. EG "K1"
+!   STR         ! String that does not fall into one of the above string categories.
 !   
 !
 ! {variable} indicates if the component can be varied. It is one of:
@@ -80,27 +82,46 @@ type (branch_struct), pointer :: branch
 type (tao_universe_branch_struct), pointer :: uni_branch
 type (random_state_struct) ran_state
 type (ele_attribute_struct) attrib
+type (ac_kicker_struct), pointer :: ac
+type (cartesian_map_struct), pointer :: ct_map
+type (cartesian_map_term1_struct), pointer :: ctt
+type (cylindrical_map_struct), pointer :: cy_map
+type (cylindrical_map_term1_struct), pointer :: cyt
+type (wake_struct), pointer :: wake
+type (taylor_term_struct), pointer :: tt
 
 character(*) input_str
 character(n_char_show), allocatable :: li(:) 
-character(24) imt, rmt, lmt, amt, iamt, vamt, vrmt, vrmt2
+character(24) imt, rmt, lmt, amt, iamt, vamt, rmt2
 character(40) max_loc, ele_name, name1(40), name2(40), a_name, name
 character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
 character(20) cmd, command, who, which, v_str
 character(20) :: r_name = 'tao_python_cmd'
-character(40) :: cmd_names(57) = [character(20) :: &
+character(40) :: cmd_names(59) = [character(20) :: &
   'beam_init', 'branch1', 'bunch1', 'bmad_com', &
   'data_create', 'data_destroy', 'data_d2_array', 'data_d1_array', 'data_d2', 'data_d_array', 'data', &
-  'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', 'ele:cartesian_map', 'ele:cylindrical_map', &
+  'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', 'ele:cartesian_map', &
+  'ele:cylindrical_map', 'ele:cylindrical_map:terms', 'ele:cartesian_map:terms', 'ele:orbit', &
   'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
   'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
   'enum', 'global', 'help', &
-  'lat_ele_list', 'lat_ele1', 'lat_general', 'lat_list', 'lat_param_units', &
+  'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
   'orbit_at_s', &
   'plot_list', 'plot1', 'plot_graph', 'plot_curve', 'plot_line', 'plot_symbol', &
   'species_to_int', 'species_to_str', 'super_universe', 'twiss_at_s', 'universe', &
   'var_create', 'var_destroy', 'var_general', 'var_v1_array', 'var_v_array', 'var']
+
+! Needed:
+!   beam
+!   building_wall
+!   constraints / top10 / derivative matrix
+!   dynamic aperture
+!   EM field
+!   HOM
+!   wave
+!   wall
+!   lattice table
 
 real(rp) s_pos, value
 real(rp), allocatable :: re_array(:)
@@ -112,7 +133,7 @@ integer :: i, j, k, ie, iu, nn, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_d2, n_who, ix_pole_max, attrib_type
 integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free
 
-logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer
+logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer, can_vary
 
 character(20) switch
 
@@ -164,13 +185,12 @@ if (ix < 0) then
   return
 endif
 
-amt = '(3a)'
-imt = '(a,i0,a)'
-rmt = '(a,es23.15,a)'
-lmt = '(a,l1,a)'
+amt  = '(3a)'
+imt  = '(a, 100(i0, a))'
+rmt  = '(a, 100(es23.15, a))'
+rmt2 = '(a, l0, a, 100(es23.15, a))'
+lmt  = '(a, 100(l1, a))'
 vamt = '(a, i0, 3a)'
-vrmt = '(a, i0, a, es23.15)'
-vrmt2 = '(a, i0, i0, a, es23.15)'
 
 nl = 0
 call re_allocate_lines (200)
@@ -274,9 +294,7 @@ case ('bunch1')
     bunch_params => tao_lat%tao_branch(ele%ix_branch)%bunch_params(ele%ix_ele)
     ! Continues below
   case default
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": coordinate not "x", "px", etc. ')
-    call end_stuff(li, nl)
+    call invalid ('coordinate not "x", "px", etc.')
     return
   end select
 
@@ -290,15 +308,15 @@ case ('bunch1')
   ! Sigma matrix
   do i = 1, 6
     do j = 1,6
-      nl=incr(nl); write (li(nl), vrmt2) 'sigma_', i, j, ';REAL;F;',           bunch_params%sigma(i,j)  
+      nl=incr(nl); write (li(nl), '(a, i0, i0, a, es23.15)') 'sigma_', i, j, ';REAL;F;', bunch_params%sigma(i,j)  
     enddo
   enddo
 
   ! Relative min, max, centroid
   do i = 1, 6
-    nl=incr(nl); write (li(nl), vrmt) 'rel_min_', i, ';REAL;F;',               bunch_params%rel_min(i)
-    nl=incr(nl); write (li(nl), vrmt) 'rel_max_', i, ';REAL;F;',               bunch_params%rel_max(i) 
-    nl=incr(nl); write (li(nl), vrmt) 'centroid_vec_', i, ';REAL;F;',          bunch_params%centroid%vec(i) 
+    nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'rel_min_', i, ';REAL;F;',      bunch_params%rel_min(i)
+    nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'rel_max_', i, ';REAL;F;',      bunch_params%rel_max(i) 
+    nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'centroid_vec_', i, ';REAL;F;', bunch_params%centroid%vec(i) 
   enddo
 
   nl=incr(nl); write (li(nl), rmt) 'centroid_t;REAL;F;',                       bunch_params%centroid%t
@@ -392,9 +410,7 @@ case ('bmad_com')
 case ('data_create')
 
   if (ix_line == 0) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": No d2 name given')
-    call end_stuff(li, nl)
+    call invalid ('No d2 name given')
     return
   endif
 
@@ -402,9 +418,7 @@ case ('data_create')
 
   call string_trim (line(ix_line+1:), line, ix_line)
   if (.not. is_integer(line)) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Number of d1 arrays missing or invalid')
-    call end_stuff(li, nl)
+    call invalid ('Number of d1 arrays missing or invalid')
     return
   endif
   read (line, *) n_d1
@@ -421,9 +435,7 @@ case ('data_create')
   enddo
 
   if (ix_line /= 0 .or. i /= n_d1+1) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Malformed array of datum min/max for each d1.')
-    call end_stuff(li, nl)
+    call invalid ('Malformed array of datum min/max for each d1.')
     return
   endif
 
@@ -444,11 +456,6 @@ case ('data_create')
     call destroy_this_data (a_name)
     call out_io (s_warn$, r_name, '"python ' // trim(input_str) // '": Data with this name already exists.', &
                                    'This old data has been destroyed to make room for the new data.')
-!!    nl=incr(nl); li(nl) = 'INVALID'
-!!    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Data with this name already exists.', &
-!!                                   'Destroy with "python data_destroy" first.')
-!!    call end_stuff(li, nl)
-!!    return
   endif
 
 
@@ -535,9 +542,7 @@ case ('data_d2')
   call tao_find_data (err, line, d2_array = d2_array)
 
   if (err .or. .not. allocated(d2_array)) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d2 data name')
-    call end_stuff(li, nl)
+    call invalid ('Not a valid d2 data name')
     return
   endif
 
@@ -571,9 +576,7 @@ case ('data_d_array')
   call tao_find_data (err, line, d_array = d_array)
 
   if (.not. allocated(d_array)) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d1_datum name.')
-    call end_stuff(li, nl)
+    call invalid ('Not a valid d1_datum name.')
     return
   endif
 
@@ -601,9 +604,7 @@ case ('data_d1_array')
   call tao_find_data (err, line, d2_array = d2_array)
 
   if (err .or. .not. allocated(d2_array)) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d2 data name')
-    call end_stuff(li, nl)
+    call invalid ('Not a valid d2 data name')
     return
   endif
 
@@ -635,7 +636,7 @@ case ('data_d2_array')
 ! Command syntax:
 !   python data {ix_universe}@{d2_name}.{d1_datum}[{dat_index}]
 ! Use the "python data-d1" command to get detailed info on a specific d1 array.
-! Output syntax is variable list form. See documentation at beginning of this file.
+! Output syntax is parameter list form. See documentation at the beginning of this file.
 ! Example:
 !   python data_d1 1@orbit.x[10]
 
@@ -644,9 +645,7 @@ case ('data')
   call tao_find_data (err, line, d_array = d_array)
 
   if (.not. allocated(d_array) .or. size(d_array) /= 1) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid datum name.')
-    call end_stuff(li, nl)
+    call invalid ('Not a valid datum name.')
     return
   endif
 
@@ -695,10 +694,13 @@ case ('data')
 !----------------------------------------------------------------------
 ! "Head" Element attributes
 ! Command syntax:
-!   python ele:head {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:head {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:head')
@@ -718,35 +720,45 @@ case ('ele:head')
   nl=incr(nl); write (li(nl), amt) 'descrip;INT;T;',                ele%descrip
   nl=incr(nl); write (li(nl), lmt) 'is_on;REAL;F;',                 ele%is_on
 
+  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                   ele%s
+  nl=incr(nl); write (li(nl), rmt) 's_start;REAL;F;',             ele%s_start
+  nl=incr(nl); write (li(nl), rmt) 'ref_time;REAL;F;',            ele%ref_time
 
-  nl=incr(nl); write (li(nl), lmt) 'has:methods;LOGIC;F;',          (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$)
-  nl=incr(nl); write (li(nl), lmt) 'has:multipoles;LOGIC;F;',       (ele%key == multipole$ .or. attribute_name(ele, a0$) == 'A0')
-  nl=incr(nl); write (li(nl), lmt) 'has:multipoles_elec;LOGIC;F;',  (attribute_name(ele, a0_elec$) == 'A0_ELEC')
-  nl=incr(nl); write (li(nl), lmt) 'has:ac_kick;LOGIC;F;',          associated(ele%ac_kick)
-  nl=incr(nl); write (li(nl), lmt) 'has:cartesian_map;LOGIC;F;',    associated(ele%cartesian_map)
-  nl=incr(nl); write (li(nl), lmt) 'has:cylindrical_map;LOGIC;F;',  associated(ele%cylindrical_map)
-  nl=incr(nl); write (li(nl), lmt) 'has:taylor_field;LOGIC;F;',     associated(ele%taylor_field)
-  nl=incr(nl); write (li(nl), lmt) 'has:grid_field;LOGIC;F;',       associated(ele%grid_field)
-  nl=incr(nl); write (li(nl), lmt) 'has:taylor;LOGIC;F;',           associated(ele%taylor(1)%term)
-  nl=incr(nl); write (li(nl), lmt) 'has:spin_taylor;LOGIC;F;',      associated(ele%spin_taylor(1)%term)
-  nl=incr(nl); write (li(nl), lmt) 'has:wake;LOGIC;F;',             associated(ele%wake)
-  nl=incr(nl); write (li(nl), lmt) 'has:wall3d;LOGIC;F;',           associated(ele%wall3d)
-  nl=incr(nl); write (li(nl), lmt) 'has:control;LOGIC;F;',          associated(ele%control)
-  nl=incr(nl); write (li(nl), lmt) 'has:twiss;LOGIC;F;',            (ele%a%beta /= 0)
-  nl=incr(nl); write (li(nl), lmt) 'has:mat6;LOGIC;F;',             (attribute_name(ele, mat6_calc_method$) == 'MAT6_CALC_METHOD')
-  nl=incr(nl); write (li(nl), lmt) 'has:taylor_field;LOGIC;F;',     associated(ele%taylor_field)       
-  nl=incr(nl); write (li(nl), lmt) 'has:grid_field;LOGIC;F;',       associated(ele%grid_field)
-  nl=incr(nl); write (li(nl), lmt) 'has:floor;LOGIC;F;',            (ele%lord_status /= multipass_lord$)
-  nl=incr(nl); write (li(nl), lmt) 'has:photon;LOGIC;F;',           associated(ele%photon)
-  nl=incr(nl); write (li(nl), lmt) 'has:lord_slave;LOGIC;F;',       .true.
+  nl=incr(nl); write (li(nl), lmt) 'has#methods;LOGIC;F;',          (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$)
+  nl=incr(nl); write (li(nl), lmt) 'has#multipoles;LOGIC;F;',       (ele%key == multipole$ .or. attribute_name(ele, a0$) == 'A0')
+  nl=incr(nl); write (li(nl), lmt) 'has#multipoles_elec;LOGIC;F;',  (attribute_name(ele, a0_elec$) == 'A0_ELEC')
+  nl=incr(nl); write (li(nl), lmt) 'has#ac_kick;LOGIC;F;',          associated(ele%ac_kick)
+  nl=incr(nl); write (li(nl), lmt) 'has#taylor;LOGIC;F;',           associated(ele%taylor(1)%term)
+  nl=incr(nl); write (li(nl), lmt) 'has#spin_taylor;LOGIC;F;',      associated(ele%spin_taylor(1)%term)
+  nl=incr(nl); write (li(nl), lmt) 'has#wake;LOGIC;F;',             associated(ele%wake)
+  n = 0; if (associated(ele%cartesian_map)) n = size(ele%cartesian_map)
+  nl=incr(nl); write (li(nl), imt) 'num#cartesian_map;LOGIC;F;',    n
+  n = 0; if (associated(ele%cylindrical_map)) n = size(ele%cylindrical_map)
+  nl=incr(nl); write (li(nl), imt) 'num#cylindrical_map;LOGIC;F;',  n
+  n = 0; if (associated(ele%taylor_field)) n = size(ele%taylor_field)
+  nl=incr(nl); write (li(nl), imt) 'num#taylor_field;LOGIC;F;',     n
+  n = 0; if (associated(ele%grid_field)) n = size(ele%grid_field)
+  nl=incr(nl); write (li(nl), imt) 'num#grid_field;LOGIC;F;',       n
+  nl=incr(nl); write (li(nl), lmt) 'has#wall3d;LOGIC;F;',           associated(ele%wall3d)
+  nl=incr(nl); write (li(nl), lmt) 'has#control;LOGIC;F;',          associated(ele%control)
+  nl=incr(nl); write (li(nl), lmt) 'has#twiss;LOGIC;F;',            (ele%a%beta /= 0)
+  nl=incr(nl); write (li(nl), lmt) 'has#mat6;LOGIC;F;',             (attribute_name(ele, mat6_calc_method$) == 'MAT6_CALC_METHOD')
+  nl=incr(nl); write (li(nl), lmt) 'has#taylor_field;LOGIC;F;',     associated(ele%taylor_field)       
+  nl=incr(nl); write (li(nl), lmt) 'has#grid_field;LOGIC;F;',       associated(ele%grid_field)
+  nl=incr(nl); write (li(nl), lmt) 'has#floor;LOGIC;F;',            (ele%lord_status /= multipass_lord$)
+  nl=incr(nl); write (li(nl), lmt) 'has#photon;LOGIC;F;',           associated(ele%photon)
+  nl=incr(nl); write (li(nl), lmt) 'has#lord_slave;LOGIC;F;',       .true.
 
 !----------------------------------------------------------------------
 ! Element methods
 ! Command syntax:
-!   python ele:methods {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:methods {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:methods')
@@ -771,40 +783,32 @@ case ('ele:methods')
     nl=incr(nl); write (li(nl), amt) 'physical_source;STR;T;', '"', trim(ele%component_name)
   endif
 
-  if (attribute_name(ele, mat6_calc_method$) == 'mat6_calc_method') then
+  if (attribute_name(ele, mat6_calc_method$) == 'MAT6_CALC_METHOD') then
     nl=incr(nl); write (li(nl), amt) 'mat6_calc_method;ENUM;T;', mat6_calc_method_name(ele%mat6_calc_method)
   endif
 
-  if (attribute_name(ele, tracking_method$) == 'tracking_method') then
+  if (attribute_name(ele, tracking_method$) == 'TRACKING_METHOD') then
     nl=incr(nl); write (li(nl), amt) 'tracking_method;ENUM;T;', tracking_method_name(ele%tracking_method)
   endif
 
-  if (attribute_name(ele, spin_tracking_method$) == 'spin_tracking_method') then
+  if (attribute_name(ele, spin_tracking_method$) == 'SPIN_TRACKING_METHOD') then
     nl=incr(nl); write (li(nl), amt) 'spin_tracking_method;ENUM;T;', spin_tracking_method_name(ele%spin_tracking_method)
   endif
 
-  if (attribute_name(ele, csr_method$) == 'csr_method') then
+  if (attribute_name(ele, csr_method$) == 'CSR_METHOD') then
     nl=incr(nl); write (li(nl), amt) 'csr_method;ENUM;T;', csr_method_name(ele%csr_method)
   endif
 
-  if (attribute_name(ele, space_charge_method$) == 'space_charge_method') then
+  if (attribute_name(ele, space_charge_method$) == 'SPACE_CHARGE_METHOD') then
     nl=incr(nl); write (li(nl), amt) 'space_charge_method;ENUM;T;', space_charge_method_name(ele%space_charge_method)
   endif
 
-  if (attribute_name(ele, ptc_integration_type$) == 'ptc_integration_type') then
+  if (attribute_name(ele, ptc_integration_type$) == 'PTC_INTEGRATION_TYPE') then
     nl=incr(nl); write (li(nl), amt) 'ptc_integration_type;ENUM;T;', ptc_integration_type_name(ele%ptc_integration_type)
   endif
 
-  if (attribute_name(ele, field_calc$) == 'field_calc') then
+  if (attribute_name(ele, field_calc$) == 'FIELD_CALC') then
     nl=incr(nl); write (li(nl), amt) 'field_calc;ENUM;T;', field_calc_name(ele%field_calc)
-  endif
-
-  if (attribute_name(ele, aperture_at$) == 'aperture_at') then
-    nl=incr(nl); write (li(nl), amt) 'aperture_at;ENUM;T;', aperture_at_name(ele%aperture_at)
-  endif
-
-  if (attribute_name(ele, aperture_type$) == 'aperture_type') then
-    nl=incr(nl); write (li(nl), amt) 'aperture_type;ENUM;T;', aperture_type_name(ele%aperture_type)
   endif
 
   if (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$) then
@@ -814,10 +818,13 @@ case ('ele:methods')
 !----------------------------------------------------------------------
 ! Element general attributes
 ! Command syntax:
-!   python ele:gen_attribs {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:gen_attribs {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:gen_attribs')
@@ -825,10 +832,6 @@ case ('ele:gen_attribs')
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
-
-  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                   ele%s
-  nl=incr(nl); write (li(nl), rmt) 's_start;REAL;F;',             ele%s_start
-  nl=incr(nl); write (li(nl), rmt) 'ref_time;REAL;F;',            ele%ref_time
 
   do i = 1, num_ele_attrib$
     attrib = attribute_info(ele, i)
@@ -839,6 +842,7 @@ case ('ele:gen_attribs')
     free = attribute_free (ele, a_name, .false., why_not_free = why_not_free)
     if (.not. free .and. why_not_free == field_master_dependent$) free = .true.
     attrib_type = attribute_type(a_name)
+    if (which /= 'model') free = .false.
 
     select case (attrib_type)
     case (is_logical$)
@@ -847,20 +851,36 @@ case ('ele:gen_attribs')
       nl=incr(nl); write (li(nl), '(2a, l1, a, i0)') trim(a_name), ';INT;', free, ';', nint(ele%value(i))
     case (is_real$)
       nl=incr(nl); write (li(nl), '(2a, l1, a, es23.15)') trim(a_name), ';REAL;', free, ';', ele%value(i)
-      nl=incr(nl); write (li(nl), '(4a)') 'units:', trim(a_name), ';STR;F;', attrib%units
+      nl=incr(nl); write (li(nl), '(4a)') 'units#', trim(a_name), ';STR;F;', attrib%units
     case (is_switch$)
       name = switch_attrib_value_name (a_name, ele%value(i), ele)
       nl=incr(nl); write (li(nl), '(2a, l1, 2a)') trim(a_name), ';ENUM;', free, ';', trim(name)
     end select
   enddo
 
+  if (attribute_name(ele, aperture_at$) == 'APERTURE_AT') then
+    nl=incr(nl); write (li(nl), amt) 'aperture_at;ENUM;T;', aperture_at_name(ele%aperture_at)
+    nl=incr(nl); write (li(nl), lmt) 'offset_moves_aperture;LOGIC;T;',          ele%offset_moves_aperture
+  endif
+
+  if (attribute_name(ele, aperture_type$) == 'APERTURE_TYPE') then
+    nl=incr(nl); write (li(nl), amt) 'aperture_type;ENUM;T;', aperture_type_name(ele%aperture_type)
+  endif
+
+  if (attribute_index(ele, 'FIELD_MASTER') /= 0) then
+    nl=incr(nl); write (li(nl), lmt) 'field_master;LOGIC;T;',                   ele%field_master
+  endif
+
 !----------------------------------------------------------------------
 ! Element multipoles
 ! Command syntax:
-!   python ele:multipoles {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:multipoles {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:multipoles')
@@ -874,55 +894,60 @@ case ('ele:multipoles')
     nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T', ele%scale_multipoles
   endif
 
-  if (associated(ele%a_pole)) then
-    a = 0; b = 0; a2 = 0; b2 = 0; knl = 0; tn = 0
-    if (ele%key == multipole$) then
-      call multipole_ele_to_ab (ele, .false., ix_pole_max, a,  b)
-      call multipole_ele_to_kt (ele, .true.,  ix_pole_max, knl, tn)
-    else
-      call multipole_ele_to_ab (ele, .false., ix_pole_max, a,  b)
-      call multipole_ele_to_ab (ele, .true.,  ix_pole_max, a2, b2)
-      call multipole_ele_to_kt (ele, .true.,  ix_pole_max, knl, tn)
-    endif
+  if (.not. associated(ele%a_pole)) return
 
-    do i = 0, n_pole_maxx
-      if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
-
-      if (ele%key == multipole$) then
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'K', i, 'L;REAL;T;', ele%a_pole(i)
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'T', i, ';REAL;T;', ele%b_pole(i)
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'K', i, 'L (w/Tilt);REAL;F;', knl(i)
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'T', i, '(w/Tilt) ;REAL;F;', tn(i)
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'A', i, '(equiv);REAL;F;', a(i)
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'B', i, '(equiv);REAL;F;', b(i)
-
-      elseif (ele%key == ab_multipole$) then
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'A', i, ';REAL;T;', ele%a_pole(i)
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'B', i, ';REAL;T;', ele%b_pole(i)
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'A', i, '(w/Tilt);REAL;F;', a2(i)
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'B', i, '(w/Tilt);REAL;F;', b2(i)
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'K', i, 'L(equiv);REAL;F;', knl(i)
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'T', i, '(equiv) ;REAL;F;', tn(i)
-      else
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'A', i, ';REAL;T;', ele%a_pole(i)
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'B', i, ';REAL;T;', ele%b_pole(i)
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'A', i, '(Scaled);REAL;F;', a(i)
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'B', i, '(Scaled);REAL;F;', b(i)
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'A', i, '(w/Tilt);REAL;F;', a2(i)
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'B', i, '(w/Tilt);REAL;F;', b2(i)
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'K', i, 'L(equiv);REAL;F;', knl(i)
-        nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'T', i, '(equiv) ;REAL;F;', tn(i)
-      endif
-    enddo
+  a = 0; b = 0; a2 = 0; b2 = 0; knl = 0; tn = 0
+  if (ele%key == multipole$) then
+    call multipole_ele_to_ab (ele, .false., ix_pole_max, a,  b)
+    call multipole_ele_to_kt (ele, .true.,  ix_pole_max, knl, tn)
+  else
+    call multipole_ele_to_ab (ele, .false., ix_pole_max, a,  b)
+    call multipole_ele_to_ab (ele, .true.,  ix_pole_max, a2, b2)
+    call multipole_ele_to_kt (ele, .true.,  ix_pole_max, knl, tn)
   endif
+
+  can_vary = (which == 'model')
+
+  do i = 0, n_pole_maxx
+    if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
+
+    if (ele%key == multipole$) then
+      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es23.15)') i, 'KnL;REAL;', can_vary, ';', ele%a_pole(i)
+      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es23.15)') i, 'Tn;REAL;', can_vary, ';', ele%b_pole(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'KnL (w/Tilt);REAL;F;', knl(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'Tn (w/Tilt);REAL;F;', tn(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'An (equiv);REAL;F;', a(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'Bn (equiv);REAL;F;', b(i)
+
+    elseif (ele%key == ab_multipole$) then
+      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es23.15)') i, 'An;REAL;', can_vary, ';', ele%a_pole(i)
+      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es23.15)') i, 'Bn;REAL;', can_vary, ';', ele%b_pole(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'An (w/Tilt);REAL;F;', a2(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'Bn  (w/Tilt);REAL;F;', b2(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'KnL (equiv);REAL;F;', knl(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'Tn (equiv);REAL;F;', tn(i)
+    else
+      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es23.15)') i, 'An;REAL;', can_vary, ';', ele%a_pole(i)
+      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es23.15)') i, 'Bn;REAL;', can_vary, ';', ele%b_pole(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'An (Scaled);REAL;F;', a(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'Bn (Scaled);REAL;F;', b(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'An (w/Tilt);REAL;F;', a2(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'Bn (w/Tilt);REAL;F;', b2(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'KnL (equiv);REAL;F;', knl(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'Tn (equiv);REAL;F;', tn(i)
+    endif
+  enddo
 
 !----------------------------------------------------------------------
 ! Element ac_kicker
 ! Command syntax:
-!   python ele:ac_kicker {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:ac_kicker {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:ac_kicker')
@@ -931,13 +956,34 @@ case ('ele:ac_kicker')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
+  if (.not. associated(ele%ac_kick)) return
+  ac => ele%ac_kick
+
+  if (allocated(ac%amp_vs_time)) then
+    nl=incr(nl); write (li(nl), '(a)') 'has#amp_vs_time'
+    do i = 1, size(ac%amp_vs_time)
+      nl=incr(nl); write (li(nl), '(i0, 2(a, es23.15))') i, ';', ac%amp_vs_time(i)%amp, ';', ac%amp_vs_time(i)%time
+    enddo
+
+  else
+    nl=incr(nl); write (li(nl), '(a)') 'has#frequencies'
+    do i = 1, size(ac%frequencies)
+      nl=incr(nl); write (li(nl), '(i0, 3(a, es23.15))') i, ';', &
+                      ac%frequencies(i)%f, ';', ac%frequencies(i)%amp, ';', ac%frequencies(i)%phi
+    enddo
+  endif
+
 !----------------------------------------------------------------------
 ! Element cartesian_map
 ! Command syntax:
-!   python ele:cartesian_map {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:cartesian_map {ele_id}|{which} {index}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! {index} is the index number in the ele%cartesian_map(:) array
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model 2
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:cartesian_map')
@@ -946,13 +992,66 @@ case ('ele:cartesian_map')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
+  if (.not. associated(ele%cartesian_map)) then
+    call invalid ('cartesian_map not allocated')
+    return
+  endif
+  ix = parse_int (line, err, 0, size(ele%cartesian_map));  if (err) return
+  ct_map => ele%cartesian_map(ix)
+
+  nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   ct_map%field_scale
+  nl=incr(nl); write (li(nl), rmt) 'r0;REAL_ARR;T',                         (';', ct_map%r0(i), i = 1, 3)
+  name = attribute_name(ele, ct_map%master_parameter)
+  if (name(1:1) == '!') name = '<None>'
+  nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        name
+  nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 anchor_pt_name(ct_map%ele_anchor_pt)
+  nl=incr(nl); write (li(nl), amt) 'field_type;ENUM;T;',                    em_field_type_name(ct_map%field_type)
+
+!----------------------------------------------------------------------
+! Element cartesian_map terms
+! Command syntax:
+!   python ele:cartesian_map:terms {ele_id}|{which} {index}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! {index} is the index number in the ele%cartesian_map(:) array
+! Example:
+!   python element 3@1>>7|model 2
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:cartesian_map:terms')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+  if (.not. associated(ele%cartesian_map))  then
+    call invalid ('cartesian_map not allocated')
+    return
+  endif
+  ix = parse_int (line, err, 0, size(ele%cartesian_map));  if (err) return
+  ct_map => ele%cartesian_map(ix)
+
+  call re_allocate_lines (size(ct_map%ptr%term) + 10)
+  do i = 1, size(ct_map%ptr%term)
+    ctt => ct_map%ptr%term(i)
+    nl=incr(nl); write (li(nl), '(i0, 7(a, es23.15), 4a)'), i, ';', &
+          ctt%coef, ';', ctt%kx, ';', ctt%ky, ';', ctt%kz, ';', ctt%x0, ';', ctt%y0, ';', ctt%phi_z, ';', &
+          trim(cartesian_map_family_name(ctt%family)), ';', trim(cartesian_map_form_name(ctt%form))
+  enddo
+
 !----------------------------------------------------------------------
 ! Element cylindrical_map
 ! Command syntax:
-!   python ele:cylindrical_map {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:cylindrical_map {ele_id}|{which} {index}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! {index} is the index number in the ele%cartesian_map(:) array
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model 2
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:cylindrical_map')
@@ -961,13 +1060,68 @@ case ('ele:cylindrical_map')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
+  if (.not. associated(ele%cylindrical_map)) then
+    call invalid ('cylindrical_map not allocated')
+    return
+  endif
+  ix = parse_int (line, err, 0, size(ele%cylindrical_map));  if (err) return
+  cy_map => ele%cylindrical_map(ix)
+
+  nl=incr(nl); write (li(nl), imt) 'm;INT;T;',                              cy_map%m
+  nl=incr(nl); write (li(nl), imt) 'harmonic;INT;T;',                       cy_map%harmonic
+  nl=incr(nl); write (li(nl), rmt) 'phi0_fieldmap;REAL;T;',                 cy_map%phi0_fieldmap
+  nl=incr(nl); write (li(nl), rmt) 'theta0_azimuth;REAL;T;',                cy_map%theta0_azimuth
+  nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   cy_map%field_scale
+  nl=incr(nl); write (li(nl), rmt) 'dz;REAL;T;',                            cy_map%dz
+  nl=incr(nl); write (li(nl), rmt) 'r0;REAL_ARR;T',                         (';', cy_map%r0(i), i = 1, 3)
+  name = attribute_name(ele, cy_map%master_parameter)
+  if (name(1:1) == '!') name = '<None>'
+  nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        name
+  nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 anchor_pt_name(cy_map%ele_anchor_pt)
+
+!----------------------------------------------------------------------
+! Element cylindrical_map terms
+! Command syntax:
+!   python ele:cylindrical_map:terms {ele_id}|{which} {index}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! {index} is the index number in the ele%cylindrical_map(:) array
+! Example:
+!   python element 3@1>>7|model 2
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:cylindrical_map:terms')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+  if (.not. associated(ele%cylindrical_map)) then
+    call invalid ('cylindrical_map not allocated')
+    return
+  endif
+  ix = parse_int (line, err, 0, size(ele%cylindrical_map));  if (err) return
+  cy_map => ele%cylindrical_map(ix)
+
+  call re_allocate_lines (size(cy_map%ptr%term) + 10)
+  do i = 1, size(cy_map%ptr%term)
+    cyt => cy_map%ptr%term(i)
+    nl=incr(nl); write (li(nl), '(i0, 7(a, es23.15))'), i, ';', &
+      real(cyt%e_coef), ';', imag(cyt%e_coef), ';', real(cyt%b_coef), ';', imag(cyt%b_coef)
+  enddo
+
 !----------------------------------------------------------------------
 ! Element taylor
 ! Command syntax:
-!   python ele:taylor {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:taylor {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:taylor')
@@ -976,13 +1130,33 @@ case ('ele:taylor')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
+  if (attribute_name(ele, taylor_map_includes_offsets$) == 'TAYLOR_MAP_INCLUDES_OFFSETS') then
+    nl=incr(nl); write (li(nl), lmt) 'taylor_map_includes_offsets;LOGIC;T;',    ele%taylor_map_includes_offsets
+  endif
+
+  if (.not. associated(ele%taylor(1)%term)) then
+    call invalid('Taylor map not allocated')
+    return
+  endif
+
+  do i = 1, 6
+    nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, ';ref;', ele%taylor(i)%ref
+    do j = 1, size(ele%taylor(i)%term)
+      tt => ele%taylor(i)%term(j)
+      nl=incr(nl); write (li(nl), '(i0, a, es23.15, 6(a, i0))') i, ';term;', tt%coef, (';', tt%expn(k), k = 1, 6)
+    enddo
+  enddo
+
 !----------------------------------------------------------------------
 ! Element spin_taylor
 ! Command syntax:
-!   python ele:spin_taylor {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:spin_taylor {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:spin_taylor')
@@ -991,13 +1165,34 @@ case ('ele:spin_taylor')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
+  if (.not. associated(ele%spin_taylor(1)%term)) then
+    call invalid('Spin Taylor map not allocated')
+    return
+  endif
+
+  do i = 0, 3
+    do j = 1, size(ele%spin_taylor(i)%term)
+      tt => ele%spin_taylor(i)%term(j)
+      nl=incr(nl); write (li(nl), '(i0, a, es23.15, 6(a, i0))') i, ';term;', tt%coef, (';', tt%expn(k), k = 1, 6)
+    enddo
+  enddo
+
 !----------------------------------------------------------------------
 ! Element wake
 ! Command syntax:
-!   python ele:wake {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:wake {ele_id}|{which} {who}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! {Who} is one of
+!   base
+!   sr_long
+!   sr_trans
+!   lr_mode
+!   lr_spline
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:wake')
@@ -1006,13 +1201,32 @@ case ('ele:wake')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
+  if (.not. associated(ele%wake)) then
+    call invalid ('No wake associated')
+    return
+  endif
+
+  wake => ele%wake
+
+  select case (line)
+  case ("base")
+    nl=incr(nl); write (li(nl), rmt) 'z_sr_max;REAL;T;',         wake%z_sr_max
+    nl=incr(nl); write (li(nl), rmt) 'lr_freq_spread;REAL;T;',   wake%lr_freq_spread
+    nl=incr(nl); write (li(nl), lmt) 'lr_self_wake_on;REAL;T;',  wake%lr_self_wake_on
+!!!    nl=incr(nl); write (li(nl), lmt) 'has#sr_long;LOGIC;F;',     allocated(wake%sr
+    ! TO DO....
+  end select
+
 !----------------------------------------------------------------------
 ! Element wall3d
 ! Command syntax:
-!   python ele:wall3d {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:wall3d {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:wall3d')
@@ -1021,13 +1235,18 @@ case ('ele:wall3d')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
+  ! TO DO....
+
 !----------------------------------------------------------------------
 ! Element twiss
 ! Command syntax:
-!   python ele:twiss {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:twiss {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:twiss')
@@ -1036,13 +1255,26 @@ case ('ele:twiss')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
+  if (ele%a%beta == 0) return
+  free = attribute_free(ele, 'BETA_A', .false.) .and. (which == 'model')
+
+  nl=incr(nl); write (li(nl), lmt) 'mode_flip;LOGIC;F;', ele%mode_flip
+
+  call twiss_out (ele%a, 'a', can_vary = free)
+  call twiss_out (ele%b, 'b', can_vary = free)
+  call xy_disp_out (ele%x, 'x', can_vary = free)
+  call xy_disp_out (ele%y, 'y', can_vary = free)
+
 !----------------------------------------------------------------------
 ! Element control
 ! Command syntax:
-!   python ele:control {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:control {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:control')
@@ -1051,13 +1283,38 @@ case ('ele:control')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
+  ! TO DO....
+
+!----------------------------------------------------------------------
+! Element orbit
+! Command syntax:
+!   python ele:orbit {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! Example:
+!   python element 3@1>>7|model
+! This gives element number 7 in branch 1 of universe 3.
+
+case ('ele:orbit')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+  call orbit_out (tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele))
+
 !----------------------------------------------------------------------
 ! Element mat6
 ! Command syntax:
-!   python ele:mat6 {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:mat6 {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:mat6')
@@ -1066,13 +1323,19 @@ case ('ele:mat6')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
+  ! TO DO....
+
 !----------------------------------------------------------------------
 ! Element taylor_field
 ! Command syntax:
-!   python ele:taylor_field {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:taylor_field {ele_id}|{which} {index}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! {index} is the index number in the ele%taylor_field(:) array
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:taylor_field')
@@ -1081,13 +1344,20 @@ case ('ele:taylor_field')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
+  if (.not. associated(ele%cartesian_map)) then
+  endif
+  ! TO DO....
+
 !----------------------------------------------------------------------
 ! Element grid_field
 ! Command syntax:
-!   python ele:grid_field {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:grid_field {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:grid_field')
@@ -1096,13 +1366,18 @@ case ('ele:grid_field')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
+  ! TO DO....
+
 !----------------------------------------------------------------------
 ! Element floor
 ! Command syntax:
-!   python ele:floor {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:floor {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:floor')
@@ -1111,13 +1386,25 @@ case ('ele:floor')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
+  can_vary = (ele%ix_ele == 0 .and. which == 'model')
+
+  nl=incr(nl); write (li(nl), rmt2) 'r;REAL_ARR;', can_vary, ';', ele%floor%r(1), ';',ele%floor%r(2), ';', ele%floor%r(3) 
+  nl=incr(nl); write (li(nl), rmt2) 'r;REAL_ARR;', can_vary, ';', ele%floor%r(1), ';',ele%floor%r(2), ';', ele%floor%r(3) 
+  nl=incr(nl); write (li(nl), rmt2) 'r;REAL_ARR;', can_vary, ';', ele%floor%r(1), ';',ele%floor%r(2), ';', ele%floor%r(3) 
+  nl=incr(nl); write (li(nl), rmt)  'theta;REAL;', can_vary, ';', ele%floor%theta
+  nl=incr(nl); write (li(nl), rmt)  'phi;REAL;',   can_vary, ';', ele%floor%phi
+  nl=incr(nl); write (li(nl), rmt)  'psi;REAL;',   can_vary, ';', ele%floor%psi
+
 !----------------------------------------------------------------------
 ! Element photon
 ! Command syntax:
-!   python ele:photon {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:photon {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:photon')
@@ -1126,13 +1413,18 @@ case ('ele:photon')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
+  ! TO DO....
+
 !----------------------------------------------------------------------
 ! Element lord_slave
 ! Command syntax:
-!   python ele:lord_slave {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:lord_slave {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:lord_slave')
@@ -1141,13 +1433,20 @@ case ('ele:lord_slave')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
+  nl=incr(nl); write (li(nl), amt) 'slave_status;STR;F;',                     control_name(ele%slave_status)
+  nl=incr(nl); write (li(nl), amt) 'lord_status;STR;F;',                      control_name(ele%lord_status)
+  ! TO DO....
+
 !----------------------------------------------------------------------
 ! Element electric multipoles
 ! Command syntax:
-!   python ele:elec_multipoles {ele_id}
-! where {ele_id} is an element name or index.
+!   python ele:elec_multipoles {ele_id}|{which}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
 ! Example:
-!   python element 3@1>>7
+!   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:elec_multipoles')
@@ -1161,18 +1460,20 @@ case ('ele:elec_multipoles')
     nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T', ele%scale_multipoles
   endif
 
-  if (associated(ele%a_pole_elec)) then
-    call multipole_ele_to_ab (ele, .false., ix_pole_max, a, b, electric$)
+  can_vary = (which == 'model')
 
-    do i = 0, n_pole_maxx
-      if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
+  if (.not. associated(ele%a_pole_elec)) return
 
-      nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'A', i, '_elec;REAL;T;', ele%a_pole_elec(i)
-      nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'B', i, '_elec;REAL;T;', ele%b_pole_elec(i)
-      nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'A', i, '_elec(Scaled);REAL;F;', a(i)
-      nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'B', i, '_elec(Scaled);REAL;F;', b(i)
-    enddo
-  endif
+  call multipole_ele_to_ab (ele, .false., ix_pole_max, a, b, electric$)
+
+  do i = 0, n_pole_maxx
+    if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
+
+    nl=incr(nl); write (li(nl), '(i0, a, l1, a, es23.15)') i, 'An_elec;REAL;', can_vary, ';', ele%a_pole_elec(i)
+    nl=incr(nl); write (li(nl), '(i0, a, l1, a, es23.15)') i, 'Bn_elec;REAL;', can_vary, ';', ele%b_pole_elec(i)
+    nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'An_elec (Scaled);REAL;F;', a(i)
+    nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'Bn_elec (Scaled);REAL;F;', b(i)
+  enddo
 
 !----------------------------------------------------------------------
 ! List of possible values for enumerated numbers.
@@ -1187,9 +1488,7 @@ case ('enum')
   if (name == 'EVAL_POINT') name = 'ELE_ORIGIN'  ! Cheet since data%eval_point is not recognized by switch_attrib_value_name
   a_name = switch_attrib_value_name(name, 1.0_rp, this_ele, name_list = name_list)
   if (.not. allocated(name_list)) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid switch name.')
-    call end_stuff(li, nl)
+    call invalid ('Not a valid switch name.')
     return
   endif
 
@@ -1207,7 +1506,7 @@ case ('enum')
 ! Global parameters
 ! Command syntax: 
 !   python global
-! Output syntax is variable list form. See documentation at beginning of this file.
+! Output syntax is parameter list form. See documentation at the beginning of this file.
 !
 ! Note: The follow is intentionally left out:
 !   force_plot_data_calc               
@@ -1314,139 +1613,6 @@ case ('lat_ele_list')
   enddo
 
 !----------------------------------------------------------------------
-! parameters associated with given lattice element. 
-! Command syntax: 
-!   python lat_ele1 {ix_universe}@{ix_branch}>>{ix_ele}|{which} {who}
-! where {which} is one of:
-!   model
-!   base
-!   design
-! and {who} is one of:
-!   general         ! ele%xxx compnents where xxx is "simple" component (not a structure nor an array, nor allocatable, nor pointer).
-!   parameters      ! parameters in ele%value array
-!   multipole       ! nonzero multipole components.
-!   floor           ! floor coordinates.
-!   twiss           ! twiss parameters at exit end.
-!   orbit           ! orbit at exit end.
-! Example:
-!   python lat_ele1 1@0>>547|design twiss
-
-case ('lat_ele1')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
-  ele => point_to_ele(line, err); if (err) return
-
-  select case (who)
-  case ('general')
-    nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             ele%name
-    nl=incr(nl); write (li(nl), amt) 'type;STR;T;',                             ele%type
-    nl=incr(nl); write (li(nl), amt) 'alias;STR;T;',                            ele%alias
-    nl=incr(nl); write (li(nl), amt) 'component_name;STR;F;',                   ele%component_name
-    nl=incr(nl); write (li(nl), rmt) 'gamma_c;REAL;F;',                         ele%gamma_c
-    nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               ele%s
-    nl=incr(nl); write (li(nl), rmt) 'ref_time;REAL;F;',                        ele%ref_time
-    nl=incr(nl); write (li(nl), amt) 'key;STR;F;',                              key_name(ele%key)
-    nl=incr(nl); write (li(nl), amt) 'sub_key;STR;F;',                          sub_key_name(ele%sub_key)
-    nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;F;',                           ele%ix_ele
-    nl=incr(nl); write (li(nl), imt) 'ix_branch;INT;F;',                        ele%ix_branch
-    nl=incr(nl); write (li(nl), amt) 'slave_status;STR;F;',                     control_name(ele%slave_status)
-    nl=incr(nl); write (li(nl), imt) 'n_slave;INT;F;',                          ele%n_slave
-    nl=incr(nl); write (li(nl), imt) 'n_slave_field;INT;F;',                    ele%n_slave_field
-    nl=incr(nl); write (li(nl), amt) 'lord_status;STR;F;',                      control_name(ele%lord_status)
-    nl=incr(nl); write (li(nl), imt) 'n_lord;INT;F;',                           ele%n_lord
-    nl=incr(nl); write (li(nl), imt) 'n_lord_field;INT;F;',                     ele%n_lord_field
-    nl=incr(nl); write (li(nl), amt) 'mat6_calc_method;ENUM;T;',                mat6_calc_method_name(ele%mat6_calc_method)
-    nl=incr(nl); write (li(nl), amt) 'tracking_method;ENUM;T;',                 tracking_method_name(ele%tracking_method)
-    nl=incr(nl); write (li(nl), amt) 'spin_tracking_method;ENUM;T;',            spin_tracking_method_name(ele%spin_tracking_method)
-    nl=incr(nl); write (li(nl), amt) 'ptc_integration_type;ENUM;T;',            ptc_integration_type_name(ele%ptc_integration_type)
-    nl=incr(nl); write (li(nl), amt) 'field_calc;ENUM;T;',                      field_calc_name(ele%field_calc)
-    nl=incr(nl); write (li(nl), amt) 'aperture_at;ENUM;T;',                     aperture_at_name(ele%aperture_at)
-    nl=incr(nl); write (li(nl), amt) 'aperture_type;ENUM;T;',                   aperture_type_name(ele%aperture_type)
-    nl=incr(nl); write (li(nl), imt) 'orientation;INT;T;',                      ele%orientation
-    nl=incr(nl); write (li(nl), lmt) 'symplectify;LOGIC;T;',                    ele%symplectify
-    nl=incr(nl); write (li(nl), lmt) 'mode_flip;LOGIC;F;',                      ele%mode_flip
-    nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T;',                  ele%multipoles_on
-    nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T;',               ele%scale_multipoles
-    nl=incr(nl); write (li(nl), lmt) 'taylor_map_includes_offsets;LOGIC;T;',    ele%taylor_map_includes_offsets
-    nl=incr(nl); write (li(nl), lmt) 'field_master;LOGIC;T;',                   ele%field_master
-    nl=incr(nl); write (li(nl), lmt) 'is_on;LOGIC;T;',                          ele%is_on
-    nl=incr(nl); write (li(nl), lmt) 'csr_method;ENUM;T;',                      csr_method_name(ele%csr_method)
-    nl=incr(nl); write (li(nl), lmt) 'space_charge_method;ENUM;T;',             space_charge_method_name(ele%space_charge_method)
-    nl=incr(nl); write (li(nl), lmt) 'offset_moves_aperture;LOGIC;T;',          ele%offset_moves_aperture
-
-  case ('parameters')
-    do i = 1, num_ele_attrib$
-      attrib = attribute_info(ele, i)
-      a_name = attrib%name
-      if (a_name == null_name$) cycle
-      if (attrib%type == private$) cycle
-      free = attribute_free (ele, a_name, .false.)
-      if (which /= 'model') free = .false.
-
-      select case (attribute_type(a_name))
-      case (is_logical$)
-        nl=incr(nl); write (li(nl), '(2a, l1, a, l1)') trim(a_name), ';LOGIC;', free, ';', is_true(ele%value(i))
-      case (is_integer$)
-        nl=incr(nl); write (li(nl), '(2a, l1, a, i0)') trim(a_name), ';INT;', free, ';', nint(ele%value(i))
-      case (is_real$)
-        nl=incr(nl); write (li(nl), '(2a, l1, a, es23.15)') trim(a_name), ';REAL;', free, ';', ele%value(i)
-      case (is_switch$)
-        name = switch_attrib_value_name (a_name, ele%value(i), ele)
-        nl=incr(nl); write (li(nl), '(2a, l1, 2a)')  trim(a_name), ';ENUM;', free, ';', trim(name)
-      end select
-    enddo
-
-  case ('multipole')
-    if (which == 'model') then
-      v_str = '];REAL;T;'
-    else
-      v_str = '];REAL;F;'
-    endif
-
-    if (associated(ele%a_pole)) then
-      do i = 0, ubound(ele%a_pole, 1)
-        if (ele%a_pole(i) /= 0) then
-          nl=incr(nl); write (li(nl), vrmt) 'a_pole[', i, v_str, ele%a_pole(i) 
-        endif
-        if (ele%b_pole(i) /= 0) then
-          nl=incr(nl); write (li(nl), vrmt) 'b_pole[', i, v_str, ele%b_pole(i) 
-        endif
-      enddo
-    endif
-
-    if (associated(ele%a_pole_elec)) then
-      do i = 0, ubound(ele%a_pole_elec, 1)
-        if (ele%a_pole_elec(i) /= 0) then
-          nl=incr(nl); write (li(nl), vrmt) 'a_pole_elec[', i, v_str, ele%a_pole_elec(i) 
-        endif
-        if (ele%b_pole_elec(i) /= 0) then
-          nl=incr(nl); write (li(nl), vrmt) 'b_pole_elec[', i, v_str, ele%b_pole_elec(i) 
-        endif
-      enddo
-    endif
-
-  case ('floor')
-    nl=incr(nl); write (li(nl), '(3(es23.15, a))') ele%floor%r(1), ';',ele%floor%r(2), ';', ele%floor%r(3) 
-    nl=incr(nl); write (li(nl), '(3(es23.15, a))') ele%floor%theta, ';',ele%floor%phi, ';', ele%floor%psi
-
-  case ('twiss')
-    free = attribute_free(ele, 'BETA_A', .false.) .and. (which == 'model')
-    call twiss_out (ele%a, 'a', can_vary = free)
-    call twiss_out (ele%b, 'b', can_vary = free)
-    call xy_disp_out (ele%x, 'x', can_vary = free)
-    call xy_disp_out (ele%y, 'y', can_vary = free)
-
-  case ('orbit')
-    call orbit_out (tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele))
-
-  case default
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, 'python lat_ele1 {ele}|{which} {who}: Bad {who}: ' // who)
-    return
-  end select  
-
-!----------------------------------------------------------------------
 ! ********* NOTE: COLWIN IS USING THIS!! *************
 !
 ! Lattice general
@@ -1527,9 +1693,7 @@ case ('lat_list')
   enddo
 
   if (use_real_array_buffer .and. n_who /= 1) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, 'python lat_list: Number of "who" must be 1 for real buffered output.')
-    return
+    call invalid ('Number of "who" must be 1 for real buffered output.')
   endif
 
   n = 0
@@ -1612,9 +1776,7 @@ case ('lat_list')
       case ('ele.l')
         value = ele%value(l$)
       case default
-        nl=incr(nl); li(nl) = 'INVALID'
-        call out_io (s_error$, r_name, 'python lat_ele1 {ele}|{which} {who}: Bad {who}: ' // who)
-        return
+        call invalid ('Bad {who}: ' // who)
       end select
 
       if (use_real_array_buffer) then
@@ -1722,8 +1884,7 @@ case ('plot_list')
     enddo
 
   else
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Expect "r" or "t"')
+    call invalid ('Expect "r" or "t"')
   endif
 
 !----------------------------------------------------------------------
@@ -1742,9 +1903,7 @@ case ('plot_graph')
   call tao_find_plots (err, line, 'COMPLETE', graph = graph)
 
   if (err .or. .not. allocated(graph)) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Bad graph name')
-    call end_stuff(li, nl)
+    call invalid ('Bad graph name')
     return
   endif
 
@@ -1822,9 +1981,7 @@ case ('plot_curve')
   call tao_find_plots (err, line, 'COMPLETE', curve = curve)
 
   if (err .or. .not. allocated(curve)) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid curve')
-    call end_stuff(li, nl)
+    call invalid ('Not a valid curve')
     return
   endif
 
@@ -1888,17 +2045,13 @@ case ('plot_line')
   call tao_find_plots (err, line, 'COMPLETE', curve = curve)
 
   if (.not. allocated(curve) .or. size(curve) /= 1) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid curve')
-    call end_stuff(li, nl)
+    call invalid ('Not a valid curve')
     return
   endif
 
   cur => curve(1)%c
   if (.not. allocated(cur%x_line)) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": No line associated with curve')
-    call end_stuff(li, nl)
+    call invalid ('No line associated with curve')
     return
   endif
       
@@ -1927,9 +2080,7 @@ case ('plot_line')
     enddo
 
   case default
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": word after curve name not "x" nor "y"')
-    call end_stuff(li, nl)
+    call invalid ('word after curve name not "x" nor "y"')
   end select
 
 
@@ -1951,17 +2102,13 @@ case ('plot_symbol')
   call tao_find_plots (err, line, 'COMPLETE', curve = curve)
 
   if (.not. allocated(curve) .or. size(curve) /= 1) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid curve')
-    call end_stuff(li, nl)
+    call invalid ('Not a valid curve')
     return
   endif
 
   cur => curve(1)%c
   if (.not. allocated(cur%x_symb)) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": No line associated with curve')
-    call end_stuff(li, nl)
+    call invalid ('No line associated with curve')
     return
   endif
 
@@ -1990,9 +2137,7 @@ case ('plot_symbol')
     enddo
 
   case default
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": word after curve name not "x" nor "y"')
-    call end_stuff(li, nl)
+    call invalid ('word after curve name not "x" nor "y"')
   end select
 
 !----------------------------------------------------------------------
@@ -2000,15 +2145,13 @@ case ('plot_symbol')
 ! Command syntax:
 !   python plot1 {name}
 ! {name} should be the region name if the plot is associated with a region.
-! Output syntax is variable list form. See documentation at beginning of this file.
+! Output syntax is parameter list form. See documentation at the beginning of this file.
 
 case ('plot1')
 
   call tao_find_plots (err, line, 'COMPLETE', plot, print_flag = .false.)
   if (err) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Expect "r" or "t" at end.')
-    call end_stuff(li, nl)
+    call invalid ('Expect "r" or "t" at end.')
     return
   endif
 
@@ -2044,9 +2187,7 @@ case ('species_to_int')
 
   n = species_id(line)
   if (n == invalid$ .or. line == '') then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid species name.')
-    call end_stuff(li, nl)
+    call invalid ('Not a valid species name.')
     return
   endif
 
@@ -2065,9 +2206,7 @@ case ('species_to_str')
   name = species_name(n)
 
   if (err .or. line == '' .or. name == invalid_name) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid species integer id number.')
-    call end_stuff(li, nl)
+    call invalid ('Not a valid species integer id number.')
     return
   endif
 
@@ -2146,9 +2285,7 @@ case ('var_create')
   call tao_cmd_split (line, 3, name1, .true., err)
 
   if (err .or. .not. is_integer(name1(2)) .or. .not. is_integer(name1(3))) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Is Malformed')
-    call end_stuff(li, nl)
+    call invalid ('Is Malformed')
     return
   endif
 
@@ -2202,9 +2339,7 @@ case ('var_destroy')
 
   call tao_find_var (err, line, v1_array = v1_array)
   if (err .or. .not. allocated(v1_array)) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid v1 var name')
-    call end_stuff(li, nl)
+    call invalid ('Not a valid v1 var name')
     return
   endif
 
@@ -2245,7 +2380,8 @@ case ('var_general')
   do i = 1, s%n_v1_var_used
     v1_ptr => s%v1_var(i)
     if (v1_ptr%name == '') cycle
-    nl=incr(nl); write (li(nl), '(2a, 2(i0, a))') trim(v1_ptr%name), ';', lbound(v1_ptr%v, 1), ';', ubound(v1_ptr%v, 1)
+    call location_encode (line, v1_ptr%v%useit_opt, v1_ptr%v%exists, lbound(v1_ptr%v, 1))
+    nl=incr(nl); write (li(nl), '(4a, 2(i0, a))') trim(v1_ptr%name), ';', trim(line), ';', lbound(v1_ptr%v, 1), ';', ubound(v1_ptr%v, 1)
   enddo
 
 !----------------------------------------------------------------------
@@ -2260,9 +2396,7 @@ case ('var_v_array')
   call tao_find_var (err, line, v_array = v_array)
 
   if (.not. allocated(v_array)) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid v1_var name')
-    call end_stuff(li, nl)
+    call invalid ('Not a valid v1_var name')
     return
   endif
 
@@ -2285,9 +2419,7 @@ case ('var_v1_array')
   call tao_find_var (err, line, v1_array = v1_array)
 
   if (err .or. .not. allocated(v1_array)) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid v1 name')
-    call end_stuff(li, nl)
+    call invalid ('Not a valid v1 name')
     return
   endif
 
@@ -2308,16 +2440,14 @@ case ('var_v1_array')
 ! Info on an individual variable
 ! Command syntax: 
 !   python var {var}
-! Output syntax is variable list form. See documentation at beginning of this file.
+! Output syntax is parameter list form. See documentation at the beginning of this file.
 
 case ('var')
 
   call tao_find_var (err, line, v_array = v_array)
 
   if (.not. allocated(v_array) .or. size(v_array) /= 1) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid variable name')
-    call end_stuff(li, nl)
+    call invalid ('Not a valid variable name')
     return
   endif
 
@@ -2429,9 +2559,7 @@ if (ios /= 0) ix_universe = -999
 u => tao_pointer_to_universe(ix_universe)
 
 if (.not. associated(u)) then
-  nl=incr(nl); li(nl) = 'INVALID'
-  call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": bad universe index')
-  call end_stuff(li, nl)
+  call invalid ('bad universe index')
   err = .true.
 endif
 
@@ -2482,9 +2610,7 @@ line = line(1:ix)
 
 ix = index(line, '|')
 if (ix == 0) then
-  nl=incr(nl); li(nl) = 'INVALID'
-  call out_io (s_error$, r_name, '"python ' // trim(command) // '" Expecting "|" character')
-  err = .true.
+  call invalid ('Expecting "|" character')
   return
 endif
 
@@ -2496,9 +2622,7 @@ case ('base')
 case ('design')
   tao_lat => u%design
 case default
-  nl=incr(nl); li(nl) = 'INVALID'
-  call out_io (s_error$, r_name, 'python ' // trim(input_str) //  ': Expecting "|<{hich}" where {which} must be one of "model", "base", or "design"')
-  err = .true.
+  call invalid ('Expecting "|<{hich}" where {which} must be one of "model", "base", or "design"')
 end select
 
 if (present(which)) which = line(ix+1:)
@@ -2522,9 +2646,7 @@ nullify(ele)
 call lat_ele_locator (line, tao_lat%lat, eles, n_loc)
 
 if (n_loc /= 1) then
-  nl=incr(nl); li(nl) = 'INVALID'
-  call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Cannot locate element.')
-  return
+  call invalid ('Cannot locate element.')
 endif
 
 ele => eles(1)%ele
@@ -2550,9 +2672,7 @@ if (has_separator) then
   ix = index(line, '>>')
 
   if (ix == 0) then
-    nl=incr(nl); li(nl) = 'INVALID'
-    call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Missing ">>"')
-    call end_stuff(li, nl)
+    call invalid ('Missing ">>"')
     err = .true.
     return
   endif
@@ -2567,9 +2687,7 @@ read (str, *, iostat = ios) ix_branch
 if (ios /= 0) ix_branch = -999
 
 if (ix_branch < 0 .or. ix_branch > ubound(u%design%lat%branch, 1) .or. len_trim(str) == 0) then
-  nl=incr(nl); li(nl) = 'INVALID'
-  call out_io (s_error$, r_name, '"python ' // trim(input_str) // '" missing or out of range branch index')
-  call end_stuff(li, nl)
+  call invalid ('missing or out of range branch index')
   err = .true.
   return
 endif
@@ -2587,13 +2705,44 @@ character(*) line
 
 a_real = string_to_real (line, real_garbage$, err)
 if (err .or. a_real == real_garbage$) then
-  nl=incr(nl); li(nl) = 'INVALID'
-  call out_io (s_error$, r_name, '"python ' // trim(input_str) // '" Bad real number')
-  call end_stuff(li, nl)
+  call invalid ('Bad real number')
   return
 endif
 
 end function parse_real
+
+!----------------------------------------------------------------------
+! contains
+
+function parse_int (line, err, min_bound, max_bound) result (a_int)
+
+integer a_int
+integer, optional :: min_bound, max_bound
+logical err
+character(*) line
+
+a_int = string_to_int (line, int_garbage$, err)
+
+if (err .or. a_int == int_garbage$) then
+  call invalid ('Bad int number')
+  return
+endif
+
+if (present(min_bound)) then
+  if (a_int < min_bound) then
+    call invalid ('Integer below lower bound')
+    return
+  endif
+endif
+
+if (present(max_bound)) then
+  if (a_int > max_bound) then
+    call invalid ('Integer above upper bound')
+    return
+  endif
+endif
+
+end function parse_int
 
 !----------------------------------------------------------------------
 ! contains
@@ -2609,15 +2758,9 @@ nl=incr(nl); write (li(nl), rmt) 'py;REAL;F;',                               orb
 nl=incr(nl); write (li(nl), rmt) 'z;REAL;F;',                                orbit%vec(5)
 nl=incr(nl); write (li(nl), rmt) 'pz;REAL;F;',                               orbit%vec(6)
 
-nl=incr(nl); write (li(nl), rmt) 'spin_x;REAL;F;',                           orbit%spin(1)
-nl=incr(nl); write (li(nl), rmt) 'spin_y;REAL;F;',                           orbit%spin(2)
-nl=incr(nl); write (li(nl), rmt) 'spin_z;REAL;F;',                           orbit%spin(3)
-
-nl=incr(nl); write (li(nl), rmt) 'field_x;REAL;F;',                          orbit%field(1)
-nl=incr(nl); write (li(nl), rmt) 'field_y;REAL;F;',                          orbit%field(2)
-
-nl=incr(nl); write (li(nl), rmt) 'phase_x;REAL;F;',                          orbit%phase(1)
-nl=incr(nl); write (li(nl), rmt) 'phase_y;REAL;F;',                          orbit%phase(2)
+nl=incr(nl); write (li(nl), rmt) 'spin;REAL_ARR;F',                         (';', orbit%spin(i), i = 1, 3)
+nl=incr(nl); write (li(nl), rmt) 'field;REAL_ARR;F',                        (';', orbit%field(i), i = 1, 2)
+nl=incr(nl); write (li(nl), rmt) 'phase;REAL_ARR;F',                        (';', orbit%phase(i), i = 1, 2)
 
 nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                                orbit%s
 nl=incr(nl); write (li(nl), rmt) 't;REAL;F;',                                orbit%t
@@ -2686,9 +2829,7 @@ case ('state')
 
 
 case default
-  nl=incr(nl); li(nl) = 'INVALID'
-  call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": coordinate not "x", "px", etc. ')
-  call end_stuff(li, nl)
+  call invalid ('coordinate not "x", "px", etc. ')
   return
 end select
 
@@ -2797,9 +2938,7 @@ character(*) d_name
 
 call tao_find_data (err, d_name, d2_array = d2_array)
 if (err .or. .not. allocated(d2_array)) then
-  nl=incr(nl); li(nl) = 'INVALID'
-  call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": Not a valid d2 data name')
-  call end_stuff(li, nl)
+  call invalid ('Not a valid d2 data name')
   return
 endif
 
@@ -2872,9 +3011,7 @@ if (ix /= 0) then
   if (string(:ix-1) /= "*") then
     key = key_name_to_key_index (string(:ix-1), .true.)
     if (key < 1) then
-      nl=incr(nl); li(nl) = 'INVALID'
-      call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": BAD ELEMENT KEY: ' // string(:ix-1))
-      call end_stuff(li, nl)
+      call invalid ('BAD ELEMENT KEY: ' // string(:ix-1))
       err = .true.
       return
     endif
@@ -2897,5 +3034,18 @@ else
 endif
 
 end function match_ele_name
+
+!----------------------------------------------------------------------
+! contains
+
+subroutine invalid (why_invalid)
+
+character(*) why_invalid
+
+nl=incr(nl); li(nl) = 'INVALID'
+call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": ' // why_invalid)
+call end_stuff(li, nl)
+
+end subroutine invalid
 
 end subroutine tao_python_cmd
