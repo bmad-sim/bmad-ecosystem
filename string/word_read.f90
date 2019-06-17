@@ -29,7 +29,7 @@
 !
 ! Output:
 !   word        -- Character(*): First word with leading blanks trimmed
-!   ix_word     -- Integer: Index in WORD of last character in the first word.
+!   ix_word     -- Integer: Index in word argument of last non-blank character.
 !                    Set to 0 if word is blank.
 !   delim       -- Character(1): Delimiter found. Set to ' ' if no delimiter found
 !   delim_found -- Logical: Set to true if delimiter found. False otherwise.

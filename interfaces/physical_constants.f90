@@ -49,8 +49,9 @@ real(rp), parameter :: classical_radius_factor = 1.439964416d-9  ! e^2 / (4 pi e
 real(rp), parameter :: N_avogadro = 6.02214129d23    ! Number / mole
 
 ! Anomalous magnetic moment.
-! Note: Deuteron mag moment g = (mu_d / mu_N) * (m_deuteron / m_proton) and (mu_d / mu_N) is 
-! obtained from NIST CODATA. And then anomlous mag moment = (g - 2) / 2 as always.
+! Note: Deuteron dimensionless mag moment g = (mu_d / mu_N) * (m_deuteron / m_proton) 
+! With (mu_d / mu_N) being obtained from NIST CODATA. 
+! The anomlous mag moment a = (g - 2) / 2 as always.
 
 real(rp), parameter :: fine_structure_constant =  7.29735257d-3
 real(rp), parameter :: anomalous_mag_moment_electron = 1.159652193d-3
@@ -58,11 +59,13 @@ real(rp), parameter :: anomalous_mag_moment_proton   = 1.79284735d0
 real(rp), parameter :: anomalous_mag_moment_muon     = 1.1659208d-3  ! ~fine_structure_constant / twopi
 real(rp), parameter :: anomalous_mag_moment_deuteron = -0.1429872724d0
 real(rp), parameter :: anomalous_mag_moment_neutron  = -1.91304273d0
+! Yu. I. Neronov and A. E. Barzakh, "Determination of the magnetic moment of the He3 nucleus with an error of 2x10^-6%", Sov. Phys. JETP 48(5), Nov. 1978
+real(rp), parameter :: anomalous_mag_moment_He3      = ((-0.761812070) * (3.0160293201_rp / 1.007276) - 2.0_rp) / 2.0_rp
 
 ! Should make physical_const_list "parameter" but there is a gcc bug (in Version 7.1 at least)
 ! where if you pass physical_const_list%name to a routine there will be a crash.
 
-type (named_number_struct) :: physical_const_list(30) = [ &
+type (named_number_struct) :: physical_const_list(31) = [ &
                  named_number_struct('pi', pi), &
                  named_number_struct('twopi', twopi), &
                  named_number_struct('fourpi', fourpi), &
@@ -92,7 +95,8 @@ type (named_number_struct) :: physical_const_list(30) = [ &
                  named_number_struct('anom_moment_proton', anomalous_mag_moment_proton), &
                  named_number_struct('anom_moment_neutron', anomalous_mag_moment_neutron), &
                  named_number_struct('anom_moment_muon', anomalous_mag_moment_muon), &
-                 named_number_struct('anom_moment_deuteron', anomalous_mag_moment_deuteron)]
+                 named_number_struct('anom_moment_deuteron', anomalous_mag_moment_deuteron), &
+                 named_number_struct('anom_moment_he3', anomalous_mag_moment_he3)]
 
 type (named_number_struct) :: old_style_physical_const_list(4) = [ &
                  named_number_struct('anom_mag_electron', anomalous_mag_moment_electron), &  ! Old style. Deprecated.
