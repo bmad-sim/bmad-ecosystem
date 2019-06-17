@@ -120,9 +120,11 @@ type atom_struct
 end type
 
 
-! Atoms from NIST data
+! Atoms from NIST data.
+! The first number in a row is the average mass for natually occuring isotope mixtures.
+
 type(atom_struct), parameter, private :: atom(1:118) = [ &
-! 1: D, H, T
+! 1: H, D, T
 atom_struct(0, [1.00784_rp, 1.00782503223_rp, 2.01410177812_rp, 3.0160492779_rp, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso]), &
 ! 2: He
 atom_struct(2, [4.002602_rp, 3.0160293201_rp, 4.00260325413_rp, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso]), &
@@ -822,8 +824,10 @@ end function openpmd_species_name
 !-
 
 function anomalous_moment_of (species) result (moment)
-integer :: species
+integer :: species, sp
+integer, parameter :: He3$ = 2 * z'10000' + 3
 real(rp) :: moment
+
 !
 
 if (is_fundamental_species(species)) then
@@ -831,7 +835,13 @@ if (is_fundamental_species(species)) then
 	return
 endif
 
-moment = 0
+sp = abs(species - z'1000000' * (species / z'1000000'))  ! Subtract off charge
+
+if (sp == He3$) then
+  moment = anomalous_mag_moment_He3
+else
+  moment = 0
+endif
 
 end function anomalous_moment_of
 
