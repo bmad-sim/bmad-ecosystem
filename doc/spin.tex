@@ -21,7 +21,7 @@ of the particle's reference orbit (see \fig{f:local.coords}), $\Bf r_t = (x, y)$
 transverse coordinates, $c \, \beta_z$ is the longitudinal component of the velocity, and
 $\bfhat z$ is the unit vector in the $z$-direction. $\pmb\Omega_{BMT}$ is the usual T-BMT
 precession vector due to the particle's magnetic moment and $\pmb\Omega_{EDM}$ is the
-precession vector due to a finite electric dipole moment (EDM) \cite{b:silenko}. Note:
+precession vector due to a finite Electric Dipole Moment (EDM) \cite{b:silenko}. Note:
 The value for the EDM is set by \vn{bmad_com%electric_dipole_moment} (\sref{s:bmad.common}).
 \begin{align}
   {\pmb\Omega}_{BMT} (\mathbf{r,P},t) &= 
@@ -29,7 +29,7 @@ The value for the EDM is set by \vn{bmad_com%electric_dipole_moment} (\sref{s:bm
     \left(\frac{1}{\gamma} + a \right) \, c \, \Bf B -
     \frac{a \, \gamma \, c}{1 + \gamma} \, ( \bfbeta \dotproduct \Bf B ) \, \bfbeta -
     \left( a + \frac{1}{1 + \gamma} \right) \, \mathbf{\bfbeta \times  E} 
-    \right] \\
+    \right] \label{orpt} \\
   &= - \frac{q}{m \, c} \left[ 
     \left( \frac{1}{\gamma} + a \right) \, c \, \Bf B_{\perp} +
     \frac{(1 + a) \, c}{\gamma} \, \Bf B_\parallel -
@@ -45,17 +45,20 @@ and
   c \, \mathbf{\bfbeta \times B}
   \right]
 \Endeq
-Here $\Bf E (\Bf r ,t)$ and $\Bf B (\Bf r ,t)$ are the electric and magnetic fields, $\Bf
-B_\perp$ and $\Bf B_\parallel$ are the components perpendicular and parallel to the
-particle's momentum, $\gamma$ is the particle's relativistic gamma factor, $q$, and $m$ are
-the particle's charge and mass, $\bfbeta$ is the normalized
-velocity, $a = (g-2)/2$ is the particle's anomalous gyro-magnetic g-factor (values
-given in Table~\ref{t:constants}), and $\eta$ is the normalized electric dipole moment which is
-related to the dipole moment $\Bf d$ via
+Here $\Bf E (\Bf r ,t)$ and $\Bf B (\Bf r ,t)$ are the electric and magnetic fields, $\Bf B_\perp$
+and $\Bf B_\parallel$ are the components perpendicular and parallel to the particle's momentum,
+$\gamma$ is the particle's relativistic gamma factor, $q$, and $m$ are the particle's charge and
+mass, $\bfbeta$ is the normalized velocity, $a = (g-2)/2$ is the particle's anomalous gyro-magnetic
+moment (values given in Table~\ref{t:constants}), and $\eta$ is the normalized electric dipole
+moment which is related to the dipole moment $\Bf d$ via
 \Begineq
   \Bf d = \frac{\eta}{2} \, \frac{q}{m \, c} \, \Bf S
 \Endeq
 Note: Some authors define $\eta$ without the factor of $c$ is the denominator.
+
+It is important to keep in mind that the $a$ and $g$-factors used here are defined using \Eq{mgq2m}
+which, in the case of nuclei and other composite baryonic particles, differs from the conventional
+definition \Eq{mgq2m2}. See the discussion after \Eq{mgq2m}.
 
 %-----------------------------------------------------------------   
 \section{Quaternion Representation of Spin Rotations}

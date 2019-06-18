@@ -555,6 +555,8 @@ The name ``switch'' can refer to the variable (for example,
 \vn{tracking_method}) or to a value that it can take (for example,
 \vn{bmad_standard}). The name ``method'' is used interchangeably with switch.
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{Units and Constants}
 \label{s:constants}
@@ -588,12 +590,33 @@ the use of these constructs be avoided.
 \label{t:units}
 \end{table}
 
-\newpage
-
-\bmad defines commonly used physical and mathematical constants
-shown in Table~\ref{t:constants}.  All symbols use straight SI units
-except for \vn{emass} and \vn{pmass} which are provided for
+\bmad defines commonly used physical and mathematical constants shown in Table~\ref{t:constants}.
+All symbols use straight SI units except for \vn{emass} and \vn{pmass} which are provided for
 compatibility with \mad and {\large\em should be avoided}.
+
+\index{mass_of}\index{anomalous_moment_of}
+As an alternative, the \vn{mass_of}, and \vn{anomalous_moment_of} functions
+(\sref{s:functions}) may be used in place of the defined constants for mass and anomalous
+magnetic moment.
+
+Note: The standard definition of the magnetic moment $g$-factor for spin 1/2 fundamental particles is
+\Begineq
+  \Bf\mu = g \, \frac{q}{2 \, m} \, \bfS
+  \label{mgq2m}
+\Endeq
+where $\Bf\mu$ is the magnetic moment, $q$ is the particle charge, and $m$ is the mass. The
+anomalous moment $a$ is then defined to be
+\Begineq
+  a = \frac{g-2}{2}
+\Endeq
+For nuclei and other composite baryonic particles, it is conventional to define the $g$-factor using
+\Begineq
+  \Bf\mu = g \, \frac{e}{2 \, m_p} \, \bfS
+  \label{mgq2m2}
+\Endeq
+where $m_p$ is the mass of the proton. This is inconvenient for calculations since an equation like
+\Eq{orpt} would not work for all particles. To get around this, the $g$-factors used by Bmad are
+always derived from \Eq{mgq2m} (think of this as an ``effective'' $g$-factor).
 
 \begin{table}[h]
 \centering
@@ -607,12 +630,13 @@ compatibility with \mad and {\large\em should be avoided}.
   degrad                & 180 / pi                 &             & From rad to deg       \\
   degrees               & pi / 180                 &             & From deg to rad       \\
   raddeg                & pi / 180                 &             & From deg to rad       \\
-  anom_moment_deuteron  & $-0.1429872724$          &             & Deuteron anomalous magnetic moment   \\
-  anom_moment_electron  & $0.001159652193$         &             & Electron anomalous magnetic moment   \\
-  anom_moment_muon      & $0.0011659208$           &             & muon anomalous magnetic moment       \\
-  anom_moment_proton    & $1.79285$                &             & proton anomalous magnetic moment     \\
-  fine_struct_const     & $0.00729735257$          &             & Fine structure constant              \\
-  m_deuteron            & $1.875612928 \pow{9}$    & eV          & Deuteron mass         \\  
+  anom_moment_deuteron  & $-0.1429872724$          &             & Deuteron anomalous magnetic moment$^*$ \\
+  anom_moment_electron  & $0.001159652193$         &             & Electron anomalous magnetic moment     \\
+  anom_moment_muon      & $0.0011659208$           &             & muon anomalous magnetic moment         \\
+  anom_moment_proton    & $1.79285$                &             & proton anomalous magnetic moment       \\
+  anom_moment_he3       & $-4.184153686$           &             & He$^3$ anomalous magnetic moment$^*$   \\ 
+  fine_struct_const     & $0.00729735257$          &             & Fine structure constant                \\
+  m_deuteron            & $1.875612928 \pow{9}$    & eV          & Deuteron mass         \\
   m_electron            & $0.5109989461 \pow{6}$   & eV          & Electron mass         \\
   m_muon                & $105.6583715 \pow{6}$    & eV          & Muon mass             \\
   m_pion_0              & $134.9766 \pow{6}$       & eV          & $\pi^0$ mass          \\
@@ -627,14 +651,10 @@ compatibility with \mad and {\large\em should be avoided}.
   emass                 & $0.5109989461 \pow{-3}$  & GeV         & Electron mass (please avoid using)   \\
   pmass                 & $0.9382720813$           & GeV         & Proton mass (please avoid using)     \\ \bottomrule
 \end{tabular}
+$^*$ Effective anomalous moments. See the discussion after \Eq{mgq2m}.
 \caption{Physical and mathematical constants recognized by \bmad.}
 \label{t:constants}
 \end{table}
-
-\index{mass_of}\index{anomalous_moment_of}
-As an alternative, the \vn{mass_of}, and \vn{anomalous_moment_of} functions
-(\sref{s:functions}) may be used in place of the defined constants for mass and anomalous
-magnetic moment.
 
 %---------------------------------------------------------------------------
 \section{Arithmetic Expressions}
