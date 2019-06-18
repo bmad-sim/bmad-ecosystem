@@ -363,7 +363,8 @@ class tao_var_general_window(tao_list_window):
     for item in v1_var_list:
       tk.Label(self.list_frame, text=item[0]).grid(row=i, column=0)
       tk.Button(self.list_frame, text="View...", command=self.open_v1_callback(item[0])).grid(row=i, column=1)
-      tk.Label(self.list_frame, text=item[1] + ':' + item[2]).grid(row=i, column=2)
+      tk.Label(self.list_frame, text=item[2] + ':' + item[3]).grid(row=i, column=2)
+      tk.Label(self.list_frame, text=item[1]).grid(row=i, column=3)
       i = i+1
 
   def open_v1_callback(self, v1_var_name):

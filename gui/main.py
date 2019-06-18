@@ -27,26 +27,6 @@ class tao_root_window(tk.Tk):
     # Menu bar
     self.menubar_init()
 
-    #self.menubar = tk.Menu(self)
-
-    #file_menu = tk.Menu(self.menubar)
-    #file_menu.add_command(label = 'Read...', command = self.read_cmd)
-    #file_menu.add_command(label = 'Write...', command = self.write_cmd)
-    #file_menu.add_command(label = 'Reinit...', command = self.reinit_cmd)
-    #file_menu.add_separator()
-    #file_menu.add_command(label = 'Quit', command = self.quit_cmd, accelerator = 'Ctrl+Q')
-    #self.menubar.add_cascade(label = 'File', menu = file_menu)
-
-    #window_menu = tk.Menu(self.menubar)
-    #window_menu.add_command(label = 'Optimizer...', command = self.optimizer_cmd)
-    #window_menu.add_command(label = 'Plotting...', command = self.plotting_cmd)
-    #window_menu.add_command(label = 'Wave...', command = self.wave_cmd)
-    #window_menu.add_command(label = 'Global Variables...', command = self.set_global_vars_cmd)
-    #window_menu.add_command(label = 'Data...', command = self.view_data_cmd)
-    #self.menubar.add_cascade(label = 'Window', menu = window_menu)
-
-    #self.config(menu=self.menubar)
-
     # Init GUI
 
     init_frame = tk.Frame(self)
@@ -73,13 +53,19 @@ class tao_root_window(tk.Tk):
     # Call
     tk.Label(self.main_frame, text="Call command file:").grid(row=0, column=0)
     self.call_file = tk_tao_parameter(str_to_tao_param("call_file;FILE;T;"), self.main_frame, self.pipe)
-    self.call_file.tk_wid.grid(row=0, column=1)
-    tk.Button(self.main_frame, text="Run", command=self.tao_call).grid(row=0, column=2)
+    self.call_file.tk_wid.grid(row=0, column=1, sticky='EW')
+    tk.Button(self.main_frame, text="Run", command=self.tao_call).grid(row=0, column=2, sticky='EW')
+    # Arguments
+    tk.Label(self.main_frame, text="Arguments:").grid(row=1, column=0)
+    self.cf_args = tk_tao_parameter(str_to_tao_param("cf_args;STR;T;"), self.main_frame, self.pipe)
+    self.cf_args.tk_wid.configure(width=30)
+    self.cf_args.tk_wid.bind("<Return>", self.tao_call)
+    self.cf_args.tk_wid.grid(row=1, column=1, columnspan=2, sticky='EW')
 
     # Optimization
-    tk.Label(self.main_frame, text="Optimization:").grid(row=1, column=0)
-    tk.Button(self.main_frame, text="Setup").grid(row=1, column=1)
-    tk.Button(self.main_frame, text="Run").grid(row=1, column=2)
+    tk.Label(self.main_frame, text="Optimization:").grid(row=2, column=0)
+    tk.Button(self.main_frame, text="Setup").grid(row=2, column=1, sticky='EW')
+    tk.Button(self.main_frame, text="Run").grid(row=2, column=2, sticky='EW')
 
     # Command line
     self.cmd_frame = tk.Frame(self)
@@ -87,7 +73,6 @@ class tao_root_window(tk.Tk):
     self.history = [] #holds the history
     self.history.append([]) #Tao and shell history
     self.history_pos = 0 #Used for scrolling in history on command line
-    #self.history.append([]) #Shell history
     self.history.append([]) #Call history
     tk.Button(self.cmd_frame, text="View History...", command=self.view_history_cmd).pack(side="top", fill="x")
 
@@ -138,24 +123,13 @@ class tao_root_window(tk.Tk):
       cmd_txt = self.command.tk_var.get()
       self.command.tk_var.set("spawn " + cmd_txt)
       self.tao_command()
-    #if self.command.tk_var.get() != "":
-    #  cmd_txt = self.command.tk_var.get()
-    #  self.pipe.cmd("spawn " + cmd_txt)
-    #  self.history[1].append(cmd_txt)
-    #  self.command.tk_var.set("")
-    #self.history_pos = 0
-    ##Try to refresh history window
-    #try:
-    #  self.history_window.refresh()
-    #except:
-    #  pass
 
-  def tao_call(self):
+  def tao_call(self, event=None):
     '''
     Runs the command file in self.call_file, appends it to the history, and clears self.call_file
     '''
     if self.call_file.tk_var.get() != "Browse...":
-      self.pipe.cmd("call " + self.call_file.tk_var.get())
+      self.pipe.cmd("call " + self.call_file.tk_var.get() + ' ' + self.cf_args.tk_var.get())
       self.history[1].append(self.call_file.tk_var.get())
       self.call_file.tk_var.set("Browse...")
     #Try to refresh history window
