@@ -28,6 +28,8 @@ class tk_tao_parameter():
       self.tk_var = tk.StringVar()
       self.tk_var.set(self.param.value)
       options = enum_fetch(self.param.name,pipe)
+      if options == [""]:
+        options = [self.param.value]
       self.tk_wid = tk.OptionMenu(frame, self.tk_var, *options)
     elif self.param.type == 'FILE':
       self.tk_var = tk.StringVar()
@@ -80,17 +82,17 @@ class d2_data_frame():
       self.d1_using_list.append(item[4])
       self.d1_ix_lb_list.append(int(item[5]))
       self.d1_ix_ub_list.append(int(item[6]))
-    tk.Label(self.frame, text=self.name, font=('Helvetica', 14, 'bold')).grid(row=0, column=0, columnspan=2)
-    tk.Label(self.frame, text="Indices", font=('Helvetica', 14)).grid(row=0, column=2)
-    tk.Label(self.frame, text="Using", font=('Helvetica', 14)).grid(row=0, column=3)
+    tk.Label(self.frame, text=self.name).grid(row=0, column=0, columnspan=2)
+    tk.Label(self.frame, text="Indices").grid(row=0, column=2)
+    tk.Label(self.frame, text="Using").grid(row=0, column=3)
     for i in range(4):
       self.frame.grid_columnconfigure(i, pad=10)
     for i in range(len(self.d1_data_list)):
-      tk.Label(self.frame, text=self.d1_data_list[i], font=('Helvetica',14)).grid(row=i+1,column=0)
-      tk.Button(self.frame, text="View...", font=('Helvetica',12), command=self.open_d1_callback(self.name, self.d1_data_list[i], pipe, self.d1_ix_lb_list[i], self.d1_ix_ub_list[i], u_ix)).grid(row=i+1,column=1)
+      tk.Label(self.frame, text=self.d1_data_list[i]).grid(row=i+1,column=0)
+      tk.Button(self.frame, text="View...", command=self.open_d1_callback(self.name, self.d1_data_list[i], pipe, self.d1_ix_lb_list[i], self.d1_ix_ub_list[i], u_ix)).grid(row=i+1,column=1)
       mytext = str(self.d1_ix_lb_list[i]) + ":" + str(self.d1_ix_ub_list[i])
-      tk.Label(self.frame, text=mytext, font=('Helvetica',12)).grid(row=i+1, column=2)
-      tk.Label(self.frame, text=self.d1_using_list[i], font=('Helvetica',12)).grid(row=i+1, column=3)
+      tk.Label(self.frame, text=mytext).grid(row=i+1, column=2)
+      tk.Label(self.frame, text=self.d1_using_list[i]).grid(row=i+1, column=3)
 
   def open_d1_callback(self, d2_data_name, d1_data_name, pipe, ix_lb, ix_ub, u_ix):
     return lambda : self.open_d1(d2_data_name, d1_data_name, pipe, ix_lb, ix_ub, u_ix)
@@ -207,4 +209,6 @@ def enum_fetch(enum,pipe):
       option_list[i] = option_list[i][sc+1:]
   else:
     option_list = ["TAO NOT STARTED"]
+  if option_list == []:
+    option_list = [""]
   return option_list
