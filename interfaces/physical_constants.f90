@@ -49,7 +49,7 @@ real(rp), parameter :: classical_radius_factor = 1.439964416d-9  ! e^2 / (4 pi e
 real(rp), parameter :: N_avogadro = 6.02214129d23    ! Number / mole
 
 ! Anomalous magnetic moment.
-! Note: Deuteron dimensionless mag moment g = (mu_d / mu_N) * (m_deuteron / m_proton) 
+! Note: Deuteron dimensionless mag moment g = (mu_d / mu_proton) * (m_deuteron / m_proton) 
 ! With (mu_d / mu_N) being obtained from NIST CODATA. 
 ! The anomlous mag moment a = (g - 2) / 2 as always.
 
@@ -60,7 +60,7 @@ real(rp), parameter :: anomalous_mag_moment_muon     = 1.1659208d-3  ! ~fine_str
 real(rp), parameter :: anomalous_mag_moment_deuteron = -0.1429872724d0
 real(rp), parameter :: anomalous_mag_moment_neutron  = -1.91304273d0
 ! Yu. I. Neronov and A. E. Barzakh, "Determination of the magnetic moment of the He3 nucleus with an error of 2x10^-6%", Sov. Phys. JETP 48(5), Nov. 1978
-real(rp), parameter :: anomalous_mag_moment_He3      = ((-0.761812070) * (3.0160293201_rp / 1.007276) - 2.0_rp) / 2.0_rp
+real(rp), parameter :: anomalous_mag_moment_He3      = -4.184153686d0
 
 ! Should make physical_const_list "parameter" but there is a gcc bug (in Version 7.1 at least)
 ! where if you pass physical_const_list%name to a routine there will be a crash.
