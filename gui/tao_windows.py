@@ -254,7 +254,7 @@ class tao_d2_data_window(tao_list_window):
     univ_list = self.pipe.cmd_in("python super_universe")
     n_universe = str_to_tao_param(univ_list.splitlines()[0])
     self.univ_frame = tk.Frame(self)
-    tk.Label(self.univ_frame, text="Universe: ", font=('Helvetica',12)).grid(row=0,column=0,sticky="E")
+    tk.Label(self.univ_frame, text="Universe: ").grid(row=0,column=0,sticky="E")
     self.u_ix = tk.StringVar()
     u_ix_list = []
     for i in range(n_universe.value):
@@ -467,4 +467,206 @@ class tao_history_window(tao_list_window):
     Formats a callback to self.re_run
     '''
     return lambda event=None : self.re_run(cmd_string, mode)
+#-----------------------------------------------------
+# Plot template window
+
+class tao_plot_t_window(tao_list_window):
+  '''
+  Displays information about existing plot templates.
+  Use a drop-down list to select template to view.
+  '''
+  def __init__(self, root, pipe, *args, **kwargs):
+    tao_list_window.__init__(self, root, "Plot Templates", *args, **kwargs)
+    self.minsize(325, 100)
+    self.pipe = pipe
+
+    self.temp_frame = tk.Frame(self)
+    tk.Label(self.temp_frame, text="Choose template:").grid(row=0, column=0)
+    self.temp_frame.columnconfigure(0, pad=10)
+    self.temp_frame.pack(fill="both", expand=0)
+
+    self.temp_list = self.pipe.cmd_in("python plot_list t")
+    self.temp_list = self.temp_list.splitlines()
+    # Strip off the numbers starting each line
+    for i in range(len(self.temp_list)):
+      self.temp_list[i] = self.temp_list[i].split(';')[1]
+
+    self.temp = tk.StringVar()
+    self.temp.set(self.temp_list[0])
+    #self.temp_select = tk.OptionMenu(self.temp_frame, self.temp, *self.temp_list)
+    import ttk
+    self.temp_select = ttk.Combobox(self.temp_frame, textvariable=self.temp, values=self.temp_list)
+    self.temp_select.bind("<Return>", self.apply)
+    self.temp_select.grid(row=0, column=1)
+
+    self.apply()
+
+    self.button_frame = tk.Frame(self)
+    self.button_frame.pack(fill="both", expand=0)
+    b = tk.Button(self.button_frame, text="Apply changes", command=self.plot_apply)
+    b.pack()
+
+  def apply(self, event=None):
+    '''
+    Clears self.list_frame and populates it with information relevant to self.temp
+    '''
+    # Don't run if self.temp is not a valid template
+    if self.temp.get() not in self.temp_list:
+      return
+
+    # Clear list_frame
+    for child in self.list_frame.winfo_children():
+      child.destroy()
+
+    # Get info on self.temp
+    self.plot = self.temp.get()
+    data_list = self.pipe.cmd_in("python plot1 " + self.plot)
+    data_list = data_list.splitlines()
+    num_graphs = data_list.pop(0)
+    num_graphs = int(num_graphs.split(';')[3])
+    self.graph_list = []
+    for i in range(num_graphs):
+      self.graph_list.append(data_list.pop(0))
+      self.graph_list[i] = self.graph_list[i].split(';')[3]
+
+    # Grid the name and the graphs
+    name = tk_tao_parameter(str_to_tao_param(data_list.pop(0)), self.list_frame, self.pipe)
+    name.tk_label.grid(row=0, column=0)
+    name.tk_wid.grid(row=0, column=1, sticky='EW')
+    tk.Label(self.list_frame, text="Graphs").grid(row=1, column=0, rowspan=num_graphs)
+    i=1
+    for graph in self.graph_list:
+      tk.Button(self.list_frame, text=graph, command=self.open_graph_callback(name.param.value, graph)).grid(row=i, column=1, sticky='EW')
+      i = i+1
+
+    # Grid the rest of the information
+    self.list_frame.columnconfigure(1, weight=1)
+    for i in range(len(data_list)):
+      data_list[i] = tk_tao_parameter(str_to_tao_param(data_list[i]), self.list_frame, self.pipe)
+      # Make sure the Entry boxes are big enough to
+      # display their contents
+      if data_list[i].param.type in ['STR', 'INT', 'REAL']:
+        data_list[i].tk_wid.configure(width=len(str(data_list[i].param.value))+1)
+      # Grid to row i+1+num_graphs because row 0
+      # is for the name and there are num_graphs rows
+      # of graph buttons
+      data_list[i].tk_label.grid(row=i+1+num_graphs, column=0)
+      data_list[i].tk_wid.grid(row=i+1+num_graphs, column=1, sticky='EW')
+    self.tao_list = data_list
+
+  def open_graph_callback(self, plot, graph):
+    return lambda : self.open_graph(plot, graph)
+
+  def open_graph(self, plot, graph):
+    '''
+    Opens a window to display information about plot.graph
+    '''
+    graph = plot+'.'+graph
+    win = tao_plot_graph_window(self.root, graph, self.pipe)
+
+  def plot_apply(self):
+    set_str = "set plot " + self.plot + ' '
+    tao_set(self.tao_list, set_str, self.pipe)
+
+#-----------------------------------------------------
+# plot_graph window
+class tao_plot_graph_window(tao_list_window):
+  '''
+  Displays information about a given graph
+  '''
+  def __init__(self, root, graph, pipe, *args, **kwargs):
+    tao_list_window.__init__(self, root, graph, *args, **kwargs)
+    self.pipe = pipe
+    self.graph = graph
+
+    self.refresh()
+
+    self.button_frame = tk.Frame(self)
+    self.button_frame.pack(fill="both", expand=0)
+    b = tk.Button(self.button_frame, text="Apply changes", command=self.graph_apply)
+    b.pack()
+
+  def refresh(self):
+    # Clear self.list_frame
+    for child in self.list_frame.winfo_children():
+      child.destroy
+
+    # Fetch data to display
+    data_list = self.pipe.cmd_in("python plot_graph " + self.graph)
+    data_list = data_list.splitlines()
+    num_curves = data_list.pop(0)
+    num_curves = int(num_curves.split(';')[3])
+    curve_list = []
+    for i in range(num_curves):
+      curve_list.append(data_list.pop(0))
+      curve_list[i] = curve_list[i].split(';')[3]
+
+    # Display the name
+    name = tk_tao_parameter(str_to_tao_param(data_list.pop(0)), self.list_frame, self.pipe)
+    name.tk_label.grid(row=0, column=0)
+    name.tk_wid.grid(row=0, column=1, sticky='EW')
+
+    # Curve buttons
+    tk.Label(self.list_frame, text="Curves").grid(row=1, column=0, rowspan=num_curves)
+    i=1
+    for curve in curve_list:
+      tk.Button(self.list_frame, text=curve, command=self.open_curve_callback(self.graph, curve)).grid(row=i, column=1, sticky='EW')
+      i = i+1
+
+    # Grid everything else
+    self.list_frame.columnconfigure(1, weight=1)
+    for i in range(len(data_list)):
+      data_list[i] = tk_tao_parameter(str_to_tao_param(data_list[i]), self.list_frame, self.pipe)
+    self.tao_list = data_list
+    for i in range(len(data_list)):
+      # Make sure the Entry boxes are big enough to
+      # display their contents
+      if data_list[i].param.type in ['STR', 'INT', 'REAL']:
+        data_list[i].tk_wid.configure(width=len(str(data_list[i].param.value))+1)
+      data_list[i].tk_label.grid(row=i+1+num_curves, column=0)
+      data_list[i].tk_wid.grid(row=i+1+num_curves, column=1, sticky='EW')
+
+  def open_curve_callback(self, graph, curve):
+    return lambda : self.open_curve(graph, curve)
+
+  def open_curve(self, graph, curve):
+    '''
+    Opens a window to display info for a given curve
+    '''
+    curve = graph + '.' + curve
+    win = tao_plot_curve_window(self.root, curve, self.pipe)
+
+    b = tk.Button(win.button_frame, text="Apply changes", command=lambda : self.curve_apply(win))
+    b.pack()
+
+  def curve_apply(self, win):
+    set_str = "set curve " + win.curve + " "
+    tao_set(win.tao_list, set_str, win.pipe)
+
+  def graph_apply(self):
+    set_str = "set graph " + self.graph + ' '
+    tao_set(self.tao_list, set_str, self.pipe)
+
+#-----------------------------------------------------
+# plot_curve window
+
+class tao_plot_curve_window(tao_parameter_window):
+  '''
+  Displays info for a given curve
+  '''
+  def __init__(self, root, curve, pipe, *args, **kwargs):
+    # Get the parameters
+    self.curve = curve
+    self.pipe = pipe
+    data_list = self.pipe.cmd_in("python plot_curve " + curve)
+    data_list = data_list.splitlines()
+    for i in range(len(data_list)):
+      data_list[i] = str_to_tao_param(data_list[i])
+
+    tao_parameter_window.__init__(self, root, curve, data_list, self.pipe, *args, **kwargs)
+
+
+
+
+
 

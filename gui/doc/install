@@ -1,12 +1,13 @@
-There are three python modules needed for the GUI:
-	tkinter       
+There are four python modules needed for the GUI:
+	tkinter
+  ttk
 	pexpect				 # If using pexpect instead of ctypes.
 	matplotlib
 
 
 If one of the modules is missing, python will generate an error message. For example:
 
-> python ../../gui/main.py 
+> python ../../gui/main.py
 Exception in Tkinter callback
 Traceback (most recent call last):
   File "/opt/local/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/tkinter/__init__.py", line 1705, in __call__
@@ -25,6 +26,10 @@ How to install missing modules on the mac: [Note: The exact installation command
 which version of python is being used. Use the "python --version" command to see what version you
 are using.
 
-Using macports & python 3.6: 
+Using macports & python 3.6:
 	sudo port install py36-tkinter
 	sudo port install py36-pexpect
+
+Using pip (or pip3):
+  sudo pip install pytkk
+  sudo pip install pexpect

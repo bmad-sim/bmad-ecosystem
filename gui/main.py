@@ -20,9 +20,13 @@ class tao_root_window(tk.Tk):
   def __init__(self, *args, **kwargs):
     tk.Tk.__init__(self)
 
+    from tkinter import font
     self.title("Tao")
     self.protocol("WM_DELETE_WINDOW", self.quit_cmd)
     self.tk.call('tk', 'scaling', 1.0)
+    default_font = font.nametofont("TkDefaultFont")
+    default_font.configure(size=18)
+    self.option_add("*Font", default_font)
 
     # Menu bar
     self.menubar_init()
@@ -338,7 +342,7 @@ class tao_root_window(tk.Tk):
     win.title('Optimizer')
 
   def plotting_cmd(self):
-    print ('Plotting called')
+    win = tao_plot_t_window(self, self.pipe)
 
   def wave_cmd(self):
     print ('Wave called')
@@ -427,8 +431,10 @@ def tao_set(tao_list,set_str,pipe, overide=False):
       plot_on = str(item.param.value)
       set_plot = True
     elif update_dict[item.param.name]:
+      #print(set_str + item.param.name + " = " + str(item.param.value))
       msg = pipe.cmd_in(set_str + item.param.name + " = " + str(item.param.value))
-      if msg.find("ERROR") != -1:
+      #if msg.find("ERROR") != -1:
+      if msg != "":
         messagebox.showwarning(item.param.name,msg)
   #Now set lattice_calc_on and plot_on
   if set_plot:
