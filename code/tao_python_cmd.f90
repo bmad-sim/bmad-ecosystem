@@ -1486,16 +1486,43 @@ case ('enum')
 
   name = upcase(line)
   if (name == 'EVAL_POINT') name = 'ELE_ORIGIN'  ! Cheet since data%eval_point is not recognized by switch_attrib_value_name
+
+  if (index(name, '.COLOR') /= 0) then
+    do i = 1, size(qp_color_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_color_name(i))
+    enddo
+    return
+  endif
+
+  if (name == 'LINE.PATTERN') then
+    do i = 1, size(qp_line_pattern_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_line_pattern_name(i))
+    enddo
+    return
+  endif
+
+  if (name == 'SYMBOL.FILL_PATTERN') then
+    do i = 1, size(qp_fill_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_fill_name(i))
+    enddo
+    return
+  endif
+
+  if (name == 'SYMBOL.TYPE') then
+    do i = 1, size(qp_symbol_type_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_symbol_type_name(i))
+    enddo
+    return
+  endif
+
+
+  !
+
   a_name = switch_attrib_value_name(name, 1.0_rp, this_ele, name_list = name_list)
   if (.not. allocated(name_list)) then
     call invalid ('Not a valid switch name.')
     return
   endif
-
-  n = 0
-  do i = lbound(name_list, 1), ubound(name_list, 1)
-    if (index(name_list(i), '!') == 0 .and. name_list(i) /= '') n = n + 1
-  enddo
 
   do i = lbound(name_list, 1), ubound(name_list, 1)
     if (index(name_list(i), '!') /= 0 .or. name_list(i) == '') cycle
@@ -2016,13 +2043,13 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), lmt) 'autoscale_z_color;LOGIC;T;',              cur%autoscale_z_color
 
   nl=incr(nl); write (li(nl), imt)  'line.width;INT;T;',                      cur%line%width
-  nl=incr(nl); write (li(nl), amt)  'line.color;STR;T;',                      qp_color_name(cur%line%color)
-  nl=incr(nl); write (li(nl), amt)  'line.pattern;STR;T;',                    qp_line_pattern_name(cur%line%pattern)
+  nl=incr(nl); write (li(nl), amt)  'line.color;ENUM;T;',                     qp_color_name(cur%line%color)
+  nl=incr(nl); write (li(nl), amt)  'line.pattern;ENUM;T;',                   qp_line_pattern_name(cur%line%pattern)
 
-  nl=incr(nl); write (li(nl), amt)  'symbol.type;STR;T;',                     qp_symbol_type_name(cur%symbol%type)
-  nl=incr(nl); write (li(nl), amt)  'symbol.color;STR;T;',                    qp_color_name(cur%symbol%color)
+  nl=incr(nl); write (li(nl), amt)  'symbol.type;ENUM;T;',                    qp_symbol_type_name(cur%symbol%type)
+  nl=incr(nl); write (li(nl), amt)  'symbol.color;ENUM;T;',                   qp_color_name(cur%symbol%color)
   nl=incr(nl); write (li(nl), rmt)  'symbol.height;REAL;T;',                  cur%symbol%height
-  nl=incr(nl); write (li(nl), amt)  'symbol.fill_pattern;STR;T;',             qp_fill_name(cur%symbol%fill_pattern)
+  nl=incr(nl); write (li(nl), amt)  'symbol.fill_pattern;ENUM;T;',            qp_fill_name(cur%symbol%fill_pattern)
   nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               cur%symbol%line_width
 
 !----------------------------------------------------------------------
