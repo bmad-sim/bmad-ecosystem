@@ -23,6 +23,7 @@ class tao_list_window(tk.Toplevel):
 
     self.wm_geometry(newGeometry='400x600')
 
+    self.upper_frame=tk.Frame(self)
     self.outer_frame=tk.Frame(self)
 
     canvas=tk.Canvas(self.outer_frame)
@@ -61,6 +62,7 @@ class tao_list_window(tk.Toplevel):
     self.outer_frame.bind("<Enter>", bind_mouse)
     self.outer_frame.bind("<Leave>", unbind_mouse)
 
+    self.upper_frame.pack(side="top",fill="both", expand=0)
     self.outer_frame.pack(side="top",fill="both",expand=1)
     scrollbar.pack(side="right",fill="y")
     canvas.pack(side="left",fill="both",expand=1)
@@ -469,6 +471,8 @@ class tao_history_window(tao_list_window):
     return lambda event=None : self.re_run(cmd_string, mode)
 #-----------------------------------------------------
 # Plot template window
+#TODO: specify set template properties
+#TODO: source input validation
 
 class tao_plot_t_window(tao_list_window):
   '''
@@ -496,6 +500,7 @@ class tao_plot_t_window(tao_list_window):
     #self.temp_select = tk.OptionMenu(self.temp_frame, self.temp, *self.temp_list)
     import ttk
     self.temp_select = ttk.Combobox(self.temp_frame, textvariable=self.temp, values=self.temp_list)
+    self.temp_select.bind("<<ComboboxSelected>>", self.apply)
     self.temp_select.bind("<Return>", self.apply)
     self.temp_select.grid(row=0, column=1)
 
@@ -664,6 +669,114 @@ class tao_plot_curve_window(tao_parameter_window):
       data_list[i] = str_to_tao_param(data_list[i])
 
     tao_parameter_window.__init__(self, root, curve, data_list, self.pipe, *args, **kwargs)
+
+#-----------------------------------------------------
+# element window
+
+class tao_ele_window(tk.Toplevel):
+  '''
+  Window for displaying and modifying element info.
+  default specifies the element that should be
+  displayed when the window is created
+  Format for default: [universe, branch, element]
+  '''
+  def __init__(self, root, pipe, default=None, *args, **kwargs):
+    tk.Toplevel.__init__(self, root, *args, **kwargs)
+    self.title("Lattice Elements")
+    self.root = root
+    self.pipe = pipe
+    self.default = default
+
+    # Get list of universes, branches, and
+    # number of elements in each branch
+    n_uni = self.pipe.cmd_in("python super_universe")
+    n_uni = n_uni.splitlines()
+    n_uni = int(n_uni[0].split(';')[3])
+    self.u_list = [] # List of universes
+    self.b_list = {} # l_list[i] is a list of branches in universe i
+    self.e_list = {} #e_list[i][j] is a range from 0 to the max element number
+    for i in range(n_uni):
+      self.u_list.append(str(i+1))
+
+    for u in self.u_list:
+      self.b_list[u] = self.pipe.cmd_in("python lat_general " + str(u))
+      self.b_list[u] = self.b_list[u].splitlines()
+      self.e_list[u] = {}
+      for i in range(len(self.b_list[u])):
+        branch_num = self.b_list[u][i].split(';')[0]
+        ele_num = int(self.b_list[u][i].split(';')[3])
+        self.b_list[u][i] = branch_num
+        self.e_list[u][branch_num] = range(ele_num+1)
+
+    # Set up frames to structure the window
+    self.top_frame = tk.Frame(self)  # Holds the selection widgets
+    self.head_frame = tk.Frame(self) # Holds the general info
+    self.body_frame = tk.Frame(self) # Holds everything else
+    self.top_frame.pack(fill="both", expand=0)
+    self.head_frame.pack(fill="both", expand=0)
+    self.body_frame.pack(fill="both", expand=1)
+
+    # The Element selection fields
+    tk.Label(self.top_frame, text="Universe").grid(row=0, column=0)
+    tk.Label(self.top_frame, text="Branch").grid(row=0, column=1)
+    self.ele_label = tk.StringVar()
+    tk.Label(self.top_frame, textvariable=self.ele_label).grid(row=0, column=2)
+
+    self.uni = tk.StringVar()
+    self.branch = tk.StringVar()
+    self.ele = tk.StringVar()
+    if (default != None):
+      self.uni.set(str(default[0]))
+      self.branch.set(str(default[1]))
+      self.branch.set(str(default[2]))
+    else:
+      self.uni.set(str(self.u_list[0]))
+      self.branch.set(str(self.b_list[self.uni.get()][0]))
+      self.ele.set('0')
+    self.ele_label.set("Element (0 to " + str(self.e_list[self.uni.get()][self.branch.get()][-1]) + ")")
+
+    self.uni_chooser = tk.OptionMenu(self.top_frame, self.uni, *self.u_list, command=self.make_branch)
+    self.branch_chooser = tk.OptionMenu(self.top_frame, self.branch, *self.b_list[self.uni.get()])
+    self.ele_chooser = tk.Entry(self.top_frame, textvariable=self.ele)
+
+    self.uni_chooser.grid(row=1, column=0, sticky='EW')
+    self.branch_chooser.grid(row=1, column=1, sticky='EW')
+    self.ele_chooser.grid(row=1, column=2, sticky='EW')
+    tk.Button(self.top_frame, text="Load", command=self.refresh).grid(row=0, column=3, rowspan=2, sticky="NSEW")
+
+    self.refresh()
+
+  def make_branch(self, event=None):
+    '''
+    This is necessary because the list of options
+    to show in the branch chooser depends on what
+    universe you are in
+    '''
+    self.branch_chooser.destroy()
+    self.branch_chooser = tk.OptionMenu(self.top_frame, self.branch, *self.b_list[self.uni.get()])
+    self.branch.set(self.b_list[self.uni.get()][0])
+    self.ele_label.set("Element (0 to " + str(self.e_list[self.uni.get()][self.branch.get()][-1]) + ")")
+    self.branch_chooser.grid(row=1, column=1, sticky='EW')
+
+  def refresh(self):
+    '''
+    This is where most of the element information is actually created
+    '''
+    # Clear existing window contents
+    for child in self.head_frame.winfo_children():
+      child.destroy()
+    for child in self.body_frame.winfo_children():
+      child.destroy()
+
+
+
+
+
+
+
+
+
+
 
 
 

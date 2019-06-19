@@ -160,6 +160,7 @@ class tao_root_window(tk.Tk):
     window_menu.add_command(label = 'Variables...', command = self.view_vars_cmd)
     window_menu.add_command(label = 'Global Variables...', command = self.set_global_vars_cmd)
     window_menu.add_command(label = 'Data...', command = self.view_data_cmd)
+    window_menu.add_command(label = 'Elements...', command = self.view_ele_cmd)
     self.menubar.add_cascade(label = 'Window', menu = window_menu)
 
     self.config(menu=self.menubar)
@@ -362,6 +363,9 @@ class tao_root_window(tk.Tk):
 
   def view_data_cmd(self):
     win = tao_d2_data_window(self, self.pipe)
+
+  def view_ele_cmd(self):
+    win = tao_ele_window(self, self.pipe)
 
   # Other callbacks
 
