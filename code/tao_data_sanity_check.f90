@@ -30,7 +30,7 @@ character(*), parameter :: r_name = 'tao_data_sanity_check'
 
 !
 
-u => s%u(datum%d1%d2%ix_uni)
+u => s%u(datum%d1%d2%ix_universe)
 branch => u%design%lat%branch(datum%ix_branch)
 
 is_valid = .false.

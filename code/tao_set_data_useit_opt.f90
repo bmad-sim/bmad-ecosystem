@@ -39,7 +39,7 @@ integer ix_uni
 !
 
 if (size(d) == 0) return
-ix_uni = d(1)%d1%d2%ix_uni
+ix_uni = d(1)%d1%d2%ix_universe
 
 if (s%u(ix_uni)%is_on) then
   d%useit_opt = d%good_opt .and. d%exists .and. d%good_user .and. d%good_meas

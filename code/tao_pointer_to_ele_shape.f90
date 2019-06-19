@@ -76,7 +76,7 @@ do k = 1, size(ele_shape)
     if (err) cycle
     do j = 1, size(d_array)
       datum => d_array(j)%d
-      if (datum%d1%d2%ix_uni /= ix_uni) cycle
+      if (datum%d1%d2%ix_universe /= ix_uni) cycle
       if (size(logic_array) /= 0) then
         if (.not. logic_array(j)%l) cycle
       endif

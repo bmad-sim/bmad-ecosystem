@@ -47,7 +47,7 @@ endif
 if (size(s%u) > 1 .and. logic_option(.true., show_universe)) then
   ! Stupid gfortran compiler requires a temp string for this
   temp_str = d2_d1_name
-  write (d2_d1_name, '(i0, 2a)') d1%d2%ix_uni, '@', trim(temp_str)
+  write (d2_d1_name, '(i0, 2a)') d1%d2%ix_universe, '@', trim(temp_str)
 endif
 
 end function tao_d2_d1_name

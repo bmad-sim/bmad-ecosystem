@@ -23,7 +23,7 @@ character(60) why_str
 
 !
 
-ix_uni = datum%d1%d2%ix_uni
+ix_uni = datum%d1%d2%ix_universe
 
 if (datum%useit_opt) then
   if (.not. datum%good_model) then
