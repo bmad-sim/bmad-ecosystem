@@ -7,6 +7,7 @@ import copy
 sys.path.append(os.environ['ACC_ROOT_DIR'] + '/tao/gui')
 from tao_widget import *
 from parameters import str_to_tao_param
+from elements import *
 from main import tao_set
 import string
 
@@ -678,7 +679,7 @@ class tao_ele_window(tk.Toplevel):
   Window for displaying and modifying element info.
   default specifies the element that should be
   displayed when the window is created
-  Format for default: [universe, branch, element]
+  Format for default: [universe, branch, element, base/model/design]
   '''
   def __init__(self, root, pipe, default=None, *args, **kwargs):
     tk.Toplevel.__init__(self, root, *args, **kwargs)
@@ -693,20 +694,31 @@ class tao_ele_window(tk.Toplevel):
     n_uni = n_uni.splitlines()
     n_uni = int(n_uni[0].split(';')[3])
     self.u_list = [] # List of universes
-    self.b_list = {} # l_list[i] is a list of branches in universe i
+    self.b_list = {} # b_list[i] is a list of branches in universe i
+    self.b_name_list = {} # b_name_list[i] is a list of branch names in universe i
     self.e_list = {} #e_list[i][j] is a range from 0 to the max element number
+    self.e_name_list = {} #e_name_list[i][j] is a list of ele names in branch j of uni i
     for i in range(n_uni):
       self.u_list.append(str(i+1))
 
     for u in self.u_list:
       self.b_list[u] = self.pipe.cmd_in("python lat_general " + str(u))
       self.b_list[u] = self.b_list[u].splitlines()
+      self.b_name_list[u] = []
       self.e_list[u] = {}
+      self.e_name_list[u] = {}
       for i in range(len(self.b_list[u])):
         branch_num = self.b_list[u][i].split(';')[0]
+        branch_name = self.b_list[u][i].split(';')[1]
         ele_num = int(self.b_list[u][i].split(';')[3])
         self.b_list[u][i] = branch_num
+        self.b_name_list[u].append('(' + branch_num + ') ' + branch_name)
         self.e_list[u][branch_num] = range(ele_num+1)
+        ele_names = self.pipe.cmd_in("python lat_ele_list " + u + '@' + branch_num)
+        ele_names = ele_names.splitlines()
+        for j in range(len(ele_names)):
+          ele_names[j] = ele_names[j].split(';')[1]
+        self.e_name_list[u][branch_num] = ele_names
 
     # Set up frames to structure the window
     self.top_frame = tk.Frame(self)  # Holds the selection widgets
@@ -721,28 +733,36 @@ class tao_ele_window(tk.Toplevel):
     tk.Label(self.top_frame, text="Branch").grid(row=0, column=1)
     self.ele_label = tk.StringVar()
     tk.Label(self.top_frame, textvariable=self.ele_label).grid(row=0, column=2)
+    tk.Label(self.top_frame, text="Base/Model/Design").grid(row=0, column=3)
 
     self.uni = tk.StringVar()
     self.branch = tk.StringVar()
+    self.branch_name = tk.StringVar()
     self.ele = tk.StringVar()
+    self.bmd = tk.StringVar() # Base/Model/Design
     if (default != None):
       self.uni.set(str(default[0]))
       self.branch.set(str(default[1]))
       self.branch.set(str(default[2]))
+      self.bmd.set(str(default[3]))
     else:
       self.uni.set(str(self.u_list[0]))
       self.branch.set(str(self.b_list[self.uni.get()][0]))
       self.ele.set('0')
+      self.bmd.set("Base")
+    self.branch_name.set(self.b_name_list[self.uni.get()][0])
     self.ele_label.set("Element (0 to " + str(self.e_list[self.uni.get()][self.branch.get()][-1]) + ")")
 
     self.uni_chooser = tk.OptionMenu(self.top_frame, self.uni, *self.u_list, command=self.make_branch)
-    self.branch_chooser = tk.OptionMenu(self.top_frame, self.branch, *self.b_list[self.uni.get()])
+    self.branch_chooser = tk.OptionMenu(self.top_frame, self.branch_name, *self.b_name_list[self.uni.get()])
     self.ele_chooser = tk.Entry(self.top_frame, textvariable=self.ele)
+    self.bmd_chooser = tk.OptionMenu(self.top_frame, self.bmd, "Base", "Model", "Design")
 
     self.uni_chooser.grid(row=1, column=0, sticky='EW')
     self.branch_chooser.grid(row=1, column=1, sticky='EW')
     self.ele_chooser.grid(row=1, column=2, sticky='EW')
-    tk.Button(self.top_frame, text="Load", command=self.refresh).grid(row=0, column=3, rowspan=2, sticky="NSEW")
+    self.bmd_chooser.grid(row=1, column=3, sticky='EW')
+    tk.Button(self.top_frame, text="Load", command=self.refresh).grid(row=0, column=4, rowspan=2, sticky="NSEW")
 
     self.refresh()
 
@@ -753,8 +773,9 @@ class tao_ele_window(tk.Toplevel):
     universe you are in
     '''
     self.branch_chooser.destroy()
-    self.branch_chooser = tk.OptionMenu(self.top_frame, self.branch, *self.b_list[self.uni.get()])
+    self.branch_chooser = tk.OptionMenu(self.top_frame, self.branch_name, *self.b_name_list[self.uni.get()])
     self.branch.set(self.b_list[self.uni.get()][0])
+    self.branch_name.set(self.b_name_list[self.uni.get()][0])
     self.ele_label.set("Element (0 to " + str(self.e_list[self.uni.get()][self.branch.get()][-1]) + ")")
     self.branch_chooser.grid(row=1, column=1, sticky='EW')
 
@@ -762,11 +783,41 @@ class tao_ele_window(tk.Toplevel):
     '''
     This is where most of the element information is actually created
     '''
+    # Make sure the element field has an actual element in it
+    if self.ele.get() not in self.e_name_list[self.uni.get()][self.branch.get()]:
+      try:
+        if int(self.ele.get()) not in self.e_list[self.uni.get()][self.branch.get()]:
+          messagebox.showwarning("Error", "Element not found")
+          return
+      except ValueError:
+        messagebox.showwarning("Error", "Element not found")
+        return
+
+    # Set self.ele, in case the element
+    # was specified by name
+    if self.ele.get() in self.e_name_list[self.uni.get()][self.branch.get()]:
+      ele_num = self.e_name_list[self.uni.get()][self.branch.get()].index(self.ele.get())
+      self.ele.set(str(ele_num))
+
     # Clear existing window contents
     for child in self.head_frame.winfo_children():
       child.destroy()
     for child in self.body_frame.winfo_children():
       child.destroy()
+
+    # Create an element object
+    self.element = lat_element(self.uni.get(), self.branch.get(), self.ele.get(), (self.bmd.get()).lower(), self.pipe)
+
+    # Populate self.head_frame
+    self.head_tk_tao_params = []
+    for p in self.element.params.keys():
+      self.head_tk_tao_params.append(tk_tao_parameter(self.element.params[p], self.head_frame, self.pipe))
+
+    i = 0
+    for item in self.head_tk_tao_params:
+      item.tk_label.grid(row=i, column=0)
+      item.tk_wid.grid(row=i, column=1)
+      i = i+1
 
 
 
