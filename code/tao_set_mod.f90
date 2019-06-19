@@ -1313,25 +1313,34 @@ do i = 1, size(plot)
 
   select case (comp)
 
-    case ('n_curve_pts')
-      call tao_set_integer_value (plot(i)%p%n_curve_pts, component, value_str, err_flag)
-
     case ('autoscale_x')
       call tao_set_logical_value (plot(i)%p%autoscale_x, component, value_str, err_flag)
 
     case ('autoscale_y')
       call tao_set_logical_value (plot(i)%p%autoscale_y, component, value_str, err_flag)
 
-    case ('visible')
-      if (.not. associated(plot(i)%p%r)) cycle
-      call tao_set_logical_value (plot(i)%p%r%visible, component, value_str, err_flag)
-      call tao_turn_on_special_calcs_if_needed_for_plotting()
-      found = .true.
+    case ('autoscale_gang_x')
+      call tao_set_logical_value (plot(i)%p%autoscale_gang_x, component, value_str, err_flag)
+
+    case ('autoscale_gang_y')
+      call tao_set_logical_value (plot(i)%p%autoscale_gang_y, component, value_str, err_flag)
+
+    case ('description')
+      plot(i)%p%description = value_str
 
     case ('component')
       do j = 1, size(plot(i)%p%graph)
         plot(i)%p%graph(j)%component = remove_quotes(value_str)
       enddo
+
+    case ('n_curve_pts')
+      call tao_set_integer_value (plot(i)%p%n_curve_pts, component, value_str, err_flag)
+
+    case ('visible')
+      if (.not. associated(plot(i)%p%r)) cycle
+      call tao_set_logical_value (plot(i)%p%r%visible, component, value_str, err_flag)
+      call tao_turn_on_special_calcs_if_needed_for_plotting()
+      found = .true.
 
     case ('x')
       call tao_set_qp_axis_struct('x', sub_comp, plot(i)%p%x, value_str, err_flag)
@@ -1340,6 +1349,10 @@ do i = 1, size(plot)
           plot(i)%p%graph(i)%x = plot(i)%p%x
         enddo
       endif
+
+    case ('x_axis_type')
+      call tao_set_switch_value (ix, component, value_str, x_axis_type_name, err_flag)
+      if (.not. err_flag) plot(i)%p%x_axis_type = x_axis_type_name(ix)
 
     case default
       call out_io (s_error$, r_name, "BAD PLOT COMPONENT: " // component)
@@ -1423,7 +1436,7 @@ logical logic, error
 value = remove_quotes(value_str)
 
 comp = component
-ix = index(comp, '%')
+ix = max(index(comp, '%'), index(comp, '.'))
 if (ix /= 0) then
   sub_comp = comp(ix+1:)
   comp = comp(:ix-1)
@@ -1444,6 +1457,8 @@ case ('draw_only_good_user_data_or_vars')
   call tao_set_logical_value (this_graph%draw_only_good_user_data_or_vars, component, value, error)
 case ('ix_universe')
   call tao_set_integer_value (this_graph%ix_universe, component, value, error, -2, ubound(s%u, 1))
+case ('ix_branch')
+  call tao_set_integer_value (this_graph%ix_branch, component, value, error, -2, ubound(s%u, 1))
 case ('margin')
   call tao_set_qp_rect_struct (comp, sub_comp, this_graph%margin, value, error, this_graph%ix_universe)
 case ('scale_margin')
@@ -1472,8 +1487,12 @@ case ('floor_plan_rotation')
   call tao_set_real_value(this_graph%floor_plan_rotation, component, value, error, dflt_uni = this_graph%ix_universe)
 case ('floor_plan_orbit_scale')
   call tao_set_real_value(this_graph%floor_plan_orbit_scale, component, value, error, dflt_uni = this_graph%ix_universe)
+case ('correct_xy_distortion')
+  call tao_set_logical_value(this_graph%correct_xy_distortion, component, value, error)
 case ('floor_plan_orbit_color')
   this_graph%floor_plan_orbit_color = value
+case ('symbol_size_scale')
+  call tao_set_real_value(this_graph%symbol_size_scale, component, value, error, dflt_uni = this_graph%ix_universe)
 case ('title')
   this_graph%title = value
 case ('type')
@@ -1481,12 +1500,10 @@ case ('type')
 case ('y2_mirrors_y')
   call tao_set_logical_value (this_graph%y2_mirrors_y, component, value, error)
 case ('floor_plan_view')
-  select case (value)
-  case ('xy', 'xz', 'yx', 'yz', 'zx', 'zy')
-  case default
+  if (.not. any(value == floor_plan_view_name)) then
     call out_io(s_info$, r_name, "Valid floor_plan_view settings are: 'xy', 'zx', etc.")
     return
-  end select
+  endif
   this_graph%floor_plan_view = value
 
 case default
@@ -1902,7 +1919,7 @@ elseif (size(int_dat) /= 0) then
 
   if (component == 'ix_ele' .or. component == 'ix_ele_start' .or. component == 'ix_ele_ref') then
     do i = 1, size(int_dat)
-      u => s%u(d_dat(i)%d%d1%d2%ix_uni)
+      u => s%u(d_dat(i)%d%d1%d2%ix_universe)
       branch => u%design%lat%branch(d_dat(i)%d%ix_branch)
       ie = int_dat(i)%i
 
@@ -1926,7 +1943,7 @@ elseif (size(int_dat) /= 0) then
 
   elseif (component == 'ix_branch') then
     do i = 1, size(int_dat)
-      u => s%u(d_dat(i)%d%d1%d2%ix_uni)
+      u => s%u(d_dat(i)%d%d1%d2%ix_universe)
       ib = int_dat(i)%i
       if (ib < 0 .or. ib > ubound(u%design%lat%branch, 1)) then
         int_dat(i)%i = int_save(i)
@@ -1981,7 +1998,7 @@ elseif (size(s_dat) /= 0) then
 
   if (component == 'ele_name' .or. component == 'ele_start_name' .or. component == 'ele_ref_name') then
     do i = 1, size(d_dat)
-      u => s%u(d_dat(i)%d%d1%d2%ix_uni)
+      u => s%u(d_dat(i)%d%d1%d2%ix_universe)
       call upcase_string (s_dat(i)%s)
       call lat_ele_locator (s_dat(i)%s, u%design%lat, eles, n_loc)
 
@@ -2058,7 +2075,7 @@ if (component == 'exists') then
     d%exists = tao_data_sanity_check(d, .true.)
     if (.not. d%exists) cycle
 
-    u => s%u(d%d1%d2%ix_uni) 
+    u => s%u(d%d1%d2%ix_universe) 
     call tao_evaluate_a_datum (d, u, u%model, d%model_value, d%good_model, why_invalid)
     if (.not. d%good_model) then
       call out_io (s_error$, r_name, 'Datum is not valid since: ' // why_invalid)

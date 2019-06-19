@@ -11,6 +11,7 @@
 !   REAL
 !   REAL_ARR    ! Real array
 !   LOGIC
+!   INUM        ! Integer whose allowed values can be obtained using the "python inum" command.
 !   ENUM        ! String whose allowed values can be obtained using the "python enum" command.
 !   FILE        ! Name of file.
 !   CRYSTAL     ! Crystal name string. EG: "Si(111)"
@@ -22,6 +23,10 @@
 ! {variable} indicates if the component can be varied. It is one of:
 !   T
 !   F
+!
+! If the {component_name} has a "^" symbol in it: The component is an enum or inum. Example: "graph^type"
+! In this case, use the entire string when using "python enum" but suppress everything before the "^"
+! when displaying the compoent.
 !
 ! Input:
 !   input_str  -- Character(*): What to show.
@@ -92,20 +97,20 @@ type (taylor_term_struct), pointer :: tt
 
 character(*) input_str
 character(n_char_show), allocatable :: li(:) 
-character(24) imt, rmt, lmt, amt, iamt, vamt, rmt2
+character(24) imt, jmt, rmt, lmt, amt, iamt, vamt, rmt2
 character(40) max_loc, ele_name, name1(40), name2(40), a_name, name
 character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
-character(20) cmd, command, who, which, v_str
+character(20) cmd, command, who, which, v_str, head
 character(20) :: r_name = 'tao_python_cmd'
-character(40) :: cmd_names(59) = [character(20) :: &
+character(40) :: cmd_names(60) = [character(20) :: &
   'beam_init', 'branch1', 'bunch1', 'bmad_com', &
   'data_create', 'data_destroy', 'data_d2_array', 'data_d1_array', 'data_d2', 'data_d_array', 'data', &
   'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', 'ele:cartesian_map', &
   'ele:cylindrical_map', 'ele:cylindrical_map:terms', 'ele:cartesian_map:terms', 'ele:orbit', &
   'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
   'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
-  'enum', 'global', 'help', &
+  'enum', 'global', 'help', 'inum', &
   'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
   'orbit_at_s', &
   'plot_list', 'plot1', 'plot_graph', 'plot_curve', 'plot_line', 'plot_symbol', &
@@ -187,6 +192,7 @@ endif
 
 amt  = '(3a)'
 imt  = '(a, 100(i0, a))'
+jmt  = '(i0, a, i0)'
 rmt  = '(a, 100(es23.15, a))'
 rmt2 = '(a, l0, a, 100(es23.15, a))'
 lmt  = '(a, 100(l1, a))'
@@ -260,7 +266,6 @@ case ('branch1')
   nl=incr(nl); write (li(nl), amt) 'param.particle;SPECIES;T;',                 species_name(branch%param%particle)
   nl=incr(nl); write (li(nl), amt) 'param.default_tracking_species;SPECIES;T;', species_name(branch%param%default_tracking_species)
   nl=incr(nl); write (li(nl), imt) 'param.geometry;ENUM;T;',                    geometry_name(branch%param%geometry)
-  nl=incr(nl); write (li(nl), imt) 'param.ixx;INT;F;',                          branch%param%ixx
   nl=incr(nl); write (li(nl), lmt) 'param.stable;LOGIC;F;',                     branch%param%stable
 
 !----------------------------------------------------------------------
@@ -506,7 +511,7 @@ case ('data_create')
   u%n_d2_data_used = nn
   u%d2_data(nn)%ix_d2_data = nn
   u%d2_data(nn)%name = name
-  u%d2_data(nn)%ix_uni = iu
+  u%d2_data(nn)%ix_universe = iu
   if (allocated(u%d2_data(nn)%d1)) deallocate(u%d2_data(nn)%d1) ! Can happen if data has been destroyed.
   allocate (u%d2_data(nn)%d1(n_d1))
 
@@ -555,7 +560,7 @@ case ('data_d2')
   nl=incr(nl); write (li(nl), amt) 'ref_file_name;FILE;F;',                   d2_ptr%ref_file_name
   nl=incr(nl); write (li(nl), amt) 'data_date;STR;T;',                        d2_ptr%data_date
   nl=incr(nl); write (li(nl), amt) 'ref_date;STR;T;',                         d2_ptr%ref_date
-  nl=incr(nl); write (li(nl), imt) 'ix_uni;INT;F;',                           d2_ptr%ix_uni
+  nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                     d2_ptr%ix_universe
   nl=incr(nl); write (li(nl), imt) 'ix_data;INT;F;',                          d2_ptr%ix_data
   nl=incr(nl); write (li(nl), imt) 'ix_ref;INT;F;',                           d2_ptr%ix_ref
   nl=incr(nl); write (li(nl), lmt) 'data_read_in;LOGIC;F;',                   d2_ptr%data_read_in
@@ -659,7 +664,7 @@ case ('data')
   nl=incr(nl); write (li(nl), amt) 'data_source;STR;T;',                      d_ptr%data_source
   nl=incr(nl); write (li(nl), amt) 'eval_point;ENUM;T;',                      anchor_pt_name(d_ptr%eval_point)
   nl=incr(nl); write (li(nl), imt) 'ix_bunch;INT;T;',                         d_ptr%ix_bunch
-  nl=incr(nl); write (li(nl), imt) 'ix_branch;INT;T;',                        d_ptr%ix_branch
+  nl=incr(nl); write (li(nl), jmt) d_ptr%d1%d2%ix_universe, '^ix_branch;INUM;T;', d_ptr%ix_branch
   nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;T;',                           d_ptr%ix_ele
   nl=incr(nl); write (li(nl), imt) 'ix_ele_start;INT;T;',                     d_ptr%ix_ele_start
   nl=incr(nl); write (li(nl), imt) 'ix_ele_ref;INT;T;',                       d_ptr%ix_ele_ref
@@ -710,7 +715,7 @@ case ('ele:head')
   ele => point_to_ele(line, err); if (err) return
 
   nl=incr(nl); write (li(nl), imt) 'universe;INT;F;',                 u%ix_uni
-  nl=incr(nl); write (li(nl), imt) 'ix_branch;INT;F;',                ele%ix_branch
+  nl=incr(nl); write (li(nl), jmt) u%ix_uni, '^ix_branch;INUM;F;',    ele%ix_branch
   nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;F;',                   ele%ix_ele
   
   nl=incr(nl); write (li(nl), amt) 'key;INT;F;',                    key_name(ele%key)
@@ -1036,7 +1041,7 @@ case ('ele:cartesian_map:terms')
   call re_allocate_lines (size(ct_map%ptr%term) + 10)
   do i = 1, size(ct_map%ptr%term)
     ctt => ct_map%ptr%term(i)
-    nl=incr(nl); write (li(nl), '(i0, 7(a, es23.15), 4a)'), i, ';', &
+    nl=incr(nl); write (li(nl), '(i0, 7(a, es23.15), 4a)') i, ';', &
           ctt%coef, ';', ctt%kx, ';', ctt%ky, ';', ctt%kz, ';', ctt%x0, ';', ctt%y0, ';', ctt%phi_z, ';', &
           trim(cartesian_map_family_name(ctt%family)), ';', trim(cartesian_map_form_name(ctt%form))
   enddo
@@ -1108,7 +1113,7 @@ case ('ele:cylindrical_map:terms')
   call re_allocate_lines (size(cy_map%ptr%term) + 10)
   do i = 1, size(cy_map%ptr%term)
     cyt => cy_map%ptr%term(i)
-    nl=incr(nl); write (li(nl), '(i0, 7(a, es23.15))'), i, ';', &
+    nl=incr(nl); write (li(nl), '(i0, 7(a, es23.15))') i, ';', &
       real(cyt%e_coef), ';', imag(cyt%e_coef), ';', real(cyt%b_coef), ';', imag(cyt%b_coef)
   enddo
 
@@ -1484,39 +1489,59 @@ case ('ele:elec_multipoles')
 
 case ('enum')
 
-  name = upcase(line)
-  if (name == 'EVAL_POINT') name = 'ELE_ORIGIN'  ! Cheet since data%eval_point is not recognized by switch_attrib_value_name
-
-  if (index(name, '.COLOR') /= 0) then
+  if (index(line, '.color') /= 0) then
     do i = 1, size(qp_color_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_color_name(i))
     enddo
     return
   endif
 
-  if (name == 'LINE.PATTERN') then
+  if (line == 'line.pattern') then
     do i = 1, size(qp_line_pattern_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_line_pattern_name(i))
     enddo
     return
   endif
 
-  if (name == 'SYMBOL.FILL_PATTERN') then
+  if (line == 'symbol.fill_pattern') then
     do i = 1, size(qp_fill_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_fill_name(i))
     enddo
     return
   endif
 
-  if (name == 'SYMBOL.TYPE') then
+  if (line == 'symbol.type') then
     do i = 1, size(qp_symbol_type_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_symbol_type_name(i))
     enddo
     return
   endif
 
+  if (line == 'x_axis_type') then
+    do i = 1, size(x_axis_type_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(x_axis_type_name(i))
+    enddo
+    return
+  endif
+
+  if (line == 'graph^type') then
+    do i = 1, size(graph_type_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(graph_type_name(i))
+    enddo
+    return
+  endif
+
+  if (line == 'floor_plan_view_name') then
+    do i = 1, size(floor_plan_view_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(floor_plan_view_name(i))
+    enddo
+    return
+  endif
 
   !
+
+  name = upcase(line)
+  if (name == 'EVAL_POINT') name = 'ELE_ORIGIN'  ! Cheet since data%eval_point is not recognized by switch_attrib_value_name
 
   a_name = switch_attrib_value_name(name, 1.0_rp, this_ele, name_list = name_list)
   if (.not. allocated(name_list)) then
@@ -1617,6 +1642,36 @@ case ('help')
   li(1:nl) = name1(1:nl)
   li(nl+1:nl+nl2) = name2(1:nl2)
   nl = nl + nl2
+
+!----------------------------------------------------------------------
+! INUM
+! Command syntax:
+!   python inum <who>
+
+case ('inum')
+
+  ix = index(line, '^')
+  if (ix /= 0) then
+    head = line(:ix-1)
+    line = line(ix+1:)
+  endif
+
+  select case (line)
+  case ('ix_branch')
+    read (head, *) ix
+    u => s%u(ix)
+    do i = 0, size(u%design%lat%branch)
+      nl=incr(nl); write (li(nl), '(i0)') i
+    enddo
+
+  case ('ix_universe')
+    do i = 1, ubound(s%u, 1)
+      nl=incr(nl); write (li(nl), '(i0)') i
+    enddo
+
+  case default
+    call invalid ('Not a recognized inum')
+  end select
 
 !----------------------------------------------------------------------
 ! ********* NOTE: COLWIN IS USING THIS!! *************
@@ -1945,7 +2000,7 @@ case ('plot_graph')
   enddo
 
   nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             g%name
-  nl=incr(nl); write (li(nl), amt) 'type;STR;T;',                             g%type
+  nl=incr(nl); write (li(nl), amt) 'graph^type;ENUM;T;',                      g%type
   nl=incr(nl); write (li(nl), amt) 'title;STR;T;',                            g%title
   nl=incr(nl); write (li(nl), amt) 'title_suffix;STR;F;',                     g%title_suffix
   nl=incr(nl); write (li(nl), amt) 'component;STR;T;',                        g%component
@@ -1955,10 +2010,10 @@ case ('plot_graph')
   nl=incr(nl); write (li(nl), rmt) 'x_axis_scale_factor;REAL;T;',             g%x_axis_scale_factor
   nl=incr(nl); write (li(nl), rmt) 'symbol_size_scale;REAL;T;',               g%symbol_size_scale
   nl=incr(nl); write (li(nl), rmt) 'floor_plan_rotation;REAL;T;',             g%floor_plan_rotation
-  nl=incr(nl); write (li(nl), lmt) 'floor_plan_flip_axis_side;LOGIC;T;',      g%floor_plan_flip_label_side
+  nl=incr(nl); write (li(nl), lmt) 'floor_plan_flip_label_side;LOGIC;T;',     g%floor_plan_flip_label_side
   nl=incr(nl); write (li(nl), rmt) 'floor_plan_orbit_scale;REAL;T;',          g%floor_plan_orbit_scale
-  nl=incr(nl); write (li(nl), imt) 'ix_branch;INT;T;',                        g%ix_branch
-  nl=incr(nl); write (li(nl), imt) 'ix_universe;INT;T;',                      g%ix_universe
+  nl=incr(nl); write (li(nl), jmt) g%ix_universe, '^ix_branch;INUM;T;',       g%ix_branch
+  nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                     g%ix_universe
   nl=incr(nl); write (li(nl), lmt) 'clip;LOGIC;T;',                           g%clip
   nl=incr(nl); write (li(nl), lmt) 'valid;LOGIC;F;',                          g%valid
   nl=incr(nl); write (li(nl), lmt) 'y2_mirrors_y;LOGIC;T;',                   g%y2_mirrors_y
@@ -2028,9 +2083,9 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               cur%s
   nl=incr(nl); write (li(nl), rmt) 'z_color0;REAL;T;',                        cur%z_color0
   nl=incr(nl); write (li(nl), rmt) 'z_color1;REAL;T;',                        cur%z_color1
-  nl=incr(nl); write (li(nl), imt) 'ix_universe;INT;T;',                      cur%ix_universe
+  nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                     cur%ix_universe
   nl=incr(nl); write (li(nl), imt) 'symbol_every;INT;T;',                     cur%symbol_every
-  nl=incr(nl); write (li(nl), imt) 'ix_branch;INT;T;',                        cur%ix_branch
+  nl=incr(nl); write (li(nl), jmt) cur%ix_universe, 'ix_branch;INUM;T;',      cur%ix_branch
   nl=incr(nl); write (li(nl), imt) 'ix_ele_ref;INT;T;',                       cur%ix_ele_ref
   nl=incr(nl); write (li(nl), imt) 'ix_ele_ref_track;INT;T;',                 cur%ix_ele_ref_track
   nl=incr(nl); write (li(nl), imt) 'ix_bunch;INT;T;',                         cur%ix_bunch
@@ -2194,13 +2249,11 @@ case ('plot1')
 
   nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             p%name
   nl=incr(nl); write (li(nl), amt) 'description;STR;T;',                      p%description
-  nl=incr(nl); write (li(nl), amt) 'x_axis_type;STR;T;',                      p%x_axis_type
+  nl=incr(nl); write (li(nl), amt) 'x_axis_type;ENUM;T;',                     p%x_axis_type
   nl=incr(nl); write (li(nl), lmt) 'autoscale_x;LOGIC;T;',                    p%autoscale_x
   nl=incr(nl); write (li(nl), lmt) 'autoscale_y;LOGIC;T;',                    p%autoscale_y
   nl=incr(nl); write (li(nl), lmt) 'autoscale_gang_x;LOGIC;T;',               p%autoscale_gang_x
   nl=incr(nl); write (li(nl), lmt) 'autoscale_gang_y;LOGIC;T;',               p%autoscale_gang_y
-  nl=incr(nl); write (li(nl), lmt) 'list_with_show_plot_command;LOGIC;T;',    p%list_with_show_plot_command
-  nl=incr(nl); write (li(nl), lmt) 'phantom;LOGIC;T;',                        p%phantom
   nl=incr(nl); write (li(nl), imt) 'n_curve_pts;INT;T;',                      p%n_curve_pts
 
 !----------------------------------------------------------------------
@@ -2280,7 +2333,7 @@ case ('universe')
 
   u => point_to_uni(line, .false., err); if (err) return
   
-  nl=incr(nl); write (li(nl), imt) 'ix_uni;INT;F;',                           u%ix_uni
+  nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;F;',                     u%ix_uni
   nl=incr(nl); write (li(nl), imt) 'n_d2_data_used;INT;F;',                   u%n_d2_data_used
   nl=incr(nl); write (li(nl), imt) 'n_data_used;INT;F;',                      u%n_data_used
   nl=incr(nl); write (li(nl), lmt) 'reverse_tracking;LOGIC;T;',               u%reverse_tracking
@@ -2970,7 +3023,7 @@ if (err .or. .not. allocated(d2_array)) then
 endif
 
 d2_ptr => d2_array(1)%d2
-u => s%u(d2_ptr%ix_uni)
+u => s%u(d2_ptr%ix_universe)
 ix_d2 = d2_ptr%ix_d2_data
 
 d1_ptr => d2_ptr%d1(1)

@@ -900,7 +900,7 @@ case ('data')
     d_ptr => d_array(1)%d
     nl=nl+1; lines(nl) = ''
     if (size(s%u) > 1) then
-      nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', d_ptr%d1%d2%ix_uni, '  of: ', ubound(s%u, 1)
+      nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', d_ptr%d1%d2%ix_universe, '  of: ', ubound(s%u, 1)
     endif
     nl=nl+1; write(lines(nl), amt)    '%ele_name          = ', quote(d_ptr%ele_name)
     nl=nl+1; write(lines(nl), amt)    '%ele_start_name    = ', quote(d_ptr%ele_start_name)
@@ -950,14 +950,14 @@ case ('data')
                                       d_ptr%useit_opt, tao_optimization_status(d_ptr)
 
     if (d_ptr%exists) then
-      u => s%u(d_ptr%d1%d2%ix_uni)
+      u => s%u(d_ptr%d1%d2%ix_universe)
       call tao_evaluate_a_datum (d_ptr, u, u%model, val, valid_value, why_invalid)
       if (.not. valid_value) then
         nl=nl+1; lines(nl) = 'Model value is invalid since: ' // why_invalid
       endif
     endif
 
-    if (d_ptr%d1%d2%name(1:4) == 'ping') call show_ping(d_ptr%d1%d2%ix_uni)
+    if (d_ptr%d1%d2%name(1:4) == 'ping') call show_ping(d_ptr%d1%d2%ix_universe)
 
   ! Else show the d1_data info.
 
@@ -965,7 +965,7 @@ case ('data')
 
     d1_ptr => d1_array(1)%d1
     if (size(s%u) > 1) then
-      nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', d1_ptr%d2%ix_uni, '  of: ', ubound(s%u, 1)
+      nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', d1_ptr%d2%ix_universe, '  of: ', ubound(s%u, 1)
     endif
     
     nl=nl+1; write(lines(nl), '(2a)') 'Data name: ', trim(d1_ptr%d2%name) // '.' // d1_ptr%name
@@ -1032,7 +1032,7 @@ case ('data')
     nl=nl+1; lines(nl) = line2
     nl=nl+1; lines(nl) = line1
 
-    if (d1_ptr%d2%name(1:4) == 'ping') call show_ping(d1_ptr%d2%ix_uni)
+    if (d1_ptr%d2%name(1:4) == 'ping') call show_ping(d1_ptr%d2%ix_universe)
 
   ! else if a single d2 structure
 
@@ -1074,7 +1074,7 @@ case ('data')
       enddo
     endif
 
-    if (d2_ptr%name(1:4) == 'ping') call show_ping(d2_ptr%ix_uni)
+    if (d2_ptr%name(1:4) == 'ping') call show_ping(d2_ptr%ix_universe)
 
   ! Else several d2 structures
 
@@ -1091,7 +1091,7 @@ case ('data')
       call tao_data_show_use (d2_ptr, lines, nl)
     enddo
 
-    if (found) call show_ping (d2_ptr%ix_uni)
+    if (found) call show_ping (d2_ptr%ix_universe)
 
   ! error
 
@@ -1161,7 +1161,7 @@ case ('derivative')
     do iv = 1, size(v_array)
       d_ptr => d_array(id)%d
       v_ptr => v_array(iv)%v
-      u => s%u(d_ptr%d1%d2%ix_uni)
+      u => s%u(d_ptr%d1%d2%ix_universe)
       jd = d_ptr%ix_dmodel
       jv = v_ptr%ix_dvar
       if (jd > 0 .and. jv > 0) then

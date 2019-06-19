@@ -513,8 +513,8 @@ if (present(int_array) .and.  any(component_name == integer_components)) then
         int_array(j)%i => d1%d(i)%ix_ele_ref
       case ('ix_d1')
         int_array(j)%i => d1%d(i)%ix_d1
-      case ('ix_uni')
-        int_array(j)%i => d1%d(i)%d1%d2%ix_uni
+      case ('ix_uni', 'ix_universe')
+        int_array(j)%i => d1%d(i)%d1%d2%ix_universe
       case ('eval_point')
         int_array(j)%i => d1%d(i)%eval_point
       case default

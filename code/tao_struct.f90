@@ -175,6 +175,11 @@ type tao_curve_struct
   logical :: autoscale_z_color = .true.  ! Set %z_color0, %z_color1 automatically to the limits of %data_type_z
 end type
 
+character(20), parameter :: graph_type_name(5) = [character(20):: 'data', 'lat_layout', &
+                                                       'phase_space', 'histogram', 'dynamic_aperture']
+
+character(2), parameter :: floor_plan_view_name(6) = [character(2):: 'xy', 'xz', 'yx', 'yz', 'zx', 'zy']
+
 ! A graph is a collection of overlayed curves with associated graph title, etc.
 ! For example a graph could contain just the horizontal orbit or could
 ! contain both overlayed horizontal and vertical orbits.
@@ -225,6 +230,9 @@ end type
 ! For example a plot could contain three graphs. One for Cbar11, 
 ! One for Cbar12, and one for Cbar22.
 
+character(16), parameter :: x_axis_type_name(12) = [character(16):: 'index', 'ele_index', 'lat', 'var', &
+                                   'ele_index', 's', 'none', 'floor', 'phase_space', 'histogram', 'data', 'floor']
+
 type tao_plot_struct
   character(40) :: name = ' '                      ! Identifying name
   character(100) :: description = ''               ! Descriptive string.
@@ -233,7 +241,7 @@ type tao_plot_struct
   type (tao_plot_region_struct), pointer :: r => null() ! pointer to parent.
   integer :: n_curve_pts = -1                      ! Overrides s%plot_page%n_curve_pts.
   character(8) :: type = 'normal'                  ! or 'wave'
-  character(16) :: x_axis_type = ''                ! 'index', 'ele_index', 's', 'none', 'floor', or 'phase_space'
+  character(16) :: x_axis_type = ''                ! 'index', 'ele_index', 's', 'none', 'floor', 'phase_space', etc.
   logical :: autoscale_x = .false.                 ! Horizontal autoscale.
   logical :: autoscale_y = .false.                 ! Vertical autoscale.
   logical :: autoscale_gang_x = .true.             ! scale cmd scales graphs together?
@@ -401,7 +409,7 @@ type tao_d2_data_struct
   character(24) :: ref_date = ''         ! Reference data measurement date.
   character(80) :: descrip(10) = ''      ! Array for descriptive information.
   type (tao_d1_data_struct), allocatable :: d1(:) ! Points to children 
-  integer ix_uni                         ! Index of universe this is in.
+  integer ix_universe                    ! Index of universe this is in.
   integer ix_d2_data                     ! Index in u%d2_data(:) array.
   integer ix_data                        ! Index of the data set.
   integer ix_ref                         ! Index of the reference data set. 

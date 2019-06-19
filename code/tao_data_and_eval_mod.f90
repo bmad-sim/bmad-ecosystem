@@ -1510,8 +1510,8 @@ case ('expression:')
       call tao_find_data (err, datum%stack(i)%name, d_array = d_array, print_err = .false.)
       if (err .or. size(d_array) == 0) cycle  ! Err -> This is not associated then not a datum.
       dp => d_array(1)%d
-      if (dp%d1%d2%ix_uni < u%ix_uni) cycle ! OK
-      if (dp%d1%d2%ix_uni == u%ix_uni .and. dp%ix_data < datum%ix_data) cycle
+      if (dp%d1%d2%ix_universe < u%ix_uni) cycle ! OK
+      if (dp%d1%d2%ix_universe == u%ix_uni .and. dp%ix_data < datum%ix_data) cycle
       call out_io (s_error$, r_name, 'DATUM: ' // tao_datum_name(datum), &
                       'WHICH IS OF TYPE EXPRESSION:' // datum%data_type(12:), &
                       'THE EXPRESSION HAS A COMPONENT: ' // datum%stack(i)%name, &
@@ -4389,7 +4389,7 @@ if (size(re_array) /= 0) then
   stack%scale =  1
 
   if (index(name, 'ping_a.') /= 0 .and. index(name, 'ping_a.phase') == 0) then
-    ix_uni = d_array(1)%d%d1%d2%ix_uni
+    ix_uni = d_array(1)%d%d1%d2%ix_universe
     if (index(name, '|meas') /= 0) then
       stack%scale = s%u(ix_uni)%ping_scale%a_mode_meas
     elseif (index(name, '|ref') /= 0) then
@@ -4398,7 +4398,7 @@ if (size(re_array) /= 0) then
   endif
 
   if (index(name, 'ping_b.') /= 0 .and. index(name, 'ping_b.phase') == 0) then
-    ix_uni = d_array(1)%d%d1%d2%ix_uni
+    ix_uni = d_array(1)%d%d1%d2%ix_universe
     if (index(name, '|meas') /= 0) then
       stack%scale = s%u(ix_uni)%ping_scale%b_mode_meas
     elseif (index(name, '|ref') /= 0) then

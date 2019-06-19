@@ -539,7 +539,7 @@ do j = n1, n2
 
   if (dat%data_type(1:9)  == 'normal.h.') then
     if(dat%data_source == 'lat') then
-      if (dat%ix_branch /= 0 .or. dat%d1%d2%ix_uni /= 1) then
+      if (dat%ix_branch /= 0 .or. dat%d1%d2%ix_universe /= 1) then
         call out_io (s_fatal$, r_name, 'EVALUATING A DATUM OF TYPE: ' // dat%data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
         call err_exit
       endif
@@ -738,7 +738,7 @@ endif
 d2 => u%d2_data(nn)
 
 d2%name = d2_name
-d2%ix_uni = u%ix_uni
+d2%ix_universe = u%ix_uni
 
 ! allocate memory for the u%d1_data structures
 
