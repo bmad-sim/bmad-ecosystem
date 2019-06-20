@@ -23,8 +23,8 @@ character(16), parameter :: qp_line_pattern_name(5) = ['solid    ', &
 integer, parameter :: solid_fill$ = 1, no_fill$ = 2
 integer, parameter :: hatched$ = 3, cross_hatched$ = 4
 
-character(16), parameter :: qp_fill_name(4) = ['solid_fill   ', 'no_fill      ', &
-                                      'hatched      ', 'cross_hatched' ]
+character(16), parameter :: qp_symbol_fill_pattern_name(4) = [character(16):: 'solid_fill', &
+                                                          'no_fill', 'hatched', 'cross_hatched' ]
 
 integer, parameter :: square_sym$ = 0, dot_sym$ = 1, plus_sym$ = 2, times_sym$ = 3
 integer, parameter :: circle_sym$ = 4, x_symbol_sym$ = 5, triangle_sym$ = 7
