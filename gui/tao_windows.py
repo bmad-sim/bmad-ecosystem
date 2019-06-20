@@ -1,4 +1,5 @@
 import tkinter as tk
+import ttk
 from tkinter import messagebox
 from tkinter import filedialog
 import sys
@@ -498,21 +499,19 @@ class tao_plot_t_window(tao_list_window):
 
     self.temp = tk.StringVar()
     self.temp.set(self.temp_list[0])
-    #self.temp_select = tk.OptionMenu(self.temp_frame, self.temp, *self.temp_list)
-    import ttk
     self.temp_select = ttk.Combobox(self.temp_frame, textvariable=self.temp, values=self.temp_list)
-    self.temp_select.bind("<<ComboboxSelected>>", self.apply)
-    self.temp_select.bind("<Return>", self.apply)
+    self.temp_select.bind("<<ComboboxSelected>>", self.refresh)
+    self.temp_select.bind("<Return>", self.refresh)
     self.temp_select.grid(row=0, column=1)
 
-    self.apply()
+    self.refresh()
 
     self.button_frame = tk.Frame(self)
     self.button_frame.pack(fill="both", expand=0)
     b = tk.Button(self.button_frame, text="Apply changes", command=self.plot_apply)
     b.pack()
 
-  def apply(self, event=None):
+  def refresh(self, event=None):
     '''
     Clears self.list_frame and populates it with information relevant to self.temp
     '''
@@ -698,6 +697,11 @@ class tao_ele_window(tk.Toplevel):
     self.b_name_list = {} # b_name_list[i] is a list of branch names in universe i
     self.e_list = {} #e_list[i][j] is a range from 0 to the max element number
     self.e_name_list = {} #e_name_list[i][j] is a list of ele names in branch j of uni i
+    self.e_display_list = {} # indexed the same as e_list and e_name_list, but for displaying the number and name
+    # There are three separate lists for the elements because
+    # users can specify elements by name, by number,
+    # or by selecting from a dropdown, which displays
+    # the name and number
     for i in range(n_uni):
       self.u_list.append(str(i+1))
 
@@ -707,6 +711,7 @@ class tao_ele_window(tk.Toplevel):
       self.b_name_list[u] = []
       self.e_list[u] = {}
       self.e_name_list[u] = {}
+      self.e_display_list[u] = {}
       for i in range(len(self.b_list[u])):
         branch_num = self.b_list[u][i].split(';')[0]
         branch_name = self.b_list[u][i].split(';')[1]
@@ -714,10 +719,13 @@ class tao_ele_window(tk.Toplevel):
         self.b_list[u][i] = branch_num
         self.b_name_list[u].append('(' + branch_num + ') ' + branch_name)
         self.e_list[u][branch_num] = range(ele_num+1)
+        self.e_display_list[u][branch_num] = []
         ele_names = self.pipe.cmd_in("python lat_ele_list " + u + '@' + branch_num)
         ele_names = ele_names.splitlines()
         for j in range(len(ele_names)):
           ele_names[j] = ele_names[j].split(';')[1]
+          display_name = '(' + str(j) + ') ' + ele_names[j]
+          self.e_display_list[u][branch_num].append(display_name)
         self.e_name_list[u][branch_num] = ele_names
 
     # Set up frames to structure the window
@@ -751,11 +759,19 @@ class tao_ele_window(tk.Toplevel):
       self.ele.set('0')
       self.bmd.set("Base")
     self.branch_name.set(self.b_name_list[self.uni.get()][0])
+    try: # in case self.ele was set by name and not by index
+      ele_num = int(self.ele.get())
+      self.ele.set(self.e_display_list[self.uni.get()][self.branch.get()][ele_num])
+    except ValueError:
+      pass
     self.ele_label.set("Element (0 to " + str(self.e_list[self.uni.get()][self.branch.get()][-1]) + ")")
 
     self.uni_chooser = tk.OptionMenu(self.top_frame, self.uni, *self.u_list, command=self.make_branch)
-    self.branch_chooser = tk.OptionMenu(self.top_frame, self.branch_name, *self.b_name_list[self.uni.get()])
-    self.ele_chooser = tk.Entry(self.top_frame, textvariable=self.ele)
+    self.branch_chooser = tk.OptionMenu(self.top_frame, self.branch_name, *self.b_name_list[self.uni.get()], command=self.make_ele_chooser)
+    #self.ele_chooser = tk.Entry(self.top_frame, textvariable=self.ele)
+    self.ele_chooser = ttk.Combobox(self.top_frame, textvariable=self.ele, values=self.e_display_list[self.uni.get()][self.branch.get()])
+    self.ele_chooser.bind("<<ComboboxSelected>>", self.refresh)
+    self.ele_chooser.bind("<Return>", self.refresh)
     self.bmd_chooser = tk.OptionMenu(self.top_frame, self.bmd, "Base", "Model", "Design")
 
     self.uni_chooser.grid(row=1, column=0, sticky='EW')
@@ -773,18 +789,33 @@ class tao_ele_window(tk.Toplevel):
     universe you are in
     '''
     self.branch_chooser.destroy()
-    self.branch_chooser = tk.OptionMenu(self.top_frame, self.branch_name, *self.b_name_list[self.uni.get()])
+    self.branch_chooser = tk.OptionMenu(self.top_frame, self.branch_name, *self.b_name_list[self.uni.get()], command=self.make_ele_chooser)
     self.branch.set(self.b_list[self.uni.get()][0])
     self.branch_name.set(self.b_name_list[self.uni.get()][0])
-    self.ele_label.set("Element (0 to " + str(self.e_list[self.uni.get()][self.branch.get()][-1]) + ")")
     self.branch_chooser.grid(row=1, column=1, sticky='EW')
+    self.make_ele_chooser()
 
-  def refresh(self):
+  def make_ele_chooser(self, event=None):
+    '''
+    This is necessary because different branches
+    have different lists of elements to display
+    '''
+    self.ele_chooser.destroy()
+    self.ele_chooser = ttk.Combobox(self.top_frame, textvariable=self.ele, values=self.e_display_list[self.uni.get()][self.branch.get()])
+    self.ele_chooser.bind("<<ComboboxSelected>>", self.refresh)
+    self.ele_chooser.bind("<Return>", self.refresh)
+    self.ele_label.set("Element (0 to " + str(self.e_list[self.uni.get()][self.branch.get()][-1]) + ")")
+    # set self.ele to element 0 in the first branch
+    self.ele.set(self.e_display_list[self.uni.get()][self.branch.get()][0])
+    self.ele_chooser.grid(row=1, column=2, sticky='EW')
+
+  def refresh(self, event=None):
     '''
     This is where most of the element information is actually created
     '''
     # Make sure the element field has an actual element in it
-    if self.ele.get() not in self.e_name_list[self.uni.get()][self.branch.get()]:
+    if (self.ele.get() not in self.e_name_list[self.uni.get()][self.branch.get()]) \
+        & (self.ele.get() not in self.e_display_list[self.uni.get()][self.branch.get()]):
       try:
         if int(self.ele.get()) not in self.e_list[self.uni.get()][self.branch.get()]:
           messagebox.showwarning("Error", "Element not found")
@@ -794,9 +825,12 @@ class tao_ele_window(tk.Toplevel):
         return
 
     # Set self.ele, in case the element
-    # was specified by name
+    # was specified by name or display name
     if self.ele.get() in self.e_name_list[self.uni.get()][self.branch.get()]:
       ele_num = self.e_name_list[self.uni.get()][self.branch.get()].index(self.ele.get())
+      self.ele.set(str(ele_num))
+    elif self.ele.get() in self.e_display_list[self.uni.get()][self.branch.get()]:
+      ele_num = self.e_display_list[self.uni.get()][self.branch.get()].index(self.ele.get())
       self.ele.set(str(ele_num))
 
     # Clear existing window contents
@@ -811,13 +845,44 @@ class tao_ele_window(tk.Toplevel):
     # Populate self.head_frame
     self.head_tk_tao_params = []
     for p in self.element.params.keys():
-      self.head_tk_tao_params.append(tk_tao_parameter(self.element.params[p], self.head_frame, self.pipe))
+      self.element.params[p] = tk_tao_parameter(self.element.params[p], self.head_frame, self.pipe)
+      if self.element.params[p].param.can_vary:
+        self.head_tk_tao_params.append(self.element.params[p])
+    #name = tk.Label(self.head_frame, text=self.element.params["name"].param.value)
+    name = tk.Label(self.head_frame, text="NAME GOES HERE")
+    name.grid(row=0, column = 0, columnspan = 4)
 
-    i = 0
-    for item in self.head_tk_tao_params:
-      item.tk_label.grid(row=i, column=0)
-      item.tk_wid.grid(row=i, column=1)
-      i = i+1
+    #Fixed parameters
+    tk.Label(self.head_frame, text="Key").grid(row=1, column=0)
+    self.element.params["key"].tk_wid.grid(row=1, column=1)
+    tk.Label(self.head_frame, text="s").grid(row=2, column=0)
+    self.element.params["s"].tk_wid.grid(row=2, column=1)
+    tk.Label(self.head_frame, text="s_start").grid(row=3, column=0)
+    self.element.params["s_start"].tk_wid.grid(row=3, column=1)
+    tk.Label(self.head_frame, text="Ref time").grid(row=4, column=0)
+    self.element.params["ref_time"].tk_wid.grid(row=4, column=1)
+
+    #Variable parameters
+    tk.Label(self.head_frame, text="Type").grid(row=1, column=2)
+    self.element.params["type"].tk_wid.grid(row=1, column=3)
+    tk.Label(self.head_frame, text="Alias").grid(row=2, column=2)
+    self.element.params["alias"].tk_wid.grid(row=2, column=3)
+    tk.Label(self.head_frame, text="Description").grid(row=3, column=2)
+    self.element.params["descrip"].tk_wid.grid(row=3, column=3)
+    tk.Label(self.head_frame, text="is_on").grid(row=4, column=2)
+    self.element.params["is_on"].tk_wid.grid(row=4, column=3)
+    #self.head_tk_tao_params = []
+    #for p in self.element.params.keys():
+    #  self.head_tk_tao_params.append(tk_tao_parameter(self.element.params[p], self.head_frame, self.pipe))
+
+    #i = 0
+    #for item in self.head_tk_tao_params:
+    #  item.tk_label.grid(row=i, column=0)
+    #  item.tk_wid.grid(row=i, column=1)
+    #  i = i+1
+
+    # Reset self.ele to be the display name
+    self.ele.set(self.e_display_list[self.uni.get()][self.branch.get()][int(self.ele.get())])
 
 
 

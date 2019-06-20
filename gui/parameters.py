@@ -33,6 +33,8 @@ class tao_parameter():
       self.value = param_value
     elif param_type == 'FILE':
       self.value = param_value
+    elif param_type == 'DAT_TYPE':
+      self.value = param_value
     elif param_type == 'INT':
       try:
         self.value = int(param_value)
@@ -47,6 +49,8 @@ class tao_parameter():
       self.value = (param_value == 'T')
     elif param_type == 'ENUM':
       self.value = param_value
+    elif param_type == 'INUM':
+      self.value = int(param_value)
     else:
       print ('UNKNOWN PARAMETER TYPE: ' + param_type)
 
