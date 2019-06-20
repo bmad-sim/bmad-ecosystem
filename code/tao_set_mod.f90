@@ -1124,6 +1124,9 @@ case ('ele_ref_name')
   this_curve%ix_ele_ref = eles(1)%ele%ix_ele
   this_curve%ix_branch  = eles(1)%ele%ix_branch
   call tao_ele_to_ele_track (i_uni, i_branch, this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
+
+case ('name')
+  this_curve%name = value_str
   
 case ('ix_ele_ref')
   call tao_set_integer_value (this_curve%ix_ele_ref, component, &

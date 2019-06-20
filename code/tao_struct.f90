@@ -129,12 +129,14 @@ type tao_histogram_struct
   integer :: number = 0
 end type
 
+character(8), parameter :: data_source_name(4) = ['lat', 'beam', 'data', 'var']
+
 ! A curve is defined by a set of (x,y) points and the axis parameters.
 ! for example the horizontal orbit is one curve.
 
 type tao_curve_struct
   character(40) :: name = ''             ! Name identifying the curve.
-  character(40) :: data_source  = ''     ! 'lat', 'data' (deprecated: 'dat'), 'var', etc.
+  character(40) :: data_source  = ''     ! 'lat', 'beam', 'data' (deprecated: 'dat'), 'var'
   character(100) :: data_index  = ''     ! Used for calculating %ix_symb(:).
   character(100) :: data_type_x = ''     ! Used for data slices and phase space plots.
   character(100) :: data_type_z = ''     ! Used for data phase space plots.

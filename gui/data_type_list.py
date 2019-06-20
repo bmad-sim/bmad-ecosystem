@@ -1,4 +1,5 @@
 data_type_list = []
+data_type_list.append({'name': ''})
 data_type_list.append({'name': 'alpha.<enum>', '<enum>': ['a', 'b', 'z']})
 data_type_list.append({'name': 'apparent_emit.<enum>', '<enum>': ['x', 'y']})
 data_type_list.append({'name': 'norm_apparent_emit.<enum>', '<enum>': ['x', 'y']})
