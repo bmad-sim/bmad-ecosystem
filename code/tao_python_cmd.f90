@@ -2688,7 +2688,7 @@ character(*) line
 character(*), optional :: which, who
 
 
-err = .false.
+err = .true.
 nullify(tao_lat)
 
 call string_trim(line, line, ix)
@@ -2709,11 +2709,14 @@ case ('base')
 case ('design')
   tao_lat => u%design
 case default
-  call invalid ('Expecting "|<{hich}" where {which} must be one of "model", "base", or "design"')
+  call invalid ('Expecting "|<{which}" where {which} must be one of "model", "base", or "design"')
+  return
 end select
 
 if (present(which)) which = line(ix+1:)
 line = line(1:ix-1)
+
+err = .false.
 
 end function point_to_tao_lat
 
@@ -2734,6 +2737,7 @@ call lat_ele_locator (line, tao_lat%lat, eles, n_loc)
 
 if (n_loc /= 1) then
   call invalid ('Cannot locate element.')
+  return
 endif
 
 ele => eles(1)%ele
