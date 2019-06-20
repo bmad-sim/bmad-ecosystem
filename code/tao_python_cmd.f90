@@ -15,6 +15,7 @@
 !   ENUM        ! String whose allowed values can be obtained using the "python enum" command.
 !   FILE        ! Name of file.
 !   CRYSTAL     ! Crystal name string. EG: "Si(111)"
+!   DAT_TYPE    ! Data type string. EG: "orbit.x"
 !   SPECIES     ! Species name string. EG: "H2SO4++"
 !   ELE_PARAM   ! Lattice element parameter string. EG "K1"
 !   STR         ! String that does not fall into one of the above string categories.
@@ -265,7 +266,7 @@ case ('branch1')
   nl=incr(nl); write (li(nl), rmt) 'param.unstable_factor;REAL;F;',             branch%param%unstable_factor
   nl=incr(nl); write (li(nl), amt) 'param.particle;SPECIES;T;',                 species_name(branch%param%particle)
   nl=incr(nl); write (li(nl), amt) 'param.default_tracking_species;SPECIES;T;', species_name(branch%param%default_tracking_species)
-  nl=incr(nl); write (li(nl), imt) 'param.geometry;ENUM;T;',                    geometry_name(branch%param%geometry)
+  nl=incr(nl); write (li(nl), amt) 'param.geometry;ENUM;T;',                    geometry_name(branch%param%geometry)
   nl=incr(nl); write (li(nl), lmt) 'param.stable;LOGIC;F;',                     branch%param%stable
 
 !----------------------------------------------------------------------
@@ -659,9 +660,9 @@ case ('data')
   nl=incr(nl); write (li(nl), amt) 'ele_name;STR;T;',                         d_ptr%ele_name
   nl=incr(nl); write (li(nl), amt) 'ele_start_name;STR;T;',                   d_ptr%ele_start_name
   nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     d_ptr%ele_ref_name
-  nl=incr(nl); write (li(nl), amt) 'data_type;STR;T;',                        d_ptr%data_type
+  nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   d_ptr%data_type
   nl=incr(nl); write (li(nl), amt) 'merit_type;STR;T;',                       d_ptr%merit_type
-  nl=incr(nl); write (li(nl), amt) 'data_source;STR;T;',                      d_ptr%data_source
+  nl=incr(nl); write (li(nl), amt) 'data^data_source;ENUM;T;',                d_ptr%data_source
   nl=incr(nl); write (li(nl), amt) 'eval_point;ENUM;T;',                      anchor_pt_name(d_ptr%eval_point)
   nl=incr(nl); write (li(nl), imt) 'ix_bunch;INT;T;',                         d_ptr%ix_bunch
   nl=incr(nl); write (li(nl), jmt) d_ptr%d1%d2%ix_universe, '^ix_branch;INUM;T;', d_ptr%ix_branch
@@ -1538,6 +1539,12 @@ case ('enum')
     return
   endif
 
+  if (line == 'data^data_source') then
+    nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', 'lat'
+    nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', 'beam'
+    return
+  endif
+
   !
 
   name = upcase(line)
@@ -2071,9 +2078,9 @@ case ('plot_curve')
 
   nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             cur%name
   nl=incr(nl); write (li(nl), amt) 'data_source;STR;T;',                      cur%data_source
-  nl=incr(nl); write (li(nl), amt) 'data_type_x;STR;T;',                      cur%data_type_x
+  nl=incr(nl); write (li(nl), amt) 'data_type_x;DAT_TYPE;T;',                 cur%data_type_x
   nl=incr(nl); write (li(nl), amt) 'data_type_z;STR;T;',                      cur%data_type_z
-  nl=incr(nl); write (li(nl), amt) 'data_type;STR;T;',                        cur%data_type
+  nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   cur%data_type
   nl=incr(nl); write (li(nl), amt) 'component;STR;T;',                        cur%component
   nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     cur%ele_ref_name
   nl=incr(nl); write (li(nl), amt) 'legend_text;STR;T;',                      cur%legend_text

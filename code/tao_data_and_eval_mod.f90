@@ -1449,7 +1449,7 @@ case ('etap.')
 
 !-----------
 
-case ('expression:')
+case ('expression:', 'expression.')
   ! The point here is that tao_evaluate_stack is much quicker than tao_evaluate_expression.
   ! So on the fist time through, construct datum%stack and for subsequent times, use
   ! datum%stack with tao_evaluate_stack.
@@ -2372,99 +2372,99 @@ case ('rad_int.')
   if (data_source == 'beam') goto 9000  ! Set error message and return
   if (.not. allocated(rad_int_branch%ele)) return
 
-  select case (datum%data_type(9:))
-  case ('i0')
+  select case (datum%data_type)
+  case ('rad_int.i0')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i0)
     else
       datum_value = tao_branch%modes%synch_int(0)
     endif
 
-  case ('i1')
+  case ('rad_int.i1')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i1)
     else
       datum_value = tao_branch%modes%synch_int(1)
     endif
 
-  case ('i2')
+  case ('rad_int.i2')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i2)
     else
       datum_value = tao_branch%modes%synch_int(2)
     endif
 
-  case ('i2_e4')
+  case ('rad_int.i2_e4')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%lin_i2_e4)
     else
       datum_value = tao_branch%modes%lin%i2_e4
     endif
 
-  case ('i3')
+  case ('rad_int.i3')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i3)
     else
       datum_value = tao_branch%modes%synch_int(3)
     endif
 
-  case ('i3_e7')
+  case ('rad_int.i3_e7')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%lin_i3_e7)
     else
       datum_value = tao_branch%modes%lin%i3_e7
     endif
 
-  case ('i4a')
+  case ('rad_int.i4a')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i4a)
     else
       datum_value = tao_branch%modes%a%synch_int(4)
     endif
 
-  case ('i4b')
+  case ('rad_int.i4b')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i4b)
     else
       datum_value = tao_branch%modes%b%synch_int(4)
     endif
 
-  case ('i4z')
+  case ('rad_int.i4z')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i4z)
     else
       datum_value = tao_branch%modes%z%synch_int(4)
     endif
 
-  case ('i5a')
+  case ('rad_int.i5a')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i5a)
     else
       datum_value = tao_branch%modes%a%synch_int(5)
     endif
 
-  case ('i5a_e6')
+  case ('rad_int.i5a_e6')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%lin_i5a_e6)
     else
       datum_value = tao_branch%modes%lin%i5a_e6
     endif
 
-  case ('i5b')
+  case ('rad_int.i5b')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i5b)
     else
       datum_value = tao_branch%modes%b%synch_int(5)
     endif
 
-  case ('i5b_e6')
+  case ('rad_int.i5b_e6')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%lin_i5b_e6)
     else
       datum_value = tao_branch%modes%lin%i5b_e6
     endif
 
-  case ('i6b')
+  case ('rad_int.i6b')
     if (ix_ele > -1) then
       datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i6b)
     else
@@ -2487,56 +2487,56 @@ case ('rad_int1.')
   if (ix_ele < 0) return
   if (.not. allocated(rad_int_branch%ele)) return
 
-  select case (datum%data_type(10:))
-  case ('i0')
+  select case (datum%data_type)
+  case ('rad_int1.i0')
     datum_value = rad_int_branch%ele(ix_ele)%i0
     if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i0
 
-  case ('i1')
+  case ('rad_int1.i1')
     datum_value = rad_int_branch%ele(ix_ele)%i1
     if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i1
 
-  case ('i2')
+  case ('rad_int1.i2')
     datum_value = rad_int_branch%ele(ix_ele)%i2
     if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i2
 
-  case ('i2_e4')
+  case ('rad_int1.i2_e4')
     datum_value = rad_int_branch%ele(ix_ele)%lin_i2_e4
     if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%lin_i2_e4
 
-  case ('i3')
+  case ('rad_int1.i3')
     datum_value = rad_int_branch%ele(ix_ele)%i3
     if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i3
 
-  case ('i3_e7')
+  case ('rad_int1.i3_e7')
     datum_value = rad_int_branch%ele(ix_ele)%lin_i3_e7
     if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%lin_i3_e7
 
-  case ('i4a')
+  case ('rad_int1.i4a')
     datum_value = rad_int_branch%ele(ix_ele)%i4a
     if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i4a
 
-  case ('i5a')
+  case ('rad_int1.i5a')
     datum_value = rad_int_branch%ele(ix_ele)%i5a
     if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i5a
 
-  case ('i5a_e6')
+  case ('rad_int1.i5a_e6')
     datum_value = rad_int_branch%ele(ix_ele)%lin_i5a_e6
     if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%lin_i5a_e6
 
-  case ('i4b')
+  case ('rad_int1.i4b')
     datum_value = rad_int_branch%ele(ix_ele)%i4b
     if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i4b
 
-  case ('i5b')
+  case ('rad_int1.i5b')
     datum_value = rad_int_branch%ele(ix_ele)%i5b
     if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i5b
 
-  case ('i5b_e6')
+  case ('rad_int1.i5b_e6')
     datum_value = rad_int_branch%ele(ix_ele)%lin_i5b_e6
     if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%lin_i5b_e6
 
-  case ('i6b')
+  case ('rad_int1.i6b')
     datum_value = rad_int_branch%ele(ix_ele)%i6b
     if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i6b
 
