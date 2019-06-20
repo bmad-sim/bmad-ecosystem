@@ -20,7 +20,15 @@ integer, parameter :: model$ = 1, base$ = 2, design$ = 3
 integer, parameter :: ix_common_uni$ = 0
 integer, parameter :: apparent_emit$ = 1, projected_emit$ = 2
 
-character(8), parameter :: lat_type_name(3) = ['model ', 'base  ', 'design']
+character(2), parameter :: floor_plan_view_name(6) = [character(2):: 'xy', 'xz', 'yx', 'yz', 'zx', 'zy']
+character(8), parameter :: lat_type_name(3) = [character(8):: 'model ', 'base  ', 'design']
+character(8), parameter :: data_source_name(4) = [character(8):: 'lat', 'beam', 'data', 'var']
+character(20), parameter :: graph_type_name(5) = [character(20):: 'data', 'lat_layout', &
+                                                       'phase_space', 'histogram', 'dynamic_aperture']
+character(16), parameter :: x_axis_type_name(12) = [character(16):: 'index', 'ele_index', 'lat', 'var', &
+                                   'ele_index', 's', 'none', 'floor', 'phase_space', 'histogram', 'data', 'floor']
+
+integer, parameter :: n_char_show = 1000
 
 logical, save, target :: forever_true$ = .true.
 
@@ -129,8 +137,6 @@ type tao_histogram_struct
   integer :: number = 0
 end type
 
-character(8), parameter :: data_source_name(4) = ['lat', 'beam', 'data', 'var']
-
 ! A curve is defined by a set of (x,y) points and the axis parameters.
 ! for example the horizontal orbit is one curve.
 
@@ -176,11 +182,6 @@ type tao_curve_struct
   logical :: use_z_color = .false.       ! For phase space plots.
   logical :: autoscale_z_color = .true.  ! Set %z_color0, %z_color1 automatically to the limits of %data_type_z
 end type
-
-character(20), parameter :: graph_type_name(5) = [character(20):: 'data', 'lat_layout', &
-                                                       'phase_space', 'histogram', 'dynamic_aperture']
-
-character(2), parameter :: floor_plan_view_name(6) = [character(2):: 'xy', 'xz', 'yx', 'yz', 'zx', 'zy']
 
 ! A graph is a collection of overlayed curves with associated graph title, etc.
 ! For example a graph could contain just the horizontal orbit or could
@@ -232,8 +233,6 @@ end type
 ! For example a plot could contain three graphs. One for Cbar11, 
 ! One for Cbar12, and one for Cbar22.
 
-character(16), parameter :: x_axis_type_name(12) = [character(16):: 'index', 'ele_index', 'lat', 'var', &
-                                   'ele_index', 's', 'none', 'floor', 'phase_space', 'histogram', 'data', 'floor']
 
 type tao_plot_struct
   character(40) :: name = ' '                      ! Identifying name
@@ -699,8 +698,6 @@ type tao_common_struct
   character(16) :: valid_plot_who(10)            ! model, base, ref etc...
   character(20) :: history_file = '~/.history_tao'
 end type
-
-integer, parameter :: n_char_show = 1000
 
 !-----------------------------------------------------------------------
 ! scratch space
