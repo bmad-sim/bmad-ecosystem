@@ -719,12 +719,12 @@ case ('ele:head')
   nl=incr(nl); write (li(nl), jmt) u%ix_uni, '^ix_branch;INUM;F;',    ele%ix_branch
   nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;F;',                   ele%ix_ele
   
-  nl=incr(nl); write (li(nl), amt) 'key;INT;F;',                    key_name(ele%key)
-  nl=incr(nl); write (li(nl), amt) 'name;INT;F;',                   ele%name
-  nl=incr(nl); write (li(nl), amt) 'type;INT;T;',                   ele%type
-  nl=incr(nl); write (li(nl), amt) 'alias;INT;T;',                  ele%alias
-  nl=incr(nl); write (li(nl), amt) 'descrip;INT;T;',                ele%descrip
-  nl=incr(nl); write (li(nl), lmt) 'is_on;REAL;F;',                 ele%is_on
+  nl=incr(nl); write (li(nl), amt) 'key;ENUM;F;',                   key_name(ele%key)
+  nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                   ele%name
+  nl=incr(nl); write (li(nl), amt) 'type;STR;T;',                   ele%type
+  nl=incr(nl); write (li(nl), amt) 'alias;STR;T;',                  ele%alias
+  nl=incr(nl); write (li(nl), amt) 'descrip;STR;T;',                ele%descrip
+  nl=incr(nl); write (li(nl), lmt) 'is_on;LOGIC;T;',                ele%is_on
 
   nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                   ele%s
   nl=incr(nl); write (li(nl), rmt) 's_start;REAL;F;',             ele%s_start
@@ -738,13 +738,13 @@ case ('ele:head')
   nl=incr(nl); write (li(nl), lmt) 'has#spin_taylor;LOGIC;F;',      associated(ele%spin_taylor(1)%term)
   nl=incr(nl); write (li(nl), lmt) 'has#wake;LOGIC;F;',             associated(ele%wake)
   n = 0; if (associated(ele%cartesian_map)) n = size(ele%cartesian_map)
-  nl=incr(nl); write (li(nl), imt) 'num#cartesian_map;LOGIC;F;',    n
+  nl=incr(nl); write (li(nl), imt) 'num#cartesian_map;INT;F;',    n
   n = 0; if (associated(ele%cylindrical_map)) n = size(ele%cylindrical_map)
-  nl=incr(nl); write (li(nl), imt) 'num#cylindrical_map;LOGIC;F;',  n
+  nl=incr(nl); write (li(nl), imt) 'num#cylindrical_map;INT;F;',  n
   n = 0; if (associated(ele%taylor_field)) n = size(ele%taylor_field)
-  nl=incr(nl); write (li(nl), imt) 'num#taylor_field;LOGIC;F;',     n
+  nl=incr(nl); write (li(nl), imt) 'num#taylor_field;INT;F;',     n
   n = 0; if (associated(ele%grid_field)) n = size(ele%grid_field)
-  nl=incr(nl); write (li(nl), imt) 'num#grid_field;LOGIC;F;',       n
+  nl=incr(nl); write (li(nl), imt) 'num#grid_field;INT;F;',       n
   nl=incr(nl); write (li(nl), lmt) 'has#wall3d;LOGIC;F;',           associated(ele%wall3d)
   nl=incr(nl); write (li(nl), lmt) 'has#control;LOGIC;F;',          associated(ele%control)
   nl=incr(nl); write (li(nl), lmt) 'has#twiss;LOGIC;F;',            (ele%a%beta /= 0)
