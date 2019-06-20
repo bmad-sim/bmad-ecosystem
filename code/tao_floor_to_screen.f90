@@ -1,8 +1,5 @@
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
 !+
-! Subroutine floor_to_screen (graph, floor, x_screen, y_screen)
+! Subroutine tao_floor_to_screen (graph, floor, x_screen, y_screen)
 !
 ! Routine to project a 3D floor coordinate onto a 2D projection plane.
 !
@@ -15,7 +12,7 @@
 !   y_screen -- real(rp): y-coordinate of projected point.
 !-
 
-subroutine floor_to_screen (graph, r_floor, x_screen, y_screen)
+subroutine tao_floor_to_screen (graph, r_floor, x_screen, y_screen)
 
 use tao_struct
 
@@ -62,4 +59,4 @@ else
   y_screen =  x * ss + y * cc 
 endif
 
-end subroutine floor_to_screen
+end subroutine tao_floor_to_screen

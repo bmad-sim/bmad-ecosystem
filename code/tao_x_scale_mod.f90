@@ -267,7 +267,7 @@ if (graph%type == 'floor_plan') then
 
   do ib = 0, ubound(lat%branch, 1)
     do i = 0, lat%branch(ib)%n_ele_track
-      call floor_to_screen_coords (graph, lat%branch(ib)%ele(i)%floor, end)
+      call tao_floor_to_screen_coords (graph, lat%branch(ib)%ele(i)%floor, end)
       this_min = min(this_min, end%r(1))
       this_max = max(this_max, end%r(1))
     enddo
@@ -284,7 +284,7 @@ if (graph%type == 'floor_plan') then
           floor%r(2) = 0
           floor%r(3) = s%building_wall%section(j)%point(k)%z
           floor%theta = 0
-          call floor_to_screen_coords (graph, floor, end)
+          call tao_floor_to_screen_coords (graph, floor, end)
           this_min = min(this_min, end%r(1))
           this_max = max(this_max, end%r(1))
         enddo
