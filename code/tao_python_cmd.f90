@@ -112,7 +112,7 @@ character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
 character(20) cmd, command, who, which, v_str, head
 character(20) :: r_name = 'tao_python_cmd'
-character(40) :: cmd_names(60) = [character(20) :: &
+character(40) :: cmd_names(61) = [character(20) :: &
   'beam_init', 'branch1', 'bunch1', 'bmad_com', &
   'data_create', 'data_destroy', 'data_d2_array', 'data_d1_array', 'data_d2', 'data_d_array', 'data', &
   'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', 'ele:cartesian_map', &
@@ -120,7 +120,7 @@ character(40) :: cmd_names(60) = [character(20) :: &
   'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
   'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
   'enum', 'global', 'help', 'inum', &
-  'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
+  'lat_ele_list', 'lat_general', 'lat_layout', 'lat_list', 'lat_param_units', &
   'orbit_at_s', &
   'plot_list', 'plot1', 'plot_graph', 'plot_curve', 'plot_line', 'plot_symbol', &
   'species_to_int', 'species_to_str', 'super_universe', 'twiss_at_s', 'universe', &
@@ -1734,11 +1734,33 @@ case ('lat_ele_list')
 case ('lat_general')
 
   u => point_to_uni(line, .false., err); if (err) return
-  
   lat => u%model%lat
+
   do i = 0, ubound(lat%branch, 1)
     branch => lat%branch(i)
     nl=incr(nl); write (li(nl), '(i0, 3a, 2(i0, a))') i, ';', trim(branch%name), ';', branch%n_ele_track, ';', branch%n_ele_max
+  enddo
+
+!----------------------------------------------------------------------
+! Lat layout info
+! Command syntax:
+!   python lat_layout {ix_universe}@{ix_branch}
+! Note: The returned list of element positions is not ordered in increasing longitudinal position.
+
+case ('lat_layout')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  ix_branch = parse_branch(line, .false., err); if (err) return
+  branch => u%model%lat%branch(ix_branch)
+
+  do i = 0, branch%n_ele_max
+    ele => branch%ele(i)
+    if (ele%slave_status == super_slave$) cycle
+    if (ele%key == overlay$) cycle
+    if (ele%key == group$) cycle
+    if (ele%key == girder$) cycle
+    nl=incr(nl); write (li(nl), '(i0, 5a, 2(es23.15, a))') i, ';', trim(ele%name), ';', &
+                                                            trim(key_name(ele%key)), ';', ele%s_start, ';', ele%s
   enddo
 
 !----------------------------------------------------------------------
