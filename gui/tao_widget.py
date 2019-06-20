@@ -1,4 +1,5 @@
 import tkinter as tk
+import ttk
 from tkinter import messagebox
 from tkinter import filedialog
 import sys
@@ -6,6 +7,7 @@ import os
 sys.path.append(os.environ['ACC_ROOT_DIR'] + '/tao/gui')
 from parameters import tao_parameter_dict
 from parameters import tao_parameter
+from data_type_list import data_type_list
 import string
 
 class tk_tao_parameter():
@@ -15,7 +17,6 @@ class tk_tao_parameter():
 
   def __init__(self, tao_parameter, frame, pipe=0):
     self.param = tao_parameter
-    self.tk_label = tk.Label(frame, text=self.param.name)
 
     if self.param.type in ['STR', 'INT', 'REAL']:
       self.tk_var = tk.StringVar()
@@ -31,6 +32,17 @@ class tk_tao_parameter():
       if options == [""]:
         options = [self.param.value]
       self.tk_wid = tk.OptionMenu(frame, self.tk_var, *options)
+      # Check for and remove num^ from self.param.name
+      self.param.name = self.param.name.split('^')[-1]
+    elif self.param.type == 'INUM':
+      self.tk_var = tk.StringVar()
+      self.tk_var.set(self.param.value)
+      options = inum_fetch(self.param.name,pipe)
+      if options == [""]:
+        options = [self.param.value]
+      self.tk_wid = tk.OptionMenu(frame, self.tk_var, *options)
+      # Check for and remove num^ from self.param.name
+      self.param.name = self.param.name.split('^')[-1]
     elif self.param.type == 'FILE':
       self.tk_var = tk.StringVar()
       self.tk_var.set(self.param.value)
@@ -41,10 +53,161 @@ class tk_tao_parameter():
       self.tk_var = tk.BooleanVar()
       self.tk_var.set(self.param.value)
       self.tk_wid = tk.Checkbutton(frame, variable=self.tk_var)
+    elif self.param.type == 'DAT_TYPE':
+      self.tk_var = tk.StringVar() #This is for the entire value
+      self.tk_var.set(self.param.value)
+      self.tk_wid = tk.Frame(frame) #The "widget" that should be placed by the gui
+      self._mvar = tk.StringVar() # The master variable
+      self._mvar.set((self.tk_var.get()).split('.')[0])
+      self._m = ttk.Combobox(self.tk_wid, textvariable=self._mvar,
+          values = self._get_dat_types(), state="readonly")
+      self._m.bind("<<ComboboxSelected>>", self._s_refresh)
+      self._m.pack(side='left', fill='both', expand=1)
+      self._svar = [] #list of slave variables
+      self._stype = [] #types of slave widgets (needed for input validation)
+      self._s = [] # list of slave widgets
+      self._s_refresh()
 
-    self.tk_wid.config(disabledforeground="black")
+    if self.param.type != 'DAT_TYPE':
+      self.tk_wid.config(disabledforeground="black")
+    self.tk_label = tk.Label(frame, text=self.param.name)
     if not self.param.can_vary:
       self.tk_wid.config(state="disabled")
+
+  def _get_dat_types(self):
+    '''
+    Parses the data_type_list (from data_type_list.py) and
+    returns a list of allowed master data types
+    '''
+    master_list = []
+    for item in data_type_list:
+      item = item['name'].split('<')[0]
+      if item != "":
+        if item[-1] == '.':
+          item = item[:-1]
+      master_list.append(item)
+    return master_list
+
+  def _s_refresh(self, event=None):
+    '''
+    Clears the existing slave widgets and variables,
+    makes new slave widgets and variables, and populates them
+    if necessary
+    '''
+    # Clear the existing slaves
+    for item in self._s:
+      item.destroy()
+    self._svar = []
+    self._stype = []
+    self._s = []
+
+    m_ix = (self._get_dat_types()).index(self._mvar.get())
+
+    # Make new slave widgets
+    dat_dict = data_type_list[m_ix]
+    p_start = dat_dict['name'].find('<') - 1
+    if p_start != -2:
+      slave_params = (dat_dict['name'][p_start:]).split('.')[1:]
+    else:
+      slave_params = []
+    k = 0 #loop counter
+    for p in slave_params:
+      self._svar.append(tk.StringVar())
+      self._stype.append(p)
+      if p.find('<enum') != -1: #Enums
+        self._s.append(tk.OptionMenu(self.tk_wid, self._svar[k],
+          *dat_dict[p], command=self._update_tk_var))
+        self._svar[k].set(dat_dict[p][0]) # Default to first list item
+      elif p.find('<digit:') != -1: #Digit dropdown box
+        p = p.split(':')[1]
+        p = p.split('>')[0] #p is now "low-high"
+        low, high = p.split('-')
+        low = int(low)
+        high = int(high)
+        digits = list(range(low, high+1))
+        self._s.append(tk.OptionMenu(self.tk_wid, self._svar[k],
+          *digits, command=self._update_tk_var))
+        self._svar[k].set(digits[0])
+      elif p.find('<str>') != -1: #Strings
+        self._s.append(tk.Entry(self.tk_wid, textvariable=self._svar[k]))
+        self._svar[k].trace("w", self._update_tk_var)
+      elif p.find('<digits') != -1: #Fixed length int
+        p = p.split('s')[1]
+        p = p.split('>')[0]
+        length = int(p)
+        self._s.append(tk.Entry(self.tk_wid, textvariable=self._svar[k]))
+        self._svar[k].trace("w", self._update_tk_var)
+      elif p.find('<int>') != -1: #Integer
+        self._s.append(tk.Entry(self.tk_wid, textvariable=self._svar[k]))
+        self._svar[k].trace("w", self._update_tk_var)
+      elif p.find('<real>') != -1: #Float
+        self._s.append(tk.Entry(self.tk_wid, textvariable=self._svar[k]))
+        self._svar[k].trace("w", self._update_tk_var)
+      k = k+1
+
+    # Set the slave variables appropriately
+    current_mvar = (self.tk_var.get()).split('<')[0]
+    if current_mvar != "":
+      if current_mvar[-1] == '.':
+        current_mvar = current_mvar[:-1]
+    if self._mvar.get() == current_mvar:
+      for k in range(len(self._svar)):
+        self._svar[k].set((self.tk_var.get()).split('.')[k+1])
+    else: # Update self.tk_var if self._mvar has changed
+      self._update_tk_var()
+
+    # Pack the new slaves
+    for k in range(len(self._s)):
+      self._s[k].pack(side="left", fill="both")
+
+  def _update_tk_var(self, event=None, *args, **kwargs):
+    '''
+    Updates self.tk_var with the current contents of
+    self._mvar and self._svar
+    '''
+    new_tk_var = self._mvar.get()
+    for k in range(len(self._svar)):
+      # Input validation (TODO)
+      p = self._stype[k]
+      if p.find('<digits') != -1:
+        p = p.split('s')[1]
+        p = p.split('>')[0]
+        length = int(p)
+        #Check if the last character typed was a digit
+        if len(self._svar[k].get()) != 0:
+          try:
+            x = int(self._svar[k].get()[-1])
+          except:
+            self._svar[k].set(self._svar[k].get()[:-1])
+        #Prevent length from being greater than 6 digits
+        self._svar[k].set((self._svar[k].get())[-1*length:])
+        #Write the corrent number of digits (pad with zeros)
+        try: #see if self._svar[k] is an int
+          x = int(self._svar[k].get())
+          x = len(self._svar[k].get())
+          if x < 6:
+            new_tk_var = new_tk_var + '.' + (6-x) * '0' + self._svar[k].get()
+          else:
+            new_tk_var = new_tk_var + '.' + self._svar[k].get()
+        except ValueError:
+          new_tk_var = new_tk_var + '.' + length * '0'
+      elif p == '<int>':
+        try: #see if self._svar[k] is an int
+          x = int(self._svar[k].get())
+          new_tk_var = new_tk_var + '.' + self._svar[k].get()
+        except ValueError:
+          new_tk_var = new_tk_var + '.' + '0'
+      elif p == '<real>':
+        try: #see if self._svar[k] is an float
+          x = float(self._svar[k].get())
+          new_tk_var = new_tk_var + '.' + self._svar[k].get()
+        except ValueError:
+          new_tk_var = new_tk_var + '.' + '0'
+      else:
+        new_tk_var = new_tk_var + '.' + self._svar[k].get()
+    # Set self.tk_var
+    self.tk_var.set(new_tk_var)
+    print(self.tk_var.get())
 
   def open_file(self):
     filename = filedialog.askopenfilename(title = "Select " + self.param.name)
@@ -207,6 +370,20 @@ def enum_fetch(enum,pipe):
     for i in range(len(option_list)):
       sc = option_list[i].find(';')
       option_list[i] = option_list[i][sc+1:]
+  else:
+    option_list = ["TAO NOT STARTED"]
+  if option_list == []:
+    option_list = [""]
+  return option_list
+
+
+def inum_fetch(enum,pipe):
+  '''
+  Takes the name of an inum variable and returns a list of its allowed values using the given pipe
+  '''
+  if pipe != 0:
+    list_string = pipe.cmd_in("python inum " + enum)
+    option_list = list_string.splitlines()
   else:
     option_list = ["TAO NOT STARTED"]
   if option_list == []:

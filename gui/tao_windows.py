@@ -2,6 +2,7 @@ import tkinter as tk
 import ttk
 from tkinter import messagebox
 from tkinter import filedialog
+from tkinter import font
 import sys
 import os
 import copy
@@ -83,7 +84,7 @@ class tao_parameter_window(tao_list_window):
     for k in range(len(self.tao_list)):
       self.tao_list[k] = tk_tao_parameter(self.tao_list[k], self.list_frame, pipe)
       tk.Label(self.list_frame,text=self.tao_list[k].param.name).grid(row=k,column=0,sticky="E")
-      self.tao_list[k].tk_wid.grid(row=k,column=1,sticky="W")
+      self.tao_list[k].tk_wid.grid(row=k,column=1,sticky="EW")
       k = k+1
 
 #-----------------------------------------------------
@@ -106,6 +107,10 @@ class table_window(tao_list_window):
   def __init__(self, root, pipe, array_name, title_list, bulk_template, bulk_set_format, set_format, *args, **kwargs):
     tao_list_window.__init__(self, root, array_name, *args, **kwargs)
     self.pipe = pipe
+    #Make the font a bit smaller
+    #default_font = font.nametofont("TkDefaultFont")
+    #default_font.configure(size=14)
+    #self.option_add("*Font", default_font)
     self.array_name = array_name
     self.title_list = title_list
     self.bulk_template = bulk_template
@@ -849,12 +854,12 @@ class tao_ele_window(tk.Toplevel):
       if self.element.params[p].param.can_vary:
         self.head_tk_tao_params.append(self.element.params[p])
     #name = tk.Label(self.head_frame, text=self.element.params["name"].param.value)
-    name = tk.Label(self.head_frame, text="NAME GOES HERE")
+    name = tk.Label(self.head_frame, text=self.element.params["name"].param.value)
     name.grid(row=0, column = 0, columnspan = 4)
 
     #Fixed parameters
     tk.Label(self.head_frame, text="Key").grid(row=1, column=0)
-    self.element.params["key"].tk_wid.grid(row=1, column=1)
+    self.element.params["key"].tk_wid.grid(row=1, column=1, sticky='EW')
     tk.Label(self.head_frame, text="s").grid(row=2, column=0)
     self.element.params["s"].tk_wid.grid(row=2, column=1)
     tk.Label(self.head_frame, text="s_start").grid(row=3, column=0)
@@ -871,15 +876,6 @@ class tao_ele_window(tk.Toplevel):
     self.element.params["descrip"].tk_wid.grid(row=3, column=3)
     tk.Label(self.head_frame, text="is_on").grid(row=4, column=2)
     self.element.params["is_on"].tk_wid.grid(row=4, column=3)
-    #self.head_tk_tao_params = []
-    #for p in self.element.params.keys():
-    #  self.head_tk_tao_params.append(tk_tao_parameter(self.element.params[p], self.head_frame, self.pipe))
-
-    #i = 0
-    #for item in self.head_tk_tao_params:
-    #  item.tk_label.grid(row=i, column=0)
-    #  item.tk_wid.grid(row=i, column=1)
-    #  i = i+1
 
     # Reset self.ele to be the display name
     self.ele.set(self.e_display_list[self.uni.get()][self.branch.get()][int(self.ele.get())])

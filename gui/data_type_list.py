@@ -34,7 +34,7 @@ data_type_list.append({'name': 'k.<enum>', '<enum>': ['11b', '12a', '12b', '22a'
 data_type_list.append({'name': 'srdt.<enum1>.<enum2>',
   '<enum1>': ['h20001', 'h00201', 'h10002', 'h21000', 'h30000', 'h10110', 'h10020', 'h10200', 'h31000', 'h40000', 'h20110', 'h11200', 'h20020', 'h20200', 'h00310', 'h00400', 'h22000', 'h00220', 'h11110'],
   '<enum2>': ['r', 'i', 'a']})
-data_type_list.append({'name': 'normal.h.<enum1>.<enum2>', 
+data_type_list.append({'name': 'normal.h.<enum1>.<enum2>',
   '<enum1>': ['20001', '00201', '10002', '21000', '30000', '10110', '10020', '10200', '31000', '40000', '20110', '11200', '20020', '20200', '00310', '00400', '22000', '00220', '11110'],
   '<enum2>': ['r', 'i', 'a']})
 data_type_list.append({'name': 'normal.<enum>.<digit:1-6>.<digits6>', '<enum>': ['M', 'A', 'A_inv', 'dhdj', 'RaF', 'ImF']})
@@ -73,4 +73,4 @@ data_type_list.append({'name': 'velocity.<enum>', '<enum>': ['x', 'y', 'z']})
 data_type_list.append({'name': 'wall.<enum>', '<enum>': ['left_side', 'right_side']})
 data_type_list.append({'name': 'wire.<real>'})
 
-print (str(data_type_list))
+#print (str(data_type_list))

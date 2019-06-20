@@ -25,7 +25,7 @@ class tao_root_window(tk.Tk):
     self.protocol("WM_DELETE_WINDOW", self.quit_cmd)
     self.tk.call('tk', 'scaling', 1.0)
     default_font = font.nametofont("TkDefaultFont")
-    default_font.configure(size=18)
+    default_font.configure(size=14)
     self.option_add("*Font", default_font)
 
     # Menu bar
@@ -396,8 +396,8 @@ def tao_set(tao_list,set_str,pipe, overide=False):
   pipe.cmd_in("set global lattice_calc_on = F")
   pipe.cmd_in("set global plot_on = F")
   #Freeze input fields:
-  for item in tao_list:
-    item.tk_wid.config(state="disabled")
+  #for item in tao_list:
+  #  item.tk_wid.config(state="disabled")
   update_dict = {} #Record of which variables were changed
   set_lattice_calc = False
   set_plot = False
@@ -450,9 +450,9 @@ def tao_set(tao_list,set_str,pipe, overide=False):
   else:
     pipe.cmd_in("set global lattice_calc_on = True")
   #Re-enable input for parameters that can vary
-  for item in tao_list:
-    if item.param.can_vary:
-      item.tk_wid.configure(state="normal")
+  #for item in tao_list:
+  #  if item.param.can_vary:
+  #    item.tk_wid.configure(state="normal")
 
 #---------------------------------------------------------------
 
