@@ -5,12 +5,14 @@
 !
 ! Note: The syntax for "parameter list form" is:
 !   {component_name};{type};{variable};{component_value}
+! or
+!   {component_name};{type};{variable};{component_value};{sub_component}
 !
 ! {type} is one of:
-!   INT
-!   REAL
+!   INT         ! Integer number
+!   REAL        ! Real number
 !   REAL_ARR    ! Real array
-!   LOGIC
+!   LOGIC       ! Logical: "T" or "F". 
 !   INUM        ! Integer whose allowed values can be obtained using the "python inum" command.
 !   ENUM        ! String whose allowed values can be obtained using the "python enum" command.
 !   FILE        ! Name of file.
@@ -22,8 +24,14 @@
 !   
 !
 ! {variable} indicates if the component can be varied. It is one of:
-!   T
-!   F
+!   T         ! Can vary
+!   F         ! Cannot vary
+!   I         ! Ignore (Do not display)
+!
+! The optional {sub_component} occurs when a second parameter is to be paired with the component. Example:
+!   ele_name;STR;T;Q10W;ix_ele
+!   ix_ele;INT;I;137
+! In this example the ix_ele parameter is paired with the ele_name parameter.
 !
 ! If the {component_name} has a "^" symbol in it: The component is an enum or inum. Example: "graph^type"
 ! In this case, use the entire string when using "python enum" but suppress everything before the "^"
@@ -137,7 +145,7 @@ real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
 
 integer :: i, j, k, ie, iu, nn, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i1, i2
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_d2, n_who, ix_pole_max, attrib_type
-integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free
+integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free, ix_uni
 
 logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer, can_vary
 
@@ -655,20 +663,21 @@ case ('data')
     return
   endif
 
+  ix_uni = d_ptr%d1%d2%ix_universe
   d_ptr => d_array(1)%d
 
-  nl=incr(nl); write (li(nl), amt) 'ele_name;STR;T;',                         d_ptr%ele_name
-  nl=incr(nl); write (li(nl), amt) 'ele_start_name;STR;T;',                   d_ptr%ele_start_name
-  nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     d_ptr%ele_ref_name
+  nl=incr(nl); write (li(nl), amt) 'ele_name;STR;T;',                         trim(d_ptr%ele_name), ';ix_ele'
+  nl=incr(nl); write (li(nl), amt) 'ele_start_name;STR;T;',                   trim(d_ptr%ele_start_name), ';ix_ele_start'
+  nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(d_ptr%ele_ref_name), ';ix_ele_ref'
   nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   d_ptr%data_type
   nl=incr(nl); write (li(nl), amt) 'merit_type;STR;T;',                       d_ptr%merit_type
   nl=incr(nl); write (li(nl), amt) 'data^data_source;ENUM;T;',                d_ptr%data_source
   nl=incr(nl); write (li(nl), amt) 'eval_point;ENUM;T;',                      anchor_pt_name(d_ptr%eval_point)
-  nl=incr(nl); write (li(nl), imt) 'ix_bunch;INT;T;',                         d_ptr%ix_bunch
-  nl=incr(nl); write (li(nl), jmt) d_ptr%d1%d2%ix_universe, '^ix_branch;INUM;T;', d_ptr%ix_branch
-  nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;T;',                           d_ptr%ix_ele
-  nl=incr(nl); write (li(nl), imt) 'ix_ele_start;INT;T;',                     d_ptr%ix_ele_start
-  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref;INT;T;',                       d_ptr%ix_ele_ref
+  nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_bunch;INUM;T;',                d_ptr%ix_bunch
+  nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_branch;INUM;T;',              d_ptr%ix_branch
+  nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;I;',                           d_ptr%ix_ele
+  nl=incr(nl); write (li(nl), imt) 'ix_ele_start;INT;I;',                     d_ptr%ix_ele_start
+  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref;INT;I;',                       d_ptr%ix_ele_ref
   nl=incr(nl); write (li(nl), imt) 'ix_ele_merit;INT;F;',                     d_ptr%ix_ele_merit
   nl=incr(nl); write (li(nl), imt) 'ix_d1;INT;F;',                            d_ptr%ix_d1
   nl=incr(nl); write (li(nl), imt) 'ix_data;INT;F;',                          d_ptr%ix_data
@@ -717,10 +726,10 @@ case ('ele:head')
 
   nl=incr(nl); write (li(nl), imt) 'universe;INT;F;',                 u%ix_uni
   nl=incr(nl); write (li(nl), jmt) u%ix_uni, '^ix_branch;INUM;F;',    ele%ix_branch
-  nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;F;',                   ele%ix_ele
+  nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;I;',                   ele%ix_ele
   
   nl=incr(nl); write (li(nl), amt) 'key;ENUM;F;',                   key_name(ele%key)
-  nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                   ele%name
+  nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                   trim(ele%name), ';ix_ele'
   nl=incr(nl); write (li(nl), amt) 'type;STR;T;',                   ele%type
   nl=incr(nl); write (li(nl), amt) 'alias;STR;T;',                  ele%alias
   nl=incr(nl); write (li(nl), amt) 'descrip;STR;T;',                ele%descrip
@@ -1220,7 +1229,7 @@ case ('ele:wake')
     nl=incr(nl); write (li(nl), rmt) 'lr_freq_spread;REAL;T;',   wake%lr_freq_spread
     nl=incr(nl); write (li(nl), lmt) 'lr_self_wake_on;REAL;T;',  wake%lr_self_wake_on
 !!!    nl=incr(nl); write (li(nl), lmt) 'has#sr_long;LOGIC;F;',     allocated(wake%sr
-    ! TO DO....
+    ! TODO....
   end select
 
 !----------------------------------------------------------------------
@@ -1241,7 +1250,7 @@ case ('ele:wall3d')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-  ! TO DO....
+  ! TODO....
 
 !----------------------------------------------------------------------
 ! Element twiss
@@ -1289,7 +1298,7 @@ case ('ele:control')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-  ! TO DO....
+  ! TODO....
 
 !----------------------------------------------------------------------
 ! Element orbit
@@ -1329,7 +1338,7 @@ case ('ele:mat6')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-  ! TO DO....
+  ! TODO....
 
 !----------------------------------------------------------------------
 ! Element taylor_field
@@ -1352,7 +1361,7 @@ case ('ele:taylor_field')
 
   if (.not. associated(ele%cartesian_map)) then
   endif
-  ! TO DO....
+  ! TODO....
 
 !----------------------------------------------------------------------
 ! Element grid_field
@@ -1372,7 +1381,7 @@ case ('ele:grid_field')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-  ! TO DO....
+  ! TODO....
 
 !----------------------------------------------------------------------
 ! Element floor
@@ -1419,7 +1428,7 @@ case ('ele:photon')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-  ! TO DO....
+  ! TODO....
 
 !----------------------------------------------------------------------
 ! Element lord_slave
@@ -1441,7 +1450,7 @@ case ('ele:lord_slave')
 
   nl=incr(nl); write (li(nl), amt) 'slave_status;STR;F;',                     control_name(ele%slave_status)
   nl=incr(nl); write (li(nl), amt) 'lord_status;STR;F;',                      control_name(ele%lord_status)
-  ! TO DO....
+  ! TODO....
 
 !----------------------------------------------------------------------
 ! Element electric multipoles
@@ -1505,8 +1514,8 @@ case ('enum')
   endif
 
   if (line == 'symbol.fill_pattern') then
-    do i = 1, size(qp_fill_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_fill_name(i))
+    do i = 1, size(qp_symbol_fill_pattern_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_symbol_fill_pattern_name(i))
     enddo
     return
   endif
@@ -1672,14 +1681,19 @@ case ('inum')
 
   select case (line)
   case ('ix_branch')
-    read (head, *) ix
-    u => s%u(ix)
+    u => point_to_uni(head, .false., err);  if (err) return
     do i = 0, size(u%design%lat%branch)
       nl=incr(nl); write (li(nl), '(i0)') i
     enddo
 
   case ('ix_universe')
     do i = 1, ubound(s%u, 1)
+      nl=incr(nl); write (li(nl), '(i0)') i
+    enddo
+
+  case ('ix_bunch')
+    u => point_to_uni(head, .false., err);  if (err) return
+    do i = 0, u%beam%beam_init%n_bunch
       nl=incr(nl); write (li(nl), '(i0)') i
     enddo
 
@@ -2081,6 +2095,7 @@ case ('plot_curve')
     return
   endif
 
+  ix_uni = cur%ix_universe
   cur => curve(1)%c
 
   nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             cur%name
@@ -2089,9 +2104,9 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), amt) 'data_type_z;STR;T;',                      cur%data_type_z
   nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   cur%data_type
   nl=incr(nl); write (li(nl), amt) 'component;STR;T;',                        cur%component
-  nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     cur%ele_ref_name
+  nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(cur%ele_ref_name), 'ix_ele_ref'
   nl=incr(nl); write (li(nl), amt) 'legend_text;STR;T;',                      cur%legend_text
-  nl=incr(nl); write (li(nl), amt) 'message_text;STR;T;',                     cur%message_text
+  nl=incr(nl); write (li(nl), amt) 'message_text;STR;F;',                     cur%message_text
   nl=incr(nl); write (li(nl), amt) 'units;STR;T;',                            cur%units
   nl=incr(nl); write (li(nl), rmt) 'y_axis_scale_factor;REAL;T;',             cur%y_axis_scale_factor
   nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               cur%s
@@ -2099,17 +2114,17 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), rmt) 'z_color1;REAL;T;',                        cur%z_color1
   nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                     cur%ix_universe
   nl=incr(nl); write (li(nl), imt) 'symbol_every;INT;T;',                     cur%symbol_every
-  nl=incr(nl); write (li(nl), jmt) cur%ix_universe, 'ix_branch;INUM;T;',      cur%ix_branch
-  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref;INT;T;',                       cur%ix_ele_ref
-  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref_track;INT;T;',                 cur%ix_ele_ref_track
-  nl=incr(nl); write (li(nl), imt) 'ix_bunch;INT;T;',                         cur%ix_bunch
+  nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_branch;INUM;T;',              cur%ix_branch
+  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref;INT;I;',                       cur%ix_ele_ref
+  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref_track;INT;I;',                 cur%ix_ele_ref_track
+  nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_bunch;INUM;T;',               cur%ix_bunch
   nl=incr(nl); write (li(nl), lmt) 'use_y2;LOGIC;T;',                         cur%use_y2
   nl=incr(nl); write (li(nl), lmt) 'draw_line;LOGIC;T;',                      cur%draw_line
   nl=incr(nl); write (li(nl), lmt) 'draw_symbols;LOGIC;T;',                   cur%draw_symbols
   nl=incr(nl); write (li(nl), lmt) 'draw_symbol_index;LOGIC;T;',              cur%draw_symbol_index
   nl=incr(nl); write (li(nl), lmt) 'smooth_line_calc;LOGIC;T;',               cur%smooth_line_calc
-  nl=incr(nl); write (li(nl), lmt) 'use_z_color;LOGIC;T;',                    cur%use_z_color
-  nl=incr(nl); write (li(nl), lmt) 'autoscale_z_color;LOGIC;T;',              cur%autoscale_z_color
+  nl=incr(nl); write (li(nl), lmt) 'use_z_color;LOGIC;I;',                    cur%use_z_color
+  nl=incr(nl); write (li(nl), lmt) 'autoscale_z_color;LOGIC;I;',              cur%autoscale_z_color
 
   nl=incr(nl); write (li(nl), imt)  'line.width;INT;T;',                      cur%line%width
   nl=incr(nl); write (li(nl), amt)  'line.color;ENUM;T;',                     qp_color_name(cur%line%color)
@@ -2118,7 +2133,7 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), amt)  'symbol.type;ENUM;T;',                    qp_symbol_type_name(cur%symbol%type)
   nl=incr(nl); write (li(nl), amt)  'symbol.color;ENUM;T;',                   qp_color_name(cur%symbol%color)
   nl=incr(nl); write (li(nl), rmt)  'symbol.height;REAL;T;',                  cur%symbol%height
-  nl=incr(nl); write (li(nl), amt)  'symbol.fill_pattern;ENUM;T;',            qp_fill_name(cur%symbol%fill_pattern)
+  nl=incr(nl); write (li(nl), amt)  'symbol.fill_pattern;ENUM;T;',            qp_symbol_fill_pattern_name(cur%symbol%fill_pattern)
   nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               cur%symbol%line_width
 
 !----------------------------------------------------------------------
@@ -2550,7 +2565,7 @@ case ('var')
   nl=incr(nl); write (li(nl), rmt)  'model_value;REAL;T;',          v_ptr%model_value
   nl=incr(nl); write (li(nl), rmt)  'base_value;REAL;T;',           v_ptr%base_value
 
-  nl=incr(nl); write (li(nl), amt) 'ele_name;STR;T;',                         v_ptr%ele_name
+  nl=incr(nl); write (li(nl), amt) 'ele_name;STR;T;',                         trim(v_ptr%ele_name)
   nl=incr(nl); write (li(nl), amt) 'attrib_name;STR;T;',                      v_ptr%attrib_name
   nl=incr(nl); write (li(nl), imt) 'ix_v1;INT;F;',                            v_ptr%ix_v1
   nl=incr(nl); write (li(nl), imt) 'ix_var;INT;F;',                           v_ptr%ix_var
