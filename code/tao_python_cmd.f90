@@ -85,7 +85,7 @@ type (beam_init_struct), pointer :: beam_init
 type (lat_struct), pointer :: lat
 type (bunch_struct), pointer :: bunch
 type (wake_lr_mode_struct), pointer :: lr_mode
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, ele1, ele2
 type (ele_struct), target :: this_ele
 type (coord_struct), pointer :: orbit
 type (coord_struct), target :: orb
@@ -112,14 +112,14 @@ character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
 character(20) cmd, command, who, which, v_str, head
 character(20) :: r_name = 'tao_python_cmd'
-character(40) :: cmd_names(61) = [character(20) :: &
+character(40) :: cmd_names(62) = [character(20) :: &
   'beam_init', 'branch1', 'bunch1', 'bmad_com', &
   'data_create', 'data_destroy', 'data_d2_array', 'data_d1_array', 'data_d2', 'data_d_array', 'data', &
   'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', 'ele:cartesian_map', &
   'ele:cylindrical_map', 'ele:cylindrical_map:terms', 'ele:cartesian_map:terms', 'ele:orbit', &
   'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
   'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
-  'enum', 'global', 'help', 'inum', &
+  'enum', 'floor_plan', 'global', 'help', 'inum', &
   'lat_ele_list', 'lat_general', 'lat_layout', 'lat_list', 'lat_param_units', &
   'orbit_at_s', &
   'plot_list', 'plot1', 'plot_graph', 'plot_curve', 'plot_line', 'plot_symbol', &
@@ -128,7 +128,7 @@ character(40) :: cmd_names(61) = [character(20) :: &
 
 ! Needed:
 !   beam
-!   building_wall
+!   building_wall (floor_plan)
 !   constraints / top10 / derivative matrix
 !   dynamic aperture
 !   EM field
@@ -143,7 +143,7 @@ real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
 real(rp) a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
 
-integer :: i, j, k, ie, iu, nn, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i1, i2
+integer :: i, j, k, ib, ie, iu, nn, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i1, i2
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_d2, n_who, ix_pole_max, attrib_type
 integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free, ix_uni
 
@@ -663,8 +663,8 @@ case ('data')
     return
   endif
 
-  ix_uni = d_ptr%d1%d2%ix_universe
   d_ptr => d_array(1)%d
+  ix_uni = d_ptr%d1%d2%ix_universe
 
   nl=incr(nl); write (li(nl), amt) 'ele_name;STR;T;',                         trim(d_ptr%ele_name), ';ix_ele'
   nl=incr(nl); write (li(nl), amt) 'ele_start_name;STR;T;',                   trim(d_ptr%ele_start_name), ';ix_ele_start'
@@ -1578,6 +1578,34 @@ case ('enum')
   enddo
 
 !----------------------------------------------------------------------
+! Floor plan elements
+! Command syntax:
+!   python lat_layout {ix_universe}
+! Note: The returned list of element positions is not ordered in increasing longitudinal position.
+
+case ('floor_plan')
+
+  u => point_to_uni(line, .false., err); if (err) return
+  lat => u%model%lat
+
+  do ib = 0, ubound(lat%branch, 1)
+    branch => lat%branch(ib)
+    do i = 1, branch%n_ele_max
+      ele => branch%ele(i)
+      
+      if (ele%slave_status == super_slave$) cycle
+      if (ele%key == overlay$) cycle
+      if (ele%key == group$) cycle
+      if (ele%key == girder$) cycle
+      if (ele%lord_status == multipass_lord$) cycle
+      call find_element_ends(ele, ele1, ele2)
+      nl=incr(nl); write (li(nl), '(i0, 5a, 2(es18.10, a))') ib, ';', i, ';', trim(ele%name), ';', &
+                                                              trim(key_name(ele%key)), ';'
+    enddo
+  enddo
+
+
+!----------------------------------------------------------------------
 ! Global parameters
 ! Command syntax: 
 !   python global
@@ -1753,12 +1781,13 @@ case ('lat_layout')
   ix_branch = parse_branch(line, .false., err); if (err) return
   branch => u%model%lat%branch(ix_branch)
 
-  do i = 0, branch%n_ele_max
+  do i = 1, branch%n_ele_max
     ele => branch%ele(i)
     if (ele%slave_status == super_slave$) cycle
     if (ele%key == overlay$) cycle
     if (ele%key == group$) cycle
     if (ele%key == girder$) cycle
+    if (ele%lord_status == multipass_lord$) cycle
     nl=incr(nl); write (li(nl), '(i0, 5a, 2(es23.15, a))') i, ';', trim(ele%name), ';', &
                                                             trim(key_name(ele%key)), ';', ele%s_start, ';', ele%s
   enddo
@@ -2117,8 +2146,8 @@ case ('plot_curve')
     return
   endif
 
-  ix_uni = cur%ix_universe
   cur => curve(1)%c
+  ix_uni = cur%ix_universe
 
   nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             cur%name
   nl=incr(nl); write (li(nl), amt) 'curve^data_source;ENUM;T;',               cur%data_source
