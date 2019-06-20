@@ -1491,7 +1491,7 @@ case ('ele:elec_multipoles')
 case ('enum')
 
   if (index(line, '.color') /= 0) then
-    do i = 1, size(qp_color_name)
+    do i = lbound(qp_color_name, 1), ubound(qp_color_name, 1)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_color_name(i))
     enddo
     return
@@ -1512,7 +1512,7 @@ case ('enum')
   endif
 
   if (line == 'symbol.type') then
-    do i = 1, size(qp_symbol_type_name)
+    do i = lbound(qp_symbol_type_name, 1), ubound(qp_symbol_type_name, 1)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_symbol_type_name(i))
     enddo
     return
@@ -1542,6 +1542,13 @@ case ('enum')
   if (line == 'data^data_source') then
     nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', 'lat'
     nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', 'beam'
+    return
+  endif
+
+  if (line == 'curve^data_source') then
+    do i = 1, size(data_source_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(data_source_name(i))
+    enddo
     return
   endif
 
@@ -2077,7 +2084,7 @@ case ('plot_curve')
   cur => curve(1)%c
 
   nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             cur%name
-  nl=incr(nl); write (li(nl), amt) 'data_source;STR;T;',                      cur%data_source
+  nl=incr(nl); write (li(nl), amt) 'curve^data_source;ENUM;T;',               cur%data_source
   nl=incr(nl); write (li(nl), amt) 'data_type_x;DAT_TYPE;T;',                 cur%data_type_x
   nl=incr(nl); write (li(nl), amt) 'data_type_z;STR;T;',                      cur%data_type_z
   nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   cur%data_type
