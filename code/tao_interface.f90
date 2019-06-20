@@ -48,21 +48,6 @@ private tao_pointer_to_universe_int, tao_pointer_to_universe_str
 
 interface
 
-subroutine floor_to_screen (graph, r_floor, x_screen, y_screen)
-  import
-  implicit none
-  type (tao_graph_struct) graph
-  real(rp) r_floor(3), x_screen, y_screen 
-end subroutine
-
-subroutine floor_to_screen_coords (graph, floor, screen)
-  import
-  implicit none
-  type (tao_graph_struct) graph
-  type (floor_position_struct) floor, screen
-end subroutine
-
-
 subroutine tao_alias_cmd (alias, string)
   implicit none
   character(*) :: alias
@@ -274,6 +259,20 @@ subroutine tao_find_plots (err, name, where, plot, graph, curve, print_flag, alw
   logical err
 end subroutine
  
+subroutine tao_floor_to_screen (graph, r_floor, x_screen, y_screen)
+  import
+  implicit none
+  type (tao_graph_struct) graph
+  real(rp) r_floor(3), x_screen, y_screen 
+end subroutine
+
+subroutine tao_floor_to_screen_coords (graph, floor, screen)
+  import
+  implicit none
+  type (tao_graph_struct) graph
+  type (floor_position_struct) floor, screen
+end subroutine
+
 subroutine tao_has_been_created ()
 end subroutine
  

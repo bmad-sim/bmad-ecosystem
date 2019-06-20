@@ -439,8 +439,8 @@ if (allocated(s%building_wall%section)) then
 
       do j = 2, size(pt)
         if (pt(j)%radius == 0) then   ! line
-          call floor_to_screen (graph, [pt(j-1)%x, 0.0_rp, pt(j-1)%z], end1%r(1), end1%r(2))
-          call floor_to_screen (graph, [pt(j)%x, 0.0_rp, pt(j)%z], end2%r(1), end2%r(2))
+          call tao_floor_to_screen (graph, [pt(j-1)%x, 0.0_rp, pt(j-1)%z], end1%r(1), end1%r(2))
+          call tao_floor_to_screen (graph, [pt(j)%x, 0.0_rp, pt(j)%z], end2%r(1), end2%r(2))
           call qp_draw_line(end1%r(1), end2%r(1), end1%r(2), end2%r(2), width = iwidth, color = icol)
 
         else                    ! arc
@@ -453,7 +453,7 @@ if (allocated(s%building_wall%section)) then
             v_vec(1) = pt(j)%x_center + abs(pt(j)%radius) * sin(theta)
             v_vec(2) = 0
             v_vec(3) = pt(j)%z_center + abs(pt(j)%radius) * cos(theta)
-            call floor_to_screen (graph, v_vec, x_bend(k), y_bend(k))
+            call tao_floor_to_screen (graph, v_vec, x_bend(k), y_bend(k))
           enddo
           call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend), width = iwidth, color = icol)
         endif
@@ -609,8 +609,8 @@ endif
 
 if (is_data_or_var) floor1 = floor2 ! pretend this is zero length element
 
-call floor_to_screen_coords (graph, floor1, end1)
-call floor_to_screen_coords (graph, floor2, end2)
+call tao_floor_to_screen_coords (graph, floor1, end1)
+call tao_floor_to_screen_coords (graph, floor2, end2)
 
 ! Only draw those element that have at least one point in bounds.
 
@@ -668,8 +668,8 @@ if (is_bend) then
     if (cos_t < 0) dr_vec = -dr_vec
     v_vec = matmul (w_old, r_vec) + v_old
     dv_vec = matmul (w_old, dr_vec) 
-    call floor_to_screen (graph, v_vec, x_bend(j), y_bend(j))
-    call floor_to_screen (graph, dv_vec, dx_bend(j), dy_bend(j))
+    call tao_floor_to_screen (graph, v_vec, x_bend(j), y_bend(j))
+    call tao_floor_to_screen (graph, dv_vec, dx_bend(j), dy_bend(j))
 
     if (graph%floor_plan_orbit_scale /= 0) then
       s_here = j * ele%value(l$) / n_bend
@@ -678,7 +678,7 @@ if (is_bend) then
       f_orb%r(1:2) = graph%floor_plan_orbit_scale * orb_here%vec(1:3:2)
       f_orb%r(3) = s_here
       f_orb = coords_local_curvilinear_to_floor (f_orb, ele, .false.)
-      call floor_to_screen (graph, f_orb%r, dx_orbit(j), dy_orbit(j))
+      call tao_floor_to_screen (graph, f_orb%r, dx_orbit(j), dy_orbit(j))
     endif
 
     ! Correct for e1 and e2 face angles which are a rotation of the faces about
@@ -689,7 +689,7 @@ if (is_bend) then
       if (ele%orientation == -1) e_edge = -ele%value(e2$)
       dr_vec = tan(e_edge) * [cos_t * cos_a, sin_t * cos_a, sin_a]
       dv_vec = matmul (w_old, dr_vec) 
-      call floor_to_screen (graph, dv_vec, dx1, dy1)
+      call tao_floor_to_screen (graph, dv_vec, dx1, dy1)
       dx_bend(j) = dx_bend(j) - dx1
       dy_bend(j) = dy_bend(j) - dy1
       e1_factor = sqrt(dx_bend(j)**2 + dy_bend(j)**2)
@@ -700,7 +700,7 @@ if (is_bend) then
       if (ele%orientation == -1) e_edge = -ele%value(e1$)
       dr_vec = tan(e_edge) * [cos_t * cos_a, sin_t * cos_a, sin_a]
       dv_vec = matmul (w_old, dr_vec) 
-      call floor_to_screen (graph, dv_vec, dx1, dy1)
+      call tao_floor_to_screen (graph, dv_vec, dx1, dy1)
       dx_bend(j) = dx_bend(j) + dx1
       dy_bend(j) = dy_bend(j) + dy1
       e2_factor = sqrt(dx_bend(j)**2 + dy_bend(j)**2)
@@ -721,14 +721,14 @@ if (graph%floor_plan_orbit_scale /= 0 .and. ele%value(l$) /= 0) then
       floor%r(1:2) = graph%floor_plan_orbit_scale * orb_start%vec(1:3:2)
       floor%r(3) = ele0%value(l$)
       floor1 = coords_local_curvilinear_to_floor (floor, ele0, .false.)
-      call floor_to_screen_coords (graph, floor1, f_orb)
+      call tao_floor_to_screen_coords (graph, floor1, f_orb)
       dx_orbit(0) = f_orb%r(1)
       dy_orbit(0) = f_orb%r(2)
 
       floor%r(1:2) = graph%floor_plan_orbit_scale * orb_end%vec(1:3:2)
       floor%r(3) = ele%value(l$)
       floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
-      call floor_to_screen_coords (graph, floor1, f_orb)
+      call tao_floor_to_screen_coords (graph, floor1, f_orb)
       dx_orbit(1) = f_orb%r(1)
       dy_orbit(1) = f_orb%r(2)
 
@@ -744,7 +744,7 @@ if (graph%floor_plan_orbit_scale /= 0 .and. ele%value(l$) /= 0) then
       floor%r(1:2) = graph%floor_plan_orbit_scale * orb_here%vec(1:3:2)
       floor%r(3) = s_here
       floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
-      call floor_to_screen_coords (graph, floor1, f_orb)
+      call tao_floor_to_screen_coords (graph, floor1, f_orb)
       dx_orbit(ic) = f_orb%r(1)
       dy_orbit(ic) = f_orb%r(2)
     enddo
@@ -812,7 +812,7 @@ if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) 
   drift%key = drift$
   drift%value(l$) = ele%value(x_ray_line_len$)
   call ele_geometry (floor2, drift, drift%floor) 
-  call floor_to_screen_coords (graph, drift%floor, x_ray)
+  call tao_floor_to_screen_coords (graph, drift%floor, x_ray)
   call qp_convert_point_abs (x_ray%r(1), x_ray%r(2), 'DATA', x_ray%r(1), x_ray%r(2), draw_units)
 endif
 

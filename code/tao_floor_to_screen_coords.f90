@@ -2,7 +2,7 @@
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine floor_to_screen_coords (graph, floor, screen)
+! Subroutine tao_floor_to_screen_coords (graph, floor, screen)
 !
 ! Routine to project a 3D floor coordinate onto a 2D projection plane
 ! along with projecting the orientation vector.
@@ -17,7 +17,7 @@
 !     %theta  -- angle in (x, y) plane of projection of the orientation vector.
 !-
 
-subroutine floor_to_screen_coords (graph, floor, screen)
+subroutine tao_floor_to_screen_coords (graph, floor, screen)
 
 use tao_struct
 
@@ -29,7 +29,7 @@ real(rp) orient(3), theta, phi, x, y
 
 ! Get projection position
 
-call floor_to_screen (graph, floor%r, screen%r(1), screen%r(2))
+call tao_floor_to_screen (graph, floor%r, screen%r(1), screen%r(2))
 
 ! screen%theta does not depend upon floor%psi
 
@@ -57,4 +57,4 @@ end select
 
 screen%theta = atan2(y, x) + twopi * graph%floor_plan_rotation
 
-end subroutine floor_to_screen_coords
+end subroutine tao_floor_to_screen_coords

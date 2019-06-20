@@ -103,6 +103,7 @@ type (cylindrical_map_struct), pointer :: cy_map
 type (cylindrical_map_term1_struct), pointer :: cyt
 type (wake_struct), pointer :: wake
 type (taylor_term_struct), pointer :: tt
+type (floor_position_struct) floor, floor1, floor2
 
 character(*) input_str
 character(n_char_show), allocatable :: li(:) 
@@ -1592,13 +1593,20 @@ case ('floor_plan')
     branch => lat%branch(ib)
     do i = 1, branch%n_ele_max
       ele => branch%ele(i)
-      
       if (ele%slave_status == super_slave$) cycle
+      if (ele%lord_status == multipass_lord$) cycle
       if (ele%key == overlay$) cycle
       if (ele%key == group$) cycle
       if (ele%key == girder$) cycle
-      if (ele%lord_status == multipass_lord$) cycle
       call find_element_ends(ele, ele1, ele2)
+      floor%r = [0.0_rp, 0.0_rp, 0.0_rp]
+      floor1 = coords_local_curvilinear_to_floor (floor, ele, .true.)
+
+      floor%r = [0.0_rp, 0.0_rp, ele%value(l$)]
+      floor2 = coords_local_curvilinear_to_floor (floor, ele, .true.)
+      !call floor_to_screen_coords (graph, floor1, end1)
+      !call floor_to_screen_coords (graph, floor2, end2)
+
       nl=incr(nl); write (li(nl), '(i0, 5a, 2(es18.10, a))') ib, ';', i, ';', trim(ele%name), ';', &
                                                               trim(key_name(ele%key)), ';'
     enddo
