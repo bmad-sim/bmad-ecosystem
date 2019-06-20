@@ -1151,7 +1151,7 @@ case ('ix_branch')
 case ('ix_bunch')
   u => tao_pointer_to_universe (tao_curve_ix_uni(this_curve))
   if (.not. associated(u)) return
-  call tao_set_integer_value (this_curve%ix_bunch, component, value_str, err, -1, u%beam%beam_init%n_bunch)
+  call tao_set_integer_value (this_curve%ix_bunch, component, value_str, err, 0, u%beam%beam_init%n_bunch)
 
 case ('symbol_every')
   call tao_set_integer_value (this_curve%symbol_every, component, value_str, err, 0, 1000000)
@@ -1159,17 +1159,32 @@ case ('symbol_every')
 case ('symbol_size')
   call tao_set_real_value (this_curve%symbol%height, component, value_str, err)
 
-case ('symbol_color')
+case ('symbol_color', 'symbol.color')
   call tao_set_switch_value (this_curve%symbol%color, component, value_str, qp_color_name, err)
 
-case ('symbol_type')
+case ('symbol_type', 'symbol.type')
   call tao_set_switch_value (this_curve%symbol%type, component, value_str, qp_symbol_type_name, err)
+
+case ('symbol_fill_pattern', 'symbol.fill_pattern')
+  call tao_set_switch_value (this_curve%symbol%fill_pattern, component, value_str, qp_symbol_fill_pattern_name, err)
+
+case ('symbol_height', 'symbol.height')
+  call tao_set_real_value (this_curve%symbol%height, component, value_str, err)
+
+case ('symbol_line_width', 'symbol.line_width')
+  call tao_set_integer_value (this_curve%symbol%line_width, component, value_str, err)
 
 case ('smooth_line_calc')
   call tao_set_logical_value (this_curve%smooth_line_calc, component, value_str, err)
 
-case ('line_color')
+case ('line_color', 'line.color')
   call tao_set_switch_value (this_curve%line%color, component, value_str, qp_color_name, err)
+
+case ('line_width', 'line.width')
+  call tao_set_integer_value (this_curve%line%width, component, value_str, err)
+
+case ('line_pattern', 'line.pattern')
+  call tao_set_switch_value (this_curve%line%pattern, component, value_str, qp_line_pattern_name, err)
 
 case ('component')
   this_curve%component = remove_quotes(value_str)
@@ -1206,6 +1221,12 @@ case ('data_type_x')
 
 case ('data_type_z')
   this_curve%data_type_z = value_str
+
+case ('legend_text')
+  this_curve%legend_text = value_str
+
+case ('units')
+  this_curve%units = value_str
 
 case ('z_color0')
   call tao_set_real_value (this_curve%z_color0, component, value_str, err, dflt_uni = i_uni)
