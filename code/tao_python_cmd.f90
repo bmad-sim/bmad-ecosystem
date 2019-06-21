@@ -69,11 +69,12 @@ type (tao_var_array_struct), allocatable, save, target :: v_array(:)
 type (tao_v1_var_struct), allocatable :: v1_temp(:)
 type (tao_var_struct), allocatable :: v_temp(:)
 type (tao_plot_array_struct), allocatable, save :: plot(:)
-type (tao_graph_array_struct), allocatable, save :: graph(:)
+type (tao_graph_array_struct), allocatable, save :: graphs(:)
 type (tao_curve_array_struct), allocatable, save :: curve(:)
 type (tao_plot_region_struct), pointer :: pr
 type (tao_plot_struct), pointer :: p
 type (tao_graph_struct), pointer :: g
+type (tao_graph_struct) graph
 type (tao_curve_struct), pointer :: cur
 type (tao_lattice_struct), pointer :: tao_lat
 type (tao_plot_region_struct), pointer :: region
@@ -84,7 +85,6 @@ type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
 type (lat_struct), pointer :: lat
 type (bunch_struct), pointer :: bunch
-type (wake_lr_mode_struct), pointer :: lr_mode
 type (ele_struct), pointer :: ele, ele1, ele2
 type (ele_struct), target :: this_ele
 type (coord_struct), pointer :: orbit
@@ -101,13 +101,16 @@ type (cartesian_map_struct), pointer :: ct_map
 type (cartesian_map_term1_struct), pointer :: ctt
 type (cylindrical_map_struct), pointer :: cy_map
 type (cylindrical_map_term1_struct), pointer :: cyt
-type (wake_struct), pointer :: wake
 type (taylor_term_struct), pointer :: tt
-type (floor_position_struct) floor, floor1, floor2
+type (floor_position_struct) floor, floor1, floor2, end1, end2
+type (wake_struct), pointer :: wake
+type (wake_sr_mode_struct), pointer :: wsr
+type (wake_lr_mode_struct), pointer :: lr_mode
+type (wall3d_struct), pointer :: wall3d
 
 character(*) input_str
 character(n_char_show), allocatable :: li(:) 
-character(24) imt, jmt, rmt, lmt, amt, iamt, vamt, rmt2
+character(40) imt, jmt, rmt, lmt, amt, iamt, vamt, rmt2
 character(40) max_loc, ele_name, name1(40), name2(40), a_name, name
 character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
@@ -145,7 +148,7 @@ real(rp) a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
 
 integer :: i, j, k, ib, ie, iu, nn, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i1, i2
-integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_d2, n_who, ix_pole_max, attrib_type
+integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_bunch, ix_d2, n_who, ix_pole_max, attrib_type
 integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free, ix_uni
 
 logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer, can_vary
@@ -203,8 +206,8 @@ endif
 amt  = '(3a)'
 imt  = '(a, 100(i0, a))'
 jmt  = '(i0, a, i0)'
-rmt  = '(a, 100(es23.15, a))'
-rmt2 = '(a, l0, a, 100(es23.15, a))'
+rmt  = '(a, 100(es21.13, a))'
+rmt2 = '(a, l0, a, 100(es21.13, a))'
 lmt  = '(a, 100(l1, a))'
 vamt = '(a, i0, 3a)'
 
@@ -281,7 +284,7 @@ case ('branch1')
 !----------------------------------------------------------------------
 ! Bunch parameters at the exit end of a given lattice element.
 ! Command syntax:
-!   python bunch1 {ix_universe}@{ix_branch}>>{ix_ele}|{which} coordinate
+!   python bunch1 {ix_universe}@{ix_branch}>>{ix_ele}|{which} {ix_bunch} coordinate
 ! where {which} is one of:
 !   model
 !   base
@@ -297,13 +300,14 @@ case ('bunch1')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
   beam => u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
-  ! 
+
+  ix_bunch = parse_int(line, err, 1, size(beam%bunch))
   
   !save_beam flag: u%uni_branch(<branch-index>)%ele(<ele-index>)%save_beam
   
   select case (who)
   case ('x', 'px', 'y', 'py', 'z', 'pz', 's', 't', 'charge', 'p0c', 'state') 
-    call coord_out(beam, who)
+    call coord_out(beam%bunch(ix_bunch), who)
     return
   case ('')
     bunch_params => tao_lat%tao_branch(ele%ix_branch)%bunch_params(ele%ix_ele)
@@ -323,15 +327,15 @@ case ('bunch1')
   ! Sigma matrix
   do i = 1, 6
     do j = 1,6
-      nl=incr(nl); write (li(nl), '(a, i0, i0, a, es23.15)') 'sigma_', i, j, ';REAL;F;', bunch_params%sigma(i,j)  
+      nl=incr(nl); write (li(nl), '(a, i0, i0, a, es21.13)') 'sigma_', i, j, ';REAL;F;', bunch_params%sigma(i,j)  
     enddo
   enddo
 
   ! Relative min, max, centroid
   do i = 1, 6
-    nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'rel_min_', i, ';REAL;F;',      bunch_params%rel_min(i)
-    nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'rel_max_', i, ';REAL;F;',      bunch_params%rel_max(i) 
-    nl=incr(nl); write (li(nl), '(a, i0, a, es23.15)') 'centroid_vec_', i, ';REAL;F;', bunch_params%centroid%vec(i) 
+    nl=incr(nl); write (li(nl), '(a, i0, a, es21.13)') 'rel_min_', i, ';REAL;F;',      bunch_params%rel_min(i)
+    nl=incr(nl); write (li(nl), '(a, i0, a, es21.13)') 'rel_max_', i, ';REAL;F;',      bunch_params%rel_max(i) 
+    nl=incr(nl); write (li(nl), '(a, i0, a, es21.13)') 'centroid_vec_', i, ';REAL;F;', bunch_params%centroid%vec(i) 
   enddo
 
   nl=incr(nl); write (li(nl), rmt) 'centroid_t;REAL;F;',                       bunch_params%centroid%t
@@ -599,7 +603,7 @@ case ('data_d_array')
     d_ptr => d_array(i)%d
     if (.not. d_ptr%exists) cycle
     name = tao_constraint_type_name(d_ptr)
-    nl=incr(nl); write(li(nl), '(i0, 11a, 3(es23.15, a), 3(l1, a), es23.15)') d_ptr%ix_d1, ';', &
+    nl=incr(nl); write(li(nl), '(i0, 11a, 3(es21.13, a), 3(l1, a), es21.13)') d_ptr%ix_d1, ';', &
               trim(d_ptr%data_type), ';', trim(d_ptr%merit_type), ';', &
               trim(d_ptr%ele_ref_name), ';', trim(d_ptr%ele_start_name), ';', trim(d_ptr%ele_name), ';', &
               d_ptr%meas_value, ';', d_ptr%model_value, ';', d_ptr%design_value, ';', &
@@ -755,12 +759,11 @@ case ('ele:head')
   nl=incr(nl); write (li(nl), imt) 'num#taylor_field;INT;F;',     n
   n = 0; if (associated(ele%grid_field)) n = size(ele%grid_field)
   nl=incr(nl); write (li(nl), imt) 'num#grid_field;INT;F;',       n
-  nl=incr(nl); write (li(nl), lmt) 'has#wall3d;LOGIC;F;',           associated(ele%wall3d)
+  n = 0; if (associated(ele%wall3d)) n = size(ele%wall3d)
+  nl=incr(nl); write (li(nl), imt) 'has#wall3d;INT;F;',           n
   nl=incr(nl); write (li(nl), lmt) 'has#control;LOGIC;F;',          associated(ele%control)
   nl=incr(nl); write (li(nl), lmt) 'has#twiss;LOGIC;F;',            (ele%a%beta /= 0)
   nl=incr(nl); write (li(nl), lmt) 'has#mat6;LOGIC;F;',             (attribute_name(ele, mat6_calc_method$) == 'MAT6_CALC_METHOD')
-  nl=incr(nl); write (li(nl), lmt) 'has#taylor_field;LOGIC;F;',     associated(ele%taylor_field)       
-  nl=incr(nl); write (li(nl), lmt) 'has#grid_field;LOGIC;F;',       associated(ele%grid_field)
   nl=incr(nl); write (li(nl), lmt) 'has#floor;LOGIC;F;',            (ele%lord_status /= multipass_lord$)
   nl=incr(nl); write (li(nl), lmt) 'has#photon;LOGIC;F;',           associated(ele%photon)
   nl=incr(nl); write (li(nl), lmt) 'has#lord_slave;LOGIC;F;',       .true.
@@ -866,7 +869,7 @@ case ('ele:gen_attribs')
     case (is_integer$)
       nl=incr(nl); write (li(nl), '(2a, l1, a, i0)') trim(a_name), ';INT;', free, ';', nint(ele%value(i))
     case (is_real$)
-      nl=incr(nl); write (li(nl), '(2a, l1, a, es23.15)') trim(a_name), ';REAL;', free, ';', ele%value(i)
+      nl=incr(nl); write (li(nl), '(2a, l1, a, es21.13)') trim(a_name), ';REAL;', free, ';', ele%value(i)
       nl=incr(nl); write (li(nl), '(4a)') 'units#', trim(a_name), ';STR;F;', attrib%units
     case (is_switch$)
       name = switch_attrib_value_name (a_name, ele%value(i), ele)
@@ -928,29 +931,29 @@ case ('ele:multipoles')
     if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
 
     if (ele%key == multipole$) then
-      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es23.15)') i, 'KnL;REAL;', can_vary, ';', ele%a_pole(i)
-      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es23.15)') i, 'Tn;REAL;', can_vary, ';', ele%b_pole(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'KnL (w/Tilt);REAL;F;', knl(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'Tn (w/Tilt);REAL;F;', tn(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'An (equiv);REAL;F;', a(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'Bn (equiv);REAL;F;', b(i)
+      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, 'KnL;REAL;', can_vary, ';', ele%a_pole(i)
+      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, 'Tn;REAL;', can_vary, ';', ele%b_pole(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'KnL (w/Tilt);REAL;F;', knl(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'Tn (w/Tilt);REAL;F;', tn(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'An (equiv);REAL;F;', a(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'Bn (equiv);REAL;F;', b(i)
 
     elseif (ele%key == ab_multipole$) then
-      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es23.15)') i, 'An;REAL;', can_vary, ';', ele%a_pole(i)
-      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es23.15)') i, 'Bn;REAL;', can_vary, ';', ele%b_pole(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'An (w/Tilt);REAL;F;', a2(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'Bn  (w/Tilt);REAL;F;', b2(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'KnL (equiv);REAL;F;', knl(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'Tn (equiv);REAL;F;', tn(i)
+      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, 'An;REAL;', can_vary, ';', ele%a_pole(i)
+      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, 'Bn;REAL;', can_vary, ';', ele%b_pole(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'An (w/Tilt);REAL;F;', a2(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'Bn  (w/Tilt);REAL;F;', b2(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'KnL (equiv);REAL;F;', knl(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'Tn (equiv);REAL;F;', tn(i)
     else
-      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es23.15)') i, 'An;REAL;', can_vary, ';', ele%a_pole(i)
-      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es23.15)') i, 'Bn;REAL;', can_vary, ';', ele%b_pole(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'An (Scaled);REAL;F;', a(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'Bn (Scaled);REAL;F;', b(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'An (w/Tilt);REAL;F;', a2(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'Bn (w/Tilt);REAL;F;', b2(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'KnL (equiv);REAL;F;', knl(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'Tn (equiv);REAL;F;', tn(i)
+      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, 'An;REAL;', can_vary, ';', ele%a_pole(i)
+      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, 'Bn;REAL;', can_vary, ';', ele%b_pole(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'An (Scaled);REAL;F;', a(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'Bn (Scaled);REAL;F;', b(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'An (w/Tilt);REAL;F;', a2(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'Bn (w/Tilt);REAL;F;', b2(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'KnL (equiv);REAL;F;', knl(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'Tn (equiv);REAL;F;', tn(i)
     endif
   enddo
 
@@ -978,13 +981,13 @@ case ('ele:ac_kicker')
   if (allocated(ac%amp_vs_time)) then
     nl=incr(nl); write (li(nl), '(a)') 'has#amp_vs_time'
     do i = 1, size(ac%amp_vs_time)
-      nl=incr(nl); write (li(nl), '(i0, 2(a, es23.15))') i, ';', ac%amp_vs_time(i)%amp, ';', ac%amp_vs_time(i)%time
+      nl=incr(nl); write (li(nl), '(i0, 2(a, es21.13))') i, ';', ac%amp_vs_time(i)%amp, ';', ac%amp_vs_time(i)%time
     enddo
 
   else
     nl=incr(nl); write (li(nl), '(a)') 'has#frequencies'
     do i = 1, size(ac%frequencies)
-      nl=incr(nl); write (li(nl), '(i0, 3(a, es23.15))') i, ';', &
+      nl=incr(nl); write (li(nl), '(i0, 3(a, es21.13))') i, ';', &
                       ac%frequencies(i)%f, ';', ac%frequencies(i)%amp, ';', ac%frequencies(i)%phi
     enddo
   endif
@@ -1052,7 +1055,7 @@ case ('ele:cartesian_map:terms')
   call re_allocate_lines (size(ct_map%ptr%term) + 10)
   do i = 1, size(ct_map%ptr%term)
     ctt => ct_map%ptr%term(i)
-    nl=incr(nl); write (li(nl), '(i0, 7(a, es23.15), 4a)') i, ';', &
+    nl=incr(nl); write (li(nl), '(i0, 7(a, es21.13), 4a)') i, ';', &
           ctt%coef, ';', ctt%kx, ';', ctt%ky, ';', ctt%kz, ';', ctt%x0, ';', ctt%y0, ';', ctt%phi_z, ';', &
           trim(cartesian_map_family_name(ctt%family)), ';', trim(cartesian_map_form_name(ctt%form))
   enddo
@@ -1124,7 +1127,7 @@ case ('ele:cylindrical_map:terms')
   call re_allocate_lines (size(cy_map%ptr%term) + 10)
   do i = 1, size(cy_map%ptr%term)
     cyt => cy_map%ptr%term(i)
-    nl=incr(nl); write (li(nl), '(i0, 7(a, es23.15))') i, ';', &
+    nl=incr(nl); write (li(nl), '(i0, 7(a, es21.13))') i, ';', &
       real(cyt%e_coef), ';', imag(cyt%e_coef), ';', real(cyt%b_coef), ';', imag(cyt%b_coef)
   enddo
 
@@ -1156,10 +1159,10 @@ case ('ele:taylor')
   endif
 
   do i = 1, 6
-    nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, ';ref;', ele%taylor(i)%ref
+    nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';ref;', ele%taylor(i)%ref
     do j = 1, size(ele%taylor(i)%term)
       tt => ele%taylor(i)%term(j)
-      nl=incr(nl); write (li(nl), '(i0, a, es23.15, 6(a, i0))') i, ';term;', tt%coef, (';', tt%expn(k), k = 1, 6)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13, 6(a, i0))') i, ';term;', tt%coef, (';', tt%expn(k), k = 1, 6)
     enddo
   enddo
 
@@ -1189,7 +1192,7 @@ case ('ele:spin_taylor')
   do i = 0, 3
     do j = 1, size(ele%spin_taylor(i)%term)
       tt => ele%spin_taylor(i)%term(j)
-      nl=incr(nl); write (li(nl), '(i0, a, es23.15, 6(a, i0))') i, ';term;', tt%coef, (';', tt%expn(k), k = 1, 6)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13, 6(a, i0))') i, ';term;', tt%coef, (';', tt%expn(k), k = 1, 6)
     enddo
   enddo
 
@@ -1229,20 +1232,52 @@ case ('ele:wake')
     nl=incr(nl); write (li(nl), rmt) 'z_sr_max;REAL;T;',         wake%z_sr_max
     nl=incr(nl); write (li(nl), rmt) 'lr_freq_spread;REAL;T;',   wake%lr_freq_spread
     nl=incr(nl); write (li(nl), lmt) 'lr_self_wake_on;REAL;T;',  wake%lr_self_wake_on
-!!!    nl=incr(nl); write (li(nl), lmt) 'has#sr_long;LOGIC;F;',     allocated(wake%sr
-    ! TODO....
+    nl=incr(nl); write (li(nl), lmt) 'has#sr_long;LOGIC;F;',     allocated(wake%sr_long%mode)
+    nl=incr(nl); write (li(nl), lmt) 'has#sr_trans;LOGIC;F;',    allocated(wake%sr_trans%mode)
+    nl=incr(nl); write (li(nl), lmt) 'has#lr_mode;LOGIC;F;',     allocated(wake%lr_mode)
+    nl=incr(nl); write (li(nl), lmt) 'has#lr_spline;LOGIC;F;',   allocated(wake%lr_spline)
+
+  case ('sr_long')
+    nl=incr(nl); write (li(nl), rmt) 'z_ref;REAL;T;',   wake%sr_long%z_ref
+    do i = 1, size(wake%sr_long%mode)
+      wsr => wake%sr_long%mode(i)
+      nl=incr(nl); write (li(nl), '(4(es16.8), 4a)') wsr%amp, ';', wsr%damp, ';', wsr%k, ';', wsr%phi, ';', &
+          sr_polarization_name(wsr%polarization), ';', sr_transverse_dependence_name(wsr%transverse_dependence)
+    enddo
+
+  case ('sr_trans')
+    nl=incr(nl); write (li(nl), rmt) 'z_ref;REAL;T;',   wake%sr_trans%z_ref
+    do i = 1, size(wake%sr_trans%mode)
+      wsr => wake%sr_trans%mode(i)
+      nl=incr(nl); write (li(nl), '(4(es16.8), 4a)') wsr%amp, ';', wsr%damp, ';', wsr%k, ';', wsr%phi, ';', &
+          sr_polarization_name(wsr%polarization), ';', sr_transverse_dependence_name(wsr%transverse_dependence)
+    enddo
+
+  case ('lr_mode')
+    do i = 1, size(wake%lr_mode)
+      lr_mode => wake%lr_mode(i)
+      v_str = ' unpolar'
+      if (lr_mode%polarized) write (v_str, '(f8.3)') lr_mode%angle
+      nl=incr(nl); write (li(nl), '(4(es21.13, a), 2a)') &
+                lr_mode%freq, ';', lr_mode%R_over_Q, ';', lr_mode%Q, ';', lr_mode%m, ';', v_str
+    enddo
+
+  case default
+    call invalid ('Bad or missign {who} switch.')
+    return
   end select
 
 !----------------------------------------------------------------------
 ! Element wall3d
 ! Command syntax:
-!   python ele:wall3d {ele_id}|{which}
+!   python ele:wall3d {ele_id}|{which} {index}
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
 !   design
+! {index} is the index number in the ele%wall3d(:) array
 ! Example:
-!   python element 3@1>>7|model
+!   python element 3@1>>7|model 2
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:wall3d')
@@ -1251,7 +1286,19 @@ case ('ele:wall3d')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-  ! TODO....
+  if (.not. associated(ele%wall3d)) then
+    call invalid ('wall3d not allocated')
+    return
+  endif
+  ix = parse_int (line, err, 0, size(ele%wall3d));  if (err) return
+  wall3d => ele%wall3d(ix)
+
+  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                wall3d%name
+  nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',      anchor_pt_name(wall3d%ele_anchor_pt)
+  call re_allocate_lines (10+size(wall3d%section))
+  do i = 1, size(wall3d%section)
+  enddo
+!!!!    TODO
 
 !----------------------------------------------------------------------
 ! Element twiss
@@ -1485,10 +1532,10 @@ case ('ele:elec_multipoles')
   do i = 0, n_pole_maxx
     if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
 
-    nl=incr(nl); write (li(nl), '(i0, a, l1, a, es23.15)') i, 'An_elec;REAL;', can_vary, ';', ele%a_pole_elec(i)
-    nl=incr(nl); write (li(nl), '(i0, a, l1, a, es23.15)') i, 'Bn_elec;REAL;', can_vary, ';', ele%b_pole_elec(i)
-    nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'An_elec (Scaled);REAL;F;', a(i)
-    nl=incr(nl); write (li(nl), '(i0, a, es23.15)') i, 'Bn_elec (Scaled);REAL;F;', b(i)
+    nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, 'An_elec;REAL;', can_vary, ';', ele%a_pole_elec(i)
+    nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, 'Bn_elec;REAL;', can_vary, ';', ele%b_pole_elec(i)
+    nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'An_elec (Scaled);REAL;F;', a(i)
+    nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'Bn_elec (Scaled);REAL;F;', b(i)
   enddo
 
 !----------------------------------------------------------------------
@@ -1581,13 +1628,14 @@ case ('enum')
 !----------------------------------------------------------------------
 ! Floor plan elements
 ! Command syntax:
-!   python lat_layout {ix_universe}
-! Note: The returned list of element positions is not ordered in increasing longitudinal position.
+!   python lat_layout {ix_universe} {orientation}
+! where {orientation} is one of "xy", xz", "yx", "yz", "zx", or "zy".
 
 case ('floor_plan')
 
   u => point_to_uni(line, .false., err); if (err) return
   lat => u%model%lat
+  graph%floor_plan_view = line
 
   do ib = 0, ubound(lat%branch, 1)
     branch => lat%branch(ib)
@@ -1604,11 +1652,18 @@ case ('floor_plan')
 
       floor%r = [0.0_rp, 0.0_rp, ele%value(l$)]
       floor2 = coords_local_curvilinear_to_floor (floor, ele, .true.)
-      !call floor_to_screen_coords (graph, floor1, end1)
-      !call floor_to_screen_coords (graph, floor2, end2)
-
-      nl=incr(nl); write (li(nl), '(i0, 5a, 2(es18.10, a))') ib, ';', i, ';', trim(ele%name), ';', &
-                                                              trim(key_name(ele%key)), ';'
+      call tao_floor_to_screen_coords (graph, floor1, end1)
+      call tao_floor_to_screen_coords (graph, floor2, end2)
+      if (ele%key == sbend$) then
+        nl=incr(nl); write (li(nl), '(2(i0, a), 4a, 6(es18.10, a))') ib, ';', i, ';', trim(ele%name), ';', &
+                          trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
+                          end2%r(1), ';', end2%r(2), ';', end2%theta
+      else
+        nl=incr(nl); write (li(nl), '(2(i0, a), 4a, 11(es18.10, a))') ib, ';', i, ';', trim(ele%name), ';', &
+                          trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
+                          end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
+                          ele%value(l$), ';', ele%value(angle$), ';', ele%value(e1$), ';', ele%value(e2$)
+      endif
     enddo
   enddo
 
@@ -1796,7 +1851,7 @@ case ('lat_layout')
     if (ele%key == group$) cycle
     if (ele%key == girder$) cycle
     if (ele%lord_status == multipass_lord$) cycle
-    nl=incr(nl); write (li(nl), '(i0, 5a, 2(es23.15, a))') i, ';', trim(ele%name), ';', &
+    nl=incr(nl); write (li(nl), '(i0, 5a, 2(es21.13, a))') i, ';', trim(ele%name), ';', &
                                                             trim(key_name(ele%key)), ';', ele%s_start, ';', ele%s
   enddo
 
@@ -1962,9 +2017,9 @@ case ('lat_list')
           endif
         else
           if (i == 1) then
-            nl=incr(nl); write (li(nl), '(es23.15)') value
+            nl=incr(nl); write (li(nl), '(es21.13)') value
           else
-            write (li(nl), '(2a, es23.15)') trim(li(nl)), ';', value
+            write (li(nl), '(2a, es21.13)') trim(li(nl)), ';', value
           endif
         endif
       endif
@@ -2069,14 +2124,14 @@ case ('plot_list')
 
 case ('plot_graph')
 
-  call tao_find_plots (err, line, 'COMPLETE', graph = graph)
+  call tao_find_plots (err, line, 'COMPLETE', graph = graphs)
 
-  if (err .or. .not. allocated(graph)) then
+  if (err .or. .not. allocated(graphs)) then
     call invalid ('Bad graph name')
     return
   endif
 
-  g => graph(1)%g
+  g => graphs(1)%g
 
   n = 0
   if (allocated(g%curve)) n = size(g%curve)
@@ -2246,7 +2301,7 @@ case ('plot_line')
   case ('')
     call re_allocate_lines (nl+n+100)
     do i = 1, n
-      nl=incr(nl); write (li(nl), '(i0, 2(a, es23.15))') i, ';', cur%x_line(i), ';', cur%y_line(i)
+      nl=incr(nl); write (li(nl), '(i0, 2(a, es21.13))') i, ';', cur%x_line(i), ';', cur%y_line(i)
     enddo
 
   case default
@@ -2303,7 +2358,7 @@ case ('plot_symbol')
   case ('')
     call re_allocate_lines (size(cur%x_symb)+100)
     do i = 1, size(cur%x_symb)
-      nl=incr(nl); write (li(nl), '(2(i0, a), 2(es23.15, a))') i, ';', cur%ix_symb(i), ';', cur%x_symb(i), ';', cur%y_symb(i)
+      nl=incr(nl); write (li(nl), '(2(i0, a), 2(es21.13, a))') i, ';', cur%ix_symb(i), ';', cur%x_symb(i), ';', cur%y_symb(i)
     enddo
 
   case default
@@ -2571,7 +2626,7 @@ case ('var_v_array')
   do i = 1, size(v_array)
     v_ptr => v_array(i)%v
     if (.not. v_ptr%exists) cycle
-    nl=incr(nl); write(li(nl), '(i0, 3a, 3(es23.15, a), 2(l1, a), es23.15)') &
+    nl=incr(nl); write(li(nl), '(i0, 3a, 3(es21.13, a), 2(l1, a), es21.13)') &
                   v_ptr%ix_v1, ';', trim(tao_var_attrib_name(v_ptr)), ';', v_ptr%meas_value, ';', &
                   v_ptr%model_value, ';', v_ptr%design_value, ';', v_ptr%useit_opt, ';', v_ptr%good_user, ';', v_ptr%weight
   enddo
@@ -2596,7 +2651,7 @@ case ('var_v1_array')
   do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
     v_ptr => v1_ptr%v(i)
     if (.not. v_ptr%exists) cycle
-    nl=incr(nl); write (li(nl), '(2a, i0, 5a, 3(es23.15, a), 2 (l1, a))') trim(v1_ptr%name), '[', &
+    nl=incr(nl); write (li(nl), '(2a, i0, 5a, 3(es21.13, a), 2 (l1, a))') trim(v1_ptr%name), '[', &
                      v_ptr%ix_v1, '];', trim(v_ptr%ele_name), ';', trim(v_ptr%attrib_name), ';', &
                      v_ptr%meas_value, ';', v_ptr%model_value, ';', &
                      v_ptr%design_value, ';', v_ptr%good_user, ';', v_ptr%useit_opt
@@ -2951,9 +3006,8 @@ end subroutine orbit_out
 !----------------------------------------------------------------------
 ! contains
 
-subroutine coord_out(beam, coordinate)
-type (beam_struct), pointer :: beam
-type (bunch_struct), pointer :: bunch
+subroutine coord_out(bunch, coordinate)
+type (bunch_struct) :: bunch
 character(20) coordinate
 integer :: i_vec
 
@@ -2962,16 +3016,9 @@ if (.not. allocated(beam%bunch)) then
     return
 endif
 
-! TODO: generalize to n bunches
-bunch => beam%bunch(1)
-
 ! Allocate scratch 
 n = size(bunch%particle)
 call reallocate_c_real_scratch(n)
-
-! Integer scr
-
-
 
 ! Add data
 select case (coordinate)
@@ -2998,7 +3045,6 @@ case ('p0c')
 case ('state')
   call reallocate_c_integer_scratch(n)
   tao_c_interface_com%c_integer(1:n) = bunch%particle(:)%state
-
 
 case default
   call invalid ('coordinate not "x", "px", etc. ')
@@ -3051,7 +3097,7 @@ else
   v_str = ';REAL;F;'
 endif
 
-fmt = '(3a, es23.15)'
+fmt = '(3a, es21.13)'
 
 nl=incr(nl); write (li(nl), fmt) 'beta_', suffix, v_str,                          twiss%beta
 nl=incr(nl); write (li(nl), fmt) 'alpha_', suffix, v_str,                         twiss%alpha
@@ -3085,7 +3131,7 @@ else
   v_str = ';REAL;F;'
 endif
 
-fmt = '(3a, es23.15)'
+fmt = '(3a, es21.13)'
 
 nl=incr(nl); write (li(nl), fmt) 'eta_', suffix, v_str,                           xy_disp%eta
 nl=incr(nl); write (li(nl), fmt) 'etap_', suffix, v_str,                          xy_disp%etap
