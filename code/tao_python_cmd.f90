@@ -1206,10 +1206,10 @@ case ('ele:spin_taylor')
 !   design
 ! {Who} is one of
 !   base
-!   sr_long
-!   sr_trans
-!   lr_mode
-!   lr_spline
+!   sr_long     sr_long_table
+!   sr_trans    sr_trans_table
+!   lr_mode_table
+!   lr_spline_table   ! TODO: Inmplement
 ! Example:
 !   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
@@ -1239,6 +1239,8 @@ case ('ele:wake')
 
   case ('sr_long')
     nl=incr(nl); write (li(nl), rmt) 'z_ref;REAL;T;',   wake%sr_long%z_ref
+
+  case ('sr_long_table')
     do i = 1, size(wake%sr_long%mode)
       wsr => wake%sr_long%mode(i)
       nl=incr(nl); write (li(nl), '(4(es16.8), 4a)') wsr%amp, ';', wsr%damp, ';', wsr%k, ';', wsr%phi, ';', &
@@ -1247,13 +1249,15 @@ case ('ele:wake')
 
   case ('sr_trans')
     nl=incr(nl); write (li(nl), rmt) 'z_ref;REAL;T;',   wake%sr_trans%z_ref
+
+  case ('sr_trans_table')
     do i = 1, size(wake%sr_trans%mode)
       wsr => wake%sr_trans%mode(i)
       nl=incr(nl); write (li(nl), '(4(es16.8), 4a)') wsr%amp, ';', wsr%damp, ';', wsr%k, ';', wsr%phi, ';', &
           sr_polarization_name(wsr%polarization), ';', sr_transverse_dependence_name(wsr%transverse_dependence)
     enddo
 
-  case ('lr_mode')
+  case ('lr_mode_table')
     do i = 1, size(wake%lr_mode)
       lr_mode => wake%lr_mode(i)
       v_str = ' unpolar'
@@ -1270,14 +1274,17 @@ case ('ele:wake')
 !----------------------------------------------------------------------
 ! Element wall3d
 ! Command syntax:
-!   python ele:wall3d {ele_id}|{which} {index}
+!   python ele:wall3d {ele_id}|{which} {index} {who}
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
 !   design
-! {index} is the index number in the ele%wall3d(:) array
+! {index} is the index number in the ele%wall3d(:) array (size obtained from "ele:head").
+! {who} is one of:
+!   base
+!   table
 ! Example:
-!   python element 3@1>>7|model 2
+!   python element 3@1>>7|model 2 base
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:wall3d')
@@ -1454,9 +1461,9 @@ case ('ele:floor')
   nl=incr(nl); write (li(nl), rmt2) 'r;REAL_ARR;', can_vary, ';', ele%floor%r(1), ';',ele%floor%r(2), ';', ele%floor%r(3) 
   nl=incr(nl); write (li(nl), rmt2) 'r;REAL_ARR;', can_vary, ';', ele%floor%r(1), ';',ele%floor%r(2), ';', ele%floor%r(3) 
   nl=incr(nl); write (li(nl), rmt2) 'r;REAL_ARR;', can_vary, ';', ele%floor%r(1), ';',ele%floor%r(2), ';', ele%floor%r(3) 
-  nl=incr(nl); write (li(nl), rmt)  'theta;REAL;', can_vary, ';', ele%floor%theta
-  nl=incr(nl); write (li(nl), rmt)  'phi;REAL;',   can_vary, ';', ele%floor%phi
-  nl=incr(nl); write (li(nl), rmt)  'psi;REAL;',   can_vary, ';', ele%floor%psi
+  nl=incr(nl); write (li(nl), rmt2) 'theta;REAL;', can_vary, ';', ele%floor%theta
+  nl=incr(nl); write (li(nl), rmt2) 'phi;REAL;',   can_vary, ';', ele%floor%phi
+  nl=incr(nl); write (li(nl), rmt2) 'psi;REAL;',   can_vary, ';', ele%floor%psi
 
 !----------------------------------------------------------------------
 ! Element photon
