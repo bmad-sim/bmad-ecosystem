@@ -2,7 +2,6 @@
 ! Subroutine tao_control_tree_list (ele, tree)
 !
 ! Routine to create a list of slaves and lords of a given lattice element.
-! Also included is all lords of any element that is in the list.
 ! The list is semi-ordered with slave elements appearing before lord elements.
 !
 ! Input:
@@ -19,22 +18,24 @@ use bmad
 implicit none
 
 type (ele_struct) ele
-type (ele_pointer_struct), allocatable :: tree(:)
+type (ele_pointer_struct), allocatable :: tree(:), tree2(:)
 
-integer n_found, i
+integer n_found, n_found2, i
 
-! First walk downwards and get a list of ultimate slaves
+! Walk downwards and upwards to get a list of slaves and lords
 
 n_found = 0
 call walk_downwards (ele, tree, n_found)
 
-! And now walk upwards
+n_found2 = 0
+call walk_upwards (ele, tree2, n_found2)
 
-do i = 1, n_found
-  call walk_upwards (tree(i)%ele, tree, n_found)
+! Combine lists. ele is common to both lists so do not double count.
+
+call re_allocate_eles(tree, n_found+n_found2-1, .true., .true.)
+do i = 2, n_found2
+  tree(n_found+n_found2+1-i) = tree2(i)
 enddo
-
-call re_allocate_eles(tree, n_found, .true., .true.)
 
 !------------------------------
 contains
@@ -49,17 +50,24 @@ integer n_found, i
 
 !
 
-if (ele%n_slave + ele%n_slave_field == 0) then  ! Ultimate slave
+! Put element in list if not already there.
+
+do i = 1, n_found
+  if (associated(tree(i)%ele, ele)) exit
+enddo
+
+if (i == n_found+1) then
   call re_allocate_eles(tree, n_found+10, .true.)
   n_found = n_found + 1
   tree(n_found)%ele => ele
-
-else  ! loop over slaves
-  do i = 1, ele%n_slave + ele%n_slave_field
-    slave => pointer_to_slave(ele, i)
-    call walk_downwards(ele, tree, n_found)
-  enddo
 endif
+
+! Loop over slaves
+
+do i = 1, ele%n_slave + ele%n_slave_field
+  slave => pointer_to_slave(ele, i)
+  call walk_downwards(ele, tree2, n_found)
+enddo
 
 end subroutine walk_downwards
 
@@ -78,12 +86,13 @@ integer n_found, i
 
 do i = 1, n_found
   if (associated(tree(i)%ele, ele)) exit
-  if (i == n_found) then
-      call re_allocate_eles(tree, n_found+10, .true.)
-      n_found = n_found + 1
-      tree(n_found)%ele => ele
-  endif
 enddo
+
+if (i == n_found+1) then
+  call re_allocate_eles(tree, n_found+10, .true.)
+  n_found = n_found + 1
+  tree(n_found)%ele => ele
+endif
 
 ! Now go through lords
 

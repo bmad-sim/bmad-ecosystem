@@ -1625,6 +1625,7 @@ Format:
   branch ...            ! Show lattice branch info \sref{s:show.branch}.
   building_wall         ! Show building wall info \sref{s:show.building}.
   constraints           ! Show optimization constraints \sref{s:show.constraints}.
+  control ...           ! Show lords and slaves of a given lattice element \sref{s:show.control}.
   curve ...             ! Show plot curve info \sref{s:show.curve}.
   data ...              ! Show optimization data info \sref{s:show.data}.
   derivative ...        ! Show d_data/d_var optimization info \sref{s:show.derivative}.
@@ -1763,8 +1764,24 @@ Syntax:
   show constraints
 \end{example}
 
-
 Lists data and variable constraints. Also see \vn{show merit}.
+
+%% show constraints --------------------------------------------------------------
+
+\subsection{show control}
+\label{s:show.control}
+
+Syntax:
+\begin{example}
+  show control {element-name-or-index}
+\end{example}
+
+This command compiles a list of all lords (and lords of lords, etc.) of the given element as well as
+a list of all slaves (and slaves of slaves, etc.) of the given element. Then for each element in
+the lists, the lords and slaves of that element are displayed. Example:
+\begin{example}
+  show control q1#2   ! Show lords/slaves of second instance of element named q1.
+\end{example}
 
 %% show curve --------------------------------------------------------------
 
