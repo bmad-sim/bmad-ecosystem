@@ -107,6 +107,7 @@ type (wake_struct), pointer :: wake
 type (wake_sr_mode_struct), pointer :: wsr
 type (wake_lr_mode_struct), pointer :: lr_mode
 type (wall3d_struct), pointer :: wall3d
+type (wall3d_section_struct), pointer :: sec
 
 character(*) input_str
 character(n_char_show), allocatable :: li(:) 
@@ -1228,7 +1229,7 @@ case ('ele:wake')
   wake => ele%wake
 
   select case (line)
-  case ("base")
+  case ('base')
     nl=incr(nl); write (li(nl), rmt) 'z_sr_max;REAL;T;',         wake%z_sr_max
     nl=incr(nl); write (li(nl), rmt) 'lr_freq_spread;REAL;T;',   wake%lr_freq_spread
     nl=incr(nl); write (li(nl), lmt) 'lr_self_wake_on;REAL;T;',  wake%lr_self_wake_on
@@ -1300,12 +1301,40 @@ case ('ele:wall3d')
   ix = parse_int (line, err, 0, size(ele%wall3d));  if (err) return
   wall3d => ele%wall3d(ix)
 
-  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                wall3d%name
-  nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',      anchor_pt_name(wall3d%ele_anchor_pt)
-  call re_allocate_lines (10+size(wall3d%section))
-  do i = 1, size(wall3d%section)
-  enddo
-!!!!    TODO
+  select case (line)
+  case ('base')
+    nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                   wall3d%name
+    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',         anchor_pt_name(wall3d%ele_anchor_pt)
+    select case (ele%key)
+    case (capillary$)
+    case (diffraction_plate$, mask$)
+      nl=incr(nl); write (li(nl), rmt) 'thickness;REAL;T',            wall3d%thickness
+      nl=incr(nl); write (li(nl), amt) 'clear_material;REAL;T',       wall3d%clear_material
+      nl=incr(nl); write (li(nl), amt) 'opaque_material;REAL;T',      wall3d%opaque_material
+    case default
+      nl=incr(nl); write (li(nl), lmt) 'superimpose;REAL;T',          wall3d%superimpose
+    end select
+
+  case ('table')
+    do i = 1, size(wall3d%section)
+      sec => wall3d%section(i)
+      nl=incr(nl); write (li(nl), imt) 'section;INT;F;',    i
+      nl=incr(nl); write (li(nl), rmt) 's;REAL;T;',         sec%s
+      nl=incr(nl); write (li(nl), rmt) 'r0;REAL_ARR;T;',    sec%r0
+      if (ele%key /= capillary$) then
+        nl=incr(nl); write (li(nl), amt) 'wall3d_section^type;ENUM;T;',    wall3d_section_type_name(sec%type)
+      endif
+      nl=incr(nl); write (li(nl), imt) 'vertex;INT;F;',    i
+      do j = 1, size(sec%v)
+        nl=incr(nl); write (li(nl), '(i0, 5(a, es21.13))') j, ';', &
+                                        sec%v%x, ';', sec%v%y, ';', sec%v%radius_x, ';', sec%v%radius_y, ';', sec%v%tilt
+      enddo
+    enddo
+
+  case default
+    call invalid ('Bad or missign {who} switch.')
+    return
+  end select
 
 !----------------------------------------------------------------------
 ! Element twiss
@@ -1353,7 +1382,7 @@ case ('ele:control')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-  ! TODO....
+
 
 !----------------------------------------------------------------------
 ! Element orbit
