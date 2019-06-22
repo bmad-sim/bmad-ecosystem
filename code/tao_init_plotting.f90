@@ -505,10 +505,9 @@ do  ! Loop over plot files
       read (iu, nml = tao_template_graph, err = 9200)
       call out_io (s_blank$, r_name, 'Init: Read tao_template_graph ' // graph%name)
       graph_name = trim(plot%name) // '.' // graph%name
-      call out_io (s_blank$, r_name, &
-              'Init: Read tao_template_graph namelist: ' // graph_name)
+      call out_io (s_blank$, r_name, 'Init: Read tao_template_graph namelist: ' // graph_name)
       if (graph_index /= i_graph) then
-        call out_io (s_error$, r_name, &
+        call out_io (s_fatal$, r_name, &
               'BAD "GRAPH_INDEX" FOR PLOT: ' // plot%name, &
               'LOOKING FOR GRAPH_INDEX: \I0\ ', &
               'BUT TAO_TEMPLACE_GRAPH HAD GRAPH_INDEX: \I0\ ', 'IN FILE: ' // plot_file, &
@@ -560,7 +559,7 @@ do  ! Loop over plot files
         ix = index(grph%name, '.')
         if (ix == 0) exit
         call out_io (s_error$, r_name, 'GRAPH NAME HAS ".": ' // grph%name, &
-                     'SUBSTITUTING "-"', 'IN FILE: ' // plot_file)
+                                       'SUBSTITUTING "-"', 'IN FILE: ' // plot_file)
         grph%name(ix:ix) = '-'
       enddo
 
@@ -580,7 +579,7 @@ do  ! Loop over plot files
         call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', & 
                                        'OUT OF RANGE FOR PLOT:GRAPH: ' // graph_name, 'IN FILE: ' // plot_file, &
                                        i_array = [grph%ix_universe] )
-        call err_exit
+        cycle
       endif
 
       if (grph%type == 'floor_plan' .and. .not. allocated (s%plot_page%floor_plan%ele_shape)) &
@@ -658,7 +657,6 @@ do  ! Loop over plot files
             '***** TAO WILL RUN NORMALLY FOR NOW...               *****', &
             '**********************************************************'] )
           crv%smooth_line_calc = .false.
-          stop
         endif
 
         ! Convert old syntax to new
@@ -725,7 +723,7 @@ do  ! Loop over plot files
                           'CURVE OF PLOT: ' // plot%name, &
                           'HAS UNIVERSE INDEX OUT OF RANGE: \I0\ ', 'IN FILE: ' // plot_file, &
                           i_array = [i_uni] )
-          call err_exit
+          cycle
         endif
 
         ! Find the ele_ref info if either ele_ref_name or ix_ele_ref has been set.
@@ -738,6 +736,7 @@ do  ! Loop over plot files
         ! if ele_ref_name has been set ...
         elseif (crv%ele_ref_name /= '') then
           call tao_locate_elements (crv%ele_ref_name, i_uni, eles, err, ignore_blank = .true.) ! find the index
+          if (err) cycle  ! Check
           crv%ix_ele_ref = eles(1)%ele%ix_ele
           crv%ix_branch  = eles(1)%ele%ix_branch
         elseif (crv%data_type(1:5) == 'phase' .or. crv%data_type(1:2) == 'r.' .or. &
