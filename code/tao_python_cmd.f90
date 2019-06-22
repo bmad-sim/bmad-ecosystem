@@ -117,11 +117,11 @@ character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
 character(20) cmd, command, who, which, v_str, head
 character(20) :: r_name = 'tao_python_cmd'
-character(40) :: cmd_names(62) = [character(20) :: &
+character(40) :: cmd_names(60) = [character(20) :: &
   'beam_init', 'branch1', 'bunch1', 'bmad_com', &
   'data_create', 'data_destroy', 'data_d2_array', 'data_d1_array', 'data_d2', 'data_d_array', 'data', &
   'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', 'ele:cartesian_map', &
-  'ele:cylindrical_map', 'ele:cylindrical_map:terms', 'ele:cartesian_map:terms', 'ele:orbit', &
+  'ele:cylindrical_map', 'ele:orbit', &
   'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
   'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
   'enum', 'floor_plan', 'global', 'help', 'inum', &
@@ -285,17 +285,17 @@ case ('branch1')
 !----------------------------------------------------------------------
 ! Bunch parameters at the exit end of a given lattice element.
 ! Command syntax:
-!   python bunch1 {ix_universe}@{ix_branch}>>{ix_ele}|{which} {ix_bunch} coordinate
+!   python bunch1 {ix_universe}@{ix_branch}>>{ix_ele}|{which} {ix_bunch} {coordinate}
 ! where {which} is one of:
 !   model
 !   base
 !   design
 !
-! Optional coordinate is one of:
-! x, px, y, py, z, pz, 's', 't', 'charge', 'p0c'
+! Optional {coordinate} is one of:
+!   x, px, y, py, z, pz, 's', 't', 'charge', 'p0c'
 ! and will return an array. 
 
-case ('bunch1')  
+case ('bunch1')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
@@ -996,14 +996,17 @@ case ('ele:ac_kicker')
 !----------------------------------------------------------------------
 ! Element cartesian_map
 ! Command syntax:
-!   python ele:cartesian_map {ele_id}|{which} {index}
+!   python ele:cartesian_map {ele_id}|{which} {index} {who}
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
 !   design
 ! {index} is the index number in the ele%cartesian_map(:) array
+! {who} is one of:
+!   base
+!   terms
 ! Example:
-!   python element 3@1>>7|model 2
+!   python element 3@1>>7|model 2 base
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:cartesian_map')
@@ -1019,59 +1022,45 @@ case ('ele:cartesian_map')
   ix = parse_int (line, err, 0, size(ele%cartesian_map));  if (err) return
   ct_map => ele%cartesian_map(ix)
 
-  nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   ct_map%field_scale
-  nl=incr(nl); write (li(nl), rmt) 'r0;REAL_ARR;T',                         (';', ct_map%r0(i), i = 1, 3)
-  name = attribute_name(ele, ct_map%master_parameter)
-  if (name(1:1) == '!') name = '<None>'
-  nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        name
-  nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 anchor_pt_name(ct_map%ele_anchor_pt)
-  nl=incr(nl); write (li(nl), amt) 'field_type;ENUM;T;',                    em_field_type_name(ct_map%field_type)
+  select case (line)
+  case ('base')
+    nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   ct_map%field_scale
+    nl=incr(nl); write (li(nl), rmt) 'r0;REAL_ARR;T',                         (';', ct_map%r0(i), i = 1, 3)
+    name = attribute_name(ele, ct_map%master_parameter)
+    if (name(1:1) == '!') name = '<None>'
+    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        name
+    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 anchor_pt_name(ct_map%ele_anchor_pt)
+    nl=incr(nl); write (li(nl), amt) 'field_type;ENUM;T;',                    em_field_type_name(ct_map%field_type)
 
-!----------------------------------------------------------------------
-! Element cartesian_map terms
-! Command syntax:
-!   python ele:cartesian_map:terms {ele_id}|{which} {index}
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! {index} is the index number in the ele%cartesian_map(:) array
-! Example:
-!   python element 3@1>>7|model 2
-! This gives element number 7 in branch 1 of universe 3.
+  case ('terms')
 
-case ('ele:cartesian_map:terms')
+    call re_allocate_lines (size(ct_map%ptr%term) + 10)
+    do i = 1, size(ct_map%ptr%term)
+      ctt => ct_map%ptr%term(i)
+      nl=incr(nl); write (li(nl), '(i0, 7(a, es21.13), 4a)') i, ';', &
+            ctt%coef, ';', ctt%kx, ';', ctt%ky, ';', ctt%kz, ';', ctt%x0, ';', ctt%y0, ';', ctt%phi_z, ';', &
+            trim(cartesian_map_family_name(ctt%family)), ';', trim(cartesian_map_form_name(ctt%form))
+    enddo
 
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
-  ele => point_to_ele(line, err); if (err) return
-
-  if (.not. associated(ele%cartesian_map))  then
-    call invalid ('cartesian_map not allocated')
+  case default
+    call invalid ('{who} is not "base" or "terms"')
     return
-  endif
-  ix = parse_int (line, err, 0, size(ele%cartesian_map));  if (err) return
-  ct_map => ele%cartesian_map(ix)
-
-  call re_allocate_lines (size(ct_map%ptr%term) + 10)
-  do i = 1, size(ct_map%ptr%term)
-    ctt => ct_map%ptr%term(i)
-    nl=incr(nl); write (li(nl), '(i0, 7(a, es21.13), 4a)') i, ';', &
-          ctt%coef, ';', ctt%kx, ';', ctt%ky, ';', ctt%kz, ';', ctt%x0, ';', ctt%y0, ';', ctt%phi_z, ';', &
-          trim(cartesian_map_family_name(ctt%family)), ';', trim(cartesian_map_form_name(ctt%form))
-  enddo
+  end select
 
 !----------------------------------------------------------------------
 ! Element cylindrical_map
 ! Command syntax:
-!   python ele:cylindrical_map {ele_id}|{which} {index}
+!   python ele:cylindrical_map {ele_id}|{which} {index} {who}
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
 !   design
 ! {index} is the index number in the ele%cartesian_map(:) array
+! {who} is one of:
+!   base
+!   terms
 ! Example:
-!   python element 3@1>>7|model 2
+!   python element 3@1>>7|model 2 base
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:cylindrical_map')
@@ -1087,50 +1076,32 @@ case ('ele:cylindrical_map')
   ix = parse_int (line, err, 0, size(ele%cylindrical_map));  if (err) return
   cy_map => ele%cylindrical_map(ix)
 
-  nl=incr(nl); write (li(nl), imt) 'm;INT;T;',                              cy_map%m
-  nl=incr(nl); write (li(nl), imt) 'harmonic;INT;T;',                       cy_map%harmonic
-  nl=incr(nl); write (li(nl), rmt) 'phi0_fieldmap;REAL;T;',                 cy_map%phi0_fieldmap
-  nl=incr(nl); write (li(nl), rmt) 'theta0_azimuth;REAL;T;',                cy_map%theta0_azimuth
-  nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   cy_map%field_scale
-  nl=incr(nl); write (li(nl), rmt) 'dz;REAL;T;',                            cy_map%dz
-  nl=incr(nl); write (li(nl), rmt) 'r0;REAL_ARR;T',                         (';', cy_map%r0(i), i = 1, 3)
-  name = attribute_name(ele, cy_map%master_parameter)
-  if (name(1:1) == '!') name = '<None>'
-  nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        name
-  nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 anchor_pt_name(cy_map%ele_anchor_pt)
+  select case (line)
+  case ('base')
+    nl=incr(nl); write (li(nl), imt) 'm;INT;T;',                              cy_map%m
+    nl=incr(nl); write (li(nl), imt) 'harmonic;INT;T;',                       cy_map%harmonic
+    nl=incr(nl); write (li(nl), rmt) 'phi0_fieldmap;REAL;T;',                 cy_map%phi0_fieldmap
+    nl=incr(nl); write (li(nl), rmt) 'theta0_azimuth;REAL;T;',                cy_map%theta0_azimuth
+    nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   cy_map%field_scale
+    nl=incr(nl); write (li(nl), rmt) 'dz;REAL;T;',                            cy_map%dz
+    nl=incr(nl); write (li(nl), rmt) 'r0;REAL_ARR;T',                         (';', cy_map%r0(i), i = 1, 3)
+    name = attribute_name(ele, cy_map%master_parameter)
+    if (name(1:1) == '!') name = '<None>'
+    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        name
+    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 anchor_pt_name(cy_map%ele_anchor_pt)
 
-!----------------------------------------------------------------------
-! Element cylindrical_map terms
-! Command syntax:
-!   python ele:cylindrical_map:terms {ele_id}|{which} {index}
-! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
-! {index} is the index number in the ele%cylindrical_map(:) array
-! Example:
-!   python element 3@1>>7|model 2
-! This gives element number 7 in branch 1 of universe 3.
+  case ('terms')
+    call re_allocate_lines (size(cy_map%ptr%term) + 10)
+    do i = 1, size(cy_map%ptr%term)
+      cyt => cy_map%ptr%term(i)
+      nl=incr(nl); write (li(nl), '(i0, 7(a, es21.13))') i, ';', &
+        real(cyt%e_coef), ';', imag(cyt%e_coef), ';', real(cyt%b_coef), ';', imag(cyt%b_coef)
+    enddo
 
-case ('ele:cylindrical_map:terms')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
-  ele => point_to_ele(line, err); if (err) return
-
-  if (.not. associated(ele%cylindrical_map)) then
-    call invalid ('cylindrical_map not allocated')
+  case default
+    call invalid ('{who} is not "base" or "terms"')
     return
-  endif
-  ix = parse_int (line, err, 0, size(ele%cylindrical_map));  if (err) return
-  cy_map => ele%cylindrical_map(ix)
-
-  call re_allocate_lines (size(cy_map%ptr%term) + 10)
-  do i = 1, size(cy_map%ptr%term)
-    cyt => cy_map%ptr%term(i)
-    nl=incr(nl); write (li(nl), '(i0, 7(a, es21.13))') i, ';', &
-      real(cyt%e_coef), ';', imag(cyt%e_coef), ';', real(cyt%b_coef), ';', imag(cyt%b_coef)
-  enddo
+  end select
 
 !----------------------------------------------------------------------
 ! Element taylor
@@ -1382,7 +1353,7 @@ case ('ele:control')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-
+  ! TODO
 
 !----------------------------------------------------------------------
 ! Element orbit
@@ -1407,22 +1378,39 @@ case ('ele:orbit')
 !----------------------------------------------------------------------
 ! Element mat6
 ! Command syntax:
-!   python ele:mat6 {ele_id}|{which}
+!   python ele:mat6 {ele_id}|{which} {who}
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
 !   design
+! {who} is one of:
+!   mat6
+!   vec0
+!   err
 ! Example:
-!   python element 3@1>>7|model
+!   python element 3@1>>7|model mat6
 ! This gives element number 7 in branch 1 of universe 3.
 
-case ('ele:mat6')
+u => point_to_uni(line, .true., err); if (err) return
+tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+ele => point_to_ele(line, err); if (err) return
 
-  u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+select case (line)
+case ('mat6')
+  do i = 1, 6
+    nl=incr(nl); write (li(nl), '(i0, a, 6es21.13)') i, ';REAL_ARR;F;', ele%mat6(i,:)
+  enddo
 
-  ! TODO....
+case ('vec0')
+  nl=incr(nl); write (li(nl), rmt) 'vec0;REAL_ARR;F;', ele%vec0
+
+case ('err')
+  nl=incr(nl); write (li(nl), rmt) 'symplectic_error;REAL_ARR;F;', mat_symp_error(ele%mat6)
+
+case default
+  call invalid ('Bad or missign {who} switch.')
+  return
+end select
 
 !----------------------------------------------------------------------
 ! Element taylor_field
