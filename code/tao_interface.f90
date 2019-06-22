@@ -101,6 +101,13 @@ subroutine tao_clip_cmd (gang, where, value1, value2)
   real(rp) value1, value2
 end subroutine
 
+subroutine tao_control_tree_list (ele, tree)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (ele_pointer_struct), allocatable :: tree(:)
+end subroutine
+
 function tao_constraint_type_name(datum) result (datum_name)
   import
   implicit none

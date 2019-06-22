@@ -182,7 +182,7 @@ type (coord_struct), target :: orb, orb0, orb2
 type (bunch_params_struct) bunch_params
 type (bunch_params_struct), pointer :: bunch_p
 type (taylor_struct) taylor(6)
-type (ele_pointer_struct), allocatable, save :: eles(:)
+type (ele_pointer_struct), allocatable :: eles(:)
 type (branch_struct), pointer :: branch, branch2, design_branch
 type (tao_universe_branch_struct), pointer :: uni_branch
 type (wall3d_struct), pointer :: wall
@@ -643,16 +643,37 @@ case ('control')
 
   ele_name = what2
 
-  call tao_locate_elements (ele_name, ix_u, eles, err, lat_type, multiple_eles_is_err = .true.)
+  call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
   if (err) return
   u => s%u(ix_u)
+  call tao_locate_elements (ele_name, ix_u, eles, err, multiple_eles_is_err = .true.)
+  if (err .or. size(eles) == 0) return
 
-!Multipass_lord: 
+  ele => eles(1)%ele
+  call tao_control_tree_list(ele, eles)
 
-!Super_lord:     yyyy     quadrupole
-!Super_lord:     zzzz
+  do i = size(eles), 1, -1  ! Show lords first
+    ele => eles(i)%ele
+    call re_allocate(lines, nl+10+ele%n_lord+ele%n_slave+ele%n_slave_field)
 
-!Element:        xxxx     quadrupole  3>>4
+    do j = 1, ele%n_lord
+      lord => pointer_to_lord(ele, j)
+      nl=nl+1; write (lines(nl), '(5a)') 'Lord: ', ele_location(lord, .true.), lord%name, key_name(lord%key), control_name(lord%lord_status)
+    enddo
+
+    nl=nl+1; write (lines(nl), '(5a)') 'Element: ', ele_location(ele, .true.), ele%name, key_name(ele%key), control_name(ele%lord_status)
+
+    do j = 1, ele%n_slave+ele%n_slave_field
+      slave => pointer_to_slave(ele, j)
+      nl=nl+1; write (lines(nl), '(5a)') 'Slave: ', ele_location(slave, .true.), slave%name, key_name(slave%key), control_name(slave%slave_status)
+    enddo
+
+    if (i /= 1) then
+      nl=nl+1; lines(nl) = ''
+    endif
+  enddo
+
+  result_id = show_what
 
 !----------------------------------------------------------------------
 ! curve
