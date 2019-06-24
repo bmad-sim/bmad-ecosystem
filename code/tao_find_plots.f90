@@ -105,13 +105,6 @@ allocate (p(10))
 !
 
 if (plot_name(1:1) == '@') then
-  if ((plot_name(1:2) == '@R' .and. where == 'TEMPLATE') .or. &
-      (plot_name(1:2) == '@T' .and. where == 'REGION')) then
-    if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, 'CONFUSED PLOT INDEX: ' // plot_name)
-    err = .true.
-    return
-  endif
-
   select case (plot_name(1:2))
   case ('@R')
     call tao_find_plot_region (err, plot_name, region, print_flag)
