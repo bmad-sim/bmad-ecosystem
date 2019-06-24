@@ -155,7 +155,8 @@ class tao_root_window(tk.Tk):
 
     window_menu = tk.Menu(self.menubar)
     window_menu.add_command(label = 'Optimizer...', command = self.optimizer_cmd)
-    window_menu.add_command(label = 'Plotting...', command = self.plotting_cmd)
+    window_menu.add_command(label = 'Plot Templates...', command = self.plot_template_cmd)
+    window_menu.add_command(label = 'Plot Regions...', command = self.plot_region_cmd)
     window_menu.add_command(label = 'Wave...', command = self.wave_cmd)
     window_menu.add_command(label = 'Variables...', command = self.view_vars_cmd)
     window_menu.add_command(label = 'Global Variables...', command = self.set_global_vars_cmd)
@@ -342,8 +343,11 @@ class tao_root_window(tk.Tk):
     win = tk.Toplevel(self)
     win.title('Optimizer')
 
-  def plotting_cmd(self):
-    win = tao_plot_t_window(self, self.pipe)
+  def plot_template_cmd(self):
+    win = tao_plot_tr_window(self, self.pipe, "T")
+
+  def plot_region_cmd(self):
+    win = tao_plot_tr_window(self, self.pipe, "R")
 
   def wave_cmd(self):
     print ('Wave called')
