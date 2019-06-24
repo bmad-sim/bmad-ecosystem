@@ -627,8 +627,8 @@ if (associated(ele%wall3d)) then
       case (capillary$)
       case (diffraction_plate$, mask$)
         nl=nl+1; write (li(nl), '(a, f10.6)') 'Wall%thickness       = ', wall3d%thickness
-        nl=nl+1; write (li(nl), '(3a)') 'Wall%clear_material  = "', trim(wall3d%clear_material), '"'
-        nl=nl+1; write (li(nl), '(3a)') 'Wall%opaque_material = "', trim(wall3d%opaque_material), '"'
+        nl=nl+1; write (li(nl), '(3a)')       'Wall%clear_material  = ', quote(wall3d%clear_material)
+        nl=nl+1; write (li(nl), '(3a)')       'Wall%opaque_material = ', quote(wall3d%opaque_material)
       case default
         nl=nl+1; write (li(nl), '(a, l)') 'Wall%superimpose     = ', wall3d%superimpose
       end select

@@ -1744,7 +1744,7 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPO
       'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', 'HIGHER_ORDER_FRINGE_TYPE', &
       'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', 'DEFAULT_TRACKING_SPECIES', &
       'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', 'INTERPOLATION', &
-      'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE', 'CAVITY_TYPE', &
+      'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE', 'CAVITY_TYPE', 'FIELD_TYPE', &
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
       'LORD_STATUS', 'PHOTON_TYPE', 'ELE_ORIGIN', 'REF_ORIGIN', 'CSR_METHOD', 'SPACE_CHARGE_METHOD')
   attrib_type = is_switch$
@@ -2223,6 +2223,14 @@ case ('FIELD_CALC')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, field_calc_name, lbound(field_calc_name, 1))
   if (present(is_default)) is_default = (ix_attrib_val == bmad_standard$)
 
+case ('FIELD_TYPE')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, em_field_type_name, lbound(em_field_type_name, 1))
+  if (present(is_default)) is_default = (ix_attrib_val == bmad_standard$)
+
+case ('NONGRID^FIELD_TYPE')      ! This is for the Tao "python" command
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, em_field_type_name(1:2), lbound(em_field_type_name, 1))
+  if (present(is_default)) is_default = (ix_attrib_val == bmad_standard$)
+
 case ('FRINGE_AT')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, end_at_name, lbound(end_at_name, 1))
   if (present(is_default)) then
@@ -2244,6 +2252,13 @@ case ('FRINGE_TYPE')
 
 case ('GEOMETRY')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, geometry_name, lbound(geometry_name, 1))
+
+case ('GRID_FIELD^GEOMETRY')      ! This is for the Tao "python" command
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, grid_field_geometry_name, lbound(grid_field_geometry_name, 1))
+
+case ('GRID^TYPE')      ! This is for the Tao "python" command
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, surface_grid_type_name, lbound(surface_grid_type_name, 1))  
+  if (present(is_default)) is_default = .false.
 
 case ('HIGHER_ORDER_FRINGE_TYPE')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, higher_order_fringe_type_name, lbound(higher_order_fringe_type_name, 1))
@@ -2328,6 +2343,10 @@ case ('REF_ORBIT_FOLLOWS')
   if (present(is_default)) then
     is_default = (ix_attrib_val == bragg_diffracted$)
   endif
+
+case ('SECTION^TYPE')    ! This is for the Tao "python" command
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, wall3d_section_type_name, lbound(wall3d_section_type_name, 1))  
+  if (present(is_default)) is_default = .false.
 
 case ('SLAVE_STATUS')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, control_name, lbound(control_name, 1))  

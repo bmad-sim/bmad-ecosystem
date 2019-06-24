@@ -9,14 +9,10 @@
 $found = 0;
 open (FC, "cover-page.tex") || die ("Cannot open File: cover-page.tex\n");
 while (<FC>) {
-  if (/Revision: +(\S+) +\\\\/) {
-    $rev = $1;
-    print "Revision: $rev\n";
-    $found = 1;
-    $date_line = <FC>;
-    $date_line =~ /^ *(\S.+\S) +\\\\/;
+  if (/Revision: +(.+) +\\\\/) {
     $date = $1;
-    print "Date: $date\n";
+    print "Revision: $date\n";
+    $found = 1;
     last;
   }
 }
@@ -30,6 +26,16 @@ if (! $found) {die ("Revision line not found in: cover_page.tex\n");}
 open (F_IN, "manual_template.html") || die ("Cannot open File: manual_template.html\n");
 
 open (F_OUT, ">basic_manual.html") || die ("Cannot open basic_manual.html file\n");
+
+%mon2num = qw(
+    January 01  February 02  March 03  April 04  May 05  June 06
+    July 07  August 08  September 09  October 10 November 11 December 12
+);
+
+$date =~ /(.+) (.+), (.+) */;
+
+$rev = "$3-$mon2num{$1}-$2";
+print "Manual: bmad-manual-$rev\n";
 
 while (<F_IN>) {
   s/RRR/$rev/g;
