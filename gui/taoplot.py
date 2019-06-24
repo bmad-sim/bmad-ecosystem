@@ -394,12 +394,4 @@ class taoplot:
 		fig.tight_layout()
 
 		plt.pause(.001)
-		plt.draw()
-
-
-
-
-
-plot1= taoplot(tao_interface('pexpect','-init_file ../examples/cesr/tao.init'),'r13')
-plot1.plot()
-
+		plt.show()
