@@ -122,7 +122,7 @@ character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
 character(20) cmd, command, who, which, v_str, head
 character(20) :: r_name = 'tao_python_cmd'
-character(40) :: cmd_names(60) = [character(20) :: &
+character(40) :: cmd_names(61) = [character(20) :: &
   'beam_init', 'branch1', 'bunch1', 'bmad_com', &
   'data_create', 'data_destroy', 'data_d2_array', 'data_d1_array', 'data_d2', 'data_d_array', 'data', &
   'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', 'ele:cartesian_map', &
@@ -132,7 +132,7 @@ character(40) :: cmd_names(60) = [character(20) :: &
   'enum', 'floor_plan', 'global', 'help', 'inum', &
   'lat_ele_list', 'lat_general', 'lat_layout', 'lat_list', 'lat_param_units', &
   'orbit_at_s', &
-  'plot_list', 'plot1', 'plot_graph', 'plot_curve', 'plot_line', 'plot_symbol', &
+  'plot_curve', 'plot_graph', 'plot_historgraph', 'plot_line', 'plot_list', 'plot_symbol', 'plot1', &
   'species_to_int', 'species_to_str', 'super_universe', 'twiss_at_s', 'universe', &
   'var_create', 'var_destroy', 'var_general', 'var_v1_array', 'var_v_array', 'var']
 
@@ -2341,6 +2341,30 @@ case ('plot_graph')
   nl=incr(nl); write (li(nl), lmt) 'y2.draw_numbers;LOGIC;T;',               g%y2%draw_numbers
 
 !----------------------------------------------------------------------
+! Histogram
+! Syntax:
+!   python plot_histograph {curve_name}
+
+case ('plot_histogram')
+
+  call tao_find_plots (err, line, 'COMPLETE', graph = graphs)
+
+  if (err .or. .not. allocated(curve)) then
+    call invalid ('Bad curve name')
+    return
+  endif
+
+  cur => curve(1)%c
+
+  nl=incr(nl); write (li(nl), lmt) 'density_normalized;LOGIC;T;',          cur%hist%density_normalized
+  nl=incr(nl); write (li(nl), lmt) 'weight_by_charge;LOGIC;T;',            cur%hist%weight_by_charge
+  nl=incr(nl); write (li(nl), rmt) 'minimum;REAL;T;',                      cur%hist%minimum
+  nl=incr(nl); write (li(nl), rmt) 'maximum;REAL;T;',                      cur%hist%maximum
+  nl=incr(nl); write (li(nl), rmt) 'width;REAL;T;',                        cur%hist%width
+  nl=incr(nl); write (li(nl), rmt) 'center;REAL;T;',                       cur%hist%center
+  nl=incr(nl); write (li(nl), imt) 'number;REAL;T;',                       cur%hist%number
+
+!----------------------------------------------------------------------
 ! Curve information for a plot
 ! Command syntax:
 !   pyton plot_curve {curve_name}
@@ -2393,6 +2417,8 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), amt)  'symbol.color;ENUM;T;',                   qp_color_name(cur%symbol%color)
   nl=incr(nl); write (li(nl), rmt)  'symbol.height;REAL;T;',                  cur%symbol%height
   nl=incr(nl); write (li(nl), amt)  'symbol.fill_pattern;ENUM;T;',            qp_symbol_fill_pattern_name(cur%symbol%fill_pattern)
+  nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               cur%symbol%line_width
+
   nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               cur%symbol%line_width
 
 !----------------------------------------------------------------------
