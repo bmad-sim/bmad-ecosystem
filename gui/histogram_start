@@ -1,0 +1,3 @@
+set global track_type = beam
+place r23 bunch_density_x
+place r33 lat_layout
