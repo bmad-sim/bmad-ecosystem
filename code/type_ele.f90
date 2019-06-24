@@ -871,7 +871,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       enddo
     endif
 
-    if (ele%control%type == spline .or. ele%control%type == linear$) then
+    if (ele%control%type == spline$ .or. ele%control%type == linear$) then
       do i = 1, size(ele%control%x_knot)
       enddo
     endif
