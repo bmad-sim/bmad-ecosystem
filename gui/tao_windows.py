@@ -8,6 +8,7 @@ import os
 import copy
 sys.path.append(os.environ['ACC_ROOT_DIR'] + '/tao/gui')
 from tao_widget import *
+from taoplot import taoplot
 from parameters import str_to_tao_param
 from elements import *
 from main import tao_set
@@ -522,8 +523,7 @@ class tao_history_window(tao_list_window):
     return lambda event=None : self.re_run(cmd_string, mode)
 #-----------------------------------------------------
 # Plot template window
-#TODO: specify set template properties
-#TODO: source input validation
+#TODO: source input validation (base model design etc)
 
 class tao_plot_tr_window(tao_list_window):
   '''
@@ -534,7 +534,6 @@ class tao_plot_tr_window(tao_list_window):
     tao_list_window.__init__(self, root, "Plot Templates", *args, **kwargs)
     self.minsize(325, 100)
     self.pipe = pipe
-    #self.mode = "T" #to be passed to graph and curve windows
     self.mode = mode
     if self.mode == "R":
       self.title("Plot Regions")
@@ -569,6 +568,10 @@ class tao_plot_tr_window(tao_list_window):
           self.index_list.append(plot_list[i].split(';')[0])
           self.region_list.append(plot_list[i].split(';')[1])
 
+    if self.plot_list == []:
+      tk.Label(self.list_frame, text="NO PLOTS FOUND").pack()
+      return
+
     self.temp = tk.StringVar()
     self.temp.set(self.plot_list[0])
     self.temp_select = ttk.Combobox(self.temp_frame, textvariable=self.temp, values=self.plot_list)
@@ -581,7 +584,31 @@ class tao_plot_tr_window(tao_list_window):
     self.button_frame = tk.Frame(self)
     self.button_frame.pack(fill="both", expand=0)
     b = tk.Button(self.button_frame, text="Apply changes", command=self.plot_apply)
-    b.pack()
+    b.pack(side="left", fill="both", expand=0)
+    if (self.root.plot_mode == "matplotlib") & (self.mode == "T"):
+      plot_b = tk.Button(self.button_frame, text="Plot!", command=self.mpl_plot)
+      plot_b.pack(side="right", fill="both", expand=0)
+
+  def mpl_plot(self, event=None):
+    '''
+    Creates a new matplotlib window with the currently selected plot
+    '''
+    # Check if the template has been placed in a region already, and place it if necessary
+    if self.plot in self.root.placed.keys():
+      pass
+    else:
+      #Place the plot in the next available region
+      #and make visible
+      r_index = 1
+      while (("r" + str(r_index)) in self.root.placed.values()):
+        r_index = r_index + 1
+      self.pipe.cmd_in("place r" + str(r_index) + " " + self.plot)
+      self.pipe.cmd_in("set r" + str(r_index) + ' visible = T')
+      self.root.placed[self.plot] = 'r' + str(r_index)
+    # Plot with matplotlib
+    x = taoplot(self.pipe, self.root.placed[self.plot])
+    x.plot()
+
 
   def refresh(self, event=None):
     '''
