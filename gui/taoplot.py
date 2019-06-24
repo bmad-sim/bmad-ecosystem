@@ -396,8 +396,3 @@ class taoplot:
 		plt.pause(.001)
 		plt.draw()
 
-plot1= taoplot(tao_interface('pexpect','-init_file ../examples/cesr/tao.init'),'top')
-
-plot1.plot()
-time.sleep(15)
-plot1.plot()
