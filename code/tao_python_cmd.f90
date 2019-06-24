@@ -85,7 +85,7 @@ type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
 type (lat_struct), pointer :: lat
 type (bunch_struct), pointer :: bunch
-type (ele_struct), pointer :: ele, ele1, ele2
+type (ele_struct), pointer :: ele, ele1, ele2, lord, slave
 type (ele_struct), target :: this_ele
 type (coord_struct), pointer :: orbit
 type (coord_struct), target :: orb
@@ -108,6 +108,11 @@ type (wake_sr_mode_struct), pointer :: wsr
 type (wake_lr_mode_struct), pointer :: lr_mode
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: sec
+type (taylor_field_struct), pointer :: t_field
+type (taylor_field_plane1_struct), pointer :: t_term
+type (em_taylor_term_struct), pointer :: em_tt
+type (grid_field_struct), pointer :: g_field
+type (grid_field_pt1_struct), pointer :: g_pt
 
 character(*) input_str
 character(n_char_show), allocatable :: li(:) 
@@ -213,7 +218,7 @@ lmt  = '(a, 100(l1, a))'
 vamt = '(a, i0, 3a)'
 
 nl = 0
-call re_allocate_lines (200)
+call re_allocate_lines (li, 200)
 
 select case (command)
 
@@ -1024,17 +1029,16 @@ case ('ele:cartesian_map')
 
   select case (line)
   case ('base')
+    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          ct_map%ptr%file
     nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   ct_map%field_scale
     nl=incr(nl); write (li(nl), rmt) 'r0;REAL_ARR;T',                         (';', ct_map%r0(i), i = 1, 3)
     name = attribute_name(ele, ct_map%master_parameter)
     if (name(1:1) == '!') name = '<None>'
     nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        name
     nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 anchor_pt_name(ct_map%ele_anchor_pt)
-    nl=incr(nl); write (li(nl), amt) 'field_type;ENUM;T;',                    em_field_type_name(ct_map%field_type)
+    nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            em_field_type_name(ct_map%field_type)
 
   case ('terms')
-
-    call re_allocate_lines (size(ct_map%ptr%term) + 10)
     do i = 1, size(ct_map%ptr%term)
       ctt => ct_map%ptr%term(i)
       nl=incr(nl); write (li(nl), '(i0, 7(a, es21.13), 4a)') i, ';', &
@@ -1055,13 +1059,13 @@ case ('ele:cartesian_map')
 !   model
 !   base
 !   design
-! {index} is the index number in the ele%cartesian_map(:) array
+! {index} is the index number in the ele%cylindrical_map(:) array
 ! {who} is one of:
 !   base
 !   terms
 ! Example:
 !   python element 3@1>>7|model 2 base
-! This gives element number 7 in branch 1 of universe 3.
+! This gives map #2 of element number 7 in branch 1 of universe 3.
 
 case ('ele:cylindrical_map')
 
@@ -1078,6 +1082,7 @@ case ('ele:cylindrical_map')
 
   select case (line)
   case ('base')
+    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          cy_map%ptr%file
     nl=incr(nl); write (li(nl), imt) 'm;INT;T;',                              cy_map%m
     nl=incr(nl); write (li(nl), imt) 'harmonic;INT;T;',                       cy_map%harmonic
     nl=incr(nl); write (li(nl), rmt) 'phi0_fieldmap;REAL;T;',                 cy_map%phi0_fieldmap
@@ -1091,7 +1096,6 @@ case ('ele:cylindrical_map')
     nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 anchor_pt_name(cy_map%ele_anchor_pt)
 
   case ('terms')
-    call re_allocate_lines (size(cy_map%ptr%term) + 10)
     do i = 1, size(cy_map%ptr%term)
       cyt => cy_map%ptr%term(i)
       nl=incr(nl); write (li(nl), '(i0, 7(a, es21.13))') i, ';', &
@@ -1134,7 +1138,7 @@ case ('ele:taylor')
     nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';ref;', ele%taylor(i)%ref
     do j = 1, size(ele%taylor(i)%term)
       tt => ele%taylor(i)%term(j)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13, 6(a, i0))') i, ';term;', tt%coef, (';', tt%expn(k), k = 1, 6)
+      nl=incr(nl); write (li(nl), '(2(i0, a), es21.13, 6(a, i0))') i, ';', j, ';', tt%coef, (';', tt%expn(k), k = 1, 6)
     enddo
   enddo
 
@@ -1353,7 +1357,13 @@ case ('ele:control')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-  ! TODO
+  if (.not. associated(ele%control)) then
+    call invalid ('ele%control not allocated')
+    return
+  endif
+
+  do i = 1, size(ele%control%var)
+  enddo
 
 !----------------------------------------------------------------------
 ! Element orbit
@@ -1415,14 +1425,17 @@ end select
 !----------------------------------------------------------------------
 ! Element taylor_field
 ! Command syntax:
-!   python ele:taylor_field {ele_id}|{which} {index}
+!   python ele:taylor_field {ele_id}|{which} {index} {who}
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
 !   design
 ! {index} is the index number in the ele%taylor_field(:) array
+! {who} is one of:
+!   base
+!   terms
 ! Example:
-!   python element 3@1>>7|model
+!   python element 3@1>>7|model 2 base
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:taylor_field')
@@ -1431,21 +1444,55 @@ case ('ele:taylor_field')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-  if (.not. associated(ele%cartesian_map)) then
+  if (.not. associated(ele%taylor_field)) then
+    call invalid ('taylor_field not allocated')
+    return
   endif
-  ! TODO....
+  ix = parse_int (line, err, 0, size(ele%taylor_field));  if (err) return
+  t_field => ele%taylor_field(ix)
+
+  select case (line)
+  case ('base')
+    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          t_field%ptr%file
+    nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   t_field%field_scale
+    nl=incr(nl); write (li(nl), rmt) 'r0;REAL_ARR;T',                         (';', t_field%r0(i), i = 1, 3)
+    nl=incr(nl); write (li(nl), rmt) 'dz;REAL;T;',                            t_field%dz
+    name = attribute_name(ele, t_field%master_parameter)
+    if (name(1:1) == '!') name = '<None>'
+    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        name
+    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 anchor_pt_name(t_field%ele_anchor_pt)
+    nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            em_field_type_name(t_field%field_type)
+    nl=incr(nl); write (li(nl), lmt) 'curved_ref_frame;LOGIC;T;',             t_field%curved_ref_frame
+    nl=incr(nl); write (li(nl), lmt) 'canonical_tracking;LOGIC;T;',           t_field%canonical_tracking
+
+  case ('terms')
+    do i = lbound(t_field%ptr%plane, 1), ubound(t_field%ptr%plane, 1)
+      t_term => t_field%ptr%plane(i)
+      do j = 1, 3
+        do k = 1, size(t_term%field(j)%term)
+          em_tt => t_term%field(j)%term(k)
+          nl=incr(nl); write (li(nl), '(2(i0, a), es21.13, 2(a, i0))') i, ';', j, ';', &
+                                                       em_tt%coef, ';', em_tt%expn(1), ';', em_tt%expn(2)
+        enddo
+      enddo
+    enddo
+  end select
 
 !----------------------------------------------------------------------
 ! Element grid_field
 ! Command syntax:
-!   python ele:grid_field {ele_id}|{which}
+!   python ele:grid_field {ele_id}|{which} {index} {who}
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
 !   design
+! {index} is the index number in the ele%grid_field(:) array.
+! {who} is one of:
+!   base
+!   points
 ! Example:
-!   python element 3@1>>7|model
-! This gives element number 7 in branch 1 of universe 3.
+!   python element 3@1>>7|model 2 base
+! This gives grid #2 of element number 7 in branch 1 of universe 3.
 
 case ('ele:grid_field')
 
@@ -1453,7 +1500,61 @@ case ('ele:grid_field')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-  ! TODO....
+  if (.not. associated(ele%grid_field)) then
+    call invalid ('grid_field not allocated')
+    return
+  endif
+  ix = parse_int (line, err, 0, size(ele%grid_field));  if (err) return
+  g_field => ele%grid_field(ix)
+
+  select case (line)
+  case ('base')
+    nl=incr(nl); write (li(nl), rmt) 'dr;REAL_ARR;T;',                        (';', g_field%dr(i), i = 1, 3)
+    nl=incr(nl); write (li(nl), rmt) 'r0;REAL_ARR;T',                         (';', g_field%r0(i), i = 1, 3)
+    name = attribute_name(ele, g_field%master_parameter)
+    if (name(1:1) == '!') name = '<None>'
+    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        name
+    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 anchor_pt_name(g_field%ele_anchor_pt)
+    nl=incr(nl); write (li(nl), amt) 'field_type;ENUM;T;',                    em_field_type_name(ct_map%field_type)
+    nl=incr(nl); write (li(nl), amt) 'grid_field^geometry;ENUM;T;',           grid_field_geometry_name(g_field%geometry)
+    nl=incr(nl); write (li(nl), imt) 'harmonic;INT;T;',                       g_field%harmonic
+    nl=incr(nl); write (li(nl), rmt) 'phi0_fieldmap;REAL;T;',                 g_field%phi0_fieldmap
+    nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   g_field%field_scale
+    nl=incr(nl); write (li(nl), imt) 'interpolation_order;INUM;T;',           g_field%interpolation_order
+    nl=incr(nl); write (li(nl), lmt) 'curved_ref_frame;LOGIC;T;',             g_field%curved_ref_frame
+    nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          g_field%ptr%file
+
+  case ('points')
+    do i = lbound(g_field%ptr%pt, 1), ubound(g_field%ptr%pt, 1)
+    do j = lbound(g_field%ptr%pt, 2), ubound(g_field%ptr%pt, 2)
+    do k = lbound(g_field%ptr%pt, 3), ubound(g_field%ptr%pt, 3)
+      g_pt => g_field%ptr%pt(i,j,k)
+      select case (g_field%field_type)
+      case (electric$)
+        if (g_field%harmonic == 0) then
+          nl=incr(nl); write (li(nl), '(3(i0, a), 3(es21.13, a))') i, ';', j, ';', k, (';', real(g_pt%E(ix)), ix = 1, 3)
+        else
+          nl=incr(nl); write (li(nl), '(3(i0, a), 6(es21.13, a))') i, ';', j, ';', k, &
+                                                                 (';', real(g_pt%E(ix)), ';', aimag(g_pt%E(ix)), ix = 1, 3)
+        endif
+      case (magnetic$)
+        if (g_field%harmonic == 0) then
+          nl=incr(nl); write (li(nl), '(3(i0, a), 3(es21.13, a))') i, ';', j, ';', k, (';', real(g_pt%B(ix)), ix = 1, 3)
+        else
+          nl=incr(nl); write (li(nl), '(3(i0, a), 6(es21.13, a))') i, ';', j, ';', k, &
+                                                                 (';', real(g_pt%B(ix)), ';', aimag(g_pt%B(ix)), ix = 1, 3)
+        endif
+      case (mixed$)
+        if (g_field%harmonic == 0) then
+          nl=incr(nl); write (li(nl), '(3(i0, a), 6(es21.13, a))') i, ';', j, ';', k, &
+                                                            (';', real(g_pt%B(ix)), ix = 1, 3), (';', real(g_pt%E(ix)), ix = 1, 3)
+        else
+          nl=incr(nl); write (li(nl), '(3(i0, a), 12(es21.13, a))') i, ';', j, ';', k, &
+                  (';', real(g_pt%B(ix)), ';', aimag(g_pt%B(ix)), ix = 1, 3), (real(g_pt%B(ix)), ';', aimag(g_pt%B(ix)), ix = 1, 3)
+        endif
+      end select
+    enddo; enddo; enddo
+  end select
 
 !----------------------------------------------------------------------
 ! Element floor
@@ -1520,9 +1621,23 @@ case ('ele:lord_slave')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-  nl=incr(nl); write (li(nl), amt) 'slave_status;STR;F;',                     control_name(ele%slave_status)
-  nl=incr(nl); write (li(nl), amt) 'lord_status;STR;F;',                      control_name(ele%lord_status)
-  ! TODO....
+  call tao_control_tree_list(ele, eles)
+  do i = size(eles), 1, -1  ! Show lords first
+    ele => eles(i)%ele
+
+    nl=incr(nl); write (li(nl), '(6a)') 'Element;', ele_location(ele, .true.), ';', ele%name, key_name(ele%key), ';', control_name(ele%lord_status)
+
+    do j = 1, ele%n_lord
+      lord => pointer_to_lord(ele, j)
+      nl=incr(nl); write (li(nl), '(6a)') 'Lord;', ele_location(lord, .true.), ';', lord%name, key_name(lord%key), ';', control_name(lord%lord_status)
+    enddo
+
+    do j = 1, ele%n_slave+ele%n_slave_field
+      slave => pointer_to_slave(ele, j)
+      nl=incr(nl); write (li(nl), '(6a)') 'Slave;', ele_location(slave, .true.), ';', slave%name, key_name(slave%key), ';', control_name(slave%slave_status)
+    enddo
+  enddo
+
 
 !----------------------------------------------------------------------
 ! Element electric multipoles
@@ -1636,7 +1751,7 @@ case ('enum')
   !
 
   name = upcase(line)
-  if (name == 'EVAL_POINT') name = 'ELE_ORIGIN'  ! Cheet since data%eval_point is not recognized by switch_attrib_value_name
+  if (name == 'EVAL_POINT') name = 'ELE_ORIGIN'  ! Cheat since data%eval_point is not recognized by switch_attrib_value_name
 
   a_name = switch_attrib_value_name(name, 1.0_rp, this_ele, name_list = name_list)
   if (.not. allocated(name_list)) then
@@ -1812,6 +1927,10 @@ case ('inum')
       nl=incr(nl); write (li(nl), '(i0)') i
     enddo
 
+  case ('interpolation_order')
+    nl=incr(nl); write (li(nl), '(i0)') 1
+    nl=incr(nl); write (li(nl), '(i0)') 3
+
   case default
     call invalid ('Not a recognized inum')
   end select
@@ -1830,8 +1949,6 @@ case ('lat_ele_list')
   u => point_to_uni(line, .true., err); if (err) return
   ix_branch = parse_branch(line, .false., err); if (err) return
   branch => u%model%lat%branch(ix_branch)
-
-  call re_allocate_lines (branch%n_ele_max+100)
 
   do i = 0, branch%n_ele_max
     nl=incr(nl); write (li(nl), '(i0, 2a)') i, ';', branch%ele(i)%name
@@ -2323,7 +2440,6 @@ case ('plot_line')
     endif
 
   case ('')
-    call re_allocate_lines (nl+n+100)
     do i = 1, n
       nl=incr(nl); write (li(nl), '(i0, 2(a, es21.13))') i, ';', cur%x_line(i), ';', cur%y_line(i)
     enddo
@@ -2380,7 +2496,6 @@ case ('plot_symbol')
     endif
 
   case ('')
-    call re_allocate_lines (size(cur%x_symb)+100)
     do i = 1, size(cur%x_symb)
       nl=incr(nl); write (li(nl), '(2(i0, a), 2(es21.13, a))') i, ';', cur%ix_symb(i), ';', cur%x_symb(i), ';', cur%y_symb(i)
     enddo
@@ -2820,16 +2935,19 @@ function incr(n) result (n1)
 integer n, n1
 
 n1 = n + 1
-if (n1 > size(li)) call re_allocate_lines(int(1.5 * n1))
+if (n1 > size(li)) call re_allocate_lines (li, int(1.5 * n1))
 
 end function
 
 !----------------------------------------------------------------------
 ! contains
 
-subroutine re_allocate_lines (n_lines)
+subroutine re_allocate_lines (li, n_lines)
 
+character(n_char_show), allocatable :: li(:) 
 integer n_lines
+
+!
 
 if (.not. allocated(li)) allocate (li(n_lines))
 if (size(li) < n_lines) call re_allocate (li, n_lines)

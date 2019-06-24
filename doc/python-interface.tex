@@ -6,7 +6,7 @@ It is sometimes convenient to be able to run Tao via Python. For example, in an 
 system environment. \tao has scripts for doing this in one of two ways. One way is using the
 \vn{ctypes} module. The other way is using the \vn{pexpect} module. A Web search will point to
 documentation on \vn{ctypes} and \vn{pexpect}. The advantage of \vn{ctypes} is that it directly
-acceses \tao code which makes communication between Python and \tao more robust. The disadvantage of
+accesses \tao code which makes communication between Python and \tao more robust. The disadvantage of
 \vn{ctypes} is that it needs a shared-object version of the \vn{Tao} library. [See the Bmad web site
 for information on building shared-object libraries.] The disadvantage of \vn{pexpect} is that it is
 slower and it is possible for \vn{pexpect} to time out waiting for a response from \tao.
@@ -33,7 +33,7 @@ Example:
 \end{example}
 
 After each call to \vn{tao_io.cmd} and \vn{tao_io.cmd_in}, the
-\vn{tao_io.output} variable is set to the multiline output string
+\vn{tao_io.output} variable is set to the multi-line output string
 returned by \tao. To chop this string into lines, use the splitlines()
 string method.
 
@@ -47,7 +47,7 @@ as opposed to the \vn{show} command . See the \vn{python} command for more detai
 \section{Python Interface Via Ctypes}
 
 A \vn{ctypes} based python module \vn{pytao.py} for interfacing \tao to \vn{Python} is provided in
-the directoy \vn{tao/python/pytao}.
+the directory \vn{tao/python/pytao}.
 
 A test driver script named \vn{pytao_example.py} is in the same directory. See the documentation in both of
 these files for further information.
@@ -85,7 +85,7 @@ will produce as output:
 \section{Plotting Issues}
 \label{s:gui.plot}
 
-When using \tao with a \vn{gui}, and when the \vn{gui} is doing the plotting, the \vn{-noplot}
+When using \tao with a \vn{GUI}, and when the \vn{GUI} is doing the plotting, the \vn{-noplot}
 option (\sref{s:command.line}) should be used when starting \tao. The \vn{-noplot} option (which
 sets \vn{global%plot_on}) prevents \tao from opening a plotting window.
 
@@ -104,3 +104,9 @@ command (\sref{s:show.plot}) to view a list. Second, to prevent unneeded computa
 \vn{visible} parameter of template plots that are placed (\sref{s:place}) is set to False and must
 be set to True, using the \vn{set plot} command (\sref{s:set.plot}), to enable computation of the
 curve points.
+
+To make plot references unambiguous, plot can be referred to by their index number. The plot index
+number can be viewed using the \vn{python plot_list} command. Template plots can be referenced using
+the syntax ``\vn{@Tnnn}'' where \vn{nnn} is the index number. For example, \vn{@T3} referrers to the
+template plot with index 3. Similarly, the displayed plots that are associated with plot regions can be
+referred to using the syntax ``\vn{@Rnnn}''.
