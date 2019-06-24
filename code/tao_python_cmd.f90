@@ -743,7 +743,11 @@ case ('ele:head')
   nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                   trim(ele%name), ';ix_ele'
   nl=incr(nl); write (li(nl), amt) 'type;STR;T;',                   ele%type
   nl=incr(nl); write (li(nl), amt) 'alias;STR;T;',                  ele%alias
-  nl=incr(nl); write (li(nl), amt) 'descrip;STR;T;',                ele%descrip
+  if (associated(ele%descrip)) then
+    nl=incr(nl); write (li(nl), amt) 'descrip;STR;T;',                ele%descrip
+  else
+    nl=incr(nl); write (li(nl), amt) 'descrip;STR;T;',                ''
+  endif
   nl=incr(nl); write (li(nl), lmt) 'is_on;LOGIC;T;',                ele%is_on
 
   nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                   ele%s
