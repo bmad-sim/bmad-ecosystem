@@ -19,12 +19,12 @@ import string
 
 class tao_list_window(tk.Toplevel):
 
-  def __init__(self, root, title, *args, **kwargs):
+  def __init__(self, root, title, use_upper=False, min_width=0, *args, **kwargs):
     tk.Toplevel.__init__(self, root, *args, **kwargs)
     self.title(title)
     self.root = root
 
-    self.wm_geometry(newGeometry='400x600')
+    #self.wm_geometry(newGeometry='400x600')
 
     self.upper_frame=tk.Frame(self)
     self.outer_frame=tk.Frame(self)
@@ -37,7 +37,20 @@ class tao_list_window(tk.Toplevel):
     def scrollhelper(event):
       canvas.configure(scrollregion=canvas.bbox("all")) #,width=200,height=200)
       new_width = event.width + 15
+      # Don't resize to a smaller size
       old_geo = self.wm_geometry()
+      old_width = int(old_geo[:old_geo.find('x')])
+      if old_width > new_width:
+        new_width = old_width
+      # Don't resize to be smaller than the
+      # upper frame
+      self.upper_frame.update()
+      upper_width = self.upper_frame.winfo_width()
+      if upper_width > new_width:
+        new_width = upper_width
+      # Don't resize to less than the min width
+      if min_width > new_width:
+        new_width = min_width
       if old_geo[2] != '1':
         new_geo = old_geo[old_geo.find('x'):old_geo.find('+')]
         new_geo = str(new_width) + new_geo
@@ -65,12 +78,43 @@ class tao_list_window(tk.Toplevel):
     self.outer_frame.bind("<Enter>", bind_mouse)
     self.outer_frame.bind("<Leave>", unbind_mouse)
 
-    self.upper_frame.pack(side="top",fill="both", expand=0)
+    if use_upper:
+      self.upper_frame.pack(side="top",fill="both", expand=1)
     self.outer_frame.pack(side="top",fill="both",expand=1)
     scrollbar.pack(side="right",fill="y")
     canvas.pack(side="left",fill="both",expand=1)
     canvas.create_window((0,0),window=self.list_frame,anchor='nw')
 
+#-----------------------------------------------------
+# Parameter frame
+class tao_parameter_frame(tk.Frame):
+  '''
+  Meant to display a list of parameters in a given
+  number of columns
+  tao_list should be a list of tao_parameters
+  '''
+
+  def __init__(self, parent, tao_list, n_col, pipe, *args, **kwargs):
+    tk.Frame.__init__(self, parent, *args, **kwargs)
+    self.tao_list = [] #List for tk_tao_parameters
+    for p in tao_list:
+      self.tao_list.append(tk_tao_parameter(p, self, pipe))
+    cols = [] # A list of the parts of tao_list,
+    # after being divided into n_col columns
+    len_col = int(len(self.tao_list)/n_col) # How many elements per column
+    if len_col < len(self.tao_list)/n_col:
+      #if the result was rounded down
+      len_col = len_col+1
+    for i in range(n_col):
+      cols.append(self.tao_list[i*len_col : (i+1)*len_col])
+
+    # Grid the widgets in each column
+    j = 0 #controls which column the widgets get gridded to
+    for c in cols:
+      for i in range(len(c)):
+        c[i].tk_label.grid(row=i, column=2*j, sticky = 'E')
+        c[i].tk_wid.grid(row=i, column=2*j+1, sticky = 'EW')
+      j = j+1
 
 #-----------------------------------------------------
 # Parameter window
@@ -676,9 +720,9 @@ class tao_plot_curve_window(tao_parameter_window):
     tao_parameter_window.__init__(self, root, curve, data_list, self.pipe, *args, **kwargs)
 
 #-----------------------------------------------------
-# element window
+# Element window
 
-class tao_ele_window(tk.Toplevel):
+class tao_ele_window(tao_list_window):
   '''
   Window for displaying and modifying element info.
   default specifies the element that should be
@@ -686,9 +730,7 @@ class tao_ele_window(tk.Toplevel):
   Format for default: [universe, branch, element, base/model/design]
   '''
   def __init__(self, root, pipe, default=None, *args, **kwargs):
-    tk.Toplevel.__init__(self, root, *args, **kwargs)
-    self.title("Lattice Elements")
-    self.root = root
+    tao_list_window.__init__(self, root, "Lattice Elements", use_upper=True, min_width=600, *args, **kwargs)
     self.pipe = pipe
     self.default = default
 
@@ -734,12 +776,16 @@ class tao_ele_window(tk.Toplevel):
         self.e_name_list[u][branch_num] = ele_names
 
     # Set up frames to structure the window
-    self.top_frame = tk.Frame(self)  # Holds the selection widgets
-    self.head_frame = tk.Frame(self) # Holds the general info
-    self.body_frame = tk.Frame(self) # Holds everything else
-    self.top_frame.pack(fill="both", expand=0)
-    self.head_frame.pack(fill="both", expand=0)
-    self.body_frame.pack(fill="both", expand=1)
+    self.top_frame = tk.Frame(self.upper_frame)  # Holds the selection widgets
+    self.head_frame = tk.Frame(self.upper_frame) # Holds the general info
+    #self.body_frame = tk.Frame(self) # Holds everything else
+    self.top_frame.pack(fill="both", expand=1)
+    for i in range(5):
+      self.top_frame.grid_columnconfigure(i, weight=1)
+    self.head_frame.pack(fill="both", expand=1)
+    for i in range(4):
+      self.head_frame.grid_columnconfigure(i, weight=1, pad=5)
+    #self.body_frame.pack(fill="both", expand=1)
 
     # The Element selection fields
     tk.Label(self.top_frame, text="Universe").grid(row=0, column=0)
@@ -841,7 +887,7 @@ class tao_ele_window(tk.Toplevel):
     # Clear existing window contents
     for child in self.head_frame.winfo_children():
       child.destroy()
-    for child in self.body_frame.winfo_children():
+    for child in self.list_frame.winfo_children():
       child.destroy()
 
     # Create an element object
@@ -855,32 +901,82 @@ class tao_ele_window(tk.Toplevel):
         self.head_tk_tao_params.append(self.element.params[p])
     #name = tk.Label(self.head_frame, text=self.element.params["name"].param.value)
     name = tk.Label(self.head_frame, text=self.element.params["name"].param.value)
+    name.configure(font=("Sans", 16, "bold"))
     name.grid(row=0, column = 0, columnspan = 4)
 
     #Fixed parameters
-    tk.Label(self.head_frame, text="Key").grid(row=1, column=0)
+    tk.Label(self.head_frame, text="Key").grid(row=1, column=0, sticky='E')
     self.element.params["key"].tk_wid.grid(row=1, column=1, sticky='EW')
-    tk.Label(self.head_frame, text="s").grid(row=2, column=0)
-    self.element.params["s"].tk_wid.grid(row=2, column=1)
-    tk.Label(self.head_frame, text="s_start").grid(row=3, column=0)
-    self.element.params["s_start"].tk_wid.grid(row=3, column=1)
-    tk.Label(self.head_frame, text="Ref time").grid(row=4, column=0)
-    self.element.params["ref_time"].tk_wid.grid(row=4, column=1)
+    tk.Label(self.head_frame, text="s").grid(row=2, column=0, sticky='E')
+    self.element.params["s"].tk_wid.grid(row=2, column=1, sticky='EW')
+    tk.Label(self.head_frame, text="s_start").grid(row=3, column=0, sticky='E')
+    self.element.params["s_start"].tk_wid.grid(row=3, column=1, sticky='EW')
+    tk.Label(self.head_frame, text="Ref time").grid(row=4, column=0, sticky='E')
+    self.element.params["ref_time"].tk_wid.grid(row=4, column=1, sticky='EW')
 
     #Variable parameters
-    tk.Label(self.head_frame, text="Type").grid(row=1, column=2)
-    self.element.params["type"].tk_wid.grid(row=1, column=3)
-    tk.Label(self.head_frame, text="Alias").grid(row=2, column=2)
-    self.element.params["alias"].tk_wid.grid(row=2, column=3)
-    tk.Label(self.head_frame, text="Description").grid(row=3, column=2)
-    self.element.params["descrip"].tk_wid.grid(row=3, column=3)
-    tk.Label(self.head_frame, text="is_on").grid(row=4, column=2)
-    self.element.params["is_on"].tk_wid.grid(row=4, column=3)
+    tk.Label(self.head_frame, text="Type").grid(row=1, column=2, sticky='E')
+    self.element.params["type"].tk_wid.grid(row=1, column=3, sticky='EW')
+    tk.Label(self.head_frame, text="Alias").grid(row=2, column=2, sticky='E')
+    self.element.params["alias"].tk_wid.grid(row=2, column=3, sticky='EW')
+    tk.Label(self.head_frame, text="Description").grid(row=3, column=2, sticky='E')
+    self.element.params["descrip"].tk_wid.grid(row=3, column=3, sticky='EW')
+    tk.Label(self.head_frame, text="is_on").grid(row=4, column=2, sticky='E')
+    self.element.params["is_on"].tk_wid.grid(row=4, column=3, sticky='EW')
+
+    # Body frame
+    self.sh_b_list = [] # Show/hide button list
+    self.tao_lists = [] # tk_tao_parameters for each frame
+    self.p_frames = [] # Parameter frames
+    i = 0 #counter for above list indices
+    for key in self.element.has.keys():
+      if self.element.has[key].value: #If the element has the given property
+        if key == "multipoles_elec": # multipoles_elec is called
+          key = "elec_multipoles"    # elec_multipoles in tao_python_cmd.f90
+        if key == "mat6": # mat6 not yet implemented`
+          continue
+        # Make a button
+        self.sh_b_list.append(tk.Button(self.list_frame, text=key))
+        tao_list = self.pipe.cmd_in("python ele:"
+            + key + ' ' + self.uni.get() + '@'
+            + self.branch.get() + '>>'
+            + self.ele.get() + '|'
+            + (self.bmd.get()).lower())
+        self.tao_lists.append(tao_list.splitlines())
+        for j in range(len(self.tao_lists[i])):
+          self.tao_lists[i][j] = str_to_tao_param(self.tao_lists[i][j])
+        # Configure the buttons with commands
+        self.sh_b_list[i].configure(command=self.s_callback(i))
+        self.p_frames.append(tao_parameter_frame(self.list_frame, self.tao_lists[i], 2, self.pipe))
+        self.sh_b_list[i].grid(row=2*i, column=0, sticky='EW')
+        #self.p_frames[i].pack()
+        i = i+1
 
     # Reset self.ele to be the display name
     self.ele.set(self.e_display_list[self.uni.get()][self.branch.get()][int(self.ele.get())])
+    self.list_frame.columnconfigure(0, weight=1)
 
+  def s_callback(self, index):
+    return lambda : self.show(index)
 
+  def show(self, index):
+    '''
+    Grids the parameter frame with given index to the body frame
+    '''
+    self.p_frames[index].grid(row=2*index+1, column=0, sticky='EW')
+    # Button should now hide instead of show
+    self.sh_b_list[index].configure(command=self.h_callback(index))
+
+  def h_callback(self, index):
+    return lambda : self.hide(index)
+
+  def hide(self, index):
+    '''
+    Un-grids the paramter frame with the given index
+    '''
+    self.p_frames[index].grid_forget()
+    # Button should now show instead of hide
+    self.sh_b_list[index].configure(command=self.s_callback(index))
 
 
 
