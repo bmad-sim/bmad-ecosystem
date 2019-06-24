@@ -37,6 +37,9 @@ class tao_root_window(tk.Tk):
     init_frame.pack()
     self.tao_load(init_frame)
 
+    # Dictionary of where template plots have been placed
+    self.placed = {}
+
     # Key bindings
 
     self.bind_all("<Control-q>", self.quit_cmd)
@@ -257,13 +260,26 @@ class tao_root_window(tk.Tk):
       tao_exe.tk_var.set(init_dict["tao_exe"])
     tao_lib = tk_tao_parameter(str_to_tao_param("tao_lib;FILE;T;"), init_frame)
     if "tao_lib" in init_dict:
-      tao_exe.tk_var.set(init_dict["tao_exe"])
+      tao_exe.tk_var.set(init_dict["tao_lib"])
     swap_box()
+
+    #Choosing plot mode must also be handled separately
+    tk.Label(init_frame, text="Plotting Mode").grid(row=k+2, sticky='E')
+    plot_mode = tk.StringVar()
+    plot_mode.set("matplotlib")
+    plot_options = ["matplotlib", "pgplot", "None"]
+    plot_chooser = tk.OptionMenu(init_frame, plot_mode, *plot_options)
+    plot_chooser.grid(row=k+2, column=1, sticky='W')
+    # Set plot_mode from init_dict if specified
+    if "plot_mode" in init_dict:
+      if init_dict["plot_mode"] in plot_options:
+        plot_mode.set(init_dict["plot_mode"])
 
     def param_load(event=None):
       if chosen_interface.get() == "ctypes":
         messagebox.showwarning("Error", "ctypes is not currently supported.  Please use pexpect.")
         return 0
+      self.plot_mode = plot_mode.get()
       init_args = ""
       for tk_param in tk_list:
         if tk_param.param.type in ['STR','ENUM']:
@@ -280,6 +296,8 @@ class tao_root_window(tk.Tk):
           tk_param.param.value = tk_param.tk_var.get()
           if tk_param.param.value:
             init_args = init_args + "-" + tk_param.param.name + " "
+      if plot_mode.get() != "pgplot":
+        init_args = init_args + "-noplot"
       # Run Tao, clear the init_frame, and draw the main frame
       from tao_interface import tao_interface
       if chosen_interface.get() == "pexpect":
@@ -295,9 +313,11 @@ class tao_root_window(tk.Tk):
 
       init_frame.destroy()
       self.start_main()
+      if plot_mode.get() == "matplotlib":
+        self.pipe.cmd_in("set global force_plot_data_calc = T")
 
     load_b = tk.Button(init_frame, text="Start Tao", command=param_load)
-    load_b.grid(row=k+2, columnspan=2)
+    load_b.grid(row=k+3, columnspan=2)
     self.bind_all("<Return>", param_load)
 
     #Start Tao immediately if skip_setup is set true
