@@ -856,6 +856,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
   if (associated(ele%control)) then
     nl=nl+1; li(nl) = 'Control Variables:'
     n_att = maxval(len_trim(ele%control%var%name))
+
     if (ele%lord_status == group_lord$) then
       do i = 1, size(ele%control%var)
         a_name = ele%control%var(i)%name
@@ -867,6 +868,11 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       do i = 1, size(ele%control%var)
         nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7)')  i, &
                       ele%control%var(i)%name, '  =', ele%control%var(i)%value
+      enddo
+    endif
+
+    if (ele%control%type == spline .or. ele%control%type == linear$) then
+      do i = 1, size(ele%control%x_knot)
       enddo
     endif
 
