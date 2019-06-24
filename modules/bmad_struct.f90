@@ -50,7 +50,7 @@ integer, parameter :: taylor_offset$ = 1000000000     ! Taylor term index offset
 
 type expression_atom_struct
   character(40) :: name = ''
-  integer :: type = 0
+  integer :: type = 0   ! plus$, minum$, sin$, cos$, etc. To convert to string use: expression_op_name
   real(rp) :: value = 0
 end type
 
@@ -64,7 +64,7 @@ integer, parameter :: expression$ = 2, spline$ = 3
 character(8), parameter :: interpolation_name(4) = [character(8):: null_name$, 'Expression', 'Spline', 'Linear']
 
 type controller_struct
-  integer :: type = expression$
+  integer :: type = expression$   ! or spline$ or linear$.
   type (controller_var1_struct), allocatable :: var(:)
   real(rp), allocatable :: x_knot(:)
 end type
