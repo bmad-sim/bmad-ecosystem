@@ -27,6 +27,8 @@ class tao_interface():
     output = output.replace('\x1b[6 q', '')
     if output.find("Backtrace") != -1:
       print("Error occurred in Tao, causing it to crash")
+      print("The offending command: " + cmd_str)
+      print("The error:")
       print(output)
     return output
 
