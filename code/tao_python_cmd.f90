@@ -113,6 +113,8 @@ type (taylor_field_plane1_struct), pointer :: t_term
 type (em_taylor_term_struct), pointer :: em_tt
 type (grid_field_struct), pointer :: g_field
 type (grid_field_pt1_struct), pointer :: g_pt
+type (tao_ele_shape_struct), pointer :: shapes(:)
+type (tao_ele_shape_struct), pointer :: shape
 
 character(*) input_str
 character(n_char_show), allocatable :: li(:) 
@@ -122,7 +124,7 @@ character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
 character(20) cmd, command, who, which, v_str, head
 character(20) :: r_name = 'tao_python_cmd'
-character(40) :: cmd_names(61) = [character(20) :: &
+character(40) :: cmd_names(62) = [character(20) :: &
   'beam_init', 'branch1', 'bunch1', 'bmad_com', &
   'data_create', 'data_destroy', 'data_d2_array', 'data_d1_array', 'data_d2', 'data_d_array', 'data', &
   'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', 'ele:cartesian_map', &
@@ -130,9 +132,10 @@ character(40) :: cmd_names(61) = [character(20) :: &
   'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
   'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
   'enum', 'floor_plan', 'global', 'help', 'inum', &
-  'lat_ele_list', 'lat_general', 'lat_layout', 'lat_list', 'lat_param_units', &
+  'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
   'orbit_at_s', &
-  'plot_curve', 'plot_graph', 'plot_historgraph', 'plot_line', 'plot_list', 'plot_symbol', 'plot1', &
+  'plot_curve', 'plot_graph', 'plot_historgraph', 'plot_lat_layout', 'plot_line', &
+  'plot_shapes', 'plot_list', 'plot_symbol', 'plot1', &
   'species_to_int', 'species_to_str', 'super_universe', 'twiss_at_s', 'universe', &
   'var_create', 'var_destroy', 'var_general', 'var_v1_array', 'var_v_array', 'var']
 
@@ -1978,29 +1981,6 @@ case ('lat_general')
   enddo
 
 !----------------------------------------------------------------------
-! Lat layout info
-! Command syntax:
-!   python lat_layout {ix_universe}@{ix_branch}
-! Note: The returned list of element positions is not ordered in increasing longitudinal position.
-
-case ('lat_layout')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  ix_branch = parse_branch(line, .false., err); if (err) return
-  branch => u%model%lat%branch(ix_branch)
-
-  do i = 1, branch%n_ele_max
-    ele => branch%ele(i)
-    if (ele%slave_status == super_slave$) cycle
-    if (ele%key == overlay$) cycle
-    if (ele%key == group$) cycle
-    if (ele%key == girder$) cycle
-    if (ele%lord_status == multipass_lord$) cycle
-    nl=incr(nl); write (li(nl), '(i0, 5a, 2(es21.13, a))') i, ';', trim(ele%name), ';', &
-                                                            trim(key_name(ele%key)), ';', ele%s_start, ';', ele%s
-  enddo
-
-!----------------------------------------------------------------------
 ! ********* NOTE: COLWIN IS USING THIS!! *************
 !
 ! List of parameters at ends of lattice elements
@@ -2227,6 +2207,86 @@ case ('orbit_at_s')
   call orbit_out (orb)
 
 !----------------------------------------------------------------------
+! Curve information for a plot
+! Command syntax:
+!   pyton plot_curve {curve_name}
+
+case ('plot_curve')
+
+  call tao_find_plots (err, line, 'COMPLETE', curve = curve)
+
+  if (err .or. .not. allocated(curve)) then
+    call invalid ('Not a valid curve')
+    return
+  endif
+
+  cur => curve(1)%c
+  ix_uni = cur%ix_universe
+
+  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             cur%name
+  nl=incr(nl); write (li(nl), amt) 'curve^data_source;ENUM;T;',               cur%data_source
+  nl=incr(nl); write (li(nl), amt) 'data_type_x;DAT_TYPE;T;',                 cur%data_type_x
+  nl=incr(nl); write (li(nl), amt) 'data_type_z;STR;T;',                      cur%data_type_z
+  nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   cur%data_type
+  nl=incr(nl); write (li(nl), amt) 'component;STR;T;',                        cur%component
+  nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(cur%ele_ref_name), 'ix_ele_ref'
+  nl=incr(nl); write (li(nl), amt) 'legend_text;STR;T;',                      cur%legend_text
+  nl=incr(nl); write (li(nl), amt) 'message_text;STR;F;',                     cur%message_text
+  nl=incr(nl); write (li(nl), amt) 'units;STR;T;',                            cur%units
+  nl=incr(nl); write (li(nl), rmt) 'y_axis_scale_factor;REAL;T;',             cur%y_axis_scale_factor
+  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               cur%s
+  nl=incr(nl); write (li(nl), rmt) 'z_color0;REAL;T;',                        cur%z_color0
+  nl=incr(nl); write (li(nl), rmt) 'z_color1;REAL;T;',                        cur%z_color1
+  nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                     cur%ix_universe
+  nl=incr(nl); write (li(nl), imt) 'symbol_every;INT;T;',                     cur%symbol_every
+  nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_branch;INUM;T;',              cur%ix_branch
+  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref;INT;I;',                       cur%ix_ele_ref
+  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref_track;INT;I;',                 cur%ix_ele_ref_track
+  nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_bunch;INUM;T;',               cur%ix_bunch
+  nl=incr(nl); write (li(nl), lmt) 'use_y2;LOGIC;T;',                         cur%use_y2
+  nl=incr(nl); write (li(nl), lmt) 'draw_line;LOGIC;T;',                      cur%draw_line
+  nl=incr(nl); write (li(nl), lmt) 'draw_symbols;LOGIC;T;',                   cur%draw_symbols
+  nl=incr(nl); write (li(nl), lmt) 'draw_symbol_index;LOGIC;T;',              cur%draw_symbol_index
+  nl=incr(nl); write (li(nl), lmt) 'smooth_line_calc;LOGIC;T;',               cur%smooth_line_calc
+  nl=incr(nl); write (li(nl), lmt) 'use_z_color;LOGIC;I;',                    cur%use_z_color
+  nl=incr(nl); write (li(nl), lmt) 'autoscale_z_color;LOGIC;I;',              cur%autoscale_z_color
+
+  nl=incr(nl); write (li(nl), imt)  'line.width;INT;T;',                      cur%line%width
+  nl=incr(nl); write (li(nl), amt)  'line.color;ENUM;T;',                     qp_color_name(cur%line%color)
+  nl=incr(nl); write (li(nl), amt)  'line.pattern;ENUM;T;',                   qp_line_pattern_name(cur%line%pattern)
+
+  nl=incr(nl); write (li(nl), amt)  'symbol.type;ENUM;T;',                    qp_symbol_type_name(cur%symbol%type)
+  nl=incr(nl); write (li(nl), amt)  'symbol.color;ENUM;T;',                   qp_color_name(cur%symbol%color)
+  nl=incr(nl); write (li(nl), rmt)  'symbol.height;REAL;T;',                  cur%symbol%height
+  nl=incr(nl); write (li(nl), amt)  'symbol.fill_pattern;ENUM;T;',            qp_symbol_fill_pattern_name(cur%symbol%fill_pattern)
+  nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               cur%symbol%line_width
+
+  nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               cur%symbol%line_width
+
+!----------------------------------------------------------------------
+! Plot Lat_layout info
+! Command syntax:
+!   python plot_lat_layout {ix_universe}@{ix_branch}
+! Note: The returned list of element positions is not ordered in increasing longitudinal position.
+
+case ('plot_lat_layout')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  ix_branch = parse_branch(line, .false., err); if (err) return
+  branch => u%model%lat%branch(ix_branch)
+
+  do i = 1, branch%n_ele_max
+    ele => branch%ele(i)
+    if (ele%slave_status == super_slave$) cycle
+    if (ele%key == overlay$) cycle
+    if (ele%key == group$) cycle
+    if (ele%key == girder$) cycle
+    if (ele%lord_status == multipass_lord$) cycle
+    nl=incr(nl); write (li(nl), '(i0, 5a, 2(es21.13, a))') i, ';', trim(ele%name), ';', &
+                                                            trim(key_name(ele%key)), ';', ele%s_start, ';', ele%s
+  enddo
+
+!----------------------------------------------------------------------
 ! List of plot templates or plot regions.
 ! Command syntax:  
 !   python plot_list {r/g}
@@ -2341,7 +2401,7 @@ case ('plot_graph')
   nl=incr(nl); write (li(nl), lmt) 'y2.draw_numbers;LOGIC;T;',               g%y2%draw_numbers
 
 !----------------------------------------------------------------------
-! Histogram
+! Plot Histogram
 ! Syntax:
 !   python plot_histograph {curve_name}
 
@@ -2365,61 +2425,32 @@ case ('plot_histogram')
   nl=incr(nl); write (li(nl), imt) 'number;REAL;T;',                       cur%hist%number
 
 !----------------------------------------------------------------------
-! Curve information for a plot
-! Command syntax:
-!   pyton plot_curve {curve_name}
+! Plot shapes
+! Syntax:
+!   python plot_shapes {who}
+! {who} is one of:
+!   lat_layout
+!   floor_plan
 
-case ('plot_curve')
+case ('plot_shapes')
 
-  call tao_find_plots (err, line, 'COMPLETE', curve = curve)
+  select case (line)
+  case ('lat_layout')
+    shapes => s%plot_page%lat_layout%ele_shape
+  case ('floor_plan')
+    shapes => s%plot_page%floor_plan%ele_shape
+  case default
+    call invalid ('Bad {who}')
+  end select
 
-  if (err .or. .not. allocated(curve)) then
-    call invalid ('Not a valid curve')
-    return
-  endif
+  do i = 1, size(shapes)
+    shape => shapes(i)
+    if (shape%ele_id == '') cycle
+    nl=incr(nl); write (li(nl), '(i0, 7a, es12.4, 3a, 2(l1, a))') i, ';', &
+          trim(shape%ele_id), ';', trim(shape%shape), ';', trim(shape%color), ';', shape%size, ';', &
+          trim(shape%label), ';', shape%draw, ';', shape%multi
+  enddo
 
-  cur => curve(1)%c
-  ix_uni = cur%ix_universe
-
-  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             cur%name
-  nl=incr(nl); write (li(nl), amt) 'curve^data_source;ENUM;T;',               cur%data_source
-  nl=incr(nl); write (li(nl), amt) 'data_type_x;DAT_TYPE;T;',                 cur%data_type_x
-  nl=incr(nl); write (li(nl), amt) 'data_type_z;STR;T;',                      cur%data_type_z
-  nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   cur%data_type
-  nl=incr(nl); write (li(nl), amt) 'component;STR;T;',                        cur%component
-  nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(cur%ele_ref_name), 'ix_ele_ref'
-  nl=incr(nl); write (li(nl), amt) 'legend_text;STR;T;',                      cur%legend_text
-  nl=incr(nl); write (li(nl), amt) 'message_text;STR;F;',                     cur%message_text
-  nl=incr(nl); write (li(nl), amt) 'units;STR;T;',                            cur%units
-  nl=incr(nl); write (li(nl), rmt) 'y_axis_scale_factor;REAL;T;',             cur%y_axis_scale_factor
-  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               cur%s
-  nl=incr(nl); write (li(nl), rmt) 'z_color0;REAL;T;',                        cur%z_color0
-  nl=incr(nl); write (li(nl), rmt) 'z_color1;REAL;T;',                        cur%z_color1
-  nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                     cur%ix_universe
-  nl=incr(nl); write (li(nl), imt) 'symbol_every;INT;T;',                     cur%symbol_every
-  nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_branch;INUM;T;',              cur%ix_branch
-  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref;INT;I;',                       cur%ix_ele_ref
-  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref_track;INT;I;',                 cur%ix_ele_ref_track
-  nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_bunch;INUM;T;',               cur%ix_bunch
-  nl=incr(nl); write (li(nl), lmt) 'use_y2;LOGIC;T;',                         cur%use_y2
-  nl=incr(nl); write (li(nl), lmt) 'draw_line;LOGIC;T;',                      cur%draw_line
-  nl=incr(nl); write (li(nl), lmt) 'draw_symbols;LOGIC;T;',                   cur%draw_symbols
-  nl=incr(nl); write (li(nl), lmt) 'draw_symbol_index;LOGIC;T;',              cur%draw_symbol_index
-  nl=incr(nl); write (li(nl), lmt) 'smooth_line_calc;LOGIC;T;',               cur%smooth_line_calc
-  nl=incr(nl); write (li(nl), lmt) 'use_z_color;LOGIC;I;',                    cur%use_z_color
-  nl=incr(nl); write (li(nl), lmt) 'autoscale_z_color;LOGIC;I;',              cur%autoscale_z_color
-
-  nl=incr(nl); write (li(nl), imt)  'line.width;INT;T;',                      cur%line%width
-  nl=incr(nl); write (li(nl), amt)  'line.color;ENUM;T;',                     qp_color_name(cur%line%color)
-  nl=incr(nl); write (li(nl), amt)  'line.pattern;ENUM;T;',                   qp_line_pattern_name(cur%line%pattern)
-
-  nl=incr(nl); write (li(nl), amt)  'symbol.type;ENUM;T;',                    qp_symbol_type_name(cur%symbol%type)
-  nl=incr(nl); write (li(nl), amt)  'symbol.color;ENUM;T;',                   qp_color_name(cur%symbol%color)
-  nl=incr(nl); write (li(nl), rmt)  'symbol.height;REAL;T;',                  cur%symbol%height
-  nl=incr(nl); write (li(nl), amt)  'symbol.fill_pattern;ENUM;T;',            qp_symbol_fill_pattern_name(cur%symbol%fill_pattern)
-  nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               cur%symbol%line_width
-
-  nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               cur%symbol%line_width
 
 !----------------------------------------------------------------------
 ! ********* NOTE: COLWIN IS USING THIS!! *************
