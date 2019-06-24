@@ -29,6 +29,8 @@ class lat_element():
     p_list = [] # For parameters
     h_list = [] # For has#...
     n_list = [] # For num#...
+    # All elements have gen_attribs:
+    h_list.append("gen_attribs;LOGIC;F;T")
     for item in data_list:
       if item.find("has#") != -1:
         h_list.append(item[4:])

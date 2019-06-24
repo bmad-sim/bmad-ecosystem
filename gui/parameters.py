@@ -45,6 +45,8 @@ class tao_parameter():
         self.value = float(param_value)
       except:
         self.value = None
+    elif param_type == "REAL_ARR":
+      self.value = param_value
     elif param_type == 'LOGIC':
       self.value = (param_value == 'T')
     elif param_type == 'ENUM':
@@ -67,7 +69,7 @@ def tao_parameter_dict(param_list):
     this_dict = OrderedDict()
     for param in param_list:
       v = param.split(';')
-      this_dict[v[0]] = tao_parameter(v[0], v[1], v[2], v[3])
+      this_dict[v[0]] = str_to_tao_param(param)
     return this_dict
 
 def str_to_tao_param(param_str):
@@ -77,6 +79,14 @@ def str_to_tao_param(param_str):
     and returns a tao_parameter
     '''
     v = param_str.split(';')
+    if v[1] == "REAL_ARR":
+      arr = []
+      for x in v[3:]:
+        try:
+          arr.append(float(x))
+        except:
+          arr.append(float(0))
+      v[3] = arr
     return tao_parameter(v[0],v[1],v[2],v[3])
 
 #-------------------------------------------------

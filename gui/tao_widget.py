@@ -53,6 +53,22 @@ class tk_tao_parameter():
       self.tk_var = tk.BooleanVar()
       self.tk_var.set(self.param.value)
       self.tk_wid = tk.Checkbutton(frame, variable=self.tk_var)
+    elif self.param.type == 'REAL_ARR':
+      self.tk_var = tk.StringVar()
+      val = ""
+      for i in range(len(self.param.value)):
+        val = val+str(self.param.value[i])
+        val = val+';'
+      self.tk_var.set(val) #; delimited list of values
+      self.tk_wid = tk.Frame(frame) #holds the entries
+      self._svar = [] #slave variables
+      self._s = [] #slave widgets
+      for i in range(len(self.param.value)):
+        self._svar.append(tk.StringVar())
+        self._svar[i].set(str(self.param.value[i]))
+        self._s.append(tk.Entry(self.tk_wid, textvariable=self._svar[i]))
+        self._s[i].pack(side="left", expand=1)
+        self._svar[i].trace("w", self._update_real_arr)
     elif self.param.type == 'DAT_TYPE':
       self.tk_var = tk.StringVar() #This is for the entire value
       self.tk_var.set(self.param.value)
@@ -68,11 +84,28 @@ class tk_tao_parameter():
       self._s = [] # list of slave widgets
       self._s_refresh()
 
-    if self.param.type != 'DAT_TYPE':
+    if self.param.type not in ['DAT_TYPE', 'REAL_ARR']:
       self.tk_wid.config(disabledforeground="black")
     self.tk_label = tk.Label(frame, text=self.param.name)
-    if not self.param.can_vary:
+    if (not self.param.can_vary) & (self.param.type not in ['DAT_TYPE', 'REAL_ARR']):
       self.tk_wid.config(state="disabled")
+
+  def _update_real_arr(self, event=None):
+    '''
+    Takes a real array's slave variables and puts their data
+    into the master tk_var
+    '''
+    new_val = ""
+    for i in range(len(self._svar)):
+      # Check that the variable contains a float
+      try:
+        x = float(self._svar[i].get())
+        new_val = new_val + str(float(self._svar[i].get()))
+      except:
+        # Use zero if not a float
+        new_val = new_val + str(0.0)
+      new_val = new_val + ';'
+    self.tk_var.set(new_val)
 
   def _get_dat_types(self):
     '''
@@ -207,7 +240,7 @@ class tk_tao_parameter():
         new_tk_var = new_tk_var + '.' + self._svar[k].get()
     # Set self.tk_var
     self.tk_var.set(new_tk_var)
-    print(self.tk_var.get())
+    #print(self.tk_var.get())
 
   def open_file(self):
     filename = filedialog.askopenfilename(title = "Select " + self.param.name)
