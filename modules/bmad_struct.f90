@@ -120,11 +120,6 @@ character(16), parameter :: field_calc_name(0:7) = &
     ['GARBAGE!       ', 'Bmad_Standard  ', 'FieldMap       ', 'Planar_Model   ', &
      'Refer_to_Lords.', 'No_Field       ', 'Helical_Model  ', 'Custom         ']
 
-! Crystal sub_key values.
-
-integer, parameter :: bragg$ = 1, laue$ = 2
-character(8), parameter :: diffraction_type_name(0:2) = ['GARBAGE!', 'Bragg   ', 'Laue    ']
-
 ! Distribution
 
 integer, parameter :: uniform$ = 1, gaussian$ = 2, spherical$ = 3
@@ -1541,7 +1536,7 @@ character(40), parameter :: blank_name$ = ' '
 
 integer, parameter :: open$ = 1, closed$ = 2
 
-character(16), parameter :: lattice_type_name(0:2) = ['GARBAGE!        ', 'LINEAR_LATTICE  ', 'CIRCULAR_LATTICE']
+character(16), parameter :: lattice_type_name(0:2) = ['GARBAGE!        ', 'Linear_Lattice  ', 'Circular_Lattice']
 character(16), parameter :: geometry_name(0:2) = ['GARBAGE!    ', 'Open        ', 'Closed      ']
 
 ! The linac_normal_mode_struct is basically the synchrotron integrals with the

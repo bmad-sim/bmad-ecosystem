@@ -7199,7 +7199,7 @@ do
       call match_word(word2, anchor_pt_name(1:), ct_map%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
   
     case ('FIELD_TYPE')
-      call match_word(word2, em_field_type_name(1:), ct_map%field_type, can_abbreviate = .false., matched_name = name)
+      call match_word(word2, em_field_type_name(1:2), ct_map%field_type, can_abbreviate = .false., matched_name = name)
   
     end select
 
@@ -7939,7 +7939,7 @@ do
       call match_word(word2, anchor_pt_name(1:), t_field%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
   
     case ('FIELD_TYPE')
-      call match_word(word2, em_field_type_name(1:), t_field%field_type, can_abbreviate = .false., matched_name = name)
+      call match_word(word2, em_field_type_name(1:2), t_field%field_type, can_abbreviate = .false., matched_name = name)
   
     end select
 
