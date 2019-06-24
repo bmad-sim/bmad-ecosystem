@@ -1,0 +1,17 @@
+&tao_design_lattice
+	n_universes = 1
+	design_lattice (1)% file = "cavity.bmad"
+
+& tao_beam_init
+	beam_init%n_particle = 1000
+	beam_init%a_norm_emit = 1.0e-6
+	beam_init%b_norm_emit = 1.0e-6
+	beam_init%bunch_charge = 1e-9
+	beam_init%sig_e = 1e-3
+	beam_init%sig_z = 0.00059958
+	beam_saved_at = "*"
+
+& tao_start
+	startup_file = histogram_start
+	
+/
