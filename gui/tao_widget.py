@@ -75,6 +75,7 @@ class tk_tao_parameter():
       self.tk_wid = tk.Frame(frame) #The "widget" that should be placed by the gui
       self._mvar = tk.StringVar() # The master variable
       self._mvar.set((self.tk_var.get()).split('.')[0])
+      self._mvar_old = self._mvar.get() # Tracks changes inn self._mvar
       self._m = ttk.Combobox(self.tk_wid, textvariable=self._mvar,
           values = self._get_dat_types(), state="readonly")
       self._m.bind("<<ComboboxSelected>>", self._s_refresh)
@@ -179,15 +180,17 @@ class tk_tao_parameter():
       k = k+1
 
     # Set the slave variables appropriately
-    current_mvar = (self.tk_var.get()).split('<')[0]
-    if current_mvar != "":
-      if current_mvar[-1] == '.':
-        current_mvar = current_mvar[:-1]
-    if self._mvar.get() == current_mvar:
+    #current_mvar = (self.tk_var.get()).split('<')[0]
+    #if current_mvar != "":
+    #  if current_mvar[-1] == '.':
+    #    current_mvar = current_mvar[:-1]
+    #current_mvar = current_mvar.split('.')[0]
+    if self._mvar.get() == self._mvar_old:
       for k in range(len(self._svar)):
         self._svar[k].set((self.tk_var.get()).split('.')[k+1])
     else: # Update self.tk_var if self._mvar has changed
       self._update_tk_var()
+      self._mvar_old = self._mvar.get()
 
     # Pack the new slaves
     for k in range(len(self._s)):

@@ -525,30 +525,53 @@ class tao_history_window(tao_list_window):
 #TODO: specify set template properties
 #TODO: source input validation
 
-class tao_plot_t_window(tao_list_window):
+class tao_plot_tr_window(tao_list_window):
   '''
-  Displays information about existing plot templates.
+  Displays information about existing plot templates and regions
   Use a drop-down list to select template to view.
   '''
-  def __init__(self, root, pipe, *args, **kwargs):
+  def __init__(self, root, pipe, mode, *args, **kwargs):
     tao_list_window.__init__(self, root, "Plot Templates", *args, **kwargs)
     self.minsize(325, 100)
     self.pipe = pipe
+    #self.mode = "T" #to be passed to graph and curve windows
+    self.mode = mode
+    if self.mode == "R":
+      self.title("Plot Regions")
 
     self.temp_frame = tk.Frame(self)
-    tk.Label(self.temp_frame, text="Choose template:").grid(row=0, column=0)
+    if self.mode == "T":
+      tk.Label(self.temp_frame, text="Choose template:").grid(row=0, column=0)
+    elif self.mode == "R":
+      tk.Label(self.temp_frame, text="Choose plot:").grid(row=0, column=0)
     self.temp_frame.columnconfigure(0, pad=10)
     self.temp_frame.pack(fill="both", expand=0)
 
-    self.temp_list = self.pipe.cmd_in("python plot_list t")
-    self.temp_list = self.temp_list.splitlines()
-    # Strip off the numbers starting each line
-    for i in range(len(self.temp_list)):
-      self.temp_list[i] = self.temp_list[i].split(';')[1]
+    if self.mode == "T":
+      plot_list = self.pipe.cmd_in("python plot_list t")
+    elif self.mode == "R":
+      plot_list = self.pipe.cmd_in("python plot_list r")
+    # Populate self.plot_list and self.index_list
+    if self.mode == "T":
+      self.plot_list = plot_list.splitlines()
+      self.index_list = len(self.plot_list)*[0] #get correct length
+      for i in range(len(self.plot_list)):
+        self.index_list[i], self.plot_list[i] = self.plot_list[i].split(';')
+    elif self.mode == "R":
+      #Only use regions that contain a plot
+      self.plot_list = []
+      self.index_list = []
+      self.region_list = [] #needed to open the correct graph/curve windows
+      plot_list = plot_list.splitlines()
+      for i in range(len(plot_list)):
+        if plot_list[i].split(';')[2] != "":
+          self.plot_list.append(plot_list[i].split(';')[2])
+          self.index_list.append(plot_list[i].split(';')[0])
+          self.region_list.append(plot_list[i].split(';')[1])
 
     self.temp = tk.StringVar()
-    self.temp.set(self.temp_list[0])
-    self.temp_select = ttk.Combobox(self.temp_frame, textvariable=self.temp, values=self.temp_list)
+    self.temp.set(self.plot_list[0])
+    self.temp_select = ttk.Combobox(self.temp_frame, textvariable=self.temp, values=self.plot_list)
     self.temp_select.bind("<<ComboboxSelected>>", self.refresh)
     self.temp_select.bind("<Return>", self.refresh)
     self.temp_select.grid(row=0, column=1)
@@ -565,7 +588,7 @@ class tao_plot_t_window(tao_list_window):
     Clears self.list_frame and populates it with information relevant to self.temp
     '''
     # Don't run if self.temp is not a valid template
-    if self.temp.get() not in self.temp_list:
+    if self.temp.get() not in self.plot_list:
       return
 
     # Clear list_frame
@@ -615,11 +638,17 @@ class tao_plot_t_window(tao_list_window):
     '''
     Opens a window to display information about plot.graph
     '''
-    graph = plot+'.'+graph
-    win = tao_plot_graph_window(self.root, graph, self.pipe)
+    if self.mode == "T":
+      graph = plot+'.'+graph
+    elif self.mode == "R":
+      region = self.region_list[self.plot_list.index(self.plot)]
+      graph = region+'.'+graph
+    index = self.index_list[self.plot_list.index(self.plot)]
+    win = tao_plot_graph_window(self.root, graph, self.pipe, self.mode, index)
 
   def plot_apply(self):
-    set_str = "set plot " + self.plot + ' '
+    index = self.index_list[self.plot_list.index(self.plot)]
+    set_str = "set plot @" + self.mode + str(index) + ' '
     tao_set(self.tao_list, set_str, self.pipe)
 
 #-----------------------------------------------------
@@ -627,11 +656,17 @@ class tao_plot_t_window(tao_list_window):
 class tao_plot_graph_window(tao_list_window):
   '''
   Displays information about a given graph
+  mode: passed from the plot template/region window,
+  should be "T" or "R"
+  index: passed from the plot template/region window,
+  should be the index of this graph's plot template/region
   '''
-  def __init__(self, root, graph, pipe, *args, **kwargs):
+  def __init__(self, root, graph, pipe, mode, index, *args, **kwargs):
     tao_list_window.__init__(self, root, graph, *args, **kwargs)
     self.pipe = pipe
     self.graph = graph
+    self.mode = mode
+    self.index = index
 
     self.refresh()
 
@@ -661,11 +696,12 @@ class tao_plot_graph_window(tao_list_window):
     name.tk_wid.grid(row=0, column=1, sticky='EW')
 
     # Curve buttons
-    tk.Label(self.list_frame, text="Curves").grid(row=1, column=0, rowspan=num_curves)
-    i=1
-    for curve in curve_list:
-      tk.Button(self.list_frame, text=curve, command=self.open_curve_callback(self.graph, curve)).grid(row=i, column=1, sticky='EW')
-      i = i+1
+    if num_curves > 0:
+      tk.Label(self.list_frame, text="Curves").grid(row=1, column=0, rowspan=num_curves)
+      i=1
+      for curve in curve_list:
+        tk.Button(self.list_frame, text=curve, command=self.open_curve_callback(self.graph, curve)).grid(row=i, column=1, sticky='EW')
+        i = i+1
 
     # Grid everything else
     self.list_frame.columnconfigure(1, weight=1)
@@ -694,11 +730,15 @@ class tao_plot_graph_window(tao_list_window):
     b.pack()
 
   def curve_apply(self, win):
-    set_str = "set curve " + win.curve + " "
+    #Convert from plot.graph.curve to index.graph.curve
+    curve_name = str(self.index) + win.curve[win.curve.index('.'):]
+    set_str = "set curve @" + self.mode + curve_name + " "
     tao_set(win.tao_list, set_str, win.pipe)
 
   def graph_apply(self):
-    set_str = "set graph " + self.graph + ' '
+    #Convert from plot.graph to index.graph
+    graph_name = str(self.index) + self.graph[self.graph.index('.'):]
+    set_str = "set graph @" + self.mode + graph_name + ' '
     tao_set(self.tao_list, set_str, self.pipe)
 
 #-----------------------------------------------------
@@ -934,6 +974,8 @@ class tao_ele_window(tao_list_window):
         if key == "multipoles_elec": # multipoles_elec is called
           key = "elec_multipoles"    # elec_multipoles in tao_python_cmd.f90
         if key == "mat6": # mat6 not yet implemented`
+          continue
+        if key == "floor": # floor currently broken
           continue
         # Make a button
         self.sh_b_list.append(tk.Button(self.list_frame, text=key))
