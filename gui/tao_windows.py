@@ -603,7 +603,7 @@ class tao_plot_tr_window(tao_list_window):
       while (("r" + str(r_index)) in self.root.placed.values()):
         r_index = r_index + 1
       self.pipe.cmd_in("place r" + str(r_index) + " " + self.plot)
-      self.pipe.cmd_in("set r" + str(r_index) + ' visible = T')
+      msg = self.pipe.cmd_in("set plot r" + str(r_index) + ' visible = T')
       self.root.placed[self.plot] = 'r' + str(r_index)
     # Plot with matplotlib
     x = taoplot(self.pipe, self.root.placed[self.plot])
