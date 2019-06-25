@@ -347,6 +347,7 @@ class tao_root_window(tk.Tk):
       self.start_main()
       if plot_mode.get() == "matplotlib":
         self.pipe.cmd_in("set global force_plot_data_calc = T")
+        self.pipe.cmd_in("place layout lat_layout")
       self.default_plots()
 
     load_b = tk.Button(init_frame, text="Start Tao", command=param_load)
