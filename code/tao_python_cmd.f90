@@ -11,7 +11,7 @@
 ! {type} is one of:
 !   INT         ! Integer number
 !   REAL        ! Real number
-!   COMPLEX     ! Complex number (Re + I Im)
+!   COMPLEX     ! Complex number (Re;Im)
 !   REAL_ARR    ! Real array
 !   LOGIC       ! Logical: "T" or "F". 
 !   INUM        ! Integer whose allowed values can be obtained using the "python inum" command.
@@ -116,11 +116,11 @@ type (grid_field_struct), pointer :: g_field
 type (grid_field_pt1_struct), pointer :: g_pt
 type (tao_ele_shape_struct), pointer :: shapes(:)
 type (tao_ele_shape_struct), pointer :: shape
-type (photon_element_struct), pointer :: photon
+type (photon_element_struct), pointer :: ph
 
 character(*) input_str
 character(n_char_show), allocatable :: li(:) 
-character(40) imt, jmt, rmt, lmt, amt, iamt, vamt, rmt2
+character(40) imt, jmt, rmt, lmt, amt, iamt, vamt, rmt2, cmt
 character(40) max_loc, ele_name, name1(40), name2(40), a_name, name
 character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
@@ -136,7 +136,7 @@ character(40) :: cmd_names(62) = [character(20) :: &
   'enum', 'floor_plan', 'global', 'help', 'inum', &
   'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
   'orbit_at_s', &
-  'plot_curve', 'plot_graph', 'plot_historgraph', 'plot_lat_layout', 'plot_line', &
+  'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
   'plot_shapes', 'plot_list', 'plot_symbol', 'plot1', &
   'species_to_int', 'species_to_str', 'super_universe', 'twiss_at_s', 'universe', &
   'var_create', 'var_destroy', 'var_general', 'var_v1_array', 'var_v_array', 'var']
@@ -1107,8 +1107,7 @@ case ('ele:cylindrical_map')
   case ('terms')
     do i = 1, size(cy_map%ptr%term)
       cyt => cy_map%ptr%term(i)
-      nl=incr(nl); write (li(nl), '(i0, 7(a, es21.13))') i, ';', &
-        real(cyt%e_coef), ';', imag(cyt%e_coef), ';', real(cyt%b_coef), ';', imag(cyt%b_coef)
+      nl=incr(nl); write (li(nl), '(i0, 2a)') i, cmplx_str(cyt%e_coef), cmplx_str(cyt%b_coef)
     enddo
 
   case default
@@ -1541,25 +1540,23 @@ case ('ele:grid_field')
       select case (g_field%field_type)
       case (electric$)
         if (g_field%harmonic == 0) then
-          nl=incr(nl); write (li(nl), '(3(i0, a), 3(es21.13, a))') i, ';', j, ';', k, (';', real(g_pt%E(ix)), ix = 1, 3)
+          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 3a)') i, ';', j, ';', k, (real_str(g_pt%E(ix)), ix = 1, 3)
         else
-          nl=incr(nl); write (li(nl), '(3(i0, a), 6(es21.13, a))') i, ';', j, ';', k, &
-                                                                 (';', real(g_pt%E(ix)), ';', aimag(g_pt%E(ix)), ix = 1, 3)
+          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 3a)') i, ';', j, ';', k, (cmplx_str(g_pt%E(ix)), ix = 1, 3)
         endif
       case (magnetic$)
         if (g_field%harmonic == 0) then
-          nl=incr(nl); write (li(nl), '(3(i0, a), 3(es21.13, a))') i, ';', j, ';', k, (';', real(g_pt%B(ix)), ix = 1, 3)
+          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 3a)') i, ';', j, ';', k, (real_str(g_pt%B(ix)), ix = 1, 3)
         else
-          nl=incr(nl); write (li(nl), '(3(i0, a), 6(es21.13, a))') i, ';', j, ';', k, &
-                                                                 (';', real(g_pt%B(ix)), ';', aimag(g_pt%B(ix)), ix = 1, 3)
+          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 3a)') i, ';', j, ';', k, (cmplx_str(g_pt%B(ix)), ix = 1, 3)
         endif
       case (mixed$)
         if (g_field%harmonic == 0) then
-          nl=incr(nl); write (li(nl), '(3(i0, a), 6(es21.13, a))') i, ';', j, ';', k, &
-                                                            (';', real(g_pt%B(ix)), ix = 1, 3), (';', real(g_pt%E(ix)), ix = 1, 3)
+          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 6a)') i, ';', j, ';', k, &
+                                                            (real_str(g_pt%B(ix)), ix = 1, 3), (real_str(g_pt%E(ix)), ix = 1, 3)
         else
-          nl=incr(nl); write (li(nl), '(3(i0, a), 12(es21.13, a))') i, ';', j, ';', k, &
-                  (';', real(g_pt%B(ix)), ';', aimag(g_pt%B(ix)), ix = 1, 3), (real(g_pt%B(ix)), ';', aimag(g_pt%B(ix)), ix = 1, 3)
+          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 6a)') i, ';', j, ';', k, &
+                                                            (cmplx_str(g_pt%B(ix)), ix = 1, 3), (cmplx_str(g_pt%B(ix)), ix = 1, 3)
         endif
       end select
     enddo; enddo; enddo
@@ -1619,7 +1616,7 @@ case ('ele:photon')
     return
   endif
 
-  photon => ele%photon
+  ph => ele%photon
   select case (line)
   case ('base')
     nl=incr(nl); write (li(nl), lmt) 'has#surface;LOGIC;F;',  (attribute_name(ele, surface_attrib$) == 'SURFACE')
@@ -1627,7 +1624,19 @@ case ('ele:photon')
                            (attribute_name(ele, material_type$) == 'MATERIAL_TYPE' .or. ele%key == crystal$)
 
   case ('material')
-    
+    if (ele%key == multilayer_mirror$) then
+      nl=incr(nl); write (li(nl), amt) 'F0_m1;COMPLEX;F',      cmplx_str(ph%material%f0_m1)
+      nl=incr(nl); write (li(nl), amt) 'F0_m2;COMPLEX;F',      cmplx_str(ph%material%f0_m2)
+    else
+      nl=incr(nl); write (li(nl), amt) 'F0_m2;COMPLEX;F',      cmplx_str(ph%material%f0_m2)
+    endif
+    nl=incr(nl); write (li(nl), amt) 'F_H;COMPLEX;F',              cmplx_str(ph%material%f_h)
+    nl=incr(nl); write (li(nl), amt) 'F_Hbar;COMPLEX;F',           cmplx_str(ph%material%f_hbar)
+    nl=incr(nl); write (li(nl), amt) 'Sqrt(F_H*F_Hbar);COMPLEX;F', cmplx_str(ph%material%f_hkl)
+
+  case ('surface')
+    nl=incr(nl); write (li(nl), rmt) 'spherical_curvature;REAL;T', ph%surface%spherical_curvature
+    nl=incr(nl); write (li(nl), rmt) 'elliptical_curvature;REAL_ARR;T', ph%surface%elliptical_curvature
   end select
 
 !----------------------------------------------------------------------
@@ -3491,5 +3500,29 @@ call out_io (s_error$, r_name, '"python ' // trim(input_str) // '": ' // why_inv
 call end_stuff(li, nl)
 
 end subroutine invalid
+
+!----------------------------------------------------------------------
+! contains
+
+function real_str(z) result (str)
+
+complex(rp) z
+character(22) str
+
+write (str, '(a, es21.13)') ';', real(z)
+
+end function real_str
+
+!----------------------------------------------------------------------
+! contains
+
+function cmplx_str(z) result (str)
+
+complex(rp) z
+character(44) str
+
+write (str, '(2(a, es21.13))') ';', real(z), ';', aimag(z)
+
+end function cmplx_str
 
 end subroutine tao_python_cmd
