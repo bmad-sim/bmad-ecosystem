@@ -12,8 +12,12 @@ from taoplot import taoplot
 from parameters import str_to_tao_param
 from elements import *
 from main import tao_set
+import matplotlib
+matplotlib.use("TkAgg")
+import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
+from matplotlib.backends._backend_tk import FigureManagerTk
 from matplotlib.backend_bases import key_press_handler
 
 
@@ -683,6 +687,7 @@ class tao_plot_window(tk.Toplevel):
     self.title(template)
     self.root = root
     self.pipe = pipe
+    self.fig = False #Default value
 
     # Check if the template has been placed in a region already, and place it if necessary
     if self.template in self.root.placed.keys():
@@ -715,15 +720,18 @@ class tao_plot_window(tk.Toplevel):
     canvas = FigureCanvasTkAgg(self.fig, master=self)
     canvas.draw()
     canvas.get_tk_widget().pack(side="top", fill="both", expand=1)
+    canvas.manager = FigureManagerTk(canvas, self.fig.number, tk.Toplevel(self.root))
 
     toolbar = NavigationToolbar2Tk(canvas, self)
     toolbar.update()
-    toolbar.get_tk_widget().pack(side="top", fill="both", expand=1)
+    canvas._tkcanvas.pack(side="top", fill="both", expand=1)
+    #toolbar.pack(side="top", fill="both", expand=1)
 
     def on_key_press(event):
       key_press_handler(event, canvas, toolbar)
 
     canvas.mpl_connect("key_press_event", on_key_press)
+
 
 #-----------------------------------------------------
 # plot_graph window
