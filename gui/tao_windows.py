@@ -12,7 +12,9 @@ from taoplot import taoplot
 from parameters import str_to_tao_param
 from elements import *
 from main import tao_set
-import string
+from matplotlib.backends.backend_tkagg import (
+    FigureCanvasTkAgg, NavigationToolbar2Tk)
+from matplotlib.backend_bases import key_press_handler
 
 
 #-----------------------------------------------------
@@ -593,22 +595,7 @@ class tao_plot_tr_window(tao_list_window):
     '''
     Creates a new matplotlib window with the currently selected plot
     '''
-    # Check if the template has been placed in a region already, and place it if necessary
-    if self.plot in self.root.placed.keys():
-      pass
-    else:
-      #Place the plot in the next available region
-      #and make visible
-      r_index = 1
-      while (("r" + str(r_index)) in self.root.placed.values()):
-        r_index = r_index + 1
-      self.pipe.cmd_in("place r" + str(r_index) + " " + self.plot)
-      msg = self.pipe.cmd_in("set plot r" + str(r_index) + ' visible = T')
-      self.root.placed[self.plot] = 'r' + str(r_index)
-    # Plot with matplotlib
-    x = taoplot(self.pipe, self.root.placed[self.plot])
-    x.plot()
-
+    win = tao_plot_window(self.root, self.plot, self.pipe)
 
   def refresh(self, event=None):
     '''
@@ -677,6 +664,66 @@ class tao_plot_tr_window(tao_list_window):
     index = self.index_list[self.plot_list.index(self.plot)]
     set_str = "set plot @" + self.mode + str(index) + ' '
     tao_set(self.tao_list, set_str, self.pipe)
+
+#----------------------------------------------------
+# Matplotlib plotting window
+class tao_plot_window(tk.Toplevel):
+  '''
+  Displays one (perhaps multiple) matplotlib plots
+  that the user has specified from the plotting
+  template window that they want to plot. Creating a
+  window in tkinter is necessary rather than using
+  matplotlib's built in system for creating windows
+  because using that system will halt the tkinter
+  mainloop until the plots are closed.
+  '''
+  def __init__(self, root, template, pipe, *args, **kwargs):
+    tk.Toplevel.__init__(self, root, *args, **kwargs)
+    self.template = template #The template plot being plotted
+    self.title(template)
+    self.root = root
+    self.pipe = pipe
+
+    # Check if the template has been placed in a region already, and place it if necessary
+    if self.template in self.root.placed.keys():
+      pass
+    else:
+      #Place the plot in the next available region
+      #and make visible
+      r_index = 1
+      while (("r" + str(r_index)) in self.root.placed.values()):
+        r_index = r_index + 1
+      self.pipe.cmd_in("place r" + str(r_index) + " " + self.template)
+      self.pipe.cmd_in("set plot r" + str(r_index) + ' visible = T')
+      self.root.placed[self.template] = 'r' + str(r_index)
+
+    self.mpl = taoplot(pipe, self.root.placed[self.template])
+    self.refresh()
+
+  def refresh(self, event=None):
+    '''
+    Makes the call to matplotlib to draw the plot to the window
+    '''
+    #Clear the window
+    for child in self.winfo_children():
+      child.destroy()
+
+    #Get the figure
+    self.fig = self.mpl.plot()
+
+    #Create widgets to display the figure
+    canvas = FigureCanvasTkAgg(self.fig, master=self)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side="top", fill="both", expand=1)
+
+    toolbar = NavigationToolbar2Tk(canvas, self)
+    toolbar.update()
+    toolbar.get_tk_widget().pack(side="top", fill="both", expand=1)
+
+    def on_key_press(event):
+      key_press_handler(event, canvas, toolbar)
+
+    canvas.mpl_connect("key_press_event", on_key_press)
 
 #-----------------------------------------------------
 # plot_graph window
@@ -1004,8 +1051,8 @@ class tao_ele_window(tao_list_window):
           continue
         if key == "floor": # floor currently broken
           continue
-        if key == "lord_slave": # also currently broken
-          continue
+        #if key == "lord_slave": # also currently broken
+        #  continue
         # Make a button
         self.sh_b_list.append(tk.Button(self.list_frame, text=key))
         tao_list = self.pipe.cmd_in("python ele:"
