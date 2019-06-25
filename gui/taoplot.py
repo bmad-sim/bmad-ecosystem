@@ -444,7 +444,7 @@ class taoplot:
 
 
 
-			layInfo=pipe.cmd_in('python plot_graph layout.g').splitlines()
+			layInfo=pipe.cmd_in('python plot_graph r1.g').splitlines()
 			#list of plotting parameter strings from tao command python plot_graph
 
 
