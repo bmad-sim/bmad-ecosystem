@@ -393,5 +393,4 @@ class taoplot:
 
 		fig.tight_layout()
 
-		plt.pause(.001)
-		plt.show()
+		return fig
