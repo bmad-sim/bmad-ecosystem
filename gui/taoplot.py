@@ -26,7 +26,7 @@ class taoplot:
 		#creates plotting figure
 		pipe = self.pipe
 		GraphRegion = self.GraphRegion
-
+		LatLayout=False
 		def pgp_to_mpl(x):
 			'''takes string with pgplot characters and returns string with characters replaced with matplotlib equivalent, raises NotImplementedError if an unknown pgplot character is used'''
 			x=x.replace('\\','\\\\')
@@ -53,6 +53,7 @@ class taoplot:
 
 				lx=lx.replace(' ','\\ ')
 
+				lx=lx.replace('\\\\(2265)','\\partial')
 				lx=lx.replace('\\\\ga','\\alpha')
 				lx=lx.replace('\\\\gb','\\beta')
 				lx=lx.replace('\\\\gg','\\gamma')
@@ -271,12 +272,13 @@ class taoplot:
 					#list of lists of points used to draw each curve
 			except:
 				lInfo=[]
-				PointsSuperList = [[[0,0]]]
+				PointsSuperList = []
 				for i in cList:
 					PointsSuperList.append([[0,0]])
 
 
 			'''Symbol Data'''
+
 			try:
 				sInfo=[]
 				for i in cList:
@@ -299,6 +301,27 @@ class taoplot:
 				SymbolSuperList = []
 				for i in cList:
 					SymbolSuperList.append([[0,0]])
+
+
+
+
+			'''Histogram Data'''
+
+			try:
+				hInfo=[]
+				for i in cList:
+					hInfo.append(pipe.cmd_in('python plot_histogram '+gType+'.'+i).splitlines())
+				hInfoDictList=[]
+				for i in range(len(cList)):
+					hInfoDict = {}
+					for j in range(len(hInfo[i])):
+						hInfoDict[hInfo[i][j].split(';')[0]]=str_to_tao_param(hInfo[i][j])
+					hInfoDictList.append(hInfoDict)
+					hInfoDict = {}
+				#list of lists of dictionaries of plot_histogram data for each curve
+			except:
+				hInfo=[]
+
 
 
 
@@ -357,16 +380,21 @@ class taoplot:
 					ysList.append(k[1])
 
 				if gInfoDict['graph^type'].value == 'data':
-					LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xpList,ypList,color=i[2],linestyle=i[3],linewidth=i[4]))
+					LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xpList,ypList,color=i[2],linestyle=i[3],linewidth=i[4]/2))
 					GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2)
+					LatLayout = True
 				#line and symbol graphs
 
-				elif gInfoDict['graph^type'].value == 'phase_space':
-					LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2))
+				elif gInfoDict['graph^type'].value == 'phase_space':	
+					if lInfo != []:
+						LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xpList,ypList,color=i[2],linestyle=i[3],linewidth=i[4]/2))
+						GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2)
+					else:
+						LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2))
 				#phase space graphs
 
 				elif gInfoDict['graph^type'].value == 'histogram':
-					LineList.append(GraphDict['graph'+str(gNumber+1)].hist(xpList,bins=100,weights=ypList,histtype='step',color=i[5]))
+					LineList.append(GraphDict['graph'+str(gNumber+1)].hist(xpList,bins=int(hInfoDictList[CurvesList.index(i)]['number'].value),weights=ypList,histtype='step',color=i[5]))
 				#histogram	
 
 			#plot curves
@@ -401,7 +429,42 @@ class taoplot:
 			plt.ylim(gInfoDict['y.min'].value,gInfoDict['y.max'].value)
 			GraphDict['graph'+str(gNumber+1)].set_axisbelow(True)
 			#plot grid
+			
+		
+
+
+
+
+		
+		if LatLayout == True:
+			GraphDict['LatLayout']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
+			#GraphDict['LatLayout'].axes.get_xaxis().set_visible(False)
+			#GraphDict['LatLayout'].axes.get_yaxis().set_visible(False)
+			GraphDict['LatLayout'].axis('off')
+
+
+
+			layInfo=pipe.cmd_in('python plot_graph layout.g').splitlines()
+			#list of plotting parameter strings from tao command python plot_graph
+
+
+			layInfoList = []
+			layInfoDict = {}
+			for i in range(len(layInfo)):
+				layInfoDict[layInfo[i].split(';')[0]]=str_to_tao_param(layInfo[i])
+				layInfoList.append(layInfo[i].split(';')[0])
+			#list of tao_parameter object names from python plot_graph
+			#dictionary of tao_parameter name string keys to the corresponding tao_parameter object
+
+			plt.xlim(layInfoDict['x.min'].value,layInfoDict['x.max'].value)
+			plt.ylim(layInfoDict['y.min'].value,layInfoDict['y.max'].value)
+			plt.axhline(y=0,xmin=layInfoDict['x.min'].value,xmax=layInfoDict['x.max'].value,color='Black')
+
+		else:
+			GraphDict['LatLayout']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
+			GraphDict['LatLayout'].remove()
+		
+
 
 		fig.tight_layout()
-
 		return fig
