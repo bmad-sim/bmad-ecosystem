@@ -6,6 +6,7 @@ import os
 sys.path.append(os.environ['ACC_ROOT_DIR'] + '/tao/gui')
 from tao_widget import *
 from parameters import str_to_tao_param
+from parameters import tao_parameter_dict
 from tao_windows import *
 import string
 
@@ -39,6 +40,8 @@ class tao_root_window(tk.Tk):
 
     # Dictionary of where template plots have been placed
     self.placed = {}
+    # List of plot windows (accessible for refreshing)
+    self.plot_windows = []
 
     # Key bindings
 
@@ -416,6 +419,12 @@ def tao_set(tao_list,set_str,pipe, overide=False):
   # Exit imediately if tao_list is empty
   if tao_list == []:
     pass
+  # Record the current status of global lattice_calc_on and plot_on
+  tao_globals = pipe.cmd_in("python global")
+  tao_globals = tao_globals.splitlines()
+  tao_globals = tao_parameter_dict(tao_globals)
+  lattice_calc_on = str(tao_globals["lattice_calc_on"].value)
+  plot_on = str(tao_globals["plot_on"].value)
   # STOP lattice calculation here
   pipe.cmd_in("set global lattice_calc_on = F")
   pipe.cmd_in("set global plot_on = F")
@@ -423,8 +432,6 @@ def tao_set(tao_list,set_str,pipe, overide=False):
   #for item in tao_list:
   #  item.tk_wid.config(state="disabled")
   update_dict = {} #Record of which variables were changed
-  set_lattice_calc = False
-  set_plot = False
   for item in tao_list:
     #Type casting and validation
     if item.tk_var.get() != "": #Skip empty boxes
@@ -449,30 +456,22 @@ def tao_set(tao_list,set_str,pipe, overide=False):
       item.param.value = new_val
       update_dict[item.param.name] = True
     else:
-      update_dict[item.param.name] = overide
+      update_dict[item.param.name] = overide & item.param.can_vary
 
     #Wait till the end to set lattice_calc_on and plot_on
     if item.param.name == 'lattice_calc_on':
       lattice_calc_on = str(item.param.value)
-      set_lattice_calc = True
     elif item.param.name == 'plot_on':
       plot_on = str(item.param.value)
-      set_plot = True
     elif update_dict[item.param.name]:
-      #print(set_str + item.param.name + " = " + str(item.param.value))
+      print(set_str + item.param.name + " = " + str(item.param.value))
       msg = pipe.cmd_in(set_str + item.param.name + " = " + str(item.param.value))
       #if msg.find("ERROR") != -1:
       if msg != "":
         messagebox.showwarning(item.param.name,msg)
   #Now set lattice_calc_on and plot_on
-  if set_plot:
-    pipe.cmd_in("set global plot_on = " + plot_on)
-  else:
-    pipe.cmd_in("set global plot_on = True")
-  if set_lattice_calc:
-    pipe.cmd_in("set global plot_on = " + lattice_calc_on)
-  else:
-    pipe.cmd_in("set global lattice_calc_on = True")
+  pipe.cmd_in("set global plot_on = " + plot_on)
+  pipe.cmd_in("set global lattice_calc_on = " + lattice_calc_on)
   #Re-enable input for parameters that can vary
   #for item in tao_list:
   #  if item.param.can_vary:
