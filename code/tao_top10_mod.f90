@@ -265,6 +265,17 @@ end subroutine tao_to_top10
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
+!+
+! Subroutine tao_show_constraints (iunit, form)
+!
+! Routine to show a list of datums and how they contribute to the merit function.
+!
+! Input:
+!   iunit   -- integer: File unit to write to. 0 => print to the terminal.
+!   form    -- character(*): What to output:
+!                 'ALL'   -> All datums.
+!                 'TOP10' -> Top datums that contribute to the merit function.
+!-
 
 subroutine tao_show_constraints (iunit, form)
 
@@ -397,19 +408,19 @@ enddo
 
 !
 
-if (form == 'MERIT') then
+if (form == 'TOP10') then
   call indexx(con(1:nc)%merit, ixm(1:nc))
   n_max = min(nc, s%global%n_top10_merit)
   ixm(1:n_max) = ixm(nc:nc-n_max+1:-1)
   line(1) = ' '
   line(2) = '! Top 10'
   nl = 2
-elseif (form == '*' .or. form == 'ALL') then
+elseif (form == 'ALL') then
   n_max = nc
   forall (i = 1:n_max) ixm(i) = i
   nl = 0
 else
-  call out_io (s_abort$, r_name, 'ERROR IN SHOW_CONSTRAINTS: UNKNOWN FORM: ' // form)
+  call out_io (s_abort$, r_name, 'UNKNOWN FORM: ' // form)
   call err_exit
 endif
 
@@ -543,8 +554,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   call tao_print_vars_bmad_format (iu, i, show_good_opt_only)
   call tao_write_out (iu, ['        ', 'end_file', '        '])
-  call tao_show_constraints (iu, 'MERIT')
-  if (size(s%u) == 1) call tao_show_constraints (iu, '*')
+  call tao_show_constraints (iu, 'TOP10')
+  if (size(s%u) == 1) call tao_show_constraints (iu, 'ALL')
 
   close (iu)
   call out_io (s_blank$, r_name, 'Written: ' // file_name)
@@ -559,7 +570,7 @@ enddo
 if (size(s%u) > 1) then
   file_name = 'all_constraints.out'
   open (iu, file = file_name, recl = 300, iostat = ios)
-  call tao_show_constraints (iu, '*')
+  call tao_show_constraints (iu, 'ALL')
   close (iu)
   call out_io (s_blank$, r_name, 'Written constraints file: ' // file_name)
 endif

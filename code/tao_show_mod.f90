@@ -632,8 +632,8 @@ case ('building_wall')
 
 case ('constraints')
 
-  call tao_show_constraints (0, '*')
-  call tao_show_constraints (0, 'MERIT')
+  call tao_show_constraints (0, 'ALL')
+  call tao_show_constraints (0, 'TOP10')
   result_id = show_what
 
 !----------------------------------------------------------------------
@@ -2818,7 +2818,7 @@ case ('lattice')
 case ('merit', 'top10')
 
   if (what2 == '') then
-    call tao_show_constraints (0, 'MERIT')
+    call tao_show_constraints (0, 'TOP10')
     call tao_top10_merit_categories_print (0)
   elseif (index('-derivative', trim(what2)) == 1) then 
     call tao_top10_derivative_print ()

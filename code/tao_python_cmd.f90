@@ -142,7 +142,6 @@ character(40) :: cmd_names(62) = [character(20) :: &
   'var_create', 'var_destroy', 'var_general', 'var_v1_array', 'var_v_array', 'var']
 
 ! Needed:
-!   beam
 !   building_wall (floor_plan)
 !   constraints / top10 / derivative matrix
 !   dynamic aperture
@@ -2439,7 +2438,7 @@ case ('plot_graph')
 
 case ('plot_histogram')
 
-  call tao_find_plots (err, line, 'COMPLETE', graph = graphs)
+  call tao_find_plots (err, line, 'COMPLETE', curve = curve)
 
   if (err .or. .not. allocated(curve)) then
     call invalid ('Bad curve name')
