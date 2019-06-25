@@ -600,6 +600,7 @@ class tao_plot_tr_window(tao_list_window):
     Creates a new matplotlib window with the currently selected plot
     '''
     win = tao_plot_window(self.root, self.plot, self.pipe)
+    self.root.plot_windows.append(win)
 
   def refresh(self, event=None):
     '''
@@ -615,7 +616,11 @@ class tao_plot_tr_window(tao_list_window):
 
     # Get info on self.temp
     self.plot = self.temp.get()
-    data_list = self.pipe.cmd_in("python plot1 " + self.plot)
+    if self.mode == "T":
+      data_list = self.pipe.cmd_in("python plot1 " + self.plot)
+    elif self.mode == "R":
+      data_list = self.pipe.cmd_in("python plot1 "
+          + self.region_list[self.plot_list.index(self.plot)])
     data_list = data_list.splitlines()
     num_graphs = data_list.pop(0)
     num_graphs = int(num_graphs.split(';')[3])
@@ -668,6 +673,16 @@ class tao_plot_tr_window(tao_list_window):
     index = self.index_list[self.plot_list.index(self.plot)]
     set_str = "set plot @" + self.mode + str(index) + ' '
     tao_set(self.tao_list, set_str, self.pipe)
+    # In matplotlib mode, apply for the appropriate region too
+    c1 = self.root.plot_mode == "matplotlib"
+    c2 = self.mode == "T"
+    c3 = self.plot in self.root.placed.keys()
+    if c1 & c2 & c3:
+      set_str = "set plot " + self.root.placed[self.plot] + ' '
+      tao_set(self.tao_list, set_str, self.pipe)
+    # Refresh any existing plot windows
+    for win in self.root.plot_windows:
+      win.refresh()
 
 #----------------------------------------------------
 # Matplotlib plotting window
@@ -720,17 +735,24 @@ class tao_plot_window(tk.Toplevel):
     canvas = FigureCanvasTkAgg(self.fig, master=self)
     canvas.draw()
     canvas.get_tk_widget().pack(side="top", fill="both", expand=1)
+    # DO NOT TOUCH
     canvas.manager = FigureManagerTk(canvas, self.fig.number, tk.Toplevel(self.root))
 
     toolbar = NavigationToolbar2Tk(canvas, self)
     toolbar.update()
     canvas._tkcanvas.pack(side="top", fill="both", expand=1)
-    #toolbar.pack(side="top", fill="both", expand=1)
 
     def on_key_press(event):
       key_press_handler(event, canvas, toolbar)
 
     canvas.mpl_connect("key_press_event", on_key_press)
+
+  def destroy(self):
+    # Unplace the template from its region
+    self.pipe.cmd_in("place " + self.root.placed[self.template] + " none")
+    # Remove self from root.plot_windows
+    self.root.plot_windows.pop(self.root.plot_windows.index(self))
+    tk.Toplevel.destroy(self)
 
 
 #-----------------------------------------------------
@@ -816,12 +838,38 @@ class tao_plot_graph_window(tao_list_window):
     curve_name = str(self.index) + win.curve[win.curve.index('.'):]
     set_str = "set curve @" + self.mode + curve_name + " "
     tao_set(win.tao_list, set_str, win.pipe)
+    # In matplotlib mode, apply for the appropriate region too
+    c1 = self.root.plot_mode == "matplotlib"
+    c2 = self.mode == "T"
+    plot = win.curve[:win.curve.index('.')]
+    c3 = plot in self.root.placed.keys()
+    if c1 & c2 & c3:
+      curve_name = self.root.placed[win.curve[:win.curve.index('.')]] \
+          + win.curve[win.curve.index('.'):]
+      set_str = "set curve " + curve_name + ' '
+      tao_set(win.tao_list, set_str, win.pipe)
+    # Refresh any existing plot windows
+    for win in self.root.plot_windows:
+      win.refresh()
 
   def graph_apply(self):
     #Convert from plot.graph to index.graph
     graph_name = str(self.index) + self.graph[self.graph.index('.'):]
     set_str = "set graph @" + self.mode + graph_name + ' '
     tao_set(self.tao_list, set_str, self.pipe)
+    # In matplotlib mode, apply for the appropriate region too
+    c1 = self.root.plot_mode == "matplotlib"
+    c2 = self.mode == "T"
+    plot = self.graph[:self.graph.index('.')]
+    c3 = plot in self.root.placed.keys()
+    if c1 & c2 & c3:
+      graph_name = self.root.placed[self.graph[:self.graph.index('.')]] \
+          + self.graph[self.graph.index('.'):]
+      set_str = "set graph " + graph_name + ' '
+      tao_set(self.tao_list, set_str, self.pipe)
+    # Refresh any existing plot windows
+    for win in self.root.plot_windows:
+      win.refresh()
 
 #-----------------------------------------------------
 # plot_curve window
