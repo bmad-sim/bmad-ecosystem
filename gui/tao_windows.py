@@ -1108,10 +1108,10 @@ class tao_ele_window(tao_list_window):
           key = "elec_multipoles"    # elec_multipoles in tao_python_cmd.f90
         if key == "mat6": # mat6 not yet implemented`
           continue
-        if key == "floor": # floor currently broken
-          continue
-        #if key == "lord_slave": # also currently broken
+        #if key == "floor": # floor currently broken
         #  continue
+        if key == "lord_slave": # also currently broken
+          continue
         # Make a button
         self.sh_b_list.append(tk.Button(self.list_frame, text=key))
         tao_list = self.pipe.cmd_in("python ele:"
