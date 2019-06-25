@@ -349,7 +349,7 @@ class tao_root_window(tk.Tk):
         self.pipe.cmd_in("set global force_plot_data_calc = T")
         # place the lattice layout in r1 by default
         self.pipe.cmd_in("place r1 lat_layout")
-        self.pipe.cmd_in("set r1 visible = T")
+        self.pipe.cmd_in("set plot r1 visible = T")
         self.placed["lat_layout"] = 'r1'
       self.default_plots()
 
