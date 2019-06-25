@@ -2473,6 +2473,7 @@ case ('plot_shapes')
     shapes => s%plot_page%floor_plan%ele_shape
   case default
     call invalid ('Bad {who}')
+    return
   end select
 
   do i = 1, size(shapes)
