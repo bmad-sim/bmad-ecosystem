@@ -905,11 +905,11 @@ do k = 1, size(graph%curve)
     n = 0
     do ib = 1, size(beam%bunch)
       p => beam%bunch(ib)%particle
-      m = size(p)
+      m = count(p%state == alive$)
       call tao_phase_space_axis (curve%data_type, ix1_ax, p, scratch%axis1, ele)
       data(n+1:n+m) = pack(scratch%axis1, mask = (p%state == alive$))
       if (curve%hist%weight_by_charge) weight(n+1:n+m) = pack(p%charge, mask = (p%state == alive$))
-      n = n + count(p%state == alive$)
+      n = n + m
     enddo
 
   !----------------------------

@@ -11,6 +11,7 @@
 ! {type} is one of:
 !   INT         ! Integer number
 !   REAL        ! Real number
+!   COMPLEX     ! Complex number (Re + I Im)
 !   REAL_ARR    ! Real array
 !   LOGIC       ! Logical: "T" or "F". 
 !   INUM        ! Integer whose allowed values can be obtained using the "python inum" command.
@@ -115,6 +116,7 @@ type (grid_field_struct), pointer :: g_field
 type (grid_field_pt1_struct), pointer :: g_pt
 type (tao_ele_shape_struct), pointer :: shapes(:)
 type (tao_ele_shape_struct), pointer :: shape
+type (photon_element_struct), pointer :: photon
 
 character(*) input_str
 character(n_char_show), allocatable :: li(:) 
@@ -1593,13 +1595,17 @@ case ('ele:floor')
 !----------------------------------------------------------------------
 ! Element photon
 ! Command syntax:
-!   python ele:photon {ele_id}|{which}
+!   python ele:photon {ele_id}|{which} {who}
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
 !   design
+! {who} is one of:
+!   base
+!   material
+!   surface
 ! Example:
-!   python element 3@1>>7|model
+!   python element 3@1>>7|model base
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:photon')
@@ -1608,7 +1614,21 @@ case ('ele:photon')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-  ! TODO....
+  if (.not. associated(ele%photon)) then
+    call invalid ('photon not allocated')
+    return
+  endif
+
+  photon => ele%photon
+  select case (line)
+  case ('base')
+    nl=incr(nl); write (li(nl), lmt) 'has#surface;LOGIC;F;',  (attribute_name(ele, surface_attrib$) == 'SURFACE')
+    nl=incr(nl); write (li(nl), lmt) 'has#material;LOGIC;F;', &
+                           (attribute_name(ele, material_type$) == 'MATERIAL_TYPE' .or. ele%key == crystal$)
+
+  case ('material')
+    
+  end select
 
 !----------------------------------------------------------------------
 ! Element lord_slave
