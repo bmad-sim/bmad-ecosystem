@@ -751,7 +751,10 @@ class tao_plot_window(tk.Toplevel):
     # Unplace the template from its region
     self.pipe.cmd_in("place " + self.root.placed[self.template] + " none")
     # Remove self from root.plot_windows
-    self.root.plot_windows.pop(self.root.plot_windows.index(self))
+    try:
+      self.root.plot_windows.pop(self.root.plot_windows.index(self))
+    except ValueError: #incase the window never got added to the list
+      pass
     tk.Toplevel.destroy(self)
 
 

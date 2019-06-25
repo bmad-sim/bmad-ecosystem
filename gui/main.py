@@ -347,7 +347,10 @@ class tao_root_window(tk.Tk):
       self.start_main()
       if plot_mode.get() == "matplotlib":
         self.pipe.cmd_in("set global force_plot_data_calc = T")
-        self.pipe.cmd_in("place layout lat_layout")
+        # place the lattice layout in r1 by default
+        self.pipe.cmd_in("place r1 lat_layout")
+        self.pipe.cmd_in("set r1 visible = T")
+        self.placed["lat_layout"] = 'r1'
       self.default_plots()
 
     load_b = tk.Button(init_frame, text="Start Tao", command=param_load)
