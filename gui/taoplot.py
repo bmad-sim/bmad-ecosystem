@@ -253,44 +253,52 @@ class taoplot:
 			'''Line Data'''
 
 			lInfo=[]
-			for i in cList:
-				lInfo.append(pipe.cmd_in('python plot_line '+gType+'.'+i).splitlines())
-			#list of points from tao command python plot_line for each curve
-
-			PointsSuperList=[]
-			for i in range(len(cList)):
-				pList = []
-				for j in range(len(lInfo[i])):
-					pList.append(lInfo[i][j].split(';'))
-				LineCoords = []
-				for j in range(len(pList)):
-					LineCoords.append([float(pList[j][1]),float(pList[j][2])])
-				PointsSuperList.append(LineCoords)
-				LineCoords=[]
-			#list of lists of points used to draw each curve
-
-
+			try:
+				for i in cList:
+					lInfo.append(pipe.cmd_in('python plot_line '+gType+'.'+i).splitlines())
+				#list of points from tao command python plot_line for each curve
+				if len(lInfo) != 0:
+					PointsSuperList=[]
+					for i in range(len(cList)):
+						pList = []
+						for j in range(len(lInfo[i])):
+							pList.append(lInfo[i][j].split(';'))
+						LineCoords = []
+						for j in range(len(pList)):
+							LineCoords.append([float(pList[j][1]),float(pList[j][2])])
+						PointsSuperList.append(LineCoords)
+						LineCoords=[]
+					#list of lists of points used to draw each curve
+			except:
+				lInfo=[]
+				PointsSuperList = [[[0,0]]]
+				for i in cList:
+					PointsSuperList.append([[0,0]])
 
 
 			'''Symbol Data'''
+			try:
+				sInfo=[]
+				for i in cList:
+					sInfo.append(pipe.cmd_in('python plot_symbol '+gType+'.'+i).splitlines())
+				#list of points from tao command python plot_symbol for each curve
 
-			sInfo=[]
-			for i in cList:
-				sInfo.append(pipe.cmd_in('python plot_symbol '+gType+'.'+i).splitlines())
-			#list of points from tao command python plot_symbol for each curve
-
-			SymbolSuperList=[]
-			for i in range(len(cList)):
-				sList = []
-				for j in range(len(sInfo[i])):
-					sList.append(lInfo[i][j].split(';'))
-				SymCoords = []
-				for j in range(len(sList)):
-					SymCoords.append([float(sList[j][1]),float(sList[j][2])])
-				SymbolSuperList.append(SymCoords)
-				SymCoords=[]
-			#list of lists of points used to draw symbols on each curve
-
+				SymbolSuperList=[]
+				for i in range(len(cList)):
+					sList = []
+					for j in range(len(sInfo[i])):
+						sList.append(sInfo[i][j].split(';'))
+					SymCoords = []
+					for j in range(len(sList)):
+						SymCoords.append([float(sList[j][2]),float(sList[j][3])])
+					SymbolSuperList.append(SymCoords)
+					SymCoords=[]
+				#list of lists of points used to draw symbols on each curve
+			except:
+				sInfo = []
+				SymbolSuperList = []
+				for i in cList:
+					SymbolSuperList.append([[0,0]])
 
 
 
@@ -350,9 +358,12 @@ class taoplot:
 
 				if gInfoDict['graph^type'].value == 'data':
 					LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xpList,ypList,color=i[2],linestyle=i[3],linewidth=i[4]))
-					GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7],marker=i[8],mew=i[9])
+					GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2)
 				#line and symbol graphs
 
+				elif gInfoDict['graph^type'].value == 'phase_space':
+					LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2))
+				#phase space graphs
 
 				elif gInfoDict['graph^type'].value == 'histogram':
 					LineList.append(GraphDict['graph'+str(gNumber+1)].hist(xpList,bins=100,weights=ypList,histtype='step',color=i[5]))
