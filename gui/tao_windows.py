@@ -542,7 +542,7 @@ class tao_plot_tr_window(tao_list_window):
     self.pipe = pipe
     self.mode = mode
     if self.mode == "R":
-      self.title("Plot Regions")
+      self.title("Active Plots")
 
     self.temp_frame = tk.Frame(self)
     if self.mode == "T":
