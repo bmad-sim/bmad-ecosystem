@@ -396,6 +396,18 @@ if (a_name(1:5) == "XMAT_") then
   goto 9000 ! Error message and return
 endif
 
+if (a_name(1:5) == 'VEC0_') then
+  if (len(a_name) >= 6) then
+    ix1 = index('123456', a_name(6:6))
+    if (ix1 > 0) then
+      a_ptr%r => ele%vec0(ix1)
+      err_flag = .false.
+      return
+    endif
+  endif
+  goto 9000 ! Error message and return
+endif
+
 if (associated(a_ptr%r) .or. associated(a_ptr%l) .or. associated(a_ptr%i)) then
   err_flag = .false.
   return
