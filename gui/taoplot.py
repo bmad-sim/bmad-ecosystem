@@ -456,7 +456,7 @@ class taoplot:
 			#list of tao_parameter object names from python plot_graph
 			#dictionary of tao_parameter name string keys to the corresponding tao_parameter object
 
-			plt.xlim(layInfoDict['x.min'].value,layInfoDict['x.max'].value)
+			plt.xlim(gInfoDict['x.min'].value,gInfoDict['x.max'].value)
 			plt.ylim(layInfoDict['y.min'].value,layInfoDict['y.max'].value)
 			plt.axhline(y=0,xmin=layInfoDict['x.min'].value,xmax=layInfoDict['x.max'].value,color='Black')
 
