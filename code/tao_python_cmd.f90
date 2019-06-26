@@ -45,14 +45,15 @@
 subroutine tao_python_cmd (input_str)
 
 use tao_interface, dummy => tao_python_cmd
+use iso_c_binding
+use location_encode_mod
+use attribute_mod
 use tao_command_mod, only: tao_next_switch, tao_cmd_split
 use tao_init_data_mod, only: tao_point_d1_to_data
 use tao_init_variables_mod, only: tao_point_v1_to_var
-use iso_c_binding
 use tao_c_interface_mod, only: tao_c_interface_com
-use location_encode_mod
-use attribute_mod
 use twiss_and_track_mod, only: twiss_and_track_at_s
+use tao_show_mod, only: tao_show_this
 
 implicit none
 
@@ -65,7 +66,7 @@ type (tao_d1_data_struct), allocatable :: d1_temp(:)
 type (tao_data_struct), allocatable :: d_temp(:)
 type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
 type (tao_v1_var_struct), pointer :: v1_ptr
-type (tao_var_struct), pointer :: v_ptr
+type (tao_var_struct), pointer :: v_ptr, var
 type (tao_var_array_struct), allocatable, save, target :: v_array(:)
 type (tao_v1_var_struct), allocatable :: v1_temp(:)
 type (tao_var_struct), allocatable :: v_temp(:)
@@ -82,6 +83,7 @@ type (tao_plot_region_struct), pointer :: region
 type (tao_d2_data_array_struct), allocatable, save :: d2_array(:)
 type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 type (tao_data_array_struct), allocatable, save :: d_array(:)
+type (tao_data_struct), pointer :: data
 type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
 type (lat_struct), pointer :: lat
@@ -120,36 +122,13 @@ type (photon_element_struct), pointer :: ph
 
 character(*) input_str
 character(n_char_show), allocatable :: li(:) 
+character(n_char_show) li2
 character(40) imt, jmt, rmt, lmt, amt, iamt, vamt, rmt2, cmt
 character(40) max_loc, ele_name, name1(40), name2(40), a_name, name
 character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
 character(20) cmd, command, who, which, v_str, head
 character(20) :: r_name = 'tao_python_cmd'
-character(40) :: cmd_names(62) = [character(20) :: &
-  'beam_init', 'branch1', 'bunch1', 'bmad_com', &
-  'data_create', 'data_destroy', 'data_d2_array', 'data_d1_array', 'data_d2', 'data_d_array', 'data', &
-  'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', 'ele:cartesian_map', &
-  'ele:cylindrical_map', 'ele:orbit', &
-  'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
-  'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
-  'enum', 'floor_plan', 'global', 'help', 'inum', &
-  'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
-  'orbit_at_s', &
-  'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
-  'plot_shapes', 'plot_list', 'plot_symbol', 'plot1', &
-  'species_to_int', 'species_to_str', 'super_universe', 'twiss_at_s', 'universe', &
-  'var_create', 'var_destroy', 'var_general', 'var_v1_array', 'var_v_array', 'var']
-
-! Needed:
-!   building_wall (floor_plan)
-!   constraints / top10 / derivative matrix
-!   dynamic aperture
-!   EM field
-!   HOM
-!   wave
-!   wall
-!   lattice table
 
 real(rp) s_pos, value
 real(rp), allocatable :: re_array(:)
@@ -202,7 +181,30 @@ call string_trim(line, line, ix)
 cmd = line(1:ix)
 call string_trim(line(ix+1:), line, ix_line)
 
-call match_word (cmd, cmd_names, ix, matched_name = command)
+! Needed:
+!   building_wall (floor_plan)
+!   dynamic aperture
+!   EM field
+!   HOM
+!   wave
+!   wall
+!   lattice table
+
+call match_word (cmd, [character(20) :: &
+          'beam_init', 'branch1', 'bunch1', 'bmad_com', 'constraints', &
+          'data_create', 'data_destroy', 'data_d2_array', 'data_d1_array', 'data_d2', 'data_d_array', 'data', &
+          'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', 'ele:cartesian_map', &
+          'ele:cylindrical_map', 'ele:orbit', &
+          'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
+          'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
+          'enum', 'floor_plan', 'global', 'help', 'inum', &
+          'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', 'lat_table', &
+          'merit', 'orbit_at_s', &
+          'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
+          'plot_shapes', 'plot_list', 'plot_symbol', 'plot1', &
+          'species_to_int', 'species_to_str', 'super_universe', 'twiss_at_s', 'universe', &
+          'var_create', 'var_destroy', 'var_general', 'var_v1_array', 'var_v_array', 'var'], ix, matched_name = command)
+
 if (ix == 0) then
   call out_io (s_error$, r_name, 'python what? "What" not recognized: ' // command)
   return
@@ -413,6 +415,75 @@ case ('bmad_com')
   nl=incr(nl); write (li(nl), lmt) 'debug;LOGIC;T;',                             bmad_com%debug
 
 !----------------------------------------------------------------------
+! Optimization data and variables that contribute to the merit function.
+! Command syntax:
+!   python constraints {who}
+! {who} is one of:
+!   data
+!   var
+! Data constraints output is:
+!   data name
+!   constraint type
+!   evaluation element name 
+!   start element name
+!   end/reference element name
+!   measured value
+!   ref value (only relavent if global%opt_with_ref = T)
+!   model value
+!   base value (only relavent if global%opt_with_base = T)
+!   weight
+!   merit value
+!   location where merit is evaluated (if there is a range)
+! Var constraints output is:
+!   var name
+!   Associated varible attribute 
+!   meas value
+!   ref value (only relavent if global%opt_with_ref = T)
+!   model value
+!   base value (only relavent if global%opt_with_base = T)
+!   weight
+!   merit value
+!   dmerit/dvar
+
+case ('constraints')
+
+  select case (line)
+  case ('data')
+    do i = lbound(s%u, 1), ubound(s%u, 1)
+      do j = 1, size(s%u(i)%data)
+        data => s%u(i)%data(j)
+        if (.not. data%useit_opt) cycle
+
+        ie = data%ix_ele_merit
+        a_name = ''
+        if (ie /= 0) then
+          branch => s%u(i)%model%lat%branch(data%ix_branch)
+          a_name = branch%ele(ie)%name
+        endif
+
+        nl=incr(nl); write (li(nl), '(10a, 5(es21.13, a), 2a)') trim(tao_datum_name(data)), ';', &
+            trim(tao_constraint_type_name(data)), ';', &
+            trim(data%ele_name), ';', trim(data%ele_start_name), ';', trim(data%ele_ref_name), ';', &
+            data%meas_value, ';', data%ref_value, ';', data%model_value, ';', data%base_value, ';', &
+            data%weight, data%merit, ';', a_name
+      enddo
+    enddo
+
+  case ('var')
+    do i = 1, s%n_var_used
+      var => s%var(i)
+      if (.not. var%useit_opt) cycle
+      nl=incr(nl); write (li(nl), '(4a, 7(es21.13, a))') trim(tao_var1_name(var)), ';', &
+            trim(tao_var_attrib_name(var)), ';', &
+            var%meas_value, ';', var%ref_value, ';', var%model_value, ';', var%base_value, ';', &
+            var%weight, var%merit, var%dmerit_dvar
+    enddo
+
+  case default
+    call invalid ('Bad {who}')
+    return
+  end select
+
 ! Create a d2 data structure along with associated d1 and data arrays.
 !
 ! Command syntax:
@@ -2216,6 +2287,38 @@ case ('lat_param_units')
   name = upcase(line)
   a_name = attribute_units(name)
   nl=incr(nl); write(li(nl), '(a)') a_name
+
+!----------------------------------------------------------------------
+! Lattice table
+! Command syntax:
+!   python lat_table {switches}
+! {switches} are the switches to be passed to the "show lattice" command.
+
+case ('lat_table')
+
+  call tao_show_this('lattice -python ' // trim(line), name, li, nl)
+
+  do i = 1, nl
+    ! Header line is already comma delimited (Note: header line also has spaces).
+    if (index(li(i), ';') /= 0) cycle
+
+    call string_trim(li(i), li2, ix)
+    li(i) = li2(1:ix)
+    do
+      call string_trim(li2(ix+1:), li2, ix)
+      if (ix == 0) exit
+      li(i) = trim(li(i)) // ';' // li2(1:ix)
+    enddo
+  enddo
+
+!----------------------------------------------------------------------
+! Merit value.
+! Command syntax:
+!   python merit
+
+case ('merit')
+
+  nl=incr(nl); write (li(nl), '(es21.13)') tao_merit()
 
 !----------------------------------------------------------------------
 ! Twiss at given s position.

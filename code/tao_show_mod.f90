@@ -263,7 +263,7 @@ logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_attributes, print_ran_state, err_flag
-logical print_global, print_optimization, print_bmad_com, print_csr_param, print_ptc, print_position
+logical print_global, print_optimization, print_bmad_com, print_csr_param, print_ptc, print_position, called_from_python_cmd
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
 logical, allocatable :: picked_ele(:)
@@ -2002,6 +2002,7 @@ case ('lattice')
   n_attrib = 0
   attrib0 = ''
   undef_uses_column_format = .false.
+  called_from_python_cmd = .false.
 
   column(:) = show_lat_column_struct()
 
@@ -2012,7 +2013,7 @@ case ('lattice')
         '-branch', '-blank_replacement', '-lords', '-middle', '-tracking_elements', '-0undef', &
         '-no_label_lines', '-no_tail_lines', '-custom', '-s', '-radiation_integrals', '-remove_line_if_zero', &
         '-base', '-design', '-floor_coords', '-orbit', '-attribute', '-all', '-no_slaves', '-energy', &
-        '-spin', '-undef0', '-no_super_slaves', '-sum_radiation_integrals'], &
+        '-spin', '-undef0', '-no_super_slaves', '-sum_radiation_integrals', '-python'], &
             .true., switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
@@ -2105,6 +2106,10 @@ case ('lattice')
       else
         what_to_print = 'orbit'
       endif
+
+    case ('-python')
+      called_from_python_cmd = .true.
+      print_tail_lines = .false.
 
     case ('-radiation_integrals')
       what_to_print = 'rad_int'
@@ -2485,17 +2490,26 @@ case ('lattice')
 
   !
 
-  if (at_ends) then
-    write (line1, '(a)') '# Values shown are for the Exit End of each Element:'
+  if (called_from_python_cmd) then
+    line1 = ''
+    line2 = ''
+    line3 = ''
+    ix1 = 0
+
   else
-    write (line1, '(a)') '# Values shown are for the Center of each Element:'
+    if (at_ends) then
+      write (line1, '(a)') '# Values shown are for the Exit End of each Element:'
+    else
+      write (line1, '(a)') '# Values shown are for the Center of each Element:'
+    endif
+
+    ix1 = 1
+    line2 = "#"
+    line3 = "#"
   endif
 
   ! Setup columns
 
-  ix1 = 1
-  line2 = "#"
-  line3 = "#"
   do i = 1, size(column)
     if (column(i)%name == '') cycle
 
@@ -2566,7 +2580,10 @@ case ('lattice')
       if (ix == 0) ix = index(name, '_')
       n = len_trim(name)
 
-      if (index(column(i)%format, 'A') /= 0) then
+      if (called_from_python_cmd) then
+        line2 = trim(line2) // ';' // name
+
+      elseif (index(column(i)%format, 'A') /= 0) then
         line2(ix1:) = name
 
       elseif (ix == 0) then
@@ -2599,13 +2616,19 @@ case ('lattice')
       name = column(i)%label
 
       ix = index(name, '|')
-      if (ix == 0) then
+
+      if (called_from_python_cmd) then
+        if (ix /= 0) name(ix:ix) = '_'
+        line2 = trim(line2) // ';' // name
+
+      elseif (ix == 0) then
         if (index(column(i)%format, 'A') /= 0) then
           line2(ix1:) = name
         else
           j = len_trim(name)
           line2(ix2-j:) = name(1:j)
         endif
+
       else
         if (index(column(i)%format, 'A') /= 0) then
           line2(ix1:) = name(1:ix-1)
@@ -2626,10 +2649,14 @@ case ('lattice')
   ! Collect lines
 
   if (print_header_lines) then
-    nl=nl+1; lines(nl) = line1
-    nl=nl+1; lines(nl) = line2
-    if (line3 /= '#') then
-      nl=nl+1; lines(nl) = line3
+    if (called_from_python_cmd) then
+      nl=nl+1; lines(nl) = line2
+    else
+      nl=nl+1; lines(nl) = line1
+      nl=nl+1; lines(nl) = line2
+      if (line3 /= '#') then
+        nl=nl+1; lines(nl) = line3
+      endif
     endif
   endif
 
