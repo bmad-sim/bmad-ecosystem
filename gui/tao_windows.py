@@ -686,6 +686,7 @@ class tao_plot_tr_window(tao_list_window):
 
 #----------------------------------------------------
 # Matplotlib plotting window
+
 class tao_plot_window(tk.Toplevel):
   '''
   Displays one (perhaps multiple) matplotlib plots
@@ -748,13 +749,15 @@ class tao_plot_window(tk.Toplevel):
     canvas.mpl_connect("key_press_event", on_key_press)
 
   def destroy(self):
-    # Unplace the template from its region
-    self.pipe.cmd_in("place " + self.root.placed[self.template] + " none")
-    # Remove self from root.plot_windows
-    try:
-      self.root.plot_windows.pop(self.root.plot_windows.index(self))
-    except ValueError: #incase the window never got added to the list
-      pass
+    # Note: lat_layout should not be automatically removed from r1
+    if self.template != "lat_layout":
+      # Unplace the template from its region
+      self.pipe.cmd_in("place " + self.root.placed[self.template] + " none")
+      # Remove self from root.plot_windows
+      try:
+        self.root.plot_windows.pop(self.root.plot_windows.index(self))
+      except ValueError: #incase the window never got added to the list
+        pass
     tk.Toplevel.destroy(self)
 
 
