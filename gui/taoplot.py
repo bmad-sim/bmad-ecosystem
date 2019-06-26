@@ -435,7 +435,7 @@ class taoplot:
 
 
 
-		'''
+		
 		if LatLayout == True:
 			GraphDict['LatLayout']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
 			#GraphDict['LatLayout'].axes.get_xaxis().set_visible(False)
@@ -463,7 +463,7 @@ class taoplot:
 		else:
 			GraphDict['LatLayout']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
 			GraphDict['LatLayout'].remove()
-		'''
+		
 
 
 		fig.tight_layout()
