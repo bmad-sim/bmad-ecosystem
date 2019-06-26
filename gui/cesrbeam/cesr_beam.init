@@ -269,7 +269,7 @@
      "V08E", "V07E", "V06E", "V05E", "V04E", "    ", "V02E", "V01E"
 /
 
-& tao_beam_init
+&tao_beam_init
 	beam_init%n_particle = 1000
 	beam_init%a_norm_emit = 1.0e-6
 	beam_init%b_norm_emit = 1.0e-6
