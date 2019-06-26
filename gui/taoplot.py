@@ -6,7 +6,7 @@ from matplotlib.ticker import MultipleLocator
 from tao_interface import *
 from parameters import *
 import time
-
+import matplotlib.patches as patches
 
 #pipe=tao_interface('pexpect','-init_file ../examples/cesr/tao.init')
 #determines tao settings and lattice to be used eg: '-init_file ../examples/cesr/tao.init' for CESR
@@ -434,13 +434,12 @@ class taoplot:
 
 
 
-
+		'''Lattice Layout'''
 		
 		if LatLayout == True:
 			GraphDict['LatLayout']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
-			#GraphDict['LatLayout'].axes.get_xaxis().set_visible(False)
-			#GraphDict['LatLayout'].axes.get_yaxis().set_visible(False)
-			GraphDict['LatLayout'].axis('off')
+
+			
 
 
 
@@ -456,9 +455,86 @@ class taoplot:
 			#list of tao_parameter object names from python plot_graph
 			#dictionary of tao_parameter name string keys to the corresponding tao_parameter object
 
+			#plt.xlim(gInfoDict['x.min'].value,gInfoDict['x.max'].value)
+			#plt.ylim(layInfoDict['y.min'].value,layInfoDict['y.max'].value)
+			
+			twinAxes=GraphDict['LatLayout'].axes.twinx()
 			plt.xlim(gInfoDict['x.min'].value,gInfoDict['x.max'].value)
 			plt.ylim(layInfoDict['y.min'].value,layInfoDict['y.max'].value)
-			plt.axhline(y=0,xmin=layInfoDict['x.min'].value,xmax=layInfoDict['x.max'].value,color='Black')
+			twinAxes.set_navigate(True)
+
+			GraphDict['LatLayout'].axis('off')
+			twinAxes.axis('off')
+			
+			GraphDict['LatLayout'].axes.set_navigate(False)
+			GraphDict['LatLayout'].axhline(y=0,xmin=1.5*layInfoDict['x.min'].value,xmax=1.5*layInfoDict['x.max'].value,color='Black')
+			#sets axis limits and creates second axis to allow x panning and zooming
+			
+
+			if layInfoDict['ix_universe'].value != -1:
+				universe = layInfoDict[ix_universe].value
+			
+			else:
+				universe = 1
+
+			branch = layInfoDict['-1^ix_branch'].value
+
+
+			shapes=pipe.cmd_in('python plot_shapes lat_layout').splitlines()
+			shapeTypeDict = {}
+			shapeColorDict = {}
+			shapeHeightDict = {}
+			shapeNameDict = {}
+			for i in range(len(shapes)):
+				shapeTypeDict[shapes[i].split(';')[1][:-3].lower()]= shapes[i].split(';')[2].lower()
+				shapeColorDict[shapes[i].split(';')[1][:-3].lower()]= shapes[i].split(';')[3].lower()
+				shapeHeightDict[shapes[i].split(';')[1][:-3].lower()]= float(shapes[i].split(';')[4])
+				shapeNameDict[shapes[i].split(';')[1][:-3].lower()]= shapes[i].split(';')[6]
+			#dictionaries of element type strings as keys with corresponding information as values 
+
+
+			
+			eleInfo=pipe.cmd_in('python plot_lat_layout '+str(universe)+'@'+str(branch)).splitlines()
+			#list of strings containing information about each element
+
+
+			eleNameDict = {}
+			eleTypeDict = {}
+			eleStartDict = {}
+			eleEndDict = {}
+			for i in range(len(eleInfo)):
+				eleNameDict[eleInfo[i].split(';')[0]]= eleInfo[i].split(';')[1]
+				eleTypeDict[eleInfo[i].split(';')[0]]= eleInfo[i].split(';')[2].lower()
+				eleStartDict[eleInfo[i].split(';')[0]]= float(eleInfo[i].split(';')[3])
+				eleEndDict[eleInfo[i].split(';')[0]]= float(eleInfo[i].split(';')[4])
+			#all dict keys and entries are strings matching element index (eg: '1') string to the corresponding information
+
+
+			for j in range(len(eleInfo)):
+				i=j+1
+				try:
+					if eleTypeDict[str(i)] == 'drift':
+						pass			
+
+					elif shapeTypeDict[eleTypeDict[str(i)]] == 'box' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:		
+						GraphDict['LatLayout'].add_patch(patches.Rectangle((eleStartDict[str(i)],-1*shapeHeightDict[eleTypeDict[str(i)]]),eleEndDict[str(i)]-eleStartDict[str(i)],2*shapeHeightDict[eleTypeDict[str(i)]],color=shapeColorDict[eleTypeDict[str(i)]],fill=False))
+					#draw box element	
+						if shapeNameDict[eleTypeDict[str(i)]] == 'T':
+							GraphDict['LatLayout'].text(eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,-1.05*shapeHeightDict[eleTypeDict[str(i)]],eleNameDict[str(i)],ha='center',va='top',color=shapeColorDict[eleTypeDict[str(i)]])
+							#print(eleNameDict[str(i)])
+
+					elif shapeTypeDict[eleTypeDict[str(i)]] == 'xbox' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
+						GraphDict['LatLayout'].add_patch(patches.Rectangle((eleStartDict[str(i)],-1*shapeHeightDict[eleTypeDict[str(i)]]),eleEndDict[str(i)]-eleStartDict[str(i)],2*shapeHeightDict[eleTypeDict[str(i)]],color=shapeColorDict[eleTypeDict[str(i)]],fill=False))
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[shapeHeightDict[eleTypeDict[str(i)]],-1*shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*shapeHeightDict[eleTypeDict[str(i)]],shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])		
+						if shapeNameDict[eleTypeDict[str(i)]] == 'T':
+							GraphDict['LatLayout'].text(eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,-1.05*shapeHeightDict[eleTypeDict[str(i)]],eleNameDict[str(i)],ha='center',va='top',color=shapeColorDict[eleTypeDict[str(i)]])
+							#print(eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2)		
+				except KeyError:
+					#print('element type not found')
+					pass
+				#draw xbox element
+
 
 		else:
 			GraphDict['LatLayout']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
