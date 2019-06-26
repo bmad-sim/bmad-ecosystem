@@ -268,13 +268,13 @@ end subroutine tao_to_top10
 !+
 ! Subroutine tao_show_constraints (iunit, form)
 !
-! Routine to show a list of datums and how they contribute to the merit function.
+! Routine to show a list of datums and variables and how they contribute to the merit function.
 !
 ! Input:
 !   iunit   -- integer: File unit to write to. 0 => print to the terminal.
 !   form    -- character(*): What to output:
-!                 'ALL'   -> All datums.
-!                 'TOP10' -> Top datums that contribute to the merit function.
+!                 'ALL'   -> All datums and variables.
+!                 'TOP10' -> Top datums and variables that contribute to the merit function.
 !-
 
 subroutine tao_show_constraints (iunit, form)
