@@ -233,6 +233,8 @@ class tao_root_window(tk.Tk):
         value = entry[entry.find(':')+1:]
         value = value.strip()
         init_dict[name] = value
+      else:
+        continue
       c1 = (name in ["tao_exe", "tao_lib"])
       try:
         c2 = (param_dict[name].type == 'FILE')
