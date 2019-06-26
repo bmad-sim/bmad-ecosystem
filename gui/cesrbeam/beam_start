@@ -1,0 +1,2 @@
+set global track_type = beam
+place bottom lat_layout
