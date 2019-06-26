@@ -55,7 +55,7 @@ def tao_set(tao_list,set_str,pipe, overide=False):
     elif item.param.name == 'plot_on':
       plot_on = str(item.param.value)
     elif update_dict[item.param.name]:
-      print(set_str + item.param.name + " = " + str(item.param.value))
+      #print(set_str + item.param.name + " = " + str(item.param.value))
       msg = pipe.cmd_in(set_str + item.param.name + " = " + str(item.param.value))
       #if msg.find("ERROR") != -1:
       if msg != "":

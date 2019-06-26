@@ -707,6 +707,7 @@ class tao_plot_window(tk.Toplevel):
 
     # Check if the template has been placed in a region already, and place it if necessary
     if self.template in self.root.placed.keys():
+      print("found in root.placed")
       pass
     else:
       #Place the plot in the next available region
@@ -1111,10 +1112,30 @@ class tao_ele_window(tao_list_window):
           key = "elec_multipoles"    # elec_multipoles in tao_python_cmd.f90
         if key == "mat6": # mat6 not yet implemented`
           continue
-        #if key == "floor": # floor currently broken
-        #  continue
         if key == "lord_slave": # also currently broken
+          self.sh_b_list.append(tk.Button(self.list_frame, text=key))
+          ls_frame = tk.Frame(self.list_frame)
+          ls_list = self.pipe.cmd_in("python ele:lord_slave "
+              + self.uni.get() + '@' + self.branch.get()
+              + '>>' + self.ele.get() + '|' + (self.bmd.get()).lower())
+          ls_list = ls_list.splitlines()
+          self.tao_lists.append(ls_list) # Don't want to misalign indices
+          m = 0 #rows
+          for line in ls_list:
+            line = line.split(';')
+            n=0 #columns
+            for item in line:
+              tk.Label(ls_frame, text=item).grid(row=m, column=n)
+              n = n+1
+            m = m+1
+            self.p_frames.append(ls_frame)
+          self.sh_b_list[i].configure(command=self.s_callback(i))
+          self.sh_b_list[i].grid(row=2*i, column=0, sticky='EW')
+          i = i+1
           continue
+
+        # GENERIC CASE
+
         # Make a button
         self.sh_b_list.append(tk.Button(self.list_frame, text=key))
         tao_list = self.pipe.cmd_in("python ele:"

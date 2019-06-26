@@ -348,6 +348,9 @@ class tao_root_window(tk.Tk):
 
       init_frame.destroy()
       self.start_main()
+      # Clear the plotting lists
+      self.placed = {}
+      self.plot_windows = []
       if plot_mode.get() == "matplotlib":
         self.pipe.cmd_in("set global force_plot_data_calc = T")
         # place the lattice layout in r1 by default
