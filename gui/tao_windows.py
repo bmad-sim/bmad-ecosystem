@@ -11,7 +11,7 @@ from tao_widget import *
 from taoplot import taoplot
 from parameters import str_to_tao_param
 from elements import *
-from main import tao_set
+from tao_set import tao_set
 import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
