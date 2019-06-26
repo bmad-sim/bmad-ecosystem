@@ -1,6 +1,6 @@
 &tao_start
   plot_file = 'tao_plot.init'
-  startup_file = beam_start
+  startup_file = 'beam_start'
 /
 
 !------------------------------------------------------------------------
