@@ -1180,6 +1180,80 @@ class tao_ele_window(tao_list_window):
     self.sh_b_list[index].configure(command=self.s_callback(index))
 
 
+#---------------------------------------------------
+# Lattice Window
+class tao_lattice_window(tk.Toplevel):
+  '''
+  Shows lattice elements in a read-only table view
+  with an interface to select which rows/columns
+  are displayed
+  '''
+  def __init__(self, root, pipe, switches=""):
+    tk.Toplevel.__init__(self, root)
+    self.title("Lattice")
+    self.root = root
+    self.pipe = pipe
+    self.switches = switches
+
+    # Set up top_frame for switches and table_frame for the table
+    self.top_frame = tk.Frame(self)
+    self.top_frame.pack(fill="both", expand=0)
+    self.table_frame = tk.Frame(self)
+    self.table_frame.pack(fill="both", expand=1)
+
+    # Temporary, allows inputing switches
+    self.switch_var = tk.StringVar()
+    self.switch_var.set(self.switches)
+    switch_box = tk.Entry(self.top_frame, textvariable=self.switch_var)
+    switch_box.pack(side="left", fill="both", expand=1)
+    b = tk.Button(self.top_frame, text="Refresh", command=self.refresh)
+    b.pack(side="left", fill="both", expand=0)
+
+    self.refresh()
+
+  def refresh(self, event=None):
+    '''
+    Fetches the lattice table with the new table
+    parameters and updates the window
+    '''
+    # Clear the existing table
+    for child in self.table_frame.winfo_children():
+      child.destroy()
+
+    # Get the new table data using the given switches
+    self.switches = self.switch_var.get()
+    lattice = self.pipe.cmd_in("python lat_table " + self.switches)
+    lattice = lattice.splitlines()
+    if len(lattice) == 0:
+      print("No lattice found")
+      return
+    for i in range(len(lattice)):
+      lattice[i] = lattice[i].split(';')
+    #lattice[i][j] --> row i, column j
+    widths = [0]*len(lattice[0]) # tracks column widths
+
+    # Create table
+    tree = ttk.Treeview(self.table_frame, columns=lattice[0], show='headings')
+    # Column titles
+    for title in lattice[0]:
+      tree.heading(title, text=title)
+      tree.column(title, stretch=True, anchor='center')
+
+    # Fill rows
+    for row in lattice[1:]:
+      tree.insert("", "end", values=row)
+      for j in range(len(row)):
+        if len(row[j])*15 > widths[j]:
+          widths[j] = len(row[j])*15
+
+    # Set column widths appropriately
+    for j in range(len(lattice[0])):
+      if len(lattice[0][j])*15 > widths[j]:
+        widths[j] = len(lattice[0][j])*15
+      tree.column(lattice[0][j], width=widths[j])
+
+    tree.pack(fill="both", expand=1)
+
 
 
 
