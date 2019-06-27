@@ -91,7 +91,7 @@ end subroutine sr3d_get_emission_pt_params
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, 
+! Subroutine sr3d_emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_pz, photon_direction, 
 !        e_init_min, e_init_max, vert_angle_min, vert_angle_max, vert_angle_symmetric, photon, n_photon_eff)
 !
 ! subroutine sr3d_to initialize a new photon
@@ -116,7 +116,7 @@ end subroutine sr3d_get_emission_pt_params
 !   photon    -- sr3d_coord_struct: Generated photon.
 !-
 
-subroutine sr3d_emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, &
+subroutine sr3d_emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_pz, photon_direction, &
         e_init_min, e_init_max, vert_angle_min, vert_angle_max, vert_angle_symmetric, photon, n_photon_eff)
 
 implicit none
@@ -127,7 +127,7 @@ type (coord_struct) :: orb_here
 type (sr3d_coord_struct) :: photon
 type (twiss_struct), pointer :: t
 
-real(rp) emit_a, emit_b, sig_e, gx, gy, g_tot, gamma, v2, ep, r(3), vec(4), v_mat(4,4)
+real(rp) emit_a, emit_b, sig_pz, gx, gy, g_tot, gamma, v2, ep, r(3), vec(4), v_mat(4,4)
 real(rp) e_init_min, e_init_max, vert_angle_min, vert_angle_max, n_photon_eff
 
 integer photon_direction
@@ -143,13 +143,13 @@ n_photon_eff = 1 / ep
 
 call ran_gauss(r)
 t => ele_here%a
-vec(1:2) = (/ sqrt(t%beta*emit_a) * r(1)                    + t%eta  * sig_e * r(3), &
-              sqrt(emit_a/t%beta) * (r(2) + t%alpha * r(1)) + t%etap * sig_e * r(3) /)
+vec(1:2) = (/ sqrt(t%beta*emit_a) * r(1)                    + t%eta  * sig_pz * r(3), &
+              sqrt(emit_a/t%beta) * (r(2) + t%alpha * r(1)) + t%etap * sig_pz * r(3) /)
 
 call ran_gauss(r)
 t => ele_here%b
-vec(3:4) = (/ sqrt(t%beta*emit_b) * r(1)                    + t%eta  * sig_e * r(3), &
-              sqrt(emit_b/t%beta) * (r(2) + t%alpha * r(1)) + t%etap * sig_e * r(3) /)
+vec(3:4) = (/ sqrt(t%beta*emit_b) * r(1)                    + t%eta  * sig_pz * r(3), &
+              sqrt(emit_b/t%beta) * (r(2) + t%alpha * r(1)) + t%etap * sig_pz * r(3) /)
 
 call make_v_mats (ele_here, v_mat)
 
@@ -413,7 +413,7 @@ j_max = 14
 
 if (ele%key == wiggler$ .or. ele%key == undulator$) then
   if (field_ele%field_calc == planar_model$ .or. field_ele%field_calc == helical_model$) then
-    j_min_test = 3 + log(max(1.0_rp, ele%value(n_pole$))) / log(2.0_rp)
+    j_min_test = 4 + log(max(1.0_rp, ele%value(n_period$))) / log(2.0_rp)
     j_max = j_min_test + 8
   else
     j_min_test = 5

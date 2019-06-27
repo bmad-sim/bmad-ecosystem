@@ -540,7 +540,7 @@ parameters for \srthree. Example:
                               ! This is minimum distance between points.
     emit_a       = -1         ! Horizontal emit. Meters. If < 0 -> Calc from lattice.
     emit_b       = 7.52E-11   ! Vertical emit.  Meters. If < 0 -> Calc from lattice.
-    sig_e        = -1         ! Sig_E/E. If < 0 -> Calc from lattice.
+    sig_pz       = -1         ! Sigma pz. If < 0 -> Calc from lattice.
 
     lattice_file = "../lattice/cesr/bmad/bmad_6wig_8nm_2085.lat" 
     wall_file    = "synrad3d.wall"   ! Vacuum chamber wall file.
@@ -621,7 +621,7 @@ value (which is the default) indicates that the particular filter is not used.
 Minimum and maximum filter values for a photon's final energy (\sref{s:filter}). A negative filter
 value (which is the defaults) indicates that the particular filter is not used. 
 
-  \item[\vn{emit_a}, \vn{emit_b}, \vn{sig_e}] \Newline
+  \item[\vn{emit_a}, \vn{emit_b}, \vn{sig_pz}] \Newline
 These parameters set the particle beam size and so will affect the starting coordinates of
 the photons. A negative value (which is the default) of any of these parameters will result in \srthree 
 using the value for the parameter from a calculation of the synchrotron radiation integrals.
