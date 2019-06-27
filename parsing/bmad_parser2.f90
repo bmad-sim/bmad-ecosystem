@@ -536,8 +536,8 @@ parsing_loop: do
   select case (ele%key)
   case (wiggler$, undulator$)
     if (ele%field_calc == planar_model$ .or. ele%field_calc == helical_model$) then
-      if (ele%value(l_pole$) == 0 .and. ele%value(n_pole$) /= 0) then
-        ele%value(l_pole$) = ele%value(l$) / ele%value(n_pole$) 
+      if (ele%value(l_period$) == 0 .and. ele%value(n_period$) /= 0) then
+        ele%value(l_period$) = ele%value(l$) / ele%value(n_period$) 
       endif
     endif
   end select

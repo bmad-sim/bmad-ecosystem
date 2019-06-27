@@ -443,7 +443,7 @@ case (hkicker$, vkicker$)
   ref_exp = 0
 
 case (wiggler$, undulator$)
-  const = 2 * c_light * this_ele%value(b_max$) * this_ele%value(l_pole$) / (pi * this_ele%value(p0c$))
+  const = c_light * this_ele%value(b_max$) * this_ele%value(l_period$) / (pi * this_ele%value(p0c$))
   ref_exp = 0
 
 case (quadrupole$, sol_quad$)

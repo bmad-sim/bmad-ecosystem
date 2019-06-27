@@ -367,9 +367,12 @@ logical, optional :: err_flag
 logical ok, correct_for_coupling(6)
 logical ran_gauss_here, err
 
-! 
+! Convert from old format to new
 
 if (present(err_flag)) err_flag = .true.
+
+if (beam_init%sig_e /= 0 .and. beam_init%sig_pz == 0) beam_init%sig_pz = beam_init%sig_e
+if (beam_init%sig_e_jitter /= 0 .and. beam_init%sig_pz_jitter == 0) beam_init%sig_pz = beam_init%sig_e_jitter
 
 ! Read from file?
 
@@ -395,7 +398,7 @@ endif
 
 ! Checking that |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
 
-if (abs(beam_init%dPz_dz * beam_init%sig_z) > beam_init%sig_e) then
+if (abs(beam_init%dPz_dz * beam_init%sig_z) > beam_init%sig_pz) then
   call out_io (s_abort$, r_name, "|dpz_dz| MUST be < mode%sigE_E / mode%sig_z")
   if (global_com%exit_on_error) call err_exit
   return
@@ -426,7 +429,7 @@ if (species == not_set$) species = default_tracking_species(param)
 call calc_this_emit (beam_init, twiss_ele, species)
 
 covar = beam_init%dPz_dz * beam_init%sig_z**2
-twiss_ele%z%emit = sqrt((beam_init%sig_z*beam_init%sig_e)**2 - covar**2)
+twiss_ele%z%emit = sqrt((beam_init%sig_z*beam_init%sig_pz)**2 - covar**2)
 if (twiss_ele%z%emit == 0 .or. beam_init%full_6D_coupling_calc) then
   twiss_ele%z%beta = 1
   twiss_ele%z%alpha = 0
@@ -807,11 +810,11 @@ sigma(2) = sqrt(ele%a%emit / ele%a%beta)
 sigma(3) = sqrt(ele%b%emit * ele%b%beta)
 sigma(4) = sqrt(ele%b%emit / ele%b%beta)
 if (beam_init%full_6D_coupling_calc) then
-  sigma(5) = sqrt(beam_init%sig_z*beam_init%sig_e)
-  sigma(6) = sqrt(beam_init%sig_z*beam_init%sig_e)
+  sigma(5) = sqrt(beam_init%sig_z*beam_init%sig_pz)
+  sigma(6) = sqrt(beam_init%sig_z*beam_init%sig_pz)
 else
   sigma(5) = beam_init%sig_z * (1 + beam_init%sig_z_jitter*ran_g(1))
-  sigma(6) = beam_init%sig_e * (1 + beam_init%sig_e_jitter*ran_g(2))
+  sigma(6) = beam_init%sig_pz * (1 + beam_init%sig_pz_jitter*ran_g(2))
 endif
 
 if (sigma(6) == 0 .or. dpz_dz == 0) then

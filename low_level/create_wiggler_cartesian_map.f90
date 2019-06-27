@@ -43,11 +43,11 @@ cart_map%field_type = magnetic$
 if (ele%value(l$) == 0) then
   kk = 0
 else
-  if (ele%value(n_pole$) == 0) then
-    call out_io (s_error$, r_name, 'NUMBER OF POLES NOT SET FOR WIGGLER/UNDULATOR: ' // trim(ele%name))
-    kk = pi * 2 / ele%value(l$)  ! Assume two poles
+  if (ele%value(n_period$) == 0) then
+    call out_io (s_error$, r_name, 'NUMBER OF PERIODS NOT SET FOR WIGGLER/UNDULATOR: ' // trim(ele%name))
+    kk = pi * 2 / ele%value(l$)  ! Assume one period
   else
-    kk = pi * ele%value(n_pole$) / ele%value(l$)
+    kk = twopi * ele%value(n_period$) / ele%value(l$)
   endif
 endif
 

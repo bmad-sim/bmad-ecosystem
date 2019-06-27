@@ -28,31 +28,31 @@ initialize a beam. The parameters of this structure are:
     type (ellipse_beam_init_struct) ellipse(3) ! For ellipse beam distribution
     type (kv_beam_init_struct) KV              ! For KV beam distribution
     type (grid_beam_init_struct) grid(3)       ! For grid beam distribution
-    character random_engine              ! "pseudo" (default) or "quasi". 
-    character random_gauss_converter     ! "exact" (default) or "quick". 
-    logical use_particle_start_for_center = F ! Use particle_start instead of center?
-    real center(6) = 0                   ! Bench center offset.
-    real center_jitter(6) = 0.0          ! Bunch center rms jitter
-    real emit_jitter(2)   = 0.0          ! %RMS a and b-mode emittance jitter
-    real sig_z_jitter     = 0.0          ! bunch length RMS jitter 
-    real sig_e_jitter     = 0.0          ! energy spread RMS jitter 
-    real random_sigma_cutoff = -1        ! -1 => no cutoff used.
-    integer n_particle = 0               ! Number of simulated particles per bunch.
-    logical renorm_center = T            ! Renormalize centroid?
-    logical renorm_sigma = T             ! Renormalize sigma?
-    real(rp) spin(3)                     ! Spin (x, y, z)
-    real a_norm_emit                     ! a-mode normalized emittance (= \(\gamma\,\epsilon\))
-    real b_norm_emit                     ! b-mode normalized emittance (= \(\gamma\,\epsilon\))
-    real a_emit                          ! a-mode emittance (= \(\gamma\,\epsilon\))
-    real b_emit                          ! b-mode emittance (= \(\gamma\,\epsilon\))
-    real dPz_dz = 0                      ! Correlation of Pz with long position.
-    real dt_bunch                        ! Time between bunches.
-    real sig_z                           ! Z sigma in m.
-    real sig_e                           ! dE/E (pz) sigma.
-    real bunch_charge                    ! Charge in a bunch.
-    integer n_bunch = 0                  ! Number of bunches.
-    character species                    ! Species. Default is reference particle.
-    logical full_6D_coupling_calc = F    ! Use 6x6 1-turn matrix to match distribution?  
+    logical use_particle_start_for_center = F  ! Use particle_start instead of center?
+    character random_engine            ! "pseudo" (default) or "quasi". 
+    character random_gauss_converter   ! "exact" (default) or "quick". 
+    real center(6) = 0                 ! Bench center offset.
+    real center_jitter(6) = 0.0        ! Bunch center rms jitter
+    real emit_jitter(2)   = 0.0        ! %RMS a and b-mode emittance jitter
+    real sig_z_jitter     = 0.0        ! bunch length RMS jitter 
+    real sig_pz_jitter     = 0.0       ! pz energy spread RMS jitter 
+    real random_sigma_cutoff = -1      ! -1 => no cutoff used.
+    integer n_particle = 0             ! Number of simulated particles per bunch.
+    logical renorm_center = T          ! Renormalize centroid?
+    logical renorm_sigma = T           ! Renormalize sigma?
+    real(rp) spin(3)                   ! Spin (x, y, z)
+    real a_norm_emit                   ! a-mode normalized emittance (= \(\gamma\,\epsilon\))
+    real b_norm_emit                   ! b-mode normalized emittance (= \(\gamma\,\epsilon\))
+    real a_emit                        ! a-mode emittance (= \(\gamma\,\epsilon\))
+    real b_emit                        ! b-mode emittance (= \(\gamma\,\epsilon\))
+    real dpz_dz = 0                    ! Correlation of pz with longitudinal position.
+    real dt_bunch                      ! Time between bunches.
+    real sig_z                         ! Z sigma in m.
+    real sig_pz                        ! pz sigma.
+    real bunch_charge                  ! Charge in a bunch.
+    integer n_bunch = 0                ! Number of bunches.
+    character species                  ! Species. Default is reference particle.
+    logical full_6D_coupling_calc = F  ! Use 6x6 1-turn matrix to match distribution?  
     logical use_t_coords = F        ! If true, the distributions will be 
                                     !   calculated using time coordinates  
     logical use_z_as_t   = F        ! Only used if  use_t_coords = T
@@ -85,9 +85,10 @@ The \vn{%center} parameter is used to offset the center position of a bunch when
 \vn{%use_particle_start_for_center} is set to False. See the description of
 \vn{%use_particle_start_for_center} below for more details.
 %
-\item[\%center_jitter, \%emit_jitter, \%sig_z_jitter, \%sig_e_jitter] \Newline
-These components can be used to provide a bunch-to-bunch 
-random variation in the emittance and bunch center.
+\item[\%center_jitter, \%emit_jitter, \%sig_z_jitter, \%sig_pz_jitter] \Newline
+These components can be used to provide a bunch-to-bunch random variation in the emittance and bunch
+center. Note: The old, deprecated, name for \vn{%sig_pz_jitter} is \vn{%sig_e_jitter}. This deprecated
+name is currently accepted. 
 %
 \item[\%distribution_type(3)] \Newline
 The \vn{%distribution_type(:)} array determines what algorithms are used to generate
@@ -226,9 +227,10 @@ and sigmas will correspond to the input values.
 Otherwise, there will be fluctuations due to the finite number of 
 particles generated.
 %
-\item[\%sig_e, \%sig_z] \Newline
-Longitudinal sigmas. \vn{%sig_e} is the fractional energy spread dE/E. 
-This, along with \vn{%dPz_dz} determine the longitudinal profile.
+\item[\%sig_pz, \%sig_z] \Newline
+Longitudinal sigmas. \vn{%sig_pz} is the fractional energy spread dE/E.  This, along with
+\vn{%dPz_dz} determine the longitudinal profile. Note: The old, deprecated, name for \vn{%sig_pz} is
+\vn{%sig_e}. This deprecated name is currently accepted.
 %
 \item[\%species] \Newline
 Name of the species tracked. If not set then the default tracking particle type is used.

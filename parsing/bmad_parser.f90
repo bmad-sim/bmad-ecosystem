@@ -1311,11 +1311,11 @@ do i = 1, lat%n_ele_max
   if (ele%key /= wiggler$ .and. ele%key /= undulator$) cycle
   if (ele%field_calc /= planar_model$ .and. ele%field_calc /= helical_model$) cycle
   if (ele%slave_status == super_slave$) cycle
-  if (abs(modulo2(ele%value(n_pole$) / 2, 0.5_rp)) > 0.01) then
+  if (abs(ele%value(n_period$) - nint(ele%value(n_period$))) > 0.01) then
     call out_io (s_warn$, r_name, [&
           '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
           '!!!!! WARNING! WIGGLER: ' // ele%name, &
-          '!!!!! DOES NOT HAVE AN EVEN NUMBER OF POLES!                    ', &
+          '!!!!! DOES NOT HAVE AN INTEGER NUMBER OF PERIODS!               ', &
           '!!!!! THIS WILL BE PROBLEMATIC IF YOU ARE USING TAYLOR MAPS!    ', &
           '!!!!! SEE THE BMAD MANUAL FOR MORE DETAILS!                     ', &
           '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!' ])

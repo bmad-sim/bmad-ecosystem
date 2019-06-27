@@ -148,7 +148,7 @@ j_max = 14
 
 if (ele%key == wiggler$ .or. ele%key == undulator$) then
   if (ele%field_calc == planar_model$ .or. ele%field_calc == helical_model$) then
-    j_min_test = 3 + log(max(1.0_rp, ele%value(n_pole$))) / log(2.0_rp)
+    j_min_test = 4 + log(max(1.0_rp, ele%value(n_period$))) / log(2.0_rp)
     j_max = j_min_test + 8
   else
     j_min_test = 5

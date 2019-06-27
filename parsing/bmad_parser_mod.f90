@@ -262,6 +262,8 @@ err_flag = .true.  ! assume the worst
 call get_next_word (word, ix_word, ':, =(){', delim, delim_found, call_check = .true.)
 lat => ele%branch%lat
 
+if (ele%key == def_particle_start$ .and. word == 'SIG_E') word = 'SIG_PZ'
+
 ! Taylor
 
 hetero_list = logic_option(.false., heterogeneous_ele_list)
@@ -338,7 +340,7 @@ if ((ele%key == taylor$ .or. ele%key == hybrid$) .and. delim == '{' .and. word =
   endif
 
   return
-endif
+endif  ! Taylor term
 
 ! overlay or group
 
@@ -414,6 +416,22 @@ if (ele%key == overlay$ .or. ele%key == group$) then
   
   err_flag = .false.
   return
+endif   ! Overlay or Group
+
+! L_pole, N_pole for wiggler/undulator are deprecated in favor of L_period, N_period.
+
+if (ele%key == wiggler$ .or. ele%key == undulator$) then
+  if (word == 'L_POLE' .or. word == 'N_POLE') then
+    if (.not. expect_one_of ('=', .true., ele, delim, delim_found)) return
+    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
+    if (err_flag) return
+    if (word == 'L_POLE') then
+      ele%value(l_period$) = 2 * value
+    else
+      ele%value(n_period$) = value / 2
+    endif
+    return
+  endif
 endif
 
 ! For historical reasons, a few paramter[...] parameters are actually in bmad_com.
@@ -6165,10 +6183,8 @@ case (rfcavity$)
 case (wiggler$, undulator$)
   if (ele%field_calc == int_garbage$) ele%field_calc = planar_model$
 
-  if (ele%field_calc == planar_model$ .or. ele%field_calc == helical_model$) then
-    if (ele%value(l_pole$) == 0 .and. ele%value(n_pole$) /= 0) then
-      ele%value(l_pole$) = ele%value(l$) / ele%value(n_pole$) 
-    endif
+  if (ele%value(l_period$) == 0 .and. ele%value(n_period$) /= 0) then
+    ele%value(l_period$) = ele%value(l$) / ele%value(n_period$) 
   endif
 
 !

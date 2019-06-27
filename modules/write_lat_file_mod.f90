@@ -257,23 +257,23 @@ if (ele%floor%psi /= 0)    write (iu, '(2a)') 'beginning[psi_position]   = ', tr
 if (ele%s /= 0)            write (iu, '(2a)') 'beginning[s]        = ', trim(re_str(ele%s))
 if (ele%ref_time /= 0)     write (iu, '(2a)') 'beginning[ref_time] = ', trim(re_str(ele%ref_time))
 
-if (lat%param%geometry /= closed$) then
-  write (iu, '(2a)')
-  if (ele%a%beta /= 0)     write (iu, '(2a)') 'beginning[beta_a]   = ', trim(re_str(ele%a%beta))
-  if (ele%a%alpha /= 0)    write (iu, '(2a)') 'beginning[alpha_a]  = ', trim(re_str(ele%a%alpha))
-  if (ele%a%phi /= 0)      write (iu, '(2a)') 'beginning[phi_a]    = ', trim(re_str(ele%a%phi))
-  if (ele%x%eta /= 0)      write (iu, '(2a)') 'beginning[eta_x]    = ', trim(re_str(ele%x%eta))
-  if (ele%x%etap /= 0)     write (iu, '(2a)') 'beginning[etap_x]   = ', trim(re_str(ele%x%etap))
-  if (ele%b%beta /= 0)     write (iu, '(2a)') 'beginning[beta_b]   = ', trim(re_str(ele%b%beta))
-  if (ele%b%alpha /= 0)    write (iu, '(2a)') 'beginning[alpha_b]  = ', trim(re_str(ele%b%alpha))
-  if (ele%b%phi /= 0)      write (iu, '(2a)') 'beginning[phi_b]    = ', trim(re_str(ele%b%phi))
-  if (ele%y%eta /= 0)      write (iu, '(2a)') 'beginning[eta_y]    = ', trim(re_str(ele%y%eta))
-  if (ele%y%etap /= 0)     write (iu, '(2a)') 'beginning[etap_y]   = ', trim(re_str(ele%y%etap))
-  if (ele%c_mat(1,1) /= 0) write (iu, '(2a)') 'beginning[cmat_11]  = ', trim(re_str(ele%c_mat(1,1)))
-  if (ele%c_mat(1,2) /= 0) write (iu, '(2a)') 'beginning[cmat_12]  = ', trim(re_str(ele%c_mat(1,2)))
-  if (ele%c_mat(2,1) /= 0) write (iu, '(2a)') 'beginning[cmat_21]  = ', trim(re_str(ele%c_mat(2,1)))
-  if (ele%c_mat(2,2) /= 0) write (iu, '(2a)') 'beginning[cmat_22]  = ', trim(re_str(ele%c_mat(2,2)))
-endif
+! Write beginning Twiss even for closed lattices as that is useful info.
+
+write (iu, '(2a)')
+if (ele%a%beta /= 0)     write (iu, '(2a)') 'beginning[beta_a]   = ', trim(re_str(ele%a%beta))
+if (ele%a%alpha /= 0)    write (iu, '(2a)') 'beginning[alpha_a]  = ', trim(re_str(ele%a%alpha))
+if (ele%a%phi /= 0)      write (iu, '(2a)') 'beginning[phi_a]    = ', trim(re_str(ele%a%phi))
+if (ele%x%eta /= 0)      write (iu, '(2a)') 'beginning[eta_x]    = ', trim(re_str(ele%x%eta))
+if (ele%x%etap /= 0)     write (iu, '(2a)') 'beginning[etap_x]   = ', trim(re_str(ele%x%etap))
+if (ele%b%beta /= 0)     write (iu, '(2a)') 'beginning[beta_b]   = ', trim(re_str(ele%b%beta))
+if (ele%b%alpha /= 0)    write (iu, '(2a)') 'beginning[alpha_b]  = ', trim(re_str(ele%b%alpha))
+if (ele%b%phi /= 0)      write (iu, '(2a)') 'beginning[phi_b]    = ', trim(re_str(ele%b%phi))
+if (ele%y%eta /= 0)      write (iu, '(2a)') 'beginning[eta_y]    = ', trim(re_str(ele%y%eta))
+if (ele%y%etap /= 0)     write (iu, '(2a)') 'beginning[etap_y]   = ', trim(re_str(ele%y%etap))
+if (ele%c_mat(1,1) /= 0) write (iu, '(2a)') 'beginning[cmat_11]  = ', trim(re_str(ele%c_mat(1,1)))
+if (ele%c_mat(1,2) /= 0) write (iu, '(2a)') 'beginning[cmat_12]  = ', trim(re_str(ele%c_mat(1,2)))
+if (ele%c_mat(2,1) /= 0) write (iu, '(2a)') 'beginning[cmat_21]  = ', trim(re_str(ele%c_mat(2,1)))
+if (ele%c_mat(2,2) /= 0) write (iu, '(2a)') 'beginning[cmat_22]  = ', trim(re_str(ele%c_mat(2,2)))
 
 ! particle_start
 
@@ -2446,7 +2446,7 @@ do
         if (ele%slave_status == super_slave$) then
           ! Create the wiggler model using the super_lord
           lord => pointer_to_lord(ele, 1)
-          call create_wiggler_model (lord, lat_model)
+          call create_planar_wiggler_model (lord, lat_model)
           ! Remove all the slave elements and markers in between.
           call out_io (s_warn$, r_name, &
               'Note: Not translating to MAD/XSIF the markers within wiggler: ' // lord%name)
@@ -2463,7 +2463,7 @@ do
           enddo
           ie2 = ie2 - (ix2 - ix1 - 1)
         else
-          call create_wiggler_model (ele, lat_model)
+          call create_planar_wiggler_model (ele, lat_model)
         endif
       else
         call create_sol_quad_model (ele, lat_model)  ! NOT YET IMPLEMENTED!
@@ -3516,7 +3516,7 @@ do
     if (ele%slave_status == super_slave$) then
       ! Create the wiggler model using the super_lord
       lord => pointer_to_lord(ele, 1)
-      call create_wiggler_model (lord, lat_model)
+      call create_planar_wiggler_model (lord, lat_model)
       ! Remove all the slave elements and markers in between.
       call out_io (s_warn$, r_name, 'Note: Not translating the markers within wiggler: ' // lord%name)
       lord%key = -1 ! mark for deletion
@@ -3532,7 +3532,7 @@ do
       enddo
       ie2 = ie2 - (ix2 - ix1 - 1)
     else
-      call create_wiggler_model (ele, lat_model)
+      call create_planar_wiggler_model (ele, lat_model)
     endif
 
     ele%key = -1 ! Mark for deletion

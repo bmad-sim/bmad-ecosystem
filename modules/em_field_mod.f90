@@ -698,7 +698,7 @@ case (bmad_standard$)
 
 case(planar_model$)
 
-  kk = pi * ele%value(n_pole$) / ele%value(l$)
+  kk = twopi * ele%value(n_period$) / ele%value(l$)
   ch_y = cosh(kk * y)
   sh_y = sinh(kk * y)
   c_z = cos(kk * (s_body - ele%value(l$)/2))
@@ -721,7 +721,7 @@ case(planar_model$)
 
 case(helical_model$)
 
-  kk = pi * ele%value(n_pole$) / ele%value(l$)
+  kk = twopi * ele%value(n_period$) / ele%value(l$)
   ch_x = cosh(kk * x)
   sh_x = sinh(kk * x)
   ch_y = cosh(kk * y)

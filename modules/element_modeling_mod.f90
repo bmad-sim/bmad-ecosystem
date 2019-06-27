@@ -81,10 +81,10 @@ end subroutine
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! Subroutine create_wiggler_model (wiggler_in, lat)
+! Subroutine create_planar_wiggler_model (wiggler_in, lat)
 !
 ! Routine to create series of bend and drift elements to serve as a replacement 
-! model for a wiggler.
+! model for a planar wiggler.
 !
 ! This routine is helpful for translating bmad lattices to a language that does not
 ! implement the Bmad wiggler model.
@@ -114,7 +114,7 @@ end subroutine
 !     %n_ele_track -- Number of elements in the model.
 !-
 
-subroutine create_wiggler_model (wiggler_in, lat)
+subroutine create_planar_wiggler_model (wiggler_in, lat)
 
 use super_recipes_mod
 
@@ -137,7 +137,7 @@ real(rp), allocatable :: y(:), yfit(:), weight(:), a(:)
 integer i, k, n_pole, last_peak_polarity
 integer i_max, n_var, n_data, status
 
-character(40) :: r_name = 'create_wiggler_model'
+character(*), parameter :: r_name = 'create_planar_wiggler_model'
 
 ! Check
 
@@ -148,6 +148,11 @@ lat_com => lat      ! For yfit_calc
 if (wiggler%key /= wiggler$ .and. wiggler%key /= undulator$) then
   call out_io (s_fatal$, r_name, 'Element is not a wiggler!: ' // wiggler%name)
   if (global_com%exit_on_error) call err_exit
+endif
+
+if (ele%field_calc == helical_model$) then
+  call out_io (s_warn$, r_name, 'Element is a helical wiggler/undulator: ' // ele%name, &
+                         'Using a planar model for this element will not be accurate.')
 endif
 
 ! Calculate integrals and maximum field
@@ -234,7 +239,7 @@ else
   g_max  = wiggler%value(b_max$) * g_factor
   g2_int = g_max**2 / 2
   g3_int = 4 * g_max**3 / (3 * pi)  
-  n_pole = wiggler%value(n_pole$)
+  n_pole = nint(2 * wiggler%value(n_period$))
   if (g_max == 0) n_pole = 0
 
 endif
@@ -435,7 +440,7 @@ endif
 
 deallocate (y, yfit, weight, a)
 
-end subroutine
+end subroutine create_planar_wiggler_model
 
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------

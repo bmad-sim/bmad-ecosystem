@@ -253,7 +253,7 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
       val(ds_step$) = val(l$)
 
     case (wiggler$, undulator$) 
-      if (val(l_pole$) /= 0) val(ds_step$) = val(l_pole$) / 10
+      if (val(l_period$) /= 0) val(ds_step$) = val(l_period$) / 20
 
     case (sbend$, quadrupole$, sextupole$)
       if (val(l$) /= 0) then
@@ -556,11 +556,13 @@ case (wiggler$, undulator$)
     val(k1_pseudo$) = -0.5 * val(g_max$)**2
   endif
 
-  if (val(l_pole$) == 0) then
-    val(n_pole$) = 0
+  if (val(l_period$) == 0) then
+    val(n_period$) = 0
   else
-    val(n_pole$) = val(l$) / val(l_pole$)
+    val(n_period$) = val(l$) / val(l_period$)
   endif
+
+  val(osc_amplitude$) = val(g_max$) * (val(l_period$) / twopi)**2
 
 end select
 

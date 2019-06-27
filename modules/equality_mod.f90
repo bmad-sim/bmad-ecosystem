@@ -1839,7 +1839,7 @@ is_eq = is_eq .and. all(f1%emit_jitter == f2%emit_jitter)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%sig_z_jitter == f2%sig_z_jitter)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%sig_e_jitter == f2%sig_e_jitter)
+is_eq = is_eq .and. (f1%sig_pz_jitter == f2%sig_pz_jitter)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_particle == f2%n_particle)
 !! f_side.equality_test[logical, 0, NOT]
@@ -1869,7 +1869,7 @@ is_eq = is_eq .and. (f1%dt_bunch == f2%dt_bunch)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%sig_z == f2%sig_z)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%sig_e == f2%sig_e)
+is_eq = is_eq .and. (f1%sig_pz == f2%sig_pz)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%bunch_charge == f2%bunch_charge)
 !! f_side.equality_test[integer, 0, NOT]
@@ -1886,6 +1886,10 @@ is_eq = is_eq .and. (f1%use_particle_start_for_center .eqv. f2%use_particle_star
 is_eq = is_eq .and. (f1%use_t_coords .eqv. f2%use_t_coords)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%use_z_as_t .eqv. f2%use_z_as_t)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%sig_e_jitter == f2%sig_e_jitter)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%sig_e == f2%sig_e)
 
 end function eq_beam_init
 
@@ -2282,6 +2286,8 @@ is_eq = is_eq .and. (f1%ptc_cut_factor == f2%ptc_cut_factor)
 is_eq = is_eq .and. (f1%sad_eps_scale == f2%sad_eps_scale)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%sad_amp_max == f2%sad_amp_max)
+!! f_side.equality_test[integer, 1, NOT]
+is_eq = is_eq .and. all(f1%space_charge_mesh_size == f2%space_charge_mesh_size)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%sad_n_div_max == f2%sad_n_div_max)
 !! f_side.equality_test[integer, 0, NOT]

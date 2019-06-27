@@ -4247,16 +4247,18 @@ section~\sref{s:field.calc}. For example:
 In this example \vn{wig1} is a map type wiggler. 
 
 \index{polarity}\index{b_max}\index{l_pole}\index{n_pole}\index{polarity}
-\index{k1_pseudo}\index{g_max}
+\index{k1_pseudo}\index{g_max}\index{l_period}
 Attributes specific to wiggler and undulator elements are: 
 \begin{example}
-  b_max      = <Real>  ! Maximum magnetic field (in T) on the wiggler centerline. 
-  l_pole     = <Real>  ! Wiggler pole length. The period is then 2 * l_pole.
-  n_pole     = <Real>  ! The number of poles (L / L_POLE). 
-                       !   A settable Dependent attribute (\sref{s:depend}).
+  b_max      = <Real>  ! Maximum magnetic field (in T) on the wiggler centerline.
+  l_period   = <Real>  ! Length over which field vector returns to the same orientation.
+  n_period   = <Real>  ! The number of periods (L / L_period). A settable dependent attribute (\sref{s:depend}).
+  l_pole     = <Real>  ! Wiggler pole length. DEPRECATED. USE L_PERIOD INSTEAD.
+  n_pole     = <Real>  ! The number of poles. DEPRECATED. USE N_PERIOD INSTEAD.
   polarity   = <Real>  ! For scaling the field.
   k1_pseudo            ! Pseudo K1 value. A Dependent attribute (\sref{s:depend}).
   g_max                ! Maximum bending strength. Dependent attribute.
+  osc_amplitude        ! Amplitude of the particle oscillations. Dependent attribute.
   x_ray_line_len = <Real> ! Deprecated.
 \end{example}
 
@@ -4289,7 +4291,7 @@ type} wiggler), and \vn{field_calc} is not set, then \vn{field_calc} will defaul
 
 Example:
 \begin{example}
-  wig2: wiggler, l = 1.6, b_max = 2.1, n_pole = 8
+  wig2: wiggler, l = 1.6, b_max = 2.1, n_period = 8
 \end{example}
 This defines a periodic type wiggler with \vn{field_type} defaulting to \vn{planar_model}.
 
@@ -4302,15 +4304,21 @@ poles and the magnetic field components are
   \label{bbkykz}
 \end{alignat}
 where $z$ is the distance from the beginning of the wiggler, the input parameter $\vn{b_max}$ is the
-maximum field on the centerline, and $k$ is given in terms of the pole length (\vn{l_pole}) by
+maximum field on the centerline, and $k$ is given in terms of the period length (\vn{l_period}) by
 \Begineq
-  k_z = \frac{\pi}{l_{\text{pole}}}
+  k_z = \frac{2\pi}{l_{\text{period}}}
 \Endeq
 Here the phase $\phi_z$ is chosen so that $B_y$ is symmetric about the center of the wiggler
 \Begineq
-  \phi_z = \frac{-k_y \, L}{2}
+  \phi_z = \frac{-k_z \, L}{2}
   \label{pkl2}
 \Endeq
+Note: Originally $k_z$ was calculated using \vn{l_pole} --- the length of a pole --- with the period
+length being twice the pole length. When the helical model option was introduced this became
+problematical since the period of a helical wiggler could be either 2 or 4 times the pole length
+depending upon the geometry. As a result, using the pole length was depracated and instead the
+period length or number should be used.
+
 The \vn{helical_model} for the field is
 \begin{alignat}{1}
   B_x &=            -\text{b_max} \, \cosh(k_z \, x) \, \sin(k_z \, z + \phi_z)  \\
@@ -4321,11 +4329,12 @@ The \vn{helical_model} for the field is
 \end{alignat}
 
 With \vn{field_calc} set to \vn{planar_model}, and with \vn{bmad_standard} tracking
-(\sref{c:methods}), the vertical focusing is assumed small so averaged over a period the horizontal
+(\sref{c:methods}), the vertical focusing is assumed small so averaged over many periods the horizontal
 motion looks like a drift and the vertical motion is modeled as a combination focusing quadrupole
 and focusing octupole giving a kick\cite{b:corbett}
 \Begineq
   \frac{dp_y}{dz} = k1 \left( y + \frac{2}{3} \, k_z^2 \, y^3 \right)
+  \label{pyzk1}
 \Endeq
 where
 \begin{alignat}{2}
@@ -4336,14 +4345,26 @@ with \vn{k1_pseudo} (a dependent element attribute) being the linear focusing co
 is only in the vertical plane. The subscript \vn{pseudo} is used to remind the user that this is not the same
 as the \vn{k1} attribute of a quadrupole since the focusing is only in one plane.
 
-With \vn{field_calc} set to \vn{helical_model}, and with \vn{bmad_standard} tracking, the vertical
-transport is the same as with the \vn{planar_model} and the horizontal transport is the same as the
-vertical.
+With \vn{field_calc} set to \vn{helical_model}, and with \vn{bmad_standard} tracking, the transport
+in the vertical and horizontal planes is the same as with the transport in the verticalplane with
+\vn{planar_model} (\Eq{pyzk1}).
+
+While \vn{bmad_standard} tracking uses an averaged trajectory, the actual trajectory has oscillations 
+that look like
+\Begineq
+  x = A \, \cos (k_z \, z)
+\Endeq
+with the amplitude $A$ given by
+\Begineq
+  A = \frac{g_\text{max}}{k_z^2}
+\Endeq
+The value of $A$, computed for an on-energy ($p_z = 0$) particle, is calculated and stored in the
+dependent parameter \vn{osc_amplitude}.
 
 With \vn{field_calc} set to \vn{planar_model} and \vn{bmad_standard} tracking, the phase $\phi_z$ in
 \Eqs{pkl2} is irrelevant. When the tracking involves Taylor maps and symplectic integration, the
-choice of phase is such that, with an even number of poles, a particle that enters the wiggler
-on-axis will leave the wiggler on-axis provided there is an even number of poles. Notice that with
+choice of phase is such that, with an integer number of periods, a particle that enters the wiggler
+on-axis will leave the wiggler on-axis provided there is an integer number of periods. Notice that with
 \vn{field_calc} set to \vn{helical_model} it is not possible to set the phase so that a particle
 that enters the wiggler on-axis will leave the wiggler on-axis. 
 
