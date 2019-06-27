@@ -95,11 +95,11 @@ subroutine ele_synrad_power (branch, ie, orb, direction, power, walls, gen)
     field_ele => pointer_to_field_ele(ele, 1)
     if (field_ele%field_calc == planar_model$ .or. field_ele%field_calc == helical_model$) then
       if (ele%value(b_max$) == 0) return
-      if (ele%value(n_pole$) == 0) then
-        call out_io (s_warn$, r_name, '"N_Pole" for Wiggler = 0.', &
+      if (ele%value(n_period$) == 0) then
+        call out_io (s_warn$, r_name, '"N_Period" for Wiggler = 0.', &
                                       'Calculated radiation from this wiggler will be 0!')
       endif
-      n_slice = max(1, nint(n_slice * ele%value(n_pole$)))
+      n_slice = max(1, nint(2 * n_slice * ele%value(n_period$)))
     else
       ! Rather arbitrary choice of 10 * n_slice for non-periodic wigglers
       n_slice = max(10*n_slice, nint(ele%value(num_steps$)))

@@ -18,6 +18,6 @@ verbose = .false.
  beam_init%b_norm_emit = 0.45e-6
  beam_init%dPz_dz = 0.0
  beam_init%bunch_charge = 100.0e-12
- beam_init%sig_e = 1e-4
+ beam_init%sig_pz = 1e-4
  beam_init%sig_z = 0.00059958 ! 2 ps * cLight
 /

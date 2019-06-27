@@ -33,7 +33,7 @@ type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 type (random_state_struct) ran_state
 
 real(rp) ds_step_min, d_i0, i0_tot, i0_tot_eff, ds, gx, gy, s_offset, n_photon_eff
-real(rp) emit_a, emit_b, sig_e, g, gamma, emit_prob, r, dtrack, photon_number_factor
+real(rp) emit_a, emit_b, sig_pz, g, gamma, emit_prob, r, dtrack, photon_number_factor
 real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max, n_photon_generated_eff
 real(rp) e_init_filter_min, e_init_filter_max, timer_time, old_time
 real(rp) surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set
@@ -60,7 +60,7 @@ logical is_inside, turn_off_kickers_in_lattice, finished, bad_stat_warning_given
 
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, chamber_end_geometry, &
             photon_direction, num_photons, lattice_file, ds_step_min, num_photons_per_pass, &
-            emit_a, emit_b, sig_e, sr3d_params, wall_file, dat_file, random_seed, ix_branch, &
+            emit_a, emit_b, sig_pz, sr3d_params, wall_file, dat_file, random_seed, ix_branch, &
             e_filter_min, e_filter_max, s_filter_min, s_filter_max, wall_hit_file, &
             photon_start_input_file, photon_start_output_file, reflect_file, lat_ele_file, &
             num_ignore_generated_outside_wall, turn_off_kickers_in_lattice, diffuse_com, &
@@ -158,7 +158,7 @@ ix_ele_track_end = -1
 ds_step_min = 0.001
 emit_a = -1
 emit_b = -1
-sig_e  = -1
+sig_pz  = -1
 dat_file = 'synrad3d.dat'
 wall_file = 'synrad3d.wall'
 photon_track_file = ''
@@ -369,9 +369,9 @@ if (emit_b < 0) then
   print *, 'Using emit_b =', emit_b
 endif
 
-if (sig_e < 0) then
-  sig_e  = modes%sige_e
-  print *, 'Using sig_e =', sig_e
+if (sig_pz < 0) then
+  sig_pz  = modes%sige_e
+  print *, 'Using sig_pz =', sig_pz
 endif
 
 ! Open data files.
@@ -624,7 +624,7 @@ else
         photon%n_wall_hit = 0
 
         do
-          call sr3d_emit_photon (ele_here, orbit_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, &
+          call sr3d_emit_photon (ele_here, orbit_here, gx, gy, emit_a, emit_b, sig_pz, photon_direction, &
                            e_init_filter_min, e_init_filter_max, &
                            vert_angle_init_filter_min, vert_angle_init_filter_max, vert_angle_symmetric_init_filter, &
                            photon%start, n_photon_eff = n_photon_eff)
@@ -901,7 +901,7 @@ write (iu, '(a, 3a)')        '# chamber_end_geometry       = ', '"', trim(chambe
 write (iu, '(a, es10.3)')    '# ds_step_min                = ', ds_step_min
 write (iu, '(a, es10.3)')    '# emit_a                     = ', emit_a
 write (iu, '(a, es10.3)')    '# emit_b                     = ', emit_b
-write (iu, '(a, es10.3)')    '# sig_e                      = ', sig_e
+write (iu, '(a, es10.3)')    '# sig_pz                      = ', sig_pz
 write (iu, '(a, es10.3)')    '# e_init_filter_min          = ', e_init_filter_min
 write (iu, '(a, es10.3)')    '# e_init_filter_max          = ', e_init_filter_max
 write (iu, '(a, es10.3)')    '# vert_angle_init_filter_min = ', vert_angle_init_filter_min
