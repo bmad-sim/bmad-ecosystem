@@ -4,7 +4,7 @@ struct_def_files = [
     '../sim_utils/math/spline_mod.f90',
     '../bmad/modules/bmad_struct.f90', 
     '../bmad/modules/taylor_mod.f90',
-    '../bmad/space_charge/csr_mod.f90',
+    '../bmad/space_charge/track_csr_and_space_charge_mod.f90',
     '../bmad/modules/complex_taylor_mod.f90',
 ]
 

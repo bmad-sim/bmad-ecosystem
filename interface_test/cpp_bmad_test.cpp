@@ -4161,7 +4161,7 @@ void set_CPP_beam_init_test_pattern (CPP_beam_init& C, int ix_patt) {
   rhs = 10 + offset; C.sig_z_jitter = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 11 + offset; C.sig_e_jitter = rhs;
+  rhs = 11 + offset; C.sig_pz_jitter = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
   rhs = 12 + offset; C.n_particle = rhs;
@@ -4208,7 +4208,7 @@ void set_CPP_beam_init_test_pattern (CPP_beam_init& C, int ix_patt) {
   rhs = 25 + offset; C.sig_z = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 26 + offset; C.sig_e = rhs;
+  rhs = 26 + offset; C.sig_pz = rhs;
 
   // c_side.test_pat[real, 0, NOT]
   rhs = 27 + offset; C.bunch_charge = rhs;
@@ -4234,6 +4234,12 @@ void set_CPP_beam_init_test_pattern (CPP_beam_init& C, int ix_patt) {
 
   // c_side.test_pat[logical, 0, NOT]
   rhs = 34 + offset; C.use_z_as_t = (rhs % 2 == 0);
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 35 + offset; C.sig_e_jitter = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 36 + offset; C.sig_e = rhs;
 
 
 }
@@ -5117,80 +5123,83 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   // c_side.test_pat[real, 0, NOT]
   rhs = 18 + offset; C.sad_amp_max = rhs;
 
+  // c_side.test_pat[integer, 1, NOT]
+  for (unsigned int i = 0; i < C.space_charge_mesh_size.size(); i++)
+    {int rhs = 101 + i + 19 + offset; C.space_charge_mesh_size[i] = rhs;}
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 19 + offset; C.sad_n_div_max = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 20 + offset; C.taylor_order = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 21 + offset; C.runge_kutta_order = rhs;
+  rhs = 20 + offset; C.sad_n_div_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 22 + offset; C.default_integ_order = rhs;
+  rhs = 21 + offset; C.taylor_order = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 23 + offset; C.ptc_max_fringe_order = rhs;
+  rhs = 22 + offset; C.runge_kutta_order = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 24 + offset; C.max_num_runge_kutta_step = rhs;
+  rhs = 23 + offset; C.default_integ_order = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 24 + offset; C.ptc_max_fringe_order = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 25 + offset; C.max_num_runge_kutta_step = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 25 + offset; C.rf_phase_below_transition_ref = (rhs % 2 == 0);
+  rhs = 26 + offset; C.rf_phase_below_transition_ref = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 26 + offset; C.use_hard_edge_drifts = (rhs % 2 == 0);
+  rhs = 27 + offset; C.use_hard_edge_drifts = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 27 + offset; C.sr_wakes_on = (rhs % 2 == 0);
+  rhs = 28 + offset; C.sr_wakes_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 28 + offset; C.lr_wakes_on = (rhs % 2 == 0);
+  rhs = 29 + offset; C.lr_wakes_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 29 + offset; C.mat6_track_symmetric = (rhs % 2 == 0);
+  rhs = 30 + offset; C.mat6_track_symmetric = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 30 + offset; C.auto_bookkeeper = (rhs % 2 == 0);
+  rhs = 31 + offset; C.auto_bookkeeper = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 31 + offset; C.csr_and_space_charge_on = (rhs % 2 == 0);
+  rhs = 32 + offset; C.csr_and_space_charge_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 32 + offset; C.spin_tracking_on = (rhs % 2 == 0);
+  rhs = 33 + offset; C.spin_tracking_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 33 + offset; C.backwards_time_tracking_on = (rhs % 2 == 0);
+  rhs = 34 + offset; C.backwards_time_tracking_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 34 + offset; C.spin_sokolov_ternov_flipping_on = (rhs % 2 == 0);
+  rhs = 35 + offset; C.spin_sokolov_ternov_flipping_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 35 + offset; C.radiation_damping_on = (rhs % 2 == 0);
+  rhs = 36 + offset; C.radiation_damping_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 36 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
+  rhs = 37 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 37 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
+  rhs = 38 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 38 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
+  rhs = 39 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 39 + offset; C.twiss_normalize_off_energy = (rhs % 2 == 0);
+  rhs = 40 + offset; C.twiss_normalize_off_energy = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 40 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
+  rhs = 41 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 41 + offset; C.aperture_limit_on = (rhs % 2 == 0);
+  rhs = 42 + offset; C.aperture_limit_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 42 + offset; C.ptc_print_info_messages = (rhs % 2 == 0);
+  rhs = 43 + offset; C.ptc_print_info_messages = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 43 + offset; C.debug = (rhs % 2 == 0);
+  rhs = 44 + offset; C.debug = (rhs % 2 == 0);
 
 
 }

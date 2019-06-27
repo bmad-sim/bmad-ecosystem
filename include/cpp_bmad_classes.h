@@ -2479,7 +2479,7 @@ public:
   Real_ARRAY center_jitter;
   Real_ARRAY emit_jitter;
   Real sig_z_jitter;
-  Real sig_e_jitter;
+  Real sig_pz_jitter;
   Int n_particle;
   Bool renorm_center;
   Bool renorm_sigma;
@@ -2494,7 +2494,7 @@ public:
   Real_ARRAY center;
   Real dt_bunch;
   Real sig_z;
-  Real sig_e;
+  Real sig_pz;
   Real bunch_charge;
   Int n_bunch;
   string species;
@@ -2503,6 +2503,8 @@ public:
   Bool use_particle_start_for_center;
   Bool use_t_coords;
   Bool use_z_as_t;
+  Real sig_e_jitter;
+  Real sig_e;
 
   CPP_beam_init() :
     position_file(),
@@ -2515,7 +2517,7 @@ public:
     center_jitter(0.0, 6),
     emit_jitter(0.0, 2),
     sig_z_jitter(0.0),
-    sig_e_jitter(0.0),
+    sig_pz_jitter(0.0),
     n_particle(0),
     renorm_center(true),
     renorm_sigma(true),
@@ -2530,7 +2532,7 @@ public:
     center(0.0, 6),
     dt_bunch(0.0),
     sig_z(0.0),
-    sig_e(0.0),
+    sig_pz(0.0),
     bunch_charge(0.0),
     n_bunch(0),
     species(),
@@ -2538,7 +2540,9 @@ public:
     full_6d_coupling_calc(false),
     use_particle_start_for_center(false),
     use_t_coords(false),
-    use_z_as_t(false)
+    use_z_as_t(false),
+    sig_e_jitter(0.0),
+    sig_e(0.0)
     {}
 
   ~CPP_beam_init() {
@@ -2983,6 +2987,7 @@ public:
   Real ptc_cut_factor;
   Real sad_eps_scale;
   Real sad_amp_max;
+  Int_ARRAY space_charge_mesh_size;
   Int sad_n_div_max;
   Int taylor_order;
   Int runge_kutta_order;
@@ -3009,6 +3014,7 @@ public:
   Bool ptc_print_info_messages;
   Bool debug;
 
+
   CPP_bmad_common() :
     max_aperture_limit(1e3),
     d_orb(1e-5, 6),
@@ -3028,6 +3034,7 @@ public:
     ptc_cut_factor(0.006),
     sad_eps_scale(5.0e-3),
     sad_amp_max(5.0e-2),
+    space_charge_mesh_size(32, 3),
     sad_n_div_max(1000),
     taylor_order(0),
     runge_kutta_order(4),

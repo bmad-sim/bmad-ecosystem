@@ -34,6 +34,14 @@ def searchit (file):
 
     line = line.replace('$', '')
 
+    if "Z'" in line:
+      line = line.replace("Z'", '0x')
+      line = line.replace("'", '')
+
+    if "z'" in line:
+      line = line.replace("z'", '0x')
+      line = line.replace("'", '')
+
     if re_equal.search(line):
       sub = re_d_exp.search(line).group(0).replace('D', 'E')   # Replace "3D6" with "3E6"
       line = re_d_exp.sub(sub, line)

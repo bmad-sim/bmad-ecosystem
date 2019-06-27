@@ -2518,7 +2518,7 @@ extern "C" void beam_init_to_f2 (Opaque_beam_init_class*, c_Char, c_Char, c_Char
     const CPP_ellipse_beam_init**, const CPP_kv_beam_init&, const CPP_grid_beam_init**,
     c_RealArr, c_RealArr, c_Real&, c_Real&, c_Int&, c_Bool&, c_Bool&, c_Char, c_Char, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&,
-    c_Int&, c_Char, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Int&, c_Char, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Real&, c_Real&);
 
 extern "C" void beam_init_to_f (const CPP_beam_init& C, Opaque_beam_init_class* F) {
   // c_side.to_f_setup[character, 1, NOT]
@@ -2534,11 +2534,12 @@ extern "C" void beam_init_to_f (const CPP_beam_init& C, Opaque_beam_init_class* 
   // c_side.to_f2_call
   beam_init_to_f2 (F, C.position_file.c_str(), C.file_name.c_str(), z_distribution_type,
       &C.spin[0], z_ellipse, C.kv, z_grid, &C.center_jitter[0], &C.emit_jitter[0],
-      C.sig_z_jitter, C.sig_e_jitter, C.n_particle, C.renorm_center, C.renorm_sigma,
+      C.sig_z_jitter, C.sig_pz_jitter, C.n_particle, C.renorm_center, C.renorm_sigma,
       C.random_engine.c_str(), C.random_gauss_converter.c_str(), C.random_sigma_cutoff,
       C.a_norm_emit, C.b_norm_emit, C.a_emit, C.b_emit, C.dpz_dz, &C.center[0], C.dt_bunch,
-      C.sig_z, C.sig_e, C.bunch_charge, C.n_bunch, C.species.c_str(), C.init_spin,
-      C.full_6d_coupling_calc, C.use_particle_start_for_center, C.use_t_coords, C.use_z_as_t);
+      C.sig_z, C.sig_pz, C.bunch_charge, C.n_bunch, C.species.c_str(), C.init_spin,
+      C.full_6d_coupling_calc, C.use_particle_start_for_center, C.use_t_coords, C.use_z_as_t,
+      C.sig_e_jitter, C.sig_e);
 
 }
 
@@ -2547,13 +2548,13 @@ extern "C" void beam_init_to_c2 (CPP_beam_init& C, c_Char z_position_file, c_Cha
     c_Char* z_distribution_type, c_RealArr z_spin, const Opaque_ellipse_beam_init_class**
     z_ellipse, const Opaque_kv_beam_init_class* z_kv, const Opaque_grid_beam_init_class**
     z_grid, c_RealArr z_center_jitter, c_RealArr z_emit_jitter, c_Real& z_sig_z_jitter, c_Real&
-    z_sig_e_jitter, c_Int& z_n_particle, c_Bool& z_renorm_center, c_Bool& z_renorm_sigma,
+    z_sig_pz_jitter, c_Int& z_n_particle, c_Bool& z_renorm_center, c_Bool& z_renorm_sigma,
     c_Char z_random_engine, c_Char z_random_gauss_converter, c_Real& z_random_sigma_cutoff,
     c_Real& z_a_norm_emit, c_Real& z_b_norm_emit, c_Real& z_a_emit, c_Real& z_b_emit, c_Real&
-    z_dpz_dz, c_RealArr z_center, c_Real& z_dt_bunch, c_Real& z_sig_z, c_Real& z_sig_e, c_Real&
-    z_bunch_charge, c_Int& z_n_bunch, c_Char z_species, c_Bool& z_init_spin, c_Bool&
+    z_dpz_dz, c_RealArr z_center, c_Real& z_dt_bunch, c_Real& z_sig_z, c_Real& z_sig_pz,
+    c_Real& z_bunch_charge, c_Int& z_n_bunch, c_Char z_species, c_Bool& z_init_spin, c_Bool&
     z_full_6d_coupling_calc, c_Bool& z_use_particle_start_for_center, c_Bool& z_use_t_coords,
-    c_Bool& z_use_z_as_t) {
+    c_Bool& z_use_z_as_t, c_Real& z_sig_e_jitter, c_Real& z_sig_e) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.position_file = z_position_file;
@@ -2576,7 +2577,7 @@ extern "C" void beam_init_to_c2 (CPP_beam_init& C, c_Char z_position_file, c_Cha
   // c_side.to_c2_set[real, 0, NOT]
   C.sig_z_jitter = z_sig_z_jitter;
   // c_side.to_c2_set[real, 0, NOT]
-  C.sig_e_jitter = z_sig_e_jitter;
+  C.sig_pz_jitter = z_sig_pz_jitter;
   // c_side.to_c2_set[integer, 0, NOT]
   C.n_particle = z_n_particle;
   // c_side.to_c2_set[logical, 0, NOT]
@@ -2606,7 +2607,7 @@ extern "C" void beam_init_to_c2 (CPP_beam_init& C, c_Char z_position_file, c_Cha
   // c_side.to_c2_set[real, 0, NOT]
   C.sig_z = z_sig_z;
   // c_side.to_c2_set[real, 0, NOT]
-  C.sig_e = z_sig_e;
+  C.sig_pz = z_sig_pz;
   // c_side.to_c2_set[real, 0, NOT]
   C.bunch_charge = z_bunch_charge;
   // c_side.to_c2_set[integer, 0, NOT]
@@ -2623,6 +2624,10 @@ extern "C" void beam_init_to_c2 (CPP_beam_init& C, c_Char z_position_file, c_Cha
   C.use_t_coords = z_use_t_coords;
   // c_side.to_c2_set[logical, 0, NOT]
   C.use_z_as_t = z_use_z_as_t;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.sig_e_jitter = z_sig_e_jitter;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.sig_e = z_sig_e;
 }
 
 //--------------------------------------------------------------------
@@ -3093,9 +3098,10 @@ extern "C" void bmad_common_to_c (const Opaque_bmad_common_class*, CPP_bmad_comm
 // c_side.to_f2_arg
 extern "C" void bmad_common_to_f2 (Opaque_bmad_common_class*, c_Real&, c_RealArr, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
-    c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_IntArr, c_Int&, c_Int&, c_Int&, c_Int&,
+    c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
+    c_Bool&);
 
 extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Opaque_bmad_common_class* F) {
 
@@ -3105,14 +3111,15 @@ extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Opaque_bmad_common_c
       C.rel_tol_adaptive_tracking, C.abs_tol_adaptive_tracking, C.init_ds_adaptive_tracking,
       C.min_ds_adaptive_tracking, C.fatal_ds_adaptive_tracking, C.autoscale_amp_abs_tol,
       C.autoscale_amp_rel_tol, C.autoscale_phase_tol, C.electric_dipole_moment,
-      C.ptc_cut_factor, C.sad_eps_scale, C.sad_amp_max, C.sad_n_div_max, C.taylor_order,
-      C.runge_kutta_order, C.default_integ_order, C.ptc_max_fringe_order,
-      C.max_num_runge_kutta_step, C.rf_phase_below_transition_ref, C.use_hard_edge_drifts,
-      C.sr_wakes_on, C.lr_wakes_on, C.mat6_track_symmetric, C.auto_bookkeeper,
-      C.csr_and_space_charge_on, C.spin_tracking_on, C.backwards_time_tracking_on,
-      C.spin_sokolov_ternov_flipping_on, C.radiation_damping_on, C.radiation_fluctuations_on,
-      C.conserve_taylor_maps, C.absolute_time_tracking_default, C.twiss_normalize_off_energy,
-      C.convert_to_kinetic_momentum, C.aperture_limit_on, C.ptc_print_info_messages, C.debug);
+      C.ptc_cut_factor, C.sad_eps_scale, C.sad_amp_max, &C.space_charge_mesh_size[0],
+      C.sad_n_div_max, C.taylor_order, C.runge_kutta_order, C.default_integ_order,
+      C.ptc_max_fringe_order, C.max_num_runge_kutta_step, C.rf_phase_below_transition_ref,
+      C.use_hard_edge_drifts, C.sr_wakes_on, C.lr_wakes_on, C.mat6_track_symmetric,
+      C.auto_bookkeeper, C.csr_and_space_charge_on, C.spin_tracking_on,
+      C.backwards_time_tracking_on, C.spin_sokolov_ternov_flipping_on, C.radiation_damping_on,
+      C.radiation_fluctuations_on, C.conserve_taylor_maps, C.absolute_time_tracking_default,
+      C.twiss_normalize_off_energy, C.convert_to_kinetic_momentum, C.aperture_limit_on,
+      C.ptc_print_info_messages, C.debug);
 
 }
 
@@ -3124,17 +3131,17 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
     z_min_ds_adaptive_tracking, c_Real& z_fatal_ds_adaptive_tracking, c_Real&
     z_autoscale_amp_abs_tol, c_Real& z_autoscale_amp_rel_tol, c_Real& z_autoscale_phase_tol,
     c_Real& z_electric_dipole_moment, c_Real& z_ptc_cut_factor, c_Real& z_sad_eps_scale,
-    c_Real& z_sad_amp_max, c_Int& z_sad_n_div_max, c_Int& z_taylor_order, c_Int&
-    z_runge_kutta_order, c_Int& z_default_integ_order, c_Int& z_ptc_max_fringe_order, c_Int&
-    z_max_num_runge_kutta_step, c_Bool& z_rf_phase_below_transition_ref, c_Bool&
-    z_use_hard_edge_drifts, c_Bool& z_sr_wakes_on, c_Bool& z_lr_wakes_on, c_Bool&
-    z_mat6_track_symmetric, c_Bool& z_auto_bookkeeper, c_Bool& z_csr_and_space_charge_on,
-    c_Bool& z_spin_tracking_on, c_Bool& z_backwards_time_tracking_on, c_Bool&
-    z_spin_sokolov_ternov_flipping_on, c_Bool& z_radiation_damping_on, c_Bool&
-    z_radiation_fluctuations_on, c_Bool& z_conserve_taylor_maps, c_Bool&
-    z_absolute_time_tracking_default, c_Bool& z_twiss_normalize_off_energy, c_Bool&
-    z_convert_to_kinetic_momentum, c_Bool& z_aperture_limit_on, c_Bool&
-    z_ptc_print_info_messages, c_Bool& z_debug) {
+    c_Real& z_sad_amp_max, c_IntArr z_space_charge_mesh_size, c_Int& z_sad_n_div_max, c_Int&
+    z_taylor_order, c_Int& z_runge_kutta_order, c_Int& z_default_integ_order, c_Int&
+    z_ptc_max_fringe_order, c_Int& z_max_num_runge_kutta_step, c_Bool&
+    z_rf_phase_below_transition_ref, c_Bool& z_use_hard_edge_drifts, c_Bool& z_sr_wakes_on,
+    c_Bool& z_lr_wakes_on, c_Bool& z_mat6_track_symmetric, c_Bool& z_auto_bookkeeper, c_Bool&
+    z_csr_and_space_charge_on, c_Bool& z_spin_tracking_on, c_Bool&
+    z_backwards_time_tracking_on, c_Bool& z_spin_sokolov_ternov_flipping_on, c_Bool&
+    z_radiation_damping_on, c_Bool& z_radiation_fluctuations_on, c_Bool&
+    z_conserve_taylor_maps, c_Bool& z_absolute_time_tracking_default, c_Bool&
+    z_twiss_normalize_off_energy, c_Bool& z_convert_to_kinetic_momentum, c_Bool&
+    z_aperture_limit_on, c_Bool& z_ptc_print_info_messages, c_Bool& z_debug) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.max_aperture_limit = z_max_aperture_limit;
@@ -3172,6 +3179,8 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
   C.sad_eps_scale = z_sad_eps_scale;
   // c_side.to_c2_set[real, 0, NOT]
   C.sad_amp_max = z_sad_amp_max;
+  // c_side.to_c2_set[integer, 1, NOT]
+  C.space_charge_mesh_size << z_space_charge_mesh_size;
   // c_side.to_c2_set[integer, 0, NOT]
   C.sad_n_div_max = z_sad_n_div_max;
   // c_side.to_c2_set[integer, 0, NOT]
