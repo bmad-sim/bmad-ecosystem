@@ -93,7 +93,7 @@ ix1 = index(name, ']');  if (ix1 == 0) return
 parameter = name(1:ix1-1)
 
 select case (parameter)
-case ('l', 'angle');    middle = .false.
+case ('l', 'angle'); middle = .false.
 end select
 
 ! Evaluate

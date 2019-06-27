@@ -198,11 +198,11 @@ call match_word (cmd, [character(20) :: &
           'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
           'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
           'enum', 'floor_plan', 'global', 'help', 'inum', &
-          'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', 'lat_table', &
+          'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
           'merit', 'orbit_at_s', &
           'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
           'plot_shapes', 'plot_list', 'plot_symbol', 'plot1', &
-          'species_to_int', 'species_to_str', 'super_universe', 'twiss_at_s', 'universe', &
+          'show', 'species_to_int', 'species_to_str', 'super_universe', 'twiss_at_s', 'universe', &
           'var_create', 'var_destroy', 'var_general', 'var_v1_array', 'var_v_array', 'var'], ix, matched_name = command)
 
 if (ix == 0) then
@@ -242,7 +242,7 @@ case ('beam_init')
 
   nl=incr(nl); write (li(nl), amt) 'position_file;FILE;T;',                    beam_init%position_file
   nl=incr(nl); write (li(nl), rmt) 'sig_z_jitter;REAL;T;',                     beam_init%sig_z_jitter
-  nl=incr(nl); write (li(nl), rmt) 'sig_e_jitter;REAL;T;',                     beam_init%sig_e_jitter
+  nl=incr(nl); write (li(nl), rmt) 'sig_pz_jitter;REAL;T;',                    beam_init%sig_pz_jitter
   nl=incr(nl); write (li(nl), imt) 'n_particle;INT;T;',                        beam_init%n_particle
   nl=incr(nl); write (li(nl), lmt) 'renorm_center;LOGIC;T;',                   beam_init%renorm_center
   nl=incr(nl); write (li(nl), lmt) 'renorm_sigma;LOGIC;T;',                    beam_init%renorm_sigma
@@ -256,7 +256,7 @@ case ('beam_init')
   nl=incr(nl); write (li(nl), rmt) 'dpz_dz;REAL;T;',                           beam_init%dPz_dz
   nl=incr(nl); write (li(nl), rmt) 'dt_bunch;REAL;T;',                         beam_init%dt_bunch
   nl=incr(nl); write (li(nl), rmt) 'sig_z;REAL;T;',                            beam_init%sig_z
-  nl=incr(nl); write (li(nl), rmt) 'sig_e;REAL;T;',                            beam_init%sig_e
+  nl=incr(nl); write (li(nl), rmt) 'sig_pz;REAL;T;',                           beam_init%sig_pz
   nl=incr(nl); write (li(nl), rmt) 'bunch_charge;REAL;T;',                     beam_init%bunch_charge
   nl=incr(nl); write (li(nl), imt) 'n_bunch;INT;T;',                           beam_init%n_bunch
   nl=incr(nl); write (li(nl), amt) 'species;SPECIES;T;',                       beam_init%species
@@ -1876,7 +1876,7 @@ case ('enum')
 !----------------------------------------------------------------------
 ! Floor plan elements
 ! Command syntax:
-!   python lat_layout {ix_universe} {orientation}
+!   python floor_plan {ix_universe}
 ! where {orientation} is one of "xy", xz", "yx", "yz", "zx", or "zy".
 
 case ('floor_plan')
@@ -2287,29 +2287,6 @@ case ('lat_param_units')
   name = upcase(line)
   a_name = attribute_units(name)
   nl=incr(nl); write(li(nl), '(a)') a_name
-
-!----------------------------------------------------------------------
-! Lattice table
-! Command syntax:
-!   python lat_table {switches}
-! {switches} are the switches to be passed to the "show lattice" command.
-
-case ('lat_table')
-
-  call tao_show_this('lattice -python ' // trim(line), name, li, nl)
-
-  do i = 1, nl
-    ! Header line is already comma delimited (Note: header line also has spaces).
-    if (index(li(i), ';') /= 0) cycle
-
-    call string_trim(li(i), li2, ix)
-    li(i) = li2(1:ix)
-    do
-      call string_trim(li2(ix+1:), li2, ix)
-      if (ix == 0) exit
-      li(i) = trim(li(i)) // ';' // li2(1:ix)
-    enddo
-  enddo
 
 !----------------------------------------------------------------------
 ! Merit value.
@@ -2733,6 +2710,18 @@ case ('plot1')
   nl=incr(nl); write (li(nl), lmt) 'autoscale_gang_x;LOGIC;T;',               p%autoscale_gang_x
   nl=incr(nl); write (li(nl), lmt) 'autoscale_gang_y;LOGIC;T;',               p%autoscale_gang_y
   nl=incr(nl); write (li(nl), imt) 'n_curve_pts;INT;T;',                      p%n_curve_pts
+
+!----------------------------------------------------------------------
+! Show command pass through
+! Command syntax:
+!   python show {line}
+! {line} is the string to pass through to the show command.
+! Example:
+!   python show lattice -python
+
+case ('show')
+
+  call tao_show_this(trim(line), name, li, nl)
 
 !----------------------------------------------------------------------
 ! Convert species name to corresponding integer

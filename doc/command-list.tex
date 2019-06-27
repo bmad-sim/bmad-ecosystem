@@ -2114,7 +2114,8 @@ Syntax:
       \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\}
       \{-no_label_lines\} \{-no_tail_lines\} \{-no_slaves\} \{-no_super_slaves\} \{-orbit\} 
       \{-radiation_integrals\} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{-spin\} 
-      \{-sum_radiation_integrals\} \{-tracking_elements\} \{-undef0\} \{<element_list>\} 
+      \{-sum_radiation_integrals\} \{-tracking_elements\} \{-undef0\} \{-universe\} 
+      \{<element_list>\} 
 \end{example}
 
 Show a table of Twiss and orbit data, etc. at the specified element locations. The default is to
@@ -2125,8 +2126,14 @@ By default, the appropriate element(s) within the \vn{model} lattice (\sref{s:un
 used. This can be overridden by using the \vn{-base} or the \vn{-design} switches which switch the
 lattice to the \vn{base} or \vn{design} lattices respectively.
 
-The \vn{-all} switch shows all tracking and lord elements.
-
+\begin{description}
+\item[-all] \Newline
+For lattices with a large number of elements, the \vn{show lattice} command defaults to only showing
+the first 200 elements or so to prevent the accidental generation of possibly tens of thousands of
+lines. The \vn{-all} switch overrides this default and shows all tracking and lord elements. 
+\end{description}
+%
+\item[-orbit] \Newline
 The \vn{-orbit} switch will show the particle's phase space orbit which is the closed orbit if the
 lattice has a closed geometry and is the orbit beginning from the specified starting position for
 lattices with an open geometry. Use \vn{set particle_start} to vary the starting position in this
@@ -2271,8 +2278,7 @@ will then remove all lines associated with elements whose length is zero. Multip
 \vn{-remove_line_if_zero} may be present. In this case the row will be suppressed if all designated
 columns have a zero entry.
 
-
-Example:
+Examples:
 \begin{example}
   show lattice 50:100         ! Show lattice elements with index 50 through 100
   show lat 45:76, 101, 106     ! Show element #45 through #76 and 101 and 106.
