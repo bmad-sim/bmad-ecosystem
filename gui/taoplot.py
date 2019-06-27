@@ -22,11 +22,13 @@ class taoplot:
 		#string describing region in tao of the desired plot
 
 	def plot(self):
+		'''plots a graph using the data in the region GraphRegion of the tao instance in pipe, and plots a lat_layout below if applicable'''
 		fig = plt.figure()
 		#creates plotting figure
 		pipe = self.pipe
 		GraphRegion = self.GraphRegion
 		LatLayout=False
+
 		def pgp_to_mpl(x):
 			'''takes string with pgplot characters and returns string with characters replaced with matplotlib equivalent, raises NotImplementedError if an unknown pgplot character is used'''
 			x=x.replace('\\','\\\\')
@@ -397,6 +399,12 @@ class taoplot:
 					LineList.append(GraphDict['graph'+str(gNumber+1)].hist(xpList,bins=int(hInfoDictList[CurvesList.index(i)]['number'].value),weights=ypList,histtype='step',color=i[5]))
 				#histogram	
 
+			if gInfoDict['graph^type'].value == 'lat_layout':
+				LatLayout = True
+				gList = []
+				plt.axis('off')
+			#lat_layout
+
 			#plot curves
 			#LineList gives names of curves
 
@@ -412,7 +420,7 @@ class taoplot:
 				LegendList.append(LineList[i][0])
 				LabelList.append(pgp_to_mpl(cInfoDictList[i]['legend_text'].value))
 
-			if (gInfoDict['draw_curve_legend'].value == True and LabelList != ['']):
+			if (gInfoDict['draw_curve_legend'].value == True and LabelList != ['']) and gInfoDict['graph^type'].value != 'lat_layout':
 				GraphDict['graph'+str(gNumber+1)].legend(LegendList,LabelList)
 			#plot legend
 
@@ -515,21 +523,64 @@ class taoplot:
 				try:
 					if eleTypeDict[str(i)] == 'drift':
 						pass			
+					#draw drift element
+
+
 
 					elif shapeTypeDict[eleTypeDict[str(i)]] == 'box' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:		
 						GraphDict['LatLayout'].add_patch(patches.Rectangle((eleStartDict[str(i)],-1*shapeHeightDict[eleTypeDict[str(i)]]),eleEndDict[str(i)]-eleStartDict[str(i)],2*shapeHeightDict[eleTypeDict[str(i)]],color=shapeColorDict[eleTypeDict[str(i)]],fill=False))
+					elif shapeTypeDict[eleTypeDict[str(i)]] == 'box' and eleEndDict[str(i)]-eleStartDict[str(i)] < 0:		
+						print('wrap')
 					#draw box element	
-						if shapeNameDict[eleTypeDict[str(i)]] == 'T':
-							GraphDict['LatLayout'].text(eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,-1.05*shapeHeightDict[eleTypeDict[str(i)]],eleNameDict[str(i)],ha='center',va='top',color=shapeColorDict[eleTypeDict[str(i)]])
-							#print(eleNameDict[str(i)])
+
+
+
 
 					elif shapeTypeDict[eleTypeDict[str(i)]] == 'xbox' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
 						GraphDict['LatLayout'].add_patch(patches.Rectangle((eleStartDict[str(i)],-1*shapeHeightDict[eleTypeDict[str(i)]]),eleEndDict[str(i)]-eleStartDict[str(i)],2*shapeHeightDict[eleTypeDict[str(i)]],color=shapeColorDict[eleTypeDict[str(i)]],fill=False))
 						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[shapeHeightDict[eleTypeDict[str(i)]],-1*shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])
 						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*shapeHeightDict[eleTypeDict[str(i)]],shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])		
-						if shapeNameDict[eleTypeDict[str(i)]] == 'T':
-							GraphDict['LatLayout'].text(eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,-1.05*shapeHeightDict[eleTypeDict[str(i)]],eleNameDict[str(i)],ha='center',va='top',color=shapeColorDict[eleTypeDict[str(i)]])
-							#print(eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2)		
+					elif shapeTypeDict[eleTypeDict[str(i)]] == 'box' and eleEndDict[str(i)]-eleStartDict[str(i)] < 0:		
+						print('wrap')
+					#draw xbox element
+
+
+
+
+					elif shapeTypeDict[eleTypeDict[str(i)]] == 'x' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[shapeHeightDict[eleTypeDict[str(i)]],-1*shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*shapeHeightDict[eleTypeDict[str(i)]],shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])		
+					#draw x element
+				
+
+
+					elif shapeTypeDict[eleTypeDict[str(i)]] == 'bow_tie' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[shapeHeightDict[eleTypeDict[str(i)]],-1*shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*shapeHeightDict[eleTypeDict[str(i)]],shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])		
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[shapeHeightDict[eleTypeDict[str(i)]],shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*shapeHeightDict[eleTypeDict[str(i)]],-1*shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])
+					#draw bow_tie element	
+					
+
+
+					elif shapeTypeDict[eleTypeDict[str(i)]] == 'diamond' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2],[0,-1*shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2],[0,shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,eleEndDict[str(i)]],[-1*shapeHeightDict[eleTypeDict[str(i)]],0],color=shapeColorDict[eleTypeDict[str(i)]])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,eleEndDict[str(i)]],[shapeHeightDict[eleTypeDict[str(i)]],0],color=shapeColorDict[eleTypeDict[str(i)]])
+					#draw diamond element	
+
+
+					elif shapeTypeDict[eleTypeDict[str(i)]] == 'circle' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
+						GraphDict['LatLayout'].add_patch(patches.Ellipse((eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,0),(eleEndDict[str(i)]-eleStartDict[str(i)])/2,2*shapeHeightDict[eleTypeDict[str(i)]],color=shapeColorDict[eleTypeDict[str(i)]],fill=False))
+					#draw circle element
+
+
+
+					if shapeNameDict[eleTypeDict[str(i)]] == 'T':
+						GraphDict['LatLayout'].text(eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,-1.05*shapeHeightDict[eleTypeDict[str(i)]],eleNameDict[str(i)],ha='center',va='top',color=shapeColorDict[eleTypeDict[str(i)]])
+					#draw element name
+
 				except KeyError:
 					#print('element type not found')
 					pass
