@@ -738,12 +738,9 @@ enddo
 ave = ave / n_particle
 sig_mat = sig_mat / n_particle
 
-! Since we are dealing with a finite number of particles, 
-! the sigmas of the distributions in each dimension
-! will not be exactly 1 and there will 
-! be some correlation between different dimensions.
-! If beam_init%renorm_sigma = True then take this out.
-! That is, we want to make sig_mat = the unit matrix.
+! Since we are dealing with a finite number of particles, the sigmas of the distributions in 
+! each dimension will not be exactly 1 and there will be some correlation between different dimensions.
+! If beam_init%renorm_sigma = True then take this out. That is, make sig_mat = the unit matrix.
 ! Exception: Ignore if n_particle = 1.
 ! Also: If n_particle < 7 then cannot remove correlations between 
 ! dimensions so, in this case, only normalize sig_mat(i,i) to 1.
@@ -840,6 +837,19 @@ do i = 1, n_particle
   p(i)%vec(5) =  sigma(5) *  r(5)
   p(i)%vec(6) =  sigma(6) * (r(6) * b + r(5) * a)
 end do
+
+! Renormalize the beam centroid
+
+if (beam_init%renorm_center) then
+  ave = 0
+  do n = 1, n_particle
+    ave = ave + p(n)%vec 
+  enddo
+  ave = ave / n_particle
+  do n = 1, n_particle
+    p(n)%vec = p(n)%vec - ave
+  enddo
+endif
 
 ! Set particle charge and transfer info the the bunch
 
