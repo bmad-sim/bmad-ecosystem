@@ -1179,6 +1179,41 @@ class tao_ele_window(tao_list_window):
     # Button should now show instead of hide
     self.sh_b_list[index].configure(command=self.s_callback(index))
 
+#----------------------------------------------------
+
+#class tao_switch:
+#  '''
+#  Data structure for holding all the relevant info
+#  for a (lattice) switch
+#  Recognized keywords:
+#  name (str): the proper name of the switch in Tao, e.g. -s, -lords; include the -
+#  display_name (str): what to show the user
+#  use (bool): whether or not to use this switch
+#  value (str): the value to use for this switch
+#  '''
+#  def __init__(self, **kwargs):
+#    if "name" in kwargs.keys():
+#      self.name = kwargs["name"]
+#    else:
+#      self.name = ""
+#    if "display_name" in kwargs.keys():
+#      self.display_name = kwargs["display_name"]
+#    else:
+#      self.display_name = ""
+#    if "use" in kwargs.keys():
+#      self.use = bool(kwargs["use"])
+#    else:
+#      self.use = False
+#    if "value" in kwargs.keys():
+#      self.value = kwargs["value"]
+#    else:
+#      self.value = ""
+#    self.etc = kwargs #catchall
+#
+#    self.use_var = tk.BooleanVar()
+#    self.use_var.set(self.use)
+#    self.value_var = tk.StringVar()
+#    self.value_var.set(self.value)
 
 #---------------------------------------------------
 # Lattice Window
@@ -1194,24 +1229,166 @@ class tao_lattice_window(tk.Toplevel):
     self.root = root
     self.pipe = pipe
     self.switches = switches
+    self.bind("<Return>", self.refresh)
 
     # Set up top_frame for switches and table_frame for the table
     self.top_frame = tk.Frame(self)
     self.top_frame.pack(fill="both", expand=0)
+    self.top_frame.columnconfigure(4, weight=1)
     self.table_frame = tk.Frame(self)
     self.table_frame.pack(fill="both", expand=1)
 
-    # Temporary, allows inputing switches
-    self.switch_var = tk.StringVar()
-    self.switch_var.set(self.switches)
-    switch_box = tk.Entry(self.top_frame, textvariable=self.switch_var)
-    switch_box.pack(side="left", fill="both", expand=1)
-    switch_box.bind("<Return>", self.refresh)
-    b = tk.Button(self.top_frame, text="Refresh", command=self.refresh)
-    b.pack(side="left", fill="both", expand=0)
+    # Switches
+
+    # Branch/General
+    tk.Label(self.top_frame, text="PLACEHOLDER").grid(row=0, column=0, columnspan=5, sticky='EW')
+
+    # Columns
+    tk.Label(self.top_frame, text="Columns:").grid(row=1, column=0, sticky='W')
+    self.col_filter = tk.StringVar()
+    col_opts = ["Default", "Floor Coordinates",
+        "Orbit", "Spin", "Orbit + Spin",
+        "Radiation Integrals", "Cumulative Radiation Integrals",
+        "List Attributes"]
+    self.col_filter.set("Default")
+    self.cf_box = tk.OptionMenu(self.top_frame, self.col_filter,
+        *col_opts, command=self.col_filter_callback)
+    self.cf_box.grid(row=1, column=1, sticky='EW')
+    tk.Label(self.top_frame, text="Attributes:").grid(row=1, column=2, sticky='EW')
+    self.col_atts = tk.StringVar()
+    self.att_box = tk.Entry(self.top_frame, textvariable=self.col_atts)
+    self.att_box.configure(state="disabled")
+    self.att_box.grid(row=1, column=3, sticky='EW')
+
+    # Rows
+    tk.Label(self.top_frame, text="Rows:").grid(row=2, column=0, sticky='W')
+    self.f_button = tk.Button(self.top_frame, text="Filters", command=self.open_filter_menu)
+    self.f_button.grid(row=2, column=1, sticky='EW')
+
+    self.filter_vars = []
+    for i in range(5):
+      self.filter_vars.append(tk.BooleanVar())
+      self.filter_vars[i].set(False)
+    self.remove_if_zero = tk.StringVar()
+    self.s_range = tk.StringVar()
+
+    tk.Label(self.top_frame, text="Element List:").grid(row=2, column=2, sticky='E')
+    self.ele_list = tk.StringVar()
+    self.ele_list_opt = tk.StringVar()
+    ele_list_opts = ["Default (first 200)", "All", "Tracking elements", "Custom"]
+    self.ele_list_chooser = tk.OptionMenu(self.top_frame, self.ele_list_opt, *ele_list_opts, command=self.ele_list_callback)
+    self.ele_list_opt.set(ele_list_opts[0])
+    self.ele_list_chooser.grid(row=2, column=3, sticky='EW')
+    self.ele_list_box = tk.Entry(self.top_frame, textvariable=self.ele_list)
+    self.ele_list_box.configure(state="disabled")
+    self.ele_list_box.grid(row=2, column=4, sticky='EW')
+
+    # Advanced Options
+    self.use_advanced = False
+    tk.Button(self.top_frame, text="Advanced\nOn/Off", command=self.toggle_advanced).grid(row=1, column=5, rowspan=2, sticky='NSEW')
+    tk.Label(self.top_frame, text="Advanced:").grid(row=3, column=0, sticky='W')
+    self.advanced_var = tk.StringVar()
+    self.advanced_var.set(self.switches)
+    self.advanced_box = tk.Entry(self.top_frame, textvariable=self.advanced_var)
+    self.advanced_box.configure(state="disabled")
+    self.advanced_box.grid(row=3, column=1, columnspan=4, sticky='EW') #pack(side="left", fill="both", expand=1)
+    #self.advanced_box.bind("<Return>", self.refresh)
     #self.tree.focus() and self.tree.selection() for current items
 
+    b = tk.Button(self.top_frame, text="Refresh", command=self.refresh)
+    b.grid(row=3, column=5, sticky='EW') #pack(side="left", fill="both", expand=0)
     self.refresh()
+
+  def col_filter_callback(self, event=None):
+    if self.col_filter.get() == "List Attributes":
+      self.att_box.configure(state="normal")
+    else:
+      self.att_box.configure(state="disabled")
+
+  def ele_list_callback(self, event=None):
+    if self.ele_list_opt.get() == "Custom":
+      self.ele_list_box.configure(state="normal")
+    else:
+      self.ele_list_box.configure(state="disabled")
+
+  def open_filter_menu(self, event=None):
+    '''
+    Opens a menu to set the various row filters
+    '''
+    win = tk.Toplevel(self)
+    win.title("Lattice Row Filters")
+    filters = ["Lords only", "No Slaves", "No Super Slaves", "Remove Line if zero", "s"]
+    buttons = []
+    for i in range(len(self.filter_vars)):
+      buttons.append(tk.Checkbutton(win, text=filters[i], variable=self.filter_vars[i]))
+      buttons[i].grid(row=i, column=0, sticky='W')
+    tk.Entry(win, textvariable=self.remove_if_zero).grid(row=3, column=1, sticky='EW')
+    tk.Entry(win, textvariable=self.s_range).grid(row=4, column=1, sticky='EW')
+
+  def toggle_advanced(self, event=None):
+    '''
+    Toggles self.use_advanced and enables/disables the appropriate widgets
+    '''
+    widgets = [self.cf_box, self.att_box,
+        self.f_button, self.ele_list_chooser,
+        self.ele_list_box]
+    if self.use_advanced: #Turn off
+      for w in widgets:
+        w.configure(state="normal")
+        # Turn off att_box and ele_list_box, maybe
+        self.ele_list_callback()
+        self.col_filter_callback()
+        self.advanced_box.configure(state="disabled")
+    else:
+      for w in widgets:
+        w.configure(state="disabled")
+        self.advanced_box.configure(state="normal")
+    self.use_advanced = not self.use_advanced
+
+  def get_switches(self, event=None):
+    if self.use_advanced:
+      self.switches = self.advanced_var.get()
+    else:
+      switches = ""
+      # Parse column switches
+      if self.col_filter.get() == "Floor Coordinates":
+        switches += '-floor_coords '
+      elif self.col_filter.get() == "Orbit":
+        switches += '-orbit '
+      elif self.col_filter.get() == "Spin":
+        switches += '-spin '
+      elif self.col_filter.get() == "Orbit + Spin":
+        switches += '-orbit -spin '
+      elif self.col_filter.get() == "Radiation Integrals":
+        switches += '-radiation_integrals '
+      elif self.col_filter.get() == "Cumulative Radiation Integrals":
+        switches += '-sum_radiation_integrals '
+      elif self.col_filter.get() == "List Attributes":
+        for att in (self.col_atts.get()).split(' '):
+          if att != '': #handles more than one space between attributes
+            switches += '-att ' + att + ' '
+
+      # Row switches
+      if self.filter_vars[0].get():
+        switches += '-lords '
+      if self.filter_vars[1].get():
+        switches += '-no_slaves '
+      if self.filter_vars[2].get():
+        switches += '-no_super_slaves '
+      if self.filter_vars[3].get():
+        switches += '-remove_line_if_zero ' + self.remove_if_zero.get() + ' '
+      if self.filter_vars[4].get():
+        switches += '-s ' + self.s_range.get() + ' '
+
+      if self.ele_list_opt.get() == "All":
+        switches += '-all '
+      elif self.ele_list_opt.get() == "Tracking Elements":
+        switches += '-tracking_elements '
+      elif self.ele_list_opt.get() == "Custom":
+        switches += self.ele_list.get()
+
+      self.switches = switches
+      self.advanced_var.set(switches)
 
   def refresh(self, event=None):
     '''
@@ -1223,8 +1400,8 @@ class tao_lattice_window(tk.Toplevel):
       child.destroy()
 
     # Get the new table data using the given switches
-    self.switches = self.switch_var.get()
-    lattice = self.pipe.cmd_in("python lat_table " + self.switches)
+    self.get_switches()
+    lattice = self.pipe.cmd_in("python show lattice -python " + self.switches)
     lattice = lattice.splitlines()
     if len(lattice) == 0:
       print("No lattice found")
@@ -1252,7 +1429,7 @@ class tao_lattice_window(tk.Toplevel):
     for j in range(len(lattice[0])):
       if len(lattice[0][j])*15 > widths[j]:
         widths[j] = len(lattice[0][j])*15
-      self.tree.column(lattice[0][j], width=widths[j])
+      self.tree.column(lattice[0][j], width=widths[j], minwidth=widths[j])
 
     # Scrollbars
     hbar = ttk.Scrollbar(self.table_frame, orient="horizontal", command=self.tree.xview)
@@ -1262,11 +1439,19 @@ class tao_lattice_window(tk.Toplevel):
     vbar.pack(side="right", fill="y", expand=0)
     hbar.pack(side="bottom", fill='x', expand=0)
     self.tree.pack(side="left", fill="both", expand=1)
+    self.widths = widths
 
-    #tot = 0
-    #for w in widths:
-    #  tot = tot+w
-    #print(tot)
+    tot = 0
+    for w in widths:
+      tot = tot+w
+    if tot < 1750:
+      self.maxsize(tot+50, 1000)
+    else:
+      self.maxsize(1800, 1000)
+    #if tot > 1600:
+    #  old_geo = self.wm_geometry()
+    #  new_geo = str(1600) + old_geo[old_geo.find('x'):]
+    #  self.geometry(new_geo)
 
 
 
