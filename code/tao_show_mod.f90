@@ -394,10 +394,10 @@ case ('beam')
     nl=nl+1; write(lines(nl), rmt) '  %dPz_dz                 = ', beam_init%dPz_dz
     nl=nl+1; write(lines(nl), rmt) '  %dt_bunch               = ', beam_init%dt_bunch
     nl=nl+1; write(lines(nl), rmt) '  %sig_z                  = ', beam_init%sig_z
-    nl=nl+1; write(lines(nl), rmt) '  %sig_e                  = ', beam_init%sig_e
+    nl=nl+1; write(lines(nl), rmt) '  %sig_pz                 = ', beam_init%sig_pz
     nl=nl+1; write(lines(nl), rmt) '  %emit_jitter            = ', beam_init%emit_jitter
     nl=nl+1; write(lines(nl), rmt) '  %sig_z_jitter           = ', beam_init%sig_z_jitter
-    nl=nl+1; write(lines(nl), rmt) '  %sig_e_jitter           = ', beam_init%sig_e_jitter
+    nl=nl+1; write(lines(nl), rmt) '  %sig_pz_jitter          = ', beam_init%sig_pz_jitter
     nl=nl+1; write(lines(nl), rmt) '  %spin                   = ', beam_init%spin
     nl=nl+1; write(lines(nl), lmt) '  %renorm_center          = ', beam_init%renorm_center
     nl=nl+1; write(lines(nl), lmt) '  %renorm_sigma           = ', beam_init%renorm_sigma
@@ -2013,7 +2013,7 @@ case ('lattice')
         '-branch', '-blank_replacement', '-lords', '-middle', '-tracking_elements', '-0undef', &
         '-no_label_lines', '-no_tail_lines', '-custom', '-s', '-radiation_integrals', '-remove_line_if_zero', &
         '-base', '-design', '-floor_coords', '-orbit', '-attribute', '-all', '-no_slaves', '-energy', &
-        '-spin', '-undef0', '-no_super_slaves', '-sum_radiation_integrals', '-python'], &
+        '-spin', '-undef0', '-no_super_slaves', '-sum_radiation_integrals', '-python', '-universe'], &
             .true., switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
@@ -2135,6 +2135,15 @@ case ('lattice')
       else
         what_to_print = 'spin'
       endif
+
+    case ('-universe')
+      read (what2(1:ix_s2), *, iostat = ios) ix
+      u => tao_pointer_to_universe(ix)
+      if (ix_s2 == 0 .or. ios /= 0 .or. .not. associated(u)) then
+        nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" ARGUMENT'
+        return
+      endif
+      call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case default
       attrib0 = trim(attrib0) // ' ' // trim(switch)
@@ -2685,12 +2694,25 @@ case ('lattice')
     n_remove_found = 0
 
     do i = 1, size(column)
-        
-      if (i > 1) then
-        if (column(i-1)%name /= '') nc  = nc + column(i-1)%width
+
+      j = max(i-1, 1)
+      if (i > 1 .and. column(j)%name /= '') then
+        if (called_from_python_cmd) then
+          if (column(j)%name /= 'x') then
+            do i0 = nc, nc+column(j)%width
+              if (line(i0:i0) /= ' ') exit
+            enddo
+            if (i0 > nc) line(nc:) = line(i0:)
+            nc = len_trim(line) + 2
+            line(nc-1:nc-1) = ';'
+          endif
+        else
+          nc  = nc + column(i-1)%width
+        endif
       endif
 
       name = column(i)%name
+      if (name == '') cycle
 
       if (name(1:7) == 'ele::#[' .and. index(name, ']') /= 0) then
         sub_name = col_info(i)%attrib_name
@@ -2741,7 +2763,6 @@ case ('lattice')
         end select
       endif
 
-      if (name == '') cycle
       ios = 0
 
       if (name == '#' .or. name == '#index') then
@@ -2812,9 +2833,11 @@ case ('lattice')
         return
       endif
 
-    enddo
+    enddo  ! column loop
 
     if (n_remove > 0 .and. n_remove_found == n_remove) cycle
+    if (called_from_python_cmd) line(nc-1:nc-1) = ' '  ! Remove final ';'
+
     nl=nl+1; lines(nl) = line
 
   enddo row_loop

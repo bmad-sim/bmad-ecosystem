@@ -483,16 +483,16 @@ if (u%calc%beam_sigma_for_data .or. u%calc%beam_sigma_for_plotting) then
     D_mat(2,2) = beam_init%a_emit
     D_mat(3,3) = beam_init%b_emit
     D_mat(4,4) = beam_init%b_emit
-    D_mat(5,5) = beam_init%sig_z * beam_init%sig_E
-    D_mat(6,6) = beam_init%sig_z * beam_init%sig_E
+    D_mat(5,5) = beam_init%sig_z * beam_init%sig_pz
+    D_mat(6,6) = beam_init%sig_z * beam_init%sig_pz
 
     tao_branch%linear(0)%sigma = matmul(matmul(N_mat, D_mat), transpose(N_mat))
 
   else
     covar = beam_init%dPz_dz * beam_init%sig_z**2
-    radix = (beam_init%sig_z * beam_init%sig_e)**2 - covar**2
+    radix = (beam_init%sig_z * beam_init%sig_pz)**2 - covar**2
     if (radix < 0) then
-      call out_io (s_error$, r_name, 'Beam init: |dPz_dz| must be less than Sig_E/Sig_z')
+      call out_io (s_error$, r_name, 'Beam init: |dPz_dz| must be less than Sig_Pz/Sig_z')
       calc_ok = .false.
       return
     endif

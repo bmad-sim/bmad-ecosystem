@@ -4494,7 +4494,7 @@ integer n_size
 
 logical err_flag, use_good_user, print_err
 
-character(20) :: r_name = 'tao_evaluate_stack'
+character(*), parameter :: r_name = 'tao_evaluate_stack'
 
 ! Calculate good
 
@@ -4599,13 +4599,16 @@ do i = 1, size(stack)
   case (divide$) 
     n = size(stk2(i2)%value)
     do j = 1, n
-      if (stk2(i2)%value(j) == 0) then  ! Divide by 0 error!
-        stk2(i2)%value(j) = 1
-        if (n == 1) then
-          info%good = .false.  ! All are false
-        else
-          info(j)%good = .false.
-        endif
+      if (stk2(i2)%value(j) /= 0) cycle
+      if (print_err) call out_io (s_error$, r_name, 'Divide by zero!')
+      err_flag = .true.
+      return
+      ! Propably can get rid of this stuff...
+      stk2(i2)%value(j) = 1
+      if (n == 1) then
+        info%good = .false.  ! All are false
+      else
+        info(j)%good = .false.
       endif
     enddo
 
