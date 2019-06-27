@@ -1344,7 +1344,7 @@ if (slave%mat6_calc_method == bmad_standard$ .and. slave%key == em_field$) slave
 
 ! wiggler fields and electro-magnetic fields
 
-if (slave%key == wiggler$ .or. slave%key == undulator$) slave%value(n_pole$) = lord%value(n_pole$) * coef
+if (slave%key == wiggler$ .or. slave%key == undulator$) slave%value(n_period$) = lord%value(n_period$) * coef
 
 ! If an sbend:
 !     1) renormalize the angles

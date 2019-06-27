@@ -843,7 +843,6 @@ call init_attribute_name1 (line_ele$, ix_branch$,                   'ix_branch',
 call init_attribute_name1 (line_ele$, high_energy_space_charge_on$, 'HIGH_ENERGY_SPACE_CHARGE_ON')
 
 call init_attribute_name1 (capillary$, l$,                          'L', dependent$)
-call init_attribute_name1 (capillary$, s_spline$,                   'S_SPLINE')
 call init_attribute_name1 (capillary$, n_slice_spline$,             'N_SLICE_SPLINE')
 call init_attribute_name1 (capillary$, critical_angle_factor$,      'CRITICAL_ANGLE_FACTOR')
 call init_attribute_name1 (capillary$, e_tot_start$,                'e_tot_start', private$)
@@ -853,7 +852,6 @@ call init_attribute_name1 (converter$, l$,                          'L')
 
 call init_attribute_name1 (lens$, l$,                               'L')
 call init_attribute_name1 (lens$, radius$,                          'RADIUS')
-call init_attribute_name1 (lens$, transmission_coef$,               'TRANSMISSION_COEF')
 call init_attribute_name1 (lens$, focal_strength$,                  'FOCAL_STRENGTH')
 call init_attribute_name1 (lens$, e_tot_start$,                     'e_tot_start', private$)
 call init_attribute_name1 (lens$, p0c_start$,                       'p0c_start', private$)
@@ -922,7 +920,7 @@ call init_attribute_name1 (def_particle_start$, spin_z$,                    'SPI
 call init_attribute_name1 (def_particle_start$, emittance_a$,               'EMITTANCE_A')
 call init_attribute_name1 (def_particle_start$, emittance_b$,               'EMITTANCE_B')
 call init_attribute_name1 (def_particle_start$, emittance_z$,               'EMITTANCE_Z')
-call init_attribute_name1 (def_particle_start$, sig_e$,                     'SIG_E')
+call init_attribute_name1 (def_particle_start$, sig_pz$,                    'SIG_PZ')
 call init_attribute_name1 (def_particle_start$, sig_z$,                     'SIG_Z')
 call init_attribute_name1 (def_particle_start$, direction_particle_start$,  'DIRECTION')
 
@@ -1472,7 +1470,7 @@ call init_attribute_name1 (multilayer_mirror$, diffraction_limited$,  'DIFFRACTI
 call init_attribute_name1 (taylor$, E_tot_start$,                   'E_tot_start', private$)
 call init_attribute_name1 (taylor$, p0c_start$,                     'p0c_start', private$)
 call init_attribute_name1 (taylor$, ref_orbit$,                     'REF_ORBIT')
-call init_attribute_name1 (taylor$, tt$,                            'TT*')
+call init_attribute_name1 (taylor$, tt$,                            'TT<out><n1><n2>...')
 call init_attribute_name1 (taylor$, x_ref$,                         'X_REF')
 call init_attribute_name1 (taylor$, px_ref$,                        'PX_REF')
 call init_attribute_name1 (taylor$, y_ref$,                         'Y_REF')
@@ -1483,10 +1481,10 @@ call init_attribute_name1 (taylor$, delta_e_ref$,                   'DELTA_E_REF
 call init_attribute_name1 (taylor$, delta_ref_time$,                'DELTA_REF_TIME', override = .true.) ! Here not dependent
 
 call init_attribute_name1 (wiggler$, k1_pseudo$,                    'K1_PSEUDO', dependent$)
-call init_attribute_name1 (wiggler$, l_pole$,                       'L_POLE')
+call init_attribute_name1 (wiggler$, l_period$,                     'L_PERIOD')
+call init_attribute_name1 (wiggler$, n_period$,                     'N_PERIOD')
 call init_attribute_name1 (wiggler$, b_max$,                        'B_MAX')
 call init_attribute_name1 (wiggler$, g_max$,                        'G_MAX', dependent$)
-call init_attribute_name1 (wiggler$, n_pole$,                       'N_POLE')
 call init_attribute_name1 (wiggler$, term$,                         'TERM')
 call init_attribute_name1 (wiggler$, polarity$,                     'POLARITY')
 call init_attribute_name1 (wiggler$, r0_mag$,                       'R0_MAG')
@@ -1731,7 +1729,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', '
       'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'SPIN_FRINGE_ON', 'REF_TIME_OFFSET', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'DIFFRACTION_LIMITED', &
       'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'MATCH_END_INPUT', 'MATCH_END_ORBIT_INPUT', 'GEO', &
-      'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE')
+      'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', 'SAD_N_DIV_MAX', &
@@ -1751,11 +1749,12 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPO
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PHYSICAL_SOURCE', &
      'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'REFERENCE', 'TO_LINE', 'TO_ELEMENT', 'ORIGIN_ELE', 'NAME', &
-     'MACHINE')
+     'MACHINE', 'START_EDGE')
   attrib_type = is_string$
 
 case ('CARTESIAN_MAP', 'CYLINDRICAL_MAP', 'FIELD_OVERLAPS', 'GRID_FIELD', 'LR_WAKE_SPLINE', 'REF_ORBIT', &
-      'SUPERIMPOSE', 'SURFACE', 'TAYLOR_FIELD', 'TERM', 'VAR')
+      'SUPERIMPOSE', 'SURFACE', 'TAYLOR_FIELD', 'TERM', 'VAR', 'WALL', 'AMP_VS_TIME', 'FREQUENCIES', &
+      'X_KNOT')
   attrib_type = is_struct$
 
 case default
@@ -1801,26 +1800,28 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
       'CHARGE', 'CMAT_11', 'CMAT_12', 'CMAT_21', 'CMAT_22', 'COUPLER_STRENGTH', 'DE_ETA_MEAS', &
       'ELECTRIC_DIPOLE_MOMENT', 'ETAP_X', 'ETAP_X0', 'ETAP_X1', 'ETAP_Y', 'ETAP_Y0', 'ETAP_Y1', &
       'FIELD_AUTOSCALE', 'FIELD_SCALE_FACTOR', 'FIELD_X', 'FIELD_Y', 'FINT', 'FINTX', 'GAP', 'HARMON', 'HKICK', &
-      'KICK', 'MAX_NUM_RUNGE_KUTTA_STEP', 'NOISE', 'N_PART', 'N_POLE', 'N_SAMPLE', 'N_SLICE_SPLINE', 'OSC_AMPLITUDE', &
+      'KICK', 'MAX_NUM_RUNGE_KUTTA_STEP', 'NOISE', 'N_PART', 'N_PERIOD', 'N_SAMPLE', 'N_SLICE_SPLINE', &
       'POLARITY', 'PX', 'PX0', 'PX1', 'PX_REF', 'PY', 'PY0', 'PY1', 'PY_REF', 'PZ', 'PZ0', 'PZ1', 'PZ_REF', &
-      'RAN_SEED', 'REF_CAP_GAMMA', 'REL_TOL_ADAPTIVE_TRACKING', 'REL_TOL_TRACKING', 'SIG_E', 'SIG_VX', 'SIG_VY', &
+      'RAN_SEED', 'REF_CAP_GAMMA', 'REL_TOL_ADAPTIVE_TRACKING', 'REL_TOL_TRACKING', 'SIG_PZ', 'SIG_VX', 'SIG_VY', &
       'SPIN_X', 'SPIN_Y', 'SPIN_Z', 'TRANSVERSE_SIGMA_CUT', 'VKICK', 'LONGITUDINAL_MODE', &
-      'X_PITCH', 'Y_PITCH', 'X_PITCH_MULT', 'Y_PITCH_MULT', 'X_PITCH_TOT', 'Y_PITCH_TOT', 'AUTOSCALE_AMP_REL_TOL')
+      'X_PITCH', 'Y_PITCH', 'X_PITCH_MULT', 'Y_PITCH_MULT', 'X_PITCH_TOT', 'Y_PITCH_TOT', 'AUTOSCALE_AMP_REL_TOL', &
+      'VAL1', 'VAL2', 'VAL3', 'VAL4', 'VAL5', 'VAL6', 'VAL7', 'VAL8', 'VAL9', 'VAL10', 'VAL11', 'VAL12', &
+      'C11_MAT0', 'C11_MAT1', 'C22_MAT0', 'C22_MAT1', 'E2_PROBABILITY')
   attrib_units = ''
 
 case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTURE', &
-      'D1_THICKNESS', 'D2_THICKNESS', 'DEFAULT_DS_STEP', &
+      'D1_THICKNESS', 'D2_THICKNESS', 'DEFAULT_DS_STEP', 'OSC_AMPLITUDE', &
       'DS_SLICE', 'DS_STEP', 'DX_ORIGIN', 'DY_ORIGIN', 'DZ_ORIGIN', 'D_SPACING', 'END_EDGE', 'EPS_STEP_SCALE', &
       'ETA_X', 'ETA_X0', 'ETA_X1', 'ETA_Y', 'ETA_Y0', 'ETA_Y1', 'ETA_Z', 'FATAL_DS_ADAPTIVE_TRACKING', &
       'FB1', 'FB2', 'FQ1', 'FQ2', 'HGAP', 'HGAPX', 'H_DISPLACE', 'INIT_DS_ADAPTIVE_TRACKING', 'L', &
-      'LORD_PAD1', 'LORD_PAD2', 'L_CHORD', 'L_HARD_EDGE', 'L_POLE', 'L_SAGITTA', 'MAX_APERTURE_LIMIT', &
+      'LORD_PAD1', 'LORD_PAD2', 'L_CHORD', 'L_HARD_EDGE', 'L_PERIOD', 'L_SAGITTA', 'MAX_APERTURE_LIMIT', &
       'MIN_DS_ADAPTIVE_TRACKING', 'OFFSET', 'PENDELLOSUNG_PERIOD_PI', 'PENDELLOSUNG_PERIOD_SIGMA', 'R0_ELEC', 'R0_MAG', &
       'REF_WAVELENGTH', 'RHO', 'S', 'SIGNIFICANT_LENGTH', 'SIG_X', 'SIG_Y', 'SIG_Z', 'S_POSITION', 'THICKNESS', &
-      'X', ' X0', 'X1', 'Y', 'Y0', 'Y1', 'X1_LIMIT', 'X2_LIMIT', 'Y1_LIMIT', 'Y2_LIMIT', 'X_LIMIT', 'Y_LIMIT', &
+      'X', 'X0', 'X1', 'Y', 'Y0', 'Y1', 'X1_LIMIT', 'X2_LIMIT', 'Y1_LIMIT', 'Y2_LIMIT', 'X_LIMIT', 'Y_LIMIT', &
       'X_OFFSET', 'Y_OFFSET', 'X_OFFSET_CALIB', 'Y_OFFSET_CALIB', 'X_OFFSET_MULT', 'Y_OFFSET_MULT', &
       'X_OFFSET_TOT', 'Y_OFFSET_TOT', 'X_POSITION', 'Y_POSITION', 'X_QUAD', 'Y_QUAD', 'X_RAY_LINE_LEN', &
       'X_REF', 'Y_REF', 'Z', 'Z0', 'Z1', 'Z_OFFSET', 'Z_OFFSET_TOT', 'Z_POSITION', 'Z_REF', &
-      'X_GAIN_CALIB', 'Y_GAIN_CALIB', 'X_GAIN_ERR', 'Y_GAIN_ERR')
+      'C12_MAT0', 'C12_MAT1', 'X_GAIN_CALIB', 'Y_GAIN_CALIB', 'X_GAIN_ERR', 'Y_GAIN_ERR', 'RADIUS')
   attrib_units = 'm'
 
 
@@ -1843,10 +1844,10 @@ case ('COUPLER_PHASE', 'PHI0', 'PHI0_AUTOSCALE', 'PHI0_ERR', 'PHI0_MULTIPASS', '
 case ('CRITICAL_ANGLE_FACTOR')
   attrib_units = 'rad*eV'
 
-case ('SPHERICAL_CURVATURE', 'ELLIPTICAL_CURVATURE_X', 'ELLIPTICAL_CURVATURE_Y', 'ELLIPTICAL_CURVATURE_Z')
+case ('SPHERICAL_CURVATURE', 'ELLIPTICAL_CURVATURE_X', 'ELLIPTICAL_CURVATURE_Y', 'ELLIPTICAL_CURVATURE_Z', 'FOCAL_STRENGTH')
   attrib_units = '1/m'
 
-case ('CURVATURE_X0_Y2', 'CURVATURE_X1_Y1', 'CURVATURE_X2_Y0', 'G', 'G_ERR', 'H1', 'H2')
+case ('C21_MAT0', 'C21_MAT1', 'CURVATURE_X0_Y2', 'CURVATURE_X1_Y1', 'CURVATURE_X2_Y0', 'G', 'G_ERR', 'G_MAX', 'H1', 'H2')
   attrib_units = '1/m'
 
 case ('CURVATURE_X0_Y3', 'CURVATURE_X1_Y2', 'CURVATURE_X2_Y1', 'CURVATURE_X3_Y0', 'DKS_DS')
@@ -1864,11 +1865,11 @@ case ('CURVATURE_X0_Y6', 'CURVATURE_X1_Y5', 'CURVATURE_X2_Y4', 'CURVATURE_X3_Y3'
 case ('DBRAGG_ANGLE_DE')
   attrib_units = 'rad/eV'
 
-case ('DELTA_E', 'ENERGY', 'E_CENTER', 'E_LOSS', 'E_PHOTON', 'E_TOT', 'E_TOT_OFFSET', 'E_TOT_START', &
-      'P0C', 'P0C_START', 'PC', 'AUTOSCALE_AMP_ABS_TOL')
+case ('DELTA_E', 'ENERGY', 'E_CENTER', 'E2_CENTER', 'E_LOSS', 'E_PHOTON', 'E_TOT', 'E_TOT_OFFSET', 'E_TOT_START', &
+      'P0C', 'P0C_START', 'PC', 'P0C_SET', 'E_TOT_SET', 'AUTOSCALE_AMP_ABS_TOL', 'DELTA_E_REF', 'SIG_E', 'SIG_E2')
   attrib_units = 'eV'
 
-case ('DELTA_REF_TIME', 'REF_TIME', 'T', 'T_OFFSET')
+case ('DELTA_REF_TIME', 'REF_TIME', 'T', 'T_OFFSET', 'DELTA_TIME')
   attrib_units = 'sec'
 
 case ('EMITTANCE_A', 'EMITTANCE_B', 'EMITTANCE_Z')
@@ -1896,7 +1897,7 @@ case ('B3_GRADIENT');                           attrib_units = 'T/m^3'
 case ('BL_HKICK', 'BL_KICK', 'BL_VKICK');       attrib_units = 'T*m'
 case ('A0', 'B0', 'K0L');                       attrib_units = ''
 case ('A1', 'B1', 'K1L', 'KS');                 attrib_units = '1/m'
-case ('A2', 'B2', 'K2L', 'K1');                 attrib_units = '1/m^2'
+case ('A2', 'B2', 'K2L', 'K1', 'K1_PSEUDO');    attrib_units = '1/m^2'
 case ('A3', 'B3', 'K3L', 'K2');                 attrib_units = '1/m^3'
 case ('A4', 'B4', 'K4L', 'K3');                 attrib_units = '1/m^4'
 case ('A5', 'B5', 'K5L');                       attrib_units = '1/m^5'

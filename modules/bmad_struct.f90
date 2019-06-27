@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 234
+integer, parameter :: bmad_inc_version$ = 235
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -947,8 +947,8 @@ type beam_init_struct
   type (grid_beam_init_struct) :: grid(3) = grid_beam_init_struct()          ! Grid beam distribution
   real(rp) :: center_jitter(6) = 0.0  ! Bunch center rms jitter
   real(rp) :: emit_jitter(2)   = 0.0  ! a and b bunch emittance rms jitter normalized to emittance
-  real(rp) :: sig_z_jitter     = 0.0  ! bunch length RMS jitter 
-  real(rp) :: sig_e_jitter     = 0.0  ! energy spread RMS jitter 
+  real(rp) :: sig_z_jitter     = 0.0  ! bunch length RMS jitter
+  real(rp) :: sig_pz_jitter    = 0.0  ! RMS pz spread jitter 
   integer :: n_particle = 0           ! Number of particles per bunch.
   logical :: renorm_center = .true.   ! Renormalize centroid?
   logical :: renorm_sigma = .true.    ! Renormalize sigma?
@@ -964,7 +964,7 @@ type beam_init_struct
   real(rp) :: center(6) = 0                  ! Bench center offset relative to reference.
   real(rp) :: dt_bunch = 0                   ! Time between bunches.
   real(rp) :: sig_z = 0                      ! Z sigma in m.
-  real(rp) :: sig_e = 0                      ! e_sigma in dE/E.
+  real(rp) :: sig_pz = 0                     ! pz sigma
   real(rp) :: bunch_charge = 0               ! charge (Coul) in a bunch.
   integer :: n_bunch = 0                     ! Number of bunches.
   character(16) :: species = ""              ! "positron", etc. "" => use referece particle.
@@ -976,6 +976,8 @@ type beam_init_struct
   logical :: use_z_as_t   = .false.          ! Only used if  use_t_coords = .true.
                                              !   If true,  z describes the t distribution 
                                              !   If false, z describes the s distribution
+  real(rp) :: sig_e_jitter     = 0.0         ! DEPRECATED. DO NOT USE. Replaced by sig_pz_jitter.
+  real(rp) :: sig_e = 0                      ! DEPRECATED. DO NOT USE. Replaced by sig_pz.
 end type
 
 ! The routines calc_bunch_params and calc_bunch_params_slice calculate bunch parameters.
@@ -1343,7 +1345,7 @@ integer, parameter :: e_photon$ = 9
 integer, parameter :: e1$ = 19, e2$ = 20
 integer, parameter :: fint$ = 21, fintx$ = 22, hgap$ = 23, hgapx$ = 24, h1$ = 25, h2$ = 26
 
-integer, parameter :: radius$ = 3, transmission_coef$ = 4, focal_strength$ = 5
+integer, parameter :: radius$ = 3, focal_strength$ = 5
 
 integer, parameter :: l$ = 1                          ! Assumed unique. Do not assign 1 to another attribute.
 integer, parameter :: tilt$ = 2, roll$ = 2, n_part$ = 2 ! Important: tilt$ = roll$
@@ -1355,7 +1357,7 @@ integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, dr
 integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5
 integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_branch$ = 6, g_max$ = 6
 integer, parameter :: g$ = 6, bragg_angle_in$ = 6, symmetry$ = 6, field_scale_factor$ = 6
-integer, parameter :: g_err$ = 7, n_pole$ = 7, bbi_const$ = 7, osc_amplitude$ = 7
+integer, parameter :: g_err$ = 7, bbi_const$ = 7, osc_amplitude$ = 7
 integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, sad_flag$ = 7
 integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$ = 7
 integer, parameter :: rho$ = 8, delta_e_ref$ = 8, diffraction_limited$ = 8, interpolation$ = 8
@@ -1370,18 +1372,18 @@ integer, parameter :: fb2$ = 15, sig_y$ = 15, graze_angle_in$ = 15
 integer, parameter :: fq1$ = 16, sig_z$ = 16, graze_angle_out$ = 16 
 integer, parameter :: fq2$ = 17, sig_vx$ = 17
 integer, parameter :: sig_vy$ = 18, autoscale_amplitude$ = 18
-integer, parameter :: sig_e$ = 19, autoscale_phase$ = 19
+integer, parameter :: sig_e$ = 19, autoscale_phase$ = 19, sig_pz$ = 19
 integer, parameter :: d1_thickness$ = 20, default_tracking_species$ = 20, direction_particle_start$ = 20
 integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20, constant_ref_energy$ = 20
 integer, parameter :: longitudinal_mode$ = 20, sig_e2$ = 20
 integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
 integer, parameter :: e_loss$ = 21, gap$ = 21, spin_x$ = 21, E_center$ = 21
 integer, parameter :: x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22
-integer, parameter :: spin_y$ = 22, E2_center$ = 22
-integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spin_z$ = 23
+integer, parameter :: spin_y$ = 22, E2_center$ = 22, n_period$ = 22
+integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spin_z$ = 23, l_period$ = 23
 integer, parameter :: cavity_type$ = 23, beta_a$ = 23, E2_probability$ = 23, high_energy_space_charge_on$ = 23
 integer, parameter :: phi0$ = 24, tilt_calib$ = 24, beta_b$ = 24, live_branch$ = 24, E_center_relative_to_ref$ = 24
-integer, parameter :: phi0_err$ = 25, current$ = 25, l_pole$ = 25, particle$ = 25
+integer, parameter :: phi0_err$ = 25, current$ = 25, particle$ = 25
 integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25, alpha_a$ = 25, spatial_distribution$ = 25
 integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26, alpha_b$ = 26, velocity_distribution$ = 26
 integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26
@@ -1482,7 +1484,7 @@ integer, parameter :: aperture_limit_on$ = 99
 integer, parameter :: ptc_exact_misalign$ = 100, physical_source$ = 100
 integer, parameter :: sr_wake_file$ = 100, alpha_a_begin$ = 100
 integer, parameter :: term$ = 101, frequencies$ = 101
-integer, parameter :: x_position$ = 102, s_spline$ = 102, ptc_exact_model$ = 102
+integer, parameter :: x_position$ = 102, ptc_exact_model$ = 102
 integer, parameter :: symplectify$ = 103, y_position$ = 103, n_slice_spline$ = 103
 integer, parameter :: z_position$ = 104, amp_vs_time$ = 104
 integer, parameter :: is_on$ = 105, theta_position$ = 105

@@ -54,10 +54,10 @@ step_len = ele%value(l$) * r_step
 length = ele%value(l$)
 mc2_rel = mass_of(orbit%species) / orbit%p0c
 
-if (ele%value(l_pole$) == 0) then
+if (ele%value(l_period$) == 0) then
   k_z = 1d100    ! Something large
 else
-  k_z = pi / ele%value(l_pole$)
+  k_z = twopi / ele%value(l_period$)
 endif
 
 k1_factor = -abs(rel_tracking_charge_to_mass(orbit, param)) * 0.5 * (c_light * ele%value(b_max$) / ele%value(p0c$))**2

@@ -521,17 +521,17 @@ do ir = 1, branch%n_ele_track
     ! For a planar or helical model wiggler we make the approximation that the variation of G is
     ! fast compaired to the variation in eta.
     if (field_ele%field_calc /= fieldmap$ .and. ele%tracking_method == bmad_standard$) then
-      if (ele%value(l_pole$) == 0) cycle        ! Cannot do calculation
+      if (ele%value(l_period$) == 0) cycle        ! Cannot do calculation
       if (field_ele%field_calc == planar_model$) then
-        G_max = sqrt(2*abs(ele%value(k1$)))       ! 1/rho at max B
+        G_max = sqrt(2*abs(ele%value(k1_pseudo$)))       ! 1/rho at max B
         rad_int1%i0 = (ele%value(e_tot$) / mass_of(branch%param%particle)) * 2 * G_max / 3
-        rad_int1%i1 = -ele%value(k1$) * (ele%value(l_pole$) / pi)**2
+        rad_int1%i1 = (G_max * ele%value(l_period$) / twopi)**2 / 2
         rad_int1%i2 = ele%value(l$) * G_max**2 / 2
         rad_int1%i3 = ele%value(l$) * 4 * G_max**3 / (3 * pi)
       else
-        G_max = sqrt(2*abs(ele%value(k1$)))       ! 1/rho at max B
+        G_max = sqrt(2*abs(ele%value(k1_pseudo$)))       ! 1/rho at max B
         rad_int1%i0 = (ele%value(e_tot$) / mass_of(branch%param%particle)) * G_max
-        rad_int1%i1 = -2*ele%value(k1$) * (ele%value(l_pole$) / pi)**2
+        rad_int1%i1 = (G_max * ele%value(l_period$) / twopi)**2
         rad_int1%i2 = ele%value(l$) * G_max**2
         rad_int1%i3 = ele%value(l$) * G_max**3
       endif
