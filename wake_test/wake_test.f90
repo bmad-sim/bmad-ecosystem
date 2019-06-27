@@ -116,7 +116,7 @@ beam_init%a_norm_emit = 1e-12
 beam_init%b_norm_emit = 1e-12
 beam_init%dPz_dz = 0.0
 beam_init%bunch_charge = 1 !100.0e-12
-beam_init%sig_e = 1e-12
+beam_init%sig_pz = 1e-12
 beam_init%sig_z = 5.99585e-3  ! 200 ps * cLight
 
 call init_bunch_distribution (lat%ele(0), lat%param, beam_init, 0, bunch_init)

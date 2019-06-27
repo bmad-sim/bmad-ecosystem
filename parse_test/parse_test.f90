@@ -45,6 +45,8 @@ endif
 
 open (1, file = 'output.now')
 
+!
+
 call bmad_parser ('control.bmad', lat)
 do i = 1, 3
   ele => lat%ele(i)

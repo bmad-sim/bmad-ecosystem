@@ -24,9 +24,9 @@ real(rp) sig1, sig2, sig3, quat(0:3), omega(3), axis2(3), angle2
 real(rp) phi1, phi2, phi3, y1, dy1, y2, dy2, dx, dy, dz
 real(rp) vec3(3), vec3a(3), vec3b(3), vec3c(3), axis(3), angle, w_mat(3,3), unit_mat(3,3)
 real(rp) field2(10:12, 20:22), field3(10:12, 20:22, 30:32), ff, df_dx, df_dy, df_dz, ff0, ff1
-real(rp) del, dff_dx, dff_dy, dff_dz, x, y, z
+real(rp) del, dff_dx, dff_dy, dff_dz, x, y, z, value
 
-integer i, j, k, ie, which, where, n_freq, mult, power, width, digits
+integer i, j, k, ie, which, where, n_freq, mult, power, width, digits, species
 
 complex(rp) cdata(32)
 complex(rp) amp(3)
@@ -41,6 +41,12 @@ character(16) :: extrap(0:3) = [character(16):: 'ZERO', 'LINEAR', 'CONSTANT', 'S
 !
 
 open (1, file = 'output.now')
+
+! anom mag moment
+
+species = species_id('#3He--')
+value = anomalous_moment_of (species)
+write (1, '(a, es16.8)')  '"Anom-Moment-He3" REL 1E-6', value
 
 ! Tricubic interpolation
 
@@ -96,10 +102,6 @@ do k = 29, 31
 enddo
 enddo
 enddo
-
-
-
-
 
 ! Akima spline test
 
