@@ -1206,8 +1206,10 @@ class tao_lattice_window(tk.Toplevel):
     self.switch_var.set(self.switches)
     switch_box = tk.Entry(self.top_frame, textvariable=self.switch_var)
     switch_box.pack(side="left", fill="both", expand=1)
+    switch_box.bind("<Return>", self.refresh)
     b = tk.Button(self.top_frame, text="Refresh", command=self.refresh)
     b.pack(side="left", fill="both", expand=0)
+    #self.tree.focus() and self.tree.selection() for current items
 
     self.refresh()
 
@@ -1233,15 +1235,15 @@ class tao_lattice_window(tk.Toplevel):
     widths = [0]*len(lattice[0]) # tracks column widths
 
     # Create table
-    tree = ttk.Treeview(self.table_frame, columns=lattice[0], show='headings')
+    self.tree = ttk.Treeview(self.table_frame, columns=lattice[0], show='headings')
     # Column titles
     for title in lattice[0]:
-      tree.heading(title, text=title)
-      tree.column(title, stretch=True, anchor='center')
+      self.tree.heading(title, text=title)
+      self.tree.column(title, stretch=True, anchor='center')
 
     # Fill rows
     for row in lattice[1:]:
-      tree.insert("", "end", values=row)
+      self.tree.insert("", "end", values=row)
       for j in range(len(row)):
         if len(row[j])*15 > widths[j]:
           widths[j] = len(row[j])*15
@@ -1250,9 +1252,21 @@ class tao_lattice_window(tk.Toplevel):
     for j in range(len(lattice[0])):
       if len(lattice[0][j])*15 > widths[j]:
         widths[j] = len(lattice[0][j])*15
-      tree.column(lattice[0][j], width=widths[j])
+      self.tree.column(lattice[0][j], width=widths[j])
 
-    tree.pack(fill="both", expand=1)
+    # Scrollbars
+    hbar = ttk.Scrollbar(self.table_frame, orient="horizontal", command=self.tree.xview)
+    vbar = ttk.Scrollbar(self.table_frame, orient="vertical", command=self.tree.yview)
+    self.tree.configure(xscrollcommand=hbar.set, yscrollcommand=vbar.set)
+
+    vbar.pack(side="right", fill="y", expand=0)
+    hbar.pack(side="bottom", fill='x', expand=0)
+    self.tree.pack(side="left", fill="both", expand=1)
+
+    #tot = 0
+    #for w in widths:
+    #  tot = tot+w
+    #print(tot)
 
 
 
