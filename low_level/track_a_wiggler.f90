@@ -28,7 +28,7 @@ type (lat_param_struct) :: param
 real(rp), optional :: mat6(6,6)
 real(rp) mat2(2,2), z_start, beta_ref, p_factor, k1_factor, k1, k3l, length, k_z, rel_p, t_start
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
-real(rp) m43, m46, m52, m54, m56, mc2_rel, kmat(6,6)
+real(rp) m43, m46, m52, m54, m56, mc2_rel, kmat(6,6), factor
 real(rp) dz_x(3), dz_y(3), ddz_x(3), ddz_y(3), r_step, step_len
 
 integer i, ix_pole_max, ix_elec_max, n_step
@@ -46,6 +46,9 @@ logical, optional :: make_matrix
 
 call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
+
+z_start = orbit%vec(5)
+t_start = orbit%t
 
 n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
 r_step = 1.0_rp / n_step
@@ -77,8 +80,6 @@ do i = 1, n_step
   ! Notice that the averageed quadrupole and octupole kicks are independent of the sign of the particle charge and independent 
   ! of the longitudinal direction of travel of the particle!
 
-  z_start = orbit%vec(5)
-  t_start = orbit%t
   beta_ref = ele%value(p0c$) / ele%value(e_tot$)
   rel_p = 1 + orbit%vec(6)
   k1 = k1_factor / rel_p**2
@@ -181,6 +182,17 @@ enddo
 
 call offset_particle (ele, param, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
 
+! Add in term to take care of the fact that the particle's motion undulates
+
 orbit%t = t_start + length / (c_light * beta_ref) + (z_start - orbit%vec(5)) / (c_light * orbit%beta)
+
+if (field_ele%field_calc == helical_model$) then
+  factor = ele%value(l$) * (k_z * ele%value(osc_amplitude$))**2 / 2 
+else
+  factor = ele%value(l$) * (k_z * ele%value(osc_amplitude$))**2 / 4
+endif
+
+orbit%t = orbit%t + factor / (c_light * orbit%beta * rel_p**2)
+orbit%vec(5) = orbit%vec(5) + factor * (orbit%beta / beta_ref - 1 / rel_p**2)
 
 end subroutine

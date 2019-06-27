@@ -1364,8 +1364,6 @@ call init_attribute_name1 (solenoid$, ptc_canonical_coords$,        'PTC_CANONIC
 call init_attribute_name1 (solenoid$, E_tot_start$,                 'E_tot_start', private$)
 call init_attribute_name1 (solenoid$, p0c_start$,                   'p0c_start', private$)
 
-attrib_array(undulator$, :) = attrib_array(wiggler$, :)
-
 call init_attribute_name1 (sample$, l$,                             'L')
 call init_attribute_name1 (sample$, mode$,                          'MODE')
 call init_attribute_name1 (sample$, material_type$,                 'MATERIAL_TYPE')
@@ -1498,6 +1496,7 @@ call init_attribute_name1 (wiggler$, taylor_field$,                 'TAYLOR_FIEL
 call init_attribute_name1 (wiggler$, ptc_canonical_coords$,         'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (wiggler$, E_tot_start$,                  'E_tot_start', private$)
 call init_attribute_name1 (wiggler$, p0c_start$,                    'p0c_start', private$)
+call init_attribute_name1 (wiggler$, osc_amplitude$,                'OSC_AMPLITUDE')
 
 attrib_array(undulator$, :) = attrib_array(wiggler$, :)
 
