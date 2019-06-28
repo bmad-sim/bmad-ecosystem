@@ -40,22 +40,20 @@ complex(rp) eigen_val(:), eigen_vec(:,:)
 integer i, n, ier
 
 logical, optional :: print_err
-logical error
+logical error, err
 
 !
 
 n = ubound(mat, 1)
-error = .false.
+error = .true.
 
-call eigensys (mat, val, vec, iv, n, ier, print_err)
-if (ier /= 0) then
-  error = .true.
-  return
-endif
+call eigensys (mat, val, vec, iv, n, err, print_err)
+if (err) return
 
 !
 
-call ordersys (val, vec, iv, n)
+call ordersys (val, vec, iv, n, err, print_err)
+if (err) return
 
 do i = 2, n, 2
   if (iv(i-1) == 0) then
@@ -71,10 +69,12 @@ do i = 2, n, 2
     eigen_vec(i, :)   = cmplx(vec(:, i-1), -vec(:, i))
 
   else
-    call out_io (s_fatal$, 'mat_eigen', 'BAD IV FROM EIGENSYS')
-    if (global_com%exit_on_error) call err_exit
+    if (logic_option(.true., print_err)) call out_io (s_fatal$, 'mat_eigen', 'BAD IV FROM EIGENSYS')
+    return
   endif
 enddo
+
+error = .false.
 
 end subroutine
 
@@ -82,7 +82,7 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 
-      SUBROUTINE EIGENSYS(DN,DV,DM,IV,N,IER, print_err)
+      SUBROUTINE EIGENSYS(DN,DV,DM,IV,N, error, print_err)
 !     finds the N dimensional eigenvalue vector DV, the N*N dimensional
 !     eigenvectormatrix DM, and the indication vector IV for
 !     real/complex of a N*N dimensional matrix DN.
@@ -117,8 +117,7 @@ end subroutine
 !                  vectores DV, IV.  It has to be smaller than the local
 !                  parameter NMX.
 !
-!     IER(output): Error flag, is zero when no error occured and 1, if an
-!                  error occured.
+!     error(output): Error flag
 
 !=====local stuff
 
@@ -128,14 +127,17 @@ end subroutine
 
       real(rp) DN(N,N), DV(N), DM(N,N), DNS(NMX,NMX), Z(NMX,NMX), &
           ORT(NMX), VR(NMX), VI(NMX)
-      integer IV(N), ier, ierr
+      integer IV(N), ierror
+      logical error, err
       logical, optional :: print_err
 
 !%%      write(*,*)'eigensys'
 
+      error = .true.
       IF (N.GT.NMX) then
         CALL out_io(s_fatal$, 'EIGENSYS', 'dimension too high, increase NMX')
         if (global_com%exit_on_error) call err_exit
+        return
       endif
 
       DNS(1:n,1:n) = DN(1:n,1:n)
@@ -152,15 +154,12 @@ end subroutine
 !=====Z(:,I) for real eigenvalues.  For complex eigenvalues find
 !=====the eigenvector Z(:,I)+I*Z(:,I+1) corresponding to the eigenvalue
 !=====VR(I)+I*VI(I) with VI(I)>0. VR(I+1)+I*VI(I+1) is then the conjugate.
-      CALL ETY2(NMX,N,1,N,DNS,VR,VI,Z,IERR)
+      CALL ETY2(NMX,N,1,N,DNS,VR,VI,Z, ierror)
 
-      IF(IERR.NE.0) THEN
+      IF(ierror /= 0) THEN
          if (logic_option(.true., print_err)) &
               call out_io(s_error$, 'EIGENSYS', 'no eigensystem found ; skipping')
-         IER = 1
          RETURN
-      ELSE
-         IER = 0
       ENDIF
 
       II = 1
@@ -200,7 +199,7 @@ end subroutine
  20   CONTINUE
  21   CONTINUE
 
-      RETURN
+      error = .false.
       end subroutine
 
 !------------------------------------------------------------------------
@@ -866,7 +865,7 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 
-      subroutine ORDERSYS(DV,DM,IV,N)
+      subroutine ORDERSYS(DV,DM,IV,N, error, print_err)
 !     orders the eigenvalue vector DV, the eigenvector matrix DM, and the
 !     indication vector IV of an N dimensional system.
 !
@@ -910,8 +909,12 @@ end subroutine
       real(rp) DV(N), DVN(NMX), DM(N,N), DN(NMX,NMX), &
           ORDER(NMX2,NMX)
       integer IV(N), IVN(NMX), JDM(NMX), IDM(NMX2)
+      logical error
+      logical, optional :: print_err
 
 !%%      write(*,*)'ordersys'
+
+      error = .true.
 
       IF(N.GT.NMX) CALL out_io(s_error$, 'ORDERSYS', 'increase NMX')
       IF(MOD(N,2).NE.0) CALL out_io(s_error$, 'ORDERSYS', 'eigensystem not even dimensional')
@@ -942,7 +945,10 @@ end subroutine
                DUM = DUM + ORDER(IDM(I),JDM(J))
  1140       CONTINUE
 
-            IF(DUM.LT.TINY) CALL out_io(s_error$, 'ORDERSYS', 'column of zeros')
+            IF(DUM.LT.TINY) then
+              if (logic_option(.true., print_err)) CALL out_io(s_error$, 'ORDERSYS', 'column of zeros')
+              return
+            endif
 
             DO 2140 I=K,N2
                ORDER(IDM(I),JDM(J)) = ORDER(IDM(I),JDM(J))/DUM
@@ -1046,7 +1052,7 @@ end subroutine
          DV(J) = DVN(J)
  80   CONTINUE
 
-      RETURN
+      error = .false.
       end subroutine
 
 !------------------------------------------------------------------------
