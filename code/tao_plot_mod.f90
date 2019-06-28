@@ -321,13 +321,13 @@ type (tao_building_wall_point_struct), pointer :: pt(:)
 type (ele_struct), pointer :: ele, slave
 type (branch_struct), pointer :: branch
 
-real(rp) theta, v_vec(3), theta1, dtheta, dat_var_value
+real(rp) theta, v_vec(3), theta1, dtheta, dat_var_value, y1, y2
 real(rp) x_bend(0:1000), y_bend(0:1000)
 
-integer i, j, k, n, n_bend, isu, ic, ib, icol, ix_shape, ix_shape_min
+integer i, j, k, n, n_bend, isu, ic, ib, icol, ix_shape_min
 integer ix_pass, n_links, iwidth
 
-character(40) dat_var_name
+character(40) label_name
 character(20) :: r_name = 'tao_draw_floor_plan'
 
 logical err
@@ -396,8 +396,7 @@ do n = 0, ubound(lat%branch, 1)
 
     ix_shape_min = 1
     do
-      ele_shape => tao_pointer_to_ele_shape (isu, ele, s%plot_page%floor_plan%ele_shape(ix_shape_min:), &
-                                                                             dat_var_name, dat_var_value, ix_shape)
+      call tao_ele_shape_info (isu, ele, s%plot_page%floor_plan%ele_shape, ele_shape, label_name, y1, y2, ix_shape_min)
       if (ele%ix_ele > branch%n_ele_track .and. .not. associated(ele_shape)) exit   ! Nothing to draw
 
       if (graph%floor_plan_draw_only_first_pass .and. ele%slave_status == multipass_slave$) then
@@ -411,14 +410,13 @@ do n = 0, ubound(lat%branch, 1)
           slave => pointer_to_slave(ele, j)
           ele_shape2 => tao_pointer_to_ele_shape (isu, slave, s%plot_page%floor_plan%ele_shape)
           if (associated(ele_shape2)) cycle ! Already drawn. Do not draw twice
-          call tao_draw_ele_for_floor_plan (plot, graph, isu, lat, slave, dat_var_name, dat_var_value, ele_shape)
+          call tao_draw_ele_for_floor_plan (plot, graph, isu, lat, slave, ele_shape, label_name, y1, y2)
         enddo
       else
-        call tao_draw_ele_for_floor_plan (plot, graph, isu, lat, ele, dat_var_name, dat_var_value, ele_shape)
+        call tao_draw_ele_for_floor_plan (plot, graph, isu, lat, ele, ele_shape, label_name, y1, y2)
       endif
       if (.not. associated(ele_shape)) exit
       if (.not. ele_shape%multi) exit
-      ix_shape_min = ix_shape_min + ix_shape
     enddo
 
   enddo
@@ -517,23 +515,23 @@ end subroutine tao_draw_floor_plan
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine tao_draw_ele_for_floor_plan (plot, graph, ix_uni, lat, ele, dat_var_name, dat_var_value, ele_shape)
+! Subroutine tao_draw_ele_for_floor_plan (plot, graph, ix_uni, lat, ele, ele_shape, label_name, offset1, offset2)
 !
 ! Routine to draw one lattice element or one datum location for the floor plan graph. 
 !
 ! Input:
-!   plot            -- tao_plot_struct: Plot containing the graph.
-!   graph           -- tao_graph_struct: Graph to plot.
-!   ix_uni          -- integer: Universe index.
-!   lat             -- lat_struct: Lattice containing the element.
-!   ele             -- ele_struct: Element to draw.
-!   dat_var_name    -- Character(*): If not blank then name to print beside the element.
-!   dat_var_value   -- real(rp): Use for vvar_box and asym_vvar_box.
-!   ele_shape       -- tao_ele_shape_struct: Shape to draw from s%plot_page%floor_plan%ele_shape(:) array.
-!                       Will be NULL if no associated shape for this element.
+!   plot              -- tao_plot_struct: Plot containing the graph.
+!   graph             -- tao_graph_struct: Graph to plot.
+!   ix_uni            -- integer: Universe index.
+!   lat               -- lat_struct: Lattice containing the element.
+!   ele               -- ele_struct: Element to draw.
+!   ele_shape         -- tao_ele_shape_struct: Shape to draw from s%plot_page%floor_plan%ele_shape(:) array.
+!                         Will be NULL if no associated shape for this element.
+!   label_name        -- character(*): Shape label.
+!   offset1, offset2  -- real(rp): Offsets for drawing the label.
 !-
 
-recursive subroutine tao_draw_ele_for_floor_plan (plot, graph, ix_uni, lat, ele, dat_var_name, dat_var_value, ele_shape)
+recursive subroutine tao_draw_ele_for_floor_plan (plot, graph, ix_uni, lat, ele, ele_shape, label_name, offset1, offset2)
 
 use geometry_mod, only: floor_angles_to_w_mat, ele_geometry
 
@@ -556,18 +554,17 @@ type (tao_shape_pattern_struct), pointer :: pat
 integer ix_uni, i, j, k, icol, n_bend, n, ix, ic, n_mid, isu
 
 real(rp) off, off1, off2, angle, rho, dx1, dy1, dx2, dy2, ang, length
-real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta, e_edge, dat_var_value
+real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta, e_edge
 real(rp) x_bend(0:500), y_bend(0:500), dx_bend(0:500), dy_bend(0:500)
-real(rp) dx_orbit(0:500), dy_orbit(0:500)
+real(rp) dx_orbit(0:500), dy_orbit(0:500), offset1, offset2
 real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
 real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height
 real(rp) x_inch, y_inch, x0, y0, x1, x2, y1, y2, e1_factor, e2_factor
 real(rp) r0_plus(2), r0_minus(2), dr2_p(2), dr2_m(2), dr_p(2), dr_m(2)
 real(rp) x_min, x_max, y_min, y_max, xb, yb, s_here, r0(2), r1(2)
 
-character(*) dat_var_name
+character(*) label_name
 character(80) str
-character(40) name
 character(*), parameter :: r_name = 'tao_draw_ele_for_floor_plan'
 character(8) :: draw_units
 character(2) justify
@@ -777,33 +774,8 @@ endif
 
 icol = qp_translate_to_color_index (ele_shape%color)
 
-off = ele_shape%size * s%plot_page%floor_plan_shape_scale 
-off1 = off
-off2 = off
-
-select case (ele_shape%shape)
-case ('VAR_BOX', 'ASYM_VAR_BOX')
-  select case (ele%key)
-  case (sbend$)
-    off1 = off * ele%value(g$)
-  case (quadrupole$)
-    off1 = off * ele%value(k1$)
-  case (sextupole$)
-    off1 = off * ele%value(k2$)
-  case (octupole$)
-    off1 = off * ele%value(k3$)
-  case (solenoid$)
-    off1 = off * ele%value(ks$)
-  end select
-  off2 = off1
-  if (ele_shape%shape == 'ASYM_VAR_BOX') off1 = 0
-case ('VVAR_BOX')
-  off1 = dat_var_value
-  off2 = dat_var_value
-case ('ASYM_VVAR_BOX')
-  off1 = 0
-  off2 = dat_var_value
-endselect
+off1 = offset1 * s%plot_page%floor_plan_shape_scale
+off2 = offset2 * s%plot_page%floor_plan_shape_scale
 
 ! x-ray line parameters if present
 
@@ -1028,27 +1000,9 @@ if (ele_shape%shape(1:8) == 'PATTERN:') then
 endif
 
 ! Draw the label.
-! Since multipass slaves are on top of one another, just draw the multipass lord's name.
-! Also place a bend's label to the outside of the bend.
+! Place a bend's label to the outside of the bend.
 
-if (ele_shape%label == 'name') then
-  if (dat_var_name /= '') then
-    name = dat_var_name
-  elseif (ele%slave_status == multipass_slave$) then
-    lord => pointer_to_lord(ele, 1)
-    name = lord%name
-  else
-    name = ele%name
-  endif
-elseif (ele_shape%label == 's') then
-  write (name, '(f16.2)') ele%s - ele%value(l$) / 2
-  call string_trim (name, name, ix)
-elseif (ele_shape%label /= 'none') then
-  call out_io (s_error$, r_name, 'BAD ELEMENT LABEL: ' // ele_shape%label)
-  call err_exit
-endif 
-
-if (ele_shape%label /= 'none') then
+if (label_name /= '') then
   if (ele%key /= sbend$ .or. ele%value(g$) == 0) then
     x_center = (end1%r(1) + end2%r(1)) / 2 
     y_center = (end1%r(2) + end2%r(2)) / 2 
@@ -1076,7 +1030,7 @@ if (ele_shape%label /= 'none') then
     justify = 'RC'
   endif
   height = s%plot_page%text_height * s%plot_page%legend_text_scale
-  call qp_draw_text (name, x_center+dx*abs(off2), y_center+dy*abs(off2), units = draw_units, &
+  call qp_draw_text (label_name, x_center+dx*abs(off2), y_center+dy*abs(off2), units = draw_units, &
                                height = height, justify = justify, ANGLE = theta)    
 endif
 
@@ -1247,17 +1201,17 @@ type (tao_graph_struct) graph
 type (ele_struct), pointer :: ele1, ele2
 type (tao_ele_shape_struct), pointer :: ele_shape
 
-real(rp) dat_var_value, x_lab
+real(rp) x_lab
 integer section_id, icol, ix_shape_min, ix_shape
 
-character(40) dat_var_name, this_name
+character(40) label_name
 
 ! Draw element shape...
 
 ix_shape_min = 1
 do
-  ele_shape => tao_pointer_to_ele_shape (isu, ele, s%plot_page%lat_layout%ele_shape(ix_shape_min:), &
-                                                                      dat_var_name, dat_var_value, ix_shape)
+  call tao_ele_shape_info (isu, ele, s%plot_page%lat_layout%ele_shape, ele_shape, label_name, y1, y2, ix_shape_min)
+
   if (.not. associated(ele_shape)) return
   if (.not. ele_shape%draw) return
 
@@ -1282,59 +1236,27 @@ do
   if (x1 < graph%x%min .and. x2 < graph%x%min) return
 
   ! Here if element is to be drawn...
-  ! y1 and y2 are the scale factors for the lines below and above the center line.
+  ! y1 and y2 are the offsets for the lines below and above the center line.
 
-  y = ele_shape%size * s%plot_page%lat_layout_shape_scale 
-  y1 = -y
-  y2 =  y
-
-  select case (ele_shape%shape)
-  case ('VAR_BOX', 'ASYM_VAR_BOX')
-    select case (ele%key)
-    case (sbend$)
-      y2 = y * ele%value(g$)
-    case (quadrupole$)
-      y2 = y * ele%value(k1$)
-    case (sextupole$)
-      y2 = y * ele%value(k2$)
-    case (octupole$)
-      y2 = y * ele%value(k3$)
-    case (solenoid$)
-      y2 = y * ele%value(ks$)
-    end select
-    y1 = -y2
-    if (shape_name == 'ASYM_VAR_BOX') y1 = 0
-  case ('VVAR_BOX')
-    y1 = -dat_var_value
-    y2 = dat_var_value
-  case ('ASYM_VVAR_BOX')
-    y1 = 0
-    y2 = dat_var_value
-  endselect
-
-  y1 = max(graph%y%min, min(y1, graph%y%max))
-  y2 = max(graph%y%min, min(y2, graph%y%max))
-
-  this_name = dat_var_name
-  if (this_name == '') this_name = ele%name
+  y1 = max(graph%y%min, min(y1 * s%plot_page%lat_layout_shape_scale, graph%y%max))
+  y2 = max(graph%y%min, min(-y2 * s%plot_page%lat_layout_shape_scale, graph%y%max))
 
   ! Does this element wrap around?
 
   if (branch%param%geometry == closed$ .and. x2 < x1 .and. ele%value(l$) > 0) then
     if (x1 > graph%x%min .and. x1 < graph%x%max) then
-      call draw_shape_for_lat_layout (this_name, x1, x1 + ele%value(l$), min(graph%x%max, x1+ele%value(l$)/2), ele_shape)
+      call draw_shape_for_lat_layout (label_name, x1, x1 + ele%value(l$), min(graph%x%max, x1+ele%value(l$)/2), ele_shape)
     endif
     if (x2 > graph%x%min .and. x2 < graph%x%max) then
-      call draw_shape_for_lat_layout (this_name, x2-ele%value(l$), x2, max(graph%x%min, x2-ele%value(l$)/2), ele_shape)
+      call draw_shape_for_lat_layout (label_name, x2-ele%value(l$), x2, max(graph%x%min, x2-ele%value(l$)/2), ele_shape)
     endif
 
   else
     x_lab = min(max((x1+x2)/2, graph%x%min), graph%x%max)
-    call draw_shape_for_lat_layout (this_name, x1, x2, x_lab, ele_shape)
+    call draw_shape_for_lat_layout (label_name, x1, x2, x_lab, ele_shape)
   endif
 
   if (.not. ele_shape%multi) return
-  ix_shape_min = ix_shape_min + ix_shape
 enddo
 
 end subroutine draw_ele_for_lat_layout
@@ -1343,7 +1265,7 @@ end subroutine draw_ele_for_lat_layout
 !--------------------------------------------------------------------------------------------------
 ! contains
 
-subroutine draw_shape_for_lat_layout (name_in, x1, x2, s_pos, ele_shape)
+subroutine draw_shape_for_lat_layout (label_name, x1, x2, s_pos, ele_shape)
 
 type (tao_ele_shape_struct) ele_shape
 type (tao_shape_pattern_struct), pointer :: pat
@@ -1351,7 +1273,7 @@ type (tao_shape_pattern_struct), pointer :: pat
 real(rp) :: s_pos, y_off, r_dum = 0, x1, x2, r0(2), r1(2)
 integer icol, iwidth
 
-character(*) name_in
+character(*) label_name
 character(20) shape_name
 
 !
@@ -1417,23 +1339,13 @@ endif
 
 ! Put on a label
 
-if (s%global%label_lattice_elements .and. ele_shape%label /= 'none') then
+if (s%global%label_lattice_elements .and. label_name /= '') then
 
   call qp_from_inch_rel (0.0_rp, graph%y%label_offset, r_dum, y_off, 'DATA')
 
-  if (ele_shape%label == 'name') then
-    name = name_in
-  elseif (ele_shape%label == 's') then
-    write (name, '(f16.2)') s_pos
-    call string_trim (name, name, ix)
-  else
-    call out_io (s_error$, r_name, 'BAD ELEMENT LABEL: ' // ele_shape%label)
-    call err_exit
-  endif 
-
   if (s_pos > graph%x%max .and. s_pos-lat_len > graph%x%min) s_pos = s_pos - lat_len
   height = s%plot_page%text_height * s%plot_page%legend_text_scale
-  call qp_draw_text (name, s_pos, graph%y%min-y_off, height = height, justify = 'LC', ANGLE = 90.0_rp)
+  call qp_draw_text (label_name, s_pos, graph%y%min-y_off, height = height, justify = 'LC', ANGLE = 90.0_rp)
 
 endif
 
