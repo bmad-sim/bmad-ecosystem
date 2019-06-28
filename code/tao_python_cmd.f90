@@ -123,14 +123,14 @@ type (photon_element_struct), pointer :: ph
 character(*) input_str
 character(n_char_show), allocatable :: li(:) 
 character(n_char_show) li2
-character(40) imt, jmt, rmt, lmt, amt, iamt, vamt, rmt2, cmt
+character(40) imt, jmt, rmt, lmt, amt, iamt, vamt, rmt2, cmt, label_name
 character(40) max_loc, ele_name, name1(40), name2(40), a_name, name
 character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
 character(20) cmd, command, who, which, v_str, head
 character(20) :: r_name = 'tao_python_cmd'
 
-real(rp) s_pos, value
+real(rp) s_pos, value, y1, y2
 real(rp), allocatable :: re_array(:)
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
 real(rp) a2(0:n_pole_maxx), b2(0:n_pole_maxx)
@@ -138,7 +138,7 @@ real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
 
 integer :: i, j, k, ib, ie, iu, nn, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i1, i2
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_bunch, ix_d2, n_who, ix_pole_max, attrib_type
-integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free, ix_uni
+integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free, ix_uni, ix_shape_min
 
 logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer, can_vary
 
@@ -2386,15 +2386,20 @@ case ('plot_lat_layout')
   ix_branch = parse_branch(line, .false., err); if (err) return
   branch => u%model%lat%branch(ix_branch)
 
-  do i = 1, branch%n_ele_max
+  do i = 1, branch%n_ele_track
     ele => branch%ele(i)
     if (ele%slave_status == super_slave$) cycle
-    if (ele%key == overlay$) cycle
-    if (ele%key == group$) cycle
-    if (ele%key == girder$) cycle
-    if (ele%lord_status == multipass_lord$) cycle
-    nl=incr(nl); write (li(nl), '(i0, 5a, 2(es21.13, a))') i, ';', trim(ele%name), ';', &
-                                                            trim(key_name(ele%key)), ';', ele%s_start, ';', ele%s
+
+    ix_shape_min = 1
+    do
+      call tao_ele_shape_info (u%ix_uni, ele, s%plot_page%lat_layout%ele_shape, shape, label_name, y1, y2, ix_shape_min)
+      y1 = y1 * s%plot_page%lat_layout_shape_scale
+      y2 = y2 * s%plot_page%lat_layout_shape_scale
+      if (.not. associated(shape)) exit
+      if (.not. shape%draw) cycle
+      nl=incr(nl); write (li(nl), '(i0, 2(a, es21.13), (a, i0), 2a, 2(a, es10.2), 4a)') i, ';', ele%s_start, ';', ele%s, ';', shape%line_width, ';', &
+                      trim(shape%shape), ';', y1, ';', y2, ';', trim(shape%color), ';', trim(label_name)
+    enddo
   enddo
 
 !----------------------------------------------------------------------

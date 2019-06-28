@@ -66,7 +66,7 @@ endif
 
 do i = 1, ele%n_slave + ele%n_slave_field
   slave => pointer_to_slave(ele, i)
-  call walk_downwards(ele, tree2, n_found)
+  call walk_downwards(slave, tree, n_found)
 enddo
 
 end subroutine walk_downwards

@@ -2,7 +2,7 @@
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var_value, ix_shape) result (e_shape)
+! Function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var_value, ix_shape_min) result (e_shape)
 !
 ! Routine to return the shape associated with a lattice element
 !
@@ -10,6 +10,7 @@
 !   ix_uni        -- integer: Universe index.
 !   ele           -- ele_struct: Lattice element.
 !   ele_shape(:)  -- tao_ele_shape_struct: Array of shapes to search.
+!   ix_shape_min  -- integer, optional: Index of minimum ele_shape(:) index to start search from. Default is 1.
 !
 ! Output:
 !   e_shape       -- tao_ele_shape_struct, pointer: Associated shape. 
@@ -18,10 +19,10 @@
 !                       Will be set to "" if there is no associated datum or variable.
 !   dat_var_value -- real(rp), optional: Value of datum or variable associated with e_shape.
 !                       Will be set to zero if there is no associated datum or variable.
-!   ix_shape      -- integer, optional: Index of associated shape in ele_shape(:).
+!   ix_shape_min  -- integer, optional: Ele_shape(:) index to start next search if multiple shapes are associated with ele.
 !-
 
-function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var_value, ix_shape) result (e_shape)
+function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var_value, ix_shape_min) result (e_shape)
 
 use tao_interface, dummy => tao_pointer_to_ele_shape
 
@@ -40,7 +41,7 @@ type (tao_real_pointer_struct), allocatable :: re_array(:)
 
 real(rp), optional :: dat_var_value
 
-integer, optional :: ix_shape
+integer, optional :: ix_shape_min
 integer ix_uni
 integer j, j2, k, n_ele_track
 
@@ -59,9 +60,9 @@ if (ele%lord_status == group_lord$) return
 if (ele%lord_status == overlay_lord$) return
 if (ele%slave_status == super_slave$) return
 
-do k = 1, size(ele_shape)
+do k = integer_option(1, ix_shape_min), size(ele_shape)
   es => ele_shape(k)
-  if (present(ix_shape)) ix_shape = k
+  if (present(ix_shape_min)) ix_shape_min = k + 1
   if (.not. es%draw) cycle
 
   ! Data

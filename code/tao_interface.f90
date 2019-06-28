@@ -192,6 +192,18 @@ subroutine tao_de_optimizer (abort)
   logical abort
 end subroutine
 
+subroutine tao_ele_shape_info (ix_uni, ele, ele_shapes, e_shape, label_name, y1, y2, ix_shape_min)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (tao_ele_shape_struct) ele_shapes(:)
+  type (tao_ele_shape_struct), pointer :: e_shape
+  real(rp) y1, y2
+  integer ix_uni
+  integer, optional :: ix_shape_min
+  character(*) label_name
+end subroutine
+
 subroutine tao_ele_to_ele_track (ix_universe, ix_branch, ix_ele, ix_ele_track)
   import
   implicit none
@@ -613,7 +625,7 @@ subroutine tao_plot_struct_transfer (plot_in, plot_out)
   type (tao_plot_struct) plot_out
 end subroutine
 
-function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var_value, ix_shape) result (e_shape)
+function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var_value, ix_shape_min) result (e_shape)
   import
   implicit none
   integer ix_uni
@@ -621,7 +633,7 @@ function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var
   type (tao_ele_shape_struct), target :: ele_shape(:)
   character(*), optional :: dat_var_name
   real(rp), optional :: dat_var_value
-  integer, optional :: ix_shape
+  integer, optional :: ix_shape_min
   type (tao_ele_shape_struct), pointer :: e_shape
 end function
 
