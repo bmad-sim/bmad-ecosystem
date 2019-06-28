@@ -1582,7 +1582,6 @@ character(*) var_str, value_str
 character(*), parameter :: r_name = 'tao_set_var_cmd'
 character(20) set_is, component
 character(40) ele_name, attrib_name
-character(40) :: merit_type_names(2) = (/ 'target ', 'limit  ' /)
 character(len(value_str)) val
 
 logical err, l_value, err_flag
@@ -1626,8 +1625,8 @@ if (size(l_var) > 0) then
 elseif (size(s_var) /= 0) then
   if (index(var_str, '|merit_type') /= 0) then
     if (index(value_str, '|') == 0) then
-      if (all (value_str /= merit_type_names)) then
-        call out_io (s_error$, r_name, 'BAD MERIT_TYPE NAME:' // value_str)
+      if (all (value_str /= var_merit_type_name)) then
+        call out_io (s_error$, r_name, 'BAD VARIABLE MERIT_TYPE NAME:' // value_str)
         return
       endif
       do i = 1, size(s_var)
@@ -1869,8 +1868,6 @@ integer, allocatable :: int_save(:)
 character(*) who_str, value_str
 character(20) component
 character(20) :: r_name = 'tao_set_data_cmd'
-character(40) :: merit_type_names(5) = &
-              (/ 'target ', 'min    ', 'max    ', 'abs_min', 'abs_max' /)
 character(200) :: tmpstr, why_invalid
 character, allocatable :: s_save(:)
 
@@ -2006,8 +2003,8 @@ elseif (size(s_dat) /= 0) then
     enddo
 
   else
-    if (component == 'merit_type' .and. all(value_str /= merit_type_names)) then
-      call out_io (s_error$, r_name, 'BAD MERIT_TYPE NAME:' // value_str)
+    if (component == 'merit_type' .and. all(value_str /= data_merit_type_name)) then
+      call out_io (s_error$, r_name, 'BAD DATA MERIT_TYPE NAME:' // value_str)
       return
     endif
 

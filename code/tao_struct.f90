@@ -27,6 +27,8 @@ character(20), parameter :: graph_type_name(5) = [character(20):: 'data', 'lat_l
                                                        'phase_space', 'histogram', 'dynamic_aperture']
 character(16), parameter :: x_axis_type_name(12) = [character(16):: 'index', 'ele_index', 'lat', 'var', &
                                    'ele_index', 's', 'none', 'floor', 'phase_space', 'histogram', 'data', 'floor']
+character(10), parameter :: var_merit_type_name(2) = ['target ', 'limit  ']
+character(10) :: data_merit_type_name(5) = ['target ', 'min    ', 'max    ', 'abs_min', 'abs_max']
 
 integer, parameter :: n_char_show = 1000
 
@@ -69,9 +71,9 @@ end type
 ! Note: Expressions may not have an associated lattice element or an associated longituinal position.
 
 type tao_expression_info_struct
-  logical :: good = .true.         ! Expression is valid.
-  integer :: ix_ele = -1           ! Element used for expression.
-  real(rp) :: s = real_garbage$    ! Longitudinal position of expression.
+  logical :: good = .true.                    ! Expression is valid.
+  type (ele_struct), pointer :: ele => null() ! Associated ele if it exists
+  real(rp) :: s = real_garbage$               ! Longitudinal position of expression.
 end type
 
 type tao_eval_stack1_struct
@@ -346,6 +348,7 @@ type tao_data_struct
   character(40) :: merit_type = ''         ! Type of constraint: 'target', 'max', 'min', etc.
   character(40) :: id = ''                 ! Used by Tao extension code. Not used by Tao directly.
   character(20) :: data_source = ''        ! 'lat', or 'beam'
+  integer :: ix_uni = -1                   ! Universe index of datum.
   integer :: ix_bunch = 0                  ! Bunch number to get the data from.
   integer :: ix_branch = 0                 ! Index of the lattice branch of the element
   integer :: ix_ele = -1                   ! Index of the lattice element corresponding to ele_name

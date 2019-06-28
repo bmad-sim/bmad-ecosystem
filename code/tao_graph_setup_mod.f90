@@ -1298,8 +1298,9 @@ case ('expression')
         if (scratch%info(i)%s < graph%x%min - dx .or. scratch%info(i)%s > graph%x%max + dx) cycle
         curve%x_symb(n_dat) = scratch%info(i)%s
       case ('ele_index')
-        if (scratch%info(i)%ix_ele < graph%x%min - dx .or. scratch%info(i)%ix_ele > graph%x%max + dx) cycle
-        curve%x_symb(n_dat) = scratch%info(i)%ix_ele
+        if (.not. associated(scratch%info(i)%ele)) cycle
+        if (scratch%info(i)%ele%ix_ele < graph%x%min - dx .or. scratch%info(i)%ele%ix_ele > graph%x%max + dx) cycle
+        curve%x_symb(n_dat) = scratch%info(i)%ele%ix_ele
       end select
     enddo
   endif

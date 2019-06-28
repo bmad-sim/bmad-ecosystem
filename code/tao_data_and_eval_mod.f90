@@ -1488,6 +1488,22 @@ case ('expression:', 'expression.')
       datum_value = minval(abs(expression_value_vec))
     case ('abs_max') 
       datum_value = maxval(abs(expression_value_vec))
+    case ('max-min')
+      datum_value = maxval(expression_value_vec) - minval(expression_value_vec)
+    case ('average')
+      datum_value = 0
+      s_len = 0
+      do i = 1, size(info)
+        if (.not. associated(info(i)%ele)) exit  ! skip length weighted average
+        datum_value = datum_value + expression_value_vec(i) * info(i)%ele%value(l$)
+        s_len = s_len + info(i)%ele%value(l$)
+      enddo
+
+      if (i == size(info) + 1 .and. s_len /= 0) then
+        datum_value = datum_value / s_len
+      else  ! skip length weighted average
+        datum_value = sum(expression_value_vec) / size(expression_value_vec)
+      endif
     case ('target')
       if (size(expression_value_vec) /= 1) then
         call out_io (s_error$, r_name, &
@@ -3142,13 +3158,13 @@ type (ele_struct), pointer :: ele_ref, ele_start, ele
 type (coord_struct), optional :: orbit(0:)
 
 real(rp), target :: vec(0:)
-real(rp) datum_value, ref_value
+real(rp) datum_value, ref_value, l_sum
 real(rp), pointer :: vec_ptr(:)
 
 character(*), parameter :: r_name = 'tao_load_this_datum'
 character(*), optional :: why_invalid
 
-integer ix_m, i, n_track, ix_m2, ix_ref, ix_start, ix_ele
+integer ix_m, i, n_track, ix_m2, ix_ref, ix_start, ix_ele, n
 
 logical valid_value
 logical, optional :: good(0:)
@@ -3272,6 +3288,48 @@ if (ix_ele < ix_start) then   ! wrap around
     call integrate_max (ix_ele, n_track, datum_value, ix_m, branch, vec_ptr, datum)
     call integrate_max (0, ix_start, datum_value, ix_m, branch, vec_ptr, datum)
     if (present(good)) valid_value = all(good(ix_ele:n_track)) .and. all(good(0:ix_start))
+
+  case ('max-min')
+    ix_m  = maxloc (vec_ptr(0:ix_ele), 1) - 1
+    ix_m2 = maxloc (vec_ptr(ix_start:n_track), 1) + ix_start - 1
+    if (vec_ptr(ix_m2) > vec_ptr(ix_m2)) ix_m = ix_m2
+    datum_value = vec_ptr(ix_m)
+    if (present(good)) valid_value = good(ix_m)
+
+    ix_m  = minloc (vec_ptr(0:ix_ele), 1) - 1
+    ix_m2 = minloc (vec_ptr(ix_start:n_track), 1) + ix_start - 1
+    if (vec_ptr(ix_m2) < vec_ptr(ix_m2)) ix_m = ix_m2
+    datum_value = datum_value - vec_ptr(ix_m)
+    if (present(good)) valid_value = valid_value .and. good(ix_m)
+
+  case ('average')
+    l_sum = 0
+    datum_value = 0
+    n = 0
+
+    do i = 1, ix_ele
+      if (.not. good(i)) cycle
+      n = n + 1
+      l_sum = l_sum + branch%ele(i)%value(l$)
+      datum_value = datum_value + branch%ele(i)%value(l$) * vec_ptr(i)
+    enddo
+
+    do i = ix_start, n_track
+      if (.not. good(i)) cycle
+      n = n + 1
+      l_sum = l_sum + branch%ele(i)%value(l$)
+      datum_value = datum_value + branch%ele(i)%value(l$) * vec_ptr(i)
+    enddo
+
+    if (l_sum == 0 .and. n == 0) then
+      if (present(good)) valid_value = .false.
+    elseif (l_sum == 0) then
+      valid_value = valid_value / n
+      if (present(good)) valid_value = .true.
+    else
+      valid_value = valid_value / l_sum
+      if (present(good)) valid_value = .true.
+    endif
 
   case default
     call tao_set_invalid (datum, 'BAD MERIT_TYPE WHEN THERE IS A RANGE OF ELEMENTS: ' // datum%merit_type, why_invalid, .true.)
@@ -4210,6 +4268,7 @@ type (tao_integer_array_struct), allocatable :: int_array(:)
 type (tao_var_array_struct), allocatable :: v_array(:)
 type (tao_data_struct) datum
 type (tao_data_struct), pointer :: d
+type (tao_var_struct), pointer :: v
 type (ele_struct), pointer, optional :: dflt_ele_ref, dflt_ele_start, dflt_ele
 
 integer, optional :: dflt_uni
@@ -4409,6 +4468,8 @@ if (size(re_array) /= 0) then
   do i = 1, n
     stack%value(i) = re_array(i)%r
     stack%value_ptr(i)%r => re_array(i)%r
+    stack%info(i)%ele => null()
+
     ! good is only used with data and not variables
     if (associated(re_array(i)%good_value)) then
       stack%value_ptr(i)%good_user => re_array(i)%good_user
@@ -4419,20 +4480,24 @@ if (size(re_array) /= 0) then
 
     select case (stack%type)
     case (var_num$)
-      if (v_array(i)%v%exists) then
-        stack%info(i)%s      = v_array(i)%v%s
-        stack%info(i)%ix_ele = v_array(i)%v%slave(1)%ix_ele
-        stack%info(i)%good   = v_array(i)%v%exists
-        stack%value_ptr(i)%good_user => v_array(i)%v%good_user
+      v => v_array(i)%v
+      if (.not. v_array(i)%v%exists) cycle
+      if (v%slave(1)%ix_ele >= 0) then
+        stack%info(i)%ele     => s%u(v%slave(1)%ix_uni)%model%lat%branch(v%slave(1)%ix_branch)%ele(v%slave(1)%ix_ele)
       endif
+      stack%info(i)%s      = v%s
+      stack%info(i)%good   = v%exists
+      stack%value_ptr(i)%good_user => v%good_user
+
     case (data_num$)
       d => d_array(i)%d
-      if (d%exists) then
-        stack%info(i)%s      = d%s
-        stack%info(i)%ix_ele = d%ix_ele
-        stack%info(i)%good   = d%exists
-        stack%value_ptr(i)%good_user => d%good_user
+      if (.not. d%exists) cycle
+      if (d%ix_ele >= 0) then
+        stack%info(i)%ele  => s%u(d%ix_uni)%model%lat%branch(d%ix_branch)%ele(d%ix_ele)
       endif
+      stack%info(i)%s      = d%s
+      stack%info(i)%good   = d%exists
+      stack%value_ptr(i)%good_user => d%good_user
     end select
   enddo
 
@@ -4530,7 +4595,7 @@ do i = 1, size(stack)
   if (size(stack(i)%info) == size(info)) then
     do j = 1, size(info)
       if (stack(i)%info(j)%s /= real_garbage$) info(j)%s = stack(i)%info(j)%s
-      if (stack(i)%info(j)%ix_ele > -1) info(j)%ix_ele = stack(i)%info(j)%ix_ele
+      info(j)%ele => stack(i)%info(j)%ele
     enddo 
   endif
 
