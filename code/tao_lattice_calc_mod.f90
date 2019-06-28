@@ -569,6 +569,8 @@ type (tao_element_struct), pointer :: uni_ele(:)
 type (tao_universe_branch_struct), pointer :: uni_branch
 type (bunch_params_struct), pointer :: bunch_params
 
+real(rp) sig(6,6)
+
 integer ix_ele0, what_lat, n_lost_old
 integer i, j, n, i_uni, ip, ig, ic, ie1, ie2
 integer n_bunch, n_part, i_uni_to, ix_track
@@ -690,7 +692,15 @@ do
   ! calc bunch params
 
   call calc_bunch_params (beam%bunch(s%global%bunch_to_plot), bunch_params, err, print_err)
-  if (err) print_err = .false.  ! Only generate one message.
+  ! Only generate error message once per tracking
+  if (err .and. print_err) then
+    sig = bunch_params%sigma
+    call out_io (s_error$, r_name, [character(60):: 'Singular sigma matrix is:', &
+            '  \6es15.7\', '  \6es15.7\', '  \6es15.7\', '  \6es15.7\', '  \6es15.7\', '  \6es15.7\', &
+            'Will not print any more singular sigma matrices for this track...'], &
+            r_array = [sig(1,:), sig(2,:), sig(3,:), sig(4,:), sig(5,:), sig(6,:)])
+    print_err = .false.  
+  endif
 
   if (j == ie1) then
     bunch_params%n_particle_lost_in_ele = 0
