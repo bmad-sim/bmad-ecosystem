@@ -897,17 +897,26 @@ class tao_plot_curve_window(tao_parameter_window):
     tao_parameter_window.__init__(self, root, curve, data_list, self.pipe, *args, **kwargs)
 
 #-----------------------------------------------------
-# Element window
-
-class tao_ele_window(tao_list_window):
+# Branch/element choosing widgets
+class tao_branch_widgets:
   '''
-  Window for displaying and modifying element info.
-  default specifies the element that should be
-  displayed when the window is created
-  Format for default: [universe, branch, element, base/model/design]
+  Provides several widgets for slecting universe,
+  branch, and elements
+  Available widgets:
+  self.uni_chooser: OptionMenu to pick the universe index
+  self.branch_chooser: OptionMenu to pick the branch (displays name and index)
+  self.ele_chooser: ttk Combobox for selecting an element.  Maybe be specified by name or index
+  self.bmd_chooser: OptionMenu for choosing base, model, or design
+  self.bme_chooser: OptionMenu for choosing beginning, middle, or end
+  In addition, the class provides tk variables for each of these widgets, named the same but without _chooser at the end
   '''
-  def __init__(self, root, pipe, default=None, *args, **kwargs):
-    tao_list_window.__init__(self, root, "Lattice Elements", use_upper=True, min_width=600, *args, **kwargs)
+  def __init__(self, parent, pipe, default=None):
+    '''
+    parent: the parent widget where these widgets will be placed
+    pipe: tao_interface object
+    default: specify the default state of the widgets
+    '''
+    self.parent = parent
     self.pipe = pipe
     self.default = default
 
@@ -952,34 +961,18 @@ class tao_ele_window(tao_list_window):
           self.e_display_list[u][branch_num].append(display_name)
         self.e_name_list[u][branch_num] = ele_names
 
-    # Set up frames to structure the window
-    self.top_frame = tk.Frame(self.upper_frame)  # Holds the selection widgets
-    self.head_frame = tk.Frame(self.upper_frame) # Holds the general info
-    #self.body_frame = tk.Frame(self) # Holds everything else
-    self.top_frame.pack(fill="both", expand=1)
-    for i in range(5):
-      self.top_frame.grid_columnconfigure(i, weight=1)
-    self.head_frame.pack(fill="both", expand=1)
-    for i in range(4):
-      self.head_frame.grid_columnconfigure(i, weight=1, pad=5)
-    #self.body_frame.pack(fill="both", expand=1)
-
-    # The Element selection fields
-    tk.Label(self.top_frame, text="Universe").grid(row=0, column=0)
-    tk.Label(self.top_frame, text="Branch").grid(row=0, column=1)
-    self.ele_label = tk.StringVar()
-    tk.Label(self.top_frame, textvariable=self.ele_label).grid(row=0, column=2)
-    tk.Label(self.top_frame, text="Base/Model/Design").grid(row=0, column=3)
-
+    # The variables and widgets
     self.uni = tk.StringVar()
     self.branch = tk.StringVar()
     self.branch_name = tk.StringVar()
     self.ele = tk.StringVar()
+    self.ele_label = tk.StringVar() # For showing index range
     self.bmd = tk.StringVar() # Base/Model/Design
+    self.bme = tk.StringVar() # Beginning/Middle/End
     if (default != None):
       self.uni.set(str(default[0]))
       self.branch.set(str(default[1]))
-      self.branch.set(str(default[2]))
+      self.ele.set(str(default[2]))
       self.bmd.set(str(default[3]))
     else:
       self.uni.set(str(self.u_list[0]))
@@ -994,21 +987,14 @@ class tao_ele_window(tao_list_window):
       pass
     self.ele_label.set("Element (0 to " + str(self.e_list[self.uni.get()][self.branch.get()][-1]) + ")")
 
-    self.uni_chooser = tk.OptionMenu(self.top_frame, self.uni, *self.u_list, command=self.make_branch)
-    self.branch_chooser = tk.OptionMenu(self.top_frame, self.branch_name, *self.b_name_list[self.uni.get()], command=self.make_ele_chooser)
-    #self.ele_chooser = tk.Entry(self.top_frame, textvariable=self.ele)
-    self.ele_chooser = ttk.Combobox(self.top_frame, textvariable=self.ele, values=self.e_display_list[self.uni.get()][self.branch.get()])
-    self.ele_chooser.bind("<<ComboboxSelected>>", self.refresh)
-    self.ele_chooser.bind("<Return>", self.refresh)
-    self.bmd_chooser = tk.OptionMenu(self.top_frame, self.bmd, "Base", "Model", "Design")
-
-    self.uni_chooser.grid(row=1, column=0, sticky='EW')
-    self.branch_chooser.grid(row=1, column=1, sticky='EW')
-    self.ele_chooser.grid(row=1, column=2, sticky='EW')
-    self.bmd_chooser.grid(row=1, column=3, sticky='EW')
-    tk.Button(self.top_frame, text="Load", command=self.refresh).grid(row=0, column=4, rowspan=2, sticky="NSEW")
-
-    self.refresh()
+    self.uni_chooser = tk.OptionMenu(self.parent, self.uni, *self.u_list, command=self.make_branch)
+    self.branch_chooser = tk.OptionMenu(self.parent, self.branch_name, *self.b_name_list[self.uni.get()], command=self.make_ele_chooser)
+    self.ele_chooser = ttk.Combobox(self.parent, textvariable=self.ele, values=self.e_display_list[self.uni.get()][self.branch.get()])
+    #self.ele_chooser.bind("<<ComboboxSelected>>", self.refresh)
+    #self.ele_chooser.bind("<Return>", self.refresh)
+    self.bmd_chooser = tk.OptionMenu(self.parent, self.bmd, "Base", "Model", "Design")
+    self.bme_chooser = tk.OptionMenu(self.parent, self.bme, "Beginning", "Middle", "End")
+    self.bme.set("End")
 
   def make_branch(self, event=None):
     '''
@@ -1016,30 +1002,68 @@ class tao_ele_window(tao_list_window):
     to show in the branch chooser depends on what
     universe you are in
     '''
+    # Get the current geometry manager and properties
+    manager = self.branch_chooser.winfo_manager()
+    if manager == 'pack':
+      props = self.branch_chooser.pack_info()
+    elif manager == 'grid':
+      props = self.branch_chooser.grid_info()
+    elif manager == 'place':
+      props = self.branch_chooser.place_info()
+    else: #No need to remake the branch_chooser
+      return
+
+    # Remake the branch_chooser
     self.branch_chooser.destroy()
-    self.branch_chooser = tk.OptionMenu(self.top_frame, self.branch_name, *self.b_name_list[self.uni.get()], command=self.make_ele_chooser)
+    self.branch_chooser = tk.OptionMenu(self.parent, self.branch_name, *self.b_name_list[self.uni.get()], command=self.make_ele_chooser)
     self.branch.set(self.b_list[self.uni.get()][0])
     self.branch_name.set(self.b_name_list[self.uni.get()][0])
-    self.branch_chooser.grid(row=1, column=1, sticky='EW')
     self.make_ele_chooser()
+
+    # Put the branch_chooser back correctly
+    if manager == 'pack':
+      self.branch_chooser.pack(**props)
+    if manager == 'grid':
+      self.branch_chooser.grid(**props)
+    if manager == 'place':
+      self.branch_chooser.place(**props)
 
   def make_ele_chooser(self, event=None):
     '''
     This is necessary because different branches
     have different lists of elements to display
     '''
+    # Get the current geometry manager and properties
+    manager = self.ele_chooser.winfo_manager()
+    if manager == 'pack':
+      props = self.ele_chooser.pack_info()
+    elif manager == 'grid':
+      props = self.ele_chooser.grid_info()
+    elif manager == 'place':
+      props = self.ele_chooser.place_info()
+    else: #No need to remake the branch_chooser
+      return
+
     self.ele_chooser.destroy()
-    self.ele_chooser = ttk.Combobox(self.top_frame, textvariable=self.ele, values=self.e_display_list[self.uni.get()][self.branch.get()])
-    self.ele_chooser.bind("<<ComboboxSelected>>", self.refresh)
-    self.ele_chooser.bind("<Return>", self.refresh)
+    self.ele_chooser = ttk.Combobox(self.parent, textvariable=self.ele, values=self.e_display_list[self.uni.get()][self.branch.get()])
+    self.ele_chooser.bind("<<ComboboxSelected>>", self.update)
+    self.ele_chooser.bind("<Return>", self.update)
     self.ele_label.set("Element (0 to " + str(self.e_list[self.uni.get()][self.branch.get()][-1]) + ")")
     # set self.ele to element 0 in the first branch
     self.ele.set(self.e_display_list[self.uni.get()][self.branch.get()][0])
-    self.ele_chooser.grid(row=1, column=2, sticky='EW')
 
-  def refresh(self, event=None):
+    # Put the branch_chooser back correctly
+    if manager == 'pack':
+      self.ele_chooser.pack(**props)
+    if manager == 'grid':
+      self.ele_chooser.grid(**props)
+    if manager == 'place':
+      self.ele_chooser.place(**props)
+
+  def update(self, event=None):
     '''
-    This is where most of the element information is actually created
+    Sets self.ele to its index value (as a string)
+    Returns 0 if setting self.ele failed, 1 if succeeded
     '''
     # Make sure the element field has an actual element in it
     if (self.ele.get() not in self.e_name_list[self.uni.get()][self.branch.get()]) \
@@ -1047,10 +1071,10 @@ class tao_ele_window(tao_list_window):
       try:
         if int(self.ele.get()) not in self.e_list[self.uni.get()][self.branch.get()]:
           messagebox.showwarning("Error", "Element not found")
-          return
+          return 0
       except ValueError:
         messagebox.showwarning("Error", "Element not found")
-        return
+        return 0
 
     # Set self.ele, in case the element
     # was specified by name or display name
@@ -1060,6 +1084,62 @@ class tao_ele_window(tao_list_window):
     elif self.ele.get() in self.e_display_list[self.uni.get()][self.branch.get()]:
       ele_num = self.e_display_list[self.uni.get()][self.branch.get()].index(self.ele.get())
       self.ele.set(str(ele_num))
+    return 1
+
+#-----------------------------------------------------
+# Element window
+
+class tao_ele_window(tao_list_window):
+  '''
+  Window for displaying and modifying element info.
+  default specifies the element that should be
+  displayed when the window is created
+  Format for default: [universe, branch, element, base/model/design]
+  '''
+  def __init__(self, root, pipe, default=None, *args, **kwargs):
+    tao_list_window.__init__(self, root, "Lattice Elements", use_upper=True, min_width=600, *args, **kwargs)
+    self.pipe = pipe
+    self.default = default
+
+    # Set up frames to structure the window
+    self.top_frame = tk.Frame(self.upper_frame)  # Holds the selection widgets
+    self.head_frame = tk.Frame(self.upper_frame) # Holds the general info
+    #self.body_frame = tk.Frame(self) # Holds everything else
+    self.top_frame.pack(fill="both", expand=1)
+    for i in range(5):
+      self.top_frame.grid_columnconfigure(i, weight=1)
+    self.head_frame.pack(fill="both", expand=1)
+    for i in range(4):
+      self.head_frame.grid_columnconfigure(i, weight=1, pad=5)
+    #self.body_frame.pack(fill="both", expand=1)
+
+    # The Element selection fields
+    self.ele_wids = tao_branch_widgets(self.top_frame, self.pipe, self.default)
+    tk.Label(self.top_frame, text="Universe").grid(row=0, column=0)
+    tk.Label(self.top_frame, text="Branch").grid(row=0, column=1)
+    self.ele_label = self.ele_wids.ele_label #Might not work
+    tk.Label(self.top_frame, textvariable=self.ele_label).grid(row=0, column=2)
+    tk.Label(self.top_frame, text="Base/Model/Design").grid(row=0, column=3)
+
+    # Configure and place widgets
+    self.ele_wids.ele_chooser.bind("<<ComboboxSelected>>", self.refresh)
+    self.ele_wids.ele_chooser.bind("<Return>", self.refresh)
+    self.ele_wids.uni_chooser.grid(row=1, column=0, sticky='EW')
+    self.ele_wids.branch_chooser.grid(row=1, column=1, sticky='EW')
+    self.ele_wids.ele_chooser.grid(row=1, column=2, sticky='EW')
+    self.ele_wids.bmd_chooser.grid(row=1, column=3, sticky='EW')
+    tk.Button(self.top_frame, text="Load", command=self.refresh).grid(row=0, column=4, rowspan=2, sticky="NSEW")
+
+    self.refresh()
+
+  def refresh(self, event=None):
+    '''
+    This is where most of the element information is actually created
+    '''
+    # Update the ele_wids and check for successful update
+    if not self.ele_wids.update():
+      messagebox.showwarning("Error", "Element not found")
+      return
 
     # Clear existing window contents
     for child in self.head_frame.winfo_children():
@@ -1068,7 +1148,7 @@ class tao_ele_window(tao_list_window):
       child.destroy()
 
     # Create an element object
-    self.element = lat_element(self.uni.get(), self.branch.get(), self.ele.get(), (self.bmd.get()).lower(), self.pipe)
+    self.element = lat_element(self.ele_wids.uni.get(), self.ele_wids.branch.get(), self.ele_wids.ele.get(), (self.ele_wids.bmd.get()).lower(), self.pipe)
 
     # Populate self.head_frame
     self.head_tk_tao_params = []
@@ -1116,8 +1196,8 @@ class tao_ele_window(tao_list_window):
           self.sh_b_list.append(tk.Button(self.list_frame, text=key))
           ls_frame = tk.Frame(self.list_frame)
           ls_list = self.pipe.cmd_in("python ele:lord_slave "
-              + self.uni.get() + '@' + self.branch.get()
-              + '>>' + self.ele.get() + '|' + (self.bmd.get()).lower())
+              + self.ele_wids.uni.get() + '@' + self.ele_wids.branch.get()
+              + '>>' + self.ele_wids.ele.get() + '|' + (self.ele_wids.bmd.get()).lower())
           ls_list = ls_list.splitlines()
           self.tao_lists.append(ls_list) # Don't want to misalign indices
           m = 0 #rows
@@ -1139,10 +1219,10 @@ class tao_ele_window(tao_list_window):
         # Make a button
         self.sh_b_list.append(tk.Button(self.list_frame, text=key))
         tao_list = self.pipe.cmd_in("python ele:"
-            + key + ' ' + self.uni.get() + '@'
-            + self.branch.get() + '>>'
-            + self.ele.get() + '|'
-            + (self.bmd.get()).lower())
+            + key + ' ' + self.ele_wids.uni.get() + '@'
+            + self.ele_wids.branch.get() + '>>'
+            + self.ele_wids.ele.get() + '|'
+            + (self.ele_wids.bmd.get()).lower())
         self.tao_lists.append(tao_list.splitlines())
         for j in range(len(self.tao_lists[i])):
           self.tao_lists[i][j] = str_to_tao_param(self.tao_lists[i][j])
@@ -1154,7 +1234,7 @@ class tao_ele_window(tao_list_window):
         i = i+1
 
     # Reset self.ele to be the display name
-    self.ele.set(self.e_display_list[self.uni.get()][self.branch.get()][int(self.ele.get())])
+    self.ele_wids.ele.set(self.ele_wids.e_display_list[self.ele_wids.uni.get()][self.ele_wids.branch.get()][int(self.ele_wids.ele.get())])
     self.list_frame.columnconfigure(0, weight=1)
 
   def s_callback(self, index):
@@ -1179,42 +1259,6 @@ class tao_ele_window(tao_list_window):
     # Button should now show instead of hide
     self.sh_b_list[index].configure(command=self.s_callback(index))
 
-#----------------------------------------------------
-
-#class tao_switch:
-#  '''
-#  Data structure for holding all the relevant info
-#  for a (lattice) switch
-#  Recognized keywords:
-#  name (str): the proper name of the switch in Tao, e.g. -s, -lords; include the -
-#  display_name (str): what to show the user
-#  use (bool): whether or not to use this switch
-#  value (str): the value to use for this switch
-#  '''
-#  def __init__(self, **kwargs):
-#    if "name" in kwargs.keys():
-#      self.name = kwargs["name"]
-#    else:
-#      self.name = ""
-#    if "display_name" in kwargs.keys():
-#      self.display_name = kwargs["display_name"]
-#    else:
-#      self.display_name = ""
-#    if "use" in kwargs.keys():
-#      self.use = bool(kwargs["use"])
-#    else:
-#      self.use = False
-#    if "value" in kwargs.keys():
-#      self.value = kwargs["value"]
-#    else:
-#      self.value = ""
-#    self.etc = kwargs #catchall
-#
-#    self.use_var = tk.BooleanVar()
-#    self.use_var.set(self.use)
-#    self.value_var = tk.StringVar()
-#    self.value_var.set(self.value)
-
 #---------------------------------------------------
 # Lattice Window
 class tao_lattice_window(tk.Toplevel):
@@ -1223,6 +1267,11 @@ class tao_lattice_window(tk.Toplevel):
   with an interface to select which rows/columns
   are displayed
   '''
+  # TODO: parse first row widgets for formatting table
+  # TODO: custom column layout functionality
+  # TODO: load/save entire table format
+  # TODO: replace blank
+  # TODO: reorganize?
   def __init__(self, root, pipe, switches=""):
     tk.Toplevel.__init__(self, root)
     self.title("Lattice")
@@ -1234,14 +1283,22 @@ class tao_lattice_window(tk.Toplevel):
     # Set up top_frame for switches and table_frame for the table
     self.top_frame = tk.Frame(self)
     self.top_frame.pack(fill="both", expand=0)
-    self.top_frame.columnconfigure(4, weight=1)
+    self.top_frame.columnconfigure(6, weight=1)
     self.table_frame = tk.Frame(self)
     self.table_frame.pack(fill="both", expand=1)
 
     # Switches
 
     # Branch/General
-    tk.Label(self.top_frame, text="PLACEHOLDER").grid(row=0, column=0, columnspan=5, sticky='EW')
+    self.branch_wids = tao_branch_widgets(self.top_frame, self.pipe)
+    #tk.Label(self.top_frame, text="PLACEHOLDER").grid(row=0, column=0, columnspan=5, sticky='EW')
+    tk.Label(self.top_frame, text="Universe:").grid(row=0, column=0, sticky='W')
+    self.branch_wids.uni_chooser.grid(row=0, column=1, sticky='EW')
+    tk.Label(self.top_frame, text="Branch:").grid(row=0, column=2, sticky='W')
+    self.branch_wids.branch_chooser.grid(row=0, column=3, sticky='EW')
+    self.branch_wids.bmd_chooser.grid(row=0, column=4, sticky='EW')
+    self.branch_wids.bme_chooser.grid(row=0, column=5, sticky='EW')
+
 
     # Columns
     tk.Label(self.top_frame, text="Columns:").grid(row=1, column=0, sticky='W')
@@ -1259,6 +1316,8 @@ class tao_lattice_window(tk.Toplevel):
     self.att_box = tk.Entry(self.top_frame, textvariable=self.col_atts)
     self.att_box.configure(state="disabled")
     self.att_box.grid(row=1, column=3, sticky='EW')
+    tk.Label(self.top_frame, text="Template file:").grid(row=1, column=4, sticky='EW')
+    tk.Button(self.top_frame, text="Browse... (placeholder)").grid(row=1, column=5, sticky='EW')
 
     # Rows
     tk.Label(self.top_frame, text="Rows:").grid(row=2, column=0, sticky='W')
@@ -1281,22 +1340,22 @@ class tao_lattice_window(tk.Toplevel):
     self.ele_list_chooser.grid(row=2, column=3, sticky='EW')
     self.ele_list_box = tk.Entry(self.top_frame, textvariable=self.ele_list)
     self.ele_list_box.configure(state="disabled")
-    self.ele_list_box.grid(row=2, column=4, sticky='EW')
+    self.ele_list_box.grid(row=2, column=4, columnspan=3, sticky='EW')
 
     # Advanced Options
     self.use_advanced = False
-    tk.Button(self.top_frame, text="Advanced\nOn/Off", command=self.toggle_advanced).grid(row=1, column=5, rowspan=2, sticky='NSEW')
+    tk.Button(self.top_frame, text="Advanced\nOn/Off", command=self.toggle_advanced).grid(row=2, column=7, rowspan=2, sticky='NSEW')
     tk.Label(self.top_frame, text="Advanced:").grid(row=3, column=0, sticky='W')
     self.advanced_var = tk.StringVar()
     self.advanced_var.set(self.switches)
     self.advanced_box = tk.Entry(self.top_frame, textvariable=self.advanced_var)
     self.advanced_box.configure(state="disabled")
-    self.advanced_box.grid(row=3, column=1, columnspan=4, sticky='EW') #pack(side="left", fill="both", expand=1)
+    self.advanced_box.grid(row=3, column=1, columnspan=6, sticky='EW') #pack(side="left", fill="both", expand=1)
     #self.advanced_box.bind("<Return>", self.refresh)
     #self.tree.focus() and self.tree.selection() for current items
 
     b = tk.Button(self.top_frame, text="Refresh", command=self.refresh)
-    b.grid(row=3, column=5, sticky='EW') #pack(side="left", fill="both", expand=0)
+    b.grid(row=0, column=7, rowspan=2, sticky='NSEW') #pack(side="left", fill="both", expand=0)
     self.refresh()
 
   def col_filter_callback(self, event=None):
@@ -1448,10 +1507,7 @@ class tao_lattice_window(tk.Toplevel):
       self.maxsize(tot+50, 1000)
     else:
       self.maxsize(1800, 1000)
-    #if tot > 1600:
-    #  old_geo = self.wm_geometry()
-    #  new_geo = str(1600) + old_geo[old_geo.find('x'):]
-    #  self.geometry(new_geo)
+    self.minsize(1000, 100)
 
 
 
