@@ -771,7 +771,6 @@ subroutine beam_envelope_ibs(sigma_mat, ibs_mat, tail_cut, tau, energy, n_part)
   real(rp) ptrans, bn, bm, bmin, bmax
   real(rp) bmin1, bmin2
 
-  integer error
   integer i, j, k
 
   real(rp), parameter :: pi_2 = pi/2.0d0
@@ -787,7 +786,7 @@ subroutine beam_envelope_ibs(sigma_mat, ibs_mat, tail_cut, tau, energy, n_part)
 
   real(rp) gamma
 
-  logical ok
+  logical ok, error
 
   call convert_total_energy_to(energy, -1, gamma)
 
@@ -841,7 +840,7 @@ subroutine beam_envelope_ibs(sigma_mat, ibs_mat, tail_cut, tau, energy, n_part)
   u(2) = max(u(2),1.0d-20)
   u(3) = max(u(3),1.0d-20)
 
-  if( error .ne. 0 ) then
+  if( error) then
     write(*,'(A,I6," ",A)') "BAD: Eigenvectors of local momentum matrix not found."
     ibs_mat = 0.0d0
     return
