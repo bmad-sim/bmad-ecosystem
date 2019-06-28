@@ -684,7 +684,6 @@ class taoplot:
 				universe = 1
 
 			fpeInfo=pipe.cmd_in('python floor_plan '+str(universe)).splitlines()
-			print(fpeInfo[1])
 			
 
 
@@ -701,17 +700,17 @@ class taoplot:
 
 
 
-			plt.xlabel(pgp_to_mpl(floInfoDict['x.label'].value))
-			plt.ylabel(pgp_to_mpl(floInfoDict['y.label'].value))
+			plt.xlabel(pgp_to_mpl(gInfoDict['x.label'].value))
+			plt.ylabel(pgp_to_mpl(gInfoDict['y.label'].value))
 			#plot floor plan axis labels
 
-			xmajorLocator=MultipleLocator((floInfoDict['x.max'].value-floInfoDict['x.min'].value)/floInfoDict['x.major_div'].value)
-			ymajorLocator=MultipleLocator((floInfoDict['y.max'].value-floInfoDict['y.min'].value)/floInfoDict['y.major_div'].value)
+			xmajorLocator=MultipleLocator((gInfoDict['x.max'].value-gInfoDict['x.min'].value)/gInfoDict['x.major_div'].value)
+			ymajorLocator=MultipleLocator((gInfoDict['y.max'].value-gInfoDict['y.min'].value)/gInfoDict['y.major_div'].value)
 			GraphDict['FloorPlan'].xaxis.set_major_locator(xmajorLocator)
 			GraphDict['FloorPlan'].yaxis.set_major_locator(ymajorLocator)
 			GraphDict['FloorPlan'].grid(gInfoDict['draw_grid'].value,which='major',axis='both')
-			plt.xlim(floInfoDict['x.min'].value,floInfoDict['x.max'].value)
-			plt.ylim(floInfoDict['y.min'].value,floInfoDict['y.max'].value)
+			plt.xlim(gInfoDict['x.min'].value,gInfoDict['x.max'].value)
+			plt.ylim(gInfoDict['y.min'].value,gInfoDict['y.max'].value)
 			GraphDict['FloorPlan'].set_axisbelow(True)
 			#plot floor plan grid
 
