@@ -1313,7 +1313,7 @@ end subroutine init_spin_distribution
 !
 ! Output     
 !   params -- bunch_params_struct:
-!   err    -- Logical: Set True if there is an error in mat_eigen routine.
+!   err    -- Logical: Set True if there is an error.
 ! -
 
 subroutine calc_bunch_params_slice (bunch, bunch_params, plane, slice_center, slice_spread, err, print_err)
@@ -1365,7 +1365,7 @@ end subroutine calc_bunch_params_slice
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine calc_bunch_params (bunch, bunch_params, err, print_err)
+! Subroutine calc_bunch_params (bunch, bunch_params, error, print_err)
 !
 ! Finds all bunch parameters defined in bunch_params_struct, both normal-mode
 ! and projected. Projected parameters are found purely from the geometrical
@@ -1387,10 +1387,10 @@ end subroutine calc_bunch_params_slice
 !
 ! Output     
 !   bunch_params -- bunch_params_struct:
-!   err   -- Logical: Set True if there is an error in mat_eigen routine.
+!   error        -- Logical: Set True if there is an error.
 !-
 
-subroutine calc_bunch_params (bunch, bunch_params, err, print_err)
+subroutine calc_bunch_params (bunch, bunch_params, error, print_err)
 
 implicit none
 
@@ -1410,17 +1410,17 @@ complex(rp) :: n(6,6), q(6,6)
 integer i, j, species
 
 logical, optional :: print_err
-logical err, err1
+logical error, err, err1
 
 character(*), parameter :: r_name = "calc_bunch_params"
 
 ! Init
 
 bunch_params%twiss_valid = .false.  ! Assume the worst
+error = .true.
 
 if (bunch%charge_tot == 0) then
-  call out_io (s_error$, r_name, 'CHARGE OF PARTICLES IN BUNCH NOT SET. CALCULATION CANNOT BE DONE.')
-  err = .true.
+  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'CHARGE OF PARTICLES IN BUNCH NOT SET. CALCULATION CANNOT BE DONE.')
   return
 endif
 
@@ -1466,7 +1466,7 @@ if (charge_live == 0) then
   call zero_plane (bunch_params%a)
   call zero_plane (bunch_params%b)
   call zero_plane (bunch_params%c)
-  err = .false.
+  error = .false.
   return
 else
   ! Get s-position from first live particle
@@ -1534,7 +1534,11 @@ bunch_params%c%norm_emit = bunch_params%c%emit * (avg_energy/mass_of(species))
 ! mat_eigen finds row vectors, so switch to column vectors
 
 call normalize_e (eigen_vec, err)
-if (err) return
+if (err) then
+  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'CANNOT NORMALIZE EIGENVECTORS.')
+  return
+endif
+
 eigen_vec = transpose(eigen_vec)
 
 q = 0.0
@@ -1584,6 +1588,8 @@ bunch_params%c%eta  = n_real(5,5)*n_real(6,5) + n_real(5,6)*n_real(6,6)
 bunch_params%c%etap = n_real(6,5)*n_real(6,5) + n_real(6,6)*n_real(6,6)
 
 bunch_params%twiss_valid = .true.
+
+error = .false.
 
 !----------------------------------------------------------------------
 contains
@@ -1636,10 +1642,10 @@ else
   px2  = exp_px2  - exp_px_d**2 / bunch_params%sigma(6,6)
 endif
 
-twiss%sigma = sqrt(x2)
-twiss%sigma_p = sqrt(px2)
+twiss%sigma = sqrt(max(0.0_rp, x2))          ! Roundoff may give negative argument.
+twiss%sigma_p = sqrt(max(0.0_rp, px2))       ! Roundoff may give negative argument.
 
-emit = sqrt(max(0.0_rp, x2*px2 - x_px**2)) ! Roundoff may give negative argument.
+emit = sqrt(max(0.0_rp, x2*px2 - x_px**2))   ! Roundoff may give negative argument.
 
 twiss%emit      = emit
 twiss%norm_emit = (avg_energy/mass_of(species)) * emit
