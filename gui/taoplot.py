@@ -28,6 +28,7 @@ class taoplot:
 		pipe = self.pipe
 		GraphRegion = self.GraphRegion
 		LatLayout=False
+		FloorPlan=False
 
 		def pgp_to_mpl(x):
 			'''takes string with pgplot characters and returns string with characters replaced with matplotlib equivalent, raises NotImplementedError if an unknown pgplot character is used'''
@@ -403,12 +404,18 @@ class taoplot:
 				LatLayout = True
 				gList = []
 				plt.axis('off')
-			#lat_layout
+			#sets up lat layout plot
+
+			if gInfoDict['graph^type'].value == 'floor_plan':
+				FloorPlan = True
+				gList = []
+				plt.axis('off')
+			#sets up floor plan plot		
 
 			#plot curves
 			#LineList gives names of curves
 
-
+			
 
 
 			plt.title(pgp_to_mpl(gInfoDict['title'].value)+' '+gInfoDict['title_suffix'].value)
@@ -420,7 +427,7 @@ class taoplot:
 				LegendList.append(LineList[i][0])
 				LabelList.append(pgp_to_mpl(cInfoDictList[i]['legend_text'].value))
 
-			if (gInfoDict['draw_curve_legend'].value == True and LabelList != ['']) and gInfoDict['graph^type'].value != 'lat_layout':
+			if (gInfoDict['draw_curve_legend'].value == True and LabelList != ['']) and gInfoDict['graph^type'].value != 'lat_layout' and gInfoDict['graph^type'].value != 'floor_plan':
 				GraphDict['graph'+str(gNumber+1)].legend(LegendList,LabelList)
 			#plot legend
 
@@ -463,8 +470,7 @@ class taoplot:
 			#list of tao_parameter object names from python plot_graph
 			#dictionary of tao_parameter name string keys to the corresponding tao_parameter object
 
-			#plt.xlim(gInfoDict['x.min'].value,gInfoDict['x.max'].value)
-			#plt.ylim(layInfoDict['y.min'].value,layInfoDict['y.max'].value)
+
 			
 			twinAxes=GraphDict['LatLayout'].axes.twinx()
 			plt.xlim(gInfoDict['x.min'].value,gInfoDict['x.max'].value)
@@ -505,93 +511,216 @@ class taoplot:
 			eleInfo=pipe.cmd_in('python plot_lat_layout '+str(universe)+'@'+str(branch)).splitlines()
 			#list of strings containing information about each element
 
-
-			eleNameDict = {}
-			eleTypeDict = {}
+			eleIndexList = []
 			eleStartDict = {}
 			eleEndDict = {}
+			eleLwDict = {}
+			eleShapeDict = {}
+			eleY1Dict = {} #height above 0 
+			eleY2Dict = {} #height below 0
+			eleColorDict = {}
+			eleNameDict = {}
 			for i in range(len(eleInfo)):
-				eleNameDict[eleInfo[i].split(';')[0]]= eleInfo[i].split(';')[1]
-				eleTypeDict[eleInfo[i].split(';')[0]]= eleInfo[i].split(';')[2].lower()
-				eleStartDict[eleInfo[i].split(';')[0]]= float(eleInfo[i].split(';')[3])
-				eleEndDict[eleInfo[i].split(';')[0]]= float(eleInfo[i].split(';')[4])
+				eleIndexList.append(int(eleInfo[i].split(';')[0]))
+				eleStartDict[eleInfo[i].split(';')[0]]= float(eleInfo[i].split(';')[1])
+				eleEndDict[eleInfo[i].split(';')[0]]= float(eleInfo[i].split(';')[2])
+				eleLwDict[eleInfo[i].split(';')[0]]= float(eleInfo[i].split(';')[3])
+				eleShapeDict[eleInfo[i].split(';')[0]]= eleInfo[i].split(';')[4].lower()
+				eleY1Dict[eleInfo[i].split(';')[0]]= float(eleInfo[i].split(';')[5])
+				eleY2Dict[eleInfo[i].split(';')[0]]= float(eleInfo[i].split(';')[6])
+				eleColorDict[eleInfo[i].split(';')[0]]= eleInfo[i].split(';')[7].lower()
+				eleNameDict[eleInfo[i].split(';')[0]]= eleInfo[i].split(';')[8]
 			#all dict keys and entries are strings matching element index (eg: '1') string to the corresponding information
 
 
-			for j in range(len(eleInfo)):
-				i=j+1
+			for i in eleIndexList:
 				try:
-					if eleTypeDict[str(i)] == 'drift':
-						pass			
-					#draw drift element
-
-
-
-					elif shapeTypeDict[eleTypeDict[str(i)]] == 'box' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:		
-						GraphDict['LatLayout'].add_patch(patches.Rectangle((eleStartDict[str(i)],-1*shapeHeightDict[eleTypeDict[str(i)]]),eleEndDict[str(i)]-eleStartDict[str(i)],2*shapeHeightDict[eleTypeDict[str(i)]],color=shapeColorDict[eleTypeDict[str(i)]],fill=False))
-					elif shapeTypeDict[eleTypeDict[str(i)]] == 'box' and eleEndDict[str(i)]-eleStartDict[str(i)] < 0:		
-						print('wrap')
+					if eleShapeDict[str(i)] == 'box' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:		
+						GraphDict['LatLayout'].add_patch(patches.Rectangle((eleStartDict[str(i)],-1*eleY2Dict[str(i)]),eleEndDict[str(i)]-eleStartDict[str(i)],eleY1Dict[str(i)]+eleY2Dict[str(i)],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],fill=False))
 					#draw box element	
 
 
 
 
-					elif shapeTypeDict[eleTypeDict[str(i)]] == 'xbox' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
-						GraphDict['LatLayout'].add_patch(patches.Rectangle((eleStartDict[str(i)],-1*shapeHeightDict[eleTypeDict[str(i)]]),eleEndDict[str(i)]-eleStartDict[str(i)],2*shapeHeightDict[eleTypeDict[str(i)]],color=shapeColorDict[eleTypeDict[str(i)]],fill=False))
-						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[shapeHeightDict[eleTypeDict[str(i)]],-1*shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])
-						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*shapeHeightDict[eleTypeDict[str(i)]],shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])		
-					elif shapeTypeDict[eleTypeDict[str(i)]] == 'box' and eleEndDict[str(i)]-eleStartDict[str(i)] < 0:		
-						print('wrap')
+					elif eleShapeDict[str(i)] == 'xbox' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
+						GraphDict['LatLayout'].add_patch(patches.Rectangle((eleStartDict[str(i)],-1*eleY2Dict[str(i)]),eleEndDict[str(i)]-eleStartDict[str(i)],eleY1Dict[str(i)]+eleY2Dict[str(i)],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],fill=False))
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])			
 					#draw xbox element
 
 
 
 
-					elif shapeTypeDict[eleTypeDict[str(i)]] == 'x' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
-						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[shapeHeightDict[eleTypeDict[str(i)]],-1*shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])
-						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*shapeHeightDict[eleTypeDict[str(i)]],shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])		
+					elif eleShapeDict[str(i)] == 'x' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
 					#draw x element
 				
 
 
-					elif shapeTypeDict[eleTypeDict[str(i)]] == 'bow_tie' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
-						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[shapeHeightDict[eleTypeDict[str(i)]],-1*shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])
-						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*shapeHeightDict[eleTypeDict[str(i)]],shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])		
-						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[shapeHeightDict[eleTypeDict[str(i)]],shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])
-						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*shapeHeightDict[eleTypeDict[str(i)]],-1*shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])
+					elif eleShapeDict[str(i)] == 'bow_tie' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])	
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
 					#draw bow_tie element	
 					
 
 
-					elif shapeTypeDict[eleTypeDict[str(i)]] == 'diamond' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
-						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2],[0,-1*shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])
-						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2],[0,shapeHeightDict[eleTypeDict[str(i)]]],color=shapeColorDict[eleTypeDict[str(i)]])
-						GraphDict['LatLayout'].plot([eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,eleEndDict[str(i)]],[-1*shapeHeightDict[eleTypeDict[str(i)]],0],color=shapeColorDict[eleTypeDict[str(i)]])
-						GraphDict['LatLayout'].plot([eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,eleEndDict[str(i)]],[shapeHeightDict[eleTypeDict[str(i)]],0],color=shapeColorDict[eleTypeDict[str(i)]])
+					elif eleShapeDict[str(i)] == 'diamond' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2],[0,-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2],[0,eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,eleEndDict[str(i)]],[eleY1Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
 					#draw diamond element	
 
 
-					elif shapeTypeDict[eleTypeDict[str(i)]] == 'circle' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
-						GraphDict['LatLayout'].add_patch(patches.Ellipse((eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,0),(eleEndDict[str(i)]-eleStartDict[str(i)])/2,2*shapeHeightDict[eleTypeDict[str(i)]],color=shapeColorDict[eleTypeDict[str(i)]],fill=False))
+					elif eleShapeDict[str(i)] == 'circle':
+						GraphDict['LatLayout'].add_patch(patches.Ellipse((eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,0),(eleEndDict[str(i)]-eleStartDict[str(i)])/2,eleY1Dict[str(i)]+eleY2Dict[str(i)],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],fill=False))
 					#draw circle element
 
 
 
-					if shapeNameDict[eleTypeDict[str(i)]] == 'T':
-						GraphDict['LatLayout'].text(eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,-1.05*shapeHeightDict[eleTypeDict[str(i)]],eleNameDict[str(i)],ha='center',va='top',color=shapeColorDict[eleTypeDict[str(i)]])
+					elif eleShapeDict[str(i)] == 'box' and eleEndDict[str(i)]-eleStartDict[str(i)] < 0:	
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x.max'].value],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([layInfoDict['x.min'].value,eleEndDict[str(i)]],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x.max'].value],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([layInfoDict['x.min'].value,eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleStartDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleEndDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+					#draw wrapped box element
+
+
+
+					elif eleShapeDict[str(i)] == 'xbox' and eleEndDict[str(i)]-eleStartDict[str(i)] < 0:	
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x.max'].value],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([layInfoDict['x.min'].value,eleEndDict[str(i)]],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x.max'].value],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([layInfoDict['x.min'].value,eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleStartDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleEndDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x.max'].value],[eleY1Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([layInfoDict['x.min'].value,eleEndDict[str(i)]],[0,eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x.max'].value],[-1*eleY2Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([layInfoDict['x.min'].value,eleEndDict[str(i)]],[0,-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+					#draw wrapped xbox element
+
+
+
+					elif eleShapeDict[str(i)] == 'x' and eleEndDict[str(i)]-eleStartDict[str(i)] < 0:
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x.max'].value],[eleY1Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([layInfoDict['x.min'].value,eleEndDict[str(i)]],[0,eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x.max'].value],[-1*eleY2Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([layInfoDict['x.min'].value,eleEndDict[str(i)]],[0,-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+					#draw wrapped x element
+
+
+
+					elif eleShapeDict[str(i)] == 'bow_tie' and eleEndDict[str(i)]-eleStartDict[str(i)] < 0:
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x.max'].value],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([layInfoDict['x.min'].value,eleEndDict[str(i)]],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x.max'].value],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([layInfoDict['x.min'].value,eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x.max'].value],[eleY1Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([layInfoDict['x.min'].value,eleEndDict[str(i)]],[0,eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x.max'].value],[-1*eleY2Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([layInfoDict['x.min'].value,eleEndDict[str(i)]],[0,-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+					#draw wrapped bow tie element						
+
+
+					elif eleShapeDict[str(i)] == 'diamond' and eleEndDict[str(i)]-eleStartDict[str(i)] < 0:
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x.max'].value],[0,eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([layInfoDict['x.min'].value,eleEndDict[str(i)]],[eleY1Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x.max'].value],[0,-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].plot([layInfoDict['x.min'].value,eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+					#draw wrapped diamond element
+
+
+
+					if eleEndDict[str(i)]-eleStartDict[str(i)] > 0:			
+						GraphDict['LatLayout'].text(eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,-1.05*eleY2Dict[str(i)],eleNameDict[str(i)],ha='center',va='top',color=eleColorDict[str(i)])
 					#draw element name
 
+
+
+					elif eleEndDict[str(i)]-eleStartDict[str(i)] < 0:
+						GraphDict['LatLayout'].text(layInfoDict['x.max'].value,-1.05*eleY2Dict[str(i)],eleNameDict[str(i)],ha='right',va='top',color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].text(layInfoDict['x.min'].value,-1.05*eleY2Dict[str(i)],eleNameDict[str(i)],ha='left',va='top',color=eleColorDict[str(i)])
+					#draw wrapped element name
+
+					
+
 				except KeyError:
-					#print('element type not found')
 					pass
-				#draw xbox element
 
 
 		else:
 			GraphDict['LatLayout']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
 			GraphDict['LatLayout'].remove()
 		
+		
+
+		'''Floor Plan'''
+		
+		if FloorPlan == True:
+			GraphDict['FloorPlan']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
+
+			floInfo=pipe.cmd_in('python plot_graph r1.g').splitlines()
+			#list of plotting parameter strings from tao command python plot_graph
+
+
+			floInfoList = []
+			floInfoDict = {}
+			for i in range(len(floInfo)):
+				floInfoDict[floInfo[i].split(';')[0]]=str_to_tao_param(floInfo[i])
+				floInfoList.append(floInfo[i].split(';')[0])
+			#list of tao_parameter object names from python plot_graph
+			#dictionary of tao_parameter name string keys to the corresponding tao_parameter object
+
+			if floInfoDict['ix_universe'].value != -1:
+				universe = floInfoDict[ix_universe].value
+			
+			else:
+				universe = 1
+
+			fpeInfo=pipe.cmd_in('python floor_plan '+str(universe)).splitlines()
+			print(fpeInfo[1])
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			plt.xlabel(pgp_to_mpl(floInfoDict['x.label'].value))
+			plt.ylabel(pgp_to_mpl(floInfoDict['y.label'].value))
+			#plot floor plan axis labels
+
+			xmajorLocator=MultipleLocator((floInfoDict['x.max'].value-floInfoDict['x.min'].value)/floInfoDict['x.major_div'].value)
+			ymajorLocator=MultipleLocator((floInfoDict['y.max'].value-floInfoDict['y.min'].value)/floInfoDict['y.major_div'].value)
+			GraphDict['FloorPlan'].xaxis.set_major_locator(xmajorLocator)
+			GraphDict['FloorPlan'].yaxis.set_major_locator(ymajorLocator)
+			GraphDict['FloorPlan'].grid(gInfoDict['draw_grid'].value,which='major',axis='both')
+			plt.xlim(floInfoDict['x.min'].value,floInfoDict['x.max'].value)
+			plt.ylim(floInfoDict['y.min'].value,floInfoDict['y.max'].value)
+			GraphDict['FloorPlan'].set_axisbelow(True)
+			#plot floor plan grid
+
+
+
 
 
 		fig.tight_layout()
 		return fig
+
+
+

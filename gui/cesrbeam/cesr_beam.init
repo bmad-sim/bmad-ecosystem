@@ -1,6 +1,6 @@
 &tao_start
   plot_file = 'tao_plot.init'
-  startup_file = 'beam_start'
+  !startup_file = 'beam_start'
 /
 
 !------------------------------------------------------------------------
@@ -268,6 +268,7 @@
      "    ", "V17E", "    ", "V15E", "    ", "V13E", "    ", "V11E", "    ", "V09E", 
      "V08E", "V07E", "V06E", "V05E", "V04E", "    ", "V02E", "V01E"
 /
+
 
 &tao_beam_init
 	beam_init%n_particle = 1000
