@@ -2131,53 +2131,94 @@ lattice to the \vn{base} or \vn{design} lattices respectively.
 For lattices with a large number of elements, the \vn{show lattice} command defaults to only showing
 the first 200 elements or so to prevent the accidental generation of possibly tens of thousands of
 lines. The \vn{-all} switch overrides this default and shows all tracking and lord elements. 
-\end{description}
+%
+\item[-floor_coords] \Newline
+If present, the \vn{-floor_coords} switch will print the global floor (laboratory) coordinates for
+each element.
+%
+\item[-lords] \Newline
+If present, the \vn{-lords} switch will print a list of lord elements only.
+%
+\item[-no_label_lines] \Newline
+If present, the \vn{-no_label_lines} switch will prevent the printing of the header (containing the
+column labels) lines at the top and bottom of the table.  This is useful when the output needs to be
+read in by another program. Also see the \vn{-no_tail_lines} switch.
+%
+\item[-no_slaves] \Newline
+If the \vn{-no_slaves} switch is present, all \vn{super slave} and \vn{multipass slave} elements
+will be ignored. Also see the \vn{-no_super_slaves} switch.
+%
+\item[-no_super_slaves] \Newline
+If present, the \vn{-no_super_slaves} switch will veto from the list of elements to print all
+\vn{super slave} elements. Also see the \vn{-no_slaves} switch.
+%
+\item[-no_tail_lines] \Newline
+The \vn{-no_tail_lines} just suppress the header lines at the bottom of the table. Also see the
+\vn{-no_label_lines} switch.
 %
 \item[-orbit] \Newline
 The \vn{-orbit} switch will show the particle's phase space orbit which is the closed orbit if the
 lattice has a closed geometry and is the orbit beginning from the specified starting position for
 lattices with an open geometry. Use \vn{set particle_start} to vary the starting position in this
 case. If the \vn{-spin} switch is also present, the particle's spin will also be displayed.
-
+%
+\item[-radiation_integrals] \Newline
+The \vn{-radiation_integrals} switch, if present, will display the radiation integrals for each
+lattice element instead of the standard Twiss and orbit data. See the \bmad manual for the
+definitions of the radiation integrals. Also see \vn{-sum_radiation_integrals}.
+%
+\item[-spin] \Newline
 The \vn{-spin} switch will show the particle's spin which is the invariant spin if the lattice has a
 closed geometry and is the spin beginning from the specified starting spin for lattices with an open
 geometry. Use \vn{set particle_start} to vary the starting spin in this case. If the \vn{-orbit} switch
 is also present, the particle's phase space orbit will also be displayed.
-
-The \vn{-radiation_integrals} switch, if present, will display the radiation integrals for each
-lattice element instead of the standard Twiss and orbit data. See the \bmad manual for the
-definitions of the radiation integrals. Also see \vn{-sum_radiation_integrals}.
-
+%
+\item[-sub_radiation_integrals] \Newline
 The \vn{-sum_radiation_integrals} switch, if present, will display the radiation integrals
 integrated from the start of the lattice to for each lattice element. See the \bmad manual for the
-definitions of the radiation integrals. Also see \vn{-radiation_integrals}.
+definitions of the radiation integrals. Also see the \vn{-radiation_integrals} switch.
 
-If present, the \vn{-no_label_lines} switch will prevent the printing of the header (containing the
-column labels) lines at the top and bottom of the table.  This is useful when the output needs to be
-read in by another program. The \vn{-no_tail_lines} just suppress the header lines at the bottom of
-the table.
+%
+\item[-] \Newline
 
-If present, the \vn{-no_super_slaves} switch will veto from the list of element to print all
-\vn{super slave} elements. Similarly, if the \vn{-no_slaves} switch is present, all \vn{super slave}
-and \vn{multipass slave} elements will be ignored.
+%
+\item[-] \Newline
 
-If present, the \vn{-lords} switch will print a list of lord elements only.
+%
+\item[-] \Newline
 
-If present, the \vn{-floor_coords} switch will print the global floor (laboratory) coordinates for
-each element.
+%
+\item[-] \Newline
 
+
+\end{description}
+
+
+
+
+
+
+
+%
+\item[-] \Newline
 The \vn{-branch <name_or_index>} option can be used to specify the branch of the lattice. 
 \vn{<name_or_index>} can be the name or index of the branch.  The default is the main
 branch (\# 0).
 
+%
+\item[-] \Newline
 The locations to show are specified either by specifying a longitudinal position range with \vn{-s},
 or by specifying a list \vn{<element_list>} of elements.  The syntax used for specifying this list
 is given in section~\sref{s:ele.list.format}.  In this case there should be no blank characters in
 the list.
 
+%
+\item[-] \Newline
 The \vn{-tracking_elements} switch can be used to show all the elements in the tracking part of the
 lattice. If neither \vn{-tracking_elements}, nor a range is given, the first 200 elements are shown.
 
+%
+\item[-] \Newline
 To customize the output use the command \vn{show lattice -custom <file_name>}. A
 customization file looks like:
 \begin{example}

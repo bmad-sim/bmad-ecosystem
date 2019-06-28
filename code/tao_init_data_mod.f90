@@ -710,6 +710,8 @@ do i = n0+1, size(u%data)
   u%data(i)%ix_data = i
 enddo
 
+u%data%ix_uni = u%ix_uni
+
 end subroutine tao_allocate_data_array
 
 !----------------------------------------------------------------------------

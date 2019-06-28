@@ -171,30 +171,27 @@ Table~\ref{t:delta}.
 \caption{The form of \vn{delta}}  
 \label{t:delta}
 \end{table}
-An exception occurs when using a \vn{common root lattice}
-(\sref{s:crl}). In this case, the common universe does not have base
-or reference values associated with it. Thus all data and variables
-that are associated with the common universe calculate their
-\vn{delta} as if both \vn{opt_with_ref} and \vn{opt_with_base} were
-set to \vn{False}.
+An exception occurs when using a \vn{common root lattice} (\sref{s:crl}). In this case, the common
+universe does not have base or reference values associated with it. Thus all data and variables that
+are associated with the common universe calculate their \vn{delta} as if both \vn{opt_with_ref} and
+\vn{opt_with_base} were set to \vn{False}.
 
-Another exception occurs with data when the datum value cannot be
-computed (\sref{s:datum.opt}). In this case, the datum's \vn{invalid} value
-is used for the \vn{delta}. This is useful, for example, in a linear
-lattice when the particle trajectory results in the particle being lost.
+Another exception occurs with data when the datum value cannot be computed (\sref{s:datum.opt}). In
+this case, the datum's \vn{invalid} value is used for the \vn{delta}. This is useful, for example,
+in a linear lattice when the particle trajectory results in the particle being lost.
 
-The \vn{Non-Zero-Condition} needed for a non--zero $D_i$ is dependent
-upon the \vn{merit_type} of the datum (\sref{s:data.anatomy}).
-There are five \vn{merit_type} constraint
-types as given in Table~\ref{t:con.type}.
+The \vn{Non-Zero-Condition} needed for a non--zero $D_i$ is dependent upon the \vn{merit_type} of
+the datum (\sref{s:data.anatomy}).  There are five \vn{merit_type} constraint types as given in
+Table~\ref{t:con.type}.
 \begin{table}[ht]
 \centering
 {\tt
 \begin{tabular}{|l|l|l|} \toprule
-  {\it Merit\_Type}       & {\it Non-zero-Condition} \\ \midrule
-  \vn{target}            & Any \vn{delta}   \\
-  \vn{min}, \vn{abs_min} & \vn{delta} $<$ 0 \\
-  \vn{max}, \vn{abs_max} & \vn{delta} $>$ 0 \\
+  {\it Merit\_Type}         & {\it Non-zero-Condition} \\ \midrule
+  \vn{target}, \vn{average} & Any \vn{delta}   \\
+  \vn{max-min}              & Any \vn{delta}   \\
+  \vn{min}, \vn{abs_min}    & \vn{delta} $<$ 0 \\
+  \vn{max}, \vn{abs_max}    & \vn{delta} $>$ 0 \\
 \bottomrule
 \end{tabular}
 }
@@ -203,15 +200,14 @@ types as given in Table~\ref{t:con.type}.
 \end{table}
 \index{optimization!optimize with reference}
 
-For variables, the form of the terms $V_i$ is determined by its \vn{merit_type}.
-Here the \vn{merit_type} may be:
+For variables, the form of the terms $V_i$ is determined by its \vn{merit_type}.  Here the
+\vn{merit_type} may be:
 \begin{example}
   target
   limit
 \end{example}
-A \vn{target} \vn{merit_type} for a variable is the same as for
-datum. In this case \vn{model} is just the value of the variable.
-A \vn{limit} \vn{merit_type} has the form
+A \vn{target} \vn{merit_type} for a variable is the same as for datum. In this case \vn{model} is
+just the value of the variable.  A \vn{limit} \vn{merit_type} has the form
 \Begineq
   \delta V = 
     \begin{cases}
@@ -222,22 +218,18 @@ A \vn{limit} \vn{merit_type} has the form
 \Endeq
 The default \vn{merit_type} for a variable is \vn{limit}.
 
-Note: when doing lattice design \vn{opt_with_ref} and
-\vn{opt_with_base} are both set to \vn{False} and the \vn{target} and
-\vn{limit} values are identified with \vn{Meas}.
+Note: when doing lattice design \vn{opt_with_ref} and \vn{opt_with_base} are both set to \vn{False}
+and the \vn{target} and \vn{limit} values are identified with \vn{Meas}.
 
-When optimizing a storage ring, If the ring is unstable so that the
-twiss parameters, closed orbit, etc. cannot be computed, the
-contribution to the merit function from the corresponding datums is
-set to zero. This tends to lower the merit function and in this case
-an optimizer will never leave the unstable region. To avoid this,
-an \vn{unstable_ring} constraint (\sref{s:data.types}) must be set.
+When optimizing a storage ring, If the ring is unstable so that the twiss parameters, closed orbit,
+etc. cannot be computed, the contribution to the merit function from the corresponding datums is set
+to zero. This tends to lower the merit function and in this case an optimizer will never leave the
+unstable region. To avoid this, an \vn{unstable_ring} constraint (\sref{s:data.types}) must be set.
 
-To see a list of constraints when running \tao use the \vn{show
-constraints} command (\sref{s:show}). To see how a particular variable
-or datum is doing use the \vn{show data} or \vn{show variable}
-commands.  See \sref{s:datum.opt} for details on how datums are
-chosen to be included in an optimization.
+To see a list of constraints when running \tao use the \vn{show constraints} command
+(\sref{s:show}). To see how a particular variable or datum is doing use the \vn{show data} or
+\vn{show variable} commands.  See \sref{s:datum.opt} for details on how datums are chosen to be
+included in an optimization.
 
 %------------------------------------------------------------------------
 \section{Variable Limits and Optimization}

@@ -1080,16 +1080,13 @@ For example:
     n_d1_data    = 2
   /
 \end{example}
-A \vn{tao_d2_data} block is needed for each \vn{d2_data} structure
-defined. The \vn{d2_data%name} component gives the name of the
-structure. The \vn{universe} component gives a list of the universes
-that the data is associated with. A value of \vn{"*"} means that a
-\vn{d2_data} structure is set up in each universe. Ranges of universes
-can be specified in the list using a \vn{:}.
+A \vn{tao_d2_data} block is needed for each \vn{d2_data} structure defined. The \vn{d2_data%name}
+component gives the name of the structure. The \vn{universe} component gives a list of the universes
+that the data is associated with. A value of \vn{"*"} means that a \vn{d2_data} structure is set up
+in each universe. Ranges of universes can be specified in the list using a \vn{:}.
 
-The \vn{default_merit_type} component determines how the merit
-function terms are calculated for the individual datum
-points. Possibilities are:
+The \vn{default_merit_type} component determines how the merit function terms are calculated for the
+individual datum points. Possibilities are:
 \index{target}\index{max}\index{min}
 \index{abs_max}\index{abs_min}
 \begin{example}
@@ -1098,16 +1095,19 @@ points. Possibilities are:
   "min"
   "abs_max"
   "abs_min"
+  "average"   ! Only used when datum specifies a range of elements.
+  "max-min"   ! Only used when datum specifies a range of elements.
 \end{example}
-See Chapter~\ref{c:opti} on optimization for more
-details.
+The \vn{average} and \vn{max-min} merit types are used when there is a range of elements associated
+the the datum. That is, \vn{ele_start} is specified (see below). For the \vn{average} data type, the
+datum value is the average of the values computed for all lattice elements in the specified
+range. With \vn{max-min}, the value of the datum is the difference between the maximum value in the
+range minus the minimum in the range. See Chapter~\ref{c:opti} on optimization for more details.
 
-The associated \vn{tao_d1_data} namelists must come directly after
-their associated \vn{tao_d2_data} namelist.  The \vn{n_d1_data}
-parameter in the \vn{tao_d2_data} namelist defines how many
-\vn{d1_data} structures are associated with the \vn{d2_data}
-structure. For each \vn{n_d1_data} structure there must be a
-\vn{tao_d1_data} namelist which has the form:
+The associated \vn{tao_d1_data} namelists must come directly after their associated \vn{tao_d2_data}
+namelist.  The \vn{n_d1_data} parameter in the \vn{tao_d2_data} namelist defines how many
+\vn{d1_data} structures are associated with the \vn{d2_data} structure. For each \vn{n_d1_data}
+structure there must be a \vn{tao_d1_data} namelist which has the form:
 \index{tao_d1_data}\index{ix_d1_data}\index{d1_data!name}
 \index{default_data_type}\index{default_weight}\index{ix_min_data}
 \index{ix_max_data}\index{data!name}\index{data!data_type}
@@ -1190,13 +1190,11 @@ associated with the data points.
 running \tao (\sref{s:data.anatomy}). The initial default value of
 \vn{%good_user} is True.
 
-A range of elements can be specified by giving an \vn{ele_start_name} that
-is not a blank string. Thus, in the above example, the value of
-\vn{datum(2)} is the maximum horizontal beta in the range between the
-end of element \vn{B22} to the end of element \vn{Q16_1}. Elements
-can be specified by name (Eg: \vn{Q16_1}) or by longitudinal position
-using the notation \vn{"S:<s_distance>"}. This will match to the
-element whose longitudinal position at the exit end is closest to
+A range of elements can be specified by giving an \vn{ele_start_name} that is not a blank string.
+Thus, in the above example, the value of \vn{datum(2)} is the maximum horizontal beta in the range
+between the end of element \vn{B22} to the end of element \vn{Q16_1}. Elements can be specified by
+name (Eg: \vn{Q16_1}) or by longitudinal position using the notation \vn{"S:<s_distance>"}. This
+will match to the element whose longitudinal position at the exit end is closest to
 \vn{<s_distance>}.
 
 \index{data_source}
