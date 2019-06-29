@@ -128,6 +128,7 @@ character(40) max_loc, ele_name, name1(40), name2(40), a_name, name
 character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
 character(20) cmd, command, who, which, v_str, head
+character(20) switch, color, shape_shape
 character(20) :: r_name = 'tao_python_cmd'
 
 real(rp) s_pos, value, y1, y2
@@ -139,10 +140,11 @@ real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
 integer :: i, j, k, ib, ie, iu, nn, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i1, i2
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_bunch, ix_d2, n_who, ix_pole_max, attrib_type
 integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free, ix_uni, ix_shape_min
+integer line_width
 
 logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer, can_vary
+logical first_time
 
-character(20) switch
 
 !
 
@@ -1876,14 +1878,21 @@ case ('enum')
 !----------------------------------------------------------------------
 ! Floor plan elements
 ! Command syntax:
-!   python floor_plan {ix_universe}
+!   python floor_plan {graph}
 ! where {orientation} is one of "xy", xz", "yx", "yz", "zx", or "zy".
 
 case ('floor_plan')
 
-  u => point_to_uni(line, .false., err); if (err) return
+  call tao_find_plots (err, line, 'COMPLETE', graph = graphs)
+
+  if (err .or. .not. allocated(graphs)) then
+    call invalid ('Bad graph name')
+    return
+  endif
+
+  g => graphs(1)%g
+  u => tao_pointer_to_universe(g%ix_universe)
   lat => u%model%lat
-  graph%floor_plan_view = line
 
   do ib = 0, ubound(lat%branch, 1)
     branch => lat%branch(ib)
@@ -1894,24 +1903,43 @@ case ('floor_plan')
       if (ele%key == overlay$) cycle
       if (ele%key == group$) cycle
       if (ele%key == girder$) cycle
-      call find_element_ends(ele, ele1, ele2)
-      floor%r = [0.0_rp, 0.0_rp, 0.0_rp]
-      floor1 = coords_local_curvilinear_to_floor (floor, ele, .true.)
 
-      floor%r = [0.0_rp, 0.0_rp, ele%value(l$)]
-      floor2 = coords_local_curvilinear_to_floor (floor, ele, .true.)
-      call tao_floor_to_screen_coords (graph, floor1, end1)
-      call tao_floor_to_screen_coords (graph, floor2, end2)
-      if (ele%key == sbend$) then
-        nl=incr(nl); write (li(nl), '(2(i0, a), 4a, 6(es18.10, a))') ib, ';', i, ';', trim(ele%name), ';', &
-                          trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
-                          end2%r(1), ';', end2%r(2), ';', end2%theta
-      else
-        nl=incr(nl); write (li(nl), '(2(i0, a), 4a, 11(es18.10, a))') ib, ';', i, ';', trim(ele%name), ';', &
-                          trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
-                          end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
-                          ele%value(l$), ';', ele%value(angle$), ';', ele%value(e1$), ';', ele%value(e2$)
-      endif
+      ix_shape_min = 1
+      first_time = .true.
+      do
+        call tao_ele_shape_info (u%ix_uni, ele, s%plot_page%lat_layout%ele_shape, shape, label_name, y1, y2, ix_shape_min)
+        if (.not. associated(shape)) then
+          if (.not. first_time) exit
+          y1 = 0
+          y2 = 0
+          color = ''
+          label_name = ''
+          shape_shape = ''
+          line_width = 0
+        endif
+        first_time = .false.
+
+        call find_element_ends(ele, ele1, ele2)
+        floor%r = [0.0_rp, 0.0_rp, 0.0_rp]
+        floor1 = coords_local_curvilinear_to_floor (floor, ele, .true.)
+
+        floor%r = [0.0_rp, 0.0_rp, ele%value(l$)]
+        floor2 = coords_local_curvilinear_to_floor (floor, ele, .true.)
+        call tao_floor_to_screen_coords (g, floor1, end1)
+        call tao_floor_to_screen_coords (g, floor2, end2)
+        if (ele%key == sbend$) then
+          nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a)') ib, ';', i, ';', &
+                      trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
+                      end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
+                      line_width, ';', trim(shape_shape), ';', y1, ';', y2, ';', trim(color), ';', trim(label_name)
+        else
+          nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a, 4(es14.7, a))') ib, ';', i, ';', &
+                      trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
+                      end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
+                      line_width, ';', trim(shape_shape), ';', y1, ';', y2, ';', trim(color), ';', trim(label_name), ';', &
+                      ele%value(l$), ';', ele%value(angle$), ';', ele%value(e1$), ';', ele%value(e2$)
+        endif
+      enddo
     enddo
   enddo
 
@@ -2397,8 +2425,8 @@ case ('plot_lat_layout')
       y2 = y2 * s%plot_page%lat_layout_shape_scale
       if (.not. associated(shape)) exit
       if (.not. shape%draw) cycle
-      nl=incr(nl); write (li(nl), '(i0, 2(a, es21.13), (a, i0), 2a, 2(a, es10.2), 4a)') i, ';', ele%s_start, ';', ele%s, ';', shape%line_width, ';', &
-                      trim(shape%shape), ';', y1, ';', y2, ';', trim(shape%color), ';', trim(label_name)
+      nl=incr(nl); write (li(nl), '(i0, 2(a, es21.13), (a, i0), 2a, 2(a, es10.2), 4a)') i, ';', ele%s_start, ';', ele%s, ';', &
+                shape%line_width, ';', trim(shape%shape), ';', y1, ';', y2, ';', trim(shape%color), ';', trim(label_name)
     enddo
   enddo
 
