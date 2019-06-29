@@ -2112,10 +2112,10 @@ Syntax:
   show lattice \{-0undef\} \{-all\} \{-attribute <attrib>\} \{-base\}
       \{-blank_replacement <string>\}  \{-branch <name_or_index>\}
       \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\}
-      \{-no_label_lines\} \{-no_tail_lines\} \{-no_slaves\} \{-no_super_slaves\} \{-orbit\} 
-      \{-radiation_integrals\} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{-spin\} 
-      \{-sum_radiation_integrals\} \{-tracking_elements\} \{-undef0\} \{-universe\} 
-      \{<element_list>\} 
+      \{-no_label_lines\} \{-no_slaves\} \{-no_super_slaves\} \{-no_tail_lines\} \{-orbit\} 
+      \{-python\} \{-radiation_integrals\} \{-remove_line_if_zero <column \#>\} 
+      \{-s <s1>:<s2>\} \{-spin\} \{-sum_radiation_integrals\} \{-tracking_elements\} 
+      \{-undef0\} \{-universe <index>\} \{<element_list>\} 
 \end{example}
 
 Show a table of Twiss and orbit data, etc. at the specified element locations. The default is to
@@ -2127,119 +2127,16 @@ used. This can be overridden by using the \vn{-base} or the \vn{-design} switche
 lattice to the \vn{base} or \vn{design} lattices respectively.
 
 \begin{description}
+\item[-0undef] \Newline
+See the \vn{-undef0} attribute for a description. Also see the \vn{blank_replacement} switch.
+%
 \item[-all] \Newline
 For lattices with a large number of elements, the \vn{show lattice} command defaults to only showing
 the first 200 elements or so to prevent the accidental generation of possibly tens of thousands of
-lines. The \vn{-all} switch overrides this default and shows all tracking and lord elements. 
+lines. The \vn{-all} switch overrides this default and shows all tracking and lord elements. Also
+see the \vn{-lords}, \vn{-no_slaves}, \vn{no_super_slaves}, \vn{-tracking_elements} switches.
 %
-\item[-floor_coords] \Newline
-If present, the \vn{-floor_coords} switch will print the global floor (laboratory) coordinates for
-each element.
-%
-\item[-lords] \Newline
-If present, the \vn{-lords} switch will print a list of lord elements only.
-%
-\item[-no_label_lines] \Newline
-If present, the \vn{-no_label_lines} switch will prevent the printing of the header (containing the
-column labels) lines at the top and bottom of the table.  This is useful when the output needs to be
-read in by another program. Also see the \vn{-no_tail_lines} switch.
-%
-\item[-no_slaves] \Newline
-If the \vn{-no_slaves} switch is present, all \vn{super slave} and \vn{multipass slave} elements
-will be ignored. Also see the \vn{-no_super_slaves} switch.
-%
-\item[-no_super_slaves] \Newline
-If present, the \vn{-no_super_slaves} switch will veto from the list of elements to print all
-\vn{super slave} elements. Also see the \vn{-no_slaves} switch.
-%
-\item[-no_tail_lines] \Newline
-The \vn{-no_tail_lines} just suppress the header lines at the bottom of the table. Also see the
-\vn{-no_label_lines} switch.
-%
-\item[-orbit] \Newline
-The \vn{-orbit} switch will show the particle's phase space orbit which is the closed orbit if the
-lattice has a closed geometry and is the orbit beginning from the specified starting position for
-lattices with an open geometry. Use \vn{set particle_start} to vary the starting position in this
-case. If the \vn{-spin} switch is also present, the particle's spin will also be displayed.
-%
-\item[-radiation_integrals] \Newline
-The \vn{-radiation_integrals} switch, if present, will display the radiation integrals for each
-lattice element instead of the standard Twiss and orbit data. See the \bmad manual for the
-definitions of the radiation integrals. Also see \vn{-sum_radiation_integrals}.
-%
-\item[-spin] \Newline
-The \vn{-spin} switch will show the particle's spin which is the invariant spin if the lattice has a
-closed geometry and is the spin beginning from the specified starting spin for lattices with an open
-geometry. Use \vn{set particle_start} to vary the starting spin in this case. If the \vn{-orbit} switch
-is also present, the particle's phase space orbit will also be displayed.
-%
-\item[-sub_radiation_integrals] \Newline
-The \vn{-sum_radiation_integrals} switch, if present, will display the radiation integrals
-integrated from the start of the lattice to for each lattice element. See the \bmad manual for the
-definitions of the radiation integrals. Also see the \vn{-radiation_integrals} switch.
-
-%
-\item[-] \Newline
-
-%
-\item[-] \Newline
-
-%
-\item[-] \Newline
-
-%
-\item[-] \Newline
-
-
-\end{description}
-
-
-
-
-
-
-
-%
-\item[-] \Newline
-The \vn{-branch <name_or_index>} option can be used to specify the branch of the lattice. 
-\vn{<name_or_index>} can be the name or index of the branch.  The default is the main
-branch (\# 0).
-
-%
-\item[-] \Newline
-The locations to show are specified either by specifying a longitudinal position range with \vn{-s},
-or by specifying a list \vn{<element_list>} of elements.  The syntax used for specifying this list
-is given in section~\sref{s:ele.list.format}.  In this case there should be no blank characters in
-the list.
-
-%
-\item[-] \Newline
-The \vn{-tracking_elements} switch can be used to show all the elements in the tracking part of the
-lattice. If neither \vn{-tracking_elements}, nor a range is given, the first 200 elements are shown.
-
-%
-\item[-] \Newline
-To customize the output use the command \vn{show lattice -custom <file_name>}. A
-customization file looks like:
-\begin{example}
-  &custom_show_list
-    column(1)  = "#",                      "i6",     6 
-    column(2)  = "x",                      "x"       1   ! blank space
-    column(3)  = "ele::#[name]",           "a",      0
-    column(4)  = "ele::#[key]",            "a16",   16
-    column(5)  = "ele::#[s]",              "f10.3", 10
-    column(6)  = "ele::#[l]",              "f10.3", 10
-    column(7)  = "ele::#[beta_a]",         "f7.2",   7
-    column(8)  = "1e3 * ele::#[orbit_x]",  "f8.3",   8, "Orbit_x| (mm)" 
-    column(9)  = "lat::unstable.orbit[#]", "f8.3",   8 
-    column(10) = "beam::n_particle_loss[#]", "i8",   8 
-  /
-\end{example}
-each \vn{column(1)} has four components. The first component is what is to be displayed in that
-column. Algebraic expressions are permitted (\sref{s:arithmetic.exp}). Note: Use of \vn{ele::} and
-\vn{beam::}, etc sources is accepted but these constructs cannot be evaluated at the center of an
-element. That is the \vn{-middle} switch will have no effect on such constructs.
-
+\item[-attribute <attrib>] \Newline
 Instead of defining a custom file, the \vn{-attribute <attrib>} switch can be used as a shortcut way
 for customizing the output columns.  When using the \vn{-attribute} switch, the first five columns
 are the the same default columns of \vn{index}, \vn{name}, \vn{element key}, \vn{s} and
@@ -2261,38 +2158,50 @@ thus be 7 (= 5 + 2). The sixth column will have the \vn{is_on} element attribute
 using the \vn{l4} format (logical with a field width of 4 characters). The seventh column will show
 the voltage attribute.
 
-To encode the element index, use a \vn{\#} or \vn{\#index}. To encode the branch index, use
-\vn{\#branch}. Any element attribute is permitted ("show ele" will show element attributes or see
-the Bmad manual). Additionally, the following are recognized:
-\begin{example}
-  x                           ! Add spaces
-  #                           ! Index number of element.
-  ele::#[name]                ! Name of element.
-  ele::#[key]                 ! Type of element (``quadrupole'', etc.)
-  ele::#[slave_status]        ! Slave type (``super_slave'', etc.)
-  ele::#[lord_status]         ! Slave type (``multipass_lord'', etc.)
-  ele::#[type]                ! Element type string (see \bmad manual).
-\end{example}
-If an attribute does not exist for a given element (for example, \vn{quadrupole}s do not have a
-\vn{voltage}), a series of dashes, ``-{}-{}-{}-'', will be placed in the appropriate spot in the
-table.  Additionally, an arithmetic expression that results in a divide by zero will result in
-dashes being printed. This behavior is changed if the \vn{-0undef} or \vn{-undef0} switch is
-present. In this case, a zero, ``0'', will be printed. The difference between \vn{-0undef} and
-\vn{-undef0} is that with \vn{-undef0} the zero will be printed using the same format as the other
-numbers in the column. With the \vn{-0undef} switch the zero will be printed as a right justified
-``0'' which gives a visual clue to differentiate between a true zero value and a zero that
-represents an undefined parameter.
+Note: Data can be used in custom output but data is evaluated independent of whether the
+\vn{-middle} switch is used.
 
-Additionally, The \vn{-blank_replacement <string>} switch specifies that whenever a blank string is
+Also see the \vn{-0undef}, \vn{-undef0}, and \vn{-blank_replacement} switches.
+%
+\item[-base] \Newline
+  Show values from the \vn{base} lattice instead of the \vn{model} lattice. Also see the \vn{-design} switch.
+%
+\item[-blank_replacement <string>] \Newline
+The \vn{-blank_replacement} switch specifies that whenever a blank string is
 encountered (for example, the \vn{type} attribute for an element can be blank), \vn{<string>} should
 be substituted in its place. \vn{<string>} may not contain any blank characters. Example:
 \begin{example}
   show lat -cust custom.file -blank zz 1:100
 \end{example}
 This will replace any blank fields with ``zz''.
-
-Note: Data can be used in custom output but data is always evaluated at the exit end of an element
-even when the \vn{-middle} switch is used.
+%
+\item[-branch] \Newline
+The \vn{-branch <name_or_index>} option can be used to specify the branch of the lattice. 
+\vn{<name_or_index>} can be the name or index of the branch.  The default is the main
+branch (\# 0).
+%
+\item[-custom <file_name>] \Newline
+A table with custimized columns may be constructed either by using the \vn{-custom} switch which
+specifies a file containing a description of the custom columns or by using one or more \vn{-attribute} switches.
+to specify  Example customization file:
+\begin{example}
+  &custom_show_list
+    column(1)  = "#",                      "i6",     6 
+    column(2)  = "x",                      "x"       1   ! blank space
+    column(3)  = "ele::#[name]",           "a",      0
+    column(4)  = "ele::#[key]",            "a16",   16
+    column(5)  = "ele::#[s]",              "f10.3", 10
+    column(6)  = "ele::#[l]",              "f10.3", 10
+    column(7)  = "ele::#[beta_a]",         "f7.2",   7
+    column(8)  = "1e3 * ele::#[orbit_x]",  "f8.3",   8, "Orbit_x| (mm)" 
+    column(9)  = "lat::unstable.orbit[#]", "f8.3",   8 
+    column(10) = "beam::n_particle_loss[#]", "i8",   8 
+  /
+\end{example}
+each \vn{column(n)} has four components. The first component is what is to be displayed in that
+column. Algebraic expressions are permitted (\sref{s:arithmetic.exp}). Note: Use of \vn{ele::} and
+\vn{beam::}, etc sources is accepted but these constructs cannot be evaluated at the center of an
+element. That is the \vn{-middle} switch will have no effect on such constructs.
 
 The second component is the Fortran edit descriptor. The third column is the total width of the
 field. Notice that strings (like the element name) are left justified and numbers are right
@@ -2306,7 +2215,80 @@ will choose something appropriate. The column title can be split into two lines 
 separator.  In the example above, The column title corresponding to \vn{"Orbit_x| (mm)"} will have
 ``Orbit_x'' printed in one row of the title and ``(mm)'' in the next row.
 
-If present, the \vn{-remove_line_if_zero <column \#>} switch will suppress any lines where the value
+To encode the element index, use a \vn{\#} or \vn{\#index}. To encode the branch index, use
+\vn{\#branch}. Any element attribute is permitted ("show ele" will show element attributes or see
+the Bmad manual). Additionally, the following are recognized:
+\begin{example}
+  x                           ! Add spaces
+  #                           ! Index number of element.
+  ele::#[name]                ! Name of element.
+  ele::#[key]                 ! Type of element (``quadrupole'', etc.)
+  ele::#[slave_status]        ! Slave type (``super_slave'', etc.)
+  ele::#[lord_status]         ! Slave type (``multipass_lord'', etc.)
+  ele::#[type]                ! Element type string (see \bmad manual).
+\end{example}
+
+Note: Data can be used in custom output but data is evaluated independent of whether the
+\vn{-middle} switch is used.
+
+Also see the \vn{-0undef}, \vn{-undef0}, and \vn{-blank_replacement} switches.
+%
+\item[-design] \Newline
+  Show values from the \vn{design} lattice instead of the \vn{model} lattice. Also see the \vn{-base} switch.
+%
+\item[<element_list>] \Newline
+The locations to show are specified either by specifying an element list or by specifying a
+longitudinal position range using the \vn{-s} switch The syntax used for specifying the element list
+is given in section~\sref{s:ele.list.format}.  In this case there should be no blank characters in
+the list.
+%
+\item[-floor_coords] \Newline
+If present, the \vn{-floor_coords} switch will print the global floor (laboratory) coordinates for
+each element.
+%
+\item[-lords] \Newline
+If present, the \vn{-lords} switch will print a list of lord elements only. Also see the
+\vn{-all}, \vn{-no_slaves}, \vn{no_super_slaves}, \vn{-tracking_elements} switches.
+%
+\item[-middle] \Newline
+Show value evaluated at the middle of the lattice elements instead of the default exit end.
+%
+\item[-no_label_lines] \Newline
+If present, the \vn{-no_label_lines} switch will prevent the printing of the header (containing the
+column labels) lines at the top and bottom of the table.  This is useful when the output needs to be
+read in by another program. Also see the \vn{-no_tail_lines} switch.
+%
+\item[-no_slaves] \Newline
+If the \vn{-no_slaves} switch is present, all \vn{super slave} and \vn{multipass slave} elements
+will be ignored. Also see the \vn{-all}, \vn{-lords}, \vn{no_super_slaves}, \vn{-tracking_elements}
+switches.
+%
+\item[-no_super_slaves] \Newline
+If present, the \vn{-no_super_slaves} switch will veto from the list of elements to print all
+\vn{super slave} elements. Also see the \vn{-all}, \vn{-lords}, \vn{-no_slaves}, \vn{no_super_slaves},
+\vn{-tracking_elements} switches.
+%
+\item[-no_tail_lines] \Newline
+The \vn{-no_tail_lines} just suppress the header lines at the bottom of the table. Also see the
+\vn{-no_label_lines} switch.
+%
+\item[-orbit] \Newline
+The \vn{-orbit} switch will show the particle's phase space orbit which is the closed orbit if the
+lattice has a closed geometry and is the orbit beginning from the specified starting position for
+lattices with an open geometry. Use \vn{set particle_start} to vary the starting position in this
+case. If the \vn{-spin} switch is also present, the particle's spin will also be displayed.
+%
+\item[-python] \Newline
+The \vn{-python} switch gives a comma deliminated table as output. This switch is used with the
+\vn{python} command (\sref{s:python}).
+%
+\item[-radiation_integrals] \Newline
+The \vn{-radiation_integrals} switch, if present, will display the radiation integrals for each
+lattice element instead of the standard Twiss and orbit data. See the \bmad manual for the
+definitions of the radiation integrals. Also see \vn{-sum_radiation_integrals}.
+%
+\item[-remove_line_if_zero <column \#>] \Newline
+If present, the \vn{-remove_line_if_zero} switch will suppress any lines where the value
 in the column given by \vn{<column \#>} is zero or not defined. Notice that when specifying custom
 columns using the \vn{-custom} switch, columns that only insert blank space are not counted. For
 example:
@@ -2318,16 +2300,51 @@ visible column corresponds to \vn{column(6)} which prints the element length. Th
 will then remove all lines associated with elements whose length is zero. Multiple
 \vn{-remove_line_if_zero} may be present. In this case the row will be suppressed if all designated
 columns have a zero entry.
+%
+\item[-s <s1>:<s2>] \Newline
+The locations to show are specified either by specifying a longitudinal position range with \vn{-s},
+or by specifying a list \vn{<element_list>} of elements. 
+%
+\item[-spin] \Newline
+The \vn{-spin} switch will show the particle's spin which is the invariant spin if the lattice has a
+closed geometry and is the spin beginning from the specified starting spin for lattices with an open
+geometry. Use \vn{set particle_start} to vary the starting spin in this case. If the \vn{-orbit} switch
+is also present, the particle's phase space orbit will also be displayed.
+%
+\item[-sum_radiation_integrals] \Newline
+The \vn{-sum_radiation_integrals} switch, if present, will display the radiation integrals
+integrated from the start of the lattice to for each lattice element. See the \bmad manual for the
+definitions of the radiation integrals. Also see the \vn{-radiation_integrals} switch.
+%
+\item[-tracking_elements] \Newline
+The \vn{-tracking_elements} switch can be used to show all the elements in the tracking part of the
+lattice. Also see the \vn{-all}, \vn{-lords}, \vn{-no_slaves}, \vn{no_super_slaves} switches.
+%
+\item[-undef0] \Newline
+If an attribute does not exist for a given element (for example, \vn{quadrupole}s do not have a
+\vn{voltage}), a series of dashes, ``-{}-{}-{}-'', will be placed in the appropriate spot in the
+table.  Additionally, an arithmetic expression that results in a divide by zero will result in
+dashes being printed. This behavior is changed if the \vn{-0undef} or \vn{-undef0} switch is
+present. In this case, a zero, ``0'', will be printed. The difference between \vn{-0undef} and
+\vn{-undef0} is that with \vn{-undef0} the zero will be printed using the same format as the other
+numbers in the column. With the \vn{-0undef} switch the zero will be printed as a right justified
+``0'' which gives a visual clue to differentiate between a true zero value and a zero that
+represents an undefined parameter.
+%
+\item[-universe <index>] \Newline
+The \vn{-universe} switch specifies which universe is used. If not present, the current viewed universe is
+used.
+\end{description}
 
 Examples:
 \begin{example}
   show lattice 50:100         ! Show lattice elements with index 50 through 100
-  show lat 45:76, 101, 106     ! Show element #45 through #76 and 101 and 106.
-  show lat q34w:q45e           ! Show from element q34w through q45e.
-  show lat q*                  ! Show elements whose name begins with "q"
-  show lat marker:bpm*         ! Show markers whose name begins with "bpm"
-  show lat -s  23.9:55.3       ! Show elements whose position is between 
-                               !   23.9 meters and 55.3 meters.
+  show lat 45:76, 101, 106    ! Show element #45 through #76 and 101 and 106.
+  show lat q34w:q45e          ! Show from element q34w through q45e.
+  show lat q*                 ! Show elements whose name begins with "q"
+  show lat marker::bpm*       ! Show marker elements whose name begins with "bpm"
+  show lat -s 23.9:55.3       ! Show elements whose position is between 
+                              !   23.9 meters and 55.3 meters.
 \end{example}
 
 %% show matrix --------------------------------------------------------------
