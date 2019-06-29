@@ -3172,6 +3172,7 @@ logical, optional :: good(0:)
 !
 
 valid_value = .true.
+datum_value = 0
 
 n_track = branch%n_ele_track
 ix_start = -1; ix_ref = -1; ix_ele = -1
@@ -3324,10 +3325,10 @@ if (ix_ele < ix_start) then   ! wrap around
     if (l_sum == 0 .and. n == 0) then
       if (present(good)) valid_value = .false.
     elseif (l_sum == 0) then
-      valid_value = valid_value / n
+      datum_value = datum_value / n
       if (present(good)) valid_value = .true.
     else
-      valid_value = valid_value / l_sum
+      datum_value = datum_value / l_sum
       if (present(good)) valid_value = .true.
     endif
 
@@ -3377,6 +3378,37 @@ else
     datum_value = 0; ix_m = -1
     call integrate_max (ix_start, ix_ele, datum_value, ix_m, branch, vec_ptr, datum)
     if (present(good)) valid_value = all(good(ix_start:ix_ele))
+
+  case ('max-min')
+    ix_m = maxloc (vec_ptr(ix_start:ix_ele), 1) + ix_start - 1
+    datum_value = vec_ptr(ix_m)
+    if (present(good)) valid_value = good(ix_m)
+
+    ix_m = minloc (vec_ptr(ix_start:ix_ele), 1) + ix_start - 1
+    datum_value = datum_value - vec_ptr(ix_m)
+    if (present(good)) valid_value = valid_value .and. good(ix_m)
+
+  case ('average')
+    l_sum = 0
+    datum_value = 0
+    n = 0
+
+    do i = ix_start, ix_ele
+      if (.not. good(i)) cycle
+      n = n + 1
+      l_sum = l_sum + branch%ele(i)%value(l$)
+      datum_value = datum_value + branch%ele(i)%value(l$) * vec_ptr(i)
+    enddo
+
+    if (l_sum == 0 .and. n == 0) then
+      if (present(good)) valid_value = .false.
+    elseif (l_sum == 0) then
+      datum_value = datum_value / n
+      if (present(good)) valid_value = .true.
+    else
+      datum_value = datum_value / l_sum
+      if (present(good)) valid_value = .true.
+    endif
 
   case default
     call tao_set_invalid (datum, 'BAD MERIT_TYPE WHEN THERE IS A RANGE OF ELEMENTS: ' // datum%merit_type, why_invalid, .true.)

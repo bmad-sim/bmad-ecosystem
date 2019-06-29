@@ -18,7 +18,7 @@
 
 subroutine tao_ele_shape_info (ix_uni, ele, ele_shapes, e_shape, label_name, y1, y2, ix_shape_min)
 
-use tao_interface
+use tao_interface, dummy => tao_ele_shape_info
 
 implicit none
 
