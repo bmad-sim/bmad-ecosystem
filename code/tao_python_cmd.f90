@@ -88,7 +88,7 @@ type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
 type (lat_struct), pointer :: lat
 type (bunch_struct), pointer :: bunch
-type (ele_struct), pointer :: ele, ele1, ele2, lord, slave
+type (ele_struct), pointer :: ele, ele0, ele1, ele2, lord, slave
 type (ele_struct), target :: this_ele
 type (coord_struct), pointer :: orbit
 type (coord_struct), target :: orb
@@ -199,7 +199,7 @@ call match_word (cmd, [character(20) :: &
           'ele:cylindrical_map', 'ele:orbit', &
           'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
           'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
-          'enum', 'floor_plan', 'global', 'help', 'inum', &
+          'enum', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
           'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
           'merit', 'orbit_at_s', &
           'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
@@ -1879,7 +1879,6 @@ case ('enum')
 ! Floor plan elements
 ! Command syntax:
 !   python floor_plan {graph}
-! where {orientation} is one of "xy", xz", "yx", "yz", "zx", or "zy".
 
 case ('floor_plan')
 
@@ -1943,6 +1942,138 @@ case ('floor_plan')
     enddo
   enddo
 
+!----------------------------------------------------------------------
+! Floor plan orbit
+! Command syntax:
+!   python floor_orbit{graph}
+
+case ('floor_orbit')
+
+  call tao_find_plots (err, line, 'COMPLETE', graph = graphs)
+
+  if (err .or. .not. allocated(graphs)) then
+    call invalid ('Bad graph name')
+    return
+  endif
+
+  g => graphs(1)%g
+  u => tao_pointer_to_universe(g%ix_universe)
+  lat => u%model%lat
+
+  if (g%floor_plan_orbit_scale == 0) return
+
+  do ib = 0, ubound(lat%branch, 1)
+    branch => lat%branch(ib)
+    do i = 1, branch%n_ele_track
+      ele => branch%ele(i)
+      if (ele%value(l$) == 0 .and. ele%key /= patch$) cycle
+
+      ! .....
+
+!      orbit => u%model%tao_branch(ele%ix_branch)%orbit
+!
+!      orb_start = orbit(ele%ix_ele-1)
+!      orb_end = orbit(ele%ix_ele)
+!
+!      floor%r = [0.0_rp, 0.0_rp, 0.0_rp]
+!      floor1 = coords_local_curvilinear_to_floor (floor, ele, .true.)
+!
+!      floor%r = [0.0_rp, 0.0_rp, ele%value(l$)]
+!      floor2 = coords_local_curvilinear_to_floor (floor, ele, .true.)
+!
+!      call tao_floor_to_screen_coords (g, floor1, end1)
+!      call tao_floor_to_screen_coords (g, floor2, end2)
+!
+!      ! Bends can be tricky if they are not in the X-Z plane. 
+!      ! Bends are parameterized by a set of points (x_bend, y_bend) along their  
+!      ! centerline and a set of vectors (dx_bend, dy_bend) tangent to the centerline.
+!
+!      if (ele%key == sbend$) then
+!
+!        ! Start at entrance end (not upstream end)
+!        if (ele%orientation == 1) then
+!          floor = floor1
+!        else
+!          floor = floor2
+!        endif
+!
+!        v_old = floor%r
+!        call floor_angles_to_w_mat (floor%theta, floor%phi, 0.0_rp, w_old)
+!
+!        n_bend = min(abs(int(100 * ele%value(angle$))) + 1, ubound(x_bend, 1))
+!        if (n_bend < 1) return   ! A crazy angle can cause int(100*angle) to be negative !!
+!        ang    = ele%value(angle$) * ele%orientation
+!        length = ele%value(l$)     * ele%orientation
+!
+!        do j = 0, n_bend
+!          angle = j * ang / n_bend
+!          cos_t = cos(ele%value(ref_tilt_tot$))
+!          sin_t = sin(ele%value(ref_tilt_tot$))
+!          cos_a = cos(angle)
+!          sin_a = sin(angle)
+!          if (ele%value(g$) == 0) then
+!            r_vec = length * j * [0, 0, 1]
+!          else
+!            r_vec = ele%value(rho$) * [cos_t * (cos_a - 1), sin_t * (cos_a - 1), sin_a]
+!          endif
+!          dr_vec = [-cos_t * sin_a, -sin_t * sin_a, cos_a]
+!          ! This keeps dr_vec pointing to the inside (important for the labels).
+!          if (cos_t < 0) dr_vec = -dr_vec
+!          v_vec = matmul (w_old, r_vec) + v_old
+!          dv_vec = matmul (w_old, dr_vec) 
+!          call tao_floor_to_screen (g, v_vec, x_bend(j), y_bend(j))
+!          call tao_floor_to_screen (g, dv_vec, dx_bend(j), dy_bend(j))
+!
+!          s_here = j * ele%value(l$) / n_bend
+!          call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, s_here, &
+!                                                           .true., .true., orb_start, orb_here)
+!          f_orb%r(1:2) = g%floor_plan_orbit_scale * orb_here%vec(1:3:2)
+!          f_orb%r(3) = s_here
+!          f_orb = coords_local_curvilinear_to_floor (f_orb, ele, .false.)
+!          call tao_floor_to_screen (g, f_orb%r, dx_orbit(j), dy_orbit(j))
+!        enddo
+!
+!        call qp_draw_polyline(dx_orbit(0:n_bend), dy_orbit(0:n_bend), &
+!                color = qp_translate_to_color_index(g%floor_plan_orbit_color))
+!
+!      elseif (ele%key == patch$) then
+!        ele0 => pointer_to_next_ele (ele, -1)
+!        floor%r(1:2) = g%floor_plan_orbit_scale * orb_start%vec(1:3:2)
+!        floor%r(3) = ele0%value(l$)
+!        floor1 = coords_local_curvilinear_to_floor (floor, ele0, .false.)
+!        call tao_floor_to_screen_coords (g, floor1, f_orb)
+!        dx_orbit(0) = f_orb%r(1)
+!        dy_orbit(0) = f_orb%r(2)
+!
+!        floor%r(1:2) = g%floor_plan_orbit_scale * orb_end%vec(1:3:2)
+!        floor%r(3) = ele%value(l$)
+!        floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
+!        call tao_floor_to_screen_coords (g, floor1, f_orb)
+!        dx_orbit(1) = f_orb%r(1)
+!        dy_orbit(1) = f_orb%r(2)
+!
+!        call qp_draw_polyline(dx_orbit(0:1), dy_orbit(0:1), &
+!                color = qp_translate_to_color_index(g%floor_plan_orbit_color))
+!
+!      else
+!        n = 10
+!        do ic = 0, n
+!          s_here = ic * ele%value(l$) / n
+!          call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, s_here, &
+!                                                     .true., .true., orb_start, orb_here)
+!          floor%r(1:2) = g%floor_plan_orbit_scale * orb_here%vec(1:3:2)
+!          floor%r(3) = s_here
+!          floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
+!          call tao_floor_to_screen_coords (g, floor1, f_orb)
+!          dx_orbit(ic) = f_orb%r(1)
+!          dy_orbit(ic) = f_orb%r(2)
+!        enddo
+!
+!        call qp_draw_polyline(dx_orbit(0:n), dy_orbit(0:n), &
+!                color = qp_translate_to_color_index(g%floor_plan_orbit_color))
+!      endif
+    enddo
+  enddo
 
 !----------------------------------------------------------------------
 ! Global parameters

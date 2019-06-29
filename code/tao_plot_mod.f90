@@ -714,22 +714,22 @@ if (graph%floor_plan_orbit_scale /= 0 .and. ele%value(l$) /= 0) then
             color = qp_translate_to_color_index(graph%floor_plan_orbit_color))
 
   elseif (ele%key == patch$) then
-      ele0 => pointer_to_next_ele (ele, -1)
-      floor%r(1:2) = graph%floor_plan_orbit_scale * orb_start%vec(1:3:2)
-      floor%r(3) = ele0%value(l$)
-      floor1 = coords_local_curvilinear_to_floor (floor, ele0, .false.)
-      call tao_floor_to_screen_coords (graph, floor1, f_orb)
-      dx_orbit(0) = f_orb%r(1)
-      dy_orbit(0) = f_orb%r(2)
+    ele0 => pointer_to_next_ele (ele, -1)
+    floor%r(1:2) = graph%floor_plan_orbit_scale * orb_start%vec(1:3:2)
+    floor%r(3) = ele0%value(l$)
+    floor1 = coords_local_curvilinear_to_floor (floor, ele0, .false.)
+    call tao_floor_to_screen_coords (graph, floor1, f_orb)
+    dx_orbit(0) = f_orb%r(1)
+    dy_orbit(0) = f_orb%r(2)
 
-      floor%r(1:2) = graph%floor_plan_orbit_scale * orb_end%vec(1:3:2)
-      floor%r(3) = ele%value(l$)
-      floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
-      call tao_floor_to_screen_coords (graph, floor1, f_orb)
-      dx_orbit(1) = f_orb%r(1)
-      dy_orbit(1) = f_orb%r(2)
+    floor%r(1:2) = graph%floor_plan_orbit_scale * orb_end%vec(1:3:2)
+    floor%r(3) = ele%value(l$)
+    floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
+    call tao_floor_to_screen_coords (graph, floor1, f_orb)
+    dx_orbit(1) = f_orb%r(1)
+    dy_orbit(1) = f_orb%r(2)
 
-      call qp_draw_polyline(dx_orbit(0:1), dy_orbit(0:1), &
+    call qp_draw_polyline(dx_orbit(0:1), dy_orbit(0:1), &
             color = qp_translate_to_color_index(graph%floor_plan_orbit_color))
 
   else

@@ -3781,8 +3781,8 @@ type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
 type (tao_expression_info_struct), allocatable :: info(:)
 
 integer, optional :: dflt_uni
-integer i_lev, i_op, i, ios, n, n_size, n__size
-integer op(100), n_comma(100), ix_word, i_delim, i2, ix, ix_word2, ixb
+integer i_lev, i_op, i, ios, n, n_size, n__size, ix0, ix1, ix2
+integer op(100), n_comma(100), ix_word, i_delim, i2, ix, ix_word2
 
 real(rp), allocatable :: value(:)
 
@@ -3797,7 +3797,7 @@ character(*), parameter :: r_name = "tao_evaluate_expression"
 character(40) saved_prefix
 
 logical delim_found, split, ran_function_pending, use_good_user
-logical err_flag, err, wild, printit
+logical err_flag, err, wild, printit, found
 logical, optional :: print_err
 
 ! Don't destroy the input expression
@@ -3914,10 +3914,11 @@ parsing_loop: do
   enddo
 
   ! If delim = "*" then see if this is being used as a wildcard
-  ! Examples: "[*]|", "*.*|", "*.x|", "*@orbit.x|", "*@*|", "orbit.*[3]|"
-  ! If so, we have split in the wrong place and we need to correct this.
+  ! Examples: "[*]|", "*.*|", "*.x|", "*@orbit.x|", "*@*|", "orbit.*[3]|", "ele::q*1[beta_a]"
+  ! If so, we have split in the wrong place and we need to correct this.  *
 
-  if (delim == '*') then
+  do
+    if (delim /= '*') exit
 
     wild = .false.
 
@@ -3925,20 +3926,35 @@ parsing_loop: do
     case ( ']', '[', '|', '@')
       wild = .true.
     case ('.')
-      if (index('0123456789', phrase(2:2)) == 0) wild = .true.
+      wild = (index('0123456789', phrase(2:2)) /= 0) ! Wild if not a number
+    case default
+      ix0 = index(word, '::')
+      ix1 = index(phrase, '[')
+      ix2 = index(phrase, ']')
+
+      ! If in "[...*...]" construct is wild
+      if (ix2 /= 0 .and. (ix1 == 0 .or. ix1 > ix2)) wild = .true.
+
+      ! If in "::xxx*yyy[" construct where each x and y is not one of ":", " ", etc.
+      found = .false.
+      if (ix0 /= 0 .and. ix1 /= 0) then
+        do ix = ix0+2, ix_word
+          if (index(': ]|', word(ix:ix)) /= 0) found = .true.
+        enddo
+        do ix = 1, ix1-1
+          if (index(': ]|', word(ix:ix)) /= 0) found = .true.
+        enddo
+        if (.not. found) wild = .true.
+      endif
     end select
-    ixb = index(phrase, '|')
-    if (ixb == 0) wild = .false.
 
     if (wild) then
-      word = word(:ix_word) // '*' // phrase(1:ixb) 
-      phrase = phrase(ixb+1:)
+      word = word(:ix_word) // '*'
       call word_read (phrase, '+-*/()^,}', word2, ix_word2, delim, delim_found, phrase)
       word = trim(word) // trim(word2)       
       ix_word = len_trim(word)
     endif
-
-  endif
+  enddo
 
   !---------------------------
   ! Now see what we got...
