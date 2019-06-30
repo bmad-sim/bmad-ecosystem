@@ -124,7 +124,7 @@ real(rp) i1, i2, i3, i4a, i4b, i4z, i5a, i5b, i6b, m65, G_max, gx_err, gy_err, d
 real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f, ds_step
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), dk(2,2), kx, ky, beta_min
 real(rp) v(4,4), v_inv(4,4), z_here, z_start, mc2, gamma, gamma4, gamma6
-real(rp) kz, fac, c, s, factor, g2, g_x0, dz, z1, const_q, mat6(6,6), vec0(6)
+real(rp) kz, fac, c, s, factor, g2, g_x0, dz_small, z1, const_q, mat6(6,6), vec0(6)
 real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) ! Cf: Sands Eq 5.46 pg 124.
 real time0, time1
 
@@ -341,16 +341,16 @@ if (use_cache .or. init_cache) then
 
       z_start = 0
       ele_start = branch%ele(ixe-1)
-      dz = min (1e-4_rp, del_z/3)
+      dz_small = min (1e-4_rp, del_z/3)
       call mat_make_unit (mat6)
       vec0 = 0
 
       do k = 0, n_step
         z_here = k * del_z
-        z1 = z_here + dz
-        if (z1 > ele2%value(l$)) z1 = max(0.0_rp, z_here - dz)
-        call cache_this_point (z_here, orb_start, ele2, mat6, vec0, cache_ele%pt(k), orb_end, ele_end)
-        z_start = z1
+        z1 = z_here + dz_small
+        if (z1 > ele2%value(l$)) z1 = max(0.0_rp, z_here - dz_small)
+        call cache_this_point (z_start, z1, z_here, orb_start, ele2, mat6, vec0, cache_ele%pt(k), orb_end, ele_end)
+        z_start = z_here
         orb_start = orb_end
         ele_start = ele_end
       enddo
@@ -387,12 +387,12 @@ if (use_cache .or. init_cache) then
         n_step = 2*n_step
         cache_ele%n_pt = n_step
         del_z = del_z / 2
-        dz = min (1e-4_rp, del_z/3)
+        dz_small = min (1e-4_rp, del_z/3)
 
         do k = 1, n_step, 2
           z_here = k * del_z
-          z1 = z_here + dz
-          if (z1 > ele2%value(l$)) z1 = max(0.0_rp, z_here - dz)
+          z1 = z_here + dz_small
+          if (z1 > ele2%value(l$)) z1 = max(0.0_rp, z_here - dz_small)
           cp0 => cache_ele%pt(k-1)
           cp => cache_ele%pt(k)
           z_start = cp0%ref_orb_out%s - ele%s_start
@@ -403,7 +403,7 @@ if (use_cache .or. init_cache) then
           ele_start%map_ref_orb_out  = cp0%ref_orb_out
           ele_start%time_ref_orb_in  = orb_start
           ele_start%time_ref_orb_out = cp0%ref_orb_out        
-          call cache_this_point (z_here, orb_start, ele2, mat6, vec0, cache_ele%pt(k), orb_end, ele_end)
+          call cache_this_point (z_start, z1, z_here, orb_start, ele2, mat6, vec0, cache_ele%pt(k), orb_end, ele_end)
         enddo
       enddo outer_loop
     endif
@@ -702,21 +702,22 @@ if (bmad_com%debug) print '(a, f12.2)', 'radiation_integrals execution time:', t
 !------------------------------------------------------------------------
 contains
 
-subroutine cache_this_point (z_here, orb_start, ele2, mat6, vec0, c_pt, orb_end, ele_end)
+subroutine cache_this_point (z_start, z1, z_here, orb_start, ele2, mat6, vec0, c_pt, orb_end, ele_end)
 
 type (ele_struct) ele2
 type (rad_int_track_point_struct) :: c_pt
 type (coord_struct) orb_start, orb_end
 type (ele_struct) ele_end
 
-real(rp) mat6(6,6), vec0(6), z_here
+real(rp) mat6(6,6), vec0(6), z_start, z1, z_here
+logical reuse_ele_end
 
 !
 
 c_pt%s_body = z_here
+reuse_ele_end = ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%tracking_method == bmad_standard$)
 
 call twiss_and_track_intra_ele (ele2, branch%param, z_start, z_here, .true., .false., orb_start, orb_end,  ele_start, ele_end)
-call twiss_and_track_intra_ele (ele2, branch%param, z_start, z1,     .true., .false., orb_start, orb_end1, ele_start)
 
 call concat_transfer_mat (ele_end%mat6, ele_end%vec0, mat6, vec0, mat6, vec0)
 c_pt%mat6 = mat6
@@ -729,6 +730,7 @@ if ((ele2%key == wiggler$ .or. ele2%key == undulator$) .and. &
   call calc_wiggler_g_params (ele2, branch%param, z_here, orb_end, c_pt)
 
 else
+  call twiss_and_track_intra_ele (ele2, branch%param, z_start, z1, .true., .false., orb_start, orb_end1, ele_start)
   c_pt%g_x0 = -(orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_here)
   c_pt%g_y0 = -(orb_end1%vec(4) - orb_end%vec(4)) / (z1 - z_here)
   c_pt%dgx_dx = 0

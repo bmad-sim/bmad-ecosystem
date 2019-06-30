@@ -1,6 +1,6 @@
 !+
 ! Subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, track_downstream_end, 
-!                                          orbit_start, orbit_end, ele_start, ele_end, err, compute_floor_coords)
+!                            orbit_start, orbit_end, ele_start, ele_end, err, compute_floor_coords, reuse_ele_end)
 !
 ! Routine to track a particle within an element.
 !
@@ -15,31 +15,36 @@
 !   use bmad
 !
 ! Input:
-!   ele                  -- Ele_struct: Element to track through.
+!   ele                  -- ele_struct: Element to track through.
 !   param                -- lat_param_struct:
-!   l_start              -- Real(rp): Start position measured from the beginning of the element.
-!   l_end                -- Real(rp): Stop position measured from the beginning of the element.
-!   track_upstream_end   -- Logical: If True then entrance effects are included in the tracking.
+!   l_start              -- real(rp): Start position measured from the beginning of the element.
+!   l_end                -- real(rp): Stop position measured from the beginning of the element.
+!   track_upstream_end   -- logical: If True then entrance effects are included in the tracking.
 !                            But only if l_start = 0 and orbit_start%location /= inside$.
 !   track_downstream_end -- Logical: If True then exit effects are included in the tracking but 
 !                            only if l_end = ele%value(l$) (within bmad_com%significant_length tol)
-!   orbit_start          -- Coord_struct, optional: Starting phase space coordinates at l_start.
-!   ele_start            -- Ele_struct, optional: Holds the starting Twiss parameters at l_start.
+!   orbit_start          -- coord_struct, optional: Starting phase space coordinates at l_start.
+!   ele_start            -- ele_struct, optional: Holds the starting Twiss parameters at l_start.
+!   ele_end              -- ele_struct, optional: If reuse_ele_end is set True then reuse ele_end from trancking
+!                             instead of recomputing ele_end from scratch. This can save time.
 !   compute_floor_coords -- logical, optional: If present and True then the global "floor" coordinates 
 !                             (without misalignments) will be calculated and put in ele_end%floor.
+!   reuse_ele_end        -- logical, optional: If present and True, and if ele_end has the correct 
+!                             lonigitudianal length and key type, reuse ele_end from trancking instead of 
+!                             recomputing ele_end from scratch. This can save time.
 !
 ! Output:
 !   orbit_end  -- Coord_struct, optional: End phase space coordinates. 
 !                   If present then the orbit_start argument must also be present.
-!   ele_end   -- Ele_struct, optional: Holds the ending Twiss parameters at l_end (except for photons).
+!   ele_end    -- ele_struct, optional: Holds the ending Twiss parameters at l_end (except for photons).
 !                  The map (ele_end%mat6, ele_end%vec0) is map from l_start to l_end.
 !                  If present then the ele_start argument must also be present.
-!   err       -- Logical, optional: Set True if there is a problem like 
+!   err        -- logical, optional: Set True if there is a problem like 
 !                  the particle gets lost in tracking
 !-   
 
 recursive subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, &
-                       track_downstream_end, orbit_start, orbit_end, ele_start, ele_end, err, compute_floor_coords)
+           track_downstream_end, orbit_start, orbit_end, ele_start, ele_end, err, compute_floor_coords, reuse_ele_end)
 
 use geometry_mod, dummy => twiss_and_track_intra_ele
 
@@ -47,18 +52,18 @@ implicit none
 
 type (coord_struct), optional :: orbit_start, orbit_end
 type (coord_struct) orb_at_end
-type (ele_struct), optional :: ele_start, ele_end
+type (ele_struct), optional, target :: ele_start, ele_end
 type (ele_struct), target :: ele
 type (lat_param_struct) param
 type (ele_struct), target :: runt
 type (ele_struct), pointer :: ele_p, slave
 
-real(rp) l_start, l_end, mat6(6,6), vec0(6), l0, l1, s_start, s_end
+real(rp) l_start, l_end, mat6(6,6), vec0(6), l0, l1, s_start, s_end, dlength
 integer ie, species
 
 logical track_upstream_end, track_downstream_end, do_upstream, do_downstream, err_flag
-logical track_up, track_down
-logical, optional :: err, compute_floor_coords
+logical track_up, track_down, length_ok
+logical, optional :: err, compute_floor_coords, reuse_ele_end
 
 character(*), parameter :: r_name = 'twiss_and_track_intra_ele'
 
@@ -105,10 +110,14 @@ endif
 ! Special case: tracking though the whole element.
 ! Otherwise: Construct a "runt" element to track through.
 
-if (do_upstream .and. do_downstream) then
+dlength = l_end - l_start
+
+if (logic_option(.false., reuse_ele_end) .and. ele_end%value(l$) == dlength .and. ele_end%key == ele%key) then
+  ele_p => ele_end
+elseif (do_upstream .and. do_downstream) then
   ele_p => ele
 else
-  call create_element_slice (runt, ele, l_end - l_start, l_start, param, do_upstream, do_downstream, err_flag, ele_start)
+  call create_element_slice (runt, ele, dlength, l_start, param, do_upstream, do_downstream, err_flag, ele_start)
   if (err_flag) return
   ele_p => runt
 endif
@@ -136,7 +145,7 @@ if (present(ele_end) .and. species /= photon$) then
   if (err_flag) return
   call twiss_propagate1 (ele_start, ele_p, err_flag)
   if (logic_option(.false., compute_floor_coords)) call ele_geometry (ele_start%floor, ele_p, ele_p%floor)
-  call transfer_ele(ele_p, ele_end, .true.)
+  if (.not. associated(ele_p, ele_end)) call transfer_ele(ele_p, ele_end, .true.)
   if (err_flag) return
 
 elseif (present(orbit_end)) then  ! and not present(ele_start)
@@ -147,7 +156,7 @@ elseif (present(orbit_end)) then  ! and not present(ele_start)
   if (.not. do_downstream) orbit_end%location = inside$
   if (present(ele_end)) then
     if (logic_option(.false., compute_floor_coords)) call ele_geometry (ele_start%floor, ele_p, ele_p%floor)
-    call transfer_ele(ele_p, ele_end, .true.)
+    if (.not. associated(ele_p, ele_end)) call transfer_ele(ele_p, ele_end, .true.)
   endif
 endif
 
