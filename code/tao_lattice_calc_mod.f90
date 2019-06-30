@@ -695,7 +695,7 @@ do
   ! Only generate error message once per tracking
   if (err .and. print_err) then
     sig = bunch_params%sigma
-    call out_io (s_error$, r_name, [character(60):: 'Singular sigma matrix is:', &
+    call out_io (s_error$, r_name, [character(80):: 'Singular sigma matrix is:', &
             '  \6es15.7\', '  \6es15.7\', '  \6es15.7\', '  \6es15.7\', '  \6es15.7\', '  \6es15.7\', &
             'Will not print any more singular sigma matrices for this track...'], &
             r_array = [sig(1,:), sig(2,:), sig(3,:), sig(4,:), sig(5,:), sig(6,:)])
@@ -910,13 +910,18 @@ endif
 ! So only reinit the distribution if the distribution has not already been initialized or if commanded via %init_starting_distribution.
 
 ix_ele0 = u%beam%ix_track_start
+if (ix_ele0 == -999) then
+  call out_io(s_error$, r_name, 'NOTE: Bad start or stop beam track locations. No beam tracking done.')
+  return
+endif
+
 beam_init => u%beam%beam_init
 beam => u%beam%beam_at_start
 
 if (u%beam%init_starting_distribution .or. .not. allocated(beam%bunch) .or. u%beam%beam_init%position_file /= "") then
   call init_beam_distribution (branch%ele(ix_ele0), branch%param, beam_init, beam, err)
   if (err) then
-    call out_io (s_fatal$, r_name, 'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
+    call out_io (s_error$, r_name, 'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
     return
   endif
 
