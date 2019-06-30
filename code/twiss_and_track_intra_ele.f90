@@ -112,7 +112,7 @@ endif
 
 dlength = l_end - l_start
 
-if (logic_option(.false., reuse_ele_end) .and. ele_end%value(l$) == dlength .and. ele_end%key == ele%key) then
+if (logic_option(.false., reuse_ele_end) .and. abs(ele_end%value(l$)- dlength) < bmad_com%significant_length .and. ele_end%key == ele%key) then
   ele_p => ele_end
 elseif (do_upstream .and. do_downstream) then
   ele_p => ele

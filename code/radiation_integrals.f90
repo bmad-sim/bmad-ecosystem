@@ -395,7 +395,7 @@ if (use_cache .or. init_cache) then
           if (z1 > ele2%value(l$)) z1 = max(0.0_rp, z_here - dz_small)
           cp0 => cache_ele%pt(k-1)
           cp => cache_ele%pt(k)
-          z_start = cp0%ref_orb_out%s - ele%s_start
+          z_start = cp0%s_body
           orb_start = cp0%ref_orb_out
           mat6 = cp0%mat6
           vec0 = cp0%vec0
@@ -715,9 +715,10 @@ logical reuse_ele_end
 !
 
 c_pt%s_body = z_here
-reuse_ele_end = ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%tracking_method == bmad_standard$)
+reuse_ele_end = ((ele2%key == wiggler$ .or. ele2%key == undulator$) .and. ele2%tracking_method == bmad_standard$)
 
-call twiss_and_track_intra_ele (ele2, branch%param, z_start, z_here, .true., .false., orb_start, orb_end,  ele_start, ele_end)
+call twiss_and_track_intra_ele (ele2, branch%param, z_start, z_here, .true., .false., &
+                                                            orb_start, orb_end,  ele_start, ele_end, reuse_ele_end = reuse_ele_end)
 
 call concat_transfer_mat (ele_end%mat6, ele_end%vec0, mat6, vec0, mat6, vec0)
 c_pt%mat6 = mat6
