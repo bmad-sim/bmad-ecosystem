@@ -297,17 +297,19 @@ character(60) at, class, ele_name, line
 
 u%beam%track_start = beam_track_start
 u%beam%track_end   = beam_track_end
-u%beam%ix_track_start = -1
-u%beam%ix_track_end = -1
 
 if (beam_track_start /= '') then
   call lat_ele_locator (beam_track_start, u%design%lat, eles, n_loc, err)
   if (err .or. n_loc == 0) then
-    call out_io (s_error$, r_name, 'BEAM_TRACK_START ELEMENT NOT FOUND: ' // beam_track_start)
+    call out_io (s_error$, r_name, 'BEAM_TRACK_START ELEMENT NOT FOUND: ' // beam_track_start, &
+                                   'WILL NOT TRACK A BEAM.')
+    u%beam%ix_track_start = -999
     return
   endif
   if (n_loc > 1) then
-    call out_io (s_error$, r_name, 'MULTIPLE BEAM_TRACK_START ELEMENTS FOUND: ' // beam_track_start)
+    call out_io (s_error$, r_name, 'MULTIPLE BEAM_TRACK_START ELEMENTS FOUND: ' // beam_track_start, &
+                                   'WILL NOT TRACK A BEAM.')
+    u%beam%ix_track_start = -999
     return
   endif
   u%beam%ix_track_start = eles(1)%ele%ix_ele
@@ -316,11 +318,15 @@ endif
 if (beam_track_end /= '') then
   call lat_ele_locator (beam_track_end, u%design%lat, eles, n_loc, err)
   if (err .or. n_loc == 0) then
-    call out_io (s_error$, r_name, 'BEAM_TRACK_END ELEMENT NOT FOUND: ' // beam_track_end)
+    call out_io (s_error$, r_name, 'BEAM_TRACK_END ELEMENT NOT FOUND: ' // beam_track_end, &
+                                   'WILL NOT TRACK A BEAM.')
+    u%beam%ix_track_start = -999
     return
   endif
   if (n_loc > 1) then
-    call out_io (s_error$, r_name, 'MULTIPLE BEAM_TRACK_END ELEMENTS FOUND: ' // beam_track_end)
+    call out_io (s_error$, r_name, 'MULTIPLE BEAM_TRACK_END ELEMENTS FOUND: ' // beam_track_end, &
+                                   'WILL NOT TRACK A BEAM.')
+    u%beam%ix_track_start = -999
     return
   endif
   u%beam%ix_track_end = eles(1)%ele%ix_ele
