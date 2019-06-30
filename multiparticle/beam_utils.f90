@@ -1314,7 +1314,7 @@ end subroutine init_spin_distribution
 ! Output     
 !   params -- bunch_params_struct:
 !   err    -- Logical: Set True if there is an error.
-! -
+!-
 
 subroutine calc_bunch_params_slice (bunch, bunch_params, plane, slice_center, slice_spread, err, print_err)
 
@@ -1400,14 +1400,14 @@ type (bunch_params_struct) bunch_params
 real(rp) exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d
 real(rp) avg_energy, temp6(6), eta, etap
 real(rp) :: sigma_s(6,6), s(6,6), sigma_s_save(6,6) = 0.0, sigma(6,6) = 0.0
-real(rp) :: u(6,6), n_real(6,6), beta_66_iii, charge_live
+real(rp) :: u(6,6), n_real(6,6), charge_live
 real(rp), allocatable :: charge(:)
 
 complex(rp) :: eigen_val(6) = 0.0, eigen_vec(6,6)
 complex(rp) :: sigma_s_complex(6,6) = 0.0
 complex(rp) :: n(6,6), q(6,6)
 
-integer i, j, species
+integer i, j, species, dim
 
 logical, optional :: print_err
 logical error, err, err1
@@ -1533,13 +1533,16 @@ bunch_params%c%norm_emit = bunch_params%c%emit * (avg_energy/mass_of(species))
 ! Eq. 14
 ! mat_eigen finds row vectors, so switch to column vectors
 
-call normalize_e (eigen_vec, err)
+dim = 6
+if (sigma_s(6,6) == 0) dim = 4  ! No energy diviations
+
+call normalize_e (eigen_vec(1:dim,1:dim), dim, err)
 if (err) then
   if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'CANNOT NORMALIZE EIGENVECTORS.')
   return
 endif
 
-eigen_vec = transpose(eigen_vec)
+eigen_vec(1:dim,1:dim) = transpose(eigen_vec(1:dim,1:dim))
 
 q = 0.0
 q(1,1) = 1.0/sqrt(2.0)
@@ -1556,39 +1559,39 @@ q(5,6) =  i_imag / sqrt(2.0)
 q(6,6) = -i_imag / sqrt(2.0)
 
 ! compute N in eq. 44
-n = matmul(eigen_vec, q)
+n = matmul(eigen_vec(1:dim,1:dim), q(1:dim,1:dim))
 ! N is now a real matrix
-n_real = real(n)
+n_real(1:dim,1:dim) = real(n(1:dim,1:dim))
 
 ! Twiss parameters come from equations 59, 63 and 64
 
 bunch_params%a%beta = n_real(1,1)**2 + n_real(1,2)**2
 bunch_params%b%beta = n_real(3,3)**2 + n_real(3,4)**2
-bunch_params%c%beta = n_real(5,5)**2 + n_real(5,6)**2
 
 bunch_params%a%alpha = -(n_real(1,1)*n_real(2,1) + n_real(1,2)*n_real(2,2))
 bunch_params%b%alpha = -(n_real(3,3)*n_real(4,3) + n_real(3,4)*n_real(4,4))
-bunch_params%c%alpha = -(n_real(5,5)*n_real(6,5) + n_real(5,6)*n_real(6,6))
 
 bunch_params%a%gamma = n_real(2,1)**2 + n_real(2,2)**2
 bunch_params%b%gamma = n_real(4,3)**2 + n_real(4,4)**2
-bunch_params%c%gamma = n_real(6,5)**2 + n_real(6,6)**2
 
 ! Dispersion comes from equations 69 and 70
 
-beta_66_iii   = n_real(6,5)*n_real(6,5) + n_real(6,6)*n_real(6,6)
+if (dim == 6) then
+  bunch_params%c%beta = n_real(5,5)**2 + n_real(5,6)**2
+  bunch_params%c%alpha = -(n_real(5,5)*n_real(6,5) + n_real(5,6)*n_real(6,6))
+  bunch_params%c%gamma = n_real(6,5)**2 + n_real(6,6)**2
 
-bunch_params%a%eta  = n_real(1,5)*n_real(6,5) + n_real(1,6)*n_real(6,6)
-bunch_params%a%etap = n_real(2,5)*n_real(6,5) + n_real(2,6)*n_real(6,6)
+  bunch_params%a%eta  = n_real(1,5)*n_real(6,5) + n_real(1,6)*n_real(6,6)
+  bunch_params%a%etap = n_real(2,5)*n_real(6,5) + n_real(2,6)*n_real(6,6)
 
-bunch_params%b%eta  = n_real(3,5)*n_real(6,5) + n_real(3,6)*n_real(6,6)
-bunch_params%b%etap = n_real(4,5)*n_real(6,5) + n_real(4,6)*n_real(6,6)
+  bunch_params%b%eta  = n_real(3,5)*n_real(6,5) + n_real(3,6)*n_real(6,6)
+  bunch_params%b%etap = n_real(4,5)*n_real(6,5) + n_real(4,6)*n_real(6,6)
 
-bunch_params%c%eta  = n_real(5,5)*n_real(6,5) + n_real(5,6)*n_real(6,6)
-bunch_params%c%etap = n_real(6,5)*n_real(6,5) + n_real(6,6)*n_real(6,6)
+  bunch_params%c%eta  = n_real(5,5)*n_real(6,5) + n_real(5,6)*n_real(6,6)
+  bunch_params%c%etap = n_real(6,5)*n_real(6,5) + n_real(6,6)*n_real(6,6)
+endif
 
 bunch_params%twiss_valid = .true.
-
 error = .false.
 
 !----------------------------------------------------------------------
@@ -1662,13 +1665,14 @@ end subroutine projected_twiss_calc
 ! contains
 ! Eq. 14 But using row vectors to conform to BMAD's mat_eigen
 
-subroutine normalize_e (e, err)
+subroutine normalize_e (e, dim, err)
 
 implicit none
 
-complex(rp) :: s(6,6)
+integer dim
+complex(rp) :: s(dim,dim)
 
-complex(rp) :: e(6,6), temp(6)
+complex(rp) :: e(dim,dim), temp(dim)
 complex(rp) :: wronsk, factor
 
 integer i, j, k
@@ -1684,15 +1688,17 @@ s(1,2) = ( 1.0,0.0)
 s(2,1) = (-1.0,0.0)
 s(3,4) = ( 1.0,0.0) 
 s(4,3) = (-1.0,0.0)
-s(5,6) = ( 1.0,0.0) 
-s(6,5) = (-1.0,0.0)
+if (dim == 6) then
+  s(5,6) = ( 1.0,0.0) 
+  s(6,5) = (-1.0,0.0)
+endif
 
-do i = 1, 6, 2
+do i = 1, dim, 2
   e(i,:) = conjg(e(i+1,:)) ! Eq. 14b
   ! set up the normaization factor
   temp = matmul(s,e(i+1,:))
   wronsk = 0.0
-  do j = 1, 6
+  do j = 1, dim
     wronsk = e(i,j)*temp(j) + wronsk
   enddo
   if (wronsk == 0) return ! Error   
