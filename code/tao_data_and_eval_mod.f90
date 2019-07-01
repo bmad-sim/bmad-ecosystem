@@ -3304,32 +3304,27 @@ if (ix_ele < ix_start) then   ! wrap around
     if (present(good)) valid_value = valid_value .and. good(ix_m)
 
   case ('average')
-    l_sum = 0
-    datum_value = 0
-    n = 0
 
-    do i = 1, ix_ele
-      if (.not. good(i)) cycle
-      n = n + 1
-      l_sum = l_sum + branch%ele(i)%value(l$)
-      datum_value = datum_value + branch%ele(i)%value(l$) * vec_ptr(i)
-    enddo
-
-    do i = ix_start, n_track
-      if (.not. good(i)) cycle
-      n = n + 1
-      l_sum = l_sum + branch%ele(i)%value(l$)
-      datum_value = datum_value + branch%ele(i)%value(l$) * vec_ptr(i)
-    enddo
+    if (present(good)) then
+      n = count(good(1:ix_ele)) + count(good(ix_start:n_track))
+      l_sum = sum(branch%ele(1:ix_ele)%value(l$), mask = good(1:ix_ele)) + &
+              sum(branch%ele(ix_start:n_track)%value(l$), mask = good(ix_start:n_track))
+      datum_value = sum(branch%ele(1:ix_ele)%value(l$) * vec_ptr(1:ix_ele), mask = good(1:ix_ele)) + &
+                    sum(branch%ele(ix_start:n_track)%value(l$) * vec_ptr(ix_start:n_track), mask = good(ix_start:n_track))
+    else
+      n = (ix_ele) + (ix_start - n_track + 1)
+      l_sum = sum(branch%ele(1:ix_ele)%value(l$)) + &
+              sum(branch%ele(ix_start:n_track)%value(l$))
+      datum_value = sum(branch%ele(1:ix_ele)%value(l$) * vec_ptr(1:ix_ele)) + &
+                    sum(branch%ele(ix_start:n_track)%value(l$) * vec_ptr(ix_start:n_track))
+    endif
 
     if (l_sum == 0 .and. n == 0) then
-      if (present(good)) valid_value = .false.
+      valid_value = .false.
     elseif (l_sum == 0) then
       datum_value = datum_value / n
-      if (present(good)) valid_value = .true.
     else
       datum_value = datum_value / l_sum
-      if (present(good)) valid_value = .true.
     endif
 
   case default
@@ -3389,25 +3384,22 @@ else
     if (present(good)) valid_value = valid_value .and. good(ix_m)
 
   case ('average')
-    l_sum = 0
-    datum_value = 0
-    n = 0
-
-    do i = ix_start, ix_ele
-      if (.not. good(i)) cycle
-      n = n + 1
-      l_sum = l_sum + branch%ele(i)%value(l$)
-      datum_value = datum_value + branch%ele(i)%value(l$) * vec_ptr(i)
-    enddo
+    if (present(good)) then
+      n = count(good(ix_start:ix_ele))
+      l_sum = sum(branch%ele(ix_start:ix_ele)%value(l$), mask = good(ix_start:ix_ele))
+      datum_value = sum(branch%ele(ix_start:ix_ele)%value(l$) * vec_ptr(ix_start:ix_ele), mask = good(ix_start:ix_ele))
+    else
+      n = ix_ele - ix_start + 1
+      l_sum = sum(branch%ele(ix_start:ix_ele)%value(l$))
+      datum_value = sum(branch%ele(ix_start:ix_ele)%value(l$) * vec_ptr(ix_start:ix_ele))
+    endif
 
     if (l_sum == 0 .and. n == 0) then
-      if (present(good)) valid_value = .false.
+      valid_value = .false.
     elseif (l_sum == 0) then
       datum_value = datum_value / n
-      if (present(good)) valid_value = .true.
     else
       datum_value = datum_value / l_sum
-      if (present(good)) valid_value = .true.
     endif
 
   case default
@@ -3853,7 +3845,7 @@ if (ios == 0) then
 endif
  
 ! General idea: Create a reverse polish stack that represents the expression.
-! Reverse polish means that the operand goes last so that 2 * 3 is writen 
+! Reverse polish means that the operand goes last so that 2 * 3 is written 
 ! on the stack as: [2, 3, *]
 
 ! The stack is called: stk
