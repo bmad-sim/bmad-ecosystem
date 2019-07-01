@@ -183,7 +183,6 @@ interface attribute_name
   module procedure attribute_name2
 end interface
 
-
 contains
 
 !--------------------------------------------------------------------------

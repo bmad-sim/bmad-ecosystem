@@ -364,12 +364,14 @@ do ib = 0, ubound(lat%branch, 1)
 
     call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
     if (ix_match > 0) then
-      ! Only check match elements for now.
-      if (ele%key == match$) then
-        if (any(named_eles(ix_match)%ele%value /= ele%value)) then
-          call out_io (s_fatal$, r_name, 'TWO MATCH ELEMENTS WITH THE SAME NAME HAVE DIFFERENT PARAMETERS! ' // ele%name)
-          return
-        endif
+      ! The created lattice file will not be correct if two elements with the same name have a parameter whose value
+      ! is differs between the two element and furthermore that parameter is an independent variable.
+      ! This is complicated to check. For example, it is not a problem to have two quadrupoles with %field_master = True 
+      ! to have differing k1. For now only check match elements. 
+      if (.not. congruent_lattice_elements(named_eles(ix_match)%ele, ele)) then
+        call out_io (s_fatal$, r_name, 'TWO ELEMENTS WITH THE SAME NAME HAVE DIFFERENT PARAMETERS! ' // ele%name, &
+                                       'WILL NOT CREATE A LATTICE FILE. SUGGESTION: WRITE A DIGESTED FILE.')
+        return
       endif
       cycle
     endif
