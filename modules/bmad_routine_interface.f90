@@ -244,6 +244,13 @@ recursive subroutine check_aperture_limit (orb, ele, particle_at, param, old_orb
   logical, optional :: check_momentum
 end subroutine
 
+function congruent_lattice_elements (ele1, ele2) result (is_congruent)
+  import
+  implicit none
+  type (ele_struct) ele1, ele2
+  logical is_congruent
+end function
+
 subroutine check_controller_controls (contrl, name, err)
   import
   implicit none
