@@ -1907,7 +1907,11 @@ case ('floor_plan')
       first_time = .true.
       do
         call tao_ele_shape_info (u%ix_uni, ele, s%plot_page%lat_layout%ele_shape, shape, label_name, y1, y2, ix_shape_min)
-        if (.not. associated(shape)) then
+        if (associated(shape)) then
+          color = shape%color
+          shape_shape = shape%shape
+          line_width = shape%line_width
+        else
           if (.not. first_time) exit
           y1 = 0
           y2 = 0
