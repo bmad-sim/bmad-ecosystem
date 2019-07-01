@@ -7,6 +7,7 @@ from tao_interface import *
 from parameters import *
 import time
 import matplotlib.patches as patches
+import numpy as np
 
 #pipe=tao_interface('pexpect','-init_file ../examples/cesr/tao.init')
 #determines tao settings and lattice to be used eg: '-init_file ../examples/cesr/tao.init' for CESR
@@ -481,7 +482,7 @@ class taoplot:
 			twinAxes.axis('off')
 			
 			GraphDict['LatLayout'].axes.set_navigate(False)
-			GraphDict['LatLayout'].axhline(y=0,xmin=1.5*layInfoDict['x.min'].value,xmax=1.5*layInfoDict['x.max'].value,color='Black')
+			GraphDict['LatLayout'].axhline(y=0,xmin=1.1*layInfoDict['x.min'].value,xmax=1.1*layInfoDict['x.max'].value,color='Black')
 			#sets axis limits and creates second axis to allow x panning and zooming
 			
 
@@ -530,7 +531,7 @@ class taoplot:
 				eleY2Dict[eleInfo[i].split(';')[0]]= float(eleInfo[i].split(';')[6])
 				eleColorDict[eleInfo[i].split(';')[0]]= eleInfo[i].split(';')[7].lower()
 				eleNameDict[eleInfo[i].split(';')[0]]= eleInfo[i].split(';')[8]
-			#all dict keys and entries are strings matching element index (eg: '1') string to the corresponding information
+			#all dict keys and entries are strings which match a lattice layout element index (eg: '1') string to the corresponding information
 
 
 			for i in eleIndexList:
@@ -683,17 +684,113 @@ class taoplot:
 			else:
 				universe = 1
 
-			fpeInfo=pipe.cmd_in('python floor_plan '+str(universe)).splitlines()
+			fpeInfo=pipe.cmd_in('python floor_plan r1.g').splitlines()
+			#list of plotting parameter strings from tao command python floor_plan
+			
+			#print(fpeInfo)
+			fpeIndexList = []
+			fpeTypeDict = {}
+			fpeSxDict = {} #start x coordinate
+			fpeSyDict = {} #start y coordinate
+			fpeSaDict = {} #start angle
+			fpeExDict = {} #end x coordinate
+			fpeEyDict = {} #end y coordinate
+			fpeEaDict = {} #end angle
+			fpeLwDict = {}
+			fpeShapeDict = {}
+			fpeY1Dict = {} #distance above  
+			fpeY2Dict = {} #distance below
+			fpeColorDict = {}
+			fpeNameDict = {}
+			fpeAlDict = {} #arc length
+			fpeBaDict = {} #bend angle
+			fpeSfaDict = {} #relative angle of starting face to incoming line
+			fpeEfaDict = {} #relative angle of ending face to incoming line
+			for i in range(len(fpeInfo)):
+				fpeIndexList.append(int(fpeInfo[i].split(';')[1]))
+				fpeTypeDict[fpeInfo[i].split(';')[1]]= fpeInfo[i].split(';')[2].lower()
+				fpeSxDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[3])
+				fpeSyDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[4])
+				fpeSaDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[5])
+				fpeExDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[6])
+				fpeEyDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[7])
+				fpeEaDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[8])
+				fpeLwDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[9])
+				fpeShapeDict[fpeInfo[i].split(';')[1]]= fpeInfo[i].split(';')[10].lower()
+				fpeY1Dict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[11])
+				fpeY2Dict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[12])
+				fpeColorDict[fpeInfo[i].split(';')[1]]= fpeInfo[i].split(';')[13].lower()
+				fpeNameDict[fpeInfo[i].split(';')[1]]= fpeInfo[i].split(';')[14]
+				try:
+					fpeAlDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[15])
+					fpeBaDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[16])
+					fpeSfaDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[17])
+					fpeEfaDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[18])
+				except IndexError:
+					pass
+			#all dict keys and entries are strings which match a floor plan element index (eg: '1') string to the corresponding information
+
 			
 
+			conv = (180)/(np.pi) #radian to degree conversion
+			for i in fpeIndexList:
+				try:
+					if fpeY1Dict[str(i)] == 0 and fpeY2Dict[str(i)] == 0 and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
+						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)],fpeExDict[str(i)]],[fpeSyDict[str(i)],fpeEyDict[str(i)]],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+					#draw line element
+
+
+
+					elif fpeShapeDict[str(i)] == 'box' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
+						GraphDict['FloorPlan'].add_patch(patches.Rectangle((fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])),np.sqrt((fpeExDict[str(i)]-fpeSxDict[str(i)])**2 + (fpeEyDict[str(i)]-fpeSyDict[str(i)])**2),fpeY1Dict[str(i)]+fpeY2Dict[str(i)],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)],fill=False,angle=fpeSaDict[str(i)]*conv))
+					#draw box element
+
+
+
+					elif fpeShapeDict[str(i)] == 'xbox' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
+						GraphDict['FloorPlan'].add_patch(patches.Rectangle((fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])),np.sqrt((fpeExDict[str(i)]-fpeSxDict[str(i)])**2 + (fpeEyDict[str(i)]-fpeSyDict[str(i)])**2),fpeY1Dict[str(i)]+fpeY2Dict[str(i)],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)],fill=False,angle=fpeSaDict[str(i)]*conv))
+						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+					#draw xbox element
+
+
+
+					elif fpeShapeDict[str(i)] == 'x' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
+						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+					#draw x element
+
+
+
+					elif fpeShapeDict[str(i)] == 'bow_tie' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
+						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+					#draw bow_tie element
+
+
+
+					elif fpeShapeDict[str(i)] == 'diamond' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
+						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)],fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)],fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)]],[fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)]],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)],fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2 + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)],fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2 + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)]],[fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)]],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+					#draw diamond element
+
+
+
+					elif fpeShapeDict[str(i)] == 'circle' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
+						GraphDict['FloorPlan'].add_patch(patches.Circle((fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2,fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2),(np.sqrt((fpeExDict[str(i)]-fpeSxDict[str(i)])**2 + (fpeEyDict[str(i)]-fpeSyDict[str(i)])**2))/2,lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)],fill=False))
+					#draw circle element
 
 
 
 
 
 
-
-
+				except KeyError:
+					pass
 
 
 
