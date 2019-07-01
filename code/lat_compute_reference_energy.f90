@@ -299,7 +299,7 @@ do ib = 0, ubound(lat%branch, 1)
 
   enddo
 
-  ! Need to do this at the end of the loop since if it is at the beginning the set may be overwriten.
+  ! Need to do this at the end of the loop since if it is at the beginning the set may be overwritten.
 
   branch%param%bookkeeping_state%ref_energy = ok$
 

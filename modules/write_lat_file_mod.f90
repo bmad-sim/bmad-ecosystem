@@ -1834,7 +1834,7 @@ end function rchomp
 ! if the string is too long and add a continuation character if needed.
 !
 ! If the "line" arg does not represent a full "sentence" (end_is_neigh = False), 
-! then only part of the line may be written and the part not writen will be returned.
+! then only part of the line may be written and the part not written will be returned.
 !
 ! Module needed:
 !   use write_lat_file_mod
@@ -1848,7 +1848,7 @@ end function rchomp
 !                      and put line breaks after commas.
 !
 ! Output:
-!   line          -- Character(*): part of the string not writen. 
+!   line          -- Character(*): part of the string not written. 
 !                       If end_is_neigh = T then line will be blank.
 !-
 
