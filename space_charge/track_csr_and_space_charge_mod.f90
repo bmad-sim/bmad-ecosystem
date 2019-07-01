@@ -67,6 +67,11 @@ type csr_kick1_struct ! Sub-structure for csr calculation cache
   type (floor_position_struct) floor_s  ! Floor position of source pt
 end type
 
+type csr_particle_position_struct
+  real(rp) :: r(3)       ! particle position
+  real(rp) :: charge     ! particle charge
+end type
+
 type csr_struct           ! Structurture for binning particle averages
   real(rp) gamma, gamma2        ! Relativistic gamma factor.
   real(rp) rel_mass             ! m_particle / m_electron
@@ -87,6 +92,7 @@ type csr_struct           ! Structurture for binning particle averages
   type (csr_ele_info_struct), allocatable :: eleinfo(:)     ! Element-by-element information.
   type (ele_struct), pointer :: kick_ele                    ! Element where the kick pt is == ele tracked through.
   type (mesh3d_struct) :: mesh3d
+  type (csr_particle_position_struct), allocatable :: position(:)
 end type
 
 contains
@@ -388,23 +394,16 @@ subroutine csr_bin_particles (ele, particle, csr, err_flag)
 
 implicit none
 
-type this_local_struct   ! Temporary structure 
-  real(rp) :: charge     ! how much charge of particle in bin
-  real(rp) :: x0, y0     ! particle center
-  integer ib             ! bin index
-end type
-
 type (ele_struct) ele
 type (coord_struct), target :: particle(:)
 type (coord_struct), pointer :: p
 type (csr_struct), target :: csr
-type (this_local_struct), allocatable :: tloc(:)
 type (csr_bunch_slice_struct), pointer :: slice
 
-real(rp) z_center, z_min, z_max, dz_particle, dz, z_maxval, z_minval, c_tot
+real(rp) z_center, z_min, z_max, dz_particle, dz, z_maxval, z_minval, c_tot, n_tot
 real(rp) zp_center, zp0, zp1, zb0, zb1, charge, overlap_fraction, f, last_sig_x, last_sig_y
 
-integer i, j, n, ix0, ib, ib2, ic, ib_center, n_bin_eff
+integer i, j, n, ix0, ib, ib2, ib_center, n_bin_eff
 
 logical err_flag
 
@@ -465,20 +464,11 @@ do i = 1, csr_param%n_bin
   csr%slice(i)%z1_edge  = csr%slice(i)%z0_edge + csr%dz_slice
 enddo
 
-! Init the tloc structure...
-! Each particle is distributed longitudinally in a triangular fashion.
-! The tloc records how much charge for a given particle is in a bin.
-
-n = size(particle) * (csr_param%particle_bin_span + 2)
-allocate (tloc(n))
-tloc%ib = -1
-
 ! Compute the particle distribution center in each bin
 
 ! The contribution to the charge in a bin from a particle is computed from the overlap
 ! between the particle and the bin.
  
-ic = 0
 c_tot = 0    ! Used for debugging sanity check
 do i = 1, size(particle)
   p => particle(i)
@@ -499,11 +489,6 @@ do i = 1, size(particle)
     slice%x0 = slice%x0 + p%vec(1) * charge
     slice%y0 = slice%y0 + p%vec(3) * charge
     c_tot = c_tot + charge
-    ic = ic + 1
-    tloc(ic)%charge = charge
-    tloc(ic)%x0 = p%vec(1)
-    tloc(ic)%y0 = p%vec(3)
-    tloc(ic)%ib = ib
   enddo
 enddo
 
@@ -529,21 +514,30 @@ csr%y0_bunch = sum(csr%slice%y0 * csr%slice%charge) / sum(csr%slice%charge)
 ! Abs(x-x0) is used instead of the usual formula involving (x-x0)^2 to lessen the effect
 ! of non-Gaussian tails.
 
-n = 0
-do ic = 1, size(tloc)
-  if (tloc(ic)%ib < 0) cycle
-  slice => csr%slice(tloc(ic)%ib)
-  if (slice%n_particle < csr_param%sc_min_in_bin) cycle
-  n = n + 1
-  slice%sig_x = slice%sig_x + abs(tloc(ic)%x0 - slice%x0) * tloc(ic)%charge
-  slice%sig_y = slice%sig_y + abs(tloc(ic)%y0 - slice%y0) * tloc(ic)%charge
+do i = 1, size(particle)
+  p => particle(i)
+  if (p%state /= alive$) cycle
+  zp_center = p%vec(5) ! center of particle
+  zp0 = zp_center - dz_particle / 2       ! particle left edge 
+  zp1 = zp_center + dz_particle / 2       ! particle right edge 
+  ix0 = nint((zp0 - z_min) / csr%dz_slice)  ! left most bin index
+  do j = 0, csr_param%particle_bin_span+1
+    ib = j + ix0
+    slice => csr%slice(ib)
+    zb0 = csr%slice(ib)%z0_edge
+    zb1 = csr%slice(ib)%z1_edge   ! edges of the bin
+    overlap_fraction = particle_overlap_in_bin (zb0, zb1)
+    charge = overlap_fraction * p%charge
+    slice%sig_x = slice%sig_x + abs(p%vec(1) - slice%x0) * charge
+    slice%sig_y = slice%sig_y + abs(p%vec(3) - slice%y0) * charge
+  enddo
 enddo
 
-if (n < size(tloc) / 2) then
+if (count(csr%slice(:)%n_particle > csr_param%sc_min_in_bin) < csr_param%n_bin / 2) then
   call out_io (s_error$, r_name, &
           'With the number of live particles (out of \i0\), coupled with n_bin (\i0\) and ', &
-          'sc_min_in_bin (\i0\), there are not enough particle to properly compute the beam width for each bin.', &
-          'The beam width will be set large which will make the coulomb force negligible.', &
+          'sc_min_in_bin (\i0\), there are not enough particles to properly compute the beam transverse widths for each bin.', &
+          'The beam widths will be set large which will make the coulomb force negligible.', &
            i_array = [size(particle), csr_param%n_bin, csr_param%sc_min_in_bin])
   csr%slice(:)%sig_x = 1
   csr%slice(:)%sig_y = 1
@@ -552,9 +546,13 @@ endif
 f = sqrt(pi/2)
 do ib = 1, csr_param%n_bin
   slice => csr%slice(ib)
-  if (slice%n_particle < csr_param%sc_min_in_bin) cycle
-  slice%sig_x = f * slice%sig_x / slice%charge
-  slice%sig_y = f * slice%sig_y / slice%charge
+  if (slice%n_particle > csr_param%sc_min_in_bin) then
+    slice%sig_x = f * slice%sig_x / slice%charge
+    slice%sig_y = f * slice%sig_y / slice%charge
+  else
+    slice%sig_x = 0
+    slice%sig_y = 0
+  endif
 enddo
 
 ! For bins where there was not enough particles to calculate sigmas, use the sigmas from nearby bins.
@@ -1127,7 +1125,6 @@ do i = 1, csr_param%n_bin
     endif
 
   enddo
-
 enddo
 
 end subroutine lsc_kick_params_calc
@@ -1310,7 +1307,7 @@ type (csr_bunch_slice_struct), pointer :: slice
 
 real(rp) zp, r1, r0, dz, dpz, kx, ky, f0, f, beta0, dpx, dpy, x, y, f_tot
 real(rp) Evec(3), factor, pz0
-integer i, i0, i_del, ip
+integer i, n, i0, i_del, ip
 
 ! CSR kick
 ! We use a weighted average between %kick1(j)%I_csr and %kick1(j+1)%I_csr
@@ -1319,6 +1316,7 @@ integer i, i0, i_del, ip
 if (ele%csr_method == one_dim$) then
   do ip = 1, size(particle)
     p => particle(ip)
+    if (p%state /= alive$) cycle
     zp = p%vec(5)
     i0 = int((zp - csr%slice(1)%z_center) / csr%dz_slice) + 1
     r1 = (zp - csr%slice(i0)%z_center) / csr%dz_slice
@@ -1338,6 +1336,7 @@ endif
 if (ele%space_charge_method == slice$) then
   do ip = 1, size(particle)
     p => particle(ip)
+    if (p%state /= alive$) cycle
 
     if (csr_param%lsc_kick_transverse_dependence) then
       x = p%vec(1)
@@ -1403,11 +1402,27 @@ endif
 ! Mesh Space charge kick
 
 if (ele%space_charge_method == fft_3d$) then
-  call deposit_particles (particle%vec(1), particle%vec(3), particle%vec(5), csr%mesh3d, qa=particle%charge)
+  if (.not. allocated(csr%position)) allocate(csr%position(size(particle)))
+  if (size(csr%position) < size(particle)) then
+    deallocate(csr%position)
+    allocate(csr%position(size(particle)))
+  endif
+
+  n = 0
+  do i = 1, size(particle)
+    p => particle(i)
+    if (p%state /= alive$) cycle
+    n = n + 1
+    csr%position(n)%r = p%vec(1:5:2)
+    csr%position(n)%charge = p%charge
+  enddo
+
+  call deposit_particles (csr%position%r(1), csr%position%r(2), csr%position%r(3), csr%mesh3d, qa=csr%position%charge)
   call space_charge_freespace(csr%mesh3d)
 
   do i = 1, size(particle)
     p => particle(i)
+    if (p%state /= alive$) cycle
     call interpolate_field(p%vec(1), p%vec(3), p%vec(5),  csr%mesh3d, E=Evec)
     factor = csr%actual_track_step / (p%p0c  * p%beta) 
     pz0 = sqrt( (1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2 ) ! * p0 
