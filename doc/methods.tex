@@ -87,21 +87,25 @@ indicates a program linking problem. See \vn{s:custom.ele} for more details.
 \item[\vn{fixed_step_runge_kutta}]
 The \vn{fixed_step_runge_kutta} method is similar to \vn{runge_kutta} tracking except that
 \vn{fixed_step_runge_kutta} does not use adaptive step size control but instead takes steps of fixed
-size using the setting of \vn{ds_step} for the element being tracked through (\sref{s:integ}).
+size using the setting of \vn{ds_step} or \vn{num_steps} for the element being tracked through (\sref{s:integ}).
 Generally, using adaptive step control will be much more efficient so it is recommended that
 \vn{fixed_step_runge_kutta} {\em not} be used unless there is a compelling reason not to. For
 example, one reason to use \vn{fixed_step_runge_kutta} would be to test how much adaptive step
-control contributes to non-symplecticity.
+control contributes to non-symplecticity. Note: If \vn{ds_step} is used to set the step size, and if the
+element length is not an integer multiple of \vn{ds_step}, the last step will be shortened appropriately
+to track to the end of the element.
 
 \index{fixed_step_time_runge_kutta!tracking_method}
 \item[\vn{fixed_step_time_runge_kutta}]
 The \vn{fixed_step_time_runge_kutta} method is similar to \vn{time_runge_kutta} tracking except that
 \vn{fixed_step_time_runge_kutta} does not use adaptive step size control but instead takes steps of fixed
-size using the setting of \vn{ds_step} for the element being tracked through (\sref{s:integ}).
+size using the setting of \vn{ds_step} or \vn{num_steps} for the element being tracked through (\sref{s:integ}).
 Generally, using adaptive step control will be much more efficient so it is recommended that
 \vn{fixed_step_time_runge_kutta} {\em not} be used unless there is a compelling reason not to. For
 example, one reason to use \vn{fixed_step_time_runge_kutta} would be to test how much adaptive step
-control contributes to non-symplecticity.
+control contributes to non-symplecticity. Note: If \vn{ds_step} is used to set the step size, and if the
+element length is not an integer multiple of \vn{ds_step}, the last step will be shortened appropriately
+to track to the end of the element.
 
 \index{linear!tracking_method}
 \item[\vn{Linear}]
