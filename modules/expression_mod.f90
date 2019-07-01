@@ -78,7 +78,7 @@ logical delim_found, split, zero_arg_function_pending
 logical err_flag, err
 
 ! The general idea is to rewrite the expression on a stack in reverse polish.
-! Reverse polish means that the operand goes last so that 2 * 3 is writen 
+! Reverse polish means that the operand goes last so that 2 * 3 is written 
 ! on the stack as: [2, 3, *]
 
 ! Since operations move towards the end of the stack we need a separate
