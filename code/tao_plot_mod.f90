@@ -322,7 +322,7 @@ type (ele_struct), pointer :: ele, slave
 type (branch_struct), pointer :: branch
 
 real(rp) theta, v_vec(3), theta1, dtheta, dat_var_value, y1, y2
-real(rp) x_bend(0:1000), y_bend(0:1000)
+real(rp) x_bend(0:400), y_bend(0:400)
 
 integer i, j, k, n, n_bend, isu, ic, ib, icol, ix_shape_min
 integer ix_pass, n_links, iwidth
@@ -555,8 +555,8 @@ integer ix_uni, i, j, k, icol, n_bend, n, ix, ic, n_mid, isu
 
 real(rp) off, off1, off2, angle, rho, dx1, dy1, dx2, dy2, ang, length
 real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta, e_edge
-real(rp) x_bend(0:500), y_bend(0:500), dx_bend(0:500), dy_bend(0:500)
-real(rp) dx_orbit(0:500), dy_orbit(0:500), offset1, offset2
+real(rp) x_bend(0:400), y_bend(0:400), dx_bend(0:400), dy_bend(0:400)
+real(rp) dx_orbit(0:400), dy_orbit(0:400), offset1, offset2
 real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
 real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height
 real(rp) x_inch, y_inch, x0, y0, x1, x2, y1, y2, e1_factor, e2_factor

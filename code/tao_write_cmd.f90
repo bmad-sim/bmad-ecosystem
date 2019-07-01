@@ -25,13 +25,15 @@ implicit none
 
 type (tao_curve_array_struct), allocatable, save :: curve(:)
 type (tao_curve_struct), pointer :: c
+type (tao_plot_struct), pointer :: tp
+type (tao_universe_struct), pointer :: u
 type (beam_struct), pointer :: beam
 type (bunch_struct), pointer :: bunch
 type (branch_struct), pointer :: branch
-type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable, save :: eles(:)
 type (ele_struct), pointer :: ele
 type (coord_struct), pointer :: p
+
 
 real(rp) scale
 
@@ -41,14 +43,6 @@ character(200) switch
 character(200) file_name0, file_name, what2
 character(200) :: word(10)
 character(*), parameter :: r_name = 'tao_write_cmd'
-
-character(20) :: names(24) = [ &
-      'hard             ', 'gif              ', 'ps               ', 'variable         ', &
-      'bmad_lattice     ', 'derivative_matrix', 'digested         ', 'curve            ', &
-      'mad_lattice      ', 'beam             ', 'ps-l             ', 'hard-l           ', &
-      'covariance_matrix', 'orbit            ', 'mad8_lattice     ', 'madx_lattice     ', &
-      'pdf              ', 'pdf-l            ', 'opal_lattice     ', '3d_model         ', &
-      'gif-l            ', 'ptc              ', 'sad_lattice      ', 'blender          ']
 
 integer i, j, n, ie, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
 integer i_chan, ix_beam, ix_word, ix_w2, file_format
@@ -64,7 +58,11 @@ call string_trim(what2(ix+1:), what2, ix_w2)
 call tao_cmd_split (what2, 10, word, .true., err)
 if (err) return
 
-call match_word (action, names, ix, .true.)
+call match_word (action, [character(20):: &
+              'hard', 'gif', 'ps', 'variable', 'bmad_lattice', 'derivative_matrix', 'digested', &
+              'curve', 'mad_lattice', 'beam', 'ps-l', 'hard-l', 'covariance_matrix', 'orbit', &
+              'mad8_lattice', 'madx_lattice', 'pdf', 'pdf-l', 'opal_lattice', '3d_model', 'gif-l', &
+              'plot', 'ptc', 'sad_lattice', 'blender'], ix, .true., matched_name = action)
 
 if (ix == 0) then
   call out_io (s_error$, r_name, 'UNRECOGNIZED "WHAT": ' // action)
@@ -73,7 +71,6 @@ elseif (ix < 0) then
   call out_io (s_error$, r_name, 'AMBIGUOUS "WHAT": ' // action)
   return
 endif
-action = names(ix)
 
 select case (action)
 
@@ -162,7 +159,7 @@ case ('beam')
                     'CHECK THE SETTING OF THE BEAM_SAVED_AT COMPONENT OF THE TAO_BEAM_INIT NAMELIST.', &
                     'ANOTHER POSSIBILITY IS THAT GLOBAL%TRACK_TYPE = "single" SO NO BEAM TRACKING HAS BEEN DONE.')
     else
-      call out_io (s_info$, r_name, 'Writen: ' // file_name)
+      call out_io (s_info$, r_name, 'Written: ' // file_name)
     endif
 
   enddo uni_loop
@@ -220,7 +217,7 @@ case ('bmad_lattice')
     if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
     call write_bmad_lattice_file (file_name, s%u(i)%model%lat, err, file_format)
     if (err) return
-    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+    call out_io (s_info$, r_name, 'Written: ' // file_name)
   enddo
 
 !---------------------------------------------------
@@ -263,7 +260,7 @@ case ('covariance_matrix')
     enddo
   enddo
 
-  call out_io (s_info$, r_name, 'Writen: ' // file_name)
+  call out_io (s_info$, r_name, 'Written: ' // file_name)
   close(iu)
 
 !---------------------------------------------------
@@ -300,7 +297,7 @@ case ('curve')
     do i = 1, size(beam%bunch(1)%particle)
       write (iu, '(i6, 6es15.7)') i, (beam%bunch(1)%particle(i)%vec(j), j = 1, 6)
     enddo
-    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+    call out_io (s_info$, r_name, 'Written: ' // file_name)
     close(iu)
     ok = .true.
   endif
@@ -312,7 +309,7 @@ case ('curve')
     do i = 1, size(c%x_symb)
       write (iu, '(i6, 2es15.7)') i, c%x_symb(i), c%y_symb(i)
     enddo
-    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+    call out_io (s_info$, r_name, 'Written: ' // file_name)
     close(iu)
     ok = .true.
   endif
@@ -324,7 +321,7 @@ case ('curve')
     do i = 1, size(c%x_line)
       write (iu, '(i6, 2es15.7)') i, c%x_line(i), c%y_line(i)
     enddo
-    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+    call out_io (s_info$, r_name, 'Written: ' // file_name)
     close(iu)
     ok = .true.
   endif
@@ -391,7 +388,7 @@ case ('derivative_matrix')
   enddo
 
 
-  call out_io (s_info$, r_name, 'Writen: ' // file_name)
+  call out_io (s_info$, r_name, 'Written: ' // file_name)
   close(iu)
 
 !---------------------------------------------------
@@ -405,7 +402,7 @@ case ('digested')
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
     call write_digested_bmad_file (file_name, s%u(i)%model%lat)
-    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+    call out_io (s_info$, r_name, 'Written: ' // file_name)
   enddo
 
 !---------------------------------------------------
@@ -423,14 +420,12 @@ case ('hard', 'hard-l')
   call tao_draw_plots ()   ! Update the plotting window
 
   if (s%global%print_command == ' ') then
-    call out_io (s_fatal$, r_name, &
-        'P%PRINT_COMMAND NEEDS TO BE SET TO SEND THE PS FILE TO THE PRINTER!')
+    call out_io (s_fatal$, r_name, 'P%PRINT_COMMAND NEEDS TO BE SET TO SEND THE PS FILE TO THE PRINTER!')
     return
   endif
 
   call system (trim(s%global%print_command) // ' quick_plot.ps')
-  call out_io (s_blank$, r_name, 'Printing with command: ' // &
-                                              s%global%print_command)
+  call out_io (s_blank$, r_name, 'Printing with command: ' // s%global%print_command)
 
 !---------------------------------------------------
 ! Foreign lattice format
@@ -452,7 +447,7 @@ case ('mad_lattice', 'mad8_lattice', 'madx_lattice', 'opal_latice', 'sad_lattice
     call write_lattice_in_foreign_format (lat_type, file_name, s%u(i)%model%lat, &
                                              s%u(i)%model%tao_branch(0)%orbit, err = err)
     if (err) return
-    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+    call out_io (s_info$, r_name, 'Written: ' // file_name)
   enddo
 
 !---------------------------------------------------
@@ -516,6 +511,35 @@ case ('orbit')
 
   write (iu, '(a)') '/'
   close (iu)
+  call out_io (s_info$, r_name, 'Written: ' // file_name)
+
+!---------------------------------------------------
+! plot
+
+case ('plot')
+
+  file_name0 = 'tao_plot.init'
+  if (word(1) /= '') file_name0 = word(1) 
+
+  if (word(2) /= '') then
+    call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+    return
+  endif
+
+  !
+
+  iu = lunget()
+  open (iu, file = file_name0)
+
+  do i = 1, size(s%plot_page%template)
+    tp => s%plot_page%template(i)
+    if (tp%name == '') cycle
+
+
+  enddo
+
+  close (iu)
+  call out_io (s_info$, r_name, 'Written: ' // file_name0)
 
 !---------------------------------------------------
 ! ps
@@ -629,17 +653,17 @@ case ('ptc')
   select case (which)
   case ('-old')
     call print_complex_single_structure (branch%ptc%m_t_layout, file_name)
-    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+    call out_io (s_info$, r_name, 'Written: ' // file_name)
 
   case ('-new')
     call print_new_flat (branch%ptc%m_t_layout, file_name)
-    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+    call out_io (s_info$, r_name, 'Written: ' // file_name)
 
   case ('-all')
     call print_universe (M_u, trim(file_name) // '.m_u')
     call print_universe_pointed (M_u, M_t, trim(file_name) // '.m_t')
-    call out_io (s_info$, r_name, 'Writen: ' // trim(file_name) // '.m_u')
-    call out_io (s_info$, r_name, 'Writen: ' // trim(file_name) // '.m_t')
+    call out_io (s_info$, r_name, 'Written: ' // trim(file_name) // '.m_u')
+    call out_io (s_info$, r_name, 'Written: ' // trim(file_name) // '.m_t')
   end select
 
 !---------------------------------------------------
