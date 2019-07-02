@@ -35,7 +35,7 @@
 subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, err_flag, in_lat)
 
 use bmad_parser_mod, except_dummy => bmad_parser2
-use twiss_and_track_mod
+use twiss_and_track_mod, except_dummy2 => bmad_parser2
 
 implicit none
   
