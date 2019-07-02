@@ -1,5 +1,5 @@
 """
-Class for piping in commands to Tao from python and for grabbing Tao output
+Class for piping in commands to Tao from python and for grabbing Tao output.
 
 This module needs the pexpect module which can be downloaded from:
   <http://sourceforge.net/projects/pexpect/>
@@ -9,6 +9,12 @@ Example:
   pipe = tao_pipe.tao_io("-lat my_lat.bmad")   # Init
   pipe.cmd("show uni")                         # Issue a command & print output at terminal.
   tao_output = pipe.cmd_in("show uni")         # Get the output of a command. No terminal output.
+
+This module is being developed for Python 3.
+If using Python 2 try changing:
+  def __init__(self, init_args = '', tao_exe = '', expect_str = 'Tao>'):
+to
+  def __init__(self, init_args = '', tao_exe = '', expect_str = u'Tao>'):
 """
 
 import pexpect

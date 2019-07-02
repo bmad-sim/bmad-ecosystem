@@ -23,13 +23,14 @@ type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele1, ele2
 type (tao_universe_struct), pointer :: u, u_work
 type (branch_struct), pointer :: branch
+type (coord_array_struct), allocatable :: orb_array(:)
 
 character(*) namelist_file
 character(200) full_input_name
 character(40) unique_name_suffix, suffix
 character(20) :: r_name = 'tao_init_lattice'
 
-integer i, j, k, n, iu, ios, version, ix, key, n_universes, ib, ie
+integer i, j, k, n, iu, ios, version, ix, key, n_universes, ib, ie, status
 
 logical custom_init, combine_consecutive_elements_of_like_name
 logical common_lattice, alternative_lat_file_exists
@@ -233,6 +234,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (s%com%slice_lattice_arg /= '') design_lat%slice_lattice = s%com%slice_lattice_arg
 
   if (design_lat%slice_lattice /= '') then
+    call twiss_and_track (u%design%lat, orb_array, status)
     call slice_lattice (u%design%lat, design_lat%slice_lattice, err)
   endif
 
