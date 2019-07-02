@@ -135,7 +135,7 @@ do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)
   if (branch%param%particle == photon$) cycle
   if (i /= 0 .and. branch%param%geometry == open$) then
-    orb_array(i)%orbit(0) = orb_array(branch%ix_from_branch)%orbit(branch%ix_from_ele) 
+    orb_array(i)%orbit(0) = orb_array(branch%ix_from_branch)%orbit(branch%ix_from_ele)
     call transfer_twiss (lat%branch(branch%ix_from_branch)%ele(branch%ix_from_ele), branch%ele(0))
   endif
   call twiss_and_track1 (lat, orb_array(i)%orbit, i, status2)
@@ -304,7 +304,7 @@ logical err_flag, use_l
 logical :: init_needed = .true.
 logical, optional :: err, use_last, compute_floor_coords
 
-character(20), parameter :: r_name = 'twiss_and_track_at_s'
+character(*), parameter :: r_name = 'twiss_and_track_at_s'
 
 ! If close enough to edge of element just use element info.
 

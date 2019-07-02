@@ -4,6 +4,17 @@
 ! Routine to discard from the lattice all elements not in ele_list.
 ! Note controllers that control elements that remain will not be cut.
 !
+! For each branch where there are elements to be deleted and where the reference energy has been computed:
+!   1) The Twiss and reference energy parameters from the first non-deleted element are 
+!       transferred to the beginning element.
+!   2) The beginning betatron phase is set to zero.
+!   3) The branch geometry is set to open.
+!   
+!
+! Note: Not modified is:
+!   1) Beginning s (longitudinal position) value.
+!   2) Beginning floor position.
+!
 ! Input:
 !   lat       -- lat_struct: Lattice
 !   ele_list  -- character(*): List of elements to retain
@@ -21,6 +32,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele0, ele1
 type (ele_pointer_struct), allocatable :: eles(:)
 
 integer ie, ib, n_loc
@@ -40,11 +52,11 @@ if (n_loc == 0) then
   return
 endif
 
-! Use ele%ixx to tag elements to be deleted which is everything not in eles list.
+! Use ele%ixx = -1 to tag elements to be deleted which is everything not in eles list.
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  branch%ele%ixx = -1
+  branch%ele(1:)%ixx = -1
 enddo
 
 do ie = 1, n_loc
@@ -61,6 +73,26 @@ do ib = 0, ubound(lat%branch, 1)
   enddo
 enddo
 
+! Transfer Twiss from first non-deleted element back to beginning element.
+
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  do ie = 1, branch%n_ele_track
+    if (branch%ele(ie)%ixx == -1) cycle
+    if (ie == 1) exit                             ! No transfer necessary
+    ele0 => branch%ele(0)
+    ele1 => branch%ele(ie-1)
+    if (ele1%value(e_tot$) <= 0) exit  ! Energy has not been computed
+    call transfer_twiss (ele1, ele0)
+    ele0%value(e_tot$) = ele1%value(e_tot$)
+    ele0%value(p0c$) = ele1%value(p0c$)
+    ele0%a%phi = 0
+    ele0%b%phi = 0
+    ele0%z%phi = 0
+    call set_flags_for_changed_attribute(ele0, ele1%value(p0c$))
+    branch%param%geometry = open$
+  enddo
+enddo
 
 ! And remove
 
