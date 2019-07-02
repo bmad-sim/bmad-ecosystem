@@ -1931,16 +1931,16 @@ case ('floor_plan')
         call tao_floor_to_screen_coords (g, floor1, end1)
         call tao_floor_to_screen_coords (g, floor2, end2)
         if (ele%key == sbend$) then
-          nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a)') ib, ';', i, ';', &
-                      trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
-                      end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
-                      line_width, ';', trim(shape_shape), ';', y1, ';', y2, ';', trim(color), ';', trim(label_name)
-        else
           nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a, 4(es14.7, a))') ib, ';', i, ';', &
                       trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
                       end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
                       line_width, ';', trim(shape_shape), ';', y1, ';', y2, ';', trim(color), ';', trim(label_name), ';', &
                       ele%value(l$), ';', ele%value(angle$), ';', ele%value(e1$), ';', ele%value(e2$)
+        else
+          nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a)') ib, ';', i, ';', &
+                      trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
+                      end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
+                      line_width, ';', trim(shape_shape), ';', y1, ';', y2, ';', trim(color), ';', trim(label_name)
         endif
       enddo
     enddo
