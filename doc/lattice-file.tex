@@ -1175,8 +1175,11 @@ different secondary files are to be used.
 \section{Slice_Lattice Statement}
 
 The \vn{slice_lattice} statement is used to remove elements from the lattice. The \vn{slice_lattice}
-statement must come after lattice expansion (\sref{s:expand}).  The syntax of the \vn{slice_lattice}
-statement is
+is useful when analysis of only part of the lattice is desired and the analysis of the entire
+lattice can take a significant amount of time.
+
+The \vn{slice_lattice} statement must come after lattice expansion (\sref{s:expand}). The syntax of
+the \vn{slice_lattice} statement is
 \begin{example}
   slice_lattice <element-list>
 \end{example}
@@ -1190,15 +1193,23 @@ In this example, all elements outside of the range from element \vn{q1\#\#2} (th
 elements (\sref{s:lord.slave}) of any elements that remain are also not discarded and the
 \vn{beginning} element at the start of any branch is also retained.
 
-The \vn{slice_lattice} is useful when analysis of only part of the lattice is desired and the
-analysis of the entire lattice can take a significant amount of time. For a lattice with an open
-geometry, if elements are discarded from the beginning of the lattice, the Twiss parameters and
-reference energy may have to be adjusted. Example:
+For any lattice branch where elements are removed, the Twiss parameters and reference energy is
+computed, and the Twiss parameters and reference energy at the entrance end of the first element
+that is not removed is transfered to the beginning branch element. The branch \vn{geometry} is also
+set to \vn{open}.
+
+For a lattice branch with a closed geometry, the Twiss parameters are computed with the RF on.
+That is, the reference energy at the beginning of the sliced lattice branch will probably be
+non-zero. This will affect the Twiss calculation. If this is not what is wanted, the RF can
+be turned off before the \vn{slice_lattice} command which will ensure the reference energy is
+zero at the beginning of the lattice branch. Example: 
 \begin{example}
-  slice_lattice q1##2:357
-  beginning[beta_a] = 10.3256  ! Reset the beginning Twiss
-  beginning[p0c] = 1e7         ! Reset the beginning ref energy
-  beginning[geometry] = open   ! Change the geometry.
+  expand_lattice
+  rfcavity::*[is_on] = False    ! Turn RF off
+  slice_lattice q1##2:357       ! Slice the lattice
+  ! This shows how to reset the RF and geometry if needed.
+  rfcavity::*[is_on] = True     ! Turn RF back on
+  parameter[geometry] = closed  ! Change the geometry.
   ... etc ...
 \end{example}
 
