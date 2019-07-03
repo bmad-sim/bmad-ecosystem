@@ -401,8 +401,7 @@ type (csr_struct), target :: csr
 type (csr_bunch_slice_struct), pointer :: slice
 
 real(rp) z_center, z_min, z_max, dz_particle, dz, z_maxval, z_minval, c_tot, n_tot
-real(rp) zp_center, zp0, zp1, zb0, zb1, charge, overlap_fraction, f, last_sig_x, last_sig_y
-
+real(rp) zp_center, zp0, zp1, zb0, zb1, charge, overlap_fraction, f
 integer i, j, n, ix0, ib, ib2, ib_center, n_bin_eff
 
 logical err_flag
@@ -533,16 +532,6 @@ do i = 1, size(particle)
   enddo
 enddo
 
-if (count(csr%slice(:)%n_particle > csr_param%sc_min_in_bin) < csr_param%n_bin / 2) then
-  call out_io (s_error$, r_name, &
-          'With the number of live particles (out of \i0\), coupled with n_bin (\i0\) and ', &
-          'sc_min_in_bin (\i0\), there are not enough particles to properly compute the beam transverse widths for each bin.', &
-          'The beam widths will be set large which will make the coulomb force negligible.', &
-           i_array = [size(particle), csr_param%n_bin, csr_param%sc_min_in_bin])
-  csr%slice(:)%sig_x = 1
-  csr%slice(:)%sig_y = 1
-endif
-
 f = sqrt(pi/2)
 do ib = 1, csr_param%n_bin
   slice => csr%slice(ib)
@@ -552,55 +541,6 @@ do ib = 1, csr_param%n_bin
   else
     slice%sig_x = 0
     slice%sig_y = 0
-  endif
-enddo
-
-! For bins where there was not enough particles to calculate sigmas, use the sigmas from nearby bins.
-! Start at a slice near the center and work outwards.
-
-do ib = 0, csr_param%n_bin/2
-  ib_center = csr_param%n_bin/2 + ib
-  slice => csr%slice(ib_center)
-  if (slice%sig_x /= 0) exit
-  ib_center = csr_param%n_bin/2 - ib
-  slice => csr%slice(ib_center)
-  if (slice%sig_x /= 0) exit
-enddo
-
-last_sig_x = slice%sig_x
-last_sig_y = slice%sig_y
-
-do ib = ib_center, 1, -1
-  slice => csr%slice(ib)
-  if (slice%sig_x == 0) then
-    ib2 = max(1, ib-1)  ! Bin on other side
-    if (csr%slice(ib2)%sig_x == 0) then  ! If this other side bin has no sig_x then ignore
-      slice%sig_x = last_sig_x
-      slice%sig_y = last_sig_y
-    else  ! Else average the bins
-      slice%sig_x = (last_sig_x + csr%slice(ib2)%sig_x) / 2
-      slice%sig_y = (last_sig_y + csr%slice(ib2)%sig_y) / 2
-    endif
-  else
-    last_sig_x = slice%sig_x
-    last_sig_y = slice%sig_y
-  endif
-enddo
-
-do ib = ib_center, csr_param%n_bin
-  slice => csr%slice(ib)
-  if (slice%sig_x == 0) then
-    ib2 = min(csr_param%n_bin, ib+1) ! Bin on other side
-    if (csr%slice(ib2)%sig_x == 0) then  ! If this other side bin has no sig_x then ignore
-      slice%sig_x = last_sig_x
-      slice%sig_y = last_sig_y
-    else  ! Else average the bins
-      slice%sig_x = (last_sig_x + csr%slice(ib2)%sig_x) / 2
-      slice%sig_y = (last_sig_y + csr%slice(ib2)%sig_y) / 2
-    endif
-  else
-    last_sig_x = slice%sig_x
-    last_sig_y = slice%sig_y
   endif
 enddo
 
