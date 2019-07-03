@@ -592,6 +592,44 @@ The \vn{bmad_com_struct} holds bmad global variables.
     real(rp) init_ds_adaptive_tracking = 1e-3   ! Initial step size
     real(rp) min_ds_adaptive_tracking = 0       ! Min step size to take.
     real(rp) fatal_ds_adaptive_tracking = 1e-8  ! particle lost if step size is below this.
+    real(rp) autoscale_amp_abs_tol = 0.1_rp     ! Autoscale absolute amplitude tolerance (eV).
+    real(rp) autoscale_amp_rel_tol = 1d-6       ! Autoscale relative amplitude tolerance
+    real(rp) autoscale_phase_tol = 1d-5         ! Autoscale phase tolerance.
+    real(rp) electric_dipole_moment = 0         ! Particle's EDM.
+    real(rp) ptc_cut_factor = 0.006             ! Cut factor for PTC tracking
+    real(rp) sad_eps_scale = 5.0d-3             ! Used in sad_mult step length calc.
+    real(rp) sad_amp_max = 5.0d-2               ! Used in sad_mult step length calc.
+
+    integer space_charge_mesh_size(3) = [32, 32, 64]  ! Gird size for fft_3d space charge calc.
+    integer sad_n_div_max = 1000                ! Used in sad_mult step length calc.
+    integer runge_kutta_order = 4               ! Runge Kutta order.
+    integer default_integ_order = 2             ! PTC integration order.
+    integer ptc_max_fringe_order = 2            ! PTC max fringe order (2  = > Quadrupole !).
+                                                !   Must call set_ptc after changing.
+    integer max_num_runge_kutta_step = 10000    ! Maximum number of RK steps before particle is considered lost.
+    logical rf_phase_below_transition_ref = F   ! Autoscale uses below transition stable point for RFCavities?
+    logical use_hard_edge_drifts = T            ! Insert drifts when tracking through cavity?
+    logical sr_wakes_on = T                     ! Short range wakefields?
+    logical lr_wakes_on = T                     ! Long range wakefields
+    logical mat6_track_symmetric = T            ! symmetric offsets
+    logical auto_bookkeeper = T                 ! Automatic bookkeeping?
+    logical csr_and_space_charge_on = F         ! Space charge switch
+    logical spin_tracking_on = F                ! spin tracking?
+    logical backwards_time_tracking_on = F      ! Track backwards in time?
+    logical spin_sokolov_ternov_flipping_on = F ! Spin flipping during synchrotron radiation emission?
+    logical radiation_damping_on = F            ! Damping toggle.
+    logical radiation_fluctuations_on = F       ! Fluctuations toggle.
+    logical conserve_taylor_maps = T            ! Enable bookkeeper to set ele%taylor_map_includes_offsets = F?
+    logical absolute_time_tracking_default = F  ! Default for lat%absolute_time_tracking
+    logical twiss_normalize_off_energy = F
+    logical convert_to_kinetic_momentum = F     ! Cancel finite vector potential edge kicks with symplectic tracking?
+    logical aperture_limit_on = T               ! use apertures in tracking?
+    logical ptc_print_info_messages = F         ! Allow PTC to print informational messages?
+    logical debug = F                           ! Used for code debugging.
+
+
+
+
     integer taylor_order = 3               ! 3rd order is default
     integer default_integ_order = 2        ! PTC integration order.
     integer ptc_max_fringe_order = 2       ! PTC max fringe order (2 => Quadrupole !).
@@ -626,16 +664,14 @@ synchrotron radiation calculations.
     real(rp) ds_track_step = 0          ! Tracking step size
     real(rp) beam_chamber_height = 0    ! Used in shielding calculation.
     real(rp) sigma_cutoff = 0.1         ! Cutoff for the lsc calc. If a bin sigma
-                                           !  is < cutoff * sigma_ave then ignore.
+                                        !  is < cutoff * sigma_ave then ignore.
     integer n_bin = 0                   ! Number of bins used
     integer particle_bin_span = 2       ! Longitudinal particle length / dz_bin
     integer n_shield_images = 0         ! Chamber wall shielding. 0 = no shielding.
-    integer ix1_ele_csr = -1            ! Start index for csr tracking
-    integer ix2_ele_csr = -1            ! Stop index for csr tracking
-    logical lcsr_component_on = T       ! Longitudinal csr component
-    logical lsc_component_on = T        ! Longitudinal space charge component
-    logical tsc_component_on = T        ! Transverse space charge component
-    logical small_angle_approx = T      ! Use lcsr small angle approximation?
+    integer sc_min_in_bin = 10          ! Min number of particles in a bin for sigmas to be valid.
+    logical print_taylor_warning = True ! Print warning if Taylor element is present?
+    logical write_csr_wake = False      ! Write the CSR wake? For diagnostics.
+    logical lsc_kick_transverse_dependence = F
   end type
 \end{example}
 See the \bmad manual on the \vn{csr_parameter_struct} for more details. In \tao,
