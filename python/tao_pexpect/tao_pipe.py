@@ -9,17 +9,12 @@ Example:
   pipe = tao_pipe.tao_io("-lat my_lat.bmad")   # Init
   pipe.cmd("show uni")                         # Issue a command & print output at terminal.
   tao_output = pipe.cmd_in("show uni")         # Get the output of a command. No terminal output.
-
-This module is being developed for Python 3.
-If using Python 2 try changing:
-  def __init__(self, init_args = '', tao_exe = '', expect_str = 'Tao>'):
-to
-  def __init__(self, init_args = '', tao_exe = '', expect_str = u'Tao>'):
 """
 
 import pexpect
 import os
 import string
+import sys
 
 class tao_io:
 
@@ -31,7 +26,13 @@ class tao_io:
     if tao_exe == '': tao_exe = '$ACC_EXE/tao'
     init_string = tao_exe + ' ' + init_args
     init_string = string.Template(init_string).substitute(os.environ) # Expand environmental variables.
-    self.pipe = pexpect.spawn (init_string, encoding='utf-8')
+
+    if sys.version[0] == '2':                        # Python 2?
+      if expect_str == 'Tao>': expect_str = u'Tao>'  # Python 2 unicode compatability.
+      self.pipe = pexpect.spawn (init_string)
+    else:
+      self.pipe = pexpect.spawn (init_string, encoding='utf-8')
+
     self.expect_str = expect_str
     self.is_open = True
 
