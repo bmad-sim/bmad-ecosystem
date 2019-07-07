@@ -5134,24 +5134,21 @@ else
   if (global_com%exit_on_error) call err_exit
 endif
 
-! For circular lattices a superimpose can wrap around the beginning or 
-! the end of the lattice.
+! A superimpose can wrap around the beginning or the end of the lattice. 
+! This is done independent of the geometry. The reason why this is geometry 
+! independent is that it is sometimes convenient to treat a closed lattice as open.
 
 branch => ref_ele%branch
 
-if (branch%param%geometry == closed$) then
-  if (super_ele%s > branch%ele(branch%n_ele_track)%s) then
-    super_ele%s = super_ele%s - branch%param%total_length
-  elseif (super_ele%s < 0) then
-    super_ele%s = super_ele%s + branch%param%total_length
-  endif
+if (super_ele%s > branch%ele(branch%n_ele_track)%s) then
+  super_ele%s = super_ele%s - branch%param%total_length
+elseif (super_ele%s < 0) then
+  super_ele%s = super_ele%s + branch%param%total_length
 endif
 
 super_ele%s_start = super_ele%s - super_ele%value(l$)
-if (branch%param%geometry == closed$) then
-  if (super_ele%s_start < 0) then
-    super_ele%s_start = super_ele%s_start + branch%param%total_length
-  endif
+if (super_ele%s_start < 0) then
+  super_ele%s_start = super_ele%s_start + branch%param%total_length
 endif
 
 ! The "nominal" insert point is at the downstream end of element with index ix_insert.

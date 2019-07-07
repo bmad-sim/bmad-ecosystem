@@ -2021,11 +2021,10 @@ centers so the $s$ positions of the reference frames is
   g4             7.0      0.0
   q2            12.0      5.0
 \end{example}
-Using a small angle approximation to simplify the calculation, the
-\vn{x_pitch} of \vn{g4} produces an offset at the center of \vn{q2} of
-$0.01 = 0.002 * 5$. This, added to the offsets of \vn{g4} and \vn{q2},
-give the total offset of \vn{q2} to be $0.06 = 0.01 + 0.03 + 0.02$.
-The total \vn{x_pitch} of \vn{q2} is $0.022 = 0.02 + 0.001$.
+Using a small angle approximation to simplify the calculation, the \vn{x_pitch} of \vn{g4} produces
+an offset at the center of \vn{q2} of $0.01 = 0.002 * 5$. This, added to the offsets of \vn{g4} and
+\vn{q2}, give the total \vn{x_offset}, denoted \vn{x_offset_tot} of \vn{q2} is $0.06 = 0.01 + 0.03 +
+0.02$. The total \vn{x_pitch}, denoted \vn{x_pitch_tot}, of \vn{q2} is $0.022 = 0.02 + 0.001$.
 
 A \vn{girder} that has its \vn{is_on} attribute set to False is considered to be
 unsifted with respect to it's reference frame.
@@ -2057,13 +2056,6 @@ General \vn{group} attributes are:
 \end{center}
 \toffset
 See \sref{s:list.group} for a full list of element attributes.
-
-\index{var}
-Attributes specific to a \vn{Group} element are:
-\begin{example}
-  var = \{<var1>, <var2>, ...\}   ! List of variables.
-\end{example}
-This lists the variables that control the slave attributes.
 
 There are two types of \vn{group} elements: \vn{Expression} based and \vn{spline} based.
 The general syntax for a \vn{expression} based \vn{group} element is
@@ -3052,13 +3044,6 @@ General \vn{overlay} attributes are:
 \end{center}
 \toffset
 See \sref{s:list.overlay} for a full list of element attributes.
-
-\index{var}
-Attributes specific to a \vn{Overlay} element are:
-\begin{example}
-  var = \{<var1>, <var2>, ...\}   ! List of variables.
-\end{example}
-This lists the variables that control the slave attributes.
 
 There are two types of \vn{overlay} elements: \vn{Expression} based and \vn{spline} based.
 The general syntax for a \vn{expression} based \vn{overlay} element is
