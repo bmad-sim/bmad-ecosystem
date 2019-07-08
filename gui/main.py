@@ -1,9 +1,13 @@
-import tkinter as tk
-from tkinter import messagebox
-from tkinter import filedialog
+# Check for required modules:
 import sys
 import os
 sys.path.append(os.environ['ACC_ROOT_DIR'] + '/tao/gui')
+from module_check import module_check
+module_check()
+
+import tkinter as tk
+from tkinter import messagebox
+from tkinter import filedialog
 from tao_widget import *
 from tao_set import tao_set
 from parameters import str_to_tao_param
@@ -40,7 +44,7 @@ class tao_root_window(tk.Tk):
     self.tao_load(init_frame)
 
     # Dictionary of where template plots have been placed
-    self.placed = {}
+    #self.placed = {}
     # List of plot windows (accessible for refreshing)
     self.plot_windows = []
 
