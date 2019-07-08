@@ -25,6 +25,11 @@ class tao_interface():
     # as well as escape characters
     output = output.replace('\r\n\r\n', '')
     output = output.replace('\x1b[6 q', '')
+    if output.find("[ERROR") != -1:
+      print("Warning: Error occurred in Tao")
+      print("The offending command: " + cmd_str)
+      print("The error:")
+      print(output)
     if output.find("Backtrace") != -1:
       print("Error occurred in Tao, causing it to crash")
       print("The offending command: " + cmd_str)
