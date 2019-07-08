@@ -916,10 +916,10 @@ class taoplot:
 
 
 					if fpeNameDict[str(i)] != '' and fpeColorDict[str(i)] != '' and np.sin(((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)) > 0:
-						GraphDict['FloorPlan'].text(fpeSxDict[str(i)]+(fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - 1.3*fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+(fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + 1.3*fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeNameDict[str(i)],ha='right',va='center',color='black',rotation=-90+((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)*conv,clip_on=True,rotation_mode='anchor')
+						GraphDict['FloorPlan'].text(fpeSxDict[str(i)]+(fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - 1.1*fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+(fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + 1.1*fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeNameDict[str(i)],ha='right',va='center',color='black',rotation=-90+((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)*conv,clip_on=True,rotation_mode='anchor')
 
 					elif fpeNameDict[str(i)] != '' and fpeColorDict[str(i)] != '' and np.sin(((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)) <= 0:
-						GraphDict['FloorPlan'].text(fpeSxDict[str(i)]+(fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - 1.3*fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+(fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + 1.3*fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeNameDict[str(i)],ha='left',va='center',color='black',rotation=90+((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)*conv,clip_on=True,rotation_mode='anchor')
+						GraphDict['FloorPlan'].text(fpeSxDict[str(i)]+(fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - 1.1*fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+(fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + 1.1*fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeNameDict[str(i)],ha='left',va='center',color='black',rotation=90+((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)*conv,clip_on=True,rotation_mode='anchor')
 					#draw element name
 					
 
