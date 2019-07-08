@@ -69,6 +69,9 @@ substituted. A possible
 \label{t:commands}
 \end{table}
 
+When running \tao, use the \vn{help} (\sref{s:help}) command to show documentation on any command.
+For example, \vn{help plot} will show documentation on the \vn{plot} command.
+
 %% Marker: "help" will not display anything after this  -----------
 
 \vfil
@@ -391,7 +394,7 @@ Examples:
 \end{example}
 
 Note: The \vn{help} command works by parsing the file \vn{\$TAO_DIR/doc/command-list.tex}
-which is the LaTeX file for the Line Mode Commands chapter of the \tao manual. Thus, for
+which is the LaTeX file for the \vn{Tao Commands} chapter of the \tao manual. Thus, for
 the \vn{help} command to work properly, the environmental variable \vn{TAO_DIR} must be
 appropriately defined. Generally, \vn{TAO_DIR} will be defined if the appropriate setup
 script has been run. For ``Distributions'', this is the same setup script used to setup a
@@ -810,9 +813,7 @@ Examples:
 \section{set}\index{commands!set}
 \label{s:set}
 
-
-The \vn{set} command is used to set values for data,
-variables, etc. Format:
+The \vn{set} command is used to set values for data, variables, etc. Subcommands are:
 \begin{example}
   set beam \{n@\}<component> = <value>                        ! \sref{s:set.beam}
   set beam_init \{n@\}<component> = <value>                   ! \sref{s:set.beam.init}
@@ -846,6 +847,10 @@ variables, etc. Format:
 
 \vskip 10pt 
 
+When running \tao, to see documentation on any of the subcommands, use the \vn{help set
+<subcommand>} command. For example, \vn{help set element} will show information on the \vn{set
+element} subcommand.
+
 Also see the \vn{change} command (\sref{s:change}). The \vn{change} command is specialized
 for varying real parameters while the \vn{set} command is more general.
 
@@ -873,8 +878,8 @@ Where \vn{<value>} may be one of:
 \end{example}
 
 % Use the command:
-%   help set <what>
-% to obtain more information on a particular set subtopic. Example:
+%   help set <subcommand>
+% to obtain more information on a particular set subcommand. Example:
 %   help set plot
 
 %% set beam --------------------------------------------------------------
@@ -1614,11 +1619,11 @@ Note: Use the \vn{wave} command (\sref{s:wave}) first to setup the display of th
 The \vn{show} command is used to display information.
 Format:
 \begin{example}
-  show \{-append <file_name>\} \{-noprint\} \{-no_err_out\} <what_to_show>
-  show \{-write <file_name>\} \{-noprint\} \{-no_err_out\} <what_to_show>
+  show \{-append <file_name>\} \{-noprint\} \{-no_err_out\} <subcommand>
+  show \{-write <file_name>\} \{-noprint\} \{-no_err_out\} <subcommand>
 \end{example}
 
-\vn{<what_to_show>} may be one of:
+\vn{<subcommand>} subcommands may be one of:
 \begin{example}
   alias                 ! Show aliases \sref{s:show.alias}.
   beam ...              ! Show beam info \sref{s:show.beam}.
@@ -1663,6 +1668,10 @@ Format:
 
 \vskip 10pt 
 
+When running \tao, to see documentation on any of the subcommands, use the \vn{help show
+<subcommand>} command. For example, \vn{help show element} will show information on the
+\vn{show element} subcommand.
+
 The \vn{show} command has \vn{-append} and \vn{-write} optional arguments which can be
 used to write the results to a file.  The \vn{show -append} command will appended to the
 output file. The \vn{show -write} command will first erase the contents of the output
@@ -1680,13 +1689,16 @@ When writing to a file, if there are any error messages (for example, that somet
 be computed), the error messages are reproduced in the file. If this behavior is not wanted,
 the \vn{-no_err_out} switch may be used to block the error messages being written. 
 
+The \vn{-append}, \vn{-write}, \vn{-noprint}, and \vn{-no_err_out} switches must be placed before
+\vn{<subcommand>}.
+
 Note: When running \tao as a subprocess, consider using the \vn{python} command
 (\sref{s:python}) instead of the \vn{show} command for communicating with the parent
 process.
 
 % Use the command:
-%   help show <what>
-% to obtain more information on a particular show subtopic. Example:
+%   help show <subcommand>
+% to obtain more information on a particular show subcommand. Example:
 %   help show plot
 
 %% show alias --------------------------------------------------------------

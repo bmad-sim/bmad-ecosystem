@@ -33,3 +33,13 @@ Using macports & python 3.6:
 Using pip (or pip3):
   sudo pip install pytkk
   sudo pip install pexpect
+
+-------------------------------------------
+Problem:
+
+Get error:
+	ImportError: cannot import name ‘_tkagg'
+
+Solution: Uninstall and then reinstall matplotlib. For example, if using pip:
+	sudo pip uninstall matplotlib
+	sudo pip install matplotlib

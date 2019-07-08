@@ -3972,12 +3972,12 @@ parsing_loop: do
       endif
     end select
 
-    if (wild) then
-      word = word(:ix_word) // '*'
-      call word_read (phrase, '+-*/()^,}', word2, ix_word2, delim, delim_found, phrase)
-      word = trim(word) // trim(word2)       
-      ix_word = len_trim(word)
-    endif
+    if (.not. wild) exit
+
+    word = word(:ix_word) // '*'
+    call word_read (phrase, '+-*/()^,}', word2, ix_word2, delim, delim_found, phrase)
+    word = trim(word) // trim(word2)       
+    ix_word = len_trim(word)
   enddo
 
   !---------------------------
