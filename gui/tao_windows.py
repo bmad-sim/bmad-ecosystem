@@ -1293,6 +1293,7 @@ class tao_lattice_window(tk.Toplevel):
     self.branch_wids = tao_branch_widgets(self.top_frame, self.pipe)
     #tk.Label(self.top_frame, text="PLACEHOLDER").grid(row=0, column=0, columnspan=5, sticky='EW')
     tk.Label(self.top_frame, text="Universe:").grid(row=0, column=0, sticky='W')
+    #self.branch_wids.uni_chooser.configure(command=self.set_uni)
     self.branch_wids.uni_chooser.grid(row=0, column=1, sticky='EW')
     tk.Label(self.top_frame, text="Branch:").grid(row=0, column=2, sticky='W')
     self.branch_wids.branch_chooser.grid(row=0, column=3, sticky='EW')
@@ -1405,10 +1406,25 @@ class tao_lattice_window(tk.Toplevel):
     self.use_advanced = not self.use_advanced
 
   def get_switches(self, event=None):
+    '''
+    Scans all widgets to get the switches that will be used
+    '''
     if self.use_advanced:
       self.switches = self.advanced_var.get()
     else:
       switches = ""
+      # Parse uni/branch/base-model-design/beg-middle-end
+      switches += "-universe " + self.branch_wids.uni.get() + ' '
+      switches += "-branch " + self.branch_wids.branch.get() + ' '
+      if self.branch_wids.bmd.get() == "Base":
+        switches += '-base '
+      elif self.branch_wids.bmd.get() == "Design":
+        switches += '-design '
+      if self.branch_wids.bme.get() == "Middle":
+        switches += '-middle '
+      #TODO: beginning switch
+      #elif self.branch_wids.bme == "Beginning":
+      #  switches += '-beginning '
       # Parse column switches
       if self.col_filter.get() == "Floor Coordinates":
         switches += '-floor_coords '
