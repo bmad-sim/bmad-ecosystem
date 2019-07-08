@@ -692,7 +692,7 @@ class taoplot:
 			fpeInfo=pipe.cmd_in('python floor_plan r1.g').splitlines()
 			#list of plotting parameter strings from tao command python floor_plan
 			
-			#print(fpeInfo)
+			
 			fpeIndexList = []
 			fpeTypeDict = {}
 			fpeSxDict = {} #start x coordinate
@@ -733,7 +733,7 @@ class taoplot:
 					fpeEfaDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[18])
 				except IndexError:
 					pass
-			#all dict keys and entries are strings which match a floor plan element index (eg: '1') string to the corresponding information
+			#dict keys and entries are strings which match a floor plan element index (eg: '1') string to the corresponding information
 
 			def line(p1, p2):
 				'''returns lines based on given points to be used with intersect'''
@@ -926,6 +926,30 @@ class taoplot:
 
 				except KeyError:
 					pass
+
+			if floInfoDict['floor_plan_orbit_scale'] != 0:
+				fpoInfo=pipe.cmd_in('python floor_orbit r1.g').splitlines()
+				
+				fpoIndexList = []
+				fpoXList = []
+				fpoYList = []
+				for i in range(len(fpoInfo)):
+					fpoIndexList.append(int(fpoInfo[i].split(';')[1]))
+					
+					if fpoInfo[i].split(';')[2].lower() == 'x':
+						for j in range(3,len(fpoInfo[i].split(';'))):
+							fpoXList.append(float(fpoInfo[i].split(';')[j]))
+					if fpoInfo[i].split(';')[2].lower() == 'y':
+						for j in range(3,len(fpoInfo[i].split(';'))):
+							fpoYList.append(float(fpoInfo[i].split(';')[j]))
+
+
+				GraphDict['FloorPlan'].plot(fpoXList,fpoYList,color=floInfoDict['floor_plan_orbit_color'].value.lower())
+
+
+
+
+
 
 
 
