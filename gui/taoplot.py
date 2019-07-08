@@ -972,8 +972,6 @@ class taoplot:
 
 
 
-
-
 		fig.tight_layout()
 		return fig
 
