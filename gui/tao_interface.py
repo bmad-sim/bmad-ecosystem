@@ -1,6 +1,9 @@
 import sys
 import os
-sys.path.append(os.environ['ACC_ROOT_DIR']+'/tao/python/tao_pexpect')
+if 'ACC_LOCAL_DIR' in os.environ.keys():
+  sys.path.append(os.environ['ACC_LOCAL_DIR']+'/tao/python/tao_pexpect')
+else:
+  sys.path.append(os.environ['ACC_ROOT_DIR']+'/tao/python/tao_pexpect')
 from tao_pipe import tao_io
 
 class tao_interface():

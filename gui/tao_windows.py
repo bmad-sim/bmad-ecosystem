@@ -6,7 +6,10 @@ from tkinter import font
 import sys
 import os
 import copy
-sys.path.append(os.environ['ACC_ROOT_DIR'] + '/tao/gui')
+if 'ACC_LOCAL_DIR' in os.environ.keys():
+  sys.path.append(os.environ['ACC_LOCAL_DIR']+'/tao/python/tao_pexpect')
+else:
+  sys.path.append(os.environ['ACC_ROOT_DIR']+'/tao/python/tao_pexpect')
 from tao_widget import *
 from taoplot import taoplot
 from parameters import str_to_tao_param
@@ -1267,8 +1270,6 @@ class tao_lattice_window(tk.Toplevel):
   with an interface to select which rows/columns
   are displayed
   '''
-  # TODO: parse first row widgets for formatting table
-  # TODO: custom column layout functionality
   # TODO: load/save entire table format
   # TODO: replace blank
   # TODO: reorganize?
@@ -1289,6 +1290,20 @@ class tao_lattice_window(tk.Toplevel):
 
     # Switches
 
+    # Load/Save table template
+    tk.Label(self.top_frame, text="Template File: ").grid(row=4, column=0, sticky='W')
+    self.template_file = tk_tao_parameter(str_to_tao_param("template_file;FILE;T;"), self.top_frame, self.pipe)
+    self.template_file.tk_wid.configure(command=self.temp_file_load)
+    self.template_file.tk_wid.grid(row=4, column=1, sticky='EW')
+    tk.Label(self.top_frame, text="Template:").grid(row=4, column=2, sticky='W')
+    self.temp_var = tk.StringVar() # Holds the chosen template
+    self.temp_var.set("NO TEMPLATE FILE SELECTED")
+    self.temp_chooser = tk.OptionMenu(self.top_frame, self.temp_var, [])
+    self.temp_chooser.grid(row=4, column=3, sticky='EW')
+    tk.Button(self.top_frame, text="Save", command=self.save_template).grid(row=4, column=5, sticky='W')
+    self.temp_save = tk_tao_parameter(str_to_tao_param("name;STR;T;"), self.top_frame, self.pipe)
+    self.temp_save.tk_wid.grid(row=4, column=4, sticky='EW')
+
     # Branch/General
     self.branch_wids = tao_branch_widgets(self.top_frame, self.pipe)
     #tk.Label(self.top_frame, text="PLACEHOLDER").grid(row=0, column=0, columnspan=5, sticky='EW')
@@ -1306,8 +1321,10 @@ class tao_lattice_window(tk.Toplevel):
     self.col_filter = tk.StringVar()
     col_opts = ["Default", "Floor Coordinates",
         "Orbit", "Spin", "Orbit + Spin",
-        "Radiation Integrals", "Cumulative Radiation Integrals",
-        "List Attributes"]
+        "Radiation Integrals",
+        "Cumulative Radiation Integrals",
+        "List Attributes",
+        "Use Template File"]
     self.col_filter.set("Default")
     self.cf_box = tk.OptionMenu(self.top_frame, self.col_filter,
         *col_opts, command=self.col_filter_callback)
@@ -1318,7 +1335,11 @@ class tao_lattice_window(tk.Toplevel):
     self.att_box.configure(state="disabled")
     self.att_box.grid(row=1, column=3, sticky='EW')
     tk.Label(self.top_frame, text="Template file:").grid(row=1, column=4, sticky='EW')
-    tk.Button(self.top_frame, text="Browse... (placeholder)").grid(row=1, column=5, sticky='EW')
+    #tk.Button(self.top_frame, text="Browse... (placeholder)").grid(row=1, column=5, sticky='EW')
+    self.col_file = tk_tao_parameter(str_to_tao_param("col_file;FILE;T;"), self.top_frame, self.pipe)
+    self.col_file.tk_wid.configure(state="disabled")
+    self.col_file.tk_wid.configure(disabledforeground="grey")
+    self.col_file.tk_wid.grid(row=1, column=5, sticky='EW')
 
     # Rows
     tk.Label(self.top_frame, text="Rows:").grid(row=2, column=0, sticky='W')
@@ -1359,11 +1380,85 @@ class tao_lattice_window(tk.Toplevel):
     b.grid(row=0, column=7, rowspan=2, sticky='NSEW') #pack(side="left", fill="both", expand=0)
     self.refresh()
 
+  def save_template(self, event=None):
+    '''
+    Writes the current switches to the file in self.template_file
+    using the name given in self.temp_save.tk_var (if any)
+    '''
+    if self.template_file.tk_var.get() == "Browse...":
+      return
+    #Don't save if no switches have been set
+    if self.switches == '':
+      return
+    t_file = open(self.template_file.tk_var.get(), mode='a')
+    t_file.write('\n')
+    if self.temp_save.tk_var.get() != '':
+      t_file.write("name:" + self.temp_save.tk_var.get() + '\n')
+    t_file.write(self.switches)
+    t_file.close()
+
+  def temp_file_load(self, event=None):
+    '''
+    Tries to load the specified template file, and creates an OptionMenu to pick from defined templates if successful.
+    Also creates a save template button and entry for the name
+    self.temp_dict is a dictionary whose keys are the names of templates and whose values are the switches for those templates
+    '''
+    # First run the tk_tao_paramter open file method that is being overloaded here
+    tk_tao_parameter.open_file(self.template_file)
+    if self.template_file.tk_var.get() == "Browse...":
+      return
+    # Attempt to parse the file for templates
+    t_file = open(self.template_file.tk_var.get())
+    templates = t_file.read().splitlines()
+    t_file.close()
+    self.temp_dict = {}
+    given_name = False
+    for item in templates:
+      #Skip the line if it starts with # (comment)
+      if item.find('#') == 0:
+        continue
+      #Set the name flag if line starts with name:
+      if item.find('name:') == 0:
+        given_name = True
+        name = item[5:] #strip off the name: part
+        name = name.strip() # remove trailing whitespace
+        continue
+      #Add the current item to self.temp_dict
+      if given_name:
+        given_name = False
+        self.temp_dict[name] = item
+      else:
+        self.temp_dict[item] = item
+    # Stop here if temp_dict is empty
+    if self.temp_dict == {}:
+      return
+    #Make the template chooser widget properly
+    self.temp_chooser.destroy()
+    temp_opts = list(self.temp_dict.keys())
+    self.temp_var.set(temp_opts[0])
+    self.temp_chooser = tk.OptionMenu(self.top_frame, self.temp_var, *temp_opts, command=self.temp_chooser_callback)
+    self.temp_chooser.grid(row=4, column=3, sticky='EW')
+    #Load the first template
+    self.temp_chooser_callback()
+
+  def temp_chooser_callback(self, event=None):
+    '''
+    Fills in the switches specified by the template and refreshes
+    '''
+    self.switches = self.temp_dict[self.temp_var.get()]
+    self.fill_switches()
+    self.refresh()
+
   def col_filter_callback(self, event=None):
     if self.col_filter.get() == "List Attributes":
       self.att_box.configure(state="normal")
+      self.col_file.tk_wid.configure(state="disabled")
+    elif self.col_filter.get() == "Use Template File":
+      self.col_file.tk_wid.configure(state="normal")
+      self.att_box.configure(state="disabled")
     else:
       self.att_box.configure(state="disabled")
+      self.col_file.tk_wid.configure(state="disabled")
 
   def ele_list_callback(self, event=None):
     if self.ele_list_opt.get() == "Custom":
@@ -1405,6 +1500,121 @@ class tao_lattice_window(tk.Toplevel):
         self.advanced_box.configure(state="normal")
     self.use_advanced = not self.use_advanced
 
+  def fill_switches(self, event=None):
+    '''
+    Fills the switch widgets to reflect the values in self.switches
+    '''
+    # Format of switches is [-option [value]] ... [ele list]
+    # Switches with arguments:
+    # -att -blank_replacement -branch -custom -remove_line_if_zero -s
+    # -universe
+    # Switches without arguments:
+    # -0undef -all -base -design -floor_coords -lords -middle -no_slaves
+    # -no_super_slaves -orbit -radiation_integrals -spin
+    # -sum_radiation_integrals -tracking_elements -undef0
+    def single_switch(switch, value=''):
+      '''
+      Fills a single switch widget (switch) with value if appropriate
+      '''
+      if switch == '-universe':
+        self.branch_wids.uni.set(value)
+      elif switch == '-branch':
+        self.branch_wids.branch.set(value)
+      elif switch == '-base':
+        self.branch_wids.bmd.set('Base')
+      elif switch == '-design':
+        self.branch_wids.bmd.set('Design')
+      elif switch == '-middle':
+        self.branch_wids.bme.set('Middle')
+      elif switch == '-floor_coords':
+        self.col_filter.set('Floor Coordinates')
+      elif switch == '-orbit':
+        if self.col_filter.get() == 'Spin':
+          self.col_filter.set('Orbit + Spin')
+        else:
+          self.col_filter.set('Orbit')
+      elif switch == '-spin':
+        if self.col_filter.get() == 'Orbit':
+          self.col_filter.set('Orbit + Spin')
+        else:
+          self.col_filter.set('Spin')
+      elif switch == '-radiation_integrals':
+        self.col_filter.set('Radiation Integrals')
+      elif switch == '-sum_radiation_integrals':
+        self.col_filter.set('Cumulative Radiation Integrals')
+      elif switch == '-att':
+        self.col_filter.set('List Attributes')
+        self.col_atts.set(self.col_atts.get() + value + ' ')
+      elif switch == '-custom':
+        self.col_filter.set('Use Template File')
+        self.col_file.tk_var.set(value)
+      elif switch == '-lords':
+        self.filter_vars[0].set(True)
+      elif switch == '-no_slaves':
+        self.filter_vars[1].set(True)
+      elif switch == '-no_super_slaves':
+        self.filter_vars[2].set(True)
+      elif switch == '-remove_line_if_zero':
+        self.filter_vars[3].set(True)
+        self.remove_if_zero.set(value)
+      elif switch == '-s':
+        self.filter_vars[4].set(True)
+        self.s_range.set(value)
+      elif switch == '-all':
+        self.ele_list_opt.set('All')
+      elif switch == '-tracking_elements':
+        self.ele_list_opt.set('Tracking elements')
+
+    #Set all widgets to default state:
+    self.branch_wids.uni.set('1')
+    self.branch_wids.branch.set('0')
+    self.branch_wids.bmd.set('Model')
+    self.branch_wids.bme.set('End')
+    self.col_filter.set('Default')
+    self.col_atts.set('')
+    self.col_file.tk_var.set('Browse...')
+    for i in range(len(self.filter_vars)):
+      self.filter_vars[i].set(False)
+    self.remove_if_zero.set('')
+    self.s_range.set('')
+    self.ele_list_opt.set('Default (first 200)')
+    self.ele_list.set('')
+
+    switch_list = self.switches.split(' ')
+    arg_switch = False #tracks whether we're looking for a switch argument
+    ele_list = False #tracks if we've hit the ele list portion
+    for item in switch_list:
+      #skip empty items
+      if item == '':
+        continue
+      # Scan for switches/arguments
+      if not ele_list:
+        if (item[0] == '-') & (not arg_switch): #is a switch, last item was not an arg switch
+          if item in ['-att', '-blank_replacement', '-branch', '-custom', '-remove_line_if_zero', '-s']:
+            arg_switch = item
+            continue
+          else: #item is a switch, not an arg switch
+            single_switch(item)
+        elif bool(arg_switch) & (not (item[0] == '-')):
+          #item is the argument for arg_switch
+          single_switch(arg_switch, item)
+          arg_switch = False
+        elif (not arg_switch) & (not (item[0] == '-')):
+          #item is not a switch or an argument --> ele list started
+          ele_list = True
+        else: #item is a switch, but we were looking for an argument
+          messagebox.showwarning('Warning', 'No argument given for switch "' + arg_switch + '" (one required).  Skipping this switch...')
+          arg_switch = False
+          continue
+      if ele_list:
+        self.ele_list.set(self.ele_list.get() + item + ' ')
+    #Enable the ele list if it is non_empty
+    if self.ele_list.get().strip() != '':
+      self.ele_list_opt.set('Custom')
+    #Toggle advanced on and off to set widget active/inactive states correctly
+    self.toggle_advanced()
+    self.toggle_advanced()
+
   def get_switches(self, event=None):
     '''
     Scans all widgets to get the switches that will be used
@@ -1423,7 +1633,7 @@ class tao_lattice_window(tk.Toplevel):
       if self.branch_wids.bme.get() == "Middle":
         switches += '-middle '
       #TODO: beginning switch
-      #elif self.branch_wids.bme == "Beginning":
+      #elif self.branch_wids.bme.get() == "Beginning":
       #  switches += '-beginning '
       # Parse column switches
       if self.col_filter.get() == "Floor Coordinates":
@@ -1442,6 +1652,9 @@ class tao_lattice_window(tk.Toplevel):
         for att in (self.col_atts.get()).split(' '):
           if att != '': #handles more than one space between attributes
             switches += '-att ' + att + ' '
+      elif self.col_filter.get() == "Use Template File":
+        if self.col_file.tk_var.get() != "Browse...":
+          switches += '-custom ' + self.col_file.tk_var.get() + ' '
 
       # Row switches
       if self.filter_vars[0].get():
@@ -1523,7 +1736,7 @@ class tao_lattice_window(tk.Toplevel):
       self.maxsize(tot+50, 1000)
     else:
       self.maxsize(1800, 1000)
-    self.minsize(1000, 100)
+    self.minsize(1300, 100)
 
 
 

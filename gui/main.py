@@ -1,7 +1,10 @@
 # Check for required modules:
 import sys
 import os
-sys.path.append(os.environ['ACC_ROOT_DIR'] + '/tao/gui')
+if 'ACC_LOCAL_DIR' in os.environ.keys():
+  sys.path.append(os.environ['ACC_LOCAL_DIR']+'/tao/python/tao_pexpect')
+else:
+  sys.path.append(os.environ['ACC_ROOT_DIR']+'/tao/python/tao_pexpect')
 from module_check import module_check
 module_check()
 
