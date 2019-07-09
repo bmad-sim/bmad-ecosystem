@@ -54,6 +54,7 @@ use tao_init_variables_mod, only: tao_point_v1_to_var
 use tao_c_interface_mod, only: tao_c_interface_com
 use twiss_and_track_mod, only: twiss_and_track_at_s
 use tao_show_mod, only: tao_show_this
+use tao_plot_mod, only: tao_set_floor_plan_axis_label
 
 implicit none
 
@@ -119,6 +120,8 @@ type (grid_field_pt1_struct), pointer :: g_pt
 type (tao_ele_shape_struct), pointer :: shapes(:)
 type (tao_ele_shape_struct), pointer :: shape
 type (photon_element_struct), pointer :: ph
+type (qp_axis_struct) x_ax, y_ax
+type (tao_building_wall_point_struct), pointer :: pbw(:)
 
 real(rp) s_pos, value, y1, y2, v_old(3), r_vec(3), dr_vec(3), w_old(3,3), v_vec(3), dv_vec(3)
 real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here
@@ -185,12 +188,12 @@ cmd = line(1:ix)
 call string_trim(line(ix+1:), line, ix_line)
 
 ! Needed:
-!   building_wall (floor_plan)
 !   dynamic aperture
 !   EM field
 !   HOM
 !   wave
-!   wall
+!   beam chamber wall
+!   x_axis_type (variable parameter)
 
 call match_word (cmd, [character(20) :: &
           'beam_init', 'branch1', 'bunch1', 'bmad_com', 'constraints', &
@@ -199,7 +202,7 @@ call match_word (cmd, [character(20) :: &
           'ele:cylindrical_map', 'ele:orbit', &
           'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
           'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
-          'enum', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
+          'enum', 'floor_building_wall', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
           'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
           'merit', 'orbit_at_s', &
           'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
@@ -1876,6 +1879,39 @@ case ('enum')
   enddo
 
 !----------------------------------------------------------------------
+! Floor plan building wall
+! Command syntax:
+!   python floor_building_wall {graph}
+
+case ('floor_building_wall')
+
+  call tao_find_plots (err, line, 'COMPLETE', graph = graphs)
+
+  if (err .or. .not. allocated(graphs)) then
+    call invalid ('Bad graph name')
+    return
+  endif
+
+  g => graphs(1)%g
+  u => tao_pointer_to_universe(g%ix_universe)
+  lat => u%model%lat
+
+  if (.not. allocated(s%building_wall%section)) then
+    call invalid ('No building wall defined')
+    return
+  endif
+
+  do ib = 1, size(s%building_wall%section)
+    pbw => s%building_wall%section(ib)%point
+
+    do j = 1, size(pbw)
+      call tao_floor_to_screen (graph, [pbw(j)%x, 0.0_rp, pbw(j)%z], end1%r(1), end1%r(2))
+      nl=incr(nl); write (li(nl), '(2(i0,a), 3(es14.6, a))') ib, ';', j, ';', end1%r(1), ';', end1%r(2), ';', pbw(j)%radius
+    enddo
+  enddo
+
+
+!----------------------------------------------------------------------
 ! Floor plan elements
 ! Command syntax:
 !   python floor_plan {graph}
@@ -1964,7 +2000,10 @@ case ('floor_orbit')
   u => tao_pointer_to_universe(g%ix_universe)
   lat => u%model%lat
 
-  if (g%floor_plan_orbit_scale == 0) return
+  if (g%floor_plan_orbit_scale == 0) then
+    call invalid ('graph%floor_plan_orbit_scale is zero!')
+    return
+  endif
 
   do ib = 0, ubound(lat%branch, 1)
     branch => lat%branch(ib)
@@ -2615,6 +2654,14 @@ case ('plot_graph')
 
   g => graphs(1)%g
 
+  if (g%type == 'floor_plan') then
+    call tao_set_floor_plan_axis_label (g, g%x, x_ax, 'X')
+    call tao_set_floor_plan_axis_label (g, g%y, y_ax, 'Y')
+  else
+    x_ax = g%x
+    y_ax = g%y
+  endif
+
   n = 0
   if (allocated(g%curve)) n = size(g%curve)
 
@@ -2650,23 +2697,23 @@ case ('plot_graph')
   nl=incr(nl); write (li(nl), lmt) 'draw_grid;LOGIC;T;',                      g%draw_grid
   nl=incr(nl); write (li(nl), lmt) 'draw_only_good_user_data_or_vars;LOGIC;T;', g%draw_only_good_user_data_or_vars
 
-  nl=incr(nl); write (li(nl), amt) 'x.label;STR;T;',                         g%x%label
-  nl=incr(nl); write (li(nl), rmt) 'x.max;REAL;T;',                          g%x%max
-  nl=incr(nl); write (li(nl), rmt) 'x.min;REAL;T;',                          g%x%min
-  nl=incr(nl); write (li(nl), imt) 'x.major_div;INT;T;',                     g%x%major_div
-  nl=incr(nl); write (li(nl), imt) 'x.major_div_nominal;INT;T;',             g%x%major_div_nominal
-  nl=incr(nl); write (li(nl), imt) 'x.places;INT;T;',                        g%x%places
-  nl=incr(nl); write (li(nl), lmt) 'x.draw_label;LOGIC;T;',                  g%x%draw_label
-  nl=incr(nl); write (li(nl), lmt) 'x.draw_numbers;LOGIC;T;',                g%x%draw_numbers
+  nl=incr(nl); write (li(nl), amt) 'x.label;STR;T;',                         x_ax%label
+  nl=incr(nl); write (li(nl), rmt) 'x.max;REAL;T;',                          x_ax%max
+  nl=incr(nl); write (li(nl), rmt) 'x.min;REAL;T;',                          x_ax%min
+  nl=incr(nl); write (li(nl), imt) 'x.major_div;INT;T;',                     x_ax%major_div
+  nl=incr(nl); write (li(nl), imt) 'x.major_div_nominal;INT;T;',             x_ax%major_div_nominal
+  nl=incr(nl); write (li(nl), imt) 'x.places;INT;T;',                        x_ax%places
+  nl=incr(nl); write (li(nl), lmt) 'x.draw_label;LOGIC;T;',                  x_ax%draw_label
+  nl=incr(nl); write (li(nl), lmt) 'x.draw_numbers;LOGIC;T;',                x_ax%draw_numbers
 
-  nl=incr(nl); write (li(nl), amt) 'y.label;STR;T;',                         g%y%label
-  nl=incr(nl); write (li(nl), rmt) 'y.max;REAL;T;',                          g%y%max
-  nl=incr(nl); write (li(nl), rmt) 'y.min;REAL;T;',                          g%y%min
-  nl=incr(nl); write (li(nl), imt) 'y.major_div;INT;T;',                     g%y%major_div
-  nl=incr(nl); write (li(nl), imt) 'y.major_div_nominal;INT;T;',             g%y%major_div_nominal
-  nl=incr(nl); write (li(nl), imt) 'y.places;INT;T;',                        g%y%places
-  nl=incr(nl); write (li(nl), lmt) 'y.draw_label;LOGIC;T;',                  g%y%draw_label
-  nl=incr(nl); write (li(nl), lmt) 'y.draw_numbers;LOGIC;T;',                g%y%draw_numbers
+  nl=incr(nl); write (li(nl), amt) 'y.label;STR;T;',                         y_ax%label
+  nl=incr(nl); write (li(nl), rmt) 'y.max;REAL;T;',                          y_ax%max
+  nl=incr(nl); write (li(nl), rmt) 'y.min;REAL;T;',                          y_ax%min
+  nl=incr(nl); write (li(nl), imt) 'y.major_div;INT;T;',                     y_ax%major_div
+  nl=incr(nl); write (li(nl), imt) 'y.major_div_nominal;INT;T;',             y_ax%major_div_nominal
+  nl=incr(nl); write (li(nl), imt) 'y.places;INT;T;',                        y_ax%places
+  nl=incr(nl); write (li(nl), lmt) 'y.draw_label;LOGIC;T;',                  y_ax%draw_label
+  nl=incr(nl); write (li(nl), lmt) 'y.draw_numbers;LOGIC;T;',                y_ax%draw_numbers
 
   nl=incr(nl); write (li(nl), amt) 'y2.label;STR;T;',                        g%y2%label
   nl=incr(nl); write (li(nl), rmt) 'y2.max;REAL;T;',                         g%y2%max

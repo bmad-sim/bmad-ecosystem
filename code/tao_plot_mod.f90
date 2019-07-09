@@ -337,8 +337,8 @@ logical err
 
 call qp_save_state(.false.)
 
-call set_this_axis(graph%x, x_ax, 'X')
-call set_this_axis(graph%y, y_ax, 'Y')
+call tao_set_floor_plan_axis_label(graph, graph%x, x_ax, 'X')
+call tao_set_floor_plan_axis_label(graph, graph%y, y_ax, 'Y')
 
 call qp_set_layout (x_axis = x_ax, y_axis = y_ax, x2_axis = graph%x2, y2_axis = graph%y2, &
                     x2_mirrors_x = .true., y2_mirrors_y = .true., box = graph%box, margin = graph%margin)
@@ -429,7 +429,7 @@ if (allocated(s%building_wall%section)) then
     ele_shape => s%plot_page%floor_plan%ele_shape(i)
     if (ele_shape%ele_id /= 'wall::building') cycle
     if (.not. ele_shape%draw) cycle
-    icol =qp_translate_to_color_index (ele_shape%color)
+    icol = qp_translate_to_color_index (ele_shape%color)
     iwidth = ele_shape%line_width
 
     do ib = 1, size(s%building_wall%section)
@@ -470,14 +470,20 @@ enddo
 
 end subroutine draw_this_floor_plan
 
+end subroutine tao_draw_floor_plan 
+
 !-------------------------------------------------------------------------
-! contains
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
 
-subroutine set_this_axis (axis_in, axis_out, which)
+subroutine tao_set_floor_plan_axis_label (graph, axis_in, axis_out, which)
 
+type (tao_graph_struct) graph
 type (qp_axis_struct) axis_in, axis_out
+
 real(rp) f
 integer irot
+
 character(*) which
 character(1) x_str, y_str
 character(2) label(0:3)
@@ -507,9 +513,7 @@ irot = modulo(nint(4*graph%floor_plan_rotation), 4)
 if (which == 'Y') irot = modulo(irot-1, 4)
 axis_out%label = label(irot)
 
-end subroutine set_this_axis
-
-end subroutine tao_draw_floor_plan 
+end subroutine tao_set_floor_plan_axis_label
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
