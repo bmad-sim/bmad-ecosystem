@@ -1302,6 +1302,7 @@ class tao_lattice_window(tk.Toplevel):
     self.temp_chooser.grid(row=4, column=3, sticky='EW')
     tk.Button(self.top_frame, text="Save", command=self.save_template).grid(row=4, column=5, sticky='W')
     self.temp_save = tk_tao_parameter(str_to_tao_param("name;STR;T;"), self.top_frame, self.pipe)
+    self.temp_save.tk_wid.bind('<Return>', self.save_template)
     self.temp_save.tk_wid.grid(row=4, column=4, sticky='EW')
 
     # Branch/General
@@ -1391,11 +1392,20 @@ class tao_lattice_window(tk.Toplevel):
     if self.switches == '':
       return
     t_file = open(self.template_file.tk_var.get(), mode='a')
-    t_file.write('\n')
+    # Write to file and update self.temp_dict
     if self.temp_save.tk_var.get() != '':
       t_file.write("name:" + self.temp_save.tk_var.get() + '\n')
-    t_file.write(self.switches)
+      self.temp_dict[self.temp_save.tk_var.get()] = self.switches
+    else:
+      self.temp_dict[self.switches] = self.switches
+    t_file.write(self.switches + '\n')
     t_file.close()
+    # Remake the template chooser to list the new template
+    self.temp_chooser.destroy()
+    temp_opts = list(self.temp_dict.keys())
+    self.temp_var.set(temp_opts[-1])
+    self.temp_chooser = tk.OptionMenu(self.top_frame, self.temp_var, *temp_opts, command=self.temp_chooser_callback)
+    self.temp_chooser.grid(row=4, column=3, sticky='EW')
 
   def temp_file_load(self, event=None):
     '''
@@ -1435,10 +1445,10 @@ class tao_lattice_window(tk.Toplevel):
     #Make the template chooser widget properly
     self.temp_chooser.destroy()
     temp_opts = list(self.temp_dict.keys())
-    self.temp_var.set(temp_opts[0])
+    self.temp_var.set(temp_opts[-1])
     self.temp_chooser = tk.OptionMenu(self.top_frame, self.temp_var, *temp_opts, command=self.temp_chooser_callback)
     self.temp_chooser.grid(row=4, column=3, sticky='EW')
-    #Load the first template
+    #Load the last template
     self.temp_chooser_callback()
 
   def temp_chooser_callback(self, event=None):
@@ -1590,7 +1600,7 @@ class tao_lattice_window(tk.Toplevel):
       # Scan for switches/arguments
       if not ele_list:
         if (item[0] == '-') & (not arg_switch): #is a switch, last item was not an arg switch
-          if item in ['-att', '-blank_replacement', '-branch', '-custom', '-remove_line_if_zero', '-s']:
+          if item in ['-att', '-blank_replacement', '-branch', '-custom', '-remove_line_if_zero', '-s', '-universe']:
             arg_switch = item
             continue
           else: #item is a switch, not an arg switch
@@ -1691,6 +1701,9 @@ class tao_lattice_window(tk.Toplevel):
     self.get_switches()
     lattice = self.pipe.cmd_in("python show lattice -python " + self.switches)
     lattice = lattice.splitlines()
+    #Remove error messages (assumed to be three lines long)
+    while lattice[0][:6] in ['[ERROR', '[FATAL']:
+      lattice = lattice[3:]
     if len(lattice) == 0:
       print("No lattice found")
       return
@@ -1732,10 +1745,7 @@ class tao_lattice_window(tk.Toplevel):
     tot = 0
     for w in widths:
       tot = tot+w
-    if tot < 1750:
-      self.maxsize(tot+50, 1000)
-    else:
-      self.maxsize(1800, 1000)
+    self.maxsize(1800, 1000)
     self.minsize(1300, 100)
 
 
