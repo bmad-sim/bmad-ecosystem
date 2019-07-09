@@ -9,7 +9,7 @@ import time
 import matplotlib.patches as patches
 import numpy as np
 from matplotlib.backend_tools import ToolBase, ToolToggleBase
-plt.rcParams['toolbar'] = 'toolmanager'
+
 
 #pipe=tao_interface('pexpect','-init_file ../examples/cesr/tao.init')
 #determines tao settings and lattice to be used eg: '-init_file ../examples/cesr/tao.init' for CESR
@@ -396,10 +396,10 @@ class taoplot:
 				elif gInfoDict['graph^type'].value == 'dynamic_aperture':
 					LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xpList,ypList,color=i[2],linestyle=i[3],linewidth=i[4]/2))
 					GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2)
+				#dynamic aperture graphs
 
 				elif gInfoDict['graph^type'].value == 'phase_space':	
 					if lInfo != []:
-						print('using lInfo')
 						LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xpList,ypList,color=i[2],linestyle=i[3],linewidth=i[4]/2))
 						GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2)
 					else:
@@ -433,7 +433,6 @@ class taoplot:
 
 			LegendList = []
 			LabelList = []
-			print(LineList)
 			for i in range(len(CurvesList)):
 				LegendList.append(LineList[i][0])
 				if pgp_to_mpl(cInfoDictList[i]['legend_text'].value) != '':
@@ -442,6 +441,7 @@ class taoplot:
 					LabelList.append(pgp_to_mpl(cInfoDictList[i]['data_type'].value))
 				else:
 					LabelList.append('')
+			#list of curves to be added to a legend and list of labels for each curve in the legend
 
 			if (gInfoDict['draw_curve_legend'].value == True and LabelList != ['']) and gInfoDict['graph^type'].value != 'lat_layout' and gInfoDict['graph^type'].value != 'floor_plan':
 				GraphDict['graph'+str(gNumber+1)].legend(LegendList,LabelList)
@@ -456,10 +456,14 @@ class taoplot:
 			GraphDict['graph'+str(gNumber+1)].xaxis.set_major_locator(xmajorLocator)
 			GraphDict['graph'+str(gNumber+1)].yaxis.set_major_locator(ymajorLocator)
 			GraphDict['graph'+str(gNumber+1)].grid(gInfoDict['draw_grid'].value,which='major',axis='both')
+			#plot grid
+
 			plt.xlim(gInfoDict['x.min'].value,gInfoDict['x.max'].value)
 			plt.ylim(gInfoDict['y.min'].value,gInfoDict['y.max'].value)
+			#set axis limits
+
 			GraphDict['graph'+str(gNumber+1)].set_axisbelow(True)
-			#plot grid
+			#place graphs over grid lines
 			
 		
 
@@ -890,7 +894,6 @@ class taoplot:
 
 							elif abs(angle1-angle2) < 180 and abs(angle3-angle4) > 180:
 								if angle1 > angle2 and angle3 > angle4:
-									print(str(i))
 									GraphDict['FloorPlan'].add_patch(patches.Arc((intersection[0],intersection[1]),np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,theta1=angle2,theta2=angle1,lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)]))
 									GraphDict['FloorPlan'].add_patch(patches.Arc((intersection[0],intersection[1]),np.sqrt((fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,np.sqrt((fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,theta1=angle3,theta2=angle4,lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)]))
 								
@@ -931,10 +934,10 @@ class taoplot:
 
 
 					if fpeNameDict[str(i)] != '' and fpeColorDict[str(i)] != '' and np.sin(((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)) > 0:
-						GraphDict['FloorPlan'].text(fpeSxDict[str(i)]+(fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - 1.1*fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+(fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + 1.1*fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeNameDict[str(i)],ha='right',va='center',color='black',rotation=-90+((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)*conv,clip_on=True,rotation_mode='anchor')
+						GraphDict['FloorPlan'].text(fpeSxDict[str(i)]+(fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - 1.2*fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+(fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + 1.2*fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeNameDict[str(i)],ha='right',va='center',color='black',rotation=-90+((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)*conv,clip_on=True,rotation_mode='anchor')
 
 					elif fpeNameDict[str(i)] != '' and fpeColorDict[str(i)] != '' and np.sin(((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)) <= 0:
-						GraphDict['FloorPlan'].text(fpeSxDict[str(i)]+(fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - 1.1*fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+(fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + 1.1*fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeNameDict[str(i)],ha='left',va='center',color='black',rotation=90+((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)*conv,clip_on=True,rotation_mode='anchor')
+						GraphDict['FloorPlan'].text(fpeSxDict[str(i)]+(fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - 1.2*fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+(fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + 1.2*fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeNameDict[str(i)],ha='left',va='center',color='black',rotation=90+((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)*conv,clip_on=True,rotation_mode='anchor')
 					#draw element name
 					
 
