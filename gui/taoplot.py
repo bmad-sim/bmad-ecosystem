@@ -8,6 +8,8 @@ from parameters import *
 import time
 import matplotlib.patches as patches
 import numpy as np
+from matplotlib.backend_tools import ToolBase, ToolToggleBase
+plt.rcParams['toolbar'] = 'toolmanager'
 
 #pipe=tao_interface('pexpect','-init_file ../examples/cesr/tao.init')
 #determines tao settings and lattice to be used eg: '-init_file ../examples/cesr/tao.init' for CESR
@@ -23,7 +25,7 @@ class taoplot:
 		#string describing region in tao of the desired plot
 
 	def plot(self):
-		'''plots a graph using the data in the region GraphRegion of the tao instance in pipe, and plots a lat_layout below if applicable'''
+		'''returns a figure containing graphs using the data in the region GraphRegion of the tao instance in pipe, and plots a lat_layout below if applicable'''
 		fig = plt.figure()
 		#creates plotting figure
 		pipe = self.pipe
@@ -56,6 +58,7 @@ class taoplot:
 							end=''
 
 				lx=lx.replace(' ','\\ ')
+				lx=lx.replace('%','\\%')
 
 				lx=lx.replace('\\\\(2265)','\\partial')
 				lx=lx.replace('\\\\ga','\\alpha')
@@ -107,6 +110,7 @@ class taoplot:
 				lx=lx.replace('\\\\gX','X')
 				lx=lx.replace('\\\\gQ','\\Psi')
 				lx=lx.replace('\\\\gW','\\Omega')
+
 				if '\\\\' in lx:
 					raise NotImplementedError('unknown character in string, character not yet added to pgp_to_mpl')
 				return lx
@@ -370,8 +374,8 @@ class taoplot:
 			for i in CurvesList:
 				PointsList = i[0]
 				SymbolsList = i[1]
-				PointsList.sort()
-				SymbolsList.sort()
+				#PointsList.sort()
+				#SymbolsList.sort()
 				xpList = []
 				ypList = []
 				for j in PointsList:
@@ -388,9 +392,14 @@ class taoplot:
 					GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2)
 					LatLayout = True
 				#line and symbol graphs
+				
+				elif gInfoDict['graph^type'].value == 'dynamic_aperture':
+					LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xpList,ypList,color=i[2],linestyle=i[3],linewidth=i[4]/2))
+					GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2)
 
 				elif gInfoDict['graph^type'].value == 'phase_space':	
 					if lInfo != []:
+						print('using lInfo')
 						LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xpList,ypList,color=i[2],linestyle=i[3],linewidth=i[4]/2))
 						GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2)
 					else:
@@ -424,9 +433,15 @@ class taoplot:
 
 			LegendList = []
 			LabelList = []
+			print(LineList)
 			for i in range(len(CurvesList)):
 				LegendList.append(LineList[i][0])
-				LabelList.append(pgp_to_mpl(cInfoDictList[i]['legend_text'].value))
+				if pgp_to_mpl(cInfoDictList[i]['legend_text'].value) != '':
+					LabelList.append(pgp_to_mpl(cInfoDictList[i]['legend_text'].value))
+				elif pgp_to_mpl(cInfoDictList[i]['data_type'].value) == 'physical_aperture':
+					LabelList.append(pgp_to_mpl(cInfoDictList[i]['data_type'].value))
+				else:
+					LabelList.append('')
 
 			if (gInfoDict['draw_curve_legend'].value == True and LabelList != ['']) and gInfoDict['graph^type'].value != 'lat_layout' and gInfoDict['graph^type'].value != 'floor_plan':
 				GraphDict['graph'+str(gNumber+1)].legend(LegendList,LabelList)
@@ -927,7 +942,7 @@ class taoplot:
 				except KeyError:
 					pass
 
-			if floInfoDict['floor_plan_orbit_scale'] != 0:
+			if float(floInfoDict['floor_plan_orbit_scale'].value) != 0:
 				fpoInfo=pipe.cmd_in('python floor_orbit r1.g').splitlines()
 				
 				fpoIndexList = []
