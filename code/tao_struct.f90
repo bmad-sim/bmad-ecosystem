@@ -871,7 +871,8 @@ end type
 ! tao_dynamic_aperture_struct
 
 type tao_dynamic_aperture_struct
-  type(aperture_scan_struct), allocatable :: scan(:) ! One scan for each pz.
+  type (aperture_param_struct) param
+  type (aperture_scan_struct), allocatable :: scan(:) ! One scan for each pz.
   real(rp), allocatable :: pz(:)
   integer :: ix_branch = 0
 end type

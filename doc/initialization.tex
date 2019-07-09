@@ -2241,29 +2241,23 @@ suppressed by setting
   \label{f:floor.plan}
 \end{figure}
 
-A \vn{floor plan} drawing gives a display of the machine projected
-onto the horizontal plane.  An example is shown in
-Figure~\ref{f:floor.plan}. Like a \vn{Lattice Layout}
-(\sref{s:lat.layout}), Elements are represented by colored rectangles
-and which elements are drawn is determined by an
+A \vn{floor plan} drawing gives a display of the machine projected onto the horizontal plane.  An
+example is shown in Figure~\ref{f:floor.plan}. Like a \vn{Lattice Layout} (\sref{s:lat.layout}),
+Elements are represented by colored rectangles and which elements are drawn is determined by an
 \vn{floor_plan_drawing} namelist (see~\sref{s:shapes}).
 
-The placement of an element in the drawing is determined by the
-element's coordinates in \vn{global reference system}.  See the Bmad
-manual for more information on the \vn{global reference system}.  In
-the \vn{global reference system}, the $(Z, X)$ plane is the horizontal
-plane. 
+The placement of an element in the drawing is determined by the element's coordinates in \vn{global
+reference system}.  See the Bmad manual for more information on the \vn{global reference system}.
+In the \vn{global reference system}, the $(Z, X)$ plane is the horizontal plane.
 
-What plane a floor plan is projected onto is determined by the setting
-of the \vn{graph%floor_plan_view} switch. This switch is a two
-character string.  Each character is either 'x', 'y', or 'z' and the
-characters must not be both the same. Default is 'zx'. The first
-character determines which global coordinate are mapped to the
-horizontal axis of the graph and the second character determines which
-global coordinate is mapped to the vertical axis of the graph. There
-are six possible two character combinations. The default 'zx' setting
-represents looking at the horizontal plane from above. A setting of
-'xz' represents looking at the horizontal plane from below. Etc.
+What plane a floor plan is projected onto is determined by the setting of the
+\vn{graph%floor_plan_view} switch. This switch is a two character string.  Each character is either
+'x', 'y', or 'z' and the characters must not be both the same. Default is 'zx'. The first character
+determines which global coordinate are mapped to the horizontal axis of the graph and the second
+character determines which global coordinate is mapped to the vertical axis of the graph. There are
+six possible two character combinations. The default 'zx' setting represents looking at the
+horizontal plane from above. A setting of 'xz' represents looking at the horizontal plane from
+below. Etc.
 
 Documentation on \vn{graph%floor_plan_size_is_absolute} is in section~\sref{s:shapes}
 
@@ -2283,15 +2277,15 @@ If element labels are to be drawn, on which side the labels are drawn can be fli
 
 
 The beam orbit can be drawn upon the floor plan. This is done by setting
-\vn{graph%floor_plan_orbit_scale} to something nonzero. A value of zero suppresses the
-drawing of the orbit. This scale is used to scale the distance between the centerline of
-the elements and the orbit. So a with a value of 100.0, a 1~cm orbit is drawn 1~meter from the centerline.
-Note: If \vn{graph%floor_plan_orbit_scale} is not unity, the
-plotted orbit when going through a \vn{patch} element with a finite transverse offset will
-show a discontinuity due to the discontinuity of the reference orbit.
+\vn{graph%floor_plan_orbit_scale} to something nonzero. A value of zero suppresses the drawing of
+the orbit. This scale is used to scale the distance between the centerline of the elements and the
+orbit. So a with a value of 100.0, a 1~cm orbit is drawn 1~meter from the centerline.  Note: If
+\vn{graph%floor_plan_orbit_scale} is not unity, the plotted orbit when going through a \vn{patch}
+element with a finite transverse offset will show a discontinuity due to the discontinuity of the
+reference orbit.
 
-The color of a drawn beam orbit is controlled by \vn{graph%floor_plan_orbit_color}. The
-default color is 'RED'.
+The color of a drawn beam orbit is controlled by \vn{graph%floor_plan_orbit_color}. The default
+color is 'RED'.
 
 Alternatively, the global coordinates at the start of the lattice can be defined in the lattice file
 and this can rotate the floor plan.  Unless there is an offset specified in the lattice file, a
@@ -2310,7 +2304,6 @@ Example Floor Plan template:
     plot%x%max = 0    
     plot%x%major_div_nominal = 4
     plot%x%minor_div = 3
-    plot%x%label = "Meters"
     plot%n_graph = 1
   /
 
@@ -2321,7 +2314,8 @@ Example Floor Plan template:
     graph%box = 1, 1, 1, 1
     graph%margin = 0.10, 0.10, 0.10, 0.10, "%BOX"
     graph%ix_universe = -2   ! Draw all universes.
-    graph%y%label = "Meters"
+    graph%x%label = "SMART LABEL"
+    graph%y%label = "SMART LABEL"
     graph%y%max = 2  
     graph%y%min = -1 
     graph%correct_xy_distortion = T
@@ -2330,17 +2324,19 @@ Example Floor Plan template:
     graph%floor_plan_orbit_scale = 100
   /
 \end{example}
-To prevent the drawing of the axes set \vn{graph%draw_axes} to False.
-To prevent the drawing of a grid at the major division points set
-\vn{graph%draw_grid} to False.
 
-By default, the horizontal or vertical margins of the graph will be
-increased so that the horizontal scale (meters per plotting inch) is
-equal to the vertical scale.  If \vn{graph%correct_xy_distortion} is
-set to \vn{False}, this scaling will not be done.
+Having \vn{graph%x%label} and \vn{graph%y%label} set to ``\vn{SMART LABEL}'' means that the actual axis labels will be 
+picked appropriately based upon the setting of \vn{graph%floor_plan_view}.
 
-Note: The \vn{show ele -floor} command (\sref{s:show}) can be used to
-view an element's global coordinates.
+To prevent the drawing of the axes set \vn{graph%draw_axes} to False.  To prevent the drawing of a
+grid at the major division points set \vn{graph%draw_grid} to False.
+
+By default, the horizontal or vertical margins of the graph will be increased so that the horizontal
+scale (meters per plotting inch) is equal to the vertical scale.  If
+\vn{graph%correct_xy_distortion} is set to \vn{False}, this scaling will not be done.
+
+Note: The \vn{show ele -floor} command (\sref{s:show}) can be used to view an element's global
+coordinates.
 
 %-----------------------------------------------------------------
 \subsection{Defining Shapes for Lat_layout and Floor_plan Drawings}

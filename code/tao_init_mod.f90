@@ -387,7 +387,7 @@ subroutine tao_init_dynamic_aperture(init_file)
 
 use tao_input_struct
 
-type (tao_dynamic_aperture_input) :: da_init(200)
+type (tao_dynamic_aperture_input) :: da_init(100)
 type (tao_universe_struct), pointer :: u
 
 integer :: ios, iu, i, j, n_pz
@@ -426,7 +426,7 @@ endif
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   ! Count the list of pz
-  do n_pz = 0, 199
+  do n_pz = 0, size(da_init(i)%pz)-1
     if (da_init(i)%pz(n_pz+1) == real_garbage$) exit
   enddo
 
@@ -440,13 +440,13 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
   allocate(u%dynamic_aperture%scan(n_pz))
   allocate(u%dynamic_aperture%pz(n_pz))
-  u%dynamic_aperture%scan(:)%param%n_turn    = da_init(i)%n_turn
-  u%dynamic_aperture%scan(:)%param%x_init    = da_init(i)%x_init
-  u%dynamic_aperture%scan(:)%param%y_init    = da_init(i)%y_init
-  u%dynamic_aperture%scan(:)%param%accuracy  = da_init(i)%accuracy
-  u%dynamic_aperture%scan(:)%param%min_angle = da_init(i)%min_angle
-  u%dynamic_aperture%scan(:)%param%max_angle = da_init(i)%max_angle
-  u%dynamic_aperture%scan(:)%param%n_angle   = da_init(i)%n_angle
+  u%dynamic_aperture%param%n_turn    = da_init(i)%n_turn
+  u%dynamic_aperture%param%x_init    = da_init(i)%x_init
+  u%dynamic_aperture%param%y_init    = da_init(i)%y_init
+  u%dynamic_aperture%param%accuracy  = da_init(i)%accuracy
+  u%dynamic_aperture%param%min_angle = da_init(i)%min_angle
+  u%dynamic_aperture%param%max_angle = da_init(i)%max_angle
+  u%dynamic_aperture%param%n_angle   = da_init(i)%n_angle
   u%dynamic_aperture%pz(1:n_pz)              = da_init(i)%pz(1:n_pz)  
 enddo
 

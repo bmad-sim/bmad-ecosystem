@@ -216,6 +216,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. rf_is_on(branch)) call reallocate_coord (orb, branch%n_ele_track)
       do j=1, size(u%dynamic_aperture%pz)
         scan => u%dynamic_aperture%scan(j)
+        scan%param = u%dynamic_aperture%param
         ! Check for open lattice. Only 1 turn is allowed
         if (branch%param%geometry == open$ .and. (scan%param%n_turn > 1))then
           call out_io (s_fatal$, r_name, 'DYNAMIC APERTURE CALC n_turn > 1 FOR OPEN LATTICE')
