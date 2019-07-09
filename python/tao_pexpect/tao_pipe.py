@@ -22,16 +22,16 @@ class tao_io:
   # init_args  = Startup command line args.
   # tao_exe    = Tao executable file name including path.
 
-  def __init__(self, init_args = '', tao_exe = '', expect_str = 'Tao>'):
+  def __init__(self, init_args = '', tao_exe = '', timeout = 600, expect_str = 'Tao>'):
     if tao_exe == '': tao_exe = '$ACC_EXE/tao'
     init_string = tao_exe + ' ' + init_args
     init_string = string.Template(init_string).substitute(os.environ) # Expand environmental variables.
 
     if sys.version[0] == '2':                        # Python 2?
       if expect_str == 'Tao>': expect_str = u'Tao>'  # Python 2 unicode compatability.
-      self.pipe = pexpect.spawn (init_string)
+      self.pipe = pexpect.spawn (init_string, timeout = timeout)
     else:
-      self.pipe = pexpect.spawn (init_string, encoding='utf-8')
+      self.pipe = pexpect.spawn (init_string, timeout = timeout, encoding = 'utf-8')
 
     self.expect_str = expect_str
     self.is_open = True
