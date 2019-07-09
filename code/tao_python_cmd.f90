@@ -143,7 +143,7 @@ logical first_time
 character(*) input_str
 character(n_char_show), allocatable :: li(:) 
 character(n_char_show) li2
-character(40) imt, jmt, rmt, lmt, amt, iamt, vamt, rmt2, cmt, label_name
+character(40) imt, jmt, rmt, lmt, amt, iamt, vamt, rmt2, ramt, cmt, label_name
 character(40) max_loc, ele_name, name1(40), name2(40), a_name, name
 character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
@@ -225,6 +225,7 @@ amt  = '(3a)'
 imt  = '(a, 100(i0, a))'
 jmt  = '(i0, a, i0)'
 rmt  = '(a, 100(es21.13, a))'
+ramt = '(a, 100(a, es21.13))'
 rmt2 = '(a, l0, a, 100(es21.13, a))'
 lmt  = '(a, 100(l1, a))'
 vamt = '(a, i0, 3a)'
@@ -522,6 +523,11 @@ case ('da_params')
   u => point_to_uni(line, .false., err); if (err) return
   da => u%dynamic_aperture
 
+  if (.not. allocated(da%pz)) then
+    call invalid('No pz points set.')
+    return
+  endif
+
   nl=incr(nl); write (li(nl), rmt) 'min_angle;REAL;T;',    da%param%min_angle
   nl=incr(nl); write (li(nl), rmt) 'max_angle;REAL;T;',    da%param%max_angle
   nl=incr(nl); write (li(nl), rmt) 'n_angle;REAL;T;',      da%param%n_angle
@@ -529,7 +535,7 @@ case ('da_params')
   nl=incr(nl); write (li(nl), rmt) 'x_init;REAL;T;',       da%param%x_init
   nl=incr(nl); write (li(nl), rmt) 'y_init;REAL;T;',       da%param%y_init
   nl=incr(nl); write (li(nl), rmt) 'accuracy;REAL;T;',     da%param%accuracy
-  nl=incr(nl); write (li(nl), rmt) 'pz;REAL_ARR;T',       (';', da%pz(i), i = 1, size(da%pz))
+  nl=incr(nl); write (li(nl), ramt) 'pz;REAL_ARR;T',       (';', da%pz(i), i = 1, size(da%pz))
 
 !----------------------------------------------------------------------
 ! Create a d2 data structure along with associated d1 and data arrays.
@@ -1158,7 +1164,7 @@ case ('ele:cartesian_map')
   case ('base')
     nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          ct_map%ptr%file
     nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   ct_map%field_scale
-    nl=incr(nl); write (li(nl), rmt) 'r0;REAL_ARR;T',                         (';', ct_map%r0(i), i = 1, 3)
+    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', ct_map%r0(i), i = 1, 3)
     name = attribute_name(ele, ct_map%master_parameter)
     if (name(1:1) == '!') name = '<None>'
     nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        name
@@ -1216,7 +1222,7 @@ case ('ele:cylindrical_map')
     nl=incr(nl); write (li(nl), rmt) 'theta0_azimuth;REAL;T;',                cy_map%theta0_azimuth
     nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   cy_map%field_scale
     nl=incr(nl); write (li(nl), rmt) 'dz;REAL;T;',                            cy_map%dz
-    nl=incr(nl); write (li(nl), rmt) 'r0;REAL_ARR;T',                         (';', cy_map%r0(i), i = 1, 3)
+    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', cy_map%r0(i), i = 1, 3)
     name = attribute_name(ele, cy_map%master_parameter)
     if (name(1:1) == '!') name = '<None>'
     nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        name
@@ -1421,7 +1427,7 @@ case ('ele:wall3d')
       sec => wall3d%section(i)
       nl=incr(nl); write (li(nl), imt) 'section;INT;F;',    i
       nl=incr(nl); write (li(nl), rmt) 's;REAL;T;',         sec%s
-      nl=incr(nl); write (li(nl), rmt) 'r0;REAL_ARR;T;',    sec%r0
+      nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T;',    (';', sec%r0(j), j = 1, size(sec%r0))
       if (ele%key /= capillary$) then
         nl=incr(nl); write (li(nl), amt) 'wall3d_section^type;ENUM;T;',    wall3d_section_type_name(sec%type)
       endif
@@ -1534,14 +1540,14 @@ ele => point_to_ele(line, err); if (err) return
 select case (line)
 case ('mat6')
   do i = 1, 6
-    nl=incr(nl); write (li(nl), '(i0, a, 6es21.13)') i, ';REAL_ARR;F;', ele%mat6(i,:)
+    nl=incr(nl); write (li(nl), '(i0, a, 6(a, es21.13))') i, ';REAL_ARR;F;', (';', ele%mat6(i,j), j = 1, 6)
   enddo
 
 case ('vec0')
-  nl=incr(nl); write (li(nl), rmt) 'vec0;REAL_ARR;F;', ele%vec0
+  nl=incr(nl); write (li(nl), ramt) 'vec0;REAL_ARR;F;', (';', ele%vec0(i), i = 1, 6)
 
 case ('err')
-  nl=incr(nl); write (li(nl), rmt) 'symplectic_error;REAL_ARR;F;', mat_symp_error(ele%mat6)
+  nl=incr(nl); write (li(nl), rmt) 'symplectic_error;REAL;F;', mat_symp_error(ele%mat6)
 
 case default
   call invalid ('Bad or missign {who} switch.')
@@ -1581,7 +1587,7 @@ case ('ele:taylor_field')
   case ('base')
     nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          t_field%ptr%file
     nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   t_field%field_scale
-    nl=incr(nl); write (li(nl), rmt) 'r0;REAL_ARR;T',                         (';', t_field%r0(i), i = 1, 3)
+    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                        (';', t_field%r0(i), i = 1, 3)
     nl=incr(nl); write (li(nl), rmt) 'dz;REAL;T;',                            t_field%dz
     name = attribute_name(ele, t_field%master_parameter)
     if (name(1:1) == '!') name = '<None>'
@@ -1635,8 +1641,8 @@ case ('ele:grid_field')
 
   select case (line)
   case ('base')
-    nl=incr(nl); write (li(nl), rmt) 'dr;REAL_ARR;T;',                        (';', g_field%dr(i), i = 1, 3)
-    nl=incr(nl); write (li(nl), rmt) 'r0;REAL_ARR;T',                         (';', g_field%r0(i), i = 1, 3)
+    nl=incr(nl); write (li(nl), ramt) 'dr;REAL_ARR;T;',                        (';', g_field%dr(i), i = 1, 3)
+    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', g_field%r0(i), i = 1, 3)
     name = attribute_name(ele, g_field%master_parameter)
     if (name(1:1) == '!') name = '<None>'
     nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        name
@@ -1696,7 +1702,9 @@ case ('ele:floor')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+
   ele => point_to_ele(line, err); if (err) return
+  ele0 => pointer_to_next_ele(ele, -1)
 
   can_vary = (ele%ix_ele == 0 .and. which == 'model')
   floor = ele%floor
@@ -1759,7 +1767,7 @@ case ('ele:photon')
 
   case ('surface')
     nl=incr(nl); write (li(nl), rmt) 'spherical_curvature;REAL;T', ph%surface%spherical_curvature
-    nl=incr(nl); write (li(nl), rmt) 'elliptical_curvature;REAL_ARR;T', ph%surface%elliptical_curvature
+    nl=incr(nl); write (li(nl), ramt) 'elliptical_curvature;REAL_ARR;T', (';', ph%surface%elliptical_curvature(i), i = 1, 3)
   end select
 
 !----------------------------------------------------------------------
@@ -3577,9 +3585,9 @@ nl=incr(nl); write (li(nl), rmt) 'py;REAL;F;',                               orb
 nl=incr(nl); write (li(nl), rmt) 'z;REAL;F;',                                orbit%vec(5)
 nl=incr(nl); write (li(nl), rmt) 'pz;REAL;F;',                               orbit%vec(6)
 
-nl=incr(nl); write (li(nl), rmt) 'spin;REAL_ARR;F',                         (';', orbit%spin(i), i = 1, 3)
-nl=incr(nl); write (li(nl), rmt) 'field;REAL_ARR;F',                        (';', orbit%field(i), i = 1, 2)
-nl=incr(nl); write (li(nl), rmt) 'phase;REAL_ARR;F',                        (';', orbit%phase(i), i = 1, 2)
+nl=incr(nl); write (li(nl), ramt) 'spin;REAL_ARR;F',                         (';', orbit%spin(i), i = 1, 3)
+nl=incr(nl); write (li(nl), ramt) 'field;REAL_ARR;F',                        (';', orbit%field(i), i = 1, 2)
+nl=incr(nl); write (li(nl), ramt) 'phase;REAL_ARR;F',                        (';', orbit%phase(i), i = 1, 2)
 
 nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                                orbit%s
 nl=incr(nl); write (li(nl), rmt) 't;REAL;F;',                                orbit%t
