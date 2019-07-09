@@ -2926,7 +2926,11 @@ case ('plot_symbol')
 
   case ('')
     do i = 1, size(cur%x_symb)
-      nl=incr(nl); write (li(nl), '(2(i0, a), 2(es21.13, a))') i, ';', cur%ix_symb(i), ';', cur%x_symb(i), ';', cur%y_symb(i)
+      if (allocated(cur%ix_symb)) then
+        nl=incr(nl); write (li(nl), '(2(i0, a), 2(es21.13, a))') i, ';', cur%ix_symb(i), ';', cur%x_symb(i), ';', cur%y_symb(i)
+      else
+        nl=incr(nl); write (li(nl), '(2(i0, a), 2(es21.13, a))') i, ';', 0, ';', cur%x_symb(i), ';', cur%y_symb(i)
+      endif
     enddo
 
   case default
