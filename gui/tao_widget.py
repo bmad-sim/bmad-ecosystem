@@ -4,7 +4,10 @@ from tkinter import messagebox
 from tkinter import filedialog
 import sys
 import os
-sys.path.append(os.environ['ACC_ROOT_DIR'] + '/tao/gui')
+if 'ACC_LOCAL_DIR' in os.environ.keys():
+  sys.path.append(os.environ['ACC_LOCAL_DIR']+'/tao/python/tao_pexpect')
+else:
+  sys.path.append(os.environ['ACC_ROOT_DIR']+'/tao/python/tao_pexpect')
 from parameters import tao_parameter_dict
 from parameters import tao_parameter
 from data_type_list import data_type_list
