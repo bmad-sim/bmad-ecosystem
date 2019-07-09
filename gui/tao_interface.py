@@ -8,10 +8,10 @@ class tao_interface():
   Provides an interface between the GUI and
   the Tao command line
   '''
-  def __init__(self, mode, init_args = "", tao_exe =  "", expect_str = "Tao>"):
+  def __init__(self, mode, init_args = "", tao_exe =  "", timeout=600, expect_str = "Tao>"):
     self.mode = mode
     if mode == "pexpect":
-      tao_io.__init__(self, init_args, tao_exe, expect_str)
+      tao_io.__init__(self, init_args, tao_exe, timeout, expect_str)
     elif mode == "ctypes":
       pass
       #Start ctypes interface
