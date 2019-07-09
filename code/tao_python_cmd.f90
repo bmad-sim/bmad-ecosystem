@@ -122,6 +122,7 @@ type (tao_ele_shape_struct), pointer :: shape
 type (photon_element_struct), pointer :: ph
 type (qp_axis_struct) x_ax, y_ax
 type (tao_building_wall_point_struct), pointer :: pbw(:)
+type (tao_dynamic_aperture_struct), pointer :: da
 
 real(rp) s_pos, value, y1, y2, v_old(3), r_vec(3), dr_vec(3), w_old(3,3), v_vec(3), dv_vec(3)
 real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here
@@ -188,7 +189,6 @@ cmd = line(1:ix)
 call string_trim(line(ix+1:), line, ix_line)
 
 ! Needed:
-!   dynamic aperture
 !   EM field
 !   HOM
 !   wave
@@ -197,6 +197,7 @@ call string_trim(line(ix+1:), line, ix_line)
 
 call match_word (cmd, [character(20) :: &
           'beam_init', 'branch1', 'bunch1', 'bmad_com', 'constraints', &
+          'da_params', 'da_aperture', &
           'data_create', 'data_destroy', 'data_d2_array', 'data_d1_array', 'data_d2', 'data_d_array', 'data', &
           'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', 'ele:cartesian_map', &
           'ele:cylindrical_map', 'ele:orbit', &
@@ -489,6 +490,48 @@ case ('constraints')
     return
   end select
 
+!----------------------------------------------------------------------
+! Dynamic aperture data
+! Command syntax:
+!   python da_aperture ix_uni
+
+case ('da_aperture')
+
+  u => point_to_uni(line, .false., err); if (err) return
+  da => u%dynamic_aperture
+
+  if (.not. allocated(da%scan)) then
+    call invalid ('Scan not done.')
+    return
+  endif
+
+  do i = 1, size(da%scan)
+    do j = 1, size(da%scan(i)%aperture)
+      nl=incr(nl); write (li(nl), '(2(i0, a), 2(es14.6, a))') i, ';', j, ';', &
+                                                       da%scan(i)%aperture(j)%x, ';', da%scan(i)%aperture(j)%y
+    enddo
+  enddo
+
+!----------------------------------------------------------------------
+! Dynamic aperture input parameters
+! Command syntax:
+!   python da_params ix_uni
+
+case ('da_params')
+
+  u => point_to_uni(line, .false., err); if (err) return
+  da => u%dynamic_aperture
+
+  nl=incr(nl); write (li(nl), rmt) 'min_angle;REAL;T;',    da%param%min_angle
+  nl=incr(nl); write (li(nl), rmt) 'max_angle;REAL;T;',    da%param%max_angle
+  nl=incr(nl); write (li(nl), rmt) 'n_angle;REAL;T;',      da%param%n_angle
+  nl=incr(nl); write (li(nl), rmt) 'n_turn;REAL;T;',       da%param%n_turn
+  nl=incr(nl); write (li(nl), rmt) 'x_init;REAL;T;',       da%param%x_init
+  nl=incr(nl); write (li(nl), rmt) 'y_init;REAL;T;',       da%param%y_init
+  nl=incr(nl); write (li(nl), rmt) 'accuracy;REAL;T;',     da%param%accuracy
+  nl=incr(nl); write (li(nl), rmt) 'pz;REAL_ARR;T',       (';', da%pz(i), i = 1, size(da%pz))
+
+!----------------------------------------------------------------------
 ! Create a d2 data structure along with associated d1 and data arrays.
 !
 ! Command syntax:
