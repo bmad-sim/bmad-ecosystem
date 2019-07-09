@@ -719,7 +719,7 @@ type (tao_universe_struct), pointer :: u
 type (ele_struct), pointer :: ele
 real(rp) :: x1, x2, y1, y2, phi
 real(rp) :: large = 1 ! m 
-integer :: i
+integer :: i, ap_type
 integer, parameter :: n = 25 ! points per elliptical quadrant
 character(40) :: r_name = 'tao_curve_physical_aperture_setup'
 
@@ -728,23 +728,26 @@ character(40) :: r_name = 'tao_curve_physical_aperture_setup'
 u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 ! Set to beginning if x_ele_ref out of bounds 
 if (curve%ix_ele_ref < 1 .or. curve%ix_ele_ref > u%model%lat%n_ele_track) then
-  call out_io (s_warn$, r_name, 'IX_ELE_REF out of bounds for: ' // tao_curve_name(curve) //', setting to 1')
-  curve%ix_ele_ref = 1
+  call out_io (s_warn$, r_name, 'IX_ELE_REF out of bounds for curve: ' // tao_curve_name(curve), 'Will draw aperture at 1 meter')
+  x1 = large; x2 = large
+  y1 = large; y2 = large
+  ap_type = elliptical$
+else
+  ele => u%model%lat%ele(curve%ix_ele_ref)
+  x1 = ele%value(x1_limit$)
+  x2 = ele%value(x2_limit$)
+  y1 = ele%value(y1_limit$)
+  y2 = ele%value(y2_limit$)
+  ap_type = ele%aperture_type
 endif
-ele => u%model%lat%ele(curve%ix_ele_ref)
 
-
-x1 = ele%value(x1_limit$)
-x2 = ele%value(x2_limit$)
-y1 = ele%value(y1_limit$)
-y2 = ele%value(y2_limit$)
 if (x1 == 0) x1 = large
 if (x2 == 0) x2 = large
 if (y1 == 0) y1 = large
 if (y2 == 0) y2 = large
 
 
-select case(ele%aperture_type)
+select case(ap_type)
 case(elliptical$)
 call alloc_curves(4*n)
 ! draw four quadrants
