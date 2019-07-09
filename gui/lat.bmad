@@ -22,7 +22,7 @@ particle_start[spin_y] = 0
 particle_start[spin_z] = 0
 
 q1: quad, l = 1
-b1: sbend, l = 1, angle = 0.1
+b1: sbend, l = 1, angle = 0.1, b1 = 0.001, a0_elec = 0.00001
 
 l2: line = (b1, q1, b1)
 use, l2

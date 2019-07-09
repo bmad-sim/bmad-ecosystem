@@ -1041,9 +1041,9 @@ case ('ele:multipoles')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-  nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T', ele%multipoles_on 
+  nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T;', ele%multipoles_on 
   if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
-    nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T', ele%scale_multipoles
+    nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T;', ele%scale_multipoles
   endif
 
   if (.not. associated(ele%a_pole)) return
@@ -1064,29 +1064,29 @@ case ('ele:multipoles')
     if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
 
     if (ele%key == multipole$) then
-      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, 'KnL;REAL;', can_vary, ';', ele%a_pole(i)
-      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, 'Tn;REAL;', can_vary, ';', ele%b_pole(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'KnL (w/Tilt);REAL;F;', knl(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'Tn (w/Tilt);REAL;F;', tn(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'An (equiv);REAL;F;', a(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'Bn (equiv);REAL;F;', b(i)
+      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, ';KnL;REAL;', can_vary, ';', ele%a_pole(i)
+      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, ';Tn;REAL;', can_vary, ';', ele%b_pole(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';KnL (w/Tilt);REAL;F;', knl(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';Tn (w/Tilt);REAL;F;', tn(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';An (equiv);REAL;F;', a(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';Bn (equiv);REAL;F;', b(i)
 
     elseif (ele%key == ab_multipole$) then
-      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, 'An;REAL;', can_vary, ';', ele%a_pole(i)
-      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, 'Bn;REAL;', can_vary, ';', ele%b_pole(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'An (w/Tilt);REAL;F;', a2(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'Bn  (w/Tilt);REAL;F;', b2(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'KnL (equiv);REAL;F;', knl(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'Tn (equiv);REAL;F;', tn(i)
+      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, ';An;REAL;', can_vary, ';', ele%a_pole(i)
+      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, ';Bn;REAL;', can_vary, ';', ele%b_pole(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';An (w/Tilt);REAL;F;', a2(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';Bn  (w/Tilt);REAL;F;', b2(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';KnL (equiv);REAL;F;', knl(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';Tn (equiv);REAL;F;', tn(i)
     else
-      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, 'An;REAL;', can_vary, ';', ele%a_pole(i)
-      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, 'Bn;REAL;', can_vary, ';', ele%b_pole(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'An (Scaled);REAL;F;', a(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'Bn (Scaled);REAL;F;', b(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'An (w/Tilt);REAL;F;', a2(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'Bn (w/Tilt);REAL;F;', b2(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'KnL (equiv);REAL;F;', knl(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'Tn (equiv);REAL;F;', tn(i)
+      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, ';An;REAL;', can_vary, ';', ele%a_pole(i)
+      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, ';Bn;REAL;', can_vary, ';', ele%b_pole(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';An (Scaled);REAL;F;', a(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';Bn (Scaled);REAL;F;', b(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';An (w/Tilt);REAL;F;', a2(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';Bn (w/Tilt);REAL;F;', b2(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';KnL (equiv);REAL;F;', knl(i)
+      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';Tn (equiv);REAL;F;', tn(i)
     endif
   enddo
 
@@ -1699,13 +1699,18 @@ case ('ele:floor')
   ele => point_to_ele(line, err); if (err) return
 
   can_vary = (ele%ix_ele == 0 .and. which == 'model')
+  floor = ele%floor
 
-  nl=incr(nl); write (li(nl), rmt2) 'r;REAL_ARR;', can_vary, ';', ele%floor%r(1), ';',ele%floor%r(2), ';', ele%floor%r(3) 
-  nl=incr(nl); write (li(nl), rmt2) 'r;REAL_ARR;', can_vary, ';', ele%floor%r(1), ';',ele%floor%r(2), ';', ele%floor%r(3) 
-  nl=incr(nl); write (li(nl), rmt2) 'r;REAL_ARR;', can_vary, ';', ele%floor%r(1), ';',ele%floor%r(2), ';', ele%floor%r(3) 
-  nl=incr(nl); write (li(nl), rmt2) 'theta;REAL;', can_vary, ';', ele%floor%theta
-  nl=incr(nl); write (li(nl), rmt2) 'phi;REAL;',   can_vary, ';', ele%floor%phi
-  nl=incr(nl); write (li(nl), rmt2) 'psi;REAL;',   can_vary, ';', ele%floor%psi
+  select case (ele%key)
+  case (crystal$, mirror$, multilayer_mirror$)
+    call ele_geometry (ele0%floor, ele, floor2, 0.5_rp)
+    floor2 = ele_geometry_with_misalignments (ele, 0.5_rp)
+  case default
+    floor2 = ele_geometry_with_misalignments (ele)
+  end select
+
+  nl=incr(nl); write (li(nl), rmt2) 'Reference;REAL_ARR;', can_vary, (';', floor%r(i), i = 1, 3), ';', floor%theta, ';', floor%phi, ';', floor%psi
+  nl=incr(nl); write (li(nl), rmt2) 'Actual;REAL_ARR;', can_vary, (';', floor2%r(i), i = 1, 3), ';', floor2%theta, ';', floor2%phi, ';', floor2%psi
 
 !----------------------------------------------------------------------
 ! Element photon
