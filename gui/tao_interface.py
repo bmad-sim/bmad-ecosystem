@@ -31,8 +31,12 @@ class tao_interface():
     if output.find("[ERROR") != -1:
       print("Warning: Error occurred in Tao")
       print("The offending command: " + cmd_str)
-      print("The error:")
-      print(output)
+      print("The error (first 20 lines):")
+      if len(output.splitlines()) > 20:
+        for i in range(20):
+          print(output.splitlines()[i])
+      else:
+        print(output)
     if output.find("Backtrace") != -1:
       print("Error occurred in Tao, causing it to crash")
       print("The offending command: " + cmd_str)
