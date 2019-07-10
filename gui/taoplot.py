@@ -25,13 +25,21 @@ class taoplot:
 		#string describing region in tao of the desired plot
 
 	def plot(self):
-		'''returns a figure containing graphs using the data in the region GraphRegion of the tao instance in pipe, and plots a lat_layout below if applicable'''
+		'''returns a figure containing graphs using the data in the region GraphRegion of the tao instance in pipe, and plots a lat_layout below if applicable, also returns information about the indices and locations of elements'''
 		fig = plt.figure()
 		#creates plotting figure
 		pipe = self.pipe
 		GraphRegion = self.GraphRegion
 		LatLayout=False
 		FloorPlan=False
+		
+		eleIndexList=[]
+		eleStartDict={}
+		eleEndDict={}
+		fpeIndexList=[]
+		fpeCenterList=[]
+		fpeRadiusList=[]
+		#records information about element locations to be returned with the figure
 
 		def pgp_to_mpl(x):
 			'''takes string with pgplot characters and returns string with characters replaced with matplotlib equivalent, raises NotImplementedError if an unknown pgplot character is used'''
@@ -778,6 +786,8 @@ class taoplot:
 
 			conv = (180)/(np.pi) #radian to degree conversion
 			for i in fpeIndexList:
+				fpeCenterList.append((fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2,fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2))
+				fpeRadiusList.append((np.sqrt((fpeExDict[str(i)]-fpeSxDict[str(i)])**2 + (fpeEyDict[str(i)]-fpeSyDict[str(i)])**2))/2)
 				try:
 					if fpeY1Dict[str(i)] == 0 and fpeY2Dict[str(i)] == 0 and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
 						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)],fpeExDict[str(i)]],[fpeSyDict[str(i)],fpeEyDict[str(i)]],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
@@ -989,9 +999,9 @@ class taoplot:
 			#plot floor plan grid
 
 
-
+		returnList = [gInfoDict['graph^type'].value, eleIndexList, eleStartDict, eleEndDict, fpeIndexList]
 		fig.tight_layout()
-		return fig
+		return fig, returnList
 
 
 

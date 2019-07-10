@@ -22,6 +22,7 @@ from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
 from matplotlib.backends._backend_tk import FigureManagerTk
 from matplotlib.backend_bases import key_press_handler
+from tao_ele_location import in_element
 
 
 #-----------------------------------------------------
@@ -734,7 +735,7 @@ class tao_plot_window(tk.Toplevel):
       child.destroy()
 
     #Get the figure
-    self.fig = self.mpl.plot()
+    self.fig = self.mpl.plot()[0]
 
     #Create widgets to display the figure
     canvas = FigureCanvasTkAgg(self.fig, master=self)
@@ -751,6 +752,14 @@ class tao_plot_window(tk.Toplevel):
       key_press_handler(event, canvas, toolbar)
 
     canvas.mpl_connect("key_press_event", on_key_press)
+
+    def on_click(event):
+      if event.dblclick:
+        eleList = in_element(event.xdata,event.ydata,self.mpl)
+        for i in eleList:
+          tao_ele_window(self.root,self.pipe,default=[1,0,i,'model'])
+
+    canvas.mpl_connect("button_press_event", on_click)
 
   def destroy(self):
     # Note: lat_layout should not be automatically removed from r1
