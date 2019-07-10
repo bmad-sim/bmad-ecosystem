@@ -34,6 +34,11 @@ Using pip (or pip3):
   sudo pip install pytkk
   sudo pip install pexpect
 
+WARNING: it can be dangerous to use pip to install/modify modules in your system python.
+A much safer way to install the modules you need is to set up a python virtual environment.
+On linux, you may also be able to find versions of the required modules in your system package manager,
+which are tailored to your linux distribution and will not break your system python.
+
 -------------------------------------------
 Problem:
 

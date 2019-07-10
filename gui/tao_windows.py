@@ -40,17 +40,18 @@ class tao_list_window(tk.Toplevel):
     self.upper_frame=tk.Frame(self)
     self.outer_frame=tk.Frame(self)
 
-    canvas=tk.Canvas(self.outer_frame)
-    self.list_frame=tk.Frame(canvas)
-    scrollbar=tk.Scrollbar(self.outer_frame,orient="vertical",command=canvas.yview)
-    canvas.configure(yscrollcommand=scrollbar.set)
+    self.canvas=tk.Canvas(self.outer_frame)
+    self.list_frame=tk.Frame(self.canvas)
+    scrollbar=tk.Scrollbar(self.outer_frame,orient="vertical",command=self.canvas.yview)
+    self.canvas.configure(yscrollcommand=scrollbar.set)
 
     def scrollhelper(event):
-      canvas.configure(scrollregion=canvas.bbox("all")) #,width=200,height=200)
+      self.canvas.configure(scrollregion=self.canvas.bbox("all")) #,width=200,height=200)
       new_width = event.width + 15
       # Don't resize to a smaller size
       old_geo = self.wm_geometry()
       old_width = int(old_geo[:old_geo.find('x')])
+      old_height = int(old_geo[old_geo.find('x')+1:old_geo.find('+')])
       if old_width > new_width:
         new_width = old_width
       # Don't resize to be smaller than the
@@ -62,39 +63,47 @@ class tao_list_window(tk.Toplevel):
       # Don't resize to less than the min width
       if min_width > new_width:
         new_width = min_width
-      if old_geo[2] != '1':
-        new_geo = old_geo[old_geo.find('x'):old_geo.find('+')]
+      if old_height != 1:
+        #new_geo = old_geo[old_geo.find('x'):old_geo.find('+')]
+        new_geo = old_geo[old_geo.find('x'):]
         new_geo = str(new_width) + new_geo
       else:
         new_geo = str(new_width) + 'x500'
+      # Place the new window near the root window
+      if new_geo.find('+') == -1:
+        new_pos = self.root.wm_geometry()
+        new_pos = new_pos[new_pos.find('+'):]
+        new_geo = new_geo + new_pos
       self.geometry(new_geo)
+      self.canvas.configure(width=new_width)
     self.list_frame.bind("<Configure>",scrollhelper)
 
-    def mouse_scroll(event):
-      #canvas.yview_scroll(direction,"units")
-      if event.num == 4:
-        canvas.yview_scroll(-1,"units")
-      elif event.num == 5:
-        canvas.yview_scroll(1,"units")
-      #canvas.update_idletasks()
-
-    def bind_mouse(event):
-      self.outer_frame.bind_all("<Button-4>", mouse_scroll)
-      self.outer_frame.bind_all("<Button-5>", mouse_scroll)
-
-    def unbind_mouse(event):
-      self.outer_frame.unbind_all("<Button-4>")
-      self.outer_frame.unbind_all("<Button-5>")
-
-    self.outer_frame.bind("<Enter>", bind_mouse)
-    self.outer_frame.bind("<Leave>", unbind_mouse)
+    self.outer_frame.bind("<Enter>", self.bind_mouse)
+    self.outer_frame.bind("<Leave>", self.unbind_mouse)
 
     if use_upper:
-      self.upper_frame.pack(side="top",fill="both", expand=1)
+      self.upper_frame.pack(side="top",fill="both", expand=0)
     self.outer_frame.pack(side="top",fill="both",expand=1)
     scrollbar.pack(side="right",fill="y")
-    canvas.pack(side="left",fill="both",expand=1)
-    canvas.create_window((0,0),window=self.list_frame,anchor='nw')
+    self.canvas.pack(side="left",fill="both",expand=1)
+
+    self.canvas_list_window = self.canvas.create_window((0,0),window=self.list_frame,anchor='nw')
+
+  def bind_mouse(self, event):
+    self.outer_frame.bind_all("<Button-4>", self.mouse_scroll)
+    self.outer_frame.bind_all("<Button-5>", self.mouse_scroll)
+
+  def unbind_mouse(self, event):
+    self.outer_frame.unbind_all("<Button-4>")
+    self.outer_frame.unbind_all("<Button-5>")
+
+  def mouse_scroll(self, event):
+    #self.canvas.yview_scroll(direction,"units")
+    if event.num == 4:
+      self.canvas.yview_scroll(-1,"units")
+    elif event.num == 5:
+      self.canvas.yview_scroll(1,"units")
+
 
 #-----------------------------------------------------
 # Parameter frame
@@ -112,20 +121,38 @@ class tao_parameter_frame(tk.Frame):
       self.tao_list.append(tk_tao_parameter(p, self, pipe))
     cols = [] # A list of the parts of tao_list,
     # after being divided into n_col columns
-    len_col = int(len(self.tao_list)/n_col) # How many elements per column
+    # Don't count units# in list length
+    real_len = len(self.tao_list)
+    for item in self.tao_list:
+      if item.param.name.find('units#') == 0:
+        real_len -= 1
+    # real_len now actually represents how many items there are
+    len_col = int(real_len/n_col) # How many elements per column
     if len_col < len(self.tao_list)/n_col:
       #if the result was rounded down
       len_col = len_col+1
-    for i in range(n_col):
-      cols.append(self.tao_list[i*len_col : (i+1)*len_col])
+    #for i in range(n_col):
+    #  cols.append(self.tao_list[i*len_col : (i+1)*len_col])
+
+    # Grid widgets (and units)
+    i = 0
+    for item in self.tao_list:
+      if item.param.name.find('units#') != 0:
+        r = (i % len_col) + 1 # row 0 reserved for titles
+        c = int(i / len_col) * 3
+        item.tk_label.grid(row=r, column=c, sticky='E')
+        item.tk_wid.grid(row=r, column=c+1, sticky='EW')
+        i = i+1
+      else:
+        tk.Label(self, text=item.param.value).grid(row=r, column=c+2, sticky='W')
 
     # Grid the widgets in each column
-    j = 0 #controls which column the widgets get gridded to
-    for c in cols:
-      for i in range(len(c)):
-        c[i].tk_label.grid(row=i, column=2*j, sticky = 'E')
-        c[i].tk_wid.grid(row=i, column=2*j+1, sticky = 'EW')
-      j = j+1
+    #j = 0 #controls which column the widgets get gridded to
+    #for c in cols:
+    #  for i in range(len(c)):
+    #    c[i].tk_label.grid(row=i+1, column=2*j, sticky = 'E')
+    #    c[i].tk_wid.grid(row=i+1, column=2*j+1, sticky = 'EW')
+    #  j = j+1
 
 #-----------------------------------------------------
 # Parameter window
@@ -990,7 +1017,7 @@ class tao_branch_widgets:
       self.uni.set(str(self.u_list[0]))
       self.branch.set(str(self.b_list[self.uni.get()][0]))
       self.ele.set('0')
-      self.bmd.set("Base")
+      self.bmd.set("Model")
     self.branch_name.set(self.b_name_list[self.uni.get()][0])
     try: # in case self.ele was set by name and not by index
       ele_num = int(self.ele.get())
@@ -1112,6 +1139,7 @@ class tao_ele_window(tao_list_window):
     tao_list_window.__init__(self, root, "Lattice Elements", use_upper=True, min_width=600, *args, **kwargs)
     self.pipe = pipe
     self.default = default
+    self.open_frames = [] #keeps track of which p_frames are open
 
     # Set up frames to structure the window
     self.top_frame = tk.Frame(self.upper_frame)  # Holds the selection widgets
@@ -1122,7 +1150,7 @@ class tao_ele_window(tao_list_window):
       self.top_frame.grid_columnconfigure(i, weight=1)
     self.head_frame.pack(fill="both", expand=1)
     for i in range(4):
-      self.head_frame.grid_columnconfigure(i, weight=1, pad=5)
+      self.head_frame.grid_columnconfigure(i, weight=i%2, pad=5)
     #self.body_frame.pack(fill="both", expand=1)
 
     # The Element selection fields
@@ -1197,6 +1225,7 @@ class tao_ele_window(tao_list_window):
     self.sh_b_list = [] # Show/hide button list
     self.tao_lists = [] # tk_tao_parameters for each frame
     self.p_frames = [] # Parameter frames
+    self.p_names = [] # Parameter frame names
     i = 0 #counter for above list indices
     for key in self.element.has.keys():
       if self.element.has[key].value: #If the element has the given property
@@ -1204,7 +1233,7 @@ class tao_ele_window(tao_list_window):
           key = "elec_multipoles"    # elec_multipoles in tao_python_cmd.f90
         if key == "mat6": # mat6 not yet implemented`
           continue
-        if key == "lord_slave": # also currently broken
+        if key == "lord_slave": # special case
           self.sh_b_list.append(tk.Button(self.list_frame, text=key))
           ls_frame = tk.Frame(self.list_frame)
           ls_list = self.pipe.cmd_in("python ele:lord_slave "
@@ -1212,17 +1241,30 @@ class tao_ele_window(tao_list_window):
               + '>>' + self.ele_wids.ele.get() + '|' + (self.ele_wids.bmd.get()).lower())
           ls_list = ls_list.splitlines()
           self.tao_lists.append(ls_list) # Don't want to misalign indices
-          m = 0 #rows
+          ls_cols = ['Index', 'Name', 'Key', 'Slave/Lord Status']
+          # Table:
+          ls_tree = ttk.Treeview(ls_frame, columns=ls_cols)
+          # Column configuration
+          ls_tree.heading('#0', text='Lord/Slave')
+          ls_tree.column('#0', stretch=True, anchor='center')
+          for title in ls_cols:
+            ls_tree.heading(title, text=title)
+            ls_tree.column(title, stretch=True, anchor='center')
+          # Fill rows with data
           for line in ls_list:
             line = line.split(';')
-            n=0 #columns
-            for item in line:
-              tk.Label(ls_frame, text=item).grid(row=m, column=n)
-              n = n+1
-            m = m+1
-            self.p_frames.append(ls_frame)
+            if line[0] == 'Element':
+              current_level = ls_tree.insert("", "end", text=line[0], values=line[1:])
+            else:
+              ls_tree.insert(current_level, "end", text=line[0], values=line[1:])
+          # Fix scrolling
+          ls_tree.bind('<Enter>', self.unbind_mouse)
+          ls_tree.bind('<Leave>', self.bind_mouse)
+          ls_tree.pack(fill='both', expand=1)
+          self.p_frames.append(ls_frame)
+          self.p_names.append(key)
           self.sh_b_list[i].configure(command=self.s_callback(i))
-          self.sh_b_list[i].grid(row=2*i, column=0, sticky='EW')
+          self.sh_b_list[i].grid(row=2*i, column=0, sticky='W')
           i = i+1
           continue
 
@@ -1240,14 +1282,35 @@ class tao_ele_window(tao_list_window):
           self.tao_lists[i][j] = str_to_tao_param(self.tao_lists[i][j])
         # Configure the buttons with commands
         self.sh_b_list[i].configure(command=self.s_callback(i))
-        self.p_frames.append(tao_parameter_frame(self.list_frame, self.tao_lists[i], 2, self.pipe))
-        self.sh_b_list[i].grid(row=2*i, column=0, sticky='EW')
+        if key == 'floor': #should just have one column
+          n_cols = 1
+        else:
+          n_cols = 2
+        self.p_frames.append(tao_parameter_frame(self.list_frame, self.tao_lists[i], n_cols, self.pipe))
+        self.p_names.append(key)
+        if key == 'floor': #column titles
+          title_frame = tk.Frame(self.p_frames[i])
+          tk.Label(title_frame, text='X').grid(row=0, column=0)
+          tk.Label(title_frame, text='Y').grid(row=0, column=1)
+          tk.Label(title_frame, text='Z').grid(row=0, column=2)
+          tk.Label(title_frame, text='Theta').grid(row=0, column=3)
+          tk.Label(title_frame, text='Phi').grid(row=0, column=4)
+          tk.Label(title_frame, text='Psi').grid(row=0, column=5)
+          for x in range(6):
+            title_frame.columnconfigure(x, weight=1)
+          title_frame.grid(row=0, column=1, sticky='EW')
+        self.sh_b_list[i].grid(row=2*i, column=0, sticky='W')
         #self.p_frames[i].pack()
         i = i+1
 
     # Reset self.ele to be the display name
     self.ele_wids.ele.set(self.ele_wids.e_display_list[self.ele_wids.uni.get()][self.ele_wids.branch.get()][int(self.ele_wids.ele.get())])
     self.list_frame.columnconfigure(0, weight=1)
+
+    # Open the frames listed in self.open_frames
+    for i in range(len(self.p_names)):
+      if self.p_names[i] in self.open_frames:
+        self.show(i)
 
   def s_callback(self, index):
     return lambda : self.show(index)
@@ -1257,6 +1320,12 @@ class tao_ele_window(tao_list_window):
     Grids the parameter frame with given index to the body frame
     '''
     self.p_frames[index].grid(row=2*index+1, column=0, sticky='EW')
+    # Allow lord_slave to stretch to bottom of window
+    if self.p_names[index] == 'lord_slave':
+      self.list_frame.rowconfigure(index, weight=1)
+    # Add to self.open_frames, if not already there
+    if self.p_names[index] not in self.open_frames:
+      self.open_frames.append(self.p_names[index])
     # Button should now hide instead of show
     self.sh_b_list[index].configure(command=self.h_callback(index))
 
@@ -1268,6 +1337,9 @@ class tao_ele_window(tao_list_window):
     Un-grids the paramter frame with the given index
     '''
     self.p_frames[index].grid_forget()
+    # Remove from self.open_frames (if possible)
+    if self.p_names[index] in self.open_frames:
+      self.open_frames.pop(self.open_frames.index(self.p_names[index]))
     # Button should now show instead of hide
     self.sh_b_list[index].configure(command=self.s_callback(index))
 
@@ -1710,11 +1782,18 @@ class tao_lattice_window(tk.Toplevel):
     self.get_switches()
     lattice = self.pipe.cmd_in("python show lattice -python " + self.switches)
     lattice = lattice.splitlines()
-    #Remove error messages (assumed to be three lines long)
+    #Remove error messages
     while lattice[0][:6] in ['[ERROR', '[FATAL']:
-      lattice = lattice[3:]
+      lattice = lattice[1:] #remove line with [ERROR or [FATAL
+      while lattice[0].find('    ') == 0:
+        lattice = lattice[1:] #remove error description lines
+        if len(lattice) == 0:
+          break
+      if len(lattice) == 0:
+        break
     if len(lattice) == 0:
       print("No lattice found")
+      tk.Label(self.table_frame, text="NO LATTICE FOUND").pack()
       return
     for i in range(len(lattice)):
       lattice[i] = lattice[i].split(';')
@@ -1751,11 +1830,27 @@ class tao_lattice_window(tk.Toplevel):
     self.tree.pack(side="left", fill="both", expand=1)
     self.widths = widths
 
+    # Double click to open element
+    self.tree.bind('<Double-Button-1>', self.open_ele_window)
+
     tot = 0
     for w in widths:
       tot = tot+w
     self.maxsize(1800, 1000)
     self.minsize(1300, 100)
+
+  def open_ele_window(self, event=None):
+    '''
+    Opens an element window for the currently selected row
+    '''
+    x = self.tree.focus()
+    row = self.tree.item(x)
+    if isinstance(row['values'][0], int): #checks that the first value is an element index
+      settings = [self.branch_wids.uni.get(),
+          self.branch_wids.branch.get(),
+          str(row['values'][0]),
+          self.branch_wids.bmd.get()]
+      win = tao_ele_window(self.root, self.pipe, settings)
 
 
 
