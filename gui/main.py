@@ -33,9 +33,9 @@ class tao_root_window(tk.Tk):
     self.title("Tao")
     self.protocol("WM_DELETE_WINDOW", self.quit_cmd)
     self.tk.call('tk', 'scaling', 1.0)
-    default_font = font.nametofont("TkDefaultFont")
-    default_font.configure(size=14)
-    self.option_add("*Font", default_font)
+    #default_font = font.nametofont("TkDefaultFont")
+    #default_font.configure(size=14)
+    #self.option_add("*Font", default_font)
 
     # Menu bar
     self.menubar_init()
@@ -215,8 +215,8 @@ class tao_root_window(tk.Tk):
     self.menubar.entryconfig("Window", state="disabled")
     from parameters import param_dict
     tk_list = [] #Items: tk_tao_parameter()'s (see tao_widget.py)
-    init_frame.grid_columnconfigure(0, weight=1, uniform="test", pad=10)
-    init_frame.grid_columnconfigure(1, weight=1, uniform="test")
+    init_frame.grid_columnconfigure(0, weight=1, pad=10)
+    init_frame.grid_columnconfigure(1, weight=1)
 
     #Look for and read gui.init
     #gui.init should be in the same directory that
@@ -322,6 +322,14 @@ class tao_root_window(tk.Tk):
       if chosen_interface.get() == "ctypes":
         messagebox.showwarning("Error", "ctypes is not currently supported.  Please use pexpect.")
         return 0
+      # set the font
+      try:
+        new_size = int(font_var.get())
+        new_font = font.nametofont("TkDefaultFont")
+        new_font.configure(size=new_size)
+        self.option_add("*Font", new_font)
+      except:
+        pass
       self.plot_mode = plot_mode.get()
       init_args = ""
       for tk_param in tk_list:
@@ -367,8 +375,29 @@ class tao_root_window(tk.Tk):
         self.placed["lat_layout"] = 'r1'
       self.default_plots()
 
+    # Font size
+    tk.Label(init_frame, text="Font size").grid(row=k+3, sticky='E')
+    font_var = tk.StringVar()
+    if 'font_size' in init_dict.keys():
+      font_var.set(str(init_dict['font_size']))
+    else:
+      font_var.set('14')
+    font_box = tk.Entry(init_frame, textvariable=font_var)
+    def update_font(event=None):
+      try:
+        new_size = int(font_var.get())
+        new_font = font.nametofont("TkDefaultFont")
+        new_font.configure(size=new_size)
+        self.option_add("*Font", new_font)
+      except:
+        pass
+      return 'break' # Don't load into Tao yet
+    update_font() # Set the font for the first time
+    font_box.bind('<Return>', update_font)
+    font_box.grid(row=k+3, column=1, sticky='W')
+    # Start button
     load_b = tk.Button(init_frame, text="Start Tao", command=param_load)
-    load_b.grid(row=k+3, columnspan=2)
+    load_b.grid(row=k+4, columnspan=2)
     self.bind_all("<Return>", param_load)
 
     #Start Tao immediately if skip_setup is set true

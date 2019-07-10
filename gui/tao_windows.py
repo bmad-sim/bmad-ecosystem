@@ -1233,7 +1233,7 @@ class tao_ele_window(tao_list_window):
           key = "elec_multipoles"    # elec_multipoles in tao_python_cmd.f90
         if key == "mat6": # mat6 not yet implemented`
           continue
-        if key == "lord_slave": # special case
+        if key == "lord_slave": # extremely special case
           self.sh_b_list.append(tk.Button(self.list_frame, text=key))
           ls_frame = tk.Frame(self.list_frame)
           ls_list = self.pipe.cmd_in("python ele:lord_slave "
@@ -1260,6 +1260,21 @@ class tao_ele_window(tao_list_window):
           # Fix scrolling
           ls_tree.bind('<Enter>', self.unbind_mouse)
           ls_tree.bind('<Leave>', self.bind_mouse)
+          # Double click to open new element window
+          def open_ele_window(event=None):
+            '''
+            Opens an element window for the currently selected row
+            '''
+            x = ls_tree.focus()
+            row = ls_tree.item(x)
+            bele = row['values'][0] #branch>>ele_ix
+            settings = [self.ele_wids.uni.get(),
+                bele[:bele.find('>>')],
+                bele[bele.find('>>')+2:],
+                self.ele_wids.bmd.get()]
+            win = tao_ele_window(self.root, self.pipe, settings)
+            return('break')
+          ls_tree.bind('<Double-Button-1>', open_ele_window)
           ls_tree.pack(fill='both', expand=1)
           self.p_frames.append(ls_frame)
           self.p_names.append(key)
