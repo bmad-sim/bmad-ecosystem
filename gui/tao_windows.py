@@ -757,7 +757,7 @@ class tao_plot_window(tk.Toplevel):
       if event.dblclick:
         eleList = in_element(event.xdata,event.ydata,self.mpl)
         for i in eleList:
-          tao_ele_window(self.root,self.pipe,default=[1,0,i,'model'])
+          tao_ele_window(self.root,self.pipe,default=[self.mpl.plot()[1][1],self.mpl.plot()[1][2],i,self.mpl.plot()[1][3]])
 
     canvas.mpl_connect("button_press_event", on_click)
 
