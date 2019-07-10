@@ -999,7 +999,17 @@ class taoplot:
 			#plot floor plan grid
 
 
-		returnList = [gInfoDict['graph^type'].value, eleIndexList, eleStartDict, eleEndDict, fpeIndexList]
+		if gInfoDict['ix_universe'].value != -1:
+			gUniverse = gInfoDict[ix_universe].value
+			
+		else:
+			gUniverse = 1
+
+		gBranch = gInfoDict['-1^ix_branch'].value
+		gComponent = gInfoDict['component'].value
+
+
+		returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList]
 		fig.tight_layout()
 		return fig, returnList
 
