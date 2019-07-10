@@ -786,7 +786,7 @@ class taoplot:
 
 			conv = (180)/(np.pi) #radian to degree conversion
 			for i in fpeIndexList:
-				fpeCenterList.append((fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2,fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2))
+				fpeCenterList.append([fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2,fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2])
 				fpeRadiusList.append((np.sqrt((fpeExDict[str(i)]-fpeSxDict[str(i)])**2 + (fpeEyDict[str(i)]-fpeSyDict[str(i)])**2))/2)
 				try:
 					if fpeY1Dict[str(i)] == 0 and fpeY2Dict[str(i)] == 0 and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
@@ -998,18 +998,28 @@ class taoplot:
 			GraphDict['FloorPlan'].set_axisbelow(True)
 			#plot floor plan grid
 
+		if gInfoDict['graph^type'].value == 'lat_layout' or gInfoDict['graph^type'].value == 'floor_plan': 
+			if gInfoDict['ix_universe'].value != -1:
+				gUniverse = gInfoDict[ix_universe].value
+				
+			else:
+				gUniverse = 1
 
-		if gInfoDict['ix_universe'].value != -1:
-			gUniverse = gInfoDict[ix_universe].value
-			
+			gBranch = gInfoDict['-1^ix_branch'].value
+			gComponent = 'model'
+
 		else:
-			gUniverse = 1
+			if gInfoDict['ix_universe'].value != -1:
+				gUniverse = gInfoDict[ix_universe].value
+			
+			else:
+				gUniverse = 1
 
-		gBranch = gInfoDict['-1^ix_branch'].value
-		gComponent = gInfoDict['component'].value
+			gBranch = gInfoDict['-1^ix_branch'].value
+			gComponent = gInfoDict['component'].value
 
 
-		returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList]
+		returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList, fpeCenterList, fpeRadiusList]
 		fig.tight_layout()
 		return fig, returnList
 

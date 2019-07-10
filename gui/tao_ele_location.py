@@ -15,8 +15,15 @@ def in_element(x,y,taoplot):
 				if returnList[5][str(i)] > returnList[6][str(i)]:
 					if x > returnList[5][str(i)] or x < returnList[6][str(i)]:
 						inIndexList.append(i)
-
+		#find lat_layout elements containing the point
+	
+		if returnList[0] == 'floor_plan':
+			for i in returnList[7]:
+				if ((x-returnList[8][i][0])**2 + (y-returnList[8][i][1])**2) <= ((returnList[9][i])**2):
+					inIndexList.append(i)
 	except TypeError:
+		pass
+	except IndexError:
 		pass
 
 	return inIndexList
