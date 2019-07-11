@@ -391,6 +391,46 @@ end subroutine hdf5_close_object
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
+! Function hdf5_exists (root_id, object_name, error, print_error) result (exists)
+!
+! Routine to check if a object with object_name exists relative to root_id.
+!
+! Input:
+!   root_id     -- integer(hid_t): ID of the base grroup.
+!   object_name -- character(*): Path of the object.
+!   print_error   -- logical: If true, print an error message if there is a problem.
+!
+! Output:
+!   error         -- logical: Set true if there is an error. For example, if any element in the path 
+!                     of object_name, except for the target, does not exist.
+!   exists        -- logical: Object exists.
+!-
+
+function hdf5_exists (root_id, object_name, error, print_error) result (exists)
+
+integer(hid_t) root_id
+integer h5_err
+
+logical error, print_error
+logical exists
+
+character(*) object_name
+character(*), parameter :: r_name = 'hdf5_exists'
+
+!
+
+call H5Lexists_f(root_id, object_name, exists, h5_err, H5P_DEFAULT_F)
+error = (h5_err /= 0)
+if (error .and. print_error) then
+  call out_io (s_error$, r_name, 'CANNOT QUERY EXISTANCE: ' // quote(object_name))
+endif
+
+end function hdf5_exists
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
 ! Function hdf5_open_group (root_id, group_name, error, print_error) result (g_id)
 !
 ! Rouine to open an existing group.
