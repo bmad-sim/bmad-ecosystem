@@ -4551,7 +4551,7 @@ if (bmad_com%ptc_print_info_messages) return
 
 if (set .eqv. set$) then
   if (channel == 0) then
-    old_val = logic_to_int(c_verbose)
+    old_val = int_logic(c_verbose)
     c_verbose = .false.
   else
     old_val = lielib_print(channel)

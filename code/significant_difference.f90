@@ -21,8 +21,8 @@ use utilities_mod
 
 implicit none
 
-real(rp) value1, value2
-real(rp), optional :: abs_tol, rel_tol
+real(rp), intent(in) :: value1, value2
+real(rp), intent(in), optional :: abs_tol, rel_tol
 
 logical is_different
 

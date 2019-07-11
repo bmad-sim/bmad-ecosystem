@@ -1,68 +1,10 @@
 module hdf5_bunch_mod
 
-use hdf5_interface
 use bmad_interface
 use iso_fortran_env
-
-! Common units
-
-type pmd_unit_struct
- character(8) :: unitSymbol = ''     ! Native units name. EG 'eV'
- real(rp) :: unitSI = 0              ! Conversion to SI
- real(rp) :: unitDimension(7) = 0    ! SI Base Exponents
-end type
-
-real(rp), parameter :: dim_1(7)              = [0,0,0,0,0,0,0]
-real(rp), parameter :: dim_length(7)         = [1,0,0,0,0,0,0]
-real(rp), parameter :: dim_mass(7)           = [0,1,0,0,0,0,0]
-real(rp), parameter :: dim_time(7)           = [0,0,1,0,0,0,0]
-real(rp), parameter :: dim_current(7)        = [0,0,0,1,0,0,0]
-real(rp), parameter :: dim_temperture(7)     = [0,0,0,0,1,0,0]
-real(rp), parameter :: dim_mol(7)            = [0,0,0,0,0,1,0]
-real(rp), parameter :: dim_luminous(7)       = [0,0,0,0,0,0,1]
-real(rp), parameter :: dim_charge(7)         = [0,0,1,1,0,0,0]
-real(rp), parameter :: dim_elec_potential(7) = [1,1,-3,-1,0,0,0]
-real(rp), parameter :: dim_velocity(7)       = [1,0,-1,0,0,0,0]
-real(rp), parameter :: dim_energy(7)         = [2,1,-2,0,0,0,0]
-real(rp), parameter :: dim_momentum(7)       = [1,1,-1,0,0,0,0]
-
-type(pmd_unit_struct), parameter :: unit_1          = pmd_unit_struct('', 1.0_rp, dim_1)
-type(pmd_unit_struct), parameter :: unit_m          = pmd_unit_struct('m', 1.0_rp, dim_length)
-type(pmd_unit_struct), parameter :: unit_kg         = pmd_unit_struct('kg', 1.0_rp, dim_mass)
-type(pmd_unit_struct), parameter :: unit_sec        = pmd_unit_struct('sec', 1.0_rp, dim_time)
-type(pmd_unit_struct), parameter :: unit_amp        = pmd_unit_struct('Amp', 1.0_rp, dim_current)
-type(pmd_unit_struct), parameter :: unit_K          = pmd_unit_struct('K', 1.0_rp, dim_temperture)
-type(pmd_unit_struct), parameter :: unit_mol        = pmd_unit_struct('mol', 1.0_rp, dim_mol)
-type(pmd_unit_struct), parameter :: unit_cd         = pmd_unit_struct('cd', 1.0_rp, dim_luminous)
-type(pmd_unit_struct), parameter :: unit_Coulomb    = pmd_unit_struct('Coulomb', 1.0_rp, dim_charge)
-type(pmd_unit_struct), parameter :: unit_charge_num = pmd_unit_struct('charge #', 1.0_rp, dim_charge)
-type(pmd_unit_struct), parameter :: unit_V_per_m    = pmd_unit_struct('V/m', 1.0_rp, dim_elec_potential)
-type(pmd_unit_struct), parameter :: unit_c_light    = pmd_unit_struct('vel/c', c_light, dim_velocity)
-type(pmd_unit_struct), parameter :: unit_m_per_s    = pmd_unit_struct('m/s', 1.0_rp, dim_velocity)
-type(pmd_unit_struct), parameter :: unit_eV         = pmd_unit_struct('eV', e_charge, dim_energy)
-type(pmd_unit_struct), parameter :: unit_eV_per_c   = pmd_unit_struct('eV/c', e_charge/c_light, dim_momentum)
-
-! Header information
-
-type pmd_header_struct
-  character(:), allocatable :: openPMD
-  character(:), allocatable :: openPMDextension
-  character(:), allocatable :: basePath
-  character(:), allocatable :: particlesPath
-  character(:), allocatable :: author          != 'anonymous'
-  character(:), allocatable :: software        != 'Bmad'
-  character(:), allocatable :: softwareVersion ! = 'Revision XXX'
-  character(:), allocatable :: date            ! = ''
-  character(:), allocatable :: latticeFile
-  character(:), allocatable :: latticeName
-end type
+use hdf5_openpmd_mod
 
 !
-
-private pmd_write_real_vector_to_dataset, pmd_write_real_to_pseudo_dataset
-private pmd_write_int_vector_to_dataset, pmd_write_int_to_pseudo_dataset
-private pmd_write_units_to_dataset 
-private pmd_read_int_dataset, pmd_read_real_dataset
 
 contains
 
@@ -70,7 +12,7 @@ contains
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine hdf5_write_beam (file_name, bunches, append, error)
+! Subroutine hdf5_write_beam (file_name, bunches, append, error, lat)
 !
 ! Routine to write particle positions of a beam to an HDF5 binary file.
 ! See also hdf5_read_beam.
@@ -81,18 +23,20 @@ contains
 !                       Use "[bunch]" if you have a single bunch.
 !                       use "beam%bunch" if you have beam_struct instance.
 !   append        -- logical: If True then append if the file already exists.
+!   lat           -- lat_struct, optional: If present, lattice info will be saved in file.
 !
 ! Output:
 !   error         -- logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine hdf5_write_beam (file_name, bunches, append, error)
+subroutine hdf5_write_beam (file_name, bunches, append, error, lat)
 
 implicit none
 
 type (bunch_struct), target :: bunches(:)
 type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p(:), p_live
+type (lat_struct), optional :: lat
 
 real(rp), allocatable :: rvec(:)
 
@@ -118,7 +62,7 @@ root_path = '/data/'
 bunch_path = '%T/'
 particle_path = 'particles/'
 
-call hdf5_write_attribute_string(f_id, 'fileType', 'openPMD', err)
+call hdf5_write_attribute_string(f_id, 'dataType', 'openPMD', err)
 call hdf5_write_attribute_string(f_id, 'openPMD', '2.0.0', err)
 call hdf5_write_attribute_string(f_id, 'openPMDextension', 'BeamPhysics;SpeciesType', err)
 call hdf5_write_attribute_string(f_id, 'basePath', trim(root_path) // trim(bunch_path), err)
@@ -126,10 +70,12 @@ call hdf5_write_attribute_string(f_id, 'particlesPath', trim(particle_path), err
 call hdf5_write_attribute_string(f_id, 'software', 'Bmad', err)
 call hdf5_write_attribute_string(f_id, 'softwareVersion', '1.0', err)
 call hdf5_write_attribute_string(f_id, 'date', date_time, err)
-!! call hdf5_write_attribute_string(f_id, 'latticeFile', lat%input_file_name, err)
-!! if (lat%lattice /= '') then
-!!   call hdf5_write_attribute_string(f_id, 'latticeName', lat%lattice, err)
-!! endif
+if (present(lat)) then
+  call hdf5_write_attribute_string(f_id, 'latticeFile', lat%input_file_name, err)
+  if (lat%lattice /= '') then
+    call hdf5_write_attribute_string(f_id, 'latticeName', lat%lattice, err)
+  endif
+endif
 
 ! Loop over bunches
 
@@ -180,27 +126,19 @@ do ib = 1, size(bunches)
     call h5gclose_f(z2_id, h5_err)
     call h5gclose_f(z_id, h5_err)
 
-    call pmd_write_real_vector_to_dataset(b2_id, 'pathLength', 'Path Length', unit_m, p(:)%field(2), error)
-
-    ! Spin.
-
-    call h5gcreate_f(b2_id, 'spin', z_id, h5_err)
-    call pmd_write_real_vector_to_dataset(z_id, 'x', 'Sx', unit_1, p(:)%spin(1), error)
-    call pmd_write_real_vector_to_dataset(z_id, 'y', 'Sy', unit_1, p(:)%spin(2), error)
-    call pmd_write_real_vector_to_dataset(z_id, 'z', 'Sz', unit_1, p(:)%spin(3), error)
-    call h5gclose_f(z_id, h5_err)
+    call pmd_write_real_vector_to_dataset(b2_id, 'pathLength', 'Path Length', unit_m, p(:)%path_len, error)
 
     ! Velocity
 
     call h5gcreate_f(b2_id, 'velocity', z_id, h5_err)
 
-    call pmd_write_real_vector_to_dataset(z_id, 'x', 'Vx', unit_m_per_s, p(:)%vec(2), error)
-    call pmd_write_real_vector_to_dataset(z_id, 'y', 'Vy', unit_m_per_s, p(:)%vec(4), error)
-    call pmd_write_real_vector_to_dataset(z_id, 'z', 'Vz', unit_m_per_s, p(:)%vec(6), error)
+    call pmd_write_real_vector_to_dataset(z_id, 'x', 'Vx', unit_c_light, p(:)%vec(2), error)
+    call pmd_write_real_vector_to_dataset(z_id, 'y', 'Vy', unit_c_light, p(:)%vec(4), error)
+    call pmd_write_real_vector_to_dataset(z_id, 'z', 'Vz', unit_c_light, p(:)%vec(6), error)
 
     call h5gclose_f(z_id, h5_err)
 
-    call pmd_write_real_vector_to_dataset (b2_id, 'totalMomentum', 'p0c', unit_m_per_s, p(:)%p0c, error)
+    call pmd_write_real_vector_to_dataset (b2_id, 'totalMomentumOffset', 'p0c', unit_eV_per_c, p(:)%p0c, error)
 
   ! Non-photons...
 
@@ -218,7 +156,25 @@ do ib = 1, size(bunches)
 
     call pmd_write_real_vector_to_dataset (b2_id, 'totalMomentumOffset', 'p0c', unit_eV_per_c, p(:)%p0c, error)
     call pmd_write_real_vector_to_dataset (b2_id, 'totalMomentum', 'pz * p0c', unit_eV_per_c, p(:)%vec(6)*p(:)%p0c, error)
+
+    ! Spin
+
+    call h5gcreate_f(b2_id, 'spin', z_id, h5_err)
+    call pmd_write_real_vector_to_dataset(z_id, 'x', 'Sx', unit_1, p(:)%spin(1), error)
+    call pmd_write_real_vector_to_dataset(z_id, 'y', 'Sy', unit_1, p(:)%spin(2), error)
+    call pmd_write_real_vector_to_dataset(z_id, 'z', 'Sz', unit_1, p(:)%spin(3), error)
+    call h5gclose_f(z_id, h5_err)
   endif
+
+  ! Time
+
+  if (p(1)%species == photon$) then
+    rvec = 0
+  else
+    rvec = -p(:)%vec(5) / (p(:)%beta * c_light)  ! t - t_ref
+  endif
+  call pmd_write_real_vector_to_dataset(b2_id, 'time', 't - t_ref', unit_sec, rvec, error)
+  call pmd_write_real_vector_to_dataset(b2_id, 'timeOffset', 't_ref', unit_sec, p(:)%t - rvec, error)
 
   !-----------------
   ! Position. 
@@ -230,9 +186,9 @@ do ib = 1, size(bunches)
 
   ! For charged particles: The z-position (as opposed to z-cononical = %vec(5)) is always zero by construction.
   if (p(1)%species == photon$) then
-    call pmd_write_real_to_pseudo_dataset(z_id, 'z', 'z', unit_m, 0.0_rp, size(p), error)
+    call pmd_write_real_vector_to_dataset(z_id, 'z', 'z', unit_m, p(:)%vec(5), error)
   else
-  call pmd_write_real_vector_to_dataset(z_id, 'z', 'z', unit_m, p(:)%vec(5), error)
+    call pmd_write_real_to_pseudo_dataset(z_id, 'z', 'z', unit_m, 0.0_rp, [size(p)], error)
   endif
 
   call h5gclose_f(z_id, h5_err)
@@ -241,9 +197,6 @@ do ib = 1, size(bunches)
 
   call pmd_write_real_vector_to_dataset(b2_id, 'sPosition', 's', unit_m, p(:)%s, error)
 
-  rvec = -p(:)%vec(5) / (p(:)%beta * c_light)  ! t - t_ref
-  call pmd_write_real_vector_to_dataset(b2_id, 'time', 't - t_ref', unit_sec, rvec, error)
-  call pmd_write_real_vector_to_dataset(b2_id, 'timeOffset', 't_ref', unit_sec, p(:)%t - rvec, error)
   call pmd_write_real_vector_to_dataset(b2_id, 'speed', 'beta', unit_c_light, p(:)%beta, error)
   call pmd_write_real_vector_to_dataset(b2_id, 'weight', 'macro-charge', unit_1, p(:)%charge, error)
 
@@ -275,172 +228,6 @@ call h5gclose_f(r_id, h5_err)
 call h5fclose_f(f_id, h5_err)
 
 end subroutine hdf5_write_beam 
-
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!+
-! Subroutine pmd_write_real_vector_to_dataset(root_id, dataset_name, bmad_name, unit, vector, error)
-!
-! Private routine used by hdf5_write_beam.
-!-
-
-subroutine pmd_write_real_vector_to_dataset(root_id, dataset_name, bmad_name, unit, vector, error)
-
-type (pmd_unit_struct) unit
-real(rp) vector(:), v_max, v_min
-integer err
-integer(HID_T) :: root_id, v_size
-character(*) dataset_name, bmad_name
-logical error
-
-!
-
-v_max = maxval(vector)
-v_min = minval(vector)
-
-if (v_max == v_min) then
-  call pmd_write_real_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, v_max, size(vector), error) 
-  return
-endif
-
-!
-
-v_size = size(vector)
-call H5LTmake_dataset_double_f(root_id, dataset_name, 1, [v_size], vector, err)    
-
-call H5LTset_attribute_double_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
-call H5LTset_attribute_double_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
-
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
-
-end subroutine pmd_write_real_vector_to_dataset
-
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!+
-! Subroutine pmd_write_real_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_size, error)
-!
-! Private routine used by hdf5_write_beam.
-!-
-
-subroutine pmd_write_real_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_size, error)
-
-type (pmd_unit_struct) unit
-integer(HID_T) :: root_id, group_id
-real(rp) value
-integer v_size, err
-character(*) dataset_name, bmad_name
-logical error
-
-!
-
-call h5gcreate_f(root_id, dataset_name, group_id, err)
-
-call H5LTset_attribute_double_f(root_id, dataset_name, 'value', [value], 1_size_t, err)
-call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', [v_size], 1_size_t, err)
-
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
-
-call h5gclose_f(group_id, err)
-
-end subroutine pmd_write_real_to_pseudo_dataset
-
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!+
-! Subroutine pmd_write_int_vector_to_dataset(root_id, dataset_name, bmad_name, unit, vector, error)
-!
-! Private routine used by hdf5_write_beam.
-!-
-
-subroutine pmd_write_int_vector_to_dataset(root_id, dataset_name, bmad_name, unit, vector, error)
-
-type (pmd_unit_struct) unit
-integer vector(:), v_max, v_min
-integer err
-integer(HID_T) :: root_id, v_size
-character(*) dataset_name, bmad_name
-logical error
-
-!
-
-v_max = maxval(vector)
-v_min = minval(vector)
-
-if (v_max == v_min) then
-  call pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, v_max, size(vector), error) 
-  return
-endif
-
-!
-
-v_size = size(vector)
-call H5LTmake_dataset_int_f(root_id, dataset_name, 1, [v_size], vector, err)    
-
-call H5LTset_attribute_int_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
-call H5LTset_attribute_int_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
-
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
-
-end subroutine pmd_write_int_vector_to_dataset
-
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!+
-! Subroutine pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_size, error)
-!
-! Private routine used by hdf5_write_beam.
-!-
-
-subroutine pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_size, error)
-
-type (pmd_unit_struct) unit
-integer(HID_T) :: root_id, group_id
-integer value
-integer err, v_size
-character(*) dataset_name, bmad_name
-logical error
-
-!
-
-call h5gcreate_f(root_id, dataset_name, group_id, err)
-
-call H5LTset_attribute_int_f(root_id, dataset_name, 'value', [value], 1_size_t, err)
-call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', [v_size], 1_size_t, err)
-
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
-
-call h5gclose_f(group_id, err)
-
-end subroutine pmd_write_int_to_pseudo_dataset
-
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!+
-! Subroutine pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
-!
-! Private routine used by hdf5_write_beam.
-!-
-
-subroutine pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
-
-type (pmd_unit_struct) unit
-integer(HID_T) :: root_id
-integer err
-logical error
-character(*) dataset_name, bmad_name
-
-if (bmad_name /= '') call H5LTset_attribute_string_f(root_id, dataset_name, 'localName', bmad_name, err)
-call H5LTset_attribute_double_f(root_id, dataset_name, 'unitSI', [unit%unitSI], 1_size_t, err)
-call H5LTset_attribute_double_f(root_id, dataset_name, 'unitDimension', [unit%unitDimension], 7_size_t, err)
-call H5LTset_attribute_string_f(root_id, dataset_name, 'unitSymbol', unit%unitSymbol, err)
-
-end subroutine pmd_write_units_to_dataset 
 
 !===============================================================================================
 !===============================================================================================
@@ -538,10 +325,10 @@ call reallocate_beam(beam, n_bunch)
 
 ! Loop over all bunches.
 ! Note: There is a GCC compiler bug where, if building shared, there is an error if 
-! "c_funloc(pmd_read_bunch)" is used as the actual arg to H5Literate_f in place of c_fun_ptr.
+! "c_funloc(hdf5_read_bunch)" is used as the actual arg to H5Literate_f in place of c_fun_ptr.
 
 cv_ptr = c_loc(beam)
-c_func_ptr = c_funloc(pmd_read_bunch)
+c_func_ptr = c_funloc(hdf5_read_bunch)
 idx = 0
 n_bunch = 0
 call H5Literate_f (z_id, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_func_ptr, cv_ptr, state, h5_err)
@@ -564,7 +351,7 @@ return
 !------------------------------------------------------------------------------------------
 contains
 
-function pmd_read_bunch (root_id, g_name_c, info, dummy_c_ptr) result (stat) bind(C)
+function hdf5_read_bunch (root_id, g_name_c, info, dummy_c_ptr) result (stat) bind(C)
 
 type(c_ptr) info
 type(c_ptr) dummy_c_ptr
@@ -587,7 +374,7 @@ logical error
 character(1) :: g_name_c(*)
 character(:), allocatable :: string
 character(100) g_name, a_name, name, c_name
-character(*), parameter :: r_name = 'pmd_read_bunch'
+character(*), parameter :: r_name = 'hdf5_read_bunch'
 
 ! Return if not a group with the proper name
 
@@ -669,10 +456,11 @@ do idx = 0, n_links-1
   case ('momentum')
     call pmd_read_real_dataset(g2_id, 'momentum/x', f_ev, bunch%particle%vec(2), error)
     call pmd_read_real_dataset(g2_id, 'momentum/y', f_ev, bunch%particle%vec(4), error)
+    ! totalMomentum gets put into %vec(6) in this case
   case ('velocity')
-    call pmd_read_real_dataset(g2_id, 'velocity/x', f_ev, bunch%particle%vec(2), error)
-    call pmd_read_real_dataset(g2_id, 'velocity/y', f_ev, bunch%particle%vec(4), error)
-    call pmd_read_real_dataset(g2_id, 'velocity/z', f_ev, bunch%particle%vec(6), error)
+    call pmd_read_real_dataset(g2_id, 'velocity/x', c_light, bunch%particle%vec(2), error)
+    call pmd_read_real_dataset(g2_id, 'velocity/y', c_light, bunch%particle%vec(4), error)
+    call pmd_read_real_dataset(g2_id, 'velocity/z', c_light, bunch%particle%vec(6), error)
   case ('pathLength')
     call pmd_read_real_dataset(g2_id, name, 1.0_rp, bunch%particle%path_len, error)
   case ('totalMomentumOffset')
@@ -681,8 +469,7 @@ do idx = 0, n_links-1
     call pmd_read_real_dataset(g2_id, name, f_ev, bunch%particle%vec(6), error)
   case ('photonPolarization')
     g3_id = hdf5_open_group(g2_id, 'photonPolarization', error, .true.)
-    g4_id = hdf5_open_group(g3_id, 'x/amplitude', error, .false.)
-    if (error) then
+    if (hdf5_exists(g3_id, 'x/real', error, .true.)) then
       call pmd_read_real_dataset(g3_id, 'x/real', 1.0_rp, bunch%particle%field(1), error)
       call pmd_read_real_dataset(g3_id, 'x/imaginary', 1.0_rp, bunch%particle%phase(1), error)
       call to_amp_phase(bunch%particle%field(1), bunch%particle%phase(1))
@@ -692,10 +479,9 @@ do idx = 0, n_links-1
     else
       call pmd_read_real_dataset(g3_id, 'x/amplitude', 1.0_rp, bunch%particle%field(1), error)
       call pmd_read_real_dataset(g3_id, 'x/phase', 1.0_rp, bunch%particle%phase(1), error)
-      call pmd_read_real_dataset(g3_id, 'x/amplitude', 1.0_rp, bunch%particle%field(2), error)
-      call pmd_read_real_dataset(g3_id, 'x/phase', 1.0_rp, bunch%particle%phase(2), error)
+      call pmd_read_real_dataset(g3_id, 'y/amplitude', 1.0_rp, bunch%particle%field(2), error)
+      call pmd_read_real_dataset(g3_id, 'y/phase', 1.0_rp, bunch%particle%phase(2), error)
     endif
-    call H5Gclose_f(g4_id, h5_err)
     call H5Gclose_f(g3_id, h5_err)
   case ('sPosition')
     call pmd_read_real_dataset(g2_id, name, 1.0_rp, bunch%particle%s, error)
@@ -733,10 +519,12 @@ call H5Gclose_f(g_id, h5_err)
 
 do ip = 1, size(bunch%particle)
   p => bunch%particle(ip)
+  p%t = p%t + dt(ip)
   if (species == photon$) then
+    p%species = species
+    p%beta = 1
   else
     p%vec(5) = -p%beta * c_light * dt(ip)
-    p%t = p%t + dt(ip)
     p%vec(2) = p%vec(2) / p%p0c
     p%vec(4) = p%vec(4) / p%p0c
     p%vec(6) = p%vec(6) / p%p0c
@@ -744,7 +532,7 @@ do ip = 1, size(bunch%particle)
   endif
 enddo
 
-end function  pmd_read_bunch
+end function  hdf5_read_bunch
 
 !------------------------------------------------------------------------------------------
 ! contains
@@ -766,119 +554,5 @@ enddo
 end subroutine
 
 end subroutine hdf5_read_beam
-
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!+
-! Subroutine pmd_read_int_dataset(root_id, name, value, error)
-!
-! Private routine used by hdf5_read_beam.
-!-
-
-subroutine pmd_read_int_dataset(root_id, name, value, error)
-
-type (hdf5_info_struct) info
-type (pmd_unit_struct) unit
-
-real(rp) unit_si
-
-integer(HID_T) :: root_id, obj_id
-integer h5_err, value(:)
-
-logical error, err
-
-character(*) name
-character(*), parameter :: r_name = 'pmd_read_int_dataset'
-
-!
-
-info = hdf5_object_info(root_id, name, error, .true.)
-obj_id = hdf5_open_object(root_id, name, info, error, .true.)
-
-call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.);  if (error) return
-if (abs(unit_si - 1.0_rp) > 1d-6) then
-  call out_io (s_error$, r_name, 'CONVERSION TO SI OF A VALUE OTHER THAN 1 DOES NOT MAKE SENSE.', &
-                                  'FOR BUNCH PARAMETER: ' // name)
-endif
-
-!
-
-if (info%element_type == H5O_TYPE_DATASET_F) then
-  if (any(info%data_dim(2:) /= 0)) then
-    call out_io (s_error$, r_name, 'DATA ARRAY IS NOT ONE-DIMENSIONAL! FOR DATA: ' // name)
-    return
-  endif
-
-  call hdf5_read_dataset_int(root_id, name, value, err)
-
-!
-
-else  ! Must be a "constant record component" as defined by the openPMD standard
-  call hdf5_read_attribute_int(obj_id, 'value', value(1), error, .true.)
-  value = value(1)
-endif
-
-!
-
-call hdf5_close_object(obj_id, info)
-
-end subroutine pmd_read_int_dataset
-
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!+
-! Subroutine pmd_read_real_dataset(root_id, name, conversion_factor, value, error)
-!
-! Private routine used by hdf5_read_beam.
-!-
-
-subroutine pmd_read_real_dataset(root_id, name, conversion_factor, value, error)
-
-type (hdf5_info_struct) info
-
-real(rp) conversion_factor, value(:)
-real(rp) unit_si
-
-integer(HID_T) :: root_id, obj_id
-integer h5_err
-
-logical error, err
-
-character(*) name
-character(*), parameter :: r_name = 'pmd_read_real_dataset'
-
-!
-
-info = hdf5_object_info(root_id, name, error, .true.)
-obj_id = hdf5_open_object(root_id, name, info, error, .true.)
-
-call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.);  if (error) return
-
-!
-
-if (info%element_type == H5O_TYPE_DATASET_F) then
-  if (any(info%data_dim(2:) /= 0)) then
-    call out_io (s_error$, r_name, 'DATA ARRAY IS NOT ONE-DIMENSIONAL! FOR DATA: ' // name)
-    return
-  endif
-
-  call hdf5_read_dataset_real(root_id, name, value, err)
-
-!
-
-else  ! Must be a "constant record component" as defined by the openPMD standard
-  call hdf5_read_attribute_real(obj_id, 'value', value(1), error, .true.)
-  value = value(1)
-endif
-
-!
-
-if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) value = value * (conversion_factor / unit_si)
-
-call hdf5_close_object(obj_id, info)
-
-end subroutine pmd_read_real_dataset
 
 end module hdf5_bunch_mod

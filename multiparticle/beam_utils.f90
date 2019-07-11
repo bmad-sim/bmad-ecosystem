@@ -385,7 +385,7 @@ endif
 if (beam_init%position_file /= '') then
   call read_beam_file (beam_init%position_file, beam, beam_init, err)
   if (err) then
-    call out_io (s_abort$, r_name, "PROBLEM READING BEAM POSITION FILE: "//beam_init%position_file)
+    call out_io (s_error$, r_name, "PROBLEM READING BEAM POSITION FILE: " // beam_init%position_file)
     return
   endif
   bunch = beam%bunch(1)

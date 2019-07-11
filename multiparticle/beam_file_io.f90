@@ -11,7 +11,7 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine write_beam_file (file_name, beam, new_file, file_format)
+! Subroutine write_beam_file (file_name, beam, new_file, file_format, lat)
 !
 ! Routine to write a beam file.
 !
@@ -20,13 +20,15 @@ contains
 !   beam          -- beam_struct: Beam to write
 !   new_file      -- logical, optional: New file or append? Default = True.
 !   file_format   -- logical, optional: binary$, ascii$, or hdf5$ (default).
+!   lat           -- lat_struct, optional: If present, lattice info will be writen to hdf5 files.
 !-
 
-subroutine write_beam_file (file_name, beam, new_file, file_format)
+subroutine write_beam_file (file_name, beam, new_file, file_format, lat)
 
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p
+type (lat_struct), optional :: lat
 
 integer j, iu, ib, ip, ix_ele
 integer, optional :: file_format
@@ -61,7 +63,7 @@ elseif (integer_option(hdf5$, file_format) == ascii$) then
 
 else
   append = .not. new_file
-  call hdf5_write_beam(file_name, beam%bunch, append, error)
+  call hdf5_write_beam(file_name, beam%bunch, append, error, lat)
   return
 endif
 
