@@ -761,8 +761,14 @@ class tao_plot_window(tk.Toplevel):
     for child in self.winfo_children():
       child.destroy()
 
+    #Get plotting results
+    self.plot_output = self.mpl.plot()
+
     #Get the figure
-    self.fig = self.mpl.plot()[0]
+    self.fig = self.plot_output[0]
+
+    #Get figure information
+    self.fig_info = self.plot_output[1]
 
     #Create widgets to display the figure
     canvas = FigureCanvasTkAgg(self.fig, master=self)
@@ -782,9 +788,9 @@ class tao_plot_window(tk.Toplevel):
 
     def on_click(event):
       if event.dblclick:
-        eleList = in_element(event.xdata,event.ydata,self.mpl)
+        eleList = in_element(event.xdata,event.ydata,self.fig_info)
         for i in eleList:
-          tao_ele_window(self.root,self.pipe,default=[self.mpl.plot()[1][1],self.mpl.plot()[1][2],i,self.mpl.plot()[1][3]])
+          tao_ele_window(self.root,self.pipe,default=[self.fig_info[1],self.fig_info[2],i,self.fig_info[3]])
 
     canvas.mpl_connect("button_press_event", on_click)
 

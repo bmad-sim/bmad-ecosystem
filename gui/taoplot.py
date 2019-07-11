@@ -37,8 +37,8 @@ class taoplot:
 		eleStartDict={}
 		eleEndDict={}
 		fpeIndexList=[]
-		fpeCenterList=[]
-		fpeRadiusList=[]
+		fpeCenterDict={}
+		fpeRadiusDict={}
 		#records information about element locations to be returned with the figure
 
 		def pgp_to_mpl(x):
@@ -786,8 +786,8 @@ class taoplot:
 
 			conv = (180)/(np.pi) #radian to degree conversion
 			for i in fpeIndexList:
-				fpeCenterList.append([fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2,fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2])
-				fpeRadiusList.append((np.sqrt((fpeExDict[str(i)]-fpeSxDict[str(i)])**2 + (fpeEyDict[str(i)]-fpeSyDict[str(i)])**2))/2)
+				fpeCenterDict[str(i)]=([fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2,fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2])
+				fpeRadiusDict[str(i)]=((np.sqrt((fpeExDict[str(i)]-fpeSxDict[str(i)])**2 + (fpeEyDict[str(i)]-fpeSyDict[str(i)])**2))/2)
 				try:
 					if fpeY1Dict[str(i)] == 0 and fpeY2Dict[str(i)] == 0 and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
 						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)],fpeExDict[str(i)]],[fpeSyDict[str(i)],fpeEyDict[str(i)]],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
@@ -1019,7 +1019,7 @@ class taoplot:
 			gComponent = gInfoDict['component'].value
 
 
-		returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList, fpeCenterList, fpeRadiusList]
+		returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList, fpeCenterDict, fpeRadiusDict]
 		fig.tight_layout()
 		return fig, returnList
 
