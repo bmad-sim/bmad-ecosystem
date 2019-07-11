@@ -339,6 +339,7 @@ class lw_table_window(tk.Toplevel):
   '''
   def __init__(self, root, pipe, array_name, title_list, set_format, *args, **kwargs):
     tk.Toplevel.__init__(self, root, *args, **kwargs)
+    self.title(array_name)
     self.pipe = pipe
     self.array_name = array_name
     self.title_list = title_list
@@ -1382,6 +1383,8 @@ class tao_ele_window(tao_list_window):
           key = "elec_multipoles"    # elec_multipoles in tao_python_cmd.f90
         if key == "mat6": # mat6 not yet implemented`
           continue
+        if key in ["multipoles", "elec_multipoles"]:
+          continue #not yet implemented
         if key == "lord_slave": # extremely special case
           self.sh_b_list.append(tk.Button(self.list_frame, text=key))
           ls_frame = tk.Frame(self.list_frame)
