@@ -150,7 +150,7 @@ case ('beam')
       beam => u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
       if (.not. allocated(beam%bunch)) cycle
 
-      call write_beam_file (file_name, beam, new_file, file_format)
+      call write_beam_file (file_name, beam, new_file, file_format, u%model%lat)
       new_file = .false.
     enddo 
 
