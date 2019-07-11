@@ -924,6 +924,7 @@ end select
 
 ! open a scratch file for a namelist read
 
+if (who2 == 'sig_e') who2 = 'sig_pz'
 iu = tao_open_scratch_file (err);  if (err) return
 
 write (iu, '(a)') '&params'
