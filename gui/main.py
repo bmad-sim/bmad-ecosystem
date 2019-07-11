@@ -330,6 +330,8 @@ class tao_root_window(tk.Tk):
         self.option_add("*Font", new_font)
       except:
         pass
+      # set self.lw
+      self.lw = lw_var.get()
       self.plot_mode = plot_mode.get()
       init_args = ""
       for tk_param in tk_list:
@@ -395,9 +397,19 @@ class tao_root_window(tk.Tk):
     update_font() # Set the font for the first time
     font_box.bind('<Return>', update_font)
     font_box.grid(row=k+3, column=1, sticky='W')
+
+    # Light-weight switch
+    lw_var = tk.BooleanVar()
+    if 'lw' in init_dict:
+      lw_var.set((init_dict['lw']=='T') | (init_dict['lw'] == 'True'))
+    else:
+      lw_var.set(False)
+    lw_box = tk.Checkbutton(init_frame, variable=lw_var)
+    tk.Label(init_frame, text='Use lightweight interface?').grid(row=k+4, sticky='E')
+    lw_box.grid(row=k+4, column=1, sticky='W')
     # Start button
     load_b = tk.Button(init_frame, text="Start Tao", command=param_load)
-    load_b.grid(row=k+4, columnspan=2)
+    load_b.grid(row=k+5, columnspan=2)
     self.bind_all("<Return>", param_load)
 
     #Start Tao immediately if skip_setup is set true

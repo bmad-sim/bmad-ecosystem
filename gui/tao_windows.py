@@ -189,10 +189,6 @@ class table_window(tao_list_window):
   def __init__(self, root, pipe, array_name, title_list, bulk_template, bulk_set_format, set_format, *args, **kwargs):
     tao_list_window.__init__(self, root, array_name, *args, **kwargs)
     self.pipe = pipe
-    #Make the font a bit smaller
-    #default_font = font.nametofont("TkDefaultFont")
-    #default_font.configure(size=14)
-    #self.option_add("*Font", default_font)
     self.array_name = array_name
     self.title_list = title_list
     self.bulk_template = bulk_template
@@ -333,6 +329,104 @@ class table_window(tao_list_window):
     tao_set(tao_list, set_str, self.pipe)
     self.refresh()
 
+#-----------------------------------------------------
+class lw_table_window(tk.Toplevel):
+  '''
+  Light-weight version of table_window, intended to be less
+  graphically/computationally intensive (for use with networked
+  machines, for example).  Table is read only but individual
+  entries can still be opened for editing with double click.
+  '''
+  def __init__(self, root, pipe, array_name, title_list, set_format, *args, **kwargs):
+    tk.Toplevel.__init__(self, root, *args, **kwargs)
+    self.pipe = pipe
+    self.array_name = array_name
+    self.title_list = title_list
+    self.set_format = set_format
+    self.table_frame = tk.Frame(self) #holds the table
+    self.table_frame.pack(fill='both', expand=1)
+    self.refresh()
+
+  def refresh(self):
+    '''
+    Creates a treeview to display the table information,
+    and binds double click to open one item
+    '''
+    # Clear the existing table
+    for child in self.table_frame.winfo_children():
+      child.destroy()
+
+    widths = [0]*len(self.title_list) # tracks column widths
+
+    # Create table
+    self.tree = ttk.Treeview(self.table_frame, columns=self.title_list, show='headings')
+    # Column titles
+    for title in self.title_list:
+      self.tree.heading(title, text=title)
+      self.tree.column(title, stretch=True, anchor='center')
+
+    # Fill rows
+    #Fetch and fill in the data
+    # IT IS EXPECTED THAT SUBCLASSES WILL DEFINE
+    # self.row_num AND A METHOD FOR POPULATING
+    # self.list_rows, AND THEN CALL THIS METHOD
+    #i = row counter, j = column counter
+    self.list_rows = []
+    for i in range(self.row_num):
+      row = self.lw_list_row_fetch(i)
+      self.tree.insert("", "end", values=row)
+      for j in range(len(row)):
+        if len(row[j])*12 > widths[j]:
+          widths[j] = len(row[j])*12
+
+    # Set column widths appropriately
+    for j in range(len(self.title_list)):
+      if len(self.title_list[j])*12 > widths[j]:
+        widths[j] = len(self.title_list[j])*12
+      self.tree.column(self.title_list[j], width=widths[j], minwidth=widths[j])
+
+    # Scrollbars
+    hbar = ttk.Scrollbar(self.table_frame, orient="horizontal", command=self.tree.xview)
+    vbar = ttk.Scrollbar(self.table_frame, orient="vertical", command=self.tree.yview)
+    self.tree.configure(xscrollcommand=hbar.set, yscrollcommand=vbar.set)
+
+    vbar.pack(side="right", fill="y", expand=0)
+    hbar.pack(side="bottom", fill='x', expand=0)
+    self.tree.pack(side="left", fill="both", expand=1)
+    self.widths = widths
+
+    # Double click to open element
+    self.tree.bind('<Double-Button-1>', self.lw_detail_callback)
+
+    tot = 0
+    for w in widths:
+      tot = tot+w
+    self.maxsize(1800, 1000)
+    self.minsize(1300, 100)
+
+  def open_detail_window_callback(self, event=None):
+    '''
+    Checks the table for the currently selected row and
+    makes a call to open_detail_window_callback
+    '''
+    x = self.tree.focus()
+    row = self.tree.item(x)
+    self.open_detail_window(int(row['values'][0]))
+
+  def open_detail_window(self, index):
+    '''
+    Opens up a detail window for the given index.
+    '''
+    detail_title = self.array_name + '[' + str(index) + ']'
+    win = tao_parameter_window(self, detail_title, self.param_list, self.pipe)
+
+    set_str = self.set_format.format(self.array_name, index)
+    b = tk.Button(win.button_frame, text="Apply changes", command=lambda : self.detail_set_callback(win.tao_list,set_str))
+    b.pack()
+
+  def detail_set_callback(self, tao_list, set_str):
+    tao_set(tao_list, set_str, self.pipe)
+    self.refresh()
 
 #-----------------------------------------------------
 # d2_data window
@@ -379,11 +473,15 @@ class tao_d2_data_window(tao_list_window):
 # d1_data window
 
 class tao_d1_data_window(table_window):
+  '''
+  With lw set to True, opens a lw_table_window instead
+  '''
 
   def __init__(self, root, pipe, d1_data_name, u_ix, ix_lb, ix_ub, *args, **kwargs):
     self.u_ix = u_ix
     self.ix_lb = ix_lb
     self.ix_ub = ix_ub
+    self.lw = root.lw
     title_list = ["Index",
         "d1_data_name",
         "Merit type",
@@ -404,13 +502,19 @@ class tao_d1_data_window(table_window):
 
     bulk_set_format = "set data " + str(self.u_ix) + '@{}|'
     set_format = "set data " + str(self.u_ix) + '@{}[{}]|'
-    table_window.__init__(self, root, pipe, d1_data_name, title_list, bulk_template, bulk_set_format, set_format, *args, **kwargs)
+    if self.lw:
+      lw_table_window.__init__(self, root, pipe, d1_data_name, title_list, set_format, *args, **kwargs)
+    else:
+      table_window.__init__(self, root, pipe, d1_data_name, title_list, bulk_template, bulk_set_format, set_format, *args, **kwargs)
 
   def refresh(self):
     self.d_list = self.pipe.cmd_in("python data_d_array " + self.u_ix + '@' + self.array_name)
     self.d_list = self.d_list.splitlines()
     self.row_num = len(self.d_list)
-    table_window.refresh(self)
+    if self.lw:
+      lw_table_window.refresh(self)
+    else:
+      table_window.refresh(self)
 
   def list_row_fetch(self, index):
     '''
@@ -418,12 +522,28 @@ class tao_d1_data_window(table_window):
     '''
     return d1_data_list_entry(self.list_frame, self.d_list[index])
 
+  def lw_list_row_fetch(self, index):
+    '''
+    For use with lw_table_window.  Returns a list of the values
+    to be displayed in each column of row #index.
+    '''
+    return self.d_list[index].split(';')
+
+  def lw_detail_callback(self, event=None):
+    '''
+    Callback for the light-weight table to open a detail window
+    '''
+    lw_table_window.open_detail_window_callback(self, event)
+
   def open_detail_window(self, index):
     self.param_list = self.pipe.cmd_in("python data " + str(self.u_ix) + '@' + self.array_name + '[' + str(index) + ']')
     self.param_list = self.param_list.splitlines()
     for i in range(len(self.param_list)):
       self.param_list[i]=str_to_tao_param(self.param_list[i])
-    table_window.open_detail_window(self, index)
+    if self.lw:
+      lw_table_window.open_detail_window(self, index)
+    else:
+      table_window.open_detail_window(self, index)
 
 #-----------------------------------------------------
 # Variable Window
@@ -479,19 +599,26 @@ class tao_v1_var_window(table_window):
         "good_user",
         "Weight"]
     bulk_template = []
+    self.lw = root.lw #set light-weight flag
     bulk_template.append([str_to_tao_param("meas_value;REAL;T;"), 2])
     bulk_template.append([str_to_tao_param("good_user;LOGIC;T;"), 6])
     bulk_template.append([str_to_tao_param("weight;REAL;T;"), 7])
 
     bulk_set_format = "set var {}|"
     set_format = "set var {}[{}]|"
-    table_window.__init__(self, root, pipe, v1_var_name, title_list, bulk_template, bulk_set_format, set_format, *args, **kwargs)
+    if self.lw:
+      lw_table_window.__init__(self, root, pipe, v1_var_name, title_list, set_format, *args, **kwargs)
+    else:
+      table_window.__init__(self, root, pipe, v1_var_name, title_list, bulk_template, bulk_set_format, set_format, *args, **kwargs)
 
   def refresh(self):
     self.v_list = self.pipe.cmd_in("python var_v_array " + self.array_name)
     self.v_list = self.v_list.splitlines()
     self.row_num = len(self.v_list)
-    table_window.refresh(self)
+    if self.lw:
+      lw_table_window.refresh(self)
+    else:
+      table_window.refresh(self)
 
   def list_row_fetch(self, index):
     '''
@@ -499,12 +626,28 @@ class tao_v1_var_window(table_window):
     '''
     return v1_var_list_entry(self.list_frame, self.v_list[index])
 
+  def lw_list_row_fetch(self, index):
+    '''
+    For use with lw_table_window.  Returns a list of the values
+    to be displayed in each column of row #index.
+    '''
+    return self.v_list[index].split(';')
+
+  def lw_detail_callback(self, event=None):
+    '''
+    Callback for the light-weight table to open a detail window
+    '''
+    lw_table_window.open_detail_window_callback(self, event)
+
   def open_detail_window(self, index):
     self.param_list = self.pipe.cmd_in("python var " + self.array_name + '[' + str(index) + ']')
     self.param_list = self.param_list.splitlines()
     for i in range(len(self.param_list)):
       self.param_list[i]=str_to_tao_param(self.param_list[i])
-    table_window.open_detail_window(self, index)
+    if self.lw:
+      lw_table_window.open_detail_window(self, index)
+    else:
+      table_window.open_detail_window(self, index)
 
 
 #-----------------------------------------------------
@@ -1372,9 +1515,7 @@ class tao_lattice_window(tk.Toplevel):
   with an interface to select which rows/columns
   are displayed
   '''
-  # TODO: load/save entire table format
   # TODO: replace blank
-  # TODO: reorganize?
   def __init__(self, root, pipe, switches=""):
     tk.Toplevel.__init__(self, root)
     self.title("Lattice")
