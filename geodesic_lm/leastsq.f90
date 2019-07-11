@@ -74,7 +74,7 @@ SUBROUTINE geodesicLM(func, jacobian, Avv, &
 !
 !    jacobian is a user supplied subroutine which calculates the jacobian of
 !    of the functions if analytic_jac is .TRUE.
-!    jacobian should be writen as follows     
+!    jacobian should be written as follows     
 !
 !      subroutine jacobian(m, n, x, fjac)
 !      integer m, n
@@ -87,7 +87,7 @@ SUBROUTINE geodesicLM(func, jacobian, Avv, &
 !
 !    Avv is a user supplied subroutine which calculates the directional
 !    second derivative of the functions if analytic_Avv is .TRUE.
-!    Avv should be writen as follows     
+!    Avv should be written as follows     
 !
 !      subroutine Avv(m, n, x, v, acc)
 !      integer m, n

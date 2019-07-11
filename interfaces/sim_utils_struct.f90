@@ -85,7 +85,7 @@ contains
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Function logic_to_int (logic) result (int)
+! Function int_logic (logic) result (int)
 !
 ! Routine to translate from a boolian logical to an integer
 ! Translation: False -> 0, True -> 1 (non-zero).
@@ -99,7 +99,7 @@ contains
 !   int     -- integer: Translated logical.
 !-
 
-function logic_to_int (logic) result (int)
+function int_logic (logic) result (int)
  
 logical logic
 integer int
@@ -111,7 +111,7 @@ case (.false.);   int = 0
 case (.true.);    int = 1
 end select
 
-end function logic_to_int
+end function int_logic
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -122,7 +122,7 @@ end function logic_to_int
 ! Routine to translate from a real number to a boolian True or False.
 ! Translation: 0 = False, nonzero = True
 !
-! Also see: is_false and logic_to_int
+! Also see: is_false and int_logic
 !
 ! The typical use of this routine is for parameters in ele_struct%value(:) which
 ! is a real array. Some of the elements in the %value array are used to specify
@@ -155,7 +155,7 @@ end function is_true
 ! Routine to translate from a real number to a boolian True or False.
 ! Translation: 0 = False, nonzero = True
 !
-! Also see: is_true and logic_to_int
+! Also see: is_true and int_logic
 !
 ! The typical use of this routine is for parameters in ele_struct%value(:) which
 ! is a real array. Some of the elements in the %value array are used to specify
