@@ -884,7 +884,8 @@ case ('ele:head')
   nl=incr(nl); write (li(nl), rmt) 'ref_time;REAL;F;',            ele%ref_time
 
   nl=incr(nl); write (li(nl), lmt) 'has#methods;LOGIC;F;',          (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$)
-  nl=incr(nl); write (li(nl), lmt) 'has#multipoles;LOGIC;F;',       (ele%key == multipole$ .or. attribute_name(ele, a0$) == 'A0')
+  nl=incr(nl); write (li(nl), lmt) 'has#ab_multipoles;LOGIC;F;',    (attribute_name(ele, a0$) == 'A0')
+  nl=incr(nl); write (li(nl), lmt) 'has#kt_multipoles;LOGIC;F;',    (ele%key == multipole$)
   nl=incr(nl); write (li(nl), lmt) 'has#multipoles_elec;LOGIC;F;',  (attribute_name(ele, a0_elec$) == 'A0_ELEC')
   nl=incr(nl); write (li(nl), lmt) 'has#ac_kick;LOGIC;F;',          associated(ele%ac_kick)
   nl=incr(nl); write (li(nl), lmt) 'has#taylor;LOGIC;F;',           associated(ele%taylor(1)%term)
@@ -1713,7 +1714,7 @@ case ('ele:floor')
   end select
 
   nl=incr(nl); write (li(nl), rmt2) 'Reference;REAL_ARR;', can_vary, (';', floor%r(i), i = 1, 3), ';', floor%theta, ';', floor%phi, ';', floor%psi
-  nl=incr(nl); write (li(nl), rmt2) 'Actual;REAL_ARR;', can_vary, (';', floor2%r(i), i = 1, 3), ';', floor2%theta, ';', floor2%phi, ';', floor2%psi
+  nl=incr(nl); write (li(nl), rmt2) 'Actual;REAL_ARR;', .false., (';', floor2%r(i), i = 1, 3), ';', floor2%theta, ';', floor2%phi, ';', floor2%psi
 
 !----------------------------------------------------------------------
 ! Element photon
