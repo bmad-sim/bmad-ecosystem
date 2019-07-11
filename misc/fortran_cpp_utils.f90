@@ -273,6 +273,28 @@ interface f_logic
   module procedure f_logic_int
 end interface
 
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Function c_logic
+!
+! Function to convert from a C logical to a Fortran logical.
+! This function overloads:
+!   c_logic1  (logic) result (c_logic)
+!   c_logic_vec (logic_vec) result (c_logic_vec)
+!
+! Modules needed:
+!   use fortran_cpp_utils
+!
+! Input:
+!   logic        -- logical: Fortran logical.
+!   logic_vec(:) -- logical: Fortran logical vector.
+!
+! Output:
+!   c_log          -- logical(c_bool): C boolien. 0 if False, 1 if True.
+!   c_logic_vec(:) -- logical(c_bool): C boolien vector
+!-
+
 interface c_logic
   module procedure c_logic1
   module procedure c_logic_vec
@@ -318,7 +340,7 @@ end function c_logic1
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function c_logic_vec (logic) result (c_log)
+! Function c_logic_vec (logic_vec) result (c_bool_vec)
 !
 ! Function to convert from a fortran logical to a C logical.
 ! See c_logic for more details.
@@ -327,24 +349,24 @@ end function c_logic1
 !   use fortran_cpp_utils
 !
 ! Input:
-!   logic -- Logical: Fortran logical.
+!   logic_vec(:) -- logical: Fortran logical vector.
 !
 ! Output:
-!   c_log -- Integer: C logical.
+!   c_bool_vec(:) -- logical(c_bool): C logical vector.
 !-
 
-pure function c_logic_vec (logic) result (c_log)
+pure function c_logic_vec (logic_vec) result (c_bool_vec)
 
 implicit none
 
-logical, intent(in) :: logic(:)
-logical(c_bool) c_log(size(logic))
+logical, intent(in) :: logic_vec(:)
+logical(c_bool) c_bool_vec(size(logic_vec))
 integer i
 
 !
 
-do i = 1, size(logic)
-  c_log(i) = c_logic1(logic(i))
+do i = 1, size(logic_vec)
+  c_bool_vec(i) = c_logic1(logic_vec(i))
 enddo
 
 end function c_logic_vec
