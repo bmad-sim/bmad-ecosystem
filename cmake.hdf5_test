@@ -1,0 +1,26 @@
+set (EXENAME hdf5_test)
+
+FILE (GLOB SRC_FILES "hdf5_test/*.f90")
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bmad 
+  xsif
+  xrlf03
+  xrl
+  sim_utils
+  recipes_f-90_LEPP 
+  forest 
+  fgsl
+  gsl
+  gslcblas
+  lapack95
+  lapack
+  blas
+  hdf5hl_fortran
+  hdf5_hl
+  hdf5_fortran
+  hdf5
+)
