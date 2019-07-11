@@ -55,7 +55,10 @@ class tk_tao_parameter():
     elif self.param.type == 'LOGIC':
       self.tk_var = tk.BooleanVar()
       self.tk_var.set(self.param.value)
-      self.tk_wid = tk.Checkbutton(frame, variable=self.tk_var)
+      if self.param.can_vary:
+        self.tk_wid = tk.Checkbutton(frame, variable=self.tk_var)
+      else:
+        self.tk_wid = tk.Label(frame, text=str(self.tk_var.get()))
     elif self.param.type == 'REAL_ARR':
       self.tk_var = tk.StringVar()
       val = ""
@@ -90,9 +93,16 @@ class tk_tao_parameter():
 
     if self.param.type not in ['DAT_TYPE', 'REAL_ARR']:
       self.tk_wid.config(disabledforeground="black")
+    else:
+      for widget in self._s:
+        widget.config(disabledforeground="black")
     self.tk_label = tk.Label(frame, text=self.param.name)
-    if (not self.param.can_vary) & (self.param.type not in ['DAT_TYPE', 'REAL_ARR']):
-      self.tk_wid.config(state="disabled")
+    if not self.param.can_vary:
+      if self.param.type not in ['DAT_TYPE', 'REAL_ARR']:
+        self.tk_wid.config(state="disabled")
+      else:
+        for widget in self._s:
+          widget.config(state="disabled")
 
   def _update_real_arr(self, event=None):
     '''

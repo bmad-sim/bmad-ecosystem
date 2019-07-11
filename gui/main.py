@@ -403,10 +403,10 @@ class tao_root_window(tk.Tk):
     if 'lw' in init_dict:
       lw_var.set((init_dict['lw']=='T') | (init_dict['lw'] == 'True'))
     else:
-      lw_var.set(False)
-    lw_box = tk.Checkbutton(init_frame, variable=lw_var)
-    tk.Label(init_frame, text='Use lightweight interface?').grid(row=k+4, sticky='E')
-    lw_box.grid(row=k+4, column=1, sticky='W')
+      lw_var.set(True)
+    #lw_box = tk.Checkbutton(init_frame, variable=lw_var)
+    #tk.Label(init_frame, text='Use lightweight interface?').grid(row=k+4, sticky='E')
+    #lw_box.grid(row=k+4, column=1, sticky='W')
     # Start button
     load_b = tk.Button(init_frame, text="Start Tao", command=param_load)
     load_b.grid(row=k+5, columnspan=2)
