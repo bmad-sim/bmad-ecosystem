@@ -1829,17 +1829,15 @@ case ('ele:elec_multipoles')
 
   can_vary = (which == 'model')
 
+  nl=incr(nl); li(nl) = 'An_elec;Bn_elec;An_elec (Scaled);Bn_elec (Scaled)'
+
   if (.not. associated(ele%a_pole_elec)) return
 
   call multipole_ele_to_ab (ele, .false., ix_pole_max, a, b, electric$)
 
   do i = 0, n_pole_maxx
     if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
-
-    nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, 'An_elec;REAL;', can_vary, ';', ele%a_pole_elec(i)
-    nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, 'Bn_elec;REAL;', can_vary, ';', ele%b_pole_elec(i)
-    nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'An_elec (Scaled);REAL;F;', a(i)
-    nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, 'Bn_elec (Scaled);REAL;F;', b(i)
+    nl=incr(nl); write (li(nl), '(i0, 4(a, es21.13))') i, ';', ele%a_pole_elec(i), ';', ele%b_pole_elec(i), ';', a(i), ';', b(i)
   enddo
 
 !----------------------------------------------------------------------
