@@ -1064,35 +1064,28 @@ case ('ele:multipoles')
     call multipole_ele_to_kt (ele, .true.,  ix_pole_max, knl, tn)
   endif
 
-  can_vary = (which == 'model')
+  if (ele%key == multipole$) then
+    nl=incr(nl); li(nl) = 'KnL;Tn;KnL (w/Tilt);Tn (w/Tilt);An (equiv);Bn (equiv)'
+  elseif (ele%key == ab_multipole$) then
+    nl=incr(nl); li(nl) = 'An;Bn;An (w/Tilt);Bn (w/Tilt);KnL (equiv);Tn (equiv)'
+  else
+    nl=incr(nl); li(nl) = 'An;Bn;An (Scaled);Bn (Scaled);An (w/Tilt);Bn (w/Tilt);KnL (equiv);Tn (equiv)'
+  endif
 
   do i = 0, n_pole_maxx
     if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
 
     if (ele%key == multipole$) then
-      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, ';KnL;REAL;', can_vary, ';', ele%a_pole(i)
-      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, ';Tn;REAL;', can_vary, ';', ele%b_pole(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';KnL (w/Tilt);REAL;F;', knl(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';Tn (w/Tilt);REAL;F;', tn(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';An (equiv);REAL;F;', a(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';Bn (equiv);REAL;F;', b(i)
+      nl=incr(nl); write (li(nl), '(i0, 6(a, es21.13))') i, ';', &
+                      ele%a_pole(i), ';', ele%b_pole(i), ';', knl(i), ';', tn(i), ';', a(i), ';', b(i)
 
     elseif (ele%key == ab_multipole$) then
-      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, ';An;REAL;', can_vary, ';', ele%a_pole(i)
-      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, ';Bn;REAL;', can_vary, ';', ele%b_pole(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';An (w/Tilt);REAL;F;', a2(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';Bn  (w/Tilt);REAL;F;', b2(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';KnL (equiv);REAL;F;', knl(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';Tn (equiv);REAL;F;', tn(i)
+      nl=incr(nl); write (li(nl), '(i0, 6(a, es21.13))') i, ';', &
+                      ele%a_pole(i), ';', ele%b_pole(i), ';', a2(i), ';', b2(i), ';', knl(i), ';', tn(i)
+
     else
-      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, ';An;REAL;', can_vary, ';', ele%a_pole(i)
-      nl=incr(nl); write (li(nl), '(i0, a, l1, a, es21.13)') i, ';Bn;REAL;', can_vary, ';', ele%b_pole(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';An (Scaled);REAL;F;', a(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';Bn (Scaled);REAL;F;', b(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';An (w/Tilt);REAL;F;', a2(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';Bn (w/Tilt);REAL;F;', b2(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';KnL (equiv);REAL;F;', knl(i)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';Tn (equiv);REAL;F;', tn(i)
+      nl=incr(nl); write (li(nl), '(i0, 6(a, es21.13))') i, ';', &
+                      ele%a_pole(i), ';', ele%b_pole(i), ';', a(i), ';', b(i), ';', a2(i), ';', b2(i), ';', knl(i), ';', tn(i)
     endif
   enddo
 
@@ -1533,26 +1526,28 @@ case ('ele:orbit')
 !   python element 3@1>>7|model mat6
 ! This gives element number 7 in branch 1 of universe 3.
 
-u => point_to_uni(line, .true., err); if (err) return
-tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
-ele => point_to_ele(line, err); if (err) return
+case ('ele:mat6')
 
-select case (line)
-case ('mat6')
-  do i = 1, 6
-    nl=incr(nl); write (li(nl), '(i0, a, 6(a, es21.13))') i, ';REAL_ARR;F;', (';', ele%mat6(i,j), j = 1, 6)
-  enddo
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
 
-case ('vec0')
-  nl=incr(nl); write (li(nl), ramt) 'vec0;REAL_ARR;F;', (';', ele%vec0(i), i = 1, 6)
+  select case (line)
+  case ('mat6')
+    do i = 1, 6
+      nl=incr(nl); write (li(nl), '(i0, a, 6(a, es21.13))') i, ';REAL_ARR;F;', (';', ele%mat6(i,j), j = 1, 6)
+    enddo
 
-case ('err')
-  nl=incr(nl); write (li(nl), rmt) 'symplectic_error;REAL;F;', mat_symp_error(ele%mat6)
+  case ('vec0')
+    nl=incr(nl); write (li(nl), ramt) 'vec0;REAL_ARR;F;', (';', ele%vec0(i), i = 1, 6)
 
-case default
-  call invalid ('Bad or missign {who} switch.')
-  return
-end select
+  case ('err')
+    nl=incr(nl); write (li(nl), rmt) 'symplectic_error;REAL;F;', mat_symp_error(ele%mat6)
+
+  case default
+    call invalid ('Bad or missign {who} switch.')
+    return
+  end select
 
 !----------------------------------------------------------------------
 ! Element taylor_field
