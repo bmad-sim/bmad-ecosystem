@@ -160,6 +160,8 @@ class taoplot:
 			else:
 				return x
 
+
+
 		SymbolsDict={
 			'square':'s', #no fill
 			'dot':'.',
@@ -401,6 +403,7 @@ class taoplot:
 				CurvesList.append(CurveData)
 				CurveData = []
 			#list of data needed to plot line and symbol graphs
+			#includes points, and line and symbol information for each curve
 
 
 
@@ -421,7 +424,6 @@ class taoplot:
 				for k in SymbolsList:
 					xsList.append(k[0])
 					ysList.append(k[1])
-
 				if gInfoDict['graph^type'].value == 'data':
 					LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xpList,ypList,color=i[2],linestyle=i[3],linewidth=i[4]/2))
 					GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2)
