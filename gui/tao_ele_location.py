@@ -19,11 +19,10 @@ def in_element(x,y,fig_info):
 	
 		if returnList[0] == 'floor_plan':
 			for i in returnList[7]:
-				if ((x-returnList[8][str(i)][0])**2 + (y-returnList[8][str(i)][1])**2) <= ((returnList[9][i])**2):
+				if ((x-returnList[8][str(i)][0])**2 + (y-returnList[8][str(i)][1])**2) <= ((returnList[9][str(i)])**2):
 					inIndexList.append(i)
 	except TypeError:
 		pass
 	except IndexError:
 		pass
-
 	return inIndexList
