@@ -41,6 +41,41 @@ class taoplot:
 		fpeRadiusDict={}
 		#records information about element locations to be returned with the figure
 
+		def color(x):
+			'''takes string containing pgplot color and returns corresponding matplotlib color'''
+			if x == 'White' or x == 'white':
+				return 'white'
+			elif x == 'Black' or x == 'black':
+				return 'black'
+			elif x == 'Red' or x == 'red':
+				return 'red'
+			elif x == 'Green' or x == 'green':
+				return 'green'
+			elif x == 'Blue' or x == 'blue':
+				return 'blue'
+			elif x == 'Cyan' or x == 'cyan':
+				return 'cyan'
+			elif x == 'Magenta' or x == 'magenta':
+				return 'magenta'
+			elif x == 'Yellow' or x == 'yellow':
+				return 'yellow'
+			elif x == 'Orange' or x == 'orange':
+				return 'orange'
+			elif x == 'Yellow_Green' or x == 'yellow_green':
+				return 'greenyellow'
+			elif x == 'Navy_Blue' or x == 'navy_blue':
+				return 'navy'
+			elif x == 'Purple' or x == 'purple':
+				return 'purple'
+			elif x == 'Reddish_Purple' or x == 'reddish_purple':
+				return 'mediumvioletred'
+			elif x == 'Dark_Grey' or x == 'dark_grey':
+				return 'gray'
+			elif x == 'Light_Grey' or x == 'light_grey':
+				return 'lightgray'
+			else:
+				return x
+
 		def pgp_to_mpl(x):
 			'''takes string with pgplot characters and returns string with characters replaced with matplotlib equivalent, raises NotImplementedError if an unknown pgplot character is used'''
 			x=x.replace('\\','\\\\')
@@ -348,10 +383,10 @@ class taoplot:
 				CurveData = []
 				CurveData.append(PointsSuperList[i])
 				CurveData.append(SymbolSuperList[i])
-				CurveData.append(cInfoDictList[i]['line.color'].value)
+				CurveData.append(color(cInfoDictList[i]['line.color'].value))
 				CurveData.append(cInfoDictList[i]['line.pattern'].value.lower())
 				CurveData.append(cInfoDictList[i]['line.width'].value)
-				CurveData.append(cInfoDictList[i]['symbol.color'].value)
+				CurveData.append(color(cInfoDictList[i]['symbol.color'].value))
 				if (cInfoDictList[i]['symbol.fill_pattern'] == 'solid_fill'):
 					CurveData.append(cInfoDictList[i]['symbol.color'].value)
 				else:
@@ -529,7 +564,7 @@ class taoplot:
 			shapeNameDict = {}
 			for i in range(len(shapes)):
 				shapeTypeDict[shapes[i].split(';')[1][:-3].lower()]= shapes[i].split(';')[2].lower()
-				shapeColorDict[shapes[i].split(';')[1][:-3].lower()]= shapes[i].split(';')[3].lower()
+				shapeColorDict[shapes[i].split(';')[1][:-3].lower()]= color(shapes[i].split(';')[3].lower())
 				shapeHeightDict[shapes[i].split(';')[1][:-3].lower()]= float(shapes[i].split(';')[4])
 				shapeNameDict[shapes[i].split(';')[1][:-3].lower()]= shapes[i].split(';')[6]
 			#dictionaries of element type strings as keys with corresponding information as values 
@@ -556,7 +591,7 @@ class taoplot:
 				eleShapeDict[eleInfo[i].split(';')[0]]= eleInfo[i].split(';')[4].lower()
 				eleY1Dict[eleInfo[i].split(';')[0]]= float(eleInfo[i].split(';')[5])
 				eleY2Dict[eleInfo[i].split(';')[0]]= float(eleInfo[i].split(';')[6])
-				eleColorDict[eleInfo[i].split(';')[0]]= eleInfo[i].split(';')[7].lower()
+				eleColorDict[eleInfo[i].split(';')[0]]= color(eleInfo[i].split(';')[7].lower())
 				eleNameDict[eleInfo[i].split(';')[0]]= eleInfo[i].split(';')[8]
 			#all dict keys and entries are strings which match a lattice layout element index (eg: '1') string to the corresponding information
 
@@ -751,7 +786,7 @@ class taoplot:
 				fpeShapeDict[fpeInfo[i].split(';')[1]]= fpeInfo[i].split(';')[10].lower()
 				fpeY1Dict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[11])
 				fpeY2Dict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[12])
-				fpeColorDict[fpeInfo[i].split(';')[1]]= fpeInfo[i].split(';')[13].lower()
+				fpeColorDict[fpeInfo[i].split(';')[1]]= color(fpeInfo[i].split(';')[13].lower())
 				fpeNameDict[fpeInfo[i].split(';')[1]]= fpeInfo[i].split(';')[14]
 				try:
 					fpeAlDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[15])
