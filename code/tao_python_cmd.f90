@@ -1084,7 +1084,7 @@ case ('ele:multipoles')
                       ele%a_pole(i), ';', ele%b_pole(i), ';', a2(i), ';', b2(i), ';', knl(i), ';', tn(i)
 
     else
-      nl=incr(nl); write (li(nl), '(i0, 6(a, es21.13))') i, ';', &
+      nl=incr(nl); write (li(nl), '(i0, 8(a, es21.13))') i, ';', &
                       ele%a_pole(i), ';', ele%b_pole(i), ';', a(i), ';', b(i), ';', a2(i), ';', b2(i), ';', knl(i), ';', tn(i)
     endif
   enddo
