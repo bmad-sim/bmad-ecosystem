@@ -239,6 +239,11 @@ do
 
   if (s%com%beam_init_position_file_arg /= '') beam_init%position_file = s%com%beam_init_position_file_arg
 
+  if (beam_init%sig_e /= 0 .and. beam_init%sig_pz /= 0) then   ! sig_e is superceeded by sig_pz
+    beam_init%sig_pz = beam_init%sig_e
+    beam_init%sig_e = 0
+  endif
+
   if (s%com%beam_all_file_arg /= '') beam_all_file = s%com%beam_all_file_arg  ! From the command line
   if (track_start /= '') beam_track_start = track_start   ! For backwards compatibility
   if (track_end /= '')   beam_track_end   = track_end     ! For backwards compatibility
