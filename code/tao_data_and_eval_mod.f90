@@ -3938,39 +3938,40 @@ parsing_loop: do
   enddo
 
   ! If delim = "*" then see if this is being used as a wildcard
-  ! Examples: "[*]|", "*.*|", "*.x|", "*@orbit.x|", "*@*|", "orbit.*[3]|", "ele::q*1[beta_a]"
+  ! Examples: "[*]|", "*.*|", "*.x|", "*@orbit.x|", "*@*|", "orbit.*[3]|", "ele::q*1[beta_a]", 3*.42
   ! If so, we have split in the wrong place and we need to correct this.  *
 
   do
     if (delim /= '*') exit
 
+    ix0 = index(word, '::')
+    ix1 = index(phrase, '[')
+    ix2 = index(phrase, ']')
+
+    ! If in "[...*...]" construct is wild
     wild = .false.
+    if (ix2 /= 0 .and. (ix1 == 0 .or. ix1 > ix2)) wild = .true.
 
-    select case (phrase(1:1))
-    case ( ']', '[', '|', '@')
-      wild = .true.
-    case ('.')
-      wild = (index('0123456789', phrase(2:2)) /= 0) ! Wild if not a number
-    case default
-      ix0 = index(word, '::')
-      ix1 = index(phrase, '[')
-      ix2 = index(phrase, ']')
-
-      ! If in "[...*...]" construct is wild
-      if (ix2 /= 0 .and. (ix1 == 0 .or. ix1 > ix2)) wild = .true.
-
-      ! If in "::xxx*yyy[" construct where each x and y is not one of ":", " ", etc.
-      found = .false.
-      if (ix0 /= 0 .and. ix1 /= 0) then
-        do ix = ix0+2, ix_word
-          if (index(': ]|', word(ix:ix)) /= 0) found = .true.
-        enddo
-        do ix = 1, ix1-1
-          if (index(': ]|', word(ix:ix)) /= 0) found = .true.
-        enddo
-        if (.not. found) wild = .true.
-      endif
-    end select
+    if (.not. wild) then
+      select case (phrase(1:1))
+      case ( ']', '[', '|', '@')
+        wild = .true.
+      case ('.')
+        wild = (index('0123456789', phrase(2:2)) == 0) ! Wild if not a number
+      case default
+        ! If in "::xxx*yyy[" construct where each x and y is not one of ":", " ", etc.
+        found = .false.
+        if (ix0 /= 0 .and. ix1 /= 0) then
+          do ix = ix0+2, ix_word
+            if (index(': ]|', word(ix:ix)) /= 0) found = .true.
+          enddo
+          do ix = 1, ix1-1
+            if (index(': ]|', word(ix:ix)) /= 0) found = .true.
+          enddo
+          if (.not. found) wild = .true.
+        endif
+      end select
+    endif
 
     if (.not. wild) exit
 
