@@ -5,6 +5,7 @@ class lat_element():
   '''
   Holds the essential information for a given lattice element.
   A lat_element has the following properties:
+  self.id: the ele identifier in the form uni@branch>>ele_ix|which
   self.params: An ordered dictionary of tao_parameters
     This holds the general parameters related to the element
   self.has: An ordered dictionary of bools
@@ -20,9 +21,9 @@ class lat_element():
     # pipe: the tao_interface object to use
     # ALL ARGUMENTS (besides pipe) MUST BE STRINGS
     self.pipe = pipe
-    fetch_cmd = "python ele:head " \
-      + str(u_ix) + '@' + str(ix_branch) \
-      + '>>' + str(ix_ele) + '|' + which
+    self.id = str(u_ix) + '@' + str(ix_branch) \
+        + '>>' + str(ix_ele) + '|' + which
+    fetch_cmd = "python ele:head " + self.id
     data_list = self.pipe.cmd_in(fetch_cmd)
     data_list = data_list.splitlines()
 
