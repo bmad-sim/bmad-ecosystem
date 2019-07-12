@@ -1342,8 +1342,8 @@ IF(master) THEN
 !    WRITE(output,*) "Tracking: ", tracking
     WRITE(output,*) "Halo: ", halo
     IF(collimate) WRITE(output,*) "     ", collimators(1:num_cols)
-    WRITE(output, '(A,I4)') "Number of data points: ", N_data_points
-    WRITE(output, '(A,I4)') "Number of test particles per Touschek curve: ", N_test_part
+    WRITE(output, '(A,I0)') "Number of data points: ", N_data_points
+    WRITE(output, '(A,I0)') "Number of test particles per Touschek curve: ", N_test_part
     WRITE(output, '(A,F11.4)') "Total Integrated current (#e-): ", total_current
     WRITE(output, '(A,F11.4)') "  Beam Pipe Collisions: ", pipe_current
     WRITE(output, '(A,F11.4)') "  Zero Energy in Linac: ", noenergy_current
