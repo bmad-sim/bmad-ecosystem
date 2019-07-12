@@ -848,7 +848,7 @@ do
   if (write_cross_section) then
     close (iu)
     print *
-    print *, 'Writen: cross_section.dat'
+    print *, 'Written: cross_section.dat'
   endif
 
   call read_a_line ('Input: ', ans)
