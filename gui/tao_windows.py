@@ -1381,10 +1381,20 @@ class tao_ele_window(tao_list_window):
       if self.element.has[key].value: #If the element has the given property
         if key == "multipoles_elec": # multipoles_elec is called
           key = "elec_multipoles"    # elec_multipoles in tao_python_cmd.f90
+        if key in ['ab_multipoles', 'kt_multipoles']:
+          key = "multipoles"
         if key == "mat6": # mat6 not yet implemented`
           continue
         if key in ["multipoles", "elec_multipoles"]:
-          continue #not yet implemented
+          self.sh_b_list.append(tk.Button(self.list_frame, text=key))
+          self.tao_lists.append([]) #FIX THIS
+          tao_output = self.pipe.cmd_in("python ele:" + key + ' ' + self.element.id)
+          self.p_frames.append(tao_multipole_frame(self.list_frame, tao_output, self.pipe))
+          self.p_names.append(key)
+          self.sh_b_list[i].configure(command=self.s_callback(i))
+          self.sh_b_list[i].grid(row=2*i, column=0, sticky='W')
+          i = i+1
+          continue
         if key == "lord_slave": # extremely special case
           self.sh_b_list.append(tk.Button(self.list_frame, text=key))
           ls_frame = tk.Frame(self.list_frame)
@@ -1509,6 +1519,62 @@ class tao_ele_window(tao_list_window):
       self.open_frames.pop(self.open_frames.index(self.p_names[index]))
     # Button should now show instead of hide
     self.sh_b_list[index].configure(command=self.s_callback(index))
+
+#---------------------------------------------------
+class tao_multipole_frame(tk.Frame):
+  '''
+  Displays multipole information (output of a
+  python ele:multipoles or ele:elec_multipoles
+  command in a table with certain elements editable
+  parent: the parent widget of this frame
+  tao_output: the raw, unfiltered output of the tao command that gave the multipole information
+  pipe: tao_interface object
+  '''
+  def __init__(self, parent, tao_output, pipe, *args, **kwargs):
+    tk.Frame.__init__(self, parent, *args, **kwargs)
+    self.pipe = pipe
+    self.top_frame = tk.Frame(self) #holds multipoles_on and scale_multipoles
+    self.top_frame.pack(fill="both", expand=1)
+    self.table_frame = tk.Frame(self) #holds multipole information
+    self.table_frame.pack(fill="both", expand=1)
+    self.button_frame = tk.Frame(self) #holds the button
+    self.button_frame.pack(fill="both", expand=0)
+    self.tk_tao_list = []
+
+    # Rip off first two lines of tao_output
+    tao_output = tao_output.splitlines()
+    self.top_info = tao_output[:2]
+    # Display in top_frame
+    for i in range(len(self.top_info)):
+      self.top_info[i] = tk_tao_parameter(str_to_tao_param(self.top_info[i]), self.top_frame, self.pipe)
+      self.top_info[i].tk_label.grid(row=0, column=2*i, sticky='E')
+      self.top_info[i].tk_wid.grid(row=0, column=2*i+1, sticky='W')
+      self.top_frame.columnconfigure(2*i, weight=1)
+      self.top_frame.columnconfigure(2*i+1, weight=1)
+
+    # Display the table (rest of output)
+    if len(tao_output) < 2:
+      return
+    titles = tao_output[2]
+    titles = ['Order'] + titles.split(';')
+    for i in range(len(titles)):
+      title = titles[i]
+      tk.Label(self.table_frame, text=title).grid(row=0, column=i, sticky='EW')
+    i = 1 #row counter
+    for line in tao_output[3:]:
+      line = line.split(';')
+      tk.Label(self.table_frame, text=line[0]).grid(row=i, column=0, sticky='EW')
+      j = 1 #column counter
+      for item in line[1:]:
+        name = titles[j-1]
+        name = name[:name.find('n')] + str(j) + name[name.find('n'):]
+        can_vary = 'T' if j<3 else 'F'
+        self.tk_tao_list.append(tk_tao_parameter(str_to_tao_param(
+          name + ';REAL;' + can_vary + ';' + item),
+          self.table_frame, self.pipe))
+        self.tk_tao_list[-1].tk_wid.grid(row=i, column=j, sticky='EW')
+        j = j+1
+      i = i+1
 
 #---------------------------------------------------
 # Lattice Window

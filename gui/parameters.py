@@ -79,6 +79,10 @@ def str_to_tao_param(param_str):
     and returns a tao_parameter
     '''
     v = param_str.split(';')
+    #TEMPORARY FIX
+    if (len(v[2]) == 2) & (len(v) == 3):
+      v.append(v[2][1])
+      v[2] = v[2][0]
     if v[1] == "REAL_ARR":
       arr = []
       for x in v[3:]:
