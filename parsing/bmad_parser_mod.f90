@@ -5138,7 +5138,7 @@ endif
 ! This is done independent of the geometry. The reason why this is geometry 
 ! independent is that it is sometimes convenient to treat a closed lattice as open.
 
-branch => ref_ele%branch
+branch => pointer_to_branch(ref_ele)
 
 if (super_ele%s > branch%ele(branch%n_ele_track)%s) then
   super_ele%s = super_ele%s - branch%param%total_length
