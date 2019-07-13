@@ -14,13 +14,14 @@
 
 subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag)
 
-use hdf5_interface
+use hdf5_openpmd_mod
 use bmad_interface
 
 implicit none
 
 type (grid_field_struct), target :: g_field
 type (ele_struct) ele
+type (pmd_header_struct) pmd_header
 
 integer(HID_T) f_id
 integer i, j, k, n0(3), n1(3), iver, h5_err
@@ -34,6 +35,16 @@ character(*), parameter :: r_name = 'hdf5_read_grid_field'
 
 err_flag = .true.
 call hdf5_open_file (file_name, 'READ', f_id, err);  if (err) return
+
+call hdf5_read_attribute_alloc_string (f_id, 'openPMD', pmd_header%openPMD, err, .true.);                    if (err) return
+call hdf5_read_attribute_alloc_string (f_id, 'openPMDextension', pmd_header%openPMDextension, err, .true.);  if (err) return
+call hdf5_read_attribute_alloc_string (f_id, 'basePath', pmd_header%basePath, err, .true.);                  if (err) return
+call hdf5_read_attribute_alloc_string (f_id, 'meshesPath', pmd_header%meshesPath, err, .true.);              if (err) return
+
+
+
+
+!
 
 call h5fclose_f(f_id, h5_err)
 err_flag = .false.

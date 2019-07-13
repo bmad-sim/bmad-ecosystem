@@ -53,6 +53,7 @@ logical append, error, err
 
 ! Open a new file using default properties.
 
+error = .true.
 call hdf5_open_file (file_name, 'WRITE', f_id, err);  if (err) return
 
 ! Write some header stuff
@@ -117,28 +118,28 @@ do ib = 1, size(bunches)
     ! Photon polarization
     call h5gcreate_f(b2_id, 'photonPolarization', z_id, h5_err)
     call h5gcreate_f(z_id, 'x', z2_id, h5_err)
-    call pmd_write_real_vector_to_dataset(z2_id, 'amplitude', 'Field Amp_x', unit_1, p(:)%field(1), error)
-    call pmd_write_real_vector_to_dataset(z2_id, 'phase', 'Field Phase_x', unit_1, p(:)%phase(1), error)
+    call pmd_write_real_vector_to_dataset(z2_id, 'amplitude', 'Field Amp_x', unit_1, p(:)%field(1), err)
+    call pmd_write_real_vector_to_dataset(z2_id, 'phase', 'Field Phase_x', unit_1, p(:)%phase(1), err)
     call h5gclose_f(z2_id, h5_err)
     call h5gcreate_f(z_id, 'y', z2_id, h5_err)
-    call pmd_write_real_vector_to_dataset(z2_id, 'amplitude', 'Field Amp_y', unit_1, p(:)%field(2), error)
-    call pmd_write_real_vector_to_dataset(z2_id, 'phase', 'Field Phase_y', unit_1, p(:)%phase(2), error)
+    call pmd_write_real_vector_to_dataset(z2_id, 'amplitude', 'Field Amp_y', unit_1, p(:)%field(2), err)
+    call pmd_write_real_vector_to_dataset(z2_id, 'phase', 'Field Phase_y', unit_1, p(:)%phase(2), err)
     call h5gclose_f(z2_id, h5_err)
     call h5gclose_f(z_id, h5_err)
 
-    call pmd_write_real_vector_to_dataset(b2_id, 'pathLength', 'Path Length', unit_m, p(:)%path_len, error)
+    call pmd_write_real_vector_to_dataset(b2_id, 'pathLength', 'Path Length', unit_m, p(:)%path_len, err)
 
     ! Velocity
 
     call h5gcreate_f(b2_id, 'velocity', z_id, h5_err)
 
-    call pmd_write_real_vector_to_dataset(z_id, 'x', 'Vx', unit_c_light, p(:)%vec(2), error)
-    call pmd_write_real_vector_to_dataset(z_id, 'y', 'Vy', unit_c_light, p(:)%vec(4), error)
-    call pmd_write_real_vector_to_dataset(z_id, 'z', 'Vz', unit_c_light, p(:)%vec(6), error)
+    call pmd_write_real_vector_to_dataset(z_id, 'x', 'Vx', unit_c_light, p(:)%vec(2), err)
+    call pmd_write_real_vector_to_dataset(z_id, 'y', 'Vy', unit_c_light, p(:)%vec(4), err)
+    call pmd_write_real_vector_to_dataset(z_id, 'z', 'Vz', unit_c_light, p(:)%vec(6), err)
 
     call h5gclose_f(z_id, h5_err)
 
-    call pmd_write_real_vector_to_dataset (b2_id, 'totalMomentumOffset', 'p0c', unit_eV_per_c, p(:)%p0c, error)
+    call pmd_write_real_vector_to_dataset (b2_id, 'totalMomentumOffset', 'p0c', unit_eV_per_c, p(:)%p0c, err)
 
   ! Non-photons...
 
@@ -147,22 +148,22 @@ do ib = 1, size(bunches)
 
     call h5gcreate_f(b2_id, 'momentum', z_id, h5_err)
 
-    call pmd_write_real_vector_to_dataset(z_id, 'x', 'px * p0c', unit_ev_per_c, p(:)%vec(2) * p(:)%p0c, error)
-    call pmd_write_real_vector_to_dataset(z_id, 'y', 'py * p0c', unit_ev_per_c, p(:)%vec(4) * p(:)%p0c, error)
+    call pmd_write_real_vector_to_dataset(z_id, 'x', 'px * p0c', unit_ev_per_c, p(:)%vec(2) * p(:)%p0c, err)
+    call pmd_write_real_vector_to_dataset(z_id, 'y', 'py * p0c', unit_ev_per_c, p(:)%vec(4) * p(:)%p0c, err)
     rvec = p(:)%direction * (sqrt((1 + p(:)%vec(6))**2 - p(:)%vec(2)**2 - p(:)%vec(4)**2) * p(:)%p0c)
-    call pmd_write_real_vector_to_dataset(z_id, 'z', 'ps * p0c', unit_ev_per_c, rvec, error)
+    call pmd_write_real_vector_to_dataset(z_id, 'z', 'ps * p0c', unit_ev_per_c, rvec, err)
 
     call h5gclose_f(z_id, h5_err)
 
-    call pmd_write_real_vector_to_dataset (b2_id, 'totalMomentumOffset', 'p0c', unit_eV_per_c, p(:)%p0c, error)
-    call pmd_write_real_vector_to_dataset (b2_id, 'totalMomentum', 'pz * p0c', unit_eV_per_c, p(:)%vec(6)*p(:)%p0c, error)
+    call pmd_write_real_vector_to_dataset (b2_id, 'totalMomentumOffset', 'p0c', unit_eV_per_c, p(:)%p0c, err)
+    call pmd_write_real_vector_to_dataset (b2_id, 'totalMomentum', 'pz * p0c', unit_eV_per_c, p(:)%vec(6)*p(:)%p0c, err)
 
     ! Spin
 
     call h5gcreate_f(b2_id, 'spin', z_id, h5_err)
-    call pmd_write_real_vector_to_dataset(z_id, 'x', 'Sx', unit_1, p(:)%spin(1), error)
-    call pmd_write_real_vector_to_dataset(z_id, 'y', 'Sy', unit_1, p(:)%spin(2), error)
-    call pmd_write_real_vector_to_dataset(z_id, 'z', 'Sz', unit_1, p(:)%spin(3), error)
+    call pmd_write_real_vector_to_dataset(z_id, 'x', 'Sx', unit_1, p(:)%spin(1), err)
+    call pmd_write_real_vector_to_dataset(z_id, 'y', 'Sy', unit_1, p(:)%spin(2), err)
+    call pmd_write_real_vector_to_dataset(z_id, 'z', 'Sz', unit_1, p(:)%spin(3), err)
     call h5gclose_f(z_id, h5_err)
   endif
 
@@ -173,42 +174,42 @@ do ib = 1, size(bunches)
   else
     rvec = -p(:)%vec(5) / (p(:)%beta * c_light)  ! t - t_ref
   endif
-  call pmd_write_real_vector_to_dataset(b2_id, 'time', 't - t_ref', unit_sec, rvec, error)
-  call pmd_write_real_vector_to_dataset(b2_id, 'timeOffset', 't_ref', unit_sec, p(:)%t - rvec, error)
+  call pmd_write_real_vector_to_dataset(b2_id, 'time', 't - t_ref', unit_sec, rvec, err)
+  call pmd_write_real_vector_to_dataset(b2_id, 'timeOffset', 't_ref', unit_sec, p(:)%t - rvec, err)
 
   !-----------------
   ! Position. 
 
   call h5gcreate_f(b2_id, 'position', z_id, h5_err)
 
-  call pmd_write_real_vector_to_dataset(z_id, 'x', 'x', unit_m, p(:)%vec(1), error)
-  call pmd_write_real_vector_to_dataset(z_id, 'y', 'y', unit_m, p(:)%vec(3), error)
+  call pmd_write_real_vector_to_dataset(z_id, 'x', 'x', unit_m, p(:)%vec(1), err)
+  call pmd_write_real_vector_to_dataset(z_id, 'y', 'y', unit_m, p(:)%vec(3), err)
 
   ! For charged particles: The z-position (as opposed to z-cononical = %vec(5)) is always zero by construction.
   if (p(1)%species == photon$) then
-    call pmd_write_real_vector_to_dataset(z_id, 'z', 'z', unit_m, p(:)%vec(5), error)
+    call pmd_write_real_vector_to_dataset(z_id, 'z', 'z', unit_m, p(:)%vec(5), err)
   else
-    call pmd_write_real_to_pseudo_dataset(z_id, 'z', 'z', unit_m, 0.0_rp, [size(p)], error)
+    call pmd_write_real_to_pseudo_dataset(z_id, 'z', 'z', unit_m, 0.0_rp, [size(p)], err)
   endif
 
   call h5gclose_f(z_id, h5_err)
 
   !
 
-  call pmd_write_real_vector_to_dataset(b2_id, 'sPosition', 's', unit_m, p(:)%s, error)
+  call pmd_write_real_vector_to_dataset(b2_id, 'sPosition', 's', unit_m, p(:)%s, err)
 
-  call pmd_write_real_vector_to_dataset(b2_id, 'speed', 'beta', unit_c_light, p(:)%beta, error)
-  call pmd_write_real_vector_to_dataset(b2_id, 'weight', 'macro-charge', unit_1, p(:)%charge, error)
+  call pmd_write_real_vector_to_dataset(b2_id, 'speed', 'beta', unit_c_light, p(:)%beta, err)
+  call pmd_write_real_vector_to_dataset(b2_id, 'weight', 'macro-charge', unit_1, p(:)%charge, err)
 
-  call pmd_write_int_vector_to_dataset(b2_id, 'particleStatus', 'state', unit_1, p(:)%state, error)
-  call pmd_write_int_vector_to_dataset(b2_id, 'branchIndex', 'ix_branch', unit_1, p(:)%ix_branch, error)
-  call pmd_write_int_vector_to_dataset(b2_id, 'elementIndex', 'ix_ele', unit_1, p(:)%ix_ele, error)
+  call pmd_write_int_vector_to_dataset(b2_id, 'particleStatus', 'state', unit_1, p(:)%state, err)
+  call pmd_write_int_vector_to_dataset(b2_id, 'branchIndex', 'ix_branch', unit_1, p(:)%ix_branch, err)
+  call pmd_write_int_vector_to_dataset(b2_id, 'elementIndex', 'ix_ele', unit_1, p(:)%ix_ele, err)
 
   if (.not. is_fundamental_species(p(1)%species)) then
     do i = 1, size(p)
       ivec = charge_of(p(i)%species)
     enddo
-    call pmd_write_int_vector_to_dataset(b2_id, 'chargeState', 'particle charge', unit_1, ivec, error)
+    call pmd_write_int_vector_to_dataset(b2_id, 'chargeState', 'particle charge', unit_1, ivec, err)
   endif
 
   do i = 1, size(p)
@@ -218,7 +219,7 @@ do ib = 1, size(bunches)
     case (downstream_end$); ivec(i) =  1
     end select
   enddo
-  call pmd_write_int_vector_to_dataset(b2_id, 'locationInElement', 'location', unit_1, ivec, error)
+  call pmd_write_int_vector_to_dataset(b2_id, 'locationInElement', 'location', unit_1, ivec, err)
 
   call h5gclose_f(b2_id, h5_err)
   call h5gclose_f(b_id, h5_err)
@@ -226,6 +227,7 @@ enddo
 
 call h5gclose_f(r_id, h5_err)
 call h5fclose_f(f_id, h5_err)
+error = .false.
 
 end subroutine hdf5_write_beam 
 
@@ -279,7 +281,6 @@ logical error, err
 ! Init
 
 error = .true.
-
 call hdf5_open_file (file_name, 'READ', f_id, err);  if (err) return
 
 ! Get header info
@@ -288,6 +289,7 @@ call hdf5_read_attribute_alloc_string (f_id, 'openPMD', pmd_header%openPMD, err,
 call hdf5_read_attribute_alloc_string (f_id, 'openPMDextension', pmd_header%openPMDextension, err, .true.);  if (err) return
 call hdf5_read_attribute_alloc_string (f_id, 'basePath', pmd_header%basePath, err, .true.);                  if (err) return
 call hdf5_read_attribute_alloc_string (f_id, 'particlesPath', pmd_header%particlesPath, err, .true.);        if (err) return
+! It is not an error if any of the following is missing
 call hdf5_read_attribute_alloc_string (f_id, 'software', pmd_header%software, err, .false.)
 call hdf5_read_attribute_alloc_string (f_id, 'softwareVersion', pmd_header%softwareVersion, err, .false.)
 call hdf5_read_attribute_alloc_string (f_id, 'date', pmd_header%date, err, .false.)
@@ -314,7 +316,7 @@ do idx = 0, n_links-1
   call to_f_str(c_name, name)
   call H5Oget_info_by_name_f(z_id, name, infobuf, h5_stat)
   if (infobuf%type /= H5O_TYPE_GROUP_F) cycle    ! Ignore non-group elements.
-  if (.not. is_integer(name)) then    ! This assumes basepath uses "/%T/" to designate different bunches.
+  if (.not. is_integer(name)) then               ! This assumes basepath uses "/%T/" to designate different bunches.
     call out_io (s_warn$, r_name, 'NAME OF DIRECTORY IN PATH IS NOT AN INTEGER: ' // quote(name))
     cycle
   endif
@@ -332,21 +334,14 @@ c_func_ptr = c_funloc(hdf5_read_bunch)
 idx = 0
 n_bunch = 0
 call H5Literate_f (z_id, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_func_ptr, cv_ptr, state, h5_err)
+call H5Gclose_f(z_id, h5_err)
 
 ! And end
 
-call H5Gclose_f(z_id, h5_err)
-call h5fclose_f(f_id, h5_err)
 error = .false.
-return
-
-!------------------------------------------------------------
-! Close and return
 
 9000 continue
-
 call h5fclose_f(f_id, h5_err)
-return
 
 !------------------------------------------------------------------------------------------
 contains

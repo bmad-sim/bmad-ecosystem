@@ -49,10 +49,11 @@ type pmd_header_struct
   character(:), allocatable :: openPMDextension
   character(:), allocatable :: basePath
   character(:), allocatable :: particlesPath
-  character(:), allocatable :: author          != 'anonymous'
-  character(:), allocatable :: software        != 'Bmad'
-  character(:), allocatable :: softwareVersion ! = 'Revision XXX'
-  character(:), allocatable :: date            ! = ''
+  character(:), allocatable :: meshesPath
+  character(:), allocatable :: author
+  character(:), allocatable :: software
+  character(:), allocatable :: softwareVersion
+  character(:), allocatable :: date
   character(:), allocatable :: latticeFile
   character(:), allocatable :: latticeName
 end type
