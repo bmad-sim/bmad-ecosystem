@@ -58,7 +58,7 @@ write (this_path, '(a, i0, a)') bunch_path(1:ix-1), ig, trim(bunch_path(ix+2:))
 call h5gcreate_f(r_id, trim(this_path), b_id, h5_err)
 call h5gcreate_f(b_id, mesh_path, b2_id, h5_err)
 
-call hdf5_write_attribute_string(b2_id,  'master_parameter',     attribute_name(ele, g_field%master_parameter), err)
+call hdf5_write_attribute_string(b2_id,  'masterParameter',      attribute_name(ele, g_field%master_parameter), err)
 call hdf5_write_attribute_string(b2_id,  'geometry',             grid_field_geometry_name(g_field%geometry), err)
 call hdf5_write_attribute_string(b2_id,  'fieldType',            em_field_type_name(g_field%field_type), err)
 call hdf5_write_attribute_string(b2_id,  'eleAnchorPt',          anchor_pt_name(g_field%ele_anchor_pt), err)
