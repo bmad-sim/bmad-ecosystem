@@ -1,0 +1,37 @@
+&tao_plot_page
+  place(1) = 'r11', 'floor_plan'
+/
+
+
+
+&floor_plan_drawing
+ele_shape(1) =    "FORK::*"                           "CIRCLE"        "RED"              3.0  "name"      T     F      1
+ele_shape(2) =    "CRYSTAL::*"                        "CIRCLE"        "RED"              3.0  "name"      T     F      1
+ele_shape(3) =    "DETECTOR::*"                       "BOX"           "BLACK"            6.0  "name"      T     F      1
+ele_shape(4) =    "DIFFRACTION_PLATE::*"              "BOX"           "CYAN"             6.0  "name"      T     F      1
+ele_shape(5) =    "E_GUN::*"                          "XBOX"          "RED"              8.0  "name"      T     F      1
+ele_shape(6) =    "EM_FIELD::*"                       "XBOX"          "BLUE"             8.0  "name"      T     F      1
+ele_shape(7) =    "ECOLLIMATOR::*"                    "XBOX"          "BLUE"             4.0  "name"      F     F      1
+ele_shape(8) =    "INSTRUMENT::*"                     "BOX"           "BLUE"             6.0  "name"      F     F      1
+ele_shape(9) =    "LCAVITY::*"                        "XBOX"          "RED"             10.0  "none"      T     F      1
+ele_shape(10) =   "MARKER::*"                         "BOX"           "BLUE"             6.0  "name"      F     F      1
+ele_shape(11) =   "MIRROR::*"                         "CIRCLE"        "RED"              3.0  "name"      T     F      1
+ele_shape(12) =   "MONITOR::*"                        "BOX"           "BLACK"            6.0  "name"      F     F      1
+ele_shape(13) =   "MULTILAYER_MIRROR::*"              "CIRCLE"        "RED"              3.0  "name"      T     F      1
+ele_shape(14) =   "OCTUPOLE::*"                       "BOX"           "BLACK"            6.0  "name"      F     F      1
+ele_shape(15) =   "PATCH::*"                          "BOX"           "YELLOW"           5.0  "none"      F     F      1
+ele_shape(16) =   "PHOTON_FORK::*"                    "CIRCLE"        "RED"              3.0  "name"      T     F      1
+ele_shape(17) =   "QUADRUPOLE::*"                     "XBOX"          "MAGENTA"          7.4  "name"      T     F      1
+ele_shape(18) =   "RCOLLIMATOR::*"                    "XBOX"          "BLUE"             4.0  "name"      F     F      1
+ele_shape(19) =   "RFCAVITY::*"                       "XBOX"          "RED"             10.0  "name"      T     F      1
+ele_shape(20) =   "SAMPLE::*"                         "BOX"           "BLACK"            6.0  "name"      T     F      1
+ele_shape(21) =   "SBEND::*"                          "BOX"           "BLACK"            4.0  "name"      T     F      1
+ele_shape(22) =   "SEXTUPOLE::*"                      "XBOX"          "GREEN"            7.4  "none"      T     F      1
+ele_shape(23) =   "SOL_QUAD::*"                       "BOX"           "BLACK"            8.0  "name"      F     F      1
+ele_shape(24) =   "SOLENOID::*"                       "BOX"           "BLUE"             6.0  "name"      T     F      1
+ele_shape(25) =   "WIGGLER::*"                        "XBOX"          "CYAN"            10.0  "name"      T     F      1
+ele_shape(26) =   "PHOTON_INIT::*"                    "BOX"           "BLACK"            6.0  "name"      T     F      1
+ele_shape(27) =   "building_wall::inside"             "-"             "GREEN"            6.0  "name"      T     F      3
+ele_shape(28) =   "building_wall::outside"            "-"             "RED"              6.0  "name"      T     F      3
+ele_shape(29) =   "building_wall::*"                  "-"             "BLACK"            6.0  "name"      T     F      3
+/

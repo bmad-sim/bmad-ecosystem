@@ -23,10 +23,11 @@ integer i, j, iu, ios, n_wall
 
 character(*) wall_file
 character(200) complete_file_name
-character(24) :: r_name = 'tao_init_building_wall'
+character(40) name
 character(16) constraint
+character(*), parameter :: r_name = 'tao_init_building_wall'
 
-namelist / building_wall_section / constraint, point
+namelist / building_wall_section / constraint, name, point
 
 ! Open file
 
@@ -64,10 +65,13 @@ if (n_wall == 0) return ! no walls
 rewind (iu)
 do i = 1, n_wall
 
+  name = ''
   constraint = 'none'
   point%radius = 0
   point%x = real_garbage$
   read (iu, nml = building_wall_section, iostat = ios)
+
+  s%building_wall%section(i)%name = name
 
   select case (constraint)
   case ('left_side', 'right_side', 'none')

@@ -1389,31 +1389,31 @@ The velocity normalized by the speed of light $c$.
 
   %----------------------
   \item[wall.left_side, .right_side] \Newline
-The \vn{wall} data data type is used to constrain the shape of a machine to fit
-inside a building's walls (\sref{s:building.wall}). The general layout is shown in
-Figure~\ref{f:wall.constraint}. The machine centerline is projected onto the horizontal
-$(Z, X)$ plane in the Global (floor) coordinate system. Point \vn{A} is an evaluation
-point at the exit end of some element. $\wt z$ is the projection of the local $z$-axis
-onto the $(Z, X)$ plane and $\wt x$ is the coordinate in the $(Z, X)$ plane perpendicular
-to $\wt z$. In the typical situation, where a machine is planer (no out-of-plane bends),
-the $\wt z$-axis corresponds to the local $z$-axis and the $\wt x$-axis corresponds to the
-$x$-axis (see the \bmad manual for an explanation of local and global coordinate systems).
+The \vn{wall} data data type is used to constrain the shape of a machine to fit inside a building's
+walls (\sref{s:building.wall}). The general layout is shown in Figure~\ref{f:wall.constraint}. The
+machine centerline is projected onto the horizontal $(Z, X)$ plane in the Global (floor) coordinate
+system. Point \vn{A} is an evaluation point at the exit end of some element. $\wt z$ is the
+projection of the local $z$-axis onto the $(Z, X)$ plane and $\wt x$ is the coordinate in the $(Z,
+X)$ plane perpendicular to $\wt z$. In the typical situation, where a machine is planer (no
+out-of-plane bends), the $\wt z$-axis corresponds to the local laboratory $z$-axis and the $\wt
+x$-axis corresponds to the local laboratory $x$-axis (see the \bmad manual for an explanation of
+local and global coordinate systems).
 
-The distance from the machine at point \vn{A} to the wall is defined to be the distance
-from \vn{A} to a point \vn{B} on the wall where point \vn{B} is along the $\wt x$ axis
-(has $\wt z = 0$) as shown in Figure~\ref{f:wall.constraint}.
+The distance from the machine at point \vn{A} to the wall is defined to be the distance from \vn{A}
+to a point \vn{B} on the wall where point \vn{B} is along the $\wt x$ axis (has $\wt z = 0$) as
+shown in Figure~\ref{f:wall.constraint}.
 
-By definition, the \vn{``left side''} of the machine corresponds to be the $+\wt x$ side
-and the \vn{``right side''} corresponds to be the $-\wt x$ side. That is, left and right
-are relative to someone looking in the same direction as the beam is
-propagating. Correspondingly, there are two wall data types: \vn{wall.left_side} and
-\vn{wall.right_side}. With the \vn{wall.left_side} data type, the datum value is positive
-if point \vn{B} is on the left side and negative if on the right. Vice versa for a
-\vn{wall.right_side} datum.  If there are multiple wall points \vn{B}, that is, if there
-are multiple points on the wall with $\wt z = 0$, the datum value will be the minimum
-value. Notice that only wall sections that have a \vn{constraint} matching the datum will
-be used when searching for possible points \vn{B}. If there are no wall points with $\wt z
-= 0$, the datum value is set to a large number.
+By definition, the \vn{``left side''} of the machine corresponds to be the $+\wt x$ side and the
+\vn{``right side''} corresponds to be the $-\wt x$ side. That is, left and right are relative to
+someone looking in the same direction as the beam is propagating. Correspondingly, there are two
+wall data types: \vn{wall.left_side} and \vn{wall.right_side}. With the \vn{wall.left_side} data
+type, the datum value is positive if point \vn{B} is on the left side and negative if on the
+right. Vice versa for a \vn{wall.right_side} datum.  That is, there is interference with with wall
+when the datum value is negative. If there are multiple wall points \vn{B}, that is, if there are
+multiple points on the wall with $\wt z = 0$, the datum value will be the minimum value. Notice that
+only wall sections that have a \vn{constraint} matching the datum will be used when searching for
+possible points \vn{B}. If there are no wall points with $\wt z = 0$, the datum will be marked
+invalid.
 
 For \vn{wall} data there can be no reference element since this does
 not make sense.

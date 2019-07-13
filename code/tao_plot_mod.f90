@@ -221,7 +221,7 @@ if (graph%type == 'wave.0' .or. graph%type == 'wave.b') then
   call qp_draw_rectangle (1.0_rp * s%wave%ix_b1, 1.0_rp * s%wave%ix_b2, y0, y1, color = blue$, width = 2)
 endif
 
-end subroutine
+end subroutine tao_plot_wave
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -314,23 +314,19 @@ type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
 type (qp_axis_struct) x_ax, y_ax
 type (lat_struct), pointer :: lat
-type (tao_ele_shape_struct), pointer :: ele_shape, ele_shape2
 type (tao_lattice_branch_struct), pointer :: tao_branch
-type (floor_position_struct) end1, end2, floor
-type (tao_building_wall_point_struct), pointer :: pt(:)
 type (ele_struct), pointer :: ele, slave
 type (branch_struct), pointer :: branch
 
 real(rp) theta, v_vec(3), theta1, dtheta, dat_var_value, y1, y2
 real(rp) x_bend(0:400), y_bend(0:400)
 
-integer i, j, k, n, n_bend, isu, ic, ib, icol, ix_shape_min
-integer ix_pass, n_links, iwidth
+integer isu
 
 character(40) label_name
-character(20) :: r_name = 'tao_draw_floor_plan'
+character(*), parameter :: r_name = 'tao_draw_floor_plan'
 
-logical err
+logical err, found
 
 ! Each graph is a separate floor plan plot (presumably for different universes). 
 ! setup the placement of the graph on the plot page.
@@ -378,7 +374,12 @@ contains
 
 subroutine draw_this_floor_plan(isu)
 
-integer isu
+type (tao_ele_shape_struct), pointer :: ele_shape, ele_shape2
+type (tao_building_wall_point_struct), pointer :: pt(:)
+type (floor_position_struct) end1, end2, floor
+
+integer i, j, k, n, is, n_bend, isu, ic, ib, icol, ix_shape_min
+integer ix_pass, n_links, iwidth
 
 !
 
@@ -425,14 +426,18 @@ enddo
 ! Draw the building wall
 
 if (allocated(s%building_wall%section)) then
-  do i = 1, size(s%plot_page%floor_plan%ele_shape)
-    ele_shape => s%plot_page%floor_plan%ele_shape(i)
-    if (ele_shape%ele_id /= 'wall::building') cycle
-    if (.not. ele_shape%draw) cycle
-    icol = qp_translate_to_color_index (ele_shape%color)
-    iwidth = ele_shape%line_width
+  found = .false.
 
-    do ib = 1, size(s%building_wall%section)
+  do ib = 1, size(s%building_wall%section)
+    do is = 1, size(s%plot_page%floor_plan%ele_shape)
+      ele_shape => s%plot_page%floor_plan%ele_shape(is)
+      if (ele_shape%ele_id(1:15) /= 'building_wall::') cycle
+      found = .true.
+      if (.not. match_wild(s%building_wall%section(ib)%name, ele_shape%ele_id(16:))) cycle
+      if (.not. ele_shape%draw) cycle
+      icol = qp_translate_to_color_index (ele_shape%color)
+      iwidth = ele_shape%line_width
+
       pt => s%building_wall%section(ib)%point
 
       do j = 2, size(pt)
@@ -456,11 +461,14 @@ if (allocated(s%building_wall%section)) then
           call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend), width = iwidth, color = icol)
         endif
       enddo
+      exit
+    enddo  ! ele shape
+  enddo  ! wall section
 
-    enddo
-    exit
-  enddo
-end if
+  if (.not. found) then
+    call out_io (s_info$, r_name, 'Building wall defined but no building wall shape(s) for floor_plan present.')
+  endif
+endif
 
 ! Draw any data curves and beam chamber wall curve
 
@@ -778,6 +786,7 @@ endif
 
 icol = qp_translate_to_color_index (ele_shape%color)
 
+off = ele_shape%size * s%plot_page%floor_plan_shape_scale 
 off1 = offset1 * s%plot_page%floor_plan_shape_scale
 off2 = offset2 * s%plot_page%floor_plan_shape_scale
 

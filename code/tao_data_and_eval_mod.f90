@@ -401,8 +401,9 @@ type (rad_int_branch_struct), pointer :: rad_int_branch
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2
 real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len
-real(rp) dz, dx, cos_theta, sin_theta, z_pt, x_pt, z0_pt, x0_pt, dE
-real(rp) z_center, x_center, x_wall, s_eval, s_eval_ref, phase, amp
+real(rp) dz, dx, cos_theta, sin_theta, zz_pt, xx_pt, zz0_pt, xx0_pt, dE
+real(rp) zz_center, xx_center, xx_wall, s_eval, s_eval_ref, phase, amp
+real(rp) xx_a, xx_b, dxx1, dzz1, drad, ang_a, ang_b, ang_c
 real(rp), allocatable, save :: value_vec(:)
 real(rp), allocatable, save :: expression_value_vec(:)
 real(rp) theta, phi, psi
@@ -3059,50 +3060,85 @@ case ('wall.')
   if (data_source == 'beam') goto 9000  ! Set error message and return
 
   constraint = datum%data_type(6:)
-  z0_pt = 0
+  zz0_pt = 0
   datum_value = 1e10   ! Something large
+  found = .false.
+
+  if (.not. allocated(s%building_wall%section)) then
+    valid_value = .false.
+    why_invalid = 'No building wall sections defined.'
+    return
+  endif
 
   do i = 1, size(s%building_wall%section)
     section => s%building_wall%section(i)
     if (section%constraint /= constraint) cycle
     do ie = ix_start, ix_ele
       ele => branch%ele(ie)
-      
+
+      ! (zz, xx) is the local reference coordinate system at the element
+
       do is = 1, size(section%point)
         pt => section%point(is)
         dz = pt%z - ele%floor%r(3); dx = pt%x - ele%floor%r(1)
         cos_theta = cos(ele%floor%theta); sin_theta = sin(ele%floor%theta)
-        z_pt =  dz * cos_theta + dx * sin_theta
-        x_pt = -dz * sin_theta + dx * cos_theta
+        zz_pt =  dz * cos_theta + dx * sin_theta
+        xx_pt = -dz * sin_theta + dx * cos_theta
 
-        ! The perpendicular to the machine line intersects the segment if
-        ! z_pt and z0_pt have a different sign.
-
-        if (is > 1 .and. z_pt * z0_pt <= 0) then
-          if (pt%radius == 0 .or. z_pt == 0 .or. z0_pt == 0) then
-            x_wall = (x0_pt * z_pt - x_pt * z0_pt) / (z_pt - z0_pt)
-          else
-            dz = pt%z_center - ele%floor%r(3); dx = pt%x_center - ele%floor%r(1)
-            z_center =  dz * cos_theta + dx * sin_theta
-            x_center = -dz * sin_theta + dx * cos_theta
-            if (pt%radius * z_pt > 0) then
-              x_wall = x_center - sqrt(pt%radius**2 - z_center**2)
-            else
-              x_wall = x_center + sqrt(pt%radius**2 - z_center**2)
-            endif
-          endif
-          if (datum%data_type =='wall.right_side')  x_wall = -x_wall
-          datum_value = min(datum_value, x_wall)
+        if (is == 1) then
+          zz0_pt = zz_pt
+          xx0_pt = xx_pt
+          cycle
         endif
 
-        z0_pt = z_pt
-        x0_pt = x_pt
+
+        if (pt%radius == 0 .or. zz_pt == 0 .or. zz0_pt == 0) then
+          ! The perpendicular to the machine line intersects the segment if
+          ! zz_pt and zz0_pt have a different signs.
+          if (zz_pt * zz0_pt > 0) cycle
+          xx_wall = (xx0_pt * zz_pt - xx_pt * zz0_pt) / (zz_pt - zz0_pt)
+
+        else  ! Circular arc
+          dz = pt%z_center - ele%floor%r(3); dx = pt%x_center - ele%floor%r(1)
+          zz_center =  dz * cos_theta + dx * sin_theta
+          xx_center = -dz * sin_theta + dx * cos_theta
+          drad = pt%radius**2 -zz_center**2
+          if (drad <= 0) cycle
+          drad = sqrt(drad)
+          ! There are two possible points at (0, xx_a) and (0, xx_b) where the perpendicular 
+          ! to the machine line intersects the arc.
+          xx_a = xx_center - drad
+          xx_b = xx_center + drad
+          dxx1 = xx_pt - xx0_pt
+          dzz1 = zz_pt - zz0_pt
+          ang_a = dzz1 * (xx_a - xx0_pt) + dxx1 * zz0_pt
+          ang_b = dzz1 * (xx_b - xx0_pt) + dxx1 * zz0_pt
+          ang_c = dzz1 * (xx_center - xx0_pt) - dxx1 * (zz_center - zz0_pt)
+          ! A point is within the circular arc if it and the center point are on opposite
+          ! sides of the chord from (zz0_pt, xx0_pt) to (zz_pt, xx_pt). 
+          ! This assumes the arc is less than 180^deg.
+          ! It should not be that both intersection points are within the arc.
+          if (ang_a * ang_c < 0) then
+            xx_wall = xx_a
+          elseif (ang_b * ang_c < 0) then
+            xx_wall = xx_b
+          else
+            cycle
+          endif
+        endif
+
+        if (datum%data_type =='wall.right_side')  xx_wall = -xx_wall
+        datum_value = min(datum_value, xx_wall)
+        valid_value = .true.
+
+        zz0_pt = zz_pt
+        xx0_pt = xx_pt
       enddo
     enddo
 
   enddo
 
-  valid_value = .true.
+  if (.not. valid_value) why_invalid = 'No wall section found in the transverse plane of the evaluation point.'
 
 !-----------
 

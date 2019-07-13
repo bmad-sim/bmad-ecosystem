@@ -1372,6 +1372,7 @@ number of \vn{building_wall_section} namelists. Each \vn{building_wall_section} 
 single wall section. The syntax of this namelist is
 \begin{example}
   &building_wall_section
+    \{name = <string>\}
     \{constraint = <type>\}
     point(1) = <z1>, <x1>
     point(2) = <z2>, <x2>, \{<r2>\}
@@ -1380,6 +1381,9 @@ single wall section. The syntax of this namelist is
     point(N) = <zN>, <xN>, \{<rN>\}
   /
 \end{example}
+The optional \vn{name} component allows for matching wall sections to \vn{floor_plan} shapes
+(\sref{s:shapes}) so that different portions of the wall can be drawn in different colors.
+
 The global coordinate system in \bmad (see the \bmad manual) defines the $(Z, X)$ plane as being
 horizontal.  [Note: $(Z, X)$ is used instead of $(X, Z)$ since $(Z, X, Y)$ forms a right handed
 coordinate system.] The points that define a wall section are specified in this coordinate system.
@@ -1406,16 +1410,18 @@ degree arcs in between.
 
 When designing a machine to fit within the walls of a building, the
 \vn{constraint} variable of the namelist is used to designate whether
-the given wall section is on the $+x$ side of the machine or the $-x$
+the given wall section is on the $+x$ (left) side of the machine or the $-x$ (right)
 side. Here $x$ is the local reference frame transverse coordinate. See
 the write up of the \vn{wall.right_side} and \vn{wall.left_side} constraints in
 \sref{s:data.types} for more details. Possible values for
 \vn{constraint} are:
 \begin{example}
-  "right_side"  ! Section is to be used with wall.x+ constraints
-  "left_side"   ! Section is to be used with wall.x- constraints
+  "right_side"  ! Section is to be used with wall.right_side constraints
+  "left_side"   ! Section is to be used with wall.left_side constraints
   "none"        ! Default. Section is ignored in any constraint calculation.
 \end{example}
+Using \vn{"none"} for \vn{constraint} is convenient for drawing building components on a
+\vn{floor_plan} that are not used as a optimization constraint.
 
 Example:
 \begin{example}
@@ -2376,7 +2382,7 @@ For Example:
     ele_shape(5) = "wiggler::*"             "xbox"     "green"   0.50  "name"
     ele_shape(6) = "var::quad_k1"           "circle"   "purple"  0.25  "name"
     ele_shape(7) = "data::orbit.x|design"   "vvar_box" "orange"  0.25  "name"
-    ele_shape(8) = "wall::building"         "-"        "black"    0    "-"
+    ele_shape(8) = "building_wall::*"       "-"        "black"    0    "-"
     ele_shape(3)%multi = T
     ele_shape(5:6)%line_width = 5, 6
   /
@@ -2392,58 +2398,48 @@ drawn and the setting of \vn{<multi>} for that shape will be used to determine w
 shapes are searched for. Thus \vn{<multi>} can be use to draw, for example, a \vn{circle} shape
 superimposed upon a \vn{bow_tie} shape.
 
-For a floor plan, for \vn{wiggler}s or \vn{undulators} that have an
-\vn{x_ray_line_len} attribute (see the \bmad manual), The X-ray line
-will be drawn if an \vn{ele_shape} for a \vn{photon_branch} is
-present.
+For a floor plan, for \vn{wiggler}s or \vn{undulators} that have an \vn{x_ray_line_len} attribute
+(see the \bmad manual), The X-ray line will be drawn if an \vn{ele_shape} for a \vn{photon_branch}
+is present.
 
-Use the \vn{show plot -shape} command to see the defined shapes.  use
-the \vn{set shape} command (\sref{s:set})) to set shape parameters on the
-command line.
+Use the \vn{show plot -shape} command to see the defined shapes.  use the \vn{set shape} command
+(\sref{s:set})) to set shape parameters on the command line.
 
-Data and variables can also be specified to be drawn by using a
-\vn{<ele_id>} beginning with \vn{data::} for drawing data and \vn{var::}
-for drawing variable locations. In the above example, it is assumed
-that a \vn{quad_k1} variable array and a \vn{orbit.x} data array have
-been setup. A circle will be drawn at each element under control of a
-\vn{quad_k1} variable. For the \vn{orbit.x} data, an ``x'' will de
-drawn where the data is being evaluated but only for datums whose
+Data and variables can also be specified to be drawn by using a \vn{<ele_id>} beginning with
+\vn{data::} for drawing data and \vn{var::} for drawing variable locations. In the above example, it
+is assumed that a \vn{quad_k1} variable array and a \vn{orbit.x} data array have been setup. A
+circle will be drawn at each element under control of a \vn{quad_k1} variable. For the \vn{orbit.x}
+data, an ``x'' will de drawn where the data is being evaluated but only for datums whose
 \vn{useit_opt} parameter is True.
 
-For \vn{floor_plan} drawings, the building wall
-(\sref{s:building.wall}) can be drawn by specifying an \vn{ele_shape}
-whose name is \vn{"wall::building"}. For the building wall, the only
-\vn{ele_shape} attribute that is relevant is the \vn{color}.
+For \vn{floor_plan} drawings, the building wall (\sref{s:building.wall}) can be drawn by specifying
+an \vn{ele_shape} whose name is \vn{"building_wall::<name>"} where \vn{<name>} is used to match to
+the building wall section name. Use ``\vn{*}'' to for \vn{<name>} to match to all names. For the
+building wall, the only \vn{ele_shape} attribute that is relevant is the \vn{color}.
 
-The width of a drawn shape is the width of the associated element. The
-exception is the \vn{"x"} shape whose width is always the same as the
-height determined by the \vn{<size>} setting.
+The width of a drawn shape is the width of the associated element. The exception is the \vn{"x"}
+shape whose width is always the same as the height determined by the \vn{<size>} setting.
 
-\vn{<size>} is the half height of the shape. That is, the size
-transverse to the longitudinal dimension. For \vn{lat_layout}
-drawings, \vn{<size>} = 1.0 corresponds to full scale if the default
-\vn{graph%y%min} = -1 and \vn{graph%y%max} = 1 are used. For
-{floor_plan} drawings, to determine the size of a shape, \vn{<size>}
-is combined with the \vn{graph} parameter
+\vn{<size>} is the half height of the shape. That is, the size transverse to the longitudinal
+dimension. For \vn{lat_layout} drawings, \vn{<size>} = 1.0 corresponds to full scale if the default
+\vn{graph%y%min} = -1 and \vn{graph%y%max} = 1 are used. For {floor_plan} drawings, to determine the
+size of a shape, \vn{<size>} is combined with the \vn{graph} parameter
 \begin{example}
   floor_plan_size_is_absolute  ! Default: False.
 \end{example}
-If \vn{floor_plan_size_is_absolute} is False (the default),
-\vn{<size>} is taken to be the size of the shape in points (1 point is
-approximately 1 pixel). If \vn{floor_plan_size_is_absolute} is True,
-\vn{<size>} is taken to be the size in meters. That is, if
-\vn{floor_plan_size_is_absolute} is False, zooming in or out will not
-affect the size of an element shape while if
-\vn{floor_plan_size_is_absolute} is True then the size of an element
-will scale with the zoom.
+If \vn{floor_plan_size_is_absolute} is False (the default), \vn{<size>} is taken to be the size of
+the shape in points (1 point is approximately 1 pixel). If \vn{floor_plan_size_is_absolute} is True,
+\vn{<size>} is taken to be the size in meters. That is, if \vn{floor_plan_size_is_absolute} is
+False, zooming in or out will not affect the size of an element shape while if
+\vn{floor_plan_size_is_absolute} is True then the size of an element will scale with the zoom.
 
 The \vn{graph%floor_plan_draw_only_first_pass} logical, if set True, suppresses drawing of
-\vn{multipass_slave} lattice elements that are associated with the second and higher
-passes. This logical defaults to False. Setting to True is only useful in some extreme
-circumstances where the plotting of additional passes leads to large pdf/ps file sizes.
+\vn{multipass_slave} lattice elements that are associated with the second and higher passes. This
+logical defaults to False. Setting to True is only useful in some extreme circumstances where the
+plotting of additional passes leads to large pdf/ps file sizes.
 
-The overall size of all the shapes can be scaled using the
-\vn{plot_page} (\sref{s:init.plot}) parameters
+The overall size of all the shapes can be scaled using the \vn{plot_page} (\sref{s:init.plot})
+parameters
 \begin{example}
   floor_plan_shape_scale     ! For floor_plan drawings. Default = 1
   lat_layout_shape_scale     ! For lat_layout drawings. Default = 1
