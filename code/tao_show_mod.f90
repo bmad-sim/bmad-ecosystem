@@ -612,17 +612,22 @@ case ('building_wall')
     section => s%building_wall%section(i)
     n = nl + size(section%point)
     if (n + 10 > size(lines)) call re_allocate (lines, n, .false.)
-    nl=nl+1; write(lines(nl), '(a, i0, 2a)') 'Section(', i, ')   constraint: ', section%constraint
+    nl=nl+1; write(lines(nl), '(a, i0, 4a)') 'Section(', i, ')   Constraint: ', trim(section%constraint), ',  Name: ', quote(section%name)
+
+    nl=nl+1; lines(nl) = '                        Z           X      Radius    Z_center    X_center'
     do j = 1, size(section%point)
       pt => section%point(j)
       if (pt%radius == 0) then
-        nl=nl+1; write(lines(nl), '(a, i0, a, 3f10.3)') &
-              '  point(', j, ') z, x, r: ', pt%z, pt%x, pt%radius
+        nl=nl+1; write(lines(nl), '(a, i3, a, 3f12.3)') &
+              '  point(', j, '):', pt%z, pt%x, pt%radius
       else
-        nl=nl+1; write(lines(nl), '(a, i0, a, 5f10.3)') &
-              '  point(', j, ') z, x, r: ', pt%z, pt%x, pt%radius, pt%z_center, pt%x_center
+        nl=nl+1; write(lines(nl), '(a, i3, a, 5f12.3)') &
+              '  point(', j, '):', pt%z, pt%x, pt%radius, pt%z_center, pt%x_center
       endif
     enddo
+
+    if (i == size(section%point)) exit
+    nl=nl+1; lines(nl) = ''
   enddo
 
   result_id = show_what
@@ -3228,47 +3233,29 @@ case ('plot')
   ! Floor plan info
 
   select case (what)
-  case ('-floor_plan')
+  case ('-floor_plan', '-lat_layout')
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Element Shapes:'
-    nl=nl+1; lines(nl) = &
-          'Shape_Name  Ele_Name                        Shape         Color           Size  Label  Draw  Multi'
-    nl=nl+1; lines(nl) = &
-          '----------  ----------------------------    --------      -----           ----  -----  ----  -----'
+    nl=nl+1; lines(nl) = '                                                                                       Shape   Type    Shape  Multi  Line_'
+    nl=nl+1; lines(nl) = '                  Ele_Name                            Shape           Color             Size  Label     Draw  Shape  Width'
+    nl=nl+1; lines(nl) = '                  ------------------------------      ----------      -------           ----  -------  -----  -----  -----'
 
     do i = 1, size(s%plot_page%floor_plan%ele_shape)
-      shape => s%plot_page%floor_plan%ele_shape(i)
+      if (what == '-floor_plan') then
+        shape => s%plot_page%floor_plan%ele_shape(i)
+      else
+        shape => s%plot_page%lat_layout%ele_shape(i)
+      endif
+
       if (shape%ele_id == '') cycle
-      nl=nl+1; write(lines(nl), '(a, i0, t13, 3a, f10.1, 2x, a6, 2x, l1, 5x, l1)') &
-                'shape', i, shape%ele_id(1:32), shape%shape(1:14), shape%color(1:10), &
-                shape%size, shape%label, shape%draw, shape%multi
+      nl=nl+1; write(lines(nl), '(a, i0, a, t19, a, t55, a, t71, a, t83, f10.1, 2x, a, t103, l5, l6, i7)') &
+                'ele_shape(', i, ') = ', quote(shape%ele_id), quote(shape%shape), quote(shape%color), &
+                shape%size, quote(shape%label), shape%draw, shape%multi, shape%line_width
     enddo
 
     result_id = 'plot:floor_plan'
     return
-
-  ! lat_layout info
-
-  case ('-lat_layout')
-
-    nl=nl+1; lines(nl) = ' '
-    nl=nl+1; lines(nl) = 'Element Shapes:'
-    nl=nl+1; lines(nl) = &
-          'Shape_Name  Ele_Name                        Shape         Color           Size  Label  Draw  Multi'
-    nl=nl+1; lines(nl) = &
-          '----------  ----------------------------    --------      -----           ----  -----  ----  -----'
-
-    do i = 1, size(s%plot_page%lat_layout%ele_shape)
-      shape => s%plot_page%lat_layout%ele_shape(i)
-      if (shape%ele_id == '') cycle
-      nl=nl+1; write(lines(nl), '(a, i0, t13, 3a, f10.1, 2x, a6, 2x, l1, 5x, l1)') &
-                'shape', i, shape%ele_id(1:32), shape%shape(1:14), shape%color(1:10), &
-                shape%size, shape%label, shape%draw, shape%multi
-    enddo
-
-    result_id = 'plot:lat_layout'
-    return 
 
   ! Global plot parameters
 

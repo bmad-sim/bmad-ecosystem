@@ -53,76 +53,76 @@ the plot page) is broken up.
 
 !------------------ layout ------
 &tao_template_plot
-	plot%name = 'layout'
-	plot%x%min = 0
-	plot%x%max = 100
-	!!plot%x%major_div = 10
-	plot%x%label = ' '
-	plot%n_graph = 1
-	plot%x_axis_type = 's'
+  plot%name = 'layout'
+  plot%x%min = 0
+  plot%x%max = 100
+  !!plot%x%major_div = 10
+  plot%x%label = ' '
+  plot%n_graph = 1
+  plot%x_axis_type = 's'
 /
 
 &tao_template_graph
-	graph_index = 1
-	graph%name = 'u1'
-	graph%type = 'lat_layout'
-	graph%box = 1, 1, 1, 1
-	graph%x%draw_numbers = .false.
-	graph%ix_universe = -1 !Syntax Changed from 0
-	graph%margin =  0.15, 0.05, 0.12, 0.12, '%BOX'
-	graph%n_curve = 0
-  	!graph%y%label = 'Layout'
- 	graph%y%max = 2
-  	graph%y%min = -2
- 	graph%y%major_div = 4
+  graph_index = 1
+  graph%name = 'u1'
+  graph%type = 'lat_layout'
+  graph%box = 1, 1, 1, 1
+  graph%x%draw_numbers = .false.
+  graph%ix_universe = -1 !Syntax Changed from 0
+  graph%margin =  0.15, 0.05, 0.12, 0.12, '%BOX'
+  graph%n_curve = 0
+  !graph%y%label = 'Layout'
+  graph%y%max = 2
+  graph%y%min = -2
+  graph%y%major_div = 4
 /
 
 !shape(i) = "<key>", "<name>", "<shape>", "<color>", "<v_size>", "<print_Label>" 
 !&element_shapes_lat_layout
 &lat_layout_drawing 
-  ele_shape(1) = "Quadrupole::*"   	"asym_var_box"	"Blue"	 .1 		'none'
-  ele_shape(2) = "SBend::*"		"Box"		"Red"		1		'none'
-  ele_shape(3) = "lcavity::*"		"XBox"		"Green"		.5		'none'
-  ele_shape(4) = "wiggler::*"		"XBox"		"Orange"	.5		'none'
-  ele_shape(5) = "Sextupole::*"		"asym_var_box"	"magenta"	0.1		'none'
-  ele_shape(6) = "ECOLLIMATOR::*"	"Xbox"		"Black"		20		'none'
-  ele_shape(7) = "hkicker::*"		"XBox"		"Red"		.2		'none'
-  ele_shape(8) = "vkicker::*"		"bow_tie"	"Red"		.2		'none'
-  ele_shape(9) = "INSTRUMENT::*BPM*"	"Diamond"	"Black"		.1		'none'
-  ele_shape(10) = "kicker::*"		"Box"		"Red"		.2		'none'
-  ele_shape(11) = "PIPE::*"		"Box"		"Light_Grey" .01		'none'
-  ele_shape(12) = "INSTRUMENT::*"	"Xbox"	  	"Black"		1		'none'
-  ele_shape(13) = "SOLENOID::*"		"Xbox"	  	"Blue"		1		'none'
-  ele_shape(14) = "rfcavity::*"	    	"XBox"		"Red"		100		'none'
-  ele_shape(15) = "E_GUN::*"	    	"XBox"		"Black"		20		'none'
-  ele_shape(16) = "EM_FIELD::*"	    	"Box"		"Blue"		20		'none'
-  !ele_shape(16) = "wall::beam_chamber"	    	"XBox"		"Black"		500		'none'
+  ele_shape(1) = "Quadrupole::*"        "asym_var_box" "Blue"        0.1    'none'
+  ele_shape(2) = "SBend::*"             "Box"          "Red"         1      'none'
+  ele_shape(3) = "lcavity::*"           "XBox"         "Green"       0.5    'none'
+  ele_shape(4) = "wiggler::*"           "XBox"         "Orange"      0.5    'none'
+  ele_shape(5) = "Sextupole::*"         "asym_var_box" "magenta"     0.1    'none'
+  ele_shape(6) = "ECOLLIMATOR::*"       "Xbox"         "Black"       20     'none'
+  ele_shape(7) = "hkicker::*"           "XBox"         "Red"         0.2    'none'
+  ele_shape(8) = "vkicker::*"           "bow_tie"      "Red"         0.2    'none'
+  ele_shape(9) = "INSTRUMENT::*BPM*"    "Diamond"      "Black"       0.1    'none'
+  ele_shape(10) = "kicker::*"           "Box"          "Red"         0.2    'none'
+  ele_shape(11) = "PIPE::*"             "Box"          "Light_Grey"  0.01   'none'
+  ele_shape(12) = "INSTRUMENT::*"       "Xbox"         "Black"       1      'none'
+  ele_shape(13) = "SOLENOID::*"         "Xbox"         "Blue"        1      'none'
+  ele_shape(14) = "rfcavity::*"         "XBox"         "Red"         100    'none'
+  ele_shape(15) = "E_GUN::*"            "XBox"         "Black"       20     'none'
+  ele_shape(16) = "EM_FIELD::*"         "Box"          "Blue"        20     'none'
+  !ele_shape(16) = "wall::beam_chamber" "XBox"         "Black"       500    'none'
 /       
    
 !&element_shapes_floor_plan
 &floor_plan_drawing
-  ele_shape(1) = "Quadrupole::F*"   	"Box"		"Blue"	30		'none'  ! 30 cm radius FFAG Quads
-  ele_shape(2) = "SBend::*"		"Box"		"Red"		12		'none'
-  ele_shape(3) = "lcavity::*"		"XBox"		"Green"		20		'none'
-  ele_shape(4) = "wiggler::*"		"XBox"		"Orange"	10		'none'
-  ele_shape(5) = "Sextupole::*"		"Box"	"orange"	4		'none'
-  ele_shape(6) = "ECOLLIMATOR::*"	"Xbox"		"Black"		10		'none'
-  ele_shape(7) = "hkicker::*"		"XBox"		"Red"		5		'none'
-  ele_shape(8) = "vkicker::*"		"bow_tie"	"Red"		5		'none'
-  ele_shape(9) = "INSTRUMENT::*BPM*"	"Diamond"	"Black"		1		'none'
-  ele_shape(10) = "kicker::*"		"Box"		"Red"		5		'none'
-  ele_shape(11) = "PIPE::F*"		"Box"		"Light_Grey"		3.7		'none'
-  ele_shape(12) = "PIPE::*"		"Box"		"Light_Grey"		2.54		'none'
-  ele_shape(13) = "INSTRUMENT::*"	"Xbox"	  	"Black"		5		'none'
-  ele_shape(14) = "SOLENOID::*"		"Xbox"	  	"Blue"		5		'none'
-  ele_shape(15) = "rfcavity::*"	    	"XBox"		"Red"		10		'none'
-  ele_shape(16) = "E_GUN::*"	    	"XBox"		"Black"		20		'none'
-  ele_shape(17) = "EM_FIELD::*"	    	"Box"		"Blue"		20		'none'
-  ele_shape(18) = "Quadrupole::Z*"   	"Box"		"Blue"	30		'none'  ! 30 cm radius FFAG Quads
-  ele_shape(19) = "Quadrupole::*"   	"Box"		"Blue"	7	'none'   ! All other quads
-  ele_shape(20) = 'wall::building' '-' 'black' 0 '-'
+  ele_shape(1) = "Quadrupole::F*"     "Box"     "Blue"      30    'none'  ! 30 cm radius FFAG Quads
+  ele_shape(2) = "SBend::*"           "Box"     "Red"       12    'none'
+  ele_shape(3) = "lcavity::*"         "XBox"    "Green"     20    'none'
+  ele_shape(4) = "wiggler::*"         "XBox"    "Orange"    10    'none'
+  ele_shape(5) = "Sextupole::*"       "Box"     "orange"     4    'none'
+  ele_shape(6) = "ECOLLIMATOR::*"     "Xbox"    "Black"     10    'none'
+  ele_shape(7) = "hkicker::*"         "XBox"    "Red"        5    'none'
+  ele_shape(8) = "vkicker::*"         "bow_tie" "Red"        5    'none'
+  ele_shape(9) = "INSTRUMENT::*BPM*"  "Diamond" "Black"      1    'none'
+  ele_shape(10) = "kicker::*"         "Box"     "Red"        5    'none'
+  ele_shape(11) = "PIPE::F*"          "Box"     "Light_Grey" 3.7  'none'
+  ele_shape(12) = "PIPE::*"           "Box"     "Light_Grey" 2.54 'none'
+  ele_shape(13) = "INSTRUMENT::*"     "Xbox"    "Black"      5    'none'
+  ele_shape(14) = "SOLENOID::*"       "Xbox"    "Blue"       5    'none'
+  ele_shape(15) = "rfcavity::*"       "XBox"    "Red"       10    'none'
+  ele_shape(16) = "E_GUN::*"          "XBox"    "Black"     20    'none'
+  ele_shape(17) = "EM_FIELD::*"       "Box"     "Blue"      20    'none'
+  ele_shape(18) = "Quadrupole::Z*"    "Box"     "Blue"      30    'none'  ! 30 cm radius FFAG Quads
+  ele_shape(19) = "Quadrupole::*"     "Box"     "Blue"       7    'none'   ! All other quads
+  ele_shape(20) = 'building_wall::*'  '-'       'black'      0     '-'
 /  
-                                          	
+                                            
 ! Colors: 
 !"BLACK" 
 !"RED" 
@@ -144,7 +144,7 @@ the plot page) is broken up.
   plot%x%min = -6
   plot%x%max =  6
   !plot%x%major_div = 10
-  plot%x%label = 'z (mm)'	
+  plot%x%label = 'z (mm)'  
   plot%n_graph = 1
 /
 

@@ -540,6 +540,7 @@ type tao_building_wall_point_struct
 end type
 
 type tao_building_wall_section_struct
+  character(40) :: name = ''
   character(16) :: constraint = ''   ! For constraints
   type (tao_building_wall_point_struct), allocatable :: point(:)
 end type
@@ -577,7 +578,7 @@ type tao_global_struct
   character(16) :: track_type    = 'single'         ! or 'beam'  
   character(40) :: prompt_string = 'Tao'
   character(16) :: prompt_color = 'DEFAULT'         ! See read_a_line routine for possible settings.
-  character(16) :: optimizer     = 'de'             ! optimizer to use.
+  character(16) :: optimizer     = 'lm'             ! optimizer to use.
   character(40) :: print_command = 'lpr'
   character(80) :: var_out_file  = 'var#.out'
   logical :: beam_timer_on = .false.              ! For timing the beam tracking calculation.

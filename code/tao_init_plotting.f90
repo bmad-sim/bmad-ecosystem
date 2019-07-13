@@ -60,15 +60,15 @@ character(80) label
 character(40) str
 character(*), parameter :: r_name = 'tao_init_plotting'
 
-logical err, include_default_plots, all_set
+logical err, include_default_plots, all_set, prepend_floor_plan_shapes, prepend_lat_layout_shapes
 
 namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place, &
                 include_default_plots
 namelist / tao_template_plot / plot, default_graph
 namelist / tao_template_graph / graph, graph_index, curve, curve1, curve2, curve3, curve4
 
-namelist / floor_plan_drawing / ele_shape
-namelist / lat_layout_drawing / ele_shape
+namelist / floor_plan_drawing / ele_shape, prepend_floor_plan_shapes
+namelist / lat_layout_drawing / ele_shape, prepend_lat_layout_shapes
 
 ! These are old style
 
@@ -213,7 +213,7 @@ if (ios > 0) then
 endif
 
 if (ios == 0) then
-  call out_io (s_error$, r_name, 'ELEMNET_SHAPES NAMELIST IS DEPRECATED.', &
+  call out_io (s_error$, r_name, 'ELEMENT_SHAPES NAMELIST IS DEPRECATED.', &
                                  'PLEASE CONVERT TO FLOOR_PLAN_DRAWING AND/OR LAT_LAYOUT_DRAWING NAMELISTS.', 'IN FILE: ' // plot_file)
   do i = 1, size(shape)
     ele_shape(i)%ele_id = shape(i)%ele_name
@@ -242,6 +242,7 @@ if (ios < 0) then
 
   ! Read floor_plan_drawing namelist
 
+  prepend_floor_plan_shapes = .false.
   rewind (iu)
   read (iu, nml = element_shapes_floor_plan, iostat = ios1)  ! Deprecated name
   rewind (iu)
@@ -252,8 +253,7 @@ if (ios < 0) then
             'Note: The "element_shapes_floor_plan" namelist has been renamed to', &
             '      "floor_plan_drawing" to reflect the fact that this namelist ', &
             '      now is used to specify more than element shapes. Please     ', &
-            '      make the appropriate change in your input file.             ', &
-            'For now, Tao will accept the old namelist name...                 ')
+            '      make the appropriate change in your input file...           ')
   endif
 
   if (ios1 > 0) then 
@@ -276,6 +276,7 @@ if (ios < 0) then
 
   ele_shape(:) = tao_ele_shape_struct()
 
+  prepend_lat_layout_shapes = .false.
   rewind (iu)
   read (iu, nml = element_shapes_lat_layout, iostat = ios1)
   rewind (iu)
@@ -286,8 +287,7 @@ if (ios < 0) then
             'Note: The "element_shapes_lattice_list" namelist has been renamed to', &
             '      "lat_layout_drawing" to reflect the fact that this namelist   ', &
             '      now is used to specify more than element shapes. Please       ', &
-            '      make the appropriate change in your input file.               ', &
-            'For now, Tao will accept the old namelist name...                   ')
+            '      make the appropriate change in your input file...             ')
   endif
 
   if (ios1 == 0) then
@@ -323,7 +323,7 @@ call tao_read_in_patterns(iu, plot_file)
 if (allocated(s%plot_page%lat_layout%ele_shape)) then
   do i = 1, size(s%plot_page%lat_layout%ele_shape)
     e_shape => s%plot_page%lat_layout%ele_shape(i)
-    if (e_shape%ele_id(1:6) == 'wall::') cycle
+    if (e_shape%ele_id(1:15) == 'building_wall::') cycle
 
     if (e_shape%shape(1:8) == 'PATTERN:') then
       if (all(e_shape%shape(9:) /= s%plot_page%pattern(:)%name)) then
@@ -367,8 +367,8 @@ if (allocated(s%plot_page%floor_plan%ele_shape)) then
                                        'IN FILE: ' // plot_file)
       endif
     case ('-')
-      if (e_shape%ele_id /= 'wall::building') then
-        call out_io (s_error$, r_name, 'ELE_SHAPE "-" CAN ONLY BE USED WITH WALL::BUILDING. NOT: ' // e_shape%ele_id, 'IN FILE: ' // plot_file)
+      if (e_shape%ele_id(1:15) /= 'building_wall::') then
+        call out_io (s_error$, r_name, 'ELE_SHAPE SET TO "-" CAN ONLY BE USED WITH BUILDING_WALL. NOT: ' // e_shape%ele_id, 'IN FILE: ' // plot_file)
       endif
     case default
       call out_io (s_fatal$, r_name, 'UNKNOWN ELE_SHAPE: ' // e_shape%shape, 'IN FILE: ' // plot_file)
@@ -849,9 +849,10 @@ character(40) name
 n_shape = 0
 do n = 1, size(ele_shape)
   s => ele_shape(n)
+  if (s%ele_id == 'wall::building') s%ele_id = 'building_wall::*'
   ! Bmad wants ele names upper case but Tao data is case sensitive.
   if (s%ele_id(1:6) /= 'data::' .and. s%ele_id(1:5) /= 'var::' .and. &
-      s%ele_id(1:5) /= 'lat::' .and. s%ele_id(1:6) /= 'wall::') call str_upcase (s%ele_id, s%ele_id)
+      s%ele_id(1:5) /= 'lat::' .and. s%ele_id(1:15) /= 'building_wall::') call str_upcase (s%ele_id, s%ele_id)
   call str_upcase (s%shape,    s%shape)
   call str_upcase (s%color,    s%color)
   call downcase_string (s%label)
@@ -878,7 +879,7 @@ type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_
 type (tao_plot_struct), allocatable :: temp_template(:)
 type (tao_plot_region_struct), allocatable :: temp_region(:)
 type (tao_plot_struct), pointer :: plot
-type (tao_ele_shape_struct) :: dflt_lat_layout(26) = [&
+type (tao_ele_shape_struct) :: dflt_lat_layout(27) = [&
       tao_ele_shape_struct('FORK::*',              'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., 1, fork$, '*'), &
       tao_ele_shape_struct('CRYSTAL::*',           'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., 1, crystal$, '*'), &
       tao_ele_shape_struct('DETECTOR::*',          'BOX',    'BLACK',   0.30_rp, 'name', .true.,   .false., 1, detector$, '*'), &
@@ -904,7 +905,8 @@ type (tao_ele_shape_struct) :: dflt_lat_layout(26) = [&
       tao_ele_shape_struct('SOL_QUAD::*',          'BOX',    'BLACK',   0.40_rp, 'name', .false.,  .false., 1, sol_quad$, '*'), &
       tao_ele_shape_struct('SOLENOID::*',          'BOX',    'BLUE',    0.30_rp, 'name', .true.,   .false., 1, solenoid$, '*'), &
       tao_ele_shape_struct('WIGGLER::*',           'XBOX',   'CYAN',    0.50_rp, 'name', .true.,   .false., 1, wiggler$, '*'), &
-      tao_ele_shape_struct('PHOTON_INIT::*',       'BOX',    'BLACK',   0.30_rp, 'name', .true.,   .false., 1, photon_init$, '*')]
+      tao_ele_shape_struct('PHOTON_INIT::*',       'BOX',    'BLACK',   0.30_rp, 'name', .true.,   .false., 1, photon_init$, '*'), &
+      tao_ele_shape_struct('building_wall::*',     '-',      'BLACK',   0.30_rp, 'name', .true.,   .false., 3, 999, '*')]
 
 real(rp) y_layout, dx, dy, dz, x1, x2, y1, y2
 integer np, n, nr, n_plots
@@ -919,13 +921,13 @@ call tao_set_plotting (plot_page, s%plot_page, .true.)
 n = size(dflt_lat_layout)
 
 if (.not. allocated(s%plot_page%lat_layout%ele_shape)) then
-  allocate (s%plot_page%lat_layout%ele_shape(30))
+  allocate (s%plot_page%lat_layout%ele_shape(40))
   s%plot_page%lat_layout%ele_shape(:)%ele_id = ''
   s%plot_page%lat_layout%ele_shape(1:n) = dflt_lat_layout
 endif
 
 if (.not. allocated(s%plot_page%floor_plan%ele_shape)) then
-  allocate (s%plot_page%floor_plan%ele_shape(30))
+  allocate (s%plot_page%floor_plan%ele_shape(40))
   s%plot_page%floor_plan%ele_shape(:)%ele_id = ''
   s%plot_page%floor_plan%ele_shape(1:n) = dflt_lat_layout
   s%plot_page%floor_plan%ele_shape%size = 20 * s%plot_page%floor_plan%ele_shape%size

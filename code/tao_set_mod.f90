@@ -2753,22 +2753,22 @@ subroutine tao_set_drawing_cmd (drawing, component, value_str)
 implicit none
 
 type (tao_drawing_struct) drawing
-type (tao_ele_shape_struct) shape(50)
+type (tao_ele_shape_struct), target :: ele_shape(50)
+type (tao_ele_shape_struct), pointer :: s
 
 character(*) component, value_str
-character(60) str
 character(20) :: r_name = 'tao_set_drawing_cmd'
 
 integer i, ix, n, iu, ios
 
 logical err, needs_quotes
 
-namelist / params / shape
+namelist / params / ele_shape
 
 ! Init
 
 n = size(drawing%ele_shape)
-shape(1:n) = drawing%ele_shape
+ele_shape(1:n) = drawing%ele_shape
 
 ! Setup
 
@@ -2776,15 +2776,11 @@ needs_quotes = .false.
 ix = index(component, '%')
 
 if (ix /= 0) then
-  str = 'shape(' // component(6:ix-1) // ')%' // component(ix+1:)
   select case (component(ix+1:))
   case ('shape', 'color', 'label', 'ele_name')
     needs_quotes = .true.
   end select
   if (value_str(1:1) == "'" .or. value_str(1:1) == '"') needs_quotes = .false.
-
-else
-  str = component
 endif
 
 ! open a scratch file for a namelist read
@@ -2793,9 +2789,9 @@ iu = tao_open_scratch_file (err);  if (err) return
 
 write (iu, '(a)') '&params'
 if (needs_quotes) then
-  write (iu, '(a)') trim(str) // ' = "' // trim(value_str) // '"'
+  write (iu, '(a)') trim(component) // ' = "' // trim(value_str) // '"'
 else
-  write (iu, '(a)') trim(str) // ' = ' // trim(value_str)
+  write (iu, '(a)') trim(component) // ' = ' // trim(value_str)
 endif
 write (iu, '(a)') '/'
 write (iu, *)
@@ -2811,16 +2807,18 @@ endif
 ! Cleanup
 
 do i = 1, n
-  call str_upcase (shape(i)%ele_id,   shape(i)%ele_id)
-  call str_upcase (shape(i)%shape,    shape(i)%shape)
-  call str_upcase (shape(i)%color,    shape(i)%color)
-  call downcase_string (shape(i)%label)
-  call tao_string_to_element_id (shape(i)%ele_id, shape(i)%ix_ele_key, shape(i)%name_ele, err, .true.)
+  s => ele_shape(i)
+  if (s%ele_id(1:6) /= 'data::' .and. s%ele_id(1:5) /= 'var::' .and. &
+      s%ele_id(1:5) /= 'lat::' .and. s%ele_id(1:15) /= 'building_wall::') call str_upcase (s%ele_id, s%ele_id)
+  call str_upcase (s%shape,    s%shape)
+  call str_upcase (s%color,    s%color)
+  call downcase_string (s%label)
+  call tao_string_to_element_id (s%ele_id, s%ix_ele_key, s%name_ele, err, .true.)
   if (err) return
 enddo
 
 n = size(drawing%ele_shape)
-drawing%ele_shape(1:n) = shape
+drawing%ele_shape = ele_shape(1:n)
 
 end subroutine tao_set_drawing_cmd
 

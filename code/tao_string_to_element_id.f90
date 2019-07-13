@@ -57,7 +57,7 @@ ix_class = -1
 if (str(1:6) == 'data::') return
 if (str(1:5) == 'var::') return
 if (str(1:5) == 'lat::') return
-if (str(1:6) == 'wall::') return
+if (str(1:15) == 'building_wall::') return
 
 ix = index(str, '::')
 
