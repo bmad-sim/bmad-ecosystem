@@ -4109,7 +4109,7 @@ case ('universe')
   endif
 
   nl=nl+1; write(lines(nl), '(a, f0.3)')   'Lattice branch length:      ', branch%param%total_length
-  nl=nl+1; write(lines(nl), '(a, f0.3)')   'Lattice branch transit time:', branch%ele(branch%n_ele_track)%ref_time - branch%ele(0)%ref_time
+  nl=nl+1; write(lines(nl), '(a, es13.6)')   'Lattice branch transit time:', branch%ele(branch%n_ele_track)%ref_time - branch%ele(0)%ref_time
   if (branch%ele(0)%s /= 0) then
     nl=nl+1; write(lines(nl), '(a, 2(f0.3, a))') 'Lattice branch S-range:     [', &
                                                 branch%ele(0)%s, ', ', branch%ele(branch%n_ele_track)%s, ']'
