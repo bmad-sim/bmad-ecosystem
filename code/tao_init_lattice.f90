@@ -235,7 +235,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   if (design_lat%slice_lattice /= '') then
     call twiss_and_track (u%design%lat, orb_array, status)
-    call slice_lattice (u%design%lat, design_lat%slice_lattice, err)
+    call slice_lattice (u%design%lat, orb_array(0)%orbit, design_lat%slice_lattice, err)
   endif
 
   ! Call bmad_parser2 if wanted
