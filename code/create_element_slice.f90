@@ -57,19 +57,19 @@ if (.not. associated(sliced_ele%lord, ele_in) .or. sliced_ele%ix_ele /= -2) then
   call transfer_ele(ele_in, sliced_ele, .true.)
 endif
 
+! A sad_mult with zero length is treated differently since edge fields are ignored
+! Therefore, make sure a sad_mult has a finite length.
+
+if (ele_in%key == sad_mult$ .and. l_slice == 0) then
+  sliced_ele%value(l$) = sign(bmad_com%significant_length/100, in_len)
+else
+  sliced_ele%value(l$) = l_slice
+endif
 sliced_ele%lord_status = not_a_lord$
 sliced_ele%slave_status = slice_slave$
 sliced_ele%ix_ele = -2  ! Indicate sliced ele is not an element in the lattice.
-sliced_ele%value(l$) = l_slice
 sliced_ele%s_start = ele_in%s - in_len + offset
 sliced_ele%s = sliced_ele%s_start + sliced_ele%value(l$)
-
-! A sad_mult with zero length is treated differently (edge fields ignored and
-! multipoles are integrated multipoles instead of per unit length).
-! Therefore, make sure a sad_mult has a finite length.
-
-if (ele_in%key == sad_mult$ .and. l_slice == 0) sliced_ele%value(l$) = &
-                                                            sign(bmad_com%significant_length/100, in_len)
 
 ! The sliced element is treated as a super_slave to the original element.
 ! Except if the original element is itself a super_slave. Then the sliced element is a super_slave

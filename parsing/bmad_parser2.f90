@@ -215,7 +215,7 @@ parsing_loop: do
   if (word_1(:ix_word) == 'SLICE_LATTICE') then
     string = trim(bp_com%parse_line) // ', ' // trim(extra_ele_names)
     call twiss_and_track (lat, orb_array, status)
-    call slice_lattice (lat, string, err)
+    call slice_lattice (lat, orb_array(0)%orbit, string, err)
     if (err) call parser_error ('ERROR SLICING LATTICE USING: ' // bp_com%parse_line)
     bp_com%parse_line = ''
     cycle parsing_loop    

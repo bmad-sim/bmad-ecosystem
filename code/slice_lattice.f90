@@ -1,5 +1,5 @@
 !+
-! Subroutine slice_lattice (lat, ele_list, error)
+! Subroutine slice_lattice (lat, orbit, ele_list, error, )
 !
 ! Routine to discard from the lattice all elements not in ele_list.
 ! Note controllers that control elements that remain will not be cut.
@@ -16,21 +16,23 @@
 !   2) Beginning floor position.
 !
 ! Input:
-!   lat       -- lat_struct: Lattice
-!   ele_list  -- character(*): List of elements to retain
+!   lat           -- lat_struct: Lattice
+!   orbit(:)      -- coord_struct: Orbit to transfer to lat%particle_start
+!   ele_list      -- character(*): List of elements to retain
 !
 ! Output:
-!   lat       -- lat_struct: Lattice with unwanted elements sliced out.
-!   error     -- logical: Set True if there is an error Set False if not.
+!   lat           -- lat_struct: Lattice with unwanted elements sliced out.
+!   error         -- logical: Set True if there is an error Set False if not.
 !-
 
-subroutine slice_lattice (lat, ele_list, error)
+subroutine slice_lattice (lat, orbit, ele_list, error)
 
 use bmad, dummy => slice_lattice
 
 implicit none
 
 type (lat_struct), target :: lat
+type (coord_struct) :: orbit(0:)
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele0, ele1
 type (ele_pointer_struct), allocatable :: eles(:)
@@ -79,18 +81,19 @@ do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   do ie = 1, branch%n_ele_track
     if (branch%ele(ie)%ixx == -1) cycle
-    if (ie == 1) exit                             ! No transfer necessary
     ele0 => branch%ele(0)
     ele1 => branch%ele(ie-1)
     if (ele1%value(e_tot$) <= 0) exit  ! Energy has not been computed
     call transfer_twiss (ele1, ele0)
-    ele0%value(e_tot$) = ele1%value(e_tot$)
+        ele0%value(e_tot$) = ele1%value(e_tot$)
     ele0%value(p0c$) = ele1%value(p0c$)
     ele0%a%phi = 0
     ele0%b%phi = 0
     ele0%z%phi = 0
     call set_flags_for_changed_attribute(ele0, ele1%value(p0c$))
     branch%param%geometry = open$
+    if (ib == 0) lat%particle_start = orbit(ie-1)
+    exit
   enddo
 enddo
 

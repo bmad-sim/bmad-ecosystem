@@ -3745,6 +3745,9 @@ multipole components. The \bmad \vn{sad_mult} element used normal
 equations in \sref{s:mag.field}, there is a factor of $n!$ between the
 two representations.
 
+The \vn{a0} or \vn{b0} multipole moments give a dipole kick (just like a \vn{kicker} element). The
+face angles \vn{e1} and \vn{e2} are used with the dipole kick in calculating fringe effects.
+
 The \vn{fq1} and \vn{fq2} parameters are used to specify the
 quadrupolar ``soft'' edge fringe. See \sref{s:q.soft} for more details.
 
@@ -3773,10 +3776,12 @@ SAD element offsets (\vn{dx}, \vn{dy}, \vn{dz}) are with respect to the entrance
 of the element as opposed to \bmad's convention of referencing to the element center.
 \item
   The \bmad \vn{sad_mult} element does not have any attributes corresponding to the following
-SAD \vn{MULT} element attributes:
+SAD \vn{mult} element attributes:
 \begin{example}
   angle, harmon, freq, phi, dphi, volt, dvolt
 \end{example}
+That is, \vn{sad_mult} elemements cannot be used to simulate RF cavities or bends (but a \vn{sad_mult}
+can be used to simulate a kicker type element where the reference orbit is not bent).
 \end{itemize}
 
 %-----------------------------------------------------------------

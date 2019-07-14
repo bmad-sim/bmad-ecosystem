@@ -1408,14 +1408,6 @@ call init_attribute_name1 (ab_multipole$, y_pitch_tot$,   null_name$, does_not_e
 call init_attribute_name1 (sad_mult$, num_steps$,              'NUM_STEPS', dependent$)
 call init_attribute_name1 (sad_mult$, ds_step$,                'DS_STEP', dependent$)
 call init_attribute_name1 (sad_mult$, eps_step_scale$,         'EPS_STEP_SCALE')
-!call init_attribute_name1 (sad_mult$, angle$,                  'ANGLE')
-call init_attribute_name1 (sad_mult$, e1$,                     'E1')
-call init_attribute_name1 (sad_mult$, e2$,                     'E2')
-!call init_attribute_name1 (sad_mult$, rf_frequency$,           'RF_FREQUENCY') ! SAD: freq
-!call init_attribute_name1 (sad_mult$, phi0$,                   'PHI0')         ! SAD: phi
-!call init_attribute_name1 (sad_mult$, phi0_err$,               'PHI0_ERR')     ! SAD: dphi
-!call init_attribute_name1 (sad_mult$, voltage$,                'VOLTAGE')      ! SAD: volt
-!call init_attribute_name1 (sad_mult$, harmon$,                 'HARMON')       ! SAD: harm
 call init_attribute_name1 (sad_mult$, fringe_at$,              'FRINGE_AT')    ! SAD: fringe
 call init_attribute_name1 (sad_mult$, fringe_type$,            'FRINGE_TYPE')  ! SAD: disfrin
 call init_attribute_name1 (sad_mult$, spin_fringe_on$,         'SPIN_FRINGE_ON')
@@ -1428,12 +1420,21 @@ call init_attribute_name1 (sad_mult$, x_offset_mult$,          'X_OFFSET_MULT')
 call init_attribute_name1 (sad_mult$, y_offset_mult$,          'Y_OFFSET_MULT')
 call init_attribute_name1 (sad_mult$, x_pitch_mult$,           'X_PITCH_MULT')
 call init_attribute_name1 (sad_mult$, y_pitch_mult$,           'Y_PITCH_MULT')
+call init_attribute_name1 (sad_mult$, e1$,                     'E1')    ! SAD: ae1
+call init_attribute_name1 (sad_mult$, e2$,                     'E2')    ! SAD: ae2
 ! sad_mult Attributes with no SAD equivalent
 call init_attribute_name1 (sad_mult$, rho$,                    'RHO')   
-!call init_attribute_name1 (sad_mult$, g$,                      'G')
 call init_attribute_name1 (sad_mult$, ks$,                     'KS')
-call init_attribute_name1 (sad_mult$, b_field$,                'B_FIELD')
 call init_attribute_name1 (sad_mult$, sad_flag$,               'Sad_Flag', private$)
+! Not implemented
+!call init_attribute_name1 (sad_mult$, g$,                      'G')  ! No SAD equiv
+!call init_attribute_name1 (sad_mult$, b_field$,                'B_FIELD')  ! No SAD equiv
+!call init_attribute_name1 (sad_mult$, angle$,                  'ANGLE')
+!call init_attribute_name1 (sad_mult$, rf_frequency$,           'RF_FREQUENCY') ! SAD: freq
+!call init_attribute_name1 (sad_mult$, phi0$,                   'PHI0')         ! SAD: phi
+!call init_attribute_name1 (sad_mult$, phi0_err$,               'PHI0_ERR')     ! SAD: dphi
+!call init_attribute_name1 (sad_mult$, voltage$,                'VOLTAGE')      ! SAD: volt
+!call init_attribute_name1 (sad_mult$, harmon$,                 'HARMON')       ! SAD: harm
 
 call init_attribute_name1 (hybrid$, l$,                             'L')
 call init_attribute_name1 (hybrid$, delta_e_ref$,                   'DELTA_E_REF')
