@@ -6046,12 +6046,13 @@ if (ele%aperture_type == auto_aperture$) then
   call aperture_bookkeeper (ele)
 endif
 
-!
+! Note: If an attribute has a value of real_garbage$ then that attribute has not been set by the user.
 
 kick_set = (ele%value(hkick$) /= 0) .or. (ele%value(vkick$) /= 0)
 
 select case (ele%key)
 
+!------------------
 case (beginning_ele$)
 
   if (ele%a%beta /= 0) ele%a%gamma = (1 + ele%a%alpha**2) / ele%a%beta
@@ -6067,10 +6068,11 @@ case (beginning_ele$)
   ele%b%eta  = eta_vec(3)
   ele%b%etap = eta_vec(4)
 
+!------------------
 ! Convert rbends to sbends and evaluate G if needed.
 ! Needed is the length and either: angle, G, or rho.
 
-case (sbend$, rbend$, sad_mult$) 
+case (sbend$, rbend$) 
 
   b_field_set = (ele%value(b_field$) /= 0 .or. ele%value(b_field_err$) /= 0)
   g_set = (ele%value(g$) /= 0 .or. ele%value(g_err$) /= 0)
@@ -6143,6 +6145,7 @@ case (sbend$, rbend$, sad_mult$)
   if (ele%value(hgapx$) == real_garbage$) ele%value(hgapx$) = ele%value(hgap$)
   if (ele%value(fintx$) == real_garbage$) ele%value(fintx$) = ele%value(fint$)
 
+!------------------
 ! Accept Use of Voltage for lcavities and vary the mode frequencies.
 
 case (lcavity$) 
@@ -6167,7 +6170,7 @@ case (lcavity$)
     endif
   endif
 
-! 
+!------------------
 
 case (rfcavity$) 
 
@@ -6175,6 +6178,7 @@ case (rfcavity$)
               ('BOTH RF_FREQUENCY AND HARMON SET FOR RFCAVITY: ' // ele%name, &
                'SETTING OF HARMON WILL BE IGNORED!', level = s_warn$)
 
+!------------------
 ! for a planar and helical wigglers n_pole is a dependent attribute
 
 case (wiggler$, undulator$)
@@ -6184,18 +6188,26 @@ case (wiggler$, undulator$)
     ele%value(l_period$) = ele%value(l$) / ele%value(n_period$) 
   endif
 
-!
-
+!------------------
 case (match$)
   ele%value(match_end_input$) = ele%value(match_end$)
   ele%value(match_end_orbit_input$) = ele%value(match_end_orbit$)
 
-! check for inconsistancies
+!------------------
+
+case (quadrupole$)
+  if (ele%field_master .and. (ele%value(k1$) /= 0 .or. kick_set)) call parser_error &
+      ('INDEPENDENT VARIABLE PROBLEM FOR ELEMENT: ' // ele%name, &
+       'BOTH STRENGTH (K1, HKICK, ETC.) AND FIELD SET FOR A QUAD.')
+
+!------------------
 
 case (solenoid$)
   if (ele%field_master .and. (ele%value(ks$) /= 0 .or. kick_set)) call parser_error &
       ('INDEPENDENT VARIABLE PROBLEM FOR ELEMENT: ' // ele%name, &
        'BOTH STRENGTH (KS, HKICK, ETC.) AND FIELD SET FOR A SOLENOID.')
+
+!------------------
 
 case (sol_quad$)
   if (ele%field_master .and. (ele%value(ks$) /= 0 .or. &
@@ -6203,25 +6215,28 @@ case (sol_quad$)
       ('INDEPENDENT VARIABLE PROBLEM FOR ELEMENT: ' // ele%name, &
        'BOTH STRENGTH (K1, HKICK, ETC.) AND FIELD SET FOR A SOL_QUAD.')
 
-case (quadrupole$)
-  if (ele%field_master .and. (ele%value(k1$) /= 0 .or. kick_set)) call parser_error &
-      ('INDEPENDENT VARIABLE PROBLEM FOR ELEMENT: ' // ele%name, &
-       'BOTH STRENGTH (K1, HKICK, ETC.) AND FIELD SET FOR A QUAD.')
+!------------------
 
 case (sextupole$)
   if (ele%field_master .and. (ele%value(k2$) /= 0 .or. kick_set)) call parser_error &
       ('INDEPENDENT VARIABLE PROBLEM FOR ELEMENT: ' // ele%name, &
        'BOTH STRENGTH (K2, HKICK, ETC.) AND FIELD SET FOR A SEXTUPOLE.')
 
+!------------------
+
 case (octupole$)
   if (ele%field_master .and. (ele%value(k3$) /= 0 .or. kick_set)) call parser_error &
       ('INDEPENDENT VARIABLE PROBLEM FOR ELEMENT: ' // ele%name, &
        'BOTH STRENGTH (K3, HKICK, ETC.) AND FIELD SET FOR A OCTUPOLE.')
 
+!------------------
+
 case (hkicker$, vkicker$)
   if (ele%field_master .and. (ele%value(kick$) /= 0 .or. kick_set)) call parser_error &
       ('INDEPENDENT VARIABLE PROBLEM FOR ELEMENT: ' // ele%name, &
        'BOTH STRENGTH AND BL_KICK SET FOR A H/VKICKER.')
+
+!------------------
 
 case (elseparator$)
   if (ele%field_master .and. kick_set) call parser_error &
@@ -6241,6 +6256,8 @@ case (elseparator$)
       endif
     endif
   endif
+
+!------------------
 
 case (e_gun$)
   if (ele%value(gradient$) == 0 .and. ele%value(l$) /= 0) ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)

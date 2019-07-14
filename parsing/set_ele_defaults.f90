@@ -92,7 +92,7 @@ case (def_parameter$)
 case (detector$)
   ele%aperture_type = auto_aperture$
   if (logic_option(.true., do_allocate)) then
-    ! Avoid "ele%photon = photon_element_struct()" to get around Ifort bug. 4/10/2019
+    ! Avoid "ele%photon = photon_element_struct()" to get around ifort bug. 4/10/2019
     if (associated(ele%photon)) deallocate(ele%photon)
     allocate(ele%photon)
   endif
@@ -103,7 +103,7 @@ case (diffraction_plate$)
   ele%offset_moves_aperture = .true.
   ele%value(mode$) = transmission$
   if (logic_option(.true., do_allocate)) then
-    ! Avoid "ele%photon = photon_element_struct()" to get around Ifort bug. 4/10/2019
+    ! Avoid "ele%photon = photon_element_struct()" to get around ifort bug. 4/10/2019
     if (associated(ele%photon)) deallocate(ele%photon)
     allocate(ele%photon)
   endif
