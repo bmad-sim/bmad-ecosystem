@@ -1465,7 +1465,10 @@ For rings, the dynamic aperture can be calculated if \vn{tao_dynamic_aperture} i
 
 where \vn{ix_uni} indicates the universe number. Here \vn{pz} is a list of relative momenta
 to calculate the aperture for. If the RF is off, then a new closed orbit will be calculated 
-for each of these momenta. 
+for each of these momenta.
+
+Currently the dynamic aperture assumes that tracking is to be done with the root lattice branch
+(branch 0).
 
 Optionally parameters \vn{n_angle}, \vn{min_angle}, and \vn{max_angle} can be set to indicate
 the angle in the $x-y$ plane to scan about the closed orbit.
@@ -1479,6 +1482,11 @@ use the \vn{set} command (\sref{s:set}):
 If Tao is compiled with the appropriate OpenMP flags, then this calculation will be done in parallel. 
 
 The results can be plotted. See \sref{s:dynamicapertureplot}. 
+
+Example input files are at:
+\begin{example}
+  $ACC_ROOT_DIR/tao/examples/dynamic_aperture
+\end{example}
 
 \clearpage
 %-----------------------------------------------------------------
@@ -2576,7 +2584,7 @@ attribute of the \vn{ele_shape}.
 \end{figure}
 
 A \vn{dynamic_aperture} drawing displays the results of the dynamic aperture
-calculation. For example, the template
+calculation. Example plot setup:
 \begin{example}
 &tao_template_plot
   plot%name = 'da'
@@ -2612,11 +2620,18 @@ calculation. For example, the template
   curve(3)%line%width = 5 
 /
 \end{example}
-produces the plot on Fig.~\ref{f:dynamic-aperture}.  Each curve represents a single
+This produces the plot on Fig.~\ref{f:dynamic-aperture}.  Each curve represents a single
 momentum calculation according to \sref{s:dynamicaperture}.  If there are more momenta
 than curves (as in this case), additional curves will automatically be created using the
-styles of the previous curves. Note that apertures are calculated at element 0. If
-\vn{curve(i)%ix_ele_ref} is nonzero, then the aperture will be propagated to this element.
+styles of the previous curves. Note that apertures are calculated at element 0. 
+
+If there is a curve with \vn{%data_type} set to \vn{"physical_aperture"}, and if there is a lattice
+element at $s = 0$ that has an aperture set, this physical aperture will be drawn. Example: In the
+\bmad lattice file define a marker element with an aperture and superimpose the marker at the
+beginning of the lattice:
+\begin{example}
+  m: marker, x_limit = 0.045, y_limit = 0.025, superimpose
+\end{example}
 
 Dynamic aperture curves can have the following \vn{%data_type}:
 \begin{example}

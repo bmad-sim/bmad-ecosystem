@@ -1937,11 +1937,16 @@ case ('enum')
 !----------------------------------------------------------------------
 ! Floor plan building wall
 ! Command syntax:
-!   python floor_building_wall {graph}
+!   python floor_building_wall {graph} {name}
+! Name is one of
+!  <blank>
+!  name
 
 case ('floor_building_wall')
 
-  call tao_find_plots (err, line, 'COMPLETE', graph = graphs)
+  
+  call tao_find_plots (err, line(1:ix_line), 'COMPLETE', graph = graphs)
+  call string_trim(line(ix_line+1:), line, ix_line)
 
   if (err .or. .not. allocated(graphs)) then
     call invalid ('Bad graph name')
@@ -1957,15 +1962,20 @@ case ('floor_building_wall')
     return
   endif
 
-  do ib = 1, size(s%building_wall%section)
-    pbw => s%building_wall%section(ib)%point
-
-    do j = 1, size(pbw)
-      call tao_floor_to_screen (graph, [pbw(j)%x, 0.0_rp, pbw(j)%z], end1%r(1), end1%r(2))
-      nl=incr(nl); write (li(nl), '(2(i0,a), 3(es14.6, a))') ib, ';', j, ';', end1%r(1), ';', end1%r(2), ';', pbw(j)%radius
+  if (line == 'name') then
+    do ib = 1, size(s%building_wall%section)
+      nl=incr(nl); write (li(nl), '(i0, 4a)') ib, ';', trim(s%building_wall%section(ib)%name),';', trim(s%building_wall%section(ib)%constraint)
     enddo
-  enddo
 
+  else
+    do ib = 1, size(s%building_wall%section)
+      pbw => s%building_wall%section(ib)%point
+      do j = 1, size(pbw)
+        call tao_floor_to_screen (graph, [pbw(j)%x, 0.0_rp, pbw(j)%z], end1%r(1), end1%r(2))
+        nl=incr(nl); write (li(nl), '(2(i0,a), 3(es14.6, a))') ib, ';', j, ';', end1%r(1), ';', end1%r(2), ';', pbw(j)%radius
+      enddo
+    enddo
+  endif
 
 !----------------------------------------------------------------------
 ! Floor plan elements
