@@ -1536,7 +1536,7 @@ case ('ele:mat6')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-  select case (line)
+  select case (who)
   case ('mat6')
     do i = 1, 6
       nl=incr(nl); write (li(nl), '(i0, a, 6(a, es21.13))') i, ';REAL_ARR;F;', (';', ele%mat6(i,j), j = 1, 6)
