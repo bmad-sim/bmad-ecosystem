@@ -93,9 +93,23 @@ class tao_root_window(tk.Tk):
     self.history.append([]) #Tao and shell history
     self.history_pos = 0 #Used for scrolling in history on command line
     self.history.append([]) #Call history
-    tk.Button(self.cmd_frame, text="View History...", command=self.view_history_cmd).pack(side="top", fill="x")
+    tk.Button(self.cmd_frame, text="View History...", command=self.view_history_cmd).grid(row=0, column=1, sticky='EW')
+    tk.Button(self.cmd_frame, text="Show/Hide Console", command=self.sh_console).grid(row=0, column=0, sticky='EW')
     self.console = tao_console(self.cmd_frame, self, self.pipe)
-    self.console._wid.pack(fill='both', expand=1)
+    self.cmd_frame.columnconfigure(0, weight=1)
+    self.cmd_frame.columnconfigure(1, weight=1)
+    self.console._wid.grid(row=1, column=0, columnspan=2, sticky = 'NSEW')
+    self.console_packed = True
+
+  def sh_console(self, event=None):
+    '''
+    Packs or unpacks self.console as appropriate
+    '''
+    if self.console_packed:
+      self.console._wid.grid_forget()
+    else:
+      self.console._wid.grid(row=1, column=0, columnspan=2, sticky = 'NSEW')
+    self.console_packed = not self.console_packed
 
     #self.command = tk_tao_parameter(str_to_tao_param("command;STR;T;"), self.cmd_frame, self.pipe)
     #self.command.tk_wid.bind("<Return>", self.tao_command)
