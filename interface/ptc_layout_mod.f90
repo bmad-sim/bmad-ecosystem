@@ -383,26 +383,27 @@ end subroutine add_ptc_layout_to_list
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ptc_setup_tracking_with_damping_and_excitation (branch, include_damping, include_excitation, rad_state, closed_orb)
+! Subroutine ptc_setup_tracking_with_damping_and_excitation (branch, include_damping, include_excitation, ptc_state, closed_orb)
 !
 ! Routine to setup PTC tracking that includes radiation damping and stochastic excitation.
-! To track use the routine track_probe with rad_state as the state argument.
+! To track use the routine track_probe with ptc_state as the state argument.
+! This routine also sets PTC logical use_bmad_units = True.
 !
 ! Input:
 !   branch              -- branch_struct: Lattice branch to setup.
 !   include_damping     -- logical: Include radiation damping?
-!   include_radiation   -- logical: Include radiation excitation?
+!   include_excitation  -- logical: Include radiation excitation?
 !
-!   rad_state           -- internal_state: Use with track_probe when tracking.
+!   ptc_state           -- internal_state: Use with track_probe when tracking.
 !   closed_orb(6)       -- real(dp): Closed orbit at start of branch.
 !-
 
-subroutine ptc_setup_tracking_with_damping_and_excitation (branch, include_damping, include_excitation, rad_state, closed_orb)
+subroutine ptc_setup_tracking_with_damping_and_excitation (branch, include_damping, include_excitation, ptc_state, closed_orb)
 
 use s_fitting_new
 
 type (branch_struct) branch
-type (internal_state) rad_state
+type (internal_state) ptc_state
 type (probe) prb
 type (probe_8) prb8
 type (c_damap) cda
@@ -410,29 +411,33 @@ type (c_damap) cda
 real(dp) closed_orb(6)
 logical include_damping, include_excitation
 
-!
+! Use bmad units with PTC
 
 use_bmad_units = .true.
+
+! If including excitation then need to do a setup calculation with envelope on.
 
 if (include_excitation) then
   call alloc(prb8)
   call alloc(cda) 
 
-  rad_state = DEFAULT + envelope0 + radiation0 
-  call find_orbit_x (branch%ptc%m_t_layout, closed_orb, rad_state, 1d-8, fibre1 = 1)
+  ptc_state = DEFAULT + envelope0 + radiation0 
+  call find_orbit_x (branch%ptc%m_t_layout, closed_orb, ptc_state, 1d-8, fibre1 = 1)
 
   cda = 1
   prb = closed_orb
   prb8 = prb + cda
-  call track_probe (prb8, rad_state, fibre1 = branch%ele(1)%ptc_fibre)
+  call track_probe (prb8, ptc_state, fibre1 = branch%ele(1)%ptc_fibre)
 
   call kill(prb8)
   call kill(cda)
 endif
 
-rad_state = DEFAULT
-if (include_damping)    rad_state = rad_state + radiation0
-if (include_excitation) rad_state = rad_state + stochastic0
+! Now set ptc_state without envelope on.
+
+ptc_state = DEFAULT
+if (include_damping)    ptc_state = ptc_state + radiation0
+if (include_excitation) ptc_state = ptc_state + stochastic0
 
 end subroutine ptc_setup_tracking_with_damping_and_excitation
 
