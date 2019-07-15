@@ -115,9 +115,9 @@ class tao_parameter_frame(tk.Frame):
   number of columns
   tao_list should be a list of tao_parameters
   '''
-
   def __init__(self, parent, tao_list, n_col, pipe, *args, **kwargs):
     tk.Frame.__init__(self, parent, *args, **kwargs)
+    self.pipe = pipe
     self.tao_list = [] #List for tk_tao_parameters
     for p in tao_list:
       self.tao_list.append(tk_tao_parameter(p, self, pipe))
@@ -148,13 +148,12 @@ class tao_parameter_frame(tk.Frame):
       else:
         tk.Label(self, text=item.param.value).grid(row=r, column=c+2, sticky='W')
 
-    # Grid the widgets in each column
-    #j = 0 #controls which column the widgets get gridded to
-    #for c in cols:
-    #  for i in range(len(c)):
-    #    c[i].tk_label.grid(row=i+1, column=2*j, sticky = 'E')
-    #    c[i].tk_wid.grid(row=i+1, column=2*j+1, sticky = 'EW')
-    #  j = j+1
+  def set_params(self, set_str, event=None):
+    '''
+    Runs tao_set on self.tao_list
+    '''
+    tao_set(self.tao_list, set_str, self.pipe)
+
 
 #-----------------------------------------------------
 # Parameter window
@@ -1323,7 +1322,7 @@ class tao_ele_window(tao_list_window):
     self.ele_wids.branch_chooser.grid(row=1, column=1, sticky='EW')
     self.ele_wids.ele_chooser.grid(row=1, column=2, sticky='EW')
     self.ele_wids.bmd_chooser.grid(row=1, column=3, sticky='EW')
-    tk.Button(self.top_frame, text="Load", command=self.refresh).grid(row=0, column=4, rowspan=2, sticky="NSEW")
+    tk.Button(self.top_frame, text="Load\n(Discard changes)", command=self.refresh).grid(row=0, column=4, rowspan=2, sticky="NSEW")
 
     self.refresh()
 
@@ -1375,6 +1374,8 @@ class tao_ele_window(tao_list_window):
     self.element.params["descrip"].tk_wid.grid(row=3, column=3, sticky='EW')
     tk.Label(self.head_frame, text="is_on").grid(row=4, column=2, sticky='E')
     self.element.params["is_on"].tk_wid.grid(row=4, column=3, sticky='EW')
+    # Set button
+    tk.Button(self.head_frame, text='Apply all changes', command=self.ele_set).grid(row=5, column=0, columnspan=4)
 
     # Body frame
     self.sh_b_list = [] # Show/hide button list
@@ -1525,6 +1526,41 @@ class tao_ele_window(tao_list_window):
     # Button should now show instead of hide
     self.sh_b_list[index].configure(command=self.s_callback(index))
 
+  def ele_set(self, event=None):
+    '''
+    Runs set commands for all the parameter frames and refreshes the window
+    '''
+    # Don't need |base/model/design when setting
+    set_str = "set element " + self.element.id[:self.element.id.find('|')] + ' '
+    # Set the head parameters
+    head_list = ['type', 'alias', 'descrip', 'is_on']
+    for i in range(len(head_list)):
+      head_list[i] = self.element.params[head_list[i]]
+    tao_set(head_list, set_str, self.pipe)
+    # Set the parameters in self.p_frames
+    for i in range(len(self.p_frames)):
+      if self.p_names[i] not in ['lord_slave', 'mat6', 'floor']:
+        self.p_frames[i].set_params(set_str)
+      elif self.p_names[i] == 'floor':
+        for p in self.p_frames[i].tao_list:
+          if p.param.can_vary:
+            #need to set x,y,z,theta,phi,psi_position
+            #to the values in p
+            floor_list = []
+            names = ['x_position',
+                'y_position',
+                'z_position',
+                'theta_position',
+                'phi_position',
+                'psi_position']
+            for i in range(len(p._svar)):
+              floor_list.append(str_to_tao_param(names[i]+';REAL;T;' + p._svar[i].get()))
+              floor_list[i] = tk_tao_parameter(floor_list[i], self.head_frame, self.pipe)
+            # Run the set command
+            tao_set(floor_list, set_str, self.pipe, overide=True)
+    # Refresh the element window
+    self.refresh()
+
 #---------------------------------------------------
 class tao_multipole_frame(tk.Frame):
   '''
@@ -1580,6 +1616,9 @@ class tao_multipole_frame(tk.Frame):
         self.tk_tao_list[-1].tk_wid.grid(row=i, column=j, sticky='EW')
         j = j+1
       i = i+1
+
+  def set_params(self, set_str, event=None):
+    pass #TODO
 
 #---------------------------------------------------
 # Lattice Window

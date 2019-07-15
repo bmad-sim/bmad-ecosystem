@@ -104,7 +104,7 @@ class tk_tao_parameter():
         for widget in self._s:
           widget.config(state="disabled")
 
-  def _update_real_arr(self, event=None):
+  def _update_real_arr(self, event=None, *args, **kwargs):
     '''
     Takes a real array's slave variables and puts their data
     into the master tk_var
