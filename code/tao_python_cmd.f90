@@ -1053,6 +1053,14 @@ case ('ele:multipoles')
     nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T;', ele%scale_multipoles
   endif
 
+  if (ele%key == multipole$) then
+    nl=incr(nl); li(nl) = 'KnL;Tn;KnL (w/Tilt);Tn (w/Tilt);An (equiv);Bn (equiv)'
+  elseif (ele%key == ab_multipole$) then
+    nl=incr(nl); li(nl) = 'An;Bn;An (w/Tilt);Bn (w/Tilt);KnL (equiv);Tn (equiv)'
+  else
+    nl=incr(nl); li(nl) = 'An;Bn;An (Scaled);Bn (Scaled);An (w/Tilt);Bn (w/Tilt);KnL (equiv);Tn (equiv)'
+  endif
+
   if (.not. associated(ele%a_pole)) then
     call end_stuff(li, nl)
     return
@@ -1066,14 +1074,6 @@ case ('ele:multipoles')
     call multipole_ele_to_ab (ele, .false., ix_pole_max, a,  b)
     call multipole_ele_to_ab (ele, .true.,  ix_pole_max, a2, b2)
     call multipole_ele_to_kt (ele, .true.,  ix_pole_max, knl, tn)
-  endif
-
-  if (ele%key == multipole$) then
-    nl=incr(nl); li(nl) = 'KnL;Tn;KnL (w/Tilt);Tn (w/Tilt);An (equiv);Bn (equiv)'
-  elseif (ele%key == ab_multipole$) then
-    nl=incr(nl); li(nl) = 'An;Bn;An (w/Tilt);Bn (w/Tilt);KnL (equiv);Tn (equiv)'
-  else
-    nl=incr(nl); li(nl) = 'An;Bn;An (Scaled);Bn (Scaled);An (w/Tilt);Bn (w/Tilt);KnL (equiv);Tn (equiv)'
   endif
 
   do i = 0, n_pole_maxx
