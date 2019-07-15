@@ -55,7 +55,7 @@ end type
 
 type ltt_internal_struct
   ! Internal vars
-  type (internal_state) rad_state
+  type (internal_state) ptc_state
   type (coord_struct), allocatable :: bmad_closed_orb(:)
   real(rp) ptc_closed_orb(6)
 end type
@@ -287,7 +287,7 @@ endif
 if (lttp%tracking_method == 'PTC' .or. lttp%simulation_mode == 'CHECK') then
   if (.not. associated(lat%branch(0)%ptc%m_t_layout)) call lat_to_ptc_layout(lat)
   call ptc_setup_tracking_with_damping_and_excitation(lat%branch(0), bmad_com%radiation_damping_on, &
-                                          bmad_com%radiation_fluctuations_on, ltt_internal%rad_state, ltt_internal%ptc_closed_orb)
+                                          bmad_com%radiation_fluctuations_on, ltt_internal%ptc_state, ltt_internal%ptc_closed_orb)
 endif
 
 end subroutine ltt_init_tracking
@@ -354,7 +354,7 @@ call track_many (lat, orb, ix_ele_start, ix_ele_start, 1, ix_branch, track_state
 
 prb = orb_init%vec
 prb%q%x = [1, 0, 0, 0]   ! Unit quaternion
-call track_probe (prb, ltt_internal%rad_state, fibre1 = lat%branch(ix_branch)%ele(1)%ptc_fibre)
+call track_probe (prb, ltt_internal%ptc_state, fibre1 = lat%branch(ix_branch)%ele(1)%ptc_fibre)
 ptc_spin = rotate_vec_given_quat(prb%q%x, orb_init%spin)
 
 print '(a, 6f14.8)', 'Map closed orbit at start:  ', rad_map%sub_map(1)%fix0
@@ -564,7 +564,7 @@ do i_turn = 1, lttp%n_turns
       p => bunch%particle(ip)
       prb = p%vec
       prb%q%x = [1, 0, 0, 0]  ! Unit quaternion
-      call track_probe (prb, ltt_internal%rad_state, fibre1 = lat%branch(ix_branch)%ele(1)%ptc_fibre)
+      call track_probe (prb, ltt_internal%ptc_state, fibre1 = lat%branch(ix_branch)%ele(1)%ptc_fibre)
       p%vec = prb%x
       p%spin = rotate_vec_given_quat(prb%q%x, p%spin)
     enddo
