@@ -24,6 +24,8 @@ from matplotlib.backends._backend_tk import FigureManagerTk
 from matplotlib.backend_bases import key_press_handler
 from tao_ele_location import in_element
 
+#-----------------------------------------------------
+# Console frame
 
 #-----------------------------------------------------
 # List window
@@ -687,13 +689,16 @@ class tao_history_window(tao_list_window):
     the command line or call_file box, and does not run it
     '''
     if mode ==0:
-      self.root.command.tk_var.set(cmd_string)
-      self.root.tao_command()
+      self.root.console.set_command(cmd_string)
+      self.root.console.run_command()
+      #self.root.command.tk_var.set(cmd_string)
+      #self.root.tao_command()
     elif mode == 1:
       self.root.call_file.tk_var.set(cmd_string)
       self.root.tao_call()
     elif mode ==2:
-      self.root.command.tk_var.set(cmd_string)
+      self.root.console.set_command(cmd_string)
+      #self.root.command.tk_var.set(cmd_string)
     elif mode == 3:
       self.root.call_file.tk_var.set(cmd_string)
 

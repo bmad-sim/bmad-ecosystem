@@ -15,6 +15,7 @@ from tao_widget import *
 from tao_set import tao_set
 from parameters import str_to_tao_param
 from parameters import tao_parameter_dict
+from tao_console import tao_console
 from tao_windows import *
 import string
 
@@ -93,54 +94,56 @@ class tao_root_window(tk.Tk):
     self.history_pos = 0 #Used for scrolling in history on command line
     self.history.append([]) #Call history
     tk.Button(self.cmd_frame, text="View History...", command=self.view_history_cmd).pack(side="top", fill="x")
+    self.console = tao_console(self.cmd_frame, self, self.pipe)
+    self.console._wid.pack(fill='both', expand=1)
 
-    self.command = tk_tao_parameter(str_to_tao_param("command;STR;T;"), self.cmd_frame, self.pipe)
-    self.command.tk_wid.bind("<Return>", self.tao_command)
-    self.command.tk_wid.bind("<Shift-Return>", self.tao_spawn)
-    self.command.tk_wid.bind("<Up>", self.hist_scroll_up)
-    self.command.tk_wid.bind("<Down>", self.hist_scroll_down)
-    self.command.tk_wid.pack(side="left", fill="x", expand=1)
-    tk.Button(self.cmd_frame, text="Run (System Shell)", command=self.tao_spawn).pack(side="right")
-    tk.Button(self.cmd_frame, text="Run (Tao)", command=self.tao_command).pack(side="right")
+    #self.command = tk_tao_parameter(str_to_tao_param("command;STR;T;"), self.cmd_frame, self.pipe)
+    #self.command.tk_wid.bind("<Return>", self.tao_command)
+    #self.command.tk_wid.bind("<Shift-Return>", self.tao_spawn)
+    #self.command.tk_wid.bind("<Up>", self.hist_scroll_up)
+    #self.command.tk_wid.bind("<Down>", self.hist_scroll_down)
+    #self.command.tk_wid.pack(side="left", fill="x", expand=1)
+    #tk.Button(self.cmd_frame, text="Run (System Shell)", command=self.tao_spawn).pack(side="right")
+    #tk.Button(self.cmd_frame, text="Run (Tao)", command=self.tao_command).pack(side="right")
 
-  def hist_scroll_up(self, event=None):
-    if len(self.history[0]) > self.history_pos: #if there's room left to scroll up in history
-      self.history_pos += 1
-      self.command.tk_var.set(self.history[0][-1*self.history_pos])
-      self.command.tk_wid.icursor(len(self.command.tk_var.get()))
+  #def hist_scroll_up(self, event=None):
+  #  if len(self.history[0]) > self.history_pos: #if there's room left to scroll up in history
+  #    self.history_pos += 1
+  #    self.command.tk_var.set(self.history[0][-1*self.history_pos])
+  #    self.command.tk_wid.icursor(len(self.command.tk_var.get()))
 
-  def hist_scroll_down(self, event=None):
-    if self.history_pos > 0:
-      self.history_pos -= 1
-      if self.history_pos > 0:
-        self.command.tk_var.set(self.history[0][-1*self.history_pos])
-      else:
-        self.command.tk_var.set("")
-      self.command.tk_wid.icursor(len(self.command.tk_var.get()))
+  #def hist_scroll_down(self, event=None):
+  #  if self.history_pos > 0:
+  #    self.history_pos -= 1
+  #    if self.history_pos > 0:
+  #      self.command.tk_var.set(self.history[0][-1*self.history_pos])
+  #    else:
+  #      self.command.tk_var.set("")
+  #    self.command.tk_wid.icursor(len(self.command.tk_var.get()))
 
-  def tao_command(self, event=None):
-    '''
-    Runs the text in self.command at the Tao command line, appends it to the history, and clears self.command
-    '''
-    if self.command.tk_var.get() != "":
-      self.pipe.cmd(self.command.tk_var.get())
-      self.history[0].append(self.command.tk_var.get())
-      self.command.tk_var.set("")
-    self.history_pos = 0
-    #Try to refresh history window
-    try:
-      self.history_window.refresh()
-    except:
-      pass
+  #def tao_command(self, event=None):
+  #  '''
+  #  Runs the text in self.command at the Tao command line, appends it to the history, and clears self.command
+  #  '''
+  #  if self.command.tk_var.get() != "":
+  #    self.pipe.cmd(self.command.tk_var.get())
+  #    self.history[0].append(self.command.tk_var.get())
+  #    self.command.tk_var.set("")
+  #  self.history_pos = 0
+  #  #Try to refresh history window
+  #  try:
+  #    self.history_window.refresh()
+  #  except:
+  #    pass
 
-  def tao_spawn(self, event=None):
-    '''
-    Runs the text in self.command at the system command line, appends it to the history, and clears self.command
-    '''
-    if self.command.tk_var.get() != "":
-      cmd_txt = self.command.tk_var.get()
-      self.command.tk_var.set("spawn " + cmd_txt)
-      self.tao_command()
+  #def tao_spawn(self, event=None):
+  #  '''
+  #  Runs the text in self.command at the system command line, appends it to the history, and clears self.command
+  #  '''
+  #  if self.command.tk_var.get() != "":
+  #    cmd_txt = self.command.tk_var.get()
+  #    self.command.tk_var.set("spawn " + cmd_txt)
+  #    self.tao_command()
 
   def tao_call(self, event=None):
     '''
