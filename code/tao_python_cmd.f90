@@ -1053,7 +1053,10 @@ case ('ele:multipoles')
     nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T;', ele%scale_multipoles
   endif
 
-  if (.not. associated(ele%a_pole)) return
+  if (.not. associated(ele%a_pole)) then
+    call end_stuff(li, nl)
+    return
+  endif
 
   a = 0; b = 0; a2 = 0; b2 = 0; knl = 0; tn = 0
   if (ele%key == multipole$) then
@@ -1832,7 +1835,10 @@ case ('ele:elec_multipoles')
 
   nl=incr(nl); li(nl) = 'An_elec;Bn_elec;An_elec (Scaled);Bn_elec (Scaled)'
 
-  if (.not. associated(ele%a_pole_elec)) return
+  if (.not. associated(ele%a_pole_elec)) then
+    call end_stuff(li, nl)
+    return
+  endif
 
   call multipole_ele_to_ab (ele, .false., ix_pole_max, a, b, electric$)
 
