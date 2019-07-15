@@ -122,6 +122,7 @@ class tao_console:
           + event.char + self.command[self.cpos:])
       self._wid.insert('insert', event.char)
       self.cpos += 1
+      self._wid.see(self.cstart)
     return 'break'
 
   def _ret_handler(self, event):
@@ -132,12 +133,11 @@ class tao_console:
 
   def _bs_handler(self, event):
     if self._curs_check():
-      #self._wid.configure(state='normal')
       self._wid.delete("insert-1c", "insert")
       self.cpos -= 1
       self.command = self.command[:self.cpos] \
           + self.command[self.cpos+1:]
-      #self._wid.configure(state='disabled')
+      self._wid.see(self.cstart)
     return 'break'
 
   def _l_handler(self, event):
@@ -161,6 +161,7 @@ class tao_console:
     if len(self.root.history[0]) > self.root.history_pos: #if there's room left to scroll up in history
       self.root.history_pos += 1
       self.set_command(self.root.history[0][-1*self.root.history_pos])
+      self._wid.see(self.cstart)
     return 'break'
 
   def _d_handler(self, event=None):
@@ -170,4 +171,5 @@ class tao_console:
         self.set_command(self.root.history[0][-1*self.root.history_pos])
       else:
         self.set_command("")
+      self._wid.see(self.cstart)
     return 'break'
