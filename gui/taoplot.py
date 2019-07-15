@@ -765,6 +765,10 @@ class taoplot:
 			fpeBaDict = {} #bend angle
 			fpeSfaDict = {} #relative angle of starting face to incoming line
 			fpeEfaDict = {} #relative angle of ending face to incoming line
+			corner1 = {} #corner coordinates of objects
+			corner2 = {}
+			corner3 = {}
+			corner4 = {}
 			for i in range(len(fpeInfo)):
 				fpeIndexList.append(int(fpeInfo[i].split(';')[1]))
 				fpeTypeDict[fpeInfo[i].split(';')[1]]= fpeInfo[i].split(';')[2].lower()
@@ -982,9 +986,9 @@ class taoplot:
 									a4=angle3
 							#determines correct start and end angles for arcs
 
-						GraphDict['FloorPlan'].add_patch(patches.Arc((intersection[0],intersection[1]),np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,theta1=a1,theta2=a2,lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)]))
-						GraphDict['FloorPlan'].add_patch(patches.Arc((intersection[0],intersection[1]),np.sqrt((fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,np.sqrt((fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,theta1=a3,theta2=a4,lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)]))
-						#nonzero bend angle
+							GraphDict['FloorPlan'].add_patch(patches.Arc((intersection[0],intersection[1]),np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,theta1=a1,theta2=a2,lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)]))
+							GraphDict['FloorPlan'].add_patch(patches.Arc((intersection[0],intersection[1]),np.sqrt((fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,np.sqrt((fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,theta1=a3,theta2=a4,lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)]))
+							#nonzero bend angle
 
 					#draw sbend element
 
@@ -997,10 +1001,113 @@ class taoplot:
 						GraphDict['FloorPlan'].text(fpeSxDict[str(i)]+(fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - 1.2*fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+(fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + 1.2*fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeNameDict[str(i)],ha='left',va='center',color='black',rotation=90+((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)*conv,clip_on=True,rotation_mode='anchor')
 					#draw element name
 					
-
-
+					corner1[str(i)]=[fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
+					corner2[str(i)]=[fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
+					corner3[str(i)]=[fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
+					corner4[str(i)]=[fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
+					#coordinates of rectangle bounding a floor plan element
 				except KeyError:
 					pass
+			
+
+
+			
+			try:
+
+				fbwInfo=pipe.cmd_in('python floor_building_wall r1.g').splitlines()
+				#list of plotting parameter strings from tao command python floor_building_wall
+
+				fbwCurveList = []
+				for i in range(len(fbwInfo)):
+					fbwCurveList.append(int(fbwInfo[i].split(';')[0]))
+
+				fbwCurveList = list(set(fbwCurveList)) #list of unique curve indices
+				
+
+				def circle_intersection(x1,y1,x2,y2,r):
+					'''takes centers and radius of circles, returns the 2 intersection points of overlapping circles with equal radii'''
+					dx=x2-x1
+					dy=y2-y1
+					d=np.sqrt(dx**2 + dy**2)
+					a = d/2
+					h = np.sqrt(r**2 - a**2)
+					xm = x1 + dx/2
+					ym = y1 + dy/2
+					xs1 = xm + h*dy/d
+					xs2 = xm - h*dy/d
+					ys1 = ym - h*dx/d
+					ys2 = ym + h*dx/d
+					return (xs1,ys1),(xs2,ys2)
+
+
+
+				for i in fbwCurveList:
+					fbwIndexList = []
+					fbwXList = []
+					fbwYList = []
+					fbwRadiusList = [] #straight line if element has 0 or missing radius
+					for j in range(len(fbwInfo)):
+						if i == int(fbwInfo[j].split(';')[0]):
+							fbwIndexList.append(int(fbwInfo[j].split(';')[1]))
+							fbwXList.append(float(fbwInfo[j].split(';')[2]))
+							fbwYList.append(float(fbwInfo[j].split(';')[3]))
+							try:
+								fbwRadiusList.append(float(fbwInfo[j].split(';')[4]))
+							except:
+								fbwRadiusList.append(0.0)
+					k = max(fbwIndexList) #max line index
+					while k > 1:
+						kIndex = fbwIndexList.index(k)
+						mIndex = fbwIndexList.index(k-1)
+						if fbwRadiusList[kIndex] == 0: #draw building wall line
+							GraphDict['FloorPlan'].plot([fbwXList[kIndex],fbwXList[mIndex]],[fbwYList[kIndex],fbwYList[mIndex]])
+						else: #draw building wall arc
+							centerList = circle_intersection(fbwXList[mIndex],fbwYList[mIndex],fbwXList[kIndex],fbwYList[kIndex],abs(fbwRadiusList[kIndex]))
+							#radius specifies 2 possible circle centers for arcs
+							mpx = (fbwXList[mIndex] + fbwXList[kIndex])/2
+							mpy = (fbwYList[mIndex] + fbwYList[kIndex])/2 
+							if np.arctan2((fbwYList[mIndex]-mpy),(fbwXList[mIndex]-mpx)) < np.arctan2(centerList[0][1],centerList[0][0]) < np.arctan2((fbwYList[mIndex]-mpy),(fbwXList[mIndex]-mpx)) and fbwRadiusList[kIndex]>0:
+								center = (centerList[1][0],centerList[1][1])
+							elif np.arctan2((fbwYList[mIndex]-mpy),(fbwXList[mIndex]-mpx)) < np.arctan2(centerList[0][1],centerList[0][0]) < np.arctan2((fbwYList[mIndex]-mpy),(fbwXList[mIndex]-mpx)) and fbwRadiusList[kIndex]<0:
+								center = (centerList[0][0],centerList[0][1])
+							elif fbwRadiusList[kIndex]>0:
+								center = (centerList[0][0],centerList[0][1])
+							else:
+								center = (centerList[1][0],centerList[1][1])
+
+
+							mAngle = 360 + conv*np.arctan2((fbwYList[mIndex]-center[1]),(fbwXList[mIndex]-center[0]))
+							kAngle = 360 + conv*np.arctan2((fbwYList[kIndex]-center[1]),(fbwXList[kIndex]-center[0]))
+
+							if abs(kAngle-mAngle) <= 180:
+								if kAngle > mAngle:
+									t1=mAngle
+									t2=kAngle
+								else:
+									t1=kAngle
+									t2=mAngle
+							else:
+								if kAngle > mAngle:
+									t1=kAngle
+									t2=mAngle
+								else:
+									t1=mAngle
+									t2=kAngle
+								
+
+							GraphDict['FloorPlan'].add_patch(patches.Arc(center,fbwRadiusList[kIndex]*2,fbwRadiusList[kIndex]*2,theta1=t1,theta2=t2))
+
+						k = k - 1
+			except ValueError:
+				pass
+			#plot floor plan building walls
+
+
+
+
+
+
+
 
 			if float(floInfoDict['floor_plan_orbit_scale'].value) != 0:
 				fpoInfo=pipe.cmd_in('python floor_orbit r1.g').splitlines()
@@ -1018,9 +1125,8 @@ class taoplot:
 						for j in range(3,len(fpoInfo[i].split(';'))):
 							fpoYList.append(float(fpoInfo[i].split(';')[j]))
 
-
 				GraphDict['FloorPlan'].plot(fpoXList,fpoYList,color=floInfoDict['floor_plan_orbit_color'].value.lower())
-
+			#plot floor plan orbit
 
 
 
@@ -1045,6 +1151,9 @@ class taoplot:
 			GraphDict['FloorPlan'].set_axisbelow(True)
 			#plot floor plan grid
 
+
+
+
 		if gInfoDict['graph^type'].value == 'lat_layout' or gInfoDict['graph^type'].value == 'floor_plan': 
 			if gInfoDict['ix_universe'].value != -1:
 				gUniverse = gInfoDict[ix_universe].value
@@ -1065,8 +1174,22 @@ class taoplot:
 			gBranch = gInfoDict['-1^ix_branch'].value
 			gComponent = gInfoDict['component'].value
 
+		if gInfoDict['graph^type'].value != 'floor_plan':
+			corner1=[]
+			corner2=[]
+			corner3=[]
+			corner4=[]
+			fpeIndexList = []
+			fpeShapeDict = []
+			fpeCenterDict = []
+			fpeRadiusDict = []
 
-		returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList, fpeCenterDict, fpeRadiusDict]
+		if LatLayout != True:
+			eleIndexList = []
+			eleStartDict = []
+			eleEndDict = []
+
+		returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList,fpeShapeDict,fpeCenterDict, fpeRadiusDict, corner1, corner2, corner3, corner4]
 		fig.tight_layout()
 		return fig, returnList
 
