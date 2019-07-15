@@ -716,66 +716,68 @@ subroutine tao_curve_physical_aperture_setup (curve)
 
 type (tao_curve_struct) :: curve
 type (tao_universe_struct), pointer :: u
+type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
+
 real(rp) :: x1, x2, y1, y2, phi
-real(rp) :: large = 1 ! m 
 integer :: i, ap_type
 integer, parameter :: n = 25 ! points per elliptical quadrant
-character(40) :: r_name = 'tao_curve_physical_aperture_setup'
+character(*), parameter :: r_name = 'tao_curve_physical_aperture_setup'
 
-!
+! Try to find a lattice element at s = 0 that has apertures defined
 
 u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
-! Set to beginning if x_ele_ref out of bounds 
-if (curve%ix_ele_ref < 1 .or. curve%ix_ele_ref > u%model%lat%n_ele_track) then
-  call out_io (s_warn$, r_name, 'IX_ELE_REF out of bounds for curve: ' // tao_curve_name(curve), 'Will draw aperture at 1 meter')
-  x1 = large; x2 = large
-  y1 = large; y2 = large
-  ap_type = elliptical$
-else
-  ele => u%model%lat%ele(curve%ix_ele_ref)
+lat => u%model%lat
+
+do i = 1, lat%n_ele_track
+  ele => lat%ele(i)
+  if (ele%s /= lat%ele(0)%s) then
+    call out_io (s_warn$, r_name, 'Lattice element at s = 0 with defined aperture not found for curve: ' // tao_curve_name(curve), &
+                                  'Will not draw a physical aperture curve.')
+    if (allocated(curve%x_line)) deallocate (curve%x_line, curve%y_line)
+    if (allocated(curve%x_symb)) deallocate (curve%x_symb, curve%y_symb)
+    return
+  endif
   x1 = ele%value(x1_limit$)
   x2 = ele%value(x2_limit$)
   y1 = ele%value(y1_limit$)
   y2 = ele%value(y2_limit$)
   ap_type = ele%aperture_type
-endif
+  if (x1 /= 0 .or. x2 /= 0 .or. x1 /= 0 .or. x2 /= 0) exit
+enddo
 
-if (x1 == 0) x1 = large
-if (x2 == 0) x2 = large
-if (y1 == 0) y1 = large
-if (y2 == 0) y2 = large
-
+!
 
 select case(ap_type)
 case(elliptical$)
-call alloc_curves(4*n)
-! draw four quadrants
-do i=1, n
-  phi = pi/2*(i-1)/(n-1)
-  curve%x_line(i) = x1*cos(phi) 
-  curve%y_line(i) = y1*sin(phi)
-enddo
-do i=1, n
-  phi = pi/2*(i-1)/(n-1)
-  curve%x_line(i+n) = -x2*sin(phi) 
-  curve%y_line(i+n) =  y1*cos(phi)
-enddo
-do i=1, n
-  phi = pi/2*(i-1)/(n-1)
-  curve%x_line(i+2*n) =  -x2*cos(phi) 
-  curve%y_line(i+2*n) =  -y2*sin(phi)
-enddo
-do i=1, n
-  phi = pi/2*(i-1)/(n-1)
-  curve%x_line(i+3*n) =   x1*sin(phi) 
-  curve%y_line(i+3*n) =  -y2*cos(phi)
-enddo
+  call alloc_curves(4*n)
+  ! draw four quadrants
+  do i=1, n
+    phi = pi/2*(i-1)/(n-1)
+    curve%x_line(i) = x1*cos(phi) 
+    curve%y_line(i) = y1*sin(phi)
+  enddo
+  do i=1, n
+    phi = pi/2*(i-1)/(n-1)
+    curve%x_line(i+n) = -x2*sin(phi) 
+    curve%y_line(i+n) =  y1*cos(phi)
+  enddo
+  do i=1, n
+    phi = pi/2*(i-1)/(n-1)
+    curve%x_line(i+2*n) =  -x2*cos(phi) 
+    curve%y_line(i+2*n) =  -y2*sin(phi)
+  enddo
+  do i=1, n
+    phi = pi/2*(i-1)/(n-1)
+    curve%x_line(i+3*n) =   x1*sin(phi) 
+    curve%y_line(i+3*n) =  -y2*cos(phi)
+  enddo
 
 case(rectangular$)
   call alloc_curves(5)
   curve%x_line = [x1, -x2, -x2,  x1, x1]
   curve%y_line = [y1,  y1, -y2, -y2, y1]
+
 case default
   return
 end select
