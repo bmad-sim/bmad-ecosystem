@@ -561,6 +561,7 @@ do i_turn = 1, lttp%n_turns
 
   case ('PTC')
     do ip = 1, size(bunch%particle)
+      p => bunch%particle(ip)
       prb = p%vec
       prb%q%x = [1, 0, 0, 0]  ! Unit quaternion
       call track_probe (prb, ltt_internal%rad_state, fibre1 = lat%branch(ix_branch)%ele(1)%ptc_fibre)
