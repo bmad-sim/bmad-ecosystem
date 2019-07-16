@@ -55,6 +55,7 @@ use tao_c_interface_mod, only: tao_c_interface_com
 use twiss_and_track_mod, only: twiss_and_track_at_s
 use tao_show_mod, only: tao_show_this
 use tao_plot_mod, only: tao_set_floor_plan_axis_label
+use tao_data_and_eval_mod, only: tao_evaluate_expression
 
 implicit none
 
@@ -123,6 +124,7 @@ type (photon_element_struct), pointer :: ph
 type (qp_axis_struct) x_ax, y_ax
 type (tao_building_wall_point_struct), pointer :: pbw(:)
 type (tao_dynamic_aperture_struct), pointer :: da
+type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp) s_pos, value, y1, y2, v_old(3), r_vec(3), dr_vec(3), w_old(3,3), v_vec(3), dv_vec(3)
 real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here
@@ -131,6 +133,7 @@ real(rp), allocatable :: re_array(:)
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
 real(rp) a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
+real(rp), allocatable :: value_arr(:)
 
 integer :: i, j, k, ib, ie, iu, nn, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i0, i1, i2
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_bunch, ix_d2, n_who, ix_pole_max, attrib_type
@@ -143,7 +146,7 @@ logical first_time
 character(*) input_str
 character(n_char_show), allocatable :: li(:) 
 character(n_char_show) li2
-character(40) imt, jmt, rmt, lmt, amt, iamt, vamt, rmt2, ramt, cmt, label_name
+character(40) imt, jmt, rmt, lmt, amt, amt2, iamt, vamt, rmt2, ramt, cmt, label_name
 character(40) max_loc, ele_name, name1(40), name2(40), a_name, name
 character(200) line, file_name, all_who
 character(20), allocatable :: name_list(:)
@@ -203,7 +206,7 @@ call match_word (cmd, [character(20) :: &
           'ele:cylindrical_map', 'ele:orbit', &
           'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
           'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
-          'enum', 'floor_building_wall', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
+          'evaluate', 'enum', 'floor_building_wall', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
           'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
           'merit', 'orbit_at_s', &
           'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
@@ -221,12 +224,13 @@ if (ix < 0) then
   return
 endif
 
-amt  = '(3a)'
+amt  = '(10a)'
+amt2 = '(a, l1, 10a)'
 imt  = '(a, 100(i0, a))'
 jmt  = '(i0, a, i0)'
 rmt  = '(a, 100(es21.13, a))'
 ramt = '(a, 100(a, es21.13))'
-rmt2 = '(a, l0, a, 100(es21.13, a))'
+rmt2 = '(a, l1, a, 100(es21.13, a))'
 lmt  = '(a, 100(l1, a))'
 vamt = '(a, i0, 3a)'
 
@@ -864,24 +868,26 @@ case ('ele:head')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
+  can_vary = (ele%slave_status /= multipass_slave$ .and. ele%slave_status /= super_slave$)
+
   nl=incr(nl); write (li(nl), imt) 'universe;INT;F;',                 u%ix_uni
   nl=incr(nl); write (li(nl), jmt) u%ix_uni, '^ix_branch;INUM;F;',    ele%ix_branch
   nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;I;',                   ele%ix_ele
   
-  nl=incr(nl); write (li(nl), amt) 'key;ENUM;F;',                   key_name(ele%key)
-  nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                   trim(ele%name), ';ix_ele'
-  nl=incr(nl); write (li(nl), amt) 'type;STR;T;',                   ele%type
-  nl=incr(nl); write (li(nl), amt) 'alias;STR;T;',                  ele%alias
+  nl=incr(nl); write (li(nl), amt) 'key;ENUM;F;',                     key_name(ele%key)
+  nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                     trim(ele%name), ';ix_ele'
+  nl=incr(nl); write (li(nl), amt2) 'type;STR;', can_vary, ';',       ele%type
+  nl=incr(nl); write (li(nl), amt2) 'alias;STR;', can_vary, ';',      ele%alias
   if (associated(ele%descrip)) then
-    nl=incr(nl); write (li(nl), amt) 'descrip;STR;T;',                ele%descrip
+    nl=incr(nl); write (li(nl), amt2) 'descrip;STR;', can_vary, ';',  ele%descrip
   else
-    nl=incr(nl); write (li(nl), amt) 'descrip;STR;T;',                ''
+    nl=incr(nl); write (li(nl), amt2) 'descrip;STR;', can_vary, ';',  ''
   endif
   nl=incr(nl); write (li(nl), lmt) 'is_on;LOGIC;T;',                ele%is_on
 
-  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                   ele%s
-  nl=incr(nl); write (li(nl), rmt) 's_start;REAL;F;',             ele%s_start
-  nl=incr(nl); write (li(nl), rmt) 'ref_time;REAL;F;',            ele%ref_time
+  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                     ele%s
+  nl=incr(nl); write (li(nl), rmt) 's_start;REAL;F;',               ele%s_start
+  nl=incr(nl); write (li(nl), rmt) 'ref_time;REAL;F;',              ele%ref_time
 
   nl=incr(nl); write (li(nl), lmt) 'has#methods;LOGIC;F;',          (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$)
   nl=incr(nl); write (li(nl), lmt) 'has#ab_multipoles;LOGIC;F;',    (attribute_name(ele, a0$) == 'A0')
@@ -1539,11 +1545,11 @@ case ('ele:mat6')
   select case (who)
   case ('mat6')
     do i = 1, 6
-      nl=incr(nl); write (li(nl), '(i0, a, 6(a, es21.13))') i, ';REAL_ARR;F;', (';', ele%mat6(i,j), j = 1, 6)
+      nl=incr(nl); write (li(nl), '(i0, a, 6(a, es21.13))') i, ';REAL_ARR;F', (';', ele%mat6(i,j), j = 1, 6)
     enddo
 
   case ('vec0')
-    nl=incr(nl); write (li(nl), ramt) 'vec0;REAL_ARR;F;', (';', ele%vec0(i), i = 1, 6)
+    nl=incr(nl); write (li(nl), ramt) 'vec0;REAL_ARR;F', (';', ele%vec0(i), i = 1, 6)
 
   case ('err')
     nl=incr(nl); write (li(nl), rmt) 'symplectic_error;REAL;F;', mat_symp_error(ele%mat6)
@@ -1843,8 +1849,27 @@ case ('ele:elec_multipoles')
   call multipole_ele_to_ab (ele, .false., ix_pole_max, a, b, electric$)
 
   do i = 0, n_pole_maxx
-    if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
+    if (ele%a_pole_elec(i) == 0 .and. ele%b_pole_elec(i) == 0) cycle
     nl=incr(nl); write (li(nl), '(i0, 4(a, es21.13))') i, ';', ele%a_pole_elec(i), ';', ele%b_pole_elec(i), ';', a(i), ';', b(i)
+  enddo
+
+!----------------------------------------------------------------------
+! Evaluate an expression. The result may be a vector.
+! Command syntax:
+!   python evaluate {expression}
+! Example:
+!   python evaluate 2*cbar.11[1:10]|model
+
+case ('evaluate')
+
+  call tao_evaluate_expression (line, 0, .false., value_arr, info, err)
+  if (err) then
+    call invalid ('Invalid expression')
+    return
+  endif
+
+  do i = 1, size(value_arr)
+    nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';', value_arr(i)
   enddo
 
 !----------------------------------------------------------------------
