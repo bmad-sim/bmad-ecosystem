@@ -11,11 +11,6 @@ import numpy as np
 from matplotlib.backend_tools import ToolBase, ToolToggleBase
 
 
-#pipe=tao_interface('pexpect','-init_file ../examples/cesr/tao.init')
-#determines tao settings and lattice to be used eg: '-init_file ../examples/cesr/tao.init' for CESR
-
-#GraphRegion='top'
-#region in tao of plot
 
 class taoplot:
 	def __init__(self,pipe,GraphRegion):
