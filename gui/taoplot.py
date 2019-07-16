@@ -1040,6 +1040,21 @@ class taoplot:
 					return (xs1,ys1),(xs2,ys2)
 
 
+				nbw=pipe.cmd_in('python floor_building_wall r1.g name').splitlines()
+				nbwTypeDict = {}
+				for i in range(len(nbw)):
+					nbwTypeDict[nbw[i].split(';')[0]] = nbw[i].split(';')[1]
+
+
+				fps=pipe.cmd_in('python plot_shapes floor_plan').splitlines()
+				fpsTypeDict = {} #building wall element types
+				fpsColorDict = {} #building wall segment colors
+				for i in range(len(fps)):
+					fpsTypeDict[fps[i].split(';')[1].split(':')[0].lower()] = fps[i].split(';')[2].lower()
+					if fps[i].split(';')[1].split(':')[0].lower() == 'building_wall':
+						fpsColorDict[fps[i].split(';')[1].split(':')[2].lower()] = color(fps[i].split(';')[3].lower())
+				#dictionaries of element type strings as keys with corresponding information as values
+
 
 				for i in fbwCurveList:
 					fbwIndexList = []
@@ -1060,7 +1075,9 @@ class taoplot:
 						kIndex = fbwIndexList.index(k)
 						mIndex = fbwIndexList.index(k-1)
 						if fbwRadiusList[kIndex] == 0: #draw building wall line
-							GraphDict['FloorPlan'].plot([fbwXList[kIndex],fbwXList[mIndex]],[fbwYList[kIndex],fbwYList[mIndex]])
+							GraphDict['FloorPlan'].plot([fbwXList[kIndex],fbwXList[mIndex]],[fbwYList[kIndex],fbwYList[mIndex]],color=fpsColorDict[nbwTypeDict[str(i)]])
+
+
 						else: #draw building wall arc
 							centerList = circle_intersection(fbwXList[mIndex],fbwYList[mIndex],fbwXList[kIndex],fbwYList[kIndex],abs(fbwRadiusList[kIndex]))
 							#radius specifies 2 possible circle centers for arcs
@@ -1095,7 +1112,7 @@ class taoplot:
 									t2=kAngle
 								
 
-							GraphDict['FloorPlan'].add_patch(patches.Arc(center,fbwRadiusList[kIndex]*2,fbwRadiusList[kIndex]*2,theta1=t1,theta2=t2))
+							GraphDict['FloorPlan'].add_patch(patches.Arc(center,fbwRadiusList[kIndex]*2,fbwRadiusList[kIndex]*2,theta1=t1,theta2=t2,color=fpsColorDict[nbwTypeDict[str(i)]]))
 
 						k = k - 1
 			except ValueError:
