@@ -457,7 +457,7 @@ class taoplot:
 				FloorPlan = True
 				gList = []
 				plt.axis('off')
-			#sets up floor plan plot		
+			#sets up floor plan plot	
 
 			#plots line and symbol graphs and histograms, lat layouts and floor plans are drawn later
 			#LineList gives names of curves
