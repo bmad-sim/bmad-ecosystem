@@ -1205,7 +1205,6 @@ type normal_form_struct
   type(h_struct), allocatable :: h(:)
 end type
 
-
 !
 
 type branch_struct
@@ -1912,6 +1911,22 @@ end type
 
 type rad_int_all_ele_struct
   type (rad_int_branch_struct), allocatable :: branch(:) ! Array is indexed from 0
+end type
+
+! openPMD Header information
+
+type pmd_header_struct
+  character(:), allocatable :: openPMD
+  character(:), allocatable :: openPMDextension
+  character(:), allocatable :: basePath
+  character(:), allocatable :: particlesPath
+  character(:), allocatable :: meshesPath
+  character(:), allocatable :: author
+  character(:), allocatable :: software
+  character(:), allocatable :: softwareVersion
+  character(:), allocatable :: date
+  character(:), allocatable :: latticeFile
+  character(:), allocatable :: latticeName
 end type
 
 contains

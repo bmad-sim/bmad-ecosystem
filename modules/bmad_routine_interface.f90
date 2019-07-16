@@ -664,6 +664,42 @@ function hard_edge_model_length (ele) result (l_hard)
   real(rp) l_hard
 end function
 
+subroutine hdf5_read_beam (file_name, beam, pmd_header, error)
+  import
+  implicit none
+  type (beam_struct), target :: beam
+  type (pmd_header_struct) pmd_header
+  logical error
+  character(*) file_name
+end subroutine
+
+subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag)
+  import
+  implicit none
+  type (grid_field_struct), target :: g_field
+  type (ele_struct) ele
+  logical err_flag
+  character(*) file_name
+end subroutine
+
+subroutine hdf5_write_beam (file_name, bunches, append, error, lat)
+  import
+  implicit none
+  type (bunch_struct), target :: bunches(:)
+  type (lat_struct), optional :: lat
+  logical error, append
+  character(*) file_name
+end subroutine
+
+subroutine hdf5_write_grid_field (file_name, ele, g_field, err_flag)
+  import
+  implicit none
+  type (grid_field_struct), target :: g_field
+  type (ele_struct) ele
+  logical err_flag
+  character(*) file_name
+end subroutine
+
 subroutine init_a_photon_from_a_photon_init_ele (ele, param, orbit)
   import
   implicit none
