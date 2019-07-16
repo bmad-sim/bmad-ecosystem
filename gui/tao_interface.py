@@ -5,6 +5,7 @@ if 'ACC_LOCAL_DIR' in os.environ.keys():
 else:
   sys.path.append(os.environ['ACC_ROOT_DIR']+'/tao/python/tao_pexpect')
 from tao_pipe import tao_io
+import tkinter as tk
 
 class tao_interface():
   '''
@@ -18,6 +19,9 @@ class tao_interface():
     elif mode == "ctypes":
       pass
       #Start ctypes interface
+    self.message = ""
+    self.printed = tk.BooleanVar()
+    self.printed.set(False)
 
   def cmd_in(self, cmd_str, no_warn=False):
     '''
@@ -32,19 +36,21 @@ class tao_interface():
     if no_warn:
       return output
     if output.find("[ERROR") != -1:
-      print("Warning: Error occurred in Tao")
-      print("The offending command: " + cmd_str)
-      print("The error (first 20 lines):")
+      self.message += "Warning: Error occurred in Tao\n"
+      self.message += "The offending command: " + cmd_str + "\n"
+      self.message += "The error (first 20 lines):\n"
       if len(output.splitlines()) > 20:
         for i in range(20):
-          print(output.splitlines()[i])
+          self.message += (output.splitlines()[i]) + "\n"
       else:
-        print(output)
+        self.message += (output)
+      self.printed.set(True)
     if output.find("Backtrace") != -1:
-      print("Error occurred in Tao, causing it to crash")
-      print("The offending command: " + cmd_str)
-      print("The error:")
-      print(output)
+      self.message += "Error occurred in Tao, causing it to crash\n"
+      self.message += "The offending command: " + cmd_str + '\n'
+      self.message += "The error:\n"
+      self.message += output + '\n'
+      self.printed.set(True)
     return output
 
   def cmd(self, cmd_str):
