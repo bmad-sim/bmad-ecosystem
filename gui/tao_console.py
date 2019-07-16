@@ -32,6 +32,7 @@ class tao_console:
     self._wid.bind('<Right>', self._r_handler)
     self._wid.bind('<Up>', self._u_handler)
     self._wid.bind('<Down>', self._d_handler)
+    self.pipe.printed.trace('w', self.warning_callback)
 
   def set_command(self, new_command):
     '''
@@ -64,6 +65,12 @@ class tao_console:
     self.cpos = 0
     # Make sure we can see the command prompt
     self._wid.see(self.cstart)
+
+  def warning_callback(self, *args):
+    if self.pipe.printed.get():
+      self.show_output(self.pipe.message)
+      self.pipe.message = ""
+      self.pipe.printed.set(False)
 
   def run_command(self):
     '''

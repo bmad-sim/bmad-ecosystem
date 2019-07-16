@@ -14,7 +14,7 @@ from tao_widget import *
 from taoplot import taoplot
 from parameters import str_to_tao_param
 from elements import *
-from tao_set import tao_set
+from tao_set import *
 import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
@@ -153,6 +153,12 @@ class tao_parameter_frame(tk.Frame):
     Runs tao_set on self.tao_list
     '''
     tao_set(self.tao_list, set_str, self.pipe)
+
+  def check_for_changes(self):
+    '''
+    Runs check_for_changes (from tao_set) on self.tao_list
+    '''
+    return check_for_changes(self.tao_list)
 
 
 #-----------------------------------------------------
@@ -1318,18 +1324,37 @@ class tao_ele_window(tao_list_window):
     # Configure and place widgets
     self.ele_wids.ele_chooser.bind("<<ComboboxSelected>>", self.refresh)
     self.ele_wids.ele_chooser.bind("<Return>", self.refresh)
+    self.ele_wids.bmd.trace('w', self.refresh)
     self.ele_wids.uni_chooser.grid(row=1, column=0, sticky='EW')
     self.ele_wids.branch_chooser.grid(row=1, column=1, sticky='EW')
     self.ele_wids.ele_chooser.grid(row=1, column=2, sticky='EW')
     self.ele_wids.bmd_chooser.grid(row=1, column=3, sticky='EW')
-    tk.Button(self.top_frame, text="Load\n(Discard changes)", command=self.refresh).grid(row=0, column=4, rowspan=2, sticky="NSEW")
+    #tk.Button(self.top_frame, text="Load\n(Discard changes)", command=self.refresh).grid(row=0, column=4, rowspan=2, sticky="NSEW")
 
     self.refresh()
 
-  def refresh(self, event=None):
+  def refresh(self, event=None, *args):
     '''
     This is where most of the element information is actually created
     '''
+    # Ask to save changes
+    something_changed = False
+    try:
+      something_changed = check_for_changes(self.head_tk_tao_params)
+    except:
+      pass
+    try:
+      for i in range(len(self.p_frames)):
+        if self.p_names[i] not in ['lord_slave', 'mat6', 'floor']:
+          something_changed = something_changed | self.p_frames[i].check_for_changes()
+    except:
+      pass
+    if something_changed:
+      x = messagebox.askyesnocancel(title="Unsaved Changes", message="Apply changes before switching elements?")
+      if x:
+        self.ele_set()
+      if x == None:
+        return #don't refresh if "Cancel is picked"
     # Update the ele_wids and check for successful update
     if not self.ele_wids.update():
       messagebox.showwarning("Error", "Element not found")
@@ -1375,7 +1400,8 @@ class tao_ele_window(tao_list_window):
     tk.Label(self.head_frame, text="is_on").grid(row=4, column=2, sticky='E')
     self.element.params["is_on"].tk_wid.grid(row=4, column=3, sticky='EW')
     # Set button
-    tk.Button(self.head_frame, text='Apply all changes', command=self.ele_set).grid(row=5, column=0, columnspan=4)
+    tk.Button(self.top_frame, text='Apply all\nchanges', command=self.ele_set).grid(
+        row=0, column=4, rowspan=2, sticky='EW')
 
     # Body frame
     self.sh_b_list = [] # Show/hide button list
@@ -1389,11 +1415,18 @@ class tao_ele_window(tao_list_window):
           key = "elec_multipoles"    # elec_multipoles in tao_python_cmd.f90
         if key in ['ab_multipoles', 'kt_multipoles']:
           key = "multipoles"
-        if key == "mat6": # mat6 not yet implemented`
-          continue
         if key in ["multipoles", "elec_multipoles"]:
           self.sh_b_list.append(tk.Button(self.list_frame, text=key))
           self.tao_lists.append([]) #FIX THIS
+          # set up shared variables for multipoles_on and scale_multipoles
+          try:
+            x = self.list_frame.mp_on_var.get()
+          except:
+            self.list_frame.mp_on_var = tk.BooleanVar()
+          try:
+            x = self.list_frame.scale_mp_var.get()
+          except:
+            self.list_frame.scale_mp_var = tk.BooleanVar()
           tao_output = self.pipe.cmd_in("python ele:" + key + ' ' + self.element.id)
           self.p_frames.append(tao_multipole_frame(self.list_frame, tao_output, self.pipe))
           self.p_names.append(key)
@@ -1455,17 +1488,22 @@ class tao_ele_window(tao_list_window):
 
         # Make a button
         self.sh_b_list.append(tk.Button(self.list_frame, text=key))
-        tao_list = self.pipe.cmd_in("python ele:"
-            + key + ' ' + self.ele_wids.uni.get() + '@'
-            + self.ele_wids.branch.get() + '>>'
-            + self.ele_wids.ele.get() + '|'
-            + (self.ele_wids.bmd.get()).lower())
+        if key == 'mat6':
+          tao_list = self.pipe.cmd_in("python ele:mat6 "
+              + self.element.id + ' mat6')
+          tao_list += '\n' + self.pipe.cmd_in("python ele:mat6 "
+              + self.element.id + ' vec0')
+          tao_list += '\n' + self.pipe.cmd_in("python ele:mat6 "
+              + self.element.id + ' err')
+        else:
+          tao_list = self.pipe.cmd_in("python ele:" + key
+              + ' ' + self.element.id)
         self.tao_lists.append(tao_list.splitlines())
         for j in range(len(self.tao_lists[i])):
           self.tao_lists[i][j] = str_to_tao_param(self.tao_lists[i][j])
         # Configure the buttons with commands
         self.sh_b_list[i].configure(command=self.s_callback(i))
-        if key == 'floor': #should just have one column
+        if key in ['mat6', 'floor']: #should just have one column
           n_cols = 1
         else:
           n_cols = 2
@@ -1482,6 +1520,10 @@ class tao_ele_window(tao_list_window):
           for x in range(6):
             title_frame.columnconfigure(x, weight=1)
           title_frame.grid(row=0, column=1, sticky='EW')
+        if key == 'mat6': #label mat6 properly
+          for j in range(6):
+            self.p_frames[i].tao_list[j].tk_label.grid_forget()
+          tk.Label(self.p_frames[i], text='m\na\nt\n6').grid(row=0, column=0, rowspan=6, sticky='E')
         self.sh_b_list[i].grid(row=2*i, column=0, sticky='W')
         #self.p_frames[i].pack()
         i = i+1
@@ -1533,10 +1575,7 @@ class tao_ele_window(tao_list_window):
     # Don't need |base/model/design when setting
     set_str = "set element " + self.element.id[:self.element.id.find('|')] + ' '
     # Set the head parameters
-    head_list = ['type', 'alias', 'descrip', 'is_on']
-    for i in range(len(head_list)):
-      head_list[i] = self.element.params[head_list[i]]
-    tao_set(head_list, set_str, self.pipe)
+    tao_set(self.head_tk_tao_params, set_str, self.pipe)
     # Set the parameters in self.p_frames
     for i in range(len(self.p_frames)):
       if self.p_names[i] not in ['lord_slave', 'mat6', 'floor']:
@@ -1581,6 +1620,8 @@ class tao_multipole_frame(tk.Frame):
     self.button_frame = tk.Frame(self) #holds the button
     self.button_frame.pack(fill="both", expand=0)
     self.tk_tao_list = []
+    self.shown_orders = [] #stores which multipole orders are shown
+    self.titles = [] #stores column titles
 
     # Rip off first two lines of tao_output
     tao_output = tao_output.splitlines()
@@ -1588,27 +1629,31 @@ class tao_multipole_frame(tk.Frame):
     # Display in top_frame
     for i in range(len(self.top_info)):
       self.top_info[i] = tk_tao_parameter(str_to_tao_param(self.top_info[i]), self.top_frame, self.pipe)
+      # Link the multipoles and elec_multipoles variables
+      self.top_info[i].tk_var = parent.mp_on_var if i == 0 else parent.scale_mp_var
+      self.top_info[i].tk_var.set(self.top_info[i].param.value)
+      self.top_info[i].tk_wid = tk.Checkbutton(self.top_frame, variable=self.top_info[i].tk_var)
       self.top_info[i].tk_label.grid(row=0, column=2*i, sticky='E')
       self.top_info[i].tk_wid.grid(row=0, column=2*i+1, sticky='W')
-      self.top_frame.columnconfigure(2*i, weight=1)
-      self.top_frame.columnconfigure(2*i+1, weight=1)
+    tk.Button(self.top_frame, text="Show all orders", command=self.show_all_orders).grid(row=0, column=4, sticky='W')
 
     # Display the table (rest of output)
-    if len(tao_output) < 2:
+    if len(tao_output) < 3:
       return
-    titles = tao_output[2]
-    titles = ['Order'] + titles.split(';')
-    for i in range(len(titles)):
-      title = titles[i]
+    self.titles = tao_output[2]
+    self.titles = ['Order'] + self.titles.split(';')
+    for i in range(len(self.titles)):
+      title = self.titles[i]
       tk.Label(self.table_frame, text=title).grid(row=0, column=i, sticky='EW')
     i = 1 #row counter
     for line in tao_output[3:]:
       line = line.split(';')
       tk.Label(self.table_frame, text=line[0]).grid(row=i, column=0, sticky='EW')
+      self.shown_orders.append(line[0])
       j = 1 #column counter
       for item in line[1:]:
-        name = titles[j-1]
-        name = name[:name.find('n')] + str(j) + name[name.find('n'):]
+        name = self.titles[j]
+        name = name[:name.find('n')] + str(j) + name[name.find('n')+1:]
         can_vary = 'T' if j<3 else 'F'
         self.tk_tao_list.append(tk_tao_parameter(str_to_tao_param(
           name + ';REAL;' + can_vary + ';' + item),
@@ -1617,8 +1662,48 @@ class tao_multipole_frame(tk.Frame):
         j = j+1
       i = i+1
 
+  def show_all_orders(self, event=None):
+    '''
+    Expands the table to include all orders of multipoles
+    '''
+    # Do nothing if all orders already shown
+    if self.shown_orders == 'all':
+      return
+
+    # Clear self.table_frame
+    for child in self.table_frame.winfo_children():
+      child.grid_forget()
+    # Re-grid the titles
+    for j in range(len(self.titles)):
+      tk.Label(self.table_frame, text=self.titles[j]).grid(row=0, column=j, sticky='EW')
+    # the multipoles:
+    x = 0 # counts position in self.tk_tao_list
+    for i in range(22): #supports orders 0 through 21
+      tk.Label(self.table_frame, text=str(i)).grid(row=i+1, column=0, sticky='EW')
+      # Check if widgets exist for this order
+      if str(i) in self.shown_orders:
+        for j in range(len(self.titles)-1):
+          self.tk_tao_list[x].tk_wid.grid(row=i+1, column=j+1, sticky='EW')
+          x += 1
+      else:
+        #Create new widgets, grid them, and append to self.tk_tao_list
+        for j in range(1, len(self.titles)):
+          name = self.titles[j]
+          name = name[:name.find('n')] + str(i) + name[name.find('n')+1:]
+          can_vary = 'T' if j<3 else 'F'
+          self.tk_tao_list.append(tk_tao_parameter(str_to_tao_param(
+            name + ';REAL;' + can_vary + ';' + str(0)),
+            self.table_frame, self.pipe))
+          self.tk_tao_list[-1].tk_wid.grid(row=i+1, column=j, sticky='EW')
+    self.shown_orders = 'all'
+
   def set_params(self, set_str, event=None):
-    pass #TODO
+    tao_set(self.top_info, set_str, self.pipe)
+    tao_set(self.tk_tao_list, set_str, self.pipe)
+
+  def check_for_changes(self):
+    return (check_for_changes(self.tk_tao_list)
+        | check_for_changes(self.top_info))
 
 #---------------------------------------------------
 # Lattice Window

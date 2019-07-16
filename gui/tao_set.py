@@ -1,6 +1,32 @@
 from parameters import tao_parameter_dict
 from tkinter import messagebox
 
+def check_for_changes(tao_list):
+  '''
+  Takes a list of tk_tao_parameters and returns True
+  if any of the items have self.tk_var.get() !=
+  self.param.value (i.e. if running tao_set would
+  result in at least one set command for the list
+  '''
+  for item in tao_list:
+    #Type casting and validation
+    if item.param.type == 'INT':
+      try:
+        new_val = int(item.tk_var.get())
+      except ValueError:
+        return True
+    elif item.param.type == 'REAL':
+      try:
+        new_val = float(item.tk_var.get())
+      except ValueError:
+        return True
+    else:
+      new_val = item.tk_var.get()
+    #Check for any change
+    if new_val != item.param.value:
+      return True
+  return False
+
 def tao_set(tao_list,set_str,pipe, overide=False):
   '''
   Takes a list of tk_tao_parameters and makes a call to tao
@@ -26,23 +52,20 @@ def tao_set(tao_list,set_str,pipe, overide=False):
   update_dict = {} #Record of which variables were changed
   for item in tao_list:
     #Type casting and validation
-    if item.tk_var.get() != "": #Skip empty boxes
-      if item.param.type == 'INT':
-        try:
-          new_val = int(item.tk_var.get())
-        except ValueError:
-          messagebox.showwarning("Error",item.param.name + " must be an integer ")
-          new_val = item.param.value
-      elif item.param.type == 'REAL':
-        try:
-          new_val = float(item.tk_var.get())
-        except ValueError:
-          messagebox.showwarning("Error",item.param.name + " must be a real number")
-          new_val = item.param.value
-      else:
-        new_val = item.tk_var.get()
+    if item.param.type == 'INT':
+      try:
+        new_val = int(item.tk_var.get())
+      except ValueError:
+        messagebox.showwarning("Error",item.param.name + " must be an integer ")
+        new_val = item.param.value
+    elif item.param.type == 'REAL':
+      try:
+        new_val = float(item.tk_var.get())
+      except ValueError:
+        messagebox.showwarning("Error",item.param.name + " must be a real number")
+        new_val = item.param.value
     else:
-      new_val = item.param.value
+      new_val = item.tk_var.get()
     #Check for any change
     if new_val != item.param.value:
       item.param.value = new_val
@@ -57,7 +80,16 @@ def tao_set(tao_list,set_str,pipe, overide=False):
       plot_on = str(item.param.value)
     elif update_dict[item.param.name]:
       #print(set_str + item.param.name + " = " + str(item.param.value))
-      msg = pipe.cmd_in(set_str + item.param.name + " = " + str(item.param.value))
+      if item.param.type == 'STR':
+        if len(item.param.value) > 1:
+          if ((item.param.value[0] not in ['"', '"'])
+              & (item.param.value[-1] != item.param.value[0])):
+            set_val = '"' + item.param.value + '"'
+          else:
+            set_val = item.param.value
+        msg = pipe.cmd_in(set_str + item.param.name + " = " + set_val)
+      else:
+        msg = pipe.cmd_in(set_str + item.param.name + " = " + str(item.param.value))
       #if msg.find("ERROR") != -1:
       if msg != "":
         messagebox.showwarning(item.param.name,msg)

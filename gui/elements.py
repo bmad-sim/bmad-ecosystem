@@ -38,6 +38,17 @@ class lat_element():
       elif item.find("num#") != -1:
         n_list.append(item[4:])
       else:
+        # Manually set can_vary to F for base and design
+        if which != "model":
+          item_parts = item.split(';')
+          item = ""
+          for i in range(len(item_parts)):
+            if i != 2:
+              item += item_parts[i] + ';'
+            else:
+              item += 'F;'
+          # Remove extra ;
+          item = item[:-1]
         p_list.append(item)
 
     self.params = tao_parameter_dict(p_list)
