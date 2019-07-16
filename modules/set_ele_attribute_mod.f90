@@ -213,6 +213,7 @@ if (present(attrib_ptr)) then
   call pointer_to_attribute (ele, attrib_name, .true., attrib_ptr, err_flag)
   call set_flags_for_changed_attribute (ele, attrib_ptr)
 else
+  if (attribute_type(attrib_name) == is_string$) return  ! No bookkeeping needed
   call pointer_to_attribute (ele, attrib_name, .true., a_ptr, err_flag)
   call set_flags_for_changed_attribute (ele, a_ptr)
 endif

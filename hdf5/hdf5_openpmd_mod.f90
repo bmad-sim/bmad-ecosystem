@@ -42,21 +42,13 @@ type(pmd_unit_struct), parameter :: unit_eV         = pmd_unit_struct('eV', e_ch
 type(pmd_unit_struct), parameter :: unit_eV_per_c   = pmd_unit_struct('eV/c', e_charge/c_light, dim_momentum)
 type(pmd_unit_struct), parameter :: unit_Tesla      = pmd_unit_struct('Tesla', 1.0_rp, dim_tesla)
 
-! Header information
+! 
 
-type pmd_header_struct
-  character(:), allocatable :: openPMD
-  character(:), allocatable :: openPMDextension
-  character(:), allocatable :: basePath
-  character(:), allocatable :: particlesPath
-  character(:), allocatable :: meshesPath
-  character(:), allocatable :: author
-  character(:), allocatable :: software
-  character(:), allocatable :: softwareVersion
-  character(:), allocatable :: date
-  character(:), allocatable :: latticeFile
-  character(:), allocatable :: latticeName
-end type
+interface pmd_write_real_dataset
+  module procedure pmd_write_real_vector_to_dataset
+  module procedure pmd_write_real_matrix_to_dataset
+  module procedure pmd_write_real_tensor_to_dataset
+end interface
 
 contains
 
@@ -98,6 +90,45 @@ call H5LTset_attribute_double_f(root_id, dataset_name, 'maxValue', [v_max], 1_si
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
 end subroutine pmd_write_real_vector_to_dataset
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_write_real_matrix_to_dataset(root_id, dataset_name, bmad_name, unit, matrix, error)
+!
+!-
+
+subroutine pmd_write_real_matrix_to_dataset(root_id, dataset_name, bmad_name, unit, matrix, error)
+
+type (pmd_unit_struct) unit
+real(rp) matrix(:,:), v_max, v_min
+integer err
+integer(HID_T) :: root_id, v_size(3)
+character(*) dataset_name, bmad_name
+logical error
+
+!
+
+v_max = maxval(matrix)
+v_min = minval(matrix)
+
+if (v_max == v_min) then
+  call pmd_write_real_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, v_max, shape(matrix), error) 
+  return
+endif
+
+!
+
+v_size = size(matrix)
+call H5LTmake_dataset_double_f(root_id, dataset_name, 1, v_size, matrix, err)    
+
+call H5LTset_attribute_double_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
+
+call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+
+end subroutine pmd_write_real_matrix_to_dataset
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------

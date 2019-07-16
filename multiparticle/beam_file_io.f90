@@ -1,7 +1,6 @@
 module beam_file_io
 
 use equal_mod
-use hdf5_bunch_mod
 
 implicit none
 
