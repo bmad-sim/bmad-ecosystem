@@ -1,6 +1,5 @@
 program hdf5_test
 
-use hdf5_bunch_mod
 use beam_mod
 
 implicit none
