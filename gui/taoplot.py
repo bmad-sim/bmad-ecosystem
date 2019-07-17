@@ -294,7 +294,6 @@ class taoplot:
 			#list of lists of tao_parameter object names from python plot_graph for each curve
 			#list of dictionaries of tao_parameter name string keys to the corresponding tao_parameter object for each curve
 
-			#print(cInfoDictList[1]['name'].value) #gives name of 2nd curve which is y for orbit
 
 
 
@@ -982,11 +981,18 @@ class taoplot:
 						GraphDict['FloorPlan'].text(fpeSxDict[str(i)]+(fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - 1.2*fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+(fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + 1.2*fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeNameDict[str(i)],ha='left',va='center',color='black',rotation=90+((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)*conv,clip_on=True,rotation_mode='anchor')
 					#draw element name
 					
-					corner1[str(i)]=[fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
-					corner2[str(i)]=[fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
-					corner3[str(i)]=[fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
-					corner4[str(i)]=[fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
-					#coordinates of rectangle bounding a floor plan element
+					if fpeTypeDict[str(i)] == 'sbend':
+						corner1[str(i)]=[fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])]
+						corner2[str(i)]=[fpeExDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)]),fpeEyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])]
+						corner3[str(i)]=[fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])]
+						corner4[str(i)]=[fpeExDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)]),fpeEyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])]
+					else:
+						corner1[str(i)]=[fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
+						corner2[str(i)]=[fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
+						corner3[str(i)]=[fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
+						corner4[str(i)]=[fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
+					#coordinates of corners of a floor plan element
+
 				except KeyError:
 					pass
 			
@@ -1090,8 +1096,7 @@ class taoplot:
 									t2=mAngle
 								else:
 									t1=mAngle
-									t2=kAngle
-								
+									t2=kAngle	
 
 							GraphDict['FloorPlan'].add_patch(patches.Arc(center,fbwRadiusList[kIndex]*2,fbwRadiusList[kIndex]*2,theta1=t1,theta2=t2,color=fpsColorDict[nbwTypeDict[str(i)]]))
 
@@ -1099,10 +1104,6 @@ class taoplot:
 			except ValueError:
 				pass
 			#plot floor plan building walls
-
-
-
-
 
 
 
@@ -1125,12 +1126,6 @@ class taoplot:
 
 				GraphDict['FloorPlan'].plot(fpoXList,fpoYList,color=floInfoDict['floor_plan_orbit_color'].value.lower())
 			#plot floor plan orbit
-
-
-
-
-
-
 
 
 
