@@ -694,7 +694,7 @@ end function hdf5_object_info
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine hdf5_read_attribute_int_rank_0(root_id, attrib_name, attrib_value, error, print_error)
+! Subroutine hdf5_read_attribute_int_rank_0(root_id, attrib_name, attrib_value, error, print_error, dflt_value)
 !
 ! Routine to read an scaler (rank 0) integer attribute value.
 ! Overloaded by: hdf5_read_attribute_int
@@ -703,22 +703,25 @@ end function hdf5_object_info
 !   root_id       -- integer(hid_t): ID of group or dataset containing the attribute.
 !   attrib_name   -- character(*): Name of the attribute.
 !   print_error   -- logical: If true, print an error message if there is a problem.
+!   dflt_value    -- integer, optional: Default value if there is an error. 
+!                         If not present, the default is 0.
 !
 ! Output:
 !   error         -- logical: Set true if there is an error. False otherwise.
 !   attrib_value  -- integer: Value of the attribute.
 !-
 
-subroutine hdf5_read_attribute_int_rank_0(root_id, attrib_name, attrib_value, error, print_error)
+subroutine hdf5_read_attribute_int_rank_0(root_id, attrib_name, attrib_value, error, print_error, dflt_value)
 
 integer(hid_t) root_id
 integer attrib_value, a_val(1)
+integer, optional :: dflt_value
 
 logical error, print_error
 
 character(*) attrib_name
 
-call hdf5_read_attribute_int_rank_1(root_id, attrib_name, a_val, error, print_error)
+call hdf5_read_attribute_int_rank_1(root_id, attrib_name, a_val, error, print_error, dflt_value)
 attrib_value = a_val(1)
 
 end subroutine hdf5_read_attribute_int_rank_0
@@ -727,7 +730,7 @@ end subroutine hdf5_read_attribute_int_rank_0
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine hdf5_read_attribute_int_rank_0(root_id, attrib_name, attrib_value, error, print_error)
+! Subroutine hdf5_read_attribute_int_rank_1(root_id, attrib_name, attrib_value, error, print_error, dflt_value)
 !
 ! Routine to read a vector (rank 1) integer attribute array.
 ! Overloaded by: hdf5_read_attribute_int
@@ -736,18 +739,21 @@ end subroutine hdf5_read_attribute_int_rank_0
 !   root_id         -- integer(hid_t): ID of group or dataset containing the attribute.
 !   attrib_name     -- character(*): Name of the attribute.
 !   print_error     -- logical: If true, print an error message if there is a problem.
+!   dflt_value      -- integer, optional: Default value if there is an error. 
+!                         If not present, the default is 0.
 !
 ! Output:
 !   error           -- logical: Set true if there is an error. False otherwise.
 !   attrib_value(:) -- integer: Value of the attribute.
 !-
 
-subroutine hdf5_read_attribute_int_rank_1(root_id, attrib_name, attrib_value, error, print_error)
+subroutine hdf5_read_attribute_int_rank_1(root_id, attrib_name, attrib_value, error, print_error, dflt_value)
 
 type (hdf5_info_struct) info
 
 integer(hid_t) root_id, a_id
 integer attrib_value(:)
+integer, optional :: dflt_value
 integer h5_err
 
 logical error, print_error
@@ -757,7 +763,7 @@ character(*), parameter :: r_name = 'hdf5_read_attribute_int_rank_1'
 
 !
 
-attrib_value = 0
+attrib_value = integer_option(0, dflt_value)
 
 info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
 
@@ -776,7 +782,7 @@ end subroutine hdf5_read_attribute_int_rank_1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine hdf5_read_attribute_real_rank_0(root_id, attrib_name, attrib_value, error, print_error)
+! Subroutine hdf5_read_attribute_real_rank_0(root_id, attrib_name, attrib_value, error, print_error, dflt_value)
 !
 ! Routine to read an scaler (rank 0) real attribute value.
 ! Overloaded by: hdf5_read_attribute_real
@@ -785,18 +791,21 @@ end subroutine hdf5_read_attribute_int_rank_1
 !   root_id       -- integer(hid_t): ID of group or dataset containing the attribute.
 !   attrib_name   -- character(*): Name of the attribute.
 !   print_error   -- logical: If true, print an error message if there is a problem.
+!   dflt_value    -- real(rp), optional: Default value if there is an error. 
+!                         If not present, the default is 0.
 !
 ! Output:
 !   error         -- logical: Set true if there is an error. False otherwise.
 !   attrib_value  -- real(rp): Value of the attribute.
 !-
 
-subroutine hdf5_read_attribute_real_rank_0(root_id, attrib_name, attrib_value, error, print_error)
+subroutine hdf5_read_attribute_real_rank_0(root_id, attrib_name, attrib_value, error, print_error, dflt_value)
 
 integer(hid_t) root_id
 integer h5_err
 
 real(rp) attrib_value, val(1)
+real(rp), optional :: dflt_value
 
 logical error, print_error
 
@@ -804,7 +813,7 @@ character(*) attrib_name
 
 !
 
-call hdf5_read_attribute_real_rank_1(root_id, attrib_name, val, error, print_error)
+call hdf5_read_attribute_real_rank_1(root_id, attrib_name, val, error, print_error, dflt_value)
 attrib_value = val(1)
 
 end subroutine hdf5_read_attribute_real_rank_0
@@ -813,7 +822,7 @@ end subroutine hdf5_read_attribute_real_rank_0
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine hdf5_read_attribute_real_rank_1(root_id, attrib_name, attrib_value, error, print_error)
+! Subroutine hdf5_read_attribute_real_rank_1(root_id, attrib_name, attrib_value, error, print_error, dflt_value)
 !
 ! Routine to read a vector (rank 1) real attribute array
 ! Overloaded by: hdf5_read_attribute_real
@@ -822,20 +831,23 @@ end subroutine hdf5_read_attribute_real_rank_0
 !   root_id         -- integer(hid_t): ID of group or dataset containing the attribute.
 !   attrib_name     -- character(*): Name of the attribute.
 !   print_error     -- logical: If true, print an error message if there is a problem.
+!   dflt_value      -- real(rp), optional: Default value if there is an error. 
+!                         If not present, the default is 0.
 !
 ! Output:
 !   error           -- logical: Set true if there is an error. False otherwise.
 !   attrib_value(:) -- real(rp): Value array of the attribute.
 !-
 
-subroutine hdf5_read_attribute_real_rank_1(root_id, attrib_name, attrib_value, error, print_error)
+subroutine hdf5_read_attribute_real_rank_1(root_id, attrib_name, attrib_value, error, print_error, dflt_value)
 
 type (hdf5_info_struct) info
 
 integer(hid_t) root_id, a_id
 integer h5_err
 
-real(rp) attrib_value(:) 
+real(rp) attrib_value(:)
+real(rp), optional :: dflt_value
 
 logical error, print_error
 
@@ -844,7 +856,7 @@ character(*), parameter :: r_name = 'hdf5_read_attribute_real_rank_1'
 
 !
 
-attrib_value = 0
+attrib_value = real_option(0.0_rp, dflt_value)
 error = .true.
 
 info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
@@ -935,7 +947,7 @@ end subroutine hdf5_read_attribute_alloc_string
 !
 ! Output:
 !   error         -- logical: Set true if there is an error. False otherwise.
-!   string        -- character(*): String to hold the attribute value.
+!   string        -- character(*): String to hold the attribute value. Set to blank if there is an error.
 !-
 
 subroutine hdf5_read_attribute_string(root_id, attrib_name, string, error, print_error)
@@ -970,6 +982,7 @@ if (h5_err < 0) then
   if (print_error) then
     call out_io (s_error$, r_name, 'CANNOT READ ATTRIBUTE: ' // attrib_name)
   endif
+  string = ''
   return
 endif
 
