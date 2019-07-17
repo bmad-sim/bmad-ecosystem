@@ -345,15 +345,22 @@ class lw_table_window(tk.Toplevel):
   machines, for example).  Table is read only but individual
   entries can still be opened for editing with double click.
   '''
-  def __init__(self, root, pipe, array_name, title_list, set_format, *args, **kwargs):
+  def __init__(self, root, pipe, array_name, title_list, bulk_format, bulk_set_format, set_format, *args, **kwargs):
     tk.Toplevel.__init__(self, root, *args, **kwargs)
     self.title(array_name)
     self.pipe = pipe
     self.array_name = array_name
     self.title_list = title_list
+    self.bulk_format = bulk_format
+    self.bulk_set_format = bulk_set_format
     self.set_format = set_format
+    self.button_frame = tk.Frame(self) #holds the buttons
+    self.button_frame.pack(fill='x', expand=0)
     self.table_frame = tk.Frame(self) #holds the table
     self.table_frame.pack(fill='both', expand=1)
+
+    tk.Button(self.button_frame, text="Bulk fill...",
+        command=self.open_bulk_window).pack(side='left')
     self.refresh()
 
   def refresh(self):
@@ -375,7 +382,7 @@ class lw_table_window(tk.Toplevel):
       self.tree.column(title, stretch=True, anchor='center')
 
     # Fill rows
-    #Fetch and fill in the data
+    # Fetch and fill in the data
     # IT IS EXPECTED THAT SUBCLASSES WILL DEFINE
     # self.row_num AND A METHOD FOR POPULATING
     # self.list_rows, AND THEN CALL THIS METHOD
@@ -422,6 +429,167 @@ class lw_table_window(tk.Toplevel):
     row = self.tree.item(x)
     self.open_detail_window(int(row['values'][0]))
 
+  def open_bulk_window(self, event=None):
+    '''
+    Opens a window with bulk settings for meas_value,
+    ref_value, weight, and good_user.
+    '''
+    win = tk.Toplevel(self)
+    win.title("Bulk settings for " + self.array_name)
+
+    j = 0 #column counter
+    fill_choices = [] #what is being used to fill (tk.StringVar()'s)
+    for item in self.bulk_format:
+      fill_choices.append(j)
+      fill_frame, where_frame, fill_choices[j] = self.make_bulk_frame(
+          win, item[0], usebmd=(item[0].name=='meas_value'))
+      fill_frame.grid(row=0, column=j, sticky='NSEW')
+      where_frame.grid(row=1, column=j, sticky='NSEW')
+      j = j+1
+
+    def test_cmd(event=None):
+      self.bulk_set(fill_choices)
+
+    tk.Button(win, text="test", command=test_cmd).grid(row=2, column=0)
+
+  def bulk_set(self, fill_choices):
+    '''
+    Runs set commands to set variables specified in a bulk window
+    appropriately.
+    '''
+    for i in range(len(self.bulk_format)):
+      if fill_choices[i]['choice'].get() == 'none':
+        continue
+      else:
+        fill_val = fill_choices[i][fill_choices[i]['choice'].get()].get()
+
+      # Check that the formula gives the correct length array
+      if fill_choices[i]['choice'].get() == 'formula':
+        if fill_choices[i]['where'].get() == 'all':
+          len1 = len(self.pipe.cmd_in('python evaluate '
+            + self.array_name + '|'
+            + self.bulk_format[i][0].name).splitlines())
+        elif fill_choices[i]['where'].get() == 'range':
+          len1 = len(self.pipe.cmd_in('python evaluate '
+            + self.array_name + '[' + fill_choices[i]['range'].get()
+            + ']|' + self.bulk_format[i][0].name).splitlines())
+        len2 = len(self.pipe.cmd_in('python evaluate '
+          + fill_val).splitlines())
+        if len1 != len2:
+          messagebox.showwarning('Error',
+              'Entered formula yields an array of incorrect length.')
+          continue
+
+      if fill_choices[i]['where'].get() == 'all':
+        set_str = self.bulk_set_format.format(self.array_name)
+      elif fill_choices[i]['where'].get() == 'range':
+        set_str = self.bulk_set_format.format(self.array_name + '['
+            + fill_choices[i]['range'].get() + ']')
+
+      if fill_choices[i]['choice'].get() == 'const':
+        # Make sure fill_val is True/False for LOGIC parameters
+        if self.bulk_format[i][0].type == 'LOGIC':
+          fill_val = str(bool(fill_val))
+        self.pipe.cmd_in(set_str + self.bulk_format[i][0].name
+            + ' = ' + fill_val)
+      elif fill_choices[i]['choice'].get() == 'bmd':
+        fill_val = fill_val.lower()
+        self.pipe.cmd_in(set_str + self.bulk_format[i][0].name
+            + ' = ' + set_str.split(' ')[-1] + fill_val)
+      elif fill_choices[i]['choice'].get() == 'formula':
+        self.pipe.cmd_in(set_str + self.bulk_format[i][0].name
+            + ' = ' + fill_val)
+    self.refresh()
+
+
+  def make_bulk_frame(self, parent, bulk_item, usebmd=False):
+    '''
+    Creates a frame with all the widgets needed for one parameter in the
+    bulk settings window.
+    parent: parent widget for this frame
+    bulk_item: tao_parameter instance for this frame's parameter
+    usebmd: if set true, and option will be given to set to the
+        base/model/design/meas/ref value
+    Returns a tuple (fill_frame, where_frame, fill_vars)
+    '''
+    fill_frame = tk.Frame(parent)
+    # Title the column
+    tk.Label(fill_frame, text=bulk_item.name).grid(row=0, column=0,
+        columnspan=3, sticky='EW')
+    # What to fill with
+    fill_choice = tk.StringVar()
+    fill_choice.set('none')
+    fill_vars = {}
+    fill_vars['choice'] = fill_choice
+
+    # No change
+    none_button = tk.Radiobutton(fill_frame, text="",
+        variable=fill_choice, value='none')
+    none_button.grid(row=1, column=0, sticky='W')
+    tk.Label(fill_frame, text="No Change").grid(row=1, column=1, sticky='W')
+    # Constant
+    const_button = tk.Radiobutton(fill_frame, text="",
+        variable=fill_choice, value='const')
+    const_button.grid(row=2, column=0, sticky='W')
+    tk.Label(fill_frame, text="Constant:").grid(row=2, column=1, sticky='W')
+    if bulk_item.type == 'REAL':
+      const_var = tk.StringVar()
+      const_wid = tk.Entry(fill_frame, textvariable=const_var)
+      const_wid.grid(row=2, column=2, sticky='EW')
+    elif bulk_item.type == 'LOGIC':
+      const_var = tk.BooleanVar()
+      const_wid = tk.Checkbutton(fill_frame, variable=const_var)
+      const_wid.grid(row=2, column=2, sticky='W')
+    fill_vars['const'] = const_var
+    # Base/Model/Design/Meas/Ref
+    if usebmd:
+      bmd_frame = tk.Frame(fill_frame)
+      bmd_var = tk.StringVar()
+      bmd_var.set('Base')
+      bmd_button = tk.Radiobutton(bmd_frame, text="",
+          variable=fill_choice, value='bmd')
+      bmd_button.pack(side='left')
+      bmd_wid = tk.OptionMenu(bmd_frame, bmd_var, "Base", "Model",
+          "Design", "Measure", "Reference")
+      bmd_wid.pack(side='left')
+      bmd_frame.grid(row=3, column=0, columnspan=2, sticky='EW')
+      fill_vars['bmd'] = bmd_var
+    # Formula
+    if bulk_item.type == 'REAL':
+      formula_button = tk.Radiobutton(fill_frame, text="",
+          variable=fill_choice, value='formula')
+      formula_button.grid(row=4, column=0, sticky='W')
+      tk.Label(fill_frame, text="Formula:").grid(
+          row=4, column=1, sticky='W')
+      formula_var = tk.StringVar()
+      formula_wid = tk.Entry(fill_frame, textvariable=formula_var)
+      formula_wid.grid(row=4, column=2)
+      fill_vars['formula'] = formula_var
+
+    # Where to fill
+    where_frame = tk.Frame(parent)
+    fill_where = tk.StringVar()
+    fill_where.set('all')
+    fill_vars['where'] = fill_where
+    fill_range = tk.StringVar()
+    # All
+    all_button = tk.Radiobutton(where_frame, text="",
+        variable=fill_where, value='all')
+    all_button.grid(row=0, column=0, sticky='W')
+    tk.Label(where_frame, text="All").grid(row=0, column=1, sticky='W')
+    # Range
+    range_button = tk.Radiobutton(where_frame, text="",
+        variable=fill_where, value='range')
+    range_button.grid(row=1, column=0, sticky='W')
+    tk.Label(where_frame, text="Range:").grid(
+        row=1, column=1, sticky='W')
+    range_wid = tk.Entry(where_frame, textvariable=fill_range)
+    range_wid.grid(row=1, column=2, sticky='EW')
+    fill_vars['range'] = fill_range
+
+    return (fill_frame, where_frame, fill_vars)
+
+
   def open_detail_window(self, index):
     '''
     Opens up a detail window for the given index.
@@ -430,7 +598,8 @@ class lw_table_window(tk.Toplevel):
     win = tao_parameter_window(self, detail_title, self.param_list, self.pipe)
 
     set_str = self.set_format.format(self.array_name, index)
-    b = tk.Button(win.button_frame, text="Apply changes", command=lambda : self.detail_set_callback(win.tao_list,set_str))
+    b = tk.Button(win.button_frame, text="Apply changes",
+        command=lambda : self.detail_set_callback(win.tao_list,set_str))
     b.pack()
 
   def detail_set_callback(self, tao_list, set_str):
@@ -481,11 +650,10 @@ class tao_d2_data_window(tao_list_window):
 #-----------------------------------------------------
 # d1_data window
 
-class tao_d1_data_window(table_window):
+class tao_d1_data_window(lw_table_window):
   '''
   With lw set to True, opens a lw_table_window instead
   '''
-
   def __init__(self, root, pipe, d1_data_name, u_ix, ix_lb, ix_ub, *args, **kwargs):
     self.u_ix = u_ix
     self.ix_lb = ix_lb
@@ -512,7 +680,7 @@ class tao_d1_data_window(table_window):
     bulk_set_format = "set data " + str(self.u_ix) + '@{}|'
     set_format = "set data " + str(self.u_ix) + '@{}[{}]|'
     if self.lw:
-      lw_table_window.__init__(self, root, pipe, d1_data_name, title_list, set_format, *args, **kwargs)
+      lw_table_window.__init__(self, root, pipe, d1_data_name, title_list, bulk_template, bulk_set_format, set_format, *args, **kwargs)
     else:
       table_window.__init__(self, root, pipe, d1_data_name, title_list, bulk_template, bulk_set_format, set_format, *args, **kwargs)
 
@@ -596,7 +764,7 @@ class tao_var_general_window(tao_list_window):
 #-----------------------------------------------------
 # v1_var window
 
-class tao_v1_var_window(table_window):
+class tao_v1_var_window(lw_table_window):
 
   def __init__(self, root, pipe, v1_var_name, *args, **kwargs):
     title_list = ["Index",
@@ -616,7 +784,7 @@ class tao_v1_var_window(table_window):
     bulk_set_format = "set var {}|"
     set_format = "set var {}[{}]|"
     if self.lw:
-      lw_table_window.__init__(self, root, pipe, v1_var_name, title_list, set_format, *args, **kwargs)
+      lw_table_window.__init__(self, root, pipe, v1_var_name, title_list, bulk_template, bulk_set_format, set_format, *args, **kwargs)
     else:
       table_window.__init__(self, root, pipe, v1_var_name, title_list, bulk_template, bulk_set_format, set_format, *args, **kwargs)
 
