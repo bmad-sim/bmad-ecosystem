@@ -78,7 +78,7 @@ class tao_console:
     displays the output.  Appends self.command to
     self.root.history and clears self.command.
     '''
-    result = self.pipe.cmd_in(self.command)
+    result = self.pipe.cmd_in(self.command, no_warn=True)
     self.root.history[0].append(self.command)
     self.show_output(result)
     # Try to refresh the history window
