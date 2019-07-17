@@ -56,6 +56,7 @@ use twiss_and_track_mod, only: twiss_and_track_at_s
 use tao_show_mod, only: tao_show_this
 use tao_plot_mod, only: tao_set_floor_plan_axis_label
 use tao_data_and_eval_mod, only: tao_evaluate_expression
+use wall3d_mod, only: calc_wall_radius
 
 implicit none
 
@@ -127,7 +128,7 @@ type (tao_dynamic_aperture_struct), pointer :: da
 type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp) s_pos, value, y1, y2, v_old(3), r_vec(3), dr_vec(3), w_old(3,3), v_vec(3), dv_vec(3)
-real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here
+real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here, z1, z2, rdummy
 real(rp) x_bend(0:400), y_bend(0:400), dx_bend(0:400), dy_bend(0:400), dx_orbit(0:400), dy_orbit(0:400)
 real(rp), allocatable :: re_array(:)
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
@@ -203,7 +204,7 @@ call match_word (cmd, [character(20) :: &
           'da_params', 'da_aperture', &
           'data_create', 'data_destroy', 'data_d2_array', 'data_d1_array', 'data_d2', 'data_d_array', 'data', &
           'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', 'ele:cartesian_map', &
-          'ele:cylindrical_map', 'ele:orbit', &
+          'ele:chamber_wall', 'ele:cylindrical_map', 'ele:orbit', &
           'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
           'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
           'evaluate', 'enum', 'floor_building_wall', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
@@ -868,7 +869,7 @@ case ('ele:head')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-  can_vary = (ele%slave_status /= multipass_slave$ .and. ele%slave_status /= super_slave$)
+  can_vary = (ele%slave_status /= multipass_slave$ .and. ele%slave_status /= super_slave$ .and. ele%ix_ele /= 0)
 
   nl=incr(nl); write (li(nl), imt) 'universe;INT;F;',                 u%ix_uni
   nl=incr(nl); write (li(nl), jmt) u%ix_uni, '^ix_branch;INUM;F;',    ele%ix_branch
@@ -1186,6 +1187,49 @@ case ('ele:cartesian_map')
     call invalid ('{who} is not "base" or "terms"')
     return
   end select
+
+!----------------------------------------------------------------------
+! Element beam chamber wall
+! Command syntax:
+!   python ele:chamber_wall {ele_id}|{which} {index} {who}
+! where {ele_id} is an element name or index and {which} is one of
+!   model
+!   base
+!   design
+! {index} is index of the wall.
+! {who} is one of:
+!   x       ! Return min/max in horizontal plane
+!   y       ! Return min/max in vertical plane
+
+case ('ele:chamber_wall')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+  if (.not. associated(ele%wall3d)) then
+    call invalid ('No associated wall')
+    return
+  endif
+
+  n = parse_int(who, err, 1, size(ele%wall3d));        if (err) return
+  wall3d => ele%wall3d(n)
+
+  do i = 1, size(wall3d%section)
+    select case (who)
+    case ('x')
+      call calc_wall_radius (wall3d%section(i)%v,  1.0_rp, 0.0_rp, z1, rdummy)
+      call calc_wall_radius (wall3d%section(i)%v, -1.0_rp, 0.0_rp, z2, rdummy)
+    case ('y')
+      call calc_wall_radius (wall3d%section(i)%v, 0.0_rp,  1.0_rp, z1, rdummy)
+      call calc_wall_radius (wall3d%section(i)%v, 0.0_rp, -1.0_rp, z2, rdummy)
+    case default
+      call invalid ('{who} is not "x" or "y"')
+      return
+    end select
+
+    nl=incr(nl); write (li(nl), '(i0, 2(a, es14.6))') i, ';', z1, ';', -z2
+  enddo
 
 !----------------------------------------------------------------------
 ! Element cylindrical_map
