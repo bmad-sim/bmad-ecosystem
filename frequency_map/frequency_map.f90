@@ -9,9 +9,10 @@ use z_tune_mod
 implicit none
 
 type (lat_struct), target :: ring
-type (coord_struct), allocatable :: co(:), orb(:), data(:)
+type (coord_struct), allocatable :: orb(:), co(:), data(:)
 type (coord_struct) start_coord
 type (ele_struct), pointer :: ele
+type (twiss_struct)  twiss1, twiss2
 
 integer i, j, k, s, n, Npts, asum
 integer ix
@@ -25,6 +26,7 @@ integer version
 integer :: fft_turns = 0
 integer arg_num, iargc, ind
 integer Nthmin, Nrad
+integer stat
 
 real(rp) rad, th, Ar, Br, Rmax
 real(rp) phy_x_set, phy_y_set
@@ -38,6 +40,8 @@ complex(dpc), ALLOCATABLE ::  n1(:,:), m1(:,:),  n2(:,:), m2(:,:), n3(:,:), m3(:
 real(rp), ALLOCATABLE ::  rftxa(:), rftxb(:), rftya(:), rftyb(:), rftea(:), rfteb(:)
 real(rp), allocatable :: grid_pts(:,:)
 real(rp) hanning
+real(rp) U(4,4), V(4,4), Ubar(4,4), Vbar(4,4), G(4,4), tgamma
+real(rp) Vinv(4,4)
 
 real(rp) one_turn_mat(1:6,1:6)
 real(rp) T(1:6,1:6), Tinv(1:6,1:6), P(1:6,1:6), Pinv(1:6,1:6)
@@ -97,14 +101,14 @@ else
   rf_frequency = 1.e-6 ! something small; prevents longitudinal cuts until much larger
 endif
 
-call reallocate_coord(orb, ring%n_ele_max)
 call reallocate_coord(co, ring%n_ele_max)
+call reallocate_coord(orb, ring%n_ele_max)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 bmad_com%aperture_limit_on = aperture_limits
-CALL reallocate_coord(orb,ring%n_ele_max)
+CALL reallocate_coord(co,ring%n_ele_max)
 CALL set_on_off(rfcavity$, ring, on$)
-CALL twiss_and_track(ring,orb)
+CALL twiss_and_track(ring,co)
 CALL calc_z_tune(ring)
 
 n_z = nint(abs((e1 - e0)/de))+1
@@ -166,12 +170,17 @@ ALLOCATE(rfteb(1:fft_turns))
 ! Multiplying coordinated by Tinv will convert them to normal coordinates.
 
 CALL transfer_matrix_calc(ring, one_turn_mat)
-CALL mat_eigen (one_turn_mat, eigen_val, eigen_vec, error)
-do i=1,6,2
-  T(i,:)   =  real(eigen_vec(i,:))
-  T(i+1,:) = -aimag(eigen_vec(i,:))
-enddo
-CALL mat_inverse(T,Tinv)
+if(one_turn_mat(6,5) == 0) then
+  call mat_symp_decouple (one_turn_mat, stat, U, V, Ubar, Vbar, G, twiss1, twiss2, tgamma, .true.)
+  CALL mat_inverse(V,Vinv)
+else
+  CALL mat_eigen (one_turn_mat, eigen_val, eigen_vec, error)
+  do i=1,6,2
+    T(i,:)   =  real(eigen_vec(i,:))
+    T(i+1,:) = -aimag(eigen_vec(i,:))
+  enddo
+  CALL mat_inverse(T,Tinv)
+endif
 
 !Write grid to file
 open(800, file='grid.dat')
@@ -215,24 +224,30 @@ do i = 1, Npts
   endif
   open(unit=13, file=out_file)
   write(*,'(a,6es10.3)') "Coordinates: ", start_coord%vec(:)
-  co(0)%vec = orb(0)%vec + start_coord%vec
+  orb(0)%vec = co(0)%vec + start_coord%vec
 
   do j=1,n_turn
-    call track_all(ring, co, 0, track_state)
-    co(0)%vec = co(ring%n_ele_track)%vec
+    call track_all(ring, orb, 0, track_state)
+    orb(0)%vec = orb(ring%n_ele_track)%vec
     ! for whether particle z is past RF bucket
     if (track_state /= moving_forward$) then
       n = track_state
       print '(a, i8, 2a)', "Particle lost in turn ", j, ',  At element: ', trim(ring%ele(n)%name)
-      print '(a, 6f12.6)', 'Orbit at entrance to element particle lost at: ', co(n-1)%vec
+      print '(a, 6f12.6)', 'Orbit at entrance to element particle lost at: ', orb(n-1)%vec
       exit
-    elseif (abs(co(0)%vec(5)) > 0.25*(c_light/rf_frequency)) then 
+    elseif (abs(orb(0)%vec(5)) > 0.25*(c_light/rf_frequency)) then 
       print '(a, i8)', "Particle outside of RF bucket in turn ", j
-      print '(a, f12.6, a, f12.6)', 'z_position: ', co(0)%vec(5), ',  RF wavelength: ', c_light/rf_frequency
+      print '(a, f12.6, a, f12.6)', 'z_position: ', orb(0)%vec(5), ',  RF wavelength: ', c_light/rf_frequency
       exit
     else
-      psv = co(0)%vec - orb(0)%vec
-      psv_norm = MATMUL(psv, Tinv)
+      psv = orb(0)%vec - co(0)%vec
+      if(one_turn_mat(6,5) == 0) then
+        psv_norm(1:4) = MATMUL(Vinv, psv(1:4))
+        psv_norm(5) = psv(5)
+        psv_norm(6) = psv(6)
+      else
+        psv_norm = MATMUL(psv, Tinv)
+      endif
 
       fft1(j) = psv_norm(1)
       fft2(j) = psv_norm(2)
@@ -243,7 +258,7 @@ do i = 1, Npts
     endif
   enddo
 
-  if(track_state == moving_forward$ .and. (abs(co(0)%vec(5)) < 0.25*(c_light/rf_frequency)))then
+  if(track_state == moving_forward$ .and. (abs(orb(0)%vec(5)) < 0.25*(c_light/rf_frequency)))then
     !interpolated FFT with Hanning window
     do j=1, fft_turns
       hanning = 2*(sin(pi*j/fft_turns)**2)
