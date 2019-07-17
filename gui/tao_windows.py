@@ -23,6 +23,7 @@ from matplotlib.backends.backend_tkagg import (
 from matplotlib.backends._backend_tk import FigureManagerTk
 from matplotlib.backend_bases import key_press_handler
 from tao_ele_location import in_element
+from tao_mpl_toolbar import taotoolbar
 
 #-----------------------------------------------------
 # Console frame
@@ -931,7 +932,7 @@ class tao_plot_window(tk.Toplevel):
     # DO NOT TOUCH
     canvas.manager = FigureManagerTk(canvas, self.fig.number, tk.Toplevel(self.root))
 
-    toolbar = NavigationToolbar2Tk(canvas, self)
+    toolbar = taotoolbar(canvas, self)
     toolbar.update()
     canvas._tkcanvas.pack(side="top", fill="both", expand=1)
 

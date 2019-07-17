@@ -544,19 +544,6 @@ class taoplot:
 			branch = layInfoDict['-1^ix_branch'].value
 
 
-			shapes=pipe.cmd_in('python plot_shapes lat_layout').splitlines()
-			shapeTypeDict = {}
-			shapeColorDict = {}
-			shapeHeightDict = {}
-			shapeNameDict = {}
-			for i in range(len(shapes)):
-				shapeTypeDict[shapes[i].split(';')[1][:-3].lower()]= shapes[i].split(';')[2].lower()
-				shapeColorDict[shapes[i].split(';')[1][:-3].lower()]= color(shapes[i].split(';')[3].lower())
-				shapeHeightDict[shapes[i].split(';')[1][:-3].lower()]= float(shapes[i].split(';')[4])
-				shapeNameDict[shapes[i].split(';')[1][:-3].lower()]= shapes[i].split(';')[6]
-			#dictionaries of element type strings as keys with corresponding information as values 
-
-
 			
 			eleInfo=pipe.cmd_in('python plot_lat_layout '+str(universe)+'@'+str(branch)).splitlines()
 			#list of strings containing information about each element
@@ -984,7 +971,6 @@ class taoplot:
 							GraphDict['FloorPlan'].add_patch(patches.Arc((intersection[0],intersection[1]),np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,theta1=a1,theta2=a2,lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)]))
 							GraphDict['FloorPlan'].add_patch(patches.Arc((intersection[0],intersection[1]),np.sqrt((fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,np.sqrt((fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,theta1=a3,theta2=a4,lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)]))
 							#nonzero bend angle
-
 					#draw sbend element
 
 
@@ -1048,7 +1034,7 @@ class taoplot:
 					fpsTypeDict[fps[i].split(';')[1].split(':')[0].lower()] = fps[i].split(';')[2].lower()
 					if fps[i].split(';')[1].split(':')[0].lower() == 'building_wall':
 						fpsColorDict[fps[i].split(';')[1].split(':')[2].lower()] = color(fps[i].split(';')[3].lower())
-				#dictionaries of element type strings as keys with corresponding information as values
+				#dictionaries matching the type building wall components to their color
 
 
 				for i in fbwCurveList:
