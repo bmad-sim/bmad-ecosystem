@@ -8,8 +8,8 @@ import math
 def in_rectangle(a,b,c,d,x,y):
 	'''checks if the point (x,y) is in a rectangle with corners a, b, c, and d'''
 	ABC = .5*abs(a[0]*(b[1]-c[1])+b[0]*(c[1]-a[1])+c[0]*(a[1]-b[1]))
-	ADC = .5*abs(a[0]*(b[1]-d[1])+b[0]*(d[1]-a[1])+d[0]*(a[1]-b[1]))
-	areaRectangle = ABC + ADC
+	BCD = .5*abs(b[0]*(c[1]-d[1])+c[0]*(d[1]-b[1])+d[0]*(b[1]-c[1]))
+	areaRectangle = ABC + BCD
 
 	ABP = .5*abs(a[0]*(b[1]-y)+b[0]*(y-a[1])+x*(a[1]-b[1]))
 	BDP = .5*abs(b[0]*(d[1]-y)+d[0]*(y-b[1])+x*(b[1]-d[1]))
@@ -46,6 +46,7 @@ def in_element(x,y,fig_info):
 				
 				else:
 					if in_rectangle(returnList[11][str(i)],returnList[12][str(i)],returnList[13][str(i)],returnList[14][str(i)],x,y) == True:
+						
 						inIndexList.append(i)
 		#find floor_plan elements containing the specified point
 		#checks a circle for the specified point for circle elements, checks a box otherwise
