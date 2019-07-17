@@ -67,7 +67,15 @@ class tao_root_window(tk.Tk):
     self.menubar.entryconfig("Window", state="normal")
     self.main_frame = tk.Frame(self, width = 20, height = 30)
     self.main_frame.pack()
+    #Key bindings
     self.bind_all('<Control-g>', self.global_vars_event)
+    self.bind_all('<Control-d>', self.view_data_event)
+    self.bind_all('<Control-e>', self.view_ele_event)
+    self.bind_all('<Control-l>', self.view_lattice_event)
+    self.bind_all('<Control-t>', self.plot_template_event)
+    self.bind_all('<Control-r>', self.plot_region_event)
+    self.bind_all('<Alt-v>', self.view_vars_event)
+    self.bind_all('<Alt-q>', self.reinit_event)
 
     # Call
     tk.Label(self.main_frame, text="Call command file:").grid(row=0, column=0)
@@ -179,21 +187,21 @@ class tao_root_window(tk.Tk):
     file_menu = tk.Menu(self.menubar)
     file_menu.add_command(label = 'Read...', command = self.read_cmd)
     file_menu.add_command(label = 'Write...', command = self.write_cmd)
-    file_menu.add_command(label = 'Reinit...', command = self.reinit_cmd)
+    file_menu.add_command(label = 'Reinit...', command = self.reinit_cmd,accelerator = 'Alt+Q')
     file_menu.add_separator()
     file_menu.add_command(label = 'Quit', command = self.quit_cmd, accelerator = 'Ctrl+Q')
     self.menubar.add_cascade(label = 'File', menu = file_menu)
 
     window_menu = tk.Menu(self.menubar)
     window_menu.add_command(label = 'Optimizer...', command = self.optimizer_cmd)
-    window_menu.add_command(label = 'Plot Templates...', command = self.plot_template_cmd)
-    window_menu.add_command(label = 'Active Plots...', command = self.plot_region_cmd)
+    window_menu.add_command(label = 'Plot Templates...', command = self.plot_template_cmd, accelerator = 'Ctrl+T')
+    window_menu.add_command(label = 'Active Plots...', command = self.plot_region_cmd, accelerator = 'Ctrl+R')
     window_menu.add_command(label = 'Wave...', command = self.wave_cmd)
-    window_menu.add_command(label = 'Variables...', command = self.view_vars_cmd)
-    window_menu.add_command(label = 'Global Variables...', command = self.set_global_vars_cmd)
-    window_menu.add_command(label = 'Data...', command = self.view_data_cmd)
-    window_menu.add_command(label = 'Elements...', command = self.view_ele_cmd)
-    window_menu.add_command(label = 'Lattice...', command = self.view_lattice_cmd)
+    window_menu.add_command(label = 'Variables...', command = self.view_vars_cmd, accelerator = 'Alt+V')
+    window_menu.add_command(label = 'Global Variables...', command = self.set_global_vars_cmd, accelerator = 'Ctrl+G')
+    window_menu.add_command(label = 'Data...', command = self.view_data_cmd, accelerator = 'Ctrl+D')
+    window_menu.add_command(label = 'Elements...', command = self.view_ele_cmd, accelerator = 'Ctrl+E')
+    window_menu.add_command(label = 'Lattice...', command = self.view_lattice_cmd, accelerator = 'Ctrl+L')
     self.menubar.add_cascade(label = 'Window', menu = window_menu)
 
     self.config(menu=self.menubar)
@@ -507,6 +515,27 @@ class tao_root_window(tk.Tk):
 
   def global_vars_event(self, event):
     self.set_global_vars_cmd()
+
+  def view_data_event(self, event):
+    self.view_data_cmd()
+
+  def view_ele_event(self, event):
+    self.view_ele_cmd()
+
+  def view_lattice_event(self, event):
+    self.view_lattice_cmd()
+
+  def plot_template_event(self, event):
+    self.plot_template_cmd()
+
+  def plot_region_event(self, event):
+    self.plot_region_cmd()
+
+  def view_vars_event(self, event):
+    self.view_vars_cmd()
+
+  def reinit_event(self, event):
+    self.reinit_cmd()
 
   def view_history_cmd(self):
     #Just focus the existing history window, if it exists
