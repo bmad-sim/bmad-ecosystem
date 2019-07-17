@@ -1,0 +1,165 @@
+!+
+! Subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag)
+!
+! Routine to read an hdf5 file that encodes an array of grid_field structures.
+!
+! Input:
+!   file_name     -- character(*): File to create.
+!   ele           -- ele_struct: Element associated with the map.
+!
+! Ouput:
+!   g_field(:)    -- grid_field_struct, pointer: Grid field array.
+!   err_flag      -- logical: Set True if there is an error. False otherwise.
+!-
+
+subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag)
+
+use hdf5_openpmd_mod
+use bmad_interface, dummy => hdf5_read_grid_field
+
+implicit none
+
+type (grid_field_struct), pointer :: g_field(:), g_temp(:)
+type (grid_field_struct), pointer :: gf
+type (ele_struct) ele
+type (pmd_header_struct) pmd_header
+
+integer(hid_t) f_id, f2_id, z_id
+integer i, j, k, n0(3), n1(3), iver, h5_err
+logical err_flag, err
+
+character(*) file_name
+character(40) master_name
+character(*), parameter :: r_name = 'hdf5_read_grid_field'
+
+!
+
+err_flag = .true.
+call hdf5_open_file (file_name, 'READ', f_id, err);  if (err) return
+
+call hdf5_read_attribute_alloc_string (f_id, 'externalFieldPath', pmd_header%basePath, err, .true.);         if (err) return
+call hdf5_read_attribute_alloc_string (f_id, 'openPMD', pmd_header%openPMD, err, .true.);                    if (err) return
+call hdf5_read_attribute_alloc_string (f_id, 'openPMDextension', pmd_header%openPMDextension, err, .true.);  if (err) return
+
+call hdf5_read_attribute_alloc_string (f_id, 'software', pmd_header%software, err, .false.)
+call hdf5_read_attribute_alloc_string (f_id, 'softwareVersion', pmd_header%softwareVersion, err, .false.)
+call hdf5_read_attribute_alloc_string (f_id, 'date', pmd_header%date, err, .false.)
+
+! Deallocate if needed
+
+if (allocated(g_field)) then
+  call unlink_fieldmap(grid_field = g_field)
+  deallocate (g_field)
+endif
+
+! No "%T" case.
+
+it = index(pmd_header%basePath, '/%T/')
+if (it == 0) then
+  allocate (g_field(1))
+  z_id = hdf5_open_group(f_id, pmd_header%basePath, err, .true.); if (err) return
+  call read_this_field (z_id, g_field(1))
+  return
+endif
+
+! Count grids
+
+f2_id = hdf5_open_group(f_id, pmd_header%basePath(1:it), err, .true.)
+n_grid = 0
+call H5Gget_info_f (f2_id, storage_type, n_links, max_corder, h5_err)
+do idx = 0, n_links-1
+  call H5Lget_name_by_idx_f (f2_id, '.', H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_name, h5_err, g_size)
+  call to_f_str(c_name, name)
+  call H5Oget_info_by_name_f(f2_id, name, infobuf, h5_stat)
+  if (infobuf%type /= H5O_TYPE_GROUP_F) cycle    ! Ignore non-group elements.
+  if (.not. is_integer(name)) then               ! This assumes basepath uses "/%T/" to designate different grids.
+    call out_io (s_warn$, r_name, 'NAME OF DIRECTORY IN PATH IS NOT AN INTEGER: ' // quote(name))
+    cycle
+  endif
+  n_grid = n_grid + 1
+  if (n_grid == 1) then
+    allocate (g_field(1))
+  else
+    g_temp => g_field
+    allocate (g_field(n_grid))
+    g_field(1:n_grid-1) = g_temp
+  endif
+  z_id = hdf5_open_group(f2_id, name, err, .true.); if (err) return
+  call read_this_field(z_id, ele, g_field(n_grid))
+enddo
+
+!
+
+call h5fclose_f(f_id, h5_err)
+err_flag = .false.
+
+!--------------------------------------------------------------------------------
+contains
+
+subroutine read_this_field(root_id, ele, gf)
+
+type (ele_struct) ele
+type (grid_field_struct) :: gf
+
+real(rp) field_scale
+
+integer nd, lb(3), g_size(3)
+integer(hid_t) root_id
+
+character(40) name
+logical error
+
+!
+
+call hdf5_read_attribute_real(root_id, 'fieldScale', total_scale, error, .false., 1.0_rp)
+call hdf5_read_attribute_real(root_id, 'componentFieldScale', gf%field_scale, error, .false.)
+call hdf5_read_attribute_string (root_id, 'masterParameter', name, error, .false.)
+
+if (name == '') then
+  gf%master_parameter = 0
+  gf%field_scale = total_scale
+else
+  gf%master_parameter = attribute_index(ele, upcase(name))
+endif
+
+call hdf5_read_attribute_string (root_id, 'gridGeometry', name, error, .false.)
+call match_word (name, grid_field_geometry_name(1:), gt%geometry, error, .false.)
+
+call hdf5_read_attribute_string (root_id, 'eleAnchorPt', name, error, .false.)
+call match_word (name, anchor_pt_name(1:), gf%ele_anchor_pt, error, .false.)
+
+call hdf5_read_attribute_real (root_id, 'harmonic', gf%harmonic, error, .false.)
+if (gf%harmonic /= 0) then
+  call hdf5_read_attribute_real (root_id, 'RFphase', gf%phi0_fieldmap, error, .false.)
+  if (ele%key == lcavity$) then
+    gf%phi0_fieldmap = gf%phi0_fieldmap / gf%harmonic
+  else
+    gf%phi0_fieldmap = 0.25_rp - gf%phi0_fieldmap / gf%harmonic
+  endif
+endif
+
+call hdf5_read_attribute_int (root_id, 'interpolationOrder', gf%interpolation_order, error, .false., 1)
+call hdf5_read_attribute_int (root_id, 'interpolationOrder', gf%interpolation_order, error, .false., 1)
+
+select case (gf%geometry)
+case (xyz$);                       nd = 3
+case (rotationally_symmetric_rz$); nd = 2
+end select
+
+lb = 1; g_size = 1
+call hdf5_read_attribute_int (root_id, 'gridLowerBound', lb(1:nd), error, .true.);        if (error) return
+call hdf5_read_attribute_int (root_id, 'gridSize', g_size(1:nd), error, .true.);          if (error) return
+call hdf5_read_attribute_real (root_id, 'gridOriginOffset', gf%r0(1:nd), error, .true.);  if (error) return
+call hdf5_read_attribute_real (root_id, 'gridSpacing', gf%dr(1:nd), error, .true.);       if (error) return
+
+call hdf5_read_attribute_real (root_id, 'curvedRefFrame', g, error, .false.);             if (error) return
+gf%curved_ref_frame = (g /= 0)
+
+!
+
+!call reallocate
+
+
+end subroutine read_this_field
+
+end subroutine hdf5_read_grid_field

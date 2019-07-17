@@ -44,7 +44,7 @@ type(pmd_unit_struct), parameter :: unit_Tesla      = pmd_unit_struct('Tesla', 1
 
 ! 
 
-interface pmd_write_real_dataset
+interface pmd_write_real_to_dataset
   module procedure pmd_write_real_vector_to_dataset
   module procedure pmd_write_real_matrix_to_dataset
   module procedure pmd_write_real_tensor_to_dataset

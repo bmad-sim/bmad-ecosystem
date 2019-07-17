@@ -21,7 +21,9 @@
 ! An element range is of the form:
 !   {key::}ele1:ele2{:step}
 ! Where:
-!   key      = Optional key name ("quadrupole", "sbend", etc.)
+!   key      = Optional key name ("quadrupole", "sbend", etc.). 
+!               Also key may be "type", "alias", or "descrip" in which case the %type, %alias, or 
+!               %descrip field is matched to instead of the element name.
 !   ele1     = Starting element of the range.
 !   ele2     = Ending element of the range. 
 !   step     = Optional step increment Default is 1. 
@@ -39,6 +41,7 @@
 !   "q1:q5"            Elements between "q1" and "q5".
 !   "sbend::q1:q5"     All sbend elements between "q1" and "q5".
 !   "marker::a*##2"    2^nd marker element in each branch whose name begins with "a".
+!   "type::bpm*"       All elements whose %type field starts with bpm.
 !
 ! Note: Elements in the eles(:) array will be in the same order as they appear in the lattice with the 
 ! possible exception when there is a comma in the loc_str. For example: loc_str = "q5,q1". In this
