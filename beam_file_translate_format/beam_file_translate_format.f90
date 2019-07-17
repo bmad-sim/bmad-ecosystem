@@ -1,6 +1,5 @@
 program beam_file_translate_format
 
-use hdf5_bunch_mod
 use beam_file_io
 
 implicit none

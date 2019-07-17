@@ -15,11 +15,12 @@ implicit none
 type entry_struct
   character(3) :: indx = ''
   character(40) :: name = ''
-  character(3) :: attrib = ''
+  character(20) :: units = ''
 end type
 
 type table_struct
-  character(40) :: name = ''
+  character(80) :: sort_name = ''
+  character(40) :: label_ref = ''
   integer :: key = -1
   integer :: n_line = 0
   type (entry_struct) entry(num_ele_attrib_extended$+1)
@@ -27,12 +28,12 @@ end type
 
 type (table_struct), target :: table(n_key$)
 type (table_struct), pointer :: tab
-type (entry_struct), pointer :: e1, e2, e3, e4
+type (entry_struct), pointer :: ee, e1, e2, e3, e4
 type (ele_struct) ele
 type (ele_attribute_struct) attrib
 
 integer i, ik, j, n, n_used(num_ele_attrib_extended$), key_indx(n_key$)
-integer ie, it, n_table, n_row, n_char, ios, nl
+integer ix, ie, it, n_row, n_char, ios, nl
 integer indx(num_ele_attrib_extended$)
 
 character(20) date, arg
@@ -80,6 +81,7 @@ if (arg /= 'tex') then
       else
         write (1, '(i10, 2x, a)') j, attrib%name
       endif
+      
       n_used(j) = n_used(j) + 1
     enddo
     write (1, *)
@@ -108,7 +110,7 @@ if (arg /= 'tex') then
     enddo
   enddo
 
-  print *, 'Writen: element_attributes.dat'
+  print *, 'Written: element_attributes.dat'
 
   close (1)
 endif
@@ -122,13 +124,36 @@ it = 0
 n_char = 0
 
 do n = 1, n_key$
-  i = key_indx(n)
 
-  it = it + 1
-  tab => table(it)
-  tab%name = key_name(i)
-  tab%key = i
-  ele%key = i
+  tab => table(n)
+  tab%key = n
+  ele%key = n
+
+  select case (tab%key)
+  case (sbend$)
+    tab%sort_name = 'Bends: Rbend and Sbend Element Attributes'
+    tab%label_ref = 'bend'
+  case (ecollimator$)
+    tab%sort_name = 'Collimators: Ecollimator and Rcollimator Element Attributes'
+    tab%label_ref = 'collimator'
+  case (fork$)
+    tab%sort_name = 'Fork and Photon_Fork Element Attributes'
+    tab%label_ref = 'fork'
+  case (instrument$)
+    tab%sort_name = 'Instrument, Monitor, and Pipe Element Attributes'
+    tab%label_ref = 'instrument'
+  case (hkicker$)
+    tab%sort_name = 'Kickers: Hkicker and Vkicker Element Attributes'
+    tab%label_ref = 'hvkicker'
+  case (wiggler$)
+    tab%sort_name = 'Wiggler and Undulator Element Attributes'
+    tab%label_ref = 'wiggler'
+  case default
+    tab%sort_name = key_name(tab%key)
+    tab%label_ref = downcase(key_name(tab%key))
+    call str_substitute (tab%label_ref, '_', '.')
+  end select
+
   ie = 0
 
   do j = 1, a0$
@@ -141,25 +166,33 @@ do n = 1, n_key$
       cycle
     end select
 
-    if (attrib%name == 'CURVATURE_Z0_Y2') attrib%name = 'CURVATURE_Z0_Y2, ..., etc.'
-    if (attrib%name == 'A0') attrib%name = 'A0 - A20, B0 - B20'
-    if (attrib%name == 'K0L') attrib%name = 'K0L - K20L, T0 - T20'
-
     ie = ie + 1
     tab%n_line = ie
 
-    write (tab%entry(ie)%indx, '(i3)') j
-    tab%entry(ie)%name = attrib%name
-    n_char = max(n_char, len_trim(attrib%name))
+    ee => tab%entry(ie)
+    write (ee%indx, '(i3)') j
 
+    select case (attrib%name)
+    case ('CURVATURE_Z0_Y2'); ee%name = 'curvature_z0_y2, ..., etc.'
+    case ('A0');              ee%name = 'a0 - a20, b0 - b20'
+    case ('K0L');             ee%name = 'k0l - k20l, t0 - t20'
+    case default
+      ee%name = downcase(attrib%name)
+      if (attribute_type(attrib%name) == is_real$) then
+        ee%units = attribute_units(attrib%name, '???')
+        if (ee%units /= '') then
+          ee%name = trim(ee%name) // ' [' // trim(ee%units) // ']'
+          ix = index(ee%name, '^')
+          if (ix /= 0) then       ! Something like T/m^3 . The exponent is always a single digit.
+            ee%name = ee%name(:ix-1) // '$' // ee%name(ix:ix+1) // '$' // ee%name(ix+2:)
+          endif
+        endif
+      endif
+    end select
 
-!    if (attrib%type == private$)        tab%entry(ie)%attrib = '[p]'
-!    if (attrib%type == dependent$)      tab%entry(ie)%attrib = '[d]'
-
+    n_char = max(n_char, len_trim(ee%name))
   enddo
 enddo
-
-n_table = it
 
 ! Now write the file
 
@@ -179,9 +212,10 @@ write (1, '(a)') ''
 
 !
 
-do it = 1, n_table, 1
-  tab => table(it)
-  tab%name = key_name(tab%key)
+call indexx(table%sort_name, key_indx)
+
+do it = 1, n_key$
+  tab => table(key_indx(it))
 
   if (tab%key == def_bmad_com$) cycle
   if (tab%key == def_particle_start$) cycle
@@ -205,32 +239,8 @@ do it = 1, n_table, 1
 
   write (1, *) '%---------------------------------'
 
-  select case (tab%key)
-  case (sbend$)
-    write (1, *) '\section{Bends: Rbend and Sbend Element Attributes}'
-    write (1, *) '\label{s:list.bend}'
-  case (ecollimator$)
-    write (1, *) '\section{Collimators: Ecollimator and Rcollimator Element Attributes}'
-    write (1, *) '\label{s:list.collimator}'
-  case (fork$)
-    write (1, *) '\section{Fork and Photon_Fork Element Attributes}'
-    write (1, *) '\label{s:list.fork}'
-  case (instrument$)
-    write (1, *) '\section{Instrument, Monitor, and Pipe Element Attributes}'
-    write (1, *) '\label{s:list.instrument}'
-  case (hkicker$)
-    write (1, *) '\section{Kickers: Hkicker and Vkicker Element Attributes}'
-    write (1, *) '\label{s:list.hvkicker}'
-  case (wiggler$)
-    write (1, *) '\section{Wiggler and Undulator Element Attributes}'
-    write (1, *) '\label{s:list.wiggler}'
-  case default
-    write (1, *) '\section{', trim(tab%name), ' Element Element Attributes}'
-    name = downcase(key_name(tab%key))
-    call str_substitute (name, '_', '.')
-    write (1, *) '\label{s:list.', trim(name), '}'
-  end select
-
+  write (1, *) '\section{', trim(tab%sort_name), ' Element Attributes}'
+  write (1, *) '\label{s:list.', trim(tab%label_ref), '}'
   write (1, *)
   write (1, *) '\begin{tabular}{llll} \toprule'
   ele%key = tab%key
@@ -240,8 +250,7 @@ do it = 1, n_table, 1
     e2 => tab%entry(indx(ie+n_row))
     e3 => tab%entry(indx(ie+2*n_row))
     e4 => tab%entry(indx(ie+3*n_row))
-    write (1, '(14a)') downcase(e1%name(1:n_char)), ' & ', downcase(e2%name(1:n_char)), ' & ', &
-                       downcase(e3%name(1:n_char)), ' & ', downcase(e4%name(1:n_char)), ' \\'
+    write (1, '(14a)') e1%name(1:n_char), ' & ', e2%name(1:n_char), ' & ', e3%name(1:n_char), ' & ', e4%name(1:n_char), ' \\'
   enddo
   write (1, *) '\bottomrule'
   write (1, *) '\end{tabular}'
