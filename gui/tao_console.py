@@ -151,6 +151,9 @@ class tao_console(tk.Frame):
 
   def _ret_handler(self, event):
     if self.command != "":
+      # Read what appears in the command line into self.command to be safe
+      self.command = self._wid.get(self.cstart, self.cstart
+          + '+' + str(self.cpos) + 'c')
       self.run_command()
     self.root.history_pos = 0
     return 'break'
@@ -178,7 +181,8 @@ class tao_console(tk.Frame):
     curs_col = self._get_curs_c()
     self._wid.mark_set('insert',
         str(curs_line) + '.' + str(curs_col+1))
-    self.cpos += 1
+    if self.cpos < len(self.command):
+      self.cpos += 1
     return 'break'
 
   def _u_handler(self, event=None):
