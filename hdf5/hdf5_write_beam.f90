@@ -107,29 +107,27 @@ do ib = 1, size(bunches)
 
   if (p(1)%species == photon$) then
     ! Photon polarization
-    call h5gcreate_f(b2_id, 'photonPolarization', z_id, h5_err)
-    call h5gcreate_f(z_id, 'x', z2_id, h5_err)
-    call pmd_write_real_vector_to_dataset(z2_id, 'amplitude', 'Field Amp_x', unit_1, p(:)%field(1), err)
-    call pmd_write_real_vector_to_dataset(z2_id, 'phase', 'Field Phase_x', unit_1, p(:)%phase(1), err)
-    call h5gclose_f(z2_id, h5_err)
-    call h5gcreate_f(z_id, 'y', z2_id, h5_err)
-    call pmd_write_real_vector_to_dataset(z2_id, 'amplitude', 'Field Amp_y', unit_1, p(:)%field(2), err)
-    call pmd_write_real_vector_to_dataset(z2_id, 'phase', 'Field Phase_y', unit_1, p(:)%phase(2), err)
-    call h5gclose_f(z2_id, h5_err)
+    call h5gcreate_f(b2_id, 'photonPolarizationAmplitude', z_id, h5_err)
+    call pmd_write_real_vector_to_dataset(z_id, 'x', 'x', unit_1, p(:)%field(1), err)
+    call pmd_write_real_vector_to_dataset(z_id, 'y', 'y', unit_1, p(:)%field(2), err)
     call h5gclose_f(z_id, h5_err)
 
-    call pmd_write_real_vector_to_dataset(b2_id, 'pathLength', 'Path Length', unit_m, p(:)%path_len, err)
+    call h5gcreate_f(b2_id, 'photonPolarizationPhase', z_id, h5_err)
+    call pmd_write_real_vector_to_dataset(z_id, 'x', 'x', unit_1, p(:)%phase(1), err)
+    call pmd_write_real_vector_to_dataset(z_id, 'y', 'y', unit_1, p(:)%phase(2), err)
+    call h5gclose_f(z_id, h5_err)
 
     ! Velocity
 
     call h5gcreate_f(b2_id, 'velocity', z_id, h5_err)
-
     call pmd_write_real_vector_to_dataset(z_id, 'x', 'Vx', unit_c_light, p(:)%vec(2), err)
     call pmd_write_real_vector_to_dataset(z_id, 'y', 'Vy', unit_c_light, p(:)%vec(4), err)
     call pmd_write_real_vector_to_dataset(z_id, 'z', 'Vz', unit_c_light, p(:)%vec(6), err)
-
     call h5gclose_f(z_id, h5_err)
 
+    !
+
+    call pmd_write_real_vector_to_dataset(b2_id, 'pathLength', 'Path Length', unit_m, p(:)%path_len, err)
     call pmd_write_real_vector_to_dataset (b2_id, 'totalMomentumOffset', 'p0c', unit_eV_per_c, p(:)%p0c, err)
 
   ! Non-photons...
@@ -138,12 +136,10 @@ do ib = 1, size(bunches)
     ! Momentum
 
     call h5gcreate_f(b2_id, 'momentum', z_id, h5_err)
-
     call pmd_write_real_vector_to_dataset(z_id, 'x', 'px * p0c', unit_ev_per_c, p(:)%vec(2) * p(:)%p0c, err)
     call pmd_write_real_vector_to_dataset(z_id, 'y', 'py * p0c', unit_ev_per_c, p(:)%vec(4) * p(:)%p0c, err)
     rvec = p(:)%direction * (sqrt((1 + p(:)%vec(6))**2 - p(:)%vec(2)**2 - p(:)%vec(4)**2) * p(:)%p0c)
     call pmd_write_real_vector_to_dataset(z_id, 'z', 'ps * p0c', unit_ev_per_c, rvec, err)
-
     call h5gclose_f(z_id, h5_err)
 
     call pmd_write_real_vector_to_dataset (b2_id, 'totalMomentumOffset', 'p0c', unit_eV_per_c, p(:)%p0c, err)

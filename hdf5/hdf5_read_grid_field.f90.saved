@@ -25,7 +25,10 @@ type (ele_struct) ele
 type (pmd_header_struct) pmd_header
 
 integer(hid_t) f_id, f2_id, z_id
-integer i, j, k, n0(3), n1(3), iver, h5_err
+integer i, j, k, it, n0(3), n1(3), iver, h5_err, n_grid, storage_type, max_corder
+integer n_links
+integer(hsize_t) idx
+
 logical err_flag, err
 
 character(*) file_name
@@ -47,7 +50,7 @@ call hdf5_read_attribute_alloc_string (f_id, 'date', pmd_header%date, err, .fals
 
 ! Deallocate if needed
 
-if (allocated(g_field)) then
+if (associated(g_field)) then
   call unlink_fieldmap(grid_field = g_field)
   deallocate (g_field)
 endif
@@ -58,7 +61,7 @@ it = index(pmd_header%basePath, '/%T/')
 if (it == 0) then
   allocate (g_field(1))
   z_id = hdf5_open_group(f_id, pmd_header%basePath, err, .true.); if (err) return
-  call read_this_field (z_id, g_field(1))
+  call read_this_field (z_id, ele, g_field(1))
   return
 endif
 
@@ -99,11 +102,13 @@ contains
 subroutine read_this_field(root_id, ele, gf)
 
 type (ele_struct) ele
-type (grid_field_struct) :: gf
+type (grid_field_struct), target :: gf
+type (grid_field_pt1_struct), allocatable, target :: gpt(:,:,:)
+type (grid_field_pt1_struct), pointer :: gptr(:,:,:)
 
 real(rp) field_scale
 
-integer nd, lb(3), g_size(3)
+integer indx(3)
 integer(hid_t) root_id
 
 character(40) name
@@ -141,17 +146,11 @@ endif
 call hdf5_read_attribute_int (root_id, 'interpolationOrder', gf%interpolation_order, error, .false., 1)
 call hdf5_read_attribute_int (root_id, 'interpolationOrder', gf%interpolation_order, error, .false., 1)
 
-select case (gf%geometry)
-case (xyz$);                       nd = 3
-case (rotationally_symmetric_rz$); nd = 2
-end select
-
 lb = 1; g_size = 1
-call hdf5_read_attribute_int (root_id, 'gridLowerBound', lb(1:nd), error, .true.);        if (error) return
-call hdf5_read_attribute_int (root_id, 'gridSize', g_size(1:nd), error, .true.);          if (error) return
-call hdf5_read_attribute_real (root_id, 'gridOriginOffset', gf%r0(1:nd), error, .true.);  if (error) return
-call hdf5_read_attribute_real (root_id, 'gridSpacing', gf%dr(1:nd), error, .true.);       if (error) return
-
+call hdf5_read_attribute_int (root_id, 'gridLowerBound', lbound(gptr), error, .true.);        if (error) return
+call hdf5_read_attribute_int (root_id, 'gridSize', shape(gptr), error, .true.);          if (error) return
+call hdf5_read_attribute_real (root_id, 'gridOriginOffset', gf%r0(indx), error, .true.);  if (error) return
+call hdf5_read_attribute_real (root_id, 'gridSpacing', gf%dr(indx), error, .true.);       if (error) return
 call hdf5_read_attribute_real (root_id, 'curvedRefFrame', g, error, .false.);             if (error) return
 gf%curved_ref_frame = (g /= 0)
 
