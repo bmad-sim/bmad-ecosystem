@@ -7,6 +7,8 @@ class taotoolbar(NavigationToolbar2Tk):
 	def __init__(self,canvas_,parent_):
 		self.toolitems = (
 			('Home', 'Reset original view', 'home', 'home'),
+			('Back', 'Back to previous view', 'back', 'back'),
+			('Forward', 'Forward to next view', 'forward', 'forward'), 
 			('Pan', 'Pan axes with left mouse, zoom with right', 'move', 'pan'),
 			('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
 			(None,None,None,None),
