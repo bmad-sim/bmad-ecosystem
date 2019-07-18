@@ -36,7 +36,6 @@ class tao_interface():
         tao_io.__init__(self, init_args=init_args,
             tao_exe=tao_exe, expect_str=expect_str)
       output = output.getvalue()
-      output = output.replace('\r\n\r\n', '')
       output = output.replace('\x1b[6 q', '')
       self.startup_message = output
     elif mode == "ctypes":
@@ -58,7 +57,8 @@ class tao_interface():
     output = tao_io.cmd_in(self, cmd_str)
     # Scrub output for extra new lines at the end,
     # as well as escape characters
-    output = output.replace('\r\n\r\n', '')
+    if cmd_str.find('python') == 0:
+      output = output.replace('\r\n\r\n', '')
     output = output.replace('\x1b[6 q', '')
     #if no_warn:
     #  return output
