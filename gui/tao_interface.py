@@ -74,8 +74,9 @@ class tao_interface():
       self.message_type = "error"
       if not no_warn:
         self.printed.set(True)
-    if output.find("Backtrace") != -1:
-      self.message += "Error occurred in Tao, causing it to crash\n"
+    if (output.find("Backtrace") != -1) | \
+        (output.find("SIGSEGV") != -1):
+      self.message = "Error occurred in Tao, causing it to crash\n"
       self.message += "The offending command: " + cmd_str + '\n'
       self.message += "The error:\n"
       self.message += output + '\n'
