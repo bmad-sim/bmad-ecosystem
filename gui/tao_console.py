@@ -9,7 +9,8 @@ class tao_console:
 
   Parameters:
   parent: the parent widget (usually the tao root window)
-  root: the tao root window (required to access command history, the gui's global variablese, etc)
+  root: the tao root window (required to access command history,
+      the gui's global variablese, etc)
   pipe: tao_interface object (needed to run commands)
   '''
   def __init__(self, parent, root, pipe):
@@ -165,7 +166,8 @@ class tao_console:
     return 'break'
 
   def _u_handler(self, event=None):
-    if len(self.root.history[0]) > self.root.history_pos: #if there's room left to scroll up in history
+    #if there's room left to scroll up in history
+    if len(self.root.history[0]) > self.root.history_pos:
       self.root.history_pos += 1
       self.set_command(self.root.history[0][-1*self.root.history_pos])
       self._wid.see(self.cstart)
