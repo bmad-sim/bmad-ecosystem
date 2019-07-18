@@ -137,14 +137,12 @@ class tao_parameter_frame(tk.Frame):
     if len_col < len(self.tao_list)/n_col:
       #if the result was rounded down
       len_col = len_col+1
-    #for i in range(n_col):
-    #  cols.append(self.tao_list[i*len_col : (i+1)*len_col])
 
     # Grid widgets (and units)
     i = 0
     for item in self.tao_list:
       if item.param.name.find('units#') != 0:
-        r = (i % len_col) + 1 # row 0 reserved for titles
+        r = (i % len_col) + 2 # rows 0,1 reserved
         c = int(i / len_col) * 3
         item.tk_label.grid(row=r, column=c, sticky='E')
         item.tk_wid.grid(row=r, column=c+1, sticky='EW')
@@ -395,8 +393,9 @@ class lw_table_window(tk.Toplevel):
     self.table_frame = tk.Frame(self) #holds the table
     self.table_frame.pack(fill='both', expand=1)
 
-    tk.Button(self.button_frame, text="Bulk fill...",
-        command=self.open_bulk_window).pack(side='left')
+    if len(bulk_format) > 0:
+      tk.Button(self.button_frame, text="Bulk fill...",
+          command=self.open_bulk_window).pack(side='left')
     self.refresh()
 
   def refresh(self):
@@ -482,15 +481,23 @@ class lw_table_window(tk.Toplevel):
       fill_choices.append(j)
       fill_frame, where_frame, fill_choices[j] = self.make_bulk_frame(
           win, item[0], usebmd=(item[0].name=='meas_value'))
-      fill_frame.grid(row=0, column=j, sticky='NSEW')
-      where_frame.grid(row=1, column=j, sticky='NSEW')
+      fill_frame.grid(row=0, column=2*j, sticky='NSEW')
+      where_frame.grid(row=2, column=2*j, sticky='NSEW')
+      if j != 0:
+        ttk.Separator(win, orient='vertical').grid(
+            row=0, column=2*j-1, rowspan=3, sticky='NS')
+      win.columnconfigure(j, weight=1)
       j = j+1
+    ttk.Separator(win, orient='horizontal').grid(
+        row=1, column=0, columnspan=2*j-1, sticky='EW')
+    ttk.Separator(win, orient='horizontal').grid(
+        row=3, column=0, columnspan=2*j-1, sticky='EW')
 
-    def test_cmd(event=None):
+    def fill_cmd(event=None):
       self.bulk_set(fill_choices)
 
-    tk.Button(win, text="Fill and apply",
-        command=test_cmd).grid(row=2, column=0)
+    tk.Button(win, text="Fill and apply", command=fill_cmd).grid(
+        row=4, column=0, columnspan=2*j-1)
 
   def bulk_set(self, fill_choices):
     '''
@@ -553,6 +560,7 @@ class lw_table_window(tk.Toplevel):
     Returns a tuple (fill_frame, where_frame, fill_vars)
     '''
     fill_frame = tk.Frame(parent)
+    fill_frame.columnconfigure(2, weight=1)
     # Title the column
     tk.Label(fill_frame, text=bulk_item.name).grid(row=0, column=0,
         columnspan=3, sticky='EW')
@@ -566,12 +574,14 @@ class lw_table_window(tk.Toplevel):
     none_button = tk.Radiobutton(fill_frame, text="",
         variable=fill_choice, value='none')
     none_button.grid(row=1, column=0, sticky='W')
-    tk.Label(fill_frame, text="No Change").grid(row=1, column=1, sticky='W')
+    tk.Label(fill_frame, text="No Change").grid(
+        row=1, column=1, sticky='W')
     # Constant
     const_button = tk.Radiobutton(fill_frame, text="",
         variable=fill_choice, value='const')
     const_button.grid(row=2, column=0, sticky='W')
-    tk.Label(fill_frame, text="Constant:").grid(row=2, column=1, sticky='W')
+    tk.Label(fill_frame, text="Constant:").grid(
+        row=2, column=1, sticky='W')
     if bulk_item.type == 'REAL':
       const_var = tk.StringVar()
       const_wid = tk.Entry(fill_frame, textvariable=const_var)
@@ -583,16 +593,16 @@ class lw_table_window(tk.Toplevel):
     fill_vars['const'] = const_var
     # Base/Model/Design/Meas/Ref
     if usebmd:
-      bmd_frame = tk.Frame(fill_frame)
       bmd_var = tk.StringVar()
       bmd_var.set('Base')
-      bmd_button = tk.Radiobutton(bmd_frame, text="",
+      bmd_button = tk.Radiobutton(fill_frame, text="",
           variable=fill_choice, value='bmd')
-      bmd_button.pack(side='left')
-      bmd_wid = tk.OptionMenu(bmd_frame, bmd_var, "Base", "Model",
+      bmd_button.grid(row=3, column=0, sticky='W')
+      tk.Label(fill_frame, text="From:").grid(
+          row=3, column=1, sticky='W')
+      bmd_wid = tk.OptionMenu(fill_frame, bmd_var, "Base", "Model",
           "Design", "Measure", "Reference")
-      bmd_wid.pack(side='left')
-      bmd_frame.grid(row=3, column=0, columnspan=2, sticky='EW')
+      bmd_wid.grid(row=3, column=2, sticky='EW')
       fill_vars['bmd'] = bmd_var
     # Formula
     if bulk_item.type == 'REAL':
@@ -1761,12 +1771,12 @@ class tao_ele_window(tao_list_window):
         # Make a button
         self.sh_b_list.append(tk.Button(self.list_frame, text=key))
         if key == 'mat6':
+          #tao_list = '\n' + self.pipe.cmd_in("python ele:mat6 "
+          #    + self.element.id + ' err')
           tao_list = self.pipe.cmd_in("python ele:mat6 "
               + self.element.id + ' mat6')
-          tao_list += '\n' + self.pipe.cmd_in("python ele:mat6 "
-              + self.element.id + ' vec0')
-          tao_list += '\n' + self.pipe.cmd_in("python ele:mat6 "
-              + self.element.id + ' err')
+          #tao_list += '\n' + self.pipe.cmd_in("python ele:mat6 "
+          #    + self.element.id + ' vec0')
         else:
           tao_list = self.pipe.cmd_in("python ele:" + key
               + ' ' + self.element.id)
@@ -1793,11 +1803,36 @@ class tao_ele_window(tao_list_window):
           for x in range(6):
             title_frame.columnconfigure(x, weight=1)
           title_frame.grid(row=0, column=1, sticky='EW')
-        if key == 'mat6': #label mat6 properly
-          for j in range(6):
-            self.p_frames[i].tao_list[j].tk_label.grid_forget()
-          tk.Label(self.p_frames[i], text='m\na\nt\n6').grid(
-              row=0, column=0, rowspan=6, sticky='E')
+        if key == 'mat6':
+          # add symplectic error
+          sym_err = self.pipe.cmd_in('python ele:mat6 '
+              + self.element.id + ' err')
+          sym_err = tk_tao_parameter(str_to_tao_param(sym_err),
+              self.p_frames[i], self.pipe)
+          sym_err.tk_label.grid(row=0, column=0, sticky='E')
+          sym_err.tk_wid.grid(row=0, column=1, sticky='W')
+          # add vec0
+          vec0 = self.pipe.cmd_in('python ele:mat6 '
+              + self.element.id + ' vec0')
+          vec0 = tk_tao_parameter(str_to_tao_param(vec0),
+              self.p_frames[i], self.pipe)
+          separator = tk.Frame(self.p_frames[i], height=10, bd=1).grid(
+              row=8, column=1, columnspan=6, sticky='EW')
+          vec0.tk_label.grid(row=9, column=0, sticky='E')
+          vec0.tk_wid.grid(row=9, column=1, sticky='W')
+          # labels
+          mat6_list = ['x', 'px', 'y', 'py', 'z', 'pz']
+          title_frame = tk.Frame(self.p_frames[i])
+          for j in range(1,7):
+            self.p_frames[i].tao_list[j-1].tk_label.grid_forget()
+            tk.Label(title_frame, text=mat6_list[j-1]).grid(
+                row=1, column=j, sticky='EW')
+            title_frame.columnconfigure(j, weight=1)
+            tk.Label(self.p_frames[i], text=mat6_list[j-1]).grid(
+                row=j+1, column=0, sticky='E')
+          tk.Label(self.p_frames[i], text='mat6').grid(
+              row=1, column=0, sticky='EW')
+          title_frame.grid(row=1, column=1, sticky='EW')
         self.sh_b_list[i].grid(row=2*i, column=0, sticky='W')
         #self.p_frames[i].pack()
         i = i+1
