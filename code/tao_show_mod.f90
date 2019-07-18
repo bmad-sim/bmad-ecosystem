@@ -3414,7 +3414,7 @@ case ('spin')
         sm => scratch%spin_map(i)
         nl=nl+1; write(lines(nl), '(2x, a, i0, a, i0)')     'Universe: ', sm%ix_uni, '  of: ', ubound(s%u, 1)
         nl=nl+1; write(lines(nl), '(2x, a, 2i6)')    'Ix_Ref, Ix_Ele:', sm%ix_ref, sm%ix_ele 
-        nl=nl+1; write (lines(nl), '(26x, a, 41x, a)') 'Initial', 'Final'
+        nl=nl+1; write (lines(nl), '(26x, a, 26x, a)') 'Initial', 'Final'
         nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'L-axis: ', sm%axis0%l, sm%axis1%l
         nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'N0-axis:', sm%axis0%n0, sm%axis1%n0
         nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'M-axis: ', sm%axis0%m, sm%axis1%m

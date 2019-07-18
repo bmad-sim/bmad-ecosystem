@@ -1228,7 +1228,7 @@ case ('ele:chamber_wall')
       return
     end select
 
-    nl=incr(nl); write (li(nl), '(i0, 2(a, es14.6))') i, ';', z1, ';', -z2
+    nl=incr(nl); write (li(nl), '(i0, 3(a, es14.6))') i, ';', wall3d%section(i)%s, ';', z1, ';', -z2
   enddo
 
 !----------------------------------------------------------------------
