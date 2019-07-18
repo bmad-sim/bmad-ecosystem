@@ -217,7 +217,7 @@ class taoplot:
 
 		'''Region Data'''
 
-		rInfo=pipe.cmd_in('python plot1 '+GraphRegion).splitlines()
+		rInfo=pipe.cmd_in('python plot1 '+GraphRegion,no_warn = True).splitlines()
 		#list of plotting parameter strings from tao command python plot1
 
 		rInfoList = []
@@ -252,7 +252,7 @@ class taoplot:
 			#graph type, like r13.g or top.x
 
 
-			gInfo=pipe.cmd_in('python plot_graph '+gType).splitlines()
+			gInfo=pipe.cmd_in('python plot_graph '+gType,no_warn = True).splitlines()
 			#list of plotting parameter strings from tao command python plot_graph
 
 
@@ -276,7 +276,7 @@ class taoplot:
 
 			cInfo=[]
 			for i in cList:
-				cInfo.append(pipe.cmd_in('python plot_curve '+gType+'.'+i).splitlines())
+				cInfo.append(pipe.cmd_in('python plot_curve '+gType+'.'+i,no_warn = True).splitlines())
 			#list of lists of plotting parameter strings from tao command python plot_curve for each curve
 
 			cInfoSuperList=[]
@@ -303,7 +303,7 @@ class taoplot:
 			lInfo=[]
 			try:
 				for i in cList:
-					lInfo.append(pipe.cmd_in('python plot_line '+gType+'.'+i).splitlines())
+					lInfo.append(pipe.cmd_in('python plot_line '+gType+'.'+i,no_warn = True).splitlines())
 				#list of points from tao command python plot_line for each curve
 				if len(lInfo) != 0:
 					PointsSuperList=[]
@@ -329,7 +329,7 @@ class taoplot:
 			try:
 				sInfo=[]
 				for i in cList:
-					sInfo.append(pipe.cmd_in('python plot_symbol '+gType+'.'+i).splitlines())
+					sInfo.append(pipe.cmd_in('python plot_symbol '+gType+'.'+i,no_warn = True).splitlines())
 				#list of points from tao command python plot_symbol for each curve
 
 				SymbolSuperList=[]
@@ -357,7 +357,7 @@ class taoplot:
 			try:
 				hInfo=[]
 				for i in cList:
-					hInfo.append(pipe.cmd_in('python plot_histogram '+gType+'.'+i).splitlines())
+					hInfo.append(pipe.cmd_in('python plot_histogram '+gType+'.'+i,no_warn = True).splitlines())
 				hInfoDictList=[]
 				for i in range(len(cList)):
 					hInfoDict = {}
@@ -511,7 +511,7 @@ class taoplot:
 		if LatLayout == True:
 			GraphDict['LatLayout']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
 
-			layInfo=pipe.cmd_in('python plot_graph r1.g').splitlines()
+			layInfo=pipe.cmd_in('python plot_graph r1.g',no_warn = True).splitlines()
 			#list of plotting parameter strings from tao command python plot_graph
 
 
@@ -548,7 +548,7 @@ class taoplot:
 
 
 			
-			eleInfo=pipe.cmd_in('python plot_lat_layout '+str(universe)+'@'+str(branch)).splitlines()
+			eleInfo=pipe.cmd_in('python plot_lat_layout '+str(universe)+'@'+str(branch),no_warn = True).splitlines()
 			#list of strings containing information about each element
 
 			eleIndexList = []
@@ -710,7 +710,7 @@ class taoplot:
 		if FloorPlan == True:
 			GraphDict['FloorPlan']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
 
-			floInfo=pipe.cmd_in('python plot_graph r1.g').splitlines()
+			floInfo=pipe.cmd_in('python plot_graph r1.g',no_warn = True).splitlines()
 			#list of plotting parameter strings from tao command python plot_graph
 
 
@@ -728,7 +728,7 @@ class taoplot:
 			else:
 				universe = 1
 
-			fpeInfo=pipe.cmd_in('python floor_plan r1.g').splitlines()
+			fpeInfo=pipe.cmd_in('python floor_plan r1.g',no_warn = True).splitlines()
 			#list of plotting parameter strings from tao command python floor_plan
 			
 			
@@ -1005,7 +1005,7 @@ class taoplot:
 			
 			try:
 
-				fbwInfo=pipe.cmd_in('python floor_building_wall r1.g').splitlines()
+				fbwInfo=pipe.cmd_in('python floor_building_wall r1.g',no_warn = True).splitlines()
 				#list of plotting parameter strings from tao command python floor_building_wall
 
 				fbwCurveList = []
@@ -1031,13 +1031,13 @@ class taoplot:
 					return (xs1,ys1),(xs2,ys2)
 
 
-				nbw=pipe.cmd_in('python floor_building_wall r1.g name').splitlines()
+				nbw=pipe.cmd_in('python floor_building_wall r1.g name',no_warn = True).splitlines()
 				nbwTypeDict = {}
 				for i in range(len(nbw)):
 					nbwTypeDict[nbw[i].split(';')[0]] = nbw[i].split(';')[1]
 
 
-				fps=pipe.cmd_in('python plot_shapes floor_plan').splitlines()
+				fps=pipe.cmd_in('python plot_shapes floor_plan',no_warn = True).splitlines()
 				fpsTypeDict = {} #building wall element types
 				fpsColorDict = {} #building wall segment colors
 				for i in range(len(fps)):
@@ -1048,9 +1048,9 @@ class taoplot:
 
 
 				for i in fbwCurveList:
-					fbwIndexList = []
-					fbwXList = []
-					fbwYList = []
+					fbwIndexList = [] #index of point in curve
+					fbwXList = [] #list of point x coordinates
+					fbwYList = [] #list of point y coordinates
 					fbwRadiusList = [] #straight line if element has 0 or missing radius
 					for j in range(len(fbwInfo)):
 						if i == int(fbwInfo[j].split(';')[0]):
@@ -1062,16 +1062,17 @@ class taoplot:
 							except:
 								fbwRadiusList.append(0.0)
 					k = max(fbwIndexList) #max line index
+
 					while k > 1:
 						kIndex = fbwIndexList.index(k)
 						mIndex = fbwIndexList.index(k-1)
+
 						if fbwRadiusList[kIndex] == 0: #draw building wall line
 							GraphDict['FloorPlan'].plot([fbwXList[kIndex],fbwXList[mIndex]],[fbwYList[kIndex],fbwYList[mIndex]],color=fpsColorDict[nbwTypeDict[str(i)]])
 
-
 						else: #draw building wall arc
 							centerList = circle_intersection(fbwXList[mIndex],fbwYList[mIndex],fbwXList[kIndex],fbwYList[kIndex],abs(fbwRadiusList[kIndex]))
-							#radius specifies 2 possible circle centers for arcs
+							#radius and endpoints specify 2 possible circle centers for arcs
 							mpx = (fbwXList[mIndex] + fbwXList[kIndex])/2
 							mpy = (fbwYList[mIndex] + fbwYList[kIndex])/2 
 							if np.arctan2((fbwYList[mIndex]-mpy),(fbwXList[mIndex]-mpx)) < np.arctan2(centerList[0][1],centerList[0][0]) < np.arctan2((fbwYList[mIndex]-mpy),(fbwXList[mIndex]-mpx)) and fbwRadiusList[kIndex]>0:
@@ -1082,7 +1083,7 @@ class taoplot:
 								center = (centerList[0][0],centerList[0][1])
 							else:
 								center = (centerList[1][0],centerList[1][1])
-
+							#find correct center
 
 							mAngle = 360 + conv*np.arctan2((fbwYList[mIndex]-center[1]),(fbwXList[mIndex]-center[0]))
 							kAngle = 360 + conv*np.arctan2((fbwYList[kIndex]-center[1]),(fbwXList[kIndex]-center[0]))
@@ -1101,6 +1102,7 @@ class taoplot:
 								else:
 									t1=mAngle
 									t2=kAngle	
+							#pick correct start and end angle for arc							
 
 							GraphDict['FloorPlan'].add_patch(patches.Arc(center,fbwRadiusList[kIndex]*2,fbwRadiusList[kIndex]*2,theta1=t1,theta2=t2,color=fpsColorDict[nbwTypeDict[str(i)]]))
 
@@ -1113,7 +1115,7 @@ class taoplot:
 
 
 			if float(floInfoDict['floor_plan_orbit_scale'].value) != 0:
-				fpoInfo=pipe.cmd_in('python floor_orbit r1.g').splitlines()
+				fpoInfo=pipe.cmd_in('python floor_orbit r1.g',no_warn = True).splitlines()
 				
 				fpoIndexList = []
 				fpoXList = []
@@ -1129,6 +1131,7 @@ class taoplot:
 							fpoYList.append(float(fpoInfo[i].split(';')[j]))
 
 				GraphDict['FloorPlan'].plot(fpoXList,fpoYList,color=floInfoDict['floor_plan_orbit_color'].value.lower())
+			#Lists of floor plan orbit point indices, x coordinates, and y coordinates
 			#plot floor plan orbit
 
 
