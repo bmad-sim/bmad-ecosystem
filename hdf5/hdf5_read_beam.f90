@@ -33,9 +33,9 @@ type(c_funptr) c_func_ptr
 real(rp), allocatable :: rvec(:)
 real(rp) factor
 
-integer(HID_T) f_id, g_id, z_id, z2_id, r_id, b_id
-integer(HSIZE_T) idx
-integer(SIZE_T) g_size
+integer(hid_t) f_id, g_id, z_id, z2_id, r_id, b_id
+integer(hsize_t) idx
+integer(size_t) g_size
 integer i, ik, ib, ix, is, it, state, h5_err, n_bunch, storage_type, n_links, max_corder, h5_stat
 integer h_err
 integer, allocatable :: ivec(:)
@@ -127,7 +127,7 @@ real(rp), allocatable :: dt(:)
 
 integer(hid_t), value :: root_id
 integer(hid_t) g_id, g2_id, g3_id, g4_id, a_id
-integer(HSIZE_T) idx
+integer(hsize_t) idx
 integer n, stat, h5_stat, ia, ip, species
 integer, allocatable :: charge_state(:)
 
@@ -229,22 +229,12 @@ do idx = 0, n_links-1
     call pmd_read_real_dataset(g2_id, name, f_ev, bunch%particle%p0c, error)
   case ('totalMomentum')
     call pmd_read_real_dataset(g2_id, name, f_ev, bunch%particle%vec(6), error)
-  case ('photonPolarization')
-    g3_id = hdf5_open_group(g2_id, 'photonPolarization', error, .true.)
-    if (hdf5_exists(g3_id, 'x/real', error, .true.)) then
-      call pmd_read_real_dataset(g3_id, 'x/real', 1.0_rp, bunch%particle%field(1), error)
-      call pmd_read_real_dataset(g3_id, 'x/imaginary', 1.0_rp, bunch%particle%phase(1), error)
-      call to_amp_phase(bunch%particle%field(1), bunch%particle%phase(1))
-      call pmd_read_real_dataset(g3_id, 'y/real', 1.0_rp, bunch%particle%field(2), error)
-      call pmd_read_real_dataset(g3_id, 'y/imaginary', 1.0_rp, bunch%particle%phase(2), error)
-      call to_amp_phase(bunch%particle%field(2), bunch%particle%phase(2))
-    else
-      call pmd_read_real_dataset(g3_id, 'x/amplitude', 1.0_rp, bunch%particle%field(1), error)
-      call pmd_read_real_dataset(g3_id, 'x/phase', 1.0_rp, bunch%particle%phase(1), error)
-      call pmd_read_real_dataset(g3_id, 'y/amplitude', 1.0_rp, bunch%particle%field(2), error)
-      call pmd_read_real_dataset(g3_id, 'y/phase', 1.0_rp, bunch%particle%phase(2), error)
-    endif
-    call H5Gclose_f(g3_id, h5_err)
+  case ('photonPolarizationAmplitude')
+    call pmd_read_real_dataset(g2_id, 'photonPolarizationAmplitude/x', 1.0_rp, bunch%particle%field(1), error)
+    call pmd_read_real_dataset(g2_id, 'photonPolarizationAmplitude/y', 1.0_rp, bunch%particle%field(2), error)
+  case ('photonPolarizationPhase')
+    call pmd_read_real_dataset(g2_id, 'photonPolarizationPhase/x', 1.0_rp, bunch%particle%phase(1), error)
+    call pmd_read_real_dataset(g2_id, 'photonPolarizationPhase/y', 1.0_rp, bunch%particle%phase(2), error)
   case ('sPosition')
     call pmd_read_real_dataset(g2_id, name, 1.0_rp, bunch%particle%s, error)
   case ('time')
