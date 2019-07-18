@@ -31,7 +31,8 @@ def tao_set(tao_list,set_str,pipe, overide=False):
   '''
   Takes a list of tk_tao_parameters and makes a call to tao
   to set the parameters to the values input by the user
-  set_str should be "set global ", "set data orbit.x[10]|", or whatever is appropriate
+  set_str should be "set global ", "set data orbit.x[10]|",
+  or whatever is appropriate
   Use the overide option to run set commands even if no change has been made.
   '''
   # Exit imediately if tao_list is empty
@@ -62,7 +63,8 @@ def tao_set(tao_list,set_str,pipe, overide=False):
       try:
         new_val = float(item.tk_var.get())
       except ValueError:
-        messagebox.showwarning("Error",item.param.name + " must be a real number")
+        messagebox.showwarning(
+            "Error",item.param.name + " must be a real number")
         new_val = item.param.value
     else:
       new_val = item.tk_var.get()
@@ -89,7 +91,8 @@ def tao_set(tao_list,set_str,pipe, overide=False):
             set_val = item.param.value
         msg = pipe.cmd_in(set_str + item.param.name + " = " + set_val)
       else:
-        msg = pipe.cmd_in(set_str + item.param.name + " = " + str(item.param.value))
+        msg = pipe.cmd_in(
+            set_str + item.param.name + " = " + str(item.param.value))
       #if msg.find("ERROR") != -1:
       if msg != "":
         messagebox.showwarning(item.param.name,msg)

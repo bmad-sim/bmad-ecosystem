@@ -15,7 +15,9 @@ import string
 
 class tk_tao_parameter():
   '''
-  Takes a tao_parameter (defined in parameters.py) and a tk frame, and creates an object containing the parameter and appropriate tk widget(s) for displaying and modifying the parameter and value
+  Takes a tao_parameter (defined in parameters.py) and a tk frame,
+  and creates an object containing the parameter and appropriate tk widget(s)
+  for displaying and modifying the parameter and value
   '''
 
   def __init__(self, tao_parameter, frame, pipe=0):
@@ -51,7 +53,8 @@ class tk_tao_parameter():
       self.tk_var.set(self.param.value)
       if self.tk_var.get() == "":
         self.tk_var.set("Browse...")
-      self.tk_wid = tk.Button(frame, textvariable=self.tk_var, command=self.open_file)
+      self.tk_wid = tk.Button(
+          frame, textvariable=self.tk_var, command=self.open_file)
     elif self.param.type == 'LOGIC':
       self.tk_var = tk.BooleanVar()
       self.tk_var.set(self.param.value)
@@ -301,29 +304,36 @@ class d2_data_frame():
       self.frame.grid_columnconfigure(i, pad=10)
     for i in range(len(self.d1_data_list)):
       tk.Label(self.frame, text=self.d1_data_list[i]).grid(row=i+1,column=0)
-      tk.Button(self.frame, text="View...", command=self.open_d1_callback(self.name, self.d1_data_list[i], pipe, self.d1_ix_lb_list[i], self.d1_ix_ub_list[i], u_ix)).grid(row=i+1,column=1)
+      tk.Button(self.frame, text="View...",
+          command=self.open_d1_callback(self.name, self.d1_data_list[i], pipe,
+            self.d1_ix_lb_list[i], self.d1_ix_ub_list[i], u_ix)).grid(
+                row=i+1,column=1)
       mytext = str(self.d1_ix_lb_list[i]) + ":" + str(self.d1_ix_ub_list[i])
       tk.Label(self.frame, text=mytext).grid(row=i+1, column=2)
       tk.Label(self.frame, text=self.d1_using_list[i]).grid(row=i+1, column=3)
 
-  def open_d1_callback(self, d2_data_name, d1_data_name, pipe, ix_lb, ix_ub, u_ix):
-    return lambda : self.open_d1(d2_data_name, d1_data_name, pipe, ix_lb, ix_ub, u_ix)
+  def open_d1_callback(self, d2_data_name, d1_data_name,
+      pipe, ix_lb, ix_ub, u_ix):
+    return lambda : self.open_d1(
+        d2_data_name, d1_data_name, pipe, ix_lb, ix_ub, u_ix)
 
   def open_d1(self, d2_data_name, d1_data_name, pipe, ix_lb, ix_ub, u_ix):
     '''
     Opens a window with detailed information for d2_data_name.d1_data_name
     '''
     from tao_windows import tao_d1_data_window
-    win = tao_d1_data_window(self.root, pipe, d2_data_name + '.' + d1_data_name, u_ix, ix_lb, ix_ub)
+    win = tao_d1_data_window(
+        self.root, pipe, d2_data_name + '.' + d1_data_name, u_ix, ix_lb, ix_ub)
 
 #-----------------------------------------------------------------
 class d1_data_list_entry():
-  '''Creates various tk widgets to display attributes of a single datum.  Takes one line of output from python data_d_array as input.
+  '''Creates various tk widgets to display attributes of a single datum.
+  Takes one line of output from python data_d_array as input.
   '''
   def __init__(self, master, d_list):
     d_list = d_list.split(';')
     self.tk_wids = [] #Holds all the widgets
-    self.tk_tao_params = {} #Holds the tk_tao_parameters for items that are not labels
+    self.tk_tao_params = {} #Holds the tk_tao_parameters for non-label items
     self.index = d_list[0]
     for i in range(6):
       self.tk_wids.append(tk.Label(master, text=d_list[i]))
@@ -371,7 +381,7 @@ class v1_var_list_entry():
   def __init__(self, master, v_list):
     v_list = v_list.split(';')
     self.tk_wids = [] #Holds all the widgets
-    self.tk_tao_params = {} #Holds the tk_tao_parameters for items that are not labels
+    self.tk_tao_params = {} #Holds the tk_tao_parameters for non-label items
 
     self.index = v_list[0]
     for i in range(2):
@@ -411,7 +421,8 @@ class v1_var_list_entry():
 
 def enum_fetch(enum,pipe):
   '''
-  Takes the name of an enum variable and returns a list of its allowed values using the given pipe
+  Takes the name of an enum variable and returns a list of its allowed values
+  using the given pipe
   '''
   if pipe != 0:
     list_string = pipe.cmd_in("python enum " + enum)
@@ -426,12 +437,13 @@ def enum_fetch(enum,pipe):
   return option_list
 
 
-def inum_fetch(enum,pipe):
+def inum_fetch(inum,pipe):
   '''
-  Takes the name of an inum variable and returns a list of its allowed values using the given pipe
+  Takes the name of an inum variable and returns a list of its allowed values
+  using the given pipe
   '''
   if pipe != 0:
-    list_string = pipe.cmd_in("python inum " + enum)
+    list_string = pipe.cmd_in("python inum " + inum)
     option_list = list_string.splitlines()
   else:
     option_list = ["TAO NOT STARTED"]

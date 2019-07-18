@@ -23,7 +23,7 @@ from matplotlib.backends.backend_tkagg import (
 from matplotlib.backends._backend_tk import FigureManagerTk
 from matplotlib.backend_bases import key_press_handler
 from tao_ele_location import in_element
-from tao_mpl_toolbar import taotoolbar
+#from tao_mpl_toolbar import taotoolbar
 
 #-----------------------------------------------------
 # Console frame
@@ -33,7 +33,8 @@ from tao_mpl_toolbar import taotoolbar
 
 class tao_list_window(tk.Toplevel):
 
-  def __init__(self, root, title, use_upper=False, min_width=0, *args, **kwargs):
+  def __init__(self, root, title, use_upper=False,
+      min_width=0, *args, **kwargs):
     tk.Toplevel.__init__(self, root, *args, **kwargs)
     self.title(title)
     self.root = root
@@ -45,11 +46,12 @@ class tao_list_window(tk.Toplevel):
 
     self.canvas=tk.Canvas(self.outer_frame)
     self.list_frame=tk.Frame(self.canvas)
-    scrollbar=tk.Scrollbar(self.outer_frame,orient="vertical",command=self.canvas.yview)
+    scrollbar=tk.Scrollbar(self.outer_frame,orient="vertical",
+        command=self.canvas.yview)
     self.canvas.configure(yscrollcommand=scrollbar.set)
 
     def scrollhelper(event):
-      self.canvas.configure(scrollregion=self.canvas.bbox("all")) #,width=200,height=200)
+      self.canvas.configure(scrollregion=self.canvas.bbox("all"))
       new_width = event.width + 15
       # Don't resize to a smaller size
       old_geo = self.wm_geometry()
@@ -90,7 +92,8 @@ class tao_list_window(tk.Toplevel):
     scrollbar.pack(side="right",fill="y")
     self.canvas.pack(side="left",fill="both",expand=1)
 
-    self.canvas_list_window = self.canvas.create_window((0,0),window=self.list_frame,anchor='nw')
+    self.canvas_list_window = self.canvas.create_window(
+        (0,0),window=self.list_frame,anchor='nw')
 
   def bind_mouse(self, event):
     self.outer_frame.bind_all("<Button-4>", self.mouse_scroll)
@@ -147,7 +150,7 @@ class tao_parameter_frame(tk.Frame):
         item.tk_wid.grid(row=r, column=c+1, sticky='EW')
         i = i+1
       else:
-        tk.Label(self, text=item.param.value).grid(row=r, column=c+2, sticky='W')
+        tk.Label(self,text=item.param.value).grid(row=r, column=c+2, sticky='W')
 
   def set_params(self, set_str, event=None):
     '''
@@ -172,8 +175,10 @@ class tao_parameter_window(tao_list_window):
     self.button_frame.pack(side="top", fill="both", expand=0)
     self.tao_list = tao_list
     for k in range(len(self.tao_list)):
-      self.tao_list[k] = tk_tao_parameter(self.tao_list[k], self.list_frame, pipe)
-      tk.Label(self.list_frame,text=self.tao_list[k].param.name).grid(row=k,column=0,sticky="E")
+      self.tao_list[k] = tk_tao_parameter(
+          self.tao_list[k], self.list_frame, pipe)
+      tk.Label(self.list_frame,text=self.tao_list[k].param.name).grid(
+          row=k,column=0,sticky="E")
       self.tao_list[k].tk_wid.grid(row=k,column=1,sticky="EW")
       k = k+1
 
@@ -181,20 +186,29 @@ class tao_parameter_window(tao_list_window):
 # Table window
 class table_window(tao_list_window):
   '''
-  Meant for showing large amounts of information in a table (e.g. d1_data and v1_vars).  Comes with bulk editing, detailed view of individual rows, and editing of individual parameters in the table.
+  Meant for showing large amounts of information in a table
+  (e.g. d1_data and v1_vars).  Comes with bulk editing, detailed view of
+  individual rows, and editing of individual parameters in the table.
 
   Input parameters:
   root: parent widget
   pipe: the tao_interface object that allows interface with Tao
-  array_name: the name of the object this table displays (e.g. the name of the d1_datum or v1_variable)
+  array_name: the name of the object this table displays
+      (e.g. the name of the d1_datum or v1_variable)
   title_list: the column titles, in order from left to right
-  bulk_template: a list with elements [tao_parameter, column], where tao_parameter is a generic copy of the parameter that will be bulk filled (i.e. initialized to "blank"), and column is the column number it should be gridded to (start counting from 0 on the left)
-  bulk_set_format: format string for the bulk set string, to be used with the str.format() method
-  set_format: format string for individual rows' set strings, to be used with the str.format() method
-    example format strings: "set data 1@{}|", "set data 1@{}[{}]|"
+  bulk_template: a list with elements [tao_parameter, column], where
+      tao_parameter is a generic copy of the parameter that will be bulk filled
+      (i.e. initialized to "blank"), and column is the column number it should
+      be gridded to (start counting from 0 on the left)
+  bulk_set_format: format string for the bulk set string, to be used with the
+      str.format() method
+  set_format: format string for individual rows' set strings, to be used with
+      the str.format() method
+      example format strings: "set data 1@{}|", "set data 1@{}[{}]|"
   '''
 
-  def __init__(self, root, pipe, array_name, title_list, bulk_template, bulk_set_format, set_format, *args, **kwargs):
+  def __init__(self, root, pipe, array_name, title_list, bulk_template,
+      bulk_set_format, set_format, *args, **kwargs):
     tao_list_window.__init__(self, root, array_name, *args, **kwargs)
     self.pipe = pipe
     self.array_name = array_name
@@ -207,7 +221,8 @@ class table_window(tao_list_window):
     self.button_frame = tk.Frame(self)
     self.button_frame.pack(side="bottom", fill="both", expand=0)
     b1 = tk.Button(self.button_frame, text="Apply Changes", command=self.apply)
-    b2 = tk.Button(self.button_frame, text="Discard Changes and Refresh", command=self.refresh)
+    b2 = tk.Button(self.button_frame, text="Discard Changes and Refresh",
+        command=self.refresh)
 
     b2.pack(side="right")
     b1.pack(side="right")
@@ -225,8 +240,10 @@ class table_window(tao_list_window):
       j=j+1
 
     # Bulk editing
-    tk.Label(self.list_frame, text="Bulk editing:").grid(row=1, column=0, columnspan=self.bulk_template[0][1])
-    tk.Label(self.list_frame, text="Click to fill:").grid(row=2, column=0, columnspan=self.bulk_template[0][1])
+    tk.Label(self.list_frame, text="Bulk editing:").grid(
+        row=1, column=0, columnspan=self.bulk_template[0][1])
+    tk.Label(self.list_frame, text="Click to fill:").grid(
+        row=2, column=0, columnspan=self.bulk_template[0][1])
     #self.bulk_template[0][1] is the appropriate
     #columnspan because these labels can fill all
     #the space until the first bulk fill box
@@ -238,12 +255,14 @@ class table_window(tao_list_window):
 
     j=0
     for item in self.bulk_template:
-      self.bulk_params.append(tk_tao_parameter(copy.copy(item[0]), self.list_frame, self.pipe))
+      self.bulk_params.append(tk_tao_parameter(copy.copy(item[0]),
+        self.list_frame, self.pipe))
       self.bulk_params[j].tk_wid.grid(row=1, column=item[1])
       self.bulk_params[j].tk_wid.bind("<Return>", self.fill_callback(j))
       self.bulk_filled.append(False)
       self.bulk_value.append(self.bulk_params[j].tk_var.get())
-      self.bulk_apply.append(tk.Button(self.list_frame, text="Fill...", command = self.fill_callback(j) ))
+      self.bulk_apply.append(tk.Button(self.list_frame, text="Fill...",
+        command = self.fill_callback(j) ))
       self.bulk_apply[j].grid(row=2, column=item[1])
       j=j+1
 
@@ -252,17 +271,23 @@ class table_window(tao_list_window):
     # self.row_num AND A METHOD FOR POPULATING
     # self.list_rows, AND THEN CALL THIS METHOD
     #i = row counter, j = column counter
-    #grid to row i+3 because row 0 is titles, row 1 is bulk editing widgets, row 2 is fill buttons
+    #grid to row i+3 because row 0 is titles, row 1 is bulk editing widgets,
+    #row 2 is fill buttons
     self.list_rows = []
     for i in range(self.row_num):
       self.list_rows.append(self.list_row_fetch(i))
       for j in range(len(self.list_rows[i].tk_wids)):
         self.list_rows[i].tk_wids[j].grid(row=i+3, column=j)
-      tk.Button(self.list_frame, text="View More...", command=self.open_detail_window_callback(self.list_rows[i].index)).grid(row=i+3, column=len(self.list_rows[i].tk_wids))
+      tk.Button(self.list_frame, text="View More...",
+          command=self.open_detail_window_callback(
+            self.list_rows[i].index)).grid(
+                row=i+3, column=len(self.list_rows[i].tk_wids))
 
   def fill(self, index, event=None):
     '''
-    Fills the column specified by bulk_template[index][1] to the bulk edit value, saves the bulk edit value for efficient calls to tao_set, and clears the bulk edit box
+    Fills the column specified by bulk_template to the bulk edit value,
+    saves the bulk edit value for efficient calls to tao_set,
+    and clears the bulk edit box
     '''
     # Save the bulk parameter state
     self.bulk_value[index] = self.bulk_params[index].tk_var.get()
@@ -274,7 +299,8 @@ class table_window(tao_list_window):
       self.bulk_params[index].tk_var.set(False)
     # Fill the appropriate variable
     for i in range(len(self.list_rows)):
-      self.list_rows[i].tk_tao_params[self.bulk_template[index][0].name].tk_var.set(self.bulk_value[index])
+      self.list_rows[i].tk_tao_params[
+          self.bulk_template[index][0].name].tk_var.set(self.bulk_value[index])
 
   def fill_callback(self, index, event=None):
     return lambda event=None : self.fill(index)
@@ -286,28 +312,36 @@ class table_window(tao_list_window):
       if self.bulk_filled[i]:
         set_str = self.bulk_set_format.format(self.array_name)
         self.bulk_params[i].tk_var.set(self.bulk_value[i])
-        tao_set([self.bulk_params[i]], set_str, self.pipe, overide=(self.bulk_params[i].param.type=='LOGIC')) #overide is necessary for LOGIC parameters
+        #overide is necessary for LOGIC parameters
+        tao_set([self.bulk_params[i]], set_str, self.pipe, overide=(
+          self.bulk_params[i].param.type=='LOGIC'))
 
     #Apply individual changes that are different from bulk changes
     for i in range(len(self.list_rows)):
       set_list = []
-      #NOTE: it is expected that self.list_rows[i].index exist, and be equal to that row's index
+      #NOTE: it is expected that self.list_rows[i].index exist,
+      #and be equal to that row's index
       set_str = self.set_format.format(self.array_name, self.list_rows[i].index)
 
       #Find elements in row that need setting
       for j in range(len(self.bulk_template)):
         name = self.bulk_template[j][0].name
-        c1 = (self.list_rows[i].tk_tao_params[name].tk_var.get() != self.bulk_value[j])
+        c1 = (self.list_rows[i].tk_tao_params[name].tk_var.get()
+            != self.bulk_value[j])
         c2 = not self.bulk_filled[j]
         try:
           if self.bulk_template[j][0].type == 'REAL':
-            c3 = (float(self.list_rows[i].tk_tao_params[name].tk_var.get()) != self.list_rows[i].tk_tao_params[name].param.value)
+            c3 = (float(self.list_rows[i].tk_tao_params[name].tk_var.get())
+                != self.list_rows[i].tk_tao_params[name].param.value)
           elif self.bulk_template[j][0].type == 'INT':
-            c3 = (int(self.list_rows[i].tk_tao_params[name].tk_var.get()) != self.list_rows[i].tk_tao_params[name].param.value)
+            c3 = (int(self.list_rows[i].tk_tao_params[name].tk_var.get())
+                != self.list_rows[i].tk_tao_params[name].param.value)
           elif self.bulk_template[j][0].type == 'STR':
-            c3 = (str(self.list_rows[i].tk_tao_params[name].tk_var.get()) != self.list_rows[i].tk_tao_params[name].param.value)
+            c3 = (str(self.list_rows[i].tk_tao_params[name].tk_var.get())
+                != self.list_rows[i].tk_tao_params[name].param.value)
           elif self.bulk_template[j][0].type == 'LOGIC':
-            c3 = (bool(self.list_rows[i].tk_tao_params[name].tk_var.get()) != self.list_rows[i].tk_tao_params[name].param.value)
+            c3 = (bool(self.list_rows[i].tk_tao_params[name].tk_var.get())
+                != self.list_rows[i].tk_tao_params[name].param.value)
         except ValueError:
           c3 = False
         if (c1 | c2) & c3:
@@ -330,7 +364,8 @@ class table_window(tao_list_window):
     win = tao_parameter_window(self, detail_title, self.param_list, self.pipe)
 
     set_str = self.set_format.format(self.array_name, index)
-    b = tk.Button(win.button_frame, text="Apply changes", command=lambda : self.detail_set_callback(win.tao_list,set_str))
+    b = tk.Button(win.button_frame, text="Apply changes",
+        command=lambda : self.detail_set_callback(win.tao_list,set_str))
     b.pack()
 
   def detail_set_callback(self, tao_list, set_str):
@@ -345,7 +380,8 @@ class lw_table_window(tk.Toplevel):
   machines, for example).  Table is read only but individual
   entries can still be opened for editing with double click.
   '''
-  def __init__(self, root, pipe, array_name, title_list, bulk_format, bulk_set_format, set_format, *args, **kwargs):
+  def __init__(self, root, pipe, array_name, title_list, bulk_format,
+      bulk_set_format, set_format, *args, **kwargs):
     tk.Toplevel.__init__(self, root, *args, **kwargs)
     self.title(array_name)
     self.pipe = pipe
@@ -375,7 +411,8 @@ class lw_table_window(tk.Toplevel):
     widths = [0]*len(self.title_list) # tracks column widths
 
     # Create table
-    self.tree = ttk.Treeview(self.table_frame, columns=self.title_list, show='headings')
+    self.tree = ttk.Treeview(
+        self.table_frame, columns=self.title_list, show='headings')
     # Column titles
     for title in self.title_list:
       self.tree.heading(title, text=title)
@@ -402,8 +439,10 @@ class lw_table_window(tk.Toplevel):
       self.tree.column(self.title_list[j], width=widths[j], minwidth=widths[j])
 
     # Scrollbars
-    hbar = ttk.Scrollbar(self.table_frame, orient="horizontal", command=self.tree.xview)
-    vbar = ttk.Scrollbar(self.table_frame, orient="vertical", command=self.tree.yview)
+    hbar = ttk.Scrollbar(
+        self.table_frame, orient="horizontal", command=self.tree.xview)
+    vbar = ttk.Scrollbar(
+        self.table_frame, orient="vertical", command=self.tree.yview)
     self.tree.configure(xscrollcommand=hbar.set, yscrollcommand=vbar.set)
 
     vbar.pack(side="right", fill="y", expand=0)
@@ -450,7 +489,8 @@ class lw_table_window(tk.Toplevel):
     def test_cmd(event=None):
       self.bulk_set(fill_choices)
 
-    tk.Button(win, text="test", command=test_cmd).grid(row=2, column=0)
+    tk.Button(win, text="Fill and apply",
+        command=test_cmd).grid(row=2, column=0)
 
   def bulk_set(self, fill_choices):
     '''
@@ -623,7 +663,8 @@ class tao_d2_data_window(tao_list_window):
     for i in range(n_universe.value):
       u_ix_list.append(str(i+1))
     self.u_ix.set(u_ix_list[0])
-    u_ix_box = tk.OptionMenu(self.univ_frame, self.u_ix, *u_ix_list, command=self.refresh)
+    u_ix_box = tk.OptionMenu(
+        self.univ_frame, self.u_ix, *u_ix_list, command=self.refresh)
     u_ix_box.grid(row=0,column=1,sticky="W")
     self.univ_frame.pack(fill="both", expand=0)
 
@@ -643,7 +684,8 @@ class tao_d2_data_window(tao_list_window):
     d2_data_list = self.pipe.cmd_in("python data_d2_array " + u_ix)
     d2_data_list = d2_data_list.splitlines()
     for d2_data_item in d2_data_list:
-      new_frame = d2_data_frame(self.list_frame, self.root, self.pipe, d2_data_item, u_ix)
+      new_frame = d2_data_frame(
+          self.list_frame, self.root, self.pipe, d2_data_item, u_ix)
       new_frame.frame.pack()
 
 
@@ -654,7 +696,8 @@ class tao_d1_data_window(lw_table_window):
   '''
   With lw set to True, opens a lw_table_window instead
   '''
-  def __init__(self, root, pipe, d1_data_name, u_ix, ix_lb, ix_ub, *args, **kwargs):
+  def __init__(self, root, pipe, d1_data_name,
+      u_ix, ix_lb, ix_ub, *args, **kwargs):
     self.u_ix = u_ix
     self.ix_lb = ix_lb
     self.ix_ub = ix_ub
@@ -680,12 +723,15 @@ class tao_d1_data_window(lw_table_window):
     bulk_set_format = "set data " + str(self.u_ix) + '@{}|'
     set_format = "set data " + str(self.u_ix) + '@{}[{}]|'
     if self.lw:
-      lw_table_window.__init__(self, root, pipe, d1_data_name, title_list, bulk_template, bulk_set_format, set_format, *args, **kwargs)
+      lw_table_window.__init__(self, root, pipe, d1_data_name, title_list,
+          bulk_template, bulk_set_format, set_format, *args, **kwargs)
     else:
-      table_window.__init__(self, root, pipe, d1_data_name, title_list, bulk_template, bulk_set_format, set_format, *args, **kwargs)
+      table_window.__init__(self, root, pipe, d1_data_name, title_list,
+          bulk_template, bulk_set_format, set_format, *args, **kwargs)
 
   def refresh(self):
-    self.d_list = self.pipe.cmd_in("python data_d_array " + self.u_ix + '@' + self.array_name)
+    self.d_list = self.pipe.cmd_in(
+        "python data_d_array " + self.u_ix + '@' + self.array_name)
     self.d_list = self.d_list.splitlines()
     self.row_num = len(self.d_list)
     if self.lw:
@@ -713,7 +759,8 @@ class tao_d1_data_window(lw_table_window):
     lw_table_window.open_detail_window_callback(self, event)
 
   def open_detail_window(self, index):
-    self.param_list = self.pipe.cmd_in("python data " + str(self.u_ix) + '@' + self.array_name + '[' + str(index) + ']')
+    self.param_list = self.pipe.cmd_in("python data " + str(self.u_ix) + '@'
+        + self.array_name + '[' + str(index) + ']')
     self.param_list = self.param_list.splitlines()
     for i in range(len(self.param_list)):
       self.param_list[i]=str_to_tao_param(self.param_list[i])
@@ -743,15 +790,17 @@ class tao_var_general_window(tao_list_window):
     for i in range(len(v1_var_list)):
       v1_var_list[i] = v1_var_list[i].split(';')
 
-    tk.Label(self.list_frame, text="Variable").grid(row=0, column=0, columnspan=2)
+    tk.Label(self.list_frame, text="Variable").grid(
+        row=0, column=0, columnspan=2)
     tk.Label(self.list_frame, text="Indices").grid(row=0, column=2)
     tk.Label(self.list_frame, text="Using").grid(row=0, column=3)
 
     i=1
     for item in v1_var_list:
       tk.Label(self.list_frame, text=item[0]).grid(row=i, column=0)
-      tk.Button(self.list_frame, text="View...", command=self.open_v1_callback(item[0])).grid(row=i, column=1)
-      tk.Label(self.list_frame, text=item[2] + ':' + item[3]).grid(row=i, column=2)
+      tk.Button(self.list_frame, text="View...",
+          command=self.open_v1_callback(item[0])).grid(row=i, column=1)
+      tk.Label(self.list_frame,text=item[2] +':'+ item[3]).grid(row=i,column=2)
       tk.Label(self.list_frame, text=item[1]).grid(row=i, column=3)
       i = i+1
 
@@ -784,9 +833,11 @@ class tao_v1_var_window(lw_table_window):
     bulk_set_format = "set var {}|"
     set_format = "set var {}[{}]|"
     if self.lw:
-      lw_table_window.__init__(self, root, pipe, v1_var_name, title_list, bulk_template, bulk_set_format, set_format, *args, **kwargs)
+      lw_table_window.__init__(self, root, pipe, v1_var_name, title_list,
+          bulk_template, bulk_set_format, set_format, *args, **kwargs)
     else:
-      table_window.__init__(self, root, pipe, v1_var_name, title_list, bulk_template, bulk_set_format, set_format, *args, **kwargs)
+      table_window.__init__(self, root, pipe, v1_var_name, title_list,
+          bulk_template, bulk_set_format, set_format, *args, **kwargs)
 
   def refresh(self):
     self.v_list = self.pipe.cmd_in("python var_v_array " + self.array_name)
@@ -817,7 +868,8 @@ class tao_v1_var_window(lw_table_window):
     lw_table_window.open_detail_window_callback(self, event)
 
   def open_detail_window(self, index):
-    self.param_list = self.pipe.cmd_in("python var " + self.array_name + '[' + str(index) + ']')
+    self.param_list = self.pipe.cmd_in(
+        "python var " + self.array_name + '[' + str(index) + ']')
     self.param_list = self.param_list.splitlines()
     for i in range(len(self.param_list)):
       self.param_list[i]=str_to_tao_param(self.param_list[i])
@@ -934,7 +986,8 @@ class tao_plot_tr_window(tao_list_window):
 
     self.temp = tk.StringVar()
     self.temp.set(self.plot_list[0])
-    self.temp_select = ttk.Combobox(self.temp_frame, textvariable=self.temp, values=self.plot_list)
+    self.temp_select = ttk.Combobox(
+        self.temp_frame, textvariable=self.temp, values=self.plot_list)
     self.temp_select.bind("<<ComboboxSelected>>", self.refresh)
     self.temp_select.bind("<Return>", self.refresh)
     self.temp_select.grid(row=0, column=1)
@@ -943,7 +996,8 @@ class tao_plot_tr_window(tao_list_window):
 
     self.button_frame = tk.Frame(self)
     self.button_frame.pack(fill="both", expand=0)
-    b = tk.Button(self.button_frame, text="Apply changes", command=self.plot_apply)
+    b = tk.Button(
+        self.button_frame, text="Apply changes", command=self.plot_apply)
     b.pack(side="left", fill="both", expand=0)
     if (self.root.plot_mode == "matplotlib") & (self.mode == "T"):
       plot_b = tk.Button(self.button_frame, text="Plot!", command=self.mpl_plot)
@@ -958,7 +1012,8 @@ class tao_plot_tr_window(tao_list_window):
 
   def refresh(self, event=None):
     '''
-    Clears self.list_frame and populates it with information relevant to self.temp
+    Clears self.list_frame and populates it with information relevant to
+    self.temp
     '''
     # Don't run if self.temp is not a valid template
     if self.temp.get() not in self.plot_list:
@@ -984,23 +1039,29 @@ class tao_plot_tr_window(tao_list_window):
       self.graph_list[i] = self.graph_list[i].split(';')[3]
 
     # Grid the name and the graphs
-    name = tk_tao_parameter(str_to_tao_param(data_list.pop(0)), self.list_frame, self.pipe)
+    name = tk_tao_parameter(
+        str_to_tao_param(data_list.pop(0)), self.list_frame, self.pipe)
     name.tk_label.grid(row=0, column=0)
     name.tk_wid.grid(row=0, column=1, sticky='EW')
-    tk.Label(self.list_frame, text="Graphs").grid(row=1, column=0, rowspan=num_graphs)
+    tk.Label(self.list_frame, text="Graphs").grid(
+        row=1, column=0, rowspan=num_graphs)
     i=1
     for graph in self.graph_list:
-      tk.Button(self.list_frame, text=graph, command=self.open_graph_callback(name.param.value, graph)).grid(row=i, column=1, sticky='EW')
+      tk.Button(self.list_frame, text=graph,
+          command=self.open_graph_callback(name.param.value, graph)).grid(
+              row=i, column=1, sticky='EW')
       i = i+1
 
     # Grid the rest of the information
     self.list_frame.columnconfigure(1, weight=1)
     for i in range(len(data_list)):
-      data_list[i] = tk_tao_parameter(str_to_tao_param(data_list[i]), self.list_frame, self.pipe)
+      data_list[i] = tk_tao_parameter(
+          str_to_tao_param(data_list[i]), self.list_frame, self.pipe)
       # Make sure the Entry boxes are big enough to
       # display their contents
       if data_list[i].param.type in ['STR', 'INT', 'REAL']:
-        data_list[i].tk_wid.configure(width=len(str(data_list[i].param.value))+1)
+        data_list[i].tk_wid.configure(
+            width=len(str(data_list[i].param.value))+1)
       # Grid to row i+1+num_graphs because row 0
       # is for the name and there are num_graphs rows
       # of graph buttons
@@ -1059,7 +1120,8 @@ class tao_plot_window(tk.Toplevel):
     self.pipe = pipe
     self.fig = False #Default value
 
-    # Check if the template has been placed in a region already, and place it if necessary
+    # Check if the template has been placed in a region already,
+    # and place it if necessary
     if self.template in self.root.placed.keys():
       print("found in root.placed")
       pass
@@ -1098,10 +1160,11 @@ class tao_plot_window(tk.Toplevel):
     canvas.draw()
     canvas.get_tk_widget().pack(side="top", fill="both", expand=1)
     # DO NOT TOUCH
-    canvas.manager = FigureManagerTk(canvas, self.fig.number, tk.Toplevel(self.root))
+    canvas.manager = FigureManagerTk(
+        canvas, self.fig.number, tk.Toplevel(self.root))
 
-    toolbar = taotoolbar(canvas, self)
-    toolbar.update()
+    #toolbar = taotoolbar(canvas, self)
+    #toolbar.update()
     canvas._tkcanvas.pack(side="top", fill="both", expand=1)
 
     def on_key_press(event):
@@ -1113,7 +1176,8 @@ class tao_plot_window(tk.Toplevel):
       if event.dblclick:
         eleList = in_element(event.xdata,event.ydata,self.fig_info)
         for i in eleList:
-          tao_ele_window(self.root,self.pipe,default=[self.fig_info[1],self.fig_info[2],i,self.fig_info[3]])
+          tao_ele_window(self.root,self.pipe,
+              default=[self.fig_info[1],self.fig_info[2],i,self.fig_info[3]])
 
     canvas.mpl_connect("button_press_event", on_click)
 
@@ -1151,7 +1215,8 @@ class tao_plot_graph_window(tao_list_window):
 
     self.button_frame = tk.Frame(self)
     self.button_frame.pack(fill="both", expand=0)
-    b = tk.Button(self.button_frame, text="Apply changes", command=self.graph_apply)
+    b = tk.Button(
+        self.button_frame, text="Apply changes", command=self.graph_apply)
     b.pack()
 
   def refresh(self):
@@ -1170,28 +1235,34 @@ class tao_plot_graph_window(tao_list_window):
       curve_list[i] = curve_list[i].split(';')[3]
 
     # Display the name
-    name = tk_tao_parameter(str_to_tao_param(data_list.pop(0)), self.list_frame, self.pipe)
+    name = tk_tao_parameter(
+        str_to_tao_param(data_list.pop(0)), self.list_frame, self.pipe)
     name.tk_label.grid(row=0, column=0)
     name.tk_wid.grid(row=0, column=1, sticky='EW')
 
     # Curve buttons
     if num_curves > 0:
-      tk.Label(self.list_frame, text="Curves").grid(row=1, column=0, rowspan=num_curves)
+      tk.Label(self.list_frame, text="Curves").grid(
+          row=1, column=0, rowspan=num_curves)
       i=1
       for curve in curve_list:
-        tk.Button(self.list_frame, text=curve, command=self.open_curve_callback(self.graph, curve)).grid(row=i, column=1, sticky='EW')
+        tk.Button(self.list_frame, text=curve,
+            command=self.open_curve_callback(self.graph, curve)).grid(
+                row=i, column=1, sticky='EW')
         i = i+1
 
     # Grid everything else
     self.list_frame.columnconfigure(1, weight=1)
     for i in range(len(data_list)):
-      data_list[i] = tk_tao_parameter(str_to_tao_param(data_list[i]), self.list_frame, self.pipe)
+      data_list[i] = tk_tao_parameter(
+          str_to_tao_param(data_list[i]), self.list_frame, self.pipe)
     self.tao_list = data_list
     for i in range(len(data_list)):
       # Make sure the Entry boxes are big enough to
       # display their contents
       if data_list[i].param.type in ['STR', 'INT', 'REAL']:
-        data_list[i].tk_wid.configure(width=len(str(data_list[i].param.value))+1)
+        data_list[i].tk_wid.configure(
+            width=len(str(data_list[i].param.value))+1)
       data_list[i].tk_label.grid(row=i+1+num_curves, column=0)
       data_list[i].tk_wid.grid(row=i+1+num_curves, column=1, sticky='EW')
 
@@ -1205,7 +1276,8 @@ class tao_plot_graph_window(tao_list_window):
     curve = graph + '.' + curve
     win = tao_plot_curve_window(self.root, curve, self.pipe)
 
-    b = tk.Button(win.button_frame, text="Apply changes", command=lambda : self.curve_apply(win))
+    b = tk.Button(win.button_frame, text="Apply changes",
+        command=lambda : self.curve_apply(win))
     b.pack()
 
   def curve_apply(self, win):
@@ -1262,7 +1334,8 @@ class tao_plot_curve_window(tao_parameter_window):
     for i in range(len(data_list)):
       data_list[i] = str_to_tao_param(data_list[i])
 
-    tao_parameter_window.__init__(self, root, curve, data_list, self.pipe, *args, **kwargs)
+    tao_parameter_window.__init__(
+        self, root, curve, data_list, self.pipe, *args, **kwargs)
 
 #-----------------------------------------------------
 # Branch/element choosing widgets
@@ -1273,10 +1346,12 @@ class tao_branch_widgets:
   Available widgets:
   self.uni_chooser: OptionMenu to pick the universe index
   self.branch_chooser: OptionMenu to pick the branch (displays name and index)
-  self.ele_chooser: ttk Combobox for selecting an element.  Maybe be specified by name or index
+  self.ele_chooser: ttk Combobox for selecting an element.
+      May be specified by name or index
   self.bmd_chooser: OptionMenu for choosing base, model, or design
   self.bme_chooser: OptionMenu for choosing beginning, middle, or end
-  In addition, the class provides tk variables for each of these widgets, named the same but without _chooser at the end
+  In addition, the class provides tk variables for each of these widgets,
+      named the same but without _chooser at the end
   '''
   def __init__(self, parent, pipe, default=None):
     '''
@@ -1294,11 +1369,12 @@ class tao_branch_widgets:
     n_uni = n_uni.splitlines()
     n_uni = int(n_uni[0].split(';')[3])
     self.u_list = [] # List of universes
-    self.b_list = {} # b_list[i] is a list of branches in universe i
-    self.b_name_list = {} # b_name_list[i] is a list of branch names in universe i
-    self.e_list = {} #e_list[i][j] is a range from 0 to the max element number
-    self.e_name_list = {} #e_name_list[i][j] is a list of ele names in branch j of uni i
-    self.e_display_list = {} # indexed the same as e_list and e_name_list, but for displaying the number and name
+    self.b_list = {} # b_list[i] = branches in universe i
+    self.b_name_list = {} # b_name_list[i] = branch names in universe i
+    self.e_list = {} #e_list[i][j] = range from 0 to the max element number
+    self.e_name_list = {} #e_name_list[i][j] = ele names in branch j of uni i
+    self.e_display_list = {} # indexed the same as e_list and e_name_list,
+                             # but for displaying the number and name
     # There are three separate lists for the elements because
     # users can specify elements by name, by number,
     # or by selecting from a dropdown, which displays
@@ -1321,7 +1397,8 @@ class tao_branch_widgets:
         self.b_name_list[u].append('(' + branch_num + ') ' + branch_name)
         self.e_list[u][branch_num] = range(ele_num+1)
         self.e_display_list[u][branch_num] = []
-        ele_names = self.pipe.cmd_in("python lat_ele_list " + u + '@' + branch_num)
+        ele_names = self.pipe.cmd_in(
+            "python lat_ele_list " + u + '@' + branch_num)
         ele_names = ele_names.splitlines()
         for j in range(len(ele_names)):
           ele_names[j] = ele_names[j].split(';')[1]
@@ -1350,18 +1427,25 @@ class tao_branch_widgets:
     self.branch_name.set(self.b_name_list[self.uni.get()][0])
     try: # in case self.ele was set by name and not by index
       ele_num = int(self.ele.get())
-      self.ele.set(self.e_display_list[self.uni.get()][self.branch.get()][ele_num])
+      self.ele.set(
+          self.e_display_list[self.uni.get()][self.branch.get()][ele_num])
     except ValueError:
       pass
-    self.ele_label.set("Element (0 to " + str(self.e_list[self.uni.get()][self.branch.get()][-1]) + ")")
+    self.ele_label.set("Element (0 to "
+        + str(self.e_list[self.uni.get()][self.branch.get()][-1]) + ")")
 
-    self.uni_chooser = tk.OptionMenu(self.parent, self.uni, *self.u_list, command=self.make_branch)
-    self.branch_chooser = tk.OptionMenu(self.parent, self.branch_name, *self.b_name_list[self.uni.get()], command=self.make_ele_chooser)
-    self.ele_chooser = ttk.Combobox(self.parent, textvariable=self.ele, values=self.e_display_list[self.uni.get()][self.branch.get()])
+    self.uni_chooser = tk.OptionMenu(
+        self.parent, self.uni, *self.u_list, command=self.make_branch)
+    self.branch_chooser = tk.OptionMenu(self.parent, self.branch_name,
+        *self.b_name_list[self.uni.get()], command=self.make_ele_chooser)
+    self.ele_chooser = ttk.Combobox(self.parent, textvariable=self.ele,
+        values=self.e_display_list[self.uni.get()][self.branch.get()])
     #self.ele_chooser.bind("<<ComboboxSelected>>", self.refresh)
     #self.ele_chooser.bind("<Return>", self.refresh)
-    self.bmd_chooser = tk.OptionMenu(self.parent, self.bmd, "Base", "Model", "Design")
-    self.bme_chooser = tk.OptionMenu(self.parent, self.bme, "Beginning", "Middle", "End")
+    self.bmd_chooser = tk.OptionMenu(
+        self.parent, self.bmd, "Base", "Model", "Design")
+    self.bme_chooser = tk.OptionMenu(
+        self.parent, self.bme, "Beginning", "Middle", "End")
     self.bme.set("End")
 
   def make_branch(self, event=None):
@@ -1383,7 +1467,8 @@ class tao_branch_widgets:
 
     # Remake the branch_chooser
     self.branch_chooser.destroy()
-    self.branch_chooser = tk.OptionMenu(self.parent, self.branch_name, *self.b_name_list[self.uni.get()], command=self.make_ele_chooser)
+    self.branch_chooser = tk.OptionMenu(self.parent, self.branch_name,
+        *self.b_name_list[self.uni.get()], command=self.make_ele_chooser)
     self.branch.set(self.b_list[self.uni.get()][0])
     self.branch_name.set(self.b_name_list[self.uni.get()][0])
     self.make_ele_chooser()
@@ -1413,10 +1498,12 @@ class tao_branch_widgets:
       return
 
     self.ele_chooser.destroy()
-    self.ele_chooser = ttk.Combobox(self.parent, textvariable=self.ele, values=self.e_display_list[self.uni.get()][self.branch.get()])
+    self.ele_chooser = ttk.Combobox(self.parent, textvariable=self.ele,
+        values=self.e_display_list[self.uni.get()][self.branch.get()])
     self.ele_chooser.bind("<<ComboboxSelected>>", self.update)
     self.ele_chooser.bind("<Return>", self.update)
-    self.ele_label.set("Element (0 to " + str(self.e_list[self.uni.get()][self.branch.get()][-1]) + ")")
+    self.ele_label.set("Element (0 to "
+        + str(self.e_list[self.uni.get()][self.branch.get()][-1]) + ")")
     # set self.ele to element 0 in the first branch
     self.ele.set(self.e_display_list[self.uni.get()][self.branch.get()][0])
 
@@ -1434,10 +1521,13 @@ class tao_branch_widgets:
     Returns 0 if setting self.ele failed, 1 if succeeded
     '''
     # Make sure the element field has an actual element in it
-    if (self.ele.get() not in self.e_name_list[self.uni.get()][self.branch.get()]) \
-        & (self.ele.get() not in self.e_display_list[self.uni.get()][self.branch.get()]):
+    if (self.ele.get() not in
+        self.e_name_list[self.uni.get()][self.branch.get()]) \
+        & (self.ele.get() not in
+            self.e_display_list[self.uni.get()][self.branch.get()]):
       try:
-        if int(self.ele.get()) not in self.e_list[self.uni.get()][self.branch.get()]:
+        if (int(self.ele.get()) not in
+            self.e_list[self.uni.get()][self.branch.get()]):
           messagebox.showwarning("Error", "Element not found")
           return 0
       except ValueError:
@@ -1447,10 +1537,12 @@ class tao_branch_widgets:
     # Set self.ele, in case the element
     # was specified by name or display name
     if self.ele.get() in self.e_name_list[self.uni.get()][self.branch.get()]:
-      ele_num = self.e_name_list[self.uni.get()][self.branch.get()].index(self.ele.get())
+      ele_num = self.e_name_list[self.uni.get()][self.branch.get()].index(
+          self.ele.get())
       self.ele.set(str(ele_num))
     elif self.ele.get() in self.e_display_list[self.uni.get()][self.branch.get()]:
-      ele_num = self.e_display_list[self.uni.get()][self.branch.get()].index(self.ele.get())
+      ele_num = self.e_display_list[self.uni.get()][self.branch.get()].index(
+          self.ele.get())
       self.ele.set(str(ele_num))
     return 1
 
@@ -1465,7 +1557,8 @@ class tao_ele_window(tao_list_window):
   Format for default: [universe, branch, element, base/model/design]
   '''
   def __init__(self, root, pipe, default=None, *args, **kwargs):
-    tao_list_window.__init__(self, root, "Lattice Elements", use_upper=True, min_width=600, *args, **kwargs)
+    tao_list_window.__init__(self, root, "Lattice Elements", use_upper=True,
+        min_width=600, *args, **kwargs)
     self.pipe = pipe
     self.default = default
     self.open_frames = [] #keeps track of which p_frames are open
@@ -1498,7 +1591,6 @@ class tao_ele_window(tao_list_window):
     self.ele_wids.branch_chooser.grid(row=1, column=1, sticky='EW')
     self.ele_wids.ele_chooser.grid(row=1, column=2, sticky='EW')
     self.ele_wids.bmd_chooser.grid(row=1, column=3, sticky='EW')
-    #tk.Button(self.top_frame, text="Load\n(Discard changes)", command=self.refresh).grid(row=0, column=4, rowspan=2, sticky="NSEW")
 
     self.refresh()
 
@@ -1515,11 +1607,13 @@ class tao_ele_window(tao_list_window):
     try:
       for i in range(len(self.p_frames)):
         if self.p_names[i] not in ['lord_slave', 'mat6', 'floor']:
-          something_changed = something_changed | self.p_frames[i].check_for_changes()
+          something_changed = something_changed | \
+              self.p_frames[i].check_for_changes()
     except:
       pass
     if something_changed:
-      x = messagebox.askyesnocancel(title="Unsaved Changes", message="Apply changes before switching elements?")
+      x = messagebox.askyesnocancel(title="Unsaved Changes",
+          message="Apply changes before switching elements?")
       if x:
         self.ele_set()
       if x == None:
@@ -1536,16 +1630,19 @@ class tao_ele_window(tao_list_window):
       child.destroy()
 
     # Create an element object
-    self.element = lat_element(self.ele_wids.uni.get(), self.ele_wids.branch.get(), self.ele_wids.ele.get(), (self.ele_wids.bmd.get()).lower(), self.pipe)
+    self.element = lat_element(self.ele_wids.uni.get(),
+        self.ele_wids.branch.get(), self.ele_wids.ele.get(),
+        (self.ele_wids.bmd.get()).lower(), self.pipe)
 
     # Populate self.head_frame
     self.head_tk_tao_params = []
     for p in self.element.params.keys():
-      self.element.params[p] = tk_tao_parameter(self.element.params[p], self.head_frame, self.pipe)
+      self.element.params[p] = tk_tao_parameter(
+          self.element.params[p], self.head_frame, self.pipe)
       if self.element.params[p].param.can_vary:
         self.head_tk_tao_params.append(self.element.params[p])
-    #name = tk.Label(self.head_frame, text=self.element.params["name"].param.value)
-    name = tk.Label(self.head_frame, text=self.element.params["name"].param.value)
+    name = tk.Label(
+        self.head_frame, text=self.element.params["name"].param.value)
     name.configure(font=("Sans", 16, "bold"))
     name.grid(row=0, column = 0, columnspan = 4)
 
@@ -1564,13 +1661,14 @@ class tao_ele_window(tao_list_window):
     self.element.params["type"].tk_wid.grid(row=1, column=3, sticky='EW')
     tk.Label(self.head_frame, text="Alias").grid(row=2, column=2, sticky='E')
     self.element.params["alias"].tk_wid.grid(row=2, column=3, sticky='EW')
-    tk.Label(self.head_frame, text="Description").grid(row=3, column=2, sticky='E')
+    tk.Label(self.head_frame, text="Description").grid(
+        row=3, column=2, sticky='E')
     self.element.params["descrip"].tk_wid.grid(row=3, column=3, sticky='EW')
     tk.Label(self.head_frame, text="is_on").grid(row=4, column=2, sticky='E')
     self.element.params["is_on"].tk_wid.grid(row=4, column=3, sticky='EW')
     # Set button
-    tk.Button(self.top_frame, text='Apply all\nchanges', command=self.ele_set).grid(
-        row=0, column=4, rowspan=2, sticky='EW')
+    tk.Button(self.top_frame, text='Apply all\nchanges',
+        command=self.ele_set).grid(row=0, column=4, rowspan=2, sticky='EW')
 
     # Body frame
     self.sh_b_list = [] # Show/hide button list
@@ -1596,8 +1694,10 @@ class tao_ele_window(tao_list_window):
             x = self.list_frame.scale_mp_var.get()
           except:
             self.list_frame.scale_mp_var = tk.BooleanVar()
-          tao_output = self.pipe.cmd_in("python ele:" + key + ' ' + self.element.id)
-          self.p_frames.append(tao_multipole_frame(self.list_frame, tao_output, self.pipe))
+          tao_output = self.pipe.cmd_in(
+              "python ele:" + key + ' ' + self.element.id)
+          self.p_frames.append(
+              tao_multipole_frame(self.list_frame, tao_output, self.pipe))
           self.p_names.append(key)
           self.sh_b_list[i].configure(command=self.s_callback(i))
           self.sh_b_list[i].grid(row=2*i, column=0, sticky='W')
@@ -1608,7 +1708,8 @@ class tao_ele_window(tao_list_window):
           ls_frame = tk.Frame(self.list_frame)
           ls_list = self.pipe.cmd_in("python ele:lord_slave "
               + self.ele_wids.uni.get() + '@' + self.ele_wids.branch.get()
-              + '>>' + self.ele_wids.ele.get() + '|' + (self.ele_wids.bmd.get()).lower())
+              + '>>' + self.ele_wids.ele.get() + '|'
+              + (self.ele_wids.bmd.get()).lower())
           ls_list = ls_list.splitlines()
           self.tao_lists.append(ls_list) # Don't want to misalign indices
           ls_cols = ['Index', 'Name', 'Key', 'Slave/Lord Status']
@@ -1624,9 +1725,11 @@ class tao_ele_window(tao_list_window):
           for line in ls_list:
             line = line.split(';')
             if line[0] == 'Element':
-              current_level = ls_tree.insert("", "end", text=line[0], values=line[1:])
+              current_level = ls_tree.insert(
+                  "", "end", text=line[0], values=line[1:])
             else:
-              ls_tree.insert(current_level, "end", text=line[0], values=line[1:])
+              ls_tree.insert(
+                  current_level, "end", text=line[0], values=line[1:])
           # Fix scrolling
           ls_tree.bind('<Enter>', self.unbind_mouse)
           ls_tree.bind('<Leave>', self.bind_mouse)
@@ -1676,7 +1779,8 @@ class tao_ele_window(tao_list_window):
           n_cols = 1
         else:
           n_cols = 2
-        self.p_frames.append(tao_parameter_frame(self.list_frame, self.tao_lists[i], n_cols, self.pipe))
+        self.p_frames.append(tao_parameter_frame(
+            self.list_frame, self.tao_lists[i], n_cols, self.pipe))
         self.p_names.append(key)
         if key == 'floor': #column titles
           title_frame = tk.Frame(self.p_frames[i])
@@ -1692,13 +1796,17 @@ class tao_ele_window(tao_list_window):
         if key == 'mat6': #label mat6 properly
           for j in range(6):
             self.p_frames[i].tao_list[j].tk_label.grid_forget()
-          tk.Label(self.p_frames[i], text='m\na\nt\n6').grid(row=0, column=0, rowspan=6, sticky='E')
+          tk.Label(self.p_frames[i], text='m\na\nt\n6').grid(
+              row=0, column=0, rowspan=6, sticky='E')
         self.sh_b_list[i].grid(row=2*i, column=0, sticky='W')
         #self.p_frames[i].pack()
         i = i+1
 
     # Reset self.ele to be the display name
-    self.ele_wids.ele.set(self.ele_wids.e_display_list[self.ele_wids.uni.get()][self.ele_wids.branch.get()][int(self.ele_wids.ele.get())])
+    u = self.ele_wids.uni.get()
+    b = self.ele_wids.branch.get()
+    e = self.ele_wids.ele.get()
+    self.ele_wids.ele.set(self.ele_wids.e_display_list[u][b][int(e)])
     self.list_frame.columnconfigure(0, weight=1)
 
     # Open the frames listed in self.open_frames
@@ -1762,8 +1870,10 @@ class tao_ele_window(tao_list_window):
                 'phi_position',
                 'psi_position']
             for i in range(len(p._svar)):
-              floor_list.append(str_to_tao_param(names[i]+';REAL;T;' + p._svar[i].get()))
-              floor_list[i] = tk_tao_parameter(floor_list[i], self.head_frame, self.pipe)
+              floor_list.append(
+                  str_to_tao_param(names[i]+';REAL;T;' + p._svar[i].get()))
+              floor_list[i] = tk_tao_parameter(
+                  floor_list[i], self.head_frame, self.pipe)
             # Run the set command
             tao_set(floor_list, set_str, self.pipe, overide=True)
     # Refresh the element window
@@ -1776,7 +1886,8 @@ class tao_multipole_frame(tk.Frame):
   python ele:multipoles or ele:elec_multipoles
   command in a table with certain elements editable
   parent: the parent widget of this frame
-  tao_output: the raw, unfiltered output of the tao command that gave the multipole information
+  tao_output: the raw, unfiltered output of the tao command that gave
+      the multipole information
   pipe: tao_interface object
   '''
   def __init__(self, parent, tao_output, pipe, *args, **kwargs):
@@ -1797,14 +1908,18 @@ class tao_multipole_frame(tk.Frame):
     self.top_info = tao_output[:2]
     # Display in top_frame
     for i in range(len(self.top_info)):
-      self.top_info[i] = tk_tao_parameter(str_to_tao_param(self.top_info[i]), self.top_frame, self.pipe)
+      self.top_info[i] = tk_tao_parameter(
+          str_to_tao_param(self.top_info[i]), self.top_frame, self.pipe)
       # Link the multipoles and elec_multipoles variables
-      self.top_info[i].tk_var = parent.mp_on_var if i == 0 else parent.scale_mp_var
+      self.top_info[i].tk_var = (parent.mp_on_var if i == 0
+          else parent.scale_mp_var)
       self.top_info[i].tk_var.set(self.top_info[i].param.value)
-      self.top_info[i].tk_wid = tk.Checkbutton(self.top_frame, variable=self.top_info[i].tk_var)
+      self.top_info[i].tk_wid = tk.Checkbutton(
+          self.top_frame, variable=self.top_info[i].tk_var)
       self.top_info[i].tk_label.grid(row=0, column=2*i, sticky='E')
       self.top_info[i].tk_wid.grid(row=0, column=2*i+1, sticky='W')
-    tk.Button(self.top_frame, text="Show all orders", command=self.show_all_orders).grid(row=0, column=4, sticky='W')
+    tk.Button(self.top_frame, text="Show all orders",
+        command=self.show_all_orders).grid(row=0, column=4, sticky='W')
 
     # Display the table (rest of output)
     if len(tao_output) < 3:
@@ -1817,7 +1932,8 @@ class tao_multipole_frame(tk.Frame):
     i = 1 #row counter
     for line in tao_output[3:]:
       line = line.split(';')
-      tk.Label(self.table_frame, text=line[0]).grid(row=i, column=0, sticky='EW')
+      tk.Label(self.table_frame, text=line[0]).grid(
+          row=i, column=0, sticky='EW')
       self.shown_orders.append(line[0])
       j = 1 #column counter
       for item in line[1:]:
@@ -1844,11 +1960,13 @@ class tao_multipole_frame(tk.Frame):
       child.grid_forget()
     # Re-grid the titles
     for j in range(len(self.titles)):
-      tk.Label(self.table_frame, text=self.titles[j]).grid(row=0, column=j, sticky='EW')
+      tk.Label(self.table_frame, text=self.titles[j]).grid(
+          row=0, column=j, sticky='EW')
     # the multipoles:
     x = 0 # counts position in self.tk_tao_list
     for i in range(22): #supports orders 0 through 21
-      tk.Label(self.table_frame, text=str(i)).grid(row=i+1, column=0, sticky='EW')
+      tk.Label(self.table_frame, text=str(i)).grid(
+          row=i+1, column=0, sticky='EW')
       # Check if widgets exist for this order
       if str(i) in self.shown_orders:
         for j in range(len(self.titles)-1):
@@ -1901,8 +2019,10 @@ class tao_lattice_window(tk.Toplevel):
     # Switches
 
     # Load/Save table template
-    tk.Label(self.top_frame, text="Template File: ").grid(row=4, column=0, sticky='W')
-    self.template_file = tk_tao_parameter(str_to_tao_param("template_file;FILE;T;"), self.top_frame, self.pipe)
+    tk.Label(self.top_frame, text="Template File: ").grid(
+        row=4, column=0, sticky='W')
+    self.template_file = tk_tao_parameter(
+        str_to_tao_param("template_file;FILE;T;"), self.top_frame, self.pipe)
     self.template_file.tk_wid.configure(command=self.temp_file_load)
     self.template_file.tk_wid.grid(row=4, column=1, sticky='EW')
     tk.Label(self.top_frame, text="Template:").grid(row=4, column=2, sticky='W')
@@ -1910,16 +2030,16 @@ class tao_lattice_window(tk.Toplevel):
     self.temp_var.set("NO TEMPLATE FILE SELECTED")
     self.temp_chooser = tk.OptionMenu(self.top_frame, self.temp_var, [])
     self.temp_chooser.grid(row=4, column=3, sticky='EW')
-    tk.Button(self.top_frame, text="Save", command=self.save_template).grid(row=4, column=5, sticky='W')
-    self.temp_save = tk_tao_parameter(str_to_tao_param("name;STR;T;"), self.top_frame, self.pipe)
+    tk.Button(self.top_frame, text="Save", command=self.save_template).grid(
+        row=4, column=5, sticky='W')
+    self.temp_save = tk_tao_parameter(
+        str_to_tao_param("name;STR;T;"), self.top_frame, self.pipe)
     self.temp_save.tk_wid.bind('<Return>', self.save_template)
     self.temp_save.tk_wid.grid(row=4, column=4, sticky='EW')
 
     # Branch/General
     self.branch_wids = tao_branch_widgets(self.top_frame, self.pipe)
-    #tk.Label(self.top_frame, text="PLACEHOLDER").grid(row=0, column=0, columnspan=5, sticky='EW')
     tk.Label(self.top_frame, text="Universe:").grid(row=0, column=0, sticky='W')
-    #self.branch_wids.uni_chooser.configure(command=self.set_uni)
     self.branch_wids.uni_chooser.grid(row=0, column=1, sticky='EW')
     tk.Label(self.top_frame, text="Branch:").grid(row=0, column=2, sticky='W')
     self.branch_wids.branch_chooser.grid(row=0, column=3, sticky='EW')
@@ -1940,21 +2060,24 @@ class tao_lattice_window(tk.Toplevel):
     self.cf_box = tk.OptionMenu(self.top_frame, self.col_filter,
         *col_opts, command=self.col_filter_callback)
     self.cf_box.grid(row=1, column=1, sticky='EW')
-    tk.Label(self.top_frame, text="Attributes:").grid(row=1, column=2, sticky='EW')
+    tk.Label(self.top_frame, text="Attributes:").grid(
+        row=1, column=2, sticky='EW')
     self.col_atts = tk.StringVar()
     self.att_box = tk.Entry(self.top_frame, textvariable=self.col_atts)
     self.att_box.configure(state="disabled")
     self.att_box.grid(row=1, column=3, sticky='EW')
-    tk.Label(self.top_frame, text="Template file:").grid(row=1, column=4, sticky='EW')
-    #tk.Button(self.top_frame, text="Browse... (placeholder)").grid(row=1, column=5, sticky='EW')
-    self.col_file = tk_tao_parameter(str_to_tao_param("col_file;FILE;T;"), self.top_frame, self.pipe)
+    tk.Label(self.top_frame, text="Template file:").grid(
+        row=1, column=4, sticky='EW')
+    self.col_file = tk_tao_parameter(
+        str_to_tao_param("col_file;FILE;T;"), self.top_frame, self.pipe)
     self.col_file.tk_wid.configure(state="disabled")
     self.col_file.tk_wid.configure(disabledforeground="grey")
     self.col_file.tk_wid.grid(row=1, column=5, sticky='EW')
 
     # Rows
     tk.Label(self.top_frame, text="Rows:").grid(row=2, column=0, sticky='W')
-    self.f_button = tk.Button(self.top_frame, text="Filters", command=self.open_filter_menu)
+    self.f_button = tk.Button(
+        self.top_frame, text="Filters", command=self.open_filter_menu)
     self.f_button.grid(row=2, column=1, sticky='EW')
 
     self.filter_vars = []
@@ -1964,11 +2087,14 @@ class tao_lattice_window(tk.Toplevel):
     self.remove_if_zero = tk.StringVar()
     self.s_range = tk.StringVar()
 
-    tk.Label(self.top_frame, text="Element List:").grid(row=2, column=2, sticky='E')
+    tk.Label(self.top_frame, text="Element List:").grid(
+        row=2, column=2, sticky='E')
     self.ele_list = tk.StringVar()
     self.ele_list_opt = tk.StringVar()
-    ele_list_opts = ["Default (first 200)", "All", "Tracking elements", "Custom"]
-    self.ele_list_chooser = tk.OptionMenu(self.top_frame, self.ele_list_opt, *ele_list_opts, command=self.ele_list_callback)
+    ele_list_opts = ["Default (first 200)", "All",
+        "Tracking elements", "Custom"]
+    self.ele_list_chooser = tk.OptionMenu(self.top_frame, self.ele_list_opt,
+        *ele_list_opts, command=self.ele_list_callback)
     self.ele_list_opt.set(ele_list_opts[0])
     self.ele_list_chooser.grid(row=2, column=3, sticky='EW')
     self.ele_list_box = tk.Entry(self.top_frame, textvariable=self.ele_list)
@@ -1977,18 +2103,20 @@ class tao_lattice_window(tk.Toplevel):
 
     # Advanced Options
     self.use_advanced = False
-    tk.Button(self.top_frame, text="Advanced\nOn/Off", command=self.toggle_advanced).grid(row=2, column=7, rowspan=2, sticky='NSEW')
+    tk.Button(self.top_frame, text="Advanced\nOn/Off",
+        command=self.toggle_advanced).grid(
+            row=2, column=7, rowspan=2, sticky='NSEW')
     tk.Label(self.top_frame, text="Advanced:").grid(row=3, column=0, sticky='W')
     self.advanced_var = tk.StringVar()
     self.advanced_var.set(self.switches)
     self.advanced_box = tk.Entry(self.top_frame, textvariable=self.advanced_var)
     self.advanced_box.configure(state="disabled")
-    self.advanced_box.grid(row=3, column=1, columnspan=6, sticky='EW') #pack(side="left", fill="both", expand=1)
+    self.advanced_box.grid(row=3, column=1, columnspan=6, sticky='EW')
     #self.advanced_box.bind("<Return>", self.refresh)
     #self.tree.focus() and self.tree.selection() for current items
 
     b = tk.Button(self.top_frame, text="Refresh", command=self.refresh)
-    b.grid(row=0, column=7, rowspan=2, sticky='NSEW') #pack(side="left", fill="both", expand=0)
+    b.grid(row=0, column=7, rowspan=2, sticky='NSEW')
     self.refresh()
 
   def save_template(self, event=None):
@@ -2014,16 +2142,19 @@ class tao_lattice_window(tk.Toplevel):
     self.temp_chooser.destroy()
     temp_opts = list(self.temp_dict.keys())
     self.temp_var.set(temp_opts[-1])
-    self.temp_chooser = tk.OptionMenu(self.top_frame, self.temp_var, *temp_opts, command=self.temp_chooser_callback)
+    self.temp_chooser = tk.OptionMenu(self.top_frame, self.temp_var, *temp_opts,
+        command=self.temp_chooser_callback)
     self.temp_chooser.grid(row=4, column=3, sticky='EW')
 
   def temp_file_load(self, event=None):
     '''
-    Tries to load the specified template file, and creates an OptionMenu to pick from defined templates if successful.
-    Also creates a save template button and entry for the name
-    self.temp_dict is a dictionary whose keys are the names of templates and whose values are the switches for those templates
+    Tries to load the specified template file, and creates an OptionMenu to pick
+    from defined templates if successful.  Also creates a save template button
+    and entry for the name
+    self.temp_dict is a dictionary whose keys are the names of templates and
+    whose values are the switches for those templates
     '''
-    # First run the tk_tao_paramter open file method that is being overloaded here
+    # First run the tk_tao_paramter open file method that is being overloaded
     tk_tao_parameter.open_file(self.template_file)
     if self.template_file.tk_var.get() == "Browse...":
       return
@@ -2056,7 +2187,8 @@ class tao_lattice_window(tk.Toplevel):
     self.temp_chooser.destroy()
     temp_opts = list(self.temp_dict.keys())
     self.temp_var.set(temp_opts[-1])
-    self.temp_chooser = tk.OptionMenu(self.top_frame, self.temp_var, *temp_opts, command=self.temp_chooser_callback)
+    self.temp_chooser = tk.OptionMenu(self.top_frame, self.temp_var, *temp_opts,
+        command=self.temp_chooser_callback)
     self.temp_chooser.grid(row=4, column=3, sticky='EW')
     #Load the last template
     self.temp_chooser_callback()
@@ -2092,12 +2224,15 @@ class tao_lattice_window(tk.Toplevel):
     '''
     win = tk.Toplevel(self)
     win.title("Lattice Row Filters")
-    filters = ["Lords only", "No Slaves", "No Super Slaves", "Remove Line if zero", "s"]
+    filters = ["Lords only", "No Slaves", "No Super Slaves",
+        "Remove Line if zero", "s"]
     buttons = []
     for i in range(len(self.filter_vars)):
-      buttons.append(tk.Checkbutton(win, text=filters[i], variable=self.filter_vars[i]))
+      buttons.append(
+          tk.Checkbutton(win, text=filters[i], variable=self.filter_vars[i]))
       buttons[i].grid(row=i, column=0, sticky='W')
-    tk.Entry(win, textvariable=self.remove_if_zero).grid(row=3, column=1, sticky='EW')
+    tk.Entry(win, textvariable=self.remove_if_zero).grid(
+        row=3, column=1, sticky='EW')
     tk.Entry(win, textvariable=self.s_range).grid(row=4, column=1, sticky='EW')
 
   def toggle_advanced(self, event=None):
@@ -2209,8 +2344,10 @@ class tao_lattice_window(tk.Toplevel):
         continue
       # Scan for switches/arguments
       if not ele_list:
-        if (item[0] == '-') & (not arg_switch): #is a switch, last item was not an arg switch
-          if item in ['-att', '-blank_replacement', '-branch', '-custom', '-remove_line_if_zero', '-s', '-universe']:
+        #is a switch, last item was not an arg switch
+        if (item[0] == '-') & (not arg_switch):
+          if item in ['-att', '-blank_replacement', '-branch', '-custom',
+              '-remove_line_if_zero', '-s', '-universe']:
             arg_switch = item
             continue
           else: #item is a switch, not an arg switch
@@ -2223,7 +2360,8 @@ class tao_lattice_window(tk.Toplevel):
           #item is not a switch or an argument --> ele list started
           ele_list = True
         else: #item is a switch, but we were looking for an argument
-          messagebox.showwarning('Warning', 'No argument given for switch "' + arg_switch + '" (one required).  Skipping this switch...')
+          messagebox.showwarning('Warning', 'No argument given for switch "'
+              + arg_switch + '" (one required).  Skipping this switch...')
           arg_switch = False
           continue
       if ele_list:
@@ -2330,7 +2468,8 @@ class tao_lattice_window(tk.Toplevel):
     widths = [0]*len(lattice[0]) # tracks column widths
 
     # Create table
-    self.tree = ttk.Treeview(self.table_frame, columns=lattice[0], show='headings')
+    self.tree = ttk.Treeview(
+        self.table_frame, columns=lattice[0], show='headings')
     # Column titles
     for title in lattice[0]:
       self.tree.heading(title, text=title)
@@ -2350,8 +2489,10 @@ class tao_lattice_window(tk.Toplevel):
       self.tree.column(lattice[0][j], width=widths[j], minwidth=widths[j])
 
     # Scrollbars
-    hbar = ttk.Scrollbar(self.table_frame, orient="horizontal", command=self.tree.xview)
-    vbar = ttk.Scrollbar(self.table_frame, orient="vertical", command=self.tree.yview)
+    hbar = ttk.Scrollbar(
+        self.table_frame, orient="horizontal", command=self.tree.xview)
+    vbar = ttk.Scrollbar(
+        self.table_frame, orient="vertical", command=self.tree.yview)
     self.tree.configure(xscrollcommand=hbar.set, yscrollcommand=vbar.set)
 
     vbar.pack(side="right", fill="y", expand=0)
@@ -2374,7 +2515,8 @@ class tao_lattice_window(tk.Toplevel):
     '''
     x = self.tree.focus()
     row = self.tree.item(x)
-    if isinstance(row['values'][0], int): #checks that the first value is an element index
+    #checks that the first value is an element index
+    if isinstance(row['values'][0], int):
       settings = [self.branch_wids.uni.get(),
           self.branch_wids.branch.get(),
           str(row['values'][0]),
