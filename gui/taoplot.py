@@ -482,8 +482,12 @@ class taoplot:
 			plt.ylabel(pgp_to_mpl(gInfoDict['y.label'].value))
 			#plot axis labels
 
-			xmajorLocator=MultipleLocator((gInfoDict['x.max'].value-gInfoDict['x.min'].value)/gInfoDict['x.major_div'].value)
-			ymajorLocator=MultipleLocator((gInfoDict['y.max'].value-gInfoDict['y.min'].value)/gInfoDict['y.major_div'].value)
+			try:
+				xmajorLocator=MultipleLocator((gInfoDict['x.max'].value-gInfoDict['x.min'].value)/gInfoDict['x.major_div'].value)
+				ymajorLocator=MultipleLocator((gInfoDict['y.max'].value-gInfoDict['y.min'].value)/gInfoDict['y.major_div'].value)
+			except ValueError:
+				raise ValueError('graph missing, make sure the lattice is properly initialized')
+
 			GraphDict['graph'+str(gNumber+1)].xaxis.set_major_locator(xmajorLocator)
 			GraphDict['graph'+str(gNumber+1)].yaxis.set_major_locator(ymajorLocator)
 			#find locations for grid lines
