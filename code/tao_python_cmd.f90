@@ -3620,12 +3620,16 @@ end function parse_real
 !----------------------------------------------------------------------
 ! contains
 
-function parse_int (line, err, min_bound, max_bound) result (a_int)
+function parse_int (line, err_flag, min_bound, max_bound) result (a_int)
 
 integer a_int
 integer, optional :: min_bound, max_bound
-logical err
+logical err, err_flag
 character(*) line
+
+!
+
+err_flag = .true.
 
 a_int = string_to_int (line, int_garbage$, err)
 
@@ -3647,6 +3651,8 @@ if (present(max_bound)) then
     return
   endif
 endif
+
+err_flag = .false.
 
 end function parse_int
 
