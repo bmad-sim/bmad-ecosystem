@@ -1,5 +1,5 @@
 import tkinter as tk
-class tao_console:
+class tao_console(tk.Frame):
   '''
   Console for running tao commands and displaying
   text output.  This frame takes the place of the
@@ -14,12 +14,25 @@ class tao_console:
   pipe: tao_interface object (needed to run commands)
   '''
   def __init__(self, parent, root, pipe):
+    tk.Frame.__init__(self, parent)
     self.root = root
     self.pipe = pipe
-    self._wid = tk.Text(parent, blockcursor=True)
+    self._wid = tk.Text(self, blockcursor=True)
     self._wid.configure(font='Monospace 16', fg="white", bg="black")
     self._wid.configure(insertbackground="white")
-    self._wid.insert('end', 'Tao>')
+    self._wid.insert('end', self.pipe.startup_message)
+    self._wid.insert('end', '\nTao>')
+    # Tag definitions (used to color error messages)
+    self._wid.tag_config("normal")
+    self._wid.tag_config("error", foreground="yellow")
+    self._wid.tag_config("fatal", foreground="red")
+    # Scrollbar
+    self.scrollbar=tk.Scrollbar(self,orient="vertical",
+        command=self._wid.yview)
+    self._wid.configure(yscrollcommand=self.scrollbar.set)
+    # Pack _wid and scrollbar
+    self.scrollbar.pack(side="right", fill='y')
+    self._wid.pack(side="left", fill="both", expand=1)
     # Used to keep track of the current command and location:
     self.command = ""
     self.cstart = self._wid.index('insert')
@@ -51,14 +64,16 @@ class tao_console:
     self._wid.mark_set('insert',
         self.cstart + '+' + str(self.cpos) + 'c')
 
-  def show_output(self, output):
+  def show_output(self, output, mode='normal'):
     '''
     Prints output to the console and starts a new
     line for the command prompt.  Also clears
     self.command
+    mode can be any of 'normal', 'error', or 'fatal'
     '''
     # Print output
-    self._wid.insert('end', '\n' + output + '\nTao>')
+    self._wid.insert('end', '\n' + output, mode)
+    self._wid.insert('end', '\nTao>', "normal")
     # Clear self.command
     self._wid.mark_set('insert', 'end')
     self.command = ""
@@ -69,8 +84,9 @@ class tao_console:
 
   def warning_callback(self, *args):
     if self.pipe.printed.get():
-      self.show_output(self.pipe.message)
+      self.show_output(self.pipe.message, self.pipe.message_type)
       self.pipe.message = ""
+      self.pipe_message_type = 'normal'
       self.pipe.printed.set(False)
 
   def run_command(self):
@@ -81,7 +97,7 @@ class tao_console:
     '''
     result = self.pipe.cmd_in(self.command, no_warn=True)
     self.root.history[0].append(self.command)
-    self.show_output(result)
+    self.show_output(result, self.pipe.message_type)
     # Try to refresh the history window
     try:
       self.root.history_window.refresh()

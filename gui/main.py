@@ -111,7 +111,7 @@ class tao_root_window(tk.Tk):
     self.console = tao_console(self.cmd_frame, self, self.pipe)
     self.cmd_frame.columnconfigure(0, weight=1)
     self.cmd_frame.columnconfigure(1, weight=1)
-    self.console._wid.grid(row=1, column=0, columnspan=2, sticky = 'NSEW')
+    self.console.grid(row=1, column=0, columnspan=2, sticky = 'NSEW')
     self.console_packed = True
 
   def sh_console(self, event=None):
@@ -119,9 +119,9 @@ class tao_root_window(tk.Tk):
     Packs or unpacks self.console as appropriate
     '''
     if self.console_packed:
-      self.console._wid.grid_forget()
+      self.console.grid_forget()
     else:
-      self.console._wid.grid(row=1, column=0, columnspan=2, sticky = 'NSEW')
+      self.console.grid(row=1, column=0, columnspan=2, sticky = 'NSEW')
     self.console_packed = not self.console_packed
 
   def tao_call(self, event=None):
