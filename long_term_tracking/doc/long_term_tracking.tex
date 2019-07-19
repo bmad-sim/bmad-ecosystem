@@ -327,6 +327,7 @@ master input file must contain a single namelist (\sref{s:namelist}) named \vn{p
   ltt%rfcavity_on        = True
   ltt%timer_print_dtime  = 300
   ltt%random_seed        = 0
+  ltt%ptc_aperture       = 0.1, 0.1
   ltt%add_closed_orbit_to_init_position = True
   ltt%dead_cutoff = -1
   ltt%b_emittance = 1e-9                 ! Used with space charge calc.
@@ -422,6 +423,11 @@ counted and if the percentage of particles that have died, counting from the las
 printed, is larger than \vn{ltt%print_on_dead_loss}, a message is printed. For example, if
 \vn{ltt%print_on_dead_loss} is set to 0.01, every time the beam loses 1\% of the particles a message is printed.
 Default is -1 which will cause a message printed every turn where there is particle loss.
+%
+\item[ltt\%ptc_aperture] \Newline
+The PTC code does not have apertures. This being the case, for \vn{ltt%tracking_method} set to
+\vn{"MAP"} or \vn{"PTC"}, \vn{ltt%ptc_aperture}, which is a 2-vector, defines \vn{x} and \vn{y}
+apertures. The default is 0.1~meter in both the horizontal and vertical.
 %
 \item[ltt\%sigma_matrix_output_file] \Newline
 String specifying the name of the file to create to hold the calculated 6x6 sigma matrix. If blank (the
