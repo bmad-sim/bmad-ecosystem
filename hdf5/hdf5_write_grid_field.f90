@@ -22,10 +22,9 @@ implicit none
 
 type (grid_field_struct), target :: g_field(:)
 type (grid_field_struct), pointer :: gf
-type (ele_struct) ele
-type (grid_field_struct), target :: gf
 type (grid_field_pt1_struct), allocatable, target :: gpt(:,:,:)
 type (grid_field_pt1_struct), pointer :: gptr(:,:,:)
+type (ele_struct) ele
 
 integer i, j, k, n, ix, im, ig, igf, h5_err, indx(3)
 integer(hid_t) f_id, r_id, b_id, b2_id, z_id
