@@ -99,7 +99,7 @@ class tao_root_window(tk.Tk):
 
     # Command line
     self.cmd_frame = tk.Frame(self)
-    self.cmd_frame.pack(side="bottom", fill="x")
+    self.cmd_frame.pack(side="bottom", fill='both', expand=1)
     self.history = [] #holds the history
     self.history.append([]) #Tao and shell history
     self.history_pos = 0 #Used for scrolling in history on command line
@@ -112,6 +112,7 @@ class tao_root_window(tk.Tk):
     self.cmd_frame.columnconfigure(0, weight=1)
     self.cmd_frame.columnconfigure(1, weight=1)
     self.console.grid(row=1, column=0, columnspan=2, sticky = 'NSEW')
+    self.cmd_frame.rowconfigure(1, weight=1)
     self.console_packed = True
 
   def sh_console(self, event=None):

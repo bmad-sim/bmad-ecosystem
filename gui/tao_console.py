@@ -152,8 +152,7 @@ class tao_console(tk.Frame):
   def _ret_handler(self, event):
     if self.command != "":
       # Read what appears in the command line into self.command to be safe
-      self.command = self._wid.get(self.cstart, self.cstart
-          + '+' + str(self.cpos) + 'c')
+      self.command = self._wid.get(self.cstart, 'end-1c')
       self.run_command()
     self.root.history_pos = 0
     return 'break'
