@@ -3,6 +3,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+from matplotlib.path import Path
 
 
 def in_rectangle(a,b,c,d,x,y):
@@ -45,9 +46,13 @@ def in_element(x,y,fig_info):
 						inIndexList.append(i)
 				
 				else:
-					if in_rectangle(returnList[11][str(i)],returnList[12][str(i)],returnList[13][str(i)],returnList[14][str(i)],x,y) == True:
-						
-						inIndexList.append(i)
+					try: #sbends
+						if returnList[15][str(i)].contains_point([x,y]) == True:
+							inIndexList.append(i)
+
+					except KeyError:
+						if in_rectangle(returnList[11][str(i)],returnList[12][str(i)],returnList[13][str(i)],returnList[14][str(i)],x,y) == True:	
+							inIndexList.append(i)
 		#find floor_plan elements containing the specified point
 		#checks a circle for the specified point for circle elements, checks a box otherwise
 		#checks a box made from the element start and end coordinates with y1 and y2 for the height
