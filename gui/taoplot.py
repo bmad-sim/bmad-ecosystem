@@ -8,6 +8,7 @@ from parameters import *
 import time
 import matplotlib.patches as patches
 import numpy as np
+from matplotlib.path import Path
 from matplotlib.backend_tools import ToolBase, ToolToggleBase
 
 
@@ -34,6 +35,7 @@ class taoplot:
 		fpeIndexList=[]
 		fpeCenterDict={}
 		fpeRadiusDict={}
+		pathDict = {}
 		#records information about element locations to be returned with the figure
 
 		def color(x):
@@ -693,7 +695,7 @@ class taoplot:
 						GraphDict['LatLayout'].text(layInfoDict['x.min'].value,-1.1*eleY2Dict[str(i)],eleNameDict[str(i)],ha='left',va='top',color=eleColorDict[str(i)])
 					#draw wrapped element name
 
-					
+
 
 				except KeyError:
 					pass
@@ -986,16 +988,48 @@ class taoplot:
 					#draw element name
 					
 					if fpeTypeDict[str(i)] == 'sbend':
-						corner1[str(i)]=[fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])]
-						corner2[str(i)]=[fpeExDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)]),fpeEyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])]
-						corner3[str(i)]=[fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])]
-						corner4[str(i)]=[fpeExDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)]),fpeEyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])]
+						c1 = [fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])]
+						c2 = [fpeExDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)]),fpeEyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])]
+						c3 = [fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])]
+						c4 = [fpeExDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)]),fpeEyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])]
+						
+
+
+						if fpeSaDict[str(i)] > fpeEaDict[str(i)]:
+							outerRadius = np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)
+							innerRadius = np.sqrt((fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)
+
+						else:
+							outerRadius = -np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)
+							innerRadius = -np.sqrt((fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)
+						
+
+
+						middleAngle = (fpeSaDict[str(i)]+fpeEaDict[str(i)])/2
+
+						top = [intersection[0]-outerRadius*np.sin(middleAngle),intersection[1]+outerRadius*np.cos(middleAngle)]
+						bottom = [intersection[0]-innerRadius*np.sin(middleAngle),intersection[1]+innerRadius*np.cos(middleAngle)]
+						#midpoints of top and bottom arcs in an sbend
+
+						topCP = [2*(top[0])-.5*(c1[0])-.5*(c2[0]),2*(top[1])-.5*(c1[1])-.5*(c2[1])]
+						bottomCP = [2*(bottom[0])-.5*(c3[0])-.5*(c4[0]),2*(bottom[1])-.5*(c3[1])-.5*(c4[1])]
+						#corresponding control points for a quadratic Bezier curve
+
+						verts = [c1,topCP,c2,c4,bottomCP,c3,c1]
+						codes = [Path.MOVETO,Path.CURVE3,Path.CURVE3,Path.LINETO,Path.CURVE3,Path.CURVE3,Path.CLOSEPOLY]
+						pathDict[str(i)] = Path(verts,codes)
+
+						'''patch = patches.PathPatch(Path(verts,codes),facecolor='green',alpha = .5)
+						GraphDict['FloorPlan'].add_patch(patch)'''
+						#visualize clickable regions
+					#path approximating sbend region for clickable region on graph
+
 					else:
-						corner1[str(i)]=[fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
-						corner2[str(i)]=[fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
-						corner3[str(i)]=[fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
-						corner4[str(i)]=[fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
-					#coordinates of corners of a floor plan element
+						corner1[str(i)] = [fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
+						corner2[str(i)] = [fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
+						corner3[str(i)] = [fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
+						corner4[str(i)] = [fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
+					#coordinates of corners of a floor plan element for clickable region
 
 				except KeyError:
 					pass
@@ -1031,10 +1065,10 @@ class taoplot:
 					return (xs1,ys1),(xs2,ys2)
 
 
-				nbw=pipe.cmd_in('python floor_building_wall r1.g name',no_warn = True).splitlines()
-				nbwTypeDict = {}
-				for i in range(len(nbw)):
-					nbwTypeDict[nbw[i].split(';')[0]] = nbw[i].split(';')[1]
+				bwn=pipe.cmd_in('python floor_building_wall r1.g name',no_warn = True).splitlines()
+				bwnTypeDict = {}
+				for i in range(len(bwn)):
+					bwnTypeDict[bwn[i].split(';')[0]] = bwn[i].split(';')[1]
 
 
 				fps=pipe.cmd_in('python plot_shapes floor_plan',no_warn = True).splitlines()
@@ -1068,7 +1102,7 @@ class taoplot:
 						mIndex = fbwIndexList.index(k-1)
 
 						if fbwRadiusList[kIndex] == 0: #draw building wall line
-							GraphDict['FloorPlan'].plot([fbwXList[kIndex],fbwXList[mIndex]],[fbwYList[kIndex],fbwYList[mIndex]],color=fpsColorDict[nbwTypeDict[str(i)]])
+							GraphDict['FloorPlan'].plot([fbwXList[kIndex],fbwXList[mIndex]],[fbwYList[kIndex],fbwYList[mIndex]],color=fpsColorDict[bwnTypeDict[str(i)]])
 
 						else: #draw building wall arc
 							centerList = circle_intersection(fbwXList[mIndex],fbwYList[mIndex],fbwXList[kIndex],fbwYList[kIndex],abs(fbwRadiusList[kIndex]))
@@ -1104,7 +1138,7 @@ class taoplot:
 									t2=kAngle	
 							#pick correct start and end angle for arc							
 
-							GraphDict['FloorPlan'].add_patch(patches.Arc(center,fbwRadiusList[kIndex]*2,fbwRadiusList[kIndex]*2,theta1=t1,theta2=t2,color=fpsColorDict[nbwTypeDict[str(i)]]))
+							GraphDict['FloorPlan'].add_patch(patches.Arc(center,fbwRadiusList[kIndex]*2,fbwRadiusList[kIndex]*2,theta1=t1,theta2=t2,color=fpsColorDict[bwnTypeDict[str(i)]]))
 
 						k = k - 1
 			except ValueError:
@@ -1189,7 +1223,7 @@ class taoplot:
 			eleStartDict = []
 			eleEndDict = []
 
-		returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList,fpeShapeDict,fpeCenterDict, fpeRadiusDict, corner1, corner2, corner3, corner4]
+		returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList,fpeShapeDict,fpeCenterDict, fpeRadiusDict, corner1, corner2, corner3, corner4, pathDict]
 		fig.tight_layout()
 		return fig, returnList
 
