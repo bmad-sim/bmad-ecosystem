@@ -18,6 +18,7 @@
   ltt%random_seed = 0                       ! Random number seed. 0 => use system clock.
   ltt%timer_print_dtime = 300
   ltt%add_closed_orbit_to_init_position = T
+  ltt%ptc_aperture = 0.1, 0.1           ! Apertures when tracking_method = "MAP" or "PTC"
 
   bmad_com%spin_tracking_on = T         ! See Bmad manual for bmad_com parameters.
   bmad_com%radiation_damping_on = F

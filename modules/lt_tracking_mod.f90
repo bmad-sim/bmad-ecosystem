@@ -34,9 +34,10 @@ type ltt_params_struct
   integer :: map_order = -1
   integer :: n_turn_sigma_average = -1
   integer :: output_every_n_turns = -1
+  real(rp) :: ptc_aperture(2) = 0.1
   real(rp) :: print_on_dead_loss = -1
   real(rp) :: timer_print_dtime = 120
-  real(rp) :: dead_cutoff = 0
+  real(rp) :: dead_cutoff = 1
   real(rp) :: a_emittance = 0   ! Used for space charge calculation.
   real(rp) :: b_emittance = 0   ! Used for space charge calculation.
   logical :: rfcavity_on = .true.
@@ -304,14 +305,19 @@ type (ptc_map_with_rad_struct) rad_map
 ! Print some info.
 
 print '(a)', '--------------------------------------'
-print '(a, a)',  'lattice:         ', trim(lttp%lat_file)
-print '(a, a)',  'simulation_mode: ', lttp%simulation_mode
+print '(a, a)',  'lattice:                  ', quote(lttp%lat_file)
+print '(a, a)',  'Averages_output_file:     ', quote(lttp%averages_output_file)
+print '(a, a)',  'sigma_matrix_output_file: ', quote(lttp%sigma_matrix_output_file)
+print '(a, a)',  'particle_output_file:     ', quote(lttp%particle_output_file)
+print '(a, a)',  'averages_output_file:     ', quote(lttp%averages_output_file)
+print '(a, a)',  'map_file:                 ', quote(lttp%map_file)
+print '(a, a)',  'simulation_mode: ', trim(lttp%simulation_mode)
+print '(a, a)',  'tracking_method: ', trim(lttp%tracking_method)
+if (lttp%tracking_method == 'MAP') print '(a, i0)', 'map_order: ', rad_map%map_order
 print '(a, l1)', 'Radiation Damping:           ', bmad_com%radiation_damping_on
 print '(a, l1)', 'Stochastic Fluctuations:     ', bmad_com%radiation_fluctuations_on
 print '(a, l1)', 'Spin_tracking_on:            ', bmad_com%spin_tracking_on
-if (lttp%need_map) then
-  print '(a, i0)', 'Map order:          ', rad_map%map_order
-endif
+
 print '(a)', '--------------------------------------'
 
 end subroutine ltt_print_inital_info
@@ -544,7 +550,7 @@ n_live_old = size(bunch%particle)
 
 ! 
 
-if (.not. lttp%using_mpi) call ltt_write_particle_data (lttp, 0, bunch, rad_map)
+if (.not. lttp%using_mpi) call ltt_write_particle_data (lttp, 0, bunch, bunch_init, rad_map)
 call ltt_calc_bunch_sums (lttp, 0, bunch, sum_data_arr)
 
 time0 = 0
@@ -553,7 +559,10 @@ do i_turn = 1, lttp%n_turns
   select case (lttp%tracking_method)
   case ('MAP')
     do ip = 1, size(bunch%particle)
-      call ptc_track_map_with_radiation (bunch%particle(ip), rad_map)
+      p => bunch%particle(ip)
+      if (p%state /= alive$) cycle
+      call ptc_track_map_with_radiation (p, rad_map)
+      if (abs(p%vec(1)) > lttp%ptc_aperture(1) .or. abs(p%vec(3)) > lttp%ptc_aperture(2)) p%state = lost$
     enddo
 
   case ('BMAD')
@@ -562,11 +571,13 @@ do i_turn = 1, lttp%n_turns
   case ('PTC')
     do ip = 1, size(bunch%particle)
       p => bunch%particle(ip)
+      if (p%state /= alive$) cycle
       prb = p%vec
       prb%q%x = [1, 0, 0, 0]  ! Unit quaternion
       call track_probe (prb, ltt_internal%ptc_state, fibre1 = lat%branch(ix_branch)%ele(1)%ptc_fibre)
       p%vec = prb%x
       p%spin = rotate_vec_given_quat(prb%q%x, p%spin)
+      if (abs(p%vec(1)) > lttp%ptc_aperture(1) .or. abs(p%vec(3)) > lttp%ptc_aperture(2)) p%state = lost$
     enddo
 
   case default
@@ -575,8 +586,8 @@ do i_turn = 1, lttp%n_turns
   end select
 
   n_live = count(bunch%particle%state == alive$)
-  if ((n_live - n_live_old) >= n_print_dead_loss) then
-    print '(a, i0, a, i0)', 'Number dead on turn ', i_turn, ': ', size(bunch%particle) - n_live
+  if (n_live_old - n_live >= n_print_dead_loss) then
+    print '(a, i0, a, i0)', 'Total number dead on turn ', i_turn, ': ', size(bunch%particle) - n_live
     n_live_old = n_live
   endif
 
@@ -592,8 +603,14 @@ do i_turn = 1, lttp%n_turns
     time0 = time
   endif
 
-  if (.not. lttp%using_mpi) call ltt_write_particle_data (lttp, i_turn, bunch, rad_map)
+  if (.not. lttp%using_mpi) call ltt_write_particle_data (lttp, i_turn, bunch, bunch_init, rad_map)
   call ltt_calc_bunch_sums (lttp, i_turn, bunch, sum_data_arr)
+
+  if (.not. lttp%using_mpi) then
+    call ltt_write_bunch_averages(lttp, i_turn, sum_data_arr)
+    call ltt_write_sigma_matrix (lttp, i_turn, sum_data_arr)
+  endif
+
 end do
 
 if (lttp%mpi_rank == master_rank$) print '(2a)', 'Tracking data file: ', trim(lttp%particle_output_file)
@@ -601,9 +618,6 @@ if (lttp%mpi_rank == master_rank$) print '(2a)', 'Tracking data file: ', trim(lt
 if (lttp%using_mpi) then
   if (allocated(sum_data_array)) deallocate (sum_data_array)
   call move_alloc (sum_data_arr, sum_data_array)
-else
-  call ltt_write_bunch_averages(lttp, sum_data_arr)
-  call ltt_write_sigma_file (lttp, sum_data_arr)
 endif
 
 end subroutine ltt_run_bunch_mode
@@ -714,7 +728,7 @@ end subroutine ltt_setup_high_energy_space_charge
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_particle_data (lttp, i_turn, bunch, rad_map)
+subroutine ltt_write_particle_data (lttp, i_turn, bunch, bunch_init, rad_map)
 
 type (ltt_params_struct) lttp
 type (bunch_struct), target :: bunch, bunch_init
@@ -867,29 +881,58 @@ end subroutine ltt_calc_bunch_sums
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_bunch_averages (lttp, sum_data_arr)
+subroutine ltt_write_bunch_averages (lttp, i_turn, sum_data_arr)
 
 type (ltt_params_struct) lttp
 type (ltt_sum_data_struct), target :: sum_data_arr(:)
 type (ltt_sum_data_struct), pointer :: sd
 
 real(rp) sigma(6)
-integer i, iu, ix
+integer i_turn, i, iu, ix, ix_last
 
-!
+logical new
+
+! i_turn = -1 is used with mpi version.
 
 if (lttp%averages_output_file == '') return
 
-iu = lunget()
-open (iu, file = lttp%averages_output_file, recl = 300)
-
-write (iu, '(a1, a8, a9, a14, 3a14, 12a14)') '#', 'Turn', 'N_live', 'Polarization', &
-                     '<Sx>', '<Sy>', '<Sz>', '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', &
-                     'Sig_x', 'Sig_px', 'Sig_y', 'Sig_py', 'Sig_z', 'Sig_pz'
+if (i_turn == -1) then
+  new = .true.
+  ix_last = -1
+else
+  select case (lttp%output_every_n_turns)
+  case (-1)
+    if (i_turn /= lttp%n_turns) return
+    new = .true.
+    ix_last = 1
+  case (0)
+    if (i_turn /= 0 .and. i_turn /= lttp%n_turns) return
+    ix_last = i_turn/lttp%output_every_n_turns
+    new = (i_turn == 0)
+  case default
+    if (modulo(i_turn, lttp%output_every_n_turns) /= 0) return
+    ix_last = i_turn/lttp%output_every_n_turns
+    new = (i_turn == lttp%output_every_n_turns)
+  end select
+endif 
 
 !
 
-do ix = lbound(sum_data_arr, 1) , ubound(sum_data_arr, 1)
+iu = lunget()
+
+if (new) then
+  open (iu, file = lttp%averages_output_file, recl = 300)
+  write (iu, '(a1, a8, a9, a14, 3a14, 12a14)') '#', 'Turn', 'N_live', 'Polarization', &
+                     '<Sx>', '<Sy>', '<Sz>', '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', &
+                     'Sig_x', 'Sig_px', 'Sig_y', 'Sig_py', 'Sig_z', 'Sig_pz'
+else
+  open (iu, file = lttp%averages_output_file, recl = 300, access = 'append')
+endif
+
+! If i_turn = -1 (mpi) then dump all the averages.
+
+do ix = lbound(sum_data_arr, 1), ubound(sum_data_arr, 1)
+  if (i_turn /= -1 .and. ix /= ix_last) cycle
   sd => sum_data_arr(ix)
   if (sd%n_live == 0) exit
   forall (i = 1:6) sigma(i) = sd%orb2_sum(i,i)/sd%n_live - (sd%orb_sum(i)/sd%n_live)**2
@@ -898,9 +941,9 @@ do ix = lbound(sum_data_arr, 1) , ubound(sum_data_arr, 1)
           norm2(sd%spin_sum/sd%n_live), sd%spin_sum/sd%n_live, sd%orb_sum/sd%n_live, sigma
 enddo
 
-close (iu)
+!
 
-print '(2a)', 'Averages_output_file: ', trim(lttp%averages_output_file)
+close (iu)
 
 end subroutine ltt_write_bunch_averages
 
@@ -908,29 +951,57 @@ end subroutine ltt_write_bunch_averages
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_sigma_file (lttp, sum_data_arr)
+subroutine ltt_write_sigma_matrix (lttp, i_turn, sum_data_arr)
 
 type (ltt_params_struct) lttp
 type (ltt_sum_data_struct), target :: sum_data_arr(:)
 type (ltt_sum_data_struct), pointer :: sd
 
 real(rp) sigma(21)
-integer ix, i, j, k, iu
+integer i_turn, ix, i, j, k, iu, ix_last
+logical new
 
-!
+! i_turn = -1 is used with mpi version.
 
 if (lttp%sigma_matrix_output_file == '') return
 
-iu = lunget()
-open (iu, file = lttp%sigma_matrix_output_file, recl = 400)
-
-write (iu, '(a1, a8, a9, 21a14)') '#', 'Turn', 'N_live', &
-  '<x.x>', '<x.px>', '<x.y>', '<x.py>', '<x.z>', '<x.pz>', '<px.px>', '<px.y>', '<px.py>', '<px.z>', '<px.pz>', &
-  '<y.y>', '<y.py>', '<y.z>', '<y.pz>', '<py.py>', '<py.z>', '<py.pz>', '<z.z>', '<z.pz>', '<pz.pz>'
+if (i_turn == -1) then
+  new = .true.
+  ix_last = -1
+else
+  select case (lttp%output_every_n_turns)
+  case (-1)
+    if (i_turn /= lttp%n_turns) return
+    new = .true.
+    ix_last = 1
+  case (0)
+    if (i_turn /= 0 .and. i_turn /= lttp%n_turns) return
+    ix_last = i_turn/lttp%output_every_n_turns
+    new = (i_turn == 0)
+  case default
+    if (modulo(i_turn, lttp%output_every_n_turns) /= 0) return
+    ix_last = i_turn/lttp%output_every_n_turns
+    new = (i_turn == lttp%output_every_n_turns)
+  end select
+endif 
 
 !
 
-do ix = lbound(sum_data_arr, 1) , ubound(sum_data_arr, 1)
+iu = lunget()
+
+if (new) then
+  open (iu, file = lttp%sigma_matrix_output_file, recl = 400)
+  write (iu, '(a1, a8, a9, 21a14)') '#', 'Turn', 'N_live', &
+    '<x.x>', '<x.px>', '<x.y>', '<x.py>', '<x.z>', '<x.pz>', '<px.px>', '<px.y>', '<px.py>', '<px.z>', '<px.pz>', &
+    '<y.y>', '<y.py>', '<y.z>', '<y.pz>', '<py.py>', '<py.z>', '<py.pz>', '<z.z>', '<z.pz>', '<pz.pz>'
+else
+  open (iu, file = lttp%sigma_matrix_output_file, recl = 400, access = 'append')
+endif
+
+! If i_turn = -1 (mpi) then dump all the averages.
+
+do ix = lbound(sum_data_arr, 1), ubound(sum_data_arr, 1)
+  if (i_turn /= -1 .and. ix /= ix_last) cycle
   sd => sum_data_arr(ix)
   if (sd%n_live == 0) exit
   k = 0
@@ -943,11 +1014,11 @@ do ix = lbound(sum_data_arr, 1) , ubound(sum_data_arr, 1)
   write (iu, '(i9, i9, 2x, 21es14.6)') sd%i_turn, sd%n_live, (sigma(k), k = 1, 21)
 enddo
 
+!
+
 close (iu)
 
-print '(2a)', 'Sigma matrix data file: ', trim(lttp%sigma_matrix_output_file)
-
-end subroutine ltt_write_sigma_file
+end subroutine ltt_write_sigma_matrix
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
