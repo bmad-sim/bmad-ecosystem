@@ -16,6 +16,7 @@ subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag)
 
 use hdf5_openpmd_mod
 use bmad_interface, dummy => hdf5_read_grid_field
+use fortran_cpp_utils, only: to_f_str
 
 implicit none
 
@@ -23,16 +24,19 @@ type (grid_field_struct), pointer :: g_field(:), g_temp(:)
 type (grid_field_struct), pointer :: gf
 type (ele_struct) ele
 type (pmd_header_struct) pmd_header
+type(H5O_info_t) :: infobuf 
 
 integer(hid_t) f_id, f2_id, z_id
 integer i, j, k, it, n0(3), n1(3), iver, h5_err, n_grid, storage_type, max_corder
-integer n_links
+integer n_links, h5_stat
 integer(hsize_t) idx
+integer(hsize_t) this_size
 
 logical err_flag, err
 
 character(*) file_name
 character(40) master_name
+character(100) c_name, name
 character(*), parameter :: r_name = 'hdf5_read_grid_field'
 
 !
@@ -71,7 +75,7 @@ f2_id = hdf5_open_group(f_id, pmd_header%basePath(1:it), err, .true.)
 n_grid = 0
 call H5Gget_info_f (f2_id, storage_type, n_links, max_corder, h5_err)
 do idx = 0, n_links-1
-  call H5Lget_name_by_idx_f (f2_id, '.', H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_name, h5_err, g_size)
+  call H5Lget_name_by_idx_f (f2_id, '.', H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_name, h5_err, this_size)
   call to_f_str(c_name, name)
   call H5Oget_info_by_name_f(f2_id, name, infobuf, h5_stat)
   if (infobuf%type /= H5O_TYPE_GROUP_F) cycle    ! Ignore non-group elements.
@@ -106,9 +110,9 @@ type (grid_field_struct), target :: gf
 type (grid_field_pt1_struct), allocatable, target :: gpt(:,:,:)
 type (grid_field_pt1_struct), pointer :: gptr(:,:,:)
 
-real(rp) field_scale
+real(rp) field_scale, total_scale, g
 
-integer indx(3)
+integer indx(3), lb(3), g_size(3)
 integer(hid_t) root_id
 
 character(40) name
@@ -128,12 +132,12 @@ else
 endif
 
 call hdf5_read_attribute_string (root_id, 'gridGeometry', name, error, .false.)
-call match_word (name, grid_field_geometry_name(1:), gt%geometry, error, .false.)
+call match_word (name, grid_field_geometry_name(1:), gf%geometry, error, .false.)
 
 call hdf5_read_attribute_string (root_id, 'eleAnchorPt', name, error, .false.)
 call match_word (name, anchor_pt_name(1:), gf%ele_anchor_pt, error, .false.)
 
-call hdf5_read_attribute_real (root_id, 'harmonic', gf%harmonic, error, .false.)
+call hdf5_read_attribute_int (root_id, 'harmonic', gf%harmonic, error, .false.)
 if (gf%harmonic /= 0) then
   call hdf5_read_attribute_real (root_id, 'RFphase', gf%phi0_fieldmap, error, .false.)
   if (ele%key == lcavity$) then
@@ -146,7 +150,6 @@ endif
 call hdf5_read_attribute_int (root_id, 'interpolationOrder', gf%interpolation_order, error, .false., 1)
 call hdf5_read_attribute_int (root_id, 'interpolationOrder', gf%interpolation_order, error, .false., 1)
 
-lb = 1; g_size = 1
 call hdf5_read_attribute_int (root_id, 'gridLowerBound', lbound(gptr), error, .true.);        if (error) return
 call hdf5_read_attribute_int (root_id, 'gridSize', shape(gptr), error, .true.);          if (error) return
 call hdf5_read_attribute_real (root_id, 'gridOriginOffset', gf%r0(indx), error, .true.);  if (error) return
