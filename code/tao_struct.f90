@@ -347,7 +347,7 @@ type tao_data_struct
   character(300) :: data_type = ''         ! Type of data: 'orbit.x', etc.
   character(40) :: merit_type = ''         ! Type of constraint: 'target', 'max', 'min', etc.
   character(40) :: id = ''                 ! Used by Tao extension code. Not used by Tao directly.
-  character(20) :: data_source = ''        ! 'lat', or 'beam'
+  character(20) :: data_source = ''        ! 'lat', 'beam', 'data' or 'var'. Last two used for expressions.
   integer :: ix_uni = -1                   ! Universe index of datum.
   integer :: ix_bunch = 0                  ! Bunch number to get the data from.
   integer :: ix_branch = 0                 ! Index of the lattice branch of the element
@@ -415,7 +415,6 @@ type tao_d2_data_struct
   type (tao_d1_data_struct), allocatable :: d1(:) ! Points to children 
   integer ix_universe                    ! Index of universe this is in.
   integer ix_d2_data                     ! Index in u%d2_data(:) array.
-  integer ix_data                        ! Index of the data set.
   integer ix_ref                         ! Index of the reference data set. 
   logical :: data_read_in = .false.      ! A data set has been read in?
   logical :: ref_read_in = .false.       ! A reference data set has been read in?

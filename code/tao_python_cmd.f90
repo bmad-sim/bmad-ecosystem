@@ -665,7 +665,7 @@ case ('data_create')
   u%n_d2_data_used = nn
   u%d2_data(nn)%ix_d2_data = nn
   u%d2_data(nn)%name = name
-  u%d2_data(nn)%ix_universe = iu
+  u%d2_data(nn)%ix_universe = u%ix_uni
   if (allocated(u%d2_data(nn)%d1)) deallocate(u%d2_data(nn)%d1) ! Can happen if data has been destroyed.
   allocate (u%d2_data(nn)%d1(n_d1))
 
@@ -715,7 +715,6 @@ case ('data_d2')
   nl=incr(nl); write (li(nl), amt) 'data_date;STR;T;',                        d2_ptr%data_date
   nl=incr(nl); write (li(nl), amt) 'ref_date;STR;T;',                         d2_ptr%ref_date
   nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                     d2_ptr%ix_universe
-  nl=incr(nl); write (li(nl), imt) 'ix_data;INT;F;',                          d2_ptr%ix_data
   nl=incr(nl); write (li(nl), imt) 'ix_ref;INT;F;',                           d2_ptr%ix_ref
   nl=incr(nl); write (li(nl), lmt) 'data_read_in;LOGIC;F;',                   d2_ptr%data_read_in
   nl=incr(nl); write (li(nl), lmt) 'ref_read_in;LOGIC;F;',                    d2_ptr%ref_read_in
@@ -3864,15 +3863,16 @@ n_delta = i2 + 1 - i1
 
 do i = ix_d2, u%n_d2_data_used - 1
   u%d2_data(i) = u%d2_data(i+1)
+  u%d2_data(i)%ix_d2_data = i
   do j = 1, size(u%d2_data(i)%d1)
     d1_ptr => u%d2_data(i)%d1(j)
     d1_ptr%d2 => u%d2_data(i)
-    i1 = d1_ptr%d(lbound(d1_ptr%d,1))%ix_data
-    i2 = d1_ptr%d(ubound(d1_ptr%d,1))%ix_data
-    u%data(i1-n_delta:i2-n_delta) = u%data(i1:i2)
-    call tao_point_d1_to_data(d1_ptr, u%data(i1-n_delta:i2-n_delta), u%data(i1-n_delta)%ix_d1)
+    i1 = d1_ptr%d(lbound(d1_ptr%d,1))%ix_data - n_delta
+    i2 = d1_ptr%d(ubound(d1_ptr%d,1))%ix_data - n_delta
+    u%data(i1:i2) = u%data(i1+n_delta:i2+n_delta)
+    call tao_point_d1_to_data(d1_ptr, u%data(i1:i2), u%data(i1)%ix_d1)
     do k = i1, i2
-      u%data(i1-n_delta)%ix_data = i1 - n_delta
+      u%data(k)%ix_data = k
     enddo
   enddo
 enddo
