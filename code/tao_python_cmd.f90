@@ -814,10 +814,10 @@ case ('data')
   nl=incr(nl); write (li(nl), amt) 'ele_start_name;STR;T;',                   trim(d_ptr%ele_start_name), ';ix_ele_start'
   nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(d_ptr%ele_ref_name), ';ix_ele_ref'
   nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   d_ptr%data_type
-  nl=incr(nl); write (li(nl), amt) 'merit_type;STR;T;',                       d_ptr%merit_type
-  nl=incr(nl); write (li(nl), amt) 'data^data_source;ENUM;T;',                d_ptr%data_source
+  nl=incr(nl); write (li(nl), amt) 'data^merit_type;ENUM;T;',                 d_ptr%merit_type
+  nl=incr(nl); write (li(nl), amt) 'data_source;ENUM;T;',                     d_ptr%data_source
   nl=incr(nl); write (li(nl), amt) 'eval_point;ENUM;T;',                      anchor_pt_name(d_ptr%eval_point)
-  nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_bunch;INUM;T;',                d_ptr%ix_bunch
+  nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_bunch;INUM;T;',               d_ptr%ix_bunch
   nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_branch;INUM;T;',              d_ptr%ix_branch
   nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;I;',                           d_ptr%ix_ele
   nl=incr(nl); write (li(nl), imt) 'ix_ele_start;INT;I;',                     d_ptr%ix_ele_start
@@ -1973,15 +1973,23 @@ case ('enum')
     return
   endif
 
-  if (line == 'data^data_source') then
-    nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', 'lat'
-    nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', 'beam'
+  if (line == 'data_source') then
+    do i = 1, size(data_source_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(data_source_name(i))
+    enddo
     return
   endif
 
-  if (line == 'curve^data_source') then
-    do i = 1, size(data_source_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(data_source_name(i))
+  if (line == 'var^merit_type') then
+    do i = 1, size(var_merit_type_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(var_merit_type_name(i))
+    enddo
+    return
+  endif
+
+  if (line == 'data^merit_type') then
+    do i = 1, size(data_merit_type_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(data_merit_type_name(i))
     enddo
     return
   endif
@@ -2669,7 +2677,7 @@ case ('plot_curve')
   ix_uni = cur%ix_universe
 
   nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             cur%name
-  nl=incr(nl); write (li(nl), amt) 'curve^data_source;ENUM;T;',               cur%data_source
+  nl=incr(nl); write (li(nl), amt) 'data_source;ENUM;T;',                     cur%data_source
   nl=incr(nl); write (li(nl), amt) 'data_type_x;DAT_TYPE;T;',                 cur%data_type_x
   nl=incr(nl); write (li(nl), amt) 'data_type_z;STR;T;',                      cur%data_type_z
   nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   cur%data_type
@@ -3377,7 +3385,7 @@ case ('var')
   nl=incr(nl); write (li(nl), rmt) 'key_val0;REAL;F;',                        v_ptr%key_val0
   nl=incr(nl); write (li(nl), rmt) 'key_delta;REAL;T;',                       v_ptr%key_delta
   nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               v_ptr%s
-  nl=incr(nl); write (li(nl), amt) 'merit_type;STR;T;',                       v_ptr%merit_type
+  nl=incr(nl); write (li(nl), amt) 'var^merit_type;ENUM;T;',                  v_ptr%merit_type
   nl=incr(nl); write (li(nl), lmt) 'exists;LOGIC;F;',                         v_ptr%exists
   nl=incr(nl); write (li(nl), lmt) 'good_var;LOGIC;F;',                       v_ptr%good_var
   nl=incr(nl); write (li(nl), lmt) 'good_user;LOGIC;T;',                      v_ptr%good_user
