@@ -664,20 +664,21 @@ function hard_edge_model_length (ele) result (l_hard)
   real(rp) l_hard
 end function
 
-subroutine hdf5_read_beam (file_name, beam, pmd_header, error)
+subroutine hdf5_read_beam (file_name, beam, error, pmd_header)
   import
   implicit none
   type (beam_struct), target :: beam
-  type (pmd_header_struct) pmd_header
+  type (pmd_header_struct), optional :: pmd_header
   logical error
   character(*) file_name
 end subroutine
 
-subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag)
+subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag, pmd_header)
   import
   implicit none
   type (grid_field_struct), pointer :: g_field(:)
   type (ele_struct) ele
+  type (pmd_header_struct), optional :: pmd_header
   logical err_flag
   character(*) file_name
 end subroutine

@@ -1,5 +1,5 @@
 !+
-! Subroutine hdf5_read_beam (file_name, beam, pmd_header, error)
+! Subroutine hdf5_read_beam (file_name, beam, error, pmd_header)
 !
 ! Routine to read a beam data file. 
 ! See also hdf5_write_beam
@@ -9,11 +9,11 @@
 !
 ! Output:
 !   beam              -- beam_struct: Particle positions.
-!   pmd_header        -- pmd_header_struct: Extra info like file creation date.
 !   error             -- logical: Set True if there is a read error. False otherwise.
+!   pmd_header        -- pmd_header_struct, optional: Extra info like file creation date.
 !-
 
-subroutine hdf5_read_beam (file_name, beam, pmd_header, error)
+subroutine hdf5_read_beam (file_name, beam, error, pmd_header)
 
 use bmad_interface, dummy => hdf5_read_beam
 use hdf5_openpmd_mod
@@ -24,7 +24,8 @@ use iso_c_binding
 implicit none
 
 type (beam_struct), target :: beam
-type (pmd_header_struct) pmd_header
+type (pmd_header_struct), optional :: pmd_header
+type (pmd_header_struct) :: pmd_head
 type (pmd_unit_struct) unit
 type(H5O_info_t) :: infobuf 
 type(c_ptr) cv_ptr
@@ -52,27 +53,29 @@ call hdf5_open_file (file_name, 'READ', f_id, err);  if (err) return
 
 ! Get header info
 
-call hdf5_read_attribute_alloc_string (f_id, 'openPMD', pmd_header%openPMD, err, .true.);                    if (err) return
-call hdf5_read_attribute_alloc_string (f_id, 'openPMDextension', pmd_header%openPMDextension, err, .true.);  if (err) return
-call hdf5_read_attribute_alloc_string (f_id, 'basePath', pmd_header%basePath, err, .true.);                  if (err) return
-call hdf5_read_attribute_alloc_string (f_id, 'particlesPath', pmd_header%particlesPath, err, .true.);        if (err) return
+call hdf5_read_attribute_alloc_string (f_id, 'openPMD', pmd_head%openPMD, err, .true.);                    if (err) return
+call hdf5_read_attribute_alloc_string (f_id, 'openPMDextension', pmd_head%openPMDextension, err, .true.);  if (err) return
+call hdf5_read_attribute_alloc_string (f_id, 'basePath', pmd_head%basePath, err, .true.);                  if (err) return
+call hdf5_read_attribute_alloc_string (f_id, 'particlesPath', pmd_head%particlesPath, err, .true.);        if (err) return
 ! It is not an error if any of the following is missing
-call hdf5_read_attribute_alloc_string (f_id, 'software', pmd_header%software, err, .false.)
-call hdf5_read_attribute_alloc_string (f_id, 'softwareVersion', pmd_header%softwareVersion, err, .false.)
-call hdf5_read_attribute_alloc_string (f_id, 'date', pmd_header%date, err, .false.)
-call hdf5_read_attribute_alloc_string (f_id, 'latticeFile', pmd_header%latticeFile, err, .false.)
-call hdf5_read_attribute_alloc_string (f_id, 'latticeName', pmd_header%latticeName, err, .false.)
+call hdf5_read_attribute_alloc_string (f_id, 'software', pmd_head%software, err, .false.)
+call hdf5_read_attribute_alloc_string (f_id, 'softwareVersion', pmd_head%softwareVersion, err, .false.)
+call hdf5_read_attribute_alloc_string (f_id, 'date', pmd_head%date, err, .false.)
+call hdf5_read_attribute_alloc_string (f_id, 'latticeFile', pmd_head%latticeFile, err, .false.)
+call hdf5_read_attribute_alloc_string (f_id, 'latticeName', pmd_head%latticeName, err, .false.)
+
+if (present(pmd_header)) pmd_header = pmd_head
 
 ! Find root group
 ! Note: Right now it is assumed that the basepath uses "/%T/" to sort bunches.
 
-it = index(pmd_header%basePath, '/%T/')
-if (it /= len_trim(pmd_header%basePath) - 3) then
-  call out_io (s_error$, r_name, 'PARSING OF BASE PATH FAILURE. PLEASE REPORT THIS. ' // pmd_header%basePath)
+it = index(pmd_head%basePath, '/%T/')
+if (it /= len_trim(pmd_head%basePath) - 3) then
+  call out_io (s_error$, r_name, 'PARSING OF BASE PATH FAILURE. PLEASE REPORT THIS. ' // pmd_head%basePath)
   return
 endif
 
-z_id = hdf5_open_group(f_id, pmd_header%basePath(1:it), err, .true.)
+z_id = hdf5_open_group(f_id, pmd_head%basePath(1:it), err, .true.)
 
 ! Count bunches
 
@@ -156,7 +159,7 @@ bunch%charge_tot = 0
 bunch%charge_live = 0
 
 g_id = hdf5_open_group(root_id, g_name, error, .true.);  if (error) return
-g2_id = hdf5_open_group(g_id, pmd_header%particlesPath, error, .true.);  if (error) return
+g2_id = hdf5_open_group(g_id, pmd_head%particlesPath, error, .true.);  if (error) return
 
 ! Get number of particles.
 
@@ -246,15 +249,15 @@ do idx = 0, n_links-1
   case ('weight')
     call pmd_read_real_dataset(g2_id, name, 1.0_rp, bunch%particle%charge, error)
   case ('particleStatus')
-    call pmd_read_int_dataset(g2_id, name, bunch%particle%state, error)
+    call pmd_read_int_dataset(g2_id, name, 1.0_rp, bunch%particle%state, error)
   case ('chargeState')
-    call pmd_read_int_dataset(g2_id, name, charge_state, error)
+    call pmd_read_int_dataset(g2_id, name, 1.0_rp, charge_state, error)
   case ('branchIndex')
-    call pmd_read_int_dataset(g2_id, name, bunch%particle%ix_branch, error)
+    call pmd_read_int_dataset(g2_id, name, 1.0_rp, bunch%particle%ix_branch, error)
   case ('elementIndex')
-    call pmd_read_int_dataset(g2_id, name, bunch%particle%ix_ele, error)
+    call pmd_read_int_dataset(g2_id, name, 1.0_rp, bunch%particle%ix_ele, error)
   case ('locationInElement')
-    call pmd_read_int_dataset(g2_id, name, bunch%particle%location, error)
+    call pmd_read_int_dataset(g2_id, name, 1.0_rp, bunch%particle%location, error)
     do ip = 1, size(bunch%particle)
       p => bunch%particle(ip)
       select case(p%location)

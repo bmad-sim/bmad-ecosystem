@@ -1,5 +1,5 @@
 !+
-! Subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag)
+! Subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag, pmd_header)
 !
 ! Routine to read an hdf5 file that encodes an array of grid_field structures.
 !
@@ -10,12 +10,13 @@
 ! Ouput:
 !   g_field(:)    -- grid_field_struct, pointer: Grid field array.
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
+!   pmd_header    -- pmd_header_struct, optional: Extra info like file creation date.
 !-
 
-subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag)
+subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag, pmd_header)
 
-use hdf5_openpmd_mod
 use bmad_interface, dummy => hdf5_read_grid_field
+use hdf5_openpmd_mod
 use fortran_cpp_utils, only: to_f_str
 
 implicit none
@@ -23,7 +24,8 @@ implicit none
 type (grid_field_struct), pointer :: g_field(:), g_temp(:)
 type (grid_field_struct), pointer :: gf
 type (ele_struct) ele
-type (pmd_header_struct) pmd_header
+type (pmd_header_struct), optional :: pmd_header
+type (pmd_header_struct) :: pmd_head
 type(H5O_info_t) :: infobuf 
 
 integer(hid_t) f_id, f2_id, z_id
@@ -44,13 +46,15 @@ character(*), parameter :: r_name = 'hdf5_read_grid_field'
 err_flag = .true.
 call hdf5_open_file (file_name, 'READ', f_id, err);  if (err) return
 
-call hdf5_read_attribute_alloc_string (f_id, 'externalFieldPath', pmd_header%basePath, err, .true.);         if (err) return
-call hdf5_read_attribute_alloc_string (f_id, 'openPMD', pmd_header%openPMD, err, .true.);                    if (err) return
-call hdf5_read_attribute_alloc_string (f_id, 'openPMDextension', pmd_header%openPMDextension, err, .true.);  if (err) return
+call hdf5_read_attribute_alloc_string (f_id, 'externalFieldPath', pmd_head%basePath, err, .true.);         if (err) return
+call hdf5_read_attribute_alloc_string (f_id, 'openPMD', pmd_head%openPMD, err, .true.);                    if (err) return
+call hdf5_read_attribute_alloc_string (f_id, 'openPMDextension', pmd_head%openPMDextension, err, .true.);  if (err) return
 
-call hdf5_read_attribute_alloc_string (f_id, 'software', pmd_header%software, err, .false.)
-call hdf5_read_attribute_alloc_string (f_id, 'softwareVersion', pmd_header%softwareVersion, err, .false.)
-call hdf5_read_attribute_alloc_string (f_id, 'date', pmd_header%date, err, .false.)
+call hdf5_read_attribute_alloc_string (f_id, 'software', pmd_head%software, err, .false.)
+call hdf5_read_attribute_alloc_string (f_id, 'softwareVersion', pmd_head%softwareVersion, err, .false.)
+call hdf5_read_attribute_alloc_string (f_id, 'date', pmd_head%date, err, .false.)
+
+if (present(pmd_header)) pmd_header = pmd_head
 
 ! Deallocate if needed
 
@@ -61,17 +65,17 @@ endif
 
 ! No "%T" case.
 
-it = index(pmd_header%basePath, '/%T/')
+it = index(pmd_head%basePath, '/%T/')
 if (it == 0) then
   allocate (g_field(1))
-  z_id = hdf5_open_group(f_id, pmd_header%basePath, err, .true.); if (err) return
-  call read_this_field (z_id, ele, g_field(1))
+  z_id = hdf5_open_group(f_id, pmd_head%basePath, err, .true.); if (err) return
+  call read_this_field (z_id, ele, g_field(1), err)
   return
 endif
 
 ! Count grids
 
-f2_id = hdf5_open_group(f_id, pmd_header%basePath(1:it), err, .true.)
+f2_id = hdf5_open_group(f_id, pmd_head%basePath(1:it), err, .true.)
 n_grid = 0
 call H5Gget_info_f (f2_id, storage_type, n_links, max_corder, h5_err)
 do idx = 0, n_links-1
@@ -91,8 +95,9 @@ do idx = 0, n_links-1
     allocate (g_field(n_grid))
     g_field(1:n_grid-1) = g_temp
   endif
-  z_id = hdf5_open_group(f2_id, name, err, .true.); if (err) return
-  call read_this_field(z_id, ele, g_field(n_grid))
+  z_id = hdf5_open_group(f2_id, name, err, .true.);         if (err) return
+  call read_this_field(z_id, ele, g_field(n_grid), err);    if (err) return
+  call h5gclose_f(z_id, h5_err)
 enddo
 
 !
@@ -103,22 +108,25 @@ err_flag = .false.
 !--------------------------------------------------------------------------------
 contains
 
-subroutine read_this_field(root_id, ele, gf)
+subroutine read_this_field(root_id, ele, gf, err_flag)
 
 type (ele_struct) ele
 type (grid_field_struct), target :: gf
 type (grid_field_pt1_struct), allocatable, target :: gpt(:,:,:)
 type (grid_field_pt1_struct), pointer :: gptr(:,:,:)
 
-real(rp) field_scale, total_scale, g
+real(rp) field_scale, total_scale, rho
 
-integer indx(3), lb(3), g_size(3)
+integer indx(3), lb(3), g_size(3), ub(3)
 integer(hid_t) root_id
 
 character(40) name
-logical error
+character(8) B_name(3), E_name(3)
+logical err_flag, error
 
 !
+
+err_flag = .true.
 
 call hdf5_read_attribute_real(root_id, 'fieldScale', total_scale, error, .false., 1.0_rp)
 call hdf5_read_attribute_real(root_id, 'componentFieldScale', gf%field_scale, error, .false.)
@@ -132,14 +140,24 @@ else
 endif
 
 call hdf5_read_attribute_string (root_id, 'gridGeometry', name, error, .false.)
-call match_word (name, grid_field_geometry_name(1:), gf%geometry, error, .false.)
+select case (name)
+case ('rectangular')
+  gf%geometry = xyz$
+  indx = [1, 2, 3]
+case ('cylindrical')
+  gf%geometry = rotationally_symmetric_rz$
+  indx = [1, 3, 2]
+case default
+  call out_io (s_error$, r_name, 'gridGeometry name not recognized: ' // name)
+  return
+end select
 
-call hdf5_read_attribute_string (root_id, 'eleAnchorPt', name, error, .false.)
-call match_word (name, anchor_pt_name(1:), gf%ele_anchor_pt, error, .false.)
+call hdf5_read_attribute_string (root_id, 'eleAnchorPt', name, error, .false.); if (error) return
+call match_word (name, anchor_pt_name(1:), gf%ele_anchor_pt, error, .false.);   if (error) return
 
 call hdf5_read_attribute_int (root_id, 'harmonic', gf%harmonic, error, .false.)
+call hdf5_read_attribute_real (root_id, 'RFphase', gf%phi0_fieldmap, error, .false.)
 if (gf%harmonic /= 0) then
-  call hdf5_read_attribute_real (root_id, 'RFphase', gf%phi0_fieldmap, error, .false.)
   if (ele%key == lcavity$) then
     gf%phi0_fieldmap = gf%phi0_fieldmap / gf%harmonic
   else
@@ -148,19 +166,48 @@ if (gf%harmonic /= 0) then
 endif
 
 call hdf5_read_attribute_int (root_id, 'interpolationOrder', gf%interpolation_order, error, .false., 1)
-call hdf5_read_attribute_int (root_id, 'interpolationOrder', gf%interpolation_order, error, .false., 1)
+call hdf5_read_attribute_int (root_id, 'gridLowerBound', lb, error, .true.);         if (error) return
+call hdf5_read_attribute_int (root_id, 'gridSize', g_size, error, .true.);          if (error) return
+call hdf5_read_attribute_real (root_id, 'gridOriginOffset', gf%r0, error, .true.);   if (error) return
+call hdf5_read_attribute_real (root_id, 'gridSpacing', gf%dr, error, .true.);        if (error) return
+call hdf5_read_attribute_real (root_id, 'curvedRefFrame', rho, error, .false.);        if (error) return
 
-call hdf5_read_attribute_int (root_id, 'gridLowerBound', lbound(gptr), error, .true.);        if (error) return
-call hdf5_read_attribute_int (root_id, 'gridSize', shape(gptr), error, .true.);          if (error) return
-call hdf5_read_attribute_real (root_id, 'gridOriginOffset', gf%r0(indx), error, .true.);  if (error) return
-call hdf5_read_attribute_real (root_id, 'gridSpacing', gf%dr(indx), error, .true.);       if (error) return
-call hdf5_read_attribute_real (root_id, 'curvedRefFrame', g, error, .false.);             if (error) return
-gf%curved_ref_frame = (g /= 0)
+ub = lb + g_size - 1
+gf%curved_ref_frame = (rho /= 0)
+gf%r0 = gf%r0(indx)
+gf%dr = gf%dr(indx)
 
 !
 
-!call reallocate
+allocate (gf%ptr)
 
+select case (gf%geometry)
+case (xyz$)
+  B_name = [character(6):: 'Bx', 'By', 'Bz']
+  E_name = [character(6):: 'Ex', 'Ey', 'Ez']
+  allocate (gf%ptr%pt(lb(1):ub(1), lb(2):ub(2), lb(3):ub(3)))
+  gptr => gf%ptr%pt
+case (rotationally_symmetric_rz$)
+  B_name = [character(6):: 'Br', 'Btheta', 'Bz']
+  E_name = [character(6):: 'Er', 'Etheta', 'Ez']
+  allocate(gf%ptr%pt(lb(1):ub(1), lb(3):ub(3), lb(2):ub(2)))
+  allocate (gpt(lb(1):ub(1), lb(2):ub(2), lb(3):ub(3)))
+  gptr => gpt
+end select
+
+do i = 1, 3
+  if (hdf5_exists(root_id, B_name(i), error, .false.)) then
+    call pmd_read_complex_dataset(root_id, trim(B_name(i)), 1.0_rp, gptr%B(i), error)
+    if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,1)%B(i) = gptr(:,1,:)%B(i)
+  endif
+
+  if (hdf5_exists(root_id, E_name(i), error, .false.)) then
+    call pmd_read_complex_dataset(root_id, trim(E_name(i)), 1.0_rp, gptr%E(i), error)
+    if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,1)%E(i) = gptr(:,1,:)%E(i)
+  endif
+enddo
+
+err_flag = .false.
 
 end subroutine read_this_field
 

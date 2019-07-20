@@ -44,11 +44,43 @@ type(pmd_unit_struct), parameter :: unit_Tesla      = pmd_unit_struct('Tesla', 1
 
 ! 
 
-interface pmd_write_real_to_dataset
-  module procedure pmd_write_real_vector_to_dataset
-  module procedure pmd_write_real_matrix_to_dataset
-  module procedure pmd_write_real_tensor_to_dataset
+interface pmd_write_int_to_dataset
+  module procedure pmd_write_int_to_dataset_rank1
+  module procedure pmd_write_int_to_dataset_rank2
+  module procedure pmd_write_int_to_dataset_rank3
 end interface
+
+interface pmd_write_real_to_dataset
+  module procedure pmd_write_real_to_dataset_rank1
+  module procedure pmd_write_real_to_dataset_rank2
+  module procedure pmd_write_real_to_dataset_rank3
+end interface
+
+interface pmd_write_complex_to_dataset
+  module procedure pmd_write_complex_to_dataset_rank1
+  module procedure pmd_write_complex_to_dataset_rank2
+  module procedure pmd_write_complex_to_dataset_rank3
+end interface
+
+
+interface pmd_read_int_dataset
+  module procedure pmd_read_int_dataset_rank1
+  module procedure pmd_read_int_dataset_rank2
+  module procedure pmd_read_int_dataset_rank3
+end interface
+
+interface pmd_read_real_dataset
+  module procedure pmd_read_real_dataset_rank1
+  module procedure pmd_read_real_dataset_rank2
+  module procedure pmd_read_real_dataset_rank3
+end interface
+
+interface pmd_read_complex_dataset
+  module procedure pmd_read_complex_dataset_rank1
+  module procedure pmd_read_complex_dataset_rank2
+  module procedure pmd_read_complex_dataset_rank3
+end interface
+
 
 contains
 
@@ -56,134 +88,283 @@ contains
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_real_vector_to_dataset(root_id, dataset_name, bmad_name, unit, vector, error)
+! Subroutine pmd_write_int_to_dataset_rank1 (root_id, dataset_name, bmad_name, unit, array, error)
 !
 !-
 
-subroutine pmd_write_real_vector_to_dataset(root_id, dataset_name, bmad_name, unit, vector, error)
+subroutine pmd_write_int_to_dataset_rank1 (root_id, dataset_name, bmad_name, unit, array, error)
 
 type (pmd_unit_struct) unit
-real(rp) vector(:), v_max, v_min
+integer array(:), v_max, v_min
 integer err
-integer(HID_T) :: root_id, v_size
+integer(hid_t) :: root_id, v_shape(1)
 character(*) dataset_name, bmad_name
 logical error
 
 !
 
-v_max = maxval(vector)
-v_min = minval(vector)
+v_max = maxval(array)
+v_min = minval(array)
 
 if (v_max == v_min) then
-  call pmd_write_real_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, v_max, shape(vector), error) 
+  call pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, v_max, shape(array), error) 
   return
 endif
 
 !
 
-v_size = size(vector)
-call H5LTmake_dataset_double_f(root_id, dataset_name, 1, [v_size], vector, err)    
+v_shape = shape(array)
+call H5LTmake_dataset_int_f(root_id, dataset_name, 1, v_shape, array, err)    
+
+call H5LTset_attribute_int_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
+
+call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+
+end subroutine pmd_write_int_to_dataset_rank1
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_write_int_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
+!
+!-
+
+subroutine pmd_write_int_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
+
+type (pmd_unit_struct) unit
+integer array(:,:), v_max, v_min
+integer err
+integer(hid_t) :: root_id, v_shape(2)
+character(*) dataset_name, bmad_name
+logical error
+
+!
+
+v_max = maxval(array)
+v_min = minval(array)
+
+if (v_max == v_min) then
+  call pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, v_max, shape(array), error) 
+  return
+endif
+
+!
+
+v_shape = shape(array)
+call H5LTmake_dataset_int_f(root_id, dataset_name, 2, v_shape, array, err)    
+
+call H5LTset_attribute_int_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
+
+call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+
+end subroutine pmd_write_int_to_dataset_rank2
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_write_int_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
+!
+!-
+
+subroutine pmd_write_int_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
+
+type (pmd_unit_struct) unit
+integer array(:,:,:), v_max, v_min
+integer err
+integer(hid_t) :: root_id, v_shape(3)
+character(*) dataset_name, bmad_name
+logical error
+
+!
+
+v_max = maxval(array)
+v_min = minval(array)
+
+if (v_max == v_min) then
+  call pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, v_max, shape(array), error) 
+  return
+endif
+
+!
+
+v_shape = shape(array)
+call H5LTmake_dataset_int_f(root_id, dataset_name, 3, v_shape, array, err)    
+
+call H5LTset_attribute_int_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
+
+call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+
+end subroutine pmd_write_int_to_dataset_rank3
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_shape, error)
+!
+!-
+
+subroutine pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_shape, error)
+
+type (pmd_unit_struct) unit
+integer(hid_t) :: root_id, group_id
+integer(size_t) :: n_dim
+integer value
+integer err, v_shape(:)
+character(*) dataset_name, bmad_name
+logical error
+
+!
+
+call h5gcreate_f(root_id, dataset_name, group_id, err)
+
+call H5LTset_attribute_int_f(root_id, dataset_name, 'value', [value], 1_size_t, err)
+n_dim = size(v_shape)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', v_shape, n_dim, err)
+
+call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+
+call h5gclose_f(group_id, err)
+
+end subroutine pmd_write_int_to_pseudo_dataset
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_write_real_to_dataset_rank1 (root_id, dataset_name, bmad_name, unit, array, error)
+!
+!-
+
+subroutine pmd_write_real_to_dataset_rank1 (root_id, dataset_name, bmad_name, unit, array, error)
+
+type (pmd_unit_struct) unit
+real(rp) array(:), v_max, v_min
+integer err
+integer(hid_t) :: root_id, v_shape(1)
+character(*) dataset_name, bmad_name
+logical error
+
+!
+
+v_max = maxval(array)
+v_min = minval(array)
+
+if (v_max == v_min) then
+  call pmd_write_real_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, v_max, shape(array), error) 
+  return
+endif
+
+!
+
+v_shape = shape(array)
+call H5LTmake_dataset_double_f(root_id, dataset_name, 1, v_shape, array, err)    
 
 call H5LTset_attribute_double_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
 call H5LTset_attribute_double_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
-end subroutine pmd_write_real_vector_to_dataset
+end subroutine pmd_write_real_to_dataset_rank1
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_real_matrix_to_dataset(root_id, dataset_name, bmad_name, unit, matrix, error)
+! Subroutine pmd_write_real_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
 !
 !-
 
-subroutine pmd_write_real_matrix_to_dataset(root_id, dataset_name, bmad_name, unit, matrix, error)
+subroutine pmd_write_real_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
 
 type (pmd_unit_struct) unit
-real(rp) matrix(:,:), v_max, v_min
+real(rp) array(:,:), v_max, v_min
 integer err
-integer(HID_T) :: root_id, v_size(3)
+integer(hid_t) :: root_id, v_shape(2)
 character(*) dataset_name, bmad_name
 logical error
 
 !
 
-v_max = maxval(matrix)
-v_min = minval(matrix)
+v_max = maxval(array)
+v_min = minval(array)
 
 if (v_max == v_min) then
-  call pmd_write_real_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, v_max, shape(matrix), error) 
+  call pmd_write_real_to_pseudo_dataset (root_id, dataset_name, bmad_name, unit, v_max, shape(array), error) 
   return
 endif
 
 !
 
-v_size = size(matrix)
-call H5LTmake_dataset_double_f(root_id, dataset_name, 1, v_size, matrix, err)    
+v_shape = shape(array)
+call H5LTmake_dataset_double_f(root_id, dataset_name, 2, v_shape, array, err)    
 
 call H5LTset_attribute_double_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
 call H5LTset_attribute_double_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
-end subroutine pmd_write_real_matrix_to_dataset
+end subroutine pmd_write_real_to_dataset_rank2
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_real_tensor_to_dataset(root_id, dataset_name, bmad_name, unit, tensor, error)
+! Subroutine pmd_write_real_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
 !
 !-
 
-subroutine pmd_write_real_tensor_to_dataset(root_id, dataset_name, bmad_name, unit, tensor, error)
+subroutine pmd_write_real_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
 
 type (pmd_unit_struct) unit
-real(rp) tensor(:,:,:), v_max, v_min
+real(rp) array(:,:,:), v_max, v_min
 integer err
-integer(HID_T) :: root_id, v_size(3)
+integer(hid_t) :: root_id, v_shape(3)
 character(*) dataset_name, bmad_name
 logical error
 
 !
 
-v_max = maxval(tensor)
-v_min = minval(tensor)
+v_max = maxval(array)
+v_min = minval(array)
 
 if (v_max == v_min) then
-  call pmd_write_real_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, v_max, shape(tensor), error) 
+  call pmd_write_real_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, v_max, shape(array), error) 
   return
 endif
 
 !
 
-v_size = size(tensor)
-call H5LTmake_dataset_double_f(root_id, dataset_name, 1, v_size, tensor, err)    
+v_shape = shape(array)
+call H5LTmake_dataset_double_f(root_id, dataset_name, 3, v_shape, array, err)    
 
 call H5LTset_attribute_double_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
 call H5LTset_attribute_double_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
-end subroutine pmd_write_real_tensor_to_dataset
+end subroutine pmd_write_real_to_dataset_rank3
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_real_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_size, error)
+! Subroutine pmd_write_real_to_pseudo_dataset (root_id, dataset_name, bmad_name, unit, value, v_shape, error)
 !
 !-
 
-subroutine pmd_write_real_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_size, error)
+subroutine pmd_write_real_to_pseudo_dataset (root_id, dataset_name, bmad_name, unit, value, v_shape, error)
 
 type (pmd_unit_struct) unit
 integer(hid_t) :: root_id, group_id
 integer(size_t) n_dim
 real(rp) value
-integer v_size(:), err
+integer v_shape(:), err
 character(*) dataset_name, bmad_name
 logical error
 
@@ -192,8 +373,8 @@ logical error
 call h5gcreate_f(root_id, dataset_name, group_id, err)
 
 call H5LTset_attribute_double_f(root_id, dataset_name, 'value', [value], 1_size_t, err)
-n_dim = size(v_size)
-call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', v_size, n_dim, err)
+n_dim = size(v_shape)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', v_shape, n_dim, err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
@@ -205,72 +386,79 @@ end subroutine pmd_write_real_to_pseudo_dataset
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_int_vector_to_dataset(root_id, dataset_name, bmad_name, unit, vector, error)
+! Subroutine pmd_write_complex_to_dataset_rank1 (root_id, dataset_name, bmad_name, unit, array, error)
 !
 !-
 
-subroutine pmd_write_int_vector_to_dataset(root_id, dataset_name, bmad_name, unit, vector, error)
+subroutine pmd_write_complex_to_dataset_rank1 (root_id, dataset_name, bmad_name, unit, array, error)
 
 type (pmd_unit_struct) unit
-integer vector(:), v_max, v_min
-integer err
-integer(HID_T) :: root_id, v_size
+complex(rp) array(:)
+integer h5_err
+integer(hid_t) :: root_id, z_id
 character(*) dataset_name, bmad_name
-logical error
+logical err, error
 
 !
 
-v_max = maxval(vector)
-v_min = minval(vector)
+call h5gcreate_f(root_id, dataset_name, z_id, h5_err)
+call pmd_write_real_to_dataset (z_id, 'r', 'real', unit, real(array), err)
+call pmd_write_real_to_dataset (z_id, 'i', 'imaginary', unit, aimag(array), err)
+call h5gclose_f(z_id, h5_err)
 
-if (v_max == v_min) then
-  call pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, v_max, [size(vector)], error) 
-  return
-endif
-
-!
-
-v_size = size(vector)
-call H5LTmake_dataset_int_f(root_id, dataset_name, 1, [v_size], vector, err)    
-
-call H5LTset_attribute_int_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
-call H5LTset_attribute_int_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
-
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
-
-end subroutine pmd_write_int_vector_to_dataset
+end subroutine pmd_write_complex_to_dataset_rank1
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_size, error)
+! Subroutine pmd_write_complex_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
 !
 !-
 
-subroutine pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_size, error)
+subroutine pmd_write_complex_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
 
 type (pmd_unit_struct) unit
-integer(hid_t) :: root_id, group_id
-integer(size_t) :: n_dim
-integer value
-integer err, v_size(:)
+complex(rp) array(:,:)
+integer h5_err
+integer(hid_t) :: root_id, z_id
 character(*) dataset_name, bmad_name
-logical error
+logical error, err
 
 !
 
-call h5gcreate_f(root_id, dataset_name, group_id, err)
+call h5gcreate_f(root_id, dataset_name, z_id, h5_err)
+call pmd_write_real_to_dataset (z_id, 'r', 'real', unit, real(array), err)
+call pmd_write_real_to_dataset (z_id, 'i', 'imaginary', unit, aimag(array), err)
+call h5gclose_f(z_id, h5_err)
 
-call H5LTset_attribute_int_f(root_id, dataset_name, 'value', [value], 1_size_t, err)
-n_dim = size(v_size)
-call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', [v_size], n_dim, err)
+end subroutine pmd_write_complex_to_dataset_rank2
 
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_write_complex_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
+!
+!-
 
-call h5gclose_f(group_id, err)
+subroutine pmd_write_complex_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
 
-end subroutine pmd_write_int_to_pseudo_dataset
+type (pmd_unit_struct) unit
+complex(rp) array(:,:,:)
+integer h5_err
+integer(hid_t) :: root_id, z_id
+character(*) dataset_name, bmad_name
+logical error, err
+
+!
+
+call h5gcreate_f(root_id, dataset_name, z_id, h5_err)
+call pmd_write_real_to_dataset (z_id, 'r', 'real', unit, real(array), err)
+call pmd_write_real_to_dataset (z_id, 'i', 'imaginary', unit, aimag(array), err)
+call h5gclose_f(z_id, h5_err)
+
+end subroutine pmd_write_complex_to_dataset_rank3
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
@@ -283,7 +471,7 @@ end subroutine pmd_write_int_to_pseudo_dataset
 subroutine pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
 type (pmd_unit_struct) unit
-integer(HID_T) :: root_id
+integer(hid_t) :: root_id
 integer err
 logical error
 character(*) dataset_name, bmad_name
@@ -299,24 +487,24 @@ end subroutine pmd_write_units_to_dataset
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_read_int_dataset(root_id, name, value, error)
+! Subroutine pmd_read_int_dataset_rank1 (root_id, name, conversion_factor, array, error)
 !
 !-
 
-subroutine pmd_read_int_dataset(root_id, name, value, error)
+subroutine pmd_read_int_dataset_rank1 (root_id, name, conversion_factor, array, error)
 
 type (hdf5_info_struct) info
 type (pmd_unit_struct) unit
 
-real(rp) unit_si
+real(rp) unit_si, conversion_factor
 
-integer(HID_T) :: root_id, obj_id
-integer h5_err, value(:)
+integer(hid_t) :: root_id, obj_id
+integer h5_err, array(:), c_val
 
 logical error, err
 
 character(*) name
-character(*), parameter :: r_name = 'pmd_read_int_dataset'
+character(*), parameter :: r_name = 'pmd_read_int_dataset_rank1'
 
 !
 
@@ -324,56 +512,54 @@ info = hdf5_object_info(root_id, name, error, .true.)
 obj_id = hdf5_open_object(root_id, name, info, error, .true.)
 
 call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.);  if (error) return
-if (abs(unit_si - 1.0_rp) > 1d-6) then
-  call out_io (s_error$, r_name, 'CONVERSION TO SI OF A VALUE OTHER THAN 1 DOES NOT MAKE SENSE.', &
-                                  'FOR BUNCH PARAMETER: ' // name)
-endif
 
 !
 
 if (info%element_type == H5O_TYPE_DATASET_F) then
-  if (any(info%data_dim(2:) /= 0)) then
-    call out_io (s_error$, r_name, 'DATA ARRAY IS NOT ONE-DIMENSIONAL! FOR DATA: ' // name)
+  if (info%data_dim(2) /= 0) then
+    call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT ONE-DIMENSIONAL! FOR DATA: ' // name)
     return
   endif
 
-  call hdf5_read_dataset_int(root_id, name, value, err)
+  call hdf5_read_dataset_int(root_id, name, array, err)
 
 !
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
-  call hdf5_read_attribute_int(obj_id, 'value', value(1), error, .true.)
-  value = value(1)
+  call hdf5_read_attribute_int(obj_id, 'value', c_val, error, .true.)
+  array = c_val
 endif
 
 !
 
+if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) array = array * (conversion_factor / unit_si)
+
 call hdf5_close_object(obj_id, info)
 
-end subroutine pmd_read_int_dataset
+end subroutine pmd_read_int_dataset_rank1
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_read_real_dataset(root_id, name, conversion_factor, value, error)
+! Subroutine pmd_read_int_dataset_rank2 (root_id, name, conversion_factor, array, error)
 !
 !-
 
-subroutine pmd_read_real_dataset(root_id, name, conversion_factor, value, error)
+subroutine pmd_read_int_dataset_rank2 (root_id, name, conversion_factor, array, error)
 
 type (hdf5_info_struct) info
+type (pmd_unit_struct) unit
 
-real(rp) conversion_factor, value(:)
-real(rp) unit_si
+real(rp) unit_si, conversion_factor
 
-integer(HID_T) :: root_id, obj_id
-integer h5_err
+integer(hid_t) :: root_id, obj_id
+integer h5_err, array(:,:), c_val
 
 logical error, err
 
 character(*) name
-character(*), parameter :: r_name = 'pmd_read_real_dataset'
+character(*), parameter :: r_name = 'pmd_read_int_dataset_rank2'
 
 !
 
@@ -385,50 +571,50 @@ call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.);  if (er
 !
 
 if (info%element_type == H5O_TYPE_DATASET_F) then
-  if (any(info%data_dim(2:) /= 0)) then
-    call out_io (s_error$, r_name, 'DATA ARRAY IS NOT ONE-DIMENSIONAL! FOR DATA: ' // name)
+  if (info%data_dim(2) == 0 .or. info%data_dim(3) /= 0) then
+    call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT TWO-DIMENSIONAL! FOR DATA: ' // name)
     return
   endif
 
-  call hdf5_read_dataset_real(root_id, name, value, err)
+  call hdf5_read_dataset_int(root_id, name, array, err)
 
 !
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
-  call hdf5_read_attribute_real(obj_id, 'value', value(1), error, .true.)
-  value = value(1)
+  call hdf5_read_attribute_int(obj_id, 'value', c_val, error, .true.)
+  array = c_val
 endif
 
 !
 
-if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) value = value * (conversion_factor / unit_si)
+if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) array = array * (conversion_factor / unit_si)
 
 call hdf5_close_object(obj_id, info)
 
-end subroutine pmd_read_real_dataset
+end subroutine pmd_read_int_dataset_rank2
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_read_real_tensor_dataset(root_id, name, conversion_factor, value, error)
+! Subroutine pmd_read_int_dataset_rank3 (root_id, name, conversion_factor, array, error)
 !
 !-
 
-subroutine pmd_read_real_tensor_dataset(root_id, name, conversion_factor, value, error)
+subroutine pmd_read_int_dataset_rank3 (root_id, name, conversion_factor, array, error)
 
 type (hdf5_info_struct) info
+type (pmd_unit_struct) unit
 
-real(rp) conversion_factor, value(:,:,:)
-real(rp) unit_si, val
+real(rp) unit_si, conversion_factor
 
-integer(HID_T) :: root_id, obj_id
-integer h5_err
+integer(hid_t) :: root_id, obj_id
+integer h5_err, array(:,:,:), c_val
 
 logical error, err
 
 character(*) name
-character(*), parameter :: r_name = 'pmd_read_real_tensor_dataset'
+character(*), parameter :: r_name = 'pmd_read_int_dataset_rank3'
 
 !
 
@@ -440,26 +626,309 @@ call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.);  if (er
 !
 
 if (info%element_type == H5O_TYPE_DATASET_F) then
-  if (any(info%data_dim == 0)) then
-    call out_io (s_error$, r_name, 'DATA ARRAY IS NOT THREE-DIMENSIONAL! FOR DATA: ' // name)
+  if (info%data_dim(3) == 0) then
+    call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT THREE-DIMENSIONAL! FOR DATA: ' // name)
     return
   endif
 
-  call hdf5_read_dataset_real(root_id, name, value, err)
+  call hdf5_read_dataset_int(root_id, name, array, err)
 
 !
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
-  call hdf5_read_attribute_real(obj_id, 'value', val, error, .true.)
-  value = val
+  call hdf5_read_attribute_int(obj_id, 'value', c_val, error, .true.)
+  array = c_val
 endif
 
 !
 
-if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) value = value * (conversion_factor / unit_si)
+if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) array = array * (conversion_factor / unit_si)
 
 call hdf5_close_object(obj_id, info)
 
-end subroutine pmd_read_real_tensor_dataset
+end subroutine pmd_read_int_dataset_rank3
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_read_real_dataset_rank1 (root_id, name, conversion_factor, array, error)
+!
+!-
+
+subroutine pmd_read_real_dataset_rank1 (root_id, name, conversion_factor, array, error)
+
+type (hdf5_info_struct) info
+
+real(rp) conversion_factor, array(:), c_val
+real(rp) unit_si
+
+integer(hid_t) :: root_id, obj_id
+integer h5_err
+
+logical error, err
+
+character(*) name
+character(*), parameter :: r_name = 'pmd_read_real_dataset_rank1'
+
+!
+
+info = hdf5_object_info(root_id, name, error, .true.)
+obj_id = hdf5_open_object(root_id, name, info, error, .true.)
+
+call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.);  if (error) return
+
+!
+
+if (info%element_type == H5O_TYPE_DATASET_F) then
+  if (info%data_dim(2) /= 0) then
+    call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT ONE-DIMENSIONAL! FOR DATA: ' // name)
+    return
+  endif
+
+  call hdf5_read_dataset_real(root_id, name, array, err)
+
+!
+
+else  ! Must be a "constant record component" as defined by the openPMD standard
+  call hdf5_read_attribute_real(obj_id, 'value', c_val, error, .true.)
+  array = c_val
+endif
+
+!
+
+if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) array = array * (conversion_factor / unit_si)
+
+call hdf5_close_object(obj_id, info)
+
+end subroutine pmd_read_real_dataset_rank1
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_read_real_dataset_rank2 (root_id, name, conversion_factor, array, error)
+!
+!-
+
+subroutine pmd_read_real_dataset_rank2 (root_id, name, conversion_factor, array, error)
+
+type (hdf5_info_struct) info
+
+real(rp) conversion_factor, array(:,:), c_val
+real(rp) unit_si
+
+integer(hid_t) :: root_id, obj_id
+integer h5_err
+
+logical error, err
+
+character(*) name
+character(*), parameter :: r_name = 'pmd_read_real_dataset_rank2'
+
+!
+
+info = hdf5_object_info(root_id, name, error, .true.)
+obj_id = hdf5_open_object(root_id, name, info, error, .true.)
+
+call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.);  if (error) return
+
+!
+
+if (info%element_type == H5O_TYPE_DATASET_F) then
+  if (info%data_dim(2) == 0 .or. info%data_dim(3) /= 0) then
+    call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT TWO-DIMENSIONAL! FOR DATA: ' // name)
+    return
+  endif
+
+  call hdf5_read_dataset_real(root_id, name, array, err)
+
+!
+
+else  ! Must be a "constant record component" as defined by the openPMD standard
+  call hdf5_read_attribute_real(obj_id, 'value', c_val, error, .true.)
+  array = c_val
+endif
+
+!
+
+if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) array = array * (conversion_factor / unit_si)
+
+call hdf5_close_object(obj_id, info)
+
+end subroutine pmd_read_real_dataset_rank2
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_read_real_dataset_rank3 (root_id, name, conversion_factor, array, error)
+!
+!-
+
+subroutine pmd_read_real_dataset_rank3 (root_id, name, conversion_factor, array, error)
+
+type (hdf5_info_struct) info
+
+real(rp) conversion_factor, array(:,:,:), c_val
+real(rp) unit_si
+
+integer(hid_t) :: root_id, obj_id
+integer h5_err
+
+logical error, err
+
+character(*) name
+character(*), parameter :: r_name = 'pmd_read_real_dataset_rank3'
+
+!
+
+info = hdf5_object_info(root_id, name, error, .true.)
+obj_id = hdf5_open_object(root_id, name, info, error, .true.)
+
+call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.);  if (error) return
+
+!
+
+if (info%element_type == H5O_TYPE_DATASET_F) then
+  if (info%data_dim(3) == 0) then
+    call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT THREE-DIMENSIONAL! FOR DATA: ' // name)
+    return
+  endif
+
+  call hdf5_read_dataset_real(root_id, name, array, err)
+
+!
+
+else  ! Must be a "constant record component" as defined by the openPMD standard
+  call hdf5_read_attribute_real(obj_id, 'value', c_val, error, .true.)
+  array = c_val
+endif
+
+!
+
+if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) array = array * (conversion_factor / unit_si)
+
+call hdf5_close_object(obj_id, info)
+
+end subroutine pmd_read_real_dataset_rank3
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_read_complex_dataset_rank1 (root_id, name, conversion_factor, array, error)
+!
+!-
+
+subroutine pmd_read_complex_dataset_rank1 (root_id, name, conversion_factor, array, error)
+
+complex(rp) array(:)
+real(rp), allocatable :: re(:), im(:)
+real(rp) conversion_factor
+
+integer(hid_t) :: root_id, z_id
+integer h5_err
+
+logical error, err
+
+character(*) name
+character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank1'
+
+!
+
+error = .true.
+
+allocate (re(size(array)), im(size(array)))
+
+call h5gopen_f(root_id, name, z_id, h5_err);                     if (h5_err == -1) return
+call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);      if (err) return
+call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);      if (err) return
+call h5gclose_f(z_id, h5_err)
+
+array = cmplx(re, im)
+
+error = .false.
+
+end subroutine pmd_read_complex_dataset_rank1
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_read_complex_dataset_rank2 (root_id, name, conversion_factor, array, error)
+!
+!-
+
+subroutine pmd_read_complex_dataset_rank2 (root_id, name, conversion_factor, array, error)
+
+complex(rp) array(:,:)
+real(rp), allocatable :: re(:,:), im(:,:)
+real(rp) conversion_factor
+
+integer(hid_t) :: root_id, z_id
+integer h5_err
+
+logical error, err
+
+character(*) name
+character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank2'
+
+!
+
+error = .true.
+
+allocate (re(size(array,1), size(array,2)), im(size(array,1), size(array,2)))
+
+call h5gopen_f(root_id, name, z_id, h5_err);                     if (h5_err == -1) return
+call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);      if (err) return
+call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);      if (err) return
+call h5gclose_f(z_id, h5_err)
+
+array = cmplx(re, im)
+
+error = .false.
+
+end subroutine pmd_read_complex_dataset_rank2
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_read_complex_dataset_rank3 (root_id, name, conversion_factor, array, error)
+!
+!-
+
+subroutine pmd_read_complex_dataset_rank3 (root_id, name, conversion_factor, array, error)
+
+complex(rp) array(:,:,:)
+real(rp), allocatable :: re(:,:,:), im(:,:,:)
+real(rp) conversion_factor
+
+integer(hid_t) :: root_id, z_id
+integer h5_err
+
+logical error, err
+
+character(*) name
+character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank3'
+
+!
+
+error = .true.
+
+allocate (re(size(array,1), size(array,2), size(array,3)), im(size(array,1), size(array,2), size(array,3)))
+
+call h5gopen_f(root_id, name, z_id, h5_err);                     if (h5_err == -1) return
+call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);      if (err) return
+call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);      if (err) return
+call h5gclose_f(z_id, h5_err)
+
+array = cmplx(re, im)
+
+error = .false.
+
+end subroutine pmd_read_complex_dataset_rank3
+
 
 end module

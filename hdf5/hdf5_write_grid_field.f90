@@ -34,7 +34,7 @@ character(*) file_name
 character(*), parameter :: r_name = 'dhf5_write_grid_field'
 character(40) this_path
 character(28) date_time, root_path, sub_path
-character(2), parameter :: b_name(3) = ['Bx', 'By', 'Bz'], e_name(3) = ['Ex', 'Ey', 'Ez']
+character(8) :: B_name(3), E_name(3)
 
 !
 
@@ -53,23 +53,33 @@ call hdf5_write_attribute_string(f_id, 'software',          'Bmad', err)
 call hdf5_write_attribute_string(f_id, 'softwareVersion',   '1.0', err)
 call hdf5_write_attribute_string(f_id, 'date',              date_time, err)
 
-call h5gcreate_f(r_id, trim(root_path), b_id, h5_err)
+call h5gcreate_f(f_id, trim(root_path), b_id, h5_err)
 
 do igf = 1, size(g_field)
   gf => g_field(igf)
 
+  write (sub_path, '(i0)') igf
+  call h5gcreate_f(b_id, trim(sub_path), b2_id, h5_err)
+
   gptr => gf%ptr%pt
   select case (gf%geometry)
   case (xyz$)
+    B_name = [character(6):: 'Bx', 'By', 'Bz']
+    E_name = [character(6):: 'Ex', 'Ey', 'Ez']
     indx = [1, 2, 3]
+    call hdf5_write_attribute_string(b2_id,  'gridGeometry', 'rectangular', err)
   case (rotationally_symmetric_rz$)
+    B_name = [character(6):: 'Br', 'Btheta', 'Bz']
+    E_name = [character(6):: 'Er', 'Etheta', 'Ez']
     indx = [1, 3, 2]
     allocate(gpt(lbound(gptr, 1):ubound(gptr, 1), lbound(gptr, 3):ubound(gptr, 3), lbound(gptr, 2):ubound(gptr, 2)))
     gptr => gpt
+    do i = 1, 3
+      gptr(:,1,:)%B(i) = gf%ptr%pt(:,:,1)%B(i)
+      gptr(:,1,:)%E(i) = gf%ptr%pt(:,:,1)%E(i)
+    enddo
+    call hdf5_write_attribute_string(b2_id,  'gridGeometry', 'cylindrical', err)
   end select
-
-  write (sub_path, '(i0)') igf
-  call h5gcreate_f(b_id, trim(sub_path), b2_id, h5_err)
 
   im = gf%master_parameter 
   if (im == 0) then
@@ -89,7 +99,6 @@ do igf = 1, size(g_field)
     endif
   endif
 
-  call hdf5_write_attribute_string(b2_id,  'gridGeometry',         grid_field_geometry_name(gf%geometry), err)
   call hdf5_write_attribute_string(b2_id,  'eleAnchorPt',          downcase(anchor_pt_name(gf%ele_anchor_pt)), err)
   call hdf5_write_attribute_real(b2_id,    'gridOriginOffset',     gf%r0(indx), err)
   call hdf5_write_attribute_real(b2_id,    'gridSpacing',          gf%dr(indx), err)
@@ -108,29 +117,13 @@ do igf = 1, size(g_field)
 
   if (gf%field_type == magnetic$ .or. gf%field_type == mixed$) then
     do i = 1, 3
-      call h5gcreate_f(b2_id, B_name(i), z_id, h5_err)
-      if (gf%geometry == xyz$) then
-        call pmd_write_real_to_dataset (z_id, 'real', 'real', unit_tesla, real(gf%ptr%pt%B(i)), err)
-        call pmd_write_real_to_dataset (z_id, 'imaginary', 'imaginary', unit_tesla, real(gf%ptr%pt%B(i)), err)
-      else
-        call pmd_write_real_to_dataset (z_id, 'real', 'real', unit_tesla, real(gf%ptr%pt(:,:,1)%B(i)), err)
-        call pmd_write_real_to_dataset (z_id, 'imaginary', 'imaginary', unit_tesla, real(gf%ptr%pt(:,:,1)%B(i)), err)
-      endif
-      call h5gclose_f(z_id, h5_err)
+      call pmd_write_complex_to_dataset (b2_id, B_name(i), B_name(i), unit_tesla, gptr%B(i), err)
     enddo
   endif
 
   if (gf%field_type == electric$ .or. gf%field_type == mixed$) then
     do i = 1, 3
-      call h5gcreate_f(b2_id, E_name(i), z_id, h5_err)
-      if (gf%geometry == xyz$) then
-        call pmd_write_real_to_dataset (z_id, 'real', 'real', unit_tesla, real(gf%ptr%pt%E(i)), err)
-        call pmd_write_real_to_dataset (z_id, 'imaginary', 'imaginary', unit_tesla, real(gf%ptr%pt%E(i)), err)
-      else
-        call pmd_write_real_to_dataset (z_id, 'real', 'real', unit_tesla, real(gf%ptr%pt(:,:,1)%E(i)), err)
-        call pmd_write_real_to_dataset (z_id, 'imaginary', 'imaginary', unit_tesla, real(gf%ptr%pt(:,:,1)%E(i)), err)
-      endif
-      call h5gclose_f(z_id, h5_err)
+      call pmd_write_complex_to_dataset (b2_id, E_name(i), E_name(i), unit_V_per_m, gptr%E(i), err)
     enddo
   endif
 
