@@ -149,10 +149,11 @@ len_orig = ele%value(l$)
 len2 = branch%ele(ix_split)%s - s_split
 len1 = len_orig - len2
 
-! There is a problem with custom elements in that we don't know which
-! attributes (if any) scale with length.
+! There is a problem with custom elements in that we don't know which attributes (if any) scale with length.
+! Also splitting a Taylor element is not currently permitted.
+! In the future this might change but the bookkeeping changes are non-negligible.
 
-if (ele%key == custom$ .or. ele%key == match$) then
+if (ele%key == custom$ .or. ele%key == match$ .or. ele%key == taylor$) then
   call out_io (s_fatal$, r_name, "I DON'T KNOW HOW TO SPLIT THIS ELEMENT:" // ele%name)
   if (global_com%exit_on_error) call err_exit
 endif

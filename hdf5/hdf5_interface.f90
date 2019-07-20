@@ -35,7 +35,7 @@ type hdf5_info_struct
   integer :: element_type = -1         ! Type of the element. See above.
   integer :: data_type = -1            ! Type of associated data. Not used for groups. See above.
   integer(hsize_t) :: data_dim(3) = 0  ! Dimensions. Not used for groups. EG: Scaler data has [1, 0, 0].
-  integer(SIZE_T) :: data_size = -1    ! Size of datums. Not used for groups. For strings size = # of characters.
+  integer(size_t) :: data_size = -1    ! Size of datums. Not used for groups. For strings size = # of characters.
   integer :: num_attributes = -1       ! Number of associated attributes. Used for groups and datasets only.
 end type
 
@@ -582,7 +582,7 @@ character(*) attrib_name
 
 !
 
-call H5Aopen_by_idx_f (root_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, int(attrib_indx-1, HSIZE_T), &
+call H5Aopen_by_idx_f (root_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, int(attrib_indx-1, hsize_t), &
                                                                  attrib_id, h5_err, aapl_id=H5P_DEFAULT_F)
 nam_len = len(attrib_name)
 call H5Aget_name_f(attrib_id, nam_len, attrib_name, h5_err)
@@ -896,7 +896,6 @@ subroutine hdf5_read_attribute_alloc_string(root_id, attrib_name, string, error,
 type (hdf5_info_struct) info
 
 integer(hid_t) root_id, a_id
-integer attrib_value
 integer h5_err
 
 logical error, print_error
@@ -907,14 +906,13 @@ character(*), parameter :: r_name = 'hdf5_read_attribute_alloc_string'
 
 !
 
-attrib_value = 0
-
 info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
 
 if (info%data_type /= H5T_STRING_F) then
   if (print_error) then
     call out_io (s_error$, r_name, 'ATTRIBUTE: ' // attrib_name, 'IS NOT A STRING!')
   endif
+  allocate(character(0) :: string)
   return
 endif
 
@@ -924,6 +922,7 @@ if (h5_err < 0) then
   if (print_error) then
     call out_io (s_error$, r_name, 'CANNOT READ ATTRIBUTE: ' // attrib_name)
   endif
+  string = ''
   return
 endif
 
@@ -955,7 +954,6 @@ subroutine hdf5_read_attribute_string(root_id, attrib_name, string, error, print
 type (hdf5_info_struct) info
 
 integer(hid_t) root_id, a_id
-integer attrib_value
 integer h5_err
 
 logical error, print_error
@@ -966,7 +964,7 @@ character(*), parameter :: r_name = 'hdf5_read_attribute_string'
 
 !
 
-attrib_value = 0
+string = ''
 
 info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
 
@@ -982,7 +980,6 @@ if (h5_err < 0) then
   if (print_error) then
     call out_io (s_error$, r_name, 'CANNOT READ ATTRIBUTE: ' // attrib_name)
   endif
-  string = ''
   return
 endif
 

@@ -133,7 +133,6 @@ type (beam_init_struct) beam_init
 type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p(:)
 type (coord_struct) orb_init
-type (pmd_header_struct) pmd_header
 
 integer i, j, k, n, ix, iu, ix_word, ios, ix_ele, species
 integer n_bunch, n_particle, n_particle_lines, ix_lost
@@ -163,7 +162,7 @@ endif
 
 n = len_trim(full_name)
 if (full_name(n-4:n) == '.hdf5' .or. full_name(n-2:n) == '.h5') then
-  call hdf5_read_beam (full_name, beam, pmd_header, err_flag)
+  call hdf5_read_beam (full_name, beam, err_flag)
   return
 endif
 
