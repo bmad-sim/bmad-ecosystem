@@ -24,6 +24,7 @@ from matplotlib.backends._backend_tk import FigureManagerTk
 from matplotlib.backend_bases import key_press_handler
 from tao_ele_location import in_element
 from tao_mpl_toolbar import taotoolbar
+from matplotlib.widgets import Slider
 
 #-----------------------------------------------------
 # Console frame
@@ -1148,7 +1149,7 @@ class tao_plot_window(tk.Toplevel):
     self.mpl = taoplot(pipe, self.root.placed[self.template])
     self.refresh()
 
-  def refresh(self, event=None):
+  def refresh(self, event=None, width=1):
     '''
     Makes the call to matplotlib to draw the plot to the window
     '''
@@ -1157,7 +1158,7 @@ class tao_plot_window(tk.Toplevel):
       child.destroy()
 
     #Get plotting results
-    self.plot_output = self.mpl.plot()
+    self.plot_output = self.mpl.plot(width)
 
     #Get the figure
     self.fig = self.plot_output[0]
@@ -1190,6 +1191,15 @@ class tao_plot_window(tk.Toplevel):
               default=[self.fig_info[1],self.fig_info[2],i,self.fig_info[3]])
 
     canvas.mpl_connect("button_press_event", on_click)
+
+    if self.fig_info[0] == 'floor_plan':
+      self.fig.subplots_adjust(bottom=0.2)
+      width_slider = Slider(self.fig.add_axes([.1,.05,.8,.05]), 'width', 0, 2, width) #element width slider
+
+      def update_slider(width):
+        self.refresh(width=width_slider.val)
+
+      width_slider.on_changed(update_slider) #call update when slider moves
 
   def destroy(self):
     # Note: lat_layout should not be automatically removed from r1
