@@ -2568,6 +2568,328 @@ class tao_lattice_window(tk.Toplevel):
           self.branch_wids.bmd.get()]
       win = tao_ele_window(self.root, self.pipe, settings)
 
+class tao_new_data_window(tk.Toplevel):
+  '''
+  Provides a window for creating new d2 data arrays (and their associated
+  d1 arrays)
+  '''
+  def __init__(self, root, pipe, *args, **kwargs):
+    tk.Toplevel.__init__(self, root, *args, **kwargs)
+    self.root = root
+    self.pipe = pipe
+    self.rowconfigure(0, weight=1)
+    self.title('New Data')
+
+    #Frame for inputting d2 parameters
+    self.d2_frame = tk.Frame(self)
+    self.d2_frame.grid(row=0, column=0, sticky='NSEW')
+
+    #Frames for inputting d1 parameters
+    self.d1_frame = tk.Frame(self)
+    self.nb_exists = False #used to track if the ttk Notebook has been set up
+    self.d1_frame_list = []
+
+    self.fill_d2_frame()
+
+  def fill_d2_frame(self):
+    tk.Label(self.d2_frame, text="New d2 Data",
+        font=('Sans', 16, 'bold')).grid(
+            row=0, column=0, columnspan=2, sticky='EW')
+
+    # Small bit of setup
+    self.uni = tk.StringVar()
+    self.uni.set("All")
+    uni_max = self.pipe.cmd_in("python super universe")
+    uni_max = str_to_tao_param(uni_max.splitlines()[0]).value
+    uni_list = ["All"] + list(range(1, uni_max+1))
+    def my_ttp(x):
+      ''' shorcut for the following commonly used construct '''
+      return tk_tao_parameter(str_to_tao_param(x), self.d2_frame, self.pipe)
+
+    # Widgets
+    self.d2_param_list = [my_ttp("name;STR;T;"),
+        tk.OptionMenu(self.d2_frame, self.uni, *uni_list),
+        my_ttp("data_source;ENUM;T;"),
+        my_ttp("data^merit_type;ENUM;T;"),
+        my_ttp("weight;REAL;T;")]
+
+    # Labels
+    self.d2_label_list = [tk.Label(self.d2_frame, text="d2_data Name:"),
+        tk.Label(self.d2_frame, text="Which universe:"),
+        tk.Label(self.d2_frame, text="Default data source:"),
+        tk.Label(self.d2_frame, text="Default merit type:"),
+        tk.Label(self.d2_frame, text="Default weight:")]
+
+    # Grid widgets and labels
+    for i in range(len(self.d2_param_list)):
+      self.d2_label_list[i].grid(row=i+1, column=0, sticky='W')
+      if i == 1:
+        self.d2_param_list[i].grid(row=i+1, column=1, sticky='EW')
+      else:
+        self.d2_param_list[i].tk_wid.grid(row=i+1, column=1, sticky='EW')
+
+    # Next button
+    self.next_b = tk.Button(self.d2_frame, text="Next", command=self.load_d1_frame)
+    self.next_b.grid(row=i+2, column=1, sticky='W')
+
+  def load_d2_frame(self):
+    self.d1_frame.pack_forget()
+    self.d2_frame.grid(row=0, column=0, sticky='NSEW')
+
+  def load_d1_frame(self):
+    '''
+    Ungrids self.d2_frame, grids self.d1_frame, and sets up a notebook
+    for the d1_frames if necessary.
+    '''
+    self.d2_frame.grid_forget()
+    self.d1_frame.pack(fill='both', expand=1)
+    self.title("New data: " + self.d2_param_list[0].tk_var.get())
+    # Possibly create self.notebook
+    if not self.nb_exists:
+      self.notebook = ttk.Notebook(self.d1_frame)
+      self.notebook.pack(fill='both', expand=1)
+      self.nb_exists = True
+
+      # Set up a d1 tab
+      self.d1_frame_list.append(new_d1_frame(self))
+      self.notebook.insert('end', self.d1_frame_list[0])
+      self.notebook.tab(0, text='New d1_array')
+      self.d1_index = 0 #marks current tab index
+
+      # New tab button
+      self.new_tab_frame = tk.Frame(self.notebook)
+      self.notebook.insert('end', self.new_tab_frame)
+      self.notebook.tab(1, text='+')
+      self.notebook.bind('<<NotebookTabChanged>>', self.tab_handler)
+
+      # Back button
+      self.back_b = tk.Button(self.d1_frame, text="Back", command=self.load_d2_frame)
+      self.back_b.pack()
+    # Copy d2 defaults into d1_arrays
+    for i in range(len(self.d1_frame_list)):
+      val = self.d2_param_list[2].tk_var.get()
+      self.d1_frame_list[i].d1_array_wids[1].tk_var.set(val)
+      val = self.d2_param_list[3].tk_var.get()
+      self.d1_frame_list[i].d1_array_wids[3].tk_var.set(val)
+      val = self.d2_param_list[4].tk_var.get()
+      self.d1_frame_list[i].d1_array_wids[4].tk_var.set(val)
+
+
+  def tab_handler(self, event=None):
+    '''
+    Handles new tab creation and updates self.d1_index as necessary
+    '''
+    # Check if the new tab frame has been selected
+    if self.notebook.select() == self.new_tab_frame._w:
+      # Add new tab
+      self.d1_frame_list.append(new_d1_frame(self))
+      self.d1_index = len(self.d1_frame_list)-1
+      self.notebook.insert(self.d1_index, self.d1_frame_list[-1])
+      self.notebook.tab(self.d1_index, text='New d1_array')
+      self.notebook.select(self.d1_index)
+    else:
+      # Update self.d1_index
+      for i in range(len(self.d1_frame_list)):
+        frame = self.d1_frame_list[i]
+        if self.notebook.select() == frame._w:
+          self.d1_index = i
+          break
+
+
+class new_d1_frame(tk.Frame):
+  '''
+  Provides a frame for inputting properties of a d1_data array.
+  '''
+  def __init__(self, d2_array):
+    tk.Frame.__init__(self, d2_array.notebook)
+    self.d2_array = d2_array
+    self.pipe = self.d2_array.pipe
+
+    # d1 Widgets
+    def d1_ttp(x):
+      ''' Shortcut for commonly used construct '''
+      return tk_tao_parameter(str_to_tao_param(x), self, self.pipe)
+    self.d1_array_wids = [d1_ttp('name;STR;T;'),
+        d1_ttp('data_source;ENUM;T;'),
+        d1_ttp('data_type;DAT_TYPE;T;'),
+        d1_ttp('data^merit_type;ENUM;T;'),
+        d1_ttp('weight;REAL;T;'),
+        d1_ttp('ix_min;INT;T;'),
+        d1_ttp('ix_max;INT;T;')]
+    # d1 labels (NAMES AS STRINGS ONLY)
+    self.d1_array_labels = ["d1_array Name:", "Data source:",
+        "Data type:", "Merit type:", "Weight", "Start index", "End index"]
+    # Read in defaults from d2 level
+    val = self.d2_array.d2_param_list[2].tk_var.get()
+    self.d1_array_wids[1].tk_var.set(val)
+    val = self.d2_array.d2_param_list[3].tk_var.get()
+    self.d1_array_wids[3].tk_var.set(val)
+    val = self.d2_array.d2_param_list[4].tk_var.get()
+    self.d1_array_wids[4].tk_var.set(val)
+    # Grid widgets and labels:
+    for i in range(len(self.d1_array_wids)):
+      tk.Label(self, text=self.d1_array_labels[i]).grid(row=i, column=0, sticky='W')
+      self.d1_array_wids[i].tk_wid.grid(row=i, column=1, sticky='EW')
+
+    # Warning labels
+    # (defined here to be gridded/ungridded as necessary)
+    self.name_warning = tk.Label(self, text="Must not be empty")
+    self.ix_min_warning_1 = tk.Label(self, text="Must be a non-negative integer")
+    self.ix_min_warning_2 = tk.Label(self, text="Cannot be larger than the maximum index")
+    self.ix_max_warning_1 = tk.Label(self, text="Must be a non-negative integer")
+    self.ix_max_warning_2 = tk.Label(self, text="Cannot be smaller than the minimum index")
+
+    # Responses to edits
+    self.d1_array_wids[0].tk_wid.bind('<FocusOut>', self.name_handler)
+    self.d1_array_wids[5].tk_wid.bind('<FocusOut>', self.ix_min_handler)
+    self.d1_array_wids[6].tk_wid.bind('<FocusOut>', self.ix_max_handler)
+
+    # Element browsers
+    tk.Label(self, text="Choose elements:").grid(row=i+1, column=0, sticky='W')
+    self.ele_name_button = tk.Button(self, text="Browse...",
+        command=lambda : self.lat_browser('name'))
+    self.ele_name_button.grid(row=i+1, column=1, sticky='EW')
+
+    tk.Label(self, text="Start elements:").grid(row=i+2, column=0, sticky='W')
+    self.ele_start_name_button = tk.Button(self, text="Browse...",
+        command=lambda : self.lat_browser('start_name'))
+    self.ele_start_name_button.grid(row=i+2, column=1, sticky='EW')
+
+    tk.Label(self, text="Ref elements:").grid(row=i+3, column=0, sticky='W')
+    self.ele_ref_name_button = tk.Button(self, text="Browse...",
+        command=lambda : self.lat_browser('ref_name'))
+    self.ele_ref_name_button.grid(row=i+3, column=1, sticky='EW')
+
+    # Individual data
+    self.data_dict = {}
+    self.datum_frame = tk.Frame(self)
+    tk.Label(self, text="Datum:").grid(row=i+4, column=0, sticky='W')
+    self.data_ix = tk.StringVar()
+    self.ix_min = -1
+    self.ix_max = -1
+    self.data_chooser = ttk.Combobox(self, textvariable=self.data_ix,
+        values=['PLEASE SPECIFY MIN/MAX INDICES'], state='readonly')
+    self.data_chooser.bind('<<ComboboxSelected>>', self.make_datum_frame)
+    self.data_chooser.grid(row=i+4, column=1, sticky='E')
+
+  def make_datum_frame(self, event=None):
+    '''
+    Adds an entry to self.data_dict if necessary, and updates
+    self.datum_frame to show the values for the current datum
+    '''
+    ix = self.data_ix.get()
+    if ix == 'PLEASE SPECIFY MIN/MAX INDICES':
+      return
+    ix = int(ix)
+    if ix not in self.data_dict.keys():
+      self.data_dict[ix] = {}
+    self.datum_frame.destroy()
+    self.datum_frame = tk.Frame(self)
+    def datum_ttp(x):
+      ''' Shortcut for commonly used construct '''
+      return tk_tao_parameter(x, self.datum_frame, self.pipe)
+    # Parameters
+    param_list = ['data_source;ENUM;T;', 'data_type;DAT_TYPE;T;',
+        'ele_name;STR;T;', 'ele_start_name;STR;T;', 'ele_ref_name;STR;T;',
+        'data^merit_type;ENUM;T;', 'meas;REAL;T;', 'weight;REAL;T;',
+        'good_user;LOGIC;T;', 'ix_bunch;INT;T;', 'eval_point;STR;T;',
+        's_offset;REAL;T;']
+    param_list = list(map(str_to_tao_param, param_list))
+    # Set parameter values if specified
+    for i in range(len(param_list)):
+      if param_list[i].name in self.data_dict[ix].keys():
+        param_list[i].value = self.data_dict[ix][param_list[i].name]
+    # Create widgets
+    datum_wid_list = list(map(datum_ttp, param_list))
+    def data_writer(i):
+      ''' Writes the contents of datum_wid_list[i] into self.data_dict '''
+      if datum_wid_list[i].param.type == 'LOGIC':
+        val = bool(datum_wid_list[i].tk_var.get())
+      else:
+        val = datum_wid_list[i].tk_var.get()
+      self.data_dict[ix][datum_wid_list[i].param.name] = val
+      print(self.data_dict)
+    def data_writer_callback(i):
+      ''' Callback for data_writer() '''
+      return lambda *args : data_writer(i)
+    # Grid widgets
+    for i in range(len(datum_wid_list)):
+      datum_wid_list[i].tk_label.grid(row=i, column=0, sticky='E')
+      datum_wid_list[i].tk_wid.grid(row=i, column=1, sticky='EW')
+      # Write changes into self.data_dict
+      datum_wid_list[i].tk_var.trace('w', data_writer_callback(i))
+    self.datum_frame.grid(row=20, column=0, columnspan=3, sticky='EW')
+
+
+  def lat_browser(self, which):
+    '''
+    Opens a modified lattice table window to select elements en masse
+    which should be either 'name', 'start_name', or 'ref_name'
+    When the elements are chosen, ele_which will be set for each of this
+    d1_array's data sequentially
+    '''
+    print('Not yet implemented...')
+
+  def name_handler(self, event=None):
+    '''
+    Changes the tab name to match the d1_name
+    '''
+    name = self.d1_array_wids[0].tk_var.get()
+    if name != "":
+      self.d2_array.notebook.tab(self.d2_array.d1_index, text=name)
+      self.name_warning.grid_forget()
+    else:
+      self.name_warning.grid(row=0, column=2, sticky='W')
+      self.d2_array.notebook.tab(self.d2_array.d1_index, text="New d1_array")
+
+  def ix_min_handler(self, event=None):
+    try:
+      ix_min = int(self.d1_array_wids[5].tk_var.get())
+    except ValueError:
+      ix_min = -1
+    if ix_min > -1:
+      if (ix_min < self.ix_max) | (self.ix_max == -1):
+        self.ix_min = ix_min
+        self.ix_min_warning_1.grid_forget()
+        self.ix_min_warning_2.grid_forget()
+      else:
+        self.ix_min_warning_1.grid_forget()
+        self.ix_min_warning_2.grid(row=5, column=2, sticky='W')
+        return
+    else:
+      self.ix_min_warning_2.grid_forget()
+      self.ix_min_warning_1.grid(row=5, column=2, sticky='W')
+      return
+    # Update the data index range if possible
+    if (self.ix_min > -1) & (self.ix_max >= self.ix_min):
+      self.data_chooser.configure(values=list(range(self.ix_min, self.ix_max+1)))
+
+  def ix_max_handler(self, event=None):
+    try:
+      ix_max = int(self.d1_array_wids[6].tk_var.get())
+    except ValueError:
+      ix_max = -1
+    if ix_max > -1:
+      if ix_max >= self.ix_min:
+        self.ix_max = ix_max
+        self.ix_max_warning_1.grid_forget()
+        self.ix_max_warning_2.grid_forget()
+      else:
+        self.ix_max_warning_1.grid_forget()
+        self.ix_max_warning_2.grid(row=6, column=2, sticky='W')
+        return
+    else:
+      self.ix_max_warning_2.grid_forget()
+      self.ix_max_warning_1.grid(row=6, column=2, sticky='W')
+      return
+    # Update the data index range if possible
+    if (self.ix_min > -1) & (self.ix_max >= self.ix_min):
+      self.data_chooser.configure(values=list(range(self.ix_min, self.ix_max+1)))
+
+
+
+
+
 
 
 

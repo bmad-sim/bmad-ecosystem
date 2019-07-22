@@ -68,6 +68,7 @@ class tao_root_window(tk.Tk):
     self.main_frame = tk.Frame(self, width = 20, height = 30)
     self.main_frame.pack()
     #Key bindings
+    self.bind_all('<Control-n>', self.new_data_event)
     self.bind_all('<Control-g>', self.global_vars_event)
     self.bind_all('<Control-d>', self.view_data_event)
     self.bind_all('<Control-e>', self.view_ele_event)
@@ -145,7 +146,8 @@ class tao_root_window(tk.Tk):
     self.menubar = tk.Menu(self)
 
     file_menu = tk.Menu(self.menubar)
-    file_menu.add_command(label = 'Read...', command = self.read_cmd)
+    file_menu.add_command(label = "New Data...",
+        command = self.new_data_cmd, accelerator = 'Ctrl+N')
     file_menu.add_command(label = 'Write...', command = self.write_cmd)
     file_menu.add_command(label = 'Reinit...',
         command = self.reinit_cmd,accelerator = 'Alt+Q')
@@ -418,8 +420,8 @@ class tao_root_window(tk.Tk):
   #-------------------------
   # Menu bar callbacks
 
-  def read_cmd(self):
-    print ('Read called')
+  def new_data_cmd(self):
+    win = tao_new_data_window(self, self.pipe)
 
   def write_cmd(self):
     print ('Write called')
@@ -487,6 +489,9 @@ class tao_root_window(tk.Tk):
     win = tao_lattice_window(self, self.pipe)
 
   # Other callbacks
+
+  def new_data_event(self, event):
+    self.new_data_cmd()
 
   def global_vars_event(self, event):
     self.set_global_vars_cmd()
