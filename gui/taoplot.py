@@ -10,6 +10,7 @@ import matplotlib.patches as patches
 import numpy as np
 from matplotlib.path import Path
 from matplotlib.backend_tools import ToolBase, ToolToggleBase
+from matplotlib.widgets import Slider, Button, RadioButtons
 
 
 
@@ -20,7 +21,7 @@ class taoplot:
 		self.GraphRegion= GraphRegion
 		#string describing region in tao of the desired plot
 
-	def plot(self):
+	def plot(self, width):
 		'''returns a figure containing graphs using the data in the region GraphRegion of the tao instance in pipe, and plots a lat_layout below if applicable, also returns information about the indices and locations of elements'''
 		fig = plt.figure()
 		#creates plotting figure
@@ -767,8 +768,8 @@ class taoplot:
 				fpeEaDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[8])
 				fpeLwDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[9])
 				fpeShapeDict[fpeInfo[i].split(';')[1]]= fpeInfo[i].split(';')[10].lower()
-				fpeY1Dict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[11])
-				fpeY2Dict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[12])
+				fpeY1Dict[fpeInfo[i].split(';')[1]]= width*float(fpeInfo[i].split(';')[11])
+				fpeY2Dict[fpeInfo[i].split(';')[1]]= width*float(fpeInfo[i].split(';')[12])
 				fpeColorDict[fpeInfo[i].split(';')[1]]= color(fpeInfo[i].split(';')[13].lower())
 				fpeNameDict[fpeInfo[i].split(';')[1]]= fpeInfo[i].split(';')[14]
 				try:
