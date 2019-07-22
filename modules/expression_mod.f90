@@ -71,7 +71,7 @@ real(rp) value
 character(*) string, err_str
 character(1) delim, old_delim
 character(80) word, word2
-character(300) parse_line
+character(len(string)) parse_line
 
 
 logical delim_found, split, zero_arg_function_pending
