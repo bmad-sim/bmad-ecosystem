@@ -503,8 +503,8 @@ class taoplot:
 			#set axis limits
 
 			GraphDict['graph'+str(gNumber+1)].set_axisbelow(True)
-			#place graphs over grid lines
-			
+			#place graphs over grid lines		
+	
 		
 
 
@@ -577,11 +577,13 @@ class taoplot:
 
 
 			for i in eleIndexList:
+
+				GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1.3*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],alpha=0)
+				GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1.3*eleY2Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],alpha=0)
+
 				try:
 					if eleShapeDict[str(i)] == 'box' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:		
 						GraphDict['LatLayout'].add_patch(patches.Rectangle((eleStartDict[str(i)],-1*eleY2Dict[str(i)]),eleEndDict[str(i)]-eleStartDict[str(i)],eleY1Dict[str(i)]+eleY2Dict[str(i)],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],fill=False))
-						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],alpha=0)
-						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],alpha=0)
 					#draw box element	
 
 
@@ -686,14 +688,14 @@ class taoplot:
 
 
 					if eleEndDict[str(i)]-eleStartDict[str(i)] > 0:			
-						GraphDict['LatLayout'].text(eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,-1.1*eleY2Dict[str(i)],eleNameDict[str(i)],ha='center',va='top',color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].text(eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,-1.1*eleY2Dict[str(i)],eleNameDict[str(i)],ha='center',va='top',clip_on=True,color=eleColorDict[str(i)])
 					#draw element name
 
 
 
 					elif eleEndDict[str(i)]-eleStartDict[str(i)] < 0:
-						GraphDict['LatLayout'].text(layInfoDict['x.max'].value,-1.1*eleY2Dict[str(i)],eleNameDict[str(i)],ha='right',va='top',color=eleColorDict[str(i)])
-						GraphDict['LatLayout'].text(layInfoDict['x.min'].value,-1.1*eleY2Dict[str(i)],eleNameDict[str(i)],ha='left',va='top',color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].text(layInfoDict['x.max'].value,-1.1*eleY2Dict[str(i)],eleNameDict[str(i)],ha='right',va='top',clip_on=True,color=eleColorDict[str(i)])
+						GraphDict['LatLayout'].text(layInfoDict['x.min'].value,-1.1*eleY2Dict[str(i)],eleNameDict[str(i)],ha='left',va='top',clip_on=True,color=eleColorDict[str(i)])
 					#draw wrapped element name
 
 
@@ -988,13 +990,13 @@ class taoplot:
 						GraphDict['FloorPlan'].text(fpeSxDict[str(i)]+(fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - 1.2*fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+(fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + 1.2*fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeNameDict[str(i)],ha='left',va='center',color='black',rotation=90+((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)*conv,clip_on=True,rotation_mode='anchor')
 					#draw element name
 					
+
+
 					if fpeTypeDict[str(i)] == 'sbend':
 						c1 = [fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])]
 						c2 = [fpeExDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)]),fpeEyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])]
 						c3 = [fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])]
 						c4 = [fpeExDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)]),fpeEyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])]
-						
-
 
 						if fpeSaDict[str(i)] > fpeEaDict[str(i)]:
 							outerRadius = np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)
