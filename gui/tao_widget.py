@@ -36,6 +36,8 @@ class tk_tao_parameter():
       options = enum_fetch(self.param.name,pipe)
       if options == [""]:
         options = [self.param.value]
+      if self.param.value == "":
+        self.tk_var.set(options[0])
       self.tk_wid = tk.OptionMenu(frame, self.tk_var, *options)
       # Check for and remove num^ from self.param.name
       self.param.name = self.param.name.split('^')[-1]
