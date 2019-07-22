@@ -1928,6 +1928,7 @@ case ('enum')
     do i = lbound(qp_color_name, 1), ubound(qp_color_name, 1)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_color_name(i))
     enddo
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1935,6 +1936,7 @@ case ('enum')
     do i = 1, size(qp_line_pattern_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_line_pattern_name(i))
     enddo
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1942,6 +1944,7 @@ case ('enum')
     do i = 1, size(qp_symbol_fill_pattern_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_symbol_fill_pattern_name(i))
     enddo
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1949,6 +1952,7 @@ case ('enum')
     do i = lbound(qp_symbol_type_name, 1), ubound(qp_symbol_type_name, 1)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_symbol_type_name(i))
     enddo
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1956,6 +1960,7 @@ case ('enum')
     do i = 1, size(x_axis_type_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(x_axis_type_name(i))
     enddo
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1963,6 +1968,7 @@ case ('enum')
     do i = 1, size(graph_type_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(graph_type_name(i))
     enddo
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1970,6 +1976,7 @@ case ('enum')
     do i = 1, size(floor_plan_view_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(floor_plan_view_name(i))
     enddo
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1977,6 +1984,7 @@ case ('enum')
     do i = 1, size(data_source_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(data_source_name(i))
     enddo
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1984,6 +1992,7 @@ case ('enum')
     do i = 1, size(var_merit_type_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(var_merit_type_name(i))
     enddo
+    call end_stuff(li, nl)
     return
   endif
 
@@ -1991,6 +2000,7 @@ case ('enum')
     do i = 1, size(data_merit_type_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(data_merit_type_name(i))
     enddo
+    call end_stuff(li, nl)
     return
   endif
 
