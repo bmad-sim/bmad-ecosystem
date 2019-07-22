@@ -1021,33 +1021,19 @@ Example:
   c: crystal, call::my_curvature.bmad, surface = call::my_surface.bmad, ...
 \end{example}  
 
-Inline calls can be used to call binary files (useful for speeding up lattice parsing).
-See \sref{s:binary.form} for more details.
-
-%--------------------------------------------------------------------------
-\section{Binary Format}
-\label{s:binary.form}
-\index{binary format lattice files}
-
-It is possible to store certain element attributes in a binary format file which is useful for
-speeding up lattice parsing. These binary files must have a \vn{.bin} suffix. The attributes
-that support binary files are:
+For \vn{grid_fields}, which can take some time to parse, a \vn{HDF5} binary file can to created and then
+the HDF5 file can be read in with an inline call. Example:
 \begin{example}
-  cartesian_map       ! \sref{s:cart.map}
-  cylindrical_map     ! \sref{s:cylind.map}
-  grid_field          ! \sref{s:grid.field}
-  taylor_field        ! \sref{s:taylor.field}
+  qq: quadrupole, grid_field = call::my_grid.h5, ...
 \end{example}
+The HDF5 file must have a \vn{.h5} or \vn{.hdf5} suffix. To create a binary file or files, first
+create a lattice with the attributes defined with plain text. Next read the lattice into any program
+that can create \bmad lattice files (for example, the \tao program (\sref{s:tao.intro}) can do this)
+and have the program generate a lattice file.
 
-The syntax for calling a binary file is the same as an inline call (\sref{s:call.inline}).
-Example:
-\begin{example}
-  qq: quadrupole, grid_field = call::my_grid.bin, ...
-\end{example}
-
-To create a binary file or files, first create a lattice with the attributes defined with plain
-text. Next read the lattice into any program that can create \bmad lattice files (for example, the
-\tao program (\sref{s:tao.intro}) can do this) and have the program generate a lattice file.
+Note: There is an older binary syntax that used files with a \vn{.bin} suffix. Convert these files
+to \vn{HDF5} by reading into an appropriate program a lattice that uses them and then generate a
+lattice file.
 
 %--------------------------------------------------------------------------
 \section{Use_local_lat_file Statement}

@@ -2866,7 +2866,7 @@ end function evaluate_logical
 !   delim       -- character(1): Actual delimiter found. Set to blank is no delim found
 !   delim_found -- logical: Set False if end-of-line found instead of a delimiter.
 !   err_flag    -- logical: Set True if there is an error. False otherwise.
-!   string_out  -- character(*), optional: If present then parsed expression is returned but not evaluated.
+!   string_out  -- character(:), allocatable, optional: If present then parsed expression is returned but not evaluated.
 !                   Useful for group and overlay control expressions.
 !-
 
@@ -2885,9 +2885,10 @@ integer i, ix_word, ix_str, n_parens, n_stk
 
 character(*) err_str
 character(*), optional :: end_delims
-character(*), optional :: string_out, string_in
+character(*), optional :: string_in
+character(:), allocatable, optional :: string_out
 character(1) delim
-character(300) str
+character(:), allocatable :: str
 character(100) err_str2
 character(200) word, str_in
 
@@ -2898,6 +2899,7 @@ logical err_flag, err, call_check
 
 if (present(string_in)) str_in = string_in
 call_check = .true.
+allocate(character(100):: str)
 str = ''
 ix_str = 0
 n_parens = 0
@@ -2916,9 +2918,9 @@ do
   if (.not. delim_found) exit
 
   select case (delim)
-  case (',', ')', '}') 
+  case (',', ')')
     if (n_parens == 0) exit
-  case (':', '|')
+  case (':', '|', '}')
     exit
   case default
     ! Nothing to do
@@ -2928,7 +2930,18 @@ do
   str(ix_str:ix_str) = delim
   if (delim == '(') n_parens = n_parens + 1
   if (delim == ')') n_parens = n_parens - 1
+  if (n_parens < 0) then
+    call parser_error ('CLOSING PARENS ")" FOUND WITHOUT MATCHING OPENING "(" PARENS.', 'FOR: ' // err_str)
+    return
+  endif
+
 enddo
+
+! Check Parens
+if (n_parens /= 0) then
+  call parser_error ('OPENING PARENS "(" FOUND WITHOUT MATCHING CLOSING ")" PARENS.', 'FOR: ' // err_str)
+  return
+endif
 
 ! Check that final delim matches.
 
@@ -2942,6 +2955,7 @@ endif
 ! If the string_out argument is present then just return the string for later evaluation
 
 if (present(string_out)) then
+  if (.not. allocated(string_out)) allocate(character(len(str)):: string_out)
   string_out = str
   err_flag = .false.
   return
@@ -3838,6 +3852,7 @@ type (ele_struct)  ele
 type (parser_ele_struct), target :: pele
 type (lat_struct)  lat
 type (parser_controller_struct), pointer :: pc
+type (var_length_string_struct), allocatable :: expression(:)
 
 real(rp) value
 real(rp), allocatable :: y_knot(:,:), y_val(:)
@@ -3847,7 +3862,6 @@ integer ix_word, n_slave, i, j, k, n, i_last
 character(1) delim
 character(40) word_in, word
 character(40), allocatable :: name(:), attrib_name(:)
-character(200), allocatable :: expression(:)
 character(200) err_str
 
 logical :: is_control_var_list, err_flag
@@ -3909,7 +3923,8 @@ do
   ! If ele_names_only = True then evaluating "var = {...}" construct or is a girder.
   ! In this case, there are no expressions
   
-  expression(n_slave) = '1'
+  allocate(character(100):: expression(n_slave)%str)
+  expression(n_slave)%str = '1'
   bp_com%parse_line = adjustl(bp_com%parse_line)
 
   if (delim == '/' .or. (delim == ':' .and. ele%key /= girder$)) then
@@ -3947,7 +3962,7 @@ do
     ! Parse expression
     else
       ! Just parse and not evaluate.
-      call parse_evaluate_value (trim(ele%name), value, lat, delim, delim_found, err, ',}', expression(n_slave))
+      call parse_evaluate_value (trim(ele%name), value, lat, delim, delim_found, err, ',}', expression(n_slave)%str)
       if (err) then
         call parser_error ('BAD EXPRESSION: ' // word_in,  'FOR ELEMENT: ' // ele%name)
         return
@@ -3996,9 +4011,9 @@ else
       endif
     ! Expression string to stack
     else
-      call expression_string_to_stack (expression(i), pc%stack, pc%n_stk, err, err_str)
+      call expression_string_to_stack (expression(i)%str, pc%stack, pc%n_stk, err, err_str)
       if (err) then
-        call parser_error (err_str, 'FOR ELEMENT: ' // ele%name, 'EXPRESSION: ' // trim(expression(i)))
+        call parser_error (err_str, 'FOR ELEMENT: ' // ele%name, 'EXPRESSION: ' // trim(expression(i)%str))
       endif
     endif
   enddo
