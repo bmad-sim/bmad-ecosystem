@@ -26,10 +26,10 @@ implicit none
 
 type (bunch_struct), target :: bunches(:)
 type (bunch_struct), pointer :: bunch
-type (coord_struct), pointer :: p(:), p_live
+type (coord_struct), pointer :: p(:)
 type (lat_struct), optional :: lat
 
-real(rp), allocatable :: rvec(:)
+real(rp), allocatable :: rvec(:), p0c(:)
 
 integer(HID_T) f_id, g_id, z_id, z2_id, r_id, b_id, b2_id
 integer i, n, ib, ix, h5_err, h_err
@@ -80,8 +80,11 @@ do ib = 1, size(bunches)
   bunch => bunches(ib)
   p => bunch%particle
 
+  call re_allocate (p0c, size(p))
   call re_allocate (rvec, size(p))
   call re_allocate (ivec, size(p))
+
+  p0c = p%p0c
 
   ! Write bunch particle info.
   ix = index(bunch_path, '%T')
@@ -95,11 +98,8 @@ do ib = 1, size(bunches)
   call hdf5_write_attribute_real(b2_id, 'chargeUnitSI', 1.0_rp, err)
   call hdf5_write_attribute_int(b2_id, 'numParticles', size(bunch%particle), err)
   
-  p_live => p(1)    ! In case everyone is dead.
   do i = 1, size(p)
-    if (p(i)%state /= alive$) cycle
-    p_live => p(i)
-    exit
+    if (p0c(i) == 0) p0c(i) = -1   ! Zero causes problem so use default of -1 instead.
   enddo
 
   !-----------------
@@ -128,7 +128,7 @@ do ib = 1, size(bunches)
     !
 
     call pmd_write_real_to_dataset(b2_id, 'pathLength', 'Path Length', unit_m, p(:)%path_len, err)
-    call pmd_write_real_to_dataset (b2_id, 'totalMomentumOffset', 'p0c', unit_eV_per_c, p(:)%p0c, err)
+    call pmd_write_real_to_dataset (b2_id, 'totalMomentumOffset', 'p0c', unit_eV_per_c, p0c, err)
 
   ! Non-photons...
 
@@ -136,14 +136,14 @@ do ib = 1, size(bunches)
     ! Momentum
 
     call h5gcreate_f(b2_id, 'momentum', z_id, h5_err)
-    call pmd_write_real_to_dataset(z_id, 'x', 'px * p0c', unit_ev_per_c, p(:)%vec(2) * p(:)%p0c, err)
-    call pmd_write_real_to_dataset(z_id, 'y', 'py * p0c', unit_ev_per_c, p(:)%vec(4) * p(:)%p0c, err)
-    rvec = p(:)%direction * (sqrt((1 + p(:)%vec(6))**2 - p(:)%vec(2)**2 - p(:)%vec(4)**2) * p(:)%p0c)
+    call pmd_write_real_to_dataset(z_id, 'x', 'px * p0c', unit_ev_per_c, p(:)%vec(2) * p0c, err)
+    call pmd_write_real_to_dataset(z_id, 'y', 'py * p0c', unit_ev_per_c, p(:)%vec(4) * p0c, err)
+    rvec = p(:)%direction * (sqrt((1 + p(:)%vec(6))**2 - p(:)%vec(2)**2 - p(:)%vec(4)**2) * p0c)
     call pmd_write_real_to_dataset(z_id, 'z', 'ps * p0c', unit_ev_per_c, rvec, err)
     call h5gclose_f(z_id, h5_err)
 
-    call pmd_write_real_to_dataset (b2_id, 'totalMomentumOffset', 'p0c', unit_eV_per_c, p(:)%p0c, err)
-    call pmd_write_real_to_dataset (b2_id, 'totalMomentum', 'pz * p0c', unit_eV_per_c, p(:)%vec(6)*p(:)%p0c, err)
+    call pmd_write_real_to_dataset (b2_id, 'totalMomentumOffset', 'p0c', unit_eV_per_c, p0c, err)
+    call pmd_write_real_to_dataset (b2_id, 'totalMomentum', 'pz * p0c', unit_eV_per_c, p(:)%vec(6)*p0c, err)
 
     ! Spin
 
