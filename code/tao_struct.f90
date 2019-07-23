@@ -34,6 +34,13 @@ integer, parameter :: n_char_show = 1000
 
 logical, save, target :: forever_true$ = .true.
 
+character(24), parameter :: wave_data_name(27) = [character(40):: 'orbit.x', 'orbit.y', 'beta.a', 'beta.b', &
+    'eta.x', 'eta.y', 'phase.a', 'phase.b', 'cbar.12', 'cbar.11', 'cbar.22', &
+    'ping_a.amp_x', 'ping_a.phase_x', 'ping_a.amp_y', 'ping_a.phase_y', &
+    'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', &
+    'ping_b.amp_y', 'ping_b.phase_y', 'ping_b.amp_x', 'ping_b.phase_x', &
+    'ping_b.amp_sin_x', 'ping_b.amp_cos_x', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x']
+
 interface assignment (=)
   module procedure tao_lat_equal_tao_lat
 end interface
