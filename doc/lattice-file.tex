@@ -246,8 +246,7 @@ symbols since \bmad uses them to denote ``relationships''.  Periods are used for
 \index{reserved names}
 \index{beam}\index{particle_start}\index{beginning}
 \index{end}\index{parameter}\index{root}
-There is a short list of names that cannot be used as an element name. 
-These reserved names are:
+There is a short list of names that cannot be used as an element name. These reserved names are:
 \begin{example}
   beam
   particle_start
@@ -264,41 +263,62 @@ These reserved names are:
   write_digested
 \end{example}
 
-Where appropriate, for example when setting element attributes
-(\sref{s:lat.attribs}), the wild cards \vn{``*''} and \vn{``%''} can be
-used to select multiple elements.  The \vn{``*''} character will match
-any number of characters (including zero) while \vn{``%''} maches to
-any single character. Additionally, matching can be restricted to a
-certain element class using the syntax:
+%---------------------------------------------------------------------------
+\section{Matching to Lattice Element Names}
+\label{s:ele.match}
+\index{element!matching to names}
+
+Where appropriate, for example when setting element attributes (\sref{s:lat.attribs}), the wild
+cards \vn{``*''} and \vn{``%''} can be used to select multiple elements.  The \vn{``*''} character
+will match any number of characters (including zero) while \vn{``%''} maches to any single
+character. Additionally, matching can be restricted to a certain element class using the syntax:
 \begin{example}
   class::element_name
 \end{example}
-where \vn{class} is a class name. For example:
+where \vn{class} is a class (EG: sextupole). For example:
 \begin{example}
   m*              ! Match to all elements whose name begins with "m".
   a%c             ! Match to "abc" but not to "ac" or "azzc".
   quadrupole::*w  ! Match to all quadrupoles whose name ends in "w"
 \end{example}
-
-After lattice expansion (\sref{s:expand}), the general syntax to
-specify a set of elements is:
+Additionally, instead of matching to an element name, matches may be made to \vn{type}, \vn{alias},
+or \vn{descrip} attributes (\sref{s:alias}) using the synrax:
 \begin{example}
-  \{class::\}\{branch_id>>\}element_id\{##N\}
+  attribute_name::string
 \end{example}
-where \vn{\{...\}} marks an optional component, \vn{class} is a class
-name, \vn{branch_id} is a branch name or index (\sref{s:branch.def}),
-\vn{element_id} is and element name or element index
-(\sref{s:lines.wo.arg}), and \vn{\#\#N} indicates that the N\Th matching
-element is to be used. Examples:
+where \vn{attribute_name} is one of:
 \begin{example}
-  quad::x_br>>q*        ! All quadrupoles of branch "x_br" whose name begins with "q".
+  type
+  alias
+  descrip
+\end{example}
+and \vn{string} is a string to match to which can include wild card characters \vn{``*''} and
+\vn{``%''}. If \vn{string} contains blank characters, the string must be enclosed with single or
+double quotatation marks. Note: An element attribute that is blank will never match. Also note that
+while \vn{type}, \vn{alias}, or \vn{descrip} strings may have lower case characters (unlike element
+names, these strings are not converted to upper case), matching is always case insensitive. For Example:
+\begin{example}
+  type::'det bpm*'   ! Match to all elements whose \vn{type} string starts with "det bpm".
+  alias::*           ! Match to all elements whose \vn{alias} string is not blank.
+\end{example}
+
+After lattice expansion (\sref{s:expand}), the general syntax to specify a set of elements is:
+\begin{example}
+  \{branch_id>>\}\{class::\}element_id\{##N\}
+\end{example}
+where \vn{\{...\}} marks an optional component, \vn{class} is a class name, \vn{branch_id} is a
+branch name or index (\sref{s:branch.def}), \vn{element_id} is and element name or element index
+(\sref{s:lines.wo.arg}), and \vn{\#\#N} indicates that the N\Th matching element is to be
+used. Examples:
+\begin{example}
+  x_br>>quad::q*        ! All quadrupoles of branch "x_br" whose name begins with "q".
   2>>45                 ! element \#45 of branch \#2.
   q01##3                ! The 3rd element in each branch named q01.
 \end{example}
 
 \vn{Note:} It is advised to avoid setting the parameters of differing elements that share the same
-name to differing values since this can lead problems later on. For example,
-consider this in a lattice file named, say, \vn{lat.bmad}:
+name to differing values since this can lead problems later on. For example, consider this in a
+lattice file named, say, \vn{lat.bmad}:
 \begin{example}
   q1: quadrupole, ...
   a: line = (..., q1, ...)
@@ -320,55 +340,55 @@ Normally this would work but in this case the lattice is invalid since there is 
 element in line \vn{B}. A more flexible solution would be to use unique names for the two \vn{q1}
 elements.
 
-Multiple elements in a lattice may share the same name.  When
-multiple branches are present, to differentiate elements that
-appear in different branches, the ``branch qualified'' element name may be
-used. The branch qualified element name is of the form
+Multiple elements in a lattice may share the same name.  When multiple branches are present, to
+differentiate elements that appear in different branches, the ``branch qualified'' element name may
+be used. The branch qualified element name is of the form
 \begin{example}
   branch_name>>element_name
 \end{example}
-where \vn{branch_name} is the name of the branch and \vn{element_name}
-is the ``regular'' name of the element. Example:
+where \vn{branch_name} is the name of the branch and \vn{element_name} is the ``regular'' name of
+the element. Example:
 \begin{example}
   root>>q10w
   x_branch>>crystal3
 \end{example}
 
-For \vn{branch} lines (\sref{s:branch.def}), the full ``branch
-qualified'' name of an element is of the form
+For \vn{branch} lines (\sref{s:branch.def}), the full ``branch qualified'' name of an element is of
+the form
 \begin{example}
   branch_name>>element_name
 \end{example}
-where \vn{branch_name} is the name of the branch and \vn{element_name} is the
-``regular'' name of the element. Example:
+where \vn{branch_name} is the name of the branch and \vn{element_name} is the ``regular'' name of
+the element. Example:
 \begin{example}
   root>>q10w
   xline>>cryst3
 \end{example}
-Using the full name is only needed to distinguish elements that have
-the same regular name in separate branches. When parsing a lattice
-file, branches are not formed until the lattice is expanded
-(\sref{s:expand}). Therefore an \vn{expand_lattice} statement is
-required before full names can be used in statements.
+Using the full name is only needed to distinguish elements that have the same regular name in
+separate branches. When parsing a lattice file, branches are not formed until the lattice is
+expanded (\sref{s:expand}). Therefore an \vn{expand_lattice} statement is required before full names
+can be used in statements.
 
 After lattice expansion (\sref{s:expand}), when setting element attributes (\sref{s:lat.attribs}, a
 comma deliminated list of names can be used. Each item in a list is either the name of an element or
 an element range. An element range has the syntax:
 \begin{example}
-  {key::}ele1:ele2
+  \{branch>>\}\{class::\}ele1:ele2
 \end{example}
 where
 \begin{example}
-  key      = Optional key name ("quadrupole", "sbend", etc.)
-  ele1     = Starting element of the range.
-  ele2     = Ending element of the range. 
+  branch   ! Optional branch name
+  class    ! Optional element class name ("quadrupole", "sbend", etc.)
+  ele1     ! Starting element of the range.
+  ele2     ! Ending element of the range. 
 \end{example}
 For example:
 \begin{example}
   3,15:17          ! Elements with index 3, 15, 16, and 17 in branch 0.
   2>>45:51         ! Elements 45 through 51 of branch 2.
   q1:q5            ! Elements between q1 and q5.
-  sbend::q1:q5     ! All sbend elements between q1 and q5.
+  sbend::q1:q5     ! All sbend elements between q1 and q5. 
+                   ! Notice that q1 and q5 do not have to be sbends
 \end{example}
 
 %---------------------------------------------------------------------------
@@ -407,7 +427,7 @@ type of element, all elements of that type will be set. For example
 \end{example}
 
 To set an attribute for multiple element at one time, The wild cards \vn{``*''}, and \vn{``\%''} can
-be used in element names (\sref{s:ele.names}). Examples:
+be used in element names (\sref{s:ele.match}). Examples:
 \begin{example}
   *[tracking_method] = bmad_standard  ! Matches all elements.
   quadrupole::Q*[k1] = 0.234    ! Matches all quadrupoles with names beginning with Q.
@@ -419,7 +439,7 @@ does not match to any element.  Note: A name with wild cards will never match to
 element (\sref{s:use}).
 
 After lattice expansion (\sref{s:expand}), the attributes of specific elements may be set using the
-syntax as discussed in Section \sref{s:ele.names}. Example:
+syntax as discussed in Section~\sref{s:ele.match}. Example:
 \begin{example}
   expand_lattice              ! Expand the lattice.
   97[x_offset] = 0.0023       ! Set x_offset attribute of 97th element
@@ -1169,7 +1189,7 @@ the \vn{slice_lattice} statement is
 \begin{example}
   slice_lattice <element-list>
 \end{example}
-where \vn{<element-list>} is a list of elements (\sref{s:ele.names}). For example
+where \vn{<element-list>} is a list of elements (\sref{s:ele.match}). For example
 \begin{example}
   expand_lattice           ! Lattice expansion must happen first
   slice_lattice q1##2:357

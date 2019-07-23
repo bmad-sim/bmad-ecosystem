@@ -9,7 +9,7 @@
 ! A space or a comma delimits the elements.
 !
 ! An element name can be of the form
-!   {key::}{branch>>}ele_id{##N}
+!   {branch>>}{key::}ele_id{##N}
 ! Where
 !   key     = Optional key name ("quadrupole", "sbend", etc.)
 !   branch  = Name or index of branch. May contain the wild cards "*" and "%".
@@ -17,6 +17,9 @@
 !               If a name and no branch is given, all branches are searched.
 !               If an index and no branch is given, branch 0 is assumed.
 !   ##N     = N^th instance of ele_id in the branch.
+!
+! Note: An old syntax that is still supported is:
+!   {key::}{branch>>}ele_id{##N}
 !
 ! An element range is of the form:
 !   {key::}ele1:ele2{:step}
@@ -34,14 +37,18 @@
 ! It is an error if ele1 or ele2 is a multipass_lord. Also it is is an error for ele1 or ele2
 ! to be an overlay, group, or girder if the number of slaves is not one. 
 !
+! Note: Use quotation marks for matching to type, alias, or descrip strings that have a blank.
+! Note: matching is always case insensitive.
+!
 ! Examples:
-!   "quad::x_br>>q*"   All quadrupoles of branch "x_br" whose name begins with "q"
-!   "3,15:17"          Elements with index 3, 15, 16, and 17 in branch 0.
-!   "2>>45:51"         Elements 45 through 51 of branch 2.
-!   "q1:q5"            Elements between "q1" and "q5".
-!   "sbend::q1:q5"     All sbend elements between "q1" and "q5".
-!   "marker::a*##2"    2^nd marker element in each branch whose name begins with "a".
-!   "type::bpm*"       All elements whose %type field starts with bpm.
+!   x_br>>quad::q*     All quadrupoles of branch "x_br" whose name begins with "q"
+!   3,15:17            Elements with index 3, 15, 16, and 17 in branch 0.
+!   2>>45:51           Elements 45 through 51 of branch 2.
+!   q1:q5              Elements between "q1" and "q5".
+!   sbend::q1:q5       All sbend elements between "q1" and "q5".
+!   marker::a*##2      2^nd marker element in each branch whose name begins with "a".
+!   type::bpm*         All elements whose %type field starts with bpm.
+!   alias::'my duck'   Match to all elements whose %alias matches "my duck"
 !
 ! Note: Elements in the eles(:) array will be in the same order as they appear in the lattice with the 
 ! possible exception when there is a comma in the loc_str. For example: loc_str = "q5,q1". In this
@@ -84,11 +91,12 @@ type (ele_struct), pointer :: ele_start, ele_end
 character(*) loc_str
 character(200) str
 character(60) name, name2
+character(8) branch_str
+character(*), parameter :: r_name = 'lat_ele_locator'
 character(1) delim
-character(20) :: r_name = 'lat_ele_locator'
 
 integer, optional :: ix_dflt_branch
-integer i, j, ib, ios, ix, n_loc, n_loc2
+integer i, j, ib, ios, ix, n_loc, n_loc2, match_name_to
 integer in_range, step, ix_word, key
 
 logical, optional :: above_ubound_is_err, err
@@ -100,9 +108,12 @@ if (present(err)) err = .true.
 n_loc = 0
 str = loc_str
 call str_upcase (str, str)
-in_range = 0   ! 0 -> not in range construct, 1 -> read start, 2 -> read stop
-step = 1
-key = 0
+! In_range:
+!   0 -> not in range construct
+!   1 -> processing start
+!   2 -> processing stop
+!   3 -> processing step
+in_range = 0   
 
 ! Loop over all items in the list
 
@@ -111,31 +122,64 @@ do
   ! Get next item. 
   ! If the split is in between "::" then need to piece the two haves together.
 
-  call word_read (str, ':, ', name, ix_word, delim, delim_found, str)
+  call word_read (str, ':, ', name, ix_word, delim, delim_found, str, ignore_interior = .true.)
 
+  ! Need to handle old style "class::branch>>name" and new style "branch>>class::name" and not be
+  ! confused by "name1:name2" range syntax
+
+  if (in_range == 0) then
+    branch_str = ''
+    key = 0
+    match_name_to = 0
+    step = 1
+  endif
+
+  ix = index(name, '>>')
+  if (ix /= 0) then
+    if (in_range /= 0) then
+      call out_io (s_error$, r_name, 'ERROR: BAD BRANCH/RANGE CONSTRUCT')
+      return
+    endif
+
+    branch_str = name(:ix-1)
+    name = name(ix+2:)
+  endif
+
+  ! Have key?
   if (str(1:1) == ':') then
-    call word_read (str(2:), ', ', name2, ix_word, delim, delim_found, str)
-    ! If name2 contains a ":" then we have a "<key>::<ele1>:<ele2>" range construct.
-    ix = index(name2, ':') 
-    if (ix == 0) then  ! No range
-      name = trim(name) // '::' // trim(name2)
-    else
-      key = key_name_to_key_index (name, .true.)
-      if (key < 0) then
-        call out_io (s_error$, r_name, 'ERROR: BAD ELEMENT TYPE: ' // name)
-        return           ! Return on error
-      endif
-      name = name2(1:ix-1)
-      str = trim(name2(ix+1:)) // delim // trim(str)
-      delim = ':'
+    if (in_range /= 0) then
+      call out_io (s_error$, r_name, 'ERROR: BAD CLASS/RANGE CONSTRUCT')
+      return
+    endif
+
+    key = extended_key_name_to_key_index (name, .true., match_name_to)
+    if (key < 0) then
+      call out_io (s_error$, r_name, 'ERROR: BAD ELEMENT CLASS: ' // name)
+      return
+    endif
+
+    call word_read (str(2:), ':, ', name, ix_word, delim, delim_found, str, ignore_interior = .true.)
+  endif
+
+  !
+
+  if (name(1:1) == "'" .or. name(1:1) == '"') then
+    name = remove_quotes(name)
+
+  else
+    ix = index(name, '>>')
+    if (ix /= 0) then
+      branch_str = name(:ix-1)
+      name = name(ix+2:)
     endif
   endif
 
+  if (delim == ':' .or. in_range /= 0) in_range = in_range + 1 
   if (name == '') exit
 
   ! Get list of elements for this item
 
-  if (in_range == 2) then  ! Must be step
+  if (in_range == 3) then  ! Must be step
     read (name, *, iostat = ios) step
     if (ios /= 0) then
       call out_io (s_error$, r_name, 'ERROR: BAD STEP: ' // loc_str)
@@ -143,14 +187,20 @@ do
     endif
     in_range = in_range + 1
   else
-    above_ub_is_err = (logic_option(.true., above_ubound_is_err) .or. in_range /= 1)
-    call lat_ele1_locator (name, lat, eles2, n_loc2, err2, above_ub_is_err, ix_dflt_branch)
+    ! In a range the key is applied to the list of elements in the range and not
+    ! applied to picking the end elements.
+    above_ub_is_err = (logic_option(.true., above_ubound_is_err) .or. in_range /= 2)
+    if (in_range == 0) then
+      call lat_ele1_locator (branch_str, key, name, match_name_to, lat, eles2, n_loc2, err2, above_ub_is_err, ix_dflt_branch)
+    else
+      call lat_ele1_locator (branch_str, 0, name, match_name_to, lat, eles2, n_loc2, err2, above_ub_is_err, ix_dflt_branch)
+    endif
     if (err2) return
   endif
 
   ! If not a range construct then just put this on the list
 
-  if (delim /= ":" .and. in_range == 0) then
+  if (in_range == 0) then
     if (.not. allocated(eles)) allocate(eles(n_loc+n_loc2))
     call re_allocate_eles(eles, n_loc+n_loc2, .true.)
     eles(n_loc+1:n_loc+n_loc2) = eles2(1:n_loc2)
@@ -171,12 +221,11 @@ do
     return
   endif
 
-  if (in_range == 0) ele_start => eles2(1)%ele
-  if (in_range == 1) ele_end   => eles2(1)%ele
-  in_range = in_range + 1
+  if (in_range == 1) ele_start => eles2(1)%ele
+  if (in_range == 2) ele_end   => eles2(1)%ele
 
   if (delim == ':') then
-    if (in_range >= 3) then
+    if (in_range >= 4) then
       call out_io (s_error$, r_name, 'TOO MANY ":" IN RANGE CONSTRUCT: ' // loc_str)
       return
     endif
@@ -185,42 +234,37 @@ do
 
   ! if we have the range then add it to the eles list.
 
-  if (in_range > 1) then
-    ele_end => eles2(1)%ele
-    ele_start => find_this_end(ele_start, entrance_end$, err2); if (err2) return
-    ele_end => find_this_end(ele_end, exit_end$, err2);  if (err2) return
+  ele_end => eles2(1)%ele
+  ele_start => find_this_end(ele_start, entrance_end$, err2); if (err2) return
+  ele_end => find_this_end(ele_end, exit_end$, err2);  if (err2) return
 
-    if (ele_start%ix_branch /= ele_end%ix_branch) then
-      call out_io (s_error$, r_name, 'ERROR: ELEMENTS NOT OF THE SAME BRANCH IN RANGE: ' // loc_str)
-      return
-    endif
-    ib = ele_start%ix_branch
+  if (ele_start%ix_branch /= ele_end%ix_branch) then
+    call out_io (s_error$, r_name, 'ERROR: ELEMENTS NOT OF THE SAME BRANCH IN RANGE: ' // loc_str)
+    return
+  endif
+  ib = ele_start%ix_branch
 
-    if (key > 0) then
-      n_loc2 = 0
-      do i = ele_start%ix_ele, ele_end%ix_ele, step
-        if (lat%branch(ib)%ele(i)%key == key .or. lat%branch(ib)%ele(i)%sub_key == key) n_loc2 = n_loc2 + 1
-      enddo
-    else
-      n_loc2 = (ele_end%ix_ele - ele_start%ix_ele) / step + 1
-    endif
-
-    call re_allocate_eles(eles, n_loc+n_loc2, .true.)
-
+  if (key > 0) then
     n_loc2 = 0
     do i = ele_start%ix_ele, ele_end%ix_ele, step
-      if (key > 0 .and. lat%branch(ib)%ele(i)%key /= key .and. lat%branch(ib)%ele(i)%sub_key /= key) cycle
-      n_loc2 = n_loc2 + 1
-      eles(n_loc+n_loc2)%ele => lat%branch(ib)%ele(i)
-      eles(n_loc+n_loc2)%loc = lat_ele_loc_struct(i, ib)
+      if (lat%branch(ib)%ele(i)%key == key .or. lat%branch(ib)%ele(i)%sub_key == key) n_loc2 = n_loc2 + 1
     enddo
-
-    n_loc = n_loc + n_loc2
-    in_range = 0
-    key = 0
-    step = 1
+  else
+    n_loc2 = (ele_end%ix_ele - ele_start%ix_ele) / step + 1
   endif
 
+  call re_allocate_eles(eles, n_loc+n_loc2, .true.)
+
+  n_loc2 = 0
+  do i = ele_start%ix_ele, ele_end%ix_ele, step
+    if (key > 0 .and. lat%branch(ib)%ele(i)%key /= key .and. lat%branch(ib)%ele(i)%sub_key /= key) cycle
+    n_loc2 = n_loc2 + 1
+    eles(n_loc+n_loc2)%ele => lat%branch(ib)%ele(i)
+    eles(n_loc+n_loc2)%loc = lat_ele_loc_struct(i, ib)
+  enddo
+
+  n_loc = n_loc + n_loc2
+  in_range = 0
 enddo
 
 ! Check that no ranges are open.
@@ -232,34 +276,32 @@ endif
 
 if (present(err)) err = .false.
 
+!---------------------------------------------------------------------------
 contains
 
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
 !+
-! Subroutine lat_ele1_locator (name, lat, eles, n_loc, err, above_ub_is_err, ix_dflt_branch)
+! Subroutine lat_ele1_locator (branch_str, key, name_in, match_name_to, lat, eles, n_loc, err, above_ub_is_err, ix_dflt_branch)
 !
 ! Routine to locate all the elements in a lattice that corresponds to loc_str. 
 ! Note: This routine is private and meant to be used only by lat_ele_locator
 !-
 
-subroutine lat_ele1_locator (name_in, lat, eles, n_loc, err, above_ub_is_err, ix_dflt_branch)
+subroutine lat_ele1_locator (branch_str, key, name_in, match_name_to, lat, eles, n_loc, err, above_ub_is_err, ix_dflt_branch)
 
 implicit none
 
 type (lat_struct), target :: lat
-type (branch_struct), pointer :: branch
+type (branch_struct), pointer :: branch, branch2
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
 
-character(*) name_in
-character(40) branch_name, name
+character(*) branch_str, name_in
+character(40) name
 character(*), parameter :: r_name = 'lat_ele1_locator'
 
 integer, optional :: ix_dflt_branch
 integer i, k, ix, ix_branch, ixp, ios, ix_ele, n_loc
-integer key, ix_dup, n_dup
+integer key, ix_dup, n_dup, match_name_to, ie1, ie2
 
 logical err, do_match_wild
 logical :: above_ub_is_err
@@ -270,30 +312,12 @@ err = .true.
 n_loc = 0
 name = name_in
 
-! key::name construct
-
-ix = index(name, '::')
-if (ix == 0) then
-  key = 0
-else
-  if (name(:ix-1) == "*") then
-    key = 0
-  else
-    key = key_name_to_key_index (name(:ix-1), .true.)
-    if (key < 1) then
-      call out_io (s_error$, r_name, 'BAD ELEMENT KEY: ' // name(:ix-1))
-      return
-    endif
-  endif
-  name = name(ix+2:)
-endif
-
 ! Look for "##N" suffix to indicate which instance to choose from when there
 ! are multiple elements of a given name.
 
 ix = index(name, '##')
 ix_dup = 0
-if (ix /= 0) then
+if (ix /= 0 .and. match_name_to == 0) then
   if (.not. is_integer(name(ix+2:))) return
   read (name(ix+2:), *) ix_dup
   name = name(:ix-1)
@@ -310,12 +334,9 @@ endif
 ! Note: Branch name not found is treated the same as element name not found.
 ! That is, no match and is not an error
 
-ixp = index(name, '>>')
-if (ixp > 0) then
-  branch_name = name(1:ixp-1)
-  name = name(ixp+2:)
-  if (index(branch_name, '*') == 0 .and. index(branch_name, '%') == 0) then
-    branch => pointer_to_branch (branch_name, lat)
+if (branch_str /= '') then
+  if (index(branch_str, '*') == 0 .and. index(branch_str, '%') == 0) then
+    branch => pointer_to_branch (branch_str, lat)
     if (.not. associated(branch)) then
       err = .false.
       return
@@ -350,27 +371,70 @@ else
   ix_ele = -1
 endif
 
-! search for matches
+! search for matches.
+! Lord elements are in branch 0 but may be associated with other branches.
 
-do k = lbound(lat%branch, 1), ubound(lat%branch, 1)
+do k = 0, ubound(lat%branch, 1)
+
   branch => lat%branch(k)
   n_dup = 0
+
   if (ix_branch == -2) then
-    if (.not. match_wild(branch%name, branch_name)) cycle
+    if (match_wild(branch%name, branch_str)) then
+      ie1 = 0; ie2 = branch%n_ele_max
+    else
+      ie1 = branch%n_ele_track+1; ie2 = branch%n_ele_max
+    endif
+  elseif (ix_branch == -1) then
+    ie1 = 0; ie2 = branch%n_ele_max
+  elseif (k == ix_branch) then
+    ie1 = 0; ie2 = branch%n_ele_max
   else
-    if (ix_branch /= -1 .and. k /= ix_branch) cycle
+    ie1 = branch%n_ele_track+1; ie2 = branch%n_ele_max      
   endif
 
-  do i = 0, branch%n_ele_max
+  do i = ie1, ie2
     ele => branch%ele(i)
+
+    ! Lord elements are in branch 0 but may be associated with other branches.
+    if (i > branch%n_ele_track) then
+      branch2 => pointer_to_branch(ele)
+      if (ix_branch == -2 .and. .not. match_wild(branch2%name, branch_str)) cycle
+      if (ix_branch >= 0 .and. branch2%ix_branch /= ix_branch) cycle
+    endif
+
     if ((key /= 0 .and. ele%key /= key) .and. (ele%key /= sbend$ .or. ele%sub_key /= key)) cycle
 
     if (ix_ele > -1) then
       if (i /= ix_ele) cycle
+
     elseif (do_match_wild) then
-      if (.not. match_wild(ele%name, name)) cycle
+      select case (match_name_to)
+      case (alias$)
+        if (ele%alias == '') cycle
+        if (.not. match_wild(upcase(ele%alias), name)) cycle
+      case (descrip$)
+        if (.not. associated(ele%descrip)) cycle
+        if (.not. match_wild(upcase(ele%descrip), name)) cycle
+      case (type$)
+        if (ele%type == '') cycle
+        if (.not. match_wild(upcase(ele%type), name)) cycle
+      case default
+        if (.not. match_wild(ele%name, name)) cycle
+      end select
+
     else
-      if (ele%name /= name) cycle
+      select case (match_name_to)
+      case (alias$)
+        if (upcase(ele%alias) /= name) cycle
+      case (descrip$)
+        if (.not. associated(ele%descrip)) cycle
+        if (upcase(ele%descrip) /= name) cycle
+      case (type$)
+        if (upcase(ele%type) /= name) cycle
+      case default
+        if (ele%name /= name) cycle
+      end select
     endif
 
     if (ix_dup > 0) then
@@ -451,5 +515,34 @@ enddo
 err = .false.
 
 end function find_this_end
+
+!---------------------------------------------------------------------------
+! contains
+
+function extended_key_name_to_key_index (name, abbrev_allowed, match_name_to) result (key_index)
+
+character(*) name
+integer match_name_to, key_index
+logical abbrev_allowed
+
+
+!
+
+select case (name)
+case ('TYPE')
+  match_name_to = type$
+  key_index = 0
+case ('DESCRIP')
+  match_name_to = descrip$
+  key_index = 0
+case ('ALIAS')
+  match_name_to = alias$
+  key_index = 0
+case default
+  match_name_to = 0
+  key_index = key_name_to_key_index(name, abbrev_allowed)
+end select
+
+end function extended_key_name_to_key_index
 
 end subroutine lat_ele_locator
