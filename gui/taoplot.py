@@ -1,5 +1,3 @@
-#Kevin Kowalski kjk226 6/17/2019
-
 import matplotlib as mp
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
@@ -216,7 +214,7 @@ class taoplot:
 
 
 
-		'''''''''Graphing'''''''''
+		'''''''''Graphing Data'''''''''
 
 		'''Region Data'''
 
@@ -405,7 +403,7 @@ class taoplot:
 
 
 
-			'''Plotting'''
+			'''''''''Plotting'''''''''
 
 			LineList = []
 			for i in CurvesList:
@@ -509,7 +507,7 @@ class taoplot:
 
 
 
-		'''Lattice Layout'''
+		'''''''''Lattice Layout'''''''''
 		
 		if LatLayout == True:
 			GraphDict['LatLayout']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
@@ -710,7 +708,7 @@ class taoplot:
 		
 		
 
-		'''Floor Plan'''
+		'''''''''Floor Plan'''''''''
 		
 		if FloorPlan == True:
 			GraphDict['FloorPlan']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
@@ -1038,7 +1036,8 @@ class taoplot:
 					pass
 			
 
-
+			
+			'''Floor Plan Building Wall'''
 			
 			try:
 
@@ -1151,6 +1150,8 @@ class taoplot:
 
 
 
+			'''Floor Plan Orbit'''
+
 			if float(floInfoDict['floor_plan_orbit_scale'].value) != 0:
 				fpoInfo=pipe.cmd_in('python floor_orbit r1.g',no_warn = True).splitlines()
 				
@@ -1189,7 +1190,9 @@ class taoplot:
 			#plot floor plan grid
 
 
+		
 
+		'''''''''Output Data'''''''''
 
 		if gInfoDict['graph^type'].value == 'lat_layout' or gInfoDict['graph^type'].value == 'floor_plan': 
 			if gInfoDict['ix_universe'].value != -1:
@@ -1227,7 +1230,11 @@ class taoplot:
 			eleEndDict = []
 
 		returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList,fpeShapeDict,fpeCenterDict, fpeRadiusDict, corner1, corner2, corner3, corner4, pathDict]
+		#data to be returned with the figure to make elements clickable
+
 		fig.tight_layout()
+		#prevents graphs from overlapping		
+
 		return fig, returnList
 
 
