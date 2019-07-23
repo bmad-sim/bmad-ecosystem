@@ -1,5 +1,6 @@
 import sys
 import os
+import re
 import io
 if 'ACC_LOCAL_DIR' in os.environ.keys():
   sys.path.append(os.environ['ACC_LOCAL_DIR']+'/tao/python/tao_pexpect')
@@ -22,6 +23,22 @@ class new_stdout(object):
   def __exit__(self, type, value, traceback):
     sys.stdout = self.current_out
 
+def filter_output(x):
+  '''
+  Filters out certain ANSI escape sequences from the string x
+  '''
+  if not isinstance(x, str):
+    return x
+  # Filter out \[[6 q first
+  x = x.replace('\x1b[6 q', '')
+  # Filter out color codes
+  color_regex = re.compile('\x1b\\[[0-9;]*m')
+  matches = color_regex.findall(x)
+  for color in matches:
+    x = x.replace(color, '')
+  return x
+
+
 class tao_interface():
   '''
   Provides an interface between the GUI and
@@ -36,7 +53,7 @@ class tao_interface():
         tao_io.__init__(self, init_args=init_args,
             tao_exe=tao_exe, expect_str=expect_str)
       output = output.getvalue()
-      output = output.replace('\x1b[6 q', '')
+      output = filter_output(output)
       self.startup_message = output
     elif mode == "ctypes":
       pass
@@ -59,7 +76,7 @@ class tao_interface():
     # as well as escape characters
     if cmd_str.find('python') == 0:
       output = output.replace('\r\n\r\n', '')
-    output = output.replace('\x1b[6 q', '')
+    output = filter_output(output)
     #if no_warn:
     #  return output
     if output.find("[ERROR") != -1:
