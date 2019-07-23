@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from tao_interface import *
 from parameters import *
-import time
 import matplotlib.patches as patches
 import numpy as np
 from matplotlib.path import Path
@@ -873,7 +872,7 @@ class taoplot:
 						if intersection == False:
 							GraphDict['FloorPlan'].plot([fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeExDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],[fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeEyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
 							GraphDict['FloorPlan'].plot([fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeExDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],[fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeEyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
-						#zero bend angle
+						#draw sbend edges if bend angle is 0
 
 						
 
@@ -976,7 +975,7 @@ class taoplot:
 
 							GraphDict['FloorPlan'].add_patch(patches.Arc((intersection[0],intersection[1]),np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,theta1=a1,theta2=a2,lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)]))
 							GraphDict['FloorPlan'].add_patch(patches.Arc((intersection[0],intersection[1]),np.sqrt((fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,np.sqrt((fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,theta1=a3,theta2=a4,lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)]))
-							#nonzero bend angle
+							#draw sbend edges if bend angle is nonzero
 					#draw sbend element
 
 
@@ -1213,6 +1212,7 @@ class taoplot:
 
 			gBranch = gInfoDict['-1^ix_branch'].value
 			gComponent = gInfoDict['component'].value
+		#get universe, branch, and component
 
 		if gInfoDict['graph^type'].value != 'floor_plan':
 			corner1=[]
@@ -1223,11 +1223,11 @@ class taoplot:
 			fpeShapeDict = []
 			fpeCenterDict = []
 			fpeRadiusDict = []
-
 		if LatLayout != True:
 			eleIndexList = []
 			eleStartDict = []
 			eleEndDict = []
+		#fills output list with blank lists if information does not apply to the selected graph type
 
 		returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList,fpeShapeDict,fpeCenterDict, fpeRadiusDict, corner1, corner2, corner3, corner4, pathDict]
 		#data to be returned with the figure to make elements clickable
