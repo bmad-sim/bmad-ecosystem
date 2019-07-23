@@ -196,7 +196,6 @@ call string_trim(line(ix+1:), line, ix_line)
 !   EM field
 !   HOM
 !   wave
-!   beam chamber wall
 !   x_axis_type (variable parameter)
 
 call match_word (cmd, [character(20) :: &
@@ -213,7 +212,8 @@ call match_word (cmd, [character(20) :: &
           'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
           'plot_shapes', 'plot_list', 'plot_symbol', 'plot1', &
           'show', 'species_to_int', 'species_to_str', 'super_universe', 'twiss_at_s', 'universe', &
-          'var_create', 'var_destroy', 'var_general', 'var_v1_array', 'var_v_array', 'var'], ix, matched_name = command)
+          'var_create', 'var_destroy', 'var_general', 'var_v1_array', 'var_v_array', 'var', &
+          'wave'], ix, matched_name = command)
 
 if (ix == 0) then
   call out_io (s_error$, r_name, 'python what? "What" not recognized: ' // command)
@@ -1932,93 +1932,73 @@ case ('enum')
     return
   endif
 
-  if (line == 'line.pattern') then
-    do i = 1, size(qp_line_pattern_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_line_pattern_name(i))
-    enddo
-    call end_stuff(li, nl)
-    return
-  endif
-
-  if (line == 'symbol.fill_pattern') then
-    do i = 1, size(qp_symbol_fill_pattern_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_symbol_fill_pattern_name(i))
-    enddo
-    call end_stuff(li, nl)
-    return
-  endif
-
-  if (line == 'symbol.type') then
-    do i = lbound(qp_symbol_type_name, 1), ubound(qp_symbol_type_name, 1)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_symbol_type_name(i))
-    enddo
-    call end_stuff(li, nl)
-    return
-  endif
-
-  if (line == 'x_axis_type') then
-    do i = 1, size(x_axis_type_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(x_axis_type_name(i))
-    enddo
-    call end_stuff(li, nl)
-    return
-  endif
-
-  if (line == 'graph^type') then
-    do i = 1, size(graph_type_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(graph_type_name(i))
-    enddo
-    call end_stuff(li, nl)
-    return
-  endif
-
-  if (line == 'floor_plan_view_name') then
-    do i = 1, size(floor_plan_view_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(floor_plan_view_name(i))
-    enddo
-    call end_stuff(li, nl)
-    return
-  endif
-
-  if (line == 'data_source') then
-    do i = 1, size(data_source_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(data_source_name(i))
-    enddo
-    call end_stuff(li, nl)
-    return
-  endif
-
-  if (line == 'var^merit_type') then
-    do i = 1, size(var_merit_type_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(var_merit_type_name(i))
-    enddo
-    call end_stuff(li, nl)
-    return
-  endif
-
-  if (line == 'data^merit_type') then
+  select case (line)
+  case ('data^merit_type')
     do i = 1, size(data_merit_type_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(data_merit_type_name(i))
     enddo
-    call end_stuff(li, nl)
-    return
-  endif
 
-  !
+  case ('data_source')
+    do i = 1, size(data_source_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(data_source_name(i))
+    enddo
 
-  name = upcase(line)
-  if (name == 'EVAL_POINT') name = 'ELE_ORIGIN'  ! Cheat since data%eval_point is not recognized by switch_attrib_value_name
+  case ('floor_plan_view_name')
+    do i = 1, size(floor_plan_view_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(floor_plan_view_name(i))
+    enddo
 
-  a_name = switch_attrib_value_name(name, 1.0_rp, this_ele, name_list = name_list)
-  if (.not. allocated(name_list)) then
-    call invalid ('Not a valid switch name.')
-    return
-  endif
+  case ('graph^type')
+    do i = 1, size(graph_type_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(graph_type_name(i))
+    enddo
 
-  do i = lbound(name_list, 1), ubound(name_list, 1)
-    if (index(name_list(i), '!') /= 0 .or. name_list(i) == '') cycle
-    nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(name_list(i))
-  enddo
+  case ('line.pattern')
+    do i = 1, size(qp_line_pattern_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_line_pattern_name(i))
+    enddo
+
+  case ('symbol.fill_pattern')
+    do i = 1, size(qp_symbol_fill_pattern_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_symbol_fill_pattern_name(i))
+    enddo
+
+  case ('symbol.type')
+    do i = lbound(qp_symbol_type_name, 1), ubound(qp_symbol_type_name, 1)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_symbol_type_name(i))
+    enddo
+
+  case ('var^merit_type')
+    do i = 1, size(var_merit_type_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(var_merit_type_name(i))
+    enddo
+
+  case ('wave_data_type')
+    do i = 1, size(wave_data_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(wave_data_name(i))
+    enddo
+
+  case ('x_axis_type')
+    do i = 1, size(x_axis_type_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(x_axis_type_name(i))
+    enddo
+
+  case default
+
+    name = upcase(line)
+    if (name == 'EVAL_POINT') name = 'ELE_ORIGIN'  ! Cheat since data%eval_point is not recognized by switch_attrib_value_name
+
+    a_name = switch_attrib_value_name(name, 1.0_rp, this_ele, name_list = name_list)
+    if (.not. allocated(name_list)) then
+      call invalid ('Not a valid switch name.')
+      return
+    endif
+
+    do i = lbound(name_list, 1), ubound(name_list, 1)
+      if (index(name_list(i), '!') /= 0 .or. name_list(i) == '') cycle
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(name_list(i))
+    enddo
+  end select
 
 !----------------------------------------------------------------------
 ! Floor plan building wall
@@ -3404,6 +3384,105 @@ case ('var')
   nl=incr(nl); write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      v_ptr%useit_opt
   nl=incr(nl); write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     v_ptr%useit_plot
   nl=incr(nl); write (li(nl), lmt) 'key_bound;LOGIC;T;',                      v_ptr%key_bound
+
+!----------------------------------------------------------------------
+! Wave analysis info.
+! Command syntax: 
+!   python wave {what}
+! Where {what} is one of:
+!   params
+!   loc_header
+!   locations
+
+case ('wave')
+
+  select case (line)
+  case ('params')
+
+    nl=incr(nl); write (li(nl), amt) 'wave_data_type;ENUM;T;',          s%wave%data_type
+    nl=incr(nl); write (li(nl), imt) 'ix_a1;INT;T;',                    s%wave%ix_a1
+    nl=incr(nl); write (li(nl), imt) 'ix_a2;INT;T;',                    s%wave%ix_a2
+    nl=incr(nl); write (li(nl), imt) 'ix_b1;INT;T;',                    s%wave%ix_b1
+    nl=incr(nl); write (li(nl), imt) 'ix_b2;INT;T;',                    s%wave%ix_b2
+
+    select case (s%wave%data_type)
+    case ('orbit.x', 'orbit.y', 'eta.x', 'eta.y', 'beta.a', 'beta.b', 'ping_a.amp_x', 'ping_b.amp_y')
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_Fit/Amp_Fit;REAL;F', s%wave%rms_rel_a
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_Fit/Amp_Fit;REAL;F', s%wave%rms_rel_b
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_Kick/Kick;REAL;F', s%wave%rms_rel_k
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi;REAL;F', s%wave%rms_phi
+
+    case ('phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y')
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_Fit/Amp_Fit;REAL;F', s%wave%rms_rel_a
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_Fit/Amp_Fit;REAL;F', s%wave%rms_rel_b
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_Kick/Kick;REAL;F', s%wave%rms_rel_k
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi;REAL;F', s%wave%rms_phi
+      nl=incr(nl); write(li(nl), '(a, f8.3, a)') 'Chi_C [Figure of Merit];REAL;F', s%wave%chi_c
+
+    case ('ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x', &
+          'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_b.amp_sin_x', 'ping_b.amp_cos_x', 'cbar.11', 'cbar.12', 'cbar.22')
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_+/Amp_+;REAL;F', s%wave%rms_rel_as
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_-/Amp_-;REAL;F', s%wave%rms_rel_ar
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_+/Amp_+;REAL;F', s%wave%rms_rel_bs
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_-/Amp_-;REAL;F', s%wave%rms_rel_br
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Kick |K+|', 2*s%wave%amp_ba_s
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_K+/K+', 2*s%wave%rms_rel_ks
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Kick |K-|', 2*s%wave%amp_ba_r
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_K-/K-', 2*s%wave%rms_rel_kr
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi+;REAL;F', s%wave%rms_phi_s
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi-;REAL;F', s%wave%rms_phi_r
+      nl=incr(nl); write(li(nl), '(a, f8.3, a)') 'Chi_a [Figure of Merit];REAL;F', s%wave%chi_a
+    end select
+
+  !
+
+  case ('loc_header')
+    select case (s%wave%data_type)
+    case ('beta.a', 'beta.b')
+      nl=incr(nl); li(nl) = 'header1;STR;F;Normalized Kick = kick * beta  [urad * meter]'
+      nl=incr(nl); li(nl) = 'columns;After Dat#;Norm_K;phi'
+
+    case ('orbit.x', 'orbit.y', 'eta.x', 'eta.y', 'ping_a.amp_x', 'ping_b.amp_y')
+      nl=incr(nl); li(nl) = 'header1;STR;F;Normalized Kick = kick * sqrt(beta)  [urad * sqrt(meter)]'
+      nl=incr(nl); li(nl) = 'columns;After Dat#;Norm_K;phi'
+
+    case ('phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y')
+      nl=incr(nl); li(nl) = 'header1;STR;F;Normalized Kick = k * l * beta [dimensionless]'
+      nl=incr(nl); li(nl) = 'header2;STR;F;where k = quadrupole gradient [rad/m^2].'
+      nl=incr(nl); li(nl) = 'columns;After Dat#;Norm_K;phi'
+
+    case ('ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x', &
+          'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_b.amp_sin_x', 'ping_b.amp_cos_x', 'cbar.11', 'cbar.12', 'cbar.22')
+      nl=incr(nl); li(nl) = 'columns;After Dat#;Norm_K;phi+;phi-;phi_a;phi_b'
+    end select
+
+  !
+
+  case ('locations')
+    select case (s%wave%data_type)
+    case ('orbit.x', 'orbit.y', 'eta.x', 'eta.y', 'beta.a', 'beta.b', 'ping_a.amp_x', 'ping_b.amp_y')
+      do i = 1, min(s%wave%n_kick, 20)
+        nl=incr(nl); write(li(nl), '(i9, f12.2, 1f10.3)') s%wave%kick(i)%ix_dat, 1e6*s%wave%kick(i)%amp, s%wave%kick(i)%phi
+      enddo
+
+    case ('phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y')
+      do i = 1, min(s%wave%n_kick, 20)
+        nl=incr(nl); write(li(nl), '(i9, f12.4, f10.3)') s%wave%kick(i)%ix_dat, s%wave%kick(i)%amp, s%wave%kick(i)%phi
+      enddo
+
+    case ('ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x', &
+          'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_b.amp_sin_x', 'ping_b.amp_cos_x', 'cbar.11', 'cbar.12', 'cbar.22')
+      do i = 1, s%wave%n_kick
+        nl=incr(nl); write(li(nl), '(i11, f10.4, 4f8.3, 2f10.3)') s%wave%kick(i)%ix_dat, &
+                  s%wave%kick(i)%amp, s%wave%kick(i)%phi_s, s%wave%kick(i)%phi_r, &
+                  (s%wave%kick(i)%phi_s+s%wave%kick(i)%phi_r)/2, &
+                  (s%wave%kick(i)%phi_s-s%wave%kick(i)%phi_r)/2
+      enddo
+    end select
+
+  case default
+    call invalid ('Bad {who}: ' // line)
+  end select
 
 !----------------------------------------------------------------------
 

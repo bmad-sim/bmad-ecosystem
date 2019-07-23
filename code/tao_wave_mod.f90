@@ -41,14 +41,6 @@ type (branch_struct), pointer :: branch
 integer i, p1, p2, ix_curve
 
 character(*) curve_name, plot_place
-character(40), parameter :: wave_data_names(27) = [character(40):: 'orbit.x', 'orbit.y', 'beta.a', 'beta.b', &
-    'eta.x', 'eta.y', 'phase.a', 'phase.b', 'cbar.12', 'cbar.11', 'cbar.22', &
-    'ping_a.amp_x', 'ping_a.phase_x', 'ping_a.amp_y', 'ping_a.phase_y', &
-    'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', &
-    'ping_b.amp_y', 'ping_b.phase_y', 'ping_b.amp_x', 'ping_b.phase_x', &
-    'ping_b.amp_sin_x', 'ping_b.amp_cos_x', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x']
-
-
 character(*), parameter :: r_name = 'tao_wave_cmd'
 
 logical :: init_needed = .true.
@@ -58,7 +50,7 @@ logical err_flag, err
 
 err_flag = .true.
 
-if (any(curve_name == wave_data_names)) then
+if (any(curve_name == wave_data_name)) then
 
   call tao_find_plots (err, '*', 'REGION', curve = curve_array, always_allocate = .true.)
   if (err) return
@@ -79,7 +71,7 @@ else
 
   ix_curve = 0
   do i = 1, size(curve_array) 
-    if (.not. any(curve_array(i)%c%data_type == wave_data_names)) cycle
+    if (.not. any(curve_array(i)%c%data_type == wave_data_name)) cycle
     if (ix_curve /= 0) then
       call out_io (s_error$, r_name, 'Multiple curves match the given curve name. Nothing done.')
       return
