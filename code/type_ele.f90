@@ -92,10 +92,9 @@ real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
 real(rp), pointer :: r_ptr
 
 character(*), optional, allocatable :: lines(:)
-character(:), allocatable :: a_str
+character(:), allocatable :: expression_str
 character(200), pointer :: li(:)
 character(200), allocatable :: li2(:)
-character(200) expression_str
 character(60) str1, str2
 character(40) a_name, name, fmt_r, fmt_a, fmt_i, fmt_l, fmt
 character(12) attrib_val_str, units
@@ -790,6 +789,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     nl=nl+1; li(nl) = 'Controller Lord(s):'
     nl=nl+1; li(nl) = '   Index   Name                            Attribute           Lord_Type           Expression'
 
+    allocate (character(100) :: expression_str)
     do i = 1, ele%n_lord
       lord => pointer_to_lord (ele, i, ctl)
       select case (lord%lord_status)
@@ -925,7 +925,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       else ! Group
         nl=nl+1; write (li(nl), '(a, i4)') 'Slaves: [Attrib_Value = Value of the controlled attribute, Expression_Val = Value calculated by this Group element.]'
       endif
-      nl=nl+1; li(nl) = '   Index   Ele_Name';  li(nl)(n_char+14:) = 'Attribute         Attrib_Value  Expression_Val    Expression'
+      nl=nl+1; li(nl) = '   Index   Ele_Name';  li(nl)(n_char+14:) = 'Attribute         Attrib_Value  Expression_Val     Expression'
       do ix = 1, ele%n_slave
         slave => pointer_to_slave (ele, ix, ctl)
 
@@ -940,13 +940,15 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
           if (associated(a_ptr%r)) write (attrib_val_str, '(es12.4)') a_ptr%r
         end select
 
+        if (.not. allocated(expression_str)) allocate(character(100):: expression_str)
+        write (str1, '(es12.4)') ctl%value
         if (allocated(ctl%stack)) then
-          a_str = expression_stack_to_string (ctl%stack)
-          write (expression_str, '(es12.4, 4x, a)') ctl%value, trim(a_str)
+          expression_str = str1(1:17) // expression_stack_to_string (ctl%stack)
         else  ! Spline
-          write (expression_str, '(es12.4, 4x, a)') ctl%value, '<Knots>'
+          expression_str = str1(1:17) // '<Knots>'
         endif
 
+        if (len_trim(expression_str) > 140) expression_str = expression_str(1:136) // ' ...'
         nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a, 4x, a)') trim(ele_location(slave)), slave%name(1:n_char), a_name, attrib_val_str, trim(expression_str)
       enddo
     end select
