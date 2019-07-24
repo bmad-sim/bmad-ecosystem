@@ -214,6 +214,7 @@ class taoplot:
 
 
 		'''''''''Graphing Data'''''''''
+		#obtains information about the number and data of graphs from tao
 
 		'''Region Data'''
 
@@ -403,6 +404,7 @@ class taoplot:
 
 
 			'''''''''Plotting'''''''''
+			#plots line graphs, histograms, phase space plots, and dynamic aperture graphs
 
 			LineList = []
 			for i in CurvesList:
@@ -507,6 +509,7 @@ class taoplot:
 
 
 		'''''''''Lattice Layout'''''''''
+		#plots lat layouts
 		
 		if LatLayout == True:
 			GraphDict['LatLayout']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
@@ -529,9 +532,9 @@ class taoplot:
 			plt.xlim(gInfoDict['x.min'].value,gInfoDict['x.max'].value)
 			plt.ylim(layInfoDict['y.min'].value,layInfoDict['y.max'].value)
 			twinAxes.set_navigate(True)
-
 			GraphDict['LatLayout'].axis('off')
 			twinAxes.axis('off')
+			#makes lat layout only have horizontal axis for panning and zooming
 			
 			GraphDict['LatLayout'].axes.set_navigate(False)
 			GraphDict['LatLayout'].axhline(y=0,xmin=1.1*layInfoDict['x.min'].value,xmax=1.1*layInfoDict['x.max'].value,color='Black')
@@ -540,12 +543,11 @@ class taoplot:
 
 			if layInfoDict['ix_universe'].value != -1:
 				universe = layInfoDict[ix_universe].value
-			
 			else:
 				universe = 1
 
 			branch = layInfoDict['-1^ix_branch'].value
-
+			#lat layout branch and universe information
 
 			
 			eleInfo=pipe.cmd_in('python plot_lat_layout '+str(universe)+'@'+str(branch),no_warn = True).splitlines()
@@ -577,6 +579,7 @@ class taoplot:
 
 				GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1.3*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],alpha=0)
 				GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1.3*eleY2Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],alpha=0)
+				#invisible elements to give enough space for actual lat layout elements
 
 				try:
 					if eleShapeDict[str(i)] == 'box' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:		
@@ -622,8 +625,6 @@ class taoplot:
 
 					elif eleShapeDict[str(i)] == 'circle':
 						GraphDict['LatLayout'].add_patch(patches.Ellipse((eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,0),(eleEndDict[str(i)]-eleStartDict[str(i)]),eleY1Dict[str(i)]+eleY2Dict[str(i)],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],fill=False))
-						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],alpha=0)
-						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],alpha=0)
 					#draw circle element
 
 
@@ -708,6 +709,7 @@ class taoplot:
 		
 
 		'''''''''Floor Plan'''''''''
+		#plots floor plans
 		
 		if FloorPlan == True:
 			GraphDict['FloorPlan']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
@@ -721,7 +723,7 @@ class taoplot:
 			for i in range(len(floInfo)):
 				floInfoDict[floInfo[i].split(';')[0]]=str_to_tao_param(floInfo[i])
 				floInfoList.append(floInfo[i].split(';')[0])
-			#list of tao_parameter object names from python plot_graph
+			#list of tao_parameter object names from python plot_graph for a floor plan
 			#dictionary of tao_parameter name string keys to the corresponding tao_parameter object
 
 			if floInfoDict['ix_universe'].value != -1:
@@ -742,7 +744,7 @@ class taoplot:
 			fpeExDict = {} #end x coordinate
 			fpeEyDict = {} #end y coordinate
 			fpeEaDict = {} #end angle
-			fpeLwDict = {}
+			fpeLwDict = {} #line width
 			fpeShapeDict = {}
 			fpeY1Dict = {} #distance above  
 			fpeY2Dict = {} #distance below
@@ -778,7 +780,7 @@ class taoplot:
 					fpeEfaDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[18])
 				except IndexError:
 					pass
-			#dict keys and entries are strings which match a floor plan element index (eg: '1') string to the corresponding information
+			#dict keys and entries are strings which match a floor plan element index (eg: '1') to the corresponding information
 
 			def line(p1, p2):
 				'''returns lines based on given points to be used with intersect'''
@@ -994,6 +996,7 @@ class taoplot:
 						c2 = [fpeExDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)]),fpeEyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])]
 						c3 = [fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])]
 						c4 = [fpeExDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)]),fpeEyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])]
+						#corners of sbend
 
 						if fpeSaDict[str(i)] > fpeEaDict[str(i)]:
 							outerRadius = np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)
@@ -1013,7 +1016,7 @@ class taoplot:
 
 						topCP = [2*(top[0])-.5*(c1[0])-.5*(c2[0]),2*(top[1])-.5*(c1[1])-.5*(c2[1])]
 						bottomCP = [2*(bottom[0])-.5*(c3[0])-.5*(c4[0]),2*(bottom[1])-.5*(c3[1])-.5*(c4[1])]
-						#corresponding control points for a quadratic Bezier curve
+						#corresponding control points for a quadratic Bezier curve that passes through the corners and arc midpoint
 
 						verts = [c1,topCP,c2,c4,bottomCP,c3,c1]
 						codes = [Path.MOVETO,Path.CURVE3,Path.CURVE3,Path.LINETO,Path.CURVE3,Path.CURVE3,Path.CLOSEPOLY]
@@ -1022,7 +1025,7 @@ class taoplot:
 						'''patch = patches.PathPatch(Path(verts,codes),facecolor='green',alpha = .5)
 						GraphDict['FloorPlan'].add_patch(patch)'''
 						#visualize clickable regions
-					#path approximating sbend region for clickable region on graph
+					#path approximating sbend region for clickable region on graph using lines and quadratic Bezier curves
 
 					else: #for non sbend click detection
 						corner1[str(i)] = [fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
@@ -1140,6 +1143,7 @@ class taoplot:
 							#pick correct start and end angle for arc							
 
 							GraphDict['FloorPlan'].add_patch(patches.Arc(center,fbwRadiusList[kIndex]*2,fbwRadiusList[kIndex]*2,theta1=t1,theta2=t2,color=fpsColorDict[bwnTypeDict[str(i)]]))
+							#draw building wall arc
 
 						k = k - 1
 			except ValueError:
@@ -1192,6 +1196,7 @@ class taoplot:
 		
 
 		'''''''''Output Data'''''''''
+		#creates list of data to be returned with the figure, needed to make elements clickable on graphs
 
 		if gInfoDict['graph^type'].value == 'lat_layout' or gInfoDict['graph^type'].value == 'floor_plan': 
 			if gInfoDict['ix_universe'].value != -1:

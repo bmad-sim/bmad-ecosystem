@@ -7,15 +7,17 @@ from matplotlib.path import Path
 
 
 def in_rectangle(a,b,c,d,x,y):
-	'''checks if the point (x,y) is in a rectangle with corners a, b, c, and d'''
+	'''returns True if the point (x,y) is in a rectangle with corners a, b, c, and d, False otherwise'''
 	ABC = .5*abs(a[0]*(b[1]-c[1])+b[0]*(c[1]-a[1])+c[0]*(a[1]-b[1]))
 	BCD = .5*abs(b[0]*(c[1]-d[1])+c[0]*(d[1]-b[1])+d[0]*(b[1]-c[1]))
+	#area of triangles formed by a diagonal of the rectangle
 	areaRectangle = ABC + BCD
 
 	ABP = .5*abs(a[0]*(b[1]-y)+b[0]*(y-a[1])+x*(a[1]-b[1]))
 	BDP = .5*abs(b[0]*(d[1]-y)+d[0]*(y-b[1])+x*(b[1]-d[1]))
 	CDP = .5*abs(c[0]*(d[1]-y)+d[0]*(y-c[1])+x*(c[1]-d[1]))
 	CAP = .5*abs(c[0]*(a[1]-y)+a[0]*(y-c[1])+x*(c[1]-a[1]))
+	#area of triangles formed by a side of the rectangle and the point (x,y)
 
 	if areaRectangle != 0:
 		return math.isclose(areaRectangle,(ABP+BDP+CDP+CAP))
@@ -46,7 +48,7 @@ def in_element(x,y,fig_info):
 						inIndexList.append(i)
 				
 				else:
-					try: #sbends
+					try: #sbends handled in taoplot
 						if returnList[15][str(i)].contains_point([x,y]) == True:
 							inIndexList.append(i)
 
@@ -54,8 +56,6 @@ def in_element(x,y,fig_info):
 						if in_rectangle(returnList[11][str(i)],returnList[12][str(i)],returnList[13][str(i)],returnList[14][str(i)],x,y) == True:	
 							inIndexList.append(i)
 		#find floor_plan elements containing the specified point
-		#checks a circle for the specified point for circle elements, checks a box otherwise
-		#checks a box made from the element start and end coordinates with y1 and y2 for the height
 				
 	except TypeError:
 		pass
