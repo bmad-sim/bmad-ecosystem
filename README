@@ -77,7 +77,7 @@ Double quote marks must be used to surround the <tag_string> field.
 The <data_id> field can be one of:
   STR            String or logical data.
   REL            Real data with relative tolerance.
-	VEC_REL				 Real data with tolerance relative to the vector magnitude of the array of numbers on the line
+  VEC_REL        Real data with tolerance relative to the vector magnitude of the array of numbers on the line
   ABS            Real data with absolute tolerance.
 
 The specification lines of "output.correct" and "output.now" must match up.  That is, the N^th
