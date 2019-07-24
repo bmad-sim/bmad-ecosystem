@@ -12,13 +12,18 @@ type (ele_struct) a_ele
 type (ele_pointer_struct), allocatable :: eles(:)
 type (coord_struct) orb
 type (control_struct), pointer :: ctl
+type (lat_nametable_struct) ntab
 
 character(40) :: lat_file  = 'bookkeeper_test.bmad'
+character(40) :: loc_str(12) = [character(40):: &
+          '1>>drift::3:15', 'sb', '3:15:3', '1>>quad::*', 'octupole::1>>*', &
+          'sb##2', 'type::*', 'alias::"q*t"', 'descrip::"So Long"', 'sb%', &
+          '0>>drift::qu1:qu2', '1>>drift::qu1:qu2']
 character(100) str
 
 real(rp), allocatable :: save(:)
 real(rp) m1(6,6), m2(6,6), r0(6), vec1(6), vec2(6)
-integer :: i, j, k, nargs, n_loc
+integer :: i, j, k, n, ie, nargs, n_loc
 logical print_extra, err
 
 !
@@ -37,6 +42,31 @@ endif
 !-------------
 
 open (1, file = 'output.now', recl = 200)
+
+!
+
+call bmad_parser ('bookkeeper_test1.bmad', lat)
+
+call create_lat_ele_sorted_nametable(lat, ntab)
+
+do i = 0, ubound(lat%branch, 1)
+  n = size(ntab%branch(i)%indexx)
+  write (1, '(a, i0, a, 100(a, i0))') '"Sort-B', i, '"  STR   "', (';', ntab%branch(i)%indexx(ie), ie = 1, n, 3), '"'
+enddo
+
+n = size(ntab%all_indexx)
+write (1, '(a, 100(a, i0))') '"Sort-All"  STR   "', (';', ntab%all_indexx(ie), ie = 1, n, 3), '"'
+
+!
+
+do i = 1, size(loc_str)
+  call lat_ele_locator (loc_str(i), lat, eles, n_loc, err); 
+  if (n_loc == 0) then
+    write (1, '(a, i0, a)') '"Loc', i, '" STR  "None"' 
+  else
+    write (1, '(a, i0, 100a)') '"Loc', i, '" STR  "', (trim(eles(j)%ele%name), ';', j = 1, n_loc), '"'
+  endif
+enddo
 
 !
 
