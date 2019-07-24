@@ -38,10 +38,11 @@ use bmad_interface, except => create_unique_ele_names
 implicit none
 
 type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 
 integer key
-integer i, j, ix_p, ix, ixx, n_max
+integer i, j, ib, ix_p, ix, ixx, n_max
 integer, allocatable :: name_indexx(:)
 
 character(*) suffix
@@ -62,36 +63,33 @@ call str_upcase (suff, suff)
 
 ! Sort element names
 
-lat%ele%ixx = 0
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  branch%ele%ixx = 0
 
-n_max = lat%n_ele_max
-allocate (name_indexx(n_max), original_name(n_max))
-original_name = lat%ele(1:n_max)%name
-call indexx (original_name, name_indexx)
+  n_max = branch%n_ele_max
+  call re_allocate (name_indexx, n_max)
+  call re_allocate (original_name, n_max)
+  original_name = branch%ele(1:n_max)%name
+  call indexx (original_name, name_indexx)
 
-! Find repeated names
+  ! Find repeated names
 
-do i = 1, n_max
+  do i = 1, n_max
 
-	ele => lat%ele(i)
+  	ele => branch%ele(i)
 
-	if (key /= 0 .and. ele%key /= key) cycle
-	call find_indexx (ele%name, original_name, name_indexx, n_max, ix, ixx)
-	if (ixx == n_max) cycle  ! Name is unique
-	j = name_indexx(ixx+1)
-	if (original_name(j) /= ele%name) cycle ! Name is unique
+  	if (key /= 0 .and. ele%key /= key) cycle
+  	call find_indexx (ele%name, original_name, name_indexx, n_max, ix, ixx)
+  	if (ixx == n_max) cycle  ! Name is unique
+  	j = name_indexx(ixx+1)
+  	if (original_name(j) /= ele%name) cycle ! Name is unique
 
-	! Now add the suffix
+  	! Now add the suffix
 
-	lat%ele(ix)%ixx = lat%ele(ix)%ixx + 1
-	write (ele%name, '(2a, i0, a)') trim(ele%name), &
-							suff(1:ix_p-1), lat%ele(ix)%ixx, trim(suff(ix_p+1:))
-
+  	branch%ele(ix)%ixx = branch%ele(ix)%ixx + 1
+  	write (ele%name, '(2a, i0, a)') trim(ele%name), suff(1:ix_p-1), branch%ele(ix)%ixx, trim(suff(ix_p+1:))
+  enddo
 enddo
-
-! Cleanup
-
-deallocate (name_indexx, original_name)
-
 
 end subroutine

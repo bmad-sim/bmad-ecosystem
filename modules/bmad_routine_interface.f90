@@ -438,6 +438,13 @@ subroutine create_hard_edge_drift (ele_in, which_end, drift_ele)
   integer which_end
 end subroutine
 
+subroutine create_lat_ele_sorted_nametable (lat, nametable)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  type (lat_nametable_struct) nametable
+end subroutine
+
 subroutine create_overlay (lord, contl, err, err_print_flag)
   import
   implicit none

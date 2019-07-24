@@ -765,6 +765,21 @@ type ele_pointer_struct
   integer :: id = -1                    ! For general use. Not used by Bmad.
 end type
 
+! Structure to be used in the lat_ele_nametable_struct
+
+type indexx_array_struct
+  integer, allocatable :: indexx(:)                    ! Lower bound is 1
+end type
+
+! Structure for holding a sorted index for all the elements in a lattice.
+! Create using create_lat_ele_sorted_nametable.
+
+type lat_nametable_struct
+  type (indexx_array_struct), allocatable :: branch(:)  ! Per branch sort
+  type (ele_pointer_struct), allocatable :: all(:)      ! All element array. Lower bound is 1.
+  integer, allocatable :: all_indexx(:)                 ! Lower bound is 1
+end type
+
 ! Structure for ptc genfield
 
 type ptc_genfield_struct
