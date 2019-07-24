@@ -33,7 +33,9 @@ type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable, save :: eles(:)
 type (ele_struct), pointer :: ele
 type (coord_struct), pointer :: p
-
+type (lat_nametable_struct) etab
+type (tao_d2_data_struct), pointer :: d2
+type (tao_d1_data_struct), pointer :: d1
 
 real(rp) scale
 
@@ -41,13 +43,13 @@ character(*) what
 character(20) action, name, lat_type, which
 character(200) switch
 character(200) file_name0, file_name, what2
-character(200) :: word(10)
+character(200) :: word(12)
 character(*), parameter :: r_name = 'tao_write_cmd'
 
 integer i, j, n, ie, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
 integer i_chan, ix_beam, ix_word, ix_w2, file_format
 
-logical is_open, ok, err, good_opt_only, at_switch, new_file
+logical is_open, ok, err, good_opt_only, at_switch, new_file, append
 
 !
 
@@ -62,7 +64,7 @@ call match_word (action, [character(20):: &
               'hard', 'gif', 'ps', 'variable', 'bmad_lattice', 'derivative_matrix', 'digested', &
               'curve', 'mad_lattice', 'beam', 'ps-l', 'hard-l', 'covariance_matrix', 'orbit', &
               'mad8_lattice', 'madx_lattice', 'pdf', 'pdf-l', 'opal_lattice', '3d_model', 'gif-l', &
-              'plot', 'ptc', 'sad_lattice', 'blender'], ix, .true., matched_name = action)
+              'plot', 'ptc', 'sad_lattice', 'blender', 'namelist'], ix, .true., matched_name = action)
 
 if (ix == 0) then
   call out_io (s_error$, r_name, 'UNRECOGNIZED "WHAT": ' // action)
@@ -449,6 +451,75 @@ case ('mad_lattice', 'mad8_lattice', 'madx_lattice', 'opal_latice', 'sad_lattice
     if (err) return
     call out_io (s_info$, r_name, 'Written: ' // file_name)
   enddo
+
+!---------------------------------------------------
+! orbit
+
+case ('namelist')
+
+  ix_word = 0
+  file_name0 = ''
+  which = ''
+  append = .false.
+
+  do 
+    ix_word = ix_word + 1
+    if (ix_word == size(word)-1) exit
+
+    call tao_next_switch (word(ix_word), [character(16):: '-data', '-variable', '-append'], .true., switch, err, ix)
+    if (err) return
+
+    select case (switch)
+    case ('');                    exit
+    case ('-data', '-variable');  which = switch
+    case ('-append');             append = .true.
+    case default
+      if (file_name0 /= '') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+        return
+      endif
+      file_name0 = switch
+    end select
+  enddo
+
+  !
+
+  if (which == '') then
+    call out_io (s_error$, r_name, 'WHICH NAMELIST (-data, -variable) NOT SET.')
+    return
+  endif
+
+  if (file_name0 == '') file_name0 = 'tao.namelist'
+  iu = lunget()
+  if (append) then
+    open (iu, file = file_name, access = 'append')
+  else
+    open (iu, file = file_name)
+  endif
+
+  !
+
+  select case (which)
+  case ('-data')
+    do i = 1, size(s%u)
+      u => s%u(i)
+      call create_lat_ele_sorted_nametable(u%model%lat, etab)
+      do j = 1, u%n_d2_data_used
+        d2 => u%d2_data(j)
+        write (iu, *)
+        write (iu, '(a)') '!---------------------------------------'
+        write (iu, *)
+        write (iu, '(a)')     '&tao_d2_data'
+        write (iu, '(2a)')    '  d2_data%name = ', trim(d2%name)
+        write (iu, '(a, i0)') '  universe = ', i
+        write (iu, '(a, i0)') '  n_d1_data = ', size(d2%d1)
+        write (iu, '(a)')     '/'
+      enddo
+    enddo
+
+  case ('-variable')
+
+  end select
 
 !---------------------------------------------------
 ! orbit
