@@ -1,5 +1,5 @@
 !+
-! Subroutine create_overlay (lord, contrl, err, err_print_flag)
+! Subroutine create_overlay (lord, contrl, err)
 !
 ! Subroutine to add the controller information to slave elements of an overlay_lord.
 !
@@ -17,14 +17,12 @@
 !     %ix_branch     -- Index of branch element belongs to.
 !     %attribute     -- name of attribute to be controlled
 !   err            -- Logical: Set True if an attribute is not free to be controlled.
-!   err_print_flag -- Logical, optional: If present and False then suppress
-!                       printing of an error message if attribute is not free.  
 !
 ! Output:
 !   lord          -- ele_struct: Modified overlay elment
 !-
 
-subroutine create_overlay (lord, contrl, err, err_print_flag)
+subroutine create_overlay (lord, contrl, err)
 
 use bmad_parser_mod, except_dummy => create_overlay
 use expression_mod
@@ -41,10 +39,8 @@ integer i, j, nc0, nc2, is, n, iv
 integer ix_slave, n_slave, ix_attrib, ix_branch
 
 character(40) attrib_name
-character(*), parameter :: r_name = 'create_overlay'
 
 logical err, err2, free, var_found
-logical, optional :: err_print_flag
 
 ! Error check
 
@@ -61,23 +57,20 @@ do j = 1, n_slave
   ix_branch = contrl(j)%slave%ix_branch
 
   if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) then
-    call out_io (s_fatal$, r_name,  'BRANCH INDEX OUT OF BOUNDS. \i0\ ', &
-                                    'CONSTRUCTING OVERLAY: ' // lord%name, i_array = [ix_branch])
-    if (global_com%exit_on_error) call err_exit
+    call parser_error ('BRANCH INDEX OUT OF BOUNDS. \i0\ ', &
+                       'CONSTRUCTING OVERLAY: ' // lord%name, i_array = [ix_branch])
     return
   endif
 
   if (ix_slave <= 0 .or. ix_slave > ubound(lat%branch(ix_branch)%ele, 1)) then
-    call out_io (s_fatal$, r_name,  'LATTICE ELEMENT INDEX OUT OF BOUNDS. \i0\ ', &
-                                    'CONSTRUCTING OVERLAY: ' // lord%name, i_array = [ix_slave])
-    if (global_com%exit_on_error) call err_exit
+    call parser_error ('LATTICE ELEMENT INDEX OUT OF BOUNDS. \i0\ ', &
+                       'CONSTRUCTING OVERLAY: ' // lord%name, i_array = [ix_slave])
     return
   endif
 enddo
 
 if (lord%control%type /= expression$ .and. size(lord%control%var) /= 1) then
   call parser_error ('A SPLINE BASED CONTROLLER MAY ONLY HAVE ONE CONTROL VARIABLE: ' // lord%name)
-  if (global_com%exit_on_error) call err_exit
   return
 endif  
 
@@ -118,8 +111,14 @@ do j = 1, n_slave
 
   !
 
-  free = attribute_free (slave, attrib_name, err_print_flag, .true.)
+  free = attribute_free (slave, attrib_name, .true., .true.)
   err = (err .or. .not. free)
+  if (err) then
+    call parser_error ('ATTRIBUTE NOT FREE TO VARY: ' // attrib_name, &
+                       'FOR ELEMENT: ' // lord%name)
+
+    return
+  endif
   c => lat%control(nc2+1)
 
   c%ix_attrib = contrl(j)%ix_attrib
@@ -178,11 +177,15 @@ do j = 1, n_slave
       case (ran$, ran_gauss$)
         call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH AN OVERLAY OR GROUP', &
                            'FOR ELEMENT: ' // lord%name)
-        if (global_com%exit_on_error) call err_exit
         return
       case (variable$)
         call word_to_value (c%stack(is)%name, lat, c%stack(is)%value, err2)
         err = (err .or. err2)
+        if (err) then
+          call parser_error ('ERROR CONVERTING WORD TO VALUE: ' // c%stack(is)%name, &
+                             'FOR ELEMENT: ' // lord%name)
+          return
+        endif
         ! Variables in the arithmetic expression are immediately evaluated and never reevaluated.
         ! If the variable is an element attribute (looks like: "ele_name[attrib_name]") then this may
         ! be confusing if the attribute value changes later. To avoid some (but not all) confusion, 
@@ -199,7 +202,6 @@ do j = 1, n_slave
     if (size(c%y_knot) /= size(lord%control%x_knot)) then
       call parser_error ('NUMBER OF Y_SPLINE POINTS FOR SLAVE: ' // slave%name, &
                          'IS NOT THE SAME AS THE NUMBER OF X_SPLINE POINTS FOR ELEMENT: ' // lord%name)
-      if (global_com%exit_on_error) call err_exit
       return
     endif
   endif
@@ -221,9 +223,8 @@ do i = 1, lord%n_slave
   ! You cannot overlay super_slaves 
 
   if (slave%slave_status == super_slave$) then
-    call out_io (s_fatal$, r_name,  'ILLEGAL OVERLAY ON ' // slave%name, &
-                                    ' BY: ' // lord%name)
-    if (global_com%exit_on_error) call err_exit
+    call parser_error ('ILLEGAL OVERLAY ON ' // slave%name, ' BY: ' // lord%name)
+    return
   endif
 
   ! update controller info for the slave ele
