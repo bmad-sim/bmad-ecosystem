@@ -31,11 +31,15 @@ def filter_output(x):
     return x
   # Filter out \[[6 q first
   x = x.replace('\x1b[6 q', '')
+  # replace line feed ('\x0a') with return ('\x0d')
+  #while x.find('\x0a') != -1:
+  #  x = x.replace('\x0a', '\x0d')
+  # Remove xterm-specific escape code
+  if x.find('\x1b[?1034h') != -1:
+    x = x.replace('\x1b[?1034h', "")
   # Filter out color codes
   color_regex = re.compile('\x1b\\[[0-9;]*m')
-  all_regex = re.compile('\x1b\\[[0-9;]*[a-zA-Z]')
-  #matches = color_regex.findall(x)
-  matches = all_regex.findall(x)
+  matches = color_regex.findall(x)
   for color in matches:
     x = x.replace(color, '')
   return x
