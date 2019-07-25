@@ -71,8 +71,6 @@ class tao_console(tk.Frame):
     self.command
     mode can be any of 'normal', 'error', or 'fatal'
     '''
-    while output.find('\x0a') != -1:
-      output = output.replace('\x0a', '\x0d')
     # Print output
     self._wid.insert('end', '\n' + output, mode)
     self._wid.insert('end', '\nTao>', "normal")
