@@ -147,7 +147,7 @@ class tao_console(tk.Frame):
       self._wid.insert('insert', event.char)
       self.cpos += 1
       self._wid.see(self.cstart)
-    return 'break'
+      return 'break'
 
   def _ret_handler(self, event):
     if self.command != "":

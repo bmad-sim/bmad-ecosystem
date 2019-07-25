@@ -2636,6 +2636,9 @@ class tao_new_data_window(tk.Toplevel):
     self.next_b = tk.Button(self.d2_frame, text="Next", command=self.load_d1_frame)
     self.next_b.grid(row=i+2, column=1, sticky='W')
 
+    # Focus the name entry
+    self.d2_param_list[0].tk_wid.focus_set()
+
   def load_d2_frame(self):
     self.d1_frame.pack_forget()
     self.d2_frame.grid(row=0, column=0, sticky='NSEW')
@@ -2844,6 +2847,9 @@ class new_d1_frame(tk.Frame):
     tk.Button(self, text="DELETE", fg='red', command=self.delete).grid(
         row=100, column=0, columnspan=3, sticky='EW')
 
+    # Focus the d1 name widget
+    self.d1_array_wids[0].tk_wid.focus_set()
+
   def delete(self, event=None):
     '''
     Deletes this d1_array frame
@@ -2955,7 +2961,6 @@ class new_d1_frame(tk.Frame):
       if self.name != "New d1_array":
         if self.d1_array_wids[2]._is_valid_dat_type(self.d2_array.name + '.' + self.name):
           # set data type
-          self.d1_array_wids[2]._mvar.set(self.d2_array.name)
           self.d1_array_wids[2].tk_var.set(self.d2_array.name + '.' + self.name)
     else:
       self.name_warning_2.grid_forget()

@@ -97,7 +97,7 @@ class tk_tao_parameter():
       self._stype = [] #types of slave widgets (needed for input validation)
       self._s = [] # list of slave widgets
       self._s_refresh()
-      self.tk_var.trace('w', self._s_refresh)
+      self.tk_var.trace('w', self._fill_widgets)
 
     if self.param.type not in ['DAT_TYPE', 'REAL_ARR']:
       self.tk_wid.config(disabledforeground="black")
@@ -181,7 +181,7 @@ class tk_tao_parameter():
       self._stype.append(p)
       if p.find('<enum') != -1: #Enums
         self._s.append(tk.OptionMenu(self.tk_wid, self._svar[k],
-          *dat_dict[p], command=self._update_tk_var))
+          *dat_dict[p]))
         self._svar[k].set(dat_dict[p][0]) # Default to first list item
       elif p.find('<digit:') != -1: #Digit dropdown box
         p = p.split(':')[1]
@@ -191,23 +191,20 @@ class tk_tao_parameter():
         high = int(high)
         digits = list(range(low, high+1))
         self._s.append(tk.OptionMenu(self.tk_wid, self._svar[k],
-          *digits, command=self._update_tk_var))
+          *digits))
         self._svar[k].set(digits[0])
       elif p.find('<str>') != -1: #Strings
         self._s.append(tk.Entry(self.tk_wid, textvariable=self._svar[k]))
-        self._svar[k].trace("w", self._update_tk_var)
       elif p.find('<digits') != -1: #Fixed length int
         p = p.split('s')[1]
         p = p.split('>')[0]
         length = int(p)
         self._s.append(tk.Entry(self.tk_wid, textvariable=self._svar[k]))
-        self._svar[k].trace("w", self._update_tk_var)
       elif p.find('<int>') != -1: #Integer
         self._s.append(tk.Entry(self.tk_wid, textvariable=self._svar[k]))
-        self._svar[k].trace("w", self._update_tk_var)
       elif p.find('<real>') != -1: #Float
         self._s.append(tk.Entry(self.tk_wid, textvariable=self._svar[k]))
-        self._svar[k].trace("w", self._update_tk_var)
+      self._svar[k].trace("w", self._update_tk_var)
       k = k+1
 
     # Set the slave variables appropriately
@@ -218,7 +215,11 @@ class tk_tao_parameter():
     #current_mvar = current_mvar.split('.')[0]
     if self._mvar.get() == self._mvar_old:
       for k in range(len(self._svar)):
-        self._svar[k].set((self.tk_var.get()).split('.')[k+1])
+        # Special case: velocity -> velocity.
+        if self.tk_var.get() == 'velocity':
+          self._svar[k].set("velocity.".split('.')[k+1])
+        else:
+          self._svar[k].set((self.tk_var.get()).split('.')[k+1])
     else: # Update self.tk_var if self._mvar has changed
       self._update_tk_var()
       self._mvar_old = self._mvar.get()
@@ -361,6 +362,19 @@ class tk_tao_parameter():
           return False
       k = k+1
     return True # All tests passed
+
+  def _fill_widgets(self, event=None, *args):
+    '''
+    Runs self._s_refresh() and then fills the slave widgets
+    with data from self.tk_var, but only if self.is_valid_dat_type(self.tk_var.get()) is True
+    '''
+    if not self._is_valid_dat_type(self.tk_var.get()):
+      return
+
+    # Refresh slave widgets
+    self._mvar.set((self.tk_var.get()).split('.')[0])
+    self._mvar_old = self._mvar.get() # gets the slave variables to fill
+    self._s_refresh()
 
   def open_file(self):
     filename = filedialog.askopenfilename(title = "Select " + self.param.name)
