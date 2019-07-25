@@ -1,5 +1,5 @@
 !+
-! Subroutine create_group (lord, contrl, err, err_print_flag)
+! Subroutine create_group (lord, contrl, err)
 !
 ! Subroutine to add the controller information to slave elements of a group_lord.
 !
@@ -22,14 +22,12 @@
 !     %slave         -- Integer: Index to lat%branch()%ele() of element controlled.
 !     %attribute     -- character(40): Attribute name.
 !   err            -- Logical: Set True if an attribute is not free to be controlled.
-!   err_print_flag -- Logical, optional: If present and False then suppress.
-!                       printing of an error message if attribute is not free.  
 !
 ! Output:
 !   lord          -- ele_struct: Modified group elment
 !-
 
-subroutine create_group (lord, contrl, err, err_print_flag)
+subroutine create_group (lord, contrl, err)
 
 use bmad_parser_mod, except_dummy => create_group
 use expression_mod
@@ -47,10 +45,8 @@ integer i, j, n_control, n_con, is, iv, n, ix_attrib
 integer ix1, ix2, ix_min, ix_max, ix_slave, ix_branch
 
 logical err, err2, free, var_found
-logical, optional :: err_print_flag
 
 character(40) attrib_name
-character(*), parameter :: r_name = 'create_group'
 
 ! Error check
 
@@ -62,15 +58,15 @@ do i = 1, n_control
   ix_branch = contrl(i)%slave%ix_branch
 
   if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) then
-    call out_io (s_fatal$, r_name,  'BRANCH INDEX OUT OF BOUNDS. \i0\ ', &
+    call parser_error ( 'BRANCH INDEX OUT OF BOUNDS. \i0\ ', &
                                     'CONSTRUCTING GROUP: ' // lord%name, i_array = [ix_branch])
-    if (global_com%exit_on_error) call err_exit
+    return
   endif
 
   if (ix_slave <= 0 .or. ix_slave > ubound(lat%branch(ix_branch)%ele, 1)) then
-    call out_io (s_fatal$, r_name, 'LATTICE ELEMENT INDEX OUT OF BOUNDS. \i0\ ', &
-                                   'CONSTRUCTING GROUP: ' // lord%name, i_array = [ix_slave])
-    if (global_com%exit_on_error) call err_exit
+    call parser_error ('LATTICE ELEMENT INDEX OUT OF BOUNDS. \i0\ ', &
+                       'CONSTRUCTING GROUP: ' // lord%name, i_array = [ix_slave])
+    return
   endif
 enddo
 
@@ -95,7 +91,6 @@ enddo
 
 if (lord%control%type /= expression$ .and. size(lord%control%var) /= 1) then
   call parser_error ('A SPLINE BASED CONTROLLER MAY ONLY HAVE ONE CONTROL VARIABLE: ' // lord%name)
-  if (global_com%exit_on_error) call err_exit
   return
 endif  
 
@@ -131,14 +126,13 @@ do i = 1, n_control
 
   select case (attrib_name)
   case ('START_EDGE', 'END_EDGE', 'ACCORDION_EDGE', 'S_POSITION')
-    free = attribute_free (slave, 'L', err_print_flag)
+    free = attribute_free (slave, 'L')
   case default
-    free = attribute_free (slave, attrib_name, err_print_flag)
+    free = attribute_free (slave, attrib_name)
   end select
 
   if (.not. free) then
-    if (logic_option(.true., err_print_flag)) call out_io (s_error$, r_name, &
-          'SLAVE ATTRIBUTE NOT FREE TO VARY FOR GROUP LORD: ' // lord%name)
+    call parser_error ('SLAVE ATTRIBUTE NOT FREE TO VARY FOR GROUP LORD: ' // lord%name)
     err = .true.
     return
   endif

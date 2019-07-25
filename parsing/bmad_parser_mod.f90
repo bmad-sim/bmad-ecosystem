@@ -3072,6 +3072,7 @@ if (ix1 == 0) then
 
     call parser_error ('VARIABLE USED BUT NOT YET DEFINED: ' // word, 'WILL TREAT AS ZERO.', level = s_warn$)
     value = 0
+    err_flag = .false.
     ! To prevent multiple error messages define this variable.
     bp_com%i_const_tot = bp_com%i_const_tot + 1
     if (bp_com%i_const_tot > size(bp_com%const%name)) call reallocate_bp_com_const()
@@ -5997,12 +5998,7 @@ case (overlay$)
 case (group$)
   call create_group (lat%ele(ix_lord), cs(1:n_slave), err)
 end select
-if (err) then
-  call parser_error ('MALFORMED OVERLAY OR GROUP: ' // lord%name, &
-                     'IS TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY!', &
-                       pele = pele)
-  return
-endif
+if (err) return
 
 lat%ele(ix_lord)%value(gang$) = lord%value(gang$)
 

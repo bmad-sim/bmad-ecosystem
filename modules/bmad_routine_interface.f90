@@ -422,13 +422,12 @@ subroutine create_girder (lat, ix_ele, con, init_ele, err_flag)
   logical err_flag
 end subroutine
 
-subroutine create_group (lord, con, err, err_print_flag)
+subroutine create_group (lord, con, err)
   import
   implicit none
   type (ele_struct) lord
   type (control_struct) con(:)
   logical err
-  logical, optional :: err_print_flag
 end subroutine
 
 subroutine create_hard_edge_drift (ele_in, which_end, drift_ele)
@@ -445,13 +444,12 @@ subroutine create_lat_ele_sorted_nametable (lat, nametable)
   type (lat_nametable_struct) nametable
 end subroutine
 
-subroutine create_overlay (lord, contl, err, err_print_flag)
+subroutine create_overlay (lord, contl, err)
   import
   implicit none
   type (ele_struct) lord
   type (control_struct) contl(:)
   logical err
-  logical, optional :: err_print_flag
 end subroutine
 
 subroutine create_uniform_element_slice (ele, param, i_slice, n_slice_tot, sliced_ele, s_start, s_end)
