@@ -13,6 +13,7 @@ from matplotlib.widgets import Slider, Button, RadioButtons
 
 class taoplot:
 	def __init__(self,pipe,GraphRegion):
+		'''initializer, takes a tao interface and a graph region'''
 		self.pipe= pipe
 		#tao_interface object
 		self.GraphRegion= GraphRegion
@@ -1001,10 +1002,10 @@ class taoplot:
 						if fpeSaDict[str(i)] > fpeEaDict[str(i)]:
 							outerRadius = np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)
 							innerRadius = np.sqrt((fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)
-
 						else:
 							outerRadius = -np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)
 							innerRadius = -np.sqrt((fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)
+						#radii of sbend arc edges
 						
 
 
@@ -1073,7 +1074,7 @@ class taoplot:
 				bwnTypeDict = {}
 				for i in range(len(bwn)):
 					bwnTypeDict[bwn[i].split(';')[0]] = bwn[i].split(';')[1]
-
+				#dictionary where keys are wall indices and values are the corresponding building wall types
 
 				fps=pipe.cmd_in('python plot_shapes floor_plan',no_warn = True).splitlines()
 				fpsTypeDict = {} #building wall element types
@@ -1082,7 +1083,7 @@ class taoplot:
 					fpsTypeDict[fps[i].split(';')[1].split(':')[0].lower()] = fps[i].split(';')[2].lower()
 					if fps[i].split(';')[1].split(':')[0].lower() == 'building_wall':
 						fpsColorDict[fps[i].split(';')[1].split(':')[2].lower()] = color(fps[i].split(';')[3].lower())
-				#dictionaries matching the type building wall components to their color
+				#dictionaries matching of the type building wall components to their color
 
 
 				for i in fbwCurveList:
