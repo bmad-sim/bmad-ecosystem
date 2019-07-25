@@ -27,6 +27,35 @@ def check_for_changes(tao_list):
       return True
   return False
 
+def tao_dict_set(tao_dict, set_format, pipe):
+  '''
+  Runs set commands through the given pipe using the information in tao_dict and set_format
+  tao_dict should be a dictionary whose values are themselves dictionaries
+  set_format should be a format string that will get formatted with the keys of tao_dict.
+  Ex: tao_dict = {1: {'name' : 'x', 'source' : 'lat'}, 2: {'weight': 100}}
+  set_format = "set data orbit.x[{}]|"
+  In this example, the following set commands will be run:
+  set data orbit.x[1]|name = x
+  set data orbit.x[1]|source = lat
+  set data orbit.x[2]|weight = 100
+  Note: Absolutely no input validation is performed
+  '''
+  #Turn off lattice_calc_on and plot_on
+  tao_globals = pipe.cmd_in("python global")
+  tao_globals = tao_globals.splitlines()
+  tao_globals = tao_parameter_dict(tao_globals)
+  lattice_calc_on = str(tao_globals["lattice_calc_on"].value)
+  plot_on = str(tao_globals["plot_on"].value)
+  # STOP lattice calculation here
+  pipe.cmd_in("set global lattice_calc_on = F")
+  pipe.cmd_in("set global plot_on = F")
+  for key in tao_dict.keys():
+    for param in tao_dict[key].keys():
+      pipe.cmd_in(set_format.format(str(key)) + str(param) + ' = ' + str(tao_dict[key][param]))
+  # Maybe turn lattice calc back on
+  pipe.cmd_in("set global plot_on = " + plot_on)
+  pipe.cmd_in("set global lattice_calc_on = " + lattice_calc_on)
+
 def tao_set(tao_list,set_str,pipe, overide=False):
   '''
   Takes a list of tk_tao_parameters and makes a call to tao
@@ -83,12 +112,14 @@ def tao_set(tao_list,set_str,pipe, overide=False):
     elif update_dict[item.param.name]:
       #print(set_str + item.param.name + " = " + str(item.param.value))
       if item.param.type == 'STR':
-        if len(item.param.value) > 1:
-          if ((item.param.value[0] not in ['"', '"'])
+        if item.param.value.strip().find(' ') != -1:
+          if ((item.param.value[0] not in ['"',"'"])
               & (item.param.value[-1] != item.param.value[0])):
             set_val = '"' + item.param.value + '"'
           else:
             set_val = item.param.value
+        else:
+          set_val = item.param.value
         msg = pipe.cmd_in(set_str + item.param.name + " = " + set_val)
       else:
         msg = pipe.cmd_in(

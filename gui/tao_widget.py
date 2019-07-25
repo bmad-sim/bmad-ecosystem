@@ -20,7 +20,7 @@ class tk_tao_parameter():
   for displaying and modifying the parameter and value
   '''
 
-  def __init__(self, tao_parameter, frame, pipe=0):
+  def __init__(self, tao_parameter, frame, pipe=0, data_source=''):
     self.param = tao_parameter
 
     if self.param.type in ['STR', 'INT', 'REAL']:
@@ -84,17 +84,20 @@ class tk_tao_parameter():
       self.tk_var = tk.StringVar() #This is for the entire value
       self.tk_var.set(self.param.value)
       self.tk_wid = tk.Frame(frame) #The "widget" that should be placed by the gui
+      if data_source != '':
+        self._data_source = data_source
       self._mvar = tk.StringVar() # The master variable
       self._mvar.set((self.tk_var.get()).split('.')[0])
       self._mvar_old = self._mvar.get() # Tracks changes inn self._mvar
       self._m = ttk.Combobox(self.tk_wid, textvariable=self._mvar,
-          values = self._get_dat_types(), state="readonly")
+          values = self._get_dat_types(True), state="readonly")
       self._m.bind("<<ComboboxSelected>>", self._s_refresh)
       self._m.pack(side='left', fill='both', expand=1)
       self._svar = [] #list of slave variables
       self._stype = [] #types of slave widgets (needed for input validation)
       self._s = [] # list of slave widgets
       self._s_refresh()
+      self.tk_var.trace('w', self._s_refresh)
 
     if self.param.type not in ['DAT_TYPE', 'REAL_ARR']:
       self.tk_wid.config(disabledforeground="black")
@@ -126,13 +129,23 @@ class tk_tao_parameter():
       new_val = new_val + ';'
     self.tk_var.set(new_val)
 
-  def _get_dat_types(self):
+  def _get_dat_types(self, filter_data_source=False):
     '''
     Parses the data_type_list (from data_type_list.py) and
     returns a list of allowed master data types
+    If filter_data_source is set True, data types whose
+    data_source does not match self._data_source are removed
+    (no difference if self._data_source is not defined)
     '''
     master_list = []
     for item in data_type_list:
+      # Filter out data_types not allowed for this data source
+      if filter_data_source:
+        try:
+          if self._data_source not in item['data_source']:
+            continue
+        except:
+          pass
       item = item['name'].split('<')[0]
       if item != "":
         if item[-1] == '.':
@@ -140,7 +153,7 @@ class tk_tao_parameter():
       master_list.append(item)
     return master_list
 
-  def _s_refresh(self, event=None):
+  def _s_refresh(self, event=None, *args):
     '''
     Clears the existing slave widgets and variables,
     makes new slave widgets and variables, and populates them
@@ -259,9 +272,95 @@ class tk_tao_parameter():
           new_tk_var = new_tk_var + '.' + '0'
       else:
         new_tk_var = new_tk_var + '.' + self._svar[k].get()
+    # Special case: velocity. -> velocity
+    if new_tk_var == "velocity.":
+      new_tk_var = "velocity"
     # Set self.tk_var
     self.tk_var.set(new_tk_var)
     #print(self.tk_var.get())
+
+  def _is_valid_dat_type(self, x):
+    '''
+    Returns True if the string x is a valid data_type and False otherwise
+    '''
+    if not isinstance(x, str):
+      return False
+    # Special case: normal.h
+    if x.find('normal.h') == 0:
+      x = ['normal.h'] + x[8:].split('.')
+    else:
+      x = x.split('.')
+    try:
+      m_ix = (self._get_dat_types()).index(x[0])
+    except ValueError:
+      #print('Failed at m_ix')
+      return False
+
+    # Check what subvalues are allowed
+    dat_dict = data_type_list[m_ix]
+    p_start = dat_dict['name'].find('<') - 1
+    if p_start != -2:
+      slave_params = (dat_dict['name'][p_start:]).split('.')[1:]
+    else:
+      slave_params = []
+    # Reject if length of slave_params and x don't match up
+    if len(slave_params) != len(x)-1:
+      #print('Failed due to length mismatch')
+      #print(slave_params)
+      #print(len(x)-1)
+      return False
+
+    # Check each subvalue
+    k = 0 #loop counter
+    for p in slave_params:
+      if p.find('<enum') != -1: #Enums
+        if x[k+1] not in dat_dict[p]:
+          #print('failed because enum not found')
+          return False
+      elif p.find('<digit:') != -1: #Digit dropdown box
+        try:
+          x[k+1] = int(x[k+1])
+        except ValueError:
+          #print('failed bc not int')
+          return False
+        p = p.split(':')[1]
+        p = p.split('>')[0] #p is now "low-high"
+        low, high = p.split('-')
+        low = int(low)
+        high = int(high)
+        if (x[k+1] < low) | (x[k+1] > high):
+          #print('failed bc out of range')
+          return False
+      elif p.find('<str>') != -1: #Strings
+        if len(x[k+1]) == 0:
+          #print('failed bc 0 length')
+          return False
+      elif p.find('<digits') != -1: #Fixed length int
+        try:
+          junk_var = int(x[k+1]) #don't need the value
+        except ValueError:
+          #print('failed bc not an int')
+          return False
+        p = p.split('s')[1]
+        p = p.split('>')[0]
+        length = int(p)
+        if len(x[k+1]) != length:
+          #print('failed bc wrong length')
+          return False
+      elif p.find('<int>') != -1: #Integer
+        try:
+          junk_var = int(x[k+1]) #don't need the value
+        except ValueError:
+          #print('failed because not an int')
+          return False
+      elif p.find('<real>') != -1: #Float
+        try:
+          junk_var = float(x[k+1]) #don't need the value
+        except ValueError:
+          #print('failed bc not a float')
+          return False
+      k = k+1
+    return True # All tests passed
 
   def open_file(self):
     filename = filedialog.askopenfilename(title = "Select " + self.param.name)
