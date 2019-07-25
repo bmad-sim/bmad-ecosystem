@@ -4733,7 +4733,7 @@ case ('wave')
     endif
     nl=nl+1; lines(nl) = 'After Dat#    Norm_K       phi'
     do i = 1, min(s%wave%n_kick, 20)
-      nl=nl+1; write(lines(nl), '(i9, f12.2, 1f10.3)') s%wave%kick(i)%ix_dat, 1e6*s%wave%kick(i)%amp, s%wave%kick(i)%phi
+      nl=nl+1; write(lines(nl), '(i9, f12.2, 1f10.3)') s%wave%kick(i)%ix_dat_before_kick, 1e6*s%wave%kick(i)%amp, s%wave%kick(i)%phi
     enddo
 
   case ('phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y')
@@ -4748,7 +4748,7 @@ case ('wave')
     nl=nl+1; lines(nl) = '   where k = quadrupole gradient [rad/m^2].'
     nl=nl+1; lines(nl) = 'After Dat#     Norm_K       phi'
     do i = 1, min(s%wave%n_kick, 20)
-      nl=nl+1; write(lines(nl), '(i9, f12.4, f10.3)') s%wave%kick(i)%ix_dat, s%wave%kick(i)%amp, s%wave%kick(i)%phi
+      nl=nl+1; write(lines(nl), '(i9, f12.4, f10.3)') s%wave%kick(i)%ix_dat_before_kick, s%wave%kick(i)%amp, s%wave%kick(i)%phi
     enddo
 
   case ('ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x', &
@@ -4768,7 +4768,7 @@ case ('wave')
 
     nl=nl+1; lines(nl) = 'After Dat#     Norm_K    phi+    phi-   phi_a   phi_b'
     do i = 1, min(s%wave%n_kick, 20)
-      nl=nl+1; write(lines(nl), '(i11, f10.4, 4f8.3, 2f10.3)') s%wave%kick(i)%ix_dat, &
+      nl=nl+1; write(lines(nl), '(i11, f10.4, 4f8.3, 2f10.3)') s%wave%kick(i)%ix_dat_before_kick, &
             s%wave%kick(i)%amp, s%wave%kick(i)%phi_s, s%wave%kick(i)%phi_r, &
             (s%wave%kick(i)%phi_s+s%wave%kick(i)%phi_r)/2, &
             (s%wave%kick(i)%phi_s-s%wave%kick(i)%phi_r)/2

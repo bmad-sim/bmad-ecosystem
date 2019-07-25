@@ -357,7 +357,7 @@ type tao_data_struct
   character(20) :: data_source = ''        ! 'lat', 'beam', 'data' or 'var'. Last two used for expressions.
   integer :: ix_uni = -1                   ! Universe index of datum.
   integer :: ix_bunch = 0                  ! Bunch number to get the data from.
-  integer :: ix_branch = 0                 ! Index of the lattice branch of the element
+  integer :: ix_branch = 0                 ! Index of the associated lattice branch.
   integer :: ix_ele = -1                   ! Index of the lattice element corresponding to ele_name
   integer :: ix_ele_start = -1             ! Index of lattice elment when there is a range 
   integer :: ix_ele_ref = -1               ! Index of lattice elment when there is a reference.
@@ -889,7 +889,9 @@ end type
 
 type tao_wave_kick_pt_struct
   real(rp) :: phi_s, phi_r, phi, amp
-  integer :: ix_dat
+  real(rp) :: s                 ! s-position of kick
+  integer :: ix_ele             ! lattice element at position of kick.
+  integer :: ix_dat_before_kick ! Index of datum in data array just before the kick.
 end type  
 
 type tao_wave_struct     ! Struct for wave analysis
@@ -907,7 +909,7 @@ type tao_wave_struct     ! Struct for wave analysis
   integer, allocatable :: ix_data(:) ! Translates from plot point to datum index
   integer n_kick
   type (tao_wave_kick_pt_struct), allocatable :: kick(:)
-  type (tao_graph_struct) :: graph
+  type (tao_graph_struct) :: base_graph   ! Used for storing parameters such as number of curve points.
   type (ele_struct) :: ele
 end type
 

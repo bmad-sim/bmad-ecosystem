@@ -77,7 +77,7 @@ endif
 
 !
 
-has_associated_ele = tao_datum_has_associated_ele(d_type)
+has_associated_ele = tao_datum_has_associated_ele(d_type, branch%param%geometry)
 
 if (has_associated_ele == maybe$) then
   ! Do nothing
@@ -90,15 +90,7 @@ elseif (has_associated_ele == no$) then
     return
   endif
 
-elseif (branch%param%geometry == closed$ .and. has_associated_ele == provisional$) then
-  if (datum%ele_name /= '') then
-    if (print_err) call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // d_type, &
-                                                  'CANNOT HAVE AN ASSOCIATED ELEMENT IN A CIRCULAR LATTICE: ' // datum%ele_name, &
-                                                  'FOR DATUM: ' // tao_datum_name(datum))
-    return
-  endif
-
-else
+else    ! has_associated_ele = yes$
   if (datum%ele_name == '') then
     ! Datum is invalid but do not generate an error since this is a common situation.
     return

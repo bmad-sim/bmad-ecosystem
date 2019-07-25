@@ -201,9 +201,10 @@ call string_trim(line(ix+1:), line, ix_line)
 call match_word (cmd, [character(20) :: &
           'beam_init', 'branch1', 'bunch1', 'bmad_com', 'constraints', &
           'da_params', 'da_aperture', &
-          'data_create', 'data_destroy', 'data_d2_array', 'data_d1_array', 'data_d2', 'data_d_array', 'data', &
-          'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', 'ele:cartesian_map', &
-          'ele:chamber_wall', 'ele:cylindrical_map', 'ele:orbit', &
+          'data', 'data_create', 'data_destroy', 'data_d_array', 'data_d1_array', 'data_d2', 'data_d2_array', &
+          'daum_has_ele', &
+          'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', &
+          'ele:cartesian_map', 'ele:chamber_wall', 'ele:cylindrical_map', 'ele:orbit', &
           'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
           'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
           'evaluate', 'enum', 'floor_building_wall', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
@@ -543,6 +544,67 @@ case ('da_params')
   nl=incr(nl); write (li(nl), ramt) 'pz;REAL_ARR;T',       (';', da%pz(i), i = 1, size(da%pz))
 
 !----------------------------------------------------------------------
+! Individual datum info.
+! Command syntax:
+!   python data {ix_universe}@{d2_name}.{d1_datum}[{dat_index}]
+! Use the "python data-d1" command to get detailed info on a specific d1 array.
+! Output syntax is parameter list form. See documentation at the beginning of this file.
+! Example:
+!   python data_d1 1@orbit.x[10]
+
+case ('data')
+
+  call tao_find_data (err, line, d_array = d_array)
+
+  if (.not. allocated(d_array) .or. size(d_array) /= 1) then
+    call invalid ('Not a valid datum name.')
+    return
+  endif
+
+  d_ptr => d_array(1)%d
+  ix_uni = d_ptr%d1%d2%ix_universe
+
+  nl=incr(nl); write (li(nl), amt) 'ele_name;STR;T;',                         trim(d_ptr%ele_name), ';ix_ele'
+  nl=incr(nl); write (li(nl), amt) 'ele_start_name;STR;T;',                   trim(d_ptr%ele_start_name), ';ix_ele_start'
+  nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(d_ptr%ele_ref_name), ';ix_ele_ref'
+  nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   d_ptr%data_type
+  nl=incr(nl); write (li(nl), amt) 'data^merit_type;ENUM;T;',                 d_ptr%merit_type
+  nl=incr(nl); write (li(nl), amt) 'data_source;ENUM;T;',                     d_ptr%data_source
+  nl=incr(nl); write (li(nl), amt) 'eval_point;ENUM;T;',                      anchor_pt_name(d_ptr%eval_point)
+  nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_bunch;INUM;T;',               d_ptr%ix_bunch
+  nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_branch;INUM;T;',              d_ptr%ix_branch
+  nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;I;',                           d_ptr%ix_ele
+  nl=incr(nl); write (li(nl), imt) 'ix_ele_start;INT;I;',                     d_ptr%ix_ele_start
+  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref;INT;I;',                       d_ptr%ix_ele_ref
+  nl=incr(nl); write (li(nl), imt) 'ix_ele_merit;INT;F;',                     d_ptr%ix_ele_merit
+  nl=incr(nl); write (li(nl), imt) 'ix_d1;INT;F;',                            d_ptr%ix_d1
+  nl=incr(nl); write (li(nl), imt) 'ix_data;INT;F;',                          d_ptr%ix_data
+  nl=incr(nl); write (li(nl), imt) 'ix_dmodel;INT;F;',                        d_ptr%ix_dModel
+  nl=incr(nl); write (li(nl), rmt) 'meas_value;REAL;T;',                      d_ptr%meas_value
+  nl=incr(nl); write (li(nl), rmt) 'ref_value;REAL;T;',                       d_ptr%ref_value
+  nl=incr(nl); write (li(nl), rmt) 'model_value;REAL;F;',                     d_ptr%model_value
+  nl=incr(nl); write (li(nl), rmt) 'design_value;REAL;F;',                    d_ptr%design_value
+  nl=incr(nl); write (li(nl), rmt) 'old_value;REAL;F;',                       d_ptr%old_value
+  nl=incr(nl); write (li(nl), rmt) 'base_value;REAL;F;',                      d_ptr%base_value
+  nl=incr(nl); write (li(nl), rmt) 'delta_merit;REAL;F;',                     d_ptr%delta_merit
+  nl=incr(nl); write (li(nl), rmt) 'weight;REAL;T;',                          d_ptr%weight
+  nl=incr(nl); write (li(nl), rmt) 'invalid_value;REAL;F;',                   d_ptr%invalid_value
+  nl=incr(nl); write (li(nl), rmt) 'merit;REAL;F;',                           d_ptr%merit
+  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               d_ptr%s
+  nl=incr(nl); write (li(nl), rmt) 's_offset;REAL;F;',                        d_ptr%s_offset
+  nl=incr(nl); write (li(nl), lmt) 'exists;LOGIC;F;',                         d_ptr%exists
+  nl=incr(nl); write (li(nl), lmt) 'good_model;LOGIC;F;',                     d_ptr%good_model
+  nl=incr(nl); write (li(nl), lmt) 'good_base;LOGIC;F;',                      d_ptr%good_base
+  nl=incr(nl); write (li(nl), lmt) 'good_design;LOGIC;F;',                    d_ptr%good_design
+  nl=incr(nl); write (li(nl), lmt) 'good_meas;LOGIC;T;',                      d_ptr%good_meas
+  nl=incr(nl); write (li(nl), lmt) 'good_ref;LOGIC;T;',                       d_ptr%good_ref
+  nl=incr(nl); write (li(nl), lmt) 'good_user;LOGIC;T;',                      d_ptr%good_user
+  nl=incr(nl); write (li(nl), lmt) 'good_opt;LOGIC;F;',                       d_ptr%good_opt
+  nl=incr(nl); write (li(nl), lmt) 'good_plot;LOGIC;T;',                      d_ptr%good_plot
+  nl=incr(nl); write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     d_ptr%useit_plot
+  nl=incr(nl); write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      d_ptr%useit_opt
+
+!----------------------------------------------------------------------
 ! Create a d2 data structure along with associated d1 and data arrays.
 !
 ! Command syntax:
@@ -790,65 +852,18 @@ case ('data_d2_array')
   enddo
 
 !----------------------------------------------------------------------
-! Individual datum info.
+! Does datum type have an associated lattice element?
 ! Command syntax:
-!   python data {ix_universe}@{d2_name}.{d1_datum}[{dat_index}]
-! Use the "python data-d1" command to get detailed info on a specific d1 array.
-! Output syntax is parameter list form. See documentation at the beginning of this file.
-! Example:
-!   python data_d1 1@orbit.x[10]
+!   python datum_has_ele {datum_type}
 
-case ('data')
+case ('datum_has_ele')
 
-  call tao_find_data (err, line, d_array = d_array)
-
-  if (.not. allocated(d_array) .or. size(d_array) /= 1) then
-    call invalid ('Not a valid datum name.')
-    return
-  endif
-
-  d_ptr => d_array(1)%d
-  ix_uni = d_ptr%d1%d2%ix_universe
-
-  nl=incr(nl); write (li(nl), amt) 'ele_name;STR;T;',                         trim(d_ptr%ele_name), ';ix_ele'
-  nl=incr(nl); write (li(nl), amt) 'ele_start_name;STR;T;',                   trim(d_ptr%ele_start_name), ';ix_ele_start'
-  nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(d_ptr%ele_ref_name), ';ix_ele_ref'
-  nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   d_ptr%data_type
-  nl=incr(nl); write (li(nl), amt) 'data^merit_type;ENUM;T;',                 d_ptr%merit_type
-  nl=incr(nl); write (li(nl), amt) 'data_source;ENUM;T;',                     d_ptr%data_source
-  nl=incr(nl); write (li(nl), amt) 'eval_point;ENUM;T;',                      anchor_pt_name(d_ptr%eval_point)
-  nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_bunch;INUM;T;',               d_ptr%ix_bunch
-  nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_branch;INUM;T;',              d_ptr%ix_branch
-  nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;I;',                           d_ptr%ix_ele
-  nl=incr(nl); write (li(nl), imt) 'ix_ele_start;INT;I;',                     d_ptr%ix_ele_start
-  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref;INT;I;',                       d_ptr%ix_ele_ref
-  nl=incr(nl); write (li(nl), imt) 'ix_ele_merit;INT;F;',                     d_ptr%ix_ele_merit
-  nl=incr(nl); write (li(nl), imt) 'ix_d1;INT;F;',                            d_ptr%ix_d1
-  nl=incr(nl); write (li(nl), imt) 'ix_data;INT;F;',                          d_ptr%ix_data
-  nl=incr(nl); write (li(nl), imt) 'ix_dmodel;INT;F;',                        d_ptr%ix_dModel
-  nl=incr(nl); write (li(nl), rmt) 'meas_value;REAL;T;',                      d_ptr%meas_value
-  nl=incr(nl); write (li(nl), rmt) 'ref_value;REAL;T;',                       d_ptr%ref_value
-  nl=incr(nl); write (li(nl), rmt) 'model_value;REAL;F;',                     d_ptr%model_value
-  nl=incr(nl); write (li(nl), rmt) 'design_value;REAL;F;',                    d_ptr%design_value
-  nl=incr(nl); write (li(nl), rmt) 'old_value;REAL;F;',                       d_ptr%old_value
-  nl=incr(nl); write (li(nl), rmt) 'base_value;REAL;F;',                      d_ptr%base_value
-  nl=incr(nl); write (li(nl), rmt) 'delta_merit;REAL;F;',                     d_ptr%delta_merit
-  nl=incr(nl); write (li(nl), rmt) 'weight;REAL;T;',                          d_ptr%weight
-  nl=incr(nl); write (li(nl), rmt) 'invalid_value;REAL;F;',                   d_ptr%invalid_value
-  nl=incr(nl); write (li(nl), rmt) 'merit;REAL;F;',                           d_ptr%merit
-  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               d_ptr%s
-  nl=incr(nl); write (li(nl), rmt) 's_offset;REAL;F;',                        d_ptr%s_offset
-  nl=incr(nl); write (li(nl), lmt) 'exists;LOGIC;F;',                         d_ptr%exists
-  nl=incr(nl); write (li(nl), lmt) 'good_model;LOGIC;F;',                     d_ptr%good_model
-  nl=incr(nl); write (li(nl), lmt) 'good_base;LOGIC;F;',                      d_ptr%good_base
-  nl=incr(nl); write (li(nl), lmt) 'good_design;LOGIC;F;',                    d_ptr%good_design
-  nl=incr(nl); write (li(nl), lmt) 'good_meas;LOGIC;T;',                      d_ptr%good_meas
-  nl=incr(nl); write (li(nl), lmt) 'good_ref;LOGIC;T;',                       d_ptr%good_ref
-  nl=incr(nl); write (li(nl), lmt) 'good_user;LOGIC;T;',                      d_ptr%good_user
-  nl=incr(nl); write (li(nl), lmt) 'good_opt;LOGIC;F;',                       d_ptr%good_opt
-  nl=incr(nl); write (li(nl), lmt) 'good_plot;LOGIC;T;',                      d_ptr%good_plot
-  nl=incr(nl); write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     d_ptr%useit_plot
-  nl=incr(nl); write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      d_ptr%useit_opt
+  select case (tao_datum_has_associated_ele(line))
+  case (no$);             nl=incr(nl); li(nl) = 'no'
+  case (yes$);            nl=incr(nl); li(nl) = 'yes'
+  case (maybe$);          nl=incr(nl); li(nl) = 'maybe'
+  case (provisional$);    nl=incr(nl); li(nl) = 'provisional'
+  end select
 
 !----------------------------------------------------------------------
 ! "Head" Element attributes
@@ -3462,18 +3477,18 @@ case ('wave')
     select case (s%wave%data_type)
     case ('orbit.x', 'orbit.y', 'eta.x', 'eta.y', 'beta.a', 'beta.b', 'ping_a.amp_x', 'ping_b.amp_y')
       do i = 1, min(s%wave%n_kick, 20)
-        nl=incr(nl); write(li(nl), '(i9, f12.2, 1f10.3)') s%wave%kick(i)%ix_dat, 1e6*s%wave%kick(i)%amp, s%wave%kick(i)%phi
+        nl=incr(nl); write(li(nl), '(i9, f12.2, 1f10.3)') s%wave%kick(i)%ix_dat_before_kick, 1e6*s%wave%kick(i)%amp, s%wave%kick(i)%phi
       enddo
 
     case ('phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y')
       do i = 1, min(s%wave%n_kick, 20)
-        nl=incr(nl); write(li(nl), '(i9, f12.4, f10.3)') s%wave%kick(i)%ix_dat, s%wave%kick(i)%amp, s%wave%kick(i)%phi
+        nl=incr(nl); write(li(nl), '(i9, f12.4, f10.3)') s%wave%kick(i)%ix_dat_before_kick, s%wave%kick(i)%amp, s%wave%kick(i)%phi
       enddo
 
     case ('ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x', &
           'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_b.amp_sin_x', 'ping_b.amp_cos_x', 'cbar.11', 'cbar.12', 'cbar.22')
       do i = 1, s%wave%n_kick
-        nl=incr(nl); write(li(nl), '(i11, f10.4, 4f8.3, 2f10.3)') s%wave%kick(i)%ix_dat, &
+        nl=incr(nl); write(li(nl), '(i11, f10.4, 4f8.3, 2f10.3)') s%wave%kick(i)%ix_dat_before_kick, &
                   s%wave%kick(i)%amp, s%wave%kick(i)%phi_s, s%wave%kick(i)%phi_r, &
                   (s%wave%kick(i)%phi_s+s%wave%kick(i)%phi_r)/2, &
                   (s%wave%kick(i)%phi_s-s%wave%kick(i)%phi_r)/2
