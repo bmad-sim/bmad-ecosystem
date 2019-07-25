@@ -43,27 +43,27 @@ substituted. A possible
 
 \begin{table}[h]
 \centering {\tt
-\begin{tabular}{|l|l||l|l|} \hline
-  {\it Command} & {\it Section}     & {\it Command} & {\it Section}     \\ \hline
-  alias         & \sref{s:alias}    & re_execute    & \sref{s:re.exe}   \\ \hline
-  call          & \sref{s:call}     & read          & \sref{s:read}     \\ \hline
-  change        & \sref{s:change}   & restore       & \sref{s:restore}  \\ \hline 
-  clip          & \sref{s:clip}     & reinitialize  & \sref{s:reinit}   \\ \hline 
-  continue      & \sref{s:continue} & run_optimizer & \sref{s:run}      \\ \hline 
-  derivative    & \sref{s:deriv}    & scale         & \sref{s:scale}    \\ \hline 
-  do, enddo     & \sref{s:do}       & set           & \sref{s:set}      \\ \hline  
-  end_file      & \sref{s:end.file} & show          & \sref{s:show}     \\ \hline 
-  exit          & \sref{s:exit}     & single_mode   & \sref{s:sing}     \\ \hline 
-  flatten       & \sref{s:flatten}  & spawn         & \sref{s:spawn}    \\ \hline 
-  help          & \sref{s:help}     & timer         & \sref{s:timer}    \\ \hline
-  misalign      & \sref{s:misalign} & use           & \sref{s:use}      \\ \hline 
-  pause         & \sref{s:pause}    & veto          & \sref{s:veto}     \\ \hline 
-  place         & \sref{s:place}    & wave          & \sref{s:wave}     \\ \hline
-  plot          & \sref{s:plot}     & write         & \sref{s:write}    \\ \hline 
-  ptc           & \sref{s:ptc}      & x_axis        & \sref{s:x.axis}   \\ \hline 
-  python        & \sref{s:python}   & x_scale       & \sref{s:x.scale}  \\ \hline 
-  quiet         & \sref{s:quiet}    & xy_scale      & \sref{s:xy.scale} \\ \hline
-  quit          & \sref{s:quit}     &               &                   \\ \hline
+\begin{tabular}{ll|ll} \toprule
+  {\it Command} & {\it Section}     & {\it Command} & {\it Section}     \\ \midrule
+  alias         & \sref{s:alias}    & re_execute    & \sref{s:re.exe}   \\
+  call          & \sref{s:call}     & read          & \sref{s:read}     \\
+  change        & \sref{s:change}   & restore       & \sref{s:restore}  \\ 
+  clip          & \sref{s:clip}     & reinitialize  & \sref{s:reinit}   \\ 
+  continue      & \sref{s:continue} & run_optimizer & \sref{s:run}      \\ 
+  derivative    & \sref{s:deriv}    & scale         & \sref{s:scale}    \\ 
+  do, enddo     & \sref{s:do}       & set           & \sref{s:set}      \\  
+  end_file      & \sref{s:end.file} & show          & \sref{s:show}     \\ 
+  exit          & \sref{s:exit}     & single_mode   & \sref{s:sing}     \\ 
+  flatten       & \sref{s:flatten}  & spawn         & \sref{s:spawn}    \\ 
+  help          & \sref{s:help}     & timer         & \sref{s:timer}    \\
+  misalign      & \sref{s:misalign} & use           & \sref{s:use}      \\ 
+  pause         & \sref{s:pause}    & veto          & \sref{s:veto}     \\ 
+  place         & \sref{s:place}    & wave          & \sref{s:wave}     \\
+  plot          & \sref{s:plot}     & write         & \sref{s:write}    \\ 
+  ptc           & \sref{s:ptc}      & x_axis        & \sref{s:x.axis}   \\ 
+  python        & \sref{s:python}   & x_scale       & \sref{s:x.scale}  \\ 
+  quiet         & \sref{s:quiet}    & xy_scale      & \sref{s:xy.scale} \\
+  quit          & \sref{s:quit}     &               &                   \\ \bottomrule
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -1024,7 +1024,6 @@ Format:
   set curve <curve> <component> = <value>
 \end{example}
 
-
 For \vn{set curve}, the \vn{<component>}s that can be set are:
 \begin{example}
   ele_ref_name        = <string>  ! Name of reference element
@@ -1042,9 +1041,14 @@ For \vn{set curve}, the \vn{<component>}s that can be set are:
 See Section~\sref{s:template} for a description of these attributes.  Use the \vn{show
 curve} (\sref{s:show}) to see the settings of the attributes.
 
+If there are visible plots with the same name as the plot component of \vn{<curve>}, a template plot
+of the same name is ignored. If it is desired to set the curve(s) in the template plot, add a
+``\vn{T::}'' to the plot name.
+
 Examples:
 \begin{example}
-  set curve top.x.c1 ix_universe = 2  ! Set universe number for curve
+  set curve top.x.c1 ix_universe = 2       ! Set universe number for curve.
+  set curve T::orbit.x.c1 ix_universe = 2  ! Set curve in template plot.
 \end{example}
 
 %% set data --------------------------------------------------------------
@@ -1224,6 +1228,10 @@ For \vn{set graph}, the \vn{component}s that can be set are:
   y2          = <qp_axis_struct>
 \end{example}
 
+If there are visible plots with the same name as the plot component of \vn{<graph>}, a template plot
+of the same name is ignored. If it is desired to set the graph(s) in the template plot, add a
+``\vn{T::}'' to the plot name.
+
 For setting the \vn{component} attribute see also the commands:
 \begin{example}
   plot                    ! \sref{s:plot}
@@ -1235,8 +1243,8 @@ Example:
 \begin{example}
   set graph orbit.x component = model - design  
                           ! Plot model orbit - design orbit in the graph
+  set graph T::orbit.x component = model - design  ! Set template plot
 \end{example}
-
 
 %% set key --------------------------------------------------------------
 
@@ -1403,7 +1411,6 @@ The \vn{<parameters>}s that can be set are:
 Use the \vn{show plot <plot_name>} to see the settings of various parameters. See the
 section~\sref{s:template} for information on the plotting parameters.
 
-
 The \vn{visible} parameter hides a plot but keeps the plot associated with the associate region. If
 the plot window is not enabled (\vn{-noplot} option used at startup), the \vn{visible} parameter is
 used by \tao to decide whether to calculate the points needed for plotting curves (saves time if the
@@ -1426,11 +1433,15 @@ a whole. Other commands that involve \vn{component} are:
   set curve component     ! \sref{s:set.curve}
 \end{example}
 
+If \vn{<plot_or_region>} is a plot name, and there are visible plots, any template plot of the same
+name is ignored. If it is desired to set the template plot, add a ``\vn{T::}'' to the plot name.
+
 Example:
 \begin{example}
-  set plot orbit visible = F        ! Hide orbit plot
-  set plot beta component = design  ! Plot the design value.
-  set plot x%draw_label = False     ! Do not draw x-axis label.
+  set plot orbit visible = F           ! Hide orbit plot
+  set plot beta component = design     ! Plot the design value.
+  set plot T::beta component = design  ! Set the template plot instead of any displayed plots.
+  set plot x%draw_label = False        ! Do not draw x-axis label.
 \end{example}
 
 %% set plot_page --------------------------------------------------------------

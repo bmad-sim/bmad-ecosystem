@@ -1080,7 +1080,7 @@ logical err
 
 !
 
-call tao_find_plots (err, curve_name, 'REGION', curve = curve, always_allocate = .true.)
+call tao_find_plots (err, curve_name, 'BOTH', curve = curve, always_allocate = .true.)
 if (err) return
 
 if (.not. allocated(curve) .or. size(curve) == 0) then
@@ -1315,7 +1315,7 @@ logical err_flag, found
 
 !
 
-call tao_find_plots (err_flag, plot_name, 'REGION', plot = plot)
+call tao_find_plots (err_flag, plot_name, 'BOTH', plot = plot)
 if (err_flag) return
 
 if (.not. allocated(plot)) then

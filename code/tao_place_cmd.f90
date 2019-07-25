@@ -50,8 +50,7 @@ endif
 call tao_find_plot_region (err, where, region)
 if (err) return
 
-! If who = 'none' then no plot is wanted here so just turn off
-! plotting in the region
+! If who = 'none' then no plot is wanted here so just turn off plotting in the region
 
 if (who == 'none') then
   region%visible = .false.
@@ -96,9 +95,10 @@ do i = 1, size(region%plot%graph)
   enddo
 enddo
 
-! Turn off overlapping plots
+! Turn off overlapping plots.
+! Do this even if plot_on = F since in a command file might have plot_on = F.
 
-if (s%global%plot_on .and. s%plot_page%delete_overlapping_plots) then
+if (s%plot_page%delete_overlapping_plots) then
   do i = 1, size(s%plot_page%region)
     r2 => s%plot_page%region(i)
     if (.not. r2%visible) cycle
@@ -107,7 +107,9 @@ if (s%global%plot_on .and. s%plot_page%delete_overlapping_plots) then
     if (r2%location(2) < region%location(1) + 0.02) cycle
     if (r2%location(3) > region%location(4) - 0.02) cycle
     if (r2%location(4) < region%location(3) + 0.02) cycle
-    r2%visible = .false.  
+    r2%visible = .false. 
+    r2%plot%name = ''
+    r2%plot%r => null()
   enddo
 endif
 

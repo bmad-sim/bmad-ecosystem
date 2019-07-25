@@ -68,13 +68,22 @@ plots in different \vn{regions} can have different scales for their axes or diff
 \vn{components}. In the example in Figure~\ref{f:plot.page1}, the \vn{component} for the
 \vn{top} plot is \vn{model} and for the \vn{bottom} plot it is \vn{model - design}.
 
-Plots may be referred to by their template name or by the name of the region they are
-placed in. For example, the orbit plot in Figure~\ref{f:plot.page1} may be referred to
-using the region name (\vn{top}) or the template name (\vn{orbit}). A template may be
-placed in multiple regions.  For example, you may wish to plot the \vn{model} data for the
-orbit in one region and the \vn{design} data for the orbit in another region. In this case
-the command \vn{scale orbit} would scale the plots in both regions while to scale the plot
-in only one of the regions you would need to use the region name.
+A displayed plot may be referred to by its name or by the name of the region it is placed in. For
+example, the orbit plot in Figure~\ref{f:plot.page1} may be referred to using the region name
+(\vn{top}) or the plot name (\vn{orbit}). A template plot may be referred to by its name. Commands,
+like the \vn{set plot} command (\sref{s:set.plot}), will first match a plot name to displayed plots
+and, if found, will not try to match the name to any template plots. If it is desired to set the
+attributes of a template plot while there is a displayed plot of the same name, the prefix
+``\vn{T::}'' can be used to direct \tao to ignore displayed plots and only match to template plots.
+For example:
+\begin{example}
+  set plot T::orbit component = design
+\end{example}
+
+A template may be placed in multiple regions.  For example, you may wish to plot the \vn{model} data
+for the orbit in one region and the \vn{design} data for the orbit in another region. In this case
+the command \vn{scale orbit} would scale the plots in both regions while to scale the plot in only
+one of the regions you would need to use the region name.
 
 A graph of a plot is specified using the format \vn{plot_name.graph_name} where
 \vn{plot_name} is a template or region name and \vn{graph_name} is the name of the

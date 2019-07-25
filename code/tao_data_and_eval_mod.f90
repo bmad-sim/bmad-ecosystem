@@ -3850,9 +3850,9 @@ character(*) :: expression
 character(*), optional :: dflt_component, dflt_source
 character(*), optional :: dflt_dat_or_var_index
 
-character(:), allocatable :: phrase
+character(len(expression)) :: phrase, word, word2
 character(1) delim
-character(80) word, word2, default_source
+character(80) default_source
 character(*), parameter :: r_name = "tao_evaluate_expression"
 character(40) saved_prefix
 
@@ -4247,11 +4247,14 @@ parsing_loop: do
   ! put the pending operation on the OP stack
 
   i_op = i
-  if (i_delim == no_delim$ .or. i_delim == comma$) then
-    exit parsing_loop
-  else
-    call pushit (op, i_op, i_delim)
-  endif
+  select case (i_delim)
+  case (no_delim$);    exit parsing_loop
+  case (comma$)
+    call out_io (s_error$, r_name, 'COMMA AT END OF EXPRESSION IS OUT OF place: ' // expression, &
+                                   '(NEEDS "[...]" OUTER BRACKETS IF AN ARRAY.)')
+    return
+  case default;        call pushit (op, i_op, i_delim)
+  end select
 
 enddo parsing_loop
 
@@ -4259,12 +4262,12 @@ enddo parsing_loop
 ! Some error checks
 
 if (i_op /= 0) then
-  call out_io (s_warn$, r_name, 'UNMATCHED "(" IN EXPRESSION: ' // expression)
+  call out_io (s_error$, r_name, 'UNMATCHED "(" IN EXPRESSION: ' // expression)
   return
 endif
 
 if (i_lev == 0) then
-  call out_io (s_warn$, r_name, 'NO VALUE FOUND IN EXPRESSION: ' // expression)
+  call out_io (s_error$, r_name, 'NO VALUE FOUND IN EXPRESSION: ' // expression)
   return
 endif
 
@@ -4275,17 +4278,22 @@ do i = 1, i_lev
   if (n == 1) cycle
   if (n__size == 1) n__size = n
   if (n /= n__size) then
-    call out_io (s_warn$, r_name, 'ARRAY SIZE MISMATCH IN EXPRESSION: ' // expression)
+    call out_io (s_error$, r_name, 'ARRAY SIZE MISMATCH IN EXPRESSION: ' // expression)
     return
   endif
 enddo
 
 if (n_size /= 0) then
   if (n__size /= 1 .and. n_size /= n__size) then
-    call out_io (s_warn$, r_name, 'ARRAY SIZE MISMATCH IN EXPRESSION: ' // expression)
+    call out_io (s_error$, r_name, 'ARRAY SIZE MISMATCH IN EXPRESSION: ' // expression)
     return
   endif
   n__size = n_size
+endif
+
+if (phrase /= '') then
+  call out_io (s_error$, r_name, 'EXTRA STUFF AFTER EXPRESSION: ' // phrase)
+  return
 endif
 
 call tao_evaluate_stack (stk(1:i_lev), n__size, use_good_user, value, info, err_flag, printit)
