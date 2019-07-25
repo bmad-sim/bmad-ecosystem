@@ -136,7 +136,7 @@ class tao_console(tk.Frame):
 
   # HANDLERS
   def _key_handler(self, event):
-    if (event.char != "") & (event.char).isprintable():
+    if (event.state != 8) & (event.char != "") & (event.char).isprintable():
       #Make sure we insert at the command prompt
       if (not self._curs_check()) & (
           self._wid.index('insert') != self.cstart):

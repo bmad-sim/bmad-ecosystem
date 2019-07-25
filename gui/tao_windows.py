@@ -2910,7 +2910,6 @@ class new_d1_frame(tk.Frame):
       else:
         val = datum_wid_list[i].tk_var.get()
       self.data_dict[ix][datum_wid_list[i].param.name] = val
-      print(self.data_dict)
     def data_writer_callback(i):
       ''' Callback for data_writer() '''
       return lambda *args : data_writer(i)
