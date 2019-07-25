@@ -495,8 +495,8 @@ else
       call out_io (s_abort$, r_name, 'EVAL_POINT UNRECOGNIZED: ' // datum(j+ix1-n1)%eval_point)
       stop
     endif
-    u%data(j)%eval_point = ix
 
+    u%data(j)%eval_point = ix
     u%data(j)%exists = .true.
 
     call find_this_element (u%data(j)%ele_name,       'LATTICE ELEMENT',   u, u%data(j), u%data(j)%ix_ele, u%data(j)%ix_branch) 

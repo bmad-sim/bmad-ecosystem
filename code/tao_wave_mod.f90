@@ -119,7 +119,7 @@ wave_plot%autoscale_gang_x = .false.
 
 do i = 1, 4
   if (i == 4) then
-    wg => s%wave%graph
+    wg => s%wave%base_graph
   else
     wg => wave_plot%graph(i)
   endif
@@ -146,7 +146,7 @@ wave_plot%graph(3)%name = 'b'  ! Curve - B region fit.
 
 ! Set up curves to wrap around the lattice, etc.
 
-wg0 => s%wave%graph
+wg0 => s%wave%base_graph
 wc0 => wg0%curve(1)
 
 wc0%y_axis_scale_factor = 1
@@ -224,7 +224,7 @@ logical err
 
 !
 
-call tao_graph_setup (plot, s%wave%graph)
+call tao_graph_setup (plot, s%wave%base_graph)
 
 plot%graph(1)%x%draw_label = .false.
 plot%graph(1)%x%draw_numbers = .false.
@@ -240,7 +240,7 @@ plot%graph(3)%title_suffix = ''
 ! Transfer information from the base curve to the wave curves.
 ! First count how many points we will have
 
-wg0 => s%wave%graph
+wg0 => s%wave%base_graph
 wc0 => wg0%curve(1)
 
 if (.not. allocated(wc0%x_line)) then
@@ -350,7 +350,7 @@ endif
 
 ! Specific analysis
 
-dtype = s%wave%graph%curve(1)%data_type
+dtype = s%wave%base_graph%curve(1)%data_type
 s%wave%data_type = dtype
 
 select case (dtype)
@@ -517,7 +517,7 @@ do i = m_min, m_max
   phi1 = i * pi + phi0
   s%wave%kick(nc)%amp = coef_ba(1) * cos(phi1) - coef_ba(2) * sin(phi1)
   do j = s%wave%i_a2, s%wave%i_b1
-    if (phi(j) < phi1) s%wave%kick(nc)%ix_dat = s%wave%ix_data(j)
+    if (phi(j) < phi1) s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j)
   enddo
   if (phi1 > tune) phi1 = phi1 - tune
   if (data_type(1:4) == 'beta' .or. data_type(1:4) == 'ping') phi1 = phi1 / 2
@@ -669,7 +669,7 @@ do i = m_min, m_max
   nc = nc + 1
   phi_kick = (i * pi + phi2_0) / 2
   do j = s%wave%i_a2, s%wave%i_b1
-    if (phi(j) < phi_kick) s%wave%kick(nc)%ix_dat = s%wave%ix_data(j)
+    if (phi(j) < phi_kick) s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j)
   enddo
   if (phi_kick > tune) phi_kick = phi_kick - tune
   s%wave%kick(nc)%phi = phi_kick
@@ -838,7 +838,7 @@ do i = m_min, m_max
   s%wave%kick(nc)%amp = -2 * (coef_ba(1) * sin(phi1_s) + coef_ba(2) * cos(phi1_s))
   do j = s%wave%i_b1, s%wave%i_a2, -1
     if (phi_s(j) < phi1_s) then
-      s%wave%kick(nc)%ix_dat = s%wave%ix_data(j)
+      s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j)
       exit
     endif
   enddo
@@ -1023,7 +1023,7 @@ logical err
 
 !
 
-curve => s%wave%graph%curve(1)
+curve => s%wave%base_graph%curve(1)
 
 curve2 => plot%graph(1)%curve(1)
 

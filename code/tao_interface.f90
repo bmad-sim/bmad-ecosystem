@@ -173,10 +173,11 @@ subroutine tao_data_show_use (d2_data, lines, nl)
   integer, optional :: nl
 end subroutine
 
-function tao_datum_has_associated_ele (data_type) result (has_associated_ele)
+function tao_datum_has_associated_ele (data_type, branch_geometry) result (has_associated_ele)
   implicit none
   character(*) data_type
   integer has_associated_ele
+  integer, optional :: branch_geometry
 end function
 
 function tao_datum_name(datum, show_universe) result (datum_name)
