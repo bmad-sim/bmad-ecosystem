@@ -1193,7 +1193,7 @@ class tao_plot_window(tk.Toplevel):
     canvas.mpl_connect("button_press_event", on_click)
 
     if self.fig_info[0] == 'floor_plan':
-      self.fig.subplots_adjust(bottom=0.2)
+      self.fig.subplots_adjust(bottom=0.2) #adds room below graph for slider
       width_slider = Slider(self.fig.add_axes([.1,.05,.8,.05]), 'width', 0, 2, width) #element width slider
 
       def update_slider(width):
