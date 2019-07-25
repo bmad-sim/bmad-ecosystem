@@ -33,7 +33,9 @@ def filter_output(x):
   x = x.replace('\x1b[6 q', '')
   # Filter out color codes
   color_regex = re.compile('\x1b\\[[0-9;]*m')
-  matches = color_regex.findall(x)
+  all_regex = re.compile('\x1b\\[[0-9;]*[a-zA-Z]')
+  #matches = color_regex.findall(x)
+  matches = all_regex.findall(x)
   for color in matches:
     x = x.replace(color, '')
   return x
