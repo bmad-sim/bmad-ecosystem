@@ -41,7 +41,7 @@ integer int1, int2, uni, wrt, n_level
 real(rp) value1, value2, time
 
 character(*) :: command_line
-character(300) cmd_line
+character(len(command_line)) cmd_line
 character(20) :: r_name = 'tao_command'
 character(300) :: cmd_word(12)
 character(40) gang_str, switch, word

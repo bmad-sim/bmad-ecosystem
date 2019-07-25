@@ -48,8 +48,8 @@ subroutine tao_re_execute (string, err)
 implicit none
 
 integer ios, ix1, ix, ix_rec
-character(100) line
 character(*) string
+character(len(string)) line
 character(*), parameter :: r_name = 'tao_history_cmd'
 logical err
 
@@ -160,7 +160,7 @@ character(*) cmd_line
 character(*), optional :: separator
 character(*) cmd_word(:)
 character(16) :: r_name = 'tao_cmd_split'
-character(300) line
+character(len(cmd_line)) line
 character(1), parameter :: tab = char(9)
 
 logical err

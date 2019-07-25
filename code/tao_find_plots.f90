@@ -57,7 +57,8 @@ integer i, j, k, ix, np, ng, nc, n_exact
 
 character(*) name, where
 character(40) plot_name, graph_name, curve_name
-character(28) :: r_name = 'tao_find_plots'
+character(20) where_str
+character(*), parameter :: r_name = 'tao_find_plots'
 
 logical, optional :: print_flag, always_allocate
 logical err, have_exact_match
@@ -82,6 +83,7 @@ if (allocated(c)) deallocate(c)
 
 ! Parse name argument
 
+where_str = where
 err = .false.
 
 if (name == "") then
@@ -99,6 +101,11 @@ else
   graph_name = name(ix+1:)
 endif
 
+if (plot_name(1:3) == 'T::' .or. plot_name(1:3) == 't::') then
+  where_str = where
+  plot_name = plot_name(4:)
+endif
+
 np = 0
 allocate (p(10))
 
@@ -109,7 +116,7 @@ if (plot_name(1:1) == '@') then
   case ('@R')
     call tao_find_plot_region (err, plot_name, region, print_flag)
     if (err) return
-    call point_to_plot (region%plot)
+    call point_to_plot (region%plot, p, np)
 
   case ('@T')
     call tao_set_integer_value (ix, '', plot_name(3:), err, 1, size(s%plot_page%template))
@@ -117,7 +124,7 @@ if (plot_name(1:1) == '@') then
       if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, 'BAD PLOT TEMPLATE INDEX: ' // plot_name)
       return
     endif
-    call point_to_plot (s%plot_page%template(ix))
+    call point_to_plot (s%plot_page%template(ix), p, np)
 
   case default
     if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, 'CONFUSED PLOT INDEX: ' // plot_name)
@@ -128,7 +135,7 @@ if (plot_name(1:1) == '@') then
 !
 
 else
-  select case (where)
+  select case (where_str)
   case ('REGION')
     if (s%global%plot_on) then
       n_exact = count(s%plot_page%region%name == plot_name .and. s%plot_page%region%visible) + &
@@ -159,7 +166,7 @@ else
 
   ! Match name to region or plot 
 
-  if (where == 'REGION' .or. where == 'BOTH') then
+  if (where_str == 'REGION' .or. where_str == 'BOTH') then
     do i = 1, size(s%plot_page%region)
       if (s%global%plot_on .and. .not. s%plot_page%region(i)%visible) cycle
       if (plot_name /= '*') then 
@@ -171,11 +178,11 @@ else
         endif
       endif
 
-      call point_to_plot(s%plot_page%region(i)%plot)
+      call point_to_plot(s%plot_page%region(i)%plot, p, np)
     enddo
   endif
 
-  if (where == 'TEMPLATE' .or. (where == 'BOTH' .and. np == 0)) then
+  if (where_str == 'TEMPLATE' .or. (where_str == 'BOTH' .and. np == 0)) then
     do i = 1, size(s%plot_page%template)
       if (s%plot_page%template(i)%phantom) cycle
       if (plot_name /= '*') then 
@@ -186,28 +193,28 @@ else
         endif
       endif
 
-      call point_to_plot(s%plot_page%template(i))
+      call point_to_plot(s%plot_page%template(i), p, np)
     enddo
   endif
 
   ! Complete
 
-  if (where == 'COMPLETE') then
+  if (where_str == 'COMPLETE') then
     do i = 1, size(s%plot_page%region)
       if (s%plot_page%region(i)%name /= plot_name) cycle
-      call point_to_plot(s%plot_page%region(i)%plot)
+      call point_to_plot(s%plot_page%region(i)%plot, p, np)
     enddo
 
     do i = 1, size(s%plot_page%template)
       if (s%plot_page%template(i)%name /= plot_name) cycle
-      call point_to_plot(s%plot_page%template(i))
+      call point_to_plot(s%plot_page%template(i), p, np)
     enddo
   endif
 
   ! Allocate space
 
   if (np == 0) then
-    select case (where)
+    select case (where_str)
     case ('REGION')
       if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
           'PLOT REGION NOT FOUND: ' // plot_name, 'USE THE COMMAND "show plot" TO SEE A LIST OF REGIONS.')
@@ -315,10 +322,11 @@ if (present(curve)) curve = c
 !------------------------------------------------------------
 contains
 
-subroutine point_to_plot (this_plot)
+subroutine point_to_plot (this_plot, p, np)
 
 type (tao_plot_struct), target :: this_plot
-type (tao_plot_array_struct), allocatable :: p_temp(:)
+type (tao_plot_array_struct), allocatable :: p(:), p_temp(:)
+integer np
 
 !
 
