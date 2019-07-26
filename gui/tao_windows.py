@@ -495,12 +495,12 @@ class lw_table_window(tk.Toplevel):
         row=3, column=0, columnspan=2*j-1, sticky='EW')
 
     def fill_cmd(event=None):
-      self.bulk_set(fill_choices)
+      self.bulk_set(fill_choices, win)
 
     tk.Button(win, text="Fill and apply", command=fill_cmd).grid(
         row=4, column=0, columnspan=2*j-1)
 
-  def bulk_set(self, fill_choices):
+  def bulk_set(self, fill_choices, parent):
     '''
     Runs set commands to set variables specified in a bulk window
     appropriately.
@@ -525,7 +525,8 @@ class lw_table_window(tk.Toplevel):
           + fill_val).splitlines())
         if len1 != len2:
           messagebox.showwarning('Error',
-              'Entered formula yields an array of incorrect length.')
+              'Entered formula yields an array of incorrect length.',
+              parent=parent)
           continue
 
       if fill_choices[i]['where'].get() == 'all':
@@ -1548,10 +1549,10 @@ class tao_branch_widgets:
       try:
         if (int(self.ele.get()) not in
             self.e_list[self.uni.get()][self.branch.get()]):
-          messagebox.showwarning("Error", "Element not found")
+          messagebox.showwarning("Error", "Element not found", parent=self.parent)
           return 0
       except ValueError:
-        messagebox.showwarning("Error", "Element not found")
+        messagebox.showwarning("Error", "Element not found", parent=self.parent)
         return 0
 
     # Set self.ele, in case the element
@@ -1633,14 +1634,14 @@ class tao_ele_window(tao_list_window):
       pass
     if something_changed:
       x = messagebox.askyesnocancel(title="Unsaved Changes",
-          message="Apply changes before switching elements?")
+          message="Apply changes before switching elements?", parent=self)
       if x:
         self.ele_set()
       if x == None:
         return #don't refresh if "Cancel is picked"
     # Update the ele_wids and check for successful update
     if not self.ele_wids.update():
-      messagebox.showwarning("Error", "Element not found")
+      messagebox.showwarning("Error", "Element not found", parent=self)
       return
 
     # Clear existing window contents
@@ -2407,7 +2408,7 @@ class tao_lattice_window(tk.Toplevel):
           ele_list = True
         else: #item is a switch, but we were looking for an argument
           messagebox.showwarning('Warning', 'No argument given for switch "'
-              + arg_switch + '" (one required).  Skipping this switch...')
+              + arg_switch + '" (one required).  Skipping this switch...', parent=self)
           arg_switch = False
           continue
       if ele_list:
@@ -2612,14 +2613,16 @@ class tao_new_data_window(tk.Toplevel):
         tk.OptionMenu(self.d2_frame, self.uni, *uni_list),
         my_ttp("data_source;ENUM;T;"),
         my_ttp("data^merit_type;ENUM;T;"),
-        my_ttp("weight;REAL;T;")]
+        my_ttp("weight;REAL;T;"),
+        my_ttp("good_user;LOGIC;T;T")]
 
     # Labels
     self.d2_label_list = [tk.Label(self.d2_frame, text="d2_data Name:"),
         tk.Label(self.d2_frame, text="Which universe:"),
         tk.Label(self.d2_frame, text="Default data source:"),
         tk.Label(self.d2_frame, text="Default merit type:"),
-        tk.Label(self.d2_frame, text="Default weight:")]
+        tk.Label(self.d2_frame, text="Default weight:"),
+        tk.Label(self.d2_frame, text="Default good_user:")]
 
     # Grid widgets and labels
     for i in range(len(self.d2_param_list)):
@@ -2778,16 +2781,19 @@ class new_d1_frame(tk.Frame):
     def d1_ttp(x):
       ''' Shortcut for commonly used construct '''
       return tk_tao_parameter(str_to_tao_param(x), self, self.pipe)
+
     self.d1_array_wids = [d1_ttp('name;STR;T;'),
         d1_ttp('data_source;ENUM;T;'),
         d1_ttp('data_type;DAT_TYPE;T;'),
         d1_ttp('data^merit_type;ENUM;T;'),
         d1_ttp('weight;REAL;T;'),
+        d1_ttp('good_user;LOGIC;T;T'),
         d1_ttp('ix_min;INT;T;'),
         d1_ttp('ix_max;INT;T;')]
     # d1 labels (NAMES AS STRINGS ONLY)
-    self.d1_array_labels = ["d1_array Name:", "Data source:",
-        "Data type:", "Merit type:", "Weight", "Start index", "End index"]
+    self.d1_array_labels = ["d1_array Name:", "Default data source:",
+        "Default data type:", "Default merit type:", "Default weight",
+        "Default good_user:", "Start index", "End index"]
     # Read in defaults from d2 level
     val = self.d2_array.d2_param_list[2].tk_var.get()
     self.d1_array_wids[1].tk_var.set(val)
@@ -2795,10 +2801,13 @@ class new_d1_frame(tk.Frame):
     self.d1_array_wids[3].tk_var.set(val)
     val = self.d2_array.d2_param_list[4].tk_var.get()
     self.d1_array_wids[4].tk_var.set(val)
+    val = self.d2_array.d2_param_list[5].tk_var.get()
+    self.d1_array_wids[5].tk_var.set(val)
     # Grid widgets and labels:
     for i in range(len(self.d1_array_wids)):
-      tk.Label(self, text=self.d1_array_labels[i]).grid(row=i, column=0, sticky='W')
-      self.d1_array_wids[i].tk_wid.grid(row=i, column=1, sticky='EW')
+      tk.Label(self, text=self.d1_array_labels[i]).grid(row=i+1, column=0, sticky='W')
+      self.d1_array_wids[i].tk_wid.grid(row=i+1, column=1, sticky='EW')
+    i = i+1
 
     # Warning labels
     # (defined here to be gridded/ungridded as necessary)
@@ -2811,9 +2820,12 @@ class new_d1_frame(tk.Frame):
 
     # Responses to edits
     self.d1_array_wids[0].tk_wid.bind('<FocusOut>', self.name_handler)
-    self.d1_array_wids[5].tk_wid.bind('<FocusOut>', self.ix_min_handler)
-    self.d1_array_wids[6].tk_wid.bind('<FocusOut>', self.ix_max_handler)
+    self.d1_array_wids[6].tk_wid.bind('<FocusOut>', self.ix_min_handler)
+    self.d1_array_wids[7].tk_wid.bind('<FocusOut>', self.ix_max_handler)
     self.d1_array_wids[1].tk_var.trace('w', self.data_source_handler)
+
+    ttk.Separator(self, orient='horizontal').grid(row=i+1, column=0, columnspan=3, sticky='EW')
+    i = i+1
 
     # Element browsers
     tk.Label(self, text="Choose elements:").grid(row=i+1, column=0, sticky='W')
@@ -2831,6 +2843,9 @@ class new_d1_frame(tk.Frame):
         command=lambda : self.lat_browser('ref_name'))
     self.ele_ref_name_button.grid(row=i+3, column=1, sticky='EW')
 
+    ttk.Separator(self, orient='horizontal').grid(row=i+4, column=0, columnspan=3, sticky='EW')
+    i = i+1
+
     # Individual data
     self.data_dict = {}
     self.datum_frame = tk.Frame(self)
@@ -2844,8 +2859,8 @@ class new_d1_frame(tk.Frame):
     self.data_chooser.grid(row=i+4, column=1, sticky='EW')
 
     # Delete button
-    tk.Button(self, text="DELETE", fg='red', command=self.delete).grid(
-        row=100, column=0, columnspan=3, sticky='EW')
+    tk.Button(self, text="DELETE THIS D1_ARRAY", fg='red', command=self.delete).grid(
+        row=0, column=0, columnspan=3, sticky='EW')
 
     # Focus the d1 name widget
     self.d1_array_wids[0].tk_wid.focus_set()
@@ -2855,7 +2870,7 @@ class new_d1_frame(tk.Frame):
     Deletes this d1_array frame
     '''
     # Ask for confirmation
-    ans = messagebox.askokcancel("Delete " + self.name, "Delete this d1_array and its associated data?")
+    ans = messagebox.askokcancel("Delete " + self.name, "Delete this d1_array and its associated data?", parent=self.d2_array)
     if not ans:
       return
 
@@ -2889,7 +2904,7 @@ class new_d1_frame(tk.Frame):
     param_list = ['data_source;ENUM;T;', 'data_type;DAT_TYPE;T;',
         'ele_name;STR;T;', 'ele_start_name;STR;T;', 'ele_ref_name;STR;T;',
         'data^merit_type;ENUM;T;', 'meas;REAL;T;', 'weight;REAL;T;',
-        'good_user;LOGIC;T;', 'ix_bunch;INT;T;', 'eval_point;STR;T;',
+        'good_user;LOGIC;T;T', 'ix_bunch;INT;T;', 'eval_point;STR;T;',
         's_offset;REAL;T;']
     param_list = list(map(str_to_tao_param, param_list))
     # Fill in defaults set at d1 level
@@ -2897,6 +2912,7 @@ class new_d1_frame(tk.Frame):
     param_list[1].value = self.d1_array_wids[2].tk_var.get()
     param_list[5].value = self.d1_array_wids[3].tk_var.get()
     param_list[7].value = self.d1_array_wids[4].tk_var.get()
+    param_list[8].value = bool(self.d1_array_wids[5].tk_var.get())
     # Set parameter values if specified
     for i in range(len(param_list)):
       if param_list[i].name in self.data_dict[ix].keys():
@@ -2949,7 +2965,7 @@ class new_d1_frame(tk.Frame):
       for d1 in self.d2_array.d1_frame_list:
         if (d1.name == name) & (i != self.d2_array.d1_index):
           self.name_warning_1.grid_forget()
-          self.name_warning_2.grid(row=0, column=2, sticky='W')
+          self.name_warning_2.grid(row=1, column=2, sticky='W')
           return 1
         i = i+1
 
@@ -2963,28 +2979,28 @@ class new_d1_frame(tk.Frame):
           self.d1_array_wids[2].tk_var.set(self.d2_array.name + '.' + self.name)
     else:
       self.name_warning_2.grid_forget()
-      self.name_warning_1.grid(row=0, column=2, sticky='W')
+      self.name_warning_1.grid(row=1, column=2, sticky='W')
       self.name = "New d1_array"
       self.d2_array.notebook.tab(self.d2_array.d1_index, text="New d1_array")
       return 1
 
   def ix_min_handler(self, event=None):
     try:
-      ix_min = int(self.d1_array_wids[5].tk_var.get())
+      ix_min = int(self.d1_array_wids[6].tk_var.get())
     except ValueError:
       ix_min = -1
     if ix_min > -1:
-      if (ix_min < self.ix_max) | (self.ix_max == -1):
+      if (ix_min <= self.ix_max) | (self.ix_max == -1):
         self.ix_min = ix_min
         self.ix_min_warning_1.grid_forget()
         self.ix_min_warning_2.grid_forget()
       else:
         self.ix_min_warning_1.grid_forget()
-        self.ix_min_warning_2.grid(row=5, column=2, sticky='W')
+        self.ix_min_warning_2.grid(row=7, column=2, sticky='W')
         return 1
     else:
       self.ix_min_warning_2.grid_forget()
-      self.ix_min_warning_1.grid(row=5, column=2, sticky='W')
+      self.ix_min_warning_1.grid(row=7, column=2, sticky='W')
       return 1
     # Update the data index range if possible
     if (self.ix_min > -1) & (self.ix_max >= self.ix_min):
@@ -2992,7 +3008,7 @@ class new_d1_frame(tk.Frame):
 
   def ix_max_handler(self, event=None):
     try:
-      ix_max = int(self.d1_array_wids[6].tk_var.get())
+      ix_max = int(self.d1_array_wids[7].tk_var.get())
     except ValueError:
       ix_max = -1
     if ix_max > -1:
@@ -3002,11 +3018,11 @@ class new_d1_frame(tk.Frame):
         self.ix_max_warning_2.grid_forget()
       else:
         self.ix_max_warning_1.grid_forget()
-        self.ix_max_warning_2.grid(row=6, column=2, sticky='W')
+        self.ix_max_warning_2.grid(row=8, column=2, sticky='W')
         return 1
     else:
       self.ix_max_warning_2.grid_forget()
-      self.ix_max_warning_1.grid(row=6, column=2, sticky='W')
+      self.ix_max_warning_1.grid(row=8, column=2, sticky='W')
       return 1
     # Update the data index range if possible
     if (self.ix_min > -1) & (self.ix_max >= self.ix_min):
@@ -3026,7 +3042,7 @@ class new_d1_frame(tk.Frame):
           str_to_tao_param('data_type;DAT_TYPE;T;'),
           self, self.pipe, data_source=source)
       self.d1_array_wids[2].tk_var.set(old_val)
-      self.d1_array_wids[2].tk_wid.grid(row=2, column=1, sticky='EW')
+      self.d1_array_wids[2].tk_wid.grid(row=3, column=1, sticky='EW')
 
 class tao_ele_browser(tao_lattice_window):
   '''
@@ -3096,7 +3112,7 @@ class tao_ele_browser(tao_lattice_window):
       messages.append("Minimum index must not be greater than maximum index")
 
     for message in messages:
-      messagebox.showwarning("Data index error", message)
+      messagebox.showwarning("Data index error", message, parent=self)
     if messages != []:
       return
 
@@ -3108,13 +3124,16 @@ class tao_ele_browser(tao_lattice_window):
         break
     for i in range(len(names)):
       names[i] = self.tree.item(names[i])['values'][1]
+    # Stop if no eles found
+    if len(names) == 0:
+      return
 
     # Check that the number of names matches the number of indices
     if len(names) > len(range(ix_min, ix_max+1)):
       # Too many names
       message = "You have selected more elements than data indices.  "
       message += "Would you like to apply the first element names in the list to your data and discard the rest?"
-      ans = messagebox.askokcancel("Too many elements", message)
+      ans = messagebox.askokcancel("Too many elements", message, parent=self)
       if not ans:
         return
     elif len(names) < len(range(ix_min, ix_max+1)):
@@ -3124,22 +3143,27 @@ class tao_ele_browser(tao_lattice_window):
       message += '[{}]'.format(str(ix_min)) + ' through '
       message += self.d2_name + '.' + self.d1_name
       message += '[{}]'.format(str(ix_max)) + '.  '
-      message += "Would you like to apply the names to "
+      #message += "Would you like to apply the names to "
+      #message += self.d2_name + '.' + self.d1_name
+      #message += '[{}]'.format(str(ix_min)) + ' through '
+      #message += self.d2_name + '.' + self.d1_name
+      #message += '[{}]'.format(str(ix_min+len(names)-1)) + '?'
+      message += "Would you like to repeat the names to fill "
       message += self.d2_name + '.' + self.d1_name
       message += '[{}]'.format(str(ix_min)) + ' through '
       message += self.d2_name + '.' + self.d1_name
-      message += '[{}]'.format(str(ix_min+len(names)-1)) + '?'
-      ans = messagebox.askokcancel("Too few elements", message)
+      message += '[{}]'.format(str(ix_max)) + '?'
+      ans = messagebox.askokcancel("Too few elements", message, parent=self)
       if not ans:
         return
-      else:
-        ix_max = ix_min + len(names) - 1
+      #else:
+      #  ix_max = ix_min + len(names) - 1
 
     # Write the ele names into ele_which
     for i in range(ix_min, ix_max+1):
       if i not in self.d1_frame.data_dict.keys():
         self.d1_frame.data_dict[i] = {}
-      self.d1_frame.data_dict[i]['ele_'+self.which] = names[i-ix_min]
+      self.d1_frame.data_dict[i]['ele_'+self.which] = names[(i-ix_min)%len(names)]
 
     # Close this window
     self.destroy()
