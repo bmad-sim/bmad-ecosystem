@@ -97,7 +97,8 @@ class tk_tao_parameter():
       self._stype = [] #types of slave widgets (needed for input validation)
       self._s = [] # list of slave widgets
       self._s_refresh()
-      self.tk_var.trace('w', self._fill_widgets)
+      # Record trace callback to unset/reset later
+      self._trace_cb = self.tk_var.trace('w', self._fill_widgets)
 
     if self.param.type not in ['DAT_TYPE', 'REAL_ARR']:
       self.tk_wid.config(disabledforeground="black")
@@ -276,8 +277,11 @@ class tk_tao_parameter():
     # Special case: velocity. -> velocity
     if new_tk_var == "velocity.":
       new_tk_var = "velocity"
-    # Set self.tk_var
+    # Un-trace tk_var to prevent repeatedly running this method
+    self.tk_var.trace_vdelete('w', self._trace_cb)
     self.tk_var.set(new_tk_var)
+    # Re-trace tk_var
+    self._trace_cb = self.tk_var.trace('w', self._fill_widgets)
     #print(self.tk_var.get())
 
   def _is_valid_dat_type(self, x):
