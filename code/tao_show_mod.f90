@@ -193,6 +193,7 @@ type (normal_form_struct), pointer :: normal_form
 type (aperture_scan_struct), pointer :: aperture_scan
 type (coord_struct) orbit
 type (tao_spin_map_struct), pointer :: sm
+type (tao_wave_kick_pt_struct), pointer :: wk
 
 type show_lat_column_struct
   character(80) :: name = ''
@@ -4731,9 +4732,11 @@ case ('wave')
     else
       nl=nl+1; lines(nl) = 'Normalized Kick = kick * sqrt(beta)  [urad * sqrt(meter)]'
     endif
-    nl=nl+1; lines(nl) = 'After Dat#    Norm_K       phi'
+    nl=nl+1; lines(nl) = 'After Dat#    Norm_Kick     s-pos   ele@kick                                 phi'
     do i = 1, min(s%wave%n_kick, 20)
-      nl=nl+1; write(lines(nl), '(i9, f12.2, 1f10.3)') s%wave%kick(i)%ix_dat_before_kick, 1e6*s%wave%kick(i)%amp, s%wave%kick(i)%phi
+      wk => s%wave%kick(i)
+      nl=nl+1; write(lines(nl), '(i9, f14.2, f10.2, 3x, a6, a30, f10.3)') wk%ix_dat_before_kick, 1e6*wk%amp, &
+                                                          wk%s, ele_location(wk%ele), wk%ele%name, wk%phi
     enddo
 
   case ('phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y')
@@ -4746,9 +4749,11 @@ case ('wave')
     nl=nl+1; lines(nl) = ' '
     nl=nl+1; lines(nl) = 'Normalized Kick = k * l * beta [dimensionless]'
     nl=nl+1; lines(nl) = '   where k = quadrupole gradient [rad/m^2].'
-    nl=nl+1; lines(nl) = 'After Dat#     Norm_K       phi'
+    nl=nl+1; lines(nl) = 'After Dat#    Norm_Kick     s-pos   ele@kick                                 phi'
     do i = 1, min(s%wave%n_kick, 20)
-      nl=nl+1; write(lines(nl), '(i9, f12.4, f10.3)') s%wave%kick(i)%ix_dat_before_kick, s%wave%kick(i)%amp, s%wave%kick(i)%phi
+      wk => s%wave%kick(i)
+      nl=nl+1; write(lines(nl), '(i9, f14.2, f10.2, 3x, a6, a30, f10.3)') wk%ix_dat_before_kick, wk%amp, &
+                                                          wk%s, ele_location(wk%ele), wk%ele%name, wk%phi
     enddo
 
   case ('ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x', &
@@ -4766,12 +4771,11 @@ case ('wave')
     nl=nl+1; write(lines(nl), '(a, f8.3, a)') &
                                     'Chi_a:           ', s%wave%chi_a, ' [Figure of Merit]'
 
-    nl=nl+1; lines(nl) = 'After Dat#     Norm_K    phi+    phi-   phi_a   phi_b'
+    nl=nl+1; lines(nl) = 'After Dat#   Norm_Kick     s-pos   ele@kick                         phi+    phi-   phi_a   phi_b'
     do i = 1, min(s%wave%n_kick, 20)
-      nl=nl+1; write(lines(nl), '(i11, f10.4, 4f8.3, 2f10.3)') s%wave%kick(i)%ix_dat_before_kick, &
-            s%wave%kick(i)%amp, s%wave%kick(i)%phi_s, s%wave%kick(i)%phi_r, &
-            (s%wave%kick(i)%phi_s+s%wave%kick(i)%phi_r)/2, &
-            (s%wave%kick(i)%phi_s-s%wave%kick(i)%phi_r)/2
+      wk => s%wave%kick(i)
+      nl=nl+1; write(lines(nl), '(i9, f10.4, f10.2, 3x, a6, a30, 4f8.3)') wk%ix_dat_before_kick, &
+            wk%amp, wk%s, ele_location(wk%ele), wk%ele%name, wk%phi_s, wk%phi_r, (wk%phi_s+wk%phi_r)/2, (wk%phi_s-wk%phi_r)/2
     enddo
 
   end select

@@ -28,7 +28,6 @@ implicit none
 
 type (tao_curve_array_struct), allocatable, target, save :: curve_array(:)
 type (tao_curve_struct), pointer :: curve
-type (tao_plot_region_struct), pointer :: region
 type (tao_plot_struct), save, target :: wave_plot
 type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: wg, wg0
@@ -91,10 +90,10 @@ plot => curve%g%p
 ! Find the plot region
 
 if (plot_place /= '') then
-  call tao_find_plot_region (err, plot_place, region)
+  call tao_find_plot_region (err, plot_place, s%wave%region)
   if (err) return
 else
-  region => plot%r
+  s%wave%region => plot%r
 endif
 
 ! Initiate the wave plot.
@@ -163,7 +162,7 @@ if (wc0%data_source == 'data') then
 !  wg0%x%min = 0
 !  wg0%x%max = branch%ele(branch%n_ele_track)%s
 else
-  call out_io (s_error$, r_name, 'ANALYSIS FOR THIS DATA_SOURCE NOT YET IMPLEMENTED: ' // wc0%data_source)
+  call out_io (s_error$, r_name, 'PLOT DATA_SOURCE FOR WAVE ANALYSIS MUST BE "data"')
   return
 endif
 
@@ -181,9 +180,9 @@ enddo
 
 ! Place the wave plot in the region
 
-call tao_plot_struct_transfer (wave_plot, region%plot)
-region%visible = .true.
-region%plot%r => region
+call tao_plot_struct_transfer (wave_plot, s%wave%region%plot)
+s%wave%region%visible = .true.
+s%wave%region%plot%r => s%wave%region
 err_flag = .false.
 
 end subroutine tao_wave_cmd
@@ -401,13 +400,13 @@ type (tao_plot_struct), target :: plot
 type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: lat
 type (tao_curve_struct), pointer :: curve
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, ele0
 
 real(rp) dphi, coef_a(2), coef_b(2), coef_ba(2)
 real(rp) rms_a(3), rms_b(3), rms_ba(3)
 real(rp), allocatable :: phi(:), sin_phi(:), cos_phi(:)
 real(rp) amp_a, amp_b, amp_ba, beta, tune
-real(rp) phi0, phi1
+real(rp) phi0, phi_kick, s0, s1, phi1, phi2
 
 integer i, j, n_track, n_curve_pt, m_min, m_max, nc
 
@@ -514,14 +513,41 @@ endif
 nc = 0
 do i = m_min, m_max
   nc = nc + 1
-  phi1 = i * pi + phi0
-  s%wave%kick(nc)%amp = coef_ba(1) * cos(phi1) - coef_ba(2) * sin(phi1)
-  do j = s%wave%i_a2, s%wave%i_b1
-    if (phi(j) < phi1) s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j)
+  phi_kick = i * pi + phi0
+  s%wave%kick(nc)%amp = coef_ba(1) * cos(phi_kick) - coef_ba(2) * sin(phi_kick)
+  do j = s%wave%i_b1, s%wave%i_a2, -1
+    if (phi(j) < phi_kick) exit
   enddo
-  if (phi1 > tune) phi1 = phi1 - tune
-  if (data_type(1:4) == 'beta' .or. data_type(1:4) == 'ping') phi1 = phi1 / 2
-  s%wave%kick(nc)%phi = phi1
+
+  if (s%wave%ix_data(j) <= s%wave%i_wrap_pt) then
+    s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j)
+  else
+    s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j) - s%wave%i_wrap_pt
+  endif
+
+  if (phi_kick > tune) phi_kick = phi_kick - tune
+  if (data_type(1:4) == 'beta' .or. data_type(1:4) == 'ping') phi_kick = phi_kick / 2
+  s%wave%kick(nc)%phi = phi_kick
+
+  ele => ele_at_curve_point(plot, j)
+  ele0 => pointer_to_next_ele(ele, -1)
+
+  do    
+    if (data_type == 'orbit.x' .or. data_type == 'beta.a' .or. data_type(1:6) == 'ping_a') then
+      phi1 = ele0%a%phi
+      phi2 = ele%a%phi
+    elseif (data_type == 'orbit.y' .or. data_type == 'beta.b' .or. data_type(1:6) == 'ping_b') then
+      phi1 = ele0%b%phi
+      phi2 = ele%b%phi
+    endif
+
+    if (phi1 <= phi_kick .and. phi_kick <= phi2) exit
+    ele => pointer_to_next_ele(ele, -1, .true.)
+    ele0 => pointer_to_next_ele(ele, -1)
+  enddo
+
+  s%wave%kick(nc)%s = (ele0%s * (phi_kick - phi1) + ele%s * (phi2 - phi_kick)) / (phi2 - phi1)
+  s%wave%kick(nc)%ele => ele
 enddo
 
 ! Compute the fit rms
@@ -564,13 +590,13 @@ type (tao_plot_struct), target :: plot
 type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: lat
 type (tao_curve_struct), pointer :: curve
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, ele0
 
 real(rp) dphi, coef_a(3), coef_b(3), coef_ba(3)
 real(rp) rms_a(4), rms_b(4), rms_ba(4)
 real(rp), allocatable :: phi(:), sin_2phi(:), cos_2phi(:), one(:)
 real(rp) amp_a, amp_b, amp_ba, beta, tune
-real(rp) phi2_0, phi_kick, kick_amp
+real(rp) phi2_0, phi_kick, kick_amp, phi1, phi2
 
 integer i, j, n_track, n_curve_pt, m_min, m_max, nc
 
@@ -668,12 +694,40 @@ nc = 0
 do i = m_min, m_max
   nc = nc + 1
   phi_kick = (i * pi + phi2_0) / 2
-  do j = s%wave%i_a2, s%wave%i_b1
-    if (phi(j) < phi_kick) s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j)
+  do j = s%wave%i_b1, s%wave%i_a2, -1
+    if (phi(j) < phi_kick) exit
   enddo
+
+  if (s%wave%ix_data(j) <= s%wave%i_wrap_pt) then
+    s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j)
+  else
+    s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j) - s%wave%i_wrap_pt
+  endif
+
   if (phi_kick > tune) phi_kick = phi_kick - tune
   s%wave%kick(nc)%phi = phi_kick
   s%wave%kick(nc)%amp = kick_amp * (-1)**i
+
+  ele => ele_at_curve_point(plot, j)
+  ele0 => pointer_to_next_ele(ele, -1)
+
+  do
+    select case (curve%data_type)
+    case ('phase.a', 'ping_a.phase_x')
+      phi1 = ele0%a%phi
+      phi2 = ele%a%phi
+    case ('phase.b', 'ping_b.phase_y')
+      phi1 = ele0%b%phi
+      phi2 = ele%b%phi
+    end select
+
+    if (phi1 <= phi_kick .and. phi_kick <= phi2) exit
+    ele => pointer_to_next_ele(ele, -1, .true.)
+    ele0 => pointer_to_next_ele(ele, -1)
+  enddo
+
+  s%wave%kick(nc)%s = (ele0%s * (phi_kick - phi1) + ele%s * (phi2 - phi_kick)) / (phi2 - phi1)
+  s%wave%kick(nc)%ele => ele
 enddo
 
 ! Compute the fit rms
@@ -714,13 +768,13 @@ type (tao_plot_struct), target :: plot
 type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: lat
 type (tao_curve_struct), pointer :: curve
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, ele0
 
 real(rp) coef_a(4), coef_b(4), coef_ba(4)
 real(rp) rms_a(5), rms_b(5), rms_ba(5)
 real(rp), allocatable :: phi_s(:), phi_r(:), sin_s(:), sin_r(:), cos_s(:), cos_r(:)
 real(rp) amp_as, amp_ar, amp_bs, amp_br, amp_ba_s, amp_ba_r, beta, tune_s, tune_r
-real(rp) phi0_s, phi0_r, phi1_s, phi1_r, phi_r_ave, sqrt_beta
+real(rp) phi0_s, phi0_r, phi1_s, phi1_r, phi_r_ave, sqrt_beta, phi1, phi2
 
 integer i, j, m, n, n_track, n_curve_pt, m_min, m_max, nc
 
@@ -837,11 +891,14 @@ do i = m_min, m_max
   phi1_s = i * pi + phi0_s
   s%wave%kick(nc)%amp = -2 * (coef_ba(1) * sin(phi1_s) + coef_ba(2) * cos(phi1_s))
   do j = s%wave%i_b1, s%wave%i_a2, -1
-    if (phi_s(j) < phi1_s) then
-      s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j)
-      exit
-    endif
+    if (phi_s(j) < phi1_s) exit
   enddo
+
+  if (s%wave%ix_data(j) <= s%wave%i_wrap_pt) then
+    s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j)
+  else
+    s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j) - s%wave%i_wrap_pt
+  endif
 
   phi_r_ave = (phi_r(j) + phi_r(j+1)) / 2
   m = nint((phi_r_ave - phi0_r) / pi)
@@ -854,6 +911,21 @@ do i = m_min, m_max
 
   s%wave%kick(nc)%phi_s = phi1_s
   s%wave%kick(nc)%phi_r = phi1_r
+
+  ele => ele_at_curve_point(plot, j)
+  ele0 => pointer_to_next_ele(ele, -1)
+
+  do
+    phi1 = ele0%a%phi + ele0%b%phi
+    phi2 = ele%a%phi + ele%b%phi
+
+    if (phi1 <= phi1_s .and. phi1_s <= phi2) exit
+    ele => pointer_to_next_ele(ele, -1, .true.)
+    ele0 => pointer_to_next_ele(ele, -1)
+  enddo
+
+  s%wave%kick(nc)%s = (ele0%s * (phi1_s - phi1) + ele%s * (phi2 - phi1_s)) / (phi2 - phi1)
+  s%wave%kick(nc)%ele => ele
 enddo
 
 ! Compute the fit rms
@@ -1020,11 +1092,11 @@ integer ix_pt
 integer ix, ix_ele
 
 logical err
+character(*), parameter :: r_name = 'ele_at_curve_point'
 
 !
 
 curve => s%wave%base_graph%curve(1)
-
 curve2 => plot%graph(1)%curve(1)
 
 u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
@@ -1037,9 +1109,8 @@ if (curve%data_source == 'data') then
   ix_ele = d1_dat%d(ix)%ix_ele
   ele => branch%ele(ix_ele)
 else
-  s_pos = curve%x_line(ix_pt)
-  ele => s%wave%ele
-  call twiss_and_track_at_s (u%model%lat, s_pos, ele, u%design%tao_branch(branch%ix_branch)%orbit, ix_branch = branch%ix_branch)
+  call out_io (s_error$, r_name, 'ANALYSIS FOR THIS DATA_SOURCE NOT YET IMPLEMENTED: ' // curve%data_source)
+  return
 endif
 
 end function ele_at_curve_point
