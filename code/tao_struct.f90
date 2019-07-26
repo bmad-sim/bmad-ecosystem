@@ -890,8 +890,8 @@ end type
 type tao_wave_kick_pt_struct
   real(rp) :: phi_s, phi_r, phi, amp
   real(rp) :: s                 ! s-position of kick
-  integer :: ix_ele             ! lattice element at position of kick.
   integer :: ix_dat_before_kick ! Index of datum in data array just before the kick.
+  type (ele_struct), pointer :: ele             ! lattice element at position of kick.
 end type  
 
 type tao_wave_struct     ! Struct for wave analysis
@@ -909,8 +909,8 @@ type tao_wave_struct     ! Struct for wave analysis
   integer, allocatable :: ix_data(:) ! Translates from plot point to datum index
   integer n_kick
   type (tao_wave_kick_pt_struct), allocatable :: kick(:)
-  type (tao_graph_struct) :: base_graph   ! Used for storing parameters such as number of curve points.
-  type (ele_struct) :: ele
+  type (tao_graph_struct) :: base_graph   ! Graph before curves extended to 1.5 periods.
+  type (tao_plot_region_struct), pointer :: region    ! Where the wave plot is
 end type
 
 !-----------------------------------------------------------------------

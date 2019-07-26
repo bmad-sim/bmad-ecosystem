@@ -126,6 +126,7 @@ type (qp_axis_struct) x_ax, y_ax
 type (tao_building_wall_point_struct), pointer :: pbw(:)
 type (tao_dynamic_aperture_struct), pointer :: da
 type (tao_expression_info_struct), allocatable :: info(:)
+type (tao_wave_kick_pt_struct), pointer :: wk
 
 real(rp) s_pos, value, y1, y2, v_old(3), r_vec(3), dr_vec(3), w_old(3,3), v_vec(3), dv_vec(3)
 real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here, z1, z2, rdummy
@@ -195,7 +196,6 @@ call string_trim(line(ix+1:), line, ix_line)
 ! Needed:
 !   EM field
 !   HOM
-!   wave
 !   x_axis_type (variable parameter)
 
 call match_word (cmd, [character(20) :: &
@@ -3408,6 +3408,7 @@ case ('var')
 !   params
 !   loc_header
 !   locations
+!   plot1, plot2, plot3
 
 case ('wave')
 
@@ -3455,16 +3456,16 @@ case ('wave')
     select case (s%wave%data_type)
     case ('beta.a', 'beta.b')
       nl=incr(nl); li(nl) = 'header1;STR;F;Normalized Kick = kick * beta  [urad * meter]'
-      nl=incr(nl); li(nl) = 'columns;After Dat#;Norm_K;phi'
+      nl=incr(nl); li(nl) = 'columns;After Dat#;Norm_Kick;s;ix_ele;ele@kick;phi'
 
     case ('orbit.x', 'orbit.y', 'eta.x', 'eta.y', 'ping_a.amp_x', 'ping_b.amp_y')
       nl=incr(nl); li(nl) = 'header1;STR;F;Normalized Kick = kick * sqrt(beta)  [urad * sqrt(meter)]'
-      nl=incr(nl); li(nl) = 'columns;After Dat#;Norm_K;phi'
+      nl=incr(nl); li(nl) = 'columns;After Dat#;Norm_Kick;s;ix_ele;ele@kick;phi'
 
     case ('phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y')
       nl=incr(nl); li(nl) = 'header1;STR;F;Normalized Kick = k * l * beta [dimensionless]'
       nl=incr(nl); li(nl) = 'header2;STR;F;where k = quadrupole gradient [rad/m^2].'
-      nl=incr(nl); li(nl) = 'columns;After Dat#;Norm_K;phi'
+      nl=incr(nl); li(nl) = 'columns;After Dat#;Norm_Kick;s;ix_ele;ele@kick;phi'
 
     case ('ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x', &
           'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_b.amp_sin_x', 'ping_b.amp_cos_x', 'cbar.11', 'cbar.12', 'cbar.22')
@@ -3477,23 +3478,39 @@ case ('wave')
     select case (s%wave%data_type)
     case ('orbit.x', 'orbit.y', 'eta.x', 'eta.y', 'beta.a', 'beta.b', 'ping_a.amp_x', 'ping_b.amp_y')
       do i = 1, min(s%wave%n_kick, 20)
-        nl=incr(nl); write(li(nl), '(i9, f12.2, 1f10.3)') s%wave%kick(i)%ix_dat_before_kick, 1e6*s%wave%kick(i)%amp, s%wave%kick(i)%phi
+        wk => s%wave%kick(i)
+        nl=incr(nl); write(li(nl), '(i0, a, f0.2, a, f0.2, a, i0, 3a, f0.3)') wk%ix_dat_before_kick, ';', 1e6*wk%amp, ';', wk%s, ';', ele%ix_ele, ';', trim(wk%ele%name), ';', wk%phi
       enddo
 
     case ('phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y')
       do i = 1, min(s%wave%n_kick, 20)
-        nl=incr(nl); write(li(nl), '(i9, f12.4, f10.3)') s%wave%kick(i)%ix_dat_before_kick, s%wave%kick(i)%amp, s%wave%kick(i)%phi
+        wk => wk
+        nl=incr(nl); write(li(nl), '(i0, a, f0.4, a, f0.2, a, i0, 3a, f0.3)') wk%ix_dat_before_kick, ';', wk%amp, ';', wk%s, ';', ele%ix_ele, ';', trim(wk%ele%name), ';', wk%phi
       enddo
 
     case ('ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x', &
           'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_b.amp_sin_x', 'ping_b.amp_cos_x', 'cbar.11', 'cbar.12', 'cbar.22')
       do i = 1, s%wave%n_kick
-        nl=incr(nl); write(li(nl), '(i11, f10.4, 4f8.3, 2f10.3)') s%wave%kick(i)%ix_dat_before_kick, &
-                  s%wave%kick(i)%amp, s%wave%kick(i)%phi_s, s%wave%kick(i)%phi_r, &
-                  (s%wave%kick(i)%phi_s+s%wave%kick(i)%phi_r)/2, &
-                  (s%wave%kick(i)%phi_s-s%wave%kick(i)%phi_r)/2
+        wk => wk
+        nl=incr(nl); write(li(nl), '(i0, a, f0.4, a, f0.2, a, i0, 3a, 4(f0.3, a))') wk%ix_dat_before_kick, ';', &
+                  wk%amp, ';', wk%s, ';', ele%ix_ele, ';', trim(wk%ele%name), ';', wk%phi_s, ';', wk%phi_r, ';', (wk%phi_s+wk%phi_r)/2, ';', (wk%phi_s-wk%phi_r)/2
       enddo
     end select
+
+  case ('plot1', 'plot2', 'plot3')
+    select case (line)
+    case ('plot1')
+      g => s%wave%region%plot%graph(1)
+    case ('plot2')
+      g => s%wave%region%plot%graph(2)
+    case ('plot3')
+      g => s%wave%region%plot%graph(3)
+    end select
+
+    cur => g%curve(1)
+    do i = 1, size(cur%x_symb)
+      nl=incr(nl); write (li(nl), '(i0, 2(a, es14.6))') i, ';', cur%x_symb(i), ';', cur%y_symb(i)
+    enddo
 
   case default
     call invalid ('Bad {who}: ' // line)
