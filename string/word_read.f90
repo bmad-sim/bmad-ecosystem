@@ -12,8 +12,8 @@
 !      all the trailing characters are blank
 !
 ! If the ignore_interior argument is True, "interior" delimitors will be ignored.
-! An "interior" character is a character that is enclosed in brackets: "(...)", "{...}", or "[...]".
-! For example: 
+! An "interior" character is a character that is enclosed in brackets: "(...)", "{...}", 
+! "[...]" or single or double quote marks. For example: 
 !     call word_read "(;)a;b", ";", word, ix_word, delim, delim_found, out_str, .true.)
 ! Would result in:
 !     word = "(;)a"
@@ -73,7 +73,7 @@ integer ix_b1, ix_b2, ix_b3
 
 logical, optional :: ignore_interior
 logical blank_delim_in_list, non_blank_delim_in_list
-logical delim_found, non_blank_found, exterior
+logical delim_found, non_blank_found, exterior, out_of_q1, out_of_q2
 
 ! Init
 
@@ -98,6 +98,8 @@ ix2 = 0
 ix_b1 = 0
 ix_b2 = 0
 ix_b3 = 0
+out_of_q1 = .true.
+out_of_q2 = .true.
 exterior = .true.
 
 ! loop over all characters
@@ -156,8 +158,10 @@ do i = 1, n_len
     case (']');  ix_b2 = ix_b2 - 1
     case ('{');  ix_b3 = ix_b3 + 1
     case ('}');  ix_b3 = ix_b3 - 1
+    case ("'");  out_of_q1 = .not. out_of_q1
+    case ('"');  out_of_q2 = .not. out_of_q2
     end select
-    exterior = (ix_b1 == 0 .and. ix_b2 == 0 .and. ix_b3 == 0)
+    exterior = (ix_b1 == 0 .and. ix_b2 == 0 .and. ix_b3 == 0 .and. out_of_q1 .and. out_of_q2)
   endif
 
 enddo
