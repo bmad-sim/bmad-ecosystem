@@ -20,8 +20,8 @@ class tao_console(tk.Frame):
     self._wid = tk.Text(self, blockcursor=True)
     self._wid.configure(font='Monospace 16', fg="white", bg="black")
     self._wid.configure(insertbackground="white")
-    self._wid.insert('end', self.pipe.startup_message)
-    self._wid.insert('end', '\nTao>')
+    #self._wid.insert('end', self.pipe.startup_message)
+    #self._wid.insert('end', '\nTao>')
     # Tag definitions (used to color error messages)
     self._wid.tag_config("normal")
     self._wid.tag_config("error", foreground="yellow")
@@ -47,6 +47,7 @@ class tao_console(tk.Frame):
     self._wid.bind('<Up>', self._u_handler)
     self._wid.bind('<Down>', self._d_handler)
     self.pipe.printed.trace('w', self.warning_callback)
+    self.show_output(self.pipe.startup_message)
 
   def set_command(self, new_command):
     '''
@@ -72,6 +73,15 @@ class tao_console(tk.Frame):
     mode can be any of 'normal', 'error', or 'fatal'
     '''
     # Print output
+    #initial_output = output
+    #output = ""
+    #for c in initial_output:
+    #  if not c.isprintable() 
+    #    output += '\n'
+    #  else:
+    #    output += c
+    while output.find('\r\n') != -1:
+      output = output.replace('\r\n', '\n')
     self._wid.insert('end', '\n' + output, mode)
     self._wid.insert('end', '\nTao>', "normal")
     # Clear self.command
