@@ -23,10 +23,13 @@ class taoplot:
 		'''returns a figure containing graphs using the data in the region GraphRegion of the tao instance in pipe, and plots a lat_layout below if applicable, also returns information about the indices and locations of elements, width is used to modify the width of floor plan elements'''
 		fig = plt.figure()
 		#creates plotting figure
-		pipe = self.pipe
-		GraphRegion = self.GraphRegion
+
+		pipe = self.pipe #tao interface instance to plot in
+		GraphRegion = self.GraphRegion #graph region to plot in
+
 		LatLayout=False
 		FloorPlan=False
+		#determines if shapes are drawn on graph, changed to True later if needed
 		
 		eleIndexList=[]
 		eleStartDict={}
