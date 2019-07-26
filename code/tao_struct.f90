@@ -905,12 +905,13 @@ type tao_wave_struct     ! Struct for wave analysis
   integer n_func   ! Number of functions used in the fit.
   integer :: ix_a1 = -1, ix_a2 = -1, ix_b1 = -1, ix_b2 = -1
   integer i_a1, i_a2, i_b1, i_b2, n_a, n_b
-  integer i_wrap_pt      ! Index of last point before wrap in curve array. 
+  integer i_curve_wrap_pt      ! Index of last point before wrap in curve array. 
   integer, allocatable :: ix_data(:) ! Translates from plot point to datum index
   integer n_kick
   type (tao_wave_kick_pt_struct), allocatable :: kick(:)
   type (tao_graph_struct) :: base_graph   ! Graph before curves extended to 1.5 periods.
   type (tao_plot_region_struct), pointer :: region    ! Where the wave plot is
+  type (tao_d1_data_struct), pointer :: d1_dat        ! D1 data for analysis
 end type
 
 !-----------------------------------------------------------------------

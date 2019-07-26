@@ -34,7 +34,6 @@ type (tao_graph_struct), pointer :: wg, wg0
 type (tao_curve_struct), pointer :: wc, wc0
 type (tao_d1_data_array_struct), allocatable :: d1_array(:)
 type (tao_universe_struct), pointer :: u
-type (tao_d1_data_struct), pointer :: d1_dat
 type (branch_struct), pointer :: branch
 
 integer i, p1, p2, ix_curve
@@ -50,7 +49,6 @@ logical err_flag, err
 err_flag = .true.
 
 if (any(curve_name == wave_data_name)) then
-
   call tao_find_plots (err, '*', 'REGION', curve = curve_array, always_allocate = .true.)
   if (err) return
 
@@ -153,17 +151,18 @@ wc0%y_axis_scale_factor = 1
 u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 branch => u%model%lat%branch(0)
 
-if (wc0%data_source == 'data') then
-  call tao_find_data (err, wc0%data_type, d1_array = d1_array, ix_uni = tao_curve_ix_uni(wc0))
-  d1_dat => d1_array(1)%d1
-  wg0%x%min = 0
-  if (wg0%x%max < ubound(d1_dat%d, 1)) wg0%x%max = ubound(d1_dat%d, 1)
-!elseif (wc0%data_source == 'lat' .and. plot%x_axis_type == 's') then
-!  wg0%x%min = 0
-!  wg0%x%max = branch%ele(branch%n_ele_track)%s
-else
+if (wc0%data_source /= 'data') then
   call out_io (s_error$, r_name, 'PLOT DATA_SOURCE FOR WAVE ANALYSIS MUST BE "data"')
   return
+endif
+
+call tao_find_data (err, wc0%data_type, d1_array = d1_array, ix_uni = tao_curve_ix_uni(wc0))
+s%wave%d1_dat => d1_array(1)%d1
+wg0%x%min = 0
+if (plot%x_axis_type == 's') then
+  wg0%x%max = branch%ele(branch%n_ele_track)%s
+else
+  wg0%x%max = ubound(s%wave%d1_dat%d, 1)
 endif
 
 do i = 1, 3
@@ -210,10 +209,10 @@ type (tao_plot_struct), target :: plot
 type (tao_graph_struct), pointer :: wg, wg0
 type (tao_curve_struct), pointer :: wc, wc0
 type (tao_universe_struct), pointer :: u
-type (tao_d1_data_array_struct), allocatable :: d1_array(:)
 type (tao_d1_data_struct), pointer :: d1_dat
 type (branch_struct), pointer :: branch
 
+real(rp) dx
 integer i, j, n, n_dat_arr, n_pt0, n_tot
 
 character(*), parameter :: r_name = 'tao_wave_analysis'
@@ -267,15 +266,10 @@ endif
 u => tao_pointer_to_universe (tao_curve_ix_uni(wc0))
 branch => u%model%lat%branch(0)
 
-s%wave%i_wrap_pt = n_pt0
+s%wave%i_curve_wrap_pt = n_pt0
 
-if (wc0%data_source == 'data') then
-  call tao_find_data (err, wc0%data_type, d1_array = d1_array, ix_uni = tao_curve_ix_uni(wc0))
-  d1_dat => d1_array(1)%d1
-  n_dat_arr = size(d1_dat%d)
-else
-  n_dat_arr = n_pt0
-endif
+d1_dat => s%wave%d1_dat
+n_dat_arr = size(d1_dat%d)
 
 if (branch%param%geometry == closed$ .and. wc0%data_source == 'data') then
   do i = 1, n_pt0
@@ -297,7 +291,13 @@ if (s%wave%ix_a1 == -1) then
   s%wave%ix_b2 = n_pt0 - 5
 endif
 
-! Transfer the data to th wave arrays
+! Transfer the data to the wave arrays
+
+if (plot%x_axis_type == 's') then
+  dx = u%model%lat%param%total_length
+else
+  dx = n_dat_arr
+endif
 
 do i = 1, 3
   wg => plot%graph(i)
@@ -313,7 +313,7 @@ do i = 1, 3
   wc%y_symb(1:n_pt0)  = wc0%y_symb
   wc%ix_symb(1:n_pt0) = wc0%ix_symb
 
-  wc%x_symb(n_pt0+1:n_tot)  = wc0%x_symb(1:n_tot-n_pt0) + n_dat_arr
+  wc%x_symb(n_pt0+1:n_tot)  = wc0%x_symb(1:n_tot-n_pt0) + dx
   wc%y_symb(n_pt0+1:n_tot)  = wc0%y_symb(1:n_tot-n_pt0)
   wc%ix_symb(n_pt0+1:n_tot) = wc0%ix_symb(1:n_tot-n_pt0)
 
@@ -321,7 +321,7 @@ do i = 1, 3
   wc%y_line = wc%y_symb
 
   s%wave%ix_data(1:n_pt0) = wc0%ix_symb
-  s%wave%ix_data(n_pt0+1:n_tot) = wc0%ix_symb(1:n_tot-n_pt0) + n_dat_arr  
+  s%wave%ix_data(n_pt0+1:n_tot) = wc0%ix_symb(1:n_tot-n_pt0) + dx 
 
 enddo
 
@@ -442,7 +442,7 @@ endif
 do i = 1, n_curve_pt
 
   dphi = 0
-  if (i > s%wave%i_wrap_pt) dphi = tune
+  if (i > s%wave%i_curve_wrap_pt) dphi = tune
 
   ele => ele_at_curve_point(plot, i)
 
@@ -519,10 +519,10 @@ do i = m_min, m_max
     if (phi(j) < phi_kick) exit
   enddo
 
-  if (s%wave%ix_data(j) <= s%wave%i_wrap_pt) then
+  if (s%wave%ix_data(j) <= size(s%wave%d1_dat%d)) then
     s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j)
   else
-    s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j) - s%wave%i_wrap_pt
+    s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j) - size(s%wave%d1_dat%d)
   endif
 
   if (phi_kick > tune) phi_kick = phi_kick - tune
@@ -625,7 +625,7 @@ end select
 do i = 1, n_curve_pt
 
   dphi = 0
-  if (i > s%wave%i_wrap_pt) dphi = tune
+  if (i > s%wave%i_curve_wrap_pt) dphi = tune
 
   ele => ele_at_curve_point(plot, i)
 
@@ -698,10 +698,10 @@ do i = m_min, m_max
     if (phi(j) < phi_kick) exit
   enddo
 
-  if (s%wave%ix_data(j) <= s%wave%i_wrap_pt) then
+  if (s%wave%ix_data(j) <= size(s%wave%d1_dat%d)) then
     s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j)
   else
-    s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j) - s%wave%i_wrap_pt
+    s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j) - size(s%wave%d1_dat%d)
   endif
 
   if (phi_kick > tune) phi_kick = phi_kick - tune
@@ -801,7 +801,7 @@ do i = 1, n_curve_pt
   phi_s(i) = ele%a%phi + ele%b%phi
   phi_r(i) = ele%a%phi - ele%b%phi
 
-  if (i > s%wave%i_wrap_pt) then
+  if (i > s%wave%i_curve_wrap_pt) then
     phi_s(i) = ele%a%phi + ele%b%phi + tune_s
     phi_r(i) = ele%a%phi - ele%b%phi + tune_r
   endif
@@ -894,10 +894,10 @@ do i = m_min, m_max
     if (phi_s(j) < phi1_s) exit
   enddo
 
-  if (s%wave%ix_data(j) <= s%wave%i_wrap_pt) then
+  if (s%wave%ix_data(j) <= size(s%wave%d1_dat%d)) then
     s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j)
   else
-    s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j) - s%wave%i_wrap_pt
+    s%wave%kick(nc)%ix_dat_before_kick = s%wave%ix_data(j) - size(s%wave%d1_dat%d)
   endif
 
   phi_r_ave = (phi_r(j) + phi_r(j+1)) / 2

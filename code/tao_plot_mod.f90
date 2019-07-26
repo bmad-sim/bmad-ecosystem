@@ -201,7 +201,7 @@ type (tao_plot_struct) :: plot
 type (tao_graph_struct), target :: graph
 type (qp_axis_struct), pointer :: y
 
-real(rp) y0, y1
+real(rp) y0, y1, x_a1, x_a2, x_b1, x_b2
 
 ! Draw the data
 
@@ -213,13 +213,59 @@ y => graph%y
 y0 = y%min + 0.1 * (y%max - y%min)
 y1 = y%max - 0.1 * (y%max - y%min)
 
+x_a1 = x_val(s%wave%ix_a1)
+x_a2 = x_val(s%wave%ix_a2)
+x_b1 = x_val(s%wave%ix_b1)
+x_b2 = x_val(s%wave%ix_b2)
+
 if (graph%type == 'wave.0' .or. graph%type == 'wave.a') then
-  call qp_draw_rectangle (1.0_rp * s%wave%ix_a1, 1.0_rp * s%wave%ix_a2, y0, y1, color = blue$, width = 2)
+  call qp_draw_rectangle (x_a1, x_a2, y0, y1, color = blue$, width = 2)
 endif
 
 if (graph%type == 'wave.0' .or. graph%type == 'wave.b') then
-  call qp_draw_rectangle (1.0_rp * s%wave%ix_b1, 1.0_rp * s%wave%ix_b2, y0, y1, color = blue$, width = 2)
+  call qp_draw_rectangle (x_b1, 1.0_rp * x_b2, y0, y1, color = blue$, width = 2)
 endif
+
+!---------------------------------------------------
+contains
+
+function x_val(ix_dat) result (x)
+
+type (tao_curve_struct), pointer :: c
+real(rp) x
+integer ix_dat, i, i0, i1
+
+!
+
+if (plot%x_axis_type == 'index') then
+  x = ix_dat
+  return
+endif
+
+!
+
+c => graph%curve(1)
+
+i0 = -1; i1 = -1
+do i = 1, size(c%ix_symb)
+  if (c%ix_symb(i) <= ix_dat) i0 = i
+  if (c%ix_symb(i) >= ix_dat) then
+    i1 = i
+    exit
+  endif
+enddo
+
+if (i0 == -1) then
+  x = c%x_symb(i1)
+elseif (i1 == -1) then
+  x = c%x_symb(i0)
+elseif (i0 == i1) then
+  x = c%x_symb(i0)
+else
+  x = (c%x_symb(i0) * (i1 - ix_dat) + c%x_symb(i1) * (ix_dat - i0)) / (i1 - i0)
+endif
+
+end function x_val
 
 end subroutine tao_plot_wave
 
