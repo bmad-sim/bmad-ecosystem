@@ -29,6 +29,7 @@ class taoplot:
 
 		LatLayout=False
 		FloorPlan=False
+		Wave=False
 		#determines if shapes are drawn on graph, changed to True later if needed
 		
 		eleIndexList=[]
@@ -424,10 +425,15 @@ class taoplot:
 				for k in SymbolsList:
 					xsList.append(k[0])
 					ysList.append(k[1])
-				if gInfoDict['graph^type'].value == 'data':
+				if gInfoDict['graph^type'].value == 'data' or gInfoDict['graph^type'].value == 'wave.0' or gInfoDict['graph^type'].value == 'wave.a' or gInfoDict['graph^type'].value == 'wave.b':
 					LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xpList,ypList,color=i[2],linestyle=i[3],linewidth=i[4]/2))
 					GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2)
-					LatLayout = True
+					if gInfoDict['x.label'].value != 'Index':
+						LatLayout = True
+					#add lat layout
+					if gInfoDict['graph^type'].value != 'data':
+						Wave = True
+					#wave analysis
 				#line and symbol graphs
 				
 				elif gInfoDict['graph^type'].value == 'dynamic_aperture':
@@ -470,15 +476,19 @@ class taoplot:
 
 			LegendList = []
 			LabelList = []
-			for i in range(len(CurvesList)):
-				LegendList.append(LineList[i][0])
-				if pgp_to_mpl(cInfoDictList[i]['legend_text'].value) != '':
-					LabelList.append(pgp_to_mpl(cInfoDictList[i]['legend_text'].value))
-				elif pgp_to_mpl(cInfoDictList[i]['data_type'].value) == 'physical_aperture':
-					LabelList.append(pgp_to_mpl(cInfoDictList[i]['data_type'].value))
-				else:
-					LabelList.append('')
-			#list of curves to be added to a legend and list of labels for each curve in the legend
+
+			try:
+				for i in range(len(CurvesList)):
+					LegendList.append(LineList[i][0])
+					if pgp_to_mpl(cInfoDictList[i]['legend_text'].value) != '':
+						LabelList.append(pgp_to_mpl(cInfoDictList[i]['legend_text'].value))
+					elif pgp_to_mpl(cInfoDictList[i]['data_type'].value) == 'physical_aperture':
+						LabelList.append(pgp_to_mpl(cInfoDictList[i]['data_type'].value))
+					else:
+						LabelList.append('')
+				#list of curves to be added to a legend and list of labels for each curve in the legend
+			except IndexError:
+				raise NotImplementedError('unknown graph type')
 
 			if (gInfoDict['draw_curve_legend'].value == True and LabelList != ['']) and gInfoDict['graph^type'].value != 'lat_layout' and gInfoDict['graph^type'].value != 'floor_plan':
 				GraphDict['graph'+str(gNumber+1)].legend(LegendList,LabelList)
@@ -581,8 +591,8 @@ class taoplot:
 
 			for i in eleIndexList:
 
-				GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1.3*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],alpha=0)
-				GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1.3*eleY2Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],alpha=0)
+				GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1.7*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],alpha=0)
+				GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1.7*eleY2Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],alpha=0)
 				#invisible elements to give enough space for actual lat layout elements
 
 				try:
@@ -874,13 +884,11 @@ class taoplot:
 						#center of circle used to draw arc edges of sbends
 
 
-
 						if intersection == False:
 							GraphDict['FloorPlan'].plot([fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeExDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],[fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeEyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
 							GraphDict['FloorPlan'].plot([fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeExDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],[fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeEyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
 						#draw sbend edges if bend angle is 0
 
-						
 
 						elif intersection != False:
 							angle1 = 360 + conv*np.arctan2(fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1],fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])
@@ -985,17 +993,19 @@ class taoplot:
 					#draw sbend element
 
 
-
 					if fpeNameDict[str(i)] != '' and fpeColorDict[str(i)] != '' and np.sin(((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)) > 0:
-						GraphDict['FloorPlan'].text(fpeSxDict[str(i)]+(fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - 1.2*fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+(fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + 1.2*fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeNameDict[str(i)],ha='right',va='center',color='black',rotation=-90+((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)*conv,clip_on=True,rotation_mode='anchor')
+						GraphDict['FloorPlan'].text(fpeSxDict[str(i)]+(fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - 1.3*fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+(fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + 1.3*fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeNameDict[str(i)],ha='right',va='center',color='black',rotation=-90+((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)*conv,clip_on=True,rotation_mode='anchor')
 
 					elif fpeNameDict[str(i)] != '' and fpeColorDict[str(i)] != '' and np.sin(((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)) <= 0:
-						GraphDict['FloorPlan'].text(fpeSxDict[str(i)]+(fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - 1.2*fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+(fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + 1.2*fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeNameDict[str(i)],ha='left',va='center',color='black',rotation=90+((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)*conv,clip_on=True,rotation_mode='anchor')
+						GraphDict['FloorPlan'].text(fpeSxDict[str(i)]+(fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - 1.3*fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+(fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + 1.3*fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeNameDict[str(i)],ha='left',va='center',color='black',rotation=90+((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)*conv,clip_on=True,rotation_mode='anchor')
 					#draw element name
 					
 
 
-					if fpeTypeDict[str(i)] == 'sbend': #for sbend click detection
+
+					'''floor plan click detection'''
+
+					if fpeTypeDict[str(i)] == 'sbend' and intersection != False: #for sbend click detection
 						c1 = [fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])]
 						c2 = [fpeExDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)]),fpeEyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])]
 						c3 = [fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])]
@@ -1220,7 +1230,10 @@ class taoplot:
 				gUniverse = 1
 
 			gBranch = gInfoDict['-1^ix_branch'].value
-			gComponent = gInfoDict['component'].value
+			if gInfoDict['component'].value == 'model' or gInfoDict['component'].value == 'base' or gInfoDict['component'].value == 'design':
+				gComponent = gInfoDict['component'].value
+			else:
+				gComponent = 'model'
 		#get universe, branch, and component
 
 		if gInfoDict['graph^type'].value != 'floor_plan':

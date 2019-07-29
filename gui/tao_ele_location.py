@@ -30,7 +30,7 @@ def in_element(x,y,fig_info):
 	inIndexList = []
 	returnList = fig_info
 	try:
-		if returnList[0] == 'lat_layout' or returnList[0] == 'data':
+		if returnList[0] == 'lat_layout' or returnList[0] == 'data' or returnList[0] == 'wave.0' or returnList[0] == 'wave.a' or returnList[0] == 'wave.b':
 			for i in returnList[4]:
 				if returnList[5][str(i)] < returnList[6][str(i)]:
 					if returnList[5][str(i)] < x < returnList[6][str(i)]:
@@ -48,7 +48,7 @@ def in_element(x,y,fig_info):
 						inIndexList.append(i)
 				
 				else:
-					try: #sbends handled in taoplot
+					try: #sbend click detection already handled in taoplot
 						if returnList[15][str(i)].contains_point([x,y]) == True:
 							inIndexList.append(i)
 
