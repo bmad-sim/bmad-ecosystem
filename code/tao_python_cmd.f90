@@ -3477,23 +3477,23 @@ case ('wave')
   case ('locations')
     select case (s%wave%data_type)
     case ('orbit.x', 'orbit.y', 'eta.x', 'eta.y', 'beta.a', 'beta.b', 'ping_a.amp_x', 'ping_b.amp_y')
-      do i = 1, min(s%wave%n_kick, 20)
+      do i = 1, s%wave%n_kick
         wk => s%wave%kick(i)
-        nl=incr(nl); write(li(nl), '(i0, a, f0.2, a, f0.2, a, i0, 3a, f0.3)') wk%ix_dat_before_kick, ';', 1e6*wk%amp, ';', wk%s, ';', ele%ix_ele, ';', trim(wk%ele%name), ';', wk%phi
+        nl=incr(nl); write(li(nl), '(i0, a, f0.2, a, f0.2, a, i0, 3a, f0.3)') wk%ix_dat_before_kick, ';', 1e6*wk%amp, ';', wk%s, ';', wk%ele%ix_ele, ';', trim(wk%ele%name), ';', wk%phi
       enddo
 
     case ('phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y')
-      do i = 1, min(s%wave%n_kick, 20)
-        wk => wk
-        nl=incr(nl); write(li(nl), '(i0, a, f0.4, a, f0.2, a, i0, 3a, f0.3)') wk%ix_dat_before_kick, ';', wk%amp, ';', wk%s, ';', ele%ix_ele, ';', trim(wk%ele%name), ';', wk%phi
+      do i = 1, s%wave%n_kick
+        wk => s%wave%kick(i)
+        nl=incr(nl); write(li(nl), '(i0, a, f0.4, a, f0.2, a, i0, 3a, f0.3)') wk%ix_dat_before_kick, ';', wk%amp, ';', wk%s, ';', wk%ele%ix_ele, ';', trim(wk%ele%name), ';', wk%phi
       enddo
 
     case ('ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x', &
           'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_b.amp_sin_x', 'ping_b.amp_cos_x', 'cbar.11', 'cbar.12', 'cbar.22')
       do i = 1, s%wave%n_kick
-        wk => wk
+        wk => s%wave%kick(i)
         nl=incr(nl); write(li(nl), '(i0, a, f0.4, a, f0.2, a, i0, 3a, 4(f0.3, a))') wk%ix_dat_before_kick, ';', &
-                  wk%amp, ';', wk%s, ';', ele%ix_ele, ';', trim(wk%ele%name), ';', wk%phi_s, ';', wk%phi_r, ';', (wk%phi_s+wk%phi_r)/2, ';', (wk%phi_s-wk%phi_r)/2
+                  wk%amp, ';', wk%s, ';', wk%ele%ix_ele, ';', trim(wk%ele%name), ';', wk%phi_s, ';', wk%phi_r, ';', (wk%phi_s+wk%phi_r)/2, ';', (wk%phi_s-wk%phi_r)/2
       enddo
     end select
 
