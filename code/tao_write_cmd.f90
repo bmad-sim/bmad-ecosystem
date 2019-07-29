@@ -1008,7 +1008,7 @@ elseif (present(re_arr)) then
 
 elseif (present(logic_arr)) then
   if (present(logic_dflt)) then
-    if (all(logic_arr == logic_dflt)) return
+    if (all(logic_arr .eqv. logic_dflt)) return
   endif
 
   do i = i_min, i_max
