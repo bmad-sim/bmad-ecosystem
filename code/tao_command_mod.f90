@@ -231,7 +231,7 @@ nw_loop: do
       endif
     endif
 
-    if (line(i:i) == ' ' .or. line(i:i) == tab) then
+    if (line(i:i) == ' ') then
       nw=nw+1; cmd_word(nw) = line(1:i-1)
       line = line(i+1:)
       cycle nw_loop
