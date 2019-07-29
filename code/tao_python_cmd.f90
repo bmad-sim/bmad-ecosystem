@@ -802,13 +802,12 @@ case ('data_d_array')
 
   do i = 1, size(d_array)
     d_ptr => d_array(i)%d
-    if (.not. d_ptr%exists) cycle
     name = tao_constraint_type_name(d_ptr)
-    nl=incr(nl); write(li(nl), '(i0, 11a, 3(es21.13, a), 3(l1, a), es21.13)') d_ptr%ix_d1, ';', &
+    nl=incr(nl); write(li(nl), '(i0, 11a, 3(es21.13, a), 3(l1, a), es21.13, a, l1)') d_ptr%ix_d1, ';', &
               trim(d_ptr%data_type), ';', trim(d_ptr%merit_type), ';', &
               trim(d_ptr%ele_ref_name), ';', trim(d_ptr%ele_start_name), ';', trim(d_ptr%ele_name), ';', &
               d_ptr%meas_value, ';', d_ptr%model_value, ';', d_ptr%design_value, ';', &
-              d_ptr%useit_opt, ';', d_ptr%useit_plot, ';', d_ptr%good_user, ';', d_ptr%weight
+              d_ptr%useit_opt, ';', d_ptr%useit_plot, ';', d_ptr%good_user, ';', d_ptr%weight, ';', d_ptr%exists
   enddo
 
 
