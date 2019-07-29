@@ -36,20 +36,25 @@ type (coord_struct), pointer :: p
 type (lat_nametable_struct) etab
 type (tao_d2_data_struct), pointer :: d2
 type (tao_d1_data_struct), pointer :: d1
+type (tao_data_struct), pointer :: dat
+type (tao_v1_var_struct), pointer :: v1
 
 real(rp) scale
 
 character(*) what
-character(20) action, name, lat_type, which
-character(200) switch
+character(20) action, name, lat_type, which, last_col
+character(200) line, switch, header1, header2
 character(200) file_name0, file_name, what2
 character(200) :: word(12)
 character(*), parameter :: r_name = 'tao_write_cmd'
 
-integer i, j, n, ie, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
+integer i, j, k, m, n, ie, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
 integer i_chan, ix_beam, ix_word, ix_w2, file_format
+integer n_type, n_ref, n_start, n_ele, n_merit, n_meas, n_weight, n_good, n_bunch, n_eval, n_s
+integer i_min, i_max, n_len
 
 logical is_open, ok, err, good_opt_only, at_switch, new_file, append
+logical write_data_source, write_data_type, write_merit_type, write_weight, write_attribute, write_step
 
 !
 
@@ -458,7 +463,7 @@ case ('mad_lattice', 'mad8_lattice', 'madx_lattice', 'opal_latice', 'sad_lattice
 case ('namelist')
 
   ix_word = 0
-  file_name0 = ''
+  file_name = ''
   which = ''
   append = .false.
 
@@ -474,11 +479,11 @@ case ('namelist')
     case ('-data', '-variable');  which = switch
     case ('-append');             append = .true.
     case default
-      if (file_name0 /= '') then
+      if (file_name /= '') then
         call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
         return
       endif
-      file_name0 = switch
+      file_name = switch
     end select
   enddo
 
@@ -489,7 +494,7 @@ case ('namelist')
     return
   endif
 
-  if (file_name0 == '') file_name0 = 'tao.namelist'
+  if (file_name == '') file_name = 'tao.namelist'
   iu = lunget()
   if (append) then
     open (iu, file = file_name, access = 'append')
@@ -504,21 +509,168 @@ case ('namelist')
     do i = 1, size(s%u)
       u => s%u(i)
       call create_lat_ele_sorted_nametable(u%model%lat, etab)
+
       do j = 1, u%n_d2_data_used
         d2 => u%d2_data(j)
         write (iu, *)
         write (iu, '(a)') '!---------------------------------------'
         write (iu, *)
         write (iu, '(a)')     '&tao_d2_data'
-        write (iu, '(2a)')    '  d2_data%name = ', trim(d2%name)
+        write (iu, '(2a)')    '  d2_data%name = ', quote(d2%name)
         write (iu, '(a, i0)') '  universe = ', i
         write (iu, '(a, i0)') '  n_d1_data = ', size(d2%d1)
         write (iu, '(a)')     '/'
+
+        do k = 1, size(d2%d1)
+          d1 => d2%d1(k)
+          write (iu, *)
+          write (iu, '(a)')      '&tao_d1_data'
+          write (iu, '(2a)')     '  d1_data%name   = ', quote(d1%name)
+          write (iu, '(a, i0)')  '  ix_d1_data     = ', k
+          i_min = lbound(d1%d, 1);   i_max = ubound(d1%d, 1)
+          write (iu, '(a, i0)')  '  ix_min_data    = ', i_min
+          write (iu, '(a, i0)')  '  ix_max_data    = ', i_max
+
+          ! Data output parameter-by-parameter
+          if ((all(d1%d%data_type == d1%d(i_min)%data_type) .and. (size(d1%d) > 10)) .or. &
+                                                                  maxval(len_trim(d1%d%data_type)) > 30) then
+            write_data_source = .true.
+            if (all(d1%d%data_source == d1%d(i_min)%data_source)) then
+              if (d1%d(i_min)%data_source /= tao_d2_d1_name(d1, .false.)) write (iu, '(2a)') '  default_data_source = ', quote(d1%d(i_min)%data_source)
+              write_data_source = .false.
+            endif
+
+            write_data_type = .true.
+            if (all(d1%d%data_type == d1%d(i_min)%data_type)) then
+              write (iu, '(2a)') '  default_data_type = ', quote(d1%d(i_min)%data_type)
+              write_data_type = .false.
+            endif
+
+            write_merit_type = .true.
+            if (all(d1%d%merit_type == 'target')) then
+              write_merit_type = .false.
+            endif
+
+            write_weight = .true.
+            if (all(d1%d%weight == d1%d(i_min)%weight)) then
+              write (iu, '(2a)') '  default_weight = ', real_to_string(d1%d(i_min)%weight, 12, 5)
+              write_weight = .false.
+            endif
+
+            if (write_data_source) call namelist_param_out ('d', 'data_source', i_min, i_max, d1%d%data_source)
+            if (write_data_type)   call namelist_param_out ('d', 'data_type', i_min, i_max, d1%d%data_type)
+            call namelist_param_out ('d', 'ele_name', i_min, i_max, d1%d%ele_name)
+            call namelist_param_out ('d', 'ele_start_name', i_min, i_max, d1%d%ele_start_name, '')
+            call namelist_param_out ('d', 'ele_ref_name', i_min, i_max, d1%d%ele_ref_name, '')
+            if (write_merit_type)  call namelist_param_out ('d', 'merit_type', i_min, i_max, d1%d%merit_type, '')
+
+            call namelist_param_out ('d', 'meas', i_min, i_max, re_arr = d1%d%meas_value)
+            if (write_weight)      call namelist_param_out ('d', 'weight', i_min, i_max, re_arr = d1%d%weight)
+            call namelist_param_out ('d', 'good_user', i_min, i_max, logic_arr = d1%d%good_user, logic_dflt = .true.)
+            call namelist_param_out ('d', 'eval_point', i_min, i_max, anchor_pt_name(d1%d%eval_point), anchor_pt_name(anchor_end$))
+            call namelist_param_out ('d', 's_offset', i_min, i_max, re_arr = d1%d%s_offset, re_dflt = 0.0_rp)
+            call namelist_param_out ('d', 'ix_bunch', i_min, i_max, int_arr = d1%d%ix_bunch, int_dflt = 0)
+
+          ! Data output datum-by-datum
+          else
+            n_type   = max(11, maxval(len_trim(d1%d%data_type)))
+            n_ref    = max(11, maxval(len_trim(d1%d%ele_ref_name)))
+            n_start  = max(11, maxval(len_trim(d1%d%ele_start_name)))
+            n_ele    = max(11, maxval(len_trim(d1%d%ele_name)))
+            n_merit  = max(10, maxval(len_trim(d1%d%merit_type)))
+            n_meas   = 14
+            n_weight = 12
+            n_good   = 6
+            n_bunch  = 6
+            n_eval   = max(8, maxval(len_trim(anchor_pt_name(d1%d%eval_point))))
+            n_s      = 12
+
+            last_col = 'merit'
+            if (any(d1%d%meas_value /= 0)) last_col = 'meas'
+            if (any(d1%d%weight /= 0)) last_col = 'weight'
+            if (any(d1%d%good_user .neqv. .true.)) last_col = 'good'
+            if (any(d1%d%ix_bunch /= 0)) last_col = 'bunch'
+            if (any(d1%d%eval_point /= anchor_end$)) last_col = 'eval'
+            if (any(d1%d%s_offset /= 0)) last_col = 's'
+
+            do m = i_min, i_max
+              dat => d1%d(m)
+              header1 =                  '  !'
+              header2 =                  '  !'
+              write (line, '(a, i3, a)') '  datum(', m, ') ='
+              n_len = len_trim(line) + 1
+              call namelist_item_out (header1, header2, line, n_len, n_type,    'data_', 'type', dat%data_type)
+              call namelist_item_out (header1, header2, line, n_len, n_ref,     'ele_ref', 'name', dat%ele_ref_name)
+              call namelist_item_out (header1, header2, line, n_len, n_start,   'ele_start', 'name', dat%ele_start_name)
+              call namelist_item_out (header1, header2, line, n_len, n_ele,     'ele', 'name', dat%ele_name)
+              call namelist_item_out (header1, header2, line, n_len, n_merit,   'merit', 'type', dat%merit_type)
+              call namelist_item_out (header1, header2, line, n_len, n_meas,    'meas', 'value', re_val = dat%meas_value)
+              call namelist_item_out (header1, header2, line, n_len, n_weight,  'weight', '', re_val = dat%weight)
+              call namelist_item_out (header1, header2, line, n_len, n_good ,   'good', 'user', logic_val = dat%good_user)
+              call namelist_item_out (header1, header2, line, n_len, n_bunch,   'ix', 'bunch', int_val = dat%ix_bunch)
+              call namelist_item_out (header1, header2, line, n_len, n_eval,    'eval', 'point', anchor_pt_name(dat%eval_point))
+              call namelist_item_out (header1, header2, line, n_len, n_s,       's', 'offset', re_val = dat%s_offset)
+            enddo
+          endif
+
+          ! spin out
+
+          do m = i_min, i_max
+            if (all(d1%d(m)%spin_axis%n0 == 0)) cycle
+            write (iu, '(a, i0, a, 3f12.6)') 'datum(', m, ')%spin_n0 = ', (d1%d%spin_axis%n0(1), n = 1, 3)
+          enddo
+
+          write (iu, '(a)') '/'
+
+        enddo
+
       enddo
     enddo
 
+  !
+
   case ('-variable')
 
+    do i = 1, s%n_var_used
+      v1 => s%v1_var(i)
+      write (iu, *)
+      write (iu, '(a)') '!---------------------------------------'
+      write (iu, *)
+      write (iu, '(a)')    '&tao_v1_var'
+      write (iu, '(2a)')   '  v1_var%name   = ', quote(v1%name)
+      i_min = lbound(v1%v, 1);   i_max = ubound(v1%v, 1)
+      write (iu, '(a, i0)')  '  ix_min_var    = ', i_min
+      write (iu, '(a, i0)')  '  ix_max_var    = ', i_max
+      
+      write_attribute = .true.
+      if (all(v1%v%attrib_name == v1%v(i_min)%attrib_name)) then
+        write (iu, '(2a)') '  default_attribute = ', quote(v1%v(i_min)%attrib_name)
+        write_attribute = .false.
+      endif
+
+      write_step = .true.
+      if (all(v1%v%step == v1%v(i_min)%step)) then
+        write (iu, '(2a)') '  default_step = ', real_to_string(v1%v(i_min)%step, 12, 5)
+        write_step = .false.
+      endif
+
+      write_weight = .true.
+      if (all(v1%v%weight == v1%v(i_min)%weight)) then
+        write (iu, '(2a)') '  default_weight = ', real_to_string(v1%v(i_min)%weight, 12, 5)
+        write_weight = .false.
+      endif
+
+      call namelist_param_out ('v', 'ele_name', i_min, i_max, v1%v%ele_name)
+      if (write_attribute) call namelist_param_out ('v', 'attribute', i_min, i_max, v1%v%attrib_name)
+      if (write_weight)    call namelist_param_out ('v', 'weight', i_min, i_max, re_arr = v1%v%weight)
+      if (write_step)      call namelist_param_out ('v', 'step', i_min, i_max, re_arr = v1%v%step)
+      call namelist_param_out ('v', 'low_lim', i_min, i_max, re_arr = v1%v%low_lim, re_dflt = 0.0_rp)
+      call namelist_param_out ('v', 'high_lim', i_min, i_max, re_arr = v1%v%high_lim, re_dflt = 0.0_rp)
+      call namelist_param_out ('v', 'merit_type', i_min, i_max, v1%v%merit_type)
+      call namelist_param_out ('v', 'good_user', i_min, i_max, logic_arr = v1%v%good_user, logic_dflt = .true.)
+      call namelist_param_out ('v', 'key_bound', i_min, i_max, logic_arr = v1%v%key_bound, logic_dflt = .false.)
+      call namelist_param_out ('v', 'key_delta', i_min, i_max, re_arr = v1%v%key_delta, re_dflt = 0.0_rp)
+    enddo
   end select
 
 !---------------------------------------------------
@@ -778,4 +930,134 @@ case default
 
 end select
 
-end subroutine 
+!-----------------------------------------------------------------------------
+contains
+
+subroutine namelist_item_out (header1, header2, line, n_len, n_add, h1, h2, str_val, re_val, logic_val, int_val)
+
+real(rp), optional :: re_val
+integer, optional :: int_val
+integer n_len, n_add
+logical, optional :: logic_val
+character(*) header1, header2, line, h1, h2
+character(*), optional :: str_val
+character(n_add) add_str
+
+!
+
+header1 = header1(1:n_len) // h1
+header2 = header2(1:n_len) // h1
+
+!
+
+if (present(str_val)) then
+  add_str = quote(str_val)
+elseif (present(re_val)) then
+  add_str = real_to_string(re_val, n_add-1, n_add-9)
+elseif (present(logic_val)) then
+  write (add_str, '(l2)') logic_val
+elseif (present(int_val)) then
+  write (add_str, '(i4)') int_val
+endif
+
+!
+
+line = line(1:n_len) // add_str
+n_len = n_len + n_add
+
+end subroutine namelist_item_out
+
+!-----------------------------------------------------------------------------
+! contains
+
+subroutine namelist_param_out (who, name, i_min, i_max, str_arr, str_dflt, re_arr, re_dflt, logic_arr, logic_dflt, int_arr, int_dflt)
+
+integer i_min, i_max
+
+real(rp), optional :: re_arr(i_min:), re_dflt
+
+integer i
+integer, optional :: int_arr(i_min:), int_dflt
+logical, optional :: logic_arr(i_min:), logic_dflt
+
+character(*) who, name
+character(*), optional :: str_arr(i_min:), str_dflt
+character(300) out_str(i_min:i_max)
+character(200) line
+
+
+! Encode values
+
+if (present(str_arr)) then
+  if (present(str_dflt)) then
+    if (all(str_arr == str_dflt)) return
+  endif
+
+  do i = i_min, i_max
+    out_str(i) = quote(str_arr(i))
+  enddo
+
+elseif (present(re_arr)) then
+  if (present(re_dflt)) then
+    if (all(re_arr == re_dflt)) return
+  endif
+
+  do i = i_min, i_max
+    out_str(i) = real_to_string(re_arr(i), 15, 8)
+  enddo
+
+elseif (present(logic_arr)) then
+  if (present(logic_dflt)) then
+    if (all(logic_arr == logic_dflt)) return
+  endif
+
+  do i = i_min, i_max
+    write (out_str(i), '(l1)') logic_arr(i)
+  enddo
+
+elseif (present(int_arr)) then
+  if (present(int_dflt)) then
+    if (all(int_arr == int_dflt)) return
+  endif
+
+  do i = i_min, i_max
+    write (out_str(i), '(i0)') int_arr(i) 
+  enddo
+endif
+
+! Write to output
+! Note: Using an array multiplyer is not valid for strings.
+
+if (who == 'd') then
+  write (line, '(2x, 2(a, i0), 4a)') 'datum(', i_min, ':', i_max, ')%', trim(name), ' = '
+else
+  write (line, '(2x, 2(a, i0), 4a)') 'var(', i_min, ':', i_max, ')%', trim(name), ' = '
+endif
+
+if (all(out_str == out_str(i_min)) .and. .not. present(str_arr)) then
+  write (iu, '(a, i0, 2a)') trim(line), i_max-i_min+1, '*', trim(out_str(i_min))
+  return
+endif
+
+write (iu, '(a)') trim(line)
+line = ''
+
+do i = i_min, i_max
+  if (line == '') then
+    line = out_str(i)
+  else
+    line = trim(line) // ', ' // out_str(i)
+  endif
+
+  if (i == i_max) then
+    write (iu, '(6x, a)') trim(line)
+    exit
+  elseif (len_trim(line) +len_trim(out_str(i+1)) > 100) then
+    write (iu, '(6x, a)') trim(line)
+    line = ''
+  endif
+enddo
+
+end subroutine namelist_param_out
+
+end subroutine tao_write_cmd

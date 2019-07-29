@@ -1167,8 +1167,8 @@ structure there must be a \vn{tao_d1_data} namelist which has the form:
     datum(j)%ele_start_name = "<ele_start_name>" ! Start element name.
     datum(j)%ele_ref_name   = "<ele_ref_name>"   ! Reference element names.
     datum(j)%merit_type     = "<merit_type>"     ! Sets how the merit is calculated.
-    datum(j)%meas           = "<real>  "         ! Datum "measured" value
-    datum(j)%weight         = "<weight>"         ! Merit function weight.
+    datum(j)%meas           = <real>             ! Datum "measured" value
+    datum(j)%weight         = <weight>           ! Merit function weight.
     datum(j)%good_user      = <logical>          ! Use for optimization and plotting?
     datum(j)%ix_bunch       = <integer>          ! Bunch index. Dflt: 0 = all bunches.
     datum(j)%eval_point     = "<where>"          ! "beginning", "center", or "end" (dflt).
@@ -1297,7 +1297,7 @@ recognized by \tao. are given by Table~\ref{t:con.type}. Custom data types not
 specified in this table must have a corresponding definition in
 \vn{tao_hook_load_data_array.f90}. See Chapter~\ref{c:custom.tao} for details.
 
-\index{data%weight}
+\index{datum%weight}
 \vn{datum(:)%weight} gives the weight coefficient for a datum in the
 merit function. If not present then the default weight of
 \vni{default_weight} is used. 

@@ -56,7 +56,7 @@ if (any(curve_name == wave_data_name)) then
   do i = 1, size(curve_array)
     if (curve_array(i)%c%data_type /= curve_name) cycle
     if (ix_curve /= 0) then
-      call out_io (s_error$, r_name, 'Multiple curves match the given curve name. Nothing done.')
+      call out_io (s_error$, r_name, 'Multiple curves have the same data_type as: ' // curve_name, 'Nothing done.')
       return
     endif
     ix_curve = i
@@ -70,7 +70,7 @@ else
   do i = 1, size(curve_array) 
     if (.not. any(curve_array(i)%c%data_type == wave_data_name)) cycle
     if (ix_curve /= 0) then
-      call out_io (s_error$, r_name, 'Multiple curves match the given curve name. Nothing done.')
+      call out_io (s_error$, r_name, 'Name does not resolve to a unique curve: ' // curve_name, 'Nothing done.')
       return
     endif
     ix_curve = i

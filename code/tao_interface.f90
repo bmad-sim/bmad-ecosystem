@@ -806,7 +806,15 @@ subroutine tao_turn_on_special_calcs_if_needed_for_plotting ()
   import
   implicit none
 end subroutine
- 
+
+function tao_unique_ele_name (ele, nametable) result (unique_name)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (lat_nametable_struct) nametable
+  character(40) unique_name
+end function
+
 function tao_universe_number (i_uni) result (i_this_uni)
   import
   implicit none
