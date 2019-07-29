@@ -93,7 +93,7 @@ real(rp), pointer :: r_ptr
 
 character(*), optional, allocatable :: lines(:)
 character(:), allocatable :: expression_str
-character(200), pointer :: li(:)
+character(200), allocatable :: li(:)
 character(200), allocatable :: li2(:)
 character(60) str1, str2
 character(40) a_name, name, fmt_r, fmt_a, fmt_i, fmt_l, fmt
@@ -451,7 +451,7 @@ if (associated(ele%cartesian_map)) then
       nl=nl+1; write (li(nl), '(5x, a, 6x, a, 3(9x, a), 2(12x, a), 9x, a, 3x, a)') 'Term#', &
                                     'Coef', 'K_x', 'K_y', 'K_z', 'x0', 'y0', 'phi_z', 'Type'
       do j = 1, min(10, size(ct_map%ptr%term))
-        if (nl+1 > size(li)) call re_associate(li, 2 * nl, .false.)
+        if (nl+1 > size(li)) call re_allocate(li, 2 * nl, .false.)
         ct_term => ct_map%ptr%term(j)
         nl=nl+1; write (li(nl), '(i8, 4f12.6, 3f14.6, 3x, a, 2x, a)') j, ct_term%coef, ct_term%kx, ct_term%ky, ct_term%kz, ct_term%x0, &
                                ct_term%y0, ct_term%phi_z, cartesian_map_family_name(ct_term%family), cartesian_map_form_name(ct_term%form)
@@ -497,7 +497,7 @@ if (associated(ele%cylindrical_map)) then
       nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:           ', cl_map%ptr%n_link
       nl=nl+1; write (li(nl), '(a)')          '    Term                E                           B'
       do j = 1, min(10, size(cl_map%ptr%term))
-        if (nl+1 > size(li)) call re_associate(li, 2 * nl, .false.)
+        if (nl+1 > size(li)) call re_allocate(li, 2 * nl, .false.)
         cl_term => cl_map%ptr%term(j)
         nl=nl+1; write (li(nl), '(i5, 3x, 2(a, 2es12.4), a)') j, '(', cl_term%e_coef, ')  (', cl_term%b_coef, ')'
       enddo
@@ -633,7 +633,7 @@ if (associated(ele%wall3d)) then
       end select
       n = min(size(wall3d%section), 100)
       do i = 1, n
-        call re_associate (li, nl+100, .false.) 
+        call re_allocate (li, nl+100, .false.) 
         section => wall3d%section(i)
         if (section%dr_ds == real_garbage$) then
           write (str1, '(a)')        ',  dr_ds = Not-set'
@@ -746,6 +746,8 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
   else
     nl=nl+1; write (li(nl), '(2a)') 'Slave_status: ', control_name(ele%slave_status)
   endif
+
+  if (nL + ele%n_lord + 100 > size(li)) call re_allocate(li, nl + ele%n_lord + 100)
 
   select case (ele%slave_status)
   case (multipass_slave$)
@@ -882,6 +884,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     do is = 1, ele%n_slave
       slave => pointer_to_slave (ele, is, ctl)
       if (allocated(ctl%stack)) then
+        if (nl + size(ctl%stack) + 100 > size(li)) call re_allocate(li, nl + size(ctl%stack) + 100)
         do i = 1, size(ctl%stack)
           if (ctl%stack(i)%type == end_stack$) exit
           if (ctl%stack(i)%type /= variable$) cycle
@@ -902,6 +905,8 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
   !
 
   if (ele%n_slave /= 0) then
+    if (nl + ele%n_slave + 100 > size(li)) call re_allocate(li, nl + ele%n_slave + 100)
+
     n_char = 10
     do i = 1, ele%n_slave
       slave => pointer_to_slave (ele, i)
@@ -1034,7 +1039,7 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
     nl=nl+1; write (li(nl), '(a, l1)') 'taylor_map_includes_offsets: ', ele%taylor_map_includes_offsets
     if (logic_option(.false., type_taylor)) then
       call type_taylors (ele%taylor, lines = li2, n_lines = nt, out_type = 'PHASE')
-      call re_associate (li, nl+nt+100, .false.)
+      call re_allocate (li, nl+nt+100, .false.)
       li(1+nl:nt+nl) = li2(1:nt)
       deallocate (li2)
       nl = nl + nt
@@ -1051,7 +1056,7 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
     if (logic_option(.false., type_taylor)) then
       nl=nl+1; li(nl) = ''
       call type_taylors (ele%spin_taylor, lines = li2, n_lines = nt, out_type = 'SPIN')
-      call re_associate (li, nl+nt+100, .false.)
+      call re_allocate (li, nl+nt+100, .false.)
       li(1+nl:nt+nl) = li2(1:nt)
       deallocate (li2)
       nl = nl + nt
@@ -1081,7 +1086,7 @@ if (associated(ele%wake)) then
   if (size(ele%wake%sr_long%mode) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
-      call re_associate (li, nl+size(ele%wake%sr_long%mode)+100, .false.)
+      call re_allocate (li, nl+size(ele%wake%sr_long%mode)+100, .false.)
       nl=nl+1; li(nl) = '  Short-Range Longitudinal Pseudo Modes:'
       nl=nl+1; li(nl) = &
             '   #        Amp        Damp           K         Phi   Polarization  Transverse_Dependence'
@@ -1098,7 +1103,7 @@ if (associated(ele%wake)) then
   if (size(ele%wake%sr_trans%mode) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
-      call re_associate (li, nl+size(ele%wake%sr_trans%mode)+100, .false.)
+      call re_allocate (li, nl+size(ele%wake%sr_trans%mode)+100, .false.)
       nl=nl+1; li(nl) = '  Short-Range Transverse Pseudo Modes:'
       nl=nl+1; li(nl) = &
             '   #        Amp        Damp           K         Phi   Polarization  Transverse_Dependence'
@@ -1123,7 +1128,7 @@ if (associated(ele%wake)) then
   if (size(ele%wake%lr_mode) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
-      call re_associate (li, nl+size(ele%wake%lr_mode)+100, .false.)
+      call re_allocate (li, nl+size(ele%wake%lr_mode)+100, .false.)
       nl=nl+1; li(nl) = '  Long-range HOM modes:'
       nl=nl+1; li(nl) = &
             '  #       Freq         R/Q           Q   m   Angle    b_sin     b_cos     a_sin     a_cos     t_ref'
