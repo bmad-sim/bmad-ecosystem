@@ -21,37 +21,30 @@ type (branch_struct), pointer :: branch
 type (lat_nametable_struct) nametable
 
 integer ie, ib, n, n_tot
-character(40), allocatable :: ele_name(:)
 
-!
-
-if (allocated(nametable%branch)) deallocate(nametable%branch)
-allocate (nametable%branch(0:ubound(lat%branch, 1)))
+! Allocate arrays
 
 n_tot = 0
 do ib = 0, ubound(lat%branch, 1)
-  branch => lat%branch(ib)
-  n = branch%n_ele_max
-  allocate (nametable%branch(ib)%indexx(n+1))
-  call indexx (branch%ele(0:n)%name, nametable%branch(ib)%indexx)
-  nametable%branch(ib)%indexx = nametable%branch(ib)%indexx - 1
-  n_tot = n_tot + n + 1
+  n_tot = n_tot + lat%branch(ib)%n_ele_max + 1
 enddo
 
-allocate (ele_name(n_tot))
-allocate (nametable%all(n_tot), nametable%all_indexx(n_tot))
+allocate (nametable%name(n_tot))
+allocate (nametable%ele(n_tot), nametable%indexx(n_tot))
+
+! And sort
 
 n_tot = 0
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   n = branch%n_ele_max
   do ie = 0, n
-    ele_name(n_tot+ie+1) = branch%ele(ie)%name
-    nametable%all(n_tot+ie+1)%ele => branch%ele(ie)
+    nametable%name(n_tot+ie+1) = branch%ele(ie)%name
+    nametable%ele(n_tot+ie+1)%ele => branch%ele(ie)
   enddo
   n_tot = n_tot + n + 1
 enddo
 
-call indexx (ele_name, nametable%all_indexx)
+call indexx (nametable%name, nametable%indexx)
 
 end subroutine
