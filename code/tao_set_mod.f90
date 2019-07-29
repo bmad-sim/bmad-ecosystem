@@ -1893,12 +1893,16 @@ if (size(l_dat) /= 0) then
 
   else
     call tao_find_data (err, value_str, log_array=l_value)
-    if (size(l_value) /= size(l_dat)) then
+    if (size(l_value) /= size(l_dat) .and. size(l_value) /= 1) then
       call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
       return
     endif
     do i = 1, size(l_dat)
-      l_dat(i)%l = l_value(i)%l
+      if (size(l_value) == 1) then
+        l_dat(i)%l = l_value(1)%l
+      else
+        l_dat(i)%l = l_value(i)%l
+      endif
     enddo
   endif
 
@@ -1929,13 +1933,18 @@ elseif (size(int_dat) /= 0) then
 
   else
     call tao_find_data (err, value_str, int_array=int_value)
-    if (size(int_value) /= size(int_dat)) then
+    if (size(int_value) /= size(int_dat) .and. size(int_dat) /= 1) then
       call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
       return
     endif
     do i = 1, size(int_dat)
-      int_save(i) = int_dat(i)%i
-      int_dat(i)%i = int_value(i)%i
+      if (size(int_dat) == 1) then
+        int_save(i) = int_dat(1)%i
+        int_dat(i)%i = int_value(1)%i
+      else
+        int_save(i) = int_dat(i)%i
+        int_dat(i)%i = int_value(i)%i
+      endif
     enddo
   endif
 
@@ -3007,13 +3016,13 @@ case ('number_side')
   call tao_set_integer_value (qp_axis%number_side, qp_axis_name, value, error, -1, 1)
 
 case ('label')
-  qp_axis%label = component
+  qp_axis%label = value
   error = .false.
 case ('type')
-  qp_axis%type = component
+  qp_axis%type = value
   error = .false.
 case ('bounds')
-  qp_axis%bounds = component
+  qp_axis%bounds = value
   error = .false.
 
 case ('draw_label')
@@ -3067,7 +3076,7 @@ case ('x')
 case ('y')
   call tao_set_real_value(qp_point%y, qp_point_name, value, error, dflt_uni = ix_uni)
 case ('units')
-  qp_point%units = component
+  qp_point%units = value
   error = .false.
 case default
   call out_io (s_error$, r_name, "BAD GRAPH QP_POINT COMPONENT " // component)

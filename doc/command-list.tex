@@ -3044,13 +3044,13 @@ do not all point to the same lattice elements.
 The \vn{wave} command sets what data is to be used for the wave analysis (\sref{c:wave}). 
 Format:
 \begin{example}
-  wave <curve> \{<plot_location>\}
+  wave <curve-or-data_type> \{<plot_location>\}
 \end{example}
 
 \vskip 7pt
 
-The \vn{<curve>} argument specifies what plot curve is to be used in the analysis. The specified
-curve must be visible in the plot window. Possible \vn{<curve>}s that can be analyzed are:
+The \vn{<curve-or-data-type>} argument specifies what plot \vn{curve} or \vn{data_type} is to be
+used in the analysis. Possible \vn{<data_type>}s that can be analyzed are:
 \begin{example}
   orbit.x, orbit.y
   beta.a,  beta.b
@@ -3066,6 +3066,8 @@ curve must be visible in the plot window. Possible \vn{<curve>}s that can be ana
   ping_b.amp_sin_x, ping_b.amp_cos_x
   ping_b.amp_sin_rel_x, ping_b.amp_cos_rel_x
 \end{example}
+If there is more than one displayed curve that has the \vn{data_type} to be analyzed, use the
+\vn{curve} name instead (\sref{c:plotting}).
 
 The \vn{<plot_location>} argument
 specifies the plot region where the results of the wave analysis is to be plotted. If not
