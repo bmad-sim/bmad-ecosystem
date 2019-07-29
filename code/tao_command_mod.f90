@@ -173,6 +173,8 @@ line = cmd_line
 cmd_word(:) = ''
 nw = 0
 
+forall (i = 1:len(line), line(i:i) == tab) line(i:i) = ' '
+
 nw_loop: do 
   call string_trim (line, line, ix)
 
