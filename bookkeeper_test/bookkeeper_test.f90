@@ -49,13 +49,8 @@ call bmad_parser ('bookkeeper_test1.bmad', lat)
 
 call create_lat_ele_sorted_nametable(lat, ntab)
 
-do i = 0, ubound(lat%branch, 1)
-  n = size(ntab%branch(i)%indexx)
-  write (1, '(a, i0, a, 100(a, i0))') '"Sort-B', i, '"  STR   "', (';', ntab%branch(i)%indexx(ie), ie = 1, n, 3), '"'
-enddo
-
-n = size(ntab%all_indexx)
-write (1, '(a, 100(a, i0))') '"Sort-All"  STR   "', (';', ntab%all_indexx(ie), ie = 1, n, 3), '"'
+n = size(ntab%indexx)
+write (1, '(a, 100(a, i0))') '"Sort"  STR   "', (';', ntab%indexx(ie), ie = 1, n, 3), '"'
 
 !
 
