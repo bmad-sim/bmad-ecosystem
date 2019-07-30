@@ -73,24 +73,33 @@ endif
 !------------------------------------------------
 ! This calculation is for an element with wakefields.
 ! Put the wakefield kicks at the half way point.
+! For zero length elements just track the element.
 
-call transfer_ele (ele, half_ele, .true.)
+if (ele%value(l$) == 0) then
+  do j = 1, size(bunch_start%particle)
+    if (bunch_start%particle(j)%state /= alive$) cycle
+    call track1 (bunch_start%particle(j), ele, param, bunch_end%particle(j))
+  enddo
 
-if (integer_option(1, direction) == 1) then
-  call create_element_slice (half_ele, ele, ds_wake, 0.0_rp, param, .true., .false., err_flag)
 else
-  call create_element_slice (half_ele, ele, ele%value(l$)-ds_wake, ds_wake, param, .false., .true., err_flag, half_ele)
-endif
+  call transfer_ele (ele, half_ele, .true.)
 
-if (err_flag) then
-  if (global_com%exit_on_error) call err_exit
-  return
-endif
+  if (integer_option(1, direction) == 1) then
+    call create_element_slice (half_ele, ele, ds_wake, 0.0_rp, param, .true., .false., err_flag)
+  else
+    call create_element_slice (half_ele, ele, ele%value(l$)-ds_wake, ds_wake, param, .false., .true., err_flag, half_ele)
+  endif
 
-do j = 1, size(bunch_start%particle)
-  if (bunch_start%particle(j)%state /= alive$) cycle
-  call track1 (bunch_start%particle(j), half_ele, param, bunch_end%particle(j))
-enddo
+  if (err_flag) then
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+
+  do j = 1, size(bunch_start%particle)
+    if (bunch_start%particle(j)%state /= alive$) cycle
+    call track1 (bunch_start%particle(j), half_ele, param, bunch_end%particle(j))
+  enddo
+endif
 
 ! Wakefields
 
@@ -103,7 +112,12 @@ if (.not. finished) then
   call track1_lr_wake (bunch_end, wake_ele)
 endif
 
-! Track the last half of the cavity. This includes the sr longitudinal wakes 
+! Track the last half of the cavity.
+
+if (ele%value(l$) == 0) then
+  bunch_end%charge_live = sum (bunch_end%particle(:)%charge, mask = (bunch_end%particle(:)%state == alive$))
+  return
+endif
 
 if (integer_option(1, direction) == 1) then
   call create_element_slice (half_ele, ele, ele%value(l$)-ds_wake, ds_wake, param, .false., .true., err_flag, half_ele)
