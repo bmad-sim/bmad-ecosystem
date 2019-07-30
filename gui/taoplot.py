@@ -27,9 +27,8 @@ class taoplot:
 		pipe = self.pipe #tao interface instance to plot in
 		GraphRegion = self.GraphRegion #graph region to plot in
 
-		LatLayout=False
+		LatLayout=False #drawn below data plots if x label is not indices
 		FloorPlan=False
-		Wave=False
 		#determines if shapes are drawn on graph, changed to True later if needed
 		
 		eleIndexList=[]
@@ -162,7 +161,17 @@ class taoplot:
 
 
 
-		SymbolsDict={
+		StylesDict = {
+			'solid':'solid',
+			'dashed':'dashed',
+			'dash_dot':'dashdot',
+			'dotted':'dotted',
+			'dash_dot3':'dashdot'
+			}
+
+
+
+		SymbolsDict = {
 			'square':'s', #no fill
 			'dot':'.',
 			'plus':'+',
@@ -386,7 +395,7 @@ class taoplot:
 				CurveData.append(PointsSuperList[i])
 				CurveData.append(SymbolSuperList[i])
 				CurveData.append(color(cInfoDictList[i]['line.color'].value))
-				CurveData.append(cInfoDictList[i]['line.pattern'].value.lower())
+				CurveData.append(StylesDict[cInfoDictList[i]['line.pattern'].value.lower()])
 				CurveData.append(cInfoDictList[i]['line.width'].value)
 				CurveData.append(color(cInfoDictList[i]['symbol.color'].value))
 				if (cInfoDictList[i]['symbol.fill_pattern'] == 'solid_fill'):
@@ -660,7 +669,7 @@ class taoplot:
 
 
 					elif eleShapeDict[str(i)] == 'circle':
-						GraphDict['LatLayout'].add_patch(patches.Ellipse((eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,0),(eleEndDict[str(i)]-eleStartDict[str(i)]),eleY1Dict[str(i)]+eleY2Dict[str(i)],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],fill=False))
+						GraphDict['LatLayout'].add_patch(patches.Ellipse((eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,0),eleY1Dict[str(i)]+eleY2Dict[str(i)],eleY1Dict[str(i)]+eleY2Dict[str(i)],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],fill=False))
 					#draw circle element
 
 
@@ -843,8 +852,14 @@ class taoplot:
 			conv = (180)/(np.pi) #radian to degree conversion
 			for i in fpeIndexList:
 				fpeCenterDict[str(i)]=([fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2,fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2])
-				fpeRadiusDict[str(i)]=((np.sqrt((fpeExDict[str(i)]-fpeSxDict[str(i)])**2 + (fpeEyDict[str(i)]-fpeSyDict[str(i)])**2))/2)
+				fpeRadiusDict[str(i)]=fpeY1Dict[str(i)]
 				try:
+					if fpeTypeDict[str(i)] == 'drift':
+						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)],fpeExDict[str(i)]],[fpeSyDict[str(i)],fpeEyDict[str(i)]],color='black')
+					#draw drift element
+
+
+
 					if fpeY1Dict[str(i)] == 0 and fpeY2Dict[str(i)] == 0 and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
 						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)],fpeExDict[str(i)]],[fpeSyDict[str(i)],fpeEyDict[str(i)]],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
 					#draw line element
@@ -891,7 +906,7 @@ class taoplot:
 
 
 					elif fpeShapeDict[str(i)] == 'circle' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
-						GraphDict['FloorPlan'].add_patch(patches.Circle((fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2,fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2),(np.sqrt((fpeExDict[str(i)]-fpeSxDict[str(i)])**2 + (fpeEyDict[str(i)]-fpeSyDict[str(i)])**2))/2,lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)],fill=False))
+						GraphDict['FloorPlan'].add_patch(patches.Circle((fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2,fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2),fpeY1Dict[str(i)],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)],fill=False))
 					#draw circle element
 
 
