@@ -211,7 +211,7 @@ class tao_root_window(tk.Tk):
     self.menubar.entryconfig("File", state="disabled")
     self.menubar.entryconfig("Window", state="disabled")
     from parameters import param_dict
-    tk_list = [] #Items: tk_tao_parameter()'s (see tao_widget.py)
+    tk_list = [] #Items: tk_tao_parameter() (see tao_widget.py)
     init_frame.grid_columnconfigure(0, weight=1, pad=10)
     init_frame.grid_columnconfigure(1, weight=1)
 
@@ -396,7 +396,7 @@ class tao_root_window(tk.Tk):
         self.option_add("*Font", new_font)
       except:
         pass
-      return 'break' # Don't load into Tao yet
+      return 'break' # Do not load into Tao yet
     update_font() # Set the font for the first time
     font_box.bind('<Return>', update_font)
     font_box.grid(row=k+3, column=1, sticky='W')
