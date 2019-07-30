@@ -174,8 +174,26 @@ do n = 1, 3
   enddo
 enddo
 
-write (1, '(a, 6es18.9)') '"dB-LR-P20" ABS 1E-19' , bunch2%particle(20)%vec - bunch%particle(20)%vec
-write (1, '(a, 6es18.9)') '"dB-LR-P40" ABS 1E-19' , bunch2%particle(40)%vec - bunch%particle(40)%vec
+write (1, '(a, 6es18.9)') '"dB-LR-Pipe-P20" ABS 1E-19' , bunch2%particle(20)%vec - bunch%particle(20)%vec
+write (1, '(a, 6es18.9)') '"dB-LR-Pipe-P40" ABS 1E-19' , bunch2%particle(40)%vec - bunch%particle(40)%vec
+
+! Long range wake in rf cavity
+
+bunch0 = bunch_init
+do n = 1, 3
+  call track1_bunch (bunch0, lat, lat%ele(6), bunch0, err_flag)
+enddo
+
+bunch2 = bunch_init
+do n = 1, 3
+  call track1_bunch (bunch2, lat, lat%ele(7), bunch2, err_flag)
+enddo
+
+bunch2%particle%vec(5) = bunch2%particle%vec(5) - 6d-17       ! Correction due to rf2 having finite length
+bunch2%particle%vec(6) = bunch2%particle%vec(6) + 6.9414d-12  ! Correction due to rf2 having finite length
+
+write (1, '(a, 6es18.9)') '"dB-LR-RF-P20" ABS 1E-13' , bunch2%particle(20)%vec - bunch0%particle(20)%vec
+write (1, '(a, 6es18.9)') '"dB-LR-RF-P40" ABS 1E-13' , bunch2%particle(40)%vec - bunch0%particle(40)%vec
 
 !---------------------------------
 ! Sort test
