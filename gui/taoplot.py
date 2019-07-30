@@ -409,7 +409,7 @@ class taoplot:
 
 
 			'''''''''Plotting'''''''''
-			#plots line graphs, histograms, phase space plots, and dynamic aperture graphs
+			#plots line graphs, histograms, phase space plots, dynamic aperture graphs, and plots for wave analysis
 
 			LineList = []
 			for i in CurvesList:
@@ -425,15 +425,37 @@ class taoplot:
 				for k in SymbolsList:
 					xsList.append(k[0])
 					ysList.append(k[1])
+
+				yMax = max(.5*max(max(ypList),max(ysList)),2*max(max(ypList),max(ysList)))
+				yMin = min(.5*min(min(ypList),min(ysList)),2*min(min(ypList),min(ysList)))
+				#boundaries for wave analysis rectangles
+
 				if gInfoDict['graph^type'].value == 'data' or gInfoDict['graph^type'].value == 'wave.0' or gInfoDict['graph^type'].value == 'wave.a' or gInfoDict['graph^type'].value == 'wave.b':
 					LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xpList,ypList,color=i[2],linestyle=i[3],linewidth=i[4]/2))
 					GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2)
+
 					if gInfoDict['x.label'].value != 'Index':
 						LatLayout = True
 					#add lat layout
-					if gInfoDict['graph^type'].value != 'data':
-						Wave = True
-					#wave analysis
+
+					if gInfoDict['graph^type'].value != 'data': #wave analysis rectangles
+						wInfo = pipe.cmd_in('python wave params',no_warn = True).splitlines()
+						a1 = float(wInfo[1].split(';')[3])
+						a2 = float(wInfo[2].split(';')[3])
+						b1 = float(wInfo[3].split(';')[3])
+						b2 = float(wInfo[4].split(';')[3])
+						#wave region boundaries
+
+					if i[5] == 'blue' or i[5] == 'navy' or i[5] == 'cyan' or i[5] == 'green' or i[5] == 'purple':
+						waveColor = 'orange'
+					else:
+						waveColor = 'blue'
+					#wave analysis rectangle color
+
+					if gInfoDict['graph^type'].value == 'wave.0' or gInfoDict['graph^type'].value == 'wave.a':
+						GraphDict['graph'+str(gNumber+1)].add_patch(patches.Rectangle((a1,yMin),a2-a1,yMax-yMin,fill=False,color=waveColor))
+					if gInfoDict['graph^type'].value == 'wave.0' or gInfoDict['graph^type'].value == 'wave.b':
+						GraphDict['graph'+str(gNumber+1)].add_patch(patches.Rectangle((b1,yMin),b2-b1,yMax-yMin,fill=False,color=waveColor))
 				#line and symbol graphs
 				
 				elif gInfoDict['graph^type'].value == 'dynamic_aperture':
@@ -1254,7 +1276,7 @@ class taoplot:
 		returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList,fpeShapeDict,fpeCenterDict, fpeRadiusDict, corner1, corner2, corner3, corner4, pathDict]
 		#data to be returned with the figure to make elements clickable
 
-		fig.tight_layout()
+		fig.tight_layout(pad=.3)
 		#prevents graphs from overlapping		
 
 		return fig, returnList
