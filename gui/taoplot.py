@@ -62,6 +62,8 @@ class taoplot:
 				return 'orange'
 			elif x == 'Yellow_Green' or x == 'yellow_green':
 				return 'greenyellow'
+			elif x == 'Light_Green' or x == 'light_green':
+				return 'limegreen'
 			elif x == 'Navy_Blue' or x == 'navy_blue':
 				return 'navy'
 			elif x == 'Purple' or x == 'purple':
@@ -590,7 +592,6 @@ class taoplot:
 				universe = layInfoDict[ix_universe].value
 			else:
 				universe = 1
-
 			branch = layInfoDict['-1^ix_branch'].value
 			#lat layout branch and universe information
 
