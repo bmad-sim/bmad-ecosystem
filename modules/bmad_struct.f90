@@ -567,6 +567,8 @@ type wake_struct
   type (wake_sr_struct) :: sr_trans
   type (wake_lr_mode_struct), allocatable :: lr_mode(:)
   type (wake_lr_spline_struct), allocatable :: lr_spline(:)
+  real(rp) :: amp_scale = 1
+  real(rp) :: z_scale = 1
   real(rp) :: z_sr_max = 0              ! Max allowable z value sr_mode. 
   real(rp) :: lr_freq_spread = 0        ! Random frequency spread of long range modes.
   logical :: lr_self_wake_on = .true.   ! Long range self-wake used in tracking?
