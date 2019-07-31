@@ -97,7 +97,7 @@ type (coord_struct), pointer :: orbit
 type (coord_struct), target :: orb, orb_start, orb_end, orb_here
 type (bunch_params_struct), pointer :: bunch_params
 type (bunch_params_struct), pointer :: bunch_p
-type (ele_pointer_struct), allocatable, save :: eles(:)
+type (ele_pointer_struct), allocatable, save :: eles(:), eles2(:)
 type (branch_struct), pointer :: branch
 type (tao_universe_branch_struct), pointer :: uni_branch
 type (random_state_struct) ran_state
@@ -127,6 +127,7 @@ type (tao_building_wall_point_struct), pointer :: pbw(:)
 type (tao_dynamic_aperture_struct), pointer :: da
 type (tao_expression_info_struct), allocatable :: info(:)
 type (tao_wave_kick_pt_struct), pointer :: wk
+type (all_pointer_struct) a_ptr
 
 real(rp) s_pos, value, y1, y2, v_old(3), r_vec(3), dr_vec(3), w_old(3,3), v_vec(3), dv_vec(3)
 real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here, z1, z2, rdummy
@@ -140,17 +141,21 @@ real(rp), allocatable :: value_arr(:)
 integer :: i, j, k, ib, ie, iu, nn, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i0, i1, i2
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_bunch, ix_d2, n_who, ix_pole_max, attrib_type
 integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free, ix_uni, ix_shape_min
-integer line_width, n_bend, ic
+integer line_width, n_bend, ic, num_ele
+integer, allocatable, save :: index_arr(:)
 
+logical, allocatable :: picked(:)
 logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer, can_vary
-logical first_time
+logical first_time, found_one
 
 character(*) input_str
+character(len(input_str)) line
 character(n_char_show), allocatable :: li(:) 
 character(n_char_show) li2
+character(200) file_name, all_who
+character(100), allocatable :: name_arr(:)
 character(40) imt, jmt, rmt, lmt, amt, amt2, iamt, vamt, rmt2, ramt, cmt, label_name
-character(40) max_loc, ele_name, name1(40), name2(40), a_name, name
-character(200) line, file_name, all_who
+character(40) max_loc, ele_name, name1(40), name2(40), a_name, name, attrib_name
 character(20), allocatable :: name_list(:)
 character(20) cmd, command, who, which, v_str, head
 character(20) switch, color, shape_shape
@@ -213,7 +218,7 @@ call match_word (cmd, [character(20) :: &
           'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
           'plot_shapes', 'plot_list', 'plot_symbol', 'plot1', &
           'show', 'species_to_int', 'species_to_str', 'super_universe', 'twiss_at_s', 'universe', &
-          'var_create', 'var_destroy', 'var_general', 'var_v1_array', 'var_v_array', 'var', &
+          'var_v1_create', 'var_v1_destroy', 'var_create', 'var_general', 'var_v1_array', 'var_v_array', 'var', &
           'wave'], ix, matched_name = command)
 
 if (ix == 0) then
@@ -3170,9 +3175,89 @@ case ('universe')
   nl=incr(nl); write (li(nl), lmt) 'is_on;LOGIC;T;',                          u%is_on
 
 !----------------------------------------------------------------------
+! Create a single variable
+! Command syntax:
+!   python var_create {var_name};{ele_name};{attribute};{universes};{weight};{step};{low_lim};{high_lim};
+!                                                                     {merit_type};{good_user};{key_bound};{key_delta}
+
+case ('var_create')
+
+  call split_semicolon_line (line, name_arr, 12, err);         if (err) return
+
+  call tao_find_var (err, name_arr(1), v_array = v_array);
+  if (err .or. size(v_array) /= 1) then
+    call invalid('BAD VARIABLE NAME')
+    return
+  endif
+
+  call tao_pick_universe (name_arr(4), name, picked, err, dflt_uni = -1); 
+  if (err .or. name /= '') then
+    call invalid('INVALID UNIVERSE SPECIFICATION')
+    return
+  endif
+
+  ele_name = upcase(name_arr(2))
+  attrib_name = upcase(name_arr(3))
+
+  num_ele = 0
+  do iu = lbound(s%u, 1), ubound(s%u, 1)
+    if (.not. picked(iu)) cycle
+    call tao_init_find_elements (s%u(iu), ele_name, eles, attrib_name, found_one)
+    n = size(eles)
+    if (n == 0) cycle
+    call pointer_to_attribute(eles(1)%ele, attrib_name, .true., a_ptr, err, .true.)
+    if (err) return
+    if (.not. associated(a_ptr%r)) then
+      call out_io (s_error$, r_name, 'ELEMENT ATTRIBUTE MUST BE A REAL (NOT AN INTEGER, ETC.)')
+      return
+    endif
+    call re_allocate_eles (eles2, num_ele+n)
+    call re_allocate (index_arr, num_ele+n)
+    do i = num_ele+1, num_ele+n
+      index_arr(i) = iu
+      eles2(i)%ele => eles(i-num_ele)%ele
+    enddo
+  enddo
+
+  v_ptr => v_array(1)%v
+  v_ptr%exists      = .true.
+  v_ptr%merit_type  = set_str(name_arr(9), 'limit')
+  v_ptr%good_var    = .true.
+  v_ptr%good_opt    = .true.
+  v_ptr%good_user   = set_logic(name_arr(10), .true., err);    if (err) return
+  v_ptr%ele_name    = ele_name
+  v_ptr%attrib_name = attrib_name
+  v_ptr%low_lim     = set_real(name_arr(7), -1d30, err);       if (err) return
+  v_ptr%high_lim    = set_real(name_arr(8), 1d30, err);        if (err) return
+  v_ptr%weight      = set_real(name_arr(5), 0.0_rp, err);      if (err) return
+  v_ptr%step        = set_real(name_arr(6), 0.0_rp, err);      if (err) return
+  v_ptr%key_bound   = set_logic(name_arr(11), .false., err);   if (err) return
+  v_ptr%key_delta   = set_real(name_arr(12), 0.0_rp, err);     if (err) return
+
+  if (allocated(v_ptr%slave)) deallocate (v_ptr%slave)
+  allocate (v_ptr%slave(size(eles)))
+
+  v_ptr%model_value => a_ptr%r
+  do i = 1, size(eles2)
+    ele => eles2(i)%ele
+    iu = index_arr(i)
+    v_ptr%slave(i)%ix_uni    = iu
+    v_ptr%slave(i)%ix_branch = ele%ix_branch
+    v_ptr%slave(i)%ix_ele    = ele%ix_ele
+    call pointer_to_attribute(ele, attrib_name, .true., a_ptr, err, .true.)
+    v_ptr%slave(i)%model_value => a_ptr%r
+
+    ele => s%u(iu)%base%lat%branch(ele%ix_branch)%ele(ele%ix_ele)
+    call pointer_to_attribute(ele, attrib_name, .true., a_ptr, err, .true.)
+    v_ptr%base_value => a_ptr%r
+    v_ptr%slave(i)%base_value => a_ptr%r
+  enddo
+
+
+!----------------------------------------------------------------------
 ! Create a v1 variable structure along with associated var array.
 ! Command syntax:
-!   python var_create {v1_name} {n_var_min} {n_var_max}
+!   python var_v1_create {v1_name} {n_var_min} {n_var_max}
 ! {n_var_min} and {n_var_max} are the lower and upper bounds of the var
 ! Example:
 !   python var_create quad_k1 0 45
@@ -3190,7 +3275,7 @@ case ('universe')
 !   ("set global lattice_calc_on = F") to prevent Tao trying to evaluate the partially created variable
 !   and generating unwanted error messages.
 
-case ('var_create')
+case ('var_v1_create')
 
   call tao_cmd_split (line, 3, name1, .true., err)
 
@@ -3243,9 +3328,9 @@ case ('var_create')
 !----------------------------------------------------------------------
 ! Destroy a v1 var structure along with associated var sub-array.
 ! Command syntax:
-!   python var_destroy {v1_datum}
+!   python var_v1_destroy {v1_datum}
 
-case ('var_destroy')
+case ('var_v1_destroy')
 
   call tao_find_var (err, line, v1_array = v1_array)
   if (err .or. .not. allocated(v1_array)) then
@@ -3366,8 +3451,8 @@ case ('var')
   nl=incr(nl); write (li(nl), rmt)  'model_value;REAL;T;',          v_ptr%model_value
   nl=incr(nl); write (li(nl), rmt)  'base_value;REAL;T;',           v_ptr%base_value
 
-  nl=incr(nl); write (li(nl), amt) 'ele_name;STR;T;',                         trim(v_ptr%ele_name)
-  nl=incr(nl); write (li(nl), amt) 'attrib_name;STR;T;',                      v_ptr%attrib_name
+  nl=incr(nl); write (li(nl), amt) 'ele_name;STR;F;',                         trim(v_ptr%ele_name)
+  nl=incr(nl); write (li(nl), amt) 'attrib_name;STR;F;',                      v_ptr%attrib_name
   nl=incr(nl); write (li(nl), imt) 'ix_v1;INT;F;',                            v_ptr%ix_v1
   nl=incr(nl); write (li(nl), imt) 'ix_var;INT;F;',                           v_ptr%ix_var
   nl=incr(nl); write (li(nl), imt) 'ix_dvar;INT;F;',                          v_ptr%ix_dvar
@@ -4102,5 +4187,130 @@ character(44) str
 write (str, '(2(a, es21.13))') ';', real(z), ';', aimag(z)
 
 end function cmplx_str
+
+!----------------------------------------------------------------------
+! contains
+
+subroutine split_semicolon_line (line, array, num, err)
+
+character(*) line
+character(len(line)) str
+character(*), allocatable :: array(:)
+
+integer num
+integer ix
+logical err
+
+!
+
+allocate(array(num))
+str = line
+
+do i = 1, num
+  ix = index(str, ';')
+  if (ix == 0) then
+    array(i) = str
+    exit
+  endif
+  array(i) = str(1:ix-1)
+  str = str(ix+1:)
+enddo
+
+err = (i /= num)
+if (err) then
+  call invalid('NUMBER OF COMPONENTS ON LINE NOT CORRECT.')
+endif
+
+end subroutine split_semicolon_line
+
+!----------------------------------------------------------------------
+! contains
+
+function set_str (str_in, str_dflt) result (str_out)
+
+character(*) str_in, str_dflt
+character(max(len(str_in), len(str_dflt))) str_out
+
+if (str_in == '') then
+  str_out = str_dflt
+else
+  str_out = str_in
+endif
+
+end function set_str
+
+!----------------------------------------------------------------------
+! contains
+
+function set_logic (str_in, logic_dflt, err) result (logic_out)
+
+character(*) str_in
+logical logic_dflt, err, logic_out
+integer ios
+
+err = .false.
+
+if (str_in == '') then
+  logic_out = logic_dflt
+  return
+endif
+
+read (str_in, *, iostat = ios) logic_out
+err = (ios /= 0)
+if (err) then
+  call invalid ('Not a logical: ' // str_in)
+endif
+
+end function set_logic
+
+!----------------------------------------------------------------------
+! contains
+
+function set_real (str_in, real_dflt, err) result (real_out)
+
+character(*) str_in
+real(rp) real_dflt, real_out
+integer ios
+logical err
+
+err = .false.
+
+if (str_in == '') then
+  real_out = real_dflt
+  return
+endif
+
+read (str_in, *, iostat = ios) real_out
+err = (ios /= 0)
+if (err) then
+  call invalid ('Not a real: ' // str_in)
+endif
+
+end function set_real
+
+!----------------------------------------------------------------------
+! contains
+
+function set_int (str_in, int_dflt, err) result (int_out)
+
+character(*) str_in
+integer int_dflt, int_out
+integer ios
+logical err
+
+err = .false.
+
+if (str_in == '') then
+  int_out = int_dflt
+  return
+endif
+
+read (str_in, *, iostat = ios) int_out
+err = (ios /= 0)
+if (err) then
+  call invalid ('Not an integer: ' // str_in)
+endif
+
+end function set_int
 
 end subroutine tao_python_cmd

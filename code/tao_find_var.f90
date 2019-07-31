@@ -56,9 +56,9 @@ character(16), parameter :: real_components(19) = [character(16) :: &
              'model', 'base', 'design', 'meas', 'ref', 'old', &
              'model_value', 'base_value', 'design_value', 'meas_value', 'ref_value', 'old_value', &
              'step', 'weight', 'high_lim', 'low_lim', 'key_delta', 'merit', 'delta_merit']
-character(16), parameter :: logic_components(8) = [ &
-             'exists    ', 'good_var  ', 'good_user ', 'good_opt  ', 'good_plot ', &
-             'useit_opt ', 'useit_plot', 'key_bound ']
+character(16), parameter :: logic_components(8) = [character(16) :: &
+             'exists', 'good_var', 'good_user', 'good_opt', 'good_plot', &
+             'useit_opt', 'useit_plot', 'key_bound']
 character(16), parameter :: string_components(3) = [character(16):: 'merit_type', 'ele_name', 'attrib_name']
 
 character(*) :: var_name

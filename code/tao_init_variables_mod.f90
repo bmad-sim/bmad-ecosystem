@@ -135,8 +135,8 @@ do
   default_step       = 0       ! set default
   default_attribute  = ''
   default_universe   = ''
-  default_low_lim    = -1e30
-  default_high_lim   = 1e30
+  default_low_lim    = -1d30
+  default_high_lim   = 1d30
   ix_min_var         = 1
   ix_max_var         = 0
   var%ele_name       = ''
@@ -391,12 +391,12 @@ if (use_same_lat_eles_as /= '') then
     if (var(ix)%merit_type /= '') s%var(n)%merit_type = var(ix)%merit_type
 
     s%var(n)%low_lim = v1_ptr%v(ip)%low_lim
-    if (default_low_lim /= -1e30) s%var(n)%low_lim = default_low_lim
-    if (var(ix)%low_lim /= -1e30) s%var(n)%low_lim = var(ix)%low_lim
+    if (default_low_lim /= -1d30) s%var(n)%low_lim = default_low_lim
+    if (var(ix)%low_lim /= -1d30) s%var(n)%low_lim = var(ix)%low_lim
 
     s%var(n)%high_lim = v1_ptr%v(ip)%high_lim
-    if (default_high_lim /= 1e30) s%var(n)%high_lim = default_high_lim
-    if (var(ix)%high_lim /= 1e30) s%var(n)%high_lim = var(ix)%high_lim
+    if (default_high_lim /= 1d30) s%var(n)%high_lim = default_high_lim
+    if (var(ix)%high_lim /= 1d30) s%var(n)%high_lim = var(ix)%high_lim
 
     s%var(n)%key_bound = v1_ptr%v(ip)%key_bound
 
@@ -591,10 +591,10 @@ s%var(n1:n2)%merit_type = var(ix1:ix2)%merit_type
 where (s%var(n1:n2)%merit_type == '') s%var(n1:n2)%merit_type = default_merit_type
  
 s%var(n1:n2)%low_lim = var(ix1:ix2)%low_lim
-where (s%var(n1:n2)%low_lim == -1e30) s%var(n1:n2)%low_lim = default_low_lim
+where (s%var(n1:n2)%low_lim == -1d30) s%var(n1:n2)%low_lim = default_low_lim
  
 s%var(n1:n2)%high_lim = var(ix1:ix2)%high_lim
-where (s%var(n1:n2)%high_lim == 1e30) s%var(n1:n2)%high_lim = default_high_lim
+where (s%var(n1:n2)%high_lim == 1d30) s%var(n1:n2)%high_lim = default_high_lim
 
 end subroutine tao_var_stuffit1 
   
@@ -1000,8 +1000,8 @@ do i = n0+1, size(s%var)
   s%var(i)%good_user = .true.
   s%var(i)%model_value => s%com%dummy_target  ! Just to point to somewhere
   s%var(i)%base_value  => s%com%dummy_target  ! Just to point to somewhere
-  s%var(i)%low_lim = -1e30
-  s%var(i)%high_lim = 1e30
+  s%var(i)%low_lim = -1d30
+  s%var(i)%high_lim = 1d30
   allocate(s%var(i)%slave(0))
 enddo
   
