@@ -18,7 +18,11 @@ class tao_console(tk.Frame):
     self.root = root
     self.pipe = pipe
     self._wid = tk.Text(self, blockcursor=True)
-    self._wid.configure(font='Monospace 16', fg="white", bg="black")
+    if self.root.font_size != None:
+      self._wid.configure(
+          font='Monospace '+str(self.root.font_size), fg="white", bg="black")
+    else:
+      self._wid.configure(font='Monospace 16', fg="white", bg="black")
     self._wid.configure(insertbackground="white")
     #self._wid.insert('end', self.pipe.startup_message)
     #self._wid.insert('end', '\nTao>')
@@ -76,7 +80,7 @@ class tao_console(tk.Frame):
     #initial_output = output
     #output = ""
     #for c in initial_output:
-    #  if not c.isprintable() 
+    #  if not c.isprintable()
     #    output += '\n'
     #  else:
     #    output += c
