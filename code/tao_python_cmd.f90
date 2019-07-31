@@ -3190,7 +3190,7 @@ case ('var_create')
     return
   endif
 
-  call tao_pick_universe (name_arr(4), name, picked, err, dflt_uni = -1); 
+  call tao_pick_universe ('[' // trim(name_arr(4)) // ']@', name, picked, err, dflt_uni = -1); 
   if (err .or. name /= '') then
     call invalid('INVALID UNIVERSE SPECIFICATION')
     return
@@ -3234,11 +3234,20 @@ case ('var_create')
   v_ptr%key_bound   = set_logic(name_arr(11), .false., err);   if (err) return
   v_ptr%key_delta   = set_real(name_arr(12), 0.0_rp, err);     if (err) return
 
-  if (allocated(v_ptr%slave)) deallocate (v_ptr%slave)
-  allocate (v_ptr%slave(size(eles)))
+  if (num_ele == 0) then
+    v_ptr%model_value => v_ptr%old_value  ! Just to point to somewhere
+    v_ptr%base_value => v_ptr%old_value
+    v_ptr%exists = .false.
+    v_ptr%key_bound = .false.
+    return
+  endif
 
   v_ptr%model_value => a_ptr%r
-  do i = 1, size(eles2)
+
+  if (allocated(v_ptr%slave)) deallocate (v_ptr%slave)
+  allocate (v_ptr%slave(num_ele))
+
+  do i = 1, num_ele
     ele => eles2(i)%ele
     iu = index_arr(i)
     v_ptr%slave(i)%ix_uni    = iu
@@ -4198,7 +4207,7 @@ character(len(line)) str
 character(*), allocatable :: array(:)
 
 integer num
-integer ix
+integer i, ix
 logical err
 
 !
