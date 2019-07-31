@@ -2,7 +2,9 @@ import sys
 import os
 import re
 import io
-if 'ACC_LOCAL_DIR' in os.environ.keys():
+if 'ACC_LOCAL_ROOT' in os.environ.keys():
+  sys.path.append(os.environ['ACC_LOCAL_ROOT']+'/tao/python/tao_pexpect')
+elif 'ACC_LOCAL_DIR' in os.environ.keys():
   sys.path.append(os.environ['ACC_LOCAL_DIR']+'/tao/python/tao_pexpect')
 else:
   sys.path.append(os.environ['ACC_ROOT_DIR']+'/tao/python/tao_pexpect')
