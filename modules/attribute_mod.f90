@@ -1270,8 +1270,8 @@ call init_attribute_name1 (octupole$, p0c_start$,                   'p0c_start',
 
 call init_attribute_name1 (patch$, l$,                              'L', dependent$)
 call init_attribute_name1 (patch$, t_offset$,                       'T_OFFSET')
-call init_attribute_name1 (patch$, p0c_start$,                      'P0C_START', quasi_free$)
-call init_attribute_name1 (patch$, e_tot_start$,                    'E_TOT_START', quasi_free$)
+call init_attribute_name1 (patch$, p0c_start$,                      'P0C_START', dependent$)
+call init_attribute_name1 (patch$, e_tot_start$,                    'E_TOT_START', dependent$)
 call init_attribute_name1 (patch$, e_tot_set$,                      'E_TOT_SET')
 call init_attribute_name1 (patch$, p0c_set$,                        'P0C_SET')
 call init_attribute_name1 (patch$, e_tot_offset$,                   'E_TOT_OFFSET')
