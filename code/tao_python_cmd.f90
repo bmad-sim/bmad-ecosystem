@@ -4221,7 +4221,7 @@ if (err) then
   call invalid('NUMBER OF COMPONENTS ON LINE NOT CORRECT.')
 endif
 
-end subroutine split_semicolon_line
+end subroutine split_this_line
 
 !----------------------------------------------------------------------
 ! contains
