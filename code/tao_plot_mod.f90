@@ -1187,7 +1187,7 @@ enddo
 ! Loop over all control elements.
 
 do i = lat%n_ele_track+1, lat%n_ele_max
-  ele => branch%ele(i)
+  ele => lat%ele(i)
   if (ele%lord_status == multipass_lord$) cycle
   branch2 => pointer_to_branch(ele)
   if (branch2%ix_branch /= branch%ix_branch) cycle

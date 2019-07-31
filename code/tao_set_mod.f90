@@ -1466,7 +1466,8 @@ if (ix /= 0) then
   sub_comp = comp(ix+1:)
   comp = comp(:ix-1)
 endif
-  
+
+u => tao_pointer_to_universe(this_graph%ix_universe)
 
 select case (comp)
 
@@ -1483,25 +1484,25 @@ case ('draw_only_good_user_data_or_vars')
 case ('ix_universe')
   call tao_set_integer_value (this_graph%ix_universe, component, value, error, -2, ubound(s%u, 1))
 case ('ix_branch')
-  call tao_set_integer_value (this_graph%ix_branch, component, value, error, -2, ubound(s%u, 1))
+  call tao_set_integer_value (this_graph%ix_branch, component, value, error, 0, ubound(u%model%lat%branch, 1))
 case ('margin')
-  call tao_set_qp_rect_struct (comp, sub_comp, this_graph%margin, value, error, this_graph%ix_universe)
+  call tao_set_qp_rect_struct (comp, sub_comp, this_graph%margin, value, error, u%ix_uni)
 case ('scale_margin')
-  call tao_set_qp_rect_struct (comp, sub_comp, this_graph%scale_margin, value, error, this_graph%ix_universe)
+  call tao_set_qp_rect_struct (comp, sub_comp, this_graph%scale_margin, value, error, u%ix_uni)
 case ('x')
-  call tao_set_qp_axis_struct (comp, sub_comp, this_graph%x, value, error, this_graph%ix_universe)
+  call tao_set_qp_axis_struct (comp, sub_comp, this_graph%x, value, error, u%ix_uni)
 case ('y')
-  call tao_set_qp_axis_struct (comp, sub_comp, this_graph%y, value, error, this_graph%ix_universe)
+  call tao_set_qp_axis_struct (comp, sub_comp, this_graph%y, value, error, u%ix_uni)
 case ('x2')
-  call tao_set_qp_axis_struct (comp, sub_comp, this_graph%x2, value, error, this_graph%ix_universe)
+  call tao_set_qp_axis_struct (comp, sub_comp, this_graph%x2, value, error, u%ix_uni)
 case ('y2')
-  call tao_set_qp_axis_struct (comp, sub_comp, this_graph%y2, value, error, this_graph%ix_universe)
+  call tao_set_qp_axis_struct (comp, sub_comp, this_graph%y2, value, error, u%ix_uni)
 case ('x_axis_scale_factor')
-  call tao_set_real_value(this_graph%x_axis_scale_factor, component, value, error, dflt_uni = this_graph%ix_universe)
+  call tao_set_real_value(this_graph%x_axis_scale_factor, component, value, error, dflt_uni = u%ix_uni)
 case ('text_legend_origin')
-  call tao_set_qp_point_struct (comp, sub_comp, this_graph%text_legend_origin, value, error, this_graph%ix_universe)
+  call tao_set_qp_point_struct (comp, sub_comp, this_graph%text_legend_origin, value, error, u%ix_uni)
 case ('curve_legend_origin')
-  call tao_set_qp_point_struct (comp, sub_comp, this_graph%curve_legend_origin, value, error, this_graph%ix_universe)
+  call tao_set_qp_point_struct (comp, sub_comp, this_graph%curve_legend_origin, value, error, u%ix_uni)
 case ('floor_plan_size_is_absolute')
   call tao_set_logical_value(this_graph%floor_plan_size_is_absolute, component, value, error)
 case ('floor_plan_draw_only_first_pass')
@@ -1509,15 +1510,15 @@ case ('floor_plan_draw_only_first_pass')
 case ('floor_plan_flip_label_side')
   call tao_set_logical_value(this_graph%floor_plan_flip_label_side, component, value, error)
 case ('floor_plan_rotation')
-  call tao_set_real_value(this_graph%floor_plan_rotation, component, value, error, dflt_uni = this_graph%ix_universe)
+  call tao_set_real_value(this_graph%floor_plan_rotation, component, value, error, dflt_uni = u%ix_uni)
 case ('floor_plan_orbit_scale')
-  call tao_set_real_value(this_graph%floor_plan_orbit_scale, component, value, error, dflt_uni = this_graph%ix_universe)
+  call tao_set_real_value(this_graph%floor_plan_orbit_scale, component, value, error, dflt_uni = u%ix_uni)
 case ('correct_xy_distortion')
   call tao_set_logical_value(this_graph%correct_xy_distortion, component, value, error)
 case ('floor_plan_orbit_color')
   this_graph%floor_plan_orbit_color = value
 case ('symbol_size_scale')
-  call tao_set_real_value(this_graph%symbol_size_scale, component, value, error, dflt_uni = this_graph%ix_universe)
+  call tao_set_real_value(this_graph%symbol_size_scale, component, value, error, dflt_uni = u%ix_uni)
 case ('title')
   this_graph%title = value
 case ('type')
@@ -1536,7 +1537,6 @@ case default
   return
 end select
 
-u => tao_pointer_to_universe(this_graph%ix_universe)
 u%calc%lattice = .true.
 
 end subroutine set_this_graph
