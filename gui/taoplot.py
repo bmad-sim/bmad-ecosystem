@@ -855,7 +855,7 @@ class taoplot:
 				fpeCenterDict[str(i)]=([fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2,fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2])
 				fpeRadiusDict[str(i)]=fpeY1Dict[str(i)]
 				try:
-					if fpeTypeDict[str(i)] == 'drift':
+					if fpeTypeDict[str(i)] == 'drift' or fpeTypeDict[str(i)] == 'kicker':
 						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)],fpeExDict[str(i)]],[fpeSyDict[str(i)],fpeEyDict[str(i)]],color='black')
 					#draw drift element
 
@@ -1287,9 +1287,11 @@ class taoplot:
 			eleIndexList = []
 			eleStartDict = []
 			eleEndDict = []
+			eleShapeDict = []
+			eleY1Dict = []
 		#fills output list with blank lists if information does not apply to the selected graph type
 
-		returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList,fpeShapeDict,fpeCenterDict, fpeRadiusDict, corner1, corner2, corner3, corner4, pathDict]
+		returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList,fpeShapeDict,fpeCenterDict, fpeRadiusDict, corner1, corner2, corner3, corner4, pathDict, eleShapeDict, eleY1Dict]
 		#data to be returned with the figure to make elements clickable
 
 		fig.tight_layout(pad=.3)
