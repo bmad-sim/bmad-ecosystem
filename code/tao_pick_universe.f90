@@ -13,7 +13,7 @@
 !
 ! Input:
 !   name_in      -- character(*): data name with possible universe spec.
-!   dflt_uni     -- integer, optional: Default universe to use.
+!   dflt_uni     -- integer, optional: Default universe to use. Set to -1 if explicit universe is required.
 !
 ! Output:
 !   name_out     -- character(*): name_in without any "n@" beginning.
@@ -61,6 +61,12 @@ if (present(explicit_uni)) explicit_uni = (ix /= 0)
 
 if (ix == 0 .or. (ic /= 0 .and. ix > ic)) then
   iu_dflt = integer_option(s%com%default_universe, dflt_uni)
+  if (iu_dflt < 0) then
+    call out_io (s_error$, r_name, 'NO UNIVERSE NUMBER GIVEN')
+    err = .true.
+    return
+  endif
+
   picked (iu_dflt) = .true.
   name_out = name_in
   if (present(ix_uni)) ix_uni = iu_dflt
@@ -95,7 +101,7 @@ endif
 
 call location_decode (uni, p, lbound(p, 1), num)
 if (num == -1) then
-  call out_io (s_error$, r_name, "BAD UNIVERSE NUMBER: " // uni)
+  call out_io (s_error$, r_name, 'BAD UNIVERSE NUMBER: ' // uni)
   err = .true.
   return
 endif
@@ -104,7 +110,7 @@ do i = lbound(p, 1), ubound(p, 1)
   if (.not. p(i)) cycle
   iu = tao_universe_number (i)
   if (iu < lbound(s%u, 1) .or. iu > ubound(s%u, 1)) then
-    call out_io (s_error$, r_name, "NUMBER DOES NOT CORRESPOND TO A UNIVERSE: " // uni)
+    call out_io (s_error$, r_name, 'NUMBER DOES NOT CORRESPOND TO A UNIVERSE: ' // uni)
     err = .true.
     return
   endif

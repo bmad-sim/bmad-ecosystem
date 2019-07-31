@@ -1591,14 +1591,22 @@ logical err, l_value, err_flag
 
 call tao_find_var (err, var_str, v_array = v_var, re_array=r_var, log_array=l_var, &
                                                  str_array = s_var, component = component)
+if (err) return
 
-if (component == 'base') then
+select case (component)
+case ('base')
   call out_io (s_error$, r_name, &
         'VARIABLES IN THE BASE LATTICE ARE NOT ALLOWED TO BE SET DIRECTLY SINCE DEPENDENT', &
         'PARAMETERS (LIKE THE TWISS PARAMETERS) IN THE BASE LATTICE ARE NEVER COMPUTED.', &
         'USE THE "SET LATTICE BASE = ..." COMMAND INSTEAD.')
   return
-endif
+
+case ('ele_name', 'attrib_name', 'model', 'design', 'old', 'model_value', 'base_value', &
+      'design_value', 'old_value', 'merit', 'delta_merit', 'exists', 'good_var', 'useit_opt', &
+      'useit_plot')
+  call out_io (s_error$, r_name, 'VARIABLE ATTRIBUTE NOT SETTABLE: ' // component)
+  return
+end select
 
 ! A logical value_str is either a logical or an array of datum values.
 
@@ -1644,58 +1652,6 @@ elseif (size(s_var) /= 0) then
         s_var(i)%s = s_set(i)%s
       enddo
     endif
-
-  !
-  elseif (index(var_str, '|ele_name') /= 0) then
-    val = value_str
-    u => tao_pointer_to_universe (val)
-    ix = index(val, '[')
-    ele_name = upcase(val(1:ix-1))
-    attrib_name = upcase(val(ix+1:len_trim(val)-1))
-    call lat_ele_locator(ele_name, u%model%lat, eles, n_loc, err)
-    if (size(eles) == 0) then
-      call out_io (s_error$, r_name, 'NO ELEMENT FOUND MATCHING NAME: ' // value_str)
-      return
-    endif
-    if (size(eles) > 1) then
-      call out_io (s_error$, r_name, 'MULTIPLE ELEMENTS FOUND MATCHING NAME: ' // value_str)
-      return
-    endif
-    call pointer_to_attribute(eles(1)%ele, attrib_name, .true., a_ptr, err, .true.)
-    if (err) return
-    if (.not. associated(a_ptr%r)) then
-      call out_io (s_error$, r_name, 'ELEMENT ATTRIBUTE MUST BE A REAL (NOT AN INTEGER, ETC.)')
-      return
-    endif
-    if (size(s_var) /= 1) then
-      call out_io (s_error$, r_name, 'USING MULTIPLE VARIABLES FOR THE SAME SLAVE ATTRIBUTE DOES NOT MAKE SENSE.')
-      return
-    endif
-    v_ptr => v_var(1)%v
-    v_ptr%exists = .true.
-    v_ptr%merit_type = 'limit'
-    v_ptr%good_var = .true.
-    v_ptr%good_opt = .true.
-    v_ptr%good_user = .true.
-    v_ptr%ele_name = ele_name
-    v_ptr%attrib_name = attrib_name
-    v_ptr%merit_type = 'limit'
-    v_ptr%low_lim = -1d30
-    v_ptr%high_lim = 1e30
-
-    if (allocated(v_ptr%slave)) deallocate (v_ptr%slave)
-    allocate (v_ptr%slave(1))
-
-    v_ptr%model_value => a_ptr%r
-    v_ptr%slave(1)%ix_uni    = u%ix_uni
-    v_ptr%slave(1)%ix_branch = eles(1)%ele%ix_branch
-    v_ptr%slave(1)%ix_ele    = eles(1)%ele%ix_ele
-    v_ptr%slave(1)%model_value => a_ptr%r
-    
-    call lat_ele_locator(ele_name, u%base%lat, eles, n_loc, err)
-    call pointer_to_attribute(eles(1)%ele, attrib_name, .true., a_ptr, err, .true.)
-    v_ptr%base_value => a_ptr%r
-    v_ptr%slave(1)%base_value => a_ptr%r
   endif
 
 ! Only possibility left is real. The value_str might be a number or it might 

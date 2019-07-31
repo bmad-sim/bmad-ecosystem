@@ -10,8 +10,9 @@
 !
 ! Output:
 !   eles(:)       -- ele_pointer_struct, allocatable: List of matching elements.
+!                     Size is zero if no elements found.
 !   found_one     -- logical, optional: Set True if a matching element is found. 
-!                       However: Not set if no matching element found.
+!                     However: Not set if no matching element found.
 !-
 
 
