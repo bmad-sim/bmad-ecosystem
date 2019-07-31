@@ -34,10 +34,10 @@ def in_element(x,y,fig_info):
 			for i in returnList[4]:
 				if returnList[5][str(i)] < returnList[6][str(i)]:
 					if returnList[5][str(i)] < x < returnList[6][str(i)]:
-						inIndexList.append(i)
+						inIndexList.append([returnList[2],i])
 				if returnList[5][str(i)] > returnList[6][str(i)]:
 					if x > returnList[5][str(i)] or x < returnList[6][str(i)]:
-						inIndexList.append(i)
+						inIndexList.append([returnList[2],i])
 		#find lat_layout elements containing the specified point
 		#checks x ranges of each element to locate the specified point
 	
@@ -61,5 +61,5 @@ def in_element(x,y,fig_info):
 		pass
 	except IndexError:
 		pass
-
+	print(inIndexList)
 	return inIndexList

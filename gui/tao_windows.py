@@ -1189,7 +1189,7 @@ class tao_plot_window(tk.Toplevel):
         eleList = in_element(event.xdata,event.ydata,self.fig_info)
         for i in eleList:
           tao_ele_window(self.root,self.pipe,
-              default=[self.fig_info[1],self.fig_info[2],i,self.fig_info[3]])
+              default=[self.fig_info[1],i[0],i[1],self.fig_info[3]])
 
     canvas.mpl_connect("button_press_event", on_click)
 

@@ -782,7 +782,7 @@ class taoplot:
 			#list of plotting parameter strings from tao command python floor_plan
 			
 			
-			fpeIndexList = []
+			fpeIndexList = [] #contains lists of branch index then element index
 			fpeTypeDict = {}
 			fpeSxDict = {} #start x coordinate
 			fpeSyDict = {} #start y coordinate
@@ -805,25 +805,25 @@ class taoplot:
 			corner3 = {}
 			corner4 = {}
 			for i in range(len(fpeInfo)):
-				fpeIndexList.append(int(fpeInfo[i].split(';')[1]))
-				fpeTypeDict[fpeInfo[i].split(';')[1]]= fpeInfo[i].split(';')[2].lower()
-				fpeSxDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[3])
-				fpeSyDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[4])
-				fpeSaDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[5])
-				fpeExDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[6])
-				fpeEyDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[7])
-				fpeEaDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[8])
-				fpeLwDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[9])
-				fpeShapeDict[fpeInfo[i].split(';')[1]]= fpeInfo[i].split(';')[10].lower()
-				fpeY1Dict[fpeInfo[i].split(';')[1]]= width*float(fpeInfo[i].split(';')[11])
-				fpeY2Dict[fpeInfo[i].split(';')[1]]= width*float(fpeInfo[i].split(';')[12])
-				fpeColorDict[fpeInfo[i].split(';')[1]]= color(fpeInfo[i].split(';')[13].lower())
-				fpeNameDict[fpeInfo[i].split(';')[1]]= fpeInfo[i].split(';')[14]
+				fpeIndexList.append([int(fpeInfo[i].split(';')[0]),int(fpeInfo[i].split(';')[1])])
+				fpeTypeDict[str(fpeIndexList[i])]= fpeInfo[i].split(';')[2].lower()
+				fpeSxDict[str(fpeIndexList[i])]= float(fpeInfo[i].split(';')[3])
+				fpeSyDict[str(fpeIndexList[i])]= float(fpeInfo[i].split(';')[4])
+				fpeSaDict[str(fpeIndexList[i])]= float(fpeInfo[i].split(';')[5])
+				fpeExDict[str(fpeIndexList[i])]= float(fpeInfo[i].split(';')[6])
+				fpeEyDict[str(fpeIndexList[i])]= float(fpeInfo[i].split(';')[7])
+				fpeEaDict[str(fpeIndexList[i])]= float(fpeInfo[i].split(';')[8])
+				fpeLwDict[str(fpeIndexList[i])]= float(fpeInfo[i].split(';')[9])
+				fpeShapeDict[str(fpeIndexList[i])]= fpeInfo[i].split(';')[10].lower()
+				fpeY1Dict[str(fpeIndexList[i])]= width*float(fpeInfo[i].split(';')[11])
+				fpeY2Dict[str(fpeIndexList[i])]= width*float(fpeInfo[i].split(';')[12])
+				fpeColorDict[str(fpeIndexList[i])]= color(fpeInfo[i].split(';')[13].lower())
+				fpeNameDict[str(fpeIndexList[i])]= fpeInfo[i].split(';')[14]
 				try:
-					fpeAlDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[15])
-					fpeBaDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[16])
-					fpeSfaDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[17])
-					fpeEfaDict[fpeInfo[i].split(';')[1]]= float(fpeInfo[i].split(';')[18])
+					fpeAlDict[str(fpeIndexList[i])]= float(fpeInfo[i].split(';')[15])
+					fpeBaDict[str(fpeIndexList[i])]= float(fpeInfo[i].split(';')[16])
+					fpeSfaDict[str(fpeIndexList[i])]= float(fpeInfo[i].split(';')[17])
+					fpeEfaDict[str(fpeIndexList[i])]= float(fpeInfo[i].split(';')[18])
 				except IndexError:
 					pass
 			#dict keys and entries are strings which match a floor plan element index (eg: '1') to the corresponding information
