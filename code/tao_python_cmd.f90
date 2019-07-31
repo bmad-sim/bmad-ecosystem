@@ -3177,12 +3177,12 @@ case ('universe')
 !----------------------------------------------------------------------
 ! Create a single variable
 ! Command syntax:
-!   python var_create {var_name};{ele_name};{attribute};{universes};{weight};{step};{low_lim};{high_lim};
-!                                                                     {merit_type};{good_user};{key_bound};{key_delta}
+!   python var_create {var_name}^{ele_name}^{attribute}^{universes}^{weight}^{step}^{low_lim}^{high_lim}^
+!                                                                     {merit_type}^{good_user}^{key_bound}^{key_delta}
 
 case ('var_create')
 
-  call split_semicolon_line (line, name_arr, 12, err);         if (err) return
+  call split_this_line (line, name_arr, 12, err);         if (err) return
 
   call tao_find_var (err, name_arr(1), v_array = v_array);
   if (err .or. size(v_array) /= 1) then
@@ -4191,7 +4191,7 @@ end function cmplx_str
 !----------------------------------------------------------------------
 ! contains
 
-subroutine split_semicolon_line (line, array, num, err)
+subroutine split_this_line (line, array, num, err)
 
 character(*) line
 character(len(line)) str
@@ -4207,7 +4207,7 @@ allocate(array(num))
 str = line
 
 do i = 1, num
-  ix = index(str, ';')
+  ix = index(str, '^')
   if (ix == 0) then
     array(i) = str
     exit
