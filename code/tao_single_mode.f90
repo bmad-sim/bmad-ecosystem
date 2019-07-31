@@ -649,6 +649,7 @@ real(rp) factor, w, c
 
 do i = 1, size(s%plot_page%region)
   plot => s%plot_page%region(i)%plot
+  if (.not. allocated(plot%graph)) cycle
   do j = 1, size(plot%graph)
     graph => plot%graph(j)
     w = (graph%x%max - graph%x%min) * factor / 2
@@ -707,6 +708,7 @@ real(rp) factor, w
 
 do i = 1, size(s%plot_page%region)
   plot => s%plot_page%region(i)%plot
+  if (.not. allocated(plot%graph)) cycle
   do j = 1, size(plot%graph)
     graph => plot%graph(j) 
     w = factor * (graph%x%max - graph%x%min)
