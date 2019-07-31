@@ -4,10 +4,6 @@ from tkinter import messagebox
 from tkinter import filedialog
 import sys
 import os
-if 'ACC_LOCAL_DIR' in os.environ.keys():
-  sys.path.append(os.environ['ACC_LOCAL_DIR']+'/tao/python/tao_pexpect')
-else:
-  sys.path.append(os.environ['ACC_ROOT_DIR']+'/tao/python/tao_pexpect')
 from parameters import tao_parameter_dict
 from parameters import tao_parameter
 from data_type_list import data_type_list
@@ -22,6 +18,7 @@ class tk_tao_parameter():
 
   def __init__(self, tao_parameter, frame, pipe=0, data_source=''):
     self.param = tao_parameter
+    self.pipe = pipe
 
     if self.param.type in ['STR', 'INT', 'REAL']:
       self.tk_var = tk.StringVar()
@@ -81,6 +78,7 @@ class tk_tao_parameter():
         self._s[i].pack(side="left", expand=1)
         self._svar[i].trace("w", self._update_real_arr)
     elif self.param.type == 'DAT_TYPE':
+      self._no_s_refresh = False
       self.tk_var = tk.StringVar() #This is for the entire value
       self.tk_var.set(self.param.value)
       self.tk_wid = tk.Frame(frame) #The "widget" that should be placed by the gui
@@ -96,9 +94,10 @@ class tk_tao_parameter():
       self._svar = [] #list of slave variables
       self._stype = [] #types of slave widgets (needed for input validation)
       self._s = [] # list of slave widgets
+      self._traced = False # tracks whether self._trace_cb exists
       self._s_refresh()
-      # Record trace callback to unset/reset later
       self._trace_cb = self.tk_var.trace('w', self._fill_widgets)
+      self._traced = True
 
     if self.param.type not in ['DAT_TYPE', 'REAL_ARR']:
       self.tk_wid.config(disabledforeground="black")
@@ -278,11 +277,12 @@ class tk_tao_parameter():
     if new_tk_var == "velocity.":
       new_tk_var = "velocity"
     # Un-trace tk_var to prevent repeatedly running this method
-    self.tk_var.trace_vdelete('w', self._trace_cb)
+    self._no_s_refresh = True
     self.tk_var.set(new_tk_var)
     # Re-trace tk_var
-    self._trace_cb = self.tk_var.trace('w', self._fill_widgets)
-    #print(self.tk_var.get())
+    self._no_s_refresh = False
+    #self._trace_cb = self.tk_var.trace('w', self._fill_widgets)
+    #self._traced = True
 
   def _is_valid_dat_type(self, x):
     '''
@@ -378,7 +378,48 @@ class tk_tao_parameter():
     # Refresh slave widgets
     self._mvar.set((self.tk_var.get()).split('.')[0])
     self._mvar_old = self._mvar.get() # gets the slave variables to fill
+    if self._no_s_refresh:
+      return
     self._s_refresh()
+
+  def _has_ele(self, *args):
+    '''
+    Returns True if self.tk_var.get() can take associated ele names
+    If pipe == 0, returns True by default
+    If self.param.type != DAT_TYPE, returns false
+    '''
+    if self.param.type != 'DAT_TYPE':
+      return False
+    if self.pipe == 0:
+      return True
+
+    cmd_string = 'python datum_has_ele '
+    cmd_string += self.tk_var.get()
+    if self.pipe.cmd_in(cmd_string) == 'no':
+      return False
+    else:
+      return True
+
+  def _has_s_offset(self, *args):
+    '''
+    Returns True if self.tk_var.get() can take an s_offset
+    Returns False if self.param.type != DAT_TYPE
+    '''
+    if self.param.type != 'DAT_TYPE':
+      return False
+
+    # Locate the correct dictionary in data_type_list
+    for data_dict in data_type_list:
+      if data_dict['name'].find(self._mvar.get()) != -1:
+        found=True
+        break
+      else:
+        found=False
+
+    if not found:
+      return True #default
+
+    return data_dict['s_offset']
 
   def open_file(self):
     filename = filedialog.askopenfilename(title = "Select " + self.param.name)

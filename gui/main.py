@@ -1,10 +1,6 @@
 # Check for required modules:
 import sys
 import os
-if 'ACC_LOCAL_DIR' in os.environ.keys():
-  sys.path.append(os.environ['ACC_LOCAL_DIR']+'/tao/python/tao_pexpect')
-else:
-  sys.path.append(os.environ['ACC_ROOT_DIR']+'/tao/python/tao_pexpect')
 from module_check import module_check
 module_check()
 
@@ -39,7 +35,7 @@ class tao_root_window(tk.Tk):
     #self.option_add("*Font", default_font)
 
     # Menu bar
-    self.menubar_init()
+    #self.menubar_init()
 
     # Init GUI
 
@@ -63,12 +59,14 @@ class tao_root_window(tk.Tk):
     self.unbind_all("<Return>")
     self.lift()
     self.focus_force()
-    self.menubar.entryconfig("File", state="normal")
-    self.menubar.entryconfig("Window", state="normal")
+    #self.menubar.entryconfig("File", state="normal")
+    #self.menubar.entryconfig("Window", state="normal")
+    self.menubar_init()
     self.main_frame = tk.Frame(self, width = 20, height = 30)
     self.main_frame.pack()
     #Key bindings
     self.bind_all('<Control-n>', self.new_data_event)
+    self.bind_all('<Alt-n>', self.new_var_event)
     self.bind_all('<Control-g>', self.global_vars_event)
     self.bind_all('<Control-d>', self.view_data_event)
     self.bind_all('<Control-e>', self.view_ele_event)
@@ -148,6 +146,8 @@ class tao_root_window(tk.Tk):
     file_menu = tk.Menu(self.menubar)
     file_menu.add_command(label = "New Data...",
         command = self.new_data_cmd, accelerator = 'Ctrl+N')
+    file_menu.add_command(label = "New Variables...",
+        command = self.new_var_cmd, accelerator = 'Alt+N')
     file_menu.add_command(label = 'Write...', command = self.write_cmd)
     file_menu.add_command(label = 'Reinit...',
         command = self.reinit_cmd,accelerator = 'Alt+Q')
@@ -208,8 +208,8 @@ class tao_root_window(tk.Tk):
           self.plot_windows.append(win)
 
   def tao_load(self,init_frame):
-    self.menubar.entryconfig("File", state="disabled")
-    self.menubar.entryconfig("Window", state="disabled")
+    #self.menubar.entryconfig("File", state="disabled")
+    #self.menubar.entryconfig("Window", state="disabled")
     from parameters import param_dict
     tk_list = [] #Items: tk_tao_parameter() (see tao_widget.py)
     init_frame.grid_columnconfigure(0, weight=1, pad=10)
@@ -329,8 +329,9 @@ class tao_root_window(tk.Tk):
         new_font = font.nametofont("TkDefaultFont")
         new_font.configure(size=new_size)
         self.option_add("*Font", new_font)
+        self.font_size = new_size
       except:
-        pass
+        self.font_size = None
       # set self.lw
       self.lw = lw_var.get()
       self.plot_mode = plot_mode.get()
@@ -423,6 +424,9 @@ class tao_root_window(tk.Tk):
   def new_data_cmd(self):
     win = tao_new_data_window(self, self.pipe)
 
+  def new_var_cmd(self):
+    win = tao_new_var_window(self, self.pipe)
+
   def write_cmd(self):
     print ('Write called')
 
@@ -439,7 +443,7 @@ class tao_root_window(tk.Tk):
       child.destroy()
 
     self.pipe.cmd("quit")
-    self.menubar_init()
+    #self.menubar_init()
     init_frame = tk.Frame(self)
     init_frame.pack()
     self.tao_load(init_frame)
@@ -492,6 +496,9 @@ class tao_root_window(tk.Tk):
 
   def new_data_event(self, event):
     self.new_data_cmd()
+
+  def new_var_event(self, event):
+    self.new_var_cmd()
 
   def global_vars_event(self, event):
     self.set_global_vars_cmd()
