@@ -79,7 +79,11 @@ class tao_interface():
     '''
     self.message = ""
     self.message_type = "normal" #conveys color info to console
-    output = tao_io.cmd_in(self, cmd_str)
+    if cmd_str.find("single_mode") == 0:
+      output = "single_mode not supported on the GUI command line"
+      self.message_type = "error"
+    else:
+      output = tao_io.cmd_in(self, cmd_str)
     # Scrub output for extra new lines at the end,
     # as well as escape characters
     if cmd_str.find('python') == 0:
@@ -87,6 +91,14 @@ class tao_interface():
     output = filter_output(output)
     #if no_warn:
     #  return output
+    if cmd_str.find("spawn ") == 0:
+      self.message += "WARNING: the spawn command is very dangerous "
+      self.message += "and may cause the GUI to hang if the spawned "
+      self.message += "process does not exit quickly."
+      self.message_type = "error"
+      self.printed.set(True)
+      self.message = ""
+      self.message_type = "normal"
     if output.find("[ERROR") != -1:
       self.message += "Warning: Error occurred in Tao\n"
       self.message += "The offending command: " + cmd_str + "\n"
@@ -95,7 +107,7 @@ class tao_interface():
         for i in range(20):
           self.message += (output.splitlines()[i]) + "\n"
       else:
-        self.message += (output)
+        self.message += output
       self.message_type = "error"
       if not no_warn:
         self.printed.set(True)
