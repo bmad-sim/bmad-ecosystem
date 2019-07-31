@@ -28,14 +28,18 @@ def in_rectangle(a,b,c,d,x,y):
 def in_element(x,y,fig_info):
 	'''takes coordinates and taoplot.plot() output, returns list of element indices of elements that contain the specified coordinates'''
 	inIndexList = []
-	returnList = fig_info
+	returnList = fig_info #list returned with taoplot.plot() output
 	try:
 		if returnList[0] == 'lat_layout' or returnList[0] == 'data' or returnList[0] == 'wave.0' or returnList[0] == 'wave.a' or returnList[0] == 'wave.b':
 			for i in returnList[4]:
-				if returnList[5][str(i)] < returnList[6][str(i)]:
+				if returnList[16][str(i)] == 'circle': #circles
+					center = (returnList[5][str(i)]+returnList[6][str(i)])/2
+					if (center-returnList[17][str(i)]) < x < (center+returnList[17][str(i)]):
+						inIndexList.append([returnList[2],i])
+				elif returnList[5][str(i)] < returnList[6][str(i)]: #non wrapped elements
 					if returnList[5][str(i)] < x < returnList[6][str(i)]:
 						inIndexList.append([returnList[2],i])
-				if returnList[5][str(i)] > returnList[6][str(i)]:
+				elif returnList[5][str(i)] > returnList[6][str(i)]: #wrapped elements
 					if x > returnList[5][str(i)] or x < returnList[6][str(i)]:
 						inIndexList.append([returnList[2],i])
 		#find lat_layout elements containing the specified point
@@ -43,7 +47,7 @@ def in_element(x,y,fig_info):
 	
 		if returnList[0] == 'floor_plan':
 			for i in returnList[7]:
-				if returnList[8][str(i)] == 'circle':
+				if returnList[8][str(i)] == 'circle': #floor plan circles
 					if ((x-returnList[9][str(i)][0])**2 + (y-returnList[9][str(i)][1])**2) <= ((returnList[10][str(i)])**2):
 						inIndexList.append(i)
 				
@@ -52,8 +56,8 @@ def in_element(x,y,fig_info):
 						if returnList[15][str(i)].contains_point([x,y]) == True:
 							inIndexList.append(i)
 
-					except KeyError:
-						if in_rectangle(returnList[11][str(i)],returnList[12][str(i)],returnList[13][str(i)],returnList[14][str(i)],x,y) == True:	
+					except KeyError: #other floor plan elements
+						if in_rectangle(returnList[11][str(i)],returnList[12][str(i)],returnList[13][str(i)],returnList[14][str(i)],x,y) == True:
 							inIndexList.append(i)
 		#find floor_plan elements containing the specified point
 				
@@ -61,5 +65,5 @@ def in_element(x,y,fig_info):
 		pass
 	except IndexError:
 		pass
-	print(inIndexList)
+
 	return inIndexList
