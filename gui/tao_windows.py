@@ -1529,11 +1529,15 @@ class tao_branch_widgets:
     else: #No need to remake the branch_chooser
       return
 
-    self.ele_chooser.destroy()
-    self.ele_chooser = ttk.Combobox(self.parent, textvariable=self.ele,
-        values=self.e_display_list[self.uni.get()][self.branch.get()])
-    self.ele_chooser.bind("<<ComboboxSelected>>", self.update)
-    self.ele_chooser.bind("<Return>", self.update)
+    # Update self.branch to match self.branch_name
+    ix = self.b_name_list[self.uni.get()].index(self.branch_name.get())
+    self.branch.set(self.b_list[self.uni.get()][ix])
+
+    #self.ele_chooser.destroy()
+    #self.ele_chooser = ttk.Combobox(self.parent, textvariable=self.ele,
+    self.ele_chooser.configure(values=self.e_display_list[self.uni.get()][self.branch.get()])
+    #self.ele_chooser.bind("<<ComboboxSelected>>", self.update)
+    #self.ele_chooser.bind("<Return>", self.update)
     self.ele_label.set("Element (0 to "
         + str(self.e_list[self.uni.get()][self.branch.get()][-1]) + ")")
     # set self.ele to element 0 in the first branch
@@ -1611,8 +1615,7 @@ class tao_ele_window(tao_list_window):
     self.ele_wids = tao_branch_widgets(self.top_frame, self.pipe, self.default)
     tk.Label(self.top_frame, text="Universe").grid(row=0, column=0)
     tk.Label(self.top_frame, text="Branch").grid(row=0, column=1)
-    self.ele_label = self.ele_wids.ele_label #Might not work
-    tk.Label(self.top_frame, textvariable=self.ele_label).grid(row=0, column=2)
+    tk.Label(self.top_frame, textvariable=self.ele_wids.ele_label).grid(row=0, column=2)
     tk.Label(self.top_frame, text="Base/Model/Design").grid(row=0, column=3)
 
     # Configure and place widgets
@@ -3161,15 +3164,23 @@ class tao_new_var_window(tk.Toplevel):
         messages.append("Please check the low and high limits for " + v1_frame.name)
       # Check for semicolons in any fields
       semi_message = "Semicolons not allowed in any input field"
+      caret_message = "Carets not allowed in any input field"
       broken = False #Used to break out of the below for loops
       for ttp in v1_frame.v1_array_wids:
         if str(ttp.tk_var.get()).find(';') != -1:
           messages.append(semi_message)
           break
+        if str(ttp.tk_var.get()).find('^') != -1:
+          messages.append(caret_message)
+          break
         for var_dict in v1_frame.var_dict.values():
           for v in var_dict.values():
             if str(v).find(';') != -1:
               messages.append(semi_message)
+              broken = True
+              break
+            if str(v).find('^') != -1:
+              messages.append(caret_message)
               broken = True
               break
           if broken:
@@ -3189,7 +3200,7 @@ class tao_new_var_window(tk.Toplevel):
       # Create the individual variables
       for i in range(v1_frame.ix_min, v1_frame.ix_max+1):
         cmd_str = 'python var_create ' + v1_frame.name
-        cmd_str += '[' + str(i) + '];'
+        cmd_str += '[' + str(i) + ']^'
         if i in v1_frame.var_dict.keys():
           var_dict = v1_frame.var_dict[i]
         else:
@@ -3203,14 +3214,14 @@ class tao_new_var_window(tk.Toplevel):
         for j in range(len(params)):
           p = params[j]
           if p in var_dict.keys():
-            cmd_str += str(var_dict[p]) + ';'
+            cmd_str += str(var_dict[p]) + '^'
           elif j != 0:
             v1_ix = v1_params.index(p)
             if v1_frame.v1_array_wids[v1_ix].param.type == 'LOGIC':
-              cmd_str += ('T;' if v1_frame.v1_array_wids[v1_ix].tk_var.get() else 'F;')
+              cmd_str += ('T^' if v1_frame.v1_array_wids[v1_ix].tk_var.get() else 'F^')
             else:
-              cmd_str += v1_frame.v1_array_wids[v1_ix].tk_var.get() + ';'
-        cmd_str = cmd_str[:-1] # remove ending ;
+              cmd_str += v1_frame.v1_array_wids[v1_ix].tk_var.get() + '^'
+        cmd_str = cmd_str[:-1] # remove ending ^
         print(cmd_str)
         self.pipe.cmd_in(cmd_str)
       # Set parameters at the v1 level
