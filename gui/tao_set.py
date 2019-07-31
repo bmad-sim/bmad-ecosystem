@@ -84,12 +84,16 @@ def tao_set(tao_list,set_str,pipe, overide=False):
     #Type casting and validation
     if item.param.type == 'INT':
       try:
+        if item.tk_var.get() == "":
+          continue
         new_val = int(item.tk_var.get())
       except ValueError:
         messagebox.showwarning("Error",item.param.name + " must be an integer ")
         new_val = item.param.value
     elif item.param.type == 'REAL':
       try:
+        if item.tk_var.get() == "":
+          continue
         new_val = float(item.tk_var.get())
       except ValueError:
         messagebox.showwarning(
@@ -98,7 +102,11 @@ def tao_set(tao_list,set_str,pipe, overide=False):
     else:
       new_val = item.tk_var.get()
     #Check for any change
-    if new_val != item.param.value:
+    if item.param.type == 'INUM':
+      cond = (str(new_val) != str(item.param.value))
+    else:
+      cond = (new_val != item.param.value)
+    if cond:
       item.param.value = new_val
       update_dict[item.param.name] = True
     else:
