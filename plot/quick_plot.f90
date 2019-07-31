@@ -2831,6 +2831,9 @@ endif
 
 yc = yc - 1.1 * height
 do i = 1, size(text)
+  ! This test should not be needed but there is some strange memory bug in cesrv linking shared
+  ! and this test gets around it.
+  if (text(i) == '') cycle
   call qp_draw_text_no_set (text(i), xc, yc, 'INCH/PAGE/LB')
   yc = yc - 1.5 * height
 enddo
@@ -3558,7 +3561,7 @@ character(16) :: r_name = 'qp_draw_text_no_set'
 
 !
 
-if (len_trim(text) == 0) return
+if (text == '') return
 
 call qp_to_inch_abs (x, y, x1, y1, units)
 
