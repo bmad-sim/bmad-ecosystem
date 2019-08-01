@@ -1,0 +1,154 @@
+\chapter{Graphic User Interface}
+\label{c:gui}
+
+%-----------------------------------------------------------------
+\section{GUI Installation}
+\label{s:gui.install}
+
+There are four python modules needed for the GUI:
+\begin{example}
+  tkinter
+  ttk
+  pexpect         # If using pexpect instead of ctypes.
+  matplotlib
+\end{example}
+
+If one of the modules is missing, python will generate an error message. For example:
+\begin{example}
+> python ../../gui/main.py
+Exception in Tkinter callback
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/tkinter/__init__.py", line 1705, in __call__
+    return self.func(*args)
+  File "../../gui/main.py", line 372, in param_load
+    from tao_interface import tao_interface
+  File "/Users/dcs16/Bmad/bmad_dist/tao/gui/tao_interface.py", line 4, in <module>
+    from tao_pipe import tao_io
+  File "/Users/dcs16/Bmad/bmad_dist/tao/python/tao_pexpect/tao_pipe.py", line 14, in <module>
+    import pexpect
+ModuleNotFoundError: No module named 'pexpect'
+\end{example}
+Notice that the last line shows that the pexpect module is needed.
+
+How to install missing modules on the mac: [Note: The exact installation commands will depend upon
+which version of python is being used. Use the "python --version" command to see what version you
+are using.
+
+Using macports and python 3.6:
+\begin{example}
+  sudo port install py36-tkinter
+  sudo port install py36-pexpect
+\end{example}
+
+Using pip (or pip3):
+\begin{example}
+  sudo pip install pytkk
+  sudo pip install pexpect
+\end{example}
+
+WARNING: it can be dangerous to use pip to install/modify modules in your system python.
+A much safer way to install the modules you need is to set up a python virtual environment.
+On Linux, you may also be able to find versions of the required modules in your system package manager,
+which are tailored to your Linux distribution and will not break your system python.
+
+%-----------------------------------------------------------------
+\section{Installation Troubleshooting}
+\label{s:gui.trouble}
+
+Got error:
+\begin{example}
+  ImportError: cannot import name ‘_tkagg'
+\end{example}
+
+Solution: Uninstall and then reinstall matplotlib. For example, if using pip:
+\begin{example}
+  sudo pip uninstall matplotlib
+  sudo pip install matplotlib
+\end{example}
+
+%-----------------------------------------------------------------
+\section{GUI Initialization File}
+\label{s:gui.init.file}
+
+To speed up the initialization process, you can make an init file for the GUI.  This file should be called "gui.init", and it should be in the same directory from which you initialize the GUI.
+
+gui.init should have each option on a separate line, and each option should be listed in the form "parameter:value".  For example, the text below would constitute a good gui.init file:
+
+\begin{example}
+  #MY GUI INIT FILE
+  beam_file:/path/to/beam/file
+  data_file:/path/to/data/file
+  #THIS IS A COMMENT
+  disable_smooth_line_calc:T
+  rf_on:T
+  tao_exe:/path/to/executable
+\end{example}
+
+The order in which you list options in gui.init is not important.
+
+File paths should be specified in full to be safe, but you can specify paths relative to the directory from which you launch main.py.  For example, "/home/username/file", "subfolder/my_file", and "../../path/to/another/file" would all be acceptable file paths.  You can also use your environmental variables and "~", as in "~/Documents/my_file" and "\$DIST_BASE_DIR/tao/file".
+
+Logic (true/false) options may be specified by T/F or True/False.
+
+You can also include comments with \#.  Any line with \# as its first non-whitespace character will be considered a comment and ignored.
+
+%-----------------------------------------------------------------
+\section{Developer Setup}
+\label{s:gui.develop}
+
+For GUI development, it may be desireable to specify a local build tree as the place for the python
+scripts to find the \tao executable and other modules. To accomplish this, set the environmental
+variable ACC_LOCAL_ROOT to the base directory of your local build tree.
+
+%-----------------------------------------------------------------
+\section{Plotting Initialization}
+\label{s:gui.plot.init}
+
+When operating the GUI in matplotlib mode, you can specify a list of template plots to plot in matplotlib as soon as tao starts.  These templates should be listed in a file called plot.gui.init, which should be in the same directory from which you launch the gui.
+
+plot.gui.init should have one template listed per line and absolutely nothing else on the line.  The templates listed in plot.gui.init are checked against the list of templates that tao can plot, and if a template is not recognized it is simply ignored.
+
+
+%-----------------------------------------------------------------
+\section{Plotting}
+\label{s:gui.plot}
+
+Interacting with plots in the GUI is primarily done using the toolbar along the bottom of the plotting window.
+
+Starting from the left, the home button returns the graph to the starting view. The back button returns to the previous view of the graph, working as an undo button. The forward button undoes the effects of the back button. All of these buttons also have keyboard shortcuts, 'h' or 'r' for home, 'c' or 'left arrow' for back, and 'v' or 'right arrow' for forward.
+
+The pan/zoom button allows panning of the graph by holding a left click on the graph and dragging the mouse around. his mode also allows zooming of the graph by holding a right click on the graph and dragging the mouse around. These actions can be restricted to the horizontal axis by holding 'x' while dragging, or the vertical axis by holding 'y'. Holding 'control' while dragging the mouse will preserve aspect ratio. Clicking on the toolbar button again will get out of this mode.
+
+The zoom to rectangle button allows a rectangle to be selected by holding a left click on the graph and dragging the mouse, which will then fill the graph window. Holding 'x' or 'y' while selecting a rectangle will only effect the horizontal or vertical axis respectively.
+
+The save button allows the graph window to be saved as an image file. Using 'ctrl+s' has the same effect.
+
+If any floor plan or lat layout is present, double clicking on an element will open a window to view or edit element parameters.
+
+Floor plans contain a slider to scale the size of elements away from the element centerline. Clicking on the slider will adjust the width of the displayed elements.
+
+%-----------------------------------------------------------------
+\section{Lattice Templates}
+\label{s:gui.lat}
+
+You can save your settings from the lattice table window in a template file, which can then be loaded and added to from within the gui.
+The file can be named anything, and the formatting is as follows:
+Lines starting with \# are considered comments and ignored.
+Lines starting with "name:" are interpreted as a name for the settings listed in the line directly below
+All other lines are interpreted as switches, as would be used with the show lattice command in Tao (see the tao manual for more info).
+All switches for a given template should be on one line.
+
+Example:
+\begin{example}
+#MY TEMPLATE FILE
+name:template 1
+-orbit -spin -tracking_elements
+name:template 2
+-lords q*
+name: another template
+-floor_coords -s 10:20
+-radiation_integrals -all
+\end{example}
+
+This template file defines four templates: "template 1", "template 2", "another template", and an unnamed template (which has the switches -radiation_integrals -all).  Named templates are displayed by name in the gui, while unnamed templates are simply displayed by what switches they specify.
+

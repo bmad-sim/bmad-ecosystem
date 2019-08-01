@@ -1,0 +1,85 @@
+%-----------------------------------------
+% Note: Use pdflatex to process this file.
+%-----------------------------------------
+
+\documentclass{book}
+
+\usepackage{graphicx}
+\usepackage{moreverb}
+\usepackage{amsmath}
+\usepackage{alltt}
+\usepackage{rotating}
+\usepackage{subcaption}
+\usepackage{toc}
+\usepackage{xspace}
+\usepackage{makeidx}
+\usepackage{multirow}
+\usepackage{booktabs}   % For table layouts
+\usepackage{longtable}
+
+
+\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
+\usepackage[strings]{underscore}    % to use "_" in text
+\usepackage[pdftex,colorlinks=true]{hyperref}  % This must be the last package
+
+\input{macros.tex}
+
+\setlength{\textwidth}{6.25in}
+\setlength{\oddsidemargin}{0.25in}
+\setlength{\evensidemargin}{0.00in}
+\setlength{\textheight}{8.5in}
+\setlength{\topmargin}{0in}
+
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\topfraction}{1.0}
+\renewcommand{\bottomfraction}{1.0}
+
+\makeindex
+
+\begin{document}
+
+\index{lattice!model|see{model lattice}}
+\index{lattice!design|see{design lattice}}
+\index{lattice!base|see{base lattice}}
+
+%----------------------------------------------------------------
+{
+\setlength{\parskip}{\dPar}
+\setlength{\parindent}{0ex}
+
+}
+
+%----------------------------------------------------------------
+
+\cleardoublepage
+\phantomsection 
+\pdfbookmark[0]{Contents}{Contents}
+\pdfbookmark[1]{Table of Contents}{toc} 
+\tableofcontents
+
+
+\cleardoublepage
+\phantomsection 
+\pdfbookmark[1]{List of Figures}{LoF} 
+\listoffigures
+
+
+\cleardoublepage
+\phantomsection 
+\pdfbookmark[1]{List of Tables}{LoT} 
+\listoftables
+
+%----------------------------------------------------------------
+\setlength{\parskip}{\dPar}
+\setlength{\parindent}{0ex}
+
+%----------------------------------------------------------------
+
+\include{gui}
+
+%----------------------------------------------------------------
+\include{bibliography}
+
+\printindex
+
+\end{document}
