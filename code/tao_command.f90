@@ -306,12 +306,17 @@ case ('pause')
 case ('place')
 
   call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
-  if (cmd_word(3) /= ' ') then
-    call out_io (s_error$, r_name, 'NOT RECOGNIZED: ' // cmd_word(3))
-    return
-  endif
 
-  call tao_place_cmd (cmd_word(1), cmd_word(2))
+  if (index('-no_buffer', cmd_word(1)) == 1) then
+    call tao_place_cmd (cmd_word(1), cmd_word(2), .true.)
+
+  else
+    if (cmd_word(3) /= ' ') then
+      call out_io (s_error$, r_name, 'BAD PLACE COMMAND: ' // command_line)
+      return
+    endif
+    call tao_place_cmd (cmd_word(1), cmd_word(2))
+  endif
 
 !--------------------------------
 ! PLOT

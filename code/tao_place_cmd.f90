@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_place_cmd (where, who)
+! Subroutine tao_place_cmd (where, who, no_buffer)
 !
 ! Subroutine to determine the placement of a plot in the plot window.
 ! The appropriate s%tamplate_plot(i) determined by the who argument is
@@ -8,14 +8,16 @@
 !
 ! Input:
 !   s%plot_page%template(i) -- template matched to who.
-!   where -- Character(*): Region where the plot goes. Eg: 'top'.
-!   who   -- Character(*): Type of plot. Eg: 'orbit'.
+!   where       -- Character(*): Region where the plot goes. Eg: 'top'.
+!   who         -- Character(*): Type of plot. Eg: 'orbit'.
+!   no_buffer   -- logical, optional: If present and True then prevents buffering 
+!                   in the case when s%global%external_plotting = T
 !
 ! Output
 !   s%plot_page%plot(j) -- Plot matched to where.
 !-
 
-subroutine tao_place_cmd (where, who)
+subroutine tao_place_cmd (where, who, no_buffer)
 
 use tao_x_scale_mod, dummy => tao_place_cmd
 use beam_mod
@@ -31,15 +33,17 @@ type (tao_plot_region_struct), allocatable :: temp_buf(:)
 
 real(rp) x1, x2, y1, y2
 integer i, j, k, i_uni, n
+
 logical err
+logical, optional :: no_buffer
 
 character(*) who, where
-character(20) :: r_name = 'tao_place_cmd'
+character(*), parameter :: r_name = 'tao_place_cmd'
 
 ! If external plotting is being done then just save the arguments and the GUI
 ! can query for the info via a python command.
 
-if (s%global%external_plotting) then
+if (s%global%external_plotting .and. .not. logic_option(.false., no_buffer)) then
   if (allocated (s%com%place_buffer)) then
     n = size(s%com%place_buffer) + 1
     call move_alloc(s%com%place_buffer, temp_buf)
