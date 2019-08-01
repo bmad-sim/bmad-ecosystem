@@ -59,11 +59,11 @@ do
   endif
 
   call match_word (arg1, [character(41):: '-?', '-init_file', '-noinit', '-beam_all_file', '-beam0', &
-        '-noplot', '-lattice_file', '-log_startup', '-beam_file', '-var_file', '-data_file', '-building_wall_file', '-plot_file', &
+        '-noplot', '-lattice_file', '-log_startup', '-beam_file', '-var_file', '-data_file', '-building_wall_file', &
         '-startup_file', 'help', '-help', '?', '-geometry', '-rf_on', '-debug', '-disable_smooth_line_calc', &
         '-color_prompt', '-no_stopping', '-hook_init_file', '-beam_position0', '-silent_run', &
-        '-beam_init_file_name', '-slice_lattice', '-prompt_color', '-beam_init_position_file'], &
-              ix, .true., matched_name=switch)
+        '-beam_init_file_name', '-slice_lattice', '-prompt_color', '-beam_init_position_file', &
+        '-plot_file', '-external_plotting'], ix, .true., matched_name=switch)
 
   if (negate) switch = '-' // switch
 
@@ -98,6 +98,9 @@ do
     s%com%debug_arg = '<present>'
     s%global%debug_on = .true.
     s%global%stop_on_error = .false.
+
+  case ('-external_plotting')
+    s%global%external_plotting = .true.
 
   case ('-geometry')
     call get_next_arg (s%com%geometry_arg, .true.)
@@ -169,6 +172,7 @@ do
   case ('--data_file');                           s%com%data_file_arg = ''
   case ('--disable_smooth_line_calc');            s%com%disable_smooth_line_calc_arg = ''
   case ('--debug');        s%com%debug_arg = '';  s%global%debug_on = .false.;  s%global%stop_on_error = .true.
+  case ('--external_plotting');                   s%global%external_plotting = .false.
   case ('--geometry');                            s%com%geometry_arg = ''
   case ('--hook_init_file');                      s%com%hook_init_file_arg = ''
   case ('--init_file');                           s%com%init_file_arg = ''; s%com%init_file_arg_path = ''

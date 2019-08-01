@@ -214,7 +214,7 @@ call match_word (cmd, [character(20) :: &
           'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
           'evaluate', 'enum', 'floor_building_wall', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
           'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
-          'merit', 'orbit_at_s', &
+          'merit', 'orbit_at_s', 'place_buffer', &
           'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
           'plot_shapes', 'plot_list', 'plot_symbol', 'plot1', &
           'show', 'species_to_int', 'species_to_str', 'super_universe', 'twiss_at_s', 'universe', &
@@ -2274,7 +2274,6 @@ case ('floor_orbit')
 ! Output syntax is parameter list form. See documentation at the beginning of this file.
 !
 ! Note: The follow is intentionally left out:
-!   force_plot_data_calc               
 !   optimizer_allow_user_abort	
 !   silent_run
 !   single_step
@@ -2308,6 +2307,7 @@ case ('global')
   nl=incr(nl); write (li(nl), amt) 'optimizer;STR;T;',                        s%global%optimizer
   nl=incr(nl); write (li(nl), amt) 'print_command;STR;T;',                    s%global%print_command
   nl=incr(nl); write (li(nl), amt) 'var_out_file;FILE;T;',                    s%global%var_out_file
+  nl=incr(nl); write (li(nl), lmt) 'external_plotting;LOGIC;I;',              s%global%external_plotting
   nl=incr(nl); write (li(nl), lmt) 'opt_with_ref;LOGIC;T;',                   s%global%opt_with_ref
   nl=incr(nl); write (li(nl), lmt) 'opt_with_base;LOGIC;T;',                  s%global%opt_with_base
   nl=incr(nl); write (li(nl), lmt) 'label_lattice_elements;LOGIC;T;',         s%global%label_lattice_elements
@@ -2667,6 +2667,19 @@ case ('orbit_at_s')
 
   call twiss_and_track_at_s (tao_lat%lat, s_pos, orb = tao_lat%tao_branch(ix_branch)%orbit, orb_at_s = orb, ix_branch = ix_branch)
   call orbit_out (orb)
+
+!----------------------------------------------------------------------
+! Output place command buffer and reset the buffer
+! Command syntax:
+!   python place_buffer
+
+case ('place_buffer')
+
+  if (.not. allocated(s%com%place_buffer)) return
+
+  do i = 1, size(s%com%place_buffer)
+    nl=incr(nl); li(nl) = trim(s%com%place_buffer(i)%name) // ';' // s%com%place_buffer(i)%plot%name
+  enddo
 
 !----------------------------------------------------------------------
 ! Curve information for a plot

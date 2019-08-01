@@ -1567,7 +1567,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %optimizer_var_limit_warn      = ', s%global%optimizer_var_limit_warn
     nl=nl+1; write(lines(nl), amt) '  %phase_units                   = ', angle_units_name(s%global%phase_units)
     nl=nl+1; write(lines(nl), lmt) '  %plot_on                       = ', s%global%plot_on
-    nl=nl+1; write(lines(nl), lmt) '  %force_plot_data_calc          = ', s%global%force_plot_data_calc
+    nl=nl+1; write(lines(nl), lmt) '  %external_plotting             = ', s%global%external_plotting
     nl=nl+1; write(lines(nl), amt) '  %print_command                 = ', quote(s%global%print_command)
     nl=nl+1; write(lines(nl), amt) '  %prompt_string                 = ', quote(s%global%prompt_string)
     nl=nl+1; write(lines(nl), amt) '  %prompt_color                  = ', quote(s%global%prompt_color)
