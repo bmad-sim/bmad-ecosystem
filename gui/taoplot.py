@@ -760,7 +760,7 @@ class taoplot:
 		if FloorPlan == True:
 			GraphDict['FloorPlan']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
 
-			floInfo=pipe.cmd_in('python plot_graph r1.g',no_warn = True).splitlines()
+			floInfo=pipe.cmd_in('python plot_graph '+gType,no_warn = True).splitlines()
 			#list of plotting parameter strings from tao command python plot_graph
 
 
@@ -778,7 +778,7 @@ class taoplot:
 			else:
 				universe = 1
 
-			fpeInfo=pipe.cmd_in('python floor_plan r1.g',no_warn = True).splitlines()
+			fpeInfo=pipe.cmd_in('python floor_plan '+gType,no_warn = True).splitlines()
 			#list of plotting parameter strings from tao command python floor_plan
 			
 			
@@ -1095,7 +1095,7 @@ class taoplot:
 			
 			try:
 
-				fbwInfo=pipe.cmd_in('python floor_building_wall r1.g',no_warn = True).splitlines()
+				fbwInfo=pipe.cmd_in('python floor_building_wall '+gType,no_warn = True).splitlines()
 				#list of plotting parameter strings from tao command python floor_building_wall
 
 				fbwCurveList = []
@@ -1208,7 +1208,7 @@ class taoplot:
 			'''Floor Plan Orbit'''
 
 			if float(floInfoDict['floor_plan_orbit_scale'].value) != 0:
-				fpoInfo=pipe.cmd_in('python floor_orbit r1.g',no_warn = True).splitlines()
+				fpoInfo=pipe.cmd_in('python floor_orbit '+gType,no_warn = True).splitlines()
 				
 				fpoIndexList = []
 				fpoXList = []
