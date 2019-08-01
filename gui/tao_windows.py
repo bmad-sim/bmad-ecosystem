@@ -1154,7 +1154,7 @@ class tao_plot_window(tk.Toplevel):
       r_index = 1
       while (("r" + str(r_index)) in self.root.placed.values()):
         r_index = r_index + 1
-      self.pipe.cmd_in("place r" + str(r_index) + " " + self.template)
+      self.pipe.cmd_in("place -no_buffer r" + str(r_index) + " " + self.template)
       self.pipe.cmd_in("set plot r" + str(r_index) + ' visible = T')
       self.root.placed[self.template] = 'r' + str(r_index)
 
@@ -1165,6 +1165,7 @@ class tao_plot_window(tk.Toplevel):
     '''
     Makes the call to matplotlib to draw the plot to the window
     '''
+    print(self.root.placed)
     #Clear the window
     for child in self.winfo_children():
       child.destroy()
@@ -1217,7 +1218,7 @@ class tao_plot_window(tk.Toplevel):
     # Note: lat_layout should not be automatically removed from r1
     if self.template != "lat_layout":
       # Unplace the template from its region
-      self.pipe.cmd_in("place " + self.root.placed[self.template] + " none")
+      self.pipe.cmd_in("place -no_buffer " + self.root.placed[self.template] + " none")
       # Remove self from root.plot_windows
       try:
         self.root.plot_windows.pop(self.root.plot_windows.index(self))

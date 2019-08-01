@@ -219,9 +219,32 @@ class tao_root_window(tk.Tk):
     init_frame.grid_columnconfigure(1, weight=1)
 
     # Parse command line arguments
-    for arg in sys.argv:
-      pass
-      #if arg in param_dict.keys():
+    clargs = {} # keys: command line switches, values: switch value
+    looking_for = 'switch'
+    for i in range(len(sys.argv)):
+      if looking_for == 'switch':
+        arg = sys.argv[i]
+        if arg.find('-') == 0: #-switch
+          arg = arg[1:]
+          # Determine if arg is a valid switch name
+          matches = [] # list of startup params that arg might refer to
+          for param in param_dict.keys():
+            if param.find(arg) == 0:
+              matches.append(param)
+          if len(matches) == 1: #exactly one match -> good switch
+            if (param_dict[match[0]].type == 'FILE') & (i != len(sys.argv)-1):
+              clargs[arg] = "" #add arg to clargs
+              looking_for = 'file' #file switches need files
+            elif param_dict[match[0]] == 'LOGIC':
+              clargs[arg] = "" #add arg to clargs
+      elif looking_for == 'file':
+        arg_file = sys.argv[i]
+        if arg_file.find('-') == 0: #not a file
+          # Remove previous argument from list
+          clargs.pop(arg)
+        else:
+          clargs[arg] = arg_file
+          looking_for = 'switch'
 
     #Look for and read gui.init
     #gui.init should be in the same directory that
@@ -383,7 +406,7 @@ class tao_root_window(tk.Tk):
       self.plot_windows = []
       if plot_mode.get() == "matplotlib":
         # place the lattice layout in r1 by default
-        self.pipe.cmd_in("place r1 lat_layout")
+        self.pipe.cmd_in("place -no_buffer r1 lat_layout")
         self.pipe.cmd_in("set plot r1 visible = T")
         self.placed["lat_layout"] = 'r1'
       self.default_plots()
