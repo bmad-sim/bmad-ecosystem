@@ -3217,6 +3217,7 @@ case ('var_create')
       index_arr(i) = iu
       eles2(i)%ele => eles(i-num_ele)%ele
     enddo
+    num_ele = num_ele + n
   enddo
 
   v_ptr => v_array(1)%v
