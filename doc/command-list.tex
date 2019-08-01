@@ -484,21 +484,28 @@ Example:
 The \vn{place} command is used to associate a \vn{<template>} plot with a \vn{<region>}
 and thus create a visible plot in that region. Format:
 \begin{example}
-  place <region> <template>
+  place \{-no_buffer\} <region> <template>
   place <region> none
   place * none
 \end{example}
 
 \vskip 10pt 
 
-To erase a plot from a region use \vn{none} in place of a template name. Notice that by
-using multiple \vn{place} commands a \vn{template} can be associated with more than one
-region.  \vn{place * none} will erase all plots.
+If \vn{<region>} is set to ``\vn{*}'' then all regions are selected.
+
+If \vn{<template>} is set to ``\vn{none}'' all selected regions are cleared of plots.
+
+The \vn{-no_buffer} optional switch is used when external plotting is being done (EG with a GUI) and
+is not of interest otherwise.
+
+Notice that by using multiple \vn{place} commands a \vn{template} can be associated with more than
+one region. For example, if multiple orbit plots are desired.
 
 Examples:
 \begin{example}
-  place top orbit  ! place the orbit template in the top region
-  place top none   ! erase any plots in the top region
+  place * none     ! Erase all plots.
+  place top orbit  ! Place the orbit template in the top region
+  place top none   ! Erase any plots in the top region
 \end{example}
 
 %% plot --------------------------------------------------------------

@@ -307,8 +307,8 @@ case ('place')
 
   call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
 
-  if (index('-no_buffer', cmd_word(1)) == 1) then
-    call tao_place_cmd (cmd_word(1), cmd_word(2), .true.)
+  if (index('-no_buffer', trim(cmd_word(1))) == 1) then
+    call tao_place_cmd (cmd_word(2), cmd_word(3), .true.)
 
   else
     if (cmd_word(3) /= ' ') then
