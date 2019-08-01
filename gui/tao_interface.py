@@ -54,6 +54,9 @@ class tao_interface():
   '''
   def __init__(self, mode, init_args = "", tao_exe =  "", expect_str = "Tao>"):
     self.mode = mode
+    if 'ACC_LOCAL_ROOT' in os.environ.keys():
+      if tao_exe == "":
+        tao_exe = '$ACC_LOCAL_ROOT/production/bin/tao'
     # Needed to capture print statements from tao_io
 
     if mode == "pexpect":
