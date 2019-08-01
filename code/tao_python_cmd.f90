@@ -2681,6 +2681,8 @@ case ('place_buffer')
     nl=incr(nl); li(nl) = trim(s%com%place_buffer(i)%name) // ';' // s%com%place_buffer(i)%plot%name
   enddo
 
+  deallocate(s%com%place_buffer)
+
 !----------------------------------------------------------------------
 ! Curve information for a plot
 ! Command syntax:
