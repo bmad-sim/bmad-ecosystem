@@ -445,9 +445,9 @@ class taoplot:
 					LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xpList,ypList,color=i[2],linestyle=i[3],linewidth=i[4]/2))
 					GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2)
 
-					if gInfoDict['x.label'].value != 'Index':
+					if rInfoDict['x_axis_type'].value == 's':
 						LatLayout = True
-					#add lat layout
+					#add lat layout if x axis matches layout axis
 
 					if gInfoDict['graph^type'].value != 'data': #wave analysis rectangles
 						wInfo = pipe.cmd_in('python wave params',no_warn = True).splitlines()
