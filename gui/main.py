@@ -183,6 +183,7 @@ class tao_root_window(tk.Tk):
     If self.plot_mode == "matplotlib", opens all the
     plot templates listed in plot.gui.init in
     separate matplotlib windows
+    Also opens matplotlib windows for any plots placed by the tao init file
     '''
     if self.plot_mode == "matplotlib":
       # Open plot.gui.init
@@ -208,12 +209,19 @@ class tao_root_window(tk.Tk):
           self.plot_windows.append(win)
 
   def tao_load(self,init_frame):
-    #self.menubar.entryconfig("File", state="disabled")
-    #self.menubar.entryconfig("Window", state="disabled")
+    '''
+    Handles the startup of tao, including parsing gui.init and commandline
+    arguments.
+    '''
     from parameters import param_dict
     tk_list = [] #Items: tk_tao_parameter() (see tao_widget.py)
     init_frame.grid_columnconfigure(0, weight=1, pad=10)
     init_frame.grid_columnconfigure(1, weight=1)
+
+    # Parse command line arguments
+    for arg in sys.argv:
+      pass
+      #if arg in param_dict.keys():
 
     #Look for and read gui.init
     #gui.init should be in the same directory that
@@ -354,7 +362,7 @@ class tao_root_window(tk.Tk):
           if tk_param.param.value:
             init_args = init_args + "-" + tk_param.param.name + " "
       if plot_mode.get() != "pgplot":
-        init_args = init_args + "-noplot"
+        init_args = init_args + "-noplot -external_plotting"
       # Run Tao, clear the init_frame, and draw the main frame
       from tao_interface import tao_interface
       if chosen_interface.get() == "pexpect":
@@ -374,7 +382,6 @@ class tao_root_window(tk.Tk):
       self.placed = {}
       self.plot_windows = []
       if plot_mode.get() == "matplotlib":
-        self.pipe.cmd_in("set global force_plot_data_calc = T")
         # place the lattice layout in r1 by default
         self.pipe.cmd_in("place r1 lat_layout")
         self.pipe.cmd_in("set plot r1 visible = T")
