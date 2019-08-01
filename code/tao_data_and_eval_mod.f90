@@ -624,8 +624,6 @@ if (datum%s_offset /= 0 .or. datum%eval_point == anchor_center$ .or. datum%eval_
       return
     endif
   endif
-  
-  valid_value = .true.
 endif
 
 !---------------------------------------------------
@@ -1026,7 +1024,6 @@ case ('chrom.')
     datum_value = tao_branch%b%chrom
     valid_value = .true.
 
-   
   case ('chrom.dbeta.a')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
@@ -1766,7 +1763,6 @@ case ('normal.')
   
   ! Do nothing it the map wasn't made
   if (.not. associated(normal_form%ele_origin) ) then
-    valid_value = .false.
     !if (present(why_invalid)) why_invalid = 'PTC one-turn map not calculated.'
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  PTC one-turn map not calculated.', exterminate=.true.)
     return
@@ -1798,13 +1794,19 @@ case ('normal.')
         case default
           call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  data_type not ending in .r, .i, or .a.', exterminate=.true.)
           valid_value = .false.
+          return
       end select
     else
       call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  data_type not found in normal_form_struct', exterminate=.true.)
       valid_value = .false.
+      return
     endif
   else
-    i = tao_read_this_index (sub_data_type, iz)
+    i = tao_read_phase_space_index (sub_data_type, iz, .false.)
+    if (i == 0) then
+      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.', exterminate=.true.)
+      return
+    endif
     ! Point to taylor
     taylor_is_complex = .false.
     if (sub_data_type(1:5) == 'dhdj.') then
@@ -1818,20 +1820,19 @@ case ('normal.')
     else if (sub_data_type(1:4) == 'ReF.') then
       taylor_is_complex = .true.
       use_real_part = .true.
-      complex_taylor_ptr => normal_form%f(i)   
+      complex_taylor_ptr => normal_form%f(i)
     else if (sub_data_type(1:4) == 'ImF.') then
       taylor_is_complex = .true.
       use_real_part = .false.
-      complex_taylor_ptr => normal_form%F(i)      
+      complex_taylor_ptr => normal_form%F(i)
     else if (sub_data_type(1:4) == 'ReL.') then
       taylor_is_complex = .true.
       use_real_part = .true.
-      complex_taylor_ptr => normal_form%L(i)   
+      complex_taylor_ptr => normal_form%L(i)
     else if (sub_data_type(1:4) == 'ImL.') then
       taylor_is_complex = .true.
       use_real_part = .false.
-      complex_taylor_ptr => normal_form%L(i)       
-      
+      complex_taylor_ptr => normal_form%L(i)
     endif
    
     ! Check for second dot
@@ -2062,10 +2063,19 @@ case ('periodic.')
     endif
 
     expnt = 0
-    i = tao_read_this_index (datum%data_type, 13); if (i == 0) return
+    i = tao_read_phase_space_index (datum%data_type, 13, .false.)
+    if (i == 0) then
+      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+      return
+    endif
+
     do j = 14, 24
       if (datum%data_type(j:j) == ' ') exit
-      k = tao_read_this_index (datum%data_type, j); if (k == 0) return
+      k = tao_read_phase_space_index (datum%data_type, j, .false.)
+      if (k == 0) then
+        call tao_set_invalid (datum, 'BAD DATA_TYPE = "' // trim(datum%data_type), why_invalid, .true.)
+        return
+      endif
       expnt(k) = expnt(k) + 1
     enddo
 
@@ -2334,8 +2344,12 @@ case ('ping_b.')
 
 case ('r.')
   if (data_source == 'beam') goto 9000  ! Set error message and return
-  i = tao_read_this_index (datum%data_type, 3); if (i == 0) return
-  j = tao_read_this_index (datum%data_type, 4); if (j == 0) return
+  i = tao_read_phase_space_index (datum%data_type, 3, .false.)
+  j = tao_read_phase_space_index (datum%data_type, 4, .false.)
+  if (i == 0 .or. j == 0) then
+    call tao_set_invalid (datum, 'BAD DATA_TYPE = "' // trim(datum%data_type), why_invalid, .true.)
+    return
+  endif
 
   if (ix_ref < 0) ix_ref = 0
   call transfer_matrix_calc (lat, mat6, vec0, ix_ref, ix_start, branch%ix_branch)
@@ -2883,16 +2897,16 @@ case ('t.', 'tt.')
 
   expnt = 0
   if (head_data_type == 't.') then
-    i = tao_read_this_index (datum%data_type, 3)
+    i = tao_read_phase_space_index (datum%data_type, 3, .false.)
     do j = 4, 5
-      k = tao_read_this_index (datum%data_type, j); if (k == 0) exit
+      k = tao_read_phase_space_index (datum%data_type, j, .false.); if (k == 0) exit
       expnt(k) = expnt(k) + 1
     enddo
   else
-    i = tao_read_this_index (datum%data_type, 4)
+    i = tao_read_phase_space_index (datum%data_type, 4, .false.)
     do j = 5, 15
       if (datum%data_type(j:j) == ' ') exit
-      k = tao_read_this_index (datum%data_type, j); if (k == 0) exit
+      k = tao_read_phase_space_index (datum%data_type, j, .false.); if (k == 0) exit
       expnt(k) = expnt(k) + 1
     enddo
   endif

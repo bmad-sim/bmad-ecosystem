@@ -2226,8 +2226,8 @@ do ii = 1, size(curve%x_line)
   case ('r.')
     if (ii == 1) call mat_make_unit (mat6)
     if (s_now < s_last) cycle
-    i = tao_read_this_index (data_type, 3); if (i == 0) return
-    j = tao_read_this_index (data_type, 4); if (j == 0) return
+    i = tao_read_phase_space_index (data_type, 3); if (i == 0) return
+    j = tao_read_phase_space_index (data_type, 4); if (j == 0) return
     call mat6_from_s_to_s (lat, mat6, vec0, s_last, s_now, orbit_last, ix_branch, unit_start = .false.)
     value = mat6(i, j)
 
@@ -2264,9 +2264,9 @@ do ii = 1, size(curve%x_line)
       call taylor_make_unit (t_map, orbit%vec)
     endif
     if (s_now < s_last) cycle
-    i = tao_read_this_index (data_type, 3); if (i == 0) goto 9000
-    j = tao_read_this_index (data_type, 4); if (j == 0) goto 9000
-    k = tao_read_this_index (data_type, 5); if (k == 0) goto 9000
+    i = tao_read_phase_space_index (data_type, 3); if (i == 0) goto 9000
+    j = tao_read_phase_space_index (data_type, 4); if (j == 0) goto 9000
+    k = tao_read_phase_space_index (data_type, 5); if (k == 0) goto 9000
     call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch = ix_branch, &
                                                        unit_start = .false., concat_if_possible = s%global%concatenate_maps)
     value = taylor_coef (t_map(i), taylor_expn([j, k]))
@@ -2278,10 +2278,10 @@ do ii = 1, size(curve%x_line)
     endif
     if (s_now < s_last) cycle
     expnt = 0
-    i = tao_read_this_index (data_type, 4); if (i == 0) goto 9000
+    i = tao_read_phase_space_index (data_type, 4); if (i == 0) goto 9000
     do j = 5, 15
       if (data_type(j:j) == '') exit
-      k = tao_read_this_index (data_type, j); if (k == 0) goto 9000
+      k = tao_read_phase_space_index (data_type, j); if (k == 0) goto 9000
       expnt(k) = expnt(k) + 1
     enddo
     call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch = ix_branch, &

@@ -684,11 +684,12 @@ subroutine tao_read_cmd (which, file)
   character(*) which, file
 end subroutine
 
-function tao_read_this_index (name, ixc) result (ix)
+function tao_read_phase_space_index (name, ixc, print_err) result (ix_ps)
   import
   implicit none
   character(*) name
-  integer ix, ixc
+  integer ix_ps, ixc
+  logical, optional :: print_err
 end function
  
 subroutine tao_run_cmd (which, abort)
