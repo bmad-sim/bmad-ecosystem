@@ -596,7 +596,7 @@ type tao_global_struct
   logical :: derivative_uses_design = .false.     ! Derivative calc uses design lattice instead of model?
   logical :: disable_smooth_line_calc             ! Global disable of the smooth line calculation.
   logical :: draw_curve_off_scale_warn = .true.   ! Display warning on graphs?
-  logical :: force_plot_data_calc = .false.       ! Always calc plot curve points even with %plot_on = F?
+  logical :: external_plotting = .false.          ! Used with matplotlib and gui.
   logical :: label_lattice_elements = .true.      ! For lat_layout plots
   logical :: label_keys = .true.                  ! For lat_layout plots
   logical :: lattice_calc_on = .true.             ! Turn on/off beam and single particle calculations.
@@ -641,6 +641,7 @@ type tao_common_struct
   type (tao_universe_struct), pointer :: u_working          ! Index of working universe.
   type (tao_command_file_struct), allocatable :: cmd_file(:)
   type (named_number_struct), allocatable :: symbolic_num(:)    ! Named numbers
+  type (tao_plot_region_struct), allocatable :: place_buffer(:)  ! Used when %external_plotting is on.
   real(rp), allocatable :: covar(:,:), alpha(:,:)
   real(rp) :: dummy_target = 0           ! Dummy varaible
   integer ix_ref_taylor, ix_ele_taylor   ! Taylor map end points

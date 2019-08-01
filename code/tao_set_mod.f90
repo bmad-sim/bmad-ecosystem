@@ -339,12 +339,6 @@ call tao_data_check (err)
 if (err) return
 
 select case (who)
-case ('plot_on')
-  ! Place commands issued when plotting is off have %visible set to False.
-  do i = 1, size(s%plot_page%region)
-    if (s%plot_page%region(i)%plot%name == '') cycle
-    s%plot_page%region(i)%visible = .true.
-  enddo
 case ('prompt_color')
   call upcase_string(global%prompt_color)
 case ('random_seed')

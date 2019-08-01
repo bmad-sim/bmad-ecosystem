@@ -27,13 +27,35 @@ type (qp_axis_struct), pointer :: ax
 type (tao_universe_struct), pointer :: u
 type (tao_plot_region_struct), pointer :: region, r2
 type (tao_curve_struct), pointer :: curve
+type (tao_plot_region_struct), allocatable :: temp_buf(:)
 
 real(rp) x1, x2, y1, y2
-integer i, j, k, i_uni
+integer i, j, k, i_uni, n
 logical err
 
 character(*) who, where
 character(20) :: r_name = 'tao_place_cmd'
+
+! If external plotting is being done then just save the arguments and the GUI
+! can query for the info via a python command.
+
+if (s%global%external_plotting) then
+  if (allocated (s%com%place_buffer)) then
+    n = size(s%com%place_buffer) + 1
+    call move_alloc(s%com%place_buffer, temp_buf)
+    allocate(s%com%place_buffer(n))
+    s%com%place_buffer(1:n-1) = temp_buf
+  else
+    allocate(s%com%place_buffer(1))
+    n = 1
+  endif
+
+  s%com%place_buffer(n)%name = where
+  s%com%place_buffer(n)%plot%name = who
+
+  return
+endif
+
 
 ! Find the region where the plot is to be placed.
 ! The plot pointer will point to the plot associated with the region.
