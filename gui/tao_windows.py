@@ -1457,6 +1457,7 @@ class tao_branch_widgets:
       self.ele.set('0')
       self.bmd.set("Model")
     self.branch_name.set(self.b_name_list[self.uni.get()][0])
+    self.branch_name.trace('w', self.update_branch)
     try: # in case self.ele was set by name and not by index
       ele_num = int(self.ele.get())
       self.ele.set(
@@ -1581,6 +1582,14 @@ class tao_branch_widgets:
           self.ele.get())
       self.ele.set(str(ele_num))
     return 1
+
+  def update_branch(self, *args):
+    '''
+    Trace callback for self.branch_name to update self.branch
+    '''
+    ix = self.b_name_list[self.uni.get()].index(self.branch_name.get())
+    self.branch.set(self.b_list[self.uni.get()][ix])
+
 
 #-----------------------------------------------------
 # Element window
@@ -3147,6 +3156,7 @@ class tao_new_var_window(tk.Toplevel):
     '''
     # Input validation
     messages = []
+    missing_atts = [] #variables with element must have an attribute
     for v1_frame in self.v1_frame_list:
       # Check names
       if v1_frame.name_handler():
@@ -3166,27 +3176,45 @@ class tao_new_var_window(tk.Toplevel):
       semi_message = "Semicolons not allowed in any input field"
       caret_message = "Carets not allowed in any input field"
       broken = False #Used to break out of the below for loops
+      # Check for semicolons/carets
       for ttp in v1_frame.v1_array_wids:
         if str(ttp.tk_var.get()).find(';') != -1:
           messages.append(semi_message)
+          broken = True
           break
         if str(ttp.tk_var.get()).find('^') != -1:
           messages.append(caret_message)
+          broken = True
           break
-        for var_dict in v1_frame.var_dict.values():
-          for v in var_dict.values():
-            if str(v).find(';') != -1:
-              messages.append(semi_message)
-              broken = True
-              break
-            if str(v).find('^') != -1:
-              messages.append(caret_message)
-              broken = True
-              break
-          if broken:
+      for var_dict in v1_frame.var_dict.values():
+        if broken:
+          break
+        for v in var_dict.values():
+          if str(v).find(';') != -1:
+            messages.append(semi_message)
+            broken = True
+            break
+          if str(v).find('^') != -1:
+            messages.append(caret_message)
+            broken = True
             break
         if broken:
           break
+      # Check that variables with elements have attributes
+      for ix, var_dict in v1_frame.var_dict.items():
+        if 'ele_name' in var_dict.keys():
+          if var_dict['ele_name'] != "":
+            if 'attribute' in var_dict.keys():
+              if var_dict['attribute'] == "":
+                missing_atts.append(ix)
+            elif v1_frame.v1_array_wids[2].tk_var.get() == "":
+              missing_atts.append(ix)
+    if missing_atts != []:
+      missing_atts.sort()
+      att_msg = "The following variables were assigned elements but not attributes:\n"
+      for ix in missing_atts:
+        att_msg += v1_frame.name + '[' + str(ix) + ']' + '\n'
+      messages.append(att_msg)
     for m in messages:
       messagebox.showwarning("Error", m, parent=self)
     if messages != []:
@@ -3214,15 +3242,26 @@ class tao_new_var_window(tk.Toplevel):
         for j in range(len(params)):
           p = params[j]
           if p in var_dict.keys():
-            cmd_str += str(var_dict[p]) + '^'
-          elif j != 0:
+            if p == 'universes': #cannot be empty
+              u = v1_frame.v1_array_wids[v1_ix].tk_var.get()
+              if u == "":
+                pass
+            else:
+              cmd_str += str(var_dict[p]) + '^'
+          elif j == 0:
+            cmd_str += '^'
+          else:
             v1_ix = v1_params.index(p)
             if v1_frame.v1_array_wids[v1_ix].param.type == 'LOGIC':
               cmd_str += ('T^' if v1_frame.v1_array_wids[v1_ix].tk_var.get() else 'F^')
+            elif p == 'universes': #cannot be empty
+              u = v1_frame.v1_array_wids[v1_ix].tk_var.get()
+              if u == "":
+                u = '*'
+              cmd_str += u + '^'
             else:
               cmd_str += v1_frame.v1_array_wids[v1_ix].tk_var.get() + '^'
         cmd_str = cmd_str[:-1] # remove ending ^
-        print(cmd_str)
         self.pipe.cmd_in(cmd_str)
       # Set parameters at the v1 level
       #set_str = 'set var ' + v1_frame.name + '|'
