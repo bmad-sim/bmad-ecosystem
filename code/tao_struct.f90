@@ -27,10 +27,10 @@ character(20), parameter :: graph_type_name(5) = [character(20):: 'data', 'lat_l
                                                        'phase_space', 'histogram', 'dynamic_aperture']
 character(16), parameter :: x_axis_type_name(12) = [character(16):: 'index', 'ele_index', 'lat', 'var', &
                                    'ele_index', 's', 'none', 'floor', 'phase_space', 'histogram', 'data', 'floor']
+character(12), parameter :: data_type_z_name(14) = [character(12):: 'x', 'px', 'y', 'py', 'z', 'pz', 'time', &
+                  'intensity', 'intensity_x', 'intensity_y', 'phase_x', 'phase_y', 'Ja', 'energy']
 character(8), parameter :: var_merit_type_name(2) = [character(8):: 'target ', 'limit']
 character(8), parameter :: data_merit_type_name(5) = [character(8):: 'target', 'min', 'max', 'abs_min', 'abs_max']
-character(8), parameter :: data_type_z_name(14) = [character(8):: 'x', 'px', 'y', 'py', 'z', 'pz', &
-                  'intensity_x', 'intensity_y', 'phase_x', 'phase_y', 'intensity', 'Ja', 'energy', 'time']
 
 integer, parameter :: n_char_show = 1000
 

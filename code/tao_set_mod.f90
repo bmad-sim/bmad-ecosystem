@@ -1155,13 +1155,14 @@ case ('symbol_size')
   call tao_set_real_value (this_curve%symbol%height, component, value_str, err)
 
 case ('symbol_color', 'symbol.color')
-  call tao_set_switch_value (this_curve%symbol%color, component, value_str, qp_color_name, err)
+  call tao_set_switch_value (this_curve%symbol%color, component, value_str, qp_color_name, lbound(qp_color_name,1), err)
 
 case ('symbol_type', 'symbol.type')
-  call tao_set_switch_value (this_curve%symbol%type, component, value_str, qp_symbol_type_name, err)
+  call tao_set_switch_value (this_curve%symbol%type, component, value_str, qp_symbol_type_name, lbound(qp_symbol_type_name,1), err)
 
 case ('symbol_fill_pattern', 'symbol.fill_pattern')
-  call tao_set_switch_value (this_curve%symbol%fill_pattern, component, value_str, qp_symbol_fill_pattern_name, err)
+  call tao_set_switch_value (this_curve%symbol%fill_pattern, component, value_str, qp_symbol_fill_pattern_name, &
+                                                                                     lbound(qp_symbol_fill_pattern_name,1), err)
 
 case ('symbol_height', 'symbol.height')
   call tao_set_real_value (this_curve%symbol%height, component, value_str, err)
@@ -1173,13 +1174,14 @@ case ('smooth_line_calc')
   call tao_set_logical_value (this_curve%smooth_line_calc, component, value_str, err)
 
 case ('line_color', 'line.color')
-  call tao_set_switch_value (this_curve%line%color, component, value_str, qp_color_name, err)
+  call tao_set_switch_value (this_curve%line%color, component, value_str, qp_color_name, lbound(qp_color_name,1), err)
 
 case ('line_width', 'line.width')
   call tao_set_integer_value (this_curve%line%width, component, value_str, err)
 
 case ('line_pattern', 'line.pattern')
-  call tao_set_switch_value (this_curve%line%pattern, component, value_str, qp_line_pattern_name, err)
+  call tao_set_switch_value (this_curve%line%pattern, component, value_str, qp_line_pattern_name, &
+                                                                                     lbound(qp_line_pattern_name,1), err)
 
 case ('component')
   this_curve%component = remove_quotes(value_str)
@@ -1370,7 +1372,7 @@ do i = 1, size(plot)
       endif
 
     case ('x_axis_type')
-      call tao_set_switch_value (ix, component, value_str, x_axis_type_name, err_flag)
+      call tao_set_switch_value (ix, component, value_str, x_axis_type_name, lbound(x_axis_type_name,1), err_flag)
       if (.not. err_flag) plot(i)%p%x_axis_type = x_axis_type_name(ix)
 
     case default
@@ -1765,7 +1767,7 @@ case ('default_tracking_species')
   branch%param%default_tracking_species = ix
 
 case ('geometry')
-  call tao_set_switch_value (ix, c_str, value_str, geometry_name(1:), err)
+  call tao_set_switch_value (ix, c_str, value_str, geometry_name(1:), 1, err)
   if (err) return
   branch%param%geometry = ix
 
@@ -2582,7 +2584,7 @@ end subroutine tao_set_integer_value
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_switch_value (var, var_str, value_str, name_list, error, print_err)
+! Subroutine tao_set_switch_value (var, var_str, value_str, name_list, l_bound, error, print_err)
 !
 ! Routine to  set the value of an integer switch varialbe.
 !
@@ -2593,6 +2595,7 @@ end subroutine tao_set_integer_value
 !   var_str       -- character(*): Used for error messages.
 !   value_str     -- character(*): String with encoded value.
 !   name_list(:)  -- character(*): Names to match to.
+!   l_bound       -- integer: Lower bound to name_list(:) array.
 !   print_err     -- logical, optional: If True, print error message. Default is true
 !
 ! Output:
@@ -2600,15 +2603,15 @@ end subroutine tao_set_integer_value
 !   error       -- Logical: Set True on an error. False otherwise.
 !-
 
-subroutine tao_set_switch_value (var, var_str, value_str, name_list, error, print_err)
+subroutine tao_set_switch_value (var, var_str, value_str, name_list, l_bound, error, print_err)
 
 implicit none
 
-integer var
+integer var, l_bound
 integer ios, ix
 
 character(*) var_str, value_str
-character(*) name_list(:)
+character(*) name_list(l_bound:)
 character(*), parameter :: r_name = 'tao_set_switch_value'
 logical error
 logical, optional :: print_err
