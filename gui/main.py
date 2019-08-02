@@ -139,6 +139,8 @@ class tao_root_window(tk.Tk):
       self.history_window.refresh()
     except:
       pass
+    # Check the place buffer and place plots
+    self.default_plots(include_init=False)
 
   def menubar_init(self):
     self.menubar = tk.Menu(self)
@@ -178,22 +180,32 @@ class tao_root_window(tk.Tk):
 
     self.config(menu=self.menubar)
 
-  def default_plots(self):
+  def default_plots(self, include_init=True):
     '''
     If self.plot_mode == "matplotlib", opens all the
     plot templates listed in plot.gui.init in
     separate matplotlib windows
     Also opens matplotlib windows for any plots placed by the tao init file
+    Will only place plots from the place buffer if include_init is False
     '''
     if self.plot_mode == "matplotlib":
-      # Open plot.gui.init
-      try:
-        plot_file = open('plot.gui.init')
-        plot_list = plot_file.read()
-        plot_list = plot_list.splitlines()
-        plot_file.close()
-      except:
+      if include_init:
+        # Open plot.gui.init
+        try:
+          plot_file = open('plot.gui.init')
+          plot_list = plot_file.read()
+          plot_list = plot_list.splitlines()
+          plot_file.close()
+        except:
+          plot_list = []
+      else:
         plot_list = []
+      # Read the place buffer
+      init_plots = self.pipe.cmd_in('python place_buffer')
+      init_plots = init_plots.splitlines()
+      for i in range(len(init_plots)):
+        init_plots[i] = init_plots[i].split(';')[1]
+      plot_list = plot_list + init_plots
 
       # Get list of plot templates to check input against
       plot_templates = self.pipe.cmd_in("python plot_list t")
