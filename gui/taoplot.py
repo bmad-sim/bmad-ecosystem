@@ -168,10 +168,24 @@ class taoplot:
 			'dashed':'dashed',
 			'dash_dot':'dashdot',
 			'dotted':'dotted',
-			'dash_dot3':'dashdot'
+			'dash_dot3':'dashdot', #currently the same as dashdot
+			'1':'solid',
+			'2':'dashed',
+			'3':'dashdot',
+			'4':'dotted',
+			'5':'dashdot'
 			}
 
-
+		FillDict = {
+			'solid_fill':'full',
+			'no_fill':'none',
+			'hatched':'full',
+			'cross_hatched':'full',
+			'1':'full',
+			'2':'none',
+			'3':'full',
+			'4':'full'
+			}
 
 		SymbolsDict = {
 			'square':'s', #no fill
@@ -180,6 +194,7 @@ class taoplot:
 			'times':(6,2,0),
 			'circle':'$\\circ$', 
 			'x':'x',
+			'x_symbol':'x',
 			'triangle':'^', #no fill
 			'circle_plus':'$\\oplus$',
 			'circle_dot':'$\\odot$',
@@ -387,7 +402,7 @@ class taoplot:
 				hInfo=[]
 
 
-
+			
 
 			'''Plot Data'''
 
@@ -400,7 +415,13 @@ class taoplot:
 				CurveData.append(StylesDict[cInfoDictList[i]['line.pattern'].value.lower()])
 				CurveData.append(cInfoDictList[i]['line.width'].value)
 				CurveData.append(color(cInfoDictList[i]['symbol.color'].value))
-				if (cInfoDictList[i]['symbol.fill_pattern'] == 'solid_fill'):
+				if cInfoDictList[i]['symbol.type'].value == 'dot' or cInfoDictList[i]['symbol.type'].value == '1':
+					CurveData.append(cInfoDictList[i]['symbol.color'].value)
+				elif cInfoDictList[i]['symbol.type'].value[-6:] == 'filled':
+					CurveData.append(cInfoDictList[i]['symbol.color'].value)
+				elif cInfoDictList[i]['symbol.type'].value[:1] == '-':
+					CurveData.append(cInfoDictList[i]['symbol.color'].value)
+				elif (FillDict[cInfoDictList[i]['symbol.fill_pattern'].value] == 'solid'):
 					CurveData.append(cInfoDictList[i]['symbol.color'].value)
 				else:
 					CurveData.append('none')
