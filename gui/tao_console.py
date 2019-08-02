@@ -118,7 +118,7 @@ class tao_console(tk.Frame):
     except:
       pass
     # Check the place buffer and place plots
-    self.default_plots(include_init=False)
+    self.root.default_plots(include_init=False)
 
   def _get_curs_l(self):
     '''
