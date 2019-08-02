@@ -19,6 +19,7 @@
 !   FILE        ! Name of file.
 !   CRYSTAL     ! Crystal name string. EG: "Si(111)"
 !   DAT_TYPE    ! Data type string. EG: "orbit.x"
+!   DAT_TYPE_Z  ! Data type string if plot%x_axis_type = 'data'. Otherwise is a data_type_z enum.
 !   SPECIES     ! Species name string. EG: "H2SO4++"
 !   ELE_PARAM   ! Lattice element parameter string. EG "K1"
 !   STR         ! String that does not fall into one of the above string categories.
@@ -2076,6 +2077,11 @@ case ('enum')
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(x_axis_type_name(i))
     enddo
 
+  case ('data_type_z')
+    do i = 1, size(data_type_z_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(data_type_z_name(i))
+    enddo
+
   case default
 
     name = upcase(line)
@@ -2776,8 +2782,8 @@ case ('plot_curve')
 
   nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             cur%name
   nl=incr(nl); write (li(nl), amt) 'data_source;ENUM;T;',                     cur%data_source
-  nl=incr(nl); write (li(nl), amt) 'data_type_x;DAT_TYPE;T;',                 cur%data_type_x
-  nl=incr(nl); write (li(nl), amt) 'data_type_z;STR;T;',                      cur%data_type_z
+  nl=incr(nl); write (li(nl), amt) 'data_type_x;DAT_TYPE_Z;T;',               cur%data_type_x
+  nl=incr(nl); write (li(nl), amt) 'data_type_z;ENUM;T;',                     cur%data_type_z
   nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   cur%data_type
   nl=incr(nl); write (li(nl), amt) 'component;STR;T;',                        cur%component
   nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(cur%ele_ref_name), 'ix_ele_ref'

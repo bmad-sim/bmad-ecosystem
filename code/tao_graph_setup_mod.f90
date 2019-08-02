@@ -1042,7 +1042,7 @@ case ('intensity_x'); ix_axis =  7; if (present(p)) axis = p%field(1)**2
 case ('intensity_y'); ix_axis =  8; if (present(p)) axis = p%field(2)**2
 case ('phase_x');     ix_axis =  9; if (present(p)) axis = p%phase(1)
 case ('phase_y');     ix_axis = 10; if (present(p)) axis = p%phase(2)
-
+case ('t', 'time');   ix_axis = 14; if (present(p)) axis = p%t
 
 case ('intensity')
   ix_axis = 11
@@ -1068,8 +1068,6 @@ case ('energy')
     enddo
   endif
   
-case ('t');     ix_axis = 14; if (present(p)) axis = p%t
-
 case default
   call out_io (s_abort$, r_name, 'BAD PHASE_SPACE CURVE DATA_TYPE: ' // data_type)
   if (present(err)) err = .true.
