@@ -1908,7 +1908,7 @@ integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch, idum, n_ele_track
 integer cache_status, ix_last_hybrid
 integer, parameter :: cache_off$ = 0, loading_cache$ = 1, using_cache$ = 2
 
-character(40) data_type, name
+character(40) data_type, name, sub_data_type
 character(40) data_type_select, data_source
 character(*), parameter :: r_name = 'tao_calc_data_at_s'
 logical err, good(:), first_time, radiation_fluctuations_on
@@ -1973,6 +1973,7 @@ if (ix == 0) then
   data_type_select = data_type
 else
   data_type_select = data_type(:ix)
+  sub_data_type = data_type(ix+1:)
 endif
 
 ! Only cache plot data if the number of points is equal to s%plot_page%n_curve_pts
@@ -2258,30 +2259,17 @@ do ii = 1, size(curve%x_line)
       goto 9000  ! Error message & Return
     end select
 
-  case ('t.')
-    if (ii == 1) then
-      call twiss_and_track_at_s (lat, s_last, orb = orb, orb_at_s = orbit, ix_branch = ix_branch)
-      call taylor_make_unit (t_map, orbit%vec)
-    endif
-    if (s_now < s_last) cycle
-    i = tao_read_phase_space_index (data_type, 3); if (i == 0) goto 9000
-    j = tao_read_phase_space_index (data_type, 4); if (j == 0) goto 9000
-    k = tao_read_phase_space_index (data_type, 5); if (k == 0) goto 9000
-    call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch = ix_branch, &
-                                                       unit_start = .false., concat_if_possible = s%global%concatenate_maps)
-    value = taylor_coef (t_map(i), taylor_expn([j, k]))
-
-  case ('tt.')
+  case ('t.', 'tt.')
     if (ii == 1) then
       call twiss_and_track_at_s (lat, s_last, orb = orb, orb_at_s = orbit, ix_branch = ix_branch)
       call taylor_make_unit (t_map, orbit%vec)
     endif
     if (s_now < s_last) cycle
     expnt = 0
-    i = tao_read_phase_space_index (data_type, 4); if (i == 0) goto 9000
-    do j = 5, 15
-      if (data_type(j:j) == '') exit
-      k = tao_read_phase_space_index (data_type, j); if (k == 0) goto 9000
+    i = tao_read_phase_space_index (sub_data_type, 1); if (i == 0) goto 9000
+    do j = 2, 20
+      if (sub_data_type(j:j) == '') exit
+      k = tao_read_phase_space_index (sub_data_type, j); if (k == 0) goto 9000
       expnt(k) = expnt(k) + 1
     enddo
     call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch = ix_branch, &

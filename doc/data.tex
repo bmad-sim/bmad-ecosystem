@@ -1276,45 +1276,47 @@ with the amplitude of the spin set at unity.
 
   %----------------------
   \item[srdt.h<monomial>.\{r,i,a\}] \Newline
-  Resonance driving term summations based on summations supplied in \cite{b:bengtsson} (3rd order)
-  and \cite{b:wang} (4th order).  The 3rd order monomials for which summations have been implemented
-  are \vn{h11001}, \vn{h00111}, \vn{h20001}, \vn{h00201}, \vn{h10002}, \vn{h21000},
+Resonance driving term summations based on summations supplied in \cite{b:bengtsson} (3rd order)
+and \cite{b:wang} (4th order).  The 3rd order monomials for which summations have been implemented
+are \vn{h11001}, \vn{h00111}, \vn{h20001}, \vn{h00201}, \vn{h10002}, \vn{h21000},
 \vn{h30000}, \vn{h10110}, \vn{h10020}, and \vn{h10200}.  The 4th order monomials are
 \vn{h31000}, \vn{h40000}, \vn{h20110}, \vn{h11200}, \vn{h20020}, \vn{h20200}, \vn{h00310}, 
 \vn{h00400}, \vn{h22000}, \vn{h00220}, and \vn{h11110}.
 
-  Suffixes \vn{.r}, \vn{.i}, and \vn{.a} signify the real part, imaginary part, or absolute value.
+Suffixes \vn{.r}, \vn{.i}, and \vn{.a} signify the real part, imaginary part, or absolute value.
 
-  For higher orders and monomials for which summations are not available, see the \Newline
-  \vn{normal.h.<monomial>.\{r,i,a\}} data type.
-  Additional details on driving terms are listed there and in Tab.~\ref{t:dts}
+For higher orders and monomials for which summations are not available, see the \Newline
+\vn{normal.h.<monomial>.\{r,i,a\}} data type.  Additional details on driving terms are listed there
+and in Tab.~\ref{t:dts}
 
-  Three \vn{tao.init} \vn{tao_params} are important for \vn{srdt} data.  They are,
-  \begin{example}
+Three \vn{tao.init} \vn{tao_params} are important for \vn{srdt} data.  They are,
+\begin{example}
   global{\%}srdt_use_cache = \{.true. (default), .false.\}
   global{\%}srdt_sxt_n_slices= <integer, default 20>
   global{\%}srdt_gen_n_slices= <integer, default 10>
-  \end{example}
+\end{example}
 
-  \vn{srdt_sxt_n_slices} and \vn{srdt_gen_n_slices} set the number of steps to take through
-  sextupole and non-sextupole elements, respectively.  More steps improve accuracy, but are slower
-  and increase the size of the srdt cache.
+\vn{srdt_sxt_n_slices} and \vn{srdt_gen_n_slices} set the number of steps to take through sextupole
+and non-sextupole elements, respectively.  More steps improve accuracy, but are slower and increase
+the size of the srdt cache.
 
-  \vn{srdt_use_cache} generates a cache of the cross-products of the linear optics quantities used
-  for the srdt summations.  Provided the linear optics are not changing, using the cache can greatly 
-  speed up subsequent srdt calculations (i.e. during optimization of sextupole moments).  
-  Note that whenever the linear optics change, e.g. a quadrupole
-  is adjusted, the cache must be regenerated.  Also note that the cache can be rather large and grows as
-  with the squares of \vn{srdt_sxt_n_slices} and \vn{srdt_gen_n_slices}.  If there is insufficient RAM available, \vn{tao} will
-  generate a warning message and revert to a \vn{srdt_use_cache=.false.} state.
+\vn{srdt_use_cache} generates a cache of the cross-products of the linear optics quantities used for
+the srdt summations.  Provided the linear optics are not changing, using the cache can greatly speed
+up subsequent srdt calculations (i.e. during optimization of sextupole moments).  Note that whenever
+the linear optics change, e.g. a quadrupole is adjusted, the cache must be regenerated.  Also note
+that the cache can be rather large and grows as with the squares of \vn{srdt_sxt_n_slices} and
+\vn{srdt_gen_n_slices}.  If there is insufficient RAM available, \vn{tao} will generate a warning
+message and revert to a \vn{srdt_use_cache=.false.} state.
 
   %----------------------
-  \item[t.$ijk$,  tt.$ijklm\ldots$ \hspace{0.2in} $1 \le i,j,k,\ldots \le 6$] \Newline
-Taylor map components between two points.  The difference between \vn{t.$ijk$} and
-\vn{tt.$ijklm\ldots$} is that \vn{t.$ijk$} is restricted to exactly three indices and
-\vn{tt.$ijklm\ldots$} is not. \vn{t.$ijk$} is superfluous but is keep for backwards compatibility.
+  \item[t.$ijklm\ldots$,  tt.$ijklm\ldots$ \hspace{0.2in} $1 \le i,j,k,\ldots \le 6$] \Newline
+Taylor map components between two points. \vn{tt.$ijk\ldots$} is analogous to the \vn{tt} syntax for
+\vn{taylor} elements (see the \bmad manual description of \vn{taylor} elements). For example,
+\vn{tt.34} corresponds to the linear $M_{34}$ matrix element. The \vn{t.$ijklm\ldots$} notation,
+which is superfluous but is keep for backwards compatibility, is equivalent to \vn{tt.$ijklm\ldots$}
+Also see \vn{r.$ij$}.
 
-Calculation of \vn{t.$ijk$} and \vn{tt.$ijklm\ldots$} datums involve symplectic
+Calculation of \vn{t.$ijklm\ldots$} and \vn{tt.$ijklm\ldots$} datums involve symplectic
 integration through lattice elements. One point to be kept in mind is that results will be
 dependent upon the integration step size through an element set by the \vn{ds_step}
 attribute of that element (see the \bmad manual for more details). When a smooth curve
@@ -1586,19 +1588,26 @@ squared.
   spin.polarization_rate              & Spin polarization rate.                   & lat         & No  \\ \hline
   spin.polarization_limit             & Spin polarization limit.                  & lat         & No  \\ \hline
 
-  spin_g_matrix.$ij$ \hspace{10pt} $1 \le i \le 2, 1 \le j \le 6$ \\
-                                      & Spin G-matrix components                  & lat         & No  \\ \hline
+  \begin{tabular}{@{}l}   
+    spin_g_matrix.$ij$ \\
+    \hspace{10pt} $1 \le i \le 2$, $1 \le j \le 6$ 
+  \end{tabular}                       & Spin G-matrix components                  & lat         & No  \\ \hline
+
   srdt.h<monomial>.\{r,i,a\}          & \begin{tabular}{@{}l}
                                           Normal form driving terms \\
                                           calculated by summation 
                                         \end{tabular}                             & lat & No \\ \hline
 
   time                                & Particle time (sec)                       & beam, lat   & Yes \\ \hline
-  t.$ijk$ \hspace{10pt} $1 \le i,j,k \le 6$
-                                      & Term in 2\Nd order transfer map           & lat         & No  \\ \hline 
-  tt.$ijklm\ldots$ \hspace{10pt} 
+
+  \begin{tabular}{@{}l}   
+     t.$ijklm\ldots$ \\
+     tt.$ijklm\ldots$ 
+  \end{tabular}  $1 \le i,j,k,\ldots \le 6$  
                                       & Term in n\Th order transfer map           & lat         & No  \\ \hline 
+
   tune.a, .b                          & Tune                                      & lat         & No  \\ \hline 
+
   unstable.orbit                      & \begin{tabular}{@{}l}   
                                           Nonzero if particles are \\
                                           lost in tracking
