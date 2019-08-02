@@ -206,7 +206,7 @@ call string_trim(line(ix+1:), line, ix_line)
 call match_word (cmd, [character(20) :: &
           'beam_init', 'branch1', 'bunch1', 'bmad_com', 'constraints', &
           'da_params', 'da_aperture', &
-          'data', 'data_create', 'data_destroy', 'data_d_array', 'data_d1_array', 'data_d2', 'data_d2_array', &
+          'data', 'data_d2_create', 'data_d2_destroy', 'data_d_array', 'data_d1_array', 'data_d2', 'data_d2_array', &
           'datum_has_ele', &
           'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', &
           'ele:cartesian_map', 'ele:chamber_wall', 'ele:cylindrical_map', 'ele:orbit', &
@@ -613,7 +613,7 @@ case ('data')
 ! Create a d2 data structure along with associated d1 and data arrays.
 !
 ! Command syntax:
-!   python data_create {d2_name} {n_d1_data} {d_data_arrays_min_max}
+!   python data_d2_create {d2_name} {n_d1_data} {d_data_arrays_min_max}
 ! {d2_name} should be of the form {ix_uni}@{d2_datum_name}
 ! {n_d1_data} is the number of associated d1 data structures.
 ! {d_data_arrays_min_max} is an array of pairs of integers. The number of pairs is {n_d1_data}. 
@@ -633,7 +633,7 @@ case ('data')
 !   ("set global lattice_calc_on = F") to prevent Tao trying to evaluate the partially created datum and
 !   generating unwanted error messages.
 
-case ('data_create')
+case ('data_d2_create')
 
   if (ix_line == 0) then
     call invalid ('No d2 name given')
@@ -679,7 +679,7 @@ case ('data_create')
 
   call tao_find_data(err, name, d2_array, print_err = .false.)
   if (size(d2_array) /= 0) then
-    call destroy_this_data (a_name)
+    call destroy_this_data_d2 (a_name)
     call out_io (s_warn$, r_name, '"python ' // trim(input_str) // '": Data with this name already exists.', &
                                    'This old data has been destroyed to make room for the new data.')
   endif
@@ -748,13 +748,13 @@ case ('data_create')
 !----------------------------------------------------------------------
 ! Destroy a d2 data structure along with associated d1 and data arrays.
 ! Command syntax:
-!   python data_destroy {d2_datum}
+!   python data_d2_destroy {d2_datum}
 ! {d2_datum} should be of the form 
 !   {ix_uni}@{d2_datum_name}
 
-case ('data_destroy')
+case ('data_d2_destroy')
 
-call destroy_this_data(line)
+call destroy_this_data_d2(line)
 
 !----------------------------------------------------------------------
 ! Information on a d2_datum.
@@ -3190,6 +3190,59 @@ case ('universe')
   nl=incr(nl); write (li(nl), lmt) 'is_on;LOGIC;T;',                          u%is_on
 
 !----------------------------------------------------------------------
+! Info on an individual variable
+! Command syntax: 
+!   python var {var}
+! Output syntax is parameter list form. See documentation at the beginning of this file.
+
+case ('var')
+
+  call tao_find_var (err, line, v_array = v_array)
+
+  if (.not. allocated(v_array) .or. size(v_array) /= 1) then
+    call invalid ('Not a valid variable name')
+    return
+  endif
+
+  v_ptr => v_array(1)%v
+
+  nl=incr(nl); write (li(nl), rmt)  'model_value;REAL;T;',          v_ptr%model_value
+  nl=incr(nl); write (li(nl), rmt)  'base_value;REAL;T;',           v_ptr%base_value
+
+  nl=incr(nl); write (li(nl), amt) 'ele_name;STR;F;',                         trim(v_ptr%ele_name)
+  nl=incr(nl); write (li(nl), amt) 'attrib_name;STR;F;',                      v_ptr%attrib_name
+  nl=incr(nl); write (li(nl), imt) 'ix_v1;INT;F;',                            v_ptr%ix_v1
+  nl=incr(nl); write (li(nl), imt) 'ix_var;INT;F;',                           v_ptr%ix_var
+  nl=incr(nl); write (li(nl), imt) 'ix_dvar;INT;F;',                          v_ptr%ix_dvar
+  nl=incr(nl); write (li(nl), imt) 'ix_attrib;INT;F;',                        v_ptr%ix_attrib
+  nl=incr(nl); write (li(nl), imt) 'ix_key_table;INT;T;',                     v_ptr%ix_key_table
+  nl=incr(nl); write (li(nl), rmt) 'design_value;REAL;F;',                    v_ptr%design_value
+  nl=incr(nl); write (li(nl), rmt) 'scratch_value;REAL;F;',                   v_ptr%scratch_value
+  nl=incr(nl); write (li(nl), rmt) 'old_value;REAL;F;',                       v_ptr%old_value
+  nl=incr(nl); write (li(nl), rmt) 'meas_value;REAL;T;',                      v_ptr%meas_value
+  nl=incr(nl); write (li(nl), rmt) 'ref_value;REAL;T;',                       v_ptr%ref_value
+  nl=incr(nl); write (li(nl), rmt) 'correction_value;REAL;F;',                v_ptr%correction_value
+  nl=incr(nl); write (li(nl), rmt) 'high_lim;REAL;T;',                        v_ptr%high_lim
+  nl=incr(nl); write (li(nl), rmt) 'low_lim;REAL;T;',                         v_ptr%low_lim
+  nl=incr(nl); write (li(nl), rmt) 'step;REAL;T;',                            v_ptr%step
+  nl=incr(nl); write (li(nl), rmt) 'weight;REAL;T;',                          v_ptr%weight
+  nl=incr(nl); write (li(nl), rmt) 'delta_merit;REAL;F;',                     v_ptr%delta_merit
+  nl=incr(nl); write (li(nl), rmt) 'merit;REAL;F;',                           v_ptr%merit
+  nl=incr(nl); write (li(nl), rmt) 'dmerit_dvar;REAL;F;',                     v_ptr%dMerit_dVar
+  nl=incr(nl); write (li(nl), rmt) 'key_val0;REAL;F;',                        v_ptr%key_val0
+  nl=incr(nl); write (li(nl), rmt) 'key_delta;REAL;T;',                       v_ptr%key_delta
+  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               v_ptr%s
+  nl=incr(nl); write (li(nl), amt) 'var^merit_type;ENUM;T;',                  v_ptr%merit_type
+  nl=incr(nl); write (li(nl), lmt) 'exists;LOGIC;F;',                         v_ptr%exists
+  nl=incr(nl); write (li(nl), lmt) 'good_var;LOGIC;F;',                       v_ptr%good_var
+  nl=incr(nl); write (li(nl), lmt) 'good_user;LOGIC;T;',                      v_ptr%good_user
+  nl=incr(nl); write (li(nl), lmt) 'good_opt;LOGIC;T;',                       v_ptr%good_opt
+  nl=incr(nl); write (li(nl), lmt) 'good_plot;LOGIC;T;',                      v_ptr%good_plot
+  nl=incr(nl); write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      v_ptr%useit_opt
+  nl=incr(nl); write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     v_ptr%useit_plot
+  nl=incr(nl); write (li(nl), lmt) 'key_bound;LOGIC;T;',                      v_ptr%key_bound
+
+!----------------------------------------------------------------------
 ! Create a single variable
 ! Command syntax:
 !   python var_create {var_name}^{ele_name}^{attribute}^{universes}^{weight}^{step}^{low_lim}^{high_lim}^
@@ -3278,6 +3331,74 @@ case ('var_create')
     v_ptr%slave(i)%base_value => a_ptr%r
   enddo
 
+
+!----------------------------------------------------------------------
+! List of all variable v1 arrays
+! Command syntax: 
+!   python var_general
+! Output syntax:
+!   {v1_var name};{v1_var%v lower bound};{v1_var%v upper bound}
+
+case ('var_general')
+
+  do i = 1, s%n_v1_var_used
+    v1_ptr => s%v1_var(i)
+    if (v1_ptr%name == '') cycle
+    call location_encode (line, v1_ptr%v%useit_opt, v1_ptr%v%exists, lbound(v1_ptr%v, 1))
+    nl=incr(nl); write (li(nl), '(4a, 2(i0, a))') trim(v1_ptr%name), ';', trim(line), ';', lbound(v1_ptr%v, 1), ';', ubound(v1_ptr%v, 1)
+  enddo
+
+!----------------------------------------------------------------------
+! List of variables for a given data_v1.
+! Command syntax:
+!   python var_v_array {v1_var}
+! Example:
+!   python var_v_array quad_k1
+
+case ('var_v_array')
+
+  call tao_find_var (err, line, v_array = v_array)
+
+  if (.not. allocated(v_array)) then
+    call invalid ('Not a valid v1_var name')
+    return
+  endif
+
+  do i = 1, size(v_array)
+    v_ptr => v_array(i)%v
+    if (.not. v_ptr%exists) cycle
+    nl=incr(nl); write(li(nl), '(i0, 3a, 3(es21.13, a), 2(l1, a), es21.13)') &
+                  v_ptr%ix_v1, ';', trim(tao_var_attrib_name(v_ptr)), ';', v_ptr%meas_value, ';', &
+                  v_ptr%model_value, ';', v_ptr%design_value, ';', v_ptr%useit_opt, ';', v_ptr%good_user, ';', v_ptr%weight
+  enddo
+
+
+!----------------------------------------------------------------------
+! List of variables in a given variable v1 array
+! Command syntax: 
+!   python var_v1_array {v1_var}
+
+case ('var_v1_array')
+
+  call tao_find_var (err, line, v1_array = v1_array)
+
+  if (err .or. .not. allocated(v1_array)) then
+    call invalid ('Not a valid v1 name')
+    return
+  endif
+
+  v1_ptr => v1_array(1)%v1
+
+  do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
+    v_ptr => v1_ptr%v(i)
+    if (.not. v_ptr%exists) cycle
+    nl=incr(nl); write (li(nl), '(2a, i0, 5a, 3(es21.13, a), 2 (l1, a))') trim(v1_ptr%name), '[', &
+                     v_ptr%ix_v1, '];', trim(v_ptr%ele_name), ';', trim(v_ptr%attrib_name), ';', &
+                     v_ptr%meas_value, ';', v_ptr%model_value, ';', &
+                     v_ptr%design_value, ';', v_ptr%good_user, ';', v_ptr%useit_opt
+  enddo
+
+  nl=incr(nl); write (li(nl), imt) 'ix_v1_var;INT;F;',                       v1_ptr%ix_v1_var
 
 !----------------------------------------------------------------------
 ! Create a v1 variable structure along with associated var array.
@@ -3387,127 +3508,6 @@ case ('var_v1_destroy')
 
   s%n_v1_var_used = s%n_v1_var_used - 1
   s%n_var_used = s%n_var_used - n_delta
-
-!----------------------------------------------------------------------
-! List of all variable v1 arrays
-! Command syntax: 
-!   python var_general
-! Output syntax:
-!   {v1_var name};{v1_var%v lower bound};{v1_var%v upper bound}
-
-case ('var_general')
-
-  do i = 1, s%n_v1_var_used
-    v1_ptr => s%v1_var(i)
-    if (v1_ptr%name == '') cycle
-    call location_encode (line, v1_ptr%v%useit_opt, v1_ptr%v%exists, lbound(v1_ptr%v, 1))
-    nl=incr(nl); write (li(nl), '(4a, 2(i0, a))') trim(v1_ptr%name), ';', trim(line), ';', lbound(v1_ptr%v, 1), ';', ubound(v1_ptr%v, 1)
-  enddo
-
-!----------------------------------------------------------------------
-! List of variables for a given data_v1.
-! Command syntax:
-!   python var_v_array {v1_var}
-! Example:
-!   python var_v_array quad_k1
-
-case ('var_v_array')
-
-  call tao_find_var (err, line, v_array = v_array)
-
-  if (.not. allocated(v_array)) then
-    call invalid ('Not a valid v1_var name')
-    return
-  endif
-
-  do i = 1, size(v_array)
-    v_ptr => v_array(i)%v
-    if (.not. v_ptr%exists) cycle
-    nl=incr(nl); write(li(nl), '(i0, 3a, 3(es21.13, a), 2(l1, a), es21.13)') &
-                  v_ptr%ix_v1, ';', trim(tao_var_attrib_name(v_ptr)), ';', v_ptr%meas_value, ';', &
-                  v_ptr%model_value, ';', v_ptr%design_value, ';', v_ptr%useit_opt, ';', v_ptr%good_user, ';', v_ptr%weight
-  enddo
-
-
-!----------------------------------------------------------------------
-! List of variables in a given variable v1 array
-! Command syntax: 
-!   python var_v1_array {v1_var}
-
-case ('var_v1_array')
-
-  call tao_find_var (err, line, v1_array = v1_array)
-
-  if (err .or. .not. allocated(v1_array)) then
-    call invalid ('Not a valid v1 name')
-    return
-  endif
-
-  v1_ptr => v1_array(1)%v1
-
-  do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
-    v_ptr => v1_ptr%v(i)
-    if (.not. v_ptr%exists) cycle
-    nl=incr(nl); write (li(nl), '(2a, i0, 5a, 3(es21.13, a), 2 (l1, a))') trim(v1_ptr%name), '[', &
-                     v_ptr%ix_v1, '];', trim(v_ptr%ele_name), ';', trim(v_ptr%attrib_name), ';', &
-                     v_ptr%meas_value, ';', v_ptr%model_value, ';', &
-                     v_ptr%design_value, ';', v_ptr%good_user, ';', v_ptr%useit_opt
-  enddo
-
-  nl=incr(nl); write (li(nl), imt) 'ix_v1_var;INT;F;',                       v1_ptr%ix_v1_var
-
-!----------------------------------------------------------------------
-! Info on an individual variable
-! Command syntax: 
-!   python var {var}
-! Output syntax is parameter list form. See documentation at the beginning of this file.
-
-case ('var')
-
-  call tao_find_var (err, line, v_array = v_array)
-
-  if (.not. allocated(v_array) .or. size(v_array) /= 1) then
-    call invalid ('Not a valid variable name')
-    return
-  endif
-
-  v_ptr => v_array(1)%v
-
-  nl=incr(nl); write (li(nl), rmt)  'model_value;REAL;T;',          v_ptr%model_value
-  nl=incr(nl); write (li(nl), rmt)  'base_value;REAL;T;',           v_ptr%base_value
-
-  nl=incr(nl); write (li(nl), amt) 'ele_name;STR;F;',                         trim(v_ptr%ele_name)
-  nl=incr(nl); write (li(nl), amt) 'attrib_name;STR;F;',                      v_ptr%attrib_name
-  nl=incr(nl); write (li(nl), imt) 'ix_v1;INT;F;',                            v_ptr%ix_v1
-  nl=incr(nl); write (li(nl), imt) 'ix_var;INT;F;',                           v_ptr%ix_var
-  nl=incr(nl); write (li(nl), imt) 'ix_dvar;INT;F;',                          v_ptr%ix_dvar
-  nl=incr(nl); write (li(nl), imt) 'ix_attrib;INT;F;',                        v_ptr%ix_attrib
-  nl=incr(nl); write (li(nl), imt) 'ix_key_table;INT;T;',                     v_ptr%ix_key_table
-  nl=incr(nl); write (li(nl), rmt) 'design_value;REAL;F;',                    v_ptr%design_value
-  nl=incr(nl); write (li(nl), rmt) 'scratch_value;REAL;F;',                   v_ptr%scratch_value
-  nl=incr(nl); write (li(nl), rmt) 'old_value;REAL;F;',                       v_ptr%old_value
-  nl=incr(nl); write (li(nl), rmt) 'meas_value;REAL;T;',                      v_ptr%meas_value
-  nl=incr(nl); write (li(nl), rmt) 'ref_value;REAL;T;',                       v_ptr%ref_value
-  nl=incr(nl); write (li(nl), rmt) 'correction_value;REAL;F;',                v_ptr%correction_value
-  nl=incr(nl); write (li(nl), rmt) 'high_lim;REAL;T;',                        v_ptr%high_lim
-  nl=incr(nl); write (li(nl), rmt) 'low_lim;REAL;T;',                         v_ptr%low_lim
-  nl=incr(nl); write (li(nl), rmt) 'step;REAL;T;',                            v_ptr%step
-  nl=incr(nl); write (li(nl), rmt) 'weight;REAL;T;',                          v_ptr%weight
-  nl=incr(nl); write (li(nl), rmt) 'delta_merit;REAL;F;',                     v_ptr%delta_merit
-  nl=incr(nl); write (li(nl), rmt) 'merit;REAL;F;',                           v_ptr%merit
-  nl=incr(nl); write (li(nl), rmt) 'dmerit_dvar;REAL;F;',                     v_ptr%dMerit_dVar
-  nl=incr(nl); write (li(nl), rmt) 'key_val0;REAL;F;',                        v_ptr%key_val0
-  nl=incr(nl); write (li(nl), rmt) 'key_delta;REAL;T;',                       v_ptr%key_delta
-  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               v_ptr%s
-  nl=incr(nl); write (li(nl), amt) 'var^merit_type;ENUM;T;',                  v_ptr%merit_type
-  nl=incr(nl); write (li(nl), lmt) 'exists;LOGIC;F;',                         v_ptr%exists
-  nl=incr(nl); write (li(nl), lmt) 'good_var;LOGIC;F;',                       v_ptr%good_var
-  nl=incr(nl); write (li(nl), lmt) 'good_user;LOGIC;T;',                      v_ptr%good_user
-  nl=incr(nl); write (li(nl), lmt) 'good_opt;LOGIC;T;',                       v_ptr%good_opt
-  nl=incr(nl); write (li(nl), lmt) 'good_plot;LOGIC;T;',                      v_ptr%good_plot
-  nl=incr(nl); write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      v_ptr%useit_opt
-  nl=incr(nl); write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     v_ptr%useit_plot
-  nl=incr(nl); write (li(nl), lmt) 'key_bound;LOGIC;T;',                      v_ptr%key_bound
 
 !----------------------------------------------------------------------
 ! Wave analysis info.
@@ -4064,7 +4064,7 @@ end subroutine xy_disp_out
 !----------------------------------------------------------------------
 ! contains
 
-subroutine destroy_this_data(d_name)
+subroutine destroy_this_data_d2 (d2_name)
 
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_ptr
@@ -4074,9 +4074,9 @@ type (tao_universe_struct), pointer :: u
 
 integer i, j, ix_d2, i1, i2, n1, n_delta
 
-character(*) d_name
+character(*) d2_name
 
-call tao_find_data (err, d_name, d2_array = d2_array)
+call tao_find_data (err, d2_name, d2_array = d2_array)
 if (err .or. .not. allocated(d2_array)) then
   call invalid ('Not a valid d2 data name')
   return
@@ -4118,7 +4118,7 @@ enddo
 u%n_d2_data_used = u%n_d2_data_used - 1
 u%n_data_used = u%n_data_used - n_delta
 
-end subroutine destroy_this_data
+end subroutine destroy_this_data_d2
 
 !----------------------------------------------------------------------
 ! contains

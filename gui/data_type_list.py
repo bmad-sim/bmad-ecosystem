@@ -65,7 +65,7 @@ data_type_list.append({'name': 'spin_g_matrix.<enum>', '<enum>': ['11', '12', '1
 data_type_list.append({'name': 's_position', 'data_source': ['lat'], 's_offset':True})
 data_type_list.append({'name': 'time', 'data_source': ['beam', 'lat'], 's_offset':True})
 data_type_list.append({'name': 'tune.<enum>', '<enum>': ['a', 'b'], 'data_source': ['lat'], 's_offset':False})
-data_type_list.append({'name': 't.<digit:1-6><digit:1-6><digit:1-6>', 'data_source': ['lat'], 's_offset':False})
+data_type_list.append({'name': 't.<int>', 'data_source': ['lat'], 's_offset':False})
 data_type_list.append({'name': 'tt.<int>', 'data_source': ['lat'], 's_offset':False})
 data_type_list.append({'name': 'unstable.<enum>', '<enum>': ['orbit', 'ring'], 'data_source': ['lat'], 's_offset':False})
 data_type_list.append({'name': 'velocity.<enum>', '<enum>': ['', 'x', 'y', 'z'], 'data_source': ['beam', 'lat'], 's_offset':True})

@@ -2896,20 +2896,12 @@ case ('t.', 'tt.')
   if (data_source == 'beam') goto 9000  ! Set error message and return
 
   expnt = 0
-  if (head_data_type == 't.') then
-    i = tao_read_phase_space_index (datum%data_type, 3, .false.)
-    do j = 4, 5
-      k = tao_read_phase_space_index (datum%data_type, j, .false.); if (k == 0) exit
-      expnt(k) = expnt(k) + 1
-    enddo
-  else
-    i = tao_read_phase_space_index (datum%data_type, 4, .false.)
-    do j = 5, 15
-      if (datum%data_type(j:j) == ' ') exit
-      k = tao_read_phase_space_index (datum%data_type, j, .false.); if (k == 0) exit
-      expnt(k) = expnt(k) + 1
-    enddo
-  endif
+  i = tao_read_phase_space_index (sub_data_type, 1, .false.)
+  do j = 2, 20
+    if (sub_data_type(j:j) == ' ') exit
+    k = tao_read_phase_space_index (sub_data_type, j, .false.); if (k == 0) exit
+    expnt(k) = expnt(k) + 1
+  enddo
 
   if (i == 0 .or. k == 0) then
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
