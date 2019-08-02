@@ -166,7 +166,10 @@ class tk_tao_parameter():
     self._stype = []
     self._s = []
 
-    m_ix = (self._get_dat_types()).index(self._mvar.get())
+    try:
+      m_ix = (self._get_dat_types()).index(self._mvar.get())
+    except ValueError:
+      m_ix = 0
 
     # Make new slave widgets
     dat_dict = data_type_list[m_ix]
