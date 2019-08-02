@@ -217,6 +217,7 @@ class tao_root_window(tk.Tk):
     tk_list = [] #Items: tk_tao_parameter() (see tao_widget.py)
     init_frame.grid_columnconfigure(0, weight=1, pad=10)
     init_frame.grid_columnconfigure(1, weight=1)
+    warning_messages = []
 
     # Parse command line arguments
     clargs = {} # keys: command line switches, values: switch value
@@ -232,11 +233,12 @@ class tao_root_window(tk.Tk):
             if param.find(arg) == 0:
               matches.append(param)
           if len(matches) == 1: #exactly one match -> good switch
-            if (param_dict[match[0]].type == 'FILE') & (i != len(sys.argv)-1):
+            arg = matches[0]
+            if (param_dict[matches[0]].type == 'FILE') & (i != len(sys.argv)-1):
               clargs[arg] = "" #add arg to clargs
               looking_for = 'file' #file switches need files
-            elif param_dict[match[0]] == 'LOGIC':
-              clargs[arg] = "" #add arg to clargs
+            elif param_dict[matches[0]].type == 'LOGIC':
+              clargs[arg] = "T" #add arg to clargs
       elif looking_for == 'file':
         arg_file = sys.argv[i]
         if arg_file.find('-') == 0: #not a file
@@ -261,6 +263,8 @@ class tao_root_window(tk.Tk):
     except:
       init_list = []
     init_dict = {}
+    for key, value in clargs.items(): # add clargs to init_list
+      init_list.append(key + ':' + value)
     for entry in init_list:
       entry = entry.strip()
       #Check for proper formatting and not a comment
@@ -269,7 +273,6 @@ class tao_root_window(tk.Tk):
         name = name.strip()
         value = entry[entry.find(':')+1:]
         value = value.strip()
-        init_dict[name] = value
       else:
         continue
       c1 = (name in ["tao_exe", "tao_lib"])
@@ -280,18 +283,19 @@ class tao_root_window(tk.Tk):
       if c1 | c2:
         #Check that a good filename has been given
         try:
-          filename = init_dict[name]
+          filename = value
           #Expand environment variables and ~
           filename = os.path.expanduser(filename)
           filename = os.path.expandvars(filename)
           f = open(filename)
           f.close()
           init_dict[name] = filename
-        except:
-          messagebox.showwarning(
-              tk_list[k].param.name, "File not found: " + filename)
-          init_dict.pop(name)
-          #Remove bad files from init dict
+        except FileNotFoundError:
+          #Don't put bad files in init_dict
+          #messagebox.showwarning(name, "File not found: " + filename)
+          warning_messages.append([name, filename])
+      else:
+        init_dict[name] = value
     k = 0 #row number counter
     for param, tao_param in param_dict.items():
       tk_list.append(tk_tao_parameter(tao_param,init_frame))
@@ -307,7 +311,7 @@ class tao_root_window(tk.Tk):
       tk_list[k].tk_wid.grid(row=k, column=1, sticky="W")
       k = k+1
     # Choosing whether to use pexpect or ctypes must be handled separately
-    tk.Label(init_frame, text="Choose interface").grid(row=k, sticky="E")
+    tk.Label(init_frame, text="Interface to Tao:").grid(row=k, sticky="E")
     def swap_box(event=None):
       if chosen_interface.get() == "pexpect":
         ctype_label.grid_forget()
@@ -332,6 +336,10 @@ class tao_root_window(tk.Tk):
     tao_exe = tk_tao_parameter(str_to_tao_param("tao_exe;FILE;T;"), init_frame)
     if "tao_exe" in init_dict:
       tao_exe.tk_var.set(init_dict["tao_exe"])
+    elif 'ACC_LOCAL_ROOT' in os.environ.keys():
+      tao_exe.tk_var.set(os.environ['ACC_LOCAL_ROOT']+'/production/bin/tao')
+    elif 'ACC_EXE' in os.environ.keys():
+      tao_exe.tk_var.set(os.environ['ACC_EXE']+'/tao')
     tao_lib = tk_tao_parameter(str_to_tao_param("tao_lib;FILE;T;"), init_frame)
     if "tao_lib" in init_dict:
       tao_exe.tk_var.set(init_dict["tao_lib"])
@@ -443,8 +451,12 @@ class tao_root_window(tk.Tk):
     load_b.grid(row=k+5, columnspan=2)
     self.bind_all("<Return>", param_load)
 
+    # Show warning messages about bad filenames from startup
+    for warning in warning_messages:
+      messagebox.showwarning(warning[0], "File not found: " + warning[1])
+
     #Start Tao immediately if skip_setup is set true
-    if "skip_setup" in init_dict:
+    if ("skip_setup" in init_dict) & (len(warning_messages) == 0):
       if init_dict["skip_setup"] in ['T', 'True']:
         param_load()
 
