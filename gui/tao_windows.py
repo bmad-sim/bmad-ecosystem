@@ -2760,7 +2760,7 @@ class tao_new_data_window(tk.Toplevel):
     else:
       uni_list = [int(self.uni.get())]
     for u in uni_list:
-      cmd_str = 'python data_create ' + str(u) + '@' + self.name
+      cmd_str = 'python data_d2_create ' + str(u) + '@' + self.name
       cmd_str += ' ' + str(len(self.d1_frame_list)) + ' '
       for d1_frame in self.d1_frame_list:
         # min/max indices for each d1_array
