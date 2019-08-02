@@ -14,11 +14,32 @@ class tk_tao_parameter():
   Takes a tao_parameter (defined in parameters.py) and a tk frame,
   and creates an object containing the parameter and appropriate tk widget(s)
   for displaying and modifying the parameter and value
+  pipe: the tao_interface object
+  data_source: for DAT_TYPE and DAT_TYPE_Z, filters allowed data types
+  plot: for DAT_TYPE_Z, the plot where x_axis_type should be checked
   '''
 
-  def __init__(self, tao_parameter, frame, pipe=0, data_source=''):
+  def __init__(self, tao_parameter, frame, pipe=0, data_source='', plot=''):
     self.param = tao_parameter
     self.pipe = pipe
+
+    if self.param.type == 'DAT_TYPE_Z':
+      # Check if operating as ENUM or as DAT_TYPE
+      if plot == '': # should never occur
+        self.param.type = 'STR' # most fail safe option
+      else:
+        plot_info = self.pipe.cmd_in('python plot1 ' + plot)
+        plot_info = plot_info.splitlines()
+        for item in plot_info:
+          if item.find('x_axis_type;') == 0:
+            x_axis_type = item.split(';')[3]
+            break
+          else:
+            x_axis_type = None
+        if x_axis_type == 'data':
+          self.param.type = 'DAT_TYPE'
+        else:
+          self.param.type = 'ENUM_Z'
 
     if self.param.type in ['STR', 'INT', 'REAL']:
       self.tk_var = tk.StringVar()
@@ -27,10 +48,14 @@ class tk_tao_parameter():
       else:
         self.tk_var.set(str(self.param.value))
       self.tk_wid = tk.Entry(frame, textvariable=self.tk_var)
-    elif self.param.type == 'ENUM':
+    elif self.param.type in ['ENUM', 'ENUM_Z']:
       self.tk_var = tk.StringVar()
       self.tk_var.set(self.param.value)
-      options = enum_fetch(self.param.name,pipe)
+      if self.param.type == 'ENUM':
+        options = enum_fetch(self.param.name,pipe)
+      elif self.param.type == 'ENUM_Z': #added to handle DAT_TYPE_Z
+        options = enum_fetch('data_type_z', pipe)
+        self.param.type = 'ENUM'
       if options == [""]:
         options = [self.param.value]
       if self.param.value == "":
