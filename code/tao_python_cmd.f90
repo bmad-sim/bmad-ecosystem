@@ -4306,7 +4306,9 @@ integer num
 integer i, ix
 logical err
 
-!
+! For input, "^" is used as the separator instead of ";" since the Tao code that
+! calls python_cmd will interpret ";" as a command separator and will thus mangle 
+! the input_str argument.
 
 allocate(array(num))
 str = line
