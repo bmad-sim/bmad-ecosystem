@@ -2632,7 +2632,7 @@ if (ix < 0) then
   return 
 endif
 
-var = ix
+var = ix + (l_bound - 1)
 error = .false.
 
 end subroutine tao_set_switch_value
