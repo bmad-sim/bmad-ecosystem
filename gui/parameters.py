@@ -33,7 +33,7 @@ class tao_parameter():
       self.value = param_value
     elif param_type == 'FILE':
       self.value = param_value
-    elif param_type == 'DAT_TYPE':
+    elif param_type in ['DAT_TYPE', 'DAT_TYPE_Z']:
       self.value = param_value
     elif param_type == 'INT':
       try:

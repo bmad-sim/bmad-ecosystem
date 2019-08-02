@@ -161,14 +161,14 @@ class tao_parameter_frame(tk.Frame):
 # Parameter window
 class tao_parameter_window(tao_list_window):
 
-  def __init__(self, root, title, tao_list, pipe, *args, **kwargs):
+  def __init__(self, root, title, tao_list, pipe, plot="", *args, **kwargs):
     tao_list_window.__init__(self, root, title, *args, **kwargs)
     self.button_frame = tk.Frame(self)
     self.button_frame.pack(side="top", fill="both", expand=0)
     self.tao_list = tao_list
     for k in range(len(self.tao_list)):
       self.tao_list[k] = tk_tao_parameter(
-          self.tao_list[k], self.list_frame, pipe)
+          self.tao_list[k], self.list_frame, pipe, plot=plot)
       tk.Label(self.list_frame,text=self.tao_list[k].param.name).grid(
           row=k,column=0,sticky="E")
       self.tao_list[k].tk_wid.grid(row=k,column=1,sticky="EW")
@@ -1367,7 +1367,7 @@ class tao_plot_curve_window(tao_parameter_window):
       data_list[i] = str_to_tao_param(data_list[i])
 
     tao_parameter_window.__init__(
-        self, root, curve, data_list, self.pipe, *args, **kwargs)
+        self, root, curve, data_list, self.pipe, plot=curve.split('.')[0], *args, **kwargs)
 
 #-----------------------------------------------------
 # Branch/element choosing widgets
