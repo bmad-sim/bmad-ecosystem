@@ -153,7 +153,7 @@ character(len(input_str)) line
 character(n_char_show), allocatable :: li(:) 
 character(n_char_show) li2
 character(200) file_name, all_who
-character(100), allocatable :: name_arr(:)
+character(300), allocatable :: name_arr(:)
 character(40) imt, jmt, rmt, lmt, amt, amt2, iamt, vamt, rmt2, ramt, cmt, label_name
 character(40) max_loc, ele_name, name1(40), name2(40), a_name, name, attrib_name
 character(20), allocatable :: name_list(:)
@@ -206,8 +206,8 @@ call string_trim(line(ix+1:), line, ix_line)
 call match_word (cmd, [character(20) :: &
           'beam_init', 'branch1', 'bunch1', 'bmad_com', 'constraints', &
           'da_params', 'da_aperture', &
-          'data', 'data_d2_create', 'data_d2_destroy', 'data_d_array', 'data_d1_array', 'data_d2', 'data_d2_array', &
-          'datum_has_ele', &
+          'data', 'data_d2_create', 'data_d2_destroy', 'data_d_array', 'data_d1_array', &
+          'data_d2', 'data_d2_array', 'datum_create', 'datum_has_ele', &
           'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', &
           'ele:cartesian_map', 'ele:chamber_wall', 'ele:cylindrical_map', 'ele:orbit', &
           'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
@@ -623,7 +623,7 @@ case ('data')
 ! The d1 structures created will be assigned initial names "1", "2", "3", etc.
 !
 ! Example:
-!   python data_create 2@orbit 2 0 45 1 47
+!   python data_d2_create 2@orbit 2 0 45 1 47
 ! This example creates a d2 data structure called "orbit" with two d1 structures.
 ! The first d1 structure, assigned the name "1", has an associated data array with indexes in the range [0, 45].
 ! The second d1 structure, assigned the name "2", has an associated data arrray with indexes in the range [1, 47].
@@ -854,6 +854,80 @@ case ('data_d2_array')
     if (d2_ptr%name == '') cycle
     nl=incr(nl); write (li(nl), '(a)') d2_ptr%name
   enddo
+
+!----------------------------------------------------------------------
+! Create a datum.
+! Command syntax:
+!   python datum_create {datum_name}^{data_type}^{ele_ref_name}^{ele_start_name}^{ele_name}^{merit_type}^
+!                                  {meas}^{ref}^{weight}^{good_user}^{data_source}^{eval_point}^{s_offset}^
+!                                  {ix_bunch}^{invalid_value}^{spin_n0_x}^{spin_n0_y}^{spin_n0_z}
+
+case ('datum_create')
+
+  call split_this_line (line, name_arr, 18, err);         if (err) return
+
+  call tao_find_data (err, name_arr(1), d_array = d_array);
+  if (err .or. size(d_array) /= 1) then
+    call invalid('BAD DATUM NAME')
+    return
+  endif
+
+  d_ptr => d_array(1)%d
+  u => s%u(d_ptr%ix_uni)
+
+  d_ptr%data_type = name_arr(2)
+
+  ele_name = upcase(name_arr(3))
+  d_ptr%ele_start_name = ele_name
+  if (ele_name /= '') then
+    call lat_ele_locator (ele_name, u%model%lat, eles, n_loc, err)
+    if (err .or. n_loc /= 1) then
+      call invalid('UNIQUE LATTICE START ELEMENT NOT FOUND FOR: ' // ele_name)
+      return
+    endif
+    d_ptr%ix_ele_start = eles(1)%ele%ix_ele
+  endif
+
+  ele_name = upcase(name_arr(4))
+  d_ptr%ele_ref_name = ele_name
+  if (ele_name /= '') then
+    call lat_ele_locator (ele_name, u%model%lat, eles, n_loc, err)
+    if (err .or. n_loc /= 1) then
+      call invalid('UNIQUE LATTICE REF ELEMENT NOT FOUND FOR: ' // ele_name)
+      return
+    endif
+    d_ptr%ix_ele_ref = eles(1)%ele%ix_ele
+  endif
+
+  ele_name = upcase(name_arr(5))
+  d_ptr%ele_name = ele_name
+  if (ele_name /= '') then
+    call lat_ele_locator (ele_name, u%model%lat, eles, n_loc, err)
+    if (err .or. n_loc /= 1) then
+      call invalid('UNIQUE LATTICE ELEMENT NOT FOUND FOR: ' // ele_name)
+      return
+    endif
+    d_ptr%ix_ele = eles(1)%ele%ix_ele
+    d_ptr%ix_branch = eles(1)%ele%ix_branch
+  endif
+
+  d_ptr%merit_type  = name_arr(6)
+  d_ptr%meas_value  = set_real(name_arr(7), 0.0_rp, err);      if (err) return
+  d_ptr%ref_value   = set_real(name_arr(8), 0.0_rp, err);      if (err) return
+  d_ptr%weight      = set_real(name_arr(9), 0.0_rp, err);      if (err) return
+  d_ptr%good_user   = set_logic(name_arr(10), .true., err);    if (err) return
+  d_ptr%data_source = set_str(name_arr(11), 'lat')
+  if (name_arr(12) == '') then
+    d_ptr%eval_point  = anchor_end$
+  else
+    call match_word (name_arr(12), anchor_pt_name(1:), d_ptr%eval_point)
+  endif
+  d_ptr%s_offset = set_real(name_arr(13), 0.0_rp, err);          if (err) return
+  d_ptr%ix_bunch = set_int(name_arr(14), 1, err);                if (err) return
+  d_ptr%invalid_value = set_real(name_arr(15), 0.0_rp, err);     if (err) return
+  d_ptr%spin_axis%n0(1) = set_real(name_arr(16), 0.0_rp, err);   if (err) return
+  d_ptr%spin_axis%n0(2) = set_real(name_arr(17), 0.0_rp, err);   if (err) return
+  d_ptr%spin_axis%n0(3) = set_real(name_arr(18), 0.0_rp, err);   if (err) return
 
 !----------------------------------------------------------------------
 ! Does datum type have an associated lattice element?
@@ -3257,6 +3331,7 @@ case ('var_create')
     call invalid('BAD VARIABLE NAME')
     return
   endif
+  v_ptr => v_array(1)%v
 
   call tao_pick_universe ('[' // trim(name_arr(4)) // ']@', name, picked, err, dflt_uni = -1); 
   if (err .or. name /= '') then
@@ -3288,7 +3363,6 @@ case ('var_create')
     num_ele = num_ele + n
   enddo
 
-  v_ptr => v_array(1)%v
   v_ptr%exists      = .true.
   v_ptr%merit_type  = set_str(name_arr(9), 'limit')
   v_ptr%good_var    = .true.
@@ -3406,7 +3480,7 @@ case ('var_v1_array')
 !   python var_v1_create {v1_name} {n_var_min} {n_var_max}
 ! {n_var_min} and {n_var_max} are the lower and upper bounds of the var
 ! Example:
-!   python var_create quad_k1 0 45
+!   python var_v1_create quad_k1 0 45
 ! This example creates a v1 var structure called "quad_k1" with an associated
 ! variable array that has the range [0, 45].
 !

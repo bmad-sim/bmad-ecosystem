@@ -1831,6 +1831,15 @@ call tao_find_data (err, who_str, d_array = d_dat, re_array=r_dat, &
           log_array=l_dat, str_array = s_dat, int_array = int_dat, component = component)
 if (err) return
 
+select case (component)
+  case ('model', 'base', 'design', 'old', 'model_value', 'base_value', 'design_value', &
+             'old_value', 'invalid', 'delta_merit', 'merit', 'exists', 'good_base ', &
+             'useit_opt ', 'useit_plot', 'ix_ele', 'ix_ele_start', 'ix_ele_ref', 'ix_d1', &
+             'ix_uni', 'ele_name', 'ele_start_name', 'ele_ref_name', 'name')
+  call out_io (s_error$, r_name, 'DATUM ATTRIBUTE NOT SETTABLE: ' // component)
+  return
+end select
+
 !------------------------
 ! A logical value_str is either a logical or an array of datum values.
 
