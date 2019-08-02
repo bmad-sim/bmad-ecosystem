@@ -117,6 +117,8 @@ class tao_console(tk.Frame):
       self.root.history_window.refresh()
     except:
       pass
+    # Check the place buffer and place plots
+    self.default_plots(include_init=False)
 
   def _get_curs_l(self):
     '''

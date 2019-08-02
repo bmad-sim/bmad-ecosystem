@@ -1165,7 +1165,6 @@ class tao_plot_window(tk.Toplevel):
     '''
     Makes the call to matplotlib to draw the plot to the window
     '''
-    print(self.root.placed)
     #Clear the window
     for child in self.winfo_children():
       child.destroy()
