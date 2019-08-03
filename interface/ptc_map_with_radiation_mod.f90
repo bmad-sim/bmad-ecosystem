@@ -112,6 +112,7 @@ map_with_rad%lattice_file = branch%lat%input_file_name
 if (.not. associated(ptc_layout)) then
   call out_io (s_fatal$, r_name, 'NO ASSOCIATED PTC LAYOUT PRESENT!')
   if (global_com%exit_on_error) call err_exit
+  use_bmad_units = .false.
   return
 endif
 
@@ -133,6 +134,7 @@ else
   call find_orbit_x(orb, STATE, 1.0d-8, fibre1 = f1)
   if (.not. check_stable) then
     call out_io (s_error$, r_name, 'CANNOT FIND CLOSED ORBIT WHEN TRCKING WITH RADIATION IN PTC!')
+    use_bmad_units = .false.
     return
   endif
 
@@ -140,6 +142,7 @@ else
   call find_orbit_x(orb0, STATE0, 1.0d-8, fibre1 = f1)
   if (.not. check_stable) then
     call out_io (s_error$, r_name, 'CANNOT FIND CLOSED ORBIT WHEN TRCKING WITHOUT RADIATION IN PTC!')
+    use_bmad_units = .false.
     return
   endif
 endif
