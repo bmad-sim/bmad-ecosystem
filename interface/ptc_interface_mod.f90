@@ -2914,6 +2914,7 @@ if (ele%key == match$) then
     call out_io (s_warn$, r_name, 'Note: Taylor maps for Match elements are always 1st order!')
     warning_given = .true.
   endif
+  use_bmad_units = .false.
   return
 endif
 
