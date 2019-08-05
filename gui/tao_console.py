@@ -20,7 +20,7 @@ class tao_console(tk.Frame):
     self._wid = tk.Text(self, blockcursor=True)
     if self.root.font_size != None:
       self._wid.configure(
-          font='Monospace '+str(self.root.font_size), fg="white", bg="black")
+          font='Mono '+str(self.root.font_size), fg="white", bg="black")
     else:
       self._wid.configure(font='Monospace 16', fg="white", bg="black")
     self._wid.configure(insertbackground="white")
