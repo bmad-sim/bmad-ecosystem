@@ -2605,6 +2605,7 @@ class tao_new_data_window(tk.Toplevel):
     self.pipe = pipe
     self.rowconfigure(0, weight=1)
     self.title('New Data')
+    self.name = ""
 
     #Frame for inputting d2 parameters
     self.d2_frame = tk.Frame(self)
@@ -2675,40 +2676,71 @@ class tao_new_data_window(tk.Toplevel):
     Ungrids self.d2_frame, grids self.d1_frame, and sets up a notebook
     for the d1_frames if necessary.
     '''
-    # Make sure d2_name was set (and not already taken)
+    # Check if d2_name is already in use
     name = self.d2_param_list[0].tk_var.get().strip()
     if name == "":
       self.name_warning_2.grid_forget()
       self.name_warning_1.grid(row=1, column=2, sticky='W')
       return
     elif name in self.pipe.cmd_in('python data_d2_array 1').splitlines():
-      self.name_warning_1.grid_forget()
-      self.name_warning_2.grid(row=1, column=2, sticky='W')
-      return
+      # Ask if user wants to load existing data
+      if self.name != name:
+        ans = messagebox.askyesno('Warning', name + " already exists as a d2 data array.  Would you like to edit this existing array?")
+        if ans:
+          # Will need to read in data for existing d2
+          self.name = name
+          self.name_warning_1.grid_forget()
+          self.name_warning_2.grid_forget()
+          existing_d1_arrays = self.pipe.cmd_in('python data_d1_array ' + name).splitlines()
+          # Progress window
+          self.pw = tao_progress_window(self.root, self, len(existing_d1_arrays))
+          self.pw.title("Loading...")
+          tk.Label(self.pw, text='Loading existing d1_arrays').grid(row=0, column=0, columnspan=2, sticky='EW')
+          # Remake d1_frames and notebook if necessary
+          if self.nb_exists:
+            for frame in self.d1_frame_list:
+              frame.destroy()
+            self.d1_frame_list = []
+            self.notebook.destroy()
+            self.new_tab_frame.destroy()
+            self.back_b.destroy()
+            self.create_b.destroy()
+            self.nb_exists = False
+        else:
+          self.name_warning_2.grid(row=1, column=2, sticky='W')
+          return
     else:
       self.name = name
+      existing_d1_arrays = []
       self.name_warning_1.grid_forget()
       self.name_warning_2.grid_forget()
 
-    self.d2_frame.grid_forget()
-    self.d1_frame.pack(fill='both', expand=1)
-    self.title("New data: " + self.d2_param_list[0].tk_var.get())
     # Possibly create self.notebook
     if not self.nb_exists:
       self.notebook = ttk.Notebook(self.d1_frame)
       self.notebook.pack(side='top', fill='both', expand=1)
       self.nb_exists = True
 
-      # Set up a d1 tab
-      self.d1_frame_list.append(new_d1_frame(self))
-      self.notebook.insert('end', self.d1_frame_list[0])
-      self.notebook.tab(0, text='New d1_array')
+      # Set up d1 tabs
+      if existing_d1_arrays == []:
+        self.d1_frame_list.append(new_d1_frame(self))
+        self.notebook.insert('end', self.d1_frame_list[0])
+        self.notebook.tab(0, text='New d1_array')
+      else:
+        i = 0
+        for line in existing_d1_arrays:
+          d1 = line.split(';')[3]
+          self.d1_frame_list.append(new_d1_frame(self, name = d1))
+          self.notebook.insert('end', self.d1_frame_list[i])
+          self.notebook.tab(i, text=d1)
+          i = i+1
+        self.pw.destroy()
       self.d1_index = 0 #marks current tab index
 
       # New tab button
       self.new_tab_frame = tk.Frame(self.notebook)
       self.notebook.insert('end', self.new_tab_frame)
-      self.notebook.tab(1, text='+')
+      self.notebook.tab(len(self.d1_frame_list), text='+')
       self.notebook.bind('<<NotebookTabChanged>>', self.tab_handler)
 
       # Back button
@@ -2718,6 +2750,10 @@ class tao_new_data_window(tk.Toplevel):
       # Create button
       self.create_b = tk.Button(self.d1_frame, text="Create!", command=self.create_data)
       self.create_b.pack(side='right')
+
+    self.d2_frame.grid_forget()
+    self.d1_frame.pack(fill='both', expand=1)
+    self.title("New data: " + self.d2_param_list[0].tk_var.get())
     # Copy d2 defaults into d1_arrays
     for i in range(len(self.d1_frame_list)):
       val = self.d2_param_list[2].tk_var.get()
@@ -2751,6 +2787,14 @@ class tao_new_data_window(tk.Toplevel):
       messagebox.showwarning("Error", m, parent=self)
     if messages != []:
       return
+    # Book-keeping
+    datum_params = ['data_type', 'ele_ref_name', 'ele_start_name', 'ele_name',
+        'data^merit_type', 'meas_value', 'ref_value', 'weight', 'good_user',
+        'data_source', 'eval_point', 's_offset', '1^ix_bunch',
+        'invalid_value', 'spin_n0_x', 'spin_n0_y', 'spin_n0_z']
+    d1_params = ['name', 'data_source', 'data_type', 'data^merit_type',
+        'weight', 'good_user']
+    d2_params = ['name', 'uni', 'data_source', 'data^merit_type', 'weight', 'good_user']
     # Create the data array
     if self.uni.get() == 'All':
       uni_max = self.pipe.cmd_in("python super universe")
@@ -2768,22 +2812,36 @@ class tao_new_data_window(tk.Toplevel):
       # Create the d2/d1_arrays
       self.pipe.cmd_in(cmd_str)
       # Set parameters at the d2 level
-      set_str = 'set data ' + str(u) + '@' + self.name + '|'
-      tao_set(self.d2_param_list[2:5], set_str, self.pipe)
+      #set_str = 'set data ' + str(u) + '@' + self.name + '|'
+      #tao_set(self.d2_param_list[2:5], set_str, self.pipe)
       # Set parameters at the d1 level
       # Set the names last for convenience
       i = 1 #temp names set by tao
       for d1_frame in self.d1_frame_list:
-        set_str = 'set data ' + str(u) + '@' + self.name + '.' + str(i) + '|'
-        tao_set(d1_frame.d1_array_wids[1:5], set_str, self.pipe)
+        #set_str = 'set data ' + str(u) + '@' + self.name + '.' + str(i) + '|'
+        #tao_set(d1_frame.d1_array_wids[1:5], set_str, self.pipe)
         # set individual data parameters
-        set_format = set_str[:-1] + '[{}]|'
-        tao_dict_set(d1_frame.data_dict, set_format, self.pipe)
+        #set_format = set_str[:-1] + '[{}]|'
+        #tao_dict_set(d1_frame.data_dict, set_format, self.pipe)
         # set name now
-        tao_set(d1_frame.d1_array_wids[0:1], set_str, self.pipe)
+        #tao_set(d1_frame.d1_array_wids[0:1], set_str, self.pipe)
+        for j in range(d1_frame.ix_min, d1_frame.ix_max+1):
+          cmd_str = 'python datum_create '
+          cmd_str += str(u) + '@' + self.name + '.' + str(i) + '[' + str(j) + ']'
+          for p in datum_params:
+            #look in d1_frame.data_dict
+            if (j in d1_frame.data_dict.keys()) and (p in d1_frame.data_dict[j].keys()):
+              cmd_str += '^' + d1_frame.data_dict[j][p]
+            elif p in d1_params:
+              cmd_str += '^' + d1_frame.d1_array_wids[d1_params.find(p)].tk_var.get()
+            elif p in d2_params:
+              cmd_str += '^' + self.d2_param_list[d1_params.find(p)].tk_var.get()
+            else:
+              cmd_str += '^'
+          self.pipe.cmd_in(cmd_str)
         i = i+1
       # set data|exists = T
-      self.pipe.cmd_in('set data ' + str(u) + '@' + self.name + '|exists = T')
+      #self.pipe.cmd_in('set data ' + str(u) + '@' + self.name + '|exists = T')
     # Close the window
     self.destroy()
 
@@ -2811,12 +2869,17 @@ class tao_new_data_window(tk.Toplevel):
 class new_d1_frame(tk.Frame):
   '''
   Provides a frame for inputting properties of a d1_data array.
+  To load an existing d1_array, pass the d1_array name as name
+  (e.g. x,y, NOT orbit.x, orbit.y)
   '''
-  def __init__(self, d2_array):
+  def __init__(self, d2_array, name=""):
     tk.Frame.__init__(self, d2_array.notebook)
     self.d2_array = d2_array
     self.pipe = self.d2_array.pipe
-    self.name = "New d1_array" #Default
+    if name == "":
+      self.name = "New d1_array" #Default
+    else:
+      self.name = name
 
     # d1 Widgets
     def d1_ttp(x):
@@ -2849,6 +2912,9 @@ class new_d1_frame(tk.Frame):
       tk.Label(self, text=self.d1_array_labels[i]).grid(row=i+1, column=0, sticky='W')
       self.d1_array_wids[i].tk_wid.grid(row=i+1, column=1, sticky='EW')
     i = i+1
+    # Set name
+    if self.name != "New d1_array":
+      self.d1_array_wids[0].tk_var.set(self.name)
 
     # Warning labels
     # (defined here to be gridded/ungridded as necessary)
@@ -2899,6 +2965,48 @@ class new_d1_frame(tk.Frame):
         values=['PLEASE SPECIFY MIN/MAX INDICES'], state='readonly')
     self.data_chooser.bind('<<ComboboxSelected>>', self.make_datum_frame)
     self.data_chooser.grid(row=i+4, column=1, sticky='EW')
+    # Set ix_min and ix_max for existing d1_arrays
+    if self.name != "New d1_array":
+      ix_data = self.pipe.cmd_in('python data_d1_array ' + self.d2_array.name)
+      ix_data = ix_data.splitlines()
+      for line in ix_data:
+        if line.split(';')[3] == self.name:
+          break
+      #line is now set to the relevant line
+      self.d1_array_wids[-2].tk_var.set(line.split(';')[5])
+      self.d1_array_wids[-1].tk_var.set(line.split(';')[6])
+      self.ix_min_handler()
+      self.ix_max_handler()
+    # Fill self.data_dict for existing d1 arrays
+    data_dict_params = ['data_source', 'data_type', 'ele_name', 'ele_start_name', 'ele_ref_name',
+        'data^merit_type', 'meas_value', 'ref_value', 'weight', 'good_user', '1^ix_bunch',
+        'eval_point', 's_offset']
+    if self.name != "New d1_array":
+      self.d2_array.pw.label_vars[self.d2_array.pw.ix].set(
+          'Loading ' + self.d2_array.name + '.' + self.name + '...')
+      self.d2_array.pw.set_max(self.d2_array.pw.ix, self.ix_max-self.ix_min+1)
+      self.d2_array.update_idletasks()
+      for i in range(self.ix_min, self.ix_max+1):
+        self.d2_array.pw.set_val(self.d2_array.pw.ix, i-self.ix_min)
+        self.d2_array.update_idletasks()
+        self.data_dict[i] = {}
+        existing_data = self.pipe.cmd_in(
+            'python data ' + self.d2_array.name + '.' + self.name + '[' + str(i) + ']')
+        existing_data = existing_data.splitlines()
+        for p in data_dict_params:
+          # Find correct line
+          for line in existing_data:
+            if line.find(p + ';') == 0:
+              break
+          # Write to self.data_dict
+          self.data_dict[i][p] = line.split(';')[3].strip()
+      self.d2_array.pw.ix += 1
+      # Set default data_type to data_type of first datum
+      self.d1_array_wids[1].tk_var.set(self.data_dict[self.ix_min]['data_source'])
+      self.d1_array_wids[2].tk_var.set(self.data_dict[self.ix_min]['data_type'])
+      # Load first datum
+      self.data_ix.set(self.ix_min)
+      self.make_datum_frame()
 
     # Delete button
     tk.Button(self, text="DELETE THIS D1_ARRAY", fg='red', command=self.delete).grid(
@@ -2945,16 +3053,16 @@ class new_d1_frame(tk.Frame):
     # Parameters
     param_list = ['data_source;ENUM;T;', 'data_type;DAT_TYPE;T;',
         'ele_name;STR;T;', 'ele_start_name;STR;T;', 'ele_ref_name;STR;T;',
-        'data^merit_type;ENUM;T;', 'meas;REAL;T;', 'weight;REAL;T;',
-        'good_user;LOGIC;T;T', 'ix_bunch;INT;T;', 'eval_point;STR;T;',
-        's_offset;REAL;T;']
+        'data^merit_type;ENUM;T;', 'meas_value;REAL;T;', 'ref_value;REAL;T;',
+        'weight;REAL;T;', 'good_user;LOGIC;T;T', '1^ix_bunch;INUM;T;',
+        'eval_point;ENUM;T;', 's_offset;REAL;T;']
     param_list = list(map(str_to_tao_param, param_list))
     # Fill in defaults set at d1 level
     param_list[0].value = self.d1_array_wids[1].tk_var.get()
     param_list[1].value = self.d1_array_wids[2].tk_var.get()
     param_list[5].value = self.d1_array_wids[3].tk_var.get()
-    param_list[7].value = self.d1_array_wids[4].tk_var.get()
-    param_list[8].value = bool(self.d1_array_wids[5].tk_var.get())
+    param_list[8].value = self.d1_array_wids[4].tk_var.get()
+    param_list[9].value = bool(self.d1_array_wids[5].tk_var.get())
     # Set parameter values if specified
     for i in range(len(param_list)):
       if param_list[i].name in self.data_dict[ix].keys():
@@ -3816,7 +3924,43 @@ class tao_ele_browser(tao_lattice_window):
         text=" (" + str(len(names)) + " elements found)")
     self.ele_count.pack(side='left')
 
-
+class tao_progress_window(tk.Toplevel):
+  '''
+  Provides a window for displaying progress bars for long running processes
+  Use the grid geometry manager for placing extra widgets in this window
+  Row 0 is reserved for external manipulation (e.g. for a label)
+  Properties:
+  self.label_vars: list of variables used to set labels
+  self.ix: counter used for external bookkeeping
+  Init args:
+  root: the Tk root window
+  parent: the parent window for these progress bars
+  num_bars: the number of progress bars
+  Other init arguments are passed to the tk.Toplevel.__init__ method
+  '''
+  def __init__(self, root, parent, num_bars, *args, **kwargs):
+    tk.Toplevel.__init__(self, parent, *args, **kwargs)
+    self._labels = [] # not intended to be externally manipulated
+    self.label_vars = []
+    self._bars = []
+    self.ix = 0 #used for external bookkeeping
+    for i in range(num_bars):
+      self.label_vars.append(tk.StringVar())
+      self._labels.append(tk.Label(self, textvariable=self.label_vars[-1]))
+      self._labels[-1].grid(row=len(self._labels), column=0)
+      self._bars.append(ttk.Progressbar(self, mode='determinate'))
+      self._bars[-1].grid(row=len(self._bars), column=1)
+  def set_max(self, ix, val):
+    '''
+    Sets the max value for self.bars[ix] to val
+    '''
+    self._bars[ix].configure(maximum=val)
+  def set_val(self, ix, val):
+    '''
+    Sets to value of self.bars[ix] to val
+    Note that self.set_max should be used first to set the progress bar max
+    '''
+    self._bars[ix].configure(value=val)
 
 
 
