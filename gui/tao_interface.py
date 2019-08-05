@@ -3,12 +3,13 @@ import os
 import re
 import io
 if 'ACC_LOCAL_ROOT' in os.environ.keys():
-  sys.path.append(os.environ['ACC_LOCAL_ROOT']+'/tao/python/tao_pexpect')
+  sys.path.append(os.environ['ACC_LOCAL_ROOT']+'/tao/python/')
 elif 'ACC_LOCAL_DIR' in os.environ.keys():
-  sys.path.append(os.environ['ACC_LOCAL_DIR']+'/tao/python/tao_pexpect')
+  sys.path.append(os.environ['ACC_LOCAL_DIR']+'/tao/python/')
 else:
-  sys.path.append(os.environ['ACC_ROOT_DIR']+'/tao/python/tao_pexpect')
-from tao_pipe import tao_io
+  sys.path.append(os.environ['ACC_ROOT_DIR']+'/tao/python/')
+from tao_pexpect.tao_pipe import tao_io
+import pytao
 import tkinter as tk
 
 class new_stdout(object):
@@ -52,7 +53,7 @@ class tao_interface():
   Provides an interface between the GUI and
   the Tao command line
   '''
-  def __init__(self, mode, init_args = "", tao_exe =  "", expect_str = "Tao>"):
+  def __init__(self, mode, init_args = "", tao_exe =  "", expect_str = "Tao>", so_lib=""):
     self.mode = mode
     if 'ACC_LOCAL_ROOT' in os.environ.keys():
       if tao_exe == "":
@@ -61,14 +62,18 @@ class tao_interface():
 
     if mode == "pexpect":
       with new_stdout() as output:
-        tao_io.__init__(self, init_args=init_args,
+        self.pexpect_pipe = tao_io(init_args=init_args,
             tao_exe=tao_exe, expect_str=expect_str)
-      output = output.getvalue()
-      output = filter_output(output)
-      self.startup_message = output
     elif mode == "ctypes":
-      pass
-      #Start ctypes interface
+      with new_stdout() as output:
+        self.ctypes_pipe = pytao.Tao(so_lib=so_lib)
+        self.ctypes_pipe.init(init_args)
+
+    # Process startup message
+    output = output.getvalue()
+    output = filter_output(output)
+    self.startup_message = output
+
     self.message = ""
     self.message_type = "" #conveys color info to console
     self.printed = tk.BooleanVar()
@@ -85,8 +90,16 @@ class tao_interface():
     if cmd_str.find("single_mode") == 0:
       output = "single_mode not supported on the GUI command line"
       self.message_type = "error"
-    else:
-      output = tao_io.cmd_in(self, cmd_str)
+    elif self.mode=="pexpect":
+      output = self.pexpect_pipe.cmd_in(cmd_str)
+    elif self.mode=='ctypes':
+      output_list = self.ctypes_pipe.cmd(cmd_str)
+      output = ""
+      for line in output_list:
+        if line.strip != '':
+          output += line + '\n'
+      if (len(output) > 0) and (output[-1] == '\n'):
+        output = output[:-1]
     # Scrub output for extra new lines at the end,
     # as well as escape characters
     if cmd_str.find('python') == 0:

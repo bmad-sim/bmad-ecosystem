@@ -354,7 +354,13 @@ class tao_root_window(tk.Tk):
       tao_exe.tk_var.set(os.environ['ACC_EXE']+'/tao')
     tao_lib = tk_tao_parameter(str_to_tao_param("tao_lib;FILE;T;"), init_frame)
     if "tao_lib" in init_dict:
-      tao_exe.tk_var.set(init_dict["tao_lib"])
+      tao_lib.tk_var.set(init_dict["tao_lib"])
+    elif 'ACC_LOCAL_ROOT' in os.environ.keys():
+      if os.path.isfile(os.environ['ACC_LOCAL_ROOT']+'/production/lib/libtao.so'):
+        tao_lib.tk_var.set(os.environ['ACC_LOCAL_ROOT']+'/production/lib/libtao.so')
+    elif 'ACC_ROOT_DIR' in os.environ.keys():
+      if os.path.isfile(os.environ['ACC_ROOT_DIR']+'/production/lib/libtao.so'):
+        tao_lib.tk_var.set(os.environ['ACC_ROOT_DIR']+'/production/lib/libtao.so')
     swap_box()
 
     #Choosing plot mode must also be handled separately
@@ -370,10 +376,6 @@ class tao_root_window(tk.Tk):
         plot_mode.set(init_dict["plot_mode"])
 
     def param_load(event=None):
-      if chosen_interface.get() == "ctypes":
-        messagebox.showwarning("Error",
-            "ctypes is not currently supported.  Please use pexpect.")
-        return 0
       # set the font
       try:
         new_size = int(font_var.get())
@@ -417,7 +419,7 @@ class tao_root_window(tk.Tk):
         if tao_lib.tk_var.get() == "Browse...":
           tao_lib.tk_var.set("")
         mode = "ctypes"
-        self.pipe = tao_interface(mode, init_args, tao_lib.tk_var.get())
+        self.pipe = tao_interface(mode, init_args, so_lib=tao_lib.tk_var.get())
 
       init_frame.destroy()
       self.start_main()
@@ -496,7 +498,8 @@ class tao_root_window(tk.Tk):
     for child in root.winfo_children():
       child.destroy()
 
-    self.pipe.cmd("quit")
+    if self.pipe.mode == 'pexpect':
+      self.pipe.cmd_in("quit")
     #self.menubar_init()
     init_frame = tk.Frame(self)
     init_frame.pack()
