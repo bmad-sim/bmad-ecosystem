@@ -152,6 +152,13 @@ do ib = 1, size(bunches)
     call pmd_write_real_to_dataset(z_id, 'y', 'Sy', unit_1, p(:)%spin(2), err)
     call pmd_write_real_to_dataset(z_id, 'z', 'Sz', unit_1, p(:)%spin(3), err)
     call h5gclose_f(z_id, h5_err)
+
+    if (.not. is_fundamental_species(p(1)%species)) then
+      do i = 1, size(p)
+        ivec = charge_of(p(i)%species)
+      enddo
+      call pmd_write_int_to_dataset(b2_id, 'chargeState', 'particle charge', unit_1, ivec, err)
+    endif
   endif
 
   ! Time
@@ -191,13 +198,6 @@ do ib = 1, size(bunches)
   call pmd_write_int_to_dataset(b2_id, 'particleStatus', 'state', unit_1, p(:)%state, err)
   call pmd_write_int_to_dataset(b2_id, 'branchIndex', 'ix_branch', unit_1, p(:)%ix_branch, err)
   call pmd_write_int_to_dataset(b2_id, 'elementIndex', 'ix_ele', unit_1, p(:)%ix_ele, err)
-
-  if (.not. is_fundamental_species(p(1)%species)) then
-    do i = 1, size(p)
-      ivec = charge_of(p(i)%species)
-    enddo
-    call pmd_write_int_to_dataset(b2_id, 'chargeState', 'particle charge', unit_1, ivec, err)
-  endif
 
   do i = 1, size(p)
     select case (p(i)%location)

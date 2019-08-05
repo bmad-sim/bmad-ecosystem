@@ -23,7 +23,7 @@ The \vn{beam_init_struct} \vn{structure} (\sref{s:struct}) holds parameters whic
 initialize a beam. The parameters of this structure are:
 \begin{example}
   type beam_init_struct
-    character(200) :: file_name = ''           ! Initialization file name.
+    character(200) :: position_file = ''       ! Initialization file name.
     character distribution_type(3)             ! "ELLIPSE", "KV", "GRID", "" (default).
     type (ellipse_beam_init_struct) ellipse(3) ! For ellipse beam distribution
     type (kv_beam_init_struct) KV              ! For KV beam distribution
@@ -66,8 +66,8 @@ cavity whose frequency is not commensurate with the spacing between bunches, abs
 tracking (\sref{s:rf.time}) must be used.
 
 \begin{description}
-\item[\%file_name] \Newline
-\vn{%file_name} sets the name of the file to be read in containing the particle coordinates.  Input
+\item[\%position_file] \Newline
+\vn{%position_file} sets the name of the file to be read in containing the particle coordinates.  Input
 from a file is triggered if not-blank. The format of the file is discussed in
 Section~\sref{s:beam.init.file}.
 %
@@ -92,7 +92,7 @@ name is currently accepted.
 %
 \item[\%distribution_type(3)] \Newline
 The \vn{%distribution_type(:)} array determines what algorithms are used to generate
-the particle distribution for a bunch. Note: If \vn{%file_name} is not blank, the
+the particle distribution for a bunch. Note: If \vn{%position_file} is not blank, the
 beam distribution will be read from the appropriate file and \vn{%distribution_type}
 will be ignored.
 
@@ -247,7 +247,7 @@ and will be set to the value of \vn{particle_start}.
 %
 \item[\%use_t_coords, \%use_z_as_t] \Newline 
 If \vn{use_t_coords} is true, then the distributions are taken as describing particles in
-$t$-coordinates (\sref{s:time.phase.space}).  Furthermore, if \vn{use_z_as_t} is true, then the $z$
+$t$-coordinates (\sref{s:time.phase.space}). Furthermore, if \vn{use_z_as_t} is true, then the $z$
 coordinates from the distribution will be taken as describing the time coordinates. For example,
 particles may originate at a cathode at the same $s$, but different times.  If false, then the $z$
 coordinate from the distribution describes particles at the same time but different $s$ positions,
@@ -263,7 +263,7 @@ are finally converted to proper $s$-coordinate distributions for Bmad to use.
 
 A beam initialization file specifies the coordinates of all the particles in a beam. If a \bmad
 based program uses a \vn{beam_init_struct} (\sref{s:beam.init.file}) for inputting initialization
-parameters, the file name for file based beam initialization can be set using the \vn{%file_name}
+parameters, the file name for file based beam initialization can be set using the \vn{%position_file}
 component of the structure. Also the bunch charge, bunch number, and number of particles per bunch
 can be set in the \vn{beam_init_struct}. Additionally, the bunch centroid can be offset by setting
 \vn{beam_init%center} and \vn{beam_init%center_jitter}.
