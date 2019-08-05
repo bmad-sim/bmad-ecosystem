@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import font
 class tao_console(tk.Frame):
   '''
   Console for running tao commands and displaying
@@ -18,11 +19,20 @@ class tao_console(tk.Frame):
     self.root = root
     self.pipe = pipe
     self._wid = tk.Text(self, blockcursor=True)
+    # Check for a good monospace font
+    default_font = font.Font(font='').actual()['family']
+    if font.Font(font='Mono').actual()['family'] != default_font:
+      font_name = 'Mono'
+    elif font.Font(font='Fixed').actual()['family'] != default_font:
+      font_name = 'Fixed'
+    else:
+      font_name = 'Courier'
+    # set font+font size
     if self.root.font_size != None:
       self._wid.configure(
-          font='Mono '+str(self.root.font_size), fg="white", bg="black")
+          font=(font_name, self.root.font_size), fg="white", bg="black")
     else:
-      self._wid.configure(font='Monospace 16', fg="white", bg="black")
+      self._wid.configure(font=(font_name, 16), fg="white", bg="black")
     self._wid.configure(insertbackground="white")
     #self._wid.insert('end', self.pipe.startup_message)
     #self._wid.insert('end', '\nTao>')
