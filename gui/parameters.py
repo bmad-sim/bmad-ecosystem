@@ -52,7 +52,10 @@ class tao_parameter():
     elif param_type == 'ENUM':
       self.value = param_value
     elif param_type == 'INUM':
-      self.value = int(param_value)
+      try:
+        self.value = int(param_value)
+      except:
+        self.value = None
     else:
       print ('UNKNOWN PARAMETER TYPE: ' + param_type)
 
