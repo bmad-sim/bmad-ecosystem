@@ -18,14 +18,15 @@ use sim_utils, dummy => to_str
 implicit none
 
 real(rp) num
-integer pl
+integer pl, n_signif
 integer, optional :: max_signif
 character(:), allocatable :: string
 character(16) fmt
 
 !
 
-allocate (character(1) :: string)
+allocate (character(24) :: string)
+n_signif = integer_option(14, max_signif)
 
 if (num == 0) then
   string = '0'
@@ -34,9 +35,17 @@ endif
 
 pl = floor(log10(abs(num)))
 
-if (pl > 5) then
+!
+
+if (n_signif < pl + 1) then
+
+endif
+
+!
+
+if (pl > 5 .or. n_signif < pl + 1) then
   fmt = '(2a, i0)'
-  write (string, fmt) trim(rchomp(num/10.0_rp**pl, 0, max_signif)), 'E', pl
+  write (string, fmt) trim(rchomp(num/10.0_rp**pl, 0, max_signif)), 'E+', pl
 
 elseif (pl > -3) then
   string = rchomp(num, pl, max_signif)
@@ -44,8 +53,9 @@ elseif (pl > -3) then
 else
   fmt = '(2a, i0)'
   write (string, fmt) trim(rchomp(num*10.0_rp**(-pl), 0, max_signif)), 'E', pl
-
 endif
+
+string = trim(string)
 
 !---------------------------------------------------
 contains
