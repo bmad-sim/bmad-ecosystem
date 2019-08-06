@@ -128,20 +128,9 @@ class tao_interface():
       if mode == "pexpect":
         self.pexpect_pipe = tao_io(init_args=init_args,
             tao_exe=tao_exe, expect_str=expect_str)
-        #try:
-        #  self.pexpect_pipe = tao_io(init_args=init_args,
-        #      tao_exe=tao_exe, expect_str=expect_str)
-        #except pexpect.exceptions.ExceptionPexpect:
-        #  if lib_found:
-        #    mode = 'ctypes'
-        #    self.mode = 'ctypes'
-        #    self.exe_lib_warnings += "Warning: could not launch executable, defaulting to ctypes"
-        #    self.exe_lib_warning_type = 'error'
-        #  else:
-        #    mode = 'failed'
-        #    self.mode = 'failed'
       if mode == "ctypes":
-        self.ctypes_pipe.init(init_args)
+        for line in self.ctypes_pipe.init(init_args):
+          print(line)
       if mode == 'failed':
         self.exe_lib_warnings += "FATAL: could not locate Tao shared library or executable.\n"
         self.exe_lib_warnings += "Please reinitialize with a good executable or shared library."
