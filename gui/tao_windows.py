@@ -2777,7 +2777,6 @@ class tao_new_data_window(tk.Toplevel):
       self.notebook.select(0)
       self.pw.destroy()
 
-
     # Copy d2 defaults into d1_arrays
     for i in range(len(self.d1_frame_list)):
       val = self.d2_param_list[2].tk_var.get()
@@ -2899,6 +2898,8 @@ class tao_new_data_window(tk.Toplevel):
         frame = self.d1_frame_list[i]
         if self.notebook.select() == frame._w:
           self.d1_index = i
+          # Unblock frame's handlers
+          frame.handler_block = False
           break
 
   def add_d1_frame(self, d1_name, d2_name, event=None):
@@ -2927,6 +2928,7 @@ class new_d1_frame(tk.Frame):
     tk.Frame.__init__(self, d2_array.notebook)
     self.d2_array = d2_array
     self.pipe = self.d2_array.pipe
+    self.handler_block = False
     if name == "":
       self.name = "New d1_array" #Default
     else:
@@ -2960,9 +2962,9 @@ class new_d1_frame(tk.Frame):
     self.d1_array_wids[5].tk_var.set(val)
     # Grid widgets and labels:
     for i in range(len(self.d1_array_wids)):
-      tk.Label(self, text=self.d1_array_labels[i]).grid(row=i+1, column=0, sticky='W')
-      self.d1_array_wids[i].tk_wid.grid(row=i+1, column=1, sticky='EW')
-    i = i+1
+      tk.Label(self, text=self.d1_array_labels[i]).grid(row=i+2, column=0, sticky='W')
+      self.d1_array_wids[i].tk_wid.grid(row=i+2, column=1, sticky='EW')
+    i = i+2
     # Set name
     if self.name != "New d1_array":
       self.d1_array_wids[0].tk_var.set(self.name)
@@ -3063,17 +3065,23 @@ class new_d1_frame(tk.Frame):
     tk.Button(self, text="DELETE THIS D1_ARRAY", fg='red', command=self.delete).grid(
         row=0, column=0, columnspan=3, sticky='EW')
 
+    # Duplicate button
+    tk.Button(self, text="Duplicate this d1_array", command=self.duplicate).grid(
+        row=1, column=0, columnspan=3, sticky='EW')
+
     # Focus the d1 name widget
     self.d1_array_wids[0].tk_wid.focus_set()
 
-  def delete(self, event=None):
+  def delete(self, ask=True, event=None):
     '''
     Deletes this d1_array frame
+    Call with ask = False to skip confirmation
     '''
     # Ask for confirmation
-    ans = messagebox.askokcancel("Delete " + self.name, "Delete this d1_array and its associated data?", parent=self.d2_array)
-    if not ans:
-      return
+    if ask:
+      ans = messagebox.askokcancel("Delete " + self.name, "Delete this d1_array and its associated data?", parent=self.d2_array)
+      if not ans:
+        return
 
     # Remove from parent d1_frame_list
     ix = self.d2_array.d1_index
@@ -3084,6 +3092,37 @@ class new_d1_frame(tk.Frame):
 
     # Destroy self
     self.destroy()
+
+  def duplicate(self, event=None):
+    '''
+    Adds a new d1_frame to self.d2_array.d1_frame_list that is a copy of
+    this frame, and changes focus to that frame
+    '''
+    # Don't run any handlers for this d1_frame
+    self.handler_block = True
+    self.d2_array.d1_frame_list.append(new_d1_frame(self.d2_array))
+    ix = len(self.d2_array.d1_frame_list) - 1
+    #self.d2_array.d1_index = ix
+    # Copy properties into new frame
+    self.d2_array.d1_frame_list[-1].name = self.name + '_copy'
+    self.d2_array.d1_frame_list[-1].ix_min = self.ix_min
+    self.d2_array.d1_frame_list[-1].ix_max = self.ix_max
+    self.d2_array.d1_frame_list[-1].data_dict = self.data_dict
+    for i in range(len(self.d1_array_wids)):
+      if i == 0:
+        self.d2_array.d1_frame_list[-1].d1_array_wids[i].tk_var.set(self.d1_array_wids[i].tk_var.get() + '_copy')
+      else:
+        self.d2_array.d1_frame_list[-1].d1_array_wids[i].tk_var.set(self.d1_array_wids[i].tk_var.get())
+    # Run all input validation handlers
+    self.d2_array.notebook.insert(ix, self.d2_array.d1_frame_list[-1])
+    self.d2_array.notebook.select(ix)
+    self.d2_array.tab_handler()
+    self.update_idletasks()
+    self.d2_array.d1_frame_list[-1].name_handler()
+    self.d2_array.d1_frame_list[-1].ix_min_handler()
+    self.d2_array.d1_frame_list[-1].ix_max_handler()
+    self.d2_array.d1_frame_list[-1].data_source_handler()
+    self.d2_array.d1_frame_list[-1].data_type_handler()
 
   def make_datum_frame(self, event=None):
     '''
@@ -3176,6 +3215,8 @@ class new_d1_frame(tk.Frame):
     Changes the tab name to match the d1_name
     Returns 1 if unsuccessful
     '''
+    if self.handler_block:
+      return
     name = self.d1_array_wids[0].tk_var.get().strip()
     if name != "":
       # Make sure the name isn't already in use
@@ -3183,11 +3224,11 @@ class new_d1_frame(tk.Frame):
       for d1 in self.d2_array.d1_frame_list:
         if (d1.name == name) & (self != self.d2_array.d1_frame_list[i]):
           self.name_warning_1.grid_forget()
-          self.name_warning_2.grid(row=1, column=2, sticky='W')
+          self.name_warning_2.grid(row=2, column=2, sticky='W')
           return 1
         i = i+1
 
-      self.d2_array.notebook.tab(self.d2_array.d1_index, text=name)
+      self.d2_array.notebook.tab(self.d2_array.d1_index, text=self.name)
       self.name_warning_1.grid_forget()
       self.name_warning_2.grid_forget()
       if self.name != name:
@@ -3197,12 +3238,14 @@ class new_d1_frame(tk.Frame):
       self.name = name
     else:
       self.name_warning_2.grid_forget()
-      self.name_warning_1.grid(row=1, column=2, sticky='W')
+      self.name_warning_1.grid(row=2, column=2, sticky='W')
       self.name = "New d1_array"
       self.d2_array.notebook.tab(self.d2_array.d1_index, text="New d1_array")
       return 1
 
   def ix_min_handler(self, event=None):
+    if self.handler_block:
+      return
     try:
       ix_min = int(self.d1_array_wids[6].tk_var.get())
     except ValueError:
@@ -3214,11 +3257,11 @@ class new_d1_frame(tk.Frame):
         self.ix_min_warning_2.grid_forget()
       else:
         self.ix_min_warning_1.grid_forget()
-        self.ix_min_warning_2.grid(row=7, column=2, sticky='W')
+        self.ix_min_warning_2.grid(row=8, column=2, sticky='W')
         return 1
     else:
       self.ix_min_warning_2.grid_forget()
-      self.ix_min_warning_1.grid(row=7, column=2, sticky='W')
+      self.ix_min_warning_1.grid(row=8, column=2, sticky='W')
       return 1
     # Update the data index range if possible
     if (self.ix_min > -1) & (self.ix_max >= self.ix_min):
@@ -3236,11 +3279,11 @@ class new_d1_frame(tk.Frame):
         self.ix_max_warning_2.grid_forget()
       else:
         self.ix_max_warning_1.grid_forget()
-        self.ix_max_warning_2.grid(row=8, column=2, sticky='W')
+        self.ix_max_warning_2.grid(row=9, column=2, sticky='W')
         return 1
     else:
       self.ix_max_warning_2.grid_forget()
-      self.ix_max_warning_1.grid(row=8, column=2, sticky='W')
+      self.ix_max_warning_1.grid(row=9, column=2, sticky='W')
       return 1
     # Update the data index range if possible
     if (self.ix_min > -1) & (self.ix_max >= self.ix_min):
@@ -3251,6 +3294,8 @@ class new_d1_frame(tk.Frame):
     Updates the data_source widget to only show valid data types
     for the currently selected data source
     '''
+    if self.handler_block:
+      return
     source = self.d1_array_wids[1].tk_var.get()
     if source in ['beam', 'lat']:
       # Remake self.d1_array_wids[2] (data type)
@@ -3261,12 +3306,14 @@ class new_d1_frame(tk.Frame):
           self, self.pipe, data_source=source)
       self.d1_array_wids[2].tk_var.set(old_val)
       self.d1_array_wids[2].tk_var.trace('w', self.data_type_handler)
-      self.d1_array_wids[2].tk_wid.grid(row=3, column=1, sticky='EW')
+      self.d1_array_wids[2].tk_wid.grid(row=4, column=1, sticky='EW')
 
   def data_type_handler(self, *args):
     '''
     Sets the state of the ele buttons appropriately for the currently selected data type
     '''
+    if self.handler_block:
+      return
     if not self.d1_array_wids[2]._has_ele():
       self.ele_name_button.configure(state='disabled')
       self.ele_start_name_button.configure(state='disabled')
@@ -3546,13 +3593,11 @@ class new_v1_frame(tk.Frame):
   def delete(self, ask=True, event=None):
     '''
     Deletes this v1_array frame
-    Call with ask = False to skip confirmation
     '''
     # Ask for confirmation
-    if ask:
-      ans = messagebox.askokcancel("Delete " + self.name, "Delete this v1_array and its associated data?", parent=self.parent)
-      if not ans:
-        return
+    ans = messagebox.askokcancel("Delete " + self.name, "Delete this v1_array and its associated data?", parent=self.parent)
+    if not ans:
+      return
 
     # Remove from parent
     ix = self.parent.v1_index
@@ -3734,6 +3779,8 @@ class new_v1_frame(tk.Frame):
       self.var_chooser.configure(values=list(range(self.ix_min, self.ix_max+1)))
 
   def ix_max_handler(self, event=None):
+    if self.handler_block:
+      return
     try:
       ix_max = int(self.v1_array_wids[12].tk_var.get())
     except ValueError:
