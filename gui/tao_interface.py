@@ -2,6 +2,7 @@ import sys
 import os
 import re
 import io
+import pexpect
 if 'ACC_LOCAL_ROOT' in os.environ.keys():
   sys.path.append(os.environ['ACC_LOCAL_ROOT']+'/tao/python/')
 elif 'ACC_LOCAL_DIR' in os.environ.keys():
@@ -55,19 +56,97 @@ class tao_interface():
   '''
   def __init__(self, mode, init_args = "", tao_exe =  "", expect_str = "Tao>", so_lib=""):
     self.mode = mode
+    self.exe_lib_warnings = ""
+    self.exe_lib_warning_type = 'normal'
     if 'ACC_LOCAL_ROOT' in os.environ.keys():
-      if tao_exe == "":
-        tao_exe = '$ACC_LOCAL_ROOT/production/bin/tao'
-    # Needed to capture print statements from tao_io
+      EXE_DIR = os.environ['ACC_LOCAL_ROOT'] + '/production/bin/'
+      LIB_DIR = os.environ['ACC_LOCAL_ROOT'] + '/production/lib/'
+    else:
+      EXE_DIR = os.environ['ACC_EXE'] + '/'
+      LIB_DIR = None
+    # Check for executable
+    if os.path.isfile(tao_exe) and os.access(tao_exe, os.X_OK):
+      exe_found = True
+    elif os.path.isfile(EXE_DIR + 'tao') and os.access(EXE_DIR + 'tao', os.X_OK):
+      tao_exe = EXE_DIR + 'tao'
+      exe_found = True
+      if (mode == "pexpect") & (tao_exe != ""):
+        self.exe_lib_warnings += "Note: could not find " + tao_exe
+        self.exe_lib_warnings += ".\nDefaulting to " + EXE_DIR + 'tao'
+    else:
+      exe_found = False
+      if mode == "pexpect":
+        self.exe_lib_warnings += "Warning: no executable found, defaulting to ctypes"
+        self.exe_lib_warning_type = 'error'
 
-    if mode == "pexpect":
-      with new_stdout() as output:
+    # Check for shared library (and set up self.ctypes_pipe)
+    lib_found = False
+    try:
+      self.ctypes_pipe = pytao.Tao(so_lib=so_lib)
+      lib_found = True
+    except OSError: #so_lib not found
+      if LIB_DIR != None:
+        try:
+          self.ctypes_pipe = pytao.Tao(so_lib=LIB_DIR+'libtao.so')
+          lib_found = True
+          if mode == "ctypes":
+            self.exe_lib_warnings += "Note: could not find " + so_lib
+            self.exe_lib_warnings += ".\nUsing library in " + LIB_DIR
+        except OSError: #so_lib not found
+          pass # will continue below
+      if not lib_found:
+        try:
+          self.ctypes_pipe = pytao.Tao(so_lib="")
+          lib_found = True
+          if mode == "ctypes":
+            self.exe_lib_warnings += "Note: could not find " + so_lib
+            self.exe_lib_warnings += ".\nUsing library in " + os.environ['ACC_ROOT_DIR']+'/production/lib/'
+        except ValueError:
+          lib_found = False
+          if mode == "ctypes":
+            self.exe_lib_warnings += "Warning: no shared library found, defaulting to pexpect"
+            self.exe_lib_warning_type = 'error'
+    except ValueError:
+      lib_found = False
+
+    if self.exe_lib_warnings != "":
+      self.exe_lib_warnings += '\n'
+
+    # Switch mode if necessary
+    if exe_found and not lib_found:
+      mode = 'pexpect'
+      self.mode = 'pexpect'
+    elif not exe_found and lib_found:
+      mode = 'ctypes'
+      self.mode = 'ctypes'
+    elif not exe_found and not lib_found:
+      mode = 'failed'
+      self.mode='failed'
+
+    # new_stdout() needed to capture print statements from tao_io
+    with new_stdout() as output:
+      if mode == "pexpect":
         self.pexpect_pipe = tao_io(init_args=init_args,
             tao_exe=tao_exe, expect_str=expect_str)
-    elif mode == "ctypes":
-      with new_stdout() as output:
-        self.ctypes_pipe = pytao.Tao(so_lib=so_lib)
+        #try:
+        #  self.pexpect_pipe = tao_io(init_args=init_args,
+        #      tao_exe=tao_exe, expect_str=expect_str)
+        #except pexpect.exceptions.ExceptionPexpect:
+        #  if lib_found:
+        #    mode = 'ctypes'
+        #    self.mode = 'ctypes'
+        #    self.exe_lib_warnings += "Warning: could not launch executable, defaulting to ctypes"
+        #    self.exe_lib_warning_type = 'error'
+        #  else:
+        #    mode = 'failed'
+        #    self.mode = 'failed'
+      if mode == "ctypes":
         self.ctypes_pipe.init(init_args)
+      if mode == 'failed':
+        self.exe_lib_warnings += "FATAL: could not locate Tao shared library or executable.\n"
+        self.exe_lib_warnings += "Please reinitialize with a good executable or shared library."
+        self.exe_lib_warning_type = "fatal"
+        print("")
 
     # Process startup message
     output = output.getvalue()
@@ -100,6 +179,8 @@ class tao_interface():
           output += line + '\n'
       if (len(output) > 0) and (output[-1] == '\n'):
         output = output[:-1]
+    else:
+      output = ""
     # Scrub output for extra new lines at the end,
     # as well as escape characters
     if cmd_str.find('python') == 0:
