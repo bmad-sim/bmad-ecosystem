@@ -307,13 +307,13 @@ do i = ix_start, ix_end
 
   if (i == ix_start) then
     write (2, '(6x, 8a)') &
-              'position {rho = ', trim(to_str(ds * cos(delta_psi1), 'f0.3')), &
-              ', psi = ', trim(to_str(delta_psi1, 'f0.4')), &
+              'position {rho = ', trim(to_string(ds * cos(delta_psi1), 'f0.3')), &
+              ', psi = ', trim(to_string(delta_psi1, 'f0.4')), &
               ', marker = ', trim(marker1), '}'
   else
     write (2, '(6x, 8a)') &
-              'position {delta_s = ', trim(to_str(ds, 'f0.3')), &
-              ', delta_psi = ', trim(to_str(delta_psi1, 'f0.4')), &
+              'position {delta_s = ', trim(to_string(ds, 'f0.3')), &
+              ', delta_psi = ', trim(to_string(delta_psi1, 'f0.4')), &
               ', marker = ', trim(marker1), '}'
   endif
 
@@ -321,13 +321,13 @@ do i = ix_start, ix_end
   do j = 1, size(prop_name)
     if (prop_name(j) == "") exit
     write (2, '(9x, 3a)') trim(prop_name(j)), ' = ', &
-                                  trim(to_str(prop_value(j), prop_fmt(j)))
+                                  trim(to_string(prop_value(j), prop_fmt(j)))
   enddo
   write (2, '(6x, a)') '}'
 
   write (2, '(6x, 8a)') &
-              'position {delta_s = ', trim(to_str(ele%value(l$), 'f0.3')), &
-              ', delta_psi = ', trim(to_str(delta_psi2, 'f0.4')), &
+              'position {delta_s = ', trim(to_string(ele%value(l$), 'f0.3')), &
+              ', delta_psi = ', trim(to_string(delta_psi2, 'f0.4')), &
               ', marker = ', trim(marker2), '}'
 
   write (2, '(3x, a)') '}' 
@@ -348,7 +348,7 @@ write (2, '(a)') "!---------------------------------------------"
 write (2, '(a)') "! Particle distribution"
 write (2, *)
 write (2, '(a)')  "particles {"
-write (2, '(2a)') "   reference_momentum  = reference_particle"  !, trim(to_str(p0, 'es15.6'))
+write (2, '(2a)') "   reference_momentum  = reference_particle"  !, trim(to_string(p0, 'es15.6'))
 write (2, '(a)')  "   reference_point_x   = 0.0"
 write (2, '(a)')  "   reference_point_y   = 0.0"
 write (2, '(a)')  "   reference_point_phi = 0.0"
@@ -415,7 +415,7 @@ stop
 !-----------------------------------------------------------------------------
 contains
 
-function to_str(r_value, frmt)  result (str)
+function to_string(r_value, frmt)  result (str)
 
 real(rp) r_value
 character(*) frmt
