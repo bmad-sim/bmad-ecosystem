@@ -796,7 +796,9 @@ do ib = 0, ubound(lat%branch, 1)
         endif
 
         line = trim(line) // ',  sr_wake_file = "' // trim(wake_name) // '"'
-
+        if (ele%wake%wake_amp_scale /= 1) line = trim(line) // ', wake_amp_scale = ' // re_str(ele%wake%wake_amp_scale)
+        if (ele%wake%wake_time_scale /= 1) line = trim(line) // ', wake_time_scale = ' // re_str(ele%wake%wake_time_scale)
+        if (.not. ele%wake%sr_wake_scale_with_length) line = trim(line) // ', sr_wake_scale_with_length = F'
       endif
 
       ! Long-range

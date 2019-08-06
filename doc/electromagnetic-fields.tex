@@ -880,85 +880,74 @@ For the $p = 0$ longitudinal mode, a ``pseudo TM$_{010}$'' mode is used that has
 Wake field effects are divided into short--range (within a bunch) and
 long--range (between bunches).
 
-Only the transverse dipole and longitudinal monopole components of the
-short--range wake field are modeled. The longitudinal monopole energy
-kick $dE$ for the $i$\Th (trailing) macroparticle due to the wake from
-the $j$\Th (leading) macroparticle is computed from the equation
+Only the transverse dipole and longitudinal monopole components of the short--range wake field are
+modeled. The longitudinal monopole energy kick $dE$ for the $i$\Th (trailing) macroparticle due to
+the wake from the $j$\Th (leading) macroparticle is computed from the equation
 \Begineq
-  \Delta p_z(i) = \frac{-e \, L}{v \, P_0} \, \left(
-        \frac{1}{2}\WlS(0) \,  |q_i| +
+  \Delta p_z(i) = \frac{-e \, L}{v \, P_0} \, \left( \frac{1}{2}\WlS(0) \,  |q_i| +
         \sum_{j \ne i} \WlS(dz_{ij}) \, |q_j| \right)
   \label{delvp}
 \Endeq
-where $v$ is the particle velocity, $e$ is the charge on an electron,
-$q$ is the macroparticle charge, $L$ is the cavity length, $dz_{ij}$
-is the longitudinal distance between the $i$\Th and $j$\Th
-macroparticles, $\WlS$ is the short--range longitudinal wake field
-function.
+where $v$ is the particle velocity, $e$ is the charge on an electron, $q$ is the macroparticle
+charge, $L$ is the cavity length, $dz_{ij}$ is the longitudinal distance between the $i$\Th and
+$j$\Th macroparticles, $\WlS$ is the short--range longitudinal wake field function.
 
-For the transverse kick, there are two types of wakes: Those that are
-dependent upon transverse offset of the leading particle (but
-independent of the position of the trailing particle) and those that
-are dependent upon the transverse offset of the trailing particle (but
-independent of the position of the leading particle. If the beam
-chamber has azimuthal symmetry, the only wakes present are those that
-are dependent upon the offset of the leading particle. 
+For the transverse kick, there are two types of wakes: Those that are dependent upon transverse
+offset of the leading particle (but independent of the position of the trailing particle) and those
+that are dependent upon the transverse offset of the trailing particle (but independent of the
+position of the leading particle. If the beam chamber has azimuthal symmetry, the only wakes present
+are those that are dependent upon the offset of the leading particle.
 
-\bmad assumes that the beam chamber wall is mirror symmetric with
-respect to both the $x$-axis and $y$-axis. In this case, a horizontal
-displacement (of either particle) results in a horizontal kick and
-similarly for vertical displacements. That is, the horizontal and
-vertical wakes are decoupled. 
+\bmad assumes that the beam chamber wall is mirror symmetric with respect to both the $x$-axis and
+$y$-axis. In this case, a horizontal displacement (of either particle) results in a horizontal kick
+and similarly for vertical displacements. That is, the horizontal and vertical wakes are decoupled.
 
-With the above symmetry assumpltion, 
-the transverse kick $\Delta p_x(i)$ for the $i$\Th macroparticle due to the 
-dipole short--range transverse wake field is modeled with the equation
+With the above symmetry assumpltion, the transverse kick $\Delta p_x(i)$ for the $i$\Th
+macroparticle due to the dipole short--range transverse wake field is modeled with the equation
 \Begineq
-  \Delta p_x(i) = \frac{-e \, L \, \sum_j |q_j| \, x \, \WtS(dz_{ij})}
-                 {v \, P_0}
+  \Delta p_x(i) = \frac{-e \, L \, \sum_j |q_j| \, x \, \WtS(dz_{ij})}{v \, P_0}
   \label{pelqxw}
 \Endeq
-Where $x$ is the horizontal displacement of the leading or trailing
-particle as appropriate. There is a similar equation for $\Delta
-p_y(i)$. $\WtS$ is the transverse short--range wake function.
+Where $x$ is the horizontal displacement of the leading or trailing particle as appropriate. There
+is a similar equation for $\Delta p_y(i)$. $\WtS$ is the transverse short--range wake function.
 
-The wake field functions $\WlS$ and $\WtS$ can be specified in a \bmad
-lattice file using ``pseudo'' modes where
+The wake field functions $\WlS$ and $\WtS$ can be specified in a \bmad lattice file using ``pseudo''
+modes where
 \Begineq
-  W(z) = \sum_i A_i \, e^{d_i z} \, \sin (k_i \, z + \phi_i)
+  W(z) = A_{amp} \, \sum_i A_i \, e^{d_i z} \, \sin (k_i \, z + \phi_i)
   \label{wadzk}
 \Endeq
 The parameters $(A_i, d_i, k_i, \phi_i)$ are chosen to fit the calculated wake potential
-(\sref{s:sr.wake.file}). The reason why the mode approach is used in \bmad is due to the
-fact that, using pseudo modes, the calculation time scales as the number of particles $N$
-while a calculation based upon a table of wake vs $z$ would scale as $N^2$. [The
-disadvantage is that initially the user must proform a fit to the wake potential to
-generate the mode parameter values.]
+(\sref{s:sr.wake.file}). The dimensionless overall amplitude scale $A_{amp}$ is indroduced as a
+convenient way to scale the overall wake. The reason why the mode approach is used in \bmad is due
+to the fact that, using pseudo modes, the calculation time scales as the number of particles $N$
+while a calculation based upon a table of wake vs $z$ would scale as $N^2$. [The disadvantage is
+that initially the user must proform a fit to the wake potential to generate the mode parameter
+values.]
 
 %-----------------------------
 \subsection{Long--Range Wakes}
 \label{s:wake.long}
 \index{wake fields!long-range}
 
-Following Chao\cite{b:chao} Eq.~2.88, the long--range wake fields are
-characterized by a set of cavity modes. The wake function $W_m$ for a
-mode of order $m$ is given by
+Following Chao\cite{b:chao} Eq.~2.88, the long--range wake fields are characterized by a set of
+cavity modes. The wake function $W_m$ for a mode of order $m$ is given by
 \Begineq
-  W_m(t) = -c \, \left( \frac{R}{Q} \right)_m \,\,
+  W_m(t) = -A_{amp} \, c \, \left( \frac{R}{Q} \right)_m \,\,
   e^{-\omega \, t/ 2 Q} \, \sin (\omega \, t)
   \label{wcrq}
 \Endeq
-The mode strength $(R/Q)_m$ has units of Ohms/meter$^{2m}$.
-The lattice syntax for defining long-range wakes is discussed in \Sref{s:lr.wake.file}.
+The mode strength $(R/Q)_m$ has units of Ohms/meter$^{2m}$. The dimensionless overall amplitude
+scale $A_{amp}$ is indroduced as a convenient way to scale the overall wake. The lattice syntax for
+defining long-range wakes is discussed in \Sref{s:lr.wake.file}.
 
-Assuming that the macroparticle generating the wake is offset a
-distance $r_w$ along the $x$--axis, a trailing macroparticle will see a kick
+Assuming that the macroparticle generating the wake is offset a distance $r_w$ along the $x$--axis,
+a trailing macroparticle will see a kick
 \begin{align}
   \Delta {\Bf p}_\perp &= 
     -C \, I_m \, W_m(t) \, m \, r^{m-1} \, \left( 
     \bfhat r \cos m\theta - {\bf\hat\theta} \sin m\theta \right) \\
-  &= -C \, I_m \, W_m(t) \, m \, r^{m-1} \, \left( 
-    \bfhat x \cos [(m-1) \theta] - 
+  &= -C \, I_m \, W_m(t) \, m \, r^{m-1} \, \left( \bfhat x \cos [(m-1) \theta] - 
     \bfhat y \sin [(m-1)\theta] \right) \CRNO
   \Delta p_z &= -C \, I_m \, W'_m(t) \, r^m \, \cos m\theta
 \end{align}
@@ -970,8 +959,8 @@ where $m$ is the order of the mode, $C$ is given by
 \Begineq
   I_m = q_w \, r_w^m
 \Endeq
-with $q_w$ being the magnitude of the charge on the particle. 
-Generalizing the above, a macroparticle at $(r_w, \theta_w)$ will generate a wake
+with $q_w$ being the magnitude of the charge on the particle.  Generalizing the above, a
+macroparticle at $(r_w, \theta_w)$ will generate a wake
 \begin{align}
   -\Delta p_x + i\Delta p_y &= C \, I_m \, W_m(t) \, 
     m \, r^{m-1} \, e^{-i m \theta_w} \, e^{i (m-1) \theta} 
@@ -979,28 +968,22 @@ Generalizing the above, a macroparticle at $(r_w, \theta_w)$ will generate a wak
   \Delta p_z &= C \, I_m \, W'_m(t) \, r^m \, \cos [m(\theta - \theta_w)]
     \label{pciwr}
 \end{align}
-Comparing \Eq{ppcimr} to \eq{bib1nb}, and using the relationship between
-kick and field as given by \eq{pqlbp1} and \eq{pqlbp2}, shows that
-the form of the wake field transverse kick is the same as for a
-multipole of order $n = m - 1$. 
+Comparing \Eq{ppcimr} to \eq{bib1nb}, and using the relationship between kick and field as given by
+\eq{pqlbp1} and \eq{pqlbp2}, shows that the form of the wake field transverse kick is the same as
+for a multipole of order $n = m - 1$.
 
-The wake field felt by a particle is due to the wake fields generated by
-all the particles ahead of it. If the wake field kicks are computed by
-summing over all particle pairs, the
-computation will scale as $N^2$ where $N$ is the number of
-particles. This quickly becomes computationally exorbitant. A better
-solution is to keep track of the wakes in a cavity. When a particle
-comes through, the wake it generates is simply added to the existing
-wake. This computation scales as $N$ and makes simulations with large
-number of particles practical. 
+The wake field felt by a particle is due to the wake fields generated by all the particles ahead of
+it. If the wake field kicks are computed by summing over all particle pairs, the computation will
+scale as $N^2$ where $N$ is the number of particles. This quickly becomes computationally
+exorbitant. A better solution is to keep track of the wakes in a cavity. When a particle comes
+through, the wake it generates is simply added to the existing wake. This computation scales as $N$
+and makes simulations with large number of particles practical.
 
-To add wakes together, a wake must be decomposed into its
-components.  Spatially, there are normal and skew components and
-temporally there are sin and cosine components. This gives 4
-components which will be labeled $a_{\cos}$, $a_{\sin}$, $b_{\cos}$,
-and $b_{\sin}$. For a mode of order $m$, a particle passing through at
-a time $t_w$ with respect to the reference particle will produce
-wake components
+To add wakes together, a wake must be decomposed into its components.  Spatially, there are normal
+and skew components and temporally there are sin and cosine components. This gives 4 components
+which will be labeled $a_{\cos}$, $a_{\sin}$, $b_{\cos}$, and $b_{\sin}$. For a mode of order $m$, a
+particle passing through at a time $t_w$ with respect to the reference particle will produce wake
+components
 \begin{alignat}{2}
   \delta a_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right)_m \,
     e^{\omega \, t_w/ 2 Q} \, \cos (\omega \, t_w) \, I_m \, \sin(m \theta_w) 
@@ -1020,9 +1003,9 @@ These are added to the existing wake components. The total is
 \Begineq
   a_{\sin, m} = \sum_{\text{particles}} \delta a_{\sin, m}
 \Endeq
-with similar equations for $a_{\cos, m}$ etc. Here the sum is over all particles
-that cross the cavity before the kicked particle. To calculate the kick
-due to wake, the normal and skew components are added together
+with similar equations for $a_{\cos, m}$ etc. Here the sum is over all particles that cross the
+cavity before the kicked particle. To calculate the kick due to wake, the normal and skew components
+are added together
 \begin{align}
   a_m &= e^{-\omega \, t/ 2 Q} \, \left( 
     a_{\cos, m} \, \cos (\omega \, t) - a_{\sin, m} \, \sin (\omega \, t) \right) 
@@ -1030,9 +1013,8 @@ due to wake, the normal and skew components are added together
   b_m &= e^{-\omega \, t/ 2 Q} \, \left(
     b_{\cos, m} \, \cos (\omega \, t) - b_{\sin, m} \, \sin (\omega \, t) \right) \nonumber 
 \end{align}
-Here $t$ is the passage time of the particle with respect to the
-reference particle. In analogy to \Eq{ppcimr} and \eq{pciwr}, the kick
-is
+Here $t$ is the passage time of the particle with respect to the reference particle. In analogy to
+\Eq{ppcimr} and \eq{pciwr}, the kick is
 \begin{align}
   -\Delta p_x + i\Delta p_y &= C \, 
     m \, (b_m + i a_m) \, r^{m-1} \, e^{i (m-1) \theta} 
@@ -1042,20 +1024,18 @@ is
 \end{align}
 where $a' \equiv da/dt$ and $b' \equiv db/dt$.
 
-When simulating trains of bunches, the exponential factor $\omega \, t_w / 2
-Q$ in \Eq{ac2rq} can become very large. To prevent numerical overflow,
-\bmad uses a reference time $z_{\text{ref}}$ so that all times
-$t$ in the above equations are replaced by
+When simulating trains of bunches, the exponential factor $\omega \, t_w / 2 Q$ in \Eq{ac2rq} can
+become very large. To prevent numerical overflow, \bmad uses a reference time $z_{\text{ref}}$ so
+that all times $t$ in the above equations are replaced by
 \Begineq
   t \longrightarrow t - t_{\text{ref}}
 \Endeq
 
-The above equations were developed assuming cylindrical symmetry. With
-cylindrical symmetry, the cavity modes are actually a pair of
-degenerate modes. When the symmetry is broken, the modes no longer have the
-same frequency. In this case, one has to consider a mode's polarization
-angle $\phi$. Equations \eq{akz2q} and \eq{ppcmbar} are unchanged. 
-In place of \Eq{ac2rq}, the contribution of a particle to a mode is
+The above equations were developed assuming cylindrical symmetry. With cylindrical symmetry, the
+cavity modes are actually a pair of degenerate modes. When the symmetry is broken, the modes no
+longer have the same frequency. In this case, one has to consider a mode's polarization angle
+$\phi$. Equations \eq{akz2q} and \eq{ppcmbar} are unchanged.  In place of \Eq{ac2rq}, the
+contribution of a particle to a mode is
 \begin{alignat}{2}
   \delta a_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right)_m \,
     e^{\omega \, t_w/ 2 Q} \, \cos (\omega \, t_w) \, I_m \, \left[
@@ -1079,15 +1059,12 @@ In place of \Eq{ac2rq}, the contribution of a particle to a mode is
     \nonumber
 \end{alignat}
 
-Each mode is characterized by an $R/Q$, $Q$, $\omega$, and $m$. Notice
-that $R/Q$ is defined so that it includes the cavity length. Thus the
-long--range wake equations, as opposed to the short--range ones, do
-not have any explicit dependence on $L$. 
+Each mode is characterized by an $R/Q$, $Q$, $\omega$, and $m$. Notice that $R/Q$ is defined so that
+it includes the cavity length. Thus the long--range wake equations, as opposed to the short--range
+ones, do not have any explicit dependence on $L$.
 
-To make life more interesting, different people define $R/Q$
-differently. A common practice is to define an $R/Q$ ``at the beam
-pipe radius''. In this case the above equations must be modified to
-include factors of the beam pipe radius. Another convention uses a
-``linac definition'' which makes $R/Q$ twice as large and adds a
-factor of 2 in \Eq{wcrq} to compensate.
+To make life more interesting, different people define $R/Q$ differently. A common practice is to
+define an $R/Q$ ``at the beam pipe radius''. In this case the above equations must be modified to
+include factors of the beam pipe radius. Another convention uses a ``linac definition'' which makes
+$R/Q$ twice as large and adds a factor of 2 in \Eq{wcrq} to compensate.
 

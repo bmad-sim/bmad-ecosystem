@@ -1079,13 +1079,13 @@ if (associated(ele%wake)) then
                                                        size(ele%wake%sr_trans%mode) /= 0)) then
     nl=nl+1; li(nl) = ''
     nl=nl+1; li(nl) = 'Wake:'
-    nl=nl+1; write (li(nl), '(2x, 2a)')    'amp_scale                = ', to_str(ele%wake%amp_scale)
-    nl=nl+1; write (li(nl), '(2x, 2a)')    'time_scale               = ', to_str(ele%wake%time_scale)
+    nl=nl+1; write (li(nl), '(2x, 2a)')    'wake_amp_scale           = ', to_str(ele%wake%wake_amp_scale)
+    nl=nl+1; write (li(nl), '(2x, 2a)')    'wake_time_scale          = ', to_str(ele%wake%wake_time_scale)
 
     nl=nl+1; li(nl) = ''
     nl=nl+1; li(nl) = 'Short-Range Wake:'
     nl=nl+1; li(nl) = '  SR_File: ' // trim(ele%wake%sr_file)
-    nl=nl+1; write (li(nl), '(2x, a, l2)') 'sr_scale_with_ele_length =', ele%wake%lr_self_wake_on
+    nl=nl+1; write (li(nl), '(2x, a, l2)') 'sr_wake_scale_with_length =', ele%wake%sr_wake_scale_with_length
     nl=nl+1; write (li(nl), '(2x, 2a)')    'z_sr_max = ', to_str(ele%wake%z_sr_max)
   endif
 
