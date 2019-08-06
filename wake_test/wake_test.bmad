@@ -8,7 +8,7 @@ beginning[beta_b] = 10
 
 particle_start[z] = -0.001
 
-p1: pipe, L = 1
+p1: pipe, L = 1, wake_amp_scale = 1.2, wake_time_scale = 0.9, sr_wake_scale_with_length = T
 p1[sr_wake_file] = 'short_range.wake'
 
 p2: pipe, L = 1
