@@ -660,11 +660,14 @@ do i = 1, n_key$
   call init_attribute_name1 (i, field_overlaps$,      'FIELD_OVERLAPS')
   call init_attribute_name1 (i, l_hard_edge$,         'L_HARD_EDGE', dependent$)
 
-  call init_attribute_name1 (i, sr_wake_file$,        'SR_WAKE_FILE')
-  call init_attribute_name1 (i, lr_wake_file$,        'LR_WAKE_FILE')
-  call init_attribute_name1 (i, lr_freq_spread$,      'LR_FREQ_SPREAD')
-  call init_attribute_name1 (i, lr_self_wake_on$,     'LR_SELF_WAKE_ON')
-  call init_attribute_name1 (i, lr_wake_spline$,      'LR_WAKE_SPLINE')
+  call init_attribute_name1 (i, amp_scale$,                'AMP_SCALE')
+  call init_attribute_name1 (i, time_scale$,               'TIME_SCALE')
+  call init_attribute_name1 (i, sr_scale_with_ele_length$, 'SR_SCALE_WITH_ELE_LENGTH')
+  call init_attribute_name1 (i, sr_wake_file$,             'SR_WAKE_FILE')
+  call init_attribute_name1 (i, lr_wake_file$,             'LR_WAKE_FILE')
+  call init_attribute_name1 (i, lr_freq_spread$,           'LR_FREQ_SPREAD')
+  call init_attribute_name1 (i, lr_self_wake_on$,          'LR_SELF_WAKE_ON')
+  call init_attribute_name1 (i, lr_wake_spline$,           'LR_WAKE_SPLINE')
 
   if (i == pipe$)         cycle
   if (i == custom$)       cycle

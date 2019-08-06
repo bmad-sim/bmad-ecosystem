@@ -1121,8 +1121,12 @@ if (associated(ele%wake)) then
     nl=nl+1; li(nl) = ''
     nl=nl+1; li(nl) = 'Long-Range Wake:'
     nl=nl+1; li(nl) = '  LR_File: ' // trim(ele%wake%lr_file)
-    nl=nl+1; write (li(nl), '(2x, a, f10.6)') 'lr_freq_spread  =', ele%wake%lr_freq_spread
-    nl=nl+1; write (li(nl), '(2x, a, l2)')    'lr_self_wake_on =', ele%wake%lr_self_wake_on
+    nl=nl+1; write (li(nl), '(2x, 2a)')    'amp_scale                =', to_str(ele%wake%amp_scale)
+    nl=nl+1; write (li(nl), '(2x, 2a)')    'time_scale               =', to_str(ele%wake%time_scale)
+    nl=nl+1; write (li(nl), '(2x, 2a)')    'lr_freq_spread           =', to_str(ele%wake%lr_freq_spread)
+    nl=nl+1; write (li(nl), '(2x, 2a)')    'z_sr_max                 =', to_str(ele%wake%z_sr_max)
+    nl=nl+1; write (li(nl), '(2x, a, l2)') 'lr_self_wake_on          =', ele%wake%lr_self_wake_on
+    nl=nl+1; write (li(nl), '(2x, a, l2)') 'sr_scale_with_ele_length =', ele%wake%lr_self_wake_on
   endif
 
   if (size(ele%wake%lr_mode) /= 0) then

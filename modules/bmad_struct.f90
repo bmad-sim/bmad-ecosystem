@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 236
+integer, parameter :: bmad_inc_version$ = 238
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -567,11 +567,12 @@ type wake_struct
   type (wake_sr_struct) :: sr_trans
   type (wake_lr_mode_struct), allocatable :: lr_mode(:)
   type (wake_lr_spline_struct), allocatable :: lr_spline(:)
-  real(rp) :: amp_scale = 1
-  real(rp) :: z_scale = 1
+  real(rp) :: amp_scale = 1             ! Wake amplitude scale factor.
+  real(rp) :: time_scale = 1            ! time scale factor.
   real(rp) :: z_sr_max = 0              ! Max allowable z value sr_mode. 
   real(rp) :: lr_freq_spread = 0        ! Random frequency spread of long range modes.
   logical :: lr_self_wake_on = .true.   ! Long range self-wake used in tracking?
+  logical :: sr_scale_with_ele_length = .true. ! Scale SR wake with element length?
 end type
 
 ! ac_kicker structure
@@ -1492,19 +1493,19 @@ integer, parameter :: aperture$ = 95, etap_a$ = 95
 integer, parameter :: x_limit$ = 96, absolute_time_tracking$ = 96, eta_b$ = 96
 integer, parameter :: y_limit$ = 97, etap_b$ = 97
 integer, parameter :: offset_moves_aperture$ = 98
-integer, parameter :: aperture_limit_on$ = 99
+integer, parameter :: aperture_limit_on$ = 99, amp_scale$ = 99
 
 integer, parameter :: ptc_exact_misalign$ = 100, physical_source$ = 100
 integer, parameter :: sr_wake_file$ = 100, alpha_a_begin$ = 100
 integer, parameter :: term$ = 101, frequencies$ = 101
-integer, parameter :: x_position$ = 102, ptc_exact_model$ = 102
+integer, parameter :: x_position$ = 102, ptc_exact_model$ = 102, time_scale$ = 102
 integer, parameter :: symplectify$ = 103, y_position$ = 103, n_slice_spline$ = 103
 integer, parameter :: z_position$ = 104, amp_vs_time$ = 104
 integer, parameter :: is_on$ = 105, theta_position$ = 105
 integer, parameter :: field_calc$ = 106, phi_position$ = 106
 integer, parameter :: psi_position$ = 107, wall$ = 107
 integer, parameter :: aperture_at$ = 108, beta_a_begin$ = 108
-integer, parameter :: ran_seed$ = 109, beta_b_begin$ = 109, origin_ele$ = 109
+integer, parameter :: ran_seed$ = 109, beta_b_begin$ = 109, origin_ele$ = 109, sr_scale_with_ele_length$ = 109
 
 ! 
 

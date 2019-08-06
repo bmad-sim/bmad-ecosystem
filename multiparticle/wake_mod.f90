@@ -187,7 +187,7 @@ do i = 1, size(ele%wake%lr_mode)
   omega = twopi * lr%freq
   if (lr%freq == 0) omega = twopi * ele%value(rf_frequency$)  ! fundamental mode wake.
   f_exp = omega / (2 * lr%Q)
-  dt = t0 - lr%t_ref 
+  dt = ele%wake%time_scale * (t0 - lr%t_ref)
   exp_shift = exp(-dt * f_exp)
 
   lr%t_ref = t0
@@ -238,8 +238,8 @@ do i = 1, size(ele%wake%lr_mode)
     particle => bunch%particle(k)
     if (particle%state /= alive$) cycle
 
-    dt = particle%t - lr%t_ref
-    ff0 = abs(particle%charge) * lr%r_over_q
+    dt = ele%wake%time_scale * (particle%t - lr%t_ref)
+    ff0 = ele%wake%amp_scale * abs(particle%charge) * lr%r_over_q
 
     dt_phase = dt
     if (lr%freq == 0) dt_phase = dt_phase + ele%value(phi0_multipass$) / omega ! Fundamental mode phase shift
@@ -354,7 +354,7 @@ real(rp) arg, ff, c, s, dz, exp_factor, w_norm
 
 !
 
-dz = orbit%vec(5) - ele%wake%sr_long%z_ref ! Should be negative
+dz = ele%wake%time_scale * (orbit%vec(5) - ele%wake%sr_long%z_ref) ! Should be negative
 ele%wake%sr_long%z_ref = orbit%vec(5)
 
 ! Check if we have to do any calculations
@@ -367,11 +367,15 @@ do i = 1, size(ele%wake%sr_long%mode)
 
   exp_factor = exp(dz * mode%damp)
 
-  arg = orbit%vec(5) * mode%k 
+  arg = ele%wake%time_scale * (orbit%vec(5) * mode%k)
   c = cos (arg)
   s = sin (arg)
 
-  ff = abs(orbit%charge) * mode%amp * ele%value(l$) / ele%value(p0c$)
+  if (ele%wake%sr_scale_with_ele_length) then
+    ff = ele%wake%amp_scale * abs(orbit%charge) * mode%amp * ele%value(l$) / ele%value(p0c$)
+  else
+    ff = ele%wake%amp_scale * abs(orbit%charge) * mode%amp / ele%value(p0c$)
+  endif
 
   w_norm = mode%b_sin * exp_factor * s + mode%b_cos * exp_factor * c
 
@@ -401,7 +405,7 @@ do i = 1, size(ele%wake%sr_long%mode)
 
   ! Add to wake
 
-  arg = mode%phi - orbit%vec(5) * mode%k 
+  arg = ele%wake%time_scale * (mode%phi - orbit%vec(5) * mode%k) 
   c = cos (arg)
   s = sin (arg)
 
@@ -457,7 +461,7 @@ real(rp) arg, ff, c, s, dz, exp_factor, w_norm, w_skew
 
 !
 
-dz = orbit%vec(5) - ele%wake%sr_trans%z_ref ! Should be negative
+dz = ele%wake%time_scale * (orbit%vec(5) - ele%wake%sr_trans%z_ref) ! Should be negative
 ele%wake%sr_trans%z_ref = orbit%vec(5)
 
 ! Add to wake
@@ -470,7 +474,7 @@ do i = 1, size(ele%wake%sr_trans%mode)
 
   exp_factor = exp(dz * mode%damp)
 
-  arg = orbit%vec(5) * mode%k 
+  arg = ele%wake%time_scale * (orbit%vec(5) * mode%k)
   c = cos (arg)
   s = sin (arg)
 
@@ -498,9 +502,13 @@ do i = 1, size(ele%wake%sr_trans%mode)
 
   ! Add to wake...
 
-  ff = abs(orbit%charge) * mode%amp * ele%value(l$) / ele%value(p0c$)
+  if (ele%wake%sr_scale_with_ele_length) then
+    ff = ele%wake%amp_scale * abs(orbit%charge) * mode%amp * ele%value(l$) / ele%value(p0c$)
+  else
+    ff = ele%wake%amp_scale * abs(orbit%charge) * mode%amp / ele%value(p0c$)
+  endif
 
-  arg =  mode%phi - orbit%vec(5) * mode%k 
+  arg =  ele%wake%time_scale * (mode%phi - orbit%vec(5) * mode%k)
   c = cos (arg)
   s = sin (arg)
 

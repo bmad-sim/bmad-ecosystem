@@ -350,18 +350,24 @@ case ('REF_TIME');        a_ptr%r => ele%ref_time
 case ('KEY');             a_ptr%i => ele%key
 case ('N_SLAVE');         a_ptr%i => ele%n_slave
 case ('N_LORD');          a_ptr%i => ele%n_lord
-case ('LR_FREQ_SPREAD')
+case ('LR_FREQ_SPREAD', 'LR_SELF_WAKE_ON', 'SR_SCALE_WITH_ELE_LENGTH', 'AMP_SCALE', 'TIME_SCALE')
   if (.not. associated(ele%wake)) then
     if (.not. do_allocation) goto 9100
     call init_wake (ele%wake, 0, 0, 0, 0, .true.)
   endif
-  a_ptr%r => ele%wake%lr_freq_spread
-case ('LR_SELF_WAKE_ON')
-  if (.not. associated(ele%wake)) then
-    if (.not. do_allocation) goto 9100
-    call init_wake (ele%wake, 0, 0, 0, 0, .true.)
-  endif
-  a_ptr%l => ele%wake%lr_self_wake_on
+  select case (a_name)
+  case ('amp_scale')
+    a_ptr%r => ele%wake%amp_scale
+  case ('time_scale')
+    a_ptr%r => ele%wake%time_scale
+  case ('LR_FREQ_SPREAD')
+    a_ptr%r => ele%wake%lr_freq_spread
+  case ('SR_SCALE_WITH_ELE_LENGTH')
+    a_ptr%l => ele%wake%sr_scale_with_ele_length
+  case ('LR_SELF_WAKE_ON')
+    a_ptr%l => ele%wake%lr_self_wake_on
+  end select
+
 case ('SPHERICAL_CURVATURE')
   a_ptr%r => ele%photon%surface%spherical_curvature
 case ('ELLIPTICAL_CURVATURE_X')
