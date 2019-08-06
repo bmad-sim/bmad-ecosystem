@@ -631,6 +631,14 @@ subroutine test_tune_tracker_lock (tracker_locked)
   logical tracker_locked(2)
 end subroutine
 
+function to_str(num, max_signif) result (string)
+  import
+  implicit none
+  real(rp) num
+  integer, optional :: max_signif
+  character(:), allocatable :: string
+end function
+
 subroutine type_this_file(filename)
   implicit none
   character(*) filename
