@@ -34,6 +34,7 @@ type (branch_struct), pointer :: branch
 type (extra_parsing_info_struct), optional :: extra
 type (ptc_parameter_struct) ptc_param
 type (control_struct), pointer :: c
+type (wake_struct), pointer :: wake
 
 real(rp) value(num_ele_attrib$)
 
@@ -260,18 +261,19 @@ if (associated(ele%control))    n_var = size(ele%control%var)
 ! we only write a wake when needed and ix_lr_mode serves as a pointer to a previously written wake.
 
 write_wake = .true.
-if (associated(ele%wake)) then
+wake => ele%wake
+if (associated(wake)) then
   do j = 1, n_wake
-    if (.not. ele%branch%ele(ix_wake(j))%wake == ele%wake) cycle
+    if (.not. ele%branch%ele(ix_wake(j))%wake == wake) cycle
     write_wake = .false.
     ix_lr_mode = -ix_wake(j)        
   enddo
 
   if (write_wake) then
-    if (allocated(ele%wake%sr_long%mode))      ix_sr_long    = size(ele%wake%sr_long%mode)
-    if (allocated(ele%wake%sr_trans%mode))     ix_sr_trans   = size(ele%wake%sr_trans%mode)
-    if (allocated(ele%wake%lr_mode))           ix_lr_mode    = size(ele%wake%lr_mode)
-    if (allocated(ele%wake%lr_spline)) ix_lr_spline = size(ele%wake%lr_spline)
+    if (allocated(wake%sr_long%mode))      ix_sr_long    = size(wake%sr_long%mode)
+    if (allocated(wake%sr_trans%mode))     ix_sr_trans   = size(wake%sr_trans%mode)
+    if (allocated(wake%lr_mode))           ix_lr_mode    = size(wake%lr_mode)
+    if (allocated(wake%lr_spline)) ix_lr_spline = size(wake%lr_spline)
     n_wake = n_wake + 1
     if (n_wake > size(ix_wake)) call re_allocate(ix_wake, 2*size(ix_wake))
     ix_wake(n_wake) = ele%ix_ele
@@ -538,17 +540,18 @@ do i = 0, 3
   enddo
 enddo
 
-if (associated(ele%wake) .and. write_wake) then
-  write (d_unit) ele%wake%sr_file
-  write (d_unit) ele%wake%sr_long%mode
-  write (d_unit) ele%wake%sr_trans%mode
-  write (d_unit) ele%wake%lr_file
-  write (d_unit) ele%wake%lr_mode
-  do i = 1, size(ele%wake%lr_spline)
-    write (d_unit) ele%wake%lr_spline(i)%t_max
-    write (d_unit) ele%wake%lr_spline(i)%polarization_angle
+if (associated(wake) .and. write_wake) then
+  write (d_unit) wake%sr_file
+  write (d_unit) wake%sr_long%mode
+  write (d_unit) wake%sr_trans%mode
+  write (d_unit) wake%lr_file
+  write (d_unit) wake%lr_mode
+  do i = 1, size(wake%lr_spline)
+    write (d_unit) wake%lr_spline(i)%t_max
+    write (d_unit) wake%lr_spline(i)%polarization_angle
   enddo
-  write (d_unit) ele%wake%z_sr_max, ele%wake%lr_self_wake_on
+  write (d_unit) wake%z_sr_max, wake%lr_self_wake_on, wake%lr_freq_spread, &
+                        wake%amp_scale, wake%time_scale, wake%sr_scale_with_ele_length
   
 endif
 

@@ -43,7 +43,7 @@ type (extra_parsing_info_struct) :: extra
 type (ptc_parameter_struct) ptc_param
 type (control_struct), pointer :: c
 type (bmad_common_struct) bmad_com_read
-
+type (wake_struct), pointer :: wake
 real(rp) value(num_ele_attrib$)
 
 integer inc_version, d_unit, n_files, file_version, i, j, k, ix, ix_value(num_ele_attrib$)
@@ -738,16 +738,18 @@ if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_lr_mode /= 0 .or. ix_lr_spline
 
   else
     call init_wake (ele%wake, ix_sr_long, ix_sr_trans, ix_lr_mode, ix_lr_spline)
-    read (d_unit, err = 9800) ele%wake%sr_file
-    read (d_unit, err = 9840) ele%wake%sr_long%mode
-    read (d_unit, err = 9850) ele%wake%sr_trans%mode
-    read (d_unit, err = 9820) ele%wake%lr_file
-    read (d_unit, err = 9830) ele%wake%lr_mode
-    do i = 1, size(ele%wake%lr_spline)
-      read (d_unit, err = 9830) ele%wake%lr_spline(i)%t_max
-      read (d_unit, err = 9830) ele%wake%lr_spline(i)%polarization_angle
+    wake => ele%wake
+    read (d_unit, err = 9800) wake%sr_file
+    read (d_unit, err = 9840) wake%sr_long%mode
+    read (d_unit, err = 9850) wake%sr_trans%mode
+    read (d_unit, err = 9820) wake%lr_file
+    read (d_unit, err = 9830) wake%lr_mode
+    do i = 1, size(wake%lr_spline)
+      read (d_unit, err = 9830) wake%lr_spline(i)%t_max
+      read (d_unit, err = 9830) wake%lr_spline(i)%polarization_angle
     enddo
-    read (d_unit, err = 9860) ele%wake%z_sr_max, ele%wake%lr_self_wake_on
+    read (d_unit, err = 9860) wake%z_sr_max, wake%lr_self_wake_on, wake%lr_freq_spread, &
+                        wake%amp_scale, wake%time_scale, wake%sr_scale_with_ele_length
   endif
 endif
 
