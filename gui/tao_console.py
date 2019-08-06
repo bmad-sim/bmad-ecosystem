@@ -61,6 +61,7 @@ class tao_console(tk.Frame):
     self._wid.bind('<Up>', self._u_handler)
     self._wid.bind('<Down>', self._d_handler)
     self.pipe.printed.trace('w', self.warning_callback)
+    self.show_output(self.pipe.exe_lib_warnings, mode=self.pipe.exe_lib_warning_type, noprompt=True)
     self.show_output(self.pipe.startup_message)
 
   def set_command(self, new_command):
@@ -79,12 +80,13 @@ class tao_console(tk.Frame):
     self._wid.mark_set('insert',
         self.cstart + '+' + str(self.cpos) + 'c')
 
-  def show_output(self, output, mode='normal'):
+  def show_output(self, output, mode='normal', noprompt=False):
     '''
     Prints output to the console and starts a new
     line for the command prompt.  Also clears
     self.command
     mode can be any of 'normal', 'error', or 'fatal'
+    With noprompt set True, a new Tao> prompt will not be drawn
     '''
     # Print output
     #initial_output = output
@@ -97,7 +99,8 @@ class tao_console(tk.Frame):
     while output.find('\r\n') != -1:
       output = output.replace('\r\n', '\n')
     self._wid.insert('end', '\n' + output, mode)
-    self._wid.insert('end', '\nTao>', "normal")
+    if not noprompt:
+      self._wid.insert('end', '\nTao>', "normal")
     # Clear self.command
     self._wid.mark_set('insert', 'end')
     self.command = ""
