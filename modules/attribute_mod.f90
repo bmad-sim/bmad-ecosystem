@@ -660,14 +660,14 @@ do i = 1, n_key$
   call init_attribute_name1 (i, field_overlaps$,      'FIELD_OVERLAPS')
   call init_attribute_name1 (i, l_hard_edge$,         'L_HARD_EDGE', dependent$)
 
-  call init_attribute_name1 (i, amp_scale$,                'AMP_SCALE')
-  call init_attribute_name1 (i, time_scale$,               'TIME_SCALE')
-  call init_attribute_name1 (i, sr_scale_with_ele_length$, 'SR_SCALE_WITH_ELE_LENGTH')
-  call init_attribute_name1 (i, sr_wake_file$,             'SR_WAKE_FILE')
-  call init_attribute_name1 (i, lr_wake_file$,             'LR_WAKE_FILE')
-  call init_attribute_name1 (i, lr_freq_spread$,           'LR_FREQ_SPREAD')
-  call init_attribute_name1 (i, lr_self_wake_on$,          'LR_SELF_WAKE_ON')
-  call init_attribute_name1 (i, lr_wake_spline$,           'LR_WAKE_SPLINE')
+  call init_attribute_name1 (i, sr_wake_scale_with_length$, 'SR_WAKE_SCALE_WITH_LENGTH')
+  call init_attribute_name1 (i, wake_amp_scale$,            'WAKE_AMP_SCALE')
+  call init_attribute_name1 (i, wake_time_scale$,           'WAKE_TIME_SCALE')
+  call init_attribute_name1 (i, sr_wake_file$,              'SR_WAKE_FILE')
+  call init_attribute_name1 (i, lr_wake_file$,              'LR_WAKE_FILE')
+  call init_attribute_name1 (i, lr_freq_spread$,            'LR_FREQ_SPREAD')
+  call init_attribute_name1 (i, lr_self_wake_on$,           'LR_SELF_WAKE_ON')
+  call init_attribute_name1 (i, lr_wake_spline$,            'LR_WAKE_SPLINE')
 
   if (i == pipe$)         cycle
   if (i == custom$)       cycle
@@ -1731,7 +1731,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', '
       'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'SPIN_FRINGE_ON', 'REF_TIME_OFFSET', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'DIFFRACTION_LIMITED', &
       'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'MATCH_END_INPUT', 'MATCH_END_ORBIT_INPUT', 'GEO', &
-      'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS')
+      'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'SR_WAKE_SCALE_WITH_LENGTH')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', 'SAD_N_DIV_MAX', &

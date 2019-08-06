@@ -350,20 +350,20 @@ case ('REF_TIME');        a_ptr%r => ele%ref_time
 case ('KEY');             a_ptr%i => ele%key
 case ('N_SLAVE');         a_ptr%i => ele%n_slave
 case ('N_LORD');          a_ptr%i => ele%n_lord
-case ('LR_FREQ_SPREAD', 'LR_SELF_WAKE_ON', 'SR_SCALE_WITH_ELE_LENGTH', 'AMP_SCALE', 'TIME_SCALE')
+case ('LR_FREQ_SPREAD', 'LR_SELF_WAKE_ON', 'SR_WAKE_SCALE_WITH_LENGTH', 'WAKE_AMP_SCALE', 'WAKE_TIME_SCALE')
   if (.not. associated(ele%wake)) then
     if (.not. do_allocation) goto 9100
     call init_wake (ele%wake, 0, 0, 0, 0, .true.)
   endif
   select case (a_name)
-  case ('amp_scale')
-    a_ptr%r => ele%wake%amp_scale
-  case ('time_scale')
-    a_ptr%r => ele%wake%time_scale
+  case ('WAKE_AMP_SCALE')
+    a_ptr%r => ele%wake%wake_amp_scale
+  case ('WAKE_TIME_SCALE')
+    a_ptr%r => ele%wake%wake_time_scale
   case ('LR_FREQ_SPREAD')
     a_ptr%r => ele%wake%lr_freq_spread
-  case ('SR_SCALE_WITH_ELE_LENGTH')
-    a_ptr%l => ele%wake%sr_scale_with_ele_length
+  case ('SR_WAKE_SCALE_WITH_LENGTH')
+    a_ptr%l => ele%wake%sr_wake_scale_with_length
   case ('LR_SELF_WAKE_ON')
     a_ptr%l => ele%wake%lr_self_wake_on
   end select

@@ -551,7 +551,7 @@ if (associated(wake) .and. write_wake) then
     write (d_unit) wake%lr_spline(i)%polarization_angle
   enddo
   write (d_unit) wake%z_sr_max, wake%lr_self_wake_on, wake%lr_freq_spread, &
-                        wake%amp_scale, wake%time_scale, wake%sr_scale_with_ele_length
+                        wake%wake_amp_scale, wake%wake_time_scale, wake%sr_wake_scale_with_length
   
 endif
 
