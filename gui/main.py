@@ -499,7 +499,8 @@ class tao_root_window(tk.Tk):
       child.destroy()
 
     if self.pipe.mode == 'pexpect':
-      self.pipe.cmd_in("quit")
+      # Hack to prevent pexpect from hanging:
+      self.pipe.cmd_in(" spawn echo Tao\\>; quit", no_warn=True)
     #self.menubar_init()
     init_frame = tk.Frame(self)
     init_frame.pack()
