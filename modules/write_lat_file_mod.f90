@@ -995,6 +995,7 @@ do ib = 0, ubound(lat%branch, 1)
         unit_found = .false.
         unit = 0
         unit(j:j) = 1
+
         do k = 1, size(ele%taylor(j)%term)
           tm = ele%taylor(j)%term(k)
           write_term = .false.
@@ -1018,10 +1019,11 @@ do ib = 0, ubound(lat%branch, 1)
               write (line, '(2a, i0, 3a, 6(1x, i0), a)') trim(line), ', {', j, ': ', trim(re_str(tm%coef)), ',', tm%expn, '}'
             endif
           endif
+
+          call write_lat_line (line, iu, .false.)
         enddo
 
         if (ele%key == taylor$ .and. .not. unit_found) write (line, '(2a, i0, a, 6i2, a)') trim(line), ', {', j, ': 0,', tm%expn, '}'
-        call write_lat_line (line, iu, .false.)  
       enddo
 
       do j1 = 0, 3
