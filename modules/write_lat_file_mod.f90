@@ -1021,6 +1021,7 @@ do ib = 0, ubound(lat%branch, 1)
         enddo
 
         if (ele%key == taylor$ .and. .not. unit_found) write (line, '(2a, i0, a, 6i2, a)') trim(line), ', {', j, ': 0,', tm%expn, '}'
+        call write_lat_line (line, iu, .false.)  
       enddo
 
       do j1 = 0, 3
