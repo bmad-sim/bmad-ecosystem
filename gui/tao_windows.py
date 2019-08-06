@@ -2161,8 +2161,7 @@ class tao_lattice_window(tk.Toplevel):
         row=2, column=2, sticky='E')
     self.ele_list = tk.StringVar()
     self.ele_list_opt = tk.StringVar()
-    ele_list_opts = ["Default (first 200)", "All",
-        "Tracking elements", "Custom"]
+    ele_list_opts = ["All", "Tracking elements", "Custom"]
     self.ele_list_chooser = tk.OptionMenu(self.top_frame, self.ele_list_opt,
         *ele_list_opts)
     self.ele_list_opt.set(ele_list_opts[0])
@@ -2633,13 +2632,20 @@ class tao_new_data_window(tk.Toplevel):
       ''' shorcut for the following commonly used construct '''
       return tk_tao_parameter(str_to_tao_param(x), self.d2_frame, self.pipe)
 
+    # Clone existing d2
+    existing_d2_arrays = self.pipe.cmd_in("python data_d2_array 1")
+    existing_d2_arrays = ['None'] + existing_d2_arrays.splitlines()
+    self.clone_d2 = tk.StringVar()
+    self.clone_d2.set('None')
+
     # Widgets
     self.d2_param_list = [my_ttp("name;STR;T;"),
         tk.OptionMenu(self.d2_frame, self.uni, *uni_list),
         my_ttp("data_source;ENUM;T;"),
         my_ttp("data^merit_type;ENUM;T;"),
         my_ttp("weight;REAL;T;"),
-        my_ttp("good_user;LOGIC;T;T")]
+        my_ttp("good_user;LOGIC;T;T"),
+        tk.OptionMenu(self.d2_frame, self.clone_d2, *existing_d2_arrays)]
 
     # Labels
     self.d2_label_list = [tk.Label(self.d2_frame, text="d2_data Name:"),
@@ -2647,19 +2653,19 @@ class tao_new_data_window(tk.Toplevel):
         tk.Label(self.d2_frame, text="Default data source:"),
         tk.Label(self.d2_frame, text="Default merit type:"),
         tk.Label(self.d2_frame, text="Default weight:"),
-        tk.Label(self.d2_frame, text="Default good_user:")]
+        tk.Label(self.d2_frame, text="Default good_user:"),
+        tk.Label(self.d2_frame, text="Clone existing d2_array:")]
 
     # Grid widgets and labels
     for i in range(len(self.d2_param_list)):
       self.d2_label_list[i].grid(row=i+1, column=0, sticky='W')
-      if i == 1:
+      if i in [1, 6]: #non tk_tao_parameters
         self.d2_param_list[i].grid(row=i+1, column=1, sticky='EW')
       else:
         self.d2_param_list[i].tk_wid.grid(row=i+1, column=1, sticky='EW')
 
     # Warning labels
     self.name_warning_1 = tk.Label(self.d2_frame, text="Cannot be empty")
-    self.name_warning_2 = tk.Label(self.d2_frame, text="This d2_array name is already in use")
     # Next button
     self.next_b = tk.Button(self.d2_frame, text="Next", command=self.load_d1_frame)
     self.next_b.grid(row=i+2, column=1, sticky='W')
@@ -2676,44 +2682,51 @@ class tao_new_data_window(tk.Toplevel):
     Ungrids self.d2_frame, grids self.d1_frame, and sets up a notebook
     for the d1_frames if necessary.
     '''
-    # Check if d2_name is already in use
+    clone_dict = {} # keys=d2_array names, values=lists of d1s
+    # Check if d2_name is nonempty
     name = self.d2_param_list[0].tk_var.get().strip()
     if name == "":
-      self.name_warning_2.grid_forget()
       self.name_warning_1.grid(row=1, column=2, sticky='W')
       return
-    elif name in self.pipe.cmd_in('python data_d2_array 1').splitlines():
-      # Ask if user wants to load existing data
-      if self.name != name:
-        ans = messagebox.askyesno('Warning', name + " already exists as a d2 data array.  Would you like to edit this existing array?")
-        if ans:
-          # Will need to read in data for existing d2
-          self.name = name
-          self.name_warning_1.grid_forget()
-          self.name_warning_2.grid_forget()
-          existing_d1_arrays = self.pipe.cmd_in('python data_d1_array ' + name).splitlines()
-          # Progress window
-          self.pw = tao_progress_window(self.root, self, len(existing_d1_arrays))
-          self.pw.title("Loading...")
-          tk.Label(self.pw, text='Loading existing d1_arrays').grid(row=0, column=0, columnspan=2, sticky='EW')
-          # Remake d1_frames and notebook if necessary
-          if self.nb_exists:
-            for frame in self.d1_frame_list:
-              frame.destroy()
-            self.d1_frame_list = []
-            self.notebook.destroy()
-            self.new_tab_frame.destroy()
-            self.back_b.destroy()
-            self.create_b.destroy()
-            self.nb_exists = False
-        else:
-          self.name_warning_2.grid(row=1, column=2, sticky='W')
-          return
+
+    # Conditions
+    c1 = (name in self.pipe.cmd_in('python data_d2_array 1').splitlines()) #name in use
+    c2 = (self.clone_d2.get() != 'None') #clone has been specified
+    c3 = (self.name != name) #name has changed
+    c4 = False #discard existing work
+    ans_var = tk.StringVar()
+    # Ask if user wants to keep existing data
+    if c3 and self.name:
+      self.name = name
+      tao_message_box(self.root, self, ans_var, title='Warning', message='Would you like to keep or discard the d1_arrays you defined for ' + self.name + '?', choices=['Keep', 'Discard'])
+      if ans_var.get() == 'Keep':
+        c4 = False
+      elif ans_var.get() == 'Discard':
+        c4 = True
+      else:
+        return
+    # Ask if user wants to load existing data
+    if c1:
+      ans = messagebox.askyesno('Warning', name + " already exists as a d2 data array.  Would you like to clone its existing d1_arrays?", parent=self)
+      if ans:
+        # Will need to read in data for existing d2
+        clone_dict[name] = self.pipe.cmd_in('python data_d1_array ' + name).splitlines()
+    # Clone existing data
+    if c2 and (self.clone_d2.get() != name):
+      clone_dict[self.clone_d2.get()] = self.pipe.cmd_in('python data_d1_array ' + self.clone_d2.get()).splitlines()
+    # Remake d1_frames and notebook if necessary
+    if c4 and self.nb_exists:
+      for frame in self.d1_frame_list:
+        frame.destroy()
+      self.d1_frame_list = []
+      self.notebook.destroy()
+      self.new_tab_frame.destroy()
+      self.back_b.destroy()
+      self.create_b.destroy()
+      self.nb_exists = False
     else:
       self.name = name
-      existing_d1_arrays = []
       self.name_warning_1.grid_forget()
-      self.name_warning_2.grid_forget()
 
     # Possibly create self.notebook
     if not self.nb_exists:
@@ -2721,20 +2734,6 @@ class tao_new_data_window(tk.Toplevel):
       self.notebook.pack(side='top', fill='both', expand=1)
       self.nb_exists = True
 
-      # Set up d1 tabs
-      if existing_d1_arrays == []:
-        self.d1_frame_list.append(new_d1_frame(self))
-        self.notebook.insert('end', self.d1_frame_list[0])
-        self.notebook.tab(0, text='New d1_array')
-      else:
-        i = 0
-        for line in existing_d1_arrays:
-          d1 = line.split(';')[3]
-          self.d1_frame_list.append(new_d1_frame(self, name = d1))
-          self.notebook.insert('end', self.d1_frame_list[i])
-          self.notebook.tab(i, text=d1)
-          i = i+1
-        self.pw.destroy()
       self.d1_index = 0 #marks current tab index
 
       # New tab button
@@ -2754,6 +2753,31 @@ class tao_new_data_window(tk.Toplevel):
     self.d2_frame.grid_forget()
     self.d1_frame.pack(fill='both', expand=1)
     self.title("New data: " + self.d2_param_list[0].tk_var.get())
+
+    # Clone the requested d2 array(s)
+    if clone_dict != {}:
+      # Progress window
+      num_bars = 0
+      for k in clone_dict.keys():
+        num_bars += len(clone_dict[k])
+      self.pw = tao_progress_window(self.root, self, num_bars)
+      self.pw.title("Loading...")
+      tk.Label(self.pw, text='Loading existing d1_arrays').grid(row=0, column=0, columnspan=2, sticky='EW')
+      # Find correct universe number
+      if self.uni.get() == "All":
+        u = "1"
+      else:
+        u = self.uni.get()
+      if name in clone_dict.keys():
+        for d1 in clone_dict[name]:
+          self.add_d1_frame(d1, u+'@'+name)
+      if (self.clone_d2.get() in clone_dict.keys()) and (name != self.clone_d2.get()):
+        for d1 in clone_dict[self.clone_d2.get()]:
+          self.add_d1_frame(d1, u+'@'+self.clone_d2.get())
+      self.notebook.select(0)
+      self.pw.destroy()
+
+
     # Copy d2 defaults into d1_arrays
     for i in range(len(self.d1_frame_list)):
       val = self.d2_param_list[2].tk_var.get()
@@ -2769,7 +2793,7 @@ class tao_new_data_window(tk.Toplevel):
     the necessary commands to create the data in tao, then closes
     the create data window
     '''
-    # Input validation (TODO)
+    # Input validation
     messages = []
     for d1_frame in self.d1_frame_list:
       # Check names
@@ -2802,15 +2826,20 @@ class tao_new_data_window(tk.Toplevel):
       uni_list = list(range(1, uni_max+1))
     else:
       uni_list = [int(self.uni.get())]
+    d1_count = 0 # used to make the corrent number of progress bars
     for u in uni_list:
       cmd_str = 'python data_d2_create ' + str(u) + '@' + self.name
       cmd_str += ' ' + str(len(self.d1_frame_list)) + ' '
       for d1_frame in self.d1_frame_list:
+        d1_count += 1
         # min/max indices for each d1_array
         cmd_str += str(d1_frame.ix_min) + ' '
         cmd_str += str(d1_frame.ix_max) + ' '
       # Create the d2/d1_arrays
       self.pipe.cmd_in(cmd_str)
+    # Progress bars
+    self.pw = tao_progress_window(self.root, self, d1_count)
+    for u in uni_list:
       # Set parameters at the d2 level
       #set_str = 'set data ' + str(u) + '@' + self.name + '|'
       #tao_set(self.d2_param_list[2:5], set_str, self.pipe)
@@ -2818,6 +2847,10 @@ class tao_new_data_window(tk.Toplevel):
       # Set the names last for convenience
       i = 1 #temp names set by tao
       for d1_frame in self.d1_frame_list:
+        self.pw.label_vars[self.pw.ix].set(
+            'Creating' + str(u) + '@' + self.name + '.' + d1_frame.name)
+        self.pw.set_max(self.pw.ix, d1_frame.ix_max-d1_frame.ix_min+1)
+        #self.update_idletasks()
         #set_str = 'set data ' + str(u) + '@' + self.name + '.' + str(i) + '|'
         #tao_set(d1_frame.d1_array_wids[1:5], set_str, self.pipe)
         # set individual data parameters
@@ -2826,6 +2859,8 @@ class tao_new_data_window(tk.Toplevel):
         # set name now
         #tao_set(d1_frame.d1_array_wids[0:1], set_str, self.pipe)
         for j in range(d1_frame.ix_min, d1_frame.ix_max+1):
+          self.pw.set_val(self.pw.ix, j-d1_frame.ix_min)
+          #self.update_idletasks()
           cmd_str = 'python datum_create '
           cmd_str += str(u) + '@' + self.name + '.' + str(i) + '[' + str(j) + ']'
           for p in datum_params:
@@ -2840,6 +2875,7 @@ class tao_new_data_window(tk.Toplevel):
               cmd_str += '^'
           self.pipe.cmd_in(cmd_str)
         i = i+1
+        self.pw.ix += 1
       # set data|exists = T
       #self.pipe.cmd_in('set data ' + str(u) + '@' + self.name + '|exists = T')
     # Close the window
@@ -2865,14 +2901,29 @@ class tao_new_data_window(tk.Toplevel):
           self.d1_index = i
           break
 
+  def add_d1_frame(self, d1_name, d2_name, event=None):
+    '''
+    Creates a new d1_frame for d1_name and reads existing data in from Tao if present
+    Takes a line of output from python data_d1_array for d1_name
+    d2_name should be "uni@d2_name"
+    '''
+    d1 = d1_name.split(';')[3]
+    self.d1_frame_list.append(
+        new_d1_frame(self, name=d1, full_name=d2_name + '.' + d1))
+    ix = len(self.d1_frame_list) - 1
+    self.notebook.insert(ix, self.d1_frame_list[-1])
+    self.notebook.tab(ix, text=d1)
+
 
 class new_d1_frame(tk.Frame):
   '''
   Provides a frame for inputting properties of a d1_data array.
   To load an existing d1_array, pass the d1_array name as name
   (e.g. x,y, NOT orbit.x, orbit.y)
+  Also pass the full name that should be used for data lookup
+  (e.g. 1@orbit.x)
   '''
-  def __init__(self, d2_array, name=""):
+  def __init__(self, d2_array, name="", full_name=""):
     tk.Frame.__init__(self, d2_array.notebook)
     self.d2_array = d2_array
     self.pipe = self.d2_array.pipe
@@ -2967,7 +3018,7 @@ class new_d1_frame(tk.Frame):
     self.data_chooser.grid(row=i+4, column=1, sticky='EW')
     # Set ix_min and ix_max for existing d1_arrays
     if self.name != "New d1_array":
-      ix_data = self.pipe.cmd_in('python data_d1_array ' + self.d2_array.name)
+      ix_data = self.pipe.cmd_in('python data_d1_array ' + full_name)
       ix_data = ix_data.splitlines()
       for line in ix_data:
         if line.split(';')[3] == self.name:
@@ -2985,13 +3036,13 @@ class new_d1_frame(tk.Frame):
       self.d2_array.pw.label_vars[self.d2_array.pw.ix].set(
           'Loading ' + self.d2_array.name + '.' + self.name + '...')
       self.d2_array.pw.set_max(self.d2_array.pw.ix, self.ix_max-self.ix_min+1)
-      self.d2_array.update_idletasks()
+      #self.d2_array.update_idletasks()
       for i in range(self.ix_min, self.ix_max+1):
         self.d2_array.pw.set_val(self.d2_array.pw.ix, i-self.ix_min)
-        self.d2_array.update_idletasks()
+        #self.d2_array.update_idletasks()
         self.data_dict[i] = {}
         existing_data = self.pipe.cmd_in(
-            'python data ' + self.d2_array.name + '.' + self.name + '[' + str(i) + ']')
+            'python data ' + full_name + '[' + str(i) + ']')
         existing_data = existing_data.splitlines()
         for p in data_dict_params:
           # Find correct line
@@ -3492,14 +3543,16 @@ class new_v1_frame(tk.Frame):
     # Focus the v1 name widget
     self.v1_array_wids[0].tk_wid.focus_set()
 
-  def delete(self, event=None):
+  def delete(self, ask=True, event=None):
     '''
     Deletes this v1_array frame
+    Call with ask = False to skip confirmation
     '''
     # Ask for confirmation
-    ans = messagebox.askokcancel("Delete " + self.name, "Delete this v1_array and its associated data?", parent=self.parent)
-    if not ans:
-      return
+    if ask:
+      ans = messagebox.askokcancel("Delete " + self.name, "Delete this v1_array and its associated data?", parent=self.parent)
+      if not ans:
+        return
 
     # Remove from parent
     ix = self.parent.v1_index
@@ -3940,6 +3993,7 @@ class tao_progress_window(tk.Toplevel):
   '''
   def __init__(self, root, parent, num_bars, *args, **kwargs):
     tk.Toplevel.__init__(self, parent, *args, **kwargs)
+    self.parent = parent
     self._labels = [] # not intended to be externally manipulated
     self.label_vars = []
     self._bars = []
@@ -3955,13 +4009,60 @@ class tao_progress_window(tk.Toplevel):
     Sets the max value for self.bars[ix] to val
     '''
     self._bars[ix].configure(maximum=val)
-  def set_val(self, ix, val):
+  def set_val(self, ix, val, update=True):
     '''
     Sets to value of self.bars[ix] to val
     Note that self.set_max should be used first to set the progress bar max
+    Use update=False to prevent running self.parent.update_idletaks()
+    (usually necessary to make progress bar reflect actual progress)
     '''
     self._bars[ix].configure(value=val)
+    if update:
+      self.parent.update_idletasks()
 
+class tao_message_box(tk.Toplevel):
+  '''
+  Custom messageboxes for when tkinter.messagebox does not suffice
+  root: the Tk root window
+  parent: the parent window for this message box
+  tk_var: the tk.StringVar to write the results to
+  title: title for this window
+  message: the text to be displayed
+  choices: list of strings for the user to pick from
+  orient: grid the buttons horizontally or vertically (may be 'horizontal' or 'vertical')
+  Other arguments are passed to the tk.Toplevel.__init__ method
+  '''
+  def __init__(self, root, parent, tk_var, title='', message='', choices=[],
+      orient='horizontal', *args, **kwargs):
+    tk.Toplevel.__init__(self, parent, *args, **kwargs)
+    self.transient(parent)
+    if title:
+      self.title(title)
+    self.tk_var = tk_var
+    # grid buttons first to get appropriate window width
+    i = 0
+    for c in choices:
+      if orient == 'horizontal':
+        tk.Button(self, text=c, command=self.button_callback(c)).grid(
+            row=1, column=i, sticky='EW', padx=5)
+      elif orient == 'vertical':
+        tk.Button(self, text=c, command=self.button_callback(c)).grid(
+            row=i+1, column=0, sticky='EW', padx=5)
+      i = i+1
+    self.update_idletasks()
+    tk.Label(self, text=message, wraplength=self.winfo_width()).grid(row=0, column=0, columnspan=i)
+    self.protocol("WM_DELETE_WINDOW", self.cancel)
+    self.wait_window(self)
+
+  def button_callback(self, choice):
+    return lambda: self.button_cmd(choice)
+
+  def button_cmd(self, choice):
+    self.tk_var.set(choice)
+    self.destroy()
+
+  def cancel(self, *args):
+    self.tk_var.set("")
 
 
 
