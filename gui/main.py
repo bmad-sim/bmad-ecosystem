@@ -146,12 +146,8 @@ class tao_root_window(tk.Tk):
   def menubar_init(self):
     self.menubar = tk.Menu(self)
 
-    file_menu = tk.Menu(self.menubar)
-    file_menu.add_command(label = "New Data...",
-        command = self.new_data_cmd, accelerator = 'Ctrl+N')
-    file_menu.add_command(label = "New Variables...",
-        command = self.new_var_cmd, accelerator = 'Alt+N')
-    file_menu.add_command(label = 'Write...', command = self.write_cmd)
+    file_menu = tk.Menu(self.menubar, tearoff=0)
+    #file_menu.add_command(label = 'Write...', command = self.write_cmd)
     file_menu.add_command(label = 'Reinit...',
         command = self.reinit_cmd,accelerator = 'Alt+Q')
     file_menu.add_separator()
@@ -159,25 +155,38 @@ class tao_root_window(tk.Tk):
         accelerator = 'Ctrl+Q')
     self.menubar.add_cascade(label = 'File', menu = file_menu)
 
-    window_menu = tk.Menu(self.menubar)
-    window_menu.add_command(label = 'Optimizer...',
-        command = self.optimizer_cmd)
-    window_menu.add_command(label = 'Plot Templates...',
-        command = self.plot_template_cmd, accelerator = 'Ctrl+T')
-    window_menu.add_command(label = 'Active Plots...',
-        command = self.plot_region_cmd, accelerator = 'Ctrl+R')
-    window_menu.add_command(label = 'Wave...', command = self.wave_cmd)
-    window_menu.add_command(label = 'Variables...',
-        command = self.view_vars_cmd, accelerator = 'Alt+V')
-    window_menu.add_command(label = 'Global Variables...',
-        command = self.set_global_vars_cmd, accelerator = 'Ctrl+G')
-    window_menu.add_command(label = 'Data...',
+    create_menu = tk.Menu(self.menubar, tearoff=0)
+    create_menu.add_command(label = "New Data...",
+        command = self.new_data_cmd, accelerator = 'Ctrl+N')
+    create_menu.add_command(label = "New Variables...",
+        command = self.new_var_cmd, accelerator = 'Alt+N')
+    self.menubar.add_cascade(label = 'Create', menu = create_menu)
+
+    view_menu = tk.Menu(self.menubar, tearoff=0)
+    view_menu.add_command(label = 'Data...',
         command = self.view_data_cmd, accelerator = 'Ctrl+D')
-    window_menu.add_command(label = 'Elements...',
+    view_menu.add_command(label = 'Variables...',
+        command = self.view_vars_cmd, accelerator = 'Alt+V')
+    view_menu.add_command(label = 'Global Variables...',
+        command = self.set_global_vars_cmd, accelerator = 'Ctrl+G')
+    view_menu.add_command(label = 'Elements...',
         command = self.view_ele_cmd, accelerator = 'Ctrl+E')
-    window_menu.add_command(label = 'Lattice...',
+    view_menu.add_command(label = 'Lattice...',
         command = self.view_lattice_cmd, accelerator = 'Ctrl+L')
-    self.menubar.add_cascade(label = 'Window', menu = window_menu)
+    self.menubar.add_cascade(label = 'View', menu = view_menu)
+
+    plot_menu = tk.Menu(self.menubar, tearoff=0)
+    plot_menu.add_command(label = 'Plot a Template...',
+        command = self.plot_template_cmd, accelerator = 'Ctrl+T')
+    plot_menu.add_command(label = 'Edit Plots...',
+        command = self.plot_region_cmd, accelerator = 'Ctrl+R')
+    self.menubar.add_cascade(label = 'Plot', menu = plot_menu)
+
+    #window_menu = tk.Menu(self.menubar)
+    #window_menu.add_command(label = 'Optimizer...',
+    #    command = self.optimizer_cmd)
+    #window_menu.add_command(label = 'Wave...', command = self.wave_cmd)
+    #self.menubar.add_cascade(label = 'Window', menu = window_menu)
 
     self.config(menu=self.menubar)
 
