@@ -614,20 +614,18 @@ case ('data')
 ! Create a d2 data structure along with associated d1 and data arrays.
 !
 ! Command syntax:
-!   python data_d2_create {d2_name} {n_d1_data} {d_data_arrays_min_max}
+!   python data_d2_create {d2_name}^{n_d1_data}^{d_data_arrays_name_min_max}
 ! {d2_name} should be of the form {ix_uni}@{d2_datum_name}
 ! {n_d1_data} is the number of associated d1 data structures.
-! {d_data_arrays_min_max} is an array of pairs of integers. The number of pairs is {n_d1_data}. 
-!   The first number in the n^th pair gives the lower bound of the n^th d1 structure and the 
-!   second number in the n^th pair gives the upper bound of the n^th d1 structure.
-!
-! The d1 structures created will be assigned initial names "1", "2", "3", etc.
+! {d_data_arrays_name_min_max} has the form
+!   {name1}^{lower_bound1}^{upper_bound1}^....^{nameN}^{lower_boundN}^{upper_boundN}
+! where {name} is the data array name and {lower_bound} and {upper_bound} are the bounds of the array.
 !
 ! Example:
-!   python data_d2_create 2@orbit 2 0 45 1 47
-! This example creates a d2 data structure called "orbit" with two d1 structures.
-! The first d1 structure, assigned the name "1", has an associated data array with indexes in the range [0, 45].
-! The second d1 structure, assigned the name "2", has an associated data arrray with indexes in the range [1, 47].
+!   python data_d2_create 2@orbit^2^x^0^45^y^1^47
+! This example creates a d2 data structure called "orbit" with two d1 structures called "x" and "y".
+! The "x" d1 structure has an associated data array with indexes in the range [0, 45].
+! The "y" d1 structure has an associated data arrray with indexes in the range [1, 47].
 !
 ! Use the "set data" command to set a created datum parameters.
 ! Note: When setting multiple data parameters, temporarily toggle s%global%lattice_calc_on to False
@@ -636,39 +634,34 @@ case ('data')
 
 case ('data_d2_create')
 
-  if (ix_line == 0) then
-    call invalid ('No d2 name given')
-    return
-  endif
+  call split_this_line (line, name1, -1, err);  if (err) return
 
-  name = line(1:ix_line)
-
-  call string_trim (line(ix_line+1:), line, ix_line)
-  if (.not. is_integer(line)) then
+  if (.not. is_integer(name1(2))) then
     call invalid ('Number of d1 arrays missing or invalid')
     return
   endif
-  read (line, *) n_d1
-  call string_trim (line(ix_line+1:), line, ix_line)
+  read (name1(2), *) n_d1
 
-  ix_min = 0; ix_max = 0 
   do i = 1, n_d1
-    if (.not. is_integer(line)) exit
-    read (line, *) ix_min(i)
-    call string_trim (line(ix_line+1:), line, ix_line)
-    if (.not. is_integer(line)) exit
-    read (line, *) ix_max(i)
-    call string_trim (line(ix_line+1:), line, ix_line)
+    j = 3 * i
+    if (.not. is_integer(name1(j+1)) .or. .not. is_integer(name1(j+2))) then
+      call invalid('Malformed data parameters: ' // trim(name1(j)) // '^' // trim(name1(j+1)) // '^' // trim(name1(j+2)))
+      return
+    endif
+    name2(i) = name1(j)
+    read (name1(j+1), *) ix_min(i)
+    read (name1(j+2), *) ix_max(i)
   enddo
 
-  if (ix_line /= 0 .or. i /= n_d1+1) then
-    call invalid ('Malformed array of datum min/max for each d1.')
+  if (name1(j+3) /= '') then
+    call invalid ('Extra stuff on line: ' // name1(j+3))
     return
   endif
 
   ! Now create the d2 structure
 
-  a_name = name
+  name = name1(1)
+  a_name = name1(1)
   ix = index(name, '@')
   if (ix == 0) then
     u => s%u(s%com%default_universe)
@@ -740,7 +733,7 @@ case ('data_d2_create')
   do j = 1, n_d1
     d1_ptr => u%d2_data(nn)%d1(j)
     d1_ptr%d2 => u%d2_data(nn)
-    write (d1_ptr%name, '(i0)') j
+    d1_ptr%name = name2(j)
     i1 = i2 + 1
     i2 = i2 + 1 + ix_max(j) - ix_min(j)
     call tao_point_d1_to_data (d1_ptr, u%data(i1:i2), ix_min(j))
@@ -865,6 +858,7 @@ case ('data_d2_array')
 
 case ('datum_create')
 
+  allocate (name_arr(18))
   call split_this_line (line, name_arr, 18, err);         if (err) return
 
   call tao_find_data (err, name_arr(1), d_array = d_array);
@@ -3376,6 +3370,7 @@ case ('var')
 
 case ('var_create')
 
+  allocate(name_arr(12))
   call split_this_line (line, name_arr, 12, err);         if (err) return
 
   call tao_find_var (err, name_arr(1), v_array = v_array);
@@ -4346,7 +4341,7 @@ subroutine split_this_line (line, array, num, err)
 
 character(*) line
 character(len(line)) str
-character(*), allocatable :: array(:)
+character(*) :: array(:)
 
 integer num
 integer i, ix
@@ -4356,10 +4351,14 @@ logical err
 ! calls python_cmd will interpret ";" as a command separator and will thus mangle 
 ! the input_str argument.
 
-allocate(array(num))
 str = line
+err = .true.
 
-do i = 1, num
+do i = 1, 1000
+  if (i > size(array)) then
+    call invalid('LINE SPLITTING ARRAY OVERFLOW.')
+    return
+  endif
   ix = index(str, '^')
   if (ix == 0) then
     array(i) = str
@@ -4369,7 +4368,7 @@ do i = 1, num
   str = str(ix+1:)
 enddo
 
-err = (i /= num)
+err = (num > 0 .and. i /= num)
 if (err) then
   call invalid('NUMBER OF COMPONENTS ON LINE NOT CORRECT.')
 endif
