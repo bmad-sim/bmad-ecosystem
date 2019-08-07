@@ -11,6 +11,7 @@ from matplotlib.widgets import Slider, Button, RadioButtons
 
 
 
+
 class taoplot:
 	def __init__(self,pipe,GraphRegion):
 		'''initializer, takes a tao interface and a graph region'''
@@ -68,12 +69,14 @@ class taoplot:
 				return 'navy'
 			elif x == 'Purple' or x == 'purple':
 				return 'purple'
-			elif x == 'Reddish_Purple' or x == 'reddish_purple':
+			elif x == 'Reddish_Purple' or x == 'reddish_purple' or x == 'Redish_Purple' or x == 'redish_purple':
 				return 'mediumvioletred'
 			elif x == 'Dark_Grey' or x == 'dark_grey':
 				return 'gray'
 			elif x == 'Light_Grey' or x == 'light_grey':
 				return 'lightgray'
+			elif x == 'Transparent' or x == 'transparent':
+				return 'none'
 			else:
 				return x
 
@@ -243,7 +246,6 @@ class taoplot:
 
 
 
-
 		'''''''''Graphing Data'''''''''
 		#obtains information about the number and data of graphs from tao
 
@@ -261,19 +263,28 @@ class taoplot:
 		#dictionary of tao_parameter name string keys to the corresponding tao_parameter object
 
 		gList = []
+		heightsList = []
 		for i in range(rInfoDict['num_graphs'].value):
 			gList.append(rInfoDict[('graph['+str(i+1)+']')].value)
+			heightsList.append(1)
 		#list of string names of graphs
 
+		number_graphs = len(gList) + 1
+		layout_height = .2 #override this to make layout larger or smaller
+		heightsList.append(layout_height)
+		gs = fig.add_gridspec(nrows=number_graphs,ncols=1, height_ratios=heightsList)
+
 		GraphDict = {}
+
+		
 			
 
 		for gNumber in range(len(gList)):
 
 			if gNumber == 0:
-				GraphDict['graph'+str(gNumber+1)]=fig.add_subplot(len(gList)+1,1,gNumber+1)
+				GraphDict['graph'+str(gNumber+1)]=fig.add_subplot(gs[gNumber,0])
 			elif gNumber > 0:
-				GraphDict['graph'+str(gNumber+1)]=fig.add_subplot(len(gList)+1,1,gNumber+1,sharex=GraphDict['graph1'])
+				GraphDict['graph'+str(gNumber+1)]=fig.add_subplot(gs[gNumber,0],sharex=GraphDict['graph1'])
 			#create plots in figure, second line also makes x axes scale together
 
 
@@ -558,8 +569,8 @@ class taoplot:
 			except ValueError:
 				raise ValueError('graph missing, make sure the lattice is properly initialized')
 
-			GraphDict['graph'+str(gNumber+1)].xaxis.set_major_locator(xmajorLocator)
-			GraphDict['graph'+str(gNumber+1)].yaxis.set_major_locator(ymajorLocator)
+			#GraphDict['graph'+str(gNumber+1)].xaxis.set_major_locator(xmajorLocator)
+			#GraphDict['graph'+str(gNumber+1)].yaxis.set_major_locator(ymajorLocator)
 			#find locations for grid lines
 
 			GraphDict['graph'+str(gNumber+1)].grid(gInfoDict['draw_grid'].value,which='major',axis='both')
@@ -580,7 +591,7 @@ class taoplot:
 		#plots lat layouts
 		
 		if LatLayout == True:
-			GraphDict['LatLayout']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
+			GraphDict['LatLayout']=fig.add_subplot(gs[len(gList),0],sharex=GraphDict['graph1'])
 
 			layInfo=pipe.cmd_in('python plot_graph r1.g',no_warn = True).splitlines()
 			#list of plotting parameter strings from tao command python plot_graph
@@ -1257,8 +1268,8 @@ class taoplot:
 
 			xmajorLocator=MultipleLocator((gInfoDict['x.max'].value-gInfoDict['x.min'].value)/gInfoDict['x.major_div'].value)
 			ymajorLocator=MultipleLocator((gInfoDict['y.max'].value-gInfoDict['y.min'].value)/gInfoDict['y.major_div'].value)
-			GraphDict['FloorPlan'].xaxis.set_major_locator(xmajorLocator)
-			GraphDict['FloorPlan'].yaxis.set_major_locator(ymajorLocator)
+			#GraphDict['FloorPlan'].xaxis.set_major_locator(xmajorLocator)
+			#GraphDict['FloorPlan'].yaxis.set_major_locator(ymajorLocator)
 			GraphDict['FloorPlan'].grid(gInfoDict['draw_grid'].value,which='major',axis='both')
 			plt.xlim(gInfoDict['x.min'].value,gInfoDict['x.max'].value)
 			plt.ylim(gInfoDict['y.min'].value,gInfoDict['y.max'].value)
