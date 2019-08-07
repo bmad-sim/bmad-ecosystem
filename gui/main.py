@@ -309,6 +309,14 @@ class tao_root_window(tk.Tk):
       else:
         init_dict[name] = value
     k = 0 #row number counter
+    def toggle_init(*args):
+      '''
+      Enables/disables the init file box if noinit is selected
+      '''
+      if tk_list[7].tk_var.get():
+        tk_list[6].tk_wid.configure(state='disabled')
+      else:
+        tk_list[6].tk_wid.configure(state='normal')
     for param, tao_param in param_dict.items():
       tk_list.append(tk_tao_parameter(tao_param,init_frame))
       #Possibly set value from init file
@@ -319,7 +327,11 @@ class tao_root_window(tk.Tk):
           state = (init_dict[tk_list[k].param.name] == 'T') | \
               (init_dict[tk_list[k].param.name] == 'True')
           tk_list[k].tk_var.set(state)
-      tk.Label(init_frame,text=param).grid(row=k,sticky="E")
+      if param == 'noinit': #gets a special label
+        tk.Label(init_frame,text="Don't use an init file").grid(row=k,sticky="E")
+        tk_list[k].tk_var.trace('w', toggle_init)
+      else:
+        tk.Label(init_frame,text=param).grid(row=k,sticky="E")
       tk_list[k].tk_wid.grid(row=k, column=1, sticky="W")
       k = k+1
     # Choosing whether to use pexpect or ctypes must be handled separately
@@ -388,6 +400,10 @@ class tao_root_window(tk.Tk):
       # set self.lw
       self.lw = lw_var.get()
       self.plot_mode = plot_mode.get()
+      # With noinit, make sure lattice file is chosen
+      if tk_list[7].tk_var.get() and tk_list[8].tk_var.get() in ["", "Browse..."]:
+        messagebox.showwarning("Warning", "A lattice file is required when starting Tao without an init file.")
+        return
       init_args = ""
       for tk_param in tk_list:
         if tk_param.param.type in ['STR','ENUM']:
@@ -416,10 +432,18 @@ class tao_root_window(tk.Tk):
           tao_exe.tk_var.set("")
         self.pipe = tao_interface(mode, init_args, tao_exe.tk_var.get())
       elif chosen_interface.get() == "ctypes":
+        mode = "ctypes"
         if tao_lib.tk_var.get() == "Browse...":
           tao_lib.tk_var.set("")
-        mode = "ctypes"
-        self.pipe = tao_interface(mode, init_args, so_lib=tao_lib.tk_var.get())
+        #Ctypes needs a more sophisticated reinit using reinit tao
+        #Check if Tao is open
+        if 'pipe' in self.__dict__ and self.pipe.mode == 'ctypes':
+          negate_args = ""
+          for p in param_dict.keys():
+            negate_args += '--' + p + ' ' # Needed to turn options off
+          self.pipe.cmd_in('reinit tao ' + negate_args + init_args)
+        else:
+          self.pipe = tao_interface(mode, init_args, so_lib=tao_lib.tk_var.get())
 
       init_frame.destroy()
       self.start_main()
