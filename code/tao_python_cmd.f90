@@ -3308,12 +3308,14 @@ case ('universe')
 
 case ('var')
 
-  call tao_find_var (err, line, v_array = v_array)
+  call tao_find_var (err, line(:ix_line), v_array = v_array)
 
   if (.not. allocated(v_array) .or. size(v_array) /= 1) then
     call invalid ('Not a valid variable name')
     return
   endif
+
+  call string_trim(line(ix_line+1:), line, ix_line)
 
   v_ptr => v_array(1)%v
 
@@ -3361,7 +3363,7 @@ case ('var')
                                                        v_ptr%slave(i)%ix_branch, ';', v_ptr%slave(i)%ix_ele
     enddo
 
-  case ('default')
+  case default
     call invalid ('BAD SWITCH: ' // line)
     return
   end select

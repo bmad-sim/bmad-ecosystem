@@ -95,8 +95,8 @@ character(16), parameter :: logic_components(9) = [ &
              'good_plot ', 'good_base ', 'useit_opt ', 'useit_plot']
 character(16), parameter :: integer_components(6) = [character(16):: &
              'ix_ele', 'ix_ele_start', 'ix_ele_ref', 'ix_d1', 'ix_uni', 'eval_point']
-character(16), parameter :: string_components(7) = [character(16) :: &
-              'merit_type', 'ele_name', 'ele_start_name', 'ele_ref_name', 'name', 'data_type', 'data_source']
+character(16), parameter :: string_components(6) = [character(16) :: &
+              'merit_type', 'ele_name', 'ele_start_name', 'ele_ref_name', 'data_type', 'data_source']
 
 integer, optional :: ix_uni
 integer :: data_num, ios, n_found
