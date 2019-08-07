@@ -21,14 +21,16 @@ open (F_IN, $file) || die ("Cannot open File: $file\n");
 
 open (F_OUT, ">basic_tao.html") || die ("Cannot open basic_tao.html file\n");
 
-%mon2num = qw(
+%month2num = qw(
     January 01  February 02  March 03  April 04  May 05  June 06
     July 07  August 08  September 09  October 10 November 11 December 12
 );
 
 $date =~ /(.+) (.+), (.+) */;
+$day = $2;
+if ($day < 10) { $day = "0$day"; }    # Two digit day
 
-$rev = "$3-$mon2num{$1}-$2";
+$rev = "$3-$month2num{$1}-$day";
 print "Manual: tao-manual-$rev\n";
 
 while (<F_IN>) {
