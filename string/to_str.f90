@@ -34,24 +34,21 @@ if (num == 0) then
 endif
 
 pl = floor(log10(abs(num)))
-
-!
-
-if (n_signif < pl + 1) then
-
+if (abs(pl) < 10) then
+  fmt = '(2a, i2.2)'
+else
+  fmt = '(2a, i0)'
 endif
 
 !
 
 if (pl > 5 .or. n_signif < pl + 1) then
-  fmt = '(2a, i0)'
   write (string, fmt) trim(rchomp(num/10.0_rp**pl, 0, max_signif)), 'E+', pl
 
 elseif (pl > -3) then
   string = rchomp(num, pl, max_signif)
 
 else
-  fmt = '(2a, i0)'
   write (string, fmt) trim(rchomp(num*10.0_rp**(-pl), 0, max_signif)), 'E', pl
 endif
 
