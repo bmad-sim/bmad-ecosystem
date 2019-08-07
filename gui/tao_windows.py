@@ -2806,6 +2806,34 @@ class tao_new_data_window(tk.Toplevel):
         messages.append("Please check the end index for " + d1_frame.name)
       if d1_frame.d1_array_wids[2].tk_var.get() == "":
         messages.append("Please choose a data type for " + d1_frame.name)
+      # Check for semicolons in any fields
+      semi_message = "Semicolons not allowed in any input field"
+      caret_message = "Carets not allowed in any input field"
+      broken = False #Used to break out of the below for loops
+      # Check for semicolons/carets
+      for ttp in d1_frame.d1_array_wids:
+        if str(ttp.tk_var.get()).find(';') != -1:
+          messages.append(semi_message)
+          broken = True
+          break
+        if str(ttp.tk_var.get()).find('^') != -1:
+          messages.append(caret_message)
+          broken = True
+          break
+      for data_dict in d1_frame.data_dict.values():
+        if broken:
+          break
+        for d in data_dict.values():
+          if str(d).find(';') != -1:
+            messages.append(semi_message)
+            broken = True
+            break
+          if str(d).find('^') != -1:
+            messages.append(caret_message)
+            broken = True
+            break
+        if broken:
+          break
     for m in messages:
       messagebox.showwarning("Error", m, parent=self)
     if messages != []:
@@ -2850,7 +2878,6 @@ class tao_new_data_window(tk.Toplevel):
             'Creating' + str(u) + '@' + self.name + '.' + d1_frame.name)
         self.pw.set_max(self.pw.ix, d1_frame.ix_max-d1_frame.ix_min+1)
         #self.update_idletasks()
-        #set_str = 'set data ' + str(u) + '@' + self.name + '.' + str(i) + '|'
         #tao_set(d1_frame.d1_array_wids[1:5], set_str, self.pipe)
         # set individual data parameters
         #set_format = set_str[:-1] + '[{}]|'
@@ -2873,6 +2900,9 @@ class tao_new_data_window(tk.Toplevel):
             else:
               cmd_str += '^'
           self.pipe.cmd_in(cmd_str)
+        # set name now
+        #set_str = 'set data ' + str(u) + '@' + self.name + '.' + str(i) + '|'
+        #tao_set(d1_frame.d1_array_wids[0:1], set_str, self.pipe)
         i = i+1
         self.pw.ix += 1
       # set data|exists = T
@@ -2984,6 +3014,13 @@ class new_d1_frame(tk.Frame):
     self.d1_array_wids[7].tk_wid.bind('<FocusOut>', self.ix_max_handler)
     self.d1_array_wids[1].tk_var.trace('w', self.data_source_handler)
     self.d1_array_wids[2].tk_var.trace('w', self.data_type_handler)
+
+    # "Fill" to datums
+    def datum_fill_callback(ix):
+      '''Helper function for buttons below'''
+      return lambda : self.datum_fill(ix)
+    for ix in range(1, 6):
+      tk.Button(self, text="Fill to datums", command=datum_fill_callback(ix)).grid(row=ix+2, column=2)
 
     ttk.Separator(self, orient='horizontal').grid(row=i+1, column=0, columnspan=3, sticky='EW')
     i = i+1
@@ -3193,6 +3230,23 @@ class new_d1_frame(tk.Frame):
     self.datum_wid_list[1].tk_var.trace('w', data_type_callback)
     self.datum_frame.grid(row=20, column=0, columnspan=3, sticky='EW')
 
+  def datum_fill(self, ix):
+    '''
+    "Fills" the value in self.d1_array_wids[ix] to all datums in self.data_dict
+    Actually just erases the values in self.data_dict, which produces the same effect
+    '''
+    for i in self.data_dict.keys():
+      param = self.d1_array_wids[ix].param.name
+      if param in self.data_dict[i].keys():
+        self.data_dict[i].pop(param)
+      elif 'data^'+param in self.data_dict[i].keys():
+        self.data_dict[i].pop('data^'+param)
+    # Redraw datum frame to reflect changes
+    try:
+      int(self.data_ix.get())
+      self.make_datum_frame()
+    except ValueError:
+      pass
 
   def lat_browser(self, which):
     '''
@@ -3268,6 +3322,8 @@ class new_d1_frame(tk.Frame):
       self.data_chooser.configure(values=list(range(self.ix_min, self.ix_max+1)))
 
   def ix_max_handler(self, event=None):
+    if self.handler_block:
+      return
     try:
       ix_max = int(self.d1_array_wids[7].tk_var.get())
     except ValueError:
@@ -3498,6 +3554,8 @@ class tao_new_var_window(tk.Toplevel):
         frame = self.v1_frame_list[i]
         if self.notebook.select() == frame._w:
           self.v1_index = i
+          # Unblock frame's handlers
+          frame.handler_block = False
           break
 
 
@@ -3510,6 +3568,8 @@ class new_v1_frame(tk.Frame):
     self.parent = parent
     self.pipe = self.parent.pipe
     self.name = "New v1_array" #Default
+    self.clone_of = "" # Used to track clones of existing v1_arrays
+    self.handler_block = False
 
     # d1 Widgets
     def v1_ttp(x):
@@ -3536,9 +3596,9 @@ class new_v1_frame(tk.Frame):
         "Default key_bound", "Default key_delta", "Start index", "End index"]
     # Grid widgets and labels:
     for i in range(len(self.v1_array_wids)):
-      tk.Label(self, text=self.v1_array_labels[i]).grid(row=i+1, column=0, sticky='W')
-      self.v1_array_wids[i].tk_wid.grid(row=i+1, column=1, sticky='EW')
-    i = i+1
+      tk.Label(self, text=self.v1_array_labels[i]).grid(row=i+3, column=0, sticky='W')
+      self.v1_array_wids[i].tk_wid.grid(row=i+3, column=1, sticky='EW')
+    i = i+3
 
     # Warning labels
     # (defined here to be gridded/ungridded as necessary)
@@ -3558,6 +3618,13 @@ class new_v1_frame(tk.Frame):
     self.v1_array_wids[12].tk_wid.bind('<FocusOut>', self.ix_max_handler)
     self.v1_array_wids[6].tk_wid.bind('<FocusOut>', self.low_high_handler)
     self.v1_array_wids[7].tk_wid.bind('<FocusOut>', self.low_high_handler)
+
+    # "Fill" to individual vars
+    def var_fill_callback(ix):
+      '''Helper function for buttons below'''
+      return lambda : self.var_fill(ix)
+    for ix in range(1, 11):
+      tk.Button(self, text="Fill to vars", command=var_fill_callback(ix)).grid(row=ix+2, column=2)
 
     ttk.Separator(self, orient='horizontal').grid(row=i+1, column=0, columnspan=3, sticky='EW')
     i = i+1
@@ -3587,6 +3654,20 @@ class new_v1_frame(tk.Frame):
     tk.Button(self, text="DELETE THIS V1_ARRAY", fg='red', command=self.delete).grid(
         row=0, column=0, columnspan=3, sticky='EW')
 
+    # Duplicate button
+    tk.Button(self, text="Duplicate this v1_array", command=self.duplicate).grid(
+        row=1, column=0, columnspan=3, sticky='EW')
+
+    # Clone existing v1_array
+    tk.Label(self, text="Clone existing v1:").grid(row=2, column=0, sticky='E')
+    v1_list = self.pipe.cmd_in('python var_general').splitlines()
+    for x in range(len(v1_list)):
+      v1_list[x] = v1_list[x].split(';')[0]
+    self.v1_clone = tk.StringVar()
+    self.v1_clone.set(v1_list[0])
+    tk.OptionMenu(self, self.v1_clone, *v1_list).grid(row=2, column=1, sticky='EW')
+    tk.Button(self, text="Clone", command= lambda: self.clone(self.v1_clone.get())).grid(row=2, column=2, sticky='W')
+
     # Focus the v1 name widget
     self.v1_array_wids[0].tk_wid.focus_set()
 
@@ -3608,6 +3689,35 @@ class new_v1_frame(tk.Frame):
 
     # Destroy self
     self.destroy()
+
+  def duplicate(self, event=None):
+    '''
+    Adds a new v1_frame to self.parent.v1_frame_list that is a copy of
+    this frame, and changes focus to that frame
+    '''
+    # Don't run any handlers for this d1_frame
+    self.handler_block = True
+    self.parent.v1_frame_list.append(new_v1_frame(self.parent))
+    ix = len(self.parent.v1_frame_list) - 1
+    #self.d2_array.d1_index = ix
+    # Copy properties into new frame
+    self.parent.v1_frame_list[-1].name = self.name + '_copy'
+    self.parent.v1_frame_list[-1].ix_min = self.ix_min
+    self.parent.v1_frame_list[-1].ix_max = self.ix_max
+    self.parent.v1_frame_list[-1].var_dict = self.var_dict
+    for i in range(len(self.v1_array_wids)):
+      if i == 0:
+        self.parent.v1_frame_list[-1].v1_array_wids[i].tk_var.set(self.v1_array_wids[i].tk_var.get() + '_copy')
+      else:
+        self.parent.v1_frame_list[-1].v1_array_wids[i].tk_var.set(self.v1_array_wids[i].tk_var.get())
+    # Run all input validation handlers
+    self.parent.notebook.insert(ix, self.parent.v1_frame_list[-1])
+    self.parent.notebook.select(ix)
+    self.parent.tab_handler()
+    self.update_idletasks()
+    self.parent.v1_frame_list[-1].name_handler()
+    self.parent.v1_frame_list[-1].ix_min_handler()
+    self.parent.v1_frame_list[-1].ix_max_handler()
 
   def make_var_frame(self, event=None):
     '''
@@ -3712,8 +3822,25 @@ class new_v1_frame(tk.Frame):
       self.var_wid_list[i].tk_var.trace('w', var_writer_callback(i))
     self.var_wid_list[6].tk_wid.bind('<FocusOut>', low_high_handler)
     self.var_wid_list[7].tk_wid.bind('<FocusOut>', low_high_handler)
-    self.var_frame.grid(row=20, column=0, columnspan=3, sticky='EW')
+    self.var_frame.grid(row=50, column=0, columnspan=3, sticky='EW')
 
+  def var_fill(self, ix):
+    '''
+    "Fills" the value in self.v1_array_wids[ix] to all vars in self.var_dict
+    Actually just erases the values in self.var_dict, which produces the same effect
+    '''
+    for i in self.var_dict.keys():
+      param = self.v1_array_wids[ix].param.name
+      if param in self.var_dict[i].keys():
+        self.var_dict[i].pop(param)
+      elif 'var^'+param in self.var_dict[i].keys():
+        self.var_dict[i].pop('var^'+param)
+    # Redraw datum frame to reflect changes
+    try:
+      int(self.var_ix.get())
+      self.make_var_frame()
+    except ValueError:
+      pass
 
   def lat_browser(self):
     '''
@@ -3734,6 +3861,8 @@ class new_v1_frame(tk.Frame):
     Changes the tab name to match the v1_name
     Returns 1 if unsuccessful
     '''
+    if self.handler_block:
+      return
     name = self.v1_array_wids[0].tk_var.get().strip()
     if name != "":
       # Make sure the name isn't already in use
@@ -3741,7 +3870,7 @@ class new_v1_frame(tk.Frame):
       for v1 in self.parent.v1_frame_list:
         if (v1.name == name) & (self != self.parent.v1_frame_list[i]):
           self.name_warning_1.grid_forget()
-          self.name_warning_2.grid(row=1, column=2, sticky='W')
+          self.name_warning_2.grid(row=3, column=2, sticky='W')
           return 1
         i = i+1
 
@@ -3749,14 +3878,29 @@ class new_v1_frame(tk.Frame):
       self.name_warning_1.grid_forget()
       self.name_warning_2.grid_forget()
       self.name = name
+      if self.name == self.clone_of:
+        return # prevent repeatedly calling this method
+      # Check if v1_array already exists in tao
+      v1_list = self.pipe.cmd_in('python var_general').splitlines()
+      for line in v1_list:
+        if line.split(';')[0] == name:
+          ans_var = tk.StringVar()
+          tao_message_box(self.parent.root, self.parent, ans_var,
+              title=name+ " already exists",
+              message=name + " is already defined.  Would you like to edit its existing properties or overwrite them?",
+              choices=['Edit', 'Overwrite'])
+          if ans_var.get() == 'Edit':
+            self.clone(self.name)
     else:
       self.name_warning_2.grid_forget()
-      self.name_warning_1.grid(row=1, column=2, sticky='W')
+      self.name_warning_1.grid(row=3, column=2, sticky='W')
       self.name = "New v1_array"
       self.parent.notebook.tab(self.parent.v1_index, text="New v1_array")
       return 1
 
   def ix_min_handler(self, event=None):
+    if self.handler_block:
+      return
     try:
       ix_min = int(self.v1_array_wids[11].tk_var.get())
     except ValueError:
@@ -3768,11 +3912,11 @@ class new_v1_frame(tk.Frame):
         self.ix_min_warning_2.grid_forget()
       else:
         self.ix_min_warning_1.grid_forget()
-        self.ix_min_warning_2.grid(row=12, column=2, sticky='W')
+        self.ix_min_warning_2.grid(row=14, column=2, sticky='W')
         return 1
     else:
       self.ix_min_warning_2.grid_forget()
-      self.ix_min_warning_1.grid(row=12, column=2, sticky='W')
+      self.ix_min_warning_1.grid(row=14, column=2, sticky='W')
       return 1
     # Update the data index range if possible
     if (self.ix_min > -1) & (self.ix_max >= self.ix_min):
@@ -3792,11 +3936,11 @@ class new_v1_frame(tk.Frame):
         self.ix_max_warning_2.grid_forget()
       else:
         self.ix_max_warning_1.grid_forget()
-        self.ix_max_warning_2.grid(row=13, column=2, sticky='W')
+        self.ix_max_warning_2.grid(row=15, column=2, sticky='W')
         return 1
     else:
       self.ix_max_warning_2.grid_forget()
-      self.ix_max_warning_1.grid(row=13, column=2, sticky='W')
+      self.ix_max_warning_1.grid(row=15, column=2, sticky='W')
       return 1
     # Update the variable index range if possible
     if (self.ix_min > -1) & (self.ix_max >= self.ix_min):
@@ -3807,6 +3951,8 @@ class new_v1_frame(tk.Frame):
     Verifies that the min and max values are set to good values
     returns 1 if they are not
     '''
+    if self.handler_block:
+      return
     # Low limit
     fail = False
     if self.v1_array_wids[6].tk_var.get() != "":
@@ -3815,7 +3961,7 @@ class new_v1_frame(tk.Frame):
       except ValueError:
         low_lim = None
       if low_lim == None:
-        self.low_high_warning_1.grid(row=7, column=2, sticky='W')
+        self.low_high_warning_1.grid(row=9, column=2, sticky='W')
         fail = True
       else:
         self.low_high_warning_1.grid_forget()
@@ -3829,7 +3975,7 @@ class new_v1_frame(tk.Frame):
       except ValueError:
         high_lim = None
       if high_lim == None:
-        self.low_high_warning_2.grid(row=8, column=2, sticky='W')
+        self.low_high_warning_2.grid(row=10, column=2, sticky='W')
         fail = True
       else:
         self.low_high_warning_2.grid_forget()
@@ -3839,7 +3985,7 @@ class new_v1_frame(tk.Frame):
     # Make sure low < high
     if (low_lim != None) & (high_lim != None):
       if low_lim > high_lim:
-        self.low_high_warning_3.grid(row=7, column=2, sticky='W')
+        self.low_high_warning_3.grid(row=9, column=2, sticky='W')
         fail = True
       else:
         self.low_high_warning_3.grid_forget()
@@ -3848,6 +3994,43 @@ class new_v1_frame(tk.Frame):
 
     if fail:
       return 1
+
+  def clone(self, v1_array):
+    '''
+    Clones the existing v1_array into this v1_frame
+    '''
+    # Read existing var info from tao
+    var_general = self.pipe.cmd_in('python var_general').splitlines()
+    for line in var_general:
+      if line.find(v1_array) == 0:
+        break
+    line = line.split(';')
+    # set name
+    self.v1_array_wids[0].tk_var.set(v1_array)
+    self.clone_of = v1_array
+    self.name_handler()
+    # set min/max indices
+    self.v1_array_wids[11].tk_var.set(line[2])
+    self.v1_array_wids[12].tk_var.set(line[3])
+    self.ix_min_handler()
+    self.ix_max_handler()
+    # copy inidividual variable info
+    var_params = ['ele_name', 'attribute', 'weight', 'step', 'var^merit_type', 'low_lim', 'high_lim', 'good_user', 'key_bound', 'key_delta']
+    self.var_dict = {}
+    for i in range(self.ix_min, self.ix_max+1):
+      self.var_dict[i] = {}
+      var_info = self.pipe.cmd_in('python var ' + v1_array + '[' + str(i) + ']')
+      var_info = var_info.splitlines()
+      for p in var_params:
+        found=False
+        for line in var_info:
+          if line.find(p) == 0:
+            found=True
+            break
+          else:
+            found=False
+        if found:
+          self.var_dict[i][p] = line.split(';')[3]
 
 
 
