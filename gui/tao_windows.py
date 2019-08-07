@@ -3437,6 +3437,7 @@ class tao_new_var_window(tk.Toplevel):
       # Check for semicolons in any fields
       semi_message = "Semicolons not allowed in any input field"
       caret_message = "Carets not allowed in any input field"
+      space_message = "Spaces not allowed in any input field"
       broken = False #Used to break out of the below for loops
       # Check for semicolons/carets
       for ttp in v1_frame.v1_array_wids:
@@ -3446,6 +3447,10 @@ class tao_new_var_window(tk.Toplevel):
           break
         if str(ttp.tk_var.get()).find('^') != -1:
           messages.append(caret_message)
+          broken = True
+          break
+        if str(ttp.tk_var.get()).find(' ') != -1:
+          messages.append(space_message)
           broken = True
           break
       for var_dict in v1_frame.var_dict.values():
@@ -3458,6 +3463,10 @@ class tao_new_var_window(tk.Toplevel):
             break
           if str(v).find('^') != -1:
             messages.append(caret_message)
+            broken = True
+            break
+          if str(ttp.tk_var.get()).find(' ') != -1:
+            messages.append(space_message)
             broken = True
             break
         if broken:
@@ -3502,18 +3511,20 @@ class tao_new_var_window(tk.Toplevel):
         v1_params = ['name', 'universes', 'attribute', 'weight', 'step', 'merit_type',
             'low_lim', 'high_lim', 'good_user', 'key_bound', 'key_delta']
         for j in range(len(params)):
+          if j == 0:
+            cmd_str += '^'
+            continue
           p = params[j]
           if p in var_dict.keys():
-            if p == 'universes': #cannot be empty
+            v1_ix = v1_params.index(p)
+            if p == 'universes' and var_dict[p]=="": #cannot be empty
               u = v1_frame.v1_array_wids[v1_ix].tk_var.get()
               if u == "":
-                pass
+                u = '*'
+              cmd_str += u + '^'
             else:
               cmd_str += str(var_dict[p]) + '^'
-          elif j == 0:
-            cmd_str += '^'
           else:
-            v1_ix = v1_params.index(p)
             if v1_frame.v1_array_wids[v1_ix].param.type == 'LOGIC':
               cmd_str += ('T^' if v1_frame.v1_array_wids[v1_ix].tk_var.get() else 'F^')
             elif p == 'universes': #cannot be empty
@@ -3624,7 +3635,7 @@ class new_v1_frame(tk.Frame):
       '''Helper function for buttons below'''
       return lambda : self.var_fill(ix)
     for ix in range(1, 11):
-      tk.Button(self, text="Fill to vars", command=var_fill_callback(ix)).grid(row=ix+2, column=2)
+      tk.Button(self, text="Fill to vars", command=var_fill_callback(ix)).grid(row=ix+3, column=2)
 
     ttk.Separator(self, orient='horizontal').grid(row=i+1, column=0, columnspan=3, sticky='EW')
     i = i+1
@@ -4027,10 +4038,28 @@ class new_v1_frame(tk.Frame):
           if line.find(p) == 0:
             found=True
             break
-          else:
-            found=False
         if found:
-          self.var_dict[i][p] = line.split(';')[3]
+          self.var_dict[i][p] = line.split(';')[3].strip()
+      # Special case: attribute (vs attrib_name)
+      found=False
+      for line in var_info:
+        if line.find('attrib_name') == 0:
+          found=True
+          break
+      if found:
+        self.var_dict[i]['attribute'] = line.split(';')[3].strip()
+      # Special case: universes
+      unis = []
+      for line in self.pipe.cmd_in('python var ' + v1_array + '[' + str(i) + '] slaves').splitlines():
+        u = int(line.split(';')[0])
+        if u not in unis:
+          unis.append(u)
+      unis.sort()
+      universes = ""
+      for u in unis:
+        universes += str(u) + ','
+      universes = universes[:-1] # remove extra comma
+      self.var_dict[i]['universes'] = universes
 
 
 
