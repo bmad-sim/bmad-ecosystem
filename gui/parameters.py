@@ -9,6 +9,7 @@ startup_list = [
   'data_file;FILE;T;',
   'hook_init_file;FILE;T;',
   'init_file;FILE;T;',
+  'noinit;LOGIC;T;F',
   'lattice_file;FILE;T;',
   'plot_file;FILE;T;',
   'startup_file;FILE;T;',
