@@ -39,6 +39,7 @@ class tao_root_window(tk.Tk):
 
     # Init GUI
 
+    self.old_init_args = ""
     init_frame = tk.Frame(self)
     init_frame.pack()
     self.tao_load(init_frame)
@@ -411,6 +412,8 @@ class tao_root_window(tk.Tk):
           if tk_param.param.value != "":
             init_args = (init_args + "-" + tk_param.param.name + " "
                 + tk_param.param.value + " ")
+          elif tk_param.param.name in self.old_init_args:
+            init_args += '--' + tk_param.param.name + ' '
         elif tk_param.param.type == 'FILE':
           tk_param.param.value = tk_param.tk_var.get()
           if tk_param.param.value == "Browse...":
@@ -418,10 +421,14 @@ class tao_root_window(tk.Tk):
           if tk_param.param.value != "":
             init_args = (init_args + "-" + tk_param.param.name + " "
                 + tk_param.param.value + " ")
+          elif tk_param.param.name in self.old_init_args:
+            init_args += '--' + tk_param.param.name + ' '
         elif tk_param.param.type == 'LOGIC':
           tk_param.param.value = tk_param.tk_var.get()
           if tk_param.param.value:
             init_args = init_args + "-" + tk_param.param.name + " "
+          elif tk_param.param.name in self.old_init_args:
+            init_args += '--' + tk_param.param.name + ' '
       if plot_mode.get() != "pgplot":
         init_args = init_args + "-noplot -external_plotting"
       # Run Tao, clear the init_frame, and draw the main frame
@@ -438,12 +445,10 @@ class tao_root_window(tk.Tk):
         #Ctypes needs a more sophisticated reinit using reinit tao
         #Check if Tao is open
         if 'pipe' in self.__dict__ and self.pipe.mode == 'ctypes':
-          negate_args = ""
-          for p in param_dict.keys():
-            negate_args += '--' + p + ' ' # Needed to turn options off
-          self.pipe.cmd_in('reinit tao ' + negate_args + init_args)
+          self.pipe.cmd_in('reinit tao ' + init_args)
         else:
           self.pipe = tao_interface(mode, init_args, so_lib=tao_lib.tk_var.get())
+      self.old_init_args = init_args
 
       init_frame.destroy()
       self.start_main()
