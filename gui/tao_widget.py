@@ -125,7 +125,8 @@ class tk_tao_parameter():
       self._traced = True
 
     if self.param.type not in ['DAT_TYPE', 'REAL_ARR']:
-      self.tk_wid.config(disabledforeground="black")
+      if self.param.type != 'FILE':
+        self.tk_wid.config(disabledforeground="black")
     else:
       for widget in self._s:
         widget.config(disabledforeground="black")
