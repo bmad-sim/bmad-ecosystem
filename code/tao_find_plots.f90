@@ -101,11 +101,6 @@ else
   graph_name = name(ix+1:)
 endif
 
-if (plot_name(1:3) == 'T::' .or. plot_name(1:3) == 't::') then
-  where_str = where
-  plot_name = plot_name(4:)
-endif
-
 np = 0
 allocate (p(10))
 

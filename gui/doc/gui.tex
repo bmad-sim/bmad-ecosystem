@@ -5,12 +5,23 @@
 \section{GUI Installation}
 \label{s:gui.install}
 
-There are four python modules needed for the GUI:
+There are a number of python modules needed for the GUI:
 \begin{example}
   tkinter
   ttk (may be called pyttk)
   pexpect         # If using pexpect instead of ctypes.
-  matplotlib
+  matplotlib, cycler, dateutil, tkagg
+\end{example}
+Note: The GUI uses the TkAgg backend for matplotlib. There may be a problem with Python finding the
+TkAgg backend. On the mac, using macports, the solution is to install matplotlib with the
+\vn{tkinter} variant. Something like:
+\begin{example}
+  sudo port uninstall py36-matplotlib           # May not be needed.
+  sudo port install  py36-matplotlib +tkinter   # This is when using Python version 3.6
+\end{example}
+For more information see:
+\begin{example}
+  https://matplotlib.org/tutorials/introductory/usage.html#backends
 \end{example}
 
 If one of the modules is missing, python will generate an error message. For example:

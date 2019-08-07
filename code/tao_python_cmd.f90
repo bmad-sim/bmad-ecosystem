@@ -217,7 +217,7 @@ call match_word (cmd, [character(20) :: &
           'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
           'merit', 'orbit_at_s', 'place_buffer', &
           'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
-          'plot_shapes', 'plot_list', 'plot_symbol', 'plot1', &
+          'plot_shapes', 'plot_list', 'plot_symbol', 'plot_transfer', 'plot1', &
           'show', 'species_to_int', 'species_to_str', 'super_universe', 'twiss_at_s', 'universe', &
           'var_v1_create', 'var_v1_destroy', 'var_create', 'var_general', 'var_v1_array', 'var_v_array', 'var', &
           'wave'], ix, matched_name = command)
@@ -3139,6 +3139,36 @@ case ('plot_symbol')
   case default
     call invalid ('word after curve name not "x" nor "y"')
   end select
+
+!----------------------------------------------------------------------
+! Transfer plot parameters from the "from plot" to equivalent plot or plots
+! Command syntax:
+!   python plot_transfer {from_plot}
+! Where, to avoid confusion, {from_plot} is either "@Tnnn" or "@Rnnn".
+! If {from_plot} is a template plot then the equivalent plots are the
+! region plots with the same name. And vice versa.
+
+case ('plot_transfer')
+
+  call tao_find_plots (err, line, 'COMPLETE', plot)
+  if (size(plot) /= 1) then
+    call invalid ('Number of from plots found is not exactly one.')
+    return
+  endif
+
+  p => plot(1)%p
+  if (associated(p%r)) then
+    do i = 1, size(s%plot_page%template)
+      if (s%plot_page%template(i)%name /= p%name) cycle
+      call tao_plot_struct_transfer (p, s%plot_page%template(i))
+    enddo
+
+  else
+    do i = 1, size(s%plot_page%region)
+      if (s%plot_page%region(i)%plot%name /= p%name) cycle
+      call tao_plot_struct_transfer (p, s%plot_page%region(i)%plot)
+    enddo
+  endif
 
 !----------------------------------------------------------------------
 ! Info on a given plot.
