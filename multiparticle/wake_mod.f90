@@ -367,7 +367,7 @@ do i = 1, size(ele%wake%sr_long%mode)
 
   exp_factor = exp(dz * mode%damp)
 
-  arg = ele%wake%wake_time_scale * (orbit%vec(5) * mode%k)
+  arg = ele%wake%wake_time_scale * orbit%vec(5) * mode%k
   c = cos (arg)
   s = sin (arg)
 
@@ -405,7 +405,7 @@ do i = 1, size(ele%wake%sr_long%mode)
 
   ! Add to wake
 
-  arg = ele%wake%wake_time_scale * (mode%phi - orbit%vec(5) * mode%k) 
+  arg = mode%phi - ele%wake%wake_time_scale * orbit%vec(5) * mode%k
   c = cos (arg)
   s = sin (arg)
 
@@ -474,7 +474,7 @@ do i = 1, size(ele%wake%sr_trans%mode)
 
   exp_factor = exp(dz * mode%damp)
 
-  arg = ele%wake%wake_time_scale * (orbit%vec(5) * mode%k)
+  arg = ele%wake%wake_time_scale * orbit%vec(5) * mode%k
   c = cos (arg)
   s = sin (arg)
 
@@ -508,7 +508,7 @@ do i = 1, size(ele%wake%sr_trans%mode)
     ff = ele%wake%wake_amp_scale * abs(orbit%charge) * mode%amp / ele%value(p0c$)
   endif
 
-  arg =  ele%wake%wake_time_scale * (mode%phi - orbit%vec(5) * mode%k)
+  arg =  mode%phi - ele%wake%wake_time_scale * orbit%vec(5) * mode%k
   c = cos (arg)
   s = sin (arg)
 
