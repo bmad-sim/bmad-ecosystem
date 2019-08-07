@@ -3302,8 +3302,9 @@ case ('universe')
 !----------------------------------------------------------------------
 ! Info on an individual variable
 ! Command syntax: 
-!   python var {var}
-! Output syntax is parameter list form. See documentation at the beginning of this file.
+!   python var {var}        or
+!   python var {var} slaves
+!
 
 case ('var')
 
@@ -3316,41 +3317,54 @@ case ('var')
 
   v_ptr => v_array(1)%v
 
-  nl=incr(nl); write (li(nl), rmt)  'model_value;REAL;T;',          v_ptr%model_value
-  nl=incr(nl); write (li(nl), rmt)  'base_value;REAL;T;',           v_ptr%base_value
+  select case (line)
+  case ('')
+    nl=incr(nl); write (li(nl), rmt)  'model_value;REAL;T;',          v_ptr%model_value
+    nl=incr(nl); write (li(nl), rmt)  'base_value;REAL;T;',           v_ptr%base_value
 
-  nl=incr(nl); write (li(nl), amt) 'ele_name;STR;F;',                         trim(v_ptr%ele_name)
-  nl=incr(nl); write (li(nl), amt) 'attrib_name;STR;F;',                      v_ptr%attrib_name
-  nl=incr(nl); write (li(nl), imt) 'ix_v1;INT;F;',                            v_ptr%ix_v1
-  nl=incr(nl); write (li(nl), imt) 'ix_var;INT;F;',                           v_ptr%ix_var
-  nl=incr(nl); write (li(nl), imt) 'ix_dvar;INT;F;',                          v_ptr%ix_dvar
-  nl=incr(nl); write (li(nl), imt) 'ix_attrib;INT;F;',                        v_ptr%ix_attrib
-  nl=incr(nl); write (li(nl), imt) 'ix_key_table;INT;T;',                     v_ptr%ix_key_table
-  nl=incr(nl); write (li(nl), rmt) 'design_value;REAL;F;',                    v_ptr%design_value
-  nl=incr(nl); write (li(nl), rmt) 'scratch_value;REAL;F;',                   v_ptr%scratch_value
-  nl=incr(nl); write (li(nl), rmt) 'old_value;REAL;F;',                       v_ptr%old_value
-  nl=incr(nl); write (li(nl), rmt) 'meas_value;REAL;T;',                      v_ptr%meas_value
-  nl=incr(nl); write (li(nl), rmt) 'ref_value;REAL;T;',                       v_ptr%ref_value
-  nl=incr(nl); write (li(nl), rmt) 'correction_value;REAL;F;',                v_ptr%correction_value
-  nl=incr(nl); write (li(nl), rmt) 'high_lim;REAL;T;',                        v_ptr%high_lim
-  nl=incr(nl); write (li(nl), rmt) 'low_lim;REAL;T;',                         v_ptr%low_lim
-  nl=incr(nl); write (li(nl), rmt) 'step;REAL;T;',                            v_ptr%step
-  nl=incr(nl); write (li(nl), rmt) 'weight;REAL;T;',                          v_ptr%weight
-  nl=incr(nl); write (li(nl), rmt) 'delta_merit;REAL;F;',                     v_ptr%delta_merit
-  nl=incr(nl); write (li(nl), rmt) 'merit;REAL;F;',                           v_ptr%merit
-  nl=incr(nl); write (li(nl), rmt) 'dmerit_dvar;REAL;F;',                     v_ptr%dMerit_dVar
-  nl=incr(nl); write (li(nl), rmt) 'key_val0;REAL;F;',                        v_ptr%key_val0
-  nl=incr(nl); write (li(nl), rmt) 'key_delta;REAL;T;',                       v_ptr%key_delta
-  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               v_ptr%s
-  nl=incr(nl); write (li(nl), amt) 'var^merit_type;ENUM;T;',                  v_ptr%merit_type
-  nl=incr(nl); write (li(nl), lmt) 'exists;LOGIC;F;',                         v_ptr%exists
-  nl=incr(nl); write (li(nl), lmt) 'good_var;LOGIC;F;',                       v_ptr%good_var
-  nl=incr(nl); write (li(nl), lmt) 'good_user;LOGIC;T;',                      v_ptr%good_user
-  nl=incr(nl); write (li(nl), lmt) 'good_opt;LOGIC;T;',                       v_ptr%good_opt
-  nl=incr(nl); write (li(nl), lmt) 'good_plot;LOGIC;T;',                      v_ptr%good_plot
-  nl=incr(nl); write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      v_ptr%useit_opt
-  nl=incr(nl); write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     v_ptr%useit_plot
-  nl=incr(nl); write (li(nl), lmt) 'key_bound;LOGIC;T;',                      v_ptr%key_bound
+    nl=incr(nl); write (li(nl), amt) 'ele_name;STR;F;',                         trim(v_ptr%ele_name)
+    nl=incr(nl); write (li(nl), amt) 'attrib_name;STR;F;',                      v_ptr%attrib_name
+    nl=incr(nl); write (li(nl), imt) 'ix_v1;INT;F;',                            v_ptr%ix_v1
+    nl=incr(nl); write (li(nl), imt) 'ix_var;INT;F;',                           v_ptr%ix_var
+    nl=incr(nl); write (li(nl), imt) 'ix_dvar;INT;F;',                          v_ptr%ix_dvar
+    nl=incr(nl); write (li(nl), imt) 'ix_attrib;INT;F;',                        v_ptr%ix_attrib
+    nl=incr(nl); write (li(nl), imt) 'ix_key_table;INT;T;',                     v_ptr%ix_key_table
+    nl=incr(nl); write (li(nl), rmt) 'design_value;REAL;F;',                    v_ptr%design_value
+    nl=incr(nl); write (li(nl), rmt) 'scratch_value;REAL;F;',                   v_ptr%scratch_value
+    nl=incr(nl); write (li(nl), rmt) 'old_value;REAL;F;',                       v_ptr%old_value
+    nl=incr(nl); write (li(nl), rmt) 'meas_value;REAL;T;',                      v_ptr%meas_value
+    nl=incr(nl); write (li(nl), rmt) 'ref_value;REAL;T;',                       v_ptr%ref_value
+    nl=incr(nl); write (li(nl), rmt) 'correction_value;REAL;F;',                v_ptr%correction_value
+    nl=incr(nl); write (li(nl), rmt) 'high_lim;REAL;T;',                        v_ptr%high_lim
+    nl=incr(nl); write (li(nl), rmt) 'low_lim;REAL;T;',                         v_ptr%low_lim
+    nl=incr(nl); write (li(nl), rmt) 'step;REAL;T;',                            v_ptr%step
+    nl=incr(nl); write (li(nl), rmt) 'weight;REAL;T;',                          v_ptr%weight
+    nl=incr(nl); write (li(nl), rmt) 'delta_merit;REAL;F;',                     v_ptr%delta_merit
+    nl=incr(nl); write (li(nl), rmt) 'merit;REAL;F;',                           v_ptr%merit
+    nl=incr(nl); write (li(nl), rmt) 'dmerit_dvar;REAL;F;',                     v_ptr%dMerit_dVar
+    nl=incr(nl); write (li(nl), rmt) 'key_val0;REAL;F;',                        v_ptr%key_val0
+    nl=incr(nl); write (li(nl), rmt) 'key_delta;REAL;T;',                       v_ptr%key_delta
+    nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               v_ptr%s
+    nl=incr(nl); write (li(nl), amt) 'var^merit_type;ENUM;T;',                  v_ptr%merit_type
+    nl=incr(nl); write (li(nl), lmt) 'exists;LOGIC;F;',                         v_ptr%exists
+    nl=incr(nl); write (li(nl), lmt) 'good_var;LOGIC;F;',                       v_ptr%good_var
+    nl=incr(nl); write (li(nl), lmt) 'good_user;LOGIC;T;',                      v_ptr%good_user
+    nl=incr(nl); write (li(nl), lmt) 'good_opt;LOGIC;T;',                       v_ptr%good_opt
+    nl=incr(nl); write (li(nl), lmt) 'good_plot;LOGIC;T;',                      v_ptr%good_plot
+    nl=incr(nl); write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      v_ptr%useit_opt
+    nl=incr(nl); write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     v_ptr%useit_plot
+    nl=incr(nl); write (li(nl), lmt) 'key_bound;LOGIC;T;',                      v_ptr%key_bound
+
+  case ('slaves')
+    do i = 1, size(v_ptr%slave)
+      nl=incr(nl); write (li(nl), '(3(i0, a))') v_ptr%slave(i)%ix_uni, ';', &
+                                                       v_ptr%slave(i)%ix_branch, ';', v_ptr%slave(i)%ix_ele
+    enddo
+
+  case ('default')
+    call invalid ('BAD SWITCH: ' // line)
+    return
+  end select
 
 !----------------------------------------------------------------------
 ! Create a single variable
