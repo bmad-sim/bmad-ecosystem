@@ -796,7 +796,7 @@ endif
 
 ! Initial placement of plots
 
-if (s%global%plot_on) then
+if (s%global%plot_on .or. s%global%external_plotting) then
   do i = 1, size(place)
     if (place(i)%region == '') cycle
     call tao_place_cmd (place(i)%region, place(i)%plot)
