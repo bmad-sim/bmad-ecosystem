@@ -318,10 +318,11 @@ specifying particle coordinates may be more then \vn{<n_particle>}. In this case
 discarded so that the beam has \vn{<n_particle>} particles.  The setting of \vn{<n_particle>} can be
 overridden by a non-zero setting of \vn{beam_init%n_particle}.
 
-After this, there are \vn{<n_bunch>} blocks of data, one for each bunch. Each one of
-these blocks starts with a \vn{BEGIN_BUNCH} line to mark the beginning of the block and ends with a
+After this, there are \vn{<n_bunch>} blocks of data, one for each bunch. Each one of these blocks
+starts with a \vn{BEGIN_BUNCH} line to mark the beginning of the block and ends with a
 \vn{END_BUNCH} marker line. In between, the first four lines give the \vn{<species_name>} name,
-\vn{<bunch_charge>}, \vn{<z_center>}, and \vn{<t_center>} values. The \vn{<species_name>} name may be one of:
+\vn{<bunch_charge>}, \vn{<z_center>}, and \vn{<t_center>} values. The \vn{<species_name>} name may
+be one of:
 \begin{example}
   positron  ! default
   electron
@@ -332,10 +333,10 @@ these blocks starts with a \vn{BEGIN_BUNCH} line to mark the beginning of the bl
   photon
 \end{example}
 
-The lines following the \vn{<t_center>} line specify particle coordinates. One line for each particle.
-Only the first six numbers, which are the phase space coordinates, need to be specified for each
-particle. If the \vn{<macro_charge>} column is not present, or is zero, it defaults to
-\vn{<bunch_charge>/<n_particle>}. 
+The lines following the \vn{<t_center>} line specify particle coordinates. One line for each
+particle.  Only the first six numbers, which are the phase space coordinates, need to be specified
+for each particle. If the \vn{<macro_charge>} column is not present, or is zero, it defaults to
+\vn{<bunch_charge>/<n_particle>}.
 
 The \vn{<state>} parameter indicates whether a particle is alive or dead. Values are
 \begin{example}

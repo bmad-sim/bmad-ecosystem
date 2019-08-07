@@ -16,9 +16,10 @@
 !   2) Beginning floor position.
 !
 ! Input:
-!   lat           -- lat_struct: Lattice
-!   orbit(:)      -- coord_struct: Orbit to transfer to lat%particle_start
-!   ele_list      -- character(*): List of elements to retain
+!   lat           -- lat_struct: Lattice to slice.
+!   orbit(:)      -- coord_struct: Orbit to transfer to lat%particle_start.
+!   ele_list      -- character(*): List of elements to retain. See the documentation for
+!                     the lat_ele_locator routine for the syntax of the list.
 !
 ! Output:
 !   lat           -- lat_struct: Lattice with unwanted elements sliced out.
