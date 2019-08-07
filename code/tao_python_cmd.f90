@@ -3546,6 +3546,9 @@ case ('var_v1_create')
 
   call tao_cmd_split (line, 3, name1, .true., err)
 
+  call tao_find_var(err, name1(1), v1_array = v1_array)
+  if (size(v1_array) == 1) call destroy_this_var_v1(name1(1))
+
   if (err .or. .not. is_integer(name1(2)) .or. .not. is_integer(name1(3))) then
     call invalid ('Is Malformed')
     return
@@ -3599,36 +3602,7 @@ case ('var_v1_create')
 
 case ('var_v1_destroy')
 
-  call tao_find_var (err, line, v1_array = v1_array)
-  if (err .or. .not. allocated(v1_array)) then
-    call invalid ('Not a valid v1 var name')
-    return
-  endif
-
-  v1_ptr => v1_array(1)%v1
-  i1 = lbound(v1_ptr%v, 1)
-  i1 = v1_ptr%v(i1)%ix_var
-  i2 = ubound(v1_ptr%v, 1)
-  i2 = v1_ptr%v(i2)%ix_var
-
-  n_delta = i2 + 1 - i1
-
-  n = s%n_var_used
-
-  do j = v1_ptr%ix_v1_var, s%n_v1_var_used - 1
-    s%v1_var(j) = s%v1_var(j+1)
-    v1_ptr => s%v1_var(j)
-    i1 = v1_ptr%v(lbound(v1_ptr%v,1))%ix_var
-    i2 = v1_ptr%v(ubound(v1_ptr%v,1))%ix_var
-    s%var(i1-n_delta:i2-n_delta) = s%var(i1:i2)
-    call tao_point_v1_to_var(v1_ptr, s%var(i1-n_delta:i2-n_delta), s%var(i1-n_delta)%ix_v1)
-    do k = i1, i2
-      s%var(i1-n_delta)%ix_var = i1 - n_delta
-    enddo
-  enddo
-
-  s%n_v1_var_used = s%n_v1_var_used - 1
-  s%n_var_used = s%n_var_used - n_delta
+  call destroy_this_var_v1(line)
 
 !----------------------------------------------------------------------
 ! Wave analysis info.
@@ -4240,6 +4214,55 @@ u%n_d2_data_used = u%n_d2_data_used - 1
 u%n_data_used = u%n_data_used - n_delta
 
 end subroutine destroy_this_data_d2
+
+!----------------------------------------------------------------------
+! contains
+
+subroutine destroy_this_var_v1(v1_name)
+
+type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
+type (tao_v1_var_struct), pointer :: v1_ptr
+
+integer j, k, i1, i2, n_delta, n
+
+character(*) v1_name
+
+logical err
+
+!
+
+call tao_find_var (err, v1_name, v1_array = v1_array)
+if (err .or. .not. allocated(v1_array)) then
+  call invalid ('Not a valid v1 var name')
+  return
+endif
+
+v1_ptr => v1_array(1)%v1
+i1 = lbound(v1_ptr%v, 1)
+i1 = v1_ptr%v(i1)%ix_var
+i2 = ubound(v1_ptr%v, 1)
+i2 = v1_ptr%v(i2)%ix_var
+
+n_delta = i2 + 1 - i1
+
+n = s%n_var_used
+
+do j = v1_ptr%ix_v1_var, s%n_v1_var_used - 1
+  s%v1_var(j) = s%v1_var(j+1)
+  v1_ptr => s%v1_var(j)
+  i1 = v1_ptr%v(lbound(v1_ptr%v,1))%ix_var
+  i2 = v1_ptr%v(ubound(v1_ptr%v,1))%ix_var
+  s%var(i1-n_delta:i2-n_delta) = s%var(i1:i2)
+  call tao_point_v1_to_var(v1_ptr, s%var(i1-n_delta:i2-n_delta), s%var(i1-n_delta)%ix_v1)
+  do k = i1, i2
+    s%var(i1-n_delta)%ix_var = i1 - n_delta
+  enddo
+enddo
+
+s%n_v1_var_used = s%n_v1_var_used - 1
+s%n_var_used = s%n_var_used - n_delta
+
+end subroutine destroy_this_var_v1
 
 !----------------------------------------------------------------------
 ! contains
