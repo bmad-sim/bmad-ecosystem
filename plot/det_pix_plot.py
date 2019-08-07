@@ -9,6 +9,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
+T = True    # For converting from data file header T/F notation
+F = False
+
 # Check version
 
 if sys.version_info[0] == 2 and sys.version_info[1] < 7: sys.exit("MUST USE PYTHON 2.7 OR GREATER!")

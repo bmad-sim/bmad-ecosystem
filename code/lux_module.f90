@@ -1162,13 +1162,13 @@ if (lux_param%det_pix_out_file /= '') then
 
   enddo param_loop
 
-  write (3, '(a, es16.5, a, f8.2, a)') 'x_center_det        =', p%orbit(1), '  # ', p%orbit(1) / detec_grid%dr(1), ' pixels'
-  write (3, '(a, es16.5, a, f8.2, a)') 'y_center_det        =', p%orbit(3), '  # ', p%orbit(3) / detec_grid%dr(2), ' pixels'
-  write (3, '(a, es16.5, a, f8.2, a)') 'x_rms_det           =', p%orbit_rms(1), '  # ', p%orbit_rms(1) / detec_grid%dr(1), ' pixels'
-  write (3, '(a, es16.5, a, f8.2, a)') 'y_rms_det           =', p%orbit_rms(3), '  # ', p%orbit_rms(3) / detec_grid%dr(2), ' pixels'
-  write (3, '(a)')                  '#-----------------------------------------------------'
-  write (3, '(a)')                  '#                                                                                                                                                                    |                                          Init'
-  write (3, '(a)')                  '#   ix    iy      x_pix      y_pix   Intens_x    Phase_x   Intens_y    Phase_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms|     X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
+  write (3, '(a, es16.5, 3a)') 'x_center_det        =', p%orbit(1),     '  # ', to_str(p%orbit(1) / detec_grid%dr(1), 4), ' pixels'
+  write (3, '(a, es16.5, 3a)') 'y_center_det        =', p%orbit(3),     '  # ', to_str(p%orbit(3) / detec_grid%dr(2), 4), ' pixels'
+  write (3, '(a, es16.5, 3a)') 'x_rms_det           =', p%orbit_rms(1), '  # ', to_str(p%orbit_rms(1) / detec_grid%dr(1), 4), ' pixels'
+  write (3, '(a, es16.5, 3a)') 'y_rms_det           =', p%orbit_rms(3), '  # ', to_str(p%orbit_rms(3) / detec_grid%dr(2), 4), ' pixels'
+  write (3, '(a)') '#-----------------------------------------------------'
+  write (3, '(a)') '#                                                                                                                                                                    |                                          Init'
+  write (3, '(a)') '#   ix    iy      x_pix      y_pix   Intens_x    Phase_x   Intens_y    Phase_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms|     X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
 
   do i = lux_data%nx_min, lux_data%nx_max
   do j = lux_data%ny_min, lux_data%ny_max
