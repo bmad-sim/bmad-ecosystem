@@ -1784,7 +1784,7 @@ case ('ele:grid_field')
     if (name(1:1) == '!') name = '<None>'
     nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAMM;T;',        name
     nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 anchor_pt_name(g_field%ele_anchor_pt)
-    nl=incr(nl); write (li(nl), amt) 'field_type;ENUM;T;',                    em_field_type_name(ct_map%field_type)
+    nl=incr(nl); write (li(nl), amt) 'field_type;ENUM;T;',                    em_field_type_name(g_field%field_type)
     nl=incr(nl); write (li(nl), amt) 'grid_field^geometry;ENUM;T;',           grid_field_geometry_name(g_field%geometry)
     nl=incr(nl); write (li(nl), imt) 'harmonic;INT;T;',                       g_field%harmonic
     nl=incr(nl); write (li(nl), rmt) 'phi0_fieldmap;REAL;T;',                 g_field%phi0_fieldmap
@@ -4251,12 +4251,13 @@ n = s%n_var_used
 do j = v1_ptr%ix_v1_var, s%n_v1_var_used - 1
   s%v1_var(j) = s%v1_var(j+1)
   v1_ptr => s%v1_var(j)
+  v1_ptr%ix_v1_var = j
   i1 = v1_ptr%v(lbound(v1_ptr%v,1))%ix_var
   i2 = v1_ptr%v(ubound(v1_ptr%v,1))%ix_var
   s%var(i1-n_delta:i2-n_delta) = s%var(i1:i2)
-  call tao_point_v1_to_var(v1_ptr, s%var(i1-n_delta:i2-n_delta), s%var(i1-n_delta)%ix_v1)
-  do k = i1, i2
-    s%var(i1-n_delta)%ix_var = i1 - n_delta
+  call tao_point_v1_to_var(s%v1_var(j), s%var(i1-n_delta:i2-n_delta), s%var(i1-n_delta)%ix_v1)
+  do k = i1-n_delta, i2-n_delta
+    s%var(k)%ix_var = k
   enddo
 enddo
 
