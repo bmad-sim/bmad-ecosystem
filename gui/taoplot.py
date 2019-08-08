@@ -270,8 +270,12 @@ class taoplot:
 		#list of string names of graphs
 
 		number_graphs = len(gList) + 1
-		layout_height = .2 #override this to make layout larger or smaller
-		heightsList.append(layout_height)
+		layout_height = .2
+		#relative height of lat layout to graph if there is one graph
+
+		heightsList.append(layout_height*len(gList) + layout_height*(len(gList)-1))
+		#makes layout approximately a fixed size as number of graphs changes
+
 		gs = fig.add_gridspec(nrows=number_graphs,ncols=1, height_ratios=heightsList)
 
 		GraphDict = {}
@@ -781,7 +785,7 @@ class taoplot:
 
 
 		else:
-			GraphDict['LatLayout']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
+			GraphDict['LatLayout']=fig.add_subplot(gs[len(gList),0],sharex=GraphDict['graph1'])
 			GraphDict['LatLayout'].remove()
 		
 		
