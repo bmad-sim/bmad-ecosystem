@@ -531,9 +531,13 @@ do j = n1, n2
 
   ! Convert old style to new style
 
-  ix = index(dat%data_type, 'emittance.')
-  if (ix /= 0) dat%data_type = dat%data_type(1:ix-1) // 'emit.' // dat%data_type(ix+10:)
-  if (dat%data_type(1:9) == 'unstable_') dat%data_type(9:9) = '.'
+  if (dat%data_type(1:9) == 'unstable_') then
+    call out_io (s_fatal$, r_name, &
+         '"unstable_XXX" data source name (with an underscore) needs to be changed to "unstable.XXX" (with a dot).')
+    stop
+  endif
+
+  !
 
   u%calc%srdt_for_data = max(u%calc%srdt_for_data, tao_srdt_calc_needed(dat%data_type, dat%data_source))
 
