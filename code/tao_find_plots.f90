@@ -164,6 +164,7 @@ else
   if (where_str == 'REGION' .or. where_str == 'BOTH') then
     do i = 1, size(s%plot_page%region)
       if (s%global%plot_on .and. .not. s%plot_page%region(i)%visible) cycle
+      if (s%plot_page%region(i)%plot%name == '') cycle
       if (plot_name /= '*') then 
         if (have_exact_match) then
           if (s%plot_page%region(i)%name /= plot_name .and. s%plot_page%region(i)%plot%name /= plot_name) cycle
