@@ -310,9 +310,8 @@ routine \vn{tao_evaluate_a_datum} as an example.
   orbit => tao_lat%tao_branch(0)%orbit
   ele => tao_pointer_to_datum_ele (lat, datum%ele_name, datum%ix_ele, datum, &
                                                           valid_value, why_invalid)
-  ix_ele = -1
   ...
-  select case (datum.data_source)
+  select case (datum%data_type)
   case ('particle_emittance.x') 
     datum_value =  (ele%a%gamma * orbit(ix_ele)%vec(1)**2 + &
 		     2 * ele%a%alpha * orbit(ix_ele)%vec(1) * orbit(ix_ele)%vec(2) + &
