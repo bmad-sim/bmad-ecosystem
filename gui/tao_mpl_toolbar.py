@@ -19,6 +19,7 @@ class taotoolbar(NavigationToolbar2Tk):
 			)
 		NavigationToolbar2Tk.__init__(self,canvas_,parent_)
 
+	cid = 'none'
 
 
 
@@ -53,14 +54,14 @@ class taotoolbar(NavigationToolbar2Tk):
 
 		# attach the call back
 		if on == True and cid == 'none':
-			cid=fig.canvas.mpl_connect('scroll_event',zoom_fun)
+			self.cid=fig.canvas.mpl_connect('scroll_event',zoom_fun)
 
 		if on != True:
 			fig.canvas.mpl_disconnect(cid)
-			cid='none'
+			self.cid='none'
 
 		#return the function
-		return zoom_fun,cid
+		return zoom_fun
 
 	
 
@@ -89,13 +90,11 @@ class taotoolbar(NavigationToolbar2Tk):
 			self.mode = 'pan/zoom'
 			scale_canv = self.canvas
 			scale = self.zoom_factory(self,scale_canv.figure.get_axes(),scale_canv,True)
-			cid=scale[1]
 			self.canvas.widgetlock(self)
 		else:
 			self.canvas.widgetlock.release(self)
 			scale_canv = self.canvas
-			scale = self.zoom_factory(self,scale_canv.figure.get_axes(),scale_canv,False,cid)
-			cid=scale[1]
+			scale = self.zoom_factory(self,scale_canv.figure.get_axes(),scale_canv,False,self.cid)
 		for a in self.canvas.figure.get_axes():
 			a.set_navigate_mode(self._active)
 
