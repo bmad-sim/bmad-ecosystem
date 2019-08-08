@@ -663,6 +663,7 @@ type tao_common_struct
   logical :: single_mode = .false.
   logical :: combine_consecutive_elements_of_like_name
   logical :: common_lattice = .false.      
+  logical :: have_tracked_beam = .false.      ! Used to catch error when beam plotting without having tracked a beam.
   logical :: init_plot_needed      = .true.   ! reinitialize plotting?
   logical :: init_beam             = .true.   ! Used by custom programs to control Tao init
   logical :: init_var              = .true.   ! Used by custom programs to control Tao init
