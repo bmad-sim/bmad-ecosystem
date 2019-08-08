@@ -563,8 +563,8 @@ if (tao_branch%track_state /= moving_forward$ .and. ix_ele >= tao_branch%track_s
   endif
 endif
 
-if (data_source == 'beam' .and. s%global%track_type /= 'beam') then
-  call tao_set_invalid (datum, 'DATA_SOURCE FOR DATUM SET TO "beam" BUT NOT TRACKING A BEAM (GLOBAL%TRACK_TYPE NOT SET TO "beam")', why_invalid)
+if (data_source == 'beam' .and. .not. s%com%have_tracked_beam) then
+  call tao_set_invalid (datum, 'DATA_SOURCE FOR DATUM SET TO "beam" BUT NO BEAM TRACKING HAS BEEN DONE!', why_invalid)
   return
 endif
 

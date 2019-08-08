@@ -578,7 +578,7 @@ integer n_bunch, n_part, i_uni_to, ix_track
 integer n_lost, ix_branch
 integer, allocatable, save :: ix_ele(:)
 
-character(20) :: r_name = "tao_beam_track"
+character(*), parameter :: r_name = "tao_beam_track"
 
 real(rp) :: value1, value2, f, time, old_time
 
@@ -588,6 +588,7 @@ logical calc_ok, too_many_lost, print_err, err, lost
 
 call re_allocate (ix_ele, 1)
 
+s%com%have_tracked_beam = .true.
 branch => tao_lat%lat%branch(ix_branch)
 tao_branch => tao_lat%tao_branch(ix_branch)
 uni_branch => u%uni_branch(ix_branch)
