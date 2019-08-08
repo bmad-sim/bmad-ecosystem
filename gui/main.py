@@ -44,10 +44,11 @@ class tao_root_window(tk.Tk):
     init_frame.pack()
     self.tao_load(init_frame)
 
-    # Dictionary of where template plots have been placed
-    #self.placed = {}
-    # List of plot windows (accessible for refreshing)
-    self.plot_windows = []
+    # Window lists (accessible for refreshing)
+    self.refresh_windows = {}
+    self.tao_id_list = ['plot', 'data', 'var', 'ele', 'lat']
+    for w in self.tao_id_list:
+      self.refresh_windows[w] = []
 
     # Key bindings
 
