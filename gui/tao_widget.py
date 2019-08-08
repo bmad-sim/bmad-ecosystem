@@ -486,25 +486,35 @@ class d2_data_frame():
       self.d1_using_list.append(item[4])
       self.d1_ix_lb_list.append(int(item[5]))
       self.d1_ix_ub_list.append(int(item[6]))
-    tk.Label(self.frame, text=self.name).grid(row=0, column=0, columnspan=2)
-    tk.Label(self.frame, text="Indices").grid(row=0, column=2)
-    tk.Label(self.frame, text="Using").grid(row=0, column=3)
-    for i in range(4):
+    tk.Label(self.frame, text=self.name).grid(row=0, column=0, columnspan=3, sticky='W')
+    tk.Label(self.frame, text="Indices").grid(row=0, column=3)
+    tk.Label(self.frame, text="Using").grid(row=0, column=4)
+    for i in [0,3,4]:
       self.frame.grid_columnconfigure(i, pad=10)
     for i in range(len(self.d1_data_list)):
-      tk.Label(self.frame, text=self.d1_data_list[i]).grid(row=i+1,column=0)
+      tk.Label(self.frame, text=self.d1_data_list[i]).grid(row=i+1,column=0, sticky='W')
       tk.Button(self.frame, text="View...",
           command=self.open_d1_callback(self.name, self.d1_data_list[i], pipe,
             self.d1_ix_lb_list[i], self.d1_ix_ub_list[i], u_ix)).grid(
                 row=i+1,column=1)
+      tk.Button(self.frame, text="Edit...",
+          command=self.edit_d2_callback(self.name, pipe)).grid(
+              row=i+1, column=2)
       mytext = str(self.d1_ix_lb_list[i]) + ":" + str(self.d1_ix_ub_list[i])
-      tk.Label(self.frame, text=mytext).grid(row=i+1, column=2)
-      tk.Label(self.frame, text=self.d1_using_list[i]).grid(row=i+1, column=3)
+      tk.Label(self.frame, text=mytext).grid(row=i+1, column=3)
+      tk.Label(self.frame, text=self.d1_using_list[i]).grid(row=i+1, column=4)
 
   def open_d1_callback(self, d2_data_name, d1_data_name,
       pipe, ix_lb, ix_ub, u_ix):
     return lambda : self.open_d1(
         d2_data_name, d1_data_name, pipe, ix_lb, ix_ub, u_ix)
+
+  def edit_d2_callback(self, d2_data_name, pipe):
+    return lambda : self.edit_d2(d2_data_name, pipe)
+
+  def edit_d2(self, d2_data_name, pipe):
+    from tao_windows import tao_new_data_window
+    win = tao_new_data_window(self.root, pipe, default=d2_data_name)
 
   def open_d1(self, d2_data_name, d1_data_name, pipe, ix_lb, ix_ub, u_ix):
     '''
