@@ -557,7 +557,7 @@ class tao_root_window(tk.Tk):
     win.title('Optimizer')
 
   def plot_template_cmd(self):
-    win = tao_plot_tr_window(self, self.pipe, "T")
+    win = tao_place_plot_window(self, self.pipe)
 
   def plot_region_cmd(self):
     win = tao_plot_tr_window(self, self.pipe, "R")

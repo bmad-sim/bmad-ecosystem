@@ -28,8 +28,11 @@ from matplotlib.widgets import Slider
 class tao_list_window(tk.Toplevel):
 
   def __init__(self, root, title, use_upper=False,
-      min_width=0, *args, **kwargs):
-    tk.Toplevel.__init__(self, root, *args, **kwargs)
+      min_width=0, parent=None, *args, **kwargs):
+    if parent != None:
+      tk.Toplevel.__init__(self, parent, *args, **kwargs)
+    else:
+      tk.Toplevel.__init__(self, root, *args, **kwargs)
     self.title(title)
     self.root = root
 
@@ -956,8 +959,136 @@ class tao_history_window(tao_list_window):
     Formats a callback to self.re_run
     '''
     return lambda event=None : self.re_run(cmd_string, mode)
+
 #-----------------------------------------------------
-# Plot template window
+# Plot placing window
+
+class tao_place_plot_window(tk.Toplevel):
+  '''
+  Allows the user to choose from defined template
+  plots and plot them in matplotlib windows
+  Currently only supported in matplotlib mode
+  '''
+  def __init__(self, root, pipe, *args, **kwargs):
+    tk.Toplevel.__init__(self, root, *args, **kwargs)
+    self.title('Choose Plot')
+    self.root = root
+    self.pipe = pipe
+    self.grid_rowconfigure(0, weight=1)
+    self.list_frame = tk.Frame(self)
+    #self.list_frame.pack(side='top', fill='both', expand=1)
+    self.list_frame.grid(row=0, column=0, sticky='NSEW')
+    self.button_frame = tk.Frame(self)
+    self.button_frame.grid(row=1, column=0, sticky='EW')
+    self.button_frame.grid_columnconfigure(0, weight=1)
+    self.button_frame.grid_columnconfigure(1, weight=1)
+    #self.button_frame.pack(side='bottom', fill='x', expand=1)
+    self.refresh()
+    tk.Button(self.button_frame, text="Edit Template", command=self.edit_template).grid(row=0, column=0, sticky='EW')
+    tk.Button(self.button_frame, text="Plot!", command=self.mpl_plot).grid(row=0, column=1, sticky='EW')
+
+  def refresh(self):
+    '''
+    Responsible for creating widgets and filling them with plots
+    '''
+    for child in self.list_frame.winfo_children():
+      child.destroy()
+
+    # List of plots w/descriptions
+    plots = self.pipe.cmd_in("python plot_list t")
+    plots = plots.splitlines()
+    for i in range(len(plots)):
+      # get the description
+      plot = plots[i].split(';')[1]
+      plot_info = self.pipe.cmd_in('python plot1 ' + plot)
+      plot_info = plot_info.splitlines()
+      for line in plot_info:
+        if line.find('description;') == 0:
+          d = line.split(';')[3]
+          break
+        else:
+          d = ""
+      plots[i] = [plot, d]
+    widths = [0,0] # track column widths
+
+    # Create list
+    titles = ['Name', 'Description']
+    self.tree = ttk.Treeview(
+        self.list_frame, columns=titles, show='headings')
+    # Column titles
+    for title in titles:
+      self.tree.heading(title, text=title)
+      self.tree.column(title, stretch=True, anchor='center')
+
+    # Fill rows
+    for plot in plots:
+      self.tree.insert("", "end", values=plot)
+      for j in range(len(plot)):
+        if len(plot[j])*10 > widths[j]:
+          widths[j] = len(plot[j])*10
+
+    # Set column widths appropriately
+    for j in range(len(titles)):
+      if len(titles[j])*10 > widths[j]:
+        widths[j] = len(titles[j])*10
+      self.tree.column(titles[j], width=widths[j], minwidth=widths[j])
+
+    # Scrollbars
+    vbar = ttk.Scrollbar(
+        self.list_frame, orient="vertical", command=self.tree.yview)
+    self.tree.configure(yscrollcommand=vbar.set)
+
+    vbar.pack(side="right", fill="y", expand=0)
+    self.tree.pack(side="left", fill="both", expand=1)
+    self.widths = widths
+
+    # Double click to open plot
+    self.tree.bind('<Double-Button-1>', self.mpl_plot)
+    # Single click to set self.plot
+    self.tree.bind('<Button-1>', self.set_plot)
+
+    tot = 0
+    for w in widths:
+      tot = tot+w
+    self.maxsize(1800, 1000)
+    self.minsize(tot, 100)
+
+  def mpl_plot(self, event=None):
+    '''
+    Creates a new matplotlib window with the currently selected plot
+    '''
+    if self.set_plot():
+      messagebox.showwarning('Error', "Please choose a template to plot.", parent=self)
+      return
+    self.set_plot()
+    win = tao_plot_window(self.root, self.plot, self.pipe)
+    self.root.plot_windows.append(win)
+
+  def set_plot(self, event=None):
+    '''
+    Sets self.plot to the selected plot in the list
+    '''
+    x = self.tree.focus()
+    if x == "":
+      return 1
+    row = self.tree.item(x)
+    self.plot = row['values'][0]
+    return 0
+
+  def edit_template(self, event=None):
+    '''
+    Opens up a plot editting window and loads the selected template
+    '''
+    if self.set_plot():
+      messagebox.showwarning('Error', "Please choose a template to edit.", parent=self)
+      return
+    win = tao_plot_tr_window(self.root, self.pipe, 'T')
+    win.temp.set(self.plot)
+    win.refresh()
+
+
+#-----------------------------------------------------
+# Plot editting window
 #TODO: source input validation (base model design etc)
 
 class tao_plot_tr_window(tao_list_window):
@@ -966,21 +1097,55 @@ class tao_plot_tr_window(tao_list_window):
   Use a drop-down list to select template to view.
   '''
   def __init__(self, root, pipe, mode, *args, **kwargs):
-    tao_list_window.__init__(self, root, "Plot Templates", *args, **kwargs)
+    tao_list_window.__init__(self, root, "Edit Plots", *args, **kwargs)
     self.minsize(325, 100)
     self.pipe = pipe
     self.mode = mode
-    if self.mode == "R":
-      self.title("Active Plots")
 
+    # Widgets for swapping between templates and plots
     self.temp_frame = tk.Frame(self)
-    if self.mode == "T":
-      tk.Label(self.temp_frame, text="Choose template:").grid(row=0, column=0)
-    elif self.mode == "R":
-      tk.Label(self.temp_frame, text="Choose plot:").grid(row=0, column=0)
-    self.temp_frame.columnconfigure(0, pad=10)
     self.temp_frame.pack(fill="both", expand=0)
+    self.temp_frame.columnconfigure(0, pad=10)
 
+    # Template/Active Plots
+    tk.Label(self.temp_frame, text="Show:").grid(row=0, column=0, sticky='W')
+    self.mode_var = tk.StringVar()
+    if self.mode == "T":
+      self.mode_var.set('Templates')
+    elif self.mode == 'R':
+      self.mode_var.set('Active Plots')
+    tk.OptionMenu(self.temp_frame, self.mode_var, 'Templates', 'Active Plots',
+        command = self.swap_mode).grid(row=0, column=1, sticky='EW')
+
+    # Plot chooser
+    tk.Label(self.temp_frame, text="Choose plot:").grid(row=1, column=0, sticky='W')
+    self.temp = tk.StringVar()
+    self.temp_select = ttk.Combobox(
+        self.temp_frame, textvariable=self.temp, values=[])
+    self.temp_select.bind("<<ComboboxSelected>>", self.refresh)
+    self.temp_select.bind("<Return>", self.refresh)
+    self.temp_select.grid(row=1, column=1)
+
+    self.swap_mode(overide=True) # also runs self.refresh()
+
+    # Apply/transfer buttons
+    self.button_frame = tk.Frame(self)
+    self.button_frame.pack(fill="both", expand=0)
+    b = tk.Button(
+        self.button_frame, text="Apply changes", command=self.plot_apply)
+
+    b.pack(side="left", fill="both", expand=0)
+
+  def swap_mode(self, overide=False, event=None):
+    '''
+    Swaps between showing templates and active plots
+    Will always run if overide is set to True
+    '''
+    mode_dict = {'Templates':'T', 'Active Plots':'R'}
+    new_mode = mode_dict[self.mode_var.get()]
+    if (self.mode == new_mode) and not overide:
+      return #no action necessary
+    self.mode = new_mode
     if self.mode == "T":
       plot_list = self.pipe.cmd_in("python plot_list t")
     elif self.mode == "R":
@@ -1003,35 +1168,14 @@ class tao_plot_tr_window(tao_list_window):
           self.index_list.append(plot_list[i].split(';')[0])
           self.region_list.append(plot_list[i].split(';')[1])
 
+    self.temp_select.configure(values=self.plot_list)
     if self.plot_list == []:
+      for child in self.list_frame.winfo_children():
+        child.destroy()
       tk.Label(self.list_frame, text="NO PLOTS FOUND").pack()
       return
-
-    self.temp = tk.StringVar()
     self.temp.set(self.plot_list[0])
-    self.temp_select = ttk.Combobox(
-        self.temp_frame, textvariable=self.temp, values=self.plot_list)
-    self.temp_select.bind("<<ComboboxSelected>>", self.refresh)
-    self.temp_select.bind("<Return>", self.refresh)
-    self.temp_select.grid(row=0, column=1)
-
     self.refresh()
-
-    self.button_frame = tk.Frame(self)
-    self.button_frame.pack(fill="both", expand=0)
-    b = tk.Button(
-        self.button_frame, text="Apply changes", command=self.plot_apply)
-    b.pack(side="left", fill="both", expand=0)
-    if (self.root.plot_mode == "matplotlib") & (self.mode == "T"):
-      plot_b = tk.Button(self.button_frame, text="Plot!", command=self.mpl_plot)
-      plot_b.pack(side="right", fill="both", expand=0)
-
-  def mpl_plot(self, event=None):
-    '''
-    Creates a new matplotlib window with the currently selected plot
-    '''
-    win = tao_plot_window(self.root, self.plot, self.pipe)
-    self.root.plot_windows.append(win)
 
   def refresh(self, event=None):
     '''
@@ -1092,6 +1236,7 @@ class tao_plot_tr_window(tao_list_window):
       data_list[i].tk_wid.grid(row=i+1+num_graphs, column=1, sticky='EW')
     self.tao_list = data_list
 
+
   def open_graph_callback(self, plot, graph):
     return lambda : self.open_graph(plot, graph)
 
@@ -1105,7 +1250,7 @@ class tao_plot_tr_window(tao_list_window):
       region = self.region_list[self.plot_list.index(self.plot)]
       graph = region+'.'+graph
     index = self.index_list[self.plot_list.index(self.plot)]
-    win = tao_plot_graph_window(self.root, graph, self.pipe, self.mode, index)
+    win = tao_plot_graph_window(self.root, graph, self, self.pipe, self.mode, index)
 
   def plot_apply(self):
     index = self.index_list[self.plot_list.index(self.plot)]
@@ -1236,8 +1381,9 @@ class tao_plot_graph_window(tao_list_window):
   index: passed from the plot template/region window,
   should be the index of this graph's plot template/region
   '''
-  def __init__(self, root, graph, pipe, mode, index, *args, **kwargs):
-    tao_list_window.__init__(self, root, graph, *args, **kwargs)
+  def __init__(self, root, graph, parent, pipe, mode, index, *args, **kwargs):
+    tao_list_window.__init__(self, root, graph, parent=parent, *args, **kwargs)
+    self.transient(parent)
     self.pipe = pipe
     self.graph = graph
     self.mode = mode
@@ -1250,6 +1396,8 @@ class tao_plot_graph_window(tao_list_window):
     b = tk.Button(
         self.button_frame, text="Apply changes", command=self.graph_apply)
     b.pack()
+
+    self.wait_window()
 
   def refresh(self):
     # Clear self.list_frame
@@ -2856,12 +3004,13 @@ class tao_new_data_window(tk.Toplevel):
     d1_count = 0 # used to make the corrent number of progress bars
     for u in uni_list:
       cmd_str = 'python data_d2_create ' + str(u) + '@' + self.name
-      cmd_str += ' ' + str(len(self.d1_frame_list)) + ' '
+      cmd_str += '^' + str(len(self.d1_frame_list)) + '^'
       for d1_frame in self.d1_frame_list:
         d1_count += 1
         # min/max indices for each d1_array
-        cmd_str += str(d1_frame.ix_min) + ' '
-        cmd_str += str(d1_frame.ix_max) + ' '
+        cmd_str += str(d1_frame.name) + '^'
+        cmd_str += str(d1_frame.ix_min) + '^'
+        cmd_str += str(d1_frame.ix_max) + '^'
       # Create the d2/d1_arrays
       self.pipe.cmd_in(cmd_str)
     # Progress bars
@@ -2871,24 +3020,16 @@ class tao_new_data_window(tk.Toplevel):
       #set_str = 'set data ' + str(u) + '@' + self.name + '|'
       #tao_set(self.d2_param_list[2:5], set_str, self.pipe)
       # Set parameters at the d1 level
-      # Set the names last for convenience
-      i = 1 #temp names set by tao
       for d1_frame in self.d1_frame_list:
         self.pw.label_vars[self.pw.ix].set(
             'Creating' + str(u) + '@' + self.name + '.' + d1_frame.name)
         self.pw.set_max(self.pw.ix, d1_frame.ix_max-d1_frame.ix_min+1)
-        #self.update_idletasks()
-        #tao_set(d1_frame.d1_array_wids[1:5], set_str, self.pipe)
         # set individual data parameters
-        #set_format = set_str[:-1] + '[{}]|'
-        #tao_dict_set(d1_frame.data_dict, set_format, self.pipe)
-        # set name now
-        #tao_set(d1_frame.d1_array_wids[0:1], set_str, self.pipe)
         for j in range(d1_frame.ix_min, d1_frame.ix_max+1):
           self.pw.set_val(self.pw.ix, j-d1_frame.ix_min)
           #self.update_idletasks()
           cmd_str = 'python datum_create '
-          cmd_str += str(u) + '@' + self.name + '.' + str(i) + '[' + str(j) + ']'
+          cmd_str += str(u) + '@' + self.name + '.' + d1_frame.name + '[' + str(j) + ']'
           for p in datum_params:
             #look in d1_frame.data_dict
             if (j in d1_frame.data_dict.keys()) and (p in d1_frame.data_dict[j].keys()):
@@ -2900,10 +3041,6 @@ class tao_new_data_window(tk.Toplevel):
             else:
               cmd_str += '^'
           self.pipe.cmd_in(cmd_str)
-        # set name now
-        #set_str = 'set data ' + str(u) + '@' + self.name + '.' + str(i) + '|'
-        #tao_set(d1_frame.d1_array_wids[0:1], set_str, self.pipe)
-        i = i+1
         self.pw.ix += 1
       # set data|exists = T
       #self.pipe.cmd_in('set data ' + str(u) + '@' + self.name + '|exists = T')
