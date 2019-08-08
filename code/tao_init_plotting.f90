@@ -654,15 +654,9 @@ do  ! Loop over plot files
             '*****         CURVE%DRAW_INTERPOLATED_CURVE          *****', &
             '***** NEEDS TO BE CHANGED TO:                        *****', &
             '*****         CURVE%SMOOTH_LINE_CALC                 *****', &
-            '***** TAO WILL RUN NORMALLY FOR NOW...               *****', &
             '**********************************************************'] )
-          crv%smooth_line_calc = .false.
+          stop
         endif
-
-        ! Convert old syntax to new
-
-        ix = index(crv%data_type, 'emittance.')
-        if (ix /= 0) crv%data_type = crv%data_type(1:ix-1) // 'emit.' // crv%data_type(ix+10:)
 
         ! Default data type
 
@@ -874,6 +868,9 @@ end subroutine tao_uppercase_shapes
 
 subroutine tao_setup_default_plotting()
 
+type (tao_plot_struct), pointer :: plt
+type (tao_graph_struct), pointer :: grph
+type (tao_curve_struct), pointer :: crv
 type (branch_struct), pointer :: branch
 type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_plot_g2c1, default_plot_g1c3, default_plot_g1c4
 type (tao_plot_struct), allocatable :: temp_template(:)
