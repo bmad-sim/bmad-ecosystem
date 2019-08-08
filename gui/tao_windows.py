@@ -164,8 +164,8 @@ class tao_parameter_frame(tk.Frame):
 # Parameter window
 class tao_parameter_window(tao_list_window):
 
-  def __init__(self, root, title, tao_list, pipe, plot="", *args, **kwargs):
-    tao_list_window.__init__(self, root, title, *args, **kwargs)
+  def __init__(self, root, title, tao_list, pipe, plot="", parent=None, *args, **kwargs):
+    tao_list_window.__init__(self, root, title, parent=parent, *args, **kwargs)
     self.button_frame = tk.Frame(self)
     self.button_frame.pack(side="top", fill="both", expand=0)
     self.tao_list = tao_list
@@ -1384,6 +1384,7 @@ class tao_plot_graph_window(tao_list_window):
   def __init__(self, root, graph, parent, pipe, mode, index, *args, **kwargs):
     tao_list_window.__init__(self, root, graph, parent=parent, *args, **kwargs)
     self.transient(parent)
+    self.grab_set()
     self.pipe = pipe
     self.graph = graph
     self.mode = mode
@@ -1454,11 +1455,7 @@ class tao_plot_graph_window(tao_list_window):
     Opens a window to display info for a given curve
     '''
     curve = graph + '.' + curve
-    win = tao_plot_curve_window(self.root, curve, self.pipe)
-
-    b = tk.Button(win.button_frame, text="Apply changes",
-        command=lambda : self.curve_apply(win))
-    b.pack()
+    win = tao_plot_curve_window(self.root, curve, self, self.pipe)
 
   def curve_apply(self, win):
     #Convert from plot.graph.curve to index.graph.curve
@@ -1505,7 +1502,7 @@ class tao_plot_curve_window(tao_parameter_window):
   '''
   Displays info for a given curve
   '''
-  def __init__(self, root, curve, pipe, *args, **kwargs):
+  def __init__(self, root, curve, parent, pipe, *args, **kwargs):
     # Get the parameters
     self.curve = curve
     self.pipe = pipe
@@ -1515,7 +1512,14 @@ class tao_plot_curve_window(tao_parameter_window):
       data_list[i] = str_to_tao_param(data_list[i])
 
     tao_parameter_window.__init__(
-        self, root, curve, data_list, self.pipe, plot=curve.split('.')[0], *args, **kwargs)
+        self, root, curve, data_list, self.pipe, plot=curve.split('.')[0], parent=parent, *args, **kwargs)
+
+    b = tk.Button(self.button_frame, text="Apply changes",
+        command=lambda : parent.curve_apply(self))
+    b.pack()
+    self.transient(parent)
+    self.grab_set()
+    self.wait_window(self)
 
 #-----------------------------------------------------
 # Branch/element choosing widgets
@@ -3033,13 +3037,18 @@ class tao_new_data_window(tk.Toplevel):
           for p in datum_params:
             #look in d1_frame.data_dict
             if (j in d1_frame.data_dict.keys()) and (p in d1_frame.data_dict[j].keys()):
-              cmd_str += '^' + d1_frame.data_dict[j][p]
+              #cmd_str += '^' + d1_frame.data_dict[j][p]
+              value = d1_frame.data_dict[j][p]
             elif p in d1_params:
-              cmd_str += '^' + d1_frame.d1_array_wids[d1_params.find(p)].tk_var.get()
+              #cmd_str += '^' + d1_frame.d1_array_wids[d1_params.index(p)].tk_var.get()
+              value = d1_frame.d1_array_wids[d1_params.index(p)].tk_var.get()
             elif p in d2_params:
-              cmd_str += '^' + self.d2_param_list[d1_params.find(p)].tk_var.get()
+              value = self.d2_param_list[d2_params.index(p)].tk_var.get()
             else:
-              cmd_str += '^'
+              value = ""
+            if p == "good_user": # replace with T or F
+              value = "T" if value else "F"
+            cmd_str += '^' + value
           self.pipe.cmd_in(cmd_str)
         self.pw.ix += 1
       # set data|exists = T
