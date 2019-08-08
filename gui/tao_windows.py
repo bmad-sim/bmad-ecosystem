@@ -3020,10 +3020,7 @@ class tao_new_data_window(tk.Toplevel):
     # Progress bars
     self.pw = tao_progress_window(self.root, self, d1_count)
     for u in uni_list:
-      # Set parameters at the d2 level
-      #set_str = 'set data ' + str(u) + '@' + self.name + '|'
-      #tao_set(self.d2_param_list[2:5], set_str, self.pipe)
-      # Set parameters at the d1 level
+      # Progress window config
       for d1_frame in self.d1_frame_list:
         self.pw.label_vars[self.pw.ix].set(
             'Creating' + str(u) + '@' + self.name + '.' + d1_frame.name)
@@ -3031,16 +3028,13 @@ class tao_new_data_window(tk.Toplevel):
         # set individual data parameters
         for j in range(d1_frame.ix_min, d1_frame.ix_max+1):
           self.pw.set_val(self.pw.ix, j-d1_frame.ix_min)
-          #self.update_idletasks()
           cmd_str = 'python datum_create '
           cmd_str += str(u) + '@' + self.name + '.' + d1_frame.name + '[' + str(j) + ']'
           for p in datum_params:
             #look in d1_frame.data_dict
             if (j in d1_frame.data_dict.keys()) and (p in d1_frame.data_dict[j].keys()):
-              #cmd_str += '^' + d1_frame.data_dict[j][p]
               value = d1_frame.data_dict[j][p]
             elif p in d1_params:
-              #cmd_str += '^' + d1_frame.d1_array_wids[d1_params.index(p)].tk_var.get()
               value = d1_frame.d1_array_wids[d1_params.index(p)].tk_var.get()
             elif p in d2_params:
               value = self.d2_param_list[d2_params.index(p)].tk_var.get()
@@ -3051,8 +3045,6 @@ class tao_new_data_window(tk.Toplevel):
             cmd_str += '^' + value
           self.pipe.cmd_in(cmd_str)
         self.pw.ix += 1
-      # set data|exists = T
-      #self.pipe.cmd_in('set data ' + str(u) + '@' + self.name + '|exists = T')
     # Close the window
     self.destroy()
 
@@ -3661,15 +3653,18 @@ class tao_new_var_window(tk.Toplevel):
             cmd_str += '^'
             continue
           p = params[j]
+          v1_ix = v1_params.index(p)
           if p in var_dict.keys():
-            v1_ix = v1_params.index(p)
             if p == 'universes' and var_dict[p]=="": #cannot be empty
               u = v1_frame.v1_array_wids[v1_ix].tk_var.get()
               if u == "":
                 u = '*'
               cmd_str += u + '^'
             else:
-              cmd_str += str(var_dict[p]) + '^'
+              if v1_frame.v1_array_wids[v1_ix].param.type == 'LOGIC':
+                cmd_str += ('T^' if var_dict[p] else 'F^')
+              else:
+                cmd_str += str(var_dict[p]) + '^'
           else:
             if v1_frame.v1_array_wids[v1_ix].param.type == 'LOGIC':
               cmd_str += ('T^' if v1_frame.v1_array_wids[v1_ix].tk_var.get() else 'F^')
