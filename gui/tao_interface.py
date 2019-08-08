@@ -64,7 +64,7 @@ class tao_interface():
       'python plot_transfer']
   def __init__(self, mode, init_args = "", tao_exe =  "", expect_str = "Tao>", so_lib=""):
     # DEBUG
-    if debug:
+    if self.debug:
       print(init_args)
     ###
     self.mode = mode
@@ -166,8 +166,8 @@ class tao_interface():
     no_warn is set True
     '''
     # DEBUG
-    if debug:
-      for p in debug_patterns:
+    if self.debug:
+      for p in self.debug_patterns:
         if cmd_str.find(p) != 0:
           print(cmd_str)
     ###
