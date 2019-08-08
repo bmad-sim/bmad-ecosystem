@@ -700,6 +700,7 @@ case ('data_d2_create')
       u%data(1:u%n_data_used) = d_temp(1:u%n_data_used)
       do i = 1, size(u%data)
         u%data(i)%ix_data = i
+        u%data(i)%ix_uni = u%ix_uni
       enddo
     endif
   else
