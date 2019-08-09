@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
-T = True    # For converting from data file header T/F notation
+T = True    # For converting from det_pix file header T/F notation
 F = False
 
 # Check version
