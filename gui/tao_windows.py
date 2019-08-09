@@ -3768,11 +3768,11 @@ class tao_new_var_window(Tao_Toplevel):
         v1_params = ['name', 'universes', 'attribute', 'weight', 'step', 'merit_type',
             'low_lim', 'high_lim', 'good_user', 'key_bound', 'key_delta']
         for j in range(len(params)):
-          if j == 0:
-            cmd_str += '^^'
-            continue
           p = params[j]
-          v1_ix = v1_params.index(p)
+          if j != 0:
+            v1_ix = v1_params.index(p)
+          else:
+            v1_ix = 0
           if p in var_dict.keys():
             if p == 'universes' and var_dict[p]=="": #cannot be empty
               u = v1_frame.v1_array_wids[v1_ix].tk_var.get()
@@ -3785,6 +3785,9 @@ class tao_new_var_window(Tao_Toplevel):
               else:
                 cmd_str += str(var_dict[p]) + '^^'
           else:
+            if j == 0:
+              cmd_str += '^^'
+              continue
             if v1_frame.v1_array_wids[v1_ix].param.type == 'LOGIC':
               cmd_str += ('T^^' if v1_frame.v1_array_wids[v1_ix].tk_var.get() else 'F^^')
             elif p == 'universes': #cannot be empty
