@@ -37,13 +37,6 @@ class tao_root_window(tk.Tk):
     # Menu bar
     #self.menubar_init()
 
-    # Init GUI
-
-    self.old_init_args = ""
-    init_frame = tk.Frame(self)
-    init_frame.pack()
-    self.tao_load(init_frame)
-
     # Window lists (accessible for refreshing)
     self.refresh_windows = {}
     self.tao_id_list = ['plot', 'data', 'var', 'ele', 'lat']
@@ -53,6 +46,13 @@ class tao_root_window(tk.Tk):
     # Key bindings
 
     self.bind_all("<Control-q>", self.quit_cmd)
+
+    # Init GUI
+
+    self.old_init_args = ""
+    init_frame = tk.Frame(self)
+    init_frame.pack()
+    self.tao_load(init_frame)
 
   #-------------------------
   # Tao startup
@@ -229,7 +229,6 @@ class tao_root_window(tk.Tk):
         if plot in plot_templates:
           # Make a window for the plot
           win = tao_plot_window(self, plot, self.pipe)
-          self.plot_windows.append(win)
 
   def tao_load(self,init_frame):
     '''
