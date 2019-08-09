@@ -19,12 +19,15 @@ class taotoolbar(NavigationToolbar2Tk):
 			)
 		NavigationToolbar2Tk.__init__(self,canvas_,parent_)
 
-	cid = 'none'
-	cur_ax = 'none'
+
+	cid = 'none' #connection id for scroll wheel
+	cur_ax = 'none' #axes instance that the mouse is currently over or 'none'
+
 
 	def enter_axes(self,event):
 		if event.inaxes is not None:
 			self.cur_ax = event.inaxes
+
 
 	def leave_axes(self,event):
 		if event.inaxes is None:
@@ -32,13 +35,14 @@ class taotoolbar(NavigationToolbar2Tk):
 
 
 	def zoom_factory(self,axes,canv,event,on = False,cid='none',base_scale = 2):
+		'''controls connections for scroll wheel zooming'''
 
 		fig = canv[0].get_figure() # get the figure of interest
 		enter=fig.canvas.mpl_connect('axes_enter_event', self.enter_axes)
 		leave=fig.canvas.mpl_connect('axes_leave_event', self.leave_axes)
 
-
 		def zoom_fun(event):
+			'''changes graph axes if scroll wheel is used'''
 			if self.cur_ax != 'none':
 				ax = self.cur_ax
 				# get the current x and y limits
@@ -66,7 +70,6 @@ class taotoolbar(NavigationToolbar2Tk):
 					ydata + y_bottom*scale_factor])
 				self.canvas.draw_idle()
 
-
 		# attach the call back
 		if on == True and cid == 'none':
 			self.cid=fig.canvas.mpl_connect('scroll_event',zoom_fun)
@@ -82,8 +85,8 @@ class taotoolbar(NavigationToolbar2Tk):
 
 	def pan(self, *args):
 		"""Activate the pan/zoom tool. pan with left button, zoom with right"""
-		# set the pointer icon and button press funcs to the
-		# appropriate callbacks
+		#set the pointer icon and button press funcs to the appropriate callbacks
+		#default matplotlib pan tool, but with added scroll wheel zooming in pan/zoom mode
 		if self._active == 'PAN':
 			self._active = None
 		else:
