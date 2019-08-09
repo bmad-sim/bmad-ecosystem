@@ -832,7 +832,7 @@ end subroutine order_evecs_by_tune
 !  N(6,6)              -- real(rp): X = N.J
 !  err_flag            -- logical: Set to true on error.  Often means Eigen decomposition failed.
 !  tunes_out(3)        -- real(rp), optional: Fractional tune (in radians) of the 3 normal modes of t6.
-!  U(6,6)              -- real(rp), U = Inverse(N).t6.N.  Block diagonal matrix of 2x2 rotation matrices.
+!  U(6,6)              -- real(rp), optional: U = Inverse(N).t6.N.  Block diagonal matrix of 2x2 rotation matrices.
 !-
 
 subroutine make_N(t6, N, err_flag, abz_tunes, tunes_out, U)
@@ -879,7 +879,11 @@ endif
 
 call normalize_evecs(evec, err_flag)
 if (err_flag) then
-  call out_io (s_error$, r_name, "CANNOT NORMALIZE EIGENVECTORS.")
+  if (t6(6,5) == 0) then
+    call out_io (s_error$, r_name, "CANNOT NORMALIZE EIGENVECTORS. LOOKS LIKE THE RF IS OFF (M65 IS ZERO)")
+  else
+    call out_io (s_error$, r_name, "CANNOT NORMALIZE EIGENVECTORS.")
+  endif
   return
 endif
 

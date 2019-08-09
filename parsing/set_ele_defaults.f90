@@ -140,7 +140,8 @@ case (girder$)
   ele%value(origin_ele_ref_pt$) = center_pt$
 
 case (hybrid$) 
-  ! Nothing to be done.
+  ele%tracking_method = taylor$
+  ele%mat6_calc_method = taylor$
 
 case (lcavity$)
   ele%value(coupler_at$) = exit_end$

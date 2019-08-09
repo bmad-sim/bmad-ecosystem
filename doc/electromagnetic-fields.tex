@@ -549,7 +549,7 @@ Sec.~\sref{s:cylind.ac}.
 \label{s:cylind.dc}
 
 The DC \vn{cylindrical} parametrization used by \bmad essentially follows Venturini et
-al.\cite{b:vent.map}. See Section~\sref{s:fieldmap} for details on the synax used to cylindrical
+al.\cite{b:vent.map}. See Section~\sref{s:fieldmap} for details on the syntax used to cylindrical
 maps in \bmad. The electric and magnetic fields are both described by a scalar potential
 \Begineq
   \bfB = -\nabla \, \psi_B, \qquad \bfE = \nabla \, -\psi_E
@@ -918,12 +918,13 @@ modes where
   \label{wadzk}
 \Endeq
 The parameters $(A_i, d_i, k_i, \phi_i)$ are chosen to fit the calculated wake potential
-(\sref{s:sr.wake.file}). The dimensionless overall amplitude scale $A_{amp}$ is indroduced as a
-convenient way to scale the overall wake. The reason why the mode approach is used in \bmad is due
-to the fact that, using pseudo modes, the calculation time scales as the number of particles $N$
-while a calculation based upon a table of wake vs $z$ would scale as $N^2$. [The disadvantage is
-that initially the user must proform a fit to the wake potential to generate the mode parameter
-values.]
+(\sref{s:sr.wake.file}). Since $z$ is negative for trailing particles, $d_i$ should be positive to
+get the wake to decay exponentially with distance. The dimensionless overall amplitude scale
+$A_{amp}$ is indroduced as a convenient way to scale the overall wake. The reason why the mode
+approach is used in \bmad is due to the fact that, using pseudo modes, the calculation time scales
+as the number of particles $N$ while a calculation based upon a table of wake vs $z$ would scale as
+$N^2$. [The disadvantage is that initially the user must proform a fit to the wake potential to
+generate the mode parameter values.]
 
 %-----------------------------
 \subsection{Long--Range Wakes}
