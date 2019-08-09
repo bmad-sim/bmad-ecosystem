@@ -849,9 +849,8 @@ class tao_var_general_window(tao_list_window):
     self.tao_id = 'var'
     tao_list_window.__init__(self, root, "v1 Variables", *args, **kwargs)
     self.pipe = pipe
-    self.list_frame.grid_columnconfigure(0, pad=10)
-    self.list_frame.grid_columnconfigure(1, pad=10)
-    self.list_frame.grid_columnconfigure(2, pad=10)
+    for i in [0,3,4]:
+      self.list_frame.grid_columnconfigure(i, pad=10)
     self.refresh()
 
   def refresh(self):
@@ -863,17 +862,19 @@ class tao_var_general_window(tao_list_window):
       v1_var_list[i] = v1_var_list[i].split(';')
 
     tk.Label(self.list_frame, text="Variable").grid(
-        row=0, column=0, columnspan=2)
-    tk.Label(self.list_frame, text="Indices").grid(row=0, column=2)
-    tk.Label(self.list_frame, text="Using").grid(row=0, column=3)
+        row=0, column=0, columnspan=3, sticky='W')
+    tk.Label(self.list_frame, text="Indices").grid(row=0, column=3)
+    tk.Label(self.list_frame, text="Using").grid(row=0, column=4)
 
     i=1
     for item in v1_var_list:
-      tk.Label(self.list_frame, text=item[0]).grid(row=i, column=0)
+      tk.Label(self.list_frame, text=item[0]).grid(row=i, column=0, sticky='W')
       tk.Button(self.list_frame, text="View...",
           command=self.open_v1_callback(item[0])).grid(row=i, column=1)
-      tk.Label(self.list_frame,text=item[2] +':'+ item[3]).grid(row=i,column=2)
-      tk.Label(self.list_frame, text=item[1]).grid(row=i, column=3)
+      tk.Button(self.list_frame, text="Edit...",
+          command=self.edit_v1_callback(item[0])).grid(row=i, column=2)
+      tk.Label(self.list_frame,text=item[2] +':'+ item[3]).grid(row=i,column=3)
+      tk.Label(self.list_frame, text=item[1]).grid(row=i, column=4)
       i = i+1
 
   def open_v1_callback(self, v1_var_name):
@@ -881,6 +882,12 @@ class tao_var_general_window(tao_list_window):
 
   def open_v1(self, v1_var_name):
     win = tao_v1_var_window(self.root, self.pipe, v1_var_name)
+
+  def edit_v1_callback(self, v1_var_name):
+    return lambda : self.edit_v1(v1_var_name)
+
+  def edit_v1(self, v1_var_name):
+    win = tao_new_var_window(self.root, self.pipe, default=v1_var_name)
 
 #-----------------------------------------------------
 # v1_var window
@@ -2859,6 +2866,8 @@ class tao_new_data_window(Tao_Toplevel):
     if default != None:
       self.d2_param_list[0].tk_var.set(default)
       self.load_d1_frame(ask=False)
+      for d1_frame in self.d1_frame_list:
+        d1_frame.fill_defaults()
 
   def fill_d2_frame(self):
     tk.Label(self.d2_frame, text="New d2 Data",
@@ -3106,13 +3115,13 @@ class tao_new_data_window(Tao_Toplevel):
     d1_count = 0 # used to make the corrent number of progress bars
     for u in uni_list:
       cmd_str = 'python data_d2_create ' + str(u) + '@' + self.name
-      cmd_str += '^' + str(len(self.d1_frame_list)) + '^'
+      cmd_str += '^^' + str(len(self.d1_frame_list)) + '^^'
       for d1_frame in self.d1_frame_list:
         d1_count += 1
         # min/max indices for each d1_array
-        cmd_str += str(d1_frame.name) + '^'
-        cmd_str += str(d1_frame.ix_min) + '^'
-        cmd_str += str(d1_frame.ix_max) + '^'
+        cmd_str += str(d1_frame.name) + '^^'
+        cmd_str += str(d1_frame.ix_min) + '^^'
+        cmd_str += str(d1_frame.ix_max) + '^^'
       # Create the d2/d1_arrays
       self.pipe.cmd_in(cmd_str)
     # Progress bars
@@ -3140,7 +3149,7 @@ class tao_new_data_window(Tao_Toplevel):
               value = ""
             if p == "good_user": # replace with T or F
               value = "T" if value else "F"
-            cmd_str += '^' + value
+            cmd_str += '^^' + value
           self.pipe.cmd_in(cmd_str)
         self.pw.ix += 1
     # Close the window
@@ -3251,6 +3260,7 @@ class new_d1_frame(tk.Frame):
     self.d1_array_wids[1].tk_var.trace('w', self.data_source_handler)
     self.d1_array_wids[2].tk_var.trace('w', self.data_type_handler)
 
+
     # "Fill" to datums
     def datum_fill_callback(ix):
       '''Helper function for buttons below'''
@@ -3327,9 +3337,6 @@ class new_d1_frame(tk.Frame):
           # Write to self.data_dict
           self.data_dict[i][p] = line.split(';')[3].strip()
       self.d2_array.pw.ix += 1
-      # Set default data_type to data_type of first datum
-      self.d1_array_wids[1].tk_var.set(self.data_dict[self.ix_min]['data_source'])
-      self.d1_array_wids[2].tk_var.set(self.data_dict[self.ix_min]['data_type'])
       # Load first datum
       self.data_ix.set(self.ix_min)
       self.make_datum_frame()
@@ -3344,6 +3351,16 @@ class new_d1_frame(tk.Frame):
 
     # Focus the d1 name widget
     self.d1_array_wids[0].tk_wid.focus_set()
+
+  def fill_defaults(self, event=None):
+    '''
+    Copies the properties of the first datum and makes them the defaults at the d1 level
+    '''
+    self.d1_array_wids[1].tk_var.set(self.data_dict[self.ix_min]['data_source'])
+    self.d1_array_wids[2].tk_var.set(self.data_dict[self.ix_min]['data_type'])
+    self.d1_array_wids[3].tk_var.set(self.data_dict[self.ix_min]['data^merit_type'])
+    self.d1_array_wids[4].tk_var.set(self.data_dict[self.ix_min]['weight'])
+    self.d1_array_wids[5].tk_var.set(True if self.data_dict[self.ix_min]['good_user'] == 'T' else False)
 
   def delete(self, ask=True, event=None):
     '''
@@ -3619,7 +3636,7 @@ class tao_new_var_window(Tao_Toplevel):
   '''
   Provides a window for creating new v1_variable arrays
   '''
-  def __init__(self, root, pipe, *args, **kwargs):
+  def __init__(self, root, pipe, default=None, *args, **kwargs):
     self.root = root
     Tao_Toplevel.__init__(self, root, *args, **kwargs)
     self.pipe = pipe
@@ -3645,6 +3662,10 @@ class tao_new_var_window(Tao_Toplevel):
     # Create button
     self.create_b = tk.Button(self, text="Create!", command=self.create_variables)
     self.create_b.pack(side='right')
+
+    # Clone default if it exists
+    if default != None:
+      self.v1_frame_list[0].clone(default)
 
   def create_variables(self, event=None):
     '''
@@ -3735,7 +3756,7 @@ class tao_new_var_window(Tao_Toplevel):
       # Create the individual variables
       for i in range(v1_frame.ix_min, v1_frame.ix_max+1):
         cmd_str = 'python var_create ' + v1_frame.name
-        cmd_str += '[' + str(i) + ']^'
+        cmd_str += '[' + str(i) + ']^^'
         if i in v1_frame.var_dict.keys():
           var_dict = v1_frame.var_dict[i]
         else:
@@ -3748,7 +3769,7 @@ class tao_new_var_window(Tao_Toplevel):
             'low_lim', 'high_lim', 'good_user', 'key_bound', 'key_delta']
         for j in range(len(params)):
           if j == 0:
-            cmd_str += '^'
+            cmd_str += '^^'
             continue
           p = params[j]
           v1_ix = v1_params.index(p)
@@ -3757,23 +3778,23 @@ class tao_new_var_window(Tao_Toplevel):
               u = v1_frame.v1_array_wids[v1_ix].tk_var.get()
               if u == "":
                 u = '*'
-              cmd_str += u + '^'
+              cmd_str += u + '^^'
             else:
               if v1_frame.v1_array_wids[v1_ix].param.type == 'LOGIC':
-                cmd_str += ('T^' if var_dict[p] else 'F^')
+                cmd_str += ('T^^' if var_dict[p] else 'F^^')
               else:
-                cmd_str += str(var_dict[p]) + '^'
+                cmd_str += str(var_dict[p]) + '^^'
           else:
             if v1_frame.v1_array_wids[v1_ix].param.type == 'LOGIC':
-              cmd_str += ('T^' if v1_frame.v1_array_wids[v1_ix].tk_var.get() else 'F^')
+              cmd_str += ('T^^' if v1_frame.v1_array_wids[v1_ix].tk_var.get() else 'F^^')
             elif p == 'universes': #cannot be empty
               u = v1_frame.v1_array_wids[v1_ix].tk_var.get()
               if u == "":
                 u = '*'
-              cmd_str += u + '^'
+              cmd_str += u + '^^'
             else:
-              cmd_str += v1_frame.v1_array_wids[v1_ix].tk_var.get() + '^'
-        cmd_str = cmd_str[:-1] # remove ending ^
+              cmd_str += v1_frame.v1_array_wids[v1_ix].tk_var.get() + '^^'
+        cmd_str = cmd_str[:-2] # remove ending ^^
         self.pipe.cmd_in(cmd_str)
       # Set parameters at the v1 level
       #set_str = 'set var ' + v1_frame.name + '|'
@@ -4299,6 +4320,9 @@ class new_v1_frame(tk.Frame):
         universes += str(u) + ','
       universes = universes[:-1] # remove extra comma
       self.var_dict[i]['universes'] = universes
+    # Set v1 defaults to var_dict[self.ix_min] values
+    for i in range(1, len(var_params)):
+      self.v1_array_wids[i+1].tk_var.set(self.var_dict[self.ix_min][var_params[i]])
 
 
 
