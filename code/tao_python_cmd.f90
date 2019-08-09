@@ -614,15 +614,15 @@ case ('data')
 ! Create a d2 data structure along with associated d1 and data arrays.
 !
 ! Command syntax:
-!   python data_d2_create {d2_name}^{n_d1_data}^{d_data_arrays_name_min_max}
+!   python data_d2_create {d2_name}^^{n_d1_data}^^{d_data_arrays_name_min_max}
 ! {d2_name} should be of the form {ix_uni}@{d2_datum_name}
 ! {n_d1_data} is the number of associated d1 data structures.
 ! {d_data_arrays_name_min_max} has the form
-!   {name1}^{lower_bound1}^{upper_bound1}^....^{nameN}^{lower_boundN}^{upper_boundN}
+!   {name1}^^{lower_bound1}^^{upper_bound1}^^....^^{nameN}^^{lower_boundN}^^{upper_boundN}
 ! where {name} is the data array name and {lower_bound} and {upper_bound} are the bounds of the array.
 !
 ! Example:
-!   python data_d2_create 2@orbit^2^x^0^45^y^1^47
+!   python data_d2_create 2@orbit^^2^^x^^0^^45^^y^^1^^47
 ! This example creates a d2 data structure called "orbit" with two d1 structures called "x" and "y".
 ! The "x" d1 structure has an associated data array with indexes in the range [0, 45].
 ! The "y" d1 structure has an associated data arrray with indexes in the range [1, 47].
@@ -645,7 +645,7 @@ case ('data_d2_create')
   do i = 1, n_d1
     j = 3 * i
     if (.not. is_integer(name1(j+1)) .or. .not. is_integer(name1(j+2))) then
-      call invalid('Malformed data parameters: ' // trim(name1(j)) // '^' // trim(name1(j+1)) // '^' // trim(name1(j+2)))
+      call invalid('Malformed data parameters: ' // trim(name1(j)) // '^^' // trim(name1(j+1)) // '^^' // trim(name1(j+2)))
       return
     endif
     name2(i) = name1(j)
@@ -853,9 +853,9 @@ case ('data_d2_array')
 !----------------------------------------------------------------------
 ! Create a datum.
 ! Command syntax:
-!   python datum_create {datum_name}^{data_type}^{ele_ref_name}^{ele_start_name}^{ele_name}^{merit_type}^
-!                                  {meas}^{ref}^{weight}^{good_user}^{data_source}^{eval_point}^{s_offset}^
-!                                  {ix_bunch}^{invalid_value}^{spin_n0_x}^{spin_n0_y}^{spin_n0_z}
+!   python datum_create {datum_name}^^{data_type}^^{ele_ref_name}^^{ele_start_name}^^{ele_name}^^{merit_type}^^
+!                                  {meas}^^{ref}^^{weight}^^{good_user}^^{data_source}^^{eval_point}^^{s_offset}^^
+!                                  {ix_bunch}^^{invalid_value}^^{spin_n0_x}^^{spin_n0_y}^^{spin_n0_z}
 
 case ('datum_create')
 
@@ -3366,8 +3366,8 @@ case ('var')
 !----------------------------------------------------------------------
 ! Create a single variable
 ! Command syntax:
-!   python var_create {var_name}^{ele_name}^{attribute}^{universes}^{weight}^{step}^{low_lim}^{high_lim}^
-!                                                                     {merit_type}^{good_user}^{key_bound}^{key_delta}
+!   python var_create {var_name}^^{ele_name}^^{attribute}^^{universes}^^{weight}^^{step}^^{low_lim}^^{high_lim}^^
+!                                                                     {merit_type}^^{good_user}^^{key_bound}^^{key_delta}
 
 case ('var_create')
 
@@ -4372,7 +4372,7 @@ integer num
 integer i, ix
 logical err
 
-! For input, "^" is used as the separator instead of ";" since the Tao code that
+! For input, "^^" is used as the separator instead of ";" since the Tao code that
 ! calls python_cmd will interpret ";" as a command separator and will thus mangle 
 ! the input_str argument.
 
@@ -4384,13 +4384,13 @@ do i = 1, 1000
     call invalid('LINE SPLITTING ARRAY OVERFLOW.')
     return
   endif
-  ix = index(str, '^')
+  ix = index(str, '^^')
   if (ix == 0) then
     array(i) = str
     exit
   endif
   array(i) = str(1:ix-1)
-  str = str(ix+1:)
+  str = str(ix+2:)
 enddo
 
 err = (num > 0 .and. i /= num)
