@@ -34,7 +34,7 @@ class taotoolbar(NavigationToolbar2Tk):
 			self.cur_ax = 'none'
 
 
-	def zoom_factory(self,axes,canv,event,on = False,cid='none',base_scale = 2):
+	def zoom_factory(self,axes,canv,event,on = False,cid='none',base_scale = 1.5):
 		'''controls connections for scroll wheel zooming'''
 
 		fig = canv[0].get_figure() # get the figure of interest
@@ -84,7 +84,7 @@ class taotoolbar(NavigationToolbar2Tk):
 	
 
 	def pan(self, *args):
-		"""Activate the pan/zoom tool. pan with left button, zoom with right"""
+		"""Activate the pan/zoom tool. pan with left button, zoom with right, zoom with scroll wheel"""
 		#set the pointer icon and button press funcs to the appropriate callbacks
 		#default matplotlib pan tool, but with added scroll wheel zooming in pan/zoom mode
 		if self._active == 'PAN':
