@@ -60,7 +60,7 @@
 
 \title{Lux Program}
 \author{D. Sagan, K. Finkelstein}
-\date{Revision 1.7 \\ April 16, 2019}
+\date{Revision 1.7 \\ August 7, 2019}
 
 %---------------------------------------------------------------------------------
 
@@ -772,23 +772,22 @@ plots is illustrated in the Bmad manual in the \vn{Lattice Examples} chapter.
 There is a python script for making an intensity plot of the
 \vn{det_pix_out_file} in:
 \begin{example}
-  $ACC_ROOT_DIR/lux/plot/det_pix_plot.py
+  $ACC_ROOT_DIR/lux/scripts/plot_det_pix.py
 \end{example}
-
 
 The script needs Python3 to run. You can invoke the script using the command
 \begin{example}
-  <path-to-lux-root-dir>/plot/det_pix_plot.py <det_pix_out_file>
+  <path-to-lux-root-dir>/scripts/plot_det_pix.py <det_pix_out_file>
 \end{example}
 where \vn{<det_pix_out_file>} is the actual name of the \vn{det_pix_out_file}.
 If the default version of python is not python3 then the following may work
 \begin{example}
-  python3 <path-to-lux-root-dir>/plot/det_pix_plot.py <det_pix_out_file>
+  python3 <path-to-lux-root-dir>/scripts/plot_det_pix.py <det_pix_out_file>
 \end{example}
 
 The script has a number of optional arguments. The syntax for running the script is:
 \begin{example}
-    det_pix_plot.py \{-scale <scale>\} \{-plot <who_to_plot>\} \{<data_file_name>\}
+    plot_det_pix.py \{-scale <scale>\} \{-plot <who_to_plot>\} \{<data_file_name>\}
   <who_to_plot> = x         # Intensity of x-polarized photons
                 = y         # Intensity of y-polarized photons
                 = i         # Total intensity (sum of x & y polarizations)

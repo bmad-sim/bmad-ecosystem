@@ -1117,6 +1117,7 @@ if (lux_param%det_pix_out_file /= '') then
   write (3, '(a, es16.5)')    'intensity_norm      =', sum(detec_grid%pt(:,:)%intensity) * normalization
   write (3, '(a, f10.6)')     'dx_pixel            =', detec_grid%dr(1)
   write (3, '(a, f10.6)')     'dy_pixel            =', detec_grid%dr(2)
+  write (3, '(a, i0)')        'photons_tracked     =', lux_data%n_track_tot
   write (3, '(a, i8)')        'nx_active_min       =', nx_active_min
   write (3, '(a, i8)')        'nx_active_max       =', nx_active_max
   write (3, '(a, i8)')        'ny_active_min       =', ny_active_min
