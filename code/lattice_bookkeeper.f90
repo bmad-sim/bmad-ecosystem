@@ -1,13 +1,14 @@
 !+
 ! Subroutine lattice_bookkeeper (lat, err_flag)
 !
-! Subroutine to do a "complete" bookkeeping job on a lattice:
+! Subroutine to do basic bookkeeping for a lattice:
 !   lord/slave control
 !   reference energy calc
 !   s-position calc
 !   geometry (floor position) calc
 !
-! Not done are Twiss, transfer matrices, and orbit calculations.  
+! Not done are any higher level calculations. Twiss, transfer matrices, 
+! orbit calculations, anything involving tracking, etc.
 !
 ! Note: This this routine does a complete job of bookking
 ! and could be unacceptably slow if lat%auto_bookkeeper = True.

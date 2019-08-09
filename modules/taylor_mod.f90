@@ -735,7 +735,7 @@ type (taylor_term_struct), pointer :: term
 
 real(rp), intent(out) :: mat6(6,6), vec0(6)
 real(rp) prod, t(6), t_out, out(6)
-real(rp), pointer :: r_ref(:)
+real(rp), pointer :: r_diff(:)
 
 integer i, j, k, l
 
@@ -745,28 +745,28 @@ mat6 = 0
 vec0 = 0
 out = 0
 
+r_diff = r_in - a_taylor(:)%ref
+
 !
 
 do i = 1, 6
-  r_ref => a_taylor(:)%ref
-
   terms: do k = 1, size(a_taylor(i)%term)
     term => a_taylor(i)%term(k)
  
     t_out = term%coef
     do l = 1, 6
       if (term%expn(l) == 0) cycle
-      t(l) = (r_in(l) - r_ref(l))**term%expn(l)
+      t(l) = r_diff(l)**term%expn(l)
       t_out = t_out * t(l)
     enddo
     out(i) = out(i) + t_out
  
     do j = 1, 6
       if (term%expn(j) == 0) cycle
-      if (term%expn(j) > 1 .and. r_in(j) == r_ref(j)) cycle
+      if (term%expn(j) > 1 .and. r_diff == 0) cycle
 
       if (term%expn(j) > 1)then
-        prod = term%coef * term%expn(j) * (r_in(j) - r_ref(j))**(term%expn(j)-1)
+        prod = term%coef * term%expn(j) * r_diff(j)**(term%expn(j)-1)
       else  ! term%expn(j) == 1
         prod = term%coef
       endif
@@ -778,13 +778,11 @@ do i = 1, 6
       enddo
 
       mat6(i,j) = mat6(i,j) + prod
-
     enddo
 
   enddo terms
 
   vec0(i) = out(i) - sum(mat6(i,:) * r_in)
-
 enddo
 
 if (present(r_out)) r_out = out

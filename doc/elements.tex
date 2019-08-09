@@ -2089,7 +2089,7 @@ manner as the present values.
 
 Example of a \vn{spline} based \vn{group} element:
 \begin{example}
-  gr2: group = \{beginning[e_tot]]:\{4e6,...\}\}, 
+  gr2: group = \{beginning[E_tot]]:\{4e6,...\}\}, 
       var = \{time\}, x_knot = \{...\}
 \end{example}
 Here the function used to translate from the \vn{group}'s variables to the slave attribute values is
@@ -3172,8 +3172,8 @@ Attributes specific to a \vn{patch} elements are:
   x_pitch         = <Real>    ! Exit face orientation from Entrance.
   y_pitch         = <Real>    ! Exit face orientation from Entrance.
   tilt            = <Real>    ! Exit face orientation from Entrance.
-  e_tot_offset    = <Real>    ! Reference energy offset (eV).
-  e_tot_set       = <Real>    ! Reference energy at exit end (eV).
+  E_tot_offset    = <Real>    ! Reference energy offset (eV).
+  E_tot_set       = <Real>    ! Reference energy at exit end (eV).
   p0c_set         = <Real>    ! Reference momentum at exit end (eV).
   flexible        = <Logic>   ! Default: False.
   l               = <Real>    ! Reference length. Dependent attribute (\sref{s:depend}). 
@@ -3241,20 +3241,20 @@ used, \vn{field_calc} (\sref{s:integ}) needs to be set to
 calculating the fields as a function of position
 (\sref{s:custom.ele}).
 
-The \vn{e_tot_offset} attribute offsets the
+The \vn{E_tot_offset} attribute offsets the
 reference energy:
 \begin{example}
   E_tot_ref(exit) = E_tot_ref(entrance) + E_tot_offset (eV)
 \end{example}
-Setting the \vn{e_tot_offset} attribute will affect a particle's
+Setting the \vn{E_tot_offset} attribute will affect a particle's
 $p_x$, $p_y$ and $p_z$ coordinates via \Eqs{ppp} and \eq{ppppp}.
-Notice that \vn{e_tot_offset} does not affect a particle's actual
+Notice that \vn{E_tot_offset} does not affect a particle's actual
 energy, it just affects the difference between the particle energy and
 the reference energy. 
 
 Alternatively, to set the reference energy, the \vn{E_tot_set} or \vn{p0c_set} attributes
 can be used to set the reference energy/momentum at the exit end. It is is an error
-if more than one of \vn{e_tot_offset}, \vn{E_tot_set} and \vn{p0c_set} is nonzero.
+if more than one of \vn{E_tot_offset}, \vn{E_tot_set} and \vn{p0c_set} is nonzero.
 
 \vn{Important}: \bmad may apply the energy transformation either before or after the
 coordinate transformation. This matters when the speed of the reference particle is less
@@ -3494,7 +3494,7 @@ physical source but the shape of the energy spectrum can be modified by setting 
   use bend_line
 
   c_line: line = (pinit, ...)
-  c_line[e_tot] = 15e3
+  c_line[E_tot] = 15e3
   pinit: photon_init, physical_source = 'b05w', sig_E = 2.1
 \end{example}
 In this example, the bend \vn{b05w} is a bend producing photons. It is part of the line
