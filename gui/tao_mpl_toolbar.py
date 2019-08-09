@@ -20,37 +20,50 @@ class taotoolbar(NavigationToolbar2Tk):
 		NavigationToolbar2Tk.__init__(self,canvas_,parent_)
 
 	cid = 'none'
+	cur_ax = 'none'
 
+	def enter_axes(self,event):
+		if event.inaxes is not None:
+			self.cur_ax = event.inaxes
 
+	def leave_axes(self,event):
+		if event.inaxes is None:
+			self.cur_ax = 'none'
 
 
 	def zoom_factory(self,axes,canv,event,on = False,cid='none',base_scale = 2):
-		ax = canv[0].get_figure().get_axes()[0]
-		def zoom_fun(event):
-			# get the current x and y limits
-			cur_xlim = ax.get_xlim()
-			cur_ylim = ax.get_ylim()
-			cur_xrange = (cur_xlim[1] - cur_xlim[0])*.5
-			cur_yrange = (cur_ylim[1] - cur_ylim[0])*.5
-			xdata = event.xdata # get event x location
-			ydata = event.ydata # get event y location
-			if event.button == 'up':
-				# deal with zoom in
-				scale_factor = 1/base_scale
-			elif event.button == 'down':
-				# deal with zoom out
-				scale_factor = base_scale
-			else:
-				# deal with something that should never happen
-				scale_factor = 1
-			# set new limits
-			ax.set_xlim([xdata - cur_xrange*scale_factor,
-				xdata + cur_xrange*scale_factor])
-			ax.set_ylim([ydata - cur_yrange*scale_factor,
-				ydata + cur_yrange*scale_factor])
-			self.draw()
 
 		fig = canv[0].get_figure() # get the figure of interest
+		enter=fig.canvas.mpl_connect('axes_enter_event', self.enter_axes)
+		leave=fig.canvas.mpl_connect('axes_leave_event', self.leave_axes)
+
+
+		def zoom_fun(event):
+			if self.cur_ax != 'none':
+				ax = self.cur_ax
+				# get the current x and y limits
+				cur_xlim = ax.get_xlim()
+				cur_ylim = ax.get_ylim()
+				cur_xrange = (cur_xlim[1] - cur_xlim[0])*.5
+				cur_yrange = (cur_ylim[1] - cur_ylim[0])*.5
+				xdata = event.xdata # get event x location
+				ydata = event.ydata # get event y location
+				if event.button == 'up':
+					# deal with zoom in
+					scale_factor = 1/base_scale
+				elif event.button == 'down':
+					# deal with zoom out
+					scale_factor = base_scale
+				else:
+					# deal with something that should never happen
+					scale_factor = 1
+				# set new limits
+				ax.set_xlim([xdata - cur_xrange*scale_factor,
+					xdata + cur_xrange*scale_factor])
+				ax.set_ylim([ydata - cur_yrange*scale_factor,
+					ydata + cur_yrange*scale_factor])
+				self.canvas.draw_idle()
+
 
 		# attach the call back
 		if on == True and cid == 'none':
