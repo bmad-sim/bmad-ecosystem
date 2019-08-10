@@ -734,8 +734,7 @@ real(rp), optional :: r_out(:)
 type (taylor_term_struct), pointer :: term
 
 real(rp), intent(out) :: mat6(6,6), vec0(6)
-real(rp) prod, t(6), t_out, out(6)
-real(rp), pointer :: r_diff(:)
+real(rp) prod, t(6), t_out, out(6), r_diff(6)
 
 integer i, j, k, l
 
@@ -763,7 +762,7 @@ do i = 1, 6
  
     do j = 1, 6
       if (term%expn(j) == 0) cycle
-      if (term%expn(j) > 1 .and. r_diff == 0) cycle
+      if (term%expn(j) > 1 .and. r_diff(j) == 0) cycle
 
       if (term%expn(j) > 1)then
         prod = term%coef * term%expn(j) * r_diff(j)**(term%expn(j)-1)
