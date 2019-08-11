@@ -99,6 +99,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   ! Pointer to appropriate lattice and zero data array
 
+  s%com%lattice_calc_done = .true.
   tao_lat => u%model  ! In the past tao_lat could point to design or base but no more.
   u%data(:)%good_model = .false. ! reset
   u%data%model_value = tiny(1.0_rp)

@@ -673,6 +673,7 @@ type tao_common_struct
   logical :: have_datums_using_expressions = .false.
   logical :: print_to_terminal = .true.        ! Print command prompt to the terminal? For use with GUIs.
   logical :: quiet = .false.                   ! Print commands on terminal when running a command file?
+  logical :: lattice_calc_done = .false.       ! Used by GUI for deciding when to refresh.
   character(100) :: cmd                        ! Used for the cmd history
   character(16) :: init_name = 'Tao'           ! label for initialization          
   character(200) :: hook_init_file = ''        ! 
