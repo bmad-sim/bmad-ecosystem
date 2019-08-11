@@ -2574,15 +2574,15 @@ case ('lattice')
         i2 = index(name, '[')
         name = name(1:i2-1)
       elseif  (name == '#' .or. name == '#index') then
-        line2(ix2-5:) = 'Index'
+        call set_this_show_lat_header (line2, line3, 'Index', 'I', called_from_python_cmd, ix2-5)
         ix1 = ix2
         cycle    
       elseif  (name == '#branch') then
-        line2(ix2-5:) = 'Branch'
+        call set_this_show_lat_header (line2, line3, 'Branch', 'I', called_from_python_cmd, ix2-5)
         ix1 = ix2
         cycle    
       elseif  (name == '#branch>>index') then
-        line2(ix2-5:) = 'Brnch>>Indx'
+        call set_this_show_lat_header (line2, line3, 'Brnch>>Indx', 'I', called_from_python_cmd, ix2-5)
         ix1 = ix2
         cycle    
       elseif (name == 'x') then
@@ -2597,7 +2597,7 @@ case ('lattice')
       n = len_trim(name)
 
       if (called_from_python_cmd) then
-        line2 = trim(line2) // ';' // name
+        call set_this_show_lat_header (line2, line3, name, column(i)%format, called_from_python_cmd)
 
       elseif (index(column(i)%format, 'A') /= 0) then
         line2(ix1:) = name
@@ -2635,7 +2635,7 @@ case ('lattice')
 
       if (called_from_python_cmd) then
         if (ix /= 0) name(ix:ix) = '_'
-        line2 = trim(line2) // ';' // name
+        call set_this_show_lat_header (line2, line3, name, column(i)%format, called_from_python_cmd)
 
       elseif (ix == 0) then
         if (index(column(i)%format, 'A') /= 0) then
@@ -2667,6 +2667,7 @@ case ('lattice')
   if (print_header_lines) then
     if (called_from_python_cmd) then
       nl=nl+1; lines(nl) = line2
+      nl=nl+1; lines(nl) = line3
     else
       nl=nl+1; lines(nl) = line1
       nl=nl+1; lines(nl) = line2
@@ -3554,7 +3555,7 @@ case ('taylor_map', 'matrix')
       call string_trim (what2(ix+1:), what2, ix)
       if (n_order > ptc_com%taylor_order_ptc) then
         nl=1; write(lines(nl), '(a, i0)') &
-                  'TAYLOR ORDER CANNOT BE ABOVE ORDER USED IN CALCULATIONS WHICH IS \i0\ ', &
+                  'TAYLOR ORDER CANNOT BE ABOVE ORDER USED IN CALCULATIONS WHICH IS ', &
                   ptc_com%taylor_order_ptc
         return
       endif
@@ -5014,6 +5015,42 @@ character(*) str, value
 if (value == '') return
 nl=nl+1; write(lines(nl), '(a, t30, a, 1x, a)') str, '=', trim(value)
 end subroutine write_this_arg
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+! contains
+
+subroutine set_this_show_lat_header (line2, line3, who, fmt, called_from_python_cmd, ix)
+
+character(*) line2, line3, who, fmt
+integer, optional :: ix
+logical called_from_python_cmd
+
+!
+
+if (called_from_python_cmd) then
+  if (line2 /= '') then
+    line2 = trim(line2) // ';'
+    line3 = trim(line3) // ';'
+  endif
+
+  line2 = trim(line2) // who
+
+  if (index(fmt, 'A') /= 0) then
+    line3 = trim(line3) // 'STR'
+  elseif (index(fmt, 'I') /= 0) then
+    line3 = trim(line3) // 'INT'
+  elseif (index(fmt, 'L') /= 0) then
+    line3 = trim(line3) // 'LOGIC'
+  else
+    line3 = trim(line3) // 'REAL'
+  endif
+
+else
+  line2(ix:) = who
+endif
+
+end subroutine set_this_show_lat_header 
 
 end subroutine tao_show_this
 

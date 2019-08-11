@@ -214,7 +214,7 @@ call match_word (cmd, [character(20) :: &
           'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
           'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
           'evaluate', 'enum', 'floor_building_wall', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
-          'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
+          'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
           'merit', 'orbit_at_s', 'place_buffer', &
           'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
           'plot_shapes', 'plot_list', 'plot_symbol', 'plot_transfer', 'plot1', &
@@ -562,7 +562,7 @@ case ('data')
 
   call tao_find_data (err, line, d_array = d_array)
 
-  if (.not. allocated(d_array) .or. size(d_array) /= 1) then
+  if (size(d_array) == 0) then
     call invalid ('Not a valid datum name.')
     return
   endif
@@ -2469,6 +2469,16 @@ case ('inum')
   case default
     call invalid ('Not a recognized inum')
   end select
+
+!----------------------------------------------------------------------
+! Check if a lattice recalculation has been proformed since the last time "python lat_calc_done" was called.
+! Command syntax:
+!   python lat_calc_done
+
+case ('lat_calc_done')
+
+  nl=incr(nl); write (li(nl), '(i0)') s%com%lattice_calc_done
+  s%com%lattice_calc_done = .false.
 
 !----------------------------------------------------------------------
 ! ********* NOTE: COLWIN IS USING THIS!! *************
