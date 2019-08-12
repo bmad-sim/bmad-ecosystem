@@ -631,7 +631,7 @@ case ('namelist')
 
   case ('-variable')
 
-    do i = 1, s%n_var_used
+    do i = 1, s%n_v1_var_used
       v1 => s%v1_var(i)
       write (iu, *)
       write (iu, '(a)') '!---------------------------------------'
