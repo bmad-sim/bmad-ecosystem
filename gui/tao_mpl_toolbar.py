@@ -15,9 +15,9 @@ class taotoolbar(NavigationToolbar2Tk):
 			('Forward', 'Forward to next view', 'forward', 'forward'),
 			('Pan', 'Pan axes with left mouse, zoom with right mouse or scroll wheel', 'move', 'pan'),
 			('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
-			(None,None,None,None),
-			('Help','Graph interaction help','subplots','help'),
 			('Save', 'Save image of figure', 'filesave', 'save_figure'),
+			(None,None,None,None),
+			('Help','Graph help','subplots','help'),
 			)
 		self.parent = parent_
 		NavigationToolbar2Tk.__init__(self,canvas_,parent_)
@@ -153,11 +153,11 @@ class taotoolbar(NavigationToolbar2Tk):
 		image = '/home/dcs16/dcs16/usr_local/lib/python3.5/site-packages/matplotlib/mpl-data/images/help.png'
 		win = tk.Toplevel(self.parent)
 		# Title string
-		title = 'Help'
+		title = 'Graph Help'
 		# Help items
-		help_items = ['item 1', 'item 2']
-		help_descrips = ['description 1', 'description 2']
-		wl = 300
+		help_items = ['Home    ','', 'Back    ','','Forward    ','','Pan/Zoom    ','','Zoom to Rectangle    ','','Save    ']
+		help_descrips = ["Returns to original view, shortcuts are 'h' or 'r'.",'',"Returns to previous view, shortcuts are 'c' or 'left arrow'.",'',"Undoes the last back command, shortcuts are 'v' or 'right arrow'.",'',"Toggles panning by left clicking and dragging, and zooming by using the scroll wheel or by right clicking and dragging. Holding 'x' restricts panning and zooming to the x axis, holding 'y' restricts panning and zooming to the y axis, and holding control maintains the aspect ratio.",'',"Toggles zooming by left clicking and dragging to select the new window. Holding 'x' restricts zooming to the x axis, holding 'y' restricts zooming to the y axis, and holding control maintains the aspect ratio.",'',"Saves the current figure as an image file, shortcut is 'ctrl + s'"]
+		wl = 600
 
 		tk.Label(win, text=title).grid(row=0, column=0, columnspan=2, sticky='EW')
 		for i in range(len(help_items)):
