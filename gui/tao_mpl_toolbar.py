@@ -22,7 +22,10 @@ class taotoolbar(NavigationToolbar2Tk):
 
 	cid = 'none' #connection id for scroll wheel
 	cur_ax = 'none' #axes instance that the mouse is currently over or 'none'
-
+	cidKeyP = 'none'
+	cidKeyR = 'none'
+	xzoom = True
+	yzoom = True
 
 	def enter_axes(self,event):
 		if event.inaxes is not None:
@@ -33,7 +36,7 @@ class taotoolbar(NavigationToolbar2Tk):
 		if event.inaxes is None:
 			self.cur_ax = 'none'
 
-	def onKeyPress(event):
+	def onKeyPress(self,event):
 		if event.key == 'x':
 			self.xzoom = True
 			self.yzoom = False
@@ -41,7 +44,7 @@ class taotoolbar(NavigationToolbar2Tk):
 			self.xzoom = False
 			self.yzoom = True
 
-	def onKeyRelease(event):
+	def onKeyRelease(self,event):
 		self.xzoom = True
 		self.yzoom = True
 
@@ -51,8 +54,12 @@ class taotoolbar(NavigationToolbar2Tk):
 		'''controls connections for scroll wheel zooming'''
 
 		fig = canv[0].get_figure() # get the figure of interest
+
 		enter=fig.canvas.mpl_connect('axes_enter_event', self.enter_axes)
 		leave=fig.canvas.mpl_connect('axes_leave_event', self.leave_axes)
+
+		self.cidKeyP = fig.canvas.mpl_connect('key_press_event',self.onKeyPress)
+		self.cidKeyR = fig.canvas.mpl_connect('key_release_event',self.onKeyRelease)
 
 		def zoom_fun(event):
 			'''changes graph axes if scroll wheel is used'''
