@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.backend_tools import *
 from matplotlib import rcParams
+from matplotlib.widgets import Slider
 
 class taotoolbar(NavigationToolbar2Tk):
 	def __init__(self,canvas_,parent_):
@@ -15,10 +16,11 @@ class taotoolbar(NavigationToolbar2Tk):
 			('Pan', 'Pan axes with left mouse, zoom with right mouse or scroll wheel', 'move', 'pan'),
 			('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
 			(None,None,None,None),
+			('Help','Graph interaction help','subplots','help'),
 			('Save', 'Save image of figure', 'filesave', 'save_figure'),
 			)
+		self.parent = parent_
 		NavigationToolbar2Tk.__init__(self,canvas_,parent_)
-
 
 	cid = 'none' #connection id for scroll wheel
 	cidKeyP = 'none' #connection id for key press
@@ -146,7 +148,9 @@ class taotoolbar(NavigationToolbar2Tk):
 
 		
 
-
+	def help(self):
+		'''help tool'''
+		tk.Toplevel(self.parent)
 
 
 
