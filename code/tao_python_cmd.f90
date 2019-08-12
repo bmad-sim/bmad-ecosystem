@@ -2477,7 +2477,7 @@ case ('inum')
 
 case ('lat_calc_done')
 
-  nl=incr(nl); write (li(nl), '(i0)') s%com%lattice_calc_done
+  nl=incr(nl); write (li(nl), '(l1)') s%com%lattice_calc_done
   s%com%lattice_calc_done = .false.
 
 !----------------------------------------------------------------------
