@@ -1139,7 +1139,7 @@ class tao_place_plot_window(Tao_Toplevel):
     # Column titles
     for title in titles:
       self.tree.heading(title, text=title)
-      self.tree.column(title, stretch=True, anchor='center')
+      self.tree.column(title, stretch=True, anchor='w')
 
     # Fill rows
     for plot in plots:
@@ -1349,11 +1349,11 @@ class tao_plot_tr_window(tao_list_window):
     # Grid the name and the graphs
     name = tk_tao_parameter(
         str_to_tao_param(data_list.pop(0)), self.list_frame, self.pipe)
-    name.tk_label.grid(row=0, column=0)
+    name.tk_label.grid(row=0, column=0, sticky='W')
     name.tk_wid.grid(row=0, column=1, sticky='EW')
     if num_graphs > 0:
       tk.Label(self.list_frame, text="Graphs").grid(
-          row=1, column=0, rowspan=num_graphs)
+          row=1, column=0, rowspan=num_graphs, sticky='W')
     i=1
     for graph in self.graph_list:
       tk.Button(self.list_frame, text=graph,
@@ -1374,7 +1374,7 @@ class tao_plot_tr_window(tao_list_window):
       # Grid to row i+1+num_graphs because row 0
       # is for the name and there are num_graphs rows
       # of graph buttons
-      data_list[i].tk_label.grid(row=i+1+num_graphs, column=0)
+      data_list[i].tk_label.grid(row=i+1+num_graphs, column=0, sticky='W')
       data_list[i].tk_wid.grid(row=i+1+num_graphs, column=1, sticky='EW')
     self.tao_list = data_list
 
@@ -1617,6 +1617,41 @@ class tao_plot_graph_window(tao_list_window):
     #Convert from plot.graph.curve to index.graph.curve
     curve_name = str(self.index) + win.curve[win.curve.index('.'):]
     set_str = "set curve @" + self.mode + curve_name + " "
+    # Input validation for component
+    for ttp in win.tao_list:
+      if ttp.param.name == 'component':
+        allowed_components = ['model', 'design', 'base', 'meas', 'ref', 'beam_chamber_wall']
+        operators = ['+', '-']
+        val = ttp.tk_var.get().strip()
+        val = val.split(' ')
+        while "" in val:
+          val.pop(val.index(""))
+        if len(val) == 0:
+          break #setting blank is allowed
+        # val must now have length 1, 3, or 5
+        if len(val) not in [1,3,5]:
+          failed = True
+        else:
+          for i in range(len(val)):
+            # even index --> must be component
+            if (i%2 == 0) and (val[i] not in allowed_components):
+              failed = True
+              break
+            # odd index --> operator
+            elif (i%2 == 1) and (val[i] not in operators):
+              failed = True
+              break
+            else:
+              failed = False
+        if failed:
+          msg =  'The graph component is not properly formatted.  '
+          msg += 'Component must consist of '
+          for c in allowed_components:
+            msg += '"' + c + '", '
+          msg += 'separated spaces and either + or -'
+          messagebox.showwarning('Error', msg, parent=self)
+          return
+        break
     tao_set(win.tao_list, set_str, win.pipe)
     # In matplotlib mode, apply for the appropriate region too
     c1 = self.root.plot_mode == "matplotlib"
@@ -1636,6 +1671,42 @@ class tao_plot_graph_window(tao_list_window):
     #Convert from plot.graph to index.graph
     graph_name = str(self.index) + self.graph[self.graph.index('.'):]
     set_str = "set graph @" + self.mode + graph_name + ' '
+    # Input validation for component
+    for ttp in self.tao_list:
+      if ttp.param.name == 'component':
+        allowed_components = ['model', 'design', 'base', 'meas', 'ref', 'beam_chamber_wall']
+        operators = ['+', '-']
+        val = ttp.tk_var.get().strip()
+        val = val.split(' ')
+        while "" in val:
+          val.pop(val.index(""))
+        if len(val) == 0:
+          break # leaving blank is allowed
+        # val must now have length 1, 3, or 5
+        if len(val) not in [1,3,5]:
+          failed = True
+        else:
+          for i in range(len(val)):
+            # even index --> must be component
+            if (i%2 == 0) and (val[i] not in allowed_components):
+              failed = True
+              break
+            # odd index --> operator
+            elif (i%2 == 1) and (val[i] not in operators):
+              failed = True
+              break
+            else:
+              failed = False
+        if failed:
+          msg =  'The graph component is not properly formatted.  '
+          msg += 'Component must consist of '
+          for c in allowed_components:
+            msg += '"' + c + '", '
+          msg += 'separated spaces and either + or -'
+          messagebox.showwarning('Error', msg, parent=self)
+          return
+        break
+
     tao_set(self.tao_list, set_str, self.pipe)
     # In matplotlib mode, apply for the appropriate region too
     c1 = self.root.plot_mode == "matplotlib"
@@ -1674,8 +1745,8 @@ class tao_plot_curve_window(tao_parameter_window):
         command=lambda : parent.curve_apply(self))
     b.pack()
     self.transient(parent)
-    self.grab_set()
-    self.wait_window(self)
+    #self.grab_set()
+    #self.wait_window(self)
 
 #-----------------------------------------------------
 # Branch/element choosing widgets
@@ -2161,7 +2232,7 @@ class tao_ele_window(tao_list_window):
               self.p_frames[i], self.pipe)
           separator = tk.Frame(self.p_frames[i], height=10, bd=1).grid(
               row=8, column=1, columnspan=6, sticky='EW')
-          vec0.tk_label.grid(row=9, column=0, sticky='E')
+          vec0.tk_label.grid(row=9, column=0, sticky='EW')
           vec0.tk_wid.grid(row=9, column=1, sticky='W')
           # labels
           mat6_list = ['x', 'px', 'y', 'py', 'z', 'pz']
@@ -2257,14 +2328,15 @@ class tao_ele_window(tao_list_window):
     # Refresh ele-dependent windows (including self)
     for win in self.root.refresh_windows['ele']:
       win.refresh()
-    for win in self.root.refresh_windows['plot']:
-      win.refresh()
     for win in self.root.refresh_windows['data']:
       win.refresh()
     for win in self.root.refresh_windows['var']:
       win.refresh()
     for win in self.root.refresh_windows['lat']:
       win.refresh()
+    if self.pipe.cmd_in('python lat_calc_done').find('T') != -1:
+      for win in self.root.refresh_windows['plot']:
+        win.refresh()
 
 
 
