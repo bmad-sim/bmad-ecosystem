@@ -170,16 +170,16 @@ class tao_root_window(tk.Tk):
         command = self.view_vars_cmd, accelerator = 'Alt+V')
     view_menu.add_command(label = 'Global Variables...',
         command = self.set_global_vars_cmd, accelerator = 'Ctrl+G')
-    view_menu.add_command(label = 'Elements...',
+    view_menu.add_command(label = 'Lattice Elements...',
         command = self.view_ele_cmd, accelerator = 'Ctrl+E')
     view_menu.add_command(label = 'Lattice...',
         command = self.view_lattice_cmd, accelerator = 'Ctrl+L')
     self.menubar.add_cascade(label = 'View', menu = view_menu)
 
     plot_menu = tk.Menu(self.menubar, tearoff=0)
-    plot_menu.add_command(label = 'Plot a Template...',
+    plot_menu.add_command(label = 'New Plot...',
         command = self.plot_template_cmd, accelerator = 'Ctrl+T')
-    plot_menu.add_command(label = 'Edit Plots...',
+    plot_menu.add_command(label = 'Edit Plot...',
         command = self.plot_region_cmd, accelerator = 'Ctrl+R')
     self.menubar.add_cascade(label = 'Plot', menu = plot_menu)
 
@@ -501,7 +501,7 @@ class tao_root_window(tk.Tk):
     # Start button
     load_b = tk.Button(init_frame, text="Start Tao", command=param_load)
     load_b.grid(row=k+5, columnspan=2)
-    self.bind_all("<Return>", param_load)
+    self.bind("<Return>", param_load)
 
     # Show warning messages about bad filenames from startup
     for warning in warning_messages:

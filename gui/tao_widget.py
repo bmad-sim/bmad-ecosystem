@@ -60,7 +60,10 @@ class tk_tao_parameter():
         options = [self.param.value]
       if self.param.value == "":
         self.tk_var.set(options[0])
-      self.tk_wid = tk.OptionMenu(frame, self.tk_var, *options)
+      if self.param.can_vary:
+        self.tk_wid = tk.OptionMenu(frame, self.tk_var, *options)
+      else:
+        self.tk_wid = tk.Label(frame, text=self.param.value)
       # Check for and remove num^ from self.param.name
       self.param.name = self.param.name.split('^')[-1]
     elif self.param.type == 'INUM':
