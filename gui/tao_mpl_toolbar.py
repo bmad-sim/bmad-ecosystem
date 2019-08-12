@@ -12,7 +12,7 @@ class taotoolbar(NavigationToolbar2Tk):
 		self.toolitems = (
 			('Home', 'Reset original view', 'home', 'home'),
 			('Back', 'Back to previous view', 'back', 'back'),
-			('Forward', 'Forward to next view', 'forward', 'forward'), 
+			('Forward', 'Forward to next view', 'forward', 'forward'),
 			('Pan', 'Pan axes with left mouse, zoom with right mouse or scroll wheel', 'move', 'pan'),
 			('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
 			(None,None,None,None),
@@ -72,7 +72,7 @@ class taotoolbar(NavigationToolbar2Tk):
 			'''changes graph axes if scroll wheel is used'''
 			if self.cur_ax != 'none':
 				ax = self.cur_ax
-				
+
 				cur_xlim = ax.get_xlim()
 				cur_ylim = ax.get_ylim()
 				#get the current x and y limits
@@ -80,7 +80,7 @@ class taotoolbar(NavigationToolbar2Tk):
 				xdata = event.xdata #get event x location
 				ydata = event.ydata #get event y location
 				x_left = xdata - cur_xlim[0]
-				x_right = cur_xlim[1] - xdata 
+				x_right = cur_xlim[1] - xdata
 				y_top = ydata - cur_ylim[0]
 				y_bottom = cur_ylim[1] - ydata
 				if event.button == 'up': # dealwith zoom in
@@ -109,7 +109,7 @@ class taotoolbar(NavigationToolbar2Tk):
 		#return the function
 		return zoom_fun
 
-	
+
 
 	def pan(self, *args):
 		"""Activate the pan/zoom tool. pan with left button, zoom with right or with with scroll wheel"""
@@ -128,7 +128,7 @@ class taotoolbar(NavigationToolbar2Tk):
 			self.mode = ''
 
 		if self._active:
-			
+
 			self._idPress = self.canvas.mpl_connect(
 				'button_press_event', self.press_pan)
 			self._idRelease = self.canvas.mpl_connect(
@@ -146,11 +146,23 @@ class taotoolbar(NavigationToolbar2Tk):
 
 		self.set_message(self.mode)
 
-		
+
 
 	def help(self):
 		'''help tool'''
-		tk.Toplevel(self.parent)
+		win = tk.Toplevel(self.parent)
+    # Title string
+    title = 'Help'
+    # Help items
+    help_items = ['item 1', 'item 2']
+    help_descrips = ['description 1', 'description 2']
+
+    tk.Label(win, text=title).grid(row=0, column=0, columnspan=2, sticky='EW')
+    for i in range(len(help_items)):
+      tk.Label(win, text=help_items[i]).grid(row=i+1, column=0, sticky='W')
+      tk.Label(win, text=help_descrips[i], wraplength=50).grid(row=i+1, column=1, sticky='EW')
+    win.grid_columnconfigure(1, weight=1)
+
 
 
 
