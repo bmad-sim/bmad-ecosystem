@@ -508,9 +508,12 @@ class tao_root_window(tk.Tk):
       messagebox.showwarning(warning[0], "File not found: " + warning[1])
 
     #Start Tao immediately if skip_setup is set true
-    if ("skip_setup" in init_dict) & (len(warning_messages) == 0):
-      if init_dict["skip_setup"] in ['T', 'True']:
-        param_load()
+    c1 = "skip_setup" in init_dict
+    c2 = len(warning_messages) == 0
+    c3 = 'pipe' not in self.__dict__
+    c4 = ('skip_setup' in init_dict.keys()) and (init_dict["skip_setup"] in ['T', 'True'])
+    if c1 & c2 & c3 & c4:
+      param_load()
 
   #-------------------------
   # Menu bar callbacks
@@ -539,7 +542,6 @@ class tao_root_window(tk.Tk):
     if self.pipe.mode == 'pexpect':
       # Hack to prevent pexpect from hanging:
       self.pipe.cmd_in(" spawn echo Tao\\>; quit", no_warn=True)
-    #self.menubar_init()
     init_frame = tk.Frame(self)
     init_frame.pack()
     self.tao_load(init_frame)
