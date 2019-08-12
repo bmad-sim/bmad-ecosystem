@@ -503,9 +503,6 @@ class d2_data_frame():
       tk.Button(self.frame, text="Edit...",
           command=self.edit_d2_callback(self.name, pipe)).grid(
               row=i+1, column=2)
-      tk.Button(self.frame, text="Write...",
-          command=self.write_d2_callback(self.name, pipe)).grid(
-              row=i+1, column=3)
       mytext = str(self.d1_ix_lb_list[i]) + ":" + str(self.d1_ix_ub_list[i])
       tk.Label(self.frame, text=mytext).grid(row=i+1, column=4)
       tk.Label(self.frame, text=self.d1_using_list[i]).grid(row=i+1, column=5)
@@ -517,14 +514,6 @@ class d2_data_frame():
 
   def edit_d2_callback(self, d2_data_name, pipe):
     return lambda : self.edit_d2(d2_data_name, pipe)
-
-  def write_d2_callback(self, d2_data_name, pipe):
-    return lambda : self.write_d2(d2_data_name, pipe)
-
-  def write_d2(self, d2_data_name, pipe):
-    '''Writes a fortran namelist file for the selected v1_array'''
-    messagebox.showwarning('Error', 'Coming soon...')
-    pass #write namelist command currently broken
 
   def edit_d2(self, d2_data_name, pipe):
     ''' Opens the new data window and clones this d2_array in for editing'''

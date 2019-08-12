@@ -734,6 +734,8 @@ class tao_d2_data_window(tao_list_window):
         self.univ_frame, self.u_ix, *u_ix_list, command=self.refresh)
     u_ix_box.grid(row=0,column=1,sticky="W")
     self.univ_frame.pack(fill="both", expand=0)
+    tk.Button(self, text='Write data to namelist file...',
+        command=self.write_data).pack(side='left')
 
     # Populate self.list_frame
     self.refresh()
@@ -760,6 +762,14 @@ class tao_d2_data_window(tao_list_window):
       new_frame = d2_data_frame(
           self.list_frame, self.root, self.pipe, d2_data_item, u_ix)
       new_frame.frame.pack()
+
+  def write_data(self):
+    '''
+    Asks for a filename and writes the data to that file as a namelist
+    '''
+    out_file = filedialog.asksaveasfilename(title="Save namelist as...")
+    if out_file != ():
+      self.pipe.cmd_in('write namelist -data ' + out_file)
 
 
 #-----------------------------------------------------
@@ -879,6 +889,8 @@ class tao_var_general_window(tao_list_window):
     self.pipe = pipe
     for i in [0,4,5]:
       self.list_frame.grid_columnconfigure(i, pad=10)
+    tk.Button(self, text='Write variables to namelist file...',
+        command=self.write_var).pack(side='left')
     self.refresh()
 
   def refresh(self):
@@ -906,8 +918,8 @@ class tao_var_general_window(tao_list_window):
           command=self.open_v1_callback(item[0])).grid(row=i, column=1)
       tk.Button(self.list_frame, text="Edit...",
           command=self.edit_v1_callback(item[0])).grid(row=i, column=2)
-      tk.Button(self.list_frame, text="Write...",
-          command=self.write_v1_callback(item[0])).grid(row=i, column=3)
+      #tk.Button(self.list_frame, text="Write...",
+      #    command=self.write_v1).grid(row=i, column=3)
       tk.Label(self.list_frame,text=item[2] +':'+ item[3]).grid(row=i,column=4)
       tk.Label(self.list_frame, text=item[1]).grid(row=i, column=5)
       i = i+1
@@ -924,13 +936,14 @@ class tao_var_general_window(tao_list_window):
   def edit_v1(self, v1_var_name):
     win = tao_new_var_window(self.root, self.pipe, default=v1_var_name)
 
-  def write_v1_callback(self, v1_var_name):
-    return lambda : self.write_v1(v1_var_name)
-
-  def write_v1(self, v1_var_name):
+#  def write_v1_callback(self, v1_var_name):
+#    return lambda : self.write_v1(v1_var_name)
+#
+  def write_var(self):
     '''Writes a fortran namelist file for the selected v1_array'''
-    messagebox.showwarning('Error', 'Coming soon...')
-    pass #write namelist command currently broken
+    out_file = filedialog.asksaveasfilename(title="Save namelist as...")
+    if out_file != ():
+      self.pipe.cmd_in('write namelist -variable ' + out_file)
 
 #-----------------------------------------------------
 # v1_var window
