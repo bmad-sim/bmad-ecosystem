@@ -12,7 +12,7 @@ class taotoolbar(NavigationToolbar2Tk):
 			('Home', 'Reset original view', 'home', 'home'),
 			('Back', 'Back to previous view', 'back', 'back'),
 			('Forward', 'Forward to next view', 'forward', 'forward'), 
-			('Pan', 'Pan axes with left mouse, zoom with right', 'move', 'pan'),
+			('Pan', 'Pan axes with left mouse, zoom with right mouse or scroll wheel', 'move', 'pan'),
 			('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
 			(None,None,None,None),
 			('Save', 'Save image of figure', 'filesave', 'save_figure'),
@@ -78,13 +78,17 @@ class taotoolbar(NavigationToolbar2Tk):
 			fig.canvas.mpl_disconnect(cid)
 			self.cid='none'
 
+		if self._nav_stack() is None:
+			# set the home button to this view
+			self.push_current()
+
 		#return the function
 		return zoom_fun
 
 	
 
 	def pan(self, *args):
-		"""Activate the pan/zoom tool. pan with left button, zoom with right, zoom with scroll wheel"""
+		"""Activate the pan/zoom tool. pan with left button, zoom with right or with with scroll wheel"""
 		#set the pointer icon and button press funcs to the appropriate callbacks
 		#default matplotlib pan tool, but with added scroll wheel zooming in pan/zoom mode
 		if self._active == 'PAN':
@@ -107,7 +111,7 @@ class taotoolbar(NavigationToolbar2Tk):
 				'button_release_event', self.release_pan)
 			self.mode = 'pan/zoom'
 			scale_canv = self.canvas
-			scale = self.zoom_factory(self,scale_canv.figure.get_axes(),scale_canv,True)
+			scale = self.zoom_factory(self,scale_canv.figure.get_axes(),scale_canv,True,self.cid)
 			self.canvas.widgetlock(self)
 		else:
 			self.canvas.widgetlock.release(self)
