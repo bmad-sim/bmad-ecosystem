@@ -33,6 +33,19 @@ class taotoolbar(NavigationToolbar2Tk):
 		if event.inaxes is None:
 			self.cur_ax = 'none'
 
+	def onKeyPress(event):
+		if event.key == 'x':
+			self.xzoom = True
+			self.yzoom = False
+		if event.key == 'y':
+			self.xzoom = False
+			self.yzoom = True
+
+	def onKeyRelease(event):
+		self.xzoom = True
+		self.yzoom = True
+
+
 
 	def zoom_factory(self,axes,canv,event,on = False,cid='none',base_scale = 1.5):
 		'''controls connections for scroll wheel zooming'''
@@ -64,10 +77,10 @@ class taotoolbar(NavigationToolbar2Tk):
 					# deal with something that should never happen
 					scale_factor = 1
 				# set new limits
-				ax.set_xlim([xdata - x_left*scale_factor,
-					xdata + x_right*scale_factor])
-				ax.set_ylim([ydata - y_top*scale_factor,
-					ydata + y_bottom*scale_factor])
+				if self.xzoom == True:
+					ax.set_xlim([xdata - x_left*scale_factor,xdata + x_right*scale_factor])
+				if self.yzoom == True:
+					ax.set_ylim([ydata - y_top*scale_factor,ydata + y_bottom*scale_factor])
 				self.canvas.draw_idle()
 
 		# attach the call back
