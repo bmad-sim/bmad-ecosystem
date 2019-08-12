@@ -708,7 +708,6 @@ class lw_table_window(Tao_Toplevel):
 
   def detail_set_callback(self, tao_list, set_str):
     tao_set(tao_list, set_str, self.pipe)
-    # set exists for the array
     # SUBCLASSES MUST DEFINE self.set_exists
     self.pipe.cmd_in(self.set_exists)
     self.refresh()
@@ -737,10 +736,10 @@ class tao_d2_data_window(tao_list_window):
     self.univ_frame.pack(fill="both", expand=0)
 
     # Populate self.list_frame
-    self.refresh(self.u_ix.get())
+    self.refresh()
 
 
-  def refresh(self,u_ix):
+  def refresh(self):
     '''
     Clears self.list_frame and fills it with the current universe's
     d2/d1 data
@@ -749,8 +748,14 @@ class tao_d2_data_window(tao_list_window):
     for child in self.list_frame.winfo_children():
       child.destroy()
     # Get this universe's d2_data
+    u_ix = self.u_ix.get()
     d2_data_list = self.pipe.cmd_in("python data_d2_array " + u_ix)
     d2_data_list = d2_data_list.splitlines()
+    if len(d2_data_list) == 0:
+      tk.Label(self.list_frame, text="NO DATA FOR THIS UNIVERSE").pack()
+      messagebox.showwarning('Warning',
+          'No data are defined for universe ' + str(u_ix), parent=self)
+      return
     for d2_data_item in d2_data_list:
       new_frame = d2_data_frame(
           self.list_frame, self.root, self.pipe, d2_data_item, u_ix)
@@ -829,6 +834,17 @@ class tao_d1_data_window(lw_table_window):
     '''
     lw_table_window.open_detail_window_callback(self, event)
 
+  def bulk_set(self, fill_choices, parent):
+    '''
+    Overload of lw_table_window.bulk_set that calls refresh data and plot windows
+    '''
+    lw_table_window.bulk_set(self, fill_choices, parent)
+    # Refresh data-related windows
+    for win in self.root.refresh_windows['data']:
+      win.refresh()
+    for win in self.root.refresh_windows['plot']:
+      win.refresh()
+
   def open_detail_window(self, index):
     self.param_list = self.pipe.cmd_in("python data " + str(self.u_ix) + '@'
         + self.array_name + '[' + str(index) + ']')
@@ -840,6 +856,18 @@ class tao_d1_data_window(lw_table_window):
     else:
       table_window.open_detail_window(self, index)
 
+  def detail_set_callback(self, tao_list, set_str):
+    '''
+    Overload of lw_table_window.detail_set_callback that refreshes
+    data-related windows
+    '''
+    lw_table_window.detail_set_callback(self, tao_list, set_str)
+    # Refresh data-related windows
+    for win in self.root.refresh_windows['data']:
+      win.refresh()
+    for win in self.root.refresh_windows['plot']:
+      win.refresh()
+
 #-----------------------------------------------------
 # Variable Window
 
@@ -849,7 +877,7 @@ class tao_var_general_window(tao_list_window):
     self.tao_id = 'var'
     tao_list_window.__init__(self, root, "v1 Variables", *args, **kwargs)
     self.pipe = pipe
-    for i in [0,3,4]:
+    for i in [0,4,5]:
       self.list_frame.grid_columnconfigure(i, pad=10)
     self.refresh()
 
@@ -858,13 +886,18 @@ class tao_var_general_window(tao_list_window):
       child.destroy()
     v1_var_list = self.pipe.cmd_in("python var_general")
     v1_var_list = v1_var_list.splitlines()
+    # close if there are no variables
+    if len(v1_var_list) == 0:
+      messagebox.showwarning('Warning', 'No variables defined', parent=self)
+      self.destroy()
+      return
     for i in range(len(v1_var_list)):
       v1_var_list[i] = v1_var_list[i].split(';')
 
     tk.Label(self.list_frame, text="Variable").grid(
-        row=0, column=0, columnspan=3, sticky='W')
-    tk.Label(self.list_frame, text="Indices").grid(row=0, column=3)
-    tk.Label(self.list_frame, text="Using").grid(row=0, column=4)
+        row=0, column=0, columnspan=4, sticky='W')
+    tk.Label(self.list_frame, text="Indices").grid(row=0, column=4)
+    tk.Label(self.list_frame, text="Using").grid(row=0, column=5)
 
     i=1
     for item in v1_var_list:
@@ -873,8 +906,10 @@ class tao_var_general_window(tao_list_window):
           command=self.open_v1_callback(item[0])).grid(row=i, column=1)
       tk.Button(self.list_frame, text="Edit...",
           command=self.edit_v1_callback(item[0])).grid(row=i, column=2)
-      tk.Label(self.list_frame,text=item[2] +':'+ item[3]).grid(row=i,column=3)
-      tk.Label(self.list_frame, text=item[1]).grid(row=i, column=4)
+      tk.Button(self.list_frame, text="Write...",
+          command=self.write_v1_callback(item[0])).grid(row=i, column=3)
+      tk.Label(self.list_frame,text=item[2] +':'+ item[3]).grid(row=i,column=4)
+      tk.Label(self.list_frame, text=item[1]).grid(row=i, column=5)
       i = i+1
 
   def open_v1_callback(self, v1_var_name):
@@ -888,6 +923,14 @@ class tao_var_general_window(tao_list_window):
 
   def edit_v1(self, v1_var_name):
     win = tao_new_var_window(self.root, self.pipe, default=v1_var_name)
+
+  def write_v1_callback(self, v1_var_name):
+    return lambda : self.write_v1(v1_var_name)
+
+  def write_v1(self, v1_var_name):
+    '''Writes a fortran namelist file for the selected v1_array'''
+    messagebox.showwarning('Error', 'Coming soon...')
+    pass #write namelist command currently broken
 
 #-----------------------------------------------------
 # v1_var window
@@ -948,6 +991,17 @@ class tao_v1_var_window(lw_table_window):
     '''
     lw_table_window.open_detail_window_callback(self, event)
 
+  def bulk_set(self, fill_choices, parent):
+    '''
+    Overload of lw_table_window.bulk_set that calls refresh data and plot windows
+    '''
+    lw_table_window.bulk_set(self, fill_choices, parent)
+    # Refresh data-related windows
+    for win in self.root.refresh_windows['var']:
+      win.refresh()
+    for win in self.root.refresh_windows['plot']:
+      win.refresh()
+
   def open_detail_window(self, index):
     self.param_list = self.pipe.cmd_in(
         "python var " + self.array_name + '[' + str(index) + ']')
@@ -959,6 +1013,17 @@ class tao_v1_var_window(lw_table_window):
     else:
       table_window.open_detail_window(self, index)
 
+  def detail_set_callback(self, tao_list, set_str):
+    '''
+    Overload of lw_table_window.detail_set_callback that refreshes
+    data-related windows
+    '''
+    lw_table_window.detail_set_callback(self, tao_list, set_str)
+    # Refresh data-related windows
+    for win in self.root.refresh_windows['var']:
+      win.refresh()
+    for win in self.root.refresh_windows['plot']:
+      win.refresh()
 
 #-----------------------------------------------------
 # History Window
@@ -1388,17 +1453,16 @@ class tao_plot_window(Tao_Toplevel):
     # Check if the template has been placed in a region already,
     # and place it if necessary
     if self.template in self.root.placed.keys():
-      print("found in root.placed")
       pass
     else:
-      #Place the plot in the next available region
-      #and make visible
+      # Find a new region to place self.template
       r_index = 1
       while (("r" + str(r_index)) in self.root.placed.values()):
         r_index = r_index + 1
-      self.pipe.cmd_in("place -no_buffer r" + str(r_index) + " " + self.template)
-      self.pipe.cmd_in("set plot r" + str(r_index) + ' visible = T')
       self.root.placed[self.template] = 'r' + str(r_index)
+    # Place the plot and set it visible
+    self.pipe.cmd_in('place -no_buffer ' + root.placed[self.template] + ' ' + self.template)
+    self.pipe.cmd_in("set plot " + root.placed[self.template] + ' visible = T')
 
     self.mpl = taoplot(pipe, self.root.placed[self.template])
     self.refresh()
@@ -2190,8 +2254,19 @@ class tao_ele_window(tao_list_window):
                   floor_list[i], self.head_frame, self.pipe)
             # Run the set command
             tao_set(floor_list, set_str, self.pipe, overide=True)
-    # Refresh the element window
-    self.refresh()
+    # Refresh ele-dependent windows (including self)
+    for win in self.root.refresh_windows['ele']:
+      win.refresh()
+    for win in self.root.refresh_windows['plot']:
+      win.refresh()
+    for win in self.root.refresh_windows['data']:
+      win.refresh()
+    for win in self.root.refresh_windows['var']:
+      win.refresh()
+    for win in self.root.refresh_windows['lat']:
+      win.refresh()
+
+
 
 #---------------------------------------------------
 class tao_multipole_frame(tk.Frame):
@@ -2780,6 +2855,8 @@ class tao_lattice_window(Tao_Toplevel):
     for i in range(len(lattice)):
       lattice[i] = lattice[i].split(';')
     #lattice[i][j] --> row i, column j
+    dat_types = lattice[1] # marks columns as STR, INT, etc
+    lattice = lattice[:1] + lattice[2:]
     widths = [0]*len(lattice[0]) # tracks column widths
 
     # Create table
@@ -2803,6 +2880,11 @@ class tao_lattice_window(Tao_Toplevel):
         widths[j] = len(lattice[0][j])*15
       widths[0] = 120 #prevent giant index column
       self.tree.column(lattice[0][j], width=widths[j], minwidth=widths[j])
+      # Text alignment
+      if dat_types[j] == 'STR':
+        self.tree.column(lattice[0][j], anchor='w')
+      else:
+        self.tree.column(lattice[0][j], anchor='e')
 
     # Scrollbars
     hbar = ttk.Scrollbar(
@@ -3154,6 +3236,11 @@ class tao_new_data_window(Tao_Toplevel):
         self.pw.ix += 1
     # Close the window
     self.destroy()
+    # Refresh data-related windows
+    for win in self.root.refresh_windows['data']:
+      win.refresh()
+    for win in self.root.refresh_windows['plot']:
+      win.refresh()
 
   def tab_handler(self, event=None):
     '''
@@ -3190,6 +3277,11 @@ class tao_new_data_window(Tao_Toplevel):
     self.notebook.insert(ix, self.d1_frame_list[-1])
     self.notebook.tab(ix, text=d1)
 
+  def refresh(self):
+    '''
+    Only here in case something tries to refresh this window
+    '''
+    pass
 
 class new_d1_frame(tk.Frame):
   '''
@@ -3773,6 +3865,7 @@ class tao_new_var_window(Tao_Toplevel):
             v1_ix = v1_params.index(p)
           else:
             v1_ix = 0
+          # Highest priority: individual var settings
           if p in var_dict.keys():
             if p == 'universes' and var_dict[p]=="": #cannot be empty
               u = v1_frame.v1_array_wids[v1_ix].tk_var.get()
@@ -3784,7 +3877,7 @@ class tao_new_var_window(Tao_Toplevel):
                 cmd_str += ('T^^' if var_dict[p] else 'F^^')
               else:
                 cmd_str += str(var_dict[p]) + '^^'
-          else:
+          else: #Use defaults if var parameter not set
             if j == 0:
               cmd_str += '^^'
               continue
@@ -3799,16 +3892,13 @@ class tao_new_var_window(Tao_Toplevel):
               cmd_str += v1_frame.v1_array_wids[v1_ix].tk_var.get() + '^^'
         cmd_str = cmd_str[:-2] # remove ending ^^
         self.pipe.cmd_in(cmd_str)
-      # Set parameters at the v1 level
-      #set_str = 'set var ' + v1_frame.name + '|'
-      #tao_set(v1_frame.v1_array_wids[1:10], set_str, self.pipe)
-      ## set individual data parameters
-      #set_format = set_str[:-1] + '[{}]|'
-      #tao_dict_set(v1_frame.var_dict, set_format, self.pipe)
-      ## set var|exists = T
-      #self.pipe.cmd_in('set var ' + v1_frame.name + '|exists = T')
     # Close the window
     self.destroy()
+    # Refresh variable-related windows
+    for win in self.root.refresh_windows['var']:
+      win.refresh()
+    for win in self.root.refresh_windows['plot']:
+      win.refresh()
 
   def tab_handler(self, event=None):
     '''
@@ -3831,6 +3921,12 @@ class tao_new_var_window(Tao_Toplevel):
           # Unblock frame's handlers
           frame.handler_block = False
           break
+
+  def refresh(self):
+    '''
+    Only here in case something tries to refresh this window
+    '''
+    pass
 
 
 class new_v1_frame(tk.Frame):
