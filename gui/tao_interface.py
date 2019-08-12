@@ -158,6 +158,8 @@ class tao_interface():
     self.message_type = "" #conveys color info to console
     self.printed = tk.BooleanVar()
     self.printed.set(False)
+    # DEV PURPOSES ONLY
+    self._root = self.printed._root
 
   def cmd_in(self, cmd_str, no_warn=False):
     '''
@@ -170,6 +172,13 @@ class tao_interface():
       for p in self.debug_patterns:
         if cmd_str.find(p) != 0:
           print(cmd_str)
+    if cmd_str.find("dev ") ==0:
+      cmd_str = cmd_str[4:]
+      with new_stdout() as output:
+        exec(cmd_str)
+      output = output.getvalue()
+      output = filter_output(output)
+      return output
     ###
     self.message = ""
     self.message_type = "normal" #conveys color info to console
