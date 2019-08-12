@@ -472,9 +472,11 @@ class taoplot:
 				for k in SymbolsList:
 					xsList.append(k[0])
 					ysList.append(k[1])
-
-				yMax = max(.5*max(max(ypList),max(ysList)),2*max(max(ypList),max(ysList)))
-				yMin = min(.5*min(min(ypList),min(ysList)),2*min(min(ypList),min(ysList)))
+				try:
+					yMax = max(.5*max(max(ypList),max(ysList)),2*max(max(ypList),max(ysList)))
+					yMin = min(.5*min(min(ypList),min(ysList)),2*min(min(ypList),min(ysList)))
+				except ValueError:
+					raise ValueError('no points found, make sure data is properly initialized')
 				#boundaries for wave analysis rectangles
 
 				if gInfoDict['graph^type'].value == 'data' or gInfoDict['graph^type'].value == 'wave.0' or gInfoDict['graph^type'].value == 'wave.a' or gInfoDict['graph^type'].value == 'wave.b':
@@ -1330,7 +1332,7 @@ class taoplot:
 		returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList,fpeShapeDict,fpeCenterDict, fpeRadiusDict, corner1, corner2, corner3, corner4, pathDict, eleShapeDict, eleY1Dict]
 		#data to be returned with the figure to make elements clickable
 
-		fig.tight_layout(pad=.3)
+		fig.tight_layout(pad=.4)
 		#prevents graphs from overlapping		
 
 		return fig, returnList

@@ -21,22 +21,26 @@ class taotoolbar(NavigationToolbar2Tk):
 
 
 	cid = 'none' #connection id for scroll wheel
+	cidKeyP = 'none' #connection id for key press
+	cidKeyR = 'none' #connection id for key release
+
 	cur_ax = 'none' #axes instance that the mouse is currently over or 'none'
-	cidKeyP = 'none'
-	cidKeyR = 'none'
-	xzoom = True
-	yzoom = True
+	xzoom = True #allow for x axis scaling
+	yzoom = True #allow for y axis scaling
 
 	def enter_axes(self,event):
+		'''handles the mouse entering axes'''
 		if event.inaxes is not None:
 			self.cur_ax = event.inaxes
 
 
 	def leave_axes(self,event):
+		'''handles the mouse leaving axes'''
 		if event.inaxes is None:
 			self.cur_ax = 'none'
 
 	def onKeyPress(self,event):
+		'''handles key presses'''
 		if event.key == 'x':
 			self.xzoom = True
 			self.yzoom = False
@@ -45,6 +49,7 @@ class taotoolbar(NavigationToolbar2Tk):
 			self.yzoom = True
 
 	def onKeyRelease(self,event):
+		'''handles releasing key presses'''
 		self.xzoom = True
 		self.yzoom = True
 
@@ -55,8 +60,8 @@ class taotoolbar(NavigationToolbar2Tk):
 
 		fig = canv[0].get_figure() # get the figure of interest
 
-		enter=fig.canvas.mpl_connect('axes_enter_event', self.enter_axes)
-		leave=fig.canvas.mpl_connect('axes_leave_event', self.leave_axes)
+		enter = fig.canvas.mpl_connect('axes_enter_event', self.enter_axes)
+		leave = fig.canvas.mpl_connect('axes_leave_event', self.leave_axes)
 
 		self.cidKeyP = fig.canvas.mpl_connect('key_press_event',self.onKeyPress)
 		self.cidKeyR = fig.canvas.mpl_connect('key_release_event',self.onKeyRelease)
@@ -65,32 +70,30 @@ class taotoolbar(NavigationToolbar2Tk):
 			'''changes graph axes if scroll wheel is used'''
 			if self.cur_ax != 'none':
 				ax = self.cur_ax
-				# get the current x and y limits
+				
 				cur_xlim = ax.get_xlim()
 				cur_ylim = ax.get_ylim()
-				xdata = event.xdata # get event x location
-				ydata = event.ydata # get event y location
+				#get the current x and y limits
+
+				xdata = event.xdata #get event x location
+				ydata = event.ydata #get event y location
 				x_left = xdata - cur_xlim[0]
 				x_right = cur_xlim[1] - xdata 
 				y_top = ydata - cur_ylim[0]
 				y_bottom = cur_ylim[1] - ydata
-				if event.button == 'up':
-					# deal with zoom in
+				if event.button == 'up': # dealwith zoom in
 					scale_factor = 1/base_scale
-				elif event.button == 'down':
-					# deal with zoom out
+				elif event.button == 'down': #deal with zoom out
 					scale_factor = base_scale
 				else:
-					# deal with something that should never happen
 					scale_factor = 1
-				# set new limits
-				if self.xzoom == True:
+				if self.xzoom == True: #new x limits
 					ax.set_xlim([xdata - x_left*scale_factor,xdata + x_right*scale_factor])
-				if self.yzoom == True:
+				if self.yzoom == True: #new y limits
 					ax.set_ylim([ydata - y_top*scale_factor,ydata + y_bottom*scale_factor])
 				self.canvas.draw_idle()
 
-		# attach the call back
+		# attach the call backs
 		if on == True and cid == 'none':
 			self.cid=fig.canvas.mpl_connect('scroll_event',zoom_fun)
 
@@ -98,8 +101,7 @@ class taotoolbar(NavigationToolbar2Tk):
 			fig.canvas.mpl_disconnect(cid)
 			self.cid='none'
 
-		if self._nav_stack() is None:
-			# set the home button to this view
+		if self._nav_stack() is None: #make home button work with scroll wheel zoom
 			self.push_current()
 
 		#return the function
