@@ -150,18 +150,20 @@ class taotoolbar(NavigationToolbar2Tk):
 
 	def help(self):
 		'''help tool'''
+		image = '/home/dcs16/dcs16/usr_local/lib/python3.5/site-packages/matplotlib/mpl-data/images/help.png'
 		win = tk.Toplevel(self.parent)
-    # Title string
-    title = 'Help'
-    # Help items
-    help_items = ['item 1', 'item 2']
-    help_descrips = ['description 1', 'description 2']
+		# Title string
+		title = 'Help'
+		# Help items
+		help_items = ['item 1', 'item 2']
+		help_descrips = ['description 1', 'description 2']
+		wl = 300
 
-    tk.Label(win, text=title).grid(row=0, column=0, columnspan=2, sticky='EW')
-    for i in range(len(help_items)):
-      tk.Label(win, text=help_items[i]).grid(row=i+1, column=0, sticky='W')
-      tk.Label(win, text=help_descrips[i], wraplength=50).grid(row=i+1, column=1, sticky='EW')
-    win.grid_columnconfigure(1, weight=1)
+		tk.Label(win, text=title).grid(row=0, column=0, columnspan=2, sticky='EW')
+		for i in range(len(help_items)):
+			tk.Label(win, text=help_items[i]).grid(row=i+1, column=0, sticky='W')
+			tk.Label(win, text=help_descrips[i], wraplength=wl).grid(row=i+1, column=1, sticky='EW')
+		win.grid_columnconfigure(1, weight=1)
 
 
 
