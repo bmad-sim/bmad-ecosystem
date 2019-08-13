@@ -22,6 +22,7 @@ class tk_tao_parameter():
   def __init__(self, tao_parameter, frame, pipe=0, data_source='', plot=''):
     self.param = tao_parameter
     self.pipe = pipe
+    self.sub_wid = None # to be set externally, e.g. by tk_tao_linker
 
     if self.param.type == 'DAT_TYPE_Z':
       # Check if operating as ENUM or as DAT_TYPE
@@ -41,7 +42,11 @@ class tk_tao_parameter():
         else:
           self.param.type = 'ENUM_Z'
 
-    if self.param.type in ['STR', 'INT', 'REAL']:
+    if self.param.is_ignored:
+      self.tk_var = tk.StringVar()
+      self.tk_var.set(str(self.param.value))
+      self.tk_wid = tk.Label(frame, textvariable=self.tk_var)
+    elif self.param.type in ['STR', 'INT', 'REAL']:
       self.tk_var = tk.StringVar()
       if self.param.value == None:
         self.tk_var.set("")
@@ -128,13 +133,13 @@ class tk_tao_parameter():
       self._traced = True
 
     if self.param.type not in ['DAT_TYPE', 'REAL_ARR']:
-      if self.param.type != 'FILE':
+      if (self.param.type != 'FILE') and (not self.param.is_ignored):
         self.tk_wid.config(disabledforeground="black")
     else:
       for widget in self._s:
         widget.config(disabledforeground="black")
     self.tk_label = tk.Label(frame, text=self.param.name)
-    if not self.param.can_vary:
+    if not self.param.can_vary and not self.param.is_ignored:
       if self.param.type not in ['DAT_TYPE', 'REAL_ARR']:
         self.tk_wid.config(state="disabled")
       else:
@@ -653,3 +658,39 @@ def inum_fetch(inum,pipe):
   if option_list == []:
     option_list = [""]
   return option_list
+
+def tk_tao_linker(tk_tao_list):
+  '''
+  Takes a list of tk_tao_parameters as input and returns a list of tk_tao_parameters
+  The output list will have parameters marked with I either removed or
+  added to their appropriate parent parameter's tk_wid
+  '''
+  # determined from ttp.is_ignored:
+  sub_widget_names = [] # the names
+  sub_widgets = [] # the widgets
+  sub_widget_indices = [] # the indices in tk_tao_list
+  # First pass: collect sub_widgets
+  for i in range(len(tk_tao_list)):
+    ttp = tk_tao_list[i]
+    if ttp.param.is_ignored:
+      # add parentheses around value
+      ttp.tk_var.set('(' + ttp.tk_var.get() + ')')
+      sub_widget_names.append(ttp.param.name)
+      sub_widgets.append(ttp.tk_wid)
+      sub_widget_indices.append(i)
+  # Second pass: link sub_widgets to their masters
+  for ttp in tk_tao_list:
+    sub = ttp.param.sub_param
+    if sub in sub_widget_names:
+      ttp.sub_wid = sub_widgets[sub_widget_names.index(sub)]
+  # Third pass: remove ignored widgets
+  output = []
+  sub_widget_indices.append(len(tk_tao_list)) #fixes the loop below
+  for i in range(len(sub_widget_indices)):
+    ix = sub_widget_indices[i]
+    if i==0:
+      output += tk_tao_list[:ix]
+    else:
+      last_ix = sub_widget_indices[i-1]
+      output += tk_tao_list[last_ix+1:ix]
+  return output

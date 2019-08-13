@@ -25,10 +25,12 @@ startup_list = [
 
 class tao_parameter():
 
-  def __init__(self, param_name, param_type, can_vary, param_value):
+  def __init__(self, param_name, param_type, can_vary, param_value, sub_param=None):
     self.name = param_name
     self.type = param_type
     self.can_vary = (can_vary == 'T')
+    self.is_ignored = (can_vary == 'I')
+    self.sub_param = sub_param #associated sub_parameter (name)
 
     if param_type == 'STR':
       self.value = param_value
@@ -95,7 +97,11 @@ def str_to_tao_param(param_str):
         except:
           arr.append(float(0))
       v[3] = arr
-    return tao_parameter(v[0],v[1],v[2],v[3])
+    if len(v) == 4:
+      sub_param=None
+    elif len(v) == 5:
+      sub_param=v[4]
+    return tao_parameter(v[0],v[1],v[2],v[3], sub_param)
 
 #-------------------------------------------------
 param_dict = tao_parameter_dict(startup_list)
