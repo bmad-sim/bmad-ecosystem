@@ -34,7 +34,7 @@ class Tao_Toplevel(tk.Toplevel):
   __init__ method.
   '''
   def __init__(self, parent, *args, **kwargs):
-    tk.Toplevel.__init__(self, parent, *args, **kwargs)
+    tk.Toplevel.__init__(self, parent, class_='Tao', *args, **kwargs)
     # Handle root window list placement
     if 'tao_id' not in self.__dict__:
       self.tao_id = None
@@ -1418,15 +1418,21 @@ class tao_plot_tr_window(tao_list_window):
     index = self.index_list[self.plot_list.index(self.plot)]
     set_str = "set plot @" + self.mode + str(index) + ' '
     tao_set(self.tao_list, set_str, self.pipe)
-    # In matplotlib mode, apply for the appropriate region too
-    c1 = self.root.plot_mode == "matplotlib"
-    c2 = self.mode == "T"
-    c3 = self.plot in self.root.placed.keys()
-    if c1 & c2 & c3:
-      set_str = "set plot " + self.root.placed[self.plot] + ' '
-      tao_set(self.tao_list, set_str, self.pipe)
+    ## In matplotlib mode, apply for the appropriate region too
+    #c1 = self.root.plot_mode == "matplotlib"
+    #c2 = self.mode == "T"
+    #c3 = self.plot in self.root.placed.keys()
+    #if c1 & c2 & c3:
+    #  set_str = "set plot " + self.root.placed[self.plot] + ' '
+    #  tao_set(self.tao_list, set_str, self.pipe)
     # Refresh any existing plot windows
     for win in self.root.refresh_windows['plot']:
+      #if isinstance(win, tao_plot_window):
+      #  # only refresh relevant plot windows
+      #  if self.plot == win.region:
+      #    win.refresh()
+      #else:
+      #  win.refresh()
       win.refresh()
 
   def plot_transfer(self):
@@ -1463,21 +1469,17 @@ class tao_plot_window(Tao_Toplevel):
     self.pipe = pipe
     self.fig = False #Default value
 
-    # Check if the template has been placed in a region already,
-    # and place it if necessary
-    if self.template in self.root.placed.keys():
-      pass
-    else:
-      # Find a new region to place self.template
-      r_index = 1
-      while (("r" + str(r_index)) in self.root.placed.values()):
-        r_index = r_index + 1
-      self.root.placed[self.template] = 'r' + str(r_index)
+    # Find a region to place the template
+    r_index = 1
+    while (("r" + str(r_index)) in self.root.placed.keys()):
+      r_index = r_index + 1
+    self.region = 'r' + str(r_index)
     # Place the plot and set it visible
-    self.pipe.cmd_in('place -no_buffer ' + root.placed[self.template] + ' ' + self.template)
-    self.pipe.cmd_in("set plot " + root.placed[self.template] + ' visible = T')
+    self.pipe.cmd_in('place -no_buffer ' + self.region + ' ' + self.template)
+    self.root.placed['r' + str(r_index)] = self.template
+    self.pipe.cmd_in("set plot " + self.region + ' visible = T')
 
-    self.mpl = taoplot(pipe, self.root.placed[self.template])
+    self.mpl = taoplot(pipe, self.region)
     self.refresh()
 
   def refresh(self, event=None, width=1):
@@ -1536,7 +1538,8 @@ class tao_plot_window(Tao_Toplevel):
     # Note: lat_layout should not be automatically removed from r1
     if self.template != "lat_layout":
       # Unplace the template from its region
-      self.pipe.cmd_in("place -no_buffer " + self.root.placed[self.template] + " none")
+      self.pipe.cmd_in("place -no_buffer " + self.region + " none")
+      self.root.placed.pop(self.region)
     Tao_Toplevel.destroy(self)
 
 
@@ -1553,7 +1556,7 @@ class tao_plot_graph_window(tao_list_window):
   def __init__(self, root, graph, parent, pipe, mode, index, *args, **kwargs):
     tao_list_window.__init__(self, root, graph, parent=parent, *args, **kwargs)
     self.transient(parent)
-    self.grab_set()
+    #self.grab_set()
     self.pipe = pipe
     self.graph = graph
     self.mode = mode
@@ -1666,16 +1669,16 @@ class tao_plot_graph_window(tao_list_window):
           return
         break
     tao_set(win.tao_list, set_str, win.pipe)
-    # In matplotlib mode, apply for the appropriate region too
-    c1 = self.root.plot_mode == "matplotlib"
-    c2 = self.mode == "T"
-    plot = win.curve[:win.curve.index('.')]
-    c3 = plot in self.root.placed.keys()
-    if c1 & c2 & c3:
-      curve_name = self.root.placed[win.curve[:win.curve.index('.')]] \
-          + win.curve[win.curve.index('.'):]
-      set_str = "set curve " + curve_name + ' '
-      tao_set(win.tao_list, set_str, win.pipe)
+    ## In matplotlib mode, apply for the appropriate region too
+    #c1 = self.root.plot_mode == "matplotlib"
+    #c2 = self.mode == "T"
+    #plot = win.curve[:win.curve.index('.')]
+    #c3 = plot in self.root.placed.keys()
+    #if c1 & c2 & c3:
+    #  curve_name = self.root.placed[win.curve[:win.curve.index('.')]] \
+    #      + win.curve[win.curve.index('.'):]
+    #  set_str = "set curve " + curve_name + ' '
+    #  tao_set(win.tao_list, set_str, win.pipe)
     # Refresh any existing plot windows
     for win in self.root.refresh_windows['plot']:
       win.refresh()
@@ -1721,18 +1724,24 @@ class tao_plot_graph_window(tao_list_window):
         break
 
     tao_set(self.tao_list, set_str, self.pipe)
-    # In matplotlib mode, apply for the appropriate region too
-    c1 = self.root.plot_mode == "matplotlib"
-    c2 = self.mode == "T"
-    plot = self.graph[:self.graph.index('.')]
-    c3 = plot in self.root.placed.keys()
-    if c1 & c2 & c3:
-      graph_name = self.root.placed[self.graph[:self.graph.index('.')]] \
-          + self.graph[self.graph.index('.'):]
-      set_str = "set graph " + graph_name + ' '
-      tao_set(self.tao_list, set_str, self.pipe)
+    ## In matplotlib mode, apply for the appropriate region too
+    #c1 = self.root.plot_mode == "matplotlib"
+    #c2 = self.mode == "T"
+    #plot = self.graph[:self.graph.index('.')]
+    #c3 = plot in self.root.placed.keys()
+    #if c1 & c2 & c3:
+    #  graph_name = self.root.placed[self.graph[:self.graph.index('.')]] \
+    #      + self.graph[self.graph.index('.'):]
+    #  set_str = "set graph " + graph_name + ' '
+    #  tao_set(self.tao_list, set_str, self.pipe)
     # Refresh any existing plot windows
     for win in self.root.refresh_windows['plot']:
+      #if isinstance(win, tao_plot_window):
+      #  # only refresh plot windows for this graph
+      #  if self.graph[self.graph.index('.'):] == win.region:
+      #    win.refresh()
+      #else:
+      #  win.refresh()
       win.refresh()
 
 #-----------------------------------------------------
@@ -4698,7 +4707,7 @@ class tao_progress_window(tk.Toplevel):
   Other init arguments are passed to the tk.Toplevel.__init__ method
   '''
   def __init__(self, root, parent, num_bars, *args, **kwargs):
-    tk.Toplevel.__init__(self, parent, *args, **kwargs)
+    tk.Toplevel.__init__(self, parent, class_='Tao', *args, **kwargs)
     self.parent = parent
     self._labels = [] # not intended to be externally manipulated
     self.label_vars = []
@@ -4740,7 +4749,7 @@ class tao_message_box(tk.Toplevel):
   '''
   def __init__(self, root, parent, tk_var, title='', message='', choices=[],
       orient='horizontal', *args, **kwargs):
-    tk.Toplevel.__init__(self, parent, *args, **kwargs)
+    tk.Toplevel.__init__(self, parent, class_='Tao', *args, **kwargs)
     self.transient(parent)
     if title:
       self.title(title)

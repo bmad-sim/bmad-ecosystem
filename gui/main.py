@@ -77,6 +77,8 @@ class tao_root_window(tk.Tk):
     self.bind_all('<Control-r>', self.plot_region_event)
     self.bind_all('<Alt-v>', self.view_vars_event)
     self.bind_all('<Alt-q>', self.reinit_event)
+    # Clear out python lat_calc_done
+    self.pipe.cmd_in('python lat_calc_done')
 
     # Call
     tk.Label(self.main_frame, text="Call command file:").grid(row=0, column=0)
@@ -468,7 +470,7 @@ class tao_root_window(tk.Tk):
         # place the lattice layout in r1 by default
         self.pipe.cmd_in("place -no_buffer r1 lat_layout")
         self.pipe.cmd_in("set plot r1 visible = T")
-        self.placed["lat_layout"] = 'r1'
+        self.placed["r1"] = 'lat_layout'
       self.default_plots()
 
     # Font size
@@ -572,10 +574,17 @@ class tao_root_window(tk.Tk):
     global_list = global_list.splitlines()
     for i in range(len(global_list)):
       global_list[i]=str_to_tao_param(global_list[i])
-    win = tao_parameter_window(self, "Global Variables", global_list, self.pipe)
+    global_win = tao_parameter_window(self, "Global Variables", global_list, self.pipe)
+    def global_callback(event=None):
+      tao_set(global_win.tao_list, "set global ", self.pipe)
+      # Refresh windows
+      if self.pipe.cmd_in('python lat_calc_done') == 'T':
+        for k in self.refresh_windows.keys():
+          for win in self.refresh_windows[k]:
+            win.refresh()
 
-    b = tk.Button(win.button_frame, text="Set Global Variables",
-        command=lambda : tao_set(win.tao_list, "set global ", self.pipe))
+    b = tk.Button(global_win.button_frame, text="Set Global Variables",
+        command=global_callback)
     b.pack()
 
   def view_vars_cmd(self):
