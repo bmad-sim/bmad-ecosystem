@@ -21,7 +21,7 @@ class taoplot:
 		#string describing region in tao of the desired plot
 
 	def plot(self, width):
-		'''returns a figure containing graphs using the data in the region GraphRegion of the tao instance in pipe, and plots a lat_layout below if applicable, also returns information about the indices and locations of elements, width is used to modify the width of floor plan elements'''
+		'''returns a figure containing graphs using the data in the region GraphRegion of the tao instance in pipe, and plots a lat_layout below if applicable, also returns information about the indices and locations of elements, width is used to modify the width of floor plan elements and the width of the lat layout'''
 		fig = plt.figure()
 		#creates plotting figure
 
@@ -270,7 +270,7 @@ class taoplot:
 		#list of string names of graphs
 
 		number_graphs = len(gList) + 1
-		layout_height = .2
+		layout_height = .2*width
 		#relative height of lat layout to graph if there is one graph
 
 		heightsList.append(layout_height*len(gList) + layout_height*(len(gList)-1))

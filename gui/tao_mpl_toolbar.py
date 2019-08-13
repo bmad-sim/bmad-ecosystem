@@ -7,22 +7,26 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.backend_tools import *
 from matplotlib import rcParams
 from matplotlib.widgets import Slider
+from matplotlib.backends._backend_tk import FigureManagerTk
 
 class taotoolbar(NavigationToolbar2Tk):
-	def __init__(self,canvas_,parent_):
+	def __init__(self,canvas_,parent_,width_):
 		self.toolitems = (
 			('Home', 'Reset original view', 'home', 'home'),
 			('Back', 'Back to previous view', 'back', 'back'),
 			('Forward', 'Forward to next view', 'forward', 'forward'),
 			('Pan', 'Pan axes with left mouse, zoom with right mouse or scroll wheel', 'move', 'pan'),
 			('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
-			('Save', 'Save image of figure', 'filesave', 'save_figure'),
 			('Redraw','Recalculate points','subplots','redraw'),
+			('Slider','Width slider','subplots','slider'),
+			(None,None,None,None),
+			('Save', 'Save image of figure', 'filesave', 'save_figure'),
 			(None,None,None,None),
 			('Help','Graph help','subplots','help'),
 			)
 		self.parent = parent_
 		self.canvas = canvas_
+		self.width = width_
 		self.axes_list = self.canvas.figure.get_axes()
 		self.templateDict = self.parent.root.placed
 		self.graph_list = self.parent.fig_info[18]
@@ -202,8 +206,8 @@ class taotoolbar(NavigationToolbar2Tk):
 		# Title string
 		title = 'Graph Help'
 		# Help items
-		help_items = ['Home    ','', 'Back    ','','Forward    ','','Pan/Zoom    ','','Zoom Rectangle    ','','Save    ','','Recalculate Points    ']
-		help_descrips = ["Returns to original view with original points, shortcuts are 'h' or 'r'.",'',"Returns to previous view, shortcuts are 'c' or 'left arrow'.",'',"Undoes the last back command, shortcuts are 'v' or 'right arrow'.",'',"Toggles panning by left clicking and dragging, and zooming by using the scroll wheel or by right clicking and dragging. Holding 'x' restricts panning and zooming to the x axis, holding 'y' restricts panning and zooming to the y axis, and holding control maintains the aspect ratio.",'',"Toggles zooming by left clicking and dragging to select the new window. Holding 'x' restricts zooming to the x axis, holding 'y' restricts zooming to the y axis, and holding control maintains the aspect ratio.",'',"Saves the current figure as an image file, shortcut is 'ctrl + s'.",'','Recalculates points to better fit the current window size']
+		help_items = ['Home    ','', 'Back    ','','Forward    ','','Pan/Zoom    ','','Zoom Rectangle    ','','Recalculate Points    ','','Width Slider','','Save    ']
+		help_descrips = ["Returns to original view with original points, shortcuts are 'h' or 'r'.",'',"Returns to previous view, shortcuts are 'c' or 'left arrow'.",'',"Undoes the last back command, shortcuts are 'v' or 'right arrow'.",'',"Toggles panning by left clicking and dragging, and zooming by using the scroll wheel or by right clicking and dragging. Holding 'x' restricts panning and zooming to the x axis, holding 'y' restricts panning and zooming to the y axis, and holding control maintains the aspect ratio.",'',"Toggles zooming by left clicking and dragging to select the new window. Holding 'x' restricts zooming to the x axis, holding 'y' restricts zooming to the y axis, and holding control maintains the aspect ratio.",'','Recalculates points to better fit the current window size','','Makes a slider that changes the size of a lat layout if one is drawn below a graph, or changes width of elements in a floor plan.','',"Saves the current figure as an image file, shortcut is 'ctrl + s'."]
 		wl = 600
 
 		tk.Label(win, text=title).grid(row=0, column=0, columnspan=2, sticky='EW')
@@ -230,7 +234,21 @@ class taotoolbar(NavigationToolbar2Tk):
 
 
 	def slider(self):
-		slidefig = plt.figure()
+		rcParams['toolbar'] = 'None'
+		slidefig = plt.figure(figsize=[4,.7])
 		slideax = slidefig.add_subplot(1,1,1)
+		plt.title('Element Width Slider')
+		width_slider = Slider(slideax, 'width', 0, 2, self.width) #element width slider
+		slidefig.tight_layout(pad=.5)
+		slidefig.show()
+		def update_slider(width):
+			for i in range(len(self.graph_list)):
+				xRange = self.axes_list[i].get_xlim()
+				yRange = self.axes_list[i].get_ylim()
+			self.parent.refresh(width=width_slider.val)
+			for i in range(len(self.graph_list)):
+				self.axes_list[i].set_xlim(xRange)
+				self.axes_list[i].set_ylim(yRange)
+		width_slider.on_changed(update_slider) #call update when slider moves
 		
 
