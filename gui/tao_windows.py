@@ -1311,24 +1311,29 @@ class tao_plot_tr_window(tao_list_window):
     # Populate self.plot_list and self.index_list
     if self.mode == "T":
       self.plot_list = t_plot_list
+      self.plot_display_list = t_plot_list
       self.index_list = t_index_list
       self.transfer_text.set('Transfer properties to active plots')
     elif self.mode == "R":
       self.plot_list = r_plot_list
+      self.plot_display_list = []
       self.index_list = r_index_list
       self.region_list = r_region_list
+      for i in range(len(self.plot_list)):
+        self.plot_display_list.append(
+            self.plot_list[i] + " (" + self.region_list[i] + ")")
       self.transfer_text.set('Transfer properties to template')
     # Save t_plot_list and r_plot_list for use in self.refresh
     self.t_plot_list = t_plot_list
     self.r_plot_list = r_plot_list
 
-    self.temp_select.configure(values=self.plot_list)
+    self.temp_select.configure(values=self.plot_display_list)
     if self.plot_list == []:
       for child in self.list_frame.winfo_children():
         child.destroy()
       tk.Label(self.list_frame, text="NO PLOTS FOUND").pack()
       return
-    self.temp.set(self.plot_list[0])
+    self.temp.set(self.plot_display_list[0])
     self.refresh()
 
   def refresh(self, event=None):
@@ -1337,7 +1342,7 @@ class tao_plot_tr_window(tao_list_window):
     self.temp
     '''
     # Don't run if self.temp is not a valid template
-    if self.temp.get() not in self.plot_list:
+    if self.temp.get() not in self.plot_display_list:
       return
 
     # Clear list_frame
@@ -1346,6 +1351,7 @@ class tao_plot_tr_window(tao_list_window):
 
     # Get info on self.temp
     self.plot = self.temp.get()
+    self.plot = self.plot_list[self.plot_display_list.index(self.plot)]
     if self.mode == "T":
       data_list = self.pipe.cmd_in("python plot1 " + self.plot)
     elif self.mode == "R":
@@ -1465,7 +1471,6 @@ class tao_plot_window(Tao_Toplevel):
     self.tao_id = 'plot'
     Tao_Toplevel.__init__(self, root, *args, **kwargs)
     self.template = template #The template plot being plotted
-    self.title(template)
     self.pipe = pipe
     self.fig = False #Default value
 
@@ -1480,6 +1485,7 @@ class tao_plot_window(Tao_Toplevel):
     self.pipe.cmd_in("set plot " + self.region + ' visible = T')
 
     self.mpl = taoplot(pipe, self.region)
+    self.title(template + ' (' + self.region + ')')
     self.refresh()
 
   def refresh(self, event=None, width=1):
@@ -1555,6 +1561,12 @@ class tao_plot_graph_window(tao_list_window):
   '''
   def __init__(self, root, graph, parent, pipe, mode, index, *args, **kwargs):
     tao_list_window.__init__(self, root, graph, parent=parent, *args, **kwargs)
+    # Set the title properly
+    if graph.split('.')[0] in self.root.placed.keys():
+      title = self.root.placed[graph.split('.')[0]]
+      title += '.' + graph.split('.')[1]
+      title += " (" + graph.split('.')[0] + ")"
+      self.title(title)
     self.transient(parent)
     #self.grab_set()
     self.pipe = pipe
@@ -1626,8 +1638,14 @@ class tao_plot_graph_window(tao_list_window):
     '''
     Opens a window to display info for a given curve
     '''
-    curve = graph + '.' + curve
-    win = tao_plot_curve_window(self.root, curve, self, self.pipe)
+    full_curve = graph + '.' + curve
+    win = tao_plot_curve_window(self.root, full_curve, self, self.pipe)
+    # Set the title properly
+    if graph.split('.')[0] in self.root.placed.keys():
+      title = self.root.placed[graph.split('.')[0]]
+      title += '.' + graph.split('.')[1] + '.' + curve
+      title += " (" + graph.split('.')[0] + ")"
+      win.title(title)
 
   def curve_apply(self, win):
     #Convert from plot.graph.curve to index.graph.curve
