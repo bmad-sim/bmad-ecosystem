@@ -335,7 +335,6 @@ class tk_tao_parameter():
     try:
       m_ix = (self._get_dat_types()).index(x[0])
     except ValueError:
-      #print('Failed at m_ix')
       return False
 
     # Check what subvalues are allowed
@@ -347,9 +346,6 @@ class tk_tao_parameter():
       slave_params = []
     # Reject if length of slave_params and x don't match up
     if len(slave_params) != len(x)-1:
-      #print('Failed due to length mismatch')
-      #print(slave_params)
-      #print(len(x)-1)
       return False
 
     # Check each subvalue
@@ -357,13 +353,11 @@ class tk_tao_parameter():
     for p in slave_params:
       if p.find('<enum') != -1: #Enums
         if x[k+1] not in dat_dict[p]:
-          #print('failed because enum not found')
           return False
       elif p.find('<digit:') != -1: #Digit dropdown box
         try:
           x[k+1] = int(x[k+1])
         except ValueError:
-          #print('failed bc not int')
           return False
         p = p.split(':')[1]
         p = p.split('>')[0] #p is now "low-high"
@@ -371,35 +365,29 @@ class tk_tao_parameter():
         low = int(low)
         high = int(high)
         if (x[k+1] < low) | (x[k+1] > high):
-          #print('failed bc out of range')
           return False
       elif p.find('<str>') != -1: #Strings
         if len(x[k+1]) == 0:
-          #print('failed bc 0 length')
           return False
       elif p.find('<digits') != -1: #Fixed length int
         try:
           junk_var = int(x[k+1]) #don't need the value
         except ValueError:
-          #print('failed bc not an int')
           return False
         p = p.split('s')[1]
         p = p.split('>')[0]
         length = int(p)
         if len(x[k+1]) != length:
-          #print('failed bc wrong length')
           return False
       elif p.find('<int>') != -1: #Integer
         try:
           junk_var = int(x[k+1]) #don't need the value
         except ValueError:
-          #print('failed because not an int')
           return False
       elif p.find('<real>') != -1: #Float
         try:
           junk_var = float(x[k+1]) #don't need the value
         except ValueError:
-          #print('failed bc not a float')
           return False
       k = k+1
     return True # All tests passed
