@@ -24,7 +24,7 @@ import string
 class tao_root_window(tk.Tk):
 
   def __init__(self, *args, **kwargs):
-    tk.Tk.__init__(self)
+    tk.Tk.__init__(self, className='Tao')
 
     from tkinter import font
     self.title("Tao")
@@ -58,7 +58,7 @@ class tao_root_window(tk.Tk):
   # Tao startup
 
   def start_main(self):
-    self.unbind_all("<Return>")
+    self.unbind("<Return>")
     self.lift()
     self.focus_force()
     #self.menubar.entryconfig("File", state="normal")
