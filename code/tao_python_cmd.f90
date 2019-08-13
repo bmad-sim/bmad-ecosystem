@@ -74,14 +74,17 @@ type (tao_var_struct), pointer :: v_ptr, var
 type (tao_var_array_struct), allocatable, save, target :: v_array(:)
 type (tao_v1_var_struct), allocatable :: v1_temp(:)
 type (tao_var_struct), allocatable :: v_temp(:)
-type (tao_plot_array_struct), allocatable, save :: plot(:)
+type (tao_plot_array_struct), allocatable, save :: plots(:)
 type (tao_graph_array_struct), allocatable, save :: graphs(:)
-type (tao_curve_array_struct), allocatable, save :: curve(:)
+type (tao_curve_array_struct), allocatable, save :: curves(:)
 type (tao_plot_region_struct), pointer :: pr
+type (tao_plot_struct), allocatable :: plot_temp(:)
 type (tao_plot_struct), pointer :: p
 type (tao_graph_struct), pointer :: g
-type (tao_graph_struct) graph
-type (tao_curve_struct), pointer :: cur
+type (tao_graph_struct) :: graph
+type (tao_graph_struct), allocatable :: graph_temp(:)
+type (tao_curve_struct), allocatable :: curve_temp(:)
+type (tao_curve_struct), pointer :: c
 type (tao_lattice_struct), pointer :: tao_lat
 type (tao_plot_region_struct), pointer :: region
 type (tao_d2_data_array_struct), allocatable, save :: d2_array(:)
@@ -139,7 +142,7 @@ real(rp) a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
 real(rp), allocatable :: value_arr(:)
 
-integer :: i, j, k, ib, ie, iu, nn, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i0, i1, i2
+integer :: i, j, k, ib, ie, iu, nn, n0, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i0, i1, i2
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_bunch, ix_d2, n_who, ix_pole_max, attrib_type
 integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free, ix_uni, ix_shape_min
 integer line_width, n_bend, ic, num_ele
@@ -217,6 +220,7 @@ call match_word (cmd, [character(20) :: &
           'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
           'merit', 'orbit_at_s', 'place_buffer', &
           'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
+          'plot_manage_plot', 'plot_manage_graph', 'plot_manage_curve', &
           'plot_shapes', 'plot_list', 'plot_symbol', 'plot_transfer', 'plot1', &
           'show', 'species_to_int', 'species_to_str', 'super_universe', 'twiss_at_s', 'universe', &
           'var_v1_create', 'var_v1_destroy', 'var_create', 'var_general', 'var_v1_array', 'var_v_array', 'var', &
@@ -2775,55 +2779,55 @@ case ('place_buffer')
 
 case ('plot_curve')
 
-  call tao_find_plots (err, line, 'COMPLETE', curve = curve)
+  call tao_find_plots (err, line, 'COMPLETE', curve = curves)
 
-  if (err .or. .not. allocated(curve)) then
+  if (err .or. .not. allocated(curves)) then
     call invalid ('Not a valid curve')
     return
   endif
 
-  cur => curve(1)%c
-  ix_uni = cur%ix_universe
+  c => curves(1)%c
+  ix_uni = c%ix_universe
 
-  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             cur%name
-  nl=incr(nl); write (li(nl), amt) 'data_source;ENUM;T;',                     cur%data_source
-  nl=incr(nl); write (li(nl), amt) 'data_type_x;DAT_TYPE_Z;T;',               cur%data_type_x
-  nl=incr(nl); write (li(nl), amt) 'data_type_z;ENUM;T;',                     cur%data_type_z
-  nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   cur%data_type
-  nl=incr(nl); write (li(nl), amt) 'component;STR;T;',                        cur%component
-  nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(cur%ele_ref_name), 'ix_ele_ref'
-  nl=incr(nl); write (li(nl), amt) 'legend_text;STR;T;',                      cur%legend_text
-  nl=incr(nl); write (li(nl), amt) 'message_text;STR;F;',                     cur%message_text
-  nl=incr(nl); write (li(nl), amt) 'units;STR;T;',                            cur%units
-  nl=incr(nl); write (li(nl), rmt) 'y_axis_scale_factor;REAL;T;',             cur%y_axis_scale_factor
-  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               cur%s
-  nl=incr(nl); write (li(nl), rmt) 'z_color0;REAL;T;',                        cur%z_color0
-  nl=incr(nl); write (li(nl), rmt) 'z_color1;REAL;T;',                        cur%z_color1
-  nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                     cur%ix_universe
-  nl=incr(nl); write (li(nl), imt) 'symbol_every;INT;T;',                     cur%symbol_every
-  nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_branch;INUM;T;',              cur%ix_branch
-  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref;INT;I;',                       cur%ix_ele_ref
-  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref_track;INT;I;',                 cur%ix_ele_ref_track
-  nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_bunch;INUM;T;',               cur%ix_bunch
-  nl=incr(nl); write (li(nl), lmt) 'use_y2;LOGIC;T;',                         cur%use_y2
-  nl=incr(nl); write (li(nl), lmt) 'draw_line;LOGIC;T;',                      cur%draw_line
-  nl=incr(nl); write (li(nl), lmt) 'draw_symbols;LOGIC;T;',                   cur%draw_symbols
-  nl=incr(nl); write (li(nl), lmt) 'draw_symbol_index;LOGIC;T;',              cur%draw_symbol_index
-  nl=incr(nl); write (li(nl), lmt) 'smooth_line_calc;LOGIC;T;',               cur%smooth_line_calc
-  nl=incr(nl); write (li(nl), lmt) 'use_z_color;LOGIC;I;',                    cur%use_z_color
-  nl=incr(nl); write (li(nl), lmt) 'autoscale_z_color;LOGIC;I;',              cur%autoscale_z_color
+  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                             c%name
+  nl=incr(nl); write (li(nl), amt) 'data_source;ENUM;T;',                     c%data_source
+  nl=incr(nl); write (li(nl), amt) 'data_type_x;DAT_TYPE_Z;T;',               c%data_type_x
+  nl=incr(nl); write (li(nl), amt) 'data_type_z;ENUM;T;',                     c%data_type_z
+  nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   c%data_type
+  nl=incr(nl); write (li(nl), amt) 'component;STR;T;',                        c%component
+  nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(c%ele_ref_name), 'ix_ele_ref'
+  nl=incr(nl); write (li(nl), amt) 'legend_text;STR;T;',                      c%legend_text
+  nl=incr(nl); write (li(nl), amt) 'message_text;STR;F;',                     c%message_text
+  nl=incr(nl); write (li(nl), amt) 'units;STR;T;',                            c%units
+  nl=incr(nl); write (li(nl), rmt) 'y_axis_scale_factor;REAL;T;',             c%y_axis_scale_factor
+  nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               c%s
+  nl=incr(nl); write (li(nl), rmt) 'z_color0;REAL;T;',                        c%z_color0
+  nl=incr(nl); write (li(nl), rmt) 'z_color1;REAL;T;',                        c%z_color1
+  nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                     c%ix_universe
+  nl=incr(nl); write (li(nl), imt) 'symbol_every;INT;T;',                     c%symbol_every
+  nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_branch;INUM;T;',              c%ix_branch
+  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref;INT;I;',                       c%ix_ele_ref
+  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref_track;INT;I;',                 c%ix_ele_ref_track
+  nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_bunch;INUM;T;',               c%ix_bunch
+  nl=incr(nl); write (li(nl), lmt) 'use_y2;LOGIC;T;',                         c%use_y2
+  nl=incr(nl); write (li(nl), lmt) 'draw_line;LOGIC;T;',                      c%draw_line
+  nl=incr(nl); write (li(nl), lmt) 'draw_symbols;LOGIC;T;',                   c%draw_symbols
+  nl=incr(nl); write (li(nl), lmt) 'draw_symbol_index;LOGIC;T;',              c%draw_symbol_index
+  nl=incr(nl); write (li(nl), lmt) 'smooth_line_calc;LOGIC;T;',               c%smooth_line_calc
+  nl=incr(nl); write (li(nl), lmt) 'use_z_color;LOGIC;I;',                    c%use_z_color
+  nl=incr(nl); write (li(nl), lmt) 'autoscale_z_color;LOGIC;I;',              c%autoscale_z_color
 
-  nl=incr(nl); write (li(nl), imt)  'line.width;INT;T;',                      cur%line%width
-  nl=incr(nl); write (li(nl), amt)  'line.color;ENUM;T;',                     qp_color_name(cur%line%color)
-  nl=incr(nl); write (li(nl), amt)  'line.pattern;ENUM;T;',                   qp_line_pattern_name(cur%line%pattern)
+  nl=incr(nl); write (li(nl), imt)  'line.width;INT;T;',                      c%line%width
+  nl=incr(nl); write (li(nl), amt)  'line.color;ENUM;T;',                     qp_color_name(c%line%color)
+  nl=incr(nl); write (li(nl), amt)  'line.pattern;ENUM;T;',                   qp_line_pattern_name(c%line%pattern)
 
-  nl=incr(nl); write (li(nl), amt)  'symbol.type;ENUM;T;',                    qp_symbol_type_name(cur%symbol%type)
-  nl=incr(nl); write (li(nl), amt)  'symbol.color;ENUM;T;',                   qp_color_name(cur%symbol%color)
-  nl=incr(nl); write (li(nl), rmt)  'symbol.height;REAL;T;',                  cur%symbol%height
-  nl=incr(nl); write (li(nl), amt)  'symbol.fill_pattern;ENUM;T;',            qp_symbol_fill_pattern_name(cur%symbol%fill_pattern)
-  nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               cur%symbol%line_width
+  nl=incr(nl); write (li(nl), amt)  'symbol.type;ENUM;T;',                    qp_symbol_type_name(c%symbol%type)
+  nl=incr(nl); write (li(nl), amt)  'symbol.color;ENUM;T;',                   qp_color_name(c%symbol%color)
+  nl=incr(nl); write (li(nl), rmt)  'symbol.height;REAL;T;',                  c%symbol%height
+  nl=incr(nl); write (li(nl), amt)  'symbol.fill_pattern;ENUM;T;',            qp_symbol_fill_pattern_name(c%symbol%fill_pattern)
+  nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               c%symbol%line_width
 
-  nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               cur%symbol%line_width
+  nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               c%symbol%line_width
 
 !----------------------------------------------------------------------
 ! Plot Lat_layout info
@@ -2982,22 +2986,167 @@ case ('plot_graph')
 
 case ('plot_histogram')
 
-  call tao_find_plots (err, line, 'COMPLETE', curve = curve)
+  call tao_find_plots (err, line, 'COMPLETE', curve = curves)
 
-  if (err .or. .not. allocated(curve)) then
+  if (err .or. .not. allocated(curves)) then
     call invalid ('Bad curve name')
     return
   endif
 
-  cur => curve(1)%c
+  c => curves(1)%c
 
-  nl=incr(nl); write (li(nl), lmt) 'density_normalized;LOGIC;T;',          cur%hist%density_normalized
-  nl=incr(nl); write (li(nl), lmt) 'weight_by_charge;LOGIC;T;',            cur%hist%weight_by_charge
-  nl=incr(nl); write (li(nl), rmt) 'minimum;REAL;T;',                      cur%hist%minimum
-  nl=incr(nl); write (li(nl), rmt) 'maximum;REAL;T;',                      cur%hist%maximum
-  nl=incr(nl); write (li(nl), rmt) 'width;REAL;T;',                        cur%hist%width
-  nl=incr(nl); write (li(nl), rmt) 'center;REAL;T;',                       cur%hist%center
-  nl=incr(nl); write (li(nl), imt) 'number;REAL;T;',                       cur%hist%number
+  nl=incr(nl); write (li(nl), lmt) 'density_normalized;LOGIC;T;',          c%hist%density_normalized
+  nl=incr(nl); write (li(nl), lmt) 'weight_by_charge;LOGIC;T;',            c%hist%weight_by_charge
+  nl=incr(nl); write (li(nl), rmt) 'minimum;REAL;T;',                      c%hist%minimum
+  nl=incr(nl); write (li(nl), rmt) 'maximum;REAL;T;',                      c%hist%maximum
+  nl=incr(nl); write (li(nl), rmt) 'width;REAL;T;',                        c%hist%width
+  nl=incr(nl); write (li(nl), rmt) 'center;REAL;T;',                       c%hist%center
+  nl=incr(nl); write (li(nl), imt) 'number;REAL;T;',                       c%hist%number
+
+!----------------------------------------------------------------------
+! Template plot creation or destruction.
+! Command syntax:
+!   pyton plot_manage_plot {plot_location}^^{plot_name}^^{n_graph}^^{graph1_name}^^{graph2_name}...{graphN_name}
+! Use "@Tnnn" sytax for {plot_location} to place a plot. A plot may be placed in a spot where
+! there is already a template.
+! If {n_graph} is set to -1 then just delete the plot.
+
+case ('plot_manage_plot')
+
+  call split_this_line (line, name1, -1, err);         if (err) return
+
+  call tao_find_plots (err, name1(1), 'TEMPLATE', plots)
+  if (size(plots) == 0) then
+    call invalid('No plot template location found for: ' // name1(1))
+    return
+  endif
+  p => plots(1)%p
+
+  if (.not. is_integer(name1(3))) then
+    call invalid ('Number of graphs string not an integer: ' // name1(3))
+    return
+  endif
+
+  read(name1(3), *) n
+
+  !
+
+  if (n == -1) then
+    ix = p%ix_plot
+    n0 = size(s%plot_page%template)
+    s%plot_page%template(ix:n0-1) = s%plot_page%template(ix+1:n0)
+    do i = ix, n0
+      s%plot_page%template(i)%ix_plot = i
+    enddo
+    return
+  endif
+
+  !
+
+  allocate(p%graph(n))
+
+  if (allocated(p%graph)) then
+    deallocate(p%graph)
+  endif
+
+  p%name = name1(2)
+
+  do i = 1, n
+    p%graph(i)%name = name1(i+3)
+    p%graph(i)%p => p
+  enddo
+
+!----------------------------------------------------------------------
+! Template plot curve creation/destruction
+! Command syntax:
+!   pyton plot_manage_curve {graph_name}^^{curve_index}^^{curve_name}
+! If {curve_index} corresponds to an existing curve then this curve is deleted.
+! In this case the {curve_name} is ignored and does not have to be present.
+! If {curve_index} does not not correspond to an existing curve, {curve_index}
+! must be one greater than the number of curves.
+
+case ('plot_manage_curve')
+
+  call split_this_line (line, name1, -1, err);         if (err) return
+  call tao_find_plots (err, name1(1), 'TEMPLATE', graph = graphs)
+  if (size(graphs) /= 1) then
+    if (size(graphs) == 0) call invalid('No graph found for: ' // name1(1))
+    if (size(graphs) > 1)  call invalid('Multiple graphs found for: ' // name1(1))
+    return
+  endif
+
+  g => graphs(1)%g
+  
+  if (.not. is_integer(name1(2))) then
+    call invalid ('Curve index not an integer: ' // name1(2))
+    return
+  endif
+  read(name1(2), *) n
+  if (n > size(g%curve) + 1) then
+    call invalid ('Curve index out of range: ' // name1(2))
+    return
+  endif
+
+  n0 = size(g%curve)
+  call move_alloc(g%curve, curve_temp)
+
+  if (n == n0 + 1) then
+    allocate (g%curve(n))
+    g%curve(1:n0) = curve_temp
+    g%curve(n)%name = name1(3)
+    g%curve(n)%g => g
+
+  else
+    allocate (g%curve(n0-1))
+    g%curve(1:n-1) = curve_temp(1:n-1)
+    g%curve(n:n0-1) = curve_temp(n+1:n0)
+  endif
+
+!----------------------------------------------------------------------
+! Template plot graph creation/destruction
+! Command syntax:
+!   pyton plot_manage_graph {plot_name}^^{graph_index}^^{graph_name}
+! If {graph_index} corresponds to an existing graph then this graph is deleted.
+! In this case the {graph_name} is ignored and does not have to be present.
+! If {graph_index} does not not correspond to an existing graph, {graph_index}
+! must be one greater than the number of graphs.
+
+case ('plot_manage_graph')
+
+  call split_this_line (line, name1, -1, err);         if (err) return
+  call tao_find_plots (err, name1(1), 'TEMPLATE', plots)
+  if (size(plots) /= 1) then
+    if (size(plots) == 0) call invalid('No plot found for: ' // name1(1))
+    if (size(plots) > 1)  call invalid('Multiple plots found for: ' // name1(1))
+    return
+  endif
+
+  p => plots(1)%p
+  
+  if (.not. is_integer(name1(2))) then
+    call invalid ('Graph index not an integer: ' // name1(2))
+    return
+  endif
+  read(name1(2), *) n
+  if (n > size(p%graph) + 1) then
+    call invalid ('Graph index out of range: ' // name1(2))
+    return
+  endif
+
+  n0 = size(p%graph)
+  call move_alloc(p%graph, graph_temp)
+
+  if (n == n0 + 1) then
+    allocate (p%graph(n))
+    p%graph(1:n0) = graph_temp
+    p%graph(n)%name = name1(3)
+    p%graph(n)%p => p
+
+  else
+    allocate (p%graph(n0-1))
+    p%graph(1:n-1) = graph_temp(1:n-1)
+    p%graph(n:n0-1) = graph_temp(n+1:n0)
+  endif
 
 !----------------------------------------------------------------------
 ! Plot shapes
@@ -3045,20 +3194,20 @@ case ('plot_line')
 
   call string_trim(line(ix_line+1:), who, ix2)
   line = line(1:ix_line)
-  call tao_find_plots (err, line, 'COMPLETE', curve = curve)
+  call tao_find_plots (err, line, 'COMPLETE', curve = curves)
 
-  if (.not. allocated(curve) .or. size(curve) /= 1) then
+  if (.not. allocated(curves) .or. size(curves) /= 1) then
     call invalid ('Not a valid curve')
     return
   endif
 
-  cur => curve(1)%c
-  if (.not. allocated(cur%x_line)) then
+  c => curves(1)%c
+  if (.not. allocated(c%x_line)) then
     call invalid ('No line associated with curve')
     return
   endif
       
-  n = size(cur%x_line)
+  n = size(c%x_line)
 
   select case (who)
   case ('x', 'y')
@@ -3071,14 +3220,14 @@ case ('plot_line')
     tao_c_interface_com%n_real = n
 
     if (who == 'x') then
-      tao_c_interface_com%c_real(1:n) = cur%x_line
+      tao_c_interface_com%c_real(1:n) = c%x_line
     else
-      tao_c_interface_com%c_real(1:n) = cur%y_line
+      tao_c_interface_com%c_real(1:n) = c%y_line
     endif
 
   case ('')
     do i = 1, n
-      nl=incr(nl); write (li(nl), '(i0, 2(a, es21.13))') i, ';', cur%x_line(i), ';', cur%y_line(i)
+      nl=incr(nl); write (li(nl), '(i0, 2(a, es21.13))') i, ';', c%x_line(i), ';', c%y_line(i)
     enddo
 
   case default
@@ -3101,20 +3250,20 @@ case ('plot_symbol')
 
   call string_trim(line(ix_line+1:), who, ix2)
   line = line(1:ix_line)
-  call tao_find_plots (err, line, 'COMPLETE', curve = curve)
+  call tao_find_plots (err, line, 'COMPLETE', curve = curves)
 
-  if (.not. allocated(curve) .or. size(curve) /= 1) then
+  if (.not. allocated(curves) .or. size(curves) /= 1) then
     call invalid ('Not a valid curve')
     return
   endif
 
-  cur => curve(1)%c
-  if (.not. allocated(cur%x_symb)) then
+  c => curves(1)%c
+  if (.not. allocated(c%x_symb)) then
     call invalid ('No line associated with curve')
     return
   endif
 
-  n = size(cur%x_symb)
+  n = size(c%x_symb)
 
   select case (who)
   case ('x', 'y')
@@ -3127,17 +3276,17 @@ case ('plot_symbol')
     tao_c_interface_com%n_real = n
 
     if (who == 'x') then
-      tao_c_interface_com%c_real(1:n) = cur%x_symb
+      tao_c_interface_com%c_real(1:n) = c%x_symb
     else
-      tao_c_interface_com%c_real(1:n) = cur%y_symb
+      tao_c_interface_com%c_real(1:n) = c%y_symb
     endif
 
   case ('')
-    do i = 1, size(cur%x_symb)
-      if (allocated(cur%ix_symb)) then
-        nl=incr(nl); write (li(nl), '(2(i0, a), 2(es21.13, a))') i, ';', cur%ix_symb(i), ';', cur%x_symb(i), ';', cur%y_symb(i)
+    do i = 1, size(c%x_symb)
+      if (allocated(c%ix_symb)) then
+        nl=incr(nl); write (li(nl), '(2(i0, a), 2(es21.13, a))') i, ';', c%ix_symb(i), ';', c%x_symb(i), ';', c%y_symb(i)
       else
-        nl=incr(nl); write (li(nl), '(2(i0, a), 2(es21.13, a))') i, ';', 0, ';', cur%x_symb(i), ';', cur%y_symb(i)
+        nl=incr(nl); write (li(nl), '(2(i0, a), 2(es21.13, a))') i, ';', 0, ';', c%x_symb(i), ';', c%y_symb(i)
       endif
     enddo
 
@@ -3146,32 +3295,47 @@ case ('plot_symbol')
   end select
 
 !----------------------------------------------------------------------
-! Transfer plot parameters from the "from plot" to equivalent plot or plots
+! Transfer plot parameters from the "from plot" to the "to plot" (or plots).
 ! Command syntax:
-!   python plot_transfer {from_plot}
-! Where, to avoid confusion, {from_plot} is either "@Tnnn" or "@Rnnn".
-! If {from_plot} is a template plot then the equivalent plots are the
-! region plots with the same name. And vice versa.
+!   python plot_transfer {from_plot} {to_plot}
+! To avoid confusion, use "@Tnnn" and "@Rnnn" syntax for {from_plot}.
+! If {to_plot} is not present and {from_plot} is a template plot, the "to plots" are the equivalent 
+! region plots with the same name. And vice versa if {from_plot} is a region plot.
 
 case ('plot_transfer')
 
-  call tao_find_plots (err, line, 'COMPLETE', plot)
-  if (size(plot) /= 1) then
-    call invalid ('Number of from plots found is not exactly one.')
+  call tao_find_plots (err, line(1:ix_line), 'COMPLETE', plots)
+  if (size(plots) /= 1) then
+    call invalid ('Number of "from plots" found is not exactly one.')
     return
   endif
 
-  p => plot(1)%p
-  if (associated(p%r)) then
-    do i = 1, size(s%plot_page%template)
-      if (s%plot_page%template(i)%name /= p%name) cycle
-      call tao_plot_struct_transfer (p, s%plot_page%template(i))
-    enddo
+  p => plots(1)%p
+
+  call string_trim(line(ix_line+1:), line, ix_line)
+  if (line == '') then
+    if (associated(p%r)) then
+      do i = 1, size(s%plot_page%template)
+        if (s%plot_page%template(i)%name /= p%name) cycle
+        call tao_plot_struct_transfer (p, s%plot_page%template(i))
+      enddo
+
+    else
+      do i = 1, size(s%plot_page%region)
+        if (s%plot_page%region(i)%plot%name /= p%name) cycle
+        call tao_plot_struct_transfer (p, s%plot_page%region(i)%plot)
+      enddo
+    endif
 
   else
-    do i = 1, size(s%plot_page%region)
-      if (s%plot_page%region(i)%plot%name /= p%name) cycle
-      call tao_plot_struct_transfer (p, s%plot_page%region(i)%plot)
+    call tao_find_plots (err, line(1:ix_line), 'COMPLETE', plots)
+    if (size(plots) == 0) then
+      call invalid ('Number of "to plots" is zero.')
+      return
+    endif
+
+    do i = 1, size(plots)
+      call tao_plot_struct_transfer (p, plots(i)%p)
     enddo
   endif
 
@@ -3184,13 +3348,13 @@ case ('plot_transfer')
 
 case ('plot1')
 
-  call tao_find_plots (err, line, 'COMPLETE', plot, print_flag = .false.)
+  call tao_find_plots (err, line, 'COMPLETE', plots, print_flag = .false.)
   if (err) then
     call invalid ('Expect "r" or "t" at end.')
     return
   endif
 
-  p => plot(1)%p
+  p => plots(1)%p
 
   n = 0
   if (allocated(p%graph)) n = size(p%graph)
@@ -3722,9 +3886,9 @@ case ('wave')
       g => s%wave%region%plot%graph(3)
     end select
 
-    cur => g%curve(1)
-    do i = 1, size(cur%x_symb)
-      nl=incr(nl); write (li(nl), '(i0, 2(a, es14.6))') i, ';', cur%x_symb(i), ';', cur%y_symb(i)
+    c => g%curve(1)
+    do i = 1, size(c%x_symb)
+      nl=incr(nl); write (li(nl), '(i0, 2(a, es14.6))') i, ';', c%x_symb(i), ';', c%y_symb(i)
     enddo
 
   case default

@@ -251,6 +251,7 @@ type tao_plot_struct
   type (tao_graph_struct), allocatable :: graph(:) ! individual graphs of a plot
   type (qp_axis_struct) :: x = qp_axis_struct()    ! X-axis parameters.
   type (tao_plot_region_struct), pointer :: r => null() ! pointer to parent.
+  integer :: ix_plot = -1                          ! Index in s%plot_page%template(:) or %region(:) arrays.
   integer :: n_curve_pts = -1                      ! Overrides s%plot_page%n_curve_pts.
   character(8) :: type = 'normal'                  ! or 'wave'
   character(16) :: x_axis_type = ''                ! 'index', 'ele_index', 's', 'none', 'floor', 'phase_space', etc.

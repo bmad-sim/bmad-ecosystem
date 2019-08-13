@@ -20,7 +20,7 @@ implicit none
 type (tao_plot_struct), target :: plot_in, plot_out
 type (tao_curve_struct), pointer :: c_in, c_out
 type (tao_plot_region_struct), pointer :: region
-integer i, j, n
+integer i, j, n, ix_plot
 
 ! Deallocate plot_out allocatable arrays.
 
@@ -29,8 +29,10 @@ if (allocated(plot_out%graph)) deallocate (plot_out%graph)
 ! Set plot_out = plot_in. 
 
 region => plot_out%r
+ix_plot = plot_out%ix_plot
 plot_out = plot_in
 plot_out%r => region
+plot_out%ix_plot = ix_plot
 
 if (allocated(plot_out%graph)) then
   do i = 1, size(plot_out%graph)

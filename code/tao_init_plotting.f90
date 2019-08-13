@@ -420,6 +420,7 @@ if (allocated(plt%graph)) deallocate (plt%graph)
 allocate (plt%graph(1))
 plt%graph(1)%p => plt
 plt%name = 'scratch'
+plt%ix_plot = ip + 1
 plt%graph(1)%name = 'g'
 
 ! Now read in the plots
@@ -457,6 +458,7 @@ do  ! Loop over plot files
     plt => s%plot_page%template(ip)
     nullify(plt%r)
     plt%name                 = plot%name
+    plt%ix_plot              = ip
     plt%description          = plot%description
     plt%x_axis_type          = plot%x_axis_type
     plt%x                    = plot%x
@@ -932,7 +934,7 @@ endif
 
 !---------------------------------
 
-n_plots = 87
+n_plots = 100
 
 if (allocated(s%plot_page%template)) then
   n = size(s%plot_page%template)
@@ -1252,15 +1254,7 @@ crv%symbol%color = crv%line%color
 ! alpha plot
 
 if (all(s%plot_page%template%name /= 'alpha')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name                 = 'alpha'
   plt%description          = 'Twiss alpha function'
 
@@ -1286,15 +1280,7 @@ endif
 ! b_div_curl plot
 
 if (all(s%plot_page%template%name /= 'b_div_curl')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(4))
-
-  plt = default_plot_g1c4
+  call default_plot_init (np, plt, default_plot_g1c4)
   plt%name                 = 'b_div_curl'
   plt%description          = 'Magnetic Field Divergence and (Curl B - (dE/dt)/c^2) Along Orbit'
 
@@ -1337,15 +1323,7 @@ endif
 ! B_field plot
 
 if (all(s%plot_page%template%name /= 'b_field')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(3))
-
-  plt = default_plot_g1c3
+  call default_plot_init (np, plt, default_plot_g1c3)
   plt%name                 = 'b_field'
   plt%description          = 'Magnetic Field Along Orbit'
 
@@ -1381,15 +1359,7 @@ endif
 ! beta plot
 
 if (all(s%plot_page%template%name /= 'beta')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name                 = 'beta'
   plt%description          = 'Twiss beta function'
 
@@ -1418,15 +1388,7 @@ endif
 ! bunch_sigma_xy plot
 
 if (all(s%plot_page%template%name /= 'bunch_sigma_xy')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name                 = 'bunch_sigma_xy'
   plt%description          = 'Bunch transverse sigmas'
 
@@ -1459,6 +1421,7 @@ endif
 
 np = np + 1
 plt => s%plot_page%template(np)
+plt%ix_plot = np
 plt%phantom = .true.
 plt%name = 'bunch_<R1>_<R2>'
 plt%description = 'Bunch phase space plot. <R1>, <R2> -> x, px, y, py, z, or pz. EG: bunch_z_pz'
@@ -1470,15 +1433,7 @@ do j = 1, 6
   name = 'bunch_' // trim(coord_name_lc(i)) // '_' // trim(coord_name_lc(j))
   if (any(s%plot_page%template%name == name)) cycle
 
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(1))
-
-  plt = default_plot_g1c1
+  call default_plot_init (np, plt, default_plot_g1c1)
   plt%name                 = name
   plt%description          = 'Bunch phase space'
   plt%list_with_show_plot_command = .false.
@@ -1519,6 +1474,7 @@ enddo
 
 np = np + 1
 plt => s%plot_page%template(np)
+plt%ix_plot = np
 plt%phantom = .true.
 plt%name = 'bunch_density_<R>'
 plt%description = 'Bunch Charge Density Histogram. <R> -> x, px, y, py, z, or pz. EG: bunch_density_z'
@@ -1527,15 +1483,7 @@ do i = 1, 6
   name = 'bunch_density_' // trim(coord_name_lc(i))
   if (any(s%plot_page%template%name == name)) cycle
 
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(1))
-
-  plt = default_plot_g1c1
+  call default_plot_init (np, plt, default_plot_g1c1)
   plt%name                 = name
   plt%description          = 'Bunch density histogram'
   plt%list_with_show_plot_command = .false.
@@ -1590,15 +1538,7 @@ enddo
 ! cbar plot
 
 if (all(s%plot_page%template%name /= 'cbar')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(4))
-
-  plt = default_plot_g1c4
+  call default_plot_init (np, plt, default_plot_g1c4)
   plt%name                 = 'cbar'
   plt%description          = 'Cbar coupling matrix'
 
@@ -1636,15 +1576,7 @@ endif
 ! dbeta (chrom.dbeta) plot
 
 if (all(s%plot_page%template%name /= 'dbeta')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name                 = 'dbeta'
   plt%description          = 'Chromatic normalized beta beat'
 
@@ -1673,15 +1605,7 @@ endif
 ! deta (chrom.deta) plot
 
 if (all(s%plot_page%template%name /= 'deta')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name                 = 'deta'
   plt%description          = 'Second order dispersion'
 
@@ -1710,15 +1634,7 @@ endif
 ! detap (chrom.detap) plot
 
 if (all(s%plot_page%template%name /= 'detap')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name                 = 'detap'
   plt%description          = 'Second order dispersion slope'
 
@@ -1747,15 +1663,7 @@ endif
 ! Dispersion plot
 
 if (all(s%plot_page%template%name /= 'dispersion')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name           = 'dispersion'
   plt%description    = 'X & Y Dispersion'
 
@@ -1783,15 +1691,7 @@ endif
 ! Dispersion derivative plot
 
 if (all(s%plot_page%template%name /= 'ddispersion')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name           = 'ddispersion'
   plt%description    = 'X & Y Dispersion Derivative'
 
@@ -1817,15 +1717,7 @@ endif
 ! Normal mode Dispersion plot
 
 if (all(s%plot_page%template%name /= 'mode_dispersion')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name           = 'mode_dispersion'
   plt%description    = 'A & B Normal Mode Dispersion'
 
@@ -1853,15 +1745,7 @@ endif
 ! dphi (chrom.dphi) plot
 
 if (all(s%plot_page%template%name /= 'dphi')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name                 = 'dphi'
   plt%description          = 'Chromatic phase deviation'
 
@@ -1892,15 +1776,7 @@ endif
 ! dynamic_aperture plot
 
 if (all(s%plot_page%template%name /= 'dynamic_aperture')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(1))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name                 = 'dynamic_aperture'
   plt%description          = 'Dynamic aperture using universe calc'
   plt%x%label = 'x (mm)'
@@ -1934,15 +1810,7 @@ endif
 ! e_div_curl plot
 
 if (all(s%plot_page%template%name /= 'e_div_curl')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(4))
-
-  plt = default_plot_g1c4
+  call default_plot_init (np, plt, default_plot_g1c4)
   plt%name                 = 'e_div_curl'
   plt%description          = 'Electric Field Divergence and (Curl E - dB/dt) Along Orbit'
 
@@ -1985,15 +1853,7 @@ endif
 ! E_field plot
 
 if (all(s%plot_page%template%name /= 'e_field')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(3))
-
-  plt = default_plot_g1c3
+  call default_plot_init (np, plt, default_plot_g1c3)
   plt%name                 = 'e_field'
   plt%description          = 'Electric Field Along Orbit'
 
@@ -2030,15 +1890,7 @@ endif
 ! emittance growth
 
 if (all(s%plot_page%template%name /= 'emittance')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name                 = 'emittance'
   plt%description          = 'Linac emittance'
 
@@ -2070,15 +1922,7 @@ endif
 ! energy
 
 if (all(s%plot_page%template%name /= 'energy')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(1))
-
-  plt = default_plot_g1c1 
+  call default_plot_init (np, plt, default_plot_g1c1)
   plt%name                 = 'energy'
   plt%description          = 'Particle energy'
 
@@ -2097,11 +1941,7 @@ endif
 ! Floor Plan plot
 
 if (all(s%plot_page%template%name /= 'floor_plan')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
+  call default_plot_init (np, plt)
   allocate (plt%graph(1))
 
   plt%name               = 'floor_plan'
@@ -2153,15 +1993,7 @@ endif
 ! i1
 
 if (all(s%plot_page%template%name /= 'i1')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(1))
-
-  plt = default_plot_g1c1 
+  call default_plot_init (np, plt, default_plot_g1c1)
   plt%name                 = 'i1'
   plt%description          = 'Integrated I1 Radiation integral'
 
@@ -2180,15 +2012,7 @@ endif
 ! i2
 
 if (all(s%plot_page%template%name /= 'i2')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(1))
-
-  plt = default_plot_g1c1 
+  call default_plot_init (np, plt, default_plot_g1c1)
   plt%name                 = 'i2'
   plt%description          = 'Integrated I2 Radiation integral'
 
@@ -2202,19 +2026,13 @@ if (all(s%plot_page%template%name /= 'i2')) then
   crv%data_type     = 'rad_int.i2'
   crv%smooth_line_calc = .false.
   crv%units        = '1/m'
+endif
 
   !---------------
   ! i3
 
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(1))
-
-  plt = default_plot_g1c1 
+if (all(s%plot_page%template%name /= 'i3')) then
+  call default_plot_init (np, plt, default_plot_g1c1)
   plt%name                 = 'i3'
   plt%description          = 'Integrated I3 Radiation integral'
 
@@ -2234,15 +2052,7 @@ endif
 ! i4a
 
 if (all(s%plot_page%template%name /= 'i4a')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(1))
-
-  plt = default_plot_g1c1 
+  call default_plot_init (np, plt, default_plot_g1c1)
   plt%name                 = 'i4a'
   plt%description          = 'Integrated I4A Radiation integral'
 
@@ -2262,15 +2072,7 @@ endif
 ! i4b
 
 if (all(s%plot_page%template%name /= 'i4b')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(1))
-
-  plt = default_plot_g1c1 
+  call default_plot_init (np, plt, default_plot_g1c1)
   plt%name                 = 'i4b'
   plt%description          = 'Integrated I4B Radiation integral'
 
@@ -2290,15 +2092,7 @@ endif
 ! i5a
 
 if (all(s%plot_page%template%name /= 'i5a')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(1))
-
-  plt = default_plot_g1c1 
+  call default_plot_init (np, plt, default_plot_g1c1)
   plt%name                 = 'i5a'
   plt%description          = 'Integrated I5A Radiation integral'
 
@@ -2318,15 +2112,7 @@ endif
 ! i5b
 
 if (all(s%plot_page%template%name /= 'i5b')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(1))
-
-  plt = default_plot_g1c1 
+  call default_plot_init (np, plt, default_plot_g1c1)
   plt%name                 = 'i5b'
   plt%description          = 'Integrated I5B Radiation integral'
 
@@ -2346,11 +2132,7 @@ endif
 ! Key table
 
 if (all(s%plot_page%template%name /= 'key_table')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
+  call default_plot_init (np, plt)
   allocate (plt%graph(1))
 
   plt%name           = 'key_table'
@@ -2373,11 +2155,7 @@ endif
 ! Lat Layout plot
 
 if (all(s%plot_page%template%name /= 'lat_layout')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
+  call default_plot_init (np, plt)
   allocate (plt%graph(1))
 
   plt%name           = 'lat_layout'
@@ -2402,15 +2180,7 @@ endif
 ! Orbit plot
 
 if (all(s%plot_page%template%name /= 'orbit')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name           = 'orbit'
   plt%description    = 'x-y particle orbit'
 
@@ -2440,14 +2210,7 @@ endif
 ! photon_intensity
 
 if (all(s%plot_page%template%name /= 'photon_intensity')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(1))
-
+  call default_plot_init (np, plt, default_plot_g1c1)
   plt = default_plot_g1c1 
   plt%name                 = 'photon_intensity'
   plt%description          = 'Photon intensity'
@@ -2468,15 +2231,7 @@ endif
 ! Momentum
 
 if (all(s%plot_page%template%name /= 'momentum')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(1))
-
-  plt = default_plot_g1c1
+  call default_plot_init (np, plt, default_plot_g1c1)
   plt%name           = 'momentum'
   plt%description    = 'Particle momentum'
 
@@ -2495,15 +2250,7 @@ endif
 ! momentum_compaction
 
 if (all(s%plot_page%template%name /= 'momentum_compaction')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(1))
-
-  plt = default_plot_g1c1 
+  call default_plot_init (np, plt, default_plot_g1c1)
   plt%name                 = 'momentum_compaction'
   plt%description          = 'Momentum compaction'
 
@@ -2522,15 +2269,7 @@ endif
 ! phase
 
 if (all(s%plot_page%template%name /= 'phase')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name                 = 'phase'
   plt%description          = 'Betatron phase'
 
@@ -2561,15 +2300,7 @@ endif
 ! ping_a_skew
 
 if (all(s%plot_page%template%name /= 'ping_a_skew')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name                 = 'ping_a_skew'
   plt%description          = 'Pinged a-mode out-of-plane oscillations'
 
@@ -2598,15 +2329,7 @@ endif
 ! ping_a_rel_skew
 
 if (all(s%plot_page%template%name /= 'ping_a_rel_skew')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name                 = 'ping_a_rel_skew'
   plt%description          = 'Pinged a-mode relative out-of-plane oscillations'
 
@@ -2635,15 +2358,7 @@ endif
 ! ping_a_y_amp_phase
 
 if (all(s%plot_page%template%name /= 'ping_a_y_amp_phase')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name                 = 'ping_a_y_amp_phase'
   plt%description          = 'Pinged a-mode out-of-plane phase and amplitude'
 
@@ -2672,15 +2387,7 @@ endif
 ! ping_b_skew
 
 if (all(s%plot_page%template%name /= 'ping_b_skew')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name                 = 'ping_b_skew'
   plt%description          = 'Pinged b-mode out-of-plane oscillations'
 
@@ -2709,15 +2416,7 @@ endif
 ! ping_b_rel_skew
 
 if (all(s%plot_page%template%name /= 'ping_b_rel_skew')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name                 = 'ping_b_rel_skew'
   plt%description          = 'Pinged b-mode relative out-of-plane oscillations'
 
@@ -2746,15 +2445,7 @@ endif
 ! ping_b_x_amp_phase
 
 if (all(s%plot_page%template%name /= 'ping_b_x_amp_phase')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name                 = 'ping_b_x_amp_phase'
   plt%description          = 'Pinged b-mode out-of-plane phase and amplitude'
 
@@ -2783,15 +2474,7 @@ endif
 ! ping_amp
 
 if (all(s%plot_page%template%name /= 'ping_amp')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name                 = 'ping_amp'
   plt%description          = 'Pinged beam in-plane oscillation amplitudes'
 
@@ -2820,15 +2503,7 @@ endif
 ! ping_phase
 
 if (all(s%plot_page%template%name /= 'ping_phase')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(2))
-
-  plt = default_plot_g1c2
+  call default_plot_init (np, plt, default_plot_g1c2)
   plt%name                 = 'ping_phase'
   plt%description          = 'Pinged beam in-plane oscillation phase'
 
@@ -2859,15 +2534,7 @@ endif
 ! pz
 
 if (all(s%plot_page%template%name /= 'pz')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(1))
-
-  plt = default_plot_g1c1 
+  call default_plot_init (np, plt, default_plot_g1c1)
   plt%name                 = 'pz'
   plt%description          = 'Particle Pz momentum deviation'
 
@@ -2885,15 +2552,7 @@ endif
 ! spin xyz
 
 if (all(s%plot_page%template%name /= 'spin_xyz')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(4))
-
-  plt = default_plot_g1c4
+  call default_plot_init (np, plt, default_plot_g1c4)
   plt%name                 = 'spin_xyz'
   plt%description          = 'Spin x, y, z components & amplitude'
 
@@ -2923,15 +2582,7 @@ endif
 ! sr energy loss
 
 if (all(s%plot_page%template%name /= 'sr_energy_loss')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(1))
-
-  plt = default_plot_g1c1
+  call default_plot_init (np, plt, default_plot_g1c1)
   plt%name                 = 'sr_energy_loss'
   plt%description          = 'Synch Radiation energy loss'
 
@@ -2952,15 +2603,7 @@ endif
 ! time
 
 if (all(s%plot_page%template%name /= 'time')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(1))
-
-  plt = default_plot_g1c1 
+  call default_plot_init (np, plt, default_plot_g1c1)
   plt%name                 = 'time'
   plt%description          = 'particle time'
 
@@ -2979,15 +2622,7 @@ endif
 ! velocity
 
 if (all(s%plot_page%template%name /= 'velocity')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(1))
-
-  plt = default_plot_g1c1 
+  call default_plot_init (np, plt, default_plot_g1c1)
   plt%name                 = 'velocity'
   plt%description          = 'Velocity/c_light'
 
@@ -3007,15 +2642,7 @@ endif
 ! z
 
 if (all(s%plot_page%template%name /= 'z')) then
-  np = np + 1
-  plt => s%plot_page%template(np)
-
-  nullify(plt%r)
-  if (allocated(plt%graph)) deallocate (plt%graph)
-  allocate (plt%graph(1))
-  allocate (plt%graph(1)%curve(1))
-
-  plt = default_plot_g1c1 
+  call default_plot_init (np, plt, default_plot_g1c1)
   plt%name                 = 'z'
   plt%description          = 'Particle z position'
 
@@ -3135,6 +2762,28 @@ if (all (place(:)%region == '') .and. s%global%plot_on) then
 endif
 
 end subroutine tao_setup_default_plotting
+
+!----------------------------------------------------------------------------------------
+! contains
+
+subroutine default_plot_init(np, plt, default_plot)
+
+type (tao_plot_struct), pointer :: plt
+type (tao_plot_struct), optional :: default_plot
+integer np
+
+!
+
+np = np + 1
+plt => s%plot_page%template(np)
+plt%ix_plot = np
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+
+if (present(default_plot)) plt = default_plot
+
+end subroutine default_plot_init
 
 end subroutine tao_init_plotting
 
