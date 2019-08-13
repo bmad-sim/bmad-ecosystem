@@ -1546,6 +1546,9 @@ class tao_plot_window(Tao_Toplevel):
 
       width_slider.on_changed(update_slider) #call update when slider moves
 
+    self.update_idletasks()
+    self.pack_propagate(False)
+
   def destroy(self):
     # Note: lat_layout should not be automatically removed from r1
     if self.template != "lat_layout":
