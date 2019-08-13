@@ -16,10 +16,22 @@ class taotoolbar(NavigationToolbar2Tk):
 			('Pan', 'Pan axes with left mouse, zoom with right mouse or scroll wheel', 'move', 'pan'),
 			('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
 			('Save', 'Save image of figure', 'filesave', 'save_figure'),
+			('Redraw','Recalculate points','subplots','redraw'),
 			(None,None,None,None),
 			('Help','Graph help','subplots','help'),
 			)
 		self.parent = parent_
+		self.canvas = canvas_
+		self.graph_list = self.parent.fig_info[18]
+		self.axes_list = self.canvas.figure.get_axes()
+		self.gRangeList = [] #list of starting x min, x max, y min, and y max for each graph
+		for i in range(len(self.graph_list)):
+			gRange = []
+			gRange.append(self.axes_list[i].get_xlim()[0])
+			gRange.append(self.axes_list[i].get_xlim()[1])
+			gRange.append(self.axes_list[i].get_ylim()[0])
+			gRange.append(self.axes_list[i].get_ylim()[1])
+			self.gRangeList.append(gRange)
 		NavigationToolbar2Tk.__init__(self,canvas_,parent_)
 
 	cid = 'none' #connection id for scroll wheel
@@ -29,6 +41,8 @@ class taotoolbar(NavigationToolbar2Tk):
 	cur_ax = 'none' #axes instance that the mouse is currently over or 'none'
 	xzoom = True #allow for x axis scaling
 	yzoom = True #allow for y axis scaling
+
+
 
 	def enter_axes(self,event):
 		'''handles the mouse entering axes'''
@@ -111,6 +125,20 @@ class taotoolbar(NavigationToolbar2Tk):
 
 
 
+	def home(self, *args):
+		"""Restore the original view."""
+		for i in range(len(self.graph_list)):
+			self.parent.pipe.cmd_in('set graph '+self.graph_list[i]+' x.min = '+str(self.gRangeList[i][0]),no_warn = True)
+			self.parent.pipe.cmd_in('set graph '+self.graph_list[i]+' x.max = '+str(self.gRangeList[i][1]),no_warn = True)
+			self.parent.pipe.cmd_in('set graph '+self.graph_list[i]+' y.min = '+str(self.gRangeList[i][2]),no_warn = True)
+			self.parent.pipe.cmd_in('set graph '+self.graph_list[i]+' y.max = '+str(self.gRangeList[i][3]),no_warn = True)
+		self.parent.refresh()
+		self._nav_stack.home()
+		self.set_history_buttons()
+		self._update_view()
+
+
+
 	def pan(self, *args):
 		"""Activate the pan/zoom tool. pan with left button, zoom with right or with with scroll wheel"""
 		#set the pointer icon and button press funcs to the appropriate callbacks
@@ -150,7 +178,8 @@ class taotoolbar(NavigationToolbar2Tk):
 
 	def help(self):
 		'''help tool'''
-		image = '/home/dcs16/dcs16/usr_local/lib/python3.5/site-packages/matplotlib/mpl-data/images/help.png'
+		image = None
+
 		win = tk.Toplevel(self.parent)
 		# Title string
 		title = 'Graph Help'
@@ -167,4 +196,18 @@ class taotoolbar(NavigationToolbar2Tk):
 
 
 
+	def redraw(self):
+		'''forces recalculation of points in window'''
+		
+		for i in range(len(self.graph_list)):
+			xRange = self.axes_list[i].get_xlim()
+			yRange = self.axes_list[i].get_ylim()
+			self.parent.pipe.cmd_in('set graph '+self.graph_list[i]+' x.min = '+str(xRange[0]),no_warn = True)
+			self.parent.pipe.cmd_in('set graph '+self.graph_list[i]+' x.max = '+str(xRange[1]),no_warn = True)
+			self.parent.pipe.cmd_in('set graph '+self.graph_list[i]+' y.min = '+str(yRange[0]),no_warn = True)
+			self.parent.pipe.cmd_in('set graph '+self.graph_list[i]+' y.max = '+str(yRange[1]),no_warn = True)
+
+		self.parent.refresh()
+		
+		
 
