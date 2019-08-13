@@ -144,10 +144,13 @@ class tao_list_window(Tao_Toplevel):
 
   def mouse_scroll(self, event):
     #self.canvas.yview_scroll(direction,"units")
-    if event.num == 4:
-      self.canvas.yview_scroll(-1,"units")
-    elif event.num == 5:
-      self.canvas.yview_scroll(1,"units")
+    try:
+      if event.num == 4:
+        self.canvas.yview_scroll(-1,"units")
+      elif event.num == 5:
+        self.canvas.yview_scroll(1,"units")
+    except: #in case this gets called when it shouldn't
+      pass
 
 
 
@@ -215,10 +218,13 @@ class tao_parameter_window(tao_list_window):
     for k in range(len(self.tao_list)):
       self.tao_list[k] = tk_tao_parameter(
           self.tao_list[k], self.list_frame, pipe, plot=plot)
-      tk.Label(self.list_frame,text=self.tao_list[k].param.name).grid(
-          row=k,column=0,sticky="E")
+    # Link/filter ignored parameters
+    self.tao_list = tk_tao_linker(self.tao_list)
+    for k in range(len(self.tao_list)):
+      self.tao_list[k].tk_label.grid(row=k,column=0,sticky="E")
       self.tao_list[k].tk_wid.grid(row=k,column=1,sticky="EW")
-      k = k+1
+      if self.tao_list[k].sub_wid != None:
+        self.tao_list[k].sub_wid.grid(row=k, column=2, sticky='W')
 
 #-----------------------------------------------------
 # Table window
