@@ -1514,14 +1514,16 @@ class tao_plot_window(Tao_Toplevel):
     #Create widgets to display the figure
     canvas = FigureCanvasTkAgg(self.fig, master=self)
     canvas.draw()
-    canvas.get_tk_widget().pack(side="top", fill="both", expand=1)
+    #canvas.get_tk_widget().pack(side="top", fill="both", expand=1)
+    toolbar = taotoolbar(canvas, self)
+    toolbar.update()
     # DO NOT TOUCH
     canvas.manager = FigureManagerTk(
         canvas, self.fig.number, tk.Toplevel(self.root))
 
-    toolbar = taotoolbar(canvas, self)
-    toolbar.update()
-    canvas._tkcanvas.pack(side="top", fill="both", expand=1)
+    #toolbar = taotoolbar(canvas, self)
+    #toolbar.update()
+    #canvas._tkcanvas.pack(side="top", fill="both", expand=1)
 
     def on_key_press(event):
       key_press_handler(event, canvas, toolbar)
@@ -4805,7 +4807,6 @@ class tao_message_box(tk.Toplevel):
 
   def cancel(self, *args):
     self.tk_var.set("")
-
 
 
 
