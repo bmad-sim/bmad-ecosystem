@@ -1335,7 +1335,9 @@ class taoplot:
 		#data to be returned with the figure to make elements clickable
 
 		fig.tight_layout(pad=.5)
-		#prevents graphs from overlapping		
+		#prevents graphs from overlapping
+
+		
 
 		return fig, returnList
 

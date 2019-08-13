@@ -2,6 +2,7 @@ import numpy as np
 import tkinter as tk
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from parameters import *
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.backend_tools import *
 from matplotlib import rcParams
@@ -22,16 +23,28 @@ class taotoolbar(NavigationToolbar2Tk):
 			)
 		self.parent = parent_
 		self.canvas = canvas_
-		self.graph_list = self.parent.fig_info[18]
 		self.axes_list = self.canvas.figure.get_axes()
-		self.gRangeList = [] #list of starting x min, x max, y min, and y max for each graph
-		for i in range(len(self.graph_list)):
-			gRange = []
-			gRange.append(self.axes_list[i].get_xlim()[0])
-			gRange.append(self.axes_list[i].get_xlim()[1])
-			gRange.append(self.axes_list[i].get_ylim()[0])
-			gRange.append(self.axes_list[i].get_ylim()[1])
-			self.gRangeList.append(gRange)
+		self.templateDict = self.parent.root.placed
+		self.graph_list = self.parent.fig_info[18]
+		self.template = self.templateDict[self.parent.region]
+		self.templateGraphList = []
+		for i in self.graph_list:
+			self.templateGraphList.append(self.template + '.' + i.split('.')[1])
+		self.gRangeList = [] #list of original x min, x max, y min, and y max for each graph
+		try:
+			for i in self.templateGraphList:
+				gInfo=self.parent.pipe.cmd_in('python plot_graph '+i,no_warn = True).splitlines()
+				gRange = []
+				gInfoDict = {}
+				for i in range(len(gInfo)):
+					gInfoDict[gInfo[i].split(';')[0]]=str_to_tao_param(gInfo[i])
+				gRange.append(gInfoDict['x.min'].value)
+				gRange.append(gInfoDict['x.max'].value)
+				gRange.append(gInfoDict['y.min'].value)
+				gRange.append(gInfoDict['y.max'].value)
+				self.gRangeList.append(gRange)
+		except IndexError:
+			pass
 		NavigationToolbar2Tk.__init__(self,canvas_,parent_)
 
 	cid = 'none' #connection id for scroll wheel
@@ -85,30 +98,32 @@ class taotoolbar(NavigationToolbar2Tk):
 		def zoom_fun(event):
 			'''changes graph axes if scroll wheel is used'''
 			if self.cur_ax != 'none':
-				ax = self.cur_ax
+				try:
+					ax = self.cur_ax
 
-				cur_xlim = ax.get_xlim()
-				cur_ylim = ax.get_ylim()
-				#get the current x and y limits
+					cur_xlim = ax.get_xlim()
+					cur_ylim = ax.get_ylim()
+					#get the current x and y limits
 
-				xdata = event.xdata #get event x location
-				ydata = event.ydata #get event y location
-				x_left = xdata - cur_xlim[0]
-				x_right = cur_xlim[1] - xdata
-				y_top = ydata - cur_ylim[0]
-				y_bottom = cur_ylim[1] - ydata
-				if event.button == 'up': # dealwith zoom in
-					scale_factor = 1/base_scale
-				elif event.button == 'down': #deal with zoom out
-					scale_factor = base_scale
-				else:
-					scale_factor = 1
-				if self.xzoom == True: #new x limits
-					ax.set_xlim([xdata - x_left*scale_factor,xdata + x_right*scale_factor])
-				if self.yzoom == True: #new y limits
-					ax.set_ylim([ydata - y_top*scale_factor,ydata + y_bottom*scale_factor])
-				self.canvas.draw_idle()
-
+					xdata = event.xdata #get event x location
+					ydata = event.ydata #get event y location
+					x_left = xdata - cur_xlim[0]
+					x_right = cur_xlim[1] - xdata
+					y_top = ydata - cur_ylim[0]
+					y_bottom = cur_ylim[1] - ydata
+					if event.button == 'up': # dealwith zoom in
+						scale_factor = 1/base_scale
+					elif event.button == 'down': #deal with zoom out
+						scale_factor = base_scale
+					else:
+						scale_factor = 1
+					if self.xzoom == True: #new x limits
+						ax.set_xlim([xdata - x_left*scale_factor,xdata + x_right*scale_factor])
+					if self.yzoom == True: #new y limits
+						ax.set_ylim([ydata - y_top*scale_factor,ydata + y_bottom*scale_factor])
+					self.canvas.draw_idle()
+				except TypeError:
+					pass #scrolling outside of graph
 		# attach the call backs
 		if on == True and cid == 'none':
 			self.cid=fig.canvas.mpl_connect('scroll_event',zoom_fun)
@@ -127,11 +142,14 @@ class taotoolbar(NavigationToolbar2Tk):
 
 	def home(self, *args):
 		"""Restore the original view."""
-		for i in range(len(self.graph_list)):
-			self.parent.pipe.cmd_in('set graph '+self.graph_list[i]+' x.min = '+str(self.gRangeList[i][0]),no_warn = True)
-			self.parent.pipe.cmd_in('set graph '+self.graph_list[i]+' x.max = '+str(self.gRangeList[i][1]),no_warn = True)
-			self.parent.pipe.cmd_in('set graph '+self.graph_list[i]+' y.min = '+str(self.gRangeList[i][2]),no_warn = True)
-			self.parent.pipe.cmd_in('set graph '+self.graph_list[i]+' y.max = '+str(self.gRangeList[i][3]),no_warn = True)
+		try:		
+			for i in range(len(self.graph_list)):
+				self.parent.pipe.cmd_in('set graph '+self.graph_list[i]+' x.min = '+str(self.gRangeList[i][0]),no_warn = True)
+				self.parent.pipe.cmd_in('set graph '+self.graph_list[i]+' x.max = '+str(self.gRangeList[i][1]),no_warn = True)
+				self.parent.pipe.cmd_in('set graph '+self.graph_list[i]+' y.min = '+str(self.gRangeList[i][2]),no_warn = True)
+				self.parent.pipe.cmd_in('set graph '+self.graph_list[i]+' y.max = '+str(self.gRangeList[i][3]),no_warn = True)
+		except IndexError:
+			pass
 		self.parent.refresh()
 		self._nav_stack.home()
 		self.set_history_buttons()
@@ -184,21 +202,21 @@ class taotoolbar(NavigationToolbar2Tk):
 		# Title string
 		title = 'Graph Help'
 		# Help items
-		help_items = ['Home    ','', 'Back    ','','Forward    ','','Pan/Zoom    ','','Zoom Rectangle    ','','Save    ']
-		help_descrips = ["Returns to original view, shortcuts are 'h' or 'r'.",'',"Returns to previous view, shortcuts are 'c' or 'left arrow'.",'',"Undoes the last back command, shortcuts are 'v' or 'right arrow'.",'',"Toggles panning by left clicking and dragging, and zooming by using the scroll wheel or by right clicking and dragging. Holding 'x' restricts panning and zooming to the x axis, holding 'y' restricts panning and zooming to the y axis, and holding control maintains the aspect ratio.",'',"Toggles zooming by left clicking and dragging to select the new window. Holding 'x' restricts zooming to the x axis, holding 'y' restricts zooming to the y axis, and holding control maintains the aspect ratio.",'',"Saves the current figure as an image file, shortcut is 'ctrl + s'."]
+		help_items = ['Home    ','', 'Back    ','','Forward    ','','Pan/Zoom    ','','Zoom Rectangle    ','','Save    ','','Recalculate Points    ']
+		help_descrips = ["Returns to original view with original points, shortcuts are 'h' or 'r'.",'',"Returns to previous view, shortcuts are 'c' or 'left arrow'.",'',"Undoes the last back command, shortcuts are 'v' or 'right arrow'.",'',"Toggles panning by left clicking and dragging, and zooming by using the scroll wheel or by right clicking and dragging. Holding 'x' restricts panning and zooming to the x axis, holding 'y' restricts panning and zooming to the y axis, and holding control maintains the aspect ratio.",'',"Toggles zooming by left clicking and dragging to select the new window. Holding 'x' restricts zooming to the x axis, holding 'y' restricts zooming to the y axis, and holding control maintains the aspect ratio.",'',"Saves the current figure as an image file, shortcut is 'ctrl + s'.",'','Recalculates points to better fit the current window size']
 		wl = 600
 
 		tk.Label(win, text=title).grid(row=0, column=0, columnspan=2, sticky='EW')
 		for i in range(len(help_items)):
 			tk.Label(win, text=help_items[i]).grid(row=i+1, column=0, sticky='W')
-			tk.Label(win, text=help_descrips[i], wraplength=wl).grid(row=i+1, column=1, sticky='EW')
+			tk.Label(win, text=help_descrips[i], wraplength=wl, justify='left').grid(row=i+1, column=1, sticky='W')
 		win.grid_columnconfigure(1, weight=1)
 
 
 
 	def redraw(self):
 		'''forces recalculation of points in window'''
-		
+
 		for i in range(len(self.graph_list)):
 			xRange = self.axes_list[i].get_xlim()
 			yRange = self.axes_list[i].get_ylim()
@@ -209,5 +227,10 @@ class taotoolbar(NavigationToolbar2Tk):
 
 		self.parent.refresh()
 		
+
+
+	def slider(self):
+		slidefig = plt.figure()
+		slideax = slidefig.add_subplot(1,1,1)
 		
 
