@@ -1515,7 +1515,7 @@ class tao_plot_window(Tao_Toplevel):
     canvas = FigureCanvasTkAgg(self.fig, master=self)
     canvas.draw()
     #canvas.get_tk_widget().pack(side="top", fill="both", expand=1)
-    toolbar = taotoolbar(canvas, self)
+    toolbar = taotoolbar(canvas, self, width)
     toolbar.update()
     # DO NOT TOUCH
     canvas.manager = FigureManagerTk(
