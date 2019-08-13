@@ -283,6 +283,7 @@ class taoplot:
 		
 			
 
+		graph_list = []
 		for gNumber in range(len(gList)):
 
 			if gNumber == 0:
@@ -296,6 +297,7 @@ class taoplot:
 			'''Graph Data'''
 
 			gType = GraphRegion+'.'+gList[gNumber]
+			graph_list.append(gType)
 			#graph type, like r13.g or top.x
 
 
@@ -1329,10 +1331,10 @@ class taoplot:
 			eleY1Dict = []
 		#fills output list with blank lists if information does not apply to the selected graph type
 
-		returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList,fpeShapeDict,fpeCenterDict, fpeRadiusDict, corner1, corner2, corner3, corner4, pathDict, eleShapeDict, eleY1Dict]
+		returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList,fpeShapeDict,fpeCenterDict, fpeRadiusDict, corner1, corner2, corner3, corner4, pathDict, eleShapeDict, eleY1Dict, graph_list]
 		#data to be returned with the figure to make elements clickable
 
-		fig.tight_layout(pad=.4)
+		fig.tight_layout(pad=.5)
 		#prevents graphs from overlapping		
 
 		return fig, returnList
