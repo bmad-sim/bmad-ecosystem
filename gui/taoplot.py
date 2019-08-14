@@ -254,20 +254,19 @@ class taoplot:
 		rInfo=pipe.cmd_in('python plot1 '+GraphRegion,no_warn = True).splitlines()
 		#list of plotting parameter strings from tao command python plot1
 
-		rInfoList = []
 		rInfoDict = {}
 		for i in range(len(rInfo)):
 			rInfoDict[rInfo[i].split(';')[0]]=str_to_tao_param(rInfo[i])
-			rInfoList.append(rInfo[i].split(';')[0])
-		#list of tao_parameter object names from python plot_1
-		#dictionary of tao_parameter name string keys to the corresponding tao_parameter object
+		#dictionary of tao_parameter name string keys to the corresponding 
+		#tao_parameter object from python plot_1
 
 		gList = []
 		heightsList = []
 		for i in range(rInfoDict['num_graphs'].value):
 			gList.append(rInfoDict[('graph['+str(i+1)+']')].value)
-			heightsList.append(1)
+			heightsList.append(1) #makes graphs the same size
 		#list of string names of graphs
+
 
 		number_graphs = len(gList) + 1
 		layout_height = .2*width
@@ -278,12 +277,12 @@ class taoplot:
 
 		gs = fig.add_gridspec(nrows=number_graphs,ncols=1, height_ratios=heightsList)
 
-		GraphDict = {}
+		GraphDict = {} #dictionary of graph name keys with the graph's subplot as it's value
+		graph_list = [] #list of graphs, eg: r1.g or r3.x
 
-		
-			
 
-		graph_list = []
+
+
 		for gNumber in range(len(gList)):
 
 			if gNumber == 0:
@@ -298,19 +297,17 @@ class taoplot:
 
 			gType = GraphRegion+'.'+gList[gNumber]
 			graph_list.append(gType)
-			#graph type, like r13.g or top.x
+			#graph type, eg: r13.g or top.x
 
 
 			gInfo=pipe.cmd_in('python plot_graph '+gType,no_warn = True).splitlines()
 			#list of plotting parameter strings from tao command python plot_graph
 
 
-			gInfoList = []
 			gInfoDict = {}
 			for i in range(len(gInfo)):
 				gInfoDict[gInfo[i].split(';')[0]]=str_to_tao_param(gInfo[i])
-				gInfoList.append(gInfo[i].split(';')[0])
-			#list of tao_parameter object names from python plot_graph
+			#tao_parameter object names from python plot_graph
 			#dictionary of tao_parameter name string keys to the corresponding tao_parameter object
 
 
@@ -328,19 +325,14 @@ class taoplot:
 				cInfo.append(pipe.cmd_in('python plot_curve '+gType+'.'+i,no_warn = True).splitlines())
 			#list of lists of plotting parameter strings from tao command python plot_curve for each curve
 
-			cInfoSuperList=[]
+
 			cInfoDictList=[]
 			for i in range(len(cList)):
-				cInfoList = []
 				cInfoDict = {}
 				for j in range(len(cInfo[i])):
 					cInfoDict[cInfo[i][j].split(';')[0]]=str_to_tao_param(cInfo[i][j])
-					cInfoList.append(cInfo[i][j].split(';')[0])
-				cInfoSuperList.append(cInfoList)
 				cInfoDictList.append(cInfoDict)
-				cInfoList = []
 				cInfoDict = {}
-			#list of lists of tao_parameter object names from python plot_graph for each curve
 			#list of dictionaries of tao_parameter name string keys to the corresponding tao_parameter object for each curve
 
 
@@ -354,6 +346,7 @@ class taoplot:
 				for i in cList:
 					lInfo.append(pipe.cmd_in('python plot_line '+gType+'.'+i,no_warn = True).splitlines())
 				#list of points from tao command python plot_line for each curve
+
 				if len(lInfo) != 0:
 					PointsSuperList=[]
 					for i in range(len(cList)):
@@ -366,7 +359,7 @@ class taoplot:
 						PointsSuperList.append(LineCoords)
 						LineCoords=[]
 					#list of lists of points used to draw each curve
-			except:
+			except: #handle graph with no lines
 				lInfo=[]
 				PointsSuperList = []
 				for i in cList:
@@ -392,7 +385,7 @@ class taoplot:
 					SymbolSuperList.append(SymCoords)
 					SymCoords=[]
 				#list of lists of points used to draw symbols on each curve
-			except:
+			except: #handle graph with no symbols
 				sInfo = []
 				SymbolSuperList = []
 				for i in cList:
@@ -415,6 +408,7 @@ class taoplot:
 					hInfoDictList.append(hInfoDict)
 					hInfoDict = {}
 				#list of lists of dictionaries of plot_histogram data for each curve
+
 			except:
 				hInfo=[]
 
@@ -426,13 +420,14 @@ class taoplot:
 			CurvesList = []
 			for i in range(len(cList)):
 				CurveData = []
-				CurveData.append(PointsSuperList[i])
-				CurveData.append(SymbolSuperList[i])
-				CurveData.append(color(cInfoDictList[i]['line.color'].value))
-				CurveData.append(StylesDict[cInfoDictList[i]['line.pattern'].value.lower()])
-				CurveData.append(cInfoDictList[i]['line.width'].value)
-				CurveData.append(color(cInfoDictList[i]['symbol.color'].value))
-				if cInfoDictList[i]['symbol.type'].value == 'dot' or cInfoDictList[i]['symbol.type'].value == '1':
+				CurveData.append(PointsSuperList[i]) #points for each curve
+				CurveData.append(SymbolSuperList[i]) #symbols for each curve
+				CurveData.append(color(cInfoDictList[i]['line.color'].value)) #line color
+				CurveData.append(StylesDict[cInfoDictList[i]['line.pattern'].value.lower()]) #line style
+				CurveData.append(cInfoDictList[i]['line.width'].value) #line width
+				CurveData.append(color(cInfoDictList[i]['symbol.color'].value)) #symbol color
+
+				if cInfoDictList[i]['symbol.type'].value == 'dot' or cInfoDictList[i]['symbol.type'].value == '1': #determine if symbol should be filled
 					CurveData.append(cInfoDictList[i]['symbol.color'].value)
 				elif cInfoDictList[i]['symbol.type'].value[-6:] == 'filled':
 					CurveData.append(cInfoDictList[i]['symbol.color'].value)
@@ -442,13 +437,14 @@ class taoplot:
 					CurveData.append(cInfoDictList[i]['symbol.color'].value)
 				else:
 					CurveData.append('none')
-				if (cInfoDictList[i]['draw_symbols'].value == True):
+
+				if (cInfoDictList[i]['draw_symbols'].value == True): #symbol size if drawn
 					CurveData.append(cInfoDictList[i]['symbol.height'].value)
 				else:
 					CurveData.append(0)
-				CurveData.append(SymbolsDict[cInfoDictList[i]['symbol.type'].value])
-				#if fill and sizing are not automatic for certain symbols, override here 
-				CurveData.append(cInfoDictList[i]['symbol.line_width'].value)
+
+				CurveData.append(SymbolsDict[cInfoDictList[i]['symbol.type'].value]) #symbol type
+				CurveData.append(cInfoDictList[i]['symbol.line_width'].value) #symbol line width
 				CurvesList.append(CurveData)
 				CurveData = []
 			#list of data needed to plot line and symbol graphs
@@ -599,7 +595,10 @@ class taoplot:
 		#plots lat layouts
 		
 		if LatLayout == True:
-			GraphDict['LatLayout']=fig.add_subplot(gs[len(gList),0],sharex=GraphDict['graph1'])
+			if gInfoDict['graph^type'].value != 'lat_layout': #add space for lat layout below graph	
+				GraphDict['LatLayout']=fig.add_subplot(gs[len(gList),0],sharex=GraphDict['graph1'])
+			else: #standalone lat layout graph
+				GraphDict['LatLayout']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
 
 			layInfo=pipe.cmd_in('python plot_graph r1.g',no_warn = True).splitlines()
 			#list of plotting parameter strings from tao command python plot_graph
@@ -682,13 +681,10 @@ class taoplot:
 					#draw xbox element
 
 
-
-
 					elif eleShapeDict[str(i)] == 'x' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
 						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
 						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
 					#draw x element
-				
 
 
 					elif eleShapeDict[str(i)] == 'bow_tie' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
@@ -697,7 +693,6 @@ class taoplot:
 						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
 						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
 					#draw bow_tie element	
-					
 
 
 					elif eleShapeDict[str(i)] == 'diamond' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
@@ -708,11 +703,9 @@ class taoplot:
 					#draw diamond element	
 
 
-
 					elif eleShapeDict[str(i)] == 'circle':
 						GraphDict['LatLayout'].add_patch(patches.Ellipse((eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,0),eleY1Dict[str(i)]+eleY2Dict[str(i)],eleY1Dict[str(i)]+eleY2Dict[str(i)],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],fill=False))
 					#draw circle element
-
 
 
 					elif eleShapeDict[str(i)] == 'box' and eleEndDict[str(i)]-eleStartDict[str(i)] < 0:	
@@ -723,7 +716,6 @@ class taoplot:
 						GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleStartDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
 						GraphDict['LatLayout'].plot([eleEndDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
 					#draw wrapped box element
-
 
 
 					elif eleShapeDict[str(i)] == 'xbox' and eleEndDict[str(i)]-eleStartDict[str(i)] < 0:	
@@ -740,14 +732,12 @@ class taoplot:
 					#draw wrapped xbox element
 
 
-
 					elif eleShapeDict[str(i)] == 'x' and eleEndDict[str(i)]-eleStartDict[str(i)] < 0:
 						GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x.max'].value],[eleY1Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
 						GraphDict['LatLayout'].plot([layInfoDict['x.min'].value,eleEndDict[str(i)]],[0,eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
 						GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x.max'].value],[-1*eleY2Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
 						GraphDict['LatLayout'].plot([layInfoDict['x.min'].value,eleEndDict[str(i)]],[0,-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
 					#draw wrapped x element
-
 
 
 					elif eleShapeDict[str(i)] == 'bow_tie' and eleEndDict[str(i)]-eleStartDict[str(i)] < 0:
@@ -770,11 +760,9 @@ class taoplot:
 					#draw wrapped diamond element
 
 
-
 					if eleEndDict[str(i)]-eleStartDict[str(i)] > 0:			
 						GraphDict['LatLayout'].text(eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,-1.1*eleY2Dict[str(i)],eleNameDict[str(i)],ha='center',va='top',clip_on=True,color=eleColorDict[str(i)])
 					#draw element name
-
 
 
 					elif eleEndDict[str(i)]-eleStartDict[str(i)] < 0:
@@ -912,7 +900,6 @@ class taoplot:
 					#draw box element
 
 
-
 					elif fpeShapeDict[str(i)] == 'xbox' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
 						GraphDict['FloorPlan'].add_patch(patches.Rectangle((fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])),np.sqrt((fpeExDict[str(i)]-fpeSxDict[str(i)])**2 + (fpeEyDict[str(i)]-fpeSyDict[str(i)])**2),fpeY1Dict[str(i)]+fpeY2Dict[str(i)],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)],fill=False,angle=fpeSaDict[str(i)]*conv))
 						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
@@ -920,12 +907,10 @@ class taoplot:
 					#draw xbox element
 
 
-
 					elif fpeShapeDict[str(i)] == 'x' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
 						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
 						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
 					#draw x element
-
 
 
 					elif fpeShapeDict[str(i)] == 'bow_tie' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
@@ -936,7 +921,6 @@ class taoplot:
 					#draw bow_tie element
 
 
-
 					elif fpeShapeDict[str(i)] == 'diamond' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
 						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)],fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)],fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
 						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)]],[fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)]],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
@@ -945,11 +929,9 @@ class taoplot:
 					#draw diamond element
 
 
-
 					elif fpeShapeDict[str(i)] == 'circle' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
 						GraphDict['FloorPlan'].add_patch(patches.Circle((fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2,fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2),fpeY1Dict[str(i)],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)],fill=False))
 					#draw circle element
-
 
 
 					elif fpeShapeDict[str(i)] == 'box' and fpeTypeDict[str(i)] == 'sbend' and fpeColorDict[str(i)] != '':
@@ -957,10 +939,8 @@ class taoplot:
 						GraphDict['FloorPlan'].plot([fpeExDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)]),fpeExDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],[fpeEyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)]),fpeEyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
 						#draws straight sbend edges
 						
-
 						intersection = intersect(line([fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],[fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])]), line([fpeExDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeEaDict[str(i)]),fpeEyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeEaDict[str(i)])],[fpeExDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeEaDict[str(i)]),fpeEyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])]))
 						#center of circle used to draw arc edges of sbends
-
 
 						if intersection == False:
 							GraphDict['FloorPlan'].plot([fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeExDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],[fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeEyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
@@ -1195,7 +1175,7 @@ class taoplot:
 
 					while k > 1:
 						kIndex = fbwIndexList.index(k)
-						mIndex = fbwIndexList.index(k-1)
+						mIndex = fbwIndexList.index(k-1) #adjacent point to connect to
 
 						if fbwRadiusList[kIndex] == 0: #draw building wall line
 							GraphDict['FloorPlan'].plot([fbwXList[kIndex],fbwXList[mIndex]],[fbwYList[kIndex],fbwYList[mIndex]],color=fpsColorDict[bwnTypeDict[str(i)]])
@@ -1270,6 +1250,8 @@ class taoplot:
 
 
 
+			'''floor plan labels and axes'''
+
 			plt.xlabel(pgp_to_mpl(gInfoDict['x.label'].value))
 			plt.ylabel(pgp_to_mpl(gInfoDict['y.label'].value))
 			#plot floor plan axis labels
@@ -1334,8 +1316,7 @@ class taoplot:
 		returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList,fpeShapeDict,fpeCenterDict, fpeRadiusDict, corner1, corner2, corner3, corner4, pathDict, eleShapeDict, eleY1Dict, graph_list]
 		#data to be returned with the figure to make elements clickable
 
-		fig.tight_layout(pad=.5)
-		#prevents graphs from overlapping
+		fig.tight_layout(pad=.5) #prevents graphs from overlapping
 
 		
 

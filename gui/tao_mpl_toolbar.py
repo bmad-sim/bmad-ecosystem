@@ -30,7 +30,7 @@ class taotoolbar(NavigationToolbar2Tk):
 		self.axes_list = self.canvas.figure.get_axes()
 		self.templateDict = self.parent.root.placed
 		self.graph_list = self.parent.fig_info[18]
-		self.template = self.templateDict[self.parent.region]
+		self.template = self.templateDict[self.parent.region] #corresponding template for a region in tao
 		self.templateGraphList = []
 		for i in self.graph_list:
 			self.templateGraphList.append(self.template + '.' + i.split('.')[1])
@@ -47,7 +47,7 @@ class taotoolbar(NavigationToolbar2Tk):
 				gRange.append(gInfoDict['y.min'].value)
 				gRange.append(gInfoDict['y.max'].value)
 				self.gRangeList.append(gRange)
-		except IndexError:
+		except IndexError: #incase number of graphs changes, like in wave analysis
 			pass
 		NavigationToolbar2Tk.__init__(self,canvas_,parent_)
 
@@ -199,7 +199,7 @@ class taotoolbar(NavigationToolbar2Tk):
 
 
 	def help(self):
-		'''help tool'''
+		'''help tool which opens a tk window with instructions on graph interaction'''
 		image = None
 
 		win = tk.Toplevel(self.parent)
@@ -234,6 +234,7 @@ class taotoolbar(NavigationToolbar2Tk):
 
 
 	def slider(self):
+		'''opens a new matplotlib figure with a slider that adjusts the size of a lat layout if one is present or adjusts the width of floor plan elements if a floor plan is present'''
 		rcParams['toolbar'] = 'None'
 		slidefig = plt.figure(figsize=[4,.7])
 		slideax = slidefig.add_subplot(1,1,1)
