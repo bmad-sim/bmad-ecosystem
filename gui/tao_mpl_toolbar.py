@@ -2,6 +2,7 @@ import numpy as np
 import tkinter as tk
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import os
 from parameters import *
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.backend_tools import *
@@ -9,8 +10,10 @@ from matplotlib import rcParams
 from matplotlib.widgets import Slider
 from matplotlib.backends._backend_tk import FigureManagerTk
 
+
 class taotoolbar(NavigationToolbar2Tk):
 	def __init__(self,canvas_,parent_,width_):
+		self.basedir = os.path.join(rcParams['datapath'], 'images')
 		self.toolitems = (
 			('Home', 'Reset original view', 'home', 'home'),
 			('Back', 'Back to previous view', 'back', 'back'),
@@ -59,7 +62,7 @@ class taotoolbar(NavigationToolbar2Tk):
 	xzoom = True #allow for x axis scaling
 	yzoom = True #allow for y axis scaling
 
-
+	
 
 	def enter_axes(self,event):
 		'''handles the mouse entering axes'''
@@ -251,5 +254,6 @@ class taotoolbar(NavigationToolbar2Tk):
 				self.axes_list[i].set_xlim(xRange)
 				self.axes_list[i].set_ylim(yRange)
 		width_slider.on_changed(update_slider) #call update when slider moves
-		
+
+
 
