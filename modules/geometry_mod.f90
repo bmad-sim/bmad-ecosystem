@@ -688,6 +688,12 @@ if (ele_floor_geometry_calc .and. (any(abs(floor%r - old_floor%r) > eps) .or. &
   if (associated(ele%branch)) then
     lat => ele%branch%lat
 
+    ! If there is a girder element then *_tot attributes need to be recomputed.
+    do k = 1, ele%n_lord
+      lord => pointer_to_lord(ele, k)
+      if (lord%lord_status == girder_lord$) ele%bookkeeping_state%control = stale$
+    enddo
+
     ! Fork target branch only needs to be recomputed if target branch index is greater than present branch.
     if (ele%key == fork$ .or. ele%key == photon_fork$) then
       ib_to = nint(ele%value(ix_to_branch$))
