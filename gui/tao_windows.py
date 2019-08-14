@@ -1531,6 +1531,7 @@ class tao_plot_window(Tao_Toplevel):
     canvas.mpl_connect("key_press_event", on_key_press)
 
     def on_click(event):
+      '''opens element information window if an element is double clicked on'''
       if event.dblclick:
         eleList = in_element(event.xdata,event.ydata,self.fig_info)
         for i in eleList:
