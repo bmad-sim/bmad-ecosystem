@@ -597,19 +597,17 @@ class taoplot:
 		if LatLayout == True:
 			if gInfoDict['graph^type'].value != 'lat_layout': #add space for lat layout below graph	
 				GraphDict['LatLayout']=fig.add_subplot(gs[len(gList),0],sharex=GraphDict['graph1'])
+
 			else: #standalone lat layout graph
 				GraphDict['LatLayout']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
-
+			
 			layInfo=pipe.cmd_in('python plot_graph r1.g',no_warn = True).splitlines()
 			#list of plotting parameter strings from tao command python plot_graph
 
-
-			layInfoList = []
 			layInfoDict = {}
 			for i in range(len(layInfo)):
 				layInfoDict[layInfo[i].split(';')[0]]=str_to_tao_param(layInfo[i])
-				layInfoList.append(layInfo[i].split(';')[0])
-			#list of tao_parameter object names from python plot_graph
+			#tao_parameter object names from python plot_graph
 			#dictionary of tao_parameter name string keys to the corresponding tao_parameter object
 
 
@@ -792,12 +790,10 @@ class taoplot:
 			#list of plotting parameter strings from tao command python plot_graph
 
 
-			floInfoList = []
 			floInfoDict = {}
 			for i in range(len(floInfo)):
 				floInfoDict[floInfo[i].split(';')[0]]=str_to_tao_param(floInfo[i])
-				floInfoList.append(floInfo[i].split(';')[0])
-			#list of tao_parameter object names from python plot_graph for a floor plan
+			#tao_parameter object names from python plot_graph for a floor plan
 			#dictionary of tao_parameter name string keys to the corresponding tao_parameter object
 
 			if floInfoDict['ix_universe'].value != -1:
@@ -810,7 +806,7 @@ class taoplot:
 			#list of plotting parameter strings from tao command python floor_plan
 			
 			
-			fpeIndexList = [] #contains lists of branch index then element index
+			fpeIndexList = [] #contains lists of branch index then element index for each point
 			fpeTypeDict = {}
 			fpeSxDict = {} #start x coordinate
 			fpeSyDict = {} #start y coordinate
