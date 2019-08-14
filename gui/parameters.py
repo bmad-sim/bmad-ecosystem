@@ -97,10 +97,10 @@ def str_to_tao_param(param_str):
         except:
           arr.append(float(0))
       v[3] = arr
-    if len(v) == 4:
-      sub_param=None
-    elif len(v) == 5:
+    if len(v) == 5:
       sub_param=v[4]
+    else:
+      sub_param=None
     return tao_parameter(v[0],v[1],v[2],v[3], sub_param)
 
 #-------------------------------------------------
