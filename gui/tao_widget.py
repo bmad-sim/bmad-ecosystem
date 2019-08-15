@@ -136,7 +136,9 @@ class tk_tao_parameter():
       self.tk_var.set('STRUCT')
       self.tk_wid = tk.Frame(frame)
       self._shown = False
-      self._m = tk.Button(self.tk_wid, text="Configure...", command=self._show_hide_struct)
+      self._m_label = tk.StringVar()
+      self._m_label.set("Configure..." if self.param.can_vary else "View...")
+      self._m = tk.Button(self.tk_wid, textvariable=self._m_label, command=self._show_hide_struct)
       self._m.grid(row=0, column=0, columnspan=2, sticky='EW')
       self._s = [] # list of tk_tao_parameters
       for component in self.param.value:
@@ -155,8 +157,6 @@ class tk_tao_parameter():
       elif self.param.type != 'STRUCT':
         for widget in self._s:
           widget.config(state="disabled")
-      else:
-        self.tk_wid.configure(text='View...')
 
   def _show_hide_struct(self, event=None, *args):
     '''
@@ -167,15 +167,14 @@ class tk_tao_parameter():
         ttp.tk_wid.grid_forget()
         ttp.tk_label.grid_forget()
       self._shown = False
-      self.tk_wid.configure(text=
-          "Configure..." if self.param.can_vary else "View...")
+      self._m_label.set("Configure..." if self.param.can_vary else "View...")
     else:
       for i in range(len(self._s)):
         ttp = self._s[i]
         ttp.tk_label.grid(row=i+1, column=0, sticky='W')
         ttp.tk_wid.grid(row=i+1, column=1, sticky='EW')
       self._shown = True
-      self.tk_wid.configure(text="Collapse...")
+      self._m_label.set("Collapse...")
 
   def _update_real_arr(self, event=None, *args, **kwargs):
     '''

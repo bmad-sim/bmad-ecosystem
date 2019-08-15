@@ -56,12 +56,7 @@ class tao_interface():
   '''
   debug = False # set true to print debug messages
   # Put patterns of interest here
-  debug_patterns = ['set',
-      'python data_d2_create',
-      'python datum_create',
-      'python var_v1_create',
-      'python var_create',
-      'python plot_transfer']
+  debug_patterns = ['python', 'place']
   def __init__(self, mode, init_args = "", tao_exe =  "", expect_str = "Tao>", so_lib=""):
     # DEBUG
     if self.debug:

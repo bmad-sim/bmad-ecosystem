@@ -114,7 +114,7 @@ def str_to_tao_param(param_str):
       for n in range(n_comp):
         c_name = components[3*n]
         c_type = components[3*n+1]
-        c_val = components[3*n+1]
+        c_val = components[3*n+2]
         c_list[n] = tao_parameter(c_name, c_type, v[2], c_val)
       v[3] = c_list
       if len(v[3:]) % 3 == 1: # one more item than expected --> it is a sub_param
