@@ -13,6 +13,7 @@ from parameters import str_to_tao_param
 from parameters import tao_parameter_dict
 from tao_console import tao_console
 from tao_windows import *
+from tao_plot_dict import *
 import string
 
 
@@ -219,9 +220,11 @@ class tao_root_window(tk.Tk):
       # Read the place buffer
       init_plots = self.pipe.cmd_in('python place_buffer')
       init_plots = init_plots.splitlines()
+      init_regions = init_plots
       for i in range(len(init_plots)):
-        init_plots[i] = init_plots[i].split(';')[1]
-      plot_list = plot_list + init_plots
+        init_plots[i], init_regions[i] = init_plots[i].split(';')
+      plot_list = init_plots + plot_list
+      plot_regions = init_regions + [None]*len(init_plots)
 
       # Get list of plot templates to check input against
       plot_templates = self.pipe.cmd_in("python plot_list t")
@@ -230,10 +233,11 @@ class tao_root_window(tk.Tk):
         plot_templates[i] = plot_templates[i].split(';')[1]
 
       # Validate entries in plot.gui.init
-      for plot in plot_list:
+      for i in range(len(plot_list)):
+        plot = plot_list[i]
         if plot in plot_templates:
           # Make a window for the plot
-          win = tao_plot_window(self, plot, self.pipe)
+          win = tao_plot_window(self, plot, self.pipe, region=plot_regions[i])
 
   def tao_load(self,init_frame):
     '''
@@ -467,13 +471,10 @@ class tao_root_window(tk.Tk):
       init_frame.destroy()
       self.start_main()
       # Clear the plotting lists
-      self.placed = {}
-      self.plot_windows = []
+      self.placed = tao_plot_dict(self.pipe)
       if plot_mode.get() == "matplotlib":
-        # place the lattice layout in r1 by default
-        self.pipe.cmd_in("place -no_buffer r1 lat_layout")
-        self.pipe.cmd_in("set plot r1 visible = T")
-        self.placed["r1"] = 'lat_layout'
+        # place the lattice layout in layout by default
+        self.placed.place_template('lat_layout', 'layout')
       self.default_plots()
 
     # Font size

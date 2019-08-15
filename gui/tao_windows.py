@@ -284,7 +284,7 @@ class tao_parameter_window(tao_list_window):
     # Link/filter ignored parameters
     self.tao_list = tk_tao_linker(self.tao_list)
     for k in range(len(self.tao_list)):
-      self.tao_list[k].tk_label.grid(row=k,column=0,sticky="E")
+      self.tao_list[k].tk_label.grid(row=k,column=0,sticky="W")
       self.tao_list[k].tk_wid.grid(row=k,column=1,sticky="EW")
       if self.tao_list[k].sub_wid != None:
         self.tao_list[k].sub_wid.grid(row=k, column=2, sticky='W')
@@ -1534,8 +1534,9 @@ class tao_plot_window(Tao_Toplevel):
   matplotlib's built in system for creating windows
   because using that system will halt the tkinter
   mainloop until the plots are closed.
+  If the region to place the graph is not specified, one will be selected automatically
   '''
-  def __init__(self, root, template, pipe, *args, **kwargs):
+  def __init__(self, root, template, pipe, region=None, *args, **kwargs):
     self.root = root
     self.tao_id = 'plot'
     Tao_Toplevel.__init__(self, root, *args, **kwargs)
@@ -1543,15 +1544,7 @@ class tao_plot_window(Tao_Toplevel):
     self.pipe = pipe
     self.fig = False #Default value
 
-    # Find a region to place the template
-    r_index = 1
-    while (("r" + str(r_index)) in self.root.placed.keys()):
-      r_index = r_index + 1
-    self.region = 'r' + str(r_index)
-    # Place the plot and set it visible
-    self.pipe.cmd_in('place -no_buffer ' + self.region + ' ' + self.template)
-    self.root.placed['r' + str(r_index)] = self.template
-    self.pipe.cmd_in("set plot " + self.region + ' visible = T')
+    self.region = self.root.placed.place_template(self.template, region)
 
     self.mpl = taoplot(pipe, self.region)
     self.title(template + ' (' + self.region + ')')
@@ -1619,10 +1612,8 @@ class tao_plot_window(Tao_Toplevel):
     # Note: lat_layout should not be automatically removed from r1
     if self.template != "lat_layout":
       # Unplace the template from its region
-      self.pipe.cmd_in("place -no_buffer " + self.region + " none")
-      self.root.placed.pop(self.region)
+      self.root.placed.unplace_template(self.template)
     Tao_Toplevel.destroy(self)
-
 
 #-----------------------------------------------------
 # plot_graph window
@@ -1677,13 +1668,13 @@ class tao_plot_graph_window(tao_list_window):
     # Display the name
     name = tk_tao_parameter(
         str_to_tao_param(data_list.pop(0)), self.list_frame, self.pipe)
-    name.tk_label.grid(row=0, column=0)
+    name.tk_label.grid(row=0, column=0, sticky='W')
     name.tk_wid.grid(row=0, column=1, sticky='EW')
 
     # Curve buttons
     if num_curves > 0:
       tk.Label(self.list_frame, text="Curves").grid(
-          row=1, column=0, rowspan=num_curves)
+          row=1, column=0, rowspan=num_curves, sticky='W')
       i=1
       for curve in curve_list:
         tk.Button(self.list_frame, text=curve,
@@ -1703,7 +1694,7 @@ class tao_plot_graph_window(tao_list_window):
       if data_list[i].param.type in ['STR', 'INT', 'REAL']:
         data_list[i].tk_wid.configure(
             width=len(str(data_list[i].param.value))+1)
-      data_list[i].tk_label.grid(row=i+1+num_curves, column=0)
+      data_list[i].tk_label.grid(row=i+1+num_curves, column=0, sticky='W')
       data_list[i].tk_wid.grid(row=i+1+num_curves, column=1, sticky='EW')
 
   def open_curve_callback(self, graph, curve):
