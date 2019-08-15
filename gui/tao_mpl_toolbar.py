@@ -241,7 +241,7 @@ class taotoolbar(NavigationToolbar2Tk):
 
 	def slider(self):
 		'''opens a new matplotlib figure with a slider that adjusts the size of a lat layout if one is present or adjusts the width of floor plan elements if a floor plan is present'''
-		rcParams['toolbar'] = 'None'
+		rcParams['toolbar'] = 'None' #hides toolbar on figure with slider
 		slidefig = plt.figure(figsize=[4,.7])
 		slideax = slidefig.add_subplot(1,1,1)
 		plt.title('Element Width Slider')
