@@ -1537,6 +1537,8 @@ class tao_plot_window(Tao_Toplevel):
   If the region to place the graph is not specified, one will be selected automatically
   '''
   def __init__(self, root, template, pipe, region=None, *args, **kwargs):
+    if region == 'layout': # do not place plots in the layout region
+      return
     self.root = root
     self.tao_id = 'plot'
     Tao_Toplevel.__init__(self, root, *args, **kwargs)
