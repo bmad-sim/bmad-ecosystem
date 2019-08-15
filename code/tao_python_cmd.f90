@@ -2818,11 +2818,11 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), lmt) 'use_z_color;LOGIC;I;',                    c%use_z_color
   nl=incr(nl); write (li(nl), lmt) 'autoscale_z_color;LOGIC;I;',              c%autoscale_z_color
   nl=incr(nl); write (li(nl), '(a, i0, 4a)') 'line;STRUCT;T;width;INT;', c%line%width, &
-                      'color;ENUM;', c%line%color, 'pattern;ENUM;', c%line%pattern
+                      ';color;ENUM;', trim(c%line%color), ';pattern;ENUM;', c%line%pattern
 
-  nl=incr(nl); write (li(nl), '(9a, i0)')  'symbol;STRUCT;T;type;ENUM;', c%symbol%type, &
-                      'color;ENUM;', c%symbol%color, 'height;REAL;', to_str(c%symbol%height, 4), &
-                      'fill_pattern;ENUM;', c%symbol%fill_pattern, 'line_width;INT;', c%symbol%line_width
+  nl=incr(nl); write (li(nl), '(9a, i0)')  'symbol;STRUCT;T;type;ENUM;', trim(c%symbol%type), &
+                      ';color;ENUM;', trim(c%symbol%color), ';height;REAL;', to_str(c%symbol%height, 4), &
+                      ';fill_pattern;ENUM;', trim(c%symbol%fill_pattern), ';line_width;INT;', c%symbol%line_width
 
   nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               c%symbol%line_width
 
@@ -2950,19 +2950,19 @@ case ('plot_graph')
   nl=incr(nl); write (li(nl), lmt) 'draw_only_good_user_data_or_vars;LOGIC;T;', g%draw_only_good_user_data_or_vars
 
   nl=incr(nl); write (li(nl), '(6a, 3(a, i0), 2(a, l1))') 'x;STRUCT;T;label;STR;', trim(x_ax%label), &
-                            'max;REAL;', to_str(x_ax%max), 'min;REAL;', to_str(x_ax%min), 'major_div;INT;', x_ax%major_div, &
-                            'major_div_nominal;INT;', x_ax%major_div_nominal, 'places;INT;', x_ax%places, &
-                            'draw_label;LOGIC;', x_ax%draw_label, 'draw_numbers;LOGIC;', x_ax%draw_numbers
+                            ';max;REAL;', to_str(x_ax%max), ';min;REAL;', to_str(x_ax%min), ';major_div;INT;', x_ax%major_div, &
+                            ';major_div_nominal;INT;', x_ax%major_div_nominal, ';places;INT;', x_ax%places, &
+                            ';draw_label;LOGIC;', x_ax%draw_label, ';draw_numbers;LOGIC;', x_ax%draw_numbers
 
   nl=incr(nl); write (li(nl), '(6a, 3(a, i0), 2(a, l1))') 'y;STRUCT;T;label;STR;', trim(y_ax%label), &
-                            'max;REAL;', to_str(y_ax%max), 'min;REAL;', to_str(y_ax%min), 'major_div;INT;', y_ax%major_div, &
-                            'major_div_nominal;INT;', y_ax%major_div_nominal, 'places;INT;', y_ax%places, &
-                            'draw_label;LOGIC;', y_ax%draw_label, 'draw_numbers;LOGIC;', y_ax%draw_numbers
+                            ';max;REAL;', to_str(y_ax%max), ';min;REAL;', to_str(y_ax%min), ';major_div;INT;', y_ax%major_div, &
+                            ';major_div_nominal;INT;', y_ax%major_div_nominal, ';places;INT;', y_ax%places, &
+                            ';draw_label;LOGIC;', y_ax%draw_label, ';draw_numbers;LOGIC;', y_ax%draw_numbers
 
   nl=incr(nl); write (li(nl), '(6a, 3(a, i0), 2(a, l1))') 'y2;STRUCT;T;label;STR;', trim(g%y2%label), &
-                            'max;REAL;', to_str(g%y2%max), 'min;REAL;', to_str(g%y2%min), 'major_div;INT;', g%y2%major_div, &
-                            'major_div_nominal;INT;', g%y2%major_div_nominal, 'places;INT;', g%y2%places, &
-                            'draw_label;LOGIC;', g%y2%draw_label, 'draw_numbers;LOGIC;', g%y2%draw_numbers
+                            ';max;REAL;', to_str(g%y2%max), ';min;REAL;', to_str(g%y2%min), ';major_div;INT;', g%y2%major_div, &
+                            ';major_div_nominal;INT;', g%y2%major_div_nominal, ';places;INT;', g%y2%places, &
+                            ';draw_label;LOGIC;', g%y2%draw_label, ';draw_numbers;LOGIC;', g%y2%draw_numbers
 
 !----------------------------------------------------------------------
 ! Plot Histogram
