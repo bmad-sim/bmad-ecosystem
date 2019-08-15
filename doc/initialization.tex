@@ -2616,7 +2616,7 @@ calculation. Example plot setup:
   curve(2)%draw_symbols = F
   curve(3)%draw_symbols = F
   curve(3)%data_type = 'physical_aperture'
-  curve(3)%line%color = 2
+  curve(3)%line%color = 'red'
   curve(3)%line%width = 5 
 /
 \end{example}
@@ -2677,13 +2677,13 @@ histogram template:
   curve1%hist%density_normalized = T
   curve1%hist%weight_by_charge = T
   curve1%hist%number = 100
-  curve1%line%color = 4
-  curve1%line%pattern = 2
+  curve1%line%color = 'blue'
+  curve1%line%pattern = 'dashed'
   curve1%y_axis_scale_factor = 299792458  !Q/m * c_light
   curve1%data_type = 'z' 
   curve1%data_source = 'beam_tracking'
   curve1%ele_ref_name = "BEGINNING"
-  curve1%symbol%type = 1
+  curve1%symbol%type = 'dot'
 /
 \end{example}
 

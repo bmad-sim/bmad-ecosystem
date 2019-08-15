@@ -119,7 +119,7 @@ end type
 
 type tao_shape_pattern_struct
   character(40) :: name = ''
-  type (qp_line_struct) :: line = qp_line_struct(1, -1, solid$)
+  type (qp_line2_struct) :: line = qp_line2_struct(1, 'Not_Set', 'solid')
   type (tao_shape_pattern_point_struct), allocatable :: pt(:)
   character(8) :: scale = 'none'
 end type
@@ -177,8 +177,8 @@ type tao_curve_struct
   real(rp) :: y_axis_scale_factor = 1    ! y-axis conversion from internal to plotting units.
   real(rp) :: s = 0                      ! longitudinal position
   real(rp) :: z_color0 = 0, z_color1 = 0 ! Min and max values for mapping z-axis to color.
-  type (qp_line_struct) line             ! Line attributes
-  type (qp_symbol_struct) symbol         ! Symbol attributes
+  type (qp_line2_struct) line            ! Line attributes
+  type (qp_symbol2_struct) symbol        ! Symbol attributes
   integer :: ix_universe = -1            ! Universe where data is. -1 => use s%com%default_universe
   integer :: symbol_every = 1            ! Symbol every how many points.
   integer :: ix_branch = 0
@@ -644,7 +644,7 @@ type tao_common_struct
   type (tao_universe_struct), pointer :: u_working          ! Index of working universe.
   type (tao_command_file_struct), allocatable :: cmd_file(:)
   type (named_number_struct), allocatable :: symbolic_num(:)    ! Named numbers
-  type (tao_plot_region_struct), allocatable :: place_buffer(:)  ! Used when %external_plotting is on.
+  type (tao_plot_region_struct), allocatable :: plot_place_buffer(:)  ! Used when %external_plotting is on.
   real(rp), allocatable :: covar(:,:), alpha(:,:)
   real(rp) :: dummy_target = 0           ! Dummy varaible
   integer ix_ref_taylor, ix_ele_taylor   ! Taylor map end points

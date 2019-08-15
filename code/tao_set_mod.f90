@@ -1158,14 +1158,14 @@ case ('symbol_size')
   call tao_set_real_value (this_curve%symbol%height, component, value_str, err)
 
 case ('symbol_color', 'symbol%color')
-  call tao_set_switch_value (this_curve%symbol%color, component, value_str, qp_color_name, lbound(qp_color_name,1), err)
+  call tao_set_switch_value (ix, component, value_str, qp_color_name, lbound(qp_color_name,1), err, this_curve%symbol%color)
 
 case ('symbol_type', 'symbol%type')
-  call tao_set_switch_value (this_curve%symbol%type, component, value_str, qp_symbol_type_name, lbound(qp_symbol_type_name,1), err)
+  call tao_set_switch_value (ix, component, value_str, qp_symbol_type_name, lbound(qp_symbol_type_name,1), err, this_curve%symbol%type)
 
 case ('symbol_fill_pattern', 'symbol%fill_pattern')
-  call tao_set_switch_value (this_curve%symbol%fill_pattern, component, value_str, qp_symbol_fill_pattern_name, &
-                                                                                     lbound(qp_symbol_fill_pattern_name,1), err)
+  call tao_set_switch_value (ix, component, value_str, qp_symbol_fill_pattern_name, &
+                                                              lbound(qp_symbol_fill_pattern_name,1), err, this_curve%symbol%fill_pattern)
 
 case ('symbol_height', 'symbol%height')
   call tao_set_real_value (this_curve%symbol%height, component, value_str, err)
@@ -1177,14 +1177,13 @@ case ('smooth_line_calc')
   call tao_set_logical_value (this_curve%smooth_line_calc, component, value_str, err)
 
 case ('line_color', 'line%color')
-  call tao_set_switch_value (this_curve%line%color, component, value_str, qp_color_name, lbound(qp_color_name,1), err)
+  call tao_set_switch_value (ix, component, value_str, qp_color_name, lbound(qp_color_name,1), err, this_curve%line%color)
 
 case ('line_width', 'line%width')
   call tao_set_integer_value (this_curve%line%width, component, value_str, err)
 
 case ('line_pattern', 'line%pattern')
-  call tao_set_switch_value (this_curve%line%pattern, component, value_str, qp_line_pattern_name, &
-                                                                                     lbound(qp_line_pattern_name,1), err)
+  call tao_set_switch_value (ix, component, value_str, qp_line_pattern_name, lbound(qp_line_pattern_name,1), err, this_curve%line%pattern)
 
 case ('component')
   this_curve%component = remove_quotes(value_str)
@@ -2592,37 +2591,38 @@ end subroutine tao_set_integer_value
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_switch_value (var, var_str, value_str, name_list, l_bound, error, print_err)
+! Subroutine tao_set_switch_value (switch_val, err_str, value_str, name_list, l_bound, error, switch_str)
 !
-! Routine to  set the value of an integer switch varialbe.
+! Routine to set the value of an integer switch.
 !
 ! If the value is out of the range [min_val, max_val] then an error message will
-! be generated and the variable will not be set.
+! be generated and the switch will not be set.
 !
 ! Input:
-!   var_str       -- character(*): Used for error messages.
+!   err_str       -- character(*): Used for error messages.
 !   value_str     -- character(*): String with encoded value.
 !   name_list(:)  -- character(*): Names to match to.
 !   l_bound       -- integer: Lower bound to name_list(:) array.
-!   print_err     -- logical, optional: If True, print error message. Default is true
 !
 ! Output:
-!   var         -- Integer: Variable to set.
-!   error       -- Logical: Set True on an error. False otherwise.
+!   switch_val  -- integer: Parameter to set. Not set if there is an error.
+!   error       -- logical: Set True on an error. False otherwise.
+!   switch_str  -- character(*), optional: Set to the string representation of switch_val. 
+!                   Not set if there is an error.
 !-
 
-subroutine tao_set_switch_value (var, var_str, value_str, name_list, l_bound, error, print_err)
+subroutine tao_set_switch_value (switch_val, err_str, value_str, name_list, l_bound, error, switch_str)
 
 implicit none
 
-integer var, l_bound
+integer switch_val, l_bound
 integer ios, ix
 
-character(*) var_str, value_str
+character(*) err_str, value_str
 character(*) name_list(l_bound:)
+character(*), optional :: switch_str
 character(*), parameter :: r_name = 'tao_set_switch_value'
 logical error
-logical, optional :: print_err
 
 !
 
@@ -2631,16 +2631,18 @@ error = .true.
 call match_word(value_str, name_list, ix, .false., .true.)
 
 if (ix == 0) then
-  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, trim(var_str) // ' IS UNKNOWN.')
+  call out_io (s_error$, r_name, trim(err_str) // ' IS UNKNOWN.')
   return 
 endif
 
 if (ix < 0) then
-  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, trim(var_str) // ' ABBREVIATION MATCHES MULTIPLE NAMES.')
+  call out_io (s_error$, r_name, trim(err_str) // ' ABBREVIATION MATCHES MULTIPLE NAMES.')
   return 
 endif
 
-var = ix + (l_bound - 1)
+switch_val = ix + (l_bound - 1)
+if (present(switch_str)) switch_str = downcase(name_list(ix))
+
 error = .false.
 
 end subroutine tao_set_switch_value
@@ -2933,7 +2935,7 @@ end subroutine tao_set_qp_rect_struct
 
 subroutine tao_set_qp_axis_struct (qp_axis_name, component, qp_axis, value, error, ix_uni)
 
-use quick_plot, only: qp_translate_to_color_index
+use quick_plot, only: qp_string_to_enum
 
 type (qp_axis_struct) qp_axis
 character(*) component, value, qp_axis_name
@@ -2959,7 +2961,7 @@ case ('minor_tick_len')
   call tao_set_real_value (qp_axis%minor_tick_len, qp_axis_name, value, error, dflt_uni = ix_uni)
 
 case ('label_color')
-  indx = qp_translate_to_color_index(value)
+  indx = qp_string_to_enum(value, 'color', -1)
   if (indx < 1) then
     call out_io (s_error$, r_name, 'BAD COLOR NAME: ' // value)
     error = .true.

@@ -107,7 +107,7 @@ global%beam_timer_on = T
 	ix_d1_data = 3
 	d1_data%name = 'unstable'
 	ix_min_data=1
-	datum( 1) = "unstable_orbit", "", "",  "", "target", 0, 1e6,  F
+	datum( 1) = "unstable.orbit", "", "",  "", "target", 0, 1e6,  F
 /
 
 
@@ -144,7 +144,7 @@ global%beam_timer_on = T
 	default_weight = 1e5
 	default_step = 1e-5
 	ix_min_var = 1
-	search_for_lat_eles = "-no_slaves quad::*"
+	search_for_lat_eles = "quad::*"
 /
 &tao_var
     v1_var%name = 'quad_x_offset'
@@ -153,7 +153,7 @@ global%beam_timer_on = T
 	default_weight = 1e5
 	default_step = 1e-5
 	ix_min_var = 1
-	search_for_lat_eles = "-no_slaves quad::*"
+	search_for_lat_eles = "quad::*"
 /
 &tao_var
     v1_var%name = 'quad_y_offset'
@@ -162,7 +162,7 @@ global%beam_timer_on = T
 	default_weight = 1e5
 	default_step = 1e-5
 	ix_min_var = 1
-	search_for_lat_eles = "-no_slaves quad::*"
+	search_for_lat_eles = "quad::*"
 /
 &tao_var
     v1_var%name = 'quad_x_pitch'
@@ -171,7 +171,7 @@ global%beam_timer_on = T
 	default_weight = 1e5
 	default_step = 1e-5
 	ix_min_var = 1
-	search_for_lat_eles = "-no_slaves quad::*"
+	search_for_lat_eles = "quad::*"
 /
 
 
@@ -187,7 +187,7 @@ global%beam_timer_on = T
   default_high_lim = 0.01
   default_step = 1e-10
   ix_min_var = 1
-  search_for_lat_eles = "-no_slaves KICKER::FA*"
+  search_for_lat_eles = "KICKER::FA*"
 /
 &tao_var
     v1_var%name = "fa.correctors.y"
@@ -198,7 +198,7 @@ global%beam_timer_on = T
   default_high_lim = 0.01
   default_step = 1e-10
   ix_min_var = 1
-  search_for_lat_eles = "-no_slaves KICKER::FA*"
+  search_for_lat_eles = "KICKER::FA*"
 /
 &tao_var
     v1_var%name = "za.correctors.x"
@@ -209,7 +209,7 @@ global%beam_timer_on = T
   default_high_lim = 0.01
   default_step = 1e-10
   ix_min_var = 1
-  search_for_lat_eles = "-no_slaves KICKER::ZA*"
+  search_for_lat_eles = "KICKER::ZA*"
 /
 &tao_var
     v1_var%name = "za.correctors.y"
@@ -220,7 +220,7 @@ global%beam_timer_on = T
   default_high_lim = 0.01
   default_step = 1e-10
   ix_min_var = 1
-  search_for_lat_eles = "-no_slaves KICKER::ZA*"
+  search_for_lat_eles = "KICKER::ZA*"
 /
 
 &tao_var
@@ -232,7 +232,7 @@ global%beam_timer_on = T
   default_high_lim = 0.01
   default_step = 1e-10
   ix_min_var = 1
-  search_for_lat_eles = "-no_slaves QUAD::*"
+  search_for_lat_eles = "QUAD::*"
 /
 &tao_var
     v1_var%name = "quad.correctors.y"
@@ -243,6 +243,6 @@ global%beam_timer_on = T
   default_high_lim = 0.01
   default_step = 1e-10
   ix_min_var = 1
-  search_for_lat_eles = "-no_slaves QUAD::*"
+  search_for_lat_eles = "QUAD::*"
 /
 

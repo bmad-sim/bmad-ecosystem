@@ -425,7 +425,7 @@ if (search_for_lat_eles /= '') then
 
   if (index(search_string, '-no_slaves') /= 0) then
     call out_io (s_error$, r_name, &
-          'Note: The "-no_slaves" switch is not valid with search_for_lat_eles for *variables*.')
+          'Note: The "-no_slaves" switch is not needed with search_for_lat_eles for *variables* since slaves are automaticall always rejected.')
   else
     search_string = '-no_slaves ' // trim(search_string)
   endif
