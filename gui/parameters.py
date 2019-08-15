@@ -70,6 +70,19 @@ class tao_parameter():
   def __repr__(self):
     return self.type + ';' + str(self.can_vary) + ';' + str(self.value)
 
+  def get_component(self, comp_name):
+    '''
+    Looks for a component called comp_name in self, and returns the component
+    with the matching name
+    Returns None if comp_name was not found or if self.type != STRUCT
+    '''
+    if self.type != 'STRUCT':
+      return None
+    for param in self.value:
+      if param.name == comp_name:
+        return param.value
+    return None
+
 # An item in the parameter list is a string that looks like:
 #        'lattice_file;STR;T;bmad.lat'
 

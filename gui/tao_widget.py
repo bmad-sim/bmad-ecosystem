@@ -17,12 +17,15 @@ class tk_tao_parameter():
   pipe: the tao_interface object
   data_source: for DAT_TYPE and DAT_TYPE_Z, filters allowed data types
   plot: for DAT_TYPE_Z, the plot where x_axis_type should be checked
+  prefix: for the components of a STRUCT, pass the struct name here
   '''
 
-  def __init__(self, tao_parameter, frame, pipe=0, data_source='', plot=''):
+  def __init__(self, tao_parameter, frame, pipe=0, data_source='', plot='', prefix=''):
     self.param = tao_parameter
     self.pipe = pipe
     self.sub_wid = None # to be set externally, e.g. by tk_tao_linker
+    if prefix != '':
+      prefix = prefix + '.'
 
     if self.param.type == 'DAT_TYPE_Z':
       # Check if operating as ENUM or as DAT_TYPE
@@ -57,7 +60,7 @@ class tk_tao_parameter():
       self.tk_var = tk.StringVar()
       self.tk_var.set(self.param.value)
       if self.param.type == 'ENUM':
-        options = enum_fetch(self.param.name,pipe)
+        options = enum_fetch(prefix + self.param.name,pipe)
       elif self.param.type == 'ENUM_Z': #added to handle DAT_TYPE_Z
         options = enum_fetch('data_type_z', pipe)
         self.param.type = 'ENUM'
@@ -142,7 +145,7 @@ class tk_tao_parameter():
       self._m.grid(row=0, column=0, columnspan=2, sticky='EW')
       self._s = [] # list of tk_tao_parameters
       for component in self.param.value:
-        self._s.append(tk_tao_parameter(component, self.tk_wid, pipe))
+        self._s.append(tk_tao_parameter(component, self.tk_wid, pipe, prefix=self.param.name))
 
     if self.param.type not in ['DAT_TYPE', 'REAL_ARR', 'STRUCT']:
       if (self.param.type != 'FILE') and (not self.param.is_ignored):
