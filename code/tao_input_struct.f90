@@ -99,8 +99,8 @@ type tao_curve_input
   integer :: ix_branch = 0
   integer :: ix_ele_ref = -1
   integer :: ix_bunch = 0
-  type (qp_line_struct) :: line = qp_line_struct()
-  type (qp_symbol_struct) :: symbol = qp_symbol_struct()
+  type (qp_line2_struct) :: line = qp_line2_struct()
+  type (qp_symbol2_struct) :: symbol = qp_symbol2_struct()
   type (tao_histogram_struct) :: hist = tao_histogram_struct()
 end type
 

@@ -754,13 +754,13 @@ case ('curve')
       nl=nl+1; write(lines(nl), lmt)  'draw_symbol_index    = ', c1%draw_symbol_index
       nl=nl+1; write(lines(nl), lmt)  'smooth_line_calc     = ', c1%smooth_line_calc
       nl=nl+1; write(lines(nl), iamt) 'line%width           = ', c1%line%width
-      nl=nl+1; write(lines(nl), iamt) 'line%color           = ', c1%line%color, qp_color_name(c1%line%color)
-      nl=nl+1; write(lines(nl), iamt) 'line%pattern         = ', c1%line%pattern, qp_line_pattern_name(c1%line%pattern)
-      nl=nl+1; write(lines(nl), iamt) 'symbol%type          = ', c1%symbol%type, qp_symbol_type_name(c1%symbol%type)
+      nl=nl+1; write(lines(nl), amt)  'line%color           = ', c1%line%color
+      nl=nl+1; write(lines(nl), amt)  'line%pattern         = ', c1%line%pattern
+      nl=nl+1; write(lines(nl), amt)  'symbol%type          = ', c1%symbol%type
       nl=nl+1; write(lines(nl), f3mt) 'symbol%height        = ', c1%symbol%height
-      nl=nl+1; write(lines(nl), iamt) 'symbol%fill_pattern  = ', c1%symbol%fill_pattern, qp_symbol_fill_pattern_name(c1%symbol%fill_pattern)
-      nl=nl+1; write(lines(nl), iamt) 'symbol%line_width    = ', c1%symbol%line_width
-      nl=nl+1; write(lines(nl), iamt) 'symbol%color         = ', c1%symbol%color, qp_color_name(c1%symbol%color)
+      nl=nl+1; write(lines(nl), amt)  'symbol%fill_pattern  = ', c1%symbol%fill_pattern
+      nl=nl+1; write(lines(nl), imt)  'symbol%line_width    = ', c1%symbol%line_width
+      nl=nl+1; write(lines(nl), amt)  'symbol%color         = ', c1%symbol%color
       
       ! Histogram specific components
       if (c1%g%type == 'histogram') then

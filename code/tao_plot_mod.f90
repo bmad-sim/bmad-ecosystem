@@ -481,7 +481,7 @@ if (allocated(s%building_wall%section)) then
       found = .true.
       if (.not. match_wild(s%building_wall%section(ib)%name, ele_shape%ele_id(16:))) cycle
       if (.not. ele_shape%draw) cycle
-      icol = qp_translate_to_color_index (ele_shape%color)
+      icol = qp_string_to_enum (ele_shape%color, 'color', -1)
       iwidth = ele_shape%line_width
 
       pt => s%building_wall%section(ib)%point
@@ -769,7 +769,7 @@ endif
 if (graph%floor_plan_orbit_scale /= 0 .and. ele%value(l$) /= 0) then
   if (is_bend) then
     call qp_draw_polyline(dx_orbit(0:n_bend), dy_orbit(0:n_bend), &
-            color = qp_translate_to_color_index(graph%floor_plan_orbit_color))
+            color = qp_string_to_enum(graph%floor_plan_orbit_color, 'color', -1))
 
   elseif (ele%key == patch$) then
     ele0 => pointer_to_next_ele (ele, -1)
@@ -788,7 +788,7 @@ if (graph%floor_plan_orbit_scale /= 0 .and. ele%value(l$) /= 0) then
     dy_orbit(1) = f_orb%r(2)
 
     call qp_draw_polyline(dx_orbit(0:1), dy_orbit(0:1), &
-            color = qp_translate_to_color_index(graph%floor_plan_orbit_color))
+            color = qp_string_to_enum(graph%floor_plan_orbit_color, 'color', -1))
 
   else
     n = 10
@@ -805,7 +805,7 @@ if (graph%floor_plan_orbit_scale /= 0 .and. ele%value(l$) /= 0) then
     enddo
 
     call qp_draw_polyline(dx_orbit(0:n), dy_orbit(0:n), &
-            color = qp_translate_to_color_index(graph%floor_plan_orbit_color))
+            color = qp_string_to_enum(graph%floor_plan_orbit_color, 'color', -1))
   endif
 endif
 
@@ -830,7 +830,7 @@ endif
 
 ! Here if element is to be drawn...
 
-icol = qp_translate_to_color_index (ele_shape%color)
+icol = qp_string_to_enum (ele_shape%color, 'color', -1)
 
 off = ele_shape%size * s%plot_page%floor_plan_shape_scale 
 off1 = offset1 * s%plot_page%floor_plan_shape_scale
@@ -948,7 +948,7 @@ if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) 
   if (associated(branch_shape)) then
     if (branch_shape%draw) then
       call qp_draw_line (x_ray%r(1), end2%r(1), x_ray%r(2), end2%r(2), units = draw_units, &
-                                        color = qp_translate_to_color_index (branch_shape%color))
+                                        color = qp_string_to_enum (branch_shape%color, 'color', -1))
     endif
   endif
 endif
@@ -1339,7 +1339,7 @@ character(20) shape_name
 
 shape_name = ele_shape%shape
 shape_has_box = (index(shape_name, 'BOX') /= 0)
-icol = qp_translate_to_color_index (ele_shape%color)
+icol = qp_string_to_enum (ele_shape%color, 'color', -1)
 iwidth = ele_shape%line_width
 
 ! Draw the shape
@@ -1488,7 +1488,7 @@ integer section_id, icol, n_curve_pts
 ! Draw beam chamber wall. 
 
 icol = black$
-if (allocated (graph%curve)) icol = graph%curve(1)%line%color
+if (allocated (graph%curve)) icol = qp_string_to_enum(graph%curve(1)%line%color, 'color')
 
 n_curve_pts = s%plot_page%n_curve_pts
 if (plot%n_curve_pts > 0) n_curve_pts = plot%n_curve_pts
@@ -1604,7 +1604,7 @@ character(16) num_str
 !
 
 if (curve%use_y2) call qp_use_axis (y = 'Y2')
-call qp_set_symbol (curve%symbol)
+call qp_set_symbol (qp_to_symbol_struct(curve%symbol))
 
 if (curve%draw_symbols .and. allocated(curve%x_symb)) then
   if (size(curve%x_symb) > 0) have_data = .true.
@@ -1644,7 +1644,7 @@ endif
 
 if (curve%draw_line .and. allocated(curve%x_line)) then
   if (size(curve%x_line) > 0) have_data = .true.
-  call qp_set_line ('PLOT', curve%line) 
+  call qp_set_line ('PLOT', qp_to_line_struct(curve%line))
   call qp_draw_polyline (curve%x_line, curve%y_line, clip = graph%clip, style = 'PLOT')
 endif
 
@@ -1693,15 +1693,16 @@ implicit none
 type (tao_plot_struct) plot
 type (tao_graph_struct), target :: graph
 type (tao_curve_struct) :: curve
+type (qp_line_struct) line
 
 integer i
 logical have_data
 character(16) num_str
 
-
 ! Draw
-call qp_draw_histogram (curve%x_line, curve%y_line, line_color = curve%line%color, &
-	                    fill_color = curve%line%color, fill_pattern = curve%line%pattern) !, fill_color, fill_pattern, line_color, clip)
+
+line = qp_to_line_struct(curve%line)
+call qp_draw_histogram (curve%x_line, curve%y_line, line_color = line%color, fill_color = line%color, fill_pattern = line%pattern) 
 have_data = .true.
 
 end subroutine tao_draw_histogram_data
@@ -1781,10 +1782,10 @@ do i = 1, n
   text(i) = curve%legend_text
   if (text(i) == '') text(i) = curve%data_type
   text(i) = trim(text(i)) // ' ' // trim(curve%component)
-  symbol(i) = curve%symbol
+  symbol(i) = qp_to_symbol_struct(curve%symbol)
   if (size(curve%x_symb) == 0) symbol(i)%type = -1 ! Do not draw
   if (.not. curve%draw_symbols) symbol(i)%type = -1
-  line(i) = curve%line
+  line(i) = qp_to_line_struct(curve%line)
   if (size(curve%x_line) == 0) line(i)%width = -1 ! Do not draw
   if (.not. curve%draw_line) line(i)%width = -1
 enddo

@@ -2765,13 +2765,13 @@ case ('orbit_at_s')
 
 case ('place_buffer')
 
-  if (.not. allocated(s%com%place_buffer)) return
+  if (.not. allocated(s%com%plot_place_buffer)) return
 
-  do i = 1, size(s%com%place_buffer)
-    nl=incr(nl); li(nl) = trim(s%com%place_buffer(i)%name) // ';' // s%com%place_buffer(i)%plot%name
+  do i = 1, size(s%com%plot_place_buffer)
+    nl=incr(nl); li(nl) = trim(s%com%plot_place_buffer(i)%name) // ';' // s%com%plot_place_buffer(i)%plot%name
   enddo
 
-  deallocate(s%com%place_buffer)
+  deallocate(s%com%plot_place_buffer)
 
 !----------------------------------------------------------------------
 ! Curve information for a plot
@@ -2818,11 +2818,11 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), lmt) 'use_z_color;LOGIC;I;',                    c%use_z_color
   nl=incr(nl); write (li(nl), lmt) 'autoscale_z_color;LOGIC;I;',              c%autoscale_z_color
   nl=incr(nl); write (li(nl), '(a, i0, 4a)') 'line;STRUCT;T;width;INT;', c%line%width, &
-                      'color;ENUM;', qp_color_name(c%line%color), 'pattern;ENUM;', qp_line_pattern_name(c%line%pattern)
+                      'color;ENUM;', c%line%color, 'pattern;ENUM;', c%line%pattern
 
-  nl=incr(nl); write (li(nl), '(8a, i0)')  'symbol;STRUCT;T;type;ENUM;', qp_symbol_type_name(c%symbol%type), &
-                      'color;ENUM;', qp_color_name(c%symbol%color), 'height;REAL;', to_str(c%symbol%height, 4), &
-                      'fill_pattern;ENUM;', qp_symbol_fill_pattern_name(c%symbol%fill_pattern), 'line_width;INT;', c%symbol%line_width
+  nl=incr(nl); write (li(nl), '(9a, i0)')  'symbol;STRUCT;T;type;ENUM;', c%symbol%type, &
+                      'color;ENUM;', c%symbol%color, 'height;REAL;', to_str(c%symbol%height, 4), &
+                      'fill_pattern;ENUM;', c%symbol%fill_pattern, 'line_width;INT;', c%symbol%line_width
 
   nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               c%symbol%line_width
 

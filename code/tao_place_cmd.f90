@@ -44,18 +44,18 @@ character(*), parameter :: r_name = 'tao_place_cmd'
 ! can query for the info via a python command.
 
 if (s%global%external_plotting .and. .not. logic_option(.false., no_buffer)) then
-  if (allocated (s%com%place_buffer)) then
-    n = size(s%com%place_buffer) + 1
-    call move_alloc(s%com%place_buffer, temp_buf)
-    allocate(s%com%place_buffer(n))
-    s%com%place_buffer(1:n-1) = temp_buf
+  if (allocated (s%com%plot_place_buffer)) then
+    n = size(s%com%plot_place_buffer) + 1
+    call move_alloc(s%com%plot_place_buffer, temp_buf)
+    allocate(s%com%plot_place_buffer(n))
+    s%com%plot_place_buffer(1:n-1) = temp_buf
   else
-    allocate(s%com%place_buffer(1))
+    allocate(s%com%plot_place_buffer(1))
     n = 1
   endif
 
-  s%com%place_buffer(n)%name = where
-  s%com%place_buffer(n)%plot%name = who
+  s%com%plot_place_buffer(n)%name = where
+  s%com%plot_place_buffer(n)%plot%name = who
 
   return
 endif

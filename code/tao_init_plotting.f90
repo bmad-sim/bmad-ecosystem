@@ -42,10 +42,8 @@ type (tao_place_input) place(30)
 type (old_tao_ele_shape_struct) shape(30)
 type (tao_ele_shape_struct) ele_shape(30)
 type (tao_ele_shape_struct), pointer :: e_shape
-type (qp_symbol_struct) default_symbol
-type (qp_line_struct) default_line
-type (qp_axis_struct) init_axis
 type (ele_pointer_struct), allocatable, save :: eles(:)
+type (qp_axis_struct) init_axis
 
 real(rp) y1, y2
 
@@ -498,8 +496,8 @@ do  ! Loop over plot files
       else
         curve(:)%draw_symbols = .true.
       endif
-      curve(2:7)%symbol%type = [times_sym$, square_sym$, plus_sym$, triangle_sym$, x_symbol_sym$, diamond_sym$]
-      curve(2:7)%symbol%color = [blue$, red$, green$, cyan$, magenta$, yellow$]
+      curve(2:7)%symbol%type = ['times', 'square', 'plus', 'triangle', 'x_symbol', 'diamond']
+      curve(2:7)%symbol%color = ['blue', 'red', 'green', 'cyan', 'magenta', 'yellow']
       curve(2:7)%line%color = curve(2:7)%symbol%color
       ! to get around gfortran compiler bug.
       curve1 = curve(1); curve2 = curve(2); curve3 = curve(3); curve4 = curve(4)
@@ -642,6 +640,13 @@ do  ! Loop over plot files
         crv%hist                 = curve(j)%hist
         crv%units                = curve(j)%units
 
+        if (is_integer(crv%symbol%type, ix))         crv%symbol%type          = qp_enum_to_string(ix, 'symbol_type')
+        if (is_integer(crv%symbol%color, ix))        crv%symbol%color         = qp_enum_to_string(ix, 'color')
+        if (is_integer(crv%symbol%fill_pattern, ix)) crv%symbol%fill_pattern  = qp_enum_to_string(ix, 'fill_pattern')
+
+        if (is_integer(crv%line%color, ix))     crv%line%color     = qp_enum_to_string(ix, 'color')
+        if (is_integer(crv%line%pattern, ix))   crv%line%pattern   = qp_enum_to_string(ix, 'line_pattern')
+
         ! Convert old syntax to new
 
         if (crv%data_source == 'beam_tracking') crv%data_source = 'beam'
@@ -687,7 +692,7 @@ do  ! Loop over plot files
         if (crv%use_y2) then
           grph%y2%draw_numbers = .true.
           grph%y2_mirrors_y = .false.
-          grph%y2%label_color = crv%symbol%color
+          grph%y2%label_color = qp_string_to_enum(crv%symbol%color, 'color')
         endif
 
         ! Set curve line width
@@ -1000,7 +1005,7 @@ crv => grph%curve(1)
 crv%name         = 'c'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
-crv%line%color   = blue$
+crv%line%color   = 'blue'
 crv%line%width   = 2
 crv%symbol%color = crv%line%color
 
@@ -1025,7 +1030,7 @@ crv => grph%curve(1)
 crv%name         = 'c'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
-crv%line%color   = blue$
+crv%line%color   = 'blue'
 crv%line%width   = 2
 crv%symbol%color = crv%line%color
 
@@ -1069,7 +1074,7 @@ crv => grph%curve(1)
 crv%name         = 'c1'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
-crv%line%color   = blue$
+crv%line%color   = 'blue'
 crv%line%width   = 2
 crv%symbol%color = crv%line%color
 
@@ -1077,7 +1082,7 @@ crv => grph%curve(2)
 crv%name         = 'c2'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
-crv%line%color   = orange$
+crv%line%color   = 'orange'
 crv%line%width   = 2
 crv%symbol%color = crv%line%color
 
@@ -1085,7 +1090,7 @@ crv => grph%curve(3)
 crv%name         = 'c3'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
-crv%line%color   = green$
+crv%line%color   = 'green'
 crv%line%width   = 2
 crv%symbol%color = crv%line%color
 
@@ -1129,7 +1134,7 @@ crv => grph%curve(1)
 crv%name         = 'c1'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
-crv%line%color   = blue$
+crv%line%color   = 'blue'
 crv%line%width   = 2
 crv%symbol%color = crv%line%color
 
@@ -1137,7 +1142,7 @@ crv => grph%curve(2)
 crv%name         = 'c2'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
-crv%line%color   = orange$
+crv%line%color   = 'orange'
 crv%line%width   = 2
 crv%symbol%color = crv%line%color
 
@@ -1145,7 +1150,7 @@ crv => grph%curve(3)
 crv%name         = 'c3'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
-crv%line%color   = green$
+crv%line%color   = 'green'
 crv%line%width   = 2
 crv%symbol%color = crv%line%color
 
@@ -1153,7 +1158,7 @@ crv => grph%curve(4)
 crv%name         = 'c4'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
-crv%line%color   = magenta$
+crv%line%color   = 'magenta'
 crv%line%width   = 2
 crv%symbol%color = crv%line%color
 
@@ -1197,7 +1202,7 @@ crv => grph%curve(1)
 crv%name         = 'c1'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
-crv%line%color   = blue$
+crv%line%color   = 'blue'
 crv%line%width   = 2
 crv%symbol%color = crv%line%color
 
@@ -1205,7 +1210,7 @@ crv => grph%curve(2)
 crv%name         = 'c2'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
-crv%line%color   = orange$
+crv%line%color   = 'orange'
 crv%line%width   = 2
 crv%symbol%color = crv%line%color
 
@@ -1246,7 +1251,7 @@ crv => grph%curve(1)
 crv%name         = 'c'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
-crv%line%color   = blue$
+crv%line%color   = 'blue'
 crv%line%width   = 2
 crv%symbol%color = crv%line%color
 
@@ -1509,11 +1514,11 @@ do i = 1, 6
   crv%hist%number = 100
 
   crv%draw_symbols = .true.
-  crv%symbol%type = 1
+  crv%symbol%type = 'dot'
 
   crv%draw_line    = .true.
-  crv%line%color = 4
-  crv%line%pattern = 2
+  crv%line%color = 'blue'
+  crv%line%pattern = 'dashed'
 
   crv%y_axis_scale_factor = 1e9   ! nC
 
@@ -2684,69 +2689,57 @@ endif
 
 y_layout = 0.15
 
-if (s%global%plot_on) then
-  if (all(s%plot_page%region(:)%name /= 'layout')) then
-    nr = nr + 1
-    s%plot_page%region(nr)%name = 'layout'
-    s%plot_page%region(nr)%location = [0.0_rp, 1.0_rp, 0.0_rp, y_layout]
-  endif
+if (all(s%plot_page%region(:)%name /= 'layout')) then
+  nr = nr + 1
+  s%plot_page%region(nr)%name = 'layout'
+  s%plot_page%region(nr)%location = [0.0_rp, 1.0_rp, 0.0_rp, y_layout]
+endif
 
-  do i = 1, 4
-    do j = 1, i
-      write (name, '(a, 2i0)') 'r', j, i
-      if (any(s%plot_page%region(:)%name == name)) cycle
-      nr = nr + 1
-      s%plot_page%region(nr)%name = name
-      y1 = y_layout + (1 - y_layout) * real(i-j)/ i
-      y2 = y_layout + (1 - y_layout) * real(i-j+1) / i
-      s%plot_page%region(nr)%location = [0.0_rp, 1.0_rp, y1, y2]
-    enddo
-  enddo
-
-  if (all(s%plot_page%region(:)%name /= 'layout1')) then
-    nr = nr + 1
-    s%plot_page%region(nr)%name = 'layout1'
-    s%plot_page%region(nr)%location = [0.0_rp, 0.5_rp, 0.0_rp, y_layout]
-  endif
-
-  if (all(s%plot_page%region(:)%name /= 'layout2')) then
-    nr = nr + 1
-    s%plot_page%region(nr)%name = 'layout2'
-    s%plot_page%region(nr)%location = [0.5_rp, 1.0_rp, 0.0_rp, y_layout]
-  endif
-
-  k1 = 2
-  do k2 = 1, 4
-    do i = 1, k1
-    do j = 1, k2
-      write (name, '(a, 4i0)') 'r', i, k1, j, k2
-      if (any(s%plot_page%region(:)%name == name)) cycle
-      nr = nr + 1
-      s%plot_page%region(nr)%name = name
-      !! if (100*k+10*i+j > 411) s%plot_page%region(nr)%list_with_show_plot_command = .false.
-      x1 = real(k1-i)/ k1
-      x2 = real(k1-i+1) / k1
-      y1 = y_layout + (1 - y_layout) * real(k2-j)/ k2
-      y2 = y_layout + (1 - y_layout) * real(k2-j+1) / k2
-      s%plot_page%region(nr)%location = [x1, x2, y1, y2]
-    enddo
-    enddo
-  enddo
-
-else
-  do i = 1, size(s%plot_page%region)
-    write (name, '(a, 2i0)') 'r', i
+do i = 1, 4
+  do j = 1, i
+    write (name, '(a, 2i0)') 'r', j, i
     if (any(s%plot_page%region(:)%name == name)) cycle
     nr = nr + 1
-    if (nr > 20) s%plot_page%region(nr)%list_with_show_plot_command = .false.
     s%plot_page%region(nr)%name = name
-    if (nr == size(s%plot_page%region)) exit
+    y1 = y_layout + (1 - y_layout) * real(i-j)/ i
+    y2 = y_layout + (1 - y_layout) * real(i-j+1) / i
+    s%plot_page%region(nr)%location = [0.0_rp, 1.0_rp, y1, y2]
   enddo
+enddo
+
+if (all(s%plot_page%region(:)%name /= 'layout1')) then
+  nr = nr + 1
+  s%plot_page%region(nr)%name = 'layout1'
+  s%plot_page%region(nr)%location = [0.0_rp, 0.5_rp, 0.0_rp, y_layout]
 endif
+
+if (all(s%plot_page%region(:)%name /= 'layout2')) then
+  nr = nr + 1
+  s%plot_page%region(nr)%name = 'layout2'
+  s%plot_page%region(nr)%location = [0.5_rp, 1.0_rp, 0.0_rp, y_layout]
+endif
+
+k1 = 2
+do k2 = 1, 4
+  do i = 1, k1
+  do j = 1, k2
+    write (name, '(a, 4i0)') 'r', i, k1, j, k2
+    if (any(s%plot_page%region(:)%name == name)) cycle
+    nr = nr + 1
+    s%plot_page%region(nr)%name = name
+    !! if (100*k+10*i+j > 411) s%plot_page%region(nr)%list_with_show_plot_command = .false.
+    x1 = real(k1-i)/ k1
+    x2 = real(k1-i+1) / k1
+    y1 = y_layout + (1 - y_layout) * real(k2-j)/ k2
+    y2 = y_layout + (1 - y_layout) * real(k2-j+1) / k2
+    s%plot_page%region(nr)%location = [x1, x2, y1, y2]
+  enddo
+  enddo
+enddo
 
 !
 
-if (all (place(:)%region == '') .and. s%global%plot_on) then
+if (all (place(:)%region == '')) then
   branch => s%u(1)%model%lat%branch(0)
   if (branch%param%particle == photon$) then
     call tao_place_cmd ('r13', 'floor_plan')
@@ -2799,7 +2792,7 @@ implicit none
 
 type (tao_shape_pattern_struct), allocatable :: temp_pat(:)
 type (tao_shape_pattern_struct), pointer :: pat
-type (qp_line_struct) :: line 
+type (qp_line2_struct) :: line 
 type (tao_shape_pattern_point_struct) :: pt(30)
 
 integer iu, ios, nn, j, jc, jpt, nc, npt
@@ -2818,7 +2811,7 @@ if (allocated(s%plot_page%pattern)) deallocate(s%plot_page%pattern)
 allocate (s%plot_page%pattern(0))
 
 do  ! Loop over all patterns
-  line  = qp_line_struct(1, -1, solid$)
+  line  = qp_line2_struct(1, 'Not_Set', 'solid')
   pt    = tao_shape_pattern_point_struct()
   scale = 'none'
   name = ''
