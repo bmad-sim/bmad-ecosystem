@@ -1099,7 +1099,7 @@ type (ele_pointer_struct), allocatable :: eles(:)
 
 integer ix, i_branch
 logical err
-character(40) name
+character(40) name, comp
 
 !
 
@@ -1110,7 +1110,10 @@ this_graph => this_curve%g
 
 ! if the universe is changed then need to check ele_ref
 
-select case (component)
+comp = component
+ix = index(comp, '.')
+if (ix /= 0) comp(ix:ix) = '%'
+select case (comp)
 
 case ('ele_ref_name')
   call tao_locate_elements (value_str, i_uni, eles, err, ignore_blank = .true.)
@@ -1154,32 +1157,32 @@ case ('symbol_every')
 case ('symbol_size')
   call tao_set_real_value (this_curve%symbol%height, component, value_str, err)
 
-case ('symbol_color', 'symbol.color')
+case ('symbol_color', 'symbol%color')
   call tao_set_switch_value (this_curve%symbol%color, component, value_str, qp_color_name, lbound(qp_color_name,1), err)
 
-case ('symbol_type', 'symbol.type')
+case ('symbol_type', 'symbol%type')
   call tao_set_switch_value (this_curve%symbol%type, component, value_str, qp_symbol_type_name, lbound(qp_symbol_type_name,1), err)
 
-case ('symbol_fill_pattern', 'symbol.fill_pattern')
+case ('symbol_fill_pattern', 'symbol%fill_pattern')
   call tao_set_switch_value (this_curve%symbol%fill_pattern, component, value_str, qp_symbol_fill_pattern_name, &
                                                                                      lbound(qp_symbol_fill_pattern_name,1), err)
 
-case ('symbol_height', 'symbol.height')
+case ('symbol_height', 'symbol%height')
   call tao_set_real_value (this_curve%symbol%height, component, value_str, err)
 
-case ('symbol_line_width', 'symbol.line_width')
+case ('symbol_line_width', 'symbol%line_width')
   call tao_set_integer_value (this_curve%symbol%line_width, component, value_str, err)
 
 case ('smooth_line_calc')
   call tao_set_logical_value (this_curve%smooth_line_calc, component, value_str, err)
 
-case ('line_color', 'line.color')
+case ('line_color', 'line%color')
   call tao_set_switch_value (this_curve%line%color, component, value_str, qp_color_name, lbound(qp_color_name,1), err)
 
-case ('line_width', 'line.width')
+case ('line_width', 'line%width')
   call tao_set_integer_value (this_curve%line%width, component, value_str, err)
 
-case ('line_pattern', 'line.pattern')
+case ('line_pattern', 'line%pattern')
   call tao_set_switch_value (this_curve%line%pattern, component, value_str, qp_line_pattern_name, &
                                                                                      lbound(qp_line_pattern_name,1), err)
 
@@ -2575,7 +2578,7 @@ endif
 
 if (present(max_val)) then
   if (ix > max_val) then
-  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, trim(var_str) // ' VALUE TO LARGE.')
+  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, trim(var_str) // ' VALUE TOO LARGE.')
     return 
   endif
 endif
