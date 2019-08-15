@@ -131,20 +131,51 @@ class tk_tao_parameter():
       self._s_refresh()
       self._trace_cb = self.tk_var.trace('w', self._fill_widgets)
       self._traced = True
+    elif self.param.type == 'STRUCT':
+      self.tk_var = tk.StringVar()
+      self.tk_var.set('STRUCT')
+      self.tk_wid = tk.Frame(frame)
+      self._shown = False
+      self._m = tk.Button(self.tk_wid, text="Configure...", command=self._show_hide_struct)
+      self._m.grid(row=0, column=0, columnspan=2, sticky='EW')
+      self._s = [] # list of tk_tao_parameters
+      for component in self.param.value:
+        self._s.append(tk_tao_parameter(component, self.tk_wid, pipe))
 
-    if self.param.type not in ['DAT_TYPE', 'REAL_ARR']:
+    if self.param.type not in ['DAT_TYPE', 'REAL_ARR', 'STRUCT']:
       if (self.param.type != 'FILE') and (not self.param.is_ignored):
         self.tk_wid.config(disabledforeground="black")
-    else:
+    elif self.param.type != 'STRUCT':
       for widget in self._s:
         widget.config(disabledforeground="black")
     self.tk_label = tk.Label(frame, text=self.param.name)
     if not self.param.can_vary and not self.param.is_ignored:
-      if self.param.type not in ['DAT_TYPE', 'REAL_ARR']:
+      if self.param.type not in ['DAT_TYPE', 'REAL_ARR', 'STRUCT']:
         self.tk_wid.config(state="disabled")
-      else:
+      elif self.param.type != 'STRUCT':
         for widget in self._s:
           widget.config(state="disabled")
+      else:
+        self.tk_wid.configure(text='View...')
+
+  def _show_hide_struct(self, event=None, *args):
+    '''
+    Shows or hides a struct's components as appropriate
+    '''
+    if self._shown:
+      for ttp in self._s:
+        ttp.tk_wid.grid_forget()
+        ttp.tk_label.grid_forget()
+      self._shown = False
+      self.tk_wid.configure(text=
+          "Configure..." if self.param.can_vary else "View...")
+    else:
+      for i in range(len(self._s)):
+        ttp = self._s[i]
+        ttp.tk_label.grid(row=i+1, column=0, sticky='W')
+        ttp.tk_wid.grid(row=i+1, column=1, sticky='EW')
+      self._shown = True
+      self.tk_wid.configure(text="Collapse...")
 
   def _update_real_arr(self, event=None, *args, **kwargs):
     '''

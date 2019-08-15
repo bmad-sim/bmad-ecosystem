@@ -48,7 +48,7 @@ class tao_parameter():
         self.value = float(param_value)
       except:
         self.value = None
-    elif param_type == "REAL_ARR":
+    elif param_type == "REAL_ARR": #value: list of floats
       self.value = param_value
     elif param_type == 'LOGIC':
       self.value = (param_value == 'T')
@@ -59,6 +59,8 @@ class tao_parameter():
         self.value = int(param_value)
       except:
         self.value = None
+    elif param_type == 'STRUCT': #value: list of tao_parameters
+      self.value = param_value
     else:
       print ('UNKNOWN PARAMETER TYPE: ' + param_type)
 
@@ -85,22 +87,41 @@ def str_to_tao_param(param_str):
     and returns a tao_parameter
     '''
     v = param_str.split(';')
+    sub_param = None #default
     #TEMPORARY FIX
     if (len(v[2]) == 2) & (len(v) == 3):
       v.append(v[2][1])
       v[2] = v[2][0]
+    ###
+    # Special case: REAL_ARR (unknown length)
     if v[1] == "REAL_ARR":
       arr = []
-      for x in v[3:]:
+      for i in range(len(v[3:])):
+        x = v[3:][i]
         try:
           arr.append(float(x))
         except:
-          arr.append(float(0))
+          if i==len(v[3:])-1: #last item, could be a related parameter name
+            if len(x) > 0:
+              sub_param = x
+          else:
+            arr.append(float(0))
       v[3] = arr
+    elif v[1] == 'STRUCT':
+      n_comp = int(len(v[3:])/3)
+      components = v[3:][:3*n_comp]
+      c_list = [0]*n_comp
+      for n in range(n_comp):
+        c_name = components[3*n]
+        c_type = components[3*n+1]
+        c_val = components[3*n+1]
+        c_list[n] = tao_parameter(c_name, c_type, v[2], c_val)
+      v[3] = c_list
+      if len(v[3:]) % 3 == 1: # one more item than expected --> it is a sub_param
+        sub_param = v[-1]
+    # Generic case sub_param: name;type;can_vary;value;sub_param
     if len(v) == 5:
       sub_param=v[4]
-    else:
-      sub_param=None
     return tao_parameter(v[0],v[1],v[2],v[3], sub_param)
 
 #-------------------------------------------------
