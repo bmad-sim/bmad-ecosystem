@@ -8,7 +8,10 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.backend_tools import *
 from matplotlib import rcParams
 from matplotlib.widgets import Slider
-from matplotlib.backends._backend_tk import FigureManagerTk
+from matplotlib.backend_bases import ToolContainerBase
+from matplotlib.backends._backend_tk import FigureManagerTk, ToolbarTk
+from matplotlib.backend_managers import ToolManager
+
 
 
 class taotoolbar(NavigationToolbar2Tk):
@@ -45,10 +48,10 @@ class taotoolbar(NavigationToolbar2Tk):
 				gInfoDict = {}
 				for i in range(len(gInfo)):
 					gInfoDict[gInfo[i].split(';')[0]]=str_to_tao_param(gInfo[i])
-				gRange.append(gInfoDict['x.min'].value)
-				gRange.append(gInfoDict['x.max'].value)
-				gRange.append(gInfoDict['y.min'].value)
-				gRange.append(gInfoDict['y.max'].value)
+				gRange.append(gInfoDict['x'].get_component('min'))
+				gRange.append(gInfoDict['x'].get_component('max'))
+				gRange.append(gInfoDict['y'].get_component('min'))
+				gRange.append(gInfoDict['y'].get_component('max'))
 				self.gRangeList.append(gRange)
 		except IndexError: #incase number of graphs changes, like in wave analysis
 			pass
