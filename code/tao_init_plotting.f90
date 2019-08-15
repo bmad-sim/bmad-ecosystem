@@ -496,8 +496,8 @@ do  ! Loop over plot files
       else
         curve(:)%draw_symbols = .true.
       endif
-      curve(2:7)%symbol%type = ['times', 'square', 'plus', 'triangle', 'x_symbol', 'diamond']
-      curve(2:7)%symbol%color = ['blue', 'red', 'green', 'cyan', 'magenta', 'yellow']
+      curve(2:7)%symbol%type = [character(16):: 'times', 'square', 'plus', 'triangle', 'x_symbol', 'diamond']
+      curve(2:7)%symbol%color = [character(16):: 'blue', 'red', 'green', 'cyan', 'magenta', 'yellow']
       curve(2:7)%line%color = curve(2:7)%symbol%color
       ! to get around gfortran compiler bug.
       curve1 = curve(1); curve2 = curve(2); curve3 = curve(3); curve4 = curve(4)
