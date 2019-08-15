@@ -220,9 +220,10 @@ class tao_root_window(tk.Tk):
       # Read the place buffer
       init_plots = self.pipe.cmd_in('python place_buffer')
       init_plots = init_plots.splitlines()
-      init_regions = init_plots
+      init_regions = [None]*len(init_plots)
       for i in range(len(init_plots)):
-        init_plots[i], init_regions[i] = init_plots[i].split(';')
+        init_regions[i] = init_plots[i].split(';')[0]
+        init_plots[i] = init_plots[i].split(';')[1]
       plot_list = init_plots + plot_list
       plot_regions = init_regions + [None]*len(init_plots)
 
