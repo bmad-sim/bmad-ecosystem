@@ -77,7 +77,7 @@ global%beam_timer_on = T
 &tao_d1_data
         ix_d1_data= 1
         d1_data%name = "stability"
-        datum( 1) =  "unstable_ring"     '' '' ''  'target'   0.0    1e15
+        datum( 1) =  "unstable.ring"     '' '' ''  'target'   0.0    1e15
 /
 &tao_d1_data
     ix_d1_data= 2
