@@ -259,7 +259,7 @@ class taoplot:
 			rInfoDict[rInfo[i].split(';')[0]]=str_to_tao_param(rInfo[i])
 		#dictionary of tao_parameter name string keys to the corresponding 
 		#tao_parameter object from python plot_1
-		print(rInfoDict)
+
 		gList = []
 		heightsList = []
 		for i in range(rInfoDict['num_graphs'].value):
