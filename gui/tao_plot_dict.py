@@ -16,8 +16,8 @@ class tao_plot_dict(dict):
     region_list = []
     for i in range(len(plot_list_r)):
       ix, region_name = plot_list_r[i].split(';')[:2]
-      if region in [region_name, '@R'+ix]:
-        pass
+      if region and (region not in [region_name, '@R'+ix]):
+          continue
       elif ('@R'+ix in self.keys()) or (region in self.keys()):
         continue
       self['@R'+ix] = template
