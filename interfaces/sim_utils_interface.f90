@@ -255,8 +255,9 @@ function inverse_prob (val) result (prob)
   real(rp) val
 end function
 
-function is_integer (string) result (valid)
+function is_integer (string, int) result (valid)
   character(*) string
+  integer, optional :: int
   logical valid
 end function
 

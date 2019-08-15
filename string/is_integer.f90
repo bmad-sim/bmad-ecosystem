@@ -1,5 +1,5 @@
 !+
-! Function is_integer (string)
+! Function is_integer (string, int) result (valid)
 !
 ! Function to tell if the first word in a string is a valid integer.
 ! A blank string is considered to NOT be a valid integer.
@@ -11,20 +11,23 @@
 !   string  -- Character(*): Character string.
 !
 ! Output:
-!   is_integer -- Logical: Is a valid integer 
+!   int     -- integer, optional: Integer value
+!   valid   -- Logical: Is a valid integer 
 !-
 
-function is_integer (string) result (valid)
+function is_integer (string, int) result (valid)
 
 implicit none
 
 character(*) string
 integer i, i1
+integer, optional :: int
 logical valid
 
 ! ignore beginning spaces
 
 valid = .false.
+if (present(int)) int = -999
 
 if (string == '') return
 
@@ -46,11 +49,13 @@ valid = .true.
 ! check for a non-digit
 
 do i = i1, len(string)
-  if (string(i:i) == ' ') return
+  if (string(i:i) == ' ') exit
   if (index('1234567890', string(i:i)) == 0) then
     valid = .false.
     return
   endif
 enddo
+
+if (present(int)) read(string, *) int
 
 end function

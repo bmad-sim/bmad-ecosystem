@@ -1,6 +1,7 @@
 module quick_plot_struct
 
-use precision_def
+use utilities_mod
+use sim_utils_interface
 
 integer, parameter :: white$ = 0, black$ = 1, red$ = 2, green$ = 3
 integer, parameter :: blue$ = 4, cyan$ = 5, magenta$ = 6, yellow$ = 7
@@ -47,6 +48,7 @@ real(rp), parameter :: print_page_long_len = 10.5
 real(rp), parameter :: print_page_short_len = 7.8
 
 integer, parameter :: filled_arrow_head$ = 1, outline_arrow_head$ = 2
+character(16), parameter :: qp_arrow_head_type_name(2) = [character(16):: 'Filled', 'Outline']
 
 !------------------------------------
 
@@ -162,5 +164,301 @@ type qp_state_struct
   logical :: buffer = .false.   ! to be used by qp_save_state only
   logical :: uniform_symbol_size = .true.
 end type
+
+! For historical reasons (that is, slavishly following pgplot), structures like qp_line_struct, etc. used 
+! enumerated integers for stuff like the color component. This is inconvenient when these structures are
+! used with namelist input. To get around this, parallel structures are now defined called qp_line2_struct, etc.
+! Ideally, the original qp_line_struct structures should be retired but this is a bit of work considering how
+! widely quick_plot is used in the Bmad universe.
+
+type qp_line2_struct
+  integer :: width = 1
+  character(16) :: color = 'black'
+  character(16) :: pattern = 'solid'
+end type
+
+type qp_symbol2_struct
+  character(16) :: type = 'circle_dot'
+  real(rp) :: height      = 10d0  ! in points (same as text height)
+  character(16) :: color        = 'black'
+  character(16) :: fill_pattern = 'solid_fill'
+  integer :: line_width   = 1
+end type
+
+type qp_text2_struct
+  real(rp) :: height = 12   ! in points
+  character(16) :: color = 'black'
+  logical :: uniform_spacing = .false.
+end type
+
+type qp_arrow2_struct
+  real(rp) :: head_angle = 30      ! Acute angle of the arrow point in degrees.
+  real(rp) :: head_barb  = 0.4     ! Fraction of triangular arrow head that is cut away from the back.
+  real(rp) :: head_size = 1.0
+  character(16) :: head_type   = 'filled_arrow_head'    ! Or 'outline_arrow_head'
+  character(16) :: color       = 'black'
+end type
+
+contains
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function qp_to_line_struct (line2) result (line)
+!
+! Routine to convert a qp_line2_struct to a qp_line_struct.
+!
+! Input:
+!   line2     -- qp_line2_struct: Input structure.
+!
+! Output:
+!   line      -- qp_line_struct: Structure to put the line2 info into.
+!-
+
+function qp_to_line_struct (line2) result (line)
+
+implicit none
+
+type (qp_line2_struct) line2
+type (qp_line_struct) line
+
+!
+
+line%width = line2%width
+line%color = qp_string_to_enum (line2%color, 'color')
+line%pattern = qp_string_to_enum (line2%pattern, 'line_pattern')
+
+end function qp_to_line_struct
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function qp_to_symbol_struct (symbol2) result (symbol)
+!
+! Routine to convert a qp_symbol2_struct to a qp_symbol_struct.
+!
+! Input:
+!   symbol2     -- qp_symbol2_struct: Input structure.
+!
+! Output:
+!   symbol      -- qp_symbol_struct: Structure to put the symbol2 info into.
+!-
+
+function qp_to_symbol_struct (symbol2) result (symbol)
+
+implicit none
+
+type (qp_symbol2_struct) symbol2
+type (qp_symbol_struct) symbol
+
+!
+
+symbol%type = qp_string_to_enum (symbol2%type, 'symbol_type')
+symbol%height = symbol2%height
+symbol%color = qp_string_to_enum (symbol2%color, 'color')
+symbol%fill_pattern = qp_string_to_enum (symbol2%fill_pattern, 'fill_pattern')
+symbol%line_width = symbol2%line_width
+
+end function qp_to_symbol_struct
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function qp_to_text_struct (text2) result (text)
+!
+! Routine to convert a qp_text2_struct to a qp_text_struct.
+!
+! Input:
+!   text2     -- qp_text2_struct: Input structure.
+!
+! Output:
+!   text      -- qp_text_struct: Structure to put the text2 info into.
+!-
+
+function qp_to_text_struct (text2) result (text)
+
+implicit none
+
+type (qp_text2_struct) text2
+type (qp_text_struct) text
+
+!
+
+text%height = text2%height
+text%color = qp_string_to_enum (text2%color, 'color')
+text%uniform_spacing = text2%uniform_spacing
+
+end function qp_to_text_struct
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function qp_to_arrow_struct (arrow2) result (arrow)
+!
+! Routine to convert a qp_arrow2_struct to a qp_arrow_struct.
+!
+! Input:
+!   arrow2     -- qp_arrow2_struct: Input structure.
+!
+! Output:
+!   arrow      -- qp_arrow_struct: Structure to put the arrow2 info into.
+!-
+
+function qp_to_arrow_struct (arrow2) result (arrow)
+
+implicit none
+
+type (qp_arrow2_struct) arrow2
+type (qp_arrow_struct) arrow
+
+!
+
+arrow%head_angle = arrow2%head_angle
+arrow%head_barb = arrow2%head_barb
+arrow%head_size = arrow2%head_size
+arrow%head_type = qp_string_to_enum (arrow2%head_type, 'arrow_head_type')
+arrow%color = qp_string_to_enum (arrow2%color, 'color')
+
+end function qp_to_arrow_struct
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function qp_string_to_enum (enum_str, enum_type, ix_dflt) result (ix_enum)
+! 
+! Routine to convert a string to the corresponding integer for enumerated parameter.
+!
+! Input:
+!   enum_str      -- character(*): String representation for the enumerated parameter.
+!   enum_type     -- character(*): Type of enum. Possibilities are:
+!                       "color", "line_pattern", "fill_pattern", "symbol_type", "arrow_head_type"
+!   ix_dflt       -- integer, optional: Default number to set ix_enum to if enum_str is not valid.
+!                     If not present then the structure default is used.
+!
+! Output:
+!   ix_enum       -- integer: Index corresponding to enum_str.
+!-
+
+function qp_string_to_enum (enum_str, enum_type, ix_dflt) result (ix_enum)
+
+implicit none
+
+integer ix_enum, ix, ixd, lb
+integer, optional :: ix_dflt
+character(*) enum_str, enum_type
+
+!
+
+select case (enum_type)
+case ('color')
+  call match_word (enum_str, qp_color_name, ix, .false., .false.)
+  ixd = integer_option(black$, ix_dflt)
+  lb = lbound(qp_color_name, 1)
+case ('fill_pattern')
+  call match_word (enum_str, qp_symbol_fill_pattern_name, ix, .false., .false.)
+  ixd = integer_option(solid_fill$, ix_dflt)
+  lb = lbound(qp_symbol_fill_pattern_name, 1)
+case ('line_pattern')
+  call match_word (enum_str, qp_line_pattern_name, ix, .false., .false.)
+  ixd = integer_option(solid$, ix_dflt)
+  lb = lbound(qp_line_pattern_name, 1)
+case ('symbol_type')
+  call match_word (enum_str, qp_symbol_type_name, ix, .false., .false.)
+  ixd = integer_option(circle_dot_sym$, ix_dflt)
+  lb = lbound(qp_symbol_type_name, 1)
+case ('arrow_head_type')
+  call match_word (enum_str, qp_arrow_head_type_name, ix, .false., .false.)
+  ixd = integer_option(filled_arrow_head$, ix_dflt)
+  lb = lbound(qp_arrow_head_type_name, 1)
+case default
+  ix_enum = -1
+  return
+end select
+
+
+if (ix == 0) then
+  ix_enum = ixd
+else
+  ix_enum = ix + (lb - 1)
+endif
+
+end function qp_string_to_enum
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function qp_enum_to_string (ix_enum, enum_type, str_dflt) result (enum_str)
+! 
+! Routine to convert a string to the corresponding integer for enumerated parameter.
+!
+! Input:
+!   ix_enum       -- integer: Index of enumerated number.
+!   enum_type     -- character(*): Type of enum. Possibilities are:
+!                       "color", "line_pattern", "fill_pattern", "symbol_type", "arrow_head_type"
+!   str_dflt      -- character(*), optional: Default string to set enum_str to if ix_enum is not valid.
+!                     If not present then the structure default is used.
+!
+! Output:
+!   enum_str      -- character(16): String representation for the enumerated parameter.
+!-
+
+function qp_enum_to_string (ix_enum, enum_type, str_dflt) result (enum_str)
+
+implicit none
+
+integer ix_enum
+character(*) enum_type
+character(*), optional :: str_dflt
+character(16) enum_str
+
+!
+
+select case (enum_type)
+case ('color')
+  if (ix_enum < lbound(qp_color_name, 1) .or. ix_enum > ubound(qp_color_name, 1)) then
+    enum_str = string_option('black', str_dflt)
+  else
+    enum_str = downcase(qp_color_name(ix_enum))
+  endif
+
+case ('fill_pattern')
+  if (ix_enum < lbound(qp_symbol_fill_pattern_name, 1) .or. ix_enum > ubound(qp_symbol_fill_pattern_name, 1)) then
+    enum_str = string_option('solid', str_dflt)
+  else
+    enum_str = downcase(qp_symbol_fill_pattern_name(ix_enum))
+  endif
+
+case ('line_pattern')
+  if (ix_enum < lbound(qp_line_pattern_name, 1) .or. ix_enum > ubound(qp_line_pattern_name, 1)) then
+    enum_str = string_option('solid', str_dflt)
+  else
+    enum_str = downcase(qp_line_pattern_name(ix_enum))
+  endif
+
+case ('symbol_type')
+  if (ix_enum < lbound(qp_symbol_type_name, 1) .or. ix_enum > ubound(qp_symbol_type_name, 1)) then
+    enum_str = string_option('circle_dot', str_dflt)
+  else
+    enum_str = downcase(qp_symbol_type_name(ix_enum))
+  endif
+
+case ('arrow_head_type')
+  if (ix_enum < lbound(qp_arrow_head_type_name, 1) .or. ix_enum > ubound(qp_arrow_head_type_name, 1)) then
+    enum_str = string_option('filled', str_dflt)
+  else
+    enum_str = downcase(qp_arrow_head_type_name(ix_enum))
+  endif
+
+case default
+  enum_str = '????'  
+end select
+
+end function qp_enum_to_string
 
 end module

@@ -4998,46 +4998,6 @@ end subroutine qp_calc_minor_div
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Function qp_translate_to_color_index (name, index)
-!
-! Function to translate from a string to a color index.
-! Translation is case insensitive.
-!
-! Input:
-!   name -- Character(*): Name of the color.
-!
-! Output:
-!   index -- Integer: Color index. -1 => Unknown name.
-!-
-
-function qp_translate_to_color_index (name) result (index)
-
-implicit none
-
-integer index
-
-character(*) name
-character(16) color, this
-character(16) :: r_name = 'qp_translate_to_color_index'
-
-!
-
-call str_upcase (this, name)
-
-do index = lbound(qp_color_name, 1), ubound (qp_color_name, 1)
-  call str_upcase (color, qp_color_name(index))
-  if (color == this) return
-enddo
-
-call out_io (s_error$, r_name, 'UNKNOWN COLOR NAME: ' // name)
-index = -1
-
-end function qp_translate_to_color_index
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+
 ! Subroutine qp_get_parameters (text_scale, default_draw_units, &
 !                           default_set_units, default_axis_slop_factor)
 !
