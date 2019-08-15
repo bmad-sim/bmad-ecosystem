@@ -2821,7 +2821,7 @@ case ('plot_curve')
                       'color;ENUM;', qp_color_name(c%line%color), 'pattern;ENUM;', qp_line_pattern_name(c%line%pattern)
 
   nl=incr(nl); write (li(nl), '(8a, i0)')  'symbol;STRUCT;T;type;ENUM;', qp_symbol_type_name(c%symbol%type), &
-                      'color;ENUM;', qp_color_name(c%symbol%color), 'height;REAL;', to_str(c%symbol%height, 4), 
+                      'color;ENUM;', qp_color_name(c%symbol%color), 'height;REAL;', to_str(c%symbol%height, 4), &
                       'fill_pattern;ENUM;', qp_symbol_fill_pattern_name(c%symbol%fill_pattern), 'line_width;INT;', c%symbol%line_width
 
   nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               c%symbol%line_width
@@ -2949,17 +2949,17 @@ case ('plot_graph')
   nl=incr(nl); write (li(nl), lmt) 'draw_grid;LOGIC;T;',                      g%draw_grid
   nl=incr(nl); write (li(nl), lmt) 'draw_only_good_user_data_or_vars;LOGIC;T;', g%draw_only_good_user_data_or_vars
 
-  nl=incr(nl); write (li(nl), '(6a, 3(a, i0), 2(a, l1))') 'x;STRUCT;T;label;STR;', x_ax%label, &
+  nl=incr(nl); write (li(nl), '(6a, 3(a, i0), 2(a, l1))') 'x;STRUCT;T;label;STR;', trim(x_ax%label), &
                             'max;REAL;', to_str(x_ax%max), 'min;REAL;', to_str(x_ax%min), 'major_div;INT;', x_ax%major_div, &
                             'major_div_nominal;INT;', x_ax%major_div_nominal, 'places;INT;', x_ax%places, &
                             'draw_label;LOGIC;', x_ax%draw_label, 'draw_numbers;LOGIC;', x_ax%draw_numbers
 
-  nl=incr(nl); write (li(nl), '(6a, 3(a, i0), 2(a, l1))') 'y;STRUCT;T;label;STR;', y_ax%label, &
+  nl=incr(nl); write (li(nl), '(6a, 3(a, i0), 2(a, l1))') 'y;STRUCT;T;label;STR;', trim(y_ax%label), &
                             'max;REAL;', to_str(y_ax%max), 'min;REAL;', to_str(y_ax%min), 'major_div;INT;', y_ax%major_div, &
                             'major_div_nominal;INT;', y_ax%major_div_nominal, 'places;INT;', y_ax%places, &
                             'draw_label;LOGIC;', y_ax%draw_label, 'draw_numbers;LOGIC;', y_ax%draw_numbers
 
-  nl=incr(nl); write (li(nl), '(6a, 3(a, i0), 2(a, l1))') 'y2;STRUCT;T;label;STR;', g%y2%label, &
+  nl=incr(nl); write (li(nl), '(6a, 3(a, i0), 2(a, l1))') 'y2;STRUCT;T;label;STR;', trim(g%y2%label), &
                             'max;REAL;', to_str(g%y2%max), 'min;REAL;', to_str(g%y2%min), 'major_div;INT;', g%y2%major_div, &
                             'major_div_nominal;INT;', g%y2%major_div_nominal, 'places;INT;', g%y2%places, &
                             'draw_label;LOGIC;', g%y2%draw_label, 'draw_numbers;LOGIC;', g%y2%draw_numbers
