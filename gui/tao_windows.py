@@ -68,7 +68,6 @@ class tao_list_window(Tao_Toplevel):
   Subclasses set tao_id before running this __init__ to handle
   adding/removing themselves from root window lists
   '''
-
   def __init__(self, root, title, use_upper=False,
       min_width=0, parent=None, *args, **kwargs):
     self.root = root
@@ -152,7 +151,71 @@ class tao_list_window(Tao_Toplevel):
     except: #in case this gets called when it shouldn't
       pass
 
+#-----------------------------------------------------
+# Scrolling frame
+class tao_scroll_frame(tk.Frame):
+  '''
+  Provides a frame with a vertical scrollbar attached
+  parent: the parent of this frame
+  min_width: the minimum width that this frame must have
+  self.frame should be used for placing widgets into
+  this frame
+  '''
+  #TODO: upgrade tao_list_window to use this for its scrolling
+  def __init__(self, parent, min_width=0, *args, **kwargs):
+    tk.Frame.__init__(self, parent, *args, **kwargs)
+    self.min_width = min_width
+    self._old_width=0
+    self._canvas=tk.Canvas(self)
+    self.frame=tk.Frame(self._canvas)
+    scrollbar=tk.Scrollbar(self,orient="vertical",
+        command=self._canvas.yview)
+    self._canvas.configure(yscrollcommand=scrollbar.set)
 
+    self.frame.bind("<Configure>",self.scrollhelper)
+
+    self.bind("<Enter>", self.bind_mouse)
+    self.bind("<Leave>", self.unbind_mouse)
+
+    self._canvas.grid(row=0, column=0, sticky='NSEW')
+    scrollbar.grid(row=0, column=1, sticky='NS')
+    self.grid_columnconfigure(0, weight=1)
+    self.grid_rowconfigure(0, weight=1)
+
+    self._canvas_window = self._canvas.create_window(
+        (0,0),window=self.frame,anchor='nw')
+
+  def scrollhelper(self, event):
+    self._canvas.configure(scrollregion=self._canvas.bbox("all"))
+    new_width = self.frame.winfo_geometry()
+    new_width = int(new_width[:new_width.find('x')])
+    # Don't resize to a smaller size
+    if self._old_width > new_width:
+      return
+    # Don't resize to less than the min width
+    if self.min_width > new_width:
+      new_width = self.min_width
+    self.grid_columnconfigure(0, minsize=new_width)
+    self._canvas.configure(width=new_width)
+    self._old_width = new_width
+
+  def bind_mouse(self, event):
+    self.bind_all("<Button-4>", self.mouse_scroll)
+    self.bind_all("<Button-5>", self.mouse_scroll)
+
+  def unbind_mouse(self, event):
+    self.unbind_all("<Button-4>")
+    self.unbind_all("<Button-5>")
+
+  def mouse_scroll(self, event):
+    #self.canvas.yview_scroll(direction,"units")
+    try:
+      if event.num == 4:
+        self._canvas.yview_scroll(-1,"units")
+      elif event.num == 5:
+        self._canvas.yview_scroll(1,"units")
+    except: #in case this gets called when it shouldn't
+      pass
 
 #-----------------------------------------------------
 # Parameter frame
@@ -4808,6 +4871,709 @@ class tao_message_box(tk.Toplevel):
 
   def cancel(self, *args):
     self.tk_var.set("")
+
+class tao_new_plot_template_window(Tao_Toplevel):
+  '''
+  Provides a window for creating new plot templates (and their
+  associated graphs and curves)
+  Pass the name of an existing plot to open that plot and start
+  editing its graphs and curves
+  '''
+  def __init__(self, root, pipe, default=None, *args, **kwargs):
+    self.root = root
+    Tao_Toplevel.__init__(self, root, *args, **kwargs)
+    self.pipe = pipe
+    self.rowconfigure(0, weight=1)
+    self.title('New Plot Template')
+    self.name = ""
+
+    # Frame for inputting plot parameters
+    self.plot_frame = tk.Frame(self)
+    self.plot_frame.grid(row=0, column=0, sticky='NSEW')
+
+    # Frame for inputting graph/curve parameters
+    self.graph_frame = tk.Frame(self)
+    self.nb_exists = False
+    self.graph_frame_list = []
+
+    self.fill_plot_frame()
+    if default != None:
+      self.plot_param_list[0].tk_var.set(default)
+      self.load_graph_frame(ask=False)
+      for graph_frame in self.graph_frame_list:
+        graph_frame.fill_defaults()
+
+  def fill_plot_frame(self):
+    tk.Label(self.plot_frame, text="New Plot Template",
+        font=('Sans', 16, 'bold')).grid(
+            row=0, column=0, columnspan=2, sticky='EW')
+
+    # Small bit of setup
+    def my_ttp(x):
+      ''' shorcut for the following commonly used construct '''
+      return tk_tao_parameter(str_to_tao_param(x), self.plot_frame, self.pipe)
+
+    # Clone existing plot
+    existing_plot_templates = self.pipe.cmd_in("python plot_list t").splitlines()
+    for i in range(len(existing_plot_templates)):
+      existing_plot_templates[i] = existing_plot_templates[i].split(';')[1]
+    existing_plot_templates = ['None'] + existing_plot_templates
+    self.clone_plot = tk.StringVar()
+    self.clone_plot.set('None')
+
+    # Widgets
+    params = ["name;STR;T;",
+        "x_axis_type;ENUM;T;",
+        "autoscale_gang_x;LOGIC;T;T",
+        "autoscale_gang_y;LOGIC;T;T",
+        "autoscale_x;LOGIC;T;F",
+        "autoscale_y;LOGIC;T;F",
+        "n_curve_points;INT;T;"]
+    self.plot_param_list = list(map(my_ttp, params))
+
+    # Parameter index lookup (for convenience)
+    self.ixd = {} #index dictionary
+    for i in range(len(self.plot_param_list)):
+      self.ixd[self.plot_param_list[i].param.name] = i
+
+    # Labels
+    self.plot_label_list = [tk.Label(self.plot_frame, text="Plot Name:"),
+        tk.Label(self.plot_frame, text="X-axis Type:"),
+        tk.Label(self.plot_frame, text="Autoscale gang X:"),
+        tk.Label(self.plot_frame, text="Autoscale gang Y:"),
+        tk.Label(self.plot_frame, text="Autoscale X:"),
+        tk.Label(self.plot_frame, text="Autoscale Y:"),
+        tk.Label(self.plot_frame, text="Number of curve points:")]
+
+    # Grid widgets and labels
+    for i in range(len(self.plot_param_list)):
+      self.plot_label_list[i].grid(row=i+1, column=0, sticky='W')
+      self.plot_param_list[i].tk_wid.grid(row=i+1, column=1, sticky='EW')
+
+    # Warning labels
+    self.name_warning_1 = tk.Label(self.plot_frame, text="Cannot be empty")
+    self.name_warning_2 = tk.Label(self.plot_frame, text="Name already in use")
+    # Next button
+    self.next_b = tk.Button(self.plot_frame, text="Next", command=self.load_graph_frame)
+    self.next_b.grid(row=i+2, column=1, sticky='W')
+
+    # Focus the name entry
+    self.plot_param_list[0].tk_wid.focus_set()
+
+  def load_plot_frame(self):
+    self.graph_frame.pack_forget()
+    self.plot_frame.grid(row=0, column=0, sticky='NSEW')
+
+  def load_graph_frame(self, ask=True):
+    '''
+    Ungrids self.plot_frame, grids self.graph_frame, and sets up a notebook
+    for the graph_frames if necessary.
+    Set ask=False to skip message boxes
+    '''
+    clone_dict = {} # keys=plot template names, values=lists of graphs
+    # Check if plot name is nonempty
+    name = self.plot_param_list[self.ixd['name']].tk_var.get().strip()
+    if name == "":
+      self.name_warning_1.grid(row=1, column=2, sticky='W')
+      return
+
+    # Conditions
+    template_list = self.pipe.cmd_in('python plot_list t').splitlines()
+    for i in range(len(template_list)):
+      template_list[i] = template_list[i].split(';')[1]
+    c1 = (name in self.pipe.cmd_in('python plot_list t').splitlines()) #name in use
+    c2 = (self.clone_plot.get() != 'None') #clone has been specified
+    c3 = (self.name != name) #name has changed
+    c4 = False #discard existing work
+    ans_var = tk.StringVar()
+    # Ask if user wants to keep existing graphs
+    if c3 and self.name:
+      self.name = name
+      if ask:
+        tao_message_box(self.root, self, ans_var, title='Warning', message='Would you like to keep or discard the graphs you defined for ' + self.name + '?', choices=['Keep', 'Discard'])
+      else:
+        ans_var.set('Discard')
+      if ans_var.get() == 'Keep':
+        c4 = False
+      elif ans_var.get() == 'Discard':
+        c4 = True
+      else:
+        return
+    # Ask if user wants to load existing graphs
+    if c1:
+      if ask:
+        ans = messagebox.askyesno('Warning', name + " already exists as a plot template.  Would you like to clone its existing graphs?", parent=self)
+      else:
+        ans = True
+      if ans:
+        # Will need to read in data for existing plot
+        clone_dict[name] = self.pipe.cmd_in('python plot1 ' + name).splitlines()
+    # Clone existing data
+    if c2 and (self.clone_plot.get() != name):
+      clone_dict[self.clone_plot.get()] = self.pipe.cmd_in('python plot1 ' + self.clone_plot.get()).splitlines()
+    # Remake d1_frames and notebook if necessary
+    if c4 and self.nb_exists:
+      for frame in self.d1_frame_list:
+        frame.destroy()
+      self.graph_frame_list = []
+      self.notebook.destroy()
+      self.new_tab_frame.destroy()
+      self.back_b.destroy()
+      self.create_b.destroy()
+      self.nb_exists = False
+    else:
+      self.name = name
+      self.name_warning_1.grid_forget()
+
+    # Possibly create self.notebook
+    if not self.nb_exists:
+      self.notebook = ttk.Notebook(self.graph_frame)
+      self.notebook.pack(side='top', fill='both', expand=1)
+      self.nb_exists = True
+
+      self.graph_index = 0 #marks current tab index
+
+      # New tab button
+      self.new_tab_frame = tk.Frame(self.notebook)
+      self.notebook.insert('end', self.new_tab_frame)
+      self.notebook.tab(len(self.graph_frame_list), text='+')
+      self.notebook.bind('<<NotebookTabChanged>>', self.tab_handler)
+
+      # Back button
+      self.back_b = tk.Button(self.graph_frame, text="Back", command=self.load_plot_frame)
+      self.back_b.pack(side='left')
+
+      # Create button
+      self.create_b = tk.Button(self.graph_frame, text="Create!", command=self.create_template)
+      self.create_b.pack(side='right')
+
+    self.plot_frame.grid_forget()
+    self.graph_frame.pack(fill='both', expand=1)
+    self.title("New plot: " + self.name)
+
+    # Clone the requested d2 array(s)
+    if clone_dict != {}:
+      if name in clone_dict.keys():
+        # Find the graph names
+        num_graphs = str_to_tao_param(clone_dict[name][0]).value
+        for i in range(num_graphs):
+          graph = clone_dict[name][i+1].split(';')[3]
+          self.add_graph_frame(graph)
+      if (self.clone_plot.get() in clone_dict.keys()) and (name != self.clone_plot.get()):
+        # Find the graph names
+        num_graphs = str_to_tao_param(clone_dict[self.clone_plot.get()][0]).value
+        for i in range(num_graphs):
+          graph = clone_dict[self.clone_plot.get()][i+1].split(';')[3]
+          self.add_graph_frame(graph)
+      self.notebook.select(0)
+
+
+  def create_template(self, event=None):
+    '''
+    Takes the information from the d2_frame and d1_frames and runs
+    the necessary commands to create the data in tao, then closes
+    the create data window
+    '''
+    return #TODO
+    # Input validation
+    messages = []
+    for d1_frame in self.d1_frame_list:
+      # Check names
+      if d1_frame.name_handler():
+        name_m = "Please check d1_array names."
+        if name_m not in messages:
+          messages.append(name_m)
+      if d1_frame.ix_min_handler():
+        messages.append("Please check the start index for " + d1_frame.name)
+      if d1_frame.ix_max_handler():
+        messages.append("Please check the end index for " + d1_frame.name)
+      if d1_frame.d1_array_wids[2].tk_var.get() == "":
+        messages.append("Please choose a data type for " + d1_frame.name)
+      # Check for semicolons in any fields
+      semi_message = "Semicolons not allowed in any input field"
+      caret_message = "Carets not allowed in any input field"
+      broken = False #Used to break out of the below for loops
+      # Check for semicolons/carets
+      for ttp in d1_frame.d1_array_wids:
+        if str(ttp.tk_var.get()).find(';') != -1:
+          messages.append(semi_message)
+          broken = True
+          break
+        if str(ttp.tk_var.get()).find('^') != -1:
+          messages.append(caret_message)
+          broken = True
+          break
+      for data_dict in d1_frame.data_dict.values():
+        if broken:
+          break
+        for d in data_dict.values():
+          if str(d).find(';') != -1:
+            messages.append(semi_message)
+            broken = True
+            break
+          if str(d).find('^') != -1:
+            messages.append(caret_message)
+            broken = True
+            break
+        if broken:
+          break
+    for m in messages:
+      messagebox.showwarning("Error", m, parent=self)
+    if messages != []:
+      return
+    # Book-keeping
+    datum_params = ['data_type', 'ele_ref_name', 'ele_start_name', 'ele_name',
+        'data^merit_type', 'meas_value', 'ref_value', 'weight', 'good_user',
+        'data_source', 'eval_point', 's_offset', '1^ix_bunch',
+        'invalid_value', 'spin_n0_x', 'spin_n0_y', 'spin_n0_z']
+    d1_params = ['name', 'data_source', 'data_type', 'data^merit_type',
+        'weight', 'good_user']
+    d2_params = ['name', 'uni', 'data_source', 'data^merit_type', 'weight', 'good_user']
+    # Create the data array
+    if self.uni.get() == 'All':
+      uni_max = self.pipe.cmd_in("python super universe")
+      uni_max = str_to_tao_param(uni_max.splitlines()[0]).value
+      uni_list = list(range(1, uni_max+1))
+    else:
+      uni_list = [int(self.uni.get())]
+    d1_count = 0 # used to make the corrent number of progress bars
+    for u in uni_list:
+      cmd_str = 'python data_d2_create ' + str(u) + '@' + self.name
+      cmd_str += '^^' + str(len(self.d1_frame_list)) + '^^'
+      for d1_frame in self.d1_frame_list:
+        d1_count += 1
+        # min/max indices for each d1_array
+        cmd_str += str(d1_frame.name) + '^^'
+        cmd_str += str(d1_frame.ix_min) + '^^'
+        cmd_str += str(d1_frame.ix_max) + '^^'
+      # Create the d2/d1_arrays
+      self.pipe.cmd_in(cmd_str)
+    # Progress bars
+    self.pw = tao_progress_window(self.root, self, d1_count)
+    for u in uni_list:
+      # Progress window config
+      for d1_frame in self.d1_frame_list:
+        self.pw.label_vars[self.pw.ix].set(
+            'Creating' + str(u) + '@' + self.name + '.' + d1_frame.name)
+        self.pw.set_max(self.pw.ix, d1_frame.ix_max-d1_frame.ix_min+1)
+        # set individual data parameters
+        for j in range(d1_frame.ix_min, d1_frame.ix_max+1):
+          self.pw.set_val(self.pw.ix, j-d1_frame.ix_min)
+          cmd_str = 'python datum_create '
+          cmd_str += str(u) + '@' + self.name + '.' + d1_frame.name + '[' + str(j) + ']'
+          for p in datum_params:
+            #look in d1_frame.data_dict
+            if (j in d1_frame.data_dict.keys()) and (p in d1_frame.data_dict[j].keys()):
+              value = d1_frame.data_dict[j][p]
+            elif p in d1_params:
+              value = d1_frame.d1_array_wids[d1_params.index(p)].tk_var.get()
+            elif p in d2_params:
+              value = self.d2_param_list[d2_params.index(p)].tk_var.get()
+            else:
+              value = ""
+            if p == "good_user": # replace with T or F
+              value = "T" if value else "F"
+            cmd_str += '^^' + value
+          self.pipe.cmd_in(cmd_str)
+        self.pw.ix += 1
+    # Close the window
+    self.destroy()
+    # Refresh data-related windows
+    for win in self.root.refresh_windows['data']:
+      win.refresh()
+    for win in self.root.refresh_windows['plot']:
+      win.refresh()
+
+  def tab_handler(self, event=None):
+    '''
+    Handles new tab creation and updates self.d1_index as necessary
+    '''
+    # Check if the new tab frame has been selected
+    if self.notebook.select() == self.new_tab_frame._w:
+      # Add new tab
+      self.graph_frame_list.append(new_graph_frame(self))
+      self.graph_index = len(self.graph_frame_list)-1
+      self.notebook.insert(self.graph_index, self.graph_frame_list[-1])
+      self.notebook.tab(self.graph_index, text='New graph')
+      self.notebook.select(self.graph_index)
+    else:
+      # Update self.graph_index
+      for i in range(len(self.graph_frame_list)):
+        frame = self.graph_frame_list[i]
+        if self.notebook.select() == frame._w:
+          self.graph_index = i
+          # Unblock frame's handlers
+          frame.handler_block = False
+          break
+
+  def add_graph_frame(self, graph, event=None):
+    '''
+    Creates a new graph_frame for graph and reads existing data in from Tao if present
+    '''
+    self.graph_frame_list.append(
+        new_graph_frame(self, name=graph))
+    ix = len(self.graph_frame_list) - 1
+    self.notebook.insert(ix, self.graph_frame_list[-1])
+    self.notebook.tab(ix, text=graph)
+
+  def refresh(self):
+    '''
+    Only here in case something tries to refresh this window
+    '''
+    pass
+
+
+class new_graph_frame(tk.Frame):
+  '''
+  Provides a frame for inputting properties of a graph and its curves
+  To load an existing graph, pass the graph name as name
+  '''
+  def __init__(self, parent, name=""):
+    tk.Frame.__init__(self, parent.notebook)
+    self.parent = parent
+    self.pipe = self.parent.pipe
+    self.handler_block = False
+    # Defined here for convenience
+    self._scroll_frames = [tao_scroll_frame(self), tao_scroll_frame(self)]
+    self.column_widths = [0,0,0] #used for consistent gridding
+    if name == "":
+      self.name = "New graph" #Default
+    else:
+      self.name = name
+
+    # Delete button
+    tk.Button(self, text="DELETE THIS GRAPH", fg='red', command=self.delete).grid(
+        row=0, column=0, columnspan=3, sticky='EW')
+
+    # Duplicate button
+    tk.Button(self, text="Duplicate this graph", command=self.duplicate).grid(
+        row=1, column=0, columnspan=3, sticky='EW')
+
+    # Graph Widgets
+    self.graph_frame = self._scroll_frames[0].frame
+    self._scroll_frames[0].grid(row=2, column=0, columnspan=3, sticky='NSEW')
+    self.grid_rowconfigure(2, weight=1)
+    def graph_ttp(x):
+      ''' Shortcut for commonly used construct '''
+      return tk_tao_parameter(str_to_tao_param(x), self.graph_frame, self.pipe)
+
+    self.graph_wids = ["name;STR;T;",
+        "graph^type;ENUM;T;",
+        "box;STR;T;", #ENUM?
+        "title;STR;T;",
+        "margin;STR;T;", #ENUM?
+        "scale_margin;STR;T;", #ENUM?
+        "x;STR;T;", #TODO:qp_axis_struct
+        "y;STR;T;", #TODO:qp_axis_struct
+        "x2;STR;T;", #TODO:qp_axis_struct
+        "y2;STR;T;", #TODO:qp_axis_struct
+        "clip;LOGIC;T;T",
+        "draw_axes;LOGIC;T;T",
+        "draw_grid;LOGIC;T;T",
+        "allow_wrap_around;LOGIC;T;F",
+        "component;STR;T;",
+        "symbol_size_scale;REAL;T;",
+        "correct_xy_distortion;LOGIC;T;F",
+        "ix_universe;INT;T;",
+        "floor_plan_rotation;REAL;T;", #hide floor_plan_... for non-floor_plans?
+        "floor_plan_view;STR;T;", #ENUM?
+        "floor_plan_orbit_scale;REAL;T;",
+        "floor_plan_orbit_color;STR;T;",
+        "floor_plan_flip_label_side;LOGIC;T;F",
+        "floor_plan_size_is_absolute;LOGIC;T;F",
+        "floor_plan_draw_only_first_pass;LOGIC;T;F",
+        "draw_only_good_user_data_or_vars;LOGIC;T;T",
+        "x_axis_scale_factor;REAL;T;",
+        "n_curve;INT;T;"]
+    self.graph_wids = list(map(graph_ttp, self.graph_wids))
+    self.ixd = {} #index dictionary, used for lookup
+    for i in range(len(self.graph_wids)):
+      self.ixd[self.graph_wids[i].param.name] = i
+    # graph labels (NAMES AS STRINGS ONLY)
+    self.graph_labels = ["Graph name:", "Graph type:", "Box:",
+        "Graph title:", "Graph margin:", "Graph scale margin:",
+        "X-axis:", "Y-axis:", "X2-axis:", "Y2-axis",
+        "Clip at boundary:", "Draw axes:", "Draw grid:",
+        "Allow wrap-around:", "Component:", "Symbol size scale:",
+        "Correct xy distortion:", "Universe:",
+        "Rotation:", "View:", "Orbit scale:", "Orbit color:",
+        "Flip label side:", "Absolute size:", "Draw only first pass:",
+        "Draw only good_user data/variables:", "X-axis scale factor:",
+        "Number of curves"]
+    # Grid widgets and labels:
+    for i in range(len(self.graph_wids)):
+      tk.Label(self.graph_frame, text=self.graph_labels[i]).grid(
+          row=i, column=0, sticky='W')
+      self.graph_wids[i].tk_wid.grid(row=i, column=1, sticky='EW')
+    # Set name
+    if self.name != "New graph":
+      self.d1_array_wids[self.ixd['name']].tk_var.set(self.name)
+
+    # Warning labels
+    # (defined here to be gridded/ungridded as necessary)
+    self.name_warning_1 = tk.Label(self.graph_frame, text="Must not be empty")
+    self.name_warning_2 = tk.Label(self.graph_frame, text="graph name already in use")
+    self.n_curve_warning = tk.Label(self.graph_frame, text="Must be a non-negative integer")
+
+    # Responses to edits
+    self.graph_wids[self.ixd['name']].tk_wid.bind('<FocusOut>', self.name_handler)
+    self.graph_wids[self.ixd['n_curve']].tk_wid.bind('<FocusOut>', self.n_curve_handler)
+
+    ttk.Separator(self, orient='horizontal').grid(row=3, column=0, columnspan=3, sticky='EW')
+
+    # Curves
+    self.curve_dict = {}
+    self.curve_frame = self._scroll_frames[1].frame
+    tk.Label(self, text="Curve:").grid(row=4, column=0, sticky='W')
+    self.curve_ix = tk.StringVar()
+    self.n_curve = -1
+    self.curve_chooser = ttk.Combobox(self, textvariable=self.curve_ix,
+        values=['PLEASE SPECIFY NUMBER OF CURVES'], state='readonly')
+    self.curve_chooser.bind('<<ComboboxSelected>>', self.make_curve_frame)
+    self.curve_chooser.grid(row=4, column=1, sticky='EW')
+
+    # Focus the d1 name widget
+    self.graph_wids[0].tk_wid.focus_set()
+
+  def delete(self, ask=True, event=None):
+    '''
+    Deletes this graph frame
+    Call with ask = False to skip confirmation
+    '''
+    # Ask for confirmation
+    if ask:
+      ans = messagebox.askokcancel("Delete " + self.name, "Delete this graph and its associated curves?", parent=self.parent)
+      if not ans:
+        return
+
+    # Remove from parent d1_frame_list
+    ix = self.parent.graph_index
+    if ix > 0:
+      # Prefer to move to the tab to the left
+      self.parent.notebook.select(ix-1)
+    self.parent.graph_frame_list.pop(ix)
+
+    # Destroy self
+    self.destroy()
+
+  def duplicate(self, event=None):
+    '''
+    Adds a new graph_frame to self.parent.graph_frame_list that is a copy of
+    this frame, and changes focus to that frame
+    '''
+    # Don't run any handlers for this graph_frame
+    self.handler_block = True
+    self.parent.graph_frame_list.append(new_graph_frame(self.parent))
+    ix = len(self.parent.graph_frame_list) - 1
+    # Copy properties into new frame
+    self.parent.graph_frame_list[-1].name = self.name + '_copy'
+    self.parent.graph_frame_list[-1].n_curve = self.n_curve
+    self.parent.graph_frame_list[-1].curve_dict = self.curve_dict
+    for i in range(len(self.graph_wids)):
+      if i == self.ixd['name']:
+        self.parent.graph_frame_list[-1].graph_wids[i].tk_var.set(self.graph_wids[i].tk_var.get() + '_copy')
+      else:
+        self.parent.graph_frame_list[-1].graph_wids[i].tk_var.set(self.graph_wids[i].tk_var.get())
+    # Run all input validation handlers
+    self.parent.notebook.insert(ix, self.parent.graph_frame_list[-1])
+    self.parent.notebook.select(ix)
+    self.parent.tab_handler()
+    self.update_idletasks()
+    self.parent.graph_frame_list[-1].name_handler()
+    self.parent.graph_frame_list[-1].n_curve_handler()
+
+  def clone(self, event=None):
+    '''
+    Clones an existing graph
+    '''
+    return #TODO
+    # Clone the graph parameters
+
+    # Set n_curve for existing graphs
+    if self.name != "New graph":
+      ix_data = self.pipe.cmd_in('python data_d1_array ' + full_name)
+      ix_data = ix_data.splitlines()
+      for line in ix_data:
+        if line.split(';')[3] == self.name:
+          break
+      #line is now set to the relevant line
+      self.d1_array_wids[-2].tk_var.set(line.split(';')[5])
+      self.d1_array_wids[-1].tk_var.set(line.split(';')[6])
+      self.ix_min_handler()
+      self.ix_max_handler()
+    # Fill self.data_dict for existing d1 arrays
+    data_dict_params = ['data_source', 'data_type', 'ele_name', 'ele_start_name', 'ele_ref_name',
+        'data^merit_type', 'meas_value', 'ref_value', 'weight', 'good_user', '1^ix_bunch',
+        'eval_point', 's_offset']
+    if self.name != "New d1_array":
+      self.d2_array.pw.label_vars[self.d2_array.pw.ix].set(
+          'Loading ' + self.d2_array.name + '.' + self.name + '...')
+      self.d2_array.pw.set_max(self.d2_array.pw.ix, self.ix_max-self.ix_min+1)
+      #self.d2_array.update_idletasks()
+      for i in range(self.ix_min, self.ix_max+1):
+        self.d2_array.pw.set_val(self.d2_array.pw.ix, i-self.ix_min)
+        #self.d2_array.update_idletasks()
+        self.data_dict[i] = {}
+        existing_data = self.pipe.cmd_in(
+            'python data ' + full_name + '[' + str(i) + ']')
+        existing_data = existing_data.splitlines()
+        for p in data_dict_params:
+          # Find correct line
+          for line in existing_data:
+            if line.find(p + ';') == 0:
+              break
+          # Write to self.data_dict
+          self.data_dict[i][p] = line.split(';')[3].strip()
+      self.d2_array.pw.ix += 1
+      # Load first datum
+      self.data_ix.set(self.ix_min)
+      self.make_datum_frame()
+
+  def fill_curve_frame(self, event=None):
+    '''
+    Adds an entry to self.curve_dict if necessary, and updates
+    self.curve_frame to show the values for the current curve
+    '''
+    ix = self.curve_ix.get()
+    if ix == 'PLEASE SPECIFY NUMBER OF CURVES':
+      return
+    ix = int(ix)
+    if ix not in self.curve_dict.keys():
+      self.curve_dict[ix] = {}
+    self.curve_frame.destroy()
+    self.curve_frame = tk.Frame(self)
+    def curve_ttp(x):
+      ''' Shortcut for commonly used construct '''
+      return tk_tao_parameter(x, self.curve_frame, self.pipe)
+    # Parameters
+    param_list = ['name;STR;T;',
+        'data_source;ENUM;T;',
+        'data_type_x;DAT_TYPE_Z;T;',
+        'data_type;DAT_TYPE;T;',
+        'component;STR;T;',
+        'data_index;STR;T;', #maybe remove
+        'legend_text;STR;T;',
+        'y_axis_scale_factor;REAL;T;',
+        'use_y2;LOGIC;T;F',
+        'draw_line;LOGIC;T;T',
+        'draw_symbols;LOGIC;T;T;',
+        'draw_symbol_index;LOGIC;T;F',
+        'ix_universe;INT;T;',
+        'ix_branch;INT;T;',
+        'ix_bunch;INT;T;',
+        'line;STR;T;', #TODO: qp_line_struct
+        'symbol;STR;T;', #TODO: qp_symbol_struct
+        'symbol_every;INT;T;',
+        'ele_ref_name;STR;T;',
+        'smooth_line_calc;LOGIC;T;',
+        'units;STR;T;']
+    param_list = list(map(str_to_tao_param, param_list))
+    # Set parameter values if specified
+    for i in range(len(param_list)):
+      if param_list[i].name in self.curve_dict[ix].keys():
+        param_list[i].value = self.curve_dict[ix][param_list[i].name]
+    # Create widgets
+    self.curve_wid_list = list(map(curve_ttp, param_list))
+    def data_writer(i):
+      ''' Writes the contents of self.datum_wid_list[i] into self.data_dict '''
+      if self.datum_wid_list[i].param.type == 'LOGIC':
+        val = bool(self.datum_wid_list[i].tk_var.get())
+      else:
+        val = self.datum_wid_list[i].tk_var.get()
+      self.data_dict[ix][self.datum_wid_list[i].param.name] = val
+    def data_writer_callback(i):
+      ''' Callback for data_writer() '''
+      return lambda *args : data_writer(i)
+
+    # Set state of ele_names and s_offset for selected data_type
+    def data_type_callback(*args):
+      # ele_names
+      if self.datum_wid_list[1]._has_ele():
+        for i in range(2, 5):
+          self.datum_wid_list[i].tk_wid.configure(state='normal')
+      else:
+        for i in range(2, 5):
+          self.datum_wid_list[i].tk_wid.configure(state='disabled')
+      # s_offset
+      if self.datum_wid_list[1]._has_s_offset():
+        self.datum_wid_list[11].tk_wid.configure(state='normal')
+      else:
+        self.datum_wid_list[11].tk_wid.configure(state='disabled')
+    # Grid widgets
+    for i in range(len(self.datum_wid_list)):
+      self.datum_wid_list[i].tk_label.grid(row=i, column=0, sticky='E')
+      self.datum_wid_list[i].tk_wid.grid(row=i, column=1, sticky='EW')
+      # Write changes into self.data_dict
+      self.datum_wid_list[i].tk_var.trace('w', data_writer_callback(i))
+    self.datum_wid_list[1].tk_var.trace('w', data_type_callback)
+    self.datum_frame.grid(row=20, column=0, columnspan=3, sticky='EW')
+
+  def datum_fill(self, ix):
+    '''
+    "Fills" the value in self.d1_array_wids[ix] to all datums in self.data_dict
+    Actually just erases the values in self.data_dict, which produces the same effect
+    '''
+    for i in self.data_dict.keys():
+      param = self.d1_array_wids[ix].param.name
+      if param in self.data_dict[i].keys():
+        self.data_dict[i].pop(param)
+      elif 'data^'+param in self.data_dict[i].keys():
+        self.data_dict[i].pop('data^'+param)
+    # Redraw datum frame to reflect changes
+    try:
+      int(self.data_ix.get())
+      self.make_datum_frame()
+    except ValueError:
+      pass
+
+  def lat_browser(self, which):
+    '''
+    Opens a modified lattice table window to select elements en masse
+    which should be either 'name', 'start_name', or 'ref_name'
+    When the elements are chosen, ele_which will be set for each of this
+    d1_array's data sequentially
+    '''
+    # Make sure the name, ix_min, and ix_max are set
+    if (bool(self.name_handler()) | bool(self.ix_min_handler())
+        | bool(self.ix_max_handler())):
+      return
+    #
+    name = self.d2_array.name + '.' + self.name
+    win = tao_ele_browser(self.d2_array.root, self.pipe, name, self,
+        'data', which, self.d2_array.uni.get())
+
+  def name_handler(self, event=None):
+    '''
+    Changes the tab name to match the graph name
+    Returns 1 if unsuccessful
+    '''
+    if self.handler_block:
+      return
+    name = self.graph_wids[0].tk_var.get().strip()
+    if name != "":
+      # Make sure the name isn't already in use
+      i = 0
+      for graph in self.parent.graph_frame_list:
+        if (graph.name == name) & (self != self.parent.graph_frame_list[i]):
+          self.name_warning_1.grid_forget()
+          self.name_warning_2.grid(row=self.ixd['name']+self.ix_offset, column=2, sticky='W')
+          return 1
+        i = i+1
+
+      self.name = name
+      self.parent.notebook.tab(self.parent.graph_index, text=self.name)
+      self.name_warning_1.grid_forget()
+      self.name_warning_2.grid_forget()
+    else:
+      self.name_warning_2.grid_forget()
+      self.name_warning_1.grid(row=2, column=2, sticky='W')
+      self.name = "New graph"
+      self.parent.notebook.tab(self.parent.graph_index, text="New graph")
+      return 1
+
+  def n_curve_handler(self, event=None):
+    pass #TODO
+
 
 
 
