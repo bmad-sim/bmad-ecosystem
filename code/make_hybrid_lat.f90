@@ -8,21 +8,19 @@
 !
 ! The %select component of an element in lat_in is used to decide how an element is treated.
 ! [That is, the calling routine needs to set the %select component before calling this routine.]
-!
-! For elements in the tracking part of the lat_in lattice (that is, for non-lord elements):
-!    If %select is True, the element is retained in lat_out and not hybridized.
-!    If %select is False, the element will be hybridized except if the element is needed to preserve
-!      lattice bookkeeping (discussed below) or if the elements to either side of it are not being 
-!      hybridized so that there are no neighboring elements to hybridize with.
-!
-! For lord elements in the lat_in lattice:
-!    If %select is True, the element will be retained in lat_out. In this case, all slave elements of this
-!      element (and slaves of slaves, etc) will also be retained.
-!    If %select is False, the element may be retained or removed in lat_out using the folowing rules:
-!      If the element can be retained without changing what elements will be retained or removed/hybridized then
-!        the element will be retained.
-!      If removal of the element will cause lattice bookkeeping problemsexcept if a sub-slave is being hybridized.
-!      If a sub-slave is being hybridized,  in which case the element will be removed to preserve lattice bookkeeping.
+! In general, %select = True means keep the element (do not hybridize) and False means hybridize.
+! Additional rules:
+!   * If %select = True for a lord, all the slave elements will be set with %select = True.
+!   * If a super_slave has %select = True, all super_lords of this slave will be set with %select = True. 
+!      And all super_slaves of these super_lords will also be so marked. This is done to prevent the 
+!      hybridized lattice (lat_out) from being in an ill defined state.
+!   * If two overlay elements control the same attribute of a given slave, and if one of the overlay elements
+!      has %select = True, %select of the other overlay will be set to True.
+!   * If the elements to either side of an element are not being hybridized then the element itself will
+!      be retained (there is no advantage to hybridization in this case). Exception: This rule is not
+!      applied to a super_slave elements.
+!   * Any lord element where one or more slaves is hybridized will be removed from the lattice.
+!      Exception: multipass_lords will be retained if one or more slaves are retained.
 !
 ! With use_taylor = False, before this routine is called, the lat_in%ele(:)%mat6 matrices must be calculated.
 !
@@ -63,14 +61,14 @@ implicit none
 type (lat_struct), target :: lat_in, lat_out
 type (coord_array_struct), optional :: orb0_arr(0:)
 type (coord_struct) c0, c2
-type (ele_struct), pointer :: ele_in, ele_out, lord, lord2, slave
-type (branch_struct), pointer :: b_in, b_out
+type (ele_struct), pointer :: ele, ele_in, ele_out, lord, lord2, slave
+type (branch_struct), pointer :: branch, b_in, b_out
 type (control_struct), pointer :: ctl1, ctl2
 
 real(rp) ref_time0
 
 integer j_in, i_out, k, n, ix_hyb
-integer j, ix, ic, o_key, n_con, n_ic, n_lord, ib, ie, il, il2, is
+integer j, ix, ic, o_key, n_con, n_ic, n_lord, ib, ie, il, il2, is, i
 integer, allocatable :: ica(:)
 
 logical init_hybrid_needed
@@ -84,52 +82,62 @@ character(*), parameter :: r_name = 'make_hybrid_lat'
 lat_out = lat_in
 do_taylor = logic_option(.false., use_taylor)
 
-! Must keep all subslaves of a kept lord
-
-do ie = lat_out%n_ele_track+1, lat_out%n_ele_max
-  call select_slaves (lat_out%ele(ie))
-enddo
-
-! If a super_lord has %select = True then each of its slaves must have all of their lords havd %select = True.
+! If a lord has %select = True then each of its slaves must have %select = True.
 
 do ie = lat_out%n_ele_track+1, lat_out%n_ele_max
   lord => lat_out%ele(ie)
   if (.not. lord%select) cycle
-  if (lord%lord_status /= super_lord$) cycle
-
-  do is = 1, lord%n_slave
-    slave => pointer_to_slave(lord, is)
-    do il = 1, slave%n_lord
-      lord2 => pointer_to_lord(slave, il)
-      if (lord2%lord_status /= super_lord$) cycle
-      if (lord2%select) cycle
-      lord2%select = .true.
-      call select_slaves (lord2)
-    enddo
-  enddo
+  call select_this_and_slaves (lord)
 enddo
 
-! If a controller (group or overlay) controls the same attribute of some slave as some other controller with 
-! %select = True, then %select of this controller must be set to True.
+! If a super_slave has %select = T then %select of all of its super_lords must be set to T.
 
 do
   something_has_changed = .false.
 
   do ib = 0, ubound(lat_out%branch, 1)
-    b_out => lat_out%branch(ib)
-    b_out%ele(0)%select = .true.  ! The beginning marker ele always gets preserved
-    do ie = 1, b_out%n_ele_track
-      ele_out => b_out%ele(ie)
-      do il = 1, ele_out%n_lord
-        lord => pointer_to_lord(ele_out, il, ctl1)
+    branch => lat_out%branch(ib)
+    branch%ele(0)%select = .true.  ! The beginning marker ele always gets preserved
+    do ie = 1, branch%n_ele_track
+      ele => branch%ele(ie)
+      if (.not. ele%select) cycle
+      if (ele%slave_status /= super_slave$) cycle
+      do il = 1, ele%n_lord
+        lord => pointer_to_lord(ele, il, ctl1)
+        if (lord%select) cycle
+        if (lord%lord_status /= super_lord$) cycle
+        call select_this_and_slaves(lord)
+        something_has_changed = .true.
+      enddo
+    enddo
+  enddo
+
+  if (.not. something_has_changed) exit
+enddo  
+
+! If a overlay with %select = T controls the same attribute of some slave as some other overlay,
+! %select of this overlay must be set to True.
+
+do
+  something_has_changed = .false.
+
+  do ib = 0, ubound(lat_out%branch, 1)
+    branch => lat_out%branch(ib)
+    do ie = 1, branch%n_ele_track
+      ele => branch%ele(ie)
+      if (.not. ele%select) cycle
+
+      do il = 1, ele%n_lord
+        lord => pointer_to_lord(ele, il, ctl1)
         if (.not. lord%select) cycle
-        if (lord%key /= overlay$ .and. lord%key /= group$) cycle
-        do il2 = 1, ele_out%n_lord
-          lord2 => pointer_to_lord(ele_out, il, ctl2)
+        if (lord%key /= overlay$) cycle
+        do il2 = 1, ele%n_lord
+          if (il == il2) cycle
+          lord2 => pointer_to_lord(ele, il, ctl2)
           if (lord2%select) cycle
           if (ctl1%ix_attrib /= ctl2%ix_attrib) cycle
           lord2%select = .true.
-          call select_slaves(lord2)
+          call select_this_and_slaves(lord2)
           something_has_changed = .true.
         enddo
       enddo
@@ -139,24 +147,37 @@ do
   if (.not. something_has_changed) exit
 enddo  
 
-! Keep all lords that do not have any slaves that will be hybridized.
+! Keep all tracking elements that do not have elements around them to be hybridized.
+
+do ib = 0, ubound(lat_out%branch, 1)
+  branch => lat_out%branch(ib)
+  do ie = 1, branch%n_ele_track-1
+    ele => branch%ele(ie)
+    if (ele%slave_status == super_slave$) cycle
+    if (branch%ele(ie-1)%select .and. branch%ele(ie+1)%select) ele%select = .true.
+  enddo
+  lat_in%branch(ib)%ele(0:branch%n_ele_max)%select = branch%ele(0:branch%n_ele_max)%select
+enddo
+
+! Keep a lord only if all slaves have %select = T.
+! Exception: multipass_lord will be kept if it has one slave that is kept
 
 do ie = lat_out%n_ele_track+1, lat_out%n_ele_max
   lord => lat_out%ele(ie)
   if (lord%select) cycle
-  if (lord_has_slave_to_be_hybridized(lord)) cycle
-  lord%select = .true.
-enddo
-
-! Keep all tracking elements that do not have elements around them to be hybridized.
-
-do ib = 0, ubound(lat_out%branch, 1)
-  b_out => lat_out%branch(ib)
-  do ie = 2, b_out%n_ele_track-1
-    ele_out => b_out%ele(ie)
-    if (b_out%ele(ie-1)%select .and. b_out%ele(ie+1)%select) ele_out%select = .true.
-  enddo
-  lat_in%branch(ib)%ele(0:b_out%n_ele_max)%select = b_out%ele(0:b_out%n_ele_max)%select
+  if (lord%lord_status == multipass_lord$) then
+    do i = 1, lord%n_slave
+      slave => pointer_to_slave(lord, i, ctl1)
+      if (slave%select) then
+        lord%select = .true.
+      else
+        ctl1%attribute = 'REMOVE'
+      endif
+    enddo
+  else
+    if (lord_has_slave_to_be_hybridized(lord)) cycle
+    lord%select = .true.
+  endif
 enddo
 
 ! Mark elements for deletion and then delete them. 
@@ -164,12 +185,12 @@ enddo
 ! this element will then be transformed into a hybrid element.
 
 do ib = 0, ubound(lat_out%branch, 1)
-  b_out => lat_out%branch(ib)
-  do ie = 1, b_out%n_ele_max
-    ele_out => b_out%ele(ie)
-    if (ele_out%select) cycle
-    if (ie <= b_out%n_ele_track .and. b_out%ele(ie-1)%select) cycle
-    ele_out%key = -1   ! mark for delection
+  branch => lat_out%branch(ib)
+  do ie = 1, branch%n_ele_max
+    ele => branch%ele(ie)
+    if (ele%select) cycle
+    if (ie <= branch%n_ele_track .and. branch%ele(ie-1)%select) cycle
+    ele%key = -1   ! mark for delection
   enddo
 enddo
 
@@ -337,7 +358,7 @@ call lat_sanity_check (lat_out, err_flag)
 !------------------------------------------------------------------------------------
 contains
 
-recursive subroutine select_slaves (lord)
+recursive subroutine select_this_and_slaves (lord)
 
 type (ele_struct) lord
 type (ele_struct), pointer :: slave
@@ -346,15 +367,15 @@ integer i
 
 !
 
-if (.not. lord%select) return
+lord%select = .true.
 
 do i = 1, lord%n_slave
   slave => pointer_to_slave (lord, i)
   slave%select = .true.
-  call select_slaves(slave)
+  call select_this_and_slaves(slave)
 enddo
 
-end subroutine select_slaves
+end subroutine select_this_and_slaves
 
 !------------------------------------------------------------------------------------
 ! contains

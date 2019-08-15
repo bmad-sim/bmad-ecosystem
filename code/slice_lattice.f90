@@ -1,5 +1,5 @@
 !+
-! Subroutine slice_lattice (lat, orbit, ele_list, error, )
+! Subroutine slice_lattice (lat, orbit, ele_list, error)
 !
 ! Routine to discard from the lattice all elements not in ele_list.
 ! Note controllers that control elements that remain will not be cut.
