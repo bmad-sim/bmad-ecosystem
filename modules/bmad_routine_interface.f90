@@ -851,13 +851,13 @@ subroutine make_g2_mats (twiss, g2_mat, g2_inv_mat)
   real(rp) g2_mat(2,2), g2_inv_mat(2,2)
 end subroutine
 
-subroutine make_hybrid_lat (r_in, r_out, use_taylor, orb0)
+subroutine make_hybrid_lat (r_in, r_out, use_taylor, orb0_arr)
   import
   implicit none
   type (lat_struct), target :: r_in
   type (lat_struct), target :: r_out
   logical, optional :: use_taylor
-  type (coord_array_struct), optional :: orb0(0:)
+  type (coord_array_struct), optional :: orb0_arr(0:)
 end subroutine
 
 recursive subroutine make_mat6 (ele, param, start_orb, end_orb, err_flag)

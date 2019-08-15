@@ -153,7 +153,7 @@ if (hard_ele%key == e_gun$ .and. physical_end == entrance_end$) return ! E_gun d
 ! order to conserve the particle's energy.
 
 call multipole_ele_to_ab (hard_ele, .false., ix_elec_max, a_pole_elec, b_pole_elec, electric$)
-if (particle_at == second_track_edge$) call electric_longitudinal_fringe()
+if (particle_at == second_track_edge$) call electric_longitudinal_fringe(orb, hard_ele)
 
 ! Static magnetic and electromagnetic fringes
 
@@ -237,14 +237,15 @@ end select
 
 ! Entrance Static electric longitudinal field
 
-if (particle_at == first_track_edge$) call electric_longitudinal_fringe()
-
+if (particle_at == first_track_edge$) call electric_longitudinal_fringe(orb, hard_ele)
 
 !--------------------------------------------------------------------------------
 contains
 
-subroutine electric_longitudinal_fringe()
+subroutine electric_longitudinal_fringe(orb, hard_ele)
 
+type (ele_struct) hard_ele
+type (coord_struct) orb
 type (em_field_struct) field
 type (cartesian_map_struct), pointer :: ct
 type (cylindrical_map_struct), pointer :: cy
