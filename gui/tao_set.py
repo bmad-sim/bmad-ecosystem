@@ -80,6 +80,17 @@ def tao_set(tao_list,set_str,pipe, overide=False):
   #for item in tao_list:
   #  item.tk_wid.config(state="disabled")
   update_dict = {} #Record of which variables were changed
+  # Start by unrolling any STRUCTs in tao_list
+  unrolled_list = []
+  for item in tao_list:
+    if item.param.type == 'STRUCT':
+      for ttp in item._s:
+        unrolled_list.append(ttp)
+        # the name to use for setting is struct_name.component_name
+        unrolled_list[-1].param.name = item.param.name + '.' + ttp.param.name
+    else:
+      unrolled_list.append(item)
+  tao_list = unrolled_list
   for item in tao_list:
     #Type casting and validation
     if item.param.type == 'INT':
