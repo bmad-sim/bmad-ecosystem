@@ -476,8 +476,8 @@ do
     if (end_ele%n_slave /= 1) then
       call out_io (s_error$, r_name, &
           'FOR ELEMENT: ' // orig_ele%name, 'WHICH IS PART OF A RANGE CONSTRUCT IN: ' // loc_str, &
-          'THE PROBLEM IS THAT THIS ELEMENT IS A OVERLAY, GROUP OR GIRDER LORD AND DOES ', &
-          'NOT HAVE A UNIQUE NON-MULTIPASS_LORD SLAVE ELEMENT.')
+          'THE PROBLEM IS THAT THIS ELEMENT IS AN OVERLAY, GROUP OR GIRDER LORD AND DOES ', &
+          'NOT HAVE A UNIQUE SLAVE ELEMENT TO COMPUTE THE RANGE END POSITION.')
       return
     endif
     end_ele => pointer_to_slave(end_ele, 1)
@@ -486,12 +486,13 @@ do
     if (orig_ele%lord_status == multipass_lord$) then
       call out_io (s_error$, r_name, &
           'FOR ELEMENT: ' // orig_ele%name, 'WHICH IS PART OF A RANGE CONSTRUCT IN: ' // loc_str, &
-          'THE PROBLEM IS THAT THIS ELEMENT IS A OVERLAY, GROUP OR GIRDER LORD AND DOES ', &
-          'NOT HAVE A UNIQUE NON-MULTIPASS_LORD SLAVE ELEMENT.')
+          'THE PROBLEM IS THAT THIS ELEMENT IS A MULTIPASS_LORD DOES ', &
+          'NOT HAVE A UNIQUE MULTIPASS_SLAVE ELEMENT TO COMPUTE THE RANGE END POSITION.')
     else
       call out_io (s_error$, r_name, &
           'FOR ELEMENT: ' // orig_ele%name, 'WHICH IS PART OF A RANGE CONSTRUCT IN: ' // loc_str, &
-          'THE PROBLEM IS THAT THIS ELEMENT IS A MULTIPASS_LORD.')
+          'THE PROBLEM IS THAT THIS ELEMENT IS AN OVERLAY, GROUP OR GIRDER LORD ELEMENT ', &
+          'WITH A MULTIPASS_LORD AS A SLAVE SO THERE IS NO UNIQUE RANGE END POSITION.')
     endif
     return
 

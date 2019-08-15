@@ -48,7 +48,7 @@ character(*), parameter :: r_name = 'slice_lattice'
 
 error = .true.
 
-call lat_ele_locator (ele_list, lat, eles, n_loc, err)
+call lat_ele_locator (ele_list, lat, eles, n_loc, err, above_ubound_is_err = .false.)
 if (err) return
 if (n_loc == 0) then
   call out_io (s_error$, r_name, 'NO LATTICE ELEMENTS FOUND: ' // ele_list, 'LATTICE NOT SLICED.')
