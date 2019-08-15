@@ -69,6 +69,7 @@ class tao_root_window(tk.Tk):
     #Key bindings
     self.bind_all('<Control-n>', self.new_data_event)
     self.bind_all('<Alt-n>', self.new_var_event)
+    self.bind_all('<Alt-p>', self.new_template_event)
     self.bind_all('<Control-g>', self.global_vars_event)
     self.bind_all('<Control-d>', self.view_data_event)
     self.bind_all('<Control-e>', self.view_ele_event)
@@ -163,6 +164,8 @@ class tao_root_window(tk.Tk):
         command = self.new_data_cmd, accelerator = 'Ctrl+N')
     create_menu.add_command(label = "New Variables...",
         command = self.new_var_cmd, accelerator = 'Alt+N')
+    create_menu.add_command(label = "New Plot Template...",
+        command = self.new_template_cmd, accelerator = 'Alt+P')
     self.menubar.add_cascade(label = 'Create', menu = create_menu)
 
     view_menu = tk.Menu(self.menubar, tearoff=0)
@@ -526,6 +529,9 @@ class tao_root_window(tk.Tk):
   def new_var_cmd(self):
     win = tao_new_var_window(self, self.pipe)
 
+  def new_template_cmd(self):
+    win = tao_new_plot_template_window(self, self.pipe)
+
   def write_cmd(self):
     print ('Write called')
 
@@ -606,6 +612,9 @@ class tao_root_window(tk.Tk):
 
   def new_var_event(self, event):
     self.new_var_cmd()
+
+  def new_template_event(self, event):
+    self.new_template_cmd()
 
   def global_vars_event(self, event):
     self.set_global_vars_cmd()
