@@ -269,7 +269,7 @@ do ib = 0, ubound(lat_out%branch, 1)
 
         if (do_taylor) then
           if (present (orb0_arr)) then
-            c0 = orb0_arr(ib)%orbit(j_in)
+            c0 = orb0_arr(ib)%orbit(j_in-1)
           else
             c0%vec = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
           endif

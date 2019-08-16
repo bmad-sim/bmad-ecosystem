@@ -101,7 +101,7 @@ if (bmad_com%twiss_normalize_off_energy) then
   rel_p1 = 1
 endif
 
-det_factor = sqrt(determinant (mat6(1:4,1:4)))
+det_factor = sqrt(determinant(mat6(1:4,1:4)))
 if (det_factor == 0) return  ! Can happen if matrix was never computed.
 
 !---------------------------------------------------------------------
@@ -138,7 +138,7 @@ else
     mat2_b = (ele1%gamma_c * big_N + matmul(small_n, ele1%c_mat)) / gamma2_c
     F_inv_mat = mat_symp_conj (mat2_b)
     ele2%c_mat = matmul(matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m, F_inv_mat)
-    ele2%gamma_c = gamma2_c
+    ele2%gamma_c = sqrt(1.0_rp - determinant(ele2%c_mat))
 
   ! else we flip the modes
 
@@ -146,7 +146,7 @@ else
     mat2 = matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m
     det = determinant(mat2) / det_factor
     if (det < 0) then
-      call out_io (s_error$, r_name,  '||mat2|| < 0! (Due to roundoff?) \f10.2\ ', &
+      call out_io (s_error$, r_name,  '||mat2|| < 0! (Due to roundoff?) \f12.4\ ', &
                                       'When propagating through: [\i0\]  ' // trim(ele2%name), &
                                       r_array = [det], i_array = [ele2%ix_ele])
     endif
@@ -157,9 +157,8 @@ else
 
     E_inv_mat = mat_symp_conj (mat2_a)
     ele2%c_mat = matmul(ele1%gamma_c * big_M - matmul(small_m, c_conj_mat), E_inv_mat)
-    ele2%gamma_c = gamma2_c
     ele2%mode_flip = .not. ele1%mode_flip
-
+    ele2%gamma_c = sqrt(1.0_rp - determinant(ele2%c_mat))
   endif
 
 endif
