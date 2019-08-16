@@ -171,6 +171,27 @@ end type
 ! Ideally, the original qp_line_struct structures should be retired but this is a bit of work considering how
 ! widely quick_plot is used in the Bmad universe.
 
+type qp_axis2_struct
+  character(80) :: label = ' '
+  real(rp) :: min = 0, max = 10         ! min is actually left or bottom axis number.
+  real(rp) :: number_offset = 0.05      ! offset from axis line in inches.
+  real(rp) :: label_offset = 0.05       ! offset from numbers in inches.
+  real(rp) :: major_tick_len = 0.10     ! in inches.
+  real(rp) :: minor_tick_len = 0.06     ! in inches.
+  character(16) :: label_color = 'black'
+  integer :: major_div = 5
+  integer :: major_div_nominal = 5      ! Nominal value.
+  integer :: minor_div = 0              ! 0 = auto choose.
+  integer :: minor_div_max = 5          ! max number for auto choose.
+  integer :: places = 0
+  character(16) :: type = 'LINEAR'      ! or 'LOG', or 'CUSTOM'
+  character(16) :: bounds = 'GENERAL'   ! or 'ZERO_AT_END' or 'ZERO_SYMMETRIC'
+  integer :: tick_side = +1    ! +1 = draw to the inside, 0 = both, -1 = outside.
+  integer :: number_side = -1  ! +1 = draw to the inside, -1 = outside.
+  logical :: draw_label = .true.
+  logical :: draw_numbers  = .true.
+end type
+
 type qp_line2_struct
   integer :: width = 1
   character(16) :: color = 'black'
@@ -200,6 +221,52 @@ type qp_arrow2_struct
 end type
 
 contains
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function qp_to_axis_struct (axis2) result (axis)
+!
+! Routine to convert a qp_axis2_struct to a qp_axis_struct.
+!
+! Input:
+!   axis2     -- qp_axis2_struct: Input structure.
+!
+! Output:
+!   axis      -- qp_axis_struct: Structure to put the axis2 info into.
+!-
+
+function qp_to_axis_struct (axis2) result (axis)
+
+implicit none
+
+type (qp_axis2_struct) axis2
+type (qp_axis_struct) axis
+
+!
+
+axis%label               = axis2%label
+axis%min                 = axis2%min
+axis%max                 = axis2%max
+axis%number_offset       = axis2%number_offset
+axis%label_offset        = axis2%label_offset
+axis%major_tick_len      = axis2%major_tick_len
+axis%minor_tick_len      = axis2%minor_tick_len
+axis%label_color         = qp_string_to_enum (axis2%label_color, 'color')
+axis%major_div           = axis2%major_div
+axis%major_div_nominal   = axis2%major_div_nominal
+axis%minor_div           = axis2%minor_div
+axis%minor_div_max       = axis2%minor_div_max
+axis%places              = axis2%places
+axis%type                = axis2%type
+axis%bounds              = axis2%bounds
+axis%tick_side           = axis2%tick_side
+axis%number_side         = axis2%number_side
+axis%draw_label          = axis2%draw_label
+axis%draw_numbers        = axis2%draw_numbers
+
+end function qp_to_axis_struct
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
