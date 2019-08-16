@@ -15,10 +15,8 @@ from matplotlib.widgets import Slider, Button, RadioButtons
 class taoplot:
 	def __init__(self,pipe,GraphRegion):
 		'''initializer, takes a tao interface and a graph region'''
-		self.pipe= pipe
-		#tao_interface object
-		self.GraphRegion= GraphRegion
-		#string describing region in tao of the desired plot
+		self.pipe= pipe #tao_interface object
+		self.GraphRegion= GraphRegion #string describing region in tao of the desired plot
 
 	def plot(self, width):
 		'''returns a figure containing graphs using the data in the region GraphRegion of the tao instance in pipe, and plots a lat_layout below if applicable, also returns information about the indices and locations of elements, width is used to modify the width of floor plan elements and the size of the lat layout'''
