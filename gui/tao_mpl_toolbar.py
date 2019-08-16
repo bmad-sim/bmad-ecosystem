@@ -32,7 +32,7 @@ class taotoolbar(NavigationToolbar2Tk):
 			)
 		self.parent = parent_
 		self.canvas = canvas_
-		self.width = width_
+		self.width = width_ #width used with slider tool
 		self.axes_list = self.canvas.figure.get_axes()
 		self.templateDict = self.parent.root.placed
 		self.graph_list = self.parent.fig_info[18]
