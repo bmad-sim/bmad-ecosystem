@@ -1903,7 +1903,7 @@ real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
 real(rp) comp_sign, vec3(3), r_bunch, ds, dt, time
 
 integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch, idum, n_ele_track
-integer cache_status, ix_last_hybrid
+integer cache_status
 integer, parameter :: cache_off$ = 0, loading_cache$ = 1, using_cache$ = 2
 
 character(40) data_type, name, sub_data_type
@@ -1922,7 +1922,6 @@ orb => tao_branch%orbit
 branch => lat%branch(ix_branch)
 first_time = .true.
 n_ele_track = branch%n_ele_track
-ix_last_hybrid = 0
 
 ix_ref = curve%ix_ele_ref_track
 if (ix_ref < 0) ix_ref = 0
@@ -2017,17 +2016,16 @@ do ii = 1, size(curve%x_line)
 
   ix_ele = element_at_s (lat, s_now, .true., ix_branch, err)
   ele_here => branch%ele(ix_ele)
+
   if (ele_here%key == hybrid$ .or. ele_here%key == taylor$ .or. err) then
-    if (err .or. ix_last_hybrid == ix_ele) then
+    if (err .or. s_last == ele_here%s) then
       good(ii) = .false.
       first_time = .true.
       cycle
-    elseif (ix_last_hybrid == -ix_ele .or. s_now > (ele_here%s_start + ele_here%s)/2) then
+    elseif (s_now < (ele_here%s_start + ele_here%s)/2 .or. s_last >= ele_here%s_start) then
       s_now = ele_here%s
-      ix_last_hybrid = ix_ele
     else
       s_now = ele_here%s_start
-      ix_last_hybrid = -ix_ele
     endif
 
     if (s_now == s_last) then
