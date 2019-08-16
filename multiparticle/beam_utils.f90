@@ -1916,7 +1916,7 @@ type (beam_init_struct) beam_init
 type (ele_struct) ele
 type (coord_struct), pointer :: p
 
-real(rp) center(6), ran, old_charge, ave_charge
+real(rp) center(6), ran, old_charge
 integer i
 character(*), parameter :: r_name = 'read_bunch_end_calc'
 
@@ -1950,14 +1950,15 @@ enddo
 ! Adjust charge
 
 if (beam_init%bunch_charge /= 0) then
-  ave_charge = beam_init%bunch_charge / size(bunch%particle)
   old_charge = sum(bunch%particle%charge)
   if (old_charge == 0) then
-    bunch%particle%charge = ave_charge
+    bunch%particle%charge = beam_init%bunch_charge / size(bunch%particle)
   else
-    bunch%particle%charge = bunch%particle%charge * (ave_charge / old_charge)
+    bunch%particle%charge = bunch%particle%charge * (beam_init%bunch_charge / old_charge)
   endif
+  bunch%charge_tot = beam_init%bunch_charge
 endif
+
 
 end subroutine read_bunch_end_calc
 
