@@ -255,13 +255,13 @@ subroutine create_plot
 
   ! Draw curves
   DO i = 1, nmethods-1 
-     call qp_set_line_attrib ("PLOT", color = i, pattern = 1)
-     lines(i)%color = i
+     call qp_set_line_attrib ("PLOT", color = qp_color_name(i), pattern = 'solid')
+     lines(i)%color = qp_color_name(i)
      DO j = 1, 6
         call which_box(j, xbox, ybox)
         call plot_it (xbox, ybox, ymin(j), ymax(j), scan_var, dmethod(i)%step(:)%vec(j))
         k = max(1,int(nsteps*(0.1+i*0.09)))
-        call qp_draw_text (dmethod(i)%short_method_name, scan_var(k), dmethod(i)%step(k)%vec(j), height = 10.0_rp, color = i) 
+        call qp_draw_text (dmethod(i)%short_method_name, scan_var(k), dmethod(i)%step(k)%vec(j), height = 10.0_rp, color = qp_color_name(i)) 
      END DO
   END DO
 
