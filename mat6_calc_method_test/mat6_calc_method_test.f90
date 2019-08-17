@@ -30,7 +30,7 @@ global_com%exit_on_error = .false.
 
 custom_test = .false.
 nargs = cesr_iargc()
-if (nargs == 1)then
+if (nargs == 1) then
   call cesr_getarg(1, lat_file)
   print *, 'Using ', trim(lat_file)
   custom_test = .true.
@@ -44,6 +44,10 @@ endif
 !
 
 call bmad_parser (lat_file, lat, make_mats6 = .false.)
+
+if (custom_test) then
+  print '(a, 6f12.6)', 'Init orb: ', lat%particle_start%vec
+endif
 
 if (custom_test) then
   if (lat%param%geometry == open$) then
