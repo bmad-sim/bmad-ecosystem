@@ -67,7 +67,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ May 23, 2019}
+\date{David Sagan \\ June 18, 2019}
 \begin{document}
 \maketitle
 
@@ -427,7 +427,8 @@ Default is -1 which will cause a message printed every turn where there is parti
 \item[ltt\%ptc_aperture] \Newline
 The PTC code does not have apertures. This being the case, for \vn{ltt%tracking_method} set to
 \vn{"MAP"} or \vn{"PTC"}, \vn{ltt%ptc_aperture}, which is a 2-vector, defines \vn{x} and \vn{y}
-apertures. The default is 0.1~meter in both the horizontal and vertical.
+apertures. The default is 0.1~meter in both the horizontal and vertical. When used, the aperture is
+applied at the beginning/end of the lattice.
 %
 \item[ltt\%sigma_matrix_output_file] \Newline
 String specifying the name of the file to create to hold the calculated 6x6 sigma matrix. If blank (the

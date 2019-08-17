@@ -146,7 +146,7 @@ do i = 1, wall%n_pt_max
   pt1 => wall%pt(i)
   if (pt1%s < s_min .or. pt0%s > s_max) cycle
   if (pt1%phantom) then
-    call qp_draw_line(pt0%s, pt1%s, 1000*pt0%x, 1000*pt1%x, color = red$, line_pattern = dashed$)
+    call qp_draw_line(pt0%s, pt1%s, 1000*pt0%x, 1000*pt1%x, color = 'red', line_pattern = 'dashed')
     print '(a, 5(f10.3, a))', 'Phantom on ' // trim(wall_name(wall%side)) // ' between (s, x) points: (', &
             pt0%s, ',', pt0%x, '),  (', pt1%s, ',', pt1%x, ')'
   else

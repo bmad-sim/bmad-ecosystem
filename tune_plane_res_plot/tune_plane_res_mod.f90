@@ -531,12 +531,12 @@ subroutine res_line_plot (plot_type, param, res)
     wid = 2 * (pqr_max - abs(line%p) - abs(line%q) - abs(line%r)) + 1
 
     if (line%r == 0) then
-      call qp_draw_line (line%x(1), line%x(2), line%y(1), line%y(2), width = wid, line_pattern = solid$)
+      call qp_draw_line (line%x(1), line%x(2), line%y(1), line%y(2), width = wid, line_pattern = 'solid')
     else
-      call qp_draw_line (line%x(1), line%x(2), line%y(1), line%y(2), width = wid, line_pattern = dashed$)
+      call qp_draw_line (line%x(1), line%x(2), line%y(1), line%y(2), width = wid, line_pattern = 'dashed')
     endif
 
-    call qp_draw_symbol (line%x_lab, line%y_lab, type = circle_sym$)
+    call qp_draw_symbol (line%x_lab, line%y_lab, type = 'circle')
 
     write (str, '(5(a, i0))') '(', line%p, ',', line%q, ',', line%r, ',', line%n, ')'
 

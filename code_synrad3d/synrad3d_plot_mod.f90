@@ -61,7 +61,7 @@ do
   call qp_clear_page
 
   call qp_draw_graph (x, y1, 'x', 'cum_x', 'cheb', .true., 0)
-  call qp_draw_polyline (x, y2, line_pattern = 1)
+  call qp_draw_polyline (x, y2, line_pattern = 'solid')
 
   print *, 'surface_roughness_rms:    ', surface%surface_roughness_rms
   print *, 'roughness_correlation_len:', surface%roughness_correlation_len
@@ -204,8 +204,8 @@ do
   call qp_draw_graph (x, ny(1)%y, x_lab, y_lab, head_lab, .true., 0)
 
   do i = 1, n_lines
-    call qp_draw_polyline (x, ny(i)%y, line_pattern = i)
-    ny(i)%line%pattern = i
+    call qp_draw_polyline (x, ny(i)%y, line_pattern = qp_line_pattern_name(i))
+    ny(i)%line%pattern = qp_line_pattern_name(i)
   enddo
 
   call qp_draw_curve_legend (0.5_rp, 0.0_rp, '%GRAPH/LT', ny(:)%line, 40.0_rp, text = ny(:)%label, text_offset = 10.0_rp)
@@ -382,10 +382,10 @@ real(rp), allocatable :: s(:), xy_in(:), xy_out(:)
 real(rp), pointer :: photon_xy, wall_xy
 
 integer i, n, ix, iw, i_chan, ios, ix_branch
-integer n_phot1, n_phot2, n_hit1, n_hit2, color, line_pattern
+integer n_phot1, n_phot2, n_hit1, n_hit2
 
 character(*) plane
-character(16) plane_str
+character(16) plane_str, color, line_pattern
 character(40) :: ans
 
 logical xy_user_good, s_user_good, no_wall_here, found_wall, good_wall_hit, good_photon_track
@@ -503,11 +503,11 @@ do
       if (no_wall(i)) then
         if (found_wall) then
           if (phantom(i-1)) then
-            color = red$
-            line_pattern = dashed$
+            color = 'red'
+            line_pattern = 'dashed'
           else
-            color = black$
-            line_pattern = solid$
+            color = 'black'
+            line_pattern = 'solid'
           endif
           if (i > 2) then
             call qp_draw_polyline (s(i-2:i-1), xy_in(i-2:i-1), color = color, line_pattern = line_pattern)
@@ -519,11 +519,11 @@ do
 
       else  ! have a wall
         if (phantom(i)) then
-          color = red$
-          line_pattern = dashed$
+          color = 'red'
+          line_pattern = 'dashed'
         else
-          color = black$
-          line_pattern = solid$
+          color = 'black'
+          line_pattern = 'solid'
         endif
 
         if (.not. found_wall .or. i == size(s)) then
