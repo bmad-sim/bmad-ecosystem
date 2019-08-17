@@ -1403,7 +1403,7 @@ call qp_draw_axes ('X', 'Y', 'Detector Pixels')
 
 do ix = 1, lbound(detector%pt, 1), ubound(detector%pt, 1)
 do iy = 1, lbound(detector%pt, 2), ubound(detector%pt, 2)
-  call qp_paint_rectangle (x1, x2, y1, y2, color = red$)
+  call qp_paint_rectangle (x1, x2, y1, y2, color = 'red')
 enddo
 enddo
 
