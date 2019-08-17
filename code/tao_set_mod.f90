@@ -2966,7 +2966,7 @@ case ('label_color')
     call out_io (s_error$, r_name, 'BAD COLOR NAME: ' // value)
     error = .true.
   else
-    qp_axis%label_color = indx
+    qp_axis%label_color = component
     error = .false.
   endif
 

@@ -48,7 +48,7 @@ type (qp_axis_struct) init_axis
 real(rp) y1, y2
 
 integer iu, i, j, k, k1, k2, ix, ip, n, ng, ios, ios1, ios2, i_uni
-integer graph_index, color, i_graph, ic
+integer graph_index, i_graph, ic
 
 character(*) plot_file_in
 character(len(plot_file_in)) plot_file_array
@@ -56,6 +56,7 @@ character(100) plot_file, full_file_name
 character(100) graph_name
 character(80) label
 character(40) str
+character(16) color
 character(*), parameter :: r_name = 'tao_init_plotting'
 
 logical err, include_default_plots, all_set, prepend_floor_plan_shapes, prepend_lat_layout_shapes
@@ -121,7 +122,7 @@ default_graph%x2%draw_label         = .false.
 default_graph%y2                    = init_axis
 default_graph%y2%major_div          = -1
 default_graph%y2%major_div_nominal  = -1
-default_graph%y2%label_color        = blue$
+default_graph%y2%label_color        = 'blue'
 default_graph%y2%draw_numbers       = .false.
 default_graph%margin                = qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
 
@@ -692,7 +693,7 @@ do  ! Loop over plot files
         if (crv%use_y2) then
           grph%y2%draw_numbers = .true.
           grph%y2_mirrors_y = .false.
-          grph%y2%label_color = qp_string_to_enum(crv%symbol%color, 'color')
+          grph%y2%label_color = crv%symbol%color
         endif
 
         ! Set curve line width
@@ -2792,7 +2793,7 @@ implicit none
 
 type (tao_shape_pattern_struct), allocatable :: temp_pat(:)
 type (tao_shape_pattern_struct), pointer :: pat
-type (qp_line2_struct) :: line 
+type (qp_line_struct) :: line 
 type (tao_shape_pattern_point_struct) :: pt(30)
 
 integer iu, ios, nn, j, jc, jpt, nc, npt
@@ -2811,7 +2812,7 @@ if (allocated(s%plot_page%pattern)) deallocate(s%plot_page%pattern)
 allocate (s%plot_page%pattern(0))
 
 do  ! Loop over all patterns
-  line  = qp_line2_struct(1, 'Not_Set', 'solid')
+  line  = qp_line_struct(1, '', 'solid')
   pt    = tao_shape_pattern_point_struct()
   scale = 'none'
   name = ''
