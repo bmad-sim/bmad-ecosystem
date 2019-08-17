@@ -35,7 +35,7 @@ real(rp) location(4), dx, dy, h
 integer i, j, k, ic, id
 
 character(80) text
-character(16) :: r_name = 'tao_draw_plots'
+character(*), parameter :: r_name = 'tao_draw_plots'
 character(3) view_str
 
 logical, optional :: do_clear
@@ -105,7 +105,7 @@ do i = 1, size(s%plot_page%region)
       call qp_set_layout (box = graph%box)
       text = 'Error In The Plot Calculation'
       if (graph%why_invalid /= '') text = graph%why_invalid
-      call qp_draw_text (text, 0.5_rp, 0.5_rp, '%BOX', color = red$, justify = 'CC')
+      call qp_draw_text (text, 0.5_rp, 0.5_rp, '%BOX', color = 'red', justify = 'CC')
     endif
 
     ! Now we can draw the graph
@@ -178,7 +178,7 @@ do k = 1, size(graph%curve)
 enddo
 
 if (.not. have_data) call qp_draw_text ('**No Plottable Data**', &
-                            0.18_rp, -0.15_rp, '%/GRAPH/LT', color = red$) 
+                            0.18_rp, -0.15_rp, '%/GRAPH/LT', color = 'red') 
 
 end subroutine tao_plot_histogram
 
@@ -219,11 +219,11 @@ x_b1 = x_val(s%wave%ix_b1)
 x_b2 = x_val(s%wave%ix_b2)
 
 if (graph%type == 'wave.0' .or. graph%type == 'wave.a') then
-  call qp_draw_rectangle (x_a1, x_a2, y0, y1, color = blue$, width = 2)
+  call qp_draw_rectangle (x_a1, x_a2, y0, y1, color = 'blue', width = 2)
 endif
 
 if (graph%type == 'wave.0' .or. graph%type == 'wave.b') then
-  call qp_draw_rectangle (x_b1, 1.0_rp * x_b2, y0, y1, color = blue$, width = 2)
+  call qp_draw_rectangle (x_b1, 1.0_rp * x_b2, y0, y1, color = 'blue', width = 2)
 endif
 
 !---------------------------------------------------
@@ -297,7 +297,7 @@ real(rp) :: height
 
 character(120) str, header
 character(7) prefix
-character(24) :: r_name = 'tao_plot_key_table'
+character(*), parameter :: r_name = 'tao_plot_key_table'
 
 !
 
@@ -424,7 +424,7 @@ type (tao_ele_shape_struct), pointer :: ele_shape, ele_shape2
 type (tao_building_wall_point_struct), pointer :: pt(:)
 type (floor_position_struct) end1, end2, floor
 
-integer i, j, k, n, is, n_bend, isu, ic, ib, icol, ix_shape_min
+integer i, j, k, n, is, n_bend, isu, ic, ib, ix_shape_min
 integer ix_pass, n_links, iwidth
 
 !
@@ -481,7 +481,6 @@ if (allocated(s%building_wall%section)) then
       found = .true.
       if (.not. match_wild(s%building_wall%section(ib)%name, ele_shape%ele_id(16:))) cycle
       if (.not. ele_shape%draw) cycle
-      icol = qp_string_to_enum (ele_shape%color, 'color', -1)
       iwidth = ele_shape%line_width
 
       pt => s%building_wall%section(ib)%point
@@ -490,7 +489,7 @@ if (allocated(s%building_wall%section)) then
         if (pt(j)%radius == 0) then   ! line
           call tao_floor_to_screen (graph, [pt(j-1)%x, 0.0_rp, pt(j-1)%z], end1%r(1), end1%r(2))
           call tao_floor_to_screen (graph, [pt(j)%x, 0.0_rp, pt(j)%z], end2%r(1), end2%r(2))
-          call qp_draw_line(end1%r(1), end2%r(1), end1%r(2), end2%r(2), width = iwidth, color = icol)
+          call qp_draw_line(end1%r(1), end2%r(1), end1%r(2), end2%r(2), width = iwidth, color = ele_shape%color)
 
         else                    ! arc
           theta1 = atan2(pt(j-1)%x - pt(j)%x_center, pt(j-1)%z - pt(j)%z_center)
@@ -504,7 +503,7 @@ if (allocated(s%building_wall%section)) then
             v_vec(3) = pt(j)%z_center + abs(pt(j)%radius) * cos(theta)
             call tao_floor_to_screen (graph, v_vec, x_bend(k), y_bend(k))
           enddo
-          call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend), width = iwidth, color = icol)
+          call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend), width = iwidth, color = ele_shape%color)
         endif
       enddo
       exit
@@ -609,7 +608,7 @@ type (coord_struct), pointer :: orbit(:)
 type (coord_struct) orb_here, orb_start, orb_end
 type (tao_shape_pattern_struct), pointer :: pat
 
-integer ix_uni, i, j, k, icol, n_bend, n, ix, ic, n_mid, isu
+integer ix_uni, i, j, k, n_bend, n, ix, ic, n_mid, isu
 
 real(rp) off, off1, off2, angle, rho, dx1, dy1, dx2, dy2, ang, length
 real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta, e_edge
@@ -624,6 +623,7 @@ real(rp) x_min, x_max, y_min, y_max, xb, yb, s_here, r0(2), r1(2)
 character(*) label_name
 character(80) str
 character(*), parameter :: r_name = 'tao_draw_ele_for_floor_plan'
+character(16) color
 character(8) :: draw_units
 character(2) justify
 
@@ -768,8 +768,7 @@ endif
 
 if (graph%floor_plan_orbit_scale /= 0 .and. ele%value(l$) /= 0) then
   if (is_bend) then
-    call qp_draw_polyline(dx_orbit(0:n_bend), dy_orbit(0:n_bend), &
-            color = qp_string_to_enum(graph%floor_plan_orbit_color, 'color', -1))
+    call qp_draw_polyline(dx_orbit(0:n_bend), dy_orbit(0:n_bend), color = graph%floor_plan_orbit_color)
 
   elseif (ele%key == patch$) then
     ele0 => pointer_to_next_ele (ele, -1)
@@ -787,8 +786,7 @@ if (graph%floor_plan_orbit_scale /= 0 .and. ele%value(l$) /= 0) then
     dx_orbit(1) = f_orb%r(1)
     dy_orbit(1) = f_orb%r(2)
 
-    call qp_draw_polyline(dx_orbit(0:1), dy_orbit(0:1), &
-            color = qp_string_to_enum(graph%floor_plan_orbit_color, 'color', -1))
+    call qp_draw_polyline(dx_orbit(0:1), dy_orbit(0:1), color = graph%floor_plan_orbit_color)
 
   else
     n = 10
@@ -804,8 +802,7 @@ if (graph%floor_plan_orbit_scale /= 0 .and. ele%value(l$) /= 0) then
       dy_orbit(ic) = f_orb%r(2)
     enddo
 
-    call qp_draw_polyline(dx_orbit(0:n), dy_orbit(0:n), &
-            color = qp_string_to_enum(graph%floor_plan_orbit_color, 'color', -1))
+    call qp_draw_polyline(dx_orbit(0:n), dy_orbit(0:n), color = graph%floor_plan_orbit_color)
   endif
 endif
 
@@ -830,7 +827,7 @@ endif
 
 ! Here if element is to be drawn...
 
-icol = qp_string_to_enum (ele_shape%color, 'color', -1)
+color = ele_shape%color
 
 off = ele_shape%size * s%plot_page%floor_plan_shape_scale 
 off1 = offset1 * s%plot_page%floor_plan_shape_scale
@@ -948,7 +945,7 @@ if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) 
   if (associated(branch_shape)) then
     if (branch_shape%draw) then
       call qp_draw_line (x_ray%r(1), end2%r(1), x_ray%r(2), end2%r(2), units = draw_units, &
-                                        color = qp_string_to_enum (branch_shape%color, 'color', -1))
+                                                                              color = branch_shape%color)
     endif
   endif
 endif
@@ -970,17 +967,17 @@ if (ele_shape%shape == 'DIAMOND') then
     y1 = ((end1%r(2) + end2%r(2)) + (dy1 + dy2)) / 2
     y2 = ((end1%r(2) + end2%r(2)) - (dy1 + dy2)) / 2
   endif
-  call qp_draw_line (end1%r(1), x1, end1%r(2), y1, units = draw_units, color = icol)
-  call qp_draw_line (end1%r(1), x2, end1%r(2), y2, units = draw_units, color = icol)
-  call qp_draw_line (end2%r(1), x1, end2%r(2), y1, units = draw_units, color = icol)
-  call qp_draw_line (end2%r(1), x2, end2%r(2), y2, units = draw_units, color = icol)
+  call qp_draw_line (end1%r(1), x1, end1%r(2), y1, units = draw_units, color = color)
+  call qp_draw_line (end1%r(1), x2, end1%r(2), y2, units = draw_units, color = color)
+  call qp_draw_line (end2%r(1), x1, end2%r(2), y1, units = draw_units, color = color)
+  call qp_draw_line (end2%r(1), x2, end2%r(2), y2, units = draw_units, color = color)
 endif
 
 ! Draw a circle.
 
 if (ele_shape%shape == 'CIRCLE') then
   call qp_draw_circle ((end1%r(1)+end2%r(1))/2, (end1%r(2)+end2%r(2))/2, off, &
-                                                  units = draw_units, color = icol)
+                                                  units = draw_units, color = color)
 endif
 
 ! Draw an X.
@@ -996,8 +993,8 @@ if (ele_shape%shape == 'X') then
     x0 = (end1%r(1) + end2%r(1)) / 2
     y0 = (end1%r(2) + end2%r(2)) / 2
   endif
-  call qp_draw_line (x0 - dx1, x0 + dx1, y0 - dy1, y0 + dy1, units = draw_units, color = icol) 
-  call qp_draw_line (x0 - dx1, x0 + dx1, y0 + dy1, y0 - dy1, units = draw_units, color = icol) 
+  call qp_draw_line (x0 - dx1, x0 + dx1, y0 - dy1, y0 + dy1, units = draw_units, color = color) 
+  call qp_draw_line (x0 - dx1, x0 + dx1, y0 + dy1, y0 - dy1, units = draw_units, color = color) 
 endif
 
 ! Draw top and bottom of boxes and bow_tiw
@@ -1005,15 +1002,15 @@ endif
 if (ele_shape%shape == 'BOW_TIE' .or. shape_has_box) then
   if (is_bend) then
     call qp_draw_polyline(x_bend(:n_bend) + dx_bend(:n_bend), &
-                          y_bend(:n_bend) + dy_bend(:n_bend), units = draw_units, color = icol)
+                          y_bend(:n_bend) + dy_bend(:n_bend), units = draw_units, color = color)
     call qp_draw_polyline(x_bend(:n_bend) - dx_bend(:n_bend), &
-                          y_bend(:n_bend) - dy_bend(:n_bend), units = draw_units, color = icol)
+                          y_bend(:n_bend) - dy_bend(:n_bend), units = draw_units, color = color)
 
   else
     call qp_draw_line (end1%r(1)+dx1, end2%r(1)+dx1, end1%r(2)+dy1, end2%r(2)+dy1, &
-                                                    units = draw_units, color = icol)
+                                                    units = draw_units, color = color)
     call qp_draw_line (end1%r(1)-dx2, end2%r(1)-dx2, end1%r(2)-dy2, end2%r(2)-dy2, &
-                                                    units = draw_units, color = icol)
+                                                    units = draw_units, color = color)
   endif
 endif
 
@@ -1022,15 +1019,15 @@ endif
 if (shape_has_box) then
   if (is_bend) then
     call qp_draw_line (x_bend(0)-dx_bend(0), x_bend(0)+dx_bend(0), &
-                       y_bend(0)-dy_bend(0), y_bend(0)+dy_bend(0), units = draw_units, color = icol)
+                       y_bend(0)-dy_bend(0), y_bend(0)+dy_bend(0), units = draw_units, color = color)
     n = n_bend
     call qp_draw_line (x_bend(n)-dx_bend(n), x_bend(n)+dx_bend(n), &
-                       y_bend(n)-dy_bend(n), y_bend(n)+dy_bend(n), units = draw_units, color = icol)
+                       y_bend(n)-dy_bend(n), y_bend(n)+dy_bend(n), units = draw_units, color = color)
   else
     call qp_draw_line (end1%r(1)+dx1, end1%r(1)-dx2, end1%r(2)+dy1, end1%r(2)-dy2, &
-                                                  units = draw_units, color = icol)
+                                                  units = draw_units, color = color)
     call qp_draw_line (end2%r(1)+dx1, end2%r(1)-dx2, end2%r(2)+dy1, end2%r(2)-dy2, &
-                                                  units = draw_units, color = icol)
+                                                  units = draw_units, color = color)
   endif
 endif
 
@@ -1038,9 +1035,9 @@ endif
 
 if (ele_shape%shape == 'XBOX' .or. ele_shape%shape == 'BOW_TIE') then
   call qp_draw_line (end1%r(1)+dx1, end2%r(1)-dx2, end1%r(2)+dy1, end2%r(2)-dy2, &
-                                                  units = draw_units, color = icol)
+                                                  units = draw_units, color = color)
   call qp_draw_line (end1%r(1)-dx2, end2%r(1)+dx1, end1%r(2)-dy1, end2%r(2)+dy2, &
-                                                  units = draw_units, color = icol)
+                                                  units = draw_units, color = color)
 endif
 
 ! Custom pattern
@@ -1052,7 +1049,7 @@ if (ele_shape%shape(1:8) == 'PATTERN:') then
     r0 = end1%r(1:2) + [pat%pt(1)%s, pat%pt(1)%x] * (end2%r(1:2) - end1%r(1:2))
     do j = 2, size(pat%pt)
       r1 = end1%r(1:2) + [pat%pt(j)%s, pat%pt(j)%x] * (end2%r(1:2) - end1%r(1:2))
-      call qp_draw_line (r0(1), r1(1), r0(2), r1(2), units = draw_units, color = icol)
+      call qp_draw_line (r0(1), r1(1), r0(2), r1(2), units = draw_units, color = color)
       r0 = r1
     enddo
   enddo
@@ -1135,7 +1132,7 @@ logical shape_has_box, err, have_data
 
 character(80) str
 character(40) name
-character(20) :: r_name = 'tao_draw_lat_layout'
+character(*), parameter :: r_name = 'tao_draw_lat_layout'
 character(20) shape_name
 
 ! Init
@@ -1261,7 +1258,7 @@ type (ele_struct), pointer :: ele1, ele2
 type (tao_ele_shape_struct), pointer :: ele_shape
 
 real(rp) x_lab
-integer section_id, icol, ix_shape_min, ix_shape
+integer section_id, ix_shape_min, ix_shape
 
 character(40) label_name
 
@@ -1330,55 +1327,56 @@ type (tao_ele_shape_struct) ele_shape
 type (tao_shape_pattern_struct), pointer :: pat
 
 real(rp) :: s_pos, y_off, r_dum = 0, x1, x2, r0(2), r1(2)
-integer icol, iwidth
+integer iwidth
 
 character(*) label_name
 character(20) shape_name
+character(16) color
 
 !
 
 shape_name = ele_shape%shape
 shape_has_box = (index(shape_name, 'BOX') /= 0)
-icol = qp_string_to_enum (ele_shape%color, 'color', -1)
+color = ele_shape%color
 iwidth = ele_shape%line_width
 
 ! Draw the shape
 
 if (shape_name == 'DIAMOND') then
-  call qp_draw_line (x1, (x1+x2)/2, 0.0_rp, y1, width = iwidth, color = icol, clip = .true.)
-  call qp_draw_line (x1, (x1+x2)/2, 0.0_rp, y2, width = iwidth, color = icol, clip = .true.)
-  call qp_draw_line (x2, (x1+x2)/2, 0.0_rp, y1, width = iwidth, color = icol, clip = .true.)
-  call qp_draw_line (x2, (x1+x2)/2, 0.0_rp, y2, width = iwidth, color = icol, clip = .true.)
+  call qp_draw_line (x1, (x1+x2)/2, 0.0_rp, y1, width = iwidth, color = color, clip = .true.)
+  call qp_draw_line (x1, (x1+x2)/2, 0.0_rp, y2, width = iwidth, color = color, clip = .true.)
+  call qp_draw_line (x2, (x1+x2)/2, 0.0_rp, y1, width = iwidth, color = color, clip = .true.)
+  call qp_draw_line (x2, (x1+x2)/2, 0.0_rp, y2, width = iwidth, color = color, clip = .true.)
 endif
 
 if (shape_name == 'CIRCLE') then
   call qp_convert_point_abs ((x1+x2)/2, (y1+y2)/2, 'DATA', x0, y0, 'POINTS')
   call qp_convert_point_rel (r_dum, y1, 'DATA', r_dum, y1, 'POINTS')
-  call qp_draw_circle (x0, y0, abs(y1), units = 'POINTS', width = iwidth, color = icol)
+  call qp_draw_circle (x0, y0, abs(y1), units = 'POINTS', width = iwidth, color = color)
 endif
 
 if (shape_name == 'X') then
   call qp_convert_point_abs ((x1+x2)/2, (y1+y2)/2, 'DATA', x0, y0, 'POINTS')
   call qp_convert_point_rel (x1, y1, 'DATA', x1, y1, 'POINTS')
   call qp_convert_point_rel (x2, y2, 'DATA', x2, y2, 'POINTS')
-  call qp_draw_line (x0-y1, x0+y1, y0-y1, y0+y1, units = 'POINTS', width = iwidth, color = icol, clip = .true.)
-  call qp_draw_line (x0-y1, x0+y1, y0+y1, y0-y1, units = 'POINTS', width = iwidth, color = icol, clip = .true.)
+  call qp_draw_line (x0-y1, x0+y1, y0-y1, y0+y1, units = 'POINTS', width = iwidth, color = color, clip = .true.)
+  call qp_draw_line (x0-y1, x0+y1, y0+y1, y0-y1, units = 'POINTS', width = iwidth, color = color, clip = .true.)
 endif
 
 if (shape_name == 'BOW_TIE') then
-  call qp_draw_line (x1, x2, y1, y1, width = iwidth, color = icol, clip = .true.)
-  call qp_draw_line (x1, x2, y2, y2, width = iwidth, color = icol, clip = .true.)
+  call qp_draw_line (x1, x2, y1, y1, width = iwidth, color = color, clip = .true.)
+  call qp_draw_line (x1, x2, y2, y2, width = iwidth, color = color, clip = .true.)
 endif
 
 if (shape_has_box) then
-  call qp_draw_rectangle (x1, x2, y1, y2, width = iwidth, color = icol, clip = .true.)
+  call qp_draw_rectangle (x1, x2, y1, y2, width = iwidth, color = color, clip = .true.)
 endif
 
 ! Draw X for XBOX or BOW_TIE
 
 if (shape_name == 'XBOX' .or. shape_name == 'BOW_TIE') then
-  call qp_draw_line (x1, x2, y2, y1, width = iwidth, color = icol, clip = .true.)
-  call qp_draw_line (x1, x2, y1, y2, width = iwidth, color = icol, clip = .true.)
+  call qp_draw_line (x1, x2, y2, y1, width = iwidth, color = color, clip = .true.)
+  call qp_draw_line (x1, x2, y1, y2, width = iwidth, color = color, clip = .true.)
 endif
 
 ! Custom pattern
@@ -1390,7 +1388,7 @@ if (shape_name(1:8) == 'PATTERN:') then
     r0 = [x1, y1] + [pat%pt(1)%s, pat%pt(1)%x] * [x2-x1, y2-y1]
     do j = 2, size(pat%pt)
       r1 = [x1, y1] + [pat%pt(j)%s, pat%pt(j)%x] * [x2-x1, y2-y1]
-      call qp_draw_line (r0(1), r1(1), r0(2), r1(2), width = iwidth, color = icol, clip = .true.)
+      call qp_draw_line (r0(1), r1(1), r0(2), r1(2), width = iwidth, color = color, clip = .true.)
       r0 = r1
     enddo
   enddo
@@ -1483,12 +1481,13 @@ subroutine draw_ele_beam_chamber (ele)
 type (ele_struct) ele
 
 real(rp) y1_plus, y1_minus, y2_plus, y2_minus, x1, x2, y1, y2
-integer section_id, icol, n_curve_pts
+integer section_id, n_curve_pts
+character(16) color
 
 ! Draw beam chamber wall. 
 
-icol = black$
-if (allocated (graph%curve)) icol = qp_string_to_enum(graph%curve(1)%line%color, 'color')
+color = 'black'
+if (allocated (graph%curve)) color = graph%curve(1)%line%color
 
 n_curve_pts = s%plot_page%n_curve_pts
 if (plot%n_curve_pts > 0) n_curve_pts = plot%n_curve_pts
@@ -1507,8 +1506,8 @@ if (associated(ele%wall3d)) then
     call calc_wall_radius (ele%wall3d(1)%section(section_id)%v,  1.0_rp, 0.0_rp,  y2_plus, dummy)
     call calc_wall_radius (ele%wall3d(1)%section(section_id)%v, -1.0_rp, 0.0_rp,  y2_minus, dummy)
     !scale wall
-    call qp_draw_line (x1, x2, y1_plus, y2_plus, color = icol)
-    call qp_draw_line (x1, x2, -y1_minus, -y2_minus, color = icol)
+    call qp_draw_line (x1, x2, y1_plus, y2_plus, color = color)
+    call qp_draw_line (x1, x2, -y1_minus, -y2_minus, color = color)
     x1       = x2
     y1_plus  = y2_plus
     y1_minus = y2_minus 
@@ -1547,7 +1546,7 @@ logical have_data
 call tao_draw_data_graph (plot, graph)
 if (.not. graph%valid) then
   if (graph%why_invalid /= '') then
-    call qp_draw_text (graph%why_invalid, 0.18_rp, -0.15_rp, '%/GRAPH/LT', color = red$) 
+    call qp_draw_text (graph%why_invalid, 0.18_rp, -0.15_rp, '%/GRAPH/LT', color = 'red') 
   endif
   return
 endif
@@ -1562,9 +1561,9 @@ enddo
 
 if (.not. have_data) then
   if (graph%why_invalid /= '') then
-    call qp_draw_text (graph%why_invalid, 0.18_rp, -0.15_rp, '%/GRAPH/LT', color = red$) 
+    call qp_draw_text (graph%why_invalid, 0.18_rp, -0.15_rp, '%/GRAPH/LT', color = 'red') 
   else
-    call qp_draw_text ('**No Plottable Data**', 0.18_rp, -0.15_rp, '%/GRAPH/LT', color = red$) 
+    call qp_draw_text ('**No Plottable Data**', 0.18_rp, -0.15_rp, '%/GRAPH/LT', color = 'red') 
   endif
 endif
 
@@ -1604,7 +1603,7 @@ character(16) num_str
 !
 
 if (curve%use_y2) call qp_use_axis (y = 'Y2')
-call qp_set_symbol (qp_to_symbol_struct(curve%symbol))
+call qp_set_symbol (curve%symbol)
 
 if (curve%draw_symbols .and. allocated(curve%x_symb)) then
   if (size(curve%x_symb) > 0) have_data = .true.
@@ -1644,7 +1643,7 @@ endif
 
 if (curve%draw_line .and. allocated(curve%x_line)) then
   if (size(curve%x_line) > 0) have_data = .true.
-  call qp_set_line ('PLOT', qp_to_line_struct(curve%line))
+  call qp_set_line ('PLOT', curve%line)
   call qp_draw_polyline (curve%x_line, curve%y_line, clip = graph%clip, style = 'PLOT')
 endif
 
@@ -1653,16 +1652,16 @@ call qp_use_axis (y = 'Y')  ! reset
 !-----------------------------------------------
 contains
 
-function z_color()
-integer :: z_color
+function z_color() result (color)
+character(16) color
 real(rp) :: z
 if (dz==0) then
-  z_color = black$
+  color = 'black'
 else
   z = (curve%z_symb(i) - curve%z_color0)/dz
   z = 1-z ! Make red -> purple with PLPlot
-  z_color = qp_continuous_color(z)  
- endif
+  color = qp_color_name(qp_continuous_color(z))
+endif
 end function z_color
 
 end subroutine tao_draw_curve_data
@@ -1693,16 +1692,15 @@ implicit none
 type (tao_plot_struct) plot
 type (tao_graph_struct), target :: graph
 type (tao_curve_struct) :: curve
-type (qp_line_struct) line
+type (qp_line_struct) l
 
 integer i
 logical have_data
 character(16) num_str
 
 ! Draw
-
-line = qp_to_line_struct(curve%line)
-call qp_draw_histogram (curve%x_line, curve%y_line, line_color = line%color, fill_color = line%color, fill_pattern = line%pattern) 
+l = curve%line
+call qp_draw_histogram (curve%x_line, curve%y_line, line_color = l%color, fill_color = l%color, fill_pattern = l%pattern) 
 have_data = .true.
 
 end subroutine tao_draw_histogram_data
@@ -1764,7 +1762,7 @@ endif
 if (.not. graph%valid) return
 
 if (graph%limited .and. graph%clip .and. s%global%draw_curve_off_scale_warn) &
-  call qp_draw_text ('**Curve Off Scale**', -0.30_rp, -0.15_rp, '%/GRAPH/RT', color = red$) 
+  call qp_draw_text ('**Curve Off Scale**', -0.30_rp, -0.15_rp, '%/GRAPH/RT', color = 'red') 
 
 
 ! Draw the text legend if there is one
@@ -1782,10 +1780,10 @@ do i = 1, n
   text(i) = curve%legend_text
   if (text(i) == '') text(i) = curve%data_type
   text(i) = trim(text(i)) // ' ' // trim(curve%component)
-  symbol(i) = qp_to_symbol_struct(curve%symbol)
-  if (size(curve%x_symb) == 0) symbol(i)%type = -1 ! Do not draw
-  if (.not. curve%draw_symbols) symbol(i)%type = -1
-  line(i) = qp_to_line_struct(curve%line)
+  symbol(i) = curve%symbol
+  if (size(curve%x_symb) == 0) symbol(i)%type = 'do_not_draw'
+  if (.not. curve%draw_symbols) symbol(i)%type = 'do_not_draw'
+  line(i) = curve%line
   if (size(curve%x_line) == 0) line(i)%width = -1 ! Do not draw
   if (.not. curve%draw_line) line(i)%width = -1
 enddo
