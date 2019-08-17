@@ -9,7 +9,8 @@ integer, parameter :: orange$ = 8, yellow_green$ = 9, light_green$ = 10
 integer, parameter :: navy_blue$ = 11, purple$ = 12, redish_purple$ = 13
 integer, parameter :: dark_grey$ = 14, light_grey$ = 15, transparent$ = 16
 
-character(16), parameter :: qp_color_name(0:16) =   ['White        ', &
+character(16), parameter :: qp_color_name(-1:16) =   [ &
+  'Not_Set      ', 'White        ', &
   'Black        ', 'Red          ', 'Green        ', 'Blue         ', &
   'Cyan         ', 'Magenta      ', 'Yellow       ', 'Orange       ', &
   'Yellow_Green ', 'Light_Green  ', 'Navy_Blue    ', 'Purple       ', &
@@ -35,7 +36,8 @@ integer, parameter :: star5_sym$ = 12, triangle_filled_sym$ = 13, red_cross_sym$
 integer, parameter :: star_of_david_sym$ = 15, square_filled_sym$ = 16
 integer, parameter :: circle_filled_sym$ = 17, star5_filled_sym$ = 18
 
-character(16), parameter :: qp_symbol_type_name(0:18) = ['square         ', &
+character(16), parameter :: qp_symbol_type_name(-1:18) = [ &
+    'do_not_draw    ', 'square         ', &
     'dot            ', 'plus           ', 'times          ', 'circle         ', &
     'x_symbol       ', '---------------', 'triangle       ', 'circle_plus    ', &
     'circle_dot     ', 'square_concave ', 'diamond        ', 'star5          ', &
@@ -59,7 +61,7 @@ type qp_axis_struct
   real(rp) :: label_offset = 0.05       ! offset from numbers in inches.
   real(rp) :: major_tick_len = 0.10     ! in inches.
   real(rp) :: minor_tick_len = 0.06     ! in inches.
-  integer :: label_color = black$       
+  character(16) :: label_color = 'black'
   integer :: major_div = 5
   integer :: major_div_nominal = 5      ! Nominal value.
   integer :: minor_div = 0              ! 0 = auto choose.
@@ -101,21 +103,21 @@ end type
 
 type qp_text_struct
   real(rp) :: height = 12   ! in points
-  integer :: color = black$
+  character(16) :: color = 'black'
   logical :: uniform_spacing = .false.
 end type
 
 type qp_line_struct
   integer :: width = 1
-  integer :: color = black$
-  integer :: pattern = solid$
+  character(16) :: color = 'black'
+  character(16) :: pattern = 'solid'
 end type
 
 type qp_symbol_struct
-  integer :: type = circle_dot_sym$
+  character(16) :: type = 'circle_dot'
   real(rp) :: height      = 10d0  ! in points (same as text height)
-  integer :: color        = black$
-  integer :: fill_pattern = solid_fill$
+  character(16) :: color        = 'black'
+  character(16) :: fill_pattern = 'solid_fill'
   integer :: line_width   = 1
 end type
 
@@ -123,8 +125,8 @@ type qp_arrow_struct
   real(rp) :: head_angle = 30      ! Acute angle of the arrow point in degrees.
   real(rp) :: head_barb  = 0.4     ! Fraction of triangular arrow head that is cut away from the back.
   real(rp) :: head_size = 1.0
-  integer :: head_type   = filled_arrow_head$    ! Or outline_arrow_head$
-  integer :: color       = black$
+  character(16) :: head_type   = 'filled_arrow_head'    ! Or 'outline_arrow_head'
+  character(16) :: color       = 'black'
 end type
 
 type qp_state_struct
@@ -134,24 +136,24 @@ type qp_state_struct
   type (qp_rect_struct) :: graph  = qp_rect_struct (1.0, 2.0, 1.0, 2.0, ' ')
   type (qp_rect_struct) :: margin = qp_rect_struct (0.0, 0.0, 0.0, 0.0, ' ')
   type (qp_rect_struct) :: border = qp_rect_struct (0.0, 0.0, 0.0, 0.0, ' ')
-  type (qp_text_struct) :: main_title = qp_text_struct(18.0, black$, .false.)
-  type (qp_text_struct) :: graph_title= qp_text_struct(20.0, black$, .false.)
-  type (qp_text_struct) :: legend     = qp_text_struct(13.0, black$, .false.)
-  type (qp_text_struct) :: text       = qp_text_struct(18.0, black$, .false.)
-  type (qp_text_struct) :: axis_number= qp_text_struct(10.0, black$, .false.)
-  type (qp_text_struct) :: axis_label = qp_text_struct(15.0, black$, .false.)
+  type (qp_text_struct) :: main_title = qp_text_struct(18.0, 'black', .false.)
+  type (qp_text_struct) :: graph_title= qp_text_struct(20.0, 'black', .false.)
+  type (qp_text_struct) :: legend     = qp_text_struct(13.0, 'black', .false.)
+  type (qp_text_struct) :: text       = qp_text_struct(18.0, 'black', .false.)
+  type (qp_text_struct) :: axis_number= qp_text_struct(10.0, 'black', .false.)
+  type (qp_text_struct) :: axis_label = qp_text_struct(15.0, 'black', .false.)
   type (qp_text_struct) :: this_text  ! current settings.
   type (qp_symbol_struct) :: symbol 
   type (qp_arrow_struct) :: arrow
-  type (qp_line_struct) :: std_line  = qp_line_struct (2, black$, solid$)
-  type (qp_line_struct) :: plot_line = qp_line_struct (2, black$, solid$)
-  type (qp_line_struct) :: axis_line = qp_line_struct (2, black$, solid$)
-  type (qp_line_struct) :: legend_line = qp_line_struct (2, black$, solid$)
-  type (qp_line_struct) :: grid_line = qp_line_struct(1, light_grey$, solid$)
+  type (qp_line_struct) :: std_line  = qp_line_struct (2, 'black', 'solid')
+  type (qp_line_struct) :: plot_line = qp_line_struct (2, 'black', 'solid')
+  type (qp_line_struct) :: axis_line = qp_line_struct (2, 'black', 'solid')
+  type (qp_line_struct) :: legend_line = qp_line_struct (2, 'black', 'solid')
+  type (qp_line_struct) :: grid_line = qp_line_struct(1, 'light_grey', 'solid')
   real(rp) :: text_scale = 1
   real(rp) :: text_spacing_factor = 0.6
   real(rp) :: dflt_axis_slop_factor = 1d-3
-  integer :: text_background = -1
+  character(16) :: text_background = 'not_set'
   integer :: max_axis_zero_digits = 3
   integer :: dflt_units = dflt_draw$
   integer :: max_digits = 8
@@ -165,232 +167,7 @@ type qp_state_struct
   logical :: uniform_symbol_size = .true.
 end type
 
-! For historical reasons (that is, slavishly following pgplot), structures like qp_line_struct, etc. used 
-! enumerated integers for stuff like the color component. This is inconvenient when these structures are
-! used with namelist input. To get around this, parallel structures are now defined called qp_line2_struct, etc.
-! Ideally, the original qp_line_struct structures should be retired but this is a bit of work considering how
-! widely quick_plot is used in the Bmad universe.
-
-type qp_axis2_struct
-  character(80) :: label = ' '
-  real(rp) :: min = 0, max = 10         ! min is actually left or bottom axis number.
-  real(rp) :: number_offset = 0.05      ! offset from axis line in inches.
-  real(rp) :: label_offset = 0.05       ! offset from numbers in inches.
-  real(rp) :: major_tick_len = 0.10     ! in inches.
-  real(rp) :: minor_tick_len = 0.06     ! in inches.
-  character(16) :: label_color = 'black'
-  integer :: major_div = 5
-  integer :: major_div_nominal = 5      ! Nominal value.
-  integer :: minor_div = 0              ! 0 = auto choose.
-  integer :: minor_div_max = 5          ! max number for auto choose.
-  integer :: places = 0
-  character(16) :: type = 'LINEAR'      ! or 'LOG', or 'CUSTOM'
-  character(16) :: bounds = 'GENERAL'   ! or 'ZERO_AT_END' or 'ZERO_SYMMETRIC'
-  integer :: tick_side = +1    ! +1 = draw to the inside, 0 = both, -1 = outside.
-  integer :: number_side = -1  ! +1 = draw to the inside, -1 = outside.
-  logical :: draw_label = .true.
-  logical :: draw_numbers  = .true.
-end type
-
-type qp_line2_struct
-  integer :: width = 1
-  character(16) :: color = 'black'
-  character(16) :: pattern = 'solid'
-end type
-
-type qp_symbol2_struct
-  character(16) :: type = 'circle_dot'
-  real(rp) :: height      = 10d0  ! in points (same as text height)
-  character(16) :: color        = 'black'
-  character(16) :: fill_pattern = 'solid_fill'
-  integer :: line_width   = 1
-end type
-
-type qp_text2_struct
-  real(rp) :: height = 12   ! in points
-  character(16) :: color = 'black'
-  logical :: uniform_spacing = .false.
-end type
-
-type qp_arrow2_struct
-  real(rp) :: head_angle = 30      ! Acute angle of the arrow point in degrees.
-  real(rp) :: head_barb  = 0.4     ! Fraction of triangular arrow head that is cut away from the back.
-  real(rp) :: head_size = 1.0
-  character(16) :: head_type   = 'filled_arrow_head'    ! Or 'outline_arrow_head'
-  character(16) :: color       = 'black'
-end type
-
 contains
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+
-! Function qp_to_axis_struct (axis2) result (axis)
-!
-! Routine to convert a qp_axis2_struct to a qp_axis_struct.
-!
-! Input:
-!   axis2     -- qp_axis2_struct: Input structure.
-!
-! Output:
-!   axis      -- qp_axis_struct: Structure to put the axis2 info into.
-!-
-
-function qp_to_axis_struct (axis2) result (axis)
-
-implicit none
-
-type (qp_axis2_struct) axis2
-type (qp_axis_struct) axis
-
-!
-
-axis%label               = axis2%label
-axis%min                 = axis2%min
-axis%max                 = axis2%max
-axis%number_offset       = axis2%number_offset
-axis%label_offset        = axis2%label_offset
-axis%major_tick_len      = axis2%major_tick_len
-axis%minor_tick_len      = axis2%minor_tick_len
-axis%label_color         = qp_string_to_enum (axis2%label_color, 'color')
-axis%major_div           = axis2%major_div
-axis%major_div_nominal   = axis2%major_div_nominal
-axis%minor_div           = axis2%minor_div
-axis%minor_div_max       = axis2%minor_div_max
-axis%places              = axis2%places
-axis%type                = axis2%type
-axis%bounds              = axis2%bounds
-axis%tick_side           = axis2%tick_side
-axis%number_side         = axis2%number_side
-axis%draw_label          = axis2%draw_label
-axis%draw_numbers        = axis2%draw_numbers
-
-end function qp_to_axis_struct
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+
-! Function qp_to_line_struct (line2) result (line)
-!
-! Routine to convert a qp_line2_struct to a qp_line_struct.
-!
-! Input:
-!   line2     -- qp_line2_struct: Input structure.
-!
-! Output:
-!   line      -- qp_line_struct: Structure to put the line2 info into.
-!-
-
-function qp_to_line_struct (line2) result (line)
-
-implicit none
-
-type (qp_line2_struct) line2
-type (qp_line_struct) line
-
-!
-
-line%width = line2%width
-line%color = qp_string_to_enum (line2%color, 'color')
-line%pattern = qp_string_to_enum (line2%pattern, 'line_pattern')
-
-end function qp_to_line_struct
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+
-! Function qp_to_symbol_struct (symbol2) result (symbol)
-!
-! Routine to convert a qp_symbol2_struct to a qp_symbol_struct.
-!
-! Input:
-!   symbol2     -- qp_symbol2_struct: Input structure.
-!
-! Output:
-!   symbol      -- qp_symbol_struct: Structure to put the symbol2 info into.
-!-
-
-function qp_to_symbol_struct (symbol2) result (symbol)
-
-implicit none
-
-type (qp_symbol2_struct) symbol2
-type (qp_symbol_struct) symbol
-
-!
-
-symbol%type = qp_string_to_enum (symbol2%type, 'symbol_type')
-symbol%height = symbol2%height
-symbol%color = qp_string_to_enum (symbol2%color, 'color')
-symbol%fill_pattern = qp_string_to_enum (symbol2%fill_pattern, 'fill_pattern')
-symbol%line_width = symbol2%line_width
-
-end function qp_to_symbol_struct
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+
-! Function qp_to_text_struct (text2) result (text)
-!
-! Routine to convert a qp_text2_struct to a qp_text_struct.
-!
-! Input:
-!   text2     -- qp_text2_struct: Input structure.
-!
-! Output:
-!   text      -- qp_text_struct: Structure to put the text2 info into.
-!-
-
-function qp_to_text_struct (text2) result (text)
-
-implicit none
-
-type (qp_text2_struct) text2
-type (qp_text_struct) text
-
-!
-
-text%height = text2%height
-text%color = qp_string_to_enum (text2%color, 'color')
-text%uniform_spacing = text2%uniform_spacing
-
-end function qp_to_text_struct
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+
-! Function qp_to_arrow_struct (arrow2) result (arrow)
-!
-! Routine to convert a qp_arrow2_struct to a qp_arrow_struct.
-!
-! Input:
-!   arrow2     -- qp_arrow2_struct: Input structure.
-!
-! Output:
-!   arrow      -- qp_arrow_struct: Structure to put the arrow2 info into.
-!-
-
-function qp_to_arrow_struct (arrow2) result (arrow)
-
-implicit none
-
-type (qp_arrow2_struct) arrow2
-type (qp_arrow_struct) arrow
-
-!
-
-arrow%head_angle = arrow2%head_angle
-arrow%head_barb = arrow2%head_barb
-arrow%head_size = arrow2%head_size
-arrow%head_type = qp_string_to_enum (arrow2%head_type, 'arrow_head_type')
-arrow%color = qp_string_to_enum (arrow2%color, 'color')
-
-end function qp_to_arrow_struct
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------

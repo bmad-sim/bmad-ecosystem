@@ -417,7 +417,7 @@ implicit none
 
 logical buffer_basic
 
-character(16) :: r_name = 'qp_save_state'
+character(*), parameter :: r_name = 'qp_save_state'
 
 !
 
@@ -463,7 +463,7 @@ subroutine qp_restore_state
 
 implicit none
 
-character(16) :: r_name = 'qp_restore_state'
+character(*), parameter :: r_name = 'qp_restore_state'
 
 !
 
@@ -1397,7 +1397,7 @@ call qp_clear_page_basic
 if (qp_com%page_type(1:3) == 'GIF') then
   call qp_paint_rectangle (qp_com%page%x1, qp_com%page%x2, &
                            qp_com%page%y1, qp_com%page%y2, &
-                           'INCH', color = white$, fill_pattern = solid_fill$)
+                           'INCH', color = 'white', fill_pattern = 'solid_fill')
 endif
 
 end subroutine qp_clear_page
@@ -1417,7 +1417,7 @@ subroutine qp_clear_box
 
 call qp_paint_rectangle (qp_com%box%x1, qp_com%box%x2, &
                          qp_com%box%y1, qp_com%box%y2, &
-                         'INCH/PAGE', color = white$, fill_pattern = solid_fill$)
+                         'INCH/PAGE', color = 'white', fill_pattern = 'solid_fill')
 
 end subroutine qp_clear_box
 
@@ -1439,9 +1439,9 @@ end subroutine qp_clear_box
 !   y2  -- Real(rp): Top edge.
 !   units        -- Character(*), optional: Units of returned numbers.
 !                     Default = 'DATA/GRAPH/LB'
-!   color        -- Integer, optional: Color to paint the rectangle.
+!   color        -- character(*), optional: Color to paint the rectangle.
 !                     Default is to use the symbol color.
-!   fill_pattern -- Integer, optional: Fill pattern. 
+!   fill_pattern -- character(*), optional: Fill pattern. 
 !                   Default is to use the symbol color.
 !-
 
@@ -1451,8 +1451,7 @@ implicit none
 
 real(rp) x1, x2, y1, y2
 real(rp) x1_inch, x2_inch, y1_inch, y2_inch
-character(*), optional :: units
-integer, optional :: color, fill_pattern
+character(*), optional :: color, units, fill_pattern
 
 !
 
@@ -1462,8 +1461,8 @@ call qp_to_inch_abs (x1, y1, x1_inch, y1_inch, units)
 call qp_to_inch_abs (x2, y2, x2_inch, y2_inch, units)
  
 call qp_paint_rectangle_basic (x1_inch, x2_inch, y1_inch, y2_inch, &
-              integer_option(qp_com%symbol%color, color), &
-              integer_option(qp_com%symbol%fill_pattern, fill_pattern))
+              qp_string_to_enum(string_option(qp_com%symbol%color, color), 'color'), &
+              qp_string_to_enum(string_option(qp_com%symbol%fill_pattern, fill_pattern), 'fill_pattern'))
 
 end subroutine qp_paint_rectangle
 
@@ -1748,7 +1747,7 @@ real(rp) x_inch, y_inch, dgx, dgy
 
 character(*), optional :: units
 character(8) u_type, region, corner
-character(16) :: r_name = 'qp_to_inch_rel'
+character(*), parameter :: r_name = 'qp_to_inch_rel'
 
 !  
 
@@ -2274,9 +2273,9 @@ end subroutine qp_set_margin
 !   units        -- Character(*), optional: Units of x and y.
 !                     Default is: 'DATA/GRAPH/LB'
 !                     See quick_plot writeup for more details.
-!   color        -- Integer, optional: Color index for the box
+!   color        -- Character(*), optional: Color index for the box
 !   width        -- Integer, optional: Width of the line. Default = 1
-!   line_pattern -- Integer, optional: Line type (dashed$, etc). 
+!   line_pattern -- Character(*), optional: Line type (dashed$, etc). 
 !   clip         -- Logical, optional: Clip at the graph boundary?
 !   style        -- Character(*): Default line style to use if not specified by the other arguments.
 !                     Default is 'STD'. See qp_set_line_attrib for more details.
@@ -2288,9 +2287,10 @@ implicit none
 
 real(rp) x1, y1, x2, y2
 
-integer, optional :: color, width, line_pattern
+integer, optional :: width
 
-character(*), optional :: units, style
+character(*), optional :: units, style, color, line_pattern
+
 
 logical, optional :: clip
 
@@ -2312,9 +2312,9 @@ end subroutine qp_draw_rectangle
 ! Input:
 !   r1(2), r2(2)  -- real(rp): Arrow tail and head (x, y) coordinates.
 !   units         -- character(*), optional: Units of r1 and r2. Default is: 'DATA/GRAPH/LB'
-!   color         -- integer, optional: Arrow color.
+!   color         -- character(*), optional: Arrow color.
 !   head_size     -- real(rp), optional: Size of the arrow.
-!   head_type     -- integer, optional: Arrow head type: filled_arrow_head$ or outline_arrow_head$ 
+!   head_type     -- character(*), optional: Arrow head type: filled_arrow_head$ or outline_arrow_head$ 
 !   head_angle    -- real(rp), optional: Acute angle of the arrow point in degrees.
 !   head_barb     -- real(rp), optional: Fraction of triangular arrow head that is cut away from the back.
 !-
@@ -2326,7 +2326,7 @@ implicit none
 real(rp) r1(2), r2(2), rinch1(2), rinch2(2)
 real(rp), optional :: head_size, head_angle, head_barb
 
-integer, optional :: color, head_type
+character(*), optional :: color, head_type
 
 character(*), optional :: units
 
@@ -2354,25 +2354,26 @@ end subroutine qp_draw_arrow
 ! Also see: qp_draw_symbols.
 !
 ! Input:
-!   x, y         -- Real(rp): Symbol coordinates.
-!   units        -- Character(*), optional: Units of (x, y). Default is: 'DATA/GRAPH/LB'
-!   type         -- Integer, optional: Symbol type. 
-!   height       -- Real(rp), optional: Size of the symbol.
-!   color        -- Integer, optional: Symbol color.
-!   fill_pattern -- Integer, optional: fill pattern.
-!   line_width   -- Integer, optional: Line width.
-!   clip         -- Logical, optional: Clip at the graph boundary?
+!   x, y         -- real(rp): Symbol coordinates.
+!   units        -- character(*), optional: Units of (x, y). Default is: 'DATA/GRAPH/LB'
+!   type         -- character(*), optional: Symbol type. 
+!   height       -- real(rp), optional: Size of the symbol.
+!   color        -- character(*), optional: Symbol color.
+!   fill_pattern -- character(*), optional: fill pattern.
+!   line_width   -- integer, optional: Line width.
+!   clip         -- logical, optional: Clip at the graph boundary?
 !-
 
 subroutine qp_draw_symbol (x, y, units, type, height, color, fill_pattern, line_width, clip)
 
 implicit none
               
-integer, optional :: type, color, fill_pattern, line_width
+integer, optional :: line_width
 
 real(rp) x, y, x_inch, y_inch
 real(rp), optional :: height
 
+character(*), optional :: type, color, fill_pattern
 character(*), optional :: units
 
 logical, optional :: clip
@@ -2383,7 +2384,7 @@ call qp_save_state (.true.)
 
 call qp_set_symbol_attrib (type, height, color, fill_pattern, line_width, clip)
 call qp_to_inch_abs (x, y, x_inch, y_inch, units)
-call qp_draw_symbol_basic (x_inch, y_inch, qp_com%symbol%type)
+call qp_draw_symbol_basic (x_inch, y_inch, qp_string_to_enum(qp_com%symbol%type, 'symbol_type'))
 
 call qp_restore_state
 
@@ -2402,10 +2403,10 @@ end subroutine qp_draw_symbol
 !
 ! Input:
 !   x(:), y(:)   -- Real(rp): Symbol coordinates in data units.
-!   type         -- Integer, optional: Symbol type. 
+!   type         -- Character(*), optional: Symbol type. 
 !   height       -- Real(rp), optional: Size of the symbol.
-!   color        -- Integer, optional: Symbol color.
-!   fill_pattern -- Integer, optional: fill pattern.
+!   color        -- Character(*), optional: Symbol color.
+!   fill_pattern -- Character(*), optional: fill pattern.
 !   line_width   -- Integer, optional: Line width.
 !   clip         -- Logical, optional: Clip at the graph boundary?
 !   symbol_every -- Integer, optional: 
@@ -2420,15 +2421,14 @@ subroutine qp_draw_symbols (x, y, units, type, height, color, fill_pattern, line
 
 implicit none
 
-integer, optional :: type, color, fill_pattern, line_width
-integer, optional :: symbol_every
+integer, optional :: symbol_every, line_width
 integer i, i_skip
 
 real(rp) x(:), y(:)
 real(rp), optional :: height
 
-character(*), optional :: units 
-character(16) :: r_name = 'qp_draw_symbols'
+character(*), optional :: units, type, color, fill_pattern
+character(*), parameter :: r_name = 'qp_draw_symbols'
 
 logical, optional :: clip
 
@@ -2513,7 +2513,7 @@ integer, optional :: symbol_every
 logical, optional :: draw_line, clip
 
 character(*), optional :: x_lab, y_lab, title  
-character(16) :: r_name = 'qp_draw_graph'
+character(*), parameter :: r_name = 'qp_draw_graph'
 
 ! Error check
 
@@ -2687,11 +2687,11 @@ end subroutine qp_draw_graph_title
 !
 ! Input:
 !   x_dat(:), y_dat(:) -- Real(rp): Rectangle Data.
-!   fill_color   -- Integer, optional: Color of fill pattern and outline.
+!   fill_color   -- Character(*), optional: Color of fill pattern and outline.
 !                     If fill_color is transparent$ no color is added.
 !                     Default = black$
-!   fill_pattern -- Integer, optional: Default is set by symbol fill pattern.
-!   line_color   -- Integer, optional: Outline of the rectangles color
+!   fill_pattern -- Character(*), optional: Default is set by symbol fill pattern.
+!   line_color   -- Character(*), optional: Outline of the rectangles color
 !                     Default is black$. 
 !   clip         -- Logical, optional: Clip at the graph boundary?
 !                     Default is set by qp_set_line_attrib.
@@ -2702,14 +2702,14 @@ subroutine qp_draw_histogram (x_dat, y_dat, fill_color, fill_pattern, line_color
 implicit none
 
 integer i, n, n_min, n_max
-integer, optional :: line_color, fill_color, fill_pattern
 
 real(rp) x_dat(:), y_dat(:)
 real(rp) :: xh(2*size(x_dat)+2), yh(2*size(x_dat)+2)
 
 logical, optional :: clip
 
-character(16) :: r_name = 'qp_draw_histogram'
+character(*), optional :: line_color, fill_color, fill_pattern
+character(*), parameter :: r_name = 'qp_draw_histogram'
 
 ! error check
 
@@ -2771,14 +2771,14 @@ call qp_save_state (.true.)
 
 call qp_set_line_attrib ('PLOT', clip = .false.)
 
-if (integer_option(black$, fill_color) /= transparent$) then
+if (string_option('black', fill_color) /= 'transparent') then
   do i = 1, n
     call qp_paint_rectangle (xh(2*i), xh(2*i+1), yh(1), yh(2*i), 'DATA', &
-                                      integer_option(black$, fill_color), fill_pattern)
+                                      string_option('black', fill_color), fill_pattern)
   enddo
 endif
 
-call qp_draw_polyline (xh(1:2*n+2), yh(1:2*n+2), color = integer_option(black$, line_color))
+call qp_draw_polyline (xh(1:2*n+2), yh(1:2*n+2), color = string_option('black', line_color))
 
 call qp_restore_state
 
@@ -2948,7 +2948,7 @@ do i = 1, n_rows
   endif
 
   if (has_symbol) then 
-    if (symbol(i)%type > -1) then
+    if (symbol(i)%type /= '') then
       call qp_set_symbol (symbol(i))
       call qp_draw_symbol (xc + line_len/2, yc2, 'INCH/PAGE/LB')
     endif
@@ -2994,9 +2994,8 @@ end subroutine qp_draw_curve_legend
 !                    Default is: 'DATA/GRAPH/LB'
 !                    See quick_plot writeup for more details.
 !   width        -- Integer, optional: Width of line
-!   color        -- Integer, optional: Line color.
-!   line_pattern -- Integer, optional: Line type. 
-!                    Currently can only be 1 (solid line).
+!   color        -- Character(*), optional: Line color.
+!   line_pattern -- Character(*), optional: Line type. Currently ignored.
 !   clip         -- Logical, optional: Clip at graph boundary?
 !-
 
@@ -3010,16 +3009,16 @@ real(rp), optional :: theta_xy, angle0, del_angle
 real(rp) x(1000), y(1000), ang22, del, ang, cos_xy, sin_xy
 real(rp) xx0, yy0, rr_x, rr_y, ang0, del_ang, t_xy, dx, dy
 
-integer, optional :: width, color, line_pattern
+integer, optional :: width
 integer i
 
-character(*), optional :: units
+character(*), optional :: units, color, line_pattern
 
 logical, optional :: clip
 
 !
 
-if (present(line_pattern)) i = line_pattern   ! so compiler will not complain
+if (present(line_pattern)) i = len(line_pattern)   ! so compiler will not complain
 
 call qp_save_state (.true.)
 
@@ -3054,7 +3053,7 @@ do i = 1, size(x)
   if (abs(ang) >= abs(del_ang)) ang = del_ang
 enddo
 
-call qp_set_line_attrib ('STD', width, color, 1, clip)  ! solid line
+call qp_set_line_attrib ('STD', width, color, 'solid', clip)  ! solid line
 call qp_draw_polyline_no_set (x(1:i), y(1:i), 'INCH/PAGE/LB')
 
 call qp_restore_state
@@ -3065,8 +3064,7 @@ end subroutine qp_draw_ellipse
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_draw_circle (x0, y0, r, angle0, del_angle, 
-!                                    units, width, color, line_pattern, clip)
+! Subroutine qp_draw_circle (x0, y0, r, angle0, del_angle, units, width, color, line_pattern, clip)
 !
 ! Subroutine to plot a section of a circle.
 ! Drawn is:
@@ -3086,30 +3084,28 @@ end subroutine qp_draw_ellipse
 !                    Default is: 'DATA/GRAPH/LB'
 !                    See quick_plot writeup for more details.
 !   width        -- Integer, optional: Width of line
-!   color        -- Integer, optional: Line color.
-!   line_pattern -- Integer, optional: Line type. 
+!   color        -- Character(*), optional: Line color.
+!   line_pattern -- Character(*), optional: Line type. 
 !                    Currently can only be 1 (solid line).
 !   clip         -- Logical, optional: Clip at graph boundary?
 !-
 
-subroutine qp_draw_circle (x0, y0, r, angle0, &
-                        del_angle, units, width, color, line_pattern, clip)
+subroutine qp_draw_circle (x0, y0, r, angle0, del_angle, units, width, color, line_pattern, clip)
 
 implicit none
 
 real(rp) x0, y0, r
 real(rp), optional :: angle0, del_angle
 
-integer, optional :: width, color, line_pattern
+integer, optional :: width
 
-character(*), optional :: units
+character(*), optional :: units, color, line_pattern
 
 logical, optional :: clip
 
 !
 
-call qp_draw_ellipse (x0, y0, r, r, 0.0_rp, angle0, del_angle, &
-                                        units, width, color, line_pattern, clip)
+call qp_draw_ellipse (x0, y0, r, r, 0.0_rp, angle0, del_angle, units, width, color, line_pattern, clip)
 
 end subroutine qp_draw_circle
 
@@ -3127,8 +3123,8 @@ end subroutine qp_draw_circle
 !                      Default is: 'DATA/GRAPH/LB'
 !                      See quick_plot writeup for more details.
 !   width         -- Integer, optional: Width of line
-!   color         -- Integer, optional: Line color.
-!   line_pattern  -- Integer, optional: Line type. 
+!   color         -- Character(*), optional: Line color.
+!   line_pattern  -- Character(*), optional: Line type. 
 !   clip          -- Logical, optional: Clip at graph boundary?
 !-
 
@@ -3139,9 +3135,9 @@ implicit none
 real(rp) :: x(:), y(:)
 real(rp) :: xd(size(x)), yd(size(y))
 
-integer, optional :: width, color, line_pattern
+integer, optional :: width
 
-character(*), optional :: units, style
+character(*), optional :: units, style, color, line_pattern
 
 logical, optional :: clip
 
@@ -3201,8 +3197,8 @@ end subroutine qp_draw_polyline_no_set
 !                      Default is: 'DATA/GRAPH/LB'
 !                      See quick_plot writeup for more details.
 !   width         -- Integer, optional: Width of line
-!   color         -- Integer, optional: Line color.
-!   line_pattern  -- Integer, optional: Line type. 
+!   color         -- Character(*), optional: Line color.
+!   line_pattern  -- Character(*), optional: Line type. 
 !   clip          -- Logical, optional: Clip at graph boundary?
 !   style         -- Character(*): Default line style to use if not specified by the other arguments.
 !                      Default is 'STD'. See qp_set_line_attrib for more details.
@@ -3214,9 +3210,9 @@ implicit none
 
 real(rp) :: x1, x2, y1, y2
 
-integer, optional :: width, color, line_pattern
+integer, optional :: width
 
-character(*), optional :: units, style
+character(*), optional :: units, style, color, line_pattern
 
 logical, optional :: clip
 
@@ -3294,7 +3290,7 @@ integer ix
 
 character(*) page_type
 character(*), optional :: units, plot_file
-character(16) :: r_name = 'qp_open_page'
+character(*), parameter :: r_name = 'qp_open_page'
 
 logical saved_state, landscape, output_to_file
 
@@ -3436,7 +3432,7 @@ subroutine qp_close_page ()
 
 implicit none
 
-character(16) :: r_name = 'qp_close_page'
+character(*), parameter :: r_name = 'qp_close_page'
 integer i
 
 !
@@ -3484,10 +3480,10 @@ end subroutine qp_close_page
 !   justify    -- Character(*), optional: Horizontal/vertical justification.
 !                   Default is 'LB' (Left Bottom).
 !   height     -- Real(rp), optional: height in points.
-!   color      -- Integer, optional: Color index for the box
+!   color      -- Character(*), optional: Color index for the box
 !   angle      -- Real(rp), optional: Angle to the horizontal (in degrees). 
 !                   Positive angle is CCW.
-!   background -- Integer, optional: Background color.
+!   background -- Character(*), optional: Background color.
 !   uniform_spacing -- Logical, optional: If T then the distance between 
 !                      characters is uniform.
 !   spacing_factor  -- Real(rp), optional: Spacing factor if uniform_spacing
@@ -3502,10 +3498,8 @@ implicit none
 real(rp) x, y
 real(rp), optional :: angle, height, spacing_factor
 
-integer, optional :: color, background
-
 character(*) text
-character(*), optional :: units, justify
+character(*), optional :: units, justify, color, background
 
 logical, optional :: uniform_spacing
 
@@ -3557,7 +3551,7 @@ integer ixx, i
 
 character(*) text
 character(*), optional :: units, justify
-character(16) :: r_name = 'qp_draw_text_no_set'
+character(*), parameter :: r_name = 'qp_draw_text_no_set'
 
 !
 
@@ -3628,7 +3622,7 @@ implicit none
 
 real(rp) horiz_justy
 character(*), optional :: justify
-character(16) :: r_name = 'qp_justify'
+character(*), parameter :: r_name = 'qp_justify'
 
 !
 
@@ -3730,10 +3724,10 @@ end subroutine qp_set_arrow
 !
 ! Input:
 !   symbol -- qp_symbol_struct:
-!     %type          -- Integer: Symbol type. 
+!     %type          -- Character(*): Symbol type. 
 !     %height        -- Real(rp): Size of the symbol.
-!     %color         -- Integer: Symbol color.
-!     %fill_pattern  -- Integer: fill pattern.
+!     %color         -- Character(*): Symbol color.
+!     %fill_pattern  -- Character(*): fill pattern.
 !     %line_width    -- Integer: Line width.
 !-
 
@@ -3757,9 +3751,9 @@ end subroutine qp_set_symbol
 ! See the quick_plot documentation for more details.
 !
 ! Input:
-!   color         -- integer, optional: Arrow color.
+!   color         -- character(*), optional: Arrow color.
 !   head_size     -- real(rp), optional: Size of the arrow.
-!   head_type     -- integer, optional: Arrow head type: filled_arrow_head$ or outline_arrow_head$ 
+!   head_type     -- character(*), optional: Arrow head type: filled_arrow_head$ or outline_arrow_head$ 
 !   head_angle    -- real(rp), optional: Acute angle of the arrow point in degrees.
 !   head_barb     -- real(rp), optional: Fraction of triangular arrow head that is cut away from the back.
 !-
@@ -3768,8 +3762,8 @@ subroutine qp_set_arrow_attrib (color, head_size, head_type, head_angle, head_ba
 
 implicit none
 
-integer, optional :: color, head_type
 real(rp), optional :: head_size, head_angle, head_barb
+character(*), optional :: color, head_type
 
 !
 
@@ -3791,10 +3785,10 @@ end subroutine qp_set_arrow_attrib
 ! See the quick_plot documentation for more details.
 !
 ! Input:
-!   type         -- Integer, optional: Symbol type. 
+!   type         -- Character(*), optional: Symbol type. 
 !   height       -- Real(rp), optional: Size of the symbol.
-!   color        -- Integer, optional: Symbol color.
-!   fill_pattern -- Integer, optional: fill pattern.
+!   color        -- Character(*), optional: Symbol color.
+!   fill_pattern -- Character(*), optional: fill pattern.
 !   line_width   -- Integer, optional: Line width.
 !   clip         -- Logical, optional: Clip at graph boundary?
 !                     Note: This sets the line clip also.
@@ -3804,9 +3798,10 @@ subroutine qp_set_symbol_attrib (type, height, color, fill_pattern, line_width, 
 
 implicit none
 
-integer, optional :: type, line_width, fill_pattern, color
+integer, optional :: line_width
 real(rp), optional :: height
 logical, optional :: clip
+character(*), optional :: type, fill_pattern, color
 
 !
 
@@ -3832,9 +3827,9 @@ endif
 
 call qp_set_clip (clip)
 call qp_set_symbol_size_basic (qp_com%symbol%height, &
-                   qp_com%symbol%type, qp_com%uniform_symbol_size)
-call qp_set_color_basic (qp_com%symbol%color)
-call qp_set_symbol_fill_basic (qp_com%symbol%fill_pattern)       
+                    qp_string_to_enum(qp_com%symbol%type, 'symbol_type'), qp_com%uniform_symbol_size)
+call qp_set_color_basic (qp_string_to_enum(qp_com%symbol%color, 'color'))
+call qp_set_symbol_fill_basic (qp_string_to_enum(qp_com%symbol%fill_pattern, 'fill_pattern'))
 call qp_set_line_width_basic (qp_com%symbol%line_width)
 
 end subroutine qp_set_symbol_attrib
@@ -3875,10 +3870,10 @@ end subroutine qp_get_arrow_attrib
 !
 ! Output:
 !   symbol -- qp_symbol_struct:
-!     %type          -- Integer: Symbol type. 
+!     %type          -- Character(*): Symbol type. 
 !     %height        -- Real(rp): Size of the symbol.
-!     %color         -- Integer: Symbol color.
-!     %fill_pattern  -- Integer: fill pattern.
+!     %color         -- Character(*): Symbol color.
+!     %fill_pattern  -- Character(*): fill pattern.
 !     %line_width    -- Integer: Line width.
 !-
 
@@ -3909,9 +3904,9 @@ end subroutine qp_get_symbol_attrib
 !                 'PLOT'     -- Plot data lines.
 !                 'STD'      -- Everything else.
 !   line    -- qp_line_struct: Attributes of a line
-!     %type -- Integer: Line type.
+!     %type -- Character(*): Line type.
 !     %width     -- Integer: Size of the line.
-!     %color     -- Integer: Line color.
+!     %color     -- Character(*): Line color.
 !-
 
 subroutine qp_set_line (who, line)
@@ -3920,7 +3915,7 @@ implicit none
 
 type (qp_line_struct) line
 character(*) who
-character(16) :: r_name = 'qp_set_line'
+character(*), parameter :: r_name = 'qp_set_line'
 
 !
 
@@ -3962,9 +3957,9 @@ end subroutine qp_set_line
 !
 ! Output:
 !   line    -- qp_line_struct: Attributes of a line
-!     %pattern   -- Integer: Line type.
+!     %pattern   -- Character(*): Line type.
 !     %width     -- Integer: Size of the line.
-!     %color     -- Integer: Line color.
+!     %color     -- Character(*): Line color.
 !-
 
 subroutine qp_get_line_attrib (style, line)
@@ -4011,9 +4006,9 @@ end subroutine qp_get_line_attrib
 !                 'AXIS'     -- Graph axis.
 !                 'LEGEND    -- Line legend.
 !                 'STD'      -- Everything else. Default.
-!   pattern   -- Integer, optional: Line type.
+!   pattern   -- Character(*), optional: Line type.
 !   width     -- Integer, optional: Size of the line.
-!   color     -- Integer, optional: Line color.
+!   color     -- Character(*), optional: Line color.
 !   clip      -- Logical, optional: Clip at graph boundary?
 !                  Note: This sets the symbol clip also.
 !-
@@ -4024,11 +4019,11 @@ implicit none
 
 type (qp_line_struct), pointer :: this
 
-integer, optional :: pattern, width, color
+integer, optional :: width
 logical, optional :: clip
 
-character(*), optional :: style
-character(16) :: r_name = 'qp_set_line_attrib'
+character(*), optional :: style, pattern, color
+character(*), parameter :: r_name = 'qp_set_line_attrib'
 
 
 !
@@ -4055,9 +4050,9 @@ if (present(color)) this%color = color
 if (present(pattern)) this%pattern = pattern
 
 call qp_set_clip (clip)
-call qp_set_color_basic (this%color)
+call qp_set_color_basic (qp_string_to_enum(this%color, 'color'))
 call qp_set_line_width_basic (this%width)
-call qp_set_line_pattern_basic (this%pattern)       
+call qp_set_line_pattern_basic (qp_string_to_enum(this%pattern, 'line_pattern'))
 
 end subroutine qp_set_line_attrib
 
@@ -4155,8 +4150,8 @@ end subroutine qp_subset_box
 !            "AXIS_NUMBERS"  qp_draw_graph        Axes Numbers.
 !            "AXIS_LABEL"    qp_draw_graph        Axis label.
 !   height      -- Real(rp), optional: Character height.
-!   color       -- Integer, optional: Color index.
-!   background  -- Integer, optional: Background color index.
+!   color       -- Character(*), optional: Color index.
+!   background  -- Character(*), optional: Background color index.
 !   uniform_spacing -- Logical, optional: If T then the distance between 
 !                      characters is uniform.
 !   spacing_factor  -- Real(rp), optional: Spacing factor for the 
@@ -4168,10 +4163,10 @@ subroutine qp_get_text_attrib (who, height, color, background, &
 
 implicit none
 
-integer, optional :: color, background
 real(rp), optional :: height, spacing_factor
 logical, optional :: uniform_spacing
 character(*) who
+character(*), optional :: color, background
 character(24) :: r_name = 'qp_set_text_attrib'
 
 !
@@ -4249,8 +4244,8 @@ end subroutine qp_get_text_attrib
 !            "AXIS_LABEL"    qp_draw_graph        Axis label.
 !            "TEXT"          qp_draw_text         Everything else.
 !   height      -- Real(rp), optional: Character height.
-!   color       -- Integer, optional: Color index.
-!   background  -- Integer, optional: Background color index.
+!   color       -- Character(*), optional: Color index.
+!   background  -- Character(*), optional: Background color index.
 !   uniform_spacing -- Logical, optional: If T then the distance between 
 !                      characters is uniform.
 !   spacing_factor  -- Real(rp), optional: Spacing factor for the 
@@ -4262,11 +4257,11 @@ subroutine qp_set_text_attrib (who, height, color, background, &
 
 implicit none
 
-integer, optional :: color, background
 real(rp), optional :: height, spacing_factor
 logical, optional :: uniform_spacing
 character(*) who
-character(16) :: r_name = 'qp_set_text_attrib'
+character(*), optional :: color, background
+character(*), parameter :: r_name = 'qp_set_text_attrib'
 
 !
 
@@ -4318,8 +4313,8 @@ endif
 text_height = this_text%height * qp_com%text_scale
 
 call qp_set_char_size_basic (text_height)
-call qp_set_color_basic (this_text%color)
-call qp_set_text_background_color_basic (qp_com%text_background)
+call qp_set_color_basic (qp_string_to_enum(this_text%color, 'color'))
+call qp_set_text_background_color_basic (qp_string_to_enum(qp_com%text_background, 'color'))
 call qp_set_line_width_basic (1)
 
 qp_com%this_text = this_text
@@ -4358,7 +4353,7 @@ integer i, j, m_div, who_sign, divisions, n_draw, major_div
 
 character(*) who
 character(16) justify, str
-character(16) :: r_name = 'qp_draw_x_axis'
+character(*), parameter :: r_name = 'qp_draw_x_axis'
 
 ! save state
 
@@ -4525,7 +4520,7 @@ integer i, j, m_div, who_sign, number_side, divisions, n_draw, major_div
 character(*) who
 character(2) justify
 character(16) str
-character(16) :: r_name = 'qp_draw_y_axis'
+character(*), parameter :: r_name = 'qp_draw_y_axis'
 
 ! save state
   
@@ -5169,7 +5164,7 @@ integer, optional :: ix_col, iy_col, iz_col, it_col
 logical err_flag, good_x, good_y, good_z, good_t
 
 character(140) line, line_in
-character(16) :: r_name = 'qp_read_data'
+character(*), parameter :: r_name = 'qp_read_data'
 
 !
 
