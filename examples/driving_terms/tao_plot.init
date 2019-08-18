@@ -41,19 +41,19 @@ the plot page) is broken up.
   curve(1)%y_axis_scale_factor = 1000
   curve(1)%draw_symbols = F
   curve(1)%data_type = 'dynamic_aperture'
-  curve(1)%line%color = 1
+  curve(1)%line%color = "black"
   curve(1)%line%width = 5
 
   curve(2)%y_axis_scale_factor = 1000
   curve(2)%draw_symbols = F
   curve(2)%data_type = 'dynamic_aperture'
-  curve(2)%line%color = 2
+  curve(2)%line%color = "red"
   curve(2)%line%width = 3
 
   curve(3)%y_axis_scale_factor = 1000
   curve(3)%draw_symbols = F
   curve(3)%data_type = 'dynamic_aperture'
-  curve(3)%line%color = 3
+  curve(3)%line%color = "green"
   curve(3)%line%width = 3
 /
 
