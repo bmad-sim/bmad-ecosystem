@@ -49,7 +49,7 @@ Templates define the basics of, say, how to display an orbit.
   curve(2)%draw_symbols = F
   curve(3)%draw_symbols = F
   curve(3)%data_type = 'physical_aperture'
-  curve(3)%line%color = 2
+  curve(3)%line%color = "red"
   curve(3)%line%width = 5
  /
 

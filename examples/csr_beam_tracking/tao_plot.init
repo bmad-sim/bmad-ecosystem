@@ -166,7 +166,7 @@ the plot page) is broken up.
   curve(1)%y_axis_scale_factor = 1000.0 !1->10^-3 relative
   curve(1)%data_source = 'beam_tracking'
   curve(1)%ele_ref_name = "BEGINNING"
-  curve(1)%symbol%type = 1
+  curve(1)%symbol%type = "dot"
 /
 
 !--------------------------------------------------------------

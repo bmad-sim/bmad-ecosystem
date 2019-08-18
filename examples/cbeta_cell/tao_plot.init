@@ -176,7 +176,7 @@ the plot page) is broken up.
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'beta.a'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
   curve(1)%legend_text = '\gb\dx\u'
@@ -185,7 +185,7 @@ the plot page) is broken up.
   curve(2)%data_type   = 'beta.b'
   curve(2)%y_axis_scale_factor = 1
   curve(2)%draw_symbols=.false.
-  curve(2)%line%color = 3
+  curve(2)%line%color = "green"
   curve(2)%line%width= 2
   curve(2)%legend_text = '\gb\dy\u'
 /
@@ -215,7 +215,7 @@ the plot page) is broken up.
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'rel_floor.x'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
   curve(1)%smooth_line_calc = .false.
@@ -251,13 +251,13 @@ the plot page) is broken up.
   curve(1)%hist%density_normalized = T
   curve(1)%hist%weight_by_charge = T
   curve(1)%hist%number = 100
-  curve(1)%line%color = 4
-  curve(1)%line%pattern = 2
+  curve(1)%line%color = "blue"
+  curve(1)%line%pattern = "dashed"
   curve(1)%y_axis_scale_factor = 299792458  !Q/m * c_light
   curve(1)%data_type = 'z' 
   curve(1)%data_source = 'beam_tracking'
   curve(1)%ele_ref_name = "BEGINNING"
-  curve(1)%symbol%type = 1
+  curve(1)%symbol%type = "dot"
 /  
 
 !------------  bends ------------
@@ -285,7 +285,7 @@ the plot page) is broken up.
   curve(1)%data_source = 'lattice'
   curve(1)%data_type = 'element_attrib.b_field'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color = 2 
+  curve(1)%line%color = "red" 
   curve(1)%line%width = 2
   curve(1)%draw_symbols = .false.
   curve(1)%legend_text  = '\gb\dx\u'
@@ -317,7 +317,7 @@ the plot page) is broken up.
   curve(1)%data_source = 'lattice'
   curve(1)%data_type = 'element_param.k1'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color = 2 
+  curve(1)%line%color = "red" 
   curve(1)%line%width = 2
   curve(1)%draw_symbols = .false.
   curve(1)%legend_text  = '\gb\dx\u'
@@ -349,7 +349,7 @@ the plot page) is broken up.
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'beta.a'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
   curve(1)%legend_text = '\gb\dx\u'
@@ -358,7 +358,7 @@ the plot page) is broken up.
   curve(2)%data_type   = 'beta.b'
   curve(2)%y_axis_scale_factor = 1
   curve(2)%draw_symbols=.false.
-  curve(2)%line%color = 3
+  curve(2)%line%color = "green"
   curve(2)%line%width= 2
   curve(2)%legend_text = '\gb\dy\u'
 /
@@ -391,14 +391,14 @@ the plot page) is broken up.
   curve(1)%y_axis_scale_factor = 1
   curve(1)%draw_symbols=.false.
   curve(1)%line%width=2
-  !curve(1)%line%color=2
+  !curve(1)%line%color = "red"
 
   curve(2)%data_source = 'lattice'
   curve(2)%data_type   = 'eta.y'
   curve(2)%legend_text = '\gy\dy\u'
   curve(2)%y_axis_scale_factor = 1
   curve(2)%draw_symbols=.false.
-  curve(2)%line%color=3
+  curve(2)%line%color = "green"
   curve(2)%line%width=2
 /
 
@@ -428,7 +428,7 @@ the plot page) is broken up.
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'eta.x'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
   curve(1)%legend_text = 'r\d16\u'
@@ -437,10 +437,10 @@ the plot page) is broken up.
   curve(2)%data_type   = 't.166'
   curve(2)%y_axis_scale_factor = 1
   curve(2)%ele_ref_name = 'BEGINNING'
-  curve(2)%line%pattern=4
+  curve(2)%line%pattern = "dotted"
   curve(2)%smooth_line_calc = .false.
   curve(2)%draw_symbols=.false.
-  curve(2)%line%color = 1
+  curve(2)%line%color = "black"
   curve(2)%line%width= 2
   curve(2)%legend_text = 't\d166\u'
 /
@@ -470,7 +470,7 @@ the plot page) is broken up.
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'phase.a'
   curve(1)%y_axis_scale_factor = 0.1591549430 !this is 1/(2pi)
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
   curve(1)%legend_text = '\gf\da\u'
@@ -479,7 +479,7 @@ the plot page) is broken up.
   curve(2)%data_type   = 'phase.b'
   curve(2)%y_axis_scale_factor = 0.1591549430 !this is 1/(2pi)
   curve(2)%draw_symbols=.false.
-  curve(2)%line%color = 3
+  curve(2)%line%color = "green"
   curve(2)%line%width= 2
   curve(2)%legend_text = '\gf\db\u'
 /
@@ -511,7 +511,7 @@ the plot page) is broken up.
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'orbit.x'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color = 1
+  curve(1)%line%color = "black"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
   curve(1)%legend_text = 'orbit.x'
@@ -522,7 +522,7 @@ the plot page) is broken up.
   curve(2)%data_type   = 'orbit.y'
   curve(2)%y_axis_scale_factor = 1
   curve(2)%draw_symbols=.false.
-  curve(2)%line%color = 3
+  curve(2)%line%color = "green"
   curve(2)%line%width= 2
   curve(2)%legend_text = 'orbit.y'
   curve(2)%y_axis_scale_factor = 1000
@@ -555,7 +555,7 @@ the plot page) is broken up.
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'orbit.x'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color = 1
+  curve(1)%line%color = "black"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
   curve(1)%legend_text = 'orbit.x'
@@ -567,7 +567,7 @@ the plot page) is broken up.
   curve(2)%data_type   = 'orbit.y'
   curve(2)%y_axis_scale_factor = 1
   curve(2)%draw_symbols=.false.
-  curve(2)%line%color = 3
+  curve(2)%line%color = "green"
   curve(2)%line%width= 2
   curve(2)%legend_text = 'orbit.y'
   curve(2)%y_axis_scale_factor = 1000
@@ -601,7 +601,7 @@ the plot page) is broken up.
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'expression: beam::orbit.x|model - lat::orbit.x|design'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color = 1
+  curve(1)%line%color = "black"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
   curve(1)%legend_text = 'orbit.x'
@@ -613,7 +613,7 @@ the plot page) is broken up.
   curve(2)%data_type   = 'expression: beam::orbit.y|model - lat::orbit.y|design'
   curve(2)%y_axis_scale_factor = 1
   curve(2)%draw_symbols=.false.
-  curve(2)%line%color = 3
+  curve(2)%line%color = "green"
   curve(2)%line%width= 2
   curve(2)%legend_text = 'orbit.y'
   curve(2)%y_axis_scale_factor = 1000
@@ -653,7 +653,7 @@ the plot page) is broken up.
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'orbit.x'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color = 2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
   curve(1)%legend_text = '1@orbit.x'
@@ -663,7 +663,7 @@ the plot page) is broken up.
   curve(2)%data_source = 'lattice'
   curve(2)%data_type   = 'orbit.x'
   curve(2)%y_axis_scale_factor = 1
-  curve(2)%line%color = 8
+  curve(2)%line%color = "orange"
   curve(2)%line%width=2
   curve(2)%draw_symbols=.false.
   curve(2)%legend_text = '2@orbit.x'
@@ -673,7 +673,7 @@ the plot page) is broken up.
   curve(3)%data_source = 'lattice'
   curve(3)%data_type   = 'orbit.x'
   curve(3)%y_axis_scale_factor = 1
-  curve(3)%line%color = 11
+  curve(3)%line%color = "navy_blue"
   curve(3)%line%width=2
   curve(3)%draw_symbols=.false.
   curve(3)%legend_text = '3@orbit.x'
@@ -683,7 +683,7 @@ the plot page) is broken up.
   curve(4)%data_source = 'lattice'
   curve(4)%data_type   = 'orbit.x'
   curve(4)%y_axis_scale_factor = 1
-  curve(4)%line%color = 12
+  curve(4)%line%color = "purple"
   curve(4)%line%width=2
   curve(4)%draw_symbols=.false.
   curve(4)%legend_text = '4@orbit.x'
@@ -723,7 +723,7 @@ the plot page) is broken up.
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'beta.a'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color = 2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
   curve(1)%legend_text = '1@beta.a'
@@ -733,18 +733,18 @@ the plot page) is broken up.
   curve(2)%data_source = 'lattice'
   curve(2)%data_type   = 'beta.b'
   curve(2)%y_axis_scale_factor = 1
-  curve(2)%line%color = 2
+  curve(2)%line%color = "red"
   curve(2)%line%width=2
   curve(2)%draw_symbols=.false.
   curve(2)%legend_text = '1@beta.b'
   curve(2)%y_axis_scale_factor = 1
-  curve(2)%line%pattern = 2
+  curve(2)%line%pattern = "dashed"
   
   curve(3)%ix_universe = -1
   curve(3)%data_source = 'lattice'
   curve(3)%data_type   = 'beta.a'
   curve(3)%y_axis_scale_factor = 1
-  curve(3)%line%color = 8
+  curve(3)%line%color = "orange"
   curve(3)%line%width=2
   curve(3)%draw_symbols=.false.
   curve(3)%legend_text = '2@beta.a'
@@ -754,18 +754,18 @@ the plot page) is broken up.
   curve(4)%data_source = 'lattice'
   curve(4)%data_type   = 'beta.b'
   curve(4)%y_axis_scale_factor = 1
-  curve(4)%line%color = 8
+  curve(4)%line%color = "orange"
   curve(4)%line%width=2
   curve(4)%draw_symbols=.false.
   curve(4)%legend_text = '2@beta.b'
   curve(4)%y_axis_scale_factor = 1
-  curve(4)%line%pattern = 2
+  curve(4)%line%pattern = "dashed"
 
   curve(5)%ix_universe = -1
   curve(5)%data_source = 'lattice'
   curve(5)%data_type   = 'beta.a'
   curve(5)%y_axis_scale_factor = 1
-  curve(5)%line%color = 11
+  curve(5)%line%color = "navy_blue"
   curve(5)%line%width=2
   curve(5)%draw_symbols=.false.
   curve(5)%legend_text = '3@beta.a'
@@ -775,18 +775,18 @@ the plot page) is broken up.
   curve(6)%data_source = 'lattice'
   curve(6)%data_type   = 'beta.b'
   curve(6)%y_axis_scale_factor = 1
-  curve(6)%line%color = 11
+  curve(6)%line%color = "navy_blue"
   curve(6)%line%width=2
   curve(6)%draw_symbols=.false.
   curve(6)%legend_text = '3@beta.b'
   curve(6)%y_axis_scale_factor = 1
-  curve(6)%line%pattern = 2
+  curve(6)%line%pattern = "dashed"
   
   curve(7)%ix_universe = -1
   curve(7)%data_source = 'lattice'
   curve(7)%data_type   = 'beta.a'
   curve(7)%y_axis_scale_factor = 1
-  curve(7)%line%color = 12
+  curve(7)%line%color = "purple"
   curve(7)%line%width=2
   curve(7)%draw_symbols=.false.
   curve(7)%legend_text = '4@beta.a'
@@ -796,12 +796,12 @@ the plot page) is broken up.
   curve(8)%data_source = 'lattice'
   curve(8)%data_type   = 'beta.b'
   curve(8)%y_axis_scale_factor = 1
-  curve(8)%line%color = 12
+  curve(8)%line%color = "purple"
   curve(8)%line%width=2
   curve(8)%draw_symbols=.false.
   curve(8)%legend_text = '4@beta.b'
   curve(8)%y_axis_scale_factor = 1
-  curve(8)%line%pattern = 2
+  curve(8)%line%pattern = "dashed"
 
 /
 
@@ -836,7 +836,7 @@ the plot page) is broken up.
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'phase.a'
   curve(1)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
-  curve(1)%line%color = 2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
   curve(1)%legend_text = '1@phase.a'
@@ -846,18 +846,18 @@ the plot page) is broken up.
   curve(2)%data_source = 'lattice'
   curve(2)%data_type   = 'phase.b'
   curve(2)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
-  curve(2)%line%color = 2
+  curve(2)%line%color = "red"
   curve(2)%line%width=2
   curve(2)%draw_symbols=.false.
   curve(2)%legend_text = '1@phase.b'
   curve(2)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
-  curve(2)%line%pattern = 2
+  curve(2)%line%pattern = "dashed"
   
   curve(3)%ix_universe = -1
   curve(3)%data_source = 'lattice'
   curve(3)%data_type   = 'phase.a'
   curve(3)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
-  curve(3)%line%color = 8
+  curve(3)%line%color = "orange"
   curve(3)%line%width=2
   curve(3)%draw_symbols=.false.
   curve(3)%legend_text = '2@phase.a'
@@ -867,18 +867,18 @@ the plot page) is broken up.
   curve(4)%data_source = 'lattice'
   curve(4)%data_type   = 'phase.b'
   curve(4)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
-  curve(4)%line%color = 8
+  curve(4)%line%color = "orange"
   curve(4)%line%width=2
   curve(4)%draw_symbols=.false.
   curve(4)%legend_text = '2@phase.b'
   curve(4)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
-  curve(4)%line%pattern = 2
+  curve(4)%line%pattern = "dashed"
 
   curve(5)%ix_universe = -1
   curve(5)%data_source = 'lattice'
   curve(5)%data_type   = 'phase.a'
   curve(5)%y_axis_scale_factor = 0.1591549430 !this is 1/(2pi)
-  curve(5)%line%color = 11
+  curve(5)%line%color = "navy_blue"
   curve(5)%line%width=2
   curve(5)%draw_symbols=.false.
   curve(5)%legend_text = '3@phase.a'
@@ -888,18 +888,18 @@ the plot page) is broken up.
   curve(6)%data_source = 'lattice'
   curve(6)%data_type   = 'phase.b'
   curve(6)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
-  curve(6)%line%color = 11
+  curve(6)%line%color = "navy_blue"
   curve(6)%line%width=2
   curve(6)%draw_symbols=.false.
   curve(6)%legend_text = '3@phase.b'
   curve(6)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
-  curve(6)%line%pattern = 2
+  curve(6)%line%pattern = "dashed"
   
   curve(7)%ix_universe = -1
   curve(7)%data_source = 'lattice'
   curve(7)%data_type   = 'phase.a'
   curve(7)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
-  curve(7)%line%color = 12
+  curve(7)%line%color = "purple"
   curve(7)%line%width=2
   curve(7)%draw_symbols=.false.
   curve(7)%legend_text = '4@phase.a'
@@ -909,12 +909,12 @@ the plot page) is broken up.
   curve(8)%data_source = 'lattice'
   curve(8)%data_type   = 'phase.b'
   curve(8)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
-  curve(8)%line%color = 12
+  curve(8)%line%color = "purple"
   curve(8)%line%width=2
   curve(8)%draw_symbols=.false.
   curve(8)%legend_text = '4@phase.b'
   curve(8)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
-  curve(8)%line%pattern = 2
+  curve(8)%line%pattern = "dashed"
 
 /
 
@@ -949,7 +949,7 @@ the plot page) is broken up.
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'eta.x'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color = 2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
   curve(1)%legend_text = '1@eta.x'
@@ -959,7 +959,7 @@ the plot page) is broken up.
   curve(2)%data_source = 'lattice'
   curve(2)%data_type   = 'eta.x'
   curve(2)%y_axis_scale_factor = 1
-  curve(2)%line%color = 8
+  curve(2)%line%color = "orange"
   curve(2)%line%width=2
   curve(2)%draw_symbols=.false.
   curve(2)%legend_text = '2@eta.x'
@@ -969,7 +969,7 @@ the plot page) is broken up.
   curve(3)%data_source = 'lattice'
   curve(3)%data_type   = 'eta.x'
   curve(3)%y_axis_scale_factor = 1
-  curve(3)%line%color = 11
+  curve(3)%line%color = "navy_blue"
   curve(3)%line%width=2
   curve(3)%draw_symbols=.false.
   curve(3)%legend_text = '3@eta.x'
@@ -979,7 +979,7 @@ the plot page) is broken up.
   curve(4)%data_source = 'lattice'
   curve(4)%data_type   = 'eta.x'
   curve(4)%y_axis_scale_factor = 1
-  curve(4)%line%color = 12
+  curve(4)%line%color = "purple"
   curve(4)%line%width=2
   curve(4)%draw_symbols=.false.
   curve(4)%legend_text = '4@eta.x'
@@ -1018,7 +1018,7 @@ the plot page) is broken up.
   curve(1)%data_type   = 'momentum_compaction'
   curve(1)%smooth_line_calc = .false.
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
 /
@@ -1057,7 +1057,7 @@ the plot page) is broken up.
   curve(1)%ele_ref_name = 'BEGINNING'
   curve(1)%draw_symbols=.false.
   curve(1)%line%width=2
-  curve(1)%line%color=4
+  curve(1)%line%color = "blue"
 
 /
 
@@ -1091,7 +1091,7 @@ the plot page) is broken up.
   curve(1)%smooth_line_calc = .false.
   curve(1)%ele_ref_name = 'BEGINNING'
   curve(1)%line%width=2
-  curve(1)%line%color=4
+  curve(1)%line%color = "blue"
   curve(1)%draw_symbols=.false.
 
 /
@@ -1124,7 +1124,7 @@ the plot page) is broken up.
   curve(1)%smooth_line_calc = .false.
   curve(1)%ele_ref_name = 'BEGINNING' 
   curve(1)%line%width=2
-  curve(1)%line%color=4
+  curve(1)%line%color = "blue"
   curve(1)%draw_symbols=.false.
   curve(1)%legend_text = '\gb\dx\u'
 
@@ -1157,7 +1157,7 @@ the plot page) is broken up.
   curve(1)%data_source = 'lattice'
   curve(1)%data_type = 'e_tot'
   curve(1)%y_axis_scale_factor = 1e-6
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
   curve(1)%legend_text = '\gb\dx\u' 
@@ -1188,7 +1188,7 @@ the plot page) is broken up.
   curve(1)%data_source = 'beam_tracking'
   curve(1)%data_type = 'x-px' 
   curve(1)%y_axis_scale_factor = 1e6
-  curve(1)%symbol%type = 1
+  curve(1)%symbol%type = "dot"
   curve(1)%ele_ref_name = "BEGINNING"
   curve(1)%legend_text = '\gb\dx\u'
 
@@ -1235,7 +1235,7 @@ the plot page) is broken up.
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'beta.a'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
   curve(1)%legend_text = '\gb\dx\u'
@@ -1243,7 +1243,7 @@ the plot page) is broken up.
   curve(2)%data_type   = 'beta.b'
   curve(2)%y_axis_scale_factor = 1
   curve(2)%draw_symbols=.false.
-  curve(2)%line%color = 3
+  curve(2)%line%color = "green"
   curve(2)%line%width=2
   curve(2)%legend_text = '\gb\dy\u'
 /
@@ -1361,7 +1361,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%data_source = 'beam_tracking'
   curve(1)%ix_universe = 1
   curve(1)%ele_ref_name = "BEGINNING"
-  curve(1)%symbol%type = 1
+  curve(1)%symbol%type = "dot"
 /
 
 &tao_template_plot
@@ -1391,7 +1391,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%data_source = 'beam_tracking'
   curve(1)%ix_universe = 1
   curve(1)%ele_ref_name = "BEGINNING"
-  curve(1)%symbol%type = 1
+  curve(1)%symbol%type = "dot"
 /
 !--------------------------------------------------------------
 
@@ -1422,7 +1422,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%y_axis_scale_factor = 1000.0 !1->10^-3 relative
   curve(1)%data_source = 'beam_tracking'
   curve(1)%ele_ref_name = "BEGINNING"
-  curve(1)%symbol%type = 1
+  curve(1)%symbol%type = "dot"
 /
 
 !--------------------------------------------------------------
@@ -1459,7 +1459,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%data_source = 'beam_tracking'
   curve(1)%ix_universe = 1
   curve(1)%ele_ref_name = "BEGINNING"
-  curve(1)%symbol%type = 1
+  curve(1)%symbol%type = "dot"
 /
 
 
@@ -1493,7 +1493,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%data_source = 'beam_tracking'
   curve(1)%ix_universe = 1
   curve(1)%ele_ref_name = "BEGINNING"
-  curve(1)%symbol%type = 1
+  curve(1)%symbol%type = "dot"
 /
 
 
@@ -1525,7 +1525,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%data_source = 'beam_tracking'
   curve(1)%ix_universe = 1
   curve(1)%ele_ref_name = "BEGINNING"
-  curve(1)%symbol%type = 1
+  curve(1)%symbol%type = "dot"
 /
 
 
@@ -1563,7 +1563,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'alpha.a'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
   curve(1)%legend_text = '\ga\dx\u'
@@ -1571,7 +1571,7 @@ curve(2)%legend_text = 'Y'
   curve(2)%data_type   = 'alpha.b'
   curve(2)%y_axis_scale_factor = 1
   curve(2)%draw_symbols=.false.
-  curve(2)%line%color = 3
+  curve(2)%line%color = "green"
   curve(2)%line%width=2
   curve(2)%legend_text = '\ga\dy\u'
 /
@@ -1608,7 +1608,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'beta.a'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
   curve(1)%legend_text = '\gb\dx\u'
@@ -1616,7 +1616,7 @@ curve(2)%legend_text = 'Y'
   curve(2)%data_type   = 'beta.b'
   curve(2)%y_axis_scale_factor = 1
   curve(2)%draw_symbols=.false.
-  curve(2)%line%color = 3
+  curve(2)%line%color = "green"
   curve(2)%line%width=2
   curve(2)%legend_text = '\gb\dy\u'
 /
@@ -1660,14 +1660,14 @@ curve(2)%legend_text = 'Y'
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'beta.a'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
   curve(2)%data_source = 'lattice'
   curve(2)%data_type   = 'eta.a'
   curve(2)%y_axis_scale_factor = 1
   curve(2)%draw_symbols=.false.
-  curve(2)%line%color = 3
+  curve(2)%line%color = "green"
   curve(2)%line%width=2
 /
 
@@ -1697,28 +1697,28 @@ curve(2)%legend_text = 'Y'
   curve(1)%data_source = 'beam_tracking'
   curve(1)%data_type   = 'beta.a'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(2)%data_source = 'beam_tracking'
   curve(2)%data_type   = 'beta.b'
   curve(2)%y_axis_scale_factor = 1
-  curve(2)%line%color = 3
+  curve(2)%line%color = "green"
   curve(2)%line%width=2
   
   curve(3)%data_source = 'lattice'
   curve(3)%data_type   = 'beta.a'
   curve(3)%legend_text = 'Lattice \gb\dx\u'	
   curve(3)%y_axis_scale_factor = 1
-  curve(3)%line%color=2
+  curve(3)%line%color = "red"
   curve(3)%line%width=2
-  curve(3)%line%pattern= 2 !Dashed
+  curve(3)%line%pattern = "dashed" !Dashed
   curve(4)%data_source = 'lattice'
   curve(4)%data_type   = 'beta.b'
   curve(4)%legend_text = 'Lattice \gb\dy\u'	
   curve(4)%y_axis_scale_factor = 1
-  curve(4)%line%color=3
+  curve(4)%line%color = "green"
   curve(4)%line%width=2
-  curve(4)%line%pattern= 2 !Dashed
+  curve(4)%line%pattern = "dashed" !Dashed
  /
   
 /
@@ -1749,13 +1749,13 @@ curve(2)%legend_text = 'Y'
   curve(1)%data_source = 'beam_tracking'
   curve(1)%data_type   = 'eta.x'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(1)%legend_text = 'beam \gy\dx\u'
   curve(2)%data_source = 'beam_tracking'
   curve(2)%data_type   = 'etap.x'
   curve(2)%y_axis_scale_factor = 1
-  curve(2)%line%color = 3
+  curve(2)%line%color = "green"
   curve(2)%line%width=2
   curve(2)%legend_text = 'beam \gy\dy\u'
 /
@@ -1794,7 +1794,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%y_axis_scale_factor = 1
   curve(1)%draw_symbols=.false.
   curve(1)%line%width=2
-  !curve(1)%line%color=2
+  !curve(1)%line%color = "red"
 /
 
 
@@ -1828,12 +1828,12 @@ curve(2)%legend_text = 'Y'
   curve(1)%y_axis_scale_factor = 1
   curve(1)%draw_symbols=.false.
   curve(1)%line%width=2
-  !curve(1)%line%color=2
+  !curve(1)%line%color = "red"
   curve(2)%data_source = 'lattice'
   curve(2)%data_type   = 'etap.y'
   curve(2)%y_axis_scale_factor = 1
   curve(2)%draw_symbols=.false.
-  curve(2)%line%color=3
+  curve(2)%line%color = "green"
   curve(2)%line%width=2
 /
 
@@ -1875,10 +1875,10 @@ curve(2)%legend_text = 'Y'
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
   !curve(1)%smooth_line_calc = .false.
-  !curve(1)%line%color=2
+  !curve(1)%line%color = "red"
   curve(1)%legend_text = 'r\d16\u (m)'
   curve(2)%data_source = 'lattice'
-  curve(2)%line%pattern=4
+  curve(2)%line%pattern = "dotted"
   curve(2)%data_type   = 't.166'
   curve(2)%smooth_line_calc = .false.
   curve(2)%ele_ref_name = 'BEGINNING'
@@ -1886,7 +1886,7 @@ curve(2)%legend_text = 'Y'
   curve(2)%draw_symbols=.false.
   curve(2)%line%width=2
   curve(2)%legend_text = 't\d166\u (10m)'
-  curve(2)%line%color=2    !1:Black 2:Red 3:Blue . . . see bottom of this file
+  curve(2)%line%color = "red"    !1:Black 2:Red 3:Blue . . . see bottom of this file
 /
 
 
@@ -1915,12 +1915,12 @@ curve(2)%legend_text = 'Y'
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'orbit.amp_a'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(2)%data_source = 'lattice'
   curve(2)%data_type   = 'orbit.amp_b'
   curve(2)%y_axis_scale_factor = 1
-  curve(2)%line%color = 3
+  curve(2)%line%color = "green"
   curve(2)%line%width=2
 /
 
@@ -1966,7 +1966,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%ele_ref_name = 'BEGINNING'
   curve(1)%draw_symbols=.false.
   curve(1)%line%width=2
-  curve(1)%line%color=1
+  curve(1)%line%color = "black"
   curve(2)%data_source = 'lattice'
   curve(2)%legend_text = 't\d566\u'
   curve(2)%data_type = 't.566'
@@ -1974,9 +1974,9 @@ curve(2)%legend_text = 'Y'
   curve(2)%smooth_line_calc = .false.
   curve(2)%ele_ref_name = 'BEGINNING'
   curve(2)%draw_symbols=.false.
-  curve(2)%line%color=1
+  curve(2)%line%color = "black"
   curve(2)%line%width=2
-  curve(2)%line%pattern=4
+  curve(2)%line%pattern = "dotted"
 /
 
 
@@ -2013,7 +2013,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%ele_ref_name = 'BEGINNING'
   curve(1)%draw_symbols=.false.
   curve(1)%line%width=2
-  curve(1)%line%color=1
+  curve(1)%line%color = "black"
   curve(2)%data_source = 'lattice'
   curve(2)%legend_text = 't\d566\u (m)'
   curve(2)%data_type = 't.566'
@@ -2021,9 +2021,9 @@ curve(2)%legend_text = 'Y'
   curve(2)%smooth_line_calc = .false.
   curve(2)%ele_ref_name = 'BEGINNING'
   curve(2)%draw_symbols=.false.
-  curve(2)%line%color=2
+  curve(2)%line%color = "red"
   curve(2)%line%width=2
-  curve(2)%line%pattern=4
+  curve(2)%line%pattern = "dotted"
 /
 
 
@@ -2072,27 +2072,27 @@ curve(2)%legend_text = 'Y'
   curve(1)%y_axis_scale_factor = 1
   curve(1)%draw_symbols=.false.
   curve(1)%line%width=2
-  curve(1)%line%color=1
+  curve(1)%line%color = "black"
   curve(2)%data_source = 'lattice'
   curve(2)%y_axis_scale_factor = 1
   curve(2)%draw_symbols=.false.
   curve(2)%line%width=2
-  curve(2)%line%color=2
+  curve(2)%line%color = "red"
   curve(3)%data_source = 'lattice'
   curve(3)%y_axis_scale_factor = 1
   curve(3)%draw_symbols=.false.
   curve(3)%line%width=2
-  curve(3)%line%color=3
+  curve(3)%line%color = "green"
   curve(4)%data_source = 'lattice'
   curve(4)%y_axis_scale_factor = 1
   curve(4)%draw_symbols=.false.
   curve(4)%line%width=2
-  curve(4)%line%color=4
+  curve(4)%line%color = "blue"
 !  curve(5)%data_source = 'lattice'
 !  curve(5)%y_axis_scale_factor = 1
 !  curve(5)%draw_symbols=.false.
 !  curve(5)%line%width=2
-!  curve(5)%line%color=5
+!  curve(5)%line%color = "cyan"
 /
 
 
@@ -2129,7 +2129,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%ele_ref_name = 'BEGINNING'
   curve(1)%draw_symbols=.false.
   curve(1)%line%width=2
-  curve(1)%line%color=1
+  curve(1)%line%color = "black"
 /
 
 !-------------- u5666 -----------------------------------
@@ -2165,7 +2165,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%ele_ref_name = 'BEGINNING'
   curve(1)%draw_symbols=.false.
   curve(1)%line%width=2
-  curve(1)%line%color=1
+  curve(1)%line%color = "black"
 /
 
 
@@ -2265,7 +2265,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%ele_ref_name = 'BEGINNING'
   curve(1)%draw_symbols=.false.
   curve(1)%line%width=2
-  !curve(1)%line%color=2
+  !curve(1)%line%color = "red"
 /
 
 !-------------- t166 -----------------------------------
@@ -2298,7 +2298,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%ele_ref_name = 'BEGINNING'
   curve(1)%draw_symbols=.false.
   curve(1)%line%width=2
-  !curve(1)%line%color=2
+  !curve(1)%line%color = "red"
 /
 !-------------- t266 -----------------------------------
 
@@ -2328,7 +2328,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%y_axis_scale_factor = 1
   curve(1)%ele_ref_name = 'BEGINNING'
   curve(1)%line%width=2
-  !curve(1)%line%color=2
+  !curve(1)%line%color = "red"
 /
 !-------------- t566 -----------------------------------
 
@@ -2358,7 +2358,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%y_axis_scale_factor = 1
   curve(1)%ele_ref_name = 'BEGINNING'
   curve(1)%draw_symbols=.false.
-  !curve(1)%line%color=2
+  !curve(1)%line%color = "red"
   curve(1)%line%width=2
 /
 !-------------- pt566 -----------------------------------
@@ -2390,7 +2390,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%smooth_line_calc = .false.
   !curve(1)%ele_ref_name = 'BEGINNING'
   curve(1)%draw_symbols=.false.
-  !curve(1)%line%color=2
+  !curve(1)%line%color = "red"
   curve(1)%line%width=2
 /
 
@@ -2424,7 +2424,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%ele_ref_name = 'BEGINNING'
   curve(1)%draw_symbols=.false.
   curve(1)%line%width=2
-  !curve(1)%line%color=2
+  !curve(1)%line%color = "red"
 /
 
 
@@ -2461,28 +2461,28 @@ curve(2)%legend_text = 'Y'
   curve(1)%data_type   = 'eta.x'
   curve(1)%legend_text = 'D\dx\u'	
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(2)%data_source = 'beam_tracking'
   curve(2)%data_type   = 'eta.y'
   curve(2)%legend_text = 'D\dy\u'	
   curve(2)%y_axis_scale_factor = 1
-  curve(2)%line%color=3
+  curve(2)%line%color = "green"
   curve(2)%line%width=2
   curve(3)%data_source = 'lattice'
   curve(3)%data_type   = 'eta.x'
   curve(3)%legend_text = 'Lattice D\dx\u'	
   curve(3)%y_axis_scale_factor = 1
-  curve(3)%line%color=2
+  curve(3)%line%color = "red"
   curve(3)%line%width=2
-  curve(3)%line%pattern= 2 !Dashed
+  curve(3)%line%pattern = "dashed" !Dashed
   curve(4)%data_source = 'lattice'
   curve(4)%data_type   = 'eta.y'
   curve(4)%legend_text = 'Lattice D\dy\u'	
   curve(4)%y_axis_scale_factor = 1
-  curve(4)%line%color=3
+  curve(4)%line%color = "green"
   curve(4)%line%width=2
-  curve(4)%line%pattern= 2 !Dashed
+  curve(4)%line%pattern = "dashed" !Dashed
  /
 
 
@@ -2521,13 +2521,13 @@ curve(2)%legend_text = 'Y'
   curve(1)%data_type   = 'norm_emit.x'
   curve(1)%legend_text = '\ge\dN\u X'	
   curve(1)%y_axis_scale_factor = 1e6
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(2)%data_source = 'beam_tracking'
   curve(2)%data_type   = 'norm_emit.y'
   curve(2)%legend_text = '\ge\dN\u Y'	
   curve(2)%y_axis_scale_factor = 1e6
-  curve(2)%line%color=3
+  curve(2)%line%color = "green"
   curve(2)%line%width=2
  /
 
@@ -2596,14 +2596,14 @@ curve(2)%legend_text = 'Y'
   curve(1)%data_type   = 'sigma.x'
   curve(1)%legend_text = '\gs\dx\u'	
   curve(1)%y_axis_scale_factor = 1e6
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
   curve(2)%data_source = 'beam_tracking'
   curve(2)%data_type   = 'sigma.y'
   curve(2)%legend_text = '\gs\dy\u'	
   curve(2)%y_axis_scale_factor = 1e6
-  curve(2)%line%color=3
+  curve(2)%line%color = "green"
   curve(2)%line%width=2
   curve(2)%draw_symbols=.false.
  /
@@ -2633,7 +2633,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%data_source = 'beam_tracking'
   curve(1)%data_type   = 'sigma.z'
   curve(1)%y_axis_scale_factor = 3335.64095
-  curve(1)%line%color=4
+  curve(1)%line%color = "blue"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
  ! curve(1)%legend_text = '' 
@@ -2669,7 +2669,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%data_source = 'beam_tracking'
   curve(1)%data_type   = 'sigma.pz'
   curve(1)%y_axis_scale_factor = 1e4
-  curve(1)%line%color=4
+  curve(1)%line%color = "blue"
   curve(1)%line%width=2
   /
 !----------------------------------------------------------------
@@ -2730,7 +2730,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%data_source = 'beam_tracking'
   curve(1)%data_type   = 'n_particle_loss'
   curve(1)%y_axis_scale_factor =1
-  curve(1)%line%color=4
+  curve(1)%line%color = "blue"
   curve(1)%line%width=2
   curve(1)%draw_symbols=.false.
 /
@@ -2762,7 +2762,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%data_type   = 'delta_heuristic'
   curve(1)%ele_ref_name = "BEGINNING"
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%draw_symbols=.false.
   curve(1)%smooth_line_calc = .false.
 /
@@ -2792,7 +2792,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%data_source = 'lattice'
   curve(1)%data_type   = 'touschek_heuristic'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%draw_symbols=.false.
   curve(1)%smooth_line_calc = .false.
 /
@@ -2825,7 +2825,7 @@ curve(2)%legend_text = 'Y'
   curve(1)%ele_ref_name = "BEGINNING"
   curve(1)%data_type   = 'touschek_heuristic_integral'
   curve(1)%y_axis_scale_factor = 1
-  curve(1)%line%color=2
+  curve(1)%line%color = "red"
   curve(1)%draw_symbols=.false.
   curve(1)%smooth_line_calc = .false.
 /
@@ -2869,11 +2869,11 @@ curve(2)%legend_text = 'Y'
   curve(5)%line%width = 5
   !curve(1)%data_type = 'dynamic_aperture_centered'
   
-  curve(1)%line%color=2
-  curve(2)%line%color=8
-  curve(3)%line%color=4
-  curve(4)%line%color=12
-  curve(5)%line%color=1
+  curve(1)%line%color = "red"
+  curve(2)%line%color = "orange"
+  curve(3)%line%color = "blue"
+  curve(4)%line%color = "purple"
+  curve(5)%line%color = "black"
 /
 
 
@@ -2938,7 +2938,7 @@ curve(2)%legend_text = 'Y'
  ! curve(2)%data_type = 'patch_offset'
  ! curve(2)%y_axis_scale_factor = 1000
  ! curve(2)%draw_symbols = T
- ! curve(2)%line%color = 2
+ ! curve(2)%line%color = "red"
 /
 
 
@@ -2975,7 +2975,7 @@ curve(2)%legend_text = 'Y'
   curve(2)%data_type = 'fa.correctors.y'
   curve(2)%y_axis_scale_factor = 1e6  ! Gauss*cm
   curve(2)%draw_symbols = T
-  curve(2)%line%color = 2
+  curve(2)%line%color = "red"
   
   curve(3)%data_source = 'var_array'
   curve(3)%data_type = 'za.correctors.x'
@@ -2986,7 +2986,7 @@ curve(2)%legend_text = 'Y'
   curve(4)%data_type = 'za.correctors.y'
   curve(4)%y_axis_scale_factor = 1e6  ! Gauss*cm
   curve(4)%draw_symbols = T
-  curve(4)%line%color = 2
+  curve(4)%line%color = "red"
   
   curve(5)%data_source = 'var_array'
   curve(5)%data_type = 'quad.correctors.x'
@@ -2997,7 +2997,7 @@ curve(2)%legend_text = 'Y'
   curve(6)%data_type = 'quad.correctors.y'
   curve(6)%y_axis_scale_factor = 1e6  ! Gauss*cm
   curve(6)%draw_symbols = T
-  curve(6)%line%color = 2
+  curve(6)%line%color = "red"
   
 
 /
