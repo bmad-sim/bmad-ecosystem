@@ -15,20 +15,21 @@ from matplotlib.backend_managers import ToolManager
 
 
 class taotoolbar(NavigationToolbar2Tk):
-	def __init__(self,canvas_,parent_,width_):
+	def __init__(self,canvas_,parent_,width_,GUI_DIR_):
 		self.basedir = os.path.join(rcParams['datapath'], 'images')
+		self.GUI_DIR = GUI_DIR_
 		self.toolitems = (
 			('Home', 'Reset original view', 'home', 'home'),
 			('Back', 'Back to previous view', 'back', 'back'),
 			('Forward', 'Forward to next view', 'forward', 'forward'),
 			('Pan', 'Pan axes with left mouse, zoom with right mouse or scroll wheel', 'move', 'pan'),
 			('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
-			('Redraw','Recalculate points','subplots','redraw'),
+			('Redraw','Recalculate points',self.GUI_DIR+'/assets/recalculate','redraw'),
 			('Slider','Width slider','subplots','slider'),
 			(None,None,None,None),
 			('Save', 'Save image of figure', 'filesave', 'save_figure'),
 			(None,None,None,None),
-			('Help','Graph help','subplots','help'),
+			('Help','Graph help',self.GUI_DIR+'/assets/help','help'),
 			)
 		self.parent = parent_
 		self.canvas = canvas_
