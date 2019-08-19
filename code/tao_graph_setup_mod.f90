@@ -1449,13 +1449,12 @@ case ('data')
   endif
 
   ! Set %good_plot True for all data that is within the x-axis limits.
-  ! For a circular lattice "wrap around" at s = 0 may mean 
-  !   some data points show up twice.
+  ! For a circular lattice "wrap around" at s = 0 may mean some data points show up twice.
 
   d1_ptr => scratch%d1_array(1)%d1
   d1_ptr%d%good_plot = .false.
   if (graph%x%min /= graph%x%max) then
-    eps = 1e-4 * (graph%x%max - graph%x%min)
+    eps = 1e-6 * (graph%x%max - graph%x%min)
     if (plot%x_axis_type == 'index') then
       where (d1_ptr%d%ix_d1 > graph%x%min-eps .and. &
              d1_ptr%d%ix_d1 < graph%x%max+eps) d1_ptr%d%good_plot = .true.
@@ -1465,12 +1464,14 @@ case ('data')
     else ! s
       where (d1_ptr%d%s > graph%x%min-eps .and. &
              d1_ptr%d%s < graph%x%max+eps) d1_ptr%d%good_plot = .true.
+      ! Wrap around can be problematical in some cases. For example, with beam tracking data.
+      ! So here use min+eps and max-eps for the cutoff instead of min-eps and max+eps
       if (branch%param%geometry == closed$ .and. graph%allow_wrap_around) then 
         l_tot = branch%param%total_length
-        where (d1_ptr%d%s-l_tot > graph%x%min-eps .and. &
-               d1_ptr%d%s-l_tot < graph%x%max+eps) d1_ptr%d%good_plot = .true.
-        where (d1_ptr%d%s+l_tot > graph%x%min-eps .and. &
-               d1_ptr%d%s+l_tot < graph%x%max+eps) d1_ptr%d%good_plot = .true.
+        where (d1_ptr%d%s-l_tot > graph%x%min+eps .and. &
+               d1_ptr%d%s-l_tot < graph%x%max-eps) d1_ptr%d%good_plot = .true.
+        where (d1_ptr%d%s+l_tot > graph%x%min+eps .and. &
+               d1_ptr%d%s+l_tot < graph%x%max-eps) d1_ptr%d%good_plot = .true.
       endif
 
     endif
@@ -1497,7 +1498,7 @@ case ('data')
   elseif (plot%x_axis_type == 'ele_index') then
     curve%x_symb = d1_ptr%d(curve%ix_symb)%ix_ele
   elseif (plot%x_axis_type == 's') then
-    curve%x_symb = branch%ele(d1_ptr%d(curve%ix_symb)%ix_ele)%s
+    curve%x_symb = d1_ptr%d(curve%ix_symb)%s
     ! If there is a wrap-around then reorder data
     if (branch%param%geometry == closed$ .and. graph%allow_wrap_around) then
       do i = 1, n_dat
